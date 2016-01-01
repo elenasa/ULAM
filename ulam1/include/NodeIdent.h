@@ -67,6 +67,8 @@ namespace MFM{
 
     const Token& getToken() const;
 
+    bool isAConstant();
+
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType();

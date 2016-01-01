@@ -1240,7 +1240,6 @@ namespace MFM {
 
     UTI ruti = asNode->getRightType(); //what if Self?
     UTI tuti = m_state.getUlamTypeAsRef(ruti, ALT_AS);
-    //m_state.rekeyToReferenceUTI(ALT_AS, tuti);
     UlamType * tut = m_state.getUlamTypeByIndex(tuti);
     const std::string tdname = tut->getUlamTypeNameOnly();
     Token typeTok;
@@ -1279,7 +1278,7 @@ namespace MFM {
     tmpni = NULL;
     m_state.m_parsingConditionalAs = false; //done with flag and identToken.
 
-    NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(typeargs.m_typeTok, tuti, m_state);
+    NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(typeargs.m_typeTok, tuti, m_state, ALT_AS);
     assert(typeNode);
 
     //insert var decl into NodeStatements..as if parseStatement was called..

@@ -447,6 +447,20 @@ namespace MFM {
     // if here, must be a constant..
     assert(isAConstant());
 
+    NNO pno = Node::getYourParentNo();
+    assert(pno);
+    Node * parentNode = m_state.findNodeNoInThisClass(pno);
+    if(!parentNode)
+      {
+	std::ostringstream msg;
+	msg << "Constant value expression for binary op" << getName();
+	msg << " cannot be constant-folded at this time while compiling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	//return nuti; //leave gracefully
+	assert(0);
+      }
+
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(nuti); //offset a constant expression
     EvalStatus evs = eval();
@@ -479,11 +493,6 @@ namespace MFM {
     NodeTerminal * newnode = new NodeTerminal(val, nuti, m_state);
     assert(newnode);
     newnode->setNodeLocation(getNodeLocation());
-
-    NNO pno = Node::getYourParentNo();
-    assert(pno);
-    Node * parentNode = m_state.findNodeNoInThisClass(pno);
-    assert(parentNode);
 
     AssertBool swapOk = parentNode->exchangeKids(this, newnode);
     assert(swapOk);

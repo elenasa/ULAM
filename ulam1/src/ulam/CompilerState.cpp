@@ -62,7 +62,7 @@ namespace MFM {
   static const char * BUILD_DEFAULT_QUARK_FUNCNAME = "getDefaultQuark";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalHas(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0)
+  CompilerState::CompilerState(): m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalHas(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0)
   {
     m_err.init(this, debugOn, infoOn, warnOn, NULL);
     Token::initTokenMap(*this);
@@ -495,17 +495,8 @@ namespace MFM {
 
     UlamType * aut = getUlamTypeByIndex(auti);
     UlamKeyTypeSignature akey = getUlamKeyTypeSignatureByIndex(auti);
-    if(aut->isReference())
-      {
-	UTI classidx = akey.getUlamKeyTypeSignatureClassInstanceIdx();
-	UlamType * cut = getUlamTypeByIndex(classidx);
-	if(cut->isComplete())
-	  {
-	    mappedUTI = getUlamTypeAsRef(classidx, aut->getReferenceType());
-	    return true;
-	  }
-	return false;
-      }
+
+    //if(aut->isReference()) not a special case
 
     //move this test after looking for the mapped class symbol type in "cuti" (always compileThis?)
     ULAMTYPE bUT = aut->getUlamTypeEnum();
@@ -559,7 +550,11 @@ namespace MFM {
 	    UTI asref = getUlamTypeAsRef(getCompileThisIdx(), ALT_AS);
 	    return asref;
 	  }
-	//if(ALT_REF)??? XXX
+	if(skey.getUlamKeyTypeSignatureReferenceType() == ALT_REF)
+	  {
+	    UTI asref = getUlamTypeAsRef(getCompileThisIdx(), ALT_REF);
+	    return asref;
+	  }
 	if(!((SymbolClassNameTemplate *) cnsymOfIncomplete)->pendingClassArgumentsForStubClassInstance(suti))
 	  return suti;
       }
@@ -763,11 +758,17 @@ namespace MFM {
 
     if(bUT == Class)
       {
-	return keyOfArg.getUlamKeyTypeSignatureClassInstanceIdx();
+	//return keyOfArg.getUlamKeyTypeSignatureClassInstanceIdx(); // what-if a ref?
+	UTI cuti = keyOfArg.getUlamKeyTypeSignatureClassInstanceIdx(); // what-if a ref?
+	ALT argreftype = keyOfArg.getUlamKeyTypeSignatureReferenceType();
+	ALT creftype = getUlamTypeByIndex(cuti)->getReferenceType();
+	if(argreftype == creftype)
+	  return cuti;
+	// otherwise make a new one as non-classes.
       }
 
     u32 bitsize = keyOfArg.getUlamKeyTypeSignatureBitSize();
-    UlamKeyTypeSignature baseKey(keyOfArg.m_typeNameId, bitsize);  //default array size is zero
+    UlamKeyTypeSignature baseKey(keyOfArg.m_typeNameId, bitsize, NONARRAYSIZE, keyOfArg.m_classInstanceIdx, keyOfArg.m_referenceType);  //default array size is NONARRAYSIZE
 
     UTI buti = makeUlamType(baseKey, bUT); //could be a new one, oops.
     return buti;
@@ -939,8 +940,7 @@ namespace MFM {
     UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
 
     //continue with valid number of bits for Class UlamTypes only
-    UlamKeyTypeSignature newkey = UlamKeyTypeSignature(key.getUlamKeyTypeSignatureNameId(), bitsize, arraysize);
-    newkey.append(key.getUlamKeyTypeSignatureClassInstanceIdx());
+    UlamKeyTypeSignature newkey = UlamKeyTypeSignature(key.getUlamKeyTypeSignatureNameId(), bitsize, arraysize, key.getUlamKeyTypeSignatureClassInstanceIdx(), key.getUlamKeyTypeSignatureReferenceType());
 
     if(key == newkey)
       return;
@@ -978,6 +978,9 @@ namespace MFM {
     //bitsize of old could still be "unknown" (before size set, but args known and match 'cuti').
     assert(key1.getUlamKeyTypeSignatureNameId() == key2.getUlamKeyTypeSignatureNameId());
 
+    if(key1.getUlamKeyTypeSignatureReferenceType() != key2.getUlamKeyTypeSignatureReferenceType())
+      return; //don't destory olduti if either is a reference of the other
+
     //removes old key and its ulamtype from map, if no longer pointed to
     deleteUlamKeyTypeSignature(key1, olduti);
     m_indexToUlamKey[olduti] = key2;
@@ -990,6 +993,7 @@ namespace MFM {
     }
   } //mergeClassUTI
 
+  //(unused)
   void CompilerState::rekeyToReferenceUTI(ALT autoreftype, UTI auti)
   {
     UlamType * aut = getUlamTypeByIndex(auti);
@@ -1125,7 +1129,7 @@ namespace MFM {
       }
 
     //continue with valid number of bits
-    UlamKeyTypeSignature newkey = UlamKeyTypeSignature(key.getUlamKeyTypeSignatureNameId(), bitsize, arraysize);
+    UlamKeyTypeSignature newkey = UlamKeyTypeSignature(key.getUlamKeyTypeSignatureNameId(), bitsize, arraysize, key.getUlamKeyTypeSignatureClassInstanceIdx(), key.getUlamKeyTypeSignatureReferenceType());
 
     if(key == newkey)
       return;
@@ -1212,6 +1216,20 @@ namespace MFM {
       }
     return Nav; //even for non-classes
   } //isClassASubclass
+
+  void CompilerState::resetClassSuperclass(UTI cuti, UTI superuti)
+  {
+    UTI subuti = getUlamTypeAsScalar(cuti); //in case of array
+
+    SymbolClass * csym = NULL;
+    if(alreadyDefinedSymbolClass(subuti, csym))
+      {
+	SymbolClassName * cnsym = NULL;
+	AssertBool isDefined = alreadyDefinedSymbolClassName(csym->getId(), cnsym);
+	assert(isDefined);
+	cnsym->setSuperClassForClassInstance(superuti, cuti);
+      }
+  } //resetClassSuperclass
 
   //return true if the second arg is a superclass of the first arg.
   // i.e. cuti is a subclass of superp. recurses the family tree.
@@ -1326,6 +1344,9 @@ namespace MFM {
     UTI scalarUTI = uti;
     if(!ut->isScalar())
       scalarUTI = getUlamTypeAsScalar(uti);
+
+    //    if(ut->isReference())
+    //  scalarUTI = getUlamTypeAsDeref(scalarUTI); //and deref
 
     SymbolClassName * cnsym = NULL;
     if(alreadyDefinedSymbolClassName(ut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), cnsym))
@@ -1729,7 +1750,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
     if(m_currentFunctionReturnNodes.empty())
       {
-	if(it != Void && !fsym->isNativeFunctionDeclaration() && (fsym->isVirtualFunction() && !fsym->isPureVirtualFunction()))
+	if(it != Void && !fsym->isNativeFunctionDeclaration() && (!fsym->isVirtualFunction() || !fsym->isPureVirtualFunction()))
 	  {
 	    std::ostringstream msg;
 	    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
@@ -2221,12 +2242,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     NodeBlockClass * classNode = csym->getClassBlockNode();
     assert(classNode);
 
-    //pushClassContextUsingMemberClassBlock(classNode);
-
     NodeBlockFunctionDefinition * func = classNode->findToIntFunctionNode();
-
-    //popClassContext(); //don't forget!!
-
     return (func != NULL);
   } //quarkHasAToIntMethod
 
@@ -2451,7 +2467,24 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     SymbolClassName * cnsym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClassName(getCompileThisId(), cnsym);
     assert(isDefined);
-    return cnsym->findNodeNoInAClassInstance(getCompileThisIdx(), n);
+    Node * rtnNode = cnsym->findNodeNoInAClassInstance(getCompileThisIdx(), n);
+
+    //last resort, if we are in the middle of resolving pending args for a stub
+    // and to do constant folding, we need to find the parent node that's in the
+    // stub's resolver, NOT the context where the stub appears.
+    if(!rtnNode)
+      {
+	UTI stubuti = m_pendingArgStubContext;
+	if( stubuti != Nav)
+	  {
+	    u32 stubid = getUlamKeyTypeSignatureByIndex(stubuti).getUlamKeyTypeSignatureNameId();
+	    SymbolClassNameTemplate * cntsym = NULL;
+	    AssertBool isDefined = alreadyDefinedSymbolClassNameTemplate(stubid, cntsym);
+	    assert(isDefined);
+	    rtnNode =  cntsym->findNodeNoInAClassInstance(stubuti, n);
+	  }
+      }
+    return rtnNode;
   } //findNodeNoInThisClass
 
   Node * CompilerState::findNodeNoInAClass(NNO n, UTI cuti)

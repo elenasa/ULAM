@@ -174,7 +174,8 @@ namespace MFM {
     std::ostringstream mangledclassname;
     mangledclassname << UlamType::getUlamTypeMangledName(); //includes Uprefix
 
-    //appends '10', or numberOfParameters followed by each digi-encoded: mangled type and value
+    //appends 'r' for references, followed by '10'
+    //or numberOfParameters followed by each digi-encoded: mangled type and value
     u32 id = m_key.getUlamKeyTypeSignatureNameId();
     UTI cuti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
     SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(id);
@@ -215,6 +216,7 @@ namespace MFM {
   const std::string UlamTypeClass::getUlamTypeNameBrief()
   {
     std::ostringstream namestr;
+
     namestr << m_key.getUlamKeyTypeSignatureName(&m_state).c_str();
 
     u32 id = m_key.getUlamKeyTypeSignatureNameId();

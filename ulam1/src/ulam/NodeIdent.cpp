@@ -63,6 +63,33 @@ namespace MFM {
     return m_token;
   }
 
+  bool NodeIdent::isAConstant()
+  {
+    bool rtn = false;
+#if 1
+    if(!m_varSymbol)
+      {
+	//is it a constant within the member??
+	NodeBlockClass * memberclass = m_state.getClassBlock();
+	assert(memberclass);
+	m_state.pushCurrentBlock(memberclass);
+
+	Symbol * asymptr = NULL;
+	bool hazyKin = false;
+	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
+	  {
+	    if(asymptr->isConstant())
+	      {
+		//assert(0); //found it!!!
+		rtn = true;
+	      }
+	  }
+	m_state.popClassContext(); //restore
+      }
+#endif
+    return rtn;
+  } //isAConstant
+
   FORECAST NodeIdent::safeToCastTo(UTI newType)
   {
     //ulamtype checks for complete, non array, and type specific rules
@@ -168,23 +195,48 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		errCnt++;
 	      }
+	    m_state.popClassContext(); //restore
 	  }
 	else
 	  {
-	    std::ostringstream msg;
-	    msg << "(2) <" << m_state.getTokenDataAsString(&m_token).c_str();
-	    msg << "> is not defined, and cannot be used with class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	    if(!hazyKin)
+	    m_state.popClassContext(); //restore
+#if 0
+	    if(!asymptr)
 	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		//errCnt++;
+		//is it a constant within the member??
+		NodeBlockClass * memberclass = m_state.getClassBlock();
+		assert(memberclass);
+		m_state.pushCurrentBlock(memberclass);
+
+		Symbol * asymptr = NULL;
+		bool hazyKin = false;
+		// don't capture symbol ptr yet if part of incomplete chain.
+		if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
+		  {
+		    assert(0); //found it!!!
+
+
+		  }
+		m_state.popClassContext(); //restore
 	      }
-	    else
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    errCnt++;
+
+	    if(!asymptr)
+#endif
+	      {
+		std::ostringstream msg;
+		msg << "(2) <" << m_state.getTokenDataAsString(&m_token).c_str();
+		msg << "> is not defined, and cannot be used with class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+		if(!hazyKin)
+		  {
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    //errCnt++;
+		  }
+		else
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		errCnt++;
+	      }
 	  }
-	m_state.popClassContext(); //restore
       } //lookup symbol
 
     if(!errCnt && m_varSymbol)
@@ -212,9 +264,9 @@ namespace MFM {
 		msg << "' UTI" << it << " while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		m_state.mapTypesInCurrentClass(it, mappedUTI); //before setting equal?
+		m_varSymbol->resetUlamType(mappedUTI); //consistent!
 		it = mappedUTI;
-		m_varSymbol->resetUlamType(it); //consistent!
-		m_state.mapTypesInCurrentClass(it, mappedUTI);
 	      }
 
 	    if(!m_state.isComplete(it)) //reloads to recheck for debug message
@@ -817,6 +869,7 @@ namespace MFM {
 	    auti = m_state.makeUlamType(newarraykey, bUT);
 	  }
 
+	//assert(m_state.getUlamTypeByIndex(uti)->getReferenceType() == args.m_declRef);
 	uti = m_state.getUlamTypeAsRef(auti, args.m_declRef); //ut not current
 
 	SymbolVariable * sym = makeSymbol(uti, args.m_declRef);

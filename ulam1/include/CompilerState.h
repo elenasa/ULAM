@@ -119,6 +119,7 @@ namespace MFM{
                                   //uses evalNodeProlog/Epilog; EVALRETURN storage
 
     bool m_goAgainResolveLoop; //true means a node has a type that's not ready
+    UTI m_pendingArgStubContext; //non-Nav helps find parentNode in case of surgery
 
     ErrorMessageHandler m_err;
 
@@ -217,6 +218,7 @@ namespace MFM{
     s32 slotsNeeded(UTI uti);
     bool isClassATemplate(UTI cuti);
     UTI isClassASubclass(UTI cuti); //returns super UTI, or Nav if no inheritance
+    void resetClassSuperclass(UTI cuti, UTI superuti);
     bool isClassASuperclassOf(UTI cuti, UTI superp);
     bool isClassAStub(UTI cuti);
     bool hasClassAStub(UTI cuti);

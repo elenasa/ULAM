@@ -156,9 +156,7 @@ namespace MFM {
 
   bool SymbolClassNameTemplate::findClassInstanceByUTI(UTI uti, SymbolClass * & symptrref)
   {
-    //UlamType * ut = m_state.getUlamTypeByIndex(uti);
-    //assert(!ut->isReference()); //tmp debug
-
+#if 0
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(uti);
     if(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
@@ -169,6 +167,21 @@ namespace MFM {
 	return true;
       }
     return false;
+#else
+    bool rtn = false;
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	if(it->first == uti)
+	  {
+	    symptrref = it->second;
+	    rtn = true;
+	    break;
+	  }
+	it++;
+      }
+    return rtn;
+#endif
   } //findClassInstanceByUTI
 
   bool SymbolClassNameTemplate::findClassInstanceByArgString(UTI cuti, SymbolClass *& csymptr)
@@ -426,14 +439,18 @@ namespace MFM {
 
   std::string SymbolClassNameTemplate::formatAnInstancesArgValuesAsAString(UTI instance)
   {
-    u32 numParams = getNumberOfParameters();
-    if(numParams == 0)
-      {
-	return "10";
-      }
-
     std::ostringstream args;
+
+    UlamType * cut = m_state.getUlamTypeByIndex(instance);
+    bool isARef = cut->isReference();
+    if(isARef)
+      args << "r";
+
+    u32 numParams = getNumberOfParameters();
     args << ToLeximitedNumber(numParams);
+
+    if(numParams == 0)
+      return args.str();
 
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       {
@@ -729,7 +746,7 @@ namespace MFM {
 	if(findClassInstanceByArgString(cuti, dupsym))
 	  {
 	    UTI duti = dupsym->getUlamTypeIdx();
-	    m_state.mergeClassUTI(cuti,duti);
+	    m_state.mergeClassUTI(cuti, duti);
 	    delete csym;
 	    csym = NULL;
 	    it->second = dupsym; //duplicate! except different UTIs

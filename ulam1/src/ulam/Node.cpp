@@ -206,6 +206,8 @@ namespace MFM {
 	cnt += 1;
 	std::ostringstream msg;
 	msg << "Unresolved No." << cnt;
+	//msg << ": <" << getName() << ">";
+	//msg << (" << prettyNodeName().c_str() << ") "; ugly!
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
 #if 0
@@ -222,6 +224,7 @@ namespace MFM {
   UTI Node::constantFold()
   {
     return Nav;
+    //return getNodeType(); //more forgiving
   }
 
   bool Node::buildDefaultQuarkValue(u32& dqref)
