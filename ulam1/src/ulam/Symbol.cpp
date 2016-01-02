@@ -47,6 +47,7 @@ namespace MFM {
 
   void Symbol::resetUlamType(UTI newuti) //e.g. mappedUTI, fix _N class args
   {
+    assert(m_state.getReferenceType(m_uti) == m_state.getReferenceType(newuti));
     m_uti = newuti;
   }
 
@@ -101,14 +102,18 @@ namespace MFM {
     if(cTok.m_type == TOK_KW_AS)
       setAutoLocalType(ALT_AS);
     else if(cTok.m_type == TOK_KW_HAS)
-      setAutoLocalType(ALT_HAS);
+      //  setAutoLocalType(ALT_HAS);
+      assert(0); //deprecated
+    else if(cTok.m_type == TOK_AMP)
+      setAutoLocalType(ALT_REF);
     else
       setAutoLocalType(ALT_NOT);
-  }
+  } //setAutoLocalType (helper)
 
   void Symbol::setAutoLocalType(ALT alt)
   {
-    m_autoLocalType = alt; /* private */
+    assert(m_state.getUlamTypeByIndex(getUlamTypeIdx())->getReferenceType() == alt);
+    m_autoLocalType = alt;
   }
 
   ALT Symbol::getAutoLocalType()

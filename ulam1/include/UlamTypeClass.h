@@ -110,7 +110,11 @@ namespace MFM{
 
     virtual const std::string getArrayItemTmpStorageTypeAsString();
 
-    virtual const std::string getImmediateStorageTypeAsString();
+    virtual const std::string getLocalStorageTypeAsString();
+
+    virtual const std::string castMethodForCodeGen(UTI nodetype);
+
+    virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
 
     virtual void genUlamTypeReadDefinitionForC(File * fp);
 
@@ -120,11 +124,9 @@ namespace MFM{
 
     virtual const std::string writeArrayItemMethodForCodeGen();
 
-    virtual const std::string castMethodForCodeGen(UTI nodetype);
-
     virtual void genUlamTypeMangledDefinitionForC(File * fp);
 
-    virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
+    virtual void genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp);
 
     virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
 
@@ -135,11 +137,14 @@ namespace MFM{
     ULAMCLASSTYPE m_class;
     bool m_customArray;
 
-    void genUlamTypeQuarkMangledDefinitionForC(File * fp);
+    void genUlamTypeQuarkMangledAutoDefinitionForC(File * fp);
     void genUlamTypeQuarkReadDefinitionForC(File * fp);
     void genUlamTypeQuarkWriteDefinitionForC(File * fp);
 
-    void genUlamTypeElementMangledDefinitionForC(File * fp);
+    void genUlamTypeMangledUnpackedQuarkArrayDefinitionForC(File * fp);
+    void genUlamTypeMangledUnpackedElementArrayDefinitionForC(File * fp);
+
+    void genUlamTypeElementMangledAutoDefinitionForC(File * fp);
     void genUlamTypeElementReadDefinitionForC(File * fp);
     void genUlamTypeElementWriteDefinitionForC(File * fp);
 

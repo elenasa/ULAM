@@ -1,0 +1,32 @@
+## -*- mode:ulam -*-
+#=t3618_test_compiler_arrayindex_ish
+#!
+Exit status: 0
+Ue_Ish { Unsigned(4) foo[6](3u,3u,3u,2u,0u,0u);  Int(32) test() {  Unsigned(32) i = 0 cast;  foo i [] 1 cast = i 3 cast = foo i [] 2 cast = { i 0 cast = i 3u cast < cond { foo i [] 3 cast = } _1: i 1 cast += while } 0 cast return } }
+##
+#>Ish.ulam
+  ulam 1;
+element Ish
+{
+  Unsigned(4) foo[6];
+  Int test()
+  {
+    Unsigned i = 0;
+    foo[i] = 1; // works fine
+    i = 3;
+    foo[i] = 2; // works fine
+    for (i = 0; i < 3u; ++i)
+    {
+      foo[i] = 3; // dies with:
+      /*
+        /home/ackley/papers/MF/asrepo/RT13/code/MFMv2-fork/src/core/include/BitVector.h: In member function ‘void MFM::Ue_10103Ish10<EC>::Uf_6behave(const MFM::UlamContext<EC>&, MFM::Ue_10103Ish10<EC>::T&) const [with EC = MFM::EventConfig<MFM::Site<MFM::P3AtomConfig>, 4u>; MFM::Ue_10103Ish10<EC>::T = MFM::P3Atom]’:
+        /home/ackley/papers/MF/asrepo/RT13/code/MFMv2-fork/src/core/include/BitVector.h:85:28: error: array subscript is above array bounds [-Werror=array-bounds]
+        m_bits[idx] = (m_bits[idx] & ~mask) | ((value << shift) & mask);
+	^
+      */
+    }
+    return 0;
+  }
+}
+
+#.

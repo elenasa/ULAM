@@ -206,6 +206,8 @@ namespace MFM {
 	cnt += 1;
 	std::ostringstream msg;
 	msg << "Unresolved No." << cnt;
+	msg << ": <" << getName() << ">";
+	//msg << (" << prettyNodeName().c_str() << ") "; ugly!
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
 #if 0
@@ -221,7 +223,7 @@ namespace MFM {
 
   UTI Node::constantFold()
   {
-    return Nav;
+    return Nav; //parent required
   }
 
   bool Node::buildDefaultQuarkValue(u32& dqref)
@@ -895,9 +897,7 @@ namespace MFM {
     vuti = uvpass.getPtrTargetType(); //replaces vuti w target type
     assert(vuti != Void);
 
-    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     //vut (index) may not be numeric when custom array
-
     //here, cos is symbol used to determine read method: either self or last of cos.
     //stgcos is symbol used to determine first "hidden" arg
     Symbol * cos = NULL;
@@ -911,11 +911,10 @@ namespace MFM {
     assert(isCurrentObjectACustomArrayItem(cosuti, uvpass));
 
     UTI itemuti = m_state.getAClassCustomArrayType(cosuti);
-    UlamType * itemut = m_state.getUlamTypeByIndex(itemuti);
 
     m_state.indent(fp);
     fp->write("const ");
-    fp->write(itemut->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
+    fp->write(localStorageTypeAsString(itemuti).c_str()); //e.g. BitVector<32> exception
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(itemuti, tmpVarNum2, TMPBITVAL).c_str());
     fp->write(" = ");
@@ -939,7 +938,7 @@ namespace MFM {
 	fp->write(", "); //rest of args
       }
     //index is immediate Index arg of targettype in uvpass
-    fp->write(vut->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
+    fp->write(localStorageTypeAsString(vuti).c_str()); //e.g. BitVector<32> exception
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex()).c_str()); //INDEX
     fp->write("));\n");
@@ -1531,8 +1530,7 @@ namespace MFM {
       }
 
     //index is immediate Int arg
-    UlamType * lut = m_state.getUlamTypeByIndex(luti);
-    fp->write(lut->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
+    fp->write(localStorageTypeAsString(luti).c_str()); //e.g. BitVector<32> exception
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(luti, luvpass.getPtrSlotIndex()).c_str()); //INDEX
     fp->write("), ");
@@ -1543,7 +1541,7 @@ namespace MFM {
     // aset requires its custom array type (e.g. an atom) as its value:
     assert(m_state.getUlamTypeByIndex(cosuti)->getUlamClass() != UC_NOTACLASS);
     UTI catype = m_state.getAClassCustomArrayType(cosuti);
-    fp->write(m_state.getUlamTypeByIndex(catype)->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
+    fp->write(localStorageTypeAsString(catype).c_str()); //e.g. BitVector<32> exception
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
     fp->write(") );\n");
@@ -1566,7 +1564,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("const ");
 
-    fp->write(vut->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
+    fp->write(localStorageTypeAsString(vuti).c_str()); //e.g. BitVector<32> exception
     fp->write(" ");
 
     fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2, TMPBITVAL).c_str());
@@ -1670,11 +1668,17 @@ namespace MFM {
 	if(cosclasstype == UC_QUARK)
 	  {
 	    fp->write("<EC, ");
-	    fp->write_decimal(ATOMFIRSTSTATEBITPOS); //must be a constant
+	    fp->write_decimal_unsigned(ATOMFIRSTSTATEBITPOS); //must be a constant
 	    fp->write("u> ");
 	  }
-	else
+	else if(cosclasstype == UC_ELEMENT || cosuti == UAtom)
 	  fp->write("<EC> ");
+	else
+	  {
+	    fp->write("<EC, ");
+	    fp->write_decimal_unsigned(BITSPERATOM - cosut->getTotalBitSize() ); //must be a constant
+	    fp->write("u> ");
+	  }
 
 	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum2, TMPAUTOREF).c_str());
 	fp->write("("); //use constructor (not equals)
@@ -1698,11 +1702,17 @@ namespace MFM {
 	if(cosclasstype == UC_QUARK)
 	  {
 	    fp->write("<EC, ");
-	    fp->write_decimal(ATOMFIRSTSTATEBITPOS); //must be a constant
+	    fp->write_decimal_unsigned(ATOMFIRSTSTATEBITPOS); //must be a constant
 	    fp->write("u> ");
 	  }
-	else
+	else if(cosclasstype == UC_ELEMENT || cosuti == UAtom)
 	  fp->write("<EC> ");
+	else
+	  {
+	    fp->write("<EC, ");
+	    fp->write_decimal_unsigned(BITSPERATOM - cosut->getTotalBitSize() ); //must be a constant
+	    fp->write("u> ");
+	  }
 
 	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum2, TMPAUTOREF).c_str());
 	fp->write("("); // use constructor (not equals)
@@ -2418,7 +2428,6 @@ namespace MFM {
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
     UTI stgcosuti = stgcos->getUlamTypeIdx();
-    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
     // handle inheritance, when data member is in superclass, not current class obj
     // now for both immediate elements and quarks..
@@ -2471,16 +2480,15 @@ namespace MFM {
 	      }
 	  }
       }
-    //stgcos is not the base of the type (possibly remove code?)
+    //stgcos is not the base of the type (possibly remove code? No, t3249)
     if(subcos < 0)
       {
-	fp->write(stgcosut->getImmediateStorageTypeAsString().c_str());
+	fp->write(localStorageTypeAsString(stgcosuti).c_str());
 	fp->write("::");
 	fp->write("Us::"); //typedef
 	if(cosSize == 1)
 	  fp->write("THE_INSTANCE.");
       }
-
 
       for(u32 i = startcos; i < cosSize; i++)
       {
@@ -2550,6 +2558,18 @@ namespace MFM {
     //otherwise normal data member name..
     return genLocalMemberNameOfMethodByUsTypedef(fp);
   } //genCustomArrayLocalMemberNameOfMethod
+
+  const std::string Node::localStorageTypeAsString(UTI nuti)
+  {
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    if(nut->isReference())
+      {
+	//use its referred class for its name:
+	UTI deuti = m_state.getUlamTypeAsDeref(nuti);
+	nut = m_state.getUlamTypeByIndex(deuti);
+      }
+    return nut->getLocalStorageTypeAsString();
+  } //localStorageTypeAsString
 
   const std::string Node::tmpStorageTypeForRead(UTI nuti, UlamValue uvpass)
   {

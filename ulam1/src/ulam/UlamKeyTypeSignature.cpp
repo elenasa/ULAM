@@ -7,11 +7,11 @@
 
 namespace MFM {
 
-  UlamKeyTypeSignature::UlamKeyTypeSignature(): m_typeNameId(0), m_bits(UNKNOWNSIZE), m_arraySize(UNKNOWNSIZE), m_classInstanceIdx(Nav) {}
+  UlamKeyTypeSignature::UlamKeyTypeSignature(): m_typeNameId(0), m_bits(UNKNOWNSIZE), m_arraySize(UNKNOWNSIZE), m_classInstanceIdx(Nav), m_referenceType(ALT_NOT) {}
 
-  UlamKeyTypeSignature::UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize ): m_typeNameId(nameid), m_bits(bitsize), m_arraySize(arraysize), m_classInstanceIdx(Nav) {}
+  UlamKeyTypeSignature::UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize, ALT reftype): m_typeNameId(nameid), m_bits(bitsize), m_arraySize(arraysize), m_classInstanceIdx(Nav), m_referenceType(reftype) {}
 
-  UlamKeyTypeSignature::UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize, UTI classinstanceidx) : m_typeNameId(nameid), m_bits(bitsize), m_arraySize(arraysize), m_classInstanceIdx(classinstanceidx) {}
+  UlamKeyTypeSignature::UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize, UTI classinstanceidx, ALT reftype) : m_typeNameId(nameid), m_bits(bitsize), m_arraySize(arraysize), m_classInstanceIdx(classinstanceidx), m_referenceType(reftype) {}
 
   UlamKeyTypeSignature::~UlamKeyTypeSignature(){}
 
@@ -43,6 +43,11 @@ namespace MFM {
   UTI UlamKeyTypeSignature::getUlamKeyTypeSignatureClassInstanceIdx()
   {
     return m_classInstanceIdx;
+  }
+
+  ALT UlamKeyTypeSignature::getUlamKeyTypeSignatureReferenceType()
+  {
+    return m_referenceType;
   }
 
   const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureNameAndBitSize(CompilerState * state)
@@ -106,27 +111,35 @@ namespace MFM {
     if(utk.m_classInstanceIdx != Nav)
       key << "<" << utk.m_classInstanceIdx << ">";
 
+    if(utk.m_referenceType != ALT_NOT)
+      key << "<" << utk.m_referenceType << ">";
+
     return key.str();
   } //getUlamKeyTypeSignatureAsString
 
-  bool UlamKeyTypeSignature::operator<(const UlamKeyTypeSignature & key2)
+  bool UlamKeyTypeSignature::operator<(const UlamKeyTypeSignature & key2) const
   {
     if(m_typeNameId < key2.m_typeNameId) return true;  //?
     if(m_typeNameId > key2.m_typeNameId) return false; //?
 
     if(m_bits < key2.m_bits) return true;
     if(m_bits > key2.m_bits) return false;
+
     if(m_arraySize < key2.m_arraySize) return true;
     if(m_arraySize > key2.m_arraySize) return false;
 
     if(m_classInstanceIdx < key2.m_classInstanceIdx) return true;
     if(m_classInstanceIdx > key2.m_classInstanceIdx) return false;
+
+    if(m_referenceType < key2.m_referenceType) return true;
+    if(m_referenceType > key2.m_referenceType) return false;
+
     return false;
   }
 
-  bool UlamKeyTypeSignature::operator==(const UlamKeyTypeSignature & key2)
+  bool UlamKeyTypeSignature::operator==(const UlamKeyTypeSignature & key2) const
   {
-    return ((m_typeNameId == key2.m_typeNameId) && (m_bits == key2.m_bits) && (m_arraySize == key2.m_arraySize) && m_classInstanceIdx == key2.m_classInstanceIdx);
+    return ((m_typeNameId == key2.m_typeNameId) && (m_bits == key2.m_bits) && (m_arraySize == key2.m_arraySize) && (m_classInstanceIdx == key2.m_classInstanceIdx) && (m_referenceType == key2.m_referenceType));
   }
 
 } //end MFM

@@ -48,6 +48,8 @@ namespace MFM{
 
     NodeTypeDescriptor(Token typetoken, UTI auti, CompilerState & state);
 
+    NodeTypeDescriptor(Token typetoken, UTI auti, CompilerState & state, ALT refarg);
+
     NodeTypeDescriptor(const NodeTypeDescriptor& ref);
 
     virtual ~NodeTypeDescriptor();
@@ -70,6 +72,10 @@ namespace MFM{
 
     UTI givenUTI();
 
+    ALT getReferenceType();
+
+    void setReferenceType(ALT refarg);
+
     virtual UTI checkAndLabelType();
 
     virtual void countNavNodes(u32& cnt);
@@ -85,6 +91,7 @@ namespace MFM{
 
   private:
     NodeTypeBitsize * m_unknownBitsizeSubtree;
+    ALT m_refType;
 
     virtual bool resolveType(UTI& rtnuti);
     bool resolveTypeBitsize(UTI auti);

@@ -56,7 +56,7 @@ namespace MFM{
 
     virtual const std::string getUlamTypeAsStringForC();
 
-    virtual const std::string getImmediateStorageTypeAsString();
+    virtual const std::string getLocalStorageTypeAsString();
 
     virtual const std::string castMethodForCodeGen(UTI nodetype);
 

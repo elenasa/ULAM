@@ -8,7 +8,7 @@
 
 namespace MFM {
 
-  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_varSymbol(sym), m_vid(0), m_currBlockNo(0), m_nodeTypeDesc(nodetype)
+  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_varSymbol(sym), m_vid(0), m_nodeInitExpr(NULL), m_currBlockNo(0), m_nodeTypeDesc(nodetype)
   {
     if(sym)
       {
@@ -17,16 +17,22 @@ namespace MFM {
       }
   }
 
-  NodeVarDecl::NodeVarDecl(const NodeVarDecl& ref) : Node(ref), m_varSymbol(NULL), m_vid(ref.m_vid), m_currBlockNo(ref.m_currBlockNo), m_nodeTypeDesc(NULL)
+  NodeVarDecl::NodeVarDecl(const NodeVarDecl& ref) : Node(ref), m_varSymbol(NULL), m_vid(ref.m_vid), m_nodeInitExpr(NULL), m_currBlockNo(ref.m_currBlockNo), m_nodeTypeDesc(NULL)
   {
     if(ref.m_nodeTypeDesc)
       m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
+
+    if(ref.m_nodeInitExpr)
+      m_nodeInitExpr = (Node *) ref.m_nodeInitExpr->instantiate();
   }
 
   NodeVarDecl::~NodeVarDecl()
   {
     delete m_nodeTypeDesc;
     m_nodeTypeDesc = NULL;
+
+    delete m_nodeInitExpr;
+    m_nodeInitExpr = NULL;
   }
 
   Node * NodeVarDecl::instantiate()
@@ -39,13 +45,27 @@ namespace MFM {
     Node::updateLineage(pno);
     if(m_nodeTypeDesc)
       m_nodeTypeDesc->updateLineage(getNodeNo());
+    if(m_nodeInitExpr)
+      m_nodeInitExpr->updateLineage(getNodeNo());
   } //updateLineage
+
+  bool NodeVarDecl::exchangeKids(Node * oldnptr, Node * newnptr)
+  {
+    if(m_nodeInitExpr == oldnptr)
+      {
+	m_nodeInitExpr = newnptr;
+	return true;
+      }
+    return false;
+  } //exhangeKids
 
   bool NodeVarDecl::findNodeNo(NNO n, Node *& foundNode)
   {
     if(Node::findNodeNo(n, foundNode))
       return true;
     if(m_nodeTypeDesc && m_nodeTypeDesc->findNodeNo(n, foundNode))
+      return true;
+    if(m_nodeInitExpr && m_nodeInitExpr->findNodeNo(n, foundNode))
       return true;
     return false;
   } //findNodeNo
@@ -75,6 +95,11 @@ namespace MFM {
   void NodeVarDecl::printPostfix(File * fp)
   {
     printTypeAndName(fp);
+    if(m_nodeInitExpr)
+      {
+	fp->write(" =");
+	m_nodeInitExpr->printPostfix(fp);
+      }
     fp->write("; ");
   } //printPostfix
 
@@ -121,6 +146,71 @@ namespace MFM {
     symptrref = m_varSymbol;
     return true;
   }
+
+  void NodeVarDecl::setInitExpr(Node * node)
+  {
+    assert(node);
+    m_nodeInitExpr = node;
+    m_nodeInitExpr->updateLineage(getNodeNo()); //for unknown subtrees
+  }
+
+  bool NodeVarDecl::hasInitExpr()
+  {
+    return (m_nodeInitExpr != NULL);
+  }
+
+  bool NodeVarDecl::foldInitExpression()
+  {
+    assert(0); //TBD;
+  }
+
+  FORECAST NodeVarDecl::safeToCastTo(UTI newType)
+  {
+    assert(m_nodeInitExpr);
+
+    FORECAST rscr = CAST_CLEAR;
+    UTI nuti = getNodeType();
+    //cast RHS if necessary and safe
+    if(UlamType::compare(nuti, newType, m_state) != UTIC_SAME)
+	  {
+	    //different msg if try to assign non-class to a class type
+	    if(m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum() == Class)
+	      {
+		std::ostringstream msg;
+		msg << "Incompatible class type ";
+		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		msg << " and ";
+		msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+		msg << " used with variable initialization";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		rscr = CAST_BAD; //error
+	      }
+	    else
+	      {
+		rscr = m_nodeInitExpr->safeToCastTo(nuti);
+		if(rscr != CAST_CLEAR)
+		  {
+		    std::ostringstream msg;
+		    if(m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum() == Bool)
+		      msg << "Use a comparison operator";
+		    else
+		      msg << "Use explicit cast";
+		    msg << " to convert "; // the real converting-message
+		    msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+		    msg << " to ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		    msg << " for variable initialization";
+		    if(rscr == CAST_BAD)
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    else
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		  }
+		else if(!Node::makeCastingNode(m_nodeInitExpr, nuti, m_nodeInitExpr))
+		  rscr = CAST_BAD; //error
+	      }
+	  } //safe cast
+      return rscr;
+  } //safeToCastTo
 
   UTI NodeVarDecl::checkAndLabelType()
   {
@@ -181,6 +271,27 @@ namespace MFM {
 	it = Nav;
       }
 
+    if(m_nodeInitExpr)
+      {
+	UTI eit = m_nodeInitExpr->checkAndLabelType();
+	if(eit == Nav)
+	  {
+	    std::ostringstream msg;
+	    msg << "Initial value expression for: ";
+	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+	    msg << ", initialization is invalid";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    m_state.setGoAgain(); //since not error
+	    setNodeType(Nav);
+	    return Nav; //short-circuit
+	  }
+
+	setNodeType(it); //needed before safeToCast
+	if(safeToCastTo(eit) != CAST_CLEAR)
+	  it = Nav; //error
+      }
+
+    setStoreIntoAble(true);
     setNodeType(it);
     return getNodeType();
   } //checkAndLabelType
@@ -322,12 +433,18 @@ namespace MFM {
 	((SymbolVariable *) m_varSymbol)->setStackFrameSlotIndex(newslot);
       }
     depth += m_state.slotsNeeded(getNodeType());
+
+    if(m_nodeInitExpr)
+      m_nodeInitExpr->calcMaxDepth(depth, maxdepth, base);
   } //calcMaxDepth
 
   void NodeVarDecl::countNavNodes(u32& cnt)
   {
     if(m_nodeTypeDesc)
       m_nodeTypeDesc->countNavNodes(cnt);
+
+    if(m_nodeInitExpr)
+      m_nodeInitExpr->countNavNodes(cnt);
 
     Node::countNavNodes(cnt);
   } //countNavNodes
@@ -342,8 +459,7 @@ namespace MFM {
 
     assert(m_varSymbol->getUlamTypeIdx() == nuti); //is it so? if so, some cleanup needed
 
-    if(m_varSymbol->isAutoLocal())
-      return evalAutoLocal();
+    assert(!m_varSymbol->isAutoLocal()); //NodeVarRef::eval
 
     ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClass();
     if(nuti == UAtom)
@@ -429,34 +545,101 @@ namespace MFM {
 	//see NodeVarDeclDM for data members..
 	assert(0);
       }
+
+    if(m_nodeInitExpr)
+      return evalInitExpr();
     return NORMAL;
   } //eval
 
-  EvalStatus NodeVarDecl::evalAutoLocal()
+  EvalStatus NodeVarDecl::evalInitExpr()
   {
-    assert(m_varSymbol);
+    EvalStatus evs = NORMAL; //init
+    // quark or nonclass data member;
+    evalNodeProlog(0); //new current node eval frame pointer
 
-    UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    makeRoomForSlots(1); //always 1 slot for ptr
 
-    assert(m_varSymbol->getUlamTypeIdx() == nuti);
-    assert(nuti != UAtom); //rhs type of conditional as/has can't be an atom
+    evs = evalToStoreInto();
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
 
-    UlamValue pluv = m_state.m_currentAutoObjPtr;
-    ((SymbolVariableStack *) m_varSymbol)->setAutoPtrForEval(pluv); //for future ident eval uses
-    ((SymbolVariableStack *) m_varSymbol)->setAutoStorageTypeForEval(m_state.m_currentAutoStorageType); //for future virtual function call eval uses
+    UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
 
-    m_state.m_funcCallStack.storeUlamValueInSlot(pluv, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex()); //doesn't seem to matter..
+    u32 slot = makeRoomForNodeType(getNodeType());
 
+    evs = m_nodeInitExpr->eval();
+
+    if(evs == NORMAL)
+      {
+	if(slot)
+	  {
+	    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slot+1); //immediate scalar
+	    m_state.assignValue(pluv,ruv);
+
+	    //also copy result UV to stack, -1 relative to current frame pointer
+	    assignReturnValueToStack(ruv);
+	  }
+      } //normal
+    evalNodeEpilog();
+    return evs;
+  } //evalInitExpr
+
+  EvalStatus NodeVarDecl::evalToStoreInto()
+  {
+    evalNodeProlog(0); //new current node eval frame pointer
+
+    // return ptr to this local var (from NodeIdent's makeUlamValuePtr)
+    UlamValue rtnUVPtr = makeUlamValuePtr();
+
+    //copy result UV to stack, -1 relative to current frame pointer
+    assignReturnValuePtrToStack(rtnUVPtr);
+
+    evalNodeEpilog();
     return NORMAL;
-  } //evalAutoLocal
+  } //evalToStoreInto
 
-  EvalStatus  NodeVarDecl::evalToStoreInto()
+  UlamValue NodeVarDecl::makeUlamValuePtr()
   {
-    assert(0); //no way to get here!
-    return ERROR;
-  }
+    // (from NodeIdent's makeUlamValuePtr)
+    UlamValue ptr;
+    if(m_varSymbol->isSelf())
+      {
+	//when "self/atom" is a quark, we're inside a func called on a quark (e.g. dm or local)
+	//'atom' gets entire atom/element containing this quark; including its type!
+	//'self' gets type/pos/len of the quark from which 'atom' can be extracted
+	UlamValue selfuvp = m_state.m_currentSelfPtr;
+	UTI ttype = selfuvp.getPtrTargetType();
+	if((m_state.getUlamTypeByIndex(ttype)->getUlamClass() == UC_QUARK))
+	  {
+	    u32 vid = m_varSymbol->getId();
+	    if(vid == m_state.m_pool.getIndexForDataString("atom"))
+	      {
+		selfuvp = m_state.getAtomPtrFromSelfPtr();
+	      }
+	    //else
+	  }
+	return selfuvp;
+      } //done
+
+    assert(!m_varSymbol->isAutoLocal()); //nodevarref, not here!
+
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClass();
+    if(classtype == UC_ELEMENT)
+      {
+	  // ptr to explicit atom or element, (e.g.'f' in f.a=1) becomes new m_currentObjPtr
+	  ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), UNPACKED, m_state, 0, m_varSymbol->getId());
+      }
+    else
+      {
+	assert(!m_varSymbol->isDataMember());
+	//local variable on the stack; could be array ptr!
+	ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
+      }
+    return ptr;
+  } //makeUlamValuePtr
 
   // parse tree in order declared, unlike the ST.
   void NodeVarDecl::genCode(File * fp, UlamValue& uvpass)
@@ -464,205 +647,65 @@ namespace MFM {
     assert(m_varSymbol);
     assert(getNodeType() != Nav);
 
-    if(m_varSymbol->isDataMember())
-      {
-	return genCodedBitFieldTypedef(fp, uvpass);
-      }
-
-    if(m_varSymbol->isAutoLocal())
-      {
-	return genCodedAutoLocal(fp, uvpass);
-      }
+    assert(!m_varSymbol->isDataMember()); //NodeVarDeclDM::genCode
+    assert(!m_varSymbol->isAutoLocal()); //NodeVarRef::genCode
 
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
-    m_state.indent(fp);
-    if(!m_varSymbol->isDataMember())
-      {
-	fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars
-      }
-    else
-      {
-	fp->write(vut->getUlamTypeMangledName().c_str()); //for C++
-	assert(0); //doesn't happen anymore..
-      }
-
-    fp->write(" ");
-    fp->write(m_varSymbol->getMangledName().c_str());
-
     ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+
+    if(m_nodeInitExpr)
+      {
+	m_nodeInitExpr->genCode(fp, uvpass);
+
+	m_state.indent(fp);
+	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
+	fp->write(" ");
+	fp->write(m_varSymbol->getMangledName().c_str());
+	fp->write("("); // use constructor (not equals)
+	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str()); //VALUE
+	fp->write(")");
+	fp->write(";\n"); //func call args aren't NodeVarDecl's
+	m_state.m_currentObjSymbolsForCodeGen.clear();
+	return;
+      }
 
     //initialize T to default atom (might need "OurAtom" if data member ?)
     if(vclasstype == UC_ELEMENT)
       {
-	fp->write(" = ");
-	fp->write(m_state.getUlamTypeByIndex(vuti)->getUlamTypeMangledName().c_str());
-	fp->write("<EC>");
-	fp->write("::THE_INSTANCE");
-	fp->write(".GetDefaultAtom()"); //returns object of type T
+	m_state.indent(fp);
+	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
+	fp->write(" ");
+	fp->write(m_varSymbol->getMangledName().c_str());
+	if(vut->isScalar())
+	  {
+	    fp->write(" = ");
+	    fp->write(m_state.getUlamTypeByIndex(vuti)->getUlamTypeMangledName().c_str());
+	    fp->write("<EC>");
+	    fp->write("::THE_INSTANCE");
+	    fp->write(".GetDefaultAtom()"); //returns object of type T
+	  }
+	//else
       }
-
-    if(vclasstype == UC_QUARK)
+    else if(vclasstype == UC_QUARK)
       {
 	//left-justified?
+	m_state.indent(fp);
+	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
+	fp->write(" ");
+	fp->write(m_varSymbol->getMangledName().c_str());
       }
-
-    fp->write(";\n"); //func call parameters aren't NodeVarDecl's
+    else
+      {
+	m_state.indent(fp);
+	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
+	fp->write(" ");
+	fp->write(m_varSymbol->getMangledName().c_str()); //default 0
+      }
+    fp->write(";\n"); //func call args aren't NodeVarDecl's
+    m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCode
-
-
-  // variable is a data member; not an element
-  void NodeVarDecl::genCodedBitFieldTypedef(File * fp, UlamValue& uvpass)
-  {
-    UTI nuti = getNodeType();
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMCLASSTYPE nclasstype = nut->getUlamClass();
-    ULAMCLASSTYPE classtype = m_state.getUlamClassForThisClass();
-
-    m_state.indent(fp);
-    if(nclasstype == UC_QUARK && nut->isScalar())
-      {
-	// use typedef rather than atomic parameter for quarks within elements,
-	// except if an array of quarks.
-	fp->write("typedef ");
-	fp->write(nut->getUlamTypeMangledName().c_str()); //for C++
-	fp->write("<EC, ");
-	if(classtype == UC_ELEMENT)
-	  {
-	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
-	    fp->write("u");
-	  }
-	else
-	  {
-	    //inside a quark
-	    fp->write("POS + ");
-	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
-	    fp->write("u");
-	  }
-      }
-    else
-      {
-	fp->write("typedef AtomicParameterType");
-	fp->write("<EC"); //BITSPERATOM
-	fp->write(", ");
-	fp->write(nut->getUlamTypeVDAsStringForC().c_str());
-	fp->write(", ");
-	fp->write_decimal(nut->getTotalBitSize());   //include arraysize
-	fp->write(", ");
-	if(classtype == UC_QUARK)
-	  {
-	    fp->write("POS + ");
-	    fp->write_decimal(m_varSymbol->getPosOffset());
-	  }
-	else
-	  {
-	    assert(classtype == UC_ELEMENT);
-	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
-	    fp->write("u");
-	  }
-      }
-    fp->write("> ");
-    fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
-    fp->write(";\n"); //func call parameters aren't NodeVarDecl's
-  } //genCodedBitFieldTypedef
-
-  // this is the auto local variable's node, created at parse time,
-  // for Conditional-As case.
-  void NodeVarDecl::genCodedAutoLocal(File * fp, UlamValue & uvpass)
-  {
-    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
-    // the uvpass comes from NodeControl, and still has the POS obtained
-    // during the condition statement for As..unorthodox, but necessary.
-    assert(uvpass.getUlamValueTypeIdx() == Ptr);
-    s32 tmpVarPos = uvpass.getPtrSlotIndex();
-
-    // before shadowing the lhs of the h/as-conditional variable with its auto,
-    // let's load its storage from the currentSelfSymbol:
-    s32 tmpVarStg = m_state.getNextTmpVarNumber();
-    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-    UTI stguti = stgcos->getUlamTypeIdx();
-    UlamType * stgut = m_state.getUlamTypeByIndex(stguti);
-    assert(stguti == UAtom || stgut->getUlamClass() == UC_ELEMENT); //not quark
-
-    // can't let Node::genCodeReadIntoTmpVar do this for us: it's a ref.
-    assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
-    m_state.indent(fp);
-    fp->write(stgut->getTmpStorageTypeAsString().c_str());
-    fp->write("& "); //here it is!!
-    fp->write(m_state.getTmpVarAsString(stguti, tmpVarStg, TMPBITVAL).c_str());
-    fp->write(" = ");
-    fp->write(m_state.m_currentObjSymbolsForCodeGen[0]->getMangledName().c_str());
-
-    if(m_varSymbol->getId() != m_state.m_pool.getIndexForDataString("atom")) //not isSelf check; was "self"
-      fp->write(".getRef()");
-    fp->write(";\n");
-
-    // now we have our pos in tmpVarPos, and our T in tmpVarStg
-    // time to shadow 'self' with auto local variable:
-    UTI vuti = m_varSymbol->getUlamTypeIdx();
-    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
-
-    m_state.indent(fp);
-    fp->write(vut->getUlamTypeImmediateAutoMangledName().c_str()); //for C++ local vars, ie non-data members
-    if(vclasstype == UC_ELEMENT)
-      fp->write("<EC> ");
-    else //QUARK
-      {
-	fp->write("<EC, ");
-	fp->write_decimal_unsigned(m_varSymbol->getPosOffset()); //POS should be 0+25 for inheritance
-	fp->write("u + T::ATOM_FIRST_STATE_BIT> ");
-      }
-
-    fp->write(m_varSymbol->getMangledName().c_str());
-    fp->write("(");
-    fp->write(m_state.getTmpVarAsString(stguti, tmpVarStg, TMPBITVAL).c_str());
-
-    if(vclasstype == UC_QUARK)
-      {
-	fp->write(", ");
-	if(m_state.m_genCodingConditionalHas) //not sure this is posoffset, and not true/false?
-	  fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), tmpVarPos).c_str());
-	else
-	  {
-	    assert(m_varSymbol->getPosOffset() == 0);
-	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset()); //should be 0!
-	  }
-      }
-    else if(vclasstype == UC_ELEMENT)
-      {
-	//fp->write(", true"); //invokes 'badass' constructor
-      }
-    else
-      assert(0);
-
-    fp->write(");   //shadows lhs of 'h/as'\n");
-
-    m_state.indent(fp);
-
-    //special ulamcontext for autos based on its (lhs) storage
-    fp->write("const UlamContext<EC> ");
-    fp->write(m_state.getAutoHiddenContextArgName()); // _ucauto
-
-    if(stgcos->isAutoLocal())
-      {
-	//shadows previous _ucAuto
-	fp->write("(");
-	fp->write(m_state.getAutoHiddenContextArgName()); // _ucauto
-	fp->write("(, ");
-	fp->write(m_state.getAutoHiddenContextArgName()); // _ucauto
-	fp->write(".LookupElementTypeFromContext(");
-      }
-    else
-      fp->write("(uc, uc.LookupElementTypeFromContext(");
-
-    fp->write(m_varSymbol->getMangledName().c_str()); //auto's name
-    fp->write(".getType()));\n");
-
-    m_state.m_genCodingConditionalHas = false; // done
-    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs ?
-  } //genCodedAutoLocal
 
   void NodeVarDecl::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {

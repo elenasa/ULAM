@@ -8,33 +8,34 @@
 ##      //note: in eval, last case, uninitialized atom case is wrong!!
 #!
 Exit status: 1
-Ue_S { System s();  Bool(1) sp(false);  Bool(3) b1(true);  Bool(3) b2(true);  Int(32) test() {  Atom(96) a;  Atom(96) t;  a self cast = a S as cond { S a;  b2 a ( )func . cast = } if s ( b2 )print . b1 ( a )func cast = s ( b1 )print . b1 ( t )func cast = s ( b1 )print . b2 cast return } }
+Ue_S { System s();  Bool(1) sp(false);  Bool(3) b1(true);  Bool(3) b2(true);  Int(32) test() {  Atom(96) a;  Atom(96) t;  a self cast = a S as cond { S& a;  b2 a ( )func . cast = } if s ( b2 )print . b1 ( a )func cast = s ( b1 )print . b1 ( t )func cast = s ( b1 )print . b2 cast return } }
 Uq_System { <NOMAIN> }
 #>S.ulam
  ulam 1;
 use System;
- element S{
-System s;
-Bool sp;
- Bool(3) b1, b2;
- Bool func() {
- return (self is S);
-}
+element S{
+  System s;
+  Bool sp;
+  Bool(3) b1, b2;
+  Bool func() {
+    return (self is S);
+  }
   Bool func(Atom d) {
- return (d is S);
+    return (d is S);
+  }
+  Int test() {
+    Atom a, t;
+    a = self;
+    if(a as S)
+      b2 = a.func();
+    s.print(b2);
+    b1 = func(a);
+    s.print(b1);
+    b1 = func(t);
+    s.print(b1);
+    return (Int) b2;
+  }
 }
- Int test() {
-Atom a, t;
- a = self;
- if(a as S) b2 = a.func();
- s.print(b2);
- b1 = func(a);
- s.print(b1);
- b1 = func(t);
- s.print(b1);
- return (Int) b2;
- }
- }
 ##      // test system quark with native overloaded print funcs; assert
 ##      // simple case:
 ##      //bool rtn1 = fms->add("S.ulam"," ulam 1;\n element S{\nBool sp;\n Bool(3) b1, b2;\n Int test() {\nAtom a;\n a = self;\n self = a;\n return 0;\n }\n }\n");

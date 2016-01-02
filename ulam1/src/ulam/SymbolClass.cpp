@@ -383,12 +383,6 @@ namespace MFM {
 
   bool SymbolClass::hasMappedUTI(UTI auti, UTI& mappedUTI)
   {
-#if 0
-    if(!m_resolver)
-      return false; //not found
-    return m_resolver->findMappedUTI(auti, mappedUTI);
-#endif
-
     bool rtnb = false;
     if(m_resolver)
       rtnb = m_resolver->findMappedUTI(auti, mappedUTI);
@@ -584,7 +578,7 @@ namespace MFM {
 	    m_state.indent(fp);
 	    fp->write("tile.PlaceAtom(atom, center);\n");
 	    m_state.indent(fp);
-	    fp->write("rtn = "); //MFM::Ui_Ut_102323Int
+	    //fp->write("rtn = "); //MFM::Ui_Ut_102323Int
 	    fp->write(sut->getUlamTypeMangledName().c_str());
 
 	    // pass uc with effective self setup
@@ -691,7 +685,10 @@ namespace MFM {
 	UlamType * ut = it->second;
 	//e.g. skip constants, include atom
 	if(ut->needsImmediateType() && ut->getUlamClass() == UC_NOTACLASS)
-	  ut->genUlamTypeMangledDefinitionForC(fp);
+	  {
+	    ut->genUlamTypeMangledAutoDefinitionForC(fp);
+	    ut->genUlamTypeMangledDefinitionForC(fp);
+	  }
 	it++;
       }
 
@@ -700,10 +697,10 @@ namespace MFM {
     while(it != m_state.m_definedUlamTypes.end())
       {
 	UlamType * ut = it->second;
-	if(ut->needsImmediateType())
+	if(ut->needsImmediateType() && ut->getUlamClass() != UC_NOTACLASS)
 	  {
-	    ut->genUlamTypeMangledDefinitionForC(fp);
 	    ut->genUlamTypeMangledAutoDefinitionForC(fp);
+	    ut->genUlamTypeMangledDefinitionForC(fp);
 	  }
 	it++;
       }

@@ -53,6 +53,7 @@ namespace MFM{
     UTI m_declListOrTypedefScalarType;
     bool m_assignOK;
     bool m_isStmt;
+    ALT m_declRef;
 
     TypeArgs();
     TypeArgs(const TypeArgs& tref);
@@ -60,6 +61,7 @@ namespace MFM{
 
     void init(Token typetoken);
     TypeArgs& operator=(const TypeArgs& tref);
+    void setdeclref(Token ftoken);
   };
 
 } //MFM

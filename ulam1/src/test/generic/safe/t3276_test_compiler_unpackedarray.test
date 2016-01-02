@@ -14,20 +14,23 @@
 ##	 Int Arg: 9
 ##      */
 Exit status: 10
-Ue_A { System s();  typedef Int(32) BigSite[10];  Int(32) test() {  Int(32) site[10];  { Int(32) i;  i 0 cast = i 10 cast < cond { site i [] i = s ( site i [] )print . } _1: i 1 cast += while } 10 cast return } }
+Ue_A { System s();  typedef Int(32) BigSite[10];  Int(32) test() {  Int(32) site[10];  { Int(32) i = 0 cast;  i 10 cast < cond { site i [] i = s ( site i [] )print . } _1: i 1 cast += while } 10 cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
+  ulam 1;
 use System;
- element A {
-System s;
-typedef Int BigSite[10];
-Int test(){ BigSite site; for(Int i = 0; i < 10; ++i){
- site[i] = i;
- s.print(site[i]);
+element A {
+  System s;
+  typedef Int BigSite[10];
+  Int test(){
+    BigSite site;
+    for(Int i = 0; i < 10; ++i){
+      site[i] = i;
+      s.print(site[i]);
+    }
+    return 10;
+  }
 }
- return 10;
- }
- }
 
 #:System.ulam
 ulam 1;

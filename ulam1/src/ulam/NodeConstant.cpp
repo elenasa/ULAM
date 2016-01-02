@@ -71,12 +71,11 @@ namespace MFM {
     bool stubcopy = m_state.isClassAStub(m_state.getCompileThisIdx());
 
     //instantiate, look up in class block; skip if stub copy and already ready.
-    //    if(!csym->isStub() && m_constSymbol == NULL && !isReadyConstant())
     if(!stubcopy && m_constSymbol == NULL)
 	checkForSymbol();
     else
       {
-    stubcopy = m_state.hasClassAStub(m_state.getCompileThisIdx());
+	stubcopy = m_state.hasClassAStub(m_state.getCompileThisIdx()); //includes ancestors
       }
 
     if(m_constSymbol)
@@ -87,6 +86,13 @@ namespace MFM {
       {
 	//stub copy case: still wants uti mapping
 	it = NodeTerminal::checkAndLabelType();
+      }
+    else if(stubcopy)
+      {
+	// still need its symbol for a value
+	// use the member class (unlike checkForSymbol)
+
+
       }
 
     // map incomplete UTI
@@ -197,7 +203,8 @@ namespace MFM {
     if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
       {
 	assert(hazyKin); //always hazy, right?
-	if(asymptr->isConstant())
+	//if(asymptr->isConstant())
+	if(asymptr->isConstant() && ((SymbolConstantValue *) asymptr)->isReady()) //???
 	  {
 	    u64 val = 0;
 	    ((SymbolConstantValue *) asymptr)->getValue(val);

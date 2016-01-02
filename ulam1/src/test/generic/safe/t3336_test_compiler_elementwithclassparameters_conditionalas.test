@@ -8,7 +8,7 @@
 ##      //eval can't test 'as' since atoms have no types.
 ##
 Exit status: 7
-Ue_Foo { System s();  Int(32) e(7);  constant Int(32) v = 3;  Counter4(3) cv( constant Int(32) x = 3;  Int(3) d(0); );  Int(32) test() {  Atom(96) a;  Foo f;  a f cast = a Counter4(3) as cond { Counter4(3) a;  a ( )incr . e a ( )get . = s ( e )print . } if e 7 cast = else e return } }
+Ue_Foo : Counter4(3) { :< constant Int(32) x = 3;  Int(3) d(0); > System s();  Int(32) e(7);  constant Int(32) v = 3;  Int(32) test() {  Atom(96) a;  Foo f;  a f cast = a Counter4(3) as cond { Counter4(3)& a;  a ( )incr . e a ( )get . = s ( e )print . } if e 7 cast = else e return } }
 Uq_Counter4(Int(32) x) { Int(UNKNOWN) d(unknown);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
@@ -17,40 +17,42 @@ Uq_System { <NOMAIN> }
 ##      // enhanced by a 'named constant', v;
 ##
 #>Foo.ulam
+  ulam 1;
 use Counter4;
 use System;
- element Foo {
-System s;
-Int e;
-constant Int v = 3;
-Counter4(v) cv;
- Int test(){
-Atom a;
-Foo f;
- a = f;
-if(a as Counter4(v))
- {
- a.incr();
-e = a.get();
- s.print(e);
+//element Foo : Counter4(Foo.v) {
+//element Foo : Counter4(v) {
+element Foo : Counter4(2+1) {
+  System s;
+  Int e;
+  constant Int v = 3;
+  Int test(){
+    Atom a;
+    Foo f;
+    a = f;
+    if(a as Counter4(v))
+    {
+      a.incr();
+      e = a.get();
+      s.print(e);
+    }
+    else
+      e=7;
+    return e;
+  }
 }
-else
- e=7;
- return e;
-}
- }
 
 #:Counter4.ulam
-ulam 1;
+  ulam 1;
 quark Counter4(Int x) {
-Int(x) d;
-Void incr(){
-d+=1;
+  Int(x) d;
+  Void incr(){
+    d+=1;
+  }
+  Int get(){
+    return d;
+  }
 }
-Int get(){
-return d;
-}
- }
 ##
 ##      // without named constant..returns 1 (yay!)
 ##      //bool rtn1 = fms->add("Foo.ulam","use Counter4;\nuse System;\n element Foo {\nSystem s;\nInt e;\nCounter4(3) cv;\n Int test(){\nAtom a;\nFoo f;\n a = f;\nif(a as Counter4(3))\n {\n a.incr();\ne = a.get();\n s.print(e);\n}\nelse\n e=7;\n return e;\n}\n }\n");

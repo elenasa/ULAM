@@ -58,11 +58,12 @@ namespace MFM {
       return true;
 
     UTI cuti = getNodeType();
-    if(m_state.isClassASubclass(cuti))
+    UTI superuti = m_state.isClassASubclass(cuti);
+    if(superuti != Nav)
       {
 	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
-	assert(superblock);
-	if(superblock->findNodeNo(n, foundNode))
+	assert(superblock || m_state.isClassAStub(superuti));
+	if(superblock && superblock->findNodeNo(n, foundNode))
 	  return true;
       }
 
@@ -203,7 +204,8 @@ namespace MFM {
     if(superuti != Nav)
       {
 	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
-	assert(superblock && superblock->getNodeType() == superuti);
+	//assert(superblock && superblock->getNodeType() == superuti);
+	assert(superblock && UlamType::compare(superblock->getNodeType(), superuti, m_state) == UTIC_SAME);
 	fp->write(" :<");
 	superblock->printPostfixDataMembersSymbols(fp, slot, startpos, classtype);
 	fp->write(">");
@@ -241,13 +243,14 @@ namespace MFM {
     assert(superuti != Nav);
     //this is a subclass.
     NodeBlockClass * superblock = (NodeBlockClass *) NodeBlock::getPreviousBlockPointer();
-    return !((superblock == NULL) || (superblock->getNodeType() != superuti));
+    return !((superblock == NULL) || (UlamType::compare(superblock->getNodeType(), superuti, m_state) != UTIC_SAME));
   } //isSuperClassLinkReady
 
   UTI NodeBlockClass::checkAndLabelType()
   {
     // for debug purposes
-    m_state.isClassATemplate(m_state.getCompileThisIdx());
+    UTI cuti = m_state.getCompileThisIdx();
+    m_state.isClassATemplate(cuti);
 
     // Inheritance checks
     UTI nuti = getNodeType();
@@ -255,6 +258,27 @@ namespace MFM {
 
     if(superuti != Nav)
       {
+#if 1
+	if(!m_state.isComplete(superuti))
+	  {
+	    UTI mappedUTI = superuti;
+	    if(m_state.mappedIncompleteUTI(cuti, superuti, mappedUTI))
+	      {
+		std::ostringstream msg;
+		msg << "Substituting Mapped UTI" << mappedUTI;
+		msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
+		msg << " for incomplete superclass type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
+		msg << "' UTI" << superuti << " while labeling class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		m_state.resetClassSuperclass(nuti, mappedUTI); //consistent!
+		m_state.mapTypesInCurrentClass(superuti, mappedUTI);
+		NodeBlock::setPreviousBlockPointer(NULL); //force fix
+		superuti = mappedUTI;
+	      }
+	  }
+#endif
 	//this is a subclass.
 	if(!isSuperClassLinkReady())
 	  {
@@ -390,7 +414,10 @@ namespace MFM {
     if(superuti != Nav)
       {
 	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
-	assert(superblock);
+	//assert(superblock);
+	if(!superblock)
+	  return; //error after all the iterations
+
 	maxidx = superblock->getVirtualMethodMaxIdx();
 	if(maxidx < 0)
 	  {
@@ -451,10 +478,22 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(((UlamTypeClass *) cut)->isCustomArray())
       m_functionST.checkCustomArrayTypeFuncs();
 
-    if(m_state.isClassASubclass(cuti))
+    UTI superuti = m_state.isClassASubclass(cuti);
+    if(superuti)
       {
 	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
-	assert(superblock);
+	if(!superblock)
+	  {
+	    std::ostringstream msg;
+	    msg << "Subclass '";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    msg << "' inherits from '";
+	    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
+	    msg << "', an INCOMPLETE Super class; ";
+	    msg << "No check of custom array type functions";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    return;
+	  }
 	superblock->checkCustomArrayTypeFunctions();
       }
   } //checkCustomArrayTypeFunctions
@@ -746,12 +785,27 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(m_ST.getTableSize() == 0) return;
     u32 offset = 0; //relative to ATOMFIRSTSTATEBITPOS
 
-    if(m_state.isClassASubclass(getNodeType()))
+    UTI nuti = getNodeType();
+    UTI superuti = m_state.isClassASubclass(nuti);
+    if(superuti != Nav)
       {
 	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
-	assert(superblock);
-	UTI superUTI = superblock->getNodeType();
-	u32 superoffset = m_state.getTotalBitSize(superUTI);
+	if(!superblock)
+	  {
+	    std::ostringstream msg;
+	    msg << "Subclass '";
+	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	    msg << "' inherits from '";
+	    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
+	    msg << "', an INCOMPLETE Super class; ";
+	    msg << "No bit packing of variable data members";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    return;
+	  }
+
+	//assert(superblock->getNodeType() == superuti);
+	assert(UlamType::compare(superblock->getNodeType(), superuti, m_state) == UTIC_SAME);
+	u32 superoffset = m_state.getTotalBitSize(superuti);
 	assert(superoffset >= 0);
 	offset += superoffset;
       }

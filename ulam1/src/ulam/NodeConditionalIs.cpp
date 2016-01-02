@@ -109,6 +109,7 @@ namespace MFM {
     UTI luti = pluv.getUlamValueTypeIdx();
     assert(luti == Ptr);
     luti = pluv.getPtrTargetType();
+    //luti = m_state.getUlamTypeAsDeref(luti);
     UTI ruti = getRightType();
 
     // inclusive result for eval purposes (atoms and element types are orthogonal)

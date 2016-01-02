@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3197_test_compiler_elementandquark_usercastquarknotoint_error
 #!
-./Foo.ulam:13:12: ERROR: (2) <toInt> is not a defined function, and cannot be called.
+./Foo.ulam:13:12: ERROR: (2) <toInt> is not a defined function, or cannot be safely called in this context.
 ./Foo.ulam:13:9: ERROR: Unresolved No.1.
 ./Foo.ulam:13:12: ERROR: Unresolved No.2.
 ./Foo.ulam:13:12: ERROR: Unresolved No.3.

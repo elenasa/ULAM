@@ -32,7 +32,7 @@ namespace MFM {
 
   const std::string UlamTypeVoid::getUlamTypeImmediateMangledName()
   {
-    return getImmediateStorageTypeAsString(); //"void";
+    return getLocalStorageTypeAsString(); //"void";
   }
 
   bool UlamTypeVoid::needsImmediateType()
@@ -40,7 +40,7 @@ namespace MFM {
     return false;
   }
 
-  const std::string UlamTypeVoid::getImmediateStorageTypeAsString()
+  const std::string UlamTypeVoid::getLocalStorageTypeAsString()
   {
     return "void";
   }

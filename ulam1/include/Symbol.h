@@ -77,6 +77,7 @@ namespace MFM{
     virtual bool isModelParameter();
 
     void setAutoLocalType(Token cTok);
+    void setAutoLocalType(ALT alt);
     ALT getAutoLocalType();
     bool isAutoLocal();
 
@@ -116,8 +117,6 @@ namespace MFM{
     ALT m_autoLocalType;
     bool m_isSelf;       // hidden arg symbol
     NNO m_stBlockNo;
-
-    void setAutoLocalType(ALT alt);
   };
 
 }

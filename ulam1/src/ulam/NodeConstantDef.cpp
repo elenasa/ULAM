@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "NodeConstantDef.h"
+#include "NodeConstant.h"
 #include "NodeTerminal.h"
 #include "CompilerState.h"
 
@@ -80,15 +81,6 @@ namespace MFM {
 
   void NodeConstantDef::printPostfix(File * fp)
   {
-#if 0
-    if(m_nodeExpr)
-      {
-	m_nodeExpr->printPostfix(fp);
-	fp->write(" = ");
-      }
-    fp->write(getName());
-    fp->write(" const");
-#endif
     //in case the node belongs to the template, use the symbol uti, o.w. 0Nav.
     UTI suti = m_constSymbol ? m_constSymbol->getUlamTypeIdx() : getNodeType();
     //like SymbolConstantValue
@@ -170,6 +162,7 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(duti).c_str();
 	    msg << " UTI" << duti << " while labeling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    msg << " UTI" << cuti;
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    m_constSymbol->resetUlamType(duti); //consistent!
 	    m_state.mapTypesInCurrentClass(suti, duti);
@@ -180,6 +173,7 @@ namespace MFM {
     // NOASSIGN REQUIRED (e.g. for class parameters) doesn't have to have this!
     if(m_nodeExpr)
       {
+	//check constant before check-and-label to avoid handling not-ready-type Nav's
 	if(!m_nodeExpr->isAConstant())
 	  {
 	    std::ostringstream msg;
@@ -198,14 +192,14 @@ namespace MFM {
 	    msg << "Constant value expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
 	    msg << ", is invalid";
-	    if(m_nodeExpr->isReadyConstant())
+	    if(m_nodeExpr->isAConstant() && m_nodeExpr->isReadyConstant())
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    else
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //possibly still hazy
 	    setNodeType(Nav);
 	    return Nav; //short-circuit
 	  }
-      }
+      } //end node expression
 
     if(!m_state.isComplete(suti)) //reloads
       {
@@ -215,6 +209,7 @@ namespace MFM {
 	msg << " used with symbol name '" << getName();
 	msg << "' UTI" << suti << " while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	msg << " UTI" << cuti;
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	//too soon! m_state.setGoAgain(); //might not have nodetypedesc
       }
@@ -231,6 +226,7 @@ namespace MFM {
 	    msg << m_state.getUlamTypeByIndex(it)->getUlamTypeNameOnly().c_str() << ">";
 	    msg << " while labeling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    msg << " UTI" << cuti;
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    //this is UNSAFE to do willy nilly..let folding catch it.
 	    //it = suti; //default it==Int for temp class args, maynot match after seeing the template

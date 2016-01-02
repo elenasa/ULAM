@@ -58,7 +58,7 @@ namespace MFM{
 
     virtual const std::string getTmpStorageTypeAsString();
 
-    virtual const std::string getImmediateStorageTypeAsString();
+    virtual const std::string getLocalStorageTypeAsString();
 
     virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
 
@@ -66,11 +66,19 @@ namespace MFM{
 
     virtual FORECAST safeCast(UTI typidx);
 
-    virtual void genUlamTypeMangledDefinitionForC(File * fp);
+    virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
 
     virtual void genUlamTypeReadDefinitionForC(File * fp);
 
     virtual void genUlamTypeWriteDefinitionForC(File * fp);
+
+    virtual void genUlamTypeMangledDefinitionForC(File * fp);
+
+    virtual void genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp);
+
+    virtual const std::string readMethodForCodeGen();
+
+    virtual const std::string writeMethodForCodeGen();
 
     virtual bool isMinMaxAllowed();
 

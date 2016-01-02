@@ -42,7 +42,7 @@ namespace MFM {
   bool Resolver::assignClassArgValuesInStubCopy()
   {
     bool aok = true;
-    // context is already set
+    // context already set by caller
     std::vector<NodeConstantDef *>::iterator vit = m_nonreadyClassArgSubtrees.begin();
     while(vit != m_nonreadyClassArgSubtrees.end())
       {
@@ -78,6 +78,14 @@ namespace MFM {
   bool Resolver::constantFoldNonreadyClassArgs()
   {
     bool rtnb = true;
+    UTI context = getContextForPendingArgs();
+    SymbolClass * contextSym = NULL;
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(context, contextSym);
+    assert(isDefined);
+    m_state.pushClassContext(context, contextSym->getClassBlockNode(), contextSym->getClassBlockNode(), false, NULL);
+
+    m_state.m_pendingArgStubContext = m_classUTI; //set for folding surgery
+
     std::vector<NodeConstantDef *> leftCArgs;
     std::vector<NodeConstantDef *>::iterator vit = m_nonreadyClassArgSubtrees.begin();
     while(vit != m_nonreadyClassArgSubtrees.end())
@@ -96,6 +104,9 @@ namespace MFM {
 	  }
 	vit++;
       } //while thru vector of incomplete args only
+
+    m_state.m_pendingArgStubContext = Nav; //clear flag
+    m_state.popClassContext(); //restore previous context
 
     //clean up, replace vector with vector of those still unresolved
     m_nonreadyClassArgSubtrees.clear();
@@ -123,7 +134,7 @@ namespace MFM {
   {
     NodeBlockClass * classblock = mycsym->getClassBlockNode();
     SymbolClass * contextSym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(context,contextSym);
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(context, contextSym);
     assert(isDefined);
 
     std::vector<NodeConstantDef *>::const_iterator vit = rslvr.m_nonreadyClassArgSubtrees.begin();

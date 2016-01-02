@@ -12,7 +12,8 @@ namespace MFM {
       m_anothertduti(tref.m_anothertduti),
       m_declListOrTypedefScalarType(tref.m_declListOrTypedefScalarType),
       m_assignOK(tref.m_assignOK),
-      m_isStmt(tref.m_isStmt)
+      m_isStmt(tref.m_isStmt),
+      m_declRef(tref.m_declRef)
     {}
 
   TypeArgs::~TypeArgs() {}
@@ -27,6 +28,7 @@ namespace MFM {
     m_declListOrTypedefScalarType = Nav;
     m_assignOK = true;
     m_isStmt = true;
+    m_declRef = ALT_NOT;
   }
 
   TypeArgs& TypeArgs::operator=(const TypeArgs& tref)
@@ -39,7 +41,28 @@ namespace MFM {
     m_declListOrTypedefScalarType = tref.m_declListOrTypedefScalarType;
     m_assignOK = tref.m_assignOK;
     m_isStmt = tref.m_isStmt;
+    m_declRef = tref.m_declRef;
     return *this;
   }
 
+  void TypeArgs::setdeclref(Token ftoken)
+  {
+    switch(ftoken.m_type)
+      {
+      case TOK_KW_AS:
+	m_declRef = ALT_AS;
+	break;
+      case TOK_KW_HAS:
+	assert(0); //deprecated
+	break;
+      case TOK_AMP:
+	m_declRef = ALT_REF;
+	break;
+      case TOK_KW_IS:
+      default:
+	m_declRef = ALT_NOT;
+	break;
+      };
+    return;
+  }//setdelref
 } //MFM

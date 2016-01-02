@@ -112,6 +112,7 @@ namespace MFM {
   {
     assert(m_node);
     UTI uti = m_node->checkAndLabelType();
+    //uti = m_state.getUlamTypeAsDeref(uti);
 
     if(!m_state.isScalar(uti)) //array unsupported at this time
       {
@@ -249,6 +250,20 @@ namespace MFM {
     // if here, must be a constant..
     assert(isAConstant());
 
+    NNO pno = Node::getYourParentNo();
+    assert(pno);
+    Node * parentNode = m_state.findNodeNoInThisClass(pno);
+    if(!parentNode)
+      {
+	std::ostringstream msg;
+	msg << "Constant value expression for unary op" << getName();
+	msg << " cannot be constant-folded at this time while compiling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << " Parent required";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	assert(0); //parent required
+      }
+
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(nuti); //offset a constant expression
     EvalStatus evs = eval();
@@ -281,11 +296,6 @@ namespace MFM {
     NodeTerminal * newnode = new NodeTerminal(val, nuti, m_state);
     assert(newnode);
     newnode->setNodeLocation(getNodeLocation());
-
-    NNO pno = Node::getYourParentNo();
-    assert(pno);
-    Node * parentNode = m_state.findNodeNoInThisClass(pno);
-    assert(parentNode);
 
     AssertBool swapOk = parentNode->exchangeKids(this, newnode);
     assert(swapOk);
@@ -365,6 +375,13 @@ namespace MFM {
     m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
     return true;
   } //dounaryopImmediate
+
+  void NodeUnaryOp::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
+  {
+    assert(m_node);
+    m_node->calcMaxDepth(depth, maxdepth, base); //funccall?
+    return; //work done by NodeStatements and NodeBlock
+  }
 
   void NodeUnaryOp::genCode(File * fp, UlamValue& uvpass)
   {

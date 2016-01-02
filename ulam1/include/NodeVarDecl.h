@@ -58,6 +58,8 @@ namespace MFM{
 
     virtual void updateLineage(NNO pno);
 
+    virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
+
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual void checkAbstractInstanceErrors();
@@ -70,11 +72,19 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
+    virtual void setInitExpr(Node * node);
+
+    bool hasInitExpr();
+
+    virtual bool foldInitExpression();
+
+    virtual FORECAST safeToCastTo(UTI newType);
+
     virtual UTI checkAndLabelType();
 
-    NNO getBlockNo();
+    virtual NNO getBlockNo();
 
-    NodeBlock * getBlock();
+    virtual NodeBlock * getBlock();
 
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 
@@ -94,17 +104,18 @@ namespace MFM{
     SymbolVariable * m_varSymbol;
     u32 m_vid; // to instantiate
 
-    virtual void checkForSymbol();
-    void printTypeAndName(File * fp);
+    Node * m_nodeInitExpr;
 
-    void genCodedBitFieldTypedef(File * fp, UlamValue& uvpass);
-    void genCodedAutoLocal(File * fp, UlamValue & uvpass);
+    virtual void checkForSymbol();
+    virtual void printTypeAndName(File * fp);
+
+    EvalStatus evalInitExpr();
 
   private:
     NNO m_currBlockNo;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
-    EvalStatus evalAutoLocal();
+    UlamValue makeUlamValuePtr(); //for locals
   };
 
 }

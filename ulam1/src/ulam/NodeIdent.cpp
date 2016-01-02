@@ -63,6 +63,31 @@ namespace MFM {
     return m_token;
   }
 
+  bool NodeIdent::isAConstant()
+  {
+    bool rtn = false;
+    //may not have known at parse time;
+    if(!m_varSymbol)
+      {
+	//is it a constant within the member?
+	NodeBlockClass * memberclass = m_state.getClassBlock();
+	assert(memberclass);
+	m_state.pushCurrentBlock(memberclass);
+
+	Symbol * asymptr = NULL;
+	bool hazyKin = false;
+	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
+	  {
+	    if(asymptr->isConstant())
+	      {
+		rtn = true; //no side-effects until c&l
+	      }
+	  }
+	m_state.popClassContext(); //restore
+      }
+    return rtn;
+  } //isAConstant
+
   FORECAST NodeIdent::safeToCastTo(UTI newType)
   {
     //ulamtype checks for complete, non array, and type specific rules
@@ -112,7 +137,16 @@ namespace MFM {
 		NodeConstant * newnode = new NodeConstant(*this);
 		NNO pno = Node::getYourParentNo();
 		Node * parentNode = m_state.findNodeNoInThisClass(pno);
-		assert(parentNode);
+		if(!parentNode)
+		  {
+		    std::ostringstream msg;
+		    msg << "Named Constant variable '" << getName();
+		    msg << "' cannot be exchanged at this time while compiling class: ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+		    msg << " Parent required";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    assert(0); //parent required
+		  }
 
 		AssertBool swapOk = parentNode->exchangeKids(this, newnode);
 		assert(swapOk);
@@ -139,7 +173,16 @@ namespace MFM {
 		NodeModelParameter * newnode = new NodeModelParameter(*this);
 		NNO pno = Node::getYourParentNo();
 		Node * parentNode = m_state.findNodeNoInThisClass(pno);
-		assert(parentNode);
+		if(!parentNode)
+		  {
+		    std::ostringstream msg;
+		    msg << "Model Parameter variable '" << getName();
+		    msg << "' cannot be exchanged at this time while compiling class: ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+		    msg << " Parent required";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    assert(0); //parent required
+		  }
 
 		AssertBool swapOk = parentNode->exchangeKids(this, newnode);
 		assert(swapOk);
@@ -168,9 +211,11 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		errCnt++;
 	      }
+	    m_state.popClassContext(); //restore
 	  }
 	else
 	  {
+	    m_state.popClassContext(); //restore
 	    std::ostringstream msg;
 	    msg << "(2) <" << m_state.getTokenDataAsString(&m_token).c_str();
 	    msg << "> is not defined, and cannot be used with class: ";
@@ -178,13 +223,11 @@ namespace MFM {
 	    if(!hazyKin)
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		//errCnt++;
 	      }
 	    else
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    errCnt++;
 	  }
-	m_state.popClassContext(); //restore
       } //lookup symbol
 
     if(!errCnt && m_varSymbol)
@@ -212,9 +255,9 @@ namespace MFM {
 		msg << "' UTI" << it << " while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		m_state.mapTypesInCurrentClass(it, mappedUTI); //before setting equal?
+		m_varSymbol->resetUlamType(mappedUTI); //consistent!
 		it = mappedUTI;
-		m_varSymbol->resetUlamType(it); //consistent!
-		m_state.mapTypesInCurrentClass(it, mappedUTI);
 	      }
 
 	    if(!m_state.isComplete(it)) //reloads to recheck for debug message
@@ -267,7 +310,8 @@ namespace MFM {
 
 	// redo what getPtrTarget use to do, when types didn't match due to
 	// an element/quark or a requested scalar of an arraytype
-	if(ttype != nuti)
+	//if(ttype != nuti)
+	if(UlamType::compare(ttype, nuti, m_state) == UTIC_NOTSAME)
 	  {
 	    if(m_state.isClassACustomArray(nuti))
 	      {
@@ -785,7 +829,7 @@ namespace MFM {
       {
 	//UlamTypes automatically created for the base types with different array sizes.
 	//but with typedef's "scope" of use, typedef needed to be checked first.
-	auti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, args.m_arraysize, Nav);
+	auti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, args.m_arraysize, Nav, args.m_declRef);
 	brtn = true;
       }
     else
@@ -811,20 +855,35 @@ namespace MFM {
 	    if(args.m_bitsize == 0)
 	      args.m_bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
 
-	    UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize);
-	    newarraykey.append(scalarUTI);
-	    uti = m_state.makeUlamType(newarraykey, bUT);
+	    UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, scalarUTI, key.getUlamKeyTypeSignatureReferenceType()); //same reftype as key (or args?)
+	    //newarraykey.append(scalarUTI);
+	    auti = m_state.makeUlamType(newarraykey, bUT);
 	  }
 
-	SymbolVariable * sym = makeSymbol(uti);
-	m_state.addSymbolToCurrentScope(sym); //ownership goes to the block
-	setSymbolPtr(sym); //sets m_varSymbol and st block no.
-	asymptr = sym;
+	//assert(m_state.getUlamTypeByIndex(uti)->getReferenceType() == args.m_declRef);
+	uti = m_state.getUlamTypeAsRef(auti, args.m_declRef); //ut not current
+
+	SymbolVariable * sym = makeSymbol(uti, args.m_declRef);
+	if(sym)
+	  {
+	    m_state.addSymbolToCurrentScope(sym); //ownership goes to the block
+	    setSymbolPtr(sym); //sets m_varSymbol and st block no.
+	    asymptr = sym;
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Variable symbol '";
+	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
+	    msg << "' cannot be a reference";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    brtn = false;
+	  }
       }
     return brtn;
   } //installSymbolVariable
 
-  SymbolVariable *  NodeIdent::makeSymbol(UTI auti)
+  SymbolVariable *  NodeIdent::makeSymbol(UTI auti, ALT reftype)
   {
     //adjust decl count and max_depth, used for function definitions
     PACKFIT packit = m_state.determinePackable(auti);
@@ -834,6 +893,8 @@ namespace MFM {
 	u32 baseslot = 1;  //unpacked fixed later
 
 	//variable-index, ulamtype, ulamvalue(ownership to symbol); always packed
+	if(reftype != ALT_NOT)
+	  return NULL; //error! dm's not references
 	return (new SymbolVariableDataMember(m_token, auti, packit, baseslot, m_state));
       }
 
@@ -843,11 +904,18 @@ namespace MFM {
 	//1 slot for scalar or packed array
 	m_state.m_currentFunctionBlockDeclSize -= m_state.slotsNeeded(auti);
 
-	return (new SymbolVariableStack(m_token, auti, packit, m_state.m_currentFunctionBlockDeclSize, m_state)); //slot after adjust
+	SymbolVariableStack * rtnSym = (new SymbolVariableStack(m_token, auti, packit, m_state.m_currentFunctionBlockDeclSize, m_state)); //slot after adjust
+	assert(rtnSym);
+
+	rtnSym->setAutoLocalType(reftype);
+
+	return rtnSym;
       }
 
     //(else) Symbol is a local variable, always on the stack
     SymbolVariableStack * rtnLocalSym = new SymbolVariableStack(m_token, auti, packit, m_state.m_currentFunctionBlockDeclSize, m_state); //slot before adjustment
+    assert(rtnLocalSym);
+    rtnLocalSym->setAutoLocalType(reftype);
 
     m_state.m_currentFunctionBlockDeclSize += m_state.slotsNeeded(auti);
 

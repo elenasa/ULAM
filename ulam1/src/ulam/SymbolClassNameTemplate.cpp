@@ -83,8 +83,6 @@ namespace MFM {
   bool SymbolClassNameTemplate::parameterHasDefaultValue(u32 n)
   {
     // used while parsing, so c&l not called, and symbol hasDefault not yet set.
-    //SymbolConstantValue * psym = getParameterSymbolPtr(n);
-    //return psym->hasDefault();
     assert(n < m_parameterSymbols.size());
     NodeBlockClass * templateclassblock = getClassBlockNode();
     Node * pnode = templateclassblock->getParameterNode(n);
@@ -156,6 +154,7 @@ namespace MFM {
 
   bool SymbolClassNameTemplate::findClassInstanceByUTI(UTI uti, SymbolClass * & symptrref)
   {
+#if 0
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(uti);
     if(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
@@ -166,6 +165,21 @@ namespace MFM {
 	return true;
       }
     return false;
+#else
+    bool rtn = false;
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	if(it->first == uti)
+	  {
+	    symptrref = it->second;
+	    rtn = true;
+	    break;
+	  }
+	it++;
+      }
+    return rtn;
+#endif
   } //findClassInstanceByUTI
 
   bool SymbolClassNameTemplate::findClassInstanceByArgString(UTI cuti, SymbolClass *& csymptr)
@@ -229,6 +243,73 @@ namespace MFM {
     addClassInstanceUTI(cuti, newclassinstance); //link here
     return newclassinstance;
   } //makeAStubClassInstance
+
+  // no stub available to copy, may need placeholder args too (unused)
+  SymbolClass * SymbolClassNameTemplate::makeAStubClassInstanceHolder(Token typeTok, UTI suti)
+  {
+    NodeBlockClass * templateclassblock = getClassBlockNode();
+    //previous block is template's class block, and new NNO here!
+    NodeBlockClass * newblockclass = new NodeBlockClass(templateclassblock, m_state);
+    assert(newblockclass);
+    newblockclass->setNodeLocation(typeTok.m_locator);
+    newblockclass->setNodeType(suti);
+    newblockclass->resetNodeNo(templateclassblock->getNodeNo()); //keep NNO consistent (new)
+
+    Token stubTok(TOK_IDENTIFIER, typeTok.m_locator, getId());
+    SymbolClass * newclassinstance = new SymbolClass(stubTok, suti, newblockclass, this, m_state);
+    assert(newclassinstance);
+    if(isQuarkUnion())
+      newclassinstance->setQuarkUnion();
+
+    addClassInstanceUTI(suti, newclassinstance); //link here
+
+    //need place holder args too!
+    std::vector<SymbolConstantValue *> argsForLater;
+    m_state.pushClassContext(suti, newblockclass, newblockclass, false, NULL);
+
+    u32 numparams = getNumberOfParameters();
+    bool ctUnseen = (getUlamClass() == UC_UNSEEN);
+    for(u32 parmIdx = 0; parmIdx < numparams; parmIdx++)
+      {
+	SymbolConstantValue * argSym = NULL;
+	if(!ctUnseen)
+	  {
+	    SymbolConstantValue * paramSym = getParameterSymbolPtr(parmIdx);
+	    assert(paramSym);
+	    Token argTok(TOK_IDENTIFIER, typeTok.m_locator, paramSym->getId()); //use current locator
+	    argSym = new SymbolConstantValue(argTok, paramSym->getUlamTypeIdx(), m_state); //like param, not copy
+	  }
+	else
+	  {
+	    std::ostringstream sname;
+	    sname << "_" << parmIdx;
+	    u32 snameid = m_state.m_pool.getIndexForDataString(sname.str());
+	    Token argTok(TOK_IDENTIFIER, typeTok.m_locator, snameid); //use current locator
+	    //stub id,  m_state.getUlamTypeOfConstant(Int) stub type, state
+	    argSym = new SymbolConstantValue(argTok, Int, m_state);
+	  }
+	assert(argSym);
+	m_state.addSymbolToCurrentScope(argSym); //scope updated to new class instance in parseClassArguments
+
+	argsForLater.push_back(argSym);
+      }
+
+    m_state.popClassContext(); //restore before making NodeConstantDef, so current context
+
+    //make Node with argument symbol wo trying to fold const expr;
+    // add to list of unresolved for this uti
+    // NULL node type descriptor, no token, yet know uti
+    for(u32 argIdx = 0; argIdx < numparams; argIdx++)
+      {
+	NodeConstantDef * constNode = new NodeConstantDef(argsForLater[argIdx], NULL, m_state);
+	assert(constNode);
+	constNode->setNodeLocation(typeTok.m_locator);
+	//constNode->setConstantExpr(exprNode);
+	//fold later; non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (stub)
+	newclassinstance->linkConstantExpressionForPendingArg(constNode);
+      }
+     return newclassinstance;
+  } //makeAStubClassInstanceHolder
 
   //instead of a copy, let's start new
   void SymbolClassNameTemplate::copyAStubClassInstance(UTI instance, UTI newuti, UTI context)
@@ -423,14 +504,18 @@ namespace MFM {
 
   std::string SymbolClassNameTemplate::formatAnInstancesArgValuesAsAString(UTI instance)
   {
-    u32 numParams = getNumberOfParameters();
-    if(numParams == 0)
-      {
-	return "10";
-      }
-
     std::ostringstream args;
+
+    UlamType * cut = m_state.getUlamTypeByIndex(instance);
+    bool isARef = cut->isReference();
+    if(isARef)
+      args << "r";
+
+    u32 numParams = getNumberOfParameters();
     args << ToLeximitedNumber(numParams);
+
+    if(numParams == 0)
+      return args.str();
 
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       {
@@ -464,6 +549,7 @@ namespace MFM {
 
 	    //append 'instance's arg (mangled) type
 	    args << aut->getUlamTypeMangledType().c_str();
+	    assert(!aut->isReference());
 
 	    //append 'instance's arg value
 	    bool isok = false;
@@ -725,7 +811,7 @@ namespace MFM {
 	if(findClassInstanceByArgString(cuti, dupsym))
 	  {
 	    UTI duti = dupsym->getUlamTypeIdx();
-	    m_state.mergeClassUTI(cuti,duti);
+	    m_state.mergeClassUTI(cuti, duti);
 	    delete csym;
 	    csym = NULL;
 	    it->second = dupsym; //duplicate! except different UTIs

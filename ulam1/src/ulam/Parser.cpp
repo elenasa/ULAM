@@ -57,8 +57,9 @@
 #include "NodeUnaryOpMinus.h"
 #include "NodeUnaryOpPlus.h"
 #include "NodeUnaryOpBang.h"
-#include "NodeVarDecl.h"
 #include "NodeVarDeclDM.h"
+#include "NodeVarRef.h"
+#include "NodeVarRefAs.h"
 #include "SymbolClass.h"
 #include "SymbolClassName.h"
 #include "SymbolFunction.h"
@@ -708,7 +709,7 @@ namespace MFM {
       {
 	Node * initnode = parseExpression();
 	if(initnode)
-	  ((NodeVarDeclDM*) dNode)->setConstantExpr(initnode);
+	  ((NodeVarDeclDM*) dNode)->setInitExpr(initnode);
 	//else error
       }
     else
@@ -1237,7 +1238,9 @@ namespace MFM {
     NodeIdent * tmpni = new NodeIdent(m_state.m_identTokenForConditionalAs, NULL, m_state);
     assert(tmpni);
 
-    UTI tuti = asNode->getRightType();
+    UTI ruti = asNode->getRightType(); //what if Self?
+    UTI tuti = m_state.getUlamTypeAsRef(ruti, ALT_AS);
+
     UlamType * tut = m_state.getUlamTypeByIndex(tuti);
     const std::string tdname = tut->getUlamTypeNameOnly();
     Token typeTok;
@@ -1249,27 +1252,21 @@ namespace MFM {
     typeargs.m_bitsize = tut->getBitSize();
     typeargs.m_arraysize = tut->getArraySize();
     typeargs.m_classInstanceIdx = tuti; //?
+    typeargs.m_declRef = ALT_AS;
 
     Symbol * asymptr = NULL; //a place to put the new symbol; not a decl list, nor typedef from another class
     tmpni->installSymbolVariable(typeargs, asymptr);
     assert(asymptr);
-    asymptr->setAutoLocalType(m_state.m_parsingConditionalToken); //set auto flag/type
-
-    //if(asymptr->getId() == m_state.m_pool.getIndexForDataString("self"))
-    //  {
-	//don't do this!! messes up gencode when really self.
-	//  asymptr->setIsSelf(); //special case lhs
-    //  }
 
     delete tmpni; //done with nti
     tmpni = NULL;
     m_state.m_parsingConditionalAs = false; //done with flag and identToken.
 
-    NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(typeTok, tuti, m_state);
+    NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(typeargs.m_typeTok, tuti, m_state, ALT_AS);
     assert(typeNode);
 
     //insert var decl into NodeStatements..as if parseStatement was called..
-    Node * varNode = new NodeVarDecl((SymbolVariable*) asymptr, typeNode, m_state);
+    Node * varNode = new NodeVarRefAs((SymbolVariable*) asymptr, typeNode, m_state);
     assert(varNode);
     varNode->setNodeLocation(asNode->getNodeLocation());
 
@@ -1561,9 +1558,17 @@ namespace MFM {
     TypeArgs typeargs;
     NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs);
     assert(typeNode);
+    if(parseSingleDecl)
+      typeargs.m_isStmt = false; //for function params (e.g. refs)
 
     Token iTok;
     getNextToken(iTok);
+    if(iTok.m_type == TOK_AMP)
+      {
+	typeargs.m_declRef = ALT_REF;
+	getNextToken(iTok);
+      }
+
     if(iTok.m_type == TOK_IDENTIFIER)
       {
 	UTI passuti = typeNode->givenUTI(); //before it may become an array
@@ -1571,7 +1576,7 @@ namespace MFM {
 	if(rtnNode && !parseSingleDecl)
 	  {
 	    //for multi's of same type (rtnType), and/or its assignment
-	    return parseRestOfDecls(typeargs, iTok, rtnNode, passuti);
+	    return parseRestOfDecls(typeargs, iTok, (NodeVarDecl *) rtnNode, rtnNode, passuti);
 	  }
       }
     else
@@ -1609,16 +1614,16 @@ namespace MFM {
   {
     NodeTypeDescriptor * typeNode = NULL;
     Token pTok = typeargs.m_typeTok;
-
-    if(m_state.getBaseTypeFromToken(pTok) == Class)
+    bool isAClassType = (m_state.getBaseTypeFromToken(pTok) == Class);
+    if(isAClassType)
       {
-	UTI cuti = parseClassArguments(pTok); //not sure what to do with the UTI?
+	UTI cuti = parseClassArguments(pTok); //not sure what to do with the UTI? could be a declref type
 	if(m_state.isScalar(cuti))
 	  typeargs.m_classInstanceIdx = cuti;
 	else
 	  typeargs.m_classInstanceIdx = m_state.getUlamTypeAsScalar(cuti); //eg typedef class array
 	castUTI = cuti; //unless a dot is next
-	typeNode = new NodeTypeDescriptor(pTok, cuti, m_state);
+	typeNode = new NodeTypeDescriptor(typeargs.m_typeTok, cuti, m_state);
 	assert(typeNode);
       }
     else
@@ -1633,7 +1638,7 @@ namespace MFM {
 	castUTI = tuti;
 
 	//bitsize is unknown, e.g. based on a Class.sizeof
-	typeNode = new NodeTypeDescriptor(pTok, tuti, m_state);
+	typeNode = new NodeTypeDescriptor(typeargs.m_typeTok, tuti, m_state);
 	assert(typeNode);
 
 	if(bitsizeNode)
@@ -1655,6 +1660,15 @@ namespace MFM {
 	  }
 	else
 	  castUTI = typeargs.m_anothertduti;
+      }
+    else if(dTok.m_type == TOK_AMP)
+      {
+	typeargs.m_declRef = ALT_REF; //a declared reference
+	typeargs.m_assignOK = true; //required
+	typeargs.m_isStmt = true; //unless a func param
+	// change uti to reference key
+	assert(typeNode);
+	typeNode->setReferenceType(ALT_REF);
       }
     return typeNode;
   } //parseTypeDescriptor
@@ -2398,6 +2412,7 @@ namespace MFM {
 	      assert(ut->getUlamClass() == UC_NOTACLASS); //can't be a class and complete
 	      rtnNode = makeTerminal(fTok, (u64) ut->getTotalBitSize(), Unsigned);
 	      delete nodetype; //unlikely
+	      nodetype = NULL;
 	    }
 	  else
 	    {
@@ -2414,6 +2429,7 @@ namespace MFM {
 		{
 		  rtnNode = makeTerminal(fTok, ut->getMax(), utype); //ut->getUlamTypeEnum());
 		  delete nodetype; //unlikely
+		  nodetype = NULL;
 		}
 	      else
 		rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, nodetype, m_state);
@@ -2436,6 +2452,7 @@ namespace MFM {
 		{
 		  rtnNode = makeTerminal(fTok, ut->getMin(), utype); //ut->getUlamTypeEnum());
 		  delete nodetype; //unlikely
+		  nodetype = NULL;
 		}
 	      else
 		rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, nodetype, m_state);
@@ -2450,6 +2467,13 @@ namespace MFM {
 	    }
 	}
 	break;
+      case TOK_IDENTIFIER:
+	{
+	  //possible named constant?
+	  //rtnNode = new NodeConstantProxy(memberTok, utype, fTok, nodetype, m_state);
+
+	}
+	//break;
       default:
 	{
 	  //std::ostringstream msg;
@@ -2650,9 +2674,18 @@ namespace MFM {
 	rtnNode = parseMinMaxSizeofType(pTok, uti, typeNode); //optionally, gets next dot token
 	if(!rtnNode)
 	  {
-	    //clean up, some kind of error parsing min/max/sizeof
-	    delete typeNode;
-	    typeNode = NULL;
+	    Token iTok;
+	    getNextToken(iTok);
+	    if(iTok.m_type == TOK_IDENTIFIER)
+	      {
+		rtnNode = makeConstdefSymbol(typeargs, iTok, typeNode);
+	      }
+	    else
+	      {
+		//clean up, some kind of error parsing min/max/sizeof
+		delete typeNode;
+		typeNode = NULL;
+	      }
 	  }
 	return rtnNode; //rtnNode could be NULL!
       } //not a Type
@@ -3105,23 +3138,31 @@ namespace MFM {
     return rtnNode;
   } //parseRestOfAssignExpr
 
-  //assignOK true by default. These assignments are for local variables, not data members.
-  // They create a parse subtree for the binary op equal; and do not have to be constant
-  // expressions. Data member initialization expressions are constant expressions, and
+  //assignOK true by default. These assignments are for local
+  // variables, not data members.  They create a parse subtree for the
+  // NodeVarDecl; and do not have to be constant expressions. Data
+  // member initialization expressions are constant expressions, and
   // are a child of the NodeVarDeclDM subclass (see parseDataMember).
-  Node * Parser::parseRestOfDecls(TypeArgs& args, Token identTok, Node * dNode, UTI passuti)
+  // References (locals only) save their initialized value, a
+  // storeintoable ("lval") expression, in their NodeVarRef.
+  Node * Parser::parseRestOfDecls(TypeArgs& args, Token identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti)
   {
+    //rtnNode is NodeStatments on list recursion, contains the NodeVarD ptr
+    //dNode is the NodeVarD ptr needed for assignments
+    if(dNode == NULL)
+      return rtnNode; //quit!
+
     Token pTok;
     getNextToken(pTok);
 
     args.m_arraysize = NONARRAYSIZE; //clear for decl list (args ref)
 
-    if(pTok.m_type == TOK_EQUAL)
+    if(pTok.m_type == TOK_EQUAL) //first check for '='
       {
 	if(args.m_assignOK)
 	  {
 	    unreadToken();
-	    return parseRestOfDeclAssignment(args, identTok, dNode, passuti); //pass args for more decls
+	    return parseRestOfDeclAssignment(args, identTok, dNode, rtnNode, passuti); //pass args for more decls
 	  }
 	else
 	  {
@@ -3132,27 +3173,45 @@ namespace MFM {
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	    getTokensUntil(TOK_SEMICOLON); //rest of statement is ignored.
 	    unreadToken();
-	    return dNode;
+	    return rtnNode; //done
 	  }
+      }
+    else if(args.m_declRef == ALT_REF)
+      {
+	//assignments required for references
+	std::ostringstream msg;
+	msg << "Must assign to reference <" << m_state.getTokenDataAsString(&identTok).c_str();
+	msg << "> at the time of its declaration";
+	MSG(&pTok, msg.str().c_str(), ERR);
+	getTokensUntil(TOK_SEMICOLON); //rest of statement is ignored.
+	unreadToken();
+	return rtnNode; //done
       }
     else if(pTok.m_type != TOK_COMMA)
       {
-	unreadToken();
-	return dNode;
+	unreadToken(); //likely semicolon
+	return rtnNode; //done
       }
 
-    Node * rtnNode = dNode;
     Token iTok;
     getNextToken(iTok);
+
+    if(iTok.m_type == TOK_AMP)
+      {
+	args.m_declRef = ALT_REF;
+	getNextToken(iTok);
+      }
+
     if(iTok.m_type == TOK_IDENTIFIER)
       {
 	//just the top level as a basic uti (no selects, or arrays)
-	NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(args.m_typeTok, passuti, m_state);
+	NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(args.m_typeTok, passuti, m_state, args.m_declRef);
+
 	//another decl of same type
-	Node * sNode = makeVariableSymbol(args, iTok, typeNode); //a decl
+	NodeVarDecl * sNode = (NodeVarDecl *) makeVariableSymbol(args, iTok, typeNode); //a decl !!
 	if (sNode)
 	  {
-	    rtnNode =  new NodeStatements(dNode, m_state);
+	    rtnNode =  new NodeStatements(rtnNode, m_state);
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(dNode->getNodeLocation());
 
@@ -3161,46 +3220,63 @@ namespace MFM {
 	    nextNode->setNodeLocation(dNode->getNodeLocation());
 	    ((NodeStatements *) rtnNode)->setNextNode(nextNode);
 	  }
-	//else  error?
+	//else error?
+	dNode = sNode; //replace dNode, no leaks
       }
     else
       {
+	dNode = NULL;
 	//perhaps read until semi-colon
 	getTokensUntil(TOK_SEMICOLON);
 	unreadToken();
       }
-    return parseRestOfDecls(args, iTok, rtnNode, passuti); //iTok in case of =
+    return parseRestOfDecls(args, iTok, dNode, rtnNode, passuti); //iTok in case of =
   } //parseRestOfDecls
 
-    Node * Parser::parseRestOfDeclAssignment(TypeArgs& args, Token identTok, Node * dNode, UTI passuti)
+  Node * Parser::parseRestOfDeclAssignment(TypeArgs& args, Token identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti)
   {
-    NodeStatements * rtnNode = new NodeStatements(dNode, m_state);
-    assert(rtnNode);
-    rtnNode->setNodeLocation(dNode->getNodeLocation());
+    assert(dNode);
+    Token eTok;
+    getNextToken(eTok);
+    assert(eTok.m_type == TOK_EQUAL);
 
-    //makeup node for lhs; using same symbol as dNode(could be Null!)
-    Symbol * dsymptr = NULL;
-    bool hazyKin = false; //don't care
-    AssertBool isDefined = m_state.alreadyDefinedSymbol(identTok.m_dataindex, dsymptr, hazyKin);
-    assert(isDefined);
-    Node * leftNode = new NodeIdent(identTok, (SymbolVariable *) dsymptr, m_state);
-    assert(leftNode);
-    leftNode->setNodeLocation(dNode->getNodeLocation());
-
-    Node * assignNode = makeAssignExprNode(leftNode);
-    if(!assignNode)
+    //update dNode with init expression: lval for ref, assign for local car
+    if(args.m_declRef == ALT_REF)
       {
-	//leftnode was deleted; dNode will be.
-	delete rtnNode;
-	return NULL;
+	if(getExpectedToken(TOK_IDENTIFIER, eTok))
+	  {
+	    Node * rightNode = parseLvalExpr(eTok);
+	    if(!rightNode)
+	      {
+		std::ostringstream msg;
+		msg << "Value of reference " << identTok.getTokenStringFromPool(&m_state).c_str();
+		msg << " is missing";
+		MSG(&identTok, msg.str().c_str(), ERR);
+	      }
+	    else
+	      {
+		((NodeVarRef *) dNode)->setInitExpr(rightNode);
+	      }
+	  }
+	//else error
+	args.m_declRef = ALT_NOT; //clear flag in case of decl list
+      } //ref done
+    else
+      {
+	Node * assignNode = parseAssignExpr(); //makeAssignExprNode(leftNode);
+	if(!assignNode)
+	  {
+	    std::ostringstream msg;
+	    msg << "Initial value of variable " << identTok.getTokenStringFromPool(&m_state).c_str();
+	    msg << " is missing";
+	    MSG(&identTok, msg.str().c_str(), ERR);
+	  }
+	else
+	  {
+	    dNode->setInitExpr(assignNode);
+	  }
       }
-
-    NodeStatements * nextNode = new NodeStatements(assignNode, m_state);
-    assert(nextNode);
-    nextNode->setNodeLocation(assignNode->getNodeLocation());
-    rtnNode->setNextNode(nextNode);
-
-    return parseRestOfDecls(args, identTok, rtnNode, passuti); //any more?
+    return parseRestOfDecls(args, identTok, dNode, rtnNode, passuti); //any more?
   } //parseRestOfDeclAssignment
 
   NodeConstantDef * Parser::parseRestOfConstantDef(NodeConstantDef * constNode, bool assignREQ, bool isStmt)
@@ -3728,6 +3804,11 @@ namespace MFM {
 		rtnNode =  new NodeVarDeclDM((SymbolVariableDataMember *) asymptr, nodetyperef, m_state);
 		asymptr->setStructuredComment(); //also clears
 	      }
+	    else if(asymptr->isAutoLocal())
+	      {
+		rtnNode =  new NodeVarRef((SymbolVariable *) asymptr, nodetyperef, m_state);
+		m_state.clearStructuredCommentToken();
+	      }
 	    else
 	      {
 		rtnNode =  new NodeVarDecl((SymbolVariable *) asymptr, nodetyperef, m_state);
@@ -4031,6 +4112,11 @@ namespace MFM {
 	m_state.m_parsingConditionalAs = false;
 	return NULL;
       }
+
+    TypeArgs typeargs;
+    typeargs.init(tTok);
+    typeargs.m_classInstanceIdx = cuti; //is scalar
+    typeargs.setdeclref(fTok);
 
     NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(tTok, cuti, m_state);
     assert(typeNode);

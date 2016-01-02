@@ -130,7 +130,9 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
 
     UTI leftType = m_nodeLeft->checkAndLabelType();
+    //leftType = m_state.getUlamTypeAsDeref(leftType);
     UTI rightType = m_nodeRight->checkAndLabelType();
+    //rightType = m_state.getUlamTypeAsDeref(rightType);
 
     // efficiency bites! no sooner, need left and right side-effects
     // (e.g. NodeControl condition is Bool at start; stubs need Symbol ptrs)
@@ -445,6 +447,20 @@ namespace MFM {
     // if here, must be a constant..
     assert(isAConstant());
 
+    NNO pno = Node::getYourParentNo();
+    assert(pno);
+    Node * parentNode = m_state.findNodeNoInThisClass(pno);
+    if(!parentNode)
+      {
+	std::ostringstream msg;
+	msg << "Constant value expression for binary op" << getName();
+	msg << " cannot be constant-folded at this time while compiling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << " Parent required";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	assert(0); //parent required
+      }
+
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(nuti); //offset a constant expression
     EvalStatus evs = eval();
@@ -477,11 +493,6 @@ namespace MFM {
     NodeTerminal * newnode = new NodeTerminal(val, nuti, m_state);
     assert(newnode);
     newnode->setNodeLocation(getNodeLocation());
-
-    NNO pno = Node::getYourParentNo();
-    assert(pno);
-    Node * parentNode = m_state.findNodeNoInThisClass(pno);
-    assert(parentNode);
 
     AssertBool swapOk = parentNode->exchangeKids(this, newnode);
     assert(swapOk);
@@ -636,6 +647,14 @@ namespace MFM {
 	m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1); //store accumulated packed result
     return true;
   } //dobinaryoparray
+
+  void NodeBinaryOp::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
+  {
+    assert(m_nodeLeft && m_nodeRight);
+    m_nodeLeft->calcMaxDepth(depth, maxdepth, base); //funccall?
+    m_nodeRight->calcMaxDepth(depth, maxdepth, base); //funccall?
+    return; //work done by NodeStatements and NodeBlock
+  }
 
   void NodeBinaryOp::genCode(File * fp, UlamValue& uvpass)
   {

@@ -183,7 +183,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "(2) <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
-	msg << "> is not a defined function, and cannot be called";
+	msg << "> is not a defined function, or cannot be safely called in this context";
 	if(hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	else
@@ -214,6 +214,9 @@ namespace MFM {
 	setNodeType(it);
 
 	// insert safe casts of complete arg types, now that we have a "matching" function symbol
+        //use member block doesn't apply to arguments; no change to current block
+	m_state.pushCurrentBlockAndDontUseMemberBlock(m_state.getCurrentBlock()); //set forall args
+
 	{
 	  std::vector<u32> argsWithCastErr;
 	  u32 argsWithCast = 0;
@@ -264,7 +267,7 @@ namespace MFM {
 		  {
 		    if(i > 0)
 		      msg << ", ";
-		    msg << i + 1;
+		    msg << "arg_" << i + 1;
 		  }
 
 		msg << " to function <";
@@ -273,6 +276,8 @@ namespace MFM {
 		argsWithCastErr.clear();
 	      }
 	} //constants
+
+	m_state.popClassContext(); //restore here
       } // no errors found
 
     // late, important to do, but not too soon;
@@ -298,7 +303,19 @@ namespace MFM {
   {
     u32 argbase = 0;
     //allot enough stack space for the function call to another func
-    argbase += m_argumentNodes->getTotalSlotsNeeded(); //args assigned at eval
+    //argbase += m_argumentNodes->getTotalSlotsNeeded(); //args assigned at eval; what if arg is a function call???
+    u32 numargs = m_argumentNodes->getNumberOfNodes();
+    for(u32 i = 0; i < numargs; i++)
+      {
+	u32 depthi = 0;
+	u32 nomaxdepth = 0;
+	u32 nobase = 0;
+	m_argumentNodes->getNodePtr(i)->calcMaxDepth(depthi, nomaxdepth, nobase); //possible func call as arg
+	u32 sloti = m_state.slotsNeeded(m_argumentNodes->getNodeType(i)); //just a variable or constant
+	//take the greater
+	argbase += depthi > sloti ? depthi : sloti;
+      }
+
     argbase += m_state.slotsNeeded(getNodeType()); //return
     argbase += 1; //hidden
     depth += argbase;
@@ -414,8 +431,14 @@ namespace MFM {
 		  }
 		else if(autolocaltype == ALT_HAS)
 		  {
+		    assert(0); //deprecated
 		    // auto type is the type of the data member,
 		    // rather than the base (rhs)
+		  }
+		else if(autolocaltype == ALT_REF)
+		  {
+		    //unlike alt_as, alt_ref can be a primitive or a class
+		    atomPtr.setPtrTargetType(((SymbolVariableStack *) asym)->getAutoStorageTypeForEval());
 		  }
 	      }
 	  } //else can't be an autolocal
@@ -635,7 +658,7 @@ namespace MFM {
 	// put result of function call into a variable;
 	// (C turns it into the copy constructor)
 	fp->write("const ");
-	fp->write(nut->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32>
+	fp->write(nut->getLocalStorageTypeAsString().c_str()); //e.g. BitVector<32>
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(nuti, rtnSlot, TMPBITVAL).c_str());
 	fp->write(" = ");
@@ -870,7 +893,7 @@ namespace MFM {
 	else
 	  {
 	    //for immmediate quark MP..?
-	    fp->write(cosut->getImmediateStorageTypeAsString().c_str());
+	    fp->write(cosut->getLocalStorageTypeAsString().c_str());
 	    fp->write("::");
 	    fp->write("Us::"); //typedef, always for funccalls
 	    fp->write("THE_INSTANCE."); //non-static functions require an instance
@@ -1183,7 +1206,7 @@ namespace MFM {
 	else
 	  {
 	  //immediate quark..
-	  fp->write(stgcosut->getImmediateStorageTypeAsString().c_str());
+	  fp->write(stgcosut->getLocalStorageTypeAsString().c_str());
 	  fp->write("::Us::"); //typedef
 	  }
       }

@@ -345,7 +345,7 @@ namespace MFM {
 	m_state.indent(fp);
       }
 
-    fp->write(sut->getImmediateStorageTypeAsString().c_str()); //return type for C++
+    fp->write(sut->getLocalStorageTypeAsString().c_str()); //return type for C++
     fp->write(" ");
     if(!declOnly)
       {
@@ -380,7 +380,7 @@ namespace MFM {
 	assert(asym);
 	UTI auti = asym->getUlamTypeIdx();
 	UlamType * aut = m_state.getUlamTypeByIndex(auti);
-	fp->write(aut->getImmediateStorageTypeAsString().c_str()); //for C++
+	fp->write(aut->getLocalStorageTypeAsString().c_str()); //for C++
 	fp->write(" ");
 	fp->write(asym->getMangledName().c_str());
       }
@@ -437,7 +437,7 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("typedef ");
-    fp->write(sut->getImmediateStorageTypeAsString().c_str()); //return type for C++
+    fp->write(sut->getLocalStorageTypeAsString().c_str()); //return type for C++
     fp->write(" (");
 
     fp->write("* "); //ptr to
@@ -457,7 +457,7 @@ namespace MFM {
 	assert(asym);
 	UTI auti = asym->getUlamTypeIdx();
 	UlamType * aut = m_state.getUlamTypeByIndex(auti);
-	fp->write(aut->getImmediateStorageTypeAsString().c_str()); //for C++
+	fp->write(aut->getLocalStorageTypeAsString().c_str()); //for C++
       }
     fp->write(")");
     fp->write(";\n");

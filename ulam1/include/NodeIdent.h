@@ -67,6 +67,8 @@ namespace MFM{
 
     const Token& getToken() const;
 
+    bool isAConstant();
+
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType();
@@ -94,7 +96,7 @@ namespace MFM{
     SymbolVariable * m_varSymbol;
     NNO m_currBlockNo;
 
-    SymbolVariable *  makeSymbol(UTI aut);
+    SymbolVariable *  makeSymbol(UTI auti, ALT reftype);
     bool checkVariableTypedefSizes(TypeArgs& args, UTI auti);
     bool checkTypedefOfTypedefSizes(TypeArgs& args, UTI tduti);
     bool checkConstantTypedefSizes(TypeArgs& args, UTI tduti);

@@ -7,7 +7,7 @@
 ##	 Unsigned Arg: 2
 ##
 Exit status: 2
-Ue_E : Qfoo { :< Unsigned(3) data(2u); > Bool(1) b(false);  System s();  Qfoo m_foo( Unsigned(3) data(2u); );  Int(32) test() {  ( )func s ( data cast )print . Qfoo f;  m_foo f ( )func . = s ( m_foo data . cast )print . Qfoo g;  g m_foo ( )func . = s ( g data . cast )print . g data . cast return } }
+Ue_E : Qfoo { :< Unsigned(3) data(2u); > Bool(1) b(false);  System s();  Qfoo m_foo( Unsigned(3) data(2u); );  Int(32) test() {  ( )func s ( data cast )print . Qfoo f;  m_foo f ( )func . = s ( m_foo data . cast )print . Qfoo g = m_foo ( )func .;  s ( g data . cast )print . g data . cast return } }
 Uq_Qfoo { Unsigned(3) data(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

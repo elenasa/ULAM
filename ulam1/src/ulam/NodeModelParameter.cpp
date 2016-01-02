@@ -83,7 +83,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "(2) Model Parameter <" << m_state.getTokenDataAsString(&m_token).c_str();
-	msg << "> is not defined, and cannot be used with class: ";
+	msg << "> is not defined, and cannot be used with class: o";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	if(!hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

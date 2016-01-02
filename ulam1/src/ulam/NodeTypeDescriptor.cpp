@@ -5,13 +5,19 @@
 
 namespace MFM {
 
-  NodeTypeDescriptor::NodeTypeDescriptor(Token typetoken, UTI auti, CompilerState & state) : Node(state),  m_typeTok(typetoken), m_uti(auti), m_ready(false), m_unknownBitsizeSubtree(NULL)
+  NodeTypeDescriptor::NodeTypeDescriptor(Token tokarg, UTI auti, CompilerState & state) : Node(state), m_typeTok(tokarg), m_uti(auti), m_ready(false), m_unknownBitsizeSubtree(NULL), m_refType(ALT_NOT)
   {
-    setNodeLocation(typetoken.m_locator);
+    setNodeLocation(m_typeTok.m_locator);
+  }
+
+  NodeTypeDescriptor::NodeTypeDescriptor(Token tokarg, UTI auti, CompilerState & state, ALT refarg) : Node(state), m_typeTok(tokarg), m_uti(auti), m_ready(false), m_unknownBitsizeSubtree(NULL), m_refType(refarg)
+  {
+    setNodeLocation(m_typeTok.m_locator);
+    //m_uti = m_state.getUlamTypeAsRef(auti, refarg);
   }
 
   //since there's no assoc symbol, we map the m_uti here (e.g. S(x,y).sizeof nodeterminalproxy)
-  NodeTypeDescriptor::NodeTypeDescriptor(const NodeTypeDescriptor& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti)), m_ready(false), m_unknownBitsizeSubtree(NULL)
+  NodeTypeDescriptor::NodeTypeDescriptor(const NodeTypeDescriptor& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti)), m_ready(false), m_unknownBitsizeSubtree(NULL), m_refType(ref.m_refType)
   {
     if(ref.m_unknownBitsizeSubtree)
       m_unknownBitsizeSubtree = new NodeTypeBitsize(*ref.m_unknownBitsizeSubtree); //mapped UTI?
@@ -75,6 +81,16 @@ namespace MFM {
     return m_uti;
   }
 
+  ALT NodeTypeDescriptor::getReferenceType()
+  {
+    return m_refType;
+  }
+
+  void NodeTypeDescriptor::setReferenceType(ALT refarg)
+  {
+    m_refType = refarg;
+  }
+
   UTI NodeTypeDescriptor::checkAndLabelType()
   {
     if(isReadyType())
@@ -103,6 +119,21 @@ namespace MFM {
 
     // not node select, we are the leaf Type: a typedef, class or primitive scalar.
     UTI nuti = givenUTI(); //getNodeType();
+
+    if(m_refType != ALT_NOT)
+      {
+	nuti = m_state.getUlamTypeAsRef(nuti, m_refType);
+
+	//if reference is not complete, but its deref is, use its sizes to complete us.
+	if(!m_state.isComplete(nuti))
+	  {
+	    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+	    UTI ciuti = nut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx();
+	    UlamType * ciut = m_state.getUlamTypeByIndex(ciuti);
+	    if(ciut->isComplete())
+	      m_state.setUTISizes(nuti, ciut->getBitSize(), ciut->getArraySize());
+	  }
+      }
 
     if(!m_state.isComplete(nuti))
       {

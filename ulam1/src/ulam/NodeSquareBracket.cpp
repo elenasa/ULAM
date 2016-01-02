@@ -49,12 +49,14 @@ namespace MFM {
     UTI idxuti = Nav;
 
     UTI leftType = m_nodeLeft->checkAndLabelType();
+    //leftType = m_state.getUlamTypeAsDeref(leftType);
     bool isCustomArray = false;
 
     //for example, f.chance[i] where i is local, same as f.func(i);
     NodeBlock * currBlock = m_state.getCurrentBlock();
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //currblock doesn't change
     UTI rightType = m_nodeRight->checkAndLabelType();
+    //rightType = m_state.getUlamTypeAsDeref(rightType);
 
     m_state.popClassContext();
 
