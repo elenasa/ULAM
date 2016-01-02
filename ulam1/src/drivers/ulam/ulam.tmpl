@@ -96,6 +96,7 @@ my $CLEAN_CPP = 0;
 my $DEBUG_CPP = undef;
 my $OPTIMIZE_CPP = undef;
 my $KEEP_GOING = 0;
+my $VERBOSE_OUTPUT = 0;
 
 my $ROLLUP_FILE_STEM = "UlamCustomElements";
 
@@ -184,6 +185,7 @@ sub showCommands { return $SHOW_COMMANDS || $SHOW_ALL; }
 sub showEnvironment { return $SHOW_COMMANDS || $SHOW_ALL; }
 sub showOutput { return $SHOW_COMMANDS || $SHOW_ALL; }
 sub showTests { return $SHOW_TESTS || $SHOW_ALL; }
+sub verbose { return $VERBOSE_OUTPUT || $SHOW_ALL; }
 
 sub runThis {
     my ($matchout, $matcherr, $cmd, @args) = @_;
@@ -392,6 +394,13 @@ my %swinfo = (
         aliases => "sc",
         desc => "Print commands before running them",
         variable => \$SHOW_COMMANDS,
+        id => getSectionId("Debugging"),
+        handler => \&entryVar
+    },
+    "verbose" => {
+        aliases => "v",
+        desc => "Print extra information during operation",
+        variable => \$VERBOSE_OUTPUT,
         id => getSectionId("Debugging"),
         handler => \&entryVar
     },
@@ -639,7 +648,8 @@ sub configureMFZHandle {
         if defined $mfzhandle && $mfzhandle ne $arg;
     $mfzhandle = GetLegalHandle($arg);
     if ($arg eq "-") {
-        print STDOUT " Default package signing handle: OK\n";
+        print STDOUT " Default package signing handle: OK\n"
+            if verbose();
     }
 
     # Let's check the handle's good early..
@@ -647,7 +657,8 @@ sub configureMFZHandle {
     UDie "MFZ signing handle '$mfzhandle' not found"
         unless -r $privkeyfile;
     entryCmd("mfzpackage"); # to get dupes checked and $actionCmd set
-    print STDOUT " MFZ package signing handle '$mfzhandle': OK\n";
+    print STDOUT " MFZ package signing handle '$mfzhandle': OK\n"
+        if verbose();
 }
 
 sub entryOpt {
@@ -797,7 +808,8 @@ sub checkMFZFiles {
     }
     if ($actionCmd eq "mfzpackage") {
         my $f = $mfzFiles[0];
-        print STDOUT " MFZ package to create: $f\n";
+        print STDOUT " MFZ package to create: $f\n"
+            if verbose();
     }
 }
 
@@ -1020,11 +1032,13 @@ sub runUlamCompilations
     push @args, "-i", "$ULAM_ROOT/share/ulam/stdlib";
     push @args, "-i", "$ULAM_ROOT/share/ulam/core";
     push @args, @ulamFiles;
-    print " Compile ".join(", ",@ulamFiles).": ";
+    print " Compile ".join(", ",@ulamFiles).": "
+        if verbose();
 
     my ($status,$stdout,$stderr) = runThis(undef,undef,$culam,@args);
     if ($status eq "") {
-        print STDOUT "OK\n";
+        print STDOUT "OK\n"
+            if verbose();
         my $info = $stderr;
         chomp($info);
         $stderr = "";
@@ -1083,14 +1097,17 @@ sub runUlamCompilations
                 next;
             }
 
-            # Anything else: NYI, complain, continue
-            print STDERR "Unrecognized compiler information line: '$row'\n";
+            # Ignore unrecognized info lines unless verbose
+            print STDERR "Ignoring unrecognized: '$row'\n"
+                if verbose();
         }
         if (scalar(@elementCNamesFromUlam)==0) {
             $status = "No elements found, cannot build library";
         }
     }
     if ($status ne "") {
+        print " Compile ".join(", ",@ulamFiles).": "
+            unless verbose();
         print STDOUT "ERROR: $status\n$stderr\n";
     }
     return $status ne "";
@@ -1269,7 +1286,9 @@ sub buildSharedLibrary
     my $rollupObject = "$ULAM_WORK_DIR/build/$ROLLUP_FILE_STEM.o";
     my @bslargs = ("-g2", "-shared", "-rdynamic", "-o", $libfile, $rollupObject, @objectFilesFromUlamCpps);
 
-    print " Create $libfile shared library: ";
+    print " Create $libfile shared library: "
+        if verbose();
+
     my $gpp = getTool($gppTool);
     my ($status, $stdout, $stderr);
     {
@@ -1286,9 +1305,12 @@ sub buildSharedLibrary
     }
 
     if ($status ne "") {
+        print " Create $libfile shared library: "
+            unless verbose();
         print STDOUT "ERROR: $status\n$stderr\n";
     } else {
-        print STDOUT "OK\n";
+        print STDOUT "OK\n"
+            if verbose();
         return (0, $libfile);
     }
     return $status ne "";
@@ -1302,7 +1324,9 @@ sub buildMFZ
     my @mfzmakeargs = ("make", $mfzhandle, $output, keys %ulamFileTargets, @normalPackableFiles, $libfile);
 
     my ($status, $stdout, $stderr);
-    print " Create $output package: ";
+    print " Create $output package: "
+        if verbose();
+
     my $mfz = getTool($mfzTool);
 
     {
@@ -1319,9 +1343,13 @@ sub buildMFZ
     }
 
     if ($status ne "") {
+        print " Create $output package: "
+            unless verbose();
         print STDOUT "ERROR: $status\n$stderr\n";
     } else {
-        print STDOUT "OK\n";
+        print STDOUT "OK\n"
+            if verbose();
+
         return (0, $output);
     }
     return $status ne "";
@@ -1591,16 +1619,20 @@ sub runUlamCompile {
     my $culam = getTool($ulamcTool);
     my @args = ($file);
     push @args, $ULAM_WORK_DIR;
-    print " Compile $file: ";
+    print " Compile $file: "
+        if verbose();
     my ($status,$stdout,$stderr) = runThis(undef,undef,$culam,@args);
     if ($status ne "") {
+        print " Compile $file: "
+            unless verbose();
         print STDOUT "ERROR: $status\n$stderr\n";
     } else {
         my $info = $stderr;
         chomp($info);
 #        print STDOUT "INFO($info)\n";
         my ($cfile, $hastest) = split(/ /, $info);
-        print STDOUT "OK\n";
+        print STDOUT "OK\n"
+            if verbose();
         return (0, $cfile, $hastest eq 'TEST');
     }
     return $status ne "";
@@ -1628,7 +1660,8 @@ sub runTestMain {
 sub generateUlamElementInfo {
     my ($file,$className,$mangledName) = @_;
     my $ug = UlamGen->new($className, $mangledName, $file);
-    print " Element metadating $className from $file: ";
+    print " Element metadating $className from $file: "
+        if verbose();
     my $doc = $elementCNameToStructuredComment{$mangledName};
     die unless defined $doc;
     $ug->addClassDoc($doc);
@@ -1642,7 +1675,8 @@ sub generateUlamElementInfo {
         }
     }
     my ($structName, $ulamElementInfoCode) = $ug->generateUlamElementInfo();
-    print "OK\n";
+    print "OK\n"
+        if verbose();
     return ($structName, $ulamElementInfoCode);
 }
 
@@ -1738,13 +1772,18 @@ sub gppCompile {
     my $oldenv = modifyEnv(@extraEnvPairs);
     my @args = ("-e",
 		"-C", "$mfm", $makeTarget);
-    print " Compile $file: ";
+    print " Compile $file: "
+        if verbose();
+
     my ($status,$stdout,$stderr) = runThis(undef,undef,$make,@args);
     restoreEnv($oldenv);
     if ($status ne "") {
+        print " Compile $file: "
+            unless verbose();
         print STDOUT "ERROR: $status\nstdout={$stdout}\nstderr=$stderr\n";
     } else {
-        print STDOUT "OK\n";
+        print STDOUT "OK\n"
+            if verbose();
     }
     return $status ne "";
 }
@@ -1757,16 +1796,21 @@ sub runMake {
     my @env = ("MFM_ROOT_DIR", $MFM_ROOT_DIR, "USE_PATH", $ORIG_PATH);
     my $oldenv = modifyEnv(@env);
     unshift @args,"-e","-C", "$mfm", $makeTarget;
-    print " Make $makeTarget: ";
+    print " Make $makeTarget: "
+        if verbose();
+
     my ($status,$stdout,$stderr) = runThis(undef,undef,$make,@args);
     restoreEnv($oldenv);
     if (showCommands()) {
         print STDOUT $stdout;
     }
     if ($status ne "") {
+        print " Make $makeTarget: "
+            unless verbose();
         print STDOUT "runMake ERROR: $status\nstdout={$stdout}\nstderr=$stderr\n";
     } else {
-        print STDOUT "OK\n";
+        print STDOUT "OK\n"
+            if verbose();
     }
     return $status ne "";
 }

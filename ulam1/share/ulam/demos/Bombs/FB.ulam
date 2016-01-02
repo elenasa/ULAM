@@ -1,0 +1,17 @@
+/**
+  Standard Forkbomb.  
+  \symbol FB
+  \color #af0
+  \symmetries all
+
+  \author Dave Ackley
+  \license public-domain
+*/
+element FB {
+  EventWindow ew;
+  Void behave() {
+    ew[1] = ew[0];
+  }
+}
+
+    

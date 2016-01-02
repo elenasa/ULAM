@@ -1,8 +1,11 @@
 /**
-   Diffusion Limited Aggregation demo
+   Diffusion Limited Aggregation demo.  Use with Res.
    \symbol DL
    \color #838
    \symmetries all
+
+   \author Dave Ackley
+   \license public-domain
 */
 element DLA {
   typedef DLA Self;

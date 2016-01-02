@@ -43,15 +43,15 @@ namespace MFM {
 	return;
       }
 
+    if( m_lineNo == 0)  // uninitialized locator?
+      {
+	m_lineNo = 1;   // init it
+      }
+
     if( c == '\n')
       {
 	m_byteNo = 0;
 	m_lineNo++;
-      }
-    else if( m_lineNo == 0)
-      {
-	m_lineNo++;
-	m_byteNo=1;
       }
     else
       {

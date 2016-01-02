@@ -92,11 +92,11 @@ exit 0;
 
 sub REPO_CHECK_OUT {
     print "Cloning repo $GIT_URL..";
-    my $git_clone_output = `git clone $GIT_URL 2>&1`;
+    my $git_clone_output = `git clone $GIT_URL 2>&1;cd ULAM;git checkout master`;
     print "done\n";
 
     print "Cloning repo $MFM_GIT_URL into ULAM..";
-    my $git_mfm_clone_output = `cd ULAM;git clone $MFM_GIT_URL 2>&1`;
+    my $git_mfm_clone_output = `cd ULAM;git clone $MFM_GIT_URL 2>&1;cd MFM;git checkout master`;
     print "done\n";
 
     print "Making Makefile.local.mk..";

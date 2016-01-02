@@ -32,7 +32,7 @@ namespace MFM{
   {
     typedef typename EC::ATOM_CONFIG AC;
 
-    EventWindow<EC> & ew = uc.GetEventWindow();
+    EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
     Base<AC> & base = ew.GetBase();
 
     Ui_Ut_14181u tmp(base.GetPaint());
@@ -46,7 +46,7 @@ namespace MFM{
   {
     typedef typename EC::ATOM_CONFIG AC;
 
-    EventWindow<EC> & ew = uc.GetEventWindow();
+    EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
     Base<AC> & base = ew.GetBase();
 
     const u32 tmp = Uv_6newVal.read();
@@ -62,7 +62,7 @@ namespace MFM{
   {
     typedef typename EC::ATOM_CONFIG AC;
 
-    EventWindow<EC> & ew = uc.GetEventWindow();
+    EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
     Base<AC> & base = ew.GetBase();
 
     const T atom = base.GetBaseAtom();
@@ -76,7 +76,7 @@ namespace MFM{
   {
     typedef typename EC::ATOM_CONFIG AC;
 
-    EventWindow<EC> & ew = uc.GetEventWindow();
+    EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
     Base<AC> & base = ew.GetBase();
 
     const T atom = Uv_1a.read();

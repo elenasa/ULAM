@@ -1,0 +1,274 @@
+ulam 1;
+use Cell;
+use EventWindow;
+use Random;
+use SelectorServices;
+//use WindowServices;
+use Once;
+use C2D;
+use Fail;
+
+use ColorUtils;
+use AtomUtils;
+use DebugUtils;
+
+/**
+   Router8: 8th generation XG-style router. Works with Switch4.
+
+   \symbol R8
+   \color #111
+   \symmetry none
+   \diffusability 0
+ */
+element Router8 {
+  typedef Router8 Self;
+  typedef QPort4(2) Port;
+
+  // Imported typedefs
+  typedef C2D.Dir Dir;
+  typedef EventWindow.SiteNum SiteNum;
+  typedef Cell.ARGB ARGB;
+  typedef Cell.PortId PortId;
+
+  // Local typedefs
+  typedef Unsigned(8) Distance;
+
+  // Utilities
+  EventWindow ew;
+  Random r;
+  DebugUtils dbg;
+  Fail fail;
+
+  // Data members
+  PortId lastDstPort;
+  Unsigned(2) lastAge;
+  Int(2) score;
+  Distance portDists[8];
+
+  Distance getPortDist(PortId idx) {
+    return portDists[idx];
+  }
+
+  Void setPortDist(PortId idx, Distance value) {
+    portDists[idx] = value;
+  }
+
+  // Methods
+  ARGB getColor(Unsigned selector) {
+    Cell aPkt;
+    ColorUtils cu;
+    Unsigned def = (Unsigned) 0xffff2222;
+    if (selector == 0u || selector > 4u)   // Def
+      return cu.color(def);
+    if (selector == 1u || selector == 4u|| selector == 3u)  // PoPa, Po, Pa
+      return cu.color((Unsigned) 0xff808080);
+    /* selector == 2 or 3 */
+    if (lastAge < 3)
+      return aPkt.portColor(lastDstPort);
+    return cu.color((Unsigned) 0xff404040);
+  }
+
+
+  Bool maybeShipCell(SiteNum cellIdx, SiteNum emptyIdx) {
+    Cell cell = (Cell) ew[cellIdx];
+    PortId portId = cell.dstPort;
+    C2D empPos = ew.getCoord(emptyIdx);
+    C2D cellPos = ew.getCoord(cellIdx);
+    SiteNum empRtrIdx = closestRouter(empPos);
+    SiteNum cellRtrIdx = closestRouter(cellPos);
+    if (!ew.isLegal(empRtrIdx) || !ew.isLegal(cellRtrIdx)) return false;
+
+    Self empRtr = (Self) ew[empRtrIdx];
+    Self cellRtr = (Self) ew[cellRtrIdx];
+
+    Distance empPortDist = empRtr.getPortDist(portId);
+    if (empPortDist == 0) return false;
+
+    Distance cellPortDist = cellRtr.getPortDist(portId);
+
+    if (cellPortDist == 0 || cellPortDist > empPortDist) {
+      Cell cell = (Cell) ew[cellIdx];
+      cell.moved();
+      ew[cellIdx] = cell;
+      ew.swap(emptyIdx,cellIdx);
+      lastDstPort = portId;
+      lastAge = 0;
+      return true;
+    }
+    return false;
+  }
+
+  C2D routerPosition(Int n) {
+    C2D c2d;
+    if (n==0) return c2d.make(0,0);
+    if (n==1) return c2d.make(0,3);
+    if (n==2) return c2d.make(3,0);
+    if (n==3) return c2d.make(0,-3);
+    if (n==4) return c2d.make(-3,0);
+    fail.fail();
+    return c2d; // NOT REACHED
+  }
+
+  Int routerIndex(C2D c2d) {
+    if (c2d.equals(c2d.make(0,0))) return 0;
+    if (c2d.equals(c2d.make(0,3))) return 1;
+    if (c2d.equals(c2d.make(3,0))) return 2;
+    if (c2d.equals(c2d.make(0,-3))) return 3;
+    if (c2d.equals(c2d.make(-3,0))) return 4;
+    return -1;
+  }
+
+  SiteNum closestRouter(C2D coord) {
+    SelectorServices ss;
+
+    for (Int idx = 0; idx < 5; ++idx) {
+      C2D n = routerPosition(idx);
+      Atom a = ew[n];
+      if (a is Self) {
+        Unsigned dist = coord.manhattanDistance(n);
+        ss.minimize(idx, (Int) dist);
+      }
+    }
+    if (!ss.selectionMade()) return ew.size();
+    return ew.getSiteNumber(routerPosition(ss.getSelectedKey()));
+  }
+
+  // Already did ws.scan(emptyt, cellt, routert, nonempt))
+  Bool maintainGrid(WindowServices ws) {
+    Bool mod = false;
+
+    // Reproduce into empties
+    if (0 != ws.getHits(0)) {
+      SiteNum emptyIdx = ws.getPick(0);
+      C2D emptyPos = ew.getCoord(emptyIdx);
+      Int nbr = routerIndex(emptyPos);
+      if (nbr >= 0     // We found an empty that should be a router
+          && r.oneIn(3)) { // But slow down growth a bit
+        Self newRouter;
+        ew[emptyIdx] = (Atom) newRouter;
+        mod = true;
+      }
+    }
+
+    // CotT over grid misalignment..
+    if (0 != ws.getHits(2)) {
+      SiteNum routerIdx = ws.getPick(2);
+      C2D routerPos = ew.getCoord(routerIdx);
+      Int nbr = routerIndex(routerPos);
+      if (nbr < 0) {  // We found an off-grid router
+        Empty empty;
+        ew[routerIdx] = (Atom) empty;
+        mod = true;
+      }
+    }
+    return mod;
+  }
+
+  Void behave() {
+    WindowServices ws;
+    AtomUtils au;
+    Cell p;
+    Self router;
+    Port port;
+    Empty empty;
+
+    typedef WindowServices.Slot Slot;
+    constant Slot emptySI = 0;    // scan index for empties
+    constant Slot cellSI = 1;   // scan index for cells
+    constant Slot routerSI = 2;   // scan index for routers
+    constant Slot nonempSI = 3;     // scan index for non-empties that might be ports
+
+    Int emptyt = ws.cEMPTY_SITES_HIT;
+    Int cellt = au.getType((Atom) p);
+    Int routert = au.getType((Atom) router);
+    Int nonempt = ws.cNONEMPTY_SITES_HIT;
+
+    Bool wasUseful = false;
+
+    if (lastAge < 3 && r.oneIn((Unsigned) (2<<lastAge)))
+      ++lastAge;
+
+    ws.reset(1,4);
+    if (!ws.scan(emptyt, cellt, routert, nonempt)) {
+      // None of ANY of them, really?
+      ew[0] = empty;  // I don't think we want to be here
+      return;
+    }
+
+    if (maintainGrid(ws))
+      return;
+
+    if (0 != ws.getHits(nonempSI)) {
+      // We're next to something non-empty, which doesn't say much.
+      // But if it's a port, that's imporant info.
+      SiteNum nonempIdx = ws.getPick(nonempSI);
+      Atom porta = ew[nonempIdx];
+      if (porta as Port) {
+        setPortDist(porta.m_portId, (Distance) 1);
+        wasUseful = wasUseful || true;
+      }
+    }
+
+    if (0 != ws.getHits(cellSI)) {
+
+      // We saw a cell.  Can we route it today?
+      SiteNum cellIdx = ws.getPick(cellSI);
+
+      if (0 != ws.getHits(emptySI)) {
+        SiteNum empIdx = ws.getPick(emptySI);
+
+        Bool moved = false;
+        if (0 != ws.getHits(nonempSI)) {
+          // Special case if destination port
+          SiteNum nonempIdx = ws.getPick(nonempSI);
+          Atom porta = ew[nonempIdx];
+          if (porta as Port) {
+
+            Cell cell = (Cell) ew[cellIdx];
+
+            if (porta.m_portId == cell.dstPort) {
+              C2D portPos = ew.getCoord(nonempIdx);
+              C2D cellPos = ew.getCoord(cellIdx);
+              C2D empPos = ew.getCoord(empIdx);
+              if (cellPos.manhattanDistance(portPos) >
+                  empPos.manhattanDistance(portPos)) {
+                // Yes!
+                cell.moved();
+                ew[cellIdx] = cell;
+                ew.swap(empIdx,cellIdx);
+                lastDstPort = porta.m_portId;
+                lastAge = 0;
+
+                wasUseful = wasUseful || true;
+                moved = true;
+              }
+            }
+          }
+        }
+        if (!moved)
+          wasUseful = wasUseful || maybeShipCell(cellIdx, ws.getPick(emptySI));
+      }
+    }
+
+    if (!wasUseful) { // No ground truth discovered, no cell routed
+
+      // Let's refresh a route
+
+      PortId idx = (PortId) r.create((Int) 8);  // Pick a random slot
+      SelectorServices ss;
+      for (Int i = 1; i < 5; ++i) { // For routers other than us..
+        C2D pos = routerPosition(i);
+        Atom a = ew[pos];
+        if (a as Self) {
+          Int dist = a.getPortDist(idx);
+          if (dist != 0) ss.minimize(i, dist);
+        }
+      }
+      if (ss.selectionMade()) {
+        Int hops = 1;
+        //Causes free space clogs:        if (ws.getHits(emptySI) < 8) ++hops; // getting crowded around here
+        setPortDist(idx, (Distance) (ss.getSelectedValue() + hops));
+      }
+    }
+  }
+}

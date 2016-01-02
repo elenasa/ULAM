@@ -93,7 +93,7 @@ element SelectorServices {
   Void count(Int key, Int weight) { check(key, 1, weight); }
 
   Unsigned getCount() { return c; }
-  Bool selectionMade() { return getCount() > 0; }
+  Bool selectionMade() { return getCount() > 0u; }
   Int getSelectedKey() {
     if (!selectionMade()) fail.fail();
     return k;
@@ -117,17 +117,17 @@ element SelectorServices {
      (Primarily an internal routine).
   */
   Bool check(Int key, Int value, Int weight) {
-    if (weight <= 0)
-      return false;
+    if (weight <= 0) return false;
+    Count uweight = (Count) weight;
 
     if (c == 0) {
-      c = weight;
+      c = uweight;
       take(key, value);
       return false;
     }
 
     if (v == value) {
-      if (r.oddsOf((Unsigned) weight, (Unsigned) (c += (Count) weight)))
+      if (r.oddsOf((Unsigned) uweight, (Unsigned) (c += uweight)))
         take(key, value);
       return false;
     }
