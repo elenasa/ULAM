@@ -66,10 +66,10 @@ namespace MFM {
   bool NodeIdent::isAConstant()
   {
     bool rtn = false;
-#if 1
+    //may not have known at parse time;
     if(!m_varSymbol)
       {
-	//is it a constant within the member??
+	//is it a constant within the member?
 	NodeBlockClass * memberclass = m_state.getClassBlock();
 	assert(memberclass);
 	m_state.pushCurrentBlock(memberclass);
@@ -80,13 +80,11 @@ namespace MFM {
 	  {
 	    if(asymptr->isConstant())
 	      {
-		//assert(0); //found it!!!
-		rtn = true;
+		rtn = true; //no side-effects until c&l
 	      }
 	  }
 	m_state.popClassContext(); //restore
       }
-#endif
     return rtn;
   } //isAConstant
 
@@ -139,7 +137,16 @@ namespace MFM {
 		NodeConstant * newnode = new NodeConstant(*this);
 		NNO pno = Node::getYourParentNo();
 		Node * parentNode = m_state.findNodeNoInThisClass(pno);
-		assert(parentNode);
+		if(!parentNode)
+		  {
+		    std::ostringstream msg;
+		    msg << "Named Constant variable '" << getName();
+		    msg << "' cannot be exchanged at this time while compiling class: ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+		    msg << " Parent required";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    assert(0); //parent required
+		  }
 
 		AssertBool swapOk = parentNode->exchangeKids(this, newnode);
 		assert(swapOk);
@@ -166,7 +173,16 @@ namespace MFM {
 		NodeModelParameter * newnode = new NodeModelParameter(*this);
 		NNO pno = Node::getYourParentNo();
 		Node * parentNode = m_state.findNodeNoInThisClass(pno);
-		assert(parentNode);
+		if(!parentNode)
+		  {
+		    std::ostringstream msg;
+		    msg << "Model Parameter variable '" << getName();
+		    msg << "' cannot be exchanged at this time while compiling class: ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+		    msg << " Parent required";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    assert(0); //parent required
+		  }
 
 		AssertBool swapOk = parentNode->exchangeKids(this, newnode);
 		assert(swapOk);
@@ -200,42 +216,17 @@ namespace MFM {
 	else
 	  {
 	    m_state.popClassContext(); //restore
-#if 0
-	    if(!asymptr)
+	    std::ostringstream msg;
+	    msg << "(2) <" << m_state.getTokenDataAsString(&m_token).c_str();
+	    msg << "> is not defined, and cannot be used with class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    if(!hazyKin)
 	      {
-		//is it a constant within the member??
-		NodeBlockClass * memberclass = m_state.getClassBlock();
-		assert(memberclass);
-		m_state.pushCurrentBlock(memberclass);
-
-		Symbol * asymptr = NULL;
-		bool hazyKin = false;
-		// don't capture symbol ptr yet if part of incomplete chain.
-		if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
-		  {
-		    assert(0); //found it!!!
-
-
-		  }
-		m_state.popClassContext(); //restore
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
-
-	    if(!asymptr)
-#endif
-	      {
-		std::ostringstream msg;
-		msg << "(2) <" << m_state.getTokenDataAsString(&m_token).c_str();
-		msg << "> is not defined, and cannot be used with class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-		if(!hazyKin)
-		  {
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		    //errCnt++;
-		  }
-		else
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		errCnt++;
-	      }
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    errCnt++;
 	  }
       } //lookup symbol
 

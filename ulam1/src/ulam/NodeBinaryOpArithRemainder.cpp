@@ -49,7 +49,16 @@ namespace MFM {
 	    castNode->setNodeLocation(getNodeLocation());
 
 	    Node * parentNode = m_state.findNodeNoInThisClass(pno);
-	    assert(parentNode);
+	    if(!parentNode)
+	      {
+		std::ostringstream msg;
+		msg << "Remainder cast cannot be exchanged at this time while compiling class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+		msg << " Parent required";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		assert(0); //parent required
+	      }
+
 	    AssertBool swapOk = parentNode->exchangeKids(this, castNode);
 	    assert(swapOk);
 

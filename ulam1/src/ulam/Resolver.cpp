@@ -42,14 +42,7 @@ namespace MFM {
   bool Resolver::assignClassArgValuesInStubCopy()
   {
     bool aok = true;
-    // set context
-    UTI context = getContextForPendingArgs();
-    SymbolClass * contextSym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(context, contextSym);
-    assert(isDefined);
-
-    m_state.pushClassContext(context, contextSym->getClassBlockNode(), contextSym->getClassBlockNode(), false, NULL);
-
+    // context already set by caller
     std::vector<NodeConstantDef *>::iterator vit = m_nonreadyClassArgSubtrees.begin();
     while(vit != m_nonreadyClassArgSubtrees.end())
       {
@@ -58,8 +51,6 @@ namespace MFM {
 	  aok &= ceNode->assignClassArgValueInStubCopy();
 	vit++;
       } //while thru vector of incomplete args only
-
-    m_state.popClassContext(); //restore previous context
     return aok;
   } //assignClassArgValuesInStubCopy
 
@@ -170,9 +161,9 @@ namespace MFM {
     //constant values in the stub copy's Resolver map.
     //Resolution of all context-dependent arg expressions will occur
     //during the resolving loop..
-    //m_state.pushClassContext(context, contextSym->getClassBlockNode(), contextSym->getClassBlockNode(), false, NULL);
+    m_state.pushClassContext(context, contextSym->getClassBlockNode(), contextSym->getClassBlockNode(), false, NULL);
     assignClassArgValuesInStubCopy();
-    //m_state.popClassContext(); //restore previous context
+    m_state.popClassContext(); //restore previous context
   } //clonePendingClassArgumentsForStubClassInstance
 
   UTI Resolver::getContextForPendingArgs()

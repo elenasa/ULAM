@@ -244,8 +244,7 @@ namespace MFM {
     return newclassinstance;
   } //makeAStubClassInstance
 
-
-  // no stub available to copy, may need placeholder args too
+  // no stub available to copy, may need placeholder args too (unused)
   SymbolClass * SymbolClassNameTemplate::makeAStubClassInstanceHolder(Token typeTok, UTI suti)
   {
     NodeBlockClass * templateclassblock = getClassBlockNode();

@@ -223,8 +223,7 @@ namespace MFM {
 
   UTI Node::constantFold()
   {
-    return Nav;
-    //return getNodeType(); //more forgiving
+    return Nav; //parent required
   }
 
   bool Node::buildDefaultQuarkValue(u32& dqref)

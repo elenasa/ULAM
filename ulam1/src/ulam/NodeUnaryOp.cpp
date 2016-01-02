@@ -259,9 +259,9 @@ namespace MFM {
 	msg << "Constant value expression for unary op" << getName();
 	msg << " cannot be constant-folded at this time while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << " Parent required";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	//return nuti; //leave gracefully
-	assert(0);
+	assert(0); //parent required
       }
 
     evalNodeProlog(0); //new current frame pointer
