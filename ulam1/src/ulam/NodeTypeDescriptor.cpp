@@ -124,7 +124,6 @@ namespace MFM {
       {
 	nuti = m_state.getUlamTypeAsRef(nuti, m_refType);
 #if 1
-	//belongs better in fullyInstantiate() for templates
 	//if reference is not complete, but its deref is, use its sizes to complete us.
 	if(!m_state.isComplete(nuti))
 	  {

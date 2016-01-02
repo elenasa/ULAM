@@ -73,6 +73,7 @@ namespace MFM{
     bool pendingClassArgumentsForStubClassInstance(UTI instance);
 
     SymbolClass * makeAStubClassInstance(Token typeTok, UTI cuti); //to hold class args, and cUTI
+    SymbolClass * makeAStubClassInstanceHolder(Token typeTok, UTI suti);
     void copyAStubClassInstance(UTI instance, UTI newuti, UTI context);
 
     /** replaces temporary class argument names, updates the ST, and the class type */

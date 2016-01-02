@@ -782,10 +782,12 @@ namespace MFM {
 
     ULAMTYPE bUT = ut->getUlamTypeEnum();
     UlamKeyTypeSignature keyOfArg = ut->getUlamKeyTypeSignature();
-
     u32 bitsize = keyOfArg.getUlamKeyTypeSignatureBitSize();
     u32 arraysize = keyOfArg.getUlamKeyTypeSignatureArraySize();
     UTI classidx = keyOfArg.getUlamKeyTypeSignatureClassInstanceIdx();
+
+    if(bUT == Class)
+      return classidx;
 
     UlamKeyTypeSignature baseKey(keyOfArg.m_typeNameId, bitsize, arraysize, classidx, ALT_NOT);  //default array size is zero
 
@@ -1345,8 +1347,8 @@ namespace MFM {
     if(!ut->isScalar())
       scalarUTI = getUlamTypeAsScalar(uti);
 
-    //    if(ut->isReference())
-    //  scalarUTI = getUlamTypeAsDeref(scalarUTI); //and deref
+    if(ut->isReference())
+      scalarUTI = getUlamTypeAsDeref(scalarUTI); //and deref
 
     SymbolClassName * cnsym = NULL;
     if(alreadyDefinedSymbolClassName(ut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), cnsym))

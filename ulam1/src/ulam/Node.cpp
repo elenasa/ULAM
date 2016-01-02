@@ -206,7 +206,7 @@ namespace MFM {
 	cnt += 1;
 	std::ostringstream msg;
 	msg << "Unresolved No." << cnt;
-	//msg << ": <" << getName() << ">";
+	msg << ": <" << getName() << ">";
 	//msg << (" << prettyNodeName().c_str() << ") "; ugly!
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
