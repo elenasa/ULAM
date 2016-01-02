@@ -10,12 +10,15 @@ namespace MFM{
   template<class EC, u32 POS>
   void Uq_10104Fail10<EC,POS>::Uf_4fail(const UlamContext<EC> & uc, T& Uv_4self) const
   {
-    s32 code = -1;
     u32 type = Uv_4self.GetType();
     typedef typename EC::ATOM_CONFIG AC;
     AtomSerializer<AC> as(Uv_4self);
-    LOG.Message("FAIL(%d) (0x%04x) by %@", code, type, &as);
-    FAIL_BY_NUMBER(code);
+    const Tile<EC> & tile = uc.GetTile();
+    SPoint ctr = uc.GetEventWindow().GetCenterInTile();
+    SPointSerializer sctr(ctr);
+
+    LOG.Message("FAIL() (0x%04x) by %@ in Tile %s site %@ ", type, &as, tile.GetLabel(), &sctr);
+    FAIL(UNSPECIFIED_EXPLICIT_FAIL);
   }
 
   //! Fail.ulam:7:   Void fail(Int code) native;
@@ -26,7 +29,11 @@ namespace MFM{
     u32 type = Uv_4self.GetType();
     typedef typename EC::ATOM_CONFIG AC;
     AtomSerializer<AC> as(Uv_4self);
-    LOG.Message("FAIL(%d) (0x%04x) by %@", code, type, &as);
+    const Tile<EC> & tile = uc.GetTile();
+    SPoint ctr = uc.GetEventWindow().GetCenterInTile();
+    SPointSerializer sctr(ctr);
+
+    LOG.Message("FAIL(%d) (0x%04x) by %@ in Tile %s site %@ ", code, type, &as, tile.GetLabel(), &sctr);
     FAIL_BY_NUMBER(code);
   }
 
