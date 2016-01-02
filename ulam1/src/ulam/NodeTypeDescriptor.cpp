@@ -123,7 +123,7 @@ namespace MFM {
     if(m_refType != ALT_NOT)
       {
 	nuti = m_state.getUlamTypeAsRef(nuti, m_refType);
-#if 1
+
 	//if reference is not complete, but its deref is, use its sizes to complete us.
 	if(!m_state.isComplete(nuti))
 	  {
@@ -133,7 +133,6 @@ namespace MFM {
 	    if(ciut->isComplete())
 	      m_state.setUTISizes(nuti, ciut->getBitSize(), ciut->getArraySize());
 	  }
-#endif
       }
 
     if(!m_state.isComplete(nuti))

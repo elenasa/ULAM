@@ -1247,54 +1247,6 @@ namespace MFM {
     u32 tdid = m_state.m_pool.getIndexForDataString(tdname);
     typeTok.init(TOK_TYPE_IDENTIFIER, asNode->getNodeLocation(), tdid);
 
-#if 0
-    // Dave says we don't need stubs for class references!!
-
-    SymbolClassName * cnsym = NULL;
-    if(m_state.alreadyDefinedSymbolClassName(tdid, cnsym))
-      {
-	if(cnsym->isClassTemplate())
-	  {
-	    if(m_state.isClassAStub(ruti))
-	      //gets copy of class args too
-	      ((SymbolClassNameTemplate *) cnsym)->copyAStubClassInstance(ruti, tuti, m_state.getCompileThisIdx());
-	    else if(ruti == cnsym->getUlamTypeIdx())
-	      ((SymbolClassNameTemplate *) cnsym)->makeAStubClassInstanceHolder(typeTok, tuti);
-	    else// if(ruti != m_state.getCompileThisIdx()) //not Self
-	      {
-		UTI cuti = m_state.getCompileThisIdx();
-		std::ostringstream msg;
-		msg << "Missing instance stub for AS-reference of class template '";
-		msg << m_state.m_pool.getDataAsString(cnsym->getId()).c_str() << "'";
-		msg << " (UTI" << ruti << ") ";
-		msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
-		msg << " while compiling class ";
-		msg << m_state.getUlamTypeNameByIndex(cuti).c_str();
-		msg << " (UTI" << cuti << ") ";
-		MSG(&pTok, msg.str().c_str(), ERR);
-	      }
-	  }
-	else
-	  {
-	    UTI cuti = m_state.getCompileThisIdx();
-	    std::ostringstream msg;
-	    msg << "Defined regular class for AS-reference '";
-	    msg << m_state.m_pool.getDataAsString(cnsym->getId()).c_str() << "'";
-	    msg << " (UTI" << ruti << ") ";
-	    msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
-	    msg << " while compiling class ";
-	    msg << m_state.getUlamTypeNameByIndex(cuti).c_str();
-	    msg << " (UTI" << cuti << ") ";
-	    MSG(&pTok, msg.str().c_str(), DEBUG);
-	    //assert(0); //defined regular class?
-	  }
-      }
-    else //unseen, not yet defined class..template or not?
-      {
-	m_state.addIncompleteClassSymbolToProgramTable(typeTok, cnsym);
-      }
-#endif
-
     TypeArgs typeargs;
     typeargs.init(typeTok);
     typeargs.m_bitsize = tut->getBitSize();

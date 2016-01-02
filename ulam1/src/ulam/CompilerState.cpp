@@ -528,6 +528,7 @@ namespace MFM {
     SymbolClassNameTemplate * cnsym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClassNameTemplate(getCompileThisId(), cnsym);
     assert(isDefined);
+
     UTI mappedUTI;
     if(cnsym->hasInstanceMappedUTI(getCompileThisIdx(), suti, mappedUTI))
       return mappedUTI;  //e.g. decl list
@@ -543,17 +544,22 @@ namespace MFM {
       {
 	AssertBool isDefined = alreadyDefinedSymbolClassName(skey.getUlamKeyTypeSignatureNameId(), cnsymOfIncomplete);
 	assert(isDefined);
+
 	if(!cnsymOfIncomplete->isClassTemplate())
 	  return suti;
 	if(skey.getUlamKeyTypeSignatureReferenceType() == ALT_AS)
 	  {
-	    UTI asref = getUlamTypeAsRef(getCompileThisIdx(), ALT_AS);
-	    return asref;
+	    //UTI asref = getUlamTypeAsRef(getCompileThisIdx(), ALT_AS); //?
+	    //	    return asref;
+	    UTI asref = mapIncompleteUTIForCurrentClassInstance(getUlamTypeAsDeref(suti));
+	    return getUlamTypeAsRef(asref, ALT_AS);
 	  }
 	if(skey.getUlamKeyTypeSignatureReferenceType() == ALT_REF)
 	  {
-	    UTI asref = getUlamTypeAsRef(getCompileThisIdx(), ALT_REF);
-	    return asref;
+	    //UTI asref = getUlamTypeAsRef(getCompileThisIdx(), ALT_REF); //?
+	    //return asref;
+	    UTI asref = mapIncompleteUTIForCurrentClassInstance(getUlamTypeAsDeref(suti));
+	    return getUlamTypeAsRef(asref, ALT_AS);
 	  }
 	if(!((SymbolClassNameTemplate *) cnsymOfIncomplete)->pendingClassArgumentsForStubClassInstance(suti))
 	  return suti;
