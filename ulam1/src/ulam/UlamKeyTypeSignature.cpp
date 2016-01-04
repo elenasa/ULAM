@@ -78,8 +78,10 @@ namespace MFM {
     else if(m_arraySize != NONARRAYSIZE)
       key << "[" << m_arraySize << "?]";
 
+    if(m_referenceType != ALT_NOT)
+      key << "&";
     return key.str();
-  } //getUlamKeyTypeSignatureNameAndBitSize
+  } //getUlamKeyTypeSignatureNameAndSize
 
   const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureAsString(CompilerState * state)
   {

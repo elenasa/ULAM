@@ -190,6 +190,7 @@ namespace MFM{
     /** turns a regular type into its referenced type */
     UTI getUlamTypeAsRef(UTI utArg);
     UTI getUlamTypeAsRef(UTI utArg, ALT altArg);
+    ULAMTYPECOMPARERESULTS isARefTypeOfUlamType(UTI refuti, UTI ofuti); //true if de-refuti is same as ofuti
 
     UTI getUlamTypeOfConstant(ULAMTYPE etype);
     UTI getDefaultUlamTypeOfConstant(UTI ctype);

@@ -74,8 +74,12 @@ namespace MFM {
 
   FORECAST NodeFunctionCall::safeToCastTo(UTI newType)
   {
+    UlamType * newut = m_state.getUlamTypeByIndex(newType);
+    if(newut->isReference())
+      return CAST_BAD; //cannot cast a function to a ref type
+
     //ulamtype checks for complete, non array, and type specific rules
-    return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
+    return newut->safeCast(getNodeType());
   } //safeToCastTo
 
   UTI NodeFunctionCall::checkAndLabelType()
@@ -739,7 +743,7 @@ namespace MFM {
 	fp->write(m_state.getHiddenContextArgName());
 	fp->write(".GetEffectiveSelf()->getVTableEntry(");
       }
-    else if(cos->isAutoLocal())
+    else if(cos->getAutoLocalType() == ALT_AS)
       {
 	fp->write(m_state.getAutoHiddenContextArgName());
 	fp->write(".GetEffectiveSelf()->getVTableEntry(");
@@ -964,7 +968,7 @@ namespace MFM {
 		hiddenargs << m_state.getHiddenContextArgName(); //same uc
 		stgcos = m_state.getCurrentSelfSymbolForCodeGen();
 	      }
-	    else if(cos->isAutoLocal())
+	    else if(cos->getAutoLocalType() == ALT_AS)
 	      {
 		hiddenargs << m_state.getAutoHiddenContextArgName(); //_ucaut
 		stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
@@ -1090,8 +1094,17 @@ namespace MFM {
 	UTI auti;
 	m_state.m_currentObjSymbolsForCodeGen.clear(); //*************
 
-	m_argumentNodes->genCode(fp, auvpass, i);
-	Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
+	if(m_state.getReferenceType(m_funcSymbol->getParameterType(i)) != ALT_NOT)
+	  {
+	    genCodeReferenceArg(fp, auvpass, i);
+	    //m_argumentNodes->genCodeToStoreInto(fp, auvpass, i);
+	    //Node::genCodeConvertATmpVarIntoAutoRef(fp, auvpass);
+	  }
+	else
+	  {
+	    m_argumentNodes->genCode(fp, auvpass, i);
+	    Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
+	  }
 	auti = auvpass.getUlamValueTypeIdx();
 	if(auti == Ptr)
 	  {
@@ -1109,8 +1122,15 @@ namespace MFM {
 	    UTI auti;
 	    m_state.m_currentObjSymbolsForCodeGen.clear(); //*************
 
-	    m_argumentNodes->genCode(fp, auvpass, i);
-	    Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
+	    if(m_state.getReferenceType(m_argumentNodes->getNodeType(i)) != ALT_NOT)
+	      {
+		genCodeReferenceArg(fp, auvpass, i);
+	      }
+	    else
+	      {
+		m_argumentNodes->genCode(fp, auvpass, i);
+		Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
+	      }
 
 	    auti = auvpass.getUlamValueTypeIdx();
 	    if(auti == Ptr)
@@ -1129,6 +1149,80 @@ namespace MFM {
 
     return arglist.str();
   } //genRestOfFunctionArgs
+
+  // should be like NodeVarRef::genCode
+  void NodeFunctionCall::genCodeReferenceArg(File * fp, UlamValue & uvpass, u32 n)
+  {
+    // get the right-hand side, stgcos
+    // can be same type (e.g. element, quark, or primitive),
+    // or ancestor quark if a class.
+    m_argumentNodes->genCodeToStoreInto(fp, uvpass, n);
+
+    assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
+    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen.back();
+    UTI stgcosuti = stgcos->getUlamTypeIdx();
+    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+
+    UTI vuti = m_funcSymbol->getParameterType(n);
+    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+
+    assert(vut->getUlamTypeEnum() == stgcosut->getUlamTypeEnum());
+
+    m_state.indent(fp);
+    fp->write(vut->getUlamTypeImmediateMangledName().c_str()); //for C++ local vars, ie non-data members
+    if(vclasstype == UC_ELEMENT)
+      fp->write("<EC> ");
+    else if(vclasstype == UC_QUARK)
+      {
+	fp->write("<EC, ");
+	fp->write_decimal_unsigned(uvpass.getPtrPos());
+	fp->write("u> ");
+      }
+    else //primitive, right-just
+      {
+	fp->write("<EC, ");
+	// note: POS for a ref is alway the right-justified position, leaving
+	// the pos argument to reflect any difference; required for runtime.
+	//if(stgcos->isDataMember())
+	//fp->write("T::ATOM_FIRST_STATE_BIT + ");
+	//ptr pos is absolute for non-data members (r-just primitives)
+	//fp->write_decimal_unsigned(uvpass.getPtrPos());
+	fp->write_decimal_unsigned(BITSPERATOM - uvpass.getPtrLen());
+	fp->write("u> ");
+      }
+
+    s32 tmpVarArgNum = m_state.getNextTmpVarNumber();
+    fp->write(m_state.getTmpVarAsString(vuti, tmpVarArgNum, TMPBITVAL).c_str());
+    fp->write("("); //pass ref in constructor (ref's not assigned with =)
+    if(stgcos->isDataMember()) //can't be an element
+      {
+	fp->write("Uv_4atom, ");
+	fp->write_decimal_unsigned(stgcos->getPosOffset()); //relative off
+	fp->write("u");
+      }
+    else
+      {
+	fp->write(stgcos->getMangledName().c_str());
+	if(stgcos->getId() != m_state.m_pool.getIndexForDataString("atom")) //not isSelf check; was "self"
+	  fp->write(".getRef()");
+
+	if(vclasstype == UC_NOTACLASS)
+	  {
+	    fp->write(", ");
+	    fp->write_decimal_unsigned(BITSPERATOM - stgcosut->getTotalBitSize()); //right-justified
+	    fp->write("u");
+	  }
+	else if(vclasstype == UC_QUARK)
+	  fp->write(", 0u"); //left-justified
+      }
+    fp->write(");\n");
+
+    uvpass.setPtrSlotIndex(tmpVarArgNum);
+    uvpass.setPtrStorage(TMPBITVAL);
+
+    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
+  } //genCodeReferenceArg
 
   void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp)
   {

@@ -14,7 +14,7 @@ namespace MFM {
     return Nav;
   }
 
-  const std::string UlamTypeNav::getUlamTypeAsStringForC()
+  const std::string UlamTypeNav::getUlamTypeAsStringForC(bool useref)
   {
     assert(0);
     return "nav";

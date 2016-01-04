@@ -184,12 +184,12 @@ namespace MFM {
   } //getUlamTypeMangledName
 
   //quarks are right-justified in an atom space
-  const std::string UlamTypeClass::getUlamTypeAsStringForC()
+  const std::string UlamTypeClass::getUlamTypeAsStringForC(bool useref)
   {
     assert(getUlamClass() != UC_UNSEEN);
     if(getUlamClass() == UC_QUARK)
       {
-	return UlamType::getUlamTypeAsStringForC();
+	return UlamType::getUlamTypeAsStringForC(useref);
       }
     return "T"; //for elements
   } //getUlamTypeAsStringForC()
@@ -224,6 +224,9 @@ namespace MFM {
     SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(id);
     if(cnsym && cnsym->isClassTemplate())
       namestr << ((SymbolClassNameTemplate *) cnsym)->formatAnInstancesArgValuesAsCommaDelimitedString(cuti).c_str();
+
+    if(getReferenceType() != ALT_NOT)
+      namestr << "&";
     return namestr.str();
   } //getUlamTypeNameBrief
 
@@ -360,9 +363,16 @@ namespace MFM {
   const std::string UlamTypeClass::getUlamTypeImmediateAutoMangledName()
   {
     assert(needsImmediateType() || isReference());
+
+    if(isReference())
+      return getUlamTypeImmediateMangledName();
+
+    //same as non-ref except for the 'r'
     std::ostringstream  automn;
-    automn << getUlamTypeImmediateMangledName().c_str();
-    automn << "4auto" ;
+    automn << "Ui_";
+    automn << getUlamTypeUPrefix().c_str();
+    automn << "r";
+    automn << getUlamTypeMangledType();
     return automn.str();
   } //getUlamTypeImmediateAutoMangledName
 

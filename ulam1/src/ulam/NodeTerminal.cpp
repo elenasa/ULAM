@@ -147,7 +147,11 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
     ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
-    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
+    UlamType * newut = m_state.getUlamTypeByIndex(newType);
+    ULAMTYPE typEnum = newut->getUlamTypeEnum();
+
+    if(newut->isReference())
+      return CAST_BAD; //cannot cast a constant to a ref type
 
     //special cases: not a matter of fitting
     if(typEnum == Bool || ntypEnum == Bool || typEnum == UAtom || typEnum == Class || typEnum == Void)

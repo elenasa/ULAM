@@ -105,7 +105,7 @@ namespace MFM{
 
     virtual ULAMTYPE getUlamTypeEnum() = 0;
 
-    virtual const std::string getUlamTypeAsStringForC();
+    virtual const std::string getUlamTypeAsStringForC(bool useref);
 
     virtual const std::string getUlamTypeVDAsStringForC();
 
@@ -137,11 +137,15 @@ namespace MFM{
 
     virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
 
+    virtual void genUlamTypeAutoReadDefinitionForC(File * fp);
+
+    virtual void genUlamTypeAutoWriteDefinitionForC(File * fp);
+
+    virtual void genUlamTypeMangledImmediateDefinitionForC(File * fp);
+
     virtual void genUlamTypeReadDefinitionForC(File * fp);
 
     virtual void genUlamTypeWriteDefinitionForC(File * fp);
-
-    virtual void genUlamTypeMangledImmediateDefinitionForC(File * fp);
 
     static const char * getUlamTypeEnumCodeChar(ULAMTYPE etype);
 

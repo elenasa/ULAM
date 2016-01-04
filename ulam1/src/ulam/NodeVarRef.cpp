@@ -66,11 +66,14 @@ namespace MFM {
 
     fp->write(" ");
     if(vut->getUlamTypeEnum() != Class)
-      fp->write(vkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str());
+      {
+	fp->write(vkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str());
+	fp->write("&"); //<--the only difference!!!
+      }
     else
-      fp->write(vut->getUlamTypeNameBrief().c_str());
+      fp->write(vut->getUlamTypeNameBrief().c_str()); //includes any &
 
-    fp->write("& "); //<--the difference!!!
+    fp->write(" ");
     fp->write(getName());
 
     s32 arraysize = m_state.getArraySize(vuti);
@@ -282,7 +285,7 @@ namespace MFM {
 	assert(vut->getUlamTypeEnum() == stgcosut->getUlamTypeEnum());
 
 	m_state.indent(fp);
-	fp->write(vut->getUlamTypeImmediateAutoMangledName().c_str()); //for C++ local vars, ie non-data members
+	fp->write(vut->getUlamTypeImmediateMangledName().c_str()); //for C++ local vars, ie non-data members
 	if(vclasstype == UC_ELEMENT)
 	  fp->write("<EC> ");
 	else if(vclasstype == UC_QUARK)
@@ -294,10 +297,9 @@ namespace MFM {
 	else //primitive, right-just
 	  {
 	    fp->write("<EC, ");
-	    if(stgcos->isDataMember())
-	      fp->write("T::ATOM_FIRST_STATE_BIT + ");
-	    //ptr pos is absolute for non-data members (r-just primitives)
-	    fp->write_decimal_unsigned(uvpass.getPtrPos());
+	    // note: POS for a ref is alway the right-justified position, leaving
+	    // the pos argument to reflect any difference; required for runtime.
+	    fp->write_decimal_unsigned(BITSPERATOM - uvpass.getPtrLen());
 	    fp->write("u> ");
 	  }
 

@@ -98,6 +98,8 @@ namespace MFM{
 
     void genCode(File * fp, UlamValue& uvpass, u32 n);
 
+    void genCodeToStoreInto(File * fp, UlamValue& uvpass, u32 n);
+
   protected:
 
   private:

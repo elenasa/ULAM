@@ -61,6 +61,7 @@ namespace MFM{
     u32 getTotalParameterSlots();
 
     Symbol * getParameterSymbolPtr(u32 n);
+    UTI getParameterType(u32 n);
 
     void markForVariableArgs(bool m = true);
     bool takesVariableArgs();

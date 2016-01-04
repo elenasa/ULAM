@@ -361,6 +361,13 @@ namespace MFM {
       {
 	genCodeReadIntoATmpVar(fp, uvpass); // cast.
       }
+    else
+      {
+	UTI tobeuti = getNodeType();
+	UlamType * tobeut = m_state.getUlamTypeByIndex(tobeuti);
+	if(tobeut->isReference())
+	  uvpass.setPtrTargetType(tobeuti); //minimal casting
+      }
   } //genCode
 
  void NodeCast::genCodeToStoreInto(File * fp, UlamValue& uvpass)
@@ -371,7 +378,14 @@ namespace MFM {
 	m_node->genCodeReadIntoATmpVar(fp, uvpass);
 	genCodeReadIntoATmpVar(fp, uvpass); // cast.
       }
-  }
+    else
+      {
+	UTI tobeuti = getNodeType();
+	UlamType * tobeut = m_state.getUlamTypeByIndex(tobeuti);
+	if(tobeut->isReference())
+	  uvpass.setPtrTargetType(tobeuti); //minimal casting
+      }
+  } //genCodeToStoreInto
 
   void NodeCast::genCodeReadIntoATmpVar(File * fp, UlamValue& uvpass)
   {
@@ -809,6 +823,74 @@ namespace MFM {
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs
   } //genCodeCastDecendentQuark
 
+  // (unused) moved to NodeFunctionCall; ok to delete
+  //should be like NodeVarRef::genCode
+  void NodeCast::genCodeCastAsReference(File * fp, UlamValue & uvpass)
+  {
+    // get the right-hand side, stgcos
+    // can be same type (e.g. element, quark, or primitive),
+    // or ancestor quark if a class.
+    m_node->genCodeToStoreInto(fp, uvpass);
+
+    assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
+    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen.back();
+    UTI stgcosuti = stgcos->getUlamTypeIdx();
+    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+
+    UTI vuti = getNodeType(); //to be
+    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+
+    assert(vut->getUlamTypeEnum() == stgcosut->getUlamTypeEnum());
+
+    m_state.indent(fp);
+    fp->write(vut->getUlamTypeImmediateMangledName().c_str()); //for C++ local vars, ie non-data members
+    if(vclasstype == UC_ELEMENT)
+      fp->write("<EC> ");
+    else if(vclasstype == UC_QUARK)
+      {
+	fp->write("<EC, ");
+	fp->write_decimal_unsigned(uvpass.getPtrPos());
+	fp->write("u> ");
+      }
+    else //primitive, right-just
+      {
+	fp->write("<EC, ");
+	if(stgcos->isDataMember())
+	  fp->write("T::ATOM_FIRST_STATE_BIT + ");
+	//ptr pos is absolute for non-data members (r-just primitives)
+	fp->write_decimal_unsigned(uvpass.getPtrPos());
+	fp->write("u> ");
+      }
+
+    s32 tmpVarCastNum = m_state.getNextTmpVarNumber();
+    fp->write(m_state.getTmpVarAsString(vuti, tmpVarCastNum, TMPBITVAL).c_str());
+    fp->write("("); //pass ref in constructor (ref's not assigned with =)
+    if(stgcos->isDataMember()) //can't be an element
+      {
+	fp->write("Uv_4atom, ");
+	fp->write_decimal_unsigned(stgcos->getPosOffset()); //relative off
+	fp->write("u");
+      }
+    else
+      {
+	fp->write(stgcos->getMangledName().c_str());
+	if(stgcos->getId() != m_state.m_pool.getIndexForDataString("atom")) //not isSelf check; was "self"
+	  fp->write(".getRef()");
+
+	if(vclasstype == UC_NOTACLASS)
+	  {
+	    fp->write(", ");
+	    fp->write_decimal_unsigned(BITSPERATOM - stgcosut->getTotalBitSize()); //right-justified
+	    fp->write("u");
+	  }
+	else if(vclasstype == UC_QUARK)
+	  fp->write(", 0u"); //left-justified
+      }
+    fp->write(");\n");
+    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
+  } //genCodeCastAsReference
+
   bool NodeCast::needsACast()
   {
     UTI tobeType = getNodeType();
@@ -831,6 +913,9 @@ namespace MFM {
 
     if(uticr == UTIC_SAME)
       return false; //short-circuit if same exact type
+
+    //if(m_state.isARefTypeOfUlamType(tobeType, nodeType) == UTIC_SAME)
+    //  return true;
 
     ULAMTYPE typEnum = m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum();
     ULAMTYPE nodetypEnum = m_state.getUlamTypeByIndex(nodeType)->getUlamTypeEnum();

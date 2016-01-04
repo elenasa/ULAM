@@ -828,6 +828,12 @@ namespace MFM {
     return buti;
   } //getUlamTypeAsRef
 
+  ULAMTYPECOMPARERESULTS CompilerState::isARefTypeOfUlamType(UTI refuti, UTI ofuti)
+  {
+    UTI deref = getUlamTypeAsDeref(refuti);
+    return UlamType::compare(deref, ofuti, *this);
+  } //isARefTypeOfUlamType
+
   UTI CompilerState::getUlamTypeOfConstant(ULAMTYPE etype)
   {
     u32 enumStrIdx = m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(etype));

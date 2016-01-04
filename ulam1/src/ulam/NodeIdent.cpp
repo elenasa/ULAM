@@ -436,9 +436,10 @@ namespace MFM {
 	return selfuvp;
       } //done
 
-    if(m_varSymbol->isAutoLocal())
-      //can't use global m_currentAutoObjPtr, since there might be nested h/as conditional blocks.
-      // NodeVarDecl for this autolocal sets AutoPtrForEval during its eval.
+    //can't use global m_currentAutoObjPtr, since there might be nested h/as conditional blocks.
+    // NodeVarDecl for this autolocal sets AutoPtrForEval during its eval.
+    //if(m_varSymbol->isAutoLocal())
+    if(m_varSymbol->getAutoLocalType() == ALT_AS)
       return ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval(); //haha! we're done.
 
     ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClass();

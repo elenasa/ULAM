@@ -84,6 +84,12 @@ namespace MFM {
     return m_parameterSymbols[n];
   }
 
+  UTI SymbolFunction::getParameterType(u32 n)
+  {
+    assert(n < m_parameterSymbols.size());
+    return m_parameterSymbols[n]->getUlamTypeIdx();
+  }
+
   void SymbolFunction::markForVariableArgs(bool m)
   {
     m_hasVariableArgs = m;
@@ -225,7 +231,7 @@ namespace MFM {
 	    if(constantArg[i])
 	      {
 		assert(constantArg[i]->isAConstant());
-		//constants can match any bit size, that it fits
+		//constants can match any bit size, that it fits; not reference types
 		FORECAST scr = constantArg[i]->safeToCastTo(puti);
 		if(scr == CAST_BAD)
 		  {

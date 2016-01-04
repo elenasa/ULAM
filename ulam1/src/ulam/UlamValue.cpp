@@ -258,6 +258,12 @@ namespace MFM {
     return (PACKFIT) m_uv.m_ptrValue.m_packed;
   } //isTargetPacked
 
+  void UlamValue::setPtrStorage(STORAGE s)
+  {
+    assert(getUlamValueTypeIdx() == Ptr);
+    m_uv.m_ptrValue.m_storagetype = s;
+  } //setPtrStorage
+
   STORAGE UlamValue::getPtrStorage()
   {
     assert(getUlamValueTypeIdx() == Ptr);

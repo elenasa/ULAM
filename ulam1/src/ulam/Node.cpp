@@ -1698,7 +1698,7 @@ namespace MFM {
 
 	m_state.indent(fp);
 	//can't be const and chainable
-	fp->write(cosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
+	fp->write(cosut->getUlamTypeImmediateMangledName().c_str()); //e.g. 4auto
 	if(cosclasstype == UC_QUARK)
 	  {
 	    fp->write("<EC, ");
@@ -1743,7 +1743,6 @@ namespace MFM {
 	    fp->write("u");
 	  }
       }
-
     fp->write(");\n");
 
     uvpass = UlamValue::makePtr(tmpVarNum2, TMPAUTOREF, cosuti, m_state.determinePackable(cosuti), m_state, 0, cos->getId()); //POS left-justified by default.
@@ -2368,7 +2367,8 @@ namespace MFM {
 	//local var
 	if(m_state.m_currentObjSymbolsForCodeGen.empty())
 	  fp->write(m_state.getHiddenContextArgName()); //same uc
-	else if(stgcos->isAutoLocal())
+	//else if(stgcos->isAutoLocal())
+	else if(stgcos->getAutoLocalType() == ALT_AS)
 	  fp->write(m_state.getAutoHiddenContextArgName()); //_ucaut
 	else
 	  {
@@ -2562,12 +2562,14 @@ namespace MFM {
   const std::string Node::localStorageTypeAsString(UTI nuti)
   {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+#if 0
     if(nut->isReference())
       {
 	//use its referred class for its name:
 	UTI deuti = m_state.getUlamTypeAsDeref(nuti);
 	nut = m_state.getUlamTypeByIndex(deuti);
       }
+#endif
     return nut->getLocalStorageTypeAsString();
   } //localStorageTypeAsString
 
