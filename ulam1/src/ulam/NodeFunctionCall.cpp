@@ -1184,10 +1184,6 @@ namespace MFM {
 	fp->write("<EC, ");
 	// note: POS for a ref is alway the right-justified position, leaving
 	// the pos argument to reflect any difference; required for runtime.
-	//if(stgcos->isDataMember())
-	//fp->write("T::ATOM_FIRST_STATE_BIT + ");
-	//ptr pos is absolute for non-data members (r-just primitives)
-	//fp->write_decimal_unsigned(uvpass.getPtrPos());
 	fp->write_decimal_unsigned(BITSPERATOM - uvpass.getPtrLen());
 	fp->write("u> ");
       }

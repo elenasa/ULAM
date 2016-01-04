@@ -200,6 +200,7 @@ namespace MFM{
     s32 getArraySize(UTI utArg);
     s32 getBitSize(UTI utArg);
     ALT getReferenceType(UTI utArg);
+    bool isReference(UTI utArg);
     bool isComplete(UTI utArg);
     bool isHolder(UTI utArg);
     void setBitSize(UTI utArg, s32 total);

@@ -889,6 +889,12 @@ namespace MFM {
     return ut->getReferenceType();
   }
 
+  bool CompilerState::isReference(UTI utArg)
+  {
+    UlamType * ut = getUlamTypeByIndex(utArg);
+    return ut->isReference();
+  }
+
   bool CompilerState::isComplete(UTI utArg)
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
