@@ -221,6 +221,12 @@ namespace MFM{
     return m_nodes[n]->isAConstant();
   } //isAConstant
 
+  bool NodeList::isFunctionCall(u32 n)
+  {
+    assert(n < m_nodes.size());
+    return m_nodes[n]->isFunctionCall();
+  } //isAFunctionCall
+
   void NodeList::genCode(File * fp, UlamValue& uvpass, u32 n)
   {
     assert(n < m_nodes.size());

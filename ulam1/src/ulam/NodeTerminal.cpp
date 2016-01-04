@@ -150,8 +150,8 @@ namespace MFM {
     UlamType * newut = m_state.getUlamTypeByIndex(newType);
     ULAMTYPE typEnum = newut->getUlamTypeEnum();
 
-    if(newut->isReference())
-      return CAST_BAD; //cannot cast a constant to a ref type
+    //    if(newut->isReference())
+    //  return CAST_BAD; //cannot cast a constant to a ref type
 
     //special cases: not a matter of fitting
     if(typEnum == Bool || ntypEnum == Bool || typEnum == UAtom || typEnum == Class || typEnum == Void)

@@ -231,6 +231,11 @@ namespace MFM {
 	    if(constantArg[i])
 	      {
 		assert(constantArg[i]->isAConstant());
+		if(m_state.isReference(puti))
+		  {
+		   rtnBool = false;
+		   break;
+		  }
 		//constants can match any bit size, that it fits; not reference types
 		FORECAST scr = constantArg[i]->safeToCastTo(puti);
 		if(scr == CAST_BAD)
@@ -266,7 +271,6 @@ namespace MFM {
 	  }
 	else
 	  numUTmatch++;
-
       } //next param
     return rtnBool;
   } //matchingTypes

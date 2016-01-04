@@ -75,8 +75,8 @@ namespace MFM {
   FORECAST NodeFunctionCall::safeToCastTo(UTI newType)
   {
     UlamType * newut = m_state.getUlamTypeByIndex(newType);
-    if(newut->isReference())
-      return CAST_BAD; //cannot cast a function to a ref type
+    //if(newut->isReference())
+    //  return CAST_BAD; //cannot cast a function to a ref type
 
     //ulamtype checks for complete, non array, and type specific rules
     return newut->safeCast(getNodeType());
@@ -181,6 +181,23 @@ namespace MFM {
 	  {
 	    if(hasHazyArgs)
 	      numErrorsFound++; //wait to cast
+
+	    //check ref types and func calls here..
+	    for(u32 i = 0; i < argTypes.size(); i++)
+	      {
+		if(m_state.isReference(funcSymbol->getParameterType(i)))
+		  {
+		    if(m_argumentNodes->isFunctionCall(i))
+		      {
+			std::ostringstream msg;
+			msg << "Argument " << i + 1 << " to function <";
+			msg << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
+			msg << "> is a function call, and cannot be used as a reference parameter";
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			numErrorsFound++;
+		      }
+		  }
+	      }
 	  }
       }
     else
