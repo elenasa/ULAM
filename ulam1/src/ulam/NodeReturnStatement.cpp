@@ -106,11 +106,11 @@ namespace MFM {
     if(m_node)
       {
 	nodeType = m_node->checkAndLabelType();
-	UlamType * nut = m_state.getUlamTypeByIndex(nodeType);
-	ALT nodereftype = nut->getReferenceType();
+	//UlamType * nut = m_state.getUlamTypeByIndex(nodeType);
+	//ALT nodereftype = nut->getReferenceType();
 	//treat ALT_AS as defref'd type; ALT_REF is its own type.
-	if(nodereftype == ALT_AS)
-	  nodeType = m_state.getUlamTypeAsDeref(nodeType);
+	//if(nodereftype == ALT_AS)
+	//  nodeType = m_state.getUlamTypeAsDeref(nodeType);
       }
 
     if(m_state.isComplete(nodeType) && m_state.isComplete(rtnType))

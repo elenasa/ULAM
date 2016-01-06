@@ -206,7 +206,8 @@ namespace MFM {
 	cnt += 1;
 	std::ostringstream msg;
 	msg << "Unresolved No." << cnt;
-	msg << ": <" << getName() << ">";
+	//comment out next line for error testing to match
+	//msg << ": <" << getName() << ">";
 	//msg << (" << prettyNodeName().c_str() << ") "; ugly!
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
@@ -1570,16 +1571,25 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2, TMPBITVAL).c_str());
     fp->write("("); // use constructor (not equals)
     fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str()); //VALUE
-    fp->write(");\n");
 
-    u32 pos = 0; //pos calculated by makePtr(atom-based) (e.g. quark, atom)
+    u32 pos = uvpass.getPtrPos(); //pos calculated by makePtr(atom-based) (e.g. quark, atom)
     if(vut->getUlamClass() == UC_NOTACLASS)
       {
-	u32 wordsize = vut->getTotalWordSize();
-	pos = wordsize - vut->getTotalBitSize();
+	//u32 wordsize = vut->getTotalWordSize();
+	//pos = wordsize - vut->getTotalBitSize();
+	pos = BITSPERATOM - vut->getTotalBitSize(); //right-justified atom-based ?
       }
 
-    uvpass = UlamValue::makePtr(tmpVarNum2, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, pos); //POS left-justified.
+    if(m_state.isReference(vuti))
+      {
+	fp->write(", ");
+	fp->write_decimal_unsigned(pos); //position for constructor
+	fp->write("u");
+      }
+    fp->write(");\n");
+
+
+    uvpass = UlamValue::makePtr(tmpVarNum2, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, pos); //POS left-justified for quarks; right for primitives.
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeConvertATmpVarIntoBitVector
@@ -1662,9 +1672,11 @@ namespace MFM {
     // write out next chain using auto ref constuctor
     if(uvpass.getPtrStorage() == TMPAUTOREF)
       {
+	//	assert(m_state.isReference(cosuti) || (uvpass.getPtrStorage() == TMPAUTOREF));
+	assert(m_state.isReference(cosuti));
 	m_state.indent(fp);
 	//can't be const and chainable
-	fp->write(cosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
+	fp->write(cosut->getUlamTypeImmediateMangledName().c_str()); //e.g. 4auto
 	if(cosclasstype == UC_QUARK)
 	  {
 	    fp->write("<EC, ");
@@ -1809,6 +1821,7 @@ namespace MFM {
 	  doErrMsg = true;
 	else if(nuti == Void)
 	  doErrMsg = true; //cannot cast a void into anything else (reverse is fine)
+	//else if reference to non-ref of same type?
 	else
 	  {
 	    assert(!isExplicit);
@@ -1826,21 +1839,44 @@ namespace MFM {
       {
 	if(node->isFunctionCall())
 	  {
-	    // a function call is not a valid lhs !!!
-	    // 'node' is a function call that returns a quark (it's not storeintoable);
-	    // build a toIntHelper function that takes the return value of 'node'
-	    // as its arg and returns toInt
-	    NodeFunctionCall * castFunc = buildCastingFunctionCallNode(node, tobeType);
-	    if(!castFunc)
+	    if(m_state.isReference(tobeType))
 	      doErrMsg = true;
 	    else
-	      rtnNode = castFunc;
+	      {
+		// a function call is not a valid lhs !!!
+		// 'node' is a function call that returns a quark (it's not storeintoable);
+		// build a toIntHelper function that takes the return value of 'node'
+		// as its arg and returns toInt
+		NodeFunctionCall * castFunc = buildCastingFunctionCallNode(node, tobeType);
+		if(!castFunc)
+		  doErrMsg = true;
+		else
+		  rtnNode = castFunc;
+	      }
 	  }
 	else if(tclasstype == UC_QUARK)
 	  {
 	    //handle possible inheritance (u.1.2.2) here
 	    if(m_state.isClassASuperclassOf(nuti, tobeType))
 	      {
+		rtnNode = new NodeCast(node, tobeType, NULL, m_state);
+		assert(rtnNode);
+		rtnNode->setNodeLocation(getNodeLocation());
+		rtnNode->updateLineage(getNodeNo());
+	      }
+	    else if(m_state.isARefTypeOfUlamType(nuti, tobeType))
+	      {
+		//cast ref to deref type
+		rtnNode = new NodeCast(node, tobeType, NULL, m_state);
+		assert(rtnNode);
+		rtnNode->setNodeLocation(getNodeLocation());
+		rtnNode->updateLineage(getNodeNo());
+	      }
+	    else if(m_state.isARefTypeOfUlamType(tobeType, nuti))
+	      {
+		//cast non-ref to its ref type
+		assert(!node->isAConstant());
+		assert(!node->isFunctionCall());
 		rtnNode = new NodeCast(node, tobeType, NULL, m_state);
 		assert(rtnNode);
 		rtnNode->setNodeLocation(getNodeLocation());
@@ -2119,20 +2155,29 @@ namespace MFM {
 		assert(cosclassuti != Nav);
 		cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
 	      }
-
-	    fp->write(cosclassut->getUlamTypeMangledName().c_str());
-	    if(cosclassut->getUlamClass() == UC_ELEMENT)
-	      fp->write("<EC>::");
+	    if(cosut->isReference())
+	      {
+		UTI cosclassrefuti = m_state.getUlamTypeAsRef(cosclassuti, cosut->getReferenceType());
+		UlamType * cosclassrefut = m_state.getUlamTypeByIndex(cosclassrefuti);
+		fp->write(cosclassrefut->getLocalStorageTypeAsString().c_str());
+		fp->write("::Us::");
+	      }
 	    else
 	      {
-		fp->write("<EC, ");
-		if(stgcos->isDataMember())
+		fp->write(cosclassut->getUlamTypeMangledName().c_str());
+		if(cosclassut->getUlamClass() == UC_ELEMENT)
+		  fp->write("<EC>::");
+		else
 		  {
-		    fp->write_decimal_unsigned(stgcos->getPosOffset());
-		    fp->write("u + ");
+		    fp->write("<EC, ");
+		    if(stgcos->isDataMember())
+		      {
+			fp->write_decimal_unsigned(stgcos->getPosOffset());
+			fp->write("u + ");
+		      }
+		    fp->write("T::ATOM_FIRST_STATE_BIT");
+		    fp->write(">::");
 		  }
-		fp->write("T::ATOM_FIRST_STATE_BIT");
-		fp->write(">::");
 	      }
 	  }
 	else if(m_state.isClassASubclass(stgcosuti)) //self is subclass
@@ -2142,14 +2187,25 @@ namespace MFM {
 	    assert(foundnode);
 	    UTI superuti = foundnode->getNodeType();
 	    UlamType * superut = m_state.getUlamTypeByIndex(superuti);
-	    fp->write(superut->getUlamTypeMangledName().c_str());
-	    assert(superut->getUlamClass() != UC_ELEMENT);
-	    //super is a quark, stg might be either:
-	    fp->write("<EC, ");
-	    if(stgcosut->getUlamClass() == UC_ELEMENT)
-	      fp->write("T::ATOM_FIRST_STATE_BIT>::");
+
+	    if(stgcosut->isReference())
+	      {
+		UTI superrefuti = m_state.getUlamTypeAsRef(superuti, stgcosut->getReferenceType());
+		UlamType * superrefut = m_state.getUlamTypeByIndex(superrefuti);
+		fp->write(superrefut->getLocalStorageTypeAsString().c_str());
+		fp->write("::Us::");
+	      }
 	    else
-	      fp->write("POS>::"); //quarks know this
+	      {
+		fp->write(superut->getUlamTypeMangledName().c_str());
+		assert(superut->getUlamClass() != UC_ELEMENT);
+		//super is a quark, stg might be either:
+		fp->write("<EC, ");
+		if(stgcosut->getUlamClass() == UC_ELEMENT)
+		  fp->write("T::ATOM_FIRST_STATE_BIT>::");
+		else
+		  fp->write("POS>::"); //quarks know this
+	      }
 	  }
       }
     //else do nothing for inheritance
@@ -2219,9 +2275,17 @@ namespace MFM {
 
     if(stgclasstype == UC_ELEMENT)
       {
-	fp->write(stgcosut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>::THE_INSTANCE");
-	fp->write(".");
+	if(stgcosut->isReference())
+	  {
+	    fp->write(stgcosut->getUlamTypeImmediateMangledName().c_str());
+	    fp->write("<EC>::Us::");
+	  }
+	else
+	  {
+	    fp->write(stgcosut->getUlamTypeMangledName().c_str());
+	    fp->write("<EC>::");
+	  }
+	    fp->write("THE_INSTANCE.");
       }
     else
       assert(0);
@@ -2428,6 +2492,7 @@ namespace MFM {
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
     UTI stgcosuti = stgcos->getUlamTypeIdx();
+    //UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
     // handle inheritance, when data member is in superclass, not current class obj
     // now for both immediate elements and quarks..
@@ -2454,30 +2519,45 @@ namespace MFM {
 		assert(cosclassuti != Nav);
 		cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
 	      }
-
-	    fp->write(cosclassut->getUlamTypeMangledName().c_str());
+#if 0
+	    //fp->write(cosclassut->getUlamTypeMangledName().c_str());
+	    fp->write(cosclassut->getUlamTypeImmediateMangledName().c_str());
 	    if(cosclassut->getUlamClass() == UC_ELEMENT)
 	      fp->write("<EC>::");
 	    else
 	      {
-		fp->write("<EC, ");
-		u32 posoff = 0;
-		for(u32 i = subcos; i > 0; i--)
+		if(stgcosut->isReference())
 		  {
-		    Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
-		    UTI suti = sym->getUlamTypeIdx();
-		    UlamType * sut = m_state.getUlamTypeByIndex(suti);
-		    if(sym->isDataMember() && sut->getUlamTypeEnum() == Class)
-		      posoff += sym->getPosOffset();
+		    fp->write("<EC, ");
+		    u32 posoff = 0;
+#if 0
+		    for(u32 i = subcos; i > 0; i--)
+		      {
+			Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
+			UTI suti = sym->getUlamTypeIdx();
+			UlamType * sut = m_state.getUlamTypeByIndex(suti);
+			if(sym->isDataMember() && sut->getUlamTypeEnum() == Class)
+			  posoff += sym->getPosOffset();
+		      }
+		    if(posoff > 0)
+#endif
+		      {
+			fp->write_decimal_unsigned(posoff);
+			fp->write("u + ");
+		      }
+
+		    fp->write("T::ATOM_FIRST_STATE_BIT");
+		    fp->write(">::");
 		  }
-		if(posoff > 0)
-		  {
-		    fp->write_decimal_unsigned(posoff);
-		    fp->write("u + ");
-		  }
-		fp->write("T::ATOM_FIRST_STATE_BIT");
-		fp->write(">::");
+		else
+		  fp->write("<EC>::");
+		fp->write("Us::"); //missing
 	      }
+#endif
+	    fp->write(cosclassut->getLocalStorageTypeAsString().c_str());
+	    fp->write("::");
+	    if(cosclassut->getUlamClass() == UC_QUARK)
+		fp->write("Us::"); //missing
 	  }
       }
     //stgcos is not the base of the type (possibly remove code? No, t3249)
@@ -2487,7 +2567,7 @@ namespace MFM {
 	fp->write("::");
 	fp->write("Us::"); //typedef
 	if(cosSize == 1)
-	  fp->write("THE_INSTANCE.");
+	  fp->write("THE_INSTANCE."); //only for elements???
       }
 
       for(u32 i = startcos; i < cosSize; i++)

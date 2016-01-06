@@ -226,7 +226,7 @@ namespace MFM{
     virtual bool castTo64(UlamValue & val, UTI typidx);
 
     bool checkArrayCast(UTI typidx);
-
+    bool checkReferenceCast(UTI typidx);
   };
 
 }

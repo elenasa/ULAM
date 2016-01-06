@@ -94,8 +94,7 @@ namespace MFM {
     Symbol * fnsymptr = NULL;
 
     //label argument types; used to pinpoint the exact function symbol in case of overloading
-    std::vector<UTI> argTypes;
-    std::vector<Node *> constArgs;
+    std::vector<Node *> argNodes;
     u32 constantArgs = 0;
     u32 navArgs = 0;
     UTI listuti = Nav;
@@ -111,24 +110,18 @@ namespace MFM {
 	for(u32 i = 0; i < numargs; i++)
 	  {
 	    UTI argtype = m_argumentNodes->getNodeType(i); //plus side-effect
-	    argTypes.push_back(argtype);
+	    argNodes.push_back(m_argumentNodes->getNodePtr(i));
 	    if(argtype == Nav)
 	      navArgs++;
 	    // track constants and potential casting to be handled
 	    if(m_argumentNodes->isAConstant(i))
-	      {
-		constArgs.push_back(m_argumentNodes->getNodePtr(i));
-		constantArgs++;
-	      }
-	    else
-	      constArgs.push_back(NULL);
+	      constantArgs++;
 	  }
 	m_state.popClassContext(); //restore here
 
 	if(navArgs)
 	  {
-	    argTypes.clear();
-	    constArgs.clear();
+	    argNodes.clear();
 	    setNodeType(Nav);
 	    return Nav; //short circuit
 	  }
@@ -136,7 +129,7 @@ namespace MFM {
 	// still need to pinpoint the SymbolFunction for m_funcSymbol!
 	// exact match if possible; o.w. allow safe casts to find matches
 	bool hasHazyArgs = false;
-	u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionWithConstantsAsArgs(argTypes, constArgs, funcSymbol, hasHazyArgs);
+	u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionWithSafeCasts(argNodes, funcSymbol, hasHazyArgs);
 	if(numFuncs == 0)
 	  {
 	    std::ostringstream msg;
@@ -146,9 +139,10 @@ namespace MFM {
 	    if(numargs != 1)
 	      msg << "s";
 	    msg << ": ";
-	    for(u32 i = 0; i < argTypes.size(); i++)
+	    for(u32 i = 0; i < argNodes.size(); i++)
 	      {
-		msg << m_state.getUlamTypeNameBriefByIndex(argTypes[i]).c_str() << ", ";
+		UTI auti = argNodes[i]->getNodeType();
+		msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str() << ", ";
 	      }
 	    msg << "and cannot be called";
 	    if(hasHazyArgs)
@@ -166,9 +160,10 @@ namespace MFM {
 	    if(numargs != 1)
 	      msg << "s";
 	    msg << ": ";
-	    for(u32 i = 0; i < argTypes.size(); i++)
+	    for(u32 i = 0; i < argNodes.size(); i++)
 	      {
-		msg << m_state.getUlamTypeNameBriefByIndex(argTypes[i]).c_str() << ", ";
+		UTI auti = argNodes[i]->getNodeType();
+		msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str() << ", ";
 	      }
 	    msg << "explicit casting is required";
 	    if(hasHazyArgs)
@@ -181,13 +176,13 @@ namespace MFM {
 	  {
 	    if(hasHazyArgs)
 	      numErrorsFound++; //wait to cast
-
+#if 1
 	    //check ref types and func calls here..
-	    for(u32 i = 0; i < argTypes.size(); i++)
+	    for(u32 i = 0; i < argNodes.size(); i++)
 	      {
 		if(m_state.isReference(funcSymbol->getParameterType(i)))
 		  {
-		    if(m_argumentNodes->isFunctionCall(i))
+		    if(argNodes[i]->isFunctionCall())
 		      {
 			std::ostringstream msg;
 			msg << "Argument " << i + 1 << " to function <";
@@ -198,6 +193,7 @@ namespace MFM {
 		      }
 		  }
 	      }
+#endif
 	  }
       }
     else
@@ -266,15 +262,15 @@ namespace MFM {
 	      u32 numargs = getNumberOfArguments();
 	      for(u32 i = numParams; i < numargs; i++)
 		  {
-		    if(constArgs[i])
+		    if(argNodes[i]->isAConstant())
 		      {
-			Node * argNode = constArgs[i];//m_argumentNodes->getNodePtr(i);
 			Node * argCast = NULL;
-			if(!Node::makeCastingNode(argNode, m_state.getDefaultUlamTypeOfConstant(argTypes[i]), argCast))
+			UTI auti = argNodes[i]->getNodeType();
+			if(!Node::makeCastingNode(argNodes[i], m_state.getDefaultUlamTypeOfConstant(auti), argCast))
 			  {
 			    argsWithCastErr.push_back(i); //error!
 			  }
-			m_argumentNodes->exchangeKids(argNode, argCast, i);
+			m_argumentNodes->exchangeKids(argNodes[i], argCast, i);
 			argsWithCast++;
 		      }
 		  }
@@ -309,8 +305,7 @@ namespace MFM {
 	it = Nav;
       }
 
-    argTypes.clear();
-    constArgs.clear();
+    argNodes.clear();
     return it;
   } //checkAndLabelType
 
@@ -500,7 +495,7 @@ namespace MFM {
 	      }
 
 	    SymbolFunction * funcSymbol = NULL;
-	    u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunction(pTypes, funcSymbol);
+	    u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionStrictlyByTypes(pTypes, funcSymbol);
 
 	    if(numFuncs != 1)
 	      {
@@ -804,6 +799,7 @@ namespace MFM {
 
     Symbol * stgcos = m_state.getCurrentSelfSymbolForCodeGen();
     UTI stgcosuti = stgcos->getUlamTypeIdx(); //more general instead of current class
+    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
     // use NodeNo for inheritance
     NNO cosBlockNo = m_funcSymbol->getBlockNoOfST();
@@ -820,6 +816,7 @@ namespace MFM {
 	else
 	  stgcosBlockNo = cos->getBlockNoOfST();
       }
+    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
     if(cosBlockNo != stgcosBlockNo)
       {
@@ -832,14 +829,25 @@ namespace MFM {
 	    assert(cosclassuti != Nav);
 	    UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
 
-	    fp->write(cosclassut->getUlamTypeMangledName().c_str());
-	    if(cosclassut->getUlamClass() == UC_ELEMENT)
-	      fp->write("<EC>::");
+	    if((cosuti != Nav) && cosut->isReference())
+	      {
+		UTI cosclassrefuti = m_state.getUlamTypeAsRef(cosclassuti, cosut->getReferenceType());
+		UlamType * cosclassrefut = m_state.getUlamTypeByIndex(cosclassrefuti);
+		fp->write(cosclassrefut->getLocalStorageTypeAsString().c_str());
+		fp->write("::Us::");
+	      }
 	    else
 	      {
-		fp->write("<EC, ");
-		fp->write_decimal_unsigned(cos->getPosOffset());
-		fp->write("u + T::ATOM_FIRST_STATE_BIT>::");
+
+		fp->write(cosclassut->getUlamTypeMangledName().c_str());
+		if(cosclassut->getUlamClass() == UC_ELEMENT)
+		  fp->write("<EC>::");
+		else
+		  {
+		    fp->write("<EC, ");
+		    fp->write_decimal_unsigned(cos->getPosOffset());
+		    fp->write("u + T::ATOM_FIRST_STATE_BIT>::");
+		  }
 	      }
 	  }
 	else if(m_state.isClassASubclass(stgcosuti)) //self is subclass
@@ -848,18 +856,30 @@ namespace MFM {
 	    assert(foundnode);
 	    UTI superuti = foundnode->getNodeType();
 	    UlamType * superut = m_state.getUlamTypeByIndex(superuti);
-	    fp->write(superut->getUlamTypeMangledName().c_str());
-	    if(superut->getUlamClass() == UC_ELEMENT)
+
+	    if(stgcosut->isReference())
 	      {
-		fp->write("<EC>::");
-		startcos = cosSize; //bypass all that follows
+		UTI superrefuti = m_state.getUlamTypeAsRef(superuti, stgcosut->getReferenceType());
+		UlamType * superrefut = m_state.getUlamTypeByIndex(superrefuti);
+		fp->write(superrefut->getLocalStorageTypeAsString().c_str());
+		fp->write("::Us::");
 	      }
 	    else
 	      {
-		//self is a quark
-		fp->write("<EC, ");
-		fp->write("T::ATOM_FIRST_STATE_BIT"); //ancestors at first state bit
-		fp->write(">::");
+
+		fp->write(superut->getUlamTypeMangledName().c_str());
+		if(superut->getUlamClass() == UC_ELEMENT)
+		  {
+		    fp->write("<EC>::");
+		    startcos = cosSize; //bypass all that follows
+		  }
+		else
+		  {
+		    //self is a quark
+		    fp->write("<EC, ");
+		    fp->write("T::ATOM_FIRST_STATE_BIT"); //ancestors at first state bit
+		    fp->write(">::");
+		  }
 	      }
 	  }
 	//else do nothing for inheritance
@@ -1286,10 +1306,10 @@ namespace MFM {
     ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClass();
     if(stgclasstype == UC_ELEMENT)
       {
-	if(stgcos->isAutoLocal())
-	  fp->write(stgcosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
-	else
-	  fp->write(stgcosut->getUlamTypeImmediateMangledName().c_str());
+    //	if(stgcos->isAutoLocal())
+    //	  fp->write(stgcosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
+    //	else
+        fp->write(stgcosut->getUlamTypeImmediateMangledName().c_str());
 	fp->write("<EC>");
 	fp->write("::Us::");
       }
@@ -1303,13 +1323,13 @@ namespace MFM {
 	    fp->write("T::ATOM_FIRST_STATE_BIT>");
 	    fp->write("::");
 	  }
-	else if(stgcos->isAutoLocal())
-	  {
-	    fp->write(stgcosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
-	    fp->write("<EC, ");
-	    fp->write("T::ATOM_FIRST_STATE_BIT>");
-	    fp->write("::Us::");
-	  }
+	//else if(stgcos->isAutoLocal())
+	// {
+	//  fp->write(stgcosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
+	//  fp->write("<EC, ");
+	//  fp->write("T::ATOM_FIRST_STATE_BIT>");
+	//  fp->write("::Us::");
+	// }
 	else
 	  {
 	  //immediate quark..

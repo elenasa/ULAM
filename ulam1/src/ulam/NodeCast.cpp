@@ -321,7 +321,11 @@ namespace MFM {
 
     if(nodeType != tobeType)
       {
-	if(!(m_state.getUlamTypeByIndex(tobeType)->cast(uv, tobeType)))
+	if(m_state.isARefTypeOfUlamType(nodeType, tobeType) || m_state.isARefTypeOfUlamType(tobeType, nodeType))
+	  {
+	    uv.setUlamValueTypeIdx(tobeType);
+	  }
+	else if(!(m_state.getUlamTypeByIndex(tobeType)->cast(uv, tobeType)))
 	  {
 	    std::ostringstream msg;
 	    msg << "Cast problem during eval! Value type ";
@@ -362,6 +366,8 @@ namespace MFM {
 	genCodeReadIntoATmpVar(fp, uvpass); // cast.
       }
     else if(m_state.isReference(getNodeType()))
+      genCodeCastAsReference(fp, uvpass); //minimal casting
+    else if(m_state.isReference(m_node->getNodeType()))
       genCodeCastAsReference(fp, uvpass); //minimal casting
   } //genCode
 
@@ -688,8 +694,9 @@ namespace MFM {
 
     // now we have our pos in tmpVarPos, and our T in tmpVarStg
     // time to (like a) "shadow 'self'" with auto local variable:
+    assert(m_state.isReference(nuti));
     m_state.indent(fp);
-    fp->write(nut->getUlamTypeImmediateAutoMangledName().c_str()); //for C++ local vars, ie non-data members
+    fp->write(nut->getUlamTypeImmediateMangledName().c_str()); //for C++ local vars, ie non-data members
     fp->write("<EC> ");
 
     s32 tmpIQ = m_state.getNextTmpVarNumber(); //tmp since no variable name
@@ -842,8 +849,8 @@ namespace MFM {
       return false; //short-circuit if same exact type
 
     // references are same sizes so no casting needed except to change the uti
-    //if(m_state.isARefTypeOfUlamType(tobeType, nodeType) == UTIC_SAME)
-    //  return true;
+    if(m_state.isARefTypeOfUlamType(tobeType, nodeType) == UTIC_SAME || m_state.isARefTypeOfUlamType(nodeType, tobeType) == UTIC_SAME)
+      return false; //special case of casting
 
     ULAMTYPE typEnum = m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum();
     ULAMTYPE nodetypEnum = m_state.getUlamTypeByIndex(nodeType)->getUlamTypeEnum();

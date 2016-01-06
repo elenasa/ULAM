@@ -436,7 +436,7 @@ namespace MFM {
 	return selfuvp;
       } //done
 
-    //can't use global m_currentAutoObjPtr, since there might be nested h/as conditional blocks.
+    //can't use global m_currentAutoObjPtr, since there might be nested as conditional blocks.
     // NodeVarDecl for this autolocal sets AutoPtrForEval during its eval.
     //if(m_varSymbol->isAutoLocal())
     if(m_varSymbol->getAutoLocalType() == ALT_AS)

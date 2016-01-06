@@ -100,7 +100,17 @@ namespace MFM {
       }
 
     //let packable arrays of same size pass...
-    return checkArrayCast(typidx) ? CAST_CLEAR : CAST_BAD;
+    //return checkArrayCast(typidx) ? CAST_CLEAR : CAST_BAD;
+    if(!checkArrayCast(typidx))
+      return CAST_BAD;
+
+    //if trying to cast the reference to its value type, ok (rhs)
+    if(m_state.isReference(typidx))
+      {
+	if(!checkReferenceCast(typidx))
+	  return CAST_BAD;
+      }
+    return CAST_CLEAR;
   } //safeCast
 
   FORECAST UlamType::explicitlyCastable(UTI typidx)
@@ -151,6 +161,26 @@ namespace MFM {
       }
     return bOK;
   } //checkArrayCast
+
+  bool UlamType::checkReferenceCast(UTI typidx)
+  {
+    //both complete; typidx is a reference
+    UlamKeyTypeSignature key1 = getUlamKeyTypeSignature();
+    UlamKeyTypeSignature key2 = m_state.getUlamKeyTypeSignatureByIndex(typidx);
+
+    if(key1.getUlamKeyTypeSignatureNameId() != key2.getUlamKeyTypeSignatureNameId())
+      return false;
+    if(key1.getUlamKeyTypeSignatureBitSize() != key2.getUlamKeyTypeSignatureBitSize())
+      return false;
+    if(key1.getUlamKeyTypeSignatureArraySize() != key2.getUlamKeyTypeSignatureArraySize())
+      return false;
+    if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
+      return false;
+    if(key1.getUlamKeyTypeSignatureReferenceType() != ALT_NOT || key2.getUlamKeyTypeSignatureReferenceType() == ALT_NOT)
+      return false;
+
+    return true; //keys the same, except for reference type
+  } //checkReferenceCast
 
   void UlamType::getDataAsString(const u32 data, char * valstr, char prefix)
   {
@@ -278,8 +308,12 @@ namespace MFM {
   const std::string UlamType::getUlamTypeImmediateAutoMangledName()
   {
     assert(needsImmediateType());
+
     if(isReference())
-      return getUlamTypeImmediateMangledName();
+      {
+	assert(0);
+	return getUlamTypeImmediateMangledName();
+      }
 
     //same as non-ref except for the 'r'
     std::ostringstream  automn;
@@ -293,9 +327,6 @@ namespace MFM {
   const std::string UlamType::getLocalStorageTypeAsString()
   {
     std::ostringstream ctype;
-    //    if(isReference())
-    //  ctype << getUlamTypeImmediateAutoMangledName();
-    //else
     ctype << getUlamTypeImmediateMangledName();
     if(isReference())
       {
@@ -304,7 +335,6 @@ namespace MFM {
 	// if a reference to a dm, then the internal position will override this "Pos"
 	ctype << (BITSPERATOM - getTotalBitSize());
 	ctype << "u>"; //name of struct w typedef(bf) and storage(bv);
-	//ctype << "POS>";
       }
     else
       ctype << "<EC>"; //name of struct w typedef(bf) and storage(bv);

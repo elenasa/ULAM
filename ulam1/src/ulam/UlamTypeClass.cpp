@@ -122,8 +122,17 @@ namespace MFM {
 	u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
 	if(m_state.isClassASuperclassOf(cuti, typidx))
 	  return CAST_CLEAR;
+	else
+	  {
+	    ULAMTYPECOMPARERESULTS cmpr = m_state.isARefTypeOfUlamType(typidx, cuti);
+	    if(cmpr == UTIC_SAME)
+	      return CAST_CLEAR;
+	    else if(cmpr == UTIC_DONTKNOW)
+	      return CAST_HAZY;
+	    else
+	      return CAST_BAD;
+	  }
       }
-
     return CAST_BAD; //e.g. (typidx == UAtom)
   } //safeCast
 
@@ -154,6 +163,9 @@ namespace MFM {
     s32 bitsize = getBitSize();
     s32 arraysize = getArraySize();
 
+    if(isReference())
+      mangled << "r";
+
     if(arraysize > 0)
       mangled << ToLeximitedNumber(arraysize);
     else
@@ -174,7 +186,6 @@ namespace MFM {
     std::ostringstream mangledclassname;
     mangledclassname << UlamType::getUlamTypeMangledName(); //includes Uprefix
 
-    //appends 'r' for references, followed by '10'
     //or numberOfParameters followed by each digi-encoded: mangled type and value
     u32 id = m_key.getUlamKeyTypeSignatureNameId();
     UTI cuti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
@@ -365,15 +376,15 @@ namespace MFM {
     assert(needsImmediateType() || isReference());
 
     if(isReference())
-      return getUlamTypeImmediateMangledName();
+      {
+	assert(0); //use ImmediateMangledName
+	return getUlamTypeImmediateMangledName();
+      }
 
-    //same as non-ref except for the 'r'
-    std::ostringstream  automn;
-    automn << "Ui_";
-    automn << getUlamTypeUPrefix().c_str();
-    automn << "r";
-    automn << getUlamTypeMangledType();
-    return automn.str();
+    //get name of a referenced UTI for this type
+    UTI asRefType = m_state.getUlamTypeAsRef(m_key.getUlamKeyTypeSignatureClassInstanceIdx());
+    UlamType * asRef = m_state.getUlamTypeByIndex(asRefType);
+    return asRef->getUlamTypeImmediateMangledName();
   } //getUlamTypeImmediateAutoMangledName
 
   const std::string UlamTypeClass::getTmpStorageTypeAsString()
@@ -405,7 +416,12 @@ namespace MFM {
     ctype << getUlamTypeImmediateMangledName();
 
     if(getUlamClass() == UC_QUARK)
-      ctype << "<EC>"; //default local quarks
+      {
+	if(isReference())
+	  ctype << "<EC, " << "0u + T::ATOM_FIRST_STATE_BIT>";
+	else
+	  ctype << "<EC>"; //default local quarks
+      }
     else if(getUlamClass() == UC_ELEMENT)
       ctype << "<EC>";
     else

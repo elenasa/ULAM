@@ -74,7 +74,7 @@ namespace MFM {
     return overloaded;
   } //overloadFunction
 
-  u32 SymbolFunctionName::findMatchingFunction(std::vector<UTI> argTypes, SymbolFunction *& funcSymbol)
+  u32 SymbolFunctionName::findMatchingFunctionStrictlyByTypes(std::vector<UTI> argTypes, SymbolFunction *& funcSymbol)
   {
     if(m_mangledFunctionNames.empty())
       return 0;
@@ -95,12 +95,10 @@ namespace MFM {
 	++it;
       }
     return matchingFuncCount;
-  } //findMatchingFunction
+  } //findMatchingFunctionStrictlyByTypes
 
-  u32 SymbolFunctionName::findMatchingFunctionWithConstantsAsArgs(std::vector<UTI> argTypes, std::vector<Node*> constArgs, SymbolFunction *& funcSymbol, bool& hasHazyArgs)
+  u32 SymbolFunctionName::findMatchingFunction(std::vector<Node *> argNodes, SymbolFunction *& funcSymbol)
   {
-    assert(!hasHazyArgs);
-
     if(m_mangledFunctionNames.empty())
       return 0;
 
@@ -111,13 +109,26 @@ namespace MFM {
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;
-	if(fsym->matchingTypesStrictly(argTypes))
+	if(fsym->matchingTypesStrictly(argNodes))
 	  {
 	    funcSymbol = fsym;
 	    matchingFuncCount++;
+	    //break;
 	  }
 	++it;
       }
+    return matchingFuncCount;
+  } //findMatchingFunction
+
+  u32 SymbolFunctionName::findMatchingFunctionWithSafeCasts(std::vector<Node *> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs)
+  {
+    assert(!hasHazyArgs);
+    assert(!funcSymbol);
+
+    if(m_mangledFunctionNames.empty())
+      return 0;
+
+    u32 matchingFuncCount = findMatchingFunction(argNodes, funcSymbol); //strictly first
 
     //try again with less strict constraints, allow safe casting;
     //track matches with hazy casting for error message output
@@ -129,14 +140,14 @@ namespace MFM {
 	//      call it the winner.
 	SymbolFunction * funcSymbolMatchingUTArgs = NULL;
 	u32 numFuncsWithAllSameUTArgs = 0;
-	u32 numArgs = argTypes.size();
+	u32 numArgs = argNodes.size();
 
-	it = m_mangledFunctionNames.begin();
+	std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
 	while(it != m_mangledFunctionNames.end())
 	  {
 	    SymbolFunction * fsym = it->second;
 	    u32 numUTmatch = 0;
-	    if(fsym->matchingTypes(argTypes, constArgs, hasHazyArgs, numUTmatch))
+	    if(fsym->matchingTypes(argNodes, hasHazyArgs, numUTmatch)) //with safe casting
 	      {
 		funcSymbol = fsym;
 		matchingFuncCount++;
@@ -164,12 +175,12 @@ namespace MFM {
 
     //3rd try: check any super class, unless hazyargs (causes inf loop)
     if(matchingFuncCount == 0)
-	return findMatchingFunctionWithConstantsAsArgsInAncestors(argTypes, constArgs, funcSymbol, hasHazyArgs);
+	return findMatchingFunctionWithSafeCastsInAncestors(argNodes, funcSymbol, hasHazyArgs);
 
     return matchingFuncCount;
   } //findMatchingFunctionWithConstantsAsArgs
 
-  u32 SymbolFunctionName::findMatchingFunctionWithConstantsAsArgsInAncestors(std::vector<UTI> argTypes, std::vector<Node*> constArgs, SymbolFunction *& funcSymbol, bool& hasHazyArgs)
+  u32 SymbolFunctionName::findMatchingFunctionWithSafeCastsInAncestors(std::vector<Node *> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs)
   {
     Symbol * fnsym = NULL;
     UTI cuti = m_state.findAClassByNodeNo(getBlockNoOfST());
@@ -177,9 +188,9 @@ namespace MFM {
     UTI supercuti = m_state.isClassASubclass(cuti);
     if(supercuti != Nav)
       if(m_state.isFuncIdInAClassScope(supercuti, getId(), fnsym, hasHazyArgs) && !hasHazyArgs)
-	return ((SymbolFunctionName *) fnsym)->findMatchingFunctionWithConstantsAsArgs(argTypes, constArgs, funcSymbol, hasHazyArgs); //recurse ancestors
+	return ((SymbolFunctionName *) fnsym)->findMatchingFunctionWithSafeCasts(argNodes, funcSymbol, hasHazyArgs); //recurse ancestors
     return 0;
-  } //findMatchingFunctionWithConstantsAsArgsInAncestors
+  } //findMatchingFunctionWithSafeCastsInAncestors
 
   u32 SymbolFunctionName::getDepthSumOfFunctions()
   {
@@ -519,13 +530,11 @@ namespace MFM {
   //similar to
   u32 SymbolFunctionName::getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs)
   {
-    std::vector<UTI> argTypes;
-    std::vector<Node *> constArgs;
-    argTypes.push_back(rnode->getNodeType());
-    constArgs.push_back(rnode->isAConstant() ? rnode : NULL);
+    std::vector<Node *> argNodes;
+    argNodes.push_back(rnode);
 
     SymbolFunction * fsym = NULL;
-    u32 camatches = findMatchingFunctionWithConstantsAsArgs(argTypes, constArgs, fsym, hasHazyArgs);
+    u32 camatches = findMatchingFunctionWithSafeCasts(argNodes, fsym, hasHazyArgs);
 
     if(camatches == 1)
       {
@@ -534,8 +543,7 @@ namespace MFM {
 	idxuti = asym->getUlamTypeIdx();
       }
 
-    argTypes.clear();
-    constArgs.clear();
+    argNodes.clear();
     return camatches;
   } //getCustomArrayIndexTypeFor
 

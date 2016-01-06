@@ -149,7 +149,7 @@ namespace MFM {
     ULAMCLASSTYPE vclasstype = vut->getUlamClass();
 
     m_state.indent(fp);
-    fp->write(vut->getUlamTypeImmediateAutoMangledName().c_str()); //for C++ local vars, ie non-data members
+    fp->write(vut->getUlamTypeImmediateMangledName().c_str()); //for C++ local vars, ie non-data members
     if(vclasstype == UC_ELEMENT || vuti == UAtom)
       fp->write("<EC> ");
     else if(vclasstype == UC_QUARK)//QUARK

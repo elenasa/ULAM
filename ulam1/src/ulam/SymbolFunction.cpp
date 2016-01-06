@@ -202,7 +202,8 @@ namespace MFM {
     for(u32 i=0; i < numParams; i++)
       {
 	UTI puti = m_parameterSymbols.at(i)->getUlamTypeIdx();
-	if(UlamType::compare(puti, argTypes[i], m_state) != UTIC_SAME)
+	UTI auti = argTypes[i];
+	if(UlamType::compare(puti, auti, m_state) != UTIC_SAME)
 	  {
 	    rtnBool = false;
 	    break;
@@ -211,9 +212,21 @@ namespace MFM {
     return rtnBool;
   } //matchingTypesStrictly
 
-  bool SymbolFunction::matchingTypes(std::vector<UTI> argTypes, std::vector<Node *> constantArg, bool& hasHazyArgs, u32& numUTmatch)
+  bool SymbolFunction::matchingTypesStrictly(std::vector<Node *> argNodes)
   {
-    u32 numArgs = argTypes.size();
+    u32 numArgs = argNodes.size();
+    std::vector<UTI> argTypes;
+    for(u32 i=0; i < numArgs; i++)
+      {
+	UTI auti = argNodes[i]->getNodeType();
+	argTypes.push_back(auti);
+      } //next arg
+    return matchingTypesStrictly(argTypes);
+  } //matchingTypesStrictly
+
+  bool SymbolFunction::matchingTypes(std::vector<Node *> argNodes, bool& hasHazyArgs, u32& numUTmatch)
+  {
+    u32 numArgs = argNodes.size();
     u32 numParams = m_parameterSymbols.size();
 
     // numArgs could be greater if this function takes variable args
@@ -226,18 +239,18 @@ namespace MFM {
     for(u32 i=0; i < numParams; i++)
       {
 	UTI puti = m_parameterSymbols.at(i)->getUlamTypeIdx();
-	if(UlamType::compare(puti, argTypes[i], m_state) != UTIC_SAME) //not same|not ready
+	UTI auti = argNodes[i]->getNodeType();
+	if(UlamType::compare(puti, auti, m_state) != UTIC_SAME) //not same|not ready
 	  {
-	    if(constantArg[i])
+	    if(argNodes[i]->isAConstant())
 	      {
-		assert(constantArg[i]->isAConstant());
 		if(m_state.isReference(puti))
 		  {
-		   rtnBool = false;
-		   break;
+		    rtnBool = false;
+		    break;
 		  }
 		//constants can match any bit size, that it fits; not reference types
-		FORECAST scr = constantArg[i]->safeToCastTo(puti);
+		FORECAST scr = argNodes[i]->safeToCastTo(puti);
 		if(scr == CAST_BAD)
 		  {
 		    rtnBool = false;
@@ -247,14 +260,20 @@ namespace MFM {
 		  hasHazyArgs = true;
 		else //CAST_CLEAR
 		  {
-		    if(m_state.getUlamTypeByIndex(puti)->getUlamTypeEnum() == m_state.getUlamTypeByIndex(argTypes[i])->getUlamTypeEnum())
+		    if(m_state.getUlamTypeByIndex(puti)->getUlamTypeEnum() == m_state.getUlamTypeByIndex(auti)->getUlamTypeEnum())
 		      numUTmatch++;
 		  }
 	      } //constantarg
+	    // catch it later for a better error message!!
+	    //else if(argNodes[i]->isFunctionCall() && m_state.isReference(puti))
+	    //  {
+	    //		rtnBool = false;
+	    //		break;
+	    //  }
 	    else
 	      {
-		//willing to cast argType safely TO puti; incomplete types are hazy.
-		FORECAST scr = m_state.getUlamTypeByIndex(puti)->safeCast(argTypes[i]);
+		//willing to cast arg Type safely TO puti; incomplete types are hazy.
+		FORECAST scr = m_state.getUlamTypeByIndex(puti)->safeCast(auti);
 		if(scr == CAST_BAD)
 		  {
 		    rtnBool = false;
@@ -264,7 +283,7 @@ namespace MFM {
 		  hasHazyArgs = true;
 		else //CAST_CLEAR
 		  {
-		    if(m_state.getUlamTypeByIndex(puti)->getUlamTypeEnum() == m_state.getUlamTypeByIndex(argTypes[i])->getUlamTypeEnum())
+		    if(m_state.getUlamTypeByIndex(puti)->getUlamTypeEnum() == m_state.getUlamTypeByIndex(auti)->getUlamTypeEnum())
 		      numUTmatch++;
 		  }
 	      }
