@@ -23,7 +23,7 @@ namespace MFM{
 
   //! Fail.ulam:7:   Void fail(Int code) native;
   template<class EC, u32 POS>
-  void Uq_10104Fail10<EC,POS>::Uf_4fail(const UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_102321i Uv_4code)  const
+  void Uq_10104Fail10<EC,POS>::Uf_4fail(const UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_102321i<EC> Uv_4code)  const
   {
     s32 code = Uv_4code.read();
     u32 type = Uv_4self.GetType();

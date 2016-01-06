@@ -3,16 +3,16 @@
 namespace MFM{
 
   template<class EC, u32 POS>
-  Ui_Ut_10121u Uq_1010919SiteUtils10<EC, POS>::Uf_8getTouch(const UlamContext<EC>& uc, T& Uv_4self) const
+  Ui_Ut_10121u<EC> Uq_1010919SiteUtils10<EC, POS>::Uf_8getTouch(const UlamContext<EC>& uc, T& Uv_4self) const
   {
     typedef typename EC::ATOM_CONFIG AC;
     const Site<AC> & site = uc.GetSite();
-    return Ui_Ut_10121u(site.RecentTouch());
+    return Ui_Ut_10121u<EC>(site.RecentTouch());
 
   }
 
   template<class EC, u32 POS>
-  Ui_Ut_14181u Uq_1010919SiteUtils10<EC, POS>::Uf_5getIn(const UlamContext<EC>& uc, T& Uv_4self) const
+  Ui_Ut_14181u<EC> Uq_1010919SiteUtils10<EC, POS>::Uf_5getIn(const UlamContext<EC>& uc, T& Uv_4self) const
   {
     FAIL(INCOMPLETE_CODE);
 #if 0
@@ -20,29 +20,29 @@ namespace MFM{
 
     //! Site.ulam:7:   ARGB getIn() { ARGB a; return a; }
     const u32 Uh_tmpreg_loadable_14 = Uv_1a.read();
-    const Ui_Ut_14181u Uh_tmpval_loadable_15(Uh_tmpreg_loadable_14);
+    const Ui_Ut_14181u<EC> Uh_tmpval_loadable_15(Uh_tmpreg_loadable_14);
 #endif
-    Ui_Ut_14181u Uv_1a;
+    Ui_Ut_14181u<EC> Uv_1a;
     return Uv_1a;
 
   }
 
   template<class EC, u32 POS>
-  Ui_Ut_14181u Uq_1010919SiteUtils10<EC, POS>::Uf_6getOut(const UlamContext<EC>& uc, T& Uv_4self) const
+  Ui_Ut_14181u<EC> Uq_1010919SiteUtils10<EC, POS>::Uf_6getOut(const UlamContext<EC>& uc, T& Uv_4self) const
   {
     typedef typename EC::ATOM_CONFIG AC;
 
     EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
     Base<AC> & base = ew.GetBase();
 
-    Ui_Ut_14181u tmp(base.GetPaint());
+    Ui_Ut_14181u<EC> tmp(base.GetPaint());
 
     return tmp;
 
   }
 
   template<class EC, u32 POS>
-  Ui_Ut_14181u Uq_1010919SiteUtils10<EC, POS>::Uf_6setOut(const UlamContext<EC>& uc, T& Uv_4self, Ui_Ut_14181u Uv_6newVal) const
+  Ui_Ut_14181u<EC> Uq_1010919SiteUtils10<EC, POS>::Uf_6setOut(const UlamContext<EC>& uc, T& Uv_4self, Ui_Ut_14181u<EC> Uv_6newVal) const
   {
     typedef typename EC::ATOM_CONFIG AC;
 
