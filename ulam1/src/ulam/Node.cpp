@@ -1874,9 +1874,10 @@ namespace MFM {
 	      }
 	    else if(m_state.isARefTypeOfUlamType(tobeType, nuti))
 	      {
-		//cast non-ref to its ref type
-		assert(!node->isAConstant());
-		assert(!node->isFunctionCall());
+		//cast non-ref to its ref type; constants & funccalls
+		// not legal for initialization; ok for assignment.
+		//assert(!node->isAConstant());
+		//assert(!node->isFunctionCall());
 		rtnNode = new NodeCast(node, tobeType, NULL, m_state);
 		assert(rtnNode);
 		rtnNode->setNodeLocation(getNodeLocation());
