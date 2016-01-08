@@ -103,13 +103,14 @@ namespace MFM {
     //return checkArrayCast(typidx) ? CAST_CLEAR : CAST_BAD;
     if(!checkArrayCast(typidx))
       return CAST_BAD;
-
+#if 0
     //if trying to cast the reference to its value type, ok (rhs)
     if(m_state.isReference(typidx))
       {
 	if(!checkReferenceCast(typidx))
 	  return CAST_BAD;
       }
+#endif
     return CAST_CLEAR;
   } //safeCast
 
@@ -167,16 +168,23 @@ namespace MFM {
     //both complete; typidx is a reference
     UlamKeyTypeSignature key1 = getUlamKeyTypeSignature();
     UlamKeyTypeSignature key2 = m_state.getUlamKeyTypeSignatureByIndex(typidx);
+    ALT alt1 = key1.getUlamKeyTypeSignatureReferenceType();
+    ALT alt2 = key2.getUlamKeyTypeSignatureReferenceType();
 
     if(key1.getUlamKeyTypeSignatureNameId() != key2.getUlamKeyTypeSignatureNameId())
-      return false;
-    if(key1.getUlamKeyTypeSignatureBitSize() != key2.getUlamKeyTypeSignatureBitSize())
       return false;
     if(key1.getUlamKeyTypeSignatureArraySize() != key2.getUlamKeyTypeSignatureArraySize())
       return false;
     if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
       return false;
-    if(key1.getUlamKeyTypeSignatureReferenceType() != ALT_NOT || key2.getUlamKeyTypeSignatureReferenceType() == ALT_NOT)
+
+    //skip rest in the case of array item, continue with usual size fit
+    if(alt1 == ALT_ARRAYITEM || alt2 == ALT_ARRAYITEM)
+      return true;
+
+    if(key1.getUlamKeyTypeSignatureBitSize() != key2.getUlamKeyTypeSignatureBitSize())
+	  return false;
+    if(alt1 != ALT_NOT || alt2 == ALT_NOT)
       return false;
 
     return true; //keys the same, except for reference type
@@ -694,6 +702,85 @@ namespace MFM {
     return (ut1 == ut2) ? UTIC_SAME : UTIC_NOTSAME;
   } //compare (static)
 
+  ULAMTYPECOMPARERESULTS UlamType::compareWithWildArrayItemReferenceType(UTI u1, UTI u2, CompilerState& state)  //static
+  {
+    if(u1 == u2) return UTIC_SAME; //short-circuit
+
+    if(u1 == Nav || u2 == Nav) return UTIC_NOTSAME;
+
+    UlamType * ut1 = state.getUlamTypeByIndex(u1);
+    UlamType * ut2 = state.getUlamTypeByIndex(u2);
+    ULAMCLASSTYPE ct1 = ut1->getUlamClass();
+    ULAMCLASSTYPE ct2 = ut2->getUlamClass();
+    UlamKeyTypeSignature key1 = ut1->getUlamKeyTypeSignature();
+    UlamKeyTypeSignature key2 = ut2->getUlamKeyTypeSignature();
+
+    // Given Class Arguments: we may end up with different sizes given different
+    // argument values which may or may not be known while parsing!
+    // t.f. classes are much more like the primitive ulamtypes now.
+    // Was The Case: classes with unknown bitsizes are essentially as complete
+    // as they can be during parse time; and will have the same UTIs.
+    if(!ut1->isComplete())
+      {
+	if(ct1 == UC_NOTACLASS || ut1->getArraySize() == UNKNOWNSIZE)
+	  return UTIC_DONTKNOW;
+
+	//class with known arraysize(scalar or o.w.); no more Nav ids.
+	if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
+	  return UTIC_DONTKNOW;
+      }
+
+    if(!ut2->isComplete())
+      {
+	if(ct2 == UC_NOTACLASS || ut2->getArraySize() == UNKNOWNSIZE)
+	  return UTIC_DONTKNOW;
+
+	//class with known arraysize(scalar or o.w.); no more Nav ids.
+	if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
+	  return UTIC_DONTKNOW;
+      }
+
+    //both complete!
+    //keys may have different reference types in the case of array items
+    if(key1.getUlamKeyTypeSignatureNameId() != key2.getUlamKeyTypeSignatureNameId())
+       return UTIC_NOTSAME;
+
+    if(key1.getUlamKeyTypeSignatureArraySize() != key2.getUlamKeyTypeSignatureArraySize())
+      return UTIC_NOTSAME;
+
+    if(key1.getUlamKeyTypeSignatureBitSize() != key2.getUlamKeyTypeSignatureBitSize())
+      return UTIC_NOTSAME;
+
+    if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
+      return UTIC_NOTSAME; //?
+
+    ALT alt1 = key1.getUlamKeyTypeSignatureReferenceType();
+    ALT alt2 = key2.getUlamKeyTypeSignatureReferenceType();
+    if(alt1 != alt2)
+      {
+	if(alt1 == ALT_ARRAYITEM || alt2 == ALT_ARRAYITEM)
+	  return UTIC_SAME;
+	else
+	  return UTIC_NOTSAME;
+      }
+    return UTIC_SAME;
+  } //compareWithWildArrayItemReferenceType (static)
+
+  ULAMTYPECOMPARERESULTS UlamType::compareForArgumentMatching(UTI u1, UTI u2, CompilerState& state)  //static
+  {
+    return UlamType::compareWithWildArrayItemReferenceType(u1, u2, state);
+  }
+
+  ULAMTYPECOMPARERESULTS UlamType::compareForMakingCastingNode(UTI u1, UTI u2, CompilerState& state)  //static
+  {
+    return UlamType::compareWithWildArrayItemReferenceType(u1, u2, state);
+  }
+
+  ULAMTYPECOMPARERESULTS UlamType::compareForUlamValueAssignment(UTI u1, UTI u2, CompilerState& state)  //static
+  {
+    return UlamType::compareWithWildArrayItemReferenceType(u1, u2, state);
+  }
+
   u32 UlamType::getTotalWordSize()
   {
     assert(isComplete());
@@ -937,10 +1024,14 @@ namespace MFM {
     fp->write_decimal_unsigned(BITSPERATOM - ATOMFIRSTSTATEBITPOS - len);
     fp->write("u), ");
     fp->write("m_stg(T::ATOM_UNDEFINED_TYPE) { ");
-    fp->write(automangledName.c_str());
-    fp->write("<EC, ");
-    fp->write_decimal_unsigned(BITSPERATOM - len);
-    fp->write("u>::write(d); }\n");
+    if(getTotalWordSize() <= MAXBITSPERINT)
+      {
+	fp->write(automangledName.c_str());
+	fp->write("<EC, ");
+	fp->write_decimal_unsigned(BITSPERATOM - len);
+	fp->write("u>::");
+      }
+    fp->write("write(d); }\n");
 
     //default destructor (for completeness)
     m_state.indent(fp);

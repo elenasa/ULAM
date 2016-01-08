@@ -92,8 +92,9 @@ namespace MFM {
     if(resolveType(it))
       {
 	UTI scalaruti = m_state.getUlamTypeAsScalar(it);
-	ULAMCLASSTYPE sclasstype = m_state.getUlamTypeByIndex(scalaruti)->getUlamClass();
-	if(scalaruti == UAtom || sclasstype == UC_ELEMENT)
+	UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
+	ULAMCLASSTYPE sclasstype = scalarut->getUlamClass();
+	if(scalarut->getUlamTypeEnum() == UAtom || sclasstype == UC_ELEMENT)
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid non-scalar type: ";

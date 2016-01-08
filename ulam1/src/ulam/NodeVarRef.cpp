@@ -244,7 +244,7 @@ namespace MFM {
     return NORMAL;
   } //eval
 
-  EvalStatus  NodeVarRef::evalToStoreInto()
+  EvalStatus NodeVarRef::evalToStoreInto()
   {
     evalNodeProlog(0); //new current node eval frame pointer
 
@@ -254,11 +254,11 @@ namespace MFM {
     UlamValue rtnUVPtr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 
     //copy result UV to stack, -1 relative to current frame pointer
-    assignReturnValuePtrToStack(rtnUVPtr);
+    Node::assignReturnValuePtrToStack(rtnUVPtr);
 
     evalNodeEpilog();
     return NORMAL;
-  }
+  } //evalToStoreInto
 
   void NodeVarRef::genCode(File * fp, UlamValue & uvpass)
   {
@@ -320,7 +320,7 @@ namespace MFM {
 	    if(vclasstype == UC_NOTACLASS)
 	      {
 		fp->write(", ");
-		fp->write_decimal_unsigned(BITSPERATOM - stgcosut->getTotalBitSize()); //right-justified
+		fp->write_decimal_unsigned(BITSPERATOM - stgcosut->getTotalBitSize() - ATOMFIRSTSTATEBITPOS); //right-justified, not including FIRSTSTATEBITPOS
 		fp->write("u");
 	      }
 	    else if(vclasstype == UC_QUARK)

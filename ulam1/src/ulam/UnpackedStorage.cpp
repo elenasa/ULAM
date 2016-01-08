@@ -50,7 +50,7 @@ namespace MFM {
       {
 	//target is packed or packedloadable, use pos & len in ptr
 	UlamValue lvalAtIdx = loadDataMemberAt(leftbaseslot);
-	assert(lvalAtIdx.getUlamValueTypeIdx() == UAtom);  //?
+	assert(m_state.getUlamTypeByIndex(lvalAtIdx.getUlamValueTypeIdx())->getUlamTypeEnum() == UAtom);  //?
 	lvalAtIdx.putDataIntoAtom(pluv, ruv, m_state);
 	storeDataMemberAt(lvalAtIdx, leftbaseslot);
       }

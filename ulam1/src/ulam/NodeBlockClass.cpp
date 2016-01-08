@@ -592,7 +592,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	if(evs == NORMAL)
 	  {
 	    UlamValue testUV = m_state.m_nodeEvalStack.popArg();
-	    assignReturnValueToStack(testUV);
+	    Node::assignReturnValueToStack(testUV);
 	  }
 	setNodeType(saveClassType); //temp, restore
       }

@@ -291,7 +291,7 @@ namespace MFM {
 	    return ERROR;
       }
 
-    assignReturnValueToStack(pluv.getValAt(offsetInt, m_state));
+    Node::assignReturnValueToStack(pluv.getValAt(offsetInt, m_state));
     evalNodeEpilog();
     return NORMAL;
   } //eval
@@ -351,7 +351,7 @@ namespace MFM {
 						 );
 
 	//copy result UV to stack, -1 relative to current frame pointer
-	assignReturnValuePtrToStack(scalarPtr);
+	Node::assignReturnValuePtrToStack(scalarPtr);
       }
     else
       {
@@ -359,7 +359,7 @@ namespace MFM {
 	UlamValue scalarPtr = UlamValue::makeScalarPtr(pluv, m_state);
 	if(scalarPtr.incrementPtr(m_state, offsetInt))
 	  //copy result UV to stack, -1 relative to current frame pointer
-	  assignReturnValuePtrToStack(scalarPtr);
+	  Node::assignReturnValuePtrToStack(scalarPtr);
 	else
 	  {
 	    s32 arraysize = m_state.getArraySize(pluv.getPtrTargetType());

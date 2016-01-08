@@ -84,7 +84,7 @@ namespace MFM {
       return ERROR;
 
     assert(m_varSymbol->getUlamTypeIdx() == nuti);
-    assert(nuti != UAtom); //rhs type of conditional as/has can't be an atom
+    assert(m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum() != UAtom); //rhs type of conditional as/has can't be an atom
 
     UlamValue pluv = m_state.m_currentAutoObjPtr;
     ((SymbolVariableStack *) m_varSymbol)->setAutoPtrForEval(pluv); //for future ident eval uses
@@ -105,7 +105,7 @@ namespace MFM {
     UlamValue rtnUVPtr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 
     //copy result UV to stack, -1 relative to current frame pointer
-    assignReturnValuePtrToStack(rtnUVPtr);
+    Node::assignReturnValuePtrToStack(rtnUVPtr);
 
     evalNodeEpilog();
     return NORMAL;
@@ -127,7 +127,7 @@ namespace MFM {
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
     UTI stguti = stgcos->getUlamTypeIdx();
     UlamType * stgut = m_state.getUlamTypeByIndex(stguti);
-    assert(stguti == UAtom || stgut->getUlamClass() == UC_ELEMENT); //not quark
+    assert((stgut->getUlamTypeEnum() == UAtom) || (stgut->getUlamClass() == UC_ELEMENT)); //not quark
 
     // can't let Node::genCodeReadIntoTmpVar do this for us: it's a ref.
     assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
@@ -150,7 +150,7 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write(vut->getUlamTypeImmediateMangledName().c_str()); //for C++ local vars, ie non-data members
-    if(vclasstype == UC_ELEMENT || vuti == UAtom)
+    if((vclasstype == UC_ELEMENT) || (vut->getUlamTypeEnum() == UAtom))
       fp->write("<EC> ");
     else if(vclasstype == UC_QUARK)//QUARK
       {

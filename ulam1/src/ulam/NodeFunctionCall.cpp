@@ -176,9 +176,10 @@ namespace MFM {
 	  {
 	    if(hasHazyArgs)
 	      numErrorsFound++; //wait to cast
-#if 1
-	    //check ref types and func calls here..
-	    for(u32 i = 0; i < argNodes.size(); i++)
+
+	    //check ref types and func calls here..care with variable args (2 pass)
+	    u32 numParams = funcSymbol->getNumberOfParameters();
+	    for(u32 i = 0; i < numParams; i++)
 	      {
 		if(m_state.isReference(funcSymbol->getParameterType(i)))
 		  {
@@ -193,7 +194,7 @@ namespace MFM {
 		      }
 		  }
 	      }
-#endif
+	    //don't worry about variable args in native methods; they can't be refs.
 	  }
       }
     else
@@ -510,6 +511,17 @@ namespace MFM {
 		assert(0);
 	      }
 
+	    if(!funcSymbol->isVirtualFunction())
+	      {
+		std::ostringstream msg;
+		msg << "Function <" << funcSymbol->getMangledNameWithTypes().c_str();
+		msg << "> is not virtual";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		m_state.popClassContext(); //restore here
+		evalNodeEpilog();
+		return ERROR;
+	      }
+
 	    if(funcSymbol->isPureVirtualFunction())
 	      {
 		std::ostringstream msg;
@@ -568,16 +580,16 @@ namespace MFM {
     // ANY return value placed on the STACK by a Return Statement,
     // was copied to EVALRETURN by the NodeBlockFunctionDefinition
     // before arriving here! And may be ignored at this point.
-    if(rtnType == UAtom)
+    if(m_state.getUlamTypeByIndex(rtnType)->getUlamTypeEnum() == UAtom)
       {
 	UlamValue rtnUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
-	assignReturnValueToStack(rtnUV); //into return space on eval stack;
+	Node::assignReturnValueToStack(rtnUV); //into return space on eval stack;
       }
     else
       {
 	//positive to current frame pointer; pos is (BITSPERATOM - rtnbitsize * rtnarraysize)
 	UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, rtnType, m_state.determinePackable(rtnType), m_state);
-	assignReturnValueToStack(rtnPtr); //into return space on eval stack;
+	Node::assignReturnValueToStack(rtnPtr); //into return space on eval stack;
       }
 
     m_state.m_funcCallStack.popArgs(argsPushed+rtnslots); //drops all the args and return slots on callstack
@@ -1131,7 +1143,9 @@ namespace MFM {
 	UTI auti;
 	m_state.m_currentObjSymbolsForCodeGen.clear(); //*************
 
+	// what if ALT_ARRAYITEM???
 	if(m_state.getReferenceType(m_funcSymbol->getParameterType(i)) != ALT_NOT)
+	//if((m_state.getReferenceType(m_funcSymbol->getParameterType(i)) != ALT_NOT) && (m_state.getReferenceType(m_funcSymbol->getParameterType(i)) != ALT_ARRAYITEM))
 	  {
 	    genCodeReferenceArg(fp, auvpass, i);
 	    //m_argumentNodes->genCodeToStoreInto(fp, auvpass, i);
@@ -1207,6 +1221,10 @@ namespace MFM {
     assert(vut->getUlamTypeEnum() == stgcosut->getUlamTypeEnum());
 
     m_state.indent(fp);
+    fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+    fp->write(" ");
+
+#if 0
     fp->write(vut->getUlamTypeImmediateMangledName().c_str()); //for C++ local vars, ie non-data members
     if(vclasstype == UC_ELEMENT)
       fp->write("<EC> ");
@@ -1224,6 +1242,7 @@ namespace MFM {
 	fp->write_decimal_unsigned(BITSPERATOM - uvpass.getPtrLen());
 	fp->write("u> ");
       }
+#endif
 
     s32 tmpVarArgNum = m_state.getNextTmpVarNumber();
     fp->write(m_state.getTmpVarAsString(vuti, tmpVarArgNum, TMPBITVAL).c_str());

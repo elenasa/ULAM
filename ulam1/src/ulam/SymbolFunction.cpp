@@ -203,7 +203,7 @@ namespace MFM {
       {
 	UTI puti = m_parameterSymbols.at(i)->getUlamTypeIdx();
 	UTI auti = argTypes[i];
-	if(UlamType::compare(puti, auti, m_state) != UTIC_SAME)
+	if(UlamType::compareForArgumentMatching(puti, auti, m_state) != UTIC_SAME)
 	  {
 	    rtnBool = false;
 	    break;
@@ -240,7 +240,7 @@ namespace MFM {
       {
 	UTI puti = m_parameterSymbols.at(i)->getUlamTypeIdx();
 	UTI auti = argNodes[i]->getNodeType();
-	if(UlamType::compare(puti, auti, m_state) != UTIC_SAME) //not same|not ready
+	if(UlamType::compareForArgumentMatching(puti, auti, m_state) != UTIC_SAME) //not same|not ready
 	  {
 	    if(argNodes[i]->isAConstant())
 	      {

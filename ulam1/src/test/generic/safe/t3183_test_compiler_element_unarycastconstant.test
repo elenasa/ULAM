@@ -8,7 +8,7 @@
 ##
 ##      //constant fold negative
 Exit status: 2
-Ue_Foo { System s();  Bool(3) m_b(true);  Int(4) m_i(2);  Unary(4) m_u[5](1u,0u,3u,2u,0u);  Int(32) test() {  m_u 0 [] 1 cast = m_u 1 [] 0 cast = m_u 2 [] 3u cast = m_u 3 [] 2u cast = m_u 4 [] -1 cast = m_i m_u 3 [] cast = s ( m_i )print . m_b m_u 3 [] cast 2 cast == cast = s ( m_b )print . m_u 3 [] cast return } }
+Ue_Foo { System s();  Bool(3) m_b(true);  Int(4) m_i(2);  Unary(4) m_u[5](1u,0u,3u,2u,0u);  Int(32) test() {  m_u 0 [] 1 cast = m_u 1 [] 0 cast = m_u 2 [] 3u cast = m_u 3 [] 2u cast = m_u 4 [] -1 cast cast = m_i m_u 3 [] cast = s ( m_i )print . m_b m_u 3 [] cast 2 cast == cast = s ( m_b )print . m_u 3 [] cast return } }
 Uq_System { <NOMAIN> }
 #>Foo.ulam
 ulam 1;

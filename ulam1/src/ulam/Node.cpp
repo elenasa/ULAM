@@ -339,7 +339,7 @@ namespace MFM {
     if(rtnUVtype == Void) //check after Ptr target type
       return;
 
-    assert((UlamType::compare(rtnUVtype, getNodeType(), m_state) == UTIC_SAME) || rtnUVtype == UAtom || getNodeType() == UAtom);
+    assert((UlamType::compareForUlamValueAssignment(rtnUVtype, getNodeType(), m_state) == UTIC_SAME) || (m_state.getUlamTypeByIndex(rtnUVtype)->getUlamTypeEnum() == UAtom) || (m_state.getUlamTypeByIndex(getNodeType())->getUlamTypeEnum() == UAtom));
 
     // save results in the stackframe for caller;
     // copies each element of the 'unpacked' array by value,
@@ -432,8 +432,8 @@ namespace MFM {
       return genCodeConvertATmpVarIntoBitVector(fp, uvpass);
 
     // split off autoref stg/member selected
-    if(uvpass.getPtrStorage() == TMPAUTOREF)
-      return genCodeReadAutorefIntoATmpVar(fp, uvpass);
+    //if(uvpass.getPtrStorage() == TMPAUTOREF)
+    //  return genCodeReadAutorefIntoATmpVar(fp, uvpass);
 
     m_state.indent(fp);
     fp->write("const ");
@@ -1606,7 +1606,7 @@ namespace MFM {
 
     // write out immediate tmp BitValue as an intermediate tmpVar
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
-    STORAGE tmp2stor = (vut->getUlamClass() == UC_ELEMENT || vuti == UAtom) ?  TMPBITVAL : TMPREGISTER;
+    STORAGE tmp2stor = (((vut->getUlamClass() == UC_ELEMENT) || (vut->getUlamTypeEnum() == UAtom)) ?  TMPBITVAL : TMPREGISTER);
 
     m_state.indent(fp);
     fp->write("const ");
@@ -1663,7 +1663,6 @@ namespace MFM {
 
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    ULAMCLASSTYPE cosclasstype = cosut->getUlamClass();
 
     // write out auto ref constuctor
     s32 tmpVarNum = uvpass.getPtrSlotIndex();
@@ -1672,26 +1671,12 @@ namespace MFM {
     // write out next chain using auto ref constuctor
     if(uvpass.getPtrStorage() == TMPAUTOREF)
       {
-	//	assert(m_state.isReference(cosuti) || (uvpass.getPtrStorage() == TMPAUTOREF));
-	assert(m_state.isReference(cosuti));
+	//assert(m_state.isReference(cosuti));
+	assert(m_state.isReference(vuti));
 	m_state.indent(fp);
 	//can't be const and chainable
-	fp->write(cosut->getUlamTypeImmediateMangledName().c_str()); //e.g. 4auto
-	if(cosclasstype == UC_QUARK)
-	  {
-	    fp->write("<EC, ");
-	    fp->write_decimal_unsigned(ATOMFIRSTSTATEBITPOS); //must be a constant
-	    fp->write("u> ");
-	  }
-	else if(cosclasstype == UC_ELEMENT || cosuti == UAtom)
-	  fp->write("<EC> ");
-	else
-	  {
-	    fp->write("<EC, ");
-	    fp->write_decimal_unsigned(BITSPERATOM - cosut->getTotalBitSize() ); //must be a constant
-	    fp->write("u> ");
-	  }
-
+	fp->write(cosut->getLocalStorageTypeAsString().c_str());
+	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum2, TMPAUTOREF).c_str());
 	fp->write("("); //use constructor (not equals)
 	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, TMPAUTOREF).c_str());
@@ -1710,22 +1695,8 @@ namespace MFM {
 
 	m_state.indent(fp);
 	//can't be const and chainable
-	fp->write(cosut->getUlamTypeImmediateMangledName().c_str()); //e.g. 4auto
-	if(cosclasstype == UC_QUARK)
-	  {
-	    fp->write("<EC, ");
-	    fp->write_decimal_unsigned(ATOMFIRSTSTATEBITPOS); //must be a constant
-	    fp->write("u> ");
-	  }
-	else if(cosclasstype == UC_ELEMENT || cosuti == UAtom)
-	  fp->write("<EC> ");
-	else
-	  {
-	    fp->write("<EC, ");
-	    fp->write_decimal_unsigned(BITSPERATOM - cosut->getTotalBitSize() ); //must be a constant
-	    fp->write("u> ");
-	  }
-
+	fp->write(cosut->getLocalStorageTypeAsString().c_str());
+	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum2, TMPAUTOREF).c_str());
 	fp->write("("); // use constructor (not equals)
 
@@ -1761,6 +1732,36 @@ namespace MFM {
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeConvertATmpVarIntoAutoRef
+
+  void Node::genCodeARefFromARefStorage(File * fp, UlamValue stguvpass, UlamValue uvpass)
+  {
+    // write out auto ref constuctor
+    s32 tmpVarNum = stguvpass.getPtrSlotIndex();
+    s32 tmpVarNum2 = uvpass.getPtrSlotIndex();
+
+    UTI vuti = uvpass.getPtrTargetType();
+    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+    assert(m_state.isReference(vuti));
+
+    UTI stgrefuti = stguvpass.getPtrTargetType();
+    assert(m_state.isReference(stgrefuti));
+
+    m_state.indent(fp);
+    //can't be const and chainable
+    fp->write(vut->getLocalStorageTypeAsString().c_str());
+    fp->write(" ");
+    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2, TMPAUTOREF).c_str());
+    fp->write("("); //use constructor (not equals)
+    fp->write(m_state.getTmpVarAsString(stgrefuti, tmpVarNum, TMPAUTOREF).c_str());
+    fp->write(".getRef(), ");
+    fp->write(m_state.getTmpVarAsString(stgrefuti, tmpVarNum, TMPAUTOREF).c_str());
+    fp->write(".getPosOffset() + ");
+    fp->write_decimal_unsigned(uvpass.getPtrPos());
+    fp->write("u");
+    fp->write(");\n");
+
+    m_state.m_currentObjSymbolsForCodeGen.clear();
+  } //genCodeARefFromARefStorage
 
   void Node::genCodeExtern(File * fp, bool declOnly)
   {
@@ -1812,12 +1813,14 @@ namespace MFM {
 	return true;
       }
 
-    ULAMCLASSTYPE nclasstype = m_state.getUlamTypeByIndex(nuti)->getUlamClass();
-    ULAMCLASSTYPE tclasstype = m_state.getUlamTypeByIndex(tobeType)->getUlamClass();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
+    ULAMCLASSTYPE nclasstype = nut->getUlamClass();
+    ULAMCLASSTYPE tclasstype = tobe->getUlamClass();
 
     if(nclasstype == UC_NOTACLASS)
       {
-	if((nuti == UAtom) && (tclasstype != UC_ELEMENT))
+	if((nut->getUlamTypeEnum() == UAtom) && (tclasstype != UC_ELEMENT))
 	  doErrMsg = true;
 	else if(nuti == Void)
 	  doErrMsg = true; //cannot cast a void into anything else (reverse is fine)
@@ -1832,15 +1835,20 @@ namespace MFM {
 
 	    //redo check and type labeling; error msg if not same
 	    UTI newType = rtnNode->checkAndLabelType();
-	    doErrMsg = (UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME);
+	    doErrMsg = (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
 	  }
       }
     else if(nclasstype == UC_QUARK)
       {
 	if(node->isFunctionCall())
 	  {
-	    if(m_state.isReference(tobeType))
-	      doErrMsg = true;
+	    if(tobe->isReference())
+	      {
+		rtnNode = new NodeCast(node, tobeType, NULL, m_state);
+		assert(rtnNode);
+		rtnNode->setNodeLocation(getNodeLocation());
+		rtnNode->updateLineage(getNodeNo());
+	      }
 	    else
 	      {
 		// a function call is not a valid lhs !!!
@@ -1859,6 +1867,14 @@ namespace MFM {
 	    //handle possible inheritance (u.1.2.2) here
 	    if(m_state.isClassASuperclassOf(nuti, tobeType))
 	      {
+		rtnNode = new NodeCast(node, tobeType, NULL, m_state);
+		assert(rtnNode);
+		rtnNode->setNodeLocation(getNodeLocation());
+		rtnNode->updateLineage(getNodeNo());
+	      }
+	    else if((UlamType::compareForMakingCastingNode(nuti, tobeType, m_state) == UTIC_SAME))
+	      {
+		//cast arrayitems as their deref types
 		rtnNode = new NodeCast(node, tobeType, NULL, m_state);
 		assert(rtnNode);
 		rtnNode->setNodeLocation(getNodeLocation());
@@ -1906,14 +1922,26 @@ namespace MFM {
 	  if(!doErrMsg)
 	    {
 	      UTI newType = rtnNode->checkAndLabelType();
-	      doErrMsg = (UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME);
+	      doErrMsg = (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
 	      if(doErrMsg)
 		return makeCastingNode(rtnNode, tobeType, rtnNode, false); //recurse
 	    }
       }
     else if (nclasstype == UC_ELEMENT)
       {
-	if(tobeType != UAtom)
+	if((UlamType::compareForMakingCastingNode(nuti, tobeType, m_state) == UTIC_SAME))
+	  {
+	    rtnNode = new NodeCast(node, tobeType, NULL, m_state);
+	    assert(rtnNode);
+	    rtnNode->setNodeLocation(getNodeLocation());
+	    rtnNode->updateLineage(getNodeNo());
+
+	    //redo check and type labeling; error msg if not same
+	    UTI newType = rtnNode->checkAndLabelType();
+	    doErrMsg = (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
+	  }
+	//if(tobeType != UAtom)
+	else if((UlamType::compareForMakingCastingNode(tobeType, UAtom, m_state) != UTIC_SAME))
 	  doErrMsg = true;
 	else
 	  {
@@ -1924,7 +1952,7 @@ namespace MFM {
 
 	    //redo check and type labeling; error msg if not same
 	    UTI newType = rtnNode->checkAndLabelType();
-	    doErrMsg = (UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME);
+	    doErrMsg = (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
 	  }
       }
     else
@@ -2493,7 +2521,7 @@ namespace MFM {
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
     UTI stgcosuti = stgcos->getUlamTypeIdx();
-    //UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
     // handle inheritance, when data member is in superclass, not current class obj
     // now for both immediate elements and quarks..
@@ -2520,18 +2548,25 @@ namespace MFM {
 		assert(cosclassuti != Nav);
 		cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
 	      }
-#if 0
-	    //fp->write(cosclassut->getUlamTypeMangledName().c_str());
-	    fp->write(cosclassut->getUlamTypeImmediateMangledName().c_str());
-	    if(cosclassut->getUlamClass() == UC_ELEMENT)
-	      fp->write("<EC>::");
+
+	    if(stgcosut->isReference())
+	      {
+		fp->write(cosclassut->getLocalStorageTypeAsString().c_str());
+		fp->write("::");
+		if(cosclassut->getUlamClass() == UC_QUARK)
+		  fp->write("Us::"); //missing
+	      }
 	    else
 	      {
-		if(stgcosut->isReference())
+		//note: can't use immediate name since we have multiple dots
+		// (i.e. data members) at specific POS (e.g. t3606)
+		fp->write(cosclassut->getUlamTypeMangledName().c_str());
+		if(cosclassut->getUlamClass() == UC_ELEMENT)
+		  fp->write("<EC>::");
+		else
 		  {
 		    fp->write("<EC, ");
 		    u32 posoff = 0;
-#if 0
 		    for(u32 i = subcos; i > 0; i--)
 		      {
 			Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
@@ -2540,8 +2575,8 @@ namespace MFM {
 			if(sym->isDataMember() && sut->getUlamTypeEnum() == Class)
 			  posoff += sym->getPosOffset();
 		      }
+
 		    if(posoff > 0)
-#endif
 		      {
 			fp->write_decimal_unsigned(posoff);
 			fp->write("u + ");
@@ -2549,18 +2584,12 @@ namespace MFM {
 
 		    fp->write("T::ATOM_FIRST_STATE_BIT");
 		    fp->write(">::");
-		  }
-		else
-		  fp->write("<EC>::");
-		fp->write("Us::"); //missing
-	      }
-#endif
-	    fp->write(cosclassut->getLocalStorageTypeAsString().c_str());
-	    fp->write("::");
-	    if(cosclassut->getUlamClass() == UC_QUARK)
-		fp->write("Us::"); //missing
-	  }
-      }
+		  } //a quark
+	      } //not reference
+	  } //sub class
+
+      } //blocks same
+
     //stgcos is not the base of the type (possibly remove code? No, t3249)
     if(subcos < 0)
       {
@@ -2571,7 +2600,7 @@ namespace MFM {
 	  fp->write("THE_INSTANCE."); //only for elements???
       }
 
-      for(u32 i = startcos; i < cosSize; i++)
+    for(u32 i = startcos; i < cosSize; i++)
       {
 	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
 	UTI suti = sym->getUlamTypeIdx();
@@ -2594,7 +2623,7 @@ namespace MFM {
 	      fp->write("THE_INSTANCE."); //Ut_Um...
 	  }
       }
-  } //genLocalMemberNameOfMethodByUsTypedef
+      } //genLocalMemberNameOfMethodByUsTypedef
 
   void Node::genCustomArrayLocalMemberNameOfMethod(File * fp)
   {
@@ -2745,8 +2774,21 @@ namespace MFM {
     //an element's "self" as obj[0] is like it isn't there for purposes of this discovery.
     //quark's self is an atom, and should be treated like a local arg.
     // note: self is not a data member.
-    return !(m_state.m_currentObjSymbolsForCodeGen.empty() || (m_state.m_currentObjSymbolsForCodeGen[0]->isDataMember() && isCurrentObjectsContainingAModelParameter() == -1) || (m_state.m_currentObjSymbolsForCodeGen[0]->isSelf() && m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx() != UAtom && isCurrentObjectsContainingAModelParameter() == -1));
-  }
+    //return !(m_state.m_currentObjSymbolsForCodeGen.empty() || (m_state.m_currentObjSymbolsForCodeGen[0]->isDataMember() && isCurrentObjectsContainingAModelParameter() == -1) || (m_state.m_currentObjSymbolsForCodeGen[0]->isSelf() && m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx() != UAtom && isCurrentObjectsContainingAModelParameter() == -1));
+
+    if(m_state.m_currentObjSymbolsForCodeGen.empty())
+      return false; //must be self, t.f. not local
+
+    s32 modelparamidx = isCurrentObjectsContainingAModelParameter();
+    if(m_state.m_currentObjSymbolsForCodeGen[0]->isDataMember() && (modelparamidx == -1))
+      return false; //data member, not model parameter
+
+    UTI stgcosuti = m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx();
+    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+    if(m_state.m_currentObjSymbolsForCodeGen[0]->isSelf() && (stgcosut->getUlamTypeEnum() != UAtom) && (modelparamidx == -1))
+      return false; //self, not atom, not modelparameter
+    return true;
+  } //isCurrentObjectALocalVariableOrArgument
 
   // returns the index to the last object that's an MP; o.w. -1 none found;
   // preceeding object is the "owner", others before it are irrelevant;
@@ -2875,7 +2917,7 @@ namespace MFM {
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     if(cosut->getUlamClass() == UC_NOTACLASS)
       {
-	assert(cosuti != UAtom); //atom too? let's find out..
+	assert(cosut->getUlamTypeEnum() != UAtom); //atom too? let's find out..
 	u32 wordsize = cosut->getTotalWordSize();
 	pos = wordsize - (BITSPERATOM - pos); //cosut->getTotalBitSize();
       }

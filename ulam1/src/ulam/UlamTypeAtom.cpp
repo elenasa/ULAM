@@ -17,6 +17,12 @@ namespace MFM {
     return UAtom;
   }
 
+  ULAMCLASSTYPE UlamTypeAtom::getUlamClass()
+  {
+    //return UC_ATOM; llok into this!!
+    return UC_NOTACLASS;
+  }
+
   const std::string UlamTypeAtom::getUlamTypeVDAsStringForC()
   {
     //return "VD::ATOM";

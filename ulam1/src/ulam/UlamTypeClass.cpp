@@ -42,23 +42,23 @@ namespace MFM {
     UTI valtypidx = val.getUlamValueTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(valtypidx);
     assert(vut->isScalar() && isScalar());
-
+    ULAMTYPE vetype = vut->getUlamTypeEnum();
     //now allowing atoms to be cast as quarks, as well as elements;
     // also allowing subclasses to be cast as their superclass (u1.2.2)
     if(getUlamClass() == UC_ELEMENT)
       {
-	if(!(valtypidx == UAtom || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME))
+	if(!(vetype == UAtom || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME))
 	  {
 	    //no longer elements inherit from elements, only quarks.
 	    brtn = false;
 	  }
-	else if(valtypidx == UAtom)
+	else if(vetype == UAtom)
 	  val.setAtomElementTypeIdx(typidx); //for testing purposes, assume ok
 	//else true
       }
     else if(getUlamClass() == UC_QUARK)
       {
-	if(valtypidx == UAtom)
+	if(vetype == UAtom)
 	  brtn = false; //cast atom to a quark?
 	else if(UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME)
 	  {
@@ -459,7 +459,7 @@ namespace MFM {
       }
 
     //e.g. casting an element to an element, redundant and not supported: Element96ToElement96?
-    if(nodetype != UAtom)
+    if(nut->getUlamTypeEnum() != UAtom)
       {
 	std::ostringstream msg;
 	msg << "Attempting to illegally cast a non-atom type to an element: ";
@@ -467,7 +467,6 @@ namespace MFM {
 	msg << nut->getUlamTypeName().c_str() << ", to be: " << getUlamTypeName().c_str();
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(),msg.str().c_str(), ERR);
       }
-
     rtnMethod << "_" << nut->getUlamTypeNameOnly().c_str() << sizeByIntBits;
     rtnMethod << "ToElement" << sizeByIntBitsToBe;
     return rtnMethod.str();

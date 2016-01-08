@@ -14,6 +14,12 @@ namespace MFM {
     return Nav;
   }
 
+  ULAMCLASSTYPE UlamTypeNav::getUlamClass()
+  {
+    assert(0);
+    return UC_ERROR; //for compiler only
+  }
+
   const std::string UlamTypeNav::getUlamTypeAsStringForC(bool useref)
   {
     assert(0);

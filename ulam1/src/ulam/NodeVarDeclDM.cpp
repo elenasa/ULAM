@@ -574,7 +574,7 @@ namespace MFM {
 
     assert(m_varSymbol->getAutoLocalType() == ALT_NOT);
 
-    if(nuti == UAtom || classtype == UC_ELEMENT)
+    if(nut->getUlamTypeEnum() == UAtom || classtype == UC_ELEMENT)
       return NodeVarDecl::eval();
 
     // make terminal expression node so rest of eval works for quarks too
@@ -608,7 +608,7 @@ namespace MFM {
     UlamValue rtnUVPtr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 
     //copy result UV to stack, -1 relative to current frame pointer
-    assignReturnValuePtrToStack(rtnUVPtr);
+    Node::assignReturnValuePtrToStack(rtnUVPtr);
 
     evalNodeEpilog();
     return NORMAL;

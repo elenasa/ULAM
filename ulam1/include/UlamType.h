@@ -60,7 +60,7 @@ namespace MFM{
 
   class CompilerState; //forward
 
-  enum ULAMCLASSTYPE { UC_UNSEEN, UC_QUARK, UC_ELEMENT, UC_NOTACLASS, UC_ATOM };
+  enum ULAMCLASSTYPE { UC_UNSEEN, UC_QUARK, UC_ELEMENT, UC_NOTACLASS, UC_ATOM, UC_ERROR };
 
 
   class UlamType
@@ -175,6 +175,11 @@ namespace MFM{
 
     static ULAMTYPECOMPARERESULTS compare(UTI u1, UTI u2, CompilerState& state);
 
+    static ULAMTYPECOMPARERESULTS compareForArgumentMatching(UTI u1, UTI u2, CompilerState& state);
+    static ULAMTYPECOMPARERESULTS compareForMakingCastingNode(UTI u1, UTI u2, CompilerState& state);
+
+    static ULAMTYPECOMPARERESULTS compareForUlamValueAssignment(UTI u1, UTI u2, CompilerState& state);
+
     /** Number of bits (rounded up to nearest 32 bits) required to
     hold the total bit size  */
     u32 getTotalWordSize();
@@ -220,6 +225,9 @@ namespace MFM{
     s64 m_min;
 
   private:
+
+    static ULAMTYPECOMPARERESULTS compareWithWildArrayItemReferenceType(UTI u1, UTI u2, CompilerState& state);
+
 
     virtual bool castTo32(UlamValue & val, UTI typidx);
 

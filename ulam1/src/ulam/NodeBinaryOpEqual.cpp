@@ -80,7 +80,9 @@ namespace MFM {
     if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME)
       {
 	//different msg if try to assign non-class to a class type
-	if(m_state.getUlamTypeByIndex(leftType)->getUlamTypeEnum() == Class)
+	//if(m_state.getUlamTypeByIndex(leftType)->getUlamTypeEnum() == Class)
+	//if((m_state.getUlamTypeByIndex(leftType)->getUlamTypeEnum() == Class) && !m_state.isReference(leftType))
+	if((m_state.getUlamTypeByIndex(leftType)->getUlamTypeEnum() == Class) && (m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum() != Class))
 	  {
 	    std::ostringstream msg;
 	    msg << "Incompatible class type ";
@@ -232,7 +234,7 @@ namespace MFM {
 
     UlamValue luvPtr = UlamValue::makePtr(1, EVALRETURN, nuti, m_state.determinePackable(nuti), m_state); //positive to current frame pointer
 
-    assignReturnValuePtrToStack(luvPtr);
+    Node::assignReturnValuePtrToStack(luvPtr);
 
     evalNodeEpilog();
     return NORMAL;
@@ -242,7 +244,7 @@ namespace MFM {
   {
     assert(slots);
     UTI nuti = getNodeType();
-    UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(lslot);
+    UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(lslot);
     UlamValue ruv;
 
     if(m_state.isScalar(nuti))
@@ -269,7 +271,7 @@ namespace MFM {
     m_state.assignValue(pluv,ruv);
 
     //also copy result UV to stack, -1 relative to current frame pointer
-    assignReturnValueToStack(ruv);
+    Node::assignReturnValueToStack(ruv);
     return true;
   } //dobinaryoperation
 
@@ -280,7 +282,7 @@ namespace MFM {
     u32 len = m_state.getTotalBitSize(nuti);
 
     // 'pluv' is where the resulting sum needs to be stored
-    UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(lslot); //a Ptr
+    UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(lslot); //a Ptr
     assert(pluv.getUlamValueTypeIdx() == Ptr && pluv.getPtrTargetType() == nuti);
 
     assert(slots == 1);
@@ -333,7 +335,7 @@ namespace MFM {
       }
 
     // 'pluv' is where the resulting sum needs to be stored
-    UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(lslot); //a Ptr
+    UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(lslot); //a Ptr
     assert(pluv.getUlamValueTypeIdx() == Ptr && pluv.getPtrTargetType() == nuti);
 
     // point to base array slots, packedness determines its 'pos'

@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 0
-Ue_Test : System { :<> Bool(1) brtn[4](true,true,true,true);  Int(32) test() {  E1 e1;  brtn 2 [] e1 ( )vuser . 7 cast == = ( brtn 2 [] )assert E2 e2;  brtn 3 [] e2 ( )vuser . 9 cast == = ( brtn 3 [] )assert Base b;  brtn 0 [] b ( )vuser . 2 cast == = ( brtn 0 [] )assert Sub1 s1;  brtn 1 [] s1 ( )vuser . 2 cast == = ( brtn 1 [] )assert 0 cast return } }
+Ue_Test : System { :<> Bool(1) brtn[4](true,true,true,true);  Int(32) test() {  E1 e1;  brtn 2 [] e1 ( )vuser . 7 cast == cast = ( brtn 2 [] cast )assert E2 e2;  brtn 3 [] e2 ( )vuser . 9 cast == cast = ( brtn 3 [] cast )assert Base b;  brtn 0 [] b ( )vuser . 2 cast == cast = ( brtn 0 [] cast )assert Sub1 s1;  brtn 1 [] s1 ( )vuser . 2 cast == cast = ( brtn 1 [] cast )assert 0 cast return } }
 Uq_Base { <NOMAIN> }
 Uq_Sub1 : Base { :<> <NOMAIN> }
 Ue_E1 : Base { :<> <NOMAIN> }

@@ -142,7 +142,8 @@ namespace MFM {
     if(pos == 0)
       {
 	//figure out the pos based on targettype; both elements and quarks start at first state bit (25)
-	if(targetType == UAtom || state.getUlamTypeByIndex(targetType)->getUlamTypeEnum() == Class)
+	ULAMTYPE ttenum = state.getUlamTypeByIndex(targetType)->getUlamTypeEnum();
+	if(ttenum == UAtom || ttenum == Class)
 	  rtnUV.m_uv.m_ptrValue.m_posInAtom = ATOMFIRSTSTATEBITPOS; //len is predetermined
 	else
 	  {
@@ -153,7 +154,7 @@ namespace MFM {
       }
     else
       {
-	assert(pos > 0 && (pos + len) <= BITSPERATOM);
+	assert((packed == UNPACKED) || (pos > 0 && (pos + len) <= BITSPERATOM));
 	rtnUV.m_uv.m_ptrValue.m_posInAtom = pos;
       }
 
@@ -177,7 +178,7 @@ namespace MFM {
 					 state.determinePackable(arrayPtr.getPtrTargetType()), //PACKEDLOADABLE, or UNPACKED?
 					 state,
 					 arrayPtr.getPtrPos(),    /* base pos of array */
-					 arrayPtr.getPtrNameId()  /* include name id of array */
+					 arrayPtr.getPtrNameId()  /* incl nameid of array */
 					 );
     return rtnUV;
   } //makeScalarPtr
@@ -229,12 +230,15 @@ namespace MFM {
     assert(isNext);
     UlamValue atval = state.getPtrTarget(scalarPtr);
 
+    while(atval.getUlamValueTypeIdx() == Ptr)
+      atval = state.getPtrTarget(atval); //instead of getPtrTarget doing it (t3615 vs t3611)
+
     // redo what getPtrTarget use to do, when types didn't match due to
     // an element/quark or a requested scalar of an arraytype
     UTI suti = scalarPtr.getPtrTargetType();
     s32 slen = scalarPtr.getPtrLen();
     assert(slen != UNKNOWNSIZE);
-    if(UlamType::compare(atval.getUlamValueTypeIdx(),suti, state) == UTIC_NOTSAME)
+    if(UlamType::compareForUlamValueAssignment(atval.getUlamValueTypeIdx(),suti, state) == UTIC_NOTSAME)
       {
 	if(slen <= MAXBITSPERINT)
 	  {
@@ -419,6 +423,8 @@ namespace MFM {
   {
     UTI duti = getUlamValueTypeIdx();
     //assert(duti == p.getPtrTargetType()); this could be an 'unpacked' element
+    if(duti == Ptr)
+      duti = (const_cast<UlamValue *>(this))->getPtrTargetType();
 
     if(!state.isScalar(p.getPtrTargetType()) && p.isTargetPacked() == PACKED)
       {
@@ -440,8 +446,8 @@ namespace MFM {
       }
     else
       {
-	ULAMCLASSTYPE dclasstype = state.getUlamTypeByIndex(duti)->getUlamClass();
-	if(dclasstype == UC_NOTACLASS && duti != UAtom)
+	UlamType * dut = state.getUlamTypeByIndex(duti);
+	if((dut->getUlamClass() == UC_NOTACLASS) && (dut->getUlamTypeEnum() != UAtom))
 	  datavalue = getImmediateData(p.getPtrLen(), state);
 	else
 	  datavalue = getData(p.getPtrPos(), p.getPtrLen());
@@ -481,8 +487,8 @@ namespace MFM {
       }
     else
       {
-	ULAMCLASSTYPE dclasstype = state.getUlamTypeByIndex(duti)->getUlamClass();
-	if(dclasstype == UC_NOTACLASS && duti != UAtom)
+	UlamType * dut = state.getUlamTypeByIndex(duti);
+	if((dut->getUlamClass() == UC_NOTACLASS) && (dut->getUlamTypeEnum() != UAtom))
 	  datavalue = getImmediateDataLong(p.getPtrLen());
 	else
 	  datavalue = getDataLong(p.getPtrPos(), p.getPtrLen());
@@ -513,12 +519,13 @@ namespace MFM {
   u32 UlamValue::getImmediateData(s32 len, CompilerState & state) const
   {
     UTI utype = getUlamValueTypeIdx();
-    assert(utype != UAtom);
+    ULAMTYPE eutype = state.getUlamTypeByIndex(utype)->getUlamTypeEnum();
+    assert(eutype != UAtom);
     assert(utype != Ptr);
     assert(utype != Nav);
     assert(len >= 0 && len <= MAXBITSPERINT);
 
-    if(state.getUlamTypeByIndex(utype)->getUlamTypeEnum() == Class)
+    if(eutype == Class)
       return getImmediateQuarkData(len);
 
     return getData(BITSPERATOM - len, len);
@@ -539,6 +546,7 @@ namespace MFM {
   u32 UlamValue::getImmediateQuarkData(s32 len) const
   {
     UTI utype = getUlamValueTypeIdx();
+    //ULAMTYPE eutype = m_state.getUlamTypeByIndex(utype)->getUlamTypeEnum();
     AssertBool utypOk = ((utype != UAtom) && (utype != Ptr) && (utype != Nav));
     assert(utypOk);
     assert(len >= 0 && len <= MAXBITSPERINT);
@@ -560,6 +568,7 @@ namespace MFM {
   u64 UlamValue::getImmediateDataLong(s32 len) const
   {
     UTI utype = getUlamValueTypeIdx();
+    //ULAMTYPE eutype = state.getUlamTypeByIndex(utype)->getUlamTypeEnum();
     AssertBool utypOk = ((utype != UAtom) && (utype != Ptr) && (utype != Nav));
     assert(utypOk);
     assert(len >= 0 && len <= MAXBITSPERLONG);
@@ -572,7 +581,7 @@ namespace MFM {
     // apparently amused by other types..
     UTI duti = data.getUlamValueTypeIdx();
     UTI puti = p.getPtrTargetType();
-    AssertBool comparesOk = (UlamType::compare(duti, puti, state) == UTIC_SAME) || (UlamType::compare(getUlamValueTypeIdx(), puti, state));
+    AssertBool comparesOk = (UlamType::compareForUlamValueAssignment(duti, puti, state) == UTIC_SAME) || (UlamType::compareForUlamValueAssignment(getUlamValueTypeIdx(), puti, state));
     assert(comparesOk); //ALL-PURPOSE!
 
     if(p.isTargetPacked() == PACKED)
@@ -630,7 +639,7 @@ namespace MFM {
   void UlamValue::putPackedArrayDataIntoAtom(UlamValue p, UlamValue data, CompilerState& state)
   {
     UTI tuti = p.getPtrTargetType();
-    assert(UlamType::compare(data.getUlamValueTypeIdx(),tuti, state) == UTIC_SAME);
+    assert(UlamType::compareForUlamValueAssignment(data.getUlamValueTypeIdx(),tuti, state) == UTIC_SAME);
     s32 arraysize = state.getArraySize(tuti);
     assert(arraysize > NONARRAYSIZE);
     s32 bitsize = state.getBitSize(tuti);
