@@ -307,18 +307,9 @@ namespace MFM {
       {
 	uv = m_state.getPtrTarget(uvp);
 	UTI ttype = uv.getUlamValueTypeIdx();
-#if 0
-	while(ttype == Ptr)
-	  {
-	    uv = m_state.getPtrTarget(uv);
-	    ttype = uv.getUlamValueTypeIdx();
-	  }
-#endif
 
 	// redo what getPtrTarget use to do, when types didn't match due to
 	// an element/quark or a requested scalar of an arraytype
-	//if(ttype != nuti)
-	//if(UlamType::compare(ttype, nuti, m_state) == UTIC_NOTSAME)
 	if((ttype == Ptr) || (UlamType::compare(ttype, nuti, m_state) == UTIC_NOTSAME))
 	  {
 	    if(m_state.isClassACustomArray(nuti))

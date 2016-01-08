@@ -207,7 +207,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Unresolved No." << cnt;
 	//comment out next line for error testing to match
-	//msg << ": <" << getName() << ">";
+	msg << ": <" << getName() << ">";
 	//msg << (" << prettyNodeName().c_str() << ") "; ugly!
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
@@ -2671,22 +2671,12 @@ namespace MFM {
 
   const std::string Node::localStorageTypeAsString(UTI nuti)
   {
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-#if 0
-    if(nut->isReference())
-      {
-	//use its referred class for its name:
-	UTI deuti = m_state.getUlamTypeAsDeref(nuti);
-	nut = m_state.getUlamTypeByIndex(deuti);
-      }
-#endif
-    return nut->getLocalStorageTypeAsString();
+    return m_state.getUlamTypeByIndex(nuti)->getLocalStorageTypeAsString();
   } //localStorageTypeAsString
 
   const std::string Node::tmpStorageTypeForRead(UTI nuti, UlamValue uvpass)
   {
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    return nut->getTmpStorageTypeAsString();
+    return m_state.getUlamTypeByIndex(nuti)->getTmpStorageTypeAsString();
   } //tmpStorageTypeForRead
 
   const std::string Node::tmpStorageTypeForReadArrayItem(UTI nuti, UlamValue uvpass)

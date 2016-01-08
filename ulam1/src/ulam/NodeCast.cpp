@@ -68,6 +68,11 @@ namespace MFM {
     return m_explicit;
   }
 
+  bool NodeCast::isAConstant()
+  {
+    return m_node->isAConstant();
+  }
+
   bool NodeCast::isReadyConstant()
   {
     return m_node->isReadyConstant(); //needs constant folding
@@ -81,6 +86,11 @@ namespace MFM {
   bool NodeCast::isWordSizeConstant()
   {
     return m_node->isWordSizeConstant();
+  }
+
+  bool NodeCast::isFunctionCall()
+  {
+    return m_node->isFunctionCall();
   }
 
   FORECAST NodeCast::safeToCastTo(UTI newType)

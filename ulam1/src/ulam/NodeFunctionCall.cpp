@@ -1224,26 +1224,6 @@ namespace MFM {
     fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
     fp->write(" ");
 
-#if 0
-    fp->write(vut->getUlamTypeImmediateMangledName().c_str()); //for C++ local vars, ie non-data members
-    if(vclasstype == UC_ELEMENT)
-      fp->write("<EC> ");
-    else if(vclasstype == UC_QUARK)
-      {
-	fp->write("<EC, ");
-	fp->write_decimal_unsigned(uvpass.getPtrPos());
-	fp->write("u> ");
-      }
-    else //primitive, right-just
-      {
-	fp->write("<EC, ");
-	// note: POS for a ref is alway the right-justified position, leaving
-	// the pos argument to reflect any difference; required for runtime.
-	fp->write_decimal_unsigned(BITSPERATOM - uvpass.getPtrLen());
-	fp->write("u> ");
-      }
-#endif
-
     s32 tmpVarArgNum = m_state.getNextTmpVarNumber();
     fp->write(m_state.getTmpVarAsString(vuti, tmpVarArgNum, TMPBITVAL).c_str());
     fp->write("("); //pass ref in constructor (ref's not assigned with =)

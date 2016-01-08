@@ -762,22 +762,8 @@ namespace MFM {
 
     UlamKeyTypeSignature keyOfArg = ut->getUlamKeyTypeSignature();
     UTI cuti = keyOfArg.getUlamKeyTypeSignatureClassInstanceIdx(); // what-if a ref?
-
-#if 0
-    if(bUT == Class)
-      {
-	//return keyOfArg.getUlamKeyTypeSignatureClassInstanceIdx(); // what-if a ref?
-	ALT argreftype = keyOfArg.getUlamKeyTypeSignatureReferenceType();
-	ALT creftype = getUlamTypeByIndex(cuti)->getReferenceType();
-	if(argreftype == creftype) //????
-	  return cuti;
-	// otherwise make a new one as non-classes.
-      }
-#endif
-
     u32 bitsize = keyOfArg.getUlamKeyTypeSignatureBitSize();
     u32 nameid = keyOfArg.getUlamKeyTypeSignatureNameId();
-    //UlamKeyTypeSignature baseKey(keyOfArg.m_typeNameId, bitsize, NONARRAYSIZE, keyOfArg.m_classInstanceIdx, keyOfArg.m_referenceType);  //default array size is NONARRAYSIZE
     UlamKeyTypeSignature baseKey(nameid, bitsize, NONARRAYSIZE, cuti, ALT_ARRAYITEM);  //default array size is NONARRAYSIZE, new reftype
 
     UTI buti = makeUlamType(baseKey, bUT); //could be a new one, oops.
@@ -2094,7 +2080,6 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   UlamValue CompilerState::getPtrTarget(UlamValue ptr)
   {
-    // change to recurse in case of ptr to ptr (e.g. auto for h/as)
     assert(ptr.getUlamValueTypeIdx() == Ptr);
 
     //slot + storage
@@ -2113,9 +2098,6 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       default:
 	assert(0); //error!
       };
-    //UTI vuti = valAtIdx.getUlamValueTypeIdx();
-    //if( vuti == Ptr && !isReference(vuti)) //hacking this to death!
-    //  return getPtrTarget(valAtIdx); //recurse, might jump stacks!
     return valAtIdx; //return as-is
   } //getPtrTarget
 
@@ -2125,12 +2107,10 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     assert(lptr.getUlamValueTypeIdx() == Ptr);
 
     //handle UAtom assignment as a singleton (not array values)
-    //if(ruv.getUlamValueTypeIdx() == Ptr && (ruv.getPtrTargetType() != UAtom || lptr.getPtrTargetType() != UAtom))
     if(ruv.getUlamValueTypeIdx() == Ptr && (UlamType::compareForUlamValueAssignment(ruv.getPtrTargetType(), UAtom, *this) == UTIC_NOTSAME || UlamType::compareForUlamValueAssignment(lptr.getPtrTargetType(), UAtom, *this) == UTIC_NOTSAME))
       return assignArrayValues(lptr, ruv);
 
     //r is data (includes packed arrays), store it into where lptr is pointing
-    //assert(UlamType::compare(lptr.getPtrTargetType(), ruv.getUlamValueTypeIdx(), *this) == UTIC_SAME || lptr.getPtrTargetType() == UAtom || ruv.getUlamValueTypeIdx() == UAtom);
     assert((UlamType::compareForUlamValueAssignment(lptr.getPtrTargetType(), ruv.getUlamValueTypeIdx(), *this) == UTIC_SAME) || (UlamType::compareForUlamValueAssignment(lptr.getPtrTargetType(), UAtom, *this) == UTIC_SAME) || (UlamType::compareForUlamValueAssignment(ruv.getUlamValueTypeIdx(), UAtom, *this) == UTIC_SAME));
 
     STORAGE place = lptr.getPtrStorage();
