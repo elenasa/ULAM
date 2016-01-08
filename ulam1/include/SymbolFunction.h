@@ -61,6 +61,7 @@ namespace MFM{
     u32 getTotalParameterSlots();
 
     Symbol * getParameterSymbolPtr(u32 n);
+    UTI getParameterType(u32 n);
 
     void markForVariableArgs(bool m = true);
     bool takesVariableArgs();
@@ -77,7 +78,8 @@ namespace MFM{
     bool checkParameterTypes();
 
     bool matchingTypesStrictly(std::vector<UTI> argTypes);
-    bool matchingTypes(std::vector<UTI> argTypes, std::vector<Node *> constantArg, bool& hasHazyArgs, u32& numUTmatch);
+    bool matchingTypesStrictly(std::vector<Node *> argNodes);
+    bool matchingTypes(std::vector<Node *> argNodes, bool& hasHazyArgs, u32& numUTmatch);
 
     u32 isNativeFunctionDeclaration();
 

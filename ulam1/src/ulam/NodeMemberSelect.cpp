@@ -84,7 +84,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Member selected must be either a quark or an element, not type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
-	if(luti == UAtom)
+	if(lut->getUlamTypeEnum() == UAtom)
 	  msg << "; suggest using a Conditional-As";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 
@@ -146,7 +146,7 @@ namespace MFM {
 
     //UPDATE selected member (i.e. element or quark) before eval of rhs
     //(i.e. data member or func call); e.g. Ptr to atom
-    UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
+    UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1);
     assert(newCurrentObjectPtr.getUlamValueTypeIdx() == Ptr);
     m_state.m_currentObjPtr = newCurrentObjectPtr;
 
@@ -194,7 +194,7 @@ namespace MFM {
       return false;
 
     //copy result UV to stack, -1 relative to current frame pointer
-    assignReturnValueToStack(rtnUV);
+    Node::assignReturnValueToStack(rtnUV);
     return true;
   } //doBinaryOperation
 
@@ -218,7 +218,7 @@ namespace MFM {
 
     //UPDATE selected member (i.e. element or quark) before eval of rhs
     // (i.e. data member or func call)
-    UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1); //e.g. Ptr to atom
+    UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1); //e.g. Ptr to atom
     assert(newCurrentObjectPtr.getUlamValueTypeIdx() == Ptr);
     m_state.m_currentObjPtr = newCurrentObjectPtr;
 
@@ -230,9 +230,9 @@ namespace MFM {
 	return evs;
       }
 
-    UlamValue ruvPtr = m_state.m_nodeEvalStack.loadUlamValueFromSlot(2);
+    UlamValue ruvPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(2);
 
-    assignReturnValuePtrToStack(ruvPtr);
+    Node::assignReturnValuePtrToStack(ruvPtr);
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr **********
 

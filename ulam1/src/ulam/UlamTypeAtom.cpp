@@ -17,6 +17,12 @@ namespace MFM {
     return UAtom;
   }
 
+  ULAMCLASSTYPE UlamTypeAtom::getUlamClass()
+  {
+    //return UC_ATOM; llok into this!!
+    return UC_NOTACLASS;
+  }
+
   const std::string UlamTypeAtom::getUlamTypeVDAsStringForC()
   {
     //return "VD::ATOM";
@@ -160,10 +166,10 @@ namespace MFM {
     fp->write("(AutoRefBase<EC>& arg) : AutoRefBase<EC>(arg, 0u) { }\n");
 
     //read BV method
-    genUlamTypeReadDefinitionForC(fp);
+    genUlamTypeAutoReadDefinitionForC(fp);
 
     //write BV method
-    genUlamTypeWriteDefinitionForC(fp);
+    genUlamTypeAutoWriteDefinitionForC(fp);
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -179,7 +185,7 @@ namespace MFM {
     fp->write(" */\n\n");
   } //genUlamTypeMangledAutoDefinitionForC
 
-  void UlamTypeAtom::genUlamTypeReadDefinitionForC(File * fp)
+  void UlamTypeAtom::genUlamTypeAutoReadDefinitionForC(File * fp)
   {
     assert(isScalar()); //req custom array
 
@@ -190,9 +196,9 @@ namespace MFM {
     fp->write(readMethodForCodeGen().c_str());
     fp->write("(); /* entire atom */ ");
     fp->write("}\n"); //done
-  } //genUlamTypeReadDefinitionForC
+  } //genUlamTypeAutoReadDefinitionForC
 
-  void UlamTypeAtom::genUlamTypeWriteDefinitionForC(File * fp)
+  void UlamTypeAtom::genUlamTypeAutoWriteDefinitionForC(File * fp)
   {
     assert(isScalar()); //req custom array
     m_state.indent(fp);
@@ -202,7 +208,7 @@ namespace MFM {
     fp->write(writeMethodForCodeGen().c_str());
     fp->write("(v); /* entire atom */ ");
     fp->write("}\n");
-  } //genUlamTypeWriteDefinitionForC
+  } //genUlamTypeAutoWriteDefinitionForC
 
   //inside out like ulamtypeclass: generates immediate for whole atom
   void UlamTypeAtom::genUlamTypeMangledDefinitionForC(File * fp)
@@ -298,6 +304,10 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write("() {}\n");
 
+    genUlamTypeReadDefinitionForC(fp);
+
+    genUlamTypeWriteDefinitionForC(fp);
+
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("};\n");
@@ -311,6 +321,16 @@ namespace MFM {
     fp->write(udstr.c_str());
     fp->write(" */\n\n");
   } //genUlamTypeMangledDefinitionForC
+
+  void UlamTypeAtom::genUlamTypeReadDefinitionForC(File * fp)
+  {
+    return; //uses base class read
+  } //genUlamTypeReadDefinitionForC
+
+  void UlamTypeAtom::genUlamTypeWriteDefinitionForC(File * fp)
+  {
+    return; //uses base class write
+  } //genUlamTypeWriteDefinitionForC
 
   void UlamTypeAtom::genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp)
   {

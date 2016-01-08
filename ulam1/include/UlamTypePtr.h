@@ -52,13 +52,15 @@ namespace MFM{
 
     virtual ULAMTYPE getUlamTypeEnum();
 
+    virtual ULAMCLASSTYPE getUlamClass();
+
     virtual const std::string getUlamTypeVDAsStringForC();
 
     virtual bool needsImmediateType();
 
-    virtual PACKFIT getPackable();
-
     virtual bool isMinMaxAllowed();
+
+    virtual PACKFIT getPackable();
 
   private:
 

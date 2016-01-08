@@ -53,9 +53,11 @@ namespace MFM{
 
     virtual ULAMTYPE getUlamTypeEnum();
 
+    virtual ULAMCLASSTYPE getUlamClass();
+
     virtual bool needsImmediateType();
 
-    virtual const std::string getUlamTypeAsStringForC();
+    virtual const std::string getUlamTypeAsStringForC(bool useref);
 
     virtual const std::string getLocalStorageTypeAsString();
 

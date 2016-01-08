@@ -580,11 +580,20 @@ namespace MFM {
 	if(iTok.m_type != TOK_IDENTIFIER)
 	  {
 	    //user error!
-	    std::ostringstream msg;
-	    msg << "Name of variable/function <";
-	    msg << m_state.getTokenDataAsString(&iTok).c_str();
-	    msg << ">: Identifier must begin with a lower-case letter";
-	    MSG(&iTok, msg.str().c_str(), ERR);
+	    if(iTok.m_type == TOK_AMP)
+	      {
+		std::ostringstream msg;
+		msg << "Reference as data member or function return type; Not supported";
+		MSG(&iTok, msg.str().c_str(), ERR);
+	      }
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "Name of variable/function <";
+		msg << m_state.getTokenDataAsString(&iTok).c_str();
+		msg << ">: Identifier must begin with a lower-case letter";
+		MSG(&iTok, msg.str().c_str(), ERR);
+	      }
 	    m_state.clearStructuredCommentToken();
 	    delete typeNode;
 	    typeNode = NULL;

@@ -106,11 +106,11 @@ namespace MFM {
     if(m_node)
       {
 	nodeType = m_node->checkAndLabelType();
-	UlamType * nut = m_state.getUlamTypeByIndex(nodeType);
-	ALT nodereftype = nut->getReferenceType();
+	//UlamType * nut = m_state.getUlamTypeByIndex(nodeType);
+	//ALT nodereftype = nut->getReferenceType();
 	//treat ALT_AS as defref'd type; ALT_REF is its own type.
-	if(nodereftype == ALT_AS)
-	  nodeType = m_state.getUlamTypeAsDeref(nodeType);
+	//if(nodereftype == ALT_AS)
+	//  nodeType = m_state.getUlamTypeAsDeref(nodeType);
       }
 
     if(m_state.isComplete(nodeType) && m_state.isComplete(rtnType))
@@ -210,18 +210,18 @@ namespace MFM {
 	return evs;
       }
 
-    if(nuti == UAtom)
+    if(m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum() == UAtom)
       {
 	//avoid pointer to atom situation
 	UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
-	assignReturnValueToStack(rtnUV, STACK);
+	Node::assignReturnValueToStack(rtnUV, STACK);
       }
     else
       {
 	//end, so copy to -1
 	UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, nuti, m_state.determinePackable(nuti), m_state);  //positive to current frame pointer
 
-	assignReturnValueToStack(rtnPtr, STACK); //uses STACK, unlike all the other nodes
+	Node::assignReturnValueToStack(rtnPtr, STACK); //uses STACK, unlike all the other nodes
       }
 
     evalNodeEpilog();

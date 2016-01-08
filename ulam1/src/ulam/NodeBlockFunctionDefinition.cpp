@@ -289,7 +289,8 @@ namespace MFM {
 
     if(evs == RETURN)
       {
-	if(nuti == UAtom)
+	//if(nuti == UAtom)
+	if(m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum() == UAtom)
 	  {
 	    //avoid pointer to atom situation
 	    rtnUV = m_state.m_funcCallStack.loadUlamValueFromSlot(-1); //popArg();
@@ -320,7 +321,7 @@ namespace MFM {
     //save results in the node eval stackframe for function caller
     //return each element of the array by value,
     //in reverse order ([0] is last at bottom)
-    assignReturnValueToStack(rtnUV);
+    Node::assignReturnValueToStack(rtnUV);
 
     m_state.m_funcCallStack.returnFrame(m_state);
     evalNodeEpilog();

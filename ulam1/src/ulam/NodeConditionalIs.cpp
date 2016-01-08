@@ -21,14 +21,25 @@ namespace MFM {
     UTI newType = Bool;  //except for 'Has'
 
     UTI luti = m_nodeLeft->checkAndLabelType();  //side-effect
+    if(luti == Nav)
+      {
+	std::ostringstream msg;
+	msg << "Invalid lefthand type of conditional operator '" << getName();
+	msg << "'; Incomplete";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	setNodeType(Nav);
+	m_state.goAgain();
+	return Nav; //short-circuit
+      }
 
-    ULAMCLASSTYPE lclasstype = m_state.getUlamTypeByIndex(luti)->getUlamClass();
-    if(!((luti == UAtom || lclasstype == UC_ELEMENT) && m_state.isScalar(luti)))
+    UlamType * lut = m_state.getUlamTypeByIndex(luti);
+    ULAMCLASSTYPE lclasstype = lut->getUlamClass();
+    if(!((lut->getUlamTypeEnum() == UAtom || lclasstype == UC_ELEMENT) && lut->isScalar()))
       {
 	std::ostringstream msg;
 	msg << "Invalid lefthand type of conditional operator '" << getName();
 	msg << "'; must be an atom or an element, not type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
+	msg << lut->getUlamTypeNameBrief().c_str();
 	if(lclasstype == UC_UNSEEN || luti == Nav)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	else
@@ -38,23 +49,26 @@ namespace MFM {
 
     assert(m_nodeTypeDesc);
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
-
-    //rhs is allowed to be a quark due to inheritance.
-    ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
-    if(!((rclasstype == UC_QUARK || rclasstype == UC_ELEMENT) && m_state.isScalar(ruti)))
+    if(ruti != Nav)
       {
-	std::ostringstream msg;
-	msg << "Invalid righthand type of conditional operator '" << getName();
-	msg << "'; must be an element name, not type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(ruti).c_str();
-	if(rclasstype == UC_UNSEEN || ruti == Nav)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //goagain set
-	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	newType = Nav;
+	UlamType * rut = m_state.getUlamTypeByIndex(ruti);
+	//rhs is allowed to be a quark due to inheritance.
+	ULAMCLASSTYPE rclasstype = rut->getUlamClass();
+	if(!((rclasstype == UC_QUARK || rclasstype == UC_ELEMENT) && rut->isScalar()))
+	  {
+	    std::ostringstream msg;
+	    msg << "Invalid righthand type of conditional operator '" << getName();
+	    msg << "'; must be an element name, not type: ";
+	    msg << rut->getUlamTypeNameBrief().c_str();
+	    if(rclasstype == UC_UNSEEN || ruti == Nav)
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //goagain set
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    newType = Nav;
+	  }
       }
 
-    if(!m_state.getUlamTypeByIndex(ruti)->isComplete())
+    if(!m_state.isComplete(ruti))
       {
 	std::ostringstream msg;
 	msg << "Righthand type of conditional operator '" << getName() << "' ";
@@ -103,22 +117,22 @@ namespace MFM {
 	return evs;
       }
 
-    UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
+    UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1);
 
     // DO 'IS':
     UTI luti = pluv.getUlamValueTypeIdx();
     assert(luti == Ptr);
     luti = pluv.getPtrTargetType();
-    //luti = m_state.getUlamTypeAsDeref(luti);
+    UlamType * lut = m_state.getUlamTypeByIndex(luti);
     UTI ruti = getRightType();
 
     // inclusive result for eval purposes (atoms and element types are orthogonal)
-    bool isit = (luti == UAtom || UlamType::compare(luti,ruti,m_state) == UTIC_SAME || m_state.isClassASuperclassOf(luti, ruti));
+    bool isit = (lut->getUlamTypeEnum() == UAtom || UlamType::compare(luti,ruti,m_state) == UTIC_SAME || m_state.isClassASuperclassOf(luti, ruti));
 
     UlamValue rtnuv = UlamValue::makeImmediate(nuti, (u32) isit, m_state);
 
     //also copy result UV to stack, -1 relative to current frame pointer
-    assignReturnValueToStack(rtnuv);
+    Node::assignReturnValueToStack(rtnuv);
 
     evalNodeEpilog();
     return evs;

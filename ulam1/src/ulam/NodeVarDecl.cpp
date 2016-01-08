@@ -461,8 +461,9 @@ namespace MFM {
 
     assert(!m_varSymbol->isAutoLocal()); //NodeVarRef::eval
 
-    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClass();
-    if(nuti == UAtom)
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    ULAMCLASSTYPE classtype = nut->getUlamClass();
+    if(nut->getUlamTypeEnum() == UAtom)
       {
 	UlamValue atomUV = UlamValue::makeAtom(m_varSymbol->getUlamTypeIdx());
 	m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
@@ -566,7 +567,7 @@ namespace MFM {
 	return evs;
       }
 
-    UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
+    UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1);
 
     u32 slot = makeRoomForNodeType(getNodeType());
 
@@ -580,7 +581,7 @@ namespace MFM {
 	    m_state.assignValue(pluv,ruv);
 
 	    //also copy result UV to stack, -1 relative to current frame pointer
-	    assignReturnValueToStack(ruv);
+	    Node::assignReturnValueToStack(ruv);
 	  }
       } //normal
     evalNodeEpilog();
@@ -595,7 +596,7 @@ namespace MFM {
     UlamValue rtnUVPtr = makeUlamValuePtr();
 
     //copy result UV to stack, -1 relative to current frame pointer
-    assignReturnValuePtrToStack(rtnUVPtr);
+    Node::assignReturnValuePtrToStack(rtnUVPtr);
 
     evalNodeEpilog();
     return NORMAL;

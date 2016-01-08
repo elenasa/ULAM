@@ -96,7 +96,11 @@ namespace MFM{
 
     bool isAConstant(u32 n);
 
+    bool isFunctionCall(u32 n);
+
     void genCode(File * fp, UlamValue& uvpass, u32 n);
+
+    void genCodeToStoreInto(File * fp, UlamValue& uvpass, u32 n);
 
   protected:
 

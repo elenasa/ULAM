@@ -307,17 +307,25 @@ namespace MFM {
       {
 	uv = m_state.getPtrTarget(uvp);
 	UTI ttype = uv.getUlamValueTypeIdx();
+#if 0
+	while(ttype == Ptr)
+	  {
+	    uv = m_state.getPtrTarget(uv);
+	    ttype = uv.getUlamValueTypeIdx();
+	  }
+#endif
 
 	// redo what getPtrTarget use to do, when types didn't match due to
 	// an element/quark or a requested scalar of an arraytype
 	//if(ttype != nuti)
-	if(UlamType::compare(ttype, nuti, m_state) == UTIC_NOTSAME)
+	//if(UlamType::compare(ttype, nuti, m_state) == UTIC_NOTSAME)
+	if((ttype == Ptr) || (UlamType::compare(ttype, nuti, m_state) == UTIC_NOTSAME))
 	  {
 	    if(m_state.isClassACustomArray(nuti))
 	      {
 		UTI caType = m_state.getAClassCustomArrayType(nuti);
 		UlamType * caut = m_state.getUlamTypeByIndex(caType);
-		if(caType == UAtom || caut->getBitSize() > MAXBITSPERINT)
+		if(caut->getUlamTypeEnum() == UAtom || caut->getBitSize() > MAXBITSPERINT)
 		  {
 		    uv = uvp; //customarray
 		  }
@@ -341,7 +349,8 @@ namespace MFM {
 	      }
 	    else
 	      {
-		if(nuti == UAtom || m_state.getUlamTypeByIndex(nuti)->getUlamClass() == UC_ELEMENT)
+		UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+		if(nut->getUlamTypeEnum() == UAtom || nut->getUlamClass() == UC_ELEMENT)
 		  {
 		    uv = m_state.getPtrTarget(uvp);
 		  }
@@ -378,7 +387,7 @@ namespace MFM {
       uv = uvp;
 
     //copy result UV to stack, -1 relative to current frame pointer
-    assignReturnValueToStack(uv);
+    Node::assignReturnValueToStack(uv);
 
     evalNodeEpilog();
     return NORMAL;
@@ -407,7 +416,7 @@ namespace MFM {
     UlamValue rtnUVPtr = makeUlamValuePtr();
 
     //copy result UV to stack, -1 relative to current frame pointer
-    assignReturnValuePtrToStack(rtnUVPtr);
+    Node::assignReturnValuePtrToStack(rtnUVPtr);
 
     evalNodeEpilog();
     return NORMAL;
@@ -436,9 +445,10 @@ namespace MFM {
 	return selfuvp;
       } //done
 
-    if(m_varSymbol->isAutoLocal())
-      //can't use global m_currentAutoObjPtr, since there might be nested h/as conditional blocks.
-      // NodeVarDecl for this autolocal sets AutoPtrForEval during its eval.
+    //can't use global m_currentAutoObjPtr, since there might be nested as conditional blocks.
+    // NodeVarDecl for this autolocal sets AutoPtrForEval during its eval.
+    //if(m_varSymbol->isAutoLocal())
+    if(m_varSymbol->getAutoLocalType() == ALT_AS)
       return ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval(); //haha! we're done.
 
     ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClass();
@@ -474,7 +484,7 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClass();
 
-    if(classtype == UC_ELEMENT || nuti == UAtom)
+    if(classtype == UC_ELEMENT || nut->getUlamTypeEnum() == UAtom)
       {
 	// ptr to explicit atom or element, (e.g. 'f' in f.a=1;)
 	uvpass = UlamValue::makePtr(tmpnum, TMPBITVAL, nuti, UNPACKED, m_state, 0, m_varSymbol->getId());
@@ -487,7 +497,8 @@ namespace MFM {
 	    if(uvpass.getUlamValueTypeIdx() == Ptr && uvpass.getPtrStorage() == TMPAUTOREF)
 	      {
 		//pos = uvpass.getPtrPos(); //runtime, not known now.
-		//uvpass = UlamValue::makePtr(tmpnum, TMPAUTOREF, nuti, m_state.determinePackable(nuti), m_state, pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+		UTI newnuti = m_state.getUlamTypeAsRef(nuti); //an ALT_REF
+		uvpass = UlamValue::makePtr(tmpnum, TMPAUTOREF, newnuti, m_state.determinePackable(newnuti), m_state, pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 	      }
 	    else
 	      {
@@ -1036,17 +1047,43 @@ namespace MFM {
 
   void NodeIdent::genCode(File * fp, UlamValue & uvpass)
   {
+    UlamValue savuvpass = uvpass;
+
     //return the ptr for an array; square bracket will resolve down to the immediate data
     makeUlamValuePtrForCodeGen(uvpass);
 
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol); //*********UPDATED GLOBAL;
 
-    // UNCLEAR: should this be consistent with constants?
-    genCodeReadIntoATmpVar(fp, uvpass);
+    //before we lose savuvpass, generate next chain of related reference
+    if((savuvpass.getUlamValueTypeIdx() == Ptr) && (savuvpass.getPtrStorage() == TMPAUTOREF))
+      {
+	Node::genCodeARefFromARefStorage(fp, savuvpass, uvpass);
+
+	//now read from it
+	s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp for data
+	UTI vuti = uvpass.getPtrTargetType();
+	UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(vut->getTmpStorageTypeAsString().c_str());
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2).c_str());
+	fp->write(" = ");
+	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
+	fp->write(".read();\n");
+	// uvpass updated again
+	uvpass = UlamValue::makePtr(tmpVarNum2, TMPREGISTER, vuti, m_state.determinePackable(vuti), m_state, 0); //POS 0 justified (atom-based).
+      }
+    else
+      // UNCLEAR: should this be consistent with constants?
+      genCodeReadIntoATmpVar(fp, uvpass);
   } //genCode
 
   void NodeIdent::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
+    UlamValue savuvpass = uvpass;
+
     //e.g. return the ptr for an array;
     //square bracket will resolve down to the immediate data
    makeUlamValuePtrForCodeGen(uvpass);
@@ -1054,7 +1091,9 @@ namespace MFM {
     //******UPDATED GLOBAL; no restore!!!**************************
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol);
 
-    if(uvpass.getPtrStorage() == TMPAUTOREF)
+    if((savuvpass.getUlamValueTypeIdx() == Ptr) && (savuvpass.getPtrStorage() == TMPAUTOREF))
+      Node::genCodeARefFromARefStorage(fp, savuvpass, uvpass);
+    else if(uvpass.getPtrStorage() == TMPAUTOREF)
       Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
   } //genCodeToStoreInto
 

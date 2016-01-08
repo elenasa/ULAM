@@ -190,6 +190,7 @@ namespace MFM{
     /** turns a regular type into its referenced type */
     UTI getUlamTypeAsRef(UTI utArg);
     UTI getUlamTypeAsRef(UTI utArg, ALT altArg);
+    ULAMTYPECOMPARERESULTS isARefTypeOfUlamType(UTI refuti, UTI ofuti); //true if de-refuti is same as ofuti
 
     UTI getUlamTypeOfConstant(ULAMTYPE etype);
     UTI getDefaultUlamTypeOfConstant(UTI ctype);
@@ -199,6 +200,7 @@ namespace MFM{
     s32 getArraySize(UTI utArg);
     s32 getBitSize(UTI utArg);
     ALT getReferenceType(UTI utArg);
+    bool isReference(UTI utArg);
     bool isComplete(UTI utArg);
     bool isHolder(UTI utArg);
     void setBitSize(UTI utArg, s32 total);

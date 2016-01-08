@@ -20,7 +20,7 @@ namespace MFM {
     return true;
   }
 
-  const std::string UlamTypeVoid::getUlamTypeAsStringForC()
+  const std::string UlamTypeVoid::getUlamTypeAsStringForC(bool useref)
   {
     return "void";
   }

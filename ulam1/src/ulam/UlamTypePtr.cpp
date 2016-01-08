@@ -15,6 +15,12 @@ namespace MFM {
      return Ptr;
    }
 
+  ULAMCLASSTYPE UlamTypePtr::getUlamClass()
+  {
+    assert(0);
+    return UC_ERROR;
+  }
+
   const std::string UlamTypePtr::getUlamTypeVDAsStringForC()
     {
       return "VD::PTR";

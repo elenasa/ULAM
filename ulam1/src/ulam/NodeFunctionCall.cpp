@@ -74,8 +74,12 @@ namespace MFM {
 
   FORECAST NodeFunctionCall::safeToCastTo(UTI newType)
   {
+    UlamType * newut = m_state.getUlamTypeByIndex(newType);
+    //if(newut->isReference())
+    //  return CAST_BAD; //cannot cast a function to a ref type
+
     //ulamtype checks for complete, non array, and type specific rules
-    return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
+    return newut->safeCast(getNodeType());
   } //safeToCastTo
 
   UTI NodeFunctionCall::checkAndLabelType()
@@ -90,8 +94,7 @@ namespace MFM {
     Symbol * fnsymptr = NULL;
 
     //label argument types; used to pinpoint the exact function symbol in case of overloading
-    std::vector<UTI> argTypes;
-    std::vector<Node *> constArgs;
+    std::vector<Node *> argNodes;
     u32 constantArgs = 0;
     u32 navArgs = 0;
     UTI listuti = Nav;
@@ -107,24 +110,18 @@ namespace MFM {
 	for(u32 i = 0; i < numargs; i++)
 	  {
 	    UTI argtype = m_argumentNodes->getNodeType(i); //plus side-effect
-	    argTypes.push_back(argtype);
+	    argNodes.push_back(m_argumentNodes->getNodePtr(i));
 	    if(argtype == Nav)
 	      navArgs++;
 	    // track constants and potential casting to be handled
 	    if(m_argumentNodes->isAConstant(i))
-	      {
-		constArgs.push_back(m_argumentNodes->getNodePtr(i));
-		constantArgs++;
-	      }
-	    else
-	      constArgs.push_back(NULL);
+	      constantArgs++;
 	  }
 	m_state.popClassContext(); //restore here
 
 	if(navArgs)
 	  {
-	    argTypes.clear();
-	    constArgs.clear();
+	    argNodes.clear();
 	    setNodeType(Nav);
 	    return Nav; //short circuit
 	  }
@@ -132,7 +129,7 @@ namespace MFM {
 	// still need to pinpoint the SymbolFunction for m_funcSymbol!
 	// exact match if possible; o.w. allow safe casts to find matches
 	bool hasHazyArgs = false;
-	u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionWithConstantsAsArgs(argTypes, constArgs, funcSymbol, hasHazyArgs);
+	u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionWithSafeCasts(argNodes, funcSymbol, hasHazyArgs);
 	if(numFuncs == 0)
 	  {
 	    std::ostringstream msg;
@@ -142,9 +139,10 @@ namespace MFM {
 	    if(numargs != 1)
 	      msg << "s";
 	    msg << ": ";
-	    for(u32 i = 0; i < argTypes.size(); i++)
+	    for(u32 i = 0; i < argNodes.size(); i++)
 	      {
-		msg << m_state.getUlamTypeNameBriefByIndex(argTypes[i]).c_str() << ", ";
+		UTI auti = argNodes[i]->getNodeType();
+		msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str() << ", ";
 	      }
 	    msg << "and cannot be called";
 	    if(hasHazyArgs)
@@ -162,9 +160,10 @@ namespace MFM {
 	    if(numargs != 1)
 	      msg << "s";
 	    msg << ": ";
-	    for(u32 i = 0; i < argTypes.size(); i++)
+	    for(u32 i = 0; i < argNodes.size(); i++)
 	      {
-		msg << m_state.getUlamTypeNameBriefByIndex(argTypes[i]).c_str() << ", ";
+		UTI auti = argNodes[i]->getNodeType();
+		msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str() << ", ";
 	      }
 	    msg << "explicit casting is required";
 	    if(hasHazyArgs)
@@ -177,6 +176,25 @@ namespace MFM {
 	  {
 	    if(hasHazyArgs)
 	      numErrorsFound++; //wait to cast
+
+	    //check ref types and func calls here..care with variable args (2 pass)
+	    u32 numParams = funcSymbol->getNumberOfParameters();
+	    for(u32 i = 0; i < numParams; i++)
+	      {
+		if(m_state.isReference(funcSymbol->getParameterType(i)))
+		  {
+		    if(argNodes[i]->isFunctionCall())
+		      {
+			std::ostringstream msg;
+			msg << "Argument " << i + 1 << " to function <";
+			msg << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
+			msg << "> is a function call, and cannot be used as a reference parameter";
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			numErrorsFound++;
+		      }
+		  }
+	      }
+	    //don't worry about variable args in native methods; they can't be refs.
 	  }
       }
     else
@@ -245,15 +263,15 @@ namespace MFM {
 	      u32 numargs = getNumberOfArguments();
 	      for(u32 i = numParams; i < numargs; i++)
 		  {
-		    if(constArgs[i])
+		    if(argNodes[i]->isAConstant())
 		      {
-			Node * argNode = constArgs[i];//m_argumentNodes->getNodePtr(i);
 			Node * argCast = NULL;
-			if(!Node::makeCastingNode(argNode, m_state.getDefaultUlamTypeOfConstant(argTypes[i]), argCast))
+			UTI auti = argNodes[i]->getNodeType();
+			if(!Node::makeCastingNode(argNodes[i], m_state.getDefaultUlamTypeOfConstant(auti), argCast))
 			  {
 			    argsWithCastErr.push_back(i); //error!
 			  }
-			m_argumentNodes->exchangeKids(argNode, argCast, i);
+			m_argumentNodes->exchangeKids(argNodes[i], argCast, i);
 			argsWithCast++;
 		      }
 		  }
@@ -288,8 +306,7 @@ namespace MFM {
 	it = Nav;
       }
 
-    argTypes.clear();
-    constArgs.clear();
+    argNodes.clear();
     return it;
   } //checkAndLabelType
 
@@ -479,7 +496,7 @@ namespace MFM {
 	      }
 
 	    SymbolFunction * funcSymbol = NULL;
-	    u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunction(pTypes, funcSymbol);
+	    u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionStrictlyByTypes(pTypes, funcSymbol);
 
 	    if(numFuncs != 1)
 	      {
@@ -492,6 +509,17 @@ namespace MFM {
 		  msg << "not found";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		assert(0);
+	      }
+
+	    if(!funcSymbol->isVirtualFunction())
+	      {
+		std::ostringstream msg;
+		msg << "Function <" << funcSymbol->getMangledNameWithTypes().c_str();
+		msg << "> is not virtual";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		m_state.popClassContext(); //restore here
+		evalNodeEpilog();
+		return ERROR;
 	      }
 
 	    if(funcSymbol->isPureVirtualFunction())
@@ -552,16 +580,16 @@ namespace MFM {
     // ANY return value placed on the STACK by a Return Statement,
     // was copied to EVALRETURN by the NodeBlockFunctionDefinition
     // before arriving here! And may be ignored at this point.
-    if(rtnType == UAtom)
+    if(m_state.getUlamTypeByIndex(rtnType)->getUlamTypeEnum() == UAtom)
       {
 	UlamValue rtnUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
-	assignReturnValueToStack(rtnUV); //into return space on eval stack;
+	Node::assignReturnValueToStack(rtnUV); //into return space on eval stack;
       }
     else
       {
 	//positive to current frame pointer; pos is (BITSPERATOM - rtnbitsize * rtnarraysize)
 	UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, rtnType, m_state.determinePackable(rtnType), m_state);
-	assignReturnValueToStack(rtnPtr); //into return space on eval stack;
+	Node::assignReturnValueToStack(rtnPtr); //into return space on eval stack;
       }
 
     m_state.m_funcCallStack.popArgs(argsPushed+rtnslots); //drops all the args and return slots on callstack
@@ -739,7 +767,7 @@ namespace MFM {
 	fp->write(m_state.getHiddenContextArgName());
 	fp->write(".GetEffectiveSelf()->getVTableEntry(");
       }
-    else if(cos->isAutoLocal())
+    else if(cos->getAutoLocalType() == ALT_AS)
       {
 	fp->write(m_state.getAutoHiddenContextArgName());
 	fp->write(".GetEffectiveSelf()->getVTableEntry(");
@@ -783,6 +811,7 @@ namespace MFM {
 
     Symbol * stgcos = m_state.getCurrentSelfSymbolForCodeGen();
     UTI stgcosuti = stgcos->getUlamTypeIdx(); //more general instead of current class
+    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
     // use NodeNo for inheritance
     NNO cosBlockNo = m_funcSymbol->getBlockNoOfST();
@@ -799,6 +828,7 @@ namespace MFM {
 	else
 	  stgcosBlockNo = cos->getBlockNoOfST();
       }
+    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
     if(cosBlockNo != stgcosBlockNo)
       {
@@ -811,14 +841,25 @@ namespace MFM {
 	    assert(cosclassuti != Nav);
 	    UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
 
-	    fp->write(cosclassut->getUlamTypeMangledName().c_str());
-	    if(cosclassut->getUlamClass() == UC_ELEMENT)
-	      fp->write("<EC>::");
+	    if((cosuti != Nav) && cosut->isReference())
+	      {
+		UTI cosclassrefuti = m_state.getUlamTypeAsRef(cosclassuti, cosut->getReferenceType());
+		UlamType * cosclassrefut = m_state.getUlamTypeByIndex(cosclassrefuti);
+		fp->write(cosclassrefut->getLocalStorageTypeAsString().c_str());
+		fp->write("::Us::");
+	      }
 	    else
 	      {
-		fp->write("<EC, ");
-		fp->write_decimal_unsigned(cos->getPosOffset());
-		fp->write("u + T::ATOM_FIRST_STATE_BIT>::");
+
+		fp->write(cosclassut->getUlamTypeMangledName().c_str());
+		if(cosclassut->getUlamClass() == UC_ELEMENT)
+		  fp->write("<EC>::");
+		else
+		  {
+		    fp->write("<EC, ");
+		    fp->write_decimal_unsigned(cos->getPosOffset());
+		    fp->write("u + T::ATOM_FIRST_STATE_BIT>::");
+		  }
 	      }
 	  }
 	else if(m_state.isClassASubclass(stgcosuti)) //self is subclass
@@ -827,18 +868,30 @@ namespace MFM {
 	    assert(foundnode);
 	    UTI superuti = foundnode->getNodeType();
 	    UlamType * superut = m_state.getUlamTypeByIndex(superuti);
-	    fp->write(superut->getUlamTypeMangledName().c_str());
-	    if(superut->getUlamClass() == UC_ELEMENT)
+
+	    if(stgcosut->isReference())
 	      {
-		fp->write("<EC>::");
-		startcos = cosSize; //bypass all that follows
+		UTI superrefuti = m_state.getUlamTypeAsRef(superuti, stgcosut->getReferenceType());
+		UlamType * superrefut = m_state.getUlamTypeByIndex(superrefuti);
+		fp->write(superrefut->getLocalStorageTypeAsString().c_str());
+		fp->write("::Us::");
 	      }
 	    else
 	      {
-		//self is a quark
-		fp->write("<EC, ");
-		fp->write("T::ATOM_FIRST_STATE_BIT"); //ancestors at first state bit
-		fp->write(">::");
+
+		fp->write(superut->getUlamTypeMangledName().c_str());
+		if(superut->getUlamClass() == UC_ELEMENT)
+		  {
+		    fp->write("<EC>::");
+		    startcos = cosSize; //bypass all that follows
+		  }
+		else
+		  {
+		    //self is a quark
+		    fp->write("<EC, ");
+		    fp->write("T::ATOM_FIRST_STATE_BIT"); //ancestors at first state bit
+		    fp->write(">::");
+		  }
 	      }
 	  }
 	//else do nothing for inheritance
@@ -964,7 +1017,7 @@ namespace MFM {
 		hiddenargs << m_state.getHiddenContextArgName(); //same uc
 		stgcos = m_state.getCurrentSelfSymbolForCodeGen();
 	      }
-	    else if(cos->isAutoLocal())
+	    else if(cos->getAutoLocalType() == ALT_AS)
 	      {
 		hiddenargs << m_state.getAutoHiddenContextArgName(); //_ucaut
 		stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
@@ -1090,8 +1143,19 @@ namespace MFM {
 	UTI auti;
 	m_state.m_currentObjSymbolsForCodeGen.clear(); //*************
 
-	m_argumentNodes->genCode(fp, auvpass, i);
-	Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
+	// what if ALT_ARRAYITEM???
+	if(m_state.getReferenceType(m_funcSymbol->getParameterType(i)) != ALT_NOT)
+	//if((m_state.getReferenceType(m_funcSymbol->getParameterType(i)) != ALT_NOT) && (m_state.getReferenceType(m_funcSymbol->getParameterType(i)) != ALT_ARRAYITEM))
+	  {
+	    genCodeReferenceArg(fp, auvpass, i);
+	    //m_argumentNodes->genCodeToStoreInto(fp, auvpass, i);
+	    //Node::genCodeConvertATmpVarIntoAutoRef(fp, auvpass);
+	  }
+	else
+	  {
+	    m_argumentNodes->genCode(fp, auvpass, i);
+	    Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
+	  }
 	auti = auvpass.getUlamValueTypeIdx();
 	if(auti == Ptr)
 	  {
@@ -1109,8 +1173,15 @@ namespace MFM {
 	    UTI auti;
 	    m_state.m_currentObjSymbolsForCodeGen.clear(); //*************
 
-	    m_argumentNodes->genCode(fp, auvpass, i);
-	    Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
+	    if(m_state.getReferenceType(m_argumentNodes->getNodeType(i)) != ALT_NOT)
+	      {
+		genCodeReferenceArg(fp, auvpass, i);
+	      }
+	    else
+	      {
+		m_argumentNodes->genCode(fp, auvpass, i);
+		Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
+	      }
 
 	    auti = auvpass.getUlamValueTypeIdx();
 	    if(auti == Ptr)
@@ -1129,6 +1200,81 @@ namespace MFM {
 
     return arglist.str();
   } //genRestOfFunctionArgs
+
+  // should be like NodeVarRef::genCode
+  void NodeFunctionCall::genCodeReferenceArg(File * fp, UlamValue & uvpass, u32 n)
+  {
+    // get the right-hand side, stgcos
+    // can be same type (e.g. element, quark, or primitive),
+    // or ancestor quark if a class.
+    m_argumentNodes->genCodeToStoreInto(fp, uvpass, n);
+
+    assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
+    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen.back();
+    UTI stgcosuti = stgcos->getUlamTypeIdx();
+    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+
+    UTI vuti = m_funcSymbol->getParameterType(n);
+    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+
+    assert(vut->getUlamTypeEnum() == stgcosut->getUlamTypeEnum());
+
+    m_state.indent(fp);
+    fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+    fp->write(" ");
+
+#if 0
+    fp->write(vut->getUlamTypeImmediateMangledName().c_str()); //for C++ local vars, ie non-data members
+    if(vclasstype == UC_ELEMENT)
+      fp->write("<EC> ");
+    else if(vclasstype == UC_QUARK)
+      {
+	fp->write("<EC, ");
+	fp->write_decimal_unsigned(uvpass.getPtrPos());
+	fp->write("u> ");
+      }
+    else //primitive, right-just
+      {
+	fp->write("<EC, ");
+	// note: POS for a ref is alway the right-justified position, leaving
+	// the pos argument to reflect any difference; required for runtime.
+	fp->write_decimal_unsigned(BITSPERATOM - uvpass.getPtrLen());
+	fp->write("u> ");
+      }
+#endif
+
+    s32 tmpVarArgNum = m_state.getNextTmpVarNumber();
+    fp->write(m_state.getTmpVarAsString(vuti, tmpVarArgNum, TMPBITVAL).c_str());
+    fp->write("("); //pass ref in constructor (ref's not assigned with =)
+    if(stgcos->isDataMember()) //can't be an element
+      {
+	fp->write("Uv_4atom, ");
+	fp->write_decimal_unsigned(stgcos->getPosOffset()); //relative off
+	fp->write("u");
+      }
+    else
+      {
+	fp->write(stgcos->getMangledName().c_str());
+	if(stgcos->getId() != m_state.m_pool.getIndexForDataString("atom")) //not isSelf check; was "self"
+	  fp->write(".getRef()");
+
+	if(vclasstype == UC_NOTACLASS)
+	  {
+	    fp->write(", ");
+	    fp->write_decimal_unsigned(BITSPERATOM - stgcosut->getTotalBitSize()); //right-justified
+	    fp->write("u");
+	  }
+	else if(vclasstype == UC_QUARK)
+	  fp->write(", 0u"); //left-justified
+      }
+    fp->write(");\n");
+
+    uvpass.setPtrSlotIndex(tmpVarArgNum);
+    uvpass.setPtrStorage(TMPBITVAL);
+
+    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
+  } //genCodeReferenceArg
 
   void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp)
   {
@@ -1179,10 +1325,10 @@ namespace MFM {
     ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClass();
     if(stgclasstype == UC_ELEMENT)
       {
-	if(stgcos->isAutoLocal())
-	  fp->write(stgcosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
-	else
-	  fp->write(stgcosut->getUlamTypeImmediateMangledName().c_str());
+    //	if(stgcos->isAutoLocal())
+    //	  fp->write(stgcosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
+    //	else
+        fp->write(stgcosut->getUlamTypeImmediateMangledName().c_str());
 	fp->write("<EC>");
 	fp->write("::Us::");
       }
@@ -1196,13 +1342,13 @@ namespace MFM {
 	    fp->write("T::ATOM_FIRST_STATE_BIT>");
 	    fp->write("::");
 	  }
-	else if(stgcos->isAutoLocal())
-	  {
-	    fp->write(stgcosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
-	    fp->write("<EC, ");
-	    fp->write("T::ATOM_FIRST_STATE_BIT>");
-	    fp->write("::Us::");
-	  }
+	//else if(stgcos->isAutoLocal())
+	// {
+	//  fp->write(stgcosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
+	//  fp->write("<EC, ");
+	//  fp->write("T::ATOM_FIRST_STATE_BIT>");
+	//  fp->write("::Us::");
+	// }
 	else
 	  {
 	  //immediate quark..

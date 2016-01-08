@@ -79,10 +79,20 @@ namespace MFM {
 
   UlamValue CallStack::loadUlamValueFromSlot(s32 slot)
   {
+    //resurse until not a Ptr
+    assert((m_currentFrame + slot < m_frames.size()) && (m_currentFrame + slot >= 0));
+    UlamValue rtnUV = m_frames[m_currentFrame + slot];
+    if(rtnUV.getUlamValueTypeIdx() == Ptr)
+      return loadUlamValueFromSlot(rtnUV.getPtrSlotIndex());
+    return rtnUV;
+  } //localUlamValueFromSlot
+
+  UlamValue CallStack::loadUlamValuePtrFromSlot(s32 slot)
+  {
+    //no recursing
     assert((m_currentFrame + slot < m_frames.size()) && (m_currentFrame + slot >= 0));
     return m_frames[m_currentFrame + slot];
   }
-
 
   //called by CompilerState
   void CallStack::assignUlamValue(UlamValue pluv, UlamValue ruv, CompilerState& state)
@@ -105,6 +115,10 @@ namespace MFM {
 	//target is either packed array or packedloadable into a single int,
 	// use pos & len in ptr, unless there's no type
 	UlamValue lvalAtIdx = loadUlamValueFromSlot(leftbaseslot);
+
+	//references can be ptr's to lval, loop?
+	//while(lvalAtIdx.getUlamValueTypeIdx() == Ptr)
+	//  lvalAtIdx = loadUlamValueFromSlot(lvalAtIdx.getPtrSlotIndex());
 
 	// if uninitialized, set the type
 	if(lvalAtIdx.getUlamValueTypeIdx() == Nav)

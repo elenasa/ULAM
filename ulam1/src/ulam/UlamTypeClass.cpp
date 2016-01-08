@@ -42,23 +42,23 @@ namespace MFM {
     UTI valtypidx = val.getUlamValueTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(valtypidx);
     assert(vut->isScalar() && isScalar());
-
+    ULAMTYPE vetype = vut->getUlamTypeEnum();
     //now allowing atoms to be cast as quarks, as well as elements;
     // also allowing subclasses to be cast as their superclass (u1.2.2)
     if(getUlamClass() == UC_ELEMENT)
       {
-	if(!(valtypidx == UAtom || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME))
+	if(!(vetype == UAtom || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME))
 	  {
 	    //no longer elements inherit from elements, only quarks.
 	    brtn = false;
 	  }
-	else if(valtypidx == UAtom)
+	else if(vetype == UAtom)
 	  val.setAtomElementTypeIdx(typidx); //for testing purposes, assume ok
 	//else true
       }
     else if(getUlamClass() == UC_QUARK)
       {
-	if(valtypidx == UAtom)
+	if(vetype == UAtom)
 	  brtn = false; //cast atom to a quark?
 	else if(UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME)
 	  {
@@ -122,8 +122,17 @@ namespace MFM {
 	u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
 	if(m_state.isClassASuperclassOf(cuti, typidx))
 	  return CAST_CLEAR;
+	else
+	  {
+	    ULAMTYPECOMPARERESULTS cmpr = m_state.isARefTypeOfUlamType(typidx, cuti);
+	    if(cmpr == UTIC_SAME)
+	      return CAST_CLEAR;
+	    else if(cmpr == UTIC_DONTKNOW)
+	      return CAST_HAZY;
+	    else
+	      return CAST_BAD;
+	  }
       }
-
     return CAST_BAD; //e.g. (typidx == UAtom)
   } //safeCast
 
@@ -154,6 +163,9 @@ namespace MFM {
     s32 bitsize = getBitSize();
     s32 arraysize = getArraySize();
 
+    if(isReference())
+      mangled << "r";
+
     if(arraysize > 0)
       mangled << ToLeximitedNumber(arraysize);
     else
@@ -174,7 +186,6 @@ namespace MFM {
     std::ostringstream mangledclassname;
     mangledclassname << UlamType::getUlamTypeMangledName(); //includes Uprefix
 
-    //appends 'r' for references, followed by '10'
     //or numberOfParameters followed by each digi-encoded: mangled type and value
     u32 id = m_key.getUlamKeyTypeSignatureNameId();
     UTI cuti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
@@ -184,12 +195,12 @@ namespace MFM {
   } //getUlamTypeMangledName
 
   //quarks are right-justified in an atom space
-  const std::string UlamTypeClass::getUlamTypeAsStringForC()
+  const std::string UlamTypeClass::getUlamTypeAsStringForC(bool useref)
   {
     assert(getUlamClass() != UC_UNSEEN);
     if(getUlamClass() == UC_QUARK)
       {
-	return UlamType::getUlamTypeAsStringForC();
+	return UlamType::getUlamTypeAsStringForC(useref);
       }
     return "T"; //for elements
   } //getUlamTypeAsStringForC()
@@ -224,6 +235,9 @@ namespace MFM {
     SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(id);
     if(cnsym && cnsym->isClassTemplate())
       namestr << ((SymbolClassNameTemplate *) cnsym)->formatAnInstancesArgValuesAsCommaDelimitedString(cuti).c_str();
+
+    if(getReferenceType() != ALT_NOT)
+      namestr << "&";
     return namestr.str();
   } //getUlamTypeNameBrief
 
@@ -360,10 +374,17 @@ namespace MFM {
   const std::string UlamTypeClass::getUlamTypeImmediateAutoMangledName()
   {
     assert(needsImmediateType() || isReference());
-    std::ostringstream  automn;
-    automn << getUlamTypeImmediateMangledName().c_str();
-    automn << "4auto" ;
-    return automn.str();
+
+    if(isReference())
+      {
+	assert(0); //use ImmediateMangledName
+	return getUlamTypeImmediateMangledName();
+      }
+
+    //get name of a referenced UTI for this type
+    UTI asRefType = m_state.getUlamTypeAsRef(m_key.getUlamKeyTypeSignatureClassInstanceIdx());
+    UlamType * asRef = m_state.getUlamTypeByIndex(asRefType);
+    return asRef->getUlamTypeImmediateMangledName();
   } //getUlamTypeImmediateAutoMangledName
 
   const std::string UlamTypeClass::getTmpStorageTypeAsString()
@@ -395,7 +416,12 @@ namespace MFM {
     ctype << getUlamTypeImmediateMangledName();
 
     if(getUlamClass() == UC_QUARK)
-      ctype << "<EC>"; //default local quarks
+      {
+	if(isReference())
+	  ctype << "<EC, " << "0u + T::ATOM_FIRST_STATE_BIT>";
+	else
+	  ctype << "<EC>"; //default local quarks
+      }
     else if(getUlamClass() == UC_ELEMENT)
       ctype << "<EC>";
     else
@@ -433,7 +459,7 @@ namespace MFM {
       }
 
     //e.g. casting an element to an element, redundant and not supported: Element96ToElement96?
-    if(nodetype != UAtom)
+    if(nut->getUlamTypeEnum() != UAtom)
       {
 	std::ostringstream msg;
 	msg << "Attempting to illegally cast a non-atom type to an element: ";
@@ -441,7 +467,6 @@ namespace MFM {
 	msg << nut->getUlamTypeName().c_str() << ", to be: " << getUlamTypeName().c_str();
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(),msg.str().c_str(), ERR);
       }
-
     rtnMethod << "_" << nut->getUlamTypeNameOnly().c_str() << sizeByIntBits;
     rtnMethod << "ToElement" << sizeByIntBitsToBe;
     return rtnMethod.str();

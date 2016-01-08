@@ -592,7 +592,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	if(evs == NORMAL)
 	  {
 	    UlamValue testUV = m_state.m_nodeEvalStack.popArg();
-	    assignReturnValueToStack(testUV);
+	    Node::assignReturnValueToStack(testUV);
 	  }
 	setNodeType(saveClassType); //temp, restore
       }
@@ -757,8 +757,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(isFuncIdInScope(testid, fnSym))
       {
 	SymbolFunction * funcSymbol = NULL;
-	std::vector<UTI> voidVector;
-	if(((SymbolFunctionName *) fnSym)->findMatchingFunction(voidVector, funcSymbol) == 1)
+	std::vector<UTI> voidVector; //kepp empty
+	if(((SymbolFunctionName *) fnSym)->findMatchingFunctionStrictlyByTypes(voidVector, funcSymbol) == 1)
 	  func = funcSymbol->getFunctionNode();
       }
     return func;
@@ -773,8 +773,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(isFuncIdInScope(tointid, fnSym))
       {
 	SymbolFunction * funcSymbol = NULL;
-	std::vector<UTI> voidVector;
-	if(((SymbolFunctionName *) fnSym)->findMatchingFunction(voidVector, funcSymbol) == 1)
+	std::vector<UTI> voidVector; //keep empty
+	if(((SymbolFunctionName *) fnSym)->findMatchingFunctionStrictlyByTypes(voidVector, funcSymbol) == 1)
 	  func = funcSymbol->getFunctionNode();
       }
     return func;

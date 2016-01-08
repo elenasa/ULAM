@@ -13,7 +13,7 @@ namespace MFM {
     return Holder;
   }
 
-  const std::string UlamTypeHolder::getUlamTypeAsStringForC()
+  const std::string UlamTypeHolder::getUlamTypeAsStringForC(bool useref)
   {
     assert(0);
     return "holder";

@@ -36,15 +36,25 @@ namespace MFM {
     UTI newType = Bool;
 
     UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
+    if(luti == Nav)
+      {
+	std::ostringstream msg;
+	msg << "Invalid lefthand type of conditional operator '" << getName();
+	msg << "'; Incomplete";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	setNodeType(Nav);
+	m_state.goAgain();
+	return Nav; //short-circuit
+      }
 
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMCLASSTYPE lclasstype = lut->getUlamClass();
-    if(!((luti == UAtom || lclasstype == UC_ELEMENT || lclasstype == UC_QUARK) && m_state.isScalar(luti)))
+    if(!((lut->getUlamTypeEnum() == UAtom || lclasstype == UC_ELEMENT || lclasstype == UC_QUARK) && lut->isScalar()))
       {
 	std::ostringstream msg;
 	msg << "Invalid lefthand type of conditional operator '" << getName();
 	msg << "'; must be an atom, element or quark, not type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
+	msg << lut->getUlamTypeNameBrief().c_str();
 	if(lclasstype == UC_UNSEEN || luti == Nav)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	else
@@ -72,22 +82,25 @@ namespace MFM {
 
     assert(m_nodeTypeDesc);
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
-
-    ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
-    if(!(rclasstype == UC_QUARK && m_state.isScalar(ruti)))
+    if(ruti != Nav)
       {
-	std::ostringstream msg;
-	msg << "Invalid righthand type of conditional operator '" << getName();
-	msg << "'; must be a quark name, not type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(ruti).c_str();
-	if(rclasstype == UC_UNSEEN || ruti == Nav)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //goagain set
-	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	newType = Nav;
+	UlamType * rut = m_state.getUlamTypeByIndex(ruti);
+	ULAMCLASSTYPE rclasstype = rut->getUlamClass();
+	if(!(rclasstype == UC_QUARK && rut->isScalar()))
+	  {
+	    std::ostringstream msg;
+	    msg << "Invalid righthand type of conditional operator '" << getName();
+	    msg << "'; must be a quark name, not type: ";
+	    msg << rut->getUlamTypeNameBrief().c_str();
+	    if(rclasstype == UC_UNSEEN || ruti == Nav)
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //goagain set
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    newType = Nav;
+	  }
       }
 
-    if(!m_state.getUlamTypeByIndex(ruti)->isComplete())
+    if(!m_state.isComplete(ruti))
       {
 	std::ostringstream msg;
 	msg << "Righthand type of conditional operator '" << getName() << "' ";
@@ -121,18 +134,19 @@ namespace MFM {
 	return evs;
       }
 
-    UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
+    UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1);
 
     // DO 'HAS':
     UTI luti = pluv.getUlamValueTypeIdx();
     assert(luti == Ptr);
     luti = pluv.getPtrTargetType();
-
-    if(luti == UAtom)
+    UlamType * lut = m_state.getUlamTypeByIndex(luti);
+    if(lut->getUlamTypeEnum() == UAtom)
       {
 	//an atom can be element or quark in eval-land, so let's get specific!
 	UlamValue luv = m_state.getPtrTarget(pluv);
 	luti = luv.getUlamValueTypeIdx();
+	lut = m_state.getUlamTypeByIndex(luti);
       }
 
     UTI ruti = getRightType();
@@ -150,19 +164,19 @@ namespace MFM {
       {
 	//atom's don't work in eval, only genCode, let pass as not found.
 	//if(luti != UAtom)
-	if(pluv.getPtrTargetType() != UAtom)
+	if(m_state.getUlamTypeByIndex(pluv.getPtrTargetType())->getUlamTypeEnum() != UAtom)
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid lefthand type of conditional operator '" << getName();
 	    msg << "'; Type Not Found during eval: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
+	    msg << lut->getUlamTypeNameBrief().c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 	else
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid lefthand type of conditional operator '" << getName();
-	    msg <<  "', "  << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
+	    msg <<  "', "  << lut->getUlamTypeNameBrief().c_str();
 	    msg << "; Passing through as UNFOUND for eval";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
@@ -184,7 +198,7 @@ namespace MFM {
 
     UlamValue rtnuv = UlamValue::makeImmediate(nuti, (u32) hasit, m_state);
     //also copy result UV to stack, -1 relative to current frame pointer
-    assignReturnValueToStack(rtnuv);
+    Node::assignReturnValueToStack(rtnuv);
 
     evalNodeEpilog();
     return evs;
@@ -203,6 +217,7 @@ namespace MFM {
     UTI luti = luvpass.getUlamValueTypeIdx();
     assert(luti == Ptr);
     luti = luvpass.getPtrTargetType(); //replaces
+    UlamType * lut = m_state.getUlamTypeByIndex(luti);
 
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * stgcos = NULL;
@@ -210,7 +225,7 @@ namespace MFM {
 
     // atom is a special case since we have to learn its element type at runtime
     // before interrogating if it 'as' a particular QuarkName Type; return signed pos.
-    if(luti == UAtom)
+    if(lut->getUlamTypeEnum() == UAtom)
       {
 	m_state.indent(fp);
 	fp->write("const s32 ");

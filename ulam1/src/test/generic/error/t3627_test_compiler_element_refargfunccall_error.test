@@ -1,0 +1,35 @@
+## -*- mode:ulam -*-
+#=t3627_test_compiler_element_refargfunccall_error
+#!
+./Foo.ulam:17:5: ERROR: (1) <check> has no defined function with 1 matching argument type: Bool(3), and cannot be called.
+./Foo.ulam:17:5: ERROR: Unresolved No.1.
+./Foo.ulam:14:3: Warning: 1 nodes with unresolved types remain in function <test> (Uf_4test,1).
+./Foo.ulam:14:7: Warning: Summary: 1 nodes with unresolved types remain in  a single function <test> in class: Foo.
+./Foo.ulam:2:9: Warning: 1 data member nodes with unresolved types remain in class 'Foo'.
+./Foo.ulam:2:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: Foo.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t3624
+##
+#>Foo.ulam
+  ulam 2;
+element Foo {
+  Int(4) m_i;
+  Bool(3) m_b;
+  Void check(Bool(3)& bok) {
+    Bool(3) b;
+    if (m_i < 7)
+      b = true;
+    else
+      b = false;
+    bok = b;
+    return;
+  }
+  Int test() {
+    Bool(3) & bref = m_b; //what does gencode look like?
+    m_i = 3;
+    check( (Bool(3)) true); //should fail since constant can't be a ref..make test t3625
+    return m_i;
+  }
+}
+#.

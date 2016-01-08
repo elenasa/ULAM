@@ -60,7 +60,7 @@ namespace MFM{
 
   class CompilerState; //forward
 
-  enum ULAMCLASSTYPE { UC_UNSEEN, UC_QUARK, UC_ELEMENT, UC_NOTACLASS, UC_ATOM };
+  enum ULAMCLASSTYPE { UC_UNSEEN, UC_QUARK, UC_ELEMENT, UC_NOTACLASS, UC_ATOM, UC_ERROR };
 
 
   class UlamType
@@ -105,7 +105,7 @@ namespace MFM{
 
     virtual ULAMTYPE getUlamTypeEnum() = 0;
 
-    virtual const std::string getUlamTypeAsStringForC();
+    virtual const std::string getUlamTypeAsStringForC(bool useref);
 
     virtual const std::string getUlamTypeVDAsStringForC();
 
@@ -137,11 +137,15 @@ namespace MFM{
 
     virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
 
+    virtual void genUlamTypeAutoReadDefinitionForC(File * fp);
+
+    virtual void genUlamTypeAutoWriteDefinitionForC(File * fp);
+
+    virtual void genUlamTypeMangledImmediateDefinitionForC(File * fp);
+
     virtual void genUlamTypeReadDefinitionForC(File * fp);
 
     virtual void genUlamTypeWriteDefinitionForC(File * fp);
-
-    virtual void genUlamTypeMangledImmediateDefinitionForC(File * fp);
 
     static const char * getUlamTypeEnumCodeChar(ULAMTYPE etype);
 
@@ -170,6 +174,11 @@ namespace MFM{
     virtual bool isComplete(); //neither bitsize nor arraysize is "unknown"
 
     static ULAMTYPECOMPARERESULTS compare(UTI u1, UTI u2, CompilerState& state);
+
+    static ULAMTYPECOMPARERESULTS compareForArgumentMatching(UTI u1, UTI u2, CompilerState& state);
+    static ULAMTYPECOMPARERESULTS compareForMakingCastingNode(UTI u1, UTI u2, CompilerState& state);
+
+    static ULAMTYPECOMPARERESULTS compareForUlamValueAssignment(UTI u1, UTI u2, CompilerState& state);
 
     /** Number of bits (rounded up to nearest 32 bits) required to
     hold the total bit size  */
@@ -217,12 +226,15 @@ namespace MFM{
 
   private:
 
+    static ULAMTYPECOMPARERESULTS compareWithWildArrayItemReferenceType(UTI u1, UTI u2, CompilerState& state);
+
+
     virtual bool castTo32(UlamValue & val, UTI typidx);
 
     virtual bool castTo64(UlamValue & val, UTI typidx);
 
     bool checkArrayCast(UTI typidx);
-
+    bool checkReferenceCast(UTI typidx);
   };
 
 }

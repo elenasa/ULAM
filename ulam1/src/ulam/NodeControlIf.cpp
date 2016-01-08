@@ -166,7 +166,7 @@ namespace MFM {
     // stored in a variable somewhere.
 
     //also copy result UV to stack, -1 relative to current frame pointer
-    assignReturnValueToStack(cuv); //skip this for a break statement ???
+    Node::assignReturnValueToStack(cuv); //skip this for a break statement ???
 
     evalNodeEpilog();
     return evs;

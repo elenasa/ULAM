@@ -75,7 +75,9 @@ namespace MFM
 
     UlamValue popArg();           //doesn't change framepointer
 
-    UlamValue loadUlamValueFromSlot(s32 slot);
+    UlamValue loadUlamValueFromSlot(s32 slot); //recurse until no Ptr
+
+    UlamValue loadUlamValuePtrFromSlot(s32 slot); //once through
 
     void storeUlamValueInSlot(UlamValue uv, s32 slot);
 

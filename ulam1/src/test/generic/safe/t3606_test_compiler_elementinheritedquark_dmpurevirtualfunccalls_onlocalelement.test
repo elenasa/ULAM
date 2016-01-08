@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 0
-Ue_Test : System { :<> Bool(1) brtn[4](true,true,true,true);  Int(32) test() {  Foo f;  brtn 0 [] f m1 ( )func . . 3 cast == = ( brtn 0 [] )assert brtn 1 [] f m2 ( )func . . 4 cast == = ( brtn 1 [] )assert brtn 2 [] f m1 bmem . . 1 cast == = ( brtn 2 [] )assert brtn 3 [] f m2 bmem . . 2 == = ( brtn 3 [] )assert 0 cast return } }
+Ue_Test : System { :<> Bool(1) brtn[4](true,true,true,true);  Int(32) test() {  Foo f;  brtn 0 [] f m1 ( )func . . 3 cast == cast = ( brtn 0 [] cast )assert brtn 1 [] f m2 ( )func . . 4 cast == cast = ( brtn 1 [] cast )assert brtn 2 [] f m1 bmem . . 1 cast == cast = ( brtn 2 [] cast )assert brtn 3 [] f m2 bmem . . 2 == cast = ( brtn 3 [] cast )assert 0 cast return } }
 Ue_Foo { QSubBase1 m1( :< Int(3) bmem(0); >);  QSubBase2 m2( :< Int(3) bmem(0); >);  <NOMAIN> }
 Uq_QSubBase1 : QMemBase { :< Int(3) bmem(0); > <NOMAIN> }
 Uq_QMemBase { Int(3) bmem(0);  <NOMAIN> }

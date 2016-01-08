@@ -223,6 +223,9 @@ namespace MFM{
     //e.g. when lhs of member select is an array item of class type
     void genCodeConvertATmpVarIntoAutoRef(File * fp, UlamValue & uvpass);
 
+    //e.g. when lhs of member select is an array item of class type, rhs data member
+    void genCodeARefFromARefStorage(File * fp, UlamValue stguvpass, UlamValue uvpass);
+
     virtual void checkForSymbol();
 
     void genCodeReadElementTypeField(File * fp, UlamValue & uvpass);

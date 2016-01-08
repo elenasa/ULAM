@@ -61,7 +61,7 @@ namespace MFM {
 
   enum FORECAST { CAST_BAD = 0, CAST_CLEAR, CAST_HAZY};
 
-  enum ALT { ALT_NOT = 0, ALT_AS, ALT_HAS, ALT_REF}; //autolocaltype
+  enum ALT { ALT_NOT = 0, ALT_AS, ALT_HAS, ALT_REF, ALT_ARRAYITEM}; //autolocaltype
 
   typedef  bool __attribute__((unused)) AssertBool;
 

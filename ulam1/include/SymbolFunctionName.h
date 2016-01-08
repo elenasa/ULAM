@@ -66,11 +66,13 @@ namespace MFM{
 
     bool overloadFunction(SymbolFunction * fsym);
 
-    u32 findMatchingFunction(std::vector<UTI> argTypes, SymbolFunction *& funcSymbol);
+    u32 findMatchingFunctionStrictlyByTypes(std::vector<UTI> argTypes, SymbolFunction *& funcSymbol);
 
-    u32 findMatchingFunctionWithConstantsAsArgs(std::vector<UTI> argTypes, std::vector<Node*> constArgs, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
+    u32 findMatchingFunction(std::vector<Node*> argNodes, SymbolFunction *& funcSymbol);
 
-    u32 findMatchingFunctionWithConstantsAsArgsInAncestors(std::vector<UTI> argTypes, std::vector<Node*> constArgs, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
+    u32 findMatchingFunctionWithSafeCasts(std::vector<Node*> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
+
+    u32 findMatchingFunctionWithSafeCastsInAncestors(std::vector<Node*> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
 
     u32 getDepthSumOfFunctions();
 
