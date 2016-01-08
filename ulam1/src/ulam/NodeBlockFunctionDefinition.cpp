@@ -289,7 +289,6 @@ namespace MFM {
 
     if(evs == RETURN)
       {
-	//if(nuti == UAtom)
 	if(m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum() == UAtom)
 	  {
 	    //avoid pointer to atom situation

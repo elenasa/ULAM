@@ -2379,8 +2379,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     PACKFIT packed = determinePackable(uti);
 
     UlamType * ut = getUlamTypeByIndex(uti);
-    //if(uti == UAtom || getUlamTypeByIndex(uti)->getUlamClass() == UC_ELEMENT)
-    if((ut->getUlamTypeEnum() == UAtom) || (getUlamTypeByIndex(uti)->getUlamClass() == UC_ELEMENT))
+    if((ut->getUlamTypeEnum() == UAtom) || (ut->getUlamClass() == UC_ELEMENT))
       {
 	assert(stg != TMPREGISTER);
 	//stg = TMPBITVAL; //avoid loading a T into a tmpregister!

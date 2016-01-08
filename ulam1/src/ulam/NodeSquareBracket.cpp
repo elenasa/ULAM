@@ -86,7 +86,7 @@ namespace MFM {
 	    else
 	      {
 		//must be a custom array; t.f. lhs is a quark!
-		assert(lut->getUlamClass() != UC_NOTACLASS);
+		assert(lut->getUlamTypeEnum() == Class);
 
 		// can't substitute a function call node for square brackets to leverage
 		// all the overload matching in func call node's c&l, because
