@@ -62,6 +62,10 @@ namespace MFM{
 
     virtual void printPostfix(File * fp);
 
+    virtual bool isAConstant();
+
+    virtual bool isFunctionCall();
+
     virtual UTI checkAndLabelType();
 
     virtual void countNavNodes(u32& cnt);

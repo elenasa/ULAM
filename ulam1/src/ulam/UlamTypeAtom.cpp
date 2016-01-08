@@ -19,7 +19,7 @@ namespace MFM {
 
   ULAMCLASSTYPE UlamTypeAtom::getUlamClass()
   {
-    //return UC_ATOM; llok into this!!
+    //return UC_ATOM; //llok into this!!
     return UC_NOTACLASS;
   }
 

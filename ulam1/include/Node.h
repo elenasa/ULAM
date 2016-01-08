@@ -116,6 +116,8 @@ namespace MFM{
 
     virtual bool isReadyConstant();
 
+    virtual bool isFunctionCall();
+
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType();
@@ -131,8 +133,6 @@ namespace MFM{
     virtual bool isNegativeConstant();
 
     virtual bool isWordSizeConstant();
-
-    virtual bool isFunctionCall();
 
     virtual bool installSymbolTypedef(TypeArgs& args, Symbol *& asymptr);
 

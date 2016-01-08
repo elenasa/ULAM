@@ -154,7 +154,7 @@ namespace MFM {
 
   bool SymbolClassNameTemplate::findClassInstanceByUTI(UTI uti, SymbolClass * & symptrref)
   {
-#if 0
+#if 1
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(uti);
     if(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
@@ -166,6 +166,7 @@ namespace MFM {
       }
     return false;
 #else
+    //debug version
     bool rtn = false;
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())

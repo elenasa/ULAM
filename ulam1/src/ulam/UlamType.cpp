@@ -103,14 +103,7 @@ namespace MFM {
     //return checkArrayCast(typidx) ? CAST_CLEAR : CAST_BAD;
     if(!checkArrayCast(typidx))
       return CAST_BAD;
-#if 0
-    //if trying to cast the reference to its value type, ok (rhs)
-    if(m_state.isReference(typidx))
-      {
-	if(!checkReferenceCast(typidx))
-	  return CAST_BAD;
-      }
-#endif
+
     return CAST_CLEAR;
   } //safeCast
 

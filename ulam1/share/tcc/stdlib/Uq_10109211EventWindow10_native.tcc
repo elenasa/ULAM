@@ -101,7 +101,7 @@ namespace MFM{
     const u32 newSym = (u32) Uv_6newSym.read();
     if (newSym < PSYM_SYMMETRY_COUNT)
       ew.SetSymmetry((PointSymmetry) newSym);
-    return Ui_Ut_10131u(oldSym);
+    return Ui_Ut_10131u<EC>(oldSym);
   } // Uf_9214changeSymmetry
 
   //! EventWindow.ulam:34:   C2D mapSym(C2D directCoord) {

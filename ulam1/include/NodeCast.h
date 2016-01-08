@@ -67,11 +67,15 @@ namespace MFM{
     void setExplicitCast();
     bool isExplicitCast();
 
+    virtual bool isAConstant();
+
     virtual bool isReadyConstant();
 
     virtual bool isNegativeConstant();
 
     virtual bool isWordSizeConstant();
+
+    virtual bool isFunctionCall();
 
     virtual FORECAST safeToCastTo(UTI newType);
 

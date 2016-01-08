@@ -207,7 +207,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Unresolved No." << cnt;
 	//comment out next line for error testing to match
-	//msg << ": <" << getName() << ">";
+	msg << ": <" << getName() << ">";
 	//msg << (" << prettyNodeName().c_str() << ") "; ugly!
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
@@ -1540,7 +1540,7 @@ namespace MFM {
     // with immediate quarks, they are read into a tmpreg as other immediates
     // with immediate elements, too!  value not a terminal
     // aset requires its custom array type (e.g. an atom) as its value:
-    assert(m_state.getUlamTypeByIndex(cosuti)->getUlamClass() != UC_NOTACLASS);
+    assert(m_state.getUlamTypeByIndex(cosuti)->getUlamTypeEnum() == Class);
     UTI catype = m_state.getAClassCustomArrayType(cosuti);
     fp->write(localStorageTypeAsString(catype).c_str()); //e.g. BitVector<32> exception
     fp->write("(");
@@ -1575,8 +1575,7 @@ namespace MFM {
     u32 pos = uvpass.getPtrPos(); //pos calculated by makePtr(atom-based) (e.g. quark, atom)
     if(vut->getUlamClass() == UC_NOTACLASS)
       {
-	//u32 wordsize = vut->getTotalWordSize();
-	//pos = wordsize - vut->getTotalBitSize();
+	//what if atom? pos == 0
 	pos = BITSPERATOM - vut->getTotalBitSize(); //right-justified atom-based ?
       }
 
@@ -1940,7 +1939,6 @@ namespace MFM {
 	    UTI newType = rtnNode->checkAndLabelType();
 	    doErrMsg = (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
 	  }
-	//if(tobeType != UAtom)
 	else if((UlamType::compareForMakingCastingNode(tobeType, UAtom, m_state) != UTIC_SAME))
 	  doErrMsg = true;
 	else
@@ -2671,22 +2669,12 @@ namespace MFM {
 
   const std::string Node::localStorageTypeAsString(UTI nuti)
   {
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-#if 0
-    if(nut->isReference())
-      {
-	//use its referred class for its name:
-	UTI deuti = m_state.getUlamTypeAsDeref(nuti);
-	nut = m_state.getUlamTypeByIndex(deuti);
-      }
-#endif
-    return nut->getLocalStorageTypeAsString();
+    return m_state.getUlamTypeByIndex(nuti)->getLocalStorageTypeAsString();
   } //localStorageTypeAsString
 
   const std::string Node::tmpStorageTypeForRead(UTI nuti, UlamValue uvpass)
   {
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    return nut->getTmpStorageTypeAsString();
+    return m_state.getUlamTypeByIndex(nuti)->getTmpStorageTypeAsString();
   } //tmpStorageTypeForRead
 
   const std::string Node::tmpStorageTypeForReadArrayItem(UTI nuti, UlamValue uvpass)

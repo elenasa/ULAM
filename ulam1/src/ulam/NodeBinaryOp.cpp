@@ -119,6 +119,12 @@ namespace MFM {
     return false;
   }
 
+  bool NodeBinaryOp::isFunctionCall()
+  {
+    assert(m_nodeLeft && m_nodeRight);
+    return m_nodeLeft->isFunctionCall() || m_nodeRight->isFunctionCall();
+  }
+
   FORECAST NodeBinaryOp::safeToCastTo(UTI newType)
   {
     //ulamtype checks for complete, non array, and type specific rules

@@ -108,6 +108,26 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  bool NodeStatements::isAConstant()
+  {
+    bool rtn = m_node->isAConstant();
+    if(rtn && m_nodeNext)
+      rtn &= m_nodeNext->isAConstant(); //side-effect
+    return rtn;
+  } //isAConstant
+
+  bool NodeStatements::isFunctionCall()
+  {
+
+    if(m_node->isFunctionCall())
+      return true;
+
+    if(m_nodeNext)
+      return m_nodeNext->isFunctionCall(); //side-effect
+
+    return false;
+  } //isFunctionCall
+
   UTI NodeStatements::checkAndLabelType()
   {
     assert(m_node);
