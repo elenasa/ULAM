@@ -50,7 +50,6 @@ namespace MFM {
   const char * NodeCast::getName()
   {
     return "cast";
-    //return m_node->getName();
   }
 
   const std::string NodeCast::prettyNodeName()
@@ -99,7 +98,6 @@ namespace MFM {
     //assert(UlamType::compare(newType,getNodeType(), m_state) == UTIC_SAME);
     //ulamtype checks for complete, non array, and type specific rules
     return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
-    //return m_node->safeToCastTo(newType);
   } //safeToCastTo
 
   UTI NodeCast::checkAndLabelType()
@@ -108,7 +106,6 @@ namespace MFM {
     // this is for checking for errors, before eval happens.
     u32 errorsFound = 0;
     UTI tobeType = getNodeType();
-    //UTI nodeType = isExplicitCast() ? m_node->checkAndLabelType() : m_node->getNodeType(); //user cast if explicit
     UTI nodeType = m_node->checkAndLabelType();
 
     if(nodeType == Nav)
@@ -241,7 +238,6 @@ namespace MFM {
     if(errorsFound == 0)
       {
 	ULAMCLASSTYPE nodeClass = nut->getUlamClass();
-	//if(nodeClass == UC_QUARK)
 	if(nodeClass == UC_QUARK && tobe->isNumericType())
 	  {
 	    // special case: user casting a quark to an Int;
@@ -329,7 +325,6 @@ namespace MFM {
 
     UlamValue uv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
 
-    //if(nodeType != tobeType)
     if(UlamType::compare(nodeType, tobeType, m_state) != UTIC_SAME)
       {
 	if(m_state.isARefTypeOfUlamType(nodeType, tobeType) || m_state.isARefTypeOfUlamType(tobeType, nodeType))
@@ -348,7 +343,6 @@ namespace MFM {
 	    return ERROR;
 	  }
       }
-
     //also copy result UV to stack, -1 relative to current frame pointer
     Node::assignReturnValueToStack(uv);
 
@@ -413,10 +407,7 @@ namespace MFM {
    if(vuti == Ptr)
       {
 	tmpVarNum = uvpass.getPtrSlotIndex();
-	// if(uvpass.getPtrStorage() == TMPAUTOREF)
-	// vuti = m_node->getNodeType(); //uvpass type is autoref type, not node type.
-	//else
-	  vuti = uvpass.getPtrTargetType(); //replace
+	vuti = uvpass.getPtrTargetType(); //replace
       }
     else
       {
@@ -602,7 +593,6 @@ namespace MFM {
 	  }
 	else
 	  {
-	    //Node::genLocalMemberNameOfMethod(fp); //assume atom is a local var (neither dm nor ep)
 	    fp->write(stgcos->getMangledName().c_str()); //assumes only one!!!
 	    if(stgcos->isSelf())
 	      fp->write("GetType();\n"); //no read for self
@@ -707,13 +697,15 @@ namespace MFM {
 
     // now we have our pos in tmpVarPos, and our T in tmpVarStg
     // time to (like a) "shadow 'self'" with auto local variable:
-    assert(m_state.isReference(nuti));
+    //assert(m_state.isReference(nuti));
+    UTI rnuti = m_state.getUlamTypeAsRef(nuti);
+    UlamType * rnut = m_state.getUlamTypeByIndex(rnuti);
     m_state.indent(fp);
-    fp->write(nut->getUlamTypeImmediateMangledName().c_str()); //for C++ local vars, ie non-data members
-    fp->write("<EC> ");
+    fp->write(rnut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+    fp->write(" ");
 
     s32 tmpIQ = m_state.getNextTmpVarNumber(); //tmp since no variable name
-    fp->write(m_state.getTmpVarAsString(nuti, tmpIQ).c_str());
+    fp->write(m_state.getTmpVarAsString(rnuti, tmpIQ).c_str());
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(stguti, tmpVarStg, TMPBITVAL).c_str());
 
@@ -733,7 +725,7 @@ namespace MFM {
     fp->write(".read();\n");
 
     //update the uvpass to have the casted immediate quark
-    uvpass = UlamValue::makePtr(tmpIQread, uvpass.getPtrStorage(), nuti, m_state.determinePackable(nuti), m_state, uvpass.getPtrPos()); //POS 0 is justified;
+    uvpass = UlamValue::makePtr(tmpIQread, TMPREGISTER /*uvpass.getPtrStorage() was LVAL */, nuti, m_state.determinePackable(nuti), m_state, uvpass.getPtrPos()); //POS 0 is justified;
 
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs
   } //genCodeCastAtomAndQuark
