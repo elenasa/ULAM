@@ -89,7 +89,12 @@ namespace MFM {
 
   UlamValue CallStack::loadUlamValuePtrFromSlot(s32 slot)
   {
-    //no recursing
+    return loadUlamValueSingleFromSlot(slot);
+  }
+
+  UlamValue CallStack::loadUlamValueSingleFromSlot(s32 slot)
+  {
+    //no recursing, single whether Ptr or not.
     assert((m_currentFrame + slot < m_frames.size()) && (m_currentFrame + slot >= 0));
     return m_frames[m_currentFrame + slot];
   }

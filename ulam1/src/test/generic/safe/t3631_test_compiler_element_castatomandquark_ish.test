@@ -1,0 +1,32 @@
+## -*- mode:ulam -*-
+#=t3631_test_compiler_element_castatomandquark_ish
+#!
+Exit status: 0
+Ue_Foo : QPerc { :<> Int(32) test() {  Bool(1) b = ( )check;  0 cast return } }
+Uq_QPerc { <NOMAIN> }
+##
+## informed by a Dave ish 1/8/2016
+##
+#>Foo.ulam
+  ulam 2;
+use QPerc;
+element Foo : QPerc {
+
+  Int test() {
+    Bool b = check();
+    return 0;
+  }
+}
+
+#:QPerc.ulam
+  ulam 2;
+quark QPerc {
+  Bool check()
+  {
+    Atom a = atom;
+    Self input = (Self) a;
+    return true;
+  }
+}
+
+#.

@@ -2087,10 +2087,10 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     switch(ptr.getPtrStorage())
       {
       case STACK:
-	valAtIdx = m_funcCallStack.loadUlamValuePtrFromSlot(ptr.getPtrSlotIndex());
+	valAtIdx = m_funcCallStack.loadUlamValueSingleFromSlot(ptr.getPtrSlotIndex());
 	break;
       case EVALRETURN:
-	valAtIdx = m_nodeEvalStack.loadUlamValuePtrFromSlot(ptr.getPtrSlotIndex());
+	valAtIdx = m_nodeEvalStack.loadUlamValueSingleFromSlot(ptr.getPtrSlotIndex());
 	break;
       case EVENTWINDOW:
 	valAtIdx = m_eventWindow.loadAtomFromSite(ptr.getPtrSlotIndex());

@@ -263,6 +263,9 @@ namespace MFM {
     if(errorsFound)
       return Nav; //inconsistent! but keeps cast type..makeCastingNode returns error
 
+    if(nut->isReference())
+      setStoreIntoAble(true);
+
     return getNodeType();
   } //checkAndLabelType
 
@@ -349,6 +352,40 @@ namespace MFM {
     evalNodeEpilog();
     return NORMAL;
   } //eval
+
+  EvalStatus NodeCast::evalToStoreInto()
+  {
+    assert(m_node); //has to be
+
+    UTI tobeType = getNodeType();
+    //UTI nodeType = m_node->getNodeType(); //uv.getUlamValueType()
+
+    if(tobeType == Nav)
+      return ERROR;
+
+    if(!isStoreIntoAble())
+      return ERROR;
+
+    evalNodeProlog(0); //new current frame pointer
+
+    makeRoomForSlots(1); //always 1 slot for ptr
+    EvalStatus evs = m_node->evalToStoreInto();
+    if(evs != NORMAL)
+      {
+    	evalNodeEpilog();
+    	return evs;
+      }
+
+    //then what? (see NodeMemberSelect)
+    UlamValue ruvPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(2);
+
+    ruvPtr.setPtrTargetType(tobeType);
+    // fix slot???
+    Node::assignReturnValuePtrToStack(ruvPtr);
+
+    evalNodeEpilog();
+    return NORMAL;
+  } //evalToStoreInto
 
   UlamValue NodeCast::makeImmediateUnaryOp(UTI type, u32 data, u32 len)
   {
@@ -698,7 +735,7 @@ namespace MFM {
     // now we have our pos in tmpVarPos, and our T in tmpVarStg
     // time to (like a) "shadow 'self'" with auto local variable:
     //assert(m_state.isReference(nuti));
-    UTI rnuti = m_state.getUlamTypeAsRef(nuti);
+    UTI rnuti = m_state.getUlamTypeAsRef(nuti, ALT_CAST);
     UlamType * rnut = m_state.getUlamTypeByIndex(rnuti);
     m_state.indent(fp);
     fp->write(rnut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members

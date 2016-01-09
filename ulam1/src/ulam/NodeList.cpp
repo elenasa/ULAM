@@ -183,6 +183,12 @@ namespace MFM{
     return m_nodes[n]->eval();
   } //eval (overloaded)
 
+  EvalStatus NodeList::evalToStoreInto(u32 n)
+  {
+    assert(n < m_nodes.size());
+    return m_nodes[n]->evalToStoreInto();
+  } //evalToStoreInto (overloaded)
+
   void NodeList::addNodeToList(Node * argNode)
   {
     m_nodes.push_back(argNode);
