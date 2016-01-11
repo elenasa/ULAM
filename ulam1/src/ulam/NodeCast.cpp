@@ -391,7 +391,7 @@ namespace MFM {
       {
 	ruvPtr.setPtrTargetType(tobeType);
       }
-    //else cast ????
+    //else cast?
 
     // fix absolute slot, here or at func call?
     Node::assignReturnValuePtrToStack(ruvPtr);
@@ -655,7 +655,6 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
 	fp->write(m_state.getTmpVarAsString(Bool, tmpVarIs).c_str());;
 	fp->write(" = ((");
 
-	//fp->write("if(!(");
 	//when SUBATOMIC quark, use first state bit position (0)
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarType).c_str());;
 	fp->write(" == T::ATOM_UNDEFINED_TYPE) ? true : "); //subatomic type
@@ -676,7 +675,6 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
 	if(vut->getUlamClass() == UC_ELEMENT)
 	  {
 	    m_state.indent(fp);
-	    //fp->write("if(!(");
 	    fp->write("const bool ");
 	    fp->write(m_state.getTmpVarAsString(Bool, tmpVarIs).c_str());;
 	    fp->write(" = (");
@@ -706,7 +704,6 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
     m_state.indent(fp);
     fp->write("if(!");
     fp->write(m_state.getTmpVarAsString(Int, tmpVarIs).c_str());
-    //fp->write(" < 0)\n");
     fp->write(")\n");
 
     m_state.m_currentIndentLevel++;

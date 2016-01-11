@@ -169,18 +169,12 @@ namespace MFM {
 	    msg << "Storage expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
 	    msg << ", is invalid";
-	    //if(!m_nodeInitExpr->isStoreIntoAble())
-	    //  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    //else
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //possibly still hazy
 	    m_state.setGoAgain();
 	    setNodeType(Nav);
 	    return Nav; //short-circuit
 	  }
 
-	//if(m_storageExpr->isStoreIntoAble())
-	//Symbol * storsym = NULL;
-	//if(m_nodeInitExpr->getSymbolPtr(storsym) && (storsym->isConstant() || storsym->isFunction()))
 	if(m_nodeInitExpr->isAConstant() || m_nodeInitExpr->isFunctionCall())
 	  {
 	    std::ostringstream msg;

@@ -2196,13 +2196,13 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     else
       {
 	//assign each array element, packed or unpacked
-	u32 arraysize = slotsNeeded(rptr.getPtrTargetType());
+	u32 size = slotsNeeded(rptr.getPtrTargetType());
 
 	UlamValue nextlptr = UlamValue::makeScalarPtr(lptr,*this);
 	UlamValue nextrptr = UlamValue::makeScalarPtr(rptr,*this);
 	tuti = nextrptr.getPtrTargetType(); //update type
 
-	for(u32 i = 0; i < arraysize; i++)
+	for(u32 i = 0; i < size; i++)
 	  {
 	    UlamValue atval = getPtrTarget(nextrptr);
 
@@ -2217,9 +2217,9 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	      assignValue(nextlptr, atval);
 
 	    AssertBool isNextLeft = nextlptr.incrementPtr(*this);
-	    assert(isNextLeft || ((i+1) == arraysize));
+	    assert(isNextLeft || ((i+1) == size));
 	    AssertBool isNextRight = nextrptr.incrementPtr(*this);
-	    assert(isNextRight || ((i+1) == arraysize));
+	    assert(isNextRight || ((i+1) == size));
 	  }
       }
   } //assignArrayValues

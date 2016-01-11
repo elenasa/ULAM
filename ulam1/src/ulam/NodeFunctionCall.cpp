@@ -75,9 +75,6 @@ namespace MFM {
   FORECAST NodeFunctionCall::safeToCastTo(UTI newType)
   {
     UlamType * newut = m_state.getUlamTypeByIndex(newType);
-    //if(newut->isReference())
-    //  return CAST_BAD; //cannot cast a function to a ref type
-
     //ulamtype checks for complete, non array, and type specific rules
     return newut->safeCast(getNodeType());
   } //safeToCastTo
@@ -320,7 +317,6 @@ namespace MFM {
   {
     u32 argbase = 0;
     //allot enough stack space for the function call to another func
-    //argbase += m_argumentNodes->getTotalSlotsNeeded(); //args assigned at eval; what if arg is a function call???
     u32 numargs = m_argumentNodes->getNumberOfNodes();
     for(u32 i = 0; i < numargs; i++)
       {
@@ -403,7 +399,6 @@ namespace MFM {
 	    if(paramreftype == ALT_REF && (auv.getPtrStorage() == STACK))
 	      {
 		assert(auv.getUlamValueTypeIdx() == Ptr);
-		//u32 absrefslot = m_state.m_funcCallStack.getAbsoluteTopOfStackIndexOfNextSlot();
 		u32 absrefslot = m_state.m_funcCallStack.getAbsoluteStackIndexOfSlot(auv.getPtrSlotIndex());
 		auv.setPtrSlotIndex(absrefslot);
 		auv.setUlamValueTypeIdx(PtrAbs);
@@ -1158,13 +1153,10 @@ namespace MFM {
 	UTI auti;
 	m_state.m_currentObjSymbolsForCodeGen.clear(); //*************
 
-	// what if ALT_ARRAYITEM???
+	// what if ALT_ARRAYITEM?
 	if(m_state.getReferenceType(m_funcSymbol->getParameterType(i)) != ALT_NOT)
-	//if((m_state.getReferenceType(m_funcSymbol->getParameterType(i)) != ALT_NOT) && (m_state.getReferenceType(m_funcSymbol->getParameterType(i)) != ALT_ARRAYITEM))
 	  {
 	    genCodeReferenceArg(fp, auvpass, i);
-	    //m_argumentNodes->genCodeToStoreInto(fp, auvpass, i);
-	    //Node::genCodeConvertATmpVarIntoAutoRef(fp, auvpass);
 	  }
 	else
 	  {
@@ -1296,8 +1288,6 @@ namespace MFM {
 
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 
-    //if(stgcos->isSelf()) return;
-
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
@@ -1334,9 +1324,6 @@ namespace MFM {
     ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClass();
     if(stgclasstype == UC_ELEMENT)
       {
-    //	if(stgcos->isAutoLocal())
-    //	  fp->write(stgcosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
-    //	else
         fp->write(stgcosut->getUlamTypeImmediateMangledName().c_str());
 	fp->write("<EC>");
 	fp->write("::Us::");
@@ -1351,13 +1338,6 @@ namespace MFM {
 	    fp->write("T::ATOM_FIRST_STATE_BIT>");
 	    fp->write("::");
 	  }
-	//else if(stgcos->isAutoLocal())
-	// {
-	//  fp->write(stgcosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
-	//  fp->write("<EC, ");
-	//  fp->write("T::ATOM_FIRST_STATE_BIT>");
-	//  fp->write("::Us::");
-	// }
 	else
 	  {
 	  //immediate quark..

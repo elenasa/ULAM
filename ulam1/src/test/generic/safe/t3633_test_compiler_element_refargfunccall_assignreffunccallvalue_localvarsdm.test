@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t3632_test_compiler_element_refargfunccall_localvarsdm
+#=t3633_test_compiler_element_refargfunccall_assignreffunccallvalue_localvarsdm
 #!
 ##      /* gen code output:
 ##	 Bool(3) Arg: 0x7 (true)
@@ -9,7 +9,7 @@ Exit status: 3
 Ue_Foo { System s();  Int(4) m_i(0);  Bool(3) m_b(false);  Int(32) test() {  Foo f;  Bool(3)& bref = f m_b .;  f m_i . 3 cast = ( f m_b . cast )check s ( f m_b . )print . s ( f m_i . )print . f m_i . cast return } }
 Uq_System { <NOMAIN> }
 ##
-## informed by t3625
+## informed by t3626, 3632
 ##
 #>Foo.ulam
   ulam 2;
@@ -19,14 +19,18 @@ element Foo {
   Int(4) m_i;
   Bool(3) m_b;
   Void check(Bool(3)& bok) {
-    if (m_i < 7)
-      bok = true;
-    else
-      bok = false;
-    return;
+    bok = lessthanmax(m_i);
   }
+
+  Bool(3) lessthanmax(Int(4) iarg)
+  {
+    if (iarg < 7)
+      return true;
+    return false;
+  }
+
   Int test() {
-    Foo f; //local storage
+    Foo f;
     Bool(3) & bref = f.m_b; //what does gencode look like?
     f.m_i = 3;
     check(f.m_b);
