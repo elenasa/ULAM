@@ -377,14 +377,15 @@ namespace MFM {
     for(s32 i= numargs - diffInArgs - 1; i >= 0; i--)
       {
 	UTI argType = m_argumentNodes->getNodeType(i);
-	UlamType * argut = m_state.getUlamTypeByIndex(argType);
 
 	// extra slot for a Ptr to unpacked array;
 	// arrays are handled by CS/callstack, and passed by value
 	u32 slots = makeRoomForNodeType(argType); //for eval return
 
-	ALT argreftype = argut->getReferenceType();
-	if(argreftype == ALT_REF)
+	UTI paramType = m_funcSymbol->getParameterType(i);
+	UlamType * put = m_state.getUlamTypeByIndex(paramType);
+	ALT paramreftype = put->getReferenceType();
+	if(paramreftype == ALT_REF)
 	  evs = m_argumentNodes->evalToStoreInto(i);
 	else
 	  evs = m_argumentNodes->eval(i);
@@ -399,6 +400,14 @@ namespace MFM {
 	if(slots==1)
 	  {
 	    UlamValue auv = m_state.m_nodeEvalStack.popArg();
+	    if(paramreftype == ALT_REF && (auv.getPtrStorage() == STACK))
+	      {
+		assert(auv.getUlamValueTypeIdx() == Ptr);
+		//u32 absrefslot = m_state.m_funcCallStack.getAbsoluteTopOfStackIndexOfNextSlot();
+		u32 absrefslot = m_state.m_funcCallStack.getAbsoluteStackIndexOfSlot(auv.getPtrSlotIndex());
+		auv.setPtrSlotIndex(absrefslot);
+		auv.setUlamValueTypeIdx(PtrAbs);
+	      }
 	    m_state.m_funcCallStack.pushArg(auv);
 	    argsPushed++;
 	  }
@@ -1215,16 +1224,20 @@ namespace MFM {
     // or ancestor quark if a class.
     m_argumentNodes->genCodeToStoreInto(fp, uvpass, n);
 
-    assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
-    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen.back();
+    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+
+    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
+    UTI cosuti = cos->getUlamTypeIdx();
+    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
     UTI vuti = m_funcSymbol->getParameterType(n);
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     ULAMCLASSTYPE vclasstype = vut->getUlamClass();
 
-    assert(vut->getUlamTypeEnum() == stgcosut->getUlamTypeEnum());
+    assert(vut->getUlamTypeEnum() == cosut->getUlamTypeEnum());
 
     m_state.indent(fp);
     fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
@@ -1236,7 +1249,7 @@ namespace MFM {
     if(stgcos->isDataMember()) //can't be an element
       {
 	fp->write("Uv_4atom, ");
-	fp->write_decimal_unsigned(stgcos->getPosOffset()); //relative off
+	fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
 	fp->write("u");
       }
     else
@@ -1245,14 +1258,24 @@ namespace MFM {
 	if(stgcos->getId() != m_state.m_pool.getIndexForDataString("atom")) //not isSelf check; was "self"
 	  fp->write(".getRef()");
 
-	if(vclasstype == UC_NOTACLASS)
+	if(cos->isDataMember())
 	  {
 	    fp->write(", ");
-	    fp->write_decimal_unsigned(BITSPERATOM - stgcosut->getTotalBitSize()); //right-justified
+	    fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
 	    fp->write("u");
 	  }
-	else if(vclasstype == UC_QUARK)
-	  fp->write(", 0u"); //left-justified
+	else
+	  {
+
+	    if(vclasstype == UC_NOTACLASS)
+	      {
+		fp->write(", ");
+		fp->write_decimal_unsigned(BITSPERATOM - stgcosut->getTotalBitSize()); //right-justified
+		fp->write("u");
+	      }
+	    else if(vclasstype == UC_QUARK)
+	      fp->write(", 0u"); //left-justified
+	  }
       }
     fp->write(");\n");
 

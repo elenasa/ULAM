@@ -263,7 +263,7 @@ namespace MFM {
     if(errorsFound)
       return Nav; //inconsistent! but keeps cast type..makeCastingNode returns error
 
-    if(nut->isReference())
+    if(tobe->isReference())
       setStoreIntoAble(true);
 
     return getNodeType();
@@ -330,7 +330,11 @@ namespace MFM {
 
     if(UlamType::compare(nodeType, tobeType, m_state) != UTIC_SAME)
       {
-	if(m_state.isARefTypeOfUlamType(nodeType, tobeType) || m_state.isARefTypeOfUlamType(tobeType, nodeType))
+	if(m_state.isARefTypeOfUlamType(nodeType, tobeType))
+	  {
+	    uv.setUlamValueTypeIdx(tobeType);
+	  }
+	else if(m_state.isARefTypeOfUlamType(tobeType, nodeType))
 	  {
 	    uv.setUlamValueTypeIdx(tobeType);
 	  }
@@ -358,7 +362,7 @@ namespace MFM {
     assert(m_node); //has to be
 
     UTI tobeType = getNodeType();
-    //UTI nodeType = m_node->getNodeType(); //uv.getUlamValueType()
+    UTI nodeType = m_node->getNodeType(); //uv.getUlamValueType()
 
     if(tobeType == Nav)
       return ERROR;
@@ -377,10 +381,19 @@ namespace MFM {
       }
 
     //then what? (see NodeMemberSelect)
-    UlamValue ruvPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(2);
+    UlamValue ruvPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1);
 
-    ruvPtr.setPtrTargetType(tobeType);
-    // fix slot???
+    if(m_state.isARefTypeOfUlamType(nodeType, tobeType))
+      {
+	ruvPtr.setPtrTargetType(tobeType);
+      }
+    else if(m_state.isARefTypeOfUlamType(tobeType, nodeType))
+      {
+	ruvPtr.setPtrTargetType(tobeType);
+      }
+    //else cast ????
+
+    // fix absolute slot, here or at func call?
     Node::assignReturnValuePtrToStack(ruvPtr);
 
     evalNodeEpilog();
@@ -593,7 +606,7 @@ namespace MFM {
     return;
   } //genCodeCastAtomAndElement
 
-  void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
+void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
   {
     UTI nuti = getNodeType(); //quark tobe
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
@@ -612,9 +625,9 @@ namespace MFM {
     Symbol * stgcos = NULL;
     stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 
-    s32 tmpVarPos = m_state.getNextTmpVarNumber();
+    s32 tmpVarIs = m_state.getNextTmpVarNumber();
     // "downcast" might not be true; compare to be sure the atom has a quark "Foo"
-    // get signed pos
+    // get signed pos (see t3631)
     if(vut->getUlamTypeEnum() == UAtom)
       {
 	s32 tmpVarType = m_state.getNextTmpVarNumber();
@@ -638,21 +651,24 @@ namespace MFM {
 	  }
 
 	m_state.indent(fp);
-	fp->write("const s32 ");
-	fp->write(m_state.getTmpVarAsString(Int, tmpVarPos).c_str());;
-	fp->write(" = ");
+	fp->write("const bool ");
+	fp->write(m_state.getTmpVarAsString(Bool, tmpVarIs).c_str());;
+	fp->write(" = ((");
+
+	//fp->write("if(!(");
 	//when SUBATOMIC quark, use first state bit position (0)
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarType).c_str());;
-	fp->write(" == T::ATOM_UNDEFINED_TYPE ? 0 : "); //subatomic type
+	fp->write(" == T::ATOM_UNDEFINED_TYPE) ? true : "); //subatomic type
 
-	//internal method, takes uc, u32 and const char*, returns s32 position
-	fp->write(m_state.getHasMangledFunctionName(vuti));
+	//internal method, takes uc, u32 and const char*, returns true
+	// if same or ancester
+	fp->write(m_state.getIsMangledFunctionName(vuti));
 	fp->write("(");
 	fp->write("uc, ");
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarType).c_str());;
 	fp->write(", \"");
 	fp->write(nut->getUlamTypeMangledName().c_str());
-	fp->write("\");\n"); //keeping pos in tmp
+	fp->write("\"));\n");
       }
     else
       {
@@ -660,18 +676,19 @@ namespace MFM {
 	if(vut->getUlamClass() == UC_ELEMENT)
 	  {
 	    m_state.indent(fp);
-	    fp->write("const s32 ");
-	    fp->write(m_state.getTmpVarAsString(Int, tmpVarPos).c_str());;
-	    fp->write(" = ");
-	    //internal method, takes uc, u32 and const char*, returns s32 position
-
+	    //fp->write("if(!(");
+	    fp->write("const bool ");
+	    fp->write(m_state.getTmpVarAsString(Bool, tmpVarIs).c_str());;
+	    fp->write(" = (");
+	    //internal method, takes uc, u32 and const char*, returns true
+	    // when same or ancestor
 	    fp->write(vut->getUlamTypeMangledName().c_str());
 	    fp->write("<EC>::");
 
-	    fp->write(m_state.getHasMangledFunctionName(vuti));
+	    fp->write(m_state.getIsMangledFunctionName(vuti));
 	    fp->write("(\"");
 	    fp->write(nut->getUlamTypeMangledName().c_str());
-	    fp->write("\");\n"); //keeping pos in tmp
+	    fp->write("\"));\n");
 	  }
 	else
 	  {
@@ -687,9 +704,10 @@ namespace MFM {
       }
 
     m_state.indent(fp);
-    fp->write("if(");
-    fp->write(m_state.getTmpVarAsString(Int, tmpVarPos).c_str());
-    fp->write(" < 0)\n");
+    fp->write("if(!");
+    fp->write(m_state.getTmpVarAsString(Int, tmpVarIs).c_str());
+    //fp->write(" < 0)\n");
+    fp->write(")\n");
 
     m_state.m_currentIndentLevel++;
     m_state.indent(fp);
@@ -748,7 +766,7 @@ namespace MFM {
 
     //for known quark:
     fp->write(", ");
-    fp->write(m_state.getTmpVarAsString(Int, tmpVarPos).c_str());
+    fp->write(m_state.getTmpVarAsString(Int, tmpVarIs).c_str());
 
     fp->write(");\n"); //like, shadow lhs of as
 

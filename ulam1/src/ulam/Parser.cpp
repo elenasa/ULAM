@@ -3254,7 +3254,7 @@ namespace MFM {
       {
 	if(getExpectedToken(TOK_IDENTIFIER, eTok))
 	  {
-	    Node * rightNode = parseLvalExpr(eTok);
+	    Node * rightNode = parseIdentExpr(eTok); //parseLvalExpr(eTok);
 	    if(!rightNode)
 	      {
 		std::ostringstream msg;
@@ -4788,12 +4788,17 @@ namespace MFM {
     assert(isUAtom);
 
     UlamKeyTypeSignature pkey(m_state.m_pool.getIndexForDataString("0Ptr"), ULAMTYPE_DEFAULTBITSIZE[Ptr]);
-    AssertBool isPtr = (m_state.makeUlamType(pkey, Ptr) == Ptr);
-    assert(isPtr);
+    AssertBool isPtrRel = (m_state.makeUlamType(pkey, Ptr) == Ptr);
+    assert(isPtrRel);
 
     UlamKeyTypeSignature hkey(m_state.m_pool.getIndexForDataString("0Holder"), UNKNOWNSIZE);
     AssertBool isHolder = (m_state.makeUlamType(hkey, Holder) == Holder);
     assert(isHolder);
+
+    //a Ptr for absolute indexing (i.e. reference class params); comes after Holder.
+    UlamKeyTypeSignature apkey(m_state.m_pool.getIndexForDataString("0Ptr"), ULAMTYPE_DEFAULTBITSIZE[Ptr], NONARRAYSIZE, ALT_PTR);
+    AssertBool isPtrAbs = (m_state.makeUlamType(apkey, Ptr) == PtrAbs);
+    assert(isPtrAbs);
 
     // next in line, the 64 basics:
     m_state.getLongUTI();

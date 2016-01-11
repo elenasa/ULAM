@@ -305,6 +305,9 @@ namespace MFM {
 
     if(m_state.isScalar(nuti))
       {
+	if(m_state.isReference(uvp.getPtrTargetType()))
+	  uvp = m_state.getPtrTarget(uvp);
+
 	uv = m_state.getPtrTarget(uvp);
 	UTI ttype = uv.getUlamValueTypeIdx();
 
@@ -405,6 +408,9 @@ namespace MFM {
     evalNodeProlog(0); //new current node eval frame pointer
 
     UlamValue rtnUVPtr = makeUlamValuePtr();
+
+    if(m_state.isReference(rtnUVPtr.getPtrTargetType()))
+      rtnUVPtr = m_state.getPtrTarget(rtnUVPtr);
 
     //copy result UV to stack, -1 relative to current frame pointer
     Node::assignReturnValuePtrToStack(rtnUVPtr);

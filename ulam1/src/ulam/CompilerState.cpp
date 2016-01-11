@@ -2080,17 +2080,19 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   UlamValue CompilerState::getPtrTarget(UlamValue ptr)
   {
-    assert(ptr.getUlamValueTypeIdx() == Ptr);
+    assert(ptr.isPtr());
+    if(ptr.getUlamValueTypeIdx() == PtrAbs)
+      return getPtrTargetFromAbsoluteIndex(ptr); //short-circuit
 
     //slot + storage
     UlamValue valAtIdx;
     switch(ptr.getPtrStorage())
       {
       case STACK:
-	valAtIdx = m_funcCallStack.loadUlamValueSingleFromSlot(ptr.getPtrSlotIndex());
+	valAtIdx = m_funcCallStack.loadUlamValueFromSlot(ptr.getPtrSlotIndex());
 	break;
       case EVALRETURN:
-	valAtIdx = m_nodeEvalStack.loadUlamValueSingleFromSlot(ptr.getPtrSlotIndex());
+	valAtIdx = m_nodeEvalStack.loadUlamValueFromSlot(ptr.getPtrSlotIndex());
 	break;
       case EVENTWINDOW:
 	valAtIdx = m_eventWindow.loadAtomFromSite(ptr.getPtrSlotIndex());
@@ -2101,13 +2103,37 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return valAtIdx; //return as-is
   } //getPtrTarget
 
+  UlamValue CompilerState::getPtrTargetFromAbsoluteIndex(UlamValue ptr)
+  {
+    assert(ptr.getUlamValueTypeIdx() == PtrAbs);
+
+    //slot + storage
+    UlamValue valAtIdx;
+    switch(ptr.getPtrStorage())
+      {
+      case STACK:
+	valAtIdx = m_funcCallStack.loadUlamValueFromStackIndex(ptr.getPtrSlotIndex());
+	break;
+      case EVALRETURN:
+	valAtIdx = m_nodeEvalStack.loadUlamValueFromStackIndex(ptr.getPtrSlotIndex());
+	break;
+      case EVENTWINDOW:
+	assert(0);
+	valAtIdx = m_eventWindow.loadAtomFromSite(ptr.getPtrSlotIndex()); //?
+	break;
+      default:
+	assert(0); //error!
+      };
+    return valAtIdx; //return as-is
+  } //getPtrTargetFromAbsoluteIndex
+
   //general purpose store
   void CompilerState::assignValue(UlamValue lptr, UlamValue ruv)
   {
-    assert(lptr.getUlamValueTypeIdx() == Ptr);
+    assert(lptr.isPtr());
 
     //handle UAtom assignment as a singleton (not array values)
-    if(ruv.getUlamValueTypeIdx() == Ptr && (UlamType::compareForUlamValueAssignment(ruv.getPtrTargetType(), UAtom, *this) == UTIC_NOTSAME || UlamType::compareForUlamValueAssignment(lptr.getPtrTargetType(), UAtom, *this) == UTIC_NOTSAME))
+    if(ruv.isPtr() && (UlamType::compareForUlamValueAssignment(ruv.getPtrTargetType(), UAtom, *this) == UTIC_NOTSAME || UlamType::compareForUlamValueAssignment(lptr.getPtrTargetType(), UAtom, *this) == UTIC_NOTSAME))
       return assignArrayValues(lptr, ruv);
 
     //r is data (includes packed arrays), store it into where lptr is pointing
@@ -2132,8 +2158,8 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   void CompilerState::assignArrayValues(UlamValue lptr, UlamValue rptr)
   {
-    assert(lptr.getUlamValueTypeIdx() == Ptr);
-    assert(rptr.getUlamValueTypeIdx() == Ptr);
+    assert(lptr.isPtr());
+    assert(rptr.isPtr());
 
     //assert types..the same, and arrays
     assert(UlamType::compare(lptr.getPtrTargetType(), rptr.getPtrTargetType(), *this) == UTIC_SAME);
@@ -2191,9 +2217,9 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	      assignValue(nextlptr, atval);
 
 	    AssertBool isNextLeft = nextlptr.incrementPtr(*this);
-	    assert(isNextLeft);
+	    assert(isNextLeft || ((i+1) == arraysize));
 	    AssertBool isNextRight = nextrptr.incrementPtr(*this);
-	    assert(isNextRight);
+	    assert(isNextRight || ((i+1) == arraysize));
 	  }
       }
   } //assignArrayValues
@@ -2678,6 +2704,11 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   {
     UlamKeyTypeSignature ubitskey(m_pool.getIndexForDataString("Bits"), MAXBITSPERLONG);
     return makeUlamType(ubitskey, Bits);
+  }
+
+  bool CompilerState::isPtr(UTI puti)
+  {
+    return ((puti == Ptr) || (puti == PtrAbs));
   }
 
 } //end MFM

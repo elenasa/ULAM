@@ -128,6 +128,8 @@ namespace MFM{
 
     void setAtomElementTypeIdx(UTI utype);
 
+    bool isPtr() const;
+
     PACKFIT isTargetPacked(); // Ptr only
 
     UlamValue getValAt(u32 offset, CompilerState& state) const; // Ptr only, arrays

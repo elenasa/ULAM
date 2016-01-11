@@ -6,7 +6,7 @@
 ./A.ulam:15:23: ERROR: Incompatible (nonscalar) types Int(32)[10] and Int(32)[10] for binary operator+ ; Suggest writing a loop.
 ./A.ulam:16:14: ERROR: Function Definition parameter 1, type: Int(32)[10] requires UNPACKED array support.
 ./A.ulam:3:1: ERROR: Unresolved No.1.
-./A.ulam:3:1: Warning: 1 nodes with unresolved types remain in function <func> (Uf_4func,15).
+./A.ulam:3:1: Warning: 1 nodes with unresolved types remain in function <func> (Uf_4func,16).
 ./A.ulam:3:5: Warning: Summary: 1 nodes with unresolved types remain in  a single function <func> in class: A.
 ./A.ulam:6:2: ERROR: Unresolved No.1.
 ./A.ulam:7:2: ERROR: Unresolved No.2.

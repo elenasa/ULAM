@@ -313,6 +313,8 @@ namespace MFM{
 	unpacked array targets are invalid */
     UlamValue getPtrTarget(UlamValue ptr);
 
+    UlamValue getPtrTargetFromAbsoluteIndex(UlamValue ptr);
+
     /** general purpose store value (except for Ptr as value) */
     void assignValue(UlamValue lptr, UlamValue ruv);
 
@@ -406,8 +408,11 @@ namespace MFM{
     UTI getUnsignedLongUTI();
     UTI getBigBitsUTI();
 
+    bool isPtr(UTI puti);
+
   private:
     ClassContextStack m_classContextStack; // the current subject of this compilation
+
 
   };
 }
