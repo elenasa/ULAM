@@ -77,7 +77,11 @@ namespace MFM
 
     UlamValue loadUlamValueFromSlot(s32 slot); //recurse until no Ptr
 
+    UlamValue loadUlamValueSingleFromSlot(s32 slot); //once through
+
     UlamValue loadUlamValuePtrFromSlot(s32 slot); //once through
+
+
 
     void storeUlamValueInSlot(UlamValue uv, s32 slot);
 

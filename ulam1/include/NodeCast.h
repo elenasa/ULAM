@@ -65,6 +65,7 @@ namespace MFM{
     virtual const std::string prettyNodeName();
 
     void setExplicitCast();
+
     bool isExplicitCast();
 
     virtual bool isAConstant();
@@ -84,6 +85,8 @@ namespace MFM{
     virtual void countNavNodes(u32& cnt);
 
     virtual EvalStatus eval();
+
+    virtual EvalStatus evalToStoreInto();
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 

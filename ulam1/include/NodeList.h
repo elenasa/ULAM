@@ -84,6 +84,8 @@ namespace MFM{
 
     EvalStatus eval(u32 n);
 
+    EvalStatus evalToStoreInto(u32 n);
+
     void addNodeToList(Node * argNode);
 
     u32 getNumberOfNodes() const;

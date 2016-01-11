@@ -377,12 +377,18 @@ namespace MFM {
     for(s32 i= numargs - diffInArgs - 1; i >= 0; i--)
       {
 	UTI argType = m_argumentNodes->getNodeType(i);
+	UlamType * argut = m_state.getUlamTypeByIndex(argType);
 
 	// extra slot for a Ptr to unpacked array;
 	// arrays are handled by CS/callstack, and passed by value
 	u32 slots = makeRoomForNodeType(argType); //for eval return
 
-	evs = m_argumentNodes->eval(i);
+	ALT argreftype = argut->getReferenceType();
+	if(argreftype == ALT_REF)
+	  evs = m_argumentNodes->evalToStoreInto(i);
+	else
+	  evs = m_argumentNodes->eval(i);
+
 	if(evs != NORMAL)
 	  {
 	    evalNodeEpilog();

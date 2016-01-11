@@ -1026,6 +1026,20 @@ namespace MFM {
       }
     fp->write("write(d); }\n");
 
+    //copy constructor here (return by value)
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("(const ");
+    fp->write(mangledName.c_str()); //u32
+    fp->write("& other) : ");
+    fp->write(automangledName.c_str());
+    fp->write("<EC, ");
+    fp->write_decimal_unsigned(BITSPERATOM - len);
+    fp->write("u>(m_stg, ");
+    fp->write_decimal_unsigned(BITSPERATOM - ATOMFIRSTSTATEBITPOS - len);
+    fp->write("u), ");
+    fp->write("m_stg(other.m_stg) { }\n");
+
     //default destructor (for completeness)
     m_state.indent(fp);
     fp->write("~");

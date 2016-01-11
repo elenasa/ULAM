@@ -56,6 +56,10 @@ namespace MFM{
   };
 #undef XY
 
+#ifndef PtrAbs
+#define PtrAbs (Ptr + 2)
+#endif //PtrAbs
+
   struct UlamValue; //forward
 
   class CompilerState; //forward

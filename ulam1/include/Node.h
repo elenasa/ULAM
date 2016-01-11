@@ -98,7 +98,7 @@ namespace MFM{
 
     void setNodeType(UTI ut);
 
-    bool isStoreIntoAble();
+    virtual bool isStoreIntoAble();
 
     void setStoreIntoAble(bool s);
 
