@@ -1,4 +1,5 @@
 XY(Nav,"0Nav",0,"n")
+XY(Hzy,"0Hzy",0,"z")
 XY(Void,"Void",0,"v")
 XY(Int,"Int",MAXBITSPERINT,"i")
 XY(Unsigned,"Unsigned",MAXBITSPERINT,"u")

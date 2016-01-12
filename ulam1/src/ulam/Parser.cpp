@@ -4749,11 +4749,15 @@ namespace MFM {
   void Parser::initPrimitiveUlamTypes()
   {
     //initialize "primitive" UlamTypes, in order!!
-    // unfortunately, Nav, Atom, Class (except quarks with toInt), Ptr and Holder
+    // unfortunately, Nav, Atom, Class (except quarks with toInt), Ptr (PtrAbs) and Holder
     // are not considered PRIMITIVE during type processing (use ut->isPrimitiveType());
     UlamKeyTypeSignature nkey(m_state.m_pool.getIndexForDataString("0Nav"), ULAMTYPE_DEFAULTBITSIZE[Nav]);
     AssertBool isNav = (m_state.makeUlamType(nkey, Nav) == Nav);
     assert(isNav); //true for primitives
+
+    UlamKeyTypeSignature zkey(m_state.m_pool.getIndexForDataString("0Hzy"), ULAMTYPE_DEFAULTBITSIZE[Hzy]);
+    AssertBool isHzy = (m_state.makeUlamType(zkey, Hzy) == Hzy);
+    assert(isHzy); //true for primitives
 
     UlamKeyTypeSignature vkey(m_state.m_pool.getIndexForDataString("Void"), ULAMTYPE_DEFAULTBITSIZE[Void]);
     AssertBool isVoid = (m_state.makeUlamType(vkey, Void) == Void);

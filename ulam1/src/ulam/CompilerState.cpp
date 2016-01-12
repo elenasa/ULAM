@@ -8,15 +8,16 @@
 #include "SymbolTypedef.h"
 #include "SymbolVariable.h"
 #include "UlamTypeAtom.h"
-#include "UlamTypeBool.h"
-#include "UlamTypeUnary.h"
 #include "UlamTypeBits.h"
-#include "UlamTypeInt.h"
-#include "UlamTypeUnsigned.h"
-#include "UlamTypeNav.h"
-#include "UlamTypeVoid.h"
-#include "UlamTypePtr.h"
+#include "UlamTypeBool.h"
 #include "UlamTypeHolder.h"
+#include "UlamTypeHzy.h"
+#include "UlamTypeInt.h"
+#include "UlamTypeNav.h"
+#include "UlamTypePtr.h"
+#include "UlamTypeUnary.h"
+#include "UlamTypeUnsigned.h"
+#include "UlamTypeVoid.h"
 
 namespace MFM {
 
@@ -382,6 +383,9 @@ namespace MFM {
       {
       case Nav:
 	ut = new UlamTypeNav(key, *this);
+	break;
+      case Hzy:
+	ut = new UlamTypeHzy(key, *this);
 	break;
       case Void:
 	ut = new UlamTypeVoid(key, *this);
