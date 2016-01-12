@@ -65,6 +65,20 @@ namespace MFM
 
     u32 getRelativeTopOfStackNextSlot();
 
+    u32 getAbsoluteTopOfStackIndexOfNextSlot();
+
+    u32 getAbsoluteStackIndexOfSlot(s32 slot);
+
+    void storeUlamValueAtStackIndex(UlamValue uv, u32 index);
+
+    UlamValue loadUlamValueFromStackIndex(u32 index);
+
+    void storeUlamValueInSlot(UlamValue uv, s32 slot);
+
+    UlamValue loadUlamValueFromSlot(s32 slot); //recurse until no Ptr
+
+    UlamValue loadUlamValuePtrFromSlot(s32 slot); //once through
+
     void assignUlamValue(UlamValue luv, UlamValue ruv, CompilerState& state);
 
     void assignUlamValuePtr(UlamValue pluv, UlamValue puv);
@@ -75,22 +89,16 @@ namespace MFM
 
     UlamValue popArg();           //doesn't change framepointer
 
-    UlamValue loadUlamValueFromSlot(s32 slot); //recurse until no Ptr
-
-    UlamValue loadUlamValueSingleFromSlot(s32 slot); //once through
-
-    UlamValue loadUlamValuePtrFromSlot(s32 slot); //once through
-
-
-
-    void storeUlamValueInSlot(UlamValue uv, s32 slot);
-
   private:
     std::vector<UlamValue> m_frames;
     u32 m_currentFrame;
     UTI m_intType;
 
+    UlamValue loadUlamValueSingleFromSlot(s32 slot); //once through
+
+    void assignUlamValueAtAbsoluteIndex(UlamValue pluv, UlamValue ruv, CompilerState& state);
   };
+
 }
 
 #endif  /* CALLSTACK_H */

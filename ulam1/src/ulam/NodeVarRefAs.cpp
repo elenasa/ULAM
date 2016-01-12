@@ -149,22 +149,8 @@ namespace MFM {
     ULAMCLASSTYPE vclasstype = vut->getUlamClass();
 
     m_state.indent(fp);
-    fp->write(vut->getUlamTypeImmediateMangledName().c_str()); //for C++ local vars, ie non-data members
-    if((vclasstype == UC_ELEMENT) || (vut->getUlamTypeEnum() == UAtom))
-      fp->write("<EC> ");
-    else if(vclasstype == UC_QUARK)//QUARK
-      {
-	fp->write("<EC, ");
-	fp->write_decimal_unsigned(m_varSymbol->getPosOffset()); //POS should be 0+25 for inheritance
-	fp->write("u + T::ATOM_FIRST_STATE_BIT> ");
-      }
-    else
-      {
-	//primitive
-	fp->write("<EC, ");
-	fp->write_decimal_unsigned(BITSPERATOM - vut->getTotalBitSize() ); //must be a constant
-	fp->write("u> ");
-      }
+    fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+    fp->write(" ");
 
     fp->write(m_varSymbol->getMangledName().c_str());
     fp->write("(");
@@ -188,7 +174,7 @@ namespace MFM {
     else
       assert(0);
 
-    fp->write(");   //shadows lhs of 'h/as'\n");
+    fp->write("); //shadows lhs of 'as'\n");
 
     m_state.indent(fp);
 

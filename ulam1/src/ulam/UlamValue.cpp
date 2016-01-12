@@ -206,7 +206,7 @@ namespace MFM {
   // for iterating an entire array see CompilerState::assignArrayValues
   UlamValue UlamValue::getValAt(u32 offset, CompilerState& state) const
   {
-    assert(getUlamValueTypeIdx() == Ptr);
+    assert(isPtr());
 
     UTI auti = m_uv.m_ptrValue.m_targetType;
     if(state.isClassACustomArray(auti))
@@ -230,7 +230,7 @@ namespace MFM {
     assert(isNext);
     UlamValue atval = state.getPtrTarget(scalarPtr);
 
-    while(atval.getUlamValueTypeIdx() == Ptr)
+    while(atval.isPtr())
       atval = state.getPtrTarget(atval); //instead of getPtrTarget doing it (t3615 vs t3611)
 
     // redo what getPtrTarget use to do, when types didn't match due to
@@ -256,21 +256,27 @@ namespace MFM {
     return atval;
   } //getValAt
 
+  bool UlamValue::isPtr() const
+  {
+    UTI puti = getUlamValueTypeIdx();
+    return ((puti == Ptr) || (puti == PtrAbs));
+  } //isPtr
+
   PACKFIT UlamValue::isTargetPacked()
   {
-    assert(getUlamValueTypeIdx() == Ptr);
+    assert(isPtr());
     return (PACKFIT) m_uv.m_ptrValue.m_packed;
   } //isTargetPacked
 
   void UlamValue::setPtrStorage(STORAGE s)
   {
-    assert(getUlamValueTypeIdx() == Ptr);
+    assert(isPtr());
     m_uv.m_ptrValue.m_storagetype = s;
   } //setPtrStorage
 
   STORAGE UlamValue::getPtrStorage()
   {
-    assert(getUlamValueTypeIdx() == Ptr);
+    assert(isPtr());
     return (STORAGE) m_uv.m_ptrValue.m_storagetype;
   } //getPtrStorage
 
@@ -278,20 +284,20 @@ namespace MFM {
   // use: adjust "hidden" arg's pointer to atom in call stack
   void UlamValue::setPtrSlotIndex(s32 s)
   {
-    assert(getUlamValueTypeIdx() == Ptr);
+    assert(isPtr());
     m_uv.m_ptrValue.m_slotIndex = s;
   } //setPtrSlotIndex
 
   // possibly negative into call stack (e.g. args, rtn values)
   s32 UlamValue::getPtrSlotIndex()
   {
-    assert(getUlamValueTypeIdx() == Ptr);
+    assert(isPtr());
     return m_uv.m_ptrValue.m_slotIndex;
   } //getPtrSlotIndex
 
   void UlamValue::setPtrPos(u32 pos)
   {
-    assert(getUlamValueTypeIdx() == Ptr);
+    assert(isPtr());
     assert(pos <= BITSPERATOM && pos >= 0);
     m_uv.m_ptrValue.m_posInAtom = pos;
     return;
@@ -299,7 +305,7 @@ namespace MFM {
 
   u32 UlamValue::getPtrPos()
   {
-    assert(getUlamValueTypeIdx() == Ptr);
+    assert(isPtr());
     u32 pos = m_uv.m_ptrValue.m_posInAtom;
     // this will blow up the smaller BITVECTORS used in code gen for immmediates.
     //assert(pos <= BITSPERATOM && pos >= ATOMFIRSTSTATEBITPOS);
@@ -309,7 +315,7 @@ namespace MFM {
 
   s32 UlamValue::getPtrLen()
   {
-    assert(getUlamValueTypeIdx() == Ptr);
+    assert(isPtr());
     s32 len = m_uv.m_ptrValue.m_bitlenInAtom;
     assert(len >= 0 && len <= MAXSTATEBITS); //up to caller to fix negative len
     return len;
@@ -317,32 +323,33 @@ namespace MFM {
 
   UTI UlamValue::getPtrTargetType()
   {
-    assert(getUlamValueTypeIdx() == Ptr);
+    assert(isPtr());
     return m_uv.m_ptrValue.m_targetType;
   } //getPtrTargetType
 
   void UlamValue::setPtrTargetType(UTI type)
   {
-    assert(getUlamValueTypeIdx() == Ptr);
+    assert(isPtr());
     m_uv.m_ptrValue.m_targetType = type;
   } //setPtrTargetType
 
   u16 UlamValue::getPtrNameId()
   {
-    assert(getUlamValueTypeIdx() == Ptr);
+    assert(isPtr());
     return m_uv.m_ptrValue.m_nameid;
   } //getPtrNameId
 
   void UlamValue::setPtrNameId(u32 id)
   {
-    assert(getUlamValueTypeIdx() == Ptr);
+    assert(isPtr());
     assert(id <= ((1 << 17) - 1));
     m_uv.m_ptrValue.m_nameid = (u16) id;
   } //setPtrNameId
 
+  //default offset is 1
   bool UlamValue::incrementPtr(CompilerState& state, s32 offset)
   {
-    assert(getUlamValueTypeIdx() == Ptr);
+    assert(isPtr());
     assert(state.isScalar(getPtrTargetType())); //?
     bool rtnb = false;
     if(WritePacked((PACKFIT) m_uv.m_ptrValue.m_packed))
@@ -353,7 +360,58 @@ namespace MFM {
     else
       {
 	m_uv.m_ptrValue.m_slotIndex += offset;
-	rtnb = (m_uv.m_ptrValue.m_slotIndex < BITSPERATOM && m_uv.m_ptrValue.m_slotIndex >= 0);
+	if(getUlamValueTypeIdx() == Ptr)
+	  {
+	    //rtnb = (m_uv.m_ptrValue.m_slotIndex < BITSPERATOM && m_uv.m_ptrValue.m_slotIndex >= 0);
+
+	    STORAGE place = getPtrStorage();
+	    switch(place)
+	      {
+	      case STACK:
+		{
+		  u32 absidx = state.m_funcCallStack.getAbsoluteStackIndexOfSlot(m_uv.m_ptrValue.m_slotIndex);
+		  rtnb = ((absidx >=0) && (absidx < state.m_funcCallStack.getAbsoluteTopOfStackIndexOfNextSlot()));
+		}
+		break;
+	      case EVALRETURN:
+		{
+		  u32 absidx = state.m_nodeEvalStack.getAbsoluteStackIndexOfSlot(m_uv.m_ptrValue.m_slotIndex);
+		  rtnb = ((absidx >=0) && (absidx < state.m_nodeEvalStack.getAbsoluteTopOfStackIndexOfNextSlot()));
+		}
+		break;
+	      case EVENTWINDOW:
+		{
+		  Coord c;
+		  rtnb = state.m_eventWindow.isValidSite(m_uv.m_ptrValue.m_slotIndex, c);
+		}
+		break;
+	      default:
+		assert(0);
+	      };
+	  }
+	else if(getUlamValueTypeIdx() == PtrAbs)
+	  {
+	    STORAGE place = getPtrStorage();
+	    switch(place)
+	      {
+	      case STACK:
+		rtnb = (m_uv.m_ptrValue.m_slotIndex > 0) && ((u32) m_uv.m_ptrValue.m_slotIndex < state.m_funcCallStack.getAbsoluteTopOfStackIndexOfNextSlot());
+		break;
+	      case EVALRETURN:
+		rtnb = (m_uv.m_ptrValue.m_slotIndex > 0) && ((u32) m_uv.m_ptrValue.m_slotIndex < state.m_nodeEvalStack.getAbsoluteTopOfStackIndexOfNextSlot());
+		break;
+	      case EVENTWINDOW:
+		{
+		  Coord c;
+		  rtnb = state.m_eventWindow.isValidSite(m_uv.m_ptrValue.m_slotIndex, c);
+		}
+		break;
+	      default:
+		assert(0);
+	      };
+	  }
+	else
+	  assert(0);
       }
     return rtnb;
   } //incrementPtr
@@ -423,7 +481,7 @@ namespace MFM {
   {
     UTI duti = getUlamValueTypeIdx();
     //assert(duti == p.getPtrTargetType()); this could be an 'unpacked' element
-    if(duti == Ptr)
+    if(isPtr())
       duti = (const_cast<UlamValue *>(this))->getPtrTargetType();
 
     if(!state.isScalar(p.getPtrTargetType()) && p.isTargetPacked() == PACKED)
@@ -722,7 +780,7 @@ namespace MFM {
 
   void UlamValue::genCodeBitField(File * fp, CompilerState& state)
   {
-    assert(getUlamValueTypeIdx() == Ptr);
+    assert(isPtr());
     UTI vuti = getPtrTargetType();
     UlamType * vut = state.getUlamTypeByIndex(vuti);
 

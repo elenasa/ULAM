@@ -169,17 +169,13 @@ namespace MFM {
 	    msg << "Storage expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
 	    msg << ", is invalid";
-	    if(!m_nodeInitExpr->isStoreIntoAble())
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    else
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //possibly still hazy
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //possibly still hazy
+	    m_state.setGoAgain();
 	    setNodeType(Nav);
 	    return Nav; //short-circuit
 	  }
 
-	//if(m_storageExpr->isStoreIntoAble())
-	Symbol * storsym = NULL;
-	if(m_nodeInitExpr->getSymbolPtr(storsym) && (storsym->isConstant() || storsym->isFunction()))
+	if(m_nodeInitExpr->isAConstant() || m_nodeInitExpr->isFunctionCall())
 	  {
 	    std::ostringstream msg;
 	    msg << "Storage expression for: ";
@@ -190,7 +186,6 @@ namespace MFM {
 	    return Nav; //short-circuit
 	  }
       }
-
     setNodeType(it);
     return getNodeType();
   } //checkAndLabelType
@@ -273,42 +268,31 @@ namespace MFM {
 	// or ancestor quark if a class.
 	m_nodeInitExpr->genCodeToStoreInto(fp, uvpass);
 
-	assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
-	Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen.back();
+	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+	Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 	UTI stgcosuti = stgcos->getUlamTypeIdx();
 	UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
-	UTI vuti = m_varSymbol->getUlamTypeIdx(); //i.e. this node
+	Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
+	UTI cosuti = cos->getUlamTypeIdx();
+	UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+
+	UTI vuti = m_varSymbol->getUlamTypeIdx(); //i.e. this ref node
 	UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 	ULAMCLASSTYPE vclasstype = vut->getUlamClass();
 
-	assert(vut->getUlamTypeEnum() == stgcosut->getUlamTypeEnum());
+	assert(vut->getUlamTypeEnum() == cosut->getUlamTypeEnum());
 
 	m_state.indent(fp);
-	fp->write(vut->getUlamTypeImmediateMangledName().c_str()); //for C++ local vars, ie non-data members
-	if(vclasstype == UC_ELEMENT)
-	  fp->write("<EC> ");
-	else if(vclasstype == UC_QUARK)
-	  {
-	    fp->write("<EC, ");
-	    fp->write_decimal_unsigned(uvpass.getPtrPos());
-	    fp->write("u> ");
-	  }
-	else //primitive, right-just
-	  {
-	    fp->write("<EC, ");
-	    // note: POS for a ref is alway the right-justified position, leaving
-	    // the pos argument to reflect any difference; required for runtime.
-	    fp->write_decimal_unsigned(BITSPERATOM - uvpass.getPtrLen());
-	    fp->write("u> ");
-	  }
+	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+	fp->write(" ");
 
 	fp->write(m_varSymbol->getMangledName().c_str());
 	fp->write("("); //pass ref in constructor (ref's not assigned with =)
 	if(stgcos->isDataMember()) //can't be an element
 	  {
 	    fp->write("Uv_4atom, ");
-	    fp->write_decimal_unsigned(stgcos->getPosOffset()); //relative off
+	    fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
 	    fp->write("u");
 	  }
 	else
@@ -317,14 +301,24 @@ namespace MFM {
 	    if(stgcos->getId() != m_state.m_pool.getIndexForDataString("atom")) //not isSelf check; was "self"
 	      fp->write(".getRef()");
 
-	    if(vclasstype == UC_NOTACLASS)
+	    if(cos->isDataMember())
 	      {
 		fp->write(", ");
-		fp->write_decimal_unsigned(BITSPERATOM - stgcosut->getTotalBitSize() - ATOMFIRSTSTATEBITPOS); //right-justified, not including FIRSTSTATEBITPOS
+		fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
 		fp->write("u");
 	      }
-	    else if(vclasstype == UC_QUARK)
-	      fp->write(", 0u"); //left-justified
+	    else
+	      {
+		//local var
+		if(vclasstype == UC_NOTACLASS)
+		  {
+		    fp->write(", ");
+		    fp->write_decimal_unsigned(BITSPERATOM - stgcosut->getTotalBitSize() - ATOMFIRSTSTATEBITPOS); //right-justified, not including FIRSTSTATEBITPOS
+		    fp->write("u");
+		  }
+		else if(vclasstype == UC_QUARK)
+		  fp->write(", 0u"); //left-justified
+	      }
 	  }
 	fp->write(");\n");
       } //storage

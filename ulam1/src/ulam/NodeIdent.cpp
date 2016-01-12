@@ -305,6 +305,9 @@ namespace MFM {
 
     if(m_state.isScalar(nuti))
       {
+	if(m_state.isReference(uvp.getPtrTargetType()))
+	  uvp = m_state.getPtrTarget(uvp);
+
 	uv = m_state.getPtrTarget(uvp);
 	UTI ttype = uv.getUlamValueTypeIdx();
 
@@ -349,7 +352,6 @@ namespace MFM {
 		  {
 		    UTI vuti = uv.getUlamValueTypeIdx();
 		    // does this handle a ptr to a ptr (e.g. "self")? (see makeUlamValuePtr)
-		    //assert( vuti != Ptr);
 		    if(vuti == Ptr)
 		      {
 			uvp = uv;
@@ -406,6 +408,9 @@ namespace MFM {
 
     UlamValue rtnUVPtr = makeUlamValuePtr();
 
+    if(m_state.isReference(rtnUVPtr.getPtrTargetType()))
+      rtnUVPtr = m_state.getPtrTarget(rtnUVPtr);
+
     //copy result UV to stack, -1 relative to current frame pointer
     Node::assignReturnValuePtrToStack(rtnUVPtr);
 
@@ -438,7 +443,6 @@ namespace MFM {
 
     //can't use global m_currentAutoObjPtr, since there might be nested as conditional blocks.
     // NodeVarDecl for this autolocal sets AutoPtrForEval during its eval.
-    //if(m_varSymbol->isAutoLocal())
     if(m_varSymbol->getAutoLocalType() == ALT_AS)
       return ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval(); //haha! we're done.
 
@@ -858,11 +862,9 @@ namespace MFM {
 	      args.m_bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
 
 	    UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, scalarUTI, key.getUlamKeyTypeSignatureReferenceType()); //same reftype as key (or args?)
-	    //newarraykey.append(scalarUTI);
 	    auti = m_state.makeUlamType(newarraykey, bUT);
 	  }
 
-	//assert(m_state.getUlamTypeByIndex(uti)->getReferenceType() == args.m_declRef);
 	uti = m_state.getUlamTypeAsRef(auti, args.m_declRef); //ut not current
 
 	SymbolVariable * sym = makeSymbol(uti, args.m_declRef);
