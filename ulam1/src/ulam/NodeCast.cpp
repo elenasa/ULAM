@@ -202,9 +202,12 @@ namespace MFM {
     //check for any array cast errors
     if(!tobe->isScalar())
       {
-	MSG(getNodeLocationAsString().c_str(),
-	    "Array casts currently not supported", ERR);
-	errorsFound++;
+	if(!(m_state.isARefTypeOfUlamType(tobeType, nodeType) || m_state.isARefTypeOfUlamType(nodeType, tobeType)))
+	  {
+	    MSG(getNodeLocationAsString().c_str(),
+		"Array casts currently not supported", ERR);
+	    errorsFound++;
+	  }
 
 	if(nut->isScalar())
 	  {
@@ -224,9 +227,12 @@ namespace MFM {
 	//to be scalar type
 	if(!nut->isScalar())
 	  {
-	    MSG(getNodeLocationAsString().c_str(),
-		"Consider implementing array casts: Cannot cast array into scalar", ERR);
-	    errorsFound++;
+	    if(!(m_state.isARefTypeOfUlamType(tobeType, nodeType) || m_state.isARefTypeOfUlamType(nodeType, tobeType)))
+	      {
+		MSG(getNodeLocationAsString().c_str(),
+		    "Consider implementing array casts: Cannot cast array into scalar", ERR);
+		errorsFound++;
+	      }
 	  }
       } // end not scalar errors
 

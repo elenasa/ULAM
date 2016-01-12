@@ -180,6 +180,8 @@ namespace MFM {
 					 arrayPtr.getPtrPos(),    /* base pos of array */
 					 arrayPtr.getPtrNameId()  /* incl nameid of array */
 					 );
+    if(arrayPtr.getUlamValueTypeIdx() == PtrAbs)
+      rtnUV.setUlamValueTypeIdx(PtrAbs);
     return rtnUV;
   } //makeScalarPtr
 
