@@ -11,13 +11,14 @@ namespace MFM{
                                                              typename EC::ATOM_CONFIG::ATOM_TYPE & Uv_4self,
                                                              Ui_Ut_102321u<EC> Uv_5flags) const
   {
+    const Tile<EC> & tile = uc.GetTile();
+    const EventWindow<EC> & ew = uc.GetEventWindow();
+    SPoint ctr = ew.GetCenterInTile();
+
     OString512 buff;
     u32 flags = Uv_5flags.read();
-    Uq_10109210DebugUtils10_printAtom(uc, Uv_4self, flags, buff);
+    Uq_10109210DebugUtils10_printAtom(uc, ew.GetCenterAtomDirect(), flags, buff);
 
-    Tile<EC> & tile = uc.GetTile();
-    EventWindow<EC> & ew = uc.GetEventWindow();
-    SPoint ctr = ew.GetCenterInTile();
 
     LOG.Message("@(%2d,%2d) of %s: %s",
                 ctr.GetX(), ctr.GetY(),
@@ -82,7 +83,7 @@ namespace MFM{
   // It doesn't follow the ulam native function interface rules!
   template<class EC>
   inline void Uq_10109210DebugUtils10_printAtom(const UlamContext<EC>& uc,
-                                                typename EC::ATOM_CONFIG::ATOM_TYPE & atom,
+                                                typename EC::ATOM_CONFIG::ATOM_TYPE atom, // call by value
                                                 u32 flags,
                                                 ByteSink & buff)
   {
@@ -90,11 +91,12 @@ namespace MFM{
     if (!flags) return;
 
     u32 type = atom.GetType();
-    Tile<EC> & tile = uc.GetTile();
+    const Tile<EC> & tile = uc.GetTile();
     const UlamClassRegistry<EC> & ucr = tile.GetUlamClassRegistry();
     const Element<EC> * ep = tile.GetElement(type);
 
     typedef typename EC::ATOM_CONFIG AC;
+    
     AtomSerializer<AC> as(atom);
 
     if (ep)
