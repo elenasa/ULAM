@@ -3,7 +3,7 @@
 #!
 Exit status: 19
 Ue_P { Bool(1) b(false);  Int(32) test() {  Q(2,3) q;  Q(1,3) r;  Q(4,1) s;  Q(2,3) t;  19u cast return } }
-Uq_Q(Int(32) s = 2, Int(32) t = 3) { typedef Unsigned(UNKNOWN) Foo;  typedef Unsigned(UNKNOWN) Bar;  Unsigned(UNKNOWN) f(unknown);  Unsigned(UNKNOWN) b(unknown);  <NOMAIN> }
+Uq_Q(Int(32) s = 2, Int(32) t = 3) { typedef Unsigned(UNKNOWN) Foo;  typedef Unsigned(UNKNOWN) Bar;  Unsigned(UNKNOWN) f(notready);  Unsigned(UNKNOWN) b(notready);  <NOMAIN> }
 ##
 ## second test of class parameters with multiple default values
 ##

@@ -50,7 +50,7 @@
 namespace MFM{
 
   enum EVALS { EVAL_RHS, EVAL_LHS, EVAL_SIDEEFFECTS};
-  enum EvalStatus {ERROR, NORMAL, RETURN, BREAK, CONTINUE};
+  enum EvalStatus {ERROR, NOTREADY, NORMAL, RETURN, BREAK, CONTINUE};
 
   struct CompilerState; //forward
   struct TypeArgs; //forward

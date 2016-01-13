@@ -94,7 +94,7 @@ namespace MFM {
 	if(ceNode)
 	  {
 	    UTI uti = ceNode->checkAndLabelType();
-	    if(uti != Nav) //i.e. ready
+	    if((uti != Nav) && (uti != Hzy)) //i.e. ready
 	      {
 		delete ceNode;
 		*vit = NULL;

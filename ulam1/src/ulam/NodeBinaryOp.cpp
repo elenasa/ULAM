@@ -67,6 +67,8 @@ namespace MFM {
     char id[255];
     if(myut == Nav)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
+    else if(myut == Hzy)
+      sprintf(id,"%s<HAZYTYPE>\n", prettyNodeName().c_str());
     else
       sprintf(id,"%s<%s>\n",prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
@@ -136,16 +138,14 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
 
     UTI leftType = m_nodeLeft->checkAndLabelType();
-    //leftType = m_state.getUlamTypeAsDeref(leftType);
     UTI rightType = m_nodeRight->checkAndLabelType();
-    //rightType = m_state.getUlamTypeAsDeref(rightType);
 
     // efficiency bites! no sooner, need left and right side-effects
     // (e.g. NodeControl condition is Bool at start; stubs need Symbol ptrs)
-    if(getNodeType() != Nav)
+    if(getNodeType() != Nav && getNodeType() != Hzy)
       return getNodeType();
 
-    UTI newType = Nav;
+    UTI newType = Hzy;
 
     if(m_state.isComplete(leftType) && m_state.isComplete(rightType))
       newType = calcNodeType(leftType, rightType); //does safety check
@@ -449,6 +449,7 @@ namespace MFM {
     UTI nuti = getNodeType();
 
     if(nuti == Nav) return Nav; //nothing to do yet
+    if(nuti == Hzy) return Hzy; //nothing to do yet
 
     // if here, must be a constant..
     assert(isAConstant());
@@ -490,9 +491,20 @@ namespace MFM {
 	msg << "Constant value expression for binary op" << getName();
 	msg << " is not yet ready while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
 	return Nav;
+      }
+
+    if(evs == NOTREADY)
+      {
+	std::ostringstream msg;
+	msg << "Constant value expression for binary op" << getName();
+	msg << " is not yet ready while compiling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	setNodeType(Hzy);
+	return Hzy;
       }
 
     //replace ourselves (and kids) with a node terminal; new NNO unlike template's
@@ -573,6 +585,9 @@ namespace MFM {
     if((luv.getUlamValueTypeIdx() == Nav) || (ruv.getUlamValueTypeIdx() == Nav))
       return false;
 
+    if((luv.getUlamValueTypeIdx() == Hzy) || (ruv.getUlamValueTypeIdx() == Hzy))
+      return false;
+
     UlamValue rtnUV;
     u32 wordsize = m_state.getTotalWordSize(nuti);
     if(wordsize == MAXBITSPERINT)
@@ -589,6 +604,7 @@ namespace MFM {
       }
     else
       assert(0);
+
     if(rtnUV.getUlamValueTypeIdx() == Nav)
       return false;
 

@@ -5,7 +5,7 @@ Exit status: 3
 Ue_R { Int(32) test() {  P(3) pvar;  pvar var . pvar ( )func . = pvar var . cast return } }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }
 Uq_Q(Int(32) s) { typedef P(a) Foo;  <NOMAIN> }
-Ue_P(Int(32) a) { Unsigned(UNKNOWN) var(unknown);  <NOMAIN> }
+Ue_P(Int(32) a) { Unsigned(UNKNOWN) var(notready);  <NOMAIN> }
 ##
 ##      //informed by t3343, 53 : recursive typedefs as function return value; class with args
 #>R.ulam

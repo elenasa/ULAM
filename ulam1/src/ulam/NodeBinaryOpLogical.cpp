@@ -20,7 +20,7 @@ namespace MFM {
   UTI NodeBinaryOpLogical::calcNodeType(UTI lt, UTI rt)  //logical
   {
     if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
-      return Nav;
+      return Hzy;
 
     //no atoms, elements nor voids as either operand
     if(!NodeBinaryOp::checkForPrimitiveTypes(lt, rt))

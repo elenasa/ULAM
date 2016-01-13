@@ -81,6 +81,8 @@ namespace MFM {
     char id[255];
     if(myut==Nav)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
+    if(myut==Hzy)
+      sprintf(id,"%s<HAZYTYPE>\n", prettyNodeName().c_str());
     else
       sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
@@ -181,7 +183,7 @@ namespace MFM {
 	msg << "' UTI" << it << " while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	it = Nav;
+	it = Hzy;
       }
     else
       {
@@ -218,6 +220,9 @@ namespace MFM {
 
     if(it == Nav)
       return Nav;; //bail for this iteration
+
+    if(it == Hzy)
+      return Hzy;; //bail for this iteration
 
     m_state.pushCurrentBlock(this);
 
@@ -268,6 +273,9 @@ namespace MFM {
     UTI nuti = getNodeType();
     if(nuti == Nav)
       return ERROR;
+
+    if(nuti == Hzy)
+      return NOTREADY;
 
     m_state.pushCurrentBlock(this); //push func def
 

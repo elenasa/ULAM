@@ -109,10 +109,15 @@ namespace MFM {
 		msg << m_state.getTokenDataAsString(&m_ofTok).c_str();
 		msg << "' Proxy";
 		if(!hazyKin)
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		  {
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    return Nav;
+		  }
 		else
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		return Nav;
+		  {
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    return Hzy;
+		  }
 	      }
 	  }
       }
@@ -167,11 +172,14 @@ namespace MFM {
     if(nuti == Nav)
       return ERROR;
 
+    if(nuti == Hzy)
+      return NOTREADY;
+
     EvalStatus evs = NORMAL; //init ok
     evalNodeProlog(0); //new current frame pointer
 
     if(!m_state.isComplete(m_uti))
-      evs = ERROR;
+      evs = NOTREADY;
     else
       {
 	UlamValue rtnUV;

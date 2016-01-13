@@ -19,7 +19,7 @@
 ##
 Exit status: 0
 Ue_Foo : IntXY(3u,4u) { :< constant Unsigned(32) xbits = 3u;  constant Unsigned(32) ybits = 4u;  typedef Int(3) XCoord;  typedef Int(4) YCoord;  Int(3) x(2);  Int(4) y(2); > Int(32) test() {  System s;  Foo m;  s ( x )print . s ( y )print . s ( m x . )print . s ( m y . )print . m ( 1 cast 2 cast )make = s ( m x . )print . s ( m y . )print . m ( 1 cast 2 cast )makeAs = s ( m x . )print . s ( m y . )print . m ( 2 cast 3 cast )fromXY cast = s ( m x . )print . s ( m y . )print . ( 2 cast 2 cast )init s ( self x . )print . s ( self y . )print . 0 cast return } }
-Uq_IntXY(Unsigned(32) xbits, Unsigned(32) ybits) { typedef Int(UNKNOWN) XCoord;  typedef Int(UNKNOWN) YCoord;  Int(3) x(unknown);  Int(4) y(unknown);  <NOMAIN> }
+Uq_IntXY(Unsigned(32) xbits, Unsigned(32) ybits) { typedef Int(UNKNOWN) XCoord;  typedef Int(UNKNOWN) YCoord;  Int(3) x(notready);  Int(4) y(notready);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 #>Foo.ulam
   ulam 1;

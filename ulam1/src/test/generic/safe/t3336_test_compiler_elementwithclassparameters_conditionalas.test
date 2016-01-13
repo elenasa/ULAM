@@ -9,7 +9,7 @@
 ##
 Exit status: 7
 Ue_Foo : Counter4(3) { :< constant Int(32) x = 3;  Int(3) d(0); > System s();  Int(32) e(7);  constant Int(32) v = 3;  Int(32) test() {  Atom(96) a;  Foo f;  a f cast = a Counter4(3) as cond { Counter4(3)& a;  a ( )incr . e a ( )get . = s ( e )print . } if e 7 cast = else e return } }
-Uq_Counter4(Int(32) x) { Int(UNKNOWN) d(unknown);  <NOMAIN> }
+Uq_Counter4(Int(32) x) { Int(UNKNOWN) d(notready);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ##      //informed by t3249_test_compiler_elementandquark_conditionalas

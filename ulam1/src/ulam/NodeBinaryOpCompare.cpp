@@ -53,7 +53,7 @@ namespace MFM {
   UTI NodeBinaryOpCompare::calcNodeType(UTI lt, UTI rt)
   {
     if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
-      return Nav;
+      return Hzy;
 
     //no atoms, elements nor void as either operand
     if(!NodeBinaryOp::checkForPrimitiveTypes(lt, rt))
@@ -158,6 +158,9 @@ namespace MFM {
     UlamValue luv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(lslot); //immediate value
     UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot); //immediate value
     if((luv.getUlamValueTypeIdx() == Nav) || (ruv.getUlamValueTypeIdx() == Nav))
+      return false;
+
+    if((luv.getUlamValueTypeIdx() == Hzy) || (ruv.getUlamValueTypeIdx() == Hzy))
       return false;
 
     UlamValue rtnUV;

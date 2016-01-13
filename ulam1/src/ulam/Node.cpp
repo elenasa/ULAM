@@ -70,6 +70,8 @@ namespace MFM {
     char id[255];
     if(myut == Nav)
       sprintf(id,"%s<NOTYPE>\n",prettyNodeName().c_str());
+    if(myut == Hzy)
+      sprintf(id,"%s<HAZYTYPE>\n",prettyNodeName().c_str());
     else
       sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
@@ -206,9 +208,9 @@ namespace MFM {
 	cnt += 1;
 	std::ostringstream msg;
 	msg << "Unresolved No." << cnt;
-	//comment out next line for error testing to match
-	//msg << ": <" << getName() << ">";
-	////msg << (" << prettyNodeName().c_str() << ") "; ugly!
+	msg << ": <" << getName() << ">";
+
+	//msg << " (" << prettyNodeName().c_str() << ") ";  //ugly!
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
 #if 0
@@ -1795,6 +1797,17 @@ namespace MFM {
     if(nuti == Nav)
       {
 	std::ostringstream msg;
+	msg << "Cannot make casting node for an erronous type: " ;
+	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	msg << " (UTI" << nuti << ")";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	rtnNode = node;
+	return false; //short-circuit
+      }
+
+    if(nuti == Hzy)
+      {
+	std::ostringstream msg;
 	msg << "Cannot make casting node for a nonready type: " ;
 	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	msg << " (UTI" << nuti << ")";
@@ -2179,7 +2192,7 @@ namespace MFM {
 	    if(cosut->getUlamTypeEnum() != Class)
 	      {
 		cosclassuti = findTypeOfAncestorAndBlockNo(cosBlockNo, subcos);
-		assert(cosclassuti != Nav);
+		assert(m_state.isComplete(cosclassuti) || m_state.isClassATemplate(cosclassuti));
 		cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
 	      }
 	    if(cosut->isReference())
@@ -2386,7 +2399,7 @@ namespace MFM {
     assert(!hazyKin);
     NNO caBlockNo = fnsymptr->getBlockNoOfST(); //block of aref
     UTI caclassuti = m_state.findAClassByNodeNo(caBlockNo);
-    assert(caclassuti != Nav);
+    assert(m_state.isComplete(caclassuti) || m_state.isClassATemplate(caclassuti));
 
     //currently, only regular classes may have subclasses.
     if((cosBlockNo != caBlockNo) && (cosuti != caclassuti) && !m_state.isClassATemplate(caclassuti))
@@ -2543,7 +2556,7 @@ namespace MFM {
 	    if(cosut->getUlamTypeEnum() != Class)
 	      {
 		cosclassuti = findTypeOfAncestorAndBlockNo(cosBlockNo, subcos);
-		assert(cosclassuti != Nav);
+		assert(m_state.isComplete(cosclassuti) || m_state.isClassATemplate(cosclassuti));
 		cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
 	      }
 
@@ -2642,7 +2655,7 @@ namespace MFM {
     assert(!hazyKin);
     NNO caBlockNo = fnsymptr->getBlockNoOfST(); //block of aref
     UTI caclassuti = m_state.findAClassByNodeNo(caBlockNo);
-    assert(caclassuti != Nav);
+    assert(m_state.isComplete(caclassuti) || m_state.isClassATemplate(caclassuti));
 
     //currently, only regular classes may have subclasses.
     if((cosBlockNo != caBlockNo) && (cosuti != caclassuti) && !m_state.isClassATemplate(caclassuti))
@@ -2826,7 +2839,7 @@ namespace MFM {
 
     //compare blockclassuti with cosnameuti (in case of templates)
     UTI blockclassuti = m_state.findAClassByNodeNo(bno); //regular or template
-    assert(blockclassuti != Nav);
+    assert(m_state.isComplete(blockclassuti) || m_state.isClassATemplate(blockclassuti));
 
     UTI cosclassuti = m_state.getUlamTypeAsScalar(subcosuti); //init as scalar
     do{
@@ -2842,10 +2855,10 @@ namespace MFM {
       subcosuti = cosclassuti;
       cosclassuti = m_state.isClassASubclass(subcosuti); //returns superuti, an instance!
 
-      if(cosclassuti == Nav)
+      if(cosclassuti == Nav) //no superclass
 	return subcosuti;
 
-    } while(cosclassuti != Nav);
+    } while(cosclassuti != Nav); //while superclass
 
     return cosclassuti;
   } //findTypeOfAncestorAndBlockNo

@@ -38,6 +38,9 @@ namespace MFM {
     if(nuti == Nav)
       return ERROR;
 
+    if(nuti == Hzy)
+      return NOTREADY;
+
     u32 len = m_state.getTotalBitSize(nuti);
 
     evalNodeProlog(0); //new current frame pointer

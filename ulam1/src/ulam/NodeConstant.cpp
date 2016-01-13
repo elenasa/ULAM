@@ -91,8 +91,6 @@ namespace MFM {
       {
 	// still need its symbol for a value
 	// use the member class (unlike checkForSymbol)
-
-
       }
 
     // map incomplete UTI
@@ -118,7 +116,7 @@ namespace MFM {
       m_ready = updateConstant(); //sets ready here
     if(!isReadyConstant())
       {
-	it = Nav;
+	it = Hzy;
 	if(!stubcopy)
 	  m_constSymbol = NULL; //lookup again too! (e.g. inherited template instances)
 	m_state.setGoAgain();

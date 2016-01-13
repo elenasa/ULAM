@@ -13,7 +13,7 @@ namespace MFM {
   {
     UTI nodeType = NodeBinaryOp::checkAndLabelType(); //dup Bitwise calcNodeType
 
-    if(nodeType != Nav)
+    if((nodeType != Nav) && (nodeType != Hzy))
       {
 	if(!NodeBinaryOpEqual::checkStoreIntoAble())
 	  {
@@ -27,14 +27,13 @@ namespace MFM {
 	    return Nav;
 	  }
       }
-
     return getNodeType();
   } //checkandlabeltype
 
   UTI NodeBinaryOpEqualBitwise::calcNodeType(UTI lt, UTI rt)  //bitwise
   {
     if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
-	return Nav;
+	return Hzy;
 
     //no atoms, elements nor voids as either operand
     if(!NodeBinaryOp::checkForPrimitiveTypes(lt, rt))
@@ -68,10 +67,15 @@ namespace MFM {
 	    msg << ". Bits is the supported type for bitwise operator";
 	    msg << getName();
 	    if(rscr == CAST_BAD)
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		bOK = false;
+	      }
 	    else //hazy
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    bOK = false;
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		newType = Hzy;
+	      }
 	  }
 
 	if(!bOK)

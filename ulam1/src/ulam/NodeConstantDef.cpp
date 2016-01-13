@@ -199,6 +199,17 @@ namespace MFM {
 	    setNodeType(Nav);
 	    return Nav; //short-circuit
 	  }
+
+	if(it == Hzy)
+	  {
+	    std::ostringstream msg;
+	    msg << "Constant value expression for: ";
+	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
+	    msg << ", is not ready";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //possibly still hazy
+	    setNodeType(Hzy);
+	    return Hzy; //short-circuit
+	  }
       } //end node expression
 
     if(!m_state.isComplete(suti)) //reloads
@@ -252,7 +263,7 @@ namespace MFM {
 	foldConstantExpression();
 	if(!(m_constSymbol->isReady() || m_constSymbol->hasDefault()))
 	  {
-	    setNodeType(Nav);
+	    setNodeType(Hzy);
 	    m_state.setGoAgain();
 	  }
       }
@@ -348,14 +359,14 @@ namespace MFM {
       return true;
 
     if(!m_nodeExpr)
-      {
-        return false;
-      }
+      return false;
 
     // if here, must be a constant..
     u64 newconst = 0; //UlamType format (not sign extended)
+
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(uti); //offset a constant expression
+
     EvalStatus evs = m_nodeExpr->eval();
     if( evs == NORMAL)
       {
@@ -372,6 +383,17 @@ namespace MFM {
     evalNodeEpilog();
 
     if(evs == ERROR)
+      {
+	std::ostringstream msg;
+	msg << "Constant value expression for '";
+	msg << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
+	msg << "' is erronous while compiling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return false;
+      }
+
+    if(evs == NOTREADY)
       {
 	std::ostringstream msg;
 	msg << "Constant value expression for '";

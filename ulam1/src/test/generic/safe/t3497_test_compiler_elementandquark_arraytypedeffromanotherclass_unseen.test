@@ -4,8 +4,8 @@
 ##      //No error about zero bitsize!!
 Exit status: 12
 Ue_R { Int(32) test() {  TypedefIssue(2u) ish;  ish ( )foo2 . return } }
-Ue_TypedefIssue(Unsigned(32) tif) { typedef 0Holder(UNKNOWN) Symmetry;  0Holder(UNKNOWN) x(unknown);  Bool(1) b(false);  Vector(vec) t(unknown);  <NOMAIN> }
-Uq_Vector(Unsigned(32) vec) { typedef Unsigned(UNKNOWN) Channel;  typedef Unsigned(UNKNOWN) Symmetry[UNKNOWN];  Unsigned(UNKNOWN) m[UNKNOWN](unknown);  <NOMAIN> }
+Ue_TypedefIssue(Unsigned(32) tif) { typedef 0Holder(UNKNOWN) Symmetry;  0Holder(UNKNOWN) x(notready);  Bool(1) b(false);  Vector(vec) t(notready);  <NOMAIN> }
+Uq_Vector(Unsigned(32) vec) { typedef Unsigned(UNKNOWN) Channel;  typedef Unsigned(UNKNOWN) Symmetry[UNKNOWN];  Unsigned(UNKNOWN) m[UNKNOWN](notready);  <NOMAIN> }
 ##
 ##      //informed by 3337, array subscript delayed.
 ##      //informed by 3269, UNSEEN..

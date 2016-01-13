@@ -156,7 +156,7 @@ namespace MFM {
   {
     UTI it = NodeVarDecl::checkAndLabelType();
 
-    assert((it == Nav) || m_state.getUlamTypeByIndex(it)->isReference());
+    assert((it == Nav) || (it == Hzy) || m_state.getUlamTypeByIndex(it)->isReference());
 
     ////requires non-constant, non-funccall value
     //NOASSIGN REQUIRED (e.g. for function parameters) doesn't have to have this!
@@ -169,10 +169,21 @@ namespace MFM {
 	    msg << "Storage expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
 	    msg << ", is invalid";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //possibly still hazy
-	    m_state.setGoAgain();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
 	    return Nav; //short-circuit
+	  }
+
+	if(eit == Hzy)
+	  {
+	    std::ostringstream msg;
+	    msg << "Storage expression for: ";
+	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+	    msg << ", is not ready";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //possibly still hazy
+	    m_state.setGoAgain();
+	    setNodeType(Hzy);
+	    return Hzy; //short-circuit
 	  }
 
 	if(m_nodeInitExpr->isAConstant() || m_nodeInitExpr->isFunctionCall())

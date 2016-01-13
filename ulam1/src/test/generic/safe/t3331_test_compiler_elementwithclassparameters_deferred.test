@@ -14,7 +14,7 @@
 Exit status: 6
 Ue_T { Bool(3) b(false);  Unsigned(32) i(6u);  Unsigned(32) j(70u);  System s();  Bool(3) c(true);  Int(32) test() {  Unsigned(32) x;  Unsigned(32) y;  S(1,2) m;  i 6u = x m ( )func . cast = b i x == cast = s ( i )print . s ( x )print . s ( b )print . j 70u = y 70u = c j y == cast = s ( j )print . s ( y )print . s ( c )print . i cast return } }
 Uq_System { <NOMAIN> }
-Uq_S(Int(32) x, Int(32) y) { Int(UNKNOWN) i(unknown);  Int(UNKNOWN) j(unknown);  <NOMAIN> }
+Uq_S(Int(32) x, Int(32) y) { Int(UNKNOWN) i(notready);  Int(UNKNOWN) j(notready);  <NOMAIN> }
 ##    //informed by t3330
 ##    // here we set i using S(1,2).sizeof
 ##

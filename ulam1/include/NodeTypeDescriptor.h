@@ -94,7 +94,7 @@ namespace MFM{
     ALT m_refType;
 
     virtual bool resolveType(UTI& rtnuti);
-    bool resolveTypeBitsize(UTI auti);
+    bool resolveTypeBitsize(UTI& rtnuti);
   };
 
 } //MFM

@@ -2,13 +2,6 @@
 #=t3403_test_compiler_namedconstant_error
 #!
 ./A.ulam:7:10: ERROR: Constant value expression for (cOW = 7) is not representable as Int(3).
-./A.ulam:7:10: ERROR: Unresolved No.1.
-./A.ulam:8:4: ERROR: Unresolved No.2.
-./A.ulam:8:8: ERROR: Unresolved No.3.
-./A.ulam:6:1: Warning: 3 nodes with unresolved types remain in function <test> (Uf_4test,1).
-./A.ulam:6:5: Warning: Summary: 3 nodes with unresolved types remain in  a single function <test> in class: A.
-./A.ulam:3:9: Warning: 3 data member nodes with unresolved types remain in class 'A'.
-./A.ulam:3:9: ERROR: 3 Nodes with unresolved types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //informed by 3324, except constant type is 3-bits only

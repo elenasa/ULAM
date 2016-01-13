@@ -103,7 +103,10 @@ namespace MFM {
 	m_ready = true; // set here!!!
       }
     else
-      m_state.setGoAgain();
+      {
+	setNodeType(Hzy);
+	m_state.setGoAgain();
+      }
 
     return getNodeType();
   } //checkAndLabelType
@@ -177,6 +180,8 @@ namespace MFM {
 	    rtnuti = nuti;
 	    rtnb = true;
 	  } //else we're not ready!!
+	else
+	  rtnuti = Hzy;
       }
     else
       {
@@ -194,23 +199,23 @@ namespace MFM {
 		rtnuti = nuti;
 		rtnb = true;
 	      }
+	    else
+	      rtnuti = Hzy;
 	    //else mapped?
 	  }
 	else
 	  {
 	    //primitive with possible unknown bit size
-	    if(resolveTypeBitsize(nuti))
-	      {
-		rtnb = true;
-		rtnuti = nuti;
-	      }
+	    rtnb = resolveTypeBitsize(nuti);
+	    rtnuti = nuti;
 	  }
       }
     return rtnb;
   } //resolveType
 
-  bool NodeTypeDescriptor::resolveTypeBitsize(UTI auti)
+  bool NodeTypeDescriptor::resolveTypeBitsize(UTI& rtnuti)
   {
+    UTI auti = rtnuti;
     UlamType * ut = m_state.getUlamTypeByIndex(auti);
     ULAMTYPE etype = ut->getUlamTypeEnum();
     if(m_unknownBitsizeSubtree)
@@ -227,7 +232,7 @@ namespace MFM {
 		msg << " type, within (), is a negative numeric constant expression: ";
 		msg << bs;
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		// auti = Nav;
+		rtnuti = Nav;
 		return false;
 	      }
 
@@ -235,6 +240,7 @@ namespace MFM {
 	    m_state.setUTISizes(auti, bs, ut->getArraySize()); //update UlamType, outputs errors
 	  }
       }
+    assert(auti == rtnuti);
     return (m_state.isComplete(auti)); //repeat if bitsize is still unknown
   } //resolveTypeBitsize
 

@@ -77,8 +77,7 @@ namespace MFM {
 	m_ready = true; // set here
       }
     else
-      m_state.setGoAgain();
-
+	m_state.setGoAgain();
 
     setNodeType(it);
     return getNodeType();
@@ -136,6 +135,8 @@ namespace MFM {
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 			    auti = mappedUTI;
 			  }
+			else
+			  rtnuti = Hzy;
 		      }
 		  }
 		else
@@ -148,6 +149,7 @@ namespace MFM {
 		    msg <<" while compiling: ";
 		    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+		    rtnuti = Nav; //?
 		  }
 	      }
 	    else
@@ -160,9 +162,15 @@ namespace MFM {
 		msg <<" while compiling: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 		if(!hazyKin)
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //new
+		  {
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //new
+		    rtnuti = Nav;
+		  }
 		else
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		  {
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    rtnuti = Hzy;
+		  }
 	      }
 	    m_state.popClassContext();
 	  }
@@ -177,8 +185,11 @@ namespace MFM {
 	    msg <<" while compiling: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    rtnuti = Nav;
 	  }
-      } //else select not ready, so neither are we!!
+      }
+    else
+      rtnuti = Hzy; //else select not ready, so neither are we!!
     return rtnb;
   } //resolveType
 

@@ -3,7 +3,7 @@
 #!
 Exit status: 1
 Ue_Tu : Foo(1,true) { :< constant Int(32) a = 1;  constant Bool(1) b = true;  Int(32) dm(1); > Int(32) test() {  dm return } }
-Uq_Foo(Int(32) a, Bool(1) b) { Int(32) dm(unknown);  <NOMAIN> }
+Uq_Foo(Int(32) a, Bool(1) b) { Int(32) dm(notready);  <NOMAIN> }
 ##
 ##       //classes can inherit from a template instance, and vis versa
 ##       informed by t3566, error/t3554

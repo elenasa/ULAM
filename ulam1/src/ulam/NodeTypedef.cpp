@@ -131,7 +131,7 @@ namespace MFM {
 	if(m_nodeTypeDesc)
 	  {
 	    UTI duti = m_nodeTypeDesc->checkAndLabelType(); //sets goagain if nav
-	    if(duti != Nav && duti != it)
+	    if((duti != Nav) && (duti != Hzy) && (duti != it))
 	      {
 		std::ostringstream msg;
 		msg << "REPLACING Symbol UTI" << it;

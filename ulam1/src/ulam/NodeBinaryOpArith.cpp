@@ -56,7 +56,7 @@ namespace MFM {
   UTI NodeBinaryOpArith::calcNodeType(UTI lt, UTI rt)
   {
     if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
-      return Nav;
+      return Hzy;
 
     //no atoms, elements nor void as either operand
     if(!NodeBinaryOp::checkForPrimitiveTypes(lt, rt))

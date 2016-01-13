@@ -94,6 +94,7 @@ namespace MFM {
     std::vector<Node *> argNodes;
     u32 constantArgs = 0;
     u32 navArgs = 0;
+    u32 hzyArgs = 0;
     UTI listuti = Nav;
     bool hazyKin = false;
 
@@ -110,6 +111,8 @@ namespace MFM {
 	    argNodes.push_back(m_argumentNodes->getNodePtr(i));
 	    if(argtype == Nav)
 	      navArgs++;
+	    if(argtype == Hzy)
+	      hzyArgs++;
 	    // track constants and potential casting to be handled
 	    if(m_argumentNodes->isAConstant(i))
 	      constantArgs++;
@@ -121,6 +124,13 @@ namespace MFM {
 	    argNodes.clear();
 	    setNodeType(Nav);
 	    return Nav; //short circuit
+	  }
+
+	if(hzyArgs)
+	  {
+	    argNodes.clear();
+	    setNodeType(Hzy);
+	    return Hzy; //short circuit
 	  }
 
 	// still need to pinpoint the SymbolFunction for m_funcSymbol!
@@ -299,8 +309,14 @@ namespace MFM {
     // o.w. NodeIdents can't find their blocks.
     if(listuti == Nav || numErrorsFound > 0)
       {
-	setNodeType(Nav); //happens when the arg list has incomplete types.
+	setNodeType(Nav); //happens when the arg list has erroneous types.
 	it = Nav;
+      }
+
+    if(listuti == Hzy)
+      {
+	setNodeType(Hzy); //happens when the arg list has incomplete types.
+	it = Hzy;
       }
 
     argNodes.clear();
@@ -348,6 +364,9 @@ namespace MFM {
     UTI nuti = getNodeType();
     if(nuti == Nav)
       return ERROR;
+
+    if(nuti == Hzy)
+      return NOTREADY;
 
     assert(m_funcSymbol);
     NodeBlockFunctionDefinition * func = m_funcSymbol->getFunctionNode();
@@ -848,7 +867,7 @@ namespace MFM {
 	    startcos = subcosidx + 1; //for loop later
 
 	    UTI cosclassuti = Node::findTypeOfAncestorAndBlockNo(cosBlockNo, subcosidx);
-	    assert(cosclassuti != Nav);
+	    assert(cosclassuti != Nav); //has ancestor
 	    UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
 
 	    if((cosuti != Nav) && cosut->isReference())
@@ -1313,7 +1332,7 @@ namespace MFM {
 	    startcos = subcosidx + 1; //for loop later
 
 	    UTI cosclassuti = Node::findTypeOfAncestorAndBlockNo(cosBlockNo, subcosidx);
-	    assert(cosclassuti != Nav);
+	    assert(cosclassuti != Nav); //has ancestor
 	    stgcosuti = cosclassuti; // resets stgcosuti here!!
 	    stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 	    useSuperClassName = true;

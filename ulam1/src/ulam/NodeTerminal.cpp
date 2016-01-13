@@ -232,8 +232,11 @@ namespace MFM {
     if(nuti == Nav)
       return ERROR;
 
+    if(nuti == Hzy)
+      return NOTREADY;
+
     if(!m_state.isComplete(nuti))
-      return ERROR;
+      return NOTREADY;
 
     EvalStatus evs = NORMAL; //init ok
     evalNodeProlog(0); //new current frame pointer
@@ -266,7 +269,7 @@ namespace MFM {
   {
     UlamValue rtnUV; //init to Nav error case
     EvalStatus evs = NORMAL; //init ok
-    assert(uti != Nav);
+    assert(m_state.isComplete(uti));
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
     assert(ut->getBitSize() >= 0);
 
@@ -308,7 +311,7 @@ namespace MFM {
   {
     UlamValue rtnUV; //init to Nav error case
     EvalStatus evs = NORMAL; //init ok
-    assert(uti != Nav);
+    assert(m_state.isComplete(uti));
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
     assert(ut->getBitSize() >= 0);
 
@@ -355,6 +358,14 @@ namespace MFM {
 	return false;
       }
     if(nuti == Nav)
+      {
+	std::ostringstream msg;
+	msg << "Constant is not-a-valid type: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return false;
+      }
+    if(nuti == Hzy)
       {
 	std::ostringstream msg;
 	msg << "Constant is not-a-valid type: ";

@@ -560,6 +560,7 @@ namespace MFM {
 	func->updateLineage(pno);
 	++it;
       }
+    assert(getBlockNoOfST() == pno); // same as template? sfn too
   } //linkToParentNodesInFunctionDefs
 
   void SymbolFunctionName::updatePrevBlockPtrInFunctionDefs(NodeBlockClass * p)

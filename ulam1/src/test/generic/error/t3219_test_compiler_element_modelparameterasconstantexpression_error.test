@@ -3,12 +3,6 @@
 #!
 ./Foo.ulam:4:2: ERROR: Type Bitsize specifier: Int(32), within (), is not a numeric constant expression.
 ./Foo.ulam:4:2: ERROR: Type Bitsize specifier for base type: Int is not a constant expression.
-./Foo.ulam:4:2: ERROR: Unresolved No.1.
-./Foo.ulam:4:2: ERROR: Unresolved No.2.
-./Foo.ulam:4:2: ERROR: Unresolved No.3.
-./Foo.ulam:2:10: ERROR: 3 data members with unresolved types remain.
-./Foo.ulam:2:10: Warning: 3 data member nodes with unresolved types remain in class 'Foo'.
-./Foo.ulam:2:10: ERROR: 3 Nodes with unresolved types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      // fix bitsize, then get:

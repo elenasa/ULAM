@@ -6,7 +6,7 @@ Exit status: 3
 Ue_R { Int(32) test() {  typedef P(3) Foo;  P(3) pvar;  3u cast return } }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }
 Uq_Q(Int(32) s) { typedef P(a) Foo;  <NOMAIN> }
-Ue_P(Int(32) a) { Bool(UNKNOWN) b(unknown);  <NOMAIN> }
+Ue_P(Int(32) a) { Bool(UNKNOWN) b(notready);  <NOMAIN> }
 ##
 ##      //informed by 3341
 ##      // recursive typedefs as typedef

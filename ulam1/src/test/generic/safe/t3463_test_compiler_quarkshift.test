@@ -2,7 +2,7 @@
 #=t3463_test_compiler_quarkshift
 #!
 Exit status: 4
-Ue_A { Int(32) b(2);  Int(32) c(4);  Int(32) test() {  Bar a;  b 1 cast a ( )toInt . cast cast << cast = c a ( )toInt . cast 2 cast << cast = c return } }
+Ue_A { Int(32) b(2);  Int(32) c(4);  Int(32) test() {  Bar a;  b 1 cast a ( )toInt . cast << cast = c a ( )toInt . cast 2 cast << cast = c return } }
 Uq_Bar { <NOMAIN> }
 #>A.ulam
   use Bar;

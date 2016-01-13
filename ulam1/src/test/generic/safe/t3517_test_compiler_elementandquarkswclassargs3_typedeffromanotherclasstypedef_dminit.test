@@ -9,7 +9,7 @@ Exit status: 3
 Ue_R { Int(32) test() {  System s;  P(3) pvar;  s ( pvar b . )print . 3u cast return } }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }
 Uq_Q(Int(32) s) { typedef P(a) Foo;  <NOMAIN> }
-Ue_P(Int(32) a) { Bool(UNKNOWN) b(unknown);  <NOMAIN> }
+Ue_P(Int(32) a) { Bool(UNKNOWN) b(notready);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ##  informed by 3362

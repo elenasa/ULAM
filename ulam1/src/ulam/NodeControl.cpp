@@ -65,6 +65,8 @@ namespace MFM {
     char id[255];
     if(myut == Nav)
       sprintf(id,"%s<NOTYPE>\n",prettyNodeName().c_str());
+    else if(myut == Hzy)
+      sprintf(id,"%s<HAZYTYPE>\n",prettyNodeName().c_str());
     else
       sprintf(id,"%s<%s>\n",prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
@@ -153,7 +155,7 @@ namespace MFM {
       }
     else
       {
-	newType = cuti;
+	newType = Hzy; //was = cuti;
 	m_state.setGoAgain();
       }
 

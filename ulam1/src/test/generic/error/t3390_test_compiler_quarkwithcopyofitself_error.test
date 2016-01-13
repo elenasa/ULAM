@@ -2,11 +2,6 @@
 #=t3390_test_compiler_quarkwithcopyofitself_error
 #!
 ./Typo.ulam:2:7: ERROR: Quark/Element 'Typo' cannot contain a copy of itself.
-./Typo.ulam:3:1: ERROR: Unresolved No.1.
-./Typo.ulam:3:1: ERROR: Unresolved No.2.
-./Typo.ulam:2:7: ERROR: 2 data members with unresolved types remain.
-./Typo.ulam:2:7: Warning: 2 data member nodes with unresolved types remain in class 'Typo'.
-./Typo.ulam:2:7: ERROR: 2 Nodes with unresolved types detected after type labeling class: Typo.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>Typo.ulam

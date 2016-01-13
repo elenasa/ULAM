@@ -5,7 +5,7 @@ Exit status: 3
 Ue_R { Int(32) test() {  constant Unsigned(3) var = 3u;  P(3u) pel;  3u cast return } }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }
 Uq_Q(Int(32) s) { typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }
-Ue_P(Unsigned(3) a) { Bool(UNKNOWN) b(unknown);  <NOMAIN> }
+Ue_P(Unsigned(3) a) { Bool(UNKNOWN) b(notready);  <NOMAIN> }
 ##
 ##      // informed by 3349 (didn't link!): without 'var' as typedeffromanotherclass
 ##      //bool rtn1 = fms->add("P.ulam","ulam 1;\nuse Q;\nuse V;\n element P(Unsigned(3) a) {\nBool(a) b;\nInt test() {\nconstant V.Woof.Foo var = 3u;\n P(var) pel;\n return 0;\n}\n}\n");

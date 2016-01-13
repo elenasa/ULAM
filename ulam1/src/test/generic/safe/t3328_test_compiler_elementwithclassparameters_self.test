@@ -17,10 +17,10 @@ element S(Int x, Int y){
   System s;
   Bool(x+y) b1, b2;
   Bool func() {
-    return (self is S(x,y));
+    return (self is S(x,y)); //is Self also ok
   }
   Bool func(Atom d) {
-    return (d is S(x,y));
+    return (d is S(x,y)); //is Self also ok
   }
   Int test() {
     Atom a;

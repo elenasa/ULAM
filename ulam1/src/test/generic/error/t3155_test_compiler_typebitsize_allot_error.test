@@ -4,8 +4,8 @@
 ./C.ulam:5:2: Warning: Bool Type with EVEN number of bits is internally inconsistent;  Reduced by one to 1 bits.
 ./C.ulam:10:1: ERROR: Trying to exceed allotted bit size (71) for element C with 74 bits.
 ./C.ulam:2:10: ERROR: CLASS (regular) 'C' SIZED 74 FAILED.
-./C.ulam:2:10: ERROR: Unresolved No.1.
-./C.ulam:2:10: ERROR: Unresolved No.2.
+./C.ulam:2:10: ERROR: Unresolved No.1: <0Nav>.
+./C.ulam:2:10: ERROR: Unresolved No.2: <0Nav>.
 ./C.ulam:2:10: ERROR: 2 data members with unresolved types remain.
 ./C.ulam:2:10: Warning: 2 data member nodes with unresolved types remain in class 'C'.
 ./C.ulam:2:10: ERROR: 2 Nodes with unresolved types detected after type labeling class: C.

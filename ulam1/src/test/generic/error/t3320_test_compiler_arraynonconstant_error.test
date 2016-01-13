@@ -2,12 +2,6 @@
 #=t3320_test_compiler_arraynonconstant_error
 #!
 ./A.ulam:7:6: ERROR: Array size specifier in [] is not a constant number.
-./A.ulam:7:1: ERROR: Unresolved No.1.
-./A.ulam:7:1: ERROR: Unresolved No.2.
-./A.ulam:3:1: Warning: 2 nodes with unresolved types remain in function <test> (Uf_4test,1).
-./A.ulam:3:5: Warning: Summary: 2 nodes with unresolved types remain in  a single function <test> in class: A.
-./A.ulam:1:9: Warning: 2 data member nodes with unresolved types remain in class 'A'.
-./A.ulam:1:9: ERROR: 2 Nodes with unresolved types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>A.ulam

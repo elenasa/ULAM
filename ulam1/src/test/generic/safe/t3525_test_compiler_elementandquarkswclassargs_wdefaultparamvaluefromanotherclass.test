@@ -3,8 +3,8 @@
 #!
 Exit status: 4
 Ue_P { Bool(1) b(false);  Int(32) test() {  Q(4,4u) w;  4u cast return } }
-Uq_Q(Int(32) b = 3, Unsigned(32) s = NONREADYCONST) { typedef Unsigned(UNKNOWN) Foo;  Unsigned(UNKNOWN) f(unknown);  <NOMAIN> }
-Uq_V(Int(32) a) { Unsigned(UNKNOWN) vfoo(unknown);  <NOMAIN> }
+Uq_Q(Int(32) b = 3, Unsigned(32) s = NONREADYCONST) { typedef Unsigned(UNKNOWN) Foo;  Unsigned(UNKNOWN) f(notready);  <NOMAIN> }
+Uq_V(Int(32) a) { Unsigned(UNKNOWN) vfoo(notready);  <NOMAIN> }
 ##
 ##
 #>P.ulam

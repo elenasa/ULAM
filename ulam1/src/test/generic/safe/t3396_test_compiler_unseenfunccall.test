@@ -5,7 +5,7 @@ Exit status: 0
 Ue_A { /* empty class block */ }
 Ue_R { typedef Colony Ish;  Int(32) test() {  Colony ish;  ish ( 7u cast )setTailAge . 0 cast return } }
 Uq_Colony { constant Unsigned(32) widthc = 3u;  typedef Telomeree(3u) Telo;  typedef Unsigned(3) Tail;  Telomeree(3u) t( typedef Unsigned(3) Tail;  Unsigned(3) age(0); );  <NOMAIN> }
-Uq_Telomeree(Unsigned(32) width) { typedef Unsigned(UNKNOWN) Tail;  Unsigned(UNKNOWN) age(unknown);  <NOMAIN> }
+Uq_Telomeree(Unsigned(32) width) { typedef Unsigned(UNKNOWN) Tail;  Unsigned(UNKNOWN) age(notready);  <NOMAIN> }
 ##
 ##      //tripped upon by 3394, causes assert in Compiler after resolving loop, after counting Nav's before all iterations used up
 ##      // because we start with R.ulam, and never see Colony.ulam.

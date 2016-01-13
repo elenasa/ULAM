@@ -228,7 +228,7 @@ namespace MFM {
 	if(m_nodeTypeDesc)
 	  {
 	    UTI duti = m_nodeTypeDesc->checkAndLabelType(); //sets goagain
-	    if(duti != Nav && duti != it)
+	    if((duti != Nav) && (duti != Hzy) && (duti != it))
 	      {
 		std::ostringstream msg;
 		msg << "REPLACING Symbol UTI" << it;
@@ -254,7 +254,7 @@ namespace MFM {
 	    msg << "' UTI" << it << " while labeling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    it = Nav;
+	    it = Hzy;
 	    m_state.setGoAgain(); //since not error
 	  }
       } //end var_symbol
@@ -280,17 +280,31 @@ namespace MFM {
 	    msg << "Initial value expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
 	    msg << ", initialization is invalid";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    m_state.setGoAgain(); //since not error
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
 	    return Nav; //short-circuit
 	  }
 
-	setNodeType(it); //needed before safeToCast
-	if(safeToCastTo(eit) != CAST_CLEAR)
-	  it = Nav; //error
-      }
+	if(eit == Hzy)
+	  {
+	    std::ostringstream msg;
+	    msg << "Initial value expression for: ";
+	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+	    msg << ", initialization is not ready";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    m_state.setGoAgain(); //since not error
+	    setNodeType(Hzy);
+	    return Hzy; //short-circuit
+	  }
 
+	setNodeType(it); //needed before safeToCast
+	FORECAST scr = safeToCastTo(eit);
+	if(scr == CAST_BAD)
+	  it = Nav; //error
+	else if(scr == CAST_HAZY)
+	  it = Hzy; //not ready
+	//else CAST_SAFE ok
+      }
     setStoreIntoAble(true);
     setNodeType(it);
     return getNodeType();
@@ -456,6 +470,9 @@ namespace MFM {
     UTI nuti = getNodeType();
     if(nuti == Nav)
       return ERROR;
+
+    if(nuti == Hzy)
+      return NOTREADY;
 
     assert(m_varSymbol->getUlamTypeIdx() == nuti); //is it so? if so, some cleanup needed
 
@@ -646,7 +663,7 @@ namespace MFM {
   void NodeVarDecl::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_varSymbol);
-    assert(getNodeType() != Nav);
+    assert(m_state.isComplete(getNodeType()));
 
     assert(!m_varSymbol->isDataMember()); //NodeVarDeclDM::genCode
     assert(!m_varSymbol->isAutoLocal()); //NodeVarRef::genCode

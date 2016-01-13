@@ -3,7 +3,7 @@
 #!
 Exit status: 3
 Ue_R { Int(32) test() {  constant Unsigned(3) var = 3u;  P(3u) pel;  3u cast return } }
-Ue_P(Unsigned(3) a) { Bool(UNKNOWN) b(unknown);  <NOMAIN> }
+Ue_P(Unsigned(3) a) { Bool(UNKNOWN) b(notready);  <NOMAIN> }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }
 Uq_Q(Int(32) s) { typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }
 ##

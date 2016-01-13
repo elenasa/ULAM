@@ -4,7 +4,7 @@
 ##     //Constants have explicit types
 Exit status: 3
 Ue_R { Int(32) test() {  Foo(3) e;  Foo(4) f;  f a . 3 cast = f a . cast return } }
-Ue_Foo(Int(32) n) { Unsigned(UNKNOWN) a(unknown);  <NOMAIN> }
+Ue_Foo(Int(32) n) { Unsigned(UNKNOWN) a(notready);  <NOMAIN> }
 #>R.ulam
   ulam 1;
 use Foo;

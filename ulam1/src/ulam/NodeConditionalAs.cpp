@@ -40,11 +40,21 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Invalid lefthand type of conditional operator '" << getName();
-	msg << "'; Incomplete";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	msg << "'";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
-	m_state.goAgain();
 	return Nav; //short-circuit
+      }
+
+    if(luti == Hzy)
+      {
+	std::ostringstream msg;
+	msg << "Incomplete lefthand type of conditional operator '" << getName();
+	msg << "'";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	setNodeType(Hzy);
+	m_state.setGoAgain();
+	return Hzy; //short-circuit
       }
 
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
@@ -55,11 +65,16 @@ namespace MFM {
 	msg << "Invalid lefthand type of conditional operator '" << getName();
 	msg << "'; must be an atom or element, not ";
 	msg << lut->getUlamTypeNameBrief().c_str();
-	if(lclasstype == UC_UNSEEN || luti == Nav)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	if(lclasstype == UC_UNSEEN || luti == Hzy)
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    newType = Hzy;
+	  }
 	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	newType = Nav;
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    newType = Nav;
+	  }
       }
 
     if(!strcmp(m_nodeLeft->getName(), "self")) //was "self"
@@ -82,7 +97,7 @@ namespace MFM {
 
     assert(m_nodeTypeDesc);
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
-    if(ruti != Nav)
+    if((ruti != Nav) && (ruti != Hzy))
       {
 	UlamType * rut = m_state.getUlamTypeByIndex(ruti);
 	ULAMCLASSTYPE rclasstype = rut->getUlamClass();
@@ -92,11 +107,16 @@ namespace MFM {
 	    msg << "Invalid righthand type of conditional operator '" << getName();
 	    msg << "'; must be a quark or element name, not ";
 	    msg << rut->getUlamTypeNameBrief().c_str();
-	    if(rclasstype == UC_UNSEEN || ruti == Nav)
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //goagain set
+	    if(rclasstype == UC_UNSEEN)
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //goagain set
+		newType = Hzy;
+	      }
 	    else
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    newType = Nav;
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		newType = Nav;
+	      }
 	  }
       }
 
@@ -108,7 +128,8 @@ namespace MFM {
 	msg << " is still incomplete while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	newType = Nav; //goagain set by nodetypedesc
+	newType = Hzy; //goagain set by nodetypedesc
+	m_state.setGoAgain();
       }
 
     setNodeType(newType);
@@ -123,6 +144,9 @@ namespace MFM {
     UTI nuti = getNodeType();
     if(nuti == Nav)
       return ERROR;
+
+    if(nuti == Hzy)
+      return NOTREADY;
 
     evalNodeProlog(0);   //new current frame pointer
 
@@ -202,7 +226,7 @@ namespace MFM {
     else
       {
       m_state.m_currentAutoObjPtr = UlamValue(); //wipeout
-      m_state.m_currentAutoStorageType = Nav;
+      m_state.m_currentAutoStorageType = Nav; //clear
       }
 
     UlamValue rtnuv = UlamValue::makeImmediate(nuti, (u32) asit, m_state);

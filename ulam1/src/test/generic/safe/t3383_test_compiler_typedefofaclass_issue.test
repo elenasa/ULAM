@@ -7,8 +7,8 @@
 ##      //							    ERROR: No parse tree for This Class: Ish2.
 Exit status: 3
 Ue_R { Ish2 ish( Colony(3u) colony( constant Unsigned(32) widthc = 3u;  typedef Telomeree(3u) Telo;  typedef Unsigned(3) TeloTail;  Telomeree(3u) t( constant Unsigned(32) width = 3u;  typedef Unsigned(3) Tail;  Unsigned(3) age(0u); ); ); );  Int(32) test() {  3u cast return } }
-Uq_Telomeree(Unsigned(32) width) { typedef Unsigned(UNKNOWN) Tail;  Unsigned(UNKNOWN) age(unknown);  <NOMAIN> }
-Uq_Colony(Unsigned(32) widthc) { typedef Telomeree(width) Telo;  typedef Unsigned(UNKNOWN) TeloTail;  Telomeree(width) t(unknown);  <NOMAIN> }
+Uq_Telomeree(Unsigned(32) width) { typedef Unsigned(UNKNOWN) Tail;  Unsigned(UNKNOWN) age(notready);  <NOMAIN> }
+Uq_Colony(Unsigned(32) widthc) { typedef Telomeree(width) Telo;  typedef Unsigned(UNKNOWN) TeloTail;  Telomeree(width) t(notready);  <NOMAIN> }
 Uq_Ish2 { Colony(3u) colony( typedef Telomeree(3u) Telo;  typedef Unsigned(3) TeloTail;  Telomeree(3u) t( typedef Unsigned(3) Tail;  Unsigned(3) age(0); ); );  <NOMAIN> }
 ##
 ##      // likes Telomeree first!

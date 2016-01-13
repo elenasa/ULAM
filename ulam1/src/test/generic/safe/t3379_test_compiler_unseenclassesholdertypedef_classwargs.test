@@ -2,7 +2,7 @@
 #=t3379_test_compiler_unseenclassesholdertypedef_classwargs
 #!
 Exit status: 1
-Uq_A(Int(32) a) { Bool(UNKNOWN) y(unknown);  <NOMAIN> }
+Uq_A(Int(32) a) { Bool(UNKNOWN) y(notready);  <NOMAIN> }
 Ue_F { typedef A(3) Foo;  Int(32) test() {  A(3) f;  f y . true cast = f y . cond f y . cast return if 0 cast return } }
 Ue_E { typedef A(3) X;  <NOMAIN> }
 Ue_D { typedef A(3) X;  <NOMAIN> }

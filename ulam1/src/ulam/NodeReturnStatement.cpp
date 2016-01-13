@@ -64,6 +64,8 @@ namespace MFM {
     char id[255];
     if(myut == Nav)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
+    else if(myut == Hzy)
+      sprintf(id,"%s<HAZYTYPE>\n", prettyNodeName().c_str());
     else
       sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
@@ -151,10 +153,15 @@ namespace MFM {
 			msg << " as ";
 			msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
 			if(scr == CAST_BAD)
-			  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			    else
-			      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-			nodeType = Nav; //missing?
+			  {
+			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			    nodeType = Nav;
+			  }
+			else
+			  {
+			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+			    nodeType = Hzy;
+			  }
 		      }
 		  }
 	      } //no node
@@ -173,7 +180,7 @@ namespace MFM {
 	msg << "Function return type is still unresolved: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	// nodeType = Nav; needed?
+	nodeType = Hzy; //needed?
 	m_state.setGoAgain();
       }
 
@@ -196,6 +203,9 @@ namespace MFM {
     UTI nuti = getNodeType();
     if(nuti == Nav)
       return ERROR;
+
+    if(nuti == Hzy)
+      return NOTREADY;
 
     if(!m_node)
       return RETURN;

@@ -2,14 +2,6 @@
 #=t3592_test_compiler_negativearrayindex_error
 #!
 ./Ish2.ulam:10:5: ERROR: Type Bitsize specifier for Unsigned type, within (), is a negative numeric constant expression: -1.
-./Ish2.ulam:8:5: ERROR: Unresolved No.1.
-./Ish2.ulam:8:5: ERROR: Unresolved No.2.
-./Ish2.ulam:10:5: ERROR: Unresolved No.3.
-./Ish2.ulam:10:5: ERROR: Unresolved No.4.
-./Ish2.ulam:6:3: Warning: 4 nodes with unresolved types remain in function <test> (Uf_4test,1).
-./Ish2.ulam:6:7: Warning: Summary: 4 nodes with unresolved types remain in  a single function <test> in class: Ish2.
-./Ish2.ulam:2:9: Warning: 4 data member nodes with unresolved types remain in class 'Ish2'.
-./Ish2.ulam:2:9: ERROR: 4 Nodes with unresolved types detected after type labeling class: Ish2.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by safe/t3591 (see also t3593)

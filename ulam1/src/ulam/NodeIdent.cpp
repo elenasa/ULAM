@@ -297,6 +297,9 @@ namespace MFM {
     if(nuti == Nav)
       return ERROR;
 
+    if(nuti == Hzy)
+      return NOTREADY;
+
     evalNodeProlog(0); //new current frame pointer
 
     //return the ptr for an array; square bracket will resolve down to the immediate data
@@ -391,6 +394,9 @@ namespace MFM {
     UTI nuti = getNodeType();
     if(nuti == Nav)
       return ERROR;
+
+    if(nuti == Hzy)
+      return NOTREADY;
 
     assert(m_varSymbol);
 

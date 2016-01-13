@@ -34,7 +34,7 @@ namespace MFM {
   UTI NodeBinaryOpCompareEqualEqual::calcNodeType(UTI lt, UTI rt)
   {
     if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
-      return Nav; //short-circuit
+      return Hzy; //short-circuit
 
     UTI newType = Nav; //init
     ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();

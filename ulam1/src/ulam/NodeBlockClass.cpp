@@ -96,6 +96,8 @@ namespace MFM {
     char id[255];
     if(myuti == Nav)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
+    else if(myuti == Hzy)
+      sprintf(id,"%s<HAZYTYPE>\n", prettyNodeName().c_str());
     else
       sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myuti).c_str());
     fp->write(id);
@@ -258,7 +260,6 @@ namespace MFM {
 
     if(superuti != Nav)
       {
-#if 1
 	if(!m_state.isComplete(superuti))
 	  {
 	    UTI mappedUTI = superuti;
@@ -278,7 +279,6 @@ namespace MFM {
 		superuti = mappedUTI;
 	      }
 	  }
-#endif
 	//this is a subclass.
 	if(!isSuperClassLinkReady())
 	  {
@@ -294,7 +294,7 @@ namespace MFM {
 		m_state.setGoAgain();
 		//need to break the chain; e.g. don't want template symbol addresses used
 		NodeBlock::setPreviousBlockPointer(NULL); //force to try again!! avoid inf loop
-		return Nav; //short-circuit
+		return Hzy; //short-circuit
 	      }
 
 	    //look up this instance
@@ -462,7 +462,7 @@ namespace MFM {
 	  {
 	    NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
 	    assert(superblock);
-	    hasCA = superblock->hasCustomArray();
+	    return superblock->hasCustomArray();
 	  }
       }
   return hasCA;
@@ -496,20 +496,21 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	  }
 	superblock->checkCustomArrayTypeFunctions();
       }
+    else
+      assert(!m_state.isClassAStub(cuti));
   } //checkCustomArrayTypeFunctions
 
   UTI NodeBlockClass::getCustomArrayTypeFromGetFunction()
   {
     UTI catype = m_functionST.getCustomArrayReturnTypeGetFunction();
-
     if(catype == Nav)
       {
 	UTI cuti = getNodeType();
-	if(m_state.isClassASubclass(cuti))
+	if(m_state.isClassASubclass(cuti) || m_state.isClassAStub(cuti))
 	  {
-	    NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
-	    assert(superblock);
-	    catype = superblock->getCustomArrayTypeFromGetFunction();
+	    NodeBlockClass * prevblock = (NodeBlockClass *) getPreviousBlockPointer();
+	    assert(prevblock);
+	    return prevblock->getCustomArrayTypeFromGetFunction();
 	  }
       }
     return catype;
@@ -518,17 +519,18 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   u32 NodeBlockClass::getCustomArrayIndexTypeFromGetFunction(Node * rnode, UTI& idxuti, bool& hasHazyArgs)
   {
     UTI catype = m_functionST.getCustomArrayIndexTypeGetFunction(rnode, idxuti, hasHazyArgs);
-
     if(catype == Nav)
       {
 	UTI cuti = getNodeType();
-	if(m_state.isClassASubclass(cuti))
+	if(m_state.isClassASubclass(cuti) || m_state.isClassAStub(cuti))
 	  {
-	    NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
-	    assert(superblock);
-	    catype = superblock->getCustomArrayIndexTypeFromGetFunction(rnode, idxuti, hasHazyArgs);
+	    NodeBlockClass * prevblock = (NodeBlockClass *) getPreviousBlockPointer();
+	    assert(prevblock);
+	    return prevblock->getCustomArrayIndexTypeFromGetFunction(rnode, idxuti, hasHazyArgs);
 	  }
       }
+    else if(catype == Hzy)
+      hasHazyArgs = true;
     return catype;
   } //getCustomArrayIndexTypeFromGetFunction
 
@@ -685,7 +687,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	if(superuti != Nav)
 	  {
 	    // quarks can't contain themselves
-	    if(utype != superuti)
+	    if(UlamType::compare(utype, superuti, m_state) != UTIC_SAME)
 	      {
 		NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
 		assert(superClassBlock);
@@ -693,6 +695,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 		rtnpos = superClassBlock->findUlamTypeInTable(utype, insidecuti);
 		m_state.popClassContext(); //restore
 	      }
+	    else
+	      assert(0); //error msg?
 	  }
       }
     return rtnpos;  //also return DM (sub) class type where utype was found
@@ -1041,7 +1045,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("// immediate values\n");
 
-    //skip Nav type (0)
+    //skip Nav type (0), and Hzy
     std::map<UlamKeyTypeSignature, UlamType *, less_than_key>::iterator it = m_state.m_definedUlamTypes.begin();
     while(it != m_state.m_definedUlamTypes.end())
       {

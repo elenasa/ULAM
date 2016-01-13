@@ -4,7 +4,7 @@
 ##    //Constants have explicit types
 Exit status: 6
 Ue_T { Int(32) i(6);  Int(32) test() {  S(1,2) m;  i m ( )func . = i return } }
-Uq_S(Int(32) x, Int(32) y) { Int(UNKNOWN) i(unknown);  Int(UNKNOWN) j(unknown);  <NOMAIN> }
+Uq_S(Int(32) x, Int(32) y) { Int(UNKNOWN) i(notready);  Int(UNKNOWN) j(notready);  <NOMAIN> }
 ##
 ##    //informed by t3331
 ##    // here we set i using S(1,2).sizeof

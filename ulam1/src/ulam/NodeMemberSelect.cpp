@@ -70,7 +70,7 @@ namespace MFM {
 	msg << ", check and label fails this time around";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 
-	setNodeType(Nav);
+	setNodeType(Hzy);
 	m_state.setGoAgain(); //since no error msg
 	return getNodeType();
       } //done
@@ -87,7 +87,6 @@ namespace MFM {
 	if(lut->getUlamTypeEnum() == UAtom)
 	  msg << "; suggest using a Conditional-As";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-
 	setNodeType(Nav);
 	return Nav;
       } //done
@@ -131,6 +130,9 @@ namespace MFM {
     UTI nuti = getNodeType();
     if(nuti == Nav)
       return ERROR;
+
+    if(nuti == Hzy)
+      return NOTREADY;
 
     evalNodeProlog(0); //new current frame pointer on node eval stack
 
@@ -193,6 +195,9 @@ namespace MFM {
     if(rtnUV.getUlamValueTypeIdx() == Nav || ruti == Nav)
       return false;
 
+    if(rtnUV.getUlamValueTypeIdx() == Hzy || ruti == Hzy)
+      return false;
+
     //copy result UV to stack, -1 relative to current frame pointer
     Node::assignReturnValueToStack(rtnUV);
     return true;
@@ -203,6 +208,9 @@ namespace MFM {
     UTI nuti = getNodeType();
     if(nuti == Nav)
       return ERROR;
+
+    if(nuti == Hzy)
+      return NOTREADY;
 
     evalNodeProlog(0);
 

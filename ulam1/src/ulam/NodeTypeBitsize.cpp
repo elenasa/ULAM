@@ -77,6 +77,7 @@ namespace MFM {
 	msg << ", within (), is not ready";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	m_state.setGoAgain(); //since not error
+	//it = Hzy; //???
       }
 
     // expects a constant numeric type
@@ -118,7 +119,7 @@ namespace MFM {
   {
     s32 newbitsize = UNKNOWNSIZE;
     UTI sizetype = checkAndLabelType();
-    if(sizetype != Nav)
+    if(sizetype != Nav) //could be hzy
       {
 	evalNodeProlog(0); //new current frame pointer
 	makeRoomForNodeType(getNodeType()); //offset a constant expression
@@ -126,7 +127,7 @@ namespace MFM {
 	  {
 	    UlamValue bitUV = m_state.m_nodeEvalStack.popArg();
 	    UTI bituti = bitUV.getUlamValueTypeIdx();
-	    if( bituti == Nav)
+	    if(bituti == Nav)
 	      newbitsize = UNKNOWNSIZE;
 	    else
 	      {
@@ -177,7 +178,7 @@ namespace MFM {
     else
       {
 	// it's a Nav, perhaps not ready.
-	if( !m_node->isAConstant())
+	if(!m_node->isAConstant())
 	  {
 	    std::ostringstream msg;
 	    msg << "Type Bitsize specifier for base type: ";

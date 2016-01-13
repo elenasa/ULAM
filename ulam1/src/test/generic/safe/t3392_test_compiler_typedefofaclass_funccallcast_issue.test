@@ -4,8 +4,8 @@
 ##      //test bug fix: casting func call arg using typedef of another class
 Exit status: 7
 Ue_R { Ish2 ish( Colony(3u) colony( typedef Unsigned(3) Tail;  constant Unsigned(32) widthc = 3u;  typedef Telomeree(3u) Telo;  Telomeree(3u) t( constant Unsigned(32) width = 3u;  typedef Unsigned(3) Tail;  Unsigned(3) age(7u); ); ); );  Int(32) test() {  ish colony ( 7u cast )setTailAge . . ish colony t ( )getAge . . . cast return } }
-Uq_Telomeree(Unsigned(32) width) { typedef Unsigned(UNKNOWN) Tail;  Unsigned(UNKNOWN) age(unknown);  <NOMAIN> }
-Uq_Colony(Unsigned(32) widthc) { typedef Telomeree(width) Telo;  typedef Unsigned(UNKNOWN) Tail;  Telomeree(width) t(unknown);  <NOMAIN> }
+Uq_Telomeree(Unsigned(32) width) { typedef Unsigned(UNKNOWN) Tail;  Unsigned(UNKNOWN) age(notready);  <NOMAIN> }
+Uq_Colony(Unsigned(32) widthc) { typedef Telomeree(width) Telo;  typedef Unsigned(UNKNOWN) Tail;  Telomeree(width) t(notready);  <NOMAIN> }
 Uq_Ish2 { Colony(3u) colony( typedef Telomeree(3u) Telo;  typedef Unsigned(3) Tail;  Telomeree(3u) t( typedef Unsigned(3) Tail;  Unsigned(3) age(0); ); );  <NOMAIN> }
 ##      //informed by 3383,
 ##      // likes Telomeree first!

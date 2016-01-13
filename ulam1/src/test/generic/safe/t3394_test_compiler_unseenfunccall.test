@@ -4,8 +4,8 @@
 Exit status: 0
 Ue_A { /* empty class block */ }
 Ue_R { Int(32) test() {  typedef Colony(3u) Ish;  Colony(3u) ish;  ish ( 7u cast )setTailAge . 0 cast return } }
-Uq_Colony(Unsigned(32) widthc) { typedef Telomeree(width) Telo;  typedef Unsigned(UNKNOWN) Tail;  Telomeree(width) t(unknown);  <NOMAIN> }
-Uq_Telomeree(Unsigned(32) width) { typedef Unsigned(UNKNOWN) Tail;  Unsigned(UNKNOWN) age(unknown);  <NOMAIN> }
+Uq_Colony(Unsigned(32) widthc) { typedef Telomeree(width) Telo;  typedef Unsigned(UNKNOWN) Tail;  Telomeree(width) t(notready);  <NOMAIN> }
+Uq_Telomeree(Unsigned(32) width) { typedef Unsigned(UNKNOWN) Tail;  Unsigned(UNKNOWN) age(notready);  <NOMAIN> }
 ##
 ##      //informed by 3392
 ##      // Colony, with args, is Unseen at typedef time.

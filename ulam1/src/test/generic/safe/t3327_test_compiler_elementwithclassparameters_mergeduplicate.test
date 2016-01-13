@@ -7,7 +7,7 @@
 ##
 Exit status: 0
 Ue_R { Int(32) test() {  Foo(1,3u) f;  Foo(1,3u) p;  f sp . true = 0 cast return } }
-Ue_Foo(Int(32) x, Unsigned(32) y) { Bool(UNKNOWN) sp(unknown);  Bool(UNKNOWN) b(unknown);  Bool(UNKNOWN) c[UNKNOWN](unknown);  <NOMAIN> }
+Ue_Foo(Int(32) x, Unsigned(32) y) { Bool(UNKNOWN) sp(notready);  Bool(UNKNOWN) b(notready);  Bool(UNKNOWN) c[UNKNOWN](notready);  <NOMAIN> }
 Ue_Poo { Bool(1) valb[3](false,false,false);  <NOMAIN> }
 ##
 ##      //decl list with array, first c[1], then try c[x]

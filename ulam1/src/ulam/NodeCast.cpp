@@ -105,18 +105,24 @@ namespace MFM {
     // unlike the other nodes, nodecast knows its type at construction time;
     // this is for checking for errors, before eval happens.
     u32 errorsFound = 0;
+    u32 hazinessFound = 0;
     UTI tobeType = getNodeType();
     UTI nodeType = m_node->checkAndLabelType();
 
     if(nodeType == Nav)
       {
 	std::ostringstream msg;
-	msg << "Cannot cast a nonready type: " ;
-	msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
-	msg << " (UTI" << nodeType << ")";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	m_state.setGoAgain();
+	msg << "Cannot cast erroneous type" ;
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return Nav; //short-circuit
+      }
+
+    if(nodeType == Hzy)
+      {
+	std::ostringstream msg;
+	msg << "Cannot cast a nonready type" ;
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	return Hzy; //short-circuit
       }
 
     if(m_nodeTypeDesc)
@@ -131,7 +137,7 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
 	    msg << " (UTI" << tobeType << ")";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    errorsFound++; //goAgain set by nodetypedesc
+	    hazinessFound++; //goAgain set by nodetypedesc
 	  }
       }
 
@@ -144,8 +150,7 @@ namespace MFM {
 	msg << tobe->getUlamTypeNameBrief().c_str();
 	msg << " (UTI" << tobeType << ")";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	m_state.setGoAgain(); //in case no nodetypedesc
-	errorsFound++;
+	hazinessFound++;
       }
     else if(tobeType == Nav)
       {
@@ -190,12 +195,14 @@ namespace MFM {
 	      msg << "; Consider using a comparison operator";
 	    if(scr == CAST_HAZY)
 	      {
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	      m_state.setGoAgain();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		hazinessFound++;
 	      }
 	    else
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    errorsFound++;
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		errorsFound++;
+	      }
 	  }
       }
 
@@ -267,7 +274,16 @@ namespace MFM {
       }
 
     if(errorsFound)
-      return Nav; //inconsistent! but keeps cast type..makeCastingNode returns error
+      {
+	m_state.setGoAgain();
+	return Nav; //inconsistent! but keeps cast type..makeCastingNode returns error
+      }
+
+    if(hazinessFound)
+      {
+	m_state.setGoAgain();
+	return Hzy;
+      }
 
     if(tobe->isReference())
       setStoreIntoAble(true);
@@ -297,6 +313,9 @@ namespace MFM {
 
     if(tobeType == Nav)
       return ERROR;
+
+    if(tobeType == Hzy)
+      return NOTREADY;
 
     evalNodeProlog(0); //new current frame pointer
 
@@ -372,6 +391,9 @@ namespace MFM {
 
     if(tobeType == Nav)
       return ERROR;
+
+    if(tobeType == Hzy)
+      return NOTREADY;
 
     if(!isStoreIntoAble())
       return ERROR;

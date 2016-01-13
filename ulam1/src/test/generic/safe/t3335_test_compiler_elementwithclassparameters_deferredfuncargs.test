@@ -4,7 +4,7 @@
 ##      //with implicit b casted to func; it works!!
 Exit status: 15
 Ue_T { Int(32) i(15);  Int(32) j(3);  System s();  Int(32) test() {  Int(3) a;  Int(4) b;  S(3,2) m;  i m ( b cast )func . = s ( i )print . j m ( a )func . = s ( j )print . i return } }
-Uq_S(Int(32) x, Int(32) y) { Int(UNKNOWN) i(unknown);  Int(UNKNOWN) j(unknown);  <NOMAIN> }
+Uq_S(Int(32) x, Int(32) y) { Int(UNKNOWN) i(notready);  Int(UNKNOWN) j(notready);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ##    //informed by t3333

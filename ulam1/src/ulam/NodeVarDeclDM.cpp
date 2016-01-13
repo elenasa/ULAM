@@ -49,6 +49,14 @@ namespace MFM {
 	return;
       }
 
+    if(nuti == Hzy)
+      {
+	fp->write("(");
+	fp->write("notready");
+	fp->write("); ");
+	return;
+      }
+
     if(nut->getUlamClass() == UC_QUARK)
       {
 	SymbolClass * csym = NULL;
@@ -151,7 +159,7 @@ namespace MFM {
     //don't allow a subclass to shadow a superclass datamember
     UTI cuti = m_state.getCompileThisIdx();
     UTI superuti = m_state.isClassASubclass(cuti);
-    if(superuti != Nav)
+    if(superuti != Nav) //has ancestor
       {
 	//is a subclass' DM..
 	//check for shadowed superclass DM of same name
@@ -195,15 +203,21 @@ namespace MFM {
 	    msg << "Constant value expression for data member: ";
 	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
 	    msg << ", initialization is invalid";
-	    if(m_nodeInitExpr->isReadyConstant())
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    else
-	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		m_state.setGoAgain(); //since not error
-	      }
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
 	    return Nav; //short-circuit
+	  }
+
+	if(it == Hzy)
+	  {
+	    std::ostringstream msg;
+	    msg << "Constant value expression for data member: ";
+	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+	    msg << ", initialization is not ready";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    m_state.setGoAgain(); //since not error
+	    setNodeType(Hzy);
+	    return Hzy; //short-circuit
 	  }
 
 	//constant fold if possible, set symbol value
@@ -216,9 +230,9 @@ namespace MFM {
 		foldInitExpression(); //sets init constant value
 		if(!(((SymbolVariableDataMember *) m_varSymbol)->initValueReady()))
 		  {
-		    setNodeType(Nav);
+		    setNodeType(Hzy);
 		    m_state.setGoAgain(); //since not error
-		    return Nav;
+		    return Hzy;
 		  }
 	      }
 	  }
@@ -569,6 +583,9 @@ namespace MFM {
     if(nuti == Nav)
       return ERROR;
 
+    if(nuti == Hzy)
+      return NOTREADY;
+
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClass();
 
@@ -618,7 +635,7 @@ namespace MFM {
   void NodeVarDeclDM::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_varSymbol);
-    assert(getNodeType() != Nav);
+    assert(m_state.isComplete(getNodeType()));
 
     assert(m_varSymbol->isDataMember());
 

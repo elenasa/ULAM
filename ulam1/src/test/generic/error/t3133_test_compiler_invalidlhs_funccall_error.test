@@ -1,23 +1,24 @@
 ## -*- mode:ulam -*-
 #=t3133_test_compiler_invalidlhs_funccall_error
 #!
-./D.ulam:7:8: ERROR: Invalid lefthand side of equals <foo>, type: Int(8).
-./D.ulam:7:8: ERROR: Unresolved No.1.
-./D.ulam:6:1: Warning: 1 nodes with unresolved types remain in function <test> (Uf_4test,1).
-./D.ulam:6:5: Warning: Summary: 1 nodes with unresolved types remain in  a single function <test> in class: D.
-./D.ulam:1:7: Warning: 1 data member nodes with unresolved types remain in class 'D'.
-./D.ulam:1:7: ERROR: 1 Nodes with unresolved types detected after type labeling class: D.
+./D.ulam:8:11: ERROR: Invalid lefthand side of equals <foo>, type: Int(8).
+./D.ulam:8:11: ERROR: Unresolved No.1: <=>.
+./D.ulam:7:3: Warning: 1 nodes with unresolved types remain in function <test> (Uf_4test,2).
+./D.ulam:7:7: Warning: Summary: 1 nodes with unresolved types remain in  a single function <test> in class: D.
+./D.ulam:2:7: Warning: 1 data member nodes with unresolved types remain in class 'D'.
+./D.ulam:2:7: ERROR: 1 Nodes with unresolved types detected after type labeling class: D.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>D.ulam
+  ulam 1;
 quark D {
-Int(8) a;
-Int(8) foo() {
-  return 1;
-}
-Int test() {
- foo() = a;
- return foo();
-}
+  Int(8) a;
+  Int(8) foo() {
+    return 1;
+  }
+  Int test() {
+    foo() = a;
+    return foo();
+  }
 }
 #.

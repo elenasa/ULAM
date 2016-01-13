@@ -17,7 +17,7 @@
 ##
 Exit status: 0
 Ue_Foo { IntXY(1u,4u) q( constant Unsigned(32) xbits = 1u;  constant Unsigned(32) ybits = 4u;  typedef Unsigned(1) XCoord;  typedef Unsigned(4) YCoord;  Unsigned(1) x(0u);  Unsigned(4) y(0u); );  IntXY(3u,4u) n( constant Unsigned(32) xbits = 3u;  constant Unsigned(32) ybits = 4u;  typedef Unsigned(3) XCoord;  typedef Unsigned(4) YCoord;  Unsigned(3) x(2u);  Unsigned(4) y(3u); );  IntXY(2u,3u) p( constant Unsigned(32) xbits = 2u;  constant Unsigned(32) ybits = 3u;  typedef Unsigned(2) XCoord;  typedef Unsigned(3) YCoord;  Unsigned(2) x(0u);  Unsigned(3) y(0u); );  Int(32) test() {  System s;  IntXY(3u,4u) m = n ( 1 cast 2 cast )make .;  s ( m x . cast )print . s ( m y . cast )print . s ( n x . cast )print . s ( n y . cast )print . Foo f = n ( 2 cast 3 cast )fromXY . cast;  s ( f n x . . cast )print . s ( f n y . . cast )print . s ( n x . cast )print . s ( n y . cast )print . f n . m ( 4 cast 1 cast )make . = s ( f n x . . cast )print . s ( f n y . . cast )print . s ( m x . cast )print . s ( m y . cast )print . 0 cast return } }
-Uq_IntXY(Unsigned(32) xbits, Unsigned(32) ybits) { typedef Unsigned(UNKNOWN) XCoord;  typedef Unsigned(UNKNOWN) YCoord;  Unsigned(UNKNOWN) x(unknown);  Unsigned(UNKNOWN) y(unknown);  <NOMAIN> }
+Uq_IntXY(Unsigned(32) xbits, Unsigned(32) ybits) { typedef Unsigned(UNKNOWN) XCoord;  typedef Unsigned(UNKNOWN) YCoord;  Unsigned(UNKNOWN) x(notready);  Unsigned(UNKNOWN) y(notready);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ##      //informed by t3408: here, n is surrounded by two other IntXY data members q and p.

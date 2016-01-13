@@ -56,6 +56,8 @@ namespace MFM {
     char id[255];
     if(myut == Nav)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
+    else if(myut == Hzy)
+      sprintf(id,"%s<HAZYTYPE>\n", prettyNodeName().c_str());
     else
       sprintf(id,"%s<%s>\n",prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
@@ -126,7 +128,7 @@ namespace MFM {
       }
 
     UTI newType = Nav;
-    if(uti)
+    if(uti != Nav)
       newType = calcNodeType(uti); //does safety check
 
     if(newType != Nav && m_state.isComplete(newType))
@@ -139,7 +141,6 @@ namespace MFM {
       }
     else
       m_state.setGoAgain(); //since not error
-
 
     setNodeType(newType);
     setStoreIntoAble(false);
@@ -247,6 +248,8 @@ namespace MFM {
 
     if(nuti == Nav) return Nav; //nothing to do yet
 
+    if(nuti == Hzy) return Hzy; //nothing to do yet
+
     // if here, must be a constant..
     assert(isAConstant());
 
@@ -285,11 +288,22 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Constant value expression for unary op" << getName();
+	msg << " is erroneous yet ready while compiling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav);
+	return Nav;
+      }
+
+    if(evs == NOTREADY)
+      {
+	std::ostringstream msg;
+	msg << "Constant value expression for unary op" << getName();
 	msg << " is not yet ready while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	setNodeType(Nav);
-	return Nav;
+	setNodeType(Hzy);
+	return Hzy;
       }
 
     //replace ourselves (and kids) with a node terminal; new NNO unlike template's
@@ -327,6 +341,9 @@ namespace MFM {
     UTI nuti = getNodeType();
     if(nuti == Nav)
       return ERROR;
+
+    if(nuti == Hzy)
+      return NOTREADY;
 
     evalNodeProlog(0); //new current frame pointer
     u32 slots = makeRoomForNodeType(nuti);
@@ -368,6 +385,9 @@ namespace MFM {
     UlamValue uv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slot); //immediate value
 
     if(uv.getUlamValueTypeIdx() == Nav || nuti == Nav)
+      return false;
+
+    if(uv.getUlamValueTypeIdx() == Hzy || nuti == Hzy)
       return false;
 
     u32 data = uv.getImmediateData(len, m_state);

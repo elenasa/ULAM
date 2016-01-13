@@ -83,6 +83,9 @@ namespace MFM {
     if(nuti == Nav)
       return ERROR;
 
+    if(nuti == Hzy)
+      return NOTREADY;
+
     assert(m_varSymbol->getUlamTypeIdx() == nuti);
     assert(m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum() != UAtom); //rhs type of conditional as/has can't be an atom
 

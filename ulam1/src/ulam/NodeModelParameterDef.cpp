@@ -49,7 +49,7 @@ namespace MFM {
   UTI NodeModelParameterDef::checkAndLabelType()
   {
     UTI nodeType = NodeConstantDef::checkAndLabelType();
-    if(nodeType != Nav)
+    if((nodeType != Nav) && (nodeType != Hzy))
       {
 	UlamType * nut = m_state.getUlamTypeByIndex(nodeType);
 	u32 wordsize = nut->getTotalWordSize();

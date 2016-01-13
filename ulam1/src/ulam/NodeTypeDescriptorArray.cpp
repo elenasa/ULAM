@@ -110,7 +110,10 @@ namespace MFM {
 	  }
       }
     else
-      m_state.setGoAgain();
+      {
+	setNodeType(it); //now that we have Hzy
+	m_state.setGoAgain();
+      }
 
     return getNodeType();
   } //checkAndLabelType
@@ -175,7 +178,11 @@ namespace MFM {
 	    rtnb = true;
 	    rtnuti = nuti;
 	  }
+	else
+	  rtnuti = Hzy;
       } //else select not ready, so neither are we!!
+    else
+      rtnuti = Hzy;
     return rtnb;
   } //resolveType
 

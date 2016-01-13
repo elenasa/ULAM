@@ -3,11 +3,6 @@
 #!
 ./A.ulam:2:6: Warning: Void bitsize expression disregarded; size is zero.
 ./A.ulam:7:0: ERROR: Invalid Void type array: Void[UNKNOWN].
-./A.ulam:2:2: ERROR: Unresolved No.1.
-./A.ulam:2:2: ERROR: Unresolved No.2.
-./A.ulam:1:9: ERROR: 2 data members with unresolved types remain.
-./A.ulam:1:9: Warning: 2 data member nodes with unresolved types remain in class 'A'.
-./A.ulam:1:9: ERROR: 2 Nodes with unresolved types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //informed by3311
