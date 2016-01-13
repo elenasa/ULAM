@@ -224,7 +224,15 @@ namespace MFM {
 	setStoreIntoAble(m_nodeLeft->isStoreIntoAble());
       }
     else
-      m_state.setGoAgain(); //covers non-error(debug) messages for incompletes
+      {
+	if(errorCount != 0)
+	  newType = Nav;
+	else if(hazyCount != 0)
+	  newType = Hzy;
+	else
+	  assert(0);
+	m_state.setGoAgain(); //covers non-error(debug) messages for incompletes
+      }
 
     setNodeType(newType);
     return newType;
