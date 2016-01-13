@@ -35,6 +35,9 @@ namespace MFM {
 
   UTI NodeUnaryOpBang::calcNodeType(UTI uti)
   {
+    if(!m_state.isComplete(uti))
+      return Hzy;
+
     ULAMTYPE typEnum = m_state.getUlamTypeByIndex(uti)->getUlamTypeEnum();
     if(typEnum == Bits)
       {

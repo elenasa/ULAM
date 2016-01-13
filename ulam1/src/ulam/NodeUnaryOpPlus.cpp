@@ -26,6 +26,9 @@ namespace MFM {
 
   UTI NodeUnaryOpPlus::calcNodeType(UTI uti)
   {
+    if(!m_state.isComplete(uti))
+      return Hzy;
+
     if(!NodeUnaryOp::checkForPrimitiveType(uti))
       return Nav; //outputs error msg
 

@@ -131,7 +131,7 @@ namespace MFM {
     if(uti != Nav)
       newType = calcNodeType(uti); //does safety check
 
-    if(newType != Nav && m_state.isComplete(newType))
+    if((newType != Nav) && (newType != Hzy) && m_state.isComplete(newType))
       {
 	if(UlamType::compare(newType, uti, m_state) != UTIC_SAME) //not same|dontknow
 	  {
@@ -140,7 +140,10 @@ namespace MFM {
 	  }
       }
     else
-      m_state.setGoAgain(); //since not error
+      {
+	newType = Hzy;
+	m_state.setGoAgain(); //since not error
+      }
 
     setNodeType(newType);
     setStoreIntoAble(false);
