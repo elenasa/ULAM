@@ -350,7 +350,7 @@ namespace MFM {
 		fp->write("); //pos offset\n");
 
 		UTI superuti = m_state.isClassASubclass(suti);
-		while(superuti != Nav)
+		while(superuti != Nav) //none
 		  {
 		    UlamType * superut = m_state.getUlamTypeByIndex(superuti);
 		    m_state.indent(fp);
@@ -685,7 +685,7 @@ namespace MFM {
     UTI cuti = m_state.getCompileThisIdx();
     UTI superuti = m_state.isClassASubclass(cuti);
 
-    if(m_idToSymbolPtr.empty() && superuti == Nav)
+    if(m_idToSymbolPtr.empty() && (superuti == Nav))
       {
 	assert(maxidx <= 0);
     	maxidx = 0; //use zero when empty

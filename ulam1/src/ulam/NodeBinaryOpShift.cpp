@@ -43,7 +43,7 @@ namespace MFM {
 	  }
       } //complete
 
-    if(newType != Nav && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+    if((newType != Nav) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
       return constantFold();
 
     return newType;

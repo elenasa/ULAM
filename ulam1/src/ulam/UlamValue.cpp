@@ -583,6 +583,7 @@ namespace MFM {
     assert(eutype != UAtom);
     assert(utype != Ptr);
     assert(utype != Nav);
+    assert(utype != Hzy);
     assert(len >= 0 && len <= MAXBITSPERINT);
 
     if(eutype == Class)
@@ -607,7 +608,7 @@ namespace MFM {
   {
     UTI utype = getUlamValueTypeIdx();
     //ULAMTYPE eutype = m_state.getUlamTypeByIndex(utype)->getUlamTypeEnum();
-    AssertBool utypOk = ((utype != UAtom) && (utype != Ptr) && (utype != Nav));
+    AssertBool utypOk = ((utype != UAtom) && (utype != Ptr) && (utype != Nav) && (utype != Hzy));
     assert(utypOk);
     assert(len >= 0 && len <= MAXBITSPERINT);
     return getData(ATOMFIRSTSTATEBITPOS, len);
@@ -629,7 +630,7 @@ namespace MFM {
   {
     UTI utype = getUlamValueTypeIdx();
     //ULAMTYPE eutype = state.getUlamTypeByIndex(utype)->getUlamTypeEnum();
-    AssertBool utypOk = ((utype != UAtom) && (utype != Ptr) && (utype != Nav));
+    AssertBool utypOk = ((utype != UAtom) && (utype != Ptr) && (utype != Nav) && (utype != Hzy));
     assert(utypOk);
     assert(len >= 0 && len <= MAXBITSPERLONG);
     return getDataLong(BITSPERATOM - len, len);

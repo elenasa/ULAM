@@ -145,15 +145,12 @@ namespace MFM {
     if(getNodeType() != Nav && getNodeType() != Hzy)
       return getNodeType();
 
-    UTI newType = Hzy;
-
-    if(m_state.isComplete(leftType) && m_state.isComplete(rightType))
-      newType = calcNodeType(leftType, rightType); //does safety check
+    UTI newType = calcNodeType(leftType, rightType); //does safety check
 
     setNodeType(newType);
     setStoreIntoAble(false);
 
-    if(newType != Nav && m_state.isComplete(newType))
+    if((newType != Nav) && (newType != Hzy) && m_state.isComplete(newType))
       {
 	if(UlamType::compare(newType, leftType, m_state) != UTIC_SAME) //not same, or dontknow
 	  {
@@ -171,7 +168,7 @@ namespace MFM {
     //before constant folding; if needed (e.g. Remainder, Divide)
     castThyselfToResultType(rightType, leftType, newType);
 
-    if(newType != Nav && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+    if((newType != Nav) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
       return constantFold();
 
     return newType;
@@ -449,7 +446,7 @@ namespace MFM {
     UTI nuti = getNodeType();
 
     if(nuti == Nav) return Nav; //nothing to do yet
-    if(nuti == Hzy) return Hzy; //nothing to do yet
+    //if(nuti == Hzy) return Hzy; //nothing to do yet TRY?
 
     // if here, must be a constant..
     assert(isAConstant());
@@ -489,7 +486,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Constant value expression for binary op" << getName();
-	msg << " is not yet ready while compiling class: ";
+	msg << " is erroneous while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);

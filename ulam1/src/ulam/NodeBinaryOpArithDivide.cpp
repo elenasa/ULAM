@@ -37,7 +37,7 @@ NodeBinaryOpArithDivide::NodeBinaryOpArithDivide(const NodeBinaryOpArithDivide& 
     //because the result bitsize for division should be the left bitsize
     // create a cast! combining newType's base type and left resultbitsize.
     // could be the same, or "unsafe".
-    if(newType != Nav && m_state.isComplete(newType))
+    if((newType != Nav) && (newType != Hzy) && m_state.isComplete(newType))
       {
 	UlamType * newut = m_state.getUlamTypeByIndex(newType);
 	ULAMTYPE typEnum = newut->getUlamTypeEnum();

@@ -421,7 +421,7 @@ namespace MFM {
 	    msg << "' cannot return Void ";
 	    probcount++;
 	  }
-	else if(futisav != Nav && UlamType::compare(futi, futisav, m_state) == UTIC_NOTSAME)
+	else if((futisav != Nav) && (UlamType::compare(futi, futisav, m_state) == UTIC_NOTSAME))
 	  {
 	    std::ostringstream msg;
 	    msg << "Custom array get methods '";
@@ -520,7 +520,7 @@ namespace MFM {
 	SymbolFunction * fsym = it->second;
 	UTI futi = fsym->getUlamTypeIdx();
 	assert(futi != Void);
-	assert(rtnType == Nav || UlamType::compare(rtnType, futi, m_state) == UTIC_SAME);
+	assert((rtnType == Nav) || (UlamType::compare(rtnType, futi, m_state) == UTIC_SAME));
 	rtnType = futi;
 	++it;
       }

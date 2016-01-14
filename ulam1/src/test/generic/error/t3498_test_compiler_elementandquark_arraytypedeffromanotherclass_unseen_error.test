@@ -2,7 +2,7 @@
 #=t3498_test_compiler_elementandquark_arraytypedeffromanotherclass_unseen_error
 #!
 ./Vector.ulam:4:35: ERROR: Possible Divide By Zero Attempt.
-./Vector.ulam:4:35: ERROR: Constant value expression for binary op/ is not yet ready while compiling class: Vector(2u).
+./Vector.ulam:4:35: ERROR: Constant value expression for binary op/ is erroneous while compiling class: Vector(2u).
 ./R.ulam:7:13: ERROR: Unresolved No.1: <foo2>.
 ./R.ulam:7:13: ERROR: Unresolved No.2: <list>.
 ./R.ulam:5:2: Warning: 2 nodes with unresolved types remain in function <test> (Uf_4test,2).

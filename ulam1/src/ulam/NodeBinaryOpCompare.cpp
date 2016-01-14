@@ -43,7 +43,7 @@ namespace MFM {
     setStoreIntoAble(false);
 
     //still may need casting (e.g. unary compared to an int) before constantfolding
-    if(newType != Nav && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+    if((newType != Nav) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
       return NodeBinaryOp::constantFold();
 
     return newType;

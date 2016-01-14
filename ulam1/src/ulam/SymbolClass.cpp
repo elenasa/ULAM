@@ -387,7 +387,7 @@ namespace MFM {
     if(m_resolver)
       rtnb = m_resolver->findMappedUTI(auti, mappedUTI);
 
-    if(!rtnb && getSuperClass() != Nav)
+    if(!rtnb && (getSuperClass() != Nav))
       {
 	SymbolClass * csym = NULL;
 	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(getSuperClass(), csym);

@@ -138,8 +138,7 @@ namespace MFM {
     else if(instance == getUlamTypeIdx())
       SymbolClass::setSuperClass(superclass); //instance is template definition
     else
-      //not found???
-      assert(0);
+      assert(0); //not found???
   } //setSuperClassForClassInstance
 
   UTI SymbolClassNameTemplate::getSuperClassForClassInstance(UTI instance)

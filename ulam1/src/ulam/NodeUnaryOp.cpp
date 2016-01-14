@@ -148,7 +148,7 @@ namespace MFM {
     setNodeType(newType);
     setStoreIntoAble(false);
 
-    if(newType != Nav && isAConstant() && m_node->isReadyConstant())
+    if((newType != Nav) && isAConstant() && m_node->isReadyConstant())
       return constantFold();
 
     return newType;
@@ -251,7 +251,7 @@ namespace MFM {
 
     if(nuti == Nav) return Nav; //nothing to do yet
 
-    if(nuti == Hzy) return Hzy; //nothing to do yet
+    //if(nuti == Hzy) return Hzy; //nothing to do yet TRY?
 
     // if here, must be a constant..
     assert(isAConstant());
@@ -291,7 +291,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Constant value expression for unary op" << getName();
-	msg << " is erroneous yet ready while compiling class: ";
+	msg << " is erroneous while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);

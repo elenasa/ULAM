@@ -96,7 +96,7 @@ namespace MFM {
 	msg << "Casting UNKNOWN sizes; " << getBitSize();
 	msg << ", Value Type and size was: " << typidx << "," << m_state.getBitSize(typidx);
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
-	return CAST_HAZY;  //includes Navs
+	return CAST_HAZY;  //includes Navs & Hzy's
       }
 
     //let packable arrays of same size pass...
