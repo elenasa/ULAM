@@ -54,7 +54,7 @@ namespace MFM {
     printNodeLocation(fp);
     UTI myut = getNodeType();
     char id[255];
-    if(myut == Nav)
+    if((myut == Nav) || (myut == Nouti))
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
     else if(myut == Hzy)
       sprintf(id,"%s<HAZYTYPE>\n", prettyNodeName().c_str());
@@ -114,9 +114,8 @@ namespace MFM {
   {
     assert(m_node);
     UTI uti = m_node->checkAndLabelType();
-    //uti = m_state.getUlamTypeAsDeref(uti);
 
-    if(!m_state.isScalar(uti)) //array unsupported at this time
+    if(m_state.isComplete(uti) && !m_state.isScalar(uti)) //array unsupported at this time
       {
 	std::ostringstream msg;
 	msg << "Incompatible (nonscalar) type: ";
@@ -131,7 +130,7 @@ namespace MFM {
     if(uti != Nav)
       newType = calcNodeType(uti); //does safety check
 
-    if((newType != Nav) && (newType != Hzy) && m_state.isComplete(newType))
+    if(m_state.isComplete(newType))
       {
 	if(UlamType::compare(newType, uti, m_state) != UTIC_SAME) //not same|dontknow
 	  {
@@ -387,10 +386,10 @@ namespace MFM {
 
     UlamValue uv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slot); //immediate value
 
-    if(uv.getUlamValueTypeIdx() == Nav || nuti == Nav)
+    if((uv.getUlamValueTypeIdx() == Nav) || (nuti == Nav))
       return false;
 
-    if(uv.getUlamValueTypeIdx() == Hzy || nuti == Hzy)
+    if((uv.getUlamValueTypeIdx() == Hzy) || (nuti == Hzy))
       return false;
 
     u32 data = uv.getImmediateData(len, m_state);

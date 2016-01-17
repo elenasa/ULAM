@@ -1,3 +1,4 @@
+XY(Nouti,"0Nouti",0,"o")
 XY(Nav,"0Nav",0,"n")
 XY(Hzy,"0Hzy",0,"z")
 XY(Void,"Void",0,"v")

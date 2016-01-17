@@ -351,7 +351,7 @@ namespace MFM {
   {
     UTI uti = getNodeType();
 
-    if(uti == Nav || !m_state.isComplete(uti))
+    if((uti == Nav) || !m_state.isComplete(uti)) //not complete includes Hzy
       return false; //e.g. not a constant
 
     assert(m_constSymbol);

@@ -33,7 +33,7 @@ namespace MFM {
     "* @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>\n"
     "*/\n\n";
 
-  SymbolClass::SymbolClass(Token id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), m_quarkDefaultValue(0), m_isreadyQuarkDefaultValue(false) /* default */, m_superClass(Nav) {}
+  SymbolClass::SymbolClass(Token id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), m_quarkDefaultValue(0), m_isreadyQuarkDefaultValue(false) /* default */, m_superClass(Nouti) {}
 
   SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), m_quarkDefaultValue(sref.m_quarkDefaultValue), m_isreadyQuarkDefaultValue(false), m_superClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_superClass))
   {
@@ -109,7 +109,7 @@ namespace MFM {
 
   UTI SymbolClass::getSuperClass()
   {
-    return m_superClass; //Nav is none, not a subclass.
+    return m_superClass; //Nouti is none, not a subclass.
   } //getSuperClass
 
   const std::string SymbolClass::getMangledPrefix()
@@ -387,7 +387,7 @@ namespace MFM {
     if(m_resolver)
       rtnb = m_resolver->findMappedUTI(auti, mappedUTI);
 
-    if(!rtnb && (getSuperClass() != Nav))
+    if(!rtnb && (getSuperClass() != Nouti))
       {
 	SymbolClass * csym = NULL;
 	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(getSuperClass(), csym);
@@ -884,7 +884,7 @@ namespace MFM {
     assert(initialmax >= 0);
     if((u32) initialmax == m_vtable.size()) return; //not first time here
 
-    if(getSuperClass() != Nav)
+    if(getSuperClass() != Nouti)
       {
 	SymbolClass * csym = NULL;
 	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(getSuperClass(), csym);

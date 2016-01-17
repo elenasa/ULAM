@@ -77,7 +77,7 @@ namespace MFM {
 
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMCLASSTYPE classtype = lut->getUlamClass();
-    if(classtype == UC_NOTACLASS && lut->getUlamTypeEnum() != Holder)
+    if((classtype == UC_NOTACLASS) && (lut->getUlamTypeEnum() != Holder))
       {
 	// must be a 'Class' type, either quark or element
 	// doesn't complete checkandlabel for rhs (e.g. funccall is NULL, no eval)
@@ -192,10 +192,10 @@ namespace MFM {
 	rtnUV = UlamValue::makePtr(rslot, EVALRETURN, ruti, UNPACKED, m_state);
       }
 
-    if(rtnUV.getUlamValueTypeIdx() == Nav || ruti == Nav)
+    if((rtnUV.getUlamValueTypeIdx() == Nav) || (ruti == Nav))
       return false;
 
-    if(rtnUV.getUlamValueTypeIdx() == Hzy || ruti == Hzy)
+    if((rtnUV.getUlamValueTypeIdx() == Hzy) || (ruti == Hzy))
       return false;
 
     //copy result UV to stack, -1 relative to current frame pointer

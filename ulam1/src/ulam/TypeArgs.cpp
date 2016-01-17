@@ -23,9 +23,9 @@ namespace MFM {
     m_typeTok = typetoken;
     m_bitsize = UNKNOWNSIZE;
     m_arraysize = NONARRAYSIZE;
-    m_classInstanceIdx = Nav;
-    m_anothertduti = Nav;
-    m_declListOrTypedefScalarType = Nav;
+    m_classInstanceIdx = Nouti;
+    m_anothertduti = Nouti;
+    m_declListOrTypedefScalarType = Nouti;
     m_assignOK = true;
     m_isStmt = true;
     m_declRef = ALT_NOT;

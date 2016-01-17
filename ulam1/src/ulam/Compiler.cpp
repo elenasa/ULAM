@@ -262,7 +262,7 @@ namespace MFM {
 	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     else
-      //assert(!m_state.goAgain() && errCnt == 0);
+    ////assert(!m_state.goAgain() && errCnt == 0);
       assert(errCnt == 0 || m_state.goAgain());
 
     u32 warns = m_state.m_err.getWarningCount();

@@ -2,7 +2,7 @@
 
 namespace MFM {
 
-  ClassContext::ClassContext() : m_compileThisId(0), m_compileThisIdx(Nav), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL) {}
+  ClassContext::ClassContext() : m_compileThisId(0), m_compileThisIdx(Nouti), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL) {}
 
   ClassContext::ClassContext(u32 id, UTI idx, NodeBlock * nb, NodeBlockClass * nbc, bool usememberblock, NodeBlockClass * mbc): m_compileThisId(id), m_compileThisIdx(idx), m_currentBlock(nb), m_classBlock(nbc), m_useMemberBlock(usememberblock), m_currentMemberClassBlock(mbc) {}
 

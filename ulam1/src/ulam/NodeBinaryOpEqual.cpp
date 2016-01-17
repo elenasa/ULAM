@@ -34,9 +34,7 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
 
     UTI leftType = m_nodeLeft->checkAndLabelType();
-    //leftType = m_state.getUlamTypeAsDeref(leftType);
     UTI rightType = m_nodeRight->checkAndLabelType();
-    //rightType = m_state.getUlamTypeAsDeref(rightType);
 
     if(!m_state.isComplete(leftType) || !m_state.isComplete(rightType))
       {
@@ -80,8 +78,6 @@ namespace MFM {
     if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME)
       {
 	//different msg if try to assign non-class to a class type
-	//if(m_state.getUlamTypeByIndex(leftType)->getUlamTypeEnum() == Class)
-	//if((m_state.getUlamTypeByIndex(leftType)->getUlamTypeEnum() == Class) && !m_state.isReference(leftType))
 	if((m_state.getUlamTypeByIndex(leftType)->getUlamTypeEnum() == Class) && (m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum() != Class))
 	  {
 	    std::ostringstream msg;
@@ -123,7 +119,6 @@ namespace MFM {
 	      newType = Nav; //error
 	  }
       }
-
     setNodeType(newType);
     setStoreIntoAble((newType != Nav) && (newType != Hzy)); //ok true
     return newType;

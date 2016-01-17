@@ -14,7 +14,7 @@
 
 namespace MFM {
 
-  Node::Node(CompilerState & state): m_state(state), m_storeIntoAble(false), m_utype(Nav), m_parentNo(0), m_no(m_state.getNextNodeNo()) {}
+  Node::Node(CompilerState & state): m_state(state), m_storeIntoAble(false), m_utype(Nouti), m_parentNo(0), m_no(m_state.getNextNodeNo()) {}
 
   Node::Node(const Node & ref) : m_state(ref.m_state), m_storeIntoAble(ref.m_storeIntoAble), m_utype(ref.m_utype), m_loc(ref.m_loc), m_parentNo(ref.m_parentNo), m_no(ref.m_no) /* same NNO */ {}
 
@@ -68,7 +68,7 @@ namespace MFM {
     printNodeLocation(fp);
     UTI myut = getNodeType();
     char id[255];
-    if(myut == Nav)
+    if((myut == Nav) || (myut == Nouti))
       sprintf(id,"%s<NOTYPE>\n",prettyNodeName().c_str());
     if(myut == Hzy)
       sprintf(id,"%s<HAZYTYPE>\n",prettyNodeName().c_str());
@@ -191,7 +191,7 @@ namespace MFM {
   // and has no type (e.g. statements, statement, block, program)
   UTI Node::checkAndLabelType()
   {
-    m_utype = Nav;
+    m_utype = Nouti;
     m_storeIntoAble = false;
     return m_utype;
   }
@@ -315,7 +315,7 @@ namespace MFM {
   u32 Node::makeRoomForSlots(u32 slots, STORAGE where)
   {
     //push copies of temporary UV (e.g. UVPtr)
-    UlamValue tmpUV = UlamValue::makeImmediate(Nav, 0, 1);
+    UlamValue tmpUV = UlamValue::makeImmediate(Nouti, 0, 1);
     for(u32 j = 0; j < slots; j++)
       {
 	if(where == EVALRETURN)
@@ -2065,7 +2065,7 @@ namespace MFM {
     if(!currClassBlock->isFuncIdInScope(funcidentTok.m_dataindex, fnSym))
       {
 	//first time name used as a function..add symbol function name/typeNav
-	fnSym = new SymbolFunctionName(funcidentTok, Nav, m_state);
+	fnSym = new SymbolFunctionName(funcidentTok, Nouti, m_state);
 
 	//ownership goes to the class block's ST
 	currClassBlock->addFuncIdToScope(fnSym->getId(), fnSym);
@@ -2220,7 +2220,7 @@ namespace MFM {
 		  }
 	      }
 	  }
-	else if(m_state.isClassASubclass(stgcosuti)) //self is subclass
+	else if(m_state.isClassASubclass(stgcosuti) != Nouti) //self is subclass
 	  {
 	    //could be in a super-super class
 	    Node * foundnode = m_state.findNodeNoInAClass(cosBlockNo, stgcosuti);
@@ -2304,7 +2304,7 @@ namespace MFM {
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     NNO cosBlockNo = cos->getBlockNoOfST();
     NNO stgcosBlockNo = m_state.getAClassBlockNo(stgcosuti);
-    if(stgcosBlockNo != cosBlockNo && m_state.isClassASubclass(stgcosuti))
+    if((stgcosBlockNo != cosBlockNo) && (m_state.isClassASubclass(stgcosuti) != Nouti))
       {
 	Node * foundnode = m_state.findNodeNoInAClass(cosBlockNo, stgcosuti);
 	assert(foundnode);
@@ -2404,7 +2404,7 @@ namespace MFM {
     //currently, only regular classes may have subclasses.
     if((cosBlockNo != caBlockNo) && (cosuti != caclassuti) && !m_state.isClassATemplate(caclassuti))
       {
-	assert(m_state.isClassASubclass(cosuti));
+	assert(m_state.isClassASubclass(cosuti) != Nouti);
 	UlamType * caclassut = m_state.getUlamTypeByIndex(caclassuti);
 
 	fp->write(caclassut->getUlamTypeMangledName().c_str());
@@ -2660,7 +2660,7 @@ namespace MFM {
     //currently, only regular classes may have subclasses.
     if((cosBlockNo != caBlockNo) && (cosuti != caclassuti) && !m_state.isClassATemplate(caclassuti))
       {
-	assert(m_state.isClassASubclass(cosuti));
+	assert(m_state.isClassASubclass(cosuti) != Nouti);
 	UlamType * caclassut = m_state.getUlamTypeByIndex(caclassuti);
 
 	fp->write(caclassut->getUlamTypeMangledName().c_str());
@@ -2819,7 +2819,7 @@ namespace MFM {
       {
 	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
 	UTI suti = sym->getUlamTypeIdx();
-	if(m_state.isClassASubclass(suti))
+	if(m_state.isClassASubclass(suti) != Nouti)
 	  {
 	    indexOfLastSubClass = i;
 	    break;
@@ -2855,10 +2855,10 @@ namespace MFM {
       subcosuti = cosclassuti;
       cosclassuti = m_state.isClassASubclass(subcosuti); //returns superuti, an instance!
 
-      if(cosclassuti == Nav) //no superclass
+      if(cosclassuti == Nouti) //no superclass
 	return subcosuti;
 
-    } while(cosclassuti != Nav); //while superclass
+    } while(cosclassuti != Nouti); //while superclass
 
     return cosclassuti;
   } //findTypeOfAncestorAndBlockNo

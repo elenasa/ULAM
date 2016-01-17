@@ -14,21 +14,21 @@ Uq_System { <NOMAIN> }
 ##
 ##      //informed by t3288
 #>Fu.ulam
-ulam 1;
+  ulam 1;
 use System;
 element Fu {
-System s;
-constant Int(3) n = -3;
-Unsigned(3) u;
- Int test(){
- s.print(n);
- s.print((Int) n);
- s.print( n.minof);
- s.print( n.maxof);
- u = -n;
- s.print(u);
- return 0;
-}
+  System s;
+  constant Int(3) n = -3;
+  Unsigned(3) u;
+  Int test(){
+    s.print(n);
+    s.print((Int) n);
+    s.print( n.minof);
+    s.print( n.maxof);
+    u = -n;
+    s.print(u);
+    return 0;
+  }
 }
 
 #:System.ulam

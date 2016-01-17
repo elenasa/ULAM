@@ -130,11 +130,10 @@ namespace MFM {
       {
 	//target is either packed array or packedloadable into a single int,
 	// use pos & len in ptr, unless there's no type
-	//UlamValue lvalAtIdx = loadUlamValueFromSlot(leftbaseslot);
 	UlamValue lvalAtIdx = loadUlamValueFromSlot(leftbaseslot);
 
 	// if uninitialized, set the type
-	if(lvalAtIdx.getUlamValueTypeIdx() == Nav)
+	if(lvalAtIdx.getUlamValueTypeIdx() == Nouti)
 	  {
 	    lvalAtIdx.setUlamValueTypeIdx(pluv.getPtrTargetType());
 	  }
@@ -181,7 +180,7 @@ namespace MFM {
 	UlamValue lvalAtIdx = loadUlamValueFromStackIndex(leftbaseindex);
 
 	// if uninitialized, set the type
-	if(lvalAtIdx.getUlamValueTypeIdx() == Nav)
+	if(lvalAtIdx.getUlamValueTypeIdx() == Nouti)
 	  {
 	    lvalAtIdx.setUlamValueTypeIdx(pluv.getPtrTargetType());
 	  }

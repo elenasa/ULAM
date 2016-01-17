@@ -7,9 +7,9 @@
 
 namespace MFM {
 
-  UlamKeyTypeSignature::UlamKeyTypeSignature(): m_typeNameId(0), m_bits(UNKNOWNSIZE), m_arraySize(UNKNOWNSIZE), m_classInstanceIdx(Nav), m_referenceType(ALT_NOT) {}
+  UlamKeyTypeSignature::UlamKeyTypeSignature(): m_typeNameId(0), m_bits(UNKNOWNSIZE), m_arraySize(UNKNOWNSIZE), m_classInstanceIdx(Nouti), m_referenceType(ALT_NOT) {}
 
-  UlamKeyTypeSignature::UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize, ALT reftype): m_typeNameId(nameid), m_bits(bitsize), m_arraySize(arraysize), m_classInstanceIdx(Nav), m_referenceType(reftype) {}
+  UlamKeyTypeSignature::UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize, ALT reftype): m_typeNameId(nameid), m_bits(bitsize), m_arraySize(arraysize), m_classInstanceIdx(Nouti), m_referenceType(reftype) {}
 
   UlamKeyTypeSignature::UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize, UTI classinstanceidx, ALT reftype) : m_typeNameId(nameid), m_bits(bitsize), m_arraySize(arraysize), m_classInstanceIdx(classinstanceidx), m_referenceType(reftype) {}
 
@@ -111,7 +111,7 @@ namespace MFM {
       key << "[" << utk.m_arraySize << "?]";
     //key << "[" << "]";
 
-    if(utk.m_classInstanceIdx != Nav)
+    if(utk.m_classInstanceIdx != Nouti)
       key << "<" << utk.m_classInstanceIdx << ">";
 
     if(utk.m_referenceType != ALT_NOT)

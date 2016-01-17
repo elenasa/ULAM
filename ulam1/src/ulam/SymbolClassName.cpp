@@ -58,7 +58,7 @@ namespace MFM {
 
   UTI SymbolClassName::getSuperClassForClassInstance(UTI instance)
   {
-    return SymbolClass::getSuperClass(); //Nav is none, not a subclass.
+    return SymbolClass::getSuperClass(); //Nouti is none, not a subclass.
   } //getSuperClassForClassInstance
 
   Node * SymbolClassName::findNodeNoInAClassInstance(UTI instance, NNO n)
@@ -104,7 +104,7 @@ namespace MFM {
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
     UTI superclass = getSuperClassForClassInstance(getUlamTypeIdx());
-    if(superclass == Nav)
+    if(superclass == Nouti)
       classNode->updateLineage(0);
     else
       {

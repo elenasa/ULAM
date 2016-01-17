@@ -1765,7 +1765,7 @@ namespace MFM {
 
     //make a (shallow) Class Instance Stub to collect class args as SymbolConstantValues;
     //has its own uti that will become part of its key; (too soon for a deep copy!)
-    cuti = m_state.makeUlamType(typeTok, UNKNOWNSIZE, NONARRAYSIZE, Nav); //overwrites the template type here.
+    cuti = m_state.makeUlamType(typeTok, UNKNOWNSIZE, NONARRAYSIZE, Nouti); //overwrites the template type here.
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
     ((UlamTypeClass *) cut)->setUlamClass(ctsym->getUlamClass()); //possibly UC_UNSEEN
 
@@ -2034,7 +2034,7 @@ namespace MFM {
     // either found a class or made one up, continue..
     assert(cnsym);
     SymbolClass * csym = NULL;
-    if(cnsym->isClassTemplate() && args.m_classInstanceIdx)
+    if(cnsym->isClassTemplate() && (args.m_classInstanceIdx != Nouti))
       {
 	if(! ((SymbolClassNameTemplate *)cnsym)->findClassInstanceByUTI(args.m_classInstanceIdx, csym))
 	  {
@@ -2134,7 +2134,7 @@ namespace MFM {
 	    //possibly another class? go again..
 	    if(isclasstd)
 	      {
-		if(args.m_anothertduti != Nav)
+		if(args.m_anothertduti != Nouti)
 		  args.m_classInstanceIdx = args.m_anothertduti;
 		else
 		  args.m_classInstanceIdx = tduti;
@@ -2183,7 +2183,7 @@ namespace MFM {
     Node * rtnExprNode = parseAssignExpr(); //may be NULL
     if(!rtnExprNode)
       {
-	rtnExprNode = new NodeStatementEmpty(m_state); //has Nav type
+	rtnExprNode = new NodeStatementEmpty(m_state); //has Nouti type
 	assert(rtnExprNode);
 	rtnExprNode->setNodeLocation(pTok.m_locator);
       }
@@ -2512,13 +2512,13 @@ namespace MFM {
     switch(fTok.m_type)
       {
       case TOK_KW_SIZEOF:
-	rtnNode = new NodeTerminalProxy(memberTok, Nav, fTok, NULL, m_state);
+	rtnNode = new NodeTerminalProxy(memberTok, Nouti, fTok, NULL, m_state);
 	break;
       case TOK_KW_MAXOF:
-	rtnNode = new NodeTerminalProxy(memberTok, Nav, fTok, NULL, m_state);
+	rtnNode = new NodeTerminalProxy(memberTok, Nouti, fTok, NULL, m_state);
 	break;
       case TOK_KW_MINOF:
-	rtnNode = new NodeTerminalProxy(memberTok, Nav, fTok, NULL, m_state);
+	rtnNode = new NodeTerminalProxy(memberTok, Nouti, fTok, NULL, m_state);
 	break;
       default:
 	{
@@ -3829,7 +3829,7 @@ namespace MFM {
 	    //in case of decl list, set type of symbol in args ref
 	    // scalar types return their own uti, not a new one.
 	    assert(asymptr);
-	    if(args.m_declListOrTypedefScalarType == Nav && args.m_anothertduti == Nav)
+	    if((args.m_declListOrTypedefScalarType == Nouti) && (args.m_anothertduti == Nouti))
 	      args.m_declListOrTypedefScalarType = m_state.getUlamTypeAsScalar(asymptr->getUlamTypeIdx());
 	  }
 
@@ -3865,7 +3865,7 @@ namespace MFM {
 	      {
 		u32 asymid = asymptr->getId();
 		UTI auti = asymptr->getUlamTypeIdx();
-		if(asymid == m_state.m_pool.getIndexForDataString("Self") && auti == m_state.getCompileThisIdx())
+		if((asymid == m_state.m_pool.getIndexForDataString("Self")) && (auti == m_state.getCompileThisIdx()))
 		  {
 		    //special case 'Self' typedef that's also defined sometimes by the ulam programmer
 		    std::ostringstream msg;
@@ -3877,7 +3877,7 @@ namespace MFM {
 		    MSG(&args.m_typeTok, msg.str().c_str(), INFO);
 		    aok = true; //not a problem
 		  }
-		else if(asymid == m_state.m_pool.getIndexForDataString("Super") && auti == m_state.isClassASubclass(m_state.getCompileThisIdx()))
+		else if((asymid == m_state.m_pool.getIndexForDataString("Super")) && (auti == m_state.isClassASubclass(m_state.getCompileThisIdx())))
 		  {
 		    //special case 'Super' typedef that's also sometimes defined by the ulam programmer
 		    std::ostringstream msg;
@@ -4532,7 +4532,7 @@ namespace MFM {
       case TOK_MINUS:
 	{
 	  UTI futi = factorNode->getNodeType();
-	  if( (futi != Nav) && factorNode->isAConstant())
+	  if((futi != Nouti) && factorNode->isAConstant())
 	    {
 	      factorNode->constantFoldAToken(pTok);
 	      rtnNode = factorNode;
@@ -4657,7 +4657,7 @@ namespace MFM {
       }
 
     //typedef is an array from another class
-    if(args.m_anothertduti && args.m_anothertduti == auti)
+    if((args.m_anothertduti == Nouti) && (args.m_anothertduti == auti))
       {
 	delete ceForArraySize;
 	return;
@@ -4751,6 +4751,10 @@ namespace MFM {
     //initialize "primitive" UlamTypes, in order!!
     // unfortunately, Nav, Atom, Class (except quarks with toInt), Ptr (PtrAbs) and Holder
     // are not considered PRIMITIVE during type processing (use ut->isPrimitiveType());
+    UlamKeyTypeSignature nokey(m_state.m_pool.getIndexForDataString("0Nouti"), ULAMTYPE_DEFAULTBITSIZE[Nouti]);
+    AssertBool isNouti = (m_state.makeUlamType(nokey, Nouti) == Nouti);
+    assert(isNouti); //true for primitives
+
     UlamKeyTypeSignature nkey(m_state.m_pool.getIndexForDataString("0Nav"), ULAMTYPE_DEFAULTBITSIZE[Nav]);
     AssertBool isNav = (m_state.makeUlamType(nkey, Nav) == Nav);
     assert(isNav); //true for primitives

@@ -287,7 +287,7 @@ namespace MFM {
 	      {
 		// check possible inheritance
 		UTI superuti = m_state.isClassASubclass(suti);
-		if((superuti != Nav) && UlamType::compare(superuti, utype, m_state) == UTIC_SAME)
+		if((superuti != Nouti) && (UlamType::compare(superuti, utype, m_state) == UTIC_SAME))
 		  {
 		    posfound = ((SymbolVariable *) sym)->getPosOffset(); //starts at beginning
 		    insidecuti = suti;
@@ -350,7 +350,7 @@ namespace MFM {
 		fp->write("); //pos offset\n");
 
 		UTI superuti = m_state.isClassASubclass(suti);
-		while(superuti != Nav) //none
+		while(superuti != Nouti) //none
 		  {
 		    UlamType * superut = m_state.getUlamTypeByIndex(superuti);
 		    m_state.indent(fp);
@@ -685,7 +685,7 @@ namespace MFM {
     UTI cuti = m_state.getCompileThisIdx();
     UTI superuti = m_state.isClassASubclass(cuti);
 
-    if(m_idToSymbolPtr.empty() && (superuti == Nav))
+    if(m_idToSymbolPtr.empty() && (superuti == Nouti))
       {
 	assert(maxidx <= 0);
     	maxidx = 0; //use zero when empty
@@ -749,7 +749,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    UTI caType = Nav;
+	    UTI caType = Nouti;
 	    probcount = ((SymbolFunctionName *) fnsymget)->checkCustomArrayGetFunctions(caType); //sets caType
 
 	    if(!probcount)
@@ -784,7 +784,7 @@ namespace MFM {
   //called by current Class block on its function ST
   UTI SymbolTable::getCustomArrayReturnTypeGetFunction()
   {
-    UTI caType = Nav;
+    UTI caType = Nouti;
     Symbol * fnsym = NULL;
     if(isInTable(m_state.getCustomArrayGetFunctionNameId(), fnsym))
       {
@@ -1474,7 +1474,7 @@ namespace MFM {
 	      }
 	  }
       }
-    else //not primitive type (class), and not array (scalar)
+    else if(m_state.isScalar(argut)) //not primitive type (class), and not array (scalar)
       {
 	if(totbitsize >= 0)
 	  {

@@ -90,6 +90,7 @@ namespace MFM {
     if(rdata == 0)
       {
 	MSG(getNodeLocationAsString().c_str(), "Possible Division By Zero Attempt in Modulus", ERR);
+	rtnUV.setUlamValueTypeIdx(Nav);
 	return rtnUV;
       }
 
@@ -123,6 +124,7 @@ namespace MFM {
     if(rdata == 0)
       {
 	MSG(getNodeLocationAsString().c_str(), "Possible Division By Zero Attempt in Modulus", ERR);
+	rtnUV.setUlamValueTypeIdx(Nav);
 	return rtnUV;
       }
 
@@ -154,6 +156,7 @@ namespace MFM {
     if(rdata == 0)
       {
 	MSG(getNodeLocationAsString().c_str(), "Possible Remainder By Zero Attempt", ERR);
+	refUV.setUlamValueTypeIdx(Nav);
 	return;
       }
 

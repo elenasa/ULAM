@@ -86,19 +86,19 @@ namespace MFM {
   {
     //when minmaxsizeof a selected member
     Symbol * asymptr = NULL;
-    if(m_uti == Nav)
+    if(m_uti == Nouti)
       {
 	bool hazyKin = false;
 	if(m_state.alreadyDefinedSymbol(m_ofTok.m_dataindex, asymptr, hazyKin) && !hazyKin)
 	  {
 	    m_uti = asymptr->getUlamTypeIdx();
 	    std::ostringstream msg;
-	    msg << "Determined incomplete type for member '";
+	    msg << "Determined type for member '";
 	    msg << m_state.getTokenDataAsString(&m_ofTok).c_str();
 	    msg << "' Proxy, as type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    m_state.setGoAgain(); //since not error
+	    //m_state.setGoAgain(); //since not error
 	  }
 	else
 	  {
@@ -111,11 +111,14 @@ namespace MFM {
 		if(!hazyKin)
 		  {
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    setNodeType(Nav); //mising
 		    return Nav;
 		  }
 		else
 		  {
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    setNodeType(Hzy); //mising
+		    m_state.setGoAgain(); //too
 		    return Hzy;
 		  }
 	      }

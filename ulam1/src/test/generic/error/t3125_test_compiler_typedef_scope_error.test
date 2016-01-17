@@ -1,8 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3125_test_compiler_typedef_scope_error
 #!
-./D.ulam:10:6: ERROR: Invalid Type: Bar used with [].
-./D.ulam:11:13: ERROR: Invalid Type: Bar used with [].
+./D.ulam:9:5: ERROR: Unresolved type <Bar> was never defined; Fails sizing.
+./D.ulam:9:5: ERROR: Unresolved type <Bar> was never defined; Fails labeling.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>D.ulam

@@ -14,12 +14,10 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
     UTI leftType = m_nodeLeft->checkAndLabelType();
-    //    leftType = m_state.getUlamTypeAsDeref(leftType);
     UTI rightType = m_nodeRight->checkAndLabelType();
-    //rightType = m_state.getUlamTypeAsDeref(rightType);
 
     UTI newType = calcNodeType(leftType, rightType); //for casting
-    if(newType != Nav && m_state.isComplete(newType))
+    if(m_state.isComplete(newType))
       {
 	u32 errCnt = 0;
 	if(UlamType::compare(rightType, newType, m_state) != UTIC_SAME)

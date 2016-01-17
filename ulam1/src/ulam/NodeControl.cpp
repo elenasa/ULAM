@@ -63,7 +63,7 @@ namespace MFM {
     printNodeLocation(fp);
     UTI myut = getNodeType();
     char id[255];
-    if(myut == Nav)
+    if((myut == Nav) || (myut == Nouti))
       sprintf(id,"%s<NOTYPE>\n",prettyNodeName().c_str());
     else if(myut == Hzy)
       sprintf(id,"%s<HAZYTYPE>\n",prettyNodeName().c_str());
@@ -118,7 +118,7 @@ namespace MFM {
 
     // condition should be a bool, safely cast
     UTI cuti = m_nodeCondition->checkAndLabelType();
-    if(cuti != Nav && m_state.isComplete(cuti))
+    if((cuti != Nav) && (cuti != Hzy) && m_state.isComplete(cuti))
       {
 	assert(m_state.isScalar(cuti));
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);

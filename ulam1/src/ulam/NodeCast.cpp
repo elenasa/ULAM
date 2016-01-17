@@ -125,6 +125,9 @@ namespace MFM {
 	return Hzy; //short-circuit
       }
 
+    if(nodeType == Nouti)
+      assert(0);
+
     if(m_nodeTypeDesc)
       {
 	//might be a mapped uti for instantiated template class

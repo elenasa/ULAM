@@ -59,7 +59,8 @@ namespace MFM {
 
     m_state.popClassContext();
 
-    if((leftType != Nav) && (leftType != Hzy))
+    //if((leftType != Nav) && (leftType != Hzy))
+    if(m_state.isComplete(leftType))
       {
 	UlamType * lut = m_state.getUlamTypeByIndex(leftType);
 	isCustomArray = m_state.isClassACustomArray(leftType);
@@ -210,6 +211,8 @@ namespace MFM {
 	  errorCount++;
 	else if(leftType == Hzy)
 	  hazyCount++;
+	else
+	  hazyCount++;
       }
 
     if((errorCount == 0) && (hazyCount == 0))
@@ -233,7 +236,6 @@ namespace MFM {
 	  assert(0);
 	m_state.setGoAgain(); //covers non-error(debug) messages for incompletes
       }
-
     setNodeType(newType);
     return newType;
   } //checkAndLabelType
@@ -514,7 +516,7 @@ namespace MFM {
     // since square brackets determine the constant size for this type, else error
     s32 newarraysize = NONARRAYSIZE;
     UTI sizetype = m_nodeRight->checkAndLabelType();
-    if(sizetype == Nav || sizetype == Hzy)
+    if((sizetype == Nav) || (sizetype == Hzy))
       {
 	rtnArraySize = UNKNOWNSIZE;
 	return true;

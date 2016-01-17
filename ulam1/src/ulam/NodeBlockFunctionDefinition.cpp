@@ -79,9 +79,9 @@ namespace MFM {
     printNodeLocation(fp);
     UTI myut = getNodeType();
     char id[255];
-    if(myut==Nav)
+    if((myut == Nav) || (myut == Nouti))
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
-    if(myut==Hzy)
+    if(myut == Hzy)
       sprintf(id,"%s<HAZYTYPE>\n", prettyNodeName().c_str());
     else
       sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
@@ -187,7 +187,7 @@ namespace MFM {
       }
     else
       {
-	if(fit != Nav && fit != it) //exact UTI match
+	if((fit != Nav) && (fit != Hzy) && (fit != it)) //exact UTI match
 	{
 	  std::ostringstream msg;
 	  msg << "Resetting function symbol UTI" << fit;

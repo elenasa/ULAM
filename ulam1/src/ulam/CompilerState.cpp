@@ -14,6 +14,7 @@
 #include "UlamTypeHzy.h"
 #include "UlamTypeInt.h"
 #include "UlamTypeNav.h"
+#include "UlamTypeNouti.h"
 #include "UlamTypePtr.h"
 #include "UlamTypeUnary.h"
 #include "UlamTypeUnsigned.h"
@@ -244,8 +245,8 @@ namespace MFM {
     u32 typeNameId = getTokenAsATypeNameId(typeTok); //Foo, Int, etc
 
     //can't be a typedef!! get's the wrong name for type key; use key as arg
-    UTI tmputi;
-    UTI tmpforscalaruti;
+    UTI tmputi = Nav;
+    UTI tmpforscalaruti = Nouti;
     AssertBool isDef = getUlamTypeByTypedefName(typeTok.m_dataindex, tmputi, tmpforscalaruti);
     assert(!isDef);
 
@@ -262,7 +263,7 @@ namespace MFM {
     if(!isDefined(key,ut) || bitsize == UNKNOWNSIZE || arraysize == UNKNOWNSIZE)
       {
 	//no key, make new type, how to know baseUT? bitsize?
-	uti = makeUlamType(key,bUT); //returns uti
+	uti = makeUlamType(key, bUT); //returns uti
       }
     else
       {
@@ -294,7 +295,7 @@ namespace MFM {
 	      }
 	    else
 	      {
-		if(suti == Nav)
+		if(suti == Nouti)
 		  //this is a new class! add uti to key
 		  key.append(uti);
 		else
@@ -318,7 +319,7 @@ namespace MFM {
 		//can't save scalar in key; unable to look up from token
 		//saveNonClassScalarUTIForArrayUTI = suti;
 	      }
-	    key.append(Nav); //clear
+	    key.append(Nouti); //clear
 	  }
 
 	ut = createUlamType(key, utype);
@@ -370,7 +371,7 @@ namespace MFM {
     if(it != m_keyToAnyUTI.end())
       {
 	assert(key == it->first);
-	foundUTI = *(it->second.lower_bound(Nav));
+	foundUTI = *(it->second.lower_bound(Nouti));
 	rtnBool = true;
       }
     return rtnBool;
@@ -381,6 +382,9 @@ namespace MFM {
     UlamType * ut = NULL;
     switch(utype)
       {
+      case Nouti:
+	ut = new UlamTypeNouti(key, *this);
+	break;
       case Nav:
 	ut = new UlamTypeNav(key, *this);
 	break;
@@ -577,7 +581,7 @@ namespace MFM {
     //Context dependent pending args are resolved before they are added to the resolver's
     //pending args.
     UlamKeyTypeSignature newkey(skey); //default constructor makes copy
-    UTI newuti = makeUlamType(newkey,bUT);
+    UTI newuti = makeUlamType(newkey, bUT);
     cnsym->mapInstanceUTI(getCompileThisIdx(), suti, newuti);
 
     if(bUT == Class)
@@ -663,7 +667,7 @@ namespace MFM {
   {
     ULAMTYPE bUT = Nav;
     UTI ut = Nav;
-    UTI tmpforscalaruti = Nav;
+    UTI tmpforscalaruti = Nouti;
     //is this name already a typedef for a complex type?
     if(getUlamTypeByTypedefName(tok.m_dataindex, ut, tmpforscalaruti))
       bUT = getUlamTypeByIndex(ut)->getUlamTypeEnum();
@@ -682,13 +686,13 @@ namespace MFM {
   UTI CompilerState::getUlamTypeFromToken(Token tok, s32 typebitsize, s32 arraysize)
   {
     UTI uti = Nav;
-    UTI tmpforscalaruti = Nav;
+    UTI tmpforscalaruti = Nouti;
     //is this name already a typedef for a complex type?
     if(!getUlamTypeByTypedefName(tok.m_dataindex, uti, tmpforscalaruti))
       {
 	if(Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD)
 	  {
-	    uti = makeUlamType(tok, typebitsize, arraysize, Nav);
+	    uti = makeUlamType(tok, typebitsize, arraysize, Nouti);
 	  }
 	else
 	  {
@@ -706,13 +710,13 @@ namespace MFM {
   UTI CompilerState::getUlamTypeFromToken(TypeArgs & args)
   {
     UTI uti = Nav;
-    UTI tmpforscalaruti = Nav;
+    UTI tmpforscalaruti = Nouti;
     //is this name already a typedef for a complex type?
     if(!getUlamTypeByTypedefName(args.m_typeTok.m_dataindex, uti, tmpforscalaruti))
       {
 	if(Token::getSpecialTokenWork(args.m_typeTok.m_type) == TOKSP_TYPEKEYWORD)
 	  {
-	    uti = makeUlamType(args.m_typeTok, args.m_bitsize, args.m_arraysize, Nav);
+	    uti = makeUlamType(args.m_typeTok, args.m_bitsize, args.m_arraysize, Nouti);
 	  }
 	else
 	  {
@@ -731,7 +735,6 @@ namespace MFM {
     return uti;
   } //getUlamTypeFromToken
 
-  //new version! uses indexes
   bool CompilerState::getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType)
   {
     bool rtnBool = false;
@@ -1226,9 +1229,9 @@ namespace MFM {
 	SymbolClassName * cnsym = NULL;
 	AssertBool isDefined = alreadyDefinedSymbolClassName(csym->getId(), cnsym);
 	assert(isDefined);
-	return cnsym->getSuperClassForClassInstance(subuti); //returns super UTI, or Nav if no inheritance
+	return cnsym->getSuperClassForClassInstance(subuti); //returns super UTI, or Nouti if no inheritance
       }
-    return Nav; //even for non-classes
+    return Nouti; //even for non-classes
   } //isClassASubclass
 
   void CompilerState::resetClassSuperclass(UTI cuti, UTI superuti)
@@ -1251,7 +1254,7 @@ namespace MFM {
   {
     bool rtnb = false;
     UTI prevuti = cuti; //init for the loop
-    while(!rtnb && prevuti != Nav)
+    while(!rtnb && (prevuti != Nouti))
       {
 	cuti = prevuti;
 	SymbolClass * csym = NULL;
@@ -1260,11 +1263,11 @@ namespace MFM {
 	    SymbolClassName * cnsym = NULL;
 	    AssertBool isDefined = alreadyDefinedSymbolClassName(csym->getId(), cnsym);
 	    assert(isDefined);
-	    prevuti = cnsym->getSuperClassForClassInstance(cuti); //returns super UTI, or Nav if no inheritance
+	    prevuti = cnsym->getSuperClassForClassInstance(cuti); //returns super UTI, or Nouti if no inheritance
 	    rtnb = (superp == prevuti); //compare
 	  }
 	else
-	  prevuti = Nav; //avoid inf loop
+	  prevuti = Nouti; //avoid inf loop
       } //end while
     return rtnb; //even for non-classes
   } //isClassASuperclassOf
@@ -1283,7 +1286,7 @@ namespace MFM {
     bool rtnb = false;
     UTI prevuti = cuti; //init for the loop
 
-    while(!rtnb && prevuti != Nav)
+    while(!rtnb && (prevuti != Nouti))
       {
 	rtnb = isClassAStub(prevuti);
 	prevuti = isClassASubclass(prevuti);
@@ -1547,7 +1550,7 @@ namespace MFM {
 
 	//hazy check..
 	UTI buti = blockNode->getNodeType();
-	if(blockNode->isAClassBlock() && (isClassAStub(buti) || (isClassASubclass(buti) && !((NodeBlockClass *) blockNode)->isSuperClassLinkReady())))
+if(blockNode->isAClassBlock() && (isClassAStub(buti) || ((isClassASubclass(buti) != Nouti) && !((NodeBlockClass *) blockNode)->isSuperClassLinkReady())))
 	  hasHazyKin = true;
 
 	blockNode = blockNode->getPreviousBlockPointer(); //traverse the chain
@@ -1578,7 +1581,7 @@ namespace MFM {
 	brtn = classblock->isFuncIdInScope(dataindex,symptr); //returns symbol
 
 	UTI cuti = classblock->getNodeType();
-	if(isClassAStub(cuti) || (isClassASubclass(cuti) && !classblock->isSuperClassLinkReady()))
+	if(isClassAStub(cuti) || ((isClassASubclass(cuti) != Nouti) && !classblock->isSuperClassLinkReady()))
 	  hasHazyKin = true; //self is stub
 
 	classblock = (NodeBlockClass *) classblock->getPreviousBlockPointer(); //inheritance chain
@@ -1614,7 +1617,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     UTI superuti = isClassASubclass(cuti);
     while(!rtnb)
       {
-	if(superuti != Nav)
+	if(superuti != Nouti)
 	  {
 	    SymbolClass * supercsym = NULL;
 	    AssertBool isDefined = alreadyDefinedSymbolClass(superuti, supercsym);
@@ -1735,7 +1738,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	else
 	  {
 	    UTI tduti = Nav;
-	    UTI tmpforscalaruti = Nav;
+	    UTI tmpforscalaruti = Nouti;
 	    if(getUlamTypeByTypedefName(tok.m_dataindex, tduti, tmpforscalaruti))
 	      {
 		UlamType * tdut = getUlamTypeByIndex(tduti);

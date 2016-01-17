@@ -40,10 +40,9 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
-    if(nuti == Nav)
+    if((nuti == Nav) || (nuti == Nouti))
       {
 	fp->write("(");
-	//fp->write_decimal(0);
 	fp->write("unknown");
 	fp->write("); ");
 	return;
@@ -159,7 +158,7 @@ namespace MFM {
     //don't allow a subclass to shadow a superclass datamember
     UTI cuti = m_state.getCompileThisIdx();
     UTI superuti = m_state.isClassASubclass(cuti);
-    if(superuti != Nav) //has ancestor
+    if(superuti != Nouti) //has ancestor
       {
 	//is a subclass' DM..
 	//check for shadowed superclass DM of same name

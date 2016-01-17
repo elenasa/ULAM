@@ -10,7 +10,7 @@
 
 namespace MFM {
 
-  SymbolFunctionName::SymbolFunctionName(Token id, UTI typetoreturn, CompilerState& state) : Symbol(id,typetoreturn,state)
+  SymbolFunctionName::SymbolFunctionName(Token id, UTI typetoreturn, CompilerState& state) : Symbol(id, typetoreturn, state)
   {
     setDataMember(); //by definition all function definitions are data members
   }
@@ -186,7 +186,7 @@ namespace MFM {
     UTI cuti = m_state.findAClassByNodeNo(getBlockNoOfST());
     assert(cuti != Nav);
     UTI supercuti = m_state.isClassASubclass(cuti);
-    if(supercuti != Nav)
+    if(supercuti != Nouti)
       if(m_state.isFuncIdInAClassScope(supercuti, getId(), fnsym, hasHazyArgs) && !hasHazyArgs)
 	return ((SymbolFunctionName *) fnsym)->findMatchingFunctionWithSafeCasts(argNodes, funcSymbol, hasHazyArgs); //recurse ancestors
     return 0;
@@ -261,7 +261,7 @@ namespace MFM {
 
 	//search for virtual function w exact name/type in superclass
 	// if found, this function must also be virtual
-	if(superuti != Nav)
+	if(superuti != Nouti)
 	  {
 	    std::vector<UTI> pTypes;
 	    u32 numparams = fsym->getNumberOfParameters();

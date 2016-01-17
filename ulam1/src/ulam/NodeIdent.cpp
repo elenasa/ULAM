@@ -269,6 +269,8 @@ namespace MFM {
 		msg << "' UTI" << it << " while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		//it = Hzy;
+		//m_state.setGoAgain();
 	      }
 	  }
       }
@@ -552,13 +554,13 @@ namespace MFM {
 		    if(args.m_bitsize == 0)
 		      args.m_bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
 		    // update the type of holder key
-		    UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, Nav);
+		    UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, Nouti);
 		    m_state.makeUlamTypeFromHolder(newkey, bUT, tduti); //update key, same uti
 		  }
 		else
 		  {
 		    //update holder key with name_id and possible array (UNKNOWNSIZE)
-		    UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, Nav);
+		    UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, Nouti);
 		    m_state.makeUlamTypeFromHolder(newkey, Holder, tduti); //update key, same uti
 		  }
 	      }
@@ -567,7 +569,7 @@ namespace MFM {
 	return brtn; //already there, and updated
       }
 
-    if(args.m_anothertduti)
+    if(args.m_anothertduti != Nouti)
       {
 	//typedef might have bitsize and arraysize info..
 	if(checkTypedefOfTypedefSizes(args, args.m_anothertduti)) //ref
@@ -584,7 +586,7 @@ namespace MFM {
 	    brtn = true;
 	  }
       }
-    else if(args.m_declListOrTypedefScalarType)
+    else if(args.m_declListOrTypedefScalarType != Nouti)
       {
 	// if m_anothertduti fails first (this could be the scalar for it!)
 	if(!checkTypedefOfTypedefSizes(args, args.m_declListOrTypedefScalarType))
@@ -596,7 +598,7 @@ namespace MFM {
       {
 	//UlamTypes automatically created for the base types with different array sizes.
 	//but with typedef's "scope" of use, typedef needed to be checked first. scalar uti
-	tduti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, NONARRAYSIZE, Nav);
+	tduti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, NONARRAYSIZE, Nouti);
 	brtn = true;
       }
     else
@@ -661,7 +663,7 @@ namespace MFM {
     bool brtn = false;
     UTI uti = Nav;
     UTI tdscalaruti = Nav;
-    if(args.m_anothertduti)
+    if(args.m_anothertduti != Nouti)
       {
 	if(checkConstantTypedefSizes(args, args.m_anothertduti))
 	  {
@@ -677,7 +679,7 @@ namespace MFM {
 	    brtn = true;
 	  }
       }
-    else if(args.m_declListOrTypedefScalarType)
+    else if(args.m_declListOrTypedefScalarType != Nouti)
       {
 	if(!checkConstantTypedefSizes(args, args.m_declListOrTypedefScalarType))
 	  return false;
@@ -689,7 +691,7 @@ namespace MFM {
 	//UlamTypes automatically created for the base types with different array sizes.
 	//but with typedef's "scope" of use, typedef needed to be checked first.
 	// scalar uti
-	uti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, NONARRAYSIZE, Nav);
+	uti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, NONARRAYSIZE, Nouti);
 	brtn = true;
       }
     else
@@ -740,7 +742,7 @@ namespace MFM {
     bool brtn = false;
     UTI uti = Nav;
     UTI tdscalaruti = Nav;
-    if(args.m_anothertduti)
+    if(args.m_anothertduti != Nouti)
       {
 	if(checkConstantTypedefSizes(args, args.m_anothertduti))
 	  {
@@ -756,7 +758,7 @@ namespace MFM {
 	    brtn = true;
 	  }
       }
-    else if(args.m_declListOrTypedefScalarType)
+    else if(args.m_declListOrTypedefScalarType != Nouti)
       {
 	if(!checkConstantTypedefSizes(args, args.m_declListOrTypedefScalarType))
 	  return false;
@@ -768,7 +770,7 @@ namespace MFM {
 	//UlamTypes automatically created for the base types with different array sizes.
 	//but with typedef's "scope" of use, typedef needed to be checked first.
 	// scalar uti
-	uti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, NONARRAYSIZE, Nav);
+	uti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, NONARRAYSIZE, Nouti);
 	brtn = true;
       }
     else
@@ -814,7 +816,7 @@ namespace MFM {
     // if a primitive (NONARRAYSIZE), we may need to make a new arraysize type for it;
     // or if it is a class type (quark, element).
     //list of decls can use the same 'scalar' type (arg); adjusted for arrays
-    if(args.m_anothertduti)
+    if(args.m_anothertduti != Nouti)
       {
 	if(!checkVariableTypedefSizes(args, args.m_anothertduti))
 	  return false;
@@ -830,7 +832,7 @@ namespace MFM {
 	  return false;
 	brtn = true;
       }
-    else if(args.m_declListOrTypedefScalarType)
+    else if(args.m_declListOrTypedefScalarType != Nouti)
       {
 	if(!checkVariableTypedefSizes(args, args.m_declListOrTypedefScalarType))
 	  return false;
@@ -841,7 +843,7 @@ namespace MFM {
       {
 	//UlamTypes automatically created for the base types with different array sizes.
 	//but with typedef's "scope" of use, typedef needed to be checked first.
-	auti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, args.m_arraysize, Nav, args.m_declRef);
+	auti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, args.m_arraysize, Nouti, args.m_declRef);
 	brtn = true;
       }
     else

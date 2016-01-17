@@ -65,7 +65,7 @@ namespace MFM {
     printNodeLocation(fp);
     UTI myut = getNodeType();
     char id[255];
-    if(myut == Nav)
+    if((myut == Nav) || (myut == Nouti))
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
     else if(myut == Hzy)
       sprintf(id,"%s<HAZYTYPE>\n", prettyNodeName().c_str());
@@ -142,7 +142,7 @@ namespace MFM {
 
     // efficiency bites! no sooner, need left and right side-effects
     // (e.g. NodeControl condition is Bool at start; stubs need Symbol ptrs)
-    if(getNodeType() != Nav && getNodeType() != Hzy)
+    if(m_state.isComplete(getNodeType()))
       return getNodeType();
 
     UTI newType = calcNodeType(leftType, rightType); //does safety check
@@ -150,7 +150,7 @@ namespace MFM {
     setNodeType(newType);
     setStoreIntoAble(false);
 
-    if((newType != Nav) && (newType != Hzy) && m_state.isComplete(newType))
+    if(m_state.isComplete(newType))
       {
 	if(UlamType::compare(newType, leftType, m_state) != UTIC_SAME) //not same, or dontknow
 	  {

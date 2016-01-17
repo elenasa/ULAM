@@ -5,13 +5,6 @@
 ##      // try as named constants
 ##      // without explicit cast of (a+b) we get error:
 ./A.ulam:6:11: ERROR: Constant value expression for (c = 12u) is not representable as Unary(3).
-./A.ulam:8:5: ERROR: Unresolved No.1: <print>.
-./A.ulam:8:11: ERROR: Unresolved No.2: <c>.
-./A.ulam:8:5: ERROR: Unresolved No.3: <list>.
-./A.ulam:7:2: Warning: 3 nodes with unresolved types remain in function <test> (Uf_4test,2).
-./A.ulam:7:6: Warning: Summary: 3 nodes with unresolved types remain in  a single function <test> in class: A.
-./A.ulam:2:9: Warning: 3 data member nodes with unresolved types remain in class 'A'.
-./A.ulam:2:9: ERROR: 3 Nodes with unresolved types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 #>A.ulam
 use System;

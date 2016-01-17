@@ -134,7 +134,7 @@ namespace MFM {
   {
     SymbolClass * csym = NULL;
     if(findClassInstanceByUTI(instance, csym))
-      csym->setSuperClass(superclass); //Nav is none, not a subclass.
+      csym->setSuperClass(superclass); //Nouti is none, not a subclass.
     else if(instance == getUlamTypeIdx())
       SymbolClass::setSuperClass(superclass); //instance is template definition
     else
@@ -145,7 +145,7 @@ namespace MFM {
   {
     SymbolClass * csym = NULL;
     if(findClassInstanceByUTI(instance, csym))
-      return csym->getSuperClass(); //Nav is none, not a subclass.
+      return csym->getSuperClass(); //Nouti is none, not a subclass.
     else if(instance == getUlamTypeIdx())
       return SymbolClass::getSuperClass(); //instance is template definition
     return false;

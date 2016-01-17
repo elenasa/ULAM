@@ -9,7 +9,7 @@ namespace MFM {
 
   UlamValue::UlamValue()
   {
-    clear(); //default type is Nav == 0
+    clear(); //default type is Nouti == 0
   }
 
   UlamValue::~UlamValue()
@@ -584,6 +584,7 @@ namespace MFM {
     assert(utype != Ptr);
     assert(utype != Nav);
     assert(utype != Hzy);
+    assert(utype != Nouti);
     assert(len >= 0 && len <= MAXBITSPERINT);
 
     if(eutype == Class)
@@ -607,8 +608,7 @@ namespace MFM {
   u32 UlamValue::getImmediateQuarkData(s32 len) const
   {
     UTI utype = getUlamValueTypeIdx();
-    //ULAMTYPE eutype = m_state.getUlamTypeByIndex(utype)->getUlamTypeEnum();
-    AssertBool utypOk = ((utype != UAtom) && (utype != Ptr) && (utype != Nav) && (utype != Hzy));
+    AssertBool utypOk = ((utype != UAtom) && (utype != Ptr) && (utype != PtrAbs) && (utype != Nav) && (utype != Hzy) && (utype != Nouti));
     assert(utypOk);
     assert(len >= 0 && len <= MAXBITSPERINT);
     return getData(ATOMFIRSTSTATEBITPOS, len);
@@ -629,8 +629,7 @@ namespace MFM {
   u64 UlamValue::getImmediateDataLong(s32 len) const
   {
     UTI utype = getUlamValueTypeIdx();
-    //ULAMTYPE eutype = state.getUlamTypeByIndex(utype)->getUlamTypeEnum();
-    AssertBool utypOk = ((utype != UAtom) && (utype != Ptr) && (utype != Nav) && (utype != Hzy));
+    AssertBool utypOk = ((utype != UAtom) && (utype != Ptr) && (utype != PtrAbs) && (utype != Nav) && (utype != Hzy) && (utype != Nouti));
     assert(utypOk);
     assert(len >= 0 && len <= MAXBITSPERLONG);
     return getDataLong(BITSPERATOM - len, len);

@@ -191,7 +191,7 @@ namespace MFM {
 	    if(nuti == Nav)
 	      {
 	      //use default primitive bitsize
-	      rtnuti = m_state.makeUlamType(m_typeTok, ULAMTYPE_DEFAULTBITSIZE[etype], NONARRAYSIZE, Nav);
+	      rtnuti = m_state.makeUlamType(m_typeTok, ULAMTYPE_DEFAULTBITSIZE[etype], NONARRAYSIZE, Nouti);
 	      rtnb = true;
 	      }
 	    else if(m_state.isComplete(nuti))

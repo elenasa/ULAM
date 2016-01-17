@@ -102,7 +102,7 @@ namespace MFM {
   {
     Coord c;
     assert(isValidSite(index, c));
-    UTI uti = Nav;  //init
+    UTI uti = Nouti;  //init
     USite * s;
     if(getSite(c,s))
       uti = s->getElementTypeNumber();
@@ -150,7 +150,7 @@ namespace MFM {
       return s->getSiteUlamValue();
 
     //error!
-    return UlamValue();  //Nav
+    return UlamValue();  //Nav or Nouti?
   } //loadAtomFromSite
 
   bool UEventWindow::storeAtomIntoSite(u32 index, UlamValue uv)
@@ -190,7 +190,7 @@ namespace MFM {
 	UlamValue lvalAtIdx = loadAtomFromSite(leftindex);
 
 	// if uninitialized, copy the entire ruv and set type to Atom
-	if(lvalAtIdx.getUlamValueTypeIdx() == Nav)
+	if(lvalAtIdx.getUlamValueTypeIdx() == Nouti)
 	  {
 	    stored = storeAtomIntoSite(leftindex, ruv);
 	    setSiteElementType(leftindex, UAtom);

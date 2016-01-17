@@ -215,7 +215,7 @@ namespace MFM {
     else
       {
 	m_state.m_currentAutoObjPtr = UlamValue(); //wipeout
-	m_state.m_currentAutoStorageType = Nav; //clear
+	m_state.m_currentAutoStorageType = Nouti; //clear
       }
 
     UlamValue rtnuv = UlamValue::makeImmediate(nuti, (u32) hasit, m_state);

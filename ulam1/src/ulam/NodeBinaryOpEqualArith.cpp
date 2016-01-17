@@ -30,7 +30,7 @@ namespace MFM {
 	nodeType = Nav;
       }
 
-    if(nodeType != Nav && !nut->isScalar())
+    if((nodeType != Nav) && !nut->isScalar())
       {
 	std::ostringstream msg;
 	msg << "Non-scalars require a loop for operator" << getName();

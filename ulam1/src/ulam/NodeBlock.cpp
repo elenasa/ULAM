@@ -61,7 +61,7 @@ namespace MFM {
     printNodeLocation(fp);
     UTI myut = getNodeType();
     char id[255];
-    if(myut == Nav)
+    if((myut == Nav) || (myut == Nouti))
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
     else if(myut == Hzy)
       sprintf(id,"%s<HAZYTYPE>\n", prettyNodeName().c_str());

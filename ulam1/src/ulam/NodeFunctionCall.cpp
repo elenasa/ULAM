@@ -307,7 +307,7 @@ namespace MFM {
 
     // late, important to do, but not too soon;
     // o.w. NodeIdents can't find their blocks.
-    if(listuti == Nav || numErrorsFound > 0)
+    if((listuti == Nav) || (numErrorsFound > 0))
       {
 	setNodeType(Nav); //happens when the arg list has erroneous types.
 	it = Nav;
@@ -852,7 +852,7 @@ namespace MFM {
       {
 	cos = m_state.m_currentObjSymbolsForCodeGen.back(); //"owner" of func
 	cosuti = cos->getUlamTypeIdx();
-	if(!m_state.isClassASubclass(cosuti))
+	if(m_state.isClassASubclass(cosuti) == Nouti) //not a subclass
 	  cosBlockNo = cos->getBlockNoOfST(); //compare owner and self
 	else
 	  stgcosBlockNo = cos->getBlockNoOfST();
@@ -867,10 +867,10 @@ namespace MFM {
 	    startcos = subcosidx + 1; //for loop later
 
 	    UTI cosclassuti = Node::findTypeOfAncestorAndBlockNo(cosBlockNo, subcosidx);
-	    assert(cosclassuti != Nav); //has ancestor
+	    assert(cosclassuti != Nouti); //has ancestor
 	    UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
 
-	    if((cosuti != Nav) && cosut->isReference())
+	    if((cosuti != Nouti) && cosut->isReference())
 	      {
 		UTI cosclassrefuti = m_state.getUlamTypeAsRef(cosclassuti, cosut->getReferenceType());
 		UlamType * cosclassrefut = m_state.getUlamTypeByIndex(cosclassrefuti);
@@ -891,7 +891,7 @@ namespace MFM {
 		  }
 	      }
 	  }
-	else if(m_state.isClassASubclass(stgcosuti)) //self is subclass
+	else if(m_state.isClassASubclass(stgcosuti) != Nouti) //self is subclass
 	  {
 	    Node * foundnode = m_state.findNodeNoInAClass(cosBlockNo, stgcosuti);
 	    assert(foundnode);
@@ -1332,7 +1332,7 @@ namespace MFM {
 	    startcos = subcosidx + 1; //for loop later
 
 	    UTI cosclassuti = Node::findTypeOfAncestorAndBlockNo(cosBlockNo, subcosidx);
-	    assert(cosclassuti != Nav); //has ancestor
+	    assert(cosclassuti != Nouti); //has ancestor
 	    stgcosuti = cosclassuti; // resets stgcosuti here!!
 	    stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 	    useSuperClassName = true;
