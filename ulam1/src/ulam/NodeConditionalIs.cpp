@@ -210,7 +210,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    //atom then?
+	    //then left must be an atom
 	    fp->write(m_state.getIsMangledFunctionName(luti)); //UlamElement IsMethod
 	    fp->write("(uc, ");
 	    fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, luvpass.getPtrStorage()).c_str());

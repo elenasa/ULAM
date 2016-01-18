@@ -1,0 +1,61 @@
+## -*- mode:ulam -*-
+#=t3636_test_compiler_element_virtualfuncs_nestedascond_ish
+#!
+##
+## gen code output:
+## assert: arg is 1
+##after asserts abort: arg is 1
+##
+Exit status: 0
+Ue_Ish5 : System { :<> Int(32) test() {  E1 e1;  E2 e2;  Atom(96) a1 = e1 cast;  Atom(96) a2 = e2 cast;  a1 E1 as cond { E1& a1;  a2 E2 as cond { E2& a2;  ( a1 ( )func . 1 cast == )assert } if } if 0 cast return } }
+Ue_E1 { <NOMAIN> }
+Ue_E2 { <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by ish-example 1/16/16
+##
+#:Ish5.ulam
+  ulam 2;
+use E1;
+use E2;
+use System;
+element Ish5 : System {
+  Int test() {
+    E1 e1;
+    E2 e2;
+    Atom a1 = e1;
+    Atom a2 = e2;
+    if (a1 as E1) {
+      if (a2 as E2) {
+	assert((a1.func() == 1)); //shouldn't fail
+      }
+    }
+    return 0;
+  }
+}
+
+#:E1.ulam
+  ulam 2;
+element E1 {
+  virtual Int func() { return 1; }
+}
+
+#:E2.ulam
+  ulam 2;
+element E2 {
+  virtual Int func() { return 2; }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
+#.

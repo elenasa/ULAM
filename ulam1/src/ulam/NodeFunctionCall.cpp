@@ -799,6 +799,7 @@ namespace MFM {
     else if(cos->getAutoLocalType() == ALT_AS)
       {
 	fp->write(m_state.getAutoHiddenContextArgName());
+	fp->write(cos->getMangledName().c_str()); //auto's name
 	fp->write(".GetEffectiveSelf()->getVTableEntry(");
       }
     else
@@ -1050,6 +1051,7 @@ namespace MFM {
 	      {
 		hiddenargs << m_state.getAutoHiddenContextArgName(); //_ucaut
 		stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+		hiddenargs << stgcos->getMangledName().c_str(); //auto's name
 	      }
 	    else
 	      {

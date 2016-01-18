@@ -300,7 +300,7 @@ namespace MFM {
 
 	fp->write(m_varSymbol->getMangledName().c_str());
 	fp->write("("); //pass ref in constructor (ref's not assigned with =)
-	if(stgcos->isDataMember()) //can't be an element
+	if(stgcos->isDataMember()) //can't be an element or atom
 	  {
 	    fp->write("Uv_4atom, ");
 	    fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
@@ -321,7 +321,7 @@ namespace MFM {
 	    else
 	      {
 		//local var
-		if(vclasstype == UC_NOTACLASS)
+		if((vclasstype == UC_NOTACLASS) && (vut->getUlamTypeEnum() != UAtom) )
 		  {
 		    fp->write(", ");
 		    fp->write_decimal_unsigned(BITSPERATOM - stgcosut->getTotalBitSize() - ATOMFIRSTSTATEBITPOS); //right-justified, not including FIRSTSTATEBITPOS

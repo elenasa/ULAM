@@ -91,9 +91,17 @@ namespace MFM {
 
     UlamValue pluv = m_state.m_currentAutoObjPtr;
     ((SymbolVariableStack *) m_varSymbol)->setAutoPtrForEval(pluv); //for future ident eval uses
-    ((SymbolVariableStack *) m_varSymbol)->setAutoStorageTypeForEval(m_state.m_currentAutoStorageType); //for future virtual function call eval uses
 
-    m_state.m_funcCallStack.storeUlamValueInSlot(pluv, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex()); //doesn't seem to matter..
+    UTI luti = pluv.getPtrTargetType();
+    UlamType * lut = m_state.getUlamTypeByIndex(luti);
+    ULAMCLASSTYPE lclasstype = lut->getUlamClass();
+    UTI autostgtype = m_state.m_currentAutoStorageType;
+    if((UlamType::compare(autostgtype, UAtom, m_state) == UTIC_SAME) && (lclasstype == UC_ELEMENT))
+       autostgtype = luti; //e.g. funccall expects a class, not an atom (t3636)
+
+    ((SymbolVariableStack *) m_varSymbol)->setAutoStorageTypeForEval(autostgtype); //for future virtual function call eval uses
+
+    //m_state.m_funcCallStack.storeUlamValueInSlot(pluv, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex()); //doesn't seem to matter..
 
     return NORMAL;
   } //eval
@@ -145,6 +153,18 @@ namespace MFM {
       fp->write(".getRef()");
     fp->write(";\n");
 
+    if(stgcos->getAutoLocalType() == ALT_AS)
+      {
+	//shadows previous _ucAuto
+	m_state.indent(fp);
+	fp->write("const UlamContext<EC> ");
+	fp->write(m_state.getTmpVarForAutoHiddenContext()); //very local scope
+	fp->write(" = ");
+	fp->write(m_state.getAutoHiddenContextArgName()); // _ucauto
+	fp->write(stgcos->getMangledName().c_str()); //auto's name
+	fp->write("; //tmp for auto uc constructor\n");
+      }
+
     // now we have our pos in tmpVarPos, and our T in tmpVarStg
     // time to shadow 'self' with auto local variable:
     UTI vuti = m_varSymbol->getUlamTypeIdx();
@@ -184,14 +204,15 @@ namespace MFM {
     //special ulamcontext for autos based on its (lhs) storage
     fp->write("const UlamContext<EC> ");
     fp->write(m_state.getAutoHiddenContextArgName()); // _ucauto
+    fp->write(m_varSymbol->getMangledName().c_str()); //auto's name
 
-    if(stgcos->isAutoLocal())
+    if(stgcos->getAutoLocalType() == ALT_AS)
       {
-	//shadows previous _ucAuto
+	//shadows previous _ucAuto, use tmp var
 	fp->write("(");
-	fp->write(m_state.getAutoHiddenContextArgName()); // _ucauto
-	fp->write("(, ");
-	fp->write(m_state.getAutoHiddenContextArgName()); // _ucauto
+	fp->write(m_state.getTmpVarForAutoHiddenContext());
+	fp->write(", ");
+	fp->write(m_state.getTmpVarForAutoHiddenContext());
 	fp->write(".LookupElementTypeFromContext(");
       }
     else

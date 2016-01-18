@@ -48,7 +48,8 @@ namespace MFM {
 
   static const char * HIDDEN_ARG_NAME = "Uv_4atom"; //was Uv_4self
   static const char * HIDDEN_CONTEXT_ARG_NAME = "uc"; //unmangled
-  static const char * AUTO_HIDDEN_CONTEXT_ARG_NAME = "_ucAuto"; //unmangled, out-of-band
+  static const char * AUTO_HIDDEN_CONTEXT_ARG_NAME = "uc_"; //unmangled, plus its mangled var
+  static const char * TMP_FOR_AUTO_HIDDEN_CONTEXT_ARG_NAME = "Uh_4tluc";
   static const char * CUSTOMARRAY_GET_FUNC_NAME = "aref"; //unmangled
   static const char * CUSTOMARRAY_SET_FUNC_NAME = "aset"; //unmangled
   static const char * CUSTOMARRAY_GET_MANGLEDNAME = "Uf_4aref";
@@ -1858,17 +1859,22 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   const char * CompilerState::getHiddenArgName()
   {
-    return  HIDDEN_ARG_NAME;
+    return HIDDEN_ARG_NAME;
   }
 
   const char * CompilerState::getHiddenContextArgName()
   {
-    return  HIDDEN_CONTEXT_ARG_NAME;
+    return HIDDEN_CONTEXT_ARG_NAME;
   }
 
   const char * CompilerState::getAutoHiddenContextArgName()
   {
-    return  AUTO_HIDDEN_CONTEXT_ARG_NAME;
+    return AUTO_HIDDEN_CONTEXT_ARG_NAME;
+  }
+
+  const char * CompilerState::getTmpVarForAutoHiddenContext()
+  {
+    return TMP_FOR_AUTO_HIDDEN_CONTEXT_ARG_NAME;
   }
 
   u32 CompilerState::getCustomArrayGetFunctionNameId()
@@ -1895,7 +1901,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   const char * CompilerState::getIsMangledFunctionName(UTI ltype)
   {
-    if(ltype == UAtom)
+    if(getUlamTypeByIndex(ltype)->getUlamTypeEnum() == UAtom)
       return IS_MANGLED_FUNC_NAME_FOR_ATOM;
 
     return IS_MANGLED_FUNC_NAME;
@@ -1903,7 +1909,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   const char * CompilerState::getHasMangledFunctionName(UTI ltype)
   {
-    if(ltype == UAtom)
+    if(getUlamTypeByIndex(ltype)->getUlamTypeEnum() == UAtom)
       return HAS_MANGLED_FUNC_NAME_FOR_ATOM;
     return HAS_MANGLED_FUNC_NAME;
   }

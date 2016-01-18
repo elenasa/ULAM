@@ -281,6 +281,7 @@ namespace MFM{
     const char * getHiddenArgName();
     const char * getHiddenContextArgName();
     const char * getAutoHiddenContextArgName();
+    const char * getTmpVarForAutoHiddenContext();
     u32 getCustomArrayGetFunctionNameId();
     u32 getCustomArraySetFunctionNameId();
     const char * getCustomArrayGetMangledFunctionName();

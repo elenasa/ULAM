@@ -2471,9 +2471,11 @@ namespace MFM {
 	//local var
 	if(m_state.m_currentObjSymbolsForCodeGen.empty())
 	  fp->write(m_state.getHiddenContextArgName()); //same uc
-	//else if(stgcos->isAutoLocal())
 	else if(stgcos->getAutoLocalType() == ALT_AS)
-	  fp->write(m_state.getAutoHiddenContextArgName()); //_ucaut
+	  {
+	    fp->write(m_state.getAutoHiddenContextArgName()); //uc_
+	    fp->write(stgcos->getMangledName().c_str());
+	  }
 	else
 	  {
 	    //update uc to reflect "effective" self for this funccall
