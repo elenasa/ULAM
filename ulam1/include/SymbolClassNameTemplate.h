@@ -57,6 +57,7 @@ namespace MFM{
 
     u32 getTotalParameterSlots();
     SymbolConstantValue * getParameterSymbolPtr(u32 n);
+    SymbolConstantValue * findParameterSymbolByNameId(u32 pnid);
 
     virtual bool isClassTemplate();
     bool isClassTemplate(UTI cuti);
@@ -132,6 +133,7 @@ namespace MFM{
     std::map<UTI, std::map<UTI,UTI> > m_mapOfTemplateUTIToInstanceUTIPerClassInstance;
 
     void mergeClassInstancesFromTEMP();
+    bool checkTemplateAncestorBeforeAStubInstantiation(SymbolClass * stubcsym);
     bool takeAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     bool copyAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     void cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to);

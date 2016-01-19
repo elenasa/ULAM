@@ -119,6 +119,21 @@ namespace MFM {
     return m_parameterSymbols[n];
   }
 
+  SymbolConstantValue * SymbolClassNameTemplate::findParameterSymbolByNameId(u32 pnid)
+  {
+    SymbolConstantValue * rtnparamsymbol = NULL;
+    for(u32 i = 0; i < m_parameterSymbols.size(); i++)
+      {
+	Symbol * sym = m_parameterSymbols[i];
+	if(sym->getId() == pnid)
+	  {
+	    rtnparamsymbol = (SymbolConstantValue *) sym;
+	    break;
+	  }
+      }
+    return rtnparamsymbol;
+  } //findParameterSymbolByNameId
+
   bool SymbolClassNameTemplate::isClassTemplate()
   {
     return true;
@@ -224,23 +239,25 @@ namespace MFM {
     return rtnpending;
   } //pendingClassArgumentsForStubClassInstance
 
-  SymbolClass * SymbolClassNameTemplate::makeAStubClassInstance(Token typeTok, UTI cuti)
+  SymbolClass * SymbolClassNameTemplate::makeAStubClassInstance(Token typeTok, UTI stubcuti)
   {
     NodeBlockClass * templateclassblock = getClassBlockNode();
     //previous block is template's class block, and new NNO here!
     NodeBlockClass * newblockclass = new NodeBlockClass(templateclassblock, m_state);
     assert(newblockclass);
     newblockclass->setNodeLocation(typeTok.m_locator);
-    newblockclass->setNodeType(cuti);
+    newblockclass->setNodeType(stubcuti);
     newblockclass->resetNodeNo(templateclassblock->getNodeNo()); //keep NNO consistent (new)
 
     Token stubTok(TOK_IDENTIFIER, typeTok.m_locator, getId());
-    SymbolClass * newclassinstance = new SymbolClass(stubTok, cuti, newblockclass, this, m_state);
+    SymbolClass * newclassinstance = new SymbolClass(stubTok, stubcuti, newblockclass, this, m_state);
     assert(newclassinstance);
     if(isQuarkUnion())
       newclassinstance->setQuarkUnion();
 
-    addClassInstanceUTI(cuti, newclassinstance); //link here
+    //any superclass is handled during resolving loop's fullInstantiation step.
+
+    addClassInstanceUTI(stubcuti, newclassinstance); //link here
     return newclassinstance;
   } //makeAStubClassInstance
 
@@ -337,11 +354,14 @@ namespace MFM {
 
     SymbolClass * newclassinstance = new SymbolClass(stubTok, newuti, newblockclass, this, m_state);
     assert(newclassinstance);
+
+    newclassinstance->setUlamClass(getUlamClass());
+
     if(isQuarkUnion())
       newclassinstance->setQuarkUnion();
 
-    // we are in the middle of fully instantiating (context); with known args that we want to use
-    // to resolve, if possible, these pending args:
+    // we are in the middle of fully instantiating (context) or parsing;
+    // with known args that we want to use to resolve, if possible, these pending args:
     if(copyAnInstancesArgValues(csym, newclassinstance))
       {
 	//can't addClassInstanceUTI(newuti, newclassinstance) ITERATION IN PROGRESS!!!
@@ -364,106 +384,115 @@ namespace MFM {
     //furthermore, this must exist by now, or else this is the wrong time to be fixing
     assert(getClassBlockNode());
 
-    if(m_scalarClassInstanceIdxToSymbolPtr.size() > 0)
+    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+      return;
+
+    u32 numparams = getNumberOfParameters();
+    u32 numDefaultParams = getTotalParametersWithDefaultValues();
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
-	u32 numparams = getNumberOfParameters();
-	u32 numDefaultParams = getTotalParametersWithDefaultValues();
-	std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
-	while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+	SymbolClass * csym = it->second;
+	if(csym->getUlamClass() != UC_UNSEEN)
 	  {
-	    SymbolClass * csym = it->second;
-	    if(csym->getUlamClass() != UC_UNSEEN)
+	    it++; //covers synonyms
+	    continue;
+	  }
+
+	csym->setUlamClass(classtype);
+
+	NodeBlockClass * cblock = csym->getClassBlockNode();
+	assert(cblock);
+
+	//can have 0Holder symbols for possible typedefs seen from another class
+	//which will increase the count of symbols; can only test for at least;
+	// (don't care about inherited symbols for class args, so use NodeBlock)
+	u32 cargs = cblock->NodeBlock::getNumberOfSymbolsInTable();
+	if((cargs < numparams) && ((cargs + numDefaultParams) < numparams))
+	  {
+	    //number of arguments in class instance does not match the number of parameters
+	    // including those with default values (u.1.2.1)
+	    std::ostringstream msg;
+	    msg << "Number of Arguments (" << cargs << ") in class instance '";
+	    msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
+	    msg << "' is insufficient for the required number of parameters (";
+	    msg << numparams << ") to be fixed";
+	    MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
+	    it++;
+	    continue;
+	  }
+
+	//replace the temporary id with the official parameter name id;
+	//update the class instance's ST.
+	u32 foundArgs = 0;
+	s32 firstDefaultParamUsed = -1;
+	s32 lastDefaultParamUsed = -1;
+	for(s32 i = 0; i < (s32) numparams; i++)
+	  {
+	    Symbol * argsym = NULL;
+	    std::ostringstream sname;
+	    sname << "_" << i;
+	    u32 sid = m_state.m_pool.getIndexForDataString(sname.str());
+	    if(cblock->isIdInScope(sid,argsym))
 	      {
-		it++; //covers synonyms
-		continue;
+		assert(argsym->isConstant());
+		((SymbolConstantValue *) argsym)->changeConstantId(sid, m_parameterSymbols[i]->getId());
+		argsym->resetUlamType(m_parameterSymbols[i]->getUlamTypeIdx()); //default was Int
+		cblock->replaceIdInScope(sid, m_parameterSymbols[i]->getId(), argsym);
+		foundArgs++;
 	      }
-
-	    csym->setUlamClass(classtype);
-
-	    NodeBlockClass * cblock = csym->getClassBlockNode();
-	    assert(cblock);
-
-	    //can have 0Holder symbols for possible typedefs seen from another class
-	    //which will increase the count of symbols; can only test for at least
-	    u32 cargs = cblock->getNumberOfSymbolsInTable();
-	    if((cargs < numparams) && ((cargs + numDefaultParams) < numparams))
+	    else
 	      {
-		//number of arguments in class instance does not match the number of parameters
-		// including those with default values (u.1.2.1)
-		std::ostringstream msg;
-		msg << "Number of Arguments (" << cargs << ") in class instance '";
-		msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
-		msg << "' is insufficient for the required number of parameters (";
-		msg << numparams << ") to be fixed";
-		MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
-		it++;
-		continue;
-	      }
-
-	    //replace the temporary id with the official parameter name id;
-	    //update the class instance's ST.
-	    u32 foundArgs = 0;
-	    s32 firstDefaultParamUsed = -1;
-	    s32 lastDefaultParamUsed = -1;
-	    for(s32 i = 0; i < (s32) numparams; i++)
-	      {
-		Symbol * argsym = NULL;
-		std::ostringstream sname;
-		sname << "_" << i;
-		u32 sid = m_state.m_pool.getIndexForDataString(sname.str());
-		if(cblock->isIdInScope(sid,argsym))
+		if(firstDefaultParamUsed < 0)
+		  firstDefaultParamUsed = lastDefaultParamUsed = i;
+		else if(i > (lastDefaultParamUsed + 1))
 		  {
-		    assert(argsym->isConstant());
-		    ((SymbolConstantValue *) argsym)->changeConstantId(sid, m_parameterSymbols[i]->getId());
-		    argsym->resetUlamType(m_parameterSymbols[i]->getUlamTypeIdx()); //default was Int
-		    cblock->replaceIdInScope(sid, m_parameterSymbols[i]->getId(), argsym);
-		    foundArgs++;
+		    //error, must continue to be defaults after first one
+		    std::ostringstream msg;
+		    msg << "Arg " << i + 1 << " (of " << numparams;
+		    msg << ") in class instance '";
+		    msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
+		    msg << "' comes after the last default parameter value used (";
+		    msg << lastDefaultParamUsed << ") to fix";
+		    MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
 		  }
 		else
 		  {
-		    if(firstDefaultParamUsed < 0)
-		      firstDefaultParamUsed = lastDefaultParamUsed = i;
-		    else if(i > (lastDefaultParamUsed + 1))
-		      {
-			//error, must continue to be defaults after first one
-			std::ostringstream msg;
-			msg << "Arg " << i + 1 << " (of " << numparams;
-			msg << ") in class instance '";
-			msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
-			msg << "' comes after the last default parameter value used (";
-			msg << lastDefaultParamUsed << ") to fix";
-			MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
-		      }
-		    else
-		      {
-			lastDefaultParamUsed = i;
-			// and make a new symbol that's like the default param
-			SymbolConstantValue * asym2 = new SymbolConstantValue(* ((SymbolConstantValue * ) argsym));
-			assert(asym2);
-			asym2->setBlockNoOfST(cblock->getNodeNo());
-			m_state.addSymbolToCurrentScope(asym2);
-			foundArgs++;
-		      }
+		    lastDefaultParamUsed = i;
+		    // and make a new symbol that's like the default param
+		    SymbolConstantValue * asym2 = new SymbolConstantValue(* ((SymbolConstantValue * ) argsym));
+		    assert(asym2);
+		    asym2->setBlockNoOfST(cblock->getNodeNo());
+		    m_state.addSymbolToCurrentScope(asym2);
+		    foundArgs++;
 		  }
 	      }
+	  }
 
-	    if(foundArgs != numparams)
-	      {
-		//num arguments in class instance does not match number of parameters
-		std::ostringstream msg;
-		msg << "Number of Arguments (" << foundArgs << ") in class instance '";
-		msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
-		msg << "' did not match the required number of parameters (";
-		msg << numparams << ") to fix";
-		MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
-	      }
+	if(foundArgs != numparams)
+	  {
+	    //num arguments in class instance does not match number of parameters
+	    std::ostringstream msg;
+	    msg << "Number of Arguments (" << foundArgs << ") in class instance '";
+	    msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
+	    msg << "' did not match the required number of parameters (";
+	    msg << numparams << ") to fix";
+	    MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
+	  }
 
-	    //importantly, also link the class instance's class block to the classsymbolname's.
-	    // later, during c&l if a subclass, the previous ptr is the class block of the superclass
-	    //cblock->setPreviousBlockPointer(getClassBlockNode());
-	    it++;
-	  } //while
-      } //any class instances
+	// the class instance's previous class block is linked to the template's when stub is made.
+	// later, during c&l if a subclass, the super ptr has the class block of the superclass
+	//cblock->setPreviousBlockPointer(getClassBlockNode());
+	UTI superuti = SymbolClass::getSuperClass();
+	if(superuti != Nouti)
+	  {
+	    //superuti must be an instance of a quark, but could be a stub w unresolved args
+	    // that requires a stub copy with its own uti.
+	    //cblock->setSuperBlockPointer();
+	    assert(0); //???
+	  }
+	it++;
+      } //while
   } //fixAnyClassInstances
 
   bool SymbolClassNameTemplate::statusNonreadyClassArgumentsInStubClassInstances()
@@ -819,6 +848,14 @@ namespace MFM {
 	    continue;
 	  }
 
+	//check for any ancestor stubs needed
+	if(!checkTemplateAncestorBeforeAStubInstantiation(csym))
+	  {
+	    aok &= false;
+	    it++;
+	    continue; //have to wait
+	  }
+
 	// first time for this cuti, and ready args!
 	m_state.pushClassContext(cuti, NULL, NULL, false, NULL);
 	mapInstanceUTI(cuti, getUlamTypeIdx(), cuti); //map template->instance, instead of fudging.
@@ -835,6 +872,9 @@ namespace MFM {
 	//set previous block pointer for function definition blocks, as updating lineage
 	// to this class block
 	classNode->updatePrevBlockPtrOfFuncSymbolsInTable();
+
+	//set super block pointer to this class block during c&l
+	classNode->setSuperBlockPointer(NULL); //clear in case of stubs
 
 	if(!takeAnInstancesArgValues(csym, clone)) //instead of keeping template's unknown values
 	  {
@@ -859,6 +899,39 @@ namespace MFM {
     //mergeClassInstancesFromTEMP(); //try at end as well for inherited stubs.
     return aok;
   } //fullyInstantiate
+
+  bool SymbolClassNameTemplate::checkTemplateAncestorBeforeAStubInstantiation(SymbolClass * stubcsym)
+  {
+    bool rtnok = false;
+    UTI superuti = SymbolClass::getSuperClass(); //template's ancestor
+    if(superuti != Nouti)
+      {
+	UTI stubsuperuti = stubcsym->getSuperClass();
+	if(stubsuperuti == Nouti)
+	  {
+	    if(m_state.isClassAStub(superuti))
+	      {
+		//if template's superclass is a stub-instance
+		// then we need to make a stub copy (new uti)
+		stubsuperuti = m_state.addStubCopyToAncestorClassTemplate(superuti, stubcsym->getUlamTypeIdx());
+		stubcsym->setSuperClass(stubsuperuti); //stubcopy's type set here!!
+	      }
+	    else
+	      {
+		stubcsym->setSuperClass(superuti); //regular class type set here!!
+		rtnok = true;
+	      }
+	  }
+	else
+	  rtnok = m_state.isClassAStub(stubsuperuti); //ready or not
+      }
+    else
+      {
+	assert(stubcsym->getSuperClass() == Nouti);
+	rtnok = true; //no ancestor
+      }
+    return rtnok;
+  } //checkTemplateAncestorBeforeAStubInstantiation
 
   void SymbolClassNameTemplate::mergeClassInstancesFromTEMP()
   {
@@ -1370,7 +1443,8 @@ namespace MFM {
   {
     NodeBlockClass * fmclassblock = fm->getClassBlockNode();
     assert(fmclassblock);
-    u32 cargs = fmclassblock->getNumberOfSymbolsInTable();
+    // (don't care about inherited symbols for class args, so use NodeBlock)
+    u32 cargs = fmclassblock->NodeBlock::getNumberOfSymbolsInTable();
     u32 numparams = getNumberOfParameters();
     u32 numDefaultParams = getTotalParametersWithDefaultValues();
     if((cargs < numparams) && ((cargs + numDefaultParams) < numparams))
@@ -1429,7 +1503,8 @@ namespace MFM {
   {
     NodeBlockClass * fmclassblock = fm->getClassBlockNode();
     assert(fmclassblock);
-    u32 cargs = fmclassblock->getNumberOfSymbolsInTable();
+    // (don't care about inherited symbols for class args, so use NodeBlock)
+    u32 cargs = fmclassblock->NodeBlock::getNumberOfSymbolsInTable();
     u32 numparams = getNumberOfParameters();
     u32 numDefaultParams = getTotalParametersWithDefaultValues();
     if((cargs < numparams) && ((cargs + numDefaultParams) < numparams))

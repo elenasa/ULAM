@@ -236,7 +236,7 @@ namespace MFM {
 	SymbolClassNameTemplate * ctSym = NULL;
 	if(!m_state.alreadyDefinedSymbolClassNameTemplate(iTok.m_dataindex, ctSym) && ctSym == NULL)
 	  {
-	    m_state.addIncompleteClassSymbolToProgramTable(iTok, ctSym); //overloaded
+	    m_state.addIncompleteTemplateClassSymbolToProgramTable(iTok, ctSym);
 	  }
 	else
 	  {
@@ -314,7 +314,7 @@ namespace MFM {
     NodeBlockClass * rtnNode = cnsym->getClassBlockNode(); //usually NULL
     if(!rtnNode)
       {
-	//this is the class' first block; super class if inherits, o.w. null
+	//this is the class' first block; o.w. null
 	NodeBlock * prevBlock = m_state.getCurrentBlock();
 
 	rtnNode = new NodeBlockClass(prevBlock, m_state);
@@ -327,7 +327,7 @@ namespace MFM {
       }
     else
       {
-	//this is the class' first block; super class if inherits, o.w. null
+	//this is the class' first block; o.w. null
 	NodeBlock * prevBlock = m_state.getCurrentBlock();
 	if(prevBlock != rtnNode)
 	  rtnNode->setPreviousBlockPointer(prevBlock);
@@ -361,7 +361,7 @@ namespace MFM {
     if(qTok.m_type == TOK_COLON)
       {
 	SymbolClassName * supercnsym = NULL;
-	UTI superuti = Nav;
+	UTI superuti = Nouti;
 	inherits = parseRestOfClassInheritance(cnsym, supercnsym, superuti);
 	if(inherits)
 	  {
@@ -369,8 +369,10 @@ namespace MFM {
 	    NodeBlockClass * superclassblock = supercnsym->getClassBlockNode();
 	    assert(superclassblock);
 
-	    //reset previous block to super class' block after any parameters parse
-	    rtnNode->setPreviousBlockPointer(superclassblock); //tmp could be a stub
+	    //set super class' block after any parameters parsed;
+	    // (separate from previous block which might be pointing to template
+	    //  in case of a stub)
+	    rtnNode->setSuperBlockPointer(superclassblock);
 
 	    //rearrange order of class context so that super class is traversed after subclass
 	    m_state.popClassContext(); //m_currentBlock = prevBlock;
@@ -516,7 +518,7 @@ namespace MFM {
       {
 	superuti = parseClassArguments(iTok);
 	cnsym->setSuperClassForClassInstance(superuti, cnsym->getUlamTypeIdx()); //set here!!
-	AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(iTok.m_dataindex, supercnsym); //could be template;
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(iTok.m_dataindex, supercnsym); //could be template; though only inherit from an instance
 	assert(isDefined);
 	rtninherits = true;
       }
@@ -1694,8 +1696,8 @@ namespace MFM {
 	if(!m_state.alreadyDefinedSymbolClassName(typeTok.m_dataindex, cnsym))
 	  {
 	    //check if a typedef first..
-	    UTI tduti;
-	    UTI tdscalaruti = Nav;
+	    UTI tduti = Nav;
+	    UTI tdscalaruti = Nouti;
 	    if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, tduti, tdscalaruti))
 	      return tduti; //done. (could be an array)
 	    else
@@ -1721,7 +1723,7 @@ namespace MFM {
     if(!m_state.alreadyDefinedSymbolClassNameTemplate(typeTok.m_dataindex, ctsym))
       {
 	if(ctsym == NULL)
-	  m_state.addIncompleteClassSymbolToProgramTable(typeTok, ctsym); //was undefined, template
+	  m_state.addIncompleteTemplateClassSymbolToProgramTable(typeTok, ctsym); //was undefined, template; will fix instances' argument names later
 	else
 	  {
 	    //error have a class without parameters already defined
@@ -1732,14 +1734,14 @@ namespace MFM {
 
     assert(ctsym);
 
-    UTI cuti = ctsym->getUlamTypeIdx();
+    UTI ctuti = ctsym->getUlamTypeIdx();
     u32 numParams = ctsym->getNumberOfParameters();
     u32 numParamDefaults = ctsym->getTotalParametersWithDefaultValues();
 
     getNextToken(pTok);
     if(pTok.m_type == TOK_CLOSE_PAREN)
       {
-	if(numParams > 0 && numParamDefaults != numParams)
+	if((numParams > 0) && (numParamDefaults != numParams))
 	  {
 	    //params but no args
 	    std::ostringstream msg;
@@ -1747,8 +1749,7 @@ namespace MFM {
 	    msg << m_state.m_pool.getDataAsString(ctsym->getId()).c_str();
 	    msg << "' with " << numParams << " parameters";
 	    MSG(&pTok, msg.str().c_str(), ERR);
-	    cuti = Nav;
-	    return cuti; //ok to return
+	    return Nav; //ok to return
 	  }
 	else
 	  {
@@ -1765,18 +1766,18 @@ namespace MFM {
 
     //make a (shallow) Class Instance Stub to collect class args as SymbolConstantValues;
     //has its own uti that will become part of its key; (too soon for a deep copy!)
-    cuti = m_state.makeUlamType(typeTok, UNKNOWNSIZE, NONARRAYSIZE, Nouti); //overwrites the template type here.
-    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-    ((UlamTypeClass *) cut)->setUlamClass(ctsym->getUlamClass()); //possibly UC_UNSEEN
+    UTI stubuti = m_state.makeUlamType(typeTok, UNKNOWNSIZE, NONARRAYSIZE, Nouti); //overwrites the template type here.
+    UlamType * stubut = m_state.getUlamTypeByIndex(stubuti);
+    ((UlamTypeClass *) stubut)->setUlamClass(ctsym->getUlamClass()); //possibly UC_UNSEEN
 
-    UlamType * ctut = m_state.getUlamTypeByIndex(ctsym->getUlamTypeIdx());
+    UlamType * ctut = m_state.getUlamTypeByIndex(ctuti);
     if(ctut->isCustomArray())
-      ((UlamTypeClass *) cut)->setCustomArray();
+      ((UlamTypeClass *) stubut)->setCustomArray();
 
-    SymbolClass * csym = ctsym->makeAStubClassInstance(typeTok, cuti);
+    SymbolClass * stubcsym = ctsym->makeAStubClassInstance(typeTok, stubuti);
 
     u32 parmidx = 0;
-    parseRestOfClassArguments(csym, ctsym, parmidx);
+    parseRestOfClassArguments(stubcsym, ctsym, parmidx);
 
     bool ctUnseen = (ctsym->getUlamClass() == UC_UNSEEN);
     if(!ctUnseen && (parmidx < ctsym->getNumberOfParameters()))
@@ -1787,11 +1788,11 @@ namespace MFM {
 	    msg << "Too few Class Arguments parsed, ";
 	    msg << "(" << parmidx << "), for template: ";
 	    msg << m_state.m_pool.getDataAsString(ctsym->getId()).c_str() ;
-	    msg << ", by " << m_state.getUlamTypeNameBriefByIndex(csym->getUlamTypeIdx()).c_str() ;
+	    msg << ", by " << m_state.getUlamTypeNameBriefByIndex(stubuti).c_str() ;
 	    MSG(&typeTok, msg.str().c_str(), ERR);
 	  }
       }
-    return cuti;
+    return stubuti;
   } //parseClassArguments
 
   void Parser::parseRestOfClassArguments(SymbolClass * csym, SymbolClassNameTemplate * ctsym, u32& parmIdx)
@@ -1856,7 +1857,7 @@ namespace MFM {
 
 	//make Node with argument symbol wo trying to fold const expr;
 	// add to list of unresolved for this uti
-	// NULL node type descriptor, no token, yet know uti
+	// NULL node type descriptor, no token, yet known uti
 	NodeConstantDef * constNode = new NodeConstantDef(argSym, NULL, m_state);
 	assert(constNode);
 	constNode->setNodeLocation(pTok.m_locator);

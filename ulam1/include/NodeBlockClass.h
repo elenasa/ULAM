@@ -82,6 +82,10 @@ namespace MFM{
 
     virtual bool isAClassBlock();
 
+    NodeBlockClass * getSuperBlockPointer();
+
+    void setSuperBlockPointer(NodeBlockClass *);
+
     bool isSuperClassLinkReady();
 
     virtual UTI checkAndLabelType();
@@ -165,6 +169,8 @@ namespace MFM{
     s32 m_virtualmethodMaxIdx;
 
   private:
+
+    NodeBlockClass * m_superBlockNode;
 
     bool m_isEmpty; //replaces separate node
     UTI m_templateClassParentUTI;

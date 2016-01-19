@@ -233,6 +233,7 @@ namespace MFM{
 	search SymbolTables LIFO order; o.w. return false
     */
     bool alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
+    bool isDataMemberIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isFuncIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isFuncIdInClassScopeNNO(NNO cnno, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
@@ -255,7 +256,8 @@ namespace MFM{
 
     /** creates temporary class type for dataindex, returns the new Symbol pointer in 2nd arg; */
     bool addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr);
-    bool addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr);
+    bool addIncompleteTemplateClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr);
+    UTI addStubCopyToAncestorClassTemplate(UTI stubTypeToCopy,  UTI context);
 
     void resetUnseenClass(SymbolClassName * cnsym, Token identTok);
     bool getUnseenClassFilenames(std::vector<std::string>& unseenFiles);

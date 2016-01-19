@@ -99,13 +99,39 @@ namespace MFM {
 		delete ceNode;
 		*vit = NULL;
 	      }
+#if 0
+	    else if(uti == Hzy)
+	      {
+		SymbolClass * mycsym = NULL;
+		AssertBool isDefined = m_state.alreadyDefinedSymbolClass(m_classUTI, mycsym);
+		assert(isDefined); //should be a more direct way to do this???
+
+		SymbolClassNameTemplate * ctsym = mycsym->getParentClassTemplate();
+		assert(ctsym);
+
+		u32 cid = ceNode->getSymbolId(); //could it still be a tmporary name _N???
+		SymbolConstantValue * psym = ctsym->findParameterSymbolByNameId(cid);
+		if(psym)
+		  {
+		    UTI puti = psym->getUlamTypeIdx();
+		    Symbol * constSymbol = NULL;
+		    if(ceNode->getSymbolPtr(constSymbol))
+		      {
+			UTI constuti = constSymbol->getUlamTypeIdx();
+			if(constuti != puti)
+			  mycsym->mapUTItoUTI(constuti, puti); //see if this helps next time
+		      }
+		  }
+		leftCArgs.push_back(ceNode);
+	      }
+#endif
 	    else
 	      leftCArgs.push_back(ceNode);
 	  }
 	vit++;
       } //while thru vector of incomplete args only
 
-    m_state.m_pendingArgStubContext = Nav; //clear flag
+    m_state.m_pendingArgStubContext = Nouti; //clear flag
     m_state.popClassContext(); //restore previous context
 
     //clean up, replace vector with vector of those still unresolved

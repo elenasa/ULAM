@@ -117,7 +117,10 @@ namespace MFM {
 	  }
 
 	NodeBlock * currBlock = getBlock();
-	m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
+	if(m_state.useMemberBlock())
+	  m_state.pushCurrentBlock(currBlock); //e.g. memberselect needed for already defined
+	else
+	  m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
 	Symbol * asymptr = NULL;
 	bool hazyKin = false;
@@ -136,6 +139,7 @@ namespace MFM {
 		// same node no, and loc
 		NodeConstant * newnode = new NodeConstant(*this);
 		NNO pno = Node::getYourParentNo();
+		m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
 		Node * parentNode = m_state.findNodeNoInThisClass(pno);
 		if(!parentNode)
 		  {
@@ -161,6 +165,7 @@ namespace MFM {
 		newnode->resetNodeNo(getNodeNo()); //missing?
 
 		m_state.popClassContext(); //restore
+		m_state.popClassContext(); //restore
 
 		delete this; //suicide is painless..
 
@@ -172,6 +177,7 @@ namespace MFM {
 		// same node no, and loc
 		NodeModelParameter * newnode = new NodeModelParameter(*this);
 		NNO pno = Node::getYourParentNo();
+		m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
 		Node * parentNode = m_state.findNodeNoInThisClass(pno);
 		if(!parentNode)
 		  {
@@ -196,6 +202,7 @@ namespace MFM {
 		newnode->setYourParentNo(pno); //missing?
 		newnode->resetNodeNo(getNodeNo()); //missing?
 
+		m_state.popClassContext(); //restore
 		m_state.popClassContext(); //restore
 
 		delete this; //suicide is painless..

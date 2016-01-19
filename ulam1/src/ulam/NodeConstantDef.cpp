@@ -223,6 +223,35 @@ namespace MFM {
 	msg << " UTI" << cuti;
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	//too soon! m_state.setGoAgain(); //might not have nodetypedesc
+
+	UTI mappedUTI = Nouti;
+	if(m_state.mappedIncompleteUTI(cuti, suti, mappedUTI))
+	  {
+	    std::ostringstream msg;
+	    msg << "Substituting Mapped UTI" << mappedUTI;
+	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
+	    msg << " for incomplete list type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    msg << "' UTI" << suti << " while labeling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    m_state.mapTypesInCurrentClass(suti, mappedUTI); //before setting equal?
+	    m_constSymbol->resetUlamType(mappedUTI); //consistent!
+	    suti = mappedUTI;
+	  }
+
+	if(!m_state.isComplete(suti)) //reloads to recheck for debug message
+	  {
+	    std::ostringstream msg;
+	    msg << "Incomplete identifier for type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	    msg << " used with symbol name '" << getName();
+	    msg << "' UTI" << suti << " while labeling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    //suti = Hzy;
+	    //m_state.setGoAgain();
+	  }
       }
     else
       {
@@ -352,7 +381,7 @@ namespace MFM {
     UTI uti = getNodeType();
 
     if((uti == Nav) || !m_state.isComplete(uti)) //not complete includes Hzy
-      return false; //e.g. not a constant
+      return false; //e.g. not a constant; total word size (below) requires completeness
 
     assert(m_constSymbol);
     if(m_constSymbol->isReady())

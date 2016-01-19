@@ -261,9 +261,9 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
-    else
+    //else
     ////assert(!m_state.goAgain() && errCnt == 0);
-      assert(errCnt == 0 || m_state.goAgain());
+    //assert(errCnt == 0 || m_state.goAgain());
 
     u32 warns = m_state.m_err.getWarningCount();
     if(warns > 0)

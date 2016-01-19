@@ -1404,8 +1404,8 @@ namespace MFM {
   bool CompilerState::addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr)
   {
     u32 dataindex = cTok.m_dataindex;
-    AssertBool isDefined = (symptr == NULL && !alreadyDefinedSymbolClassName(dataindex, symptr));
-    assert(isDefined);
+    AssertBool isNotDefined = ((symptr == NULL) && !alreadyDefinedSymbolClassName(dataindex, symptr));
+    assert(isNotDefined);
 
     UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE);  //"-2" and scalar default
     UTI cuti = makeUlamType(key, Class);  //**gets next unknown uti type
@@ -1428,11 +1428,11 @@ namespace MFM {
   } //addIncompleteClassSymbolToProgramTable
 
   //temporary UlamType which will be updated during type labeling.
-  bool CompilerState::addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr)
+  bool CompilerState::addIncompleteTemplateClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr)
   {
     u32 dataindex = cTok.m_dataindex;
-    AssertBool isDefined = (symptr == NULL && !alreadyDefinedSymbolClassNameTemplate(dataindex,symptr));
-    assert(isDefined);
+    AssertBool isNotDefined = ((symptr == NULL) && !alreadyDefinedSymbolClassNameTemplate(dataindex,symptr));
+    assert(isNotDefined);
 
     UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE); //"-2" and scalar default
     UTI cuti = makeUlamType(key, Class); //**gets next unknown uti type
@@ -1452,7 +1452,26 @@ namespace MFM {
 
     popClassContext();
     return true; //compatible with alreadyDefinedSymbolClassNameTemplate return
-  } //addIncompleteClassSymbolToProgramTable
+  } //addIncompleteTemplateClassSymbolToProgramTable
+
+  UTI CompilerState::addStubCopyToAncestorClassTemplate(UTI stubTypeToCopy,  UTI context)
+  {
+    //handle inheritance of stub super class, based on its template
+    UTI superuti = stubTypeToCopy;
+    assert(superuti != Nouti);
+    assert(isClassAStub(superuti));
+    UlamType * superut = getUlamTypeByIndex(superuti);
+    UlamKeyTypeSignature superkey = superut->getUlamKeyTypeSignature();
+    u32 superid = superkey.getUlamKeyTypeSignatureNameId();
+    SymbolClassNameTemplate * superctsym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClassNameTemplate(superid, superctsym);
+    assert(isDefined);
+
+    UlamKeyTypeSignature newstubkey(superid, UNKNOWNSIZE);  //"-2" and scalar default
+    UTI newstubcopyuti = makeUlamType(newstubkey, Class);  //**gets next unknown uti type
+    superctsym->copyAStubClassInstance(superuti, newstubcopyuti, context);
+    return newstubcopyuti;
+  } //addStubCopyToAncestorClassTemplate
 
   void CompilerState::resetUnseenClass(SymbolClassName * cnsym, Token identTok)
   {
@@ -1551,25 +1570,54 @@ namespace MFM {
 
 	//hazy check..
 	UTI buti = blockNode->getNodeType();
-if(blockNode->isAClassBlock() && (isClassAStub(buti) || ((isClassASubclass(buti) != Nouti) && !((NodeBlockClass *) blockNode)->isSuperClassLinkReady())))
+	if(blockNode->isAClassBlock() && (isClassAStub(buti) || ((isClassASubclass(buti) != Nouti) && !((NodeBlockClass *) blockNode)->isSuperClassLinkReady())))
 	  hasHazyKin = true;
 
-	blockNode = blockNode->getPreviousBlockPointer(); //traverse the chain
+	blockNode = blockNode->getPreviousBlockPointer(); //traverse the chain, including templates (not ancestors)
       }
 
     //data member variables in class block; function symbols are linked to their
     //function def block; check function data members separately.
     if(!brtn)
+      brtn = isDataMemberIdInClassScope(dataindex, symptr, hasHazyKin);
+
+    if(!brtn)
       brtn = isFuncIdInClassScope(dataindex, symptr, hasHazyKin);
     return brtn;
   } //alreadyDefinedSymbol
+
+  bool CompilerState::isDataMemberIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin)
+  {
+    bool brtn = false;
+    //assert(!hasHazyKin); might come from alreadyDefinedSymbol now, and have a hazy chain.
+
+    //start with the current class block and look up family tree
+    //until the 'variable id' is found.
+    NodeBlockClass * classblock = getClassBlock();
+
+    //substitute another selected class block to search for data member
+    if(useMemberBlock())
+      classblock = getCurrentMemberClassBlock();
+
+    while(!brtn && classblock)
+      {
+	brtn = classblock->isIdInScope(dataindex,symptr); //returns symbol
+
+	UTI cuti = classblock->getNodeType();
+	if(isClassAStub(cuti) || ((isClassASubclass(cuti) != Nouti) && !classblock->isSuperClassLinkReady()))
+	  hasHazyKin = true; //self is stub
+
+	classblock = classblock->getSuperBlockPointer(); //inheritance chain
+      }
+    return brtn;
+  } //isDataMemberIdInClassScope
 
   bool CompilerState::isFuncIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin)
   {
     bool brtn = false;
     //assert(!hasHazyKin); might come from alreadyDefinedSymbol now, and have a hazy chain.
 
-    //start with the current "top" block and look down the stack
+    //start with the current class block and look up family tree
     //until the 'variable id' is found.
     NodeBlockClass * classblock = getClassBlock();
 
@@ -1585,7 +1633,7 @@ if(blockNode->isAClassBlock() && (isClassAStub(buti) || ((isClassASubclass(buti)
 	if(isClassAStub(cuti) || ((isClassASubclass(cuti) != Nouti) && !classblock->isSuperClassLinkReady()))
 	  hasHazyKin = true; //self is stub
 
-	classblock = (NodeBlockClass *) classblock->getPreviousBlockPointer(); //inheritance chain
+	classblock = classblock->getSuperBlockPointer(); //inheritance chain
       }
     return brtn;
   } //isFuncIdInClassScope
@@ -2524,7 +2572,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     if(!rtnNode)
       {
 	UTI stubuti = m_pendingArgStubContext;
-	if( stubuti != Nav)
+	if(stubuti != Nouti)
 	  {
 	    u32 stubid = getUlamKeyTypeSignatureByIndex(stubuti).getUlamKeyTypeSignatureNameId();
 	    SymbolClassNameTemplate * cntsym = NULL;

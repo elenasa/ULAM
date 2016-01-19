@@ -7,13 +7,13 @@
 
 namespace MFM {
 
-  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_functionST(state), m_virtualmethodMaxIdx(UNKNOWNSIZE), m_isEmpty(false)
+  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_functionST(state), m_virtualmethodMaxIdx(UNKNOWNSIZE), m_superBlockNode(NULL), m_isEmpty(false)
   {
     m_nodeParameterList = new NodeList(state);
     assert(m_nodeParameterList);
   }
 
-  NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlock(ref), m_functionST(ref.m_functionST) /* deep copy */, m_virtualmethodMaxIdx(ref.m_virtualmethodMaxIdx), m_isEmpty(ref.m_isEmpty), m_nodeParameterList(NULL)
+  NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlock(ref), m_functionST(ref.m_functionST) /* deep copy */, m_virtualmethodMaxIdx(ref.m_virtualmethodMaxIdx), m_superBlockNode(NULL), m_isEmpty(ref.m_isEmpty), m_nodeParameterList(NULL)
   {
     setNodeType(m_state.getCompileThisIdx());
     m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate(); //instances don't need this; its got symbols
@@ -61,7 +61,7 @@ namespace MFM {
     UTI superuti = m_state.isClassASubclass(cuti);
     if(superuti != Nouti)
       {
-	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
+	NodeBlockClass * superblock = getSuperBlockPointer();
 	assert(superblock || m_state.isClassAStub(superuti));
 	if(superblock && superblock->findNodeNo(n, foundNode))
 	  return true;
@@ -179,7 +179,7 @@ namespace MFM {
     UTI superuti = m_state.isClassASubclass(cuti);
     if(superuti != Nouti)
       {
-	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
+	NodeBlockClass * superblock = getSuperBlockPointer();
 	if(!isSuperClassLinkReady())
 	  {
 	    //use SCN instead of SC in case of stub (use template's classblock)
@@ -205,7 +205,7 @@ namespace MFM {
     UTI superuti = m_state.isClassASubclass(cuti);
     if(superuti != Nouti)
       {
-	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
+	NodeBlockClass * superblock = getSuperBlockPointer();
 	//assert(superblock && superblock->getNodeType() == superuti);
 	assert(superblock && UlamType::compare(superblock->getNodeType(), superuti, m_state) == UTIC_SAME);
 	fp->write(" :<");
@@ -238,13 +238,23 @@ namespace MFM {
     return true; //used in searches for already defined symbol
   }
 
+  NodeBlockClass * NodeBlockClass::getSuperBlockPointer()
+  {
+    return m_superBlockNode;
+  }
+
+  void NodeBlockClass::setSuperBlockPointer(NodeBlockClass * superblock)
+  {
+    m_superBlockNode = superblock;
+  }
+
   bool NodeBlockClass::isSuperClassLinkReady()
   {
     //call for known subclasses only
     UTI superuti = m_state.isClassASubclass(getNodeType());
     assert(superuti != Nouti);
     //this is a subclass.
-    NodeBlockClass * superblock = (NodeBlockClass *) NodeBlock::getPreviousBlockPointer();
+    NodeBlockClass * superblock = getSuperBlockPointer();
     return !((superblock == NULL) || (UlamType::compare(superblock->getNodeType(), superuti, m_state) != UTIC_SAME));
   } //isSuperClassLinkReady
 
@@ -252,7 +262,10 @@ namespace MFM {
   {
     // for debug purposes
     UTI cuti = m_state.getCompileThisIdx();
-    m_state.isClassATemplate(cuti);
+    //m_state.isClassATemplate(cuti);
+
+    //do first, might be important!
+    checkParameterNodeTypes();
 
     // Inheritance checks
     UTI nuti = getNodeType();
@@ -275,7 +288,7 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		m_state.resetClassSuperclass(nuti, mappedUTI); //consistent!
 		m_state.mapTypesInCurrentClass(superuti, mappedUTI);
-		NodeBlock::setPreviousBlockPointer(NULL); //force fix
+		setSuperBlockPointer(NULL); //force fix
 		superuti = mappedUTI;
 	      }
 	  }
@@ -293,7 +306,7 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		m_state.setGoAgain();
 		//need to break the chain; e.g. don't want template symbol addresses used
-		NodeBlock::setPreviousBlockPointer(NULL); //force to try again!! avoid inf loop
+		setSuperBlockPointer(NULL); //force to try again!! avoid inf loop
 		return Hzy; //short-circuit
 	      }
 
@@ -301,7 +314,7 @@ namespace MFM {
 	    SymbolClass * csym = NULL;
 	    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(superuti, csym);
 	    assert(isDefined);
-	    NodeBlock::setPreviousBlockPointer(csym->getClassBlockNode()); //fix
+	    setSuperBlockPointer(csym->getClassBlockNode()); //fixed
 	  }
 
 	assert(isSuperClassLinkReady());
@@ -314,13 +327,19 @@ namespace MFM {
 	    msg << "' inherits from '";
 	    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
 	    msg << "', a class that's not a quark";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav);
+	    if(superclasstype == UC_UNSEEN)
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		setNodeType(Hzy);
+		//assert(0);
+	      }
+	    else
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		setNodeType(Nav);
+	      }
 	  }
       } //done with inheritance checks, continue.
-
-    //do first, might be important!
-    checkParameterNodeTypes();
 
     //side-effect DataMember VAR DECLS
     if(m_nodeNext)
@@ -413,7 +432,7 @@ namespace MFM {
 
     if(superuti != Nouti)
       {
-	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
+	NodeBlockClass * superblock = getSuperBlockPointer();
 	if(!superblock)
 	  return; //error after all the iterations
 
@@ -459,7 +478,7 @@ namespace MFM {
       {
 	if(m_state.isClassASubclass(cuti) != Nouti)
 	  {
-	    NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
+	    NodeBlockClass * superblock = getSuperBlockPointer();
 	    assert(superblock);
 	    return superblock->hasCustomArray();
 	  }
@@ -480,7 +499,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     UTI superuti = m_state.isClassASubclass(cuti);
     if(superuti != Nouti)
       {
-	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
+	NodeBlockClass * superblock = getSuperBlockPointer();
 	if(!superblock)
 	  {
 	    std::ostringstream msg;
@@ -505,11 +524,19 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(catype == Nouti)
       {
 	UTI cuti = getNodeType();
-	if((m_state.isClassASubclass(cuti) != Nouti) || m_state.isClassAStub(cuti))
+	if(m_state.isClassAStub(cuti))
 	  {
+	    //search template
 	    NodeBlockClass * prevblock = (NodeBlockClass *) getPreviousBlockPointer();
 	    assert(prevblock);
-	    return prevblock->getCustomArrayTypeFromGetFunction();
+	    catype = prevblock->getCustomArrayTypeFromGetFunction();
+	  }
+
+	if((catype == Nouti) && (m_state.isClassASubclass(cuti) != Nouti))
+	  {
+	    NodeBlockClass * superblock = getSuperBlockPointer();
+	    assert(superblock);
+	    catype = superblock->getCustomArrayTypeFromGetFunction();
 	  }
       }
     return catype;
@@ -521,11 +548,19 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(catype == Nouti)
       {
 	UTI cuti = getNodeType();
-	if((m_state.isClassASubclass(cuti) != Nouti) || m_state.isClassAStub(cuti))
+	if(m_state.isClassAStub(cuti))
 	  {
+	    //search template
 	    NodeBlockClass * prevblock = (NodeBlockClass *) getPreviousBlockPointer();
 	    assert(prevblock);
-	    return prevblock->getCustomArrayIndexTypeFromGetFunction(rnode, idxuti, hasHazyArgs);
+	    catype = prevblock->getCustomArrayIndexTypeFromGetFunction(rnode, idxuti, hasHazyArgs);
+	  }
+
+	if((catype == Nouti) && (m_state.isClassASubclass(cuti) != Nouti))
+	  {
+	    NodeBlockClass * superblock = getSuperBlockPointer();
+	    assert(superblock);
+	    catype = superblock->getCustomArrayIndexTypeFromGetFunction(rnode, idxuti, hasHazyArgs);
 	  }
       }
     else if(catype == Hzy)
@@ -539,7 +574,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     bool aok = true;
     if((m_state.isClassASubclass(getNodeType()) != Nouti))
       {
-	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
+	NodeBlockClass * superblock = getSuperBlockPointer();
 	assert(superblock);
 	aok = superblock->buildDefaultQuarkValue(dqref);
       }
@@ -612,12 +647,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     s32 supers = 0;
     if(m_state.isClassASubclass(getNodeType()) != Nouti)
       {
-	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	NodeBlockClass * superClassBlock = getSuperBlockPointer();
 	assert(superClassBlock);
 	supers = superClassBlock->getNumberOfSymbolsInTable();
       }
 
-    return supers + m_ST.getTableSize();
+    return supers + NodeBlock::getNumberOfSymbolsInTable();
   } //getNumberOfSymbolsInTable
 
   u32 NodeBlockClass::getSizeOfSymbolsInTable()
@@ -625,7 +660,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     s32 supers = 0;
     if(m_state.isClassASubclass(getNodeType()) != Nouti)
       {
-	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	NodeBlockClass * superClassBlock = getSuperBlockPointer();
 	supers = superClassBlock->getSizeOfSymbolsInTable();
       }
     return supers + m_ST.getTotalSymbolSize();
@@ -657,7 +692,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     UTI superuti = m_state.isClassASubclass(getNodeType());
     if(superuti != Nouti)
       {
-	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	NodeBlockClass * superClassBlock = getSuperBlockPointer();
 	assert(superClassBlock);
 	m_state.pushClassContext(superuti, superClassBlock, superClassBlock, false, NULL);
 	superbs = superClassBlock->getMaxBitSizeOfVariableSymbolsInTable();
@@ -688,7 +723,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	    // quarks can't contain themselves
 	    if(UlamType::compare(utype, superuti, m_state) != UTIC_SAME)
 	      {
-		NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+		NodeBlockClass * superClassBlock = getSuperBlockPointer();
 		assert(superClassBlock);
 		m_state.pushClassContext(superuti, superClassBlock, superClassBlock, false, NULL);
 		rtnpos = superClassBlock->findUlamTypeInTable(utype, insidecuti);
@@ -716,7 +751,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     s32 superfs = 0;
     if(m_state.isClassASubclass(getNodeType()) != Nouti)
       {
-	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	NodeBlockClass * superClassBlock = getSuperBlockPointer();
 	assert(superClassBlock);
 	superfs = superClassBlock->getNumberOfFuncSymbolsInTable();
       }
@@ -728,7 +763,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     s32 superfs = 0;
     if(m_state.isClassASubclass(getNodeType()) != Nouti)
       {
-	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	NodeBlockClass * superClassBlock = getSuperBlockPointer();
 	superfs = superClassBlock->getSizeOfFuncSymbolsInTable();
       }
     return superfs + m_functionST.getTotalSymbolSize();
@@ -744,7 +779,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     UTI buti = getNodeType();
     if(m_state.isClassASubclass(buti) != Nouti)
       {
-	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	NodeBlockClass * superClassBlock = getSuperBlockPointer();
 	assert(superClassBlock);
 	superClassBlock->initElementDefaultsForEval(uv);
       }
@@ -792,7 +827,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     UTI superuti = m_state.isClassASubclass(nuti);
     if(superuti != Nouti)
       {
-	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
+	NodeBlockClass * superblock = getSuperBlockPointer();
 	if(!superblock)
 	  {
 	    std::ostringstream msg;
@@ -1289,7 +1324,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(superuti != Nouti)
       {
 	//include any of its quark data members:
-	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	NodeBlockClass * superClassBlock = getSuperBlockPointer();
 	assert(superClassBlock);
 	superClassBlock->genCodeBuiltInFunctionHasDataMembers(fp);
       }
@@ -1363,7 +1398,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write("\")) return(true); //inherited quark\n");
 
 	//then include any of its relatives:
-	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	NodeBlockClass * superClassBlock = getSuperBlockPointer();
 	assert(superClassBlock);
 	superClassBlock->genCodeBuiltInFunctionIsRelatedQuarkType(fp);
       }
@@ -1432,7 +1467,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     UTI nuti = getNodeType();
     if(m_state.isClassASubclass(nuti) != Nouti)
       {
-	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	NodeBlockClass * superClassBlock = getSuperBlockPointer();
 	assert(superClassBlock);
 	superClassBlock->genCodeBuiltInFunctionBuildingDefaultDataMembers(fp);
       }
@@ -1836,7 +1871,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   {
     if(m_state.isClassASubclass(getNodeType()) != Nouti)
       {
-	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	NodeBlockClass * superClassBlock = getSuperBlockPointer();
 	assert(superClassBlock);
 	superClassBlock->generateUlamClassInfo(fp, declOnly, dmcount);
       }
