@@ -2,7 +2,7 @@
 #=t3629_test_compiler_element_assignreffunccallvalue_error
 #!
 ./Foo.ulam:17:5: ERROR: Storage expression for: bref, must be storeintoable.
-./Foo.ulam:2:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: Foo.
+./Foo.ulam:2:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3628

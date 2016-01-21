@@ -1,0 +1,49 @@
+## -*- mode:ulam -*-
+#=t3641_test_compiler_element_initlocalvarwithfunccallvalue_ish
+#!
+Exit status: 87
+Ue_Ish9 : QMoCo(0x 57) { :< :< constant Bits(32) t = 87u; > constant Bits(32) speciesTag = 87u; > Int(32) test() {  Bits(32) b1 = ( )getTag;  b1 cast return } }
+Uq_QMoCo(Bits(32) speciesTag) : QT(t) { /* empty class block */ }
+Uq_QT(Bits(32) t) { <NOMAIN> }
+##
+## informed by a Dave ish 1/18/2016
+##
+#>Ish9.ulam
+  ulam 2;
+use QMoCo;
+element Ish9 : QMoCo(87) {
+  Int test() {
+    Bits b1 = getTag();
+    /* Note: WORKS when written as:
+    Bits b1;
+    b1 = getTag();
+    */
+    return (Int) b1;
+  }
+}
+
+#:QT.ulam
+  ulam 2;
+quark QT(Bits t) {
+  Bits getTag() {
+    return t;
+  }
+}
+
+#:QMoCo.ulam
+  ulam 2;
+use QT;
+quark QMoCo(Bits speciesTag) :  QT(speciesTag) { }
+
+/* Generates:
+./Ish9.ulam:6:5: ERROR: Initial value expression for: b1, initialization is invalid.
+./Ish9.ulam:6:15: ERROR: Unresolved No.1: <getTag>.
+./Ish9.ulam:6:5: ERROR: Unresolved No.2: <b1>.
+./Ish9.ulam:4:3: Warning: 2 nodes with unresolved types remain in function <behave> (Uf_6behave,3).
+./Ish9.ulam:4:8: Warning: Summary: 2 nodes with unresolved types remain in  a single function <behave> in class: Ish9.
+./Ish9.ulam:3:9: Warning: 2 data member nodes with unresolved types remain in class 'Ish9'.
+/home/ackley/papers/MF/asrepo/RT13/code/ULAM-fork/ULAM/ulam1/bin/../share/ulam/stdlib/DebugUtils.ulam:3:7: ERROR: 2 Nodes with unresolved types detected after type labeling class: DebugUtils.
+Unrecoverable Program Type Label FAILURE.
+*/
+
+#.

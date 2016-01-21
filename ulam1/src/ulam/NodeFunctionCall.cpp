@@ -83,6 +83,7 @@ namespace MFM {
   {
     UTI it = Nav;  // init return type
     u32 numErrorsFound = 0;
+    u32 numHazyFound = 0;
 
     //might be related to m_currentSelfPtr?
     //member selection doesn't apply to arguments
@@ -154,10 +155,15 @@ namespace MFM {
 	      }
 	    msg << "and cannot be called";
 	    if(hasHazyArgs)
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		numHazyFound++;
+	      }
 	    else
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    numErrorsFound++;
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		numErrorsFound++;
+	      }
 	  }
 	else if(numFuncs > 1)
 	  {
@@ -175,15 +181,20 @@ namespace MFM {
 	      }
 	    msg << "explicit casting is required";
 	    if(hasHazyArgs)
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		numHazyFound++;
+	      }
 	    else
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    numErrorsFound++;
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		numErrorsFound++;
+	      }
 	  }
 	else //==1
 	  {
 	    if(hasHazyArgs)
-	      numErrorsFound++; //wait to cast
+	      numHazyFound++; //wait to cast
 
 	    //check ref types and func calls here..care with variable args (2 pass)
 	    u32 numParams = funcSymbol->getNumberOfParameters();
@@ -211,10 +222,15 @@ namespace MFM {
 	msg << "(2) <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
 	msg << "> is not a defined function, or cannot be safely called in this context";
 	if(hazyKin)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    numHazyFound++;
+	  }
 	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	numErrorsFound++;
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    numErrorsFound++;
+	  }
       }
 
     if(m_funcSymbol && m_funcSymbol != funcSymbol)
@@ -229,7 +245,7 @@ namespace MFM {
 	  }
       }
 
-    if(numErrorsFound == 0)
+    if((numErrorsFound == 0) && (numHazyFound == 0))
       {
 	if(m_funcSymbol == NULL)
 	  m_funcSymbol = funcSymbol;
@@ -314,7 +330,7 @@ namespace MFM {
 	it = Nav;
       }
 
-    if(listuti == Hzy)
+    if((listuti == Hzy) || (numHazyFound > 0))
       {
 	setNodeType(Hzy); //happens when the arg list has incomplete types.
 	m_state.setGoAgain(); //for compier counts
