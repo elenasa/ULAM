@@ -39,6 +39,7 @@ namespace MFM {
     if(!m_state.isComplete(leftType) || !m_state.isComplete(rightType))
       {
     	setNodeType(Hzy);
+	m_state.setGoAgain(); //for compiler counts
     	return Hzy; //not quietly
       }
 
@@ -112,6 +113,7 @@ namespace MFM {
 		else
 		  {
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    m_state.setGoAgain(); //for compiler counts
 		    newType = Hzy;
 		  }
 	      }
@@ -361,6 +363,9 @@ namespace MFM {
     UlamValue lp = UlamValue::makeScalarPtr(lArrayPtr, m_state);
     UlamValue rp = UlamValue::makeScalarPtr(rArrayPtr, m_state);
 
+    u32 navCount = 0;
+    u32 hzyCount = 0;
+
     //make immediate result for each element inside loop
     for(s32 i = 0; i < arraysize; i++)
       {
@@ -377,6 +382,10 @@ namespace MFM {
 	  {
 	    // else, unpacked array
 	    rtnUV = makeImmediateBinaryOp(scalartypidx, ldata, rdata, bitsize);
+	    if(rtnUV.getUlamValueTypeIdx() == Nav)
+	      navCount++;
+	    else if(rtnUV.getUlamValueTypeIdx() == Hzy)
+	      hzyCount++;
 
 	    // overwrite lhs copy with result UV
 	    m_state.assignValue(lp, rtnUV);
@@ -391,10 +400,10 @@ namespace MFM {
 	assert(isNextRight);
       } //forloop
 
-    if(rtnUV.getUlamValueTypeIdx() == Nav)
+    if(navCount > 0)
       return false;
 
-    if(rtnUV.getUlamValueTypeIdx() == Hzy)
+    if(hzyCount > 0)
       return false;
 
     if(WritePacked(packRtn))

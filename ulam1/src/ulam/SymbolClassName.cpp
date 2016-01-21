@@ -198,25 +198,50 @@ namespace MFM {
     checkAndLabelClassFirst();
   } //checkAndLabelClassInstances
 
-  u32 SymbolClassName::countNavNodesInClassInstances()
+  void SymbolClassName::countNavNodesInClassInstances(u32& ncnt, u32& hcnt, u32& nocnt)
   {
     assert(!isClassTemplate());
-    u32 navCounter = 0;
+    u32 navCounter = ncnt;
+    u32 hzyCounter = hcnt;
+    u32 unsetCounter = nocnt;
+
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-    classNode->countNavNodes(navCounter);
-    if(navCounter > 0)
+    classNode->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+    if((ncnt - navCounter) > 0)
       {
 	std::ostringstream msg;
-	msg << navCounter << " data member nodes with unresolved types remain in class '";
+	msg << navCounter << " data member nodes with erroneous types remain in class '";
 	msg << m_state.getUlamTypeNameBriefByIndex(getUlamTypeIdx()).c_str();
 	msg << "'";
-	MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
       }
+
+    if((hcnt - hzyCounter) > 0)
+      {
+	std::ostringstream msg;
+	msg << hzyCounter << " data member nodes with unresolved types remain in class '";
+	msg << m_state.getUlamTypeNameBriefByIndex(getUlamTypeIdx()).c_str();
+	msg << "'";
+	MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+      }
+
+    if((nocnt - unsetCounter) > 0)
+      {
+	std::ostringstream msg;
+	msg << unsetCounter << " data member nodes with unset types remain in class '";
+	msg << m_state.getUlamTypeNameBriefByIndex(getUlamTypeIdx()).c_str();
+	msg << "'";
+	MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+      }
+
+    SymbolClass::countNavNodesInClassResolver(ncnt, hcnt, nocnt);
+
     m_state.popClassContext(); //restore
-    return navCounter;
+
+    return;
   } //countNavNodesInClassInstances
 
   bool SymbolClassName::setBitSizeOfClassInstances()

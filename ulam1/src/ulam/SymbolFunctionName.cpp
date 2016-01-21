@@ -368,12 +368,15 @@ namespace MFM {
 	if(!overloaded) //shouldn't be a duplicate, but if it is handle it
 	  {
 	    std::ostringstream msg;
-	    msg << "Check overloading function <";
+	    msg << "Check overloaded function <";
 	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
 	    msg << "> has a duplicate definition (" << fmangled.c_str();
 	    msg << "), while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(fsym->getTokPtr(), msg.str().c_str(), ERR);  //Dave says better to start as error
+	    NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
+	    assert(func);
+	    func->setNodeType(Nav); //compiler counts
 	    probcount++;
 	    dupfuncs.push_back(fkey);
 	  }
@@ -381,6 +384,7 @@ namespace MFM {
       }
     mangledFunctionSet.clear(); //strings only
 
+#if 0
     //unclear which dup function is found/removed; case of more than one dup is handled similarly;
     while(!dupfuncs.empty())
       {
@@ -397,6 +401,7 @@ namespace MFM {
 	  }
 	dupfuncs.pop_back();
       }
+#endif
     dupfuncs.clear();
     return probcount;
   } //checkFunctionNames
@@ -618,10 +623,12 @@ namespace MFM {
     return aok;
   } //labelFunctions
 
-  u32 SymbolFunctionName::countNavNodesInFunctionDefs()
+  void SymbolFunctionName::countNavNodesInFunctionDefs(u32& ncnt, u32& hcnt, u32& nocnt)
   {
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
     u32 countNavs = 0;
+    u32 countHzy = 0;
+    u32 countUnset = 0;
 
     while(it != m_mangledFunctionNames.end())
       {
@@ -629,35 +636,92 @@ namespace MFM {
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
 	assert(func);
 
-	u32 fcntnavs = 0;
-	func->countNavNodes(fcntnavs);
-	if(fcntnavs > 0)
+	u32 fcntnavs = ncnt;
+	u32 fcnthzy = hcnt;
+	u32 fcntunset = nocnt;
+	//func->countNavHzyNoutiNodes(fcntnavs, fcnthzy, fcntunset);
+	func->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+	if((ncnt - fcntnavs) > 0)
 	  {
 	    std::string fkey = it->first;
 	    std::ostringstream msg;
-	    msg << fcntnavs << " nodes with unresolved types remain in function <";
+	    msg << (ncnt - fcntnavs) << " nodes with erroneous types remain in function <";
 	    msg << m_state.m_pool.getDataAsString(getId());
 	    msg << "> (" << fkey.c_str() << ")";
-	    MSG(func->getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	    MSG(func->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+	    countNavs += (ncnt - fcntnavs);
 	  }
-	countNavs += fcntnavs;
+
+	if((hcnt - fcnthzy) > 0)
+	  {
+	    std::string fkey = it->first;
+	    std::ostringstream msg;
+	    msg << (hcnt - fcnthzy) << " nodes with unresolved types remain in function <";
+	    msg << m_state.m_pool.getDataAsString(getId());
+	    msg << "> (" << fkey.c_str() << ")";
+	    MSG(func->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+	    countHzy += (hcnt - fcnthzy);
+	  }
+
+	if((nocnt - fcntunset) > 0)
+	  {
+	    std::string fkey = it->first;
+	    std::ostringstream msg;
+	    msg << (nocnt - fcntunset) << " nodes with unset types remain in function <";
+	    msg << m_state.m_pool.getDataAsString(getId());
+	    msg << "> (" << fkey.c_str() << ")";
+	    MSG(func->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+	    countUnset += (nocnt - fcntunset);
+	  }
 	++it;
       }
 
+    //SUMMARIZE:
     if(countNavs > 0)
       {
 	u32 numfuncs = m_mangledFunctionNames.size();
 	std::ostringstream msg;
-	msg << "Summary: " << countNavs << " nodes with unresolved types remain in ";
+	msg << "Summary: " << countNavs << " nodes with erroneous types remain in ";
 	if(numfuncs > 1)
 	  msg << "all " <<  numfuncs << " functions <";
 	else
 	  msg << " a single function <";
 	msg << m_state.m_pool.getDataAsString(getId()) << "> in class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), WARN);
+	MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), INFO);
+	//ncnt += countNavs;
       }
-    return countNavs;
+
+    if(countHzy > 0)
+      {
+	u32 numfuncs = m_mangledFunctionNames.size();
+	std::ostringstream msg;
+	msg << "Summary: " << countHzy << " nodes with unresolved types remain in ";
+	if(numfuncs > 1)
+	  msg << "all " <<  numfuncs << " functions <";
+	else
+	  msg << " a single function <";
+	msg << m_state.m_pool.getDataAsString(getId()) << "> in class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), INFO);
+	//hcnt += countHzy;
+      }
+
+    if(countUnset > 0)
+      {
+	u32 numfuncs = m_mangledFunctionNames.size();
+	std::ostringstream msg;
+	msg << "Summary: " << countUnset << " nodes with unset types remain in ";
+	if(numfuncs > 1)
+	  msg << "all " <<  numfuncs << " functions <";
+	else
+	  msg << " a single function <";
+	msg << m_state.m_pool.getDataAsString(getId()) << "> in class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), INFO);
+	//nocnt += countUnset;
+      }
+    return;
   } //countNavNodesInFunctionDefs
 
   u32 SymbolFunctionName::countNativeFuncDecls()

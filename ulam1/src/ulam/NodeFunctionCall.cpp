@@ -130,6 +130,7 @@ namespace MFM {
 	  {
 	    argNodes.clear();
 	    setNodeType(Hzy);
+	    m_state.setGoAgain(); //for compier counts
 	    return Hzy; //short circuit
 	  }
 
@@ -316,6 +317,7 @@ namespace MFM {
     if(listuti == Hzy)
       {
 	setNodeType(Hzy); //happens when the arg list has incomplete types.
+	m_state.setGoAgain(); //for compier counts
 	it = Hzy;
       }
 
@@ -323,11 +325,11 @@ namespace MFM {
     return it;
   } //checkAndLabelType
 
-  void NodeFunctionCall::countNavNodes(u32& cnt)
+  void NodeFunctionCall::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
-    Node::countNavNodes(cnt); //missing
-    m_argumentNodes->countNavNodes(cnt);
-  } //countNavNodes
+    Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt); //missing
+    m_argumentNodes->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+  } //countNavHzyNoutiNodes
 
   void NodeFunctionCall::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {

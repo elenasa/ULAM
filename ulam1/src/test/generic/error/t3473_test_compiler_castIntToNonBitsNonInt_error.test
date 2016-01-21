@@ -6,15 +6,7 @@
 ./A.ulam:9:4: ERROR: Use explicit cast to convert Int(3) to Unsigned(32) for operator=.
 ./A.ulam:10:3: ERROR: Use explicit cast to convert Unsigned(32) to Int(3) for operator=.
 ./A.ulam:11:4: ERROR: Use explicit cast to convert Unsigned(3) to Int(3) for operator=.
-./A.ulam:7:5: ERROR: Unresolved No.1: <=>.
-./A.ulam:8:4: ERROR: Unresolved No.2: <=>.
-./A.ulam:9:4: ERROR: Unresolved No.3: <=>.
-./A.ulam:10:3: ERROR: Unresolved No.4: <=>.
-./A.ulam:11:4: ERROR: Unresolved No.5: <=>.
-./A.ulam:2:1: Warning: 5 nodes with unresolved types remain in function <test> (Uf_4test,3).
-./A.ulam:2:5: Warning: Summary: 5 nodes with unresolved types remain in  a single function <test> in class: A.
-./A.ulam:1:9: Warning: 5 data member nodes with unresolved types remain in class 'A'.
-./A.ulam:1:9: ERROR: 5 Nodes with unresolved types detected after type labeling class: A.
+./A.ulam:1:9: ERROR: 5 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## // no matter how big the unsigned, can't do it.

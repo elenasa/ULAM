@@ -2,7 +2,7 @@
 #=t3219_test_compiler_element_modelparameterasconstantexpression_error
 #!
 ./Foo.ulam:4:2: ERROR: Type Bitsize specifier: Int(32), within (), is not a numeric constant expression.
-./Foo.ulam:4:2: ERROR: Type Bitsize specifier for base type: Int is not a constant expression.
+./Foo.ulam:2:10: ERROR: 2 Nodes with erroneous types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      // fix bitsize, then get:

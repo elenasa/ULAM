@@ -210,7 +210,7 @@ namespace MFM {
     else if(totalbits != UNKNOWNSIZE)
       aok = true; //not UNKNOWN
     return aok;
-  } //trySetBitSize
+  } //trySetBitSizeWithUTIValues
 
   void SymbolClass::printBitSizeOfClass()
   {
@@ -404,6 +404,12 @@ namespace MFM {
 
     return m_resolver->findNodeNo(n, foundNode);
   } //findNodeNoInResolver
+
+  void SymbolClass::countNavNodesInClassResolver(u32& ncnt, u32& hcnt, u32& nocnt)
+  {
+    if(m_resolver)
+      m_resolver->countNavNodes(ncnt, hcnt, nocnt);
+  }
 
   /////////////////////////////////////////////////////////////////////////////////
   // from NodeProgram

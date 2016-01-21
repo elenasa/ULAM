@@ -224,7 +224,7 @@ namespace MFM {
   {
     ULAMTYPE vtypEnum = m_state.getUlamTypeByIndex(typidx)->getUlamTypeEnum();
     FORECAST scr = safeCast(typidx);
-    if((vtypEnum == Bits && UlamType::explicitlyCastable(typidx) == CAST_CLEAR) || scr == CAST_CLEAR)
+    if(((vtypEnum == Bits) && (UlamType::explicitlyCastable(typidx) == CAST_CLEAR)) || (scr == CAST_CLEAR))
       return CAST_CLEAR;
     return scr; //HAZY or UNSAFE
   } //explicitlyCastable

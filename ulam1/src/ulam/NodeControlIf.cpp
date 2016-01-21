@@ -121,12 +121,12 @@ namespace MFM {
     depth += maxbody > maxelse ? maxbody : maxelse;
   } //calcMaxDepth
 
-  void NodeControlIf::countNavNodes(u32& cnt)
+  void NodeControlIf::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
-    NodeControl::countNavNodes(cnt);
+    NodeControl::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
     if(m_nodeElse)
-      m_nodeElse->countNavNodes(cnt);
-  } //countNavNodes
+      m_nodeElse->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+  } //countNavHzyNoutiNodes
 
   EvalStatus  NodeControlIf::eval()
   {

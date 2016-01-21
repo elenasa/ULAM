@@ -2,6 +2,7 @@
 #=t3190_test_compiler_elementandquark_array2d_quarkcasttoint
 #!
 ./Foo.ulam:4:2: ERROR: Data member <m_array> of type: Unsigned(1)[71], total size: 71 MUST fit into 64 bits; Local variables do not have this restriction.
+./Foo.ulam:3:10: ERROR: 1 Nodes with erroneous types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      // data members must fit within 32- or 64-bits (BitField limit)

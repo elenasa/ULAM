@@ -1,7 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3593_test_compiler_unaryzeroarrayindex_error
 #!
+./Ish2.ulam:8:5: ERROR: UNSEEN Class and incomplete descriptor for type: System.
 ./Ish2.ulam:13:1: ERROR: Invalid size (0) to set for primitive type: Unsigned.
+./Ish2.ulam:2:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: Ish2.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by error/t3592

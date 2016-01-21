@@ -219,12 +219,12 @@ namespace MFM {
     //do nothing, but override
   }
 
-  void NodeTypedef::countNavNodes(u32& cnt)
+  void NodeTypedef::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
-    Node::countNavNodes(cnt);
+    Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
     if(m_nodeTypeDesc)
-      m_nodeTypeDesc->countNavNodes(cnt);
-  } //countNavNodes
+      m_nodeTypeDesc->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+  } //countNavHzyNoutiNodes
 
   bool NodeTypedef::buildDefaultQuarkValue(u32& dqref)
   {

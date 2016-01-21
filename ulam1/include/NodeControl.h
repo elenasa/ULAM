@@ -68,7 +68,7 @@ namespace MFM{
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
-    virtual void countNavNodes(u32& cnt);
+    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 

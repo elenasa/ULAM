@@ -256,14 +256,14 @@ namespace MFM {
     m_nodeParameterList->addNodeToList(nodeArg);
   }
 
-  void NodeBlockFunctionDefinition::countNavNodes(u32& cnt)
+  void NodeBlockFunctionDefinition::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
-    NodeBlock::countNavNodes(cnt);
+    NodeBlock::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
     if(m_nodeTypeDesc)
-      m_nodeTypeDesc->countNavNodes(cnt);
+      m_nodeTypeDesc->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
     if(m_nodeParameterList)
-      m_nodeParameterList->countNavNodes(cnt);
-  } //countNavNodes
+      m_nodeParameterList->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+  } //countNavHzyNoutiNodes
 
   EvalStatus NodeBlockFunctionDefinition::eval()
   {

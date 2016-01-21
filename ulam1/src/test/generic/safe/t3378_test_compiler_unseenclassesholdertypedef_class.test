@@ -7,29 +7,34 @@ Ue_F { typedef A Foo;  Int(32) test() {  A f;  f y . true cast = f y . cond f y 
 Ue_E { typedef A X;  <NOMAIN> }
 Ue_D { typedef A X;  <NOMAIN> }
 #>A.ulam
+  ulam 1;
 use F;
- use E;
- use D;
- quark A{Bool(3) y;
- }
+use E;
+use D;
+quark A{
+  Bool(3) y;
+}
 
 #:F.ulam
+  ulam 1;
 element F{
- typedef E.X Foo;
- Int test(){
- Foo f;
- f.y = true;
- if(f.y)
- return (Int) f.y;
- return 0;
-}
+  typedef E.X Foo;
+  Int test(){
+    Foo f;
+    f.y = true;
+    if(f.y)
+      return (Int) f.y;
+    return 0;
+  }
 }
 #:E.ulam
+  ulam 1;
 element E{
- typedef D.X X;
- }
+  typedef D.X X;
+}
 #:D.ulam
+  ulam 1;
 element D{
- typedef A X;
- }
+  typedef A X;
+}
 #.

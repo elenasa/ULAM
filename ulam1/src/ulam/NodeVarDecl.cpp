@@ -395,6 +395,7 @@ namespace MFM {
 	    msg << "' found while bit packing class ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav); //compiler counts
 	  }
       } //not complete
 
@@ -408,6 +409,7 @@ namespace MFM {
 	msg << " MUST fit into " << MAXBITSPERLONG << " bits;";
 	msg << " Local variables do not have this restriction";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav); //compiler counts
       }
 
     if(m_state.getTotalBitSize(it) > MAXBITSPERINT && classtype == UC_QUARK)
@@ -418,6 +420,7 @@ namespace MFM {
 	msg << ", total size: " << (s32) m_state.getTotalBitSize(it);
 	msg << " MUST fit into " << MAXBITSPERINT << " bits;";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav); //compiler counts
       }
 
     if(classtype == UC_ELEMENT)
@@ -428,8 +431,8 @@ namespace MFM {
 	msg << ", is an element, and is NOT permitted; Local variables, quarks, ";
 	msg << "and Model Parameters do not have this restriction";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav); //compiler counts
       }
-
     offset += m_state.getTotalBitSize(m_varSymbol->getUlamTypeIdx());
   } //packBitsInOrderOfDeclaration
 
@@ -452,16 +455,16 @@ namespace MFM {
       m_nodeInitExpr->calcMaxDepth(depth, maxdepth, base);
   } //calcMaxDepth
 
-  void NodeVarDecl::countNavNodes(u32& cnt)
+  void NodeVarDecl::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
     if(m_nodeTypeDesc)
-      m_nodeTypeDesc->countNavNodes(cnt);
+      m_nodeTypeDesc->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
 
     if(m_nodeInitExpr)
-      m_nodeInitExpr->countNavNodes(cnt);
+      m_nodeInitExpr->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
 
-    Node::countNavNodes(cnt);
-  } //countNavNodes
+    Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+  } //countNavHzyNoutiNodes
 
   EvalStatus NodeVarDecl::eval()
   {

@@ -6,13 +6,7 @@
 ./A.ulam:6:10: ERROR: Non-primitive type <Atom(96)> is not supported as left operand type for binary operator!=.
 ./A.ulam:6:10: ERROR: Non-primitive type <Atom(96)> is not supported as right operand type for binary operator!=.
 ./A.ulam:7:2: ERROR: Use explicit cast to return Bool(1) as Int(32).
-./A.ulam:5:10: ERROR: Unresolved No.1: <<>.
-./A.ulam:6:10: ERROR: Unresolved No.2: <!=>.
-./A.ulam:7:2: ERROR: Unresolved No.3: <return>.
-./A.ulam:2:1: Warning: 3 nodes with unresolved types remain in function <test> (Uf_4test,3).
-./A.ulam:2:5: Warning: Summary: 3 nodes with unresolved types remain in  a single function <test> in class: A.
-./A.ulam:1:9: Warning: 3 data member nodes with unresolved types remain in class 'A'.
-./A.ulam:1:9: ERROR: 3 Nodes with unresolved types detected after type labeling class: A.
+./A.ulam:1:9: ERROR: 3 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 #>A.ulam
 element A {

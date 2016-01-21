@@ -162,13 +162,13 @@ namespace MFM{
       }
   } //calcMaxDepth
 
-  void NodeList::countNavNodes(u32& cnt)
+  void NodeList::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
-	m_nodes[i]->countNavNodes(cnt);
+	m_nodes[i]->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
       }
-    Node::countNavNodes(cnt); //NodeList counts!
+    Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt); //NodeList counts!
   } //countNavNodes
 
   EvalStatus NodeList::eval()

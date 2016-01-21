@@ -203,8 +203,8 @@ namespace MFM{
     bool isReference(UTI utArg);
     bool isComplete(UTI utArg);
     bool isHolder(UTI utArg);
-    void setBitSize(UTI utArg, s32 total);
-    void setUTISizes(UTI utArg, s32 bitsize, s32 arraysize);
+    bool setBitSize(UTI utArg, s32 total);
+    bool setUTISizes(UTI utArg, s32 bitsize, s32 arraysize);
     void mergeClassUTI(UTI olduti, UTI cuti);
     void rekeyToReferenceUTI(ALT autoreftype, UTI auti);
     bool isARootUTI(UTI auti);
@@ -212,7 +212,7 @@ namespace MFM{
     void updateUTIAlias(UTI auti, UTI buti);
     void initUTIAlias(UTI auti);
 
-    void setSizesOfNonClass(UTI utArg, s32 bitsize, s32 arraysize);
+    bool setSizesOfNonClass(UTI utArg, s32 bitsize, s32 arraysize);
 
     s32 getDefaultBitSize(UTI uti);
     u32 getTotalBitSize(UTI utArg);

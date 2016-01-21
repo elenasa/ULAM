@@ -1,51 +1,52 @@
 ## -*- mode:ulam -*-
 #=t3498_test_compiler_elementandquark_arraytypedeffromanotherclass_unseen_error
 #!
-./Vector.ulam:4:35: ERROR: Possible Divide By Zero Attempt.
-./Vector.ulam:4:35: ERROR: Constant value expression for binary op/ is erroneous while compiling class: Vector(2u).
+./Vector.ulam:4:36: ERROR: Possible Divide By Zero Attempt.
+./Vector.ulam:4:36: ERROR: Constant value expression for binary op/ is erroneous while compiling class: Vector(2u).
+./R.ulam:4:9: ERROR: 4 Nodes with erroneous types detected after type labeling class: R.
 Unrecoverable Program Type Label FAILURE.
 #>R.ulam
-ulam 1;
- use TypedefIssue;
- use Vector;
- element R {
- Int test(){
-TypedefIssue(2u) ish;
- return ish.foo2();
+ ulam 1;
+use TypedefIssue;
+use Vector;
+element R {
+  Int test(){
+    TypedefIssue(2u) ish;
+    return ish.foo2();
+  }
 }
- }
 
 #:TypedefIssue.ulam
-ulam 1;
+  ulam 1;
 element TypedefIssue(Unsigned tif) {
-typedef Vector(tif).Symmetry Symmetry;
- Symmetry x;
- Bool b;
-Vector(tif) t;
- Int foo() {
-x[0] = 2;
- x[1] = 1;
-if(t.set(x))
- b=true;
-return t.m[1];
-} Int foo2() {
- return x.sizeof;
-}
+  typedef Vector(tif).Symmetry Symmetry;
+  Symmetry x;
+  Bool b;
+  Vector(tif) t;
+  Int foo() {
+    x[0] = 2;
+    x[1] = 1;
+    if(t.set(x))
+      b=true;
+    return t.m[1];
+  } Int foo2() {
+    return x.sizeof;
+  }
 }
 
 ##
 ##       //Divide by Zero can also be detected in Channel typedef bitsize
 #:Vector.ulam
-ulam 1;
+  ulam 1;
 quark Vector(Unsigned vec) {
-typedef Unsigned((2u*vec)) Channel;
- typedef Channel Symmetry[(vec+1u)/vec.minof];
- Symmetry m;
-Bool set(Symmetry vector) {
-m[0]=vector[0];
- m[1]=vector[1];
- return (m[0]!=0 && m[1]!=0);
- }
+  typedef Unsigned((2u*vec)) Channel;
+  typedef Channel Symmetry[(vec+1u)/vec.minof];
+  Symmetry m;
+  Bool set(Symmetry vector) {
+    m[0]=vector[0];
+    m[1]=vector[1];
+    return (m[0]!=0 && m[1]!=0);
+  }
 }
 ##
 ##      //informed by t3498, here arraysize has divide by zero

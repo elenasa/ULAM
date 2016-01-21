@@ -4,13 +4,7 @@
 ./Foo.ulam:11:18: ERROR: Incompatible types for binary operator+ : Bits(3), Bits(3); Suggest casting to a numeric type first.
 ./Foo.ulam:12:6: ERROR: Use a comparison operator to convert Bits(3)[3] to Bool(3)[3] for operator=.
 ./Foo.ulam:19:2: ERROR: Use explicit cast to return Bool(3) as Int(32).
-./Foo.ulam:11:18: ERROR: Unresolved No.1: <+>.
-./Foo.ulam:12:6: ERROR: Unresolved No.2: <=>.
-./Foo.ulam:19:2: ERROR: Unresolved No.3: <return>.
-./Foo.ulam:8:2: Warning: 3 nodes with unresolved types remain in function <test> (Uf_4test,3).
-./Foo.ulam:8:6: Warning: Summary: 3 nodes with unresolved types remain in  a single function <test> in class: Foo.
-./Foo.ulam:3:9: Warning: 3 data member nodes with unresolved types remain in class 'Foo'.
-./Foo.ulam:3:9: ERROR: 3 Nodes with unresolved types detected after type labeling class: Foo.
+./Foo.ulam:3:9: ERROR: 3 Nodes with erroneous types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>Foo.ulam

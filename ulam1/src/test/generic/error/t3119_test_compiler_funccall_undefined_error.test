@@ -2,11 +2,7 @@
 #=t3119_test_compiler_funccall_undefined_error
 #!
 ./D.ulam:1:30: ERROR: (2) <fact> is not a defined function, or cannot be safely called in this context.
-./D.ulam:1:30: ERROR: Unresolved No.1: <fact>.
-./D.ulam:1:13: Warning: 1 nodes with unresolved types remain in function <test> (Uf_4test,3).
-./D.ulam:1:17: Warning: Summary: 1 nodes with unresolved types remain in  a single function <test> in class: D.
-./D.ulam:1:9: Warning: 1 data member nodes with unresolved types remain in class 'D'.
-./D.ulam:1:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: D.
+./D.ulam:1:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: D.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>D.ulam

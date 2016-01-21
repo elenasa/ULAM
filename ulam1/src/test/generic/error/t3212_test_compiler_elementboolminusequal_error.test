@@ -4,13 +4,7 @@
 ./Foo.ulam:7:7: ERROR: Incompatible types for binary operator- : Bool(3), Bool(3); Suggest casting to a numeric type first.
 ./Foo.ulam:8:3: ERROR: Arithmetic Operations are invalid on 'Bool' type.
 ./Foo.ulam:9:1: ERROR: Use explicit cast to return Bool(3) as Int(32).
-./Foo.ulam:7:7: ERROR: Unresolved No.1: <->.
-./Foo.ulam:8:3: ERROR: Unresolved No.2: <-=>.
-./Foo.ulam:9:1: ERROR: Unresolved No.3: <return>.
-./Foo.ulam:4:1: Warning: 3 nodes with unresolved types remain in function <test> (Uf_4test,3).
-./Foo.ulam:4:5: Warning: Summary: 3 nodes with unresolved types remain in  a single function <test> in class: Foo.
-./Foo.ulam:2:9: Warning: 3 data member nodes with unresolved types remain in class 'Foo'.
-./Foo.ulam:2:9: ERROR: 3 Nodes with unresolved types detected after type labeling class: Foo.
+./Foo.ulam:2:9: ERROR: 3 Nodes with erroneous types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>Foo.ulam

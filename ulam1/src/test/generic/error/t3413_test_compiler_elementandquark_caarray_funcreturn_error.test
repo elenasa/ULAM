@@ -2,11 +2,7 @@
 #=t3413_test_compiler_elementandquark_caarray_funcreturn_error
 #!
 ./EventWindowTest.ulam:15:9: ERROR: Invalid lefthand side of equals <func>, type: Atom(96).
-./EventWindowTest.ulam:15:9: ERROR: Unresolved No.1: <=>.
-./EventWindowTest.ulam:12:2: Warning: 1 nodes with unresolved types remain in function <test> (Uf_4test,3).
-./EventWindowTest.ulam:12:6: Warning: Summary: 1 nodes with unresolved types remain in  a single function <test> in class: EventWindowTest.
-./EventWindowTest.ulam:3:9: Warning: 1 data member nodes with unresolved types remain in class 'EventWindowTest'.
-./EventWindowTest.ulam:3:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: EventWindowTest.
+./EventWindowTest.ulam:3:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: EventWindowTest.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>EventWindowTest.ulam

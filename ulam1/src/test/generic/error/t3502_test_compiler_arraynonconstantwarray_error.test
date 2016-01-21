@@ -3,6 +3,7 @@
 #!
 ##
 ./A.ulam:5:7: ERROR: Array size specifier in [] is not a constant number.
+./A.ulam:1:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //informed by t3320

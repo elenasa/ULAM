@@ -2,6 +2,7 @@
 #=t3298_test_compiler_sizeofclass_error
 #!
 ./Fu.ulam:4:1: ERROR: Unresolved type <Int(UNKNOWN)> used with variable symbol name 'u' found while bit packing class Fu.
+./Fu.ulam:2:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Fu.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>Fu.ulam

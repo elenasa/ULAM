@@ -2,11 +2,7 @@
 #=t3189_test_compiler_elementandquark_memberselectedfunc_error
 #!
 ./Foo.ulam:11:20: ERROR: Member selected must be a valid lefthand side: func requires a variable; may be a casted function call.
-./Foo.ulam:11:20: ERROR: Unresolved No.1: <.>.
-./Foo.ulam:10:2: Warning: 1 nodes with unresolved types remain in function <test> (Uf_4test,3).
-./Foo.ulam:10:6: Warning: Summary: 1 nodes with unresolved types remain in  a single function <test> in class: Foo.
-./Foo.ulam:3:10: Warning: 1 data member nodes with unresolved types remain in class 'Foo'.
-./Foo.ulam:3:10: ERROR: 1 Nodes with unresolved types detected after type labeling class: Foo.
+./Foo.ulam:3:10: ERROR: 1 Nodes with erroneous types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //member selection with a function call must be first saved to a

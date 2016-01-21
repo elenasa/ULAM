@@ -162,11 +162,11 @@ namespace MFM {
     return getNodeType(); //updated to Unsigned, hopefully
   } //checkandLabelType
 
-  void NodeTerminalProxy::countNavNodes(u32& cnt)
+  void NodeTerminalProxy::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
-    Node::countNavNodes(cnt);
+    Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
     if(m_nodeTypeDesc)
-      m_nodeTypeDesc->countNavNodes(cnt);
+      m_nodeTypeDesc->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   } //countNavNodes
 
   EvalStatus NodeTerminalProxy::eval()

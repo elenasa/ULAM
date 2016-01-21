@@ -2,7 +2,7 @@
 #=t3356_test_compiler_elementandquarkswclassargs2_typedeffromanotherclasstypedef
 #!
 Exit status: 2
-Ue_P(Int(32) a) { constant Int(32) a = NONREADYCONST;  constant 0Hzy nvar = NONREADYCONST;  Int(UNKNOWN) arr[UNKNOWN](unknown);  Bool(1) b(false);  Int(32) test() {  P(1) pel;  pel arr 2 [] . 2 = pel arr 2 [] . return } }
+Ue_P(Int(32) a) { constant Int(32) a = NONREADYCONST;  constant Unsigned(UNKNOWN) nvar = NONREADYCONST;  Int(UNKNOWN) arr[UNKNOWN](unknown);  Bool(1) b(false);  Int(32) test() {  P(1) pel;  pel arr 2 [] . 2 = pel arr 2 [] . return } }
 Uq_Q(Int(32) s) { typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }
 ##

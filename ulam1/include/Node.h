@@ -122,7 +122,7 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    virtual void countNavNodes(u32& cnt);
+    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
     virtual void constantFoldAToken(Token tok);
 
@@ -173,7 +173,7 @@ namespace MFM{
 
     CompilerState & m_state;  //for printing error messages with path
 
-    bool checkSafeToCastTo(UTI fromType, UTI newType);
+    bool checkSafeToCastTo(UTI fromType, UTI& newType);
 
     bool makeCastingNode(Node * node, UTI tobeType, Node*& rtnNode, bool isExplicit = false);
 

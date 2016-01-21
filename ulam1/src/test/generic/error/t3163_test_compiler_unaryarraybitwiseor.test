@@ -1,29 +1,26 @@
 ## -*- mode:ulam -*-
 #=t3163_test_compiler_unaryarraybitwiseor
 #!
-./A.ulam:11:8: ERROR: Incompatible (nonscalar) types Unary(3)[2] and Unary(3)[2] for binary operator| ; Suggest writing a loop.
-./A.ulam:11:8: ERROR: Unresolved No.1: <|>.
-./A.ulam:6:2: Warning: 1 nodes with unresolved types remain in function <test> (Uf_4test,3).
-./A.ulam:6:6: Warning: Summary: 1 nodes with unresolved types remain in  a single function <test> in class: A.
-./A.ulam:1:9: Warning: 1 data member nodes with unresolved types remain in class 'A'.
-./A.ulam:1:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: A.
+./A.ulam:12:11: ERROR: Incompatible (nonscalar) types Unary(3)[2] and Unary(3)[2] for binary operator| ; Suggest writing a loop.
+./A.ulam:2:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>A.ulam
+  ulam 1;
 element A {
- typedef Unary(3) Mu[2];
-Bool sp1;
-Bool(15) sp;
-Mu a, b, c;
- Int test() {
-  a[0] = 2;
- a[1] = 1;
- b[0] = 0;
- b[1] = 2;
- c = a | b;
- return c[0];
- }
- }
+  typedef Unary(3) Mu[2];
+  Bool sp1;
+  Bool(15) sp;
+  Mu a, b, c;
+  Int test() {
+    a[0] = 2;
+    a[1] = 1;
+    b[0] = 0;
+    b[1] = 2;
+    c = a | b;
+    return c[0];
+  }
+}
 ##
 ##      //bool rtn1 = fms->add("A.ulam","element A { typedef Unary(3) Mu[2]; Mu a, b, c;  use test;  a[0] = 2; a[1] = 1; b[0] = 0; b[1] = 2; c = a | b; return c[0]; } }");
 #.

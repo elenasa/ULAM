@@ -90,8 +90,7 @@ namespace MFM {
 	    newType = m_state.makeUlamType(newkey, Int);
 	  }
 
-	if(!NodeBinaryOp::checkSafeToCastTo(newType))
-	  newType = Nav; //outputs error msg
+	NodeBinaryOp::checkSafeToCastTo(newType); ////Nav, Hzy or no change; outputs error msg
       } //both scalars
     return newType;
   } //calcNodeType
@@ -181,9 +180,12 @@ namespace MFM {
     if(rtnUV.getUlamValueTypeIdx() == Nav)
       return false;
 
+    if(rtnUV.getUlamValueTypeIdx() == Hzy)
+      return false;
+
     m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
     return true;
-  } //dobinaryopImmediate
+  } //dobinaryOperationImmediate
 
   //unlike NodeBinaryOp, NodeBinaryOpCompare has a node type that's different from
   // its nodes, where left and right nodes are casted to be the same.
@@ -217,6 +219,9 @@ namespace MFM {
     UlamValue lp = UlamValue::makeScalarPtr(lArrayPtr, m_state);
     UlamValue rp = UlamValue::makeScalarPtr(rArrayPtr, m_state);
 
+    u32 navCount = 0;
+    u32 hzyCount = 0;
+
     //make immediate result for each element inside loop
     for(s32 i = 0; i < arraysize; i++)
       {
@@ -232,6 +237,10 @@ namespace MFM {
 	else
 	  {
 	    rtnUV = makeImmediateBinaryOp(scalartypidx, ldata, rdata, bitsize);
+	    if(rtnUV.getUlamValueTypeIdx() == Nav)
+	      navCount++;
+	    else if(rtnUV.getUlamValueTypeIdx() == Hzy)
+	      hzyCount++;
 
 	    //cp result UV to stack, -1 (first array element deepest) relative to current frame pointer
 	    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -slots + i);
@@ -242,11 +251,17 @@ namespace MFM {
 	assert(isNextRight);
       } //forloop
 
+    if(navCount > 0)
+      return false;
+
+    if(hzyCount > 0)
+      return false;
+
     if(WritePacked(packRtn))
       m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1); //store accumulated packed result
 
-    return false;
-  } //end dobinaryoparray
+    return false; //NOT IMPLEMENTED YET!
+  } //end dobinaryOperaationarray
 
   void NodeBinaryOpCompare::genCode(File * fp, UlamValue& uvpass)
   {

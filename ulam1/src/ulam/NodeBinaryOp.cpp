@@ -433,11 +433,11 @@ namespace MFM {
       }
   } //resultBitsizeCalcInBits
 
-  void NodeBinaryOp::countNavNodes(u32& cnt)
+  void NodeBinaryOp::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
-    Node::countNavNodes(cnt); //missing
-    m_nodeLeft->countNavNodes(cnt);
-    m_nodeRight->countNavNodes(cnt);
+    Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt); //missing
+    m_nodeLeft->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+    m_nodeRight->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   }
 
   UTI NodeBinaryOp::constantFold()
@@ -501,6 +501,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	setNodeType(Hzy);
+	m_state.setGoAgain(); //for compier counts
 	return Hzy;
       }
 
@@ -605,6 +606,9 @@ namespace MFM {
     if(rtnUV.getUlamValueTypeIdx() == Nav)
       return false;
 
+    if(rtnUV.getUlamValueTypeIdx() == Hzy)
+      return false;
+
     m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
     return true;
   } //dobinaryopImmediate
@@ -633,6 +637,9 @@ namespace MFM {
     UlamValue lp = UlamValue::makeScalarPtr(lArrayPtr, m_state);
     UlamValue rp = UlamValue::makeScalarPtr(rArrayPtr, m_state);
 
+    u32 navCount = 0;
+    u32 hzyCount = 0;
+
     //make immediate result for each element inside loop
     for(s32 i = 0; i < arraysize; i++)
       {
@@ -648,7 +655,10 @@ namespace MFM {
 	else
 	  {
 	    rtnUV = makeImmediateBinaryOp(scalartypidx, ldata, rdata, bitsize);
-
+	    if(rtnUV.getUlamValueTypeIdx() == Nav)
+	      navCount++;
+	    else if(rtnUV.getUlamValueTypeIdx() == Hzy)
+	      hzyCount++;
 	    //copy result UV to stack, -1 (first array element deepest) relative to current frame pointer
 	    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -slots + i);
 	  }
@@ -659,7 +669,10 @@ namespace MFM {
 	assert(isNextRight);
       } //forloop
 
-    if(rtnUV.getUlamValueTypeIdx() == Nav)
+    if(navCount > 0)
+      return false;
+
+    if(hzyCount > 0)
       return false;
 
     if(WritePacked(packRtn))

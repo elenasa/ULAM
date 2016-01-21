@@ -75,9 +75,11 @@ namespace MFM{
 
     u32 getSymbolId();
 
+    bool getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref);
+
     virtual UTI checkAndLabelType();
 
-    virtual void countNavNodes(u32& cnt);
+    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
     NNO getBlockNo();
 
@@ -89,7 +91,7 @@ namespace MFM{
 
     bool hasConstantExpr();
 
-    bool foldConstantExpression();
+    UTI foldConstantExpression();
 
     virtual bool buildDefaultQuarkValue(u32& dqref);
 
@@ -116,7 +118,7 @@ namespace MFM{
     NNO m_currBlockNo;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
-    bool updateConstant(u64 & newconst);
+    UTI updateConstant(u64 & newconst);
     bool updateConstant32(u64 & newconst);
     bool updateConstant64(u64 & newconst);
   };

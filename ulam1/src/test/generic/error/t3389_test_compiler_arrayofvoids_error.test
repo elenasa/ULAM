@@ -3,6 +3,7 @@
 #!
 ./A.ulam:2:6: Warning: Void bitsize expression disregarded; size is zero.
 ./A.ulam:7:0: ERROR: Invalid Void type array: Void[UNKNOWN].
+./A.ulam:1:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //informed by3311

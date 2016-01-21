@@ -905,18 +905,20 @@ namespace MFM {
     return (ut->isHolder());
   }
 
-  //updates key. we can do this now that UTI is used and the UlamType * isn't saved
-  void CompilerState::setBitSize(UTI utArg, s32 bits)
+  //updates key. we can do this now that UTI is used and the UlamType * isn't saved;
+  // return false if ERR
+  bool CompilerState::setBitSize(UTI utArg, s32 bits)
   {
     return setUTISizes(utArg, bits, getArraySize(utArg)); //keep current arraysize
   }
 
-  void CompilerState::setUTISizes(UTI utArg, s32 bitsize, s32 arraysize)
+  // return false if ERR
+  bool CompilerState::setUTISizes(UTI utArg, s32 bitsize, s32 arraysize)
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
 
     if(ut->isComplete())
-      return;
+      return true;
 
     //redirect primitives;
     ULAMCLASSTYPE classtype = ut->getUlamClass();
@@ -938,7 +940,7 @@ namespace MFM {
 	    msg << "Trying to exceed allotted bit size (" << MAXSTATEBITS << ") for element ";
 	    msg << ut->getUlamTypeNameBrief().c_str() << " with " << total << " bits";
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
-	    return;
+	    return false;
 	  }
       }
 
@@ -950,7 +952,7 @@ namespace MFM {
 	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERQUARK << ") for quark ";
 	    msg << ut->getUlamTypeNameBrief().c_str() << " with " << total << " bits";
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
-	    return;
+	    return false;
 	  }
       }
 
@@ -961,7 +963,7 @@ namespace MFM {
     UlamKeyTypeSignature newkey = UlamKeyTypeSignature(key.getUlamKeyTypeSignatureNameId(), bitsize, arraysize, key.getUlamKeyTypeSignatureClassInstanceIdx(), key.getUlamKeyTypeSignatureReferenceType());
 
     if(key == newkey)
-      return;
+      return true;
 
     //removes old key and its ulamtype from map, if no longer pointed to
     deleteUlamKeyTypeSignature(key, utArg);
@@ -986,6 +988,7 @@ namespace MFM {
       msg << "Sizes SET for Class: " << newut->getUlamTypeName().c_str() << " (UTI" << utArg << ")";
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
+    return true;
   } //setUTISizes
 
   void CompilerState::mergeClassUTI(UTI olduti, UTI cuti)
@@ -1105,13 +1108,14 @@ namespace MFM {
     return;
   } //initUTIAlias
 
-  void CompilerState::setSizesOfNonClass(UTI utArg, s32 bitsize, s32 arraysize)
+  // return false if ERR
+  bool CompilerState::setSizesOfNonClass(UTI utArg, s32 bitsize, s32 arraysize)
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
     assert(ut->getUlamClass() == UC_NOTACLASS);
 
     if(ut->isComplete())
-      return;  //nothing to do
+      return true;  //nothing to do
 
     ULAMTYPE bUT = ut->getUlamTypeEnum();
     //disallow zero-sized primitives (no such thing as a BitVector<0u>)
@@ -1126,7 +1130,7 @@ namespace MFM {
 	    msg << bitsize;
 	    msg << ") to set for primitive type: " << UlamType::getUlamTypeEnumAsString(bUT);
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
-	    return;
+	    return false;
 	  }
 	//Void with zero bitsize
 	if(arraysize != NONARRAYSIZE)
@@ -1135,7 +1139,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Invalid Void type array: " << ut->getUlamTypeNameBrief().c_str();
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
-	    return;
+	    return false;
 	  }
       }
     else if(bUT == Void)
@@ -1143,14 +1147,14 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Invalid nonzero bitsize (" << bitsize << ") for Void type";
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
-	return;
+	return false;
       }
 
     //continue with valid number of bits
     UlamKeyTypeSignature newkey = UlamKeyTypeSignature(key.getUlamKeyTypeSignatureNameId(), bitsize, arraysize, key.getUlamKeyTypeSignatureClassInstanceIdx(), key.getUlamKeyTypeSignatureReferenceType());
 
     if(key == newkey)
-      return;
+      return true;
 
     //remove old key from map, if no longer pointed to by any UTIs
     deleteUlamKeyTypeSignature(key, utArg);
@@ -1172,7 +1176,7 @@ namespace MFM {
       msg << " (UTI" << utArg << ")";
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
-
+    return true;
   } //setSizesOfNonClass
 
   s32 CompilerState::getDefaultBitSize(UTI uti)

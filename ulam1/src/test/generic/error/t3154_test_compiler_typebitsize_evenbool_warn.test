@@ -6,13 +6,7 @@
 ./C.ulam:11:4: ERROR: Use a comparison operator to convert Int(3) to Bool(3) for operator=.
 ./C.ulam:12:4: ERROR: Bits is the supported type for bitwise operator&=.
 ./C.ulam:12:4: ERROR: Righthand type Int(3) is not representable as Bool(3). Bits is the supported type for bitwise operator&=.
-./C.ulam:10:9: ERROR: Unresolved No.1: <=>.
-./C.ulam:11:4: ERROR: Unresolved No.2: <=>.
-./C.ulam:12:4: ERROR: Unresolved No.3: <&=>.
-./C.ulam:7:2: Warning: 3 nodes with unresolved types remain in function <test> (Uf_4test,3).
-./C.ulam:7:6: Warning: Summary: 3 nodes with unresolved types remain in  a single function <test> in class: C.
-./C.ulam:2:9: Warning: 3 data member nodes with unresolved types remain in class 'C'.
-./C.ulam:2:9: ERROR: 3 Nodes with unresolved types detected after type labeling class: C.
+./C.ulam:2:9: ERROR: 3 Nodes with erroneous types detected after type labeling class: C.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>C.ulam

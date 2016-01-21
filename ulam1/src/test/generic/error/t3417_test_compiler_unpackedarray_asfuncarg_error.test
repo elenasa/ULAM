@@ -1,45 +1,31 @@
 ## -*- mode:ulam -*-
 #=t3417_test_compiler_unpackedarray_asfuncarg_error
 #!
-./A.ulam:3:10: ERROR: Function Definition parameter 1, type: Int(32)[10] requires UNPACKED array support.
-./A.ulam:6:2: ERROR: Function Definition <func2> return type: Int(32)[10] requires UNPACKED array support.
-./A.ulam:15:23: ERROR: Incompatible (nonscalar) types Int(32)[10] and Int(32)[10] for binary operator+ ; Suggest writing a loop.
-./A.ulam:15:2: ERROR: Initial value expression for: site2, initialization is invalid.
-./A.ulam:16:14: ERROR: Function Definition parameter 1, type: Int(32)[10] requires UNPACKED array support.
-./A.ulam:3:1: ERROR: Unresolved No.1: <list>.
-./A.ulam:3:1: Warning: 1 nodes with unresolved types remain in function <func> (Uf_4func,18).
-./A.ulam:3:5: Warning: Summary: 1 nodes with unresolved types remain in  a single function <func> in class: A.
-./A.ulam:6:2: ERROR: Unresolved No.1: <func2>.
-./A.ulam:6:2: Warning: 1 nodes with unresolved types remain in function <func2> (Uf_5func2,3).
-./A.ulam:6:10: Warning: Summary: 1 nodes with unresolved types remain in  a single function <func2> in class: A.
-./A.ulam:15:23: ERROR: Unresolved No.1: <+>.
-./A.ulam:15:2: ERROR: Unresolved No.2: <site2>.
-./A.ulam:16:9: ERROR: Unresolved No.3: <func>.
-./A.ulam:16:9: ERROR: Unresolved No.4: <list>.
-./A.ulam:13:2: Warning: 4 nodes with unresolved types remain in function <test> (Uf_4test,3).
-./A.ulam:13:6: Warning: Summary: 4 nodes with unresolved types remain in  a single function <test> in class: A.
-./A.ulam:1:9: Warning: 6 data member nodes with unresolved types remain in class 'A'.
-./A.ulam:1:9: ERROR: 6 Nodes with unresolved types detected after type labeling class: A.
+./A.ulam:3:12: ERROR: Function Definition parameter 1, type: Int(32)[10] requires UNPACKED array support.
+./A.ulam:6:3: ERROR: Function Definition <func2> return type: Int(32)[10] requires UNPACKED array support.
+./A.ulam:15:26: ERROR: Incompatible (nonscalar) types Int(32)[10] and Int(32)[10] for binary operator+ ; Suggest writing a loop.
+./A.ulam:15:5: ERROR: Initial value expression for: site2, initialization is invalid.
+./A.ulam:16:17: ERROR: Function Definition parameter 1, type: Int(32)[10] requires UNPACKED array support.
+./A.ulam:1:9: ERROR: 7 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
-##
 #>A.ulam
 element A {
-typedef Int BigSite[10];
-Int func(BigSite sarr) {
- return sarr[9];
-}
- BigSite func2() {
- BigSite s;
-for(Int i = 0; i < 10; ++i){
- s[i] = i;
-}
- return s;
-}
- Int test(){
- BigSite site = func2();
- BigSite site2 = site + site2;
- return func(site);
- }
+  typedef Int BigSite[10];
+  Int func(BigSite sarr) {
+    return sarr[9];
+  }
+  BigSite func2() {
+    BigSite s;
+    for(Int i = 0; i < 10; ++i){
+      s[i] = i;
+    }
+    return s;
+  }
+  Int test(){
+    BigSite site = func2();
+    BigSite site2 = site + site2;
+    return func(site);
+  }
  }
 ##
 ##      //bool rtn1 = fms->add("A.ulam","element A {\ntypedef Int BigSite[10];\nInt test(){\n BigSite site, site2; site = site2;\n return 2;\n }\n }\n");

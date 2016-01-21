@@ -2,6 +2,7 @@
 #=t3390_test_compiler_quarkwithcopyofitself_error
 #!
 ./Typo.ulam:2:7: ERROR: Quark/Element 'Typo' cannot contain a copy of itself.
+./Typo.ulam:2:7: ERROR: 2 Nodes with erroneous types detected after type labeling class: Typo.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>Typo.ulam

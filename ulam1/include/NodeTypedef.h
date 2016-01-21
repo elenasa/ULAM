@@ -76,7 +76,7 @@ namespace MFM{
 
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 
-    virtual void countNavNodes(u32& cnt);
+    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
     virtual bool buildDefaultQuarkValue(u32& dqref);
 

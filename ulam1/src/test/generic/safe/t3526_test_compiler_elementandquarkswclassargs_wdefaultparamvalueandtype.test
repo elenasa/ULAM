@@ -1,0 +1,36 @@
+## -*- mode:ulam -*-
+#=t3526_test_compiler_elementandquarkswclassargs_wdefaultparamvalueandtype
+#!
+Exit status: 4
+Ue_P { Bool(1) b(false);  Int(32) test() {  Q(4,2u) z;  Q(3,1u) q;  Q(4,1u) w;  1u 1u +b 2u +b cast return } }
+Uq_Q(Int(32) b = 3, Unsigned(UNKNOWN) s = NONREADYCONST) { typedef Unsigned(UNKNOWN) Foo;  Unsigned(UNKNOWN) f(notready);  <NOMAIN> }
+##
+##
+#>P.ulam
+ulam 1;
+use Q;
+element P {
+  Bool b;
+  Int test() {
+    Q(4, 2) z; //fails
+    Q() q; //ok
+    Q(4) w; //ok
+    return (Int) (w.sizeof + q.sizeof + z.sizeof);
+    //return (Int) (z.sizeof);
+  }
+}
+
+#:Q.ulam
+ulam 1;
+quark Q(Int b = 3, Unsigned(b) s = 1u) {
+typedef Unsigned(s) Foo;
+Foo f;
+}
+
+#:V.ulam
+ulam 1;
+quark V(Int a) {
+  Unsigned(a) vfoo;
+}
+
+#.

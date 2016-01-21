@@ -107,11 +107,11 @@ namespace MFM {
     return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
   } //safeToCastTo
 
-  void NodeConditional::countNavNodes(u32& cnt)
+  void NodeConditional::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
-    Node::countNavNodes(cnt); //missing
-    m_nodeLeft->countNavNodes(cnt);
-    m_nodeTypeDesc->countNavNodes(cnt);
+    Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+    m_nodeLeft->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+    m_nodeTypeDesc->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   }
 
   UTI NodeConditional::getRightType()

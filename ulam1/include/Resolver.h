@@ -70,6 +70,7 @@ namespace MFM
     bool mapUTItoUTI(UTI fmuti, UTI touti);
     bool findMappedUTI(UTI auti, UTI& mappedUTI);
     bool findNodeNo(NNO n, Node *& foundNode);
+    void countNavNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
     void cloneUTImap(SymbolClass * csym);
 
@@ -83,6 +84,7 @@ namespace MFM
     UTI m_classContextUTIForPendingArgs; //used to evaluate pending class args in context
 
     bool findNodeNoInNonreadyClassArgs(NNO n, Node *& foundNode);
+    void countNavNodesInPendingArgs(u32& ncnt, u32& hcnt, u32& nocnt);
 
     void clearLeftoverSubtrees();
     void clearLeftoverNonreadyClassArgSubtrees();

@@ -1855,10 +1855,26 @@ namespace MFM {
 
 	m_state.popClassContext(); //restore before making NodeConstantDef, so current context
 
+	NodeTypeDescriptor * argTypeDesc = NULL;
+	if(!ctUnseen)
+	  {
+	    //copy the type descriptor from the template for the stub
+	    NodeBlockClass * templateblock = ctsym->getClassBlockNode();
+	    NodeConstantDef * paramConstDef = (NodeConstantDef *) templateblock->getParameterNode(parmIdx);
+	    NodeTypeDescriptor * paramTypeDesc = NULL;
+	    if(paramConstDef->getNodeTypeDescriptorPtr(paramTypeDesc))
+	      {
+		m_state.pushClassContext(ctsym->getUlamTypeIdx(), templateblock, templateblock, false, NULL); //null blocks likely
+
+		argTypeDesc = (NodeTypeDescriptor * ) paramTypeDesc->instantiate(); //copy it
+		m_state.popClassContext();
+	      }
+	  }
+
 	//make Node with argument symbol wo trying to fold const expr;
 	// add to list of unresolved for this uti
 	// NULL node type descriptor, no token, yet known uti
-	NodeConstantDef * constNode = new NodeConstantDef(argSym, NULL, m_state);
+	NodeConstantDef * constNode = new NodeConstantDef(argSym, argTypeDesc, m_state);
 	assert(constNode);
 	constNode->setNodeLocation(pTok.m_locator);
 	constNode->setConstantExpr(exprNode);

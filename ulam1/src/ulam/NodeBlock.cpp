@@ -112,10 +112,10 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-  void NodeBlock::countNavNodes(u32& cnt)
+  void NodeBlock::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
-    Node::countNavNodes(cnt); //missing
-    m_nodeNext->countNavNodes(cnt);
+    Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt); //missing
+    m_nodeNext->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   }
 
   EvalStatus NodeBlock::eval()

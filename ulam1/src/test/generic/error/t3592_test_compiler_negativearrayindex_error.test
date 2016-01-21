@@ -1,7 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3592_test_compiler_negativearrayindex_error
 #!
+./Ish2.ulam:8:5: ERROR: UNSEEN Class and incomplete descriptor for type: System.
 ./Ish2.ulam:10:5: ERROR: Type Bitsize specifier for Unsigned type, within (), is a negative numeric constant expression: -1.
+./Ish2.ulam:2:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: Ish2.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by safe/t3591 (see also t3593)

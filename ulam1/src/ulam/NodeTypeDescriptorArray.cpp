@@ -99,7 +99,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Invalid non-scalar type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << ". Requires a custom array";
+	    msg << ". Requires a custom array"; //we have unpacked arrays now!
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //was ERR
 	    //it = Nav;
 	  }
@@ -111,10 +111,10 @@ namespace MFM {
       }
     else
       {
-	setNodeType(it); //now that we have Hzy
-	m_state.setGoAgain();
+	setNodeType(it); //now that we have Hzy; could be Nav
+	if(it == Hzy)
+	  m_state.setGoAgain();
       }
-
     return getNodeType();
   } //checkAndLabelType
 
@@ -179,32 +179,42 @@ namespace MFM {
 	    rtnuti = nuti;
 	  }
 	else
-	  rtnuti = Hzy;
+	  rtnuti = nuti; //could be Nav or Hzy
       } //else select not ready, so neither are we!!
     else
       rtnuti = Hzy;
     return rtnb;
   } //resolveType
 
-  bool NodeTypeDescriptorArray::resolveTypeArraysize(UTI auti, UTI scuti)
+  bool NodeTypeDescriptorArray::resolveTypeArraysize(UTI& rtnuti, UTI scuti)
   {
     assert(m_unknownArraysizeSubtree);
     s32 as = UNKNOWNSIZE;
 
+    UTI auti = Nouti;
     //array of primitives or classes
-    bool rtnb = m_unknownArraysizeSubtree->getArraysizeInBracket(as); //eval
-    if(rtnb && as != UNKNOWNSIZE)
+    bool rtnb = m_unknownArraysizeSubtree->getArraysizeInBracket(as, auti); //eval
+    if(!rtnb)
+      {
+	rtnuti = Nav;
+	return false; //error, e.g. possible divide by zero
+      }
+    else if(as != UNKNOWNSIZE)
       {
 	// keep in case a template
 	//delete m_unknownArraysizeSubtree;
-	m_state.setUTISizes(auti, m_state.getBitSize(scuti), as); //update UlamType
+	if(!m_state.setUTISizes(rtnuti, m_state.getBitSize(scuti), as)) //update UlamType
+	  {
+	    rtnuti = Nav;
+	    return false;
+	  }
       }
 
-    attemptToResolveHolderArrayType(auti, scuti);
+    attemptToResolveHolderArrayType(rtnuti, scuti);
 
-    checkAndMatchClassTypes(auti, scuti);
+    checkAndMatchClassTypes(rtnuti, scuti);
 
-    return (m_state.isComplete(auti)); //repeat if holder or bitsize is still unknown
+    return (m_state.isComplete(rtnuti)); //repeat if holder or bitsize is still unknown
   } //resolveTypeArraysize
 
   bool NodeTypeDescriptorArray::attemptToResolveHolderArrayType(UTI auti, UTI buti)
@@ -262,10 +272,14 @@ namespace MFM {
       }
   } //checkAndMatchClassTypes
 
-  void NodeTypeDescriptorArray::countNavNodes(u32& cnt)
+  void NodeTypeDescriptorArray::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
-    Node::countNavNodes(cnt);
-    m_nodeScalar->countNavNodes(cnt);
-  }
+    NodeTypeDescriptor::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+    if(m_nodeScalar)
+      m_nodeScalar->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+
+    if(m_unknownArraysizeSubtree)
+      m_unknownArraysizeSubtree->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+  } //countNavHzyNoutiNodes
 
 } //end MFM

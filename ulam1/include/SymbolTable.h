@@ -115,7 +115,7 @@ namespace MFM{
 
     void labelTableOfFunctions();
 
-    u32 countNavNodesAcrossTableOfFunctions();
+    void countNavNodesAcrossTableOfFunctions(u32& ncnt, u32& hcnt, u32& nocnt);
 
     bool checkCustomArrayTypeFuncs();
 
@@ -167,7 +167,7 @@ namespace MFM{
 
     bool labelTableOfClasses();
 
-    u32 countNavNodesAcrossTableOfClasses();
+    void countNavNodesAcrossTableOfClasses(u32& navcount, u32& hzycount, u32& unsetcount);
 
     bool setBitSizeOfTableOfClasses();
 

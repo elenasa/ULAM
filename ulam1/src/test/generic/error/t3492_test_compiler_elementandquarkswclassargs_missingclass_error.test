@@ -1,8 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3492_test_compiler_elementandquarkswclassargs_missingclass_error
 #!
-./R.ulam:5:2: ERROR: Unresolved type <P> was never defined; Fails sizing.
-./R.ulam:5:2: ERROR: Unresolved type <P> was never defined; Fails labeling.
+./R.ulam:5:2: ERROR: UNSEEN Class and incomplete descriptor for type: P.
+./R.ulam:2:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: R.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      // missing P!!!

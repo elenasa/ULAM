@@ -48,7 +48,7 @@ namespace MFM {
 	break;
       case MSG_INFO:
 	if(m_infoMode)
-	  outputMsg(loc,message,srcDebug.str().c_str(), "fyi");
+	  outputMsg(loc,message,srcDebug.str().c_str(), "Info");
 	break;
       case MSG_DEBUG:
 	if(m_debugMode)

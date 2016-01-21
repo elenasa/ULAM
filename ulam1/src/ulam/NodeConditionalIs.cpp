@@ -54,6 +54,7 @@ namespace MFM {
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    newType = Hzy;
+	    m_state.setGoAgain();
 	  }
 	else
 	  {
@@ -79,6 +80,7 @@ namespace MFM {
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //goagain set
 		newType = Hzy;
+		m_state.setGoAgain();
 	      }
 	    else
 	      {

@@ -117,6 +117,7 @@ namespace MFM{
     bool mapUTItoUTI(UTI auti, UTI mappedUTI);
     bool hasMappedUTI(UTI auti, UTI& mappedUTI);
     bool findNodeNoInResolver(NNO n, Node *& foundNode);
+    void countNavNodesInClassResolver(u32& ncnt, u32& hcnt, u32& nocnt);
 
     virtual void generateCode(FileManager * fm);
 

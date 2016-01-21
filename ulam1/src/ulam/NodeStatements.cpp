@@ -145,12 +145,12 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-  void NodeStatements::countNavNodes(u32& cnt)
+  void NodeStatements::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
     if(m_node)
-      m_node->countNavNodes(cnt);
+      m_node->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
     if(m_nodeNext)
-      m_nodeNext->countNavNodes(cnt);
+      m_nodeNext->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   } //countNavNodes
 
   bool NodeStatements::buildDefaultQuarkValue(u32& dqref)

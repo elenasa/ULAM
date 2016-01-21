@@ -1,27 +1,24 @@
 ## -*- mode:ulam -*-
 #=t3113_test_compiler_arrays_error
 #!
-./D.ulam:5:4: ERROR: Incompatible (nonscalar) types: Int(32)[2] and Int(2) used with binary operator=.
-./D.ulam:10:0: ERROR: Casting different Array sizes: Int(2) TO Int(32)[2].
-./D.ulam:6:7: ERROR: Cannot explicitly cast Int(2) to type: Int(32)[2].
-./D.ulam:6:7: ERROR: Array casts currently not supported.
-./D.ulam:6:7: ERROR: Consider implementing array casts: Cannot cast scalar into array.
-./D.ulam:5:4: ERROR: Unresolved No.1: <=>.
-./D.ulam:4:2: Warning: 1 nodes with unresolved types remain in function <test> (Uf_4test,3).
-./D.ulam:4:6: Warning: Summary: 1 nodes with unresolved types remain in  a single function <test> in class: D.
-./D.ulam:1:9: Warning: 1 data member nodes with unresolved types remain in class 'D'.
-./D.ulam:1:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: D.
+./D.ulam:6:7: ERROR: Incompatible (nonscalar) types: Int(32)[2] and Int(2) used with binary operator=.
+./D.ulam:11:0: ERROR: Casting different Array sizes: Int(2) TO Int(32)[2].
+./D.ulam:7:10: ERROR: Cannot explicitly cast Int(2) to type: Int(32)[2].
+./D.ulam:7:10: ERROR: Array casts currently not supported.
+./D.ulam:7:10: ERROR: Consider implementing array casts: Cannot cast scalar into array.
+./D.ulam:2:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: D.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>D.ulam
+  ulam 1;
 element D {
- typedef Int IA[2];
- IA a;
- Int test() {
- a = 1;
- a = (IA) 1;
- return a[1];
- }
- }
+  typedef Int IA[2];
+  IA a;
+  Int test() {
+    a = 1;
+    a = (IA) 1;
+    return a[1];
+  }
+}
 
 #.

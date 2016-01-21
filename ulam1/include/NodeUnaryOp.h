@@ -73,7 +73,7 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    virtual void countNavNodes(u32& cnt);
+    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
     virtual UTI constantFold();
 
@@ -95,7 +95,7 @@ namespace MFM{
 
     virtual UTI calcNodeType(UTI uti) = 0;
 
-    bool checkSafeToCastTo(UTI newType);
+    bool checkSafeToCastTo(UTI& newType);
     s32 resultBitsize(UTI uti);
     bool checkForPrimitiveType(UTI uti);
     bool checkNotVoidType(UTI uti);

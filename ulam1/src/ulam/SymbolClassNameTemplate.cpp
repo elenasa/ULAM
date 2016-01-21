@@ -489,7 +489,7 @@ namespace MFM {
 	    //superuti must be an instance of a quark, but could be a stub w unresolved args
 	    // that requires a stub copy with its own uti.
 	    //cblock->setSuperBlockPointer();
-	    assert(0); //???
+	    //assert(0); //???
 	  }
 	it++;
       } //while
@@ -1136,7 +1136,6 @@ namespace MFM {
 	  }
 	it++;
       }
-    m_state.popClassContext(); //restore
     return;
   } //checkAbstractInstanceErrorsForClassInstances()
 
@@ -1169,46 +1168,79 @@ namespace MFM {
       }
   } //checkAndLabelClassInstances
 
-  u32 SymbolClassNameTemplate::countNavNodesInClassInstances()
+  void SymbolClassNameTemplate::countNavNodesInClassInstances(u32& ncnt, u32& hcnt, u32& nocnt)
   {
-    u32 navCounter = 0;
+    // only full instances need to be counted, unless there's an error situation
+    // and we bailed out of the resolving loop.
+    //    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
+    // while(it != m_scalarClassArgStringsToSymbolPtr.end())
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
 
-    // only full instances need to be counted
-    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
-    while(it != m_scalarClassArgStringsToSymbolPtr.end())
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
-	u32 navclasscnt = 0;
+	u32 navclasscnt = ncnt;
+	u32 hzyclasscnt = hcnt;
+	u32 unsetclasscnt = nocnt;
+
 	SymbolClass * csym = it->second;
 	UTI suti = csym->getUlamTypeIdx(); //this instance
-	if(m_state.isComplete(suti))
-	  {
-	    NodeBlockClass * classNode = csym->getClassBlockNode();
-	    assert(classNode);
-	    m_state.pushClassContext(suti, classNode, classNode, false, NULL);
 
-	    classNode->countNavNodes(navclasscnt); //do each instance
-	    if(navclasscnt > 0)
-	      {
-		std::ostringstream msg;
-		msg << navclasscnt;
-		msg << " data member nodes with unresolved types remain in class instance '";
-		msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-		msg << "'";
-		MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-		navCounter += navclasscnt;
-	      }
-	    m_state.popClassContext(); //restore
-	  }
-	else
+	//check incomplete's too as they might have produced error msgs.
+	//if(m_state.isComplete(suti))
+	NodeBlockClass * classNode = csym->getClassBlockNode();
+	assert(classNode);
+	m_state.pushClassContext(suti, classNode, classNode, false, NULL);
+
+	classNode->countNavHzyNoutiNodes(ncnt, hcnt, nocnt); //do each instance
+	if((ncnt - navclasscnt) > 0)
 	  {
 	    std::ostringstream msg;
-	    msg << "Class Instance '" << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-	    msg << "' is incomplete; Navs will not be counted";
-	    MSG(Symbol::getTokPtr(), msg.str().c_str(), DEBUG);
+	    msg << (ncnt - navclasscnt);
+	    msg << " data member nodes with erroneous types remain in class instance '";
+	    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	    msg << "'";
+	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
 	  }
+
+	if((hcnt - hzyclasscnt) > 0)
+	  {
+	    std::ostringstream msg;
+	    msg << (hcnt - hzyclasscnt);
+	    msg << " data member nodes with unresolved types remain in class instance '";
+	    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	    msg << "'";
+	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+	  }
+
+	if((nocnt - unsetclasscnt) > 0)
+	  {
+	    std::ostringstream msg;
+	    msg << (nocnt - unsetclasscnt);
+	    msg << " data member nodes with unset types remain in class instance '";
+	    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	    msg << "'";
+	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+	  }
+
+	csym->countNavNodesInClassResolver(ncnt, hcnt, nocnt);
+
+	m_state.popClassContext(); //restore
+
 	it++;
       }
-    return navCounter;
+
+#if 0
+    //except that, it is no longer c&l after the first, so those
+    // errors no longer count at the end of resolving loop
+    //lastly, the template itself
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+
+    classNode->countNavHzyNoutiNodes(ncnt, hcnt, nocnt); //do template
+#endif
+
+    return;
   } //countNavNodesInClassInstances
 
   bool SymbolClassNameTemplate::setBitSizeOfClassInstances()

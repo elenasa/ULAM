@@ -331,6 +331,7 @@ namespace MFM {
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		setNodeType(Hzy);
+		m_state.setGoAgain(); //for compier counts
 		//assert(0);
 	      }
 	    else
@@ -386,26 +387,18 @@ namespace MFM {
     return m_nodeParameterList->getNodePtr(n);
   }
 
-  void NodeBlockClass::countNavNodes(u32& cnt)
+  void NodeBlockClass::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
-    Node::countNavNodes(cnt); //missing
+    Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt); //missing
+
     if(m_nodeNext) //may not have data members
-      {
-	NodeBlock::countNavNodes(cnt);
+      NodeBlock::countNavHzyNoutiNodes(ncnt, hcnt, nocnt); //traverses the tree
 
-	if(cnt > 0)
-	  {
-	    std::ostringstream msg;
-	    msg << cnt << " data members with unresolved types remain";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  }
-      }
-
-    cnt += m_functionST.countNavNodesAcrossTableOfFunctions();
+    m_functionST.countNavNodesAcrossTableOfFunctions(ncnt, hcnt, nocnt);
 
     if(m_nodeParameterList)
-      m_nodeParameterList->countNavNodes(cnt);
-  } //countNavNodes
+      m_nodeParameterList->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+  } //countNavHzyNoutiNodes
 
   void NodeBlockClass::checkDuplicateFunctions()
   {

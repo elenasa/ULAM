@@ -161,7 +161,7 @@ namespace MFM {
     return CAST_HAZY;
   } //safeToCastTo
 
-  bool Node::checkSafeToCastTo(UTI fromType, UTI newType)
+  bool Node::checkSafeToCastTo(UTI fromType, UTI& newType)
   {
     bool rtnOK = true;
     UlamType * tobe = m_state.getUlamTypeByIndex(newType);
@@ -179,9 +179,16 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
 	msg << " for '" << getName() << "'";
 	if(scr == CAST_HAZY)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    m_state.setGoAgain();
+	    newType = Hzy;
+	  }
 	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    newType = Nav;
+	  }
 	rtnOK = false;
       } //not safe
     return rtnOK;
@@ -201,18 +208,39 @@ namespace MFM {
     //for Nodes with Symbols
   }
 
-  void Node::countNavNodes(u32& cnt)
+  void Node::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
     if(getNodeType() == Nav)
       {
-	cnt += 1;
+	ncnt += 1;
 	std::ostringstream msg;
-	msg << "Unresolved No." << cnt;
-	msg << ": <" << getName() << ">";
-
-	//msg << " (" << prettyNodeName().c_str() << ") ";  //ugly!
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	msg << "Erroneous ";
+	msg << "'" << getName() << "'";
+	msg << " (#" << ncnt << ")";
+	//msg << " [" << prettyNodeName().c_str() << "] ";  //ugly!
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
       }
+    else if(getNodeType() == Hzy)
+      {
+	hcnt += 1;
+	std::ostringstream msg;
+	msg << "Unresolved ";
+	msg << "'" << getName() << "'";
+	msg << " (#" << hcnt << ")";
+	//msg << " [" << prettyNodeName().c_str() << "] ";  //ugly!
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+      }
+    else if(getNodeType() == Nouti)
+      {
+	nocnt += 1;
+	std::ostringstream msg;
+	msg << "Untyped ";
+	msg << "'" << getName() << "'";
+	msg << " (#" << nocnt << ")";
+	//msg << " [" << prettyNodeName().c_str() << "] ";  //ugly!
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+      }
+
 #if 0
     //debugg only
     if(m_loc.getLineNo() == 0)
@@ -222,7 +250,7 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
 #endif
-  }
+  } //countNavHzyNoutiNodes
 
   UTI Node::constantFold()
   {

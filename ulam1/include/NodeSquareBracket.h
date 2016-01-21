@@ -64,8 +64,6 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    virtual void countNavNodes(u32& cnt);
-
     virtual bool assignClassArgValueInStubCopy();
 
     virtual EvalStatus eval();
@@ -80,7 +78,7 @@ namespace MFM{
     virtual bool installSymbolVariable(TypeArgs& args,  Symbol *& asymptr);
 
     //helper method to install symbol; also called by Resolver for unknown arraysize
-    bool getArraysizeInBracket(s32 & rtnArraySize);
+    bool getArraysizeInBracket(s32 & rtnArraySize, UTI& sizetype);
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 

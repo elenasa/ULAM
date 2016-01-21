@@ -2,11 +2,7 @@
 #=t3616_test_compiler_elementandquark_assignquarkref_error
 #!
 ./Foo.ulam:8:5: ERROR: Incompatible class types Foo and Bar used to initalize reference 'f'.
-./Foo.ulam:8:5: ERROR: Unresolved No.1: <f>.
-./Foo.ulam:6:3: Warning: 1 nodes with unresolved types remain in function <test> (Uf_4test,3).
-./Foo.ulam:6:7: Warning: Summary: 1 nodes with unresolved types remain in  a single function <test> in class: Foo.
-./Foo.ulam:4:9: Warning: 1 data member nodes with unresolved types remain in class 'Foo'.
-./Foo.ulam:4:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: Foo.
+./Foo.ulam:4:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3615

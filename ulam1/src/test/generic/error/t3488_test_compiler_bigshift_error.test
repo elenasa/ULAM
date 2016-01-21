@@ -6,10 +6,7 @@
 ./A.ulam:15:18: Warning: Shift distance greater than data width, operator<<.
 ./A.ulam:16:23: Warning: Shift distance greater than data width, operator>>.
 ./A.ulam:17:18: Warning: Shift distance greater than data width, operator>>.
-./A.ulam:12:39: ERROR: Unresolved No.1: <m_p2>.
-./A.ulam:4:10: ERROR: 1 data members with unresolved types remain.
-./A.ulam:4:10: Warning: 1 data member nodes with unresolved types remain in class 'A'.
-./A.ulam:4:10: ERROR: 1 Nodes with unresolved types detected after type labeling class: A.
+./A.ulam:4:10: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //informed by t3480

@@ -44,9 +44,16 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
 	    msg << " to Bool";
 	    if(lscr == CAST_BAD || rscr == CAST_BAD)
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		newType = Nav;
+	      }
 	    else
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //hazy
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //hazy
+		m_state.setGoAgain();
+		newType = Hzy;
+	      }
 	  }
 	else
 	  {

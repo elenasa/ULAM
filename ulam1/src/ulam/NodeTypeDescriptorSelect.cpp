@@ -193,10 +193,10 @@ namespace MFM {
     return rtnb;
   } //resolveType
 
-  void NodeTypeDescriptorSelect::countNavNodes(u32& cnt)
+  void NodeTypeDescriptorSelect::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
-    Node::countNavNodes(cnt);
-    m_nodeSelect->countNavNodes(cnt);
+    NodeTypeDescriptor::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+    m_nodeSelect->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   }
 
 } //end MFM

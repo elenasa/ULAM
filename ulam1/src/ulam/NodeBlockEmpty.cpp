@@ -48,7 +48,7 @@ namespace MFM {
     return;  //overrides NodeBlock
   }
 
-  void NodeBlockEmpty::countNavNodes(u32& cnt)
+  void NodeBlockEmpty::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
     return;
   }

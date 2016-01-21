@@ -64,6 +64,10 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    void setCastType(UTI tobe);
+
+    UTI getCastType();
+
     void setExplicitCast();
 
     bool isExplicitCast();
@@ -82,7 +86,7 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    virtual void countNavNodes(u32& cnt);
+    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
     virtual EvalStatus eval();
 
@@ -103,6 +107,7 @@ namespace MFM{
     virtual UTI calcNodeType(UTI uti); //override
 
   private:
+    UTI m_castToBe; //instead of nodetype used for Nav, Hzy, etc.
     bool m_explicit;   // requested by user (not automatic)
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 

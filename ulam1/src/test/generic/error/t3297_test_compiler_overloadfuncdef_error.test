@@ -1,7 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3297_test_compiler_overloadfuncdef_error
 #!
-./Tu.ulam:8:6: ERROR: Check overloading function <chk> has a duplicate definition (Uf_3chk1110131i), while compiling class: Tu.
+./Tu.ulam:8:6: ERROR: Check overloaded function <chk> has a duplicate definition (Uf_3chk1110131i), while compiling class: Tu.
+./Tu.ulam:2:10: ERROR: 1 Nodes with erroneous types detected after type labeling class: Tu.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## un-called.

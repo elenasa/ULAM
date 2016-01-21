@@ -651,20 +651,19 @@ namespace MFM {
       }
   } //labelTableOfFunctions
 
-  u32 SymbolTable::countNavNodesAcrossTableOfFunctions()
+  void SymbolTable::countNavNodesAcrossTableOfFunctions(u32& ncnt, u32& hcnt, u32& nocnt)
   {
-    u32 totalNavCount = 0;
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
 	if(sym->isFunction())
 	  {
-	    totalNavCount += ((SymbolFunctionName *) sym)->countNavNodesInFunctionDefs();
+	    ((SymbolFunctionName *) sym)->countNavNodesInFunctionDefs(ncnt, hcnt, nocnt);
 	  }
 	it++;
       }
-    return totalNavCount;
+    return;
   } //countNavNodesAcrossTableOfFunctions
 
   void SymbolTable::calcMaxDepthForTableOfFunctions()
@@ -1181,6 +1180,7 @@ namespace MFM {
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		msg << "> was never defined; Fails labeling";
 		MSG(cnsym->getTokPtr(), msg.str().c_str(), ERR);
+		cnsym->getClassBlockNode()->setNodeType(Nav); //for compiler counter
 		//assert(0); wasn't a class at all, e.g. out-of-scope typedef/variable
 		break;
 	      }
@@ -1193,9 +1193,8 @@ namespace MFM {
     return (!m_state.goAgain() && (m_state.m_err.getErrorCount() + m_state.m_err.getWarningCount() == 0));
   } //labelTableOfClasses
 
-  u32 SymbolTable::countNavNodesAcrossTableOfClasses()
+  void SymbolTable::countNavNodesAcrossTableOfClasses(u32& navcount, u32& hzycount, u32& unsetcount)
   {
-    u32 navcount = 0;
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
 
     while(it != m_idToSymbolPtr.end())
@@ -1206,11 +1205,11 @@ namespace MFM {
 	//skip anonymous classes
 	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
 	  {
-	    navcount += ((SymbolClassName *) sym)->countNavNodesInClassInstances();
+	    ((SymbolClassName *) sym)->countNavNodesInClassInstances(navcount, hzycount, unsetcount);
 	  }
 	it++;
       }
-    return navcount;
+    return;
   } //countNavNodesAcrossTableOfClasses
 
   //separate pass...after labeling all classes is completed;
@@ -1226,7 +1225,7 @@ namespace MFM {
 	Symbol * sym = it->second;
 	assert(sym->isClass());
 	UTI cuti = sym->getUlamTypeIdx();
-	bool isAnonymousClass = m_state.getUlamTypeByIndex(cuti)->isHolder() || !m_state.isARootUTI(cuti);
+	bool isAnonymousClass = (m_state.getUlamTypeByIndex(cuti)->isHolder() || !m_state.isARootUTI(cuti));
 	ULAMCLASSTYPE classtype = ((SymbolClass *) sym)->getUlamClass();
 	if( classtype == UC_UNSEEN)
 	  {
@@ -1237,7 +1236,7 @@ namespace MFM {
 	    if(isAnonymousClass)
 	      MSG(sym->getTokPtr(), msg.str().c_str(), DEBUG);
 	    else
-	      MSG(sym->getTokPtr(), msg.str().c_str(), ERR);
+	      MSG(sym->getTokPtr(), msg.str().c_str(), ERR); //also catch at use!
 	    //m_state.completeIncompleteClassSymbol(sym->getUlamTypeIdx()); //too late
 	    aok = false; //moved here;
 	  }
@@ -1528,6 +1527,7 @@ namespace MFM {
 			msg << "Quark/Element '" << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
 			msg << "' cannot contain a copy of itself";
 			MSG(csym->getTokPtr(), msg.str().c_str(), ERR);
+			classblock->setNodeType(Nav);
 			return UNKNOWNSIZE;
 		      }
 

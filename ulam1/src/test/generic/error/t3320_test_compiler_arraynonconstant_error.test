@@ -1,19 +1,21 @@
 ## -*- mode:ulam -*-
 #=t3320_test_compiler_arraynonconstant_error
 #!
-./A.ulam:7:6: ERROR: Array size specifier in [] is not a constant number.
+./A.ulam:8:10: ERROR: Array size specifier in [] is not a constant number.
+./A.ulam:2:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>A.ulam
+  ulam 1;
 element A {
-Int a;
-Int test() {
-a = 7;
-Int c;
-c = 5;
-Int b[a];
-b[4] = 2;
-return b[4];
-}
+  Int a;
+  Int test() {
+    a = 7;
+    Int c;
+    c = 5;
+    Int b[a];
+    b[4] = 2;
+    return b[4];
+  }
 }
 #.

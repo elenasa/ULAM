@@ -2,11 +2,7 @@
 #=t3627_test_compiler_element_refargfunccall_error
 #!
 ./Foo.ulam:17:5: ERROR: (1) <check> has no defined function with 1 matching argument type: Bool(3), and cannot be called.
-./Foo.ulam:17:5: ERROR: Unresolved No.1: <check>.
-./Foo.ulam:14:3: Warning: 1 nodes with unresolved types remain in function <test> (Uf_4test,3).
-./Foo.ulam:14:7: Warning: Summary: 1 nodes with unresolved types remain in  a single function <test> in class: Foo.
-./Foo.ulam:2:9: Warning: 1 data member nodes with unresolved types remain in class 'Foo'.
-./Foo.ulam:2:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: Foo.
+./Foo.ulam:2:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3624

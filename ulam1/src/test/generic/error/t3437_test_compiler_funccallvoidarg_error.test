@@ -3,12 +3,7 @@
 #!
 ./Tu.ulam:4:1: ERROR: Invalid use of type Void with variable symbol name 'me'.
 ./Tu.ulam:5:3: ERROR: (2) <func> is not a defined function, or cannot be safely called in this context.
-./Tu.ulam:4:1: ERROR: Unresolved No.1: <me>.
-./Tu.ulam:5:3: ERROR: Unresolved No.2: <func>.
-./Tu.ulam:3:2: Warning: 2 nodes with unresolved types remain in function <test> (Uf_4test,3).
-./Tu.ulam:3:6: Warning: Summary: 2 nodes with unresolved types remain in  a single function <test> in class: Tu.
-./Tu.ulam:2:9: Warning: 2 data member nodes with unresolved types remain in class 'Tu'.
-./Tu.ulam:2:9: ERROR: 2 Nodes with unresolved types detected after type labeling class: Tu.
+./Tu.ulam:2:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: Tu.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>Tu.ulam

@@ -2,11 +2,7 @@
 #=t3614_test_compiler_decllist_withref_casterror
 #!
 ./test.ulam:2:3: ERROR: Reference variable d's type Int(32), and its initial value type Int(3), are incompatible.
-./test.ulam:2:3: ERROR: Unresolved No.1: <d>.
-./test.ulam:1:1: Warning: 1 nodes with unresolved types remain in function <test> (Uf_4test,3).
-./test.ulam:1:5: Warning: Summary: 1 nodes with unresolved types remain in  a single function <test> in class: A.
-./A.ulam:2:9: Warning: 1 data member nodes with unresolved types remain in class 'A'.
-./A.ulam:2:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: A.
+./A.ulam:2:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 #>A.ulam
   ulam 2;

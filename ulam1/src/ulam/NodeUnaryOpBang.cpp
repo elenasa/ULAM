@@ -64,6 +64,7 @@ namespace MFM {
 	if(scr == CAST_HAZY)
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    m_state.setGoAgain();
 	    newType = Hzy;
 	  }
 	else

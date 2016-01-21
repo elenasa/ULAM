@@ -145,7 +145,7 @@ namespace MFM {
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		else
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		rscr = CAST_BAD;
+		//rscr = CAST_BAD; ???
 	      }
 	  }
       }
@@ -211,9 +211,9 @@ namespace MFM {
     return NodeVarDecl::calcMaxDepth(depth, maxdepth, base);
   } //calcMaxDepth
 
-  void NodeVarRef::countNavNodes(u32& cnt)
+  void NodeVarRef::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
-    NodeVarDecl::countNavNodes(cnt);
+    NodeVarDecl::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   } //countNavNodes
 
   EvalStatus NodeVarRef::eval()

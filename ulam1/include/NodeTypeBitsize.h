@@ -61,7 +61,7 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    virtual void countNavNodes(u32& cnt);
+    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
     virtual bool assignClassArgValueInStubCopy();
 
@@ -71,7 +71,7 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    bool getTypeBitSizeInParen(s32& rtnBitSize, ULAMTYPE BUT);
+    bool getTypeBitSizeInParen(s32& rtnBitSize, ULAMTYPE BUT, UTI& sizetype);
 
   private:
     Node * m_node; //constant expression subtree

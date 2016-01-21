@@ -6,15 +6,16 @@ Ue_S(Int(32) x, Int(32) y) { constant Int(32) x = NONREADYCONST;  constant Int(3
 ##    //informed by t3255
 #>S.ulam
  ulam 1;
- element S(Int x, Int y){
-Bool sp;
-Int func(){
-S(x,y) s; return x + y;
+element S(Int x, Int y){
+  Bool sp;
+  Int func(){
+    S(x,y) s;
+    return x + y;
+  }
+  Int test() {
+    S(1,2) s12;
+    return s12.func();
+  }
 }
- Int test() {
-S(1,2) s12;
-return s12.func();
- }
- }
 
 #.

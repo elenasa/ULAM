@@ -68,6 +68,7 @@ namespace MFM {
 	if(lclasstype == UC_UNSEEN || luti == Hzy)
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    m_state.setGoAgain();
 	    newType = Hzy;
 	  }
 	else
@@ -110,6 +111,7 @@ namespace MFM {
 	    if(rclasstype == UC_UNSEEN || ruti == Hzy)
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //goagain set
+		m_state.setGoAgain();
 		newType = Hzy;
 	      }
 	    else
@@ -128,6 +130,7 @@ namespace MFM {
 	msg << " is still incomplete while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	m_state.setGoAgain();
 	newType = Hzy; //goagain set by nodetypedesc
       }
     setNodeType(newType);

@@ -4,13 +4,7 @@
 ./A.ulam:5:4: ERROR: Use a comparison operator to convert Bits(7) to Bool(3) for operator=.
 ./A.ulam:6:4: ERROR: Use a comparison operator to convert Bits(3) to Bool(3) for operator=.
 ./A.ulam:7:4: ERROR: Use a comparison operator to convert Bits(11) to Bool(3) for operator=.
-./A.ulam:5:4: ERROR: Unresolved No.1: <=>.
-./A.ulam:6:4: ERROR: Unresolved No.2: <=>.
-./A.ulam:7:4: ERROR: Unresolved No.3: <=>.
-./A.ulam:3:2: Warning: 3 nodes with unresolved types remain in function <test> (Uf_4test,3).
-./A.ulam:3:6: Warning: Summary: 3 nodes with unresolved types remain in  a single function <test> in class: A.
-./A.ulam:1:9: Warning: 3 data member nodes with unresolved types remain in class 'A'.
-./A.ulam:1:9: ERROR: 3 Nodes with unresolved types detected after type labeling class: A.
+./A.ulam:1:9: ERROR: 3 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## //conversion to Bits then shift then back to Bool. so, 7 << 1 drops to 6 (t); 7 >> 1 = 3 (t); 3 << 2 = 4 (f)

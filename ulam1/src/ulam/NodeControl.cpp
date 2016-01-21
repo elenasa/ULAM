@@ -125,13 +125,11 @@ namespace MFM {
 	ULAMTYPE ctypEnum = cut->getUlamTypeEnum();
 	if(ctypEnum != newEnumTyp)
 	  {
-	    if(Node::checkSafeToCastTo(cuti, newType) == CAST_CLEAR)
+	    if(Node::checkSafeToCastTo(cuti, newType))
 	      {
 		if(!Node::makeCastingNode(m_nodeCondition, newType, m_nodeCondition))
 		  newType = Nav;
 	      }
-	    else
-	      newType = Nav;
 	  }
 	else
 	  {
@@ -147,8 +145,6 @@ namespace MFM {
 		    else
 		      newType = cuti;
 		  }
-		else
-		  newType = Nav;
 	      }
 	  }
 	m_nodeBody->checkAndLabelType(); //side-effect
@@ -172,11 +168,11 @@ namespace MFM {
     m_nodeBody->calcMaxDepth(depth, maxdepth, base);
   } //calcMaxDepth
 
-  void NodeControl::countNavNodes(u32& cnt)
+  void NodeControl::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
-    Node::countNavNodes(cnt); //missing
-    m_nodeCondition->countNavNodes(cnt);
-    m_nodeBody->countNavNodes(cnt);
+    Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt); //missing
+    m_nodeCondition->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+    m_nodeBody->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   }
 
   void NodeControl::genCode(File * fp, UlamValue& uvpass)

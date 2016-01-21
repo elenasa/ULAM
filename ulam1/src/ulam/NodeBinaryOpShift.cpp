@@ -109,6 +109,7 @@ namespace MFM {
 	    if(lscr == CAST_HAZY)
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		m_state.setGoAgain(); //for compiler counts
 		newType = Hzy;
 	      }
 	    else
@@ -131,6 +132,7 @@ namespace MFM {
 	    if(rscr == CAST_HAZY)
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		m_state.setGoAgain(); //for compiler counts
 		newType = Hzy;
 	      }
 	    else

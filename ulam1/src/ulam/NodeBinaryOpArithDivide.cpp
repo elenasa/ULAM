@@ -92,6 +92,7 @@ NodeBinaryOpArithDivide::NodeBinaryOpArithDivide(const NodeBinaryOpArithDivide& 
       {
 	MSG(getNodeLocationAsString().c_str(), "Possible Divide By Zero Attempt", ERR);
 	rtnUV.setUlamValueTypeIdx(Nav);
+	setNodeType(Nav); //compiler counts
 	return rtnUV;
       }
 
@@ -126,6 +127,7 @@ NodeBinaryOpArithDivide::NodeBinaryOpArithDivide(const NodeBinaryOpArithDivide& 
       {
 	MSG(getNodeLocationAsString().c_str(), "Possible Divide By Zero Attempt", ERR);
 	rtnUV.setUlamValueTypeIdx(Nav);
+	setNodeType(Nav); //compiler counts
 	return rtnUV;
       }
 
@@ -158,6 +160,7 @@ NodeBinaryOpArithDivide::NodeBinaryOpArithDivide(const NodeBinaryOpArithDivide& 
       {
 	MSG(getNodeLocationAsString().c_str(), "Possible Divide By Zero Attempt", ERR);
 	refUV.setUlamValueTypeIdx(Nav);
+	setNodeType(Nav); //compiler counts
 	return;
       }
 

@@ -3,11 +3,7 @@
 #!
 ./A.ulam:3:8: ERROR: Possible Divide By Zero Attempt.
 ./A.ulam:3:8: ERROR: Constant value expression for binary op/ is erroneous while compiling class: A.
-./A.ulam:3:8: ERROR: Unresolved No.1: </>.
-./A.ulam:2:1: Warning: 1 nodes with unresolved types remain in function <test> (Uf_4test,3).
-./A.ulam:2:5: Warning: Summary: 1 nodes with unresolved types remain in  a single function <test> in class: A.
-./A.ulam:1:9: Warning: 1 data member nodes with unresolved types remain in class 'A'.
-./A.ulam:1:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: A.
+./A.ulam:1:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>A.ulam

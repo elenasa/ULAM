@@ -100,7 +100,7 @@ namespace MFM{
 
     bool labelFunctions();
 
-    u32 countNavNodesInFunctionDefs();
+    void countNavNodesInFunctionDefs(u32& ncnt, u32& hcnt, u32& nocnt);
 
     u32 countNativeFuncDecls();
 

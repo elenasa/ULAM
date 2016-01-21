@@ -106,9 +106,9 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-  void NodeSimpleStatement::countNavNodes(u32& cnt)
+  void NodeSimpleStatement::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
-    m_node->countNavNodes(cnt);
+    m_node->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   }
 
   EvalStatus NodeSimpleStatement::eval()

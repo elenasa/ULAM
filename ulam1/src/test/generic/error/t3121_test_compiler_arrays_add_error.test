@@ -3,12 +3,7 @@
 #!
 ./D.ulam:1:56: ERROR: Incompatible (nonscalar) types Int(16)[3] and Int(16) for binary operator+ ; Suggest writing a loop.
 ./D.ulam:1:30: ERROR: By convention, Function 'test''s Return type must be 'Int', not Int(16).
-./D.ulam:1:30: ERROR: Unresolved No.1: <test>.
-./D.ulam:1:56: ERROR: Unresolved No.2: <+>.
-./D.ulam:1:30: Warning: 2 nodes with unresolved types remain in function <test> (Uf_4test,3).
-./D.ulam:1:38: Warning: Summary: 2 nodes with unresolved types remain in  a single function <test> in class: D.
-./D.ulam:1:9: Warning: 2 data member nodes with unresolved types remain in class 'D'.
-./D.ulam:1:9: ERROR: 2 Nodes with unresolved types detected after type labeling class: D.
+./D.ulam:1:9: ERROR: 3 Nodes with erroneous types detected after type labeling class: D.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>D.ulam

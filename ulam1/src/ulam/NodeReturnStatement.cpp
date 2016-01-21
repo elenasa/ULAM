@@ -106,14 +106,7 @@ namespace MFM {
     //assert(m_node); a return without an expression (i.e. Void)
     UTI nodeType = Void;
     if(m_node)
-      {
-	nodeType = m_node->checkAndLabelType();
-	//UlamType * nut = m_state.getUlamTypeByIndex(nodeType);
-	//ALT nodereftype = nut->getReferenceType();
-	//treat ALT_AS as defref'd type; ALT_REF is its own type.
-	//if(nodereftype == ALT_AS)
-	//  nodeType = m_state.getUlamTypeAsDeref(nodeType);
-      }
+      nodeType = m_node->checkAndLabelType();
 
     if(m_state.isComplete(nodeType) && m_state.isComplete(rtnType))
       {
@@ -133,6 +126,11 @@ namespace MFM {
 	      {
 		if(m_node)
 		  {
+		    if(m_node->isAConstant() && !m_node->isReadyConstant())
+		      {
+			m_node->constantFold();
+		      }
+
 		    FORECAST scr = m_node->safeToCastTo(rtnType);
 		    if(scr == CAST_CLEAR)
 		      {
@@ -174,28 +172,30 @@ namespace MFM {
 	      }
 	  } // not the same
       } // not nav
-    else if(!m_state.isComplete(nodeType))
+    else if((nodeType != Nav) && !m_state.isComplete(nodeType))
       {
 	std::ostringstream msg;
 	msg << "Function return type is still unresolved: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	nodeType = Hzy; //needed?
-	m_state.setGoAgain();
       }
 
     //check later against defined function return type
     m_state.m_currentFunctionReturnNodes.push_back(this);
 
+    if(nodeType == Hzy)
+      m_state.setGoAgain();
+
     setNodeType(nodeType); //return take type of their node
     return nodeType;
   } //checkAndLabelType
 
-  void NodeReturnStatement::countNavNodes(u32& cnt)
+  void NodeReturnStatement::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
-    Node::countNavNodes(cnt); //missing
+    Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt); //missing
     if(m_node)
-      m_node->countNavNodes(cnt);
+      m_node->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   }
 
   EvalStatus NodeReturnStatement::eval()

@@ -96,7 +96,7 @@ namespace MFM{
 
     Node * getParameterNode(u32 n) const;
 
-    virtual void countNavNodes(u32& cnt);
+    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
     bool hasCustomArray();
 

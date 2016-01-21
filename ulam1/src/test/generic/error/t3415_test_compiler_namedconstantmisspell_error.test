@@ -2,10 +2,7 @@
 #=t3415_test_compiler_namedconstantmisspell_error
 #!
 ./A.ulam:4:11: ERROR: Constant value expression for: cPRINT_ALL, is not a constant.
-./A.ulam:4:11: ERROR: Unresolved No.1: <cPRINT_ALL>.
-./A.ulam:1:9: ERROR: 1 data members with unresolved types remain.
-./A.ulam:1:9: Warning: 1 data member nodes with unresolved types remain in class 'A'.
-./A.ulam:1:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: A.
+./A.ulam:1:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //informed by 3314, except misspelled c_PRINT_VALUE

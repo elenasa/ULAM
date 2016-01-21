@@ -2,11 +2,7 @@
 #=t3151_test_compiler_addarrays
 #!
 ./A.ulam:11:11: ERROR: Incompatible (nonscalar) types Int(32)[2] and Int(32)[2] for binary operator+ ; Suggest writing a loop.
-./A.ulam:11:11: ERROR: Unresolved No.1: <+>.
-./A.ulam:4:3: Warning: 1 nodes with unresolved types remain in function <test> (Uf_4test,3).
-./A.ulam:4:7: Warning: Summary: 1 nodes with unresolved types remain in  a single function <test> in class: A.
-./A.ulam:2:9: Warning: 1 data member nodes with unresolved types remain in class 'A'.
-./A.ulam:2:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: A.
+./A.ulam:2:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>A.ulam

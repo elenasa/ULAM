@@ -111,6 +111,7 @@ namespace MFM {
 		      {
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 			newType = Hzy;
+			m_state.setGoAgain();
 			hazyCount++;
 		      }
 		  }
@@ -137,6 +138,7 @@ namespace MFM {
 		      {
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 			idxuti = Hzy;
+			m_state.setGoAgain();
 			hazyCount++;
 		      }
 		    else
@@ -157,6 +159,7 @@ namespace MFM {
 		      {
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 			idxuti = Hzy;
+			m_state.setGoAgain();
 			hazyCount++;
 		      }
 		    else
@@ -190,19 +193,16 @@ namespace MFM {
 
 	if((idxuti != Nav) && (idxuti != Hzy) && UlamType::compare(idxuti, rightType, m_state) == UTIC_NOTSAME)
 	  {
-	    if(m_nodeRight->safeToCastTo(idxuti) == CAST_CLEAR)
+	    FORECAST rscr = m_nodeRight->safeToCastTo(idxuti);
+	    if(rscr == CAST_CLEAR)
 	      {
 		if(!Node::makeCastingNode(m_nodeRight, idxuti, m_nodeRight))
-		  {
-		    newType = Nav; //error!
-		    errorCount++;
-		  }
+		  errorCount++;
 	      }
+	    else if(rscr == CAST_HAZY)
+	      hazyCount++;
 	    else
-	      {
-		newType = Nav; //error!
-		errorCount++;
-	      }
+	      errorCount++;
 	  }
       } //lt not nav, might be Hzy
     else
@@ -231,20 +231,16 @@ namespace MFM {
 	if(errorCount != 0)
 	  newType = Nav;
 	else if(hazyCount != 0)
-	  newType = Hzy;
+	  {
+	    newType = Hzy;
+	    m_state.setGoAgain(); //covers non-error(debug) messages for incompletes
+	  }
 	else
 	  assert(0);
-	m_state.setGoAgain(); //covers non-error(debug) messages for incompletes
       }
     setNodeType(newType);
     return newType;
   } //checkAndLabelType
-
-  void NodeSquareBracket::countNavNodes(u32& cnt)
-  {
-    m_nodeLeft->countNavNodes(cnt);
-    m_nodeRight->countNavNodes(cnt);
-  }
 
   UTI NodeSquareBracket::calcNodeType(UTI lt, UTI rt)
   {
@@ -510,13 +506,19 @@ namespace MFM {
 
   // eval() no longer performed before check and label
   // returns false if error; UNKNOWNSIZE is not an error!
-  bool NodeSquareBracket::getArraysizeInBracket(s32 & rtnArraySize)
+  bool NodeSquareBracket::getArraysizeInBracket(s32 & rtnArraySize, UTI& sizetype)
   {
     bool noerr = true;
     // since square brackets determine the constant size for this type, else error
     s32 newarraysize = NONARRAYSIZE;
-    UTI sizetype = m_nodeRight->checkAndLabelType();
-    if((sizetype == Nav) || (sizetype == Hzy))
+    sizetype = m_nodeRight->checkAndLabelType();
+    if((sizetype == Nav))
+      {
+	rtnArraySize = UNKNOWNSIZE;
+	return false;
+      }
+
+    if((sizetype == Hzy))
       {
 	rtnArraySize = UNKNOWNSIZE;
 	return true;
@@ -529,7 +531,8 @@ namespace MFM {
       {
 	evalNodeProlog(0); //new current frame pointer
 	makeRoomForNodeType(sizetype); //offset a constant expression
-	if(m_nodeRight->eval() == NORMAL)
+	EvalStatus evs = m_nodeRight->eval();
+	if(evs == NORMAL)
 	  {
 	    UlamValue arrayUV = m_state.m_nodeEvalStack.popArg();
 	    u32 arraysizedata = arrayUV.getImmediateData(m_state);
@@ -538,19 +541,28 @@ namespace MFM {
 	      {
 		MSG(getNodeLocationAsString().c_str(),
 		    "Array size specifier in [] is not a positive number", ERR);
+		sizetype = Nav;
 		noerr = false;
 	      }
 	    //else unknown is not an error
 	  }
+	else if(evs == NOTREADY)
+	  {
+	    noerr = false;
+	    sizetype = Hzy;
+	  }
 	else //newarraysize = UNKNOWNSIZE; //still true
-	  noerr = false;
-
+	  {
+	    noerr = false;
+	    sizetype = Nav;
+	  }
 	evalNodeEpilog();
       }
     else
       {
 	MSG(getNodeLocationAsString().c_str(),
 	    "Array size specifier in [] is not a constant number", ERR);
+	sizetype = Nav;
 	noerr = false;
       }
     rtnArraySize = newarraysize;

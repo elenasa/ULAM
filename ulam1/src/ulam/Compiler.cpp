@@ -234,6 +234,7 @@ namespace MFM {
 	//after virtual table is set, check for abstract classes used as:
 	//local var, data member, or func parameter types.
 	m_state.m_programDefST.checkAbstractInstanceErrorsForTableOfClasses();
+
 	// must happen after type labeling and before code gen;
 	// separate pass. want UNKNOWNS reported
 	m_state.m_programDefST.packBitsForTableOfClasses();
@@ -247,23 +248,49 @@ namespace MFM {
 
     // count Nodes with illegal Nav types; walk each class' data members and funcdefs.
     // clean up duplicate functions beforehand
-    u32 navcount = m_state.m_programDefST.countNavNodesAcrossTableOfClasses();
+    u32 navcount = 0;
+    u32 hzycount = 0;
+    u32 unsetcount = 0;
+
+    m_state.m_programDefST.countNavNodesAcrossTableOfClasses(navcount, hzycount, unsetcount);
+    errCnt = m_state.m_err.getErrorCount(); //latest count?
     if(navcount > 0)
       {
 	// not necessarily goAgain, e.g. atom is Empty, where Empty is a quark instead of an element
 	// the NodeTypeDescriptor is perfectly fine with a complete quark type, so no need to go again;
 	// however, in the context of "is", this is an error and t.f. a Nav node.
-	errCnt = m_state.m_err.getErrorCount(); //latest count?
-	assert(m_state.goAgain() || errCnt > 0); //sanity check; ran out of iterations
+
+	//assert(m_state.goAgain() || errCnt > 0); //sanity check; ran out of iterations
+	assert(errCnt > 0); //sanity check; ran out of iterations
 
 	std::ostringstream msg;
-	msg << navcount << " Nodes with unresolved types detected after type labeling class: ";
+	msg << navcount << " Nodes with erroneous types detected after type labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
-    //else
-    ////assert(!m_state.goAgain() && errCnt == 0);
-    //assert(errCnt == 0 || m_state.goAgain());
+    else
+      assert(errCnt == 0);
+
+    if(hzycount > 0)
+      {
+	//doesn't include incomplete stubs: if(a is S(x,y))
+	//assert(m_state.goAgain()); //sanity check; ran out of iterations
+
+	std::ostringstream msg;
+	msg << hzycount << " Nodes with unresolved types detected after type labeling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+      }
+    else
+      assert(!m_state.goAgain());
+
+    if(unsetcount > 0)
+      {
+	std::ostringstream msg;
+	msg << unsetcount << " Nodes with unset types detected after type labeling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+      }
 
     u32 warns = m_state.m_err.getWarningCount();
     if(warns > 0)

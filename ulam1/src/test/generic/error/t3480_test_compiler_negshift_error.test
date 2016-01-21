@@ -6,13 +6,7 @@
 ./A.ulam:10:12: ERROR: Cannot cast erroneous type.
 ./A.ulam:11:20: ERROR: Unsigned is the supported type for shift distance, operator>>; Suggest casting Int(2) to Unsigned.
 ./A.ulam:11:12: ERROR: Cannot cast erroneous type.
-./A.ulam:9:5: ERROR: Unresolved No.1: <while>.
-./A.ulam:10:25: ERROR: Unresolved No.2: <<<>.
-./A.ulam:11:20: ERROR: Unresolved No.3: <>>>.
-./A.ulam:5:3: Warning: 3 nodes with unresolved types remain in function <test> (Uf_4test,3).
-./A.ulam:5:7: Warning: Summary: 3 nodes with unresolved types remain in  a single function <test> in class: A.
-./A.ulam:2:9: Warning: 3 data member nodes with unresolved types remain in class 'A'.
-./A.ulam:2:9: ERROR: 3 Nodes with unresolved types detected after type labeling class: A.
+./A.ulam:2:9: ERROR: 5 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //informed by t3246

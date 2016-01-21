@@ -54,9 +54,7 @@ namespace MFM {
 	UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), newbs);
 	newType = m_state.makeUlamType(newkey, Bits);
 
-	if(!NodeBinaryOp::checkSafeToCastTo(newType))
-	  newType = Nav; //outputs error msg
-
+	NodeBinaryOp::checkSafeToCastTo(newType); //Nav, Hzy or no change; outputs error msg
       } //both scalars
     return newType;
   } //calcNodeType

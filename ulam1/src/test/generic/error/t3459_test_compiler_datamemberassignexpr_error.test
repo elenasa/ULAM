@@ -2,11 +2,7 @@
 #=t3459_test_compiler_datamemberassignexpr_error
 #!
 ./A.ulam:4:10: ERROR: (2) <cPRINT_NAME> is not defined, and cannot be used with class: A.
-./A.ulam:4:10: ERROR: Unresolved No.1: <cPRINT_NAME>.
-./A.ulam:3:2: Warning: 1 nodes with unresolved types remain in function <test> (Uf_4test,3).
-./A.ulam:3:6: Warning: Summary: 1 nodes with unresolved types remain in  a single function <test> in class: A.
-./A.ulam:1:9: Warning: 1 data member nodes with unresolved types remain in class 'A'.
-./A.ulam:1:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: A.
+./A.ulam:1:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //informed by 3457, except data member
