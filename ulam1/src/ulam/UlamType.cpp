@@ -990,7 +990,7 @@ namespace MFM {
     fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
     fp->write("\n");
 
-    //typedef bitfield inside struct ???
+    //typedef bitfield inside struct
     m_state.indent(fp);
     fp->write("typedef ");
     fp->write(getUlamTypeAsStringForC(false).c_str()); //e.g. BitField

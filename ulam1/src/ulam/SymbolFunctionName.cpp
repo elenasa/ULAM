@@ -384,24 +384,8 @@ namespace MFM {
       }
     mangledFunctionSet.clear(); //strings only
 
-#if 0
+    //no longer try to erase the dup function; prefer the error msg Thu Jan 21 11:24:07 2016
     //unclear which dup function is found/removed; case of more than one dup is handled similarly;
-    while(!dupfuncs.empty())
-      {
-	std::string dupkey = dupfuncs.back();
-	std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.find(dupkey);
-
-	if(it != m_mangledFunctionNames.end())
-	  {
-	    assert(dupkey == it->first);
-	    SymbolFunction * fsym = it->second;
-	    delete fsym;
-	    it->second = NULL;
-	    m_mangledFunctionNames.erase(it);
-	  }
-	dupfuncs.pop_back();
-      }
-#endif
     dupfuncs.clear();
     return probcount;
   } //checkFunctionNames

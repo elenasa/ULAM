@@ -116,15 +116,15 @@ namespace MFM {
 
     assert(!ruv.isPtr());
 
-    s32 leftbaseslot = pluv.getPtrSlotIndex();    //even for scalars
+    s32 leftbaseslot = pluv.getPtrSlotIndex(); //even for scalars
 
-    if(pluv.isTargetPacked() == UNPACKED)       //???
+    if(pluv.isTargetPacked() == UNPACKED) //???
       {
-	m_frames[m_currentFrame + leftbaseslot] = ruv;  //must be immediate
+	m_frames[m_currentFrame + leftbaseslot] = ruv; //must be immediate
       }
     else if(pluv.isTargetPacked() == PACKED && state.isScalar(pluv.getPtrTargetType()))
       {
-	m_frames[m_currentFrame + leftbaseslot] = ruv;  //entire element, perhaps?
+	m_frames[m_currentFrame + leftbaseslot] = ruv; //entire element, perhaps?
       }
     else
       {
@@ -165,7 +165,7 @@ namespace MFM {
 
     s32 leftbaseindex = pluv.getPtrSlotIndex(); //even for scalars
 
-    if(pluv.isTargetPacked() == UNPACKED)       //???
+    if(pluv.isTargetPacked() == UNPACKED) //???
       {
 	m_frames[leftbaseindex] = ruv; //must be immediate
       }

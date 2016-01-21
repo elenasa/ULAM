@@ -726,7 +726,8 @@ namespace MFM {
 	    if(alreadyDefinedSymbolClassName(args.m_typeTok.m_dataindex, cnsym))
 	      {
 		uti = cnsym->getUlamTypeIdx();  //beware: may not match class parameters!!!
-	      } //else  or make one if doesn't exist yet, while parsing --- do we do this anymore ???
+	      }
+	    //else make one if doesn't exist yet, while parsing --- do we do this anymore ???
 	  }
       }
     else

@@ -145,7 +145,6 @@ namespace MFM {
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		else
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		//rscr = CAST_BAD; ???
 	      }
 	  }
       }

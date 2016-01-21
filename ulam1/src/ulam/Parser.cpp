@@ -3492,7 +3492,7 @@ namespace MFM {
     UTI cuti = currClassBlock->getNodeType(); //luckily we know this now for each class used
     Token selfTok(TOK_IDENTIFIER, identTok.m_locator, selfid);
     SymbolVariableStack * selfsym = new SymbolVariableStack(selfTok, cuti, m_state.determinePackable(cuti), m_state.m_currentFunctionBlockDeclSize, m_state);
-    selfsym->setIsSelf(); //???
+    selfsym->setIsSelf();
     m_state.addSymbolToCurrentScope(selfsym); //ownership goes to the block
 
     //parse and add parameters to function symbol (not in ST yet!)

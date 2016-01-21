@@ -506,7 +506,7 @@ namespace MFM {
 	    u32 pos = 0;
 	    if(uvpass.getUlamValueTypeIdx() == Ptr && uvpass.getPtrStorage() == TMPAUTOREF)
 	      {
-		//pos = uvpass.getPtrPos(); //runtime, not known now.
+		//pos = uvpass.getPtrPos(); //runtime, pos not known, ref will
 		UTI newnuti = m_state.getUlamTypeAsRef(nuti); //an ALT_REF
 		uvpass = UlamValue::makePtr(tmpnum, TMPAUTOREF, newnuti, m_state.determinePackable(newnuti), m_state, pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 	      }
@@ -517,7 +517,6 @@ namespace MFM {
 		    SymbolVariable * sym = (SymbolVariable *) m_state.m_currentObjSymbolsForCodeGen.back();
 		    //here, we haven't taken into account any array indexes, So autoref instead
 		    // e.g. m_bar[0].cb, and this NI is for the rhs of member select, 'cb'
-		    //if(m_state.isScalar(sym->getUlamTypeIdx())) //???
 		    pos = sym->getPosOffset();
 		  }
 		// 'pos' modified by this data member symbol's packed bit position

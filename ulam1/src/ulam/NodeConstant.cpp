@@ -201,7 +201,6 @@ namespace MFM {
     if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
       {
 	assert(hazyKin); //always hazy, right?
-	//if(asymptr->isConstant())
 	if(asymptr->isConstant() && ((SymbolConstantValue *) asymptr)->isReady()) //???
 	  {
 	    u64 val = 0;

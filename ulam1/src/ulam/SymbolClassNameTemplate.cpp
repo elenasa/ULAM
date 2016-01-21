@@ -1229,17 +1229,8 @@ namespace MFM {
 	it++;
       }
 
-#if 0
-    //except that, it is no longer c&l after the first, so those
-    // errors no longer count at the end of resolving loop
-    //lastly, the template itself
-    NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
-
-    classNode->countNavHzyNoutiNodes(ncnt, hcnt, nocnt); //do template
-#endif
-
+    //don't count the template since, it is no longer c&l after the first,
+    //so those errors no longer count at the end of resolving loop
     return;
   } //countNavNodesInClassInstances
 

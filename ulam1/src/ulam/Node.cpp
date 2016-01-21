@@ -2638,7 +2638,7 @@ namespace MFM {
 	fp->write("::");
 	fp->write("Us::"); //typedef
 	if(cosSize == 1)
-	  fp->write("THE_INSTANCE."); //only for elements???
+	  fp->write("THE_INSTANCE."); //only for elements, except w funccalls
       }
 
     for(u32 i = startcos; i < cosSize; i++)

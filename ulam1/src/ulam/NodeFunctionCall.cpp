@@ -698,7 +698,7 @@ namespace MFM {
     if(nuti != Void)
       {
 	u32 pos = 0; //POS 0 rightjustified;
-	if(nut->getUlamClass() == UC_NOTACLASS) //atom too???
+	if(nut->getUlamClass() == UC_NOTACLASS) //includes atom too
 	  {
 	    u32 wordsize = nut->getTotalWordSize();
 	    pos = wordsize - nut->getTotalBitSize();
