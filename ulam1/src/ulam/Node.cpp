@@ -2432,7 +2432,7 @@ namespace MFM {
     //currently, only regular classes may have subclasses.
     if((cosBlockNo != caBlockNo) && (cosuti != caclassuti) && !m_state.isClassATemplate(caclassuti))
       {
-	assert(m_state.isClassASubclass(cosuti) != Nouti);
+	assert((m_state.isClassASubclass(cosuti) != Nouti) || (m_state.isARefTypeOfUlamType(cosuti, caclassuti) == UTIC_SAME));
 	UlamType * caclassut = m_state.getUlamTypeByIndex(caclassuti);
 
 	fp->write(caclassut->getUlamTypeMangledName().c_str());
@@ -2506,9 +2506,13 @@ namespace MFM {
 	  }
 	else
 	  {
+	    //use possible dereference type for mangled name
+	    UTI derefuti = m_state.getUlamTypeAsDeref(stgcosuti);
+	    UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
+
 	    //update uc to reflect "effective" self for this funccall
 	    fp->write("UlamContext<EC>(uc, &");
-	    fp->write(stgcosut->getUlamTypeMangledName().c_str());
+	    fp->write(derefut->getUlamTypeMangledName().c_str());
 	    fp->write("<EC");
 	    if(stgcosclasstype == UC_QUARK)
 	      {
@@ -2690,7 +2694,7 @@ namespace MFM {
     //currently, only regular classes may have subclasses.
     if((cosBlockNo != caBlockNo) && (cosuti != caclassuti) && !m_state.isClassATemplate(caclassuti))
       {
-	assert(m_state.isClassASubclass(cosuti) != Nouti);
+	assert((m_state.isClassASubclass(cosuti) != Nouti) || (m_state.isARefTypeOfUlamType(cosuti, caclassuti) == UTIC_SAME));
 	UlamType * caclassut = m_state.getUlamTypeByIndex(caclassuti);
 
 	fp->write(caclassut->getUlamTypeMangledName().c_str());

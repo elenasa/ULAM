@@ -818,8 +818,6 @@ namespace MFM {
     u32 arraysize = keyOfArg.getUlamKeyTypeSignatureArraySize();
     UTI classidx = keyOfArg.getUlamKeyTypeSignatureClassInstanceIdx();
     u32 nameid = keyOfArg.m_typeNameId;
-    //    if(classidx != Nav)
-    //  classidx = utArg; //use instance, rather than template in reference key
     UlamKeyTypeSignature baseKey(nameid, bitsize, arraysize, classidx, altArg);  //default array size is zero
 
     UTI buti = makeUlamType(baseKey, bUT); //could be a new one, oops.

@@ -84,7 +84,7 @@ namespace MFM {
 
   std::string SymbolClassName::formatAnInstancesArgValuesAsAString(UTI instance)
   {
-    assert(instance == getUlamTypeIdx());
+    assert((instance == getUlamTypeIdx()) || (m_state.isARefTypeOfUlamType(instance, getUlamTypeIdx()) == UTIC_SAME)); //or could be a reference
     return "10"; //zero args
   }
 

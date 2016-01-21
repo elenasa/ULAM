@@ -807,7 +807,13 @@ namespace MFM {
     else
       {
 	//unless local or dm, known at compile time!
-	fp->write(cosut->getUlamTypeMangledName().c_str());
+	if(cosut->getReferenceType() == ALT_REF)
+	  {
+	    UTI derefcos = m_state.getUlamTypeAsDeref(cosuti);
+	    fp->write(m_state.getUlamTypeByIndex(derefcos)->getUlamTypeMangledName().c_str());
+	  }
+	else
+	  fp->write(cosut->getUlamTypeMangledName().c_str());
 	if(cosut->getUlamClass() == UC_ELEMENT)
 	  fp->write("<EC>::");
 	else
@@ -1057,9 +1063,13 @@ namespace MFM {
 	      }
 	    else
 	      {
+		//use possible dereference type for mangled name
+		UTI cosderefuti = m_state.getUlamTypeAsDeref(cosuti);
+		UlamType * cosderefut = m_state.getUlamTypeByIndex(cosderefuti);
+
 		//update uc to reflect "effective" self for this funccall
 		hiddenargs << "UlamContext<EC>(uc, &";
-		hiddenargs << cosut->getUlamTypeMangledName().c_str();
+		hiddenargs << cosderefut->getUlamTypeMangledName().c_str();
 		hiddenargs << "<EC";
 		if(cosut->getUlamClass() == UC_QUARK)
 		  {
