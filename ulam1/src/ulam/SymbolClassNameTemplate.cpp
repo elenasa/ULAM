@@ -255,7 +255,25 @@ namespace MFM {
     if(isQuarkUnion())
       newclassinstance->setQuarkUnion();
 
-    //any superclass is handled during resolving loop's fullInstantiation step.
+    //inheritance:
+    UTI superuti = getSuperClass();
+    if(m_state.okUTItoContinue(superuti))
+      {
+	if(m_state.isClassAStub(superuti))
+	  {
+	    //need a copy of the super stub, and its uti
+	    //superuti = m_state.addStubCopyToAncestorClassTemplate(superuti, stubcuti);
+	    superuti = Hzy; //wait until resolving loop.
+	  }
+	newclassinstance->setSuperClass(superuti);
+	//any superclass block links are handled during c&l
+      }
+    else
+      {
+	ULAMCLASSTYPE tclasstype = getUlamClass();
+	if(tclasstype == UC_UNSEEN)
+	  newclassinstance->setSuperClass(Hzy);
+      }
 
     addClassInstanceUTI(stubcuti, newclassinstance); //link here
     return newclassinstance;
@@ -349,6 +367,7 @@ namespace MFM {
     newblockclass->setNodeLocation(blockclass->getNodeLocation());
     newblockclass->setNodeType(newuti);
     newblockclass->resetNodeNo(templateclassblock->getNodeNo()); //keep NNO consistent (new)
+    newblockclass->setSuperBlockPointer(NULL); //wait for c&l when no longer a stub
 
     Token stubTok(TOK_IDENTIFIER,csym->getLoc(), getId());
 
@@ -371,7 +390,10 @@ namespace MFM {
 	csym->cloneResolverUTImap(newclassinstance);
       }
     else
-      delete newclassinstance; //failed e.g. wrong number of args
+      {
+	delete newclassinstance; //failed e.g. wrong number of args
+	newclassinstance = NULL;
+      }
   } //copyAStubClassInstance
 
   //called by parseThisClass, if wasIncomplete is parsed; temporary class arg names
@@ -484,13 +506,14 @@ namespace MFM {
 	// later, during c&l if a subclass, the super ptr has the class block of the superclass
 	//cblock->setPreviousBlockPointer(getClassBlockNode());
 	UTI superuti = SymbolClass::getSuperClass();
-	if(superuti != Nouti)
+	if((superuti != Nouti) && (superuti != Hzy))
 	  {
 	    //superuti must be an instance of a quark, but could be a stub w unresolved args
 	    // that requires a stub copy with its own uti.
 	    //cblock->setSuperBlockPointer();
 	    //assert(0); //???
 	  }
+	cblock->setSuperBlockPointer(NULL); //wait for c&l when no longer a stub
 	it++;
       } //while
   } //fixAnyClassInstances
@@ -903,33 +926,32 @@ namespace MFM {
   bool SymbolClassNameTemplate::checkTemplateAncestorBeforeAStubInstantiation(SymbolClass * stubcsym)
   {
     bool rtnok = false;
+    //if stub's superclass is still a stub..wait on full instantiation
+    UTI stubsuperuti = stubcsym->getSuperClass();
     UTI superuti = SymbolClass::getSuperClass(); //template's ancestor
-    if(superuti != Nouti)
+
+    if((stubsuperuti == Nouti) || (stubsuperuti == Hzy))
       {
-	UTI stubsuperuti = stubcsym->getSuperClass();
-	if(stubsuperuti == Nouti)
+	//template was unseen at the time stub was made
+	if(superuti == Nouti)
 	  {
-	    if(m_state.isClassAStub(superuti))
-	      {
-		//if template's superclass is a stub-instance
-		// then we need to make a stub copy (new uti)
-		stubsuperuti = m_state.addStubCopyToAncestorClassTemplate(superuti, stubcsym->getUlamTypeIdx());
-		stubcsym->setSuperClass(stubsuperuti); //stubcopy's type set here!!
-	      }
-	    else
-	      {
-		stubcsym->setSuperClass(superuti); //regular class type set here!!
-		rtnok = true;
-	      }
+	    stubcsym->setSuperClass(Nouti); //no ancester
+	    rtnok = true;
+	  }
+	else if(superuti == Hzy) //only UNSEEN Templates
+	  {
+	    rtnok = false;
 	  }
 	else
-	  rtnok = m_state.isClassAStub(stubsuperuti); //ready or not
+	  {
+	    stubsuperuti = m_state.addStubCopyToAncestorClassTemplate(superuti, stubcsym->getUlamTypeIdx());
+	    stubcsym->setSuperClass(stubsuperuti); //stubcopy's type set here!!
+	    rtnok = false;
+	  }
       }
-    else
-      {
-	assert(stubcsym->getSuperClass() == Nouti);
-	rtnok = true; //no ancestor
-      }
+    else //neither nouti or hzy
+      rtnok = !m_state.isClassAStub(stubsuperuti);
+
     return rtnok;
   } //checkTemplateAncestorBeforeAStubInstantiation
 

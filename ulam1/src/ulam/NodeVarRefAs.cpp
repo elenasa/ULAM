@@ -93,6 +93,7 @@ namespace MFM {
     ((SymbolVariableStack *) m_varSymbol)->setAutoPtrForEval(pluv); //for future ident eval uses
 
     UTI luti = pluv.getPtrTargetType();
+    assert(m_state.okUTItoContinue(luti));
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMCLASSTYPE lclasstype = lut->getUlamClass();
     UTI autostgtype = m_state.m_currentAutoStorageType;

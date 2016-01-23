@@ -412,6 +412,7 @@ namespace MFM{
     UTI getBigBitsUTI();
 
     bool isPtr(UTI puti);
+    bool okUTItoContinue(UTI uti);
 
   private:
     ClassContextStack m_classContextStack; // the current subject of this compilation

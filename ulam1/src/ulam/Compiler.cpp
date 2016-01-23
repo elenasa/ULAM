@@ -268,8 +268,8 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
-    else
-      assert(errCnt == 0);
+    //else
+    //assert(errCnt == 0);
 
     if(hzycount > 0)
       {

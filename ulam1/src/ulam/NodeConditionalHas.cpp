@@ -98,7 +98,7 @@ namespace MFM {
 
     assert(m_nodeTypeDesc);
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
-    if(ruti != Nav)
+    if(m_state.okUTItoContinue(ruti))
       {
 	UlamType * rut = m_state.getUlamTypeByIndex(ruti);
 	ULAMCLASSTYPE rclasstype = rut->getUlamClass();

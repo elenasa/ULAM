@@ -215,6 +215,7 @@ namespace MFM {
   void SymbolClass::printBitSizeOfClass()
   {
     UTI suti = getUlamTypeIdx();
+    assert(m_state.okUTItoContinue(suti));
     u32 total = m_state.getTotalBitSize(suti);
     UlamType * sut = m_state.getUlamTypeByIndex(suti);
     ULAMCLASSTYPE classtype = sut->getUlamClass();
@@ -387,12 +388,15 @@ namespace MFM {
     if(m_resolver)
       rtnb = m_resolver->findMappedUTI(auti, mappedUTI);
 
-    if(!rtnb && (getSuperClass() != Nouti))
+    UTI superuti = getSuperClass();
+    if(superuti == auti)
+      mappedUTI = auti;
+    else if(!rtnb && (superuti != Nouti) && (superuti != Hzy))
       {
 	SymbolClass * csym = NULL;
 	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(getSuperClass(), csym);
 	assert(isDefined);
-	return (csym->hasMappedUTI(auti, mappedUTI));
+	rtnb = (csym->hasMappedUTI(auti, mappedUTI));
       }
     return rtnb;
   } //hasMappedUTI

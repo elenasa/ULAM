@@ -187,8 +187,10 @@ namespace MFM {
     assert(cuti != Nav);
     UTI supercuti = m_state.isClassASubclass(cuti);
     if(supercuti != Nouti)
-      if(m_state.isFuncIdInAClassScope(supercuti, getId(), fnsym, hasHazyArgs) && !hasHazyArgs)
-	return ((SymbolFunctionName *) fnsym)->findMatchingFunctionWithSafeCasts(argNodes, funcSymbol, hasHazyArgs); //recurse ancestors
+      {
+	if(m_state.isFuncIdInAClassScope(supercuti, getId(), fnsym, hasHazyArgs) && !hasHazyArgs)
+	  return ((SymbolFunctionName *) fnsym)->findMatchingFunctionWithSafeCasts(argNodes, funcSymbol, hasHazyArgs); //recurse ancestors
+      }
     return 0;
   } //findMatchingFunctionWithSafeCastsInAncestors
 
@@ -261,6 +263,7 @@ namespace MFM {
 
 	//search for virtual function w exact name/type in superclass
 	// if found, this function must also be virtual
+	assert(superuti != Hzy);
 	if(superuti != Nouti)
 	  {
 	    std::vector<UTI> pTypes;
@@ -410,7 +413,7 @@ namespace MFM {
 	    msg << "' cannot return Void ";
 	    probcount++;
 	  }
-	else if((futisav != Nav) && (UlamType::compare(futi, futisav, m_state) == UTIC_NOTSAME))
+	else if(m_state.okUTItoContinue(futisav) && (UlamType::compare(futi, futisav, m_state) == UTIC_NOTSAME))
 	  {
 	    std::ostringstream msg;
 	    msg << "Custom array get methods '";

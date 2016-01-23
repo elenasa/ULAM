@@ -64,7 +64,7 @@ namespace MFM{
 
   class CompilerState; //forward
 
-  enum ULAMCLASSTYPE { UC_UNSEEN, UC_QUARK, UC_ELEMENT, UC_NOTACLASS, UC_ATOM, UC_ERROR };
+  enum ULAMCLASSTYPE { UC_UNSEEN, UC_QUARK, UC_ELEMENT, UC_NOTACLASS, UC_ATOM, UC_ERROR, UC_JUNK };
 
 
   class UlamType

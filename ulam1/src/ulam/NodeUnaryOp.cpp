@@ -188,6 +188,7 @@ namespace MFM {
   s32 NodeUnaryOp::resultBitsize(UTI uti)
   {
     s32 newbs = m_state.getBitSize(uti);
+    assert(m_state.okUTItoContinue(uti));
     ULAMCLASSTYPE ct = m_state.getUlamTypeByIndex(uti)->getUlamClass();
 
     if(ct == UC_QUARK)

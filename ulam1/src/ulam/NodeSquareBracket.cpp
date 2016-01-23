@@ -59,7 +59,6 @@ namespace MFM {
 
     m_state.popClassContext();
 
-    //if((leftType != Nav) && (leftType != Hzy))
     if(m_state.isComplete(leftType))
       {
 	UlamType * lut = m_state.getUlamTypeByIndex(leftType);
@@ -175,7 +174,7 @@ namespace MFM {
 		//not custom array
 		//must be some kind of numeric type: Int, Unsigned, or Unary..of any bit size
 		UlamType * rut = m_state.getUlamTypeByIndex(rightType);
-		if((rightType != Nav) && (rightType != Hzy) && !rut->isNumericType())
+		if(m_state.okUTItoContinue(rightType) && !rut->isNumericType())
 		  {
 		    std::ostringstream msg;
 		    msg << "Array item specifier requires numeric type: ";
@@ -191,7 +190,7 @@ namespace MFM {
 	      }
 	  } //errorcount is zero
 
-	if((idxuti != Nav) && (idxuti != Hzy) && UlamType::compare(idxuti, rightType, m_state) == UTIC_NOTSAME)
+	if(m_state.okUTItoContinue(idxuti) && (UlamType::compare(idxuti, rightType, m_state) == UTIC_NOTSAME))
 	  {
 	    FORECAST rscr = m_nodeRight->safeToCastTo(idxuti);
 	    if(rscr == CAST_CLEAR)

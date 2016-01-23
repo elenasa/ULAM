@@ -505,6 +505,7 @@ namespace MFM {
       {
 	tmpVarNum = uvpass.getPtrSlotIndex();
 	vuti = uvpass.getPtrTargetType(); //replace
+	assert(m_state.okUTItoContinue(vuti));
       }
     else
       {
@@ -661,6 +662,8 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
     UTI vuti = uvpass.getUlamValueTypeIdx();
     if(vuti == Ptr)
       vuti = uvpass.getPtrTargetType(); //replace
+    assert(m_state.okUTItoContinue(vuti));
+
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     s32 tmpVarNum = uvpass.getPtrSlotIndex();
 

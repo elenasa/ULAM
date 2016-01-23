@@ -122,7 +122,7 @@ namespace MFM {
 	  }
       }
     setNodeType(newType);
-    setStoreIntoAble((newType != Nav) && (newType != Hzy)); //ok true
+    setStoreIntoAble(m_state.okUTItoContinue(newType)); //ok true
     return newType;
   } //checkAndLabelType
 

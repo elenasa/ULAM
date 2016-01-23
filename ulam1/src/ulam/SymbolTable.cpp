@@ -287,6 +287,7 @@ namespace MFM {
 	      {
 		// check possible inheritance
 		UTI superuti = m_state.isClassASubclass(suti);
+		assert(superuti != Hzy);
 		if((superuti != Nouti) && (UlamType::compare(superuti, utype, m_state) == UTIC_SAME))
 		  {
 		    posfound = ((SymbolVariable *) sym)->getPosOffset(); //starts at beginning
@@ -350,6 +351,7 @@ namespace MFM {
 		fp->write("); //pos offset\n");
 
 		UTI superuti = m_state.isClassASubclass(suti);
+		assert(superuti != Hzy);
 		while(superuti != Nouti) //none
 		  {
 		    UlamType * superut = m_state.getUlamTypeByIndex(superuti);
@@ -842,7 +844,7 @@ namespace MFM {
 	assert(sym && sym->isClass());
 	UTI cuti = sym->getUlamTypeIdx();
 	//skip anonymous classes
-	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
+	if(!isAnonymousClass(cuti))
 	  {
 	    ((SymbolClassName *) sym)->getTargetDescriptorsForClassInstances(classtargets);
 	  }
@@ -859,7 +861,7 @@ namespace MFM {
 	assert(sym && sym->isClass());
 	UTI cuti = sym->getUlamTypeIdx();
 	//skip anonymous classes
-	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
+	if(!isAnonymousClass(cuti))
 	  {
 	    ((SymbolClassName *) sym)->getClassMemberDescriptionsForClassInstances(classmembers);
 	  }
@@ -930,7 +932,7 @@ namespace MFM {
 	assert(sym && sym->isClass());
 	UTI cuti = sym->getUlamTypeIdx();
 	//skip anonymous classes
-	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
+	if(!isAnonymousClass(cuti))
 	  {
 	    ((SymbolClassName *) sym)->testForClassInstances(fp);
 	  }
@@ -965,7 +967,7 @@ namespace MFM {
 	UTI cuti = sym->getUlamTypeIdx();
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 	//skip anonymous classes
-	if(m_state.isARootUTI(cuti) && !cut->isHolder())
+	if(!isAnonymousClass(cuti))
 	  {
 	    ULAMCLASSTYPE classtype = cut->getUlamClass();
 	    if( classtype == UC_QUARK)
@@ -986,7 +988,7 @@ namespace MFM {
 	assert(sym && sym->isClass());
 	UTI cuti = sym->getUlamTypeIdx();
 	//skip anonymous classes
-	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
+	if(!isAnonymousClass(cuti))
 	  {
 	    NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
 	    assert(classNode);
@@ -1058,7 +1060,7 @@ namespace MFM {
 	assert(sym && sym->isClass());
 	UTI cuti = sym->getUlamTypeIdx();
 	//skip anonymous classes
-	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
+	if(!isAnonymousClass(cuti))
 	  {
 	    ((SymbolClassName *) sym)->updateLineageOfClass();
 	    //only regular and templates immediately after updating lineages
@@ -1079,7 +1081,7 @@ namespace MFM {
 
 	UTI cuti = sym->getUlamTypeIdx();
 	//skip anonymous classes
-	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
+	if(!isAnonymousClass(cuti))
 	  {
 	    ((SymbolClassName *) sym)->checkCustomArraysOfClassInstances();
 	  }
@@ -1096,7 +1098,7 @@ namespace MFM {
 	assert(sym && sym->isClass());
 	UTI cuti = sym->getUlamTypeIdx();
 	//skip anonymous classes
-	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
+	if(!isAnonymousClass(cuti))
 	  {
 	    ((SymbolClassName *) sym)->checkDuplicateFunctionsForClassInstances();
 	  }
@@ -1114,7 +1116,7 @@ namespace MFM {
 
 	UTI cuti = sym->getUlamTypeIdx();
 	//skip anonymous classes
-	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
+	if(!isAnonymousClass(cuti))
 	  {
 	    ((SymbolClassName *) sym)->calcMaxDepthOfFunctionsForClassInstances();
 	  }
@@ -1133,7 +1135,7 @@ namespace MFM {
 
 	UTI cuti = sym->getUlamTypeIdx();
 	//skip anonymous classes
-	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
+	if(!isAnonymousClass(cuti))
 	  {
 	    aok &= ((SymbolClassName *) sym)->calcMaxIndexOfVirtualFunctionsForClassInstances();
 	  }
@@ -1151,7 +1153,7 @@ namespace MFM {
 	assert(sym && sym->isClass());
 	UTI cuti = sym->getUlamTypeIdx();
 	//skip anonymous classes
-	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
+	if(!isAnonymousClass(cuti))
 	  {
 	    ((SymbolClassName *) sym)->checkAbstractInstanceErrorsForClassInstances();
 	  }
@@ -1173,13 +1175,13 @@ namespace MFM {
 	if( ((SymbolClass *) cnsym)->getUlamClass() == UC_UNSEEN)
 	  {
 	    //skip anonymous classes
-	    if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
+	    if(!isAnonymousClass(cuti))
 	      {
 		std::ostringstream msg;
 		msg << "Unresolved type <";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		msg << "> was never defined; Fails labeling";
-		MSG(cnsym->getTokPtr(), msg.str().c_str(), ERR);
+		MSG(cnsym->getTokPtr(), msg.str().c_str(), WARN); //was ERR but typedef junk
 		cnsym->getClassBlockNode()->setNodeType(Nav); //for compiler counter
 		//assert(0); wasn't a class at all, e.g. out-of-scope typedef/variable
 		break;
@@ -1203,7 +1205,7 @@ namespace MFM {
 	assert(sym->isClass());
 	UTI cuti = sym->getUlamTypeIdx();
 	//skip anonymous classes
-	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
+	if(!isAnonymousClass(cuti))
 	  {
 	    ((SymbolClassName *) sym)->countNavNodesInClassInstances(navcount, hzycount, unsetcount);
 	  }
@@ -1225,18 +1227,18 @@ namespace MFM {
 	Symbol * sym = it->second;
 	assert(sym->isClass());
 	UTI cuti = sym->getUlamTypeIdx();
-	bool isAnonymousClass = (m_state.getUlamTypeByIndex(cuti)->isHolder() || !m_state.isARootUTI(cuti));
+	bool anonymousClass = isAnonymousClass(cuti);
 	ULAMCLASSTYPE classtype = ((SymbolClass *) sym)->getUlamClass();
-	if( classtype == UC_UNSEEN)
+	if((classtype == UC_UNSEEN) || anonymousClass)
 	  {
 	    std::ostringstream msg;
 	    msg << "Unresolved type <";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    msg << "> was never defined; Fails sizing";
-	    if(isAnonymousClass)
+	    if(anonymousClass)
 	      MSG(sym->getTokPtr(), msg.str().c_str(), DEBUG);
 	    else
-	      MSG(sym->getTokPtr(), msg.str().c_str(), ERR); //also catch at use!
+	      MSG(sym->getTokPtr(), msg.str().c_str(), DEBUG); //was ERR but typedef junk; also catch at use!
 	    //m_state.completeIncompleteClassSymbol(sym->getUlamTypeIdx()); //too late
 	    aok = false; //moved here;
 	  }
@@ -1280,7 +1282,7 @@ namespace MFM {
 	assert(sym->isClass());
 	UTI cuti = sym->getUlamTypeIdx();
 	//skip anonymous classes
-	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
+	if(!isAnonymousClass(cuti))
 	  {
 	    ((SymbolClassName *) sym)->printBitSizeOfClassInstances();
 	  }
@@ -1298,7 +1300,7 @@ namespace MFM {
 
 	UTI cuti = sym->getUlamTypeIdx();
 	//skip anonymous classes
-	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
+	if(!isAnonymousClass(cuti))
 	  {
 	    //quark union keep default pos = 0 for each data member, hence skip packing bits.
 	    if(!(m_state.isClassAQuarkUnion(cuti)))
@@ -1320,7 +1322,7 @@ namespace MFM {
 	assert(sym->isClass());
 	UTI cuti = sym->getUlamTypeIdx();
 	//skip anonymous classes
-	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
+	if(!isAnonymousClass(cuti))
 	  {
 	    ((SymbolClassName *) sym)->generateIncludesForClassInstances(fp);
 	  }
@@ -1338,7 +1340,7 @@ namespace MFM {
 	assert(sym->isClass());
 	UTI cuti = sym->getUlamTypeIdx();
 	//skip anonymous classes
-	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
+	if(!isAnonymousClass(cuti))
 	  {
 	    ((SymbolClassName *) sym)->generateForwardDefsForClassInstances(fp);
 	  }
@@ -1358,7 +1360,7 @@ namespace MFM {
 	assert(sym->isClass());
 	UTI cuti = sym->getUlamTypeIdx();
 	//skip anonymous classes
-	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
+	if(!isAnonymousClass(cuti))
 	  {
 	    //first output all the element typedefs, skipping quarks
 	    if(((SymbolClass * ) sym)->getUlamClass() != UC_QUARK)
@@ -1403,9 +1405,8 @@ namespace MFM {
 	assert(sym->isClass());
 	UTI cuti = sym->getUlamTypeIdx();
 	//skip anonymous classes
-	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
+	if(!isAnonymousClass(cuti))
 	  {
-
 	    //output header/body for this class next
 	    ((SymbolClassName *) sym)->generateCodeForClassInstances(fm);
 	  }
@@ -1422,7 +1423,7 @@ namespace MFM {
 	assert(sym->isClass());
 	UTI cuti = sym->getUlamTypeIdx();
 	//skip anonymous classes
-	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
+	if(!isAnonymousClass(cuti))
 	  {
 	    NodeBlockClass * classblock = ((SymbolClassName *) sym)->getClassBlockNode();
 	    if(classblock->getNodeNo() == n)
@@ -1551,6 +1552,13 @@ namespace MFM {
   {
     // may be a zero-sized quark!!
     return (!sym->isTypedef() && !sym->isModelParameter() && !sym->isConstant());
+  }
+
+  bool SymbolTable::isAnonymousClass(UTI cuti)
+  {
+    assert(m_state.okUTItoContinue(cuti));
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+    return(!m_state.isARootUTI(cuti) || cut->isHolder() || (cut->getUlamClass() == UC_JUNK));
   }
 
 } //end MFM

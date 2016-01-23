@@ -103,13 +103,14 @@ namespace MFM {
 
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-    UTI superclass = getSuperClassForClassInstance(getUlamTypeIdx());
-    if(superclass == Nouti)
+    UTI superuti = getSuperClassForClassInstance(getUlamTypeIdx());
+    if(superuti == Nouti)
       classNode->updateLineage(0);
-    else
+    //else if(!m_state.isClassAStub(superuti) && (superuti != Hzy))
+    else if((superuti != Hzy))
       {
 	//for inheritance, get the node no of superblock
-	u32 sid = m_state.getUlamKeyTypeSignatureByIndex(superclass).getUlamKeyTypeSignatureNameId();
+	u32 sid = m_state.getUlamKeyTypeSignatureByIndex(superuti).getUlamKeyTypeSignatureNameId();
 	SymbolClassName * cnsym = NULL;
 	AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(sid, cnsym);
 	assert(isDefined);
@@ -118,7 +119,6 @@ namespace MFM {
 
 	classNode->updateLineage(superblock->getNodeNo());
       }
-
     m_state.popClassContext(); //restore
   } //updateLineageOfClass
 

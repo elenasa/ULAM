@@ -360,19 +360,20 @@ namespace MFM {
 
     if(qTok.m_type == TOK_COLON)
       {
-	SymbolClassName * supercnsym = NULL;
+	SymbolClass * supercsym = NULL;
 	UTI superuti = Nouti;
-	inherits = parseRestOfClassInheritance(cnsym, supercnsym, superuti);
+	inherits = parseRestOfClassInheritance(cnsym, supercsym, superuti);
 	if(inherits)
 	  {
-	    assert(supercnsym);
-	    NodeBlockClass * superclassblock = supercnsym->getClassBlockNode();
+	    assert(supercsym);
+	    NodeBlockClass * superclassblock = supercsym->getClassBlockNode();
 	    assert(superclassblock);
 
 	    //set super class' block after any parameters parsed;
 	    // (separate from previous block which might be pointing to template
 	    //  in case of a stub)
-	    rtnNode->setSuperBlockPointer(superclassblock);
+	    //rtnNode->setSuperBlockPointer(superclassblock);
+	    rtnNode->setSuperBlockPointer(NULL); //wait for c&l
 
 	    //rearrange order of class context so that super class is traversed after subclass
 	    m_state.popClassContext(); //m_currentBlock = prevBlock;
@@ -385,9 +386,13 @@ namespace MFM {
 	    SymbolTypedef * symtypedef = new SymbolTypedef(superTok, superuti, superuti, m_state);
 	    m_state.addSymbolToCurrentScope(symtypedef);
 	  }
+	//else errors may have occurred
       }
     else
-      unreadToken();
+      {
+	unreadToken();
+	cnsym->setSuperClass(Nouti); //clear
+      }
 
     if(!getExpectedToken(TOK_OPEN_CURLY, pTok))
       {
@@ -506,7 +511,7 @@ namespace MFM {
     return parseRestOfClassParameters(cntsym, cblock);
   } //parseRestOfClassParameters
 
-  bool Parser::parseRestOfClassInheritance(SymbolClassName * cnsym, SymbolClassName *& supercnsym, UTI& superuti)
+  bool Parser::parseRestOfClassInheritance(SymbolClassName * cnsym, SymbolClass *& supercsym, UTI& superuti)
   {
     bool rtninherits = false;
     assert(cnsym);
@@ -517,10 +522,16 @@ namespace MFM {
     if(iTok.m_type == TOK_TYPE_IDENTIFIER)
       {
 	superuti = parseClassArguments(iTok);
-	cnsym->setSuperClassForClassInstance(superuti, cnsym->getUlamTypeIdx()); //set here!!
-	AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(iTok.m_dataindex, supercnsym); //could be template; though only inherit from an instance
-	assert(isDefined);
-	rtninherits = true;
+	if(superuti != Nav)
+	  {
+	    cnsym->setSuperClassForClassInstance(superuti, cnsym->getUlamTypeIdx()); //set here!!
+	    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(superuti, supercsym);
+	    assert(isDefined);
+
+	//SymbolClassName * supercnsym = NULL;
+	//isDefined = m_state.alreadyDefinedSymbolClassName(iTok.m_dataindex, supercnsym); //could be template; though only inherit from an instance
+	    rtninherits = true;
+	  }
       }
     else
       {
@@ -1712,6 +1723,7 @@ namespace MFM {
 		msg << "Missing Class Arguments for an instance stub of class template '";
 		msg << m_state.m_pool.getDataAsString(cnsym->getId()).c_str() << "'";
 		MSG(&pTok, msg.str().c_str(), ERR);
+		return Nav;
 	      }
 	  }
 	assert(cnsym);
@@ -1790,6 +1802,7 @@ namespace MFM {
 	    msg << m_state.m_pool.getDataAsString(ctsym->getId()).c_str() ;
 	    msg << ", by " << m_state.getUlamTypeNameBriefByIndex(stubuti).c_str() ;
 	    MSG(&typeTok, msg.str().c_str(), ERR);
+	    stubuti = Nav;
 	  }
       }
     return stubuti;
@@ -2133,7 +2146,7 @@ namespace MFM {
 		msg << m_state.m_pool.getDataAsString(csym->getId()).c_str();
 		MSG(&pTok, msg.str().c_str(), DEBUG);
 	      }
-
+	    assert(m_state.okUTItoContinue(tduti));
 	    ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
 	    const std::string tdname = tdut->getUlamTypeNameOnly();
 
@@ -2347,7 +2360,7 @@ namespace MFM {
       {
 	UTI duti = dsymptr->getUlamTypeIdx();
 	UlamType * dut = m_state.getUlamTypeByIndex(duti);
-	if(dut->getUlamClass() == UC_NOTACLASS && dut->getUlamTypeEnum() == Holder)
+	if(m_state.okUTItoContinue(duti) && (dut->getUlamClass() == UC_NOTACLASS) && (dut->getUlamTypeEnum() == Holder))
 	  {
 	    m_state.makeAnonymousClassFromHolder(duti, memberTok.m_locator);
 	  }

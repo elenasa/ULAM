@@ -233,6 +233,17 @@ namespace MFM {
 	  }
       }
 
+    if(funcSymbol && m_funcSymbol != funcSymbol)
+      {
+	m_funcSymbol = funcSymbol;
+
+	std::ostringstream msg;
+	msg << "Substituting <" << funcSymbol->getMangledNameWithTypes().c_str() << "> ";
+	if(m_funcSymbol)
+	    msg << "for <" << m_funcSymbol->getMangledNameWithTypes().c_str() <<">";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+      }
+
     if(m_funcSymbol && m_funcSymbol != funcSymbol)
       {
 	std::ostringstream msg;
@@ -338,6 +349,7 @@ namespace MFM {
       }
 
     argNodes.clear();
+    assert(m_funcSymbol || (getNodeType() == Nav) || (getNodeType() == Hzy));
     return it;
   } //checkAndLabelType
 
@@ -769,6 +781,7 @@ namespace MFM {
 
   void NodeFunctionCall::genCodeVirtualFunctionCall(File * fp, UlamValue & uvpass)
   {
+    assert(m_funcSymbol);
     //requires runtime lookup for virtual function pointer
     u32 vfidx = m_funcSymbol->getVirtualMethodIdx();
 
@@ -868,6 +881,7 @@ namespace MFM {
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
     // use NodeNo for inheritance
+    assert(m_funcSymbol);
     NNO cosBlockNo = m_funcSymbol->getBlockNoOfST();
     NNO stgcosBlockNo = stgcos->getBlockNoOfST(); //m_state.getAClassBlockNo(stgcosuti);
 
@@ -1193,6 +1207,7 @@ namespace MFM {
     //wiped out by arg processing; needed to determine owner of called function
     std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
 
+    assert(m_funcSymbol);
     u32 numParams = m_funcSymbol->getNumberOfParameters();
     // handle any variable number of args separately
     // since non-datamember variables can modify globals, save/restore before/after each
@@ -1274,6 +1289,7 @@ namespace MFM {
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
+    assert(m_funcSymbol);
     UTI vuti = m_funcSymbol->getParameterType(n);
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     ULAMCLASSTYPE vclasstype = vut->getUlamClass();
@@ -1352,6 +1368,7 @@ namespace MFM {
 
     // use NodeNo for inheritance
     bool useSuperClassName = false;
+    assert(m_funcSymbol);
     NNO cosBlockNo = m_funcSymbol->getBlockNoOfST();
     NNO stgcosBlockNo = m_state.getAClassBlockNo(stgcosuti);
     if(stgcosBlockNo != cosBlockNo)

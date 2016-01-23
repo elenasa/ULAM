@@ -72,6 +72,8 @@ namespace MFM{
 
     UTI givenUTI();
 
+    virtual void resetGivenUTI(UTI uti);
+
     ALT getReferenceType();
 
     void setReferenceType(ALT refarg);

@@ -444,6 +444,7 @@ namespace MFM {
 	//'self' gets type/pos/len of the quark from which 'atom' can be extracted
 	UlamValue selfuvp = m_state.m_currentSelfPtr;
 	UTI ttype = selfuvp.getPtrTargetType();
+	assert(m_state.okUTItoContinue(ttype));
 	if((m_state.getUlamTypeByIndex(ttype)->getUlamClass() == UC_QUARK))
 	  {
 	    u32 vid = m_varSymbol->getId();

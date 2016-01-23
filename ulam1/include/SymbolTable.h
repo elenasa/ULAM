@@ -193,6 +193,7 @@ namespace MFM{
     s32 calcVariableSymbolTypeSize(UTI ut);
     bool variableSymbolWithCountableSize(Symbol * sym);
 
+    bool isAnonymousClass(UTI cuti);
   };
 
 }

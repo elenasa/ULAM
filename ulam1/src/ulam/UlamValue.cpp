@@ -582,8 +582,7 @@ namespace MFM {
     ULAMTYPE eutype = state.getUlamTypeByIndex(utype)->getUlamTypeEnum();
     assert(eutype != UAtom);
     assert(utype != Ptr);
-    assert(utype != Nav);
-    assert(utype != Hzy);
+    assert(state.okUTItoContinue(utype));
     assert(utype != Nouti);
     assert(len >= 0 && len <= MAXBITSPERINT);
 

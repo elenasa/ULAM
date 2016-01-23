@@ -79,6 +79,21 @@ namespace MFM {
     m_unknownArraysizeSubtree = ceForArraySize;
   } //linkConstantExpressionArraysize
 
+  void NodeTypeDescriptorArray::resetGivenUTI(UTI uti)
+  {
+    UTI newuti = uti;
+    UlamType * ut = m_state.getUlamTypeByIndex(uti);
+    if(ut->isScalar())
+      {
+	//create corresponding array type
+	UlamType * nut = m_state.getUlamTypeByIndex(givenUTI());
+	UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
+	UlamKeyTypeSignature newkey(key.getUlamKeyTypeSignatureNameId(),nut->getBitSize(), nut->getArraySize(), uti, nut->getReferenceType());
+	newuti = m_state.makeUlamType(newkey, ut->getUlamTypeEnum());
+      }
+    NodeTypeDescriptor::resetGivenUTI(newuti);
+  } //resetGivenUTI
+
   UTI NodeTypeDescriptorArray::checkAndLabelType()
   {
     UTI it = getNodeType();
@@ -169,9 +184,8 @@ namespace MFM {
 	      }
 	  }
 
-	// of course, their keys' nameids should be the same (~ enum)!!
-	// unless one is a "holder"
-	assert((m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum() == m_state.getUlamTypeByIndex(scuti)->getUlamTypeEnum()) || m_state.isHolder(nuti));
+	checkAndMatchBaseUlamTypes(nuti, scuti);
+	nuti = givenUTI(); //reload
 
 	if(resolveTypeArraysize(nuti, scuti))
 	  {
@@ -252,6 +266,7 @@ namespace MFM {
   void NodeTypeDescriptorArray::checkAndMatchClassTypes(UTI auti, UTI scuti)
   {
     //update class types to match, if necessary
+    //e.g. t3436 (unpacked array of elements), t3621 (array of inherited quarks)
     UlamType * aut = m_state.getUlamTypeByIndex(auti);
     if(aut->getUlamTypeEnum() == Class)
       {
@@ -266,11 +281,30 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
 	    msg << " (UTI" << auti << ") set to match its scalar type ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(scuti).c_str();
-	    msg << " (UTI" << auti << ")";
+	    msg << " (UTI" << scuti << ")";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
       }
   } //checkAndMatchClassTypes
+
+  void NodeTypeDescriptorArray::checkAndMatchBaseUlamTypes(UTI auti, UTI scuti)
+  {
+    // of course, their keys' nameids should be the same (~ enum)!!
+    // unless one is a "holder"
+    // e.g. t3595 (typedef Unseen wasn't a class at all)
+    if((m_state.getUlamTypeByIndex(auti)->getUlamTypeEnum() != m_state.getUlamTypeByIndex(scuti)->getUlamTypeEnum()) && !m_state.isHolder(auti))
+      {
+	resetGivenUTI(scuti);
+	std::ostringstream msg;
+	msg << "Type of array descriptor: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
+	msg << " (UTI" << auti << ") set to match its scalar type ";
+	msg << m_state.getUlamTypeNameBriefByIndex(scuti).c_str();
+	msg << " (UTI" << scuti << ")";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	auti = givenUTI();
+      }
+  } //checkAndMatchBaseUlamTypes
 
   void NodeTypeDescriptorArray::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {

@@ -31,7 +31,7 @@ namespace MFM {
     // create a cast! combining newType's base type and right resultbitsize.
     // could be the same, or "unsafe".
     //if((newType != Nav) && (newType != Hzy) && m_state.isComplete(newType))
-    if(m_state.isComplete(newType))
+    if(m_state.okUTItoContinue(newType) && m_state.isComplete(newType))
       {
 	UlamType * newut = m_state.getUlamTypeByIndex(newType);
 	ULAMTYPE typEnum = newut->getUlamTypeEnum();

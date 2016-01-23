@@ -1586,7 +1586,7 @@ namespace MFM {
     UTI vuti = uvpass.getUlamValueTypeIdx();
     assert(vuti == Ptr); //terminals handled in NodeTerminal
     vuti = uvpass.getPtrTargetType();
-
+    assert(m_state.okUTItoContinue(vuti));
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
     // write out intermediate tmpVar, or immediate terminal, as temp BitVector arg
@@ -1629,6 +1629,7 @@ namespace MFM {
     UTI vuti = uvpass.getUlamValueTypeIdx();
     assert(vuti == Ptr);
     vuti = uvpass.getPtrTargetType();
+    assert(m_state.okUTItoContinue(vuti));
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
     assert(uvpass.getPtrStorage() == TMPBITVAL);

@@ -158,6 +158,12 @@ namespace MFM {
     //don't allow a subclass to shadow a superclass datamember
     UTI cuti = m_state.getCompileThisIdx();
     UTI superuti = m_state.isClassASubclass(cuti);
+    if(superuti == Hzy)
+      {
+	setNodeType(Hzy);
+	m_state.setGoAgain();
+	return Hzy;
+      }
     if(superuti != Nouti) //has ancestor
       {
 	//is a subclass' DM..

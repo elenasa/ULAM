@@ -1,0 +1,35 @@
+## -*- mode:ulam -*-
+#=t3642_test_compiler_elementandquarksinherit_sameargsandparams_ish
+#!
+Exit status: 0
+Ue_Ish6a : QMoCo(0x dadd1e0,1u) { :< :< constant Bits(32) speciesTag = 229495264u;  constant Unsigned(32) objectTagBits = 1u; > constant Bits(32) speciesTag = 229495264u;  constant Unsigned(32) objectTagBits = 1u; > Int(32) test() {  0 cast return } }
+Uq_QMoCo(Bits(32) speciesTag, Unsigned(32) objectTagBits) : QTag(speciesTag,objectTagBits) { /* empty class block */ }
+Uq_QTag(Bits(32) speciesTag, Unsigned(32) objectTagBits) { /* empty class block */ }
+##
+## informed by a Dave ish 1/18/2016
+##
+#>Ish6a.ulam
+  ulam 2;
+element Ish6a : QMoCo(0xDADD1E0,1u) {
+  Int test() {
+    return 0;
+  }
+}
+use QMoCo;
+
+
+#:QMoCo.ulam
+  ulam 2;
+quark QMoCo(Bits speciesTag, Unsigned objectTagBits) : QTag(speciesTag, objectTagBits) { }
+use QTag;
+
+#:QTag.ulam
+  ulam 2;
+quark QTag(Bits speciesTag, Unsigned objectTagBits) { }
+
+
+/* Generates:
+culam: SymbolClass.cpp:394: bool MFM::SymbolClass::hasMappedUTI(MFM::u16, MFM::u16&): Assertion `isDefined' failed.
+*/
+
+#.

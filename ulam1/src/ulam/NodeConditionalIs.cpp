@@ -65,7 +65,7 @@ namespace MFM {
 
     assert(m_nodeTypeDesc);
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
-    if((ruti != Nav) && (ruti != Hzy))
+    if(m_state.okUTItoContinue(ruti))
       {
 	UlamType * rut = m_state.getUlamTypeByIndex(ruti);
 	//rhs is allowed to be a quark due to inheritance.

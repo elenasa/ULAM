@@ -118,7 +118,7 @@ namespace MFM {
 
     // condition should be a bool, safely cast
     UTI cuti = m_nodeCondition->checkAndLabelType();
-    if((cuti != Nav) && (cuti != Hzy) && m_state.isComplete(cuti))
+    if(m_state.okUTItoContinue(cuti) && m_state.isComplete(cuti))
       {
 	assert(m_state.isScalar(cuti));
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
