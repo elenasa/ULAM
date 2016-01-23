@@ -1,0 +1,25 @@
+## -*- mode:ulam -*-
+#=t3644_test_compiler_elementalreadyexists_ish_error
+#!
+./Bar.ulam:1:9: ERROR: Class without parameters already exists with the same name: Bar.
+Unrecoverable Program Parse FAILURE.
+##
+## informed by a Dave ish 1/23/2016; (order matters)
+##
+#>Foo.ulam
+  ulam 1;
+element Foo {
+  Bar b;
+  Int test() {
+    return 0;
+  }
+}
+use Bar;
+
+#:Bar.ulam
+  ulam 1;
+element Bar(Int err) {
+}
+
+
+#.

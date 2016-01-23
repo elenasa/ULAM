@@ -57,6 +57,8 @@ namespace MFM{
     virtual Symbol * cloneKeepsType();
 
     void resetIdToken(Token newtok);
+    void setId(u32 newid);
+
     u32 getId();
     Locator getLoc();
     Token * getTokPtr(); //for err msgs
@@ -104,7 +106,6 @@ namespace MFM{
 
   protected:
     CompilerState & m_state;
-    void setId(u32 newid);
 
     Token m_structuredCommentToken;
     bool m_gotStructuredCommentToken;

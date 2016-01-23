@@ -241,15 +241,22 @@ namespace MFM {
 	else
 	  {
 	    //if already defined, then must be incomplete, else duplicate!!
-	    if(ctSym->getUlamClass() != UC_UNSEEN)
+	    if(ctSym && ctSym->getUlamClass() != UC_UNSEEN)
 	      {
 		std::ostringstream msg;
 		msg << "Duplicate or incomplete template class '";
 		msg << m_state.m_pool.getDataAsString(ctSym->getId()).c_str() << "'";
 		MSG(&iTok, msg.str().c_str(), ERR);
 		m_state.clearStructuredCommentToken();
-		return  true; //we're done unless we can gobble the rest up?
+		return true; //we're done unless we can gobble the rest up?
 	      }
+	    if(ctSym && !ctSym->isClassTemplate())
+	      {
+		//error already output
+		m_state.clearStructuredCommentToken();
+		return true; //we're done unless we can gobble the rest up?
+	      }
+
 	    wasIncomplete = true;
 	  }
 	cnSym = ctSym;
@@ -372,7 +379,6 @@ namespace MFM {
 	    //set super class' block after any parameters parsed;
 	    // (separate from previous block which might be pointing to template
 	    //  in case of a stub)
-	    //rtnNode->setSuperBlockPointer(superclassblock);
 	    rtnNode->setSuperBlockPointer(NULL); //wait for c&l
 
 	    //rearrange order of class context so that super class is traversed after subclass
@@ -527,9 +533,6 @@ namespace MFM {
 	    cnsym->setSuperClassForClassInstance(superuti, cnsym->getUlamTypeIdx()); //set here!!
 	    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(superuti, supercsym);
 	    assert(isDefined);
-
-	//SymbolClassName * supercnsym = NULL;
-	//isDefined = m_state.alreadyDefinedSymbolClassName(iTok.m_dataindex, supercnsym); //could be template; though only inherit from an instance
 	    rtninherits = true;
 	  }
       }

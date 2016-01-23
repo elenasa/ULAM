@@ -80,11 +80,6 @@ namespace MFM {
     return m_uti;
   }
 
-  void NodeTypeDescriptor::resetGivenUTI(UTI uti)
-  {
-    m_uti = uti;
-  }
-
   ALT NodeTypeDescriptor::getReferenceType()
   {
     return m_refType;
@@ -202,31 +197,26 @@ namespace MFM {
 
 	    if(isTypedef)
 	      {
+		//unseen typedef's appear like Class basetype, until seen
+		//wait until complete to re-key..
+
 		std::ostringstream msg;
 		if(m_state.isComplete(tmpforscalaruti))
 		  {
-		    //wait until complete..
 		    UlamType * tut = m_state.getUlamTypeByIndex(tmpforscalaruti);
 		    UlamKeyTypeSignature tdkey = tut->getUlamKeyTypeSignature();
 		    UlamKeyTypeSignature newkey(tdkey.getUlamKeyTypeSignatureNameId(), tut->getBitSize(), tut->getArraySize(), 0, tut->getReferenceType());
 		    m_state.makeUlamTypeFromHolder(newkey, tut->getUlamTypeEnum(), nuti);
-		    //unseen typedef appear like Class basetype, until seen
-		    //resetGivenUTI(tmpforscalaruti); //update for next time around
-		    //m_state.mapTypesInCurrentClass(nuti, tmpforscalaruti);
-		    //((UlamTypeClass *) nut)->setUlamClass(tut->getUlamClass());
 		    rtnuti = tmpforscalaruti; //reset
 		    rtnb = true;
 		    msg << "RESET ";
 		  }
 		else
-		  {
-		    rtnuti = Hzy;
-		    //((UlamTypeClass *) nut)->setUlamClass(UC_JUNK);
-		  }
+		  rtnuti = Hzy;
+
 		msg << "Unseen Class was a typedef for: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(tduti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-
 	      }
 	    else
 	      {

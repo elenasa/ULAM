@@ -428,8 +428,6 @@ namespace MFM {
 
 	//can have 0Holder symbols for possible typedefs seen from another class
 	//which will increase the count of symbols; can only test for at least;
-	// (don't care about inherited symbols for class args, so use NodeBlock)
-	//u32 cargs = cblock->NodeBlock::getNumberOfSymbolsInTable();
 	u32 cargs = cblock->getNumberOfPotentialClassArgumentSymbols();
 	if((cargs < numparams) && ((cargs + numDefaultParams) < numparams))
 	  {
@@ -1494,8 +1492,6 @@ namespace MFM {
   {
     NodeBlockClass * fmclassblock = fm->getClassBlockNode();
     assert(fmclassblock);
-    // (don't care about inherited symbols for class args, so use NodeBlock)
-    //u32 cargs = fmclassblock->NodeBlock::getNumberOfSymbolsInTable();
     u32 cargs = fmclassblock->getNumberOfPotentialClassArgumentSymbols();
     u32 numparams = getNumberOfParameters();
     u32 numDefaultParams = getTotalParametersWithDefaultValues();

@@ -79,21 +79,6 @@ namespace MFM {
     m_unknownArraysizeSubtree = ceForArraySize;
   } //linkConstantExpressionArraysize
 
-  void NodeTypeDescriptorArray::resetGivenUTI(UTI uti)
-  {
-    UTI newuti = uti;
-    UlamType * ut = m_state.getUlamTypeByIndex(uti);
-    if(ut->isScalar())
-      {
-	//create corresponding array type
-	UlamType * nut = m_state.getUlamTypeByIndex(givenUTI());
-	UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
-	UlamKeyTypeSignature newkey(key.getUlamKeyTypeSignatureNameId(),nut->getBitSize(), nut->getArraySize(), uti, nut->getReferenceType());
-	newuti = m_state.makeUlamType(newkey, ut->getUlamTypeEnum());
-      }
-    NodeTypeDescriptor::resetGivenUTI(newuti);
-  } //resetGivenUTI
-
   UTI NodeTypeDescriptorArray::checkAndLabelType()
   {
     UTI it = getNodeType();
@@ -185,7 +170,6 @@ namespace MFM {
 	  }
 
 	checkAndMatchBaseUlamTypes(nuti, scuti);
-	nuti = givenUTI(); //reload
 
 	if(resolveTypeArraysize(nuti, scuti))
 	  {
@@ -294,7 +278,15 @@ namespace MFM {
     // e.g. t3595 (typedef Unseen wasn't a class at all)
     if((m_state.getUlamTypeByIndex(auti)->getUlamTypeEnum() != m_state.getUlamTypeByIndex(scuti)->getUlamTypeEnum()) && !m_state.isHolder(auti))
       {
-	resetGivenUTI(scuti);
+	UlamType * scut = m_state.getUlamTypeByIndex(scuti);
+	assert(scut->isScalar());
+
+	//create corresponding array type, keep givenUTI (=auti) just change the key
+	UlamType * aut = m_state.getUlamTypeByIndex(auti);
+	UlamKeyTypeSignature sckey = scut->getUlamKeyTypeSignature();
+	UlamKeyTypeSignature newkey(sckey.getUlamKeyTypeSignatureNameId(), aut->getBitSize(), aut->getArraySize(), scuti, aut->getReferenceType());
+	m_state.makeUlamTypeFromHolder(newkey, scut->getUlamTypeEnum(), auti);
+
 	std::ostringstream msg;
 	msg << "Type of array descriptor: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
@@ -302,7 +294,6 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(scuti).c_str();
 	msg << " (UTI" << scuti << ")";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	auti = givenUTI();
       }
   } //checkAndMatchBaseUlamTypes
 

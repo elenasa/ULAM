@@ -163,15 +163,29 @@ namespace MFM {
 
   UTI CompilerState::makeUlamTypeFromHolder(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti)
   {
-    //trans-basic type from Class to Non-class
-    if((getUlamTypeByIndex(uti)->getUlamTypeEnum() == Class) && (utype != Class))
+    if((getUlamTypeByIndex(uti)->getUlamTypeEnum() == Class) && isScalar(uti))
       {
-	//we need to also remove the name id from program ST
-	u32 oldnameid = oldkey.getUlamKeyTypeSignatureNameId();
-	Symbol * tmpsym = NULL;
-	AssertBool isGone = m_programDefST.removeFromTable(oldnameid, tmpsym);
-	assert(isGone);
-	delete tmpsym;
+	if((utype != Class))
+	  {
+	    //trans-basic type from "Class" to Non-class
+	    //we need to also remove the name id from program ST
+	    u32 oldnameid = oldkey.getUlamKeyTypeSignatureNameId();
+	    Symbol * tmpsym = NULL;
+	    AssertBool isGone = m_programDefST.removeFromTable(oldnameid, tmpsym);
+	    assert(isGone);
+	    delete tmpsym;
+	  }
+	else
+	  {
+	    //let the new class name be represented instead of the old (e.g. typedef)
+	    u32 oldnameid = oldkey.getUlamKeyTypeSignatureNameId();
+	    SymbolClassName * cnsym = NULL;
+	    AssertBool isDefined = alreadyDefinedSymbolClassName(oldnameid, cnsym);
+	    assert(isDefined);
+	    u32 newnameid = newkey.getUlamKeyTypeSignatureNameId();
+	    cnsym->setId(newnameid);
+	    m_programDefST.replaceInTable(oldnameid, newnameid, cnsym);
+	  }
       }
 
     //we need to keep the uti, but change the key
@@ -2818,7 +2832,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   bool CompilerState::okUTItoContinue(UTI uti)
   {
-    return ((uti != Nav) && (uti != Hzy));
+    return ((uti != Nav) && (uti != Hzy) && (uti != Nouti));
   }
 
 } //end MFM
