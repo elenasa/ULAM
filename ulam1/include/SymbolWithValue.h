@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolWithValue.h - Basic handling of symbols with values for ULAM
  *
- * Copyright (C) 2015 The Regents of the University of New Mexico.
- * Copyright (C) 2015 Ackleyshack LLC.
+ * Copyright (C) 2015-2106 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2016 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolWithValue.h - Basic handling of symbols with values for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015 All rights reserved.
+  \date (C) 2015-2016 All rights reserved.
   \gpl
 */
 
@@ -63,6 +63,9 @@ namespace MFM{
     bool isParameter();
     void setParameterFlag();
 
+    bool isArgument();
+    void setArgumentFlag();
+
     bool getLexValue(std::string& vstr);
     bool getValue(s64& val);
     bool getValue(u64& val);
@@ -91,6 +94,7 @@ namespace MFM{
     bool m_isReady;
     bool m_hasDefault;
     bool m_parameter; //class params i.e. has default but no value, look at instance
+    bool m_argument; //class args
 
     union {
       s64 sval;

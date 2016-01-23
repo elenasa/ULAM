@@ -3,19 +3,19 @@
 
 namespace MFM {
 
-  SymbolWithValue::SymbolWithValue(Token id, UTI utype, CompilerState & state) : Symbol(id, utype, state), m_isReady(false), m_hasDefault(false), m_parameter(false)
+  SymbolWithValue::SymbolWithValue(Token id, UTI utype, CompilerState & state) : Symbol(id, utype, state), m_isReady(false), m_hasDefault(false), m_parameter(false), m_argument(false)
   {
     m_constant.sval = 0;
     m_default.sval = 0;
   }
 
-  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref) : Symbol(sref), m_isReady(sref.m_isReady), m_hasDefault(sref.m_hasDefault), m_parameter(false)
+  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref) : Symbol(sref), m_isReady(sref.m_isReady), m_hasDefault(sref.m_hasDefault), m_parameter(false), m_argument(sref.m_argument)
   {
     m_constant = sref.m_constant;
     m_default = sref.m_default;
   }
 
-  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref, bool keepType) : Symbol(sref, keepType), m_isReady(sref.m_isReady), m_hasDefault(sref.m_hasDefault), m_parameter(false)
+  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref, bool keepType) : Symbol(sref, keepType), m_isReady(sref.m_isReady), m_hasDefault(sref.m_hasDefault), m_parameter(false), m_argument(sref.m_argument)
   {
     m_constant = sref.m_constant;
     m_default = sref.m_default;
@@ -231,6 +231,16 @@ namespace MFM {
   bool SymbolWithValue::isParameter()
   {
     return m_parameter;
+  }
+
+  void SymbolWithValue::setArgumentFlag()
+  {
+    m_argument = true;
+  }
+
+  bool SymbolWithValue::isArgument()
+  {
+    return m_argument;
   }
 
   u32 SymbolWithValue::getPosOffset()

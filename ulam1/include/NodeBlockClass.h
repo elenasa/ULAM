@@ -121,13 +121,14 @@ namespace MFM{
 
     virtual u32 getNumberOfSymbolsInTable();
 
+    u32 getNumberOfPotentialClassArgumentSymbols();
+
     virtual u32 getSizeOfSymbolsInTable();
 
     virtual s32 getBitSizesOfVariableSymbolsInTable();
 
     virtual s32 getMaxBitSizeOfVariableSymbolsInTable();
 
-    //virtual s32 findUlamTypeInTable(UTI utype);
      s32 findUlamTypeInTable(UTI utype, UTI& insidecuti);
 
     bool isFuncIdInScope(u32 id, Symbol * & symptrref);

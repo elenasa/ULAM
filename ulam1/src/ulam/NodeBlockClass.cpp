@@ -662,6 +662,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     return supers + NodeBlock::getNumberOfSymbolsInTable();
   } //getNumberOfSymbolsInTable
 
+  u32 NodeBlockClass::getNumberOfPotentialClassArgumentSymbols()
+  {
+    return m_ST.getNumberOfConstantSymbolsInTable(true);
+  } //getNumberOfPotentialClassArgumentSymbols
+
   u32 NodeBlockClass::getSizeOfSymbolsInTable()
   {
     s32 supers = 0;

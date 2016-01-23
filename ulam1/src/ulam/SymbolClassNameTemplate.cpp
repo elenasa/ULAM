@@ -429,7 +429,8 @@ namespace MFM {
 	//can have 0Holder symbols for possible typedefs seen from another class
 	//which will increase the count of symbols; can only test for at least;
 	// (don't care about inherited symbols for class args, so use NodeBlock)
-	u32 cargs = cblock->NodeBlock::getNumberOfSymbolsInTable();
+	//u32 cargs = cblock->NodeBlock::getNumberOfSymbolsInTable();
+	u32 cargs = cblock->getNumberOfPotentialClassArgumentSymbols();
 	if((cargs < numparams) && ((cargs + numDefaultParams) < numparams))
 	  {
 	    //number of arguments in class instance does not match the number of parameters
@@ -437,8 +438,22 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Number of Arguments (" << cargs << ") in class instance '";
 	    msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
-	    msg << "' is insufficient for the required number of parameters (";
-	    msg << numparams << ") to be fixed";
+	    msg << "' is insufficient for the required number of template parameters (";
+	    msg << numparams << ")";
+	    MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
+	    it++;
+	    continue;
+	  }
+
+	if((cargs > numparams))
+	  {
+	    //number of arguments in class instance does not match the number of parameters
+	    // including those with default values (u.1.2.1)
+	    std::ostringstream msg;
+	    msg << "Number of Arguments (" << cargs << ") in class instance '";
+	    msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
+	    msg << "' is beyond the required number of template parameters (";
+	    msg << numparams << ")";
 	    MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
 	    it++;
 	    continue;
@@ -504,15 +519,6 @@ namespace MFM {
 
 	// the class instance's previous class block is linked to the template's when stub is made.
 	// later, during c&l if a subclass, the super ptr has the class block of the superclass
-	//cblock->setPreviousBlockPointer(getClassBlockNode());
-	UTI superuti = SymbolClass::getSuperClass();
-	if((superuti != Nouti) && (superuti != Hzy))
-	  {
-	    //superuti must be an instance of a quark, but could be a stub w unresolved args
-	    // that requires a stub copy with its own uti.
-	    //cblock->setSuperBlockPointer();
-	    //assert(0); //???
-	  }
 	cblock->setSuperBlockPointer(NULL); //wait for c&l when no longer a stub
 	it++;
       } //while
@@ -1489,7 +1495,8 @@ namespace MFM {
     NodeBlockClass * fmclassblock = fm->getClassBlockNode();
     assert(fmclassblock);
     // (don't care about inherited symbols for class args, so use NodeBlock)
-    u32 cargs = fmclassblock->NodeBlock::getNumberOfSymbolsInTable();
+    //u32 cargs = fmclassblock->NodeBlock::getNumberOfSymbolsInTable();
+    u32 cargs = fmclassblock->getNumberOfPotentialClassArgumentSymbols();
     u32 numparams = getNumberOfParameters();
     u32 numDefaultParams = getTotalParametersWithDefaultValues();
     if((cargs < numparams) && ((cargs + numDefaultParams) < numparams))
@@ -1498,9 +1505,22 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Number of Arguments (" << cargs << ") in class instance '";
 	msg << m_state.m_pool.getDataAsString(fm->getId()).c_str(); //not a uti
-	msg << "' is insufficient for the required number of parameters (";
-	msg << numparams << ")";
+	msg << "' is insufficient for the required number of template parameters (";
+	msg << numparams << "); Not fully instantiated";
 	MSG(fm->getTokPtr(), msg.str().c_str(), ERR);
+	return false;
+      }
+
+    if((cargs > numparams))
+      {
+	//number of arguments in class instance does not match the number of parameters
+	// including those with default values (u.1.2.1)
+	std::ostringstream msg;
+	msg << "Number of Arguments (" << cargs << ") in class instance '";
+	msg << m_state.m_pool.getDataAsString(fm->getId()).c_str(); //not a uti
+	msg << "' is beyond the required number of template parameters (";
+	msg << numparams << "); Not fully instantiated";
+	MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
 	return false;
       }
 

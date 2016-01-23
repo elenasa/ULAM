@@ -124,6 +124,25 @@ namespace MFM {
     return (m_idToSymbolPtr.empty() ? 0 : m_idToSymbolPtr.size());
   }
 
+  //called by NodeBlockClass.
+  u32 SymbolTable::getNumberOfConstantSymbolsInTable(bool argsOnly)
+  {
+    u32 cntOfConstants = 0;
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym);
+	if(sym->isConstant())
+	  {
+	    if(!argsOnly || ((SymbolConstantValue *) sym)->isArgument())
+	      cntOfConstants++;
+	  }
+	it++;
+      }
+    return cntOfConstants;
+  } //getNumberOfConstantSymbolsInTable
+
   //called by NodeBlock.
   u32 SymbolTable::getTotalSymbolSize()
   {

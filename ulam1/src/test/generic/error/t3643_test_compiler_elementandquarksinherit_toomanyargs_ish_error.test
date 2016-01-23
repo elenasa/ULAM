@@ -1,0 +1,34 @@
+## -*- mode:ulam -*-
+#=t3643_test_compiler_elementandquarksinherit_toomanyargs_ish_error
+#!
+./QMoCo.ulam:2:7: ERROR: Number of Arguments (7) in class instance 'QMoCo' is beyond the required number of template parameters (1).
+Unrecoverable Program Parse FAILURE.
+##
+## informed by a Dave ish 1/18/2016
+##
+#>Ish8.ulam
+  ulam 2;
+element Ish8 : QMoCo(0xDADD1E0,0,1,2,3,4,45) {
+  Int test() {
+    return 0;
+  }
+}
+use QMoCo;
+
+
+#:QMoCo.ulam
+  ulam 2;
+quark QMoCo(Bits speciesTag) : QTag(speciesTag) { }
+use QTag;
+
+#:QTag.ulam
+  ulam 2;
+quark QTag(Bits speciesTag) {
+  Bits getTag() { return speciesTag; } }
+
+
+/* Generates:
+culam: SymbolClass.cpp:394: bool MFM::SymbolClass::hasMappedUTI(MFM::u16, MFM::u16&): Assertion `isDefined' failed.
+*/
+
+#.
