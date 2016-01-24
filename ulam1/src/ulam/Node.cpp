@@ -461,10 +461,6 @@ namespace MFM {
     if(uvpass.getPtrNameId() == 0)
       return genCodeConvertATmpVarIntoBitVector(fp, uvpass);
 
-    // split off autoref stg/member selected
-    //if(uvpass.getPtrStorage() == TMPAUTOREF)
-    //  return genCodeReadAutorefIntoATmpVar(fp, uvpass);
-
     m_state.indent(fp);
     fp->write("const ");
     fp->write(tmpStorageTypeForRead(cosuti, uvpass).c_str());
@@ -1701,7 +1697,6 @@ namespace MFM {
     // write out next chain using auto ref constuctor
     if(uvpass.getPtrStorage() == TMPAUTOREF)
       {
-	//assert(m_state.isReference(cosuti));
 	assert(m_state.isReference(vuti));
 	m_state.indent(fp);
 	//can't be const and chainable
@@ -1933,8 +1928,6 @@ namespace MFM {
 	      {
 		//cast non-ref to its ref type; constants & funccalls
 		// not legal for initialization; ok for assignment.
-		//assert(!node->isAConstant());
-		//assert(!node->isFunctionCall());
 		rtnNode = new NodeCast(node, tobeType, NULL, m_state);
 		assert(rtnNode);
 		rtnNode->setNodeLocation(getNodeLocation());
@@ -2578,7 +2571,10 @@ namespace MFM {
     NNO cosBlockNo = cos->getBlockNoOfST();
     NNO stgcosBlockNo = m_state.getAClassBlockNo(stgcosuti);
     s32 subcos = -1;
-    if(stgcosBlockNo != cosBlockNo)
+
+    // when cos and stgcos are different, check inheritance
+    //if(stgcosBlockNo != cosBlockNo)
+    if((cosSize > 1) && (stgcosBlockNo != cosBlockNo))
       {
 	subcos = isCurrentObjectsContainingASubClass();
 	if(subcos >= 0)
@@ -2810,8 +2806,6 @@ namespace MFM {
     //an element's "self" as obj[0] is like it isn't there for purposes of this discovery.
     //quark's self is an atom, and should be treated like a local arg.
     // note: self is not a data member.
-    //return !(m_state.m_currentObjSymbolsForCodeGen.empty() || (m_state.m_currentObjSymbolsForCodeGen[0]->isDataMember() && isCurrentObjectsContainingAModelParameter() == -1) || (m_state.m_currentObjSymbolsForCodeGen[0]->isSelf() && m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx() != UAtom && isCurrentObjectsContainingAModelParameter() == -1));
-
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       return false; //must be self, t.f. not local
 
