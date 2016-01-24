@@ -142,21 +142,18 @@ namespace MFM {
 
     if(vclasstype == UC_QUARK)
       {
+	UTI scalarquark = m_state.getUlamTypeAsScalar(vuti);
 	//printPostfixValuesForClass:
 	SymbolClass * csym = NULL;
-	if(m_state.alreadyDefinedSymbolClass(vuti, csym))
-	  {
-	    NodeBlockClass * classNode = csym->getClassBlockNode();
-	    assert(classNode);
-	    u32 newstartpos = startpos + getPosOffset();
-	    s32 len = vut->getBitSize();
-	    for(s32 i = 0; i < size; i++)
-	      classNode->printPostfixDataMembersSymbols(fp, slot, newstartpos + len * i, vclasstype);
-	  }
-	else
-	  {
-	    assert(0); //error!
-	  }
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(scalarquark, csym);
+	assert(isDefined);
+
+	NodeBlockClass * classNode = csym->getClassBlockNode();
+	assert(classNode);
+	u32 newstartpos = startpos + getPosOffset();
+	s32 len = vut->getBitSize();
+	for(s32 i = 0; i < size; i++)
+	  classNode->printPostfixDataMembersSymbols(fp, slot, newstartpos + len * i, vclasstype);
       }
     else
       {

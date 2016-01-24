@@ -108,6 +108,8 @@ namespace MFM{
 
     static UlamValue makeImmediateQuark(UTI utype, u32 v, s32 len);
 
+    static UlamValue makeImmediateQuarkArrayLong(UTI utype, u64 v, s32 len);
+
     static UlamValue makeImmediateLong(UTI utype, u64 v, CompilerState& state);
 
     static UlamValue makeImmediateLong(UTI utype, u64 v, s32 len = 64);

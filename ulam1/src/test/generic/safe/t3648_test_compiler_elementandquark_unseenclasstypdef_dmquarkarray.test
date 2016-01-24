@@ -1,0 +1,33 @@
+## -*- mode:ulam -*-
+#=t3648_test_compiler_elementandquark_unseenclasstypedef_dmquarkarray
+#!
+Exit status: 1
+Ue_Foo { constant Int(32) cx = 7;  typedef Bar(4) Tar;  Bar(4) tar[4]( constant Int(32) x = 4;  Bits(4) m_bits(1);  constant Int(32) x = 4;  Bits(4) m_bits(1);  constant Int(32) x = 4;  Bits(4) m_bits(1);  constant Int(32) x = 4;  Bits(4) m_bits(1); );  Int(32) test() {  tar 2 [] ( )toInt . return } }
+Uq_Bar(Int(32) x) { Bits(UNKNOWN) m_bits(notready);  <NOMAIN> }
+##
+## informed by t3647 (order matters)
+##
+#>Foo.ulam
+  ulam 1;
+element Foo {
+  constant Int cx = 7;
+  typedef Bar(cx - 3) Tar;
+  Tar tar[4];
+  Int test() {
+    return tar[2];
+  }
+}
+use Bar;
+
+#:Bar.ulam
+  ulam 1;
+quark Bar(Int x) {
+  Bits(x) m_bits = 1;
+  Int toInt()
+  {
+    return (Int) m_bits;
+  }
+}
+
+
+#.

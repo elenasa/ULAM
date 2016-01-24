@@ -1086,7 +1086,7 @@ namespace MFM {
 	if(isScalar())
 	  fp->write("}\n"); //done
 	else
-	  fp->write("}   //reads entire array\n");
+	  fp->write("} //reads entire array\n");
       }
 
     if(!isScalar())
@@ -1116,7 +1116,7 @@ namespace MFM {
 	if(isScalar())
 	  fp->write("}\n");
 	else
-	  fp->write("}   //writes entire array\n");
+	  fp->write("} //writes entire array\n");
       }
 
     if(!isScalar())

@@ -96,6 +96,16 @@ namespace MFM {
     return rtnVal;
   } //makeImmediateQuark
 
+  UlamValue UlamValue::makeImmediateQuarkArrayLong(UTI utype, u64 v, s32 len)
+  {
+    UlamValue rtnVal; //static
+    assert(len <= MAXBITSPERLONG && (s32) len >= 0); //very important!
+    rtnVal.clear();
+    rtnVal.setUlamValueTypeIdx(utype);
+    rtnVal.putDataLong(ATOMFIRSTSTATEBITPOS, len, v); //left-justified
+    return rtnVal;
+  } //makeImmediateQuarkArrayLong
+
   UlamValue UlamValue::makeImmediateLong(UTI utype, u64 v, CompilerState& state)
   {
     s32 len = state.getTotalBitSize(utype);

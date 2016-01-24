@@ -1,0 +1,34 @@
+## -*- mode:ulam -*-
+#=t3650_test_compiler_elementandquark_unseenclasstypedef_localquarkarrayref
+#!
+Exit status: 0
+Ue_Foo { constant Int(32) cx = 7;  typedef Bar(7) Tar;  Int(32) test() {  Bar(7) tar[4];  Bar(7)& tref = tar 3 [];  tref ( )toInt . return } }
+Uq_Bar(Int(32) x) { Bits(UNKNOWN) m_bits(notready);  <NOMAIN> }
+##
+## informed by t3649 (order matters)
+##
+#>Foo.ulam
+  ulam 1;
+element Foo {
+  constant Int cx = 7;
+  typedef Bar(cx + 0) Tar;
+  Int test() {
+    Tar tar[4];
+    Tar & tref = tar[3];
+    return tref;
+  }
+}
+use Bar;
+
+#:Bar.ulam
+  ulam 1;
+quark Bar(Int x) {
+  Bits(x) m_bits;
+  Int toInt()
+  {
+    return (Int) m_bits;
+  }
+}
+
+
+#.

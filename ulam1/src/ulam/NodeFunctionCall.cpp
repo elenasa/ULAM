@@ -694,8 +694,13 @@ namespace MFM {
   // note: uvpass arg is not equal to m_currentObjPtr; it is blank.
   void NodeFunctionCall::genCode(File * fp, UlamValue& uvpass)
   {
-    genCodeIntoABitValue(fp, uvpass);
+    // The Call:
+    if(m_state.isPtr(uvpass.getUlamValueTypeIdx()) && (uvpass.getPtrStorage() == TMPAUTOREF))
+      genCodeAReferenceIntoABitValue(fp, uvpass);
+    else
+      genCodeIntoABitValue(fp, uvpass);
 
+    // Result:
     if(getNodeType() != Void)
       {
 	Node::genCodeConvertABitVectorIntoATmpVar(fp, uvpass); //inc uvpass slot
@@ -778,6 +783,85 @@ namespace MFM {
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeIntoABitValue
+
+  void NodeFunctionCall::genCodeAReferenceIntoABitValue(File * fp, UlamValue& uvpass)
+  {
+    UlamValue rtnuvpass;
+    // generate for value
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+    std::ostringstream arglist;
+    // presumably there's no = sign.., and no open brace for tmpvars
+    arglist << genHiddenArgsForARef(fp, uvpass).c_str();
+
+    //loads any variables into tmps before used as args (needs fp)
+    arglist << genRestOfFunctionArgs(fp, uvpass).c_str();
+
+    //non-void RETURN value saved in a tmp BitValue; depends on return type
+    m_state.indent(fp);
+    if(nuti != Void)
+      {
+	u32 pos = 0; //POS 0 rightjustified;
+	if(nut->getUlamClass() == UC_NOTACLASS) //includes atom too
+	  {
+	    u32 wordsize = nut->getTotalWordSize();
+	    pos = wordsize - nut->getTotalBitSize();
+	  }
+
+	s32 rtnSlot = m_state.getNextTmpVarNumber();
+
+	u32 selfid = 0;
+	if(m_state.m_currentObjSymbolsForCodeGen.empty())
+	  selfid = m_state.getCurrentSelfSymbolForCodeGen()->getId(); //a use for CSS
+	else
+	  selfid = m_state.m_currentObjSymbolsForCodeGen[0]->getId();
+
+	rtnuvpass = UlamValue::makePtr(rtnSlot, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, justified; self id in Ptr;
+
+	// put result of function call into a variable;
+	// (C turns it into the copy constructor)
+	fp->write("const ");
+	fp->write(nut->getLocalStorageTypeAsString().c_str()); //e.g. BitVector<32>
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(nuti, rtnSlot, TMPBITVAL).c_str());
+	fp->write(" = ");
+      } //not void return
+
+
+    assert(uvpass.getPtrStorage() == TMPAUTOREF);
+    UTI vuti = uvpass.getPtrTargetType();
+    assert(m_state.getUlamTypeByIndex(vuti)->getReferenceType() != ALT_NOT);
+
+    //use possible dereference type for mangled name
+    UTI derefuti = m_state.getUlamTypeAsDeref(vuti);
+    UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
+
+    // who's function is it?
+    if(m_funcSymbol->isVirtualFunction())
+      genCodeVirtualFunctionCall(fp, uvpass); //indirect call thru func ptr
+    else
+      {
+	fp->write(derefut->getUlamTypeMangledName().c_str());
+	if(derefut->getUlamClass() == UC_ELEMENT)
+	  fp->write("<EC>::");
+	else
+	  {
+	    fp->write("<EC, ");
+	    fp->write("T::ATOM_FIRST_STATE_BIT>::"); //ref quark, left-just
+	  }
+	fp->write("THE_INSTANCE.");
+	fp->write(m_funcSymbol->getMangledName().c_str());
+      }
+
+    // the arguments
+    fp->write("(");
+    fp->write(arglist.str().c_str());
+    fp->write(");\n");
+
+    m_state.m_currentObjSymbolsForCodeGen.clear();
+    uvpass = rtnuvpass;
+  } //genCodeAReferenceIntoABitValue
 
   void NodeFunctionCall::genCodeVirtualFunctionCall(File * fp, UlamValue & uvpass)
   {
@@ -1123,6 +1207,36 @@ namespace MFM {
     return hiddenargs.str();
   } //genHiddenArgs
 
+  std::string NodeFunctionCall::genHiddenArgsForARef(File * fp, UlamValue uvpass)
+  {
+    assert(uvpass.getPtrStorage() == TMPAUTOREF);
+    UTI vuti = uvpass.getPtrTargetType();
+    assert(m_state.getUlamTypeByIndex(vuti)->getReferenceType() != ALT_NOT);
+
+    //use possible dereference type for mangled name
+    UTI derefuti = m_state.getUlamTypeAsDeref(vuti);
+    UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
+
+    std::ostringstream hiddenargs;
+    //update uc to reflect "effective" self for this funccall
+    hiddenargs << "UlamContext<EC>(uc, &";
+    hiddenargs << derefut->getUlamTypeMangledName().c_str();
+    hiddenargs << "<EC";
+    if(derefut->getUlamClass() == UC_QUARK)
+      {
+	hiddenargs << ", ";
+	//hiddenargs << uvpass.getPtrPosOffset() << "u + "; //maybe just zero
+	hiddenargs << "T::ATOM_FIRST_STATE_BIT"; //left-justified
+      }
+
+    hiddenargs << ">::THE_INSTANCE), ";
+
+    u32 tmpvarnum = uvpass.getPtrSlotIndex();
+    hiddenargs << m_state.getTmpVarAsString(derefuti, tmpvarnum, TMPAUTOREF).c_str();
+    hiddenargs << ".getRef()"; //the T storage within the struct for immediate quarks
+    return hiddenargs.str();
+  } //genHiddenArgsForARef
+
   std::string NodeFunctionCall::genStorageType()
   {
     std::ostringstream stype;
@@ -1275,7 +1389,7 @@ namespace MFM {
   // should be like NodeVarRef::genCode
   void NodeFunctionCall::genCodeReferenceArg(File * fp, UlamValue & uvpass, u32 n)
   {
-    // get the right-hand side, stgcos
+    // get the right?-hand side, stgcos
     // can be same type (e.g. element, quark, or primitive),
     // or ancestor quark if a class.
     m_argumentNodes->genCodeToStoreInto(fp, uvpass, n);

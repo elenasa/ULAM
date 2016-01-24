@@ -1,0 +1,37 @@
+## -*- mode:ulam -*-
+#=t3651_test_compiler_elementandquark_localarrayref
+#!
+Exit status: 7
+Ue_Foo : Bar { :< typedef Int(7) Tar;  constant Int(32) cx = 7;  Int(7) m_tar(1); > Int(32) test() {  Int(7) tar[4];  Int(7)& tref = tar 3 [];  tref 7 cast = tref cast return } }
+Uq_Bar { constant Int(32) cx = 7;  typedef Int(7) Tar;  Int(7) m_tar( 1);  <NOMAIN> }
+##
+## informed by t3650, except non-class array (order matters)
+## using typedef, constant defined in ancestor, Bar.
+##
+#>Foo.ulam
+  ulam 2;
+element Foo : Bar {
+  Int test() {
+    Tar tar[4];
+    Tar & tref = tar[3];
+    tref = cx;
+    return tref;
+  }
+}
+use Bar;
+
+#:Bar.ulam
+  ulam 2;
+quark Bar {
+  constant Int cx = 7;
+  typedef Int(cx + 0) Tar;
+
+  Tar(cx) m_tar = 1;
+  Int toInt()
+  {
+    return m_tar;
+  }
+}
+
+
+#.

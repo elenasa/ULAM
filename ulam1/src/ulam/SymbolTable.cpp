@@ -920,8 +920,9 @@ namespace MFM {
 	      }
 	    else if(m_state.getUlamTypeByIndex(suti)->getUlamClass() == UC_QUARK)
 	      {
+		UTI scalarquark = m_state.getUlamTypeAsScalar(suti);
 		SymbolClass * csym = NULL;
-		AssertBool isDefined = m_state.alreadyDefinedSymbolClass(suti, csym); //scalar class symbol;
+		AssertBool isDefined = m_state.alreadyDefinedSymbolClass(scalarquark, csym);
 		assert(isDefined);
 		u32 dval = 0;
 		if(csym->getDefaultQuark(dval))

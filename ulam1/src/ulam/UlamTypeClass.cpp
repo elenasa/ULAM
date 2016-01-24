@@ -624,15 +624,21 @@ namespace MFM {
 
   void UlamTypeClass::genUlamTypeQuarkReadDefinitionForC(File * fp)
   {
-    m_state.indent(fp);
-    fp->write("const ");
-    fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
-    fp->write(" read() const { ");
-    //fp->write("assert(Us::THE_INSTANCE.GetPos() == (AutoRefBase<EC>::getPosOffset() + T::ATOM_FIRST_STATE_BIT)); "); //assert temporary XXX
-    fp->write("return Up_Us::");
-    fp->write(readMethodForCodeGen().c_str());
-    fp->write("(AutoRefBase<EC>::getBits()); ");
-    fp->write("}\n");
+    if(isScalar() || getPackable() == PACKEDLOADABLE)
+      {
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
+	fp->write(" read() const { ");
+	//fp->write("assert(Us::THE_INSTANCE.GetPos() == (AutoRefBase<EC>::getPosOffset() + T::ATOM_FIRST_STATE_BIT)); "); //assert temporary XXX
+	fp->write("return Up_Us::");
+	fp->write(readMethodForCodeGen().c_str());
+	fp->write("(AutoRefBase<EC>::getBits()); ");
+	if(isScalar())
+	  fp->write("}\n");
+	else
+	  fp->write("} //reads entire array\n");
+      }
 
     if(!isScalar())
       {
@@ -650,19 +656,25 @@ namespace MFM {
 
   void UlamTypeClass::genUlamTypeQuarkWriteDefinitionForC(File * fp)
   {
-    m_state.indent(fp);
-    fp->write("void write(const ");
-    fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
-    fp->write(" v) { ");
-    //fp->write("assert(Us::THE_INSTANCE.GetPos() == ( AutoRefBase<EC>::getPosOffset() + T::ATOM_FIRST_STATE_BIT)); "); //assert temporary XXX
-    fp->write("Up_Us::");
-    fp->write(writeMethodForCodeGen().c_str());
-    fp->write("(AutoRefBase<EC>::getBits(), v); ");
-    fp->write("}\n");
+    if(isScalar() || getPackable() == PACKEDLOADABLE)
+      {
+	m_state.indent(fp);
+	fp->write("void write(const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
+	fp->write(" v) { ");
+	//fp->write("assert(Us::THE_INSTANCE.GetPos() == ( AutoRefBase<EC>::getPosOffset() + T::ATOM_FIRST_STATE_BIT)); "); //assert temporary XXX
+	fp->write("Up_Us::");
+	fp->write(writeMethodForCodeGen().c_str());
+	fp->write("(AutoRefBase<EC>::getBits(), v); ");
+	if(isScalar())
+	  fp->write("}\n");
+	else
+	  fp->write("} //writes entire array\n");
+      }
 
     if(!isScalar())
       {
-	// writes an element of array
+	// writes an item of array
 	//3rd argument generated for compatibility with underlying method
 	m_state.indent(fp);
 	fp->write("void writeArrayItem(const ");
@@ -963,7 +975,7 @@ namespace MFM {
 		    fp->write("u; while(n--) { ");
 		    fp->write(automangledName.c_str());
 		    fp->write("<EC, T::ATOM_FIRST_STATE_BIT>::");
-		    fp->write("AutoRefBase<EC>::writeArrayItem(DEFAULT_QUARK, n, ");
+		    fp->write("writeArrayItem(DEFAULT_QUARK, n, ");
 		    fp->write_decimal_unsigned(getBitSize());
 		    fp->write("u); }");
 		  }

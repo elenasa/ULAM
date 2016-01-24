@@ -884,8 +884,9 @@ namespace MFM {
 	rtnb = true;
 	if(getBitSize(cuti) > 0)
 	  {
+	    UTI scalarquark = getUlamTypeAsScalar(cuti);
 	    SymbolClass * csym = NULL;
-	    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
+	    AssertBool isDefined = alreadyDefinedSymbolClass(scalarquark, csym);
 	    assert(isDefined);
 	    rtnb = csym->getDefaultQuark(dqref);
 	  }

@@ -76,8 +76,9 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     if(nut->getUlamTypeEnum() == Class)
       {
+	UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
 	SymbolClass * csym = NULL;
-	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(scalaruti, csym);
 	assert(isDefined);
 	if(csym->isAbstract())
 	  {
@@ -402,7 +403,7 @@ namespace MFM {
 
     assert(m_state.okUTItoContinue(it));
     ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(it)->getUlamClass();
-    if(m_state.getTotalBitSize(it) > MAXBITSPERLONG && classtype == UC_NOTACLASS)
+    if((m_state.getTotalBitSize(it) > MAXBITSPERLONG) && (classtype == UC_NOTACLASS))
       {
 	std::ostringstream msg;
 	msg << "Data member <" << getName() << "> of type: ";
@@ -414,16 +415,31 @@ namespace MFM {
 	setNodeType(Nav); //compiler counts
       }
 
-    if(m_state.getTotalBitSize(it) > MAXBITSPERINT && classtype == UC_QUARK)
+    if(classtype == UC_QUARK)
       {
-	std::ostringstream msg;
-	msg << "Data member <" << getName() << "> of type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	msg << ", total size: " << (s32) m_state.getTotalBitSize(it);
-	msg << " MUST fit into " << MAXBITSPERINT << " bits;";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setNodeType(Nav); //compiler counts
-      }
+	bool isscalar = m_state.isScalar(it);
+	if(isscalar && (m_state.getTotalBitSize(it) > MAXBITSPERINT))
+	  {
+	    std::ostringstream msg;
+	    msg << "Data member <" << getName() << "> of class type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    msg << ", total size: " << (s32) m_state.getTotalBitSize(it);
+	    msg << " MUST fit into " << MAXBITSPERINT << " bits";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav); //compiler counts
+	  }
+	if(!isscalar && (m_state.getTotalBitSize(it) > MAXBITSPERLONG))
+	  {
+	    std::ostringstream msg;
+	    msg << "Data member <" << getName() << "> of class array type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    msg << ", total size: " << (s32) m_state.getTotalBitSize(it);
+	    msg << " MUST fit into " << MAXBITSPERLONG << " bits;";
+	    msg << "Local variables do not have this restriction";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav); //compiler counts
+	  }
+      } //quarks
 
     if(classtype == UC_ELEMENT)
       {
@@ -514,9 +530,9 @@ namespace MFM {
 	  }
 	else
 	  {
-	    //must be a local quark!
+	    //must be a local quark! could be an array of them!!
 	    u32 dq = 0;
-	    AssertBool isDefinedQuark = m_state.getDefaultQuark(nuti, dq);
+	    AssertBool isDefinedQuark = m_state.getDefaultQuark(nuti, dq); //returns scalar dq
 	    assert(isDefinedQuark);
 	    if(m_state.isScalar(nuti))
 	      {
@@ -540,7 +556,7 @@ namespace MFM {
 			dqarrval |= (dq << (len - (pos + (j * bitsize))));
 		      }
 
-		    UlamValue immUV = UlamValue::makeImmediate(nuti, dqarrval, m_state);
+		    UlamValue immUV = UlamValue::makeImmediateQuark(nuti, dqarrval, len);
 		    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
 		  }
 		else if(len <= MAXBITSPERLONG)
@@ -552,13 +568,22 @@ namespace MFM {
 			dqarrval |= (dq << (len - (pos + (j * bitsize))));
 		      }
 
-		    UlamValue immUV = UlamValue::makeImmediateLong(nuti, dqarrval, m_state);
+		    UlamValue immUV = UlamValue::makeImmediateQuarkArrayLong(nuti, dqarrval, len);
 		    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
 		  }
 		else
 		  {
+		    std::ostringstream msg;
+		    msg << "EVAL: Unpacked array of quarks is unsupported:  ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		    msg << " with variable symbol name '" << getName() << "'";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    return ERROR;
 		    //unpacked array of quarks is unsupported at this time!!
-		    assert(0);
+		    //assert(0);
+		    //UTI scalarquark = m_state.getUlamTypeAsScalar(nuti);
+		    //UlamValue immUV = UlamValue::makeImmediateQuark(scalarquark, dq, bitsize);
+		    //m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
 		  }
 	      }
 	  }
@@ -591,19 +616,28 @@ namespace MFM {
 
     UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1);
 
-    u32 slot = makeRoomForNodeType(getNodeType());
+    u32 slots = makeRoomForNodeType(getNodeType());
 
     evs = m_nodeInitExpr->eval();
 
     if(evs == NORMAL)
       {
-	if(slot)
+	if(slots == 1)
 	  {
-	    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slot+1); //immediate scalar
+	    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slots+1); //immediate scalar
 	    m_state.assignValue(pluv,ruv);
 
 	    //also copy result UV to stack, -1 relative to current frame pointer
 	    Node::assignReturnValueToStack(ruv);
+	  }
+	else //unpacked
+	  {
+	    assert(0);
+	    for(u32 j = 0; j < slots; j++)
+	      {
+		UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slots+1+j); //immediate scalar
+		m_state.assignValue(pluv,ruv); //WRONG!!!
+	      }
 	  }
       } //normal
     evalNodeEpilog();

@@ -323,11 +323,37 @@ namespace MFM {
 		if((vclasstype == UC_NOTACLASS) && (vut->getUlamTypeEnum() != UAtom) )
 		  {
 		    fp->write(", ");
-		    fp->write_decimal_unsigned(BITSPERATOM - stgcosut->getTotalBitSize() - ATOMFIRSTSTATEBITPOS); //right-justified, not including FIRSTSTATEBITPOS
-		    fp->write("u");
+		    if(!stgcosut->isScalar())
+		      {
+			fp->write("(");
+			fp->write_decimal_unsigned(BITSPERATOM);
+			fp->write(" - (");
+			fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
+			fp->write(" * ");
+			fp->write_decimal_unsigned(stgcosut->getBitSize());
+			fp->write("u) - ");
+			fp->write_decimal_unsigned(ATOMFIRSTSTATEBITPOS);
+			fp->write(")");
+		      }
+		    else
+		      {
+			fp->write_decimal_unsigned(BITSPERATOM - stgcosut->getTotalBitSize() - ATOMFIRSTSTATEBITPOS); //right-justified, not including FIRSTSTATEBITPOS
+			fp->write("u");
+		      }
 		  }
 		else if(vclasstype == UC_QUARK)
-		  fp->write(", 0u"); //left-justified
+		  {
+		    if(!stgcosut->isScalar())
+		      {
+			fp->write(", ");
+			fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
+			fp->write(" * ");
+			fp->write_decimal_unsigned(stgcosut->getBitSize());
+			fp->write("u");
+		      }
+		    else
+		      fp->write(", 0u"); //left-justified
+		  }
 	      }
 	  }
 	fp->write(");\n");

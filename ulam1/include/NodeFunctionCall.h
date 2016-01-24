@@ -110,8 +110,10 @@ namespace MFM{
     NodeList * m_argumentNodes;
 
     void genCodeIntoABitValue(File * fp, UlamValue& uvpass);
+    void genCodeAReferenceIntoABitValue(File * fp, UlamValue& uvpass);
     void genCodeVirtualFunctionCall(File * fp, UlamValue & uvpass);
     std::string genHiddenArgs();
+    std::string genHiddenArgsForARef(File * fp, UlamValue uvpass);
     std::string genRestOfFunctionArgs(File * fp, UlamValue & uvpass);
     void genCodeReferenceArg(File * fp, UlamValue & uvpass, u32 n);
     std::string genStorageType(); //for VTable entry

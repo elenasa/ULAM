@@ -325,6 +325,15 @@ namespace MFM {
       case Bits:
 	rtnUV = UlamValue::makeImmediateLong(uti, data, m_state);
 	break;
+      case Class:
+	{
+	  if(ut->getUlamClass() == UC_QUARK)
+	    {
+	      assert(!ut->isScalar());
+	      rtnUV = UlamValue::makeImmediateQuarkArrayLong(uti, data, ut->getTotalBitSize());
+	      break;
+	    }
+	}
       default:
 	{
 	  std::ostringstream msg;
