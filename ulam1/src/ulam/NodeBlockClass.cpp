@@ -482,15 +482,26 @@ namespace MFM {
 
     if(!hasCA)
       {
-	if(m_state.isClassASubclass(cuti) != Nouti)
+	UTI superuti = m_state.isClassASubclass(cuti);
+	if(m_state.okUTItoContinue(superuti))
 	  {
 	    NodeBlockClass * superblock = getSuperBlockPointer();
-	    assert(superblock);
+	    if(!superblock) //might be during resolving loop, not set yet
+	      {
+		SymbolClass * supercsym = NULL;
+		AssertBool isDefined = m_state.alreadyDefinedSymbolClass(superuti, supercsym);
+		assert(isDefined);
+		superblock = supercsym->getClassBlockNode();
+		assert(superblock);
+		//if(supercsym->isStub())
+		//  superblock = (NodeBlockClass *) superblock->getPreviousBlockPointer();
+		//assert(superblock);
+	      }
 	    return superblock->hasCustomArray();
 	  }
       }
-  return hasCA;
-} //checkCustomArrayTypeFunctions
+    return hasCA;
+  } //hasCustomArray
 
 void NodeBlockClass::checkCustomArrayTypeFunctions()
   {

@@ -1,0 +1,39 @@
+## -*- mode:ulam -*-
+#=t3645_test_compiler_elementandquark_caarray_ish
+#!
+Exit status: 0
+Ue_IshC { Int(32) test() {  Q(0x 7) q;  Atom(96) a;  a q 1 cast [] = 0 cast return } }
+Uq_Q(Bits(32) b) { <NOMAIN> }
+##
+## informed by a Dave ish 1/18/2016; (order matters)
+##
+#>IshC.ulam
+  ulam 2;
+element IshC {
+  Int test() {
+    Q(7) q;
+    Atom a;
+    a = q[1];
+    return 0;
+  }
+}
+use Q;
+
+
+#:Q.ulam
+  ulam 2;
+quark Q(Bits b)
+{
+  Atom aref(Int i) { Atom a; return a; }
+  Void aset(Int i, Atom a) { }
+}
+
+/* Generates:
+ /home/ackley/papers/MF/asrepo/RT13/code/ULAM-fork/ULAM/ulam1/bin/../bin/culam -o /home/ackley/papers/MF/asrepo/RT13/papers/PAPER-PREP/ALIFE-CANCUN-2016/code/smco-new-u-20160123/.gen -i /home/ackley/papers/MF/asrepo/RT13/code/ULAM-fork/ULAM/ulam1/bin/../share/ulam/stdlib -i /home/ackley/papers/MF/asrepo/RT13/code/ULAM-fork/ULAM/ulam1/bin/../share/ulam/core IshC.ulam
+OUTPUT DIRECTORY: /home/ackley/papers/MF/asrepo/RT13/papers/PAPER-PREP/ALIFE-CANCUN-2016/code/smco-new-u-20160123/.gen
+./IshC.ulam:7:10: ERROR: Invalid Type: Q(0x 7) used with [].
+./IshC.ulam:12:7: ERROR: 1 Nodes with erroneous types detected after type labeling class: Q11.
+Unrecoverable Program Type Label FAILURE.
+*/
+
+#.

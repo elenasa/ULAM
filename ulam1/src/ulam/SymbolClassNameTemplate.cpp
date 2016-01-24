@@ -242,6 +242,9 @@ namespace MFM {
   SymbolClass * SymbolClassNameTemplate::makeAStubClassInstance(Token typeTok, UTI stubcuti)
   {
     NodeBlockClass * templateclassblock = getClassBlockNode();
+    assert(templateclassblock);
+    bool isCATemplate = templateclassblock->hasCustomArray();
+
     //previous block is template's class block, and new NNO here!
     NodeBlockClass * newblockclass = new NodeBlockClass(templateclassblock, m_state);
     assert(newblockclass);
@@ -275,6 +278,9 @@ namespace MFM {
 	  newclassinstance->setSuperClass(Hzy);
       }
 
+    if(isCATemplate)
+      ((UlamTypeClass *) m_state.getUlamTypeByIndex(stubcuti))->setCustomArray();
+
     addClassInstanceUTI(stubcuti, newclassinstance); //link here
     return newclassinstance;
   } //makeAStubClassInstance
@@ -283,6 +289,9 @@ namespace MFM {
   SymbolClass * SymbolClassNameTemplate::makeAStubClassInstanceHolder(Token typeTok, UTI suti)
   {
     NodeBlockClass * templateclassblock = getClassBlockNode();
+    assert(templateclassblock);
+    bool isCATemplate = templateclassblock->hasCustomArray();
+
     //previous block is template's class block, and new NNO here!
     NodeBlockClass * newblockclass = new NodeBlockClass(templateclassblock, m_state);
     assert(newblockclass);
@@ -295,6 +304,9 @@ namespace MFM {
     assert(newclassinstance);
     if(isQuarkUnion())
       newclassinstance->setQuarkUnion();
+
+    if(isCATemplate)
+      ((UlamTypeClass *) m_state.getUlamTypeByIndex(suti))->setCustomArray();
 
     addClassInstanceUTI(suti, newclassinstance); //link here
 
@@ -360,6 +372,8 @@ namespace MFM {
     assert(csym->isStub());
     NodeBlockClass * blockclass = csym->getClassBlockNode();
     NodeBlockClass * templateclassblock = getClassBlockNode();
+    assert(templateclassblock);
+    bool isCATemplate = templateclassblock->hasCustomArray();
 
     //previous block is template's class block, and new NNO here!
     NodeBlockClass * newblockclass = new NodeBlockClass(templateclassblock, m_state);
@@ -378,6 +392,9 @@ namespace MFM {
 
     if(isQuarkUnion())
       newclassinstance->setQuarkUnion();
+
+    if(isCATemplate)
+      ((UlamTypeClass *) m_state.getUlamTypeByIndex(newuti))->setCustomArray();
 
     // we are in the middle of fully instantiating (context) or parsing;
     // with known args that we want to use to resolve, if possible, these pending args:
@@ -404,7 +421,9 @@ namespace MFM {
     assert(classtype != UC_UNSEEN);
 
     //furthermore, this must exist by now, or else this is the wrong time to be fixing
-    assert(getClassBlockNode());
+    NodeBlockClass * templateclassblock = getClassBlockNode();
+    assert(templateclassblock);
+    bool isCATemplate = templateclassblock->hasCustomArray();
 
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       return;
@@ -518,6 +537,12 @@ namespace MFM {
 	// the class instance's previous class block is linked to the template's when stub is made.
 	// later, during c&l if a subclass, the super ptr has the class block of the superclass
 	cblock->setSuperBlockPointer(NULL); //wait for c&l when no longer a stub
+
+	if(isCATemplate)
+	  {
+	    UTI cuti = csym->getUlamTypeIdx();
+	    ((UlamTypeClass *) m_state.getUlamTypeByIndex(cuti))->setCustomArray();
+	  }
 	it++;
       } //while
   } //fixAnyClassInstances
@@ -832,7 +857,8 @@ namespace MFM {
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       return true;
 
-    if(!getClassBlockNode())
+    NodeBlockClass * templatecblock = getClassBlockNode();
+    if(!templatecblock)
       {
 	std::ostringstream msg;
 	msg << "Cannot fully instantiate a template class '";
@@ -841,6 +867,8 @@ namespace MFM {
 	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
 	return false;
       }
+
+    bool isCATemplate = templatecblock->hasCustomArray();
 
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
@@ -917,6 +945,9 @@ namespace MFM {
 	    csym = NULL;
 
 	    addClassInstanceByArgString(cuti, clone); //new entry, and owner of symbol class
+
+	    if(isCATemplate)
+	      ((UlamTypeClass *) m_state.getUlamTypeByIndex(cuti))->setCustomArray();
 	  }
 	m_state.popClassContext(); //restore
 	it++;
