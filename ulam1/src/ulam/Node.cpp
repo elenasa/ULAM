@@ -2572,8 +2572,7 @@ namespace MFM {
     NNO stgcosBlockNo = m_state.getAClassBlockNo(stgcosuti);
     s32 subcos = -1;
 
-    // when cos and stgcos are different, check inheritance
-    //if(stgcosBlockNo != cosBlockNo)
+    // when cos and stgcos are different, check inheritance (t3646)
     if((cosSize > 1) && (stgcosBlockNo != cosBlockNo))
       {
 	subcos = isCurrentObjectsContainingASubClass();

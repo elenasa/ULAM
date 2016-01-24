@@ -1,0 +1,41 @@
+## -*- mode:ulam -*-
+#=t3646_test_compiler_elementsubclass_caarray_ish
+#!
+Exit status: 0
+Ue_IshC : Q(0x 7) { :< constant Bits(32) b = 7u; > Int(32) test() {  IshC moco;  Atom(96) a;  a moco 1 cast [] = 0 cast return } }
+Uq_Q(Bits(32) b) { /* empty class block */ }
+##
+## informed by a Dave ish 1/18/2016; (order matters)
+##
+#>IshC.ulam
+  ulam 2;
+element IshC : Q(7) {
+  Int test() {
+    IshC moco;
+    Atom a;
+    a = moco[1];
+    return 0;
+  }
+  Atom aref(Int i) { Atom a; return a; }
+  Void aset(Int i, Atom a) { }
+}
+use Q;
+
+
+#:Q.ulam
+  ulam 2;
+quark Q(Bits b)
+{ }
+
+/* Generates:
+    //! IshC.ulam:6:     a = moco[1];
+    const u32 Uh_5tlreg11 = 1;
+    const u32 Uh_5tlreg12 = _Int32ToInt32(Uh_5tlreg11, 2, 32);
+    const Ui_Ut_102961a<EC> Uh_5tuval14 = Ue_10104IshC10<EC>::Uf_4aref(UlamContext<EC>(uc, &Ue_10104IshC10<EC>::THE_INSTANCE), Uv_4moco.getRef(), Ui_Ut_102321i<EC>(Uh_5tlreg12));
+    const T Uh_5tuval15 = Uh_5tuval14.read();
+    Uv_1a.write(Uh_5tuval15);
+
+Needs THE_INSTANCE! Node.cpp l 2577
+*/
+
+#.
