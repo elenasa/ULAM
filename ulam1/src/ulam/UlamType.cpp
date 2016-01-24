@@ -100,7 +100,6 @@ namespace MFM {
       }
 
     //let packable arrays of same size pass...
-    //return checkArrayCast(typidx) ? CAST_CLEAR : CAST_BAD;
     if(!checkArrayCast(typidx))
       return CAST_BAD;
 
@@ -1142,7 +1141,6 @@ namespace MFM {
     ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
     std::string udstr = ud.str();
 
-    //u32 len = getTotalBitSize(); //could be 0, includes arrays
     u32 itemlen = getBitSize();
     u32 arraysize = getArraySize();
 

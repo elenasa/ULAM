@@ -243,7 +243,7 @@ namespace MFM {
   {
     NodeBlockClass * templateclassblock = getClassBlockNode();
     assert(templateclassblock);
-    bool isCATemplate = templateclassblock->hasCustomArray();
+    bool isCATemplate = ((UlamTypeClass *) m_state.getUlamTypeByIndex(getUlamTypeIdx()))->isCustomArray();
 
     //previous block is template's class block, and new NNO here!
     NodeBlockClass * newblockclass = new NodeBlockClass(templateclassblock, m_state);
@@ -265,7 +265,6 @@ namespace MFM {
 	if(m_state.isClassAStub(superuti))
 	  {
 	    //need a copy of the super stub, and its uti
-	    //superuti = m_state.addStubCopyToAncestorClassTemplate(superuti, stubcuti);
 	    superuti = Hzy; //wait until resolving loop.
 	  }
 	newclassinstance->setSuperClass(superuti);
@@ -290,7 +289,7 @@ namespace MFM {
   {
     NodeBlockClass * templateclassblock = getClassBlockNode();
     assert(templateclassblock);
-    bool isCATemplate = templateclassblock->hasCustomArray();
+    bool isCATemplate = ((UlamTypeClass *) m_state.getUlamTypeByIndex(getUlamTypeIdx()))->isCustomArray();
 
     //previous block is template's class block, and new NNO here!
     NodeBlockClass * newblockclass = new NodeBlockClass(templateclassblock, m_state);
@@ -337,7 +336,6 @@ namespace MFM {
 	  }
 	assert(argSym);
 	m_state.addSymbolToCurrentScope(argSym); //scope updated to new class instance in parseClassArguments
-
 	argsForLater.push_back(argSym);
       }
 
@@ -351,7 +349,6 @@ namespace MFM {
 	NodeConstantDef * constNode = new NodeConstantDef(argsForLater[argIdx], NULL, m_state);
 	assert(constNode);
 	constNode->setNodeLocation(typeTok.m_locator);
-	//constNode->setConstantExpr(exprNode);
 	//fold later; non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (stub)
 	newclassinstance->linkConstantExpressionForPendingArg(constNode);
       }
@@ -373,7 +370,7 @@ namespace MFM {
     NodeBlockClass * blockclass = csym->getClassBlockNode();
     NodeBlockClass * templateclassblock = getClassBlockNode();
     assert(templateclassblock);
-    bool isCATemplate = templateclassblock->hasCustomArray();
+    bool isCATemplate = ((UlamTypeClass *) m_state.getUlamTypeByIndex(getUlamTypeIdx()))->isCustomArray();
 
     //previous block is template's class block, and new NNO here!
     NodeBlockClass * newblockclass = new NodeBlockClass(templateclassblock, m_state);
@@ -423,7 +420,7 @@ namespace MFM {
     //furthermore, this must exist by now, or else this is the wrong time to be fixing
     NodeBlockClass * templateclassblock = getClassBlockNode();
     assert(templateclassblock);
-    bool isCATemplate = templateclassblock->hasCustomArray();
+    bool isCATemplate = ((UlamTypeClass *) m_state.getUlamTypeByIndex(getUlamTypeIdx()))->isCustomArray();
 
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       return;
@@ -534,15 +531,12 @@ namespace MFM {
 	    MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
 	  }
 
-	// the class instance's previous class block is linked to the template's when stub is made.
-	// later, during c&l if a subclass, the super ptr has the class block of the superclass
+	// class instance's prev classblock is linked to its template's when stub is made.
+	// later, during c&l if a subclass, the super ptr gets the classblock of superclass
 	cblock->setSuperBlockPointer(NULL); //wait for c&l when no longer a stub
 
 	if(isCATemplate)
-	  {
-	    UTI cuti = csym->getUlamTypeIdx();
-	    ((UlamTypeClass *) m_state.getUlamTypeByIndex(cuti))->setCustomArray();
-	  }
+	  ((UlamTypeClass *) m_state.getUlamTypeByIndex(csym->getUlamTypeIdx()))->setCustomArray();
 	it++;
       } //while
   } //fixAnyClassInstances
@@ -868,7 +862,7 @@ namespace MFM {
 	return false;
       }
 
-    bool isCATemplate = templatecblock->hasCustomArray();
+    bool isCATemplate = ((UlamTypeClass *) m_state.getUlamTypeByIndex(getUlamTypeIdx()))->isCustomArray();
 
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
@@ -1227,10 +1221,8 @@ namespace MFM {
 
   void SymbolClassNameTemplate::countNavNodesInClassInstances(u32& ncnt, u32& hcnt, u32& nocnt)
   {
-    // only full instances need to be counted, unless there's an error situation
-    // and we bailed out of the resolving loop.
-    //    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
-    // while(it != m_scalarClassArgStringsToSymbolPtr.end())
+    // only full instances need to be counted, UNLESS there's an error situation
+    // and we bailed out of the resolving loop, so do them all!
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
 
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
@@ -1243,7 +1235,6 @@ namespace MFM {
 	UTI suti = csym->getUlamTypeIdx(); //this instance
 
 	//check incomplete's too as they might have produced error msgs.
-	//if(m_state.isComplete(suti))
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
 	m_state.pushClassContext(suti, classNode, classNode, false, NULL);

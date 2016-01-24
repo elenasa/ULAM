@@ -282,8 +282,7 @@ namespace MFM {
     UTI superuti = m_state.isClassASubclass(nuti);
 
     //skip the ancestor of a template
-    //    if((superuti != Nouti) && (superuti != Hzy) && !m_state.isClassATemplate(cuti))
-    if((superuti != Nouti) && (superuti != Hzy))
+    if(m_state.okUTItoContinue(superuti))
       {
 	if(!m_state.isComplete(superuti))
 	  {
@@ -493,9 +492,6 @@ namespace MFM {
 		assert(isDefined);
 		superblock = supercsym->getClassBlockNode();
 		assert(superblock);
-		//if(supercsym->isStub())
-		//  superblock = (NodeBlockClass *) superblock->getPreviousBlockPointer();
-		//assert(superblock);
 	      }
 	    return superblock->hasCustomArray();
 	  }
@@ -532,8 +528,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	  }
 	superblock->checkCustomArrayTypeFunctions();
       }
-    //else
-    // assert(!m_state.isClassAStub(cuti));
   } //checkCustomArrayTypeFunctions
 
   UTI NodeBlockClass::getCustomArrayTypeFromGetFunction()
@@ -867,8 +861,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    return;
 	  }
-
-	//assert(superblock->getNodeType() == superuti);
 	assert(UlamType::compare(superblock->getNodeType(), superuti, m_state) == UTIC_SAME);
 	u32 superoffset = m_state.getTotalBitSize(superuti);
 	assert(superoffset >= 0);
@@ -1459,7 +1451,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("template<class EC>\n");
 
     m_state.indent(fp);
-    //fp->write("T "); //returns object of type T
     fp->write("typename EC::ATOM_CONFIG::ATOM_TYPE "); //returns object of type T
 
     //include the mangled class::

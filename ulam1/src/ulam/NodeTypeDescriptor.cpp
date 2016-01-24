@@ -122,7 +122,7 @@ namespace MFM {
       }
 
     // not node select, we are the leaf Type: a typedef, class or primitive scalar.
-    UTI nuti = givenUTI(); //getNodeType();
+    UTI nuti = givenUTI();
 
     if(m_refType != ALT_NOT)
       {

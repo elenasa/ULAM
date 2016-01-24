@@ -1216,7 +1216,6 @@ namespace MFM {
 	Token cTok;
 	getNextToken(cTok);
 	unreadToken();
-	//if( (cTok.m_type == TOK_KW_AS) || (cTok.m_type == TOK_KW_HAS))
 	if(cTok.m_type == TOK_KW_AS)
 	  {
 	    m_state.saveIdentTokenForConditionalAs(iTok, cTok); //SETS other related globals
