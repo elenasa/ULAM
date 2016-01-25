@@ -2915,7 +2915,17 @@ namespace MFM {
     else
       {
 	fp->write("<EC, ");
-	u32 posoff = cos->getPosOffset();
+	u32 posoff = 0;
+	//when several dots, and a data member who "owns" cos
+	// has a pos within its stg.
+	for(s32 i = cosSize - 1; i >= 0; i--)
+	  {
+	    Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
+	    UlamType * sut = m_state.getUlamTypeByIndex(sym->getUlamTypeIdx());
+	    if(sym->isDataMember() && sut->getUlamTypeEnum() == Class)
+	      posoff += sym->getPosOffset();
+	  }
+
 	fp->write_decimal_unsigned(posoff);
 	fp->write("u + ");
 	fp->write("T::ATOM_FIRST_STATE_BIT");

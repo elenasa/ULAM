@@ -769,14 +769,10 @@ namespace MFM {
 	  {
 	    s32 epi = Node::isCurrentObjectsContainingAModelParameter();
 	    assert(epi < 0); //model parameters no longer classes
-	    //if(epi >= 0)
-	    //  genModelParameterMemberNameOfMethod(fp,epi);
-	    //else
 	    genLocalMemberNameOfMethod(fp);
 	  }
 	fp->write(m_funcSymbol->getMangledName().c_str());
       }
-
     // the arguments
     fp->write("(");
     fp->write(arglist.str().c_str());
