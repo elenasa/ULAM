@@ -1075,7 +1075,9 @@ void NodeFunctionCall::genModelParameterMemberNameOfMethod(File * fp, s32 epi)
 
   std::string NodeFunctionCall::genHiddenArgsForARef(File * fp, UlamValue uvpass)
   {
+    assert(m_state.isPtr(uvpass.getUlamValueTypeIdx()));
     assert(uvpass.getPtrStorage() == TMPAUTOREF);
+
     UTI vuti = uvpass.getPtrTargetType();
     assert(m_state.getUlamTypeByIndex(vuti)->getReferenceType() != ALT_NOT);
 
