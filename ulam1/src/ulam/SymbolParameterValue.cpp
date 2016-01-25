@@ -3,14 +3,14 @@
 
 namespace MFM {
 
-  SymbolParameterValue::SymbolParameterValue(Token id, UTI utype, CompilerState & state) : SymbolWithValue(id, utype, state), m_childOf(m_state.getCompileThisIdx())
+  SymbolParameterValue::SymbolParameterValue(Token id, UTI utype, CompilerState & state) : SymbolWithValue(id, utype, state)
   {
     setDataMemberClass(m_state.getCompileThisIdx());
   }
 
-  SymbolParameterValue::SymbolParameterValue(const SymbolParameterValue & sref) : SymbolWithValue(sref), m_childOf(m_state.getCompileThisIdx()) {}
+  SymbolParameterValue::SymbolParameterValue(const SymbolParameterValue & sref) : SymbolWithValue(sref) {}
 
-  SymbolParameterValue::SymbolParameterValue(const SymbolParameterValue & sref, bool keepType) : SymbolWithValue(sref, keepType), m_childOf(m_state.getCompileThisIdx()) {}
+  SymbolParameterValue::SymbolParameterValue(const SymbolParameterValue & sref, bool keepType) : SymbolWithValue(sref, keepType) {}
 
   SymbolParameterValue::~SymbolParameterValue()
   { }

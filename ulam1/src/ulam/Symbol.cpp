@@ -6,11 +6,11 @@
 
 namespace MFM {
 
-  Symbol::Symbol(Token id, UTI utype, CompilerState & state) : m_state(state), m_gotStructuredCommentToken(false), m_idtok(id), m_uti(utype), m_dataMember(false), m_autoLocalType(ALT_NOT), m_isSelf(false), m_stBlockNo(state.getCurrentBlockNo()){}
+  Symbol::Symbol(Token id, UTI utype, CompilerState & state) : m_state(state), m_gotStructuredCommentToken(false), m_idtok(id), m_uti(utype), m_dataMemberClass(Nouti), m_autoLocalType(ALT_NOT), m_isSelf(false), m_stBlockNo(state.getCurrentBlockNo()){}
 
-  Symbol::Symbol(const Symbol & sref) : m_state(sref.m_state), m_structuredCommentToken(sref.m_structuredCommentToken), m_gotStructuredCommentToken(sref.m_gotStructuredCommentToken), m_idtok(sref.m_idtok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_uti)), m_dataMember(sref.m_dataMember), m_autoLocalType(sref.m_autoLocalType), m_isSelf(sref.m_isSelf), m_stBlockNo(sref.m_stBlockNo) {}
+  Symbol::Symbol(const Symbol & sref) : m_state(sref.m_state), m_structuredCommentToken(sref.m_structuredCommentToken), m_gotStructuredCommentToken(sref.m_gotStructuredCommentToken), m_idtok(sref.m_idtok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_uti)), m_dataMemberClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_dataMemberClass)), m_autoLocalType(sref.m_autoLocalType), m_isSelf(sref.m_isSelf), m_stBlockNo(sref.m_stBlockNo) {}
 
-  Symbol::Symbol(const Symbol& sref, bool keepType) : m_state(sref.m_state), m_structuredCommentToken(sref.m_structuredCommentToken), m_gotStructuredCommentToken(sref.m_gotStructuredCommentToken), m_idtok(sref.m_idtok), m_uti(sref.m_uti), m_dataMember(sref.m_dataMember), m_autoLocalType(sref.m_autoLocalType), m_isSelf(sref.m_isSelf), m_stBlockNo(sref.m_stBlockNo) {}
+  Symbol::Symbol(const Symbol& sref, bool keepType) : m_state(sref.m_state), m_structuredCommentToken(sref.m_structuredCommentToken), m_gotStructuredCommentToken(sref.m_gotStructuredCommentToken), m_idtok(sref.m_idtok), m_uti(sref.m_uti), m_dataMemberClass(sref.m_dataMemberClass), m_autoLocalType(sref.m_autoLocalType), m_isSelf(sref.m_isSelf), m_stBlockNo(sref.m_stBlockNo) {}
 
   Symbol::~Symbol(){}
 
@@ -82,14 +82,19 @@ namespace MFM {
     return false;
   }
 
-  void Symbol::setDataMember()
+  void Symbol::setDataMemberClass(UTI cuti)
   {
-    m_dataMember = true;
+    m_dataMemberClass = cuti;
+  }
+
+  UTI Symbol::getDataMemberClass()
+  {
+    return m_dataMemberClass;
   }
 
   bool Symbol::isDataMember()
   {
-    return m_dataMember;
+    return (m_dataMemberClass != Nouti);
   }
 
   bool Symbol::isModelParameter()
