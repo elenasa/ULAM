@@ -694,6 +694,17 @@ namespace MFM {
   // note: uvpass arg is not equal to m_currentObjPtr; it is blank.
   void NodeFunctionCall::genCode(File * fp, UlamValue& uvpass)
   {
+    if(!m_funcSymbol || !m_state.okUTItoContinue(getNodeType()))
+      {
+	std::ostringstream msg;
+	msg << "(3) <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
+	msg << "> is not a fully resolved function definition; ";
+	msg << "A call to it cannot be generated in this context";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	m_state.m_currentObjSymbolsForCodeGen.clear();
+	return;
+      }
+
     // The Call:
     if(m_state.isPtr(uvpass.getUlamValueTypeIdx()) && (uvpass.getPtrStorage() == TMPAUTOREF))
       genCodeAReferenceIntoABitValue(fp, uvpass);

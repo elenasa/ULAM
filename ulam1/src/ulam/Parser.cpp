@@ -3434,7 +3434,18 @@ namespace MFM {
     //this is a block with its own ST
     NodeBlockClass * currClassBlock = m_state.getClassBlock();
     NodeBlock * prevBlock = m_state.getCurrentBlock();
-    assert(prevBlock == currClassBlock);
+    //assert(prevBlock == currClassBlock);
+    if(prevBlock != currClassBlock)
+      {
+	std::ostringstream msg;
+	msg << "Sanity check failed. Likely an error caught before '";
+	msg << m_state.m_pool.getDataAsString(identTok.m_dataindex).c_str() << "'";
+	msg << " function block";
+	MSG(&identTok, msg.str().c_str(), ERR);
+
+	m_state.popClassContext(); //m_currentBlock = prevBlock;
+	return NULL;
+      }
 
     assert(nodetype);
     UTI rtnuti = nodetype->givenUTI();
@@ -3667,7 +3678,10 @@ namespace MFM {
 	funcNode->setNextNode(nextNode);
 
 	if(!getExpectedToken(TOK_CLOSE_CURLY))
-	  MSG(&pTok, "Not close curly", ERR);
+	  {
+	    MSG(&pTok, "Not close curly", ERR);
+	    brtn = false; //missing, need a pop?
+	  }
 	else
 	  unreadToken();
       }
