@@ -2174,6 +2174,7 @@ namespace MFM {
     return rtnB;
   } //warnOfNarrowingCast
 
+#if 0
   void Node::genMemberNameOfMethod(File * fp)
   {
     assert(!isCurrentObjectALocalVariableOrArgument());
@@ -2301,12 +2302,138 @@ namespace MFM {
 	  fp->write("THE_INSTANCE."); //Ut_..
       }
   } //genMemberNameOfMethod
+#endif
 
-  // "static" data member, a mixture of local variable and dm;
-  // NEW approach as extern immediate; [XXXits mangled name includes the
-  // element/quark mangled name; thus,XXX] unique MP per ulam class.
-  // No longer a template data member; must be initialized (in .cpp),
-  // so only primitive types allowed.
+  void Node::genMemberNameOfMethod(File * fp)
+  {
+    assert(!isCurrentObjectALocalVariableOrArgument());
+
+    //nothing if current object is self, unless a subclass!!!
+    if(m_state.m_currentObjSymbolsForCodeGen.empty())
+      return;
+
+    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+    u32 startcos = 0;
+    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
+    Symbol * stgcos = m_state.getCurrentSelfSymbolForCodeGen();
+
+    //what happens when a quark is both a DM as well as ancestor to CurrentSelfSymbol?
+    if(cosSize > 1)
+      stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+
+    UTI stgcosuti = stgcos->getUlamTypeIdx(); //more general instead of current class
+    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+
+    UTI cosuti = cos->getUlamTypeIdx();
+    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+
+    // when data member belongs to its (or a DM's) superclass, specify its class name first
+    NNO cosBlockNo = cos->getBlockNoOfST();
+    NNO stgcosBlockNo = stgcos->getBlockNoOfST(); //m_state.getAClassBlockNo(stgcosuti);
+
+    if(cosBlockNo != stgcosBlockNo)
+      {
+	s32 subcos = isCurrentObjectsContainingASubClass();
+	if(subcos >= 0)
+	  {
+	    startcos = subcos + 1;
+
+	    UTI cosclassuti = cosuti;
+	    UlamType * cosclassut = cosut;
+
+	    if(cosut->getUlamTypeEnum() != Class)
+	      {
+		cosclassuti = findTypeOfAncestorAndBlockNo(cosBlockNo, subcos);
+		assert(m_state.isComplete(cosclassuti) || m_state.isClassATemplate(cosclassuti));
+		cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
+	      }
+	    if(cosut->isReference())
+	      {
+		UTI cosclassrefuti = m_state.getUlamTypeAsRef(cosclassuti, cosut->getReferenceType());
+		UlamType * cosclassrefut = m_state.getUlamTypeByIndex(cosclassrefuti);
+		fp->write(cosclassrefut->getLocalStorageTypeAsString().c_str());
+		fp->write("::Us::");
+	      }
+	    else
+	      {
+		fp->write(cosclassut->getUlamTypeMangledName().c_str());
+		if(cosclassut->getUlamClass() == UC_ELEMENT)
+		  fp->write("<EC>::");
+		else
+		  {
+		    fp->write("<EC, ");
+		    if(stgcos->isDataMember())
+		      {
+			fp->write_decimal_unsigned(stgcos->getPosOffset());
+			fp->write("u + ");
+		      }
+		    fp->write("T::ATOM_FIRST_STATE_BIT");
+		    fp->write(">::");
+		  }
+	      }
+	  }
+	else if(m_state.isClassASubclass(stgcosuti) != Nouti) //self is subclass
+	  {
+	    //could be in a super-super class
+	    Node * foundnode = m_state.findNodeNoInAClass(cosBlockNo, stgcosuti);
+	    assert(foundnode);
+	    UTI superuti = foundnode->getNodeType();
+	    UlamType * superut = m_state.getUlamTypeByIndex(superuti);
+
+	    if(stgcosut->isReference())
+	      {
+		UTI superrefuti = m_state.getUlamTypeAsRef(superuti, stgcosut->getReferenceType());
+		UlamType * superrefut = m_state.getUlamTypeByIndex(superrefuti);
+		fp->write(superrefut->getLocalStorageTypeAsString().c_str());
+		fp->write("::Us::");
+	      }
+	    else
+	      {
+		fp->write(superut->getUlamTypeMangledName().c_str());
+		assert(superut->getUlamClass() != UC_ELEMENT);
+		//super is a quark, stg might be either:
+		fp->write("<EC, ");
+		if(stgcosut->getUlamClass() == UC_ELEMENT)
+		  fp->write("T::ATOM_FIRST_STATE_BIT>::");
+		else
+		  fp->write("POS>::"); //quarks know this
+	      }
+	  }
+      }
+    //else do nothing for inheritance
+
+    //iterate over COS vector; empty if current object is self
+    for(u32 i = startcos; i < cosSize; i++)
+      {
+	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
+	if(sym->isSelf())
+	  continue;
+	fp->write(sym->getMangledNameForParameterType().c_str());
+	fp->write("::");
+	//if(i == 0)
+	//  fp->write("THE_INSTANCE."); not with parameter types!!!
+      }
+
+    //if last cos is a quark, for Read/Write to work it needs an
+    // atomic Parameter type (i.e. Up_Us); not so for custom arrays
+    // which are more like a function call
+    // scalar quarks are typedefs and need atomic parametization;
+    // arrays are already atomic parameters
+    // ancestor issues up for grabs?
+    bool isCA = cosut->isCustomArray();
+    if(cosut->isScalar() && cosut->getUlamClass() == UC_QUARK)
+      {
+	if(!isCA)
+	  fp->write("Up_Us::"); //gives quark an atomicparameter type for write
+	else if(isCA)
+	  fp->write("THE_INSTANCE.");
+	else if(cos->isDataMember())
+	  fp->write("THE_INSTANCE."); //Ut_..
+      }
+  } //genMemberNameOfMethod
+
+
+#if 0
   void Node::genModelParameterMemberNameOfMethod(File * fp, s32 epi)
   {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
@@ -2348,6 +2475,57 @@ namespace MFM {
 	    fp->write("<EC>::");
 	  }
 	    fp->write("THE_INSTANCE.");
+      }
+    else
+      assert(0);
+
+    fp->write(cos->getMangledName().c_str());
+    fp->write(".");
+    return;
+  } //genModelParameterMemberNameOfMethod
+#endif
+
+  // "static" data member, a mixture of local variable and dm;
+  // NEW approach as extern immediate; [XXXits mangled name includes the
+  // element/quark mangled name; thus,XXX] unique MP per ulam class.
+  // No longer a template data member; must be initialized (in .cpp),
+  // so only primitive types allowed.
+  void Node::genModelParameterMemberNameOfMethod(File * fp, s32 epi)
+  {
+    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    assert(epi >= 0);
+
+    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen[epi]; //***
+
+    // the MP (only primitive!, no longer quark or element):
+    assert(isHandlingImmediateType());
+#if 0
+    Symbol * stgcos = NULL;
+    if(epi == 0)
+      stgcos = m_state.getCurrentSelfSymbolForCodeGen();
+    else
+      stgcos = m_state.m_currentObjSymbolsForCodeGen[epi - 1]; //***
+
+    UTI stgcosuti = stgcos->getUlamTypeIdx();
+    NNO cosBlockNo = cos->getBlockNoOfST();
+    NNO stgcosBlockNo = m_state.getAClassBlockNo(stgcosuti);
+    if((stgcosBlockNo != cosBlockNo) && (m_state.isClassASubclass(stgcosuti) != Nouti))
+      {
+	Node * foundnode = m_state.findNodeNoInAClass(cosBlockNo, stgcosuti);
+	assert(foundnode);
+	stgcosuti = foundnode->getNodeType(); //reset stgcosuti here!!
+      }
+#endif
+
+    UTI stgcosuti = cos->getDataMemberClass();
+    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+    ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClass();
+
+    if(stgclasstype == UC_ELEMENT)
+      {
+	fp->write(stgcosut->getUlamTypeMangledName().c_str());
+	fp->write("<EC>::");
+	fp->write("THE_INSTANCE.");
       }
     else
       assert(0);
@@ -2532,10 +2710,8 @@ namespace MFM {
   void Node::genLocalMemberNameOfMethod(File * fp)
   {
     assert(isCurrentObjectALocalVariableOrArgument());
-
     // model parameter has its own storage, like a local
     assert(isCurrentObjectsContainingAModelParameter() == -1);
-
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
 
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
@@ -2543,12 +2719,13 @@ namespace MFM {
       return genLocalMemberNameOfMethodByUsTypedef(fp);
 
     assert(cosSize == 1);
-    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-    fp->write(stgcos->getMangledName().c_str());
+    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen[0];
+    fp->write(cos->getMangledName().c_str());
     fp->write(".");
     return;
   } //genLocalMemberNameOfMethod
 
+#if 0
   void Node::genLocalMemberNameOfMethodByUsTypedef(File * fp)
   {
     assert(isCurrentObjectALocalVariableOrArgument());
@@ -2580,8 +2757,11 @@ namespace MFM {
 	  {
 	    startcos = subcos + 1; //for loop later
 
-	    UTI cosclassuti = cosuti;
-	    UlamType * cosclassut = cosut;
+	    //UTI cosclassuti = cosuti;
+	    //UlamType * cosclassut = cosut;
+
+	    UTI cosclassuti = m_state.isClassASubclass(m_state.m_currentObjSymbolsForCodeGen[subcos]->getUlamTypeIdx());
+	    UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
 
 	    if(cosut->getUlamTypeEnum() != Class)
 	      {
@@ -2599,33 +2779,67 @@ namespace MFM {
 	      }
 	    else
 	      {
-		//note: can't use immediate name since we have multiple dots
-		// (i.e. data members) at specific POS (e.g. t3606)
-		fp->write(cosclassut->getUlamTypeMangledName().c_str());
-		if(cosclassut->getUlamClass() == UC_ELEMENT)
-		  fp->write("<EC>::");
+		if(!cos->isDataMember())
+		  {
+		    //note: can't use immediate name since we have multiple dots
+		    // (i.e. data members) at specific POS (e.g. t3606)
+		    fp->write(cosclassut->getUlamTypeMangledName().c_str());
+		    if(cosclassut->getUlamClass() == UC_ELEMENT)
+		      fp->write("<EC>::");
+		    else
+		      {
+			fp->write("<EC, ");
+			u32 posoff = 0;
+			for(u32 i = subcos; i > 0; i--)
+			  {
+			    Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
+			    UTI suti = sym->getUlamTypeIdx();
+			    UlamType * sut = m_state.getUlamTypeByIndex(suti);
+			    if(sym->isDataMember() && sut->getUlamTypeEnum() == Class)
+			      posoff += sym->getPosOffset();
+			  }
+
+			if(posoff > 0)
+			  {
+			    fp->write_decimal_unsigned(posoff);
+			    fp->write("u + ");
+			  }
+
+			fp->write("T::ATOM_FIRST_STATE_BIT");
+			fp->write(">::");
+		      } //a quark
+		  } //new not a dm
 		else
 		  {
-		    fp->write("<EC, ");
-		    u32 posoff = 0;
-		    for(u32 i = subcos; i > 0; i--)
+		    //note: can't use immediate name since we have multiple dots
+		    // (i.e. data members) at specific POS (e.g. t3606)
+		    fp->write(cosclassut->getUlamTypeMangledName().c_str());
+		    if(cosclassut->getUlamClass() == UC_ELEMENT)
+		      fp->write("<EC>::");
+		    else
 		      {
-			Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
-			UTI suti = sym->getUlamTypeIdx();
-			UlamType * sut = m_state.getUlamTypeByIndex(suti);
-			if(sym->isDataMember() && sut->getUlamTypeEnum() == Class)
-			  posoff += sym->getPosOffset();
-		      }
+			fp->write("<EC, ");
+			u32 posoff = 0;
+			for(u32 i = subcos; i > 0; i--)
+			  {
+			    Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
+			    UTI suti = sym->getUlamTypeIdx();
+			    UlamType * sut = m_state.getUlamTypeByIndex(suti);
+			    if(sym->isDataMember() && sut->getUlamTypeEnum() == Class)
+			      posoff += sym->getPosOffset();
+			  }
 
-		    if(posoff > 0)
-		      {
-			fp->write_decimal_unsigned(posoff);
-			fp->write("u + ");
-		      }
+			if(posoff > 0)
+			  {
+			    fp->write_decimal_unsigned(posoff);
+			    fp->write("u + ");
+			  }
 
-		    fp->write("T::ATOM_FIRST_STATE_BIT");
-		    fp->write(">::");
-		  } //a quark
+			fp->write("T::ATOM_FIRST_STATE_BIT");
+			fp->write(">::");
+		      } //a quark
+		  } //new not a dm
+
 	      } //not reference
 	  } //sub class
 
@@ -2664,7 +2878,66 @@ namespace MFM {
 	      fp->write("THE_INSTANCE."); //Ut_Um...
 	  }
       }
-      } //genLocalMemberNameOfMethodByUsTypedef
+  } //genLocalMemberNameOfMethodByUsTypedef
+#endif
+
+  void Node::genLocalMemberNameOfMethodByUsTypedef(File * fp)
+  {
+    assert(isCurrentObjectALocalVariableOrArgument());
+    // model parameter has its own storage, like a local
+    assert(isCurrentObjectsContainingAModelParameter() == -1);
+    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+
+    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+    assert(cosSize > 1); //see caller
+
+    //therefore cos must be a data member!!
+    //Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+    //UTI stgcosuti = stgcos->getUlamTypeIdx();
+    //UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+
+    // handle inheritance, when data member is in superclass, not current class obj
+    // now for both immediate elements and quarks..
+    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
+    UTI cosuti = cos->getUlamTypeIdx();
+    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+
+    //cosclass is related to type left of its dot
+    UTI cosclassuti = cos->getDataMemberClass();
+    assert(cosclassuti != Nouti);
+    UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
+
+    //note: can't use immediate name since we have multiple dots
+    // (i.e. data members) at specific POS (e.g. t3606)
+    fp->write(cosclassut->getUlamTypeMangledName().c_str());
+    if(cosclassut->getUlamClass() == UC_ELEMENT)
+      fp->write("<EC>::");
+    else
+      {
+	fp->write("<EC, ");
+	u32 posoff = cos->getPosOffset();
+	fp->write_decimal_unsigned(posoff);
+	fp->write("u + ");
+	fp->write("T::ATOM_FIRST_STATE_BIT");
+	fp->write(">::");
+      } //a quark
+
+    //now for cos!!!
+    fp->write(cos->getMangledNameForParameterType().c_str());
+    fp->write("::");
+    // if its a quark, and scalar
+    if(cosut->isScalar() && (cosut->getUlamClass() == UC_QUARK))
+      {
+	bool isCA = m_state.isClassACustomArray(cosuti);
+	if(!isCA)
+	  {
+	    //not a custom array...shouldn't be!
+	    fp->write("Up_Us::"); //atomic parameter needed
+	  }
+	else
+	  fp->write("THE_INSTANCE."); //custom array or data member (e.g.Ut_Um...
+      }
+  } //genLocalMemberNameOfMethodByUsTypedef
 
   void Node::genCustomArrayLocalMemberNameOfMethod(File * fp)
   {
@@ -2676,13 +2949,20 @@ namespace MFM {
     // now for both immediate elements and quarks..
     Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
     UTI cosuti = cos->getUlamTypeIdx();
-    NNO cosBlockNo = cos->getBlockNoOfST();
+    //NNO cosBlockNo = cos->getBlockNoOfST();
 
     Symbol * fnsymptr = NULL;
     bool hazyKin = false;
     AssertBool isDefinedFunc = m_state.isFuncIdInAClassScope(cosuti, m_state.getCustomArrayGetFunctionNameId(),fnsymptr, hazyKin); //searches class of cos
     assert(isDefinedFunc);
     assert(!hazyKin);
+
+    UTI futi = fnsymptr->getDataMemberClass();
+    UlamType * fut = m_state.getUlamTypeByIndex(futi);
+    fp->write(fut->getLocalStorageTypeAsString().c_str());
+    fp->write("::Us::THE_INSTANCE.");
+
+#if 0
     NNO caBlockNo = fnsymptr->getBlockNoOfST(); //block of aref
     UTI caclassuti = m_state.findAClassByNodeNo(caBlockNo);
     assert(m_state.isComplete(caclassuti) || m_state.isClassATemplate(caclassuti));
@@ -2707,7 +2987,9 @@ namespace MFM {
       }
 
     //otherwise normal data member name..
-    return genLocalMemberNameOfMethodByUsTypedef(fp);
+    return genLocalMemberNameOfMethod(fp); //genLocalMemberNameOfMethodByUsTypedef(fp);
+#endif
+
   } //genCustomArrayLocalMemberNameOfMethod
 
   const std::string Node::localStorageTypeAsString(UTI nuti)
@@ -2843,7 +3125,7 @@ namespace MFM {
   {
     s32 indexOfLastSubClass = -1;
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-    for(s32 i = cosSize - 1; i >= 0; i--)
+    for(s32 i = cosSize - 2; i >= 0; i--) //type left of the rightmost dot!
       {
 	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
 	UTI suti = sym->getUlamTypeIdx();
