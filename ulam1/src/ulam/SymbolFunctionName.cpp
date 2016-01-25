@@ -12,7 +12,7 @@ namespace MFM {
 
   SymbolFunctionName::SymbolFunctionName(Token id, UTI typetoreturn, CompilerState& state) : Symbol(id, typetoreturn, state)
   {
-    setDataMember(); //by definition all function definitions are data members
+    setDataMemberClass(m_state.getCompileThisIdx()); //by definition all function definitions are data members
   }
 
   SymbolFunctionName::SymbolFunctionName(const SymbolFunctionName& sref) : Symbol(sref)

@@ -768,10 +768,11 @@ namespace MFM {
 	else
 	  {
 	    s32 epi = Node::isCurrentObjectsContainingAModelParameter();
-	    if(epi >= 0)
-	      genModelParameterMemberNameOfMethod(fp,epi);
-	    else
-	      genLocalMemberNameOfMethod(fp);
+	    assert(epi < 0); //model parameters no longer classes
+	    //if(epi >= 0)
+	    //  genModelParameterMemberNameOfMethod(fp,epi);
+	    //else
+	    genLocalMemberNameOfMethod(fp);
 	  }
 	fp->write(m_funcSymbol->getMangledName().c_str());
       }
@@ -953,6 +954,7 @@ namespace MFM {
     return; //no-op
   }
 
+#if 0
   void NodeFunctionCall::genMemberNameOfMethod(File * fp)
   {
     assert(!Node::isCurrentObjectALocalVariableOrArgument());
@@ -966,6 +968,7 @@ namespace MFM {
 
     // use NodeNo for inheritance
     assert(m_funcSymbol);
+
     NNO cosBlockNo = m_funcSymbol->getBlockNoOfST();
     NNO stgcosBlockNo = stgcos->getBlockNoOfST(); //m_state.getAClassBlockNo(stgcosuti);
 
@@ -1060,7 +1063,36 @@ namespace MFM {
       }
     fp->write("THE_INSTANCE."); //non-static functions require an instance
   } //genMemberNameOfMethod
+#endif
 
+  void NodeFunctionCall::genMemberNameOfMethod(File * fp)
+  {
+    assert(!Node::isCurrentObjectALocalVariableOrArgument());
+    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+    Symbol * stgcos = m_state.getCurrentSelfSymbolForCodeGen();
+    UTI stgcosuti = stgcos->getUlamTypeIdx(); //more general instead of current class
+
+    UTI futi = m_funcSymbol->getDataMemberClass();
+    if((cosSize > 0) || (UlamType::compare(stgcosuti, futi, m_state) != UTIC_SAME))
+      {
+	UlamType * fut = m_state.getUlamTypeByIndex(futi);
+	fp->write(fut->getUlamTypeMangledName().c_str());
+	if(fut->getUlamClass() == UC_ELEMENT)
+	  {
+	    fp->write("<EC>::");
+	  }
+	else
+	  {
+	    //self is a quark
+	    fp->write("<EC, ");
+	    fp->write("T::ATOM_FIRST_STATE_BIT"); //ancestors at first state bit
+	    fp->write(">::");
+	  }
+      }
+    fp->write("THE_INSTANCE."); //non-static functions require an instance
+  } //genMemberNameOfMethod
+
+#if 0
   void NodeFunctionCall::genModelParameterMemberNameOfMethod(File * fp, s32 epi)
   {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
@@ -1114,6 +1146,12 @@ namespace MFM {
 	fp->write(sym->getMangledNameForParameterType().c_str());
 	fp->write("::");
       }
+  } //genModelParamenterMemberNameOfMethod
+#endif
+
+  void NodeFunctionCall::genModelParameterMemberNameOfMethod(File * fp, s32 epi)
+  {
+    assert(0);
   } //genModelParamenterMemberNameOfMethod
 
   std::string NodeFunctionCall::genHiddenArgs()
@@ -1456,6 +1494,7 @@ namespace MFM {
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
   } //genCodeReferenceArg
 
+#if 0
   void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp)
   {
     assert(Node::isCurrentObjectALocalVariableOrArgument());
@@ -1538,6 +1577,18 @@ namespace MFM {
     UTI cosuti = cos->getUlamTypeIdx();
     if(m_state.getUlamTypeByIndex(cosuti)->getUlamTypeEnum() == Class)
       fp->write("THE_INSTANCE."); //non-static functions require an instance
+  } //genLocalMemberNameOfMethod
+#endif
+
+  void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp)
+  {
+    assert(Node::isCurrentObjectALocalVariableOrArgument());
+    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+
+    UTI futi = m_funcSymbol->getDataMemberClass();
+    UlamType * fut = m_state.getUlamTypeByIndex(futi);
+    fp->write(fut->getLocalStorageTypeAsString().c_str());
+    fp->write("::Us::THE_INSTANCE.");
   } //genLocalMemberNameOfMethod
 
 } //end MFM

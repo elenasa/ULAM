@@ -5,7 +5,7 @@ namespace MFM {
 
   SymbolVariableDataMember::SymbolVariableDataMember(Token id, UTI utype, PACKFIT packed, u32 slot, CompilerState& state) : SymbolVariable(id, utype, packed, state), m_dataMemberUnpackedSlotIndex(slot), m_hasInitValue(false), m_initvalReady(false), m_initval(0)
   {
-    setDataMember();
+    setDataMemberClass(m_state.getCompileThisIdx());
   }
 
   SymbolVariableDataMember::SymbolVariableDataMember(const SymbolVariableDataMember& sref) : SymbolVariable(sref), m_dataMemberUnpackedSlotIndex(sref.m_dataMemberUnpackedSlotIndex), m_hasInitValue(sref.m_hasInitValue), m_initvalReady(false), m_initval(0) {} //initval set by node vardecl c&l

@@ -73,7 +73,8 @@ namespace MFM{
     virtual bool isConstant();
     virtual bool isClass();
 
-    void setDataMember();
+    void setDataMemberClass(UTI cuti);
+    UTI getDataMemberClass();
     bool isDataMember();
 
     virtual bool isModelParameter();
@@ -114,7 +115,7 @@ namespace MFM{
     Token m_idtok; // id to its name (string) in lexer; also in ST
     UTI m_uti; // may seem redundant, but not; from NodeVarDecl, before m_value known.
                // base type, not array type, used here (e.g. NodeBinaryOp::calcNodeType)
-    bool m_dataMember;
+    UTI m_dataMemberClass;
     ALT m_autoLocalType;
     bool m_isSelf;       // hidden arg symbol
     NNO m_stBlockNo;

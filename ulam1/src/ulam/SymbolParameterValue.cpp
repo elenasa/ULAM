@@ -5,7 +5,7 @@ namespace MFM {
 
   SymbolParameterValue::SymbolParameterValue(Token id, UTI utype, CompilerState & state) : SymbolWithValue(id, utype, state), m_childOf(m_state.getCompileThisIdx())
   {
-    setDataMember();
+    setDataMemberClass(m_state.getCompileThisIdx());
   }
 
   SymbolParameterValue::SymbolParameterValue(const SymbolParameterValue & sref) : SymbolWithValue(sref), m_childOf(m_state.getCompileThisIdx()) {}
