@@ -961,15 +961,22 @@ namespace MFM {
     return; //no-op
   }
 
-void NodeFunctionCall::genMemberNameOfMethod(File * fp)
+  void NodeFunctionCall::genMemberNameOfMethod(File * fp)
   {
     assert(!Node::isCurrentObjectALocalVariableOrArgument());
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     Symbol * stgcos = m_state.getCurrentSelfSymbolForCodeGen();
-    UTI stgcosuti = stgcos->getUlamTypeIdx(); //more general instead of current class
+    //UTI stgcosuti = stgcos->getUlamTypeIdx(); //more general instead of current class
+
+    Symbol * cos = NULL;
+    if(cosSize > 0)
+      cos = m_state.m_currentObjSymbolsForCodeGen.back();
+    else
+      cos = stgcos;
+    UTI cosuti = cos->getUlamTypeIdx();
 
     UTI futi = m_funcSymbol->getDataMemberClass();
-    if((cosSize > 0) || (UlamType::compare(stgcosuti, futi, m_state) != UTIC_SAME))
+    if((cosSize > 0) || (UlamType::compare(cosuti, futi, m_state) != UTIC_SAME))
       {
 	UlamType * fut = m_state.getUlamTypeByIndex(futi);
 	fp->write(fut->getUlamTypeMangledName().c_str());
@@ -979,8 +986,11 @@ void NodeFunctionCall::genMemberNameOfMethod(File * fp)
 	  }
 	else
 	  {
-	    //self is a quark
+	    //self is a quark, use position of data member cos (accumulated?)
 	    fp->write("<EC, ");
+	    fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
+	    fp->write("u + ");
+
 	    fp->write("T::ATOM_FIRST_STATE_BIT"); //ancestors at first state bit
 	    fp->write(">::");
 	  }
@@ -988,7 +998,7 @@ void NodeFunctionCall::genMemberNameOfMethod(File * fp)
     fp->write("THE_INSTANCE."); //non-static functions require an instance
   } //genMemberNameOfMethod
 
-void NodeFunctionCall::genModelParameterMemberNameOfMethod(File * fp, s32 epi)
+  void NodeFunctionCall::genModelParameterMemberNameOfMethod(File * fp, s32 epi)
   {
     assert(0);
   } //genModelParamenterMemberNameOfMethod
