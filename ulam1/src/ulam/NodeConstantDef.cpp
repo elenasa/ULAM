@@ -142,7 +142,7 @@ namespace MFM {
 
   UTI NodeConstantDef::checkAndLabelType()
   {
-    UTI it = Nav; //expression type
+    UTI it = Nouti; //expression type
 
     // instantiate, look up in current block
     if(m_constSymbol == NULL)
@@ -268,7 +268,7 @@ namespace MFM {
       {
 	ULAMTYPE eit = m_state.getUlamTypeByIndex(it)->getUlamTypeEnum();
 	ULAMTYPE esuti = m_state.getUlamTypeByIndex(suti)->getUlamTypeEnum();
-	if(eit != esuti)
+	if(m_state.okUTItoContinue(it) && (eit != esuti))
 	  {
 	    std::ostringstream msg;
 	    msg << prettyNodeName().c_str() << " '" << getName();
@@ -279,9 +279,6 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    msg << " UTI" << cuti;
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    //this is UNSAFE to do willy nilly..let folding catch it.
-	    //it = suti; //default it==Int for temp class args, maynot match after seeing the template
-	    //if(m_nodeExpr) m_nodeExpr->setNodeType(it); //sync the terminal's type too
 	  }
 
 	if(esuti == Void)
@@ -421,17 +418,9 @@ namespace MFM {
     makeRoomForNodeType(uti); //offset a constant expression
 
     EvalStatus evs = m_nodeExpr->eval();
+    UlamValue cnstUV;
     if( evs == NORMAL)
-      {
-	UlamValue cnstUV = m_state.m_nodeEvalStack.popArg();
-	u32 wordsize = m_state.getTotalWordSize(uti);
-	if(wordsize == MAXBITSPERINT)
-	  newconst = cnstUV.getImmediateData(m_state);
-	else if(wordsize == MAXBITSPERLONG)
-	  newconst = cnstUV.getImmediateDataLong(m_state);
-	else
-	  assert(0);
-      }
+      cnstUV = m_state.m_nodeEvalStack.popArg();
 
     evalNodeEpilog();
 
@@ -457,6 +446,7 @@ namespace MFM {
 	return Hzy;
       }
 
+#if 0
     //insure constant value fits in its declared type
     FORECAST scr = m_nodeExpr->safeToCastTo(uti);
     if(scr != CAST_CLEAR)
@@ -473,24 +463,39 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	return Hzy; //necessary if not just a warning.
       }
+#endif
 
-    UTI updateRtn = updateConstant(newconst);
-    if(updateRtn == Nav)
-      return Nav;
-    else if(updateRtn == Hzy)
-      return Hzy;
+    //cast first, also does safeCast
+    UlamType * ut = m_state.getUlamTypeByIndex(uti);
+    if(ut->cast(cnstUV, uti))
+      {
+	u32 wordsize = m_state.getTotalWordSize(uti);
+	if(wordsize == MAXBITSPERINT)
+	  newconst = cnstUV.getImmediateData(m_state);
+	else if(wordsize == MAXBITSPERLONG)
+	  newconst = cnstUV.getImmediateDataLong(m_state);
+	else
+	  assert(0);
+      }
     else
       {
-	NodeTerminal * newnode;
-	if(m_state.getUlamTypeByIndex(uti)->getUlamTypeEnum() == Int)
-	  newnode = new NodeTerminal((s64) newconst, uti, m_state);
-	else
-	  newnode = new NodeTerminal(newconst, uti, m_state);
-
-	newnode->setNodeLocation(getNodeLocation());
-	delete m_nodeExpr;
-	m_nodeExpr = newnode;
+	std::ostringstream msg;
+	msg << "Constant value expression for '";
+	msg << getName() << "' was not representable as ";
+	msg<< m_state.getUlamTypeNameBriefByIndex(uti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return Nav;
       }
+
+    //then do the surgery
+    NodeTerminal * newnode;
+    if(m_state.getUlamTypeByIndex(uti)->getUlamTypeEnum() == Int)
+      newnode = new NodeTerminal((s64) newconst, uti, m_state);
+    else
+      newnode = new NodeTerminal(newconst, uti, m_state);
+    newnode->setNodeLocation(getNodeLocation());
+    delete m_nodeExpr;
+    m_nodeExpr = newnode;
 
     if(m_constSymbol->isParameter())
       m_constSymbol->setDefaultValue(newconst); //hasDefault (not isReady)!
@@ -498,105 +503,6 @@ namespace MFM {
       m_constSymbol->setValue(newconst); //isReady now!
     return uti; //ok
   } //foldConstantExpression
-
-  UTI NodeConstantDef::updateConstant(u64 & newconst)
-  {
-    if(!m_constSymbol)
-      return Nav;
-
-    UTI nuti = getNodeType();
-    if(!m_state.isComplete(nuti))
-      return Hzy;
-
-    //store in UlamType format
-    bool rtnb = true;
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    assert(nut->getBitSize() > 0);
-    u32 wordsize = nut->getTotalWordSize();
-    if(wordsize == MAXBITSPERINT)
-      rtnb = updateConstant32(newconst);
-    else if(wordsize == MAXBITSPERLONG)
-      rtnb = updateConstant64(newconst);
-    else
-      assert(0);
-
-    if(!rtnb)
-      {
-	std::ostringstream msg;
-	msg << "Constant Type Unknown: ";
-	msg <<  m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return Nav;
-      }
-    return nuti;
-  } //updateConstant
-
-  bool NodeConstantDef::updateConstant32(u64 & newconst)
-  {
-    u64 val = newconst; //wo any sign extend to start
-    //store in UlamType format
-    bool rtnb = true;
-    UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
-    s32 nbitsize = nut->getBitSize();
-    u32 srcbitsize = m_nodeExpr ? m_state.getBitSize(m_nodeExpr->getNodeType()) : nbitsize; //was MAXBITSPERINT WRONG!
-
-    ULAMTYPE etype = nut->getUlamTypeEnum();
-    switch(etype)
-      {
-      case Int:
-	newconst = _Int32ToInt32((u32) val, srcbitsize, nbitsize); //signextended
-	break;
-      case Unsigned:
-	newconst = _Unsigned32ToUnsigned32((u32) val, srcbitsize, nbitsize);
-	break;
-      case Bool:
-	//newconst = _Unsigned32ToBool32(val, MAXBITSPERINT, nbitsize);
-	newconst = _CboolToBool32( (bool) val, nbitsize);
-	break;
-      case Unary:
-	newconst =  _Unsigned32ToUnary32((u32) val, srcbitsize, nbitsize);
-	break;
-      case Bits:
-	newconst = _Unsigned32ToBits32((u32) val, srcbitsize, nbitsize);
-	break;
-      default:
-	rtnb = false;
-      };
-    return rtnb;
-  } //updateConstant32
-
-  bool NodeConstantDef::updateConstant64(u64 & newconst)
-  {
-    u64 val = newconst; //wo any sign extend to start
-    //store in UlamType format
-    bool rtnb = true;
-    UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
-    s32 nbitsize = nut->getBitSize();
-    u32 srcbitsize = m_nodeExpr ? m_state.getBitSize(m_nodeExpr->getNodeType()) : nbitsize; //was MAXBITSPERINT WRONG!
-    ULAMTYPE etype = nut->getUlamTypeEnum();
-    switch(etype)
-      {
-      case Int:
-	newconst = _Int64ToInt64(val, srcbitsize, nbitsize); //signextended
-	break;
-      case Unsigned:
-	newconst = _Unsigned64ToUnsigned64(val, srcbitsize, nbitsize);
-	break;
-      case Bool:
-	//newconst = _Unsigned64ToBool64(val, MAXBITSPERLONG, nbitsize);
-	newconst = _CboolToBool64( (bool) val, nbitsize);
-	break;
-      case Unary:
-	newconst =  _Unsigned64ToUnary64(val, srcbitsize, nbitsize);
-	break;
-      case Bits:
-	newconst = _Unsigned64ToBits64(val, srcbitsize, nbitsize);
-	break;
-      default:
-	  rtnb = false;
-      };
-    return rtnb;
-  } //updateConstant64
 
   bool NodeConstantDef::buildDefaultQuarkValue(u32& dqref)
   {

@@ -117,10 +117,6 @@ namespace MFM{
   private:
     NNO m_currBlockNo;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
-
-    UTI updateConstant(u64 & newconst);
-    bool updateConstant32(u64 & newconst);
-    bool updateConstant64(u64 & newconst);
   };
 
 } //MFM

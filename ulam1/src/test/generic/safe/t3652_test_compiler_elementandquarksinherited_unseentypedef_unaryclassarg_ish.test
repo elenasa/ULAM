@@ -1,0 +1,41 @@
+## -*- mode:ulam -*-
+#=t3652_test_compiler_elementandquarksinherited_unseentypedef_unaryclassarg_ish
+#!
+Exit status: 11
+Ue_IshD { typedef QSwapLine(4) OurSwapLine;  Int(32) test() {  11u cast return } }
+Uq_QSwapLine(Unary(5) itagBits) : QID(myTagBits) { :< constant Unsigned(32) cQID_TAG_BITS = myTagBits;  Bits(UNKNOWN) mArray[UNKNOWN](notready); > Int(UNKNOWN) mPhase(unknown);  <NOMAIN> }
+Uq_QID(Unary(5) myTagBits) { constant Unsigned(32) cQID_TAG_BITS = myTagBits;  Bits(UNKNOWN) mArray[UNKNOWN](notready);  <NOMAIN> }
+##
+## informed by Dave ish 1/24/2016, (order matters)
+##
+#>IshD.ulam
+  ulam 2;
+element IshD {
+  typedef QSwapLine(4) OurSwapLine;
+  Int test() {
+    return OurSwapLine.sizeof;
+  }
+}
+use QSwapLine;
+
+#:QID.ulam
+  ulam 2;
+quark QID(Unary(5) myTagBits) {
+  constant Unsigned cQID_TAG_BITS = myTagBits;
+  Bits(1) mArray[cQID_TAG_BITS];
+}
+
+#:QSwapLine.ulam
+  ulam 2;
+quark QSwapLine(Unary(5) itagBits) : QID(itagBits) {
+  Int(7) mPhase;
+}
+use QID;
+
+/* returns:
+./IshD.ulam:14:0: ERROR: Trying to exceed allotted bit size (32) for quark QSwapLine(4) with 38 bits.
+./IshD.ulam:11:7: ERROR: CLASS INSTANCE 'QSwapLine(UNKNOWN)<19>' SIZED 38 FAILED.
+./IshD.ulam:11:7: ERROR: 2 Nodes with erroneous types detected after type labeling class: QSwapLine11.
+Unrecoverable Program Type Label FAILURE.
+*/
+#.

@@ -1862,7 +1862,7 @@ namespace MFM {
 	    u32 snameid = m_state.m_pool.getIndexForDataString(sname.str());
 	    Token argTok(TOK_IDENTIFIER, pTok.m_locator, snameid); //use current locator
 	    //stub id,  m_state.getUlamTypeOfConstant(Int) stub type, state
-	    argSym = new SymbolConstantValue(argTok, Int, m_state);
+	    argSym = new SymbolConstantValue(argTok, Hzy, m_state);
 	  }
 
 	assert(argSym);
