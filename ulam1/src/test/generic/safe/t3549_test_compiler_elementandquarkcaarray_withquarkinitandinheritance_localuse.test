@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3549_test_compiler_elementandquarkarray_withquarkinitandinheritance_localuse
 #!
-## gencode output:
+## gencode output (asserts interleaved):
 ##Bool(3) Arg: 0x7 (true)
 ##Int(4) Arg: 0x7
 ##
 Exit status: 0
-Ue_Foo { Bool(3) b(false);  typedef Car Pop[2];  System s();  Int(4) m_i(7);  Car m_bar2[2]( :< Bool(1) val_b[3](false,false,false); > Bool(1) cb(true);  :< Bool(1) val_b[3](false,false,false); > Bool(1) cb(true); );  Car sbar( :< Bool(1) val_b[3](false,false,false); > Bool(1) cb(true); );  Int(32) test() {  Car sbar;  Atom(96) a;  a sbar 0 cast [] = sbar 1 cast [] a = b sbar cb . cast = s ( b )print . s ( m_i )print . 0 cast return } }
+Ue_Foo { Bool(3) b(false);  typedef Car Pop[2];  System s();  Int(4) m_i(7);  Car m_bar2[2]( :< Bool(1) val_b[3](false,false,false); > Bool(1) cb(true);  :< Bool(1) val_b[3](false,false,false); > Bool(1) cb(true); );  Car sbar( :< Bool(1) val_b[3](false,false,false); > Bool(1) cb(true); );  Int(32) test() {  Car sbar;  Atom(96) a;  a sbar 0 cast [] = sbar 1 cast [] a = b sbar cb . cast = s ( b )print . s ( b cast )assert . s ( m_i )print . s ( m_i 7 == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_Car : Bar { :< Bool(1) val_b[3](false,false,false); > Bool(1) cb( true);  <NOMAIN> }
 Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
@@ -34,7 +34,9 @@ use System;
    sbar[1] = a; //eval wipes out local sbar (not data members)
    b = sbar.cb;
    s.print(b);
+   s.assert(b);
    s.print(m_i);
+   s.assert(m_i == 7);
    return 0;
  }
  }

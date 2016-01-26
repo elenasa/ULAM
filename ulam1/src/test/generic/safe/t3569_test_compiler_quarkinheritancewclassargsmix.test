@@ -1,11 +1,11 @@
 ## -*- mode:ulam -*-
 #=t3569_test_compiler_quarkinheritancewclassargsmix
-#!
-## gencode output:
+## gencode output (+assert):
 ## Bool(3) Arg: 0x7 (true)
 ##
+#!
 Exit status: 5
-Ue_Foo { System s();  Bool(1) first(false);  Soo su( :< constant Int(32) a = 1;  Bool(1) cb(true); > Unsigned(3) us(4u); );  Int(32) test() {  Foo f;  f su cb . . cond { s ( f su cb . . cast )print . 5u cast return } if 0 cast return } }
+Ue_Foo { System s();  Bool(1) first(false);  Soo su( :< constant Int(32) a = 1;  Bool(1) cb(true); > Unsigned(3) us(4u); );  Int(32) test() {  Foo f;  f su cb . . cond { s ( f su cb . . cast )print . 5u cast return } if s ( false )assert . 0 cast return } }
 Uq_Soo : Coo(1) { :< Bool(1) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
 Uq_Coo(Int(32) a) { Bool(UNKNOWN) cb(notready);  <NOMAIN> }
 Uq_System { <NOMAIN> }
@@ -27,6 +27,7 @@ element Foo {
       s.print(f.su.cb);
       return f.sizeof;
     }
+    s.assert(false);
     return 0;
   }
 }

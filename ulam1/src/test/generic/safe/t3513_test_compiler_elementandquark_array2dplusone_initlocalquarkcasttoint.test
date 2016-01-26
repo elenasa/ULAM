@@ -1,14 +1,14 @@
 ## -*- mode:ulam -*-
 #=t3513_test_compiler_elementandquark_array2dplusone_initlocalquarkcasttoint
-#!
-## gencode output:
+## gencode output: (followed by 4 asserts)
 ##Int Arg: 9
 ##Int Arg: 4
 ##Int Arg: 41
 ##Int Arg: 1
 ##
+#!
 Exit status: 41
-Ue_Foo { System s();  Unsigned(1) m_array[64](0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,1u,1u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u);  Int(32) test() {  C2D c;  c ( 0u cast 0 cast )func = m_array c ( )toInt . 1 cast +b [] 1 cast = m_array c ( )toInt . [] 1 cast = s ( c m_width . cast )print . s ( c m_height . cast )print . s ( c ( )toInt . 1 cast +b cast )print . s ( m_array c ( )toInt . [] cast )print . c ( )toInt . 1 cast +b cast return } }
+Ue_Foo { System s();  Unsigned(1) m_array[64](0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,1u,1u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u);  Int(32) test() {  C2D c;  c ( 0u cast 0 cast )func = m_array c ( )toInt . 1 cast +b [] 1 cast = m_array c ( )toInt . [] 1 cast = s ( c m_width . cast )print . s ( c m_height . cast )print . s ( c ( )toInt . 1 cast +b cast )print . s ( m_array c ( )toInt . [] cast )print . s ( c m_width . 9 cast == )assert . s ( c m_height . 4 cast == )assert . s ( c ( )toInt . 1 cast +b 41 cast == )assert . s ( m_array c ( )toInt . [] cast 1 == )assert . c ( )toInt . 1 cast +b cast return } }
 Uq_C2D { typedef Int(8) IE;  Int(8) m_width( 9);  Int(8) m_height( 4);  Int(8) m_x(0);  Int(8) m_y(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
@@ -35,6 +35,10 @@ ulam 1;
      s.print(c.m_height);
      s.print((Int) (c + 1));
      s.print( (Int) m_array[c]);
+     s.assert(c.m_width == 9);
+     s.assert(c.m_height == 4);
+     s.assert(c + 1 == 41);
+     s.assert(m_array[c] == 1);
      return (Int) (c + 1);
    }
  }

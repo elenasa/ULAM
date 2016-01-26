@@ -1,11 +1,11 @@
 ## -*- mode:ulam -*-
 #=t3635_test_compiler_element_arrayrefargfunccall_localvarsdm
 #!
-##      /* gen code output:
+##      /* gen code output (+assert):
 ##	 Bool(3) Arg: 0x7 (true)
 ##       */
 Exit status: 1
-Ue_Foo { System s();  typedef Bool(3) Bar[4];  Int(32) m_i(0);  Bool(3) m_b[4](false,false,false,false);  Int(32) test() {  Foo f;  Bool(3)& bref[4] = f m_b .;  f m_i . 12u cast = ( f m_b . cast 2 cast )check s ( f m_b 2 [] . cast )print . f m_b 2 [] . cast return } }
+Ue_Foo { System s();  typedef Bool(3) Bar[4];  Int(32) m_i(0);  Bool(3) m_b[4](false,false,false,false);  Int(32) test() {  Foo f;  Bool(3)& bref[4] = f m_b .;  f m_i . 12u cast = ( f m_b . cast 2 cast )check s ( f m_b 2 [] . cast )print . s ( f m_b 2 [] . cast )assert . f m_b 2 [] . cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3634
@@ -29,6 +29,7 @@ element Foo {
     f.m_i = Bar.sizeof; //== total bits
     check(f.m_b, 2);
     s.print(f.m_b[2]); //should be true
+    s.assert(f.m_b[2]); //should be true
     return (Int) f.m_b[2];
   }
 }

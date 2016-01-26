@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3564_test_compiler_quarkinheritance_as
 #!
-## gencode output:
+## gencode output (asserts):
 ## Bool(3) Arg: 0x7 (true)
 ## Unsigned Arg: 3
 ##
 Exit status: 3
-Ue_Foo : Soo { :< :< Bool(3) cb(true); > Unsigned(3) us(4u); > System s();  Bool(1) first(true);  Soo su( :< Bool(3) cb(true); > Unsigned(3) us(4u); );  Int(32) test() {  Foo f;  f Coo as cond { Coo& f;  first f cb . cast = s ( first cast )print . s ( 3u )print . 3u cast return } if 0 cast return } }
+Ue_Foo : Soo { :< :< Bool(3) cb(true); > Unsigned(3) us(4u); > System s();  Bool(1) first(true);  Soo su( :< Bool(3) cb(true); > Unsigned(3) us(4u); );  Int(32) test() {  Foo f;  f Coo as cond { Coo& f;  first f cb . cast = s ( first cast )print . s ( first )assert . s ( 3u )print . s ( true )assert . 3u cast return } if 0 cast return } }
 Uq_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
@@ -29,7 +29,9 @@ element Foo : Soo {
     {
       first = f.cb;
       s.print(first);
+      s.assert(first);
       s.print(f.sizeof);
+      s.assert(f.sizeof == 3);
       return f.sizeof;
     }
     return 0;

@@ -3,9 +3,11 @@
 #!
 ##      /* gencode output:
 ##	 Int Arg: 9
+##       assert: arg is 1
+##       after assert's abort: arg is 1
 ##      */
 Exit status: 9
-Ue_A { typedef Int(6) BigSite[10];  Int(32) test() {  System p;  Int(6) site[10] = ( )func2;  Int(6) site2[10] = site;  p ( ( site )func )print . ( site )func return } }
+Ue_A { typedef Int(6) BigSite[10];  Int(32) test() {  System p;  Int(6) site[10] = ( )func2;  Int(6) site2[10] = site;  p ( ( site )func )print . p ( ( site )func 9 cast == )assert . ( site )func return } }
 Uq_System { <NOMAIN> }
 ##
 ##      //informed by error/t3419, except Int(6) instead of Int(3)/
@@ -30,6 +32,7 @@ element A {
     BigSite site = func2();
     BigSite site2 = site /*+ site2*/;
     p.print(func(site));
+    p.assert(func(site) == 9);
     return func(site);
   }
 }

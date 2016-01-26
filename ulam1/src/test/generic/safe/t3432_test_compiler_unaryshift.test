@@ -3,10 +3,14 @@
 #!
 ##      /* gen code output:
 ##	 Unary(3) Arg: 0x2
+##       assert: arg is 1
+##       after assert's abort: arg is 1
 ##	 Unary(3) Arg: 0x2
+##       assert: arg is 1
+##       after assert's abort: arg is 1
 ##      */
 Exit status: 0
-Ue_A { System s();  Unary(3) u(2u);  Unary(3) v(2u);  Int(32) test() {  v 3u cast = u v cast cast 1 cast << cast = v v cast 1 cast >> cast = s ( u )print . s ( v )print . 0 cast return } }
+Ue_A { System s();  Unary(3) u(2u);  Unary(3) v(2u);  Int(32) test() {  v 3u cast = u v cast cast 1 cast << cast = v v cast 1 cast >> cast = s ( u )print . s ( u cast 2 == )assert . s ( v )print . s ( v cast 2 == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ##      // cast to Bits and cast back to Unary(3): 3 >> 1 = 2   3 << 1 = 2
@@ -21,7 +25,9 @@ Unary(3) u, v;
  u = (Unary(3)) (v << 1);
  v = (Unary(3)) (v >> 1);
  s.print(u);
+ s.assert(u == 2);
  s.print(v);
+ s.assert(v == 2);
  return 0;
  }
  }

@@ -1,49 +1,51 @@
 ## -*- mode:ulam -*-
 #=t3511_test_compiler_elementandquark_withdatamembersinit
-#!
-Exit status: 7
-Ue_A { Int(4) b(4);  System s();  Bar bar( Bool(1) b(true); );  Int(4) a(3);  Bool(7) d(true);  Int(32) test() {  Bar localbar;  A locala;  s ( a cast b cast +b cast )print . s ( bar b . )assert . s ( bar b . cast )print . s ( localbar b . cast )print . s ( locala d . cast )print . s ( locala a . cast locala b . cast +b cast )print . locala a . 1 cast -= locala b . 1 cast -= s ( locala a . cast locala b . cast +b cast )print . a 1 cast -= b 1 cast -= a cast b cast +b cast return } }
-Uq_Bar { Bool(1) b( true);  <NOMAIN> }
-Uq_System { <NOMAIN> }
+##
 ## gen output:
 ## Int Arg: 9
 ## assert: arg is 1
-## after assert's abort: arg is 1
+## after asserts abort: arg is 1
 ## Bool(3) Arg: 0x7 (true)
 ## Bool(3) Arg: 0x7 (true)
 ## Bool(3) Arg: 0x7 (true)
 ## Int Arg: 9
 ## Int Arg: 7
+#!
+Exit status: 7
+Ue_A { Int(4) b(4);  System s();  Bar bar( Bool(1) b(true); );  Int(4) a(3);  Bool(7) d(true);  Int(32) test() {  Bar localbar;  A locala;  s ( a cast b cast +b cast )print . s ( bar b . )assert . s ( bar b . cast )print . s ( localbar b . cast )print . s ( locala d . cast )print . s ( locala a . cast locala b . cast +b cast )print . locala a . 1 cast -= locala b . 1 cast -= s ( locala a . cast locala b . cast +b cast )print . a 1 cast -= b 1 cast -= a cast b cast +b cast return } }
+Uq_Bar { Bool(1) b( true);  <NOMAIN> }
+Uq_System { <NOMAIN> }
 #>A.ulam
+  ulam 1;
 use Bar;
 use System;
 element A {
-System s;
-Bar bar;
-Int test(){
-Bar localbar;
-A locala;
-s.print(a+b);
-s.assert(bar.b);
-s.print(bar.b);
-s.print(localbar.b);
-s.print(locala.d);
-s.print(locala.a + locala.b);
---locala.a;
---locala.b;
-s.print(locala.a + locala.b);
-a-=1;
-b-=1;
-return (a + b);
-}
-Bool(7) d = true;
-Int(4) a = 4;
-Int(4) b = 5;
+  System s;
+  Bar bar;
+  Int test(){
+    Bar localbar;
+    A locala;
+    s.print(a+b);
+    s.assert(bar.b);
+    s.print(bar.b);
+    s.print(localbar.b);
+    s.print(locala.d);
+    s.print(locala.a + locala.b);
+    --locala.a;
+    --locala.b;
+    s.print(locala.a + locala.b);
+    a-=1;
+    b-=1;
+    return (a + b);
+  }
+  Bool(7) d = true;
+  Int(4) a = 4;
+  Int(4) b = 5;
 }
 ##allows data member var defined after use; return an expression
 ##answer is saturated
 #:System.ulam
-ulam 1;
+  ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

@@ -2,12 +2,12 @@
 #=t3563_test_compiler_elementinheritances_asnocast
 #!
 ##
-## gencode output: (should be)
+## gencode output (+ assert): (should be)
 ## Bool(3) Arg: 0x7 (true)
 ##
 ## eval fails since atom type doesnt have element type, e.g.: Atom a = f;
 Exit status: 0
-Ue_Foo : Soo { :< :< Bool(3) cb(true); > Unsigned(3) us(4u); > Bool(7) sp(false);  Int(32) a(73);  Int(32) test() {  System s;  Foo f;  Atom(96) a = f cast;  a Coo as cond { Coo& a;  a cb . cond { s ( a cb . )print . 1 cast return } if } if 0 cast return } }
+Ue_Foo : Soo { :< :< Bool(3) cb(true); > Unsigned(3) us(4u); > Bool(7) sp(false);  Int(32) a(73);  Int(32) test() {  System s;  Foo f;  Atom(96) a = f cast;  a Coo as cond { Coo& a;  a cb . cond { s ( a cb . )print . s ( a cb . cast )assert . 1 cast return } if } if 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
@@ -31,6 +31,7 @@ element Foo : Soo {
       if(a.cb)
       {
 	s.print(a.cb);
+	s.assert(a.cb);
 	return 1;
       }
     }

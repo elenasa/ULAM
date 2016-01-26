@@ -2,7 +2,7 @@
 #=t3586_test_compiler_elementandquarkwargs_hascond
 #!
 ##
-##   gencode output:
+##   gencode output (interleaved asserts):
 ##	 Unsigned Arg: 3
 ##       Unsigned Arg: 3
 ##       Unsigned Arg: 3
@@ -10,7 +10,7 @@
 ##
 ##
 Exit status: 7
-Ue_Eltypo : Typo(1) { :< :< Bool(1) b(false);  Unsigned(3) bu(7u); > constant Int(32) a = 1;  Bool(1) by(false); > System s();  Unsigned(3) first(3u);  Unsigned(3) second(7u);  Typo(1) t( :< Bool(1) b(false);  Unsigned(3) bu(7u); > constant Int(32) a = 1;  Bool(1) by(false); );  Int(32) test() {  Eltypo elf;  elf Bar as cond { Bar& elf;  elf ( 3u cast )func . s ( elf bu . cast )print . first elf bu . = } if s ( elf bu . cast )print . s ( first cast )print . s ( elf t bu . . cast )print . second elf t bu . . = second cast return } }
+Ue_Eltypo : Typo(1) { :< :< Bool(1) b(false);  Unsigned(3) bu(7u); > constant Int(32) a = 1;  Bool(1) by(false); > System s();  Unsigned(3) first(3u);  Unsigned(3) second(7u);  Typo(1) t( :< Bool(1) b(false);  Unsigned(3) bu(7u); > constant Int(32) a = 1;  Bool(1) by(false); );  Int(32) test() {  Eltypo elf;  elf Bar as cond { Bar& elf;  elf ( 3u cast )func . s ( elf bu . cast )print . s ( elf bu . cast 3 cast == )assert . first elf bu . = } if s ( false )assert . else s ( elf bu . cast )print . s ( elf bu . cast 3 cast == )assert . s ( first cast )print . s ( first cast 3 cast == )assert . s ( elf t bu . . cast )print . s ( elf t bu . . cast 7 == )assert . second elf t bu . . = second cast return } }
 Uq_Typo(Int(32) a) : Bar { :< Bool(1) b(false);  Unsigned(3) bu( 7u); > Bool(1) by(false);  <NOMAIN> }
 Uq_Bar { Bool(1) b(false);  Unsigned(3) bu( 7u);  <NOMAIN> }
 Uq_System { <NOMAIN> }
@@ -53,12 +53,19 @@ element Eltypo : Typo(1) {
     if(elf as Bar){ //was has
       elf.func(3u);
       s.print(elf.bu);
+      s.assert(elf.bu == 3);
       first = elf.bu; //3u, from 7u
     }
+    else
+      s.assert(false);
+
     s.print(elf.bu); //should be 3 too
+    s.assert(elf.bu == 3);
     s.print(first); //3
+    s.assert(first == 3);
 
     s.print(elf.t.bu); //no change to dm, 7
+    s.assert(elf.t.bu == 7); //no change to dm, 7
     second = elf.t.bu;
     return second;
   }

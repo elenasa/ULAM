@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3542_test_compiler_elementandquarkinheritanceswithfunc_nonlocaluse
 #!
-## gencode output:
+## gencode output (asserts interleaved):
 ##Bool(3) Arg: 0x7 (true)
 ##Bool(3) Arg: 0x7 (true)
 ##Bool(3) Arg: 0x7 (true)
@@ -10,7 +10,7 @@
 ##Unsigned Arg: 13
 ##
 Exit status: 13
-Ue_Foo : Basel { :< :< Soo su( :< :< Int(5) lu(1); > Bool(3) cb(true); > Unsigned(3) us(4u); ); > Bool(1) ba(false); > System s();  Bool(1) first(true);  Int(32) test() {  s ( su cb . )print . first su cb . cast = s ( first cast )print . first su ( )check . = s ( first cast )print . su ( )check . cond { s ( su lu . cast )print . su lu . 1u cast = s ( su lu . cast )print . s ( 13u )print . 13u cast return } if -1 cast return } }
+Ue_Foo : Basel { :< :< Soo su( :< :< Int(5) lu(1); > Bool(3) cb(true); > Unsigned(3) us(4u); ); > Bool(1) ba(false); > System s();  Bool(1) first(true);  Int(32) test() {  s ( su cb . )print . s ( su cb . cast )assert . first su cb . cast = s ( first cast )print . s ( first )assert . first su ( )check . = s ( first cast )print . s ( first )assert . su ( )check . cond { s ( su lu . cast )print . s ( su lu . -1 cast == )assert . su lu . 1u cast = s ( su lu . cast )print . s ( su lu . 1 cast == )assert . s ( 13u )print . s ( true )assert . 13u cast return } if -1 cast return } }
 Uq_Basel : Casel { :< Soo su( :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u); ); > Bool(1) ba(false);  <NOMAIN> }
 Uq_Casel { Soo su( :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u); );  <NOMAIN> }
 Uq_Soo : Coo { :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
@@ -30,17 +30,23 @@ element Foo : Basel {
   Bool first;
   Int test() {
     s.print(su.cb);
+    s.assert(su.cb);
     first = su.cb; //DM
     s.print(first);
+    s.assert(first);
     first = su.check();
     s.print(first);
+    s.assert(first);
 
     if(su.check())
     {
       s.print(su.lu);
+      s.assert(su.lu == -1);
       su.lu = 1u;
       s.print(su.lu);
+      s.assert(su.lu == 1);
       s.print(Foo.sizeof);
+      s.assert(Foo.sizeof == 13);
       return Foo.sizeof;
     }
     return -1;

@@ -3,10 +3,14 @@
 #!
 ##      /* gencode output:
 ##	 Unary(3) Arg: 0x3
+##       assert: arg is 1
+##       after assert's abort: arg is 1
 ##	 Unsigned Arg: 3
+##       assert: arg is 1
+##       after assert's abort: arg is 1
 ##      */
 Exit status: 1
-Ue_A { Bool(1) b(true);  System s();  Bool(3) a(true);  Unary(3) d(3u);  Unsigned(6) e(3u);  Int(32) test() {  a true cast = e d a cast cast 3 cast * cast = cast = s ( d )print . s ( e cast )print . b d cast 0 cast != = b cast return } }
+Ue_A { Bool(1) b(true);  System s();  Bool(3) a(true);  Unary(3) d(3u);  Unsigned(6) e(3u);  Int(32) test() {  a true cast = e d a cast cast 3 cast * cast = cast = s ( d )print . s ( d cast 3 == )assert . s ( e cast )print . s ( e cast 3 cast == )assert . b d cast 0 cast != = b cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
 use System;
@@ -20,7 +24,9 @@ Int test() {
   a = true;
   e = d = (Unary(3))((Unary(3)) a * 3);
   s.print(d);
+  s.assert(d == 3);
   s.print((Unsigned)e);
+  s.assert(e == 3);
   b = (d != 0);
   return (Int) b;
 }

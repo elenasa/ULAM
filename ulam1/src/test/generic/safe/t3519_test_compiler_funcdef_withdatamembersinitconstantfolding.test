@@ -1,28 +1,34 @@
 ## -*- mode:ulam -*-
 #=t3519_test_compiler_funcdef_withdatamembersinitconstantfolding
+## gen output:
+## Int Arg: 9
+## assert: arg is 1
+## after asserts abort: arg is 1
 #!
 Exit status: 9
-Ue_A { Int(4) b(5);  System s();  Int(4) a(4);  Bool(7) d(false);  Int(32) test() {  s ( a cast b cast +b cast )print . a cast b cast +b cast return } }
+Ue_A { Int(4) b(5);  System s();  Int(4) a(4);  Bool(7) d(false);  Int(32) test() {  s ( a cast b cast +b cast )print . s ( a cast b cast +b 9 == )assert . a cast b cast +b cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by 3510 and 3518; fixes bug constant folding rhs.
 ##
 #>A.ulam
+  ulam 1;
 use System;
 element A {
-System s;
-Int test(){
-  s.print(a+b);
-  return (a + b);
-}
-Bool(7) d;
-Int(4) a = Int(4).sizeof - 0;
-Int(4) b = Int(4).sizeof + 1;
+  System s;
+  Int test(){
+    s.print(a+b);
+    s.assert(a+b == 9);
+    return (a + b);
+  }
+  Bool(7) d;
+  Int(4) a = Int(4).sizeof - 0;
+  Int(4) b = Int(4).sizeof + 1;
 }
 ##allows data member var defined after use; return an expression
 ##answer is saturated
 #:System.ulam
-ulam 1;
+  ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

@@ -1,17 +1,21 @@
 ## -*- mode:ulam -*-
 #=t3510_test_compiler_funcdef_withdatamembersinit
+##
+##  gencode output:
+## Int Arg: 9
+## assert: arg is 1
+## after asserts abort: arg is 1
 #!
 Exit status: 9
-Ue_A { Int(4) b(5);  System s();  Int(4) a(4);  Bool(7) d(false);  Int(32) test() {  s ( a cast b cast +b cast )print . a cast b cast +b cast return } }
+Ue_A { Int(4) b(5);  System s();  Int(4) a(4);  Bool(7) d(false);  Int(32) test() {  s ( a cast b cast +b cast )print . s ( a cast b cast +b 9 == )assert . a cast b cast +b cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
 use System;
 element A {
 System s;
 Int test(){
-  //a=4;
-  //b=5;
 s.print(a+b);
+s.assert(a+b == 9);
 return (a + b);
 }
 Bool(7) d;

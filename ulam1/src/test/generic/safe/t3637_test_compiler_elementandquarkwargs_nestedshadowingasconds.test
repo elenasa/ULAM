@@ -2,13 +2,13 @@
 #=t3637_test_compiler_elementandquarkwargs_nestedshadowingasconds
 #!
 ##
-##   gencode output:
+##   gencode output (+asserts):
 ##	 Unsigned Arg: 3
 ##       Unsigned Arg: 3
 ##       Unsigned Arg: 3
 ##
 Exit status: 3
-Ue_Eltypo : Typo(1) { :< :< Unsigned(3) bu(7u); > constant Int(32) a = 1; > System s();  Unsigned(3) first(3u);  Unsigned(3) second(3u);  Typo(1) t( :< Unsigned(3) bu(7u); > constant Int(32) a = 1; );  Int(32) test() {  Eltypo elf;  Atom(96) a = elf cast;  a Eltypo as cond { Eltypo& a;  a Bar as cond { Bar& a;  a ( 3u cast )func . s ( a bu . cast )print . first a bu . = } if s ( a bu . cast )print . s ( first cast )print . second a bu . = } if second cast return } }
+Ue_Eltypo : Typo(1) { :< :< Unsigned(3) bu(7u); > constant Int(32) a = 1; > System s();  Unsigned(3) first(3u);  Unsigned(3) second(3u);  Typo(1) t( :< Unsigned(3) bu(7u); > constant Int(32) a = 1; );  Int(32) test() {  Eltypo elf;  Atom(96) a = elf cast;  a Eltypo as cond { Eltypo& a;  a Bar as cond { Bar& a;  a ( 3u cast )func . s ( a bu . cast )print . s ( a bu . cast 3 cast == )assert . first a bu . = } if s ( false )assert . else s ( a bu . cast )print . s ( a bu . cast 3 cast == )assert . s ( first cast )print . s ( first cast 3 cast == )assert . second a bu . = } if second cast return } }
 Uq_Typo(Int(32) a) : Bar { /* empty class block */ }
 Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
 Uq_System { <NOMAIN> }
@@ -49,10 +49,16 @@ element Eltypo : Typo(1) {
       if(a as Bar){
 	a.func(3u);
 	s.print(a.bu);
+	s.assert(a.bu == 3);
 	first = a.bu; //3u, from 7u
       }
+      else
+	s.assert(false);
+
       s.print(a.bu);
+      s.assert(a.bu == 3);
       s.print(first);
+      s.assert(first == 3);
       second = a.bu; //3u, from 7u, fails eval!
     }
     return second;

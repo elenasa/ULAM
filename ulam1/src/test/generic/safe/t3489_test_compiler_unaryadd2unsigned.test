@@ -3,10 +3,14 @@
 #!
 ##      /* gencode output:
 ##	 Unary(3) Arg: 0x3
+##       assert: arg is 1
+##       after assert's abort: arg is 1
 ##	 Unsigned Arg: 12
+##       assert: arg is 1
+##       after assert's abort: arg is 1
 ##      */
 Exit status: 3
-Ue_A { constant Unsigned(3) b = 5u;  System s();  constant Unsigned(3) a = 7u;  constant Unary(3) c = 7u;  Unsigned(4) d(12u);  Int(32) test() {  d 12u = s ( 7u )print . s ( d cast )print . 7u cast return } }
+Ue_A { constant Unsigned(3) b = 5u;  System s();  constant Unsigned(3) a = 7u;  constant Unary(3) c = 7u;  Unsigned(4) d(12u);  Int(32) test() {  d 12u = s ( 7u )print . s ( true )assert . s ( d cast )print . s ( d cast 12 == )assert . 7u cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
 use System;
@@ -18,7 +22,9 @@ constant Unsigned(3) a = 7u; constant Unsigned(3) b = 5u;
  use test;
  d = a + b;
  s.print(c);
+ s.assert(c == 3);
  s.print(d);
+ s.assert(d == 12);
  return c;
  }
  }

@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3585_test_compiler_elementquarkinheritance_returnatomasquarkSelf
-#!
-## gencode output:
+## gencode output (interleaved asserts):
 ##Unsigned Arg: 1
 ##Unsigned Arg: 3
 ##Unsigned Arg: 6
@@ -9,8 +8,9 @@
 ##
 ## cus evals as 0u and fails; expects 1u/
 ##
+#!
 Exit status: 6
-Ue_Foo : Soo { :< :< Unsigned(3) us(2u);  Bool(3) cb(true); > Unsigned(3) sus(4u); > Bool(1) first(false);  Unsigned(3) cus(1u);  Unsigned(3) dus(3u);  Int(32) test() {  System s;  Coo c = ( )func;  cus c us . = s ( c us . cast )print . Coo d = c ( )func .;  dus d us . = s ( d us . cast )print . s ( c us . cast d us . cast +b cast )print . s ( cus cast dus cast +b cast )print . c us . cast d us . cast +b cast return } }
+Ue_Foo : Soo { :< :< Unsigned(3) us(2u);  Bool(3) cb(true); > Unsigned(3) sus(4u); > Bool(1) first(false);  Unsigned(3) cus(1u);  Unsigned(3) dus(3u);  Int(32) test() {  System s;  Coo c = ( )func;  cus c us . = s ( c us . cast )print . s ( c us . cast 1 cast == )assert . Coo d = c ( )func .;  dus d us . = s ( d us . cast )print . s ( d us . cast 3 cast == )assert . s ( c us . cast d us . cast +b cast )print . s ( c us . cast d us . cast +b cast 6 cast == )assert . s ( cus cast dus cast +b cast )print . s ( cus cast dus cast +b cast 4 cast == )assert . c us . cast d us . cast +b cast return } }
 Uq_Soo : Coo { :< Unsigned(3) us( 2u);  Bool(3) cb( true); > Unsigned(3) sus( 4u);  <NOMAIN> }
 Uq_Coo { Unsigned(3) us( 2u);  Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
@@ -32,14 +32,19 @@ element Foo : Soo {
     Coo c = func();
     cus = c.us;
     s.print(c.us); //1
+    s.assert(c.us == 1); //1
 
     Coo d = c.func(); //what happens when atom is not an Atom, immediate UNDEFINED_TYPE
     dus = d.us;
     s.print(d.us); //3
+    s.assert(d.us == 3); //3
 
     s.print(c.us + d.us); //6
+    s.assert(c.us + d.us == 6); //6
 
     s.print(cus + dus); //4
+    s.assert(cus + dus == 4); //4
+
     return (c.us + d.us);
   }
 }

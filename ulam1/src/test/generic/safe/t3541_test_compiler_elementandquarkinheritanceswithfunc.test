@@ -1,15 +1,15 @@
 ## -*- mode:ulam -*-
 #=t3541_test_compiler_elementandquarkinheritanceswithfunc
-#!
-## gencode output:
+## gencode output: (interleaved asserts)
 ##Bool(3) Arg: 0x7 (true)
 ##Int Arg: -1
 ##Int Arg: 1
 ##Unsigned Arg: 4
 ##Unsigned Arg: 13
 ##
+#!
 Exit status: 13
-Ue_Foo : Basel { :< :< Soo su( :< :< Int(5) lu(31); > Bool(3) cb(true); > Unsigned(3) us(4u); ); > Bool(1) ba(false); > System s();  Bool(1) first(false);  Int(32) test() {  Foo f;  f first . su cb . cast = s ( f first . cast )print . f su ( )check . . cond { s ( f su lu . . cast )print . f su lu . . 1u cast = s ( f su lu . . cast )print . s ( f su us . . cast )print . s ( 13u )print . 13u cast return } if 0 cast return } }
+Ue_Foo : Basel { :< :< Soo su( :< :< Int(5) lu(31); > Bool(3) cb(true); > Unsigned(3) us(4u); ); > Bool(1) ba(false); > System s();  Bool(1) first(false);  Int(32) test() {  Foo f;  f first . su cb . cast = s ( f first . cast )print . s ( f first . )assert . f su ( )check . . cond { s ( f su lu . . cast )print . s ( f su lu . . -1 cast == )assert . f su lu . . 1u cast = s ( f su lu . . cast )print . s ( f su lu . . 1 cast == )assert . s ( f su us . . cast )print . s ( f su us . . cast 4 == )assert . s ( 13u )print . s ( true )assert . 13u cast return } if 0 cast return } }
 Uq_Basel : Casel { :< Soo su( :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u); ); > Bool(1) ba(false);  <NOMAIN> }
 Uq_Casel { Soo su( :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u); );  <NOMAIN> }
 Uq_Soo : Coo { :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
@@ -31,13 +31,18 @@ element Foo : Basel {
     Foo f;
     f.first = su.cb; //DM
     s.print(f.first);
+    s.assert(f.first);
     if(f.su.check())
     {
       s.print(f.su.lu);
+      s.assert(f.su.lu == -1);
       f.su.lu = 1u;
       s.print(f.su.lu);
+      s.assert(f.su.lu == 1);
       s.print(f.su.us);
+      s.assert(f.su.us == 4);
       s.print(f.sizeof);
+      s.assert(f.sizeof == 13);
       return f.sizeof;
     }
     return 0;

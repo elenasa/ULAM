@@ -4,9 +4,11 @@
 ##
 ## gencode output:
 ##   Unsigned Arg: 3
+##   assert: arg is 1
+##   after asserts abort: arg is 1
 ##
 Exit status: 3
-Ue_P(Unsigned(32) a) { Bool(UNKNOWN) b(unknown);  constant Unsigned(32) a = NONREADYCONST;  Unsigned(UNKNOWN) var(unknown);  Int(32) test() {  System s;  P(1u) pel;  s ( pel var . )print . pel var . return } }
+Ue_P(Unsigned(32) a) { Bool(UNKNOWN) b(unknown);  constant Unsigned(32) a = NONREADYCONST;  Unsigned(UNKNOWN) var(unknown);  Int(32) test() {  System s;  P(1u) pel;  s ( pel var . )print . s ( pel var . 3 == )assert . pel var . return } }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }
 Uq_Q(Int(32) s) { typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }
 Uq_System { <NOMAIN> }
@@ -17,22 +19,23 @@ Uq_System { <NOMAIN> }
 ##      //this works!!
 ##
 #>P.ulam
-ulam 1;
+  ulam 1;
 use V;
 use System;
- element P(Unsigned a) {
-   Bool(a) b;
-   V.Woof.Foo var = 3u;
+element P(Unsigned a) {
+  Bool(a) b;
+  V.Woof.Foo var = 3u;
   Int test() {
     System s;
     P(1u) pel;
     s.print(pel.var);
+    s.assert(pel.var == 3);
     return pel.var;
   }
- }
+}
 
 #:Q.ulam
-ulam 1;
+  ulam 1;
 quark Q(Int s) {
   typedef Unsigned(s) Foo;
 }

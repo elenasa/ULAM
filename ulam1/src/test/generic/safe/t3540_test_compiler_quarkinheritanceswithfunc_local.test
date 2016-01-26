@@ -1,13 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3540_test_compiler_quarkinheritanceswithfunc_local
 #!
-## gencode output:
+## gencode output: (interleaved asserts)
 ##Int Arg: -1
 ##Int Arg: 1
 ##Unsigned Arg: 11
 ##
 Exit status: 11
-Ue_Foo { System s();  Bool(1) first(true);  Int(32) test() {  Soo su;  first su cb . cast = su ( )check . cond { s ( su lu . cast )print . su lu . 1u cast = s ( su lu . cast )print . s ( 11u )print . 11u cast return } if 0 cast return } }
+Ue_Foo { System s();  Bool(1) first(true);  Int(32) test() {  Soo su;  first su cb . cast = su ( )check . cond { s ( su lu . cast )print . s ( su lu . -1 cast == )assert . su lu . 1u cast = s ( su lu . cast )print . s ( su lu . 1 cast == )assert . s ( 11u )print . s ( true )assert . 11u cast return } if 0 cast return } }
 Uq_Soo : Coo { :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
 Uq_Coo : Loo { :< Int(5) lu( -1); > Bool(3) cb( true);  <NOMAIN> }
 Uq_Loo { Int(5) lu( -1);  <NOMAIN> }
@@ -29,9 +29,12 @@ element Foo {
     if(su.check())
     {
       s.print(su.lu);
+      s.assert(su.lu == -1);
       su.lu = 1u;
       s.print(su.lu);
+      s.assert(su.lu == 1);
       s.print(su.sizeof);
+      s.assert(su.sizeof == 11);
       return su.sizeof;
     }
     return 0;

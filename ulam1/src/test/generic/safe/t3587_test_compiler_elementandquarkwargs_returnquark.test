@@ -2,12 +2,12 @@
 #=t3587_test_compiler_elementandquarkwargs_returnquark
 #!
 ##
-##   gencode output: (correct answer like eval exit status!)
+##   gencode output: (unused variable Uh_5tlreg12) (interleaved asserts)
 ##	 Unsigned Arg: 2
 ##	 Unsigned Arg: 2
 ##
 Exit status: 2
-Ue_E : Qfoo { :< Unsigned(3) data(2u); > Bool(1) b(false);  System s();  Qfoo m_foo( Unsigned(3) data(2u); );  Int(32) test() {  ( )func s ( data cast )print . Qfoo f;  m_foo f ( )func . = s ( m_foo data . cast )print . Qfoo g = m_foo ( )func .;  s ( g data . cast )print . g data . cast return } }
+Ue_E : Qfoo { :< Unsigned(3) data(2u); > Bool(1) b(false);  System s();  Qfoo m_foo( Unsigned(3) data(2u); );  Int(32) test() {  ( )func s ( data cast )print . s ( data cast 2 cast == )assert . Qfoo f;  m_foo f ( )func . = s ( m_foo data . cast )print . s ( m_foo data . cast 2 cast == )assert . Qfoo g = m_foo ( )func .;  s ( g data . cast )print . s ( g data . cast 2 cast == )assert . g data . cast return } }
 Uq_Qfoo { Unsigned(3) data(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
@@ -24,13 +24,16 @@ element E : Qfoo {
   Int test(){
     func(); //inherited one; unused variable!
     s.print(data);
+    s.assert(data == 2);
 
     Qfoo f;
     m_foo = f.func(); //update dm from local
     s.print(m_foo.data);
+    s.assert(m_foo.data == 2);
 
     Qfoo g = m_foo.func(); //update local from dm
     s.print(g.data);
+    s.assert(g.data == 2);
     return g.data;
   }
 }
@@ -60,4 +63,5 @@ Void print(Unary(3) arg) native;
 Void print(Bool(3) arg) native;
 Void assert(Bool b) native;
 }
+
 #.
