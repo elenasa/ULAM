@@ -1706,7 +1706,8 @@ namespace MFM {
 	fp->write("("); //use constructor (not equals)
 	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, TMPAUTOREF).c_str());
 	fp->write(", ");
-	fp->write_decimal_unsigned(cos->getPosOffset());
+	//fp->write_decimal_unsigned(cos->getPosOffset());
+	fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
 	fp->write("u");
       }
     else
@@ -1747,7 +1748,8 @@ namespace MFM {
 	if(cosSize > 0)
 	  {
 	    fp->write(" + ");
-	    fp->write_decimal_unsigned(cos->getPosOffset());
+	    //fp->write_decimal_unsigned(cos->getPosOffset());
+	    fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
 	    fp->write("u");
 	  }
       }
@@ -2234,7 +2236,8 @@ namespace MFM {
 		    fp->write("<EC, ");
 		    if(stgcos->isDataMember())
 		      {
-			fp->write_decimal_unsigned(stgcos->getPosOffset());
+			//fp->write_decimal_unsigned(stgcos->getPosOffset()); //t3542
+			fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects(true)); //rel offset (t3542 only classes)
 			fp->write("u + ");
 		      }
 		    fp->write("T::ATOM_FIRST_STATE_BIT");
@@ -2457,7 +2460,8 @@ namespace MFM {
 	    if(stgcosclasstype == UC_QUARK)
 	      {
 		fp->write(", ");
-		fp->write_decimal_unsigned(stgcos->getPosOffset());
+		//fp->write_decimal_unsigned(stgcos->getPosOffset());
+		fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
 		fp->write("u + T::ATOM_FIRST_STATE_BIT");
 	      }
 	    fp->write(">::THE_INSTANCE)");
@@ -2491,7 +2495,8 @@ namespace MFM {
 		fp->write(", ");
 		if(cos->isDataMember()) //dm of local stgcos
 		      {
-			fp->write_decimal_unsigned(stgcos->getPosOffset());
+			//fp->write_decimal_unsigned(stgcos->getPosOffset());
+			fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
 			fp->write("u + ");
 		      }
 		fp->write("T::ATOM_FIRST_STATE_BIT");
@@ -2555,18 +2560,9 @@ namespace MFM {
     else
       {
 	fp->write("<EC, ");
-	u32 posoff = 0;
 	//when several dots, and a data member who "owns" cos
 	// has a pos within its stg.
-	for(s32 i = cosSize - 1; i >= 0; i--)
-	  {
-	    Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
-	    UlamType * sut = m_state.getUlamTypeByIndex(sym->getUlamTypeIdx());
-	    if(sym->isDataMember() && sut->getUlamTypeEnum() == Class)
-	      posoff += sym->getPosOffset();
-	  }
-
-	fp->write_decimal_unsigned(posoff);
+	fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects(true)); //rel offset (t3565, t3549, t3542)
 	fp->write("u + ");
 	fp->write("T::ATOM_FIRST_STATE_BIT");
 	fp->write(">::");
@@ -2794,31 +2790,27 @@ namespace MFM {
     return cosclassuti;
   } //findTypeOfAncestorAndBlockNo
 
-  // returns the index to the last object that's a subclass; o.w. -1 none found;
-  // preceeding object is the "owner"
-  s32 Node::calcPosOfCurrentObjectsContainingASubClass(bool isLocal)
+  // returns accumulated relative positions of data members
+  s32 Node::calcPosOfCurrentObjects(bool onlyClasses)
   {
-    //assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
-    //self must be subclass, i.e. inherited quark always at pos 0
+    // default for onlyClasses is false;
+    // self must be subclass, i.e. inherited quark always at pos 0
     if(m_state.m_currentObjSymbolsForCodeGen.empty()) return 0;
 
-    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-
     s32 cosSize = (s32) m_state.m_currentObjSymbolsForCodeGen.size();
-    s32 subcos = isCurrentObjectsContainingASubClass();
-    if(subcos < 0)
-      subcos = cosSize - 1; //e.g. custom array is in subclass, not cos
-
-    ULAMCLASSTYPE ct = m_state.getUlamTypeByIndex(stgcos->getUlamTypeIdx())->getUlamClass();
-    u32 pos = ((ct == UC_ELEMENT || !isLocal) ? ATOMFIRSTSTATEBITPOS : 0) ;
-
-    for(s32 i = 0; i <= subcos; i++)
+    u32 pos = 0;
+    for(s32 i = 0; i < cosSize; i++)
       {
     	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
-    	pos += sym->getPosOffset();
+	assert(sym);
+	if(sym->isDataMember() && !sym->isFunction())
+	  {
+	    if(!onlyClasses || (m_state.getUlamTypeByIndex(sym->getUlamTypeIdx())->getUlamTypeEnum() == Class))
+	      pos += sym->getPosOffset();
+	  }
       }
     return pos;
-  } //calcPosOfCurrentObjectsContainingASubClass
+  } //calcPosOfCurrentObjects
 
   //false means its the entire array or not an array at all (use read() if PACKEDLOADABLE)
   bool Node::isCurrentObjectAnArrayItem(UTI cosuti, UlamValue uvpass)

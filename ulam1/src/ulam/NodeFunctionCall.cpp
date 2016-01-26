@@ -905,7 +905,8 @@ namespace MFM {
 	fp->write("<EC, ");
 	if(cos->isDataMember())
 	  {
-	    fp->write_decimal_unsigned(cos->getPosOffset());
+	    //fp->write_decimal_unsigned(cos->getPosOffset());
+	    fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects(true)); //rel offset
 	    fp->write("u + ");
 	  }
 	fp->write("T::ATOM_FIRST_STATE_BIT>::"); //ancestor or immediate quark)
@@ -942,7 +943,8 @@ namespace MFM {
 	    fp->write("<EC, ");
 	    if(cos->isDataMember())
 	      {
-		fp->write_decimal_unsigned(cos->getPosOffset());
+		//fp->write_decimal_unsigned(cos->getPosOffset());
+		fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects(true)); //rel offset
 		fp->write("u + ");
 	      }
 	    fp->write("T::ATOM_FIRST_STATE_BIT>::"); //ancestor or immediate quark)
@@ -988,7 +990,7 @@ namespace MFM {
 	  {
 	    //self is a quark, use position of data member cos (accumulated?)
 	    fp->write("<EC, ");
-	    fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
+	    fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects(true)); //relative off
 	    fp->write("u + ");
 
 	    fp->write("T::ATOM_FIRST_STATE_BIT"); //ancestors at first state bit
@@ -1032,7 +1034,7 @@ namespace MFM {
 	    hiddenargs << "<EC";
 	    if(cosut->getUlamClass() == UC_QUARK)
 	      {
-		hiddenargs << ", " << cos->getPosOffset();
+		hiddenargs << ", " << Node::calcPosOfCurrentObjects(true); //relative off;
 		hiddenargs << "u + T::ATOM_FIRST_STATE_BIT";
 	      }
 	    hiddenargs << ">::THE_INSTANCE)";
@@ -1076,7 +1078,7 @@ namespace MFM {
 		  {
 		    hiddenargs << ", ";
 		    if(cos->isDataMember()) //dm of local stgcos
-		      hiddenargs << cos->getPosOffset() << "u + ";
+		      hiddenargs << Node::calcPosOfCurrentObjects(true) << "u + ";
 
 		    hiddenargs << "T::ATOM_FIRST_STATE_BIT";
 		  }
@@ -1309,7 +1311,8 @@ namespace MFM {
     if(stgcos->isDataMember()) //can't be an element
       {
 	fp->write("Uv_4atom, ");
-	fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
+	//fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
+	fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects(false)); //rel offset
 	fp->write("u");
       }
     else
@@ -1321,7 +1324,8 @@ namespace MFM {
 	if(cos->isDataMember())
 	  {
 	    fp->write(", ");
-	    fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
+	    //fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
+	    fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects(false)); //rel offset
 	    fp->write("u");
 	  }
 	else
