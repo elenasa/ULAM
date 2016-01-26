@@ -275,8 +275,8 @@ namespace MFM {
       {
 	// assumes val is in proper format for its type
       case Int:
-	  rtnUV = UlamValue::makeImmediate(uti, (s32) data, m_state);
-	  break;
+	rtnUV = UlamValue::makeImmediate(uti, (s32) data, m_state);
+	break;
       case Bool:
       case Unsigned:
       case Unary:
@@ -352,6 +352,7 @@ namespace MFM {
   {
     bool rtnb = false;
     UTI nuti = getNodeType(); //constant type
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     UlamType * fit = m_state.getUlamTypeByIndex(fituti);
     if(!fit->isComplete())
       {
@@ -381,7 +382,18 @@ namespace MFM {
 	return false;
       }
 
+    u32 nwordsize = nut->getTotalWordSize();
     u32 fwordsize = fit->getTotalWordSize();
+    if(nwordsize > fwordsize)
+      {
+	std::ostringstream msg;
+	msg << "Word size incompatible. Not supported at this time, constant type: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str() << ", to fit into type: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(fituti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return false;
+      }
+
     if(fwordsize <= MAXBITSPERINT) //32
       {
 	rtnb = fitsInBits32(fituti);
