@@ -2185,13 +2185,12 @@ namespace MFM {
       return;
 
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-    u32 startcos = 0;
     Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
     Symbol * stgcos = m_state.getCurrentSelfSymbolForCodeGen();
 
     //what happens when a quark is both a DM as well as ancestor to CurrentSelfSymbol?
     if(cosSize > 1)
-      stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+      stgcos = m_state.m_currentObjSymbolsForCodeGen[cosSize - 2];
 
     UTI stgcosuti = stgcos->getUlamTypeIdx(); //more general instead of current class
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
@@ -2199,100 +2198,44 @@ namespace MFM {
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
-    // when data member belongs to its (or a DM's) superclass, specify its class name first
-    NNO cosBlockNo = cos->getBlockNoOfST();
-    NNO stgcosBlockNo = stgcos->getBlockNoOfST(); //m_state.getAClassBlockNo(stgcosuti);
+    UTI cosclassuti = cos->getDataMemberClass();
+    UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
 
-    if(cosBlockNo != stgcosBlockNo)
+    // specify its class name first;
+    // data member might belong to its (or a DM's) superclass,
+    fp->write(cosclassut->getUlamTypeMangledName().c_str());
+    if(cosclassut->getUlamClass() == UC_ELEMENT)
+      fp->write("<EC>::");
+    else
       {
-	s32 subcos = isCurrentObjectsContainingASubClass();
-	if(subcos >= 0)
+	// a quark
+	//when a super, stgcos might be either:
+	fp->write("<EC, ");
+	if(stgcos->isDataMember())
 	  {
-	    startcos = subcos + 1;
-
-	    UTI cosclassuti = cosuti;
-	    UlamType * cosclassut = cosut;
-
-	    if(cosut->getUlamTypeEnum() != Class)
-	      {
-		cosclassuti = findTypeOfAncestorAndBlockNo(cosBlockNo, subcos);
-		assert(m_state.isComplete(cosclassuti) || m_state.isClassATemplate(cosclassuti));
-		cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
-	      }
-	    if(cosut->isReference())
-	      {
-		UTI cosclassrefuti = m_state.getUlamTypeAsRef(cosclassuti, cosut->getReferenceType());
-		UlamType * cosclassrefut = m_state.getUlamTypeByIndex(cosclassrefuti);
-		fp->write(cosclassrefut->getLocalStorageTypeAsString().c_str());
-		fp->write("::Us::");
-	      }
-	    else
-	      {
-		fp->write(cosclassut->getUlamTypeMangledName().c_str());
-		if(cosclassut->getUlamClass() == UC_ELEMENT)
-		  fp->write("<EC>::");
-		else
-		  {
-		    fp->write("<EC, ");
-		    if(stgcos->isDataMember())
-		      {
-			//fp->write_decimal_unsigned(stgcos->getPosOffset()); //t3542
-			fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects(true)); //rel offset (t3542 only classes)
-			fp->write("u + ");
-		      }
-		    fp->write("T::ATOM_FIRST_STATE_BIT");
-		    fp->write(">::");
-		  }
-	      }
+	    //fp->write_decimal_unsigned(stgcos->getPosOffset()); //t3542
+	    fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects(true)); //rel offset (t3542 only classes)
+	    fp->write("u + ");
+	    fp->write("T::ATOM_FIRST_STATE_BIT");
+	    fp->write(">::");
 	  }
-	else if(m_state.isClassASubclass(stgcosuti) != Nouti) //self is subclass
+	else
 	  {
-	    //could be in a super-super class
-	    Node * foundnode = m_state.findNodeNoInAClass(cosBlockNo, stgcosuti);
-	    assert(foundnode);
-	    UTI superuti = foundnode->getNodeType();
-	    UlamType * superut = m_state.getUlamTypeByIndex(superuti);
-
-	    if(stgcosut->isReference())
-	      {
-		UTI superrefuti = m_state.getUlamTypeAsRef(superuti, stgcosut->getReferenceType());
-		UlamType * superrefut = m_state.getUlamTypeByIndex(superrefuti);
-		fp->write(superrefut->getLocalStorageTypeAsString().c_str());
-		fp->write("::Us::");
-	      }
+	    if(stgcosut->getUlamClass() == UC_ELEMENT)
+	      fp->write("T::ATOM_FIRST_STATE_BIT>::"); //inherits at first state pos
 	    else
-	      {
-		fp->write(superut->getUlamTypeMangledName().c_str());
-		assert(superut->getUlamClass() != UC_ELEMENT);
-		//super is a quark, stg might be either:
-		fp->write("<EC, ");
-		if(stgcosut->getUlamClass() == UC_ELEMENT)
-		  fp->write("T::ATOM_FIRST_STATE_BIT>::");
-		else
-		  fp->write("POS>::"); //quarks know this
-	      }
+	      fp->write("POS>::"); //quarks know this
 	  }
       }
-    //else do nothing for inheritance
 
-    //iterate over COS vector; empty if current object is self
-    for(u32 i = startcos; i < cosSize; i++)
-      {
-	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
-	if(sym->isSelf())
-	  continue;
-	fp->write(sym->getMangledNameForParameterType().c_str());
-	fp->write("::");
-	//if(i == 0)
-	//  fp->write("THE_INSTANCE."); not with parameter types!!!
-      }
+    fp->write(cos->getMangledNameForParameterType().c_str());
+    fp->write("::");
 
     //if last cos is a quark, for Read/Write to work it needs an
     // atomic Parameter type (i.e. Up_Us); not so for custom arrays
     // which are more like a function call
     // scalar quarks are typedefs and need atomic parametization;
     // arrays are already atomic parameters
-    // ancestor issues up for grabs?
     bool isCA = cosut->isCustomArray();
     if(cosut->isScalar() && cosut->getUlamClass() == UC_QUARK)
       {
