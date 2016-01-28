@@ -807,6 +807,14 @@ namespace MFM {
     UlamKeyTypeSignature baseKey(nameid, bitsize, NONARRAYSIZE, cuti, ALT_ARRAYITEM);  //default array size is NONARRAYSIZE, new reftype
 
     UTI buti = makeUlamType(baseKey, bUT); //could be a new one, oops.
+#if 0
+    //array of CA's is not a CA too
+    if(ut->isCustomArray())
+      {
+	assert(bUT == Class);
+	((UlamTypeClass *) getUlamTypeByIndex(buti))->setCustomArray();
+      }
+#endif
     return buti;
   } //getUlamTypeAsScalar
 
@@ -828,6 +836,12 @@ namespace MFM {
     UlamKeyTypeSignature baseKey(keyOfArg.m_typeNameId, bitsize, arraysize, classidx, ALT_NOT);  //default array size is zero
 
     UTI buti = makeUlamType(baseKey, bUT); //could be a new one, oops.
+    if(ut->isCustomArray())
+      {
+	assert(bUT == Class);
+	((UlamTypeClass *) getUlamTypeByIndex(buti))->setCustomArray();
+      }
+
     return buti;
   } //getUlamTypeAsDeref
 
@@ -852,6 +866,15 @@ namespace MFM {
     UlamKeyTypeSignature baseKey(nameid, bitsize, arraysize, classidx, altArg);  //default array size is zero
 
     UTI buti = makeUlamType(baseKey, bUT); //could be a new one, oops.
+
+#if 0
+    //???
+    if(ut->isCustomArray())
+      {
+	assert(bUT == Class);
+	((UlamTypeClass *) getUlamTypeByIndex(buti))->setCustomArray();
+      }
+#endif
 
     return buti;
   } //getUlamTypeAsRef
@@ -1345,7 +1368,8 @@ namespace MFM {
 
   bool CompilerState::isClassACustomArray(UTI cuti)
   {
-    if(!isScalar(cuti)) return false;
+    //if(!isScalar(cuti)) return false;
+    assert(isScalar(cuti));
 
     SymbolClass * csym = NULL;
     if(alreadyDefinedSymbolClass(cuti, csym))
@@ -1357,6 +1381,7 @@ namespace MFM {
 
   UTI CompilerState::getAClassCustomArrayType(UTI cuti)
   {
+    assert(isScalar(cuti));
     SymbolClass * csym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
@@ -1365,6 +1390,7 @@ namespace MFM {
 
   UTI CompilerState::getAClassCustomArrayIndexType(UTI cuti, Node * rnode, UTI& idxuti, bool& hasHazyArgs)
   {
+    assert(isScalar(cuti));
     SymbolClass * csym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);

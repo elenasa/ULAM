@@ -276,13 +276,12 @@ namespace MFM {
     // of course, their keys' nameids should be the same (~ enum)!!
     // unless one is a "holder"
     // e.g. t3595 (typedef Unseen wasn't a class at all)
-    if((m_state.getUlamTypeByIndex(auti)->getUlamTypeEnum() != m_state.getUlamTypeByIndex(scuti)->getUlamTypeEnum()) && !m_state.isHolder(auti))
+    UlamType * aut = m_state.getUlamTypeByIndex(auti);
+    UlamType * scut = m_state.getUlamTypeByIndex(scuti);
+    if((aut->getUlamTypeEnum() != scut->getUlamTypeEnum()) && !m_state.isHolder(auti))
       {
-	UlamType * scut = m_state.getUlamTypeByIndex(scuti);
 	assert(scut->isScalar());
-
 	//create corresponding array type, keep givenUTI (=auti) just change the key
-	UlamType * aut = m_state.getUlamTypeByIndex(auti);
 	UlamKeyTypeSignature sckey = scut->getUlamKeyTypeSignature();
 	UlamKeyTypeSignature newkey(sckey.getUlamKeyTypeSignatureNameId(), aut->getBitSize(), aut->getArraySize(), scuti, aut->getReferenceType());
 	m_state.makeUlamTypeFromHolder(newkey, scut->getUlamTypeEnum(), auti);
@@ -295,6 +294,15 @@ namespace MFM {
 	msg << " (UTI" << scuti << ")";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
       }
+
+    //matching custom array flags
+#if 0
+    if((scut->getUlamTypeEnum() == Class) && m_state.isClassACustomArray(scuti))
+      {
+	UlamType * aut = m_state.getUlamTypeByIndex(auti);
+	((UlamTypeClass *) aut)->setCustomArray();
+      }
+#endif
   } //checkAndMatchBaseUlamTypes
 
   void NodeTypeDescriptorArray::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)

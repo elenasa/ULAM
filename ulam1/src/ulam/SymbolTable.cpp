@@ -440,7 +440,7 @@ namespace MFM {
 		      }
 		    else
 		      {
-			//an array of quarks
+			//an array of quarks, OR reference to an array of quarks
 			// first, get default value of its scalar quark
 			UTI scalaruti = m_state.getUlamTypeAsScalar(suti);
 			SymbolClass * csym = NULL;

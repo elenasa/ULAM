@@ -283,6 +283,9 @@ namespace MFM {
 	UTI stgcosuti = stgcos->getUlamTypeIdx();
 	UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
+	if(!stgcosut->isScalar())
+	  return genCodeArrayRefInit(fp, uvpass);
+
 	Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
 	UTI cosuti = cos->getUlamTypeIdx();
 	UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
@@ -323,36 +326,12 @@ namespace MFM {
 		if((vclasstype == UC_NOTACLASS) && (vut->getUlamTypeEnum() != UAtom) )
 		  {
 		    fp->write(", ");
-		    if(!stgcosut->isScalar())
-		      {
-			fp->write("(");
-			fp->write_decimal_unsigned(BITSPERATOM);
-			fp->write(" - (");
-			fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
-			fp->write(" * ");
-			fp->write_decimal_unsigned(stgcosut->getBitSize());
-			fp->write("u) - ");
-			fp->write_decimal_unsigned(ATOMFIRSTSTATEBITPOS);
-			fp->write(")");
-		      }
-		    else
-		      {
-			fp->write_decimal_unsigned(BITSPERATOM - stgcosut->getTotalBitSize() - ATOMFIRSTSTATEBITPOS); //right-justified, not including FIRSTSTATEBITPOS
-			fp->write("u");
-		      }
+		    fp->write_decimal_unsigned(BITSPERATOM - stgcosut->getTotalBitSize() - ATOMFIRSTSTATEBITPOS); //right-justified, not including FIRSTSTATEBITPOS
+		    fp->write("u");
 		  }
 		else if(vclasstype == UC_QUARK)
 		  {
-		    if(!stgcosut->isScalar())
-		      {
-			fp->write(", ");
-			fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
-			fp->write(" * ");
-			fp->write_decimal_unsigned(stgcosut->getBitSize());
-			fp->write("u");
-		      }
-		    else
-		      fp->write(", 0u"); //left-justified
+		    fp->write(", 0u"); //left-justified
 		  }
 	      }
 	  }
@@ -361,5 +340,97 @@ namespace MFM {
 
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
   } //genCode
+
+  void NodeVarRef::genCodeArrayRefInit(File * fp, UlamValue & uvpass)
+  {
+    //reference always has initial value, unless func param
+    assert(m_varSymbol->isAutoLocal());
+    assert(m_varSymbol->getAutoLocalType() != ALT_AS);
+    assert(m_nodeInitExpr);
+
+    // get the right-hand side, stgcos
+    // can be same type (e.g. element, quark, or primitive),
+    // or ancestor quark if a class.
+    //m_nodeInitExpr->genCodeToStoreInto(fp, uvpass);
+
+    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+    UTI stgcosuti = stgcos->getUlamTypeIdx();
+    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+
+    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
+    UTI cosuti = cos->getUlamTypeIdx();
+    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+
+    UTI vuti = m_varSymbol->getUlamTypeIdx(); //i.e. this ref node
+    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+
+    assert(vut->getUlamTypeEnum() == cosut->getUlamTypeEnum());
+
+    m_state.indent(fp);
+    fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+    fp->write(" ");
+
+    fp->write(m_varSymbol->getMangledName().c_str());
+    fp->write("("); //pass ref in constructor (ref's not assigned with =)
+    if(stgcos->isDataMember()) //can't be an element or atom
+      {
+	fp->write("Uv_4atom, ");
+	fp->write("(");
+	fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
+	fp->write(" + (");
+	fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
+	fp->write(" * ");
+	fp->write_decimal_unsigned(stgcosut->getBitSize());
+	fp->write("u))");
+      }
+    else
+      {
+	fp->write(stgcos->getMangledName().c_str());
+	if(stgcos->getId() != m_state.m_pool.getIndexForDataString("atom")) //not isSelf check; was "self"
+	  fp->write(".getRef()");
+
+	if(cos->isDataMember())
+	  {
+	    fp->write(", (");
+	    fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
+	    fp->write(" + (");
+	    fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
+	    fp->write(" * ");
+	    fp->write_decimal_unsigned(stgcosut->getBitSize());
+	    fp->write("u))");
+	  }
+	else
+	  {
+	    //local var
+	    if((vclasstype == UC_NOTACLASS) && (vut->getUlamTypeEnum() != UAtom) )
+	      {
+		fp->write(", ");
+		fp->write("(");
+		fp->write_decimal_unsigned(BITSPERATOM);
+		fp->write(" - (");
+		fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
+		fp->write(" * ");
+		fp->write_decimal_unsigned(stgcosut->getBitSize());
+		fp->write("u) - ");
+		fp->write_decimal_unsigned(ATOMFIRSTSTATEBITPOS);
+		fp->write(")");
+	      }
+	    else if(vclasstype == UC_QUARK)
+	      {
+		fp->write(", ");
+		fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
+		fp->write(" * ");
+		fp->write_decimal_unsigned(stgcosut->getBitSize());
+		fp->write("u");
+	      }
+	  }
+      } //storage
+
+    fp->write(");\n");
+
+    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
+  } //genCodeArrayRefInit
 
 } //end MFM

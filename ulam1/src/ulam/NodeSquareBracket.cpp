@@ -62,10 +62,11 @@ namespace MFM {
     if(m_state.isComplete(leftType))
       {
 	UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-	isCustomArray = m_state.isClassACustomArray(leftType);
 
 	if(lut->isScalar())
 	  {
+	    isCustomArray = m_state.isClassACustomArray(leftType);
+
 	    if(lut->isHolder())
 	      {
 		std::ostringstream msg;
@@ -84,7 +85,8 @@ namespace MFM {
 	      }
 	    else
 	      {
-		//must be a custom array; t.f. lhs is a quark!
+		// either an array of custom array classes or
+		// a custom array; t.f. lhs is a quark!
 		assert(lut->getUlamTypeEnum() == Class);
 
 		// can't substitute a function call node for square brackets to leverage
@@ -116,7 +118,6 @@ namespace MFM {
 		  }
 	      }
 	  }
-
 	//set up idxuti..RHS
 	//cant proceed with custom array subscript if lhs is incomplete
 	//if(errorCount == 0)
@@ -217,7 +218,8 @@ namespace MFM {
     if((errorCount == 0) && (hazyCount == 0))
       {
 	// sq bracket purpose in life is to account for array elements;
-	if(isCustomArray)
+	//if(isCustomArray)
+	if(isCustomArray && m_state.isScalar(leftType))
 	  newType = m_state.getAClassCustomArrayType(leftType);
 	else
 	  newType = m_state.getUlamTypeAsScalar(leftType);
@@ -272,8 +274,8 @@ namespace MFM {
 
     //could be a custom array which is a scalar quark. already checked.
     bool isCustomArray = m_state.isClassACustomArray(ltype);
-
-    assert(!m_state.isScalar(ltype) || isCustomArray); //already checked, must be array
+    //except when an array of caarray quarks!!!!!!!
+    //assert(!m_state.isScalar(ltype) || isCustomArray); //already checked, must be array
 
     makeRoomForNodeType(m_nodeRight->getNodeType()); //offset a constant expression
     evs = m_nodeRight->eval();
@@ -366,7 +368,7 @@ namespace MFM {
     s32 offsetInt = m_state.getUlamTypeByIndex(offset.getUlamValueTypeIdx())->getDataAsCs32(offsetdata);
 
     UTI auti = pluv.getPtrTargetType();
-    if(m_state.isClassACustomArray(auti))
+    if(m_state.isScalar(auti) && m_state.isClassACustomArray(auti))
       {
 	UTI caType = m_state.getAClassCustomArrayType(auti);
 	UlamType * caut = m_state.getUlamTypeByIndex(caType);
@@ -407,6 +409,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Array subscript [" << offsetInt << "] exceeds the size (" << arraysize;
 	    msg << ") of array '" << m_state.m_pool.getDataAsString(lid).c_str() << "'";
+	    msg << " to store into";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    evs = ERROR;
 	  }
