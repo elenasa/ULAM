@@ -1,20 +1,28 @@
 ## -*- mode:ulam -*-
 #=t3650_test_compiler_elementandquark_unseenclasstypedef_localquarkarrayref
+##
+## gen output: (assert)
 #!
-Exit status: 0
-Ue_Foo { constant Int(32) cx = 7;  typedef Bar(7) Tar;  Int(32) test() {  Bar(7) tar[4];  Bar(7)& tref = tar 3 [];  tref ( )toInt . return } }
+Exit status: 2
+Ue_Foo { constant Int(32) cx = 7;  typedef Bar(7) Tar;  Int(32) test() {  System s;  Bar(7) tar[4];  Int(32) i = 3 cast;  Bar(7)& tref = tar i [];  tref m_bits . 2 cast = s ( tref ( )toInt . cast 2 cast == )assert . tref ( )toInt . return } }
+Uq_System { <NOMAIN> }
 Uq_Bar(Int(32) x) { Bits(UNKNOWN) m_bits(notready);  <NOMAIN> }
 ##
 ## informed by t3649 (order matters)
 ##
 #>Foo.ulam
   ulam 1;
+use System;
 element Foo {
   constant Int cx = 7;
   typedef Bar(cx + 0) Tar;
   Int test() {
+    System s;
     Tar tar[4];
-    Tar & tref = tar[3];
+    Int i = 3;
+    Tar & tref = tar[i];
+    tref.m_bits = 2;
+    s.assert((Int) tref == 2);
     return tref;
   }
 }
@@ -30,5 +38,16 @@ quark Bar(Int x) {
   }
 }
 
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
 
 #.

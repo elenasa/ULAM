@@ -2,7 +2,8 @@
 #=t3651_test_compiler_elementandquark_localarrayref
 #!
 Exit status: 7
-Ue_Foo : Bar { :< typedef Int(7) Tar;  constant Int(32) cx = 7;  Int(7) m_tar(1); > Int(32) test() {  Int(7) tar[4];  Int(7)& tref = tar 3 [];  tref 7 cast = tref cast return } }
+Ue_Foo : Bar { :< typedef Int(7) Tar;  constant Int(32) cx = 7;  Int(7) m_tar(1); > Int(32) test() {  System s;  Int(7) tar[4];  Int(7)& tref = tar 3 [];  tref 7 cast = s ( tref cast 7 cast == )assert . tref cast return } }
+Uq_System { <NOMAIN> }
 Uq_Bar { constant Int(32) cx = 7;  typedef Int(7) Tar;  Int(7) m_tar( 1);  <NOMAIN> }
 ##
 ## informed by t3650, except non-class array (order matters)
@@ -10,11 +11,14 @@ Uq_Bar { constant Int(32) cx = 7;  typedef Int(7) Tar;  Int(7) m_tar( 1);  <NOMA
 ##
 #>Foo.ulam
   ulam 2;
+use System;
 element Foo : Bar {
   Int test() {
+    System s;
     Tar tar[4];
     Tar & tref = tar[3];
     tref = cx;
+    s.assert(tref == 7);
     return tref;
   }
 }
@@ -33,5 +37,16 @@ quark Bar {
   }
 }
 
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
 
 #.
