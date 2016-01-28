@@ -20,6 +20,7 @@ quark QW {
   ulam 2;
 use System;
 element IshE {
+  Bool sp;
   QW mA[2];
   Int get(Int x, Int y) {
     QW & r = mA[x];

@@ -1706,7 +1706,6 @@ namespace MFM {
 	fp->write("("); //use constructor (not equals)
 	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, TMPAUTOREF).c_str());
 	fp->write(", ");
-	//fp->write_decimal_unsigned(cos->getPosOffset());
 	fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
 	fp->write("u");
       }
@@ -1748,7 +1747,6 @@ namespace MFM {
 	if(cosSize > 0)
 	  {
 	    fp->write(" + ");
-	    //fp->write_decimal_unsigned(cos->getPosOffset());
 	    fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
 	    fp->write("u");
 	  }
@@ -2213,8 +2211,7 @@ namespace MFM {
 	fp->write("<EC, ");
 	if(stgcos->isDataMember())
 	  {
-	    //fp->write_decimal_unsigned(stgcos->getPosOffset()); //t3542
-	    fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects(true)); //rel offset (t3542 only classes)
+	    fp->write_decimal_unsigned(Node::calcPosOfCurrentObjectClasses()); //rel offset (t3542 only classes)
 	    fp->write("u + ");
 	    fp->write("T::ATOM_FIRST_STATE_BIT");
 	    fp->write(">::");
@@ -2327,7 +2324,6 @@ namespace MFM {
       }
   } //genModelParameterHiddenArgs
 
-#if 0
   void Node::genCustomArrayMemberNameOfMethod(File * fp)
   {
     assert(!isCurrentObjectALocalVariableOrArgument());
@@ -2337,49 +2333,6 @@ namespace MFM {
     //find class for cos' custom array method; and blockNo (may be inherited, unlike cos)
     Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
     UTI cosuti = cos->getUlamTypeIdx();
-    NNO cosBlockNo = cos->getBlockNoOfST();
-
-    Symbol * fnsymptr = NULL;
-    bool hazyKin = false;
-    AssertBool isDefinedFunc = m_state.isFuncIdInAClassScope(cosuti, m_state.getCustomArrayGetFunctionNameId(),fnsymptr, hazyKin); //searches class of cos
-    assert(isDefinedFunc);
-    assert(!hazyKin);
-    NNO caBlockNo = fnsymptr->getBlockNoOfST(); //block of aref
-    UTI caclassuti = m_state.findAClassByNodeNo(caBlockNo);
-    assert(m_state.isComplete(caclassuti) || m_state.isClassATemplate(caclassuti));
-
-    //currently, only regular classes may have subclasses.
-    if((cosBlockNo != caBlockNo) && (cosuti != caclassuti) && !m_state.isClassATemplate(caclassuti))
-      {
-	assert((m_state.isClassASubclass(cosuti) != Nouti) || (m_state.isARefTypeOfUlamType(cosuti, caclassuti) == UTIC_SAME));
-	UlamType * caclassut = m_state.getUlamTypeByIndex(caclassuti);
-
-	fp->write(caclassut->getUlamTypeMangledName().c_str());
-	if(caclassut->getUlamClass() == UC_ELEMENT)
-	  fp->write("<EC>::THE_INSTANCE.");
-	else
-	  {
-	    fp->write("<EC,");
-	    fp->write("T::ATOM_FIRST_STATE_BIT");
-	    fp->write(">::");
-	    fp->write("THE_INSTANCE."); //quarks need an object
-	  }
-	return;
-      }
-    //otherwise normal data member name..
-    return genMemberNameOfMethod(fp);
-  } //GENCUSTOMARRAYMEMBERNAMEOFMETHOD
-#else
-  void Node::genCustomArrayMemberNameOfMethod(File * fp)
-  {
-    assert(!isCurrentObjectALocalVariableOrArgument());
-
-    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
-
-    //find class for cos' custom array method; and blockNo (may be inherited, unlike cos)
-    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
-    UTI cosuti = cos->getUlamTypeIdx();
-    //NNO cosBlockNo = cos->getBlockNoOfST();
 
     Symbol * fnsymptr = NULL;
     bool hazyKin = false;
@@ -2387,8 +2340,6 @@ namespace MFM {
     assert(isDefinedFunc);
     assert(!hazyKin);
 
-    //NNO caBlockNo = fnsymptr->getBlockNoOfST(); //block of aref
-    //UTI caclassuti = m_state.findAClassByNodeNo(caBlockNo);
     UTI caclassuti = fnsymptr->getDataMemberClass();
     assert(m_state.isComplete(caclassuti) || m_state.isClassATemplate(caclassuti));
 
@@ -2413,7 +2364,6 @@ namespace MFM {
     //otherwise normal data member name..
     return genMemberNameOfMethod(fp);
   } //genCustomArrayMemberNameOfMethod
-#endif
 
   void Node::genCustomArrayHiddenArgs(File * fp)
   {
@@ -2449,7 +2399,6 @@ namespace MFM {
 	    if(stgcosclasstype == UC_QUARK)
 	      {
 		fp->write(", ");
-		//fp->write_decimal_unsigned(stgcos->getPosOffset());
 		fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
 		fp->write("u + T::ATOM_FIRST_STATE_BIT");
 	      }
@@ -2484,7 +2433,6 @@ namespace MFM {
 		fp->write(", ");
 		if(cos->isDataMember()) //dm of local stgcos
 		      {
-			//fp->write_decimal_unsigned(stgcos->getPosOffset());
 			fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
 			fp->write("u + ");
 		      }
@@ -2551,7 +2499,7 @@ namespace MFM {
 	fp->write("<EC, ");
 	//when several dots, and a data member who "owns" cos
 	// has a pos within its stg.
-	fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects(true)); //rel offset (t3565, t3549, t3542)
+	fp->write_decimal_unsigned(Node::calcPosOfCurrentObjectClasses()); //rel offset (t3565, t3549, t3542)
 	fp->write("u + ");
 	fp->write("T::ATOM_FIRST_STATE_BIT");
 	fp->write(">::");
@@ -2728,59 +2676,11 @@ namespace MFM {
     return indexOfLastMP;
   } //isCurrentObjectsContainingAModelgParameter
 
-  // returns the index to the last object that's a subclass; o.w. -1 none found;
-  // preceeding object is the "owner", others before it are irrelevant;
-  s32 Node::isCurrentObjectsContainingASubClass()
+  // returns accumulated relative positions of data members
+  s32 Node::calcPosOfCurrentObjectClasses()
   {
-    s32 indexOfLastSubClass = -1;
-    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-    for(s32 i = cosSize - 2; i >= 0; i--) //type left of the rightmost dot!
-      {
-	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
-	UTI suti = sym->getUlamTypeIdx();
-	if(m_state.isClassASubclass(suti) != Nouti)
-	  {
-	    indexOfLastSubClass = i;
-	    break;
-	  }
-      }
-    return indexOfLastSubClass;
-  } //isCurrentObjectsContainingASubClass
-
-  UTI Node::findTypeOfAncestorAndBlockNo(NNO bno, s32 subcosidx)
-  {
-    Symbol * subcos = NULL;
-    if(subcosidx < 0)
-      subcos = m_state.getCurrentSelfSymbolForCodeGen();
-    else
-      subcos = m_state.m_currentObjSymbolsForCodeGen[subcosidx];
-    UTI subcosuti = subcos->getUlamTypeIdx();
-
-    //compare blockclassuti with cosnameuti (in case of templates)
-    UTI blockclassuti = m_state.findAClassByNodeNo(bno); //regular or template
-    assert(m_state.isComplete(blockclassuti) || m_state.isClassATemplate(blockclassuti));
-
-    UTI cosclassuti = m_state.getUlamTypeAsScalar(subcosuti); //init as scalar
-    do{
-      SymbolClassName * coscnsym = NULL;
-      UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
-      u32 cosid = cosclassut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
-      AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(cosid, coscnsym);
-      assert(isDefined);
-      UTI cosnameuti = coscnsym->getUlamTypeIdx();
-
-      if(blockclassuti == cosnameuti) break;
-
-      subcosuti = cosclassuti;
-      cosclassuti = m_state.isClassASubclass(subcosuti); //returns superuti, an instance!
-
-      if(cosclassuti == Nouti) //no superclass
-	return subcosuti;
-
-    } while(cosclassuti != Nouti); //while superclass
-
-    return cosclassuti;
-  } //findTypeOfAncestorAndBlockNo
+    return calcPosOfCurrentObjects(true);
+  } //calcPosOfCurrentObjectClasses
 
   // returns accumulated relative positions of data members
   s32 Node::calcPosOfCurrentObjects(bool onlyClasses)
