@@ -2327,6 +2327,7 @@ namespace MFM {
       }
   } //genModelParameterHiddenArgs
 
+#if 0
   void Node::genCustomArrayMemberNameOfMethod(File * fp)
   {
     assert(!isCurrentObjectALocalVariableOrArgument());
@@ -2367,7 +2368,52 @@ namespace MFM {
       }
     //otherwise normal data member name..
     return genMemberNameOfMethod(fp);
+  } //GENCUSTOMARRAYMEMBERNAMEOFMETHOD
+#else
+  void Node::genCustomArrayMemberNameOfMethod(File * fp)
+  {
+    assert(!isCurrentObjectALocalVariableOrArgument());
+
+    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+
+    //find class for cos' custom array method; and blockNo (may be inherited, unlike cos)
+    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
+    UTI cosuti = cos->getUlamTypeIdx();
+    //NNO cosBlockNo = cos->getBlockNoOfST();
+
+    Symbol * fnsymptr = NULL;
+    bool hazyKin = false;
+    AssertBool isDefinedFunc = m_state.isFuncIdInAClassScope(cosuti, m_state.getCustomArrayGetFunctionNameId(),fnsymptr, hazyKin); //searches class of cos
+    assert(isDefinedFunc);
+    assert(!hazyKin);
+
+    //NNO caBlockNo = fnsymptr->getBlockNoOfST(); //block of aref
+    //UTI caclassuti = m_state.findAClassByNodeNo(caBlockNo);
+    UTI caclassuti = fnsymptr->getDataMemberClass();
+    assert(m_state.isComplete(caclassuti) || m_state.isClassATemplate(caclassuti));
+
+    if((UlamType::compare(cosuti, caclassuti, m_state) != UTIC_SAME))
+      {
+	UlamType * caclassut = m_state.getUlamTypeByIndex(caclassuti);
+
+	fp->write(caclassut->getUlamTypeMangledName().c_str());
+	if(caclassut->getUlamClass() == UC_ELEMENT)
+	  fp->write("<EC>::THE_INSTANCE.");
+	else
+	  {
+	    fp->write("<EC,");
+	    //fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects(true)); //relative off
+	    //fp->write("u + ");
+	    fp->write("T::ATOM_FIRST_STATE_BIT");
+	    fp->write(">::");
+	    fp->write("THE_INSTANCE."); //quarks need an object
+	  }
+	return;
+      }
+    //otherwise normal data member name..
+    return genMemberNameOfMethod(fp);
   } //genCustomArrayMemberNameOfMethod
+#endif
 
   void Node::genCustomArrayHiddenArgs(File * fp)
   {
@@ -2538,7 +2584,10 @@ namespace MFM {
     // now for both immediate elements and quarks..
     Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
     UTI cosuti = cos->getUlamTypeIdx();
-    //NNO cosBlockNo = cos->getBlockNoOfST();
+    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+
+    if(cosut->isReference())
+      cosuti = m_state.getUlamTypeAsDeref(cosuti); //search for funcid
 
     Symbol * fnsymptr = NULL;
     bool hazyKin = false;
