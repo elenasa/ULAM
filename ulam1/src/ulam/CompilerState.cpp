@@ -1368,8 +1368,8 @@ namespace MFM {
 
   bool CompilerState::isClassACustomArray(UTI cuti)
   {
-    //if(!isScalar(cuti)) return false;
-    assert(isScalar(cuti));
+    if(!isScalar(cuti)) return false;
+    //assert(isScalar(cuti));
 
     SymbolClass * csym = NULL;
     if(alreadyDefinedSymbolClass(cuti, csym))
