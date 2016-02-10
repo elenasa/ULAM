@@ -180,7 +180,7 @@ namespace MFM{
     void genCodeHeaderQuark(File * fp);
     void genCodeHeaderElement(File * fp);
 
-    void genImmediateMangledTypesForHeaderFile(File * fp);
+    //void genImmediateMangledTypesForHeaderFile(File * fp);  unused
     void genShortNameParameterTypesExtractedForHeaderFile(File * fp);
 
     void generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);

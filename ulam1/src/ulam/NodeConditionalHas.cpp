@@ -285,7 +285,8 @@ namespace MFM {
 	if(lclasstype == UC_ELEMENT)
 	  fp->write("<EC>::THE_INSTANCE.");
 	else if(lclasstype == UC_QUARK)
-	  fp->write("<EC,POS>::");
+	  //fp->write("<EC,POS>::");
+	  assert(0); //delete this file!!! 'has' no longer supported
 	else
 	  assert(0);
 

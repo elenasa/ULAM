@@ -5,8 +5,8 @@
 
 namespace MFM{
 
-  template<class CC, u32 POS>
-  Ui_Ut_102961a<CC> Uq_10109211EventWindow10<CC,POS>::Uf_4aref(const UlamContext<CC> & uc, T& Uv_4atom, Ui_Ut_102321i<CC> Uv_5index) const //native
+  template<class CC>
+  Ui_Ut_102961a<CC> Uq_10109211EventWindow10<CC>::Uf_4aref(const UlamContext<CC> & uc, const UlamRef<CC>& ur, Ui_Ut_102321i<CC> Uv_5index) const //native
   {
     u32 siteNumber = Uv_5index.read();
 
@@ -16,8 +16,8 @@ namespace MFM{
     return Ui_Ut_102961a<CC>(a);
   }
 
-  template<class CC, u32 POS>
-  void Uq_10109211EventWindow10<CC,POS>::Uf_4aset(const UlamContext<CC> & uc, T& Uv_4atom, Ui_Ut_102321i<CC> Uv_5index, Ui_Ut_102961a<CC> Uv_1v) const //native
+  template<class CC>
+  void Uq_10109211EventWindow10<CC>::Uf_4aset(const UlamContext<CC> & uc, const UlamRef<CC>& ur, Ui_Ut_102321i<CC> Uv_5index, Ui_Ut_102961a<CC> Uv_1v) const //native
   {
     u32 siteNumber = Uv_5index.read();
 

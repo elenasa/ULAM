@@ -138,7 +138,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("struct ");
     fp->write(automangledName.c_str());
-    fp->write(" : public AutoRefBase<EC>");
+    fp->write(" : public UlamRefAtom<EC>");
     fp->write("\n");
     m_state.indent(fp);
     fp->write("{\n");
@@ -158,12 +158,12 @@ namespace MFM {
     //constructor for ref (auto)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(T& targ) : AutoRefBase<EC>(targ, 0u) { }\n");
+    fp->write("(T& targ) : UlamRefAtom<EC>(targ) { }\n");
 
     //constructor for chain of autorefs (e.g. memberselect with array item)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(AutoRefBase<EC>& arg) : AutoRefBase<EC>(arg, 0u) { }\n");
+    fp->write("(const UlamRefAtom<EC>& arg) : UlamRefAtom<EC>(arg) { }\n");
 
     //read BV method
     genUlamTypeAutoReadDefinitionForC(fp);
@@ -192,9 +192,9 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //T
-    fp->write(" read() const { return AutoRefBase<EC>::");
-    fp->write(readMethodForCodeGen().c_str());
-    fp->write("(); /* entire atom */ ");
+    fp->write(" read() const { return UlamRefAtom<EC>::");
+    fp->write(readMethodForCodeGen().c_str()); //SetStorage ???
+    fp->write("(); /* entire atom */ "); //???
     fp->write("}\n"); //done
   } //genUlamTypeAutoReadDefinitionForC
 
@@ -204,8 +204,8 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("void write(const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //T&
-    fp->write("& v) { AutoRefBase<EC>::");
-    fp->write(writeMethodForCodeGen().c_str());
+    fp->write("& v) { UlamRefAtom<EC>::");
+    fp->write(writeMethodForCodeGen().c_str()); //SetStorage ???
     fp->write("(v); /* entire atom */ ");
     fp->write("}\n");
   } //genUlamTypeAutoWriteDefinitionForC
@@ -474,12 +474,12 @@ namespace MFM {
 
   const std::string UlamTypeAtom::readMethodForCodeGen()
   {
-    return "read";
+    return "ReadAtom"; //GetStorage?
   }
 
   const std::string UlamTypeAtom::writeMethodForCodeGen()
   {
-    return "write";
+    return "WriteAtom";
   }
 
   void UlamTypeAtom::genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp)

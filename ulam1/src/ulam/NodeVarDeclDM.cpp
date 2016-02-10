@@ -662,42 +662,46 @@ namespace MFM {
 	// except if an array of quarks.
 	fp->write("typedef ");
 	fp->write(nut->getUlamTypeMangledName().c_str()); //for C++
-	fp->write("<EC, ");
+	fp->write("<EC>");
+
+#if 0
 	if(classtype == UC_ELEMENT)
 	  {
-	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
-	    fp->write("u");
+	    //fp->write_decimal_unsigned(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
+	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
 	  }
 	else
 	  {
 	    //inside a quark
-	    fp->write("POS + ");
+	    //fp->write("POS + ");
 	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
-	    fp->write("u");
 	  }
+#endif
+
       }
     else
       {
-	fp->write("typedef AtomicParameterType");
-	fp->write("<EC"); //BITSPERATOM
-	fp->write(", ");
-	fp->write(nut->getUlamTypeVDAsStringForC().c_str());
-	fp->write(", ");
-	fp->write_decimal(nut->getTotalBitSize());   //include arraysize
-	fp->write(", ");
+	//fp->write("typedef AtomicParameterType");
+	fp->write("typedef UlamRefFixed");
+	fp->write("<EC, "); //BITSPERATOM
+
 	if(classtype == UC_QUARK)
 	  {
-	    fp->write("POS + ");
+	    //fp->write("POS + "); //????
 	    fp->write_decimal(m_varSymbol->getPosOffset());
 	  }
 	else
 	  {
 	    assert(classtype == UC_ELEMENT);
-	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
-	    fp->write("u");
+	    //fp->write_decimal_unsigned(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
+	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
 	  }
+
+	fp->write("u, ");
+	fp->write_decimal(nut->getTotalBitSize()); //include arraysize
+	fp->write("> ");
       }
-    fp->write("> ");
+
     fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
     fp->write(";\n"); //func call parameters aren't NodeVarDecl's
   } //genCodedBitFieldTypedef

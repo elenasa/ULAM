@@ -46,7 +46,7 @@ namespace MFM {
 
   static const char * m_indentedSpaceLevel("  "); //2 spaces per level
 
-  static const char * HIDDEN_ARG_NAME = "Uv_4atom"; //was Uv_4self
+  static const char * HIDDEN_ARG_NAME = "ur"; //was Uv_4self, then Uv_4atom
   static const char * HIDDEN_CONTEXT_ARG_NAME = "uc"; //unmangled
   static const char * AUTO_HIDDEN_CONTEXT_ARG_NAME = "uc_"; //unmangled, plus its mangled var
   static const char * TMP_FOR_AUTO_HIDDEN_CONTEXT_ARG_NAME = "Uh_4tluc";

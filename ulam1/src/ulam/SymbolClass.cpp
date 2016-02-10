@@ -527,16 +527,11 @@ namespace MFM {
     if(suti != m_state.getCompileThisIdx() && m_state.getUlamTypeByIndex(suti)->isComplete())
       {
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
-	ULAMCLASSTYPE sclasstype = sut->getUlamClass();
+	//ULAMCLASSTYPE sclasstype = sut->getUlamClass();
 
 	m_state.indent(fp);
 	fp->write("namespace MFM { template ");
-	if(sclasstype == UC_QUARK)
-	  fp->write("<class EC, u32 POS> ");
-	else if(sclasstype == UC_ELEMENT)
-	  fp->write("<class EC> ");
-	else
-	  assert(0);
+	fp->write("<class EC> "); //same for elements and quarks
 
 	fp->write("struct ");
 	fp->write(sut->getUlamTypeMangledName().c_str());
@@ -587,16 +582,24 @@ namespace MFM {
 	    fp->write("<EC>::THE_INSTANCE.GetDefaultAtom();\n");
 	    m_state.indent(fp);
 	    fp->write("tile.PlaceAtom(atom, center);\n");
+
+	    m_state.indent(fp);
+	    //UlamRefAtom<EC> ur(window.GetCenterAtomSym(), this); //from UlamElement.tc
+	    fp->write("UlamRefAtom<EC> ur(atom, &");
+	    fp->write(sut->getUlamTypeMangledName().c_str());
+	    fp->write("<EC>::THE_INSTANCE);\n");
+
 	    m_state.indent(fp);
 	    //fp->write("rtn = "); //MFM::Ui_Ut_102323Int
 	    fp->write(sut->getUlamTypeMangledName().c_str());
 
 	    // pass uc with effective self setup
 	    fp->write("<EC>::THE_INSTANCE.Uf_4test(");
-	    fp->write("UlamContext<EC>(uc, &");
-	    fp->write(sut->getUlamTypeMangledName().c_str());
-	    fp->write("<EC>::THE_INSTANCE)");
-	    fp->write(", atom);\n");
+	    //fp->write("UlamContext<EC>(uc, &");
+	    //fp->write(sut->getUlamTypeMangledName().c_str());
+	    //fp->write("<EC>::THE_INSTANCE)");
+	    //fp->write(", atom);\n");
+	    fp->write("uc, ur);\n");
 
 	    m_state.indent(fp);
 	    fp->write("//std::cerr << rtn.read() << std::endl;\n"); //useful to return result of test?

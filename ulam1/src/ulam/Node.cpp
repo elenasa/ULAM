@@ -485,8 +485,8 @@ namespace MFM {
 
 	    // a data member quark, or the element itself should both GetBits from self
 	    // now, quark's self is treated as the entire atom/element storage
-	    fp->write(m_state.getHiddenArgName());
-	    fp->write(".GetBits()");
+	    //fp->write(m_state.getHiddenArgName());
+	    //fp->write(".GetBits()");
 	    fp->write(");\n");
 	  }
       }
@@ -587,8 +587,8 @@ namespace MFM {
 	  {
 	    // a data member quark, or the element itself should both GetBits from self
 	    // now, quark's self is treated as the entire atom/element storage
-	    fp->write(m_state.getHiddenArgName());
-	    fp->write(".GetBits().");
+	    //fp->write(m_state.getHiddenArgName());
+	    //fp->write(".GetBits().");
 
 	    // the READ method
 	    fp->write(readMethodForCodeGen(cosuti, uvpass).c_str());
@@ -674,15 +674,18 @@ namespace MFM {
     if((stgclasstype == UC_QUARK) && stgcos->getId() == m_state.m_pool.getIndexForDataString("self"))
       {
 	fp->write(stgcosut->getUlamTypeMangledName().c_str());
-	fp->write("<EC, POS>::Up_Us::");
+	//fp->write("<EC, POS>::Up_Us::");
+	fp->write("<EC>::Up_Us::");
 	fp->write(readMethodForCodeGen(stgcosuti, uvpass).c_str()); //or just 'Read' ?
 	fp->write("(");
-	fp->write(m_state.getHiddenArgName());
-	fp->write(".GetBits());\n"); //stand-alone 'self'
+	//fp->write(m_state.getHiddenArgName());
+	//fp->write(".GetBits());\n"); //stand-alone 'self'
+	fp->write(");\n"); //stand-alone 'self'
       }
     else
       {
 	fp->write(m_state.getHiddenArgName());
+	fp->write(".GetStorage()");
 	fp->write(";\n"); //stand-alone 'atom'
       }
   } //genCodeReadSelfIntoATmpVar
@@ -765,8 +768,8 @@ namespace MFM {
 
 	// a data member quark, or the element itself should both GetBits from self
 	// now, quark's hidden arg is treated as the entire atom/element storage
-	fp->write(m_state.getHiddenArgName());
-	fp->write(".GetBits()");
+	//fp->write(m_state.getHiddenArgName());
+	//fp->write(".GetBits()");
 	fp->write(", "); //rest of arg's
       }
     else //local var
@@ -863,8 +866,8 @@ namespace MFM {
       {
 	// a data member quark, or the element itself should both GetBits from self
 	// now, quark's hidden arg is treated as the entire atom/element storage
-	fp->write(m_state.getHiddenArgName());
-	fp->write(".GetBits()");
+	//fp->write(m_state.getHiddenArgName());
+	//fp->write(".GetBits()");
       }
     else //local var
       {
@@ -873,8 +876,8 @@ namespace MFM {
 	if(stgcosclasstype == UC_ELEMENT)
 	  {
 	    fp->write("(");
-	    fp->write(stgcos->getMangledName().c_str());
-	    fp->write(".getBits()");
+	    //fp->write(stgcos->getMangledName().c_str());
+	    //fp->write(".getBits()");
 	  }
 	else
 	  {
@@ -1047,9 +1050,9 @@ namespace MFM {
 	fp->write(writeMethodForCodeGen(cosuti, luvpass).c_str());
 	fp->write("(");
 
-	fp->write(m_state.getHiddenArgName());
-	fp->write(".GetBits()");
-	fp->write(", "); //rest of args
+	//fp->write(m_state.getHiddenArgName());
+	//fp->write(".GetBits()");
+	//fp->write(", "); //rest of args
       }
     else
       {
@@ -1136,8 +1139,8 @@ namespace MFM {
     if(!isCurrentObjectALocalVariableOrArgument())
       {
 
-	fp->write(m_state.getHiddenArgName());
-	fp->write(".GetBits().");
+	//fp->write(m_state.getHiddenArgName());
+	//fp->write(".GetBits().");
 	//The WRITE method
 	fp->write(writeMethodForCodeGen(cosuti, luvpass).c_str());
 	fp->write("(");
@@ -1266,8 +1269,8 @@ namespace MFM {
 	// the GetType WRITE method
 	fp->write("ReadTypeField(");
 
-	fp->write(m_state.getHiddenArgName());
-	fp->write(".GetBits()");
+	//fp->write(m_state.getHiddenArgName());
+	//fp->write(".GetBits()");
       }
     else
       {
@@ -1295,9 +1298,9 @@ namespace MFM {
 	// the GetType WRITE method
 	fp->write("WriteTypeField(");
 
-	fp->write(m_state.getHiddenArgName());
-	fp->write(".GetBits()");
-	fp->write(", "); //rest of args
+	//fp->write(m_state.getHiddenArgName());
+	//fp->write(".GetBits()");
+	//fp->write(", "); //rest of args
       }
     else
       {
@@ -1352,9 +1355,9 @@ namespace MFM {
 	// the WRITE method
 	fp->write(writeArrayItemMethodForCodeGen(cosuti, luvpass).c_str());
 	fp->write("(");
-	fp->write(m_state.getHiddenArgName());
-	fp->write(".GetBits()");
-	fp->write(", "); //rest of args
+	//fp->write(m_state.getHiddenArgName());
+	//fp->write(".GetBits()");
+	//fp->write(", "); //rest of args
       }
     else
       {
@@ -1442,8 +1445,8 @@ namespace MFM {
       {
 	m_state.indent(fp);
 
-	fp->write(m_state.getHiddenArgName());
-	fp->write(".GetBits()");
+	//fp->write(m_state.getHiddenArgName());
+	//fp->write(".GetBits()");
 	valueLastArg = true;
       }
     else
@@ -2182,16 +2185,16 @@ namespace MFM {
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       return;
 
-    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+    //u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
-    Symbol * stgcos = m_state.getCurrentSelfSymbolForCodeGen();
+    //Symbol * stgcos = m_state.getCurrentSelfSymbolForCodeGen();
 
     //what happens when a quark is both a DM as well as ancestor to CurrentSelfSymbol?
-    if(cosSize > 1)
-      stgcos = m_state.m_currentObjSymbolsForCodeGen[cosSize - 2];
+    //if(cosSize > 1)
+    //  stgcos = m_state.m_currentObjSymbolsForCodeGen[cosSize - 2];
 
-    UTI stgcosuti = stgcos->getUlamTypeIdx(); //more general instead of current class
-    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+    //UTI stgcosuti = stgcos->getUlamTypeIdx(); //more general instead of current class
+    //UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
@@ -2202,8 +2205,10 @@ namespace MFM {
     // specify its class name first;
     // data member might belong to its (or a DM's) superclass,
     fp->write(cosclassut->getUlamTypeMangledName().c_str());
-    if(cosclassut->getUlamClass() == UC_ELEMENT)
-      fp->write("<EC>::");
+    //if(cosclassut->getUlamClass() == UC_ELEMENT)
+    fp->write("<EC>::"); //same for elements and quarks
+
+#if 0
     else
       {
 	// a quark
@@ -2224,24 +2229,31 @@ namespace MFM {
 	      fp->write("POS>::"); //quarks know this
 	  }
       }
+#endif
 
     fp->write(cos->getMangledNameForParameterType().c_str());
-    fp->write("::");
 
     //if last cos is a quark, for Read/Write to work it needs an
     // atomic Parameter type (i.e. Up_Us); not so for custom arrays
     // which are more like a function call
     // scalar quarks are typedefs and need atomic parametization;
     // arrays are already atomic parameters
-    bool isCA = cosut->isCustomArray();
     if(cosut->isScalar() && cosut->getUlamClass() == UC_QUARK)
       {
+	fp->write("::");
+
+	bool isCA = cosut->isCustomArray();
 	if(!isCA)
 	  fp->write("Up_Us::"); //gives quark an atomicparameter type for write
 	else if(isCA)
 	  fp->write("THE_INSTANCE.");
 	else if(cos->isDataMember())
 	  fp->write("THE_INSTANCE."); //Ut_..
+      }
+    else
+      {
+	// for starters, need cos as an UlamRefFixed object for read/write
+	fp->write("(ur, NULL).");
       }
   } //genMemberNameOfMethod
 
@@ -2380,7 +2392,7 @@ namespace MFM {
       }
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-    ULAMCLASSTYPE stgcosclasstype =  stgcosut->getUlamClass();
+    //ULAMCLASSTYPE stgcosclasstype =  stgcosut->getUlamClass();
 
     fp->write("(");
 
@@ -2388,35 +2400,45 @@ namespace MFM {
     //"hidden" self (atom) arg
     if(!Node::isCurrentObjectALocalVariableOrArgument())
       {
+	fp->write(m_state.getHiddenContextArgName()); //same uc
+	fp->write(", ");
+
 	if(m_state.m_currentObjSymbolsForCodeGen.empty())
-	  fp->write(m_state.getHiddenContextArgName()); //same uc
+	  fp->write(m_state.getHiddenArgName()); //same ur
 	else
 	  {
-	    //update uc to reflect "effective" self for this funccall
-	    fp->write("UlamContext<EC>(uc, &");
+	    //update ur to reflect "effective" self for this funccall
+	    fp->write("UlamRef<EC>(");
+	    fp->write(m_state.getHiddenArgName()); //ur first arg
+	    fp->write(", ");
+	    fp->write_decimal_unsigned(Node::calcPosOfCurrentObjectClasses()); //relative off;
+	    fp->write("u, ");
+	    fp->write_decimal_unsigned(stgcosut->getTotalBitSize()); //len
+	    fp->write("u, &");
 	    fp->write(stgcosut->getUlamTypeMangledName().c_str());
-	    fp->write("<EC");
-	    if(stgcosclasstype == UC_QUARK)
-	      {
-		fp->write(", ");
-		fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
-		fp->write("u + T::ATOM_FIRST_STATE_BIT");
-	      }
-	    fp->write(">::THE_INSTANCE)");
+	    fp->write("<EC>::THE_INSTANCE)");
 	  }
-	fp->write(", ");
-	fp->write(m_state.getHiddenArgName()); //atom
       }
     else
       {
 	assert(isCurrentObjectsContainingAModelParameter() == -1); //MP invalid
 	//local var
 	if(m_state.m_currentObjSymbolsForCodeGen.empty())
-	  fp->write(m_state.getHiddenContextArgName()); //same uc
-	else if(stgcos->getAutoLocalType() == ALT_AS)
+	  {
+	    fp->write(m_state.getHiddenContextArgName()); //same uc
+	    fp->write(", ");
+	    fp->write(m_state.getHiddenArgName()); //same ur
+	  }
+	else if(stgcos->getAutoLocalType() == ALT_AS) //??????????????????????
 	  {
 	    fp->write(m_state.getAutoHiddenContextArgName()); //uc_
 	    fp->write(stgcos->getMangledName().c_str());
+
+	    fp->write(", ");
+	    fp->write(stgcos->getMangledName().c_str());
+	    // for both immediate quarks and elements now..not self.
+	    if(!stgcos->isSelf())
+	      fp->write(".getRef()"); //the T storage within the struct for immediate quarks
 	  }
 	else
 	  {
@@ -2424,27 +2446,25 @@ namespace MFM {
 	    UTI derefuti = m_state.getUlamTypeAsDeref(stgcosuti);
 	    UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
 
-	    //update uc to reflect "effective" self for this funccall
-	    fp->write("UlamContext<EC>(uc, &");
-	    fp->write(derefut->getUlamTypeMangledName().c_str());
-	    fp->write("<EC");
-	    if(stgcosclasstype == UC_QUARK)
-	      {
-		fp->write(", ");
-		if(cos->isDataMember()) //dm of local stgcos
-		      {
-			fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
-			fp->write("u + ");
-		      }
-		fp->write("T::ATOM_FIRST_STATE_BIT");
-	      }
-	    fp->write(">::THE_INSTANCE)");
+	    //new ur to reflect "effective" self and storage for this funccall
+	    fp->write("UlamRef<EC>(");
+	    if(cos->isDataMember()) //dm of local stgcos
+	      fp->write_decimal_unsigned(Node::calcPosOfCurrentObjectClasses()); //relative off;
+	    else
+	      fp->write_decimal_unsigned(0);
+	    fp->write("u, ");
+	    fp->write_decimal_unsigned(derefut->getTotalBitSize()); //len
+	    fp->write("u, ");
+
+	    fp->write(stgcos->getMangledName().c_str()); //storage
+	    // for both immediate quarks and elements now..not self.
+	    if(!stgcos->isSelf())
+	      fp->write(".GetStorage()"); //getRef(), the T storage within the struct for immediate quarks
+
+	    fp->write(", &");
+	    fp->write(derefut->getUlamTypeMangledName().c_str()); //effself
+	    fp->write("<EC>::THE_INSTANCE)");
 	  }
-	fp->write(", ");
-	fp->write(stgcos->getMangledName().c_str());
-	// for both immediate quarks and elements now..not self.
-	if(!stgcos->isSelf())
-	  fp->write(".getRef()"); //the T storage within the struct for immediate quarks
       }
     return;
   } //genCustomArrayHiddenArgs
@@ -2492,8 +2512,10 @@ namespace MFM {
     //note: can't use immediate name since we have multiple dots
     // (i.e. data members) at specific POS (e.g. t3606)
     fp->write(cosclassut->getUlamTypeMangledName().c_str());
-    if(cosclassut->getUlamClass() == UC_ELEMENT)
-      fp->write("<EC>::");
+    //if(cosclassut->getUlamClass() == UC_ELEMENT)
+    fp->write("<EC>::"); //same for elements and quarks
+
+#if 0
     else
       {
 	fp->write("<EC, ");
@@ -2504,6 +2526,7 @@ namespace MFM {
 	fp->write("T::ATOM_FIRST_STATE_BIT");
 	fp->write(">::");
       } //a quark
+#endif
 
     //now for cos!!!
     fp->write(cos->getMangledNameForParameterType().c_str());

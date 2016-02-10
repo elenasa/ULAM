@@ -851,14 +851,8 @@ namespace MFM {
     else
       {
 	fp->write(derefut->getUlamTypeMangledName().c_str());
-	if(derefut->getUlamClass() == UC_ELEMENT)
-	  fp->write("<EC>::");
-	else
-	  {
-	    fp->write("<EC, ");
-	    fp->write("T::ATOM_FIRST_STATE_BIT>::"); //ref quark, left-just
-	  }
-	fp->write("THE_INSTANCE.");
+	fp->write("<EC>::"); //same for elements and quarks
+        fp->write("THE_INSTANCE.");
 	fp->write(m_funcSymbol->getMangledName().c_str());
       }
 
@@ -894,12 +888,13 @@ namespace MFM {
 
     UTI cvfuti = csym->getClassForVTableEntry(vfidx);
     UlamType * cvfut = m_state.getUlamTypeByIndex(cvfuti);
-    ULAMCLASSTYPE cvclasstype = cvfut->getUlamClass();
+    //ULAMCLASSTYPE cvclasstype = cvfut->getUlamClass();
 
     fp->write("((typename ");
     fp->write(cvfut->getUlamTypeMangledName().c_str());
-    if(cvclasstype == UC_ELEMENT)
-      fp->write("<EC>::");
+    fp->write("<EC>::"); //same for elements and quarks
+
+#if 0
     else
       {
 	fp->write("<EC, ");
@@ -910,6 +905,7 @@ namespace MFM {
 	  }
 	fp->write("T::ATOM_FIRST_STATE_BIT>::"); //ancestor or immediate quark)
       }
+#endif
     fp->write(m_funcSymbol->getMangledNameWithTypes().c_str());
     fp->write(") ");
 
@@ -935,8 +931,10 @@ namespace MFM {
 	  }
 	else
 	  fp->write(cosut->getUlamTypeMangledName().c_str());
-	if(cosut->getUlamClass() == UC_ELEMENT)
-	  fp->write("<EC>::");
+	//	if(cosut->getUlamClass() == UC_ELEMENT)
+	fp->write("<EC>::"); //same for elements and quarks
+
+#if 0
 	else
 	  {
 	    fp->write("<EC, ");
@@ -947,6 +945,8 @@ namespace MFM {
 	      }
 	    fp->write("T::ATOM_FIRST_STATE_BIT>::"); //ancestor or immediate quark)
 	  }
+#endif
+
 	fp->write("THE_INSTANCE.getVTableEntry(");
       }
 
@@ -980,10 +980,10 @@ namespace MFM {
       {
 	UlamType * fut = m_state.getUlamTypeByIndex(futi);
 	fp->write(fut->getUlamTypeMangledName().c_str());
-	if(fut->getUlamClass() == UC_ELEMENT)
-	  {
-	    fp->write("<EC>::");
-	  }
+	//	if(fut->getUlamClass() == UC_ELEMENT)
+	fp->write("<EC>::"); //same for elements and quarks
+
+#if 0
 	else
 	  {
 	    //self is a quark, use position of data member cos (accumulated?)
@@ -994,6 +994,7 @@ namespace MFM {
 	    fp->write("T::ATOM_FIRST_STATE_BIT"); //ancestors at first state bit
 	    fp->write(">::");
 	  }
+#endif
       }
     fp->write("THE_INSTANCE."); //non-static functions require an instance
   } //genMemberNameOfMethod
@@ -1019,25 +1020,23 @@ namespace MFM {
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
     // first "hidden" arg is the context, then
-    //"hidden" self (atom) arg
+    //"hidden" ref self (ur) arg
     if(!Node::isCurrentObjectALocalVariableOrArgument())
       {
+	hiddenargs << m_state.getHiddenContextArgName(); //same uc
+	hiddenargs << ", ";
+
 	if(m_state.m_currentObjSymbolsForCodeGen.empty())
-	  hiddenargs << m_state.getHiddenContextArgName(); //same uc
+	  hiddenargs << m_state.getHiddenArgName(); //same ur
 	else
 	  {
-	    //update uc to reflect "effective" self for this funccall
-	    hiddenargs << "UlamContext<EC>(uc, &";
-	    hiddenargs << cosut->getUlamTypeMangledName().c_str();
-	    hiddenargs << "<EC";
-	    if(cosut->getUlamClass() == UC_QUARK)
-	      {
-		hiddenargs << ", " << Node::calcPosOfCurrentObjectClasses(); //relative off;
-		hiddenargs << "u + T::ATOM_FIRST_STATE_BIT";
-	      }
-	    hiddenargs << ">::THE_INSTANCE)";
+	    //update ur to reflect "effective" self for this funccall
+	    hiddenargs << "UlamRef<EC>(" << m_state.getHiddenArgName();
+	    hiddenargs << ", " << Node::calcPosOfCurrentObjectClasses(); //relative off;
+	    hiddenargs << "u, " << cosut->getTotalBitSize(); //len
+	    hiddenargs << "u, &" << cosut->getUlamTypeMangledName().c_str();
+	    hiddenargs << "<EC>::THE_INSTANCE)";
 	  }
-	hiddenargs << ", " << m_state.getHiddenArgName(); //atom
       }
     else
       {
@@ -1054,13 +1053,24 @@ namespace MFM {
 	    if(m_state.m_currentObjSymbolsForCodeGen.empty())
 	      {
 		hiddenargs << m_state.getHiddenContextArgName(); //same uc
-		stgcos = m_state.getCurrentSelfSymbolForCodeGen();
+		hiddenargs << ", ";
+		hiddenargs << m_state.getHiddenArgName(); //same ur
+
+		//stgcos = m_state.getCurrentSelfSymbolForCodeGen();
+		//hiddenargs << ", " << stgcos->getMangledName().c_str();
+		// for both immediate quarks and elements now..not self.
+		//if(!stgcos->isSelf())
+		//  hiddenargs << ".getRef()"; //the T storage within the struct for immediate quarks
 	      }
-	    else if(cos->getAutoLocalType() == ALT_AS)
+	    else if(cos->getAutoLocalType() == ALT_AS) //??????????????
 	      {
 		hiddenargs << m_state.getAutoHiddenContextArgName(); //_ucaut
 		stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 		hiddenargs << stgcos->getMangledName().c_str(); //auto's name
+		hiddenargs << ", " << stgcos->getMangledName().c_str();
+		// for both immediate quarks and elements now..not self.
+		if(!stgcos->isSelf())
+		  hiddenargs << ".getRef()"; //the T storage within the struct for immediate quarks
 	      }
 	    else
 	      {
@@ -1068,27 +1078,30 @@ namespace MFM {
 		UTI cosderefuti = m_state.getUlamTypeAsDeref(cosuti);
 		UlamType * cosderefut = m_state.getUlamTypeByIndex(cosderefuti);
 
-		//update uc to reflect "effective" self for this funccall
-		hiddenargs << "UlamContext<EC>(uc, &";
-		hiddenargs << cosderefut->getUlamTypeMangledName().c_str();
-		hiddenargs << "<EC";
-		if(cosut->getUlamClass() == UC_QUARK)
-		  {
-		    hiddenargs << ", ";
-		    if(cos->isDataMember()) //dm of local stgcos
-		      hiddenargs << Node::calcPosOfCurrentObjectClasses() << "u + ";
+		hiddenargs << m_state.getHiddenContextArgName(); //same uc
+		hiddenargs << ", ";
 
-		    hiddenargs << "T::ATOM_FIRST_STATE_BIT";
-		  }
+		//new ur to reflect "effective" self and storage for this funccall
+		hiddenargs << "UlamRef<EC>("; // << m_state.getHiddenArgName();
+		if(cos->isDataMember()) //dm of local stgcos
+		  hiddenargs << Node::calcPosOfCurrentObjectClasses(); //relative off;
+		else
+		  hiddenargs << "0";
 
-		hiddenargs << ">::THE_INSTANCE)";
+		hiddenargs << "u, " << cosderefut->getTotalBitSize(); //len
+		hiddenargs << "u, ";
+
 		stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+
+		hiddenargs << stgcos->getMangledName().c_str();
+		// for both immediate quarks and elements now..not self.
+		if(!stgcos->isSelf())
+		  hiddenargs << ".GetStorage()"; //getRef(), the T storage within the struct for immediate quarks
+
+		hiddenargs << ", &" << cosderefut->getUlamTypeMangledName().c_str();
+		hiddenargs << "<EC>::THE_INSTANCE)";
 	      }
 
-	    hiddenargs << ", " << stgcos->getMangledName().c_str();
-	    // for both immediate quarks and elements now..not self.
-	    if(!stgcos->isSelf())
-	      hiddenargs << ".getRef()"; //the T storage within the struct for immediate quarks
 	  }
       }
     return hiddenargs.str();
@@ -1106,23 +1119,23 @@ namespace MFM {
     UTI derefuti = m_state.getUlamTypeAsDeref(vuti);
     UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
 
+   u32 tmpvarnum = uvpass.getPtrSlotIndex();
+
     std::ostringstream hiddenargs;
-    //update uc to reflect "effective" self for this funccall
-    hiddenargs << "UlamContext<EC>(uc, &";
-    hiddenargs << derefut->getUlamTypeMangledName().c_str();
-    hiddenargs << "<EC";
-    if(derefut->getUlamClass() == UC_QUARK)
-      {
-	hiddenargs << ", ";
-	//hiddenargs << uvpass.getPtrPosOffset() << "u + "; //maybe just zero
-	hiddenargs << "T::ATOM_FIRST_STATE_BIT"; //left-justified
-      }
+    hiddenargs << m_state.getHiddenContextArgName(); //same uc
+    hiddenargs << ", ";
 
-    hiddenargs << ">::THE_INSTANCE), ";
+    //new ur to reflect "effective" self and the ref storage, for this funccall
+    hiddenargs << "UlamRef<EC>(";
 
-    u32 tmpvarnum = uvpass.getPtrSlotIndex();
+    hiddenargs << "0u, "; //left-justified (uvpass.getPtrPosOffset()?)
+    hiddenargs << derefut->getTotalBitSize(); //len
+    hiddenargs << "u, ";
     hiddenargs << m_state.getTmpVarAsString(derefuti, tmpvarnum, TMPAUTOREF).c_str();
-    hiddenargs << ".getRef()"; //the T storage within the struct for immediate quarks
+    hiddenargs << ".GetStorage()"; //getRef(), the T storage within the struct for immediate quarks ?
+    hiddenargs << ", &" << derefut->getUlamTypeMangledName().c_str();
+    hiddenargs << "<EC>::THE_INSTANCE)";
+
     return hiddenargs.str();
   } //genHiddenArgsForARef
 

@@ -925,30 +925,15 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("};\n"); //end of class/struct
 
-    //declaration of THE_INSTANCE for ELEMENT
-    if(classtype == UC_ELEMENT)
-      {
-	fp->write("\n");
-	m_state.indent(fp);
-	fp->write("template<class EC>\n");
-	m_state.indent(fp);
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC> ");
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>::THE_INSTANCE;\n\n");
-      }
-    else
-      {
-	//also, for QUARKS now..
-	fp->write("\n");
-	m_state.indent(fp);
-	fp->write("template<class EC, u32 POS>\n");
-	m_state.indent(fp);
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC, POS> ");
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC, POS>::THE_INSTANCE;\n\n");
-      }
+    //declaration of THE_INSTANCE for ELEMENTs and Quarks (same)
+    fp->write("\n");
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+    m_state.indent(fp);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC> ");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>::THE_INSTANCE;\n\n");
 
     //output any externs, outside of class decl
     genCodeExtern(fp, declOnly);
@@ -974,7 +959,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     UlamType * cut = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx());
 
     m_state.indent(fp);
-    fp->write("template <class EC, u32 POS>\n");
+    //fp->write("template <class EC, u32 POS>\n");
+    fp->write("template <class EC>\n");
 
     m_state.indent(fp);
     fp->write("struct ");
@@ -1006,7 +992,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("\n");
 
     m_state.indent(fp);
-    fp->write("typedef AtomicParameterType <EC, VD::BITS, QUARK_SIZE, POS> Up_Us; //entire quark\n\n");
+    //fp->write("typedef AtomicParameterType <EC, VD::BITS, QUARK_SIZE, POS> Up_Us; //entire quark\n\n");
+    fp->write("typedef UlamRefFixed<EC, 0u, QUARK_SIZE> Up_Us; //entire quark\n\n"); //left-just
 
     //default constructor/destructor; initializes UlamElement with MFM__UUID_FOR
     m_state.indent(fp);
@@ -1095,6 +1082,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     // in case a function has one as a return value and/or parameter.
   } //genCodeHeaderElement
 
+#if 0
   void NodeBlockClass::genImmediateMangledTypesForHeaderFile(File * fp)
   {
     m_state.indent(fp);
@@ -1111,6 +1099,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	it++;
       }
   } //genImmediateMangledTypesForHeaderFile
+#endif
 
   void NodeBlockClass::genShortNameParameterTypesExtractedForHeaderFile(File * fp)
   {
@@ -1206,11 +1195,13 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       {
 	//default constructor for quark
 	m_state.indent(fp);
-	fp->write("template<class EC, u32 POS>\n");
+	//fp->write("template<class EC, u32 POS>\n");
+	fp->write("template<class EC>\n");
 
 	m_state.indent(fp);
 	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC, POS>");
+	//	fp->write("<EC, POS>");
+	fp->write("<EC>");
 	fp->write("::");
 	fp->write(cut->getUlamTypeMangledName().c_str());
 
@@ -1226,11 +1217,13 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	//default destructor
 	m_state.indent(fp);
-	fp->write("template<class EC, u32 POS>\n");
+	//fp->write("template<class EC, u32 POS>\n");
+	fp->write("template<class EC>\n");
 
 	m_state.indent(fp);
 	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC, POS>");
+	//	fp->write("<EC, POS>");
+	fp->write("<EC>");
 	fp->write("::~");
 	fp->write(cut->getUlamTypeMangledName().c_str());
 	fp->write("(){}\n\n");
@@ -1299,24 +1292,14 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       }
 
     m_state.indent(fp);
-    if(classtype == UC_ELEMENT)
-      fp->write("template<class EC>\n");
-    else if(classtype == UC_QUARK)
-      fp->write("template<class EC, u32 POS>\n");
-    else
-      assert(0);
+    fp->write("template<class EC>\n"); //same for elements and quarks
 
     m_state.indent(fp);
     fp->write("s32 "); //return pos offset, or -1 if not found
 
     //include the mangled class::
     fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
-    if(classtype == UC_ELEMENT)
-      fp->write("<EC>");
-    else if(classtype == UC_QUARK)
-      fp->write("<EC, POS>");
-
-    fp->write("::");
+    fp->write("<EC>::");
     fp->write(m_state.getHasMangledFunctionName(cuti));
     fp->write("(const char * namearg) const\n");
     m_state.indent(fp);
@@ -1370,24 +1353,14 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       }
 
     m_state.indent(fp);
-    if(classtype == UC_ELEMENT)
-      fp->write("template<class EC>\n");
-    else if(classtype == UC_QUARK)
-      fp->write("template<class EC, u32 POS>\n");
-    else
-      assert(0);
+    fp->write("template<class EC>\n"); //same for elements and quarks
 
     m_state.indent(fp);
     fp->write("bool "); //return true if related
 
     //include the mangled class::
     fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
-    if(classtype == UC_ELEMENT)
-      fp->write("<EC>");
-    else if(classtype == UC_QUARK)
-      fp->write("<EC, POS>");
-
-    fp->write("::");
+    fp->write("<EC>::");
     fp->write(m_state.getIsMangledFunctionName(cuti));
     fp->write("(const char * namearg) const\n");
     m_state.indent(fp);
@@ -1514,14 +1487,16 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       }
 
     m_state.indent(fp);
-    fp->write("template<class EC, u32 POS>\n");
+    //fp->write("template<class EC, u32 POS>\n");
+    fp->write("template<class EC>\n");
 
     m_state.indent(fp);
     fp->write("u32 ");
 
     //include the mangled class::
     fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
-    fp->write("<EC, POS>");
+    //fp->write("<EC, POS>");
+    fp->write("<EC>");
 
     fp->write("::");
     fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
@@ -1607,23 +1582,14 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     //The VTABLE Definition:
     m_state.indent(fp);
-    if(classtype == UC_ELEMENT)
-      fp->write("template<class EC>\n");
-    else if(classtype == UC_QUARK)
-      fp->write("template<class EC, u32 POS>\n");
-    else
-      assert(0);
+    fp->write("template<class EC>\n"); //same for elements and quarks
 
     m_state.indent(fp);
     fp->write("VfuncPtr ");
 
     //include the mangled class::
     fp->write(cut->getUlamTypeMangledName().c_str());
-    if(classtype == UC_ELEMENT)
-      fp->write("<EC>::");
-    else if(classtype == UC_QUARK)
-      fp->write("<EC, POS>::");
-
+    fp->write("<EC>::"); //same for elements and quarks
     fp->write("m_vtable[");
     fp->write_decimal_unsigned(maxidx);
     fp->write("] = {\n");
@@ -1644,13 +1610,15 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	UTI veuti = csym->getClassForVTableEntry(i);
 	assert(m_state.okUTItoContinue(veuti));
 	UlamType * veut = m_state.getUlamTypeByIndex(veuti);
-	ULAMCLASSTYPE veclasstype = veut->getUlamClass();
+	//ULAMCLASSTYPE veclasstype = veut->getUlamClass();
 	m_state.indent(fp);
 	fp->write("(VfuncPtr) "); //cast to void
 	fp->write("((typename "); //cast to contextual type info
 	fp->write(veut->getUlamTypeMangledName().c_str());
-	if(veclasstype == UC_ELEMENT)
-	  fp->write("<EC>::");
+	fp->write("<EC>::"); //same for elements and quarks
+
+
+#if 0
 	else if(veclasstype == UC_QUARK)
 	  {
 	    fp->write("<EC, ");
@@ -1662,12 +1630,15 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	  }
 	else
 	  assert(0);
+#endif
+
 	fp->write(csym->getMangledFunctionNameWithTypesForVTableEntry(i).c_str());
 
 	fp->write(") &");
 	fp->write(veut->getUlamTypeMangledName().c_str());
-	if(veclasstype == UC_ELEMENT)
-	  fp->write("<EC>::");
+	fp->write("<EC>::"); //same for elements and quarks
+
+#if 0
 	else if(veclasstype == UC_QUARK)
 	  {
 	    fp->write("<EC, ");
@@ -1679,6 +1650,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	  }
 	else
 	  assert(0);
+#endif
+
 	fp->write(csym->getMangledFunctionNameForVTableEntry(i).c_str());
 	fp->write(")");
       } //next vt entry
@@ -1690,20 +1663,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     //VTable accessor method
     m_state.indent(fp);
-    if(classtype == UC_ELEMENT)
-      fp->write("template<class EC>\n");
-    else if(classtype == UC_QUARK)
-      fp->write("template<class EC, u32 POS>\n");
-    else
-      assert(0);
+    fp->write("template<class EC>\n"); //same for elements and quarks
 
     m_state.indent(fp);
     fp->write("VfuncPtr ");
     fp->write(cut->getUlamTypeMangledName().c_str());
-    if(classtype == UC_ELEMENT)
-      fp->write("<EC>::");
-    else if(classtype == UC_QUARK)
-      fp->write("<EC, POS>::");
+    fp->write("<EC>::"); //same for elements and quarks
     fp->write("getVTableEntry(u32 idx) const\n");
     m_state.indent(fp);
     fp->write("{\n");
@@ -1818,7 +1783,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(declOnly)
       {
 	m_state.indent(fp);
-	fp->write("__inline__ const u32 GetPos() const { return POS; }\n");
+	//fp->write("__inline__ const u32 GetPos() const { return POS; }\n");
+	fp->write("__inline__ const u32 GetPos() const { return 0u; }\n"); //?????
       }
   } //generateGetPosForQuark
 
@@ -1827,17 +1793,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     UTI cuti = getNodeType();
     assert(m_state.okUTItoContinue(cuti));
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-    ULAMCLASSTYPE classtype = cut->getUlamClass();
+    //ULAMCLASSTYPE classtype = cut->getUlamClass();
 
     if(!declOnly)
       {
 	m_state.indent(fp);
-	if(classtype == UC_ELEMENT)
-	  fp->write("template<class EC>\n");
-	else if(classtype == UC_QUARK)
-	  fp->write("template<class EC, u32 POS>\n");
-	else
-	  assert(0);
+	fp->write("template<class EC>\n"); //same for elements and quarks
       }
 
     m_state.indent(fp);
@@ -1847,13 +1808,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       {
 	//include the mangled class::
 	fp->write(cut->getUlamTypeMangledName().c_str());
-
-	if(classtype == UC_QUARK)
-	  fp->write("<EC, POS>");
-	else
-	  fp->write("<EC>");
-
-	fp->write("::");
+	fp->write("<EC>::"); //same for elements and quarks
       }
 
     fp->write("GetDataMemberInfo(u32 dataMemberNumber) const"); //method name!!!
@@ -1909,17 +1864,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     UTI cuti = getNodeType();
     assert(m_state.okUTItoContinue(cuti));
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-    ULAMCLASSTYPE classtype = cut->getUlamClass();
+    //ULAMCLASSTYPE classtype = cut->getUlamClass();
 
     if(!declOnly)
       {
 	m_state.indent(fp);
-	if(classtype == UC_ELEMENT)
-	  fp->write("template<class EC>\n");
-	else if(classtype == UC_QUARK)
-	  fp->write("template<class EC, u32 POS>\n");
-	else
-	  assert(0);
+	fp->write("template<class EC>\n"); //same for elements and quarks
       }
 
     m_state.indent(fp);
@@ -1929,13 +1879,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       {
 	//include the mangled class::
 	fp->write(cut->getUlamTypeMangledName().c_str());
-
-	if(classtype == UC_QUARK)
-	  fp->write("<EC, POS>");
-	else
-	  fp->write("<EC>");
-
-	fp->write("::");
+	fp->write("<EC>::"); //same for elements and quarks
       }
 
     fp->write("GetDataMemberCount() const"); //method name!!!
@@ -1969,17 +1913,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     UTI cuti = getNodeType();
     assert(m_state.okUTItoContinue(cuti));
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-    ULAMCLASSTYPE classtype = cut->getUlamClass();
+    //ULAMCLASSTYPE classtype = cut->getUlamClass();
 
     if(!declOnly)
       {
 	m_state.indent(fp);
-	if(classtype == UC_ELEMENT)
-	  fp->write("template<class EC>\n");
-	else if(classtype == UC_QUARK)
-	  fp->write("template<class EC, u32 POS>\n");
-	else
-	  assert(0);
+	fp->write("template<class EC>\n"); //same for elements and quarks
       }
 
     m_state.indent(fp);
@@ -1989,13 +1928,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       {
 	//include the mangled class::
 	fp->write(cut->getUlamTypeMangledName().c_str());
-
-	if(classtype == UC_QUARK)
-	  fp->write("<EC, POS>");
-	else
-	  fp->write("<EC>");
-
-	fp->write("::");
+	fp->write("<EC>::"); //same for elements and quarks
       }
 
     fp->write("GetMangledClassName() const"); //method name!!!

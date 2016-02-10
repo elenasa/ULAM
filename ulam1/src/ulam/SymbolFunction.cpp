@@ -367,10 +367,7 @@ namespace MFM {
       }
     else
       {
-	if(classtype == UC_QUARK)
-	  fp->write("template<class EC, u32 POS>\n");
-	else
-	  fp->write("template<class EC>\n");
+	fp->write("template<class EC>\n"); //same for elements and quarks
 	m_state.indent(fp);
       }
 
@@ -381,13 +378,7 @@ namespace MFM {
 	UTI cuti = m_state.getCompileThisIdx();
 	//include the mangled class::
 	fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
-
-	if(classtype == UC_QUARK)
-	  fp->write("<EC, POS>");
-	else
-	  fp->write("<EC>");
-
-	fp->write("::");
+	fp->write("<EC>::"); //same for elements and quarks
       }
 
     fp->write(getMangledName().c_str());
@@ -395,8 +386,8 @@ namespace MFM {
 
     fp->write("const UlamContext<EC>& uc, "); //first arg is unmangled context
 
-    //the hidden arg is "atom" (was "self"), a T& (atom)
-    fp->write("T& "); //a reference
+    //the hidden arg is "atom" (was "self"), a T& (atom), now UlamRef (ur)
+    fp->write("const UlamRef<EC>& "); //a reference
     fp->write(m_state.getHiddenArgName());
 
     u32 numparams = getNumberOfParameters();
@@ -475,7 +466,8 @@ namespace MFM {
 
     //arg types only
     fp->write("const UlamContext<EC>&, "); //first arg is unmangled context
-    fp->write("T& "); //the hidden arg is "atom" (was "self"), a T& (atom)
+    //fp->write("T& "); //the hidden arg is "atom" (was "self"), a T& (atom)
+    fp->write("const UlamRef<EC>& "); //the hidden arg is "atom" (was "self"), a T& (atom), now UlamRef (self)
 
     u32 numparams = getNumberOfParameters();
     for(u32 i = 0; i < numparams; i++)

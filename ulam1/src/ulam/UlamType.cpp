@@ -224,6 +224,7 @@ namespace MFM {
   const std::string UlamType::getUlamTypeAsStringForC(bool useref)
   {
     assert(isComplete());
+    assert(!useref); //could delete the argument useref.
 
     s32 len = getTotalBitSize(); //includes arrays
     assert(len >= 0);
@@ -240,7 +241,7 @@ namespace MFM {
       len = getBitSize(); //per item
 
     if(useref)
-      ctype << len << ", POS>"; // template arg
+      ctype << len << ", POS>"; // if reference ??????????????
     else
       ctype << len << ", " << (BITSPERATOM - len) << ">"; //right-just immediate
 
@@ -445,12 +446,13 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
 
     m_state.indent(fp);
-    fp->write("template<class EC, u32 POS>\n");
+    //fp->write("template<class EC, u32 POS>\n");
+    fp->write("template<class EC>\n");
 
     m_state.indent(fp);
     fp->write("struct ");
     fp->write(automangledName.c_str());
-    fp->write(" : public AutoRefBase<EC>");
+    fp->write(" : public UlamRef<EC>");
     fp->write("\n");
     m_state.indent(fp);
     fp->write("{\n");
@@ -470,12 +472,16 @@ namespace MFM {
     //constructor for ref (auto)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(T& targ, u32 idx) : AutoRefBase<EC>(targ, idx) { }\n");
+    fp->write("(T& targ, u32 idx) : UlamRef<EC>(idx, ");
+    fp->write_decimal_unsigned(len); //includes arraysize
+    fp->write("u, targ, NULL) { }\n"); //effself is null for primitives
 
     //constructor for chain of autorefs (e.g. memberselect with array item)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(AutoRefBase<EC>& arg, u32 idx) : AutoRefBase<EC>(arg, idx) { }\n");
+    fp->write("(const UlamRef<EC>& arg, u32 idx) : UlamRef<EC>(arg, idx, ");
+    fp->write_decimal_unsigned(len); //includes arraysize
+    fp->write("u, NULL) { }\n"); //effself is null for primitives
 
     //calls slow AutoRefBase read method
     genUlamTypeAutoReadDefinitionForC(fp);
@@ -504,10 +510,8 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write("const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32
-	fp->write(" read() const { return AutoRefBase<EC>::");
-	fp->write("read(");
-	fp->write_decimal_unsigned(getTotalBitSize());
-	fp->write("u); ");
+	fp->write(" read() const { return UlamRef<EC>::");
+	fp->write("Read(); ");
 	if(isScalar())
 	  fp->write("}\n"); //done
 	else
@@ -523,8 +527,10 @@ namespace MFM {
 	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
 	fp->write(" readArrayItem(");
 	fp->write("const u32 index, const u32 itemlen) const { return ");
-	fp->write("AutoRefBase<EC>::readArrayItem");
-	fp->write("(index, itemlen); }\n");
+	fp->write("UlamRef<EC>(");
+	fp->write("*this, index * itemlen, "); //rel offset
+	fp->write("itemlen, NULL)"); //itemlen, primitive effself
+	fp->write(".Read(); }\n");
       }
   } //genUlamTypeAutoReadDefinitionForC
 
@@ -535,10 +541,8 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write("void write(const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
-	fp->write(" v) { AutoRefBase<EC>::");
-	fp->write("write(v, ");
-	fp->write_decimal_unsigned(getTotalBitSize());
-	fp->write("u); ");
+	fp->write(" v) { UlamRef<EC>::");
+	fp->write("Write(v); ");
 	if(isScalar())
 	  fp->write("}\n");
 	else
@@ -553,8 +557,10 @@ namespace MFM {
 	fp->write("void writeArrayItem(const ");
 	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
 	fp->write(" v, const u32 index, const u32 itemlen) { ");
-	fp->write("AutoRefBase<EC>::writeArrayItem");
-	fp->write("(v, index, itemlen); }\n");
+	fp->write("UlamRef<EC>(");
+	fp->write("*this, index * itemlen, "); //rel offset
+	fp->write("itemlen, NULL)"); //itemlen, primitive effself
+	fp->write(".Write(v); }\n");
       }
   } //genUlamTypeAutoWriteDefinitionForC
 
@@ -970,9 +976,14 @@ namespace MFM {
     fp->write("struct ");
     fp->write(mangledName.c_str());
     fp->write(" : public ");
-    fp->write(automangledName.c_str());
+    //////////fp->write(automangledName.c_str());
+    //////////fp->write("<EC>\n");
+    //let's see if gcc can make use of these extra template args for immediate primitives
+    fp->write("UlamRefFixed");
     fp->write("<EC, ");
-    fp->write_decimal_unsigned(BITSPERATOM - len);
+    fp->write_decimal_unsigned(BITSPERATOM - ATOMFIRSTSTATEBITPOS - len); //relative offset
+    fp->write("u, ");
+    fp->write_decimal_unsigned(len);
     fp->write("u>\n");
 
     m_state.indent(fp);
@@ -989,26 +1000,44 @@ namespace MFM {
     fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
     fp->write("\n");
 
-    //typedef bitfield inside struct
+    m_state.indent(fp);
+    fp->write("typedef UlamRefFixed");
+    fp->write("<EC, "); //BITSPERATOM
+    fp->write_decimal_unsigned(BITSPERATOM - ATOMFIRSTSTATEBITPOS - len); //relative offset
+    fp->write(", ");
+    fp->write_decimal(len);
+    fp->write("u > Up_Us;\n");
+
+    //typedef bitfield inside struct ???????????????????WHY
+#if 0
     m_state.indent(fp);
     fp->write("typedef ");
     fp->write(getUlamTypeAsStringForC(false).c_str()); //e.g. BitField
     fp->write(" BF;\n");
+#endif
 
     //storage here (as an atom)
     m_state.indent(fp);
     fp->write("T m_stg;  //storage here!\n\n");
 
+    //read BV method
+    genUlamTypeReadDefinitionForC(fp);
+
+    //write BV method
+    genUlamTypeWriteDefinitionForC(fp);
+
     //default constructor (used by local vars)
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("() : ");
-    fp->write(automangledName.c_str());
+    //////////////////fp->write(automangledName.c_str());
+    //////////////////fp->write("<EC>");
+    fp->write("UlamRefFixed");
     fp->write("<EC, ");
-    fp->write_decimal_unsigned(BITSPERATOM - len);
-    fp->write("u>(m_stg, ");
-    fp->write_decimal_unsigned(BITSPERATOM - ATOMFIRSTSTATEBITPOS - len);
-    fp->write("u), ");
+    fp->write_decimal_unsigned(BITSPERATOM - ATOMFIRSTSTATEBITPOS - len); //relative offset
+    fp->write("u, ");
+    fp->write_decimal_unsigned(len);
+    fp->write("u >(m_stg, NULL), ");
     fp->write("m_stg(T::ATOM_UNDEFINED_TYPE) { }\n");
 
     //constructor here (used by const tmpVars)
@@ -1017,20 +1046,16 @@ namespace MFM {
     fp->write("(const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //u32
     fp->write(" d) : ");
-    fp->write(automangledName.c_str());
+    /////////////////////fp->write(automangledName.c_str());
+    //fp->write("<EC, ");
+    //fp->write_decimal_unsigned(BITSPERATOM - len);
+    fp->write("UlamRefFixed");
     fp->write("<EC, ");
-    fp->write_decimal_unsigned(BITSPERATOM - len);
-    fp->write("u>(m_stg, ");
-    fp->write_decimal_unsigned(BITSPERATOM - ATOMFIRSTSTATEBITPOS - len);
-    fp->write("u), ");
+    fp->write_decimal_unsigned(BITSPERATOM - ATOMFIRSTSTATEBITPOS - len); //relative offset
+    fp->write("u, ");
+    fp->write_decimal_unsigned(len);
+    fp->write("u >(m_stg, NULL), ");
     fp->write("m_stg(T::ATOM_UNDEFINED_TYPE) { ");
-    if(getTotalWordSize() <= MAXBITSPERINT)
-      {
-	fp->write(automangledName.c_str());
-	fp->write("<EC, ");
-	fp->write_decimal_unsigned(BITSPERATOM - len);
-	fp->write("u>::");
-      }
     fp->write("write(d); }\n");
 
     //copy constructor here (return by value)
@@ -1039,12 +1064,15 @@ namespace MFM {
     fp->write("(const ");
     fp->write(mangledName.c_str()); //u32
     fp->write("& other) : ");
-    fp->write(automangledName.c_str());
+    /////////////////fp->write(automangledName.c_str());
+    //    fp->write("<EC, ");
+    //fp->write_decimal_unsigned(BITSPERATOM - len);
+    fp->write("UlamRefFixed");
     fp->write("<EC, ");
-    fp->write_decimal_unsigned(BITSPERATOM - len);
-    fp->write("u>(m_stg, ");
-    fp->write_decimal_unsigned(BITSPERATOM - ATOMFIRSTSTATEBITPOS - len);
-    fp->write("u), ");
+    fp->write_decimal_unsigned(BITSPERATOM - ATOMFIRSTSTATEBITPOS - len); //relative offset
+    fp->write("u, ");
+    fp->write_decimal_unsigned(len);
+    fp->write("u >(m_stg, NULL), ");
     fp->write("m_stg(other.m_stg) { }\n");
 
     //default destructor (for completeness)
@@ -1052,12 +1080,6 @@ namespace MFM {
     fp->write("~");
     fp->write(mangledName.c_str());
     fp->write("() {}\n");
-
-    //read BV method
-    genUlamTypeReadDefinitionForC(fp);
-
-    //write BV method
-    genUlamTypeWriteDefinitionForC(fp);
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -1075,14 +1097,15 @@ namespace MFM {
 
   void UlamType::genUlamTypeReadDefinitionForC(File * fp)
   {
+    //handled by base class read method
     if(isScalar() || getPackable() == PACKEDLOADABLE)
       {
 	m_state.indent(fp);
 	fp->write("const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32
-	fp->write(" read() const { return BF::");
+	fp->write(" read() const { return Up_Us::");
 	fp->write(readMethodForCodeGen().c_str());
-	fp->write("(AutoRefBase<EC>::getBits()); ");
+	fp->write("(); ");
 	if(isScalar())
 	  fp->write("}\n"); //done
 	else
@@ -1098,27 +1121,29 @@ namespace MFM {
 	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
 	fp->write(" readArrayItem(");
 	fp->write("const u32 index, const u32 itemlen) const { return ");
-	fp->write("AutoRefBase<EC>::readArrayItem");
-	fp->write("(index, itemlen); }\n");
+	fp->write("UlamRef<EC>(");
+	fp->write("*this, index * itemlen, "); //rel offset
+	fp->write("itemlen, NULL)"); //itemlen, primitive effself
+	fp->write(".Read(); }\n");
       }
   } //genUlamTypeReadDefinitionForC
 
   void UlamType::genUlamTypeWriteDefinitionForC(File * fp)
   {
+    //handled by base class write method
     if(isScalar() || getPackable() == PACKEDLOADABLE)
       {
 	m_state.indent(fp);
 	fp->write("void write(const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
-	fp->write(" v) { BF::");
+	fp->write(" v) { Up_Us::");
 	fp->write(writeMethodForCodeGen().c_str());
-	fp->write("(AutoRefBase<EC>::getBits(), v); ");
+	fp->write("(v); ");
 	if(isScalar())
 	  fp->write("}\n");
 	else
 	  fp->write("} //writes entire array\n");
       }
-
     if(!isScalar())
       {
 	// writes an element of array
@@ -1127,8 +1152,10 @@ namespace MFM {
 	fp->write("void writeArrayItem(const ");
 	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
 	fp->write(" v, const u32 index, const u32 itemlen) { ");
-	fp->write("AutoRefBase<EC>::writeArrayItem");
-	fp->write("(v, index, itemlen); }\n");
+	fp->write("UlamRef<EC>(");
+	fp->write("*this, index * itemlen, "); //rel offset
+	fp->write("itemlen, NULL)"); //itemlen, primitive effself
+	fp->write(".Write(v); }\n");
       }
   } //genUlamTypeWriteDefinitionForC
 
@@ -1356,6 +1383,7 @@ namespace MFM {
 
     s32 len = getTotalBitSize();
 
+#if 0
     m_state.indent(fp);
     fp->write("typedef AtomicParameterType");
     fp->write("<EC"); //BITSPERATOM
@@ -1367,6 +1395,15 @@ namespace MFM {
     fp->write_decimal(BITSPERATOM - len); //right-justified
     fp->write("> ");
     fp->write(" Up_Us;\n");
+#endif
+
+    m_state.indent(fp);
+    fp->write("typedef UlamRefFixed");
+    fp->write("<EC, "); //BITSPERATOM
+    fp->write_decimal(BITSPERATOM - len); //right-justified
+    fp->write(", ");
+    fp->write_decimal(len);
+    fp->write("u > Up_Us;\n");
 
     //reference to storage in atom
     m_state.indent(fp);
