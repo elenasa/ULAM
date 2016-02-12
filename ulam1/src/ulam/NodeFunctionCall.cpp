@@ -912,14 +912,13 @@ namespace MFM {
     //requires runtime lookup for virtual function pointer
     if(cos->isSelf() || cosSize == 0)
       {
-	fp->write(m_state.getHiddenContextArgName());
-	fp->write(".GetEffectiveSelf()->getVTableEntry(");
+	//fp->write(m_state.getHiddenContextArgName());
+	fp->write("ur.GetEffectiveSelf()->getVTableEntry(");
       }
     else if(cos->getAutoLocalType() == ALT_AS)
       {
-	fp->write(m_state.getAutoHiddenContextArgName());
-	fp->write(cos->getMangledName().c_str()); //auto's name
-	fp->write(".GetEffectiveSelf()->getVTableEntry(");
+	//fp->write(m_state.getHiddenContextArgName());
+	fp->write("ur.GetEffectiveSelf()->getVTableEntry(");
       }
     else
       {
@@ -1064,16 +1063,27 @@ namespace MFM {
 	      }
 	    else if(cos->getAutoLocalType() == ALT_AS) //??????????????
 	      {
-		hiddenargs << m_state.getAutoHiddenContextArgName(); //_ucaut
 		stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-		hiddenargs << stgcos->getMangledName().c_str(); //auto's name
-		hiddenargs << ", " << stgcos->getMangledName().c_str();
+		UTI stgcosuti = stgcos->getUlamTypeIdx();
+		stgcosuti = m_state.getUlamTypeAsDeref(stgcosuti);
+		UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+
+		hiddenargs << m_state.getHiddenContextArgName(); //_ucaut
+		hiddenargs << ", ";// << stgcos->getMangledName().c_str();
 		// for both immediate quarks and elements now..not self.
-		if(!stgcos->isSelf())
-		  hiddenargs << ".getRef()"; //the T storage within the struct for immediate quarks
+		//if(!stgcos->isSelf())
+		//  hiddenargs << ".getRef()"; //the T storage within the struct for immediate quarks
+		//update ur to reflect "effective" self for this funccall
+		hiddenargs << "UlamRef<EC>(" << m_state.getHiddenArgName();
+		hiddenargs << ", " << Node::calcPosOfCurrentObjectClasses(); //relative off;
+		hiddenargs << "u, " << stgcosut->getTotalBitSize(); //len
+		hiddenargs << "u, &" << stgcosut->getUlamTypeMangledName().c_str();
+		hiddenargs << "<EC>::THE_INSTANCE)";
 	      }
 	    else
 	      {
+		stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+
 		//use possible dereference type for mangled name
 		UTI cosderefuti = m_state.getUlamTypeAsDeref(cosuti);
 		UlamType * cosderefut = m_state.getUlamTypeByIndex(cosderefuti);
@@ -1090,8 +1100,6 @@ namespace MFM {
 
 		hiddenargs << "u, " << cosderefut->getTotalBitSize(); //len
 		hiddenargs << "u, ";
-
-		stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 
 		hiddenargs << stgcos->getMangledName().c_str();
 		// for both immediate quarks and elements now..not self.
@@ -1171,9 +1179,9 @@ namespace MFM {
 	    stype << stgcos->getMangledName().c_str();
 
 	    // for both immediate quarks and elements now...
-	    if(!stgcos->isSelf())
-	      stype << ".getType()"; //the T storage within the struct for immediate quarks
-	    else
+	    //if(!stgcos->isSelf())
+	    //  stype << ".getType()"; //the T storage within the struct for immediate quarks
+	    //else
 	      stype << ".GetType()";
 	  }
       }
@@ -1211,6 +1219,7 @@ namespace MFM {
 
     if(epcosclasstype != UC_NOTACLASS)
       {
+	assert(0);
 	hiddenlist << ".getRef()";
       }
     return hiddenlist.str();

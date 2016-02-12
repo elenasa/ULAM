@@ -1,8 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3147_test_compiler_elementmemberselect_witharrays
+##
+## gen output (interleaved asserts):
+## Bool(3) Arg: 0x7 (true)
+## Bool(3) Arg: 0x7 (true)
+##
 #!
 Exit status: 0
-Ue_Foo { System s();  Bool(1) m_ba[6](false,true,false,false,false,true);  Int(32) test() {  Foo f;  f m_ba 1 [] . true cast = f m_ba 5 [] . f ( 1 cast )check . cast = m_ba f m_ba . = s ( f m_ba 5 [] . cast )print . s ( m_ba 5 [] cast )print . 0 cast return } }
+Ue_Foo { System s();  Bool(1) m_ba[6](false,true,false,false,false,true);  Int(32) test() {  Foo f;  f m_ba 1 [] . true cast = f m_ba 5 [] . f ( 1 cast )check . cast = m_ba f m_ba . = s ( f m_ba 5 [] . cast )print . s ( f m_ba 5 [] . cast )assert . s ( m_ba 5 [] cast )print . s ( m_ba 5 [] cast )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 #>Foo.ulam
   ulam 1;
@@ -19,7 +24,9 @@ element Foo {
     f.m_ba[5] = f.check(1);
     m_ba = f.m_ba;
     s.print(f.m_ba[5]);
+    s.assert(f.m_ba[5]);
     s.print(m_ba[5]);
+    s.assert(m_ba[5]);
     return 0;
   }
 }

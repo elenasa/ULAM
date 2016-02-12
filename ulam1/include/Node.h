@@ -191,7 +191,7 @@ namespace MFM{
 
     void assignReturnValuePtrToStack(UlamValue rtnUVptr);
 
-    virtual void genMemberNameOfMethod(File * fp); //helper method to read/write into/from tmpvar
+    virtual void genMemberNameOfMethod(File * fp, bool endingdot = true); //helper method to read/write into/from tmpvar
     virtual void genModelParameterMemberNameOfMethod(File * fp, s32 epi);
 
     virtual void genLocalMemberNameOfMethod(File * fp);

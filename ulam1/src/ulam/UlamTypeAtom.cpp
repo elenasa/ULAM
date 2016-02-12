@@ -111,7 +111,7 @@ namespace MFM {
       return; //no auto for unpacked array, just immediate
 
     m_state.m_currentIndentLevel = 0;
-    const std::string mangledName = getUlamTypeImmediateMangledName();
+    //const std::string mangledName = getUlamTypeImmediateMangledName();
     const std::string automangledName = getUlamTypeImmediateAutoMangledName();
     std::ostringstream  ud;
     ud << "Ud_" << automangledName; //d for define (p used for atomicparametrictype)
@@ -158,18 +158,19 @@ namespace MFM {
     //constructor for ref (auto)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(T& targ) : UlamRefAtom<EC>(targ) { }\n");
+    fp->write("(T& targ, const UlamContext<EC>& uc) : UlamRefAtom<EC>(targ, uc.LookupElementTypeFromContext(targ.GetType())) { }\n");
 
     //constructor for chain of autorefs (e.g. memberselect with array item)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(const UlamRefAtom<EC>& arg) : UlamRefAtom<EC>(arg) { }\n");
+    //fp->write("(const UlamRefAtom<EC>& arg, UlamClass<EC>* effself) : UlamRefAtom<EC>(arg, effself) { }\n");
+    fp->write("(const UlamRefAtom<EC>& arg) : UlamRefAtom<EC>(arg, arg.GetEffectiveSelf()) { }\n");
 
     //read BV method
-    genUlamTypeAutoReadDefinitionForC(fp);
+    //genUlamTypeAutoReadDefinitionForC(fp);
 
     //write BV method
-    genUlamTypeAutoWriteDefinitionForC(fp);
+    //genUlamTypeAutoWriteDefinitionForC(fp);
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -218,7 +219,7 @@ namespace MFM {
 
     m_state.m_currentIndentLevel = 0;
     const std::string mangledName = getUlamTypeImmediateMangledName();
-    const std::string automangledName = getUlamTypeImmediateAutoMangledName();
+    //const std::string automangledName = getUlamTypeImmediateAutoMangledName();
     std::ostringstream  ud;
     ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
     std::string udstr = ud.str();
@@ -246,8 +247,8 @@ namespace MFM {
     fp->write("struct ");
     fp->write(mangledName.c_str());
     fp->write(" : public ");
-    fp->write(automangledName.c_str());
-    fp->write("<EC>\n");
+    //fp->write(automangledName.c_str());
+    fp->write("UlamRefAtom<EC>\n");
 
     m_state.indent(fp);
     fp->write("{\n");
@@ -271,21 +272,21 @@ namespace MFM {
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("() : ");
-    fp->write(automangledName.c_str());
-    fp->write("<EC>");
-    fp->write("(m_stg), ");
+    //fp->write(automangledName.c_str());
+    fp->write("UlamRefAtom<EC>");
+    fp->write("(m_stg, NULL), "); //effective type is null for ATOM_EMPTY_TYPE?
     fp->write("m_stg() { }\n");
 
     //constructor here (used by const tmpVars)
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("(const ");
-    fp->write(getTmpStorageTypeAsString().c_str()); //u32
-    fp->write("& d) : ");
-    fp->write(automangledName.c_str());
-    fp->write("<EC>");
-    fp->write("(m_stg), ");
-    fp->write("m_stg(d) { }\n");
+    fp->write(getTmpStorageTypeAsString().c_str()); //T
+    fp->write("& targ, const UlamContext<EC>& uc) : ");
+    //fp->write(automangledName.c_str());
+    fp->write("UlamRefAtom<EC>");
+    fp->write("(m_stg, uc.LookupElementTypeFromContext(targ.GetType())), ");
+    fp->write("m_stg(targ) { }\n");
 
     //copy constructor
     m_state.indent(fp);
@@ -293,9 +294,9 @@ namespace MFM {
     fp->write("(const ");
     fp->write(mangledName.c_str());
     fp->write("& d) : ");
-    fp->write(automangledName.c_str());
-    fp->write("<EC>");
-    fp->write("(m_stg), ");
+    //    fp->write(automangledName.c_str());
+    fp->write("UlamRefAtom<EC>");
+    fp->write("(m_stg, d.GetEffectiveSelf()), ");
     fp->write("m_stg(d.m_stg) { }\n");
 
     //default destructor (for completeness)
@@ -304,9 +305,9 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write("() {}\n");
 
-    genUlamTypeReadDefinitionForC(fp);
+    //genUlamTypeReadDefinitionForC(fp);
 
-    genUlamTypeWriteDefinitionForC(fp);
+    //genUlamTypeWriteDefinitionForC(fp);
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -336,7 +337,7 @@ namespace MFM {
   {
     m_state.m_currentIndentLevel = 0;
     const std::string mangledName = getUlamTypeImmediateMangledName();
-    const std::string automangledName = getUlamTypeImmediateAutoMangledName();
+    //const std::string automangledName = getUlamTypeImmediateAutoMangledName();
     std::ostringstream  ud;
     ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
     std::string udstr = ud.str();

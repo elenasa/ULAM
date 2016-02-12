@@ -1083,6 +1083,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   } //genCodeHeaderElement
 
 #if 0
+  //see SymbolClass::genMangledTypesHeaderFile
   void NodeBlockClass::genImmediateMangledTypesForHeaderFile(File * fp)
   {
     m_state.indent(fp);

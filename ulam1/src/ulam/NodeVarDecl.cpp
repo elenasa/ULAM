@@ -723,10 +723,12 @@ namespace MFM {
 	fp->write(m_varSymbol->getMangledName().c_str());
 	fp->write("("); // use constructor (not equals)
 	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str()); //VALUE
+	if(vut->getUlamTypeEnum() == UAtom)
+	  fp->write(", uc");
 	fp->write(")");
 	fp->write(";\n"); //func call args aren't NodeVarDecl's
 	m_state.m_currentObjSymbolsForCodeGen.clear();
-	return;
+	return; //done
       }
 
     //initialize T to default atom (might need "OurAtom" if data member ?)
@@ -748,7 +750,7 @@ namespace MFM {
       }
     else if(vclasstype == UC_QUARK)
       {
-	//left-justified?
+	//left-justified. no initialization
 	m_state.indent(fp);
 	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
 	fp->write(" ");

@@ -100,6 +100,9 @@ namespace MFM{
 
     virtual PACKFIT getPackable();
 
+    virtual const std::string readMethodForCodeGen();
+    virtual const std::string writeMethodForCodeGen();
+
     virtual bool needsImmediateType();
 
     virtual const std::string getUlamTypeImmediateMangledName();
@@ -137,9 +140,12 @@ namespace MFM{
     ULAMCLASSTYPE m_class;
     bool m_customArray;
 
+    void genUlamTypeAutoReadDefinitionForC(File * fp);
+    void genUlamTypeAutoWriteDefinitionForC(File * fp);
+
     void genUlamTypeQuarkMangledAutoDefinitionForC(File * fp);
-    void genUlamTypeQuarkReadDefinitionForC(File * fp);
-    void genUlamTypeQuarkWriteDefinitionForC(File * fp);
+    void genUlamTypeQuarkAutoReadDefinitionForC(File * fp);
+    void genUlamTypeQuarkAutoWriteDefinitionForC(File * fp);
 
     void genUlamTypeMangledUnpackedQuarkArrayDefinitionForC(File * fp);
     void genUlamTypeMangledUnpackedElementArrayDefinitionForC(File * fp);
@@ -147,6 +153,12 @@ namespace MFM{
     void genUlamTypeElementMangledAutoDefinitionForC(File * fp);
     void genUlamTypeElementReadDefinitionForC(File * fp);
     void genUlamTypeElementWriteDefinitionForC(File * fp);
+
+    void genUlamTypeQuarkMangledDefinitionForC(File * fp);
+    void genUlamTypeQuarkReadDefinitionForC(File * fp);
+    void genUlamTypeQuarkWriteDefinitionForC(File * fp);
+
+    void genUlamTypeElementMangledDefinitionForC(File * fp);
 
     UTI getCustomArrayType();
     u32 getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs);

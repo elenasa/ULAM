@@ -131,7 +131,7 @@ namespace MFM {
     // the uvpass comes from NodeControl, and still has the POS obtained
     // during the condition statement for As..unorthodox, but necessary.
     assert(uvpass.getUlamValueTypeIdx() == Ptr);
-    s32 tmpVarPos = uvpass.getPtrSlotIndex();
+    //s32 tmpVarPos = uvpass.getPtrSlotIndex();
 
     // before shadowing the lhs of the h/as-conditional variable with its auto,
     // let's load its storage from the currentSelfSymbol:
@@ -151,9 +151,12 @@ namespace MFM {
     fp->write(m_state.m_currentObjSymbolsForCodeGen[0]->getMangledName().c_str());
 
     if(m_varSymbol->getId() != m_state.m_pool.getIndexForDataString("atom")) //not isSelf check; was "self"
-      fp->write(".getRef()");
+      //fp->write(".getRef()");
+      fp->write(".GetStorage()");
     fp->write(";\n");
 
+#if 0
+    //deprecated, use 'ur'
     if(stgcos->getAutoLocalType() == ALT_AS)
       {
 	//shadows previous _ucAuto
@@ -161,10 +164,11 @@ namespace MFM {
 	fp->write("const UlamContext<EC> ");
 	fp->write(m_state.getTmpVarForAutoHiddenContext()); //very local scope
 	fp->write(" = ");
-	fp->write(m_state.getAutoHiddenContextArgName()); // _ucauto
+	fp->write(m_state.getHiddenContextArgName()); // _ucauto
 	fp->write(stgcos->getMangledName().c_str()); //auto's name
 	fp->write("; //tmp for auto uc constructor\n");
       }
+#endif
 
     // now we have our pos in tmpVarPos, and our T in tmpVarStg
     // time to shadow 'self' with auto local variable:
@@ -180,6 +184,7 @@ namespace MFM {
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(stguti, tmpVarStg, TMPBITVAL).c_str());
 
+#if 0
     if(vclasstype == UC_QUARK)
       {
 	fp->write(", ");
@@ -197,11 +202,24 @@ namespace MFM {
       }
     else
       assert(0);
+#endif
 
+    UTI derefvuti = m_state.getUlamTypeAsDeref(vuti);
+    UlamType * derefvut = m_state.getUlamTypeByIndex(derefvuti);
+    if(vclasstype == UC_QUARK)
+      {
+	fp->write(", ");
+	fp->write_decimal_unsigned(m_varSymbol->getPosOffset()); //should be 0!
+	fp->write("u");
+      }
+    fp->write(", &");
+    fp->write(derefvut->getUlamTypeMangledName().c_str()); //for C++ local vars, ie non-data members
+    fp->write("<EC>::THE_INSTANCE");
     fp->write("); //shadows lhs of 'as'\n");
 
+#if 0
+    //deprecated!!
     m_state.indent(fp);
-
     //special ulamcontext for autos based on its (lhs) storage
     fp->write("const UlamContext<EC> ");
     fp->write(m_state.getAutoHiddenContextArgName()); // _ucauto
@@ -220,7 +238,8 @@ namespace MFM {
       fp->write("(uc, uc.LookupElementTypeFromContext(");
 
     fp->write(m_varSymbol->getMangledName().c_str()); //auto's name
-    fp->write(".getType()));\n");
+    fp->write(".GetType()));\n");
+#endif
 
     m_state.m_genCodingConditionalHas = false; // done
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs ?

@@ -6,25 +6,27 @@ Ue_Test { Bar bar( Foo valoo( Int(7) val(1); ); );  Int(32) test() {  bar valoo 
 Uq_Bar { Foo valoo( Int(7) val(0); );  <NOMAIN> }
 Uq_Foo { Int(7) val(0);  <NOMAIN> }
 #>Test.ulam
-ulam 1;
- use Bar;
+  ulam 1;
+use Bar;
 element Test {
-Bar bar;
- Int test() {
-bar.valoo.val = 1; return bar.valoo.val;
+  Bar bar;
+  Int test() {
+    bar.valoo.val = 1;
+    return bar.valoo.val;
+  }
 }
- }
 
 ## notice the filename must match the class name including capitalization.
 #:Bar.ulam
-ulam 1;
- use Foo;
- quark Bar {
- Foo valoo;
- }
+  ulam 1;
+use Foo;
+quark Bar {
+  Foo valoo;
+}
+
 #:Foo.ulam
-ulam 1;
- quark Foo {
-Int(7) val;
- }
+  ulam 1;
+quark Foo {
+  Int(7) val;
+}
 #.

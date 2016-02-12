@@ -48,8 +48,8 @@ namespace MFM {
 
   static const char * HIDDEN_ARG_NAME = "ur"; //was Uv_4self, then Uv_4atom
   static const char * HIDDEN_CONTEXT_ARG_NAME = "uc"; //unmangled
-  static const char * AUTO_HIDDEN_CONTEXT_ARG_NAME = "uc_"; //unmangled, plus its mangled var
-  static const char * TMP_FOR_AUTO_HIDDEN_CONTEXT_ARG_NAME = "Uh_4tluc";
+  //  static const char * AUTO_HIDDEN_CONTEXT_ARG_NAME = "uc_"; //unmangled, plus its mangled var
+  //static const char * TMP_FOR_AUTO_HIDDEN_CONTEXT_ARG_NAME = "Uh_4tluc";
   static const char * CUSTOMARRAY_GET_FUNC_NAME = "aref"; //unmangled
   static const char * CUSTOMARRAY_SET_FUNC_NAME = "aset"; //unmangled
   static const char * CUSTOMARRAY_GET_MANGLEDNAME = "Uf_4aref";
@@ -313,7 +313,7 @@ namespace MFM {
 	    if(key.getUlamKeyTypeSignatureArraySize() != NONARRAYSIZE) //array type
 	      {
 		//keep classinstanceid of scalar in key
-		assert(suti > 0 && !isComplete(suti));
+		//assert(suti > 0 && !isComplete(suti)); e.g.ALT_REF for array of 2 quarks for _Types.h
 	      }
 	    else if(key.getUlamKeyTypeSignatureReferenceType() != ALT_NOT) //array type
 	      {
@@ -1982,16 +1982,6 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   const char * CompilerState::getHiddenContextArgName()
   {
     return HIDDEN_CONTEXT_ARG_NAME;
-  }
-
-  const char * CompilerState::getAutoHiddenContextArgName()
-  {
-    return AUTO_HIDDEN_CONTEXT_ARG_NAME;
-  }
-
-  const char * CompilerState::getTmpVarForAutoHiddenContext()
-  {
-    return TMP_FOR_AUTO_HIDDEN_CONTEXT_ARG_NAME;
   }
 
   u32 CompilerState::getCustomArrayGetFunctionNameId()

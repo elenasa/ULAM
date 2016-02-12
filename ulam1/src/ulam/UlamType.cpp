@@ -221,6 +221,7 @@ namespace MFM {
     return UNKNOWNSIZE; //atom, class, nav, ptr, holder
   }
 
+  //deprecated, i think
   const std::string UlamType::getUlamTypeAsStringForC(bool useref)
   {
     assert(isComplete());
@@ -329,15 +330,16 @@ namespace MFM {
   {
     std::ostringstream ctype;
     ctype << getUlamTypeImmediateMangledName();
-    if(isReference())
-      {
-	ctype << "<EC, ";
-	//can't be an 'as', not a data member (since immediate), t.f. right-justified
-	// if a reference to a dm, then the internal position will override this "Pos"
-	ctype << (BITSPERATOM - getTotalBitSize());
-	ctype << "u>"; //name of struct w typedef(bf) and storage(bv);
-      }
-    else
+    //clean up!
+    //    if(isReference())
+    //  {
+    //	ctype << "<EC, ";
+    //	//can't be an 'as', not a data member (since immediate), t.f. right-justified
+    //	// if a reference to a dm, then the internal position will override this "Pos"
+    //	ctype << (BITSPERATOM - getTotalBitSize());
+    //	ctype << "u>"; //name of struct w typedef(bf) and storage(bv);
+    //}
+    //else
       ctype << "<EC>"; //name of struct w typedef(bf) and storage(bv);
     return ctype.str();
   } //getLocalStorageTypeAsString
@@ -424,7 +426,7 @@ namespace MFM {
       return; //no auto, just immediates
 
     m_state.m_currentIndentLevel = 0;
-    const std::string mangledName = getUlamTypeImmediateMangledName();
+    //const std::string mangledName = getUlamTypeImmediateMangledName();
     const std::string automangledName = getUlamTypeImmediateAutoMangledName();
     std::ostringstream  ud;
     ud << "Ud_" << automangledName; //d for define (p used for atomicparametrictype)
@@ -446,7 +448,6 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
 
     m_state.indent(fp);
-    //fp->write("template<class EC, u32 POS>\n");
     fp->write("template<class EC>\n");
 
     m_state.indent(fp);
@@ -484,10 +485,10 @@ namespace MFM {
     fp->write("u, NULL) { }\n"); //effself is null for primitives
 
     //calls slow AutoRefBase read method
-    genUlamTypeAutoReadDefinitionForC(fp);
+    //genUlamTypeAutoReadDefinitionForC(fp);
 
     //calls slow AutoRefBase write method
-    genUlamTypeAutoWriteDefinitionForC(fp);
+    //genUlamTypeAutoWriteDefinitionForC(fp);
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -908,13 +909,13 @@ namespace MFM {
       {
       case 0: //e.g. empty quarks
       case 32:
-	method = "ReadArray";
+	method = "Read"; //ReadArray
 	break;
       case 64:
-	method = "ReadArrayLong";
+	method = "ReadLong"; //ReadArrayLong
 	break;
       default:
-	method = "ReadArrayUnpacked"; //TBD
+	method = "ReadUnpacked"; //TBD ReadArrayUnpacked
 	//assert(0);
       };
     return method;
@@ -928,13 +929,13 @@ namespace MFM {
       {
       case 0: //e.g. empty quarks
       case 32:
-	method = "WriteArray";
+	method = "Write"; //WriteArray
 	break;
       case 64:
-	method = "WriteArrayLong";
+	method = "WriteLong"; //WriteArrayLong
 	break;
       default:
-	method = "WriteArrayUnpacked"; //TBD
+	method = "WriteUnpacked"; //TBD WriteArrayUnpacked
       };
     return method;
   } //writeArrayItemMethodForCodeGen()
@@ -948,7 +949,7 @@ namespace MFM {
 
     m_state.m_currentIndentLevel = 0;
     const std::string mangledName = getUlamTypeImmediateMangledName();
-    const std::string automangledName = getUlamTypeImmediateAutoMangledName();
+    //const std::string automangledName = getUlamTypeImmediateAutoMangledName();
     std::ostringstream  ud;
     ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
     std::string udstr = ud.str();
@@ -1006,7 +1007,7 @@ namespace MFM {
     fp->write_decimal_unsigned(BITSPERATOM - ATOMFIRSTSTATEBITPOS - len); //relative offset
     fp->write(", ");
     fp->write_decimal(len);
-    fp->write("u > Up_Us;\n");
+    fp->write("u> Up_Us;\n");
 
     //typedef bitfield inside struct ???????????????????WHY
 #if 0
@@ -1021,10 +1022,10 @@ namespace MFM {
     fp->write("T m_stg;  //storage here!\n\n");
 
     //read BV method
-    genUlamTypeReadDefinitionForC(fp);
+    //genUlamTypeReadDefinitionForC(fp);
 
     //write BV method
-    genUlamTypeWriteDefinitionForC(fp);
+    //genUlamTypeWriteDefinitionForC(fp);
 
     //default constructor (used by local vars)
     m_state.indent(fp);
@@ -1032,12 +1033,13 @@ namespace MFM {
     fp->write("() : ");
     //////////////////fp->write(automangledName.c_str());
     //////////////////fp->write("<EC>");
-    fp->write("UlamRefFixed");
-    fp->write("<EC, ");
-    fp->write_decimal_unsigned(BITSPERATOM - ATOMFIRSTSTATEBITPOS - len); //relative offset
-    fp->write("u, ");
-    fp->write_decimal_unsigned(len);
-    fp->write("u >(m_stg, NULL), ");
+    //fp->write("UlamRefFixed");
+    //fp->write("<EC, ");
+    //fp->write_decimal_unsigned(BITSPERATOM - ATOMFIRSTSTATEBITPOS - len); //relative offset
+    //fp->write("u, ");
+    //fp->write_decimal_unsigned(len); //u>
+    fp->write("Up_Us");
+    fp->write("(m_stg, NULL), ");
     fp->write("m_stg(T::ATOM_UNDEFINED_TYPE) { }\n");
 
     //constructor here (used by const tmpVars)
@@ -1049,14 +1051,16 @@ namespace MFM {
     /////////////////////fp->write(automangledName.c_str());
     //fp->write("<EC, ");
     //fp->write_decimal_unsigned(BITSPERATOM - len);
-    fp->write("UlamRefFixed");
-    fp->write("<EC, ");
-    fp->write_decimal_unsigned(BITSPERATOM - ATOMFIRSTSTATEBITPOS - len); //relative offset
-    fp->write("u, ");
-    fp->write_decimal_unsigned(len);
-    fp->write("u >(m_stg, NULL), ");
+    //fp->write("UlamRefFixed");
+    //fp->write("<EC, ");
+    //fp->write_decimal_unsigned(BITSPERATOM - ATOMFIRSTSTATEBITPOS - len); //relative offset
+    //fp->write("u, ");
+    //fp->write_decimal_unsigned(len); //u>
+    fp->write("Up_Us");
+    fp->write("(m_stg, NULL), ");
     fp->write("m_stg(T::ATOM_UNDEFINED_TYPE) { ");
-    fp->write("write(d); }\n");
+    //fp->write("write(d); }\n");
+    fp->write("Up_Us::Write(d); }\n");
 
     //copy constructor here (return by value)
     m_state.indent(fp);
@@ -1067,12 +1071,13 @@ namespace MFM {
     /////////////////fp->write(automangledName.c_str());
     //    fp->write("<EC, ");
     //fp->write_decimal_unsigned(BITSPERATOM - len);
-    fp->write("UlamRefFixed");
-    fp->write("<EC, ");
-    fp->write_decimal_unsigned(BITSPERATOM - ATOMFIRSTSTATEBITPOS - len); //relative offset
-    fp->write("u, ");
-    fp->write_decimal_unsigned(len);
-    fp->write("u >(m_stg, NULL), ");
+    //fp->write("UlamRefFixed");
+    //fp->write("<EC, ");
+    //fp->write_decimal_unsigned(BITSPERATOM - ATOMFIRSTSTATEBITPOS - len); //relative offset
+    //fp->write("u, ");
+    //fp->write_decimal_unsigned(len); //u>
+    fp->write("Up_Us");
+    fp->write("(m_stg, NULL), ");
     fp->write("m_stg(other.m_stg) { }\n");
 
     //default destructor (for completeness)
@@ -1163,7 +1168,7 @@ namespace MFM {
   {
     m_state.m_currentIndentLevel = 0;
     const std::string mangledName = getUlamTypeImmediateMangledName();
-    const std::string automangledName = getUlamTypeImmediateAutoMangledName();
+    //const std::string automangledName = getUlamTypeImmediateAutoMangledName();
     std::ostringstream  ud;
     ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
     std::string udstr = ud.str();
@@ -1212,6 +1217,14 @@ namespace MFM {
     fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
     fp->write("\n");
 
+    m_state.indent(fp);
+    fp->write("typedef UlamRefFixed");
+    fp->write("<EC, "); //BITSPERATOM
+    fp->write_decimal(BITSPERATOM - ATOMFIRSTSTATEBITPOS - itemlen); //right-justified, relative
+    fp->write(", ");
+    fp->write_decimal(itemlen);
+    fp->write("u> Up_Us;\n"); //one item
+
     //storage here (an array of T's)
     m_state.indent(fp);
     fp->write("T m_stgarr[");
@@ -1253,27 +1266,19 @@ namespace MFM {
     fp->write("const ");
     fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
     fp->write(" readArrayItem(");
-    fp->write("const u32 index, const u32 itemlen) const { return ");
-    fp->write("getBits(index).");
+    fp->write("const u32 index, const u32 itemlen) { return ");
+    fp->write("Up_Us(getRef(index), NULL).");
     fp->write(scalarut->readMethodForCodeGen().c_str());
-    fp->write("(BPA - ");
-    fp->write_decimal_unsigned(itemlen); //right-justified per item
-    fp->write("u, ");
-    fp->write_decimal_unsigned(itemlen);
-    fp->write("u); }\n");
+    fp->write("(); }\n");
 
     //Unpacked Write Array Item
     m_state.indent(fp);
     fp->write("void writeArrayItem(const ");
     fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
     fp->write(" v, const u32 index, const u32 itemlen) { ");
-    fp->write("getBits(index).");
+    fp->write("Up_Us(getRef(index), NULL).");
     fp->write(scalarut->writeMethodForCodeGen().c_str());
-    fp->write("(BPA - ");
-    fp->write_decimal_unsigned(itemlen); //right-justified per item
-    fp->write("u, ");
-    fp->write_decimal_unsigned(itemlen);
-    fp->write("u, v);");
+    fp->write("(v);");
     fp->write(" }\n");
 
     //Unpacked, an item T
@@ -1302,8 +1307,8 @@ namespace MFM {
     fp->write("const u32 ");
     fp->write(" getPosOffset(");
     fp->write("const u32 index) const { return ");
-    fp->write("(BPA * index + BPA - ");
-    fp->write_decimal_unsigned(itemlen); //right-justified per item
+    fp->write("(BPA * index + BPA - T::ATOM_FIRST_STATE_BIT - ");
+    fp->write_decimal_unsigned(itemlen); //right-justified, relative per item
     fp->write("u); }\n");
 
     //Unpacked, position within each item T
@@ -1311,8 +1316,8 @@ namespace MFM {
     fp->write("const u32 ");
     fp->write(" getPosOffset(");
     fp->write(" ) const { return ");
-    fp->write("(BPA - ");
-    fp->write_decimal_unsigned(itemlen); //right-justified per item
+    fp->write("(BPA - T::ATOM_FIRST_STATE_BIT - ");
+    fp->write_decimal_unsigned(itemlen); //right-justified, relative per item
     fp->write("u); }\n");
 
     m_state.m_currentIndentLevel--;
@@ -1400,7 +1405,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("typedef UlamRefFixed");
     fp->write("<EC, "); //BITSPERATOM
-    fp->write_decimal(BITSPERATOM - len); //right-justified
+    fp->write_decimal(BITSPERATOM - ATOMFIRSTSTATEBITPOS - len); //right-justified, relative
     fp->write(", ");
     fp->write_decimal(len);
     fp->write("u > Up_Us;\n");
@@ -1417,9 +1422,9 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
-    fp->write(" read() const { MFM_API_ASSERT_NONNULL(m_stgPtr); return Up_Us::");
+    fp->write(" read() const { MFM_API_ASSERT_NONNULL(m_stgPtr); return Up_Us(*m_stgPtr, NULL).");
     fp->write(readMethodForCodeGen().c_str());
-    fp->write("(m_stgPtr->GetBits() ); }\n");
+    fp->write("(); }\n");
 
     m_state.indent(fp);
     fp->write("void init(T& realStg) { m_stgPtr = &realStg; }\n");

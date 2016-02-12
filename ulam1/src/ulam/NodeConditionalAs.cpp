@@ -307,14 +307,14 @@ namespace MFM {
 	  {
 	    //then left must be an atom
 	    fp->write(m_state.getAsMangledFunctionName(luti, ruti)); //UlamElement IsMethod
-	    if(lut->getReferenceType() == ALT_AS)
-	      {
-		fp->write("(");
-		fp->write(m_state.getTmpVarForAutoHiddenContext()); // _ucauto tmp, don't know var's name ??
-		fp->write(", ");
-	      }
-	    else
-	      fp->write("(uc, ");
+	    //	    if(lut->getReferenceType() == ALT_AS)
+	    //  {
+	    //	fp->write("(");
+	    //	fp->write(m_state.getTmpVarForAutoHiddenContext()); // _ucauto tmp, don't know var's name ??
+	    //	fp->write(", ");
+	    //  }
+	    //else
+	    fp->write("(uc, ");
 
 	    fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, luvpass.getPtrStorage()).c_str());
 	    fp->write(".GetType(), "); //from tmpvar T
