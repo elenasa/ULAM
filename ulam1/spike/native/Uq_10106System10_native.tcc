@@ -7,7 +7,7 @@ namespace MFM{
 
 
   template<class CC>
-  void Uq_10106System10<CC>::Uf_5print(const UlamContext<CC>& uc, const UlamRef<CC>& ur, Ui_Ut_10131i<CC> Uv_3arg) const //native
+  void Uq_10106System10<CC>::Uf_5print(const UlamContext<CC>& uc, UlamRef<CC>& ur, Ui_Ut_10131i<CC> Uv_3arg) const //native
   {
     s32 tmp = Uv_3arg.Read();
     tmp &= _GetNOnes32(3); //mask
@@ -16,7 +16,7 @@ namespace MFM{
 
 
   template<class CC>
-  void Uq_10106System10<CC>::Uf_5print(const UlamContext<CC>& uc, const UlamRef<CC>& ur, Ui_Ut_10141i<CC> Uv_3arg) const //native
+  void Uq_10106System10<CC>::Uf_5print(const UlamContext<CC>& uc, UlamRef<CC>& ur, Ui_Ut_10141i<CC> Uv_3arg) const //native
   {
     s32 tmp = Uv_3arg.Read();
     tmp &= _GetNOnes32(4); //mask
@@ -24,7 +24,7 @@ namespace MFM{
   }
 
   template<class CC>
-  void Uq_10106System10<CC>::Uf_5print(const UlamContext<CC>& uc, const UlamRef<CC>& ur, Ui_Ut_102321i<CC> Uv_3arg) const //native
+  void Uq_10106System10<CC>::Uf_5print(const UlamContext<CC>& uc, UlamRef<CC>& ur, Ui_Ut_102321i<CC> Uv_3arg) const //native
   {
     s32 tmp = Uv_3arg.Read();
     printf("Int Arg: %d\n", tmp);
@@ -32,14 +32,14 @@ namespace MFM{
 
 
   template<class CC>
-  void Uq_10106System10<CC>::Uf_5print(const UlamContext<CC>& uc, const UlamRef<CC>& ur, Ui_Ut_102321u<CC> Uv_3arg) const //native
+  void Uq_10106System10<CC>::Uf_5print(const UlamContext<CC>& uc, UlamRef<CC>& ur, Ui_Ut_102321u<CC> Uv_3arg) const //native
   {
     u32 tmp = Uv_3arg.Read();
     printf("Unsigned Arg: %u\n", tmp);
   }
 
   template<class CC>
-  void Uq_10106System10<CC>::Uf_5print(const UlamContext<CC>& uc, const UlamRef<CC>& ur, Ui_Ut_10131y<CC> Uv_3arg) const //native
+  void Uq_10106System10<CC>::Uf_5print(const UlamContext<CC>& uc, UlamRef<CC>& ur, Ui_Ut_10131y<CC> Uv_3arg) const //native
   {
     u32 tmp = Uv_3arg.Read();
     tmp &= _GetNOnes32(3); //mask
@@ -49,7 +49,7 @@ namespace MFM{
 
 
   template<class CC>
-  void Uq_10106System10<CC>::Uf_5print(const UlamContext<CC>& uc, const UlamRef<CC>& ur, Ui_Ut_10131b<CC> Uv_3arg) const //native
+  void Uq_10106System10<CC>::Uf_5print(const UlamContext<CC>& uc, UlamRef<CC>& ur, Ui_Ut_10131b<CC> Uv_3arg) const //native
   {
     u32 tmp = Uv_3arg.Read();
     tmp &= _GetNOnes32(3); //mask
@@ -59,7 +59,7 @@ namespace MFM{
 
 
   template<class CC>
-  void Uq_10106System10<CC>::Uf_6assert(const UlamContext<CC>& uc, const UlamRef<CC>& ur, Ui_Ut_10111b<CC> Uv_1b) const //native
+  void Uq_10106System10<CC>::Uf_6assert(const UlamContext<CC>& uc, UlamRef<CC>& ur, Ui_Ut_10111b<CC> Uv_1b) const //native
   {
     bool btmp = Uv_1b.Read();
     printf("assert: arg is %d\n",btmp);

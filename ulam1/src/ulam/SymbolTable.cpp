@@ -391,8 +391,8 @@ namespace MFM {
 
   void SymbolTable::genCodeBuiltInFunctionBuildDefaultsOverTableOfVariableDataMember(File * fp, UTI cuti)
   {
-    //bool useFullClassName = (cuti != m_state.getCompileThisIdx()); //from its superclass
-    bool useFullClassName = false; //clean up!! if this works with UlamRef's
+    bool useFullClassName = (cuti != m_state.getCompileThisIdx()); //from its superclass
+    //bool useFullClassName = false; //clean up!! if this works with UlamRef's
 
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
@@ -422,14 +422,14 @@ namespace MFM {
 
 			m_state.indent(fp);
 			fp->write("UlamRef<EC>("); //open wrapper
-			if(useFullClassName)
-			  {
-			    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
+			//if(useFullClassName)
+			//  {
+			//    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
 			    //fp->write("<EC, "); //inherited quark always starts at 0
 			    //fp->write("T::ATOM_FIRST_STATE_BIT");
 			    //fp->write(">::");
-			    fp->write("<EC>::");
-			  }
+			//    fp->write("<EC>::");
+			//  }
 
 			fp->write_decimal_unsigned(sym->getPosOffset()); //rel offset
 			fp->write(", ");
@@ -474,21 +474,23 @@ namespace MFM {
 			for(u32 j = 0; j < arraysize; j++)
 			  {
 			    m_state.indent(fp);
-			    if(useFullClassName)
-			      {
-				fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
+			    //if(useFullClassName)
+			    //  {
+			    //	fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
 				//fp->write("<EC, ");
 				//fp->write("T::ATOM_FIRST_STATE_BIT");
 				//fp->write(">::");
-				fp->write("<EC>::");
-			      }
+			    //	fp->write("<EC>::");
+			    //  }
 			    fp->write("UlamRef<EC>(");
-			    fp->write(sym->getMangledNameForParameterType().c_str());
-			    fp->write("(da, &THE_INSTANCE), ");
+			    //fp->write(sym->getMangledNameForParameterType().c_str());
+			    //fp->write("(da, &THE_INSTANCE), ");
+			    fp->write_decimal_unsigned(sym->getPosOffset()); //rel offset
+			    fp->write("u + ");
 			    fp->write_decimal_unsigned(j * itemlen); //rel offset
 			    fp->write("u, ");
 			    fp->write_decimal_unsigned(itemlen); //len
-			    fp->write("u, &");
+			    fp->write("u, da, &");
 			    //fp->write(sut->getUlamTypeMangledName().c_str()); //effself
 			    fp->write(scalarut->getUlamTypeMangledName().c_str()); //effself
 			    fp->write("<EC>::THE_INSTANCE).");
@@ -527,6 +529,7 @@ namespace MFM {
 		m_state.indent(fp);
 		if(useFullClassName)
 		  {
+		    fp->write("typename ");
 		    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
 		    //fp->write("<EC, ");
 		    //fp->write("T::ATOM_FIRST_STATE_BIT");
@@ -535,7 +538,13 @@ namespace MFM {
 		  }
 		fp->write(sym->getMangledNameForParameterType().c_str());
 		//fp->write("::");
-		fp->write("(da, &THE_INSTANCE).");
+		fp->write("(da, &");
+		if(useFullClassName)
+		  {
+		    fp->write(m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamTypeMangledName().c_str()); //effself
+		    fp->write("<EC>::");
+		  }
+		fp->write("THE_INSTANCE).");
 		fp->write(sut->writeMethodForCodeGen().c_str());
 		//fp->write("(da.GetBits(), ");
 		fp->write("(");
@@ -1420,8 +1429,8 @@ namespace MFM {
       } //while for typedefs only
 
     fp->write("\n");
-    m_state.indent(fp);
-    fp->write("OurAtomAll atom;\n");
+    //m_state.indent(fp);
+    //fp->write("OurAtomAll atom;\n");
 
     //m_state.indent(fp);
     //fp->write("MFM::");

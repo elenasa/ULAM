@@ -210,6 +210,8 @@ namespace MFM{
 
     bool isCurrentObjectACustomArrayItem(UTI cosuti, UlamValue uvpass);
 
+    bool isCurrentObjectAnUnpackedArray(UTI cosuti, UlamValue uvpass);
+
     bool isHandlingImmediateType();
 
     u32 adjustedImmediateArrayItemPtrPos(UTI cosuti, UlamValue uvpass);
@@ -261,7 +263,8 @@ namespace MFM{
     virtual void genModelParameterHiddenArgs(File * fp, s32 epi);
 
     void genCustomArrayMemberNameOfMethod(File * fp);
-    void genCustomArrayHiddenArgs(File * fp);
+    void genCustomArrayHiddenArgs(File * fp, u32 urtmpnum);
+    std::string genHiddenArg2ForCustomArray(u32& urtmpnumref);
 
     void genLocalMemberNameOfMethodByUsTypedef(File * fp);
     void genCustomArrayLocalMemberNameOfMethod(File * fp);

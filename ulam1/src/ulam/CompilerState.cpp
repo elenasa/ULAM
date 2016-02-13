@@ -2568,6 +2568,13 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return tmpVar.str();
   } //getTmpVarAsString
 
+  const std::string CompilerState::getUlamRefTmpVarAsString(s32 num)
+  {
+    std::ostringstream labelname; //into
+    labelname << "Uh_3tur" << ToLeximitedNumber(num);
+    return labelname.str();
+  } //getUlamRefTmpVarAsString
+
   const std::string CompilerState::getLabelNumAsString(s32 num)
   {
     std::ostringstream labelname; //into

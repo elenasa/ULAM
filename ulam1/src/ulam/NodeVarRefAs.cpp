@@ -152,7 +152,7 @@ namespace MFM {
 
     if(m_varSymbol->getId() != m_state.m_pool.getIndexForDataString("atom")) //not isSelf check; was "self"
       //fp->write(".getRef()");
-      fp->write(".GetStorage()");
+      fp->write(".GetStorage()"); //non-const
     fp->write(";\n");
 
 #if 0

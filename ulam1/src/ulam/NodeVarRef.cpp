@@ -304,15 +304,16 @@ namespace MFM {
 	fp->write("("); //pass ref in constructor (ref's not assigned with =)
 	if(stgcos->isDataMember()) //can't be an element or atom
 	  {
-	    fp->write("Uv_4atom, ");
+	    fp->write(m_state.getHiddenArgName());
+	    fp->write(", ");
 	    fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
 	    fp->write("u");
 	  }
 	else
 	  {
 	    fp->write(stgcos->getMangledName().c_str());
-	    if(stgcos->getId() != m_state.m_pool.getIndexForDataString("atom")) //not isSelf check; was "self"
-	      fp->write(".getRef()");
+	    //if(stgcos->getId() != m_state.m_pool.getIndexForDataString("atom")) //not isSelf check; was "self"
+	    //fp->write(".getRef()");
 
 	    if(cos->isDataMember())
 	      {
@@ -376,7 +377,8 @@ namespace MFM {
     fp->write("("); //pass ref in constructor (ref's not assigned with =)
     if(stgcos->isDataMember()) //can't be an element or atom
       {
-	fp->write("Uv_4atom, ");
+	fp->write(m_state.getHiddenArgName());
+	fp->write(", ");
 	fp->write("(");
 	fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
 	fp->write(" + (");

@@ -576,8 +576,14 @@ namespace MFM {
 	if(getId() == m_state.getCompileThisId())
 	  {
 	    fp->write("\n");
+
 	    m_state.indent(fp);
-	    fp->write("atom = "); //OurAtomAll
+	    fp->write("{\n");
+
+	    m_state.m_currentIndentLevel++;
+
+	    m_state.indent(fp);
+	    fp->write("OurAtomAll atom = "); //OurAtomAll
 	    fp->write(sut->getUlamTypeMangledName().c_str());
 	    fp->write("<EC>::THE_INSTANCE.GetDefaultAtom();\n");
 	    m_state.indent(fp);
@@ -605,6 +611,10 @@ namespace MFM {
 	    fp->write("//std::cerr << rtn.read() << std::endl;\n"); //useful to return result of test?
 	    m_state.indent(fp);
 	    fp->write("//return rtn.read();\n"); //was useful to return result of test
+
+	    m_state.m_currentIndentLevel--;
+	    m_state.indent(fp);
+	    fp->write("}\n");
 	  }
       }
   } //generateTestInstance

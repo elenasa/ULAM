@@ -387,7 +387,7 @@ namespace MFM {
     fp->write("const UlamContext<EC>& uc, "); //first arg is unmangled context
 
     //the hidden arg is "atom" (was "self"), a T& (atom), now UlamRef (ur)
-    fp->write("const UlamRef<EC>& "); //a reference
+    fp->write("UlamRef<EC>& "); //a reference
     fp->write(m_state.getHiddenArgName());
 
     u32 numparams = getNumberOfParameters();
@@ -467,7 +467,7 @@ namespace MFM {
     //arg types only
     fp->write("const UlamContext<EC>&, "); //first arg is unmangled context
     //fp->write("T& "); //the hidden arg is "atom" (was "self"), a T& (atom)
-    fp->write("const UlamRef<EC>& "); //the hidden arg is "atom" (was "self"), a T& (atom), now UlamRef (self)
+    fp->write("UlamRef<EC>& "); //the hidden arg is "atom" (was "self"), a T& (atom), now UlamRef (self)
 
     u32 numparams = getNumberOfParameters();
     for(u32 i = 0; i < numparams; i++)

@@ -697,7 +697,7 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
 	    if(stgcos->isSelf())
 	      fp->write("GetType();\n"); //no read for self
 	    else
-	      fp->write(".read().GetType();\n");
+	      fp->write(".Rread().GetType();\n");
 	  }
 
 	m_state.indent(fp);
@@ -824,7 +824,7 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
     fp->write(m_state.getTmpVarAsString(Unsigned, tmpIQread).c_str());
     fp->write(" = ");
     fp->write(m_state.getTmpVarAsString(tobeType, tmpIQ).c_str());
-    fp->write(".read();\n");
+    fp->write(".Read();\n");
 
     //update the uvpass to have the casted immediate quark
     uvpass = UlamValue::makePtr(tmpIQread, TMPREGISTER /*uvpass.getPtrStorage() was LVAL */, tobeType, m_state.determinePackable(tobeType), m_state, uvpass.getPtrPos()); //POS 0 is justified;
@@ -871,17 +871,25 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(tobeType, tmpVarVal).c_str());
     fp->write(" = ");
+
+    fp->write("UlamRef<EC>(");
     if(stgcos->isSelf())
       fp->write(m_state.getHiddenArgName());
     else
       fp->write(stgcos->getMangledName().c_str());
 
-    if(!Node::isCurrentObjectALocalVariableOrArgument())
-      fp->write(".GetBits().Read(0 + T::ATOM_FIRST_STATE_BIT, ");
-    else
-      fp->write(".getBits().Read(0 + T::ATOM_FIRST_STATE_BIT, ");
-    fp->write_decimal(tobe->getBitSize());
-    fp->write(");\n");
+    fp->write(", 0u, "); //offset of decendent is always 0
+    fp->write_decimal_unsigned(tobe->getTotalBitSize()); //len
+    fp->write("u, &");
+    fp->write(tobe->getUlamTypeMangledName().c_str()); //effset
+    fp->write("<EC>::THE_INSTANCE).");
+    //    if(!Node::isCurrentObjectALocalVariableOrArgument())
+    //  fp->write(".GetBits().Read(0 + T::ATOM_FIRST_STATE_BIT, ");
+    //else
+    //  fp->write(".getBits().Read(0 + T::ATOM_FIRST_STATE_BIT, ");
+    //fp->write_decimal(tobe->getBitSize());
+    fp->write(tobe->readMethodForCodeGen().c_str());
+    fp->write("();\n");
 
     //update the uvpass to have the casted immediate quark
     uvpass = UlamValue::makePtr(tmpVarVal, TMPREGISTER, tobeType, m_state.determinePackable(tobeType), m_state, 0); //POS 0 rightjustified;

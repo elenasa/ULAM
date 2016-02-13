@@ -1282,7 +1282,7 @@ namespace MFM {
     fp->write(scalarmangledName.c_str());
     fp->write("<EC>::THE_INSTANCE), "); //effself
     fp->write("m_stg(");
-    fp->write("arg.GetStorage()) { } \n");
+    fp->write("arg.ReadAtom()) { } \n");
     //fp->write(automangledName.c_str());
     //fp->write("<EC>::write(arg.read()); }\n");
 

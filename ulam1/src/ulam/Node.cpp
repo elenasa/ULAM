@@ -696,9 +696,11 @@ namespace MFM {
     ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClass();
     if((stgclasstype == UC_QUARK) && stgcos->getId() == m_state.m_pool.getIndexForDataString("self"))
       {
-	fp->write(stgcosut->getUlamTypeMangledName().c_str());
+	//fp->write(stgcosut->getUlamTypeMangledName().c_str());
 	//fp->write("<EC, POS>::Up_Us::");
-	fp->write("<EC>::Up_Us::");
+	//fp->write("<EC>::Up_Us::");
+	fp->write(m_state.getHiddenArgName()); //ur
+	fp->write(".");
 	fp->write(readMethodForCodeGen(stgcosuti, uvpass).c_str()); //or just 'Read' ?
 	fp->write("(");
 	//fp->write(m_state.getHiddenArgName());
@@ -708,7 +710,7 @@ namespace MFM {
     else
       {
 	fp->write(m_state.getHiddenArgName());
-	fp->write(".GetStorage()");
+	fp->write(".ReadAtom()");
 	fp->write(";\n"); //stand-alone 'atom'
       }
   } //genCodeReadSelfIntoATmpVar
@@ -831,7 +833,7 @@ namespace MFM {
       {
 	assert(isCurrentObjectsContainingAModelParameter() == -1); //MP invalid
 
-	if(cosut->getTotalBitSize() > MAXBITSPERLONG)
+	if(isCurrentObjectAnUnpackedArray(cosuti, uvpass))
 	  {
 	    //unpacked
 	    fp->write(cos->getMangledName().c_str());
@@ -1048,6 +1050,16 @@ namespace MFM {
 
     UTI itemuti = m_state.getAClassCustomArrayType(cosuti);
 
+    u32 urtmpnum = 0;
+    std::string hiddenarg2str = genHiddenArg2ForCustomArray(urtmpnum);
+    if(urtmpnum > 0)
+      {
+	m_state.indent(fp);
+	fp->write(hiddenarg2str.c_str());
+	fp->write("\n");
+      }
+
+    //non-const tmp ur for this function call
     m_state.indent(fp);
     fp->write("const ");
     fp->write(localStorageTypeAsString(itemuti).c_str()); //e.g. BitVector<32> exception
@@ -1061,7 +1073,7 @@ namespace MFM {
 	genCustomArrayMemberNameOfMethod(fp);
 	// the READ method
 	fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
-	genCustomArrayHiddenArgs(fp);
+	genCustomArrayHiddenArgs(fp, urtmpnum);
 	fp->write(", "); //rest of arg's
       }
     else  //local var
@@ -1070,7 +1082,7 @@ namespace MFM {
 	//read method based on last cos
 	genCustomArrayLocalMemberNameOfMethod(fp);
 	fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
-	genCustomArrayHiddenArgs(fp);
+	genCustomArrayHiddenArgs(fp, urtmpnum);
 	fp->write(", "); //rest of args
       }
     //index is immediate Index arg of targettype in uvpass
@@ -1335,10 +1347,12 @@ namespace MFM {
       }
 
     m_state.indent(fp);
-    fp->write(m_state.getHiddenArgName());
-    fp->write(" = ");
+    fp->write(m_state.getHiddenArgName()); //ur
+    fp->write(".");
+    fp->write(writeMethodForCodeGen(luti, luvpass).c_str());
+    fp->write("(");
     fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
-    fp->write(";\n");
+    fp->write(");\n");
 
     // inheritance cast needs the lhs type restored after the generated write
     if(isElementAncestorCast)
@@ -1352,10 +1366,13 @@ namespace MFM {
     //unlike the others, here, uvpass is the autoref (stg);
     //cos tell us where to go within the selected member
     s32 tmpVarNum = luvpass.getPtrSlotIndex();
-
+    UTI luti = luvpass.getPtrTargetType();
     m_state.indent(fp);
-    fp->write(m_state.getTmpVarAsString(luvpass.getPtrTargetType(), tmpVarNum, TMPAUTOREF).c_str());
-    fp->write(".write(");
+    fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, TMPAUTOREF).c_str());
+    fp->write(".");
+    fp->write(writeMethodForCodeGen(luti, luvpass).c_str());
+    fp->write("(");
+    //    fp->write(".write(");
     //VALUE TO BE WRITTEN:
     // with immediate quarks, they are read into a tmpreg as other immediates
     // with immediate elements, too! value is not a terminal
@@ -1510,9 +1527,10 @@ namespace MFM {
       {
 	assert(isCurrentObjectsContainingAModelParameter() == -1); //MP invalid
 
-	if(cosut->getTotalBitSize() > MAXBITSPERLONG)
+	if(isCurrentObjectAnUnpackedArray(cosuti, luvpass))
 	  {
 	    //unpacked
+	    m_state.indent(fp);
 	    fp->write(cos->getMangledName().c_str());
 	    fp->write(".");
 	    fp->write(writeArrayItemMethodForCodeGen(cosuti, luvpass).c_str());
@@ -1730,6 +1748,16 @@ namespace MFM {
     UTI cosuti = cos->getUlamTypeIdx();
     assert(isCurrentObjectACustomArrayItem(cosuti, luvpass));
 
+    //non-const tmp ur for this function call
+    u32 urtmpnum = 0;
+    std::string hiddenarg2str = genHiddenArg2ForCustomArray(urtmpnum);
+    if(urtmpnum > 0)
+      {
+	m_state.indent(fp);
+	fp->write(hiddenarg2str.c_str());
+	fp->write("\n");
+      }
+
     // a data member quark, or the element itself should both getBits from self;
     // getbits needed to go from-atom to-BitVector
     if(!isCurrentObjectALocalVariableOrArgument())
@@ -1739,7 +1767,7 @@ namespace MFM {
 	genCustomArrayMemberNameOfMethod(fp);
 	// the WRITE method
 	fp->write(writeArrayItemMethodForCodeGen(cosuti, luvpass).c_str());
-	genCustomArrayHiddenArgs(fp);
+	genCustomArrayHiddenArgs(fp, urtmpnum);
 	fp->write(", "); //rest of args
       }
     else
@@ -1752,7 +1780,7 @@ namespace MFM {
 
 	fp->write(writeArrayItemMethodForCodeGen(cosuti, luvpass).c_str());
 
-	genCustomArrayHiddenArgs(fp);
+	genCustomArrayHiddenArgs(fp, urtmpnum);
 	fp->write(", "); //rest of args
       }
 
@@ -1948,7 +1976,7 @@ namespace MFM {
 	else
 	  {
 	    fp->write(cos->getMangledName().c_str()); //local array
-	    fp->write(".getRef()");
+	    //fp->write(".getRef()"); already a ref
 	  }
 
 	fp->write(", (");
@@ -1963,6 +1991,10 @@ namespace MFM {
 	    fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
 	    fp->write("u");
 	  }
+	fp->write(", &");
+	UTI derefcosuti = m_state.getUlamTypeAsDeref(cosuti);
+	fp->write(m_state.getUlamTypeByIndex(derefcosuti)->getUlamTypeMangledName().c_str()); //effself
+	fp->write("<EC>::THE_INSTANCE");
       }
     fp->write(");\n");
 
@@ -1991,9 +2023,11 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2, TMPAUTOREF).c_str());
     fp->write("("); //use constructor (not equals)
     fp->write(m_state.getTmpVarAsString(stgrefuti, tmpVarNum, TMPAUTOREF).c_str());
-    fp->write(".getRef(), ");
+    //fp->write(".getRef(), ");
+    fp->write(", ");
     fp->write(m_state.getTmpVarAsString(stgrefuti, tmpVarNum, TMPAUTOREF).c_str());
-    fp->write(".getPosOffset() + ");
+    //fp->write(".getPosOffset() + ");
+    fp->write(".GetPos() + ");
     fp->write_decimal_unsigned(uvpass.getPtrPos());
     fp->write("u");
     fp->write(");\n");
@@ -2631,8 +2665,28 @@ namespace MFM {
     fp->write("<EC>::THE_INSTANCE.");
   } //genCustomArrayMemberNameOfMethod
 
-  void Node::genCustomArrayHiddenArgs(File * fp)
+  void Node::genCustomArrayHiddenArgs(File * fp, u32 urtmpnum)
   {
+    // first "hidden" arg is the context, then
+    //"hidden" self (atom) arg
+    fp->write("(");
+    fp->write(m_state.getHiddenContextArgName()); //same uc
+    fp->write(", ");
+
+    if(urtmpnum > 0)
+      fp->write(m_state.getUlamRefTmpVarAsString(urtmpnum).c_str());
+    else
+      fp->write(m_state.getHiddenArgName());; //same ur;
+    return;
+  } //genCustomArrayHiddenArgs
+
+  std::string Node::genHiddenArg2ForCustomArray(u32& urtmpnumref)
+  {
+    bool sameur = true;
+    u32 tmpvar = m_state.getNextTmpVarNumber();
+
+    std::ostringstream hiddenarg2;
+
     Symbol * cos = NULL;
     Symbol * stgcos = NULL;
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
@@ -2645,36 +2699,29 @@ namespace MFM {
 	stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
       }
     UTI stgcosuti = stgcos->getUlamTypeIdx();
-    //UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-    //ULAMCLASSTYPE stgcosclasstype =  stgcosut->getUlamClass();
+    UTI cosuti = cos->getUlamTypeIdx();
+    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
-    fp->write("(");
 
     // first "hidden" arg is the context, then
     //"hidden" self (atom) arg
     if(!Node::isCurrentObjectALocalVariableOrArgument())
       {
-	fp->write(m_state.getHiddenContextArgName()); //same uc
-	fp->write(", ");
-
 	if(m_state.m_currentObjSymbolsForCodeGen.empty())
-	  fp->write(m_state.getHiddenArgName()); //same ur
+	  hiddenarg2 << m_state.getHiddenArgName(); //same ur
 	else
 	  {
 	    //update ur to reflect "effective" self for this funccall
-	    genMemberNameOfMethod(fp, false);
-#if 0
-	    fp->write("UlamRef<EC>(");
-	    fp->write(m_state.getHiddenArgName()); //ur first arg
-	    fp->write(", ");
-	    fp->write_decimal_unsigned(Node::calcPosOfCurrentObjectClasses()); //relative off;
-	    fp->write("u, ");
-	    fp->write_decimal_unsigned(stgcosut->getTotalBitSize()); //len
-	    fp->write("u, &");
-	    fp->write(stgcosut->getUlamTypeMangledName().c_str());
-	    fp->write("<EC>::THE_INSTANCE)");
-#endif
+	    sameur = false;
+	    hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
+	    //update ur to reflect "effective" self for this funccall
+	    hiddenarg2 << m_state.getHiddenArgName(); //ur
+	    hiddenarg2 << ", " << Node::calcPosOfCurrentObjectClasses(); //relative off;
+	    hiddenarg2 << "u, " << cosut->getTotalBitSize(); //len
+	    hiddenarg2 << "u, &" << cosut->getUlamTypeMangledName().c_str();
+	    hiddenarg2 << "<EC>::THE_INSTANCE);";
 	  }
+	// genMemberNameOfMethod(fp, false);
       }
     else
       {
@@ -2682,52 +2729,50 @@ namespace MFM {
 	//local var
 	if(m_state.m_currentObjSymbolsForCodeGen.empty())
 	  {
-	    fp->write(m_state.getHiddenContextArgName()); //same uc
-	    fp->write(", ");
-	    fp->write(m_state.getHiddenArgName()); //same ur
+	    hiddenarg2 << m_state.getHiddenArgName(); //same ur
 	  }
 	else if(stgcos->getAutoLocalType() == ALT_AS) //??????????????????????
 	  {
-	    fp->write(m_state.getHiddenContextArgName()); //u
-	    fp->write(", ");
-	    fp->write(stgcos->getMangledName().c_str());
+	    sameur = false;
+	    hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
+	    hiddenarg2 << m_state.getHiddenArgName();
+	    hiddenarg2 << ", " << Node::calcPosOfCurrentObjectClasses(); //relative off;
+	    hiddenarg2 << "u, " << cosut->getTotalBitSize(); //len
+	    hiddenarg2 << "u, &" << cosut->getUlamTypeMangledName().c_str();
+	    hiddenarg2 << "<EC>::THE_INSTANCE);";
+
 	    // for both immediate quarks and elements now..not self.
 	    //	    if(!stgcos->isSelf())
 	    //  fp->write(".getRef()"); //the T storage within the struct for immediate quarks
 	  }
 	else
 	  {
-	    fp->write(m_state.getHiddenContextArgName()); //same uc
-	    fp->write(", ");
+	    sameur = false;
 
 	    //use possible dereference type for mangled name
 	    UTI derefuti = m_state.getUlamTypeAsDeref(stgcosuti);
 	    UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
 
 	    //new ur to reflect "effective" self and storage for this funccall
-	    fp->write("UlamRef<EC>(");
-            fp->write(stgcos->getMangledName().c_str()); //storage
-	    fp->write(", ");
+	    hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
+	    hiddenarg2 << stgcos->getMangledName().c_str(); //storage
+	    hiddenarg2 << ", ";
 	    if(cos->isDataMember()) //dm of local stgcos
-	      fp->write_decimal_unsigned(Node::calcPosOfCurrentObjectClasses()); //relative off;
+	      hiddenarg2 << Node::calcPosOfCurrentObjectClasses(); //relative off;
 	    else
-	      fp->write_decimal_unsigned(0);
-	    fp->write("u, ");
-	    fp->write_decimal_unsigned(derefut->getTotalBitSize()); //len
-	    fp->write("u, &");
+	      hiddenarg2 << "0";
 
-	    //fp->write(stgcos->getMangledName().c_str()); //storage
-	    // for both immediate quarks and elements now..not self.
-	    //if(!stgcos->isSelf())
-	    //  fp->write(".GetStorage()"); //getRef(), the T storage within the struct for immediate quarks
-
-	    //fp->write(", &");
-	    fp->write(derefut->getUlamTypeMangledName().c_str()); //effself
-	    fp->write("<EC>::THE_INSTANCE)");
+	    hiddenarg2 << "u, " << derefut->getTotalBitSize(); //len
+	    hiddenarg2 << "u, &" << derefut->getUlamTypeMangledName().c_str(); //effself
+	    hiddenarg2 << "<EC>::THE_INSTANCE);";
 	  }
       }
-    return;
-  } //genCustomArrayHiddenArgs
+
+    if(!sameur)
+      urtmpnumref = tmpvar; //update arg
+
+    return hiddenarg2.str();
+  } //genHiddenArg2ForCustomArray
 
   void Node::genLocalMemberNameOfMethod(File * fp)
   {
@@ -2922,7 +2967,7 @@ namespace MFM {
       method = m_state.getCustomArrayGetMangledFunctionName();
     else
       {
-	if(m_state.getTotalBitSize(nuti) > MAXBITSPERLONG)
+	if(isCurrentObjectAnUnpackedArray(nuti, uvpass))
 	  method = "readArrayItem";
 	else
 	  {
@@ -2961,7 +3006,7 @@ namespace MFM {
       method = m_state.getCustomArraySetMangledFunctionName();
     else
       {
-	if(m_state.getTotalBitSize(nuti) > MAXBITSPERLONG)
+	if(isCurrentObjectAnUnpackedArray(nuti, uvpass))
 	  method = "writeArrayItem";
 	else
 	  {
@@ -3088,6 +3133,16 @@ namespace MFM {
     // types would not be the same;
     return(m_state.isScalar(cosuti) && m_state.isClassACustomArray(cosuti) && uvpass.getPtrTargetType() != cosuti);
   } //isCurrentObjectACustomArrayItem
+
+  bool Node::isCurrentObjectAnUnpackedArray(UTI cosuti, UlamValue uvpass)
+  {
+    if(m_state.isScalar(cosuti))
+      return false;
+
+    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+    //either total size is greater than a long, or each item is an element or atom
+    return((cosut->getTotalBitSize() > MAXBITSPERLONG) || (cosut->getUlamClass() == UC_ELEMENT) || (cosut->getUlamTypeEnum() == UAtom) );
+  } //isCurrentObjectAnUnpackedArray
 
   bool Node::isHandlingImmediateType()
   {

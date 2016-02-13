@@ -112,8 +112,9 @@ namespace MFM{
     void genCodeIntoABitValue(File * fp, UlamValue& uvpass);
     void genCodeAReferenceIntoABitValue(File * fp, UlamValue& uvpass);
     void genCodeVirtualFunctionCall(File * fp, UlamValue & uvpass);
-    std::string genHiddenArgs();
-    std::string genHiddenArgsForARef(File * fp, UlamValue uvpass);
+    std::string genHiddenArg2(u32& urtmpnumref);
+    std::string genHiddenArg2ForARef(File * fp, UlamValue uvpass, u32& urtmpnumref);
+    std::string genHiddenArgs(u32 urtmpnum);
     std::string genRestOfFunctionArgs(File * fp, UlamValue & uvpass);
     void genCodeReferenceArg(File * fp, UlamValue & uvpass, u32 n);
     std::string genStorageType(); //for VTable entry
