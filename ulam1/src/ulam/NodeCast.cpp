@@ -794,7 +794,7 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
     fp->write(stgcos->getMangledName().c_str());
 
     if(!stgcos->isSelf())
-      fp->write(".getRef()");
+      fp->write(".GetStorage()");
     fp->write("; //ref needed\n");
 
     // now we have our pos in tmpVarPos, and our T in tmpVarStg
@@ -812,9 +812,10 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
     fp->write(m_state.getTmpVarAsString(stguti, tmpVarStg, TMPBITVAL).c_str());
 
     //for known quark:
-    fp->write(", ");
-    fp->write(m_state.getTmpVarAsString(Int, tmpVarIs).c_str());
-
+    fp->write(", 0u, &"); //'is'
+    //fp->write(m_state.getTmpVarAsString(Int, tmpVarIs).c_str());
+    fp->write(tobe->getUlamTypeMangledName().c_str());
+    fp->write("<EC>::THE_INSTANCE");
     fp->write(");\n"); //like, shadow lhs of as
 
     // don't forget the read!

@@ -416,7 +416,7 @@ namespace MFM {
   {
     if(getUlamClass() == UC_QUARK)
       {
-	return UlamType::getTmpStorageTypeAsString(); // entire, u32 or u64
+	return "u32";
       }
     else if(getUlamClass() == UC_ELEMENT)
       {
@@ -430,7 +430,10 @@ namespace MFM {
   const std::string UlamTypeClass::getArrayItemTmpStorageTypeAsString()
   {
     if(!isScalar())
-      return UlamType::getTmpStorageTypeAsString();
+      {
+	//return its scalar tmp storage type
+	return getTmpStorageTypeAsString();
+      }
 
     return m_state.getUlamTypeByIndex(getCustomArrayType())->getTmpStorageTypeAsString();
   } //getArrayItemTmpStorageTypeAsString
@@ -597,10 +600,10 @@ namespace MFM {
     fp->write("u, effself) { }\n");
 
     //read 'entire quark' method
-    //genUlamTypeAutoReadDefinitionForC(fp);
+    genUlamTypeAutoReadDefinitionForC(fp);
 
     //write 'entire quark' method
-    //genUlamTypeAutoWriteDefinitionForC(fp);
+    genUlamTypeAutoWriteDefinitionForC(fp);
 
     // aref/aset calls generated inline for immediates.
     if(isCustomArray())
@@ -635,6 +638,7 @@ namespace MFM {
 
   void UlamTypeClass::genUlamTypeQuarkAutoReadDefinitionForC(File * fp)
   {
+#if 0
     if(isScalar() || getPackable() == PACKEDLOADABLE)
       {
 	m_state.indent(fp);
@@ -647,6 +651,7 @@ namespace MFM {
 	else
 	  fp->write("} //reads entire array\n");
       }
+#endif
 
     if(!isScalar())
       {
@@ -662,7 +667,7 @@ namespace MFM {
 	fp->write("const u32 index, const u32 itemlen) const { return ");
 	fp->write("UlamRef<EC>(");
 	fp->write("*this, index * itemlen, "); //rel offset
-	fp->write("itemlen, "); //itemlen, primitive effself
+	fp->write("itemlen, &"); //itemlen, primitive effself
 	fp->write(scalarmangledName.c_str()); //primitive effself
 	fp->write("<EC>::THE_INSTANCE).Read(); }\n");
       }
@@ -680,6 +685,7 @@ namespace MFM {
 
   void UlamTypeClass::genUlamTypeQuarkAutoWriteDefinitionForC(File * fp)
   {
+#if 0
     if(isScalar() || getPackable() == PACKEDLOADABLE)
       {
 	m_state.indent(fp);
@@ -692,6 +698,7 @@ namespace MFM {
 	else
 	  fp->write("} //writes entire array\n");
       }
+#endif
 
     if(!isScalar())
       {
@@ -706,7 +713,7 @@ namespace MFM {
 	fp->write(" v, const u32 index, const u32 itemlen) { ");
 	fp->write("UlamRef<EC>(");
 	fp->write("*this, index * itemlen, "); //rel offset
-	fp->write("itemlen, "); //itemlen, primitive effself
+	fp->write("itemlen, &"); //itemlen, primitive effself
 	fp->write(scalarmangledName.c_str()); //primitive effself
 	fp->write("<EC>::THE_INSTANCE).Write(v); }\n");
       }
@@ -735,6 +742,7 @@ namespace MFM {
 
   void UlamTypeClass::genUlamTypeQuarkReadDefinitionForC(File * fp)
   {
+#if 0
     if(isScalar() || getPackable() == PACKEDLOADABLE)
       {
 	m_state.indent(fp);
@@ -749,6 +757,7 @@ namespace MFM {
 	else
 	  fp->write("} //reads entire array\n");
       }
+#endif
 
     if(!isScalar())
       {
@@ -764,7 +773,7 @@ namespace MFM {
 	fp->write("const u32 index, const u32 itemlen) const { return "); //was const after )
 	fp->write("UlamRef<EC>(");
 	fp->write("*this, index * itemlen, "); //const ref, rel offset
-	fp->write("itemlen, ");  //itemlen,
+	fp->write("itemlen, &");  //itemlen,
 	fp->write(scalarmangledName.c_str()); //primitive effself
 	fp->write("<EC>::THE_INSTANCE).Read(); }\n");
       }
@@ -772,6 +781,7 @@ namespace MFM {
 
   void UlamTypeClass::genUlamTypeQuarkWriteDefinitionForC(File * fp)
   {
+#if 0
     if(isScalar() || getPackable() == PACKEDLOADABLE)
       {
 	m_state.indent(fp);
@@ -786,6 +796,7 @@ namespace MFM {
 	else
 	  fp->write("} //writes entire array\n");
       }
+#endif
 
     if(!isScalar())
       {
@@ -800,7 +811,7 @@ namespace MFM {
 	fp->write(" v, const u32 index, const u32 itemlen) { ");
 	fp->write("UlamRef<EC>(");
 	fp->write("*this, index * itemlen, "); //rel offset
-	fp->write("itemlen, ");  //itemlen,
+	fp->write("itemlen, &");  //itemlen,
 	fp->write(scalarmangledName.c_str()); //primitive effself
 	fp->write("<EC>::THE_INSTANCE).Write(v); }\n");
       }
@@ -889,10 +900,10 @@ namespace MFM {
     fp->write("() {}\n");
 
     //read 'entire atom' method
-    //genUlamTypeAutoReadDefinitionForC(fp);
+    genUlamTypeAutoReadDefinitionForC(fp);
 
     //write 'entire atom' method
-    //genUlamTypeAutoWriteDefinitionForC(fp);
+    genUlamTypeAutoWriteDefinitionForC(fp);
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -913,6 +924,7 @@ namespace MFM {
     // arrays are handled separately
     assert(isScalar());
 
+#if 0
     //not an array
     m_state.indent(fp);
     fp->write("const ");
@@ -922,6 +934,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("const u32 readTypeField()");
     fp->write("{ return UlamRefAtom<EC>::GetType(); }\n");
+#endif
   } //genUlamTypeElementReadDefinitionForC
 
   void UlamTypeClass::genUlamTypeElementWriteDefinitionForC(File * fp)
@@ -1147,9 +1160,9 @@ namespace MFM {
     //fp->write("write(arg.read()); }\n");
     fp->write("Up_Us::Write(arg.Read()); }\n");
 
-    //genUlamTypeReadDefinitionForC(fp);
+    genUlamTypeReadDefinitionForC(fp);
 
-    //genUlamTypeWriteDefinitionForC(fp);
+    genUlamTypeWriteDefinitionForC(fp);
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -1293,10 +1306,10 @@ namespace MFM {
     fp->write("() {}\n");
 
     //read 'entire atom' method
-    //genUlamTypeReadDefinitionForC(fp);
+    genUlamTypeReadDefinitionForC(fp);
 
     //write 'entire atom' method
-    //genUlamTypeWriteDefinitionForC(fp);
+    genUlamTypeWriteDefinitionForC(fp);
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);

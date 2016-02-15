@@ -137,18 +137,19 @@ namespace MFM {
     // let's load its storage from the currentSelfSymbol:
     s32 tmpVarStg = m_state.getNextTmpVarNumber();
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-    UTI stguti = stgcos->getUlamTypeIdx();
-    UlamType * stgut = m_state.getUlamTypeByIndex(stguti);
-    assert((stgut->getUlamTypeEnum() == UAtom) || (stgut->getUlamClass() == UC_ELEMENT)); //not quark
+    UTI stgcosuti = stgcos->getUlamTypeIdx();
+    UlamType * stgut = m_state.getUlamTypeByIndex(stgcosuti);
+    ULAMTYPE stgetype = stgut->getUlamTypeEnum();
+    assert((stgetype == UAtom) || (stgut->getUlamClass() == UC_ELEMENT)); //not quark
 
     // can't let Node::genCodeReadIntoTmpVar do this for us: it's a ref.
     assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
     m_state.indent(fp);
     fp->write(stgut->getTmpStorageTypeAsString().c_str());
     fp->write("& "); //here it is!!
-    fp->write(m_state.getTmpVarAsString(stguti, tmpVarStg, TMPBITVAL).c_str());
+    fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
     fp->write(" = ");
-    fp->write(m_state.m_currentObjSymbolsForCodeGen[0]->getMangledName().c_str());
+    fp->write(stgcos->getMangledName().c_str());
 
     if(m_varSymbol->getId() != m_state.m_pool.getIndexForDataString("atom")) //not isSelf check; was "self"
       //fp->write(".getRef()");
@@ -182,7 +183,7 @@ namespace MFM {
 
     fp->write(m_varSymbol->getMangledName().c_str());
     fp->write("(");
-    fp->write(m_state.getTmpVarAsString(stguti, tmpVarStg, TMPBITVAL).c_str());
+    fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
 
 #if 0
     if(vclasstype == UC_QUARK)
@@ -204,18 +205,33 @@ namespace MFM {
       assert(0);
 #endif
 
-    UTI derefvuti = m_state.getUlamTypeAsDeref(vuti);
-    UlamType * derefvut = m_state.getUlamTypeByIndex(derefvuti);
-    if(vclasstype == UC_QUARK)
+    if(stgetype == UAtom)
       {
 	fp->write(", ");
-	fp->write_decimal_unsigned(m_varSymbol->getPosOffset()); //should be 0!
-	fp->write("u");
+	if(vclasstype == UC_QUARK) //t3639
+	  fp->write("0u, ");
+	fp->write(m_state.getHiddenContextArgName());
+	fp->write(".LookupElementTypeFromContext(");
+	//fp->write(stgcos->getMangledName().c_str());
+	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str()); //t3636
+	fp->write(".GetType())");
       }
-    fp->write(", &");
-    fp->write(derefvut->getUlamTypeMangledName().c_str()); //for C++ local vars, ie non-data members
-    fp->write("<EC>::THE_INSTANCE");
+    else
+      {
+	UTI derefvuti = m_state.getUlamTypeAsDeref(stgcosuti); //was vuti, but that was wrong!!
+	UlamType * derefvut = m_state.getUlamTypeByIndex(derefvuti);
+	if(vclasstype == UC_QUARK)
+	  {
+	    fp->write(", ");
+	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset()); //should be 0!
+	    fp->write("u");
+	  }
+	fp->write(", &");
+	fp->write(derefvut->getUlamTypeMangledName().c_str()); //effself
+	fp->write("<EC>::THE_INSTANCE");
+      }
     fp->write("); //shadows lhs of 'as'\n");
+
 
 #if 0
     //deprecated!!

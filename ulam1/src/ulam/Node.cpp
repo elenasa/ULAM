@@ -2025,9 +2025,9 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(stgrefuti, tmpVarNum, TMPAUTOREF).c_str());
     //fp->write(".getRef(), ");
     fp->write(", ");
-    fp->write(m_state.getTmpVarAsString(stgrefuti, tmpVarNum, TMPAUTOREF).c_str());
+    //    fp->write(m_state.getTmpVarAsString(stgrefuti, tmpVarNum, TMPAUTOREF).c_str());
     //fp->write(".getPosOffset() + ");
-    fp->write(".GetPos() + ");
+    //fp->write(".GetPos() + ");
     fp->write_decimal_unsigned(uvpass.getPtrPos());
     fp->write("u");
     fp->write(");\n");
@@ -2731,11 +2731,11 @@ namespace MFM {
 	  {
 	    hiddenarg2 << m_state.getHiddenArgName(); //same ur
 	  }
-	else if(stgcos->getAutoLocalType() == ALT_AS) //??????????????????????
+	else if(stgcos->getAutoLocalType() == ALT_AS)
 	  {
 	    sameur = false;
 	    hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
-	    hiddenarg2 << m_state.getHiddenArgName();
+	    hiddenarg2 << stgcos->getMangledName().c_str();
 	    hiddenarg2 << ", " << Node::calcPosOfCurrentObjectClasses(); //relative off;
 	    hiddenarg2 << "u, " << cosut->getTotalBitSize(); //len
 	    hiddenarg2 << "u, &" << cosut->getUlamTypeMangledName().c_str();

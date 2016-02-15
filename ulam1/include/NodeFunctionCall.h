@@ -111,7 +111,7 @@ namespace MFM{
 
     void genCodeIntoABitValue(File * fp, UlamValue& uvpass);
     void genCodeAReferenceIntoABitValue(File * fp, UlamValue& uvpass);
-    void genCodeVirtualFunctionCall(File * fp, UlamValue & uvpass);
+    void genCodeVirtualFunctionCall(File * fp, UlamValue & uvpass, u32 urtmpnum);
     std::string genHiddenArg2(u32& urtmpnumref);
     std::string genHiddenArg2ForARef(File * fp, UlamValue uvpass, u32& urtmpnumref);
     std::string genHiddenArgs(u32 urtmpnum);

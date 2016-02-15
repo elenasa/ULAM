@@ -780,7 +780,7 @@ namespace MFM {
     // static functions..oh yeah..but only for quarks and virtual funcs
     // who's function is it?
     if(m_funcSymbol->isVirtualFunction())
-      genCodeVirtualFunctionCall(fp, uvpass); //indirect call thru func ptr
+      genCodeVirtualFunctionCall(fp, uvpass, urtmpnum); //indirect call thru func ptr
     else
       {
 	if(!Node::isCurrentObjectALocalVariableOrArgument())
@@ -863,7 +863,7 @@ namespace MFM {
 
     // who's function is it?
     if(m_funcSymbol->isVirtualFunction())
-      genCodeVirtualFunctionCall(fp, uvpass); //indirect call thru func ptr
+      genCodeVirtualFunctionCall(fp, uvpass, urtmpnum); //indirect call thru func ptr
     else
       {
 	fp->write(derefut->getUlamTypeMangledName().c_str());
@@ -881,7 +881,7 @@ namespace MFM {
     uvpass = rtnuvpass;
   } //genCodeAReferenceIntoABitValue
 
-  void NodeFunctionCall::genCodeVirtualFunctionCall(File * fp, UlamValue & uvpass)
+  void NodeFunctionCall::genCodeVirtualFunctionCall(File * fp, UlamValue & uvpass, u32 urtmpnum)
   {
     assert(m_funcSymbol);
     //requires runtime lookup for virtual function pointer
@@ -928,16 +928,23 @@ namespace MFM {
     //requires runtime lookup for virtual function pointer
     if(cos->isSelf() || cosSize == 0)
       {
-	//fp->write(m_state.getHiddenContextArgName());
-	fp->write("ur.GetEffectiveSelf()->getVTableEntry(");
+	fp->write(m_state.getHiddenArgName()); //ur
+	fp->write(".GetEffectiveSelf()->getVTableEntry(");
       }
+    else if(urtmpnum > 0)
+      {
+	fp->write(m_state.getUlamRefTmpVarAsString(urtmpnum).c_str());
+	fp->write(".GetEffectiveSelf()->getVTableEntry(");
+      }
+
     else if(cos->getAutoLocalType() == ALT_AS)
       {
-	//fp->write(m_state.getHiddenContextArgName());
-	fp->write("ur.GetEffectiveSelf()->getVTableEntry(");
+	fp->write(m_state.getHiddenArgName()); //ur
+	fp->write(".GetEffectiveSelf()->getVTableEntry(");
       }
     else
       {
+	//????????
 	//unless local or dm, known at compile time!
 	if(cosut->getReferenceType() == ALT_REF)
 	  {
@@ -1090,7 +1097,7 @@ namespace MFM {
 		//if(!stgcos->isSelf())
 		//  hiddenargs << ".getRef()"; //the T storage within the struct for immediate quarks
 	      }
-	    else if(cos->getAutoLocalType() == ALT_AS) //??????????????
+	    else if(cos->getAutoLocalType() == ALT_AS)
 	      {
 		sameur = false;
 		stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
@@ -1103,11 +1110,14 @@ namespace MFM {
 		//  hiddenargs << ".getRef()"; //the T storage within the struct for immediate quarks
 		//update ur to reflect "effective" self for this funccall
 		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
-		hiddenarg2 << m_state.getHiddenArgName();
+		hiddenarg2 << stgcos->getMangledName().c_str();
 		hiddenarg2 << ", " << Node::calcPosOfCurrentObjectClasses(); //relative off;
 		hiddenarg2 << "u, " << stgcosut->getTotalBitSize(); //len
-		hiddenarg2 << "u, &" << stgcosut->getUlamTypeMangledName().c_str();
-		hiddenarg2 << "<EC>::THE_INSTANCE);";
+		//hiddenarg2 << "u, &" << stgcosut->getUlamTypeMangledName().c_str();
+		//hiddenarg2 << "<EC>::THE_INSTANCE);";
+		hiddenarg2 << "u, ";
+		hiddenarg2 << stgcos->getMangledName().c_str(); //effself of as-variable
+		hiddenarg2 << ".GetEffectiveSelf());";
 	      }
 	    else
 	      {

@@ -485,10 +485,10 @@ namespace MFM {
     fp->write("u, NULL) { }\n"); //effself is null for primitives
 
     //calls slow AutoRefBase read method
-    //genUlamTypeAutoReadDefinitionForC(fp);
+    genUlamTypeAutoReadDefinitionForC(fp);
 
     //calls slow AutoRefBase write method
-    //genUlamTypeAutoWriteDefinitionForC(fp);
+    genUlamTypeAutoWriteDefinitionForC(fp);
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -506,6 +506,7 @@ namespace MFM {
 
   void UlamType::genUlamTypeAutoReadDefinitionForC(File * fp)
   {
+#if 0
     if(isScalar() || getPackable() == PACKEDLOADABLE)
       {
 	m_state.indent(fp);
@@ -518,6 +519,7 @@ namespace MFM {
 	else
 	  fp->write("} //reads entire array\n");
       }
+#endif
 
     if(!isScalar())
       {
@@ -537,6 +539,7 @@ namespace MFM {
 
   void UlamType::genUlamTypeAutoWriteDefinitionForC(File * fp)
   {
+#if 0
     if(isScalar() || getPackable() == PACKEDLOADABLE)
       {
 	m_state.indent(fp);
@@ -549,6 +552,7 @@ namespace MFM {
 	else
 	  fp->write("} //writes entire array\n");
       }
+#endif
 
     if(!isScalar())
       {
@@ -1022,10 +1026,10 @@ namespace MFM {
     fp->write("T m_stg;  //storage here!\n\n");
 
     //read BV method
-    //genUlamTypeReadDefinitionForC(fp);
+    genUlamTypeReadDefinitionForC(fp);
 
     //write BV method
-    //genUlamTypeWriteDefinitionForC(fp);
+    genUlamTypeWriteDefinitionForC(fp);
 
     //default constructor (used by local vars)
     m_state.indent(fp);
@@ -1102,6 +1106,7 @@ namespace MFM {
 
   void UlamType::genUlamTypeReadDefinitionForC(File * fp)
   {
+#if 0
     //handled by base class read method
     if(isScalar() || getPackable() == PACKEDLOADABLE)
       {
@@ -1116,6 +1121,7 @@ namespace MFM {
 	else
 	  fp->write("} //reads entire array\n");
       }
+#endif
 
     if(!isScalar())
       {
@@ -1135,6 +1141,7 @@ namespace MFM {
 
   void UlamType::genUlamTypeWriteDefinitionForC(File * fp)
   {
+#if 0
     //handled by base class write method
     if(isScalar() || getPackable() == PACKEDLOADABLE)
       {
@@ -1149,6 +1156,8 @@ namespace MFM {
 	else
 	  fp->write("} //writes entire array\n");
       }
+#endif
+
     if(!isScalar())
       {
 	// writes an element of array

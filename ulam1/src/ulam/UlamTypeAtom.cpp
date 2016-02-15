@@ -282,10 +282,10 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write("(const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //T
-    fp->write("& targ, const UlamContext<EC>& uc) : ");
+    fp->write("& targ, const UlamContext<EC>& ucarg) : ");
     //fp->write(automangledName.c_str());
     fp->write("UlamRefAtom<EC>");
-    fp->write("(m_stg, uc.LookupElementTypeFromContext(targ.GetType())), ");
+    fp->write("(m_stg, ucarg.LookupElementTypeFromContext(targ.GetType())), ");
     fp->write("m_stg(targ) { }\n");
 
     //copy constructor
