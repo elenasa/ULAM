@@ -376,9 +376,6 @@ namespace MFM {
 	if(cnsym->isClassTemplate() && ((SymbolClassNameTemplate *) cnsym)->isClassTemplate(cuti))
 	  rtnb = false; //the "template" has no immediate, only instances
       }
-    //else if(isReference())
-    //  rtnb = true; //needs auto, not immediate; since immediate inherits fm auto we're covered for _Types.h defs.
-
     return rtnb;
   } //needsImmediateType
 
@@ -405,8 +402,7 @@ namespace MFM {
     UTI myuti = Nav;
     AssertBool anyDefined = m_state.anyDefinedUTI(m_key, myuti);
     assert(anyDefined);
-    //bug! lost array type this way ):
-    //UTI asRefType = m_state.getUlamTypeAsRef(m_key.getUlamKeyTypeSignatureClassInstanceIdx());
+
     UTI asRefType = m_state.getUlamTypeAsRef(myuti);
     UlamType * asRef = m_state.getUlamTypeByIndex(asRefType);
     return asRef->getUlamTypeImmediateMangledName();
@@ -430,10 +426,7 @@ namespace MFM {
   const std::string UlamTypeClass::getArrayItemTmpStorageTypeAsString()
   {
     if(!isScalar())
-      {
-	//return its scalar tmp storage type
-	return getTmpStorageTypeAsString();
-      }
+	return getTmpStorageTypeAsString(); //return its scalar tmp storage type
 
     return m_state.getUlamTypeByIndex(getCustomArrayType())->getTmpStorageTypeAsString();
   } //getArrayItemTmpStorageTypeAsString
@@ -443,19 +436,12 @@ namespace MFM {
     std::ostringstream ctype;
     ctype << getUlamTypeImmediateMangledName();
 
-    //clean up!!!! one option only
     if(getUlamClass() == UC_QUARK)
-      {
-	//if(isReference())
-	//  ctype << "<EC, " << "0u + T::ATOM_FIRST_STATE_BIT>";
-	//else
-	ctype << "<EC>"; //default local quarks
-      }
+      ctype << "<EC>"; //default local quarks
     else if(getUlamClass() == UC_ELEMENT)
       ctype << "<EC>";
     else
       assert(0);
-
     return ctype.str();
   } //getLocalStorageTypeAsString
 
@@ -520,7 +506,6 @@ namespace MFM {
     const std::string scalarmangledName = m_state.getUlamTypeByIndex(scalaruti)->getUlamTypeMangledName();
 
     m_state.m_currentIndentLevel = 0;
-    //const std::string mangledName = getUlamTypeImmediateMangledName();
     const std::string automangledName = getUlamTypeImmediateAutoMangledName();
     std::ostringstream  ud;
     ud << "Ud_" << automangledName; //d for define (p used for atomicparametrictype)
@@ -575,8 +560,6 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("typedef ");
     fp->write(scalarmangledName.c_str());
-    //fp->write("<EC, ");
-    //fp->write("T::ATOM_FIRST_STATE_BIT");
     fp->write("<EC> Us;\n");
 
     m_state.indent(fp);
@@ -739,7 +722,6 @@ namespace MFM {
       assert(0);
   } //genUlamTypeWriteDefinitionForC
 
-
   void UlamTypeClass::genUlamTypeQuarkReadDefinitionForC(File * fp)
   {
 #if 0
@@ -823,7 +805,6 @@ namespace MFM {
       return; //no auto, just immediates
 
     m_state.m_currentIndentLevel = 0;
-    //const std::string mangledName = getUlamTypeImmediateMangledName();
     const std::string automangledName = getUlamTypeImmediateAutoMangledName();
     std::ostringstream  ud;
     ud << "Ud_" << automangledName; //d for define (p used for atomicparametrictype)
@@ -991,9 +972,7 @@ namespace MFM {
     //class instance idx is always the scalar uti
     UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
     const std::string scalarmangledName = m_state.getUlamTypeByIndex(scalaruti)->getUlamTypeMangledName();
-
     const std::string mangledName = getUlamTypeImmediateMangledName();
-    //const std::string automangledName = getUlamTypeImmediateAutoMangledName();
 
     std::ostringstream  ud;
     ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
@@ -1023,8 +1002,6 @@ namespace MFM {
     fp->write("struct ");
     fp->write(mangledName.c_str());
     fp->write(" : public ");
-    //fp->write(automangledName.c_str());
-    //fp->write("<EC>\n");
     //let's see if gcc can make use of these extra template args for immediate primitives
     fp->write("UlamRefFixed");
     fp->write("<EC, 0u, "); //left-just pos
@@ -1069,8 +1046,6 @@ namespace MFM {
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("() : ");
-    //    fp->write(automangledName.c_str());
-    //    fp->write("<EC>(m_stg, 0, &");
     fp->write("Up_Us(m_stg, &");
     fp->write(scalarmangledName.c_str()); //effself
     fp->write("<EC>::THE_INSTANCE), ");
@@ -1079,9 +1054,6 @@ namespace MFM {
       {
 	if(isScalar())
 	  {
-	    //fp->write(automangledName.c_str());
-	    //fp->write("<EC>::");
-	    //fp->write("write(DEFAULT_QUARK);");
 	    fp->write("Up_Us::Write(DEFAULT_QUARK);");
 	  }
 	else
@@ -1103,10 +1075,6 @@ namespace MFM {
 
 		std::ostringstream qdhex;
 		qdhex << "0x" << std::hex << dqarrval;
-
-		//fp->write(automangledName.c_str());
-		//fp->write("<EC>::");
-		//fp->write("write( ");
 		fp->write("Up_Us::Write(");
 		fp->write(qdhex.str().c_str());
 		fp->write(");");
@@ -1116,8 +1084,6 @@ namespace MFM {
 		fp->write("u32 n = ");
 		fp->write_decimal(getArraySize());
 		fp->write("u; while(n--) { ");
-		//fp->write(automangledName.c_str());
-		//fp->write("<EC>::");
 		fp->write("writeArrayItem(DEFAULT_QUARK, n, ");
 		fp->write_decimal_unsigned(getBitSize());
 		fp->write("u); }");
@@ -1132,15 +1098,10 @@ namespace MFM {
     fp->write("(const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
     fp->write(" d) : ");
-    //fp->write(automangledName.c_str());
-    //fp->write("<EC>(m_stg, 0, &");
     fp->write("Up_Us(m_stg, &");
     fp->write(scalarmangledName.c_str());
     fp->write("<EC>::THE_INSTANCE), "); //effself
     fp->write("m_stg(T::ATOM_UNDEFINED_TYPE) { "); //for immediate quarks
-    //fp->write(automangledName.c_str());
-    //fp->write("<EC>::");
-    //fp->write("write(d); }\n");
     fp->write("Up_Us::Write(d); }\n");
 
     // assignment constructor
@@ -1149,15 +1110,10 @@ namespace MFM {
     fp->write("(const ");
     fp->write(mangledName.c_str());
     fp->write("<EC> & arg) : ");
-    //fp->write(automangledName.c_str());
-    //fp->write("<EC>(m_stg, 0, &");
     fp->write("Up_Us(m_stg, &");
     fp->write(scalarmangledName.c_str());
     fp->write("<EC>::THE_INSTANCE), "); //effself
     fp->write("m_stg(T::ATOM_UNDEFINED_TYPE) { "); //for immediate quarks
-    //fp->write(automangledName.c_str());
-    //fp->write("<EC>::");
-    //fp->write("write(arg.read()); }\n");
     fp->write("Up_Us::Write(arg.Read()); }\n");
 
     genUlamTypeReadDefinitionForC(fp);
@@ -1182,7 +1138,6 @@ namespace MFM {
   void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
   {
     assert((getUlamClass() == UC_ELEMENT));
-    //u32 len = getTotalBitSize(); //could be 0, includes arrays
 
     //regardless of actual element size, it takes up the full atom space
     if(!isScalar())
@@ -1191,9 +1146,7 @@ namespace MFM {
     //class instance idx is always the scalar uti
     UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
     const std::string scalarmangledName = m_state.getUlamTypeByIndex(scalaruti)->getUlamTypeMangledName();
-
     const std::string mangledName = getUlamTypeImmediateMangledName();
-    //const std::string automangledName = getUlamTypeImmediateAutoMangledName();
 
     std::ostringstream  ud;
     ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
@@ -1223,7 +1176,6 @@ namespace MFM {
     fp->write("struct ");
     fp->write(mangledName.c_str());
     fp->write(" : public ");
-    //fp->write(automangledName.c_str());
     fp->write("UlamRefAtom<EC>\n");
 
     m_state.indent(fp);
@@ -1255,7 +1207,6 @@ namespace MFM {
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("() : ");
-    //fp->write(automangledName.c_str());
     fp->write("UlamRefAtom<EC>(m_stg, &");
     fp->write(scalarmangledName.c_str());
     fp->write("<EC>::THE_INSTANCE), "); //effself
@@ -1264,12 +1215,6 @@ namespace MFM {
     fp->write("<EC>::THE_INSTANCE");
     fp->write(".GetDefaultAtom()"); //returns object of type T
     fp->write(") { }\n");
-    //fp->write(automangledName.c_str());
-    //fp->write("<EC>::write(");
-    //fp->write(getUlamTypeMangledName().c_str());
-    //fp->write("<EC>::THE_INSTANCE");
-    //fp->write(".GetDefaultAtom()"); //returns object of type T
-    //fp->write("); }\n");
 
     //constructor here (used by const tmpVars); ref param to avoid excessive copying
     m_state.indent(fp);
@@ -1277,7 +1222,6 @@ namespace MFM {
     fp->write("(const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //T
     fp->write("& d) : ");
-    //fp->write(automangledName.c_str());
     fp->write("UlamRefAtom<EC>(m_stg, &");
     fp->write(scalarmangledName.c_str());
     fp->write("<EC>::THE_INSTANCE), "); //effself
@@ -1290,14 +1234,11 @@ namespace MFM {
     fp->write("(const ");
     fp->write(mangledName.c_str());
     fp->write("<EC> & arg) : ");
-    //fp->write(automangledName.c_str());
     fp->write("UlamRefAtom<EC>(m_stg, &");
     fp->write(scalarmangledName.c_str());
     fp->write("<EC>::THE_INSTANCE), "); //effself
     fp->write("m_stg(");
     fp->write("arg.ReadAtom()) { } \n");
-    //fp->write(automangledName.c_str());
-    //fp->write("<EC>::write(arg.read()); }\n");
 
     //default destructor (for completeness)
     m_state.indent(fp);
@@ -1344,7 +1285,6 @@ namespace MFM {
     const std::string scalarmangledName = m_state.getUlamTypeByIndex(scalaruti)->getUlamTypeMangledName();
 
     const std::string mangledName = getUlamTypeImmediateMangledName();
-    //const std::string automangledName = getUlamTypeImmediateAutoMangledName();
     std::ostringstream  ud;
     ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
     std::string udstr = ud.str();
@@ -1399,24 +1339,8 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("typedef ");
     fp->write(scalarmangledName.c_str());
-    //    fp->write("<EC, ");
-    //fp->write("T::ATOM_FIRST_STATE_BIT");
     fp->write("<EC");
     fp->write("> Us;\n");
-
-#if 0
-    m_state.indent(fp);
-    fp->write("typedef AtomicParameterType");
-    fp->write("<EC"); //BITSPERATOM
-    fp->write(", ");
-    fp->write(getUlamTypeVDAsStringForC().c_str());
-    fp->write(", ");
-    fp->write_decimal_unsigned(itemlen); //includes arraysize
-    fp->write("u, ");
-    fp->write("T::ATOM_FIRST_STATE_BIT");
-    fp->write("> ");
-    fp->write(" Up_Us;\n");
-#endif
 
     m_state.indent(fp);
     fp->write("typedef UlamRefFixed");
@@ -1464,7 +1388,7 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write("() {}\n");
 
-    //Unpacked Read Array Item XXXXXXXXXXXX?????????????
+    //Unpacked Read Array Item
     m_state.indent(fp);
     fp->write("const ");
     fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
@@ -1474,7 +1398,7 @@ namespace MFM {
     fp->write_decimal_unsigned(itemlen);
     fp->write("u); }\n");
 
-    //Unpacked Write Array Item XXXXXXXXXXXXXX?????????
+    //Unpacked Write Array Item
     m_state.indent(fp);
     fp->write("void writeArrayItem(const ");
     fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
@@ -1543,7 +1467,6 @@ namespace MFM {
     //class instance idx is always the scalar uti
     UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
     const std::string scalarmangledName = m_state.getUlamTypeByIndex(scalaruti)->getUlamTypeMangledName();
-
     const std::string mangledName = getUlamTypeImmediateMangledName();
 
     std::ostringstream  ud;

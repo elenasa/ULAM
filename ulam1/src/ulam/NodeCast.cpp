@@ -813,7 +813,6 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
 
     //for known quark:
     fp->write(", 0u, &"); //'is'
-    //fp->write(m_state.getTmpVarAsString(Int, tmpVarIs).c_str());
     fp->write(tobe->getUlamTypeMangledName().c_str());
     fp->write("<EC>::THE_INSTANCE");
     fp->write(");\n"); //like, shadow lhs of as
@@ -884,11 +883,6 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
     fp->write("u, &");
     fp->write(tobe->getUlamTypeMangledName().c_str()); //effset
     fp->write("<EC>::THE_INSTANCE).");
-    //    if(!Node::isCurrentObjectALocalVariableOrArgument())
-    //  fp->write(".GetBits().Read(0 + T::ATOM_FIRST_STATE_BIT, ");
-    //else
-    //  fp->write(".getBits().Read(0 + T::ATOM_FIRST_STATE_BIT, ");
-    //fp->write_decimal(tobe->getBitSize());
     fp->write(tobe->readMethodForCodeGen().c_str());
     fp->write("();\n");
 

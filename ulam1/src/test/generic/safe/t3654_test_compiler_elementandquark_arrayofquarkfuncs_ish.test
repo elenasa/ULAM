@@ -1,10 +1,21 @@
 ## -*- mode:ulam -*-
 #=t3654_test_compiler_elementandquark_arrayofquarkfuncs_ish
+##
+## gen output:
+## Int Arg: 4
+## assert: arg is 1
+## after asserts abort: arg is 1
+## Int Arg: 3
+## assert: arg is 1
+## after asserts abort: arg is 1
+## assert: arg is 1
+## after asserts abort: arg is 1
+##
 #!
-Exit status: 11
-Ue_IshD { typedef QSwapLine(4) OurSwapLine;  Int(32) test() {  11u cast return } }
-Uq_QSwapLine(Unary(5) itagBits) : QID(myTagBits) { :< constant Unsigned(32) cQID_TAG_BITS = myTagBits;  Bits(UNKNOWN) mArray[UNKNOWN](notready); > Int(UNKNOWN) mPhase(unknown);  <NOMAIN> }
-Uq_QID(Unary(5) myTagBits) { constant Unsigned(32) cQID_TAG_BITS = myTagBits;  Bits(UNKNOWN) mArray[UNKNOWN](notready);  <NOMAIN> }
+Exit status: 0
+Ue_IshE { Bool(1) b(false);  QW mA[2]( Int(8) m(3);  Int(8) m(4); );  Int(32) test() {  System s;  ( 1 cast 0 cast 4 cast )set s ( ( 1 cast 0 cast )get )print . s ( ( 1 cast 0 cast )get 4 cast -b 0 cast == )assert . ( 0 cast 0 cast 3 cast )set s ( ( 0 cast 0 cast )get )print . s ( ( 0 cast 0 cast )get 3 cast -b 0 cast == )assert . s ( ( 1 cast 0 cast )get 4 cast -b 0 cast == )assert . ( 1 cast 0 cast )get 4 cast -b return } }
+Uq_System { <NOMAIN> }
+Uq_QW { Int(8) m(0);  <NOMAIN> }
 ##
 ## informed by Dave ish 1/28/2016
 ##

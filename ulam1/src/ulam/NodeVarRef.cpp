@@ -317,9 +317,6 @@ namespace MFM {
 	else
 	  {
 	    fp->write(stgcos->getMangledName().c_str());
-	    //if(stgcos->getId() != m_state.m_pool.getIndexForDataString("atom")) //not isSelf check; was "self"
-	    //fp->write(".getRef()");
-
 	    if(cos->isDataMember())
 	      {
 		fp->write(", ");
@@ -329,12 +326,9 @@ namespace MFM {
 	    else
 	      {
 		//local var
-		if((vclasstype == UC_NOTACLASS) && (vut->getUlamTypeEnum() != UAtom) )
+		if((vclasstype == UC_NOTACLASS) && (vut->getUlamTypeEnum() != UAtom))
 		  {
-		    fp->write(", ");
-		    //fp->write_decimal_unsigned(BITSPERATOM - stgcosut->getTotalBitSize() - ATOMFIRSTSTATEBITPOS); //right-justified, not including FIRSTSTATEBITPOS
-		    //fp->write("u");
-		    fp->write("0u"); //relative ?
+		    fp->write(", 0u"); //relative
 		  }
 		else if(vclasstype == UC_QUARK)
 		  {
@@ -367,9 +361,6 @@ namespace MFM {
     // or ancestor quark if a class.
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-    //UTI stgcosuti = stgcos->getUlamTypeIdx();
-    //UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-
     Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
@@ -401,9 +392,6 @@ namespace MFM {
       {
 	//local
 	fp->write(stgcos->getMangledName().c_str());
-	//if(stgcos->getId() != m_state.m_pool.getIndexForDataString("atom")) //not isSelf check; was "self"
-	//  fp->write(".getRef()");
-
 	if(cos->isDataMember())
 	  {
 	    fp->write(", ");
@@ -415,15 +403,7 @@ namespace MFM {
 	    //local
 	    if((vclasstype == UC_NOTACLASS) && (vetype != UAtom) )
 	      {
-		fp->write(", ");
-		fp->write("(");
-		//fp->write_decimal_unsigned(BITSPERATOM); //right-justified
-		//fp->write(" - ");
-		//fp->write_decimal_unsigned(cosut->getTotalBitSize());
-		//fp->write("u - ");
-		//fp->write_decimal_unsigned(ATOMFIRSTSTATEBITPOS);
-		fp->write("0u, "); //rel off to right-just prim
-		fp->write(")");
+		fp->write(", 0u, "); //rel off to right-just prim
 	      }
 	    else if(vetype == UAtom)
 	      {
@@ -500,9 +480,6 @@ namespace MFM {
       {
 	//local
 	fp->write(stgcos->getMangledName().c_str());
-	//if(stgcos->getId() != m_state.m_pool.getIndexForDataString("atom")) //not isSelf check; was "self"
-	//  fp->write(".getRef()");
-
 	if(cos->isDataMember())
 	  {
 	    fp->write(", ");
@@ -518,18 +495,11 @@ namespace MFM {
 	    //local
 	    if((vclasstype == UC_NOTACLASS) && (vetype != UAtom) )
 	      {
-		fp->write(", ");
-		fp->write("(");
-		//fp->write_decimal_unsigned(BITSPERATOM); //right-justified
-		//fp->write(" - ");
+		fp->write(", (");
 		fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
 		fp->write(" * ");
-		//fp->write_decimal_unsigned(cosut->getTotalBitSize());
-		//fp->write("u - ");
-		//fp->write_decimal_unsigned(ATOMFIRSTSTATEBITPOS);
 		fp->write_decimal_unsigned(cosut->getBitSize());
 		fp->write("u)"); //relative t3651
-		//fp->write(")");
 	      }
 	    else if(vetype == UAtom)
 	      {
@@ -554,9 +524,7 @@ namespace MFM {
 	fp->write(derefut->getUlamTypeMangledName().c_str()); //effself
 	fp->write("<EC>::THE_INSTANCE");
       }
-
     fp->write(");\n");
-
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
   } //genCodeArrayItemRefInit
 

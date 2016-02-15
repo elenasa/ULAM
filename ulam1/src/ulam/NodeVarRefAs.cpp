@@ -152,24 +152,8 @@ namespace MFM {
     fp->write(stgcos->getMangledName().c_str());
 
     if(m_varSymbol->getId() != m_state.m_pool.getIndexForDataString("atom")) //not isSelf check; was "self"
-      //fp->write(".getRef()");
       fp->write(".GetStorage()"); //non-const
     fp->write(";\n");
-
-#if 0
-    //deprecated, use 'ur'
-    if(stgcos->getAutoLocalType() == ALT_AS)
-      {
-	//shadows previous _ucAuto
-	m_state.indent(fp);
-	fp->write("const UlamContext<EC> ");
-	fp->write(m_state.getTmpVarForAutoHiddenContext()); //very local scope
-	fp->write(" = ");
-	fp->write(m_state.getHiddenContextArgName()); // _ucauto
-	fp->write(stgcos->getMangledName().c_str()); //auto's name
-	fp->write("; //tmp for auto uc constructor\n");
-      }
-#endif
 
     // now we have our pos in tmpVarPos, and our T in tmpVarStg
     // time to shadow 'self' with auto local variable:
@@ -185,26 +169,6 @@ namespace MFM {
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
 
-#if 0
-    if(vclasstype == UC_QUARK)
-      {
-	fp->write(", ");
-	if(m_state.m_genCodingConditionalHas) //not sure this is posoffset, and not true/false?
-	  fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), tmpVarPos).c_str());
-	else
-	  {
-	    assert(m_varSymbol->getPosOffset() == 0);
-	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset()); //should be 0!
-	  }
-      }
-    else if(vclasstype == UC_ELEMENT)
-      {
-	//fp->write(", true"); //invokes 'badass' constructor
-      }
-    else
-      assert(0);
-#endif
-
     if(stgetype == UAtom)
       {
 	fp->write(", ");
@@ -212,7 +176,6 @@ namespace MFM {
 	  fp->write("0u, ");
 	fp->write(m_state.getHiddenContextArgName());
 	fp->write(".LookupElementTypeFromContext(");
-	//fp->write(stgcos->getMangledName().c_str());
 	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str()); //t3636
 	fp->write(".GetType())");
       }
@@ -231,31 +194,6 @@ namespace MFM {
 	fp->write("<EC>::THE_INSTANCE");
       }
     fp->write("); //shadows lhs of 'as'\n");
-
-
-#if 0
-    //deprecated!!
-    m_state.indent(fp);
-    //special ulamcontext for autos based on its (lhs) storage
-    fp->write("const UlamContext<EC> ");
-    fp->write(m_state.getAutoHiddenContextArgName()); // _ucauto
-    fp->write(m_varSymbol->getMangledName().c_str()); //auto's name
-
-    if(stgcos->getAutoLocalType() == ALT_AS)
-      {
-	//shadows previous _ucAuto, use tmp var
-	fp->write("(");
-	fp->write(m_state.getTmpVarForAutoHiddenContext());
-	fp->write(", ");
-	fp->write(m_state.getTmpVarForAutoHiddenContext());
-	fp->write(".LookupElementTypeFromContext(");
-      }
-    else
-      fp->write("(uc, uc.LookupElementTypeFromContext(");
-
-    fp->write(m_varSymbol->getMangledName().c_str()); //auto's name
-    fp->write(".GetType()));\n");
-#endif
 
     m_state.m_genCodingConditionalHas = false; // done
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs ?

@@ -392,7 +392,6 @@ namespace MFM {
   void SymbolTable::genCodeBuiltInFunctionBuildDefaultsOverTableOfVariableDataMember(File * fp, UTI cuti)
   {
     bool useFullClassName = (cuti != m_state.getCompileThisIdx()); //from its superclass
-    //bool useFullClassName = false; //clean up!! if this works with UlamRef's
 
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
@@ -422,26 +421,13 @@ namespace MFM {
 
 			m_state.indent(fp);
 			fp->write("UlamRef<EC>("); //open wrapper
-			//if(useFullClassName)
-			//  {
-			//    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
-			    //fp->write("<EC, "); //inherited quark always starts at 0
-			    //fp->write("T::ATOM_FIRST_STATE_BIT");
-			    //fp->write(">::");
-			//    fp->write("<EC>::");
-			//  }
-
 			fp->write_decimal_unsigned(sym->getPosOffset()); //rel offset
 			fp->write(", ");
 			fp->write_decimal_unsigned(sut->getBitSize()); //len
 			fp->write(", da, &");
-			//fp->write(sym->getMangledNameForParameterType().c_str());
-			//fp->write("::Up_Us::");
-			//fp->write("(da, &");
 			fp->write(sut->getUlamTypeMangledName().c_str()); //effself
 			fp->write("<EC>::THE_INSTANCE)."); //close wrapper
 			fp->write(sut->writeMethodForCodeGen().c_str());
-			//fp->write("(da.GetBits(), ");
 			fp->write("(");
 			fp->write(qdhex.str().c_str());
 			fp->write("); //"); //include var name in a comment
@@ -474,37 +460,18 @@ namespace MFM {
 			for(u32 j = 0; j < arraysize; j++)
 			  {
 			    m_state.indent(fp);
-			    //if(useFullClassName)
-			    //  {
-			    //	fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
-				//fp->write("<EC, ");
-				//fp->write("T::ATOM_FIRST_STATE_BIT");
-				//fp->write(">::");
-			    //	fp->write("<EC>::");
-			    //  }
 			    fp->write("UlamRef<EC>(");
-			    //fp->write(sym->getMangledNameForParameterType().c_str());
-			    //fp->write("(da, &THE_INSTANCE), ");
 			    fp->write_decimal_unsigned(sym->getPosOffset()); //rel offset
 			    fp->write("u + ");
 			    fp->write_decimal_unsigned(j * itemlen); //rel offset
 			    fp->write("u, ");
 			    fp->write_decimal_unsigned(itemlen); //len
 			    fp->write("u, da, &");
-			    //fp->write(sut->getUlamTypeMangledName().c_str()); //effself
 			    fp->write(scalarut->getUlamTypeMangledName().c_str()); //effself
 			    fp->write("<EC>::THE_INSTANCE).");
-			    //fp->write("::");
-			    //fp->write(sut->writeArrayItemMethodForCodeGen().c_str());
 			    fp->write(scalarut->writeMethodForCodeGen().c_str());
 			    fp->write("(");
-			    //fp->write("(da.GetBits(), ");
 			    fp->write(qdhex.str().c_str());
-			    //fp->write(", ");
-			    //fp->write_decimal((s32) j); //ITEM INDEX
-			    //fp->write(", ");
-			    //fp->write_decimal(m_state.getBitSize(suti)); //BITS_PER_ITEM
-			    //fp->write("u");
 			    fp->write("); //"); //include var name in a comment
 			    fp->write(m_state.m_pool.getDataAsString(sym->getId()).c_str());
 			    fp->write("[");
@@ -531,13 +498,9 @@ namespace MFM {
 		  {
 		    fp->write("typename ");
 		    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
-		    //fp->write("<EC, ");
-		    //fp->write("T::ATOM_FIRST_STATE_BIT");
-		    //fp->write(">::");
 		    fp->write("<EC>::");
 		  }
 		fp->write(sym->getMangledNameForParameterType().c_str());
-		//fp->write("::");
 		fp->write("(da, &");
 		if(useFullClassName)
 		  {
@@ -546,7 +509,6 @@ namespace MFM {
 		  }
 		fp->write("THE_INSTANCE).");
 		fp->write(sut->writeMethodForCodeGen().c_str());
-		//fp->write("(da.GetBits(), ");
 		fp->write("(");
 		fp->write_decimal_unsignedlong(val);
 		fp->write("u);\n");
@@ -1429,13 +1391,6 @@ namespace MFM {
       } //while for typedefs only
 
     fp->write("\n");
-    //m_state.indent(fp);
-    //fp->write("OurAtomAll atom;\n");
-
-    //m_state.indent(fp);
-    //fp->write("MFM::");
-    //fp->write(m_state.getUlamTypeByIndex(Int)->getLocalStorageTypeAsString().c_str());
-    //fp->write(" rtn;\n");
 
     it = m_idToSymbolPtr.begin();
     s32 idcounter = 1;

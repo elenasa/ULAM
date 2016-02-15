@@ -904,24 +904,10 @@ namespace MFM {
 
     UTI cvfuti = csym->getClassForVTableEntry(vfidx);
     UlamType * cvfut = m_state.getUlamTypeByIndex(cvfuti);
-    //ULAMCLASSTYPE cvclasstype = cvfut->getUlamClass();
 
     fp->write("((typename ");
     fp->write(cvfut->getUlamTypeMangledName().c_str());
     fp->write("<EC>::"); //same for elements and quarks
-
-#if 0
-    else
-      {
-	fp->write("<EC, ");
-	if(cos->isDataMember())
-	  {
-	    fp->write_decimal_unsigned(Node::calcPosOfCurrentObjectClasses()); //rel offset
-	    fp->write("u + ");
-	  }
-	fp->write("T::ATOM_FIRST_STATE_BIT>::"); //ancestor or immediate quark)
-      }
-#endif
     fp->write(m_funcSymbol->getMangledNameWithTypes().c_str());
     fp->write(") ");
 
@@ -936,7 +922,6 @@ namespace MFM {
 	fp->write(m_state.getUlamRefTmpVarAsString(urtmpnum).c_str());
 	fp->write(".GetEffectiveSelf()->getVTableEntry(");
       }
-
     else if(cos->getAutoLocalType() == ALT_AS)
       {
 	fp->write(m_state.getHiddenArgName()); //ur
@@ -944,7 +929,6 @@ namespace MFM {
       }
     else
       {
-	//????????
 	//unless local or dm, known at compile time!
 	if(cosut->getReferenceType() == ALT_REF)
 	  {
@@ -953,22 +937,7 @@ namespace MFM {
 	  }
 	else
 	  fp->write(cosut->getUlamTypeMangledName().c_str());
-	//	if(cosut->getUlamClass() == UC_ELEMENT)
 	fp->write("<EC>::"); //same for elements and quarks
-
-#if 0
-	else
-	  {
-	    fp->write("<EC, ");
-	    if(cos->isDataMember())
-	      {
-		fp->write_decimal_unsigned(Node::calcPosOfCurrentObjectClasses()); //rel offset
-		fp->write("u + ");
-	      }
-	    fp->write("T::ATOM_FIRST_STATE_BIT>::"); //ancestor or immediate quark)
-	  }
-#endif
-
 	fp->write("THE_INSTANCE.getVTableEntry(");
       }
 
@@ -988,8 +957,6 @@ namespace MFM {
     assert(!Node::isCurrentObjectALocalVariableOrArgument());
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     Symbol * stgcos = m_state.getCurrentSelfSymbolForCodeGen();
-    //UTI stgcosuti = stgcos->getUlamTypeIdx(); //more general instead of current class
-
     Symbol * cos = NULL;
     if(cosSize > 0)
       cos = m_state.m_currentObjSymbolsForCodeGen.back();
@@ -1002,21 +969,7 @@ namespace MFM {
       {
 	UlamType * fut = m_state.getUlamTypeByIndex(futi);
 	fp->write(fut->getUlamTypeMangledName().c_str());
-	//	if(fut->getUlamClass() == UC_ELEMENT)
 	fp->write("<EC>::"); //same for elements and quarks
-
-#if 0
-	else
-	  {
-	    //self is a quark, use position of data member cos (accumulated?)
-	    fp->write("<EC, ");
-	    fp->write_decimal_unsigned(Node::calcPosOfCurrentObjectClasses()); //relative off
-	    fp->write("u + ");
-
-	    fp->write("T::ATOM_FIRST_STATE_BIT"); //ancestors at first state bit
-	    fp->write(">::");
-	  }
-#endif
       }
     fp->write("THE_INSTANCE."); //non-static functions require an instance
   } //genMemberNameOfMethod
@@ -1090,12 +1043,6 @@ namespace MFM {
 	    if(m_state.m_currentObjSymbolsForCodeGen.empty())
 	      {
 		hiddenarg2 << m_state.getHiddenArgName(); //same ur
-
-		//stgcos = m_state.getCurrentSelfSymbolForCodeGen();
-		//hiddenargs << ", " << stgcos->getMangledName().c_str();
-		// for both immediate quarks and elements now..not self.
-		//if(!stgcos->isSelf())
-		//  hiddenargs << ".getRef()"; //the T storage within the struct for immediate quarks
 	      }
 	    else if(cos->getAutoLocalType() == ALT_AS)
 	      {
@@ -1104,17 +1051,11 @@ namespace MFM {
 		UTI stgcosuti = stgcos->getUlamTypeIdx();
 		stgcosuti = m_state.getUlamTypeAsDeref(stgcosuti);
 		UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-
-		// for both immediate quarks and elements now..not self.
-		//if(!stgcos->isSelf())
-		//  hiddenargs << ".getRef()"; //the T storage within the struct for immediate quarks
 		//update ur to reflect "effective" self for this funccall
 		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
 		hiddenarg2 << stgcos->getMangledName().c_str();
 		hiddenarg2 << ", " << Node::calcPosOfCurrentObjectClasses(); //relative off;
 		hiddenarg2 << "u, " << stgcosut->getTotalBitSize(); //len
-		//hiddenarg2 << "u, &" << stgcosut->getUlamTypeMangledName().c_str();
-		//hiddenarg2 << "<EC>::THE_INSTANCE);";
 		hiddenarg2 << "u, ";
 		hiddenarg2 << stgcos->getMangledName().c_str(); //effself of as-variable
 		hiddenarg2 << ".GetEffectiveSelf());";
@@ -1130,20 +1071,17 @@ namespace MFM {
 
 		//new ur to reflect "effective" self and storage for this funccall
 		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
+		hiddenarg2 << stgcos->getMangledName().c_str();
+		hiddenarg2 << ", " ;
+
 		if(cos->isDataMember()) //dm of local stgcos
 		  hiddenarg2 << Node::calcPosOfCurrentObjectClasses(); //relative off;
 		else
 		  hiddenarg2 << "0";
 
 		hiddenarg2 << "u, " << cosderefut->getTotalBitSize(); //len
-		hiddenarg2 << "u, ";
-
-		hiddenarg2 << stgcos->getMangledName().c_str();
-		// for both immediate quarks and elements now..not self.
-		if(!stgcos->isSelf())
-		  hiddenarg2 << ".GetStorage()"; //getRef(), the T storage within the struct for immediate quarks
-
-		hiddenarg2 << ", &" << cosderefut->getUlamTypeMangledName().c_str();
+		hiddenarg2 << "u, &";
+		hiddenarg2 << cosderefut->getUlamTypeMangledName().c_str();
 		hiddenarg2 << "<EC>::THE_INSTANCE);";
 	      }
 
@@ -1172,17 +1110,13 @@ namespace MFM {
    u32 tmpvarur = m_state.getNextTmpVarNumber();
 
     std::ostringstream hiddenarg2;
-    //    hiddenargs << m_state.getHiddenContextArgName(); //same uc
-    //hiddenargs << ", ";
-
     //new ur to reflect "effective" self and the ref storage, for this funccall
     hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvarur).c_str() << "(";
-    hiddenarg2 << "0u, "; //left-justified (uvpass.getPtrPosOffset()?)
-    hiddenarg2 << derefut->getTotalBitSize(); //len
-    hiddenarg2 << "u, ";
     hiddenarg2 << m_state.getTmpVarAsString(derefuti, tmpvarnum, TMPAUTOREF).c_str();
-    hiddenarg2 << ".GetStorage()"; //getRef(), the T storage within the struct for immediate quarks ?
-    hiddenarg2 << ", &" << derefut->getUlamTypeMangledName().c_str();
+    hiddenarg2 << ", 0u, "; //left-justified (uvpass.getPtrPosOffset()?)
+    hiddenarg2 << derefut->getTotalBitSize(); //len
+    hiddenarg2 << "u, &";
+    hiddenarg2 << derefut->getUlamTypeMangledName().c_str();
     hiddenarg2 << "<EC>::THE_INSTANCE);";
 
     urtmpnumref = tmpvarur;
@@ -1219,12 +1153,7 @@ namespace MFM {
 	      }
 
 	    stype << stgcos->getMangledName().c_str();
-
-	    // for both immediate quarks and elements now...
-	    //if(!stgcos->isSelf())
-	    //  stype << ".getType()"; //the T storage within the struct for immediate quarks
-	    //else
-	      stype << ".GetType()";
+	    stype << ".GetType()";
 	  }
       }
     return stype.str();
@@ -1372,7 +1301,6 @@ namespace MFM {
     fp->write("("); //pass ref in constructor (ref's not assigned with =)
     if(stgcos->isDataMember()) //can't be an element
       {
-	//fp->write("Uv_4atom, ");
 	fp->write(m_state.getHiddenArgName());
 	fp->write(", ");
 	fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
@@ -1381,9 +1309,6 @@ namespace MFM {
     else
       {
 	fp->write(stgcos->getMangledName().c_str());
-	//if(stgcos->getId() != m_state.m_pool.getIndexForDataString("atom")) //not isSelf check; was "self"
-	    //fp->write(".getRef()");
-
 	if(cos->isDataMember())
 	  {
 	    fp->write(", ");
@@ -1392,7 +1317,6 @@ namespace MFM {
 	  }
 	else
 	  {
-
 	    if(vclasstype == UC_NOTACLASS)
 	      {
 		fp->write(", ");
