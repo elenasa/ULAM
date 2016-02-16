@@ -446,8 +446,10 @@ namespace MFM {
 	return Hzy;
       }
 
-#if 0
+#if 1
+    //t3403, t3490
     //insure constant value fits in its declared type
+    // no saturation without an explicit cast.
     FORECAST scr = m_nodeExpr->safeToCastTo(uti);
     if(scr != CAST_CLEAR)
       {

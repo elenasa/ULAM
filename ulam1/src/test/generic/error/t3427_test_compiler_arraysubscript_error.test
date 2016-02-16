@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3427_test_compiler_arraysubscript_error
 #!
-./A.ulam:4:6: ERROR: Array subscript [1] exceeds the size (1) of array 'site'.
+./A.ulam:4:6: ERROR: Array subscript [1] exceeds the size (1) of array 'site' to store into.
 Exit status: -1
 Unrecoverable Program Test FAILURE.
 ##
