@@ -164,12 +164,6 @@ namespace MFM {
     fp->write(automangledName.c_str());
     fp->write("(const UlamRefAtom<EC>& arg) : UlamRefAtom<EC>(arg, arg.GetEffectiveSelf()) { }\n");
 
-    //read BV method
-    //genUlamTypeAutoReadDefinitionForC(fp);
-
-    //write BV method
-    //genUlamTypeAutoWriteDefinitionForC(fp);
-
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("};\n");
@@ -183,31 +177,6 @@ namespace MFM {
     fp->write(udstr.c_str());
     fp->write(" */\n\n");
   } //genUlamTypeMangledAutoDefinitionForC
-
-  void UlamTypeAtom::genUlamTypeAutoReadDefinitionForC(File * fp)
-  {
-    assert(isScalar()); //req custom array
-
-    m_state.indent(fp);
-    fp->write("const ");
-    fp->write(getTmpStorageTypeAsString().c_str()); //T
-    fp->write(" read() const { return UlamRefAtom<EC>::");
-    fp->write(readMethodForCodeGen().c_str()); //SetStorage ???
-    fp->write("(); /* entire atom */ "); //???
-    fp->write("}\n"); //done
-  } //genUlamTypeAutoReadDefinitionForC
-
-  void UlamTypeAtom::genUlamTypeAutoWriteDefinitionForC(File * fp)
-  {
-    assert(isScalar()); //req custom array
-    m_state.indent(fp);
-    fp->write("void write(const ");
-    fp->write(getTmpStorageTypeAsString().c_str()); //T&
-    fp->write("& v) { UlamRefAtom<EC>::");
-    fp->write(writeMethodForCodeGen().c_str()); //SetStorage ???
-    fp->write("(v); /* entire atom */ ");
-    fp->write("}\n");
-  } //genUlamTypeAutoWriteDefinitionForC
 
   //inside out like ulamtypeclass: generates immediate for whole atom
   void UlamTypeAtom::genUlamTypeMangledDefinitionForC(File * fp)
@@ -298,9 +267,9 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write("() {}\n");
 
-    //genUlamTypeReadDefinitionForC(fp);
+    genUlamTypeReadDefinitionForC(fp);
 
-    //genUlamTypeWriteDefinitionForC(fp);
+    genUlamTypeWriteDefinitionForC(fp);
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);

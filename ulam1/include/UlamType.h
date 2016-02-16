@@ -141,10 +141,6 @@ namespace MFM{
 
     virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
 
-    virtual void genUlamTypeAutoReadDefinitionForC(File * fp);
-
-    virtual void genUlamTypeAutoWriteDefinitionForC(File * fp);
-
     virtual void genUlamTypeMangledImmediateDefinitionForC(File * fp);
 
     virtual void genUlamTypeReadDefinitionForC(File * fp);

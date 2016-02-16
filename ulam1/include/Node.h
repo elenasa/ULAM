@@ -242,10 +242,6 @@ namespace MFM{
     //common helpers for safe casting
     NodeFunctionCall * buildCastingFunctionCallNode(Node * node, UTI tobeType);
 
-    // 'UsingBitVector' variations for virtual quark functions only
-    void genCodeReadIntoATmpVarUsingBitVector(File * fp, UlamValue & uvpass);
-    void genCodeWriteFromATmpVarUsingBitVector(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
-
     void genCodeReadSelfIntoATmpVar(File * fp, UlamValue & uvpass);
     void genCodeWriteToSelfFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
 
@@ -253,11 +249,9 @@ namespace MFM{
     void genCodeWriteToAutorefFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
 
     void genCodeReadArrayItemIntoATmpVar(File * fp, UlamValue& uvpass);
-    void genCodeReadArrayItemIntoATmpVarUsingBitVector(File * fp, UlamValue& uvpass);
     void genCodeReadCustomArrayItemIntoATmpVar(File * fp, UlamValue & uvpass);
 
     void genCodeWriteArrayItemFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
-    void genCodeWriteArrayItemFromATmpVarUsingBitVector(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
     void genCodeWriteCustomArrayItemFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
 
     virtual void genModelParameterHiddenArgs(File * fp, s32 epi);
@@ -279,10 +273,6 @@ namespace MFM{
 
     const std::string writeMethodForCodeGen(UTI nuti, UlamValue uvpass);
     const std::string writeArrayItemMethodForCodeGen(UTI nuti, UlamValue uvpass);
-
-    const std::string readMethodForImmediateBitValueForCodeGen(UTI nuti, UlamValue uvpass);
-    const std::string writeMethodForImmediateBitValueForCodeGen(UTI nuti, UlamValue uvpass);
-
   };
 
 }

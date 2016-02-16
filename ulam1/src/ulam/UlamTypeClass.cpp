@@ -583,10 +583,10 @@ namespace MFM {
     fp->write("u, effself) { }\n");
 
     //read 'entire quark' method
-    genUlamTypeAutoReadDefinitionForC(fp);
+    genUlamTypeReadDefinitionForC(fp);
 
     //write 'entire quark' method
-    genUlamTypeAutoWriteDefinitionForC(fp);
+    genUlamTypeWriteDefinitionForC(fp);
 
     // aref/aset calls generated inline for immediates.
     if(isCustomArray())
@@ -608,99 +608,6 @@ namespace MFM {
     fp->write(udstr.c_str());
     fp->write(" */\n\n");
   } //genUlamTypeQuarkMangledAutoDefinitionForC
-
-  void UlamTypeClass::genUlamTypeAutoReadDefinitionForC(File * fp)
-  {
-    if(getUlamClass() == UC_QUARK)
-      return genUlamTypeQuarkAutoReadDefinitionForC(fp);
-    else if(getUlamClass() == UC_ELEMENT)
-      return genUlamTypeElementReadDefinitionForC(fp); //same as immediate
-    else
-      assert(0);
-  } //genUlamTypeAutoReadDefinitionForC
-
-  void UlamTypeClass::genUlamTypeQuarkAutoReadDefinitionForC(File * fp)
-  {
-#if 0
-    if(isScalar() || getPackable() == PACKEDLOADABLE)
-      {
-	m_state.indent(fp);
-	fp->write("const ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //u32
-	fp->write(" read() const { return UlamRef<EC>::");
-	fp->write("Read(); ");
-	if(isScalar())
-	  fp->write("}\n"); //done
-	else
-	  fp->write("} //reads entire array\n");
-      }
-#endif
-
-    if(!isScalar())
-      {
-	//class instance idx is always the scalar uti
-	UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
-	const std::string scalarmangledName = m_state.getUlamTypeByIndex(scalaruti)->getUlamTypeMangledName();
-	//reads an item of array;
-	//2nd argument generated for compatibility with underlying method
-	m_state.indent(fp);
-	fp->write("const ");
-	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
-	fp->write(" readArrayItem(");
-	fp->write("const u32 index, const u32 itemlen) const { return ");
-	fp->write("UlamRef<EC>(");
-	fp->write("*this, index * itemlen, "); //rel offset
-	fp->write("itemlen, &"); //itemlen, primitive effself
-	fp->write(scalarmangledName.c_str()); //primitive effself
-	fp->write("<EC>::THE_INSTANCE).Read(); }\n");
-      }
-  } //genUlamTypeQuarkAutoReadDefinitionForC
-
-  void UlamTypeClass::genUlamTypeAutoWriteDefinitionForC(File * fp)
-  {
-    if(getUlamClass() == UC_QUARK)
-      return genUlamTypeQuarkAutoWriteDefinitionForC(fp);
-    else if(getUlamClass() == UC_ELEMENT)
-      return genUlamTypeElementWriteDefinitionForC(fp); //same as immediates
-    else
-      assert(0);
-  } //genUlamTypeAutoWriteDefinitionForC
-
-  void UlamTypeClass::genUlamTypeQuarkAutoWriteDefinitionForC(File * fp)
-  {
-#if 0
-    if(isScalar() || getPackable() == PACKEDLOADABLE)
-      {
-	m_state.indent(fp);
-	fp->write("void write(const ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
-	fp->write(" v) { UlamRef<EC>::");
-	fp->write("Write(v); ");
-	if(isScalar())
-	  fp->write("}\n");
-	else
-	  fp->write("} //writes entire array\n");
-      }
-#endif
-
-    if(!isScalar())
-      {
-	//class instance idx is always the scalar uti
-	UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
-	const std::string scalarmangledName = m_state.getUlamTypeByIndex(scalaruti)->getUlamTypeMangledName();
-	// writes an item of array
-	//3rd argument generated for compatibility with underlying method
-	m_state.indent(fp);
-	fp->write("void writeArrayItem(const ");
-	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
-	fp->write(" v, const u32 index, const u32 itemlen) { ");
-	fp->write("UlamRef<EC>(");
-	fp->write("*this, index * itemlen, "); //rel offset
-	fp->write("itemlen, &"); //itemlen, primitive effself
-	fp->write(scalarmangledName.c_str()); //primitive effself
-	fp->write("<EC>::THE_INSTANCE).Write(v); }\n");
-      }
-  } //genUlamTypeQuarkAutoWriteDefinitionForC
 
   void UlamTypeClass::genUlamTypeReadDefinitionForC(File * fp)
   {
@@ -724,23 +631,7 @@ namespace MFM {
 
   void UlamTypeClass::genUlamTypeQuarkReadDefinitionForC(File * fp)
   {
-#if 0
-    if(isScalar() || getPackable() == PACKEDLOADABLE)
-      {
-	m_state.indent(fp);
-	fp->write("const ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
-	fp->write(" read() const { ");
-	fp->write("return Up_Us::");
-	fp->write(readMethodForCodeGen().c_str());
-	fp->write("(); ");
-	if(isScalar())
-	  fp->write("}\n");
-	else
-	  fp->write("} //reads entire array\n");
-      }
-#endif
-
+    //scalar and entire PACKEDLOADABLE array handled by base class read method
     if(!isScalar())
       {
 	//class instance idx is always the scalar uti
@@ -763,23 +654,7 @@ namespace MFM {
 
   void UlamTypeClass::genUlamTypeQuarkWriteDefinitionForC(File * fp)
   {
-#if 0
-    if(isScalar() || getPackable() == PACKEDLOADABLE)
-      {
-	m_state.indent(fp);
-	fp->write("void write(const ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
-	fp->write(" v) { ");
-	fp->write("Up_Us::");
-	fp->write(writeMethodForCodeGen().c_str());
-	fp->write("(v); ");
-	if(isScalar())
-	  fp->write("}\n");
-	else
-	  fp->write("} //writes entire array\n");
-      }
-#endif
-
+    //scalar and entire PACKEDLOADABLE array handled by base class write method
     if(!isScalar())
       {
 	//class instance idx is always the scalar uti
@@ -881,10 +756,10 @@ namespace MFM {
     fp->write("() {}\n");
 
     //read 'entire atom' method
-    genUlamTypeAutoReadDefinitionForC(fp);
+    genUlamTypeReadDefinitionForC(fp);
 
     //write 'entire atom' method
-    genUlamTypeAutoWriteDefinitionForC(fp);
+    genUlamTypeWriteDefinitionForC(fp);
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -904,18 +779,6 @@ namespace MFM {
   {
     // arrays are handled separately
     assert(isScalar());
-
-#if 0
-    //not an array
-    m_state.indent(fp);
-    fp->write("const ");
-    fp->write(getTmpStorageTypeAsString().c_str()); //T
-    fp->write(" read() const { return UlamRefAtom<EC>::ReadAtom(); /* entire element */ }\n");
-
-    m_state.indent(fp);
-    fp->write("const u32 readTypeField()");
-    fp->write("{ return UlamRefAtom<EC>::GetType(); }\n");
-#endif
   } //genUlamTypeElementReadDefinitionForC
 
   void UlamTypeClass::genUlamTypeElementWriteDefinitionForC(File * fp)

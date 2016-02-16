@@ -473,10 +473,10 @@ namespace MFM {
     fp->write("u, NULL) { }\n"); //effself is null for primitives
 
     //calls slow AutoRefBase read method
-    genUlamTypeAutoReadDefinitionForC(fp);
+    genUlamTypeReadDefinitionForC(fp);
 
     //calls slow AutoRefBase write method
-    genUlamTypeAutoWriteDefinitionForC(fp);
+    genUlamTypeWriteDefinitionForC(fp);
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -491,71 +491,6 @@ namespace MFM {
     fp->write(udstr.c_str());
     fp->write(" */\n\n");
   } //genUlamTypeMangledAutoDefinitionForC
-
-  void UlamType::genUlamTypeAutoReadDefinitionForC(File * fp)
-  {
-#if 0
-    if(isScalar() || getPackable() == PACKEDLOADABLE)
-      {
-	m_state.indent(fp);
-	fp->write("const ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //u32
-	fp->write(" read() const { return UlamRef<EC>::");
-	fp->write("Read(); ");
-	if(isScalar())
-	  fp->write("}\n"); //done
-	else
-	  fp->write("} //reads entire array\n");
-      }
-#endif
-
-    if(!isScalar())
-      {
-	//reads an element of array;
-	//2nd argument generated for compatibility with underlying method
-	m_state.indent(fp);
-	fp->write("const ");
-	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
-	fp->write(" readArrayItem(");
-	fp->write("const u32 index, const u32 itemlen) const { return ");
-	fp->write("UlamRef<EC>(");
-	fp->write("*this, index * itemlen, "); //rel offset
-	fp->write("itemlen, NULL)"); //itemlen, primitive effself
-	fp->write(".Read(); }\n");
-      }
-  } //genUlamTypeAutoReadDefinitionForC
-
-  void UlamType::genUlamTypeAutoWriteDefinitionForC(File * fp)
-  {
-#if 0
-    if(isScalar() || getPackable() == PACKEDLOADABLE)
-      {
-	m_state.indent(fp);
-	fp->write("void write(const ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
-	fp->write(" v) { UlamRef<EC>::");
-	fp->write("Write(v); ");
-	if(isScalar())
-	  fp->write("}\n");
-	else
-	  fp->write("} //writes entire array\n");
-      }
-#endif
-
-    if(!isScalar())
-      {
-	// writes an element of array
-	//3rd argument generated for compatibility with underlying method
-	m_state.indent(fp);
-	fp->write("void writeArrayItem(const ");
-	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
-	fp->write(" v, const u32 index, const u32 itemlen) { ");
-	fp->write("UlamRef<EC>(");
-	fp->write("*this, index * itemlen, "); //rel offset
-	fp->write("itemlen, NULL)"); //itemlen, primitive effself
-	fp->write(".Write(v); }\n");
-      }
-  } //genUlamTypeAutoWriteDefinitionForC
 
   void UlamType::genUlamTypeMangledImmediateDefinitionForC(File * fp)
   {
@@ -1060,23 +995,7 @@ namespace MFM {
 
   void UlamType::genUlamTypeReadDefinitionForC(File * fp)
   {
-#if 0
-    //handled by base class read method
-    if(isScalar() || getPackable() == PACKEDLOADABLE)
-      {
-	m_state.indent(fp);
-	fp->write("const ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //u32
-	fp->write(" read() const { return Up_Us::");
-	fp->write(readMethodForCodeGen().c_str());
-	fp->write("(); ");
-	if(isScalar())
-	  fp->write("}\n"); //done
-	else
-	  fp->write("} //reads entire array\n");
-      }
-#endif
-
+    //scalar and entire PACKEDLOADABLE array handled by base class read method
     if(!isScalar())
       {
 	//reads an element of array;
@@ -1095,23 +1014,7 @@ namespace MFM {
 
   void UlamType::genUlamTypeWriteDefinitionForC(File * fp)
   {
-#if 0
-    //handled by base class write method
-    if(isScalar() || getPackable() == PACKEDLOADABLE)
-      {
-	m_state.indent(fp);
-	fp->write("void write(const ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
-	fp->write(" v) { Up_Us::");
-	fp->write(writeMethodForCodeGen().c_str());
-	fp->write("(v); ");
-	if(isScalar())
-	  fp->write("}\n");
-	else
-	  fp->write("} //writes entire array\n");
-      }
-#endif
-
+    //scalar and entire PACKEDLOADABLE array handled by base class write method
     if(!isScalar())
       {
 	// writes an element of array
