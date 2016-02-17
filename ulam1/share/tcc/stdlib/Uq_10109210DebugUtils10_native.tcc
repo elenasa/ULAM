@@ -18,7 +18,7 @@ namespace MFM{
     OString512 buff;
     u32 flags = Uv_5flags.Read();
     T& atdirect = ew.GetCenterAtomDirect();
-    UlamRefAtom<EC> tmpur(atdirect, uc.LookupElementTypeFromContext(atdirect.GetType());
+    UlamRefAtom<EC> tmpur(atdirect, uc.LookupElementTypeFromContext(atdirect.GetType()));
     Uq_10109210DebugUtils10_printAtom(uc, tmpur, flags, buff);
 
     LOG.Message("@(%2d,%2d) of %s: %s",
@@ -134,7 +134,7 @@ namespace MFM{
     OString512 buff;
     T atom = Uv_1a.Read();
     u32 flags = Uv_5flags.Read();
-    UlamRefAtom<EC> tmpur(atom, uc.LookupElementTypeFromContext(atom.GetType());
+    UlamRefAtom<EC> tmpur(atom, uc.LookupElementTypeFromContext(atom.GetType()));
     Uq_10109210DebugUtils10_printAtom(uc, tmpur, flags, buff);
     if (buff.GetLength() > 0)
       LOG.Message("%s",buff.GetZString());
