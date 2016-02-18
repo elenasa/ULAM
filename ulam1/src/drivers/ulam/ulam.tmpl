@@ -1226,7 +1226,7 @@ EOF
             my $stubname = lexEncode("_uqinstance",$quarkPtrArrayCount);
             $quarkPtrArrayStatics .= <<EOF;
 
-  static MFM::$en<MFM::StdEventConfig,0> $stubname;
+  static MFM::$en<MFM::StdEventConfig> $stubname;
 EOF
             $quarkPtrArrayInits .= "," if $quarkPtrArrayInits ne "";
             $quarkPtrArrayInits .= "\n    &$stubname";

@@ -663,37 +663,19 @@ namespace MFM {
 	fp->write("typedef ");
 	fp->write(nut->getUlamTypeMangledName().c_str()); //for C++
 	fp->write("<EC>");
-
-#if 0
-	if(classtype == UC_ELEMENT)
-	  {
-	    //fp->write_decimal_unsigned(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
-	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
-	  }
-	else
-	  {
-	    //inside a quark
-	    //fp->write("POS + ");
-	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
-	  }
-#endif
-
       }
     else
       {
-	//fp->write("typedef AtomicParameterType");
 	fp->write("typedef UlamRefFixed");
 	fp->write("<EC, "); //BITSPERATOM
 
 	if(classtype == UC_QUARK)
 	  {
-	    //fp->write("POS + "); //????
 	    fp->write_decimal(m_varSymbol->getPosOffset());
 	  }
 	else
 	  {
 	    assert(classtype == UC_ELEMENT);
-	    //fp->write_decimal_unsigned(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
 	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
 	  }
 

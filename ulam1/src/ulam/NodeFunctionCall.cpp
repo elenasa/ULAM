@@ -924,7 +924,8 @@ namespace MFM {
       }
     else if(cos->getAutoLocalType() == ALT_AS)
       {
-	fp->write(m_state.getHiddenArgName()); //ur
+	assert(0);
+	fp->write(m_state.getHiddenArgName()); //ur, should use urtmpnum!!
 	fp->write(".GetEffectiveSelf()->getVTableEntry(");
       }
     else
