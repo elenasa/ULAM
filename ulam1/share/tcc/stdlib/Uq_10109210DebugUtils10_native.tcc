@@ -17,7 +17,7 @@ namespace MFM{
 
     OString512 buff;
     u32 flags = Uv_5flags.Read();
-    T& atdirect = ew.GetCenterAtomDirect();
+    T atdirect = ew.GetCenterAtomDirect();
     UlamRefAtom<EC> tmpur(atdirect, uc.LookupElementTypeFromContext(atdirect.GetType()));
     Uq_10109210DebugUtils10_printAtom(uc, tmpur, flags, buff);
 
@@ -132,7 +132,7 @@ namespace MFM{
   void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102961a<EC> Uv_1a, Ui_Ut_102321u<EC> Uv_5flags) const
   {
     OString512 buff;
-    T atom = Uv_1a.Read();
+    T atom = Uv_1a.ReadAtom();
     u32 flags = Uv_5flags.Read();
     UlamRefAtom<EC> tmpur(atom, uc.LookupElementTypeFromContext(atom.GetType()));
     Uq_10109210DebugUtils10_printAtom(uc, tmpur, flags, buff);

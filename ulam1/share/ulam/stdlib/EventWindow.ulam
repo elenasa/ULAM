@@ -35,22 +35,22 @@ quark EventWindow {
   SiteNum size() native;
 
   Atom aref(SiteNum index) native;
-  Atom aref(C2D coord) { return aref(getSiteNumber(coord)); }
+  Atom aref(C2D coord) { return aref(getSiteNumberRaw(coord)); }
 
   Void aset(SiteNum index, Atom val) native;
-  Void aset(C2D coord, Atom val) { aset(getSiteNumber(coord), val); }
+  Void aset(C2D coord, Atom val) { aset(getSiteNumberRaw(coord), val); }
 
   Bool isLegal(SiteNum index) { return index < size(); }
-  Bool isLegal(C2D coord) { return isLegal(getSiteNumber(coord)); }
+  Bool isLegal(C2D coord) { return isLegal(getSiteNumberRaw(coord)); }
 
   Bool isLive(SiteNum index) native;
-  Bool isLive(C2D coord) { return isLegal(coord) && isLive(getSiteNumber(coord)); }
+  Bool isLive(C2D coord) { return isLegal(coord) && isLive(getSiteNumberRaw(coord)); }
 
   Bool isEmpty(SiteNum index) { return isLive(index) && au.isEmpty(aref(index)); }
-  Bool isEmpty(C2D coord) { return isLegal(coord) && isLive(getSiteNumber(coord)); }
+  Bool isEmpty(C2D coord) { return isLegal(coord) && isLive(getSiteNumberRaw(coord)); }
 
   Bool swap(SiteNum index1, SiteNum index2)  native;
-  Bool swap(C2D coord1, C2D coord2) { return swap(getSiteNumber(coord1), getSiteNumber(coord2)); }
+  Bool swap(C2D coord1, C2D coord2) { return swap(getSiteNumberRaw(coord1), getSiteNumberRaw(coord2)); }
 
   C2D getCoord(SiteNum siteNum) native;
 
@@ -66,7 +66,24 @@ quark EventWindow {
   */
   SiteNum getSiteNumber(C2D coord) native;
 
+  /** Get the SiteNum corresponding to \c coord, if it exists, else
+      return EventWindow.size() (which is an illegal SiteNum, and will
+      cause event window array accesses to fail if used).  Unlike
+      getSiteNumber, getSiteNumberRaw ignores the current EventWindow
+      Symmetry and always uses the 'direct' mapping (as if the
+      symmetry was cSYMMETRY_000L).
+  */
+  SiteNum getSiteNumberRaw(C2D coord) native;
+
+  /** Set the EventWindow symmetry to \c newSym, and return its
+      previous value.  The prevailing EventWindow symmetry affects the
+      interpretation of SiteNum and C2D in most of the EventWindow
+      methods.
+  */
   Symmetry changeSymmetry(Symmetry newSym) native;
 
+  /**
+     (Deprecated)
+   */
   Void diffuse() native;
 }

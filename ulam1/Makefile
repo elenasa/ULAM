@@ -146,7 +146,7 @@ $(MFM_ROOT_DIR)/res/elements/libue%.so:	$(ULAMDIR)/%/*.ulam
 	rm -rf $(ULAMWORKDIR)
 
 ULAM_MFM_TARGETS+=$(MFM_ROOT_DIR)/res/elements/libuecore.so
-ULAM_MFM_TARGETS+=$(MFM_ROOT_DIR)/res/elements/libuedemos.so
+#ULAM_MFM_TARGETS+=$(MFM_ROOT_DIR)/res/elements/libuedemos.so
 ulamexports:	$(ULAM_MFM_TARGETS)
 
 cleanulamexports:	FORCE

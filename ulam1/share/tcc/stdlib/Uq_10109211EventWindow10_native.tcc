@@ -22,7 +22,7 @@ namespace MFM{
   {
     u32 siteNumber = Uv_5index.Read();
     EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
-    ew.SetAtomSym(siteNumber, Uv_1v.Read());
+    ew.SetAtomSym(siteNumber, Uv_1v.ReadAtom());
   }
 
   template<class EC>
@@ -75,13 +75,30 @@ namespace MFM{
     const EventWindow<EC> & ew = uc.GetEventWindow();
 
     //const s32 x = _SignExtend32(Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x::Read(Uv_5coord.getBits()), 16);
-    const s32 x = _SignExtend32(Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x(Uv_5coord, NULL).Read(), 16);
+    const s32 x = _SignExtend32(typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x(Uv_5coord, NULL).Read(), 16);
     //const s32 y = _SignExtend32(Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y::Read(Uv_5coord.getBits()), 16);
-    const s32 y = _SignExtend32(Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y(Uv_5coord, NULL).Read(), 16);
+    const s32 y = _SignExtend32(typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y(Uv_5coord, NULL).Read(), 16);
     const SPoint loc(x,y);
     u32 ret;
     if (ew.InWindow(loc))
       ret = ew.MapToIndexSymValid(loc);
+    else
+      ret = EventWindow<EC>::SITE_COUNT;
+    return Ui_Ut_10161u<EC>(ret);
+  }
+
+  template<class EC>
+  Ui_Ut_10161u<EC> Uq_10109211EventWindow10<EC>::Uf_9216getSiteNumberRaw(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Uq_102323C2D10<EC> Uv_5coord) const
+  {
+    enum { R = EC::EVENT_WINDOW_RADIUS };
+    const EventWindow<EC> & ew = uc.GetEventWindow();
+
+    const s32 x = _SignExtend32(typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x(Uv_5coord, NULL).Read(), 16);
+    const s32 y = _SignExtend32(typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y(Uv_5coord, NULL).Read(), 16);
+    const SPoint loc(x,y);
+    u32 ret;
+    if (ew.InWindow(loc))
+      ret = ew.MapToIndexDirectValid(loc);
     else
       ret = EventWindow<EC>::SITE_COUNT;
     return Ui_Ut_10161u<EC>(ret);
