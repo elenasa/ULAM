@@ -1511,7 +1511,8 @@ namespace MFM {
 	    if(m_state.alreadyDefinedSymbolClass(argut, csym))
 	      {
 		s32 csize;
-		if((csize = m_state.getBitSize(csym->getUlamTypeIdx())) >= 0)
+		UTI cuti = csym->getUlamTypeIdx();
+		if((csize = m_state.getBitSize(cuti)) >= 0)
 		  {
 		    return csize;
 		  }
@@ -1525,6 +1526,10 @@ namespace MFM {
 		    return 0; //empty, ok
 		  }
 		else if(csym->isStub())
+		  {
+		    return UNKNOWNSIZE; //csize?
+		  }
+		else if(isAnonymousClass(cuti))
 		  {
 		    return UNKNOWNSIZE; //csize?
 		  }
