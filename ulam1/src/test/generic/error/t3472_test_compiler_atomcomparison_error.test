@@ -7,6 +7,7 @@
 ./A.ulam:6:10: ERROR: Non-primitive type <Atom(96)> is not supported as right operand type for binary operator!=.
 ./A.ulam:7:2: ERROR: Use explicit cast to return Bool(1) as Int(32).
 ./A.ulam:1:9: ERROR: 3 Nodes with erroneous types detected after type labeling class: A.
+./A.ulam:1:9: ERROR: 2 Nodes with unresolved types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 #>A.ulam
 element A {

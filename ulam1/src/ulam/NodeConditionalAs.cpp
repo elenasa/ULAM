@@ -134,6 +134,13 @@ namespace MFM {
 	newType = Hzy; //goagain set by nodetypedesc
 	m_state.setGoAgain();
       }
+    else
+      {
+	//a place to breakpoint for debugging
+	std::ostringstream msg;
+	msg << "Ready righthand type of conditional operator '" << getName();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+      }
 
     setNodeType(newType);
     setStoreIntoAble(false);

@@ -189,7 +189,7 @@ namespace MFM {
 	m_state.m_err.clearCounts(); //warnings and errors
 	sumbrtn = resolvingLoop();
 	errCnt = m_state.m_err.getErrorCount();
-	if(++infcounter > MAX_ITERATIONS || errCnt > 0)
+	if((++infcounter > MAX_ITERATIONS) || (errCnt > 0))
 	  {
 	    std::ostringstream msg;
 	    msg << errCnt << " Errors found during resolving loop --- ";
@@ -246,6 +246,8 @@ namespace MFM {
 	m_state.m_programDefST.buildDefaultQuarksFromTableOfClasses();
       }
 
+    m_state.m_programDefST.reportUnknownTypeNamesAcrossTableOfClasses();
+
     // count Nodes with illegal Nav types; walk each class' data members and funcdefs.
     // clean up duplicate functions beforehand
     u32 navcount = 0;
@@ -279,7 +281,9 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << hzycount << " Nodes with unresolved types detected after type labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+	// if we had such a thing:
+	//msg << ". Supplying --info on command line will provide additional internal details";
+	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     else
       assert(!m_state.goAgain());
@@ -364,6 +368,7 @@ namespace MFM {
     sumbrtn &= m_state.m_programDefST.setBitSizeOfTableOfClasses();
     sumbrtn &= m_state.m_programDefST.statusNonreadyClassArgumentsInTableOfClasses(); //without context
     sumbrtn &= m_state.m_programDefST.fullyInstantiateTableOfClasses(); //with ready args
+    sumbrtn &= m_state.m_programDefST.checkForUnknownTypeNamesInTableOfClasses();
 
     //checkAndLabelTypes: lineage updated incrementally
     sumbrtn &= m_state.m_programDefST.labelTableOfClasses(); //labelok, stubs not labeled, checks goagain flag!

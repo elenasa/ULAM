@@ -263,7 +263,8 @@ namespace MFM {
     if(m_class == UC_UNSEEN && isReference())
       {
 	UTI classidx = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
-	setUlamClass(m_state.getUlamTypeByIndex(classidx)->getUlamClass());
+	if(m_state.okUTItoContinue(classidx))
+	  setUlamClass(m_state.getUlamTypeByIndex(classidx)->getUlamClass());
       }
     return m_class;
   }

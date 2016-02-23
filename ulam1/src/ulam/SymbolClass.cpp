@@ -324,6 +324,48 @@ namespace MFM {
     m_state.popClassContext(); //missing?
   } //testThisClass
 
+  void SymbolClass::addUnknownTypeTokenToClass(Token tok, UTI huti)
+  {
+    if(!m_resolver)
+      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
+    assert(m_resolver);
+    m_resolver->addUnknownTypeToken(tok, huti);
+  } //addUnknownTypeNameIdToClass
+
+  Token SymbolClass::removeKnownTypeTokenFromClass(UTI huti)
+  {
+    assert(m_resolver);
+    return m_resolver->removeKnownTypeToken(huti);
+  } //removeKnownTypeNameIdToClass
+
+  bool SymbolClass::hasUnknownTypeInClass(UTI huti)
+  {
+    if(!m_resolver)
+      return false;
+    return m_resolver->hasUnknownTypeToken(huti);
+  }
+
+  bool SymbolClass::statusUnknownTypeInClass(UTI huti)
+  {
+    if(!m_resolver)
+      return false;
+    return m_resolver->statusUnknownType(huti);
+  }
+
+  bool SymbolClass::statusUnknownTypeNamesInClass()
+  {
+    if(!m_resolver)
+      return true;
+    return m_resolver->statusAnyUnknownTypeNames();
+  }
+
+  u32 SymbolClass::reportUnknownTypeNamesInClass()
+  {
+    if(!m_resolver)
+      return 0;
+    return m_resolver->reportAnyUnknownTypeNames();
+  }
+
   void SymbolClass::linkConstantExpressionForPendingArg(NodeConstantDef * constNode)
   {
     if(!m_resolver)
@@ -353,6 +395,13 @@ namespace MFM {
     assert(m_resolver);
     m_resolver->cloneUTImap(csym);
   } //cloneResolverUTImap
+
+  void SymbolClass::cloneUnknownTypesMapInClass(SymbolClass * to)
+  {
+    if(!m_resolver)
+      return;
+    return m_resolver->cloneUnknownTypesTokenMap(to);
+  }
 
   UTI SymbolClass::getContextForPendingArgs()
   {
@@ -601,10 +650,6 @@ namespace MFM {
 
 	    // pass uc with effective self setup
 	    fp->write("<EC>::THE_INSTANCE.Uf_4test(");
-	    //fp->write("UlamContext<EC>(uc, &");
-	    //fp->write(sut->getUlamTypeMangledName().c_str());
-	    //fp->write("<EC>::THE_INSTANCE)");
-	    //fp->write(", atom);\n");
 	    fp->write("uc, ur);\n");
 
 	    m_state.indent(fp);

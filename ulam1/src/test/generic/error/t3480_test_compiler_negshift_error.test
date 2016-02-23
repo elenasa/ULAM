@@ -7,6 +7,7 @@
 ./A.ulam:11:20: ERROR: Unsigned is the supported type for shift distance, operator>>; Suggest casting Int(2) to Unsigned.
 ./A.ulam:11:12: ERROR: Cannot cast erroneous type.
 ./A.ulam:2:9: ERROR: 5 Nodes with erroneous types detected after type labeling class: A.
+./A.ulam:2:9: ERROR: 2 Nodes with unresolved types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //informed by t3246

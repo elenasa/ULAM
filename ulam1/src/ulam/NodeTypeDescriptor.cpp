@@ -179,9 +179,9 @@ namespace MFM {
       }
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMTYPE etype = nut->getUlamTypeEnum();
+    ULAMTYPE etyp = nut->getUlamTypeEnum();
 
-    if((etype == Class))
+    if((etyp == Class))
       {
 	ULAMCLASSTYPE nclasstype = nut->getUlamClass();
 	if(nut->isComplete())
@@ -221,14 +221,27 @@ namespace MFM {
 	    else
 	      {
 		bool isAnonymousClass = (nut->isHolder() || !m_state.isARootUTI(nuti));
+		UTI auti = nuti;
+
+		if(nut->isHolder())
+		  {
+		    if(!m_state.statusUnknownTypeInThisClassResolver(nuti))
+		      auti = Hzy;
+		  }
+		else if(!m_state.isARootUTI(nuti))
+		  {
+		    AssertBool isAlias = m_state.findaUTIAlias(nuti, auti);
+		    assert(isAlias);
+		  }
 
 		std::ostringstream msg;
 		msg << "UNSEEN Class and incomplete descriptor for type: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 		if(isAnonymousClass)
 		  {
+		    msg << " replaced with type: (UTI" << auti << ")";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		    rtnuti = Hzy;
+		    rtnuti = auti; //was Hzy
 		  }
 		else
 		  {
@@ -237,6 +250,13 @@ namespace MFM {
 		  }
 	      }
 	  }
+	else
+	  rtnuti = Hzy;
+      }
+    else if(etyp == Holder)
+      {
+	if(m_state.statusUnknownTypeInThisClassResolver(nuti))
+	  rtnuti = nuti; //resolved!
 	else
 	  rtnuti = Hzy;
       }
@@ -249,7 +269,7 @@ namespace MFM {
 	      {
 		assert(0); //i don't understand
 	      //use default primitive bitsize
-	      rtnuti = m_state.makeUlamType(m_typeTok, ULAMTYPE_DEFAULTBITSIZE[etype], NONARRAYSIZE, Nouti);
+	      rtnuti = m_state.makeUlamType(m_typeTok, ULAMTYPE_DEFAULTBITSIZE[etyp], NONARRAYSIZE, Nouti);
 	      rtnb = true;
 	      }
 	    else if(m_state.isComplete(nuti))

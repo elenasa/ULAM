@@ -156,7 +156,7 @@ namespace MFM {
 
   UTI CompilerState::makeUlamTypeFromHolder(UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti)
   {
-    //we need to keep the uti, but change the key
+    //we need to keep the uti, but change the key; utype to be.
     UlamKeyTypeSignature hkey = getUlamKeyTypeSignatureByIndex(uti);
     return makeUlamTypeFromHolder(hkey, newkey, utype, uti);
   } //makeUlamTypeFromHolder
@@ -233,6 +233,36 @@ namespace MFM {
 
     return  uti; //return same uti (third arg)
   } //makeUlamTypeFromHolder
+
+  //extends use of addIncompleteClassSymbolToProgramTable, if seen before, but
+  // didn't know it was a class; before resorting to AnonymousClass that may
+  // neer get resolved.
+  SymbolClassName * CompilerState::makeClassFromHolder(UTI huti, Token tok)
+  {
+    SymbolClassName * cnsym = NULL;
+    if(hasUnknownTypeInThisClassResolver(huti))
+      {
+	Token holdTok = removeKnownTypeTokenFromThisClassResolver(huti);
+	AssertBool isDefined = addIncompleteClassSymbolToProgramTable(holdTok, cnsym);
+	assert(isDefined);
+	//clean up existing holder
+	UTI cuti = cnsym->getUlamTypeIdx();
+	cleanupExistingHolder(huti, cuti);
+      }
+    else
+      cnsym = makeAnonymousClassFromHolder(huti, tok.m_locator);
+    return cnsym;
+  } //makeClassFromHolder
+
+  void CompilerState::cleanupExistingHolder(UTI huti, UTI newuti)
+  {
+    UlamType * newut = getUlamTypeByIndex(newuti);
+    UlamKeyTypeSignature newkey = newut->getUlamKeyTypeSignature();
+    ULAMTYPE newetyp = newut->getUlamTypeEnum();
+    makeUlamTypeFromHolder(newkey, newetyp, huti);
+    mapTypesInCurrentClass(huti, newuti);
+    updateUTIAliasForced(huti, newuti);
+  }
 
   //similar to addIncompleteClassSymbolToProgramTable, yet different!
   SymbolClassName * CompilerState::makeAnonymousClassFromHolder(UTI cuti, Locator cloc)
@@ -525,28 +555,70 @@ namespace MFM {
 
     // does this hurt anything?
     if(findaUTIAlias(auti, mappedUTI))
-       return mappedUTI; //anonymous UTI
+       return true; //anonymous UTI
 
-    UlamType * aut = getUlamTypeByIndex(auti);
-    UlamKeyTypeSignature akey = getUlamKeyTypeSignatureByIndex(auti);
+    //or this? (works for template instances too)
+    if(statusUnknownTypeInThisClassResolver(auti))
+    {
+      mappedUTI = auti;
+      return true;
+    }
 
-    //if(aut->isReference()) not a special case
-
-    //move this test after looking for the mapped class symbol type in "cuti" (always compileThis?)
-    ULAMTYPE bUT = aut->getUlamTypeEnum();
-    if(bUT == Class)
+    if(!isHolder(auti))
       {
-	SymbolClassName * cnsymOfIncomplete = NULL; //could be a different class than being compiled
-	AssertBool isDefined = alreadyDefinedSymbolClassName(akey.getUlamKeyTypeSignatureNameId(), cnsymOfIncomplete);
-	assert(isDefined);
-	UTI utiofinc = cnsymOfIncomplete->getUlamTypeIdx();
-	if(utiofinc != cuti)
+	UlamType * aut = getUlamTypeByIndex(auti);
+	UlamKeyTypeSignature akey = getUlamKeyTypeSignatureByIndex(auti);
+	u32 anameid = akey.getUlamKeyTypeSignatureNameId();
+
+	//if(aut->isReference()) not a special case
+
+	//move this test after looking for the mapped class symbol type in "cuti" (always compileThis?)
+	ULAMTYPE bUT = aut->getUlamTypeEnum();
+	if(bUT == Class)
 	  {
-	      if(!cnsymOfIncomplete->isClassTemplate())
-		return false;
-	    return (cnsymOfIncomplete->hasMappedUTI(auti, mappedUTI));
+	    SymbolClassName * cnsymOfIncomplete = NULL; //could be a different class than being compiled
+	    AssertBool isDefined = alreadyDefinedSymbolClassName(anameid, cnsymOfIncomplete);
+	    assert(isDefined);
+	    UTI utiofinc = cnsymOfIncomplete->getUlamTypeIdx();
+	    if(utiofinc != cuti)
+	      {
+		if(!cnsymOfIncomplete->isClassTemplate())
+		  return false;
+		return (cnsymOfIncomplete->hasMappedUTI(auti, mappedUTI));
+	      }
 	  }
+	else
+	  {
+	    Symbol * symOfIncomplete = NULL;
+	    bool tmphzykin = false;
+
+	    if(alreadyDefinedSymbol(anameid, symOfIncomplete, tmphzykin))
+	      {
+		mappedUTI = symOfIncomplete->getUlamTypeIdx();
+		return true;
+	      }
+	  }
+      } //not a holder
+
+    //recursively check ancestors, for mapped uti's
+    UTI superuti = isClassASubclass(cuti);
+    if(okUTItoContinue(superuti))
+      {
+	UlamKeyTypeSignature supkey = getUlamKeyTypeSignatureByIndex(superuti);
+
+	SymbolClassName * supcsym = NULL;
+	AssertBool isDefined = alreadyDefinedSymbolClassName(supkey.getUlamKeyTypeSignatureNameId(), supcsym);
+	assert(isDefined);
+
+	pushClassContext(superuti, supcsym->getClassBlockNode(), supcsym->getClassBlockNode(), false, NULL);
+	bool kinhadit = mappedIncompleteUTI(superuti, auti, mappedUTI);
+
+	popClassContext(); //restore
+
+	if(kinhadit)
+	  return true;
       }
+
     return false; //for compiler
   } //mappedIncompleteUTI
 
@@ -583,15 +655,11 @@ namespace MFM {
 	  return suti;
 	if(skey.getUlamKeyTypeSignatureReferenceType() == ALT_AS)
 	  {
-	    //UTI asref = getUlamTypeAsRef(getCompileThisIdx(), ALT_AS); //?
-	    //	    return asref;
 	    UTI asref = mapIncompleteUTIForCurrentClassInstance(getUlamTypeAsDeref(suti));
 	    return getUlamTypeAsRef(asref, ALT_AS);
 	  }
 	if(skey.getUlamKeyTypeSignatureReferenceType() == ALT_REF)
 	  {
-	    //UTI asref = getUlamTypeAsRef(getCompileThisIdx(), ALT_REF); //?
-	    //return asref;
 	    UTI asref = mapIncompleteUTIForCurrentClassInstance(getUlamTypeAsDeref(suti));
 	    return getUlamTypeAsRef(asref, ALT_AS);
 	  }
@@ -685,7 +753,7 @@ namespace MFM {
     AssertBool isDef = isDefined(m_indexToUlamKey[uti], ut);
     assert(isDef);
     return ut->getUlamTypeNameBrief();
-  }
+  } //getUlamTypeNameBriefByIndex
 
   const std::string CompilerState::getUlamTypeNameByIndex(UTI uti)
   {
@@ -698,20 +766,28 @@ namespace MFM {
   ULAMTYPE CompilerState::getBaseTypeFromToken(Token tok)
   {
     ULAMTYPE bUT = Nav;
-    UTI ut = Nav;
+    UTI uti = Nav;
     UTI tmpforscalaruti = Nouti;
     //is this name already a typedef for a complex type?
-    if(getUlamTypeByTypedefName(tok.m_dataindex, ut, tmpforscalaruti))
-      bUT = getUlamTypeByIndex(ut)->getUlamTypeEnum();
+    if(getUlamTypeByTypedefName(tok.m_dataindex, uti, tmpforscalaruti))
+      bUT = getUlamTypeByIndex(uti)->getUlamTypeEnum();
     else if(Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD)
       {
 	std::string typeName = getTokenAsATypeName(tok); //Int, etc
-
 	//no way to get the bUT, except to assume typeName is one of them?
 	bUT = UlamType::getEnumFromUlamTypeString(typeName.c_str()); //could be Element, etc.;
       }
     else
-      bUT = Class; //it's an element or quark! base type is Class.
+      {
+	//check for existing Class type
+	SymbolClassName * cnsym = NULL;
+	if(alreadyDefinedSymbolClassName(tok.m_dataindex, cnsym))
+	  {
+	    bUT = Class;
+	  } //else or make one if doesn't exist yet, while parsing---do we do this anymore?
+	else
+	  bUT = Hzy; //it's an element or quark or yet unseen typedef! base type is Hzy (was assumed to be Class).
+      }
     return bUT;
   } //getBaseTypeFromToken
 
@@ -1078,7 +1154,6 @@ namespace MFM {
 
     UlamKeyTypeSignature key1 = aut->getUlamKeyTypeSignature();
     UlamKeyTypeSignature newkey = UlamKeyTypeSignature(key1.getUlamKeyTypeSignatureNameId(), key1.getUlamKeyTypeSignatureBitSize(), key1.getUlamKeyTypeSignatureArraySize(), key1.getUlamKeyTypeSignatureClassInstanceIdx(), autoreftype);
-    //UlamKeyTypeSignature newkey = UlamKeyTypeSignature(key1.getUlamKeyTypeSignatureNameId(), key1.getUlamKeyTypeSignatureBitSize(), key1.getUlamKeyTypeSignatureArraySize(), auti, autoreftype);
 
     if(key1 == newkey)
       return;
@@ -1137,6 +1212,11 @@ namespace MFM {
     if(!isComplete(auti))
       return; //without knowing the bitsize, don't alias it
 
+    updateUTIAliasForced(auti, buti);
+  } //updateUTIAlias
+
+  void CompilerState::updateUTIAliasForced(UTI auti, UTI buti)
+  {
     assert(auti < m_unionRootUTI.size());
     assert(buti < m_unionRootUTI.size());
     m_unionRootUTI[auti] = buti;
@@ -1149,7 +1229,7 @@ namespace MFM {
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
     return;
-  } //updateClassUTIAlias
+  } //updateUTIAlias
 
   void CompilerState::initUTIAlias(UTI auti)
   {
@@ -1434,7 +1514,7 @@ namespace MFM {
     if(alreadyDefinedSymbolClassName(ut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), cnsym))
       {
 	//not a regular class, and not the template, so dig deeper for the stub
-	if(cnsym->getUlamTypeIdx() != scalarUTI && cnsym->isClassTemplate())
+	if((cnsym->getUlamTypeIdx() != scalarUTI) && cnsym->isClassTemplate())
 	  {
 	    SymbolClass * csym = NULL;
 	    if(((SymbolClassNameTemplate *) cnsym)->findClassInstanceByUTI(scalarUTI, csym))
@@ -1463,6 +1543,55 @@ namespace MFM {
       }
     return rtnb;
   } //alreadyDefinedSymbolClass
+
+  //temporary type name which will be updated during type labeling.
+  void CompilerState::addUnknownTypeTokenToAClassResolver(UTI cuti, Token tok, UTI huti)
+  {
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
+
+    csym->addUnknownTypeTokenToClass(tok, huti);
+  } //addUnknownTypeTokenToThisClassResolver
+
+  //temporary type name which will be updated during type labeling.
+  void CompilerState::addUnknownTypeTokenToThisClassResolver(Token tok, UTI huti)
+  {
+    addUnknownTypeTokenToAClassResolver(getCompileThisIdx(), tok, huti);
+  } //addUnknownTypeTokenToThisClassResolver
+
+  //temporary type name which will be updated during type labeling.
+  Token CompilerState::removeKnownTypeTokenFromThisClassResolver(UTI huti)
+  {
+    UTI cuti = getCompileThisIdx();
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
+
+    return csym->removeKnownTypeTokenFromClass(huti);
+  } //removeKnownTypeTokenFromThisClassResolver
+
+  //before removing, check existence
+  bool CompilerState::hasUnknownTypeInThisClassResolver(UTI huti)
+  {
+    UTI cuti = getCompileThisIdx();
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
+
+    return csym->hasUnknownTypeInClass(huti);
+  } //hasUnknownTypeInThisClassResolver
+
+  //false if not there, or still hazy; true if resolved; called during c&l
+  bool CompilerState::statusUnknownTypeInThisClassResolver(UTI huti)
+  {
+    UTI cuti = getCompileThisIdx();
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
+
+    return csym->statusUnknownTypeInClass(huti);
+  } //statusUnknownTypeInThisClassResolver
 
   //temporary UlamType which will be updated during type labeling.
   bool CompilerState::addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr)
@@ -1577,6 +1706,9 @@ namespace MFM {
 
     assert(okUTItoContinue(incomplete));
 
+    if(isHolder(incomplete))
+      return false; //short-circuit
+
     UlamType * ict = getUlamTypeByIndex(incomplete);
     assert(ict->getUlamClass() == UC_UNSEEN); //missing
     if(alreadyDefinedSymbolClass(incomplete, csym))
@@ -1619,6 +1751,33 @@ namespace MFM {
       }
     return rtnB;
   } //completeIncompleteClassSymbolForTypedef
+
+  bool CompilerState::alreadyDefinedSymbolByAncestor(u32 dataindex, Symbol *& symptr, bool& hasHazyKin)
+  {
+    //maybe in current class as a holder, which doesn't progress the search (just the opposite, stops it!).
+    //recursively check ancestors, for defined name (and not a Holder)
+    UTI cuti = getCompileThisIdx();
+    UTI superuti = isClassASubclass(cuti);
+    if(okUTItoContinue(superuti))
+      {
+	SymbolClass * supcsym = NULL;
+	AssertBool isDefined = alreadyDefinedSymbolClass(superuti, supcsym);
+	assert(isDefined);
+
+	pushClassContext(superuti, supcsym->getClassBlockNode(), supcsym->getClassBlockNode(), false, NULL);
+
+	bool tmphzykin = false;
+	bool kinhadit = alreadyDefinedSymbol(dataindex, symptr, tmphzykin);
+
+	if(!kinhadit || (isHolder(symptr->getUlamTypeIdx())))
+	  return alreadyDefinedSymbolByAncestor(dataindex, symptr, hasHazyKin);
+
+	hasHazyKin = tmphzykin;
+	popClassContext(); //restore
+	return kinhadit;
+      }
+    return false;
+  } //alreadyDefinedSymbolByAncestor
 
   bool CompilerState::alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr, bool& hasHazyKin)
   {
@@ -1911,11 +2070,6 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_DEBUG);
 	    continue;
 	  }
-
-	//treat ALT_AS as defref'd type; ALT_REF is its own type.
-	//ALT reftype = getUlamTypeByIndex(rType)->getReferenceType();
-	//if(reftype == ALT_AS)
-	// rType = getUlamTypeAsDeref(rType);
 
 	if(UlamType::compare(rType, it, *this) != UTIC_SAME)
 	  {

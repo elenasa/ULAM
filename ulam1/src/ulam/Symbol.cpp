@@ -47,7 +47,7 @@ namespace MFM {
 
   void Symbol::resetUlamType(UTI newuti) //e.g. mappedUTI, fix _N class args
   {
-    assert(m_state.getReferenceType(m_uti) == m_state.getReferenceType(newuti));
+    assert((m_state.getReferenceType(m_uti) == m_state.getReferenceType(newuti)) || m_state.isHolder(m_uti));
     m_uti = newuti;
   }
 

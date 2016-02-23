@@ -231,7 +231,7 @@ namespace MFM {
 	UlamKeyTypeSignature bkey = but->getUlamKeyTypeSignature();
 	if(aholder)
 	  {
-	    UlamKeyTypeSignature newkey(bkey.getUlamKeyTypeSignatureNameId(), bkey.getUlamKeyTypeSignatureBitSize(), akey.getUlamKeyTypeSignatureArraySize(), akey.getUlamKeyTypeSignatureClassInstanceIdx());
+	    UlamKeyTypeSignature newkey(bkey.getUlamKeyTypeSignatureNameId(), bkey.getUlamKeyTypeSignatureBitSize(), akey.getUlamKeyTypeSignatureArraySize(), bkey.getUlamKeyTypeSignatureClassInstanceIdx());
 	    m_state.makeUlamTypeFromHolder(akey, newkey, but->getUlamTypeEnum(), auti);
 	  }
 	else
@@ -311,8 +311,9 @@ namespace MFM {
     if(m_nodeScalar)
       m_nodeScalar->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
 
-    if(m_unknownArraysizeSubtree)
-      m_unknownArraysizeSubtree->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+    // doesn't go through c&l, so no nodetype set
+    //if(m_unknownArraysizeSubtree)
+    //  m_unknownArraysizeSubtree->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   } //countNavHzyNoutiNodes
 
 } //end MFM

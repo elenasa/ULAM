@@ -5,6 +5,7 @@
 ./Foo.ulam:9:12: ERROR: Constant value expression for: lastRange, is not a constant.
 ./Foo.ulam:10:25: ERROR: Constant value expression for: lastRange, is not a constant.
 ./Foo.ulam:3:9: ERROR: 3 Nodes with erroneous types detected after type labeling class: Foo.
+./Foo.ulam:3:9: ERROR: 6 Nodes with unresolved types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## Answers the question: Must class args be constant expressions? Yes.

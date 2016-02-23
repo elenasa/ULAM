@@ -210,7 +210,8 @@ namespace MFM {
 
   void Node::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
-    if(getNodeType() == Nav)
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
       {
 	ncnt += 1;
 	std::ostringstream msg;
@@ -220,7 +221,7 @@ namespace MFM {
 	//msg << " [" << prettyNodeName().c_str() << "] ";  //ugly!
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
       }
-    else if(getNodeType() == Hzy)
+    else if((nuti == Hzy) || m_state.isHolder(nuti))
       {
 	hcnt += 1;
 	std::ostringstream msg;
@@ -230,7 +231,7 @@ namespace MFM {
 	//msg << " [" << prettyNodeName().c_str() << "] ";  //ugly!
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
       }
-    else if(getNodeType() == Nouti)
+    else if(nuti == Nouti)
       {
 	nocnt += 1;
 	std::ostringstream msg;

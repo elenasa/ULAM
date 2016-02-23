@@ -85,6 +85,7 @@ namespace MFM {
     // used while parsing, so c&l not called, and symbol hasDefault not yet set.
     assert(n < m_parameterSymbols.size());
     NodeBlockClass * templateclassblock = getClassBlockNode();
+    assert(templateclassblock); //fails if UNSEEN during parsing
     Node * pnode = templateclassblock->getParameterNode(n);
     assert(pnode);
     return ((NodeConstantDef *) pnode)->hasConstantExpr();
@@ -1234,6 +1235,13 @@ namespace MFM {
 	SymbolClass * csym = it->second;
 	UTI suti = csym->getUlamTypeIdx(); //this instance
 
+	//skip stubs that will never get resolved
+	if(csym->isStub() && m_state.isClassATemplate(csym->getContextForPendingArgs()))
+	  {
+	    it++;
+	    continue;
+	  }
+
 	//check incomplete's too as they might have produced error msgs.
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
@@ -1281,6 +1289,71 @@ namespace MFM {
     //so those errors no longer count at the end of resolving loop
     return;
   } //countNavNodesInClassInstances
+
+  bool SymbolClassNameTemplate::statusUnknownTypeNamesInClassInstances()
+  {
+    bool aok = true;
+    bool aoktemplate = true;
+
+    //use template results for remaining stubs
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+
+    aoktemplate = SymbolClass::statusUnknownTypeNamesInClass();
+
+    m_state.popClassContext(); //restore
+
+    // only full instances need to be counted, UNLESS there's an error situation
+    // and we bailed out of the resolving loop, so do them all!
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	//skip stubs that will never get resolved
+	if(csym->isStub() && m_state.isClassATemplate(csym->getContextForPendingArgs()))
+	  {
+	    it++;
+	    continue;
+	  }
+	if(csym->isStub())
+	  aok &= aoktemplate; //use template
+	else
+	  {
+	    UTI suti = csym->getUlamTypeIdx();
+	    NodeBlockClass * classNode = csym->getClassBlockNode();
+	    assert(classNode);
+	    m_state.pushClassContext(suti, classNode, classNode, false, NULL);
+
+	    aok &= csym->statusUnknownTypeNamesInClass();
+
+	    m_state.popClassContext(); //restore
+	  }
+	it++;
+      }
+    return aok;
+  } //statusUnknownTypeNamesInClassInstances
+
+  u32 SymbolClassNameTemplate::reportUnknownTypeNamesInClassInstances()
+  {
+    // only full instances need to be reported, unless there are none.
+    if(m_scalarClassArgStringsToSymbolPtr.empty())
+      {
+	return SymbolClass::reportUnknownTypeNamesInClass();
+      }
+
+    u32 totalcnt = 0;
+    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
+
+    while(it != m_scalarClassArgStringsToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	totalcnt += csym->reportUnknownTypeNamesInClass();
+	it++;
+      }
+    return totalcnt;
+  } //reportUnknownTypeNamesInClassInstances
 
   bool SymbolClassNameTemplate::setBitSizeOfClassInstances()
   {
@@ -1675,6 +1748,7 @@ namespace MFM {
   void SymbolClassNameTemplate::cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to)
   {
     fm->cloneResolverUTImap(to);
+    SymbolClass::cloneUnknownTypesMapInClass(to); //from the template; after UTImap.
   }
 
 } //end MFM

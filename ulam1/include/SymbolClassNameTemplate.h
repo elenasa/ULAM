@@ -105,6 +105,8 @@ namespace MFM{
 
     virtual void checkAndLabelClassInstances();
     virtual void countNavNodesInClassInstances(u32& ncnt, u32& hcnt, u32& nocnt);
+    virtual bool statusUnknownTypeNamesInClassInstances();
+    virtual u32 reportUnknownTypeNamesInClassInstances();
     virtual bool setBitSizeOfClassInstances();
     virtual void printBitSizeOfClassInstances();
     virtual void packBitsForClassInstances();

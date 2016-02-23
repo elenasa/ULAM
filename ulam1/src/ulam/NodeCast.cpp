@@ -176,7 +176,7 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	errorsFound++;
       }
-    else if(tobe->getUlamClass() != UC_NOTACLASS && nut->getUlamClass() == UC_NOTACLASS)
+    else if((tobe->getUlamClass() != UC_NOTACLASS) && (nut->getUlamClass() == UC_NOTACLASS))
       {
 	if(nut->getUlamTypeEnum() != UAtom)
 	  {
@@ -273,7 +273,7 @@ namespace MFM {
 	    if(!Node::makeCastingNode(m_node, tobeType, m_node, isExplicitCast()))
 	      errorsFound++; //and goagain set
 	  }
-	//can't detect its a CaArray; already resolved by m_node (sqbkt) to caarrayType
+	//can't detect its a CaArray; already resolved by m_node ([]) to caarrayType
 	else
 	  {
 	    //classes are not surprisingly unknown bit sizes at this point
@@ -470,7 +470,7 @@ namespace MFM {
     else if(m_state.isReference(getCastType()))
       genCodeCastAsReference(fp, uvpass); //minimal casting
     else if(m_state.isReference(m_node->getNodeType()))
-      genCodeCastAsReference(fp, uvpass); //minimal casting
+      genCodeCastFromAReference(fp, uvpass); //minimal casting?
   } //genCode
 
  void NodeCast::genCodeToStoreInto(File * fp, UlamValue& uvpass)
@@ -689,16 +689,19 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
 	if(Node::isCurrentObjectALocalVariableOrArgument())
 	  {
 	    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, TMPBITVAL).c_str());
-	    fp->write(".GetType();\n");
+	    fp->write(".");
 	  }
 	else
 	  {
 	    fp->write(stgcos->getMangledName().c_str()); //assumes only one!!!
-	    if(stgcos->isSelf())
-	      fp->write("GetType();\n"); //no read for self
-	    else
-	      fp->write(".Rread().GetType();\n");
+	    if(!stgcos->isSelf())
+	      {
+		fp->write("."); //no read for self
+		fp->write(tobe->readMethodForCodeGen().c_str());
+		fp->write("().");
+	      }
 	  }
+	fp->write("GetType();\n");
 
 	m_state.indent(fp);
 	fp->write("const bool ");
@@ -820,11 +823,15 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
     // don't forget the read!
     s32 tmpIQread = m_state.getNextTmpVarNumber(); //tmp since no variable name
     m_state.indent(fp);
-    fp->write("const u32 ");
+    fp->write("const ");
+    fp->write(tobe->getTmpStorageTypeAsString().c_str()); //u32
+    fp->write(" ");
     fp->write(m_state.getTmpVarAsString(Unsigned, tmpIQread).c_str());
     fp->write(" = ");
     fp->write(m_state.getTmpVarAsString(tobeType, tmpIQ).c_str());
-    fp->write(".Read();\n");
+    fp->write(".");
+    fp->write(tobe->readMethodForCodeGen().c_str());
+    fp->write("();\n");
 
     //update the uvpass to have the casted immediate quark
     uvpass = UlamValue::makePtr(tmpIQread, TMPREGISTER /*uvpass.getPtrStorage() was LVAL */, tobeType, m_state.determinePackable(tobeType), m_state, uvpass.getPtrPos()); //POS 0 is justified;
@@ -935,6 +942,47 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
     UTI tobeuti = getCastType();
     uvpass.setPtrTargetType(tobeuti); //minimal casting
   } //genCodeCastAsReference
+
+  void NodeCast::genCodeCastFromAReference(File * fp, UlamValue & uvpass)
+  {
+    assert(uvpass.getUlamValueTypeIdx() == Ptr);
+    UTI tobeuti = getCastType();
+    UTI nodetype = m_node->getNodeType();
+
+    UlamType * tobeut = m_state.getUlamTypeByIndex(tobeuti);
+    UlamType * nodeut = m_state.getUlamTypeByIndex(nodetype);
+    if((nodeut->getUlamClass() == UC_QUARK) && ((tobeut->getUlamTypeEnum() == UAtom) || (tobeut->getUlamClass() == UC_ELEMENT)))
+      {
+
+	//when this is a custom array, the symbol is the "ew" for example,
+	//not the atom (e.g. ew[idx]) that has no symbol
+	m_node->genCodeToStoreInto(fp, uvpass); //No need to load lhs into tmp (T); symbol's in COS vector
+
+	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+	Symbol * stgcos = NULL;
+	stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+
+	s32 tmpVarTobe = m_state.getNextTmpVarNumber();
+
+	//e.g. a quark here would be ok if a superclass
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(tobeut->getTmpStorageTypeAsString().c_str()); //u32
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(tobeuti, tmpVarTobe, TMPBITVAL).c_str());;
+	fp->write(" = ");
+	fp->write(stgcos->getMangledName().c_str());
+	fp->write(".");
+	fp->write(tobeut->readMethodForCodeGen().c_str());
+	fp->write("();\n");
+
+	//update the uvpass to have the casted type
+	uvpass = UlamValue::makePtr(tmpVarTobe, TMPBITVAL, tobeuti, m_state.determinePackable(tobeuti), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id
+	m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs
+      }
+    else
+      uvpass.setPtrTargetType(tobeuti); //minimal casting
+  } //genCodeCastFromAReference
 
   bool NodeCast::needsACast()
   {

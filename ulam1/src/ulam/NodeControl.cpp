@@ -147,13 +147,15 @@ namespace MFM {
 		  }
 	      }
 	  }
-	m_nodeBody->checkAndLabelType(); //side-effect
+	//	m_nodeBody->checkAndLabelType(); //side-effect
       }
     else
       {
 	newType = Hzy; //was = cuti;
 	m_state.setGoAgain();
       }
+
+    m_nodeBody->checkAndLabelType(); //side-effect
 
     setNodeType(newType);  //stays the same
     setStoreIntoAble(false);

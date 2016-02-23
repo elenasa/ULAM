@@ -96,6 +96,7 @@ namespace MFM {
     u32 constantArgs = 0;
     u32 navArgs = 0;
     u32 hzyArgs = 0;
+    u32 noutiArgs = 0;
     UTI listuti = Nav;
     bool hazyKin = false;
 
@@ -112,8 +113,11 @@ namespace MFM {
 	    argNodes.push_back(m_argumentNodes->getNodePtr(i));
 	    if(argtype == Nav)
 	      navArgs++;
-	    if(argtype == Hzy)
+	    else if(argtype == Hzy)
 	      hzyArgs++;
+	    else if(argtype == Nouti)
+	      noutiArgs++;
+
 	    // track constants and potential casting to be handled
 	    if(m_argumentNodes->isAConstant(i))
 	      constantArgs++;
@@ -127,7 +131,7 @@ namespace MFM {
 	    return Nav; //short circuit
 	  }
 
-	if(hzyArgs)
+	if(hzyArgs || noutiArgs)
 	  {
 	    argNodes.clear();
 	    setNodeType(Hzy);

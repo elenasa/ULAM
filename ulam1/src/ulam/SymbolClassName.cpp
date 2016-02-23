@@ -244,6 +244,24 @@ namespace MFM {
     return;
   } //countNavNodesInClassInstances
 
+  bool SymbolClassName::statusUnknownTypeNamesInClassInstances()
+  {
+    bool aok = true;
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+
+    aok = SymbolClass::statusUnknownTypeNamesInClass();
+
+    m_state.popClassContext(); //restore
+    return aok;
+  } //statusUnknownTypeNamesInClassInstances
+
+  u32 SymbolClassName::reportUnknownTypeNamesInClassInstances()
+  {
+    return SymbolClass::reportUnknownTypeNamesInClass();
+  } //reportUnknownTypeNamesInClassInstances
+
   bool SymbolClassName::setBitSizeOfClassInstances()
   {
     bool aok = true;

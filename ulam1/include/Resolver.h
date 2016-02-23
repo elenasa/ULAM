@@ -58,6 +58,13 @@ namespace MFM
     Resolver(UTI instance, CompilerState& state);
     ~Resolver();
 
+    void addUnknownTypeToken(Token tok, UTI huti);
+    Token removeKnownTypeToken(UTI huti);
+    bool hasUnknownTypeToken(UTI huti);
+    bool statusUnknownType(UTI huti);
+    bool statusAnyUnknownTypeNames(); //should be resolved after parsingxb
+    u32 reportAnyUnknownTypeNames();
+
     //these exist in a stubs only!
     bool assignClassArgValuesInStubCopy();
     bool statusNonreadyClassArguments();
@@ -73,12 +80,15 @@ namespace MFM
     void countNavNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
     void cloneUTImap(SymbolClass * csym);
+    void cloneUnknownTypesTokenMap(SymbolClass * csym);
 
   protected:
 
   private:
     std::vector<NodeConstantDef *> m_nonreadyClassArgSubtrees; //constant expr to resolve, and empty for a class' args.
     std::map<UTI, UTI> m_mapUTItoUTI; //mult-purpose: instantiating stubs; unknown typedefs from another class
+    std::map<UTI, Token> m_unknownTypeTokens; //possible unknown typedef from ancestor class
+
     CompilerState& m_state;
     UTI m_classUTI;
     UTI m_classContextUTIForPendingArgs; //used to evaluate pending class args in context
@@ -88,6 +98,9 @@ namespace MFM
 
     void clearLeftoverSubtrees();
     void clearLeftoverNonreadyClassArgSubtrees();
+    void clearLeftoverUnknownTypeTokens();
+
+    bool checkUnknownTypeToResolve(UTI huti, Token tok);
   };
 
 }

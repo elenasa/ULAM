@@ -126,6 +126,10 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	      }
 	  }
+	else if(tdut->isHolder())
+	  {
+	    m_state.statusUnknownTypeInThisClassResolver(it);
+	  }
 
 	UTI cuti = m_state.getCompileThisIdx();
 	if(m_nodeTypeDesc)

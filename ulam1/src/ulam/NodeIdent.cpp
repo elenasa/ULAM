@@ -276,7 +276,7 @@ namespace MFM {
 		msg << "' UTI" << it << " while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		//it = Hzy;
+		//it = Hzy; //does this help?
 		//m_state.setGoAgain();
 	      }
 	  }
@@ -548,7 +548,8 @@ namespace MFM {
 	    //not Nav when tduti's an array; might know?
 	    args.m_declListOrTypedefScalarType = tdscalaruti;
 
-	    ULAMCLASSTYPE tclasstype = m_state.getUlamTypeByIndex(tduti)->getUlamClass();
+	    UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
+	    ULAMCLASSTYPE tclasstype = tdut->getUlamClass();
 	    // keep the out-of-band name; other's might refer to its UTI.
 	    // if its UTI is a unseen class, we can update the name of the class later
 	    // don't want to rush this step since we might have a class w args and diff UTI.
@@ -563,18 +564,55 @@ namespace MFM {
 		    // update the type of holder key
 		    UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, Nouti);
 		    m_state.makeUlamTypeFromHolder(newkey, bUT, tduti); //update key, same uti
+		    if(m_state.hasUnknownTypeInThisClassResolver(tduti))
+		      m_state.removeKnownTypeTokenFromThisClassResolver(tduti);
 		  }
 		else
 		  {
 		    //update holder key with name_id and possible array (UNKNOWNSIZE)
-		    UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, Nouti);
-		    m_state.makeUlamTypeFromHolder(newkey, Holder, tduti); //update key, same uti
+		    //UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, Nouti);
+		    UlamKeyTypeSignature hkey = tdut->getUlamKeyTypeSignature();
+		    UlamKeyTypeSignature newkey(hkey.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, Nouti);
+		    m_state.makeUlamTypeFromHolder(newkey, Holder, tduti); //update holder key, same uti
 		  }
 	      }
 	    brtn = true;
 	  }
 	return brtn; //already there, and updated
       }
+    //    else
+
+
+    SymbolClassName * prematureclass = NULL;
+    bool isUnseenClass = false;
+    UTI pmcuti = Nouti;
+    if(m_state.alreadyDefinedSymbolClassName(m_token.m_dataindex, prematureclass))
+      {
+	pmcuti = prematureclass->getUlamTypeIdx();
+	isUnseenClass = (m_state.getUlamTypeByIndex(pmcuti)->getUlamClass() == UC_UNSEEN);
+	{
+	  std::ostringstream msg;
+	  msg << "Typedef '";
+	  msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
+	  msg << "' already exists as ";
+	  if(isUnseenClass)
+	    msg << " UNSEEN ";
+	  msg << "class type: ";
+	  msg << m_state.getUlamTypeNameBriefByIndex(pmcuti).c_str();
+	  if(isUnseenClass)
+	    {
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	      brtn = true;
+	    }
+	  else
+	    {
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      return false; //quit!
+	    }
+	  //return false; //quit!
+	}
+      }
+
 
     if(args.m_anothertduti != Nouti)
       {
@@ -640,6 +678,7 @@ namespace MFM {
 	//create a symbol for this new ulam type, a typedef, with its type
 	SymbolTypedef * symtypedef = new SymbolTypedef(m_token, uti, scalarUTI, m_state);
 	m_state.addSymbolToCurrentScope(symtypedef);
+
 	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr)); //true
       }
     return false;
