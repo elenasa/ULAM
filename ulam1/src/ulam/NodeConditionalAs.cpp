@@ -60,7 +60,7 @@ namespace MFM {
     assert(m_state.okUTItoContinue(luti));
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMCLASSTYPE lclasstype = lut->getUlamClass();
-    if(!((lut->getUlamTypeEnum() == UAtom || lclasstype == UC_ELEMENT) && lut->isScalar()))
+    if(!(m_state.isAtom(luti) || (lclasstype == UC_ELEMENT)) && lut->isScalar())
       {
 	std::ostringstream msg;
 	msg << "Invalid lefthand type of conditional operator '" << getName();
@@ -87,7 +87,7 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
       }
-
+#if 0
     if(!strcmp(m_nodeLeft->getName(), "atom")) //???
       {
 	std::ostringstream msg;
@@ -96,6 +96,7 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
       }
+#endif
 
     assert(m_nodeTypeDesc);
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
@@ -177,7 +178,7 @@ namespace MFM {
     assert(m_state.okUTItoContinue(luti));
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
 
-    if((lut->getUlamTypeEnum() == UAtom))
+    if(m_state.isAtom(luti))
       {
 	//an atom can be element or quark in eval-land, so let's get specific!
 	UlamValue luv = m_state.getPtrTarget(pluv);
@@ -199,8 +200,7 @@ namespace MFM {
 	else
 	  {
 	    //atom's don't work in eval, only genCode, let pass as not found.
-	    //if(luti != UAtom)
-	    if(m_state.getUlamTypeByIndex(pluv.getPtrTargetType())->getUlamTypeEnum() != UAtom)
+	    if(!m_state.isAtom(pluv.getPtrTargetType()))
 	      {
 		std::ostringstream msg;
 		msg << "Invalid lefthand type of conditional operator '" << getName();
@@ -224,7 +224,7 @@ namespace MFM {
       {
 	// like 'is'
 	// inclusive result for eval purposes (atoms and element types are orthogonal)
-	asit = ((lut->getUlamTypeEnum() == UAtom) || (UlamType::compare(luti, ruti, m_state) == UTIC_SAME));
+	asit = (m_state.isAtom(luti) || (UlamType::compare(luti, ruti, m_state) == UTIC_SAME));
       }
 
     if(asit)

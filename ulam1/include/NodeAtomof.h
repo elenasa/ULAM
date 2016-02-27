@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
- * NodeVarRef.h - Node handling of Variable References for ULAM
+ * NodeAtomof.h - Node handling the Atomof Statement for ULAM
  *
- * Copyright (C) 2015 The Regents of the University of New Mexico.
- * Copyright (C) 2015 Ackleyshack LLC.
+ * Copyright (C) 2016 The Regents of the University of New Mexico.
+ * Copyright (C) 2016 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -26,30 +26,34 @@
  */
 
 /**
-  \file NodeVarRef.h - Node handling of Variable References for ULAM
+  \file NodeAtomof.h - Node handling the Atomof Statement for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015 All rights reserved.
+  \date (C) 2016 All rights reserved.
   \gpl
 */
 
 
-#ifndef NODEVARREF_H
-#define NODEVARREF_H
+#ifndef NODEATOMOF_H
+#define NODEATOMOF_H
 
-#include "NodeVarDecl.h"
+#include "File.h"
+#include "Node.h"
+#include "Token.h"
+#include "SymbolVariable.h"
+#include "NodeTypeDescriptor.h"
 
 namespace MFM{
 
-  class NodeVarRef : public NodeVarDecl
+  class NodeAtomof : public Node
   {
   public:
 
-    NodeVarRef(SymbolVariable * sym, NodeTypeDescriptor * nodetype, CompilerState & state);
+    NodeAtomof(Token tokatomof, NodeTypeDescriptor * nodetype, CompilerState & state);
 
-    NodeVarRef(const NodeVarRef& ref);
+    NodeAtomof(const NodeAtomof& ref);
 
-    virtual ~NodeVarRef();
+    virtual ~NodeAtomof();
 
     virtual Node * instantiate();
 
@@ -57,9 +61,9 @@ namespace MFM{
 
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
-    virtual void checkAbstractInstanceErrors();
+    virtual void print(File * fp);
 
-    virtual void printPostfix(File * f);
+    virtual void printPostfix(File * fp);
 
     virtual const char * getName();
 
@@ -67,13 +71,9 @@ namespace MFM{
 
     virtual FORECAST safeToCastTo(UTI newType);
 
+    UTI getAtomType();
+
     virtual UTI checkAndLabelType();
-
-    virtual void packBitsInOrderOfDeclaration(u32& offset);
-
-    virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
-
-    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
     virtual EvalStatus eval();
 
@@ -81,17 +81,19 @@ namespace MFM{
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 
+    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
+
   protected:
 
-    virtual void printTypeAndName(File * fp);
-
   private:
+    NodeTypeDescriptor * m_nodeTypeDesc;
+    Token m_token;
+    UTI m_atomoftype;
+    SymbolVariable * m_varSymbol;
 
-    void genCodeAtomRefInit(File * fp, UlamValue & uvpass);
-    void genCodeArrayRefInit(File * fp, UlamValue & uvpass);
-    void genCodeArrayItemRefInit(File * fp, UlamValue & uvpass);
+    UlamValue makeUlamValuePtr();
   };
 
-} //MFM
+}
 
-#endif //end NODEVARREF_H
+#endif //end NODEATOMOF_H

@@ -59,7 +59,7 @@ namespace MFM {
 
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMCLASSTYPE lclasstype = lut->getUlamClass();
-    if(!((lut->getUlamTypeEnum() == UAtom || lclasstype == UC_ELEMENT || lclasstype == UC_QUARK) && lut->isScalar()))
+    if(!((m_state.isAtom(luti) || (lclasstype == UC_ELEMENT) || (lclasstype == UC_QUARK)) && lut->isScalar()))
       {
 	std::ostringstream msg;
 	msg << "Invalid lefthand type of conditional operator '" << getName();
@@ -87,6 +87,7 @@ namespace MFM {
 	newType = Nav;
       }
 
+#if 0
     if(!strcmp(m_nodeLeft->getName(), "atom"))
       {
 	std::ostringstream msg;
@@ -95,6 +96,7 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
       }
+#endif
 
     assert(m_nodeTypeDesc);
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
@@ -166,7 +168,7 @@ namespace MFM {
     assert(luti == Ptr);
     luti = pluv.getPtrTargetType();
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
-    if(lut->getUlamTypeEnum() == UAtom)
+    if(m_state.isAtom(luti))
       {
 	//an atom can be element or quark in eval-land, so let's get specific!
 	UlamValue luv = m_state.getPtrTarget(pluv);
@@ -188,8 +190,7 @@ namespace MFM {
     else
       {
 	//atom's don't work in eval, only genCode, let pass as not found.
-	//if(luti != UAtom)
-	if(m_state.getUlamTypeByIndex(pluv.getPtrTargetType())->getUlamTypeEnum() != UAtom)
+	if(!m_state.isAtom(pluv.getPtrTargetType()))
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid lefthand type of conditional operator '" << getName();
@@ -242,7 +243,6 @@ namespace MFM {
     UTI luti = luvpass.getUlamValueTypeIdx();
     assert(luti == Ptr);
     luti = luvpass.getPtrTargetType(); //replaces
-    UlamType * lut = m_state.getUlamTypeByIndex(luti);
 
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * stgcos = NULL;
@@ -250,7 +250,7 @@ namespace MFM {
 
     // atom is a special case since we have to learn its element type at runtime
     // before interrogating if it 'as' a particular QuarkName Type; return signed pos.
-    if(lut->getUlamTypeEnum() == UAtom)
+    if(m_state.isAtom(luti))
       {
 	m_state.indent(fp);
 	fp->write("const s32 ");

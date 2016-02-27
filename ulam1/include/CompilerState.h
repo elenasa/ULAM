@@ -422,6 +422,8 @@ namespace MFM{
     UTI getBigBitsUTI();
 
     bool isPtr(UTI puti);
+    bool isAtom(UTI auti);
+    bool isAtomRef(UTI auti);
     bool okUTItoContinue(UTI uti);
 
   private:

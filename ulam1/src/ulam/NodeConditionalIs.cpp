@@ -44,13 +44,13 @@ namespace MFM {
 
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMCLASSTYPE lclasstype = lut->getUlamClass();
-    if(!((lut->getUlamTypeEnum() == UAtom || lclasstype == UC_ELEMENT) && lut->isScalar()))
+    if(!((m_state.isAtom(luti) || (lclasstype == UC_ELEMENT)) && lut->isScalar()))
       {
 	std::ostringstream msg;
 	msg << "Invalid lefthand type of conditional operator '" << getName();
 	msg << "'; must be an atom or an element, not type: ";
 	msg << lut->getUlamTypeNameBrief().c_str();
-	if(lclasstype == UC_UNSEEN || luti == Hzy)
+	if((lclasstype == UC_UNSEEN) || (luti == Hzy))
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    newType = Hzy;
@@ -149,11 +149,10 @@ namespace MFM {
     UTI luti = pluv.getUlamValueTypeIdx();
     assert(luti == Ptr);
     luti = pluv.getPtrTargetType();
-    UlamType * lut = m_state.getUlamTypeByIndex(luti);
     UTI ruti = getRightType();
 
     // inclusive result for eval purposes (atoms and element types are orthogonal)
-    bool isit = (lut->getUlamTypeEnum() == UAtom || UlamType::compare(luti,ruti,m_state) == UTIC_SAME || m_state.isClassASuperclassOf(luti, ruti));
+    bool isit = (m_state.isAtom(luti) || (UlamType::compare(luti,ruti,m_state) == UTIC_SAME) || m_state.isClassASuperclassOf(luti, ruti));
 
     UlamValue rtnuv = UlamValue::makeImmediate(nuti, (u32) isit, m_state);
 

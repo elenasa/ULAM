@@ -23,7 +23,7 @@ element Foo : QPerc {
 quark QPerc {
   Bool check()
   {
-    Atom a = atom;
+    Atom a = self.atomof; //atom;
     Self input = (Self) a;
     return true;
   }

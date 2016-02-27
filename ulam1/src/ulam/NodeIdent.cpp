@@ -331,7 +331,7 @@ namespace MFM {
 	      {
 		UTI caType = m_state.getAClassCustomArrayType(nuti);
 		UlamType * caut = m_state.getUlamTypeByIndex(caType);
-		if(caut->getUlamTypeEnum() == UAtom || caut->getBitSize() > MAXBITSPERINT)
+		if(m_state.isAtom(caType) || (caut->getBitSize() > MAXBITSPERINT))
 		  {
 		    uv = uvp; //customarray
 		  }
@@ -356,7 +356,7 @@ namespace MFM {
 	    else
 	      {
 		UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-		if(nut->getUlamTypeEnum() == UAtom || nut->getUlamClass() == UC_ELEMENT)
+		if(m_state.isAtom(nuti) || (nut->getUlamClass() == UC_ELEMENT))
 		  {
 		    uv = m_state.getPtrTarget(uvp);
 		  }
@@ -448,7 +448,7 @@ namespace MFM {
 	if((m_state.getUlamTypeByIndex(ttype)->getUlamClass() == UC_QUARK))
 	  {
 	    u32 vid = m_varSymbol->getId();
-	    if(vid == m_state.m_pool.getIndexForDataString("atom"))
+	    if(vid == m_state.m_pool.getIndexForDataString("self"))
 	      {
 		selfuvp = m_state.getAtomPtrFromSelfPtr();
 	      }
@@ -495,7 +495,7 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClass();
 
-    if(classtype == UC_ELEMENT || nut->getUlamTypeEnum() == UAtom)
+    if((classtype == UC_ELEMENT) || m_state.isAtom(nuti))
       {
 	// ptr to explicit atom or element, (e.g. 'f' in f.a=1;)
 	uvpass = UlamValue::makePtr(tmpnum, TMPBITVAL, nuti, UNPACKED, m_state, 0, m_varSymbol->getId());

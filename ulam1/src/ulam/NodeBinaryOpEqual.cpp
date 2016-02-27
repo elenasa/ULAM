@@ -273,13 +273,19 @@ namespace MFM {
 	  }
       }
 
-    if(ruv.getUlamValueTypeIdx() == Nav || nuti == Nav)
+    UTI ruti = ruv.getUlamValueTypeIdx();
+    if(ruti == Nav || nuti == Nav)
       return false;
 
-    if(ruv.getUlamValueTypeIdx() == Hzy || nuti == Hzy)
+    if(ruti == Hzy || nuti == Hzy)
       return false;
 
-    m_state.assignValue(pluv,ruv);
+    //before assert in CS, fails
+    UTI luti = pluv.getPtrTargetType();
+    if( m_state.isPtr(ruti) || (UlamType::compareForUlamValueAssignment(luti, ruti, m_state) == UTIC_SAME) || m_state.isAtom(luti) || m_state.isAtom(ruti))
+      m_state.assignValue(pluv,ruv);
+    else
+      return false;
 
     //also copy result UV to stack, -1 relative to current frame pointer
     Node::assignReturnValueToStack(ruv);

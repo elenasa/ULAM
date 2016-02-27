@@ -501,7 +501,7 @@ namespace MFM {
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClass();
-    if(nut->getUlamTypeEnum() == UAtom)
+    if(m_state.isAtom(nuti))
       {
 	UlamValue atomUV = UlamValue::makeAtom(m_varSymbol->getUlamTypeIdx());
 	m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
@@ -673,7 +673,7 @@ namespace MFM {
 	if((m_state.getUlamTypeByIndex(ttype)->getUlamClass() == UC_QUARK))
 	  {
 	    u32 vid = m_varSymbol->getId();
-	    if(vid == m_state.m_pool.getIndexForDataString("atom"))
+	    if(vid == m_state.m_pool.getIndexForDataString("self"))
 	      {
 		selfuvp = m_state.getAtomPtrFromSelfPtr();
 	      }
@@ -723,8 +723,13 @@ namespace MFM {
 	fp->write(m_varSymbol->getMangledName().c_str());
 	fp->write("("); // use constructor (not equals)
 	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str()); //VALUE
-	if(vut->getUlamTypeEnum() == UAtom)
-	  fp->write(", uc");
+	if(m_state.isAtom(vuti))
+	  {
+	    //if(m_state.isReference(uvpass.getPtrTargetType())) //var is not a ref
+	      // fp->write(".ReadAtom()");
+	    if(!m_state.isAtomRef(uvpass.getPtrTargetType()))
+	      fp->write(", uc");
+	  }
 	fp->write(")");
 	fp->write(";\n"); //func call args aren't NodeVarDecl's
 	m_state.m_currentObjSymbolsForCodeGen.clear();

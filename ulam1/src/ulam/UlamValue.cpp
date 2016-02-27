@@ -153,7 +153,7 @@ namespace MFM {
       {
 	//figure out the pos based on targettype; both elements and quarks start at first state bit (25)
 	ULAMTYPE ttenum = state.getUlamTypeByIndex(targetType)->getUlamTypeEnum();
-	if(ttenum == UAtom || ttenum == Class)
+	if((ttenum == UAtom) || (ttenum == Class))
 	  rtnUV.m_uv.m_ptrValue.m_posInAtom = ATOMFIRSTSTATEBITPOS; //len is predetermined
 	else
 	  {
@@ -517,7 +517,7 @@ namespace MFM {
     else
       {
 	UlamType * dut = state.getUlamTypeByIndex(duti);
-	if((dut->getUlamClass() == UC_NOTACLASS) && (dut->getUlamTypeEnum() != UAtom))
+	if((dut->getUlamClass() == UC_NOTACLASS) && !state.isAtom(duti))
 	  datavalue = getImmediateData(p.getPtrLen(), state);
 	else
 	  datavalue = getData(p.getPtrPos(), p.getPtrLen());
@@ -558,7 +558,7 @@ namespace MFM {
     else
       {
 	UlamType * dut = state.getUlamTypeByIndex(duti);
-	if((dut->getUlamClass() == UC_NOTACLASS) && (dut->getUlamTypeEnum() != UAtom))
+	if((dut->getUlamClass() == UC_NOTACLASS) && !state.isAtom(duti))
 	  datavalue = getImmediateDataLong(p.getPtrLen());
 	else
 	  datavalue = getDataLong(p.getPtrPos(), p.getPtrLen());

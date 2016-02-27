@@ -185,6 +185,7 @@ namespace MFM {
 	    return Hzy; //short-circuit
 	  }
 
+	//check isStoreIntoAble
 	if(m_nodeInitExpr->isAConstant() || m_nodeInitExpr->isFunctionCall())
 	  {
 	    std::ostringstream msg;
@@ -278,13 +279,16 @@ namespace MFM {
 	// or ancestor quark if a class.
 	m_nodeInitExpr->genCodeToStoreInto(fp, uvpass);
 
-	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+	UTI vuti = m_varSymbol->getUlamTypeIdx(); //i.e. this ref node
+	UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+
+	if(m_state.isAtom(vuti))
+	  return genCodeAtomRefInit(fp, uvpass);
+
 	Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 	UTI stgcosuti = stgcos->getUlamTypeIdx();
 	UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
-	UTI vuti = m_varSymbol->getUlamTypeIdx(); //i.e. this ref node
-	UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
 	if(!stgcosut->isScalar() && !vut->isScalar())
 	  return genCodeArrayRefInit(fp, uvpass);
@@ -326,7 +330,7 @@ namespace MFM {
 	    else
 	      {
 		//local var
-		if((vclasstype == UC_NOTACLASS) && (vut->getUlamTypeEnum() != UAtom))
+		if((vclasstype == UC_NOTACLASS) && m_state.isAtom(vuti))
 		  {
 		    fp->write(", 0u"); //relative
 		  }
@@ -348,6 +352,43 @@ namespace MFM {
 
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
   } //genCode
+
+  void NodeVarRef::genCodeAtomRefInit(File * fp, UlamValue & uvpass)
+  {
+    //reference always has initial value, unless func param
+    assert(m_varSymbol->isAutoLocal());
+    assert(m_varSymbol->getAutoLocalType() != ALT_AS);
+
+    assert(m_nodeInitExpr);
+
+    s32 tmpVarNum = uvpass.getPtrSlotIndex(); //tmp containing atomref
+
+    UTI vuti = m_varSymbol->getUlamTypeIdx(); //i.e. this ref node
+    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+
+    UTI puti = uvpass.getUlamValueTypeIdx();
+    if(m_state.isPtr(puti))
+      puti = uvpass.getPtrTargetType();
+    assert(m_state.isAtom(vuti) && m_state.isAtom(puti));
+
+    m_state.indent(fp);
+    fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+    fp->write(" ");
+
+    fp->write(m_varSymbol->getMangledName().c_str());
+    fp->write("("); //pass ref in constructor (ref's not assigned with =)
+
+    if(m_state.m_currentObjSymbolsForCodeGen.empty())
+      fp->write(m_state.getTmpVarAsString(puti, tmpVarNum, TMPBITVAL).c_str());
+    else
+      {
+	Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+	fp->write(stgcos->getMangledName().c_str());
+      }
+    fp->write(");\n");
+
+    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
+  } //genCodeAtomRefInit
 
   void NodeVarRef::genCodeArrayRefInit(File * fp, UlamValue & uvpass)
   {

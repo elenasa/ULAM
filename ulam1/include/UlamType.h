@@ -60,6 +60,10 @@ namespace MFM{
 #define PtrAbs (Ptr + 2)
 #endif //PtrAbs
 
+#ifndef UAtomRef
+#define UAtomRef (Ptr + 3)
+#endif //UAtomRef
+
   struct UlamValue; //forward
 
   class CompilerState; //forward
@@ -227,6 +231,7 @@ namespace MFM{
   private:
 
     static ULAMTYPECOMPARERESULTS compareWithWildArrayItemReferenceType(UTI u1, UTI u2, CompilerState& state);
+    static ULAMTYPECOMPARERESULTS compareWithWildReferenceType(UTI u1, UTI u2, CompilerState& state);
 
 
     virtual bool castTo32(UlamValue & val, UTI typidx);

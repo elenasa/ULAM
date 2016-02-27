@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "Parser.h"
+#include "NodeAtomof.h"
 #include "NodeBinaryOpArithAdd.h"
 #include "NodeBinaryOpArithDivide.h"
 #include "NodeBinaryOpArithMultiply.h"
@@ -2134,7 +2135,7 @@ namespace MFM {
       {
 	//hail mary pass..possibly a sizeof of unseen class
 	getNextToken(nTok);
-	if(nTok.m_type != TOK_KW_SIZEOF)
+	if((nTok.m_type != TOK_KW_SIZEOF) && (nTok.m_type != TOK_KW_ATOMOF))
 	  {
 	    std::ostringstream msg;
 	    msg << "Trying to use typedef from another class '";
@@ -2555,6 +2556,28 @@ namespace MFM {
 	    }
 	}
 	break;
+      case TOK_KW_ATOMOF:
+	{
+	  if(ut->isComplete())
+	    {
+	      assert(ut->getUlamClass() == UC_NOTACLASS); //can't be a class and complete
+	      rtnNode = NULL;
+	      delete nodetype; //unlikely
+	      nodetype = NULL;
+
+	      std::ostringstream msg;
+	      msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str();
+	      msg << "' <" << m_state.getTokenDataAsString(&memberTok).c_str();
+	      msg << ">, non-class type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
+	      MSG(&fTok, msg.str().c_str(), ERR);
+	    }
+	  else
+	    {
+	      //input uti wasn't complete
+	      rtnNode = new NodeAtomof(memberTok, nodetype, m_state);
+	    }
+	}
+	break;
       case TOK_IDENTIFIER:
 	{
 	  //possible named constant?
@@ -2598,6 +2621,9 @@ namespace MFM {
 	break;
       case TOK_KW_MINOF:
 	rtnNode = new NodeTerminalProxy(memberTok, Nouti, fTok, NULL, m_state);
+	break;
+      case TOK_KW_ATOMOF:
+	rtnNode = new NodeAtomof(memberTok, NULL, m_state);
 	break;
       default:
 	{
@@ -3331,7 +3357,9 @@ namespace MFM {
     //update dNode with init expression: lval for ref, assign for local car
     if(args.m_declRef == ALT_REF)
       {
-	if(getExpectedToken(TOK_IDENTIFIER, eTok))
+	getNextToken(eTok);
+	//if(getExpectedToken(TOK_IDENTIFIER, eTok))
+	if(eTok.m_type == TOK_IDENTIFIER)
 	  {
 	    Node * rightNode = parseIdentExpr(eTok); //parseLvalExpr(eTok);
 	    if(!rightNode)
@@ -3346,7 +3374,32 @@ namespace MFM {
 		((NodeVarRef *) dNode)->setInitExpr(rightNode);
 	      }
 	  }
-	//else error
+	else if(eTok.m_type == TOK_TYPE_IDENTIFIER)
+	  {
+	    unreadToken();
+	    //can only be be a .atomof
+	    Node * rightNode = parseFactor(); //parseMinMaxSizeofType(eTok);
+	    if(!rightNode)
+	      {
+		std::ostringstream msg;
+		msg << "Value of atomof reference type ";
+		msg << eTok.getTokenStringFromPool(&m_state).c_str();
+		msg << " is missing for ";
+		msg << identTok.getTokenStringFromPool(&m_state).c_str();
+		MSG(&eTok, msg.str().c_str(), ERR);
+	      }
+	    else
+	      {
+		((NodeVarRef *) dNode)->setInitExpr(rightNode);
+	      }
+	  }
+	else //error
+	  {
+	    std::ostringstream msg;
+	    msg << "Unexpected token <" << eTok.getTokenStringFromPool(&m_state).c_str();
+	    msg << "> for initial value of reference";
+	    MSG(&eTok, msg.str().c_str(), ERR);
+	  }
 	args.m_declRef = ALT_NOT; //clear flag in case of decl list
       } //ref done
     else
@@ -3548,16 +3601,18 @@ namespace MFM {
     m_state.m_currentFunctionBlockDeclSize = -(returnArraySize + 1);
     m_state.m_currentFunctionBlockMaxDepth = 0;
 
+#if 0
     //create "atom" symbol whose index is that of the "hidden" first arg (i.e. ptr to atom);
     //immediately below the return value(s); and belongs to the function definition scope.
     u32 aselfid = m_state.m_pool.getIndexForDataString("atom"); //was "self"
     UTI acuti = currClassBlock->getNodeType(); //luckily we know this now for each class used
-    if(m_state.getUlamTypeByIndex(acuti)->getUlamClass() == UC_QUARK)
-      acuti = UAtom; //use atom for quark functions
+    //if(m_state.getUlamTypeByIndex(acuti)->getUlamClass() == UC_QUARK)
+    acuti = UAtom; //use atom for quark functions
     Token aselfTok(TOK_IDENTIFIER, identTok.m_locator, aselfid);
     SymbolVariableStack * aselfsym = new SymbolVariableStack(aselfTok, acuti, m_state.determinePackable(acuti), m_state.m_currentFunctionBlockDeclSize, m_state);
     aselfsym->setIsSelf();
     m_state.addSymbolToCurrentScope(aselfsym); //ownership goes to the block
+#endif
 
     //create "self" symbol for the class type;
     //belongs to the function definition scope.
@@ -3856,6 +3911,7 @@ namespace MFM {
 	//return NULL;  keep going?
       }
 
+#if 0
     if(identTok.m_dataindex == m_state.m_pool.getIndexForDataString("atom"))
       {
 	std::ostringstream msg;
@@ -3863,6 +3919,7 @@ namespace MFM {
 	MSG(&identTok, msg.str().c_str(), ERR);
 	//return NULL;  keep going?
       }
+#endif
 
     NodeVarDecl * rtnNode = NULL;
     Node * lvalNode = parseLvalExpr(identTok); //for optional [] array size
@@ -4894,6 +4951,11 @@ namespace MFM {
     UlamKeyTypeSignature apkey(m_state.m_pool.getIndexForDataString("0Ptr"), ULAMTYPE_DEFAULTBITSIZE[Ptr], NONARRAYSIZE, ALT_PTR);
     AssertBool isPtrAbs = (m_state.makeUlamType(apkey, Ptr) == PtrAbs);
     assert(isPtrAbs);
+
+    //a Ref for .atomof; comes after PtrAbs.
+    UlamKeyTypeSignature arefkey(m_state.m_pool.getIndexForDataString("Atom"), ULAMTYPE_DEFAULTBITSIZE[UAtom], NONARRAYSIZE, ALT_REF);
+    AssertBool isAtomRef = (m_state.makeUlamType(arefkey, UAtom) == UAtomRef);
+    assert(isAtomRef);
 
     // next in line, the 64 basics:
     m_state.getLongUTI();

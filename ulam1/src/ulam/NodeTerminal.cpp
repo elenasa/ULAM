@@ -151,7 +151,7 @@ namespace MFM {
     ULAMTYPE typEnum = newut->getUlamTypeEnum();
 
     //special cases: not a matter of fitting
-    if(typEnum == Bool || ntypEnum == Bool || typEnum == UAtom || typEnum == Class || typEnum == Void)
+    if((typEnum == Bool) || (ntypEnum == Bool) || (typEnum == UAtom) || (typEnum == Class) || (typEnum == Void))
       return m_state.getUlamTypeByIndex(newType)->safeCast(nuti);
 
     //for non-bool terminal check for complete types and arrays before fits.

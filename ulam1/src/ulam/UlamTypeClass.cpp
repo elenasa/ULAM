@@ -475,7 +475,7 @@ namespace MFM {
       }
 
     //e.g. casting an element to an element, redundant and not supported: Element96ToElement96?
-    if(nut->getUlamTypeEnum() != UAtom)
+    if(!m_state.isAtom(nodetype))
       {
 	std::ostringstream msg;
 	msg << "Attempting to illegally cast a non-atom type to an element: ";

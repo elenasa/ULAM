@@ -643,7 +643,7 @@ namespace MFM {
     // ANY return value placed on the STACK by a Return Statement,
     // was copied to EVALRETURN by the NodeBlockFunctionDefinition
     // before arriving here! And may be ignored at this point.
-    if(m_state.getUlamTypeByIndex(rtnType)->getUlamTypeEnum() == UAtom)
+    if(m_state.isAtom(rtnType))
       {
 	UlamValue rtnUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
 	Node::assignReturnValueToStack(rtnUV); //into return space on eval stack;

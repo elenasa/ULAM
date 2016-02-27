@@ -1,0 +1,44 @@
+## -*- mode:ulam -*-
+#=t3657_test_compiler_element_castatomfromquarkrefimmediate
+#!
+Exit status: 1
+Ue_Foo : QPerc { :< Bool(1) bb(false); > Int(32) test() {  QPerc q;  q bb . true = QPerc& qref = q;  Atom(96)& a = _qref.atomof;  Atom(96)& b = _QPerc.atomof;  Atom(96)& c = _Foo.atomof;  Atom(96) d = _self.atomof cast;  _self.atomof d cast = Atom(96) e;  e _self.atomof cast = Foo f;  _f.atomof _self.atomof = 1 cast return } }
+Uq_QPerc { Bool(1) bb(false);  <NOMAIN> }
+##
+## informed by a Dave ish 2/19/2016; should this be allowed, or error?
+##
+#>Foo.ulam
+  ulam 2;
+use QPerc;
+element Foo : QPerc {
+
+  Int test() {
+    QPerc q;
+    q.bb = true;
+    QPerc& qref = q;
+    Atom& a = qref.atomof; //(Atom) qref;
+
+    Atom& b = QPerc.atomof; //(Atom) qref;
+
+    Atom& c = Foo.atomof; //(Atom) qref;
+
+    Atom d = self.atomof;
+    self.atomof = d;
+
+    Atom e;
+    e = self.atomof;
+
+    Foo f;
+    f.atomof = self.atomof;
+
+    return 1;
+  }
+}
+
+#:QPerc.ulam
+  ulam 2;
+quark QPerc {
+  Bool bb;
+}
+
+#.

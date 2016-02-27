@@ -1,0 +1,34 @@
+## -*- mode:ulam -*-
+#=t3655_test_compiler_element_castatomfromquarkrefas_ish
+#!
+Exit status: 1
+Ue_Foo : QPerc { :< Bool(1) b(true); > Int(32) test() {  Foo a = self;  a QPerc as cond { QPerc& a;  a b . true = _self.atomof _a.atomof = 1 cast return } if 0 cast return } }
+Uq_QPerc { Bool(1) b(false);  <NOMAIN> }
+##
+## informed by a Dave ish 2/19/2016
+##
+#>Foo.ulam
+  ulam 2;
+use QPerc;
+element Foo : QPerc {
+
+  Int test() {
+    //Atom a = self;
+    Foo a = self; //for eval
+    if(a as QPerc)
+    {
+      a.b = true;
+      self.atomof = a.atomof; //was: atom = (Atom) a;
+      return 1;
+    }
+    return 0;
+  }
+}
+
+#:QPerc.ulam
+  ulam 2;
+quark QPerc {
+  Bool b;
+}
+
+#.

@@ -296,7 +296,7 @@ namespace MFM {
 
     if(evs == RETURN)
       {
-	if(m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum() == UAtom)
+	if(m_state.isAtom(nuti))
 	  {
 	    //avoid pointer to atom situation
 	    rtnUV = m_state.m_funcCallStack.loadUlamValueFromSlot(-1); //popArg();
@@ -370,7 +370,7 @@ namespace MFM {
       m_nodeParameterList->calcMaxDepth(max1, nomaxdepth, base);
 
     //set self slot just below return value
-    u32 selfid = m_state.m_pool.getIndexForDataString("atom");
+    u32 selfid = m_state.m_pool.getIndexForDataString("self");
     Symbol * selfsym = NULL;
     bool hazyKin = false; //return is always false?
     AssertBool isDefined = m_state.alreadyDefinedSymbol(selfid, selfsym, hazyKin) && !hazyKin;

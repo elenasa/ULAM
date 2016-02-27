@@ -2116,7 +2116,19 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 		    msg << getBitSize(rType) << ">";
 		    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_ERR);
 		  }
-	      } //base types are the same..array and bit size might vary
+
+		if(getReferenceType(rType) != getReferenceType(it))
+		  {
+		    std::ostringstream msg;
+		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
+		    msg << "''s Return type's " << getUlamTypeNameByIndex(it).c_str();
+		    msg << " reference type <" << getReferenceType(it);
+		    msg << "> does not match resulting type's ";
+		    msg << getUlamTypeNameByIndex(rType).c_str() << " reference type <";
+		    msg << getReferenceType(rType) << ">";
+		    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_ERR);
+		  }
+	      } //base types are the same..array and bit size might vary, or ref type
 	  } //different ulamtype
       } //next return node
     return rtnBool;
@@ -2162,7 +2174,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   const char * CompilerState::getIsMangledFunctionName(UTI ltype)
   {
-    if(getUlamTypeByIndex(ltype)->getUlamTypeEnum() == UAtom)
+    if(isAtom(ltype))
       return IS_MANGLED_FUNC_NAME_FOR_ATOM;
 
     return IS_MANGLED_FUNC_NAME;
@@ -2170,7 +2182,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   const char * CompilerState::getHasMangledFunctionName(UTI ltype)
   {
-    if(getUlamTypeByIndex(ltype)->getUlamTypeEnum() == UAtom)
+    if(isAtom(ltype))
       return HAS_MANGLED_FUNC_NAME_FOR_ATOM;
     return HAS_MANGLED_FUNC_NAME;
   }
@@ -2687,7 +2699,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     PACKFIT packed = determinePackable(uti);
 
     UlamType * ut = getUlamTypeByIndex(uti);
-    if((ut->getUlamTypeEnum() == UAtom) || (ut->getUlamClass() == UC_ELEMENT))
+    if(isAtom(uti) || (ut->getUlamClass() == UC_ELEMENT))
       {
 	assert(stg != TMPREGISTER);
 	//stg = TMPBITVAL; //avoid loading a T into a tmpregister!
@@ -3006,6 +3018,17 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   bool CompilerState::isPtr(UTI puti)
   {
     return ((puti == Ptr) || (puti == PtrAbs));
+  }
+
+  bool CompilerState::isAtom(UTI auti)
+  {
+    return (getUlamTypeByIndex(auti)->getUlamTypeEnum() == UAtom);
+  }
+
+  bool CompilerState::isAtomRef(UTI auti)
+  {
+    UlamType * aut = getUlamTypeByIndex(auti);
+    return ((aut->getUlamTypeEnum() == UAtom) && aut->isReference());
   }
 
   bool CompilerState::okUTItoContinue(UTI uti)

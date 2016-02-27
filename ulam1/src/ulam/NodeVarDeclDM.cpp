@@ -596,11 +596,11 @@ namespace MFM {
 
     assert(m_varSymbol->getAutoLocalType() == ALT_NOT);
 
-    if(nut->getUlamTypeEnum() == UAtom || classtype == UC_ELEMENT)
+    if(m_state.isAtom(nuti) || (classtype == UC_ELEMENT))
       return NodeVarDecl::eval();
 
     // make terminal expression node so rest of eval works for quarks too
-    if(classtype == UC_QUARK && m_nodeInitExpr == NULL)
+    if((classtype == UC_QUARK) && (m_nodeInitExpr == NULL))
       {
 	u32 dqval = 0;
 	if(m_state.getDefaultQuark(nuti, dqval))

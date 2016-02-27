@@ -700,6 +700,71 @@ namespace MFM {
     return UTIC_SAME;
   } //compareWithWildArrayItemReferenceType (static)
 
+  ULAMTYPECOMPARERESULTS UlamType::compareWithWildReferenceType(UTI u1, UTI u2, CompilerState& state)  //static
+  {
+    assert((u1 != Nouti) && (u2 != Nouti));
+
+    if(u1 == u2) return UTIC_SAME; //short-circuit
+
+    if((u1 == Nav) || (u2 == Nav)) return UTIC_NOTSAME;
+
+    if((u1 == Hzy) || (u2 == Hzy)) return UTIC_DONTKNOW;
+
+    UlamType * ut1 = state.getUlamTypeByIndex(u1);
+    UlamType * ut2 = state.getUlamTypeByIndex(u2);
+    ULAMCLASSTYPE ct1 = ut1->getUlamClass();
+    ULAMCLASSTYPE ct2 = ut2->getUlamClass();
+    UlamKeyTypeSignature key1 = ut1->getUlamKeyTypeSignature();
+    UlamKeyTypeSignature key2 = ut2->getUlamKeyTypeSignature();
+
+    // Given Class Arguments: we may end up with different sizes given different
+    // argument values which may or may not be known while parsing!
+    // t.f. classes are much more like the primitive ulamtypes now.
+    // Was The Case: classes with unknown bitsizes are essentially as complete
+    // as they can be during parse time; and will have the same UTIs.
+    if(!ut1->isComplete())
+      {
+	if(ct1 == UC_NOTACLASS || ut1->getArraySize() == UNKNOWNSIZE)
+	  return UTIC_DONTKNOW;
+
+	//class with known arraysize(scalar or o.w.); no more Nav ids.
+	if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
+	  return UTIC_DONTKNOW;
+      }
+
+    if(!ut2->isComplete())
+      {
+	if(ct2 == UC_NOTACLASS || ut2->getArraySize() == UNKNOWNSIZE)
+	  return UTIC_DONTKNOW;
+
+	//class with known arraysize(scalar or o.w.); no more Nav ids.
+	if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
+	  return UTIC_DONTKNOW;
+      }
+
+    //both complete!
+    //keys may have different reference types: (e.g. atomref = atom, atom = atomref)
+    if(key1.getUlamKeyTypeSignatureNameId() != key2.getUlamKeyTypeSignatureNameId())
+       return UTIC_NOTSAME;
+
+    if(key1.getUlamKeyTypeSignatureArraySize() != key2.getUlamKeyTypeSignatureArraySize())
+      return UTIC_NOTSAME;
+
+    if(key1.getUlamKeyTypeSignatureBitSize() != key2.getUlamKeyTypeSignatureBitSize())
+      return UTIC_NOTSAME;
+
+    //if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
+    // return UTIC_NOTSAME; //?
+
+    ALT alt1 = key1.getUlamKeyTypeSignatureReferenceType();
+    ALT alt2 = key2.getUlamKeyTypeSignatureReferenceType();
+    if(alt1 != alt2)
+      {
+	return UTIC_SAME; //wild
+      }
+    return UTIC_SAME;
+  } //compareWithWildReferenceType (static)
+
   ULAMTYPECOMPARERESULTS UlamType::compareForArgumentMatching(UTI u1, UTI u2, CompilerState& state)  //static
   {
     return UlamType::compareWithWildArrayItemReferenceType(u1, u2, state);
@@ -712,7 +777,7 @@ namespace MFM {
 
   ULAMTYPECOMPARERESULTS UlamType::compareForUlamValueAssignment(UTI u1, UTI u2, CompilerState& state)  //static
   {
-    return UlamType::compareWithWildArrayItemReferenceType(u1, u2, state);
+    return UlamType::compareWithWildReferenceType(u1, u2, state);
   }
 
   u32 UlamType::getTotalWordSize()

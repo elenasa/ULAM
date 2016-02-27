@@ -84,7 +84,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Member selected must be either a quark or an element, not type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
-	if(lut->getUlamTypeEnum() == UAtom)
+	if(m_state.isAtom(luti))
 	  msg << "; suggest using a Conditional-As";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);

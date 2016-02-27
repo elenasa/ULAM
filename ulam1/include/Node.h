@@ -245,6 +245,8 @@ namespace MFM{
     void genCodeReadSelfIntoATmpVar(File * fp, UlamValue & uvpass);
     void genCodeWriteToSelfFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
 
+    void genCodeWriteToAtomofRefFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
+
     void genCodeReadAutorefIntoATmpVar(File * fp, UlamValue& uvpass);
     void genCodeWriteToAutorefFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
 

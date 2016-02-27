@@ -184,7 +184,7 @@ namespace MFM {
     bool rtnOK = true;
     FORECAST lsafe = m_nodeLeft->safeToCastTo(newType);
     FORECAST rsafe = m_nodeRight->safeToCastTo(newType);
-    if( lsafe != CAST_CLEAR || rsafe != CAST_CLEAR )
+    if(lsafe != CAST_CLEAR || rsafe != CAST_CLEAR )
       {
 	std::ostringstream msg;
 	if(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Bool)

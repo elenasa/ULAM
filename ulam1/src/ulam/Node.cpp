@@ -370,7 +370,7 @@ namespace MFM {
     if(rtnUVtype == Void) //check after Ptr target type
       return;
 
-    assert((UlamType::compareForUlamValueAssignment(rtnUVtype, getNodeType(), m_state) == UTIC_SAME) || (m_state.getUlamTypeByIndex(rtnUVtype)->getUlamTypeEnum() == UAtom) || (m_state.getUlamTypeByIndex(getNodeType())->getUlamTypeEnum() == UAtom));
+    assert((UlamType::compareForUlamValueAssignment(rtnUVtype, getNodeType(), m_state) == UTIC_SAME) || m_state.isAtom(rtnUVtype) || m_state.isAtom(getNodeType()));
 
     // save results in the stackframe for caller;
     // copies each element of the 'unpacked' array by value,
@@ -792,6 +792,7 @@ namespace MFM {
     UTI ruti = ruvpass.getUlamValueTypeIdx();
     assert(ruti == Ptr); //terminals handled in NodeTerminal
     ruti = ruvpass.getPtrTargetType();
+    UlamType * rut = m_state.getUlamTypeByIndex(ruti);
 
     // here, cos is symbol used to determine read method: either self or last of cos.
     // stgcos is symbol used to determine first "hidden" arg
@@ -822,6 +823,10 @@ namespace MFM {
 
     if(stgcos->isSelf() && (stgcos == cos))
       return genCodeWriteToSelfFromATmpVar(fp, luvpass, ruvpass);
+
+    //if(m_state.m_currentObjSymbolsForCodeGen.empty() && (ruti == luti) && lut->isReference() && lut->getUlamTypeEnum() == UAtom)
+    if(m_state.isAtomRef(luti) && m_state.isAtom(ruti))
+      return genCodeWriteToAtomofRefFromATmpVar(fp, luvpass, ruvpass);
 
     bool isElementAncestorCast = (lut->getUlamClass() == UC_ELEMENT) && m_state.isClassASuperclassOf(ruti, luti);
 
@@ -861,8 +866,12 @@ namespace MFM {
     //VALUE TO BE WRITTEN:
     // with immediate quarks, they are read into a tmpreg as other immediates
     // with immediate elements, too! value is not a terminal
-    STORAGE rstor = m_state.getUlamTypeByIndex(ruti)->getUlamClass() == UC_QUARK ? TMPREGISTER : ruvpass.getPtrStorage();
-  fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), rstor).c_str());
+    STORAGE rstor = rut->getUlamClass() == UC_QUARK ? TMPREGISTER : ruvpass.getPtrStorage();
+    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), rstor).c_str());
+
+    if(m_state.isAtomRef(ruti))
+      fp->write(".ReadAtom()");
+
     fp->write(");\n");
 
     // inheritance cast needs the lhs type restored after the generated write
@@ -908,6 +917,45 @@ namespace MFM {
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeWriteToSelfFromATmpVar
+
+  void Node::genCodeWriteToAtomofRefFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass)
+  {
+    UTI luti = luvpass.getUlamValueTypeIdx();
+    assert(luti == Ptr);
+    luti = luvpass.getPtrTargetType();
+    //UlamType * lut = m_state.getUlamTypeByIndex(luti);
+
+    UTI ruti = ruvpass.getUlamValueTypeIdx();
+    assert(ruti == Ptr);
+    ruti = ruvpass.getPtrTargetType();
+    //UlamType * rut = m_state.getUlamTypeByIndex(ruti);
+
+    m_state.indent(fp);
+    if(!m_state.m_currentObjSymbolsForCodeGen.empty())
+      {
+	//localvar for atoms
+	genLocalMemberNameOfMethod(fp); //includes the dot
+      }
+    else
+      {
+	fp->write(m_state.getTmpVarAsString(luti, luvpass.getPtrSlotIndex(), luvpass.getPtrStorage()).c_str());
+	fp->write(".");
+      }
+
+    fp->write(writeMethodForCodeGen(luti, luvpass).c_str());
+    fp->write("(");
+
+    //VALUE TO BE WRITTEN:
+    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
+
+    //if((rut->getReferenceType() == ALT_REF) && (lut->getReferenceType() != ALT_REF))
+    if(m_state.isAtomRef(ruti))
+      fp->write(".ReadAtom()");
+
+    fp->write("); //write into atomof ref\n ");
+
+    m_state.m_currentObjSymbolsForCodeGen.clear();
+  } //genCodeWriteToAtomofRefFromATmpVar
 
   void Node::genCodeWriteToAutorefFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass)
   {
@@ -1184,7 +1232,7 @@ namespace MFM {
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
     //for ANY immediate atom arg from a T
-    if(m_state.getUlamTypeByIndex(catype)->getUlamTypeEnum() == UAtom)
+    if(m_state.isAtom(catype))
       fp->write(", uc"); //needs effective self from T's type via uc
 
     fp->write(") );\n");
@@ -1216,8 +1264,11 @@ namespace MFM {
 
     u32 pos = uvpass.getPtrPos(); //pos calculated by makePtr(atom-based) (e.g. quark, atom)
 
-    if(vut->getUlamTypeEnum() == UAtom)
+    if(m_state.isAtom(vuti))
       {
+	//if(!m_state.isAtomRef(vuti))
+	//  fp->write(".ReadAtom()");
+
 	//for ANY immediate atom arg from a T
 	//needs effective self from T's type
 	fp->write(", uc");
@@ -1256,7 +1307,7 @@ namespace MFM {
 
     // write out immediate tmp BitValue as an intermediate tmpVar
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
-    STORAGE tmp2stor = (((vut->getUlamClass() == UC_ELEMENT) || (vut->getUlamTypeEnum() == UAtom)) ?  TMPBITVAL : TMPREGISTER);
+    STORAGE tmp2stor = (((vut->getUlamClass() == UC_ELEMENT) || m_state.isAtom(vuti)) ?  TMPBITVAL : TMPREGISTER);
 
     m_state.indent(fp);
     fp->write("const ");
@@ -1481,8 +1532,24 @@ namespace MFM {
 
     if(nclasstype == UC_NOTACLASS)
       {
-	if((nut->getUlamTypeEnum() == UAtom) && (tclasstype != UC_ELEMENT))
+	//allows atom ref casts
+	//if((nut->getUlamTypeEnum() == UAtom) && (tclasstype != UC_ELEMENT))
+	if(m_state.isAtom(nuti) && !((tclasstype == UC_ELEMENT) || m_state.isAtom(tobeType)))
 	  doErrMsg = true;
+
+	/*
+	if((nut->getUlamTypeEnum() == UAtom))
+	  {
+	    if((tobe->getUlamTypeEnum() == UAtom))
+	      {
+		rtnNode = node; //noop for atom refs
+		return true;
+	      }
+	    else if(tclasstype != UC_ELEMENT)
+	      doErrMsg = true;
+	  }
+	*/
+
 	else if(nuti == Void)
 	  doErrMsg = true; //cannot cast a void into anything else (reverse is fine)
 	//else if reference to non-ref of same type?
@@ -1663,7 +1730,7 @@ namespace MFM {
 
     //create "atom" symbol whose index is "hidden" first arg (i.e. a Ptr to an Atom);
     //immediately below the return value(s); and belongs to the function definition scope.
-    u32 selfid = m_state.m_pool.getIndexForDataString("atom"); //was "self"
+    u32 selfid = m_state.m_pool.getIndexForDataString("self"); //was "self"
     Token selfTok(TOK_IDENTIFIER, loc, selfid);
 
     //negative indicates parameter for symbol install
@@ -2216,8 +2283,7 @@ namespace MFM {
       return false; //data member, not model parameter
 
     UTI stgcosuti = m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx();
-    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-    if(m_state.m_currentObjSymbolsForCodeGen[0]->isSelf() && (stgcosut->getUlamTypeEnum() != UAtom) && (modelparamidx == -1))
+    if(m_state.m_currentObjSymbolsForCodeGen[0]->isSelf() && !m_state.isAtom(stgcosuti) && (modelparamidx == -1))
       return false; //self, not atom, not modelparameter
     return true;
   } //isCurrentObjectALocalVariableOrArgument
@@ -2292,7 +2358,7 @@ namespace MFM {
 
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     //either total size is greater than a long, or each item is an element or atom
-    return((cosut->getTotalBitSize() > MAXBITSPERLONG) || (cosut->getUlamClass() == UC_ELEMENT) || (cosut->getUlamTypeEnum() == UAtom) );
+    return((cosut->getTotalBitSize() > MAXBITSPERLONG) || (cosut->getUlamClass() == UC_ELEMENT) || m_state.isAtom(cosuti));
   } //isCurrentObjectAnUnpackedArray
 
   bool Node::isHandlingImmediateType()
@@ -2307,7 +2373,7 @@ namespace MFM {
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     if(cosut->getUlamClass() == UC_NOTACLASS)
       {
-	assert(cosut->getUlamTypeEnum() != UAtom); //atom too? let's find out..
+	assert(!m_state.isAtom(cosuti)); //atom too? let's find out..
 	u32 wordsize = cosut->getTotalWordSize();
 	pos = wordsize - (BITSPERATOM - pos); //cosut->getTotalBitSize();
       }
