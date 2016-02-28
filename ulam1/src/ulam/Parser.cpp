@@ -36,7 +36,6 @@
 #include "NodeCast.h"
 #include "NodeConditionalAs.h"
 #include "NodeConditionalIs.h"
-#include "NodeConditionalHas.h"
 #include "NodeConstant.h"
 #include "NodeContinueStatement.h"
 #include "NodeControlIf.h"
@@ -4255,10 +4254,6 @@ namespace MFM {
       {
       case TOK_KW_IS:
 	rtnNode = new NodeConditionalIs(leftNode, typeNode, m_state);
-	break;
-      case TOK_KW_HAS:
-	//rtnNode = new NodeConditionalHas(leftNode, typeNode, m_state);
-	assert(0); //deprecated
 	break;
       case TOK_KW_AS:
 	rtnNode = new NodeConditionalAs(leftNode, typeNode, m_state);

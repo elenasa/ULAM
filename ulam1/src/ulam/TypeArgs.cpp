@@ -52,9 +52,6 @@ namespace MFM {
       case TOK_KW_AS:
 	m_declRef = ALT_AS;
 	break;
-      case TOK_KW_HAS:
-	assert(0); //deprecated
-	break;
       case TOK_AMP:
 	m_declRef = ALT_REF;
 	break;
