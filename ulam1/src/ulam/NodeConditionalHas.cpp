@@ -87,17 +87,6 @@ namespace MFM {
 	newType = Nav;
       }
 
-#if 0
-    if(!strcmp(m_nodeLeft->getName(), "atom"))
-      {
-	std::ostringstream msg;
-	msg << "Invalid lefthand identifier of conditional operator '" << getName();
-	msg << "'; Suggest using a variable of type Atom as 'atom'";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	newType = Nav;
-      }
-#endif
-
     assert(m_nodeTypeDesc);
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
     if(m_state.okUTItoContinue(ruti))
@@ -136,7 +125,7 @@ namespace MFM {
 	newType = Hzy; //goagain set by nodetypedesc
       }
     setNodeType(newType);
-    setStoreIntoAble(false);
+    Node::setStoreIntoAble(TBOOL_FALSE);
     return getNodeType();
   } //checkAndLabelType
 

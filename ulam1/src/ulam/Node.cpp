@@ -14,7 +14,7 @@
 
 namespace MFM {
 
-  Node::Node(CompilerState & state): m_state(state), m_storeIntoAble(false), m_utype(Nouti), m_parentNo(0), m_no(m_state.getNextNodeNo()) {}
+  Node::Node(CompilerState & state): m_state(state), m_storeIntoAble(TBOOL_FALSE), m_utype(Nouti), m_parentNo(0), m_no(m_state.getNextNodeNo()) {}
 
   Node::Node(const Node & ref) : m_state(ref.m_state), m_storeIntoAble(ref.m_storeIntoAble), m_utype(ref.m_utype), m_loc(ref.m_loc), m_parentNo(ref.m_parentNo), m_no(ref.m_no) /* same NNO */ {}
 
@@ -102,12 +102,12 @@ namespace MFM {
     m_utype = ut;
   }
 
-  bool Node::isStoreIntoAble()
+  TBOOL Node::getStoreIntoAble()
   {
     return m_storeIntoAble;
   }
 
-  void Node::setStoreIntoAble(bool s)
+  void Node::setStoreIntoAble(TBOOL s)
   {
     m_storeIntoAble = s;
   }
@@ -199,7 +199,7 @@ namespace MFM {
   UTI Node::checkAndLabelType()
   {
     m_utype = Nouti;
-    m_storeIntoAble = false;
+    m_storeIntoAble = TBOOL_FALSE;
     return m_utype;
   }
 
@@ -314,7 +314,7 @@ namespace MFM {
     msg << "Invalid lefthand value (not storeIntoAble) '" << getName() << "'";
     msg << "; Cannot eval";
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-    assert(!isStoreIntoAble());
+    assert(getStoreIntoAble() == TBOOL_FALSE);
     return ERROR;
   }
 
@@ -923,12 +923,10 @@ namespace MFM {
     UTI luti = luvpass.getUlamValueTypeIdx();
     assert(luti == Ptr);
     luti = luvpass.getPtrTargetType();
-    //UlamType * lut = m_state.getUlamTypeByIndex(luti);
 
     UTI ruti = ruvpass.getUlamValueTypeIdx();
     assert(ruti == Ptr);
     ruti = ruvpass.getPtrTargetType();
-    //UlamType * rut = m_state.getUlamTypeByIndex(ruti);
 
     m_state.indent(fp);
     if(!m_state.m_currentObjSymbolsForCodeGen.empty())
@@ -948,7 +946,6 @@ namespace MFM {
     //VALUE TO BE WRITTEN:
     fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
 
-    //if((rut->getReferenceType() == ALT_REF) && (lut->getReferenceType() != ALT_REF))
     if(m_state.isAtomRef(ruti))
       fp->write(".ReadAtom()");
 
@@ -1266,9 +1263,6 @@ namespace MFM {
 
     if(m_state.isAtom(vuti))
       {
-	//if(!m_state.isAtomRef(vuti))
-	//  fp->write(".ReadAtom()");
-
 	//for ANY immediate atom arg from a T
 	//needs effective self from T's type
 	fp->write(", uc");
@@ -1533,22 +1527,8 @@ namespace MFM {
     if(nclasstype == UC_NOTACLASS)
       {
 	//allows atom ref casts
-	//if((nut->getUlamTypeEnum() == UAtom) && (tclasstype != UC_ELEMENT))
 	if(m_state.isAtom(nuti) && !((tclasstype == UC_ELEMENT) || m_state.isAtom(tobeType)))
 	  doErrMsg = true;
-
-	/*
-	if((nut->getUlamTypeEnum() == UAtom))
-	  {
-	    if((tobe->getUlamTypeEnum() == UAtom))
-	      {
-		rtnNode = node; //noop for atom refs
-		return true;
-	      }
-	    else if(tclasstype != UC_ELEMENT)
-	      doErrMsg = true;
-	  }
-	*/
 
 	else if(nuti == Void)
 	  doErrMsg = true; //cannot cast a void into anything else (reverse is fine)

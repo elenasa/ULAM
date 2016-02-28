@@ -306,7 +306,7 @@ namespace MFM {
 	  it = Hzy; //not ready
 	//else CAST_SAFE ok
       }
-    setStoreIntoAble(true);
+    Node::setStoreIntoAble(TBOOL_TRUE);
     setNodeType(it);
     return getNodeType();
   } //checkAndLabelType

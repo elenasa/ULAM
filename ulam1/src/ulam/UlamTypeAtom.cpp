@@ -230,14 +230,6 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
 
-#if 0
-    fp->write("\n");
-    m_state.indent(fp);
-    fp->write("class ");
-    fp->write(automangledName.c_str());
-    fp->write("<EC>; //forward\n\n");
-#endif
-
     //typedef atomic parameter type inside struct
     m_state.indent(fp);
     fp->write("typedef typename EC::ATOM_CONFIG AC;\n");
@@ -278,18 +270,6 @@ namespace MFM {
     fp->write("UlamRefAtom<EC>");
     fp->write("(m_stg, d.GetEffectiveSelf()), ");
     fp->write("m_stg(d.m_stg) { }\n");
-
-#if 0
-    //copy constructor from ref; uc arg only to make gencode easier
-    m_state.indent(fp);
-    fp->write(mangledName.c_str());
-    fp->write("(const ");
-    fp->write(automangledName.c_str());
-    fp->write("<EC>& r, const UlamContext<EC>& ucarg) : ");
-    fp->write("UlamRefAtom<EC>");
-    fp->write("(m_stg, r.GetEffectiveSelf()), ");
-    fp->write("m_stg(r.ReadAtom()) { }\n");
-#endif
 
     //default destructor (for completeness)
     m_state.indent(fp);

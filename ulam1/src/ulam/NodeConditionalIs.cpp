@@ -102,7 +102,7 @@ namespace MFM {
 	m_state.setGoAgain();
       }
     setNodeType(newType);
-    setStoreIntoAble(false);
+    Node::setStoreIntoAble(TBOOL_FALSE);
     return getNodeType();
   } //checkAndLabelType
 

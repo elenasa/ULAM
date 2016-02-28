@@ -148,7 +148,7 @@ namespace MFM {
     UTI newType = calcNodeType(leftType, rightType); //does safety check
 
     setNodeType(newType);
-    setStoreIntoAble(false);
+    Node::setStoreIntoAble(TBOOL_FALSE);
 
     if(m_state.isComplete(newType))
       {

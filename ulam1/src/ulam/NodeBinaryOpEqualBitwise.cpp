@@ -15,10 +15,16 @@ namespace MFM {
 
     if(m_state.okUTItoContinue(nodeType))
       {
-	if(!NodeBinaryOpEqual::checkStoreIntoAble())
+	TBOOL stor = NodeBinaryOpEqual::checkStoreIntoAble();
+	if(stor == TBOOL_FALSE)
 	  {
 	    setNodeType(Nav);
 	    return Nav; //newType
+	  }
+	else if(stor == TBOOL_HAZY)
+	  {
+	    setNodeType(Hzy);
+	    m_state.setGoAgain();
 	  }
 
 	if(!NodeBinaryOpEqual::checkNotUnpackedArray())

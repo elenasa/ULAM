@@ -295,14 +295,6 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
       }
 
-    //matching custom array flags
-#if 0
-    if((scut->getUlamTypeEnum() == Class) && m_state.isClassACustomArray(scuti))
-      {
-	UlamType * aut = m_state.getUlamTypeByIndex(auti);
-	((UlamTypeClass *) aut)->setCustomArray();
-      }
-#endif
   } //checkAndMatchBaseUlamTypes
 
   void NodeTypeDescriptorArray::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)

@@ -883,14 +883,8 @@ namespace MFM {
     UlamKeyTypeSignature baseKey(nameid, bitsize, NONARRAYSIZE, cuti, ALT_ARRAYITEM);  //default array size is NONARRAYSIZE, new reftype
 
     UTI buti = makeUlamType(baseKey, bUT); //could be a new one, oops.
-#if 0
-    //array of CA's is not a CA too
-    if(ut->isCustomArray())
-      {
-	assert(bUT == Class);
-	((UlamTypeClass *) getUlamTypeByIndex(buti))->setCustomArray();
-      }
-#endif
+
+    //note: array of CA's is not a CA too
     return buti;
   } //getUlamTypeAsScalar
 
@@ -2573,6 +2567,26 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     NodeBlockFunctionDefinition * func = classNode->findToIntFunctionNode();
     return (func != NULL);
   } //quarkHasAToIntMethod
+
+  bool CompilerState::classHasACustomArraySetMethod(UTI cuti)
+  {
+    assert(isScalar(cuti));
+    bool rtnb = false;
+    SymbolClass * csym = NULL;
+    if(alreadyDefinedSymbolClass(cuti, csym))
+      {
+	NodeBlockClass * cblock = csym->getClassBlockNode();
+	pushClassContextUsingMemberClassBlock(cblock);
+
+	//hasACustomArraySetFunction();
+	bool hazykin = false;
+	Symbol * fsym = NULL;
+	rtnb = isFuncIdInClassScope(getCustomArraySetFunctionNameId(), fsym, hazykin);
+
+	popClassContext();
+      }
+    return rtnb;
+  } //thisClassHasACustomArraySetMethod
 
   void CompilerState::setupCenterSiteForTesting()
   {

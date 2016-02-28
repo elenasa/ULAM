@@ -87,16 +87,6 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
       }
-#if 0
-    if(!strcmp(m_nodeLeft->getName(), "atom")) //???
-      {
-	std::ostringstream msg;
-	msg << "Invalid lefthand identifier of conditional operator '" << getName();
-	msg << "'; Suggest using a variable of type Atom as 'atom'";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	newType = Nav;
-      }
-#endif
 
     assert(m_nodeTypeDesc);
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
@@ -144,7 +134,7 @@ namespace MFM {
       }
 
     setNodeType(newType);
-    setStoreIntoAble(false);
+    Node::setStoreIntoAble(TBOOL_FALSE);
     return getNodeType();
   } //checkAndLabelType
 
@@ -229,7 +219,6 @@ namespace MFM {
 
     if(asit)
       {
-	//UTI asuti = (luti == UAtom ? ruti : luti);
 	UTI asuti = ruti; //as deref'd type
 	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), asuti, m_state.determinePackable(asuti), m_state, pluv.getPtrPos() + 0, pluv.getPtrNameId());
 	m_state.m_currentAutoObjPtr = ptr;
@@ -314,13 +303,6 @@ namespace MFM {
 	  {
 	    //then left must be an atom
 	    fp->write(m_state.getAsMangledFunctionName(luti, ruti)); //UlamElement IsMethod
-	    //	    if(lut->getReferenceType() == ALT_AS)
-	    //  {
-	    //	fp->write("(");
-	    //	fp->write(m_state.getTmpVarForAutoHiddenContext()); // _ucauto tmp, don't know var's name ??
-	    //	fp->write(", ");
-	    //  }
-	    //else
 	    fp->write("(uc, ");
 
 	    fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, luvpass.getPtrStorage()).c_str());

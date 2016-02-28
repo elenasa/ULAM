@@ -8,6 +8,7 @@ namespace MFM {
   NodeAtomof::NodeAtomof(Token tokatomof, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_nodeTypeDesc(nodetype), m_token(tokatomof), m_atomoftype(Nouti), m_varSymbol(NULL)
   {
     Node::setNodeLocation(tokatomof.m_locator);
+    Node::setStoreIntoAble(TBOOL_HAZY);
   }
 
   NodeAtomof::NodeAtomof(const NodeAtomof& ref) : Node(ref), m_nodeTypeDesc(NULL), m_token(ref.m_token), m_atomoftype(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_atomoftype)), m_varSymbol(NULL)
@@ -179,7 +180,7 @@ namespace MFM {
 	nuti = UAtomRef;
       }
 
-    setStoreIntoAble((m_token.m_type == TOK_IDENTIFIER));
+    Node::setStoreIntoAble((m_token.m_type == TOK_IDENTIFIER) ? TBOOL_TRUE : TBOOL_FALSE);
 
     setNodeType(nuti);
     return nuti;

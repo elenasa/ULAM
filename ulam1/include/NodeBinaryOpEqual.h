@@ -80,7 +80,7 @@ namespace MFM{
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len); //stub
     virtual UTI calcNodeType(UTI lt, UTI rt);  //stub
 
-    bool checkStoreIntoAble();
+    TBOOL checkStoreIntoAble();
     bool checkNotUnpackedArray();
 
   private:

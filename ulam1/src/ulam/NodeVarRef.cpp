@@ -7,7 +7,10 @@
 
 namespace MFM {
 
-  NodeVarRef::NodeVarRef(SymbolVariable * sym, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeVarDecl(sym, nodetype, state) { }
+  NodeVarRef::NodeVarRef(SymbolVariable * sym, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeVarDecl(sym, nodetype, state)
+  {
+    Node::setStoreIntoAble(TBOOL_HAZY);
+  }
 
   NodeVarRef::NodeVarRef(const NodeVarRef& ref) : NodeVarDecl(ref) { }
 
@@ -155,7 +158,18 @@ namespace MFM {
   {
     UTI it = NodeVarDecl::checkAndLabelType();
 
-    assert((it == Nav) || (it == Hzy) || m_state.getUlamTypeByIndex(it)->isReference());
+    //assert((it == Nav) || (it == Hzy) || m_state.getUlamTypeByIndex(it)->isReference());
+
+    if(m_state.okUTItoContinue(it) && (!m_state.getUlamTypeByIndex(it)->isReference()))
+      {
+	std::ostringstream msg;
+	msg << "Variable reference '";
+	msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+	msg << "', is invalid";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav);
+	return Nav; //short-circuit
+      }
 
     ////requires non-constant, non-funccall value
     //NOASSIGN REQUIRED (e.g. for function parameters) doesn't have to have this!
@@ -186,17 +200,40 @@ namespace MFM {
 	  }
 
 	//check isStoreIntoAble
-	if(m_nodeInitExpr->isAConstant() || m_nodeInitExpr->isFunctionCall())
+	//if(m_nodeInitExpr->isAConstant() || m_nodeInitExpr->isFunctionCall())
+	TBOOL istor = m_nodeInitExpr->getStoreIntoAble();
+	Node::setStoreIntoAble(istor);
+
+	if(istor != TBOOL_TRUE)
 	  {
 	    std::ostringstream msg;
 	    msg << "Storage expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
 	    msg << ", must be storeintoable";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav);
-	    return Nav; //short-circuit
+	    if(istor == TBOOL_HAZY)
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		m_state.setGoAgain();
+		it = Hzy;
+	      }
+	    else
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		setNodeType(Nav);
+		return Nav; //short-circuit
+	      }
 	  }
       }
+    else
+      {
+	if(it == Nav)
+	  Node::setStoreIntoAble(TBOOL_FALSE);
+	else if(it == Hzy)
+	  Node::setStoreIntoAble(TBOOL_HAZY);
+	else
+	  Node::setStoreIntoAble(TBOOL_TRUE);
+      }
+
     setNodeType(it);
     return getNodeType();
   } //checkAndLabelType
@@ -330,7 +367,7 @@ namespace MFM {
 	    else
 	      {
 		//local var
-		if((vclasstype == UC_NOTACLASS) && m_state.isAtom(vuti))
+		if((vclasstype == UC_NOTACLASS) && !m_state.isAtom(vuti))
 		  {
 		    fp->write(", 0u"); //relative
 		  }

@@ -9,6 +9,7 @@ namespace MFM {
   NodeSquareBracket::NodeSquareBracket(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state)
   {
     m_nodeRight->updateLineage(getNodeNo()); //for unknown subtrees
+    Node::setStoreIntoAble(TBOOL_HAZY);
   }
 
   NodeSquareBracket::NodeSquareBracket(const NodeSquareBracket& ref) : NodeBinaryOp(ref) {}
@@ -224,8 +225,16 @@ namespace MFM {
 	else
 	  newType = m_state.getUlamTypeAsScalar(leftType);
 
-	// multi-dimensional possible; MP not ok lhs.
-	setStoreIntoAble(m_nodeLeft->isStoreIntoAble());
+	if(isCustomArray)
+	  {
+	    if(m_state.classHasACustomArraySetMethod(leftType))
+	      	Node::setStoreIntoAble(TBOOL_TRUE);
+	    else
+	      Node::setStoreIntoAble(TBOOL_FALSE);
+	  }
+	else
+	  // multi-dimensional possible; MP not ok lhs.
+	  Node::setStoreIntoAble(m_nodeLeft->getStoreIntoAble());
       }
     else
       {

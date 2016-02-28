@@ -3,7 +3,10 @@
 
 namespace MFM {
 
-  NodeBinaryOpEqual::NodeBinaryOpEqual(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state) {}
+  NodeBinaryOpEqual::NodeBinaryOpEqual(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state)
+  {
+    Node::setStoreIntoAble(TBOOL_HAZY);
+  }
 
   NodeBinaryOpEqual::NodeBinaryOpEqual(const NodeBinaryOpEqual& ref) : NodeBinaryOp(ref) {}
 
@@ -43,10 +46,16 @@ namespace MFM {
     	return Hzy; //not quietly
       }
 
-    if(!checkStoreIntoAble())
+    TBOOL stor = checkStoreIntoAble();
+    if(stor == TBOOL_FALSE)
       {
 	setNodeType(Nav);
 	return Nav;
+      }
+    else if(stor == TBOOL_HAZY)
+      {
+	setNodeType(Hzy);
+	m_state.setGoAgain();
       }
 
     if(!checkNotUnpackedArray())
@@ -122,24 +131,27 @@ namespace MFM {
 	  }
       }
     setNodeType(newType);
-    setStoreIntoAble(m_state.okUTItoContinue(newType)); //ok true
+    //if(m_state.okUTItoContinue(newType))
+    //  Node::setStoreIntoAble(TBOOL_TRUE); //ok true
     return newType;
   } //checkAndLabelType
 
-  bool NodeBinaryOpEqual::checkStoreIntoAble()
+  TBOOL NodeBinaryOpEqual::checkStoreIntoAble()
   {
-    if(!m_nodeLeft->isStoreIntoAble())
+    TBOOL lstor = m_nodeLeft->getStoreIntoAble();
+    if(lstor != TBOOL_TRUE)
       {
 	UTI lt = m_nodeLeft->getNodeType();
 	std::ostringstream msg;
 	msg << "Invalid lefthand side of equals <" << m_nodeLeft->getName();
 	msg << ">, type: " << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setStoreIntoAble(false);
-	return false;
+	if(lstor == TBOOL_HAZY)
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
-    setStoreIntoAble(true);
-    return true;
+    setStoreIntoAble(lstor);
+    return lstor;
   } //checkStoreIntoAble
 
   bool NodeBinaryOpEqual::checkNotUnpackedArray()

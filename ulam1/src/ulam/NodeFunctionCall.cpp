@@ -206,14 +206,25 @@ namespace MFM {
 	      {
 		if(m_state.isReference(funcSymbol->getParameterType(i)))
 		  {
-		    if(argNodes[i]->isFunctionCall())
+		    //if(argNodes[i]->isFunctionCall())
+		    TBOOL argstor = argNodes[i]->getStoreIntoAble();
+		    if(argstor != TBOOL_TRUE)
 		      {
 			std::ostringstream msg;
-			msg << "Argument " << i + 1 << " to function <";
+			msg << "Invalid argument " << i + 1 << " to function <";
 			msg << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
-			msg << "> is a function call, and cannot be used as a reference parameter";
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			numErrorsFound++;
+			//msg << "> is a function call, and cannot be used as a reference parameter";
+			msg << ">; Cannot be used as a reference parameter";
+			if(argstor == TBOOL_HAZY)
+			  {
+			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+			    numHazyFound++;
+			  }
+			else
+			  {
+			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			    numErrorsFound++;
+			  }
 		      }
 		  }
 	      }
@@ -672,7 +683,7 @@ namespace MFM {
     msg << "> to a variable, type: ";
     msg << m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str();
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-    assert(!isStoreIntoAble());
+    assert(Node::getStoreIntoAble() == TBOOL_FALSE);
     return ERROR;
   } //evalToStoreInto
 

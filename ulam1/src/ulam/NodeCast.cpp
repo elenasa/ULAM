@@ -7,6 +7,7 @@ namespace MFM {
   NodeCast::NodeCast(Node * n, UTI typeToBe, NodeTypeDescriptor * nodetype, CompilerState & state): NodeUnaryOp(n, state), m_castToBe(typeToBe), m_explicit(false), m_nodeTypeDesc(nodetype)
   {
     setNodeType(typeToBe);
+    Node::setStoreIntoAble(TBOOL_HAZY);
   }
 
   NodeCast::NodeCast(const NodeCast& ref) : NodeUnaryOp(ref), m_castToBe(ref.m_castToBe), m_explicit(ref.m_explicit), m_nodeTypeDesc(NULL)
@@ -316,7 +317,7 @@ namespace MFM {
       }
 
     if(tobe->isReference())
-      setStoreIntoAble(true);
+      Node::setStoreIntoAble(TBOOL_TRUE);
 
     setNodeType(getCastType()); //since neither Hzy, nor Nav
     return getNodeType();
@@ -427,8 +428,11 @@ namespace MFM {
     if(nuti == Hzy)
       return NOTREADY;
 
-    if(!isStoreIntoAble())
+    TBOOL stor = Node::getStoreIntoAble();
+    if(stor == TBOOL_FALSE)
       return ERROR;
+    else if(stor == TBOOL_HAZY)
+      return NOTREADY;
 
     evalNodeProlog(0); //new current frame pointer
 

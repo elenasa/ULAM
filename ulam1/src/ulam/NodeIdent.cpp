@@ -17,6 +17,7 @@ namespace MFM {
   {
     if(symptr)
       m_currBlockNo = symptr->getBlockNoOfST();
+    Node::setStoreIntoAble(TBOOL_HAZY);
   }
 
   NodeIdent::NodeIdent(const NodeIdent& ref) : Node(ref), m_token(ref.m_token), m_varSymbol(NULL), m_currBlockNo(ref.m_currBlockNo) {}
@@ -240,7 +241,7 @@ namespace MFM {
     if(!errCnt && m_varSymbol)
       {
 	it = m_varSymbol->getUlamTypeIdx();
-	setStoreIntoAble(true); //store into an array entotal?
+	Node::setStoreIntoAble(TBOOL_TRUE); //store into an array entotal?
 
 	//from NodeTypeDescriptor..e.g. for function call args in NodeList.
 	if(!m_state.isComplete(it))
@@ -409,12 +410,18 @@ namespace MFM {
 
     assert(m_varSymbol);
 
-    if(!isStoreIntoAble()) //i.e. an MP
+    TBOOL stor = Node::getStoreIntoAble();
+    if(stor != TBOOL_TRUE) //i.e. an MP
       {
 	std::ostringstream msg;
 	msg << "Variable '";
 	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
 	msg << "' is not a valid lefthand side. Eval FAILS";
+	if(stor == TBOOL_HAZY)
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    return NOTREADY;
+	  }
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return ERROR;
       }

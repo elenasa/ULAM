@@ -65,6 +65,8 @@ namespace MFM {
 
   typedef  bool __attribute__((unused)) AssertBool;
 
+  enum TBOOL { TBOOL_FALSE = 0, TBOOL_TRUE, TBOOL_HAZY};
+
 #ifndef BITSPERATOM
 #define BITSPERATOM (96)
 #endif //BITSPERATOM
