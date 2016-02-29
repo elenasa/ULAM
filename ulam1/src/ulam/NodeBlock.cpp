@@ -101,6 +101,7 @@ namespace MFM {
   {
     assert(m_nodeNext);
 
+    //especially important for template instances (prev ptr nullified on instantiation)
     if(m_prevBlockNode == NULL)
       {
 	m_prevBlockNode = m_state.getCurrentBlock();

@@ -9,7 +9,7 @@ Uq_EvtWinEl { Int(32) m_idx( 40 cast);  <NOMAIN> }
 ##      // informed by t3338
 ##
 #>EventWindowTest.ulam
-  ulam 1;
+  ulam 2;
 use EvtWinEl;
 element EventWindowTest : EvtWinEl {
   constant Int v = -2;
@@ -25,7 +25,7 @@ element EventWindowTest : EvtWinEl {
 }
 
 #:EvtWinEl.ulam
-  ulam 1;
+  ulam 2;
 quark EvtWinEl {
   Int m_idx = 40;
   Atom aref(Int index)

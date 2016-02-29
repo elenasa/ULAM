@@ -12,7 +12,7 @@ Uq_Soo { Unsigned(3) us( 4u);  <NOMAIN> }
 ##  (informed by t3528)
 ##
 #>Foo.ulam
-  ulam 1;
+  ulam 2;
 use Soo;
 element Foo : Soo {
   Bool(7) sp;
@@ -25,7 +25,7 @@ element Foo : Soo {
 }
 
 #:Soo.ulam
-  ulam 1;
+  ulam 2;
 quark Soo {
   Unsigned(3) us = 4u;
   //  parameter Unary(4) mp = 3;

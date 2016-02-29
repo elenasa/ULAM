@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: -1
-Ue_Foo : QPerc { :< Bool(1) b(false); > Int(32) test() {  QPerc q;  _self.atomof _q.atomof = 1 cast return } }
+Ue_Foo : QPerc { :< Bool(1) b(false); > Int(32) test() {  QPerc q;  self.atomof q.atomof = 1 cast return } }
 Uq_QPerc { Bool(1) b(false);  <NOMAIN> }
 ##
 ## informed by a Dave ish 2/19/2016; should this be allowed, or error?

@@ -1507,6 +1507,12 @@ namespace MFM {
 
 	Token iTok;
 	getNextToken(iTok);
+	if(iTok.m_type == TOK_AMP)
+	  {
+	    typeargs.m_declRef = ALT_REF;
+	    getNextToken(iTok);
+	  }
+
 	//insure the typedef name starts with a capital letter
 	if(iTok.m_type == TOK_TYPE_IDENTIFIER)
 	  {
@@ -3999,6 +4005,8 @@ namespace MFM {
 	    //chain to NodeType descriptor if array (i.e. non scalar), o.w. delete lval
 	    linkOrFreeConstantExpressionArraysize(auti, args, (NodeSquareBracket *)lvalNode, nodetyperef);
 
+	    nodetyperef->setReferenceType(m_state.getReferenceType(auti)); //invariant
+
 	    // tfr owner of nodetyperef to node var decl
 	    if(asymptr->isDataMember())
 	      {
@@ -4109,7 +4117,8 @@ namespace MFM {
 	    UTI auti = asymptr->getUlamTypeIdx();
 	    //chain to NodeType descriptor if array (i.e. non scalar), o.w. delete lval
 	    linkOrFreeConstantExpressionArraysize(auti, args, (NodeSquareBracket *)lvalNode, nodetyperef);
-	    // tfr owner of nodetyperef to node var decl
+	    // tfr owner of nodetyperef to node typedef
+	    nodetyperef->setReferenceType(m_state.getReferenceType(auti)); //invariant
 	    rtnNode =  new NodeTypedef((SymbolTypedef *) asymptr, nodetyperef, m_state);
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(args.m_typeTok.m_locator);

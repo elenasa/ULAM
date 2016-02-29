@@ -7,23 +7,24 @@ Uq_Booly(Unsigned(4) firstRange, Unsigned(4) lastRange, Bool(1) bomb) { <NOMAIN>
 ##
 ##      //this version also tests class arguments with bitsize, and saturation (i.e. 8 == 7)
 #>Foo.ulam
-ulam 1;
+  ulam 1;
 use Booly;
 element Foo{
-Int test(){
-Booly(7u, 8u, true) b;
- return (Int) b.behave();
-}
+  Int test(){
+    Booly(7u, 8u, true) b;
+    return (Int) b.behave();
+  }
 }
 ##
 ##      //informed by issue (see 3359): also tests Bool as 3rd class parameter
 ##      //bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Booly;\nelement Foo{\nInt test(){\nBooly(0u, 2u, true) b;\n return b.behave();\n}\n}\n");
 
 #:Booly.ulam
+  ulam 1;
 quark Booly(Unsigned(4) firstRange, Unsigned(4) lastRange, Bool bomb) {
-Bool behave(){
- if(bomb && lastRange != firstRange) return true;
-return false;
-}
+  Bool behave(){
+    if(bomb && lastRange != firstRange) return true;
+    return false;
+  }
 }
 #.

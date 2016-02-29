@@ -159,7 +159,6 @@ namespace MFM {
     UTI it = NodeVarDecl::checkAndLabelType();
 
     //assert((it == Nav) || (it == Hzy) || m_state.getUlamTypeByIndex(it)->isReference());
-
     if(m_state.okUTItoContinue(it) && (!m_state.getUlamTypeByIndex(it)->isReference()))
       {
 	std::ostringstream msg;

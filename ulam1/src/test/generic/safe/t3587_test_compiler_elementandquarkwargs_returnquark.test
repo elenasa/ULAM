@@ -14,7 +14,7 @@ Uq_System { <NOMAIN> }
 ##  E both inherits and has DM Qfoo, here.
 ##
 #>E.ulam
-  ulam 1;
+  ulam 2;
 use Qfoo;
 use System;
 element E : Qfoo {
@@ -39,7 +39,7 @@ element E : Qfoo {
 }
 
 #:Qfoo.ulam
-  ulam 1;
+  ulam 2;
 quark Qfoo {
   Unsigned(3) data;
   Qfoo func()
@@ -53,7 +53,7 @@ quark Qfoo {
 }
 
 #:System.ulam
-ulam 1;
+  ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

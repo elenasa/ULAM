@@ -6,15 +6,18 @@ Ue_A { Unary(4) e(3u);  Unary(4) c(0u);  Int(4) k(2);  Int(4) j(1);  Int(32) tes
 ##
 ##      //picked lhs of equal so no casting would be asked for!
 #>A.ulam
-element A {Unary(4) e,c;
-Int(4) k;
- Int(4) j;
-Int test() {
- Int g = 11;
- Int h = 2;
- e = 3u;
- k = (g % e);
- j = e / h;
- return j;
- } }
+  ulam 1;
+element A {
+  Unary(4) e,c;
+  Int(4) k;
+  Int(4) j;
+  Int test() {
+    Int g = 11;
+    Int h = 2;
+    e = 3u;
+    k = (g % e);
+    j = e / h;
+    return j;
+  }
+}
 #.

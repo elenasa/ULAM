@@ -11,17 +11,17 @@ Uq_Q { typedef Unsigned(3) Foo;  <NOMAIN> }
 ## informed by t3290
 ##
 #>P.ulam
-ulam 1;
+  ulam 1;
 use V;
- element P {
-   Bool b;
-   constant V.Woof.Foo var = 3;
-   Unsigned(3) x = var.minof, y = var.maxof, z = var.sizeof;
-   Unsigned(3) i = V.Woof.Foo.minof, j = V.Woof.Foo.maxof, k = V.Woof.Foo.sizeof;
-   Int test() {
-     return var;
-   }
- }
+element P {
+  Bool b;
+  constant V.Woof.Foo var = 3;
+  Unsigned(3) x = var.minof, y = var.maxof, z = var.sizeof;
+  Unsigned(3) i = V.Woof.Foo.minof, j = V.Woof.Foo.maxof, k = V.Woof.Foo.sizeof;
+  Int test() {
+    return var;
+  }
+}
 
 #:Q.ulam
   ulam 1;

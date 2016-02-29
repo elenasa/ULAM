@@ -9,7 +9,7 @@ Uq_Foo(Int(32) a, Bool(1) b) { typedef Unary(2) Phase;  Unary(2) phase(0);  cons
 ##       informed by t3576 and t3597, trying to make CLife issue happen from working test
 ##
 #>Tu.ulam
-  ulam 1;
+  ulam 2;
 use Foo;
 element Tu : Foo(1, true) {
   Int test(){
@@ -20,7 +20,7 @@ element Tu : Foo(1, true) {
 }
 
 #:Foo.ulam
-  ulam 1;
+  ulam 2;
 quark Foo(Int a, Bool b) {
   //constant, dm all work!!
   typedef Unary(2) Phase;

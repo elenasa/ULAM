@@ -21,7 +21,7 @@ Uq_System { <NOMAIN> }
 ## informed by t3540
 ##
 #>Foo.ulam
-  ulam 1;
+  ulam 2;
 use Basel;
 use System;
 element Foo : Basel {
@@ -50,28 +50,28 @@ element Foo : Basel {
 }
 
 #:Basel.ulam
-  ulam 1;
+  ulam 2;
 use Casel;
 quark Basel : Casel {
   Bool ba;
 }
 
 #:Casel.ulam
-  ulam 1;
+  ulam 2;
 use Soo;
 quark Casel {
   Soo su;
 }
 
 #:Soo.ulam
-  ulam 1;
+  ulam 2;
 use Coo;
 quark Soo : Coo {
   Unsigned(3) us = 4u;
 }
 
 #:Coo.ulam
-  ulam 1;
+  ulam 2;
 use Loo;
 quark Coo : Loo {
   Bool(3) cb = true;
@@ -82,13 +82,13 @@ quark Coo : Loo {
 }
 
 #:Loo.ulam
-  ulam 1;
+  ulam 2;
 quark Loo {
   Int(5) lu = -1;
 }
 
 #:System.ulam
-ulam 1;
+  ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

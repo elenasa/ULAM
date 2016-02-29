@@ -11,17 +11,17 @@ Uq_C2D(Int(4) m_width, Int(4) m_height) { <NOMAIN> }
 ##      //member selection with a function call must be first saved to a
 ##      //variable since we results are returned-by-value (see t3188)
 #>Foo.ulam
-ulam 1;
- use Q;
- element Foo {
- Q q;
- Int(8) i,j,k;
- Int test() { i = (Int(8)) q.func();
- j = (Int(8)) q.func2();
- k = (Int(8)) q.func();
- return q.func2();
+  ulam 1;
+use Q;
+element Foo {
+  Q q;
+  Int(8) i,j,k;
+  Int test() { i = (Int(8)) q.func();
+    j = (Int(8)) q.func2();
+    k = (Int(8)) q.func();
+    return q.func2();
+  }
 }
- }
 
 ##
 ##      // order nor typedefs change the missing file:
@@ -29,25 +29,26 @@ ulam 1;
 ##      //bool rtn3 = fms->add("Q.ulam","ulam 1;\n use C2D;\n quark Q {\ntypedef C2D(2,5) C2D25;\n typedef C2D(4,7) C2D47;\n   C2D25 d;\n C2D47 c;\n C2D47 func(){\n return c;\n }\n C2D25 func2(){\n return d;\n }\n }\n");
 ##
 #:Q.ulam
-ulam 1;
- use C2D;
- quark Q {
- C2D(4,7) c;
- C2D(2,5) d;
- C2D(4,7) func(){
- return c;
- }
- C2D(2,5) func2(){
- return d;
- }
- }
+  ulam 1;
+use C2D;
+quark Q {
+  C2D(4,7) c;
+  C2D(2,5) d;
+  C2D(4,7) func(){
+    return c;
+  }
+  C2D(2,5) func2(){
+    return d;
+  }
+}
 #:C2D.ulam
+  ulam 1;
 quark C2D(Int(4) m_width, Int(4) m_height) {
- Int getIndex(Int a, Int b){
- return ((m_height- (Int(4)) b) * m_width + (m_height- (Int(4)) a));
- }
- Int toInt(){
- return (m_width + m_height);
- }
- }
+  Int getIndex(Int a, Int b){
+    return ((m_height- (Int(4)) b) * m_width + (m_height- (Int(4)) a));
+  }
+  Int toInt(){
+    return (m_width + m_height);
+  }
+}
 #.

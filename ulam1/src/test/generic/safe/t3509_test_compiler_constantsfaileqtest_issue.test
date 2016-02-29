@@ -6,7 +6,8 @@ Ue_Ish { constant Int(32) cBITS = 6;  constant Unsigned(32) cNUM2 = 16u;  consta
 ##
 ##
 #>Ish.ulam
-  element Ish {
+  ulam 1;
+element Ish {
   constant Int cBITS = 6;
   constant Unsigned cNUM2 = ((Unsigned)(1<<cBITS))/4u;
   constant Unsigned cNUM1 = ((Unsigned)(1<<6))/4u;

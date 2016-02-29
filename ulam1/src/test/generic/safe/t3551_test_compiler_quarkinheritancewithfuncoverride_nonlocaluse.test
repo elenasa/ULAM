@@ -15,7 +15,7 @@ Uq_System { <NOMAIN> }
 ## (informed by t3549, t3545, t3536 and t3530, t3544)
 ##
 #>Foo.ulam
-  ulam 1;
+  ulam 2;
 use Soo;
 use System;
 element Foo {
@@ -36,7 +36,7 @@ element Foo {
 }
 
 #:Soo.ulam
-  ulam 1;
+  ulam 2;
 use Coo;
 quark Soo : Coo {
   Unsigned(3) us = 4u;
@@ -48,7 +48,7 @@ quark Soo : Coo {
 }
 
 #:Coo.ulam
-  ulam 1;
+  ulam 2;
 quark Coo {
   Bool(3) cb = true;
   Bool check()
@@ -58,7 +58,7 @@ quark Coo {
 }
 
 #:System.ulam
-ulam 1;
+  ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

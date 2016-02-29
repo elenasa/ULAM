@@ -15,7 +15,7 @@ Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
 ## informed by 3543, m_bar2 is a local array here
 ##
 #>Foo.ulam
-  ulam 1;
+  ulam 2;
 use System;
 use Car;
 element Foo {
@@ -47,14 +47,14 @@ element Foo {
 }
 
 #:Car.ulam
-  ulam 1;
+  ulam 2;
 use Bar;
 quark Car : Bar {
   Bool cb = true;
 }
 
 #:Bar.ulam
-  ulam 1;
+  ulam 2;
 quark Bar {
   Bool val_b[3];
   Void reset(Bool b) {
@@ -65,7 +65,7 @@ quark Bar {
 }
 
 #:System.ulam
-ulam 1;
+  ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

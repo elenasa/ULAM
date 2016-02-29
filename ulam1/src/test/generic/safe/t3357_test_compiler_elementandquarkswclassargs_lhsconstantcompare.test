@@ -7,20 +7,21 @@ Uq_Booly(Bool(1) bomb) { <NOMAIN> }
 ##
 ##      //informed by issue: also tests Bool as class parameter
 #>Foo.ulam
-ulam 1;
+  ulam 1;
 use Booly;
 element Foo{
-Int test(){
-Booly(true) b;
- return (Int) b.behave();
-}
+  Int test(){
+    Booly(true) b;
+    return (Int) b.behave();
+  }
 }
 
 #:Booly.ulam
+  ulam 1;
 quark Booly(Bool bomb) {
-Bool behave(){
- if(bomb != false) return true;
-return false;
-}
+  Bool behave(){
+    if(bomb != false) return true;
+    return false;
+  }
 }
 #.

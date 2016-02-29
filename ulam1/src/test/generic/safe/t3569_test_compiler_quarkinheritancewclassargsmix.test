@@ -13,7 +13,7 @@ Uq_System { <NOMAIN> }
 ## quark inheritance, regular (non-template)
 ##
 #>Foo.ulam
-  ulam 1;
+  ulam 2;
 use Soo;
 use System;
 element Foo {
@@ -33,20 +33,20 @@ element Foo {
 }
 
 #:Soo.ulam
-  ulam 1;
+  ulam 2;
 use Coo;
 quark Soo : Coo(1) {
   Unsigned(3) us = 4u;
 }
 
 #:Coo.ulam
-  ulam 1;
+  ulam 2;
 quark Coo(Int a) {
   Bool(a) cb = true;
 }
 
 #:System.ulam
-ulam 1;
+  ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

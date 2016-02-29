@@ -6,17 +6,18 @@ Ue_B { typedef Unsigned(2) Slot;  typedef Unsigned(8) Index;  typedef Unsigned(8
 ##
 ##      // with renames of typedefs, and arrays based on typedef
 #>B.ulam
+  ulam 1;
 element B {
-typedef Unsigned(2) Slot;
- typedef Unsigned(8) Index;
-typedef Index IndArr[4];
-IndArr arr;
+  typedef Unsigned(2) Slot;
+  typedef Unsigned(8) Index;
+  typedef Index IndArr[4];
+  IndArr arr;
   Void hit(Slot slot, Unsigned weight) {
- arr[slot] = (Index) (arr[slot] + (Index) weight);
+    arr[slot] = (Index) (arr[slot] + (Index) weight);
+  }
+  Int test(){hit((Slot) 1, 7u);
+    return arr[1];
+  }
 }
- Int test(){hit((Slot) 1, 7u);
- return arr[1];
- }
- }
 
 #.

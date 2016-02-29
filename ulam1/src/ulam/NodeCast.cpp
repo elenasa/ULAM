@@ -1068,7 +1068,6 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
 	    assert(m_state.quarkHasAToIntMethod(nodeType)); //checked by c&l
 	    return (tobeType == Int); //no need to cast
 	  }
-	//return m_state.getUlamTypeByIndex(tobeType)->getUlamClass() == UC_QUARK; // was false
 	return true;
       }
     // consider user requested first, then size independent;

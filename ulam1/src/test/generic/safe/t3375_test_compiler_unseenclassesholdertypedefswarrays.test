@@ -7,35 +7,39 @@ Ue_F { typedef Bool(3) Foo[2];  Int(32) test() {  Bool(3) f[2];  f 0 [] true cas
 Ue_E { typedef Bool(3) X;  <NOMAIN> }
 Ue_D { typedef Bool(3) X;  <NOMAIN> }
 #>A.ulam
+  ulam 1;
 use F;
- use E;
- use D;
- quark A{ }
+use E;
+use D;
+quark A{ }
 
 ##
 ##       // array is not part of E.X typedef
 #:F.ulam
+  ulam 1;
 element F{
- typedef E.X Foo[2];
- Int test(){
- Foo f;
- f[0] = true;
- if(f[0])
- return (Int) f[0];
- return 0;
-}
+  typedef E.X Foo[2];
+  Int test(){
+    Foo f;
+    f[0] = true;
+    if(f[0])
+      return (Int) f[0];
+    return 0;
+  }
 }
 ##      //simplify for debugging
 ##      //bool rtn2 = fms->add("F.ulam", "element F{\n typedef E.X Foo[2];\n Int test(){\n return 0;\n}\n}\n");
 ##
 #:E.ulam
+  ulam 1;
 element E{
- typedef D.X X;
- }
+  typedef D.X X;
+}
 ##
 ##       //test constant expression bitwise
 #:D.ulam
+  ulam 1;
 element D{
- typedef Bool(3*1) X;
- }
+  typedef Bool(3*1) X;
+}
 #.

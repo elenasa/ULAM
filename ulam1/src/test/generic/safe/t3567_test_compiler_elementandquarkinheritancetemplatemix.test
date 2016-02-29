@@ -9,17 +9,17 @@ Uq_Foo { Int(32) mi( 4 cast);  <NOMAIN> }
 ##       informed by error/t3556
 ##
 #>Tu.ulam
-ulam 1;
+  ulam 2;
 use Foo;
 element Tu (Int x) : Foo {
-Int test(){
-  Tu(1) tu;
-  return tu.mi;
-}
+  Int test(){
+    Tu(1) tu;
+    return tu.mi;
+  }
 }
 
 #:Foo.ulam
-ulam 1;
+  ulam 2;
 quark Foo {
   Int mi = 4; //constant also works!!
 }

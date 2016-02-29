@@ -6,11 +6,12 @@ Ue_A { constant Unsigned(8) cPRINT_NAME = 26u;  Int(32) test() {  26u cast retur
 ##
 ##      //informed by 3414, except constant type is unsigned char
 #>A.ulam
+  ulam 1;
 element A{
-constant Unsigned(8) cPRINT_NAME = 'z' - 'a' + 1;
- Int test () {
- return cPRINT_NAME;
-}
+  constant Unsigned(8) cPRINT_NAME = 'z' - 'a' + 1;
+  Int test () {
+    return cPRINT_NAME;
+  }
 }
 
 #.

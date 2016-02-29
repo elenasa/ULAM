@@ -8,7 +8,7 @@ Uq_V(Int(32) a) { Unsigned(UNKNOWN) vfoo(notready);  <NOMAIN> }
 ##
 ##
 #>P.ulam
-ulam 1;
+  ulam 1;
 use Q;
 element P {
   Bool b;
@@ -19,15 +19,15 @@ element P {
 }
 
 #:Q.ulam
-ulam 1;
+  ulam 1;
 use V;
 quark Q(Int b = 3, Unsigned s = V(b).sizeof) {
-typedef Unsigned(s) Foo;
-Foo f;
+  typedef Unsigned(s) Foo;
+  Foo f;
 }
 
 #:V.ulam
-ulam 1;
+  ulam 1;
 quark V(Int a) {
   Unsigned(a) vfoo;
 }

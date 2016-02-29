@@ -7,15 +7,15 @@ Ue_Tu { typedef Unsigned(3) I;  Int(32) test() {  ( 0 cast )func cast return } }
 ##      // working toward this to work! needs to try safe casts when matching func args.
 ##
 #>Tu.ulam
-ulam 1;
+  ulam 1;
 element Tu {
-typedef Unsigned(3) I;
- I func(I arg) {
-return arg;
-}
- Int test(){
- return func(0);
-}
+  typedef Unsigned(3) I;
+  I func(I arg) {
+    return arg;
+  }
+  Int test(){
+    return func(0);
+  }
 }
 
 #.

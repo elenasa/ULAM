@@ -10,7 +10,7 @@ Uq_Foo { Int(32) mi( 4 cast);  <NOMAIN> }
 ##       informed by t3567, error/t3556
 ##
 #>R.ulam
-  ulam 1;
+  ulam 2;
 use Tu; //wait until seen, ok
 element R {
   Int test(){
@@ -23,7 +23,7 @@ element R {
 }
 
 #:Tu.ulam
-  ulam 1;
+  ulam 2;
 quark Tu (Int x) : Foo {
   Int func()
   {
@@ -33,7 +33,7 @@ quark Tu (Int x) : Foo {
 use Foo; //wait until seen, ok
 
 #:Foo.ulam
-ulam 1;
+  ulam 2;
 quark Foo {
   Int mi = 4; //constant, parameter also work!!
   Int func()

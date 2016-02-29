@@ -95,8 +95,6 @@ namespace MFM{
 
     virtual Node * findNodeNoInAClassInstance(UTI instance, NNO n);
 
-    void updateLineageOfClassInstanceUTI(UTI cuti); //during full instantiateion
-
     virtual void checkCustomArraysOfClassInstances();
     virtual void checkDuplicateFunctionsForClassInstances();
     virtual void calcMaxDepthOfFunctionsForClassInstances();

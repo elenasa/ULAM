@@ -923,8 +923,12 @@ namespace MFM {
   UTI CompilerState::getUlamTypeAsRef(UTI utArg, ALT altArg)
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
-    if(ut->getReferenceType() == altArg)
+    ALT utalt = ut->getReferenceType();
+    if(utalt == altArg)
       return utArg;
+
+    if((utalt != ALT_NOT) && (altArg == ALT_NOT))
+      return utArg; //deref used to remove alt type
 
     ULAMTYPE bUT = ut->getUlamTypeEnum();
     UlamKeyTypeSignature keyOfArg = ut->getUlamKeyTypeSignature();
@@ -935,17 +939,8 @@ namespace MFM {
     u32 nameid = keyOfArg.m_typeNameId;
     UlamKeyTypeSignature baseKey(nameid, bitsize, arraysize, classidx, altArg);  //default array size is zero
 
+    //for now, a reference to a custom array is not itself a custom array.
     UTI buti = makeUlamType(baseKey, bUT); //could be a new one, oops.
-
-#if 0
-    //???
-    if(ut->isCustomArray())
-      {
-	assert(bUT == Class);
-	((UlamTypeClass *) getUlamTypeByIndex(buti))->setCustomArray();
-      }
-#endif
-
     return buti;
   } //getUlamTypeAsRef
 

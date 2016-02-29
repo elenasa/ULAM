@@ -12,26 +12,27 @@ Uq_System { <NOMAIN> }
 ##
 ##       //informed by: WindowUtils, and 3266
 #>A.ulam
+  ulam 1;
 use System;
 element A {
-System s;
-Bool(7) b;
-Int d;
-Int test(){
-d = 3;
-Int index;
- for(index = 0; index < d; ++index)
- b = index != 0;
-  for(Int index = 0; index < 3; ++index){
- --d;
-s.print(d);
- }
- return d;
-}
+  System s;
+  Bool(7) b;
+  Int d;
+  Int test(){
+    d = 3;
+    Int index;
+    for(index = 0; index < d; ++index)
+      b = index != 0;
+    for(Int index = 0; index < 3; ++index){
+      --d;
+      s.print(d);
+    }
+    return d;
+  }
 }
 
 #:System.ulam
-ulam 1;
+  ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

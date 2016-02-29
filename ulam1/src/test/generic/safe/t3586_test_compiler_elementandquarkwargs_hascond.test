@@ -20,14 +20,14 @@ Uq_System { <NOMAIN> }
 ## see t3588 and t3589 for 'as' and 'is' versions
 ##
 #:Typo.ulam
-  ulam 1;
+  ulam 2;
 use Bar;
 quark Typo(Int a) : Bar{
   Bool by; //remove shadow since for no reason
 }
 
 #:Bar.ulam
-  ulam 1;
+  ulam 2;
 quark Bar
 {
   Bool b; //testing offset
@@ -39,7 +39,7 @@ quark Bar
 }
 
 #>Eltypo.ulam
-  ulam 1;
+  ulam 2;
 use Typo;
 use System;
 element Eltypo : Typo(1) {
@@ -72,7 +72,7 @@ element Eltypo : Typo(1) {
 }
 
 #:System.ulam
-ulam 1;
+  ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

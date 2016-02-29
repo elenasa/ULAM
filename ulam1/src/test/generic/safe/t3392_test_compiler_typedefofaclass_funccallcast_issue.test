@@ -10,41 +10,45 @@ Uq_Ish2 { Colony(3u) colony( typedef Telomeree(3u) Telo;  typedef Unsigned(3) Ta
 ##      //informed by 3383,
 ##      // likes Telomeree first!
 #>R.ulam
+  ulam 1;
 use Telomeree;
- use Colony;
- use Ish2;
-  element R{
-Ish2 ish;
- Int test() {  /*ish.colony.t.setAge((Unsigned(3)) 7);
-*/ ish.colony.setTailAge(7u);
- return ish.colony.t.getAge();
-}
+use Colony;
+use Ish2;
+element R{
+  Ish2 ish;
+  Int test() {  /*ish.colony.t.setAge((Unsigned(3)) 7);
+		 */ ish.colony.setTailAge(7u);
+    return ish.colony.t.getAge();
+  }
 }
 
 #:Colony.ulam
+  ulam 1;
 quark Colony(Unsigned widthc){
- typedef Telomeree(widthc) Telo;
- typedef Telo.Tail Tail;
- Telo t;
- Void setTailAge(Unsigned newage) {
- t.setAge((Tail) newage);
- }
+  typedef Telomeree(widthc) Telo;
+  typedef Telo.Tail Tail;
+  Telo t;
+  Void setTailAge(Unsigned newage) {
+    t.setAge((Tail) newage);
+  }
 }
 
 #:Ish2.ulam
+  ulam 1;
 quark Ish2{
-Colony(3u) colony;
+  Colony(3u) colony;
 }
 
 #:Telomeree.ulam
+  ulam 1;
 quark Telomeree(Unsigned width){
- typedef Unsigned(width) Tail;
- Tail age;
-Tail getAge(){
- return age;
-}
-Void setAge(Tail newAge){
-age = newAge;
-}
+  typedef Unsigned(width) Tail;
+  Tail age;
+  Tail getAge(){
+    return age;
+  }
+  Void setAge(Tail newAge){
+    age = newAge;
+  }
 }
 #.

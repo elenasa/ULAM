@@ -60,7 +60,7 @@ namespace MFM {
 
   void NodeAtomof::printPostfix(File * fp)
   {
-    fp->write(" _");
+    fp->write(" ");
     fp->write(m_state.getTokenDataAsString(&m_token).c_str());
     fp->write(getName());
   }
@@ -91,7 +91,7 @@ namespace MFM {
     if(m_token.m_type == TOK_TYPE_IDENTIFIER)
       {
 	assert(m_nodeTypeDesc);
-	nuti = m_nodeTypeDesc->checkAndLabelType(); //sets goagain if nav
+	nuti = m_nodeTypeDesc->checkAndLabelType(); //sets goagain if hzy
       } // got type
     else if(m_token.m_type == TOK_IDENTIFIER)
       {
@@ -113,7 +113,7 @@ namespace MFM {
 
 	    NodeBlock * currBlock = getBlock();
 	    if(m_state.useMemberBlock())
-	      m_state.pushCurrentBlock(currBlock); //e.g. memberselect needed for already defined
+	      m_state.pushCurrentBlock(currBlock);
 	    else
 	      m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
@@ -131,7 +131,7 @@ namespace MFM {
 		      {
 			nuti = asymptr->getUlamTypeIdx();
 			m_varSymbol = (SymbolVariable *) asymptr;
-			m_currBlockNo = asymptr->getBlockNoOfST();
+			m_currBlockNo = asymptr->getBlockNoOfST(); //refined
 		      }
 		    else
 		      {

@@ -9,7 +9,7 @@ Uq_Foo(Int(32) a, Bool(1) b) { /* empty class block */ }
 ##       informed by t3566, error/t3554
 ##
 #>Tu.ulam
-  ulam 1;
+  ulam 2;
 use Foo;
 element Tu : Foo(1, true) {
   parameter Int mp = a;  //parameter in element only
@@ -19,7 +19,7 @@ element Tu : Foo(1, true) {
 }
 
 #:Foo.ulam
-  ulam 1;
+  ulam 2;
 quark Foo(Int a, Bool b) {
 }
 #.

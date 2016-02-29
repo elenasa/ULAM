@@ -9,25 +9,29 @@ Ue_B { typedef Int(3) Z;  <NOMAIN> }
 ##
 ##       // B before X too..(informed by t3380)
 #>F.ulam
+  ulam 1;
 use A;
- use B;
- use X;
- element F{ Int test() {
- return A.ZZ.minof;
+use B;
+use X;
+element F{ Int test() {
+    return A.ZZ.minof;
+  }
 }
- }
 
 #:A.ulam
+  ulam 1;
 element A{
-typedef X H;
- typedef H.Y.Z ZZ;
+  typedef X H;
+  typedef H.Y.Z ZZ;
 }
 #:X.ulam
+  ulam 1;
 quark X{
- typedef B Y;
- }
+  typedef B Y;
+}
 #:B.ulam
+  ulam 1;
 element B{
- typedef Int(3) Z;
- }
+  typedef Int(3) Z;
+}
 #.

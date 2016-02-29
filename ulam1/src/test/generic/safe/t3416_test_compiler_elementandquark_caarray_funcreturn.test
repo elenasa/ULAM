@@ -8,22 +8,22 @@ Uq_EventWindow { <NOMAIN> }
 ##      //can't use a func to return ew[0] even on the rhs? OK now.
 ##      // see t3413 for error as lhs.
 #>EventWindowTest.ulam
-ulam 1;
+  ulam 1;
 use EventWindow;
 element EventWindowTest {
-EventWindow ew;
+  EventWindow ew;
   Atom func() {
- return ew[0];
- }
- Int test() {
- Atom a;
- a = func();
- return 1;
+    return ew[0];
+  }
+  Int test() {
+    Atom a;
+    a = func();
+    return 1;
   }
 }
 
 #:EventWindow.ulam
-ulam 1;
+  ulam 1;
 quark EventWindow {
   Atom aref(Int index) native;
   Void aset(Int index, Atom val) native;

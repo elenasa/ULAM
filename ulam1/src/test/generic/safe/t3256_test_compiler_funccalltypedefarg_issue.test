@@ -31,23 +31,23 @@ Ue_TypedefIssue { typedef Unsigned(3) Symmetry;  Bool(1) b(true);  Unsigned(3) m
 ##
 ##      // Unsigned(3) version with if
 #>TypedefIssue.ulam
-ulam 1;
- element TypedefIssue {
- // Types
- typedef Unsigned(3) Symmetry;
-Bool b;
- Symmetry m;
- Bool set(Symmetry vector) {m=vector; return m !=0;
- }
-Int test() {
-TypedefIssue t;
-if(t.set((Symmetry) 0))
- b=true;
-  // line 11
- if(t.set((Unsigned(3)) 1))
- b=true;
- return t.m;
-}
+  ulam 1;
+element TypedefIssue {
+  // Types
+  typedef Unsigned(3) Symmetry;
+  Bool b;
+  Symmetry m;
+  Bool set(Symmetry vector) {m=vector; return m !=0;
+  }
+  Int test() {
+    TypedefIssue t;
+    if(t.set((Symmetry) 0))
+      b=true;
+    // line 11
+    if(t.set((Unsigned(3)) 1))
+      b=true;
+    return t.m;
+  }
 }
 
 #.

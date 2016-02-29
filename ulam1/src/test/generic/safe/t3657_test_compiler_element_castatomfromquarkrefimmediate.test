@@ -2,7 +2,7 @@
 #=t3657_test_compiler_element_castatomfromquarkrefimmediate
 #!
 Exit status: 0
-Ue_Foo : QPerc { :< Bool(1) bb(false); > Int(32) test() {  QPerc q;  q bb . true = QPerc& qref = q;  Atom(96)& a = _qref.atomof;  Atom(96) b = _QPerc.atomof cast;  Atom(96) c = _Foo.atomof cast;  Atom(96) d = _self.atomof cast;  _self.atomof d cast = Atom(96) e;  e _self.atomof cast = Foo f;  _f.atomof _self.atomof = 0 cast return } }
+Ue_Foo : QPerc { :< Bool(1) bb(false); > Int(32) test() {  QPerc q;  q bb . true = QPerc& qref = q;  Atom(96)& a = qref.atomof;  Atom(96) b = QPerc.atomof cast;  Atom(96) c = Foo.atomof cast;  Atom(96) d = self.atomof cast;  self.atomof d cast = Atom(96) e;  e self.atomof cast = Foo f;  f.atomof self.atomof = 0 cast return } }
 Uq_QPerc { Bool(1) bb(false);  <NOMAIN> }
 ##
 ## informed by a Dave ish 2/19/2016;

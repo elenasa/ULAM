@@ -1031,21 +1031,6 @@ namespace MFM {
     return foundNode;
   } //findNodeNoInAClassInstance
 
-  void SymbolClassNameTemplate::updateLineageOfClassInstanceUTI(UTI instance)
-  {
-    SymbolClass * csym = NULL;
-    if(findClassInstanceByUTI(instance, csym))
-      {
-	NodeBlockClass * classNode = csym->getClassBlockNode();
-	assert(classNode);
-	assert(csym->getUlamTypeIdx() == instance);
-	m_state.pushClassContext(instance, classNode, classNode, false, NULL);
-
-	classNode->updateLineage(0); //do this instance
-	m_state.popClassContext(); //restore
-      }
-  } //updateLineageOfClassInstanceUTI
-
   void SymbolClassNameTemplate::checkCustomArraysOfClassInstances()
   {
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();

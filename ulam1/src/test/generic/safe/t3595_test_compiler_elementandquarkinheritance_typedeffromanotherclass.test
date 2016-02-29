@@ -8,7 +8,7 @@ Uq_Vector { typedef Unsigned(3) Symmetry;  Unsigned(3) m(0);  Unsigned(3) n(0); 
 ##     Informed by 3267, removed Vector.Symetry since inherited
 ##
 #>TypedefIssue.ulam
-  ulam 1;
+  ulam 2;
 use Vector;
 element TypedefIssue : Vector{
   Symmetry x[2];
@@ -23,7 +23,7 @@ element TypedefIssue : Vector{
 }
 
 #:Vector.ulam
-  ulam 1;
+  ulam 2;
 quark Vector {
   typedef Unsigned(3) Symmetry;
   Symmetry m;

@@ -133,6 +133,7 @@ namespace MFM {
 		setSymbolPtr((SymbolVariable *) asymptr);
 		//assert(asymptr->getBlockNoOfST() == m_currBlockNo); not necessarily true
 		// e.g. var used before defined, and then is a data member outside current func block.
+		m_currBlockNo = asymptr->getBlockNoOfST(); //refined
 	      }
 	    else if(asymptr->isConstant())
 	      {
@@ -569,7 +570,7 @@ namespace MFM {
 		    if(args.m_bitsize == 0)
 		      args.m_bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
 		    // update the type of holder key
-		    UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, Nouti);
+		    UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, Nouti, args.m_declRef);
 		    m_state.makeUlamTypeFromHolder(newkey, bUT, tduti); //update key, same uti
 		    if(m_state.hasUnknownTypeInThisClassResolver(tduti))
 		      m_state.removeKnownTypeTokenFromThisClassResolver(tduti);
@@ -579,7 +580,7 @@ namespace MFM {
 		    //update holder key with name_id and possible array (UNKNOWNSIZE)
 		    //UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, Nouti);
 		    UlamKeyTypeSignature hkey = tdut->getUlamKeyTypeSignature();
-		    UlamKeyTypeSignature newkey(hkey.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, Nouti);
+		    UlamKeyTypeSignature newkey(hkey.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, Nouti, args.m_declRef);
 		    m_state.makeUlamTypeFromHolder(newkey, Holder, tduti); //update holder key, same uti
 		  }
 	      }
@@ -650,7 +651,7 @@ namespace MFM {
       {
 	//UlamTypes automatically created for the base types with different array sizes.
 	//but with typedef's "scope" of use, typedef needed to be checked first. scalar uti
-	tduti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, NONARRAYSIZE, Nouti);
+	tduti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, NONARRAYSIZE, Nouti, args.m_declRef);
 	brtn = true;
       }
     else
@@ -663,25 +664,27 @@ namespace MFM {
       {
 	UTI uti = tduti;
 	UTI scalarUTI = args.m_declListOrTypedefScalarType;
-	if(m_state.isScalar(uti) && args.m_arraysize != NONARRAYSIZE)
+	UlamType * ut = m_state.getUlamTypeByIndex(uti);
+	ULAMTYPE bUT = ut->getUlamTypeEnum();
+	UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
+
+	if(ut->isScalar() && args.m_arraysize != NONARRAYSIZE)
 	  {
 	    args.m_declListOrTypedefScalarType = scalarUTI = uti;
 	    // o.w. build symbol (with bit and array sizes);
 	    // arrays can't have their scalar as classInstance;
 	    // o.w., no longer findable by token.
-	    UlamType * ut = m_state.getUlamTypeByIndex(uti);
-	    ULAMTYPE bUT = ut->getUlamTypeEnum();
-	    UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
-
 	    if(args.m_bitsize == 0)
 	      args.m_bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
 
-	    UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize);
-	    newarraykey.append(scalarUTI); //removed if not a class
-
+	    UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, scalarUTI, args.m_declRef); //classinstanceidx removed if not a class
 	    uti = m_state.makeUlamType(newarraykey, bUT);
 	  }
-
+	else if(m_state.getReferenceType(uti) != args.m_declRef)
+	  {
+	    UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), key.getUlamKeyTypeSignatureBitSize(), key.getUlamKeyTypeSignatureArraySize(), key.getUlamKeyTypeSignatureClassInstanceIdx(), args.m_declRef); //classinstanceidx removed if not a class
+	    uti = m_state.makeUlamType(newarraykey, bUT);
+	  }
 	//create a symbol for this new ulam type, a typedef, with its type
 	SymbolTypedef * symtypedef = new SymbolTypedef(m_token, uti, scalarUTI, m_state);
 	m_state.addSymbolToCurrentScope(symtypedef);
@@ -928,7 +931,7 @@ namespace MFM {
 
 	uti = m_state.getUlamTypeAsRef(auti, args.m_declRef); //ut not current
 
-	SymbolVariable * sym = makeSymbol(uti, args.m_declRef);
+	SymbolVariable * sym = makeSymbol(uti, m_state.getReferenceType(uti));
 	if(sym)
 	  {
 	    m_state.addSymbolToCurrentScope(sym); //ownership goes to the block
@@ -980,6 +983,7 @@ namespace MFM {
     //(else) Symbol is a local variable, always on the stack
     SymbolVariableStack * rtnLocalSym = new SymbolVariableStack(m_token, auti, packit, m_state.m_currentFunctionBlockDeclSize, m_state); //slot before adjustment
     assert(rtnLocalSym);
+
     rtnLocalSym->setAutoLocalType(reftype);
 
     m_state.m_currentFunctionBlockDeclSize += m_state.slotsNeeded(auti);
