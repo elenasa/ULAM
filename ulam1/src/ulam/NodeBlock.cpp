@@ -101,6 +101,13 @@ namespace MFM {
   {
     assert(m_nodeNext);
 
+    if(m_prevBlockNode == NULL)
+      {
+	m_prevBlockNode = m_state.getCurrentBlock();
+      }
+    else
+      assert(m_prevBlockNode == m_state.getCurrentBlock());
+
     m_state.pushCurrentBlock(this);
 
     m_nodeNext->checkAndLabelType();

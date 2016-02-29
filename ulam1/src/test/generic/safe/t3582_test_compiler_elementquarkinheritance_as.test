@@ -6,7 +6,7 @@
 ## Unsigned Arg: 3
 ##
 Exit status: 3
-Ue_Foo : Soo { :< :< Bool(3) cb(true); > Unsigned(3) us(4u); > System s();  Bool(1) first(true);  Int(32) test() {  Foo f;  f Coo as cond { Coo& f;  first f cb . cast = s ( first cast )print . s ( first )assert . s ( 3u )print . s ( true )assert . 3u cast return } if s ( false )assert . 0 cast return } }
+Ue_Foo : Soo { :< :< Bool(3) cb(true); > Unsigned(3) us(4u); > System s();  Bool(1) first(true);  Int(32) test() {  Foo f;  { f Coo as cond { Coo& f;  first f cb . cast = s ( first cast )print . s ( first )assert . s ( 3u )print . s ( true )assert . 3u cast return } if } s ( false )assert . 0 cast return } }
 Uq_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }

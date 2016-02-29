@@ -42,6 +42,7 @@
 #include "Token.h"
 #include "SymbolVariable.h"
 #include "NodeTypeDescriptor.h"
+#include "NodeBlock.h"
 
 namespace MFM{
 
@@ -75,6 +76,10 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
+    NNO getBlockNo() const;
+
+    NodeBlock * getBlock();
+
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();
@@ -90,6 +95,7 @@ namespace MFM{
     Token m_token;
     UTI m_atomoftype;
     SymbolVariable * m_varSymbol;
+    NNO m_currBlockNo;
 
     UlamValue makeUlamValuePtr();
   };

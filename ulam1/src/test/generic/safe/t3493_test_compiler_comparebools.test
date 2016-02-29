@@ -2,7 +2,7 @@
 #=t3493_test_compiler_comparebools
 #!
 Exit status: 0
-Ue_El { constant Unary(3) cy = 7u;  Int(32) test() {  Bool(3) b = true cast;  Bool(3) c = false cast;  b cast c cast != cond 0 cast return if -1 cast return } }
+Ue_El { constant Unary(3) cy = 7u;  Int(32) test() {  Bool(3) b = true cast;  Bool(3) c = false cast;  { b cast c cast != cond 0 cast return if } -1 cast return } }
 #>El.ulam
 ulam 1;
  element El {

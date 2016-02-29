@@ -916,14 +916,29 @@ namespace MFM {
 	return NULL;
       }
 
+    //before parsing the IF statement, need a new scope
+    NodeBlock * currBlock = m_state.getCurrentBlock();
+    NodeBlock * rtnNode = new NodeBlock(currBlock, m_state);
+    assert(rtnNode);
+    rtnNode->setNodeLocation(ifTok.m_locator);
+
+    //current, this block's symbol table added to parse tree stack
+    //        for validating and finding scope of program/block variables
+    m_state.pushCurrentBlock(rtnNode); //without pop first
+
+
     Node * condNode = parseConditionalExpr();
     if(!condNode)
-      return NULL; //stop this maddness
+      {
+	m_state.popClassContext(); //the pop
+	return NULL; //stop this maddness
+      }
 
     if(!getExpectedToken(TOK_CLOSE_PAREN))
       {
 	delete condNode;
-	return NULL;
+	m_state.popClassContext(); //the pop
+	return NULL; //stop this maddness
       }
 
     Node * trueNode = NULL;
@@ -939,6 +954,7 @@ namespace MFM {
     if(!trueNode)
       {
 	delete condNode;
+	m_state.popClassContext(); //the pop
 	return NULL; //stop this maddness
       }
 
@@ -960,9 +976,24 @@ namespace MFM {
 	  }
       }
 
-    Node * rtnNode = new NodeControlIf(condNode, trueStmtNode, falseStmtNode, m_state);
-    assert(rtnNode);
-    rtnNode->setNodeLocation(ifTok.m_locator);
+    Node * ifNode = new NodeControlIf(condNode, trueStmtNode, falseStmtNode, m_state);
+    assert(ifNode);
+    ifNode->setNodeLocation(ifTok.m_locator);
+
+
+    NodeStatements * nextControlNode = new NodeStatements(ifNode, m_state);
+    assert(nextControlNode);
+    nextControlNode->setNodeLocation(ifNode->getNodeLocation());
+
+    rtnNode->setNextNode(nextControlNode); //***link if to rtn block
+
+    //this block's ST is no longer in scope
+    currBlock = m_state.getCurrentBlock(); //reload
+    if(currBlock)
+      m_state.m_currentFunctionBlockDeclSize -= currBlock->getSizeOfSymbolsInTable();
+
+    m_state.popClassContext(); //= prevBlock;
+
     return rtnNode;
   } //parseControlIf
 
@@ -973,15 +1004,30 @@ namespace MFM {
 	return NULL;
       }
 
+    //before parsing the IF statement, need a new scope
+    NodeBlock * currBlock = m_state.getCurrentBlock();
+    NodeBlock * rtnNode = new NodeBlock(currBlock, m_state);
+    assert(rtnNode);
+    rtnNode->setNodeLocation(wTok.m_locator);
+
+    //current, this block's symbol table added to parse tree stack
+    //        for validating and finding scope of program/block variables
+    m_state.pushCurrentBlock(rtnNode); //without pop first
+
+
     s32 controlLoopLabelNum = m_state.m_parsingControlLoop; //save at the top
     Node * condNode = parseConditionalExpr();
     if(!condNode)
-      return NULL; //stop this maddness
+      {
+	m_state.popClassContext(); //the pop
+	return NULL; //stop this maddness
+      }
 
     if(!getExpectedToken(TOK_CLOSE_PAREN))
       {
 	delete condNode;
-	return NULL;
+	m_state.popClassContext(); //the pop
+	return NULL; //stop this maddness
       }
 
     Node * trueNode = NULL;
@@ -993,6 +1039,7 @@ namespace MFM {
     if(!trueNode)
       {
 	delete condNode;
+	m_state.popClassContext(); //the pop
 	return NULL; //stop this maddness
       }
 
@@ -1011,9 +1058,23 @@ namespace MFM {
     labelStmtNode->setNodeLocation(wTok.m_locator);
     trueStmtNode->setNextNode(labelStmtNode);
 
-    Node * rtnNode = new NodeControlWhile(condNode, trueStmtNode, m_state);
-    assert(rtnNode);
-    rtnNode->setNodeLocation(wTok.m_locator);
+    Node * whileNode = new NodeControlWhile(condNode, trueStmtNode, m_state);
+    assert(whileNode);
+    whileNode->setNodeLocation(wTok.m_locator);
+
+    NodeStatements * nextControlNode = new NodeStatements(whileNode, m_state);
+    assert(nextControlNode);
+    nextControlNode->setNodeLocation(whileNode->getNodeLocation());
+
+    rtnNode->setNextNode(nextControlNode); //***link while to rtn block
+
+    //this block's ST is no longer in scope
+    currBlock = m_state.getCurrentBlock(); //reload
+    if(currBlock)
+      m_state.m_currentFunctionBlockDeclSize -= currBlock->getSizeOfSymbolsInTable();
+
+    m_state.popClassContext(); //= prevBlock;
+
     return rtnNode;
   } //parseControlWhile
 
@@ -1055,6 +1116,7 @@ namespace MFM {
       {
 	delete rtnNode;
 	delete declNode; //stop this maddness
+	m_state.popClassContext(); //where was it?
 	return NULL;
       }
 
@@ -1071,6 +1133,7 @@ namespace MFM {
 	  {
 	    delete rtnNode;
 	    delete declNode;
+	    m_state.popClassContext(); //where was it?
 	    return NULL; //stop this maddness
 	  }
 
@@ -1079,6 +1142,7 @@ namespace MFM {
 	    delete rtnNode;
 	    delete declNode;
 	    delete condNode;
+	    m_state.popClassContext(); //where was it?
 	    return NULL;
 	  }
       }
@@ -1104,6 +1168,7 @@ namespace MFM {
 	    delete rtnNode;
 	    delete declNode;
 	    delete condNode;
+	    m_state.popClassContext(); //where was it?
 	    return NULL; //stop this maddness
 	  }
 
@@ -1113,6 +1178,7 @@ namespace MFM {
 	    delete declNode;
 	    delete condNode;
 	    delete assignNode;
+	    m_state.popClassContext(); //where was it?
 	    return NULL; //stop this maddness
 	  }
       } //done with assign expr, could be null
@@ -1133,6 +1199,7 @@ namespace MFM {
 	delete declNode;
 	delete condNode;
 	delete assignNode;
+	m_state.popClassContext(); //where was it?
 	return NULL; //stop this maddness
       }
 

@@ -5,13 +5,13 @@
 
 namespace MFM {
 
-  NodeAtomof::NodeAtomof(Token tokatomof, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_nodeTypeDesc(nodetype), m_token(tokatomof), m_atomoftype(Nouti), m_varSymbol(NULL)
+  NodeAtomof::NodeAtomof(Token tokatomof, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_nodeTypeDesc(nodetype), m_token(tokatomof), m_atomoftype(Nouti), m_varSymbol(NULL), m_currBlockNo(0)
   {
     Node::setNodeLocation(tokatomof.m_locator);
     Node::setStoreIntoAble(TBOOL_HAZY);
   }
 
-  NodeAtomof::NodeAtomof(const NodeAtomof& ref) : Node(ref), m_nodeTypeDesc(NULL), m_token(ref.m_token), m_atomoftype(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_atomoftype)), m_varSymbol(NULL)
+  NodeAtomof::NodeAtomof(const NodeAtomof& ref) : Node(ref), m_nodeTypeDesc(NULL), m_token(ref.m_token), m_atomoftype(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_atomoftype)), m_varSymbol(NULL), m_currBlockNo(ref.m_currBlockNo)
   {
     if(ref.m_nodeTypeDesc)
       m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
@@ -95,41 +95,68 @@ namespace MFM {
       } // got type
     else if(m_token.m_type == TOK_IDENTIFIER)
       {
-	Symbol * asymptr = NULL;
-	bool hazyKin = false; //useful?
-
-	//searched back through all block's ST for idx
-	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
+	if(m_varSymbol == NULL)
 	  {
-	    if(hazyKin)
-	      nuti = Hzy;
-	    else
+	    // like NodeIdent, in case of template instantiations
+	    //used before defined, start search with current block
+	    if(m_currBlockNo == 0)
 	      {
-		if(!asymptr->isFunction() && !asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter())
+		if(m_state.useMemberBlock())
 		  {
-		    nuti = asymptr->getUlamTypeIdx();
-		    m_varSymbol = (SymbolVariable *) asymptr;
+		    NodeBlockClass * memberclass = m_state.getCurrentMemberClassBlock();
+		    assert(memberclass);
+		    m_currBlockNo = memberclass->getNodeNo();
 		  }
 		else
+		  m_currBlockNo = m_state.getCurrentBlock()->getNodeNo();
+	      }
+
+	    NodeBlock * currBlock = getBlock();
+	    if(m_state.useMemberBlock())
+	      m_state.pushCurrentBlock(currBlock); //e.g. memberselect needed for already defined
+	    else
+	      m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
+
+	    Symbol * asymptr = NULL;
+	    bool hazyKin = false; //useful?
+
+	    //searched back through all block's ST for idx
+	    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
+	      {
+		if(hazyKin)
+		  nuti = Hzy;
+		else
 		  {
-		    std::ostringstream msg;
-		    msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str();
-		    msg << "> is not a variable, and cannot be used as one with ";
-		    msg << getName();
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		    nuti = Nav;
+		    if(!asymptr->isFunction() && !asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter())
+		      {
+			nuti = asymptr->getUlamTypeIdx();
+			m_varSymbol = (SymbolVariable *) asymptr;
+			m_currBlockNo = asymptr->getBlockNoOfST();
+		      }
+		    else
+		      {
+			std::ostringstream msg;
+			msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str();
+			msg << "> is not a variable, and cannot be used as one with ";
+			msg << getName();
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			nuti = Nav;
+		      }
 		  }
 	      }
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "Unfound symbol variable for .atomof '";
+		msg << m_state.getTokenDataAsString(&m_token).c_str();
+		msg << "'";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		nuti = Nav;
+	      }
+	    m_state.popClassContext(); //restore
 	  }
 	else
-	  {
-	    std::ostringstream msg;
-	    msg << "Unfound symbol variable for .atomof '";
-	    msg << m_state.getTokenDataAsString(&m_token).c_str();
-	    msg << "'";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    nuti = Nav;
-	  }
+	  nuti = m_varSymbol->getUlamTypeIdx();
       }
     else
       assert(0); //shouldn't happen
@@ -185,6 +212,19 @@ namespace MFM {
     setNodeType(nuti);
     return nuti;
   } //checkAndLabelType
+
+  NNO NodeAtomof::getBlockNo() const
+  {
+    return m_currBlockNo;
+  }
+
+  NodeBlock * NodeAtomof::getBlock()
+  {
+    assert(m_currBlockNo);
+    NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
+    assert(currBlock);
+    return currBlock;
+  }
 
   EvalStatus NodeAtomof::eval()
   {
