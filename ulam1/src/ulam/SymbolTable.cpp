@@ -62,7 +62,9 @@ namespace MFM {
 
   void SymbolTable::addToTable(u32 id, Symbol* sptr)
   {
-    m_idToSymbolPtr.insert(std::pair<u32,Symbol*> (id,sptr));
+    std::pair<std::map<u32, Symbol *>::iterator, bool> reti;
+    reti = m_idToSymbolPtr.insert(std::pair<u32,Symbol*> (id,sptr));
+    assert(reti.second); //false if already existed, i.e. not added (leak?)
   }
 
   void SymbolTable::replaceInTable(u32 oldid, u32 newid, Symbol * s)
@@ -73,12 +75,8 @@ namespace MFM {
 	Symbol * oldsym = it->second;
 	assert(oldsym == s);
 	m_idToSymbolPtr.erase(it);
-	addToTable(newid, oldsym);
       }
-    else
-      {
-	addToTable(newid, s);
-      }
+    addToTable(newid, s);
   } //replaceInTable
 
   void SymbolTable::replaceInTable(Symbol * oldsym, Symbol * newsym)

@@ -117,22 +117,22 @@ namespace MFM {
 	    if(!m_state.alreadyDefinedSymbolClassName(tok.m_dataindex, cnsym))
 	      {
 		SymbolClass * csym = NULL;
-		if(m_state.alreadyDefinedSymbolClass(huti, csym))
+		if(m_state.alreadyDefinedSymbolClassAsHolder(huti, csym))
+		  {
+		    aok = false; //still a holder
+		  }
+		else if(m_state.alreadyDefinedSymbolClass(huti, csym))
 		  {
 		    u32 cid = csym->getId();
 		    AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(cid, cnsym);
 		    assert(isDefined);
 		    aok = m_state.isHolder(cnsym->getUlamTypeIdx()) ? false : true;
 		  }
-		else
-		  {
-		    u32 hid = m_state.m_pool.getIndexForNumberAsString(huti);
-		    if(m_state.alreadyDefinedSymbolClassName(hid, cnsym))
-		      aok = false; //still a holder
-		  }
+		//else
+		//assert(0);
 	      }
 	    else
-	      aok = true; //missing
+		aok = true; //not missing
 
 	    if(aok)
 	      {

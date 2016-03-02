@@ -258,6 +258,9 @@ namespace MFM{
     /** return true and the SymbolClass pointer in 2nd arg if uti found; */
     bool alreadyDefinedSymbolClass(UTI uti, SymbolClass * & symptr);
 
+    /** return true and the SymbolClass pointer in 2nd arg if holder with uti as key nameid found; */
+    bool alreadyDefinedSymbolClassAsHolder(UTI uti, SymbolClass * & symptr);
+
     /** in case of typedef's in ancestor class */
     void addUnknownTypeTokenToAClassResolver(UTI cuti, Token tok, UTI huti);
     void addUnknownTypeTokenToThisClassResolver(Token tok, UTI huti);

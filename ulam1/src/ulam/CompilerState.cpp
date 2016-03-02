@@ -145,12 +145,14 @@ namespace MFM {
 
   UTI CompilerState::makeUlamTypeHolder()
   {
+    //note: only anonymous class holders use uti as nameid
     UTI uti = m_indexToUlamKey.size();  //next index based on key
     UlamKeyTypeSignature hkey = getUlamTypeByIndex(Holder)->getUlamKeyTypeSignature();
 
     incrementKeyToAnyUTICounter(hkey, uti);
     m_indexToUlamKey.push_back(hkey);
-    initUTIAlias(uti);
+    initUTIAlias(uti); //remove if using makeulamtype
+    assert(isARootUTI(uti));
     return uti;
   } //makeUlamTypeHolder
 
@@ -183,8 +185,22 @@ namespace MFM {
 	    AssertBool isDefined = alreadyDefinedSymbolClassName(oldnameid, cnsym);
 	    assert(isDefined);
 	    u32 newnameid = newkey.getUlamKeyTypeSignatureNameId();
-	    cnsym->setId(newnameid);
-	    m_programDefST.replaceInTable(oldnameid, newnameid, cnsym);
+
+	    SymbolClassName * newcnsym = NULL;
+	    if(!alreadyDefinedSymbolClassName(newnameid, newcnsym))
+	      {
+		cnsym->setId(newnameid);
+		m_programDefST.replaceInTable(oldnameid, newnameid, cnsym);
+	      }
+	    else
+	      {
+		Symbol * rmcnsym  = NULL;
+		AssertBool isGone = m_programDefST.removeFromTable(oldnameid, rmcnsym);
+		assert(isGone);
+		assert(rmcnsym == cnsym);
+		delete rmcnsym;
+		rmcnsym = cnsym = NULL;
+	      }
 	  }
       }
 
@@ -285,6 +301,7 @@ namespace MFM {
 	Token cTok(TOK_IDENTIFIER, cloc, id);
 	//symbol ownership goes to the programDefST;
 	//distinguish between template and regular classes, where?
+	//assert(cnsym == NULL); //leak?
 	cnsym = new SymbolClassName(cTok, cuti, classblock, *this);
 	assert(cnsym);
 	m_programDefST.addToTable(id, cnsym); //ignored post-parse
@@ -924,11 +941,28 @@ namespace MFM {
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
     ALT utalt = ut->getReferenceType();
-    if(utalt == altArg)
-      return utArg;
 
+#if 0
+    if(utalt != ALT_NOT)
+      return utArg //fails tests!!!
+#else
+    if(utalt == altArg)
+      return utArg; //same ref type
+
+    //e.g. a ref typedef
     if((utalt != ALT_NOT) && (altArg == ALT_NOT))
       return utArg; //deref used to remove alt type
+
+    if((utalt != ALT_NOT) && (utalt != altArg))
+      {
+	std::ostringstream msg;
+	msg << "Attempting to ref (" << altArg << ") a reference type <" ;
+	msg <<  getUlamTypeNameByIndex(utArg) << ">";
+	MSG2("", msg.str().c_str(), DEBUG);
+	//assert(0); //didn't hit during testing
+	//continue..
+      }
+#endif
 
     ULAMTYPE bUT = ut->getUlamTypeEnum();
     UlamKeyTypeSignature keyOfArg = ut->getUlamKeyTypeSignature();
@@ -1492,6 +1526,10 @@ namespace MFM {
   {
     bool rtnb = false;
     UlamType * ut = getUlamTypeByIndex(uti);
+
+    //    if(ut->isHolder())
+    //  return alreadyDefinedSymbolClassAsHolder(uti, symptr); //id is uti as string id
+
     UTI scalarUTI = uti;
     if(!ut->isScalar())
       scalarUTI = getUlamTypeAsScalar(uti);
@@ -1532,6 +1570,20 @@ namespace MFM {
       }
     return rtnb;
   } //alreadyDefinedSymbolClass
+
+  bool CompilerState::alreadyDefinedSymbolClassAsHolder(UTI uti, SymbolClass * & symptr)
+  {
+    bool rtnb = false;
+    u32 id = m_pool.getIndexForNumberAsString(uti);
+
+    SymbolClassName * cnsym = NULL;
+    if(alreadyDefinedSymbolClassName(id, cnsym))
+      {
+	symptr = cnsym;
+	rtnb = true;
+      }
+    return rtnb;
+  } //alreadyDefinedSymbolClassAsHolder
 
   //temporary type name which will be updated during type labeling.
   void CompilerState::addUnknownTypeTokenToAClassResolver(UTI cuti, Token tok, UTI huti)

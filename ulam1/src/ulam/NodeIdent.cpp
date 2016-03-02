@@ -578,9 +578,9 @@ namespace MFM {
 		else
 		  {
 		    //update holder key with name_id and possible array (UNKNOWNSIZE)
-		    //UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, Nouti);
-		    UlamKeyTypeSignature hkey = tdut->getUlamKeyTypeSignature();
-		    UlamKeyTypeSignature newkey(hkey.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, Nouti, args.m_declRef);
+		    UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, Nouti, args.m_declRef);
+		    //UlamKeyTypeSignature hkey = tdut->getUlamKeyTypeSignature();
+		    //UlamKeyTypeSignature newkey(hkey.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, Nouti, args.m_declRef);
 		    m_state.makeUlamTypeFromHolder(newkey, Holder, tduti); //update holder key, same uti
 		  }
 	      }

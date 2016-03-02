@@ -1631,8 +1631,7 @@ namespace MFM {
 	assert(isDefined);
 	if(asym)
 	  m_state.replaceSymbolInCurrentScope(clonesym, asym); //deletes old, adds new
-	else
-	  m_state.addSymbolToCurrentScope(clonesym); //adds new
+	//else already there! no need to add dup.
       } //next arg
 
     instancesArgs.clear(); //don't delete the symbols
