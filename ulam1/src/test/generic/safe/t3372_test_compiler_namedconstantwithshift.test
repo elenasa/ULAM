@@ -10,34 +10,36 @@ Ue_A { Bool(3) b(true);  System s();  Int(32) test() {  Counter(3u) c;  b c ( 0u
 Uq_System { <NOMAIN> }
 Uq_Counter(Unsigned(32) bits) { typedef Unsigned(UNKNOWN) Count;  <NOMAIN> }
 #>A.ulam
+  ulam 1;
 use System;
 use Counter;
 element A{
-System s;
-Bool(3) b;
-Int test () {
-Counter(3u) c;
- b = c.isEarlier(0u, 1u);
-s.print(b);
- return  c.thanWhat();
-}
+  System s;
+  Bool(3) b;
+  Int test () {
+    Counter(3u) c;
+    b = c.isEarlier(0u, 1u);
+    s.print(b);
+    return  c.thanWhat();
+  }
 }
 
 ##      //had to add u for (bits -1u) because both are constants, mixed signs, 32 bits.
 #:Counter.ulam
+  ulam 1;
 quark Counter(Unsigned bits) {
   typedef Unsigned(bits) Count;
-Bool(3) isEarlier(Count a, Count b) {
- if (a < b)
- return (b - a) < (Count) (1<< (bits-1u));
- return (a - b) > (Count) (1 << (bits-1u));
+  Bool(3) isEarlier(Count a, Count b) {
+    if (a < b)
+      return (b - a) < (Count) (1<< (bits-1u));
+    return (a - b) > (Count) (1 << (bits-1u));
   }
- Count thanWhat() {
-return (Count) (1 << 2u) /*(bits-1u))*/;
+  Count thanWhat() {
+    return (Count) (1 << 2u) /*(bits-1u))*/;
   }
- }
+}
 #:System.ulam
-ulam 1;
+  ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

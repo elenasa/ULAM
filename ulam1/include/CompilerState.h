@@ -158,6 +158,8 @@ namespace MFM{
     UTI makeUlamTypeHolder();
     UTI makeUlamTypeFromHolder(UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti);
     UTI makeUlamTypeFromHolder(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti);
+    SymbolClassName * makeClassFromHolder(UTI huti, Token tok);
+    void cleanupExistingHolder(UTI huti, UTI newuti);
     SymbolClassName * makeAnonymousClassFromHolder(UTI cuti, Locator cloc);
 
     UTI makeUlamType(Token typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx, ALT reftype = ALT_NOT);
@@ -210,6 +212,7 @@ namespace MFM{
     bool isARootUTI(UTI auti);
     bool findaUTIAlias(UTI auti, UTI& aliasuti);
     void updateUTIAlias(UTI auti, UTI buti);
+    void updateUTIAliasForced(UTI auti, UTI buti);
     void initUTIAlias(UTI auti);
 
     bool setSizesOfNonClass(UTI utArg, s32 bitsize, s32 arraysize);
@@ -232,6 +235,7 @@ namespace MFM{
     /** return true and the Symbol pointer in 2nd arg if found;
 	search SymbolTables LIFO order; o.w. return false
     */
+    bool alreadyDefinedSymbolByAncestor(u32 dataindex, Symbol *& symptr, bool& hasHazyKin);
     bool alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isDataMemberIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isFuncIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
@@ -253,6 +257,16 @@ namespace MFM{
 
     /** return true and the SymbolClass pointer in 2nd arg if uti found; */
     bool alreadyDefinedSymbolClass(UTI uti, SymbolClass * & symptr);
+
+    /** return true and the SymbolClass pointer in 2nd arg if holder with uti as key nameid found; */
+    bool alreadyDefinedSymbolClassAsHolder(UTI uti, SymbolClass * & symptr);
+
+    /** in case of typedef's in ancestor class */
+    void addUnknownTypeTokenToAClassResolver(UTI cuti, Token tok, UTI huti);
+    void addUnknownTypeTokenToThisClassResolver(Token tok, UTI huti);
+    Token removeKnownTypeTokenFromThisClassResolver(UTI huti);
+    bool hasUnknownTypeInThisClassResolver(UTI huti);
+    bool statusUnknownTypeInThisClassResolver(UTI huti);
 
     /** creates temporary class type for dataindex, returns the new Symbol pointer in 2nd arg; */
     bool addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr);
@@ -338,6 +352,8 @@ namespace MFM{
 
     bool quarkHasAToIntMethod(UTI quti);
 
+    bool classHasACustomArraySetMethod(UTI cuti);
+
     void setupCenterSiteForTesting();
 
     /** used by SourceStream to build m_textByLinePerFilePath during parsing */
@@ -411,6 +427,8 @@ namespace MFM{
     UTI getBigBitsUTI();
 
     bool isPtr(UTI puti);
+    bool isAtom(UTI auti);
+    bool isAtomRef(UTI auti);
     bool okUTItoContinue(UTI uti);
 
   private:

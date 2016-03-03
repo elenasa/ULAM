@@ -6,18 +6,20 @@ Ue_B { typedef Unsigned(8) Count;  typedef Unsigned(8) CountArray[4];  typedef U
 ##
 ##      //informed by t3257
 #>B.ulam
+  ulam 1;
 element B {
- typedef Unsigned(8) Count;
- typedef Count CountArray[4];
- typedef Unsigned(2) Slot;
-	 CountArray hitCount;
-	 Void hit(Slot slot, Unsigned weight) {
- ++hitCount[slot];
- }
- Int test(){
- hit((Slot) 0, (Unsigned) 1);
- return 0;
-;}
+  typedef Unsigned(8) Count;
+  typedef Count CountArray[4];
+  typedef Unsigned(2) Slot;
+  CountArray hitCount;
+  Void hit(Slot slot, Unsigned weight) {
+    ++hitCount[slot];
+  }
+  Int test(){
+    hit((Slot) 0, (Unsigned) 1);
+    return 0;
+    ;
+  }
 }
 
 #.

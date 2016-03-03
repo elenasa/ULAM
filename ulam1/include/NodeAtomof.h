@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
- * NodeConditionalHas.h - Node for handling Has Expressions for ULAM
+ * NodeAtomof.h - Node handling the Atomof Statement for ULAM
  *
- * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2015 Ackleyshack LLC.
+ * Copyright (C) 2016 The Regents of the University of New Mexico.
+ * Copyright (C) 2016 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -26,49 +26,80 @@
  */
 
 /**
-  \file NodeConditionalHas.h - Node for handling Has Expressions for ULAM
+  \file NodeAtomof.h - Node handling the Atomof Statement for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2015 All rights reserved.
+  \date (C) 2016 All rights reserved.
   \gpl
 */
 
 
-#ifndef NODECONDITIONALHAS_H
-#define NODECONDITIONALHAS_H
+#ifndef NODEATOMOF_H
+#define NODEATOMOF_H
 
-#include "NodeConditional.h"
+#include "File.h"
+#include "Node.h"
+#include "Token.h"
+#include "SymbolVariable.h"
+#include "NodeTypeDescriptor.h"
+#include "NodeBlock.h"
 
 namespace MFM{
 
-  class NodeConditionalHas : public NodeConditional
+  class NodeAtomof : public Node
   {
   public:
 
-    NodeConditionalHas(Node * leftNode, NodeTypeDescriptor * classType, CompilerState & state);
+    NodeAtomof(Token tokatomof, NodeTypeDescriptor * nodetype, CompilerState & state);
 
-    NodeConditionalHas(const NodeConditionalHas& ref);
+    NodeAtomof(const NodeAtomof& ref);
 
-    virtual ~NodeConditionalHas();
+    virtual ~NodeAtomof();
 
     virtual Node * instantiate();
+
+    virtual void updateLineage(NNO pno);
+
+    virtual bool findNodeNo(NNO n, Node *& foundNode);
+
+    virtual void print(File * fp);
+
+    virtual void printPostfix(File * fp);
 
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
 
-    virtual const std::string methodNameForCodeGen();
+    virtual FORECAST safeToCastTo(UTI newType);
+
+    UTI getAtomType();
 
     virtual UTI checkAndLabelType();
 
+    NNO getBlockNo() const;
+
+    NodeBlock * getBlock();
+
     virtual EvalStatus eval();
+
+    virtual EvalStatus evalToStoreInto();
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 
+    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
+
   protected:
 
+  private:
+    NodeTypeDescriptor * m_nodeTypeDesc;
+    Token m_token;
+    UTI m_atomoftype;
+    SymbolVariable * m_varSymbol;
+    NNO m_currBlockNo;
+
+    UlamValue makeUlamValuePtr();
   };
 
 }
 
-#endif //end NODECONDITIONALHAS_H
+#endif //end NODEATOMOF_H

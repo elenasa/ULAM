@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "Parser.h"
+#include "NodeAtomof.h"
 #include "NodeBinaryOpArithAdd.h"
 #include "NodeBinaryOpArithDivide.h"
 #include "NodeBinaryOpArithMultiply.h"
@@ -35,7 +36,6 @@
 #include "NodeCast.h"
 #include "NodeConditionalAs.h"
 #include "NodeConditionalIs.h"
-#include "NodeConditionalHas.h"
 #include "NodeConstant.h"
 #include "NodeContinueStatement.h"
 #include "NodeControlIf.h"
@@ -527,7 +527,8 @@ namespace MFM {
 
     if(iTok.m_type == TOK_TYPE_IDENTIFIER)
       {
-	superuti = parseClassArguments(iTok);
+	bool isaclass = true;
+	superuti = parseClassArguments(iTok, isaclass);
 	if(superuti != Nav)
 	  {
 	    cnsym->setSuperClassForClassInstance(superuti, cnsym->getUlamTypeIdx()); //set here!!
@@ -915,14 +916,29 @@ namespace MFM {
 	return NULL;
       }
 
+    //before parsing the IF statement, need a new scope
+    NodeBlock * currBlock = m_state.getCurrentBlock();
+    NodeBlock * rtnNode = new NodeBlock(currBlock, m_state);
+    assert(rtnNode);
+    rtnNode->setNodeLocation(ifTok.m_locator);
+
+    //current, this block's symbol table added to parse tree stack
+    //        for validating and finding scope of program/block variables
+    m_state.pushCurrentBlock(rtnNode); //without pop first
+
+
     Node * condNode = parseConditionalExpr();
     if(!condNode)
-      return NULL; //stop this maddness
+      {
+	m_state.popClassContext(); //the pop
+	return NULL; //stop this maddness
+      }
 
     if(!getExpectedToken(TOK_CLOSE_PAREN))
       {
 	delete condNode;
-	return NULL;
+	m_state.popClassContext(); //the pop
+	return NULL; //stop this maddness
       }
 
     Node * trueNode = NULL;
@@ -938,6 +954,7 @@ namespace MFM {
     if(!trueNode)
       {
 	delete condNode;
+	m_state.popClassContext(); //the pop
 	return NULL; //stop this maddness
       }
 
@@ -959,9 +976,24 @@ namespace MFM {
 	  }
       }
 
-    Node * rtnNode = new NodeControlIf(condNode, trueStmtNode, falseStmtNode, m_state);
-    assert(rtnNode);
-    rtnNode->setNodeLocation(ifTok.m_locator);
+    Node * ifNode = new NodeControlIf(condNode, trueStmtNode, falseStmtNode, m_state);
+    assert(ifNode);
+    ifNode->setNodeLocation(ifTok.m_locator);
+
+
+    NodeStatements * nextControlNode = new NodeStatements(ifNode, m_state);
+    assert(nextControlNode);
+    nextControlNode->setNodeLocation(ifNode->getNodeLocation());
+
+    rtnNode->setNextNode(nextControlNode); //***link if to rtn block
+
+    //this block's ST is no longer in scope
+    currBlock = m_state.getCurrentBlock(); //reload
+    if(currBlock)
+      m_state.m_currentFunctionBlockDeclSize -= currBlock->getSizeOfSymbolsInTable();
+
+    m_state.popClassContext(); //= prevBlock;
+
     return rtnNode;
   } //parseControlIf
 
@@ -972,15 +1004,30 @@ namespace MFM {
 	return NULL;
       }
 
+    //before parsing the IF statement, need a new scope
+    NodeBlock * currBlock = m_state.getCurrentBlock();
+    NodeBlock * rtnNode = new NodeBlock(currBlock, m_state);
+    assert(rtnNode);
+    rtnNode->setNodeLocation(wTok.m_locator);
+
+    //current, this block's symbol table added to parse tree stack
+    //        for validating and finding scope of program/block variables
+    m_state.pushCurrentBlock(rtnNode); //without pop first
+
+
     s32 controlLoopLabelNum = m_state.m_parsingControlLoop; //save at the top
     Node * condNode = parseConditionalExpr();
     if(!condNode)
-      return NULL; //stop this maddness
+      {
+	m_state.popClassContext(); //the pop
+	return NULL; //stop this maddness
+      }
 
     if(!getExpectedToken(TOK_CLOSE_PAREN))
       {
 	delete condNode;
-	return NULL;
+	m_state.popClassContext(); //the pop
+	return NULL; //stop this maddness
       }
 
     Node * trueNode = NULL;
@@ -992,6 +1039,7 @@ namespace MFM {
     if(!trueNode)
       {
 	delete condNode;
+	m_state.popClassContext(); //the pop
 	return NULL; //stop this maddness
       }
 
@@ -1010,9 +1058,23 @@ namespace MFM {
     labelStmtNode->setNodeLocation(wTok.m_locator);
     trueStmtNode->setNextNode(labelStmtNode);
 
-    Node * rtnNode = new NodeControlWhile(condNode, trueStmtNode, m_state);
-    assert(rtnNode);
-    rtnNode->setNodeLocation(wTok.m_locator);
+    Node * whileNode = new NodeControlWhile(condNode, trueStmtNode, m_state);
+    assert(whileNode);
+    whileNode->setNodeLocation(wTok.m_locator);
+
+    NodeStatements * nextControlNode = new NodeStatements(whileNode, m_state);
+    assert(nextControlNode);
+    nextControlNode->setNodeLocation(whileNode->getNodeLocation());
+
+    rtnNode->setNextNode(nextControlNode); //***link while to rtn block
+
+    //this block's ST is no longer in scope
+    currBlock = m_state.getCurrentBlock(); //reload
+    if(currBlock)
+      m_state.m_currentFunctionBlockDeclSize -= currBlock->getSizeOfSymbolsInTable();
+
+    m_state.popClassContext(); //= prevBlock;
+
     return rtnNode;
   } //parseControlWhile
 
@@ -1054,6 +1116,7 @@ namespace MFM {
       {
 	delete rtnNode;
 	delete declNode; //stop this maddness
+	m_state.popClassContext(); //where was it?
 	return NULL;
       }
 
@@ -1070,6 +1133,7 @@ namespace MFM {
 	  {
 	    delete rtnNode;
 	    delete declNode;
+	    m_state.popClassContext(); //where was it?
 	    return NULL; //stop this maddness
 	  }
 
@@ -1078,6 +1142,7 @@ namespace MFM {
 	    delete rtnNode;
 	    delete declNode;
 	    delete condNode;
+	    m_state.popClassContext(); //where was it?
 	    return NULL;
 	  }
       }
@@ -1103,6 +1168,7 @@ namespace MFM {
 	    delete rtnNode;
 	    delete declNode;
 	    delete condNode;
+	    m_state.popClassContext(); //where was it?
 	    return NULL; //stop this maddness
 	  }
 
@@ -1112,6 +1178,7 @@ namespace MFM {
 	    delete declNode;
 	    delete condNode;
 	    delete assignNode;
+	    m_state.popClassContext(); //where was it?
 	    return NULL; //stop this maddness
 	  }
       } //done with assign expr, could be null
@@ -1132,6 +1199,7 @@ namespace MFM {
 	delete declNode;
 	delete condNode;
 	delete assignNode;
+	m_state.popClassContext(); //where was it?
 	return NULL; //stop this maddness
       }
 
@@ -1290,7 +1358,7 @@ namespace MFM {
     assert(typeNode);
 
     //insert var decl into NodeStatements..as if parseStatement was called..
-    Node * varNode = new NodeVarRefAs((SymbolVariable*) asymptr, typeNode, m_state);
+    NodeVarRefAs * varNode = new NodeVarRefAs((SymbolVariable*) asymptr, typeNode, m_state);
     assert(varNode);
     varNode->setNodeLocation(asNode->getNodeLocation());
 
@@ -1439,6 +1507,12 @@ namespace MFM {
 
 	Token iTok;
 	getNextToken(iTok);
+	if(iTok.m_type == TOK_AMP)
+	  {
+	    typeargs.m_declRef = ALT_REF;
+	    getNextToken(iTok);
+	  }
+
 	//insure the typedef name starts with a capital letter
 	if(iTok.m_type == TOK_TYPE_IDENTIFIER)
 	  {
@@ -1638,15 +1712,41 @@ namespace MFM {
   {
     NodeTypeDescriptor * typeNode = NULL;
     Token pTok = typeargs.m_typeTok;
-    bool isAClassType = (m_state.getBaseTypeFromToken(pTok) == Class);
+    ULAMTYPE etyp = m_state.getBaseTypeFromToken(pTok);
+    bool isAClassType = ((etyp == Class) || (etyp == Hzy) || (etyp == Holder));
+
     if(isAClassType)
       {
-	UTI cuti = parseClassArguments(pTok); //not sure what to do with the UTI? could be a declref type
-	if(m_state.isScalar(cuti))
-	  typeargs.m_classInstanceIdx = cuti;
+	//sneak peak at next tok for dot
+	Token dTok;
+	getNextToken(dTok);
+	unreadToken();
+	isAClassType = (dTok.m_type == TOK_DOT); //another clue for Hzy and Holder
+
+	if(isAClassType && (etyp == Holder))
+	  {
+	    UTI huti = Nav;
+	    UTI tmpscalar= Nav;
+	    AssertBool isTDDefined = m_state.getUlamTypeByTypedefName(pTok.m_dataindex, huti, tmpscalar);
+	    assert(isTDDefined);
+	    m_state.makeClassFromHolder(huti, pTok); //don't need cnsym here
+	  }
+
+	UTI cuti = parseClassArguments(pTok, isAClassType); //not sure what to do with the UTI? could be a declref type
+	if(isAClassType)
+	  {
+	    if(m_state.isScalar(cuti))
+	      typeargs.m_classInstanceIdx = cuti;
+	    else
+	      typeargs.m_classInstanceIdx = m_state.getUlamTypeAsScalar(cuti); //eg typedef class array
+	  }
 	else
-	  typeargs.m_classInstanceIdx = m_state.getUlamTypeAsScalar(cuti); //eg typedef class array
-	castUTI = cuti; //unless a dot is next
+	  {
+	    if(m_state.isScalar(cuti))
+	      typeargs.m_declListOrTypedefScalarType = cuti; //this is what we wanted..
+	    //else arraytype???
+	    castUTI = cuti; //unless a dot is next
+	  }
 	typeNode = new NodeTypeDescriptor(typeargs.m_typeTok, cuti, m_state);
 	assert(typeNode);
       }
@@ -1659,6 +1759,7 @@ namespace MFM {
 	UTI tuti = m_state.getUlamTypeFromToken(typeargs);
 	if(m_state.isScalar(tuti))
 	  typeargs.m_declListOrTypedefScalarType = tuti; //this is what we wanted..
+	//else arraytype???
 	castUTI = tuti;
 
 	//bitsize is unknown, e.g. based on a Class.sizeof
@@ -1697,7 +1798,7 @@ namespace MFM {
     return typeNode;
   } //parseTypeDescriptor
 
-  UTI Parser::parseClassArguments(Token& typeTok)
+  UTI Parser::parseClassArguments(Token& typeTok, bool& isaclass)
   {
     Token pTok;
     getNextToken(pTok);
@@ -1714,7 +1815,17 @@ namespace MFM {
 	    if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, tduti, tdscalaruti))
 	      return tduti; //done. (could be an array)
 	    else
-	      m_state.addIncompleteClassSymbolToProgramTable(typeTok, cnsym);
+	      {
+		// not necessarily a class!!
+		if(isaclass)
+		  m_state.addIncompleteClassSymbolToProgramTable(typeTok, cnsym);
+		else
+		  {
+		    UTI huti = m_state.makeUlamTypeHolder();
+		    m_state.addUnknownTypeTokenToThisClassResolver(typeTok, huti);
+		    return huti;
+		  }
+	      }
 	  }
 	else
 	  {
@@ -1727,15 +1838,19 @@ namespace MFM {
 		MSG(&pTok, msg.str().c_str(), ERR);
 		return Nav;
 	      }
+	    else
+	      isaclass = true; //reset
 	  }
 	assert(cnsym);
 	return cnsym->getUlamTypeIdx();
       } //not open paren
 
     //must be a template class
+    bool unseenTemplate = false;
     SymbolClassNameTemplate * ctsym = NULL;
     if(!m_state.alreadyDefinedSymbolClassNameTemplate(typeTok.m_dataindex, ctsym))
       {
+	unseenTemplate = true;
 	if(ctsym == NULL)
 	  m_state.addIncompleteTemplateClassSymbolToProgramTable(typeTok, ctsym); //was undefined, template; will fix instances' argument names later
 	else
@@ -1750,7 +1865,7 @@ namespace MFM {
 
     UTI ctuti = ctsym->getUlamTypeIdx();
     u32 numParams = ctsym->getNumberOfParameters();
-    u32 numParamDefaults = ctsym->getTotalParametersWithDefaultValues();
+    u32 numParamDefaults = unseenTemplate ? 0 : ctsym->getTotalParametersWithDefaultValues();
 
     getNextToken(pTok);
     if(pTok.m_type == TOK_CLOSE_PAREN)
@@ -2020,7 +2135,8 @@ namespace MFM {
 	if(numDots > 1 && Token::isTokenAType(pTok))
 	  {
 	    //make an 'anonymous class'
-	    cnsym = m_state.makeAnonymousClassFromHolder(args.m_anothertduti, args.m_typeTok.m_locator);
+	    //cnsym = m_state.makeAnonymousClassFromHolder(args.m_anothertduti, args.m_typeTok.m_locator);
+	    cnsym = m_state.makeClassFromHolder(args.m_anothertduti, args.m_typeTok);
 	    args.m_classInstanceIdx = args.m_anothertduti; //since we didn't know last time
 	  }
 	else
@@ -2091,7 +2207,7 @@ namespace MFM {
       {
 	//hail mary pass..possibly a sizeof of unseen class
 	getNextToken(nTok);
-	if(nTok.m_type != TOK_KW_SIZEOF)
+	if((nTok.m_type != TOK_KW_SIZEOF) && (nTok.m_type != TOK_KW_ATOMOF))
 	  {
 	    std::ostringstream msg;
 	    msg << "Trying to use typedef from another class '";
@@ -2133,6 +2249,8 @@ namespace MFM {
 		assert(symtypedef);
 		symtypedef->setBlockNoOfST(memberClassNode->getNodeNo());
 		m_state.addSymbolToCurrentMemberClassScope(symtypedef);
+		m_state.addUnknownTypeTokenToAClassResolver(mcuti, pTok, huti);
+		//m_state.addUnknownTypeTokenToThisClassResolver(pTok, huti); //also, compiling this one
 	      }
 	  } //end make one up, now fall through
 
@@ -2365,7 +2483,8 @@ namespace MFM {
 	UlamType * dut = m_state.getUlamTypeByIndex(duti);
 	if(m_state.okUTItoContinue(duti) && (dut->getUlamClass() == UC_NOTACLASS) && (dut->getUlamTypeEnum() == Holder))
 	  {
-	    m_state.makeAnonymousClassFromHolder(duti, memberTok.m_locator);
+	    //m_state.makeAnonymousClassFromHolder(duti, memberTok.m_locator);
+	    m_state.makeClassFromHolder(duti, memberTok);
 	  }
       }
 
@@ -2509,6 +2628,28 @@ namespace MFM {
 	    }
 	}
 	break;
+      case TOK_KW_ATOMOF:
+	{
+	  if(ut->isComplete())
+	    {
+	      assert(ut->getUlamClass() == UC_NOTACLASS); //can't be a class and complete
+	      rtnNode = NULL;
+	      delete nodetype; //unlikely
+	      nodetype = NULL;
+
+	      std::ostringstream msg;
+	      msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str();
+	      msg << "' <" << m_state.getTokenDataAsString(&memberTok).c_str();
+	      msg << ">, non-class type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
+	      MSG(&fTok, msg.str().c_str(), ERR);
+	    }
+	  else
+	    {
+	      //input uti wasn't complete
+	      rtnNode = new NodeAtomof(memberTok, nodetype, m_state);
+	    }
+	}
+	break;
       case TOK_IDENTIFIER:
 	{
 	  //possible named constant?
@@ -2552,6 +2693,9 @@ namespace MFM {
 	break;
       case TOK_KW_MINOF:
 	rtnNode = new NodeTerminalProxy(memberTok, Nouti, fTok, NULL, m_state);
+	break;
+      case TOK_KW_ATOMOF:
+	rtnNode = new NodeAtomof(memberTok, NULL, m_state);
 	break;
       default:
 	{
@@ -3285,7 +3429,9 @@ namespace MFM {
     //update dNode with init expression: lval for ref, assign for local car
     if(args.m_declRef == ALT_REF)
       {
-	if(getExpectedToken(TOK_IDENTIFIER, eTok))
+	getNextToken(eTok);
+	//if(getExpectedToken(TOK_IDENTIFIER, eTok))
+	if(eTok.m_type == TOK_IDENTIFIER)
 	  {
 	    Node * rightNode = parseIdentExpr(eTok); //parseLvalExpr(eTok);
 	    if(!rightNode)
@@ -3300,7 +3446,32 @@ namespace MFM {
 		((NodeVarRef *) dNode)->setInitExpr(rightNode);
 	      }
 	  }
-	//else error
+	else if(eTok.m_type == TOK_TYPE_IDENTIFIER)
+	  {
+	    unreadToken();
+	    //can only be be a .atomof
+	    Node * rightNode = parseFactor(); //parseMinMaxSizeofType(eTok);
+	    if(!rightNode)
+	      {
+		std::ostringstream msg;
+		msg << "Value of atomof reference type ";
+		msg << eTok.getTokenStringFromPool(&m_state).c_str();
+		msg << " is missing for ";
+		msg << identTok.getTokenStringFromPool(&m_state).c_str();
+		MSG(&eTok, msg.str().c_str(), ERR);
+	      }
+	    else
+	      {
+		((NodeVarRef *) dNode)->setInitExpr(rightNode);
+	      }
+	  }
+	else //error
+	  {
+	    std::ostringstream msg;
+	    msg << "Unexpected token <" << eTok.getTokenStringFromPool(&m_state).c_str();
+	    msg << "> for initial value of reference";
+	    MSG(&eTok, msg.str().c_str(), ERR);
+	  }
 	args.m_declRef = ALT_NOT; //clear flag in case of decl list
       } //ref done
     else
@@ -3501,17 +3672,6 @@ namespace MFM {
     //blockdeclsize: 0, <1, >1 means: datamember, parameter, local variable, respectively
     m_state.m_currentFunctionBlockDeclSize = -(returnArraySize + 1);
     m_state.m_currentFunctionBlockMaxDepth = 0;
-
-    //create "atom" symbol whose index is that of the "hidden" first arg (i.e. ptr to atom);
-    //immediately below the return value(s); and belongs to the function definition scope.
-    u32 aselfid = m_state.m_pool.getIndexForDataString("atom"); //was "self"
-    UTI acuti = currClassBlock->getNodeType(); //luckily we know this now for each class used
-    if(m_state.getUlamTypeByIndex(acuti)->getUlamClass() == UC_QUARK)
-      acuti = UAtom; //use atom for quark functions
-    Token aselfTok(TOK_IDENTIFIER, identTok.m_locator, aselfid);
-    SymbolVariableStack * aselfsym = new SymbolVariableStack(aselfTok, acuti, m_state.determinePackable(acuti), m_state.m_currentFunctionBlockDeclSize, m_state);
-    aselfsym->setIsSelf();
-    m_state.addSymbolToCurrentScope(aselfsym); //ownership goes to the block
 
     //create "self" symbol for the class type;
     //belongs to the function definition scope.
@@ -3810,14 +3970,6 @@ namespace MFM {
 	//return NULL;  keep going?
       }
 
-    if(identTok.m_dataindex == m_state.m_pool.getIndexForDataString("atom"))
-      {
-	std::ostringstream msg;
-	msg << "The keyword 'atom' may not be used as a variable name";
-	MSG(&identTok, msg.str().c_str(), ERR);
-	//return NULL;  keep going?
-      }
-
     NodeVarDecl * rtnNode = NULL;
     Node * lvalNode = parseLvalExpr(identTok); //for optional [] array size
     if(lvalNode)
@@ -3834,7 +3986,6 @@ namespace MFM {
 		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
 		msg << " has a previous declaration as '";
 		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
-		msg << " " << m_state.m_pool.getDataAsString(asymptr->getId());
 		msg << "' and cannot be used as a variable";
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
 	      }
@@ -3853,6 +4004,8 @@ namespace MFM {
 	    UTI auti = asymptr->getUlamTypeIdx();
 	    //chain to NodeType descriptor if array (i.e. non scalar), o.w. delete lval
 	    linkOrFreeConstantExpressionArraysize(auti, args, (NodeSquareBracket *)lvalNode, nodetyperef);
+
+	    nodetyperef->setReferenceType(m_state.getReferenceType(auti)); //invariant
 
 	    // tfr owner of nodetyperef to node var decl
 	    if(asymptr->isDataMember())
@@ -3931,7 +4084,6 @@ namespace MFM {
 		    msg << m_state.m_pool.getDataAsString(asymid).c_str();
 		    msg << " has a previous declaration as '";
 		    msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
-		    msg << " " << m_state.m_pool.getDataAsString(asymid);
 		    msg << "' and is a redundant typedef";
 		    MSG(&args.m_typeTok, msg.str().c_str(), INFO);
 		    aok = true; //not a problem
@@ -3942,7 +4094,6 @@ namespace MFM {
 		    msg << m_state.m_pool.getDataAsString(asymid).c_str();
 		    msg << " has a previous declaration as '";
 		    msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
-		    msg << " " << m_state.m_pool.getDataAsString(asymid);
 		    msg << "' and cannot be used as a typedef";
 		    MSG(&args.m_typeTok, msg.str().c_str(), ERR);
 		  }
@@ -3966,8 +4117,8 @@ namespace MFM {
 	    UTI auti = asymptr->getUlamTypeIdx();
 	    //chain to NodeType descriptor if array (i.e. non scalar), o.w. delete lval
 	    linkOrFreeConstantExpressionArraysize(auti, args, (NodeSquareBracket *)lvalNode, nodetyperef);
-
-	    // tfr owner of nodetyperef to node var decl
+	    // tfr owner of nodetyperef to node typedef
+	    nodetyperef->setReferenceType(m_state.getReferenceType(auti)); //invariant
 	    rtnNode =  new NodeTypedef((SymbolTypedef *) asymptr, nodetyperef, m_state);
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(args.m_typeTok.m_locator);
@@ -4009,8 +4160,6 @@ namespace MFM {
 		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
 		msg << " has a previous declaration as '";
 		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
-		msg << " ";
-		msg<< m_state.m_pool.getDataAsString(asymptr->getId());
 		msg << "' and cannot be used as a named constant";
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
 	      }
@@ -4082,7 +4231,6 @@ namespace MFM {
 		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
 		msg << " has a previous declaration as '";
 		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
-		msg << " " << m_state.m_pool.getDataAsString(asymptr->getId());
 		msg << "' and cannot be used as a Model Parameter data member";
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
 	      }
@@ -4157,7 +4305,8 @@ namespace MFM {
       }
 
     //consider possibility of Class Instance as Type
-    UTI cuti = parseClassArguments(tTok);
+    bool isaclass = true;
+    UTI cuti = parseClassArguments(tTok, isaclass);
     if(!m_state.isScalar(cuti))
       {
 	std::ostringstream msg;
@@ -4181,10 +4330,6 @@ namespace MFM {
       {
       case TOK_KW_IS:
 	rtnNode = new NodeConditionalIs(leftNode, typeNode, m_state);
-	break;
-      case TOK_KW_HAS:
-	//rtnNode = new NodeConditionalHas(leftNode, typeNode, m_state);
-	assert(0); //deprecated
 	break;
       case TOK_KW_AS:
 	rtnNode = new NodeConditionalAs(leftNode, typeNode, m_state);
@@ -4854,6 +4999,11 @@ namespace MFM {
     UlamKeyTypeSignature apkey(m_state.m_pool.getIndexForDataString("0Ptr"), ULAMTYPE_DEFAULTBITSIZE[Ptr], NONARRAYSIZE, ALT_PTR);
     AssertBool isPtrAbs = (m_state.makeUlamType(apkey, Ptr) == PtrAbs);
     assert(isPtrAbs);
+
+    //a Ref for .atomof; comes after PtrAbs.
+    UlamKeyTypeSignature arefkey(m_state.m_pool.getIndexForDataString("Atom"), ULAMTYPE_DEFAULTBITSIZE[UAtom], NONARRAYSIZE, ALT_REF);
+    AssertBool isAtomRef = (m_state.makeUlamType(arefkey, UAtom) == UAtomRef);
+    assert(isAtomRef);
 
     // next in line, the 64 basics:
     m_state.getLongUTI();

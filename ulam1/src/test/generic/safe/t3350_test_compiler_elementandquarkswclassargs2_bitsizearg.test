@@ -14,31 +14,31 @@ Ue_P(Unsigned(3) a) { Bool(UNKNOWN) b(notready);  <NOMAIN> }
 ##      //bool rtn1 = fms->add("P.ulam","ulam 1;\nuse Q;\nuse V;\n element P(Unsigned(3) a) {\nBool(a) b;\nInt test() {\nconstant Unsigned(3) x = 3u; P(x) pel;\n return 0 /*pel.sizeof*/;\n}\n}\n");
 ##
 #>R.ulam
-ulam 1;
+  ulam 1;
 use V;
 use P;
 element R {
-Int test() {
-constant V.Woof.Foo var = 3u;
- P(var) pel;
- return pel.sizeof;
-}
+  Int test() {
+    constant V.Woof.Foo var = 3u;
+    P(var) pel;
+    return pel.sizeof;
+  }
 }
 
 #:P.ulam
-ulam 1;
- element P(Unsigned(3) a) {
-Bool(a) b;
+  ulam 1;
+element P(Unsigned(3) a) {
+  Bool(a) b;
 }
 #:Q.ulam
-ulam 1;
+  ulam 1;
 quark Q(Int s) {
-typedef Unsigned(s) Foo;
+  typedef Unsigned(s) Foo;
 }
 #:V.ulam
-ulam 1;
+  ulam 1;
 use Q;
- quark V {
-typedef Q(3) Woof;
+quark V {
+  typedef Q(3) Woof;
 }
 #.

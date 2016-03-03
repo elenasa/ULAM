@@ -7,7 +7,10 @@
 
 namespace MFM {
 
-  NodeVarRef::NodeVarRef(SymbolVariable * sym, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeVarDecl(sym, nodetype, state) { }
+  NodeVarRef::NodeVarRef(SymbolVariable * sym, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeVarDecl(sym, nodetype, state)
+  {
+    Node::setStoreIntoAble(TBOOL_HAZY);
+  }
 
   NodeVarRef::NodeVarRef(const NodeVarRef& ref) : NodeVarDecl(ref) { }
 
@@ -155,7 +158,17 @@ namespace MFM {
   {
     UTI it = NodeVarDecl::checkAndLabelType();
 
-    assert((it == Nav) || (it == Hzy) || m_state.getUlamTypeByIndex(it)->isReference());
+    //assert((it == Nav) || (it == Hzy) || m_state.getUlamTypeByIndex(it)->isReference());
+    if(m_state.okUTItoContinue(it) && (!m_state.getUlamTypeByIndex(it)->isReference()))
+      {
+	std::ostringstream msg;
+	msg << "Variable reference '";
+	msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+	msg << "', is invalid";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav);
+	return Nav; //short-circuit
+      }
 
     ////requires non-constant, non-funccall value
     //NOASSIGN REQUIRED (e.g. for function parameters) doesn't have to have this!
@@ -185,17 +198,41 @@ namespace MFM {
 	    return Hzy; //short-circuit
 	  }
 
-	if(m_nodeInitExpr->isAConstant() || m_nodeInitExpr->isFunctionCall())
+	//check isStoreIntoAble
+	//if(m_nodeInitExpr->isAConstant() || m_nodeInitExpr->isFunctionCall())
+	TBOOL istor = m_nodeInitExpr->getStoreIntoAble();
+	Node::setStoreIntoAble(istor);
+
+	if(istor != TBOOL_TRUE)
 	  {
 	    std::ostringstream msg;
 	    msg << "Storage expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
 	    msg << ", must be storeintoable";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav);
-	    return Nav; //short-circuit
+	    if(istor == TBOOL_HAZY)
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		m_state.setGoAgain();
+		it = Hzy;
+	      }
+	    else
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		setNodeType(Nav);
+		return Nav; //short-circuit
+	      }
 	  }
       }
+    else
+      {
+	if(it == Nav)
+	  Node::setStoreIntoAble(TBOOL_FALSE);
+	else if(it == Hzy)
+	  Node::setStoreIntoAble(TBOOL_HAZY);
+	else
+	  Node::setStoreIntoAble(TBOOL_TRUE);
+      }
+
     setNodeType(it);
     return getNodeType();
   } //checkAndLabelType
@@ -278,13 +315,16 @@ namespace MFM {
 	// or ancestor quark if a class.
 	m_nodeInitExpr->genCodeToStoreInto(fp, uvpass);
 
-	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+	UTI vuti = m_varSymbol->getUlamTypeIdx(); //i.e. this ref node
+	UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+
+	if(m_state.isAtom(vuti))
+	  return genCodeAtomRefInit(fp, uvpass);
+
 	Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 	UTI stgcosuti = stgcos->getUlamTypeIdx();
 	UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
-	UTI vuti = m_varSymbol->getUlamTypeIdx(); //i.e. this ref node
-	UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
 	if(!stgcosut->isScalar() && !vut->isScalar())
 	  return genCodeArrayRefInit(fp, uvpass);
@@ -326,7 +366,7 @@ namespace MFM {
 	    else
 	      {
 		//local var
-		if((vclasstype == UC_NOTACLASS) && (vut->getUlamTypeEnum() != UAtom))
+		if((vclasstype == UC_NOTACLASS) && !m_state.isAtom(vuti))
 		  {
 		    fp->write(", 0u"); //relative
 		  }
@@ -348,6 +388,43 @@ namespace MFM {
 
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
   } //genCode
+
+  void NodeVarRef::genCodeAtomRefInit(File * fp, UlamValue & uvpass)
+  {
+    //reference always has initial value, unless func param
+    assert(m_varSymbol->isAutoLocal());
+    assert(m_varSymbol->getAutoLocalType() != ALT_AS);
+
+    assert(m_nodeInitExpr);
+
+    s32 tmpVarNum = uvpass.getPtrSlotIndex(); //tmp containing atomref
+
+    UTI vuti = m_varSymbol->getUlamTypeIdx(); //i.e. this ref node
+    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+
+    UTI puti = uvpass.getUlamValueTypeIdx();
+    if(m_state.isPtr(puti))
+      puti = uvpass.getPtrTargetType();
+    assert(m_state.isAtom(vuti) && m_state.isAtom(puti));
+
+    m_state.indent(fp);
+    fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+    fp->write(" ");
+
+    fp->write(m_varSymbol->getMangledName().c_str());
+    fp->write("("); //pass ref in constructor (ref's not assigned with =)
+
+    if(m_state.m_currentObjSymbolsForCodeGen.empty())
+      fp->write(m_state.getTmpVarAsString(puti, tmpVarNum, TMPBITVAL).c_str());
+    else
+      {
+	Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+	fp->write(stgcos->getMangledName().c_str());
+      }
+    fp->write(");\n");
+
+    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
+  } //genCodeAtomRefInit
 
   void NodeVarRef::genCodeArrayRefInit(File * fp, UlamValue & uvpass)
   {

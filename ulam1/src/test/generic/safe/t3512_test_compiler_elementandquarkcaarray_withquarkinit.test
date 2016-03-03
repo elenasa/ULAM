@@ -6,29 +6,29 @@ Ue_Foo { typedef Bar Pop[2];  Bool(3) b(true);  Int(4) m_i(1);  Bar m_bar2[2]( t
 Uq_Bar { typedef Unsigned(6) Index;  Bool(1) val_b[3](false,false,false);  Unsigned(6) val_u( 63u);  <NOMAIN> }
 ##
 #>Foo.ulam
-ulam 1;
- use Bar;
- element Foo {
- typedef Bar Pop[2];
- Bool(3) b = true;
- Int(4) m_i = 1;
- Pop m_bar2;
- Bar sbar;
+  ulam 1;
+use Bar;
+element Foo {
+  typedef Bar Pop[2];
+  Bool(3) b = true;
+  Int(4) m_i = 1;
+  Pop m_bar2;
+  Bar sbar;
 
- Int test() {
- return 0;
- }
- }
+  Int test() {
+    return 0;
+  }
+}
 
 #:Bar.ulam
- ulam 1;
- quark Bar {
- typedef Unsigned(6) Index;
- Bool val_b[3];
- Index val_u = Index.maxof;
+  ulam 1;
+quark Bar {
+  typedef Unsigned(6) Index;
+  Bool val_b[3];
+  Index val_u = Index.maxof;
   Void reset(Index u) {
     val_u = u;
- }
+  }
 }
 
 #.

@@ -8,11 +8,14 @@ Ue_A { typedef Unsigned(4) Timer;  Int(32) test() {  Unsigned(4) t;  Unsigned(8)
 ##      // twice around the c&l loop added r+ l for multiply.
 ##
 #>A.ulam
-element A {typedef Unsigned(4) Timer;
-Int test() {
- Timer t;
- Unsigned(8) res = t * t;
-;
-return res;
- } }
+  ulam 1;
+element A {
+  typedef Unsigned(4) Timer;
+  Int test() {
+    Timer t;
+    Unsigned(8) res = t * t;
+    ;
+    return res;
+  }
+}
 #.

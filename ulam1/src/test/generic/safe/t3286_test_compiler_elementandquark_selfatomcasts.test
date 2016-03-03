@@ -23,7 +23,7 @@ element Foo {
 #:Bar.ulam
 quark Bar {
   Void func(Atom a){
-    Atom t = atom; //was self
+    Atom t = self.atomof; //was self
   }
 }
 #.

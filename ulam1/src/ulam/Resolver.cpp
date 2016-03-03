@@ -14,6 +14,7 @@ namespace MFM {
   void Resolver::clearLeftoverSubtrees()
   {
     clearLeftoverNonreadyClassArgSubtrees();
+    clearLeftoverUnknownTypeTokens();
     m_mapUTItoUTI.clear();
   } //clearLeftoverSubtrees()
 
@@ -38,6 +39,191 @@ namespace MFM {
       }
     m_nonreadyClassArgSubtrees.clear();
   } //clearLeftoverNonreadyClassArgSubtrees
+
+  void Resolver::clearLeftoverUnknownTypeTokens()
+  {
+    s32 unknowns = m_unknownTypeTokens.size();
+    if(unknowns > 0)
+      {
+	std::ostringstream msg;
+	msg << "Class Regular/Template with unknown Types cleared: ";
+	msg << unknowns;
+	MSG("", msg.str().c_str(),DEBUG);
+      }
+    m_unknownTypeTokens.clear();
+  } //clearLeftoverUnknownTypeTokens
+
+  void Resolver::addUnknownTypeToken(Token tok, UTI huti)
+  {
+    m_unknownTypeTokens.insert(std::pair<UTI, Token> (huti, tok));
+  }
+
+  Token Resolver::removeKnownTypeToken(UTI huti)
+  {
+    assert(!m_unknownTypeTokens.empty());
+
+    Token rtnTok;
+    std::map<UTI, Token>::iterator mit = m_unknownTypeTokens.begin();
+    mit = m_unknownTypeTokens.find(huti);
+    assert(mit != m_unknownTypeTokens.end());
+      {
+	rtnTok = mit->second;
+	m_unknownTypeTokens.erase(mit);
+      }
+    return rtnTok; //in case of error? use hasUnknownTypeToken first
+  } //removeUnknownTypeToken
+
+  bool Resolver::hasUnknownTypeToken(UTI huti)
+  {
+    bool rtnb = false;
+    if(m_unknownTypeTokens.empty())
+      return false;
+
+    std::map<UTI, Token>::iterator mit = m_unknownTypeTokens.find(huti);
+    if(mit != m_unknownTypeTokens.end())
+      {
+	rtnb = true;
+      }
+    return rtnb;
+  } //hasUnknownTypeToken
+
+  bool Resolver::statusUnknownType(UTI huti)
+  {
+    bool aok = false; //not found
+    // context already set by caller
+    std::map<UTI, Token>::iterator mit = m_unknownTypeTokens.find(huti);
+    if(mit != m_unknownTypeTokens.end())
+      {
+	Token tok = mit->second;
+	UTI huti = mit->first;
+	//check if still Hzy; true if resolved
+	aok = checkUnknownTypeToResolve(huti, tok);
+	if(aok)
+	  removeKnownTypeToken(huti);
+      }
+    return aok;
+  } //statusUnknownType
+
+  bool Resolver::checkUnknownTypeToResolve(UTI huti, Token tok)
+  {
+    bool aok = false;
+    ULAMTYPE etyp = m_state.getBaseTypeFromToken(tok);
+    if((etyp != Hzy) && (etyp != Holder))
+      {
+	UTI kuti = Nav;
+	if(etyp == Class)
+	  {
+	    SymbolClassName * cnsym = NULL; //no way a template or stub
+	    if(!m_state.alreadyDefinedSymbolClassName(tok.m_dataindex, cnsym))
+	      {
+		SymbolClass * csym = NULL;
+		if(m_state.alreadyDefinedSymbolClassAsHolder(huti, csym))
+		  {
+		    aok = false; //still a holder
+		  }
+		else if(m_state.alreadyDefinedSymbolClass(huti, csym))
+		  {
+		    u32 cid = csym->getId();
+		    AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(cid, cnsym);
+		    assert(isDefined);
+		    aok = m_state.isHolder(cnsym->getUlamTypeIdx()) ? false : true;
+		  }
+		//else
+		//assert(0);
+	      }
+	    else
+		aok = true; //not missing
+
+	    if(aok)
+	      {
+		assert(cnsym);
+		if(cnsym->isClassTemplate())
+		  {
+		    std::ostringstream msg;
+		    msg << "Class with parameters seen with the same name: ";
+		    msg << m_state.m_pool.getDataAsString(cnsym->getId()).c_str();
+		    MSG(m_state.getFullLocationAsString(tok.m_locator).c_str(), msg.str().c_str(), ERR);
+		    //continue so no more than one error for same problem
+		  }
+		kuti = cnsym->getUlamTypeIdx();
+	      }
+	  }
+	//else
+	  if(!aok)
+	  {
+	    //a typedef (e.g. t3379, 3381)
+	    UTI tmpscalar = Nouti;
+	    if(m_state.getUlamTypeByTypedefName(tok.m_dataindex, kuti, tmpscalar))
+	      if(!m_state.isHolder(kuti))
+		aok = true;
+	  }
+
+	if(aok)
+	  {
+	    assert(!m_state.isHolder(kuti));
+	    m_state.cleanupExistingHolder(huti, kuti);
+	  }
+      }
+    return aok;
+  } //checkUnknownTypeToResolve
+
+  bool Resolver::statusAnyUnknownTypeNames()
+  {
+    bool aok = true;
+    std::vector<UTI> knownList;
+    // context already set by caller
+    std::map<UTI, Token>::iterator mit = m_unknownTypeTokens.begin();
+    while(mit != m_unknownTypeTokens.end())
+      {
+	Token tok = mit->second;
+	UTI huti = mit->first;
+	//check if still Hzy
+	if(checkUnknownTypeToResolve(huti, tok))
+	  knownList.push_back(huti); //resolved
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Undetermined Type: <";
+	    msg << m_state.getTokenDataAsString(&tok) << ">;";
+	    msg << "Suggest 'use ";
+	    msg << m_state.getTokenDataAsString(&tok) << ";' if it's a class";
+	    msg << ", otherwise a typedef is needed.";
+	    MSG(m_state.getTokenLocationAsString(&tok).c_str(), msg.str().c_str(), DEBUG);
+	    aok = false;
+	  }
+	mit++;
+      }
+
+    //clean up any known Types from unknownTypeTokens
+    std::vector<UTI>::iterator vit = knownList.begin();
+    while(vit != knownList.end())
+      {
+	removeKnownTypeToken(*vit);
+	vit++;
+      }
+    assert(m_unknownTypeTokens.empty() == aok);
+    return aok; //false if any remain; true if empty
+  } //statusAnyUnknownTypeNames
+
+  u32 Resolver::reportAnyUnknownTypeNames()
+  {
+    // context already set by caller
+    std::map<UTI, Token>::iterator mit = m_unknownTypeTokens.begin();
+    while(mit != m_unknownTypeTokens.end())
+      {
+	Token tok = mit->second;
+	std::ostringstream msg;
+	msg << "Undetermined Type: <";
+	msg << m_state.getTokenDataAsString(&tok) << ">; ";
+	msg << "Suggest 'use ";
+	msg << m_state.getTokenDataAsString(&tok) << ";' if it's a class";
+	msg << ", otherwise a typedef is needed in ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_classUTI).c_str();
+	MSG(m_state.getTokenLocationAsString(&tok).c_str(), msg.str().c_str(), ERR);
+	mit++;
+      }
+    return m_unknownTypeTokens.size();
+  } //reportAnyUnknownTypeNames
 
   bool Resolver::assignClassArgValuesInStubCopy()
   {
@@ -270,5 +456,19 @@ namespace MFM {
 	mit++;
       }
   } //cloneUTImap
+
+  void Resolver::cloneUnknownTypesTokenMap(SymbolClass * csym)
+  {
+    std::map<UTI, Token>::iterator mit = m_unknownTypeTokens.begin();
+    while(mit != m_unknownTypeTokens.end())
+      {
+	UTI huti = mit->first;
+	Token tok = mit->second;
+	UTI mappedUTI = huti;
+	csym->hasMappedUTI(huti, mappedUTI);
+	csym->addUnknownTypeTokenToClass(tok, mappedUTI);
+	mit++;
+      }
+  } //cloneUnknownTypesTokenMap
 
 } //MFM

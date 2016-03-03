@@ -109,7 +109,7 @@ namespace MFM {
       }
 
     setNodeType(it);
-    setStoreIntoAble(false);
+    Node::setStoreIntoAble(TBOOL_FALSE);
 
     //copy m_constant from Symbol into NodeTerminal parent.
     if(!isReadyConstant())

@@ -9,7 +9,7 @@ Uq_Soo { Unsigned(3) us( 4u);  <NOMAIN> }
 ## here, Soo isn't seen until after Foo is parse.
 ##
 #>Foo.ulam
-  ulam 1;
+  ulam 2;
 element Foo : Soo {
   Bool(7) sp;
   Int a = 73;
@@ -21,7 +21,7 @@ element Foo : Soo {
   use Soo;
 
 #:Soo.ulam
-  ulam 1;
+  ulam 2;
 quark Soo {
   Unsigned(3) us = 4u;
 }

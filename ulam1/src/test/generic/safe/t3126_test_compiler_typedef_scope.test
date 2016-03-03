@@ -4,17 +4,18 @@
 Exit status: 4
 Ue_A { Int(32) x(4);  Int(32) test() {  typedef Int(32) Bar[2];  Int(32) e[2];  { e 0 [] 4 cast = } x e 0 [] cast = x return } }
 #>A.ulam
+  ulam 1;
 element A {
- Int x;
- Int test() {
- typedef Int Bar[2];
- Bar e;
- {
- e[0] = 4;
- }
- /* match int return type */
- x= e[0];
- return x;
- }
- }
+  Int x;
+  Int test() {
+    typedef Int Bar[2];
+    Bar e;
+    {
+      e[0] = 4;
+    }
+    /* match int return type */
+    x= e[0];
+    return x;
+  }
+}
 #.

@@ -7,7 +7,7 @@
 ##Unsigned Arg: 11
 ##
 Exit status: 11
-Ue_Foo { System s();  Bool(1) first(true);  Int(32) test() {  Soo su;  first su cb . cast = su ( )check . cond { s ( su lu . cast )print . s ( su lu . -1 cast == )assert . su lu . 1u cast = s ( su lu . cast )print . s ( su lu . 1 cast == )assert . s ( 11u )print . s ( true )assert . 11u cast return } if 0 cast return } }
+Ue_Foo { System s();  Bool(1) first(true);  Int(32) test() {  Soo su;  first su cb . cast = { su ( )check . cond { s ( su lu . cast )print . s ( su lu . -1 cast == )assert . su lu . 1u cast = s ( su lu . cast )print . s ( su lu . 1 cast == )assert . s ( 11u )print . s ( true )assert . 11u cast return } if } 0 cast return } }
 Uq_Soo : Coo { :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
 Uq_Coo : Loo { :< Int(5) lu( -1); > Bool(3) cb( true);  <NOMAIN> }
 Uq_Loo { Int(5) lu( -1);  <NOMAIN> }
@@ -17,7 +17,7 @@ Uq_System { <NOMAIN> }
 ## informed by t3536,3538
 ##
 #>Foo.ulam
-  ulam 1;
+  ulam 2;
 use Soo;
 use System;
 element Foo {
@@ -42,14 +42,14 @@ element Foo {
 }
 
 #:Soo.ulam
-  ulam 1;
+  ulam 2;
 use Coo;
 quark Soo : Coo {
   Unsigned(3) us = 4u;
 }
 
 #:Coo.ulam
-  ulam 1;
+  ulam 2;
 use Loo;
 quark Coo : Loo {
   Bool(3) cb = true;
@@ -60,7 +60,7 @@ quark Coo : Loo {
 }
 
 #:Loo.ulam
-  ulam 1;
+  ulam 2;
 quark Loo {
   Int(5) lu = -1;
 }

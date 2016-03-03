@@ -147,7 +147,7 @@ namespace MFM {
 		  }
 	      }
 	  }
-	m_nodeBody->checkAndLabelType(); //side-effect
+	//	m_nodeBody->checkAndLabelType(); //side-effect
       }
     else
       {
@@ -155,8 +155,10 @@ namespace MFM {
 	m_state.setGoAgain();
       }
 
+    m_nodeBody->checkAndLabelType(); //side-effect
+
     setNodeType(newType);  //stays the same
-    setStoreIntoAble(false);
+    Node::setStoreIntoAble(TBOOL_FALSE);
     return getNodeType();
   } //checkAndLabelType
 

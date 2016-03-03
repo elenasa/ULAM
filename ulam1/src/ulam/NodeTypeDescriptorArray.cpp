@@ -94,7 +94,7 @@ namespace MFM {
 	UTI scalaruti = m_state.getUlamTypeAsScalar(it);
 	UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
 	ULAMCLASSTYPE sclasstype = scalarut->getUlamClass();
-	if(scalarut->getUlamTypeEnum() == UAtom || sclasstype == UC_ELEMENT)
+	if(m_state.isAtom(scalaruti) || (sclasstype == UC_ELEMENT))
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid non-scalar type: ";
@@ -231,7 +231,7 @@ namespace MFM {
 	UlamKeyTypeSignature bkey = but->getUlamKeyTypeSignature();
 	if(aholder)
 	  {
-	    UlamKeyTypeSignature newkey(bkey.getUlamKeyTypeSignatureNameId(), bkey.getUlamKeyTypeSignatureBitSize(), akey.getUlamKeyTypeSignatureArraySize(), akey.getUlamKeyTypeSignatureClassInstanceIdx());
+	    UlamKeyTypeSignature newkey(bkey.getUlamKeyTypeSignatureNameId(), bkey.getUlamKeyTypeSignatureBitSize(), akey.getUlamKeyTypeSignatureArraySize(), bkey.getUlamKeyTypeSignatureClassInstanceIdx());
 	    m_state.makeUlamTypeFromHolder(akey, newkey, but->getUlamTypeEnum(), auti);
 	  }
 	else
@@ -295,14 +295,6 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
       }
 
-    //matching custom array flags
-#if 0
-    if((scut->getUlamTypeEnum() == Class) && m_state.isClassACustomArray(scuti))
-      {
-	UlamType * aut = m_state.getUlamTypeByIndex(auti);
-	((UlamTypeClass *) aut)->setCustomArray();
-      }
-#endif
   } //checkAndMatchBaseUlamTypes
 
   void NodeTypeDescriptorArray::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
@@ -311,8 +303,9 @@ namespace MFM {
     if(m_nodeScalar)
       m_nodeScalar->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
 
-    if(m_unknownArraysizeSubtree)
-      m_unknownArraysizeSubtree->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+    // doesn't go through c&l, so no nodetype set
+    //if(m_unknownArraysizeSubtree)
+    //  m_unknownArraysizeSubtree->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   } //countNavHzyNoutiNodes
 
 } //end MFM

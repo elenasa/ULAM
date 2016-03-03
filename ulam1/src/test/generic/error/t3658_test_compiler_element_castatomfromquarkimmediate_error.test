@@ -1,0 +1,31 @@
+## -*- mode:ulam -*-
+#=t3658_test_compiler_element_castatomfromquarkimmediate_error
+## (was)
+##./Foo.ulam:7:13: ERROR: Cannot explicitly cast QPerc to type: Atom(96); Consider using .atomof operator.
+##
+#!
+Exit status: -1
+Ue_Foo : QPerc { :< Bool(1) b(false); > Int(32) test() {  QPerc q;  self.atomof q.atomof = 1 cast return } }
+Uq_QPerc { Bool(1) b(false);  <NOMAIN> }
+##
+## informed by a Dave ish 2/19/2016; should this be allowed, or error?
+##
+#>Foo.ulam
+  ulam 2;
+use QPerc;
+element Foo : QPerc {
+
+  Int test() {
+    QPerc q;
+    self.atomof = q.atomof; //(Atom) q; //clobbers storage!!
+    return 1;
+  }
+}
+
+#:QPerc.ulam
+  ulam 2;
+quark QPerc {
+  Bool b;
+}
+
+#.

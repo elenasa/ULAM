@@ -10,7 +10,7 @@
 ##
 ##
 Exit status: 7
-Ue_Eltypo : Typo(1) { :< :< Bool(1) b(false);  Unsigned(3) bu(7u); > constant Int(32) a = 1;  Bool(1) by(false); > System s();  Unsigned(3) first(3u);  Unsigned(3) second(7u);  Typo(1) t( :< Bool(1) b(false);  Unsigned(3) bu(7u); > constant Int(32) a = 1;  Bool(1) by(false); );  Int(32) test() {  Eltypo elf;  elf Bar as cond { Bar& elf;  elf ( 3u cast )func . s ( elf bu . cast )print . s ( elf bu . cast 3 cast == )assert . first elf bu . = } if s ( false )assert . else s ( elf bu . cast )print . s ( elf bu . cast 3 cast == )assert . s ( first cast )print . s ( first cast 3 cast == )assert . s ( elf t bu . . cast )print . s ( elf t bu . . cast 7 == )assert . second elf t bu . . = second cast return } }
+Ue_Eltypo : Typo(1) { :< :< Bool(1) b(false);  Unsigned(3) bu(7u); > constant Int(32) a = 1;  Bool(1) by(false); > System s();  Unsigned(3) first(3u);  Unsigned(3) second(7u);  Typo(1) t( :< Bool(1) b(false);  Unsigned(3) bu(7u); > constant Int(32) a = 1;  Bool(1) by(false); );  Int(32) test() {  Eltypo elf;  { elf Bar as cond { Bar& elf;  elf ( 3u cast )func . s ( elf bu . cast )print . s ( elf bu . cast 3 cast == )assert . first elf bu . = } if s ( false )assert . else } s ( elf bu . cast )print . s ( elf bu . cast 3 cast == )assert . s ( first cast )print . s ( first cast 3 cast == )assert . s ( elf t bu . . cast )print . s ( elf t bu . . cast 7 == )assert . second elf t bu . . = second cast return } }
 Uq_Typo(Int(32) a) : Bar { :< Bool(1) b(false);  Unsigned(3) bu( 7u); > Bool(1) by(false);  <NOMAIN> }
 Uq_Bar { Bool(1) b(false);  Unsigned(3) bu( 7u);  <NOMAIN> }
 Uq_System { <NOMAIN> }
@@ -20,14 +20,14 @@ Uq_System { <NOMAIN> }
 ## see t3588 and t3589 for 'as' and 'is' versions
 ##
 #:Typo.ulam
-  ulam 1;
+  ulam 2;
 use Bar;
 quark Typo(Int a) : Bar{
   Bool by; //remove shadow since for no reason
 }
 
 #:Bar.ulam
-  ulam 1;
+  ulam 2;
 quark Bar
 {
   Bool b; //testing offset
@@ -39,7 +39,7 @@ quark Bar
 }
 
 #>Eltypo.ulam
-  ulam 1;
+  ulam 2;
 use Typo;
 use System;
 element Eltypo : Typo(1) {
@@ -72,7 +72,7 @@ element Eltypo : Typo(1) {
 }
 
 #:System.ulam
-ulam 1;
+  ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

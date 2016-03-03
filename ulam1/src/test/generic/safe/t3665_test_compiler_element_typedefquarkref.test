@@ -1,0 +1,32 @@
+## -*- mode:ulam -*-
+#=t3665_test_compiler_element_typedefquarkref
+#!
+Exit status: 0
+Ue_Foo { Int(32) test() {  QPerc q;  q bb . true = typedef QPerc& QPR;  QPerc& qref = q;  Atom(96)& a = qref.atomof;  0 cast return } }
+Uq_QPerc { Bool(1) bb(false);  <NOMAIN> }
+##
+## informed by t3657
+##
+#>Foo.ulam
+  ulam 2;
+use QPerc;
+element Foo {
+
+  Int test() {
+    QPerc q;
+    q.bb = true;
+    typedef QPerc& QPR;
+    QPR qref = q;
+    Atom& a = qref.atomof; //(Atom) qref;
+
+    return 0;
+  }
+}
+
+#:QPerc.ulam
+  ulam 2;
+quark QPerc {
+  Bool bb;
+}
+
+#.

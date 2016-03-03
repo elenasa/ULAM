@@ -68,6 +68,8 @@ namespace MFM{
 
     virtual FORECAST safeCast(UTI typidx);
 
+    virtual FORECAST explicitlyCastable(UTI typidx);
+
     virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
 
     virtual void genUlamTypeMangledDefinitionForC(File * fp);

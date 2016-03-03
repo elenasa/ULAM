@@ -1,8 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3644_test_compiler_elementalreadyexists_ish_error
 #!
-./Bar.ulam:1:9: ERROR: Class without parameters already exists with the same name: Bar.
-Unrecoverable Program Parse FAILURE.
+./Foo.ulam:3:3: ERROR: Class with parameters seen with the same name: Bar.
+./Bar.ulam:2:7: ERROR: 2 Nodes with unresolved types detected after type labeling class: Bar11.
+Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by a Dave ish 1/23/2016; (order matters)
 ##
@@ -18,7 +19,7 @@ use Bar;
 
 #:Bar.ulam
   ulam 1;
-element Bar(Int err) {
+quark Bar(Int err) {
 }
 
 

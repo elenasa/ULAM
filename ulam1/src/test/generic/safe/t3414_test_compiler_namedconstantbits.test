@@ -6,13 +6,14 @@
 Exit status: 0
 Ue_A { constant Bits(3) cPRINT_NAME = 2u;  constant Bits(3) cPRINT_VALUE = 1u;  constant Bits(3) cPRINT_ALL = 3u;  Int(32) test() {  0 cast return } }
 #>A.ulam
+  ulam 1;
 element A{
-constant Bits(3) cPRINT_NAME = 2;
- constant Bits(3) cPRINT_VALUE = 1;
- constant Bits(3) cPRINT_ALL = cPRINT_NAME | cPRINT_VALUE;
-Int test () {
- return 0;
-}
+  constant Bits(3) cPRINT_NAME = 2;
+  constant Bits(3) cPRINT_VALUE = 1;
+  constant Bits(3) cPRINT_ALL = cPRINT_NAME | cPRINT_VALUE;
+  Int test () {
+    return 0;
+  }
 }
 ##
 ##

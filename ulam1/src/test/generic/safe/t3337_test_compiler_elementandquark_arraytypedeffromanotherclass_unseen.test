@@ -11,41 +11,41 @@ Uq_Vector { typedef Unsigned(3) Channel;  typedef Unsigned(3) Symmetry[2];  Unsi
 ##
 ##      //informed by 3269, UNSEEN..
 #>R.ulam
-ulam 1;
- use TypedefIssue;
- use Vector;
- element R {
- Int test(){
-TypedefIssue ish;
- return ish.foo();
+  ulam 1;
+use TypedefIssue;
+use Vector;
+element R {
+  Int test(){
+    TypedefIssue ish;
+    return ish.foo();
+  }
 }
- }
 
 #:TypedefIssue.ulam
-ulam 1;
+  ulam 1;
 element TypedefIssue {
-typedef Vector.Symmetry Symmetry;
- Symmetry x;
- Bool b;
-Vector t;
- Int foo() {
-x[0] = 2;
- x[1] = 1;
-if(t.set(x))
- b=true;
-return t.m[1];
-}
+  typedef Vector.Symmetry Symmetry;
+  Symmetry x;
+  Bool b;
+  Vector t;
+  Int foo() {
+    x[0] = 2;
+    x[1] = 1;
+    if(t.set(x))
+      b=true;
+    return t.m[1];
+  }
 }
 #:Vector.ulam
-ulam 1;
+  ulam 1;
 quark Vector {
-typedef Unsigned(3) Channel;
- typedef Channel Symmetry[2];
- Symmetry m;
-Bool set(Symmetry vector) {
-m[0]=vector[0];
- m[1]=vector[1];
- return (m[0]!=0 && m[1]!=0);
- }
+  typedef Unsigned(3) Channel;
+  typedef Channel Symmetry[2];
+  Symmetry m;
+  Bool set(Symmetry vector) {
+    m[0]=vector[0];
+    m[1]=vector[1];
+    return (m[0]!=0 && m[1]!=0);
+  }
 }
 #.

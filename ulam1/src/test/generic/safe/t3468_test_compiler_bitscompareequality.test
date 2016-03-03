@@ -6,16 +6,17 @@ Ue_A { Bool(1) a(false);  Bool(1) b(true);  Bits(3) u(1);  Bits(3) v(7);  Int(32
 ##
 ##      //Bits do not saturate!!
 #>A.ulam
+  ulam 1;
 element A {
-Bool a,b;
- Bits(3) u, v;
- Int test() {
- v = 7u;
- u = (Bits(3)) 9u;
-a = (u == v);
- b = (u != v);
- return (Int) (u == 7u);
- }
- }
+  Bool a,b;
+  Bits(3) u, v;
+  Int test() {
+    v = 7u;
+    u = (Bits(3)) 9u;
+    a = (u == v);
+    b = (u != v);
+    return (Int) (u == 7u);
+  }
+}
 
 #.

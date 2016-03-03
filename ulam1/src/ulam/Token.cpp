@@ -161,4 +161,9 @@ namespace MFM {
     return(c > 0x40 && c < 0x5B);
   }
 
+  bool Token::operator<(const Token & tok2) const
+  {
+    return (m_dataindex < tok2.m_dataindex);
+  }
+
 }

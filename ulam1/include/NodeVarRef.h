@@ -87,6 +87,7 @@ namespace MFM{
 
   private:
 
+    void genCodeAtomRefInit(File * fp, UlamValue & uvpass);
     void genCodeArrayRefInit(File * fp, UlamValue & uvpass);
     void genCodeArrayItemRefInit(File * fp, UlamValue & uvpass);
   };

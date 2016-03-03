@@ -15,7 +15,7 @@ Uq_B { constant Int(32) cOW = 7;  typedef Int(3) Bar[2];  Int(3) jar[2](0,0);  <
 ## informed by 3324
 ##
 #>A.ulam
-  ulam 1;
+  ulam 2;
 use System;
 use B;
 element A : B{
@@ -30,7 +30,7 @@ element A : B{
 }
 
 #:B.ulam
-  ulam 1;
+  ulam 2;
 quark B{
   constant Int cOW = 1 + B.sizeof;
   typedef Int(3) Bar[2];

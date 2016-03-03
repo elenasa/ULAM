@@ -2,30 +2,30 @@
 #=t3401_test_compiler_unaryminofmaxofconstant_issue
 #!
 Exit status: 1
-Ue_Foo { Unary(6) energy(6u);  Int(32) test() {  Atom(96) a;  energy 63u = a Empty is cond { energy cast 63u cast == cond { 1 cast return } if energy cast 0u cast == cond { 0 cast return } if else } if -1 cast return } }
+Ue_Foo { Unary(6) energy(6u);  Int(32) test() {  Atom(96) a;  energy 63u = { a Empty is cond { { energy cast 63u cast == cond { 1 cast return } if { energy cast 0u cast == cond { 0 cast return } if } else } } if } -1 cast return } }
 Ue_Empty { /* empty class block */ }
 #>Foo.ulam
-ulam 1;
- use Empty;
- element Foo {
-Unary(6) energy;
- Int test(){
-Atom a;
- energy = energy.maxof;
- if(a is Empty) {
- if(energy == energy.maxof) {
- return 1;
- }
- else if (energy == energy.minof) {
- return 0;
- }
- }
- return -1;
- }
- }
+  ulam 1;
+use Empty;
+element Foo {
+  Unary(6) energy;
+  Int test(){
+    Atom a;
+    energy = energy.maxof;
+    if(a is Empty) {
+      if(energy == energy.maxof) {
+	return 1;
+      }
+      else if (energy == energy.minof) {
+	return 0;
+      }
+    }
+    return -1;
+  }
+}
 
 #:Empty.ulam
-ulam 1;
- element Empty {
- }
+  ulam 1;
+element Empty {
+}
 #.

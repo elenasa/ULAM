@@ -60,7 +60,7 @@ namespace MFM {
     assert(m_state.okUTItoContinue(luti));
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMCLASSTYPE lclasstype = lut->getUlamClass();
-    if(!((lut->getUlamTypeEnum() == UAtom || lclasstype == UC_ELEMENT) && lut->isScalar()))
+    if(!(m_state.isAtom(luti) || (lclasstype == UC_ELEMENT)) && lut->isScalar())
       {
 	std::ostringstream msg;
 	msg << "Invalid lefthand type of conditional operator '" << getName();
@@ -84,15 +84,6 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Invalid lefthand identifier of conditional operator '" << getName();
 	msg << "'; Suggest using a variable of type Atom as 'self'";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	newType = Nav;
-      }
-
-    if(!strcmp(m_nodeLeft->getName(), "atom")) //???
-      {
-	std::ostringstream msg;
-	msg << "Invalid lefthand identifier of conditional operator '" << getName();
-	msg << "'; Suggest using a variable of type Atom as 'atom'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
       }
@@ -134,9 +125,16 @@ namespace MFM {
 	newType = Hzy; //goagain set by nodetypedesc
 	m_state.setGoAgain();
       }
+    else
+      {
+	//a place to breakpoint for debugging
+	std::ostringstream msg;
+	msg << "Ready righthand type of conditional operator '" << getName();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+      }
 
     setNodeType(newType);
-    setStoreIntoAble(false);
+    Node::setStoreIntoAble(TBOOL_FALSE);
     return getNodeType();
   } //checkAndLabelType
 
@@ -170,7 +168,7 @@ namespace MFM {
     assert(m_state.okUTItoContinue(luti));
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
 
-    if((lut->getUlamTypeEnum() == UAtom))
+    if(m_state.isAtom(luti))
       {
 	//an atom can be element or quark in eval-land, so let's get specific!
 	UlamValue luv = m_state.getPtrTarget(pluv);
@@ -192,8 +190,7 @@ namespace MFM {
 	else
 	  {
 	    //atom's don't work in eval, only genCode, let pass as not found.
-	    //if(luti != UAtom)
-	    if(m_state.getUlamTypeByIndex(pluv.getPtrTargetType())->getUlamTypeEnum() != UAtom)
+	    if(!m_state.isAtom(pluv.getPtrTargetType()))
 	      {
 		std::ostringstream msg;
 		msg << "Invalid lefthand type of conditional operator '" << getName();
@@ -217,12 +214,11 @@ namespace MFM {
       {
 	// like 'is'
 	// inclusive result for eval purposes (atoms and element types are orthogonal)
-	asit = ((lut->getUlamTypeEnum() == UAtom) || (UlamType::compare(luti, ruti, m_state) == UTIC_SAME));
+	asit = (m_state.isAtom(luti) || (UlamType::compare(luti, ruti, m_state) == UTIC_SAME));
       }
 
     if(asit)
       {
-	//UTI asuti = (luti == UAtom ? ruti : luti);
 	UTI asuti = ruti; //as deref'd type
 	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), asuti, m_state.determinePackable(asuti), m_state, pluv.getPtrPos() + 0, pluv.getPtrNameId());
 	m_state.m_currentAutoObjPtr = ptr;
@@ -307,13 +303,6 @@ namespace MFM {
 	  {
 	    //then left must be an atom
 	    fp->write(m_state.getAsMangledFunctionName(luti, ruti)); //UlamElement IsMethod
-	    //	    if(lut->getReferenceType() == ALT_AS)
-	    //  {
-	    //	fp->write("(");
-	    //	fp->write(m_state.getTmpVarForAutoHiddenContext()); // _ucauto tmp, don't know var's name ??
-	    //	fp->write(", ");
-	    //  }
-	    //else
 	    fp->write("(uc, ");
 
 	    fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, luvpass.getPtrStorage()).c_str());

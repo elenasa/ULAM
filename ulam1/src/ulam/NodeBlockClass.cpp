@@ -1082,26 +1082,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     // in case a function has one as a return value and/or parameter.
   } //genCodeHeaderElement
 
-#if 0
-  //see SymbolClass::genMangledTypesHeaderFile
-  void NodeBlockClass::genImmediateMangledTypesForHeaderFile(File * fp)
-  {
-    m_state.indent(fp);
-    fp->write("// immediate values\n");
-
-    //skip Nav and Hzy and Nouti
-    std::map<UlamKeyTypeSignature, UlamType *, less_than_key>::iterator it = m_state.m_definedUlamTypes.begin();
-    while(it != m_state.m_definedUlamTypes.end())
-      {
-	UlamType * ut = it->second;
-	//skip constants, ptrs, holders, void and nav
-	if(ut->needsImmediateType())
-	  ut->genUlamTypeMangledImmediateDefinitionForC(fp);
-	it++;
-      }
-  } //genImmediateMangledTypesForHeaderFile
-#endif
-
   void NodeBlockClass::genShortNameParameterTypesExtractedForHeaderFile(File * fp)
   {
     m_state.indent(fp);

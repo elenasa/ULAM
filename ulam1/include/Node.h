@@ -98,9 +98,9 @@ namespace MFM{
 
     void setNodeType(UTI ut);
 
-    virtual bool isStoreIntoAble();
+    TBOOL getStoreIntoAble();
 
-    void setStoreIntoAble(bool s);
+    void setStoreIntoAble(TBOOL s);
 
     Locator getNodeLocation();
 
@@ -233,7 +233,7 @@ namespace MFM{
     void restoreElementTypeForAncestorCasting(File * fp, UlamValue & uvpass);
 
   private:
-    bool m_storeIntoAble;
+    TBOOL m_storeIntoAble;
     UTI m_utype;
     Locator m_loc;
     NNO m_parentNo;
@@ -244,6 +244,8 @@ namespace MFM{
 
     void genCodeReadSelfIntoATmpVar(File * fp, UlamValue & uvpass);
     void genCodeWriteToSelfFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
+
+    void genCodeWriteToAtomofRefFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
 
     void genCodeReadAutorefIntoATmpVar(File * fp, UlamValue& uvpass);
     void genCodeWriteToAutorefFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);

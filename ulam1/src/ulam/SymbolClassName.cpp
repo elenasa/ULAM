@@ -103,22 +103,8 @@ namespace MFM {
 
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-    UTI superuti = getSuperClassForClassInstance(getUlamTypeIdx());
-    if(superuti == Nouti)
-      classNode->updateLineage(0);
-    //else if(!m_state.isClassAStub(superuti) && (superuti != Hzy))
-    else if((superuti != Hzy))
-      {
-	//for inheritance, get the node no of superblock
-	u32 sid = m_state.getUlamKeyTypeSignatureByIndex(superuti).getUlamKeyTypeSignatureNameId();
-	SymbolClassName * cnsym = NULL;
-	AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(sid, cnsym);
-	assert(isDefined);
-	NodeBlockClass * superblock = cnsym->getClassBlockNode();
-	assert(superblock);
-
-	classNode->updateLineage(superblock->getNodeNo());
-      }
+    //skip super classes here.
+    classNode->updateLineage(0);
     m_state.popClassContext(); //restore
   } //updateLineageOfClass
 
@@ -243,6 +229,24 @@ namespace MFM {
 
     return;
   } //countNavNodesInClassInstances
+
+  bool SymbolClassName::statusUnknownTypeNamesInClassInstances()
+  {
+    bool aok = true;
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+
+    aok = SymbolClass::statusUnknownTypeNamesInClass();
+
+    m_state.popClassContext(); //restore
+    return aok;
+  } //statusUnknownTypeNamesInClassInstances
+
+  u32 SymbolClassName::reportUnknownTypeNamesInClassInstances()
+  {
+    return SymbolClass::reportUnknownTypeNamesInClass();
+  } //reportUnknownTypeNamesInClassInstances
 
   bool SymbolClassName::setBitSizeOfClassInstances()
   {

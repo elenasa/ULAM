@@ -266,7 +266,7 @@ namespace MFM {
       };
 
     setNodeType(newType);
-    setStoreIntoAble(false);
+    Node::setStoreIntoAble(TBOOL_FALSE);
     return newType;
   } //setConstantTypeForNode
 

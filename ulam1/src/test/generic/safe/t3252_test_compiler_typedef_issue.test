@@ -4,13 +4,14 @@
 Exit status: 0
 Ue_A { Bool(7) b(false);  typedef Unsigned(8) Byte;  Unsigned(8) arr[2](1u,0u);  Int(32) test() {  arr 0 [] 1 cast = arr 0 [] cast 0 cast == cast return } }
 #>A.ulam
+  ulam 1;
 element A {
-Bool(7) b;
-typedef Unsigned(8) Byte;
-Byte arr[2];
- Int test(){ arr[0] = 1;
- return (Int) (arr[0] == 0);
- }
- }
+  Bool(7) b;
+  typedef Unsigned(8) Byte;
+  Byte arr[2];
+  Int test(){ arr[0] = 1;
+    return (Int) (arr[0] == 0);
+  }
+}
 
 #.

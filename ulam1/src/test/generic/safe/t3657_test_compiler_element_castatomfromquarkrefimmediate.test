@@ -1,0 +1,44 @@
+## -*- mode:ulam -*-
+#=t3657_test_compiler_element_castatomfromquarkrefimmediate
+#!
+Exit status: 0
+Ue_Foo : QPerc { :< Bool(1) bb(false); > Int(32) test() {  QPerc q;  q bb . true = QPerc& qref = q;  Atom(96)& a = qref.atomof;  Atom(96) b = QPerc.atomof cast;  Atom(96) c = Foo.atomof cast;  Atom(96) d = self.atomof cast;  self.atomof d cast = Atom(96) e;  e self.atomof cast = Foo f;  f.atomof self.atomof = 0 cast return } }
+Uq_QPerc { Bool(1) bb(false);  <NOMAIN> }
+##
+## informed by a Dave ish 2/19/2016;
+##
+#>Foo.ulam
+  ulam 2;
+use QPerc;
+element Foo : QPerc {
+
+  Int test() {
+    QPerc q;
+    q.bb = true;
+    QPerc& qref = q;
+    Atom& a = qref.atomof; //(Atom) qref;
+
+    Atom b = QPerc.atomof; //not a lhs ref (see t3659)
+
+    Atom c = Foo.atomof; //not a lhs ref (see t3659)
+
+    Atom d = self.atomof;
+    self.atomof = d;
+
+    Atom e;
+    e = self.atomof;
+
+    Foo f;
+    f.atomof = self.atomof;
+
+    return 0;
+  }
+}
+
+#:QPerc.ulam
+  ulam 2;
+quark QPerc {
+  Bool bb;
+}
+
+#.

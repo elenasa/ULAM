@@ -2,23 +2,23 @@
 #=t3270_test_compiler_elementandquark_arraytypedeffromanotherclass
 #!
 Exit status: 1
-Ue_TypedefIssue { typedef Unsigned(3) Symmetry[2];  Unsigned(3) x[2](2u,1u);  Bool(1) b(true);  Int(32) test() {  Vector t;  x 0 [] 2 cast = x 1 [] 1 cast = t ( x )set . cond b true = if t m 1 [] . cast return } }
+Ue_TypedefIssue { typedef Unsigned(3) Symmetry[2];  Unsigned(3) x[2](2u,1u);  Bool(1) b(true);  Int(32) test() {  Vector t;  x 0 [] 2 cast = x 1 [] 1 cast = { t ( x )set . cond b true = if } t m 1 [] . cast return } }
 Uq_Vector { typedef Unsigned(3) Symmetry[2];  Unsigned(3) m[2](0,0);  <NOMAIN> }
 #>TypedefIssue.ulam
-ulam 1;
+  ulam 1;
 use Vector;
- element TypedefIssue {
-typedef Vector.Symmetry Symmetry;
- Symmetry x;
- Bool b;
- Int test() {
- Vector t;
-x[0] = 2;
- x[1] = 1;
-if(t.set(x))
- b=true;
-return t.m[1];
-}
+element TypedefIssue {
+  typedef Vector.Symmetry Symmetry;
+  Symmetry x;
+  Bool b;
+  Int test() {
+    Vector t;
+    x[0] = 2;
+    x[1] = 1;
+    if(t.set(x))
+      b=true;
+    return t.m[1];
+  }
 }
 
 ##      // informed by t3268: array typedef 'Symmetry' from quark used
@@ -26,14 +26,14 @@ return t.m[1];
 ##      // must already be parsed! (e.g. couldn't use element yet! because its Class Block doesn't exist).
 ##
 #:Vector.ulam
-ulam 1;
+  ulam 1;
 quark Vector {
-typedef Unsigned(3) Symmetry[2];
- Symmetry m;
-Bool set(Symmetry vector) {
-m[0]=vector[0];
- m[1]=vector[1];
- return (m[0]!=0 && m[1]!=0);
+  typedef Unsigned(3) Symmetry[2];
+  Symmetry m;
+  Bool set(Symmetry vector) {
+    m[0]=vector[0];
+    m[1]=vector[1];
+    return (m[0]!=0 && m[1]!=0);
  }
 }
 #.

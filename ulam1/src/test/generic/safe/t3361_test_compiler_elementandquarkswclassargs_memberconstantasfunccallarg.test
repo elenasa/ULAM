@@ -11,25 +11,26 @@ Uq_Booly(Unsigned(3) firstRange, Unsigned(3) lastRange, Bool(1) bomb) { constant
 ##      // 3. Foo is parametric (not regular).
 ##
 #>Foo.ulam
-ulam 1;
+  ulam 1;
 use Booly;
 element Foo(Int a){
-Int copy(){
-Booly(0u, 2u, true) b;
- return b.behave(b.cALL_FIX2, b.cALL_FIX4);
-}
- Int test(){
-Foo(0) f; return f.copy();
-}
+  Int copy(){
+    Booly(0u, 2u, true) b;
+    return b.behave(b.cALL_FIX2, b.cALL_FIX4);
+  }
+  Int test(){
+    Foo(0) f; return f.copy();
+  }
 }
 
 #:Booly.ulam
+  ulam 1;
 quark Booly(Unsigned(3) firstRange, Unsigned(3) lastRange, Bool bomb) {
-constant Int cALL_FIX2 = -2;
-constant Int cALL_FIX4 = -4;
-Int behave(Int x, Int y){
- if(bomb && lastRange != firstRange) return x;
-return y;
-}
+  constant Int cALL_FIX2 = -2;
+  constant Int cALL_FIX4 = -4;
+  Int behave(Int x, Int y){
+    if(bomb && lastRange != firstRange) return x;
+    return y;
+  }
 }
 #.

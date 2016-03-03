@@ -6,21 +6,22 @@ Ue_A { Int(32) test() {  constant Unsigned(8) cA = 7u;  constant Unsigned(8) cB 
 ##
 ##      //informed by 3414, except constant type is unsigned char
 #>A.ulam
+  ulam 1;
 element A{
   Int test () {
- constant Unsigned(8) cA = '\a';
- constant Unsigned(8) cB = '\b';
- constant Unsigned(8) cT = '\t';
- constant Unsigned(8) cN = '\n';
- constant Unsigned(8) cV = '\v';
- constant Unsigned(8) cF = '\f';
- constant Unsigned(8) cR = '\r';
-  constant Unsigned(8) cDQ = '\"';
- constant Unsigned(8) cTIC = '\'';
- constant Unsigned(8) cQ = '\?';
- constant Unsigned(8) cESC = '\\';
- return 0;
-}
+    constant Unsigned(8) cA = '\a';
+    constant Unsigned(8) cB = '\b';
+    constant Unsigned(8) cT = '\t';
+    constant Unsigned(8) cN = '\n';
+    constant Unsigned(8) cV = '\v';
+    constant Unsigned(8) cF = '\f';
+    constant Unsigned(8) cR = '\r';
+    constant Unsigned(8) cDQ = '\"';
+    constant Unsigned(8) cTIC = '\'';
+    constant Unsigned(8) cQ = '\?';
+    constant Unsigned(8) cESC = '\\';
+    return 0;
+  }
 }
 
 #.

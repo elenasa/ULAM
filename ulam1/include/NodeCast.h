@@ -119,6 +119,9 @@ namespace MFM{
     void genCodeCastDecendentQuark(File * fp, UlamValue & uvpass);
 
     void genCodeCastAsReference(File * fp, UlamValue & uvpass);
+    void genCodeCastFromAReference(File * fp, UlamValue & uvpass);
+    void genCodeToStoreIntoCastAsReference(File * fp, UlamValue & uvpass);
+    void genCodeToStoreIntoCastFromAReference(File * fp, UlamValue & uvpass);
   };
 
 }

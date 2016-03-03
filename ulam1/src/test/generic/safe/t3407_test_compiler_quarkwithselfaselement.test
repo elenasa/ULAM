@@ -32,11 +32,11 @@ element ElT {
   ulam 1;
 quark Typo {
   Void incr(){
-    Atom a = atom; //self;
+    Atom a = self.atomof; //atom; //self;
     if(a as ElT) {
       a.i += 1;
     }
-    atom = a; //self = a;
+    self.atomof = a; //atom = a; //self = a;
   }
  }
 #:System.ulam

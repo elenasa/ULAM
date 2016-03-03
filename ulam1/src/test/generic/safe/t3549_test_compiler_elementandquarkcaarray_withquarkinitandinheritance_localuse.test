@@ -14,53 +14,53 @@ Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
 ## informed by 3543, 3223
 ##
 #>Foo.ulam
-ulam 1;
+  ulam 2;
 use System;
- use Car;
- element Foo {
- typedef Car Pop[2];
- System s;
- Bool(3) b;
- Int(4) m_i = 7;
- Pop m_bar2;
- Car sbar;
- Bool check(Int v) {
-   return true;
- }
- Int test() {
-   Car sbar; //local shadow
-   Atom a;
-   a = sbar[0];
-   sbar[1] = a; //eval wipes out local sbar (not data members)
-   b = sbar.cb;
-   s.print(b);
-   s.assert(b);
-   s.print(m_i);
-   s.assert(m_i == 7);
-   return 0;
- }
- }
+use Car;
+element Foo {
+  typedef Car Pop[2];
+  System s;
+  Bool(3) b;
+  Int(4) m_i = 7;
+  Pop m_bar2;
+  Car sbar;
+  Bool check(Int v) {
+    return true;
+  }
+  Int test() {
+    Car sbar; //local shadow
+    Atom a;
+    a = sbar[0];
+    sbar[1] = a; //eval wipes out local sbar (not data members)
+    b = sbar.cb;
+    s.print(b);
+    s.assert(b);
+    s.print(m_i);
+    s.assert(m_i == 7);
+    return 0;
+  }
+}
 
 #:Car.ulam
-ulam 1;
+  ulam 2;
 use Bar;
 quark Car : Bar {
   Bool cb = true;
- }
+}
 
 #:Bar.ulam
-ulam 1;
- quark Bar {
- Bool val_b[3];
- Void reset(Bool b) {
-   b = false;
- }
- Atom aref(Int index) native;
- Void aset(Int index, Atom v) native;
- }
+  ulam 2;
+quark Bar {
+  Bool val_b[3];
+  Void reset(Bool b) {
+    b = false;
+  }
+  Atom aref(Int index) native;
+  Void aset(Int index, Atom v) native;
+}
 
 #:System.ulam
-ulam 1;
+  ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

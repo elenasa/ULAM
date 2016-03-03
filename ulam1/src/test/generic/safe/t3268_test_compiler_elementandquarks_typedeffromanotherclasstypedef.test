@@ -6,29 +6,29 @@ Ue_P { Bool(1) b(false);  Int(32) test() {  Unsigned(3) var = 3 cast;  var cast 
 Uq_Q { typedef Unsigned(3) Foo;  <NOMAIN> }
 Uq_V { typedef Q Woof;  <NOMAIN> }
 #>P.ulam
-ulam 1;
+  ulam 1;
 use Q;
 use V;
- element P {
-Bool b;
-Int test() {
-V.Woof.Foo var = 3;
- return var;
-}
+element P {
+  Bool b;
+  Int test() {
+    V.Woof.Foo var = 3;
+    return var;
+  }
 }
 
 ##      // recursive typedefs
 ##      // must already be parsed!
 ##
 #:Q.ulam
-ulam 1;
+  ulam 1;
 quark Q {
-typedef Unsigned(3) Foo;
+  typedef Unsigned(3) Foo;
 }
 #:V.ulam
-ulam 1;
+  ulam 1;
 use Q;
- quark V {
-typedef Q Woof;
+quark V {
+  typedef Q Woof;
 }
 #.

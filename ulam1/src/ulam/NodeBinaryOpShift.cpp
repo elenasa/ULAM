@@ -18,7 +18,7 @@ namespace MFM {
     UTI newType = calcNodeType(leftType, rightType); //Bits, or Nav error
 
     setNodeType(newType);
-    setStoreIntoAble(false);
+    Node::setStoreIntoAble(TBOOL_FALSE);
 
     if(m_state.isComplete(newType))
       {

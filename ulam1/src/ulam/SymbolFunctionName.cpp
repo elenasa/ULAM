@@ -561,6 +561,7 @@ namespace MFM {
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;
+	assert(fsym);
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
 	assert(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
 	func->setPreviousBlockPointer(p);
@@ -597,7 +598,7 @@ namespace MFM {
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;
-
+	assert(fsym);
 	// now done as part of block's c&l
 	// first check for incomplete parameters
 	//aok &= fsym->checkParameterTypes();

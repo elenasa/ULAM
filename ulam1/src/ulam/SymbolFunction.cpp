@@ -356,7 +356,8 @@ namespace MFM {
 
     m_state.outputTextAsComment(fp, func->getNodeLocation());
 
-    UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx()); //return type
+    UTI suti = getUlamTypeIdx();
+    UlamType * sut = m_state.getUlamTypeByIndex(suti); //return type
 
     m_state.indent(fp);
     if(declOnly)

@@ -3,7 +3,9 @@
 #!
 ./Vector.ulam:4:36: ERROR: Possible Divide By Zero Attempt.
 ./Vector.ulam:4:36: ERROR: Constant value expression for binary op/ is erroneous while compiling class: Vector(2u).
-./R.ulam:4:9: ERROR: 4 Nodes with erroneous types detected after type labeling class: R.
+./TypedefIssue.ulam:3:23: ERROR: Undetermined Type: <Symmetry>; Suggest 'use Symmetry;' if it's a class, otherwise a typedef is needed in Vector(2u).
+./R.ulam:4:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: R.
+./R.ulam:4:9: ERROR: 70 Nodes with unresolved types detected after type labeling class: R.
 Unrecoverable Program Type Label FAILURE.
 #>R.ulam
  ulam 1;

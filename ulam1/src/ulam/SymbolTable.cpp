@@ -62,7 +62,9 @@ namespace MFM {
 
   void SymbolTable::addToTable(u32 id, Symbol* sptr)
   {
-    m_idToSymbolPtr.insert(std::pair<u32,Symbol*> (id,sptr));
+    std::pair<std::map<u32, Symbol *>::iterator, bool> reti;
+    reti = m_idToSymbolPtr.insert(std::pair<u32,Symbol*> (id,sptr));
+    assert(reti.second); //false if already existed, i.e. not added (leak?)
   }
 
   void SymbolTable::replaceInTable(u32 oldid, u32 newid, Symbol * s)
@@ -73,12 +75,8 @@ namespace MFM {
 	Symbol * oldsym = it->second;
 	assert(oldsym == s);
 	m_idToSymbolPtr.erase(it);
-	addToTable(newid, oldsym);
       }
-    else
-      {
-	addToTable(newid, s);
-      }
+    addToTable(newid, s);
   } //replaceInTable
 
   void SymbolTable::replaceInTable(Symbol * oldsym, Symbol * newsym)
@@ -1039,6 +1037,26 @@ namespace MFM {
       } //while
   } //printForDebugForTableOfClasses
 
+  // adds unknown type names as incomplete classes if still "hzy" after parsing done
+  bool SymbolTable::checkForUnknownTypeNamesInTableOfClasses()
+  {
+    bool aok = true;
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym && sym->isClass());
+	UTI suti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(!isAnonymousClass(suti))
+	  {
+	    aok &= ((SymbolClassName *) sym)->statusUnknownTypeNamesInClassInstances();
+	  }
+	it++;
+      } //while
+    return aok;
+  } //checkForUnknownTypeNamesInTableOfClasses
+
   bool SymbolTable::statusNonreadyClassArgumentsInTableOfClasses()
   {
     bool aok = true;
@@ -1234,6 +1252,26 @@ namespace MFM {
       }
     return;
   } //countNavNodesAcrossTableOfClasses
+
+  u32 SymbolTable::reportUnknownTypeNamesAcrossTableOfClasses()
+  {
+    u32 totalcnt = 0;
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym->isClass());
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(!isAnonymousClass(cuti))
+	  {
+	    totalcnt += ((SymbolClassName *) sym)->reportUnknownTypeNamesInClassInstances();
+	  }
+	it++;
+      }
+    return totalcnt;
+  } //reportUnknownTypeNamesAcrossTableOfClasses
 
   //separate pass...after labeling all classes is completed;
   //purpose is to set the size of all the classes, by totalling the size
@@ -1451,6 +1489,14 @@ namespace MFM {
   //PRIVATE HELPER METHODS:
   s32 SymbolTable::calcVariableSymbolTypeSize(UTI argut)
   {
+    if(!m_state.okUTItoContinue(argut))
+      {
+	assert(argut != Nav);
+	if(argut == Nouti)
+	  return UNKNOWNSIZE;
+	//else continue if Hzy
+      }
+
     s32 totbitsize = m_state.getBitSize(argut);
 
     if(m_state.getUlamTypeByIndex(argut)->getUlamClass() == UC_NOTACLASS) //includes Atom type
@@ -1577,7 +1623,7 @@ namespace MFM {
   {
     assert(m_state.okUTItoContinue(cuti));
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-    return(!m_state.isARootUTI(cuti) || cut->isHolder() || (cut->getUlamClass() == UC_JUNK));
+    return(!m_state.isARootUTI(cuti) || cut->isHolder());
   }
 
 } //end MFM

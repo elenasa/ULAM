@@ -10,38 +10,43 @@ Uq_Telomeree(Unsigned(32) width) { typedef Unsigned(UNKNOWN) Tail;  Unsigned(UNK
 ##      //informed by 3392
 ##      // Colony, with args, is Unseen at typedef time.
 #>A.ulam
+  ulam 1;
 use R;
 use Colony;
- element A{
+element A{
 }
 
 #:R.ulam
+  ulam 1;
 element R{
- Int test() {typedef Colony(3u) Ish;
- Ish ish;
- ish.setTailAge(7u);
- return 0;
-}
+  Int test() {
+    typedef Colony(3u) Ish;
+    Ish ish;
+    ish.setTailAge(7u);
+    return 0;
+  }
 }
 #:Colony.ulam
+  ulam 1;
 use Telomeree;
- quark Colony(Unsigned widthc){
- typedef Telomeree(widthc) Telo;
- typedef Telo.Tail Tail;
- Telo t;
- Void setTailAge(Unsigned newage) {
- t.setAge((Tail) newage);
- }
+quark Colony(Unsigned widthc){
+  typedef Telomeree(widthc) Telo;
+  typedef Telo.Tail Tail;
+  Telo t;
+  Void setTailAge(Unsigned newage) {
+    t.setAge((Tail) newage);
+  }
 }
 #:Telomeree.ulam
+  ulam 1;
 quark Telomeree(Unsigned width){
- typedef Unsigned(width) Tail;
- Tail age;
-Tail getAge(){
- return age;
-}
-Void setAge(Tail newAge){
-age = newAge;
-}
+  typedef Unsigned(width) Tail;
+  Tail age;
+  Tail getAge(){
+    return age;
+  }
+  Void setAge(Tail newAge){
+    age = newAge;
+  }
 }
 #.

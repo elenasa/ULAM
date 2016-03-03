@@ -9,26 +9,26 @@ Uq_V { typedef Q(3) Woof;  <NOMAIN> }
 ##
 ##      //informed by t3339:  recursive typedefs as named constant type
 #>P.ulam
-ulam 1;
+  ulam 1;
 use Q;
 use V;
- element P {
-Bool b;
-Int test() {
-constant V.Woof.Foo nvar = 3u;
- return nvar;
-}
+element P {
+  Bool b;
+  Int test() {
+    constant V.Woof.Foo nvar = 3u;
+    return nvar;
+  }
 }
 
 #:Q.ulam
-ulam 1;
+  ulam 1;
 quark Q(Int s) {
-typedef Unsigned(s) Foo;
+  typedef Unsigned(s) Foo;
 }
 #:V.ulam
-ulam 1;
+  ulam 1;
 use Q;
- quark V {
-typedef Q(3) Woof;
+quark V {
+  typedef Q(3) Woof;
 }
 #.

@@ -3,7 +3,10 @@
 
 namespace MFM {
 
-  NodeMemberSelect::NodeMemberSelect(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqual(left,right,state) {}
+  NodeMemberSelect::NodeMemberSelect(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqual(left,right,state)
+  {
+    Node::setStoreIntoAble(TBOOL_HAZY);
+  }
 
   NodeMemberSelect::NodeMemberSelect(const NodeMemberSelect& ref) : NodeBinaryOpEqual(ref) {}
 
@@ -47,9 +50,9 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
 
     UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
-
-    //    if(!m_nodeLeft->isStoreIntoAble())
-    if(m_nodeLeft->isFunctionCall())
+    TBOOL lstor = m_nodeLeft->getStoreIntoAble();
+    if(lstor != TBOOL_TRUE)
+    //if(m_nodeLeft->isFunctionCall())
       {
 	//e.g. funcCall is not storeintoable even if its return
 	//     value is.
@@ -57,9 +60,19 @@ namespace MFM {
 	msg << "Member selected must be a valid lefthand side: ";
 	msg << m_nodeLeft->getName();
 	msg << " requires a variable; may be a casted function call";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setNodeType(Nav);
-	return Nav;
+	if(lstor == TBOOL_HAZY)
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    setNodeType(Hzy);
+	    m_state.setGoAgain();
+	    return Hzy;
+	  }
+	else
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
+	    return Nav;
+	  }
       } //done
 
     if(!m_state.isComplete(luti))
@@ -84,7 +97,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Member selected must be either a quark or an element, not type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
-	if(lut->getUlamTypeEnum() == UAtom)
+	if(m_state.isAtom(luti))
 	  msg << "; suggest using a Conditional-As";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
@@ -110,7 +123,7 @@ namespace MFM {
     setNodeType(rightType);
 
     //based on righthand side
-    setStoreIntoAble(m_nodeRight->isStoreIntoAble());
+    Node::setStoreIntoAble(m_nodeRight->getStoreIntoAble());
     return getNodeType();
   } //checkAndLabelType
 

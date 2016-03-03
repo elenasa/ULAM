@@ -11,27 +11,27 @@ Uq_Bar(Unary(7) s) { typedef Unsigned(UNKNOWN) US[UNKNOWN];  Bool(1) b(false);  
 ##      // Bar (-1) error:
 ##      //./Foo.ulam:4:5: ERROR: Constant value expression for (s = -1) is not representable as Unary(7).
 #>Foo.ulam
-ulam 1;
+  ulam 1;
 use Bar;
- element Foo {
-Bar(3) bar;
- Int test() {
-Bool bs = bar.check();
-return (Int) bs;
- }
- }
+element Foo {
+  Bar(3) bar;
+  Int test() {
+    Bool bs = bar.check();
+    return (Int) bs;
+  }
+}
 
 ##
 ##      //added typedef to use unary constant as bitsize and arraysize, instead of this error:
 ##      //./Bar.ulam:3:23: ERROR: Array size specifier in [] is not a constant number.
 #:Bar.ulam
-ulam 1;
- quark Bar(Unary(7) s) {
-typedef Unsigned(s) US[s];
- Bool b;
- Bool check(){
- b = (s == 3);
- return b;
+  ulam 1;
+quark Bar(Unary(7) s) {
+  typedef Unsigned(s) US[s];
+  Bool b;
+  Bool check(){
+    b = (s == 3);
+    return b;
+  }
 }
- }
 #.

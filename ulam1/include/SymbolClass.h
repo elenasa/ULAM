@@ -103,6 +103,13 @@ namespace MFM{
 
     void testThisClass(File * fp); //eval-land
 
+    void addUnknownTypeTokenToClass(Token tok, UTI huti);
+    Token removeKnownTypeTokenFromClass(UTI huti);
+    bool hasUnknownTypeInClass(UTI huti);
+    bool statusUnknownTypeInClass(UTI huti);
+    bool statusUnknownTypeNamesInClass();
+    u32 reportUnknownTypeNamesInClass();
+
     bool statusNonreadyClassArguments();
 
     bool constantFoldNonreadyClassArguments();
@@ -111,6 +118,7 @@ namespace MFM{
     bool pendingClassArgumentsForClassInstance();
     void cloneResolverForStubClassInstance(const SymbolClass* csym, UTI context);
     void cloneResolverUTImap(SymbolClass * csym);
+    void cloneUnknownTypesMapInClass(SymbolClass * to);
 
     UTI getContextForPendingArgs();
 

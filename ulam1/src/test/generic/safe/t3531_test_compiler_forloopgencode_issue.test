@@ -23,6 +23,7 @@ element R {
 }
 
 #:Ish.ulam
+  ulam 1;
 element Ish {
   typedef Unsigned(8) ARGB[4];
 

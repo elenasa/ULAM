@@ -9,7 +9,7 @@
 ##
 #!
 Exit status: 13
-Ue_Foo : Basel { :< :< Soo su( :< :< Int(5) lu(31); > Bool(3) cb(true); > Unsigned(3) us(4u); ); > Bool(1) ba(false); > System s();  Bool(1) first(false);  Int(32) test() {  Foo f;  f first . su cb . cast = s ( f first . cast )print . s ( f first . )assert . f su ( )check . . cond { s ( f su lu . . cast )print . s ( f su lu . . -1 cast == )assert . f su lu . . 1u cast = s ( f su lu . . cast )print . s ( f su lu . . 1 cast == )assert . s ( f su us . . cast )print . s ( f su us . . cast 4 == )assert . s ( 13u )print . s ( true )assert . 13u cast return } if 0 cast return } }
+Ue_Foo : Basel { :< :< Soo su( :< :< Int(5) lu(31); > Bool(3) cb(true); > Unsigned(3) us(4u); ); > Bool(1) ba(false); > System s();  Bool(1) first(false);  Int(32) test() {  Foo f;  f first . su cb . cast = s ( f first . cast )print . s ( f first . )assert . { f su ( )check . . cond { s ( f su lu . . cast )print . s ( f su lu . . -1 cast == )assert . f su lu . . 1u cast = s ( f su lu . . cast )print . s ( f su lu . . 1 cast == )assert . s ( f su us . . cast )print . s ( f su us . . cast 4 == )assert . s ( 13u )print . s ( true )assert . 13u cast return } if } 0 cast return } }
 Uq_Basel : Casel { :< Soo su( :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u); ); > Bool(1) ba(false);  <NOMAIN> }
 Uq_Casel { Soo su( :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u); );  <NOMAIN> }
 Uq_Soo : Coo { :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
@@ -21,7 +21,7 @@ Uq_System { <NOMAIN> }
 ## informed by t3540
 ##
 #>Foo.ulam
-  ulam 1;
+  ulam 2;
 use Basel;
 use System;
 element Foo : Basel {
@@ -50,28 +50,28 @@ element Foo : Basel {
 }
 
 #:Basel.ulam
-  ulam 1;
+  ulam 2;
 use Casel;
 quark Basel : Casel {
   Bool ba;
 }
 
 #:Casel.ulam
-  ulam 1;
+  ulam 2;
 use Soo;
 quark Casel {
   Soo su;
 }
 
 #:Soo.ulam
-  ulam 1;
+  ulam 2;
 use Coo;
 quark Soo : Coo {
   Unsigned(3) us = 4u;
 }
 
 #:Coo.ulam
-  ulam 1;
+  ulam 2;
 use Loo;
 quark Coo : Loo {
   Bool(3) cb = true;
@@ -82,13 +82,13 @@ quark Coo : Loo {
 }
 
 #:Loo.ulam
-  ulam 1;
+  ulam 2;
 quark Loo {
   Int(5) lu = -1;
 }
 
 #:System.ulam
-ulam 1;
+  ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

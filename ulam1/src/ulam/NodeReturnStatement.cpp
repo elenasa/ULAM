@@ -215,12 +215,12 @@ namespace MFM {
     EvalStatus evs = m_node->eval();
     if(evs != NORMAL)
       {
-	assert(evs != CONTINUE && evs != BREAK);
+	assert((evs != CONTINUE) && (evs != BREAK));
 	evalNodeEpilog();
 	return evs;
       }
 
-    if(m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum() == UAtom)
+    if(m_state.isAtom(nuti))
       {
 	//avoid pointer to atom situation
 	UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();

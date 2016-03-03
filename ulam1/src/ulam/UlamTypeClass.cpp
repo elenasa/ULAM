@@ -263,7 +263,8 @@ namespace MFM {
     if(m_class == UC_UNSEEN && isReference())
       {
 	UTI classidx = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
-	setUlamClass(m_state.getUlamTypeByIndex(classidx)->getUlamClass());
+	if(m_state.okUTItoContinue(classidx))
+	  setUlamClass(m_state.getUlamTypeByIndex(classidx)->getUlamClass());
       }
     return m_class;
   }
@@ -474,7 +475,7 @@ namespace MFM {
       }
 
     //e.g. casting an element to an element, redundant and not supported: Element96ToElement96?
-    if(nut->getUlamTypeEnum() != UAtom)
+    if(!m_state.isAtom(nodetype))
       {
 	std::ostringstream msg;
 	msg << "Attempting to illegally cast a non-atom type to an element: ";

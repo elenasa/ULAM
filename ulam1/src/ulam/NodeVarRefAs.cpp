@@ -87,7 +87,7 @@ namespace MFM {
       return NOTREADY;
 
     assert(m_varSymbol->getUlamTypeIdx() == nuti);
-    assert(m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum() != UAtom); //rhs type of conditional as/has can't be an atom
+    assert(!m_state.isAtom(nuti)); //rhs type of conditional as/has can't be an atom
 
     UlamValue pluv = m_state.m_currentAutoObjPtr;
     ((SymbolVariableStack *) m_varSymbol)->setAutoPtrForEval(pluv); //for future ident eval uses
@@ -151,8 +151,8 @@ namespace MFM {
     fp->write(" = ");
     fp->write(stgcos->getMangledName().c_str());
 
-    if(m_varSymbol->getId() != m_state.m_pool.getIndexForDataString("atom")) //not isSelf check; was "self"
-      fp->write(".GetStorage()"); //non-const
+    //if(m_varSymbol->getId() != m_state.m_pool.getIndexForDataString("atom")) //not isSelf check; was "self"
+    fp->write(".GetStorage()"); //non-const
     fp->write(";\n");
 
     // now we have our pos in tmpVarPos, and our T in tmpVarStg

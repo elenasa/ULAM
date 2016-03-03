@@ -65,13 +65,16 @@ namespace MFM {
     AssertBool isScalars = (vut->isScalar() && isScalar());
     assert(isScalars);
 
-    assert(vut->getUlamClass() == UC_ELEMENT);
     // what change is to be made ????
     // atom type vs. class type
     // how can it be both in an UlamValue?
     // what of its contents?
     // val = UlamValue::makeAtom(valtypidx);
-    val.setUlamValueTypeIdx(typidx); //try this
+
+    if((vut->getUlamClass() == UC_ELEMENT) || m_state.isAtom(valtypidx) || (vut->getUlamTypeEnum() == Class && vut->isReference()))
+      val.setUlamValueTypeIdx(typidx); //try this
+    else
+      brtn = false;
     return brtn;
   } //end cast
 
@@ -82,11 +85,17 @@ namespace MFM {
       return scr;
 
     UlamType * vut = m_state.getUlamTypeByIndex(typidx);
-    if(vut->getUlamTypeEnum() == UAtom)
+    if(m_state.isAtom(typidx))
       return CAST_CLEAR; //atom to atom
 
+    //casting from quark or quark ref, requires explicit casting
     return (vut->getUlamClass() == UC_ELEMENT) ? CAST_CLEAR : CAST_BAD;
    } //safeCast
+
+  FORECAST UlamTypeAtom::explicitlyCastable(UTI typidx)
+  {
+    return safeCast(typidx);
+  }
 
   const std::string UlamTypeAtom::castMethodForCodeGen(UTI nodetype)
   {
@@ -186,6 +195,7 @@ namespace MFM {
 
     m_state.m_currentIndentLevel = 0;
     const std::string mangledName = getUlamTypeImmediateMangledName();
+    const std::string automangledName = getUlamTypeImmediateAutoMangledName();
     std::ostringstream  ud;
     ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
     std::string udstr = ud.str();

@@ -13,32 +13,36 @@ Uq_Telomeree(Unsigned(32) width) { typedef Unsigned(UNKNOWN) Tail;  Unsigned(UNK
 ##
 ##       // likes Telomeree first!
 #>R.ulam
+  ulam 1;
 use Ish3;
-  element R{
+element R{
   Ish3 ish;
- Int test() {
- return (Int) ish.colony.foo();
-}
+  Int test() {
+    return (Int) ish.colony.foo();
+  }
 }
 #:Colony.ulam
+  ulam 1;
 use Telomeree;
- quark Colony(Unsigned widthc){
- typedef Telomeree(widthc) Telo;
- Unsigned foo() {
- return Telo.Tail.maxof;
- }
+quark Colony(Unsigned widthc){
+  typedef Telomeree(widthc) Telo;
+  Unsigned foo() {
+    return Telo.Tail.maxof;
+  }
 }
 
 #:Ish3.ulam
+  ulam 1;
 use Colony;
 quark Ish3{
-Colony(3) colony;
+  Colony(3) colony;
 }
 
 #:Telomeree.ulam
+  ulam 1;
 quark Telomeree(Unsigned width){
- typedef Unsigned(width) Tail;
- Tail age;
+  typedef Unsigned(width) Tail;
+  Tail age;
 }
 ##      //bool rtn3 = fms->add("R.ulam", "use Telomeree;\n use Colony;\n use Ish3;\n  element R{\nIsh3 ish;\n Int test() { return 0;\n}\n}");
 ##      //      bool rtn3 = fms->add("R.ulam", "use Ish3;\n  element R{\nIsh3 ish;\n Int test() { return 0;\n}\n}");

@@ -9,29 +9,29 @@ Uq_V { typedef Q(3) Woof;  <NOMAIN> }
 ##
 ##      //informed by t3339 : recursive typedefs as function return value
 #>P.ulam
-ulam 1;
+  ulam 1;
 use Q;
 use V;
- element P {
-V.Woof.Foo func() {
- return 3u;
-}
- Bool b;
-Int test() {
- V.Woof.Foo var = func();
- return var;
-}
+element P {
+  V.Woof.Foo func() {
+    return 3u;
+  }
+  Bool b;
+  Int test() {
+    V.Woof.Foo var = func();
+    return var;
+  }
 }
 
 #:Q.ulam
-ulam 1;
+  ulam 1;
 quark Q(Int s) {
-typedef Unsigned(s) Foo;
+  typedef Unsigned(s) Foo;
 }
 #:V.ulam
-ulam 1;
+  ulam 1;
 use Q;
- quark V {
-typedef Q(3) Woof;
+quark V {
+  typedef Q(3) Woof;
 }
 #.

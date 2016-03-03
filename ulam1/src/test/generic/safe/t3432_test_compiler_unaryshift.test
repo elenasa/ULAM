@@ -16,24 +16,25 @@ Uq_System { <NOMAIN> }
 ##      // cast to Bits and cast back to Unary(3): 3 >> 1 = 2   3 << 1 = 2
 ##      //conversion to unsigned then shift then back to unary. so, 3 << 1 saturates at 3; 3 >> 1 = 1;
 #>A.ulam
+  ulam 1;
 use System;
 element A {
-System s;
-Unary(3) u, v;
- Int test() {
- v = 3u;
- u = (Unary(3)) (v << 1);
- v = (Unary(3)) (v >> 1);
- s.print(u);
- s.assert(u == 2);
- s.print(v);
- s.assert(v == 2);
- return 0;
- }
- }
+  System s;
+  Unary(3) u, v;
+  Int test() {
+    v = 3u;
+    u = (Unary(3)) (v << 1);
+    v = (Unary(3)) (v >> 1);
+    s.print(u);
+    s.assert(u == 2);
+    s.print(v);
+    s.assert(v == 2);
+    return 0;
+  }
+}
 
 #:System.ulam
-ulam 1;
+  ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

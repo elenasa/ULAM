@@ -9,17 +9,17 @@ Uq_V { typedef Q(3) Woof;  <NOMAIN> }
 ##
 ##      //informed by t3339:  recursive typedefs as named constant type; used for size of array
 #>P.ulam
-ulam 1;
+  ulam 1;
 use Q;
 use V;
- element P {
-Bool b;
-Int test() {
-constant V.Woof.Foo nvar = 3u;
-Int(4) arr[nvar];
- arr[2] = 2;
- return arr[2];
-}
+element P {
+  Bool b;
+  Int test() {
+    constant V.Woof.Foo nvar = 3u;
+    Int(4) arr[nvar];
+    arr[2] = 2;
+    return arr[2];
+  }
 }
 ##
 ##      // unpack array doesn't work!! define SKIPEVAL in TestCase_EndToEndCompiler to skip eval step.
@@ -28,14 +28,14 @@ Int(4) arr[nvar];
 ##      //bool rtn1 = fms->add("P.ulam","ulam 1;\nuse Q;\nuse V;\n element P {\nBool b;\nInt test() {\nconstant V.Woof.Foo nvar = 3u;\nInt arr[nvar];\n arr[2] = 2;\n return arr[2];\n}\n}\n");
 ##
 #:Q.ulam
-ulam 1;
+  ulam 1;
 quark Q(Int s) {
-typedef Unsigned(s) Foo;
+  typedef Unsigned(s) Foo;
 }
 #:V.ulam
-ulam 1;
+  ulam 1;
 use Q;
- quark V {
-typedef Q(3) Woof;
+quark V {
+  typedef Q(3) Woof;
 }
 #.

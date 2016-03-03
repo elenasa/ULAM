@@ -15,7 +15,7 @@ Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
 ## informed by 3223: eval (wipes out element) and gencode (m_bar2s cb is true; m_i is still 7) differ!!
 ##
 #>Foo.ulam
-  ulam 1;
+  ulam 2;
 use System;
 use Car;
 element Foo {
@@ -46,14 +46,14 @@ element Foo {
 }
 
 #:Car.ulam
-  ulam 1;
+  ulam 2;
 use Bar;
 quark Car : Bar {
   Bool cb = true;
 }
 
 #:Bar.ulam
-  ulam 1;
+  ulam 2;
 quark Bar {
   Bool val_b[3];
   Void reset(Bool b) {

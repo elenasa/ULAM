@@ -7,7 +7,7 @@
 ##      */
 #!
 Exit status: 3
-Ue_A { System s();  Math math();  Int(32) test() {  Int(32) m;  Bool(1) evalling;  evalling true = evalling cond m 3 cast = if m math ( 1 4 2 )max . = else s ( m )print . m return } }
+Ue_A { System s();  Math math();  Int(32) test() {  Int(32) m;  Bool(1) evalling;  evalling true = { evalling cond m 3 cast = if m math ( 1 4 2 )max . = else } s ( m )print . m return } }
 Uq_System { <NOMAIN> }
 Uq_Math { <NOMAIN> }
 #>A.ulam

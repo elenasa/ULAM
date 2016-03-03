@@ -6,12 +6,15 @@ Ue_A { Int(4) j(2);  Int(4) k(0);  Int(4) m(1);  Int(4) n(1);  Int(32) test() { 
 ##
 ##      //picked lhs of equal so no casting would be asked for!
 #>A.ulam
-element A {Int(4) j,k,m,n;
-Int test() {
- j = 1 + 1;
- k = 1 - 1;
- m = 1 * 1;
- n = 1 / 1;
-return j;
- } }
+  ulam 1;
+element A {
+  Int(4) j,k,m,n;
+  Int test() {
+    j = 1 + 1;
+    k = 1 - 1;
+    m = 1 * 1;
+    n = 1 / 1;
+    return j;
+  }
+}
 #.

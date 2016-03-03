@@ -9,7 +9,7 @@ Ue_Foo { System s();  parameter Int(32) chance = 1;  Int(32) a(1);  Int(32) test
 Uq_System { <NOMAIN> }
 Ue_Foo2 { System s(); parameter Int(32) chance = 1;  Int(32) a(0);  <NOMAIN> }
 #>Foo.ulam
-ulam 1;
+  ulam 1;
 use System;
 use Foo2;
 element Foo {

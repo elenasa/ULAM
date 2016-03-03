@@ -9,7 +9,7 @@ Uq_QSync(Unary(5) stateCount) { typedef Unary(2) Phase;  Unary(2) phase(0);  con
 ## informed by CLife issue.
 ##
 #>CLife.ulam
-  ulam 1;
+  ulam 2;
 use QSync;
 element CLife : QSync(1u) {
 
@@ -21,7 +21,7 @@ element CLife : QSync(1u) {
 }
 
 #:QSync.ulam
-  ulam 1;
+  ulam 2;
 quark QSync(Unary(5) stateCount) {
 
   typedef Unary(2) Phase;

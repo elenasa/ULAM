@@ -7,6 +7,7 @@
 ./D.ulam:7:10: ERROR: Array casts currently not supported.
 ./D.ulam:7:10: ERROR: Consider implementing array casts: Cannot cast scalar into array.
 ./D.ulam:2:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: D.
+./D.ulam:2:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: D.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>D.ulam

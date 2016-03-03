@@ -15,36 +15,36 @@ Ue_P(Int(32) a) { Bool(UNKNOWN) b(notready);  <NOMAIN> }
 ##      // recursive typedefs as Element Parameter datamember variable type
 ##
 #>R.ulam
-ulam 1;
+  ulam 1;
 use V;
 element R {
- parameter V.Woof.Foo pvar = -1;
- Unsigned psize;
- Int test() {
- psize = pvar.sizeof;
-return pvar;
-}
+  parameter V.Woof.Foo pvar = -1;
+  Unsigned psize;
+  Int test() {
+    psize = pvar.sizeof;
+    return pvar;
+  }
 }
 
 #:P.ulam
-ulam 1;
+  ulam 1;
 element P(Int a) {
- Bool(a) b;
+  Bool(a) b;
 }
 
 ##
 ##       // as primitive, as regular class, we have no problems.
 #:Q.ulam
-ulam 1;
+  ulam 1;
 use P;
 quark Q(Int s) {
- typedef Int(s) Foo;
+  typedef Int(s) Foo;
 }
 
 #:V.ulam
-ulam 1;
+  ulam 1;
 use Q;
 quark V {
- typedef Q(3) Woof;
+  typedef Q(3) Woof;
 }
 #.

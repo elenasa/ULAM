@@ -150,6 +150,8 @@ namespace MFM{
 
     void printForDebugForTableOfClasses(File * fp);
 
+    bool checkForUnknownTypeNamesInTableOfClasses(); //at end of parsing
+
     bool statusNonreadyClassArgumentsInTableOfClasses();
 
     bool fullyInstantiateTableOfClasses();
@@ -169,6 +171,8 @@ namespace MFM{
     bool labelTableOfClasses();
 
     void countNavNodesAcrossTableOfClasses(u32& navcount, u32& hzycount, u32& unsetcount);
+
+    u32 reportUnknownTypeNamesAcrossTableOfClasses();
 
     bool setBitSizeOfTableOfClasses();
 

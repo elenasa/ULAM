@@ -51,14 +51,15 @@ namespace MFM {
 
   const char * NodeTypeDescriptorSelect::getName()
   {
-    std::ostringstream nstr;
     if(m_nodeSelect)
       {
-	nstr << m_nodeSelect->getName();
-	nstr << ".";
+	//std::ostringstream nstr;
+	//nstr << m_nodeSelect->getName();
+	//nstr << ".";
+	//return nstr.str().c_str();
+	return m_nodeSelect->getName();
       }
-    nstr << m_state.getTokenDataAsString(&m_typeTok);
-    return nstr.str().c_str();
+    return NodeTypeDescriptor::getName();
   } //getName
 
   const std::string NodeTypeDescriptorSelect::prettyNodeName()
@@ -99,8 +100,8 @@ namespace MFM {
     if(m_nodeSelect->isReadyType())
       {
 	UlamType * selut = m_state.getUlamTypeByIndex(seluti);
-	ULAMTYPE seletype = selut->getUlamTypeEnum();
-	if(seletype == Class)
+	ULAMTYPE seletyp = selut->getUlamTypeEnum();
+	if(seletyp == Class)
 	  {
 	    SymbolClass * csym = NULL;
 	    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(seluti, csym);
@@ -133,10 +134,49 @@ namespace MFM {
 			    msg << "' UTI" << auti << " while labeling class: ";
 			    msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-			    auti = mappedUTI;
+			    rtnuti = mappedUTI;
+			    rtnb = true;
+			  }
+			else if(m_state.alreadyDefinedSymbolByAncestor(m_typeTok.m_dataindex, asymptr, hazyKin) && !hazyKin)
+			  {
+			    if(asymptr->isTypedef())
+			      {
+				rtnuti = asymptr->getUlamTypeIdx();
+				rtnb = true;
+			      }
+			    else
+			      {
+				//error id is not a typedef
+				std::ostringstream msg;
+				msg << "Not a typedef <" << m_state.getTokenDataAsString(&m_typeTok).c_str();
+				msg << "> in another class ancester, " ;;
+				msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
+				msg <<" while compiling: ";
+				msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+				MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+				rtnuti = Nav; //?
+			      }
 			  }
 			else
 			  rtnuti = Hzy;
+
+			if(rtnb)
+			  {
+			    if(m_state.isHolder(rtnuti))
+			      {
+				rtnuti = Hzy; //not so fast!!
+				rtnb = false;
+			      }
+			    else if(m_state.hasUnknownTypeInThisClassResolver(auti))
+			      {
+				m_state.removeKnownTypeTokenFromThisClassResolver(auti);
+				m_state.cleanupExistingHolder(auti, rtnuti);
+			      }
+			  }
+		      }
+		    else
+		      {
+			//incomplete, but not a holder!! yippee (alittle progress)
 		      }
 		  }
 		else
@@ -172,7 +212,7 @@ namespace MFM {
 		    rtnuti = Hzy;
 		  }
 	      }
-	    m_state.popClassContext();
+	    m_state.popClassContext(); //restore
 	  }
 	else
 	  {
@@ -181,7 +221,7 @@ namespace MFM {
 	    msg << "Type selected by <" << m_state.getTokenDataAsString(&m_typeTok).c_str();
 	    msg << "> is NOT another class, " ;
 	    msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
-	    msg << ", rather a " << UlamType::getUlamTypeEnumAsString(seletype) << " type,";
+	    msg << ", rather a " << UlamType::getUlamTypeEnumAsString(seletyp) << " type,";
 	    msg <<" while compiling: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -196,7 +236,8 @@ namespace MFM {
   void NodeTypeDescriptorSelect::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
     NodeTypeDescriptor::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
-    m_nodeSelect->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+    if(m_nodeSelect)
+      m_nodeSelect->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   }
 
 } //end MFM

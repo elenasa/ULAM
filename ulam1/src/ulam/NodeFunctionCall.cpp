@@ -96,6 +96,7 @@ namespace MFM {
     u32 constantArgs = 0;
     u32 navArgs = 0;
     u32 hzyArgs = 0;
+    u32 noutiArgs = 0;
     UTI listuti = Nav;
     bool hazyKin = false;
 
@@ -112,8 +113,11 @@ namespace MFM {
 	    argNodes.push_back(m_argumentNodes->getNodePtr(i));
 	    if(argtype == Nav)
 	      navArgs++;
-	    if(argtype == Hzy)
+	    else if(argtype == Hzy)
 	      hzyArgs++;
+	    else if(argtype == Nouti)
+	      noutiArgs++;
+
 	    // track constants and potential casting to be handled
 	    if(m_argumentNodes->isAConstant(i))
 	      constantArgs++;
@@ -127,7 +131,7 @@ namespace MFM {
 	    return Nav; //short circuit
 	  }
 
-	if(hzyArgs)
+	if(hzyArgs || noutiArgs)
 	  {
 	    argNodes.clear();
 	    setNodeType(Hzy);
@@ -202,14 +206,25 @@ namespace MFM {
 	      {
 		if(m_state.isReference(funcSymbol->getParameterType(i)))
 		  {
-		    if(argNodes[i]->isFunctionCall())
+		    //if(argNodes[i]->isFunctionCall())
+		    TBOOL argstor = argNodes[i]->getStoreIntoAble();
+		    if(argstor != TBOOL_TRUE)
 		      {
 			std::ostringstream msg;
-			msg << "Argument " << i + 1 << " to function <";
+			msg << "Invalid argument " << i + 1 << " to function <";
 			msg << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
-			msg << "> is a function call, and cannot be used as a reference parameter";
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			numErrorsFound++;
+			//msg << "> is a function call, and cannot be used as a reference parameter";
+			msg << ">; Cannot be used as a reference parameter";
+			if(argstor == TBOOL_HAZY)
+			  {
+			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+			    numHazyFound++;
+			  }
+			else
+			  {
+			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			    numErrorsFound++;
+			  }
 		      }
 		  }
 	      }
@@ -639,7 +654,7 @@ namespace MFM {
     // ANY return value placed on the STACK by a Return Statement,
     // was copied to EVALRETURN by the NodeBlockFunctionDefinition
     // before arriving here! And may be ignored at this point.
-    if(m_state.getUlamTypeByIndex(rtnType)->getUlamTypeEnum() == UAtom)
+    if(m_state.isAtom(rtnType))
       {
 	UlamValue rtnUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
 	Node::assignReturnValueToStack(rtnUV); //into return space on eval stack;
@@ -668,7 +683,7 @@ namespace MFM {
     msg << "> to a variable, type: ";
     msg << m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str();
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-    assert(!isStoreIntoAble());
+    assert(Node::getStoreIntoAble() == TBOOL_FALSE);
     return ERROR;
   } //evalToStoreInto
 

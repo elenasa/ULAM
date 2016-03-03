@@ -13,33 +13,37 @@ Uq_Ish2 { Colony(3u) colony( typedef Telomeree(3u) Telo;  typedef Unsigned(3) Te
 ##
 ##      // likes Telomeree first!
 #>R.ulam
+  ulam 1;
 use Telomeree;
- use Colony;
- use Ish2;
-  element R{
-Ish2 ish;
- Int test() { return ish.sizeof;
-}
+use Colony;
+use Ish2;
+element R{
+  Ish2 ish;
+  Int test() { return ish.sizeof;
+  }
 }
 ##     // this order fails:  ERROR: Number of Arguments (2) in class instance: Telomeree, does not match the required number of parameters (1) to fix.
 ##      //bool rtn3 = fms->add("R.ulam", " use Colony;\n  use Telomeree;\n use Ish2;\n element R{\nIsh2 ish;\n Int test() { return ish.sizeof;\n}\n}");
 ##
 
 #:Colony.ulam
+  ulam 1;
 quark Colony(Unsigned widthc){
- typedef Telomeree(widthc) Telo;
- typedef Telo.Tail TeloTail;
+  typedef Telomeree(widthc) Telo;
+  typedef Telo.Tail TeloTail;
   Telo t;
-  }
+}
 
 #:Ish2.ulam
+  ulam 1;
 quark Ish2{
-Colony(3) colony;
-  }
+  Colony(3) colony;
+}
 
 #:Telomeree.ulam
+  ulam 1;
 quark Telomeree(Unsigned width){
- typedef Unsigned(width) Tail;
- Tail age;
-  }
+  typedef Unsigned(width) Tail;
+  Tail age;
+}
 #.

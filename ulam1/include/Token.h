@@ -97,6 +97,8 @@ namespace MFM{
     static bool isTokenAType(Token tok);
     static bool isUpper(char c);
 
+    bool operator<(const Token & tok2) const;
+
     void print(File * fp, CompilerState * state);
 
   private:

@@ -60,11 +60,15 @@ namespace MFM{
 #define PtrAbs (Ptr + 2)
 #endif //PtrAbs
 
+#ifndef UAtomRef
+#define UAtomRef (Ptr + 3)
+#endif //UAtomRef
+
   struct UlamValue; //forward
 
   class CompilerState; //forward
 
-  enum ULAMCLASSTYPE { UC_UNSEEN, UC_QUARK, UC_ELEMENT, UC_NOTACLASS, UC_ATOM, UC_ERROR, UC_JUNK };
+  enum ULAMCLASSTYPE { UC_UNSEEN, UC_QUARK, UC_ELEMENT, UC_NOTACLASS, UC_ATOM, UC_ERROR};
 
 
   class UlamType
@@ -227,6 +231,7 @@ namespace MFM{
   private:
 
     static ULAMTYPECOMPARERESULTS compareWithWildArrayItemReferenceType(UTI u1, UTI u2, CompilerState& state);
+    static ULAMTYPECOMPARERESULTS compareWithWildReferenceType(UTI u1, UTI u2, CompilerState& state);
 
 
     virtual bool castTo32(UlamValue & val, UTI typidx);

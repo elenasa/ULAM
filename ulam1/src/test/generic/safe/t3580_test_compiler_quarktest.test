@@ -25,6 +25,7 @@ element R {
 }
 
 #:Ish.ulam
+  ulam 1;
 quark Ish {
 
   Int test() {
