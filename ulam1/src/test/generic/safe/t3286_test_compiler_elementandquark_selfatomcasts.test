@@ -1,22 +1,39 @@
 ## -*- mode:ulam -*-
 #=t3286_test_compiler_elementandquark_selfatomcasts
+##
+## gen output:
+## Int Arg: 0
+## assert: arg is 1
+## after asserts abort: arg is 1
+##
 #!
 Exit status: -11
-Ue_Foo { Int(32) test() {  Atom(96) a;  Bar b;  b ( self cast )func . a self cast = 0 cast return } }
+Ue_Foo { Int(32) test() {  System s;  Atom(96) a;  Bar b;  Int(32) rtn = -1 cast;  b ( self cast )func . a self cast = { a Foo is cond rtn 0 cast = if rtn 1 cast = else } s ( rtn )print . s ( rtn 0 cast == )assert . rtn return } }
 Uq_Bar { <NOMAIN> }
+Uq_System { <NOMAIN> }
 ##
 ##      // in element, 'self' is an element: cast self to an atom arg, and as RHS.
 ##      // in quark, 'self' is a quark, 'atom' is an atom: cannot cast self to an atom (rhs)
 ##
 #>Foo.ulam
-  use Bar;
+  ulam 1;
+use Bar;
+use System;
 element Foo {
   Int test(){
+    System s;
     Atom a;
     Bar b;
+    Int rtn = -1;
     b.func((Atom) self);
     a = (Atom) self;
-    return 0;
+    if(a is Self)
+      rtn = 0;
+    else
+      rtn = 1;
+    s.print(rtn);
+    s.assert(rtn == 0);
+    return rtn;
   }
 }
 
@@ -26,4 +43,17 @@ quark Bar {
     Atom t = self.atomof; //was self
   }
 }
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
 #.

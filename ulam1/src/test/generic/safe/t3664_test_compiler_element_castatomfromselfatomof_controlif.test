@@ -16,7 +16,7 @@ element Foo : QPerc {
 
     bb = true;
     if(bb)
-      Atom a = self.atomof;
+      Atom a = self.atomof; //tests scope bug fix of singleton if
 
     Atom a = self.atomof;
     return 0;

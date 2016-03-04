@@ -1,23 +1,31 @@
 ## -*- mode:ulam -*-
 #=t3657_test_compiler_element_castatomfromquarkrefimmediate
 ##
+## gen output: 2 asserts
 ## eval: bb is false; should be true
 #!
 Exit status: -11
-Ue_Foo : QPerc { :< Bool(1) bb(false); > Int(32) test() {  QPerc q;  q bb . true = QPerc& qref = q;  Atom(96)& a = qref.atomof;  Atom(96) b = QPerc.atomof cast;  Atom(96) c = Foo.atomof cast;  Atom(96) d = self.atomof cast;  self.atomof d cast = Atom(96) e;  e self.atomof cast = Foo f;  f.atomof self.atomof = 0 cast return } }
+Ue_Foo : QPerc { :< Bool(1) bb(false); > Int(32) test() {  System s;  QPerc q;  q bb . true = s ( q bb . )assert . QPerc& qref = q;  s ( qref bb . )assert . Atom(96)& a = qref.atomof;  Atom(96) b = QPerc.atomof cast;  Atom(96) c = Foo.atomof cast;  Atom(96) d = self.atomof cast;  self.atomof d cast = Atom(96) e;  e self.atomof cast = Foo f;  f.atomof self.atomof = 0 cast return } }
 Uq_QPerc { Bool(1) bb(false);  <NOMAIN> }
+Uq_System { <NOMAIN> }
 ##
 ## informed by a Dave ish 2/19/2016;
 ##
 #>Foo.ulam
   ulam 2;
 use QPerc;
+use System;
 element Foo : QPerc {
 
   Int test() {
+    System s;
     QPerc q;
     q.bb = true;
+    s.assert(q.bb);
+
     QPerc& qref = q;
+    s.assert(qref.bb);
+
     Atom& a = qref.atomof; //(Atom) qref;
 
     Atom b = QPerc.atomof; //not a lhs ref (see t3659)
@@ -41,6 +49,18 @@ element Foo : QPerc {
   ulam 2;
 quark QPerc {
   Bool bb;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
 }
 
 #.

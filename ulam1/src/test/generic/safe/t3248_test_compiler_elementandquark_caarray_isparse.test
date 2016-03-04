@@ -1,23 +1,42 @@
 ## -*- mode:ulam -*-
 #=t3248_test_compiler_elementandquark_caarray_isparse
+##
+## gen output:
+## Int Arg: 0
+## assert: arg is 1
+## after asserts abort: arg is 1
+##
 #!
 Exit status: -11
-Ue_EventWindowTest { EventWindow ew();  Int(32) test() {  Atom(96) a;  EventWindowTest ewt;  ew 0 cast [] ewt cast = a ew 0 cast [] = { a EventWindowTest is cond 0 cast return if } 1 cast return } }
+Ue_EventWindowTest { EventWindow ew();  Int(32) test() {  System s;  Int(32) rtn = -1 cast;  EventWindowTest ewt;  ew 0 cast [] ewt cast = Atom(96) aw = ew 0 cast [];  Atom(96) a = ewt cast;  { a EventWindowTest is cond rtn 0 cast = if rtn 1 cast = else } s ( rtn )print . s ( rtn 0 cast == )assert . rtn return } }
 Uq_EventWindow { <NOMAIN> }
-#>EventWindowTest.ulam
+Uq_System { <NOMAIN> }
+##
 ##      // 'a has System' doesn't appy to eval because atoms have no class declarations; but testable for gencode
+##
+#>EventWindowTest.ulam
   ulam 1;
 use EventWindow;
+use System;
 element EventWindowTest {
   EventWindow ew;
   Int test() {
-    Atom a;
+    System s;
+    Int rtn = -1;
     EventWindowTest ewt;
+
+    // unsure of this EventWindow spike; testing parsing only here
     ew[0] = ewt;
-    a = ew[0];  // This is me!
+    Atom aw = ew[0];  // This is me!
+
+    Atom a = ewt;
     if (a is EventWindowTest)
-      return 0;
-    return 1;
+      rtn = 0;
+    else
+      rtn = 1;
+    s.print(rtn);
+    s.assert(rtn == 0);
+    return rtn;
   }
 }
 
@@ -30,4 +49,17 @@ quark EventWindow {
 ##      // playing with errors..
 ##      //bool rtn2 = fms->add("EventWindow.ulam", "ulam 1;\nquark EventWindow {\n  Atom aref(Int index) native;\n  Void aset(Int index, Int val) native;\n}\n");
 ##      //bool rtn2 = fms->add("EventWindow.ulam", "ulam 1;\nquark EventWindow {\n  Atom aref(Int index) native;\n  Void aSet(Int index, Atom val) native;\n}\n");
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
 #.

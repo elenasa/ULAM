@@ -30,18 +30,13 @@ quark QPerc(Unsigned c) {
     for(Int i = -1; i <= 1; ++i)
     {
       for(Int j = -4; j <= -4; ++j)
-      {
 	bb = true;
-      }
 
       if(bb)
-      {
 	a = self.atomof;
-      }
+
       if(a as Self)
-      {
 	self.atomof = a.atomof;
-      }
     }
     return a;
   }

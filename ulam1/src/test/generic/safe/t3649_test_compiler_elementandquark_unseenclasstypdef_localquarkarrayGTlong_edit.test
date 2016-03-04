@@ -1,9 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3649_test_compiler_elementandquark_unseenclasstypedef_localquarkarrayGTlong_edit
+##
+## gen output: assert
 #!
 ##./Foo.ulam:7:5: ERROR: EVAL: Unpacked array of quarks is unsupported:  Bar(7) with variable symbol name 'tar'.
 Exit status: -11
-Ue_Foo { constant Int(32) cx = 7;  typedef Bar(7) Tar;  Bar(7) b( constant Int(32) x = 7;  Bits(7) m_bits(0); );  Int(32) test() {  Bar(7) tar[10];  tar 3 [] ( )toInt . return } }
+Ue_Foo { Bar(7) b( constant Int(32) x = 7;  Bits(7) m_bits(0); );  constant Int(32) cx = 7;  typedef Bar(7) Tar;  Int(32) test() {  System s;  Bar(7) tar[10];  tar 3 [] ( 1 cast )set . s ( tar 3 [] ( )toInt . 1 cast == )assert . tar 3 [] ( )toInt . return } }
+Uq_System { <NOMAIN> }
 Uq_Bar(Int(32) x) { Bits(UNKNOWN) m_bits(notready);  <NOMAIN> }
 ##
 ## informed by t3647 (order matters)
@@ -11,15 +14,17 @@ Uq_Bar(Int(32) x) { Bits(UNKNOWN) m_bits(notready);  <NOMAIN> }
 ##
 #>Foo.ulam
   ulam 1;
+use System;
 element Foo {
   constant Int cx = 7;
   typedef Bar(cx + 0) Tar;
   Tar b;
   Int test() {
+    System s;
     Tar tar[10];
-    //Tar & tref = b;
+    tar[3].set(1);
+    s.assert(tar[3] == 1);
     return tar[3];
-    //return tref;
   }
 }
 use Bar;
@@ -32,7 +37,22 @@ quark Bar(Int x) {
   {
     return (Int) m_bits;
   }
+  Void set(Int i)
+  {
+    m_bits = (Bits(x)) i;
+  }
 }
 
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
 
 #.
