@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3248_test_compiler_elementandquark_caarray_isparse
 #!
-Exit status: 0
+Exit status: -11
 Ue_EventWindowTest { EventWindow ew();  Int(32) test() {  Atom(96) a;  EventWindowTest ewt;  ew 0 cast [] ewt cast = a ew 0 cast [] = { a EventWindowTest is cond 0 cast return if } 1 cast return } }
 Uq_EventWindow { <NOMAIN> }
 #>EventWindowTest.ulam

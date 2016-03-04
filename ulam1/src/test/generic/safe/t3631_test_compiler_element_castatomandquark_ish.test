@@ -1,8 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3631_test_compiler_element_castatomandquark_ish
+##
+## eval: b is false; should be true
 #!
-Exit status: 0
-Ue_Foo : QPerc { :<> Bool(1) b(true);  Int(32) test() {  b ( )check = b ! cast return } }
+Exit status: -11
+Ue_Foo : QPerc { :<> Bool(1) b(false);  Int(32) test() {  b ( )check = b ! cast return } }
 Uq_QPerc { <NOMAIN> }
 ##
 ## informed by a Dave ish 1/8/2016

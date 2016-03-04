@@ -130,7 +130,7 @@ namespace MFM {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     // the uvpass comes from NodeControl, and still has the POS obtained
     // during the condition statement for As..unorthodox, but necessary.
-    assert(uvpass.getUlamValueTypeIdx() == Ptr);
+    assert(m_state.isPtr(uvpass.getUlamValueTypeIdx()));
     //s32 tmpVarPos = uvpass.getPtrSlotIndex();
 
     // before shadowing the lhs of the h/as-conditional variable with its auto,

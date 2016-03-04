@@ -12,7 +12,7 @@
 ## after asserts abort: arg is 1
 ##
 #!
-Exit status: 0
+Exit status: -11
 Ue_IshE { Bool(1) sp(false);  QW mA[2]( Int(8) m(0);  Int(8) m(0); );  Int(32) test() {  System s;  ( 1 cast 0 cast 4 cast )set s ( ( 1 cast 0 cast )get )print . s ( ( 1 cast 0 cast )get 4 cast -b 0 cast == )assert . ( 0 cast 0 cast 3 cast )set s ( ( 0 cast 0 cast )get )print . s ( ( 0 cast 0 cast )get 3 cast -b 0 cast == )assert . s ( ( 1 cast 0 cast )get 4 cast -b 0 cast == )assert . ( 1 cast 0 cast )get 4 cast -b return } }
 Uq_System { <NOMAIN> }
 Uq_QW { Int(8) m(0);  <NOMAIN> }

@@ -190,7 +190,7 @@ namespace MFM {
     bool isTerminal = false;
     UTI cuti = uvpass.getUlamValueTypeIdx();
 
-    if(cuti == Ptr)
+    if(m_state.isPtr(cuti))
       {
 	cuti = uvpass.getPtrTargetType();
       }

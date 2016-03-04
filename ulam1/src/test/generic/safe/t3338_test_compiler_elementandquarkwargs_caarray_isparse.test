@@ -2,7 +2,7 @@
 #=t3338_test_compiler_elementandquarkwargs_caarray_isparse
 #!
 ##       //Constants have explicit types; a cast changed
-Exit status: -2
+Exit status: -11
 Ue_EventWindowTest { constant Int(32) v = -2;  EventWindow(-2) ew( constant Int(32) w = -2; );  Int(32) test() {  Atom(96) a;  EventWindowTest ewt;  ew 0 cast [] ewt cast = a ew 0 cast [] = { a EventWindowTest is cond -2 return if } 1 cast return } }
 Uq_EventWindow(Int(32) w) { <NOMAIN> }
 ##      //informed by t3248

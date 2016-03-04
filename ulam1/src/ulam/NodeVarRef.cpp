@@ -277,6 +277,7 @@ namespace MFM {
       }
 
     UlamValue pluv = m_state.m_nodeEvalStack.popArg();
+    assert(m_state.isPtr(pluv.getUlamValueTypeIdx()));
     ((SymbolVariableStack *) m_varSymbol)->setAutoPtrForEval(pluv); //for future ident eval uses
     ((SymbolVariableStack *) m_varSymbol)->setAutoStorageTypeForEval(m_nodeInitExpr->getNodeType()); //for future virtual function call eval uses
 

@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3558_test_compiler_element_inheritancewcaarray_isparse
 #!
-Exit status: -2
+Exit status: -11
 Ue_EventWindowTest : EvtWinEl { :< Int(32) m_idx(40); > constant Int(32) v = -2;  Int(32) test() {  Atom(96) a;  EventWindowTest ewt;  ewt 0 cast [] a = a ewt 0 cast [] = { a EventWindowTest is cond -2 return if } 1 cast return } }
 Uq_EvtWinEl { Int(32) m_idx( 40 cast);  <NOMAIN> }
 ##

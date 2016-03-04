@@ -577,8 +577,8 @@ namespace MFM {
 		    msg << "EVAL: Unpacked array of quarks is unsupported:  ";
 		    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 		    msg << " with variable symbol name '" << getName() << "'";
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		    return ERROR;
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    return UNEVALUABLE; //t3649
 		    //unpacked array of quarks is unsupported at this time!!
 		    //assert(0);
 		    //UTI scalarquark = m_state.getUlamTypeAsScalar(nuti);

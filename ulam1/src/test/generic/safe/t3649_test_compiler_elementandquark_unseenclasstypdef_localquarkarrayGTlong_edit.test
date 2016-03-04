@@ -1,9 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3649_test_compiler_elementandquark_unseenclasstypedef_localquarkarrayGTlong_edit
 #!
-./Foo.ulam:7:5: ERROR: EVAL: Unpacked array of quarks is unsupported:  Bar(7) with variable symbol name 'tar'.
-Exit status: -1
-Unrecoverable Program Test FAILURE.
+##./Foo.ulam:7:5: ERROR: EVAL: Unpacked array of quarks is unsupported:  Bar(7) with variable symbol name 'tar'.
+Exit status: -11
+Ue_Foo { constant Int(32) cx = 7;  typedef Bar(7) Tar;  Bar(7) b( constant Int(32) x = 7;  Bits(7) m_bits(0); );  Int(32) test() {  Bar(7) tar[10];  tar 3 [] ( )toInt . return } }
+Uq_Bar(Int(32) x) { Bits(UNKNOWN) m_bits(notready);  <NOMAIN> }
 ##
 ## informed by t3647 (order matters)
 ## To turn off eval, defined SKIP_EVAL in src/test/TestCase_EndToEndCompiler.cpp

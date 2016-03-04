@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3416_test_compiler_elementandquark_caarray_funcreturn
 #!
-Exit status: 1
+Exit status: -11
 Ue_EventWindowTest { EventWindow ew();  Int(32) test() {  Atom(96) a;  a ( )func = 1 cast return } }
 Uq_EventWindow { <NOMAIN> }
 ##

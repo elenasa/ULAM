@@ -147,7 +147,7 @@ namespace MFM {
 
     // DO 'IS':
     UTI luti = pluv.getUlamValueTypeIdx();
-    assert(luti == Ptr);
+    assert(m_state.isPtr(luti));
     luti = pluv.getPtrTargetType();
     UTI ruti = getRightType();
 
@@ -172,7 +172,7 @@ namespace MFM {
     UlamValue luvpass;
     m_nodeLeft->genCode(fp, luvpass); //loads lhs into tmp (T)
     UTI luti = luvpass.getUlamValueTypeIdx();
-    assert(luti == Ptr);
+    assert(m_state.isPtr(luti));
     luti = luvpass.getPtrTargetType(); //replace
 
     UTI ruti = getRightType();

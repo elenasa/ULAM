@@ -435,7 +435,7 @@ namespace MFM {
     fp->write("(");
 
     UTI uti = uvpass.getUlamValueTypeIdx();
-    assert(uti == Ptr);
+    assert(m_state.isPtr(uti));
     uti = uvpass.getPtrTargetType();
     fp->write(m_state.getTmpVarAsString(uti, uvpass.getPtrSlotIndex()).c_str());
 

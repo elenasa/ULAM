@@ -1,7 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3657_test_compiler_element_castatomfromquarkrefimmediate
+##
+## eval: bb is false; should be true
 #!
-Exit status: 0
+Exit status: -11
 Ue_Foo : QPerc { :< Bool(1) bb(false); > Int(32) test() {  QPerc q;  q bb . true = QPerc& qref = q;  Atom(96)& a = qref.atomof;  Atom(96) b = QPerc.atomof cast;  Atom(96) c = Foo.atomof cast;  Atom(96) d = self.atomof cast;  self.atomof d cast = Atom(96) e;  e self.atomof cast = Foo f;  f.atomof self.atomof = 0 cast return } }
 Uq_QPerc { Bool(1) bb(false);  <NOMAIN> }
 ##

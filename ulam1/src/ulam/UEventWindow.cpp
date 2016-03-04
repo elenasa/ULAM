@@ -175,8 +175,8 @@ namespace MFM {
 
   void UEventWindow::assignUlamValue(UlamValue pluv, UlamValue ruv)
   {
-    assert(pluv.getUlamValueTypeIdx() == Ptr);
-    assert(ruv.getUlamValueTypeIdx()  != Ptr);      // not a Ptr
+    assert(m_state.isPtr(pluv.getUlamValueTypeIdx()));
+    assert(!m_state.isPtr(ruv.getUlamValueTypeIdx()));      // not a Ptr
 
     u32 leftindex = pluv.getPtrSlotIndex();    //even for scalars
     bool stored = false;

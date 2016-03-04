@@ -6,11 +6,12 @@
 ##Unsigned Arg: 6
 ##Unsigned Arg: 4
 ##
-## cus evals as 0u and fails; expects 1u/
+## cus evals as 6u and fails; expects 1u/
+## cus evals as 6u and fails; expects 3u/
 ##
 #!
-Exit status: 6
-Ue_Foo : Soo { :< :< Unsigned(3) us(2u);  Bool(3) cb(true); > Unsigned(3) sus(4u); > Bool(1) first(false);  Unsigned(3) cus(1u);  Unsigned(3) dus(3u);  Int(32) test() {  System s;  Coo c = ( )func;  cus c us . = s ( c us . cast )print . s ( c us . cast 1 cast == )assert . Coo d = c ( )func .;  dus d us . = s ( d us . cast )print . s ( d us . cast 3 cast == )assert . s ( c us . cast d us . cast +b cast )print . s ( c us . cast d us . cast +b cast 6 cast == )assert . s ( cus cast dus cast +b cast )print . s ( cus cast dus cast +b cast 4 cast == )assert . c us . cast d us . cast +b cast return } }
+Exit status: -11
+Ue_Foo : Soo { :< :< Unsigned(3) us(2u);  Bool(3) cb(true); > Unsigned(3) sus(4u); > Bool(1) first(false);  Unsigned(3) cus(6u);  Unsigned(3) dus(6u);  Int(32) test() {  System s;  Coo c = ( )func;  cus c us . = s ( c us . cast )print . s ( c us . cast 1 cast == )assert . Coo d = c ( )func .;  dus d us . = s ( d us . cast )print . s ( d us . cast 3 cast == )assert . s ( c us . cast d us . cast +b cast )print . s ( c us . cast d us . cast +b cast 6 cast == )assert . s ( cus cast dus cast +b cast )print . s ( cus cast dus cast +b cast 4 cast == )assert . c us . cast d us . cast +b cast return } }
 Uq_Soo : Coo { :< Unsigned(3) us( 2u);  Bool(3) cb( true); > Unsigned(3) sus( 4u);  <NOMAIN> }
 Uq_Coo { Unsigned(3) us( 2u);  Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }

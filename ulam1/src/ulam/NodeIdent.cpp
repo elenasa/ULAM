@@ -327,7 +327,7 @@ namespace MFM {
 
 	// redo what getPtrTarget use to do, when types didn't match due to
 	// an element/quark or a requested scalar of an arraytype
-	if((ttype == Ptr) || (UlamType::compare(ttype, nuti, m_state) == UTIC_NOTSAME))
+	if(m_state.isPtr(ttype) || (UlamType::compare(ttype, nuti, m_state) == UTIC_NOTSAME))
 	  {
 	    if(m_state.isClassACustomArray(nuti))
 	      {
@@ -366,7 +366,7 @@ namespace MFM {
 		  {
 		    UTI vuti = uv.getUlamValueTypeIdx();
 		    // does this handle a ptr to a ptr (e.g. "self")? (see makeUlamValuePtr)
-		    if(vuti == Ptr)
+		    if(m_state.isPtr(vuti))
 		      {
 			uvp = uv;
 			uv = m_state.getPtrTarget(uvp);
@@ -431,7 +431,9 @@ namespace MFM {
 
     UlamValue rtnUVPtr = makeUlamValuePtr();
 
-    if(m_state.isReference(rtnUVPtr.getPtrTargetType()))
+    //must remain a ptr!!!
+    //if(m_state.isReference(rtnUVPtr.getPtrTargetType())
+    if(m_state.isReference(rtnUVPtr.getPtrTargetType()) && (rtnUVPtr.getPtrStorage() == STACK))
       rtnUVPtr = m_state.getPtrTarget(rtnUVPtr);
 
     //copy result UV to stack, -1 relative to current frame pointer
@@ -467,6 +469,7 @@ namespace MFM {
 
     //can't use global m_currentAutoObjPtr, since there might be nested as conditional blocks.
     // NodeVarDecl for this autolocal sets AutoPtrForEval during its eval.
+    // ALT_REF, ALT_ARRAYITEM cannot guarantee its NodeVarRef init was last encountered, like ALT_AS.
     if(m_varSymbol->getAutoLocalType() == ALT_AS)
       return ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval(); //haha! we're done.
 
@@ -486,6 +489,11 @@ namespace MFM {
 	  }
 	else
 	  {
+	    //DEBUG ONLY!!, to view ptr saved with Ref's m_varSymbol.
+	    if(m_varSymbol->isAutoLocal()) //ALT_REF or ALT_ARRAYITEM
+	      {
+		ptr = ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval();
+	      }
 	    //local variable on the stack; could be array ptr!
 	    ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
 	  }
@@ -513,7 +521,7 @@ namespace MFM {
 	if(m_varSymbol->isDataMember())
 	  {
 	    u32 pos = 0;
-	    if(uvpass.getUlamValueTypeIdx() == Ptr && uvpass.getPtrStorage() == TMPAUTOREF)
+	    if(m_state.isPtr(uvpass.getUlamValueTypeIdx()) && (uvpass.getPtrStorage() == TMPAUTOREF))
 	      {
 		//pos = uvpass.getPtrPos(); //runtime, pos not known, ref will
 		UTI newnuti = m_state.getUlamTypeAsRef(nuti); //an ALT_REF
@@ -1113,7 +1121,7 @@ namespace MFM {
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol); //*********UPDATED GLOBAL;
 
     //before we lose savuvpass, generate next chain of related reference
-    if((savuvpass.getUlamValueTypeIdx() == Ptr) && (savuvpass.getPtrStorage() == TMPAUTOREF))
+    if(m_state.isPtr(savuvpass.getUlamValueTypeIdx()) && (savuvpass.getPtrStorage() == TMPAUTOREF))
       {
 	Node::genCodeARefFromARefStorage(fp, savuvpass, uvpass);
 
@@ -1152,7 +1160,7 @@ namespace MFM {
     //******UPDATED GLOBAL; no restore!!!**************************
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol);
 
-    if((savuvpass.getUlamValueTypeIdx() == Ptr) && (savuvpass.getPtrStorage() == TMPAUTOREF))
+    if(m_state.isPtr(savuvpass.getUlamValueTypeIdx()) && (savuvpass.getPtrStorage() == TMPAUTOREF))
       Node::genCodeARefFromARefStorage(fp, savuvpass, uvpass);
     else if(uvpass.getPtrStorage() == TMPAUTOREF)
       Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack

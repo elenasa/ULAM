@@ -312,7 +312,7 @@ namespace MFM {
 
     // 'pluv' is where the resulting sum needs to be stored
     UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(lslot); //a Ptr
-    assert(pluv.getUlamValueTypeIdx() == Ptr && pluv.getPtrTargetType() == nuti);
+    assert(m_state.isPtr(pluv.getUlamValueTypeIdx()) && (pluv.getPtrTargetType() == nuti));
 
     assert(slots == 1);
     UlamValue luv = m_state.getPtrTarget(pluv);  //no eval!!
@@ -371,7 +371,7 @@ namespace MFM {
 
     // 'pluv' is where the resulting sum needs to be stored
     UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(lslot); //a Ptr
-    assert(pluv.getUlamValueTypeIdx() == Ptr && pluv.getPtrTargetType() == nuti);
+    assert(m_state.isPtr(pluv.getUlamValueTypeIdx()) && (pluv.getPtrTargetType() == nuti));
 
     // point to base array slots, packedness determines its 'pos'
     UlamValue lArrayPtr = pluv;

@@ -362,7 +362,7 @@ namespace MFM {
   {
     UTI rtnUVtype = rtnUV.getUlamValueTypeIdx(); //==node type
 
-    if(rtnUVtype == Ptr) //unpacked array
+    if(m_state.isPtr(rtnUVtype)) //unpacked array
       {
 	rtnUVtype = rtnUV.getPtrTargetType();
       }
@@ -426,7 +426,7 @@ namespace MFM {
   {
     UTI vuti = uvpass.getUlamValueTypeIdx();
 
-    assert(vuti == Ptr); //terminals handled in NodeTerminal as BitVector for args
+    assert(m_state.isPtr(vuti)); //terminals handled in NodeTerminal as BitVector for args
 
     s32 tmpVarNum = uvpass.getPtrSlotIndex();
     vuti = uvpass.getPtrTargetType(); //replaces vuti w target type
@@ -565,7 +565,7 @@ namespace MFM {
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp for data
 
     UTI vuti = uvpass.getUlamValueTypeIdx();
-    if(vuti == Ptr)
+    if(m_state.isPtr(vuti))
       vuti = uvpass.getPtrTargetType();
 
     m_state.indent(fp);
@@ -588,7 +588,7 @@ namespace MFM {
   {
     UTI vuti = uvpass.getUlamValueTypeIdx();
 
-    assert(vuti == Ptr); //terminals handled in NodeTerminal as BitVector for args
+    assert(m_state.isPtr(vuti)); //terminals handled in NodeTerminal as BitVector for args
 
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp for data
     vuti = uvpass.getPtrTargetType(); //replaces vuti w target type
@@ -711,7 +711,7 @@ namespace MFM {
   {
     UTI vuti = uvpass.getUlamValueTypeIdx();
 
-    assert(vuti == Ptr); //terminals handled in NodeTerminal as BitVector for args
+    assert(m_state.isPtr(vuti)); //terminals handled in NodeTerminal as BitVector for args
 
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp for data
     vuti = uvpass.getPtrTargetType(); //replaces vuti w target type
@@ -785,12 +785,12 @@ namespace MFM {
   void Node::genCodeWriteFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass)
   {
     UTI luti = luvpass.getUlamValueTypeIdx();
-    assert(luti == Ptr);
+    assert(m_state.isPtr(luti));
     luti = luvpass.getPtrTargetType();
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
 
     UTI ruti = ruvpass.getUlamValueTypeIdx();
-    assert(ruti == Ptr); //terminals handled in NodeTerminal
+    assert(m_state.isPtr(ruti)); //terminals handled in NodeTerminal
     ruti = ruvpass.getPtrTargetType();
     UlamType * rut = m_state.getUlamTypeByIndex(ruti);
 
@@ -884,12 +884,12 @@ namespace MFM {
   void Node::genCodeWriteToSelfFromATmpVar(File * fp, UlamValue & luvpass, UlamValue & ruvpass)
   {
     UTI luti = luvpass.getUlamValueTypeIdx();
-    assert(luti == Ptr);
+    assert(m_state.isPtr(luti));
     luti = luvpass.getPtrTargetType();
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
 
     UTI ruti = ruvpass.getUlamValueTypeIdx();
-    assert(ruti == Ptr);
+    assert(m_state.isPtr(ruti));
     ruti = ruvpass.getPtrTargetType();
 
     bool isElementAncestorCast = (lut->getUlamClass() == UC_ELEMENT) && m_state.isClassASuperclassOf(ruti, luti);
@@ -921,11 +921,11 @@ namespace MFM {
   void Node::genCodeWriteToAtomofRefFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass)
   {
     UTI luti = luvpass.getUlamValueTypeIdx();
-    assert(luti == Ptr);
+    assert(m_state.isPtr(luti));
     luti = luvpass.getPtrTargetType();
 
     UTI ruti = ruvpass.getUlamValueTypeIdx();
-    assert(ruti == Ptr);
+    assert(m_state.isPtr(ruti));
     ruti = ruvpass.getPtrTargetType();
 
     m_state.indent(fp);
@@ -1028,11 +1028,11 @@ namespace MFM {
   // ruvpass is the ptr to value to write
   void Node::genCodeWriteArrayItemFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass)
   {
-    assert(luvpass.getUlamValueTypeIdx() == Ptr);
+    assert(m_state.isPtr(luvpass.getUlamValueTypeIdx()));
     UTI luti = luvpass.getPtrTargetType();
     UTI ruti = ruvpass.getUlamValueTypeIdx();
 
-    if(ruti == Ptr)
+    if(m_state.isPtr(ruti))
       ruti = ruvpass.getPtrTargetType();
 
     // here, cos is symbol used to determine read method: either self or last of cos.
@@ -1157,12 +1157,12 @@ namespace MFM {
   // ruvpass is the ptr to value to write
   void Node::genCodeWriteCustomArrayItemFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass)
   {
-    assert(luvpass.getUlamValueTypeIdx() == Ptr);
+    assert(m_state.isPtr(luvpass.getUlamValueTypeIdx()));
 
     UTI luti = luvpass.getPtrTargetType();
     UTI ruti = ruvpass.getUlamValueTypeIdx();
 
-    assert(ruti == Ptr); //terminals handled in NodeTerminal
+    assert(m_state.isPtr(ruti)); //terminals handled in NodeTerminal
     ruti = ruvpass.getPtrTargetType();
 
     //rhs could be a constant; or previously cast from Int to Unary variables.
@@ -1241,7 +1241,7 @@ namespace MFM {
   void Node::genCodeConvertATmpVarIntoBitVector(File * fp, UlamValue & uvpass)
   {
     UTI vuti = uvpass.getUlamValueTypeIdx();
-    assert(vuti == Ptr); //terminals handled in NodeTerminal
+    assert(m_state.isPtr(vuti)); //terminals handled in NodeTerminal
     vuti = uvpass.getPtrTargetType();
     assert(m_state.okUTItoContinue(vuti));
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
@@ -1292,7 +1292,7 @@ namespace MFM {
   void Node::genCodeConvertABitVectorIntoATmpVar(File * fp, UlamValue & uvpass)
   {
     UTI vuti = uvpass.getUlamValueTypeIdx();
-    assert(vuti == Ptr);
+    assert(m_state.isPtr(vuti));
     vuti = uvpass.getPtrTargetType();
     assert(m_state.okUTItoContinue(vuti));
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
@@ -1335,7 +1335,7 @@ namespace MFM {
   void Node::genCodeConvertATmpVarIntoAutoRef(File * fp, UlamValue & uvpass)
   {
     UTI vuti = uvpass.getUlamValueTypeIdx();
-    assert(vuti == Ptr);
+    assert(m_state.isPtr(vuti));
     vuti = uvpass.getPtrTargetType(); //offset or another autoref
 
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();

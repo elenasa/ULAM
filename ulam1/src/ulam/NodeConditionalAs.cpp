@@ -163,7 +163,7 @@ namespace MFM {
 
     // DO 'AS': rtype quark 'is' related (was 'has'); rtype element 'is'
     UTI luti = pluv.getUlamValueTypeIdx();
-    assert(luti == Ptr);
+    assert(m_state.isPtr(luti));
     luti = pluv.getPtrTargetType();
     assert(m_state.okUTItoContinue(luti));
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
@@ -197,7 +197,7 @@ namespace MFM {
 		msg << "'; Class '";
 		msg << lut->getUlamTypeNameBrief().c_str();
 		msg << "' Not Found during eval";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	      }
 	    else
 	      {
@@ -208,6 +208,8 @@ namespace MFM {
 		msg << "; Passing through as UNFOUND for eval";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	      }
+	    evalNodeEpilog();
+	    return UNEVALUABLE;
 	  }
       }
     else if(rclasstype == UC_ELEMENT)
@@ -250,7 +252,7 @@ namespace MFM {
     UlamValue luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass); //needs to load lhs into tmp (T); symbol's in COS vector
     UTI luti = luvpass.getUlamValueTypeIdx();
-    assert(luti == Ptr);
+    assert(m_state.isPtr(luti));
     luti = luvpass.getPtrTargetType(); //replaces
     assert(m_state.okUTItoContinue(luti));
     UlamType * lut = m_state.getUlamTypeByIndex(luti);

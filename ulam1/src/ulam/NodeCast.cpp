@@ -384,8 +384,18 @@ namespace MFM {
       }
 
     UlamValue uv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
-
-    if(UlamType::compare(nodeType, tobeType, m_state) != UTIC_SAME)
+    UTI vuti = uv.getUlamValueTypeIdx();
+    assert(!m_state.isPtr(vuti));
+    if(m_state.isAtom(nodeType) && m_state.isAtom(tobeType) && (m_state.getUlamTypeByIndex(vuti)->getUlamTypeEnum() == Class))
+      {
+	std::ostringstream msg;
+	msg << "Cast question: Do not wipe out actual type for atom during eval! Value type ";
+	msg << m_state.getUlamTypeNameBriefByIndex(uv.getUlamValueTypeIdx()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	evalNodeEpilog();
+	return UNEVALUABLE;
+      }
+    else if(UlamType::compare(nodeType, tobeType, m_state) != UTIC_SAME)
       {
 	if(m_state.isARefTypeOfUlamType(nodeType, tobeType))
 	  {
@@ -402,9 +412,9 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(uv.getUlamValueTypeIdx()).c_str();
 	    msg << " failed to be cast as ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    evalNodeEpilog();
-	    return ERROR;
+	    return UNEVALUABLE;
 	  }
       }
     //also copy result UV to stack, -1 relative to current frame pointer
@@ -520,7 +530,7 @@ namespace MFM {
     bool isTerminal = false;
     s32 tmpVarNum = 0;
 
-   if(vuti == Ptr)
+   if(m_state.isPtr(vuti))
       {
 	tmpVarNum = uvpass.getPtrSlotIndex();
 	vuti = uvpass.getPtrTargetType(); //replace
@@ -643,7 +653,7 @@ namespace MFM {
     UTI vuti = uvpass.getUlamValueTypeIdx();
     s32 tmpVarNum = 0;
 
-    if(vuti == Ptr)
+    if(m_state.isPtr(vuti))
       {
 	tmpVarNum = uvpass.getPtrSlotIndex();
 	vuti = uvpass.getPtrTargetType();  //replace
@@ -680,7 +690,7 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
     assert(tobe->getUlamClass() == UC_QUARK);
 
     UTI vuti = uvpass.getUlamValueTypeIdx();
-    if(vuti == Ptr)
+    if(m_state.isPtr(vuti))
       vuti = uvpass.getPtrTargetType(); //replace
     assert(m_state.okUTItoContinue(vuti));
 
@@ -856,7 +866,7 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
     UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
 
     UTI vuti = uvpass.getUlamValueTypeIdx();
-    if(vuti == Ptr)
+    if(m_state.isPtr(vuti))
       vuti = uvpass.getPtrTargetType(); //replace
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
@@ -917,7 +927,7 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
     UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
 
     UTI vuti = uvpass.getUlamValueTypeIdx();
-    if(vuti == Ptr)
+    if(m_state.isPtr(vuti))
       vuti = uvpass.getPtrTargetType(); //replace
     s32 tmpVarNum = uvpass.getPtrSlotIndex();
 
@@ -950,7 +960,7 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
 
   void NodeCast::genCodeCastAsReference(File * fp, UlamValue & uvpass)
   {
-    assert(uvpass.getUlamValueTypeIdx() == Ptr);
+    assert(m_state.isPtr(uvpass.getUlamValueTypeIdx()));
     UTI fromuti = uvpass.getPtrTargetType();
     UTI tobeuti = getCastType();
     if((m_state.isAtomRef(tobeuti) && !m_state.isReference(fromuti)))
@@ -962,7 +972,7 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
 
   void NodeCast::genCodeCastFromAReference(File * fp, UlamValue & uvpass)
   {
-    assert(uvpass.getUlamValueTypeIdx() == Ptr);
+    assert(m_state.isPtr(uvpass.getUlamValueTypeIdx()));
     UTI tobeuti = getCastType();
     UTI nodetype = m_node->getNodeType();
 

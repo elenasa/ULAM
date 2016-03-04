@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3663_test_compiler_element_castatomfromselfatomof_templateinstancewithinforloop
 #!
-Exit status: 0
+Exit status: -11
 Ue_Foo : QPerc(3u) { :< constant Unsigned(32) c = 3u;  Bool(1) bb(false); > typedef QPerc(3u) QPerc3;  Int(32) test() {  QPerc(3u) qp;  qp bb . true = Atom(96) b = qp ( )func .;  0 cast return } }
 Uq_QPerc(Unsigned(32) c) { Bool(1) bb(false);  <NOMAIN> }
 ##

@@ -276,10 +276,13 @@ namespace MFM {
     if(nuti == Hzy)
       return NOTREADY;
 
+    //for eval, native function blocks (NodeBlockEmpty) return Normal.
+    //if(isNative()) return UNEVALUABLE;
+
     m_state.pushCurrentBlock(this); //push func def
 
     // m_currentObjPtr set up by caller
-    assert(m_state.okUTItoContinue(m_state.m_currentObjPtr.getUlamValueTypeIdx()));
+    assert(m_state.okUTItoContinue(m_state.m_currentObjPtr.getPtrTargetType()));
     m_state.m_currentFunctionReturnType = nuti; //to help find hidden first arg
 
     evalNodeProlog(0); //new current frame pointer on node eval stack

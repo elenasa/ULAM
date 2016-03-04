@@ -100,7 +100,7 @@ namespace MFM {
     UTI listuti = Nav;
     bool hazyKin = false;
 
-    if(m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex,fnsymptr, hazyKin) && !hazyKin)
+    if(m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex, fnsymptr, hazyKin) && !hazyKin)
       {
         //use member block doesn't apply to arguments; no change to current block
 	m_state.pushCurrentBlockAndDontUseMemberBlock(m_state.getCurrentBlock()); //set forall args
@@ -462,7 +462,7 @@ namespace MFM {
 	    UlamValue auv = m_state.m_nodeEvalStack.popArg();
 	    if(paramreftype == ALT_REF && (auv.getPtrStorage() == STACK))
 	      {
-		assert(auv.getUlamValueTypeIdx() == Ptr);
+		assert(m_state.isPtr(auv.getUlamValueTypeIdx()));
 		u32 absrefslot = m_state.m_funcCallStack.getAbsoluteStackIndexOfSlot(auv.getPtrSlotIndex());
 		auv.setPtrSlotIndex(absrefslot);
 		auv.setUlamValueTypeIdx(PtrAbs);
@@ -620,6 +620,8 @@ namespace MFM {
 	s32 atomslot = atomPtr.getPtrSlotIndex();
 	s32 adjustedatomslot = atomslot - (nextslot + rtnslots + 1); //negative index; 1 more for atomPtr
 	atomPtr.setPtrSlotIndex(adjustedatomslot);
+	if(atomPtr.getUlamValueTypeIdx() == PtrAbs)
+	  atomPtr.setUlamValueTypeIdx(Ptr); //let's see..
       }
     // push the "hidden" first arg, and update the current object ptr (restore later)
     m_state.m_funcCallStack.pushArg(atomPtr); //*********
@@ -1240,7 +1242,7 @@ namespace MFM {
 	    Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
 	  }
 	auti = auvpass.getUlamValueTypeIdx();
-	if(auti == Ptr)
+	if(m_state.isPtr(auti))
 	  {
 	    auti = auvpass.getPtrTargetType();
 	  }
@@ -1267,7 +1269,7 @@ namespace MFM {
 	      }
 
 	    auti = auvpass.getUlamValueTypeIdx();
-	    if(auti == Ptr)
+	    if(m_state.isPtr(auti))
 	      {
 		auti = auvpass.getPtrTargetType();
 	      }
