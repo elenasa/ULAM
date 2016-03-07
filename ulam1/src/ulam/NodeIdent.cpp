@@ -690,12 +690,16 @@ namespace MFM {
 	  }
 	else if(m_state.getReferenceType(uti) != args.m_declRef)
 	  {
-	    UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), key.getUlamKeyTypeSignatureBitSize(), key.getUlamKeyTypeSignatureArraySize(), key.getUlamKeyTypeSignatureClassInstanceIdx(), args.m_declRef); //classinstanceidx removed if not a class
-	    uti = m_state.makeUlamType(newarraykey, bUT);
+	    // could be array or scalar ref
+	    UlamKeyTypeSignature newkey(key.getUlamKeyTypeSignatureNameId(), key.getUlamKeyTypeSignatureBitSize(), key.getUlamKeyTypeSignatureArraySize(), key.getUlamKeyTypeSignatureClassInstanceIdx(), args.m_declRef); //classinstanceidx removed if not a class
+	    uti = m_state.makeUlamType(newkey, bUT);
 	  }
 	//create a symbol for this new ulam type, a typedef, with its type
 	SymbolTypedef * symtypedef = new SymbolTypedef(m_token, uti, scalarUTI, m_state);
 	m_state.addSymbolToCurrentScope(symtypedef);
+
+	//remember tduti for references
+	symtypedef->setAutoLocalType(m_state.getReferenceType(uti));
 
 	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr)); //true
       }
@@ -933,13 +937,14 @@ namespace MFM {
 	    if(args.m_bitsize == 0)
 	      args.m_bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
 
-	    UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, scalarUTI, key.getUlamKeyTypeSignatureReferenceType()); //same reftype as key (or args?)
+	    UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, scalarUTI, key.getUlamKeyTypeSignatureReferenceType()); //same reftype as key
 	    auti = m_state.makeUlamType(newarraykey, bUT);
 	  }
 
-	uti = m_state.getUlamTypeAsRef(auti, args.m_declRef); //ut not current
+	uti = m_state.getUlamTypeAsRef(auti, args.m_declRef); //ut not current; no deref.
 
-	SymbolVariable * sym = makeSymbol(uti, m_state.getReferenceType(uti));
+	//SymbolVariable * sym = makeSymbol(uti, m_state.getReferenceType(uti), auti);
+	SymbolVariable * sym = makeSymbol(uti, m_state.getReferenceType(uti), args.m_referencedUTI);
 	if(sym)
 	  {
 	    m_state.addSymbolToCurrentScope(sym); //ownership goes to the block
@@ -959,10 +964,10 @@ namespace MFM {
     return brtn;
   } //installSymbolVariable
 
-  SymbolVariable *  NodeIdent::makeSymbol(UTI auti, ALT reftype)
+  SymbolVariable *  NodeIdent::makeSymbol(UTI auti, ALT reftype, UTI referencedUTI)
   {
     //adjust decl count and max_depth, used for function definitions
-    PACKFIT packit = m_state.determinePackable(auti);
+    //PACKFIT packit = m_state.determinePackable(auti);
 
     if(m_state.m_currentFunctionBlockDeclSize == 0)
       {
@@ -971,7 +976,7 @@ namespace MFM {
 	//variable-index, ulamtype, ulamvalue(ownership to symbol); always packed
 	if(reftype != ALT_NOT)
 	  return NULL; //error! dm's not references
-	return (new SymbolVariableDataMember(m_token, auti, packit, baseslot, m_state));
+	return (new SymbolVariableDataMember(m_token, auti, baseslot, m_state));
       }
 
     //Symbol is a parameter; always on the stack
@@ -980,7 +985,7 @@ namespace MFM {
 	//1 slot for scalar or packed array
 	m_state.m_currentFunctionBlockDeclSize -= m_state.slotsNeeded(auti);
 
-	SymbolVariableStack * rtnSym = (new SymbolVariableStack(m_token, auti, packit, m_state.m_currentFunctionBlockDeclSize, m_state)); //slot after adjust
+	SymbolVariableStack * rtnSym = (new SymbolVariableStack(m_token, auti, m_state.m_currentFunctionBlockDeclSize, m_state)); //slot after adjust
 	assert(rtnSym);
 
 	rtnSym->setAutoLocalType(reftype);
@@ -989,7 +994,7 @@ namespace MFM {
       }
 
     //(else) Symbol is a local variable, always on the stack
-    SymbolVariableStack * rtnLocalSym = new SymbolVariableStack(m_token, auti, packit, m_state.m_currentFunctionBlockDeclSize, m_state); //slot before adjustment
+    SymbolVariableStack * rtnLocalSym = new SymbolVariableStack(m_token, auti, m_state.m_currentFunctionBlockDeclSize, m_state); //slot before adjustment
     assert(rtnLocalSym);
 
     rtnLocalSym->setAutoLocalType(reftype);

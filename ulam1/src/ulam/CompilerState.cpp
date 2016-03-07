@@ -648,6 +648,9 @@ namespace MFM {
     if(sut->isComplete())
       return suti;
 
+    if(!okUTItoContinue(suti))
+      return suti; //forgiving; e.g. may be used for unset referencedUTI
+
     SymbolClassNameTemplate * cnsym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClassNameTemplate(getCompileThisId(), cnsym);
     assert(isDefined);

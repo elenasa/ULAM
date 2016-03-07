@@ -3,7 +3,7 @@
 
 namespace MFM {
 
-  SymbolVariableDataMember::SymbolVariableDataMember(Token id, UTI utype, PACKFIT packed, u32 slot, CompilerState& state) : SymbolVariable(id, utype, packed, state), m_dataMemberUnpackedSlotIndex(slot), m_hasInitValue(false), m_initvalReady(false), m_initval(0)
+  SymbolVariableDataMember::SymbolVariableDataMember(Token id, UTI utype, u32 slot, CompilerState& state) : SymbolVariable(id, utype, state), m_dataMemberUnpackedSlotIndex(slot), m_hasInitValue(false), m_initvalReady(false), m_initval(0)
   {
     setDataMemberClass(m_state.getCompileThisIdx());
   }

@@ -117,16 +117,24 @@ namespace MFM {
       return true; //not arrays, ok
 
     bool bOK = true;
-    if(getPackable() != PACKEDLOADABLE || m_state.determinePackable(typidx) != PACKEDLOADABLE)
+    if((getPackable() != PACKEDLOADABLE) || (m_state.determinePackable(typidx) != PACKEDLOADABLE))
       {
+	UTI anyUTI = Nouti;
+	AssertBool anyDefined = m_state.anyDefinedUTI(m_key, anyUTI);
+	assert(anyDefined);
+
 	std::ostringstream msg;
 	msg << "Casting requires UNPACKED array support: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
 	msg << " TO " ;
 	msg << getUlamTypeNameBrief().c_str();
-	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
-
-	bOK = false;
+	if(m_state.isARefTypeOfUlamType(typidx, anyUTI) || m_state.isARefTypeOfUlamType(anyUTI, typidx))
+	  MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+	else
+	  {
+	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	    bOK = false;
+	  }
       }
     else
       {
@@ -412,7 +420,7 @@ namespace MFM {
   {
     s32 len = getTotalBitSize();
     if(len > (BITSPERATOM - ATOMFIRSTSTATEBITPOS))
-      return; //no auto, just immediates
+      return genUlamTypeMangledUnpackedArrayAutoDefinitionForC(fp);
 
     m_state.m_currentIndentLevel = 0;
     const std::string automangledName = getUlamTypeImmediateAutoMangledName();
@@ -932,7 +940,7 @@ namespace MFM {
     return method;
   } //writeArrayItemMethodForCodeGen()
 
-  //generates immediates (inside out like ulamtypeclass)
+  //generates immediates with local storage
   void UlamType::genUlamTypeMangledDefinitionForC(File * fp)
   {
     u32 len = getTotalBitSize(); //could be 0, includes arrays
@@ -941,7 +949,6 @@ namespace MFM {
 
     m_state.m_currentIndentLevel = 0;
     const std::string mangledName = getUlamTypeImmediateMangledName();
-    //const std::string automangledName = getUlamTypeImmediateAutoMangledName();
     std::ostringstream  ud;
     ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
     std::string udstr = ud.str();
@@ -1095,6 +1102,171 @@ namespace MFM {
       }
   } //genUlamTypeWriteDefinitionForC
 
+  void UlamType::genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp)
+  {
+    m_state.m_currentIndentLevel = 0;
+    const std::string automangledName = getUlamTypeImmediateAutoMangledName();
+    const std::string mangledName = getUlamTypeImmediateMangledName();
+    std::ostringstream  ud;
+    ud << "Ud_" << automangledName; //d for define (p used for atomicparametrictype)
+    std::string udstr = ud.str();
+
+    u32 itemlen = getBitSize();
+    u32 arraysize = getArraySize();
+
+    UlamKeyTypeSignature baseKey(m_key.m_typeNameId, itemlen);
+    UTI scalarUTI = m_state.makeUlamType(baseKey, getUlamTypeEnum());
+    UlamType * scalarut = m_state.getUlamTypeByIndex(scalarUTI);
+
+    m_state.indent(fp);
+    fp->write("#ifndef ");
+    fp->write(udstr.c_str());
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("#define ");
+    fp->write(udstr.c_str());
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("namespace MFM{\n");
+    fp->write("\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("template<class EC> class ");
+    fp->write(mangledName.c_str());
+    fp->write("; //forward \n\n");
+
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write("struct ");
+    fp->write(automangledName.c_str());
+
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    //typedef atomic parameter type inside struct
+    m_state.indent(fp);
+    fp->write("typedef typename EC::ATOM_CONFIG AC;\n");
+    m_state.indent(fp);
+    fp->write("typedef typename AC::ATOM_TYPE T;\n");
+    m_state.indent(fp);
+    fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("typedef UlamRefFixed");
+    fp->write("<EC, "); //BITSPERATOM
+    fp->write_decimal(BITSPERATOM - ATOMFIRSTSTATEBITPOS - itemlen); //right-justified, relative
+    fp->write(", ");
+    fp->write_decimal(itemlen);
+    fp->write("u> Up_Us;\n"); //per item
+
+    //storage here (an array of T's)
+    m_state.indent(fp);
+    fp->write("T (& m_stgarrayref)[");
+    fp->write_decimal_unsigned(arraysize);
+    fp->write("u];  //ref to BIG storage!\n\n");
+
+    //copy constructor here
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("( ");
+    fp->write(automangledName.c_str());
+    fp->write("<EC>& r) : m_stgarrayref(r.m_stgarrayref) { }\n");
+
+    //constructor here (used by tmpVars)
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("( ");
+    fp->write(mangledName.c_str());
+    fp->write("<EC>& d) : m_stgarrayref(d.getStorageRef()) { }\n");
+
+    //default destructor (for completeness)
+    m_state.indent(fp);
+    fp->write("~");
+    fp->write(automangledName.c_str());
+    fp->write("() {}\n");
+
+    //Unpacked Read Array Item
+    m_state.indent(fp);
+    fp->write("const ");
+    fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
+    fp->write(" readArrayItem(");
+    fp->write("const u32 index, const u32 itemlen) { return ");
+    fp->write("Up_Us(getRef(index), NULL).");
+    fp->write(scalarut->readMethodForCodeGen().c_str());
+    fp->write("(); }\n");
+
+    //Unpacked Write Array Item
+    m_state.indent(fp);
+    fp->write("void writeArrayItem(const ");
+    fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
+    fp->write(" v, const u32 index, const u32 itemlen) { ");
+    fp->write("Up_Us(getRef(index), NULL).");
+    fp->write(scalarut->writeMethodForCodeGen().c_str());
+    fp->write("(v);");
+    fp->write(" }\n");
+
+    //Unpacked, an item T
+    m_state.indent(fp);
+    fp->write("BitVector<BPA>& ");
+    fp->write(" getBits(");
+    fp->write("const u32 index) { return ");
+    fp->write("m_stgarrayref[index].GetBits(); }\n");
+
+    //Unpacked, an item T const
+    m_state.indent(fp);
+    fp->write("const BitVector<BPA>& ");
+    fp->write(" getBits(");
+    fp->write("const u32 index) const { return ");
+    fp->write("m_stgarrayref[index].GetBits(); }\n");
+
+    //Unpacked, an item T&
+    m_state.indent(fp);
+    fp->write("T& ");
+    fp->write(" getRef(");
+    fp->write("const u32 index) { return ");
+    fp->write("m_stgarrayref[index]; }\n");
+
+    //Unpacked, position within whole
+    m_state.indent(fp);
+    fp->write("const u32 ");
+    fp->write(" getPosOffset(");
+    fp->write("const u32 index) const { return ");
+    fp->write("(BPA * index + BPA - T::ATOM_FIRST_STATE_BIT - ");
+    fp->write_decimal_unsigned(itemlen); //right-justified, relative per item
+    fp->write("u); }\n");
+
+    //Unpacked, position within each item T
+    m_state.indent(fp);
+    fp->write("const u32 ");
+    fp->write(" getPosOffset(");
+    fp->write(" ) const { return ");
+    fp->write("(BPA - T::ATOM_FIRST_STATE_BIT - ");
+    fp->write_decimal_unsigned(itemlen); //right-justified, relative per item
+    fp->write("u); }\n");
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("};\n");
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //MFM\n");
+
+    m_state.indent(fp);
+    fp->write("#endif /*");
+    fp->write(udstr.c_str());
+    fp->write(" */\n\n");
+  } //genUlamTypeMangledUnpackedArrayAutoDefinitionForC
+
   void UlamType::genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp)
   {
     m_state.m_currentIndentLevel = 0;
@@ -1132,7 +1304,6 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("struct ");
     fp->write(mangledName.c_str());
-
     m_state.indent(fp);
     fp->write("{\n");
 
@@ -1155,16 +1326,20 @@ namespace MFM {
     fp->write_decimal(itemlen);
     fp->write("u> Up_Us;\n"); //one item
 
+    //Unpacked, storage reference T (&) [N]
+    m_state.indent(fp);
+    fp->write("typedef T TARR[");
+    fp->write_decimal_unsigned(arraysize);
+    fp->write("];\n");
+
     //storage here (an array of T's)
     m_state.indent(fp);
-    fp->write("T m_stgarr[");
-    fp->write_decimal_unsigned(arraysize);
-    fp->write("u];  //big storage here!\n\n");
+    fp->write("TARR m_stgarr;  //BIG storage here!\n\n");
 
     //default constructor (used by local vars)
     m_state.indent(fp);
     fp->write(mangledName.c_str());
-    fp->write("() { ");
+    fp->write("() {");
     fp->write("for(u32 j = 0; j < ");
     fp->write_decimal_unsigned(arraysize);
     fp->write("u; j++) ");
@@ -1249,6 +1424,11 @@ namespace MFM {
     fp->write("(BPA - T::ATOM_FIRST_STATE_BIT - ");
     fp->write_decimal_unsigned(itemlen); //right-justified, relative per item
     fp->write("u); }\n");
+
+    m_state.indent(fp);
+    fp->write("TARR& getStorageRef(");
+    fp->write(") { return ");
+    fp->write("m_stgarr; }\n");
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);

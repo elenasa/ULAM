@@ -481,7 +481,8 @@ namespace MFM {
 	    //local
 	    if((vclasstype == UC_NOTACLASS) && (vetype != UAtom) )
 	      {
-		fp->write(", 0u, "); //rel off to right-just prim
+		if(vut->getPackable() == PACKEDLOADABLE)
+		  fp->write(", 0u"); //rel off to right-just prim
 	      }
 	    else if(vetype == UAtom)
 	      {

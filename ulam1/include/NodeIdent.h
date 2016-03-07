@@ -97,7 +97,7 @@ namespace MFM{
     SymbolVariable * m_varSymbol;
     NNO m_currBlockNo;
 
-    SymbolVariable *  makeSymbol(UTI auti, ALT reftype);
+    SymbolVariable *  makeSymbol(UTI auti, ALT reftype, UTI referencedUTI);
     bool checkVariableTypedefSizes(TypeArgs& args, UTI auti);
     bool checkTypedefOfTypedefSizes(TypeArgs& args, UTI tduti);
     bool checkConstantTypedefSizes(TypeArgs& args, UTI tduti);

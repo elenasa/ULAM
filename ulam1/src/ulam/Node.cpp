@@ -1718,7 +1718,7 @@ namespace MFM {
 
     m_state.m_currentFunctionBlockMaxDepth = 0;
 
-    SymbolVariableStack * selfsym = new SymbolVariableStack(selfTok, UAtom, UNPACKED, m_state.m_currentFunctionBlockDeclSize, m_state);
+    SymbolVariableStack * selfsym = new SymbolVariableStack(selfTok, UAtom, m_state.m_currentFunctionBlockDeclSize, m_state);
     selfsym->setIsSelf();
     m_state.addSymbolToCurrentScope(selfsym); //ownership goes to the fblock
 

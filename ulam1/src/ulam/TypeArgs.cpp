@@ -13,7 +13,8 @@ namespace MFM {
       m_declListOrTypedefScalarType(tref.m_declListOrTypedefScalarType),
       m_assignOK(tref.m_assignOK),
       m_isStmt(tref.m_isStmt),
-      m_declRef(tref.m_declRef)
+      m_declRef(tref.m_declRef),
+      m_referencedUTI(tref.m_referencedUTI)
     {}
 
   TypeArgs::~TypeArgs() {}
@@ -29,6 +30,7 @@ namespace MFM {
     m_assignOK = true;
     m_isStmt = true;
     m_declRef = ALT_NOT;
+    m_referencedUTI = Nouti;
   }
 
   TypeArgs& TypeArgs::operator=(const TypeArgs& tref)
@@ -42,18 +44,21 @@ namespace MFM {
     m_assignOK = tref.m_assignOK;
     m_isStmt = tref.m_isStmt;
     m_declRef = tref.m_declRef;
+    m_referencedUTI = tref.m_referencedUTI;
     return *this;
   }
 
-  void TypeArgs::setdeclref(Token ftoken)
+  void TypeArgs::setdeclref(Token ftoken, UTI referencedType)
   {
     switch(ftoken.m_type)
       {
       case TOK_KW_AS:
 	m_declRef = ALT_AS;
+	m_referencedUTI = referencedType;
 	break;
       case TOK_AMP:
 	m_declRef = ALT_REF;
+	m_referencedUTI = referencedType;
 	break;
       case TOK_KW_IS:
       default:

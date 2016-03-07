@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolVariableStack.h -  Stack Variable Symbol handling for ULAM
  *
- * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2015 Ackleyshack LLC.
+ * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2016 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +27,9 @@
 
 /**
   \file SymbolVariableStack.h -  Stack Variable Symbol handling for ULAM
-  \author Elenas S. Ackley.
+  \author Elena S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2015 All rights reserved.
+  \date (C) 2014-2016 All rights reserved.
   \gpl
 */
 
@@ -43,7 +43,7 @@ namespace MFM{
   class SymbolVariableStack : public SymbolVariable
   {
   public:
-    SymbolVariableStack(Token id, UTI utype, PACKFIT packed, s32 slot, CompilerState& state);
+    SymbolVariableStack(Token id, UTI utype, s32 slot, CompilerState& state);
 
     SymbolVariableStack(const SymbolVariableStack& sref);
 

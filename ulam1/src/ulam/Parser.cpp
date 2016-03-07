@@ -1345,6 +1345,7 @@ namespace MFM {
     typeargs.m_arraysize = tut->getArraySize();
     typeargs.m_classInstanceIdx = tuti; //?
     typeargs.m_declRef = ALT_AS;
+    typeargs.m_referencedUTI = ruti;
 
     Symbol * asymptr = NULL; //a place to put the new symbol; not a decl list, nor typedef from another class
     tmpni->installSymbolVariable(typeargs, asymptr);
@@ -1354,7 +1355,7 @@ namespace MFM {
     tmpni = NULL;
     m_state.m_parsingConditionalAs = false; //done with flag and identToken.
 
-    NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(typeargs.m_typeTok, tuti, m_state, ALT_AS);
+    NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(typeargs.m_typeTok, tuti, m_state, ALT_AS, ruti);
     assert(typeNode);
 
     //insert var decl into NodeStatements..as if parseStatement was called..
@@ -1510,6 +1511,7 @@ namespace MFM {
 	if(iTok.m_type == TOK_AMP)
 	  {
 	    typeargs.m_declRef = ALT_REF;
+	    typeargs.m_referencedUTI = typeNode->getReferencedUTI(); //typeNode->givenUTI();
 	    getNextToken(iTok);
 	  }
 
@@ -1664,6 +1666,7 @@ namespace MFM {
     if(iTok.m_type == TOK_AMP)
       {
 	typeargs.m_declRef = ALT_REF;
+	typeargs.m_referencedUTI = typeNode->getReferencedUTI();
 	getNextToken(iTok);
       }
 
@@ -1789,11 +1792,12 @@ namespace MFM {
     else if(dTok.m_type == TOK_AMP)
       {
 	typeargs.m_declRef = ALT_REF; //a declared reference
+	typeargs.m_referencedUTI = castUTI; //?
 	typeargs.m_assignOK = true; //required
 	typeargs.m_isStmt = true; //unless a func param
 	// change uti to reference key
 	assert(typeNode);
-	typeNode->setReferenceType(ALT_REF);
+	typeNode->setReferenceType(ALT_REF, castUTI);
       }
     return typeNode;
   } //parseTypeDescriptor
@@ -3385,13 +3389,15 @@ namespace MFM {
     if(iTok.m_type == TOK_AMP)
       {
 	args.m_declRef = ALT_REF;
+	args.m_referencedUTI = passuti; //?
 	getNextToken(iTok);
       }
 
     if(iTok.m_type == TOK_IDENTIFIER)
       {
 	//just the top level as a basic uti (no selects, or arrays)
-	NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(args.m_typeTok, passuti, m_state, args.m_declRef);
+	//NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(args.m_typeTok, passuti, m_state, args.m_declRef);
+	NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(args.m_typeTok, passuti, m_state);
 
 	//another decl of same type
 	NodeVarDecl * sNode = (NodeVarDecl *) makeVariableSymbol(args, iTok, typeNode); //a decl !!
@@ -3473,6 +3479,7 @@ namespace MFM {
 	    MSG(&eTok, msg.str().c_str(), ERR);
 	  }
 	args.m_declRef = ALT_NOT; //clear flag in case of decl list
+	//keep args.m_referenced type???
       } //ref done
     else
       {
@@ -3678,7 +3685,7 @@ namespace MFM {
     u32 selfid = m_state.m_pool.getIndexForDataString("self");
     UTI cuti = currClassBlock->getNodeType(); //luckily we know this now for each class used
     Token selfTok(TOK_IDENTIFIER, identTok.m_locator, selfid);
-    SymbolVariableStack * selfsym = new SymbolVariableStack(selfTok, cuti, m_state.determinePackable(cuti), m_state.m_currentFunctionBlockDeclSize, m_state);
+    SymbolVariableStack * selfsym = new SymbolVariableStack(selfTok, cuti, m_state.m_currentFunctionBlockDeclSize, m_state);
     selfsym->setIsSelf();
     m_state.addSymbolToCurrentScope(selfsym); //ownership goes to the block
 
@@ -4005,7 +4012,9 @@ namespace MFM {
 	    //chain to NodeType descriptor if array (i.e. non scalar), o.w. delete lval
 	    linkOrFreeConstantExpressionArraysize(auti, args, (NodeSquareBracket *)lvalNode, nodetyperef);
 
-	    nodetyperef->setReferenceType(m_state.getReferenceType(auti)); //invariant
+	    ALT refalt = m_state.getReferenceType(auti);
+	    if(refalt != ALT_NOT)
+	      nodetyperef->setReferenceType(refalt, args.m_referencedUTI, auti); //invariant
 
 	    // tfr owner of nodetyperef to node var decl
 	    if(asymptr->isDataMember())
@@ -4118,7 +4127,10 @@ namespace MFM {
 	    //chain to NodeType descriptor if array (i.e. non scalar), o.w. delete lval
 	    linkOrFreeConstantExpressionArraysize(auti, args, (NodeSquareBracket *)lvalNode, nodetyperef);
 	    // tfr owner of nodetyperef to node typedef
-	    nodetyperef->setReferenceType(m_state.getReferenceType(auti)); //invariant
+	    ALT refalt = m_state.getReferenceType(auti);
+	    if(refalt != ALT_NOT)
+	      nodetyperef->setReferenceType(refalt, args.m_referencedUTI, auti); //invariant
+
 	    rtnNode =  new NodeTypedef((SymbolTypedef *) asymptr, nodetyperef, m_state);
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(args.m_typeTok.m_locator);
@@ -4321,7 +4333,7 @@ namespace MFM {
     TypeArgs typeargs;
     typeargs.init(tTok);
     typeargs.m_classInstanceIdx = cuti; //is scalar
-    typeargs.setdeclref(fTok);
+    typeargs.setdeclref(fTok, cuti);
 
     NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(tTok, cuti, m_state);
     assert(typeNode);
