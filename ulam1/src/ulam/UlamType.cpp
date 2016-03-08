@@ -119,6 +119,7 @@ namespace MFM {
     bool bOK = true;
     if((getPackable() != PACKEDLOADABLE) || (m_state.determinePackable(typidx) != PACKEDLOADABLE))
       {
+	//for now, limited to refs of same class, not subclasses. XXX
 	UTI anyUTI = Nouti;
 	AssertBool anyDefined = m_state.anyDefinedUTI(m_key, anyUTI);
 	assert(anyDefined);
@@ -128,7 +129,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
 	msg << " TO " ;
 	msg << getUlamTypeNameBrief().c_str();
-	if(m_state.isARefTypeOfUlamType(typidx, anyUTI) || m_state.isARefTypeOfUlamType(anyUTI, typidx))
+	if((m_state.isARefTypeOfUlamType(typidx, anyUTI) == UTIC_SAME) || (m_state.isARefTypeOfUlamType(anyUTI, typidx) == UTIC_SAME))
 	  MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
 	else
 	  {

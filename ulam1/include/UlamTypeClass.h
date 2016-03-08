@@ -129,6 +129,8 @@ namespace MFM{
 
     virtual void genUlamTypeMangledDefinitionForC(File * fp);
 
+    virtual void genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp);
+
     virtual void genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp);
 
     virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
@@ -151,6 +153,9 @@ namespace MFM{
 
     void genUlamTypeQuarkMangledDefinitionForC(File * fp);
     void genUlamTypeElementMangledDefinitionForC(File * fp);
+
+    void genUlamTypeMangledUnpackedQuarkArrayAutoDefinitionForC(File * fp);
+    void genUlamTypeMangledUnpackedElementArrayAutoDefinitionForC(File * fp);
 
     void genUlamTypeMangledUnpackedQuarkArrayDefinitionForC(File * fp);
     void genUlamTypeMangledUnpackedElementArrayDefinitionForC(File * fp);

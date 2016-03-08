@@ -828,7 +828,7 @@ namespace MFM {
     if(m_state.isAtomRef(luti) && m_state.isAtom(ruti))
       return genCodeWriteToAtomofRefFromATmpVar(fp, luvpass, ruvpass);
 
-    bool isElementAncestorCast = (lut->getUlamClass() == UC_ELEMENT) && m_state.isClassASuperclassOf(ruti, luti);
+    bool isElementAncestorCast = (lut->getUlamClass() == UC_ELEMENT) && m_state.isClassASubclassOf(ruti, luti);
 
     UlamValue typuvpass;
     if(isElementAncestorCast)
@@ -892,7 +892,7 @@ namespace MFM {
     assert(m_state.isPtr(ruti));
     ruti = ruvpass.getPtrTargetType();
 
-    bool isElementAncestorCast = (lut->getUlamClass() == UC_ELEMENT) && m_state.isClassASuperclassOf(ruti, luti);
+    bool isElementAncestorCast = (lut->getUlamClass() == UC_ELEMENT) && m_state.isClassASubclassOf(ruti, luti);
 
     UlamValue typuvpass;
     if(isElementAncestorCast)
@@ -1384,14 +1384,15 @@ namespace MFM {
 	assert(cosut->getUlamTypeEnum() == Class);
 	assert(!cosut->isScalar());
 
-	cosuti = m_state.getUlamTypeAsScalar(cosuti);
-	cosut = m_state.getUlamTypeByIndex(cosuti);
+	UTI scalarcosuti = m_state.getUlamTypeAsScalar(cosuti);
+	UlamType * scalarcosut = m_state.getUlamTypeByIndex(scalarcosuti);
+	ULAMCLASSTYPE cosclasstype = cosut->getUlamClass();
 
 	m_state.indent(fp);
 	//can't be const and chainable
-	fp->write(cosut->getLocalStorageTypeAsString().c_str());
+	fp->write(scalarcosut->getLocalStorageTypeAsString().c_str());
 	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum2, TMPAUTOREF).c_str());
+	fp->write(m_state.getTmpVarAsString(scalarcosuti, tmpVarNum2, TMPAUTOREF).c_str());
 	fp->write("("); // use constructor (not equals)
 
 	if(cos->isDataMember())
@@ -1406,22 +1407,46 @@ namespace MFM {
 	    fp->write(cos->getMangledName().c_str()); //local array
 	  }
 
-	fp->write(", (");
-	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str()); //pos variable 0-based
-	fp->write(" * ");
-	fp->write_decimal_unsigned(cosut->getBitSize());
-	fp->write("u)");
-
-	if(cosSize > 0)
+	PACKFIT packfit = cosut->getPackable();
+	if(packfit == UNPACKED)
 	  {
-	    fp->write(" + ");
-	    fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
-	    fp->write("u");
+	    fp->write(".getRef(");
 	  }
+	else
+	  {
+	    fp->write(", ");
+	  }
+
+	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str()); //pos variable 0-based
+
+	if(cosclasstype == UC_QUARK)
+	  {
+	    fp->write(" * ");
+	    fp->write_decimal_unsigned(cosut->getBitSize());
+	    fp->write("u");
+
+	    if(cosSize > 0)
+	      {
+		fp->write(" + ");
+		fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
+		fp->write("u");
+	      }
+
+	    if(packfit == UNPACKED)
+	      {
+		fp->write("), 0u"); //closes getRef
+	      }
+	  }
+	else if(cosclasstype == UC_ELEMENT)
+	  fp->write(")"); //just index as arg to getRef
+	else
+	  assert(0);
+
 	fp->write(", &");
-	UTI derefcosuti = m_state.getUlamTypeAsDeref(cosuti);
+	UTI derefcosuti = m_state.getUlamTypeAsDeref(scalarcosuti);
 	fp->write(m_state.getUlamTypeByIndex(derefcosuti)->getUlamTypeMangledName().c_str()); //effself
 	fp->write("<EC>::THE_INSTANCE");
+	cosuti = scalarcosuti; //for the uvpass
       }
     fp->write(");\n");
 
@@ -1573,7 +1598,7 @@ namespace MFM {
 	else if(tclasstype == UC_QUARK)
 	  {
 	    //handle possible inheritance (u.1.2.2) here
-	    if(m_state.isClassASuperclassOf(nuti, tobeType))
+	    if(m_state.isClassASubclassOf(nuti, tobeType))
 	      {
 		rtnNode = new NodeCast(node, tobeType, NULL, m_state);
 		assert(rtnNode);

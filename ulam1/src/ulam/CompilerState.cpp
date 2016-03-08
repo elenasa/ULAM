@@ -920,8 +920,8 @@ namespace MFM {
     u32 arraysize = keyOfArg.getUlamKeyTypeSignatureArraySize();
     UTI classidx = keyOfArg.getUlamKeyTypeSignatureClassInstanceIdx();
 
-    if(bUT == Class)
-      return classidx;
+    if((bUT == Class) && ut->isScalar())
+      return classidx; //scalar
 
     UlamKeyTypeSignature baseKey(keyOfArg.m_typeNameId, bitsize, arraysize, classidx, ALT_NOT);  //default array size is zero
 
@@ -1085,6 +1085,9 @@ namespace MFM {
       {
 	return setSizesOfNonClass(utArg, bitsize, arraysize);
       }
+
+    if(!ut->isScalar())
+      return setSizesOfNonClass(utArg, bitsize, arraysize); //arrays of classes like non-class
 
     //bitsize could be UNKNOWN or CONSTANT (negative)
     s32 total = bitsize * (arraysize > 0 ? arraysize : 1); //?
@@ -1275,7 +1278,7 @@ namespace MFM {
   bool CompilerState::setSizesOfNonClass(UTI utArg, s32 bitsize, s32 arraysize)
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
-    assert(ut->getUlamClass() == UC_NOTACLASS);
+    assert((ut->getUlamClass() == UC_NOTACLASS) || !ut->isScalar());
 
     if(ut->isComplete())
       return true;  //nothing to do
@@ -1284,9 +1287,9 @@ namespace MFM {
     //disallow zero-sized primitives (no such thing as a BitVector<0u>)
     //'Void' by default is zero and only zero bitsize (already complete)
     UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
-    if(key.getUlamKeyTypeSignatureBitSize() == 0 || bitsize <= 0)
+    if((bUT != Class) && ((key.getUlamKeyTypeSignatureBitSize() == 0) || (bitsize <= 0)))
       {
-	if(bUT != Void || bitsize < 0)
+	if((bUT != Void) || (bitsize < 0))
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid size (";
@@ -1418,7 +1421,7 @@ namespace MFM {
 
   //return true if the second arg is a superclass of the first arg.
   // i.e. cuti is a subclass of superp. recurses the family tree.
-  bool CompilerState::isClassASuperclassOf(UTI cuti, UTI superp)
+  bool CompilerState::isClassASubclassOf(UTI cuti, UTI superp)
   {
     bool rtnb = false;
     UTI prevuti = cuti; //init for the loop
@@ -1438,7 +1441,7 @@ namespace MFM {
 	  prevuti = Nouti; //avoid inf loop
       } //end while
     return rtnb; //even for non-classes
-  } //isClassASuperclassOf
+  } //isClassASubclassOf
 
   bool CompilerState::isClassAStub(UTI cuti)
   {

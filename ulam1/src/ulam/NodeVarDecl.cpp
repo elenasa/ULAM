@@ -299,7 +299,8 @@ namespace MFM {
 	  }
 
 	setNodeType(it); //needed before safeToCast
-	FORECAST scr = safeToCastTo(eit);
+	FORECAST scr = safeToCastTo(eit); //backwards
+	//FORECAST scr = m_state.getUlamTypeByIndex(it)->safeCast(eit) (really!)
 	if(scr == CAST_BAD)
 	  it = Nav; //error
 	else if(scr == CAST_HAZY)

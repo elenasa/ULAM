@@ -183,7 +183,7 @@ namespace MFM {
     ULAMCLASSTYPE rclasstype = rut->getUlamClass();
     if(rclasstype == UC_QUARK)
       {
-	if(m_state.isClassASuperclassOf(luti, ruti))
+	if(m_state.isClassASubclassOf(luti, ruti))
 	  {
 	    asit = true;
 	  }

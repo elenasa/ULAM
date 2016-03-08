@@ -197,6 +197,7 @@ namespace MFM {
     UlamType * vut = m_state.getUlamTypeByIndex(typidx);
     s32 valbitsize = m_state.getBitSize(typidx);
     s32 bitsize = getBitSize();
+
     ULAMTYPE valtypEnum = vut->getUlamTypeEnum();
     switch(valtypEnum)
       {

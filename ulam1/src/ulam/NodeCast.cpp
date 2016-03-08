@@ -933,7 +933,7 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
 
     m_node->genCodeToStoreInto(fp, uvpass); //No need to load lhs into tmp (T); symbol's in COS vector
 
-    assert(m_state.isClassASuperclassOf(vuti, tobeType)); //vuti is subclass of tobeType
+    assert(m_state.isClassASubclassOf(vuti, tobeType)); //vuti is subclass of tobeType
     s32 tmpVarSuper = m_state.getNextTmpVarNumber();
 
     //e.g. a quark here would be ok if a superclass

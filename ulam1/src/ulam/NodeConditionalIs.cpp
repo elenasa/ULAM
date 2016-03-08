@@ -152,7 +152,7 @@ namespace MFM {
     UTI ruti = getRightType();
 
     // inclusive result for eval purposes (atoms and element types are orthogonal)
-    bool isit = (m_state.isAtom(luti) || (UlamType::compare(luti,ruti,m_state) == UTIC_SAME) || m_state.isClassASuperclassOf(luti, ruti));
+    bool isit = (m_state.isAtom(luti) || (UlamType::compare(luti,ruti,m_state) == UTIC_SAME) || m_state.isClassASubclassOf(luti, ruti));
 
     UlamValue rtnuv = UlamValue::makeImmediate(nuti, (u32) isit, m_state);
 
