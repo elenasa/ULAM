@@ -616,6 +616,8 @@ namespace MFM {
     scalarcosuti = m_state.getUlamTypeAsDeref(scalarcosuti);
     UlamType * scalarcosut = m_state.getUlamTypeByIndex(scalarcosuti);
 
+    STORAGE cstor = ((scalarcosut->getUlamClass() == UC_ELEMENT) || m_state.isAtom(scalarcosuti)) ? TMPBITVAL : TMPREGISTER;
+
     u32 itemlen = cosut->getBitSize();
 
     m_state.indent(fp);
@@ -624,7 +626,7 @@ namespace MFM {
     fp->write(tmpStorageTypeForReadArrayItem(cosuti, uvpass).c_str());
     fp->write(" ");
 
-    fp->write(m_state.getTmpVarAsString(scalarcosuti, tmpVarNum2).c_str());
+    fp->write(m_state.getTmpVarAsString(scalarcosuti, tmpVarNum2, cstor).c_str());
     fp->write(" = ");
 
     // all the cases where '=' is used; else BitVector constructor for converting a tmpvar
@@ -703,7 +705,7 @@ namespace MFM {
       } //end local var
 
     //update uvpass
-    uvpass = UlamValue::makePtr(tmpVarNum2, TMPREGISTER, scalarcosuti, m_state.determinePackable(scalarcosuti), m_state, 0); //POS 0 rightjustified (atom-based).
+    uvpass = UlamValue::makePtr(tmpVarNum2, cstor, scalarcosuti, m_state.determinePackable(scalarcosuti), m_state, 0); //POS 0 rightjustified (atom-based).
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeReadArrayItemIntoTmp
 

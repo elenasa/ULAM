@@ -1218,28 +1218,28 @@ namespace MFM {
     //Unpacked, an item T
     m_state.indent(fp);
     fp->write("BitVector<BPA>& ");
-    fp->write(" getBits(");
+    fp->write("getBits(");
     fp->write("const u32 index) { return ");
     fp->write("m_stgarrayref[index].GetBits(); }\n");
 
     //Unpacked, an item T const
     m_state.indent(fp);
     fp->write("const BitVector<BPA>& ");
-    fp->write(" getBits(");
+    fp->write("getBits(");
     fp->write("const u32 index) const { return ");
     fp->write("m_stgarrayref[index].GetBits(); }\n");
 
     //Unpacked, an item T&
     m_state.indent(fp);
     fp->write("T& ");
-    fp->write(" getRef(");
+    fp->write("getRef(");
     fp->write("const u32 index) { return ");
     fp->write("m_stgarrayref[index]; }\n");
 
     //Unpacked, position within whole
     m_state.indent(fp);
     fp->write("const u32 ");
-    fp->write(" getPosOffset(");
+    fp->write("getPosOffset(");
     fp->write("const u32 index) const { return ");
     fp->write("(BPA * index + BPA - T::ATOM_FIRST_STATE_BIT - ");
     fp->write_decimal_unsigned(itemlen); //right-justified, relative per item
@@ -1248,7 +1248,7 @@ namespace MFM {
     //Unpacked, position within each item T
     m_state.indent(fp);
     fp->write("const u32 ");
-    fp->write(" getPosOffset(");
+    fp->write("getPosOffset(");
     fp->write(" ) const { return ");
     fp->write("(BPA - T::ATOM_FIRST_STATE_BIT - ");
     fp->write_decimal_unsigned(itemlen); //right-justified, relative per item
@@ -1390,28 +1390,28 @@ namespace MFM {
     //Unpacked, an item T
     m_state.indent(fp);
     fp->write("BitVector<BPA>& ");
-    fp->write(" getBits(");
+    fp->write("getBits(");
     fp->write("const u32 index) { return ");
     fp->write("m_stgarr[index].GetBits(); }\n");
 
     //Unpacked, an item T const
     m_state.indent(fp);
     fp->write("const BitVector<BPA>& ");
-    fp->write(" getBits(");
+    fp->write("getBits(");
     fp->write("const u32 index) const { return ");
     fp->write("m_stgarr[index].GetBits(); }\n");
 
     //Unpacked, an item T&
     m_state.indent(fp);
     fp->write("T& ");
-    fp->write(" getRef(");
+    fp->write("getRef(");
     fp->write("const u32 index) { return ");
     fp->write("m_stgarr[index]; }\n");
 
     //Unpacked, position within whole
     m_state.indent(fp);
     fp->write("const u32 ");
-    fp->write(" getPosOffset(");
+    fp->write("getPosOffset(");
     fp->write("const u32 index) const { return ");
     fp->write("(BPA * index + BPA - T::ATOM_FIRST_STATE_BIT - ");
     fp->write_decimal_unsigned(itemlen); //right-justified, relative per item
@@ -1420,7 +1420,7 @@ namespace MFM {
     //Unpacked, position within each item T
     m_state.indent(fp);
     fp->write("const u32 ");
-    fp->write(" getPosOffset(");
+    fp->write("getPosOffset(");
     fp->write(" ) const { return ");
     fp->write("(BPA - T::ATOM_FIRST_STATE_BIT - ");
     fp->write_decimal_unsigned(itemlen); //right-justified, relative per item
