@@ -481,6 +481,8 @@ namespace MFM {
     ULAMCLASSTYPE vclasstype = vut->getUlamClass();
     ULAMTYPE vetype = vut->getUlamTypeEnum();
     assert(vetype == cosut->getUlamTypeEnum());
+    UTI derefuti = m_state.getUlamTypeAsDeref(scalarcosuti);
+    UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
 
     m_state.indent(fp);
     fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
@@ -500,6 +502,13 @@ namespace MFM {
 	    fp->write(", ");
 	    fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
 	    fp->write("u");
+
+	    if(vclasstype == UC_QUARK)
+	      {
+		fp->write(", &");
+		fp->write(derefut->getUlamTypeMangledName().c_str());
+		fp->write("<EC>::THE_INSTANCE");
+	      }
 	  }
 	else
 	  {
@@ -510,13 +519,18 @@ namespace MFM {
 		fp->write(", ");
 		fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
 		fp->write("u");
+
+		if(vclasstype == UC_QUARK)
+		  {
+		    fp->write(", &");
+		    fp->write(derefut->getUlamTypeMangledName().c_str());
+		    fp->write("<EC>::THE_INSTANCE");
+		  }
 	      }
 	    else
 	      {
 		if(vut->getPackable() == PACKEDLOADABLE)
 		  {
-		    UTI derefuti = m_state.getUlamTypeAsDeref(scalarcosuti);
-		    UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
 		    if((vclasstype == UC_NOTACLASS) && (vetype != UAtom) )
 		      {
 			fp->write(", 0u"); //rel off to right-just prim

@@ -605,12 +605,12 @@ namespace MFM {
     fp->write_decimal_unsigned(len); //includes arraysize
     fp->write("u, effself) { }\n");
 
-    //copy constructor here
+    //copy constructor here; pos relative to exisiting (i.e. same).
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const ");
     fp->write(automangledName.c_str());
-    fp->write("<EC>& r) : UlamRef<EC>(r, r.GetPos(), r.GetLen(), r.GetEffectiveSelf()) { }\n");
+    fp->write("<EC>& r) : UlamRef<EC>(r, 0u, r.GetLen(), r.GetEffectiveSelf()) { }\n");
 
     //read 'entire quark' method
     genUlamTypeReadDefinitionForC(fp);
