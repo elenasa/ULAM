@@ -332,24 +332,15 @@ namespace MFM {
 	ULAMCLASSTYPE superclasstype = m_state.getUlamTypeByIndex(superuti)->getUlamClass();
 	if(superclasstype != UC_QUARK)
 	  {
+	    //must be "seen" by c&l; e.g. typedef array of quarks (t3674)
 	    std::ostringstream msg;
 	    msg << "Subclass '";
 	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	    msg << "' inherits from '";
 	    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
 	    msg << "', a class that's not a quark";
-	    if(superclasstype == UC_UNSEEN)
-	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		setNodeType(Hzy);
-		m_state.setGoAgain(); //for compier counts
-		//assert(0);
-	      }
-	    else
-	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		setNodeType(Nav);
-	      }
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
 	  }
       } //done with inheritance checks, continue.
 
