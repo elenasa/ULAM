@@ -22,7 +22,7 @@ namespace MFM{
     u32 siteNumber = Uv_5index.Read();
 
     EventWindow<CC> & ew = const_cast <UlamContext<CC> &>(uc).GetEventWindow();
-    ew.SetAtomSym(siteNumber, Uv_1v.Read());
+    ew.SetAtomSym(siteNumber, Uv_1v.ReadAtom());
   }
 
 } //MFM

@@ -57,9 +57,7 @@ namespace MFM{
     u32 idx = Uv_7siteNum.Read();
     SPoint loc = ew.MapToPointSymValid(idx);
 
-    //Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x::Write(Uv_3ret.getBits(), loc.GetX());
     Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x(Uv_3ret, NULL).Write(loc.GetX());
-    //    Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y::Write(Uv_3ret.getBits(), loc.GetY());
     Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y(Uv_3ret, NULL).Write(loc.GetY());
 
     //! EventWindow.ulam:24:     return ret;
@@ -74,9 +72,7 @@ namespace MFM{
     enum { R = EC::EVENT_WINDOW_RADIUS };
     const EventWindow<EC> & ew = uc.GetEventWindow();
 
-    //const s32 x = _SignExtend32(Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x::Read(Uv_5coord.getBits()), 16);
     const s32 x = _SignExtend32(typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x(Uv_5coord, NULL).Read(), 16);
-    //const s32 y = _SignExtend32(Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y::Read(Uv_5coord.getBits()), 16);
     const s32 y = _SignExtend32(typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y(Uv_5coord, NULL).Read(), 16);
     const SPoint loc(x,y);
     u32 ret;
@@ -132,9 +128,7 @@ namespace MFM{
   {
     const EventWindow<EC> & ew = uc.GetEventWindow();
 
-    //const s32 x = _SignExtend32(Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x::Read(Uv_9211directCoord.getBits()), 16);
     const s32 x = _SignExtend32(Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x(Uv_9211directCoord, NULL).Read(), 16);
-    //const s32 y = _SignExtend32(Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y::Read(Uv_9211directCoord.getBits()), 16);
     const s32 y = _SignExtend32(Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y(Uv_9211directCoord, NULL).Read(), 16);
     const SPoint direct(x,y);
 
@@ -142,10 +136,8 @@ namespace MFM{
 
     Ui_Uq_102323C2D10<EC> Uv_3ret;
 
-    //Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x::Write(Uv_3ret.getBits(), mapped.GetX());
     Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x(Uv_3ret, NULL).Write(mapped.GetX());
 
-    //Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y::Write(Uv_3ret.getBits(), mapped.GetY());
     Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y(Uv_3ret, NULL).Write(mapped.GetY());
 
     //! EventWindow.ulam:38:     return ret;
