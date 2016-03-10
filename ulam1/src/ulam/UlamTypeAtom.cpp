@@ -266,7 +266,7 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write("(const ");
     fp->write(mangledName.c_str());
-    fp->write("& d) : ");
+    fp->write("& d, const UlamContext<EC>& ucarg) : ");
     fp->write("UlamRefAtom<EC>");
     fp->write("(m_stg, d.GetEffectiveSelf()), ");
     fp->write("m_stg(d.m_stg) { }\n");

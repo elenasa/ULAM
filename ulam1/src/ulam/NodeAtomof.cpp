@@ -204,10 +204,18 @@ namespace MFM {
     if(m_state.okUTItoContinue(nuti))
       {
 	m_atomoftype = nuti; //set here!!
-	nuti = UAtomRef;
+	//nuti = UAtomRef;
+	if(m_token.m_type == TOK_IDENTIFIER)
+	  {
+	    Node::setStoreIntoAble(TBOOL_TRUE);
+	    nuti = UAtomRef;
+	  }
+	else
+	  {
+	    Node::setStoreIntoAble(TBOOL_FALSE);
+	    nuti = UAtom;
+	  }
       }
-
-    Node::setStoreIntoAble((m_token.m_type == TOK_IDENTIFIER) ? TBOOL_TRUE : TBOOL_FALSE);
 
     setNodeType(nuti);
     return nuti;
@@ -352,35 +360,93 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 tmpVarNum = m_state.getNextTmpVarNumber(); //tmp for atomref
-
-    m_state.indent(fp); //non-const
-    fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
-    fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
-    fp->write("(");
-
-    if(m_token.m_type == TOK_TYPE_IDENTIFIER)
+    u32 selfid = m_state.m_pool.getIndexForDataString("Self");
+    if((m_token.m_type == TOK_TYPE_IDENTIFIER) && (m_token.m_dataindex == selfid))
       {
+	m_state.indent(fp); //non-const
+	fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
+	fp->write(";\n");
+
+	m_state.indent(fp);
+	fp->write("if(ur.GetType() == T::ATOM_UNDEFINED_TYPE)\n");
+
+	m_state.m_currentIndentLevel++;
+	m_state.indent(fp);
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
+	fp->write(".WriteAtom(");
 	UlamType * aut = m_state.getUlamTypeByIndex(m_atomoftype);
 	fp->write(aut->getLocalStorageTypeAsString().c_str()); //default constr
 	fp->write("()");
+	fp->write(".ReadAtom()");
+	fp->write(");\n");
+	m_state.m_currentIndentLevel--;
+
+	m_state.indent(fp);
+	fp->write("else\n");
+
+	m_state.indent(fp);
+	fp->write("{\n");
+
+	u32 tmpuclass = m_state.getNextTmpVarNumber(); //only for this case
+	m_state.m_currentIndentLevel++;
+	m_state.indent(fp);
+	fp->write("const UlamClass<EC> * ");
+	fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
+	fp->write(" = uc.LookupElementTypeFromContext(ur.GetType());\n");
+
+	m_state.indent(fp);
+	fp->write("if(");
+	fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
+	fp->write(" == NULL) FAIL(ILLEGAL_ARGUMENT);\n");
+
+	m_state.indent(fp);
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
+	fp->write(".WriteAtom(");
+	fp->write("((UlamElement<EC> *) ");
+	fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
+	fp->write(")->GetDefaultAtom()); //atomof\n");
+	m_state.m_currentIndentLevel--;
+
+	m_state.indent(fp);
+	fp->write("} \n");
       }
     else
       {
-	assert(m_varSymbol);
-	//data member's storage is self
-	if(m_varSymbol->isDataMember())
-	  fp->write("ur");
-	else if(m_varSymbol->isSelf())
-	  fp->write("ur");
+	m_state.indent(fp); //non-const
+	fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
+	fp->write("(");
+
+	if(m_token.m_type == TOK_TYPE_IDENTIFIER)
+	  {
+	    UlamType * aut = m_state.getUlamTypeByIndex(m_atomoftype);
+	    fp->write(aut->getLocalStorageTypeAsString().c_str()); //default constr
+	    fp->write("()");
+	  }
 	else
-	  fp->write(m_varSymbol->getMangledName().c_str());
+	  {
+	    assert(m_varSymbol);
+	    //data member's storage is self
+	    if(m_varSymbol->isDataMember())
+	      fp->write("ur");
+	    else if(m_varSymbol->isSelf())
+	      fp->write("ur");
+	    else
+	      fp->write(m_varSymbol->getMangledName().c_str());
+	  }
+
+	if(getStoreIntoAble() == TBOOL_FALSE) //for isSelfType
+	  fp->write(".ReadAtom()");
+	else
+	  fp->write(".GetStorage()"); //can't be const
+
+	fp->write(", uc); //atomof \n");
       }
-    fp->write(".GetStorage()");
-    fp->write(", uc); //atomof \n");
 
     uvpass = UlamValue::makePtr(tmpVarNum, TMPBITVAL, nuti, UNPACKED, m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
-
   } //genCode
 
   void NodeAtomof::genCodeToStoreInto(File * fp, UlamValue& uvpass)

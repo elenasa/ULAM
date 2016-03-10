@@ -367,6 +367,7 @@ namespace MFM{
     s32 getNextTmpVarNumber();
     const std::string getTmpVarAsString(UTI uti, s32 num, STORAGE stg = TMPREGISTER);
     const std::string getUlamRefTmpVarAsString(s32 num);
+    const std::string getUlamClassTmpVarAsString(s32 num);
     const std::string getLabelNumAsString(s32 num);
 
     /** for conditional h/as-magic */

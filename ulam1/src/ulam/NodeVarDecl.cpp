@@ -726,7 +726,7 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str()); //VALUE
 	if(m_state.isAtom(vuti))
 	  {
-	    if(!m_state.isAtomRef(uvpass.getPtrTargetType()))
+	    //if(!m_state.isAtomRef(uvpass.getPtrTargetType()))
 	      fp->write(", uc");
 	  }
 	fp->write(")");
