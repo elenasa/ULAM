@@ -19,7 +19,7 @@ Uq_System { <NOMAIN> }
 ##
 ## informed by: t3667 only data member
 #>A.ulam
-  ulam 1;
+  ulam 2;
 use System;
 element A {
   System s;

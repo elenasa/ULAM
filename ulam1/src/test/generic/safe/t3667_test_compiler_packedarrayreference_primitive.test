@@ -19,7 +19,7 @@ Uq_System { <NOMAIN> }
 ##
 ## informed by: t3276
 #>A.ulam
-  ulam 1;
+  ulam 2;
 use System;
 element A {
   System s;

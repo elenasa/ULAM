@@ -1,10 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3677_test_compiler_elementandquark_Selfatomoffordefaultquarklocal
 #!
-##      gen code output: (1 assert)
+##      gen code output: (2 asserts)
 ##
 Exit status: 0
-Ue_A { Bool(1) b(false);  Int(32) test() {  System s;  QW m_qw;  Atom(96) a = m_qw ( )func .;  { a A as cond { A& a;  s ( false )assert . } if s ( true )assert . else } 0 cast return } }
+Ue_A { Bool(1) b(false);  Int(32) test() {  System s;  QW qw;  Atom(96) a = qw ( )func .;  { a A as cond { A& a;  s ( false )assert . } if s ( true )assert . else } { a QW is cond s ( false )assert . if s ( true )assert . else } 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }
 ##
@@ -12,19 +12,26 @@ Uq_QW { <NOMAIN> }
 ## Self.atomof (default) vs self.atomof (current stg)
 ##
 #>A.ulam
-  ulam 1;
+  ulam 2;
 use System;
 use QW;
 element A {
   Bool b;
   Int test(){
     System s;
-    QW m_qw;
-    Atom a = m_qw.func();
+    QW qw;
+    Atom a = qw.func();
     if(a as Self)
       s.assert(false); //wrong
     else
       s.assert(true); //correct
+
+    //s.assert(a is QW); fails
+    if(a is QW)
+      s.assert(false); //fails
+    else
+      s.assert(true); //correct
+
     return 0;
   }
 }

@@ -369,6 +369,60 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
 	fp->write(";\n");
 
+	u32 tmpuclass = m_state.getNextTmpVarNumber(); //only for this case
+	m_state.indent(fp);
+	fp->write("const UlamClass<EC> * ");
+	fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
+	fp->write(" = ur.GetEffectiveSelf();\n");
+
+	m_state.indent(fp);
+	fp->write("if(");
+	fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
+	fp->write("->AsUlamQuark() != NULL)\n");
+
+	m_state.m_currentIndentLevel++;
+	m_state.indent(fp);
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
+	fp->write(".WriteAtom(");
+	UlamType * aut = m_state.getUlamTypeByIndex(m_atomoftype);
+	fp->write(aut->getLocalStorageTypeAsString().c_str()); //default constr
+	fp->write("()");
+	fp->write(".ReadAtom()");
+	fp->write("); //default quark atomof\n");
+	m_state.m_currentIndentLevel--;
+
+	m_state.indent(fp);
+	fp->write("else\n");
+
+	m_state.indent(fp);
+	fp->write("{\n");
+
+	m_state.m_currentIndentLevel++;
+
+	m_state.indent(fp);
+	fp->write("if(");
+	fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
+	fp->write(" == NULL) FAIL(ILLEGAL_ARGUMENT);\n");
+
+	m_state.indent(fp);
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
+	fp->write(".WriteAtom(");
+	fp->write("((UlamElement<EC> *) ");
+	fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
+	fp->write(")->GetDefaultAtom()); //default element atomof\n");
+
+	m_state.m_currentIndentLevel--;
+
+	m_state.indent(fp);
+	fp->write("} \n");
+
+#if 0
+	m_state.indent(fp); //non-const
+	fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
+	fp->write(";\n");
+
 	m_state.indent(fp);
 	fp->write("if(ur.GetType() == T::ATOM_UNDEFINED_TYPE)\n");
 
@@ -411,6 +465,8 @@ namespace MFM {
 
 	m_state.indent(fp);
 	fp->write("} \n");
+#endif
+
       }
     else
       {
@@ -452,6 +508,7 @@ namespace MFM {
   void NodeAtomof::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     //lhs
+    assert(getStoreIntoAble() == TBOOL_TRUE);
     NodeAtomof::genCode(fp, uvpass);
   } //genCodeToStoreInto
 

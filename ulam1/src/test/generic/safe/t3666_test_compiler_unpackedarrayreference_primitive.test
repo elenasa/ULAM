@@ -20,7 +20,7 @@ Uq_System { <NOMAIN> }
 ## informed by t3276 (see t3667 for packed primitive)
 ##
 #>A.ulam
-  ulam 1;
+  ulam 2;
 use System;
 element A {
   System s;

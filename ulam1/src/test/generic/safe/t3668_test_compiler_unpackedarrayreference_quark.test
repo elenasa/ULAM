@@ -21,7 +21,7 @@ Uq_System { <NOMAIN> }
 ## informed by t3666 (see t3669 for packed quark)
 ##
 #>A.ulam
-  ulam 1;
+  ulam 2;
 use QW;
 use System;
 element A {
