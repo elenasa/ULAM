@@ -63,8 +63,8 @@ namespace MFM {
     UlamType * aut = m_state.getUlamTypeByIndex(auti);
     ULAMCLASSTYPE aclasstype = aut->getUlamClass();
 
-    //u32 atop = 1; //m_state.m_funcCallStack.getAbsoluteTopOfStackIndexOfNextSlot();
-    u32 atop = m_state.m_funcCallStack.getAbsoluteStackIndexOfSlot(1);
+    u32 atop = 1;
+    atop = m_state.m_funcCallStack.getAbsoluteStackIndexOfSlot(atop);
     if(m_state.isAtom(auti))
       atomuv = UlamValue::makeAtom(auti);
     else if(aclasstype == UC_ELEMENT)
@@ -80,7 +80,6 @@ namespace MFM {
       assert(0);
 
     m_state.m_funcCallStack.storeUlamValueAtStackIndex(atomuv, atop); //stackframeslotindex ?
-    //m_state.m_funcCallStack.storeUlamValueInSlot(atomuv, atop); //relative to current frame
 
     ptr = UlamValue::makePtr(atop, STACK, auti, UNPACKED, m_state, 0);
     ptr.setUlamValueTypeIdx(PtrAbs);
@@ -156,32 +155,32 @@ namespace MFM {
 	    m_state.m_currentIndentLevel--;
 	  }
       }
-    uvpass = UlamValue::makePtr(tmpVarNum, TMPBITVAL, nuti, UNPACKED, m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
-#if 0
 
-    // THE READ: coming soon!!
-    s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp for atomref
+    // THE READ:
+    s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp to read into
     STORAGE rstor = nut->getUlamClass() == UC_QUARK ? TMPREGISTER : TMPBITVAL;
     PACKFIT packfit = nut->getUlamClass() == UC_QUARK ? PACKEDLOADABLE : UNPACKED;
 
     m_state.indent(fp);
     fp->write("const ");
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //for C++ local vars
+    fp->write(" ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum2, rstor).c_str());
     fp->write(" = ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
-    fp->write(nut->getReadMethodForCodeGen().c_str());
+    fp->write(".");
+    fp->write(nut->readMethodForCodeGen().c_str());
     fp->write("();\n");
 
     uvpass = UlamValue::makePtr(tmpVarNum2, rstor, nuti, packfit, m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
-#endif
+
+    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
   } //genCode
 
   void NodeInstanceof::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     //lhs
     assert(getStoreIntoAble() == TBOOL_TRUE); //not so.
-    //NodeInstanceof::genCode(fp, uvpass);
   } //genCodeToStoreInto
 
 } //end MFM

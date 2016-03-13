@@ -1,0 +1,35 @@
+## -*- mode:ulam -*-
+#=t3665_test_compiler_element_typedefquarkref_error
+##
+## gen code:
+##   include/Ue_10103Foo10.tcc:37: FAILED: ILLEGAL_ARGUMENT
+#!
+./Foo.ulam:10:15: ERROR: Unexpected token <(> for initial value of reference.
+./Foo.ulam:10:16: ERROR: Invalid Statement (possible missing semicolon).
+Unrecoverable Program Parse FAILURE.
+##
+## informed by t3657
+##
+#>Foo.ulam
+  ulam 2;
+use QPerc;
+element Foo {
+
+  Int test() {
+    QPerc q;
+    q.bb = true;
+    typedef QPerc& QPR;
+    QPR qref = q;
+    Atom& a = (Atom) qref.storageof; //(Atom) qref;
+
+    return 0;
+  }
+}
+
+#:QPerc.ulam
+  ulam 2;
+quark QPerc {
+  Bool bb;
+}
+
+#.

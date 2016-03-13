@@ -826,7 +826,6 @@ namespace MFM {
     if(stgcos->isSelf() && (stgcos == cos))
       return genCodeWriteToSelfFromATmpVar(fp, luvpass, ruvpass);
 
-    //if(m_state.m_currentObjSymbolsForCodeGen.empty() && (ruti == luti) && lut->isReference() && lut->getUlamTypeEnum() == UAtom)
     if(m_state.isAtomRef(luti) && m_state.isAtom(ruti))
       return genCodeWriteToAtomofRefFromATmpVar(fp, luvpass, ruvpass);
 
@@ -870,11 +869,6 @@ namespace MFM {
     // with immediate elements, too! value is not a terminal
     STORAGE rstor = rut->getUlamClass() == UC_QUARK ? TMPREGISTER : ruvpass.getPtrStorage();
     fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), rstor).c_str());
-
-    //if(m_state.isAtomRef(ruti))
-    if(m_state.isAtom(ruti))
-      fp->write(".ReadAtom()");
-
     fp->write(");\n");
 
     // inheritance cast needs the lhs type restored after the generated write
@@ -948,11 +942,6 @@ namespace MFM {
 
     //VALUE TO BE WRITTEN:
     fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
-
-    if(m_state.isAtomRef(ruti))
-    //if(m_state.isAtom(ruti)) //what if element?
-      fp->write(".ReadAtom()");
-
     fp->write("); //write into atomof ref\n ");
 
     m_state.m_currentObjSymbolsForCodeGen.clear();

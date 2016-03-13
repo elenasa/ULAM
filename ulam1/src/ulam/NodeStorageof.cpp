@@ -106,9 +106,6 @@ namespace MFM {
 	assert(m_state.okUTItoContinue(ttype));
 	if((m_state.getUlamTypeByIndex(ttype)->getUlamClass() == UC_QUARK))
 	  {
-	    //u32 vid = m_varSymbol->getId();
-	    //if(vid == m_state.m_pool.getIndexForDataString("self"))
-	    //selfuvp = m_state.getAtomPtrFromSelfPtr();
 	    selfuvp = atomuv; //bail for error
 	  }
 	return selfuvp;
@@ -150,6 +147,34 @@ namespace MFM {
 
   void NodeStorageof::genCode(File * fp, UlamValue& uvpass)
   {
+    //First, read into UAtomref immediate
+    genCodeToStoreInto(fp, uvpass);
+    s32 tmpVarNum = uvpass.getPtrSlotIndex(); //uatomref
+
+    // THEN READ:
+    s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp to read into, T
+
+    UTI nuti = getNodeType(); //UAtomRef
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+    m_state.indent(fp); //non-const
+    fp->write(nut->getTmpStorageTypeAsString().c_str()); //for C++ local vars
+    fp->write(" ");
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum2, TMPBITVAL).c_str());
+    fp->write(" = ");
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
+    fp->write(".");
+    fp->write(nut->readMethodForCodeGen().c_str());
+    fp->write("();\n");
+
+    uvpass = UlamValue::makePtr(tmpVarNum2, TMPBITVAL, nuti, UNPACKED, m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
+    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
+  } //genCode
+
+  void NodeStorageof::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  {
+    //lhs
+    assert(getStoreIntoAble() == TBOOL_TRUE);
     UTI nuti = getNodeType(); //UAtomRef
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 tmpVarNum = m_state.getNextTmpVarNumber(); //tmp for atomref
@@ -191,13 +216,8 @@ namespace MFM {
     fp->write(", uc); //storageof \n");
 
     uvpass = UlamValue::makePtr(tmpVarNum, TMPBITVAL, nuti, UNPACKED, m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
-  } //genCode
 
-  void NodeStorageof::genCodeToStoreInto(File * fp, UlamValue& uvpass)
-  {
-    //lhs
-    assert(getStoreIntoAble() == TBOOL_TRUE);
-    NodeStorageof::genCode(fp, uvpass);
+    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
   } //genCodeToStoreInto
 
 } //end MFM

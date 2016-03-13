@@ -2,7 +2,7 @@
 #=t3664_test_compiler_element_castatomfromselfatomof_controlif
 #!
 Exit status: -11
-Ue_Foo : QPerc { :< Bool(1) bb(true); > Int(32) test() {  bb true = { bb cond Atom(96) a = self.atomof cast;  if } Atom(96) a = self.atomof cast;  0 cast return } }
+Ue_Foo : QPerc { :< Bool(1) bb(true); > Int(32) test() {  bb true = { bb cond Atom(96) a = self.storageof cast;  if } Atom(96) a = self.storageof cast;  0 cast return } }
 Uq_QPerc { Bool(1) bb(false);  <NOMAIN> }
 ##
 ## informed by a Dave ish 2/19/2016;
@@ -16,9 +16,9 @@ element Foo : QPerc {
 
     bb = true;
     if(bb)
-      Atom a = self.atomof; //tests scope bug fix of singleton if
+      Atom a = self.storageof; //tests scope bug fix of singleton if
 
-    Atom a = self.atomof;
+    Atom a = self.storageof;
     return 0;
   }
 }

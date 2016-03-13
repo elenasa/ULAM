@@ -979,7 +979,6 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
     UlamType * nodeut = m_state.getUlamTypeByIndex(nodetype);
     if((nodeut->getUlamClass() == UC_QUARK) && (m_state.isAtom(tobeuti) || (tobeut->getUlamClass() == UC_ELEMENT)))
       {
-
 	//when this is a custom array, the symbol is the "ew" for example,
 	//not the atom (e.g. ew[idx]) that has no symbol
 	m_node->genCodeToStoreInto(fp, uvpass); //No need to load lhs into tmp (T); symbol's in COS vector
@@ -1006,23 +1005,11 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
 	uvpass = UlamValue::makePtr(tmpVarTobe, TMPBITVAL, tobeuti, m_state.determinePackable(tobeuti), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id
 	m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs
       }
-    else if(m_state.isAtom(nodetype) && m_state.isAtom(tobeuti))
+    else if(m_state.isAtomRef(nodetype) && m_state.isAtom(tobeuti) && !m_state.isAtomRef(tobeuti))
       {
-	s32 tmpVarTobe = m_state.getNextTmpVarNumber();
-
-	m_state.indent(fp);
-	fp->write("const ");
-	fp->write(tobeut->getTmpStorageTypeAsString().c_str()); //u32
-	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(tobeuti, tmpVarTobe, TMPBITVAL).c_str());;
-	fp->write(" = ");
-	fp->write(m_state.getTmpVarAsString(nodetype, uvpass.getPtrSlotIndex(), TMPBITVAL).c_str());;
-	fp->write(".");
-	fp->write(tobeut->readMethodForCodeGen().c_str());
-	fp->write("();\n");
-
-	//update the uvpass to have the casted type
-	uvpass = UlamValue::makePtr(tmpVarTobe, TMPBITVAL, tobeuti, m_state.determinePackable(tobeuti), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id
+	// from atomref to atom (non-ref)
+	// update the uvpass to have the casted type; (no read)
+	uvpass = UlamValue::makePtr(uvpass.getPtrSlotIndex(), TMPBITVAL, tobeuti, m_state.determinePackable(tobeuti), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id
 	m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs
       }
     else

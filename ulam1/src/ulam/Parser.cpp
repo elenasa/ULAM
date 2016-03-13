@@ -1551,7 +1551,7 @@ namespace MFM {
     Token pTok;
     getNextToken(pTok);
 
-    if(Token::isTokenAType(pTok) && pTok.m_type != TOK_KW_TYPE_VOID && pTok.m_type != TOK_KW_TYPE_ATOM)
+    if(Token::isTokenAType(pTok) && (pTok.m_type != TOK_KW_TYPE_VOID) && (pTok.m_type != TOK_KW_TYPE_ATOM))
       {
 	unreadToken();
 	TypeArgs typeargs;

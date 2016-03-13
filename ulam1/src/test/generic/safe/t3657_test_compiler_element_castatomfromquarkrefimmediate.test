@@ -1,11 +1,11 @@
 ## -*- mode:ulam -*-
 #=t3657_test_compiler_element_castatomfromquarkrefimmediate
 ##
-## gen output: 2 asserts
+## gen output: 3 asserts
 ## eval: bb is false; should be true
 #!
 Exit status: -11
-Ue_Foo : QPerc { :< Bool(1) bb(false); > Int(32) test() {  System s;  QPerc q;  q bb . true = s ( q bb . )assert . QPerc& qref = q;  s ( qref bb . )assert . Atom(96)& a = qref.atomof;  Atom(96) b = QPerc.atomof;  Atom(96) c = Foo.atomof;  Atom(96) d = self.atomof cast;  self.atomof d cast = Atom(96) e;  e self.atomof cast = Foo f;  f.atomof self.atomof = 0 cast return } }
+Ue_Foo : QPerc { :< Bool(1) bb(false); > Int(32) test() {  System s;  QPerc q;  q bb . true = s ( q bb . )assert . QPerc& qref = q;  s ( qref bb . )assert . QPerc b = QPerc.instanceof;  s ( b bb . q bb . != )assert . Atom(96) c = Foo.instanceof cast;  Atom(96) d = self.storageof cast;  self.storageof d cast = Atom(96) e;  e self.instanceof = Foo f;  f.storageof self.instanceof cast = 0 cast return } }
 Uq_QPerc { Bool(1) bb(false);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
@@ -26,7 +26,7 @@ element Foo : QPerc {
     QPerc& qref = q;
     s.assert(qref.bb);
 
-    Atom& a = qref.storageof; //(Atom) qref; UNDEFINED_TYPE
+    //Atom& a = qref.storageof; //(Atom) qref; ILLEGAL_ARGUMENT
 
     QPerc b = QPerc.instanceof; //not a lhs ref (see t3659)
     s.assert(b.bb != q.bb);
