@@ -57,8 +57,8 @@ namespace MFM{
     u32 idx = Uv_7siteNum.Read();
     SPoint loc = ew.MapToPointSymValid(idx);
 
-    Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x(Uv_3ret, NULL).Write(loc.GetX());
-    Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y(Uv_3ret, NULL).Write(loc.GetY());
+    typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x(Uv_3ret, NULL).Write(loc.GetX());
+    typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y(Uv_3ret, NULL).Write(loc.GetY());
 
     //! EventWindow.ulam:24:     return ret;
     const u32 Uh_tmpreg_loadable_240 = Uv_3ret.Read();
