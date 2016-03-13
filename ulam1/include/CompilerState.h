@@ -224,7 +224,7 @@ namespace MFM{
     bool isClassATemplate(UTI cuti);
     UTI isClassASubclass(UTI cuti); //returns super UTI, or Nav if no inheritance
     void resetClassSuperclass(UTI cuti, UTI superuti);
-    bool isClassASuperclassOf(UTI cuti, UTI superp);
+    bool isClassASubclassOf(UTI cuti, UTI superp);
     bool isClassAStub(UTI cuti);
     bool hasClassAStub(UTI cuti);
     bool isClassAQuarkUnion(UTI cuti);
@@ -367,6 +367,7 @@ namespace MFM{
     s32 getNextTmpVarNumber();
     const std::string getTmpVarAsString(UTI uti, s32 num, STORAGE stg = TMPREGISTER);
     const std::string getUlamRefTmpVarAsString(s32 num);
+    const std::string getUlamClassTmpVarAsString(s32 num);
     const std::string getLabelNumAsString(s32 num);
 
     /** for conditional h/as-magic */

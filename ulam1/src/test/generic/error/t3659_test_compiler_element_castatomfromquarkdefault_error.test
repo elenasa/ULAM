@@ -1,10 +1,11 @@
 ## -*- mode:ulam -*-
 #=t3659_test_compiler_element_castatomfromquarkdefault_error
+##
+## eval error exit status: -1
 #!
-./Foo.ulam:6:5: ERROR: Storage expression for: b, must be storeintoable.
-./Foo.ulam:3:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Foo.
-./Foo.ulam:3:9: ERROR: 2 Nodes with unresolved types detected after type labeling class: Foo.
-Unrecoverable Program Type Label FAILURE.
+Exit status: -1
+Ue_Foo : QPerc { :< Bool(1) bb(false); > Int(32) test() {  QPerc q = QPerc.instanceof;  QPerc& qref = q;  Atom(96)& b = qref.storageof;  Foo f = Foo.instanceof;  Foo& fref = f;  Atom(96)& c = f.storageof;  1 cast return } }
+Uq_QPerc { Bool(1) bb(false);  <NOMAIN> }
 ##
 ## informed by t3657
 ##
@@ -14,9 +15,13 @@ use QPerc;
 element Foo : QPerc {
 
   Int test() {
-    Atom& b = QPerc.atomof; //(Atom) qref;
+    QPerc q = QPerc.instanceof;
+    QPerc& qref = q;
+    Atom& b = qref.storageof; //(Atom) qref;
 
-    Atom& c = Foo.atomof; //still hazy, no error msg
+    Foo f = Foo.instanceof;
+    Foo & fref = f;
+    Atom& c = f.storageof;
     return 1;
   }
 }

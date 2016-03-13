@@ -100,7 +100,7 @@ namespace MFM {
     UTI listuti = Nav;
     bool hazyKin = false;
 
-    if(m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex,fnsymptr, hazyKin) && !hazyKin)
+    if(m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex, fnsymptr, hazyKin) && !hazyKin)
       {
         //use member block doesn't apply to arguments; no change to current block
 	m_state.pushCurrentBlockAndDontUseMemberBlock(m_state.getCurrentBlock()); //set forall args
@@ -462,7 +462,7 @@ namespace MFM {
 	    UlamValue auv = m_state.m_nodeEvalStack.popArg();
 	    if(paramreftype == ALT_REF && (auv.getPtrStorage() == STACK))
 	      {
-		assert(auv.getUlamValueTypeIdx() == Ptr);
+		assert(m_state.isPtr(auv.getUlamValueTypeIdx()));
 		u32 absrefslot = m_state.m_funcCallStack.getAbsoluteStackIndexOfSlot(auv.getPtrSlotIndex());
 		auv.setPtrSlotIndex(absrefslot);
 		auv.setUlamValueTypeIdx(PtrAbs);
@@ -620,6 +620,8 @@ namespace MFM {
 	s32 atomslot = atomPtr.getPtrSlotIndex();
 	s32 adjustedatomslot = atomslot - (nextslot + rtnslots + 1); //negative index; 1 more for atomPtr
 	atomPtr.setPtrSlotIndex(adjustedatomslot);
+	if(atomPtr.getUlamValueTypeIdx() == PtrAbs)
+	  atomPtr.setUlamValueTypeIdx(Ptr); //let's see..
       }
     // push the "hidden" first arg, and update the current object ptr (restore later)
     m_state.m_funcCallStack.pushArg(atomPtr); //*********
@@ -1240,7 +1242,7 @@ namespace MFM {
 	    Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
 	  }
 	auti = auvpass.getUlamValueTypeIdx();
-	if(auti == Ptr)
+	if(m_state.isPtr(auti))
 	  {
 	    auti = auvpass.getPtrTargetType();
 	  }
@@ -1267,7 +1269,7 @@ namespace MFM {
 	      }
 
 	    auti = auvpass.getUlamValueTypeIdx();
-	    if(auti == Ptr)
+	    if(m_state.isPtr(auti))
 	      {
 		auti = auvpass.getPtrTargetType();
 	      }
@@ -1292,7 +1294,12 @@ namespace MFM {
     // or ancestor quark if a class.
     m_argumentNodes->genCodeToStoreInto(fp, uvpass, n);
 
-    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    //assert(!m_state.m_currentObjSymbolsForCodeGen.empty()); such as .storageof
+    if(m_state.m_currentObjSymbolsForCodeGen.empty())
+      {
+	return genCodeAnonymousReferenceArg(fp, uvpass, n); //such as .storageof
+      }
+
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
@@ -1333,7 +1340,11 @@ namespace MFM {
 	  }
 	else
 	  {
-	    if(vclasstype == UC_NOTACLASS)
+	    if(m_state.isAtom(vuti))
+	      {
+		//nada - copy constructor
+	      }
+	    else if(vclasstype == UC_NOTACLASS)
 	      {
 		fp->write(", ");
 		fp->write_decimal_unsigned(BITSPERATOM - stgcosut->getTotalBitSize()); //right-justified
@@ -1350,6 +1361,44 @@ namespace MFM {
 
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
   } //genCodeReferenceArg
+
+  // uses uvpass rather than stgcos, cos for classes or atoms (not primitives)
+  void NodeFunctionCall::genCodeAnonymousReferenceArg(File * fp, UlamValue & uvpass, u32 n)
+  {
+    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //such as .storageof
+
+    assert(m_funcSymbol);
+    UTI vuti = m_funcSymbol->getParameterType(n);
+    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+
+    UTI puti = uvpass.getUlamValueTypeIdx();
+    assert(m_state.isPtr(puti));
+    puti = uvpass.getPtrTargetType();
+    UlamType * put = m_state.getUlamTypeByIndex(puti);
+    STORAGE rstor = put->getUlamClass() == UC_QUARK ? TMPREGISTER : uvpass.getPtrStorage();
+
+    assert(vut->getUlamTypeEnum() == put->getUlamTypeEnum());
+
+    s32 tmpVarArgNum = uvpass.getPtrSlotIndex();
+    s32 tmpVarArgNum2 = m_state.getNextTmpVarNumber();
+
+    m_state.indent(fp);
+    fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+    fp->write(" ");
+
+    fp->write(m_state.getTmpVarAsString(vuti, tmpVarArgNum2, TMPBITVAL).c_str());
+    fp->write("("); //pass ref in constructor (ref's not assigned with =)
+    fp->write(m_state.getTmpVarAsString(puti, tmpVarArgNum, rstor).c_str());
+
+    if(vclasstype == UC_QUARK)
+      fp->write(", 0u"); //left-justified
+
+    fp->write(");\n");
+
+    uvpass.setPtrSlotIndex(tmpVarArgNum2);
+    uvpass.setPtrStorage(TMPBITVAL);
+  } //genCodeAnonymousReferenceArg
 
 void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp)
   {

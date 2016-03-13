@@ -37,8 +37,8 @@ namespace MFM {
 
   void UnpackedStorage::assignUlamValue(UlamValue pluv, UlamValue ruv)
   {
-    assert(pluv.getUlamValueTypeIdx() == Ptr);
-    assert(ruv.getUlamValueTypeIdx() != Ptr);
+    assert(m_state.isPtr(pluv.getUlamValueTypeIdx()));
+    assert(!m_state.isPtr(ruv.getUlamValueTypeIdx()));
 
     s32 leftbaseslot = pluv.getPtrSlotIndex();    //even for scalars
 

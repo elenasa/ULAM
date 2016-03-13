@@ -50,13 +50,13 @@ namespace MFM{
   {
   public:
 
-    NodeAtomof(Token tokatomof, NodeTypeDescriptor * nodetype, CompilerState & state);
+    NodeAtomof(Token tokof, NodeTypeDescriptor * nodetype, CompilerState & state);
 
     NodeAtomof(const NodeAtomof& ref);
 
     virtual ~NodeAtomof();
 
-    virtual Node * instantiate();
+    //    virtual Node * instantiate();
 
     virtual void updateLineage(NNO pno);
 
@@ -72,32 +72,35 @@ namespace MFM{
 
     virtual FORECAST safeToCastTo(UTI newType);
 
-    UTI getAtomType();
-
     virtual UTI checkAndLabelType();
-
-    NNO getBlockNo() const;
-
-    NodeBlock * getBlock();
 
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void genCode(File * fp, UlamValue& uvpass) = 0;
 
-    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
+    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass) = 0;
 
   protected:
 
-  private:
-    NodeTypeDescriptor * m_nodeTypeDesc;
     Token m_token;
-    UTI m_atomoftype;
     SymbolVariable * m_varSymbol;
+
+    UTI getOfType();
+    void setOfType(UTI oftyp);
+
+    virtual UlamValue makeUlamValuePtr() = 0;
+
+  private:
+
+    UTI m_oftype;
+    NodeTypeDescriptor * m_nodeTypeDesc;
     NNO m_currBlockNo;
 
-    UlamValue makeUlamValuePtr();
+    NNO getBlockNo() const;
+
+    NodeBlock * getBlock();
   };
 
 }

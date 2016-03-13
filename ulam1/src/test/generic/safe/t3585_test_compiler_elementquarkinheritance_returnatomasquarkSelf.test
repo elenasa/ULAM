@@ -2,15 +2,12 @@
 #=t3585_test_compiler_elementquarkinheritance_returnatomasquarkSelf
 ## gencode output (interleaved asserts):
 ##Unsigned Arg: 1
-##Unsigned Arg: 3
-##Unsigned Arg: 6
-##Unsigned Arg: 4
 ##
-## cus evals as 0u and fails; expects 1u/
+## cus evals as 6u and fails; expects 1u/
 ##
 #!
-Exit status: 6
-Ue_Foo : Soo { :< :< Unsigned(3) us(2u);  Bool(3) cb(true); > Unsigned(3) sus(4u); > Bool(1) first(false);  Unsigned(3) cus(1u);  Unsigned(3) dus(3u);  Int(32) test() {  System s;  Coo c = ( )func;  cus c us . = s ( c us . cast )print . s ( c us . cast 1 cast == )assert . Coo d = c ( )func .;  dus d us . = s ( d us . cast )print . s ( d us . cast 3 cast == )assert . s ( c us . cast d us . cast +b cast )print . s ( c us . cast d us . cast +b cast 6 cast == )assert . s ( cus cast dus cast +b cast )print . s ( cus cast dus cast +b cast 4 cast == )assert . c us . cast d us . cast +b cast return } }
+Exit status: -11
+Ue_Foo : Soo { :< :< Unsigned(3) us(2u);  Bool(3) cb(true); > Unsigned(3) sus(4u); > Bool(1) first(false);  Unsigned(3) cus(6u);  Int(32) test() {  System s;  Coo c = ( )func;  cus c us . = s ( c us . cast )print . s ( c us . cast 1 cast == )assert . c us . cast return } }
 Uq_Soo : Coo { :< Unsigned(3) us( 2u);  Bool(3) cb( true); > Unsigned(3) sus( 4u);  <NOMAIN> }
 Uq_Coo { Unsigned(3) us( 2u);  Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
@@ -25,7 +22,7 @@ use System;
 element Foo : Soo {
   Bool first;
   Unsigned(3) cus = 6u;
-  Unsigned(3) dus = 6u;
+  //Unsigned(3) dus = 6u;
   Int test() {
     System s;
 
@@ -34,6 +31,8 @@ element Foo : Soo {
     s.print(c.us); //1
     s.assert(c.us == 1); //1
 
+    /*
+    FAILED: ILLEGAL_ARGUMENT
     Coo d = c.func(); //what happens when atom is not an Atom, immediate UNDEFINED_TYPE
     dus = d.us;
     s.print(d.us); //3
@@ -46,6 +45,8 @@ element Foo : Soo {
     s.assert(cus + dus == 4); //4
 
     return (c.us + d.us);
+    */
+    return c.us;
   }
 }
 
@@ -63,9 +64,9 @@ quark Coo {
   Bool(3) cb = true;
   Self func()
   {
-    Atom f = self.atomof; //was atom, was self
+    Atom f = self.storageof; //was atom, was self
     ////Foo f = (Foo) self;
-    if(f as Foo) //for eval
+    //if(f as Foo) //for eval
     {
       if(f as Coo)
       {

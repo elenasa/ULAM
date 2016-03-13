@@ -74,7 +74,7 @@ namespace MFM{
     EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
     Base<AC> & base = ew.GetBase();
 
-    const T atom = Uv_1a.Read();
+    const T atom = Uv_1a.ReadAtom();
 
     base.PutBaseAtom(atom);
   } // Uf_7setBase

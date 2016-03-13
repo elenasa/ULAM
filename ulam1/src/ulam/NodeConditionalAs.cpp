@@ -163,7 +163,7 @@ namespace MFM {
 
     // DO 'AS': rtype quark 'is' related (was 'has'); rtype element 'is'
     UTI luti = pluv.getUlamValueTypeIdx();
-    assert(luti == Ptr);
+    assert(m_state.isPtr(luti));
     luti = pluv.getPtrTargetType();
     assert(m_state.okUTItoContinue(luti));
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
@@ -183,7 +183,7 @@ namespace MFM {
     ULAMCLASSTYPE rclasstype = rut->getUlamClass();
     if(rclasstype == UC_QUARK)
       {
-	if(m_state.isClassASuperclassOf(luti, ruti))
+	if(m_state.isClassASubclassOf(luti, ruti))
 	  {
 	    asit = true;
 	  }
@@ -197,7 +197,7 @@ namespace MFM {
 		msg << "'; Class '";
 		msg << lut->getUlamTypeNameBrief().c_str();
 		msg << "' Not Found during eval";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	      }
 	    else
 	      {
@@ -208,13 +208,26 @@ namespace MFM {
 		msg << "; Passing through as UNFOUND for eval";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	      }
+	    evalNodeEpilog();
+	    return UNEVALUABLE;
 	  }
       }
     else if(rclasstype == UC_ELEMENT)
       {
 	// like 'is'
-	// inclusive result for eval purposes (atoms and element types are orthogonal)
-	asit = (m_state.isAtom(luti) || (UlamType::compare(luti, ruti, m_state) == UTIC_SAME));
+	// was inclusive result for eval purposes (atoms and element types are orthogonal)
+	// now optional for debugging
+#define _LET_ATOM_AS_ELEMENT
+#ifndef _LET_ATOM_AS_ELEMENT
+	if(m_state.isAtom(luti))
+	  {
+	    evalNodeEpilog();
+	    return UNEVALUABLE;
+	  }
+	asit = (UlamType::compare(luti, ruti, m_state) == UTIC_SAME);
+#else
+	asit = m_state.isAtom(luti) || (UlamType::compare(luti, ruti, m_state) == UTIC_SAME);
+#endif
       }
 
     if(asit)
@@ -250,7 +263,7 @@ namespace MFM {
     UlamValue luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass); //needs to load lhs into tmp (T); symbol's in COS vector
     UTI luti = luvpass.getUlamValueTypeIdx();
-    assert(luti == Ptr);
+    assert(m_state.isPtr(luti));
     luti = luvpass.getPtrTargetType(); //replaces
     assert(m_state.okUTItoContinue(luti));
     UlamType * lut = m_state.getUlamTypeByIndex(luti);

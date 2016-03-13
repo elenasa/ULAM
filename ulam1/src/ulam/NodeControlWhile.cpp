@@ -61,12 +61,12 @@ namespace MFM {
  	evs = m_nodeBody->eval(); //side-effect
 	if(evs == BREAK)
 	  break; //use C to break out of this loop
-	else if(evs == RETURN || evs == ERROR)
+	else if((evs == RETURN) || (evs == ERROR) || (evs == UNEVALUABLE))
 	  {
 	    evalNodeEpilog();
 	    return evs;
 	  }
-	assert(evs == NORMAL || evs == CONTINUE);
+	assert((evs == NORMAL) || (evs == CONTINUE));
 
 	//continue continues as normal
 	m_state.m_nodeEvalStack.popArgs(slots);
@@ -109,7 +109,7 @@ namespace MFM {
     bool isTerminal = false;
     UTI cuti = uvpass.getUlamValueTypeIdx();
 
-    if(cuti == Ptr)
+    if(m_state.isPtr(cuti))
       {
 	cuti = uvpass.getPtrTargetType();
       }

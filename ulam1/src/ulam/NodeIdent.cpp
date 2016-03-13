@@ -327,7 +327,7 @@ namespace MFM {
 
 	// redo what getPtrTarget use to do, when types didn't match due to
 	// an element/quark or a requested scalar of an arraytype
-	if((ttype == Ptr) || (UlamType::compare(ttype, nuti, m_state) == UTIC_NOTSAME))
+	if(m_state.isPtr(ttype) || (UlamType::compare(ttype, nuti, m_state) == UTIC_NOTSAME))
 	  {
 	    if(m_state.isClassACustomArray(nuti))
 	      {
@@ -366,7 +366,7 @@ namespace MFM {
 		  {
 		    UTI vuti = uv.getUlamValueTypeIdx();
 		    // does this handle a ptr to a ptr (e.g. "self")? (see makeUlamValuePtr)
-		    if(vuti == Ptr)
+		    if(m_state.isPtr(vuti))
 		      {
 			uvp = uv;
 			uv = m_state.getPtrTarget(uvp);
@@ -431,7 +431,9 @@ namespace MFM {
 
     UlamValue rtnUVPtr = makeUlamValuePtr();
 
-    if(m_state.isReference(rtnUVPtr.getPtrTargetType()))
+    //must remain a ptr!!!
+    //if(m_state.isReference(rtnUVPtr.getPtrTargetType())
+    if(m_state.isReference(rtnUVPtr.getPtrTargetType()) && (rtnUVPtr.getPtrStorage() == STACK))
       rtnUVPtr = m_state.getPtrTarget(rtnUVPtr);
 
     //copy result UV to stack, -1 relative to current frame pointer
@@ -467,6 +469,7 @@ namespace MFM {
 
     //can't use global m_currentAutoObjPtr, since there might be nested as conditional blocks.
     // NodeVarDecl for this autolocal sets AutoPtrForEval during its eval.
+    // ALT_REF, ALT_ARRAYITEM cannot guarantee its NodeVarRef init was last encountered, like ALT_AS.
     if(m_varSymbol->getAutoLocalType() == ALT_AS)
       return ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval(); //haha! we're done.
 
@@ -486,6 +489,11 @@ namespace MFM {
 	  }
 	else
 	  {
+	    //DEBUG ONLY!!, to view ptr saved with Ref's m_varSymbol.
+	    if(m_varSymbol->isAutoLocal()) //ALT_REF or ALT_ARRAYITEM
+	      {
+		ptr = ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval();
+	      }
 	    //local variable on the stack; could be array ptr!
 	    ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
 	  }
@@ -513,7 +521,7 @@ namespace MFM {
 	if(m_varSymbol->isDataMember())
 	  {
 	    u32 pos = 0;
-	    if(uvpass.getUlamValueTypeIdx() == Ptr && uvpass.getPtrStorage() == TMPAUTOREF)
+	    if(m_state.isPtr(uvpass.getUlamValueTypeIdx()) && (uvpass.getPtrStorage() == TMPAUTOREF))
 	      {
 		//pos = uvpass.getPtrPos(); //runtime, pos not known, ref will
 		UTI newnuti = m_state.getUlamTypeAsRef(nuti); //an ALT_REF
@@ -682,12 +690,16 @@ namespace MFM {
 	  }
 	else if(m_state.getReferenceType(uti) != args.m_declRef)
 	  {
-	    UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), key.getUlamKeyTypeSignatureBitSize(), key.getUlamKeyTypeSignatureArraySize(), key.getUlamKeyTypeSignatureClassInstanceIdx(), args.m_declRef); //classinstanceidx removed if not a class
-	    uti = m_state.makeUlamType(newarraykey, bUT);
+	    // could be array or scalar ref
+	    UlamKeyTypeSignature newkey(key.getUlamKeyTypeSignatureNameId(), key.getUlamKeyTypeSignatureBitSize(), key.getUlamKeyTypeSignatureArraySize(), key.getUlamKeyTypeSignatureClassInstanceIdx(), args.m_declRef); //classinstanceidx removed if not a class
+	    uti = m_state.makeUlamType(newkey, bUT);
 	  }
 	//create a symbol for this new ulam type, a typedef, with its type
 	SymbolTypedef * symtypedef = new SymbolTypedef(m_token, uti, scalarUTI, m_state);
 	m_state.addSymbolToCurrentScope(symtypedef);
+
+	//remember tduti for references
+	symtypedef->setAutoLocalType(m_state.getReferenceType(uti));
 
 	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr)); //true
       }
@@ -925,13 +937,14 @@ namespace MFM {
 	    if(args.m_bitsize == 0)
 	      args.m_bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
 
-	    UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, scalarUTI, key.getUlamKeyTypeSignatureReferenceType()); //same reftype as key (or args?)
+	    UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, scalarUTI, key.getUlamKeyTypeSignatureReferenceType()); //same reftype as key
 	    auti = m_state.makeUlamType(newarraykey, bUT);
 	  }
 
-	uti = m_state.getUlamTypeAsRef(auti, args.m_declRef); //ut not current
+	uti = m_state.getUlamTypeAsRef(auti, args.m_declRef); //ut not current; no deref.
 
-	SymbolVariable * sym = makeSymbol(uti, m_state.getReferenceType(uti));
+	//SymbolVariable * sym = makeSymbol(uti, m_state.getReferenceType(uti), auti);
+	SymbolVariable * sym = makeSymbol(uti, m_state.getReferenceType(uti), args.m_referencedUTI);
 	if(sym)
 	  {
 	    m_state.addSymbolToCurrentScope(sym); //ownership goes to the block
@@ -951,10 +964,10 @@ namespace MFM {
     return brtn;
   } //installSymbolVariable
 
-  SymbolVariable *  NodeIdent::makeSymbol(UTI auti, ALT reftype)
+  SymbolVariable *  NodeIdent::makeSymbol(UTI auti, ALT reftype, UTI referencedUTI)
   {
     //adjust decl count and max_depth, used for function definitions
-    PACKFIT packit = m_state.determinePackable(auti);
+    //PACKFIT packit = m_state.determinePackable(auti);
 
     if(m_state.m_currentFunctionBlockDeclSize == 0)
       {
@@ -963,7 +976,7 @@ namespace MFM {
 	//variable-index, ulamtype, ulamvalue(ownership to symbol); always packed
 	if(reftype != ALT_NOT)
 	  return NULL; //error! dm's not references
-	return (new SymbolVariableDataMember(m_token, auti, packit, baseslot, m_state));
+	return (new SymbolVariableDataMember(m_token, auti, baseslot, m_state));
       }
 
     //Symbol is a parameter; always on the stack
@@ -972,7 +985,7 @@ namespace MFM {
 	//1 slot for scalar or packed array
 	m_state.m_currentFunctionBlockDeclSize -= m_state.slotsNeeded(auti);
 
-	SymbolVariableStack * rtnSym = (new SymbolVariableStack(m_token, auti, packit, m_state.m_currentFunctionBlockDeclSize, m_state)); //slot after adjust
+	SymbolVariableStack * rtnSym = (new SymbolVariableStack(m_token, auti, m_state.m_currentFunctionBlockDeclSize, m_state)); //slot after adjust
 	assert(rtnSym);
 
 	rtnSym->setAutoLocalType(reftype);
@@ -981,7 +994,7 @@ namespace MFM {
       }
 
     //(else) Symbol is a local variable, always on the stack
-    SymbolVariableStack * rtnLocalSym = new SymbolVariableStack(m_token, auti, packit, m_state.m_currentFunctionBlockDeclSize, m_state); //slot before adjustment
+    SymbolVariableStack * rtnLocalSym = new SymbolVariableStack(m_token, auti, m_state.m_currentFunctionBlockDeclSize, m_state); //slot before adjustment
     assert(rtnLocalSym);
 
     rtnLocalSym->setAutoLocalType(reftype);
@@ -1113,7 +1126,7 @@ namespace MFM {
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol); //*********UPDATED GLOBAL;
 
     //before we lose savuvpass, generate next chain of related reference
-    if((savuvpass.getUlamValueTypeIdx() == Ptr) && (savuvpass.getPtrStorage() == TMPAUTOREF))
+    if(m_state.isPtr(savuvpass.getUlamValueTypeIdx()) && (savuvpass.getPtrStorage() == TMPAUTOREF))
       {
 	Node::genCodeARefFromARefStorage(fp, savuvpass, uvpass);
 
@@ -1152,7 +1165,7 @@ namespace MFM {
     //******UPDATED GLOBAL; no restore!!!**************************
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol);
 
-    if((savuvpass.getUlamValueTypeIdx() == Ptr) && (savuvpass.getPtrStorage() == TMPAUTOREF))
+    if(m_state.isPtr(savuvpass.getUlamValueTypeIdx()) && (savuvpass.getPtrStorage() == TMPAUTOREF))
       Node::genCodeARefFromARefStorage(fp, savuvpass, uvpass);
     else if(uvpass.getPtrStorage() == TMPAUTOREF)
       Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack

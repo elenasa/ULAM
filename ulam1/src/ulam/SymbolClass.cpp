@@ -296,7 +296,10 @@ namespace MFM {
 	EvalStatus evs = classNode->eval();
 	if(evs != NORMAL)
 	  {
-	    rtnValue = -1; //error!
+	    if(evs == UNEVALUABLE)
+	      rtnValue = -11;
+	    else
+	      rtnValue = -1; //error!
 	  }
 	else
 	  {

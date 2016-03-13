@@ -3,7 +3,7 @@
 #!
 ## Note: An array of Bars does not use custom array methods in Bar
 ##
-Exit status: 0
+Exit status: -11
 Ue_Foo { Bool(1) b[3](false,false,false);  System s();  Int(4) m_i(0);  Int(32) test() {  Poo spoon;  Bar boo;  boo spoon mbar 0 [] . cast = spoon mbar 1 [] . boo cast = Atom(96) a;  a spoon sbar 0 cast [] . = spoon sbar 1 cast [] . a = 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }

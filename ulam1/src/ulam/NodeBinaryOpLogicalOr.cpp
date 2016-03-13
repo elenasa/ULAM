@@ -118,7 +118,7 @@ namespace MFM {
     UlamValue luvpass;
     m_nodeLeft->genCode(fp, luvpass); //updates m_currentObjSymbol
     UTI luti = luvpass.getUlamValueTypeIdx();
-    assert(luti == Ptr); //terminals read into tmpvar
+    assert(m_state.isPtr(luti)); //terminals read into tmpvar
     luti = luvpass.getPtrTargetType();
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     assert(lut->getUlamTypeEnum() == Bool);
@@ -142,7 +142,7 @@ namespace MFM {
     UlamValue ruvpass;
     m_nodeRight->genCode(fp, ruvpass);
     UTI ruti = ruvpass.getUlamValueTypeIdx();
-    assert(ruti == Ptr);
+    assert(m_state.isPtr(ruti));
     ruti = ruvpass.getPtrTargetType();
 
     //set node's tmp var to whatever rhs value

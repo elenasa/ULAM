@@ -5,18 +5,19 @@
 
 namespace MFM {
 
-  NodeTypeDescriptor::NodeTypeDescriptor(Token tokarg, UTI auti, CompilerState & state) : Node(state), m_typeTok(tokarg), m_uti(auti), m_ready(false), m_unknownBitsizeSubtree(NULL), m_refType(ALT_NOT)
+  NodeTypeDescriptor::NodeTypeDescriptor(Token tokarg, UTI auti, CompilerState & state) : Node(state), m_typeTok(tokarg), m_uti(auti), m_ready(false), m_unknownBitsizeSubtree(NULL), m_refType(ALT_NOT), m_referencedUTI(Nouti)
   {
     setNodeLocation(m_typeTok.m_locator);
   }
 
-  NodeTypeDescriptor::NodeTypeDescriptor(Token tokarg, UTI auti, CompilerState & state, ALT refarg) : Node(state), m_typeTok(tokarg), m_uti(auti), m_ready(false), m_unknownBitsizeSubtree(NULL), m_refType(refarg)
+  // use by ALT_AS.
+  NodeTypeDescriptor::NodeTypeDescriptor(Token tokarg, UTI auti, CompilerState & state, ALT refarg, UTI referencedUTIarg) : Node(state), m_typeTok(tokarg), m_uti(auti), m_ready(false), m_unknownBitsizeSubtree(NULL), m_refType(refarg), m_referencedUTI(referencedUTIarg)
   {
     setNodeLocation(m_typeTok.m_locator);
   }
 
   //since there's no assoc symbol, we map the m_uti here (e.g. S(x,y).sizeof nodeterminalproxy)
-  NodeTypeDescriptor::NodeTypeDescriptor(const NodeTypeDescriptor& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti)), m_ready(false), m_unknownBitsizeSubtree(NULL), m_refType(ref.m_refType)
+  NodeTypeDescriptor::NodeTypeDescriptor(const NodeTypeDescriptor& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti)), m_ready(false), m_unknownBitsizeSubtree(NULL), m_refType(ref.m_refType), m_referencedUTI(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_referencedUTI))
   {
     if(ref.m_unknownBitsizeSubtree)
       m_unknownBitsizeSubtree = new NodeTypeBitsize(*ref.m_unknownBitsizeSubtree); //mapped UTI?
@@ -80,14 +81,26 @@ namespace MFM {
     return m_uti;
   }
 
+  UTI NodeTypeDescriptor::getReferencedUTI()
+  {
+    return m_referencedUTI;
+  }
+
   ALT NodeTypeDescriptor::getReferenceType()
   {
     return m_refType;
   }
 
-  void NodeTypeDescriptor::setReferenceType(ALT refarg)
+  void NodeTypeDescriptor::setReferenceType(ALT refarg, UTI referencedUTI)
   {
     m_refType = refarg;
+    m_referencedUTI = referencedUTI;
+  }
+
+  void NodeTypeDescriptor::setReferenceType(ALT refarg, UTI referencedUTI, UTI refUTI)
+  {
+    setReferenceType(refarg, referencedUTI);
+    m_uti = refUTI; //new given as ref UTI
   }
 
   UTI NodeTypeDescriptor::checkAndLabelType()
@@ -126,20 +139,36 @@ namespace MFM {
 
     if(m_refType != ALT_NOT)
       {
-	nuti = m_state.getUlamTypeAsRef(nuti, m_refType);
-
 	//if reference is not complete, but its deref is, use its sizes to complete us.
 	if(!m_state.isComplete(nuti))
 	  {
-	    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-	    UTI ciuti = nut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx();
-	    UlamType * ciut = m_state.getUlamTypeByIndex(ciuti);
-	    if(ciut->isComplete())
+	    UTI derefuti = getReferencedUTI();
+	    if(!m_state.okUTItoContinue(derefuti))
 	      {
-		if(!m_state.setUTISizes(nuti, ciut->getBitSize(), ciut->getArraySize()))
+		UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+		if(nut->getUlamTypeEnum() == Class)
+		  derefuti = nut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx();
+		else
+		  derefuti = m_state.getUlamTypeAsDeref(nuti);
+	      }
+	    if(m_state.isComplete(derefuti))
+	      {
+		UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
+		if(!m_state.setUTISizes(nuti, derefut->getBitSize(), derefut->getArraySize()))
 		  {
 		    rtnuti = Nav;
 		    return false;
+		  }
+		//else we might have set the size of a holder ref. still a holder. darn.
+		else if(m_state.isHolder(nuti))
+		  {
+		    ULAMTYPE bUT = derefut->getUlamTypeEnum();
+		    if(bUT == Class)
+		      m_state.makeClassFromHolder(nuti, m_typeTok); //token for locator
+
+		    UlamKeyTypeSignature derefkey = derefut->getUlamKeyTypeSignature();
+		    UlamKeyTypeSignature newkey(derefkey.getUlamKeyTypeSignatureNameId(), derefkey.getUlamKeyTypeSignatureBitSize(), derefkey.getUlamKeyTypeSignatureArraySize(), derefkey.getUlamKeyTypeSignatureClassInstanceIdx(), m_refType);
+		    m_state.makeUlamTypeFromHolder(newkey, bUT, nuti); //keeps nuti
 		  }
 	      }
 	  }
@@ -181,7 +210,7 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMTYPE etyp = nut->getUlamTypeEnum();
 
-    if((etyp == Class))
+    if(etyp == Class)
       {
 	ULAMCLASSTYPE nclasstype = nut->getUlamClass();
 	if(nut->isComplete())
@@ -199,15 +228,18 @@ namespace MFM {
 	      {
 		//unseen typedef's appear like Class basetype, until seen
 		//wait until complete to re-key..
-
+		// want arraysize if non-scalar
 		std::ostringstream msg;
-		if(m_state.isComplete(tmpforscalaruti))
+		///if(m_state.isComplete(tmpforscalaruti))
+		if(m_state.isComplete(tduti))
 		  {
-		    UlamType * tut = m_state.getUlamTypeByIndex(tmpforscalaruti);
+		    //UlamType * tut = m_state.getUlamTypeByIndex(tmpforscalaruti);
+		    UlamType * tut = m_state.getUlamTypeByIndex(tduti);
 		    UlamKeyTypeSignature tdkey = tut->getUlamKeyTypeSignature();
 		    UlamKeyTypeSignature newkey(tdkey.getUlamKeyTypeSignatureNameId(), tut->getBitSize(), tut->getArraySize(), 0, tut->getReferenceType());
 		    m_state.makeUlamTypeFromHolder(newkey, tut->getUlamTypeEnum(), nuti);
-		    rtnuti = tmpforscalaruti; //reset
+		    //rtnuti = tmpforscalaruti; //reset
+		    rtnuti = tduti; //reset
 		    rtnb = true;
 		    msg << "RESET ";
 		  }

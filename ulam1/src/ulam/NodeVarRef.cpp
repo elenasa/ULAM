@@ -105,7 +105,8 @@ namespace MFM {
   FORECAST NodeVarRef::safeToCastTo(UTI newType)
   {
     UTI nuti = getNodeType();
-    nuti = m_state.getUlamTypeAsDeref(nuti);
+    //nuti = m_state.getUlamTypeAsDeref(nuti);
+
     //cast RHS if necessary and safe
     //insure lval is same bitsize/arraysize
     // if classes, safe to cast a subclass to any of its superclasses
@@ -114,7 +115,8 @@ namespace MFM {
       {
 	UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 	UlamType * newt = m_state.getUlamTypeByIndex(newType);
-	rscr = newt->safeCast(nuti);
+	//rscr = newt->safeCast(nuti);
+	rscr = nut->safeCast(newType); //from newType to reference nuti
 
 	if((nut->getUlamTypeEnum() == Class))
 	  {
@@ -134,8 +136,8 @@ namespace MFM {
 	  }
 	else
 	  {
-	    //primitives must be exactly the same size;
-	    // even "clear" when complete yet not the same is "bad".
+	    //primitives must be EXACTLY the same size (for initialization);
+	    // "clear" when complete, not the same as "bad".
 	    if(rscr != CAST_CLEAR)
 	      {
 		std::ostringstream msg;
@@ -148,6 +150,27 @@ namespace MFM {
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		else
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      }
+	    else
+	      {
+		// safecast doesn't test for same size primitives since safe for op equal
+		// atom sizes not related to element sizes internally.
+		if((nut->getBitSize() != newt->getBitSize()) || (nut->getTotalBitSize() != newt->getTotalBitSize()))
+		  {
+		    std::ostringstream msg;
+		    msg << "Reference variable " << getName() << "'s type ";
+		    msg << nut->getUlamTypeNameBrief().c_str();
+		    msg << ", and its initial value type ";
+		    msg << newt->getUlamTypeNameBrief().c_str();
+		    msg << ", are incompatible sizes";
+		    if(m_state.isAtom(nuti) || m_state.isAtom(newType))
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    else
+		      {
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			rscr = CAST_BAD;
+		      }
+		  }
 	      }
 	  }
       }
@@ -277,6 +300,7 @@ namespace MFM {
       }
 
     UlamValue pluv = m_state.m_nodeEvalStack.popArg();
+    assert(m_state.isPtr(pluv.getUlamValueTypeIdx()));
     ((SymbolVariableStack *) m_varSymbol)->setAutoPtrForEval(pluv); //for future ident eval uses
     ((SymbolVariableStack *) m_varSymbol)->setAutoStorageTypeForEval(m_nodeInitExpr->getNodeType()); //for future virtual function call eval uses
 
@@ -347,41 +371,51 @@ namespace MFM {
 
 	fp->write(m_varSymbol->getMangledName().c_str());
 	fp->write("("); //pass ref in constructor (ref's not assigned with =)
-	if(stgcos->isDataMember()) //can't be an element or atom
+
+	if(stgcosut->isReference())
 	  {
-	    fp->write(m_state.getHiddenArgName());
-	    fp->write(", ");
-	    fp->write_decimal_unsigned(cos->getPosOffset()); //relative of
-	    fp->write("u");
+	    fp->write(stgcos->getMangledName().c_str()); //one argument only
 	  }
 	else
 	  {
-	    fp->write(stgcos->getMangledName().c_str());
-	    if(cos->isDataMember())
+	    if(stgcos->isDataMember()) //can't be an element or atom
 	      {
+		fp->write(m_state.getHiddenArgName());
 		fp->write(", ");
-		fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
+		fp->write_decimal_unsigned(cos->getPosOffset()); //relative of
 		fp->write("u");
 	      }
 	    else
 	      {
-		//local var
-		if((vclasstype == UC_NOTACLASS) && !m_state.isAtom(vuti))
+		fp->write(stgcos->getMangledName().c_str());
+		if(cos->isDataMember())
 		  {
-		    fp->write(", 0u"); //relative
+		    fp->write(", ");
+		    fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
+		    fp->write("u");
 		  }
-		else if(vclasstype == UC_QUARK)
+		else
 		  {
-		    fp->write(", 0u"); //left-justified
+		    //local var
+		    if((vclasstype == UC_NOTACLASS) && !m_state.isAtom(vuti))
+		      {
+			fp->write(", 0u"); //relative
+		      }
+		    else if(vclasstype == UC_QUARK)
+		      {
+			fp->write(", 0u"); //left-justified
+		      }
 		  }
 	      }
-	  }
 
-	if((vclasstype != UC_NOTACLASS) && (vetype != UAtom))
-	  {
-	    fp->write(", &");
-	    fp->write(stgcosut->getUlamTypeMangledName().c_str()); //effself
-	    fp->write("<EC>::THE_INSTANCE");
+	    if((vclasstype != UC_NOTACLASS) && (vetype != UAtom))
+	      {
+		UTI derefuti = m_state.getUlamTypeAsDeref(stgcosuti);
+		UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
+		fp->write(", &");
+		fp->write(derefut->getUlamTypeMangledName().c_str()); //effself
+		fp->write("<EC>::THE_INSTANCE");
+	      }
 	  }
 	fp->write(");\n");
       } //storage
@@ -438,11 +472,13 @@ namespace MFM {
     // or ancestor quark if a class.
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+    UTI stgcosuti = stgcos->getUlamTypeIdx();
+    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+
     Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     UTI scalarcosuti = m_state.getUlamTypeAsScalar(cosuti);
-    UlamType * scalarcosut = m_state.getUlamTypeByIndex(scalarcosuti);
 
     UTI vuti = m_varSymbol->getUlamTypeIdx(); //i.e. this ref node
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
@@ -451,6 +487,8 @@ namespace MFM {
     ULAMCLASSTYPE vclasstype = vut->getUlamClass();
     ULAMTYPE vetype = vut->getUlamTypeEnum();
     assert(vetype == cosut->getUlamTypeEnum());
+    UTI derefuti = m_state.getUlamTypeAsDeref(scalarcosuti);
+    UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
 
     m_state.indent(fp);
     fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
@@ -458,52 +496,74 @@ namespace MFM {
 
     fp->write(m_varSymbol->getMangledName().c_str());
     fp->write("("); //pass ref in constructor (ref's not assigned with =)
-    if(stgcos->isDataMember()) //can't be an element or atom
+    if(stgcosut->isReference())
       {
-	fp->write(m_state.getHiddenArgName());
-	fp->write(", ");
-	fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
-	fp->write("u");
+	fp->write(stgcos->getMangledName().c_str());
       }
     else
       {
-	//local
-	fp->write(stgcos->getMangledName().c_str());
-	if(cos->isDataMember())
+	if(stgcos->isDataMember()) //can't be an element or atom
 	  {
+	    fp->write(m_state.getHiddenArgName());
 	    fp->write(", ");
 	    fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
 	    fp->write("u");
+
+	    if(vclasstype == UC_QUARK)
+	      {
+		fp->write(", &");
+		fp->write(derefut->getUlamTypeMangledName().c_str());
+		fp->write("<EC>::THE_INSTANCE");
+	      }
 	  }
 	else
 	  {
 	    //local
-	    if((vclasstype == UC_NOTACLASS) && (vetype != UAtom) )
-	      {
-		fp->write(", 0u, "); //rel off to right-just prim
-	      }
-	    else if(vetype == UAtom)
-	      {
-		fp->write(", uc");
-	      }
-	    else if(vclasstype == UC_QUARK)
+	    fp->write(stgcos->getMangledName().c_str());
+	    if(cos->isDataMember())
 	      {
 		fp->write(", ");
-		fp->write("0u, &"); //left just
-		fp->write(scalarcosut->getUlamTypeMangledName().c_str());
-		fp->write("<EC>::THE_INSTANCE");
-	      }
-	    else if(vclasstype == UC_ELEMENT)
-	      {
-		fp->write(", &");
-		fp->write(scalarcosut->getUlamTypeMangledName().c_str());
-		fp->write("<EC>::THE_INSTANCE");
+		fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
+		fp->write("u");
+
+		if(vclasstype == UC_QUARK)
+		  {
+		    fp->write(", &");
+		    fp->write(derefut->getUlamTypeMangledName().c_str());
+		    fp->write("<EC>::THE_INSTANCE");
+		  }
 	      }
 	    else
-	      assert(0);
+	      {
+		if(vut->getPackable() == PACKEDLOADABLE)
+		  {
+		    if((vclasstype == UC_NOTACLASS) && (vetype != UAtom) )
+		      {
+			fp->write(", 0u"); //rel off to right-just prim
+		      }
+		    else if(vetype == UAtom)
+		      {
+			fp->write(", uc");
+		      }
+		    else if(vclasstype == UC_QUARK)
+		      {
+			fp->write(", ");
+			fp->write("0u, &"); //left just
+			fp->write(derefut->getUlamTypeMangledName().c_str());
+			fp->write("<EC>::THE_INSTANCE");
+		      }
+		    else if(vclasstype == UC_ELEMENT)
+		      {
+			fp->write(", &");
+			fp->write(derefut->getUlamTypeMangledName().c_str());
+			fp->write("<EC>::THE_INSTANCE");
+		      }
+		    else
+		      assert(0);
+		  }
+	      }
 	  }
       } //storage
-
     fp->write(");\n");
 
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?

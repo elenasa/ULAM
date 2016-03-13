@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3646_test_compiler_elementsubclass_caarray_ish
 #!
-Exit status: 0
+Exit status: -11
 Ue_IshC : Q(0x 7) { :< constant Bits(32) b = 7u; > Int(32) test() {  IshC moco;  Atom(96) a;  a moco 1 cast [] = 0 cast return } }
 Uq_Q(Bits(32) b) { /* empty class block */ }
 ##

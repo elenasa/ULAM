@@ -1,6 +1,6 @@
 #=t3505_test_compiler_elementandquark_caarrayemptyquark
 #!
-Exit status: 1
+Exit status: -11
 Ue_Foo { typedef Unsigned(6) Sitenum;  Int(32) test() {  EventWindow ew;  ew 1 cast [] Empty is cast return } }
 Ue_Empty { /* empty class block */ }
 Uq_EventWindow { typedef Unsigned(6) Sitenum;  <NOMAIN> }

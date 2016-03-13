@@ -211,7 +211,7 @@ namespace MFM {
 	    if(tobe->getUlamTypeEnum() == Bool)
 	      msg << "; Consider using a comparison operator";
 	    else if(m_state.isAtom(tobeType) && (nut->getUlamClass() == UC_QUARK))
-	      msg << "; Consider using .atomof operator";
+	      msg << "; Consider using a reference (or self) with .instanceof";
 	    if(scr == CAST_HAZY)
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -384,8 +384,18 @@ namespace MFM {
       }
 
     UlamValue uv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
-
-    if(UlamType::compare(nodeType, tobeType, m_state) != UTIC_SAME)
+    UTI vuti = uv.getUlamValueTypeIdx();
+    assert(!m_state.isPtr(vuti));
+    if(m_state.isAtom(nodeType) && m_state.isAtom(tobeType) && (m_state.getUlamTypeByIndex(vuti)->getUlamTypeEnum() == Class))
+      {
+	std::ostringstream msg;
+	msg << "Cast question: Do not wipe out actual type for atom during eval! Value type ";
+	msg << m_state.getUlamTypeNameBriefByIndex(uv.getUlamValueTypeIdx()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	evalNodeEpilog();
+	return UNEVALUABLE;
+      }
+    else if(UlamType::compare(nodeType, tobeType, m_state) != UTIC_SAME)
       {
 	if(m_state.isARefTypeOfUlamType(nodeType, tobeType))
 	  {
@@ -402,9 +412,9 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(uv.getUlamValueTypeIdx()).c_str();
 	    msg << " failed to be cast as ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    evalNodeEpilog();
-	    return ERROR;
+	    return UNEVALUABLE;
 	  }
       }
     //also copy result UV to stack, -1 relative to current frame pointer
@@ -520,7 +530,7 @@ namespace MFM {
     bool isTerminal = false;
     s32 tmpVarNum = 0;
 
-   if(vuti == Ptr)
+   if(m_state.isPtr(vuti))
       {
 	tmpVarNum = uvpass.getPtrSlotIndex();
 	vuti = uvpass.getPtrTargetType(); //replace
@@ -643,12 +653,11 @@ namespace MFM {
     UTI vuti = uvpass.getUlamValueTypeIdx();
     s32 tmpVarNum = 0;
 
-    if(vuti == Ptr)
+    if(m_state.isPtr(vuti))
       {
 	tmpVarNum = uvpass.getPtrSlotIndex();
 	vuti = uvpass.getPtrTargetType();  //replace
       }
-
     // "downcast" might not be true; compare to be sure the atom is an element "Foo"
     if(m_state.isAtom(vuti))
       {
@@ -667,9 +676,9 @@ namespace MFM {
 	m_state.m_currentIndentLevel--;
       }
 
+    //don't read like ref's do!
     //update the uvpass to have the casted type
     uvpass = UlamValue::makePtr(tmpVarNum, uvpass.getPtrStorage(), tobeType, m_state.determinePackable(tobeType), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id
-
     return;
   } //genCodeCastAtomAndElement
 
@@ -680,7 +689,7 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
     assert(tobe->getUlamClass() == UC_QUARK);
 
     UTI vuti = uvpass.getUlamValueTypeIdx();
-    if(vuti == Ptr)
+    if(m_state.isPtr(vuti))
       vuti = uvpass.getPtrTargetType(); //replace
     assert(m_state.okUTItoContinue(vuti));
 
@@ -856,7 +865,7 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
     UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
 
     UTI vuti = uvpass.getUlamValueTypeIdx();
-    if(vuti == Ptr)
+    if(m_state.isPtr(vuti))
       vuti = uvpass.getPtrTargetType(); //replace
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
@@ -917,13 +926,13 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
     UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
 
     UTI vuti = uvpass.getUlamValueTypeIdx();
-    if(vuti == Ptr)
+    if(m_state.isPtr(vuti))
       vuti = uvpass.getPtrTargetType(); //replace
     s32 tmpVarNum = uvpass.getPtrSlotIndex();
 
     m_node->genCodeToStoreInto(fp, uvpass); //No need to load lhs into tmp (T); symbol's in COS vector
 
-    assert(m_state.isClassASuperclassOf(vuti, tobeType)); //vuti is subclass of tobeType
+    assert(m_state.isClassASubclassOf(vuti, tobeType)); //vuti is subclass of tobeType
     s32 tmpVarSuper = m_state.getNextTmpVarNumber();
 
     //e.g. a quark here would be ok if a superclass
@@ -950,7 +959,7 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
 
   void NodeCast::genCodeCastAsReference(File * fp, UlamValue & uvpass)
   {
-    assert(uvpass.getUlamValueTypeIdx() == Ptr);
+    assert(m_state.isPtr(uvpass.getUlamValueTypeIdx()));
     UTI fromuti = uvpass.getPtrTargetType();
     UTI tobeuti = getCastType();
     if((m_state.isAtomRef(tobeuti) && !m_state.isReference(fromuti)))
@@ -962,7 +971,7 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
 
   void NodeCast::genCodeCastFromAReference(File * fp, UlamValue & uvpass)
   {
-    assert(uvpass.getUlamValueTypeIdx() == Ptr);
+    assert(m_state.isPtr(uvpass.getUlamValueTypeIdx()));
     UTI tobeuti = getCastType();
     UTI nodetype = m_node->getNodeType();
 
@@ -970,7 +979,6 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
     UlamType * nodeut = m_state.getUlamTypeByIndex(nodetype);
     if((nodeut->getUlamClass() == UC_QUARK) && (m_state.isAtom(tobeuti) || (tobeut->getUlamClass() == UC_ELEMENT)))
       {
-
 	//when this is a custom array, the symbol is the "ew" for example,
 	//not the atom (e.g. ew[idx]) that has no symbol
 	m_node->genCodeToStoreInto(fp, uvpass); //No need to load lhs into tmp (T); symbol's in COS vector
@@ -997,23 +1005,11 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
 	uvpass = UlamValue::makePtr(tmpVarTobe, TMPBITVAL, tobeuti, m_state.determinePackable(tobeuti), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id
 	m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs
       }
-    else if(m_state.isAtom(nodetype) && m_state.isAtom(tobeuti))
+    else if(m_state.isAtomRef(nodetype) && m_state.isAtom(tobeuti) && !m_state.isAtomRef(tobeuti))
       {
-	s32 tmpVarTobe = m_state.getNextTmpVarNumber();
-
-	m_state.indent(fp);
-	fp->write("const ");
-	fp->write(tobeut->getTmpStorageTypeAsString().c_str()); //u32
-	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(tobeuti, tmpVarTobe, TMPBITVAL).c_str());;
-	fp->write(" = ");
-	fp->write(m_state.getTmpVarAsString(nodetype, uvpass.getPtrSlotIndex(), TMPBITVAL).c_str());;
-	fp->write(".");
-	fp->write(tobeut->readMethodForCodeGen().c_str());
-	fp->write("();\n");
-
-	//update the uvpass to have the casted type
-	uvpass = UlamValue::makePtr(tmpVarTobe, TMPBITVAL, tobeuti, m_state.determinePackable(tobeuti), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id
+	// from atomref to atom (non-ref)
+	// update the uvpass to have the casted type; (no read)
+	uvpass = UlamValue::makePtr(uvpass.getPtrSlotIndex(), TMPBITVAL, tobeuti, m_state.determinePackable(tobeuti), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id
 	m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs
       }
     else

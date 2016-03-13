@@ -162,7 +162,7 @@ namespace MFM {
     //UPDATE selected member (i.e. element or quark) before eval of rhs
     //(i.e. data member or func call); e.g. Ptr to atom
     UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1);
-    assert(newCurrentObjectPtr.getUlamValueTypeIdx() == Ptr);
+    assert(m_state.isPtr(newCurrentObjectPtr.getUlamValueTypeIdx()));
     m_state.m_currentObjPtr = newCurrentObjectPtr;
 
     u32 slot = makeRoomForNodeType(nuti);
@@ -240,7 +240,7 @@ namespace MFM {
     //UPDATE selected member (i.e. element or quark) before eval of rhs
     // (i.e. data member or func call)
     UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1); //e.g. Ptr to atom
-    assert(newCurrentObjectPtr.getUlamValueTypeIdx() == Ptr);
+    assert(m_state.isPtr(newCurrentObjectPtr.getUlamValueTypeIdx()));
     m_state.m_currentObjPtr = newCurrentObjectPtr;
 
     makeRoomForSlots(1); //always 1 slot for ptr

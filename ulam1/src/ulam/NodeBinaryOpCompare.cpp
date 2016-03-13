@@ -294,14 +294,14 @@ namespace MFM {
     fp->write("(");
 
     UTI luti = luvpass.getUlamValueTypeIdx();
-    assert(luti == Ptr);
+    assert(m_state.isPtr(luti));
     luti = luvpass.getPtrTargetType(); //reset
     fp->write(m_state.getTmpVarAsString(luti, luvpass.getPtrSlotIndex()).c_str());
 
     fp->write(", ");
 
     UTI ruti = ruvpass.getUlamValueTypeIdx();
-    assert(ruti == Ptr);
+    assert(m_state.isPtr(ruti));
     ruti = ruvpass.getPtrTargetType(); //reset
     fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex()).c_str());
 

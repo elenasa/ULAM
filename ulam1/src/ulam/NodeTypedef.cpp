@@ -61,7 +61,11 @@ namespace MFM {
 
     fp->write(" ");
     if(tut->getUlamTypeEnum() != Class)
-      fp->write(tkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str());
+      {
+	fp->write(tkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str());
+	if(tut->isReference())
+	  fp->write(" &"); //an array of refs as written, should be ref to an array.
+      }
     else
       fp->write(tut->getUlamTypeNameBrief().c_str());
 

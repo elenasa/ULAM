@@ -87,6 +87,11 @@ namespace MFM{
   protected:
 
   private:
+    bool m_isCustomArray;
+
+    EvalStatus evalACustomArray(); //requires call to aref
+    EvalStatus evalToStoreIntoACustomArray(); //requires call to aset
+
     virtual bool doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
     virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len);
     virtual UlamValue makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len);

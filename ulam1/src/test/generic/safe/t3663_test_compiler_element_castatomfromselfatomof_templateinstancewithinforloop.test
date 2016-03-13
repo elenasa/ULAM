@@ -1,8 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3663_test_compiler_element_castatomfromselfatomof_templateinstancewithinforloop
 #!
-Exit status: 0
-Ue_Foo : QPerc(3u) { :< constant Unsigned(32) c = 3u;  Bool(1) bb(false); > typedef QPerc(3u) QPerc3;  Int(32) test() {  QPerc(3u) qp;  qp bb . true = Atom(96) b = qp ( )func .;  0 cast return } }
+Exit status: -11
+Ue_Foo : QPerc(3u) { :< constant Unsigned(32) c = 3u;  Bool(1) bb(true); > typedef QPerc(3u) QPerc3;  Int(32) test() {  QPerc(3u) qp;  qp bb . true = Atom(96) b = ( )func;  0 cast return } }
 Uq_QPerc(Unsigned(32) c) { Bool(1) bb(false);  <NOMAIN> }
 ##
 ## informed by a Dave ish 2/19/2016;
@@ -15,7 +15,7 @@ element Foo : QPerc(3u) {
   Int test() {
     QPerc3 qp;
     qp.bb = true;
-    Atom b = qp.func();
+    Atom b = func(); //ILLEGAL_ARG: qp.func();
     return 0;
   }
 }
@@ -30,18 +30,13 @@ quark QPerc(Unsigned c) {
     for(Int i = -1; i <= 1; ++i)
     {
       for(Int j = -4; j <= -4; ++j)
-      {
 	bb = true;
-      }
 
       if(bb)
-      {
-	a = self.atomof;
-      }
+	a = self.storageof;
+
       if(a as Self)
-      {
-	self.atomof = a.atomof;
-      }
+	self.storageof = a.storageof;
     }
     return a;
   }
