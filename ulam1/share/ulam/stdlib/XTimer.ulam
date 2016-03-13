@@ -13,7 +13,7 @@ use Random;
    \version 2
    \license lgpl
  */
-quark XTimer(Unary(5) bits, Unsigned triggerLevel)
+quark XTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k)
 {
   // With a max counter width of 5, the max value of Counter.maxof is
   // 31, so 1u<<time cannot overflow
@@ -35,7 +35,6 @@ quark XTimer(Unary(5) bits, Unsigned triggerLevel)
   Counter max() { return triggerLevel; }
 
   Counter count() {
-    Unsigned k = 1;
     if (!alarm() && r.oneIn((Unsigned) (k<<time)))
       ++time;
     return time;
