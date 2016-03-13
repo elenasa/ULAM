@@ -151,8 +151,22 @@ namespace MFM {
     luti = pluv.getPtrTargetType();
     UTI ruti = getRightType();
 
-    // inclusive result for eval purposes (atoms and element types are orthogonal)
+    // was inclusive result for eval purposes (atoms and element types are orthogonal)
+    // now optional for debugging
+#define _LET_ATOM_IS_ELEMENT
+#ifndef _LET_ATOM_IS_ELEMENT
+    if(m_state.isAtom(luti))
+      {
+	evalNodeEpilog();
+	return UNEVALUABLE;
+      }
+    bool isit = ((UlamType::compare(luti,ruti,m_state) == UTIC_SAME) || m_state.isClassASubclassOf(luti, ruti));
+
+#else
+
     bool isit = (m_state.isAtom(luti) || (UlamType::compare(luti,ruti,m_state) == UTIC_SAME) || m_state.isClassASubclassOf(luti, ruti));
+
+#endif
 
     UlamValue rtnuv = UlamValue::makeImmediate(nuti, (u32) isit, m_state);
 

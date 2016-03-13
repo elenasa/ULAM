@@ -1,5 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3249_test_compiler_elementandquark_conditionalas
+##
+## unevaluable without assuming atoms as elements
 #!
 Exit status: 1
 Ue_Foo : Counter4 { :< Int(32) d(0); > Bool(3) bi(true);  Bool(3) bh(true);  Int(32) e(1);  Int(32) test() {  Foo f;  Atom(96) a = f cast;  { a Foo as cond { Foo& a;  a bi . true cast = bi true cast = } if } { f Counter4 as cond { Counter4& f;  bh true cast = f ( )incr . e f ( )get . = } if } e return } }

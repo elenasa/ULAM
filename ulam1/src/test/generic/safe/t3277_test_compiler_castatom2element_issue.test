@@ -5,6 +5,8 @@
 ##	 Int Arg: 0
 ##      */
 ##      //problem with eval answer is that an atom type appears the same as tu.
+##        unevaluable without assuming atoms as elements
+##
 Exit status: 2
 Ue_Tu { System s();  Int(32) me(2);  Int(32) test() {  Tu t;  Atom(96) a;  { a Tu is cond { t a cast = me 2 cast = } if } s ( me )print . me return } }
 Uq_System { <NOMAIN> }

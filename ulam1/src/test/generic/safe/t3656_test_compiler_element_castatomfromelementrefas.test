@@ -1,5 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3656_test_compiler_element_castatomfromelementrefas
+##
+##        unevaluable without assuming atoms as elements
+##
 #!
 Exit status: 1
 Ue_Foo : QPerc { :< Bool(1) b(true); > Int(32) test() {  Atom(96) a = self cast;  { a Foo as cond { Foo& a;  a b . true = self.storageof a.storageof = 1 cast return } if } 0 cast return } }

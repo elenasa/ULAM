@@ -215,8 +215,19 @@ namespace MFM {
     else if(rclasstype == UC_ELEMENT)
       {
 	// like 'is'
-	// inclusive result for eval purposes (atoms and element types are orthogonal)
-	asit = (m_state.isAtom(luti) || (UlamType::compare(luti, ruti, m_state) == UTIC_SAME));
+	// was inclusive result for eval purposes (atoms and element types are orthogonal)
+	// now optional for debugging
+#define _LET_ATOM_AS_ELEMENT
+#ifndef _LET_ATOM_AS_ELEMENT
+	if(m_state.isAtom(luti))
+	  {
+	    evalNodeEpilog();
+	    return UNEVALUABLE;
+	  }
+	asit = (UlamType::compare(luti, ruti, m_state) == UTIC_SAME);
+#else
+	asit = m_state.isAtom(luti) || (UlamType::compare(luti, ruti, m_state) == UTIC_SAME);
+#endif
       }
 
     if(asit)

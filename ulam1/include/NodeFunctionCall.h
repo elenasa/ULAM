@@ -117,6 +117,7 @@ namespace MFM{
     std::string genHiddenArgs(u32 urtmpnum);
     std::string genRestOfFunctionArgs(File * fp, UlamValue & uvpass);
     void genCodeReferenceArg(File * fp, UlamValue & uvpass, u32 n);
+    void genCodeAnonymousReferenceArg(File * fp, UlamValue & uvpass, u32 n);
     std::string genStorageType(); //for VTable entry
   };
 

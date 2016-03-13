@@ -6,6 +6,8 @@
 ## assert: arg is 1
 ## after asserts abort: arg is 1
 ##
+##
+##        unevaluable without assuming atoms as elements
 #!
 Exit status: 0
 Ue_Foo { Int(32) test() {  System s;  Atom(96) a;  Bar b;  Int(32) rtn = -1 cast;  b ( self cast )func . a self cast = { a Foo is cond rtn 0 cast = if rtn 1 cast = else } s ( rtn )print . s ( rtn 0 cast == )assert . rtn return } }
