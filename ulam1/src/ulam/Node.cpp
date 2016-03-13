@@ -871,7 +871,8 @@ namespace MFM {
     STORAGE rstor = rut->getUlamClass() == UC_QUARK ? TMPREGISTER : ruvpass.getPtrStorage();
     fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), rstor).c_str());
 
-    if(m_state.isAtomRef(ruti))
+    //if(m_state.isAtomRef(ruti))
+    if(m_state.isAtom(ruti))
       fp->write(".ReadAtom()");
 
     fp->write(");\n");
@@ -949,6 +950,7 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
 
     if(m_state.isAtomRef(ruti))
+    //if(m_state.isAtom(ruti)) //what if element?
       fp->write(".ReadAtom()");
 
     fp->write("); //write into atomof ref\n ");

@@ -265,11 +265,12 @@ namespace MFM {
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("(const ");
-    fp->write(mangledName.c_str());
+    //fp->write(mangledName.c_str());
+    fp->write("UlamRefAtom<EC>");
     fp->write("& d, const UlamContext<EC>& ucarg) : ");
     fp->write("UlamRefAtom<EC>");
     fp->write("(m_stg, d.GetEffectiveSelf()), ");
-    fp->write("m_stg(d.m_stg) { }\n");
+    fp->write("m_stg(d.ReadAtom()) { }\n");
 
     //default destructor (for completeness)
     m_state.indent(fp);

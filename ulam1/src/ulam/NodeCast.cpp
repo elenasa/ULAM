@@ -211,7 +211,7 @@ namespace MFM {
 	    if(tobe->getUlamTypeEnum() == Bool)
 	      msg << "; Consider using a comparison operator";
 	    else if(m_state.isAtom(tobeType) && (nut->getUlamClass() == UC_QUARK))
-	      msg << "; Consider using .atomof operator";
+	      msg << "; Consider using a reference (or self) with .instanceof";
 	    if(scr == CAST_HAZY)
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -658,7 +658,6 @@ namespace MFM {
 	tmpVarNum = uvpass.getPtrSlotIndex();
 	vuti = uvpass.getPtrTargetType();  //replace
       }
-
     // "downcast" might not be true; compare to be sure the atom is an element "Foo"
     if(m_state.isAtom(vuti))
       {
@@ -677,9 +676,9 @@ namespace MFM {
 	m_state.m_currentIndentLevel--;
       }
 
+    //don't read like ref's do!
     //update the uvpass to have the casted type
     uvpass = UlamValue::makePtr(tmpVarNum, uvpass.getPtrStorage(), tobeType, m_state.determinePackable(tobeType), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id
-
     return;
   } //genCodeCastAtomAndElement
 

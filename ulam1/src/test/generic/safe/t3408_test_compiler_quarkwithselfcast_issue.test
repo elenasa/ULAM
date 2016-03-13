@@ -29,6 +29,7 @@ element Foo : IntXY(3u,4u){
   Int test() {
     System s;
     Foo m;
+
     s.print(x);
     s.print(y);
     s.assert(x==0);
@@ -97,7 +98,7 @@ quark IntXY(Unsigned xbits, Unsigned ybits) {
   YCoord y;
   Atom fromXY(Int x, Int y) {
     init(x,y);
-    return self.atomof; //atom; //self;
+    return self.storageof; //atom; //self;
   }
 
   Void init(Int ax, Int ay) {

@@ -9,7 +9,7 @@ Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }
 ##
 ## Dave requested a way to get default values for Self (within a quark);
-## Self.atomof (default) vs self.atomof (current stg)
+## Self.instanceof (default) vs self.storageof (current stg)
 ##
 #>A.ulam
   ulam 2;
@@ -41,10 +41,7 @@ element A {
 quark QW {
   Atom func()
   {
-    Atom myself = QW.atomof; //see gencode
-    Atom b;
-    b = myself; //see gencode
-    Atom a = Self.atomof;
+    Atom a = self.instanceof;
     return a;
   }
 }

@@ -4,12 +4,12 @@
 ##      gen code output: 2 asserts
 ##
 Exit status: -11
-Ue_A : QW { :<> Bool(1) b(true);  Int(32) test() {  System s;  b true = Atom(96) me = A.atomof;  Atom(96) defaultself = Self.atomof;  Atom(96) myself = self.atomof cast;  Atom(96) a = ( )func;  { a A as cond { A& a;  s ( a b . ! )assert . } if s ( false )assert . else } { a QW is cond s ( true )assert . if s ( false )assert . else } 0 cast return } }
+Ue_A : QW { :<> Bool(1) b(true);  Int(32) test() {  System s;  b true = Atom(96) me = A.instanceof cast;  Atom(96) defaultself = Self.instanceof cast;  Atom(96) myself = self.storageof cast;  Atom(96) a = ( )func;  { a A as cond { A& a;  s ( a b . ! )assert . } if s ( false )assert . else } { a QW is cond s ( true )assert . if s ( false )assert . else } 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }
 ##
 ## Dave requested a way to get default values for Self (within a quark);
-## Self.atomof (default) vs self.atomof (current stg)
+## Self.instanceof (default) vs self.storageof (current stg)
 ##
 #>A.ulam
   ulam 2;
@@ -20,9 +20,9 @@ element A : QW {
   Int test(){
     System s;
     b = true;
-    Atom me = A.atomof;
-    Atom defaultself = Self.atomof;
-    Atom myself = self.atomof; //eval limited
+    Atom me = A.instanceof;
+    Atom defaultself = Self.instanceof;
+    Atom myself = self.storageof; //eval limited
     Atom a = func();
     if(a as Self)
       s.assert(!a.b); //default is false
@@ -44,7 +44,7 @@ element A : QW {
 quark QW {
   Atom func()
   {
-    Atom a = Self.atomof;
+    Atom a = self.instanceof;
     return a;
   }
 }

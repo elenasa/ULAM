@@ -1,12 +1,10 @@
 ## -*- mode:ulam -*-
-#=t3676_test_compiler_elementandquark_Selfatomoffordefaultquarkdm
+#=t3678_test_compiler_elementandquark_Selfatomoffordefaultquarklocal_error
 #!
-##      gen code output: 2 asserts
-##
-Exit status: 0
-Ue_A { Bool(1) b(true);  QW m_qw();  Int(32) test() {  System s;  b true = Atom(96) a = m_qw ( )func .;  { a A as cond { A& a;  s ( false )assert . } if s ( true )assert . else } { a QW is cond s ( false )assert . if s ( true )assert . else } 0 cast return } }
-Uq_System { <NOMAIN> }
-Uq_QW { <NOMAIN> }
+./QW.ulam:5:15: ERROR: Cannot explicitly cast QW to type: Atom(96); Consider using a reference (or self) with .instanceof.
+./QW.ulam:5:5: ERROR: Initial value expression for: i, initialization is invalid.
+./A.ulam:4:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: A.
+Unrecoverable Program Type Label FAILURE.
 ##
 ## Dave requested a way to get default values for Self (within a quark);
 ## Self.instanceof (default) vs self.storageof (current stg)
@@ -17,15 +15,14 @@ use System;
 use QW;
 element A {
   Bool b;
-  QW m_qw;
   Int test(){
     System s;
-    b = true;
-    Atom a = m_qw.func(); //data member
+    QW qw;
+    Atom a = qw.func();
     if(a as Self)
       s.assert(false); //wrong
     else
-      s.assert(true); //default is false
+      s.assert(true); //correct
 
     //s.assert(a is QW); fails
     if(a is QW)
@@ -42,6 +39,11 @@ element A {
 quark QW {
   Atom func()
   {
+    Atom i = (Atom) QW.instanceof;
+    //Atom me = (Atom) QW.storageof;
+    //Atom myself = self.storageof; //see gencode
+    //Atom b;
+    //b = myself; //see gencode
     Atom a = self.instanceof;
     return a;
   }

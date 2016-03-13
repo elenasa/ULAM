@@ -726,8 +726,9 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str()); //VALUE
 	if(m_state.isAtom(vuti))
 	  {
+	    //fp->write(".ReadAtom()"); //casted whatever to Atom, so read it.
 	    //if(!m_state.isAtomRef(uvpass.getPtrTargetType()))
-	      fp->write(", uc");
+	    fp->write(", uc");
 	  }
 	fp->write(")");
 	fp->write(";\n"); //func call args aren't NodeVarDecl's

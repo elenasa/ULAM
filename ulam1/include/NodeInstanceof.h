@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeAtomof.h - Node handling the Atomof Statement for ULAM
+ * NodeInstanceof.h - Node handling the Instanceof Statement for ULAM
  *
  * Copyright (C) 2016 The Regents of the University of New Mexico.
  * Copyright (C) 2016 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file NodeAtomof.h - Node handling the Atomof Statement for ULAM
+  \file NodeInstanceof.h - Node handling the Instanceof Statement for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2016 All rights reserved.
@@ -34,37 +34,24 @@
 */
 
 
-#ifndef NODEATOMOF_H
-#define NODEATOMOF_H
+#ifndef NODEINSTANCEOF_H
+#define NODEINSTANCEOF_H
 
-#include "File.h"
-#include "Node.h"
-#include "Token.h"
-#include "SymbolVariable.h"
-#include "NodeTypeDescriptor.h"
-#include "NodeBlock.h"
+#include "NodeAtomof.h"
 
 namespace MFM{
 
-  class NodeAtomof : public Node
+  class NodeInstanceof : public NodeAtomof
   {
   public:
 
-    NodeAtomof(Token tokof, NodeTypeDescriptor * nodetype, CompilerState & state);
+    NodeInstanceof(Token tokof, NodeTypeDescriptor * nodetype, CompilerState & state);
 
-    NodeAtomof(const NodeAtomof& ref);
+    NodeInstanceof(const NodeInstanceof& ref);
 
-    virtual ~NodeAtomof();
+    virtual ~NodeInstanceof();
 
-    //    virtual Node * instantiate();
-
-    virtual void updateLineage(NNO pno);
-
-    virtual bool findNodeNo(NNO n, Node *& foundNode);
-
-    virtual void print(File * fp);
-
-    virtual void printPostfix(File * fp);
+    virtual Node * instantiate();
 
     virtual const char * getName();
 
@@ -74,35 +61,17 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    virtual EvalStatus eval();
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
-    virtual EvalStatus evalToStoreInto();
-
-    virtual void genCode(File * fp, UlamValue& uvpass) = 0;
-
-    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass) = 0;
+    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
   protected:
-
-    Token m_token;
-    SymbolVariable * m_varSymbol;
-
-    UTI getOfType();
-    void setOfType(UTI oftyp);
-
-    virtual UlamValue makeUlamValuePtr() = 0;
+    virtual UlamValue makeUlamValuePtr();
 
   private:
 
-    UTI m_oftype;
-    NodeTypeDescriptor * m_nodeTypeDesc;
-    NNO m_currBlockNo;
-
-    NNO getBlockNo() const;
-
-    NodeBlock * getBlock();
   };
 
 }
 
-#endif //end NODEATOMOF_H
+#endif //end NODEINSTANCEOF_H

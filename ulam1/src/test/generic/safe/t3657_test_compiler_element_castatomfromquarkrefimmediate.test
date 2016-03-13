@@ -26,20 +26,21 @@ element Foo : QPerc {
     QPerc& qref = q;
     s.assert(qref.bb);
 
-    Atom& a = qref.atomof; //(Atom) qref;
+    Atom& a = qref.storageof; //(Atom) qref; UNDEFINED_TYPE
 
-    Atom b = QPerc.atomof; //not a lhs ref (see t3659)
+    QPerc b = QPerc.instanceof; //not a lhs ref (see t3659)
+    s.assert(b.bb != q.bb);
 
-    Atom c = Foo.atomof; //not a lhs ref (see t3659)
+    Atom c = Foo.instanceof; //not a lhs ref (see t3659)
 
-    Atom d = self.atomof;
-    self.atomof = d;
+    Atom d = self.storageof;
+    self.storageof = d;
 
     Atom e;
-    e = self.atomof;
+    e = self.instanceof;
 
     Foo f;
-    f.atomof = self.atomof;
+    f.storageof = self.instanceof;
 
     return 0;
   }

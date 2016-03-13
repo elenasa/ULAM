@@ -1,10 +1,15 @@
 ## -*- mode:ulam -*-
-#=t3676_test_compiler_elementandquark_Selfatomoffordefaultquarkdm
-#!
-##      gen code output: 2 asserts
+#=t3681_test_compiler_elementandquark_Selfatomoffordefaultquarklocal_error
 ##
-Exit status: 0
-Ue_A { Bool(1) b(true);  QW m_qw();  Int(32) test() {  System s;  b true = Atom(96) a = m_qw ( )func .;  { a A as cond { A& a;  s ( false )assert . } if s ( true )assert . else } { a QW is cond s ( false )assert . if s ( true )assert . else } 0 cast return } }
+## gen output:
+##  include/Uq_10102QW10.tcc:23: FAILED: ILLEGAL_ARGUMENT
+##
+##  UNCAUGHT FAILURE, ABORTING
+##
+## eval ERROR exit status is -1
+#!
+Exit status: -1
+Ue_A { Bool(1) b(false);  Int(32) test() {  System s;  QW qw;  Atom(96) a = qw ( )func .;  { a A as cond { A& a;  s ( false )assert . } if s ( true )assert . else } { a QW is cond s ( false )assert . if s ( true )assert . else } 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }
 ##
@@ -17,15 +22,14 @@ use System;
 use QW;
 element A {
   Bool b;
-  QW m_qw;
   Int test(){
     System s;
-    b = true;
-    Atom a = m_qw.func(); //data member
+    QW qw;
+    Atom a = qw.func();
     if(a as Self)
       s.assert(false); //wrong
     else
-      s.assert(true); //default is false
+      s.assert(true); //correct
 
     //s.assert(a is QW); fails
     if(a is QW)
@@ -42,6 +46,9 @@ element A {
 quark QW {
   Atom func()
   {
+    Atom myself = self.storageof; //see gencode
+    Atom b;
+    b = myself; //see gencode
     Atom a = self.instanceof;
     return a;
   }

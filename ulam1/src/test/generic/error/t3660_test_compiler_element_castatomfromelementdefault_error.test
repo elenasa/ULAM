@@ -13,7 +13,7 @@ use QPerc;
 element Foo : QPerc {
 
   Int test() {
-    Atom& c = Foo.atomof;
+    Atom& c = Foo.instanceof;
     return 1;
   }
 }

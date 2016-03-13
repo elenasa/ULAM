@@ -30,7 +30,7 @@ element Foo : QPerc {
 quark QPerc {
   Bool check()
   {
-    Atom a = self.atomof; //atom;
+    Atom a = self.storageof; //atom;
     Self input = (Self) a; //cast problem during eval!
     return (a is Self);
   }

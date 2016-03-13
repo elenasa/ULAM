@@ -154,6 +154,7 @@ namespace MFM {
 	    else
 	      {
 		// safecast doesn't test for same size primitives since safe for op equal
+		// atom sizes not related to element sizes internally.
 		if((nut->getBitSize() != newt->getBitSize()) || (nut->getTotalBitSize() != newt->getTotalBitSize()))
 		  {
 		    std::ostringstream msg;
@@ -162,8 +163,13 @@ namespace MFM {
 		    msg << ", and its initial value type ";
 		    msg << newt->getUlamTypeNameBrief().c_str();
 		    msg << ", are incompatible sizes";
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		    rscr = CAST_BAD;
+		    if(m_state.isAtom(nuti) || m_state.isAtom(newType))
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    else
+		      {
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			rscr = CAST_BAD;
+		      }
 		  }
 	      }
 	  }

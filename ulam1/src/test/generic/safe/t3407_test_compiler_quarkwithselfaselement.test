@@ -6,9 +6,9 @@
 ##	 Int Arg: 2
 ##      */
 ##
-## eval ans incorrect: i(2)
+## eval ans incorrect: i(2), exit status -11 or -1?
 ##
-Exit status: -11
+Exit status: -1
 Ue_ElT { Int(32) i(0);  Typo t();  Typo r();  Int(32) test() {  System s;  t ( )incr . s ( i )print . r ( )incr . s ( i )print . s ( i 2 cast == )assert . i return } }
 Uq_Typo { <NOMAIN> }
 Uq_System { <NOMAIN> }
@@ -34,11 +34,11 @@ element ElT {
   ulam 1;
 quark Typo {
   Void incr(){
-    Atom a = self.atomof; //atom; //self;
+    Atom a = self.storageof; //atom; //self;
     if(a as ElT) {
       a.i += 1;
     }
-    self.atomof = a; //atom = a; //self = a;
+    self.storageof = a; //atom = a; //self = a;
   }
  }
 #:System.ulam

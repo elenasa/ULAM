@@ -2,7 +2,7 @@
 #=t3656_test_compiler_element_castatomfromelementrefas
 #!
 Exit status: 1
-Ue_Foo : QPerc { :< Bool(1) b(true); > Int(32) test() {  Atom(96) a = self cast;  { a Foo as cond { Foo& a;  a b . true = self.atomof a.atomof = 1 cast return } if } 0 cast return } }
+Ue_Foo : QPerc { :< Bool(1) b(true); > Int(32) test() {  Atom(96) a = self cast;  { a Foo as cond { Foo& a;  a b . true = self.storageof a.storageof = 1 cast return } if } 0 cast return } }
 Uq_QPerc { Bool(1) b(false);  <NOMAIN> }
 ##
 ## informed by t3655
@@ -18,7 +18,7 @@ element Foo : QPerc {
     if(a as Self)
     {
       a.b = true;
-      self.atomof = a.atomof; //(Atom) a;
+      self.storageof = a.storageof; //(Atom) a;
       return 1;
     }
     return 0;
