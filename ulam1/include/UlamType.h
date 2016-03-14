@@ -139,6 +139,8 @@ namespace MFM{
 
     virtual const std::string getTmpStorageTypeAsString(s32 sizebyints);
 
+    virtual STORAGE getTmpStorageTypeForTmpVar();
+
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
     virtual const std::string castMethodForCodeGen(UTI nodetype);

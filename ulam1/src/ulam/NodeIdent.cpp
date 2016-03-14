@@ -511,7 +511,7 @@ namespace MFM {
     if((classtype == UC_ELEMENT) || m_state.isAtom(nuti))
       {
 	// ptr to explicit atom or element, (e.g. 'f' in f.a=1;)
-	uvpass = UlamValue::makePtr(tmpnum, TMPBITVAL, nuti, UNPACKED, m_state, 0, m_varSymbol->getId());
+	uvpass = UlamValue::makePtr(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, UNPACKED, m_state, 0, m_varSymbol->getId());
       }
     else
       {
@@ -534,13 +534,13 @@ namespace MFM {
 		    pos = sym->getPosOffset();
 		  }
 		// 'pos' modified by this data member symbol's packed bit position
-		uvpass = UlamValue::makePtr(tmpnum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+		uvpass = UlamValue::makePtr(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 	      }
 	  }
 	else
 	  {
 	    //local variable on the stack; could be array ptr!
-	    uvpass = UlamValue::makePtr(tmpnum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
+	    uvpass = UlamValue::makePtr(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
 	  }
       }
   } //makeUlamValuePtrForCodeGen
@@ -1144,7 +1144,7 @@ namespace MFM {
 	fp->write(vut->readMethodForCodeGen().c_str()); //generalized
 	fp->write("();\n");
 	// uvpass updated again
-	uvpass = UlamValue::makePtr(tmpVarNum2, TMPREGISTER, vuti, m_state.determinePackable(vuti), m_state, 0); //POS 0 justified (atom-based).
+	uvpass = UlamValue::makePtr(tmpVarNum2, vut->getTmpStorageTypeForTmpVar(), vuti, m_state.determinePackable(vuti), m_state, 0); //POS 0 justified (atom-based).
       }
     else
       // UNCLEAR: should this be consistent with constants?

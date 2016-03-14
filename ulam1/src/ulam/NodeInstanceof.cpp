@@ -155,8 +155,7 @@ namespace MFM {
 
     // THE READ:
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp to read into
-    STORAGE rstor = nut->getUlamClass() == UC_QUARK ? TMPREGISTER : TMPBITVAL;
-    PACKFIT packfit = nut->getUlamClass() == UC_QUARK ? PACKEDLOADABLE : UNPACKED;
+    STORAGE rstor = nut->getTmpStorageTypeForTmpVar();
 
     m_state.indent(fp);
     fp->write("const ");
@@ -169,7 +168,7 @@ namespace MFM {
     fp->write(nut->readMethodForCodeGen().c_str());
     fp->write("();\n");
 
-    uvpass = UlamValue::makePtr(tmpVarNum2, rstor, nuti, packfit, m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
+    uvpass = UlamValue::makePtr(tmpVarNum2, rstor, nuti, nut->getPackable(), m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
 
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
   } //genCode

@@ -109,8 +109,10 @@ namespace MFM {
 
     //excerpt from makeUlamValuePtrForCodeGen in NodeIdent
     UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
     s32 tmpnum = m_state.getNextTmpVarNumber();
-    uvpass = UlamValue::makePtr(tmpnum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, m_constSymbol->getId());
+    uvpass = UlamValue::makePtr(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, 0, m_constSymbol->getId());
 
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_constSymbol); //*******UPDATED GLOBAL;
 

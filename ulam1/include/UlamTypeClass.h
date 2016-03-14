@@ -115,6 +115,8 @@ namespace MFM{
 
     virtual const std::string getLocalStorageTypeAsString();
 
+    virtual STORAGE getTmpStorageTypeForTmpVar();
+
     virtual const std::string castMethodForCodeGen(UTI nodetype);
 
     virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);

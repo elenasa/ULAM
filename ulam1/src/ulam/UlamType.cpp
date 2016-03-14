@@ -384,6 +384,12 @@ namespace MFM {
     return ctype;
   } //getTmpStorageTypeAsString
 
+  STORAGE UlamType::getTmpStorageTypeForTmpVar()
+  {
+    //immediate storage is TMPBITVAL for all UlamTypes.
+    return TMPREGISTER;
+  }
+
   const char * UlamType::getUlamTypeAsSingleLowercaseLetter()
   {
     return UlamType::getUlamTypeEnumCodeChar(getUlamTypeEnum());

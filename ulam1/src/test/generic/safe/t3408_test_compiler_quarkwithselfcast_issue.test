@@ -73,11 +73,12 @@ element Foo : IntXY(3u,4u){
     if(a as Self){
       a.init(x,y);
     }
-    if(a is Self)
-    {
-      self = (Self) a;
-      return self;
-    }
+    // causes makeAs Case to Fail!
+    //if(a is Self)
+    //{
+    //  self = (Self) a;
+    //  return self;
+    // }
     return (Self) a;
   }
 

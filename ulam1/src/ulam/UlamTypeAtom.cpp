@@ -46,6 +46,11 @@ namespace MFM {
     return ctype.str();
   }
 
+  STORAGE UlamTypeAtom::getTmpStorageTypeForTmpVar()
+  {
+    return TMPTATOM;
+  }
+
   bool UlamTypeAtom::isMinMaxAllowed()
   {
     return false;

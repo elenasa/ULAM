@@ -731,7 +731,14 @@ namespace MFM {
     // Result:
     if(getNodeType() != Void)
       {
-	Node::genCodeConvertABitVectorIntoATmpVar(fp, uvpass); //inc uvpass slot
+	UTI vuti = uvpass.getUlamValueTypeIdx();
+	assert(m_state.isPtr(vuti));
+	vuti = uvpass.getPtrTargetType();
+	// can we skip reading classes???
+	if(m_state.getUlamTypeByIndex(vuti)->isPrimitiveType())
+	  {
+	    Node::genCodeConvertABitVectorIntoATmpVar(fp, uvpass); //inc uvpass slot
+	  }
       }
   } //genCode
 

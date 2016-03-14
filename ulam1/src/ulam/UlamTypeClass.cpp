@@ -466,6 +466,13 @@ namespace MFM {
     return ctype.str();
   } //getLocalStorageTypeAsString
 
+  STORAGE UlamTypeClass::getTmpStorageTypeForTmpVar()
+  {
+    if(getUlamClass() == UC_ELEMENT)
+      return TMPTATOM;
+    return UlamType::getTmpStorageTypeForTmpVar();
+  } //getTmpStorageTypeForTmpVar
+
   const std::string UlamTypeClass::castMethodForCodeGen(UTI nodetype)
   {
     std::ostringstream rtnMethod;
@@ -1133,12 +1140,13 @@ namespace MFM {
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("(const ");
-    fp->write(mangledName.c_str());
+    //fp->write(mangledName.c_str());
+    fp->write("UlamRefAtom");
     fp->write("<EC> & arg) : ");
     fp->write("UlamRefAtom<EC>(m_stg, &");
     fp->write("Us::THE_INSTANCE), "); //effself
     fp->write("m_stg(");
-    fp->write("arg.ReadAtom()) { } \n");
+    fp->write("arg.ReadAtom()) { if(arg.GetType() != this->GetType()) FAIL(ILLEGAL_ARGUMENT); } \n");
 
     //default destructor (for completeness)
     m_state.indent(fp);

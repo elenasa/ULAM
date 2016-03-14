@@ -567,19 +567,20 @@ namespace MFM {
     UTI vuti = uvpass.getUlamValueTypeIdx();
     if(m_state.isPtr(vuti))
       vuti = uvpass.getPtrTargetType();
+    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
     m_state.indent(fp);
     fp->write("const ");
     fp->write(tmpStorageTypeForRead(vuti, uvpass).c_str());
     fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2).c_str());
+    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2, vut->getTmpStorageTypeForTmpVar()).c_str());
     fp->write(" = ");
 
     fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str());
     fp->write(".read();\n");
 
     //update uvpass
-    uvpass = UlamValue::makePtr(tmpVarNum2, TMPREGISTER, vuti, m_state.determinePackable(vuti), m_state, 0); //POS 0 justified (atom-based).
+    uvpass = UlamValue::makePtr(tmpVarNum2, vut->getTmpStorageTypeForTmpVar(), vuti, m_state.determinePackable(vuti), m_state, 0); //POS 0 justified (atom-based).
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeReadAutorefIntoATmpVar
@@ -615,9 +616,7 @@ namespace MFM {
     UTI	scalarcosuti = m_state.getUlamTypeAsScalar(cosuti);
     scalarcosuti = m_state.getUlamTypeAsDeref(scalarcosuti);
     UlamType * scalarcosut = m_state.getUlamTypeByIndex(scalarcosuti);
-
-    STORAGE cstor = ((scalarcosut->getUlamClass() == UC_ELEMENT) || m_state.isAtom(scalarcosuti)) ? TMPBITVAL : TMPREGISTER;
-
+    STORAGE cstor = scalarcosut->getTmpStorageTypeForTmpVar();
     u32 itemlen = cosut->getBitSize();
 
     m_state.indent(fp);
@@ -794,7 +793,7 @@ namespace MFM {
     UTI ruti = ruvpass.getUlamValueTypeIdx();
     assert(m_state.isPtr(ruti)); //terminals handled in NodeTerminal
     ruti = ruvpass.getPtrTargetType();
-    UlamType * rut = m_state.getUlamTypeByIndex(ruti);
+    //UlamType * rut = m_state.getUlamTypeByIndex(ruti);
 
     // here, cos is symbol used to determine read method: either self or last of cos.
     // stgcos is symbol used to determine first "hidden" arg
@@ -867,8 +866,14 @@ namespace MFM {
     //VALUE TO BE WRITTEN:
     // with immediate quarks, they are read into a tmpreg as other immediates
     // with immediate elements, too! value is not a terminal
-    STORAGE rstor = rut->getUlamClass() == UC_QUARK ? TMPREGISTER : ruvpass.getPtrStorage();
+    STORAGE rstor = ruvpass.getPtrStorage();
     fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), rstor).c_str());
+    if(rstor == TMPBITVAL)
+      {
+	fp->write(".");
+	fp->write(readMethodForCodeGen(ruti, ruvpass).c_str()); //or just 'Read' ?
+	fp->write("()");
+      }
     fp->write(");\n");
 
     // inheritance cast needs the lhs type restored after the generated write
@@ -906,6 +911,13 @@ namespace MFM {
     fp->write(writeMethodForCodeGen(luti, luvpass).c_str());
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
+    if(ruvpass.getPtrStorage() == TMPBITVAL)
+      {
+	fp->write(".");
+	fp->write(readMethodForCodeGen(ruti, ruvpass).c_str()); //or just 'Read' ?
+	fp->write("()");
+      }
+
     fp->write(");\n");
 
     // inheritance cast needs the lhs type restored after the generated write
@@ -942,6 +954,12 @@ namespace MFM {
 
     //VALUE TO BE WRITTEN:
     fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
+    if(ruvpass.getPtrStorage() == TMPBITVAL)
+      {
+	fp->write(".");
+	fp->write(readMethodForCodeGen(ruti, ruvpass).c_str()); //or just 'Read' ?
+	fp->write("()");
+      }
     fp->write("); //write into atomof ref\n ");
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
@@ -953,6 +971,8 @@ namespace MFM {
     //cos tell us where to go within the selected member
     s32 tmpVarNum = luvpass.getPtrSlotIndex();
     UTI luti = luvpass.getPtrTargetType();
+    UTI ruti = ruvpass.getPtrTargetType();
+
     m_state.indent(fp);
     fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, TMPAUTOREF).c_str());
     fp->write(".");
@@ -961,7 +981,13 @@ namespace MFM {
     //VALUE TO BE WRITTEN:
     // with immediate quarks, they are read into a tmpreg as other immediates
     // with immediate elements, too! value is not a terminal
-    fp->write(m_state.getTmpVarAsString(ruvpass.getPtrTargetType(), ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
+    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
+    if(ruvpass.getPtrStorage() == TMPBITVAL)
+      {
+	fp->write(".");
+	fp->write(readMethodForCodeGen(ruti, ruvpass).c_str()); //or just 'Read' ?
+	fp->write("()");
+      }
     fp->write(");\n");
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeWriteToAutorefFromATmpVar
@@ -1088,6 +1114,12 @@ namespace MFM {
 	// with immediate quarks, they are read into a tmpreg as other immediates
 	// with immediate elements, too! value not a terminal
 	fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
+	if(ruvpass.getPtrStorage() == TMPBITVAL)
+	  {
+	    fp->write(".");
+	    fp->write(readMethodForCodeGen(scalarcosuti, ruvpass).c_str()); //or just 'Read' ?
+	    fp->write("()");
+	  }
 	fp->write(");\n");
       }
     else
@@ -1140,6 +1172,12 @@ namespace MFM {
 	    // with immediate quarks, they are read into a tmpreg as other immediates
 	    // with immediate elements, too! value not a terminal
 	    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
+	    if(ruvpass.getPtrStorage() == TMPBITVAL)
+	      {
+		fp->write(".");
+		fp->write(readMethodForCodeGen(scalarcosuti, ruvpass).c_str()); //or just 'Read' ?
+		fp->write("()");
+	      }
 	    fp->write(");\n");
 	  }
       }
@@ -1294,7 +1332,7 @@ namespace MFM {
 
     // write out immediate tmp BitValue as an intermediate tmpVar
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
-    STORAGE tmp2stor = (((vut->getUlamClass() == UC_ELEMENT) || m_state.isAtom(vuti)) ?  TMPBITVAL : TMPREGISTER);
+    STORAGE tmp2stor = vut->getTmpStorageTypeForTmpVar();
 
     m_state.indent(fp);
     fp->write("const ");

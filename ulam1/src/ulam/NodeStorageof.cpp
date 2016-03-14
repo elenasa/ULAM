@@ -160,14 +160,14 @@ namespace MFM {
     m_state.indent(fp); //non-const
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //for C++ local vars
     fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum2, TMPBITVAL).c_str());
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum2, nut->getTmpStorageTypeForTmpVar()).c_str());
     fp->write(" = ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
     fp->write(".");
     fp->write(nut->readMethodForCodeGen().c_str());
     fp->write("();\n");
 
-    uvpass = UlamValue::makePtr(tmpVarNum2, TMPBITVAL, nuti, UNPACKED, m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
+    uvpass = UlamValue::makePtr(tmpVarNum2, nut->getTmpStorageTypeForTmpVar(), nuti, UNPACKED, m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
   } //genCode
 

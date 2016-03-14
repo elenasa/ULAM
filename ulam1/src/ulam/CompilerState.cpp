@@ -2768,8 +2768,8 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     UlamType * ut = getUlamTypeByIndex(uti);
     if(isAtom(uti) || (ut->getUlamClass() == UC_ELEMENT))
       {
+	//stg = TMPBITVAL or TMPTATOM; avoid loading a T into a tmpregister!
 	assert(stg != TMPREGISTER);
-	//stg = TMPBITVAL; //avoid loading a T into a tmpregister!
       }
 
     if(stg == TMPREGISTER)
@@ -2792,6 +2792,10 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	  tmpVar << "Uh_6tlref" ; //tmp loadable autoref
 	else
 	  tmpVar << "Uh_6turef" ; //tmp unpacked autoref
+      }
+    else if(stg == TMPTATOM)
+      {
+	tmpVar << "Uh_3tut" ; //tmp unpacked atom T
       }
     else
       assert(0); //remove assumptions about tmpbitval.
