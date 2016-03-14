@@ -387,7 +387,7 @@ namespace MFM {
 	      }
 	    else
 	      {
-		fp->write(stgcos->getMangledName().c_str());
+		fp->write(stgcos->getMangledName().c_str()); //even if self
 		if(cos->isDataMember())
 		  {
 		    fp->write(", ");
@@ -403,7 +403,8 @@ namespace MFM {
 		      }
 		    else if(vclasstype == UC_QUARK)
 		      {
-			fp->write(", 0u"); //left-justified
+			//left-justified, or relative if data member (even if self)
+			fp->write(", 0u");
 		      }
 		  }
 	      }

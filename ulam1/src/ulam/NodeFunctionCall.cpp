@@ -767,7 +767,7 @@ namespace MFM {
     m_state.indent(fp);
     if(nuti != Void)
       {
-	u32 pos = 0; //POS 0 rightjustified;
+	u32 pos = 0; //POS 0 leftjustified;
 	if(nut->getUlamClass() == UC_NOTACLASS) //includes atom too
 	  {
 	    u32 wordsize = nut->getTotalWordSize();
@@ -780,7 +780,12 @@ namespace MFM {
 	if(m_state.m_currentObjSymbolsForCodeGen.empty())
 	  selfid = m_state.getCurrentSelfSymbolForCodeGen()->getId(); //a use for CSS
 	else
-	  selfid = m_state.m_currentObjSymbolsForCodeGen[0]->getId();
+	  {
+	    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen[0];
+	    selfid = cos->getId();
+	    if(!Node::isCurrentObjectALocalVariableOrArgument())
+	      pos = cos->getPosOffset(); //data member position overrides
+	  }
 
 	uvpass = UlamValue::makePtr(rtnSlot, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, justified; self id in Ptr;
 
