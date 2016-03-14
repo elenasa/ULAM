@@ -150,12 +150,18 @@ namespace MFM {
 
   const std::string Symbol::getMangledName()
   {
-       std::ostringstream mangled;
-       std::string nstr = m_state.getDataAsStringMangled(getId());
-
-       mangled << getMangledPrefix() << nstr.c_str();
-       return mangled.str();
-  }
+    std::ostringstream mangled;
+    if(isSelf())
+      {
+	mangled << m_state.getHiddenArgName(); // ur
+      }
+    else
+      {
+	std::string nstr = m_state.getDataAsStringMangled(getId());
+	mangled << getMangledPrefix() << nstr.c_str();
+      }
+    return mangled.str();
+  } //getMangledName
 
   //atomic parameter type, not model parameter.
   const std::string Symbol::getMangledNameForParameterType()

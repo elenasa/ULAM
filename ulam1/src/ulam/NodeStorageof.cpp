@@ -188,10 +188,7 @@ namespace MFM {
       {
 	m_state.indent(fp);
 	fp->write("if(");
-	if(isself)
-	  fp->write("ur");
-	else
-	  fp->write(m_varSymbol->getMangledName().c_str());
+	fp->write(m_varSymbol->getMangledName().c_str());
 	fp->write(".GetType() == T::ATOM_UNDEFINED_TYPE)\n");
 
 	m_state.m_currentIndentLevel++;

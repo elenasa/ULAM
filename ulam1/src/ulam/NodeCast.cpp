@@ -901,10 +901,7 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
     fp->write(" = ");
 
     fp->write("UlamRef<EC>(");
-    if(stgcos->isSelf())
-      fp->write(m_state.getHiddenArgName());
-    else
-      fp->write(stgcos->getMangledName().c_str());
+    fp->write(stgcos->getMangledName().c_str());
 
     fp->write(", 0u, "); //offset of decendent is always 0
     fp->write_decimal_unsigned(tobe->getTotalBitSize()); //len

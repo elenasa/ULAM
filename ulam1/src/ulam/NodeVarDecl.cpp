@@ -673,11 +673,8 @@ namespace MFM {
 	assert(m_state.okUTItoContinue(ttype));
 	if((m_state.getUlamTypeByIndex(ttype)->getUlamClass() == UC_QUARK))
 	  {
-	    u32 vid = m_varSymbol->getId();
-	    if(vid == m_state.m_pool.getIndexForDataString("self"))
-	      {
-		selfuvp = m_state.getAtomPtrFromSelfPtr();
-	      }
+	    if(m_varSymbol->isSelf())
+	      selfuvp = m_state.getAtomPtrFromSelfPtr();
 	    //else
 	  }
 	return selfuvp;
