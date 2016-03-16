@@ -191,6 +191,7 @@ namespace MFM {
 	else if(tobe->getUlamClass() == UC_QUARK)
 	  {
 #if 0
+	    //it becomes an immediate, unless its a ref (t3631).
 	    std::ostringstream msg;
 	    msg << "Cannot cast an atom to quark "; //an atom
 	    msg << tobe->getUlamTypeNameBrief().c_str(); //to quark, unless an ancestor
@@ -499,7 +500,7 @@ namespace MFM {
 
   void NodeCast::genCode(File * fp, UlamValue& uvpass)
   {
-    m_node->genCode(fp, uvpass); //might be unused
+    m_node->genCode(fp, uvpass); //might be unused (e.g. classes, atoms)
     if(needsACast()) //(bypasses references)
       {
 	genCodeReadIntoATmpVar(fp, uvpass); // cast.
@@ -551,45 +552,13 @@ namespace MFM {
      return; //nothing to do!
 
    UlamType * vut = m_state.getUlamTypeByIndex(vuti); //after vuti replacement
-   ULAMCLASSTYPE tclasstype = tobe->getUlamClass();
-   ULAMCLASSTYPE vclasstype = vut->getUlamClass();
-
-   //handle element-atom and atom-element casting differently:
-   // handle element->quark, atom->quark, not quark->atom
-   // handle quark->quark for casting to ancestor
-   // handle quark->element for casting from ancestor to sub
-   if(m_state.isAtom(tobeType) || m_state.isAtom(vuti) || (vclasstype == UC_ELEMENT) || (vclasstype == UC_QUARK))
+   //if(m_state.isAtom(tobeType) || m_state.isAtom(vuti) || (vclasstype == UC_ELEMENT) || (vclasstype == UC_QUARK))
+   if(!tobe->isPrimitiveType() || !vut->isPrimitiveType())
      {
-       if((tclasstype == UC_QUARK) && (vclasstype == UC_QUARK))
-	 return genCodeCastDecendentQuark(fp, uvpass);
-
-       if((tclasstype == UC_QUARK) && (vclasstype == UC_ELEMENT))
-       	 return genCodeCastDecendentElement(fp, uvpass);
-
-       //if((tclasstype == UC_ELEMENT) && (vclasstype == UC_QUARK) && m_state.isReference(vuti))
-       // c&l should have insured quark is a ref.
-       if((tclasstype == UC_ELEMENT) && (vclasstype == UC_QUARK))
-       	 return genCodeCastAncestorQuarkAsSubElement(fp, uvpass);
-
-       //only to be quark makes sense!!! check first, one might be element.
-       //UNLESS quark ref -> atom, handled separately.
-       if((tclasstype == UC_QUARK) || (vclasstype == UC_QUARK))
-	 return genCodeCastAtomAndQuark(fp, uvpass);
-
-       if((tclasstype == UC_ELEMENT) || (vclasstype == UC_ELEMENT))
-	 return genCodeCastAtomAndElement(fp, uvpass);
-
-       {
-	 std::ostringstream msg;
-	 msg << "Casting 'incomplete' types: ";
-	 msg << tobe->getUlamTypeName().c_str();
-	 msg << "(UTI" << tobeType << ") to be " << vut->getUlamTypeName().c_str();
-	 msg << "(UTI" << vuti << ")";
-	 MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	 return;
-       }
+       return genCodeReadNonPrimitiveIntoATmpVar(fp, uvpass);
      }
 
+   //Primitive types:
    s32 tmpVarCastNum = m_state.getNextTmpVarNumber();
 
    m_state.indent(fp);
@@ -649,6 +618,49 @@ namespace MFM {
    else
      uvpass = UlamValue::makePtr(tmpVarCastNum, tobe->getTmpStorageTypeForTmpVar(), tobeType, m_state.determinePackable(tobeType), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id
   } //genCodeReadIntoTmp
+
+  //handle element-atom and atom-element casting differently:
+  // handle element->quark, atom->quark, not quark->atom
+  // handle quark->quark for casting to ancestor
+  // handle quark->element for casting from ancestor to sub
+  void NodeCast::genCodeReadNonPrimitiveIntoATmpVar(File * fp, UlamValue &uvpass)
+  {
+    UTI tobeType = getCastType(); //tobe
+    UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
+    ULAMCLASSTYPE tclasstype = tobe->getUlamClass();
+
+    UTI vuti = uvpass.getPtrTargetType(); //replace
+    UlamType * vut = m_state.getUlamTypeByIndex(vuti); //after vuti replacement
+    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+
+    if((tclasstype == UC_QUARK) && (vclasstype == UC_QUARK))
+      return genCodeCastDecendentQuark(fp, uvpass);
+
+    if((tclasstype == UC_QUARK) && (vclasstype == UC_ELEMENT))
+      return genCodeCastDecendentElement(fp, uvpass);
+
+    // c&l insures quark is a ref.
+    if((tclasstype == UC_ELEMENT) && (vclasstype == UC_QUARK))
+      return genCodeCastAncestorQuarkAsSubElement(fp, uvpass);
+
+    //only to be quark makes sense!!! check first, one might be element.
+    //UNLESS quark ref -> atom, handled separately.
+    if((tclasstype == UC_QUARK) || (vclasstype == UC_QUARK))
+      return genCodeCastAtomAndQuark(fp, uvpass);
+
+    if((tclasstype == UC_ELEMENT) || (vclasstype == UC_ELEMENT))
+      return genCodeCastAtomAndElement(fp, uvpass);
+
+    {
+      std::ostringstream msg;
+      msg << "Casting 'incomplete' types: ";
+      msg << tobe->getUlamTypeName().c_str();
+      msg << "(UTI" << tobeType << ") to be " << vut->getUlamTypeName().c_str();
+      msg << "(UTI" << vuti << ")";
+      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+      return;
+    }
+} //genCodeReadNonPrimitiveIntoATmpVar
 
   void NodeCast::genCodeWriteFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass)
   {

@@ -1,10 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3689_test_compiler_elementandquark_castreftosub
 #!
-##      gen code output: (1 asserts)
+##      gen code output: (4 asserts)
 ##
 Exit status: -11
-Ue_A : QW { :< :< Unary(5) m_five(3u); > Bool(1) bw(false); > Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  Qbase& qref = self;  qref m_five . 3 cast = A apple = qref cast;  b apple m_five . cast 3 cast == = s ( b )assert . b cast return } }
+Ue_A : QW { :< :< Unary(5) m_five(5u); > Bool(1) bw(false); > Bool(1) b(false);  Bool(1) c(true);  Int(32) test() {  System s;  Qbase& qref = self;  m_five 5 cast = c qref m_five . cast 5 == = s ( c )assert . A apple2;  c apple2 m_five . cast 5 != = s ( c )assert . apple2 qref cast = c apple2 m_five . cast 5 == = s ( c )assert . qref m_five . 3 cast = A apple = qref cast;  b apple m_five . cast 3 cast == = s ( b )assert . apple2 qref cast = b cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW : Qbase { :< Unary(5) m_five(0); > Bool(1) bw(false);  <NOMAIN> }
 Uq_Qbase { Unary(5) m_five(0);  <NOMAIN> }
@@ -21,10 +21,22 @@ element A : QW {
   Int test(){
     System s;
     Qbase& qref = self;
+    m_five = 0x5;
+    c = (qref.m_five == 0x5);
+    s.assert(c);
+    A apple2;
+    c = (apple2.m_five != 0x5);
+    s.assert(c);
+    apple2 = (A) qref; //assignment
+    c = (apple2.m_five == 0x5);
+    s.assert(c);
+
     qref.m_five = 0x3;
-    A apple = (A) qref;
+    A apple = (A) qref; //init
     b = (apple.m_five == 0x3);
     s.assert(b);
+
+    apple2 = (A) qref;
     return (Int) b;
   }
 }

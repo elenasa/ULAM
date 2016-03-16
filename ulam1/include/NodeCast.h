@@ -113,6 +113,8 @@ namespace MFM{
 
     bool needsACast(); // trying to avoid extraneous casting.
 
+    void genCodeReadNonPrimitiveIntoATmpVar(File * fp, UlamValue &uvpass);
+
     void genCodeCastAtomAndElement(File * fp, UlamValue & uvpass);
     void genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass);
     void genCodeCastDecendentElement(File * fp, UlamValue & uvpass);
