@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3678_test_compiler_elementandquark_Selfatomoffordefaultquarklocal_error
 #!
-./QW.ulam:5:15: ERROR: Cannot explicitly cast QW to type: Atom(96); Consider using a reference (or self) with .instanceof.
+./QW.ulam:5:15: ERROR: Cannot explicitly cast QW to type: Atom(96); Consider using a reference (or self) with .storageof.
 ./QW.ulam:5:5: ERROR: Initial value expression for: i, initialization is invalid.
 ./A.ulam:4:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.

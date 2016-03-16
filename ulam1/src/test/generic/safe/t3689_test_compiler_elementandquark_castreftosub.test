@@ -1,0 +1,62 @@
+## -*- mode:ulam -*-
+#=t3689_test_compiler_elementandquark_castreftosub
+#!
+##      gen code output: (1 asserts)
+##
+Exit status: -11
+Ue_A : QW { :< :< Unary(5) m_five(3u); > Bool(1) bw(false); > Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  Qbase& qref = self;  qref m_five . 3 cast = A apple = qref cast;  b apple m_five . cast 3 cast == = s ( b )assert . b cast return } }
+Uq_System { <NOMAIN> }
+Uq_QW : Qbase { :< Unary(5) m_five(0); > Bool(1) bw(false);  <NOMAIN> }
+Uq_Qbase { Unary(5) m_five(0);  <NOMAIN> }
+##
+## Dave requested a way to get default values for Self (within a quark);
+## a loophole, since a quark would be an undefined atom, but as a ref, its done (t3679)
+##
+#>A.ulam
+  ulam 2;
+use System;
+use QW;
+element A : QW {
+  Bool b, c;
+  Int test(){
+    System s;
+    Qbase& qref = self;
+    qref.m_five = 0x3;
+    A apple = (A) qref;
+    b = (apple.m_five == 0x3);
+    s.assert(b);
+    return (Int) b;
+  }
+}
+
+#:QW.ulam
+  ulam 2;
+use Qbase;
+quark QW : Qbase{
+  Bool bw;
+  Self func()
+  {
+    Self& sr = self; //compiles
+    Self s = (Self) sr; //requires cast for init
+    return sr; //no cast required
+  }
+}
+
+#:Qbase.ulam
+  ulam 2;
+quark Qbase{
+  Unary(5) m_five;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

@@ -211,7 +211,10 @@ namespace MFM {
   bool NodeBinaryOp::checkForPrimitiveTypes(UTI lt, UTI rt)
   {
     bool rtnOK = true;
-    if(!m_state.getUlamTypeByIndex(lt)->isPrimitiveType())
+    UlamType * lut = m_state.getUlamTypeByIndex(lt);
+    bool lqint = (lut->getUlamClass() == UC_QUARK) && m_state.quarkHasAToIntMethod(lt);
+    // for binary ops: check for quark with toInt method;
+    if(!lut->isPrimitiveType() && !lqint)
       {
 	std::ostringstream msg;
 	msg << "Non-primitive type <";
@@ -222,7 +225,9 @@ namespace MFM {
 	rtnOK = false;
       }
 
-    if(!m_state.getUlamTypeByIndex(rt)->isPrimitiveType())
+    UlamType * rut = m_state.getUlamTypeByIndex(rt);
+    bool rqint = (rut->getUlamClass() == UC_QUARK) && m_state.quarkHasAToIntMethod(rt);
+    if(!rut->isPrimitiveType() && !rqint)
       {
 	std::ostringstream msg;
 	msg << "Non-primitive type <";

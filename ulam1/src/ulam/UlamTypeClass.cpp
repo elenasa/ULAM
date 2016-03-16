@@ -32,7 +32,8 @@ namespace MFM {
 
   bool UlamTypeClass::isPrimitiveType()
   {
-    return isNumericType();
+    //return isNumericType();
+    return false;
   }
 
   bool UlamTypeClass::cast(UlamValue & val, UTI typidx)
@@ -135,6 +136,13 @@ namespace MFM {
 	    if(m_state.isClassASubclassOf(fmderef, cuti))
 	      return CAST_CLEAR; //casting ref to a super class (may also be ref)
 
+	    if(m_state.isClassASubclassOf(cuti, fmderef))
+	      {
+		if(m_state.isReference(typidx))
+		  return CAST_CLEAR; //casting super ref to a sub class is ok
+		return CAST_BAD; //only refs
+	      }
+
 	    //ref of this class, applies to entire arrays too
 	    UTI anyUTI = Nouti;
 	    AssertBool anyDefined = m_state.anyDefinedUTI(m_key, anyUTI);
@@ -155,6 +163,40 @@ namespace MFM {
       }
     return CAST_BAD; //e.g. (typidx == UAtom)
   } //safeCast
+
+  FORECAST UlamTypeClass::explicitlyCastable(UTI typidx)
+  {
+    FORECAST scr = UlamType::explicitlyCastable(typidx); //default, arrays checked
+    if(scr == CAST_CLEAR)
+      {
+	UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
+	ULAMTYPE fetyp = fmut->getUlamTypeEnum();
+	//no casting from primitive to class; but from atom/atomref to class may be fine
+	if((fetyp != Class) || m_state.isAtom(typidx))
+	  return CAST_BAD;
+	else if(m_state.isAtom(typidx))
+	  return CAST_CLEAR;
+
+	//check when casting from class to class
+	bool isfmref = fmut->isReference();
+	UTI fmderef = m_state.getUlamTypeAsDeref(typidx);
+	u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx(); //our scalar as nonref "new"
+	if(m_state.isClassASubclassOf(cuti, fmderef))
+	  {
+	    //casting fm super to sub..only if fm is a ref
+	    if(!isfmref)
+	      scr = CAST_BAD;
+	  }
+	else if(m_state.isClassASubclassOf(fmderef, cuti))
+	  {
+	    // cast fm sub to super, ok!
+	  }
+	else if(UlamType::compare(fmderef, cuti, m_state) != UTIC_SAME)
+	  scr = CAST_BAD;
+	//else what if array???
+      }
+    return scr;
+  } //explicitlyCastable
 
   const char * UlamTypeClass::getUlamTypeAsSingleLowercaseLetter()
   {

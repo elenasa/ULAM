@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t3247_test_compiler_elementatomcast
+#=t3247_test_compiler_elementatomcast_hasdeprecated
 ##      /* gen code output:
 ##	 assert: arg is 1
 ##	 after assert's abort: arg is 1

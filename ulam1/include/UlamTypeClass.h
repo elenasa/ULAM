@@ -62,6 +62,8 @@ namespace MFM{
 
     virtual FORECAST safeCast(UTI typidx);
 
+    virtual FORECAST explicitlyCastable(UTI typidx);
+
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
     virtual const std::string getUlamTypeVDAsStringForC();

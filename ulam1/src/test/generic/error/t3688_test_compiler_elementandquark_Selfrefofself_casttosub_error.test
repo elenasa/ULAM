@@ -1,15 +1,12 @@
 ## -*- mode:ulam -*-
-#=t3688_test_compiler_elementandquark_Selfrefofself_casttosub
+#=t3688_test_compiler_elementandquark_Selfrefofself_casttosub_error
 #!
-##      gen code output: (1 asserts)
+./A.ulam:10:16: ERROR: Cannot explicitly cast QW to type: A.
+./A.ulam:10:5: ERROR: Initial value expression for: apple, initialization is invalid.
+./A.ulam:4:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: A.
+Unrecoverable Program Type Label FAILURE.
 ##
-Exit status: -11
-Ue_A : QW { :< Bool(1) bw(true); > Bool(1) b(false);  Bool(1) c(false);  QW m_q( Bool(1) bw(false); );  Int(32) test() {  System s;  bw true = A apple = ( )func cast;  b apple bw . = s ( apple bw . )assert . apple bw . cast return } }
-Uq_System { <NOMAIN> }
-Uq_QW { Bool(1) bw(false);  <NOMAIN> }
-##
-## Dave requested a way to get default values for Self (within a quark);
-## a loophole, since a quark would be an undefined atom, but as a ref, its done (t3679)
+## Dave requested a way to cast a super REF to a sub type; ref is crucial.
 ##
 #>A.ulam
   ulam 2;

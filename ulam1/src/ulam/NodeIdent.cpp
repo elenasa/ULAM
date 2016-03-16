@@ -1139,7 +1139,6 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2).c_str());
 	fp->write(" = ");
 	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
-	//fp->write(".read();\n");
 	fp->write(".");
 	fp->write(vut->readMethodForCodeGen().c_str()); //generalized
 	fp->write("();\n");
@@ -1147,8 +1146,16 @@ namespace MFM {
 	uvpass = UlamValue::makePtr(tmpVarNum2, vut->getTmpStorageTypeForTmpVar(), vuti, m_state.determinePackable(vuti), m_state, 0); //POS 0 justified (atom-based).
       }
     else
-      // UNCLEAR: should this be consistent with constants?
-      genCodeReadIntoATmpVar(fp, uvpass);
+      {
+	// UNCLEAR: should this be consistent with constants?
+	genCodeReadIntoATmpVar(fp, uvpass);
+
+	//put it back when its a ref..to a class?
+	//UTI nuti = getNodeType();
+	//UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+	//if(nut->isReference() && (nut->getUlamTypeEnum() == Class)) //or atom?
+	//  m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol); //*********UPDATED GLOBAL;
+      }
   } //genCode
 
   void NodeIdent::genCodeToStoreInto(File * fp, UlamValue& uvpass)
