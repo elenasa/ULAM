@@ -108,7 +108,14 @@ namespace MFM {
 
   FORECAST UlamType::explicitlyCastable(UTI typidx)
   {
-    return UlamType::safeCast(typidx); //default
+    FORECAST scr = UlamType::safeCast(typidx); //default
+    if(scr == CAST_CLEAR)
+      {
+	// primitives must be the same sizes when casting to a reference type
+	if(isReference() && !checkReferenceCast(typidx))
+	  scr = CAST_BAD;
+      }
+    return scr;
   } //explicitlyCastable
 
   bool UlamType::checkArrayCast(UTI typidx)
@@ -185,8 +192,8 @@ namespace MFM {
 
     if(key1.getUlamKeyTypeSignatureBitSize() != key2.getUlamKeyTypeSignatureBitSize())
 	  return false;
-    if(alt1 != ALT_NOT || alt2 == ALT_NOT)
-      return false;
+    //if(alt1 != ALT_NOT || alt2 == ALT_NOT)
+    //  return false;
 
     return true; //keys the same, except for reference type
   } //checkReferenceCast
