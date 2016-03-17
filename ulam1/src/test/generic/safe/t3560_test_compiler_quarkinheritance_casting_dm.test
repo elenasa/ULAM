@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t3560_test_compiler_quarkinheritance_casting
+#=t3560_test_compiler_quarkinheritance_casting_dm
 #!
 ## gencode output (+assert):
 ## Bool(3) Arg: 0x7 (true)
@@ -23,7 +23,7 @@ element Foo {
   Soo su;
   Int test() {
     Foo f;
-    Coo c = (Coo) f.su;
+    Coo c = (Coo) f.su; //data member
     first = c.cb;
     if(first)
     {

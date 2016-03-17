@@ -142,17 +142,25 @@ namespace MFM {
 	//if reference is not complete, but its deref is, use its sizes to complete us.
 	if(!m_state.isComplete(nuti))
 	  {
+	    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 	    UTI derefuti = getReferencedUTI();
 	    if(!m_state.okUTItoContinue(derefuti))
 	      {
-		UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 		if(nut->getUlamTypeEnum() == Class)
 		  derefuti = nut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx();
 		else
 		  derefuti = m_state.getUlamTypeAsDeref(nuti);
 	      }
+
 	    if(m_state.isComplete(derefuti))
 	      {
+		if(nut->getReferenceType() != m_refType)
+		  {
+		    nuti = m_state.getUlamTypeAsRef(nuti, m_refType);
+		    nut =  m_state.getUlamTypeByIndex(nuti);
+		    setReferenceType(m_refType, derefuti, nuti); //updates given too!
+		  }
+
 		UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
 		if(!m_state.setUTISizes(nuti, derefut->getBitSize(), derefut->getArraySize()))
 		  {

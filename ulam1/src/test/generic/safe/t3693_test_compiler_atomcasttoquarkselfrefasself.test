@@ -1,0 +1,58 @@
+## -*- mode:ulam -*-
+#=t3693_test_compiler_atomcasttoquarkselfrefasself
+#!
+##      gen code output: (1 asserts)
+##
+##        unevaluable: expected exit status 1
+##
+Exit status: -11
+Ue_A : QW { :< Bool(1) bw(true); > Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  bw true = QW q = ( )func;  b q bw . = s ( b )assert . b cast return } }
+Uq_System { <NOMAIN> }
+Uq_QW { Bool(1) bw(false);  <NOMAIN> }
+##
+## Dave requested a way to get default values for Self (within a quark);
+## a loophole, since a quark would be an undefined atom, but as a ref, its done (t3679)
+##
+## informed by 3692
+##
+#>A.ulam
+  ulam 2;
+use System;
+use QW;
+element A : QW {
+  Bool b, c;
+  Int test(){
+    System s;
+    bw = true;
+    QW q = func();
+    b = q.bw;
+    s.assert(b);
+    return (Int) b;
+  }
+}
+
+#:QW.ulam
+  ulam 2;
+quark QW {
+  Bool bw;
+  Self func()
+  {
+    Atom a = self.storageof;
+    //Self& sra = (Self&) a;  //see t3692
+    Self& sra = (Self) a; //cast turns into immediate with self's values
+    return sra;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

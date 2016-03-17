@@ -48,9 +48,10 @@ quark QW : Qbase{
   Bool bw;
   Self func()
   {
-    Self& sr = self; //compiles
-    Self s = (Self) sr; //requires cast for init
-    return sr; //no cast required
+    Atom a = self.storageof;
+    //Self& sra = (Self&) a; //new way!
+    Self& sra = (Self) a; //shouldn't compile as generate??
+    return sra;
   }
 }
 

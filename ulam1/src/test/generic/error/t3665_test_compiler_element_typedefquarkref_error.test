@@ -4,9 +4,9 @@
 ## gen code:
 ##   include/Ue_10103Foo10.tcc:37: FAILED: ILLEGAL_ARGUMENT
 #!
-./Foo.ulam:10:15: ERROR: Unexpected token <(> for initial value of reference.
-./Foo.ulam:10:16: ERROR: Invalid Statement (possible missing semicolon).
-Unrecoverable Program Parse FAILURE.
+Exit status: -1
+Ue_Foo { Int(32) test() {  QPerc q;  q bb . true = typedef QPerc& QPR;  QPerc& qref = q;  Atom(96)& a = qref.storageof cast;  0 cast return } }
+Uq_QPerc { Bool(1) bb(false);  <NOMAIN> }
 ##
 ## informed by t3657
 ##

@@ -64,6 +64,8 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual TBOOL getStoreIntoAble();
+
     void setCastType(UTI tobe);
 
     UTI getCastType();

@@ -3469,7 +3469,6 @@ namespace MFM {
     if(args.m_declRef == ALT_REF)
       {
 	getNextToken(eTok);
-	//if(getExpectedToken(TOK_IDENTIFIER, eTok))
 	if(eTok.m_type == TOK_IDENTIFIER)
 	  {
 	    Node * rightNode = parseIdentExpr(eTok); //parseLvalExpr(eTok);
@@ -3495,8 +3494,26 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Value of instanceof reference type ";
 		msg << eTok.getTokenStringFromPool(&m_state).c_str();
-		msg << " is missing for ";
-		msg << identTok.getTokenStringFromPool(&m_state).c_str();
+		msg << " is missing for '";
+		//msg << identTok.getTokenStringFromPool(&m_state).c_str();
+		msg << m_state.getTokenDataAsString(&identTok).c_str() << "'";
+		MSG(&eTok, msg.str().c_str(), ERR);
+	      }
+	    else
+	      {
+		((NodeVarRef *) dNode)->setInitExpr(rightNode);
+	      }
+	  }
+	else if(eTok.m_type == TOK_OPEN_PAREN)
+	  {
+	    //allows casting of reference initialization
+	    Node * rightNode = parseRestOfCastOrExpression();
+	    if(!rightNode)
+	      {
+		std::ostringstream msg;
+		msg << "Value of casted reference type ";
+		msg << " is missing for '";
+		msg << m_state.getTokenDataAsString(&identTok).c_str() << "'";
 		MSG(&eTok, msg.str().c_str(), ERR);
 	      }
 	    else
@@ -4821,7 +4838,7 @@ namespace MFM {
   Node * Parser::makeCastNode(Token typeTok)
   {
     Node * rtnNode = NULL;
-    UTI typeToBe = Nav;
+    UTI typeToBe = Nouti;
     TypeArgs typeargs;
     typeargs.init(typeTok);
 
@@ -4830,7 +4847,18 @@ namespace MFM {
     NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs, typeToBe, false);
     assert(typeNode);
 
-    if(getExpectedToken(TOK_CLOSE_PAREN))
+    Token eTok;
+    getNextToken(eTok);
+    if(eTok.m_type == TOK_AMP)
+      {
+	UTI refuti = m_state.getUlamTypeAsRef(typeNode->givenUTI());
+	typeargs.m_declRef = ALT_REF;
+	typeNode->setReferenceType(ALT_REF, typeNode->givenUTI(), refuti);
+	typeargs.m_referencedUTI = typeNode->getReferencedUTI(); //typeNode->givenUTI();
+	getNextToken(eTok);
+      }
+
+    if(eTok.m_type == TOK_CLOSE_PAREN)
       {
 	//typeNode tfrs to owner to NodeCast
 	Node * nodetocast = parseFactor();

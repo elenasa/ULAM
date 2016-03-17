@@ -345,10 +345,20 @@ namespace MFM {
 	if(m_state.isAtom(vuti))
 	  return genCodeAtomRefInit(fp, uvpass);
 
-	Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+	Symbol * cos = NULL;
+	Symbol * stgcos = NULL;
+	if(m_state.m_currentObjSymbolsForCodeGen.empty())
+	  {
+	    stgcos = cos = m_state.getCurrentSelfSymbolForCodeGen();
+	  }
+	else
+	  {
+	    stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+	    cos = m_state.m_currentObjSymbolsForCodeGen.back();
+	  }
+
 	UTI stgcosuti = stgcos->getUlamTypeIdx();
 	UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-
 
 	if(!stgcosut->isScalar() && !vut->isScalar())
 	  return genCodeArrayRefInit(fp, uvpass);
@@ -356,7 +366,6 @@ namespace MFM {
 	if(!stgcosut->isScalar() && vut->isScalar())
 	  return genCodeArrayItemRefInit(fp, uvpass);
 
-	Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
 	UTI cosuti = cos->getUlamTypeIdx();
 	UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
@@ -387,7 +396,10 @@ namespace MFM {
 	      }
 	    else
 	      {
-		fp->write(stgcos->getMangledName().c_str()); //even if self
+		if(m_state.m_currentObjSymbolsForCodeGen.empty())
+		  fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
+		else
+		  fp->write(stgcos->getMangledName().c_str()); //even if self
 		if(cos->isDataMember())
 		  {
 		    fp->write(", ");

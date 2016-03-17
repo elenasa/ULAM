@@ -98,7 +98,7 @@ namespace MFM{
 
     void setNodeType(UTI ut);
 
-    TBOOL getStoreIntoAble();
+    virtual TBOOL getStoreIntoAble();
 
     void setStoreIntoAble(TBOOL s);
 

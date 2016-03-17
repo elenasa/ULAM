@@ -1,11 +1,11 @@
 ## -*- mode:ulam -*-
 #=t3559_test_compiler_elementinheritances_casting
 #!
-## gencode output (+ assert at end):
+## gencode output (+ assert):
 ## Bool(3) Arg: 0x7 (true)
 ##
 Exit status: 77
-Ue_Foo : Soo { :< :< Bool(3) cb(true); > Unsigned(3) us(4u); > Bool(7) sp(true);  Int(32) a(73);  Int(32) test() {  System s;  Foo f;  Coo c;  { c cb . cond { sp c cb . cast = s ( c cb . )print . s ( c cb . cast )assert . f us . cast f a . +b return } if } 0 cast return } }
+Ue_Foo : Soo { :< :< Bool(3) cb(true); > Unsigned(3) us(4u); > Bool(7) sp(true);  Int(32) a(73);  Int(32) test() {  System s;  Foo f;  Coo c = f cast;  { c cb . cond { sp c cb . cast = s ( c cb . )print . s ( c cb . cast )assert . f us . cast f a . +b return } if } 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
@@ -23,7 +23,7 @@ element Foo : Soo {
   Int test() {
     System s;
     Foo f;
-    Coo c; //BAD_CAST: = (Coo) f;
+    Coo c = (Coo) f;
     if(c.cb)
     {
       sp = c.cb; //was inf loop!!!
