@@ -1,10 +1,10 @@
 ## -*- mode:ulam -*-
-#=t3689_test_compiler_elementandquark_castreftosub
+#=t3697_test_compiler_elementandquark_castreftoatom
 #!
-##      gen code output: (4 asserts)
+##      gen code output: (2 asserts)
 ##
 Exit status: -11
-Ue_A : QW { :< :< Unary(5) m_five(5u); > Bool(1) bw(false); > Bool(1) b(false);  Bool(1) c(true);  Int(32) test() {  System s;  Qbase& qref = self cast;  m_five 5 cast = c qref m_five . cast 5 == = s ( c )assert . A apple2;  c apple2 m_five . cast 5 != = s ( c )assert . apple2 qref cast = c apple2 m_five . cast 5 == = s ( c )assert . qref m_five . 3 cast = A apple = qref cast;  b apple m_five . cast 3 cast == = s ( b )assert . apple2 qref cast = b cast return } }
+Ue_A : QW { :< :< Unary(5) m_five(3u); > Bool(1) bw(false); > Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  Qbase& qref = self cast;  qref m_five . 3 cast = Atom(96) a = qref cast;  A apple = a cast;  b apple m_five . cast 3 cast == = s ( b )assert . Atom(96)& aref = self cast;  aref qref.storageof cast = qref m_five . 5 cast = apple aref cast = c apple m_five . cast 5 == = s ( c )assert . b cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW : Qbase { :< Unary(5) m_five(0); > Bool(1) bw(false);  <NOMAIN> }
 Uq_Qbase { Unary(5) m_five(0);  <NOMAIN> }
@@ -21,22 +21,20 @@ element A : QW {
   Int test(){
     System s;
     Qbase& qref = self;
-    m_five = 0x5;
-    c = (qref.m_five == 0x5);
-    s.assert(c);
-    A apple2;
-    c = (apple2.m_five != 0x5);
-    s.assert(c);
-    apple2 = (A) qref; //assignment
-    c = (apple2.m_five == 0x5);
-    s.assert(c);
-
     qref.m_five = 0x3;
-    A apple = (A) qref; //init
+    Atom a = (Atom) qref;
+    A apple = (A) a;
     b = (apple.m_five == 0x3);
     s.assert(b);
 
-    apple2 = (A) qref;
+    Atom & aref = self;
+    //aref = (Atom&) qref.storageof; //atom ref assignment
+    aref = qref.storageof; //atom ref assignment
+    qref.m_five = 0x5;
+    apple = (A) aref;
+    c = (apple.m_five == 0x5);
+    s.assert(c);
+
     return (Int) b;
   }
 }

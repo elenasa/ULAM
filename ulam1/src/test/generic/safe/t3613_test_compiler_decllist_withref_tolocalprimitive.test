@@ -2,7 +2,7 @@
 #=t3613_test_compiler_decllist_withref_tolocalprimitive
 #!
 Exit status: 3
-Ue_A { Bool(1) sp(false);  Int(32) test() {  Int(32) a = 1 cast;  Int(32) b;  Int(32)& d = a;  Int(32) c[2];  b 1 cast = b 2 cast += c 1 [] b cast = a c 1 [] cast = d cast return } }
+Ue_A { Bool(1) sp(false);  Int(32) test() {  Int(32) a = 1 cast;  Int(32) b;  Int(32)& d = a cast;  Int(32) c[2];  b 1 cast = b 2 cast += c 1 [] b cast = a c 1 [] cast = d cast return } }
 #>A.ulam
   ulam 2;
 element A {

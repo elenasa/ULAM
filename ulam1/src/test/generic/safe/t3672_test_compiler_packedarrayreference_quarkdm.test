@@ -14,7 +14,7 @@
 ##	 Int Arg: 3
 ##      */
 Exit status: 10
-Ue_A { System s();  typedef QW BigSite[10];  typedef QW& BSRef[10];  typedef QW& BRR[10];  Bool(1) sp(false);  QW site[10]( Int(3) iwarr[2](0,0);  Int(3) iwarr[2](0,1);  Int(3) iwarr[2](0,2);  Int(3) iwarr[2](0,3);  Int(3) iwarr[2](0,3);  Int(3) iwarr[2](0,3);  Int(3) iwarr[2](0,3);  Int(3) iwarr[2](0,3);  Int(3) iwarr[2](0,3);  Int(3) iwarr[2](0,3); );  Int(32) test() {  QW& siteref[10] = site;  QW& brr[10] = siteref;  { Int(32) i = 0 cast;  i 10 cast < cond { siteref i [] ( 1 cast i )set . s ( brr i [] ( 1 cast )get . )print . } _1: i 1 cast += while } 10 cast return } }
+Ue_A { System s();  typedef QW BigSite[10];  typedef QW& BSRef[10];  typedef QW& BRR[10];  Bool(1) sp(false);  QW site[10]( Int(3) iwarr[2](0,0);  Int(3) iwarr[2](0,1);  Int(3) iwarr[2](0,2);  Int(3) iwarr[2](0,3);  Int(3) iwarr[2](0,3);  Int(3) iwarr[2](0,3);  Int(3) iwarr[2](0,3);  Int(3) iwarr[2](0,3);  Int(3) iwarr[2](0,3);  Int(3) iwarr[2](0,3); );  Int(32) test() {  QW& siteref[10] = site cast;  QW& brr[10] = siteref;  { Int(32) i = 0 cast;  i 10 cast < cond { siteref i [] ( 1 cast i )set . s ( brr i [] ( 1 cast )get . )print . } _1: i 1 cast += while } 10 cast return } }
 Uq_QW { Int(3) iwarr[2](0,0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

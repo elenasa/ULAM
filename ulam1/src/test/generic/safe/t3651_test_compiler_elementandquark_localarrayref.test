@@ -2,7 +2,7 @@
 #=t3651_test_compiler_elementandquark_localarrayref
 #!
 Exit status: 7
-Ue_Foo : Bar { :< typedef Int(7) Tar;  constant Int(32) cx = 7;  Int(7) m_tar(1); > Int(32) test() {  System s;  Int(7) tar[4];  Int(7)& tref = tar 3 [];  tref 7 cast = s ( tref cast 7 cast == )assert . tref cast return } }
+Ue_Foo : Bar { :< typedef Int(7) Tar;  constant Int(32) cx = 7;  Int(7) m_tar(1); > Int(32) test() {  System s;  Int(7) tar[4];  Int(7)& tref = tar 3 [] cast;  tref 7 cast = s ( tref cast 7 cast == )assert . tref cast return } }
 Uq_System { <NOMAIN> }
 Uq_Bar { constant Int(32) cx = 7;  typedef Int(7) Tar;  Int(7) m_tar( 1);  <NOMAIN> }
 ##

@@ -14,7 +14,7 @@
 ##	 Int Arg: 3
 ##      */
 Exit status: 10
-Ue_A { System s();  typedef Int(3) BigSite[10];  typedef Int(3) & BSRef[10];  typedef Int(3) & BRR[10];  Int(32) test() {  Int(3) site[10];  Int(3)& siteref[10] = site;  Int(3)& brr[10] = siteref;  { Int(32) i = 0 cast;  i 10 cast < cond { siteref i [] i cast cast = s ( brr i [] cast )print . } _1: i 1 cast += while } 10 cast return } }
+Ue_A { System s();  typedef Int(3) BigSite[10];  typedef Int(3) & BSRef[10];  typedef Int(3) & BRR[10];  Int(32) test() {  Int(3) site[10];  Int(3)& siteref[10] = site cast;  Int(3)& brr[10] = siteref;  { Int(32) i = 0 cast;  i 10 cast < cond { siteref i [] i cast cast = s ( brr i [] cast )print . } _1: i 1 cast += while } 10 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by: t3276

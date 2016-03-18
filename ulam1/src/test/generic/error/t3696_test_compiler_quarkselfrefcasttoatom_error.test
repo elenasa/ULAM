@@ -1,19 +1,20 @@
 ## -*- mode:ulam -*-
-#=t3692_test_compiler_atomcasttoquarkselfref
+#=t3696_test_compiler_quarkselfrefcasttoatom_error
 #!
 ##      gen code output: (1 asserts)
 ##
 ##        unevaluable: expected exit status 1
 ##
-Exit status: -11
-Ue_A : QW { :< Bool(1) bw(true); > Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  bw true = QW q = ( )func;  b q bw . = s ( b )assert . b cast return } }
-Uq_System { <NOMAIN> }
-Uq_QW { Bool(1) bw(false);  <NOMAIN> }
+./QW.ulam:7:19: ERROR: Cannot explicitly cast QW& to type: Atom(96)&; Consider using a reference (or self) with .storageof.
+./QW.ulam:7:5: ERROR: Initial value expression for: aref, initialization is invalid.
+./QW.ulam:7:5: ERROR: Storage expression for: aref, is invalid.
+./A.ulam:4:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: A.
+Unrecoverable Program Type Label FAILURE.
 ##
 ## Dave requested a way to get default values for Self (within a quark);
 ## a loophole, since a quark would be an undefined atom, but as a ref, its done (t3679)
 ##
-## informed by 3686
+## informed by t3692, inverted from quarkref to atom without .storage
 ##
 #>A.ulam
   ulam 2;
@@ -37,9 +38,9 @@ quark QW {
   Bool bw;
   Self func()
   {
-    Atom a = self.storageof;
-    Atom& b = (Atom&) self.storageof; //also works
-    Self& sra = (Self&) a; //new way!
+    Self & qref = self;
+    Atom& aref = (Atom&) qref; //requires .storageof for init
+    Self& sra = (Self&) aref;
     return sra;
   }
 }

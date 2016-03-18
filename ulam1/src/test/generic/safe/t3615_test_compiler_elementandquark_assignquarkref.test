@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 1
-Ue_Foo { Bar m_bar( Bool(1) val_b[3](false,false,false); );  Int(32) test() {  System s;  Foo g;  Foo& f = g;  g m_bar val_b 1 [] . . true cast = s ( f m_bar val_b 1 [] . . cast )assert . f m_bar val_b 1 [] . . cast return } }
+Ue_Foo { Bar m_bar( Bool(1) val_b[3](false,false,false); );  Int(32) test() {  System s;  Foo g;  Foo& f = g cast;  g m_bar val_b 1 [] . . true cast = s ( f m_bar val_b 1 [] . . cast )assert . f m_bar val_b 1 [] . . cast return } }
 Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

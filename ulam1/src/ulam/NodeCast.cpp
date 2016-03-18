@@ -290,8 +290,9 @@ namespace MFM {
 
 		errorsFound++;
 	      }
-	    else if(!Node::makeCastingNode(m_node, tobeType, m_node, isExplicitCast()))
-	      errorsFound++; //and goagain set
+	    // infinite loop!!
+	    //else if(!Node::makeCastingNode(m_node, tobeType, m_node, isExplicitCast()))
+	    //  errorsFound++; //and goagain set
 	  }
 	//can't detect its a CaArray; already resolved by m_node ([]) to caarrayType
 	else
@@ -722,7 +723,9 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
   {
     UTI tobeType = getCastType(); //quark tobe, only if ancestor
     UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
+
     // allow quark refs -> atom cast, if ancestor of atom type.
+    // e.g. assignments (e.g. t3697, error/t3691).
     //assert(tobe->getUlamClass() == UC_QUARK);
 
     UTI vuti = uvpass.getUlamValueTypeIdx();
@@ -798,61 +801,20 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
     else
       {
 	//from a quark, cast to atom..
+	//e.g. a quark here would fail, if not a superclass && ref
 	UlamType* vut = m_state.getUlamTypeByIndex(vuti);
-	if(vut->getUlamClass() == UC_ELEMENT)
-	  {
-	    assert(0); //see genCodeCastDecendentElement
-	    m_state.indent(fp);
-	    fp->write("const bool ");
-	    fp->write(m_state.getTmpVarAsString(Bool, tmpVarIs).c_str());;
-	    fp->write(" = (");
-	    //internal method, takes uc, u32 and const char*, returns true
-	    // when same or ancestor
-	    fp->write(vut->getUlamTypeMangledName().c_str());
-	    fp->write("<EC>::");
+	assert(vut->isReference());
 
-	    fp->write(m_state.getIsMangledFunctionName(vuti));
-	    fp->write("(\"");
-	    fp->write(tobe->getUlamTypeMangledName().c_str());
-	    fp->write("\"));\n");
-	  }
-	else
-	  {
-	    //e.g. a quark here would be wrong, if not a superclass && ref
-	    if(vut->isReference())
-	      {
-		//insure the qref has a (MFM) type that's not UNDEFINED
-		// hopefully, uvpass is TMPBITVAL
-#if 0
-		return genCodeCastFromAReference(fp, uvpass);
-
-#else
-		m_state.indent(fp);
-		fp->write("const bool ");
-		fp->write(m_state.getTmpVarAsString(Bool, tmpVarIs).c_str());;
-		fp->write(" = (");
-		fp->write(stgcos->getMangledName().c_str());
-		fp->write(".");
-		fp->write("GetType()");
-		fp->write(" == T::ATOM_UNDEFINED_TYPE);\n"); //subatomic type
-		//not sure where to go from here.. very different than atom->quark
-		// (assumes quark is not a ref?) that creates a ALT_CAST tmp ref
-		// quark type to read just the quark part of the atom.
-		// Reverse, given quark ref that's not UNDEFINED TYPE, just reads
-		// the entire atom.
-#endif
-	      }
-	    else
-	      {
-		std::ostringstream msg;
-		msg << "Casting 'incomplete' types ";
-		msg << tobe->getUlamTypeNameBrief().c_str();
-		msg << " to be ";
-		msg << vut->getUlamTypeNameBrief().c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		assert(0);//return;
-	      }
-	  }
+	//insure the qref has a (MFM) type that's not UNDEFINED
+	// hopefully, uvpass is TMPBITVAL
+	m_state.indent(fp);
+	fp->write("const bool ");
+	fp->write(m_state.getTmpVarAsString(Bool, tmpVarIs).c_str());;
+	fp->write(" = (");
+	fp->write(stgcos->getMangledName().c_str());
+	fp->write(".");
+	fp->write("GetType()");
+	fp->write(" != T::ATOM_UNDEFINED_TYPE);\n"); //subatomic type
       }
 
     m_state.indent(fp);
@@ -865,10 +827,7 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
     fp->write("FAIL(BAD_CAST);\n\n");
     m_state.m_currentIndentLevel--;
 
-    //informed by genCodedAutoLocal() in NodeVarDecl used for conditional-as
-    // uses stgcos since there's no m_varSymbol in this situation.
-    // before shadowing the lhs of the as-conditional variable with its auto,
-    // let's load its storage from the currentSelfSymbol:
+
     UTI stguti = stgcos->getUlamTypeIdx();
     UlamType * stgut = m_state.getUlamTypeByIndex(stguti);
     bool isCustomArray = m_state.isClassACustomArray(stguti);
@@ -886,104 +845,86 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
       }
 
     // might be ancestor quark
-    //assert(stgut->getUlamTypeEnum() == UAtom || stgut->getUlamClass() == UC_ELEMENT);
-
     // can't let Node::genCodeReadIntoTmpVar do this for us (we need a ref!):
     assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
 
     if(!tobe->isReference())
       {
-#if 0
-	// time to (like a) "shadow 'self'" with auto local variable:
-	UTI rtobeType = m_state.getUlamTypeAsRef(tobeType, ALT_CAST);
-	UlamType * rtobe = m_state.getUlamTypeByIndex(rtobeType);
-	m_state.indent(fp);
-	fp->write(rtobe->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
-	fp->write(" ");
-
-	s32 tmpIQ = m_state.getNextTmpVarNumber(); //tmp since no variable name
-	fp->write(m_state.getTmpVarAsString(rtobeType, tmpIQ, TMPBITVAL).c_str());
-	fp->write("(");
-	fp->write(stgcos->getMangledName().c_str());
-	if(!stgcos->isSelf())
-	  fp->write(".GetStorage()");
-
-	//for known quark:
-	fp->write(", 0u, &"); //'is'
-	fp->write(tobe->getUlamTypeMangledName().c_str()); //REQUIRES THE QUARK..
-	fp->write("<EC>::THE_INSTANCE");
-	fp->write("); //faked ref for read\n"); //like, shadow lhs of as
-
+	// uses stgcos since there's no m_varSymbol in this situation.
 	// don't forget the read!
-	s32 tmpIQread = m_state.getNextTmpVarNumber(); //tmp since no variable name
+	s32 tmpread = m_state.getNextTmpVarNumber(); //tmp since no variable name
 	m_state.indent(fp);
 	fp->write("const ");
 	fp->write(tobe->getTmpStorageTypeAsString().c_str()); //u32 or T
 	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(tobeType, tmpIQread, tobe->getTmpStorageTypeForTmpVar()).c_str());
-	fp->write(" = ");
-	fp->write(m_state.getTmpVarAsString(rtobeType, tmpIQ, TMPBITVAL).c_str());
-	fp->write(".");
-	fp->write(tobe->readMethodForCodeGen().c_str());
-	fp->write("();\n");
-#endif
+	fp->write(m_state.getTmpVarAsString(tobeType, tmpread, tobe->getTmpStorageTypeForTmpVar()).c_str());
 
-	// don't forget the read!
-	s32 tmpIQread = m_state.getNextTmpVarNumber(); //tmp since no variable name
-	m_state.indent(fp);
-	fp->write("const ");
-	fp->write(tobe->getTmpStorageTypeAsString().c_str()); //u32 or T
-	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(tobeType, tmpIQread, tobe->getTmpStorageTypeForTmpVar()).c_str());
-	fp->write(" = UlamRef<EC>(");
-	fp->write(stgcos->getMangledName().c_str());
-	fp->write(", 0u, ");
-	fp->write_decimal_unsigned(tobe->getTotalBitSize());
-	fp->write("u, &"); //'is'
-	fp->write(tobe->getUlamTypeMangledName().c_str()); //REQUIRES THE QUARK..
-	fp->write("<EC>::THE_INSTANCE).");
+	if(m_state.isAtom(vuti))
+	  {
+	    fp->write(" = UlamRef<EC>(");
+	    fp->write(stgcos->getMangledName().c_str());
+	    fp->write(", 0u, ");
+	    fp->write_decimal_unsigned(tobe->getTotalBitSize());
+	    fp->write("u, &"); //'is'
+	    fp->write(tobe->getUlamTypeMangledName().c_str()); //REQUIRES THE QUARK..
+	    fp->write("<EC>::THE_INSTANCE).");
+	  }
+	else
+	  {
+	    fp->write(" = ");
+	    fp->write(stgcos->getMangledName().c_str());
+	    fp->write("."); //entire storage
+	  }
+
 	fp->write(tobe->readMethodForCodeGen().c_str());
 	fp->write("();\n");
 
-
-	//uvpass = UlamValue::makePtr(tmpIQread, tobe->getTmpStorageTypeForTmpVar(), tobeType, m_state.determinePackable(tobeType), m_state, uvpass.getPtrPos()); //POS 0 is justified; will name id help?
-
-	s32 tmpIQbv = m_state.getNextTmpVarNumber(); //tmp since no variable name
+	s32 tmpbv = m_state.getNextTmpVarNumber(); //tmp since no variable name
 	m_state.indent(fp);
 	fp->write(tobe->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
 	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(tobeType, tmpIQbv, TMPBITVAL).c_str());
+	fp->write(m_state.getTmpVarAsString(tobeType, tmpbv, TMPBITVAL).c_str());
 	fp->write("(");
-	fp->write(m_state.getTmpVarAsString(tobeType, tmpIQread, tobe->getTmpStorageTypeForTmpVar()).c_str());
-	fp->write(");\n"); //like, shadow lhs of as
+	fp->write(m_state.getTmpVarAsString(tobeType, tmpread, tobe->getTmpStorageTypeForTmpVar()).c_str());
+
+	if(!m_state.isAtom(vuti))
+	  fp->write(", uc"); //to atom
+
+	fp->write(");\n");
 
 	//update the uvpass to have the casted immediate quark
-	uvpass = UlamValue::makePtr(tmpIQbv, TMPBITVAL, tobeType, m_state.determinePackable(tobeType), m_state, uvpass.getPtrPos()); //POS 0 is justified; will name id help?
+	uvpass = UlamValue::makePtr(tmpbv, TMPBITVAL, tobeType, m_state.determinePackable(tobeType), m_state, uvpass.getPtrPos()); //POS 0 is justified; will name id help?
       }
     else
       {
+	//reference tobe
 	UTI dereftobe = m_state.getUlamTypeAsDeref(tobeType);
 	UlamType * dereftobeut = m_state.getUlamTypeByIndex(dereftobe);
 
-	s32 tmpIQref = m_state.getNextTmpVarNumber(); //tmp since no variable name
-
+	s32 tmpref = m_state.getNextTmpVarNumber(); //tmp since no variable name
 	m_state.indent(fp);
 	fp->write(tobe->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
 	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(tobeType, tmpIQref, TMPBITVAL).c_str());
+	fp->write(m_state.getTmpVarAsString(tobeType, tmpref, TMPBITVAL).c_str());
 	fp->write("(");
 	fp->write(stgcos->getMangledName().c_str());
 	if(!stgcos->isSelf())
 	  fp->write(".GetStorage()");
 
-	//for known quark:
-	fp->write(", 0u, &"); //'is'
-	fp->write(dereftobeut->getUlamTypeMangledName().c_str()); //REQUIRES THE QUARK..
-	fp->write("<EC>::THE_INSTANCE");
+	if(m_state.isAtom(vuti))
+	  {
+	    //from atom, for known quark:
+	    fp->write(", 0u, &"); //'is'
+	    fp->write(dereftobeut->getUlamTypeMangledName().c_str()); //REQUIRES THE QUARK..
+	    fp->write("<EC>::THE_INSTANCE");
+	  }
+	else
+	    fp->write(", uc");
+
 	fp->write(");\n"); //like, shadow lhs of as
 
 	//update the uvpass to have the casted immediate quark ref
-	uvpass = UlamValue::makePtr(tmpIQref, TMPBITVAL, tobeType, m_state.determinePackable(tobeType), m_state, uvpass.getPtrPos()); //POS 0 is justified; will name id help?
+	uvpass = UlamValue::makePtr(tmpref, TMPBITVAL, tobeType, m_state.determinePackable(tobeType), m_state, uvpass.getPtrPos()); //POS 0 is justified; will name id help?
       }
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs
   } //genCodeCastAtomAndQuark
@@ -1012,7 +953,13 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
     fp->write(m_state.getIsMangledFunctionName(vuti)); //UlamElement IsMethod
     fp->write("("); //one arg
     fp->write("\"");
-    fp->write(tobe->getUlamTypeMangledName().c_str());
+    if(tobe->isReference())
+      {
+	UTI dereftobe = m_state.getUlamTypeAsDeref(tobeType);
+	fp->write(m_state.getUlamTypeByIndex(dereftobe)->getUlamTypeMangledName().c_str());
+      }
+    else
+      fp->write(tobe->getUlamTypeMangledName().c_str());
     fp->write("\"))\n");
 
     m_state.m_currentIndentLevel++;
@@ -1020,29 +967,54 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
     fp->write("FAIL(BAD_CAST);\n");
     m_state.m_currentIndentLevel--;
 
-    //read from pos 0, for length of quark
-    s32 tmpVarVal = m_state.getNextTmpVarNumber();
-    m_state.indent(fp);
-    fp->write("const ");
-    fp->write(tobe->getTmpStorageTypeAsString().c_str()); //u32
-    fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(tobeType, tmpVarVal).c_str());
-    fp->write(" = ");
+    if(!tobe->isReference())
+      {
+	//read from pos 0, for length of quark
+	s32 tmpVarVal = m_state.getNextTmpVarNumber();
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(tobe->getTmpStorageTypeAsString().c_str()); //u32
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(tobeType, tmpVarVal).c_str());
+	fp->write(" = ");
 
-    fp->write("UlamRef<EC>(");
-    fp->write(stgcos->getMangledName().c_str());
+	fp->write("UlamRef<EC>(");
+	fp->write(stgcos->getMangledName().c_str());
 
-    fp->write(", 0u, "); //offset of decendent is always 0
-    fp->write_decimal_unsigned(tobe->getTotalBitSize()); //len
-    fp->write("u, &");
-    fp->write(tobe->getUlamTypeMangledName().c_str()); //effset
-    fp->write("<EC>::THE_INSTANCE).");
-    fp->write(tobe->readMethodForCodeGen().c_str());
-    fp->write("();\n");
+	fp->write(", 0u, "); //offset of decendent is always 0
+	fp->write_decimal_unsigned(tobe->getTotalBitSize()); //len
+	fp->write("u, &");
+	fp->write(tobe->getUlamTypeMangledName().c_str()); //effset
 
-    //update the uvpass to have the casted quark value
-    uvpass = UlamValue::makePtr(tmpVarVal, tobe->getTmpStorageTypeForTmpVar(), tobeType, m_state.determinePackable(tobeType), m_state, 0); //POS 0 rightjustified;
+	fp->write("<EC>::THE_INSTANCE).");
+	fp->write(tobe->readMethodForCodeGen().c_str());
+	fp->write("();\n");
 
+	//update the uvpass to have the casted quark value
+	uvpass = UlamValue::makePtr(tmpVarVal, tobe->getTmpStorageTypeForTmpVar(), tobeType, m_state.determinePackable(tobeType), m_state, 0); //POS 0 rightjustified;
+
+      }
+    else
+      {
+	// to be ref, don't read!
+	//UTI dereftobe = m_state.getUlamTypeAsDeref(tobeType);
+	s32 tmpref = m_state.getNextTmpVarNumber(); //tmp since no variable name
+	m_state.indent(fp);
+	fp->write(tobe->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(tobeType, tmpref, TMPBITVAL).c_str());
+	fp->write("(");
+	fp->write(stgcos->getMangledName().c_str());
+	if(!stgcos->isSelf())
+	  fp->write(".GetStorage()");
+	fp->write(", 0u, &"); //offset of decendent is always 0
+	fp->write(vut->getUlamTypeMangledName().c_str());
+	fp->write("<EC>::THE_INSTANCE");
+	fp->write(");\n");
+
+	//update the uvpass to have the casted immediate quark
+	uvpass = UlamValue::makePtr(tmpref, TMPBITVAL, tobeType, m_state.determinePackable(tobeType), m_state, uvpass.getPtrPos()); //POS 0 is justified; will name id help?
+      }
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs
   } //genCodeCastDecendentElement
 
@@ -1162,61 +1134,10 @@ void NodeCast::genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass)
   {
     assert(m_state.isPtr(uvpass.getUlamValueTypeIdx()));
     UTI tobeType = getCastType();
-    UTI nodetype = m_node->getNodeType();
-
     UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
-    UlamType * nodeut = m_state.getUlamTypeByIndex(nodetype);
     assert(!tobe->isReference());
 
-    if((nodeut->getUlamClass() == UC_QUARK) && (m_state.isAtom(tobeType) || (tobe->getUlamClass() == UC_ELEMENT)))
-      {
-    assert(0);
-	//when this is a custom array, the symbol is the "ew" for example,
-	//not the atom (e.g. ew[idx]) that has no symbol
-	m_node->genCodeToStoreInto(fp, uvpass); //No need to load lhs into tmp (T); symbol's in COS vector
-
-	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
-	Symbol * stgcos = NULL;
-	stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-
-	UTI vuti = uvpass.getUlamValueTypeIdx();
-	if(m_state.isPtr(vuti))
-	  vuti = uvpass.getPtrTargetType(); //replace
-	assert(m_state.okUTItoContinue(vuti));
-	//s32 tmpVarNum = uvpass.getPtrSlotIndex();
-
-	m_state.indent(fp);
-	fp->write("if(");
-	//fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str()); //need atom type
-	fp->write(stgcos->getMangledName().c_str());
-	fp->write(".");
-	fp->write("GetType()");
-	fp->write(" == T::ATOM_UNDEFINED_TYPE)\n"); //subatomic type
-
-	m_state.m_currentIndentLevel++;
-	m_state.indent(fp);
-	fp->write("FAIL(BAD_CAST);\n\n");
-	m_state.m_currentIndentLevel--;
-
-	s32 tmpVarTobe = m_state.getNextTmpVarNumber();
-
-	//e.g. a quark here would be ok if a superclass
-	m_state.indent(fp);
-	fp->write("const ");
-	fp->write(tobe->getTmpStorageTypeAsString().c_str()); //T
-	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(tobeType, tmpVarTobe, tobe->getTmpStorageTypeForTmpVar()).c_str());
-	fp->write(" = ");
-	fp->write(stgcos->getMangledName().c_str());
-	fp->write(".");
-	fp->write(tobe->readMethodForCodeGen().c_str()); //entire T
-	fp->write("();\n");
-
-	//update the uvpass to have the casted type
-	uvpass = UlamValue::makePtr(tmpVarTobe, tobe->getTmpStorageTypeForTmpVar(), tobeType, m_state.determinePackable(tobeType), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id
-      }
-    else
-      uvpass.setPtrTargetType(tobeType); //minimal casting; including atomref to atom(non-ref)
+    uvpass.setPtrTargetType(tobeType); //minimal casting; including atomref to atom(non-ref)
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs
   } //genCodeCastFromAReference
 

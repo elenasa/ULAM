@@ -221,6 +221,16 @@ namespace MFM {
 	    return Hzy; //short-circuit
 	  }
 
+	if(UlamType::compare(eit, it, m_state) == UTIC_NOTSAME)
+	  {
+	    //must be safe to case (NodeVarDecl c&l) is different
+	    if(!Node::makeCastingNode(m_nodeInitExpr, it, m_nodeInitExpr))
+	      {
+		setNodeType(Nav);
+		return Nav; //short-circuit
+	      }
+	  }
+
 	//check isStoreIntoAble
 	//if(m_nodeInitExpr->isAConstant() || m_nodeInitExpr->isFunctionCall())
 	TBOOL istor = m_nodeInitExpr->getStoreIntoAble();
@@ -444,7 +454,7 @@ namespace MFM {
 
     assert(m_nodeInitExpr);
 
-    s32 tmpVarNum = uvpass.getPtrSlotIndex(); //tmp containing atomref
+    //s32 tmpVarNum = uvpass.getPtrSlotIndex(); //tmp containing atomref
 
     UTI vuti = m_varSymbol->getUlamTypeIdx(); //i.e. this ref node
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
@@ -462,12 +472,14 @@ namespace MFM {
     fp->write("("); //pass ref in constructor (ref's not assigned with =)
 
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
-      fp->write(m_state.getTmpVarAsString(puti, tmpVarNum, TMPBITVAL).c_str());
+      //fp->write(m_state.getTmpVarAsString(puti, tmpVarNum, uvpass.getPtrStorage()).c_str());
+      fp->write("ur.GetStorage()"); //need non-const T
     else
       {
 	Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 	fp->write(stgcos->getMangledName().c_str());
       }
+    fp->write(", uc");
     fp->write(");\n");
 
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?

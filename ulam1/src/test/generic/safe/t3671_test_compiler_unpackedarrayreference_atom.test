@@ -4,7 +4,7 @@
 ##      gen code output: 10 asserts
 ##
 Exit status: -11
-Ue_A { System s();  typedef Atom(96) BigSite[10];  typedef Atom(96) & BSRef[10];  typedef Atom(96) & BRR[10];  Int(32) test() {  Atom(96) site[10];  Atom(96)& siteref[10] = site;  Atom(96)& brr[10] = siteref;  { Int(32) i = 0 cast;  i 10 cast < cond { Atom(96) a = self.storageof cast;  siteref i [] a cast = s ( brr i [] A is )assert . } _1: i 1 cast += while } 10 cast return } }
+Ue_A { System s();  typedef Atom(96) BigSite[10];  typedef Atom(96) & BSRef[10];  typedef Atom(96) & BRR[10];  Int(32) test() {  Atom(96) site[10];  Atom(96)& siteref[10] = site cast;  Atom(96)& brr[10] = siteref;  { Int(32) i = 0 cast;  i 10 cast < cond { Atom(96) a = self.storageof cast;  siteref i [] a cast = s ( brr i [] A is )assert . } _1: i 1 cast += while } 10 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3670

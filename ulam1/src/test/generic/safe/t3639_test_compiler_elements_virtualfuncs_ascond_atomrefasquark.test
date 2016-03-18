@@ -7,7 +7,7 @@
 ##after asserts abort: arg is 1
 ##
 Exit status: -11
-Ue_Ish5 : System { :<> Int(32) test() {  E1 e1;  E2 e2;  Atom(96) a1 = e1 cast;  Atom(96)& a1ref = a1;  Atom(96) a2 = e2 cast;  Atom(96)& a2ref = a2;  { a1ref QBase as cond { QBase& a1ref;  { a2ref E2 as cond { E2& a2ref;  ( a1ref ( )func . 1 cast == )assert } if } } if } 0 cast return } }
+Ue_Ish5 : System { :<> Int(32) test() {  E1 e1;  E2 e2;  Atom(96) a1 = e1 cast;  Atom(96)& a1ref = a1 cast;  Atom(96) a2 = e2 cast;  Atom(96)& a2ref = a2 cast;  { a1ref QBase as cond { QBase& a1ref;  { a2ref E2 as cond { E2& a2ref;  ( a1ref ( )func . 1 cast == )assert } if } } if } 0 cast return } }
 Ue_E1 : QBase { :<> <NOMAIN> }
 Uq_QBase { <NOMAIN> }
 Ue_E2 { <NOMAIN> }
