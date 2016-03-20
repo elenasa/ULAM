@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: -11
-Ue_Foo { System s();  Bool(1) sp(false);  Bool(3) bi(false);  Bool(3) bh(false);  Int(32) d(0);  Int(32) test() {  Atom(96) a;  QBar qb;  QBar& qbr = qb;  a qbr cast = 0 cast return } }
+Ue_Foo { System s();  Bool(1) sp(false);  Bool(3) bi(false);  Bool(3) bh(false);  Int(32) d(0);  Int(32) test() {  Atom(96) a;  QBar qb;  QBar& qbr = qb cast;  a qbr cast = 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QBar { /* empty class block */ }
 #>Foo.ulam

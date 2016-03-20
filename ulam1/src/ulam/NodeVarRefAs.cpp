@@ -181,8 +181,6 @@ namespace MFM {
       }
     else
       {
-	UTI derefvuti = m_state.getUlamTypeAsDeref(stgcosuti); //was vuti, but that was wrong!!
-	UlamType * derefvut = m_state.getUlamTypeByIndex(derefvuti);
 	if(vclasstype == UC_QUARK)
 	  {
 	    fp->write(", ");
@@ -190,8 +188,7 @@ namespace MFM {
 	    fp->write("u");
 	  }
 	fp->write(", &");
-	fp->write(derefvut->getUlamTypeMangledName().c_str()); //effself
-	fp->write("<EC>::THE_INSTANCE");
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
       }
     fp->write("); //shadows lhs of 'as'\n");
 

@@ -136,7 +136,8 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
 	msg << " TO " ;
 	msg << getUlamTypeNameBrief().c_str();
-	if((m_state.isARefTypeOfUlamType(typidx, anyUTI) == UTIC_SAME) || (m_state.isARefTypeOfUlamType(anyUTI, typidx) == UTIC_SAME))
+
+	if((m_state.isARefTypeOfUlamType(typidx, anyUTI) == UTIC_SAME))
 	  MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
 	else
 	  {

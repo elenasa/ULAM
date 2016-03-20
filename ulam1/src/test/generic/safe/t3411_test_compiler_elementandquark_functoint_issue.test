@@ -11,14 +11,15 @@ Uq_Q { C2D c( typedef Int(4) I;  Int(4) m_width(0);  Int(4) m_height(0); );  <NO
 Uq_C2D { typedef Int(4) I;  Int(4) m_width(0);  Int(4) m_height(0);  <NOMAIN> }
 ##
 ##      //member selection with a function call must be first saved to a
-##      //variable since we results are returned-by-value (see t3188)
+##      //variable since results are returned-by-value (see t3188)
 ##
 #>Foo.ulam
   ulam 1;
 use Q;
 element Foo {
   Q q;
-  Int test() { return (Int) q;
+  Int test() {
+    return (Int) q;
   }
 }
 

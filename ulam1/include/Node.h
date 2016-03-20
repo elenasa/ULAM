@@ -232,15 +232,16 @@ namespace MFM{
 
     void restoreElementTypeForAncestorCasting(File * fp, UlamValue & uvpass);
 
+    //common helpers for safe casting
+    NodeFunctionCall * buildCastingFunctionCallNode(Node * node, UTI tobeType);
+    Node * buildToIntCastingNode(Node * node);
+
   private:
     TBOOL m_storeIntoAble;
     UTI m_utype;
     Locator m_loc;
     NNO m_parentNo;
     NNO m_no;
-
-    //common helpers for safe casting
-    NodeFunctionCall * buildCastingFunctionCallNode(Node * node, UTI tobeType);
 
     void genCodeReadSelfIntoATmpVar(File * fp, UlamValue & uvpass);
     void genCodeWriteToSelfFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);

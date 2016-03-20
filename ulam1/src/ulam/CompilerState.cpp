@@ -673,16 +673,14 @@ namespace MFM {
 
 	if(!cnsymOfIncomplete->isClassTemplate())
 	  return suti;
-	if(skey.getUlamKeyTypeSignatureReferenceType() == ALT_AS)
+
+	ALT salt = getReferenceType(suti);
+	if(salt != ALT_NOT)
 	  {
 	    UTI asref = mapIncompleteUTIForCurrentClassInstance(getUlamTypeAsDeref(suti));
-	    return getUlamTypeAsRef(asref, ALT_AS);
+	    return getUlamTypeAsRef(asref, salt);
 	  }
-	if(skey.getUlamKeyTypeSignatureReferenceType() == ALT_REF)
-	  {
-	    UTI asref = mapIncompleteUTIForCurrentClassInstance(getUlamTypeAsDeref(suti));
-	    return getUlamTypeAsRef(asref, ALT_AS);
-	  }
+
 	if(!((SymbolClassNameTemplate *) cnsymOfIncomplete)->pendingClassArgumentsForStubClassInstance(suti))
 	  return suti;
       }
@@ -782,6 +780,23 @@ namespace MFM {
     assert(isDef);
     return ut->getUlamTypeName();
   }
+
+  const std::string CompilerState::getEffectiveSelfMangledNameByIndex(UTI uti)
+  {
+    UTI esuti = uti;
+    if(isReference(uti))
+      esuti = getUlamTypeAsDeref(uti);
+
+    UlamType * esut = NULL;
+    AssertBool isDef = isDefined(m_indexToUlamKey[esuti], esut);
+    assert(isDef);
+
+    assert(esut->getUlamTypeEnum() == Class);
+    std::ostringstream esmangled;
+    esmangled << esut->getUlamTypeMangledName().c_str();
+    esmangled << "<EC>::THE_INSTANCE";
+    return esmangled.str();
+  } //getEffectiveSelfMangledNameByIndex
 
   ULAMTYPE CompilerState::getBaseTypeFromToken(Token tok)
   {
@@ -983,8 +998,8 @@ namespace MFM {
 
   ULAMTYPECOMPARERESULTS CompilerState::isARefTypeOfUlamType(UTI refuti, UTI ofuti)
   {
-    UTI deref = getUlamTypeAsDeref(refuti);
-    return UlamType::compare(deref, ofuti, *this);
+    //either may be a ref of the other; uses checked both directions.
+    return UlamType::compare(getUlamTypeAsDeref(refuti), getUlamTypeAsDeref(ofuti), *this);
   } //isARefTypeOfUlamType
 
   UTI CompilerState::getUlamTypeOfConstant(ULAMTYPE etype)
@@ -1538,10 +1553,10 @@ namespace MFM {
 
     UTI scalarUTI = uti;
     if(!ut->isScalar())
-      scalarUTI = getUlamTypeAsScalar(uti);
+      scalarUTI = getUlamTypeAsScalar(uti); //ALT_ARRAYITEM ?
 
-    if(ut->isReference())
-      scalarUTI = getUlamTypeAsDeref(scalarUTI); //and deref
+    //if(ut->isReference()) //array reference
+    scalarUTI = getUlamTypeAsDeref(scalarUTI); //and deref
 
     SymbolClassName * cnsym = NULL;
     if(alreadyDefinedSymbolClassName(ut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), cnsym))

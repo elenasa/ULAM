@@ -2,7 +2,7 @@
 #=t3658_test_compiler_element_castatomfromquarkimmediate_error
 #!
 Exit status: -1
-Ue_Foo : QPerc { :< Bool(1) b(false); > Int(32) test() {  QPerc q;  QPerc& qref = q;  self.storageof qref.storageof = 1 cast return } }
+Ue_Foo : QPerc { :< Bool(1) b(false); > Int(32) test() {  QPerc q;  QPerc& qref = q cast;  self.storageof qref.storageof = 1 cast return } }
 Uq_QPerc { Bool(1) b(false);  <NOMAIN> }
 ##
 ## informed by a Dave ish 2/19/2016; should this be allowed, or error?

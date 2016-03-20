@@ -923,8 +923,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write("<EC> ");
-    fp->write(cut->getUlamTypeMangledName().c_str());
-    fp->write("<EC>::THE_INSTANCE;\n\n");
+    fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
+    fp->write(";\n\n");
 
     //output any externs, outside of class decl
     genCodeExtern(fp, declOnly);

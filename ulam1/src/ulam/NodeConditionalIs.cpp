@@ -192,6 +192,7 @@ namespace MFM {
     UTI ruti = getRightType();
     UlamType * rut = m_state.getUlamTypeByIndex(ruti);
     ULAMCLASSTYPE rclasstype = rut->getUlamClass();
+    assert(!rut->isReference());
 
     s32 tmpVarNum = luvpass.getPtrSlotIndex();
     s32 tmpVarIs = m_state.getNextTmpVarNumber();
@@ -203,10 +204,10 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarIs).c_str());
     fp->write(" = ");
 
-    if(rclasstype == UC_ELEMENT)
+    if((rclasstype == UC_ELEMENT))
       {
-	fp->write(rut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>::THE_INSTANCE.");
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
+	fp->write(".");
 	fp->write(m_state.getIsMangledFunctionName(ruti));
 	fp->write("(");
 	fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, luvpass.getPtrStorage()).c_str());
@@ -218,8 +219,8 @@ namespace MFM {
 	ULAMCLASSTYPE lclasstype = lut->getUlamClass();
 	if(lclasstype == UC_ELEMENT)
 	  {
-	    fp->write(lut->getUlamTypeMangledName().c_str());
-	    fp->write("<EC>::THE_INSTANCE.");
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(luti).c_str());
+	    fp->write(".");
 	    fp->write(m_state.getIsMangledFunctionName(luti)); //UlamElement IsMethod
 	    fp->write("("); //one arg
 	  }

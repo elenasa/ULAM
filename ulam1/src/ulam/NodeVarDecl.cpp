@@ -743,9 +743,7 @@ namespace MFM {
 	if(vut->isScalar())
 	  {
 	    fp->write(" = ");
-	    fp->write(m_state.getUlamTypeByIndex(vuti)->getUlamTypeMangledName().c_str());
-	    fp->write("<EC>");
-	    fp->write("::THE_INSTANCE");
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
 	    fp->write(".GetDefaultAtom()"); //returns object of type T
 	  }
 	//else

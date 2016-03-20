@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3189_test_compiler_elementandquark_memberselectedfunc_error
 #!
-./Foo.ulam:11:20: ERROR: Member selected must be a valid lefthand side: func requires a variable; may be a casted function call.
+./Foo.ulam:11:20: ERROR: Member selected must be a valid lefthand side: 'func' requires a variable; may be a casted function call.
 ./Foo.ulam:3:10: ERROR: 1 Nodes with erroneous types detected after type labeling class: Foo.
 ./Foo.ulam:3:10: ERROR: 3 Nodes with unresolved types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.

@@ -4,7 +4,7 @@
 ## eval error exit status: -1
 #!
 Exit status: -1
-Ue_Foo : QPerc { :< Bool(1) bb(false); > Int(32) test() {  QPerc q = QPerc.instanceof;  QPerc& qref = q;  Atom(96)& b = qref.storageof;  Foo f = Foo.instanceof;  Foo& fref = f;  Atom(96)& c = f.storageof;  1 cast return } }
+Ue_Foo : QPerc { :< Bool(1) bb(false); > Int(32) test() {  QPerc q = QPerc.instanceof;  QPerc& qref = q cast;  Atom(96)& b = qref.storageof;  Foo f = Foo.instanceof;  Foo& fref = f cast;  Atom(96)& c = f.storageof;  1 cast return } }
 Uq_QPerc { Bool(1) bb(false);  <NOMAIN> }
 ##
 ## informed by t3657

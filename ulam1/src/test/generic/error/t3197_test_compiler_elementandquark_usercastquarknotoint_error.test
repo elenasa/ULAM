@@ -3,7 +3,7 @@
 #!
 ./Foo.ulam:13:12: ERROR: Cannot cast quark Bar to numeric type Unary(4) without a defined 'toInt' method.
 ./Foo.ulam:3:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Foo.
-./Foo.ulam:3:9: ERROR: 6 Nodes with unresolved types detected after type labeling class: Foo.
+./Foo.ulam:3:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>Foo.ulam

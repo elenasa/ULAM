@@ -259,6 +259,7 @@ namespace MFM {
     UTI ruti = getRightType();
     UlamType * rut = m_state.getUlamTypeByIndex(ruti);
     ULAMCLASSTYPE rclasstype = rut->getUlamClass();
+    assert(!rut->isReference());
 
     UlamValue luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass); //needs to load lhs into tmp (T); symbol's in COS vector
@@ -285,8 +286,8 @@ namespace MFM {
 
     if(rclasstype == UC_ELEMENT)
       {
-	fp->write(rut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>::THE_INSTANCE.");
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
+	fp->write(".");
 	fp->write(m_state.getAsMangledFunctionName(luti, ruti));
 	fp->write("(");
 	fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, luvpass.getPtrStorage()).c_str());

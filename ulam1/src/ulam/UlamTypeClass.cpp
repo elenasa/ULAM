@@ -153,12 +153,6 @@ namespace MFM {
 	      return CAST_CLEAR;
 	    else if(cmpr2 == UTIC_DONTKNOW)
 	      return CAST_HAZY;
-
-	    ULAMTYPECOMPARERESULTS cmpr3 = m_state.isARefTypeOfUlamType(anyUTI, typidx);
-	    if(cmpr3 == UTIC_SAME)
-	      return CAST_CLEAR;
-	    else if(cmpr3 == UTIC_DONTKNOW)
-	      return CAST_HAZY;
 	  }
       }
     return CAST_BAD; //e.g. (typidx == UAtom)

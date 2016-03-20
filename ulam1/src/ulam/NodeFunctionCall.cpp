@@ -888,16 +888,14 @@ namespace MFM {
 
     //use possible dereference type for mangled name
     UTI derefuti = m_state.getUlamTypeAsDeref(vuti);
-    UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
 
     // who's function is it?
     if(m_funcSymbol->isVirtualFunction())
       genCodeVirtualFunctionCall(fp, uvpass, urtmpnum); //indirect call thru func ptr
     else
       {
-	fp->write(derefut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>::"); //same for elements and quarks
-        fp->write("THE_INSTANCE.");
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(derefuti).c_str());
+        fp->write(".");
 	fp->write(m_funcSymbol->getMangledName().c_str());
       }
 
@@ -926,7 +924,6 @@ namespace MFM {
       cos = m_state.getCurrentSelfSymbolForCodeGen(); //'self'
 
     UTI cosuti = cos->getUlamTypeIdx();
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cosuti, csym);
     assert(isDefined);
@@ -960,15 +957,8 @@ namespace MFM {
     else
       {
 	//unless local or dm, known at compile time!
-	if(cosut->getReferenceType() == ALT_REF)
-	  {
-	    UTI derefcos = m_state.getUlamTypeAsDeref(cosuti);
-	    fp->write(m_state.getUlamTypeByIndex(derefcos)->getUlamTypeMangledName().c_str());
-	  }
-	else
-	  fp->write(cosut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>::"); //same for elements and quarks
-	fp->write("THE_INSTANCE.getVTableEntry(");
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
+	fp->write(".getVTableEntry(");
       }
 
     fp->write_decimal_unsigned(vfidx);
@@ -997,11 +987,11 @@ namespace MFM {
     UTI futi = m_funcSymbol->getDataMemberClass();
     if((cosSize > 0) || (UlamType::compare(cosuti, futi, m_state) != UTIC_SAME))
       {
-	UlamType * fut = m_state.getUlamTypeByIndex(futi);
-	fp->write(fut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>::"); //same for elements and quarks
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(futi).c_str());
+	fp->write(".");
       }
-    fp->write("THE_INSTANCE."); //non-static functions require an instance
+    else
+      fp->write("THE_INSTANCE."); //non-static functions require an instance
   } //genMemberNameOfMethod
 
   void NodeFunctionCall::genModelParameterMemberNameOfMethod(File * fp, s32 epi)
@@ -1054,8 +1044,9 @@ namespace MFM {
 	    hiddenarg2 << m_state.getHiddenArgName(); //ur
 	    hiddenarg2 << ", " << Node::calcPosOfCurrentObjectClasses(); //relative off;
 	    hiddenarg2 << "u, " << cosut->getTotalBitSize(); //len
-	    hiddenarg2 << "u, &" << cosut->getUlamTypeMangledName().c_str();
-	    hiddenarg2 << "<EC>::THE_INSTANCE);";
+	    hiddenarg2 << "u, &";
+	    hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str();
+	    hiddenarg2 << ");";
 	  }
       }
     else
@@ -1095,10 +1086,6 @@ namespace MFM {
 		sameur = false;
 		stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 
-		//use possible dereference type for mangled name
-		UTI cosderefuti = m_state.getUlamTypeAsDeref(cosuti);
-		UlamType * cosderefut = m_state.getUlamTypeByIndex(cosderefuti);
-
 		//new ur to reflect "effective" self and storage for this funccall
 		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
 		hiddenarg2 << stgcos->getMangledName().c_str();
@@ -1109,10 +1096,10 @@ namespace MFM {
 		else
 		  hiddenarg2 << "0";
 
-		hiddenarg2 << "u, " << cosderefut->getTotalBitSize(); //len
+		hiddenarg2 << "u, " << cosut->getTotalBitSize(); //len
 		hiddenarg2 << "u, &";
-		hiddenarg2 << cosderefut->getUlamTypeMangledName().c_str();
-		hiddenarg2 << "<EC>::THE_INSTANCE);";
+		hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str();
+		hiddenarg2 << ");";
 	      }
 
 	  }
@@ -1146,8 +1133,8 @@ namespace MFM {
     hiddenarg2 << ", 0u, "; //left-justified (uvpass.getPtrPosOffset()?)
     hiddenarg2 << derefut->getTotalBitSize(); //len
     hiddenarg2 << "u, &";
-    hiddenarg2 << derefut->getUlamTypeMangledName().c_str();
-    hiddenarg2 << "<EC>::THE_INSTANCE);";
+    hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(derefuti).c_str();
+    hiddenarg2 << ");";
 
     urtmpnumref = tmpvarur;
     return hiddenarg2.str();
@@ -1205,15 +1192,13 @@ namespace MFM {
       stgcos = m_state.m_currentObjSymbolsForCodeGen[epi - 1]; //***
 
     UTI stgcosuti = stgcos->getUlamTypeIdx();
-    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-
     Symbol * epcos = m_state.m_currentObjSymbolsForCodeGen[epi]; //***
     UTI epcosuti = epcos->getUlamTypeIdx();
     UlamType * epcosut = m_state.getUlamTypeByIndex(epcosuti);
     ULAMCLASSTYPE epcosclasstype = epcosut->getUlamClass();
 
-    hiddenlist << stgcosut->getUlamTypeMangledName().c_str();
-    hiddenlist << "<EC>::THE_INSTANCE.";
+    hiddenlist << m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str();
+    hiddenlist << ".";
 
     // the MP (only primitive, no longer an element, or quark):
     hiddenlist << epcos->getMangledName().c_str();

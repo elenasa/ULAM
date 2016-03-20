@@ -423,8 +423,8 @@ namespace MFM {
 			fp->write(", ");
 			fp->write_decimal_unsigned(sut->getBitSize()); //len
 			fp->write(", da, &");
-			fp->write(sut->getUlamTypeMangledName().c_str()); //effself
-			fp->write("<EC>::THE_INSTANCE)."); //close wrapper
+			fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
+			fp->write(")."); //close wrapper
 			fp->write(sut->writeMethodForCodeGen().c_str());
 			fp->write("(");
 			fp->write(qdhex.str().c_str());
@@ -465,8 +465,8 @@ namespace MFM {
 			    fp->write("u, ");
 			    fp->write_decimal_unsigned(itemlen); //len
 			    fp->write("u, da, &");
-			    fp->write(scalarut->getUlamTypeMangledName().c_str()); //effself
-			    fp->write("<EC>::THE_INSTANCE).");
+			    fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalaruti).c_str());
+			    fp->write(").");
 			    fp->write(scalarut->writeMethodForCodeGen().c_str());
 			    fp->write("(");
 			    fp->write(qdhex.str().c_str());

@@ -610,8 +610,8 @@ namespace MFM {
 
 	m_state.indent(fp);
 	fp->write("Element<EC> & elt = ");
-	fp->write(sut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>::THE_INSTANCE;\n");
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
+	fp->write(";\n");
 
 	m_state.indent(fp);
 	fp->write("elt.AllocateType(etnm); //Force element type allocation now\n");
@@ -636,23 +636,23 @@ namespace MFM {
 
 	    m_state.indent(fp);
 	    fp->write("OurAtomAll atom = "); //OurAtomAll
-	    fp->write(sut->getUlamTypeMangledName().c_str());
-	    fp->write("<EC>::THE_INSTANCE.GetDefaultAtom();\n");
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
+	    fp->write(".GetDefaultAtom();\n");
 	    m_state.indent(fp);
 	    fp->write("tile.PlaceAtom(atom, center);\n");
 
 	    m_state.indent(fp);
 	    //UlamRefAtom<EC> ur(window.GetCenterAtomSym(), this); //from UlamElement.tc
 	    fp->write("UlamRefAtom<EC> ur(atom, &");
-	    fp->write(sut->getUlamTypeMangledName().c_str());
-	    fp->write("<EC>::THE_INSTANCE);\n");
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
+	    fp->write(");\n");
 
 	    m_state.indent(fp);
 	    //fp->write("rtn = "); //MFM::Ui_Ut_102323Int
-	    fp->write(sut->getUlamTypeMangledName().c_str());
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
 
 	    // pass uc with effective self setup
-	    fp->write("<EC>::THE_INSTANCE.Uf_4test(");
+	    fp->write(".Uf_4test(");
 	    fp->write("uc, ur);\n");
 
 	    m_state.indent(fp);
