@@ -29,11 +29,6 @@ namespace MFM {
     return "VD::BITS";
   }
 
-  bool UlamTypeAtom::needsImmediateType()
-  {
-    return UlamType::needsImmediateType(); //e.g.array of atoms could be unresolved
-  }
-
   const std::string UlamTypeAtom::getTmpStorageTypeAsString()
   {
     return "T";

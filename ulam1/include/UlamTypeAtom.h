@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * UlamTypeAtom.h -  Basic handling of the Atom UlamType for ULAM
  *
- * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2015 Ackleyshack LLC.
+ * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2016 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file UlamTypeAtom.h -  Basic handling of the Atom UlamType for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2015 All rights reserved.
+  \date (C) 2014-2016 All rights reserved.
   \gpl
 */
 
@@ -55,8 +55,6 @@ namespace MFM{
     virtual ULAMCLASSTYPE getUlamClass();
 
     virtual const std::string getUlamTypeVDAsStringForC();
-
-    virtual bool needsImmediateType();
 
     virtual const std::string getTmpStorageTypeAsString();
 

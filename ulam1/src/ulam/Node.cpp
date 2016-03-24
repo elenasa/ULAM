@@ -791,7 +791,6 @@ namespace MFM {
     UTI ruti = ruvpass.getUlamValueTypeIdx();
     assert(m_state.isPtr(ruti)); //terminals handled in NodeTerminal
     ruti = ruvpass.getPtrTargetType();
-    //UlamType * rut = m_state.getUlamTypeByIndex(ruti);
 
     // here, cos is symbol used to determine read method: either self or last of cos.
     // stgcos is symbol used to determine first "hidden" arg
@@ -1678,8 +1677,6 @@ namespace MFM {
 	    UTI newType = rtnNode->checkAndLabelType();
 	    doErrMsg = (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
 	  }
-	//else if((UlamType::compareForMakingCastingNode(tobeType, UAtom, m_state) != UTIC_SAME))
-	//else if(!( m_state.isAtom(tobeType) || m_state.isClassASubclassOf(nuti, m_state.getUlamTypeAsDeref(tobeType) || m_state.isARefTypeOfUlamType(tobeType, nuti)))
 	else if(!( m_state.isAtom(tobeType) || (tobe->getUlamTypeEnum() == Class)))
 	  doErrMsg = true;
 	else

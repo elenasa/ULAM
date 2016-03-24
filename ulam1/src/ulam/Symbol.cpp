@@ -176,8 +176,6 @@ namespace MFM {
       {
 	std::ostringstream epmangled;
 	epmangled << sut->getImmediateModelParameterStorageTypeAsString();
-	//if(classtype == UC_QUARK)
-	//  epmangled << "::Us";
 	assert(classtype == UC_NOTACLASS);
 	return epmangled.str();
       }

@@ -1067,11 +1067,7 @@ namespace MFM {
   bool CompilerState::isComplete(UTI utArg)
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
-    //return ut->isComplete();
-    bool iscomplete =  ut->isComplete();
-    //    if(!iscomplete && ut->isReference())
-    //  iscomplete = completeAReferenceType(utArg);
-    return iscomplete;
+    return ut->isComplete();
   } //isComplete
 
   bool CompilerState::completeAReferenceType(UTI utArg)
@@ -1573,9 +1569,6 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Class without parameters already exists with the same name: ";
 	msg << m_pool.getDataAsString(symptr->getId()).c_str();
-	//msg << " (";
-	//msg << getUlamTypeNameByIndex(symptr->getUlamTypeIdx()).c_str();
-	//msg << ")";
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR); //parsing
       }
     return (rtnb && symptr->isClassTemplate());
@@ -1587,14 +1580,10 @@ namespace MFM {
     bool rtnb = false;
     UlamType * ut = getUlamTypeByIndex(uti);
 
-    //    if(ut->isHolder())
-    //  return alreadyDefinedSymbolClassAsHolder(uti, symptr); //id is uti as string id
-
     UTI scalarUTI = uti;
     if(!ut->isScalar())
       scalarUTI = getUlamTypeAsScalar(uti); //ALT_ARRAYITEM ?
 
-    //if(ut->isReference()) //array reference
     scalarUTI = getUlamTypeAsDeref(scalarUTI); //and deref
 
     SymbolClassName * cnsym = NULL;

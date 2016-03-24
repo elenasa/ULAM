@@ -588,8 +588,6 @@ namespace MFM {
 		  {
 		    //update holder key with name_id and possible array (UNKNOWNSIZE)
 		    UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, Nouti, args.m_declRef);
-		    //UlamKeyTypeSignature hkey = tdut->getUlamKeyTypeSignature();
-		    //UlamKeyTypeSignature newkey(hkey.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, Nouti, args.m_declRef);
 		    m_state.makeUlamTypeFromHolder(newkey, Holder, tduti); //update holder key, same uti
 		  }
 	      }
@@ -944,7 +942,6 @@ namespace MFM {
 
 	uti = m_state.getUlamTypeAsRef(auti, args.m_declRef); //ut not current; no deref.
 
-	//SymbolVariable * sym = makeSymbol(uti, m_state.getReferenceType(uti), auti);
 	SymbolVariable * sym = makeSymbol(uti, m_state.getReferenceType(uti), args.m_referencedUTI);
 	if(sym)
 	  {
@@ -1153,12 +1150,6 @@ namespace MFM {
       {
 	// UNCLEAR: should this be consistent with constants?
 	genCodeReadIntoATmpVar(fp, uvpass);
-
-	//put it back when its a ref..to a class?
-	//UTI nuti = getNodeType();
-	//UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-	//if(nut->isReference() && (nut->getUlamTypeEnum() == Class)) //or atom?
-	//  m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol); //*********UPDATED GLOBAL;
       }
   } //genCode
 

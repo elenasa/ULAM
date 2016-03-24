@@ -3671,7 +3671,6 @@ namespace MFM {
     //this is a block with its own ST
     NodeBlockClass * currClassBlock = m_state.getClassBlock();
     NodeBlock * prevBlock = m_state.getCurrentBlock();
-    //assert(prevBlock == currClassBlock);
     if(prevBlock != currClassBlock)
       {
 	std::ostringstream msg;
@@ -3744,13 +3743,8 @@ namespace MFM {
     u32 selfid = m_state.m_pool.getIndexForDataString("self");
     UTI cuti = currClassBlock->getNodeType(); //luckily we know this now for each class used
     Token selfTok(TOK_IDENTIFIER, identTok.m_locator, selfid);
-#if 1
     SymbolVariableStack * selfsym = new SymbolVariableStack(selfTok, m_state.getUlamTypeAsRef(cuti, ALT_REF), m_state.m_currentFunctionBlockDeclSize, m_state);
     selfsym->setAutoLocalType(ALT_REF);
-#else
-    SymbolVariableStack * selfsym = new SymbolVariableStack(selfTok, cuti, m_state.m_currentFunctionBlockDeclSize, m_state);
-#endif
-
     selfsym->setIsSelf();
     m_state.addSymbolToCurrentScope(selfsym); //ownership goes to the block
 

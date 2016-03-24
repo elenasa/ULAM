@@ -163,7 +163,6 @@ namespace MFM {
 
     if(m_state.okUTItoContinue(nuti))
       {
-	//if(m_varSymbol && m_varSymbol->isSelf())
 	if(m_state.isReference(nuti))
 	  nuti = m_state.getUlamTypeAsDeref(nuti); //e.g. selftyperef
 

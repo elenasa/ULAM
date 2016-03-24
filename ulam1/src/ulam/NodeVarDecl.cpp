@@ -302,7 +302,6 @@ namespace MFM {
 
 	setNodeType(it); //needed before safeToCast
 	FORECAST scr = safeToCastTo(eit); //backwards
-	//FORECAST scr = m_state.getUlamTypeByIndex(it)->safeCast(eit) (really!)
 	if(scr == CAST_BAD)
 	  it = Nav; //error
 	else if(scr == CAST_HAZY)
@@ -582,11 +581,6 @@ namespace MFM {
 		    msg << " with variable symbol name '" << getName() << "'";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		    return UNEVALUABLE; //t3649
-		    //unpacked array of quarks is unsupported at this time!!
-		    //assert(0);
-		    //UTI scalarquark = m_state.getUlamTypeAsScalar(nuti);
-		    //UlamValue immUV = UlamValue::makeImmediateQuark(scalarquark, dq, bitsize);
-		    //m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
 		  }
 	      }
 	  }
@@ -724,11 +718,7 @@ namespace MFM {
 	fp->write("("); // use constructor (not equals)
 	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str()); //VALUE
 	if(m_state.isAtom(vuti))
-	  {
-	    //fp->write(".ReadAtom()"); //casted whatever to Atom, so read it.
-	    //if(!m_state.isAtomRef(uvpass.getPtrTargetType()))
-	    fp->write(", uc");
-	  }
+	  fp->write(", uc");
 	fp->write(")");
 	fp->write(";\n"); //func call args aren't NodeVarDecl's
 	m_state.m_currentObjSymbolsForCodeGen.clear();

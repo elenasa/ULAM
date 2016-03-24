@@ -173,7 +173,7 @@ namespace MFM {
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		    derefuti = mappedUTI;
 		  }
-	      }
+	      } //incomplete deref
 
 	    if(m_state.isComplete(derefuti))
 	      {
@@ -185,8 +185,6 @@ namespace MFM {
 		  }
 
 		UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
-		//if(!m_state.setUTISizes(nuti, derefut->getBitSize(), derefut->getArraySize()))
-		//if(m_state.completeAReferenceType(nuti))
 		if(m_state.completeAReferenceTypeWith(nuti, derefuti))
 		  {
 		    //rtnuti = Nav;
@@ -204,10 +202,10 @@ namespace MFM {
 		    m_state.makeUlamTypeFromHolder(newkey, bUT, nuti); //keeps nuti
 		  }
 		//else ??
-	      }
+	      } //complete deref
 	    //else deref not complete, t.f. nuti isn't
 	  }
-      }
+      } //end reference
 
     if(!m_state.isComplete(nuti))
       {
@@ -264,15 +262,12 @@ namespace MFM {
 		//wait until complete to re-key..
 		// want arraysize if non-scalar
 		std::ostringstream msg;
-		///if(m_state.isComplete(tmpforscalaruti))
 		if(m_state.isComplete(tduti))
 		  {
-		    //UlamType * tut = m_state.getUlamTypeByIndex(tmpforscalaruti);
 		    UlamType * tut = m_state.getUlamTypeByIndex(tduti);
 		    UlamKeyTypeSignature tdkey = tut->getUlamKeyTypeSignature();
 		    UlamKeyTypeSignature newkey(tdkey.getUlamKeyTypeSignatureNameId(), tut->getBitSize(), tut->getArraySize(), 0, tut->getReferenceType());
 		    m_state.makeUlamTypeFromHolder(newkey, tut->getUlamTypeEnum(), nuti);
-		    //rtnuti = tmpforscalaruti; //reset
 		    rtnuti = tduti; //reset
 		    rtnb = true;
 		    msg << "RESET ";
