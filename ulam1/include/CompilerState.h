@@ -205,6 +205,8 @@ namespace MFM{
     ALT getReferenceType(UTI utArg);
     bool isReference(UTI utArg);
     bool isComplete(UTI utArg);
+    bool completeAReferenceType(UTI utArg);
+    bool completeAReferenceTypeWith(UTI utArg, UTI derefuti);
     bool isHolder(UTI utArg);
     bool setBitSize(UTI utArg, s32 total);
     bool setUTISizes(UTI utArg, s32 bitsize, s32 arraysize);

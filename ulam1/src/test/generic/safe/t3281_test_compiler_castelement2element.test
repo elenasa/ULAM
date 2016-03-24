@@ -2,28 +2,28 @@
 #=t3281_test_compiler_castelement2element
 #!
 Exit status: 0
-Ue_Tu { System s();  Int(32) me(0);  Int(32) test() {  Atom(96) a;  Tu t;  Tu u;  u self = t u = a u cast cast = t a cast = me return } }
+Ue_Tu { System s();  Int(32) me(0);  Int(32) test() {  Atom(96) a;  Tu t;  Tu u;  u self cast = t u = a u cast cast = t a cast = me return } }
 Uq_System { <NOMAIN> }
 #>Tu.ulam
-ulam 1;
+  ulam 1;
 use System;
- element Tu {
-System s;
-Int me;
-Int test(){
-Atom a;
- Tu t;
-Tu u;
- u = self;
- t = u;
- a =  (Tu) u;
- t = (Tu) a;
- return me;
-}
+element Tu {
+  System s;
+  Int me;
+  Int test(){
+    Atom a;
+    Tu t;
+    Tu u;
+    u = self;
+    t = u;
+    a =  (Tu) u;
+    t = (Tu) a;
+    return me;
+  }
 }
 
 #:System.ulam
-ulam 1;
+  ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

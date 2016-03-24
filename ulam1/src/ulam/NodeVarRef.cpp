@@ -419,52 +419,44 @@ namespace MFM {
 
 	fp->write(m_varSymbol->getMangledName().c_str());
 	fp->write("("); //pass ref in constructor (ref's not assigned with =)
-
-	if(stgcosut->isReference())
+	if(stgcos->isDataMember()) //can't be an element or atom
 	  {
-	    fp->write(stgcos->getMangledName().c_str()); //one argument only
+	    fp->write(m_state.getHiddenArgName());
+	    fp->write(", ");
+	    fp->write_decimal_unsigned(cos->getPosOffset()); //relative of
+	    fp->write("u");
 	  }
 	else
 	  {
-	    if(stgcos->isDataMember()) //can't be an element or atom
+	    if(m_state.m_currentObjSymbolsForCodeGen.empty())
+	      fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
+	    else
+	      fp->write(stgcos->getMangledName().c_str()); //even if self
+	    if(cos->isDataMember())
 	      {
-		fp->write(m_state.getHiddenArgName());
 		fp->write(", ");
-		fp->write_decimal_unsigned(cos->getPosOffset()); //relative of
+		fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
 		fp->write("u");
 	      }
 	    else
 	      {
-		if(m_state.m_currentObjSymbolsForCodeGen.empty())
-		  fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
-		else
-		  fp->write(stgcos->getMangledName().c_str()); //even if self
-		if(cos->isDataMember())
+		//local var
+		if((vclasstype == UC_NOTACLASS) && !m_state.isAtom(vuti))
 		  {
-		    fp->write(", ");
-		    fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
-		    fp->write("u");
+		    fp->write(", 0u"); //relative
 		  }
-		else
+		else if(vclasstype == UC_QUARK)
 		  {
-		    //local var
-		    if((vclasstype == UC_NOTACLASS) && !m_state.isAtom(vuti))
-		      {
-			fp->write(", 0u"); //relative
-		      }
-		    else if(vclasstype == UC_QUARK)
-		      {
-			//left-justified, or relative if data member (even if self)
-			fp->write(", 0u");
-		      }
+		    //left-justified, or relative if data member (even if self)
+		    fp->write(", 0u");
 		  }
 	      }
+	  }
 
-	    if((vclasstype != UC_NOTACLASS) && (vetype != UAtom))
-	      {
-		fp->write(", &");
-		fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
-	      }
+	if((vclasstype != UC_NOTACLASS) && (vetype != UAtom))
+	  {
+	    fp->write(", &");
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
 	  }
 	fp->write(");\n");
       } //storage
@@ -522,8 +514,6 @@ namespace MFM {
     // or ancestor quark if a class.
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-    UTI stgcosuti = stgcos->getUlamTypeIdx();
-    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
     Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
     UTI cosuti = cos->getUlamTypeIdx();
@@ -544,15 +534,26 @@ namespace MFM {
 
     fp->write(m_varSymbol->getMangledName().c_str());
     fp->write("("); //pass ref in constructor (ref's not assigned with =)
-    if(stgcosut->isReference())
+
+    if(stgcos->isDataMember()) //can't be an element or atom
       {
-	fp->write(stgcos->getMangledName().c_str());
+	fp->write(m_state.getHiddenArgName());
+	fp->write(", ");
+	fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
+	fp->write("u");
+
+	if(vclasstype == UC_QUARK)
+	  {
+	    fp->write(", &");
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
+	  }
       }
     else
       {
-	if(stgcos->isDataMember()) //can't be an element or atom
+	//local
+	fp->write(stgcos->getMangledName().c_str());
+	if(cos->isDataMember())
 	  {
-	    fp->write(m_state.getHiddenArgName());
 	    fp->write(", ");
 	    fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
 	    fp->write("u");
@@ -565,46 +566,29 @@ namespace MFM {
 	  }
 	else
 	  {
-	    //local
-	    fp->write(stgcos->getMangledName().c_str());
-	    if(cos->isDataMember())
+	    if(vut->getPackable() == PACKEDLOADABLE)
 	      {
-		fp->write(", ");
-		fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
-		fp->write("u");
-
-		if(vclasstype == UC_QUARK)
+		if((vclasstype == UC_NOTACLASS) && (vetype != UAtom) )
+		  {
+		    fp->write(", 0u"); //rel off to right-just prim
+		  }
+		else if(vetype == UAtom)
+		  {
+		    fp->write(", uc");
+		  }
+		else if(vclasstype == UC_QUARK)
+		  {
+		    fp->write(", ");
+		    fp->write("0u, &"); //left just
+		    fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
+		  }
+		else if(vclasstype == UC_ELEMENT)
 		  {
 		    fp->write(", &");
 		    fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
 		  }
-	      }
-	    else
-	      {
-		if(vut->getPackable() == PACKEDLOADABLE)
-		  {
-		    if((vclasstype == UC_NOTACLASS) && (vetype != UAtom) )
-		      {
-			fp->write(", 0u"); //rel off to right-just prim
-		      }
-		    else if(vetype == UAtom)
-		      {
-			fp->write(", uc");
-		      }
-		    else if(vclasstype == UC_QUARK)
-		      {
-			fp->write(", ");
-			fp->write("0u, &"); //left just
-			fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
-		      }
-		    else if(vclasstype == UC_ELEMENT)
-		      {
-			fp->write(", &");
-			fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
-		      }
-		    else
-		      assert(0);
-		  }
+		else
+		  assert(0);
 	      }
 	  }
       } //storage

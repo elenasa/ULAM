@@ -54,7 +54,7 @@ namespace MFM {
 		    std::ostringstream msg;
 		    msg << "<" << m_state.getTokenDataAsString(&m_token).c_str();
 		    msg << "> is a quark and cannot be used with ";
-		    msg << getName();
+		    msg << getName() << "; try a reference or self";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    setNodeType(Nav);
 		  }

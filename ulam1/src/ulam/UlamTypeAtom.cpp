@@ -31,7 +31,7 @@ namespace MFM {
 
   bool UlamTypeAtom::needsImmediateType()
   {
-    return true;
+    return UlamType::needsImmediateType(); //e.g.array of atoms could be unresolved
   }
 
   const std::string UlamTypeAtom::getTmpStorageTypeAsString()

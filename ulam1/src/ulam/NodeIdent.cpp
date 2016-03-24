@@ -268,6 +268,10 @@ namespace MFM {
 		m_varSymbol->resetUlamType(mappedUTI); //consistent!
 		it = mappedUTI;
 	      }
+	    else if(m_varSymbol->isSelf())
+	      {
+		m_state.completeAReferenceType(it);
+	      }
 
 	    if(!m_state.isComplete(it)) //reloads to recheck for debug message
 	      {

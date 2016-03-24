@@ -17,6 +17,6 @@ element ElTypo {
 #:Typo.ulam
   ulam 1;
 quark Typo {
-  typedef Typo Self;
+  typedef Typo& Self;
 }
 #.

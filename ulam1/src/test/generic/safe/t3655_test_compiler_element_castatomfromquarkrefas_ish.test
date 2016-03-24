@@ -2,7 +2,7 @@
 #=t3655_test_compiler_element_castatomfromquarkrefas_ish
 #!
 Exit status: 1
-Ue_Foo : QPerc { :< Bool(1) b(true); > Int(32) test() {  Foo a = self;  { a QPerc as cond { QPerc& a;  a b . true = self.storageof a.storageof = 1 cast return } if } 0 cast return } }
+Ue_Foo : QPerc { :< Bool(1) b(true); > Int(32) test() {  Foo a = self cast;  { a QPerc as cond { QPerc& a;  a b . true = self.storageof a.storageof = 1 cast return } if } 0 cast return } }
 Uq_QPerc { Bool(1) b(false);  <NOMAIN> }
 ##
 ## informed by a Dave ish 2/19/2016

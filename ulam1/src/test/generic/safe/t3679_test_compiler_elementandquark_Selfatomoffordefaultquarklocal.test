@@ -5,7 +5,7 @@
 ##
 ##        unevaluable without assuming atoms as elements
 ##
-Exit status: 0
+Exit status: -1
 Ue_A { Bool(1) b(false);  Int(32) test() {  System s;  QW qw;  Atom(96) a = qw ( )func .;  { a A as cond { A& a;  s ( false )assert . } if s ( true )assert . else } { a QW is cond s ( false )assert . if s ( true )assert . else } 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }
@@ -45,8 +45,9 @@ quark QW {
   {
     QW i = QW.instanceof;
     QW& iref = i;
-    Atom ia = iref.instanceof;
-    // equivalent to since self is a ref: Atom a = self.instanceof;
+    Atom ia = iref.storageof; //will be UNDEFINED_TYPE
+    // equivalent to since self is a ref:
+    Atom a = self.instanceof;
     return ia;
   }
 }

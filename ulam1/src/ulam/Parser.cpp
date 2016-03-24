@@ -351,7 +351,7 @@ namespace MFM {
     //automatically create a Self typedef symbol for this class type
     u32 selfid = m_state.m_pool.getIndexForDataString("Self");
     Token selfTok(TOK_TYPE_IDENTIFIER, identTok.m_locator, selfid);
-    SymbolTypedef * symtypedef = new SymbolTypedef(selfTok, utype, utype, m_state);
+    SymbolTypedef * symtypedef = new SymbolTypedef(selfTok, utype, utype, m_state); //refselftype
     m_state.addSymbolToCurrentScope(symtypedef);
 
     //need class block's ST before parsing any class parameters (i.e. named constants);
@@ -1739,7 +1739,13 @@ namespace MFM {
 	UTI cuti = parseClassArguments(pTok, isAClassType); //not sure what to do with the UTI? could be a declref type
 	if(isAClassType)
 	  {
-	    if(m_state.isScalar(cuti))
+	    if(m_state.isReference(cuti)) //e.g. refofSelf
+	      {
+		typeargs.m_classInstanceIdx = m_state.getUlamTypeAsDeref(cuti);
+		typeargs.m_declRef = ALT_REF;
+		typeargs.m_referencedUTI = typeargs.m_classInstanceIdx;
+	      }
+	    else if(m_state.isScalar(cuti))
 	      typeargs.m_classInstanceIdx = cuti;
 	    else
 	      typeargs.m_classInstanceIdx = m_state.getUlamTypeAsScalar(cuti); //eg typedef class array
@@ -1749,6 +1755,8 @@ namespace MFM {
 	    if(m_state.isScalar(cuti))
 	      typeargs.m_declListOrTypedefScalarType = cuti; //this is what we wanted..
 	    //else arraytype???
+
+	    //DEREF'd cuti?
 	    castUTI = cuti; //unless a dot is next
 	  }
 	typeNode = new NodeTypeDescriptor(typeargs.m_typeTok, cuti, m_state);
@@ -1809,8 +1817,9 @@ namespace MFM {
     getNextToken(pTok);
     if(pTok.m_type != TOK_OPEN_PAREN)
       {
-	//regular class, not a template
+	//regular class, not a template, OR Self
 	unreadToken();
+
 	SymbolClassName * cnsym = NULL;
 	if(!m_state.alreadyDefinedSymbolClassName(typeTok.m_dataindex, cnsym))
 	  {
@@ -1818,7 +1827,7 @@ namespace MFM {
 	    UTI tduti = Nav;
 	    UTI tdscalaruti = Nouti;
 	    if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, tduti, tdscalaruti))
-	      return tduti; //done. (could be an array)
+	      return tduti; //done. (could be an array; or refselftype)
 	    else
 	      {
 		// not necessarily a class!!
@@ -3735,9 +3744,13 @@ namespace MFM {
     u32 selfid = m_state.m_pool.getIndexForDataString("self");
     UTI cuti = currClassBlock->getNodeType(); //luckily we know this now for each class used
     Token selfTok(TOK_IDENTIFIER, identTok.m_locator, selfid);
-    //SymbolVariableStack * selfsym = new SymbolVariableStack(selfTok, m_state.getUlamTypeAsRef(cuti, ALT_REF), m_state.m_currentFunctionBlockDeclSize, m_state);
-    //selfsym->setAutoLocalType(ALT_REF);
+#if 1
+    SymbolVariableStack * selfsym = new SymbolVariableStack(selfTok, m_state.getUlamTypeAsRef(cuti, ALT_REF), m_state.m_currentFunctionBlockDeclSize, m_state);
+    selfsym->setAutoLocalType(ALT_REF);
+#else
     SymbolVariableStack * selfsym = new SymbolVariableStack(selfTok, cuti, m_state.m_currentFunctionBlockDeclSize, m_state);
+#endif
+
     selfsym->setIsSelf();
     m_state.addSymbolToCurrentScope(selfsym); //ownership goes to the block
 

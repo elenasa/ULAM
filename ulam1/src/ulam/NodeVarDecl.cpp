@@ -175,6 +175,7 @@ namespace MFM {
     if(UlamType::compare(nuti, newType, m_state) != UTIC_SAME)
 	  {
 	    //different msg if try to assign non-class to a class type
+#if 0
 	    if(m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum() == Class)
 	      {
 		std::ostringstream msg;
@@ -187,6 +188,7 @@ namespace MFM {
 		rscr = CAST_BAD; //error
 	      }
 	    else
+#endif
 	      {
 		rscr = m_nodeInitExpr->safeToCastTo(nuti);
 		if(rscr != CAST_CLEAR)

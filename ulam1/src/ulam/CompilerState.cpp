@@ -1067,8 +1067,47 @@ namespace MFM {
   bool CompilerState::isComplete(UTI utArg)
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
-    return ut->isComplete();
+    //return ut->isComplete();
+    bool iscomplete =  ut->isComplete();
+    //    if(!iscomplete && ut->isReference())
+    //  iscomplete = completeAReferenceType(utArg);
+    return iscomplete;
   } //isComplete
+
+  bool CompilerState::completeAReferenceType(UTI utArg)
+  {
+    UlamType * ut = getUlamTypeByIndex(utArg);
+    assert(ut->isReference());
+
+    if(ut->isComplete())
+      return true;
+
+    UTI derefuti = getUlamTypeAsDeref(utArg);
+    UlamType * derefut = getUlamTypeByIndex(derefuti);
+
+    if(!derefut->isComplete())
+      return false;
+
+    return completeAReferenceTypeWith(utArg, derefuti);
+  } //completeAReferenceType
+
+  bool CompilerState::completeAReferenceTypeWith(UTI utArg, UTI derefuti)
+  {
+    UlamType * derefut = getUlamTypeByIndex(derefuti);
+
+    if(!derefut->isComplete())
+      return false;
+
+    if(isHolder(utArg))
+      {
+	UlamKeyTypeSignature dekey = derefut->getUlamKeyTypeSignature();
+	UlamKeyTypeSignature newkey(dekey.getUlamKeyTypeSignatureNameId(), dekey.getUlamKeyTypeSignatureBitSize(), dekey.getUlamKeyTypeSignatureArraySize(), dekey.getUlamKeyTypeSignatureClassInstanceIdx(), ALT_REF);
+	makeUlamTypeFromHolder(newkey, derefut->getUlamTypeEnum(), utArg);
+	return true;
+      }
+
+    return setUTISizes(utArg, derefut->getBitSize(), derefut->getArraySize());
+  } //completeAReferenceTypeWith
 
   bool CompilerState::isHolder(UTI utArg)
   {

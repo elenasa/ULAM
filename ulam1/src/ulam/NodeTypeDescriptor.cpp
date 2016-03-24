@@ -136,6 +136,7 @@ namespace MFM {
 
     // not node select, we are the leaf Type: a typedef, class or primitive scalar.
     UTI nuti = givenUTI();
+    UTI cuti = m_state.getCompileThisIdx();
 
     if(m_refType != ALT_NOT)
       {
@@ -152,6 +153,28 @@ namespace MFM {
 		  derefuti = m_state.getUlamTypeAsDeref(nuti);
 	      }
 
+	    if(!m_state.isComplete(derefuti))
+	      {
+		// if Nav, use token
+		UTI mappedUTI = derefuti;
+
+		// the symbol associated with this type, was mapped during instantiation
+		// since we're call AFTER that (not during), we can look up our
+		// new UTI and pass that on up the line of NodeType Selects, if any.
+		if(m_state.mappedIncompleteUTI(cuti, derefuti, mappedUTI))
+		  {
+		    std::ostringstream msg;
+		    msg << "Substituting Mapped UTI" << mappedUTI;
+		    msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
+		    msg << " for incomplete de-ref descriptor type: ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(derefuti).c_str();
+		    msg << "' UTI" << derefuti << " while labeling class: ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    derefuti = mappedUTI;
+		  }
+	      }
+
 	    if(m_state.isComplete(derefuti))
 	      {
 		if(nut->getReferenceType() != m_refType)
@@ -162,10 +185,12 @@ namespace MFM {
 		  }
 
 		UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
-		if(!m_state.setUTISizes(nuti, derefut->getBitSize(), derefut->getArraySize()))
+		//if(!m_state.setUTISizes(nuti, derefut->getBitSize(), derefut->getArraySize()))
+		//if(m_state.completeAReferenceType(nuti))
+		if(m_state.completeAReferenceTypeWith(nuti, derefuti))
 		  {
-		    rtnuti = Nav;
-		    return false;
+		    //rtnuti = Nav;
+		    //return false;
 		  }
 		//else we might have set the size of a holder ref. still a holder. darn.
 		else if(m_state.isHolder(nuti))
@@ -178,7 +203,9 @@ namespace MFM {
 		    UlamKeyTypeSignature newkey(derefkey.getUlamKeyTypeSignatureNameId(), derefkey.getUlamKeyTypeSignatureBitSize(), derefkey.getUlamKeyTypeSignatureArraySize(), derefkey.getUlamKeyTypeSignatureClassInstanceIdx(), m_refType);
 		    m_state.makeUlamTypeFromHolder(newkey, bUT, nuti); //keeps nuti
 		  }
+		//else ??
 	      }
+	    //else deref not complete, t.f. nuti isn't
 	  }
       }
 
@@ -217,7 +244,6 @@ namespace MFM {
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMTYPE etyp = nut->getUlamTypeEnum();
-
     if(etyp == Class)
       {
 	ULAMCLASSTYPE nclasstype = nut->getUlamClass();
@@ -295,10 +321,30 @@ namespace MFM {
       }
     else if(etyp == Holder)
       {
-	if(m_state.statusUnknownTypeInThisClassResolver(nuti))
-	  rtnuti = nuti; //resolved!
+	//check if non-class is reference
+	if(m_refType != ALT_NOT)
+	  {
+	    UTI derefuti = getReferencedUTI();
+	    if(m_state.statusUnknownTypeInThisClassResolver(derefuti))
+	      {
+		if(m_state.isComplete(derefuti) && m_state.completeAReferenceTypeWith(nuti, derefuti))
+		  {
+		    rtnuti = nuti; //resolved!
+		  }
+		else
+		  rtnuti = Hzy;
+	      }
+	    else
+	      rtnuti = Hzy;
+	  }
 	else
-	  rtnuti = Hzy;
+	  {
+	    // non-class, non-ref
+	    if(m_state.statusUnknownTypeInThisClassResolver(nuti))
+	      rtnuti = nuti; //resolved!
+	    else
+	      rtnuti = Hzy;
+	  }
       }
     else
       {

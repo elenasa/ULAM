@@ -156,13 +156,17 @@ namespace MFM {
 	    m_state.popClassContext(); //restore
 	  }
 	else
-	  nuti = m_varSymbol->getUlamTypeIdx();
+	    nuti = m_varSymbol->getUlamTypeIdx();
       }
     else
       assert(0); //shouldn't happen
 
     if(m_state.okUTItoContinue(nuti))
       {
+	//if(m_varSymbol && m_varSymbol->isSelf())
+	if(m_state.isReference(nuti))
+	  nuti = m_state.getUlamTypeAsDeref(nuti); //e.g. selftyperef
+
 	if(!m_state.isComplete(nuti)) //reloads
 	  {
 	    std::ostringstream msg;
