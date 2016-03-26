@@ -300,7 +300,7 @@ namespace MFM {
   bool NodeTypeDescriptor::resolveClassType(UTI& rtnuti)
   {
     bool rtnb = false;
-    UTI nuti = rtnuti;
+    UTI nuti = rtnuti; //not givenUTI!!
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMTYPE etyp = nut->getUlamTypeEnum();
     assert(etyp == Class);

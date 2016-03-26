@@ -657,6 +657,11 @@ namespace MFM {
       } //not complete
   } //printUnresolvedVariableDataMembers
 
+  void NodeVarDeclDM::printUnresolvedLocalVariables()
+  {
+    assert(0); //override
+  }
+
   EvalStatus NodeVarDeclDM::eval()
   {
     assert(m_varSymbol);

@@ -255,6 +255,13 @@ namespace MFM {
     m_nodeParameterList->addNodeToList(nodeArg);
   }
 
+  void NodeBlockFunctionDefinition::printUnresolvedLocalVariables(u32 fid)
+  {
+    if(m_nodeParameterList)
+      m_nodeParameterList->printUnresolvedLocalVariables(fid);
+    m_nodeNext->printUnresolvedLocalVariables(fid);
+  } //countNavHzyNoutiNodes
+
   void NodeBlockFunctionDefinition::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
     NodeBlock::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);

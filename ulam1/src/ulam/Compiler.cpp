@@ -206,6 +206,7 @@ namespace MFM {
       {
 	m_state.m_programDefST.printUnresolvedVariablesForTableOfClasses();
 	errCnt = m_state.m_err.getErrorCount();
+	m_state.clearGoAgain(); //all Hzy types converted to Navs
       }
 
     if(!errCnt)

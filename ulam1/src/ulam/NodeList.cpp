@@ -171,6 +171,14 @@ namespace MFM{
     Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt); //NodeList counts!
   } //countNavNodes
 
+  void NodeList::printUnresolvedLocalVariables(u32 fid)
+  {
+    for(u32 i = 0; i < m_nodes.size(); i++)
+      {
+	m_nodes[i]->printUnresolvedLocalVariables(fid);
+      }
+  } //printUnresolvedLocalVariables
+
   EvalStatus NodeList::eval()
   {
     assert(0);

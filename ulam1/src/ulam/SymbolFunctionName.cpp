@@ -611,6 +611,20 @@ namespace MFM {
     return aok;
   } //labelFunctions
 
+  void SymbolFunctionName::printUnresolvedLocalVariablesInFunctionDefs()
+  {
+    u32 fid = getId();
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
+	assert(func);
+	func->printUnresolvedLocalVariables(fid);
+	++it;
+      }
+  } //printUnresolvedLocalVariablesInFunctionDefs
+
   void SymbolFunctionName::countNavNodesInFunctionDefs(u32& ncnt, u32& hcnt, u32& nocnt)
   {
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();

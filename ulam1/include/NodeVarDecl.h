@@ -88,6 +88,8 @@ namespace MFM{
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
+    virtual void printUnresolvedLocalVariables(u32 fid);
+
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
     virtual EvalStatus eval();

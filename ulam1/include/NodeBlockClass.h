@@ -145,6 +145,8 @@ namespace MFM{
 
     virtual void printUnresolvedVariableDataMembers();
 
+    virtual void printUnresolvedLocalVariables(u32 fid);
+
     s32 getVirtualMethodMaxIdx();
 
     void setVirtualMethodMaxIdx(s32 maxidx);

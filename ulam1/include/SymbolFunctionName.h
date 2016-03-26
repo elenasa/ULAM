@@ -102,6 +102,8 @@ namespace MFM{
 
     void countNavNodesInFunctionDefs(u32& ncnt, u32& hcnt, u32& nocnt);
 
+    void printUnresolvedLocalVariablesInFunctionDefs();
+
     u32 countNativeFuncDecls();
 
     void generateCodedFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);

@@ -381,6 +381,23 @@ namespace MFM {
       m_nodeInitExpr->calcMaxDepth(depth, maxdepth, base);
   } //calcMaxDepth
 
+  void NodeVarDecl::printUnresolvedLocalVariables(u32 fid)
+  {
+    assert(m_varSymbol);
+    UTI it = m_varSymbol->getUlamTypeIdx();
+    if(!m_state.isComplete(it))
+      {
+	// e.g. error/t3298 Int(Fu.sizeof)
+	std::ostringstream msg;
+	msg << "Unresolved type <";
+	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	msg << "> used with local variable symbol name '" << getName() << "'";
+	msg << " in function: " << m_state.m_pool.getDataAsString(fid);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav); //compiler counts
+      } //not complete
+  } //printUnresolvedLocalVariables
+
   void NodeVarDecl::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
     if(m_nodeTypeDesc)

@@ -79,6 +79,8 @@ namespace MFM{
 
     virtual void printUnresolvedVariableDataMembers();
 
+    virtual void printUnresolvedLocalVariables();
+
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();

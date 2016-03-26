@@ -671,6 +671,18 @@ namespace MFM {
       }
   } //labelTableOfFunctions
 
+  void SymbolTable::printUnresolvedLocalVariablesForTableOfFunctions()
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym && sym->isFunction());
+	((SymbolFunctionName *) sym)->printUnresolvedLocalVariablesInFunctionDefs();
+	it++;
+      }
+  } //printUnresolvedVariablesForTableOfClasses
+
   void SymbolTable::countNavNodesAcrossTableOfFunctions(u32& ncnt, u32& hcnt, u32& nocnt)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();

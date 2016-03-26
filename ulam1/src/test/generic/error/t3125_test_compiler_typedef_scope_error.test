@@ -1,8 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3125_test_compiler_typedef_scope_error
 #!
+./D.ulam:9:5: ERROR: Unresolved type <0Holder(UNKNOWN)> used with local variable symbol name 'f' in function: test.
 ./D.ulam:9:5: ERROR: Undetermined Type: <Bar>; Suggest 'use Bar;' if it's a class, otherwise a typedef is needed in D.
-./D.ulam:1:9: ERROR: 8 Nodes with unresolved types detected after type labeling class: D.
+./D.ulam:1:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: D.
+./D.ulam:1:9: ERROR: 7 Nodes with unresolved types detected after type labeling class: D.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>D.ulam

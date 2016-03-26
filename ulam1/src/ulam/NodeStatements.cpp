@@ -212,6 +212,15 @@ namespace MFM {
       m_nodeNext->printUnresolvedVariableDataMembers();
   } //printUnresolvedVariableDataMembers
 
+  void NodeStatements::printUnresolvedLocalVariables(u32 fid)
+  {
+    if(m_node)
+      m_node->printUnresolvedLocalVariables(fid); //updates offset
+
+    if(m_nodeNext)
+      m_nodeNext->printUnresolvedLocalVariables(fid);
+  } //printUnresolvedLocalVariables
+
   void NodeStatements::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
     u32 max2 = depth;

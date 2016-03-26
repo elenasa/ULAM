@@ -551,6 +551,23 @@ namespace MFM {
       } //not complete
   } //printUnresolvedVariableDataMembers
 
+  void NodeConstantDef::printUnresolvedLocalVariables(u32 fid)
+  {
+    assert(m_constSymbol);
+    UTI it = m_constSymbol->getUlamTypeIdx();
+    if(!m_state.isComplete(it))
+      {
+	// e.g. error/t3298 Int(Fu.sizeof)
+	std::ostringstream msg;
+	msg << "Unresolved type <";
+	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	msg << "> used with local variable symbol name '" << getName() << "'";
+	msg << " in function: " << m_state.m_pool.getDataAsString(fid);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav); //compiler counts
+      } //not complete
+  } //printUnresolvedLocalVariables
+
   void NodeConstantDef::genCode(File * fp, UlamValue& uvpass)
   {}
 

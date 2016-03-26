@@ -242,6 +242,22 @@ namespace MFM {
       } //not complete
   } //printUnresolvedVariableDataMembers
 
+  void NodeTypedef::printUnresolvedLocalVariables(u32 fid)
+  {
+    assert(m_typedefSymbol);
+    UTI it = m_typedefSymbol->getUlamTypeIdx();
+    if(!m_state.isComplete(it))
+      {
+	std::ostringstream msg;
+	msg << "Unresolved type <";
+	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	msg << "> used with typedef symbol name '" << getName() << "'";
+	msg << " in function: " << m_state.m_pool.getDataAsString(fid);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav); //compiler counts
+      } //not complete
+  } //printUnresolvedLocalVariables
+
   void NodeTypedef::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
     Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);

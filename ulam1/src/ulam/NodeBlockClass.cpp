@@ -867,7 +867,14 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   {
     if(m_nodeNext)
       m_nodeNext->printUnresolvedVariableDataMembers();
+
+    m_functionST.printUnresolvedLocalVariablesForTableOfFunctions();
   } //printUnresolvedVariableDataMembers
+
+  void NodeBlockClass::printUnresolvedLocalVariables(u32 fid)
+  {
+    assert(0); //override
+  } //printUnresolvedLocalVariables
 
   u32 NodeBlockClass::countNativeFuncDecls()
   {

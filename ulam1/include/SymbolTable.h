@@ -126,6 +126,8 @@ namespace MFM{
 
     u32 countNativeFuncDeclsForTableOfFunctions();
 
+    void printUnresolvedLocalVariablesForTableOfFunctions();
+
     void calcMaxDepthForTableOfFunctions();
 
     void calcMaxIndexForVirtualTableOfFunctions(s32& maxidx);
