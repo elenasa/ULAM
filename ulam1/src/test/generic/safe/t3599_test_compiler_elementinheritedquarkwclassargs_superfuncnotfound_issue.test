@@ -28,7 +28,7 @@ element CLife0 : CLife
   ulam 2;
 use QSync;
 quark CLife : QSync(1u) {
-  typedef QSync(1u) Super; //also automatic
+  //typedef QSync(1u) Super; //also automatic
 
   Void clifeBehave()
   {

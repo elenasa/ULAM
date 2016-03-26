@@ -21,7 +21,7 @@ use DebugUtils;
    \diffusability 0
  */
 element Router8 {
-  typedef Router8 Self;
+  //typedef Router8 Self;
   typedef QPort4(2) Port;
 
   // Imported typedefs

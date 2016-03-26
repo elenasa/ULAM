@@ -8,7 +8,7 @@
    \license public-domain
 */
 element DLA {
-  typedef DLA Self;
+  //typedef DLA Self;
   EventWindow ew;
   Void behave() {
     if (ew[1] is Res) {

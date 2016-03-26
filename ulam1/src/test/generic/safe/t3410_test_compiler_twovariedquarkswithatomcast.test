@@ -77,7 +77,7 @@ element Foo {
 #:IntXY.ulam
   ulam 1;
 quark IntXY(Unsigned xbits, Unsigned ybits) {
-  typedef IntXY(xbits, ybits) Self;
+  //typedef IntXY(xbits, ybits) Self;
   typedef Unsigned(xbits) XCoord;
   typedef Unsigned(ybits) YCoord;
   XCoord x;

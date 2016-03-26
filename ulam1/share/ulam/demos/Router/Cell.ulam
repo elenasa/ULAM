@@ -13,7 +13,7 @@ use ColorUtils;
     \color #33f
  */
 element Cell {
-  typedef Cell Self;
+  //typedef Cell Self;
 
   typedef Unsigned(2) PortId;
   typedef Unsigned(8) ARGB[4];

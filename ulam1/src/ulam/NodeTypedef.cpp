@@ -142,20 +142,6 @@ namespace MFM {
 	    UTI duti = m_nodeTypeDesc->checkAndLabelType(); //sets goagain if nav
 	    if(m_state.okUTItoContinue(duti) && (duti != it))
 	      {
-		ALT altd = m_state.getReferenceType(duti);
-		ALT alti = m_state.getReferenceType(it);
-		if((m_typedefSymbol->getId() == m_state.m_pool.getIndexForDataString("Self")) && (altd != alti))
-		  {
-		    std::ostringstream msg;
-		    msg << "Redefinition of Self with node type descriptor type: ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(duti).c_str();
-		    msg << " as a reference";
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		    it = Nav;
-		    setNodeType(Nav);
-		    return Nav;
-		  }
-
 		std::ostringstream msg;
 		msg << "REPLACING Symbol UTI" << it;
 		msg << ", " << m_state.getUlamTypeNameBriefByIndex(it).c_str();
@@ -165,7 +151,7 @@ namespace MFM {
 		msg << " UTI" << duti << " while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		m_typedefSymbol->resetUlamType(duti); //consistent!
+		m_typedefSymbol->resetUlamType(duti); //consistent! (must be same ref type)
 		m_state.mapTypesInCurrentClass(it, duti);
 		it = duti;
 	      }

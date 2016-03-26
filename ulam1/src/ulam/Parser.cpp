@@ -4131,40 +4131,14 @@ namespace MFM {
 	  {
 	    if(asymptr)
 	      {
-		u32 asymid = asymptr->getId();
+		u32 asymid = asymptr->getId(); //Self and Super no longer exceptions
 		UTI auti = asymptr->getUlamTypeIdx();
-		if((asymid == m_state.m_pool.getIndexForDataString("Self")) && (auti == m_state.getCompileThisIdx()))
-		  {
-		    //special case 'Self' typedef that's also defined sometimes by the ulam programmer
-		    std::ostringstream msg;
-		    msg << m_state.m_pool.getDataAsString(asymid).c_str();
-		    msg << " has a previous declaration as '";
-		    msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
-		    msg << " " << m_state.m_pool.getDataAsString(asymid);
-		    msg << "' and is a redundant typedef";
-		    MSG(&args.m_typeTok, msg.str().c_str(), INFO);
-		    aok = true; //not a problem
-		  }
-		else if((asymid == m_state.m_pool.getIndexForDataString("Super")) && (auti == m_state.isClassASubclass(m_state.getCompileThisIdx())))
-		  {
-		    //special case 'Super' typedef that's also sometimes defined by the ulam programmer
-		    std::ostringstream msg;
-		    msg << m_state.m_pool.getDataAsString(asymid).c_str();
-		    msg << " has a previous declaration as '";
-		    msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
-		    msg << "' and is a redundant typedef";
-		    MSG(&args.m_typeTok, msg.str().c_str(), INFO);
-		    aok = true; //not a problem
-		  }
-		else
-		  {
-		    std::ostringstream msg;
-		    msg << m_state.m_pool.getDataAsString(asymid).c_str();
-		    msg << " has a previous declaration as '";
-		    msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
-		    msg << "' and cannot be used as a typedef";
-		    MSG(&args.m_typeTok, msg.str().c_str(), ERR);
-		  }
+		std::ostringstream msg;
+		msg << m_state.m_pool.getDataAsString(asymid).c_str();
+		msg << " has a previous declaration as '";
+		msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
+		msg << "' and cannot be used as a typedef";
+		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
 	      }
 	    else
 	      {

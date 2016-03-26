@@ -6,7 +6,7 @@ ulam 1;
    should scan.
  */
 quark QPort4(Unsigned(2) extraScanDistance)  {
-  typedef QPort4(extraScanDistance) Self;
+  //typedef QPort4(extraScanDistance) Self;
   typedef EventWindow.SiteNum SiteNum;
 
   typedef Cell.PortId PortId;
@@ -60,7 +60,7 @@ quark QPort4(Unsigned(2) extraScanDistance)  {
     init(portid);
 
     // stochastic timer by hand (SHOULD USE XTimer!)
-    if (m_lastRcvAge < m_lastRcvAge.maxof 
+    if (m_lastRcvAge < m_lastRcvAge.maxof
         && r.oneIn((Unsigned) (2<<m_lastRcvAge)))
       ++m_lastRcvAge;
 

@@ -21,7 +21,7 @@ element D {
   use EventWindow;
 quark QPort4
 {
-  typedef QPort4 Self;
+  //  typedef QPort4 Self;
   typedef EventWindow.SiteNum SiteNum;
   EventWindow ew;
   Void update()
