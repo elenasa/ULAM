@@ -202,10 +202,7 @@ namespace MFM {
 	    msg << "Constant value expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
 	    msg << ", is invalid";
-	    //	    if(m_nodeExpr->isAConstant() && m_nodeExpr->isReadyConstant())
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	      //else
-	      // MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //possibly still hazy
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
 	    return Nav; //short-circuit
 	  }
@@ -260,8 +257,6 @@ namespace MFM {
 	    msg << "' UTI" << suti << " while labeling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    //suti = Hzy;
-	    //m_state.setGoAgain();
 	  }
       }
     else
@@ -540,6 +535,21 @@ namespace MFM {
   {
     //do nothing, but override
   }
+
+  void NodeConstantDef::printUnresolvedVariableDataMembers()
+  {
+    assert(m_constSymbol);
+    UTI it = m_constSymbol->getUlamTypeIdx();
+    if(!m_state.isComplete(it))
+      {
+	std::ostringstream msg;
+	msg << "Unresolved type <";
+	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	msg << "> used with constant def symbol name '" << getName() << "'";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav); //compiler counts
+      } //not complete
+  } //printUnresolvedVariableDataMembers
 
   void NodeConstantDef::genCode(File * fp, UlamValue& uvpass)
   {}

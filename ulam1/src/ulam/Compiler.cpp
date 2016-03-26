@@ -196,10 +196,17 @@ namespace MFM {
 	    msg << "possible INCOMPLETE (or Template) class detected --- ";
 	    msg << "after " << infcounter << " iterations";
 	    MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    //note: not an error because template uses with deferred args remain unresolved
+	    //note: not an error because template uses with deferred args remain unresolved; however,
+	    // context reveals if stub was needed by a template and not included.
 	    break;
 	  }
       } //while
+
+    if(infcounter > MAX_ITERATIONS)
+      {
+	m_state.m_programDefST.printUnresolvedVariablesForTableOfClasses();
+	errCnt = m_state.m_err.getErrorCount();
+      }
 
     if(!errCnt)
       {

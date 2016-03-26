@@ -143,6 +143,8 @@ namespace MFM{
 
     void packBitsForVariableDataMembers();
 
+    virtual void printUnresolvedVariableDataMembers();
+
     s32 getVirtualMethodMaxIdx();
 
     void setVirtualMethodMaxIdx(s32 maxidx);

@@ -49,6 +49,7 @@ namespace MFM {
   {
     assert((m_state.getReferenceType(m_uti) == m_state.getReferenceType(newuti)) || m_state.isHolder(m_uti));
     m_uti = newuti;
+    setAutoLocalType(m_state.getReferenceType(newuti));
   }
 
   UTI Symbol::getUlamTypeIdx()

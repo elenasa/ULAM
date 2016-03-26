@@ -204,6 +204,14 @@ namespace MFM {
       m_nodeNext->packBitsInOrderOfDeclaration(offset);
   } //packBitsInOrderOfDeclaration
 
+  void NodeStatements::printUnresolvedVariableDataMembers()
+  {
+    m_node->printUnresolvedVariableDataMembers(); //updates offset
+
+    if(m_nodeNext)
+      m_nodeNext->printUnresolvedVariableDataMembers();
+  } //printUnresolvedVariableDataMembers
+
   void NodeStatements::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
     u32 max2 = depth;

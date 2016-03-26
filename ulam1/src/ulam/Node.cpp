@@ -399,6 +399,11 @@ namespace MFM {
     assert(0);
   }
 
+  void Node::printUnresolvedVariableDataMembers()
+  {
+    assert(0);
+  } //printUnresolvedVariableDataMembers
+
   void Node::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
     return; //work done by NodeStatements and NodeBlock

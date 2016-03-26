@@ -863,6 +863,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       m_nodeNext->packBitsInOrderOfDeclaration(offset);
   } //packBitsForVariableDataMembers
 
+  void NodeBlockClass::printUnresolvedVariableDataMembers()
+  {
+    if(m_nodeNext)
+      m_nodeNext->printUnresolvedVariableDataMembers();
+  } //printUnresolvedVariableDataMembers
+
   u32 NodeBlockClass::countNativeFuncDecls()
   {
     if(isEmpty())

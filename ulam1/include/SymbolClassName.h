@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolClassName.h -  Basic Class Symbol Name for ULAM
  *
- * Copyright (C) 2015 The Regents of the University of New Mexico.
- * Copyright (C) 2015 Ackleyshack LLC.
+ * Copyright (C) 2015-2016 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2016 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolClassName.h -  Basic Class Symbol Name for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015 All rights reserved.
+  \date (C) 2015-2016 All rights reserved.
   \gpl
 */
 
@@ -81,6 +81,7 @@ namespace MFM{
     virtual bool setBitSizeOfClassInstances();
     virtual void printBitSizeOfClassInstances();
     virtual void packBitsForClassInstances();
+    virtual void printUnresolvedVariablesForClassInstances();
 
     virtual void buildDefaultQuarkForClassInstances();
 

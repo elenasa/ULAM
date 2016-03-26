@@ -162,15 +162,15 @@ namespace MFM {
 
 			if(rtnb)
 			  {
-			    if(m_state.isHolder(rtnuti))
+			    if(m_state.hasUnknownTypeInThisClassResolver(auti))
+			      {
+			    	m_state.removeKnownTypeTokenFromThisClassResolver(auti);
+			    	m_state.cleanupExistingHolder(auti, rtnuti);
+			      }
+			    else if(m_state.isHolder(rtnuti))
 			      {
 				rtnuti = Hzy; //not so fast!!
 				rtnb = false;
-			      }
-			    else if(m_state.hasUnknownTypeInThisClassResolver(auti))
-			      {
-				m_state.removeKnownTypeTokenFromThisClassResolver(auti);
-				m_state.cleanupExistingHolder(auti, rtnuti);
 			      }
 			  }
 		      }

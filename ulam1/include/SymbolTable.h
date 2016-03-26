@@ -180,6 +180,8 @@ namespace MFM{
 
     void packBitsForTableOfClasses();
 
+    void printUnresolvedVariablesForTableOfClasses();
+
     void generateIncludesForTableOfClasses(File * fp);
 
     void generateForwardDefsForTableOfClasses(File * fp);

@@ -562,6 +562,7 @@ namespace MFM {
     return rtnBool;
   } //deleteUlamKeyTypeSignature
 
+  // no side-effects, except to 3rd arg when return is true.
   bool CompilerState::mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI)
   {
     SymbolClass * csym = NULL;
@@ -1574,7 +1575,8 @@ namespace MFM {
     return (rtnb && symptr->isClassTemplate());
   } //alreadyDefinedSymbolClassNameTemplate
 
-  //if necessary, searches for instance of class "template" with matching SCALAR uti
+  //if necessary, searches for instance of class "template" with matching SCALAR uti;
+  // automatically reduces arrays and references to their base class UTI.
   bool CompilerState::alreadyDefinedSymbolClass(UTI uti, SymbolClass * & symptr)
   {
     bool rtnb = false;

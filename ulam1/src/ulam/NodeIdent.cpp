@@ -268,11 +268,11 @@ namespace MFM {
 		m_varSymbol->resetUlamType(mappedUTI); //consistent!
 		it = mappedUTI;
 	      }
-	    else if(m_varSymbol->isSelf())
+	    //else if(m_varSymbol->isSelf())
+	    else if(m_varSymbol->isSelf() || m_state.isReference(it))
 	      {
 		m_state.completeAReferenceType(it);
 	      }
-
 	    if(!m_state.isComplete(it)) //reloads to recheck for debug message
 	      {
 		std::ostringstream msg;
@@ -282,8 +282,6 @@ namespace MFM {
 		msg << "' UTI" << it << " while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		//it = Hzy; //does this help?
-		//m_state.setGoAgain();
 	      }
 	  }
       }

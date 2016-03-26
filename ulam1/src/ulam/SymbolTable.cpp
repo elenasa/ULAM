@@ -1371,6 +1371,24 @@ namespace MFM {
       }
   } //packBitsForTableOfClasses
 
+  void SymbolTable::printUnresolvedVariablesForTableOfClasses()
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym && sym->isClass());
+
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(!isAnonymousClass(cuti))
+	  {
+	    ((SymbolClassName *) sym)->printUnresolvedVariablesForClassInstances();
+	  }
+	it++;
+      }
+  } //printUnresolvedVariablesForTableOfClasses
+
   //bypasses THIS class being compiled
   void SymbolTable::generateIncludesForTableOfClasses(File * fp)
   {

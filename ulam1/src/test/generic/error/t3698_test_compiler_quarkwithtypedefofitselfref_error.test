@@ -1,0 +1,25 @@
+## -*- mode:ulam -*-
+#=t3698_test_compiler_quarkwithtypedefofitselfref_error
+#!
+./Typo.ulam:3:11: ERROR: Redefinition of Self with node type descriptor type: Typo& as a reference.
+./ElTypo.ulam:3:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: ElTypo.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by 3391
+##
+#>ElTypo.ulam
+  ulam 1;
+use Typo;
+element ElTypo {
+  Typo t;
+  Int test() {
+    return 0;
+  }
+}
+
+#:Typo.ulam
+  ulam 1;
+quark Typo {
+  typedef Typo& Self; //causes assert l153 NodeTypedef c&l
+}
+#.

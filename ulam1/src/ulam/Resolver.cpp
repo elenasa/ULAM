@@ -147,9 +147,10 @@ namespace MFM {
 		  }
 		kuti = cnsym->getUlamTypeIdx();
 	      }
-	  }
+	  } //end class type
 	//else
-	  if(!aok)
+
+	if(!aok)
 	  {
 	    //a typedef (e.g. t3379, 3381)
 	    UTI tmpscalar = Nouti;
