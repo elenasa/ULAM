@@ -100,6 +100,7 @@ namespace MFM{
 
     virtual bool resolveType(UTI& rtnuti);
     bool resolveReferenceType(UTI& rtnuti);
+    bool resolveClassType(UTI& rtnuti);
     bool resolveTypeBitsize(UTI& rtnuti);
   };
 

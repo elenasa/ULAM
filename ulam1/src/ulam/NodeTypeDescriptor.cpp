@@ -177,75 +177,9 @@ namespace MFM {
     ULAMTYPE etyp = nut->getUlamTypeEnum();
     if(etyp == Class)
       {
-	ULAMCLASSTYPE nclasstype = nut->getUlamClass();
-	if(nut->isComplete())
-	  {
-	    rtnuti = nuti;
-	    rtnb = true;
-	  } //else we're not ready!!
-	else if(nclasstype == UC_UNSEEN)
-	  {
-	    UTI tduti = Nouti;
-	    UTI tmpforscalaruti = Nouti;
-	    bool isTypedef = m_state.getUlamTypeByTypedefName(m_typeTok.m_dataindex, tduti, tmpforscalaruti);
-
-	    if(isTypedef)
-	      {
-		//unseen typedef's appear like Class basetype, until seen
-		//wait until complete to re-key..
-		// want arraysize if non-scalar
-		std::ostringstream msg;
-		if(m_state.isComplete(tduti))
-		  {
-		    UlamType * tut = m_state.getUlamTypeByIndex(tduti);
-		    UlamKeyTypeSignature tdkey = tut->getUlamKeyTypeSignature();
-		    UlamKeyTypeSignature newkey(tdkey.getUlamKeyTypeSignatureNameId(), tut->getBitSize(), tut->getArraySize(), 0, tut->getReferenceType());
-		    m_state.makeUlamTypeFromHolder(newkey, tut->getUlamTypeEnum(), nuti);
-		    rtnuti = tduti; //reset
-		    rtnb = true;
-		    msg << "RESET ";
-		  }
-		else
-		  rtnuti = Hzy;
-
-		msg << "Unseen Class was a typedef for: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(tduti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	      }
-	    else
-	      {
-		bool isAnonymousClass = (nut->isHolder() || !m_state.isARootUTI(nuti));
-		UTI auti = nuti;
-
-		if(nut->isHolder())
-		  {
-		    if(!m_state.statusUnknownTypeInThisClassResolver(nuti))
-		      auti = Hzy;
-		  }
-		else if(!m_state.isARootUTI(nuti))
-		  {
-		    AssertBool isAlias = m_state.findaUTIAlias(nuti, auti);
-		    assert(isAlias);
-		  }
-
-		std::ostringstream msg;
-		msg << "UNSEEN Class and incomplete descriptor for type: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		if(isAnonymousClass)
-		  {
-		    msg << " replaced with type: (UTI" << auti << ")";
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		    rtnuti = auti; //was Hzy
-		  }
-		else
-		  {
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		    rtnuti = Nav;
-		  }
-	      }
-	  }
-	else
-	  rtnuti = Hzy;
+	rtnb = resolveClassType(nuti);
+	if(rtnb)
+	  rtnuti = nuti;
       }
     else if(etyp == Holder)
       {
@@ -358,10 +292,90 @@ namespace MFM {
       } //complete deref
     //else deref not complete, t.f. nuti isn't changed
 
-    if(rtnb)
+    //if(rtnb)
       rtnuti = nuti;
     return rtnb;
   } //resolveReferenceType
+
+  bool NodeTypeDescriptor::resolveClassType(UTI& rtnuti)
+  {
+    bool rtnb = false;
+    UTI nuti = rtnuti;
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    ULAMTYPE etyp = nut->getUlamTypeEnum();
+    assert(etyp == Class);
+
+    ULAMCLASSTYPE nclasstype = nut->getUlamClass();
+    if(nut->isComplete())
+      {
+	rtnuti = nuti;
+	rtnb = true;
+      } //else we're not ready!!
+    else if(nclasstype == UC_UNSEEN)
+      {
+	UTI tduti = Nouti;
+	UTI tmpforscalaruti = Nouti;
+	bool isTypedef = m_state.getUlamTypeByTypedefName(m_typeTok.m_dataindex, tduti, tmpforscalaruti);
+
+	if(isTypedef)
+	  {
+	    //unseen typedef's appear like Class basetype, until seen
+	    //wait until complete to re-key..
+	    // want arraysize if non-scalar
+	    std::ostringstream msg;
+	    if(m_state.isComplete(tduti))
+	      {
+		UlamType * tut = m_state.getUlamTypeByIndex(tduti);
+		UlamKeyTypeSignature tdkey = tut->getUlamKeyTypeSignature();
+		UlamKeyTypeSignature newkey(tdkey.getUlamKeyTypeSignatureNameId(), tut->getBitSize(), tut->getArraySize(), 0, tut->getReferenceType());
+		m_state.makeUlamTypeFromHolder(newkey, tut->getUlamTypeEnum(), nuti);
+		rtnuti = tduti; //reset
+		rtnb = true;
+		msg << "RESET ";
+	      }
+	    else
+	      rtnuti = Hzy;
+
+	    msg << "Unseen Class was a typedef for: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(tduti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  }
+	else
+	  {
+	    bool isAnonymousClass = (nut->isHolder() || !m_state.isARootUTI(nuti));
+	    UTI auti = nuti;
+
+	    if(nut->isHolder())
+	      {
+		if(!m_state.statusUnknownTypeInThisClassResolver(nuti))
+		  auti = Hzy;
+	      }
+	    else if(!m_state.isARootUTI(nuti))
+	      {
+		AssertBool isAlias = m_state.findaUTIAlias(nuti, auti);
+		assert(isAlias);
+	      }
+
+	    std::ostringstream msg;
+	    msg << "UNSEEN Class and incomplete descriptor for type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	    if(isAnonymousClass)
+	      {
+		msg << " replaced with type: (UTI" << auti << ")";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		rtnuti = auti; //was Hzy
+	      }
+	    else
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		rtnuti = Nav;
+	      }
+	  }
+      }
+    else
+      rtnuti = Hzy;
+    return rtnb;
+  } //resolveClassType
 
   bool NodeTypeDescriptor::resolveTypeBitsize(UTI& rtnuti)
   {
