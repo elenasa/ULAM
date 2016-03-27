@@ -6,7 +6,7 @@
 ##
 ./Soo.ulam:5:3: ERROR: Data member 'cb' is shadowing an ancestor.
 ./Foo.ulam:4:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Foo.
-./Foo.ulam:4:9: ERROR: 7 Nodes with unresolved types detected after type labeling class: Foo.
+./Foo.ulam:4:9: ERROR: 11 Nodes with unresolved types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## quark inheritance, regular (non-template) with data member in subclass overriding super

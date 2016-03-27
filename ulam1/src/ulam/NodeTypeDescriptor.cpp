@@ -135,9 +135,9 @@ namespace MFM {
       }
 
     // not node select, we are the leaf Type: a typedef, class or primitive scalar.
-    UTI nuti = givenUTI();
+    UTI nuti = givenUTI(); //start with given.
 
-    if(m_refType != ALT_NOT)
+    if(getReferenceType() != ALT_NOT)
       rtnb = resolveReferenceType(nuti); //may update nuti
 
     if(!m_state.isComplete(nuti))
@@ -178,48 +178,24 @@ namespace MFM {
     if(etyp == Class)
       {
 	rtnb = resolveClassType(nuti);
-	if(rtnb)
-	  rtnuti = nuti;
       }
     else if(etyp == Holder)
       {
 	//non-class reference, handled in resolveReferenceType
-	if(m_refType == ALT_NOT)
+	if(getReferenceType() == ALT_NOT)
 	  {
 	    // non-class, non-ref
-	    if(m_state.statusUnknownTypeInThisClassResolver(nuti))
-	      rtnuti = nuti; //resolved!
-	    else
-	      rtnuti = Hzy;
+	    if(!(rtnb = m_state.statusUnknownTypeInThisClassResolver(nuti)))
+	      nuti = Hzy;
 	  }
       }
     else
       {
 	//primitive, or array typedef
-	if(!m_unknownBitsizeSubtree)
-	  {
-	    if(!m_state.okUTItoContinue(nuti))
-	      {
-		//use default primitive bitsize; (assumes scalar)
-		rtnuti = m_state.makeUlamType(m_typeTok, ULAMTYPE_DEFAULTBITSIZE[etyp], NONARRAYSIZE, Nouti);
-		rtnb = true;
-	      }
-	    else if(m_state.isComplete(nuti))
-	      {
-		rtnuti = nuti;
-		rtnb = true;
-	      }
-	    else
-	      rtnuti = Hzy;
-	    //else mapped?
-	  }
-	else
-	  {
-	    //primitive with possible unknown bit size
-	    rtnb = resolveTypeBitsize(nuti);
-	    rtnuti = nuti;
-	  }
+	rtnb = resolvePrimitiveOrArrayType(nuti);
       }
+
+    rtnuti = nuti;
     return rtnb;
   } //resolveType
 
@@ -230,7 +206,7 @@ namespace MFM {
     UTI nuti = givenUTI();
     UTI cuti = m_state.getCompileThisIdx();
 
-    assert(m_refType != ALT_NOT);
+    assert(getReferenceType() != ALT_NOT);
 
     //if reference is not complete, but its deref is, use its sizes to complete us.
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
@@ -267,14 +243,15 @@ namespace MFM {
 
     if(m_state.isComplete(derefuti))
       {
-	if(nut->getReferenceType() != m_refType)
+	ALT altd = getReferenceType();
+	if(nut->getReferenceType() != altd)
 	  {
-	    nuti = m_state.getUlamTypeAsRef(nuti, m_refType);
+	    nuti = m_state.getUlamTypeAsRef(nuti, altd);
 	    nut =  m_state.getUlamTypeByIndex(nuti);
-	    setReferenceType(m_refType, derefuti, nuti); //updates given too!
+	    setReferenceType(altd, derefuti, nuti); //updates given too!
 	  }
 	else
-	  setReferenceType(m_refType, derefuti);
+	  setReferenceType(altd, derefuti);
 
 	UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
 	// we might have set the size of a holder ref. still a holder. darn.
@@ -285,7 +262,7 @@ namespace MFM {
 	      m_state.makeClassFromHolder(nuti, m_typeTok); //token for locator
 
 	    UlamKeyTypeSignature derefkey = derefut->getUlamKeyTypeSignature();
-	    UlamKeyTypeSignature newkey(derefkey.getUlamKeyTypeSignatureNameId(), derefkey.getUlamKeyTypeSignatureBitSize(), derefkey.getUlamKeyTypeSignatureArraySize(), derefkey.getUlamKeyTypeSignatureClassInstanceIdx(), m_refType);
+	    UlamKeyTypeSignature newkey(derefkey.getUlamKeyTypeSignatureNameId(), derefkey.getUlamKeyTypeSignatureBitSize(), derefkey.getUlamKeyTypeSignatureArraySize(), derefkey.getUlamKeyTypeSignatureClassInstanceIdx(), getReferenceType());
 	    m_state.makeUlamTypeFromHolder(newkey, bUT, nuti); //keeps nuti
 	  }
 	rtnb = true;
@@ -376,6 +353,37 @@ namespace MFM {
       rtnuti = Hzy;
     return rtnb;
   } //resolveClassType
+
+  bool NodeTypeDescriptor::resolvePrimitiveOrArrayType(UTI& rtnuti)
+  {
+    bool rtnb = false;
+    UTI nuti = rtnuti;
+    //primitive, or array typedef
+    if(!m_unknownBitsizeSubtree)
+      {
+	if(!m_state.okUTItoContinue(nuti))
+	  {
+	    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+	    ULAMTYPE etyp = nut->getUlamTypeEnum();
+	    s32 arraysize = nut->getArraySize(); //NONARRAYSIZE for scalars
+	    //use default primitive bitsize; (assumes scalar)
+	    nuti = m_state.makeUlamType(m_typeTok, ULAMTYPE_DEFAULTBITSIZE[etyp], arraysize, Nouti);
+	    rtnb = true;
+	  }
+	else if(!(rtnb = m_state.isComplete(nuti)))
+	  {
+	    nuti = Hzy;
+	  }
+	//else mapped?
+      }
+    else
+      {
+	//primitive with possible unknown bit size
+	rtnb = resolveTypeBitsize(nuti);
+      }
+    rtnuti = nuti;
+    return rtnb;
+  } //resolvePrimitiveOrArrayType
 
   bool NodeTypeDescriptor::resolveTypeBitsize(UTI& rtnuti)
   {
