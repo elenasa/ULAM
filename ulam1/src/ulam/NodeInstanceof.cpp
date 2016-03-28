@@ -30,9 +30,7 @@ namespace MFM {
     UTI nuti = getNodeType(); //UAtom for references; ow type of class/atom
     if(m_state.isAtom(nuti))
       return NodeAtomof::safeToCastTo(newType);
-
-    UlamType * newut = m_state.getUlamTypeByIndex(newType);
-    return newut->safeCast(nuti);
+    return m_state.getUlamTypeByIndex(newType)->safeCast(nuti);
   } //safeToCastTo
 
   UTI NodeInstanceof::checkAndLabelType()
@@ -48,7 +46,6 @@ namespace MFM {
 	else
 	  setNodeType(oftype); //Type or variable
       }
-
     Node::setStoreIntoAble(TBOOL_FALSE);
     return getNodeType();
   } //checkAndLabelType

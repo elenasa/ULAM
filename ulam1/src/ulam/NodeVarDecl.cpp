@@ -173,47 +173,57 @@ namespace MFM {
     UTI nuti = getNodeType();
     //cast RHS if necessary and safe
     if(UlamType::compare(nuti, newType, m_state) != UTIC_SAME)
+      {
+	rscr = m_nodeInitExpr->safeToCastTo(nuti); //but we're the new type!
+	if(rscr != CAST_CLEAR)
 	  {
-	    //different msg if try to assign non-class to a class type
-#if 0
-	    if(m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum() == Class)
-	      {
-		std::ostringstream msg;
-		msg << "Incompatible class type ";
-		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		msg << " and ";
-		msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
-		msg << " used with variable initialization";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		rscr = CAST_BAD; //error
-	      }
+	    std::ostringstream msg;
+	    if(m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum() == Bool)
+	      msg << "Use a comparison operator";
 	    else
-#endif
-	      {
-		rscr = m_nodeInitExpr->safeToCastTo(nuti);
-		if(rscr != CAST_CLEAR)
-		  {
-		    std::ostringstream msg;
-		    if(m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum() == Bool)
-		      msg << "Use a comparison operator";
-		    else
-		      msg << "Use explicit cast";
-		    msg << " to convert "; // the real converting-message
-		    msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
-		    msg << " to ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		    msg << " for variable initialization";
-		    if(rscr == CAST_BAD)
-		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		    else
-		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		  }
-		else if(!Node::makeCastingNode(m_nodeInitExpr, nuti, m_nodeInitExpr))
-		  rscr = CAST_BAD; //error
-	      }
-	  } //safe cast
-      return rscr;
+	      msg << "Use explicit cast";
+	    msg << " to convert "; // the real converting-message
+	    msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+	    msg << " to ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	    msg << " for variable initialization";
+	    if(rscr == CAST_BAD)
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  }
+	else if(!Node::makeCastingNode(m_nodeInitExpr, nuti, m_nodeInitExpr))
+	  rscr = CAST_BAD; //error
+      } //safe cast
+    else if(m_nodeInitExpr->isExplicitReferenceCast())
+      {
+	std::ostringstream msg;
+	msg << "Explicit Reference cast for variable '";
+	msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+	msg << "' initialization is invalid";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	rscr = CAST_BAD;
+      }
+    return rscr;
   } //safeToCastTo
+
+  bool NodeVarDecl::checkSafeToCastTo(UTI fromType, UTI& newType)
+  {
+    bool rtnOK = true;
+    FORECAST scr = safeToCastTo(fromType); //reversed
+    if(scr == CAST_HAZY)
+      {
+	m_state.setGoAgain();
+	newType = Hzy;
+	rtnOK = false;
+      }
+    else if(scr == CAST_BAD)
+      {
+	newType = Nav;
+	rtnOK = false;
+      }
+    return rtnOK;
+  } //checkSafeToCastTo
 
   UTI NodeVarDecl::checkAndLabelType()
   {
@@ -301,12 +311,7 @@ namespace MFM {
 	  }
 
 	setNodeType(it); //needed before safeToCast
-	FORECAST scr = safeToCastTo(eit); //backwards
-	if(scr == CAST_BAD)
-	  it = Nav; //error
-	else if(scr == CAST_HAZY)
-	  it = Hzy; //not ready
-	//else CAST_SAFE ok
+	checkSafeToCastTo(eit, it); //may side-effect 'it'
       }
     Node::setStoreIntoAble(TBOOL_TRUE);
     setNodeType(it);

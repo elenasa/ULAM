@@ -114,7 +114,8 @@ namespace MFM {
       {
 	UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 	UlamType * newt = m_state.getUlamTypeByIndex(newType);
-	rscr = nut->safeCast(newType); //from newType to reference nuti
+	//rscr = nut->safeCast(newType); //from newType to reference nuti
+	rscr = m_nodeInitExpr->safeToCastTo(nuti);
 
 	if((nut->getUlamTypeEnum() == Class))
 	  {
@@ -172,6 +173,7 @@ namespace MFM {
 	      }
 	  }
       }
+    //okay to explicitly cast rhs to reference type, e.g. if(a is Foo) QW& qref = (Foo &) a;
     return rscr;
   } //safeToCastTo
 

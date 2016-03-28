@@ -32,6 +32,46 @@ namespace MFM {
     return "_Equal_Stub";
   }
 
+  bool NodeBinaryOpEqual::checkSafeToCastTo(UTI unused, UTI& newType)
+  {
+    bool rtnOK = true;
+    FORECAST scr = m_nodeRight->safeToCastTo(newType);
+    if(scr != CAST_CLEAR)
+      {
+	std::ostringstream msg;
+	if(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Bool)
+	  msg << "Use a comparison operator";
+	else
+	  msg << "Use explicit cast";
+	msg << " to convert "; // the real converting-message
+	msg << m_state.getUlamTypeNameBriefByIndex(m_nodeRight->getNodeType()).c_str();
+	msg << " to ";
+	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+	msg << " for operator" << getName();
+	if(scr == CAST_HAZY)
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    m_state.setGoAgain();
+	    newType = Hzy;
+	  }
+	else
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    newType = Nav;
+	  }
+	rtnOK = false;
+      } //not safe
+    else if(m_nodeRight->isExplicitReferenceCast())
+      {
+	std::ostringstream msg;
+	msg << "Explicit Reference cast of assignment is invalid";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+	rtnOK = false;
+      }
+    return rtnOK;
+  } //checkSafeToCastTo
+
   UTI NodeBinaryOpEqual::checkAndLabelType()
   {
     assert(m_nodeLeft && m_nodeRight);
@@ -70,6 +110,15 @@ namespace MFM {
     	return Nav;
       }
 
+    if(m_nodeRight->isExplicitReferenceCast())
+      {
+	std::ostringstream msg;
+	msg << "Explicit Reference cast of assignment is invalid";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav);
+	return Nav;
+      }
+
     if(m_state.isScalar(leftType) ^ m_state.isScalar(rightType))
       {
 	std::ostringstream msg;
@@ -99,40 +148,14 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    newType = Nav; //error
 	  }
-	else
+	else if(checkSafeToCastTo(rightType, newType))
 	  {
-	    FORECAST rscr = m_nodeRight->safeToCastTo(newType);
-	    if(rscr != CAST_CLEAR)
-	      {
-		std::ostringstream msg;
-		if(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Bool)
-		  msg << "Use a comparison operator";
-		else
-		  msg << "Use explicit cast";
-		msg << " to convert "; // the real converting-message
-		msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
-		msg << " to ";
-		msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
-		msg << " for operator" << getName();
-		if(rscr == CAST_BAD)
-		  {
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		    newType = Nav; //error
-		  }
-		else
-		  {
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		    m_state.setGoAgain(); //for compiler counts
-		    newType = Hzy;
-		  }
-	      }
-	    else if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
+	    if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
 	      newType = Nav; //error
 	  }
+	//else not safe, newType changed
       }
     setNodeType(newType);
-    //if(m_state.okUTItoContinue(newType))
-    //  Node::setStoreIntoAble(TBOOL_TRUE); //ok true
     return newType;
   } //checkAndLabelType
 

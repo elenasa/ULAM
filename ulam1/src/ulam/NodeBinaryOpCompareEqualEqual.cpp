@@ -52,7 +52,7 @@ namespace MFM {
 	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), newbs);
 	    newType = m_state.makeUlamType(newkey, Bits);
 
-	    NodeBinaryOp::checkSafeToCastTo(newType); //Nav, Hzy or no change; outputs error msg
+	    checkSafeToCastTo(getNodeType(), newType); //Nav, Hzy or no change; outputs error msg
          }
 	return newType; //done
       }
@@ -63,7 +63,7 @@ namespace MFM {
 	if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
 	  {
 	    newType = Bool;
-	    NodeBinaryOp::checkSafeToCastTo(newType); //Nav, Hzy or no change; outputs error msg
+	    checkSafeToCastTo(getNodeType(), newType); //Nav, Hzy or no change; outputs error msg
 	  }
 	return newType; //done
       }

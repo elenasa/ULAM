@@ -125,11 +125,12 @@ namespace MFM {
 	ULAMTYPE ctypEnum = cut->getUlamTypeEnum();
 	if(ctypEnum != newEnumTyp)
 	  {
-	    if(Node::checkSafeToCastTo(cuti, newType))
+	    if(checkSafeToCastTo(cuti, newType))
 	      {
 		if(!Node::makeCastingNode(m_nodeCondition, newType, m_nodeCondition))
 		  newType = Nav;
 	      }
+	    //else not safe, newType changed
 	  }
 	else
 	  {
@@ -138,7 +139,7 @@ namespace MFM {
 	    //until c-bool is needed
 	    if(cuti != newType)
 	      {
-		if(Node::checkSafeToCastTo(cuti, newType))
+		if(checkSafeToCastTo(cuti, newType))
 		  {
 		    if(!Node::makeCastingNode(m_nodeCondition, cuti, m_nodeCondition))
 		      newType = Nav;

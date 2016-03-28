@@ -130,6 +130,16 @@ namespace MFM {
     return false;
   } //isFunctionCall
 
+  bool NodeStatements::isExplicitReferenceCast()
+  {
+    if(m_node->isExplicitReferenceCast())
+      return true;
+
+    if(m_nodeNext)
+      return m_nodeNext->isExplicitReferenceCast();
+    return false;
+  } //isExplicitReferenceCast
+
   UTI NodeStatements::checkAndLabelType()
   {
     assert(m_node);

@@ -143,6 +143,15 @@ namespace MFM {
 	    m_state.setGoAgain(); //since not error
 	  }
       }
+    else if(m_nodeInitExpr->isExplicitReferenceCast())
+      {
+	std::ostringstream msg;
+	msg << "Explicit Reference cast for data member '";
+	msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+	msg << "' initialization is invalid";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	rscr = CAST_BAD;
+      }
     else
       {
 	AssertBool isDefined = Node::makeCastingNode(m_nodeInitExpr, nuti, m_nodeInitExpr); //we know it's safe!

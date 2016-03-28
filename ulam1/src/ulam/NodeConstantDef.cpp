@@ -441,7 +441,6 @@ namespace MFM {
 	return Hzy;
       }
 
-#if 1
     //t3403, t3490
     //insure constant value fits in its declared type
     // no saturation without an explicit cast.
@@ -460,7 +459,6 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	return Hzy; //necessary if not just a warning.
       }
-#endif
 
     //cast first, also does safeCast
     UlamType * ut = m_state.getUlamTypeByIndex(uti);

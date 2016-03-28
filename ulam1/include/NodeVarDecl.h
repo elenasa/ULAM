@@ -108,7 +108,7 @@ namespace MFM{
 
     virtual void checkForSymbol();
     virtual void printTypeAndName(File * fp);
-
+    virtual bool checkSafeToCastTo(UTI fromType, UTI& newType);
     EvalStatus evalInitExpr();
 
   private:

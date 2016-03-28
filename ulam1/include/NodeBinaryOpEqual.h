@@ -79,7 +79,7 @@ namespace MFM{
     virtual UlamValue makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len);
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len); //stub
     virtual UTI calcNodeType(UTI lt, UTI rt);  //stub
-
+    virtual bool checkSafeToCastTo(UTI fromType, UTI& newType);
     TBOOL checkStoreIntoAble();
     bool checkNotUnpackedArray();
 

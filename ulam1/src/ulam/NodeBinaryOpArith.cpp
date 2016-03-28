@@ -96,7 +96,7 @@ namespace MFM {
 	    newType = m_state.makeUlamType(newkey, Int);
 	  }
 
-	NodeBinaryOp::checkSafeToCastTo(newType); //Nav, Hzy, or nochange; outputs error msg
+	checkSafeToCastTo(getNodeType(), newType); //Nav, Hzy, or nochange; outputs error msg
       } //both scalars
     return newType;
   } //calcNodeType

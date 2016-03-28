@@ -108,6 +108,11 @@ namespace MFM {
     return m_node->isFunctionCall();
   }
 
+  bool NodeCast::isExplicitReferenceCast()
+  {
+    return isExplicitCast() && m_state.isReference(getCastType());
+  }
+
   FORECAST NodeCast::safeToCastTo(UTI newType)
   {
     //possible user error, deal with it.

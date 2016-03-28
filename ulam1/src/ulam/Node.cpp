@@ -191,6 +191,7 @@ namespace MFM {
 	  }
 	rtnOK = false;
       } //not safe
+
     return rtnOK;
   } //checkSafeToCastTo
 
@@ -278,6 +279,11 @@ namespace MFM {
   }
 
   bool Node::isFunctionCall()
+  {
+    return false;
+  }
+
+  bool Node::isExplicitReferenceCast()
   {
     return false;
   }

@@ -153,7 +153,7 @@ namespace MFM {
     return newType;
   } //checkAndLabelType
 
-  bool NodeUnaryOp::checkSafeToCastTo(UTI& newType)
+  bool NodeUnaryOp::checkSafeToCastTo(UTI unused, UTI& newType)
   {
     bool rtnOK = true;
     FORECAST scr = m_node->safeToCastTo(newType);

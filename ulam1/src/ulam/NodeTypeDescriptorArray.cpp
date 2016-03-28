@@ -130,6 +130,8 @@ namespace MFM {
     // not node select, we are the array on top of the scalar leaf
     UTI nuti = givenUTI();
 
+    assert(!m_state.isReference(nuti)); //???
+
     // scalar type
     assert(m_nodeScalar);
     UTI scuti = m_nodeScalar->checkAndLabelType();
@@ -188,16 +190,15 @@ namespace MFM {
   {
     assert(m_unknownArraysizeSubtree);
     s32 as = UNKNOWNSIZE;
-
     UTI auti = Nouti;
     //array of primitives or classes
-    bool rtnb = m_unknownArraysizeSubtree->getArraysizeInBracket(as, auti); //eval
-    if(!rtnb)
+    if(!m_unknownArraysizeSubtree->getArraysizeInBracket(as, auti)) //eval
       {
 	rtnuti = Nav;
 	return false; //error, e.g. possible divide by zero
       }
-    else if(as != UNKNOWNSIZE)
+
+    if(as != UNKNOWNSIZE)
       {
 	// keep in case a template
 	//delete m_unknownArraysizeSubtree;
@@ -294,7 +295,6 @@ namespace MFM {
 	msg << " (UTI" << scuti << ")";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
       }
-
   } //checkAndMatchBaseUlamTypes
 
   void NodeTypeDescriptorArray::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)

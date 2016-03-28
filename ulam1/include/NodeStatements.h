@@ -66,6 +66,8 @@ namespace MFM{
 
     virtual bool isFunctionCall();
 
+    virtual bool isExplicitReferenceCast(); //only NodeCast may return true
+
     virtual UTI checkAndLabelType();
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);

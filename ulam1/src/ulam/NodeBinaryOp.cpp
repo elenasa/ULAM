@@ -179,7 +179,7 @@ namespace MFM {
     return newType; //noop
   }
 
-  bool NodeBinaryOp::checkSafeToCastTo(UTI newType)
+  bool NodeBinaryOp::checkSafeToCastTo(UTI unused, UTI& newType)
   {
     bool rtnOK = true;
     FORECAST lsafe = m_nodeLeft->safeToCastTo(newType);

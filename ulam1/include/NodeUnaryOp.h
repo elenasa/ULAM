@@ -95,7 +95,7 @@ namespace MFM{
 
     virtual UTI calcNodeType(UTI uti) = 0;
 
-    bool checkSafeToCastTo(UTI& newType);
+    virtual bool checkSafeToCastTo(UTI fromType, UTI& newType);
     s32 resultBitsize(UTI uti);
     bool checkForPrimitiveType(UTI uti);
     bool checkNotVoidType(UTI uti);

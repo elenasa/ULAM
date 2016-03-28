@@ -54,8 +54,7 @@ namespace MFM {
     if(lstor != TBOOL_TRUE)
     //if(m_nodeLeft->isFunctionCall())
       {
-	//e.g. funcCall is not storeintoable even if its return
-	//     value is.
+	//e.g. funcCall is not storeintoable even if its return value is.
 	std::ostringstream msg;
 	msg << "Member selected must be a valid lefthand side: '";
 	msg << m_nodeLeft->getName();

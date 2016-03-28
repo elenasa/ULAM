@@ -1,0 +1,24 @@
+## -*- mode:ulam -*-
+#=t3699_test_compiler_primitiveinstanceofstorageof_error
+#!
+./A.ulam:6:17: ERROR: Invalid non-class type provided: 'a.instanceof'.
+./A.ulam:6:5: ERROR: Initial value expression for: ia, initialization is invalid.
+./A.ulam:7:15: ERROR: Invalid non-class type provided: 'a.storageof'.
+./A.ulam:7:5: ERROR: Initial value expression for: d, initialization is invalid.
+./A.ulam:7:5: ERROR: Storage expression for: d, is invalid.
+./A.ulam:2:9: ERROR: 4 Nodes with erroneous types detected after type labeling class: A.
+Unrecoverable Program Type Label FAILURE.
+#>A.ulam
+  ulam 2;
+element A {
+  Bool sp;
+  Int(3) a = 1;
+  Int test() {
+    Int(3) ia = a.instanceof;
+    Int & d = a.storageof;
+    a = 3;
+    return d;
+ }
+}
+
+#.

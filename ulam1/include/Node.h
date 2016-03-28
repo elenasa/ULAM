@@ -118,6 +118,8 @@ namespace MFM{
 
     virtual bool isFunctionCall();
 
+    virtual bool isExplicitReferenceCast(); //only NodeCast may return true
+
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType();
@@ -177,7 +179,7 @@ namespace MFM{
 
     CompilerState & m_state;  //for printing error messages with path
 
-    bool checkSafeToCastTo(UTI fromType, UTI& newType);
+    virtual bool checkSafeToCastTo(UTI fromType, UTI& newType);
 
     bool makeCastingNode(Node * node, UTI tobeType, Node*& rtnNode, bool isExplicit = false);
 

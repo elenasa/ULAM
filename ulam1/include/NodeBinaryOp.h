@@ -110,7 +110,7 @@ namespace MFM{
     void resultBitsizeCalcInBits(UTI lt, UTI rt, s32& lbs, s32&rbs, s32&lwordsize);
     virtual UTI castThyselfToResultType(UTI rt, UTI lt, UTI newType);
     //common helpers for calcNodeType:
-    bool checkSafeToCastTo(UTI newType);
+    virtual bool checkSafeToCastTo(UTI fromType, UTI& newType);
     bool checkForPrimitiveTypes(UTI lt, UTI rt);
     bool checkNotVoidTypes(UTI lt, UTI rt);
     bool checkForNumericTypes(UTI lt, UTI rt);
