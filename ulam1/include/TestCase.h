@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * TestCase.h -  Basic handling of Test Cases for ULAM
  *
- * Copyright (C) 2014 The Regents of the University of New Mexico.
- * Copyright (C) 2014 Ackleyshack LLC.
+ * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2016 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file TestCase.h -  Basic handling of Test Cases for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \date (C) 2014-2016 All rights reserved.
   \gpl
 */
 
@@ -41,7 +41,7 @@
 
 #define BEGINTESTCASE(n)			\
   struct TestCase_##n : public TestCase
-  
+
 #define ENDTESTCASE(n) ; static TestCase_##n the_instance;	\
   TestCase * n = &the_instance;
 
@@ -57,7 +57,7 @@ namespace MFM{
     virtual bool RunTests(File * errorOutput) = 0;
 
   private:
-    
+
   };
 
 }

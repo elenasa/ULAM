@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * UnpackedStorage.h -  Basic handling of unpacked storage for ULAM
  *
- * Copyright (C) 2014 The Regents of the University of New Mexico.
- * Copyright (C) 2014 Ackleyshack LLC.
+ * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2016 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file UnpackedStorage.h -  Basic handling of unpacked storage for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \date (C) 2014-2016 All rights reserved.
   \gpl
 */
 
@@ -44,7 +44,7 @@
 
 namespace MFM
 {
- 
+
   class CompilerState;  //forward
 
  //similar to CallStack, except for dataMembers
@@ -55,7 +55,7 @@ namespace MFM
     ~UnpackedStorage();
 
     void init(UTI intType);
-    
+
     //returns baseIndex of array, or index of scalar
     u32 pushDataMember(UTI arrayType, UTI scalarType);
 

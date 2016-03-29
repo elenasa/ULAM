@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * FileStdio.h - Basic File handling of Standard IO for ULAM
  *
- * Copyright (C) 2014 The Regents of the University of New Mexico.
- * Copyright (C) 2014 Ackleyshack LLC.
+ * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2016 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file FileStdio.h - Basic File handling of Standard IO for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \date (C) 2014-2016 All rights reserved.
   \gpl
 */
 
@@ -47,32 +47,31 @@ namespace MFM
     {
     public:
       FileStdio(FILE * fp, enum Mode mode);
-      
+
       ~FileStdio();
 
       /** Uses fgetc to read from a FILE* stored inside the FileStdio
 	  (assuming appropriate open mode, non-error conditions, etc)
       */
       virtual s32 read();
-      
+
       /** Uses fputc to write to a FILE* stored inside the FileStdio (assuming
 	  appropriate open mode, non-error conditions, etc)
       */
       virtual s32 write(s32);
 
-      
+
       /** Uses fclose to close the FILE* stored inside the FileStdio, if it
 	  has not already been closed.
       */
       virtual s32 close();
-      
-      
+
+
     private:
-      
+
       FILE * m_fp;
-      enum Mode m_mode; 
+      enum Mode m_mode;
   };
 }
 
 #endif  /* FILESTDIO_H */
-    
