@@ -48,11 +48,6 @@ namespace MFM {
     return true;
   }
 
-  const std::string UlamTypeInt::getUlamTypeVDAsStringForC()
-  {
-    return "VD::S32";
-  }
-
   bool UlamTypeInt::cast(UlamValue & val, UTI typidx)
   {
     bool brtn = true;

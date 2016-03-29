@@ -238,40 +238,6 @@ namespace MFM {
     return UNKNOWNSIZE; //atom, class, nav, ptr, holder
   }
 
-  //deprecated, i think
-  const std::string UlamType::getUlamTypeAsStringForC(bool useref)
-  {
-    assert(isComplete());
-    assert(!useref); //could delete the argument useref.
-
-    s32 len = getTotalBitSize(); //includes arrays
-    assert(len >= 0);
-
-    std::ostringstream ctype;
-    ctype << "BitField<BitVector<BPA>, ";
-
-    if(isScalar())
-      ctype << getUlamTypeVDAsStringForC() << ", ";
-    else
-      ctype << "VD::BITS, "; //use BITS for arrays
-
-    if(!isScalar() && getPackable() != PACKEDLOADABLE)
-      len = getBitSize(); //per item
-
-    if(useref)
-      ctype << len << ", POS>"; // if reference ??????????????
-    else
-      ctype << len << ", " << (BITSPERATOM - len) << ">"; //right-just immediate
-
-    return ctype.str();
-  } //getUlamTypeAsStringForC
-
-  const std::string UlamType::getUlamTypeVDAsStringForC()
-  {
-    assert(0);
-    return "VD::NOTDEFINED";
-  }
-
   const std::string UlamType::getUlamTypeMangledType()
   {
     // e.g. parsing overloaded functions, may not be complete.
@@ -514,19 +480,6 @@ namespace MFM {
     fp->write(udstr.c_str());
     fp->write(" */\n\n");
   } //genUlamTypeMangledAutoDefinitionForC
-
-  void UlamType::genUlamTypeMangledImmediateDefinitionForC(File * fp)
-  {
-    const std::string mangledName = getUlamTypeImmediateMangledName();
-    std::ostringstream  up;
-
-    m_state.indent(fp);
-    fp->write("typedef ");
-    fp->write(getUlamTypeAsStringForC(isReference()).c_str()); //e.g. BitVector
-    fp->write(" ");
-    fp->write(mangledName.c_str());
-    fp->write(";\n");
-  }
 
   const char * UlamType::getUlamTypeEnumCodeChar(ULAMTYPE etype)
   {

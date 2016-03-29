@@ -43,11 +43,6 @@ namespace MFM {
     return true;
   }
 
-  const std::string UlamTypeBits::getUlamTypeVDAsStringForC()
-  {
-    return "VD::BITS";
-  }
-
   bool UlamTypeBits::isMinMaxAllowed()
   {
     return false;

@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * UlamTypeClass.h -  Basic handling of the Class UlamType for ULAM
  *
- * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2015 Ackleyshack LLC.
+ * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2016 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file UlamTypeClass.h -  Basic handling of the Class UlamType for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2015 All rights reserved.
+  \date (C) 2014-2016 All rights reserved.
   \gpl
 */
 
@@ -66,13 +66,9 @@ namespace MFM{
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
-    virtual const std::string getUlamTypeVDAsStringForC();
-
     virtual const std::string getUlamTypeMangledType();
 
     virtual  const std::string getUlamTypeMangledName();
-
-    virtual const std::string getUlamTypeAsStringForC(bool useref);
 
     virtual const std::string getUlamTypeUPrefix();
 

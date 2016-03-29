@@ -20,12 +20,6 @@ namespace MFM {
     return UC_ERROR; //for compiler only
   }
 
-  const std::string UlamTypeNouti::getUlamTypeAsStringForC(bool useref)
-  {
-    assert(0);
-    return "nouti";
-  }
-
   bool UlamTypeNouti::needsImmediateType()
   {
     return false;

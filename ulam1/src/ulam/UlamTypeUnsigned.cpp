@@ -48,11 +48,6 @@ namespace MFM {
     return true;
   }
 
-  const std::string UlamTypeUnsigned::getUlamTypeVDAsStringForC()
-  {
-    return "VD::U32";
-  }
-
   const std::string UlamTypeUnsigned::getUlamTypeImmediateMangledName()
   {
     if(needsImmediateType())

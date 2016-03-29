@@ -789,19 +789,4 @@ namespace MFM {
     return allTheSame;
   } //op==
 
-  void UlamValue::genCodeBitField(File * fp, CompilerState& state)
-  {
-    assert(isPtr());
-    UTI vuti = getPtrTargetType();
-    UlamType * vut = state.getUlamTypeByIndex(vuti);
-
-    fp->write("BitField<BPA,");
-    fp->write(vut->getUlamTypeVDAsStringForC().c_str()); //VD type
-    fp->write(",");
-    fp->write_decimal(vut->getTotalBitSize());
-    fp->write(",");
-    fp->write_decimal(m_uv.m_ptrValue.m_posInAtom); //use directly for smaller bitvectors in gen code.
-    fp->write(">");
-  } //genCodeBitField
-
 } //end MFM

@@ -20,12 +20,6 @@ namespace MFM {
     return UC_ERROR; //for compiler only
   }
 
-  const std::string UlamTypeHzy::getUlamTypeAsStringForC(bool useref)
-  {
-    assert(0);
-    return "hzy";
-  }
-
   bool UlamTypeHzy::needsImmediateType()
   {
     return false;

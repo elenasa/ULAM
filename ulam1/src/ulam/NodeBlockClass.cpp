@@ -963,7 +963,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     UlamType * cut = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx());
 
     m_state.indent(fp);
-    //fp->write("template <class EC, u32 POS>\n");
     fp->write("template <class EC>\n");
 
     m_state.indent(fp);
@@ -996,7 +995,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("\n");
 
     m_state.indent(fp);
-    //fp->write("typedef AtomicParameterType <EC, VD::BITS, QUARK_SIZE, POS> Up_Us; //entire quark\n\n");
     fp->write("typedef UlamRefFixed<EC, 0u, QUARK_SIZE> Up_Us; //entire quark\n\n"); //left-just
 
     //default constructor/destructor; initializes UlamElement with MFM__UUID_FOR
@@ -1730,7 +1728,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(declOnly)
       {
 	m_state.indent(fp);
-	//fp->write("__inline__ const u32 GetPos() const { return POS; }\n");
 	fp->write("__inline__ const u32 GetPos() const { return 0u; }\n"); //?????
       }
   } //generateGetPosForQuark

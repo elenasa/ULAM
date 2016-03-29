@@ -207,11 +207,6 @@ namespace MFM {
     return UlamType::getUlamTypeEnumCodeChar(getUlamTypeEnum());
   } //getUlamTypeAsSingleLowercaseLetter()
 
-  const std::string UlamTypeClass::getUlamTypeVDAsStringForC()
-  {
-    return "VD::BITS"; //for quark use bits
-  }
-
   const std::string UlamTypeClass::getUlamTypeMangledType()
   {
     // e.g. parsing overloaded functions, may not be complete.
@@ -249,17 +244,6 @@ namespace MFM {
     mangledclassname << cnsym->formatAnInstancesArgValuesAsAString(cuti);
     return mangledclassname.str();
   } //getUlamTypeMangledName
-
-  //quarks are right-justified in an atom space
-  const std::string UlamTypeClass::getUlamTypeAsStringForC(bool useref)
-  {
-    assert(getUlamClass() != UC_UNSEEN);
-    if(getUlamClass() == UC_QUARK)
-      {
-	return UlamType::getUlamTypeAsStringForC(useref);
-      }
-    return "T"; //for elements
-  } //getUlamTypeAsStringForC()
 
   const std::string UlamTypeClass::getUlamTypeUPrefix()
   {

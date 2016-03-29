@@ -21,12 +21,6 @@ namespace MFM {
     return UC_ERROR;
   }
 
-  const std::string UlamTypePtr::getUlamTypeVDAsStringForC()
-    {
-      return "VD::PTR";
-    }
-
-
   bool UlamTypePtr::needsImmediateType()
   {
     return false;

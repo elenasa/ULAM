@@ -54,8 +54,6 @@ namespace MFM{
 
     virtual ULAMCLASSTYPE getUlamClass();
 
-    virtual const std::string getUlamTypeVDAsStringForC();
-
     virtual const std::string getTmpStorageTypeAsString();
 
     virtual const std::string getLocalStorageTypeAsString();

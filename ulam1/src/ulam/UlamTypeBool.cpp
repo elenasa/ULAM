@@ -42,11 +42,6 @@ namespace MFM {
     return true;
   }
 
-  const std::string UlamTypeBool::getUlamTypeVDAsStringForC()
-  {
-    return "VD::BOOL";
-  }
-
   const std::string UlamTypeBool::getUlamTypeImmediateMangledName()
   {
     if(needsImmediateType())

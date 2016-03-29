@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * UlamType.h -  Basic handling of UlamTypes for ULAM
  *
- * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2015 Ackleyshack LLC.
+ * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2016 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file UlamType.h -  Basic handling of UlamTypes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2015 All rights reserved.
+  \date (C) 2014-2016 All rights reserved.
   \gpl
 */
 
@@ -113,10 +113,6 @@ namespace MFM{
 
     virtual ULAMTYPE getUlamTypeEnum() = 0;
 
-    virtual const std::string getUlamTypeAsStringForC(bool useref);
-
-    virtual const std::string getUlamTypeVDAsStringForC();
-
     virtual const std::string getUlamTypeMangledType();
 
     virtual const std::string getUlamTypeMangledName();
@@ -146,8 +142,6 @@ namespace MFM{
     virtual const std::string castMethodForCodeGen(UTI nodetype);
 
     virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
-
-    virtual void genUlamTypeMangledImmediateDefinitionForC(File * fp);
 
     virtual void genUlamTypeReadDefinitionForC(File * fp);
 

@@ -57,8 +57,6 @@ namespace MFM{
 
     virtual bool needsImmediateType();
 
-    virtual const std::string getUlamTypeAsStringForC(bool useref);
-
     virtual const std::string getLocalStorageTypeAsString();
 
     virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);

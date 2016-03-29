@@ -23,12 +23,6 @@ namespace MFM {
     return UC_NOTACLASS;
   }
 
-  const std::string UlamTypeAtom::getUlamTypeVDAsStringForC()
-  {
-    //return "VD::ATOM";
-    return "VD::BITS";
-  }
-
   const std::string UlamTypeAtom::getTmpStorageTypeAsString()
   {
     return "T";

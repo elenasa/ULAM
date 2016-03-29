@@ -48,11 +48,6 @@ namespace MFM {
     return true;
   }
 
-  const std::string UlamTypeUnary::getUlamTypeVDAsStringForC()
-  {
-    return "VD::UNARY";
-  }
-
   bool UlamTypeUnary::cast(UlamValue & val, UTI typidx)
   {
     bool brtn = true;

@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * UlamTypeHolder.h -  Basic handling of the Holder UlamType for ULAM
  *
- * Copyright (C) 2014 The Regents of the University of New Mexico.
- * Copyright (C) 2014 Ackleyshack LLC.
+ * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2016 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file UlamTypeHolder.h -  Basic handling of the Holder UlamType for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \date (C) 2014-2016 All rights reserved.
   \gpl
 */
 
@@ -53,8 +53,6 @@ namespace MFM{
     virtual ULAMTYPE getUlamTypeEnum();
 
     virtual bool needsImmediateType();
-
-    virtual const std::string getUlamTypeAsStringForC(bool useref);
 
     virtual const std::string getLocalStorageTypeAsString();
 

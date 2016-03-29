@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * UlamTypeInt.h -  Basic handling of the Integer UlamType for ULAM
  *
- * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2015 Ackleyshack LLC.
+ * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2016 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file UlamTypeInt.h -  Basic handling of the Integer UlamType for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2015 All rights reserved.
+  \date (C) 2014-2016 All rights reserved.
   \gpl
 */
 
@@ -56,8 +56,6 @@ namespace MFM{
     virtual bool isNumericType();
 
     virtual bool isPrimitiveType();
-
-    virtual const std::string getUlamTypeVDAsStringForC();
 
     virtual bool cast(UlamValue & val, UTI typidx);
 
