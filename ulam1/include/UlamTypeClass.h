@@ -80,21 +80,13 @@ namespace MFM{
 
     virtual ULAMCLASSTYPE getUlamClassType();
 
-    virtual bool isScalar();
-
     virtual bool isCustomArray();
 
     void setCustomArray();
 
-    virtual s32 getBitSize();
-
     virtual bool isHolder();
 
     virtual bool isComplete();
-
-    virtual bool isMinMaxAllowed();
-
-    virtual PACKFIT getPackable();
 
     virtual const std::string readMethodForCodeGen();
 
@@ -131,8 +123,6 @@ namespace MFM{
     virtual void genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp);
 
     virtual void genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp);
-
-    virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
 
    private:
 

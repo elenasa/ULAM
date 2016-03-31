@@ -18,6 +18,11 @@ namespace MFM {
     return false;
   }
 
+  ULAMCLASSTYPE UlamTypeHolder::getUlamClassType()
+  {
+    return UC_NOTACLASS;
+  }
+
   const std::string UlamTypeHolder::getLocalStorageTypeAsString()
   {
     assert(0);
@@ -38,6 +43,11 @@ namespace MFM {
   bool UlamTypeHolder::isComplete()
   {
     return false;
+  }
+
+  bool UlamTypeHolder::isMinMaxAllowed()
+  {
+    return isScalar(); //minof/maxof allowed in ulam
   }
 
 } //end MFM

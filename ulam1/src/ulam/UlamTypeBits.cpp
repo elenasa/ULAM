@@ -8,7 +8,7 @@
 
 namespace MFM {
 
-  UlamTypeBits::UlamTypeBits(const UlamKeyTypeSignature key, CompilerState & state) : UlamType(key, state)
+  UlamTypeBits::UlamTypeBits(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypePrimitive(key, state)
   {
     s32 bitsize = getBitSize();
     if(bitsize <= 0)
@@ -38,12 +38,7 @@ namespace MFM {
      return Bits;
    }
 
-  bool UlamTypeBits::isPrimitiveType()
-  {
-    return true;
-  }
-
-  bool UlamTypeBits::isMinMaxAllowed()
+   bool UlamTypeBits::isMinMaxAllowed()
   {
     return false;
   }

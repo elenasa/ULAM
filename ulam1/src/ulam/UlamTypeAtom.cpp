@@ -23,6 +23,11 @@ namespace MFM {
     return UC_NOTACLASS;
   }
 
+  bool UlamTypeAtom::needsImmediateType()
+  {
+    return true; //isComplete();
+  }
+
   const std::string UlamTypeAtom::getTmpStorageTypeAsString()
   {
     return "T";
@@ -609,10 +614,5 @@ namespace MFM {
     fp->write(udstr.c_str());
     fp->write(" */\n\n");
   } //genUlamTypeMangledUnpackedArrayDefinitionForC
-
-  void UlamTypeAtom::genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp)
-  {
-    assert(0); //only primitive types
-  }
 
 } //end MFM

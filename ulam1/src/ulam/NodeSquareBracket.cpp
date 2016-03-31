@@ -51,7 +51,6 @@ namespace MFM {
     UTI idxuti = Nav;
 
     UTI leftType = m_nodeLeft->checkAndLabelType();
-    //bool isCustomArray = false;
 
     //for example, f.chance[i] where i is local, same as f.func(i);
     NodeBlock * currBlock = m_state.getCurrentBlock();

@@ -37,13 +37,13 @@
 #ifndef ULAMTYPEBITS_H
 #define ULAMTYPEBITS_H
 
-#include "UlamType.h"
+#include "UlamTypePrimitive.h"
 
 namespace MFM{
 
   class CompilerState; //forward
 
-  class UlamTypeBits : public UlamType
+  class UlamTypeBits : public UlamTypePrimitive
   {
   public:
 
@@ -52,7 +52,7 @@ namespace MFM{
 
     virtual ULAMTYPE getUlamTypeEnum();
 
-    virtual bool isPrimitiveType();
+    //virtual bool isPrimitiveType();
 
     virtual bool isMinMaxAllowed();
 

@@ -37,13 +37,13 @@
 #ifndef ULAMTYPEBOOL_H
 #define ULAMTYPEBOOL_H
 
-#include "UlamType.h"
+#include "UlamTypePrimitive.h"
 
 namespace MFM{
 
   class CompilerState; //forward
 
-  class UlamTypeBool : public UlamType
+  class UlamTypeBool : public UlamTypePrimitive
   {
   public:
 
@@ -51,10 +51,6 @@ namespace MFM{
     virtual ~UlamTypeBool(){}
 
     virtual ULAMTYPE getUlamTypeEnum();
-
-    virtual bool isPrimitiveType();
-
-    virtual const std::string getUlamTypeImmediateMangledName();
 
     virtual bool cast(UlamValue& val, UTI typidx);
 

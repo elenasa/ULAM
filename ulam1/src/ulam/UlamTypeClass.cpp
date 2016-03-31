@@ -209,11 +209,6 @@ namespace MFM {
     return UC_UNSEEN;
   }
 
-  bool UlamTypeClass::isScalar()
-  {
-    return (m_key.getUlamKeyTypeSignatureArraySize() == NONARRAYSIZE);
-  }
-
   bool UlamTypeClass::isCustomArray()
   {
     return m_customArray; //canonical, ignores ancestors
@@ -236,12 +231,6 @@ namespace MFM {
     return m_state.getAClassCustomArrayIndexType(cuti, rnode, idxuti, hasHazyArgs);
   } //getCustomArrayIndexTypeFor
 
-  s32 UlamTypeClass::getBitSize()
-  {
-    s32 bitsize = m_key.getUlamKeyTypeSignatureBitSize();
-    return bitsize; //could be negative "unknown"; allow for empty quarks
-  }
-
   bool UlamTypeClass::isHolder()
   {
     std::string name = m_key.getUlamKeyTypeSignatureName(&m_state);
@@ -258,16 +247,6 @@ namespace MFM {
       return false; //forgotten?
 
     return UlamType::isComplete();
-  }
-
-  bool UlamTypeClass::isMinMaxAllowed()
-  {
-    return false;
-  }
-
-  PACKFIT UlamTypeClass::getPackable()
-  {
-    return UlamType::getPackable(); //quarks depend their size
   }
 
   const std::string UlamTypeClass::readMethodForCodeGen()
@@ -387,11 +366,6 @@ namespace MFM {
   void UlamTypeClass::genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp)
   {
     assert(0);
-  }
-
-  void UlamTypeClass::genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp)
-  {
-    assert(0); //only primitive types
   }
 
 } //end MFM

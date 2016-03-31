@@ -37,13 +37,13 @@
 #ifndef ULAMTYPEUNSIGNED_H
 #define ULAMTYPEUNSIGNED_H
 
-#include "UlamType.h"
+#include "UlamTypePrimitive.h"
 
 namespace MFM{
 
   class CompilerState; //forward
 
-  class UlamTypeUnsigned : public UlamType
+  class UlamTypeUnsigned : public UlamTypePrimitive
   {
   public:
 
@@ -55,7 +55,7 @@ namespace MFM{
 
     virtual bool isNumericType();
 
-    virtual bool isPrimitiveType();
+    //    virtual bool isPrimitiveType();
 
     virtual const std::string getUlamTypeImmediateMangledName();
 

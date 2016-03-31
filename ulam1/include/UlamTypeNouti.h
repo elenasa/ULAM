@@ -59,8 +59,6 @@ namespace MFM{
 
     virtual const std::string getLocalStorageTypeAsString();
 
-    virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
-
     virtual const std::string castMethodForCodeGen(UTI nodetype);
 
     virtual bool isComplete();  //neither bitsize nor arraysize is "unknown"

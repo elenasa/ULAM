@@ -37,13 +37,13 @@
 #ifndef ULAMTYPEVOID_H
 #define ULAMTYPEVOID_H
 
-#include "UlamType.h"
+#include "UlamTypePrimitive.h"
 
 namespace MFM{
 
   class CompilerState; //forward
 
-  class UlamTypeVoid : public UlamType
+  class UlamTypeVoid : public UlamTypePrimitive
   {
   public:
 
@@ -52,7 +52,7 @@ namespace MFM{
 
     virtual ULAMTYPE getUlamTypeEnum();
 
-    virtual bool isPrimitiveType();
+    //virtual bool isPrimitiveType();
 
     virtual const std::string getUlamTypeMangledName();
 
@@ -68,14 +68,45 @@ namespace MFM{
 
     virtual bool isMinMaxAllowed();
 
+    virtual void getDataAsString(const u32 data, char * valstr, char prefix);
+
+    virtual void getDataLongAsString(const u64 data, char * valstr, char prefix);
+
+    virtual s32 getDataAsCs32(const u32 data);
+
+    virtual u32 getDataAsCu32(const u32 data);
+
+    virtual s64 getDataAsCs64(const u64 data);
+
+    virtual u64 getDataAsCu64(const u64 data);
+
     virtual bool cast(UlamValue & val, UTI typidx);
 
     virtual FORECAST safeCast(UTI typidx);
 
     virtual s32 bitsizeToConvertTypeTo(ULAMTYPE tobUT);
 
+    virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
+
+    virtual void genUlamTypeReadDefinitionForC(File * fp);
+
+    virtual void genUlamTypeWriteDefinitionForC(File * fp);
+
+    virtual const std::string readArrayItemMethodForCodeGen();
+
+    virtual const std::string writeArrayItemMethodForCodeGen();
+
+    virtual void genUlamTypeMangledDefinitionForC(File * fp);
+
+    virtual void genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp);
+
+    virtual void genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp);
+
   private:
 
+    virtual bool castTo32(UlamValue & val, UTI typidx);
+
+    virtual bool castTo64(UlamValue & val, UTI typidx);
   };
 
 }

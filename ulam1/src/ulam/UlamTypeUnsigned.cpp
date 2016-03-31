@@ -8,7 +8,7 @@
 
 namespace MFM {
 
-  UlamTypeUnsigned::UlamTypeUnsigned(const UlamKeyTypeSignature key, CompilerState & state) : UlamType(key, state)
+  UlamTypeUnsigned::UlamTypeUnsigned(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypePrimitive(key, state)
   {
     s32 bitsize = getBitSize();
     if(bitsize <= 0)
@@ -39,11 +39,6 @@ namespace MFM {
    }
 
   bool UlamTypeUnsigned::isNumericType()
-  {
-    return true;
-  }
-
-  bool UlamTypeUnsigned::isPrimitiveType()
   {
     return true;
   }

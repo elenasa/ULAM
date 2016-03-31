@@ -7,7 +7,7 @@
 
 namespace MFM {
 
-  UlamTypeBool::UlamTypeBool(const UlamKeyTypeSignature key, CompilerState & state) : UlamType(key, state)
+  UlamTypeBool::UlamTypeBool(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypePrimitive(key, state)
   {
     s32 bitsize = getBitSize();
     if(bitsize <= 0)
@@ -36,19 +36,6 @@ namespace MFM {
    {
      return Bool;
    }
-
-  bool UlamTypeBool::isPrimitiveType()
-  {
-    return true;
-  }
-
-  const std::string UlamTypeBool::getUlamTypeImmediateMangledName()
-  {
-    if(needsImmediateType())
-      return UlamType::getUlamTypeImmediateMangledName();
-
-    return UlamType::getUlamTypeImmediateMangledName(); //? for constants
-  }
 
   bool UlamTypeBool::cast(UlamValue & val, UTI typidx)
   {

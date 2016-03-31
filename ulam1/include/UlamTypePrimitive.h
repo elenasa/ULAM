@@ -34,80 +34,42 @@
 */
 
 
-#ifndef ULAMTYPE_H
-#define ULAMTYPE_H
+#ifndef ULAMTYPEPRIMITIVE_H
+#define ULAMTYPEPRIMITIVE_H
 
-#include <string>
-#include <assert.h>
-#include "itype.h"
-#include "Constants.h"
-#include "File.h"
-#include "UlamKeyTypeSignature.h"
+#include "UlamType.h"
 
 namespace MFM{
 
 
-#define XY(a,b,c,d) a,
-
-  enum ULAMTYPE
-  {
-#include "UlamType.inc"
-    LASTTYPE
-  };
-#undef XY
-
-#ifndef PtrAbs
-#define PtrAbs (Ptr + 2)
-#endif //PtrAbs
-
-#ifndef UAtomRef
-#define UAtomRef (Ptr + 3)
-#endif //UAtomRef
-
-  struct UlamValue; //forward
-
   class CompilerState; //forward
 
-  enum ULAMCLASSTYPE { UC_UNSEEN, UC_QUARK, UC_ELEMENT, UC_TRANSIENT, UC_NOTACLASS, UC_ATOM, UC_ERROR};
-
-
-  class UlamType
+  class UlamTypePrimitive : public UlamType
   {
   public:
-    UlamType(const UlamKeyTypeSignature key, CompilerState& state);
-    virtual ~UlamType(){}
+    UlamTypePrimitive(const UlamKeyTypeSignature key, CompilerState& state);
 
-    UlamType * getUlamType(); //returns a pointer to self
-
-    const std::string getUlamTypeName();
-
-    virtual const std::string getUlamTypeNameBrief();
-
-    virtual const std::string getUlamTypeNameOnly();
-
-    UlamKeyTypeSignature getUlamKeyTypeSignature();
+    virtual ~UlamTypePrimitive(){}
 
     virtual bool isNumericType();
 
     virtual bool isPrimitiveType();
 
-    virtual bool cast(UlamValue& val, UTI typidx);
+    virtual bool cast(UlamValue& val, UTI typidx) = 0;
 
-    virtual FORECAST safeCast(UTI typidx);
+    virtual FORECAST safeCast(UTI typidx) = 0;
 
-    virtual FORECAST explicitlyCastable(UTI typidx);
+    virtual void getDataAsString(const u32 data, char * valstr, char prefix) = 0;
 
-    virtual void getDataAsString(const u32 data, char * valstr, char prefix);
+    virtual void getDataLongAsString(const u64 data, char * valstr, char prefix) = 0;
 
-    virtual void getDataLongAsString(const u64 data, char * valstr, char prefix);
+    virtual s32 getDataAsCs32(const u32 data) = 0;
 
-    virtual s32 getDataAsCs32(const u32 data);
+    virtual u32 getDataAsCu32(const u32 data) = 0;
 
-    virtual u32 getDataAsCu32(const u32 data);
+    virtual s64 getDataAsCs64(const u64 data) = 0;
 
-    virtual s64 getDataAsCs64(const u64 data);
-
-    virtual u64 getDataAsCu64(const u64 data);
+    virtual u64 getDataAsCu64(const u64 data) = 0;
 
     virtual s32 bitsizeToConvertTypeTo(ULAMTYPE tobUT);
 
@@ -121,10 +83,6 @@ namespace MFM{
 
     virtual bool needsImmediateType();
 
-    virtual const std::string getUlamTypeImmediateMangledName();
-
-    virtual const std::string getUlamTypeImmediateAutoMangledName();
-
     virtual const std::string getLocalStorageTypeAsString();
 
     virtual const std::string getImmediateModelParameterStorageTypeAsString();
@@ -137,8 +95,6 @@ namespace MFM{
 
     virtual STORAGE getTmpStorageTypeForTmpVar();
 
-    virtual const char * getUlamTypeAsSingleLowercaseLetter();
-
     virtual const std::string castMethodForCodeGen(UTI nodetype);
 
     virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
@@ -147,48 +103,7 @@ namespace MFM{
 
     virtual void genUlamTypeWriteDefinitionForC(File * fp);
 
-    static const char * getUlamTypeEnumCodeChar(ULAMTYPE etype);
-
-    static const char * getUlamTypeEnumAsString(ULAMTYPE etype);
-
-    static ULAMTYPE getEnumFromUlamTypeString(const char * typestr);
-
     virtual ULAMCLASSTYPE getUlamClassType();
-
-    virtual bool isScalar(); //arraysize == NOTARRAYSIZE is scalar
-
-    virtual bool isCustomArray();
-
-    s32 getArraySize();
-
-    virtual s32 getBitSize(); //except for default size constants, known after type labeling
-
-    u32 getTotalBitSize(); //bitsize * arraysize, accounting for constants and scalars
-
-    ALT getReferenceType();
-
-    bool isReference();
-
-    virtual bool isHolder();
-
-    virtual bool isComplete(); //neither bitsize nor arraysize is "unknown"
-
-    static ULAMTYPECOMPARERESULTS compare(UTI u1, UTI u2, CompilerState& state);
-
-    static ULAMTYPECOMPARERESULTS compareForArgumentMatching(UTI u1, UTI u2, CompilerState& state);
-    static ULAMTYPECOMPARERESULTS compareForMakingCastingNode(UTI u1, UTI u2, CompilerState& state);
-
-    static ULAMTYPECOMPARERESULTS compareForUlamValueAssignment(UTI u1, UTI u2, CompilerState& state);
-
-    /** Number of bits (rounded up to nearest 32 bits) required to
-    hold the total bit size  */
-    u32 getTotalWordSize();
-
-    u32 getItemWordSize();
-
-    void setTotalWordSize(u32 tw);
-
-    void setItemWordSize(u32 iw);
 
     virtual bool isMinMaxAllowed();
 
@@ -203,9 +118,11 @@ namespace MFM{
     virtual PACKFIT getPackable();
 
     virtual const std::string readMethodForCodeGen();
+
     virtual const std::string writeMethodForCodeGen();
 
     virtual const std::string readArrayItemMethodForCodeGen();
+
     virtual const std::string writeArrayItemMethodForCodeGen();
 
     virtual void genUlamTypeMangledDefinitionForC(File * fp);
@@ -218,21 +135,16 @@ namespace MFM{
 
     virtual bool genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref);
 
-
   protected:
-    UlamKeyTypeSignature m_key;
-    CompilerState& m_state;
-    u32 m_wordLengthTotal;
-    u32 m_wordLengthItem;
+    u64 m_max;
+    s64 m_min;
 
   private:
 
-    static ULAMTYPECOMPARERESULTS compareWithWildArrayItemReferenceType(UTI u1, UTI u2, CompilerState& state);
-    static ULAMTYPECOMPARERESULTS compareWithWildReferenceType(UTI u1, UTI u2, CompilerState& state);
+    virtual bool castTo32(UlamValue & val, UTI typidx) = 0;
 
-    bool checkArrayCast(UTI typidx);
+    virtual bool castTo64(UlamValue & val, UTI typidx) = 0;
 
-    bool checkReferenceCast(UTI typidx);
   };
 
 }

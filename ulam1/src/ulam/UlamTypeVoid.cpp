@@ -7,18 +7,12 @@
 
 namespace MFM {
 
-  UlamTypeVoid::UlamTypeVoid(const UlamKeyTypeSignature key, CompilerState & state) : UlamType(key, state)
-  {}
+  UlamTypeVoid::UlamTypeVoid(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypePrimitive(key, state)  {}
 
    ULAMTYPE UlamTypeVoid::getUlamTypeEnum()
    {
      return Void;
    }
-
-  bool UlamTypeVoid::isPrimitiveType()
-  {
-    return true;
-  }
 
   const std::string UlamTypeVoid::getUlamTypeMangledName()
   {
@@ -40,17 +34,58 @@ namespace MFM {
     return "void";
   }
 
-  void UlamTypeVoid::genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp)
-  {
-    assert(0); //only primitive types
-  }
-
   const std::string UlamTypeVoid::getTmpStorageTypeAsString()
   {
     return "void";
   }
 
   bool UlamTypeVoid::isMinMaxAllowed()
+  {
+    return false;
+  }
+
+  void UlamTypeVoid::getDataAsString(const u32 data, char * valstr, char prefix)
+  {
+    assert(0);
+    sprintf(valstr,"%s", getUlamTypeName().c_str());
+  }
+
+  void UlamTypeVoid::getDataLongAsString(const u64 data, char * valstr, char prefix)
+  {
+    assert(0);
+    sprintf(valstr,"%s", getUlamTypeName().c_str());
+  }
+
+  s32 UlamTypeVoid::getDataAsCs32(const u32 data)
+  {
+    assert(0);
+    return (s32) data;
+  }
+
+  u32 UlamTypeVoid::getDataAsCu32(const u32 data)
+  {
+    assert(0);
+    return data;
+  }
+
+  s64 UlamTypeVoid::getDataAsCs64(const u64 data)
+  {
+    assert(0);
+    return (s64) data;
+  }
+
+  u64 UlamTypeVoid::getDataAsCu64(const u64 data)
+  {
+    assert(0);
+    return data;
+  }
+
+  bool UlamTypeVoid::castTo32(UlamValue & val, UTI typidx)
+  {
+    return false;
+  } //castTo32
+
+  bool UlamTypeVoid::castTo64(UlamValue & val, UTI typidx)
   {
     return false;
   }
@@ -138,4 +173,54 @@ namespace MFM {
     return tobitsize;
   } //bitsizeToConvertTypeTo
 
+  void UlamTypeVoid::genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp)
+  {
+    return;
+  } //genUlamTypeMangledImmediateModelParameterDefinitionForC
+
+  void UlamTypeVoid::genUlamTypeMangledAutoDefinitionForC(File * fp)
+  {
+    assert(0);
+    return;
+  }
+
+ void UlamTypeVoid::genUlamTypeReadDefinitionForC(File * fp)
+  {
+    assert(0);
+    return;
+  }
+
+ void UlamTypeVoid::genUlamTypeWriteDefinitionForC(File * fp)
+  {
+    assert(0);
+    return;
+  }
+
+  const std::string UlamTypeVoid::readArrayItemMethodForCodeGen()
+  {
+    return "voidreadarrayitemerror";
+  }
+
+  const std::string UlamTypeVoid::writeArrayItemMethodForCodeGen()
+  {
+    return "voidwritearrayitemerror";
+  }
+
+ void UlamTypeVoid::genUlamTypeMangledDefinitionForC(File * fp)
+  {
+    assert(0);
+    return;
+  }
+
+ void UlamTypeVoid::genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp)
+  {
+    assert(0);
+    return;
+  }
+
+ void UlamTypeVoid::genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp)
+  {
+    assert(0);
+    return;
+  }
 } //end MFM

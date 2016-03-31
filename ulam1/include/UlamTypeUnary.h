@@ -37,13 +37,13 @@
 #ifndef ULAMTYPEUNARY_H
 #define ULAMTYPEUNARY_H
 
-#include "UlamType.h"
+#include "UlamTypePrimitive.h"
 
 namespace MFM{
 
   class CompilerState; //forward
 
-  class UlamTypeUnary : public UlamType
+  class UlamTypeUnary : public UlamTypePrimitive
   {
   public:
 
@@ -55,7 +55,7 @@ namespace MFM{
 
     virtual bool isNumericType();
 
-    virtual bool isPrimitiveType();
+    //virtual bool isPrimitiveType();
 
     virtual bool cast(UlamValue & val, UTI typidx);
 

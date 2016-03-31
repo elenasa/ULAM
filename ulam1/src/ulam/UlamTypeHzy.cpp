@@ -42,9 +42,4 @@ namespace MFM {
     return false;
   }
 
-  void UlamTypeHzy::genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp)
-  {
-    assert(0); //only primitive types
-  }
-
 } //end MFM

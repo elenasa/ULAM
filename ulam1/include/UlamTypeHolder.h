@@ -54,6 +54,8 @@ namespace MFM{
 
     virtual bool needsImmediateType();
 
+    virtual ULAMCLASSTYPE getUlamClassType();
+
     virtual const std::string getLocalStorageTypeAsString();
 
     virtual const std::string castMethodForCodeGen(UTI nodetype);
@@ -62,6 +64,7 @@ namespace MFM{
 
     virtual bool isComplete();  //neither bitsize nor arraysize is "unknown"
 
+    virtual bool isMinMaxAllowed();
   private:
 
   };
