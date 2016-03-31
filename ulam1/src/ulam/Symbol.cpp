@@ -170,7 +170,7 @@ namespace MFM {
     assert(!isModelParameter());
 
     UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
-    ULAMCLASSTYPE classtype = sut->getUlamClass();
+    ULAMCLASSTYPE classtype = sut->getUlamClassType();
 
     //another way, like this?
     if(isModelParameter())

@@ -94,7 +94,7 @@ namespace MFM {
 	s32 lbs = resultBitsize(lt, rt);
 	//auto cast to Bits, a downhill cast. use LHS bitsize.
 	UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), lbs);
-	newType = m_state.makeUlamType(newkey, Bits);
+	newType = m_state.makeUlamType(newkey, Bits, UC_NOTACLASS);
 
 	FORECAST lscr = m_nodeLeft->safeToCastTo(newType);
 	if(lscr != CAST_CLEAR)

@@ -88,7 +88,7 @@ namespace MFM {
       } //done
 
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
-    ULAMCLASSTYPE classtype = lut->getUlamClass();
+    ULAMCLASSTYPE classtype = lut->getUlamClassType();
     if((classtype == UC_NOTACLASS) && (lut->getUlamTypeEnum() != Holder))
       {
 	// must be a 'Class' type, either quark or element

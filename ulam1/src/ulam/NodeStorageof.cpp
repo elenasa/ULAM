@@ -45,7 +45,7 @@ namespace MFM {
 	    UTI oftype = NodeAtomof::getOfType();
 	    UlamType * ofut = m_state.getUlamTypeByIndex(oftype);
 	    //only an element or atom have real storage (ie. not quarks)
-	    if(ofut->getUlamClass() == UC_QUARK)
+	    if(ofut->getUlamClassType() == UC_QUARK)
 	      {
 		//only way to get storage for a quark is if its a DM
 		// of an element; (XXX can't parse a.b.c.storageof)
@@ -66,7 +66,7 @@ namespace MFM {
 		    msg << "<" << m_state.getTokenDataAsString(&m_token).c_str();
 		    msg << "> is a data member of ";
 		    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		    if(cut->getUlamClass() == UC_QUARK)
+		    if(cut->getUlamClassType() == UC_QUARK)
 		      {
 			msg << "; Quarks cannot be used with " << getName();
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -92,7 +92,7 @@ namespace MFM {
 
     UTI auti = getOfType();
     UlamType * aut = m_state.getUlamTypeByIndex(auti);
-    ULAMCLASSTYPE aclasstype = aut->getUlamClass();
+    ULAMCLASSTYPE aclasstype = aut->getUlamClassType();
 
     assert(m_varSymbol);
 
@@ -104,7 +104,7 @@ namespace MFM {
 	UlamValue selfuvp = m_state.m_currentSelfPtr;
 	UTI ttype = selfuvp.getPtrTargetType();
 	assert(m_state.okUTItoContinue(ttype));
-	if((m_state.getUlamTypeByIndex(ttype)->getUlamClass() == UC_QUARK))
+	if((m_state.getUlamTypeByIndex(ttype)->getUlamClassType() == UC_QUARK))
 	  {
 	    selfuvp = atomuv; //bail for error
 	  }
@@ -125,7 +125,7 @@ namespace MFM {
 	  {
 	    UTI cuti = m_state.m_currentObjPtr.getPtrTargetType();
 	    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-	    if(cut->getUlamClass() == UC_QUARK)
+	    if(cut->getUlamClassType() == UC_QUARK)
 	      ptr = atomuv; //bail
 	    else
 	      // return ptr to the m_currentObjPtr that contains this data member within
@@ -135,7 +135,7 @@ namespace MFM {
 	  {
 	    UTI vuti = m_varSymbol->getUlamTypeIdx();
 	    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-	    if(vut->getUlamClass() == UC_QUARK)
+	    if(vut->getUlamClassType() == UC_QUARK)
 	      ptr = atomuv; //bail
 	    else
 	      //local variable on the stack; could be array ptr!

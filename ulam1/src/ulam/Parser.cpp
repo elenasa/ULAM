@@ -109,7 +109,7 @@ namespace MFM {
     if(m_state.m_programDefST.isInTable(compileThisId, thisClassSymbol))
       {
 	UTI cuti = thisClassSymbol->getUlamTypeIdx();
-	ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(cuti)->getUlamClass();
+	ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(cuti)->getUlamClassType();
 	if(classtype == UC_UNSEEN)
 	  {
 	    std::ostringstream msg;
@@ -263,8 +263,11 @@ namespace MFM {
 	cnSym = ctSym;
       } //template
 
+    UTI cuti = cnSym->getUlamTypeIdx();
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+
     //mostly needed for code gen later, but this is where we first know it!
-    m_state.pushClassContext(cnSym->getUlamTypeIdx(), cnSym->getClassBlockNode(), cnSym->getClassBlockNode(), false, NULL); //null blocks likely
+    m_state.pushClassContext(cuti, cnSym->getClassBlockNode(), cnSym->getClassBlockNode(), false, NULL); //null blocks likely
 
     //set class type in UlamType (through its class symbol) since we know it;
     //UC_UNSEEN if unseen so far.
@@ -274,17 +277,20 @@ namespace MFM {
       {
       case TOK_KW_ELEMENT:
 	{
-	  cnSym->setUlamClass(UC_ELEMENT);
+	  AssertBool isReplaced = m_state.replaceUlamTypeForUpdatedClassType(cut->getUlamKeyTypeSignature(), Class, UC_ELEMENT, cut->isCustomArray());
+	  assert(isReplaced);
 	  break;
 	}
       case TOK_KW_QUARK:
 	{
-	  cnSym->setUlamClass(UC_QUARK);
+	  AssertBool isReplaced = m_state.replaceUlamTypeForUpdatedClassType(cut->getUlamKeyTypeSignature(), Class, UC_QUARK, cut->isCustomArray());
+	  assert(isReplaced);
 	  break;
 	}
       case TOK_KW_QUARKUNION:
 	{
-	  cnSym->setUlamClass(UC_QUARK);
+	  AssertBool isReplaced = m_state.replaceUlamTypeForUpdatedClassType(cut->getUlamKeyTypeSignature(), Class, UC_QUARK, cut->isCustomArray());
+	  assert(isReplaced);
 	  cnSym->setQuarkUnion();
 	  break;
 	}
@@ -302,8 +308,13 @@ namespace MFM {
       }
     else
       {
-	//reset to incomplete
-	cnSym->setUlamClass(UC_UNSEEN);
+	//reset to incomplete (UC_UNSEEN)
+	UTI cuti = cnSym->getUlamTypeIdx();
+	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+
+	AssertBool isReplaced = m_state.replaceUlamTypeForUpdatedClassType(cut->getUlamKeyTypeSignature(), Class, UC_UNSEEN, cut->isCustomArray());
+	assert(isReplaced);
+
 	cnSym->setClassBlockNode(NULL);
 	std::ostringstream msg;
 	msg << "Empty/Incomplete Class Definition '";
@@ -1602,7 +1613,7 @@ namespace MFM {
     getNextToken(pTok);
 
     //permitted in only in elements
-    if(m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamClass() != UC_ELEMENT)
+    if(m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamClassType() != UC_ELEMENT)
       {
 	std::ostringstream msg;
 	msg << "Model Parameters cannot survive within a quark";
@@ -1909,13 +1920,14 @@ namespace MFM {
 
     //make a (shallow) Class Instance Stub to collect class args as SymbolConstantValues;
     //has its own uti that will become part of its key; (too soon for a deep copy!)
-    UTI stubuti = m_state.makeUlamType(typeTok, UNKNOWNSIZE, NONARRAYSIZE, Nouti); //overwrites the template type here.
-    UlamType * stubut = m_state.getUlamTypeByIndex(stubuti);
-    ((UlamTypeClass *) stubut)->setUlamClass(ctsym->getUlamClass()); //possibly UC_UNSEEN
+    UTI stubuti = m_state.makeUlamType(typeTok, UNKNOWNSIZE, NONARRAYSIZE, Nouti, ALT_NOT, ctsym->getUlamClass()); //overwrites the template type here; possibly UC_UNSEEN
 
     UlamType * ctut = m_state.getUlamTypeByIndex(ctuti);
     if(ctut->isCustomArray())
-      ((UlamTypeClass *) stubut)->setCustomArray();
+      {
+	UlamType * stubut = m_state.getUlamTypeByIndex(stubuti);
+	((UlamTypeClass *) stubut)->setCustomArray();
+      }
 
     SymbolClass * stubcsym = ctsym->makeAStubClassInstance(typeTok, stubuti);
 
@@ -2149,7 +2161,6 @@ namespace MFM {
 	if(numDots > 1 && Token::isTokenAType(pTok))
 	  {
 	    //make an 'anonymous class'
-	    //cnsym = m_state.makeAnonymousClassFromHolder(args.m_anothertduti, args.m_typeTok.m_locator);
 	    cnsym = m_state.makeClassFromHolder(args.m_anothertduti, args.m_typeTok);
 	    args.m_classInstanceIdx = args.m_anothertduti; //since we didn't know last time
 	  }
@@ -2255,7 +2266,7 @@ namespace MFM {
 	  {
 	    //make one up!! if UN_SEEN class
 	    UTI mcuti = memberClassNode->getNodeType();
-	    ULAMCLASSTYPE mclasstype = m_state.getUlamTypeByIndex(mcuti)->getUlamClass();
+	    ULAMCLASSTYPE mclasstype = m_state.getUlamTypeByIndex(mcuti)->getUlamClassType();
 	    if(mclasstype == UC_UNSEEN)
 	      {
 		UTI huti = m_state.makeUlamTypeHolder();
@@ -2282,7 +2293,7 @@ namespace MFM {
 		MSG(&pTok, msg.str().c_str(), DEBUG);
 	      }
 	    assert(m_state.okUTItoContinue(tduti));
-	    ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
+	    ULAMCLASSTYPE tdclasstype = tdut->getUlamClassType();
 	    const std::string tdname = tdut->getUlamTypeNameOnly();
 
 	    //update token argument
@@ -2495,9 +2506,8 @@ namespace MFM {
       {
 	UTI duti = dsymptr->getUlamTypeIdx();
 	UlamType * dut = m_state.getUlamTypeByIndex(duti);
-	if(m_state.okUTItoContinue(duti) && (dut->getUlamClass() == UC_NOTACLASS) && (dut->getUlamTypeEnum() == Holder))
+	if(m_state.okUTItoContinue(duti) && (dut->getUlamClassType() == UC_NOTACLASS) && (dut->getUlamTypeEnum() == Holder))
 	  {
-	    //m_state.makeAnonymousClassFromHolder(duti, memberTok.m_locator);
 	    m_state.makeClassFromHolder(duti, memberTok);
 	  }
       }
@@ -2584,7 +2594,7 @@ namespace MFM {
 	{
 	  if(ut->isComplete())
 	    {
-	      assert(ut->getUlamClass() == UC_NOTACLASS); //can't be a class and complete
+	      assert(ut->getUlamClassType() == UC_NOTACLASS); //can't be a class and complete
 	      rtnNode = makeTerminal(fTok, (u64) ut->getTotalBitSize(), Unsigned);
 	      delete nodetype; //unlikely
 	      //nodetype = NULL; not a ref!
@@ -2646,7 +2656,7 @@ namespace MFM {
 	{
 	  if(ut->isComplete())
 	    {
-	      assert(ut->getUlamClass() == UC_NOTACLASS); //can't be a class and complete
+	      assert(ut->getUlamClassType() == UC_NOTACLASS); //can't be a class and complete
 	      rtnNode = NULL; //caller will clean up nodetype
 
 	      std::ostringstream msg;
@@ -2666,7 +2676,7 @@ namespace MFM {
 	{
 	  if(ut->isComplete())
 	    {
-	      assert(ut->getUlamClass() == UC_NOTACLASS); //can't be a class and complete
+	      assert(ut->getUlamClassType() == UC_NOTACLASS); //can't be a class and complete
 	      rtnNode = NULL; //caller will clean up nodetype
 
 	      std::ostringstream msg;
@@ -5009,65 +5019,65 @@ namespace MFM {
     // unfortunately, Nav, Atom, Class (except quarks with toInt), Ptr (PtrAbs) and Holder
     // are not considered PRIMITIVE during type processing (use ut->isPrimitiveType());
     UlamKeyTypeSignature nokey(m_state.m_pool.getIndexForDataString("0Nouti"), ULAMTYPE_DEFAULTBITSIZE[Nouti]);
-    AssertBool isNouti = (m_state.makeUlamType(nokey, Nouti) == Nouti);
+    AssertBool isNouti = (m_state.makeUlamType(nokey, Nouti, UC_NOTACLASS) == Nouti);
     assert(isNouti); //true for primitives
 
     UlamKeyTypeSignature nkey(m_state.m_pool.getIndexForDataString("0Nav"), ULAMTYPE_DEFAULTBITSIZE[Nav]);
-    AssertBool isNav = (m_state.makeUlamType(nkey, Nav) == Nav);
+    AssertBool isNav = (m_state.makeUlamType(nkey, Nav, UC_NOTACLASS) == Nav);
     assert(isNav); //true for primitives
 
     UlamKeyTypeSignature zkey(m_state.m_pool.getIndexForDataString("0Hzy"), ULAMTYPE_DEFAULTBITSIZE[Hzy]);
-    AssertBool isHzy = (m_state.makeUlamType(zkey, Hzy) == Hzy);
+    AssertBool isHzy = (m_state.makeUlamType(zkey, Hzy, UC_NOTACLASS) == Hzy);
     assert(isHzy); //true for primitives
 
     UlamKeyTypeSignature vkey(m_state.m_pool.getIndexForDataString("Void"), ULAMTYPE_DEFAULTBITSIZE[Void]);
-    AssertBool isVoid = (m_state.makeUlamType(vkey, Void) == Void);
+    AssertBool isVoid = (m_state.makeUlamType(vkey, Void, UC_NOTACLASS) == Void);
     assert(isVoid); //true for primitives
 
     UlamKeyTypeSignature ikey(m_state.m_pool.getIndexForDataString("Int"), ULAMTYPE_DEFAULTBITSIZE[Int]);
-    AssertBool isInt = (m_state.makeUlamType(ikey, Int) == Int);
+    AssertBool isInt = (m_state.makeUlamType(ikey, Int, UC_NOTACLASS) == Int);
     assert(isInt);
 
     UlamKeyTypeSignature uikey(m_state.m_pool.getIndexForDataString("Unsigned"), ULAMTYPE_DEFAULTBITSIZE[Unsigned]);
-    AssertBool isUnsigned = (m_state.makeUlamType(uikey, Unsigned) == Unsigned);
+    AssertBool isUnsigned = (m_state.makeUlamType(uikey, Unsigned, UC_NOTACLASS) == Unsigned);
     assert(isUnsigned);
 
     UlamKeyTypeSignature bkey(m_state.m_pool.getIndexForDataString("Bool"), ULAMTYPE_DEFAULTBITSIZE[Bool]);
-    AssertBool isBool = (m_state.makeUlamType(bkey, Bool) == Bool);
+    AssertBool isBool = (m_state.makeUlamType(bkey, Bool, UC_NOTACLASS) == Bool);
     assert(isBool);
 
     UlamKeyTypeSignature ukey(m_state.m_pool.getIndexForDataString("Unary"), ULAMTYPE_DEFAULTBITSIZE[Unary]);
-    AssertBool isUnary = (m_state.makeUlamType(ukey, Unary) == Unary);
+    AssertBool isUnary = (m_state.makeUlamType(ukey, Unary, UC_NOTACLASS) == Unary);
     assert(isUnary);
 
     UlamKeyTypeSignature bitskey(m_state.m_pool.getIndexForDataString("Bits"), ULAMTYPE_DEFAULTBITSIZE[Bits]);
-    AssertBool isBits = (m_state.makeUlamType(bitskey, Bits) == Bits);
+    AssertBool isBits = (m_state.makeUlamType(bitskey, Bits, UC_NOTACLASS) == Bits);
     assert(isBits);
 
     UlamKeyTypeSignature ckey(m_state.m_pool.getIndexForDataString("0Class"), ULAMTYPE_DEFAULTBITSIZE[Class]); //bits tbd
-    AssertBool isClass = (m_state.makeUlamType(ckey, Class) == Class);
+    AssertBool isClass = (m_state.makeUlamType(ckey, Class, UC_UNSEEN) == Class);
     assert(isClass);
 
     UlamKeyTypeSignature akey(m_state.m_pool.getIndexForDataString("Atom"), ULAMTYPE_DEFAULTBITSIZE[UAtom]);
-    AssertBool isUAtom = (m_state.makeUlamType(akey, UAtom) == UAtom);
+    AssertBool isUAtom = (m_state.makeUlamType(akey, UAtom, UC_NOTACLASS) == UAtom);
     assert(isUAtom);
 
     UlamKeyTypeSignature pkey(m_state.m_pool.getIndexForDataString("0Ptr"), ULAMTYPE_DEFAULTBITSIZE[Ptr]);
-    AssertBool isPtrRel = (m_state.makeUlamType(pkey, Ptr) == Ptr);
+    AssertBool isPtrRel = (m_state.makeUlamType(pkey, Ptr, UC_NOTACLASS) == Ptr);
     assert(isPtrRel);
 
     UlamKeyTypeSignature hkey(m_state.m_pool.getIndexForDataString("0Holder"), UNKNOWNSIZE);
-    AssertBool isHolder = (m_state.makeUlamType(hkey, Holder) == Holder);
+    AssertBool isHolder = (m_state.makeUlamType(hkey, Holder, UC_NOTACLASS) == Holder);
     assert(isHolder);
 
     //a Ptr for absolute indexing (i.e. reference class params); comes after Holder.
     UlamKeyTypeSignature apkey(m_state.m_pool.getIndexForDataString("0Ptr"), ULAMTYPE_DEFAULTBITSIZE[Ptr], NONARRAYSIZE, ALT_PTR);
-    AssertBool isPtrAbs = (m_state.makeUlamType(apkey, Ptr) == PtrAbs);
+    AssertBool isPtrAbs = (m_state.makeUlamType(apkey, Ptr, UC_NOTACLASS) == PtrAbs);
     assert(isPtrAbs);
 
     //a Ref for .storageof; comes after PtrAbs.
     UlamKeyTypeSignature arefkey(m_state.m_pool.getIndexForDataString("Atom"), ULAMTYPE_DEFAULTBITSIZE[UAtom], NONARRAYSIZE, ALT_REF);
-    AssertBool isAtomRef = (m_state.makeUlamType(arefkey, UAtom) == UAtomRef);
+    AssertBool isAtomRef = (m_state.makeUlamType(arefkey, UAtom, UC_NOTACLASS) == UAtomRef);
     assert(isAtomRef);
 
     // next in line, the 64 basics:

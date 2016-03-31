@@ -118,7 +118,7 @@ namespace MFM {
 
 	//check for UNSEEN Class' ClassType (e.g. array of UC_QUARK)
 	UlamType * tdut = m_state.getUlamTypeByIndex(it);
-	ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
+	ULAMCLASSTYPE tdclasstype = tdut->getUlamClassType();
 	if(tdclasstype == UC_UNSEEN)
 	  {
 	    if(!m_state.completeIncompleteClassSymbolForTypedef(it))

@@ -59,7 +59,7 @@ namespace MFM {
 
     assert(m_state.okUTItoContinue(luti));
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
-    ULAMCLASSTYPE lclasstype = lut->getUlamClass();
+    ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
     if(!(m_state.isAtom(luti) || (lclasstype == UC_ELEMENT)) && lut->isScalar())
       {
 	std::ostringstream msg;
@@ -93,7 +93,7 @@ namespace MFM {
     if(m_state.okUTItoContinue(ruti))
       {
 	UlamType * rut = m_state.getUlamTypeByIndex(ruti);
-	ULAMCLASSTYPE rclasstype = rut->getUlamClass();
+	ULAMCLASSTYPE rclasstype = rut->getUlamClassType();
 	if(!((rclasstype == UC_QUARK || rclasstype == UC_ELEMENT) && rut->isScalar()))
 	  {
 	    std::ostringstream msg;
@@ -180,7 +180,7 @@ namespace MFM {
     UTI ruti = getRightType();
     assert(m_state.okUTItoContinue(ruti));
     UlamType * rut = m_state.getUlamTypeByIndex(ruti);
-    ULAMCLASSTYPE rclasstype = rut->getUlamClass();
+    ULAMCLASSTYPE rclasstype = rut->getUlamClassType();
     if(rclasstype == UC_QUARK)
       {
 	if(m_state.isClassASubclassOf(luti, ruti))
@@ -258,7 +258,7 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     UTI ruti = getRightType();
     UlamType * rut = m_state.getUlamTypeByIndex(ruti);
-    ULAMCLASSTYPE rclasstype = rut->getUlamClass();
+    ULAMCLASSTYPE rclasstype = rut->getUlamClassType();
     assert(!rut->isReference());
 
     UlamValue luvpass;
@@ -296,7 +296,7 @@ namespace MFM {
     // not possible!! we already know rhs is an element
     else if(rclasstype == UC_QUARK)
       {
-	ULAMCLASSTYPE lclasstype = lut->getUlamClass();
+	ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
 	if(lclasstype == UC_ELEMENT)
 	  {
 	    if(lut->getReferenceType() == ALT_AS) //e.g. nested-as

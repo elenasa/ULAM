@@ -557,7 +557,7 @@ namespace MFM {
 
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-    ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClass();
+    ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClassType();
     if((stgclasstype == UC_QUARK) && stgcos->getId() == m_state.m_pool.getIndexForDataString("self"))
       {
 	fp->write(m_state.getHiddenArgName()); //ur
@@ -841,7 +841,7 @@ namespace MFM {
     if(m_state.isAtomRef(luti) && m_state.isAtom(ruti))
       return genCodeWriteToAtomofRefFromATmpVar(fp, luvpass, ruvpass);
 
-    bool isElementAncestorCast = (lut->getUlamClass() == UC_ELEMENT) && m_state.isClassASubclassOf(ruti, luti);
+    bool isElementAncestorCast = (lut->getUlamClassType() == UC_ELEMENT) && m_state.isClassASubclassOf(ruti, luti);
 
     UlamValue typuvpass;
     if(isElementAncestorCast)
@@ -907,7 +907,7 @@ namespace MFM {
     assert(m_state.isPtr(ruti));
     ruti = ruvpass.getPtrTargetType();
 
-    bool isElementAncestorCast = (lut->getUlamClass() == UC_ELEMENT) && m_state.isClassASubclassOf(ruti, luti);
+    bool isElementAncestorCast = (lut->getUlamClassType() == UC_ELEMENT) && m_state.isClassASubclassOf(ruti, luti);
 
     UlamValue typuvpass;
     if(isElementAncestorCast)
@@ -1310,7 +1310,7 @@ namespace MFM {
       }
     else
       {
-	if(vut->getUlamClass() == UC_NOTACLASS)
+	if(vut->getUlamClassType() == UC_NOTACLASS)
 	  {
 	    pos = BITSPERATOM - vut->getTotalBitSize(); //right-justified atom-based ?
 	  }
@@ -1427,7 +1427,7 @@ namespace MFM {
 
 	UTI scalarcosuti = m_state.getUlamTypeAsScalar(cosuti);
 	UlamType * scalarcosut = m_state.getUlamTypeByIndex(scalarcosuti);
-	ULAMCLASSTYPE cosclasstype = cosut->getUlamClass();
+	ULAMCLASSTYPE cosclasstype = cosut->getUlamClassType();
 
 	m_state.indent(fp);
 	//can't be const and chainable
@@ -1585,8 +1585,8 @@ namespace MFM {
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
-    ULAMCLASSTYPE nclasstype = nut->getUlamClass();
-    ULAMCLASSTYPE tclasstype = tobe->getUlamClass();
+    ULAMCLASSTYPE nclasstype = nut->getUlamClassType();
+    ULAMCLASSTYPE tclasstype = tobe->getUlamClassType();
 
     if(nclasstype == UC_NOTACLASS)
       {
@@ -1771,7 +1771,7 @@ namespace MFM {
 
     UTI nodeType = node->getNodeType(); //quark type..
     UlamType * nut = m_state.getUlamTypeByIndex(nodeType);
-    assert(nut->getUlamClass() == UC_QUARK);
+    assert(nut->getUlamClassType() == UC_QUARK);
     u32 quid = nut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
     Token typeTok(TOK_TYPE_IDENTIFIER, loc, quid);
 
@@ -1954,7 +1954,7 @@ namespace MFM {
 
     UTI stgcosuti = cos->getDataMemberClass();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-    ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClass();
+    ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClassType();
 
     if(stgclasstype == UC_ELEMENT)
       {
@@ -1992,7 +1992,7 @@ namespace MFM {
     Symbol * epcos = m_state.m_currentObjSymbolsForCodeGen[epi]; //***
     UTI epcosuti = epcos->getUlamTypeIdx();
     UlamType * epcosut = m_state.getUlamTypeByIndex(epcosuti);
-    ULAMCLASSTYPE epcosclasstype = epcosut->getUlamClass();
+    ULAMCLASSTYPE epcosclasstype = epcosut->getUlamClassType();
 
     if(m_state.isClassACustomArray(cosuti))
       fp->write("uc, "); //not for regular READs and WRITEs
@@ -2391,7 +2391,7 @@ namespace MFM {
 
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     //either total size is greater than a long, or each item is an element or atom
-    return((cosut->getTotalBitSize() > MAXBITSPERLONG) || (cosut->getUlamClass() == UC_ELEMENT) || m_state.isAtom(cosuti));
+    return((cosut->getTotalBitSize() > MAXBITSPERLONG) || (cosut->getUlamClassType() == UC_ELEMENT) || m_state.isAtom(cosuti));
   } //isCurrentObjectAnUnpackedArray
 
   bool Node::isHandlingImmediateType()
@@ -2404,7 +2404,7 @@ namespace MFM {
   {
     u32 pos = uvpass.getPtrPos();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    if(cosut->getUlamClass() == UC_NOTACLASS)
+    if(cosut->getUlamClassType() == UC_NOTACLASS)
       {
 	assert(!m_state.isAtom(cosuti)); //atom too? let's find out..
 	u32 wordsize = cosut->getTotalWordSize();

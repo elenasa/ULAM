@@ -505,7 +505,7 @@ namespace MFM {
     return rtnUT; //static method
   } //getEnumFromUlamTypeString
 
-  ULAMCLASSTYPE UlamType::getUlamClass()
+  ULAMCLASSTYPE UlamType::getUlamClassType()
   {
     return UC_NOTACLASS;
   }
@@ -572,8 +572,8 @@ namespace MFM {
 
     UlamType * ut1 = state.getUlamTypeByIndex(u1);
     UlamType * ut2 = state.getUlamTypeByIndex(u2);
-    ULAMCLASSTYPE ct1 = ut1->getUlamClass();
-    ULAMCLASSTYPE ct2 = ut2->getUlamClass();
+    ULAMCLASSTYPE ct1 = ut1->getUlamClassType();
+    ULAMCLASSTYPE ct2 = ut2->getUlamClassType();
     UlamKeyTypeSignature key1 = ut1->getUlamKeyTypeSignature();
     UlamKeyTypeSignature key2 = ut2->getUlamKeyTypeSignature();
 
@@ -620,8 +620,8 @@ namespace MFM {
 
     UlamType * ut1 = state.getUlamTypeByIndex(u1);
     UlamType * ut2 = state.getUlamTypeByIndex(u2);
-    ULAMCLASSTYPE ct1 = ut1->getUlamClass();
-    ULAMCLASSTYPE ct2 = ut2->getUlamClass();
+    ULAMCLASSTYPE ct1 = ut1->getUlamClassType();
+    ULAMCLASSTYPE ct2 = ut2->getUlamClassType();
     UlamKeyTypeSignature key1 = ut1->getUlamKeyTypeSignature();
     UlamKeyTypeSignature key2 = ut2->getUlamKeyTypeSignature();
 
@@ -688,8 +688,8 @@ namespace MFM {
 
     UlamType * ut1 = state.getUlamTypeByIndex(u1);
     UlamType * ut2 = state.getUlamTypeByIndex(u2);
-    ULAMCLASSTYPE ct1 = ut1->getUlamClass();
-    ULAMCLASSTYPE ct2 = ut2->getUlamClass();
+    ULAMCLASSTYPE ct1 = ut1->getUlamClassType();
+    ULAMCLASSTYPE ct2 = ut2->getUlamClassType();
     UlamKeyTypeSignature key1 = ut1->getUlamKeyTypeSignature();
     UlamKeyTypeSignature key2 = ut2->getUlamKeyTypeSignature();
 
@@ -1083,7 +1083,7 @@ namespace MFM {
     u32 arraysize = getArraySize();
 
     UlamKeyTypeSignature baseKey(m_key.m_typeNameId, itemlen);
-    UTI scalarUTI = m_state.makeUlamType(baseKey, getUlamTypeEnum());
+    UTI scalarUTI = m_state.makeUlamType(baseKey, getUlamTypeEnum(), UC_NOTACLASS);
     UlamType * scalarut = m_state.getUlamTypeByIndex(scalarUTI);
 
     m_state.indent(fp);
@@ -1247,7 +1247,7 @@ namespace MFM {
     u32 arraysize = getArraySize();
 
     UlamKeyTypeSignature baseKey(m_key.m_typeNameId, itemlen);
-    UTI scalarUTI = m_state.makeUlamType(baseKey, getUlamTypeEnum());
+    UTI scalarUTI = m_state.makeUlamType(baseKey, getUlamTypeEnum(), UC_NOTACLASS);
     UlamType * scalarut = m_state.getUlamTypeByIndex(scalarUTI);
 
     m_state.indent(fp);

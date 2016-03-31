@@ -53,7 +53,7 @@ namespace MFM{
 
     virtual ULAMTYPE getUlamTypeEnum();
 
-    virtual ULAMCLASSTYPE getUlamClass();
+    virtual ULAMCLASSTYPE getUlamClassType();
 
     virtual bool needsImmediateType();
 

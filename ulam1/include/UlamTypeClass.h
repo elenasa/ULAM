@@ -78,9 +78,7 @@ namespace MFM{
 
     virtual void getDataLongAsString(const u64 data, char * valstr, char prefix);
 
-    virtual ULAMCLASSTYPE getUlamClass();
-
-    void setUlamClass(ULAMCLASSTYPE type);
+    virtual ULAMCLASSTYPE getUlamClassType();
 
     virtual bool isScalar();
 
@@ -99,6 +97,7 @@ namespace MFM{
     virtual PACKFIT getPackable();
 
     virtual const std::string readMethodForCodeGen();
+
     virtual const std::string writeMethodForCodeGen();
 
     virtual bool needsImmediateType();
@@ -135,34 +134,15 @@ namespace MFM{
 
     virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
 
-    virtual bool genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref);
-
    private:
 
-    ULAMCLASSTYPE m_class;
+    const ULAMCLASSTYPE m_class;
     bool m_customArray;
-    void genUlamTypeQuarkMangledAutoDefinitionForC(File * fp);
-
-    void genUlamTypeQuarkReadDefinitionForC(File * fp);
-    void genUlamTypeQuarkWriteDefinitionForC(File * fp);
-
-    void genUlamTypeElementMangledAutoDefinitionForC(File * fp);
-
-    void genUlamTypeElementReadDefinitionForC(File * fp);
-    void genUlamTypeElementWriteDefinitionForC(File * fp);
-
-    void genUlamTypeQuarkMangledDefinitionForC(File * fp);
-    void genUlamTypeElementMangledDefinitionForC(File * fp);
-
-    void genUlamTypeMangledUnpackedQuarkArrayAutoDefinitionForC(File * fp);
-    void genUlamTypeMangledUnpackedElementArrayAutoDefinitionForC(File * fp);
-
-    void genUlamTypeMangledUnpackedQuarkArrayDefinitionForC(File * fp);
-    void genUlamTypeMangledUnpackedElementArrayDefinitionForC(File * fp);
 
     UTI getCustomArrayType();
     u32 getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
 
+    //void setUlamClass(ULAMCLASSTYPE type);
 
   };
 

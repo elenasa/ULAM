@@ -14,7 +14,7 @@ namespace MFM {
     return Nav;
   }
 
-  ULAMCLASSTYPE UlamTypeNav::getUlamClass()
+  ULAMCLASSTYPE UlamTypeNav::getUlamClassType()
   {
     assert(0);
     return UC_ERROR; //for compiler only

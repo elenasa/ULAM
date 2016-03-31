@@ -517,7 +517,7 @@ namespace MFM {
     else
       {
 	UlamType * dut = state.getUlamTypeByIndex(duti);
-	if((dut->getUlamClass() == UC_NOTACLASS) && !state.isAtom(duti))
+	if((dut->getUlamClassType() == UC_NOTACLASS) && !state.isAtom(duti))
 	  datavalue = getImmediateData(p.getPtrLen(), state);
 	else
 	  datavalue = getData(p.getPtrPos(), p.getPtrLen());
@@ -558,7 +558,7 @@ namespace MFM {
     else
       {
 	UlamType * dut = state.getUlamTypeByIndex(duti);
-	if((dut->getUlamClass() == UC_NOTACLASS) && !state.isAtom(duti))
+	if((dut->getUlamClassType() == UC_NOTACLASS) && !state.isAtom(duti))
 	  datavalue = getImmediateDataLong(p.getPtrLen());
 	else
 	  datavalue = getDataLong(p.getPtrPos(), p.getPtrLen());

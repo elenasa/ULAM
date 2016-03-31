@@ -410,7 +410,7 @@ namespace MFM {
 	UTI cosuti = cos->getUlamTypeIdx();
 	UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
-	ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+	ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
 	ULAMTYPE vetype = vut->getUlamTypeEnum();
 
 	assert(vetype == cosut->getUlamTypeEnum());
@@ -526,7 +526,7 @@ namespace MFM {
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     assert(!vut->isScalar()); //entire array
 
-    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
     ULAMTYPE vetype = vut->getUlamTypeEnum();
     assert(vetype == cosut->getUlamTypeEnum());
 
@@ -622,7 +622,7 @@ namespace MFM {
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     assert(vut->isScalar()); //item of array
 
-    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
     ULAMTYPE vetype = vut->getUlamTypeEnum();
     assert(vetype == cosut->getUlamTypeEnum());
 

@@ -62,7 +62,7 @@ namespace MFM {
 	    maxbs = (lbs > rbs ? lbs : rbs);
 	    //both bool. ok to cast. use larger bool bitsize.
 	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bool"), maxbs);
-	    newType = m_state.makeUlamType(newkey, Bool);
+	    newType = m_state.makeUlamType(newkey, Bool, UC_NOTACLASS);
 	  }
       } //both scalars
     return newType;

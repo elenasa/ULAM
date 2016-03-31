@@ -68,7 +68,7 @@ namespace MFM{
 
   class CompilerState; //forward
 
-  enum ULAMCLASSTYPE { UC_UNSEEN, UC_QUARK, UC_ELEMENT, UC_NOTACLASS, UC_ATOM, UC_ERROR};
+  enum ULAMCLASSTYPE { UC_UNSEEN, UC_QUARK, UC_ELEMENT, UC_TRANSIENT, UC_NOTACLASS, UC_ATOM, UC_ERROR};
 
 
   class UlamType
@@ -153,7 +153,7 @@ namespace MFM{
 
     static ULAMTYPE getEnumFromUlamTypeString(const char * typestr);
 
-    virtual ULAMCLASSTYPE getUlamClass();
+    virtual ULAMCLASSTYPE getUlamClassType();
 
     virtual bool isScalar(); //arraysize == NOTARRAYSIZE is scalar
 

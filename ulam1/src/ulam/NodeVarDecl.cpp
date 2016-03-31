@@ -430,7 +430,7 @@ namespace MFM {
     assert(!m_varSymbol->isAutoLocal()); //NodeVarRef::eval
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMCLASSTYPE classtype = nut->getUlamClass();
+    ULAMCLASSTYPE classtype = nut->getUlamClassType();
     if(m_state.isAtom(nuti))
       {
 	UlamValue atomUV = UlamValue::makeAtom(m_varSymbol->getUlamTypeIdx());
@@ -595,7 +595,7 @@ namespace MFM {
 	UlamValue selfuvp = m_state.m_currentSelfPtr;
 	UTI ttype = selfuvp.getPtrTargetType();
 	assert(m_state.okUTItoContinue(ttype));
-	if((m_state.getUlamTypeByIndex(ttype)->getUlamClass() == UC_QUARK))
+	if((m_state.getUlamTypeByIndex(ttype)->getUlamClassType() == UC_QUARK))
 	  {
 	    if(m_varSymbol->isSelf())
 	      selfuvp = m_state.getAtomPtrFromSelfPtr();
@@ -606,7 +606,7 @@ namespace MFM {
 
     assert(!m_varSymbol->isAutoLocal()); //nodevarref, not here!
 
-    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClass();
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClassType();
     if(classtype == UC_ELEMENT)
       {
 	  // ptr to explicit atom or element, (e.g.'f' in f.a=1) becomes new m_currentObjPtr
@@ -633,7 +633,7 @@ namespace MFM {
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
-    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
 
     if(m_nodeInitExpr)
       {

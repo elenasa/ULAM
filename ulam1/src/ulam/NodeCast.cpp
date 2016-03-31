@@ -187,7 +187,7 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	errorsFound++;
       }
-    else if((tobe->getUlamClass() != UC_NOTACLASS) && (nut->getUlamClass() == UC_NOTACLASS))
+    else if((tobe->getUlamClassType() != UC_NOTACLASS) && (nut->getUlamClassType() == UC_NOTACLASS))
       {
 	if(!m_state.isAtom(nodeType))
 	  {
@@ -198,7 +198,7 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    errorsFound++;
 	  }
-	else if(tobe->getUlamClass() == UC_QUARK)
+	else if(tobe->getUlamClassType() == UC_QUARK)
 	  {
 #if 0
 	    //it becomes an immediate, unless its a ref (t3631).
@@ -221,7 +221,7 @@ namespace MFM {
 	    msg << " to type: " << tobe->getUlamTypeNameBrief().c_str();
 	    if(tobe->getUlamTypeEnum() == Bool)
 	      msg << "; Consider using a comparison operator";
-	    else if(m_state.isAtom(tobeType) && (nut->getUlamClass() == UC_QUARK))
+	    else if(m_state.isAtom(tobeType) && (nut->getUlamClassType() == UC_QUARK))
 	      msg << "; Consider using a reference (or self) with .storageof";
 	    if(scr == CAST_HAZY)
 	      {
@@ -280,8 +280,8 @@ namespace MFM {
 
     if((errorsFound == 0) && (hazinessFound == 0))
       {
-	ULAMCLASSTYPE nodeClass = nut->getUlamClass();
-	ULAMCLASSTYPE tobeClass = tobe->getUlamClass();
+	ULAMCLASSTYPE nodeClass = nut->getUlamClassType();
+	ULAMCLASSTYPE tobeClass = tobe->getUlamClassType();
 	//avoid assuming casting to a quark is numeric, might be a ref (t3650)
 	if(nodeClass == UC_QUARK && tobe->isNumericType() && (tobeClass == UC_NOTACLASS))
 	  {
@@ -442,7 +442,7 @@ namespace MFM {
 	evalNodeEpilog();
 	return UNEVALUABLE;
       }
-    if((m_state.isAtom(tobeType)) && (m_state.getUlamTypeByIndex(vuti)->getUlamClass() == UC_QUARK))
+    if((m_state.isAtom(tobeType)) && (m_state.getUlamTypeByIndex(vuti)->getUlamClassType() == UC_QUARK))
       {
 	assert(m_state.isReference(vuti)); //an immediate non-ref quark should be an error
 	std::ostringstream msg;
@@ -663,11 +663,11 @@ namespace MFM {
   {
     UTI tobeType = getCastType(); //tobe
     UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
-    ULAMCLASSTYPE tclasstype = tobe->getUlamClass();
+    ULAMCLASSTYPE tclasstype = tobe->getUlamClassType();
 
     UTI vuti = uvpass.getPtrTargetType(); //replace
     UlamType * vut = m_state.getUlamTypeByIndex(vuti); //after vuti replacement
-    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
 
     if((tclasstype == UC_QUARK) && (vclasstype == UC_QUARK))
       return genCodeCastDecendentQuark(fp, uvpass);
@@ -1207,7 +1207,7 @@ namespace MFM {
     ULAMTYPE nodetypEnum = nodeut->getUlamTypeEnum();
 
     //requires toInt
-    if(m_state.getUlamTypeByIndex(nodeType)->getUlamClass() == UC_QUARK)
+    if(m_state.getUlamTypeByIndex(nodeType)->getUlamClassType() == UC_QUARK)
       {
 	if(tobe->isNumericType())
 	  {

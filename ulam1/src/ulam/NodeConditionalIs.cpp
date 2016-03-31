@@ -43,7 +43,7 @@ namespace MFM {
       }
 
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
-    ULAMCLASSTYPE lclasstype = lut->getUlamClass();
+    ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
     if(!((m_state.isAtom(luti) || (lclasstype == UC_ELEMENT)) && lut->isScalar()))
       {
 	std::ostringstream msg;
@@ -69,7 +69,7 @@ namespace MFM {
       {
 	UlamType * rut = m_state.getUlamTypeByIndex(ruti);
 	//rhs is allowed to be a quark due to inheritance.
-	ULAMCLASSTYPE rclasstype = rut->getUlamClass();
+	ULAMCLASSTYPE rclasstype = rut->getUlamClassType();
 	if(!((rclasstype == UC_QUARK || rclasstype == UC_ELEMENT) && rut->isScalar()))
 	  {
 	    std::ostringstream msg;
@@ -191,7 +191,7 @@ namespace MFM {
 
     UTI ruti = getRightType();
     UlamType * rut = m_state.getUlamTypeByIndex(ruti);
-    ULAMCLASSTYPE rclasstype = rut->getUlamClass();
+    ULAMCLASSTYPE rclasstype = rut->getUlamClassType();
     assert(!rut->isReference());
 
     s32 tmpVarNum = luvpass.getPtrSlotIndex();
@@ -216,7 +216,7 @@ namespace MFM {
     else if(rclasstype == UC_QUARK)
       {
 	UlamType * lut = m_state.getUlamTypeByIndex(luti);
-	ULAMCLASSTYPE lclasstype = lut->getUlamClass();
+	ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
 	if(lclasstype == UC_ELEMENT)
 	  {
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(luti).c_str());

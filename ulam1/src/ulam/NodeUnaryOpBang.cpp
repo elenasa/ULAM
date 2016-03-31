@@ -74,7 +74,7 @@ namespace MFM {
       {
 	// safe to cast. use a bool bitsize.
 	UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bool"), newbs);
-	newType = m_state.makeUlamType(newkey, Bool);
+	newType = m_state.makeUlamType(newkey, Bool, UC_NOTACLASS);
       }
     return newType;
   } //calcNodeType

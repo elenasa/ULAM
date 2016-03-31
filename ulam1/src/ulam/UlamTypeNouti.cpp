@@ -14,7 +14,7 @@ namespace MFM {
     return Nouti;
   }
 
-  ULAMCLASSTYPE UlamTypeNouti::getUlamClass()
+  ULAMCLASSTYPE UlamTypeNouti::getUlamClassType()
   {
     assert(0);
     return UC_ERROR; //for compiler only

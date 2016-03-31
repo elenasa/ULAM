@@ -74,7 +74,7 @@ namespace MFM {
   {
     UTI vuti = getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
 
     m_state.indent(fp);
     fp->write(vut->getUlamTypeMangledName().c_str()); //for C++
@@ -110,7 +110,7 @@ namespace MFM {
     UTI vuti = getUlamTypeIdx();
     UlamKeyTypeSignature vkey = m_state.getUlamKeyTypeSignatureByIndex(vuti);
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
     ULAMTYPE vetyp = vut->getUlamTypeEnum();
 
     fp->write(" ");

@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * UlamTypeNouti.h -  Basic handling of the No UlamType for ULAM
+ * UlamTypeClassTransient.h -  Basic handling of the Transient Class UlamType for ULAM
  *
  * Copyright (C) 2016 The Regents of the University of New Mexico.
  * Copyright (C) 2016 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file UlamTypeNouti.h -  Basic handling of the No UlamType for ULAM
+  \file UlamTypeClassTransient.h -  Basic handling of the Transient Class UlamType for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2016 All rights reserved.
@@ -34,41 +34,62 @@
 */
 
 
-#ifndef ULAMTYPENOUTI_H
-#define ULAMTYPENOUTI_H
+#ifndef ULAMTYPECLASSTRANSIENT_H
+#define ULAMTYPECLASSTRANSIENT_H
 
-#include "UlamType.h"
+#include "UlamTypeClass.h"
 
 namespace MFM{
 
   class CompilerState; //forward
 
-  class UlamTypeNouti : public UlamType
+  class UlamTypeClassTransient : public UlamTypeClass
   {
   public:
 
-    UlamTypeNouti(const UlamKeyTypeSignature key, CompilerState& state);
+    UlamTypeClassTransient(const UlamKeyTypeSignature key, CompilerState& state);
 
-    virtual ~UlamTypeNouti(){}
+    virtual ~UlamTypeClassTransient(){}
 
-    virtual ULAMTYPE getUlamTypeEnum();
+    virtual bool isNumericType();
 
-    virtual ULAMCLASSTYPE getUlamClassType();
+    virtual bool cast(UlamValue& val, UTI typidx);
+
+    virtual const char * getUlamTypeAsSingleLowercaseLetter();
+
+    virtual const std::string getUlamTypeUPrefix();
+
+    virtual const std::string readMethodForCodeGen();
+
+    virtual const std::string writeMethodForCodeGen();
 
     virtual bool needsImmediateType();
 
+    virtual const std::string getTmpStorageTypeAsString();
+
     virtual const std::string getLocalStorageTypeAsString();
 
-    virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
+    virtual STORAGE getTmpStorageTypeForTmpVar();
 
     virtual const std::string castMethodForCodeGen(UTI nodetype);
 
-    virtual bool isComplete();  //neither bitsize nor arraysize is "unknown"
+    virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
 
-  private:
+    virtual void genUlamTypeReadDefinitionForC(File * fp);
+
+    virtual void genUlamTypeWriteDefinitionForC(File * fp);
+
+    virtual void genUlamTypeMangledDefinitionForC(File * fp);
+
+    virtual void genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp);
+
+    virtual void genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp);
+
+
+   private:
 
   };
 
 }
 
-#endif //end ULAMTYPENOUTI_H
+#endif //end ULAMTYPECLASSTRANSIENT_H

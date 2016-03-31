@@ -88,12 +88,12 @@ namespace MFM {
 	if(ltypEnum == Unsigned && rtypEnum == Unsigned)
 	  {
 	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Unsigned"), newbs);
-	    newType = m_state.makeUlamType(newkey, Unsigned);
+	    newType = m_state.makeUlamType(newkey, Unsigned, UC_NOTACLASS);
 	  }
 	else
 	  {
 	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Int"), newbs);
-	    newType = m_state.makeUlamType(newkey, Int);
+	    newType = m_state.makeUlamType(newkey, Int, UC_NOTACLASS);
 	  }
 
 	checkSafeToCastTo(getNodeType(), newType); //Nav, Hzy, or nochange; outputs error msg

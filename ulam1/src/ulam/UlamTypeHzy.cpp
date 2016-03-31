@@ -14,7 +14,7 @@ namespace MFM {
     return Hzy;
   }
 
-  ULAMCLASSTYPE UlamTypeHzy::getUlamClass()
+  ULAMCLASSTYPE UlamTypeHzy::getUlamClassType()
   {
     assert(0);
     return UC_ERROR; //for compiler only

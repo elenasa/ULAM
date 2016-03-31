@@ -212,7 +212,7 @@ namespace MFM {
   {
     bool rtnOK = true;
     UlamType * lut = m_state.getUlamTypeByIndex(lt);
-    bool lqint = (lut->getUlamClass() == UC_QUARK) && m_state.quarkHasAToIntMethod(lt);
+    bool lqint = (lut->getUlamClassType() == UC_QUARK) && m_state.quarkHasAToIntMethod(lt);
     // for binary ops: check for quark with toInt method;
     if(!lut->isPrimitiveType() && !lqint)
       {
@@ -226,7 +226,7 @@ namespace MFM {
       }
 
     UlamType * rut = m_state.getUlamTypeByIndex(rt);
-    bool rqint = (rut->getUlamClass() == UC_QUARK) && m_state.quarkHasAToIntMethod(rt);
+    bool rqint = (rut->getUlamClassType() == UC_QUARK) && m_state.quarkHasAToIntMethod(rt);
     if(!rut->isPrimitiveType() && !rqint)
       {
 	std::ostringstream msg;

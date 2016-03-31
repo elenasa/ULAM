@@ -95,7 +95,7 @@ namespace MFM {
     UTI luti = pluv.getPtrTargetType();
     assert(m_state.okUTItoContinue(luti));
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
-    ULAMCLASSTYPE lclasstype = lut->getUlamClass();
+    ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
     UTI autostgtype = m_state.m_currentAutoStorageType;
     if((UlamType::compare(autostgtype, UAtom, m_state) == UTIC_SAME) && (lclasstype == UC_ELEMENT))
        autostgtype = luti; //e.g. funccall expects a class, not an atom (t3636)
@@ -139,7 +139,7 @@ namespace MFM {
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgut = m_state.getUlamTypeByIndex(stgcosuti);
     ULAMTYPE stgetype = stgut->getUlamTypeEnum();
-    assert((stgetype == UAtom) || (stgut->getUlamClass() == UC_ELEMENT)); //not quark
+    assert((stgetype == UAtom) || (stgut->getUlamClassType() == UC_ELEMENT)); //not quark
 
     // can't let Node::genCodeReadIntoTmpVar do this for us: it's a ref.
     assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
@@ -156,7 +156,7 @@ namespace MFM {
     // time to shadow 'self' with auto local variable:
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
 
     m_state.indent(fp);
     fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members

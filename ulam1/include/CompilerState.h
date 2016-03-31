@@ -156,20 +156,21 @@ namespace MFM{
     bool getClassNameFromFileName(std::string startstr, u32& compileThisId);
 
     UTI makeUlamTypeHolder();
-    UTI makeUlamTypeFromHolder(UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti);
-    UTI makeUlamTypeFromHolder(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti);
+    UTI makeUlamTypeFromHolder(UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti, ULAMCLASSTYPE classtype);
+    UTI makeUlamTypeFromHolder(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti, ULAMCLASSTYPE classtype);
     SymbolClassName * makeClassFromHolder(UTI huti, Token tok);
     void cleanupExistingHolder(UTI huti, UTI newuti);
     SymbolClassName * makeAnonymousClassFromHolder(UTI cuti, Locator cloc);
 
-    UTI makeUlamType(Token typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx, ALT reftype = ALT_NOT);
-    UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
+    UTI makeUlamType(Token typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx, ALT reftype = ALT_NOT, ULAMCLASSTYPE classtype = UC_NOTACLASS);
+    UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype, ULAMCLASSTYPE classtype);
     bool isDefined(UlamKeyTypeSignature key, UlamType *& foundUT);
     bool anyDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI);
-    UlamType * createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
+    UlamType * createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype, ULAMCLASSTYPE classtype);
     void incrementKeyToAnyUTICounter(UlamKeyTypeSignature key, UTI utarg);
     u32 decrementKeyToAnyUTICounter(UlamKeyTypeSignature key, UTI utarg);
     bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key, UTI utarg);
+    bool replaceUlamTypeForUpdatedClassType(UlamKeyTypeSignature key, ULAMTYPE etype, ULAMCLASSTYPE classtype, bool isCArray);
     bool mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI);
     UTI mapIncompleteUTIForCurrentClassInstance(UTI suti);
     void mapTypesInCurrentClass(UTI fm, UTI to);
@@ -211,7 +212,6 @@ namespace MFM{
     bool setBitSize(UTI utArg, s32 total);
     bool setUTISizes(UTI utArg, s32 bitsize, s32 arraysize);
     void mergeClassUTI(UTI olduti, UTI cuti);
-    void rekeyToReferenceUTI(ALT autoreftype, UTI auti);
     bool isARootUTI(UTI auti);
     bool findaUTIAlias(UTI auti, UTI& aliasuti);
     void updateUTIAlias(UTI auti, UTI buti);

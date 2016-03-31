@@ -217,7 +217,7 @@ namespace MFM {
 	//use UTI with same base type and new bitsize:
 	u32 enumStrIdx = m_state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(typEnum));
 	UlamKeyTypeSignature newkey(enumStrIdx, newbs);
-	UTI newType = m_state.makeUlamType(newkey, typEnum);
+	UTI newType = m_state.makeUlamType(newkey, typEnum, UC_NOTACLASS);
 	setNodeType(newType);
       }
     return getNodeType();
@@ -285,7 +285,7 @@ namespace MFM {
 	break;
       case Class:
 	{
-	  if(ut->getUlamClass() == UC_QUARK)
+	  if(ut->getUlamClassType() == UC_QUARK)
 	    {
 	      rtnUV = UlamValue::makeImmediate(uti, data, m_state);
 	      break;
@@ -327,7 +327,7 @@ namespace MFM {
 	break;
       case Class:
 	{
-	  if(ut->getUlamClass() == UC_QUARK)
+	  if(ut->getUlamClassType() == UC_QUARK)
 	    {
 	      assert(!ut->isScalar());
 	      rtnUV = UlamValue::makeImmediateQuarkArrayLong(uti, data, ut->getTotalBitSize());
@@ -766,7 +766,7 @@ namespace MFM {
 	{
 	  u32 uid = m_state.m_pool.getIndexForDataString("Unsigned");
 	  UlamKeyTypeSignature key(uid, SIZEOFACHAR, NONARRAYSIZE, 0);
-	  newType = m_state.makeUlamType(key, Unsigned);
+	  newType = m_state.makeUlamType(key, Unsigned, UC_NOTACLASS);
 	}
 	break;
       default:

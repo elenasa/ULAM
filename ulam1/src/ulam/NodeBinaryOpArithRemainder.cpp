@@ -38,7 +38,8 @@ namespace MFM {
 	u32 convertSize = m_state.getUlamTypeByIndex(rt)->bitsizeToConvertTypeTo(typEnum);
 	u32 enumStrIdx = m_state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(typEnum));
 	UlamKeyTypeSignature tokey(enumStrIdx, convertSize, NONARRAYSIZE);
-	nuti = m_state.makeUlamType(tokey, typEnum);
+	ULAMCLASSTYPE newclasstype = newut->getUlamClassType();
+	nuti = m_state.makeUlamType(tokey, typEnum, newclasstype);
 
 	if(UlamType::compare(nuti, newType, m_state) != UTIC_SAME) //not same, or dontknow
 	  {

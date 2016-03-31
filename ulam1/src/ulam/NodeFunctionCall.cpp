@@ -775,7 +775,7 @@ namespace MFM {
     if(nuti != Void)
       {
 	u32 pos = 0; //POS 0 leftjustified;
-	if(nut->getUlamClass() == UC_NOTACLASS) //includes atom too
+	if(nut->getUlamClassType() == UC_NOTACLASS) //includes atom too
 	  {
 	    u32 wordsize = nut->getTotalWordSize();
 	    pos = wordsize - nut->getTotalBitSize();
@@ -856,7 +856,7 @@ namespace MFM {
     if(nuti != Void)
       {
 	u32 pos = 0; //POS 0 rightjustified;
-	if(nut->getUlamClass() == UC_NOTACLASS) //includes atom too
+	if(nut->getUlamClassType() == UC_NOTACLASS) //includes atom too
 	  {
 	    u32 wordsize = nut->getTotalWordSize();
 	    pos = wordsize - nut->getTotalBitSize();
@@ -1195,7 +1195,7 @@ namespace MFM {
     Symbol * epcos = m_state.m_currentObjSymbolsForCodeGen[epi]; //***
     UTI epcosuti = epcos->getUlamTypeIdx();
     UlamType * epcosut = m_state.getUlamTypeByIndex(epcosuti);
-    ULAMCLASSTYPE epcosclasstype = epcosut->getUlamClass();
+    ULAMCLASSTYPE epcosclasstype = epcosut->getUlamClassType();
 
     hiddenlist << m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str();
     hiddenlist << ".";
@@ -1308,7 +1308,7 @@ namespace MFM {
     assert(m_funcSymbol);
     UTI vuti = m_funcSymbol->getParameterType(n);
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
 
     assert(vut->getUlamTypeEnum() == cosut->getUlamTypeEnum());
 
@@ -1367,13 +1367,13 @@ namespace MFM {
     assert(m_funcSymbol);
     UTI vuti = m_funcSymbol->getParameterType(n);
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
 
     UTI puti = uvpass.getUlamValueTypeIdx();
     assert(m_state.isPtr(puti));
     puti = uvpass.getPtrTargetType();
     UlamType * put = m_state.getUlamTypeByIndex(puti);
-    STORAGE rstor = put->getUlamClass() == UC_QUARK ? TMPREGISTER : uvpass.getPtrStorage();
+    STORAGE rstor = put->getUlamClassType() == UC_QUARK ? TMPREGISTER : uvpass.getPtrStorage();
 
     assert(vut->getUlamTypeEnum() == put->getUlamTypeEnum());
 

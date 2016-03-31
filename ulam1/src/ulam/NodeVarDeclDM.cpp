@@ -56,7 +56,7 @@ namespace MFM {
 	return;
       }
 
-    if(nut->getUlamClass() == UC_QUARK)
+    if(nut->getUlamClassType() == UC_QUARK)
       {
 	SymbolClass * csym = NULL;
 	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
@@ -468,7 +468,7 @@ namespace MFM {
     bool aok = false; //init as not ready
     UTI nuti = getNodeType(); //same as symbol uti
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMCLASSTYPE classtype = nut->getUlamClass();
+    ULAMCLASSTYPE classtype = nut->getUlamClassType();
 
     if(m_nodeInitExpr || classtype == UC_QUARK)
       {
@@ -598,7 +598,7 @@ namespace MFM {
 
     assert(m_state.isComplete(it)); //moved error check to separate pass
 
-    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(it)->getUlamClass();
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(it)->getUlamClassType();
     if((m_state.getTotalBitSize(it) > MAXBITSPERLONG) && (classtype == UC_NOTACLASS))
       {
 	std::ostringstream msg;
@@ -683,7 +683,7 @@ namespace MFM {
       return NOTREADY;
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMCLASSTYPE classtype = nut->getUlamClass();
+    ULAMCLASSTYPE classtype = nut->getUlamClassType();
 
     assert(m_varSymbol->getAutoLocalType() == ALT_NOT);
 
@@ -743,7 +743,7 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMCLASSTYPE nclasstype = nut->getUlamClass();
+    ULAMCLASSTYPE nclasstype = nut->getUlamClassType();
     ULAMCLASSTYPE classtype = m_state.getUlamClassForThisClass();
 
     m_state.indent(fp);

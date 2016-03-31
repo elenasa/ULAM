@@ -93,7 +93,7 @@ namespace MFM {
       {
 	UTI scalaruti = m_state.getUlamTypeAsScalar(it);
 	UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
-	ULAMCLASSTYPE sclasstype = scalarut->getUlamClass();
+	ULAMCLASSTYPE sclasstype = scalarut->getUlamClassType();
 	if(m_state.isAtom(scalaruti) || (sclasstype == UC_ELEMENT))
 	  {
 	    std::ostringstream msg;
@@ -233,12 +233,12 @@ namespace MFM {
 	if(aholder)
 	  {
 	    UlamKeyTypeSignature newkey(bkey.getUlamKeyTypeSignatureNameId(), bkey.getUlamKeyTypeSignatureBitSize(), akey.getUlamKeyTypeSignatureArraySize(), bkey.getUlamKeyTypeSignatureClassInstanceIdx());
-	    m_state.makeUlamTypeFromHolder(akey, newkey, but->getUlamTypeEnum(), auti);
+	    m_state.makeUlamTypeFromHolder(akey, newkey, but->getUlamTypeEnum(), auti, but->getUlamClassType());
 	  }
 	else
 	  {
 	    UlamKeyTypeSignature newkey(akey.getUlamKeyTypeSignatureNameId(), akey.getUlamKeyTypeSignatureBitSize(), bkey.getUlamKeyTypeSignatureArraySize(), bkey.getUlamKeyTypeSignatureClassInstanceIdx());
-	    m_state.makeUlamTypeFromHolder(bkey, newkey, aut->getUlamTypeEnum(), buti);
+	    m_state.makeUlamTypeFromHolder(bkey, newkey, aut->getUlamTypeEnum(), buti, aut->getUlamClassType());
 	  }
 	rtnstat = true;
       }
@@ -255,12 +255,14 @@ namespace MFM {
     UlamType * aut = m_state.getUlamTypeByIndex(auti);
     if(aut->getUlamTypeEnum() == Class)
       {
-	ULAMCLASSTYPE aclasstype = aut->getUlamClass();
+	ULAMCLASSTYPE aclasstype = aut->getUlamClassType();
 	UlamType * scut = m_state.getUlamTypeByIndex(scuti);
-	ULAMCLASSTYPE sclasstype = scut->getUlamClass();
+	ULAMCLASSTYPE sclasstype = scut->getUlamClassType();
 	if(aclasstype != sclasstype)
 	  {
-	    ((UlamTypeClass *) aut)->setUlamClass(sclasstype); //could have been unseen array
+	    AssertBool isReplaced = m_state.replaceUlamTypeForUpdatedClassType(aut->getUlamKeyTypeSignature(), Class, sclasstype, aut->isCustomArray()); //could have been unseen class array
+	    assert(isReplaced);
+
 	    std::ostringstream msg;
 	    msg << "Class type of array type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
@@ -285,7 +287,8 @@ namespace MFM {
 	//create corresponding array type, keep givenUTI (=auti) just change the key
 	UlamKeyTypeSignature sckey = scut->getUlamKeyTypeSignature();
 	UlamKeyTypeSignature newkey(sckey.getUlamKeyTypeSignatureNameId(), aut->getBitSize(), aut->getArraySize(), scuti, aut->getReferenceType());
-	m_state.makeUlamTypeFromHolder(newkey, scut->getUlamTypeEnum(), auti);
+	ULAMCLASSTYPE aclasstype = aut->getUlamClassType();
+	m_state.makeUlamTypeFromHolder(newkey, scut->getUlamTypeEnum(), auti, aclasstype);
 
 	std::ostringstream msg;
 	msg << "Type of array descriptor: ";

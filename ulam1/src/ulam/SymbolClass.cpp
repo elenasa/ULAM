@@ -119,12 +119,7 @@ namespace MFM {
 
   ULAMCLASSTYPE SymbolClass::getUlamClass()
   {
-    return  m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClass();
-  }
-
-  void SymbolClass::setUlamClass(ULAMCLASSTYPE type)
-  {
-    ((UlamTypeClass * ) m_state.getUlamTypeByIndex(getUlamTypeIdx()))->setUlamClass(type);
+    return  m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClassType(); //helper
   }
 
   void SymbolClass::setQuarkUnion()
@@ -218,7 +213,7 @@ namespace MFM {
     assert(m_state.okUTItoContinue(suti));
     u32 total = m_state.getTotalBitSize(suti);
     UlamType * sut = m_state.getUlamTypeByIndex(suti);
-    ULAMCLASSTYPE classtype = sut->getUlamClass();
+    ULAMCLASSTYPE classtype = sut->getUlamClassType();
 
     std::ostringstream msg;
     msg << "[UTBUA] Total bits used/available by ";
@@ -476,7 +471,7 @@ namespace MFM {
     //class context already pushed..
     assert(m_classBlock);
 
-    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClass();
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClassType();
 
     // setup for codeGen
     m_state.m_currentSelfSymbolForCodeGen = this;
@@ -579,7 +574,7 @@ namespace MFM {
     if(suti != m_state.getCompileThisIdx() && m_state.getUlamTypeByIndex(suti)->isComplete())
       {
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
-	//ULAMCLASSTYPE sclasstype = sut->getUlamClass();
+	//ULAMCLASSTYPE sclasstype = sut->getUlamClassType();
 
 	m_state.indent(fp);
 	fp->write("namespace MFM { template ");
@@ -676,7 +671,7 @@ namespace MFM {
     fp->write("* ");
     fp->write(m_state.m_pool.getDataAsString(m_state.getCompileThisId()).c_str());
     fp->write(".h - ");
-    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClass();
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClassType();
     if(classtype == UC_ELEMENT)
       fp->write("Element");
     else if(classtype == UC_QUARK)
@@ -755,7 +750,7 @@ namespace MFM {
       {
 	UlamType * ut = it->second;
 	//e.g. skip constants, include atom, references done automatically
-	if(ut->needsImmediateType() && (ut->getUlamClass() == UC_NOTACLASS) && !ut->isReference())
+	if(ut->needsImmediateType() && (ut->getUlamClassType() == UC_NOTACLASS) && !ut->isReference())
 	  {
 	    ut->genUlamTypeMangledAutoDefinitionForC(fp); //references
 	    ut->genUlamTypeMangledDefinitionForC(fp);
@@ -768,7 +763,7 @@ namespace MFM {
     while(it != m_state.m_definedUlamTypes.end())
       {
 	UlamType * ut = it->second;
-	if(ut->needsImmediateType() && (ut->getUlamClass() != UC_NOTACLASS) && !ut->isReference())
+	if(ut->needsImmediateType() && (ut->getUlamClassType() != UC_NOTACLASS) && !ut->isReference())
 	  {
 	    ut->genUlamTypeMangledAutoDefinitionForC(fp); //references
 	    ut->genUlamTypeMangledDefinitionForC(fp);
@@ -921,7 +916,7 @@ namespace MFM {
     NodeBlockFunctionDefinition * func = classNode->findTestFunctionNode();
     desc.m_hasTest = (func != NULL);
 
-    ULAMCLASSTYPE classtype = cut->getUlamClass();
+    ULAMCLASSTYPE classtype = cut->getUlamClassType();
     desc.m_isQuark = (classtype == UC_QUARK);
 
     desc.m_bitsize = cut->getTotalBitSize();

@@ -153,7 +153,7 @@ namespace MFM {
     if(func)
       {
 	assert(m_state.okUTItoContinue(cuti));
-	ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(cuti)->getUlamClass(); //may not need classtype
+	ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(cuti)->getUlamClassType(); //may not need classtype
 	assert(classtype == UC_ELEMENT || classtype == UC_QUARK); //sanity check after eval (below)
 
 	//simplifying assumption for testing purposes: center site
@@ -329,7 +329,7 @@ namespace MFM {
 	  }
 
 	assert(isSuperClassLinkReady());
-	ULAMCLASSTYPE superclasstype = m_state.getUlamTypeByIndex(superuti)->getUlamClass();
+	ULAMCLASSTYPE superclasstype = m_state.getUlamTypeByIndex(superuti)->getUlamClassType();
 	if(superclasstype != UC_QUARK)
 	  {
 	    //must be "seen" by c&l; e.g. typedef array of quarks (t3674)
@@ -898,7 +898,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     assert(m_state.okUTItoContinue(cuti));
 
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-    ULAMCLASSTYPE classtype = cut->getUlamClass();
+    ULAMCLASSTYPE classtype = cut->getUlamClassType();
     assert(cut->getUlamTypeEnum() == Class);
 
     m_state.m_currentIndentLevel = 0;
@@ -1109,7 +1109,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   {
     //use the instance UTI instead of the node's original type
     UlamType * cut = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx());
-    ULAMCLASSTYPE classtype = cut->getUlamClass();
+    ULAMCLASSTYPE classtype = cut->getUlamClassType();
 
     m_state.m_currentIndentLevel = 0;
 
@@ -1587,7 +1587,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	UTI veuti = csym->getClassForVTableEntry(i);
 	assert(m_state.okUTItoContinue(veuti));
 	UlamType * veut = m_state.getUlamTypeByIndex(veuti);
-	//ULAMCLASSTYPE veclasstype = veut->getUlamClass();
 	m_state.indent(fp);
 	fp->write("(VfuncPtr) "); //cast to void
 	fp->write("((typename "); //cast to contextual type info

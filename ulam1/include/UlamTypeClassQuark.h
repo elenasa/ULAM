@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * UlamTypeNav.h -  Basic handling of the Nav UlamType for ULAM
+ * UlamTypeClassQuark.h -  Basic handling of the Quark Class UlamType for ULAM
  *
  * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
  * Copyright (C) 2014-2016 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file UlamTypeNav.h -  Basic handling of the Nav UlamType for ULAM
+  \file UlamTypeClassQuark.h -  Basic handling of the Quark Class UlamType for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2016 All rights reserved.
@@ -34,41 +34,63 @@
 */
 
 
-#ifndef ULAMTYPENAV_H
-#define ULAMTYPENAV_H
+#ifndef ULAMTYPECLASSQUARK_H
+#define ULAMTYPECLASSQUARK_H
 
-#include "UlamType.h"
+#include "UlamTypeClass.h"
 
 namespace MFM{
 
   class CompilerState; //forward
 
-  class UlamTypeNav : public UlamType
+  class UlamTypeClassQuark : public UlamTypeClass
   {
   public:
 
-    UlamTypeNav(const UlamKeyTypeSignature key, CompilerState& state);
+    UlamTypeClassQuark(const UlamKeyTypeSignature key, CompilerState& state);
 
-    virtual ~UlamTypeNav(){}
+    virtual ~UlamTypeClassQuark(){}
 
-    virtual ULAMTYPE getUlamTypeEnum();
+    virtual bool isNumericType();
 
-    virtual ULAMCLASSTYPE getUlamClassType();
+    virtual bool cast(UlamValue& val, UTI typidx);
+
+    virtual const char * getUlamTypeAsSingleLowercaseLetter();
+
+    virtual const std::string getUlamTypeUPrefix();
+
+    virtual const std::string readMethodForCodeGen();
+
+    virtual const std::string writeMethodForCodeGen();
 
     virtual bool needsImmediateType();
 
+    virtual const std::string getTmpStorageTypeAsString();
+
     virtual const std::string getLocalStorageTypeAsString();
 
-    virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
+    virtual STORAGE getTmpStorageTypeForTmpVar();
 
     virtual const std::string castMethodForCodeGen(UTI nodetype);
 
-    virtual bool isComplete();  //neither bitsize nor arraysize is "unknown"
+    virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
 
-  private:
+    virtual void genUlamTypeReadDefinitionForC(File * fp);
+
+    virtual void genUlamTypeWriteDefinitionForC(File * fp);
+
+    virtual void genUlamTypeMangledDefinitionForC(File * fp);
+
+    virtual void genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp);
+
+    virtual void genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp);
+
+    virtual bool genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref);
+
+   private:
 
   };
 
 }
 
-#endif //end ULAMTYPENAV_H
+#endif //end ULAMTYPECLASSQUARK_H

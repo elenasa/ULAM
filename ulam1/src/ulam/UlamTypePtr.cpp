@@ -15,7 +15,7 @@ namespace MFM {
      return Ptr;
    }
 
-  ULAMCLASSTYPE UlamTypePtr::getUlamClass()
+  ULAMCLASSTYPE UlamTypePtr::getUlamClassType()
   {
     assert(0);
     return UC_ERROR;

@@ -77,9 +77,7 @@ namespace MFM{
 
     virtual const std::string getMangledPrefix();
 
-    ULAMCLASSTYPE getUlamClass();
-
-    void setUlamClass(ULAMCLASSTYPE type);
+    ULAMCLASSTYPE getUlamClass(); //helper
 
     void setQuarkUnion();
 

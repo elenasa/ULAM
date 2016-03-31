@@ -189,7 +189,7 @@ namespace MFM {
   {
     s32 newbs = m_state.getBitSize(uti);
     assert(m_state.okUTItoContinue(uti));
-    ULAMCLASSTYPE ct = m_state.getUlamTypeByIndex(uti)->getUlamClass();
+    ULAMCLASSTYPE ct = m_state.getUlamTypeByIndex(uti)->getUlamClassType();
 
     if(ct == UC_QUARK)
       newbs = MAXBITSPERINT; //32

@@ -358,7 +358,7 @@ namespace MFM {
 	  {
 	    UTI suti = sym->getUlamTypeIdx();
 	    UlamType * sut = m_state.getUlamTypeByIndex(suti);
-	    if(sut->getUlamClass() == UC_QUARK)
+	    if(sut->getUlamClassType() == UC_QUARK)
 	      {
 		m_state.indent(fp);
 		fp->write("if(!strcmp(namearg,\"");
@@ -400,7 +400,7 @@ namespace MFM {
 	    UTI suti = sym->getUlamTypeIdx();
 	    UlamType * sut = m_state.getUlamTypeByIndex(suti);
 
-	    if(sut->getUlamClass() == UC_QUARK)
+	    if(sut->getUlamClassType() == UC_QUARK)
 	      {
 		if(m_state.getBitSize(suti) > 0)
 		  {
@@ -929,7 +929,7 @@ namespace MFM {
 		      assert(0);
 		  }
 	      }
-	    else if(m_state.getUlamTypeByIndex(suti)->getUlamClass() == UC_QUARK)
+	    else if(m_state.getUlamTypeByIndex(suti)->getUlamClassType() == UC_QUARK)
 	      {
 		UTI scalarquark = m_state.getUlamTypeAsScalar(suti);
 		SymbolClass * csym = NULL;
@@ -1000,7 +1000,7 @@ namespace MFM {
 	//skip anonymous classes
 	if(!isAnonymousClass(cuti))
 	  {
-	    ULAMCLASSTYPE classtype = cut->getUlamClass();
+	    ULAMCLASSTYPE classtype = cut->getUlamClassType();
 	    if( classtype == UC_QUARK)
 	      ((SymbolClassName *) sym)->buildDefaultQuarkForClassInstances(); //builds when not ready; must be qk
 	    //else if (classtype == UC_ELEMENT)
@@ -1529,7 +1529,7 @@ namespace MFM {
 
     s32 totbitsize = m_state.getBitSize(argut);
 
-    if(m_state.getUlamTypeByIndex(argut)->getUlamClass() == UC_NOTACLASS) //includes Atom type
+    if(m_state.getUlamTypeByIndex(argut)->getUlamClassType() == UC_NOTACLASS) //includes Atom type
       {
 	return totbitsize; //arrays handled by caller, just bits here
       }

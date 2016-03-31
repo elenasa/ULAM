@@ -46,7 +46,7 @@ namespace MFM {
 
     s32 newbs = NodeUnaryOp::resultBitsize(uti);
     UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Int"), newbs);
-    UTI newType = m_state.makeUlamType(newkey, Int);
+    UTI newType = m_state.makeUlamType(newkey, Int, UC_NOTACLASS);
 
     checkSafeToCastTo(getNodeType(), newType); //Nav, Hzy, or no change; outputs err msg
     return newType;

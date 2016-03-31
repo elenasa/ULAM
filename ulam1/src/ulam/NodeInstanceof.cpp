@@ -58,7 +58,7 @@ namespace MFM {
 
     UTI auti = getOfType();
     UlamType * aut = m_state.getUlamTypeByIndex(auti);
-    ULAMCLASSTYPE aclasstype = aut->getUlamClass();
+    ULAMCLASSTYPE aclasstype = aut->getUlamClassType();
 
     u32 atop = 1;
     atop = m_state.m_funcCallStack.getAbsoluteStackIndexOfSlot(atop);

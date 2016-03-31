@@ -386,13 +386,15 @@ namespace MFM {
     SymbolClass * newclassinstance = new SymbolClass(stubTok, newuti, newblockclass, this, m_state);
     assert(newclassinstance);
 
-    newclassinstance->setUlamClass(getUlamClass());
+    //newclassinstance->setUlamClass(getUlamClass());
+    assert(newclassinstance->getUlamClass() == getUlamClass());
 
     if(isQuarkUnion())
       newclassinstance->setQuarkUnion();
 
-    if(isCATemplate)
-      ((UlamTypeClass *) m_state.getUlamTypeByIndex(newuti))->setCustomArray();
+    //if(isCATemplate)
+    //  ((UlamTypeClass *) m_state.getUlamTypeByIndex(newuti))->setCustomArray();
+    assert(((UlamTypeClass *) m_state.getUlamTypeByIndex(newuti))->isCustomArray() == isCATemplate);
 
     // we are in the middle of fully instantiating (context) or parsing;
     // with known args that we want to use to resolve, if possible, these pending args:
@@ -438,7 +440,11 @@ namespace MFM {
 	    continue;
 	  }
 
-	csym->setUlamClass(classtype);
+	//csym->setUlamClass(classtype);
+	UTI suti = csym->getUlamTypeIdx();
+	UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	AssertBool isReplaced = m_state.replaceUlamTypeForUpdatedClassType(sut->getUlamKeyTypeSignature(), Class, classtype, isCATemplate);
+	assert(isReplaced);
 
 	NodeBlockClass * cblock = csym->getClassBlockNode();
 	assert(cblock);

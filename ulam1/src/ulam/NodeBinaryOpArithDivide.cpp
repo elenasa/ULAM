@@ -37,7 +37,6 @@ NodeBinaryOpArithDivide::NodeBinaryOpArithDivide(const NodeBinaryOpArithDivide& 
     //because the result bitsize for division should be the left bitsize
     // create a cast! combining newType's base type and left resultbitsize.
     // could be the same, or "unsafe".
-    //if((newType != Nav) && (newType != Hzy) && m_state.isComplete(newType))
     if(m_state.okUTItoContinue(newType) && m_state.isComplete(newType))
       {
 	UlamType * newut = m_state.getUlamTypeByIndex(newType);
@@ -45,7 +44,8 @@ NodeBinaryOpArithDivide::NodeBinaryOpArithDivide(const NodeBinaryOpArithDivide& 
 	u32 convertSize = m_state.getUlamTypeByIndex(lt)->bitsizeToConvertTypeTo(typEnum);
 	u32 enumStrIdx = m_state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(typEnum));
 	UlamKeyTypeSignature tokey(enumStrIdx, convertSize, NONARRAYSIZE);
-	nuti = m_state.makeUlamType(tokey, typEnum);
+	ULAMCLASSTYPE newclasstype = newut->getUlamClassType();
+	nuti = m_state.makeUlamType(tokey, typEnum, newclasstype);
 
 	if(UlamType::compare(nuti, newType, m_state) != UTIC_SAME) //not same, or dontknow
 	  {

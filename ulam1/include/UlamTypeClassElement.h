@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * UlamTypeNav.h -  Basic handling of the Nav UlamType for ULAM
+ * UlamTypeClassElement.h -  Basic handling of the Element Class UlamType for ULAM
  *
  * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
  * Copyright (C) 2014-2016 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file UlamTypeNav.h -  Basic handling of the Nav UlamType for ULAM
+  \file UlamTypeClassElement.h -  Basic handling of the Eleemnt Class UlamType for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2016 All rights reserved.
@@ -34,41 +34,63 @@
 */
 
 
-#ifndef ULAMTYPENAV_H
-#define ULAMTYPENAV_H
+#ifndef ULAMTYPECLASSELEMENT_H
+#define ULAMTYPECLASSELEMENT_H
 
-#include "UlamType.h"
+#include "UlamTypeClass.h"
 
 namespace MFM{
 
   class CompilerState; //forward
 
-  class UlamTypeNav : public UlamType
+  class UlamTypeClassElement : public UlamTypeClass
   {
   public:
 
-    UlamTypeNav(const UlamKeyTypeSignature key, CompilerState& state);
+    UlamTypeClassElement(const UlamKeyTypeSignature key, CompilerState& state);
 
-    virtual ~UlamTypeNav(){}
+    virtual ~UlamTypeClassElement(){}
 
-    virtual ULAMTYPE getUlamTypeEnum();
+    virtual bool cast(UlamValue& val, UTI typidx);
 
-    virtual ULAMCLASSTYPE getUlamClassType();
+    virtual const char * getUlamTypeAsSingleLowercaseLetter();
+
+    virtual const std::string getUlamTypeUPrefix();
+
+    //virtual void setUlamClass(ULAMCLASSTYPE type);
+
+    virtual PACKFIT getPackable();
+
+    virtual const std::string readMethodForCodeGen();
+
+    virtual const std::string writeMethodForCodeGen();
 
     virtual bool needsImmediateType();
 
+    virtual const std::string getTmpStorageTypeAsString();
+
     virtual const std::string getLocalStorageTypeAsString();
 
-    virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
+    virtual STORAGE getTmpStorageTypeForTmpVar();
 
     virtual const std::string castMethodForCodeGen(UTI nodetype);
 
-    virtual bool isComplete();  //neither bitsize nor arraysize is "unknown"
+    virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
 
-  private:
+    virtual void genUlamTypeReadDefinitionForC(File * fp);
+
+    virtual void genUlamTypeWriteDefinitionForC(File * fp);
+
+    virtual void genUlamTypeMangledDefinitionForC(File * fp);
+
+    virtual void genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp);
+
+    virtual void genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp);
+
+   private:
 
   };
 
 }
 
-#endif //end ULAMTYPENAV_H
+#endif //end ULAMTYPECLASSELEMENT_H
