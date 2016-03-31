@@ -9,7 +9,7 @@
 
 namespace MFM {
 
-  UlamTypeClass::UlamTypeClass(const UlamKeyTypeSignature key, CompilerState & state, ULAMCLASSTYPE type) : UlamType(key, state), m_class(type), m_customArray(false)
+  UlamTypeClass::UlamTypeClass(const UlamKeyTypeSignature key, CompilerState & state) : UlamType(key, state), m_customArray(false)
   {
     m_wordLengthTotal = calcWordSize(getTotalBitSize());
     m_wordLengthItem = calcWordSize(getBitSize());
@@ -206,14 +206,7 @@ namespace MFM {
 
   ULAMCLASSTYPE UlamTypeClass::getUlamClassType()
   {
-    //if(m_class == UC_UNSEEN && isReference())
-    //  {
-    //	UTI classidx = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
-    //	if(m_state.okUTItoContinue(classidx))
-    //	  //setUlamClass(m_state.getUlamTypeByIndex(classidx)->getUlamClassType());
-    //	  assert(0);
-    //}
-    return m_class;
+    return UC_UNSEEN;
   }
 
   bool UlamTypeClass::isScalar()

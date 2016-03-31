@@ -53,6 +53,8 @@ namespace MFM{
 
     virtual bool isNumericType();
 
+    virtual ULAMCLASSTYPE getUlamClassType();
+
     virtual bool cast(UlamValue& val, UTI typidx);
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();

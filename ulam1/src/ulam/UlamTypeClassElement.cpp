@@ -9,10 +9,15 @@
 
 namespace MFM {
 
-  UlamTypeClassElement::UlamTypeClassElement(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypeClass(key, state, UC_ELEMENT)
+  UlamTypeClassElement::UlamTypeClassElement(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypeClass(key, state)
   {
     setTotalWordSize(BITSPERATOM);
     setItemWordSize(BITSPERATOM);
+  }
+
+  ULAMCLASSTYPE UlamTypeClassElement::getUlamClassType()
+  {
+    return UC_ELEMENT;
   }
 
   bool UlamTypeClassElement::cast(UlamValue & val, UTI typidx)

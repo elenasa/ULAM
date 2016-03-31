@@ -9,7 +9,7 @@
 
 namespace MFM {
 
-  UlamTypeClassTransient::UlamTypeClassTransient(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypeClass(key, state, UC_TRANSIENT) { }
+  UlamTypeClassTransient::UlamTypeClassTransient(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypeClass(key, state) { }
 
   bool UlamTypeClassTransient::isNumericType()
   {
@@ -17,6 +17,11 @@ namespace MFM {
     //return (m_state.transientHasAToIntMethod(quti));
     return false;
   } //isNumericType
+
+  ULAMCLASSTYPE UlamTypeClassTransient::getUlamClassType()
+  {
+    return UC_TRANSIENT;
+  }
 
   bool UlamTypeClassTransient::cast(UlamValue & val, UTI typidx)
   {

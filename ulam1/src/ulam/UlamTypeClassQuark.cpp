@@ -9,13 +9,18 @@
 
 namespace MFM {
 
-  UlamTypeClassQuark::UlamTypeClassQuark(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypeClass(key, state, UC_QUARK) { }
+  UlamTypeClassQuark::UlamTypeClassQuark(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypeClass(key, state) { }
 
   bool UlamTypeClassQuark::isNumericType()
   {
     u32 quti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
     return (m_state.quarkHasAToIntMethod(quti));
   } //isNumericType
+
+  ULAMCLASSTYPE UlamTypeClassQuark::getUlamClassType()
+  {
+    return UC_QUARK;
+  }
 
   bool UlamTypeClassQuark::cast(UlamValue & val, UTI typidx)
   {

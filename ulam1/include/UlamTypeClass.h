@@ -48,7 +48,7 @@ namespace MFM{
   {
   public:
 
-    UlamTypeClass(const UlamKeyTypeSignature key, CompilerState& state, ULAMCLASSTYPE type = UC_UNSEEN);
+    UlamTypeClass(const UlamKeyTypeSignature key, CompilerState& state);
 
     virtual ~UlamTypeClass(){}
 
@@ -136,13 +136,10 @@ namespace MFM{
 
    private:
 
-    const ULAMCLASSTYPE m_class;
     bool m_customArray;
 
     UTI getCustomArrayType();
     u32 getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
-
-    //void setUlamClass(ULAMCLASSTYPE type);
 
   };
 

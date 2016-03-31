@@ -51,13 +51,13 @@ namespace MFM{
 
     virtual ~UlamTypeClassElement(){}
 
+    virtual ULAMCLASSTYPE getUlamClassType();
+
     virtual bool cast(UlamValue& val, UTI typidx);
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
     virtual const std::string getUlamTypeUPrefix();
-
-    //virtual void setUlamClass(ULAMCLASSTYPE type);
 
     virtual PACKFIT getPackable();
 
