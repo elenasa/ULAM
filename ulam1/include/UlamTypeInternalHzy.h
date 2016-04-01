@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * UlamTypeHzy.h -  Basic handling of the Hzy UlamType for ULAM
+ * UlamTypeInternalHzy.h -  Basic handling of the Hzy Internal UlamType for ULAM
  *
  * Copyright (C) 2016 The Regents of the University of New Mexico.
  * Copyright (C) 2016 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file UlamTypeHzy.h -  Basic handling of the Hzy UlamType for ULAM
+  \file UlamTypeInternalHzy.h -  Basic handling of the Hzy Internal UlamType for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2016 All rights reserved.
@@ -34,34 +34,24 @@
 */
 
 
-#ifndef ULAMTYPEHZY_H
-#define ULAMTYPEHZY_H
+#ifndef ULAMTYPEINTERNALHZY_H
+#define ULAMTYPEINTERNALHZY_H
 
-#include "UlamType.h"
+#include "UlamTypeInternal.h"
 
 namespace MFM{
 
   class CompilerState; //forward
 
-  class UlamTypeHzy : public UlamType
+  class UlamTypeInternalHzy : public UlamTypeInternal
   {
   public:
 
-    UlamTypeHzy(const UlamKeyTypeSignature key, CompilerState& state);
+    UlamTypeInternalHzy(const UlamKeyTypeSignature key, CompilerState& state);
 
-    virtual ~UlamTypeHzy(){}
+    virtual ~UlamTypeInternalHzy(){}
 
     virtual ULAMTYPE getUlamTypeEnum();
-
-    virtual ULAMCLASSTYPE getUlamClassType();
-
-    virtual bool needsImmediateType();
-
-    virtual const std::string getLocalStorageTypeAsString();
-
-    virtual const std::string castMethodForCodeGen(UTI nodetype);
-
-    virtual bool isComplete();  //neither bitsize nor arraysize is "unknown"
 
   private:
 
@@ -69,4 +59,4 @@ namespace MFM{
 
 }
 
-#endif //end ULAMTYPEHZY_H
+#endif //end ULAMTYPEINTERNALHZY_H

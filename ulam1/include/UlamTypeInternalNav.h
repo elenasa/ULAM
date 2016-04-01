@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * UlamTypePtr.h -  Basic handling of the Ptr UlamType for ULAM
+ * UlamTypeInternalNav.h -  Basic handling of the Nav Internal UlamType for ULAM
  *
  * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
  * Copyright (C) 2014-2016 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file UlamTypePtr.h -  Basic handling of the Ptr UlamType for ULAM
+  \file UlamTypeInternalNav.h -  Basic handling of the Nav Internal UlamType for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2016 All rights reserved.
@@ -34,31 +34,24 @@
 */
 
 
-#ifndef ULAMTYPEPTR_H
-#define ULAMTYPEPTR_H
+#ifndef ULAMTYPEINTERNALNAV_H
+#define ULAMTYPEINTERNALNAV_H
 
-#include "UlamType.h"
+#include "UlamTypeInternal.h"
 
 namespace MFM{
 
   class CompilerState; //forward
 
-  class UlamTypePtr : public UlamType
+  class UlamTypeInternalNav : public UlamTypeInternal
   {
   public:
 
-    UlamTypePtr(const UlamKeyTypeSignature key, CompilerState& state);
-    virtual ~UlamTypePtr(){}
+    UlamTypeInternalNav(const UlamKeyTypeSignature key, CompilerState& state);
+
+    virtual ~UlamTypeInternalNav(){}
 
     virtual ULAMTYPE getUlamTypeEnum();
-
-    virtual ULAMCLASSTYPE getUlamClassType();
-
-    virtual bool needsImmediateType();
-
-    virtual bool isMinMaxAllowed();
-
-    virtual PACKFIT getPackable();
 
   private:
 
@@ -66,4 +59,4 @@ namespace MFM{
 
 }
 
-#endif //end ULAMTYPEPTR_H
+#endif //end ULAMTYPEINTERNALNAV_H

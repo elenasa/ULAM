@@ -8,18 +8,18 @@
 #include "SymbolTypedef.h"
 #include "SymbolVariable.h"
 #include "UlamTypeAtom.h"
-#include "UlamTypePrimitiveBits.h"
-#include "UlamTypePrimitiveBool.h"
 #include "UlamTypeClass.h"
 #include "UlamTypeClassElement.h"
 #include "UlamTypeClassQuark.h"
 #include "UlamTypeClassTransient.h"
-#include "UlamTypeHolder.h"
-#include "UlamTypeHzy.h"
+#include "UlamTypeInternalHolder.h"
+#include "UlamTypeInternalHzy.h"
+#include "UlamTypeInternalNav.h"
+#include "UlamTypeInternalNouti.h"
+#include "UlamTypeInternalPtr.h"
+#include "UlamTypePrimitiveBits.h"
+#include "UlamTypePrimitiveBool.h"
 #include "UlamTypePrimitiveInt.h"
-#include "UlamTypeNav.h"
-#include "UlamTypeNouti.h"
-#include "UlamTypePtr.h"
 #include "UlamTypePrimitiveUnary.h"
 #include "UlamTypePrimitiveUnsigned.h"
 #include "UlamTypePrimitiveVoid.h"
@@ -461,13 +461,13 @@ namespace MFM {
     switch(utype)
       {
       case Nouti:
-	ut = new UlamTypeNouti(key, *this);
+	ut = new UlamTypeInternalNouti(key, *this);
 	break;
       case Nav:
-	ut = new UlamTypeNav(key, *this);
+	ut = new UlamTypeInternalNav(key, *this);
 	break;
       case Hzy:
-	ut = new UlamTypeHzy(key, *this);
+	ut = new UlamTypeInternalHzy(key, *this);
 	break;
       case Void:
 	ut = new UlamTypePrimitiveVoid(key, *this);
@@ -512,10 +512,10 @@ namespace MFM {
 	ut = new UlamTypeAtom(key, *this);
 	break;
       case Ptr:
-	ut = new UlamTypePtr(key, *this);
+	ut = new UlamTypeInternalPtr(key, *this);
 	break;
       case Holder:
-	ut = new UlamTypeHolder(key, *this);
+	ut = new UlamTypeInternalHolder(key, *this);
 	break;
       default:
 	{

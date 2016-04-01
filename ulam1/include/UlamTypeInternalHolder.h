@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * UlamTypeHolder.h -  Basic handling of the Holder UlamType for ULAM
+ * UlamTypeInternalHolder.h -  Basic handling of the Holder Internal UlamType for ULAM
  *
  * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
  * Copyright (C) 2014-2016 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file UlamTypeHolder.h -  Basic handling of the Holder UlamType for ULAM
+  \file UlamTypeInternalHolder.h -  Basic handling of the Holder Internal UlamType for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2016 All rights reserved.
@@ -34,41 +34,35 @@
 */
 
 
-#ifndef ULAMTYPEHOLDER_H
-#define ULAMTYPEHOLDER_H
+#ifndef ULAMTYPEINTERNALHOLDER_H
+#define ULAMTYPEINTERNALHOLDER_H
 
-#include "UlamType.h"
+#include "UlamTypeInternal.h"
 
 namespace MFM{
 
   class CompilerState; //forward
 
-  class UlamTypeHolder : public UlamType
+  class UlamTypeInternalHolder : public UlamTypeInternal
   {
   public:
 
-    UlamTypeHolder(const UlamKeyTypeSignature key, CompilerState& state);
-    virtual ~UlamTypeHolder(){}
+    UlamTypeInternalHolder(const UlamKeyTypeSignature key, CompilerState& state);
+
+    virtual ~UlamTypeInternalHolder(){}
 
     virtual ULAMTYPE getUlamTypeEnum();
 
-    virtual bool needsImmediateType();
-
     virtual ULAMCLASSTYPE getUlamClassType();
-
-    virtual const std::string getLocalStorageTypeAsString();
-
-    virtual const std::string castMethodForCodeGen(UTI nodetype);
 
     virtual bool isHolder();
 
-    virtual bool isComplete();  //neither bitsize nor arraysize is "unknown"
-
     virtual bool isMinMaxAllowed();
+
   private:
 
   };
 
 }
 
-#endif //end ULAMTYPEHOLDER_H
+#endif //end ULAMTYPEINTERNALHOLDER_H

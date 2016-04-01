@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
- * UlamTypeNouti.h -  Basic handling of the No UlamType for ULAM
+ * UlamTypeInternal.h -  Basic handling of the Internal UlamTypes for ULAM
  *
- * Copyright (C) 2016 The Regents of the University of New Mexico.
- * Copyright (C) 2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2016 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -26,16 +26,16 @@
  */
 
 /**
-  \file UlamTypeNouti.h -  Basic handling of the No UlamType for ULAM
+  \file UlamTypeInternal.h -  Basic handling of the Internal UlamTypes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2016 All rights reserved.
+  \date (C) 2014-2016 All rights reserved.
   \gpl
 */
 
 
-#ifndef ULAMTYPENOUTI_H
-#define ULAMTYPENOUTI_H
+#ifndef ULAMTYPEINTERNAL_H
+#define ULAMTYPEINTERNAL_H
 
 #include "UlamType.h"
 
@@ -43,15 +43,15 @@ namespace MFM{
 
   class CompilerState; //forward
 
-  class UlamTypeNouti : public UlamType
+  class UlamTypeInternal : public UlamType
   {
   public:
 
-    UlamTypeNouti(const UlamKeyTypeSignature key, CompilerState& state);
+    UlamTypeInternal(const UlamKeyTypeSignature key, CompilerState& state);
 
-    virtual ~UlamTypeNouti(){}
+    virtual ~UlamTypeInternal(){}
 
-    virtual ULAMTYPE getUlamTypeEnum();
+    virtual ULAMTYPE getUlamTypeEnum() = 0;
 
     virtual ULAMCLASSTYPE getUlamClassType();
 
@@ -69,4 +69,4 @@ namespace MFM{
 
 }
 
-#endif //end ULAMTYPENOUTI_H
+#endif //end ULAMTYPEINTERNAL_H
