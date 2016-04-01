@@ -127,7 +127,7 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("if(!"); //lhs is false
-    fp->write(((UlamTypeBool *) lut)->getConvertToCboolMethod().c_str());
+    fp->write(((UlamTypePrimitiveBool *) lut)->getConvertToCboolMethod().c_str());
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(luti, luvpass.getPtrSlotIndex()).c_str());
     fp->write(", ");

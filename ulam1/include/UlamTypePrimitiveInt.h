@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * UlamTypeInt.h -  Basic handling of the Integer UlamType for ULAM
+ * UlamTypePrimitiveInt.h -  Basic handling of the Integer Primitive UlamType for ULAM
  *
  * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
  * Copyright (C) 2014-2016 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file UlamTypeInt.h -  Basic handling of the Integer UlamType for ULAM
+  \file UlamTypePrimitiveInt.h -  Basic handling of the Integer Primitive UlamType for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2016 All rights reserved.
@@ -34,8 +34,8 @@
 */
 
 
-#ifndef ULAMTYPEINT_H
-#define ULAMTYPEINT_H
+#ifndef ULAMTYPEPRIMITIVEINT_H
+#define ULAMTYPEPRIMITIVEINT_H
 
 #include "UlamTypePrimitive.h"
 
@@ -43,19 +43,17 @@ namespace MFM{
 
   class CompilerState; //forward
 
-  class UlamTypeInt : public UlamTypePrimitive
+  class UlamTypePrimitiveInt : public UlamTypePrimitive
   {
   public:
 
-    UlamTypeInt(const UlamKeyTypeSignature key, CompilerState& state);
+    UlamTypePrimitiveInt(const UlamKeyTypeSignature key, CompilerState& state);
 
-    virtual ~UlamTypeInt(){}
+    virtual ~UlamTypePrimitiveInt(){}
 
     virtual ULAMTYPE getUlamTypeEnum();
 
     virtual bool isNumericType();
-
-    //    virtual bool isPrimitiveType();
 
     virtual bool cast(UlamValue & val, UTI typidx);
 
@@ -85,4 +83,4 @@ namespace MFM{
 
 }
 
-#endif //end ULAMTYPEINT_H
+#endif //end ULAMTYPEPRIMITIVEINT_H

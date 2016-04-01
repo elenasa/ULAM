@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "NodeConditional.h"
 #include "CompilerState.h"
-#include "UlamTypeBool.h"
+#include "UlamTypePrimitiveBool.h"
 
 namespace MFM {
 

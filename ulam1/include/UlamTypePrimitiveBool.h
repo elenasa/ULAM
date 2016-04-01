@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * UlamTypeBool.h -  Basic handling of the Bool UlamType for ULAM
+ * UlamTypePrimitiveBool.h -  Basic handling of the Bool Primitivie UlamType for ULAM
  *
  * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
  * Copyright (C) 2014-2016 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file UlamTypeBool.h -  Basic handling of the Bool UlamType for ULAM
+  \file UlamTypePrimitiveBool.h -  Basic handling of the Bool Primitive UlamType for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2016 All rights reserved.
@@ -34,8 +34,8 @@
 */
 
 
-#ifndef ULAMTYPEBOOL_H
-#define ULAMTYPEBOOL_H
+#ifndef ULAMTYPEPRIMITIVEBOOL_H
+#define ULAMTYPEPRIMITIVEBOOL_H
 
 #include "UlamTypePrimitive.h"
 
@@ -43,12 +43,13 @@ namespace MFM{
 
   class CompilerState; //forward
 
-  class UlamTypeBool : public UlamTypePrimitive
+  class UlamTypePrimitiveBool : public UlamTypePrimitive
   {
   public:
 
-    UlamTypeBool(const UlamKeyTypeSignature key, CompilerState& state);
-    virtual ~UlamTypeBool(){}
+    UlamTypePrimitiveBool(const UlamKeyTypeSignature key, CompilerState& state);
+
+    virtual ~UlamTypePrimitiveBool(){}
 
     virtual ULAMTYPE getUlamTypeEnum();
 
@@ -84,4 +85,4 @@ namespace MFM{
 
 }
 
-#endif //end ULAMTYPEBOOL_H
+#endif //end ULAMTYPEPRIMITIVEBOOL_H

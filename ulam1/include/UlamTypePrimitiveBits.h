@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * UlamTypeBits.h -  Basic handling of the Bits UlamType for ULAM
+ * UlamTypePrimitiveBits.h -  Basic handling of the Bits Primitive UlamType for ULAM
  *
  * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
  * Copyright (C) 2014-2016 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file UlamTypeBits.h -  Basic handling of the Bits UlamType for ULAM
+  \file UlamTypePrimitiveBits.h -  Basic handling of the Bits Primitive UlamType for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2016 All rights reserved.
@@ -34,8 +34,8 @@
 */
 
 
-#ifndef ULAMTYPEBITS_H
-#define ULAMTYPEBITS_H
+#ifndef ULAMTYPEPRIMITIVEBITS_H
+#define ULAMTYPEPRIMITIVEBITS_H
 
 #include "UlamTypePrimitive.h"
 
@@ -43,16 +43,14 @@ namespace MFM{
 
   class CompilerState; //forward
 
-  class UlamTypeBits : public UlamTypePrimitive
+  class UlamTypePrimitiveBits : public UlamTypePrimitive
   {
   public:
 
-    UlamTypeBits(const UlamKeyTypeSignature key, CompilerState& state);
-    virtual ~UlamTypeBits(){}
+    UlamTypePrimitiveBits(const UlamKeyTypeSignature key, CompilerState& state);
+    virtual ~UlamTypePrimitiveBits(){}
 
     virtual ULAMTYPE getUlamTypeEnum();
-
-    //virtual bool isPrimitiveType();
 
     virtual bool isMinMaxAllowed();
 
@@ -85,4 +83,4 @@ namespace MFM{
 
 }
 
-#endif //end ULAMTYPEBITS_H
+#endif //end ULAMTYPEPRIMITIVEBITS_H

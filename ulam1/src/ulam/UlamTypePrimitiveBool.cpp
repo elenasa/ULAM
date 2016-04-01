@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <iostream>
-#include "UlamTypeBool.h"
+#include "UlamTypePrimitiveBool.h"
 #include "UlamValue.h"
 #include "CompilerState.h"
 
 namespace MFM {
 
-  UlamTypeBool::UlamTypeBool(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypePrimitive(key, state)
+  UlamTypePrimitiveBool::UlamTypePrimitiveBool(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypePrimitive(key, state)
   {
     s32 bitsize = getBitSize();
     if(bitsize <= 0)
@@ -32,12 +32,12 @@ namespace MFM {
       assert(0);
   }
 
-   ULAMTYPE UlamTypeBool::getUlamTypeEnum()
+   ULAMTYPE UlamTypePrimitiveBool::getUlamTypeEnum()
    {
      return Bool;
    }
 
-  bool UlamTypeBool::cast(UlamValue & val, UTI typidx)
+  bool UlamTypePrimitiveBool::cast(UlamValue & val, UTI typidx)
   {
     bool brtn = true;
     assert(m_state.getUlamTypeByIndex(typidx) == this);
@@ -73,7 +73,7 @@ namespace MFM {
     return brtn;
   } //cast
 
-  bool UlamTypeBool::castTo32(UlamValue & val, UTI typidx)
+  bool UlamTypePrimitiveBool::castTo32(UlamValue & val, UTI typidx)
   {
     bool brtn = true;
     UTI valtypidx = val.getUlamValueTypeIdx();
@@ -103,7 +103,7 @@ namespace MFM {
 	break;
       case Void:
       default:
-	//std::cerr << "UlamTypeBool (cast) error! Value Type was: " << valtypidx << std::endl;
+	//std::cerr << "UlamTypePrimitiveBool (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };
 
@@ -112,7 +112,7 @@ namespace MFM {
     return brtn;
   } //castTo32
 
-  bool UlamTypeBool::castTo64(UlamValue & val, UTI typidx)
+  bool UlamTypePrimitiveBool::castTo64(UlamValue & val, UTI typidx)
   {
     bool brtn = true;
     UTI valtypidx = val.getUlamValueTypeIdx();
@@ -151,7 +151,7 @@ namespace MFM {
 	break;
       case Void:
       default:
-	//std::cerr << "UlamTypeBool (cast) error! Value Type was: " << valtypidx << std::endl;
+	//std::cerr << "UlamTypePrimitiveBool (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };
 
@@ -168,7 +168,7 @@ namespace MFM {
     return brtn;
   } //castTo64
 
-  FORECAST UlamTypeBool::safeCast(UTI typidx)
+  FORECAST UlamTypePrimitiveBool::safeCast(UTI typidx)
   {
     FORECAST scr = UlamType::safeCast(typidx);
     if(scr != CAST_CLEAR)
@@ -196,13 +196,13 @@ namespace MFM {
 	break;
       default:
 	assert(0);
-	//std::cerr << "UlamTypeBool (cast) error! Value Type was: " << valtypidx << std::endl;
+	//std::cerr << "UlamTypePrimitiveBool (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };
     return brtn ? CAST_CLEAR : CAST_BAD;
   } //safeCast
 
-  FORECAST UlamTypeBool::explicitlyCastable(UTI typidx)
+  FORECAST UlamTypePrimitiveBool::explicitlyCastable(UTI typidx)
   {
     ULAMTYPE vtypEnum = m_state.getUlamTypeByIndex(typidx)->getUlamTypeEnum();
     FORECAST scr = safeCast(typidx);
@@ -211,7 +211,7 @@ namespace MFM {
     return scr; //HAZY or UNSAFE
   } //explicitlyCastable
 
-  void UlamTypeBool::getDataAsString(const u32 data, char * valstr, char prefix)
+  void UlamTypePrimitiveBool::getDataAsString(const u32 data, char * valstr, char prefix)
   {
     if(!isComplete())
       sprintf(valstr,"%s", "unknown");
@@ -226,7 +226,7 @@ namespace MFM {
       }
   } //getDataAsString
 
-  void UlamTypeBool::getDataLongAsString(const u64 data, char * valstr, char prefix)
+  void UlamTypePrimitiveBool::getDataLongAsString(const u64 data, char * valstr, char prefix)
   {
     if(!isComplete())
       sprintf(valstr,"%s", "unknown");
@@ -241,34 +241,34 @@ namespace MFM {
       }
   } //getDataLongAsString
 
-  s32 UlamTypeBool::getDataAsCs32(const u32 data)
+  s32 UlamTypePrimitiveBool::getDataAsCs32(const u32 data)
   {
     return _Bool32ToCs32(data, getBitSize());
   }
 
-  u32 UlamTypeBool::getDataAsCu32(const u32 data)
+  u32 UlamTypePrimitiveBool::getDataAsCu32(const u32 data)
   {
     return _Bool32ToCu32(data, getBitSize());
   }
 
-  s64 UlamTypeBool::getDataAsCs64(const u64 data)
+  s64 UlamTypePrimitiveBool::getDataAsCs64(const u64 data)
   {
     return _Bool64ToCs64(data, getBitSize());
   }
 
-  u64 UlamTypeBool::getDataAsCu64(const u64 data)
+  u64 UlamTypePrimitiveBool::getDataAsCu64(const u64 data)
   {
     return _Bool64ToCu64(data, getBitSize());
   }
 
-  const std::string UlamTypeBool::getConvertToCboolMethod()
+  const std::string UlamTypePrimitiveBool::getConvertToCboolMethod()
   {
     std::ostringstream rtnMethod;
     rtnMethod << "_Bool" << getTotalWordSize() << "ToCbool";
     return rtnMethod.str();
   } //getCovertToCBoolMethod
 
-  s32 UlamTypeBool::bitsizeToConvertTypeTo(ULAMTYPE tobUT)
+  s32 UlamTypePrimitiveBool::bitsizeToConvertTypeTo(ULAMTYPE tobUT)
   {
     s32 bitsize = getBitSize();
     s32 tobitsize = UNKNOWNSIZE;

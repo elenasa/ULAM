@@ -9,8 +9,7 @@
 #include "SymbolVariableStack.h"
 #include "SymbolFunction.h"
 #include "SymbolFunctionName.h"
-
-#include "UlamTypeInt.h"
+#include "UlamTypePrimitiveInt.h"
 
 namespace MFM {
 

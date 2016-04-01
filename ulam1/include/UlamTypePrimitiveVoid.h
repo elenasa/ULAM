@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * UlamTypeUnsigned.h -  Basic handling of the Unsigned Integer UlamType for ULAM
+ * UlamTypePrimitiveVoid.h -  Basic handling of the Void Primitive UlamType for ULAM
  *
  * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
  * Copyright (C) 2014-2016 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file UlamTypeUnsigned.h -  Basic handling of the Unsigned Integer UlamType for ULAM
+  \file UlamTypePrimitiveVoid.h -  Basic handling of the Void Primitive UlamType for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2016 All rights reserved.
@@ -34,8 +34,8 @@
 */
 
 
-#ifndef ULAMTYPEUNSIGNED_H
-#define ULAMTYPEUNSIGNED_H
+#ifndef ULAMTYPEPRIMITIVEVOID_H
+#define ULAMTYPEPRIMITIVEVOID_H
 
 #include "UlamTypePrimitive.h"
 
@@ -43,25 +43,29 @@ namespace MFM{
 
   class CompilerState; //forward
 
-  class UlamTypeUnsigned : public UlamTypePrimitive
+  class UlamTypePrimitiveVoid : public UlamTypePrimitive
   {
   public:
 
-    UlamTypeUnsigned(const UlamKeyTypeSignature key, CompilerState& state);
+    UlamTypePrimitiveVoid(const UlamKeyTypeSignature key, CompilerState& state);
 
-    virtual ~UlamTypeUnsigned(){}
+    virtual ~UlamTypePrimitiveVoid(){}
 
     virtual ULAMTYPE getUlamTypeEnum();
 
-    virtual bool isNumericType();
-
-    //    virtual bool isPrimitiveType();
+    virtual const std::string getUlamTypeMangledName();
 
     virtual const std::string getUlamTypeImmediateMangledName();
 
-    virtual bool cast(UlamValue & val, UTI typidx);
+    virtual bool needsImmediateType();
 
-    virtual FORECAST safeCast(UTI typidx);
+    virtual const std::string getLocalStorageTypeAsString();
+
+    virtual const std::string getTmpStorageTypeAsString();
+
+    virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
+
+    virtual bool isMinMaxAllowed();
 
     virtual void getDataAsString(const u32 data, char * valstr, char prefix);
 
@@ -75,15 +79,35 @@ namespace MFM{
 
     virtual u64 getDataAsCu64(const u64 data);
 
+    virtual bool cast(UlamValue & val, UTI typidx);
+
+    virtual FORECAST safeCast(UTI typidx);
+
     virtual s32 bitsizeToConvertTypeTo(ULAMTYPE tobUT);
+
+    virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
+
+    virtual void genUlamTypeReadDefinitionForC(File * fp);
+
+    virtual void genUlamTypeWriteDefinitionForC(File * fp);
+
+    virtual const std::string readArrayItemMethodForCodeGen();
+
+    virtual const std::string writeArrayItemMethodForCodeGen();
+
+    virtual void genUlamTypeMangledDefinitionForC(File * fp);
+
+    virtual void genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp);
+
+    virtual void genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp);
 
   private:
 
     virtual bool castTo32(UlamValue & val, UTI typidx);
 
     virtual bool castTo64(UlamValue & val, UTI typidx);
-
   };
 
-} //MFM
-#endif //end ULAMTYPEUNSIGNED_H
+}
+
+#endif //end ULAMTYPEPRIMITIVEVOID_H

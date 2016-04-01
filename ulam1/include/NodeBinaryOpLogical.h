@@ -38,7 +38,7 @@
 
 #include <assert.h>
 #include "NodeBinaryOp.h"
-#include "UlamTypeBool.h"
+#include "UlamTypePrimitiveBool.h"
 #include "NodeCast.h"
 
 namespace MFM{

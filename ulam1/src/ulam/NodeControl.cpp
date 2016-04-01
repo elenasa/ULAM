@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "NodeControl.h"
 #include "CompilerState.h"
-#include "UlamTypeBool.h"
+#include "UlamTypePrimitiveBool.h"
 
 namespace MFM {
 
@@ -236,7 +236,7 @@ namespace MFM {
 	if(m_state.m_genCodingConditionalHas)
 	  {
 	    assert(cut->getUlamTypeEnum() == Bool);
-	    fp->write(((UlamTypeBool *) cut)->getConvertToCboolMethod().c_str());
+	    fp->write(((UlamTypePrimitiveBool *) cut)->getConvertToCboolMethod().c_str());
 	    fp->write("((");
 	    fp->write(m_state.getTmpVarAsString(cuti, uvpass.getPtrSlotIndex()).c_str());
 	    fp->write(" >= 0 ? 1 : 0), "); //test for 'has' pos
@@ -247,7 +247,7 @@ namespace MFM {
 	  {
 	    //regular condition
 	    assert(cut->getUlamTypeEnum() == Bool);
-	    fp->write(((UlamTypeBool *) cut)->getConvertToCboolMethod().c_str());
+	    fp->write(((UlamTypePrimitiveBool *) cut)->getConvertToCboolMethod().c_str());
 	    fp->write("(");
 	    fp->write(m_state.getTmpVarAsString(cuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
 	    fp->write(", ");

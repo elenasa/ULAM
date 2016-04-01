@@ -1,97 +1,97 @@
 #include <iostream>
 #include <stdio.h>
 #include <string.h>
-#include "UlamTypeVoid.h"
+#include "UlamTypePrimitiveVoid.h"
 #include "UlamValue.h"
 #include "CompilerState.h"
 
 namespace MFM {
 
-  UlamTypeVoid::UlamTypeVoid(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypePrimitive(key, state)  {}
+  UlamTypePrimitiveVoid::UlamTypePrimitiveVoid(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypePrimitive(key, state)  {}
 
-   ULAMTYPE UlamTypeVoid::getUlamTypeEnum()
+   ULAMTYPE UlamTypePrimitiveVoid::getUlamTypeEnum()
    {
      return Void;
    }
 
-  const std::string UlamTypeVoid::getUlamTypeMangledName()
+  const std::string UlamTypePrimitiveVoid::getUlamTypeMangledName()
   {
     return "void";
   }
 
-  const std::string UlamTypeVoid::getUlamTypeImmediateMangledName()
+  const std::string UlamTypePrimitiveVoid::getUlamTypeImmediateMangledName()
   {
     return getLocalStorageTypeAsString(); //"void";
   }
 
-  bool UlamTypeVoid::needsImmediateType()
+  bool UlamTypePrimitiveVoid::needsImmediateType()
   {
     return false;
   }
 
-  const std::string UlamTypeVoid::getLocalStorageTypeAsString()
+  const std::string UlamTypePrimitiveVoid::getLocalStorageTypeAsString()
   {
     return "void";
   }
 
-  const std::string UlamTypeVoid::getTmpStorageTypeAsString()
+  const std::string UlamTypePrimitiveVoid::getTmpStorageTypeAsString()
   {
     return "void";
   }
 
-  bool UlamTypeVoid::isMinMaxAllowed()
+  bool UlamTypePrimitiveVoid::isMinMaxAllowed()
   {
     return false;
   }
 
-  void UlamTypeVoid::getDataAsString(const u32 data, char * valstr, char prefix)
+  void UlamTypePrimitiveVoid::getDataAsString(const u32 data, char * valstr, char prefix)
   {
     assert(0);
     sprintf(valstr,"%s", getUlamTypeName().c_str());
   }
 
-  void UlamTypeVoid::getDataLongAsString(const u64 data, char * valstr, char prefix)
+  void UlamTypePrimitiveVoid::getDataLongAsString(const u64 data, char * valstr, char prefix)
   {
     assert(0);
     sprintf(valstr,"%s", getUlamTypeName().c_str());
   }
 
-  s32 UlamTypeVoid::getDataAsCs32(const u32 data)
+  s32 UlamTypePrimitiveVoid::getDataAsCs32(const u32 data)
   {
     assert(0);
     return (s32) data;
   }
 
-  u32 UlamTypeVoid::getDataAsCu32(const u32 data)
+  u32 UlamTypePrimitiveVoid::getDataAsCu32(const u32 data)
   {
     assert(0);
     return data;
   }
 
-  s64 UlamTypeVoid::getDataAsCs64(const u64 data)
+  s64 UlamTypePrimitiveVoid::getDataAsCs64(const u64 data)
   {
     assert(0);
     return (s64) data;
   }
 
-  u64 UlamTypeVoid::getDataAsCu64(const u64 data)
+  u64 UlamTypePrimitiveVoid::getDataAsCu64(const u64 data)
   {
     assert(0);
     return data;
   }
 
-  bool UlamTypeVoid::castTo32(UlamValue & val, UTI typidx)
+  bool UlamTypePrimitiveVoid::castTo32(UlamValue & val, UTI typidx)
   {
     return false;
   } //castTo32
 
-  bool UlamTypeVoid::castTo64(UlamValue & val, UTI typidx)
+  bool UlamTypePrimitiveVoid::castTo64(UlamValue & val, UTI typidx)
   {
     return false;
   }
 
   //anything can be cast to a void (not the reverse)
-  bool UlamTypeVoid::cast(UlamValue & val, UTI typidx)
+  bool UlamTypePrimitiveVoid::cast(UlamValue & val, UTI typidx)
   {
     bool brtn = true;
     UTI valtypidx = val.getUlamValueTypeIdx();
@@ -113,14 +113,14 @@ namespace MFM {
 	val = UlamValue::makeImmediate(typidx, 0, m_state); //overwrite val, no data
 	break;
       default:
-	//std::cerr << "UlamTypeVoid (cast) error! Value Type was: " << valtypidx << std::endl;
+	//std::cerr << "UlamTypePrimitiveVoid (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };
 
     return brtn;
   } //end cast
 
-  FORECAST UlamTypeVoid::safeCast(UTI typidx)
+  FORECAST UlamTypePrimitiveVoid::safeCast(UTI typidx)
   {
     FORECAST scr = UlamType::safeCast(typidx);
     if(scr != CAST_CLEAR)
@@ -143,13 +143,13 @@ namespace MFM {
 	break;
       default:
 	assert(0);
-	//std::cerr << "UlamTypeVoid (cast) error! Value Type was: " << valtypidx << std::endl;
+	//std::cerr << "UlamTypePrimitiveVoid (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };
     return brtn ? CAST_CLEAR : CAST_BAD;
   } //safeCast
 
-  s32 UlamTypeVoid::bitsizeToConvertTypeTo(ULAMTYPE tobUT)
+  s32 UlamTypePrimitiveVoid::bitsizeToConvertTypeTo(ULAMTYPE tobUT)
   {
     u32 tobitsize = UNKNOWNSIZE;
     switch(tobUT)
@@ -168,57 +168,57 @@ namespace MFM {
 	break;
       default:
 	assert(0);
-	//std::cerr << "UlamTypeVoid (convertTo) error! " << tobUT << std::endl;
+	//std::cerr << "UlamTypePrimitiveVoid (convertTo) error! " << tobUT << std::endl;
       };
     return tobitsize;
   } //bitsizeToConvertTypeTo
 
-  void UlamTypeVoid::genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp)
+  void UlamTypePrimitiveVoid::genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp)
   {
     return;
   } //genUlamTypeMangledImmediateModelParameterDefinitionForC
 
-  void UlamTypeVoid::genUlamTypeMangledAutoDefinitionForC(File * fp)
+  void UlamTypePrimitiveVoid::genUlamTypeMangledAutoDefinitionForC(File * fp)
   {
     assert(0);
     return;
   }
 
- void UlamTypeVoid::genUlamTypeReadDefinitionForC(File * fp)
+ void UlamTypePrimitiveVoid::genUlamTypeReadDefinitionForC(File * fp)
   {
     assert(0);
     return;
   }
 
- void UlamTypeVoid::genUlamTypeWriteDefinitionForC(File * fp)
+ void UlamTypePrimitiveVoid::genUlamTypeWriteDefinitionForC(File * fp)
   {
     assert(0);
     return;
   }
 
-  const std::string UlamTypeVoid::readArrayItemMethodForCodeGen()
+  const std::string UlamTypePrimitiveVoid::readArrayItemMethodForCodeGen()
   {
     return "voidreadarrayitemerror";
   }
 
-  const std::string UlamTypeVoid::writeArrayItemMethodForCodeGen()
+  const std::string UlamTypePrimitiveVoid::writeArrayItemMethodForCodeGen()
   {
     return "voidwritearrayitemerror";
   }
 
- void UlamTypeVoid::genUlamTypeMangledDefinitionForC(File * fp)
+ void UlamTypePrimitiveVoid::genUlamTypeMangledDefinitionForC(File * fp)
   {
     assert(0);
     return;
   }
 
- void UlamTypeVoid::genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp)
+ void UlamTypePrimitiveVoid::genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp)
   {
     assert(0);
     return;
   }
 
- void UlamTypeVoid::genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp)
+ void UlamTypePrimitiveVoid::genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp)
   {
     assert(0);
     return;

@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "NodeControlWhile.h"
-#include "UlamTypeBool.h"
+#include "UlamTypePrimitiveBool.h"
 #include "CompilerState.h"
 
 namespace MFM {
@@ -152,7 +152,7 @@ namespace MFM {
     else
       {
 	assert(cut->getUlamTypeEnum() == Bool);
-	fp->write(((UlamTypeBool *) cut)->getConvertToCboolMethod().c_str());
+	fp->write(((UlamTypePrimitiveBool *) cut)->getConvertToCboolMethod().c_str());
 	fp->write("(");
 	fp->write(m_state.getTmpVarAsString(cuti, uvpass.getPtrSlotIndex()).c_str());
 	fp->write(", ");

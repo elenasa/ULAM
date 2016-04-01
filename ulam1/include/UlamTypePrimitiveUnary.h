@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * UlamTypeUnary.h -  Basic handling of the Unary UlamType for ULAM
+ * UlamTypePrimitiveUnary.h -  Basic handling of the Unary Primitive UlamType for ULAM
  *
  * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
  * Copyright (C) 2014-2016 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file UlamTypeUnary.h -  Basic handling of the Unary UlamType for ULAM
+  \file UlamTypePrimitiveUnary.h -  Basic handling of the Unary Primitive UlamType for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2016 All rights reserved.
@@ -34,8 +34,8 @@
 */
 
 
-#ifndef ULAMTYPEUNARY_H
-#define ULAMTYPEUNARY_H
+#ifndef ULAMTYPEPRIMITIVEUNARY_H
+#define ULAMTYPEPRIMITIVEUNARY_H
 
 #include "UlamTypePrimitive.h"
 
@@ -43,19 +43,17 @@ namespace MFM{
 
   class CompilerState; //forward
 
-  class UlamTypeUnary : public UlamTypePrimitive
+  class UlamTypePrimitiveUnary : public UlamTypePrimitive
   {
   public:
 
-    UlamTypeUnary(const UlamKeyTypeSignature key, CompilerState& state);
+    UlamTypePrimitiveUnary(const UlamKeyTypeSignature key, CompilerState& state);
 
-    virtual ~UlamTypeUnary(){}
+    virtual ~UlamTypePrimitiveUnary(){}
 
     virtual ULAMTYPE getUlamTypeEnum();
 
     virtual bool isNumericType();
-
-    //virtual bool isPrimitiveType();
 
     virtual bool cast(UlamValue & val, UTI typidx);
 
@@ -85,4 +83,4 @@ namespace MFM{
   };
 
 } //MFM
-#endif //end ULAMTYPEUNARY_H
+#endif //end ULAMTYPEPRIMITIVEUNARY_H

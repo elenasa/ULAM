@@ -8,21 +8,21 @@
 #include "SymbolTypedef.h"
 #include "SymbolVariable.h"
 #include "UlamTypeAtom.h"
-#include "UlamTypeBits.h"
-#include "UlamTypeBool.h"
+#include "UlamTypePrimitiveBits.h"
+#include "UlamTypePrimitiveBool.h"
 #include "UlamTypeClass.h"
 #include "UlamTypeClassElement.h"
 #include "UlamTypeClassQuark.h"
 #include "UlamTypeClassTransient.h"
 #include "UlamTypeHolder.h"
 #include "UlamTypeHzy.h"
-#include "UlamTypeInt.h"
+#include "UlamTypePrimitiveInt.h"
 #include "UlamTypeNav.h"
 #include "UlamTypeNouti.h"
 #include "UlamTypePtr.h"
-#include "UlamTypeUnary.h"
-#include "UlamTypeUnsigned.h"
-#include "UlamTypeVoid.h"
+#include "UlamTypePrimitiveUnary.h"
+#include "UlamTypePrimitiveUnsigned.h"
+#include "UlamTypePrimitiveVoid.h"
 
 namespace MFM {
 
@@ -470,22 +470,22 @@ namespace MFM {
 	ut = new UlamTypeHzy(key, *this);
 	break;
       case Void:
-	ut = new UlamTypeVoid(key, *this);
+	ut = new UlamTypePrimitiveVoid(key, *this);
 	break;
       case Int:
-	ut = new UlamTypeInt(key, *this);
+	ut = new UlamTypePrimitiveInt(key, *this);
 	break;
       case Unsigned:
-	ut = new UlamTypeUnsigned(key, *this);
+	ut = new UlamTypePrimitiveUnsigned(key, *this);
 	break;
       case Bool:
-	ut = new UlamTypeBool(key, *this);
+	ut = new UlamTypePrimitiveBool(key, *this);
 	break;
       case Unary:
-	ut = new UlamTypeUnary(key, *this);
+	ut = new UlamTypePrimitiveUnary(key, *this);
 	break;
       case Bits:
-	ut = new UlamTypeBits(key, *this);
+	ut = new UlamTypePrimitiveBits(key, *this);
 	break;
       case Class:
 	{

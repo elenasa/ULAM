@@ -2,13 +2,13 @@
 #include <sstream>
 #include <stdio.h>
 #include <string.h>
-#include "UlamTypeBits.h"
+#include "UlamTypePrimitiveBits.h"
 #include "UlamValue.h"
 #include "CompilerState.h"
 
 namespace MFM {
 
-  UlamTypeBits::UlamTypeBits(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypePrimitive(key, state)
+  UlamTypePrimitiveBits::UlamTypePrimitiveBits(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypePrimitive(key, state)
   {
     s32 bitsize = getBitSize();
     if(bitsize <= 0)
@@ -33,17 +33,17 @@ namespace MFM {
       assert(0);
   }
 
-   ULAMTYPE UlamTypeBits::getUlamTypeEnum()
+   ULAMTYPE UlamTypePrimitiveBits::getUlamTypeEnum()
    {
      return Bits;
    }
 
-   bool UlamTypeBits::isMinMaxAllowed()
+   bool UlamTypePrimitiveBits::isMinMaxAllowed()
   {
     return false;
   }
 
-  bool UlamTypeBits::cast(UlamValue & val, UTI typidx)
+  bool UlamTypePrimitiveBits::cast(UlamValue & val, UTI typidx)
   {
     bool brtn = true;
     assert(m_state.getUlamTypeByIndex(typidx) == this);
@@ -79,7 +79,7 @@ namespace MFM {
     return brtn;
   } //cast
 
-  bool UlamTypeBits::castTo32(UlamValue & val, UTI typidx)
+  bool UlamTypePrimitiveBits::castTo32(UlamValue & val, UTI typidx)
   {
     bool brtn = true;
     UTI valtypidx = val.getUlamValueTypeIdx();
@@ -105,7 +105,7 @@ namespace MFM {
     return brtn;
   } //castTo32
 
-  bool UlamTypeBits::castTo64(UlamValue & val, UTI typidx)
+  bool UlamTypePrimitiveBits::castTo64(UlamValue & val, UTI typidx)
   {
     bool brtn = true;
     UTI valtypidx = val.getUlamValueTypeIdx();
@@ -138,7 +138,7 @@ namespace MFM {
     return brtn;
   } //castTo64
 
-  FORECAST UlamTypeBits::safeCast(UTI typidx)
+  FORECAST UlamTypePrimitiveBits::safeCast(UTI typidx)
   {
     FORECAST scr = UlamType::safeCast(typidx);
     if(scr != CAST_CLEAR)
@@ -180,13 +180,13 @@ namespace MFM {
 	break;
       default:
 	assert(0);
-	//std::cerr << "UlamTypeBits (cast) error! Value Type was: " << valtypidx << std::endl;
+	//std::cerr << "UlamTypePrimitiveBits (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };
     return brtn ? CAST_CLEAR : CAST_BAD;
   } //safeCast
 
-  void UlamTypeBits::getDataAsString(const u32 data, char * valstr, char prefix)
+  void UlamTypePrimitiveBits::getDataAsString(const u32 data, char * valstr, char prefix)
   {
     if(prefix == 'z')
       sprintf(valstr,"%u", data);
@@ -194,7 +194,7 @@ namespace MFM {
       sprintf(valstr,"%c%u", prefix, data);
   }
 
-  void UlamTypeBits::getDataLongAsString(const u64 data, char * valstr, char prefix)
+  void UlamTypePrimitiveBits::getDataLongAsString(const u64 data, char * valstr, char prefix)
   {
     if(prefix == 'z')
       sprintf(valstr,"%s", ToUnsignedDecimal(data).c_str());
@@ -202,27 +202,27 @@ namespace MFM {
       sprintf(valstr,"%c%s", prefix, ToUnsignedDecimal(data).c_str());
   }
 
-  s32 UlamTypeBits::getDataAsCs32(const u32 data)
+  s32 UlamTypePrimitiveBits::getDataAsCs32(const u32 data)
   {
     return _Bits32ToCs32(data, getBitSize());
   }
 
-  u32 UlamTypeBits::getDataAsCu32(const u32 data)
+  u32 UlamTypePrimitiveBits::getDataAsCu32(const u32 data)
   {
     return _Bits32ToCu32(data, getBitSize());
   }
 
-  s64 UlamTypeBits::getDataAsCs64(const u64 data)
+  s64 UlamTypePrimitiveBits::getDataAsCs64(const u64 data)
   {
     return _Bits64ToCs64(data, getBitSize());
   }
 
-  u64 UlamTypeBits::getDataAsCu64(const u64 data)
+  u64 UlamTypePrimitiveBits::getDataAsCu64(const u64 data)
   {
     return _Bits64ToCu64(data, getBitSize());
   }
 
-  s32 UlamTypeBits::bitsizeToConvertTypeTo(ULAMTYPE tobUT)
+  s32 UlamTypePrimitiveBits::bitsizeToConvertTypeTo(ULAMTYPE tobUT)
   {
     s32 bitsize = getBitSize();
     s32 tobitsize = UNKNOWNSIZE;
@@ -244,7 +244,7 @@ namespace MFM {
 	break;
       default:
 	assert(0);
-	//std::cerr << "UlamTypeBits (convertTo) error! " << tobUT << std::endl;
+	//std::cerr << "UlamTypePrimitiveBits (convertTo) error! " << tobUT << std::endl;
       };
     return (tobitsize > wordsize ? wordsize : tobitsize);
   } //bitsizeToConvertTypeTo

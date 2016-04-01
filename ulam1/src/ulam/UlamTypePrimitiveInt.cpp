@@ -2,13 +2,13 @@
 #include <sstream>
 #include <stdio.h>
 #include <string.h>
-#include "UlamTypeInt.h"
+#include "UlamTypePrimitiveInt.h"
 #include "UlamValue.h"
 #include "CompilerState.h"
 
 namespace MFM {
 
-  UlamTypeInt::UlamTypeInt(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypePrimitive(key, state)
+  UlamTypePrimitiveInt::UlamTypePrimitiveInt(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypePrimitive(key, state)
   {
     s32 bitsize = getBitSize();
     if(bitsize <= 0)
@@ -33,17 +33,17 @@ namespace MFM {
       assert(0);
   }
 
-   ULAMTYPE UlamTypeInt::getUlamTypeEnum()
+   ULAMTYPE UlamTypePrimitiveInt::getUlamTypeEnum()
    {
      return Int;
    }
 
-  bool UlamTypeInt::isNumericType()
+  bool UlamTypePrimitiveInt::isNumericType()
   {
     return true;
   }
 
-  bool UlamTypeInt::cast(UlamValue & val, UTI typidx)
+  bool UlamTypePrimitiveInt::cast(UlamValue & val, UTI typidx)
   {
     bool brtn = true;
     assert(m_state.getUlamTypeByIndex(typidx) == this);
@@ -79,7 +79,7 @@ namespace MFM {
     return brtn;
   } //cast
 
-  bool UlamTypeInt::castTo32(UlamValue & val, UTI typidx)
+  bool UlamTypePrimitiveInt::castTo32(UlamValue & val, UTI typidx)
   {
     bool brtn = true;
     UTI valtypidx = val.getUlamValueTypeIdx();
@@ -111,7 +111,7 @@ namespace MFM {
 	break;
       case Void:
       default:
-	//std::cerr << "UlamTypeInt (cast) error! Value Type was: " << valtypidx << std::endl;
+	//std::cerr << "UlamTypePrimitiveInt (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };
 
@@ -120,7 +120,7 @@ namespace MFM {
     return brtn;
   } //castTo32
 
-  bool UlamTypeInt::castTo64(UlamValue & val, UTI typidx)
+  bool UlamTypePrimitiveInt::castTo64(UlamValue & val, UTI typidx)
   {
     bool brtn = true;
     UTI valtypidx = val.getUlamValueTypeIdx();
@@ -160,7 +160,7 @@ namespace MFM {
 	break;
       case Void:
       default:
-	//std::cerr << "UlamTypeInt (cast) error! Value Type was: " << valtypidx << std::endl;
+	//std::cerr << "UlamTypePrimitiveInt (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };
 
@@ -177,7 +177,7 @@ namespace MFM {
     return brtn;
   } //castTo64
 
-  FORECAST UlamTypeInt::safeCast(UTI typidx)
+  FORECAST UlamTypePrimitiveInt::safeCast(UTI typidx)
   {
     FORECAST scr = UlamType::safeCast(typidx);
     if(scr != CAST_CLEAR)
@@ -224,13 +224,13 @@ namespace MFM {
 	break;
       default:
 	assert(0);
-	//std::cerr << "UlamTypeInt (cast) error! Value Type was: " << valtypidx << std::endl;
+	//std::cerr << "UlamTypePrimitiveInt (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };
     return brtn ? CAST_CLEAR : CAST_BAD;
   } //safeCast
 
-  void UlamTypeInt::getDataAsString(const u32 data, char * valstr, char prefix)
+  void UlamTypePrimitiveInt::getDataAsString(const u32 data, char * valstr, char prefix)
   {
     if(prefix == 'z')
       sprintf(valstr,"%d", data);
@@ -238,7 +238,7 @@ namespace MFM {
       sprintf(valstr,"%c%d", prefix, data);
   }
 
-  void UlamTypeInt::getDataLongAsString(const u64 data, char * valstr, char prefix)
+  void UlamTypePrimitiveInt::getDataLongAsString(const u64 data, char * valstr, char prefix)
   {
     if(prefix == 'z')
       sprintf(valstr,"%s", ToSignedDecimal(data).c_str());
@@ -246,12 +246,12 @@ namespace MFM {
       sprintf(valstr,"%c%s", prefix, ToSignedDecimal(data).c_str());
   }
 
-  s32 UlamTypeInt::getDataAsCs32(const u32 data)
+  s32 UlamTypePrimitiveInt::getDataAsCs32(const u32 data)
   {
     return _Int32ToCs32(data, getBitSize());
   }
 
-  u32 UlamTypeInt::getDataAsCu32(const u32 data)
+  u32 UlamTypePrimitiveInt::getDataAsCu32(const u32 data)
   {
     s32 bitsize = getBitSize();
     assert(bitsize > 0);
@@ -259,12 +259,12 @@ namespace MFM {
     return _Unsigned32ToCu32(cdata, (u32) bitsize);
   }
 
-  s64 UlamTypeInt::getDataAsCs64(const u64 data)
+  s64 UlamTypePrimitiveInt::getDataAsCs64(const u64 data)
   {
     return _Int64ToCs64(data, getBitSize());
   }
 
-  u64 UlamTypeInt::getDataAsCu64(const u64 data)
+  u64 UlamTypePrimitiveInt::getDataAsCu64(const u64 data)
   {
     s32 bitsize = getBitSize();
     assert(bitsize > 0);
@@ -272,7 +272,7 @@ namespace MFM {
     return _Unsigned64ToCu64(cdata, (u32) bitsize);
   }
 
-  s32 UlamTypeInt::bitsizeToConvertTypeTo(ULAMTYPE tobUT)
+  s32 UlamTypePrimitiveInt::bitsizeToConvertTypeTo(ULAMTYPE tobUT)
   {
     s32 bitsize = getBitSize();
     s32 tobitsize = UNKNOWNSIZE;
@@ -300,7 +300,7 @@ namespace MFM {
 	break;
       default:
 	assert(0);
-	//std::cerr << "UlamTypeInt (convertTo) error! " << tobUT << std::endl;
+	//std::cerr << "UlamTypePrimitiveInt (convertTo) error! " << tobUT << std::endl;
       };
     return (tobitsize > wordsize ? wordsize : tobitsize);
   } //bitsizeToConvertTypeTo
