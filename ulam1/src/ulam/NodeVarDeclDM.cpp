@@ -753,7 +753,7 @@ namespace MFM {
 	// except if an array of quarks.
 	fp->write("typedef ");
 	fp->write(nut->getUlamTypeMangledName().c_str()); //for C++
-	fp->write("<EC>");
+	fp->write("<EC> ");
 	fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
 	fp->write("; //offset ");
 	fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
@@ -776,7 +776,7 @@ namespace MFM {
 
 	fp->write("u, ");
 	fp->write_decimal(nut->getTotalBitSize()); //include arraysize
-	fp->write("> ");
+	fp->write("u> ");
 
 	fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
 	fp->write(";\n"); //func call parameters aren't NodeVarDecl's

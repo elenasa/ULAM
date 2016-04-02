@@ -90,7 +90,7 @@ namespace MFM {
     std::ostringstream ctype;
     ctype << getUlamTypeImmediateMangledName();
 
-    ctype << "<EC, " << getTotalBitSize() << ">"; //default local quarks
+    ctype << "<EC, " << getTotalWordSize() << ">"; //default local quarks
     return ctype.str();
   } //getLocalStorageTypeAsString
 
@@ -291,11 +291,13 @@ namespace MFM {
   void UlamTypeClassTransient::genUlamTypeMangledDefinitionForC(File * fp)
   {
     //builds the immediate definition, inheriting from auto
-    assert((getUlamClassType() == UC_QUARK));
+    //assert((getUlamClassType() == UC_QUARK));
 
-    s32 len = getTotalBitSize(); //could be 0, includes arrays
-    if(len > (BITSPERATOM - ATOMFIRSTSTATEBITPOS))
-      return genUlamTypeMangledUnpackedArrayDefinitionForC(fp);
+    //s32 len = getTotalBitSize(); //could be 0, includes arrays
+    //if(len > (BITSPERATOM - ATOMFIRSTSTATEBITPOS))
+    //  return genUlamTypeMangledUnpackedArrayDefinitionForC(fp);
+
+    s32 wordsize = getTotalWordSize(); //could be 0, includes arrays
 
     //class instance idx is always the scalar uti
     UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
@@ -325,16 +327,14 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
 
     m_state.indent(fp);
-    fp->write("template<class EC>\n");
+    fp->write("template<class EC, u32 TEES>\n");
     m_state.indent(fp);
     fp->write("struct ");
     fp->write(mangledName.c_str());
     fp->write(" : public ");
     //let's see if gcc can make use of these extra template args for immediate primitives
-    fp->write("UlamRefFixed");
-    fp->write("<EC, 0u, "); //left-just pos
-    fp->write_decimal_unsigned(len);
-    fp->write("u>\n");
+    fp->write("UlamTransient");
+    fp->write("<EC, TEES>\n ");
 
     m_state.indent(fp);
     fp->write("{\n");
@@ -350,73 +350,24 @@ namespace MFM {
     fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
     fp->write("\n");
 
-    //quark typedef
+    //typedef bitfield inside struct
     m_state.indent(fp);
     fp->write("typedef ");
     fp->write(scalarmangledName.c_str());
-    fp->write("<EC> Us;\n");
+    fp->write("<EC, ");
+    fp->write_decimal(wordsize);
+    fp->write("> Us;\n");
 
     m_state.indent(fp);
-    fp->write("typedef UlamRefFixed"); //was atomicparametertype
-    fp->write("<EC, 0u, "); //BITSPERATOM
-    fp->write_decimal_unsigned(len); //includes arraysize
-    fp->write("u> Up_Us;\n");
+    fp->write("typedef T TransientStorage[TEES]\n");
 
     //storage here in atom
     m_state.indent(fp);
-    fp->write("T m_stg;  //storage here!\n");
-
-    //default constructor (used by local vars)
-    //(unlike element) call build default in case of initialized data members
-    u32 dqval = 0;
-    bool hasDQ = genUlamTypeDefaultQuarkConstant(fp, dqval);
+    fp->write("TransientStorage m_tstg;  //storage here!\n");
 
     m_state.indent(fp);
     fp->write(mangledName.c_str());
-    fp->write("() : ");
-    fp->write("Up_Us(m_stg, &");
-    fp->write("Us::THE_INSTANCE), ");
-    fp->write("m_stg(T::ATOM_UNDEFINED_TYPE) { "); //for immediate quarks
-    if(hasDQ)
-      {
-	if(isScalar())
-	  {
-	    fp->write("Up_Us::Write(DEFAULT_QUARK);");
-	  }
-	else
-	  {
-	    //very packed array
-	    if(len <= MAXBITSPERINT)
-	      {
-		u32 bitsize = getBitSize();
-		u32 dqarrval = 0;
-		u32 pos = 0;
-		u32 mask = _GetNOnes32((u32) bitsize);
-		u32 arraysize = getArraySize();
-		dqval &= mask;
-		//similar to build default quark value in NodeVarDeclDM
-		for(u32 j = 1; j <= arraysize; j++)
-		  {
-		    dqarrval |= (dqval << (len - (pos + (j * bitsize))));
-		  }
-
-		std::ostringstream qdhex;
-		qdhex << "0x" << std::hex << dqarrval;
-		fp->write("Up_Us::Write(");
-		fp->write(qdhex.str().c_str());
-		fp->write(");");
-	      }
-	    else
-	      {
-		fp->write("u32 n = ");
-		fp->write_decimal(getArraySize());
-		fp->write("u; while(n--) { ");
-		fp->write("writeArrayItem(DEFAULT_QUARK, n, ");
-		fp->write_decimal_unsigned(getBitSize());
-		fp->write("u); }");
-	      }
-	  }
-      } //hasDQ
+    fp->write("() {");
     fp->write(" }\n");
 
     //constructor here (used by const tmpVars)
