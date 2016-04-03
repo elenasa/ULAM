@@ -691,8 +691,8 @@ namespace MFM {
 	  {
 	    //use built in immediate arrayitem method instead
 	    fp->write("UlamRef<EC>("); //wrapper for array item
-	    fp->write(stgcos->getMangledName().c_str());
-	    fp->write(", ");
+	    //fp->write(stgcos->getMangledName().c_str());
+	    //fp->write(", ");
 	    fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
 	    fp->write(" + ");
 	    fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex()).c_str()); //INDEX
@@ -701,6 +701,9 @@ namespace MFM {
 	    fp->write("u, ");
 	    fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
 	    fp->write("u, ");
+	    fp->write(stgcos->getMangledName().c_str()); //storage
+	    fp->write(", ");
+
 	    if(cosetype == Class)
 	      {
 		fp->write("&");
@@ -1156,8 +1159,8 @@ namespace MFM {
 	    //local
 	    m_state.indent(fp);
 	    fp->write("UlamRef<EC>("); //wrapper for array item
-	    fp->write(stgcos->getMangledName().c_str());
-	    fp->write(", ");
+	    //fp->write(stgcos->getMangledName().c_str());
+	    //fp->write(", ");
 	    fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
 	    fp->write(" + ");
 	    fp->write(m_state.getTmpVarAsString(luti, luvpass.getPtrSlotIndex()).c_str()); //INDEX
@@ -1166,6 +1169,9 @@ namespace MFM {
 	    fp->write("u, ");
 	    fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
 	    fp->write("u, ");
+	    fp->write(stgcos->getMangledName().c_str()); //storage
+	    fp->write(", ");
+
 	    if(cosetype == Class)
 	      {
 		fp->write("&");

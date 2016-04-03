@@ -33,6 +33,8 @@ namespace MFM {
 
   const std::string SymbolVariableStack::getMangledPrefix()
   {
+    if(getAutoLocalType() == ALT_REF)
+      return "Ur_";
     return "Uv_";
   }
 
