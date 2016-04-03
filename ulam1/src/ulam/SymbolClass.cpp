@@ -637,8 +637,10 @@ namespace MFM {
 	    fp->write("tile.PlaceAtom(atom, center);\n");
 
 	    m_state.indent(fp);
-	    //UlamRefAtom<EC> ur(window.GetCenterAtomSym(), this); //from UlamElement.tc
-	    fp->write("UlamRefAtom<EC> ur(atom, &");
+	    fp->write("AtomBitStorage<EC> atbs(atom);\n");
+
+	    m_state.indent(fp);
+	    fp->write("UlamRefAtom<EC> ur(atbs, &");
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
 	    fp->write(");\n");
 

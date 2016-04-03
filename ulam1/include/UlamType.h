@@ -143,9 +143,9 @@ namespace MFM{
 
     virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
 
-    virtual void genUlamTypeReadDefinitionForC(File * fp);
+    virtual void genUlamTypeAutoReadDefinitionForC(File * fp);
 
-    virtual void genUlamTypeWriteDefinitionForC(File * fp);
+    virtual void genUlamTypeAutoWriteDefinitionForC(File * fp);
 
     static const char * getUlamTypeEnumCodeChar(ULAMTYPE etype);
 
@@ -209,6 +209,10 @@ namespace MFM{
     virtual const std::string writeArrayItemMethodForCodeGen();
 
     virtual void genUlamTypeMangledDefinitionForC(File * fp);
+
+    virtual void genUlamTypeReadDefinitionForC(File * fp);
+
+    virtual void genUlamTypeWriteDefinitionForC(File * fp);
 
     virtual void genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp);
 

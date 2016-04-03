@@ -389,6 +389,16 @@ namespace MFM {
     assert(0); //see UlamTypePrimitive
   } //genUlamTypeMangledAutoDefinitionForC
 
+  void UlamType::genUlamTypeAutoReadDefinitionForC(File * fp)
+  {
+    assert(0);
+  }
+
+  void UlamType::genUlamTypeAutoWriteDefinitionForC(File * fp)
+  {
+    assert(0);
+  }
+
   const char * UlamType::getUlamTypeEnumCodeChar(ULAMTYPE etype)
   {
     return utype_primitivecode[etype]; //static method
@@ -806,6 +816,12 @@ namespace MFM {
     return method;
   } //writeArrayItemMethodForCodeGen()
 
+  //generates immediates with local storage
+  void UlamType::genUlamTypeMangledDefinitionForC(File * fp)
+  {
+    assert(0);
+  } //genUlamTypeMangledDefinitionForC
+
   void UlamType::genUlamTypeReadDefinitionForC(File * fp)
   {
     assert(0);
@@ -815,12 +831,6 @@ namespace MFM {
   {
     assert(0);
   }
-
-  //generates immediates with local storage
-  void UlamType::genUlamTypeMangledDefinitionForC(File * fp)
-  {
-    assert(0);
-  } //genUlamTypeMangledDefinitionForC
 
   void UlamType::genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp)
   {

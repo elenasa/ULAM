@@ -375,10 +375,7 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write("(const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
-    fp->write(" d) : ");
-    fp->write("Up_Us(m_stg, &");
-    fp->write("Us::THE_INSTANCE), "); //effself
-    fp->write("m_stg(T::ATOM_UNDEFINED_TYPE) { "); //for immediate quarks
+    fp->write(" d) ");
     fp->write("Up_Us::Write(d); }\n");
 
     // assignment constructor

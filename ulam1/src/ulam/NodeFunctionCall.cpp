@@ -1088,16 +1088,17 @@ namespace MFM {
 
 		//new ur to reflect "effective" self and storage for this funccall
 		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
-		hiddenarg2 << stgcos->getMangledName().c_str();
-		hiddenarg2 << ", " ;
+		//hiddenarg2 << stgcos->getMangledName().c_str();
+		//hiddenarg2 << ", " ;
 
 		if(cos->isDataMember()) //dm of local stgcos
 		  hiddenarg2 << Node::calcPosOfCurrentObjectClasses(); //relative off;
 		else
 		  hiddenarg2 << "0";
 
-		hiddenarg2 << "u, " << cosut->getTotalBitSize(); //len
-		hiddenarg2 << "u, &";
+		hiddenarg2 << "u, " << cosut->getTotalBitSize() << "u, "; //len
+		hiddenarg2 << stgcos->getMangledName().c_str();
+		hiddenarg2 << ", &";
 		hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str();
 		hiddenarg2 << ");";
 	      }

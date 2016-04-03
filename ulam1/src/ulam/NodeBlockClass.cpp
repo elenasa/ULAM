@@ -1418,8 +1418,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.m_currentIndentLevel++;
 
     m_state.indent(fp);
-    fp->write("T da = Element<EC>::BuildDefaultAtom();\n\n");
+    fp->write("T dat = Element<EC>::BuildDefaultAtom();\n");
 
+    m_state.indent(fp);
+    fp->write("AtomBitStorage<EC> da(dat);\n");
+    fp->write("\n");
     m_state.indent(fp);
     fp->write("// Initialize any data members:\n");
 
@@ -1429,7 +1432,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("\n");
     m_state.indent(fp);
     fp->write("return ");
-    fp->write("(da);\n");
+    fp->write("(dat);\n");
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
