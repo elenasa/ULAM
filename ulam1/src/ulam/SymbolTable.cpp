@@ -390,6 +390,7 @@ namespace MFM {
   void SymbolTable::genCodeBuiltInFunctionBuildDefaultsOverTableOfVariableDataMember(File * fp, UTI cuti)
   {
     bool useFullClassName = (cuti != m_state.getCompileThisIdx()); //from its superclass
+    u32 classorigin = 0;
 
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
@@ -420,9 +421,11 @@ namespace MFM {
 			m_state.indent(fp);
 			fp->write("UlamRef<EC>("); //open wrapper
 			fp->write_decimal_unsigned(sym->getPosOffset()); //rel offset
-			fp->write(", ");
+			fp->write("u, ");
 			fp->write_decimal_unsigned(sut->getBitSize()); //len
-			fp->write(", da, &");
+			fp->write("u, ");
+			fp->write_decimal_unsigned(classorigin); //origin
+			fp->write("u, da, &");
 			fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
 			fp->write(")."); //close wrapper
 			fp->write(sut->writeMethodForCodeGen().c_str());
@@ -464,6 +467,8 @@ namespace MFM {
 			    fp->write_decimal_unsigned(j * itemlen); //rel offset
 			    fp->write("u, ");
 			    fp->write_decimal_unsigned(itemlen); //len
+			    fp->write("u, ");
+			    fp->write_decimal_unsigned(classorigin); //origin
 			    fp->write("u, da, &");
 			    fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalaruti).c_str());
 			    fp->write(").");
@@ -484,6 +489,7 @@ namespace MFM {
 	      } //quark
 	    else if(((SymbolVariableDataMember*)sym)->hasInitValue())
 	      {
+		assert(sut->getUlamClassType() == UC_NOTACLASS);
 		//neither typedef, nor model parameter, nor named constant
 		// but does this data member have an initialization value?
 		// o.w. zero
@@ -499,13 +505,20 @@ namespace MFM {
 		    fp->write("<EC>::");
 		  }
 		fp->write(sym->getMangledNameForParameterType().c_str());
-		fp->write("(da, &");
+		fp->write("(da, 0u, ");
+
+#if 0
+		//not a class
+		fp->write("&");
 		if(useFullClassName)
 		  {
 		    fp->write(m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamTypeMangledName().c_str()); //effself
 		    fp->write("<EC>::");
 		  }
 		fp->write("THE_INSTANCE).");
+#endif
+		fp->write(" NULL)."); //non-class
+
 		fp->write(sut->writeMethodForCodeGen().c_str());
 		fp->write("(");
 		fp->write_decimal_unsignedlong(val);
@@ -922,9 +935,9 @@ namespace MFM {
 		  {
 		    u32 wordsize = m_state.getTotalWordSize(suti);
 		    if(wordsize <= MAXBITSPERINT)
-		      uvsite.putData(pos + ATOMFIRSTSTATEBITPOS, bitsize, (u32) dval);
+		      uvsite.putData(pos, bitsize, (u32) dval); //absolute pos
 		    else if(wordsize <= MAXBITSPERLONG)
-		      uvsite.putDataLong(pos + ATOMFIRSTSTATEBITPOS, bitsize, dval);
+		      uvsite.putDataLong(pos, bitsize, dval); //absolute pos
 		    else
 		      assert(0);
 		  }
@@ -942,7 +955,7 @@ namespace MFM {
 		    s32 arraysize = m_state.getArraySize(suti);
 		    arraysize = (arraysize == NONARRAYSIZE ? 1 : arraysize);
 		    for(s32 i = 0; i < arraysize; i++)
-		      uvsite.putData(pos + ATOMFIRSTSTATEBITPOS + i * bitsize, bitsize, dval);
+		      uvsite.putData(pos + i * bitsize, bitsize, dval); //absolute pos
 		  }
 	      }
 	  }

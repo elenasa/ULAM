@@ -45,18 +45,18 @@ namespace MFM {
 	ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
 	if(vclasstype == UC_ELEMENT)
 	  {
-	    s32 pos = 0; //ancestors start at first state bit pos
+	    s32 pos = ATOMFIRSTSTATEBITPOS; //ancestors start at first state bit pos
 	    s32 len = getTotalBitSize();
 	    assert(len != UNKNOWNSIZE);
 	    if(len <= MAXBITSPERINT)
 	      {
-		u32 qdata = val.getDataFromAtom(pos + ATOMFIRSTSTATEBITPOS, len);
+		u32 qdata = val.getDataFromAtom(pos, len);
 		val = UlamValue::makeImmediateQuark(typidx, qdata, len);
 	      }
 	    else if(len <= MAXBITSPERLONG)
 	      {
 		assert(0); //quarks are max 32 bits
-		u64 qdata = val.getDataLongFromAtom(pos + ATOMFIRSTSTATEBITPOS, len);
+		u64 qdata = val.getDataLongFromAtom(pos, len);
 		val = UlamValue::makeImmediateLong(typidx, qdata, len);
 	      }
 	    else
@@ -154,8 +154,9 @@ namespace MFM {
     s32 len = getTotalBitSize(); //could be 0, includes arrays
     s32 bitsize = getBitSize();
 
-    if(len > (BITSPERATOM - ATOMFIRSTSTATEBITPOS))
-      return genUlamTypeMangledUnpackedArrayAutoDefinitionForC(fp);
+    //(deprecated)
+    //if(len > (BITSPERATOM - ATOMFIRSTSTATEBITPOS))
+    //  return genUlamTypeMangledUnpackedArrayAutoDefinitionForC(fp);
 
     //class instance idx is always the scalar uti
     UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
@@ -224,13 +225,14 @@ namespace MFM {
     //fp->write("typedef UlamRef"); //was atomicparametertype
     //fp->write("<EC> Up_Us;\n");
 
-    // see UlamClass.h for AutoRefBase
     //constructor for conditional-as (auto)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(BitStorage<EC>& targ, u32 idx, const UlamClass<EC>* effself) : UlamRef<EC>");
     fp->write("(idx, "); //the real pos!!!
     fp->write_decimal_unsigned(len); //includes arraysize
+    fp->write("u, ");
+    fp->write_decimal_unsigned(len); //origin n/a
     fp->write("u, targ, effself) { }\n");
 
     //constructor for chain of autorefs (e.g. memberselect with array item)
@@ -329,8 +331,9 @@ namespace MFM {
     s32 len = getTotalBitSize(); //could be 0, includes arrays
     u32 bitsize = getBitSize();
 
-    if(len > (BITSPERATOM - ATOMFIRSTSTATEBITPOS))
-      return genUlamTypeMangledUnpackedArrayDefinitionForC(fp);
+    //(deprecated)
+    //if(len > (BITSPERATOM - ATOMFIRSTSTATEBITPOS))
+    //  return genUlamTypeMangledUnpackedArrayDefinitionForC(fp);
 
     //class instance idx is always the scalar uti
     UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();

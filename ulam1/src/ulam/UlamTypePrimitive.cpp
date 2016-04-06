@@ -195,8 +195,8 @@ namespace MFM {
   {
     s32 len = getTotalBitSize();
 
-    if(len > (BITSPERATOM - ATOMFIRSTSTATEBITPOS))
-      return genUlamTypeMangledUnpackedArrayAutoDefinitionForC(fp);
+    //if(len > (BITSPERATOM - ATOMFIRSTSTATEBITPOS))
+    //  return genUlamTypeMangledUnpackedArrayAutoDefinitionForC(fp);
 
     m_state.m_currentIndentLevel = 0;
     const std::string automangledName = getUlamTypeImmediateAutoMangledName();
@@ -241,13 +241,12 @@ namespace MFM {
     fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
     fp->write("\n");
 
-    // see UlamClass.h for AutoRefBase
     //constructor for ref (auto)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(BitStorage<EC>& targ, u32 idx) : UlamRef<EC>(idx, ");
+    fp->write("(BitStorage<EC>& targ, u32 idx, u32 origin) : UlamRef<EC>(idx, ");
     fp->write_decimal_unsigned(len); //includes arraysize
-    fp->write("u, targ, NULL) { }\n"); //effself is null for primitives
+    fp->write("u, origin, targ, NULL) { }\n"); //effself is null for primitives
 
     //constructor for chain of autorefs (e.g. memberselect with array item)
     m_state.indent(fp);
@@ -256,10 +255,8 @@ namespace MFM {
     fp->write_decimal_unsigned(len); //includes arraysize
     fp->write("u, NULL) { }\n"); //effself is null for primitives
 
-    //calls slow AutoRefBase read method
     genUlamTypeAutoReadDefinitionForC(fp);
 
-    //calls slow AutoRefBase write method
     genUlamTypeAutoWriteDefinitionForC(fp);
 
     m_state.m_currentIndentLevel--;
@@ -455,8 +452,8 @@ namespace MFM {
   {
     u32 len = getTotalBitSize(); //could be 0, includes arrays
 
-    if(len > (BITSPERATOM - ATOMFIRSTSTATEBITPOS))
-      return genUlamTypeMangledUnpackedArrayDefinitionForC(fp); //no auto, just immediate
+    //if(len > (BITSPERATOM - ATOMFIRSTSTATEBITPOS))
+    //  return genUlamTypeMangledUnpackedArrayDefinitionForC(fp); //no auto, just immediate
 
     m_state.m_currentIndentLevel = 0;
     const std::string mangledName = getUlamTypeImmediateMangledName();
@@ -625,6 +622,7 @@ namespace MFM {
       }
   } //genUlamTypeWriteDefinitionForC
 
+  //(redundant for primitives)
   void UlamTypePrimitive::genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp)
   {
     m_state.m_currentIndentLevel = 0;
@@ -790,6 +788,7 @@ namespace MFM {
     fp->write(" */\n\n");
   } //genUlamTypeMangledUnpackedArrayAutoDefinitionForC
 
+  //(redundant for primitives)
   void UlamTypePrimitive::genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp)
   {
     m_state.m_currentIndentLevel = 0;
@@ -851,7 +850,9 @@ namespace MFM {
 
     //Unpacked, storage reference T (&) [N]
     m_state.indent(fp);
-    fp->write("typedef T TARR[");
+    fp->write("typedef BitVectorStorage<EC, BitVector<");
+    fp->write_decimal_unsigned(itemlen);
+    fp->write("u> > TARR[");
     fp->write_decimal_unsigned(arraysize);
     fp->write("];\n");
 
@@ -866,7 +867,9 @@ namespace MFM {
     fp->write("for(u32 j = 0; j < ");
     fp->write_decimal_unsigned(arraysize);
     fp->write("u; j++) ");
-    fp->write("m_stgarr[j].SetUndefinedImpl();"); //T::ATOM_UNDEFINED_TYPE
+    fp->write("m_stgarr[j].Write(0u, ");
+    fp->write_decimal_unsigned(itemlen);
+    fp->write("u, 0u);"); //default each item to zero
     fp->write(" }\n");
 
     //constructor here (used by const tmpVars)
@@ -1041,7 +1044,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
-    fp->write(" read() const { MFM_API_ASSERT_NONNULL(m_stgPtr); return Up_Us(*m_stgPtr, NULL).");
+    fp->write(" read() const { MFM_API_ASSERT_NONNULL(m_stgPtr); return Up_Us(*m_stgPtr, 0u, NULL)."); //origin 0u
     fp->write(readMethodForCodeGen().c_str());
     fp->write("(); }\n");
 

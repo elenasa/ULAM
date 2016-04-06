@@ -65,10 +65,17 @@ namespace MFM{
 
     void setPosOffset(u32 offsetIntoAtom);
 
+    virtual u32 getAtomOrigin();
+
+    void setAtomOrigin(u32 startOfAtom);
+
     virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype) = 0;
 
   protected:
     u32 m_posOffset;
+    u32 m_atomOrigin; //for elements and atoms (usually 0 unless within a transient),
+                      //and element data members; local quark and primitives' origin is
+                      // same as their size (a flag!), since they do not live in atom's (T).
 
   private:
 

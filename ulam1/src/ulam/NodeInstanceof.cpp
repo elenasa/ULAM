@@ -107,6 +107,11 @@ namespace MFM {
 
 	if(m_state.isReference(vuti) || isself)
 	  {
+	    m_state.indent(fp);
+	    fp->write("if(!");
+	    fp->write(m_varSymbol->getMangledName().c_str());
+	    fp->write(".IsValidOrigin()) FAIL(ILLEGAL_ARGUMENT); //quark or non-class\n");
+
 	    u32 tmpuclass = m_state.getNextTmpVarNumber(); //only for this case
 	    m_state.indent(fp);
 	    fp->write("const UlamClass<EC> * ");
@@ -118,22 +123,32 @@ namespace MFM {
 	    m_state.indent(fp);
 	    fp->write("if(");
 	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
-	    fp->write(" == NULL) FAIL(ILLEGAL_ARGUMENT);\n");
+	    fp->write(" == NULL) FAIL(ILLEGAL_ARGUMENT); //non-class\n");
 
 	    m_state.indent(fp);
 	    fp->write("if(");
 	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
 	    fp->write("->AsUlamQuark() != NULL)\n");
 
+	    //an immediate default quark FAILS
+	    m_state.m_currentIndentLevel++;
+	    m_state.indent(fp);
+	    fp->write("FAIL(ILLEGAL_ARGUMENT); //non-class\n");
+#if 0
 	    //returns ATOM_UNDEFINED_TYPE, an immediate default quark
 	    m_state.m_currentIndentLevel++;
 	    m_state.indent(fp);
 	    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
 	    fp->write(".Write(");
+	    fp->write("0u, "); //offset
+	    fp->write("((UlamQuark<EC> *) ");
+	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
+	    fp->write(")->GetMangledClassName()<EC>::QUARK_SIZE, ");
 	    fp->write("((UlamQuark<EC> *) ");
 	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
 	    fp->write(")->getDefaultQuark()");
 	    fp->write("); //instanceof default quark\n");
+#endif
 	    m_state.m_currentIndentLevel--;
 
 	    m_state.indent(fp);
@@ -147,6 +162,30 @@ namespace MFM {
 	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
 	    fp->write(")->GetDefaultAtom()); //instanceof default element\n");
 	    m_state.m_currentIndentLevel--;
+	  }
+	else if(m_state.isAtom(nuti))
+	  {
+	    u32 tmpuclass = m_state.getNextTmpVarNumber(); //only for this case
+	    m_state.indent(fp);
+	    fp->write("const UlamClass<EC> * ");
+	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
+	    fp->write(" = ");
+	    fp->write("uc.LookupElementTypeFromContext(");
+	    fp->write(m_varSymbol->getMangledName().c_str());
+	    fp->write(".GetType()");
+	    fp->write(");\n");
+
+	    m_state.indent(fp);
+	    fp->write("if(");
+	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
+	    fp->write(" == NULL) FAIL(ILLEGAL_ARGUMENT); //non-class\n");
+
+	    m_state.indent(fp);
+	    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
+	    fp->write(".WriteAtom(");
+	    fp->write("((UlamElement<EC> *) ");
+	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
+	    fp->write(")->GetDefaultAtom()); //instanceof default element\n");
 	  }
       }
 

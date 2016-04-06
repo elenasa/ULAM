@@ -192,7 +192,6 @@ namespace MFM {
     fp->write("typedef UlamStructRef"); //was atomicparametertype
     fp->write("<EC> Up_Us;\n");
 
-    // see UlamClass.h for AutoRefBase
     //constructor for conditional-as (auto)
     m_state.indent(fp);
     fp->write(automangledName.c_str());

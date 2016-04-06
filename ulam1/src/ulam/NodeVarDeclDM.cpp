@@ -594,60 +594,89 @@ namespace MFM {
     assert(m_varSymbol);
 
     m_varSymbol->setPosOffset(offset);
+
+    //    m_varSymbol->setAtomOrigin(origin)
     UTI it = m_varSymbol->getUlamTypeIdx();
-
     assert(m_state.isComplete(it)); //moved error check to separate pass
+    UlamType * ut = m_state.getUlamTypeByIndex(it);
+    ULAMCLASSTYPE classtype = ut->getUlamClassType();
+    u32 len = ut->getTotalBitSize();
 
-    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(it)->getUlamClassType();
-    if((m_state.getTotalBitSize(it) > MAXBITSPERLONG) && (classtype == UC_NOTACLASS))
+    UTI cuti = m_state.getCompileThisIdx();
+    ULAMCLASSTYPE thisclasstype = m_state.getUlamTypeByIndex(cuti)->getUlamClassType();
+    if(thisclasstype == UC_TRANSIENT)
       {
-	std::ostringstream msg;
-	msg << "Data member <" << getName() << "> of type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	msg << ", total size: " << (s32) m_state.getTotalBitSize(it);
-	msg << " MUST fit into " << MAXBITSPERLONG << " bits;";
-	msg << " Local variables do not have this restriction";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setNodeType(Nav); //compiler counts
+	if((classtype == UC_ELEMENT) || m_state.isAtom(it))
+	  {
+	    m_varSymbol->setAtomOrigin(offset);
+	    if(ut->isScalar())
+	      offset += BITSPERATOM; //allocate full size of atom
+	    else
+	      offset += (BITSPERATOM * ut->getArraySize());
+	  }
+	else
+	  {
+	    m_varSymbol->setAtomOrigin(len); //flag!
+	    offset += len; //includes arraysize
+	  }
       }
+    else
+      {
+	// this datamember belongs to an element or quark
+	if((len > MAXBITSPERLONG) && (classtype == UC_NOTACLASS))
+	  {
+	    std::ostringstream msg;
+	    msg << "Data member <" << getName() << "> of type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    msg << ", total size: " << (s32) m_state.getTotalBitSize(it);
+	    msg << " MUST fit into " << MAXBITSPERLONG << " bits;";
+	    msg << " Local variables do not have this restriction";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav); //compiler counts
+	  }
 
+	if(classtype == UC_ELEMENT)
+	  {
+	    std::ostringstream msg;
+	    msg << "Data member <" << getName() << "> of type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    msg << ", is an element, and is NOT permitted; Local variables, quarks, ";
+	    msg << "and Model Parameters do not have this restriction";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav); //compiler counts
+	  }
+
+	if(classtype == UC_QUARK)
+	  {
+	    if(!ut->isScalar() && (len > MAXBITSPERLONG))
+	      {
+		std::ostringstream msg;
+		msg << "Data member <" << getName() << "> of class array type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		msg << ", total size: " << (s32) len;
+		msg << " MUST fit into " << MAXBITSPERLONG << " bits;";
+		msg << "Local variables do not have this restriction";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		setNodeType(Nav); //compiler counts
+	      }
+	  }
+	offset += len;
+      } //not transient
+
+    //this check is valid regardless of where quark resides
     if(classtype == UC_QUARK)
       {
-	bool isscalar = m_state.isScalar(it);
-	if(isscalar && (m_state.getTotalBitSize(it) > MAXBITSPERINT))
+	if(ut->isScalar() && (len > MAXBITSPERINT))
 	  {
 	    std::ostringstream msg;
 	    msg << "Data member <" << getName() << "> of class type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << ", total size: " << (s32) m_state.getTotalBitSize(it);
+	    msg << ", total size: " << (s32) len;
 	    msg << " MUST fit into " << MAXBITSPERINT << " bits";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav); //compiler counts
 	  }
-	if(!isscalar && (m_state.getTotalBitSize(it) > MAXBITSPERLONG))
-	  {
-	    std::ostringstream msg;
-	    msg << "Data member <" << getName() << "> of class array type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << ", total size: " << (s32) m_state.getTotalBitSize(it);
-	    msg << " MUST fit into " << MAXBITSPERLONG << " bits;";
-	    msg << "Local variables do not have this restriction";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav); //compiler counts
-	  }
       } //quarks
-
-    if(classtype == UC_ELEMENT)
-      {
-	std::ostringstream msg;
-	msg << "Data member <" << getName() << "> of type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	msg << ", is an element, and is NOT permitted; Local variables, quarks, ";
-	msg << "and Model Parameters do not have this restriction";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setNodeType(Nav); //compiler counts
-      }
-    offset += m_state.getTotalBitSize(m_varSymbol->getUlamTypeIdx());
   } //packBitsInOrderOfDeclaration
 
   void NodeVarDeclDM::printUnresolvedVariableDataMembers()

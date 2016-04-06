@@ -640,7 +640,7 @@ namespace MFM {
 	    fp->write("AtomBitStorage<EC> atbs(atom);\n");
 
 	    m_state.indent(fp);
-	    fp->write("UlamRefAtom<EC> ur(atbs, &");
+	    fp->write("UlamRefAtom<EC> ur(atbs, 0u, &");
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
 	    fp->write(");\n");
 

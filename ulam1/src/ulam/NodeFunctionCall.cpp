@@ -1018,15 +1018,22 @@ namespace MFM {
     u32 tmpvar = m_state.getNextTmpVarNumber();
 
     std::ostringstream hiddenarg2;
+    Symbol *stgcos = NULL;
     Symbol * cos = NULL;
+
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
-	cos = m_state.getCurrentSelfSymbolForCodeGen();
+	stgcos = cos = m_state.getCurrentSelfSymbolForCodeGen();
       }
     else
       {
 	cos = m_state.m_currentObjSymbolsForCodeGen.back();
+	stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
       }
+
+    UTI stgcosuti = stgcos->getUlamTypeIdx();
+    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
@@ -1060,18 +1067,16 @@ namespace MFM {
 	  }
 	else //local var
 	  {
-	    Symbol * stgcos = NULL;
 	    if(m_state.m_currentObjSymbolsForCodeGen.empty())
 	      {
 		hiddenarg2 << m_state.getHiddenArgName(); //same ur
 	      }
 	    else if(cos->getAutoLocalType() == ALT_AS)
 	      {
+		//stgcosuti = m_state.getUlamTypeAsDeref(stgcosuti);
+		//stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+
 		sameur = false;
-		stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-		UTI stgcosuti = stgcos->getUlamTypeIdx();
-		stgcosuti = m_state.getUlamTypeAsDeref(stgcosuti);
-		UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 		//update ur to reflect "effective" self for this funccall
 		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
 		hiddenarg2 << stgcos->getMangledName().c_str();
@@ -1088,8 +1093,8 @@ namespace MFM {
 
 		//new ur to reflect "effective" self and storage for this funccall
 		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
-		//hiddenarg2 << stgcos->getMangledName().c_str();
-		//hiddenarg2 << ", " ;
+		if(stgcosut->isReference())
+		  hiddenarg2 << stgcos->getMangledName().c_str() << ", "; //ref
 
 		if(cos->isDataMember()) //dm of local stgcos
 		  hiddenarg2 << Node::calcPosOfCurrentObjectClasses(); //relative off;
@@ -1097,8 +1102,10 @@ namespace MFM {
 		  hiddenarg2 << "0";
 
 		hiddenarg2 << "u, " << cosut->getTotalBitSize() << "u, "; //len
-		hiddenarg2 << stgcos->getMangledName().c_str();
-		hiddenarg2 << ", &";
+		if(!stgcosut->isReference())
+		  hiddenarg2 << "0u, " << stgcos->getMangledName().c_str() << ", "; //origin + storage
+
+		hiddenarg2 << "&";
 		hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str();
 		hiddenarg2 << ");";
 	      }

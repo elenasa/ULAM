@@ -832,7 +832,13 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   void NodeBlockClass::packBitsForVariableDataMembers()
   {
     if(m_ST.getTableSize() == 0) return;
-    u32 offset = 0; //relative to ATOMFIRSTSTATEBITPOS
+
+    u32 offset = 0; //quarks, transients start at zero
+
+    UTI cuti = m_state.getCompileThisIdx();
+    ULAMCLASSTYPE thisclasstype = m_state.getUlamTypeByIndex(cuti)->getUlamClassType();
+    if(thisclasstype == UC_ELEMENT)
+      offset = ATOMFIRSTSTATEBITPOS; //elements are absolute to the ATOM!!!
 
     UTI nuti = getNodeType();
     UTI superuti = m_state.isClassASubclass(nuti);
@@ -1099,7 +1105,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("typedef BitVector<BPA> BV;\n");
 
     m_state.indent(fp);
-    fp->write("typedef BitField<BitVector<BPA>, VD::BITS, T::ATOM_FIRST_STATE_BIT, 0> BFTYP;\n");
+    fp->write("typedef BitField<BitVector<BPA>, VD::BITS, T::ATOM_FIRST_STATE_BIT, 0> BFTYP;\n"); //used to read MFM Type.
 
     fp->write("\n");
   } //genShortNameParameterTypesExtractedForHeaderFile

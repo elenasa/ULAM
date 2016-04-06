@@ -21,7 +21,7 @@ namespace MFM {
     if (t < 0 || t > U16_MAX)
       FAIL(ILLEGAL_ARGUMENT);
     T p3atom((u32) t);
-    const Ui_Ut_102961a<EC> tmp(p3atom, uc);
+    const Ui_Ut_102961a<EC> tmp(p3atom);
     return tmp;
   } // Uf_3new
 

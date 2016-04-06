@@ -207,7 +207,7 @@ namespace MFM {
     //constructor for conditional-as (auto)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(AtomBitStorage<EC>& targ, const UlamClass<EC> * effself) : UlamRefAtom<EC>(targ, effself) { }\n");
+    fp->write("(BitStorage<EC>& targ, u32 origin, const UlamClass<EC> * effself) : UlamRefAtom<EC>(targ, origin, effself) { }\n");
 
     //constructor for chain of autorefs (e.g. memberselect with array item)
     m_state.indent(fp);
@@ -360,12 +360,10 @@ namespace MFM {
     //assignment constructor
     m_state.indent(fp);
     fp->write(mangledName.c_str());
-    fp->write("(const ");
-    //fp->write(mangledName.c_str());
-    fp->write("AtomBitStorage");
-    fp->write("<EC> & arg) : ");
+    fp->write("(const AtomBitStorage<EC> & arg) : ");
     fp->write("AtomBitStorage<EC>(arg) {");
-    fp->write("if(arg.ReadAtom().GetType() != this->ReadAtom().GetType()) FAIL(ILLEGAL_ARGUMENT); } \n");
+    //    fp->write("if(arg.ReadAtom().GetType() != this->ReadAtom().GetType()) FAIL(ILLEGAL_ARGUMENT); } \n");
+    fp->write("if(this->ReadAtom().GetType() != Us::THE_INSTANCE.GetType()) FAIL(ILLEGAL_ARGUMENT); } \n");
 
     //default destructor (for completeness)
     m_state.indent(fp);

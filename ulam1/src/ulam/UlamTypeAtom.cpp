@@ -173,16 +173,16 @@ namespace MFM {
     fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
     fp->write("\n");
 
-    // see UlamClass.h for AutoRefBase
     //constructor for ref (auto)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(AtomBitStorage<EC>& targ, const UlamContext<EC>& uc) : UlamRefAtom<EC>(targ, uc.LookupElementTypeFromContext(targ.GetType())) { }\n");
+    //fp->write("(AtomBitStorage<EC>& targ, const UlamContext<EC>& uc) : UlamRefAtom<EC>(targ, 0u, uc.LookupElementTypeFromContext(targ.GetType())) { }\n");
+    fp->write("(BitStorage<EC>& targ, u32 origin, const UlamContext<EC>& uc) : UlamRefAtom<EC>(targ, origin, uc.LookupElementTypeFromContext(targ.ReadAtom(origin, BPA).GetType())) { }\n");
 
     //constructor for chain of autorefs (e.g. memberselect with array item)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(const UlamRefAtom<EC>& arg) : UlamRefAtom<EC>(arg, arg.GetEffectiveSelf()) { }\n");
+    fp->write("(const UlamRefAtom<EC>& arg, const UlamContext<EC>& uc) : UlamRefAtom<EC>(arg, arg.GetEffectiveSelf()) { }\n");
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -260,8 +260,8 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write("(const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //T
-    //    fp->write("& targ, const UlamContext<EC>& ucarg) : "); //ucarg still needed???
-    fp->write("& targ) : ");
+    //fp->write("& targ, const UlamContext<EC>& ucarg) : "); //uc consistent with atomref
+    fp->write("& targ) : "); //uc consistent with atomref
     fp->write("AtomBitStorage<EC>");
     fp->write("(targ) { }\n ");
 
@@ -269,12 +269,11 @@ namespace MFM {
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("(const ");
-    //fp->write(mangledName.c_str());
     fp->write("AtomBitStorage<EC>");
-    //    fp->write("& d, const UlamContext<EC>& ucarg) : "); //ucarg still needed???
-    fp->write("& d) : ");
+    //fp->write("& d, const UlamContext<EC>& ucarg) : "); //uc consistent with atomref
+    fp->write("& d) : "); //uc consistent with atomref
     fp->write("AtomBitStorage<EC>");
-    fp->write("(d) { }\n ");
+    fp->write("(d.ReadAtom()) { }\n ");
 
     //default destructor (for completeness)
     m_state.indent(fp);

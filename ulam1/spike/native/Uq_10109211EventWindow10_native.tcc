@@ -13,7 +13,7 @@ namespace MFM{
     const EventWindow<CC> & ew = uc.GetEventWindow();
     const T & a = ew.GetAtomSym(siteNumber);
 
-    return Ui_Ut_102961a<CC>(a, uc);
+    return Ui_Ut_102961a<CC>(a);
   }
 
   template<class CC>

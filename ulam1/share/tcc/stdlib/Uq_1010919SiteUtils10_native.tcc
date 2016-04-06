@@ -62,7 +62,7 @@ namespace MFM{
     Base<AC> & base = ew.GetBase();
 
     const T atom = base.GetBaseAtom();
-    const Ui_Ut_102961a<EC> tmp(atom, uc);
+    const Ui_Ut_102961a<EC> tmp(atom);
     return tmp;
   } // Uf_7getBase
 

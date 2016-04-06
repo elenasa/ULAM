@@ -93,6 +93,7 @@ namespace MFM {
     rtnVal.clear();
     rtnVal.setUlamValueTypeIdx(utype);
     rtnVal.putData(ATOMFIRSTSTATEBITPOS, len, v); //left-justified
+    //rtnVal.putData(0, len, v); //absolute pos?
     return rtnVal;
   } //makeImmediateQuark
 
@@ -103,6 +104,7 @@ namespace MFM {
     rtnVal.clear();
     rtnVal.setUlamValueTypeIdx(utype);
     rtnVal.putDataLong(ATOMFIRSTSTATEBITPOS, len, v); //left-justified
+    //rtnVal.putDataLong(0, len, v); //absolute pos?
     return rtnVal;
   } //makeImmediateQuarkArrayLong
 
@@ -151,9 +153,13 @@ namespace MFM {
 
     if(pos == 0)
       {
-	//figure out the pos based on targettype; both elements and quarks start at first state bit (25)
-	ULAMTYPE ttenum = state.getUlamTypeByIndex(targetType)->getUlamTypeEnum();
-	if((ttenum == UAtom) || (ttenum == Class))
+	UlamType * ttut = state.getUlamTypeByIndex(targetType);
+	ULAMCLASSTYPE ttclasstype = ttut->getUlamClassType();
+	//figure out the pos based on targettype; elements start at first state bit (25)
+	// quarks too still?, CAN WE SUPPORT transients?
+	ULAMTYPE ttenum = ttut->getUlamTypeEnum();
+	//if((ttenum == UAtom) || (ttenum == Class))
+	if((ttenum == UAtom) || (ttclasstype == UC_ELEMENT) || (ttclasstype == UC_QUARK))
 	  rtnUV.m_uv.m_ptrValue.m_posInAtom = ATOMFIRSTSTATEBITPOS; //len is predetermined
 	else
 	  {
@@ -620,7 +626,7 @@ namespace MFM {
     AssertBool utypOk = ((utype != UAtom) && (utype != Ptr) && (utype != PtrAbs) && (utype != Nav) && (utype != Hzy) && (utype != Nouti));
     assert(utypOk);
     assert(len >= 0 && len <= MAXBITSPERINT);
-    return getData(ATOMFIRSTSTATEBITPOS, len);
+    return getData(ATOMFIRSTSTATEBITPOS, len); //or absolute 0?
   } //getImmediateQuarkData const
 
   u64 UlamValue::getImmediateDataLong(CompilerState & state) const

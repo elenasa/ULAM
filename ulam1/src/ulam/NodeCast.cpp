@@ -890,10 +890,21 @@ namespace MFM {
 	if(m_state.isAtom(vuti))
 	  {
 	    fp->write(" = UlamRef<EC>(");
-	    fp->write(stgcos->getMangledName().c_str());
-	    fp->write(", 0u, ");
+	    if(m_state.isAtomRef(vuti))
+	      {
+		fp->write(stgcos->getMangledName().c_str()); //ref
+		fp->write(", ");
+	      }
+	    fp->write("0u, ");
 	    fp->write_decimal_unsigned(tobe->getTotalBitSize());
-	    fp->write("u, &"); //'is'
+	    fp->write("u, ");
+	    if(!m_state.isAtomRef(vuti))
+	      {
+		fp->write("0u, "); //origin
+		fp->write(stgcos->getMangledName().c_str());
+		fp->write(", "); //'is' storage
+	      }
+	    fp->write("&"); //'is'
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
 	    fp->write(").");
 	  }
@@ -915,8 +926,8 @@ namespace MFM {
 	fp->write("(");
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpread, tobe->getTmpStorageTypeForTmpVar()).c_str());
 
-	if(!m_state.isAtom(vuti))
-	  fp->write(", uc"); //to atom
+	//if(!m_state.isAtom(vuti))
+	//  fp->write(", uc"); //to atom
 
 	fp->write(");\n");
 
@@ -942,8 +953,8 @@ namespace MFM {
 	    fp->write(", 0u, &"); //'is'
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
 	  }
-	else
-	    fp->write(", uc");
+	//else
+	//   fp->write(", uc");
 
 	fp->write(");\n"); //like, shadow lhs of as
 
@@ -968,6 +979,8 @@ namespace MFM {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * stgcos = NULL;
     stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+    UTI stgcosuti = stgcos->getUlamTypeIdx();
+    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
     // "downcast" might not be true; compare to be sure the element is-related to quark "Foo"
     m_state.indent(fp);
@@ -1003,11 +1016,23 @@ namespace MFM {
 	fp->write(" = ");
 
 	fp->write("UlamRef<EC>(");
-	fp->write(stgcos->getMangledName().c_str());
-
-	fp->write(", 0u, "); //offset of decendent is always 0
+	if(stgcosut->isReference())
+	  {
+	    fp->write(stgcos->getMangledName().c_str()); //reference
+	    fp->write(", ");
+	  }
+	fp->write("0u, "); //offset of decendent is always 0
 	fp->write_decimal_unsigned(tobe->getTotalBitSize()); //len
-	fp->write("u, &");
+	fp->write("u, ");
+
+	if(!stgcosut->isReference())
+	  {
+	    fp->write("0u, "); //origin
+	    fp->write(stgcos->getMangledName().c_str()); //storage
+	    fp->write(", ");
+	  }
+
+	fp->write("&");
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
 	fp->write(").");
 	fp->write(tobe->readMethodForCodeGen().c_str());

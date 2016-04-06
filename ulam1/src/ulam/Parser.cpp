@@ -2654,7 +2654,7 @@ namespace MFM {
 	break;
       case TOK_KW_INSTANCEOF:
 	{
-	  if(ut->isComplete())
+	  if(ut->isComplete() && !m_state.isAtom(utype))
 	    {
 	      assert(ut->getUlamClassType() == UC_NOTACLASS); //can't be a class and complete
 	      rtnNode = NULL; //caller will clean up nodetype
@@ -2667,14 +2667,14 @@ namespace MFM {
 	    }
 	  else
 	    {
-	      //input uti wasn't complete
+	      //input uti wasn't complete, or an atom
 	      rtnNode = new NodeInstanceof(memberTok, nodetype, m_state);
 	    }
 	}
 	break;
       case TOK_KW_STORAGEOF:
 	{
-	  if(ut->isComplete())
+	  if(ut->isComplete() && !m_state.isAtom(utype))
 	    {
 	      assert(ut->getUlamClassType() == UC_NOTACLASS); //can't be a class and complete
 	      rtnNode = NULL; //caller will clean up nodetype
@@ -2698,7 +2698,7 @@ namespace MFM {
 		  MSG(&fTok, msg.str().c_str(), ERR);
 		}
 	      else
-		//input uti wasn't complete
+		//input uti wasn't complete, or an atom
 		rtnNode = new NodeStorageof(memberTok, nodetype, m_state);
 	    }
 	}

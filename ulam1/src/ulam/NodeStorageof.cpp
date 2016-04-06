@@ -148,7 +148,8 @@ namespace MFM {
   void NodeStorageof::genCode(File * fp, UlamValue& uvpass)
   {
     //First, read into UAtomref immediate
-    genCodeToStoreInto(fp, uvpass);
+    genCodeToStoreInto(fp, uvpass); //Fails if invalid origin (i.e. not element or atom)
+
     s32 tmpVarNum = uvpass.getPtrSlotIndex(); //uatomref
 
     // THEN READ:
@@ -163,9 +164,8 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum2, nut->getTmpStorageTypeForTmpVar()).c_str());
     fp->write(" = ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
-    fp->write(".");
-    //fp->write(nut->readMethodForCodeGen().c_str());
-    fp->write("GetStorage"); //non-const
+    //fp->write(".GetStorage"); //non-const
+    fp->write(".ReadAtom()"); //non-const
     fp->write("();\n");
 
     uvpass = UlamValue::makePtr(tmpVarNum2, nut->getTmpStorageTypeForTmpVar(), nuti, UNPACKED, m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
@@ -187,6 +187,7 @@ namespace MFM {
 
     if(m_state.isReference(vuti) || isself)
       {
+#if 0
 	m_state.indent(fp);
 	fp->write("if(");
 	fp->write(m_varSymbol->getMangledName().c_str());
@@ -196,6 +197,12 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write("FAIL(ILLEGAL_ARGUMENT);\n");
 	m_state.m_currentIndentLevel--;
+#endif
+
+	m_state.indent(fp);
+	fp->write("if(!");
+	fp->write(m_varSymbol->getMangledName().c_str());
+	fp->write(".IsValidOrigin()) FAIL(ILLEGAL_ARGUMENT); //quark or non-class\n");
       }
 
     m_state.indent(fp); //non-const
@@ -211,7 +218,8 @@ namespace MFM {
       fp->write(m_varSymbol->getMangledName().c_str()); //element or atom
 
     fp->write(".GetStorage()"); //can't be const
-    fp->write(", uc); //storageof \n");
+    //fp->write(", uc); //storageof \n");
+    fp->write("); //storageof \n");
 
     uvpass = UlamValue::makePtr(tmpVarNum, TMPBITVAL, nuti, UNPACKED, m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
 

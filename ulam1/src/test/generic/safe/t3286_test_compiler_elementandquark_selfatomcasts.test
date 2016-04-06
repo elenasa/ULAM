@@ -10,7 +10,7 @@
 ##        unevaluable without assuming atoms as elements
 #!
 Exit status: 0
-Ue_Foo { Int(32) test() {  System s;  Atom(96) a;  Bar b;  Int(32) rtn = -1 cast;  b ( self cast )func . a self cast = { a Foo is cond rtn 0 cast = if rtn 1 cast = else } s ( rtn )print . s ( rtn 0 cast == )assert . rtn return } }
+Ue_Foo { Int(32) rtn(0);  Int(32) test() {  System s;  Atom(96) a;  Bar b;  a b ( self cast )func . = { a Foo is cond rtn 0 cast = if rtn 1 cast = else } s ( rtn )print . s ( rtn 0 cast == )assert . rtn return } }
 Uq_Bar { <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
@@ -22,13 +22,14 @@ Uq_System { <NOMAIN> }
 use Bar;
 use System;
 element Foo {
+  Int rtn = -1;
+
   Int test(){
     System s;
     Atom a;
     Bar b;
-    Int rtn = -1;
-    b.func((Atom) self);
-    a = (Atom) self;
+    a = b.func((Atom) self);
+    //a = (Atom) self;
     if(a is Self)
       rtn = 0;
     else
@@ -41,8 +42,9 @@ element Foo {
 
 #:Bar.ulam
 quark Bar {
-  Void func(Atom a){
-    Atom t = self.instanceof; //was self
+  Atom func(Atom a){
+    Atom t = a.instanceof; //was self.instanceof
+    return t;
   }
 }
 

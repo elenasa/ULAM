@@ -645,7 +645,7 @@ namespace MFM {
 	fp->write(m_varSymbol->getMangledName().c_str());
 	fp->write("("); // use constructor (not equals)
 	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str()); //VALUE
-	if(m_state.isAtom(vuti))
+	if(m_state.isAtomRef(vuti))
 	  fp->write(", uc");
 	fp->write(")");
 	fp->write(";\n"); //func call args aren't NodeVarDecl's

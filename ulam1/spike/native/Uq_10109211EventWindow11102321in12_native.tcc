@@ -12,7 +12,7 @@ namespace MFM{
     u32 siteNumber = Uv_5index.Read();
     const EventWindow<EC> & ew = uc.GetEventWindow();
     const T & a = ew.GetAtomSym(siteNumber);
-    return Ui_Ut_102961a<EC>(a, uc);
+    return Ui_Ut_102961a<EC>(a);
   }
 
   template<class EC>

@@ -421,7 +421,7 @@ namespace MFM {
 
 	fp->write(m_varSymbol->getMangledName().c_str());
 	fp->write("("); //pass ref in constructor (ref's not assigned with =)
-	if(stgcos->isDataMember()) //can't be an element or atom
+	if(stgcos->isDataMember()) //can't be an element or atom (JUST WAIT UNTIL Transients!!)
 	  {
 	    fp->write(m_state.getHiddenArgName());
 	    fp->write(", ");
@@ -492,13 +492,19 @@ namespace MFM {
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
 	fp->write("ur.GetStorage()"); //need non-const T
-	fp->write(", uc");
       }
     else
       {
 	Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 	fp->write(stgcos->getMangledName().c_str());
+	if(!stgcos->isAutoLocal()) //not a ref, then needs origin
+	  {
+	    fp->write(", ");
+	    fp->write_decimal_unsigned(stgcos->getPosOffset()); //get origin of stg
+	    fp->write("u");
+	  }
       }
+    fp->write(", uc");
     fp->write(");\n");
 
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
@@ -574,7 +580,7 @@ namespace MFM {
 		  {
 		    fp->write(", 0u"); //rel off to right-just prim
 		  }
-		else if(vetype == UAtom)
+		else if((vetype == UAtom))
 		  {
 		    fp->write(", uc");
 		  }
@@ -668,7 +674,7 @@ namespace MFM {
 		fp->write_decimal_unsigned(cosut->getBitSize());
 		fp->write("u)"); //relative t3651
 	      }
-	    else if(vetype == UAtom)
+	    else if((vetype == UAtom))
 	      {
 		fp->write(", uc");
 	      }

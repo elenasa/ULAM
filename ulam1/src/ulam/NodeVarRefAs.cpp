@@ -137,20 +137,26 @@ namespace MFM {
     s32 tmpVarStg = m_state.getNextTmpVarNumber();
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
     UTI stgcosuti = stgcos->getUlamTypeIdx();
-    UlamType * stgut = m_state.getUlamTypeByIndex(stgcosuti);
-    ULAMTYPE stgetype = stgut->getUlamTypeEnum();
-    assert((stgetype == UAtom) || (stgut->getUlamClassType() == UC_ELEMENT)); //not quark
+    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+    ULAMTYPE stgetype = stgcosut->getUlamTypeEnum();
+    assert((stgetype == UAtom) || (stgcosut->getUlamClassType() == UC_ELEMENT)); //not quark
 
-    // can't let Node::genCodeReadIntoTmpVar do this for us: it's a ref.
+    // can't let Node::genCodeReadIntoTmpVar do this for us: need a ref.
     assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
     m_state.indent(fp);
-    fp->write(stgut->getTmpStorageTypeAsString().c_str());
-    fp->write("& "); //here it is!!
+    //fp->write(stgcosut->getTmpStorageTypeAsString().c_str());
+    //fp->write("& "); //here it is!!
+    //fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
+    //fp->write(" = ");
+    //fp->write(stgcos->getMangledName().c_str());
+    //fp->write(".GetStorage()"); //non-const
+    //fp->write(";\n");
+    fp->write(stgcosut->getUlamTypeImmediateMangledName().c_str());
+    fp->write("<EC> & "); //here it is!! brilliant
     fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
     fp->write(" = ");
     fp->write(stgcos->getMangledName().c_str());
-    fp->write(".GetStorage()"); //non-const
-    fp->write(";\n");
+    fp->write("; //c++ reference to immediate\n");
 
     // now we have our pos in tmpVarPos, and our T in tmpVarStg
     // time to shadow 'self' with auto local variable:
@@ -170,7 +176,10 @@ namespace MFM {
       {
 	fp->write(", ");
 	if(vclasstype == UC_QUARK) //t3639
-	  fp->write("0u, ");
+	  fp->write("0u, "); //position as super
+	else if(!stgcosut->isReference())
+	  fp->write("0u, "); //origin of stg
+
 	fp->write(m_state.getHiddenContextArgName());
 	fp->write(".LookupElementTypeFromContext(");
 	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str()); //t3636
@@ -184,6 +193,9 @@ namespace MFM {
 	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset()); //should be 0!
 	    fp->write("u");
 	  }
+	else if(!stgcosut->isReference())
+	  fp->write(", 0u"); //origin of stg
+
 	fp->write(", &");
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
       }
