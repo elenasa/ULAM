@@ -63,6 +63,14 @@ namespace MFM{
 
     virtual bool isComplete();  //neither bitsize nor arraysize is "unknown"
 
+    virtual const std::string readMethodForCodeGen();
+
+    virtual const std::string writeMethodForCodeGen();
+
+    virtual const std::string readArrayItemMethodForCodeGen();
+
+    virtual const std::string writeArrayItemMethodForCodeGen();
+
   private:
 
   };

@@ -301,7 +301,7 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-  void NodeVarRef::packBitsInOrderOfDeclaration(u32& offset)
+  void NodeVarRef::packBitsInOrderOfDeclaration(u32& offset, u32& abspos)
   {
     assert(0); //refs can't be data members
   } //packBitsInOrderOfDeclaration
@@ -547,7 +547,8 @@ namespace MFM {
       {
 	fp->write(m_state.getHiddenArgName());
 	fp->write(", ");
-	fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
+	//fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
+	    fp->write_decimal_unsigned(cos->getAbsPosition()); //abs pos
 	fp->write("u");
 
 	if(vclasstype == UC_QUARK)
@@ -559,11 +560,15 @@ namespace MFM {
     else
       {
 	//local
-	fp->write(stgcos->getMangledName().c_str());
+	fp->write(stgcos->getMangledName().c_str()); //stg
 	if(cos->isDataMember())
 	  {
 	    fp->write(", ");
-	    fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
+	    //fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
+	    fp->write_decimal_unsigned(cos->getAbsPosition()); //abs pos
+	    fp->write("u, ");
+
+	    fp->write_decimal_unsigned(stgcos->getAtomOrigin()); //origin
 	    fp->write("u");
 
 	    if(vclasstype == UC_QUARK)

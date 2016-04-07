@@ -422,19 +422,25 @@ namespace MFM {
     fp->write("const u32 index) { return ");
     fp->write("m_stgarrayref[index]; }\n");
 
+#if 0
+    //couldn't overload according to gcc
     //Unpacked, an item T const
     m_state.indent(fp);
     fp->write("const BitStorage<EC>& ");
     fp->write("getBits(");
     fp->write("const u32 index) const { return ");
     fp->write("m_stgarrayref[index]; }\n");
+#endif
 
+#if 0
+    //nolonger a T
     //Unpacked, an item T&
     m_state.indent(fp);
     fp->write("T& ");
     fp->write("getRef(");
     fp->write("const u32 index) { return ");
     fp->write("m_stgarrayref[index].GetStorage(); }\n");
+#endif
 
     //Unpacked, position within whole
     m_state.indent(fp);
@@ -517,6 +523,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("TARR m_stgarr;  //BIG storage here!\n\n");
 
+#if 0
     //default constructor (used by local vars)
     m_state.indent(fp);
     fp->write(mangledName.c_str());
@@ -525,6 +532,18 @@ namespace MFM {
     fp->write_decimal_unsigned(arraysize);
     fp->write("u; j++) ");
     fp->write("m_stgarr[j].GetStorage().SetEmptyImpl();"); //T::ATOM_EMPTY_TYPE
+    fp->write(" }\n");
+#endif
+
+    //default constructor (used by local vars) new way!
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("() { ");
+    fp->write("T foo = Element_Empty<EC>::THE_INSTANCE.GetDefaultAtom(); ");
+    fp->write("for(u32 j = 0; j < ");
+    fp->write_decimal_unsigned(arraysize);
+    fp->write("u; j++) ");
+    fp->write("m_stgarr[j].WriteAtom(foo);"); //T::ATOM_EMPTY_TYPE
     fp->write(" }\n");
 
     //constructor here (used by const tmpVars)
@@ -571,6 +590,7 @@ namespace MFM {
     fp->write("const u32 index) { return ");
     fp->write("m_stgarr[index]; }\n"); //see if you can use atombitstorage directly.
 
+#if 0
     //Unpacked, an item T const
     m_state.indent(fp);
     //fp->write("const BitVector<BPA>& ");
@@ -588,6 +608,7 @@ namespace MFM {
     fp->write("getRef(");
     fp->write("const u32 index) { return ");
     fp->write("m_stgarr[index].GetStorage(); }\n");
+#endif
 
     //Unpacked, position within whole
     m_state.indent(fp);

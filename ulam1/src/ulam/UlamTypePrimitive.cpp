@@ -366,87 +366,6 @@ namespace MFM {
     return rtn;
   } //getPackable
 
-  const std::string UlamTypePrimitive::readMethodForCodeGen()
-  {
-    std::string method;
-    u32 sizeByIntBits = getTotalWordSize();
-    switch(sizeByIntBits)
-      {
-      case 0: //e.g. empty quarks
-      case 32:
-	method = "Read";
-	break;
-      case 64:
-	method = "ReadLong";
-	break;
-      default:
-	method = "ReadUnpacked"; //TBD
-	//MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
-	assert(0);
-      };
-    return method;
-  } //readMethodForCodeGen
-
-  const std::string UlamTypePrimitive::writeMethodForCodeGen()
-  {
-    std::string method;
-    u32 sizeByIntBits = getTotalWordSize();
-    switch(sizeByIntBits)
-      {
-      case 0: //e.g. empty quarks
-      case 32:
-	method = "Write";
-	break;
-      case 64:
-	method = "WriteLong";
-	break;
-      default:
-	method = "WriteUnpacked"; //TBD
-	//MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
-	assert(0);
-      };
-    return method;
-  } //writeMethodForCodeGen
-
-  const std::string UlamTypePrimitive::readArrayItemMethodForCodeGen()
-  {
-    std::string method;
-    s32 sizeByIntBits = getItemWordSize();
-    switch(sizeByIntBits)
-      {
-      case 0: //e.g. empty quarks
-      case 32:
-	method = "Read"; //ReadArray
-	break;
-      case 64:
-	method = "ReadLong"; //ReadArrayLong
-	break;
-      default:
-	method = "ReadUnpacked"; //TBD ReadArrayUnpacked
-	//assert(0);
-      };
-    return method;
-  } //readArrayItemMethodForCodeGen()
-
-  const std::string UlamTypePrimitive::writeArrayItemMethodForCodeGen()
-  {
-    std::string method;
-    s32 sizeByIntBits = getItemWordSize();
-    switch(sizeByIntBits)
-      {
-      case 0: //e.g. empty quarks
-      case 32:
-	method = "Write"; //WriteArray
-	break;
-      case 64:
-	method = "WriteLong"; //WriteArrayLong
-	break;
-      default:
-	method = "WriteUnpacked"; //TBD WriteArrayUnpacked
-      };
-    return method;
-  } //writeArrayItemMethodForCodeGen()
-
   //generates immediates with local storage
   void UlamTypePrimitive::genUlamTypeMangledDefinitionForC(File * fp)
   {
@@ -518,7 +437,8 @@ namespace MFM {
     fp->write("(const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //u32
     fp->write(" d) { ");
-    fp->write("Write(d); }\n");
+    fp->write(writeMethodForCodeGen().c_str());
+    fp->write("(d); }\n");
 
     //copy constructor here (return by value)
     m_state.indent(fp);
@@ -526,7 +446,10 @@ namespace MFM {
     fp->write("(const ");
     fp->write(mangledName.c_str()); //u32
     fp->write("& other) { ");
-    fp->write("Write(other.Read()); }\n ");
+    fp->write(writeMethodForCodeGen().c_str());
+    fp->write("(other.");
+    fp->write(readMethodForCodeGen().c_str());
+    fp->write("()); }\n ");
 
     //default destructor (for completeness)
     m_state.indent(fp);
@@ -561,7 +484,9 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write("const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32 or u64
-	fp->write(" Read() const { return BVS::"); //or read()?
+	fp->write(" ");
+	fp->write(readMethodForCodeGen().c_str());
+	fp->write("() const { return BVS::"); //or read()? ReadLong
 	fp->write(readMethodForCodeGen().c_str());
 	fp->write("(0u, ");
 	fp->write_decimal_unsigned(getTotalBitSize());
@@ -593,7 +518,9 @@ namespace MFM {
     if(isScalar() || (getPackable() == PACKEDLOADABLE))
       {
 	m_state.indent(fp);
-	fp->write("void Write(const "); //or write?
+	fp->write("void ");
+	fp->write(writeMethodForCodeGen().c_str());
+	fp->write("(const "); //or write? WriteLong
 	fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32, s64 or u64
 	fp->write(" v) { BVS::");
 	fp->write(writeMethodForCodeGen().c_str());

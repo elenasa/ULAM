@@ -529,7 +529,7 @@ namespace MFM {
     return ERROR;
   } //eval
 
-  void NodeConstantDef::packBitsInOrderOfDeclaration(u32& offset)
+  void NodeConstantDef::packBitsInOrderOfDeclaration(u32& offset, u32& abspos)
   {
     //do nothing, but override
   }

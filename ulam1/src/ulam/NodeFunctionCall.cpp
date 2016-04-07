@@ -1336,7 +1336,7 @@ namespace MFM {
       }
     else
       {
-	fp->write(stgcos->getMangledName().c_str());
+	fp->write(stgcos->getMangledName().c_str()); //stg
 	if(cos->isDataMember())
 	  {
 	    fp->write(", ");
@@ -1357,6 +1357,14 @@ namespace MFM {
 	      }
 	    else if(vclasstype == UC_QUARK)
 	      fp->write(", 0u"); //left-justified
+	  }
+
+	//origin
+	if(!m_state.isAtom(vuti)) //???
+	  {
+	    fp->write(", ");
+	    fp->write_decimal_unsigned(cos->getAtomOrigin());
+	    fp->write("u");
 	  }
       }
     fp->write(");\n");

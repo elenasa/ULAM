@@ -161,7 +161,7 @@ namespace MFM{
 
     void genCodeBody(File * fp, UlamValue& uvpass);  //specific for this class
 
-    void initElementDefaultsForEval(UlamValue& uv);
+    void initElementDefaultsForEval(UlamValue& uv, UTI cuti);
 
     NodeBlockFunctionDefinition * findTestFunctionNode();
 

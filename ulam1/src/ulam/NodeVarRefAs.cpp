@@ -59,7 +59,7 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-  void NodeVarRefAs::packBitsInOrderOfDeclaration(u32& offset)
+  void NodeVarRefAs::packBitsInOrderOfDeclaration(u32& offset, u32& abspos)
   {
     assert(0); //refs can't be data members
   } //packBitsInOrderOfDeclaration

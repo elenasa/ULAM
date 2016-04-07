@@ -749,9 +749,11 @@ namespace MFM {
 	method = "ReadLong";
 	break;
       default:
-	method = "ReadUnpacked"; //TBD
+	assert(!isScalar());
+	method = readArrayItemMethodForCodeGen();
+	//method = "ReadUnpacked"; //TBD
 	//MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
-	assert(0);
+	//assert(0);
       };
     return method;
   } //readMethodForCodeGen
@@ -770,9 +772,11 @@ namespace MFM {
 	method = "WriteLong";
 	break;
       default:
-	method = "WriteUnpacked"; //TBD
+	assert(!isScalar());
+	method = writeArrayItemMethodForCodeGen();
+	//method = "WriteUnpacked"; //TBD
 	//MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
-	assert(0);
+	//assert(0);
       };
     return method;
   } //writeMethodForCodeGen

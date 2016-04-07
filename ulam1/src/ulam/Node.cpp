@@ -399,7 +399,7 @@ namespace MFM {
     m_state.m_nodeEvalStack.assignUlamValuePtr(rtnPtr, rtnUVptr);
   }
 
-  void Node::packBitsInOrderOfDeclaration(u32& offset)
+  void Node::packBitsInOrderOfDeclaration(u32& offset, u32& abspos)
   {
     assert(0);
   }

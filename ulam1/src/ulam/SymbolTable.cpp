@@ -912,9 +912,15 @@ namespace MFM {
       } //while
   } //getClassMembers
 
-  void SymbolTable::initializeElementDefaultsForEval(UlamValue& uvsite)
+  void SymbolTable::initializeElementDefaultsForEval(UlamValue& uvsite, UTI startuti)
   {
     if(m_idToSymbolPtr.empty()) return;
+
+    //UTI cuti = m_state.getCompileThisIdx();
+    //UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+    //u32 startpos = 0; //element dm use absolute pos to atom (includes 25u)
+    //if((cut->getUlamClassType() == UC_QUARK)) //class quark based on zero
+    u32 startpos = ATOMFIRSTSTATEBITPOS; //use relative offsets
 
     std::map<u32, Symbol* >::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
@@ -935,9 +941,9 @@ namespace MFM {
 		  {
 		    u32 wordsize = m_state.getTotalWordSize(suti);
 		    if(wordsize <= MAXBITSPERINT)
-		      uvsite.putData(pos, bitsize, (u32) dval); //absolute pos
+		      uvsite.putData(pos + startpos, bitsize, (u32) dval); //absolute pos
 		    else if(wordsize <= MAXBITSPERLONG)
-		      uvsite.putDataLong(pos, bitsize, dval); //absolute pos
+		      uvsite.putDataLong(pos + startpos, bitsize, dval); //absolute pos
 		    else
 		      assert(0);
 		  }
@@ -955,7 +961,7 @@ namespace MFM {
 		    s32 arraysize = m_state.getArraySize(suti);
 		    arraysize = (arraysize == NONARRAYSIZE ? 1 : arraysize);
 		    for(s32 i = 0; i < arraysize; i++)
-		      uvsite.putData(pos + i * bitsize, bitsize, dval); //absolute pos
+		      uvsite.putData(pos + startpos + i * bitsize, bitsize, dval); //absolute pos
 		  }
 	      }
 	  }

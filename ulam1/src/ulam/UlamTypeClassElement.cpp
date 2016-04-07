@@ -522,6 +522,7 @@ namespace MFM {
     fp->write("const u32 index) { return ");
     fp->write("m_stgarrayref[index]; }\n");
 
+#if 0
     //Unpacked, an item T const
     m_state.indent(fp);
     fp->write("const BitStorage<EC>& ");
@@ -535,6 +536,7 @@ namespace MFM {
     fp->write("getRef(");
     fp->write("const u32 index) { return ");
     fp->write("m_stgarrayref[index].GetStorage(); }\n");
+#endif
 
     //Unpacked, position within whole
     m_state.indent(fp);
@@ -624,14 +626,14 @@ namespace MFM {
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("() { ");
+    fp->write("T foo = ");
+    fp->write(scalarmangledName.c_str());
+    fp->write("<EC>::THE_INSTANCE.GetDefaultAtom(); ");
     fp->write("for(u32 j = 0; j < ");
     fp->write_decimal_unsigned(arraysize);
     fp->write("u; j++) ");
     fp->write("writeArrayItem(");
-    fp->write(scalarmangledName.c_str());
-    fp->write("<EC>::THE_INSTANCE");
-    fp->write(".GetDefaultAtom()"); //returns object of type T
-    fp->write(", j, BPA); }\n");
+    fp->write("foo, j, BPA); }\n");
 
     //constructor here (used by const tmpVars)
     m_state.indent(fp);
@@ -673,6 +675,7 @@ namespace MFM {
     fp->write("const u32 index) { return ");
     fp->write("m_stgarr[index]; }\n");
 
+#if 0
     //Unpacked, an item T const
     m_state.indent(fp);
     fp->write("const BitStorage<EC>& ");
@@ -686,6 +689,7 @@ namespace MFM {
     fp->write("getRef(");
     fp->write("const u32 index) { return ");
     fp->write("m_stgarr[index]; }\n");
+#endif
 
     //Unpacked, position within whole
     m_state.indent(fp);

@@ -477,7 +477,7 @@ namespace MFM {
     m_state.m_currentSelfSymbolForCodeGen = this;
     m_state.m_currentObjSymbolsForCodeGen.clear();
 
-    m_state.setupCenterSiteForTesting(); //temporary!!!
+    m_state.setupCenterSiteForTesting(); //temporary!!! (t3207)
 
     // mangled types and forward class declarations
     genMangledTypesHeaderFile(fm);

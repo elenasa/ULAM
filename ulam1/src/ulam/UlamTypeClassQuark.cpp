@@ -95,11 +95,15 @@ namespace MFM {
 
   const std::string UlamTypeClassQuark::readMethodForCodeGen()
   {
+    if(!isScalar())
+      return UlamType::readMethodForCodeGen();
     return "Read"; //quarks only 32 bits
   } //readMethodForCodeGen
 
   const std::string UlamTypeClassQuark::writeMethodForCodeGen()
   {
+    if(!isScalar())
+      return UlamType::writeMethodForCodeGen();
     return "Write"; //quarks only 32 bits
   } //writeMethodForCodeGen
 
@@ -433,9 +437,11 @@ namespace MFM {
 
 		std::ostringstream qdhex;
 		qdhex << "0x" << std::hex << dqarrval;
-		fp->write("Write(0u, ");
-		fp->write_decimal_unsigned(len);
-		fp->write("u, ");
+		fp->write(writeMethodForCodeGen().c_str());
+		fp->write("(");
+		//fp->write("Write(0u, ");
+		//fp->write_decimal_unsigned(len);
+		//fp->write("u, ");
 		fp->write(qdhex.str().c_str());
 		fp->write(");");
 	      }
@@ -456,16 +462,20 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write("(const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
-    fp->write(" d) {");
-    fp->write(" Write(d); }\n");
+    fp->write(" d) { ");
+    fp->write(writeMethodForCodeGen().c_str());
+    fp->write("(d); }\n");
 
     // assignment constructor
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("(const ");
     fp->write(mangledName.c_str());
-    fp->write("<EC> & arg) {");
-    fp->write(" Write(arg.Read()); }\n");
+    fp->write("<EC> & arg) { ");
+    fp->write(writeMethodForCodeGen().c_str());
+    fp->write("(arg.");
+    fp->write(readMethodForCodeGen().c_str());
+    fp->write("()); }\n");
 
     genUlamTypeReadDefinitionForC(fp);
 
@@ -483,7 +493,7 @@ namespace MFM {
     fp->write("#endif /*");
     fp->write(udstr.c_str());
     fp->write(" */\n\n");
-  } //genUlamTypeQuarkMangledDefinitionForC
+  } //genUlamTypeMangledDefinitionForC
 
   void UlamTypeClassQuark::genUlamTypeReadDefinitionForC(File * fp)
   {
@@ -492,7 +502,9 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write("const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32 or u64
-	fp->write(" Read() const { return BVS::"); //lower case?
+	fp->write(" ");
+	fp->write(readMethodForCodeGen().c_str());
+	fp->write("() const { return BVS::"); //lower case?
 	fp->write(readMethodForCodeGen().c_str());
 	fp->write("(0u, ");
 	if(isScalar())
@@ -528,7 +540,9 @@ namespace MFM {
     if(isScalar() || (getPackable() == PACKEDLOADABLE))
       {
 	m_state.indent(fp);
-	fp->write("void Write(const "); //or write?
+	fp->write("void ");
+	fp->write(writeMethodForCodeGen().c_str());
+	fp->write("(const "); //or write? WriteLong?
 	fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32, s64 or u64
 	fp->write(" v) { BVS::");
 	fp->write(writeMethodForCodeGen().c_str());

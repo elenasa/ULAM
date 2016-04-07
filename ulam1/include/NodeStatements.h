@@ -82,7 +82,7 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    virtual void packBitsInOrderOfDeclaration(u32& offset);
+    virtual void packBitsInOrderOfDeclaration(u32& offset, u32& abspos);
 
     virtual void printUnresolvedVariableDataMembers();
 

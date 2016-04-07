@@ -117,14 +117,6 @@ namespace MFM{
 
     virtual PACKFIT getPackable();
 
-    virtual const std::string readMethodForCodeGen();
-
-    virtual const std::string writeMethodForCodeGen();
-
-    virtual const std::string readArrayItemMethodForCodeGen();
-
-    virtual const std::string writeArrayItemMethodForCodeGen();
-
     virtual void genUlamTypeMangledDefinitionForC(File * fp);
 
     virtual void genUlamTypeReadDefinitionForC(File * fp);

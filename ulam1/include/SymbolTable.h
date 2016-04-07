@@ -142,7 +142,7 @@ namespace MFM{
 
     void getClassMembers(ClassMemberMap& classmembers);
 
-    void initializeElementDefaultsForEval(UlamValue& uvsite);
+    void initializeElementDefaultsForEval(UlamValue& uvsite, UTI cuti);
 
     void testForTableOfClasses(File * fp);
 

@@ -63,6 +63,18 @@ namespace MFM {
     return 0; //data members only, incl. symbolparametervalue
   }
 
+  u32 Symbol::getAbsPosition()
+  {
+    assert(0);
+    return 0; //data members only, incl. symbolparametervalue
+  }
+
+  u32 Symbol::getAtomOrigin()
+  {
+    assert(0);
+    return 0; //data members only, incl. symbolparametervalue
+  }
+
   bool Symbol::isFunction()
   {
     return false;

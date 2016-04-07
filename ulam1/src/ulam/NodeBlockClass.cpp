@@ -785,16 +785,20 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_functionST.updatePrevBlockPtrAcrossTableOfFunctions(this);
   }
 
-  void NodeBlockClass::initElementDefaultsForEval(UlamValue& uv)
+  void NodeBlockClass::initElementDefaultsForEval(UlamValue& uv, UTI cuti)
   {
     UTI buti = getNodeType();
-    if(m_state.isClassASubclass(buti) != Nouti)
+    UTI superuti = m_state.isClassASubclass(buti);
+    assert(superuti != Hzy);
+    if(superuti != Nouti)
       {
 	NodeBlockClass * superClassBlock = getSuperBlockPointer();
 	assert(superClassBlock);
-	superClassBlock->initElementDefaultsForEval(uv);
+	m_state.pushClassContext(superuti, superClassBlock, superClassBlock, false, NULL);
+	superClassBlock->initElementDefaultsForEval(uv, cuti);
+	m_state.popClassContext(); //restore
       }
-    return m_ST.initializeElementDefaultsForEval(uv);
+    return m_ST.initializeElementDefaultsForEval(uv, cuti);
   } //initElementDefaultsForEval
 
   //don't set nextNode since it'll get deleted with program.
@@ -833,12 +837,13 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   {
     if(m_ST.getTableSize() == 0) return;
 
-    u32 offset = 0; //quarks, transients start at zero
+    u32 reloffset = 0;
+    u32 abspos = 0;  //quarks, transients start at zero
 
     UTI cuti = m_state.getCompileThisIdx();
     ULAMCLASSTYPE thisclasstype = m_state.getUlamTypeByIndex(cuti)->getUlamClassType();
     if(thisclasstype == UC_ELEMENT)
-      offset = ATOMFIRSTSTATEBITPOS; //elements are absolute to the ATOM!!!
+      abspos = ATOMFIRSTSTATEBITPOS; //elements are absolute to the ATOM!!!
 
     UTI nuti = getNodeType();
     UTI superuti = m_state.isClassASubclass(nuti);
@@ -861,12 +866,13 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	assert(UlamType::compare(superblock->getNodeType(), superuti, m_state) == UTIC_SAME);
 	u32 superoffset = m_state.getTotalBitSize(superuti);
 	assert(superoffset >= 0);
-	offset += superoffset;
+	reloffset += superoffset;
+	abspos += superoffset;
       }
 
     //m_ST.packBitsForTableOfVariableDataMembers(); //ST order not as declared
     if(m_nodeNext)
-      m_nodeNext->packBitsInOrderOfDeclaration(offset);
+      m_nodeNext->packBitsInOrderOfDeclaration(reloffset, abspos);
   } //packBitsForVariableDataMembers
 
   void NodeBlockClass::printUnresolvedVariableDataMembers()

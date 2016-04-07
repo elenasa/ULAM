@@ -47,7 +47,7 @@ namespace MFM {
     assert(isDefined);
     NodeBlockClass * cblock = csym->getClassBlockNode();
     assert(cblock);
-    cblock->initElementDefaultsForEval(rtnValue);
+    cblock->initElementDefaultsForEval(rtnValue, elementType);
 
     return rtnValue;
   } //makeDefaultAtom
@@ -93,7 +93,6 @@ namespace MFM {
     rtnVal.clear();
     rtnVal.setUlamValueTypeIdx(utype);
     rtnVal.putData(ATOMFIRSTSTATEBITPOS, len, v); //left-justified
-    //rtnVal.putData(0, len, v); //absolute pos?
     return rtnVal;
   } //makeImmediateQuark
 
@@ -104,7 +103,6 @@ namespace MFM {
     rtnVal.clear();
     rtnVal.setUlamValueTypeIdx(utype);
     rtnVal.putDataLong(ATOMFIRSTSTATEBITPOS, len, v); //left-justified
-    //rtnVal.putDataLong(0, len, v); //absolute pos?
     return rtnVal;
   } //makeImmediateQuarkArrayLong
 
@@ -626,7 +624,7 @@ namespace MFM {
     AssertBool utypOk = ((utype != UAtom) && (utype != Ptr) && (utype != PtrAbs) && (utype != Nav) && (utype != Hzy) && (utype != Nouti));
     assert(utypOk);
     assert(len >= 0 && len <= MAXBITSPERINT);
-    return getData(ATOMFIRSTSTATEBITPOS, len); //or absolute 0?
+    return getData(ATOMFIRSTSTATEBITPOS, len);
   } //getImmediateQuarkData const
 
   u64 UlamValue::getImmediateDataLong(CompilerState & state) const
