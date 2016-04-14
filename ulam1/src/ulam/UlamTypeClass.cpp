@@ -293,16 +293,10 @@ namespace MFM {
     return asRef->getUlamTypeImmediateMangledName();
   } //getUlamTypeImmediateAutoMangledName
 
-  const std::string UlamTypeClass::getTmpStorageTypeAsString()
-  {
-    assert(0);
-    return ""; //error!
-  } //getTmpStorageTypeAsString
-
   const std::string UlamTypeClass::getArrayItemTmpStorageTypeAsString()
   {
     if(!isScalar())
-	return getTmpStorageTypeAsString(); //return its scalar tmp storage type
+      return UlamType::getTmpStorageTypeAsString(getItemWordSize()); //return its scalar tmp storage type
 
     return m_state.getUlamTypeByIndex(getCustomArrayType())->getTmpStorageTypeAsString();
   } //getArrayItemTmpStorageTypeAsString

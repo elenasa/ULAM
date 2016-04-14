@@ -588,13 +588,12 @@ namespace MFM {
     return true;
   } //foldDefaultQuark
 
-  void NodeVarDeclDM::packBitsInOrderOfDeclaration(u32& offset, u32& abspos)
+  void NodeVarDeclDM::packBitsInOrderOfDeclaration(u32& offset)
   {
     assert((s32) offset >= 0); //neg is invalid
     assert(m_varSymbol);
 
     m_varSymbol->setPosOffset(offset);
-    m_varSymbol->setAbsPosition(abspos);
 
     UTI it = m_varSymbol->getUlamTypeIdx();
     assert(m_state.isComplete(it)); //moved error check to separate pass
@@ -608,23 +607,18 @@ namespace MFM {
       {
 	if((classtype == UC_ELEMENT) || m_state.isAtom(it))
 	  {
-	    m_varSymbol->setAtomOrigin(offset);
 	    if(ut->isScalar())
 	      {
 		offset += BITSPERATOM; //allocate full size of atom
-		abspos += BITSPERATOM;
 	      }
 	    else
 	      {
 		offset += (BITSPERATOM * ut->getArraySize());
-		abspos += (BITSPERATOM * ut->getArraySize());
 	      }
 	  }
 	else
 	  {
-	    m_varSymbol->setAtomOrigin(len); //flag!
 	    offset += len; //includes arraysize
-	    abspos += len;
 	  }
       }
     else
@@ -668,7 +662,6 @@ namespace MFM {
 	      }
 	  }
 	offset += len;
-	abspos += len;
       } //not transient
 
     //this check is valid regardless of where quark resides

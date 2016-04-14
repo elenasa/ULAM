@@ -101,7 +101,7 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
-    virtual void packBitsInOrderOfDeclaration(u32& offset, u32& abspos);
+    virtual void packBitsInOrderOfDeclaration(u32& offset);
 
     virtual void printUnresolvedVariableDataMembers();
 

@@ -59,7 +59,7 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-  void NodeVarRefAs::packBitsInOrderOfDeclaration(u32& offset, u32& abspos)
+  void NodeVarRefAs::packBitsInOrderOfDeclaration(u32& offset)
   {
     assert(0); //refs can't be data members
   } //packBitsInOrderOfDeclaration
@@ -177,8 +177,8 @@ namespace MFM {
 	fp->write(", ");
 	if(vclasstype == UC_QUARK) //t3639
 	  fp->write("0u, "); //position as super
-	else if(!stgcosut->isReference())
-	  fp->write("0u, "); //origin of stg
+	//	else if(!stgcosut->isReference())
+	//  fp->write("0u, "); //origin of stg
 
 	fp->write(m_state.getHiddenContextArgName());
 	fp->write(".LookupElementTypeFromContext(");
@@ -193,8 +193,8 @@ namespace MFM {
 	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset()); //should be 0!
 	    fp->write("u");
 	  }
-	else if(!stgcosut->isReference())
-	  fp->write(", 0u"); //origin of stg
+	//else if(!stgcosut->isReference())
+	// fp->write(", 0u"); //origin of stg
 
 	fp->write(", &");
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());

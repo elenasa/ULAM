@@ -2815,8 +2815,9 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     std::ostringstream tmpVar; //into
     PACKFIT packed = determinePackable(uti);
 
-    UlamType * ut = getUlamTypeByIndex(uti);
-    if(isAtom(uti) || (ut->getUlamClassType() == UC_ELEMENT))
+    //UlamType * ut = getUlamTypeByIndex(uti);
+    //if(isAtom(uti) || (ut->getUlamClassType() == UC_ELEMENT))
+    if(isAtom(uti)) //elements are packed!
       {
 	//stg = TMPBITVAL or TMPTATOM; avoid loading a T into a tmpregister!
 	assert(stg != TMPREGISTER);

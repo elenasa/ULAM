@@ -707,6 +707,8 @@ namespace MFM {
   void NodeCast::genCodeCastAtomAndElement(File * fp, UlamValue & uvpass)
   {
     UTI tobeType = getCastType();
+    UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
+
     UTI vuti = uvpass.getUlamValueTypeIdx();
     s32 tmpVarNum = 0;
 
@@ -726,12 +728,13 @@ namespace MFM {
 	fp->write(".");
 	fp->write(m_state.getIsMangledFunctionName(tobeType));
 	fp->write("(");
+	//fp->write(m_state.getTmpVarAsString(tobeType, tmpread, tmpreadstorage).c_str());
 	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str());
 	if(uvpass.getPtrStorage() == TMPBITVAL)
 	  {
-	    fp->write(".");
-	    fp->write(vut->readMethodForCodeGen().c_str());
-	    fp->write("()");
+	  fp->write(".");
+	  fp->write(vut->readMethodForCodeGen().c_str());
+	  fp->write("()");
 	  }
 	fp->write("))\n");
 
@@ -739,11 +742,39 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write("FAIL(BAD_CAST);\n");
 	m_state.m_currentIndentLevel--;
-      }
 
-    //don't read like ref's do!
-    //update the uvpass to have the casted type
-    uvpass = UlamValue::makePtr(tmpVarNum, uvpass.getPtrStorage(), tobeType, m_state.determinePackable(tobeType), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id
+	//read packed element (e.g. t3410, 3277)
+	s32 tmpread = m_state.getNextTmpVarNumber(); //tmp since no variable name
+	STORAGE tmpreadstorage = tobe->getTmpStorageTypeForTmpVar();
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(tobe->getTmpStorageTypeAsString().c_str()); //u32, u64, or T
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(tobeType, tmpread, tmpreadstorage).c_str());
+	fp->write(" = ");
+	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str());
+
+	if((uvpass.getPtrStorage() == TMPBITVAL) || (uvpass.getPtrStorage() == TMPTATOM))
+	  {
+	    if(uvpass.getPtrStorage() == TMPTATOM)
+	      fp->write(".GetBits()");
+	    fp->write(".");
+	    fp->write(tobe->readMethodForCodeGen().c_str());
+	    fp->write("(0u, ");
+	    fp->write_decimal_unsigned(tobe->getTotalBitSize());
+	    fp->write("u)");
+	  }
+
+	fp->write(";\n");
+
+	uvpass = UlamValue::makePtr(tmpread, tmpreadstorage, tobeType, m_state.determinePackable(tobeType), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id
+      }
+    else
+      {
+	//don't read like ref's do!
+	//update the uvpass to have the casted type
+	uvpass = UlamValue::makePtr(tmpVarNum, uvpass.getPtrStorage(), tobeType, m_state.determinePackable(tobeType), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id
+      }
     return;
   } //genCodeCastAtomAndElement
 
@@ -900,7 +931,7 @@ namespace MFM {
 	    fp->write("u, ");
 	    if(!m_state.isAtomRef(vuti))
 	      {
-		fp->write("0u, "); //origin
+		//fp->write("0u, "); //origin
 		fp->write(stgcos->getMangledName().c_str());
 		fp->write(", "); //'is' storage
 	      }
@@ -944,8 +975,10 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpref, TMPBITVAL).c_str());
 	fp->write("(");
 	fp->write(stgcos->getMangledName().c_str());
-	if(!stgcos->isSelf())
-	  fp->write(".GetStorage()");
+
+	//t3692 undefined .GetStorage, it is a storage!
+	//if(!stgcos->isSelf())
+	//  fp->write(".GetStorage()");
 
 	if(m_state.isAtom(vuti))
 	  {
@@ -1027,7 +1060,7 @@ namespace MFM {
 
 	if(!stgcosut->isReference())
 	  {
-	    fp->write("0u, "); //origin
+	    //fp->write("0u, "); //origin
 	    fp->write(stgcos->getMangledName().c_str()); //storage
 	    fp->write(", ");
 	  }

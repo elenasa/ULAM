@@ -838,12 +838,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(m_ST.getTableSize() == 0) return;
 
     u32 reloffset = 0;
-    u32 abspos = 0;  //quarks, transients start at zero
 
-    UTI cuti = m_state.getCompileThisIdx();
-    ULAMCLASSTYPE thisclasstype = m_state.getUlamTypeByIndex(cuti)->getUlamClassType();
-    if(thisclasstype == UC_ELEMENT)
-      abspos = ATOMFIRSTSTATEBITPOS; //elements are absolute to the ATOM!!!
+    //UTI cuti = m_state.getCompileThisIdx();
+    //ULAMCLASSTYPE thisclasstype = m_state.getUlamTypeByIndex(cuti)->getUlamClassType();
+    //if(thisclasstype == UC_ELEMENT)
+    //  abspos = ATOMFIRSTSTATEBITPOS; //elements are absolute to the ATOM!!!
 
     UTI nuti = getNodeType();
     UTI superuti = m_state.isClassASubclass(nuti);
@@ -867,12 +866,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	u32 superoffset = m_state.getTotalBitSize(superuti);
 	assert(superoffset >= 0);
 	reloffset += superoffset;
-	abspos += superoffset;
       }
 
     //m_ST.packBitsForTableOfVariableDataMembers(); //ST order not as declared
     if(m_nodeNext)
-      m_nodeNext->packBitsInOrderOfDeclaration(reloffset, abspos);
+      m_nodeNext->packBitsInOrderOfDeclaration(reloffset);
   } //packBitsForVariableDataMembers
 
   void NodeBlockClass::printUnresolvedVariableDataMembers()

@@ -206,12 +206,12 @@ namespace MFM {
     m_nodeNext = s;
   }
 
-  void NodeStatements::packBitsInOrderOfDeclaration(u32& offset, u32& abspos)
+  void NodeStatements::packBitsInOrderOfDeclaration(u32& offset)
   {
-    m_node->packBitsInOrderOfDeclaration(offset, abspos); //updates offset
+    m_node->packBitsInOrderOfDeclaration(offset); //updates offset
 
     if(m_nodeNext)
-      m_nodeNext->packBitsInOrderOfDeclaration(offset, abspos);
+      m_nodeNext->packBitsInOrderOfDeclaration(offset);
   } //packBitsInOrderOfDeclaration
 
   void NodeStatements::printUnresolvedVariableDataMembers()

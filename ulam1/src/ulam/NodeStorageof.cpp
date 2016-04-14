@@ -187,7 +187,7 @@ namespace MFM {
 
     if(m_state.isReference(vuti) || isself)
       {
-#if 0
+#if 1
 	m_state.indent(fp);
 	fp->write("if(");
 	fp->write(m_varSymbol->getMangledName().c_str());
@@ -197,12 +197,13 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write("FAIL(ILLEGAL_ARGUMENT);\n");
 	m_state.m_currentIndentLevel--;
-#endif
+#else
 
 	m_state.indent(fp);
 	fp->write("if(!");
 	fp->write(m_varSymbol->getMangledName().c_str());
 	fp->write(".IsValidOrigin()) FAIL(ILLEGAL_ARGUMENT); //quark or non-class\n");
+#endif
       }
 
     m_state.indent(fp); //non-const
@@ -217,15 +218,15 @@ namespace MFM {
     else
       fp->write(m_varSymbol->getMangledName().c_str()); //element or atom
 
-    fp->write(".GetStorage(), "); //can't be const
+    fp->write(".GetStorage()"); //can't be const
 
-    if(m_state.isReference(vuti) || isself)
-      {
-	fp->write(m_varSymbol->getMangledName().c_str());
-	fp->write(".GetOrigin()");
-      }
-    else
-      fp->write("0u");
+    // if(m_state.isReference(vuti) || isself)
+    // {
+    //	fp->write(m_varSymbol->getMangledName().c_str());
+    //	fp->write(".GetOrigin()"); //origin
+    //}
+    //else
+    //fp->write("0u");
 
     fp->write(", uc); //storageof \n");
     //fp->write("); //storageof \n");

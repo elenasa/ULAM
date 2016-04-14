@@ -334,10 +334,19 @@ namespace MFM {
       case 64:
 	ctype = "u64";
 	break;
+      case 96:
+	ctype = "BV96";
+	break;
       default:
 	{
+	  assert(!isScalar());
 	  //ctype = getTmpStorageTypeAsString(getItemWordSize()); //u32, u64 (inf loop)
-	  ctype = "T";
+	  std::ostringstream cstr;
+	  if(sizebyints == (s32) getItemWordSize())
+	    cstr << "BitVector<" << getBitSize() << ">";
+	  else
+	    cstr << "BitVector<" << getTotalBitSize() << ">"; //entire array
+	  ctype = cstr.str();
 	  //assert(0);
 	  //MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
 	}
@@ -347,7 +356,6 @@ namespace MFM {
 
   STORAGE UlamType::getTmpStorageTypeForTmpVar()
   {
-    //immediate storage is TMPBITVAL for all UlamTypes.
     return TMPREGISTER;
   }
 
@@ -795,7 +803,7 @@ namespace MFM {
 	method = "ReadLong"; //ReadArrayLong
 	break;
       default:
-	method = "ReadUnpacked"; //TBD ReadArrayUnpacked
+	method = "ReadBV"; //TBD ReadArrayUnpacked
 	//assert(0);
       };
     return method;
@@ -815,7 +823,7 @@ namespace MFM {
 	method = "WriteLong"; //WriteArrayLong
 	break;
       default:
-	method = "WriteUnpacked"; //TBD WriteArrayUnpacked
+	method = "WriteBV"; //TBD WriteArrayUnpacked
       };
     return method;
   } //writeArrayItemMethodForCodeGen()

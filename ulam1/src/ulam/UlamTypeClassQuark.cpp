@@ -125,11 +125,6 @@ namespace MFM {
     return rtnb;
   } //needsImmediateType
 
-  const std::string UlamTypeClassQuark::getTmpStorageTypeAsString()
-  {
-    return "u32";
-  }
-
   const std::string UlamTypeClassQuark::getLocalStorageTypeAsString()
   {
     std::ostringstream ctype;
@@ -225,18 +220,14 @@ namespace MFM {
     fp->write(scalarmangledName.c_str());
     fp->write("<EC> Us;\n");
 
-    //m_state.indent(fp);
-    //fp->write("typedef UlamRef"); //was atomicparametertype
-    //fp->write("<EC> Up_Us;\n");
-
     //constructor for conditional-as (auto)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(BitStorage<EC>& targ, u32 idx, const UlamClass<EC>* effself) : UlamRef<EC>");
     fp->write("(idx, "); //the real pos!!!
     fp->write_decimal_unsigned(len); //includes arraysize
-    fp->write("u, ");
-    fp->write_decimal_unsigned(len); //origin n/a
+    //fp->write("u, ");
+    //fp->write_decimal_unsigned(len); //origin n/a
     fp->write("u, targ, effself) { }\n");
 
     //constructor for chain of autorefs (e.g. memberselect with array item)
@@ -252,6 +243,12 @@ namespace MFM {
     fp->write("(const ");
     fp->write(automangledName.c_str());
     fp->write("<EC>& r) : UlamRef<EC>(r, 0u, r.GetLen(), r.GetEffectiveSelf()) { }\n");
+
+    //default destructor (for completeness)
+    m_state.indent(fp);
+    fp->write("~");
+    fp->write(automangledName.c_str());
+    fp->write("() {}\n");
 
     //read 'entire quark' method
     genUlamTypeAutoReadDefinitionForC(fp);
@@ -318,7 +315,7 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write("void writeArrayItem(const ");
 	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
-	fp->write(" v, const u32 index, const u32 itemlen) { ");
+	fp->write("& v, const u32 index, const u32 itemlen) { ");
 	fp->write("UlamRef<EC>(");
 	fp->write("*this, index * itemlen, "); //rel offset
 	fp->write("itemlen, &");  //itemlen,
@@ -372,7 +369,7 @@ namespace MFM {
     fp->write("struct ");
     fp->write(mangledName.c_str());
     fp->write(" : public ");
-    fp->write("BitVectorStorage"); //storage here!
+    fp->write("BitVectorBitStorage"); //storage here!
     fp->write("<EC, BitVector<"); //left-just pos
     fp->write_decimal_unsigned(len); //no round up
     fp->write("> >\n");
@@ -393,10 +390,14 @@ namespace MFM {
     fp->write("enum { QUARK_SIZE = ");
     fp->write_decimal_unsigned(bitsize);
     fp->write("};\n");
+
     m_state.indent(fp);
-    fp->write("typedef BitVectorStorage<EC, BitVector<");
+    fp->write("typedef BitVector<");
     fp->write_decimal_unsigned(len);
-    fp->write("> > BVS;\n");
+    fp->write("> BV;\n");
+
+    m_state.indent(fp);
+    fp->write("typedef BitVectorBitStorage<EC, BV> BVS;\n");
     fp->write("\n");
 
     //quark typedef
@@ -439,9 +440,6 @@ namespace MFM {
 		qdhex << "0x" << std::hex << dqarrval;
 		fp->write(writeMethodForCodeGen().c_str());
 		fp->write("(");
-		//fp->write("Write(0u, ");
-		//fp->write_decimal_unsigned(len);
-		//fp->write("u, ");
 		fp->write(qdhex.str().c_str());
 		fp->write(");");
 	      }
@@ -463,8 +461,21 @@ namespace MFM {
     fp->write("(const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
     fp->write(" d) { ");
-    fp->write(writeMethodForCodeGen().c_str());
-    fp->write("(d); }\n");
+    if(isScalar())
+      {
+	fp->write(writeMethodForCodeGen().c_str());
+	fp->write("(d);");
+      }
+    else
+      {
+	//e.g. t3649
+	fp->write("u32 n = ");
+	fp->write_decimal(getArraySize());
+	fp->write("u; while(n--) { ");
+	fp->write("writeArrayItem(d, n, QUARK_SIZE");
+	fp->write("); }");
+      }
+    fp->write(" }\n");
 
     // assignment constructor
     m_state.indent(fp);
@@ -504,7 +515,7 @@ namespace MFM {
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32 or u64
 	fp->write(" ");
 	fp->write(readMethodForCodeGen().c_str());
-	fp->write("() const { return BVS::"); //lower case?
+	fp->write("() const { return BVS::");
 	fp->write(readMethodForCodeGen().c_str());
 	fp->write("(0u, ");
 	if(isScalar())
@@ -568,7 +579,7 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write("void writeArrayItem(const ");
 	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
-	fp->write(" v, const u32 index, const u32 itemlen) { BVS::");
+	fp->write("& v, const u32 index, const u32 itemlen) { BVS::");
 	fp->write(writeArrayItemMethodForCodeGen().c_str());
 	fp->write("(index * itemlen, "); //rel offset
 	fp->write("itemlen, v); }\n");  //itemlen, val
@@ -637,7 +648,7 @@ namespace MFM {
     fp->write_decimal_unsigned(itemlen);
     fp->write("};\n");
     m_state.indent(fp);
-    fp->write("typedef BitVectorStorage<EC, BitVector<QUARK_SIZE> > BVS;\n");
+    fp->write("typedef BitVectorBitStorage<EC, BitVector<QUARK_SIZE> > BVS;\n");
     fp->write("\n");
 
     //quark typedef
@@ -696,21 +707,21 @@ namespace MFM {
 
     //Unpacked, an item T
     m_state.indent(fp);
-    fp->write("BitVectorStorage<EC, BitVector<QUARK_SIZE> > ");
+    fp->write("BitVectorBitStorage<EC, BitVector<QUARK_SIZE> > ");
     fp->write("getBits(");
     fp->write("const u32 index) { return ");
     fp->write("m_stgarrayref[index]; }\n");
 
     //Unpacked, an item T const
     m_state.indent(fp);
-    fp->write("const BitVectorStorage<EC, BitVector<QUARK_SIZE> > ");
+    fp->write("const BitVectorBitStorage<EC, BitVector<QUARK_SIZE> > ");
     fp->write("getBits(");
     fp->write("const u32 index) const { return ");
     fp->write("m_stgarrayref[index]; }\n");
 
     //Unpacked, an item T&, Or UlamRef??? GetStorage?
     m_state.indent(fp);
-    fp->write("BitVectorStorage<EC, BitVector<QUARK_SIZE> >& ");
+    fp->write("BitVectorBitStorage<EC, BitVector<QUARK_SIZE> >& ");
     fp->write("getRef(");
     fp->write("const u32 index) { return ");
     fp->write("m_stgarrayref[index]; }\n");
@@ -810,7 +821,7 @@ namespace MFM {
     fp->write("> Us;\n");
 
     m_state.indent(fp);
-    fp->write("typedef BitVectorStorage<EC, BitVector<QUARK_SIZE> > BVS;\n");
+    fp->write("typedef BitVectorBitStorage<EC, BitVector<QUARK_SIZE> > BVS;\n");
 
     //Unpacked, storage reference BV size of N quarks (&) [N]
     m_state.indent(fp);
@@ -886,21 +897,21 @@ namespace MFM {
 
     //Unpacked, an item T
     m_state.indent(fp);
-    fp->write("BitVectorStorage<EC, BitVector<QUARK_SIZE> > ");
+    fp->write("BitVectorBitStorage<EC, BitVector<QUARK_SIZE> > ");
     fp->write("getBits(");
     fp->write("const u32 index) { return ");
     fp->write("m_stgarr[index]; }\n");
 
     //Unpacked, an item T const
     m_state.indent(fp);
-    fp->write("const BitVectorStorage<EC, BitVector<QUARK_SIZE> > ");
+    fp->write("const BitVectorBitStorage<EC, BitVector<QUARK_SIZE> > ");
     fp->write("getBits(");
     fp->write("const u32 index) const { return ");
     fp->write("m_stgarr[index]; }\n");
 
     //Unpacked, an item T&, Or UlamRef??? GetStorage?
     m_state.indent(fp);
-    fp->write("BitVectorStorage<EC, BitVector<QUARK_SIZE> >& ");
+    fp->write("BitVectorBitStorage<EC, BitVector<QUARK_SIZE> >& ");
     fp->write("getRef(");
     fp->write("const u32 index) { return ");
     fp->write("m_stgarr[index]; }\n");

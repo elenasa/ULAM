@@ -301,7 +301,7 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-  void NodeVarRef::packBitsInOrderOfDeclaration(u32& offset, u32& abspos)
+  void NodeVarRef::packBitsInOrderOfDeclaration(u32& offset)
   {
     assert(0); //refs can't be data members
   } //packBitsInOrderOfDeclaration
@@ -455,6 +455,19 @@ namespace MFM {
 	      }
 	  }
 
+	//	if(m_state.m_currentObjSymbolsForCodeGen.size() > 1)
+	// {
+	//  u32 stgcosoffset = stgcos->getPosOffset();
+	//  if(stgcosoffset < stgcosut->getTotalBitSize()) //quarks are flag (== len)
+	      //    {
+	//fp->write(", ");
+	//	fp->write_decimal_unsigned(stgcosoffset); //origin
+	//	fp->write("u");
+	//    }
+	//  else
+	//    fp->write(", 0u"); //or provide the "flag"???
+	//  }
+
 	if((vclasstype != UC_NOTACLASS) && (vetype != UAtom))
 	  {
 	    fp->write(", &");
@@ -489,22 +502,31 @@ namespace MFM {
     fp->write(m_varSymbol->getMangledName().c_str());
     fp->write("("); //pass ref in constructor (ref's not assigned with =)
 
-    if(m_state.m_currentObjSymbolsForCodeGen.empty())
+    if(m_state.isAtomRef(puti))
       {
-	fp->write("ur.GetStorage()"); //need non-const T
+	//both atom refs (e.g. t3692)
+	fp->write(m_state.getTmpVarAsString(puti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
       }
     else
       {
-	Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-	fp->write(stgcos->getMangledName().c_str());
-	if(!stgcos->isAutoLocal()) //not a ref, then needs origin
+	if(m_state.m_currentObjSymbolsForCodeGen.empty())
 	  {
-	    fp->write(", ");
-	    fp->write_decimal_unsigned(stgcos->getPosOffset()); //get origin of stg
-	    fp->write("u");
+	    fp->write("ur.GetStorage()"); //need non-const T
 	  }
+	else
+	  {
+	    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+	    fp->write(stgcos->getMangledName().c_str());
+	    //if(!stgcos->isAutoLocal()) //not a ref, then needs origin
+	    // {
+	    //	fp->write(", ");
+	    //	fp->write_decimal_unsigned(stgcos->getPosOffset()); //get origin of stg
+	    //	fp->write("u");
+	    //  }
+	  }
+	fp->write(", uc");
       }
-    fp->write(", uc");
+
     fp->write(");\n");
 
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
@@ -522,6 +544,8 @@ namespace MFM {
     // or ancestor quark if a class.
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+    //UTI stgcosuti = stgcos->getUlamTypeIdx();
+    //UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
     Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
     UTI cosuti = cos->getUlamTypeIdx();
@@ -543,12 +567,26 @@ namespace MFM {
     fp->write(m_varSymbol->getMangledName().c_str());
     fp->write("("); //pass ref in constructor (ref's not assigned with =)
 
-    if(stgcos->isDataMember()) //can't be an element or atom
+    if(stgcos->isDataMember()) //can't be an element or atom; UNLESS stg is a transient
       {
 	fp->write(m_state.getHiddenArgName());
 	fp->write(", ");
-	//fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
-	    fp->write_decimal_unsigned(cos->getAbsPosition()); //abs pos
+	fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
+
+	//if(m_state.m_currentObjSymbolsForCodeGen.size() > 1)
+	//  {
+	//  //???
+	//  //    fp->write_decimal_unsigned(cos->getAbsPosition()); //abs pos
+	//  u32 stgcosoffset = stgcos->getPosOffset();
+	//  if(stgcosoffset < stgcosut->getTotalBitSize()) //quarks are flag (== len)
+	      //    {
+	//fp->write("u, ");
+	//	fp->write_decimal_unsigned(stgcosoffset); //origin
+	//    }
+	//  else
+	//    fp->write("u, 0");
+	//} //else stg is self
+
 	fp->write("u");
 
 	if(vclasstype == UC_QUARK)
@@ -564,11 +602,24 @@ namespace MFM {
 	if(cos->isDataMember())
 	  {
 	    fp->write(", ");
-	    //fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
-	    fp->write_decimal_unsigned(cos->getAbsPosition()); //abs pos
-	    fp->write("u, ");
+	    //fp->write_decimal_unsigned(cos->getAbsPosition()); //abs pos
+	    fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
+	    //fp->write("u, ");
 
-	    fp->write_decimal_unsigned(stgcos->getAtomOrigin()); //origin
+	    ////???
+	    ////fp->write_decimal_unsigned(stgcos->getAtomOrigin()); //origin
+	    //if(m_state.m_currentObjSymbolsForCodeGen.size() > 1)
+	    // {
+	    //	u32 stgcosoffset = stgcos->getPosOffset();
+	    //	if(stgcosoffset < stgcosut->getTotalBitSize()) //quarks are flag (== len)
+		  //	  {
+	    //fp->write("u, ");
+	    //	    fp->write_decimal_unsigned(stgcosoffset); //origin
+	    //	  }
+	    //	else
+	    //	  fp->write("u, 0");
+	    //} //else self stg
+
 	    fp->write("u");
 
 	    if(vclasstype == UC_QUARK)
@@ -579,15 +630,20 @@ namespace MFM {
 	  }
 	else
 	  {
-	    if(vut->getPackable() == PACKEDLOADABLE)
+	    // unpack and packed array use same code, except for Atom
+	    // (e.g. t3666)
+	    //if(vut->getPackable() == PACKEDLOADABLE)
 	      {
 		if((vclasstype == UC_NOTACLASS) && (vetype != UAtom) )
 		  {
 		    fp->write(", 0u"); //rel off to right-just prim
+		    //if(!stgcosut->isReference())
+		    //  fp->write(", 0u"); //origin (e.g. t3666)
 		  }
 		else if((vetype == UAtom))
 		  {
-		    fp->write(", uc");
+		    if(vut->getPackable() == PACKEDLOADABLE)
+		      fp->write(", uc");
 		  }
 		else if(vclasstype == UC_QUARK)
 		  {
@@ -597,7 +653,8 @@ namespace MFM {
 		  }
 		else if(vclasstype == UC_ELEMENT)
 		  {
-		    fp->write(", &");
+		    fp->write(", ");
+		    fp->write("0u, &"); //left just
 		    fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
 		  }
 		else
@@ -678,6 +735,7 @@ namespace MFM {
 		fp->write(" * ");
 		fp->write_decimal_unsigned(cosut->getBitSize());
 		fp->write("u)"); //relative t3651
+		//fp->write(", 0u"); //origin t3651
 	      }
 	    else if((vetype == UAtom))
 	      {

@@ -28,10 +28,21 @@ namespace MFM {
     return true; //isComplete();
   }
 
-  const std::string UlamTypeAtom::getTmpStorageTypeAsString()
+  const std::string UlamTypeAtom::getArrayItemTmpStorageTypeAsString()
   {
     return "T";
   }
+
+  const std::string UlamTypeAtom::getTmpStorageTypeAsString()
+  {
+    if(!isScalar())
+      {
+	std::ostringstream cstr;
+	cstr << "BitVector<" << getTotalBitSize() << ">";
+	return cstr.str();
+      }
+    return "T";
+  } //getTmpStorageTypeAsString
 
   const std::string UlamTypeAtom::getLocalStorageTypeAsString()
   {
@@ -176,8 +187,8 @@ namespace MFM {
     //constructor for ref (auto)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    //fp->write("(AtomBitStorage<EC>& targ, const UlamContext<EC>& uc) : UlamRefAtom<EC>(targ, 0u, uc.LookupElementTypeFromContext(targ.GetType())) { }\n");
-    fp->write("(BitStorage<EC>& targ, u32 origin, const UlamContext<EC>& uc) : UlamRefAtom<EC>(targ, origin, uc.LookupElementTypeFromContext(targ.ReadAtom(origin, BPA).GetType())) { }\n");
+    fp->write("(AtomBitStorage<EC>& targ, const UlamContext<EC>& uc) : UlamRefAtom<EC>(targ, 0u, uc.LookupElementTypeFromContext(targ.GetType())) { }\n");
+    //fp->write("(BitStorage<EC>& targ, u32 origin, const UlamContext<EC>& uc) : UlamRefAtom<EC>(targ, origin, uc.LookupElementTypeFromContext(targ.ReadAtom(origin, BPA).GetType())) { }\n");
 
     //constructor for chain of autorefs (e.g. memberselect with array item)
     m_state.indent(fp);
@@ -263,7 +274,7 @@ namespace MFM {
     //fp->write("& targ, const UlamContext<EC>& ucarg) : "); //uc consistent with atomref
     fp->write("& targ) : "); //uc consistent with atomref
     fp->write("AtomBitStorage<EC>");
-    fp->write("(targ) { }\n ");
+    fp->write("(targ) { }\n");
 
     //copy constructor
     m_state.indent(fp);
@@ -273,7 +284,7 @@ namespace MFM {
     //fp->write("& d, const UlamContext<EC>& ucarg) : "); //uc consistent with atomref
     fp->write("& d) : "); //uc consistent with atomref
     fp->write("AtomBitStorage<EC>");
-    fp->write("(d.ReadAtom()) { }\n ");
+    fp->write("(d.ReadAtom()) { }\n");
 
     //default destructor (for completeness)
     m_state.indent(fp);

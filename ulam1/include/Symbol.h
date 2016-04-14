@@ -67,8 +67,6 @@ namespace MFM{
     UTI getUlamTypeIdx();
 
     virtual u32 getPosOffset();
-    virtual u32 getAbsPosition();
-    virtual u32 getAtomOrigin();
 
     virtual bool isFunction();
     virtual bool isTypedef();

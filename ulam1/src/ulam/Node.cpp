@@ -399,7 +399,7 @@ namespace MFM {
     m_state.m_nodeEvalStack.assignUlamValuePtr(rtnPtr, rtnUVptr);
   }
 
-  void Node::packBitsInOrderOfDeclaration(u32& offset, u32& abspos)
+  void Node::packBitsInOrderOfDeclaration(u32& offset)
   {
     assert(0);
   }
@@ -564,6 +564,13 @@ namespace MFM {
 	fp->write(readMethodForCodeGen(stgcosuti, uvpass).c_str()); //or just 'Read' ?
 	fp->write("();\n"); //stand-alone 'self'
       }
+    else if(stgclasstype == UC_ELEMENT) //&& self???
+      {
+	fp->write(m_state.getHiddenArgName()); //ur
+	fp->write(".");
+	fp->write(readMethodForCodeGen(stgcosuti, uvpass).c_str()); //packed
+	fp->write("();\n"); //stand-alone 'self'
+      }
     else
       {
 	fp->write(m_state.getHiddenArgName());
@@ -624,6 +631,9 @@ namespace MFM {
 	cos = m_state.m_currentObjSymbolsForCodeGen.back();
 	stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
       }
+
+    UTI stgcosuti = stgcos->getUlamTypeIdx();
+    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
@@ -691,8 +701,11 @@ namespace MFM {
 	  {
 	    //use built in immediate arrayitem method instead
 	    fp->write("UlamRef<EC>("); //wrapper for array item
-	    //fp->write(stgcos->getMangledName().c_str());
-	    //fp->write(", ");
+	    if(stgcosut->isReference())
+	      {
+		fp->write(stgcos->getMangledName().c_str()); //e.g. t3617
+		fp->write(", ");
+	      }
 	    fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
 	    fp->write(" + ");
 	    fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex()).c_str()); //INDEX
@@ -701,9 +714,12 @@ namespace MFM {
 	    fp->write("u, ");
 	    fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
 	    fp->write("u, ");
-	    fp->write("0u, "); //origin
-	    fp->write(stgcos->getMangledName().c_str()); //storage
-	    fp->write(", ");
+	    if(!stgcosut->isReference())
+	      {
+		//fp->write("0u, "); //origin
+		fp->write(stgcos->getMangledName().c_str()); //storage
+		fp->write(", ");
+	      }
 
 	    if(cosetype == Class)
 	      {
@@ -1177,7 +1193,7 @@ namespace MFM {
 	    fp->write("u, ");
 	    if(!stgcosut->isReference())
 	      {
-		fp->write("0u, "); //origin
+		//fp->write("0u, "); //origin
 		fp->write(stgcos->getMangledName().c_str()); //storage
 		fp->write(", ");
 	      }
@@ -1414,6 +1430,9 @@ namespace MFM {
 	stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
       }
 
+    UTI stgcosuti = stgcos->getUlamTypeIdx();
+    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
@@ -1455,25 +1474,23 @@ namespace MFM {
 
 	if(cos->isDataMember())
 	  {
-	    if(cosSize > 1)
+	    //if(cosSize > 1)
 	      fp->write(stgcos->getMangledName().c_str());
-	    else
-	      fp->write(m_state.getHiddenArgName());
+	      //else
+	      //fp->write(m_state.getHiddenArgName());
 	  }
 	else
 	  {
 	    fp->write(cos->getMangledName().c_str()); //local array
 	  }
 
-	PACKFIT packfit = cosut->getPackable();
-	if(packfit == UNPACKED)
-	  {
-	    fp->write(".getRef(");
-	  }
-	else
-	  {
-	    fp->write(", ");
-	  }
+	//PACKFIT packfit = cosut->getPackable();
+	//if(packfit == UNPACKED)
+	// {
+	//  fp->write(".getRef(");
+	//  }
+	//else
+	fp->write(", ");
 
 	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str()); //pos variable 0-based
 
@@ -1490,13 +1507,17 @@ namespace MFM {
 		fp->write("u");
 	      }
 
-	    if(packfit == UNPACKED)
-	      {
-		fp->write("), 0u"); //closes getRef
-	      }
+	    //if(packfit == UNPACKED)
+	    //  {
+	    //	fp->write("), 0u"); //closes getRef
+	    //  }
+	    if(stgcosut->isReference())
+	      fp->write(", 0u"); //(t3668)
 	  }
 	else if(cosclasstype == UC_ELEMENT)
-	  fp->write(")"); //just index as arg to getRef
+	  {
+	    //fp->write(")"); //just index as arg to getRef
+	  }
 	else
 	  assert(0);
 
@@ -2152,7 +2173,9 @@ namespace MFM {
 
 	    hiddenarg2 << "u, " << derefut->getTotalBitSize() << "u, "; //len
 	    if(!stgcosut->isReference())
-	      hiddenarg2 << "0u, " << stgcos->getMangledName().c_str() << ", "; //origin + storage
+	      //hiddenarg2 << "0u, " << stgcos->getMangledName().c_str() << ", "; //origin + storage
+	      hiddenarg2 << stgcos->getMangledName().c_str() << ", "; //storage
+
 	    hiddenarg2 << "&";
 	    hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str();
 	    hiddenarg2 << ");";
@@ -2221,7 +2244,7 @@ namespace MFM {
     fp->write("u, ");
     if(!stgcosut->isReference())
       {
-	fp->write("0u, "); //origin
+	//fp->write("0u, "); //origin
 	fp->write(stgcos->getMangledName().c_str()); //local storage (not ref)
 	fp->write(", ");
       }
@@ -2284,8 +2307,10 @@ namespace MFM {
     std::string method;
     if(isCurrentObjectsContainingAModelParameter() >= 0)
       method = "read"; //an exception
-    else
+    else if(!isCurrentObjectALocalVariableOrArgument())
       method = m_state.getUlamTypeByIndex(nuti)->readMethodForCodeGen();
+    else
+      method = "Read";
     return method;
   } //readMethodForCodeGen
 
@@ -2311,7 +2336,9 @@ namespace MFM {
 
   const std::string Node::writeMethodForCodeGen(UTI nuti, UlamValue uvpass)
   {
-    return m_state.getUlamTypeByIndex(nuti)->writeMethodForCodeGen();
+    if(!isCurrentObjectALocalVariableOrArgument())
+      return m_state.getUlamTypeByIndex(nuti)->writeMethodForCodeGen();
+    return "Write";
   } //writeMethodForCodeGen
 
   const std::string Node::writeArrayItemMethodForCodeGen(UTI nuti, UlamValue uvpass)

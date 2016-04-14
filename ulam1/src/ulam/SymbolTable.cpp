@@ -390,7 +390,7 @@ namespace MFM {
   void SymbolTable::genCodeBuiltInFunctionBuildDefaultsOverTableOfVariableDataMember(File * fp, UTI cuti)
   {
     bool useFullClassName = (cuti != m_state.getCompileThisIdx()); //from its superclass
-    u32 classorigin = 0;
+    //u32 classorigin = 0;
 
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
@@ -424,8 +424,9 @@ namespace MFM {
 			fp->write("u, ");
 			fp->write_decimal_unsigned(sut->getBitSize()); //len
 			fp->write("u, ");
-			fp->write_decimal_unsigned(classorigin); //origin
-			fp->write("u, da, &");
+			//fp->write_decimal_unsigned(classorigin); //origin
+			//fp->write("u, da, &");
+			fp->write("da, &");
 			fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
 			fp->write(")."); //close wrapper
 			fp->write(sut->writeMethodForCodeGen().c_str());
@@ -468,8 +469,9 @@ namespace MFM {
 			    fp->write("u, ");
 			    fp->write_decimal_unsigned(itemlen); //len
 			    fp->write("u, ");
-			    fp->write_decimal_unsigned(classorigin); //origin
-			    fp->write("u, da, &");
+			    //fp->write_decimal_unsigned(classorigin); //origin
+			    //fp->write("u, da, &");
+			    fp->write("da, &");
 			    fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalaruti).c_str());
 			    fp->write(").");
 			    fp->write(scalarut->writeMethodForCodeGen().c_str());
@@ -505,8 +507,8 @@ namespace MFM {
 		    fp->write("<EC>::");
 		  }
 		fp->write(sym->getMangledNameForParameterType().c_str());
-		fp->write("(da, 0u, ");
-
+		//fp->write("(da, 0u, "); origin no longer used
+		fp->write("(da, ");
 #if 0
 		//not a class
 		fp->write("&");

@@ -660,11 +660,11 @@ namespace MFM {
 	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
 	fp->write(" ");
 	fp->write(m_varSymbol->getMangledName().c_str());
-	if(vut->isScalar())
+	if(vut->isScalar() && m_nodeInitExpr) //default constructor includes a GetDefaultAtom
 	  {
-	    fp->write(" = ");
+	    fp->write("(");
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
-	    fp->write(".GetDefaultAtom()"); //returns object of type T
+	    fp->write(".GetDefaultAtom())"); //returns object of type T
 	  }
 	//else
       }

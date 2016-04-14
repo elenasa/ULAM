@@ -1103,7 +1103,8 @@ namespace MFM {
 
 		hiddenarg2 << "u, " << cosut->getTotalBitSize() << "u, "; //len
 		if(!stgcosut->isReference())
-		  hiddenarg2 << "0u, " << stgcos->getMangledName().c_str() << ", "; //origin + storage
+		  //hiddenarg2 << "0u, " << stgcos->getMangledName().c_str() << ", "; //origin + storage
+		  hiddenarg2 << stgcos->getMangledName().c_str() << ", "; //storage
 
 		hiddenarg2 << "&";
 		hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str();
@@ -1360,12 +1361,12 @@ namespace MFM {
 	  }
 
 	//origin
-	if(!m_state.isAtom(vuti)) //???
-	  {
-	    fp->write(", ");
-	    fp->write_decimal_unsigned(cos->getAtomOrigin());
-	    fp->write("u");
-	  }
+	//if(!m_state.isAtom(vuti)) //???
+	//  {
+	//  fp->write(", ");
+	//  fp->write_decimal_unsigned(cos->getPosOffset()); //atom origin
+	//  fp->write("u");
+	//  }
       }
     fp->write(");\n");
 

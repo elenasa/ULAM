@@ -98,8 +98,6 @@ namespace MFM{
 
     virtual const std::string getUlamTypeImmediateAutoMangledName();
 
-    virtual const std::string getTmpStorageTypeAsString();
-
     virtual const std::string getArrayItemTmpStorageTypeAsString();
 
     virtual const std::string getLocalStorageTypeAsString();

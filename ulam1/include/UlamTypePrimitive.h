@@ -87,12 +87,6 @@ namespace MFM{
 
     virtual const std::string getImmediateModelParameterStorageTypeAsString();
 
-    virtual const std::string getArrayItemTmpStorageTypeAsString();
-
-    virtual const std::string getTmpStorageTypeAsString();
-
-    virtual const std::string getTmpStorageTypeAsString(s32 sizebyints);
-
     virtual STORAGE getTmpStorageTypeForTmpVar();
 
     virtual const std::string castMethodForCodeGen(UTI nodetype);

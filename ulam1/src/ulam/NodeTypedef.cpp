@@ -222,7 +222,7 @@ namespace MFM {
     return currBlock;
   } //getBlock
 
-  void NodeTypedef::packBitsInOrderOfDeclaration(u32& offset, u32& abspos)
+  void NodeTypedef::packBitsInOrderOfDeclaration(u32& offset)
   {
     //do nothing, but override
   }

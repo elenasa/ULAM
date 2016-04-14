@@ -107,10 +107,10 @@ namespace MFM {
 
 	if(m_state.isReference(vuti) || isself)
 	  {
-	    m_state.indent(fp);
-	    fp->write("if(!");
-	    fp->write(m_varSymbol->getMangledName().c_str());
-	    fp->write(".IsValidOrigin()) FAIL(ILLEGAL_ARGUMENT); //quark or non-class\n");
+	    //m_state.indent(fp);
+	    //fp->write("if(!");
+	    //fp->write(m_varSymbol->getMangledName().c_str());
+	    //fp->write(".IsValidOrigin()) FAIL(ILLEGAL_ARGUMENT); //quark or non-class\n");
 
 	    u32 tmpuclass = m_state.getNextTmpVarNumber(); //only for this case
 	    m_state.indent(fp);
