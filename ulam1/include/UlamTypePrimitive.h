@@ -117,10 +117,6 @@ namespace MFM{
 
     virtual void genUlamTypeWriteDefinitionForC(File * fp);
 
-    virtual void genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp);
-
-    virtual void genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp);
-
     virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
 
     virtual bool genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref);

@@ -5,10 +5,11 @@
 ##
 ##        unevaluable: expected exit status 1
 ##
-./QW.ulam:7:19: ERROR: Cannot explicitly cast QW& to type: Atom(96)&; Consider using a reference (or self) with .storageof.
+./QW.ulam:7:19: ERROR: Cannot cast a class, QW&, to an Atom &.
 ./QW.ulam:7:5: ERROR: Initial value expression for: aref, initialization is invalid.
 ./QW.ulam:7:5: ERROR: Storage expression for: aref, is invalid.
 ./A.ulam:4:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: A.
+./A.ulam:4:9: ERROR: 9 Nodes with unresolved types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## Dave requested a way to get default values for Self (within a quark);

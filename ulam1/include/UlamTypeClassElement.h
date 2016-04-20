@@ -87,10 +87,6 @@ namespace MFM{
 
     virtual void genUlamTypeWriteDefinitionForC(File * fp);
 
-    virtual void genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp);
-
-    virtual void genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp);
-
    private:
 
   };
