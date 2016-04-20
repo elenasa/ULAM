@@ -12,7 +12,7 @@ namespace MFM{
       {
 	Ui_Ut_102321i<CC> * aptr = va_arg(ap, Ui_Ut_102321i<CC>*);
 	if(!aptr) break;
-	s32 a = aptr->Read();
+	s32 a = aptr->read();
 	if(a > max) max = a;
       }
     va_end(ap);

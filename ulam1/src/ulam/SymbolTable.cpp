@@ -420,13 +420,11 @@ namespace MFM {
 
 			m_state.indent(fp);
 			fp->write("UlamRef<EC>("); //open wrapper
+			fp->write("daref, ");
 			fp->write_decimal_unsigned(sym->getPosOffset()); //rel offset
 			fp->write("u, ");
 			fp->write_decimal_unsigned(sut->getBitSize()); //len
-			fp->write("u, ");
-			//fp->write_decimal_unsigned(classorigin); //origin
-			//fp->write("u, da, &");
-			fp->write("da, &");
+			fp->write("u, &");
 			fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
 			fp->write(")."); //close wrapper
 			fp->write(sut->writeMethodForCodeGen().c_str());
@@ -463,15 +461,13 @@ namespace MFM {
 			  {
 			    m_state.indent(fp);
 			    fp->write("UlamRef<EC>(");
+			    fp->write("daref, ");
 			    fp->write_decimal_unsigned(sym->getPosOffset()); //rel offset
 			    fp->write("u + ");
 			    fp->write_decimal_unsigned(j * itemlen); //rel offset
 			    fp->write("u, ");
 			    fp->write_decimal_unsigned(itemlen); //len
-			    fp->write("u, ");
-			    //fp->write_decimal_unsigned(classorigin); //origin
-			    //fp->write("u, da, &");
-			    fp->write("da, &");
+			    fp->write("u, &");
 			    fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalaruti).c_str());
 			    fp->write(").");
 			    fp->write(scalarut->writeMethodForCodeGen().c_str());
@@ -508,18 +504,19 @@ namespace MFM {
 		  }
 		fp->write(sym->getMangledNameForParameterType().c_str());
 		//fp->write("(da, 0u, "); origin no longer used
-		fp->write("(da, ");
+		fp->write("(daref, ");
 #if 0
 		//not a class
 		fp->write("&");
 		if(useFullClassName)
 		  {
-		    fp->write(m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamTypeMangledName().c_str()); //effself
-		    fp->write("<EC>::");
+		    fp->write(m_state.getEffectiveSelfMangledNameByIndex(m_state.getCompileThisIdx()).c_str());
+		    fp->write(").");
 		  }
-		fp->write("THE_INSTANCE).");
+		else
+		  fp->write("THE_INSTANCE).");
 #endif
-		fp->write(" NULL)."); //non-class
+		fp->write("NULL)."); //non-class
 
 		fp->write(sut->writeMethodForCodeGen().c_str());
 		fp->write("(");

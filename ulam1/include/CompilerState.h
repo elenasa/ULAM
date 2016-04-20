@@ -306,6 +306,7 @@ namespace MFM{
     const char * getIsMangledFunctionName(UTI ltype);
     const char * getHasMangledFunctionName(UTI ltype);
     const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
+    const char * getClassLengthFunctionName(UTI ltype);
     const char * getBuildDefaultAtomFunctionName(UTI ltype);
     const char * getDefaultQuarkFunctionName();
 
@@ -371,6 +372,7 @@ namespace MFM{
     const std::string getTmpVarAsString(UTI uti, s32 num, STORAGE stg = TMPREGISTER);
     const std::string getUlamRefTmpVarAsString(s32 num);
     const std::string getUlamClassTmpVarAsString(s32 num);
+    const std::string getAtomBitStorageTmpVarAsString(s32 num);
     const std::string getLabelNumAsString(s32 num);
 
     /** for conditional h/as-magic */

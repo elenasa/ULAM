@@ -226,8 +226,14 @@ namespace MFM {
     fp->write("(BitStorage<EC>& targ, u32 idx, const UlamClass<EC>* effself) : UlamRef<EC>");
     fp->write("(idx, "); //the real pos!!!
     fp->write_decimal_unsigned(len); //includes arraysize
-    //fp->write("u, ");
-    //fp->write_decimal_unsigned(len); //origin n/a
+    fp->write("u, targ, effself) { }\n");
+
+    //constructor for conditional-as (auto)
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("(AtomBitStorage<EC>& targ, u32 idx, const UlamClass<EC>* effself) : UlamRef<EC>");
+    fp->write("(idx + T::ATOM_FIRST_STATE_BIT, "); //the real pos!!!
+    fp->write_decimal_unsigned(len); //includes arraysize
     fp->write("u, targ, effself) { }\n");
 
     //constructor for chain of autorefs (e.g. memberselect with array item)
@@ -295,10 +301,24 @@ namespace MFM {
 	fp->write("UlamRef<EC>(");
 	fp->write("*this, index * itemlen, "); //const ref, rel offset
 	fp->write("itemlen, &");  //itemlen,
-	fp->write(scalarmangledName.c_str()); //primitive effself
-	fp->write("<EC>::THE_INSTANCE).");
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalaruti).c_str());
+	fp->write(").");
 	fp->write(readArrayItemMethodForCodeGen().c_str());
 	fp->write("(); }\n");
+      }
+
+    if(isScalar() || WritePacked(getPackable()))
+      {
+	// write must be scalar; ref param to avoid excessive copying
+	//not an array
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
+	fp->write(" read() const { ");
+	fp->write("return ");
+	fp->write("UlamRef<EC>::");
+	fp->write(readMethodForCodeGen().c_str()); //just the guts
+	fp->write("(); /* entire quark */ }\n");
       }
   } //genUlamTypeAutoReadDefinitionForC
 
@@ -319,10 +339,23 @@ namespace MFM {
 	fp->write("UlamRef<EC>(");
 	fp->write("*this, index * itemlen, "); //rel offset
 	fp->write("itemlen, &");  //itemlen,
-	fp->write(scalarmangledName.c_str()); //primitive effself
-	fp->write("<EC>::THE_INSTANCE).");
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalaruti).c_str());
+	fp->write(").");
 	fp->write(writeArrayItemMethodForCodeGen().c_str());
 	fp->write("(v); }\n");
+      }
+
+    if(isScalar() || WritePacked(getPackable()))
+      {
+	// write must be scalar; ref param to avoid excessive copying
+	//not an array
+	m_state.indent(fp);
+	fp->write("void");
+	fp->write(" write(const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
+	fp->write("& targ) { UlamRef<EC>::");
+	fp->write(writeMethodForCodeGen().c_str());
+	fp->write("(targ); /* entire quark */ }\n");
       }
   } //genUlamTypeAutoWriteDefinitionForC
 
@@ -362,6 +395,11 @@ namespace MFM {
     fp->write("\n");
 
     m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("template<class EC> class ");
+    fp->write(scalarmangledName.c_str());
+    fp->write("; //forward \n\n");
 
     m_state.indent(fp);
     fp->write("template<class EC>\n");
@@ -404,21 +442,27 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("typedef ");
     fp->write(scalarmangledName.c_str());
-    fp->write("<EC> Us;\n");
+    fp->write("<EC> Us;\n\n");
+
+    //read/write methods before constructors in case used.
+    genUlamTypeReadDefinitionForC(fp);
+
+    genUlamTypeWriteDefinitionForC(fp);
 
     //default constructor (used by local vars)
     //(unlike element) call build default in case of initialized data members
     u32 dqval = 0;
     bool hasDQ = genUlamTypeDefaultQuarkConstant(fp, dqval);
+    //bool hasDQ = m_state.getDefaultQuark(scalaruti, dqval); //no gen code
 
     m_state.indent(fp);
     fp->write(mangledName.c_str());
-    fp->write("() {");
+    fp->write("() { ");
     if(hasDQ)
       {
 	if(isScalar())
 	  {
-	    fp->write("Write(DEFAULT_QUARK);");
+	    fp->write("write(DEFAULT_QUARK);");
 	  }
 	else
 	  {
@@ -438,8 +482,8 @@ namespace MFM {
 
 		std::ostringstream qdhex;
 		qdhex << "0x" << std::hex << dqarrval;
-		fp->write(writeMethodForCodeGen().c_str());
-		fp->write("(");
+		//fp->write(writeMethodForCodeGen().c_str());
+		fp->write("write(");
 		fp->write(qdhex.str().c_str());
 		fp->write(");");
 	      }
@@ -463,8 +507,8 @@ namespace MFM {
     fp->write(" d) { ");
     if(isScalar())
       {
-	fp->write(writeMethodForCodeGen().c_str());
-	fp->write("(d);");
+	//fp->write(writeMethodForCodeGen().c_str());
+	fp->write("write(d);");
       }
     else
       {
@@ -483,14 +527,10 @@ namespace MFM {
     fp->write("(const ");
     fp->write(mangledName.c_str());
     fp->write("<EC> & arg) { ");
-    fp->write(writeMethodForCodeGen().c_str());
-    fp->write("(arg.");
-    fp->write(readMethodForCodeGen().c_str());
-    fp->write("()); }\n");
-
-    genUlamTypeReadDefinitionForC(fp);
-
-    genUlamTypeWriteDefinitionForC(fp);
+    //fp->write(writeMethodForCodeGen().c_str());
+    fp->write("write(arg.");
+    //fp->write(readMethodForCodeGen().c_str());
+    fp->write("read()); }\n");
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -513,9 +553,7 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write("const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32 or u64
-	fp->write(" ");
-	fp->write(readMethodForCodeGen().c_str());
-	fp->write("() const { return BVS::");
+	fp->write(" read() const { return BVS::");
 	fp->write(readMethodForCodeGen().c_str());
 	fp->write("(0u, ");
 	if(isScalar())
@@ -552,8 +590,7 @@ namespace MFM {
       {
 	m_state.indent(fp);
 	fp->write("void ");
-	fp->write(writeMethodForCodeGen().c_str());
-	fp->write("(const "); //or write? WriteLong?
+	fp->write("write(const "); //or write? WriteLong?
 	fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32, s64 or u64
 	fp->write(" v) { BVS::");
 	fp->write(writeMethodForCodeGen().c_str());
@@ -621,7 +658,7 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("template<class EC> class ");
-    fp->write(mangledName.c_str());
+    fp->write(scalarmangledName.c_str());
     fp->write("; //forward \n\n");
 
     m_state.indent(fp);
@@ -836,6 +873,7 @@ namespace MFM {
 
     u32 dqval = 0;
     bool hasDQ = genUlamTypeDefaultQuarkConstant(fp, dqval);
+    //bool hasDQ = m_state.getDefaultQuark(scalaruti, dqval); //no gencode
 
     //default constructor (used by local vars)
     m_state.indent(fp);
@@ -961,11 +999,17 @@ namespace MFM {
 	qdhex << "0x" << std::hex << dqref;
 
 	m_state.indent(fp);
-	fp->write("static const u32 DEFAULT_QUARK = ");
+	//fp->write("static const u32 DEFAULT_QUARK = ");
+	//fp->write(qdhex.str().c_str());
+	//fp->write("; //=");
+	//fp->write_decimal_unsigned(dqref);
+	//fp->write("u\n\n");
+	fp->write("enum { DEFAULT_QUARK = ");
 	fp->write(qdhex.str().c_str());
-	fp->write("; //=");
+	fp->write(" }; //=");
 	fp->write_decimal_unsigned(dqref);
 	fp->write("u\n\n");
+
 	rtnb = true;
       }
     return rtnb;

@@ -98,7 +98,7 @@ namespace MFM {
     fp->write(";\n");
 
     // a reference (including 'self'), returns a UAtom of effective type;
-    // effective self known only at runtime.
+    // SINCE effective self type is known only at runtime.
     if((m_token.m_type == TOK_IDENTIFIER))
       {
 	assert(m_varSymbol);
@@ -107,11 +107,6 @@ namespace MFM {
 
 	if(m_state.isReference(vuti) || isself)
 	  {
-	    //m_state.indent(fp);
-	    //fp->write("if(!");
-	    //fp->write(m_varSymbol->getMangledName().c_str());
-	    //fp->write(".IsValidOrigin()) FAIL(ILLEGAL_ARGUMENT); //quark or non-class\n");
-
 	    u32 tmpuclass = m_state.getNextTmpVarNumber(); //only for this case
 	    m_state.indent(fp);
 	    fp->write("const UlamClass<EC> * ");
@@ -120,48 +115,25 @@ namespace MFM {
 	    fp->write(m_varSymbol->getMangledName().c_str());
 	    fp->write(".GetEffectiveSelf();\n");
 
+	    //primitive FAILS
 	    m_state.indent(fp);
 	    fp->write("if(");
 	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
 	    fp->write(" == NULL) FAIL(ILLEGAL_ARGUMENT); //non-class\n");
 
+	    //an immediate default quark FAILS
 	    m_state.indent(fp);
 	    fp->write("if(");
 	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
-	    fp->write("->AsUlamQuark() != NULL)\n");
+	    fp->write("->AsUlamQuark() != NULL) ");
+	    fp->write("FAIL(ILLEGAL_ARGUMENT); //quark\n");
 
-	    //an immediate default quark FAILS
-	    m_state.m_currentIndentLevel++;
-	    m_state.indent(fp);
-	    fp->write("FAIL(ILLEGAL_ARGUMENT); //non-class\n");
-#if 0
-	    //returns ATOM_UNDEFINED_TYPE, an immediate default quark
-	    m_state.m_currentIndentLevel++;
-	    m_state.indent(fp);
-	    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
-	    fp->write(".Write(");
-	    fp->write("0u, "); //offset
-	    fp->write("((UlamQuark<EC> *) ");
-	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
-	    fp->write(")->GetMangledClassName()<EC>::QUARK_SIZE, ");
-	    fp->write("((UlamQuark<EC> *) ");
-	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
-	    fp->write(")->getDefaultQuark()");
-	    fp->write("); //instanceof default quark\n");
-#endif
-	    m_state.m_currentIndentLevel--;
-
-	    m_state.indent(fp);
-	    fp->write("else\n");
-
-	    m_state.m_currentIndentLevel++;
 	    m_state.indent(fp);
 	    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
 	    fp->write(".WriteAtom(");
 	    fp->write("((UlamElement<EC> *) ");
 	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
 	    fp->write(")->GetDefaultAtom()); //instanceof default element\n");
-	    m_state.m_currentIndentLevel--;
 	  }
 	else if(m_state.isAtom(nuti))
 	  {
@@ -189,22 +161,26 @@ namespace MFM {
 	  }
       }
 
-    // THE READ:
-    s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp to read into
-    STORAGE rstor = nut->getTmpStorageTypeForTmpVar();
+    if(m_state.isAtom(nuti))
+      {
+	// THE READ:
+	s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp to read into
+	STORAGE rstor = nut->getTmpStorageTypeForTmpVar();
 
-    m_state.indent(fp);
-    fp->write("const ");
-    fp->write(nut->getTmpStorageTypeAsString().c_str()); //for C++ local vars
-    fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum2, rstor).c_str());
-    fp->write(" = ");
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
-    fp->write(".");
-    fp->write(nut->readMethodForCodeGen().c_str());
-    fp->write("();\n");
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(nut->getTmpStorageTypeAsString().c_str()); //for C++ local vars
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum2, rstor).c_str());
+	fp->write(" = ");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
+	fp->write(".");
+	fp->write("read();\n");
 
-    uvpass = UlamValue::makePtr(tmpVarNum2, rstor, nuti, nut->getPackable(), m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
+	uvpass = UlamValue::makePtr(tmpVarNum2, rstor, nuti, nut->getPackable(), m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
+      }
+    else //element and uvpass stays the same (a default immediate element).
+      uvpass = UlamValue::makePtr(tmpVarNum, TMPBITVAL, nuti, nut->getPackable(), m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0); //t3657
 
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
   } //genCode

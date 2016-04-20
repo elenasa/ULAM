@@ -72,6 +72,10 @@ namespace MFM{
 
     virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
 
+    virtual void genUlamTypeAutoReadDefinitionForC(File * fp);
+
+    virtual void genUlamTypeAutoWriteDefinitionForC(File * fp);
+
     virtual void genUlamTypeMangledDefinitionForC(File * fp);
 
     virtual void genUlamTypeReadDefinitionForC(File * fp);
@@ -85,6 +89,10 @@ namespace MFM{
     virtual const std::string readMethodForCodeGen();
 
     virtual const std::string writeMethodForCodeGen();
+
+    virtual const std::string readArrayItemMethodForCodeGen();
+
+    virtual const std::string writeArrayItemMethodForCodeGen();
 
     virtual bool isMinMaxAllowed();
 

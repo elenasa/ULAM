@@ -384,7 +384,7 @@ namespace MFM {
 	UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
 	if(m_state.isAtom(vuti))
-	  return genCodeAtomRefInit(fp, uvpass);
+	  return genCodeAtomRefInit(fp, uvpass); //splits off before array check
 
 	Symbol * cos = NULL;
 	Symbol * stgcos = NULL;
@@ -411,9 +411,9 @@ namespace MFM {
 	UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
 	ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
-	ULAMTYPE vetype = vut->getUlamTypeEnum();
+	ULAMTYPE vetyp = vut->getUlamTypeEnum();
 
-	assert(vetype == cosut->getUlamTypeEnum());
+	assert(vetyp == cosut->getUlamTypeEnum());
 
 	m_state.indent(fp);
 	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
@@ -452,30 +452,20 @@ namespace MFM {
 		    //left-justified, or relative if data member (even if self)
 		    fp->write(", 0u");
 		  }
+		else if((vclasstype == UC_ELEMENT) && !stgcosut->isReference())
+		  {
+		    fp->write(", 0u"); //idx for storage e.g. t3615
+		  }
 	      }
 	  }
 
-	//	if(m_state.m_currentObjSymbolsForCodeGen.size() > 1)
-	// {
-	//  u32 stgcosoffset = stgcos->getPosOffset();
-	//  if(stgcosoffset < stgcosut->getTotalBitSize()) //quarks are flag (== len)
-	      //    {
-	//fp->write(", ");
-	//	fp->write_decimal_unsigned(stgcosoffset); //origin
-	//	fp->write("u");
-	//    }
-	//  else
-	//    fp->write(", 0u"); //or provide the "flag"???
-	//  }
-
-	if((vclasstype != UC_NOTACLASS) && (vetype != UAtom))
+	if((vclasstype != UC_NOTACLASS) && (vetyp != UAtom))
 	  {
 	    fp->write(", &");
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
 	  }
 	fp->write(");\n");
       } //storage
-
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
   } //genCode
 
@@ -486,6 +476,14 @@ namespace MFM {
     assert(m_varSymbol->getAutoLocalType() != ALT_AS);
 
     assert(m_nodeInitExpr);
+
+    //    UTI stgcosuti = stgcos->getUlamTypeIdx();
+    //UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+
+    //Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
+    //UTI cosuti = cos->getUlamTypeIdx();
+    //UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+    //UTI scalarcosuti = m_state.getUlamTypeAsScalar(cosuti);
 
     UTI vuti = m_varSymbol->getUlamTypeIdx(); //i.e. this ref node
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
@@ -501,30 +499,50 @@ namespace MFM {
 
     fp->write(m_varSymbol->getMangledName().c_str());
     fp->write("("); //pass ref in constructor (ref's not assigned with =)
-
-    if(m_state.isAtomRef(puti))
+    if(m_state.isAtom(puti))
       {
-	//both atom refs (e.g. t3692)
-	fp->write(m_state.getTmpVarAsString(puti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
+	//	if(uvpass.getPtrStorage() == TMPATOMBS)
+	// {
+	//  fp->write(m_state.getAtomBitStorageTmpVarAsString(uvpass.getPtrSlotIndex()).c_str());
+	//  fp->write(", uc");
+	//  }
+	//else if(m_state.isAtomRef(puti))
+	  {
+	    //both atom refs (e.g. t3692, 3671)
+	    if(!m_state.m_currentObjSymbolsForCodeGen.empty())
+	      {
+		Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+		fp->write(stgcos->getMangledName().c_str()); //stg
+	      }
+	    else
+	      {
+		fp->write(m_state.getTmpVarAsString(puti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
+	      }
+	  }
+	fp->write(", uc");
       }
     else
       {
+	//not another atom ref, t.f. an element
 	if(m_state.m_currentObjSymbolsForCodeGen.empty())
 	  {
-	    fp->write("ur.GetStorage()"); //need non-const T
+	    //does this make sense for array??? error?
+	    //fp->write("ur.GetStorage()"); //need non-const T
+	    fp->write("ur.CreateAtom()"); //need non-const T
 	  }
 	else
 	  {
 	    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 	    fp->write(stgcos->getMangledName().c_str());
-	    //if(!stgcos->isAutoLocal()) //not a ref, then needs origin
-	    // {
-	    //	fp->write(", ");
-	    //	fp->write_decimal_unsigned(stgcos->getPosOffset()); //get origin of stg
-	    //	fp->write("u");
-	    //  }
+	    if(!m_state.isScalar(vuti))
+	      {
+		fp->write(", ");
+		fp->write_decimal_unsigned(stgcos->getPosOffset()); //t3671
+		fp->write("u");
+	      }
 	  }
-	fp->write(", uc");
+	if(m_state.isScalar(vuti))
+	  fp->write(", uc");
       }
 
     fp->write(");\n");
@@ -544,8 +562,8 @@ namespace MFM {
     // or ancestor quark if a class.
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-    //UTI stgcosuti = stgcos->getUlamTypeIdx();
-    //UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+    UTI stgcosuti = stgcos->getUlamTypeIdx();
+    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
     Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
     UTI cosuti = cos->getUlamTypeIdx();
@@ -557,8 +575,8 @@ namespace MFM {
     assert(!vut->isScalar()); //entire array
 
     ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
-    ULAMTYPE vetype = vut->getUlamTypeEnum();
-    assert(vetype == cosut->getUlamTypeEnum());
+    ULAMTYPE vetyp = vut->getUlamTypeEnum();
+    assert(vetyp == cosut->getUlamTypeEnum());
 
     m_state.indent(fp);
     fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
@@ -572,24 +590,10 @@ namespace MFM {
 	fp->write(m_state.getHiddenArgName());
 	fp->write(", ");
 	fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
-
-	//if(m_state.m_currentObjSymbolsForCodeGen.size() > 1)
-	//  {
-	//  //???
-	//  //    fp->write_decimal_unsigned(cos->getAbsPosition()); //abs pos
-	//  u32 stgcosoffset = stgcos->getPosOffset();
-	//  if(stgcosoffset < stgcosut->getTotalBitSize()) //quarks are flag (== len)
-	      //    {
-	//fp->write("u, ");
-	//	fp->write_decimal_unsigned(stgcosoffset); //origin
-	//    }
-	//  else
-	//    fp->write("u, 0");
-	//} //else stg is self
-
 	fp->write("u");
 
-	if(vclasstype == UC_QUARK)
+	//if(vclasstype == UC_QUARK)
+	if(vetyp == Class)
 	  {
 	    fp->write(", &");
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
@@ -602,24 +606,7 @@ namespace MFM {
 	if(cos->isDataMember())
 	  {
 	    fp->write(", ");
-	    //fp->write_decimal_unsigned(cos->getAbsPosition()); //abs pos
 	    fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
-	    //fp->write("u, ");
-
-	    ////???
-	    ////fp->write_decimal_unsigned(stgcos->getAtomOrigin()); //origin
-	    //if(m_state.m_currentObjSymbolsForCodeGen.size() > 1)
-	    // {
-	    //	u32 stgcosoffset = stgcos->getPosOffset();
-	    //	if(stgcosoffset < stgcosut->getTotalBitSize()) //quarks are flag (== len)
-		  //	  {
-	    //fp->write("u, ");
-	    //	    fp->write_decimal_unsigned(stgcosoffset); //origin
-	    //	  }
-	    //	else
-	    //	  fp->write("u, 0");
-	    //} //else self stg
-
 	    fp->write("u");
 
 	    if(vclasstype == UC_QUARK)
@@ -632,38 +619,34 @@ namespace MFM {
 	  {
 	    // unpack and packed array use same code, except for Atom
 	    // (e.g. t3666)
-	    //if(vut->getPackable() == PACKEDLOADABLE)
+	    if((vclasstype == UC_NOTACLASS) && (vetyp != UAtom) )
 	      {
-		if((vclasstype == UC_NOTACLASS) && (vetype != UAtom) )
-		  {
-		    fp->write(", 0u"); //rel off to right-just prim
-		    //if(!stgcosut->isReference())
-		    //  fp->write(", 0u"); //origin (e.g. t3666)
-		  }
-		else if((vetype == UAtom))
-		  {
-		    if(vut->getPackable() == PACKEDLOADABLE)
-		      fp->write(", uc");
-		  }
-		else if(vclasstype == UC_QUARK)
-		  {
-		    fp->write(", ");
-		    fp->write("0u, &"); //left just
-		    fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
-		  }
-		else if(vclasstype == UC_ELEMENT)
-		  {
-		    fp->write(", ");
-		    fp->write("0u, &"); //left just
-		    fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
-		  }
-		else
-		  assert(0);
+		//if(!stgcosut->isReference())
+		fp->write(", 0u"); //rel off to right-just prim (e.g. t3666)
 	      }
+	    else if((vetyp == UAtom))
+	      {
+		if(!stgcosut->isReference())
+		  {
+		    fp->write(", 0u");
+		  }
+		else if(vut->getPackable() == PACKEDLOADABLE)
+		  fp->write(", uc");
+	      }
+	    //else if((vclasstype == UC_QUARK) || (vclasstype == UC_ELEMENT))
+	    else if(vetyp == Class)
+	      {
+		if(!stgcosut->isReference())
+		  {
+		    fp->write(", 0u, &"); //origin (t3670)
+		    fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
+		  }
+	      }
+	    else
+	      assert(0);
 	  }
       } //storage
     fp->write(");\n");
-
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
   } //genCodeArrayRefInit
 

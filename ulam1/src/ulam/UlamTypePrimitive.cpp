@@ -208,21 +208,20 @@ namespace MFM {
     fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
     fp->write("\n");
 
-#if 0
-    //constructor for ref (auto)
-    m_state.indent(fp);
-    fp->write(automangledName.c_str());
-    fp->write("(BitStorage<EC>& targ, u32 idx, u32 origin) : UlamRef<EC>(idx, ");
-    fp->write_decimal_unsigned(len); //includes arraysize
-    fp->write("u, origin, targ, NULL) { }\n"); //effself is null for primitives
-#else
     //constructor for ref (auto); wo origin
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(BitStorage<EC>& targ, u32 idx) : UlamRef<EC>(idx, ");
     fp->write_decimal_unsigned(len); //includes arraysize
     fp->write("u, targ, NULL) { }\n"); //effself is null for primitives
-#endif
+
+    //copy constructor for autorefs
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("(const UlamRef<EC>& arg) : UlamRef<EC>(arg, arg.GetPos(), arg.GetLen(), NULL) { ");
+    fp->write("MFM_API_ASSERT_ARG(arg.GetLen() == ");
+    fp->write_decimal_unsigned(len); //includes arraysize
+    fp->write("); }\n"); //effself is null for primitives
 
     //constructor for chain of autorefs (e.g. memberselect with array item)
     m_state.indent(fp);
@@ -267,6 +266,20 @@ namespace MFM {
 	fp->write(readArrayItemMethodForCodeGen().c_str());
 	fp->write("(); }\n");
       }
+
+    if(isScalar() || WritePacked(getPackable()))
+      {
+	// write must be scalar; ref param to avoid excessive copying
+	//not an array
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
+	fp->write(" read() const { ");
+	fp->write("return ");
+	fp->write("UlamRef<EC>::");
+	fp->write(readMethodForCodeGen().c_str()); //just the guts
+	fp->write("(); /* entire */ }\n");
+      }
   } //genUlamTypeAutoReadDefinitionForC
 
   void UlamTypePrimitive::genUlamTypeAutoWriteDefinitionForC(File * fp)
@@ -285,6 +298,19 @@ namespace MFM {
 	fp->write("itemlen, NULL)."); //itemlen, primitive effself
 	fp->write(writeArrayItemMethodForCodeGen().c_str());
 	fp->write("(v); }\n");
+      }
+
+    if(isScalar() || WritePacked(getPackable()))
+      {
+	// write must be scalar; ref param to avoid excessive copying
+	//not an array
+	m_state.indent(fp);
+	fp->write("void");
+	fp->write(" write(const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
+	fp->write("& targ) { UlamRef<EC>::");
+	fp->write(writeMethodForCodeGen().c_str());
+	fp->write("(targ); /* entire */ }\n");
       }
   } //genUlamTypeAutoWriteDefinitionForC
 
@@ -436,7 +462,7 @@ namespace MFM {
     if(isScalar())
       {
 	//fp->write(writeMethodForCodeGen().c_str());
-	fp->write("Write");
+	fp->write("write");
 	fp->write("(d); }\n");
       }
     else
@@ -457,10 +483,10 @@ namespace MFM {
     fp->write(mangledName.c_str()); //u32
     fp->write("& other) { ");
     //fp->write(writeMethodForCodeGen().c_str());
-    fp->write("Write");
+    fp->write("write");
     fp->write("(other.");
     //fp->write(readMethodForCodeGen().c_str());
-    fp->write("Read");
+    fp->write("read");
     fp->write("()); }\n");
 
     //default destructor (for completeness)
@@ -485,13 +511,13 @@ namespace MFM {
 
   void UlamTypePrimitive::genUlamTypeReadDefinitionForC(File * fp)
   {
-    if(isScalar() || (getPackable() == PACKEDLOADABLE))
+    //if(isScalar() || (getPackable() == PACKEDLOADABLE))
+    if(isScalar() || WritePacked(getPackable()))
       {
 	m_state.indent(fp);
 	fp->write("const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32 or u64
-	fp->write(" Read");
-	//fp->write(readMethodForCodeGen().c_str());
+	fp->write(" read");
 	fp->write("() const { return BVS::"); //or read()? ReadLong
 	fp->write(readMethodForCodeGen().c_str());
 	fp->write("(0u, ");
@@ -521,11 +547,10 @@ namespace MFM {
 
   void UlamTypePrimitive::genUlamTypeWriteDefinitionForC(File * fp)
   {
-    if(isScalar() || (getPackable() == PACKEDLOADABLE))
+    if(isScalar() || WritePacked(getPackable()))
       {
 	m_state.indent(fp);
-	fp->write("void Write");
-	//fp->write(writeMethodForCodeGen().c_str());
+	fp->write("void write");
 	fp->write("(const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32, s64 or u64
 	fp->write(" v) { BVS::");
@@ -546,7 +571,7 @@ namespace MFM {
 	//3rd argument generated for compatibility with underlying method
 	m_state.indent(fp);
 	fp->write("void writeArrayItem(const ");
-	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
+	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32, s64 or u64
 	fp->write(" v, const u32 index, const u32 itemlen) { BVS::");
 	fp->write(writeArrayItemMethodForCodeGen().c_str());
 	fp->write("(index * itemlen, "); //rel offset

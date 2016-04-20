@@ -62,6 +62,21 @@ namespace MFM {
 	    newType = Nav;
 	  }
       }
+    else if((lclasstype == UC_ELEMENT) && lut->isScalar())
+      {
+	//lefthand side needs to be an atom, not packed element
+	//if(!Node::makeCastingNode(m_nodeLeft, UAtomRef, m_nodeLeft, false))
+	if(!Node::makeCastingNode(m_nodeLeft, UAtom, m_nodeLeft, false))
+	  {
+	    //assert(0);
+	    std::ostringstream msg;
+	    msg << "Invalid lefthand type of conditional operator '" << getName();
+	    msg << "'; Needs to be an Atom, not a packed element";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
+	    return Nav; //short-circuit
+	  }
+      }
 
     assert(m_nodeTypeDesc);
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
@@ -188,6 +203,7 @@ namespace MFM {
     UTI luti = luvpass.getUlamValueTypeIdx();
     assert(m_state.isPtr(luti));
     luti = luvpass.getPtrTargetType(); //replace
+    STORAGE lstor = luvpass.getPtrStorage(); //might be AtomBitStorage
 
     UTI ruti = getRightType();
     UlamType * rut = m_state.getUlamTypeByIndex(ruti);
@@ -210,7 +226,9 @@ namespace MFM {
 	fp->write(".");
 	fp->write(m_state.getIsMangledFunctionName(ruti));
 	fp->write("(");
-	fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, luvpass.getPtrStorage()).c_str());
+	fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, lstor).c_str());
+	if(lstor == TMPATOMBS)
+	  fp->write(".ReadAtom()");
 	fp->write(");\n");
       }
     else if(rclasstype == UC_QUARK)
@@ -229,8 +247,8 @@ namespace MFM {
 	    //then left must be an atom
 	    fp->write(m_state.getIsMangledFunctionName(luti)); //UlamElement IsMethod
 	    fp->write("(uc, ");
-	    fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, luvpass.getPtrStorage()).c_str());
-	    fp->write(".GetType(), "); //from tmpvar T
+	    fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, lstor).c_str());
+	    fp->write(".GetType(), "); //from tmpvar T or ABS
 	  }
 	fp->write("\"");
 	fp->write(rut->getUlamTypeMangledName().c_str());

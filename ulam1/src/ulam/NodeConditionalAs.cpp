@@ -306,8 +306,8 @@ namespace MFM {
 	      }
 	    else
 	      {
-		fp->write(lut->getUlamTypeMangledName().c_str());
-		fp->write("<EC>::THE_INSTANCE.");
+		fp->write(m_state.getEffectiveSelfMangledNameByIndex(luti).c_str());
+		fp->write(".");
 	      }
 	    // uses UlamElement isMethod to de-reference a lhs atom
 	    fp->write(m_state.getAsMangledFunctionName(luti, ruti));

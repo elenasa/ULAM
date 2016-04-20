@@ -65,6 +65,7 @@ namespace MFM {
   static const char * HAS_MANGLED_FUNC_NAME = "PositionOfDataMemberType"; //Uf_3has
   static const char * HAS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamClass<EC>::PositionOfDataMember";
 
+  static const char * GETCLASSLENGTH_FUNCNAME = "GetClassLength";
   static const char * BUILD_DEFAULT_ATOM_FUNCNAME = "BuildDefaultAtom";
   static const char * BUILD_DEFAULT_QUARK_FUNCNAME = "getDefaultQuark";
 
@@ -2298,6 +2299,12 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return "AS_ERROR";
   } //getAsMangledFunctionName
 
+  const char * CompilerState::getClassLengthFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype));
+    return GETCLASSLENGTH_FUNCNAME;
+  } //getClassLengthFunctionName
+
   const char * CompilerState::getBuildDefaultAtomFunctionName(UTI ltype)
   {
     assert(okUTItoContinue(ltype));
@@ -2848,6 +2855,10 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       {
 	tmpVar << "Uh_3tut" ; //tmp unpacked atom T
       }
+    else if(stg == TMPATOMBS)
+      {
+	tmpVar << "Uh_4tabs" ; //tmp atombitstorage
+      }
     else
       assert(0); //remove assumptions about tmpbitval.
 
@@ -2869,6 +2880,13 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     labelname << "Uh_3tuclass" << ToLeximitedNumber(num);
     return labelname.str();
   } //getUlamClassTmpVarAsString
+
+  const std::string CompilerState::getAtomBitStorageTmpVarAsString(s32 num)
+  {
+    std::ostringstream labelname; //into
+    labelname << "Uh_4tabs" << ToLeximitedNumber(num);
+    return labelname.str();
+  } //getAtomBitStorageTmpVarAsString
 
   const std::string CompilerState::getLabelNumAsString(s32 num)
   {
@@ -3156,8 +3174,9 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   bool CompilerState::isAtomRef(UTI auti)
   {
+    //do not include ALT_AS, ALT_ARRAYITEM, etc as Ref here. Specifically a ref (&).
     UlamType * aut = getUlamTypeByIndex(auti);
-    return ((aut->getUlamTypeEnum() == UAtom) && aut->isReference());
+    return ((aut->getUlamTypeEnum() == UAtom) && (aut->getReferenceType() == ALT_REF));
   }
 
   bool CompilerState::okUTItoContinue(UTI uti)

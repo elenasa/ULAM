@@ -1001,8 +1001,10 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("};\n");
-
     fp->write("\n");
+
+    u32 dqval;
+    cut->genUlamTypeDefaultQuarkConstant(fp, dqval); //missing?
 
     m_state.indent(fp);
     fp->write("typedef UlamRefFixed<EC, 0u, QUARK_SIZE> Up_Us; //entire quark\n\n"); //left-just
@@ -1241,6 +1243,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     generateUlamClassInfoCount(fp, declOnly, dmcount); //after dmcount is updated by nodes
     generateUlamClassGetMangledName(fp, declOnly);
 
+    genCodeBuiltInFunctionGetClassLength(fp, declOnly, classtype);
+
     genCodeBuiltInFunctionBuildDefaultAtom(fp, declOnly, classtype);
 
     genCodeBuiltInVirtualTable(fp, declOnly, classtype);
@@ -1390,6 +1394,48 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     //    m_ST.genCodeBuiltInFunctionHasPosOverTableOfVariableDataMember(fp);
   } //genCodeBuiltInFunctionIsRelatedQuarkType
 
+  void NodeBlockClass::genCodeBuiltInFunctionGetClassLength(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    UTI cuti = m_state.getCompileThisIdx();
+    if(declOnly)
+      {
+	m_state.indent(fp);
+	fp->write("virtual u32 ");
+	fp->write(m_state.getClassLengthFunctionName(cuti));
+	fp->write("() const;\n\n");
+	return;
+      }
+
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write("u32 "); //returns class length
+
+    //include the mangled class::
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>");
+
+    fp->write("::");
+    fp->write(m_state.getClassLengthFunctionName(cuti));
+    fp->write("( ) const\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("return ");
+    fp->write_decimal_unsigned(cut->getTotalBitSize());
+    fp->write(";\n");
+
+    m_state.m_currentIndentLevel--;
+
+    m_state.indent(fp);
+    fp->write("}\n");
+  } //genCodeBuiltInFunctionGetClassLength
+
   void NodeBlockClass::genCodeBuiltInFunctionBuildDefaultAtom(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     //'default atom' applies only to elements
@@ -1409,6 +1455,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	return;
       }
 
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
     m_state.indent(fp);
     fp->write("template<class EC>\n");
 
@@ -1416,7 +1463,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("typename EC::ATOM_CONFIG::ATOM_TYPE "); //returns object of type T
 
     //include the mangled class::
-    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
+    fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write("<EC>");
 
     fp->write("::");
@@ -1428,11 +1475,17 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.m_currentIndentLevel++;
 
     m_state.indent(fp);
-    fp->write("T dat = Element<EC>::BuildDefaultAtom();\n");
+    fp->write("AtomBitStorage<EC> da(Element<EC>::BuildDefaultAtom());\n");
 
     m_state.indent(fp);
-    fp->write("AtomBitStorage<EC> da(dat);\n");
+    //fp->write("UlamRefAtom<EC> daref(da, 0u, &");
+    fp->write("UlamRef<EC> daref(0u + T::ATOM_FIRST_STATE_BIT, ");
+    fp->write_decimal_unsigned(cut->getTotalBitSize());
+    fp->write("u, da, &");
+    fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
+    fp->write(");\n");
     fp->write("\n");
+
     m_state.indent(fp);
     fp->write("// Initialize any data members:\n");
 
@@ -1442,7 +1495,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("\n");
     m_state.indent(fp);
     fp->write("return ");
-    fp->write("(dat);\n");
+    fp->write("(da.ReadAtom());\n");
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);

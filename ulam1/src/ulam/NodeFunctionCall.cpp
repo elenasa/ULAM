@@ -1348,7 +1348,9 @@ namespace MFM {
 	  {
 	    if(m_state.isAtom(vuti))
 	      {
-		//nada - copy constructor
+		//if(!m_state.isAtomRef(vuti))
+		fp->write(", uc"); //e.g. t3684 atom to atomref;
+		//else nada - copy constructor
 	      }
 	    else if(vclasstype == UC_NOTACLASS)
 	      {

@@ -637,17 +637,40 @@ namespace MFM {
 
     if(m_nodeInitExpr)
       {
-	m_nodeInitExpr->genCode(fp, uvpass);
+#if 0
+	if(m_state.isAtom(vuti))
+	  {
+	    m_nodeInitExpr->genCode(fp, uvpass);
 
-	m_state.indent(fp);
-	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
-	fp->write(" ");
-	fp->write(m_varSymbol->getMangledName().c_str());
-	fp->write("("); // use constructor (not equals)
-	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str()); //VALUE
-	if(m_state.isAtomRef(vuti))
-	  fp->write(", uc");
-	fp->write(")");
+	    //	    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+	    Symbol * rsym = NULL;
+	    bool hazyKin = false;
+	    AssertBool isDef = m_state.alreadyDefinedSymbol(uvpass.getPtrNameId(), rsym, hazyKin);
+	    assert(isDef);
+
+	    m_state.indent(fp);
+	    fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
+	    fp->write(" ");
+	    fp->write(m_varSymbol->getMangledName().c_str());
+	    fp->write("("); // use constructor (not equals)
+	    fp->write(rsym->getMangledName().c_str());
+	    fp->write(".CreateAtom())");
+	  }
+	else
+#endif
+	  {
+	    m_nodeInitExpr->genCode(fp, uvpass);
+
+	    m_state.indent(fp);
+	    fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
+	    fp->write(" ");
+	    fp->write(m_varSymbol->getMangledName().c_str());
+	    fp->write("("); // use constructor (not equals)
+	    fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str()); //VALUE
+	    if(m_state.isAtomRef(vuti))
+	      fp->write(", uc");
+	    fp->write(")");
+	  }
 	fp->write(";\n"); //func call args aren't NodeVarDecl's
 	m_state.m_currentObjSymbolsForCodeGen.clear();
 	return; //done

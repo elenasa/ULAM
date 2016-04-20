@@ -6,12 +6,12 @@ Ue_A { typedef Atom(96) BigSite[10];  Int(32) test() {  Atom(96) site[10];  { In
 ## (was)
 ##./A.ulam:2:9: ERROR: Invalid non-scalar type: Atom(96)[10]. Requires a custom array.
 ##
-##
 #>A.ulam
   ulam 1;
 element A {
   typedef Atom BigSite[10];
-  Int test(){ BigSite site;
+  Int test(){
+    BigSite site;
     for(Int i = 0; i < 10; ++i){
       site[i] = self;
     }

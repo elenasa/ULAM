@@ -1141,8 +1141,8 @@ namespace MFM {
 	fp->write(" = ");
 	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
 	fp->write(".");
-	fp->write(vut->readMethodForCodeGen().c_str()); //generalized
-	fp->write("();\n");
+	//fp->write(vut->readMethodForCodeGen().c_str()); //generalized
+	fp->write("read();\n");
 	// uvpass updated again
 	uvpass = UlamValue::makePtr(tmpVarNum2, vut->getTmpStorageTypeForTmpVar(), vuti, m_state.determinePackable(vuti), m_state, 0); //POS 0 justified (atom-based).
       }

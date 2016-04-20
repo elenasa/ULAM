@@ -637,7 +637,7 @@ namespace MFM {
 
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    ULAMTYPE cosetype = cosut->getUlamTypeEnum();
+    ULAMTYPE cosetyp = cosut->getUlamTypeEnum();
     UTI	scalarcosuti = m_state.getUlamTypeAsScalar(cosuti); //ALT_ARRAYITEM
     scalarcosuti = m_state.getUlamTypeAsDeref(scalarcosuti);
     UlamType * scalarcosut = m_state.getUlamTypeByIndex(scalarcosuti);
@@ -660,14 +660,14 @@ namespace MFM {
 	fp->write(m_state.getHiddenArgName()); //ur first arg
 	fp->write(", ");
 	fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
-	fp->write(" + ");
+	fp->write("u + ");
 	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex()).c_str()); //INDEX
 	fp->write(" * ");
 	fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM == rel pos
 	fp->write("u, ");
 	fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
 	fp->write("u, ");
-	if(cosetype == Class)
+	if(cosetyp == Class)
 	  {
 	    fp->write("&");
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
@@ -684,7 +684,7 @@ namespace MFM {
     else //local var
       {
 	assert(isCurrentObjectsContainingAModelParameter() == -1); //MP invalid
-
+#if 0
 	if(isCurrentObjectAnUnpackedArray(cosuti, uvpass))
 	  {
 	    //unpacked
@@ -698,6 +698,7 @@ namespace MFM {
 	    fp->write("u);\n"); //done read array item
 	  }
 	else
+#endif
 	  {
 	    //use built in immediate arrayitem method instead
 	    fp->write("UlamRef<EC>("); //wrapper for array item
@@ -707,7 +708,7 @@ namespace MFM {
 		fp->write(", ");
 	      }
 	    fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
-	    fp->write(" + ");
+	    fp->write("u + ");
 	    fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex()).c_str()); //INDEX
 	    fp->write(" * ");
 	    fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
@@ -721,7 +722,7 @@ namespace MFM {
 		fp->write(", ");
 	      }
 
-	    if(cosetype == Class)
+	    if(cosetyp == Class)
 	      {
 		fp->write("&");
 		fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
@@ -903,8 +904,8 @@ namespace MFM {
     if(rstor == TMPBITVAL)
       {
 	fp->write(".");
-	fp->write(readMethodForCodeGen(ruti, ruvpass).c_str()); //or just 'Read' ?
-	fp->write("()");
+	//fp->write(readMethodForCodeGen(ruti, ruvpass).c_str()); //or just 'Read' ?
+	fp->write("read()");
       }
     fp->write(");\n");
 
@@ -1085,6 +1086,8 @@ namespace MFM {
 
     if(m_state.isPtr(ruti))
       ruti = ruvpass.getPtrTargetType();
+    UlamType * rut = m_state.getUlamTypeByIndex(ruti);
+    STORAGE rstor = ruvpass.getPtrStorage();
 
     // here, cos is symbol used to determine read method: either self or last of cos.
     // stgcos is symbol used to determine first "hidden" arg
@@ -1104,9 +1107,10 @@ namespace MFM {
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    ULAMTYPE cosetype = cosut->getUlamTypeEnum();
+    ULAMTYPE cosetyp = cosut->getUlamTypeEnum();
     UTI	scalarcosuti = m_state.getUlamTypeAsScalar(cosuti); //ALT_ARRAYITEM
     scalarcosuti = m_state.getUlamTypeAsDeref(scalarcosuti);
+    //UlamType * scalarcosut = m_state.getUlamTypeByIndex(scalarcosuti);
 
     u32 itemlen = cosut->getBitSize();
 
@@ -1121,7 +1125,7 @@ namespace MFM {
 	fp->write(m_state.getHiddenArgName()); //ur first arg
 	fp->write(", ");
 	fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
-	fp->write(" + ");
+	fp->write("u + ");
 
 	fp->write(m_state.getTmpVarAsString(luti, luvpass.getPtrSlotIndex()).c_str()); //INDEX
 	fp->write(" * ");
@@ -1129,7 +1133,7 @@ namespace MFM {
 	fp->write("u, ");
 	fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
 	fp->write("u, ");
-	if(cosetype == Class)
+	if(cosetyp == Class)
 	  {
 	    fp->write("&");
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
@@ -1145,12 +1149,13 @@ namespace MFM {
 
 	// with immediate quarks, they are read into a tmpreg as other immediates
 	// with immediate elements, too! value not a terminal
-	fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
-	if(ruvpass.getPtrStorage() == TMPBITVAL)
+	fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), rstor).c_str());
+	if(rstor == TMPBITVAL)
 	  {
-	    fp->write(".");
-	    fp->write(readMethodForCodeGen(scalarcosuti, ruvpass).c_str()); //or just 'Read' ?
-	    fp->write("()");
+	    //fp->write(".");
+	    //fp->write(readMethodForCodeGen(scalarcosuti, ruvpass).c_str()); //or just 'Read' ?
+	    //fp->write(scalarcosut->readMethodForCodeGen().c_str()); //or just 'Read' ?
+	    fp->write(".read()"); //t3172
 	  }
 	fp->write(");\n");
       }
@@ -1158,6 +1163,7 @@ namespace MFM {
       {
 	assert(isCurrentObjectsContainingAModelParameter() == -1); //MP invalid
 
+#if 0
 	if(isCurrentObjectAnUnpackedArray(cosuti, luvpass))
 	  {
 	    //unpacked
@@ -1166,7 +1172,7 @@ namespace MFM {
 	    fp->write(".");
 	    fp->write(writeArrayItemMethodForCodeGen(cosuti, luvpass).c_str());
 	    fp->write("(");
-	    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str()); //value
+	    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), rstor).c_str()); //value
 	    fp->write(", ");
 	    fp->write(m_state.getTmpVarAsString(luti, luvpass.getPtrSlotIndex()).c_str()); //INDEX
 	    fp->write(", ");
@@ -1174,6 +1180,7 @@ namespace MFM {
 	    fp->write("u);\n"); //done write array item
 	  }
 	else
+#endif
 	  {
 	    //local
 	    m_state.indent(fp);
@@ -1184,7 +1191,7 @@ namespace MFM {
 		fp->write(", ");
 	      }
 	    fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
-	    fp->write(" + ");
+	    fp->write("u + ");
 	    fp->write(m_state.getTmpVarAsString(luti, luvpass.getPtrSlotIndex()).c_str()); //INDEX
 	    fp->write(" * ");
 	    fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
@@ -1198,7 +1205,7 @@ namespace MFM {
 		fp->write(", ");
 	      }
 
-	    if(cosetype == Class)
+	    if(cosetyp == Class)
 	      {
 		fp->write("&");
 		fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
@@ -1212,11 +1219,16 @@ namespace MFM {
 	    fp->write("(");
 	    // with immediate quarks, they are read into a tmpreg as other immediates
 	    // with immediate elements, too! value not a terminal
-	    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
-	    if(ruvpass.getPtrStorage() == TMPBITVAL)
+	    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), rstor).c_str());
+	    if(rstor == TMPBITVAL)
+	      {
+		fp->write(".read()");
+	      }
+	    else if(rstor == TMPATOMBS)
 	      {
 		fp->write(".");
-		fp->write(readMethodForCodeGen(scalarcosuti, ruvpass).c_str()); //or just 'Read' ?
+		//fp->write(readMethodForCodeGen(scalarcosuti, ruvpass).c_str()); //or just 'Read' ?
+		fp->write(rut->readMethodForCodeGen().c_str()); //ReadAtom
 		fp->write("()");
 	      }
 	    fp->write(");\n");
@@ -1387,12 +1399,13 @@ namespace MFM {
 
     fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), TMPBITVAL).c_str());
     fp->write(".");
-    fp->write(readMethodForCodeGen(vuti, uvpass).c_str());
+    //fp->write(readMethodForCodeGen(vuti, uvpass).c_str());
 
-    fp->write("(");
+    fp->write("read(");
     // use immediate read for entire array
     if(isCurrentObjectAnArrayItem(vuti, uvpass))
       {
+	assert(0); //doesn't make sense for custom arrays?
 	fp->write_decimal(uvpass.getPtrLen()); //BITS_PER_ITEM
 	fp->write("u, ");
 	fp->write_decimal(adjustedImmediateArrayItemPtrPos(vuti, uvpass)); //item POS (last like others) ?
@@ -1465,67 +1478,91 @@ namespace MFM {
 	UlamType * scalarcosut = m_state.getUlamTypeByIndex(scalarcosuti);
 	ULAMCLASSTYPE cosclasstype = cosut->getUlamClassType();
 
-	m_state.indent(fp);
-	//can't be const and chainable
-	fp->write(scalarcosut->getLocalStorageTypeAsString().c_str());
-	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(scalarcosuti, tmpVarNum2, TMPAUTOREF).c_str());
-	fp->write("("); // use constructor (not equals)
-
-	if(cos->isDataMember())
+#if 0
+	if(cosut->isReference())
 	  {
-	    //if(cosSize > 1)
-	      fp->write(stgcos->getMangledName().c_str());
-	      //else
-	      //fp->write(m_state.getHiddenArgName());
-	  }
-	else
-	  {
-	    fp->write(cos->getMangledName().c_str()); //local array
-	  }
-
-	//PACKFIT packfit = cosut->getPackable();
-	//if(packfit == UNPACKED)
-	// {
-	//  fp->write(".getRef(");
-	//  }
-	//else
-	fp->write(", ");
-
-	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str()); //pos variable 0-based
-
-	if(cosclasstype == UC_QUARK)
-	  {
+	    u32 urtmpnum = m_state.getNextTmpVarNumber();
+	    //create tmp UlamRef first
+	    m_state.indent(fp);
+	    fp->write("UlamRef<EC> ");
+	    fp->write(m_state.getUlamRefTmpVarAsString(urtmpnum).c_str());
+	    fp->write("(");  // use constructor (not equals)
+	    fp->write(cos->getMangledName().c_str()); //local arrayref
+	    fp->write(", ");
+	    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str()); //array index
 	    fp->write(" * ");
 	    fp->write_decimal_unsigned(cosut->getBitSize());
-	    fp->write("u");
+	    fp->write("u, ");
+	    fp->write_decimal_unsigned(cosut->getBitSize());
+	    fp->write("u, &");
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
+	    fp->write(");\n");
 
-	    if(cosSize > 0)
-	      {
-		fp->write(" + ");
-		fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
-		fp->write("u");
-	      }
-
-	    //if(packfit == UNPACKED)
-	    //  {
-	    //	fp->write("), 0u"); //closes getRef
-	    //  }
-	    if(stgcosut->isReference())
-	      fp->write(", 0u"); //(t3668)
+	    //extra step, but no storage type for a tmp UlamRef ???
+	    m_state.indent(fp);
+	    //can't be const and chainable
+	    fp->write(scalarcosut->getLocalStorageTypeAsString().c_str());
+	    fp->write(" ");
+	    fp->write(m_state.getTmpVarAsString(scalarcosuti, tmpVarNum2, TMPAUTOREF).c_str());
+	    fp->write("("); // use constructor (not equals)
+	    fp->write(m_state.getUlamRefTmpVarAsString(urtmpnum).c_str());
+	    fp->write(", &");
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
+	    cosuti = scalarcosuti; //for the uvpass
 	  }
-	else if(cosclasstype == UC_ELEMENT)
+	  else
+#endif
 	  {
-	    //fp->write(")"); //just index as arg to getRef
-	  }
-	else
-	  assert(0);
+	    m_state.indent(fp);
+	    //can't be const and chainable
+	    fp->write(scalarcosut->getLocalStorageTypeAsString().c_str());
+	    fp->write(" ");
+	    fp->write(m_state.getTmpVarAsString(scalarcosuti, tmpVarNum2, TMPAUTOREF).c_str());
+	    fp->write("("); // use constructor (not equals)
 
-	fp->write(", &");
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
-	cosuti = scalarcosuti; //for the uvpass
+	    if(cos->isDataMember())
+	      {
+		if(cosSize > 1)
+		  fp->write(stgcos->getMangledName().c_str());
+		else
+		  fp->write(m_state.getHiddenArgName()); //t3543
+	      }
+	    else
+	      {
+		fp->write(cos->getMangledName().c_str()); //local array
+	      }
+	    fp->write(", ");
+	    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str()); //pos variable 0-based
+
+	    if((cosclasstype == UC_QUARK) || (cosclasstype == UC_ELEMENT))
+	      {
+		fp->write(" * ");
+		fp->write_decimal_unsigned(cosut->getBitSize());
+		fp->write("u");
+
+		if(cosSize > 0)
+		  {
+		    fp->write(" + ");
+		    fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
+		    fp->write("u");
+		  }
+
+		if(stgcosut->isReference())
+		  fp->write(", 0u"); //(t3668)
+	      }
+//	    else if(cosclasstype == UC_ELEMENT)
+//	      {
+//		//note: might be same as quark with transients?
+//	      }
+	    else
+	      assert(0);
+
+	    fp->write(", &");
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
+	    cosuti = scalarcosuti; //for the uvpass
+	  }
+	fp->write(");\n");
       }
-    fp->write(");\n");
 
     uvpass = UlamValue::makePtr(tmpVarNum2, TMPAUTOREF, cosuti, m_state.determinePackable(cosuti), m_state, 0, cos->getId()); //POS left-justified by default.
 
@@ -2308,9 +2345,11 @@ namespace MFM {
     if(isCurrentObjectsContainingAModelParameter() >= 0)
       method = "read"; //an exception
     else if(!isCurrentObjectALocalVariableOrArgument())
-      method = m_state.getUlamTypeByIndex(nuti)->readMethodForCodeGen();
+      method = m_state.getUlamTypeByIndex(nuti)->readMethodForCodeGen(); //UlamRef
+    else if(m_state.m_currentObjSymbolsForCodeGen.size() > 1)
+      method = m_state.getUlamTypeByIndex(nuti)->readMethodForCodeGen(); //UlamRef
     else
-      method = "Read";
+      method = "read"; //local variable name
     return method;
   } //readMethodForCodeGen
 
@@ -2323,12 +2362,13 @@ namespace MFM {
       method = m_state.getCustomArrayGetMangledFunctionName();
     else
       {
-	if(isCurrentObjectAnUnpackedArray(nuti, uvpass))
-	  method = "readArrayItem";
-	else
+	//if(isCurrentObjectAnUnpackedArray(nuti, uvpass))
+	//  method = "readArrayItem"; //t3666
+	//else
 	  {
 	    UTI scalarnuti = m_state.getUlamTypeAsScalar(nuti);
-	    method = readMethodForCodeGen(scalarnuti, uvpass);
+	    //method = readMethodForCodeGen(scalarnuti, uvpass);
+	    method = m_state.getUlamTypeByIndex(scalarnuti)->readMethodForCodeGen(); //for UlamRef
 	  }
       }
     return method;
@@ -2336,9 +2376,14 @@ namespace MFM {
 
   const std::string Node::writeMethodForCodeGen(UTI nuti, UlamValue uvpass)
   {
+    std::string method;
     if(!isCurrentObjectALocalVariableOrArgument())
-      return m_state.getUlamTypeByIndex(nuti)->writeMethodForCodeGen();
-    return "Write";
+      method =  m_state.getUlamTypeByIndex(nuti)->writeMethodForCodeGen(); //UlamRef
+    else if(m_state.m_currentObjSymbolsForCodeGen.size() > 1)
+      method = m_state.getUlamTypeByIndex(nuti)->writeMethodForCodeGen(); //UlamRef
+    else
+      method = "write"; //local variable name
+    return method;
   } //writeMethodForCodeGen
 
   const std::string Node::writeArrayItemMethodForCodeGen(UTI nuti, UlamValue uvpass)
@@ -2351,12 +2396,13 @@ namespace MFM {
       method = m_state.getCustomArraySetMangledFunctionName();
     else
       {
-	if(isCurrentObjectAnUnpackedArray(nuti, uvpass))
-	  method = "writeArrayItem";
-	else
+	//if(isCurrentObjectAnUnpackedArray(nuti, uvpass))
+	//  method = "writeArrayItem"; //t3666
+	//else
 	  {
 	    UTI scalarnuti = m_state.getUlamTypeAsScalar(nuti);
-	    method = writeMethodForCodeGen(scalarnuti, uvpass);
+	    //method = writeMethodForCodeGen(scalarnuti, uvpass);
+	    method = m_state.getUlamTypeByIndex(scalarnuti)->writeMethodForCodeGen(); //for UlamRef
 	  }
       }
     return method;

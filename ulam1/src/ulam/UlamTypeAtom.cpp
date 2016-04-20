@@ -97,8 +97,13 @@ namespace MFM {
     if(m_state.isAtom(typidx))
       return CAST_CLEAR; //atom to atom
 
-    //casting from quark or quark ref, requires explicit casting
+    //casting from quark or element to atomref is bad, since packed
     UlamType * vut = m_state.getUlamTypeByIndex(typidx);
+    ULAMTYPE vetyp = vut->getUlamTypeEnum();
+    if((getReferenceType() == ALT_REF) && (vetyp == Class)) //class to atomref (not array item)
+      return CAST_BAD;
+
+    //casting from quark or quark ref, requires explicit casting
     return (vut->getUlamClassType() == UC_ELEMENT) ? CAST_CLEAR : CAST_BAD;
    } //safeCast
 
@@ -109,12 +114,14 @@ namespace MFM {
     if(scr == CAST_CLEAR)
       {
 	UlamType * vut = m_state.getUlamTypeByIndex(typidx);
-	ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
+	//ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
+	ULAMTYPE vetyp = vut->getUlamTypeEnum();
 	if(vut->isPrimitiveType())
 	  scr = CAST_BAD;
-	else if(( vclasstype == UC_QUARK) && !vut->isReference())
-	  scr = CAST_BAD; //quark ref possibly ok
-	//else atom, element, quark ref (possibly), are acceptable
+	//else if(( vclasstype == UC_QUARK) && !vut->isReference())
+	else if((vetyp == Class) && (getReferenceType() == ALT_REF))
+	  scr = CAST_BAD; //not to atomref
+	//else atom, element ref, quark ref (possibly), are acceptable
       }
     return scr;
   } //explicitlyCastable
@@ -184,16 +191,26 @@ namespace MFM {
     fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
     fp->write("\n");
 
-    //constructor for ref (auto)
+    //constructor
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(AtomBitStorage<EC>& targ, const UlamContext<EC>& uc) : UlamRefAtom<EC>(targ, 0u, uc.LookupElementTypeFromContext(targ.GetType())) { }\n");
-    //fp->write("(BitStorage<EC>& targ, u32 origin, const UlamContext<EC>& uc) : UlamRefAtom<EC>(targ, origin, uc.LookupElementTypeFromContext(targ.ReadAtom(origin, BPA).GetType())) { }\n");
 
-    //constructor for chain of autorefs (e.g. memberselect with array item)
+    //constructor for ref (auto)
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("(BitStorage<EC>& targ, u32 startidx, const UlamContext<EC>& uc) : UlamRefAtom<EC>(targ, startidx, uc.LookupElementTypeFromContext(targ.ReadAtom(startidx).GetType())) { }\n");
+
+    //copy constructor for autoref (chain would be unpacked array)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const UlamRefAtom<EC>& arg, const UlamContext<EC>& uc) : UlamRefAtom<EC>(arg, arg.GetEffectiveSelf()) { }\n");
+
+    //read 'entire atom' method
+    genUlamTypeAutoReadDefinitionForC(fp);
+
+    //write 'entire atom' method
+    genUlamTypeAutoWriteDefinitionForC(fp);
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -208,6 +225,45 @@ namespace MFM {
     fp->write(udstr.c_str());
     fp->write(" */\n\n");
   } //genUlamTypeMangledAutoDefinitionForC
+
+  void UlamTypeAtom::genUlamTypeAutoReadDefinitionForC(File * fp)
+  {
+    //return; //uses base class read
+    if(isScalar())
+      {
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //T
+	fp->write(" read() const { ");
+	fp->write("return UlamRef<EC>::");
+	fp->write(readMethodForCodeGen().c_str());
+	fp->write("(); /* read entire atom */ }\n"); //done
+      }
+  } //genUlamTypeAutoReadDefinitionForC
+
+  void UlamTypeAtom::genUlamTypeAutoWriteDefinitionForC(File * fp)
+  {
+    //return; //uses base class write
+    //ref param to avoid excessive copying
+    if(isScalar())
+      {
+	m_state.indent(fp);
+	fp->write("void write(const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, BV96
+	fp->write("& v) { ");
+	fp->write("UlamRef<EC>::");
+	fp->write(writeMethodForCodeGen().c_str());
+	fp->write("(v); /* write entire atom */ }\n"); //done
+
+	m_state.indent(fp);
+	fp->write("void write(const ");
+	fp->write("AtomBitStorage<EC>");
+	fp->write("& v) { ");
+	fp->write("UlamRef<EC>::");
+	fp->write(writeMethodForCodeGen().c_str());
+	fp->write("(v.ReadAtom()); /* write entire atom */ }\n"); //done
+      }
+  } //genUlamTypeAutoWriteDefinitionForC
 
   //generates immediate for whole atom
   void UlamTypeAtom::genUlamTypeMangledDefinitionForC(File * fp)
@@ -261,6 +317,10 @@ namespace MFM {
     fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
     fp->write("\n");
 
+    m_state.indent(fp);
+    fp->write("typedef AtomBitStorage<EC> ABS;\n");
+    fp->write("\n");
+
     //default constructor (used by local vars)
     m_state.indent(fp);
     fp->write(mangledName.c_str());
@@ -312,12 +372,41 @@ namespace MFM {
 
   void UlamTypeAtom::genUlamTypeReadDefinitionForC(File * fp)
   {
-    return; //uses base class read
+    //return; //uses base class read
+    if(isScalar())
+      {
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //T
+	fp->write(" read() const { ");
+	fp->write("return ABS::");
+	fp->write(readMethodForCodeGen().c_str());
+	fp->write("(); }\n"); //done
+      }
   } //genUlamTypeReadDefinitionForC
 
   void UlamTypeAtom::genUlamTypeWriteDefinitionForC(File * fp)
   {
-    return; //uses base class write
+    //return; //uses base class write
+    //ref param to avoid excessive copying
+    if(isScalar())
+      {
+	m_state.indent(fp);
+	fp->write("void write(const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //T, BV96
+	fp->write("& v) { ");
+	fp->write("ABS::");
+	fp->write(writeMethodForCodeGen().c_str());
+	fp->write("(v); }\n"); //done
+
+	m_state.indent(fp);
+	fp->write("void write(const ");
+	fp->write("AtomBitStorage<EC>");
+	fp->write("& v) { ");
+	fp->write("ABS::");
+	fp->write(writeMethodForCodeGen().c_str());
+	fp->write("(v.ReadAtom()); }\n"); //done
+      }
   } //genUlamTypeWriteDefinitionForC
 
   const std::string UlamTypeAtom::readMethodForCodeGen()
@@ -330,6 +419,302 @@ namespace MFM {
     return "WriteAtom";
   }
 
+  const std::string UlamTypeAtom::readArrayItemMethodForCodeGen()
+  {
+    return "ReadAtom";
+  }
+
+  const std::string UlamTypeAtom::writeArrayItemMethodForCodeGen()
+  {
+    return "WriteAtom";
+  }
+
+  void UlamTypeAtom::genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp)
+  {
+    s32 len = getTotalBitSize(); //could be 0, includes arrays
+
+    m_state.m_currentIndentLevel = 0;
+    UTI scalarUTI = UAtom;
+    const std::string scalarmangledName = m_state.getUlamTypeByIndex(scalarUTI)->getUlamTypeMangledName();
+    const std::string automangledName = getUlamTypeImmediateAutoMangledName();
+    const std::string mangledName = getUlamTypeImmediateMangledName();
+    std::ostringstream  ud;
+    ud << "Ud_" << automangledName; //d for define (p used for atomicparametrictype)
+    std::string udstr = ud.str();
+
+    m_state.indent(fp);
+    fp->write("#ifndef ");
+    fp->write(udstr.c_str());
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("#define ");
+    fp->write(udstr.c_str());
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("namespace MFM{\n");
+    fp->write("\n");
+
+    m_state.m_currentIndentLevel++;
+
+    //forward declaration of atom array (before struct!)
+    m_state.indent(fp);
+    fp->write("template<class EC> class ");
+    fp->write(mangledName.c_str());
+    fp->write(";  //forward\n\n");
+
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write("struct ");
+    fp->write(automangledName.c_str());
+    fp->write(" : public UlamRef<EC>\n");
+
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    //typedef atomic parameter type inside struct
+    m_state.indent(fp);
+    fp->write("typedef typename EC::ATOM_CONFIG AC;\n");
+    m_state.indent(fp);
+    fp->write("typedef typename AC::ATOM_TYPE T;\n");
+    m_state.indent(fp);
+    fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
+    fp->write("\n");
+
+    //constructor for conditional-as (auto)
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("(BitStorage<EC>& targ, u32 idx) : UlamRef<EC>");
+    fp->write("(idx, "); //the real pos!!!
+    fp->write_decimal_unsigned(len); //includes arraysize
+    fp->write("u, targ, NULL) { }\n"); //no effective self
+
+    //constructor with exact same immediate storage (uc arg unused) e.g. t3671
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("("); //non-const for ref
+    fp->write(mangledName.c_str());
+    fp->write("<EC>& s, const UlamContext<EC>& uc) : UlamRef<EC>(0u, ");
+    fp->write_decimal_unsigned(len); //includes arraysize
+    fp->write("u, s, NULL) { }\n"); //no effective self
+
+    //copy constructor here (uc arg unused)
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("(const ");
+    fp->write(automangledName.c_str());
+    fp->write("<EC>& r, const UlamContext<EC>& uc) : UlamRef<EC>(r, 0u, r.GetLen(), r.GetEffectiveSelf()) { }\n");
+
+    //constructor for chain of autorefs (e.g. memberselect with array item)
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("(const UlamRef<EC>& arg, u32 idx, const UlamClass<EC>* effself) : UlamRef<EC>(arg, idx, ");
+    fp->write_decimal_unsigned(len); //includes arraysize
+    fp->write("u, effself) {}\n");
+
+    //default destructor (for completeness)
+    m_state.indent(fp);
+    fp->write("~");
+    fp->write(automangledName.c_str());
+    fp->write("() {}\n");
+
+#if 0
+    //DO WE NEED THESE???
+    //Unpacked Read Array Item
+    m_state.indent(fp);
+    fp->write("const ");
+    fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //T
+    fp->write(" readArrayItem(");
+    fp->write("const u32 index, const u32 itemlen, const UlamContext<EC>& uc) const { return ");
+    fp->write("UlamRef<EC>(");
+    fp->write("*this, index * itemlen, "); //const ref, rel offset
+    fp->write("itemlen, ");  //itemlen,
+    fp->write("uc.LookupElementTypeFromContext(this->GetType()))."); //effself
+    fp->write(readArrayItemMethodForCodeGen().c_str());
+    fp->write("(); /* entire atom item */ }\n");
+
+    //Unpacked Write Array Item
+    m_state.indent(fp);
+    fp->write("void writeArrayItem(const ");
+    fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //T
+    fp->write("& v, const u32 index, const u32 itemlen, const UlamContext<EC>& uc) { ");
+    fp->write("UlamRef<EC>(");
+    fp->write("*this, index * itemlen, "); //rel offset
+    fp->write("itemlen, ");  //itemlen,
+    fp->write("uc.LookupElementTypeFromContext(v.GetType()))."); //effself
+    fp->write(writeArrayItemMethodForCodeGen().c_str());
+    fp->write("(v); /* entire atom item */ }\n");
+#endif
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("};\n");
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //MFM\n");
+
+    m_state.indent(fp);
+    fp->write("#endif /*");
+    fp->write(udstr.c_str());
+    fp->write(" */\n\n");
+  } //genUlamTypeMangledUnpackedArrayAutoDefinitionForC
+
+  void UlamTypeAtom::genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp)
+  {
+    s32 len = getTotalBitSize(); //could be 0, includes arrays
+    u32 arraysize = getArraySize();
+
+    m_state.m_currentIndentLevel = 0;
+
+    //class instance idx is always the scalar uti
+    UTI scalaruti =  UAtom;
+    const std::string scalarmangledName = m_state.getUlamTypeByIndex(scalaruti)->getUlamTypeMangledName();
+    const std::string mangledName = getUlamTypeImmediateMangledName();
+    std::ostringstream  ud;
+    ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
+    std::string udstr = ud.str();
+
+    m_state.indent(fp);
+    fp->write("#ifndef ");
+    fp->write(udstr.c_str());
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("#define ");
+    fp->write(udstr.c_str());
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("namespace MFM{\n");
+    fp->write("\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write("struct ");
+    fp->write(mangledName.c_str());
+   fp->write(" : public ");
+    fp->write("BitVectorBitStorage"); //storage here!
+    fp->write("<EC, BitVector<"); //left-just pos
+    fp->write_decimal_unsigned(len); //no round up
+    fp->write("u> >\n");
+
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    //typedef atomic parameter type inside struct
+    m_state.indent(fp);
+    fp->write("typedef typename EC::ATOM_CONFIG AC;\n");
+    m_state.indent(fp);
+    fp->write("typedef typename AC::ATOM_TYPE T;\n");
+    m_state.indent(fp);
+    fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("typedef BitVector<");
+    fp->write_decimal_unsigned(len);
+    fp->write("> BV;\n");
+
+    m_state.indent(fp);
+    fp->write("typedef BitVectorBitStorage<EC, BV> BVS;\n");
+    fp->write("\n");
+
+    //default constructor (used by local vars) new way!
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("() { ");
+    fp->write("AtomBitStorage<EC> tmp(Element_Empty<EC>::THE_INSTANCE.GetDefaultAtom()); ");
+    fp->write("BV96 tmpval = tmp.ReadBig(0u, BPA); ");
+    fp->write("for(u32 j = 0; j < ");
+    fp->write_decimal_unsigned(arraysize);
+    fp->write("u; j++) ");
+    fp->write("BVS::WriteBig(j * BPA, BPA, tmpval); }\n");
+
+    //constructor here (used by const tmpVars)
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("(const ");
+    fp->write("T& targ) { ");
+    fp->write("AtomBitStorage<EC> tmp(targ); ");
+    fp->write("BV96 tmpval = tmp.ReadBig(0u, BPA); ");
+    fp->write("for(u32 j = 0; j < ");
+    fp->write_decimal_unsigned(arraysize);
+    fp->write("u; j++) ");
+    fp->write("BVS::WriteBig(j * BPA, BPA, tmpval); }\n");
+
+    // assignment constructor
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("(const ");
+    fp->write(mangledName.c_str());
+    fp->write("<EC> & arg) { ");
+    fp->write("this->m_stg = arg.m_stg; }\n");
+
+    //assignment constructor, atom arg, for convenience
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("(const AtomBitStorage<EC> & arg) { ");
+    fp->write("BV96 tmpval = arg.ReadBig(0u, BPA); ");
+    fp->write("for(u32 j = 0; j < ");
+    fp->write_decimal_unsigned(arraysize);
+    fp->write("u; j++) ");
+    fp->write("BVS::WriteBig(j * BPA, BPA, tmpval); }\n");
+
+    //default destructor (for completeness)
+    m_state.indent(fp);
+    fp->write("~");
+    fp->write(mangledName.c_str());
+    fp->write("() {}\n");
+
+#if 0
+    //NEEDED???
+    //read method for array item
+    m_state.indent(fp);
+    fp->write("const ");
+    fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //T, u64, or u32
+    fp->write(" readArrayItem(");
+    fp->write("const u32 index, const u32 itemlen) const { return BVS::"); //was const after )
+    fp->write(readArrayItemMethodForCodeGen().c_str());
+    fp->write("(index * itemlen, "); //const ref, rel offset
+    fp->write("itemlen); }\n");  //itemlen,
+
+    //write method for array item
+    m_state.indent(fp);
+    fp->write("void writeArrayItem(const ");
+    fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //T, u64, u32
+    fp->write("& v, const u32 index, const u32 itemlen) { BVS::");
+    fp->write(writeArrayItemMethodForCodeGen().c_str());
+    fp->write("(index * itemlen, "); //rel offset
+    fp->write("itemlen, v); }\n");  //itemlen, val
+#endif
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("};\n");
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //MFM\n");
+
+    m_state.indent(fp);
+    fp->write("#endif /*");
+    fp->write(udstr.c_str());
+    fp->write(" */\n\n");
+  } //genUlamTypeMangledUnpackedArrayDefinitionForC
+
+#if 0
   void UlamTypeAtom::genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp)
   {
     m_state.m_currentIndentLevel = 0;
@@ -358,11 +743,6 @@ namespace MFM {
     fp->write("\n");
 
     m_state.m_currentIndentLevel++;
-
-    m_state.indent(fp);
-    fp->write("template<class EC> class ");
-    fp->write(mangledName.c_str());
-    fp->write("; //forward \n\n");
 
     m_state.indent(fp);
     fp->write("template<class EC>\n");
@@ -646,5 +1026,6 @@ namespace MFM {
     fp->write(udstr.c_str());
     fp->write(" */\n\n");
   } //genUlamTypeMangledUnpackedArrayDefinitionForC
+#endif
 
 } //end MFM

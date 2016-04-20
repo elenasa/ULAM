@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "NodeCast.h"
 #include "CompilerState.h"
+#include "SymbolVariableStack.h"
 
 namespace MFM {
 
@@ -209,6 +210,15 @@ namespace MFM {
 	    errorsFound++;
 #endif
 	  }
+      }
+    else if(m_state.isAtomRef(tobeType) && (nut->getUlamTypeEnum() == Class))// && !nut->isReference())
+      {
+	    std::ostringstream msg;
+	    msg << "Cannot cast a class, ";
+	    msg << nut->getUlamTypeNameBrief().c_str(); //to atomref
+	    msg << ", to an Atom &";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    errorsFound++;
       }
     else if(isExplicitCast())
       {
@@ -720,7 +730,7 @@ namespace MFM {
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
     // "downcast" might not be true; compare to be sure the atom is an element "Foo"
-    if(m_state.isAtom(vuti))
+    if(m_state.isAtom(vuti)) //from atom-to-element
       {
 	m_state.indent(fp);
 	fp->write("if(!");
@@ -728,7 +738,6 @@ namespace MFM {
 	fp->write(".");
 	fp->write(m_state.getIsMangledFunctionName(tobeType));
 	fp->write("(");
-	//fp->write(m_state.getTmpVarAsString(tobeType, tmpread, tmpreadstorage).c_str());
 	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str());
 	if(uvpass.getPtrStorage() == TMPBITVAL)
 	  {
@@ -748,32 +757,69 @@ namespace MFM {
 	STORAGE tmpreadstorage = tobe->getTmpStorageTypeForTmpVar();
 	m_state.indent(fp);
 	fp->write("const ");
-	fp->write(tobe->getTmpStorageTypeAsString().c_str()); //u32, u64, or T
+	fp->write(tobe->getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpread, tmpreadstorage).c_str());
 	fp->write(" = ");
 	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str());
 
+	//should this be an UlamRef using vid, like element-to-storage below???
 	if((uvpass.getPtrStorage() == TMPBITVAL) || (uvpass.getPtrStorage() == TMPTATOM))
 	  {
 	    if(uvpass.getPtrStorage() == TMPTATOM)
 	      fp->write(".GetBits()");
 	    fp->write(".");
 	    fp->write(tobe->readMethodForCodeGen().c_str());
-	    fp->write("(0u, ");
+	    fp->write("(0u + T::ATOM_FIRST_STATE_BIT, ");
 	    fp->write_decimal_unsigned(tobe->getTotalBitSize());
 	    fp->write("u)");
 	  }
-
 	fp->write(";\n");
 
 	uvpass = UlamValue::makePtr(tmpread, tmpreadstorage, tobeType, m_state.determinePackable(tobeType), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id
       }
     else
       {
+	//from element-to-atom
+	s32 tmpread = m_state.getNextTmpVarNumber(); //tmp since no variable name
+	STORAGE tmpreadstorage = tobe->getTmpStorageTypeForTmpVar();
+
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(tobe->getTmpStorageTypeAsString().c_str()); //T
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(tobeType, tmpread, tmpreadstorage).c_str());
+	fp->write(" = ");
+
+	u32 vid = uvpass.getPtrNameId();
+	if(vid > 0)
+	  {
+	    Token iTok(TOK_IDENTIFIER, getNodeLocation(), vid);
+	    SymbolVariableStack tmpsym(iTok, vuti, uvpass.getPtrSlotIndex(), m_state);
+	    if(vid == m_state.m_pool.getIndexForDataString("self"))
+	      tmpsym.setIsSelf();
+
+	    fp->write(tmpsym.getMangledName().c_str());
+	  }
+	else
+	  fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str()); //t3657
+
+	fp->write(".CreateAtom();\n");
+
+	//uvpass = UlamValue::makePtr(tmpread, tmpreadstorage, tobeType, m_state.determinePackable(tobeType), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id
+
+	//convert T to AtomBitStorage (e.g. t3697)
+	u32 tabsnum = m_state.getNextTmpVarNumber();
+	m_state.indent(fp);
+	fp->write("AtomBitStorage<EC> "); //non-const
+	fp->write(m_state.getAtomBitStorageTmpVarAsString(tabsnum).c_str());
+	fp->write("(");
+	fp->write(m_state.getTmpVarAsString(tobeType, tmpread, tmpreadstorage).c_str());
+	fp->write(");\n");
+	uvpass = UlamValue::makePtr(tabsnum, TMPATOMBS, tobeType, m_state.determinePackable(tobeType), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id);
+
 	//don't read like ref's do!
 	//update the uvpass to have the casted type
-	uvpass = UlamValue::makePtr(tmpVarNum, uvpass.getPtrStorage(), tobeType, m_state.determinePackable(tobeType), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id
       }
     return;
   } //genCodeCastAtomAndElement
@@ -1118,6 +1164,9 @@ namespace MFM {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * stgcos = NULL;
     stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+    UTI stgcosuti = stgcos->getUlamTypeIdx();
+
+    assert(m_state.isReference(stgcosuti));
 
     // "downcast" might not be true; compare to be sure the element is-related to quark "Foo"
     m_state.indent(fp);
@@ -1139,17 +1188,22 @@ namespace MFM {
     s32 tmpVarVal = m_state.getNextTmpVarNumber();
     m_state.indent(fp);
     fp->write("const ");
-    fp->write(tobe->getTmpStorageTypeAsString().c_str()); //T
+    fp->write(tobe->getTmpStorageTypeAsString().c_str()); //u32, u64, BV96 (packed element)
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(tobeType, tmpVarVal, tobe->getTmpStorageTypeForTmpVar()).c_str());
     fp->write(" = ");
 
-    fp->write(stgcos->getMangledName().c_str());
-    fp->write(".");
-    fp->write(tobe->readMethodForCodeGen().c_str()); //ReadAtom for entire quark stg
+    fp->write("UlamRef<EC>(");
+    fp->write(stgcos->getMangledName().c_str()); //a ref
+    fp->write(", 0u, ");
+    fp->write_decimal_unsigned(tobe->getTotalBitSize());
+    fp->write("u, &");
+    fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
+    fp->write(").");
+    fp->write(tobe->readMethodForCodeGen().c_str()); //Read for entire element stg
     fp->write("();\n");
 
-    //update the uvpass to have the casted quark storage, including its subclass
+    //update the uvpass to have the casted quark storage, INCLUDING ITS SUBCLASS?
     uvpass = UlamValue::makePtr(tmpVarVal, tobe->getTmpStorageTypeForTmpVar(), tobeType, m_state.determinePackable(tobeType), m_state, 0); //POS 0 rightjustified;
 
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs

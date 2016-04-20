@@ -177,8 +177,14 @@ namespace MFM {
 	fp->write(", ");
 	if(vclasstype == UC_QUARK) //t3639
 	  fp->write("0u, "); //position as super
-	//	else if(!stgcosut->isReference())
-	//  fp->write("0u, "); //origin of stg
+	else if(!stgcosut->isReference())
+	  fp->write("0u, "); //start of atom stg
+	else
+	  {
+	    //is an atomref
+	    fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
+	    fp->write(".GetPos(), ");
+	  }
 
 	fp->write(m_state.getHiddenContextArgName());
 	fp->write(".LookupElementTypeFromContext(");
@@ -193,8 +199,15 @@ namespace MFM {
 	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset()); //should be 0!
 	    fp->write("u");
 	  }
-	//else if(!stgcosut->isReference())
-	// fp->write(", 0u"); //origin of stg
+	else if(!stgcosut->isReference())
+	  fp->write(", 0u"); //origin of stg
+	else
+	  {
+	    //is a element reference
+	    fp->write(", ");
+	    fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
+	    fp->write(".GetPos()");
+	  }
 
 	fp->write(", &");
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());

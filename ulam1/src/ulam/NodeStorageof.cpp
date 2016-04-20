@@ -147,6 +147,7 @@ namespace MFM {
 
   void NodeStorageof::genCode(File * fp, UlamValue& uvpass)
   {
+#if 0
     //First, read into UAtomref immediate
     genCodeToStoreInto(fp, uvpass); //Fails if invalid origin (i.e. not element or atom)
 
@@ -170,6 +171,51 @@ namespace MFM {
 
     uvpass = UlamValue::makePtr(tmpVarNum2, nut->getTmpStorageTypeForTmpVar(), nuti, UNPACKED, m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
+#else
+
+    //lhs
+    assert(getStoreIntoAble() == TBOOL_TRUE);
+    UTI nuti = getNodeType(); //UAtomRef
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    s32 tmpVarNum = m_state.getNextTmpVarNumber(); //tmp for atomref
+
+    assert(m_varSymbol);
+    UTI vuti = m_varSymbol->getUlamTypeIdx();
+    bool isself = m_varSymbol->isSelf();
+    //if var is a data member quark, then also isself
+
+    if(m_state.isReference(vuti) || isself)
+      {
+	m_state.indent(fp);
+	fp->write("if(");
+	fp->write(m_varSymbol->getMangledName().c_str());
+	fp->write(".GetType() == T::ATOM_UNDEFINED_TYPE)\n");
+
+	m_state.m_currentIndentLevel++;
+	m_state.indent(fp);
+	fp->write("FAIL(ILLEGAL_ARGUMENT);\n");
+	m_state.m_currentIndentLevel--;
+      }
+
+    m_state.indent(fp); //non-const
+    fp->write(nut->getTmpStorageTypeAsString().c_str()); //for C++ local vars
+    fp->write(" ");
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPTATOM).c_str());
+    fp->write(" = ");
+
+    //data member's storage is self (not a ref)
+    if(m_varSymbol->isDataMember() || isself)
+      fp->write("ur");
+    else
+      fp->write(m_varSymbol->getMangledName().c_str()); //element or atom
+
+    fp->write(".CreateAtom()"); //can't be const
+    fp->write("; //storageof \n");
+
+    uvpass = UlamValue::makePtr(tmpVarNum, TMPTATOM, nuti, UNPACKED, m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
+
+    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
+#endif
   } //genCode
 
   void NodeStorageof::genCodeToStoreInto(File * fp, UlamValue& uvpass)
@@ -218,15 +264,15 @@ namespace MFM {
     else
       fp->write(m_varSymbol->getMangledName().c_str()); //element or atom
 
-    fp->write(".GetStorage()"); //can't be const
+    fp->write(".GetStorage(), "); //can't be const
 
-    // if(m_state.isReference(vuti) || isself)
-    // {
-    //	fp->write(m_varSymbol->getMangledName().c_str());
-    //	fp->write(".GetOrigin()"); //origin
-    //}
-    //else
-    //fp->write("0u");
+    if(m_state.isReference(vuti) || isself)
+      {
+    	fp->write(m_varSymbol->getMangledName().c_str());
+    	fp->write(".GetPos()"); //origin
+      }
+    else
+      fp->write("0u");
 
     fp->write(", uc); //storageof \n");
     //fp->write("); //storageof \n");

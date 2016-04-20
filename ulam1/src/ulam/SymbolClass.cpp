@@ -640,7 +640,12 @@ namespace MFM {
 	    fp->write("AtomBitStorage<EC> atbs(atom);\n");
 
 	    m_state.indent(fp);
-	    fp->write("UlamRefAtom<EC> ur(atbs, &");
+	    //fp->write("UlamRefAtom<EC> ur(atbs, 0u, &"); //start at 0 position
+	    fp->write("UlamRef<EC> ur(EC::ATOM_CONFIG::ATOM_TYPE::ATOM_FIRST_STATE_BIT, "); //e.g. t3255
+	    //fp->write("UlamRef<EC> ur(0, "); //e.g. t3255
+	    fp->write_decimal_unsigned(sut->getTotalBitSize());
+	    fp->write("u, atbs, &");
+	    //fp->write("u + EC::ATOM_CONFIG::ATOM_TYPE::ATOM_FIRST_STATE_BIT, atbs, &");
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
 	    fp->write(");\n");
 

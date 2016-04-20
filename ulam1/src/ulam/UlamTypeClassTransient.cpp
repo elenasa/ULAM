@@ -259,8 +259,8 @@ namespace MFM {
 	fp->write("UlamRef<EC>(");
 	fp->write("*this, index * itemlen, "); //const ref, rel offset
 	fp->write("itemlen, &");  //itemlen,
-	fp->write(scalarmangledName.c_str()); //primitive effself
-	fp->write("<EC>::THE_INSTANCE).Read(); }\n");
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalaruti).c_str());
+	fp->write(").Read(); }\n");
       }
   } //genUlamTypeReadDefinitionForC
 
@@ -281,8 +281,8 @@ namespace MFM {
 	fp->write("UlamRef<EC>(");
 	fp->write("*this, index * itemlen, "); //rel offset
 	fp->write("itemlen, &");  //itemlen,
-	fp->write(scalarmangledName.c_str()); //primitive effself
-	fp->write("<EC>::THE_INSTANCE).Write(v); }\n");
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalaruti).c_str());
+	fp->write(").Write(v); }\n");
       }
   } //genUlamTypeWriteDefinitionForC
 
