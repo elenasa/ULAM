@@ -1719,7 +1719,7 @@ namespace MFM {
 
     typeargs.init(pTok); //initialize here
 
-    UTI dropCastUTI;
+    UTI dropCastUTI = Nouti;
     return parseTypeDescriptor(typeargs, dropCastUTI, delAfterDotFails);
   }//parseTypeDescriptor (helper)
 

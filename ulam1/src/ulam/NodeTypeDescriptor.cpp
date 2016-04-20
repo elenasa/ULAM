@@ -219,58 +219,61 @@ namespace MFM {
 	  derefuti = m_state.getUlamTypeAsDeref(nuti);
       }
 
-    if(!m_state.isComplete(derefuti))
+    if(m_state.okUTItoContinue(derefuti))
       {
-	// if Nav, use token
-	UTI mappedUTI = derefuti;
-
-	// the symbol associated with this type, was mapped during instantiation
-	// since we're call AFTER that (not during), we can look up our
-	// new UTI and pass that on up the line of NodeType Selects, if any.
-	if(m_state.mappedIncompleteUTI(cuti, derefuti, mappedUTI))
+	if(!m_state.isComplete(derefuti))
 	  {
-	    std::ostringstream msg;
-	    msg << "Substituting Mapped UTI" << mappedUTI;
-	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
-	    msg << " for incomplete de-ref descriptor type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(derefuti).c_str();
-	    msg << "' UTI" << derefuti << " while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    derefuti = mappedUTI;
-	  }
-      } //incomplete deref
+	    // if Nav, use token
+	    UTI mappedUTI = derefuti;
 
-    if(m_state.isComplete(derefuti))
-      {
-	ALT altd = getReferenceType();
-	if(nut->getReferenceType() != altd)
+	    // the symbol associated with this type, was mapped during instantiation
+	    // since we're call AFTER that (not during), we can look up our
+	    // new UTI and pass that on up the line of NodeType Selects, if any.
+	    if(m_state.mappedIncompleteUTI(cuti, derefuti, mappedUTI))
+	      {
+		std::ostringstream msg;
+		msg << "Substituting Mapped UTI" << mappedUTI;
+		msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
+		msg << " for incomplete de-ref descriptor type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(derefuti).c_str();
+		msg << "' UTI" << derefuti << " while labeling class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		derefuti = mappedUTI;
+	      }
+	  } //incomplete deref
+
+	if(m_state.isComplete(derefuti))
 	  {
-	    nuti = m_state.getUlamTypeAsRef(nuti, altd);
-	    nut =  m_state.getUlamTypeByIndex(nuti);
-	    setReferenceType(altd, derefuti, nuti); //updates given too!
-	  }
-	else
-	  setReferenceType(altd, derefuti);
+	    ALT altd = getReferenceType();
+	    if(nut->getReferenceType() != altd)
+	      {
+		nuti = m_state.getUlamTypeAsRef(nuti, altd);
+		nut =  m_state.getUlamTypeByIndex(nuti);
+		setReferenceType(altd, derefuti, nuti); //updates given too!
+	      }
+	    else
+	      setReferenceType(altd, derefuti);
 
-	UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
-	// we might have set the size of a holder ref. still a holder. darn.
-	if(!m_state.completeAReferenceTypeWith(nuti, derefuti) && m_state.isHolder(nuti))
-	  {
-	    ULAMTYPE bUT = derefut->getUlamTypeEnum();
-	    if(bUT == Class)
-	      m_state.makeClassFromHolder(nuti, m_typeTok); //token for locator
+	    UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
+	    // we might have set the size of a holder ref. still a holder. darn.
+	    if(!m_state.completeAReferenceTypeWith(nuti, derefuti) && m_state.isHolder(nuti))
+	      {
+		ULAMTYPE bUT = derefut->getUlamTypeEnum();
+		if(bUT == Class)
+		  m_state.makeClassFromHolder(nuti, m_typeTok); //token for locator
 
-	    UlamKeyTypeSignature derefkey = derefut->getUlamKeyTypeSignature();
-	    UlamKeyTypeSignature newkey(derefkey.getUlamKeyTypeSignatureNameId(), derefkey.getUlamKeyTypeSignatureBitSize(), derefkey.getUlamKeyTypeSignatureArraySize(), derefkey.getUlamKeyTypeSignatureClassInstanceIdx(), getReferenceType());
-	    m_state.makeUlamTypeFromHolder(newkey, bUT, nuti, UC_NOTACLASS); //keeps nuti
-	  }
-	rtnb = true;
-      } //complete deref
-    //else deref not complete, t.f. nuti isn't changed
+		UlamKeyTypeSignature derefkey = derefut->getUlamKeyTypeSignature();
+		UlamKeyTypeSignature newkey(derefkey.getUlamKeyTypeSignatureNameId(), derefkey.getUlamKeyTypeSignatureBitSize(), derefkey.getUlamKeyTypeSignatureArraySize(), derefkey.getUlamKeyTypeSignatureClassInstanceIdx(), getReferenceType());
+		m_state.makeUlamTypeFromHolder(newkey, bUT, nuti, UC_NOTACLASS); //keeps nuti
+	      }
+	    rtnb = true;
+	  } //complete deref
+	//else deref not complete, t.f. nuti isn't changed
+      } //else not ok to continue
 
     //if(rtnb)
-      rtnuti = nuti;
+    rtnuti = nuti;
     return rtnb;
   } //resolveReferenceType
 

@@ -576,7 +576,7 @@ namespace MFM {
 
   void UlamTypePrimitive::genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp)
   {
-    assert(isScalar());
+    assert(isScalar()); //since arrays cannot be initialized
 
     const std::string mangledName = getImmediateModelParameterStorageTypeAsString();
 
@@ -628,36 +628,27 @@ namespace MFM {
 
     s32 len = getTotalBitSize();
 
-    m_state.indent(fp);
-    fp->write("typedef UlamRefFixed");
-    fp->write("<EC, "); //BITSPERATOM
-    fp->write_decimal(BITSPERATOM - ATOMFIRSTSTATEBITPOS - len); //right-justified, relative
-    fp->write(", ");
-    fp->write_decimal(len);
-    fp->write("u > Up_Us;\n");
-
     //reference to storage in atom
     m_state.indent(fp);
     fp->write("T* m_stgPtr;  //ptr to storage here!\n");
 
-    // constructor with args
+    // default constructor
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("() : m_stgPtr(NULL) { }\n");
 
     m_state.indent(fp);
+    fp->write("void init(T& realStg) { m_stgPtr = &realStg; }\n");
+
+    //read method; NO write method for MPs in ulam.
+    m_state.indent(fp);
     fp->write("const ");
-    fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
-#if 0
-    fp->write(" read() const { MFM_API_ASSERT_NONNULL(m_stgPtr); return Up_Us(*m_stgPtr, 0u, NULL)."); //origin 0u
-#else
-    fp->write(" read() const { MFM_API_ASSERT_NONNULL(m_stgPtr); return Up_Us(*m_stgPtr, NULL)."); //wo origin
-#endif
+    fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32, s64 or u64
+    fp->write(" read() const { MFM_API_ASSERT_NONNULL(m_stgPtr); AtomBitStorage<EC> mpfoo(*m_stgPtr); return UlamRef<EC>(0u, ");
+    fp->write_decimal(len);
+    fp->write("u, mpfoo, NULL)."); //origin 0u
     fp->write(readMethodForCodeGen().c_str());
     fp->write("(); }\n");
-
-    m_state.indent(fp);
-    fp->write("void init(T& realStg) { m_stgPtr = &realStg; }\n");
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);

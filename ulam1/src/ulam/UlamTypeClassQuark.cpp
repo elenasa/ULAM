@@ -618,6 +618,7 @@ namespace MFM {
   bool UlamTypeClassQuark::genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref)
   {
     bool rtnb = false;
+    dqref = 0;
     //always the scalar.
     if(m_state.getDefaultQuark(m_key.getUlamKeyTypeSignatureClassInstanceIdx(), dqref))
       {
