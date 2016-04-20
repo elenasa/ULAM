@@ -400,10 +400,6 @@ namespace MFM {
 	fp->write("& targ) { UlamRef<EC>::");
 	fp->write(writeMethodForCodeGen().c_str());
 	fp->write("(targ); /* entire element */ }\n");
-
-	//m_state.indent(fp);
-	//fp->write("void writeTypeField(const u32 v)");
-	//fp->write("{ UlamRefAtom<EC>::SetType(v); }\n"); //GONE???
       }
   } //genUlamTypeAutoWriteDefinitionForC
 
@@ -454,7 +450,6 @@ namespace MFM {
     fp->write("struct ");
     fp->write(mangledName.c_str());
     fp->write(" : public ");
-    //fp->write("AtomBitStorage<EC>\n"); //storage here!
     fp->write("BitVectorBitStorage"); //storage here!
     fp->write("<EC, BitVector<"); //left-just pos
     fp->write_decimal_unsigned(len); //no round up

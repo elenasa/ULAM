@@ -1478,7 +1478,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("AtomBitStorage<EC> da(Element<EC>::BuildDefaultAtom());\n");
 
     m_state.indent(fp);
-    //fp->write("UlamRefAtom<EC> daref(da, 0u, &");
     fp->write("UlamRef<EC> daref(0u + T::ATOM_FIRST_STATE_BIT, ");
     fp->write_decimal_unsigned(cut->getTotalBitSize());
     fp->write("u, da, &");

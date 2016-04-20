@@ -175,7 +175,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("struct ");
     fp->write(automangledName.c_str());
-    fp->write(" : public UlamRefAtom<EC>");
+    fp->write(" : public UlamRef<EC>");
     fp->write("\n");
     m_state.indent(fp);
     fp->write("{\n");
@@ -194,17 +194,17 @@ namespace MFM {
     //constructor
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(AtomBitStorage<EC>& targ, const UlamContext<EC>& uc) : UlamRefAtom<EC>(targ, 0u, uc.LookupElementTypeFromContext(targ.GetType())) { }\n");
+    fp->write("(AtomBitStorage<EC>& targ, const UlamContext<EC>& uc) : UlamRef<EC>(0u, BPA, targ, uc.LookupElementTypeFromContext(targ.GetType())) { }\n");
 
-    //constructor for ref (auto)
+    //constructor for ref(auto) (e.g. t3407, 3638, 3639, 3655, 3656, 3657, 3663, 3684, 3692)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(BitStorage<EC>& targ, u32 startidx, const UlamContext<EC>& uc) : UlamRefAtom<EC>(targ, startidx, uc.LookupElementTypeFromContext(targ.ReadAtom(startidx).GetType())) { }\n");
+    fp->write("(BitStorage<EC>& targ, u32 startidx, const UlamContext<EC>& uc) : UlamRef<EC>(startidx, BPA, targ, uc.LookupElementTypeFromContext(targ.ReadAtom(startidx).GetType())) { }\n");
 
     //copy constructor for autoref (chain would be unpacked array)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(const UlamRefAtom<EC>& arg, const UlamContext<EC>& uc) : UlamRefAtom<EC>(arg, arg.GetEffectiveSelf()) { }\n");
+    fp->write("(const UlamRef<EC>& arg, u32 idx, const UlamContext<EC>& uc) : UlamRef<EC>(arg, idx, BPA, arg.GetEffectiveSelf()) { }\n");
 
     //read 'entire atom' method
     genUlamTypeAutoReadDefinitionForC(fp);

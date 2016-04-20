@@ -477,14 +477,6 @@ namespace MFM {
 
     assert(m_nodeInitExpr);
 
-    //    UTI stgcosuti = stgcos->getUlamTypeIdx();
-    //UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-
-    //Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
-    //UTI cosuti = cos->getUlamTypeIdx();
-    //UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    //UTI scalarcosuti = m_state.getUlamTypeAsScalar(cosuti);
-
     UTI vuti = m_varSymbol->getUlamTypeIdx(); //i.e. this ref node
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
@@ -501,25 +493,19 @@ namespace MFM {
     fp->write("("); //pass ref in constructor (ref's not assigned with =)
     if(m_state.isAtom(puti))
       {
-	//	if(uvpass.getPtrStorage() == TMPATOMBS)
-	// {
-	//  fp->write(m_state.getAtomBitStorageTmpVarAsString(uvpass.getPtrSlotIndex()).c_str());
-	//  fp->write(", uc");
-	//  }
-	//else if(m_state.isAtomRef(puti))
+	//both atom refs (e.g. t3692, 3671)
+	if(!m_state.m_currentObjSymbolsForCodeGen.empty())
 	  {
-	    //both atom refs (e.g. t3692, 3671)
-	    if(!m_state.m_currentObjSymbolsForCodeGen.empty())
-	      {
-		Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-		fp->write(stgcos->getMangledName().c_str()); //stg
-	      }
-	    else
-	      {
-		fp->write(m_state.getTmpVarAsString(puti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
-	      }
+	    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+	    fp->write(stgcos->getMangledName().c_str()); //stg
 	  }
-	fp->write(", uc");
+	else
+	  {
+	    fp->write(m_state.getTmpVarAsString(puti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
+	  }
+
+	if(!m_state.isAtomRef(puti))
+	  fp->write(", uc"); //default copy constructor atomref to atomref, no uc
       }
     else
       {
@@ -527,7 +513,6 @@ namespace MFM {
 	if(m_state.m_currentObjSymbolsForCodeGen.empty())
 	  {
 	    //does this make sense for array??? error?
-	    //fp->write("ur.GetStorage()"); //need non-const T
 	    fp->write("ur.CreateAtom()"); //need non-const T
 	  }
 	else
