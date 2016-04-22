@@ -1,4 +1,5 @@
 #include "NodeMemberSelect.h"
+#include "SymbolTmpRef.h"
 #include "CompilerState.h"
 
 namespace MFM {
@@ -294,7 +295,11 @@ namespace MFM {
     m_nodeLeft->genCodeToStoreInto(fp, uvpass);
 
     if(!m_state.m_currentObjSymbolsForCodeGen.empty() && !m_state.isScalar(m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx()))
-      Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
+      {
+	Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
+	Symbol * tmpsym = makeTmpRefSymbolForCodeGen(uvpass);
+	m_state.m_currentObjSymbolsForCodeGen.push_back(tmpsym);
+      }
 
     m_nodeRight->genCode(fp, uvpass);  // is this ok?
 
@@ -306,12 +311,28 @@ namespace MFM {
   void NodeMemberSelect::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
-    m_nodeLeft->genCodeToStoreInto(fp, uvpass);
+    UlamValue luvpass;
+    m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
     if(!m_state.m_currentObjSymbolsForCodeGen.empty() && !m_state.isScalar(m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx()))
-      Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
+      {
+	Node::genCodeConvertATmpVarIntoAutoRef(fp, luvpass); //uvpass becomes the autoref, and clears stack
+	Symbol * tmpsym = makeTmpRefSymbolForCodeGen(luvpass);
+	m_state.m_currentObjSymbolsForCodeGen.push_back(tmpsym);
+      }
 
+    //uvpass = luvpass;
     m_nodeRight->genCodeToStoreInto(fp, uvpass); //uvpass contains the member selected, or cos obj symbol?
   } //genCodeToStoreInto
+
+  Symbol * NodeMemberSelect::makeTmpRefSymbolForCodeGen(UlamValue uvpass)
+  {
+    UTI tuti = uvpass.getPtrTargetType();
+    std::string tmpvarname = m_state.getTmpVarAsString(tuti, uvpass.getPtrSlotIndex(), TMPAUTOREF);
+    Token tidTok(TOK_IDENTIFIER, Node::getNodeLocation(), m_state.m_pool.getIndexForDataString(tmpvarname));
+    Symbol * rtnsym = new SymbolTmpRef(tidTok, tuti, m_state);
+    assert(rtnsym);
+    return rtnsym;
+  }
 
 } //end MFM

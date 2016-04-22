@@ -1484,7 +1484,7 @@ namespace MFM {
 	    if(cos->isDataMember())
 	      {
 		if(cosSize > 1)
-		  fp->write(stgcos->getMangledName().c_str());
+		  fp->write(stgcos->getMangledName().c_str()); //t3702
 		else
 		  fp->write(m_state.getHiddenArgName()); //t3543
 	      }
@@ -2156,7 +2156,7 @@ namespace MFM {
 	    sameur = false;
 
 	    //use possible dereference type for mangled name
-	    UTI derefuti = m_state.getUlamTypeAsDeref(stgcosuti);
+	    UTI derefuti = m_state.getUlamTypeAsDeref(cosuti);
 	    UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
 
 	    //new ur to reflect "effective" self and storage for this funccall

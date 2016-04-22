@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t3549_test_compiler_elementandquarkarray_withquarkinitandinheritance_localuse
+#=t3549_test_compiler_elementandquarkcaarray_withquarkinitandinheritance_localuse
 #!
 ## gencode output (asserts interleaved):
 ##Bool(3) Arg: 0x7 (true)

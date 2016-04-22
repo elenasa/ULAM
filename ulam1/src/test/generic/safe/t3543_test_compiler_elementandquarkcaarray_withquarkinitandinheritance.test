@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t3543_test_compiler_elementandquarkarray_withquarkinitandinheritance
+#=t3543_test_compiler_elementandquarkcaarray_withquarkinitandinheritance
 #!
 ##
 ## gencode output (asserts interleaved):

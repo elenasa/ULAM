@@ -641,7 +641,10 @@ namespace MFM {
      }
    else
      {
-       fp->write(m_state.getTmpVarAsString(tobeType, tmpVarNum, uvpass.getPtrStorage()).c_str());
+       STORAGE vstor = uvpass.getPtrStorage();
+       fp->write(m_state.getTmpVarAsString(tobeType, tmpVarNum, vstor).c_str());
+       if(vstor == TMPBITVAL)
+	 fp->write(".read()");
      }
 
    fp->write(", ");

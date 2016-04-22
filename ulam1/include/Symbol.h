@@ -91,7 +91,7 @@ namespace MFM{
     void setBlockNoOfST(NNO n);
 
 
-    const std::string getMangledName();
+    virtual const std::string getMangledName();
 
     static const std::string getParameterTypePrefix(bool isaclass);
 
