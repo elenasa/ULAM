@@ -1,27 +1,31 @@
 ## -*- mode:ulam -*-
 #=t3655_test_compiler_element_castatomfromquarkrefas_ish
+##
+## gen code: 1 assert
+##
 #!
 Exit status: 1
-Ue_Foo : QPerc { :< Bool(1) b(true); > Int(32) test() {  Foo a = self cast;  { a QPerc as cond { QPerc& a;  a b . true = self.storageof a.storageof = 1 cast return } if } 0 cast return } }
+Ue_Foo : QPerc { :< Bool(1) b(true); > Int(32) test() {  System s;  Foo& af = self;  { af QPerc as cond { QPerc& af;  af b . true = } if } s ( b )assert . 1 cast return } }
 Uq_QPerc { Bool(1) b(false);  <NOMAIN> }
+Uq_System { <NOMAIN> }
 ##
 ## informed by a Dave ish 2/19/2016
 ##
 #>Foo.ulam
   ulam 2;
 use QPerc;
+use System;
 element Foo : QPerc {
 
   Int test() {
-    //Atom a = self;
-    Foo a = self; //for eval
-    if(a as QPerc)
+    System s;
+    Foo& af = self; //for eval
+    if(af as QPerc) //not really necessary, but a test..
     {
-      a.b = true;
-      self.storageof = a.storageof; //was: atom = (Atom) a;
-      return 1;
+      af.b = true;
     }
-    return 0;
+    s.assert(b);
+    return 1;
   }
 }
 
@@ -31,4 +35,15 @@ quark QPerc {
   Bool b;
 }
 
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
 #.

@@ -1,0 +1,23 @@
+## -*- mode:ulam -*-
+#=t3705_test_compiler_namedconstantmisspellastype_error
+#!
+./A.ulam:5:31: ERROR: Missing named constant definition after '=' for 'cPRINT_ALL'.
+./A.ulam:5:31: ERROR: Missing ';' after named constant definition 'cPRINT_ALL'; Lists not supported.
+./A.ulam:9:1: ERROR: Invalid Class Type <}>; KEYWORD should be 'element', 'quark', or 'union'.
+Unrecoverable Program Parse FAILURE.
+##
+##      //informed by 3415, except misspelled PRINT_VALUE; culam thinks it's a class!
+##      (renamed from t3416 since also a safe test)
+##
+#>A.ulam
+  ulam 1;
+element A{
+  constant Bits(3) cPRINT_NAME = 2;
+  constant Bits(3) cPRINT_VALUE = 1;
+  constant Bits(3) cPRINT_ALL = cPRINT_NAME | PRINT_VALUE;
+  Int test () {
+    return 0;
+  }
+}
+
+#.

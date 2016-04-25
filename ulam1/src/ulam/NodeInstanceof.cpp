@@ -182,7 +182,7 @@ namespace MFM {
     else //element and uvpass stays the same (a default immediate element).
       uvpass = UlamValue::makePtr(tmpVarNum, TMPBITVAL, nuti, nut->getPackable(), m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0); //t3657
 
-    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
+    m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
   } //genCode
 
   void NodeInstanceof::genCodeToStoreInto(File * fp, UlamValue& uvpass)

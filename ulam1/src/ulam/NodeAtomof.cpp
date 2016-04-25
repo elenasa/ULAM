@@ -209,7 +209,8 @@ namespace MFM {
 	setOfType(nuti); //set here!!
 	if(m_token.m_type == TOK_IDENTIFIER)
 	  {
-	    Node::setStoreIntoAble(TBOOL_TRUE);
+	    //Node::setStoreIntoAble(TBOOL_TRUE);
+	    Node::setStoreIntoAble(TBOOL_FALSE); //no longer true!
 	    nuti = UAtomRef;
 	  }
 	else

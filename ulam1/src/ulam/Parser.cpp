@@ -3742,7 +3742,8 @@ namespace MFM {
     //currently, only scalar; determines start position of first arg "under".
     s32 returnArraySize = m_state.slotsNeeded(fsymptr->getUlamTypeIdx());
 
-    //extra one for "hidden" first arg, Ptr to its Atom
+    //NO extra one for "hidden" arg, context (uc)
+    //extra one for "hidden" arg, Ptr to its self (ur)
     //maxdepth now re-calculated after parsing due to some still unknown sizes;
     //blockdeclsize: 0, <1, >1 means: datamember, parameter, local variable, respectively
     m_state.m_currentFunctionBlockDeclSize = -(returnArraySize + 1);

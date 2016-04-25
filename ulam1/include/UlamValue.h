@@ -114,6 +114,10 @@ namespace MFM{
 
     static UlamValue makeImmediateLong(UTI utype, u64 v, s32 len = 64);
 
+    static UlamValue makeImmediateElement(UTI utype, u64 v, s32 len);
+
+    static UlamValue makeImmediateElementArrayLong(UTI utype, u64 v, s32 len);
+
     // returns a pointer to an UlamValue of type targetType; pos==0 determined from targettype
     static UlamValue makePtr(u32 slot, STORAGE storage, UTI targetType, PACKFIT packed, CompilerState& state, u32 pos = 0);
 

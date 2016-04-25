@@ -1,17 +1,19 @@
 #include "NodeMemberSelect.h"
-#include "SymbolTmpRef.h"
 #include "CompilerState.h"
 
 namespace MFM {
 
-  NodeMemberSelect::NodeMemberSelect(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqual(left,right,state)
+  NodeMemberSelect::NodeMemberSelect(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqual(left,right,state), m_tmprefSymbol(NULL)
   {
     Node::setStoreIntoAble(TBOOL_HAZY);
   }
 
-  NodeMemberSelect::NodeMemberSelect(const NodeMemberSelect& ref) : NodeBinaryOpEqual(ref) {}
+  NodeMemberSelect::NodeMemberSelect(const NodeMemberSelect& ref) : NodeBinaryOpEqual(ref), m_tmprefSymbol(NULL) {}
 
-  NodeMemberSelect::~NodeMemberSelect(){}
+  NodeMemberSelect::~NodeMemberSelect()
+  {
+    delete m_tmprefSymbol;
+  }
 
   Node * NodeMemberSelect::instantiate()
   {
@@ -297,8 +299,8 @@ namespace MFM {
     if(!m_state.m_currentObjSymbolsForCodeGen.empty() && !m_state.isScalar(m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx()))
       {
 	Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
-	Symbol * tmpsym = makeTmpRefSymbolForCodeGen(uvpass);
-	m_state.m_currentObjSymbolsForCodeGen.push_back(tmpsym);
+	m_tmprefSymbol = makeTmpRefSymbolForCodeGen(uvpass);
+	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmprefSymbol);
       }
 
     m_nodeRight->genCode(fp, uvpass);  // is this ok?
@@ -317,22 +319,22 @@ namespace MFM {
     if(!m_state.m_currentObjSymbolsForCodeGen.empty() && !m_state.isScalar(m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx()))
       {
 	Node::genCodeConvertATmpVarIntoAutoRef(fp, luvpass); //uvpass becomes the autoref, and clears stack
-	Symbol * tmpsym = makeTmpRefSymbolForCodeGen(luvpass);
-	m_state.m_currentObjSymbolsForCodeGen.push_back(tmpsym);
+	m_tmprefSymbol = makeTmpRefSymbolForCodeGen(luvpass);
+	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmprefSymbol);
       }
 
     //uvpass = luvpass;
     m_nodeRight->genCodeToStoreInto(fp, uvpass); //uvpass contains the member selected, or cos obj symbol?
   } //genCodeToStoreInto
 
-  Symbol * NodeMemberSelect::makeTmpRefSymbolForCodeGen(UlamValue uvpass)
+  SymbolTmpRef * NodeMemberSelect::makeTmpRefSymbolForCodeGen(UlamValue uvpass)
   {
     UTI tuti = uvpass.getPtrTargetType();
     std::string tmpvarname = m_state.getTmpVarAsString(tuti, uvpass.getPtrSlotIndex(), TMPAUTOREF);
     Token tidTok(TOK_IDENTIFIER, Node::getNodeLocation(), m_state.m_pool.getIndexForDataString(tmpvarname));
-    Symbol * rtnsym = new SymbolTmpRef(tidTok, tuti, m_state);
+    SymbolTmpRef * rtnsym = new SymbolTmpRef(tidTok, tuti, m_state);
     assert(rtnsym);
     return rtnsym;
-  }
+  } //makeTmpRefSymbolForCodeGen
 
 } //end MFM

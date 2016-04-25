@@ -380,6 +380,20 @@ namespace MFM {
 	fp->write(readMethodForCodeGen().c_str());
 	fp->write("(); }\n"); //done
       }
+    else
+      {
+	//UNPACKED
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //BV
+	fp->write(" read");
+	fp->write("() const { ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //BV
+	fp->write(" rtnunpbv; this->BVS::");
+	fp->write(readMethodForCodeGen().c_str());
+	fp->write("(0u, rtnunpbv); return rtnunpbv; ");
+	fp->write("} //reads entire BV\n");
+      }
   } //genUlamTypeReadDefinitionForC
 
   void UlamTypeAtom::genUlamTypeWriteDefinitionForC(File * fp)
@@ -404,15 +418,31 @@ namespace MFM {
 	fp->write(writeMethodForCodeGen().c_str());
 	fp->write("(v.ReadAtom()); }\n"); //done
       }
+    else
+      {
+	//UNPACKED
+	m_state.indent(fp);
+	fp->write("void ");
+	fp->write(" write(const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //BV
+	fp->write("& bv) { BVS::");
+	fp->write(writeMethodForCodeGen().c_str());
+	fp->write("(0u, bv); ");
+	fp->write("} //writes entire BV\n");
+      }
   } //genUlamTypeWriteDefinitionForC
 
   const std::string UlamTypeAtom::readMethodForCodeGen()
   {
+    if(!isScalar())
+      return "ReadBV";
     return "ReadAtom"; //GetStorage?
   }
 
   const std::string UlamTypeAtom::writeMethodForCodeGen()
   {
+    if(!isScalar())
+      return "WriteBV";
     return "WriteAtom";
   }
 
@@ -651,6 +681,15 @@ namespace MFM {
     fp->write("u; j++) ");
     fp->write("BVS::WriteBig(j * BPA, BPA, tmpval); }\n");
 
+    //the whole thing (e.g. t3709)
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("(const ");
+    fp->write(getTmpStorageTypeAsString().c_str()); //BV
+    fp->write("& d) { ");
+    fp->write("write(d);");
+    fp->write(" }\n");
+
     // assignment constructor
     m_state.indent(fp);
     fp->write(mangledName.c_str());
@@ -674,6 +713,10 @@ namespace MFM {
     fp->write("~");
     fp->write(mangledName.c_str());
     fp->write("() {}\n");
+
+    genUlamTypeReadDefinitionForC(fp);
+
+    genUlamTypeWriteDefinitionForC(fp);
 
 #if 0
     //NEEDED???

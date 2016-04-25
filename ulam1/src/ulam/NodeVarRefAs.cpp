@@ -182,8 +182,9 @@ namespace MFM {
 	else
 	  {
 	    //is an atomref
-	    fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
-	    fp->write(".GetPos(), ");
+	    //fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
+	    //fp->write(".GetPos() + T::ATOM_FIRST_STATE_BIT, ");
+	    fp->write("0u + T::ATOM_FIRST_STATE_BIT, ");
 	  }
 
 	fp->write(m_state.getHiddenContextArgName());
@@ -215,7 +216,7 @@ namespace MFM {
     fp->write("); //shadows lhs of 'as'\n");
 
     m_state.m_genCodingConditionalHas = false; // done
-    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs ?
+    m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs ?
   } //genCode
 
 } //end MFM

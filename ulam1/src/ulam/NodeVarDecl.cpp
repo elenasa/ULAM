@@ -429,6 +429,8 @@ namespace MFM {
 
     assert(!m_varSymbol->isAutoLocal()); //NodeVarRef::eval
 
+    u32 slots = Node::makeRoomForNodeType(nuti, STACK);
+
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
     if(m_state.isAtom(nuti))
@@ -438,8 +440,22 @@ namespace MFM {
       }
     else if(classtype == UC_ELEMENT)
       {
-	UlamValue atomUV = UlamValue::makeDefaultAtom(m_varSymbol->getUlamTypeIdx(), m_state);
-	m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+	if(m_state.isScalar(nuti))
+	  {
+	    UlamValue atomUV = UlamValue::makeDefaultAtom(m_varSymbol->getUlamTypeIdx(), m_state);
+
+	    m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+	  }
+	else
+	  {
+	    UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
+	    UlamValue atomUV = UlamValue::makeDefaultAtom(scalaruti, m_state);
+	    u32 baseslot =  ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex();
+	    for(u32 j = 0; j < slots; j++)
+	      {
+		m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, baseslot + j);
+	      }
+	  }
       }
     else if(!m_varSymbol->isDataMember())
       {
@@ -480,10 +496,13 @@ namespace MFM {
 		if(len <= MAXBITSPERINT)
 		  {
 		    u32 dqarrval = 0;
-		    //similar to build default quark value in NodeVarDeclDM
-		    for(u32 j = 1; j <= arraysize; j++)
+		    if(dq > 0)
 		      {
-			dqarrval |= (dq << (len - (pos + (j * bitsize))));
+			//similar to build default quark value in NodeVarDeclDM
+			for(u32 j = 1; j <= arraysize; j++)
+			  {
+			    dqarrval |= (dq << (len - (pos + (j * bitsize))));
+			  }
 		      }
 
 		    UlamValue immUV = UlamValue::makeImmediateQuark(nuti, dqarrval, len);
@@ -492,10 +511,13 @@ namespace MFM {
 		else if(len <= MAXBITSPERLONG)
 		  {
 		    u64 dqarrval = 0;
-		    //similar to build default quark value in NodeVarDeclDM
-		    for(u32 j = 1; j <= arraysize; j++)
+		    if(dq > 0)
 		      {
-			dqarrval |= (dq << (len - (pos + (j * bitsize))));
+			//similar to build default quark value in NodeVarDeclDM
+			for(u32 j = 1; j <= arraysize; j++)
+			  {
+			    dqarrval |= (dq << (len - (pos + (j * bitsize))));
+			  }
 		      }
 
 		    UlamValue immUV = UlamValue::makeImmediateQuarkArrayLong(nuti, dqarrval, len);
@@ -503,12 +525,23 @@ namespace MFM {
 		  }
 		else
 		  {
+#if 1
+		    UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
+		    //UNPACKED array of quarks!
+		    UlamValue immUV = UlamValue::makeImmediate(scalaruti, dq, m_state);
+		    u32 baseslot =  ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex();
+		    for(u32 j = 0; j < slots; j++)
+		      {
+			m_state.m_funcCallStack.storeUlamValueInSlot(immUV, baseslot + j);
+		      }
+#else
 		    std::ostringstream msg;
 		    msg << "EVAL: Unpacked array of quarks is unsupported:  ";
 		    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 		    msg << " with variable symbol name '" << getName() << "'";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		    return UNEVALUABLE; //t3649
+#endif
 		  }
 	      }
 	  }
@@ -521,6 +554,7 @@ namespace MFM {
 
     if(m_nodeInitExpr)
       return evalInitExpr();
+
     return NORMAL;
   } //eval
 
@@ -557,15 +591,19 @@ namespace MFM {
 	  }
 	else //unpacked
 	  {
-	    assert(0);
+#if 1
+	    //assert(0);
+	    UlamValue scalarPtr = UlamValue::makeScalarPtr(pluv, m_state);
 	    for(u32 j = 0; j < slots; j++)
 	      {
-		UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slots+1+j); //immediate scalar
-		m_state.assignValue(pluv,ruv); //WRONG!!!
+		UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1+1+j); //immediate scalar
+		m_state.assignValue(scalarPtr,ruv);
+		scalarPtr.incrementPtr(m_state); //by one.
 	      }
+#endif
 	  }
       } //normal
-    evalNodeEpilog();
+      evalNodeEpilog();
     return evs;
   } //evalInitExpr
 
@@ -575,6 +613,10 @@ namespace MFM {
 
     // return ptr to this local var (from NodeIdent's makeUlamValuePtr)
     UlamValue rtnUVPtr = makeUlamValuePtr();
+
+    u32 absslot = m_state.m_funcCallStack.getAbsoluteStackIndexOfSlot(rtnUVPtr.getPtrSlotIndex());
+    rtnUVPtr.setPtrSlotIndex(absslot);
+    rtnUVPtr.setUlamValueTypeIdx(PtrAbs);
 
     //copy result UV to stack, -1 relative to current frame pointer
     Node::assignReturnValuePtrToStack(rtnUVPtr);
@@ -672,7 +714,7 @@ namespace MFM {
 	    fp->write(")");
 	  }
 	fp->write(";\n"); //func call args aren't NodeVarDecl's
-	m_state.m_currentObjSymbolsForCodeGen.clear();
+	m_state.clearCurrentObjSymbolsForCodeGen();
 	return; //done
       }
 
@@ -707,7 +749,7 @@ namespace MFM {
 	fp->write(m_varSymbol->getMangledName().c_str()); //default 0
       }
     fp->write(";\n"); //func call args aren't NodeVarDecl's
-    m_state.m_currentObjSymbolsForCodeGen.clear();
+    m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCode
 
   void NodeVarDecl::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)

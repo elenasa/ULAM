@@ -80,7 +80,7 @@ namespace MFM {
   {
     clearAllDefinedUlamTypes();
     clearAllLinesOfText();
-    m_currentObjSymbolsForCodeGen.clear();
+    clearCurrentObjSymbolsForCodeGen();
   }
 
   void CompilerState::clearAllDefinedUlamTypes()
@@ -118,6 +118,24 @@ namespace MFM {
 
     m_textByLinePerFilePath.clear();
   } //clearAllLinesOfText
+
+  void CompilerState::clearCurrentObjSymbolsForCodeGen()
+  {
+#if 0
+    std::vector<Symbol*>::iterator it;
+    for(it = m_currentObjSymbolsForCodeGen.begin(); it != m_currentObjSymbolsForCodeGen.end(); it++)
+      {
+	Symbol * sym = *it;
+	//avoid leaking temporary ref symbols
+	if(sym->isTmpRefSymbol())
+	  {
+	    delete sym;
+	    //*it = NULL;
+	  }
+      }
+#endif
+    m_currentObjSymbolsForCodeGen.clear();
+  } //clearCurrentObjSymbolsForCodeGen
 
   bool CompilerState::getClassNameFromFileName(std::string startstr, u32& compileThisId)
   {
@@ -1446,7 +1464,7 @@ namespace MFM {
 
   UTI CompilerState::isClassASubclass(UTI cuti)
   {
-    UTI subuti = getUlamTypeAsScalar(cuti); //in case of array
+    UTI subuti = getUlamTypeAsDeref(getUlamTypeAsScalar(cuti)); //in case of array
 
     SymbolClass * csym = NULL;
     if(alreadyDefinedSymbolClass(subuti, csym))
@@ -1461,7 +1479,7 @@ namespace MFM {
 
   void CompilerState::resetClassSuperclass(UTI cuti, UTI superuti)
   {
-    UTI subuti = getUlamTypeAsScalar(cuti); //in case of array
+    UTI subuti = getUlamTypeAsDeref(getUlamTypeAsScalar(cuti)); //in case of array
 
     SymbolClass * csym = NULL;
     if(alreadyDefinedSymbolClass(subuti, csym))
@@ -1477,8 +1495,9 @@ namespace MFM {
   // i.e. cuti is a subclass of superp. recurses the family tree.
   bool CompilerState::isClassASubclassOf(UTI cuti, UTI superp)
   {
+    UTI derefsuperp = getUlamTypeAsDeref(superp);
     bool rtnb = false;
-    UTI prevuti = cuti; //init for the loop
+    UTI prevuti = getUlamTypeAsDeref(cuti); //init for the loop
     while(!rtnb && (prevuti != Nouti))
       {
 	cuti = prevuti;
@@ -1489,7 +1508,7 @@ namespace MFM {
 	    AssertBool isDefined = alreadyDefinedSymbolClassName(csym->getId(), cnsym);
 	    assert(isDefined);
 	    prevuti = cnsym->getSuperClassForClassInstance(cuti); //returns super UTI, or Nouti if no inheritance
-	    rtnb = (superp == prevuti); //compare
+	    rtnb = (derefsuperp == prevuti); //compare
 	  }
 	else
 	  prevuti = Nouti; //avoid inf loop
@@ -3169,6 +3188,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   bool CompilerState::isAtom(UTI auti)
   {
+    //includes refs, and arrays!!!
     return (getUlamTypeByIndex(auti)->getUlamTypeEnum() == UAtom);
   }
 

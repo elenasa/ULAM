@@ -152,6 +152,7 @@ namespace MFM{
 
     void clearAllDefinedUlamTypes();
     void clearAllLinesOfText();
+    void clearCurrentObjSymbolsForCodeGen();
 
     bool getClassNameFromFileName(std::string startstr, u32& compileThisId);
 

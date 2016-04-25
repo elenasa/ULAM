@@ -202,6 +202,7 @@ namespace MFM {
 	  m_funcSymbol->resetUlamType(it); //consistent!
 	}
 
+#if 0
 	PACKFIT packed = m_state.determinePackable(it);
 	if(!WritePacked(packed) && !m_state.isScalar(it))
 	  {
@@ -213,6 +214,7 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    it = Nav;
 	  }
+#endif
       }
 
     setNodeType(it);
@@ -296,6 +298,7 @@ namespace MFM {
     makeRoomForNodeType(nuti); //place for return vals node eval stack
 
     m_state.m_funcCallStack.addFrameSlots(getMaxDepth()); //local variables on callstack!
+    //makeRoomForSlots(getMaxDepth(), STACK); //local variables on callstack!
 
     EvalStatus evs = m_nodeNext->eval();
 
@@ -306,7 +309,7 @@ namespace MFM {
 
     if(evs == RETURN)
       {
-	if(m_state.isAtom(nuti))
+	if(m_state.isAtom(nuti) && (m_state.isScalar(nuti) || m_state.isReference(nuti)))
 	  {
 	    //avoid pointer to atom situation
 	    rtnUV = m_state.m_funcCallStack.loadUlamValueFromSlot(-1); //popArg();
@@ -385,7 +388,7 @@ namespace MFM {
     bool hazyKin = false; //return is always false?
     AssertBool isDefined = m_state.alreadyDefinedSymbol(selfid, selfsym, hazyKin) && !hazyKin;
     assert(isDefined);
-    s32 newslot = -1 - m_state.slotsNeeded(getNodeType());
+    s32 newslot = -2 - m_state.slotsNeeded(getNodeType()); //2nd hidden arg (was -1 - ???)
     s32 oldslot = ((SymbolVariable *) selfsym)->getStackFrameSlotIndex();
     if(oldslot != newslot)
       {
@@ -399,10 +402,13 @@ namespace MFM {
     NodeBlock::calcMaxDepth(depth, maxdepth, 1); // one for the frame ptr offset
     m_state.popClassContext();
 
+#if 0
+    // not sure this is the case??? Sat Apr 23 10:44:39 2016
     // special case test function:
     u32 testid = m_state.m_pool.getIndexForDataString("test");
     if(m_funcSymbol->getId() == testid)
       maxdepth += 1; //add spot for return since no caller does
+#endif
   } //calcMaxDepth
 
   void NodeBlockFunctionDefinition::setNative()

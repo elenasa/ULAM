@@ -497,20 +497,19 @@ namespace MFM {
     fp->write("(const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
     fp->write(" d) { ");
-    if(isScalar())
-      {
-	//fp->write(writeMethodForCodeGen().c_str());
+    //if(isScalar())
+    // {
 	fp->write("write(d);");
-      }
-    else
-      {
+	//      }
+	//else
+	// {
 	//e.g. t3649
-	fp->write("u32 n = ");
-	fp->write_decimal(getArraySize());
-	fp->write("u; while(n--) { ");
-	fp->write("writeArrayItem(d, n, QUARK_SIZE");
-	fp->write("); }");
-      }
+	//fp->write("u32 n = ");
+	//fp->write_decimal(getArraySize());
+	//fp->write("u; while(n--) { ");
+	//fp->write("writeArrayItem(d, n, QUARK_SIZE");
+	//fp->write("); }");
+	//}
     fp->write(" }\n");
 
     // assignment constructor
@@ -540,7 +539,8 @@ namespace MFM {
 
   void UlamTypeClassQuark::genUlamTypeReadDefinitionForC(File * fp)
   {
-    if(isScalar() || (getPackable() == PACKEDLOADABLE))
+    //    if(isScalar() || (getPackable() == PACKEDLOADABLE))
+    if(WritePacked(getPackable()))
       {
 	m_state.indent(fp);
 	fp->write("const ");
@@ -555,6 +555,20 @@ namespace MFM {
 	    fp->write_decimal_unsigned(getTotalBitSize());
 	    fp->write("u); } //reads entire array\n");
 	  }
+      }
+    else
+      {
+	//UNPACKED
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //BV
+	fp->write(" read");
+	fp->write("() const { ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //BV
+	fp->write(" rtnunpbv; this->BVS::");
+	fp->write(readMethodForCodeGen().c_str());
+	fp->write("(0u, rtnunpbv); return rtnunpbv; ");
+	fp->write("} //reads entire BV\n");
       }
 
     //scalar and entire PACKEDLOADABLE array handled by base class read method
@@ -578,7 +592,8 @@ namespace MFM {
 
   void UlamTypeClassQuark::genUlamTypeWriteDefinitionForC(File * fp)
   {
-    if(isScalar() || (getPackable() == PACKEDLOADABLE))
+    //if(isScalar() || (getPackable() == PACKEDLOADABLE))
+    if(WritePacked(getPackable()))
       {
 	m_state.indent(fp);
 	fp->write("void ");
@@ -595,6 +610,18 @@ namespace MFM {
 	    fp->write_decimal_unsigned(getTotalBitSize());
 	    fp->write("u, v); } //writes entire array\n");
 	  }
+      }
+    else
+      {
+	//UNPACKED
+	m_state.indent(fp);
+	fp->write("void ");
+	fp->write(" write(const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //BV
+	fp->write("& bv) { BVS::");
+	fp->write(writeMethodForCodeGen().c_str());
+	fp->write("(0u, bv); ");
+	fp->write("} //writes entire BV\n");
       }
 
     //scalar and entire PACKEDLOADABLE array handled by base class write method

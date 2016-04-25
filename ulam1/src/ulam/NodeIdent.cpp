@@ -360,7 +360,8 @@ namespace MFM {
 	    else
 	      {
 		UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-		if(m_state.isAtom(nuti) || (nut->getUlamClassType() == UC_ELEMENT))
+		//if(m_state.isAtom(nuti) || (nut->getUlamClassType() == UC_ELEMENT)) pls test this change!
+		if((m_state.isAtom(nuti) || (nut->getUlamClassType() == UC_ELEMENT)) && (nut->isScalar() || nut->isReference()))
 		  {
 		    uv = m_state.getPtrTarget(uvp);
 		  }
@@ -393,7 +394,7 @@ namespace MFM {
 	  } // not node type
       } //scalar
     else
-      uv = uvp;
+      uv = uvp; //even if reference???
 
     //copy result UV to stack, -1 relative to current frame pointer
     Node::assignReturnValueToStack(uv);
@@ -434,9 +435,13 @@ namespace MFM {
     UlamValue rtnUVPtr = makeUlamValuePtr();
 
     //must remain a ptr!!!
-    //if(m_state.isReference(rtnUVPtr.getPtrTargetType())
     if(m_state.isReference(rtnUVPtr.getPtrTargetType()) && (rtnUVPtr.getPtrStorage() == STACK))
-      rtnUVPtr = m_state.getPtrTarget(rtnUVPtr);
+      {
+	 UlamValue tmpref = m_state.getPtrTarget(rtnUVPtr);
+	 if(tmpref.isPtr())
+	   rtnUVPtr = tmpref;
+	 //else no change? (e.g. t3407)
+      }
 
     //copy result UV to stack, -1 relative to current frame pointer
     Node::assignReturnValuePtrToStack(rtnUVPtr);
@@ -476,7 +481,7 @@ namespace MFM {
     if(classtype == UC_ELEMENT)
       {
 	  // ptr to explicit atom or element, (e.g.'f' in f.a=1) becomes new m_currentObjPtr
-	  ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), UNPACKED, m_state, 0, m_varSymbol->getId());
+	  ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
       }
     else
       {
@@ -520,6 +525,7 @@ namespace MFM {
 	if(m_varSymbol->isDataMember())
 	  {
 	    u32 pos = 0;
+#if 0
 	    if(m_state.isPtr(uvpass.getUlamValueTypeIdx()) && (uvpass.getPtrStorage() == TMPAUTOREF))
 	      {
 		//pos = uvpass.getPtrPos(); //runtime, pos not known, ref will
@@ -527,6 +533,7 @@ namespace MFM {
 		uvpass = UlamValue::makePtr(tmpnum, TMPAUTOREF, newnuti, m_state.determinePackable(newnuti), m_state, pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 	      }
 	    else
+#endif
 	      {
 		if(!m_state.m_currentObjSymbolsForCodeGen.empty())
 		  {
@@ -538,11 +545,13 @@ namespace MFM {
 		// 'pos' modified by this data member symbol's packed bit position
 		uvpass = UlamValue::makePtr(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 	      }
+	    uvpass.setPtrPos(pos + m_varSymbol->getPosOffset()); //could have been zero over-written.
 	  }
 	else
 	  {
 	    //local variable on the stack; could be array ptr!
 	    uvpass = UlamValue::makePtr(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
+	    uvpass.setPtrPos(0); //could have been zero over-written.
 	  }
       }
   } //makeUlamValuePtrForCodeGen
@@ -999,7 +1008,7 @@ namespace MFM {
 
     m_state.m_currentFunctionBlockDeclSize += m_state.slotsNeeded(auti);
 
-    //adjust max depth, excluding parameters and initial start value (=1)
+    //adjust max depth, excluding parameters and initial start slot (=1)
     if(m_state.m_currentFunctionBlockDeclSize - 1 > m_state.m_currentFunctionBlockMaxDepth)
       m_state.m_currentFunctionBlockMaxDepth = m_state.m_currentFunctionBlockDeclSize - 1;
 
@@ -1116,46 +1125,18 @@ namespace MFM {
 
   void NodeIdent::genCode(File * fp, UlamValue & uvpass)
   {
-    UlamValue savuvpass = uvpass;
-
     //return the ptr for an array; square bracket will resolve down to the immediate data
     makeUlamValuePtrForCodeGen(uvpass);
 
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol); //*********UPDATED GLOBAL;
 
-    //before we lose savuvpass, generate next chain of related reference
-    if(m_state.isPtr(savuvpass.getUlamValueTypeIdx()) && (savuvpass.getPtrStorage() == TMPAUTOREF))
-      {
-	Node::genCodeARefFromARefStorage(fp, savuvpass, uvpass);
-
-	//now read from it
-	s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp for data
-	UTI vuti = uvpass.getPtrTargetType();
-	UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-
-	m_state.indent(fp);
-	fp->write("const ");
-	fp->write(vut->getTmpStorageTypeAsString().c_str());
-	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2).c_str());
-	fp->write(" = ");
-	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
-	fp->write(".");
-	//fp->write(vut->readMethodForCodeGen().c_str()); //generalized
-	fp->write("read();\n");
-	// uvpass updated again
-	uvpass = UlamValue::makePtr(tmpVarNum2, vut->getTmpStorageTypeForTmpVar(), vuti, m_state.determinePackable(vuti), m_state, 0); //POS 0 justified (atom-based).
-      }
-    else
-      {
-	// UNCLEAR: should this be consistent with constants?
-	genCodeReadIntoATmpVar(fp, uvpass);
-      }
+    // UNCLEAR: should this be consistent with constants?
+    genCodeReadIntoATmpVar(fp, uvpass);
   } //genCode
 
   void NodeIdent::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
-    UlamValue savuvpass = uvpass;
+    //UlamValue savuvpass = uvpass;
 
     //e.g. return the ptr for an array;
     //square bracket will resolve down to the immediate data
@@ -1164,10 +1145,14 @@ namespace MFM {
     //******UPDATED GLOBAL; no restore!!!**************************
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol);
 
+#if 0
     if(m_state.isPtr(savuvpass.getUlamValueTypeIdx()) && (savuvpass.getPtrStorage() == TMPAUTOREF))
       Node::genCodeARefFromARefStorage(fp, savuvpass, uvpass);
-    else if(uvpass.getPtrStorage() == TMPAUTOREF)
-      Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
+    else
+#endif
+      if(uvpass.getPtrStorage() == TMPAUTOREF)
+	Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
+
   } //genCodeToStoreInto
 
   // overrides NodeTerminal that reads into a tmp var BitVector

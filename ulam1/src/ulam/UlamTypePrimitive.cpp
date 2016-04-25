@@ -369,7 +369,7 @@ namespace MFM {
   void UlamTypePrimitive::genUlamTypeMangledDefinitionForC(File * fp)
   {
     u32 len = getTotalBitSize(); //could be 0, includes arrays
-    u32 bitsize = getBitSize();
+    //u32 bitsize = getBitSize();
 
     m_state.m_currentIndentLevel = 0;
 
@@ -448,26 +448,30 @@ namespace MFM {
     fp->write("() { }\n");
 
     //constructor here (used by const tmpVars)
-    m_state.indent(fp);
-    fp->write(mangledName.c_str());
-    fp->write("(const ");
-    fp->write(scalarut->getTmpStorageTypeAsString().c_str()); //u32, u64
-    fp->write(" d) { ");
-    if(isScalar())
+    //if(WritePacked(getPackable()))
       {
-	//fp->write(writeMethodForCodeGen().c_str());
-	fp->write("write");
-	fp->write("(d); }\n");
-      }
-    else
-      {
-	fp->write("u32 n = ");
-	fp->write_decimal(getArraySize());
-	fp->write("u; while(n--) { ");
-	fp->write("writeArrayItem(d, n, ");
-	fp->write_decimal_unsigned(bitsize);
-	fp->write("); }");
-	fp->write(" }\n");
+	m_state.indent(fp);
+	fp->write(mangledName.c_str());
+	fp->write("(const ");
+	//fp->write(scalarut->getTmpStorageTypeAsString().c_str()); //u32, u64
+	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64
+	fp->write(" d) { ");
+	//    if(isScalar())
+	{
+	  //fp->write(writeMethodForCodeGen().c_str());
+	  fp->write("write");
+	  fp->write("(d); }\n");
+	}
+	//else
+	// {
+	//	fp->write("u32 n = ");
+	//	fp->write_decimal(getArraySize());
+	//	fp->write("u; while(n--) { ");
+	//	fp->write("writeArrayItem(d, n, ");
+	//	fp->write_decimal_unsigned(bitsize);
+	//	fp->write("); }");
+	//	fp->write(" }\n");
+	//}
       }
 
     //copy constructor here (return by value)
@@ -477,7 +481,7 @@ namespace MFM {
     fp->write(mangledName.c_str()); //u32
     fp->write("& other) { ");
     //fp->write(writeMethodForCodeGen().c_str());
-    fp->write("write");
+    fp->write("this->write");
     fp->write("(other.");
     //fp->write(readMethodForCodeGen().c_str());
     fp->write("read");
@@ -505,8 +509,8 @@ namespace MFM {
 
   void UlamTypePrimitive::genUlamTypeReadDefinitionForC(File * fp)
   {
-    //if(isScalar() || (getPackable() == PACKEDLOADABLE))
-    if(isScalar() || WritePacked(getPackable()))
+    //if(isScalar() || WritePacked(getPackable()))
+    if(WritePacked(getPackable()))
       {
 	m_state.indent(fp);
 	fp->write("const ");
@@ -521,7 +525,22 @@ namespace MFM {
 	else
 	  fp->write("u); } //reads entire array\n");
       }
+    else
+      {
+	//UNPACKED
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //BV
+	fp->write(" read");
+	fp->write("() const { ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //BV
+	fp->write(" rtnunpbv; this->BVS::");
+	fp->write(readMethodForCodeGen().c_str());
+	fp->write("(0u, rtnunpbv); return rtnunpbv; ");
+	fp->write("} //reads entire BV\n");
+      }
 
+#if 0
     //scalar and entire PACKEDLOADABLE array handled by base class read method
     if(!isScalar())
       {
@@ -537,17 +556,19 @@ namespace MFM {
 	fp->write("itemlen)"); //itemlen
 	fp->write("; }\n");
       }
+#endif
   } //genUlamTypeReadDefinitionForC
 
   void UlamTypePrimitive::genUlamTypeWriteDefinitionForC(File * fp)
   {
-    if(isScalar() || WritePacked(getPackable()))
+    //    if(isScalar() || WritePacked(getPackable()))
+    if(WritePacked(getPackable()))
       {
 	m_state.indent(fp);
 	fp->write("void write");
 	fp->write("(const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32, s64 or u64
-	fp->write(" v) { BVS::");
+	fp->write("& v) { BVS::");
 	fp->write(writeMethodForCodeGen().c_str());
 	fp->write("(0u, ");
 	fp->write_decimal_unsigned(getTotalBitSize());
@@ -557,7 +578,20 @@ namespace MFM {
 	else
 	  fp->write("u, v); } //writes entire array\n");
       }
+    else
+      {
+	//UNPACKED
+	m_state.indent(fp);
+	fp->write("void ");
+	fp->write(" write(const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //BV
+	fp->write("& bv) { BVS::");
+	fp->write(writeMethodForCodeGen().c_str());
+	fp->write("(0u, bv); ");
+	fp->write("} //writes entire BV\n");
+      }
 
+#if 0
     //scalar and entire PACKEDLOADABLE array handled by base class write method
     if(!isScalar())
       {
@@ -572,6 +606,7 @@ namespace MFM {
 	fp->write("itemlen, v)"); //itemlen, primitive effself
 	fp->write("; }\n");
       }
+#endif
   } //genUlamTypeWriteDefinitionForC
 
   void UlamTypePrimitive::genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp)

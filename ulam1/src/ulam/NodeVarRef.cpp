@@ -440,6 +440,10 @@ namespace MFM {
 		fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
 		fp->write("u");
 	      }
+	    else if(stgcos->isSelf())
+	      {
+		fp->write(", 0u");
+	      }
 	    else
 	      {
 		//local var
@@ -466,7 +470,7 @@ namespace MFM {
 	  }
 	fp->write(");\n");
       } //storage
-    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
+    m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
   } //genCode
 
   void NodeVarRef::genCodeAtomRefInit(File * fp, UlamValue & uvpass)
@@ -483,7 +487,9 @@ namespace MFM {
     UTI puti = uvpass.getUlamValueTypeIdx();
     if(m_state.isPtr(puti))
       puti = uvpass.getPtrTargetType();
-    assert(m_state.isAtom(vuti) && m_state.isAtom(puti));
+
+    //not necessarily if rhs is an unpacked array of atoms
+    //assert(m_state.isAtom(vuti) && m_state.isAtom(puti)); //e.g. t3709 (aref = s[9])
 
     m_state.indent(fp);
     fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
@@ -518,12 +524,20 @@ namespace MFM {
 	else
 	  {
 	    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+	    UTI stgcosuti = stgcos->getUlamTypeIdx();
+	    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 	    fp->write(stgcos->getMangledName().c_str());
 	    if(!m_state.isScalar(vuti))
 	      {
 		fp->write(", ");
 		fp->write_decimal_unsigned(stgcos->getPosOffset()); //t3671
 		fp->write("u");
+	      }
+	    else if(!stgcosut->isScalar())
+	      {
+		fp->write(", ");
+		fp->write(m_state.getTmpVarAsString(puti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
+		fp->write(" * EC::ATOM_CONFIG::BITS_PER_ATOM");
 	      }
 	  }
 	if(m_state.isScalar(vuti))
@@ -532,7 +546,7 @@ namespace MFM {
 
     fp->write(");\n");
 
-    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
+    m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
   } //genCodeAtomRefInit
 
   void NodeVarRef::genCodeArrayRefInit(File * fp, UlamValue & uvpass)
@@ -632,7 +646,7 @@ namespace MFM {
 	  }
       } //storage
     fp->write(");\n");
-    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
+    m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
   } //genCodeArrayRefInit
 
   void NodeVarRef::genCodeArrayItemRefInit(File * fp, UlamValue & uvpass)
@@ -725,7 +739,7 @@ namespace MFM {
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
       }
     fp->write(");\n");
-    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
+    m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
   } //genCodeArrayItemRefInit
 
 } //end MFM

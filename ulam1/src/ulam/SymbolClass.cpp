@@ -475,7 +475,7 @@ namespace MFM {
 
     // setup for codeGen
     m_state.m_currentSelfSymbolForCodeGen = this;
-    m_state.m_currentObjSymbolsForCodeGen.clear();
+    m_state.clearCurrentObjSymbolsForCodeGen();
 
     m_state.setupCenterSiteForTesting(); //temporary!!! (t3207)
 

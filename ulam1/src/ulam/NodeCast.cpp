@@ -1043,7 +1043,7 @@ namespace MFM {
 	//update the uvpass to have the casted immediate quark ref
 	uvpass = UlamValue::makePtr(tmpref, TMPBITVAL, tobeType, m_state.determinePackable(tobeType), m_state, uvpass.getPtrPos()); //POS 0 is justified; will name id help?
       }
-    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs
+    m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
   } //genCodeCastAtomAndQuark
 
   void NodeCast::genCodeCastDecendentElement(File * fp, UlamValue & uvpass)
@@ -1143,7 +1143,7 @@ namespace MFM {
 	//update the uvpass to have the casted immediate quark
 	uvpass = UlamValue::makePtr(tmpref, TMPBITVAL, tobeType, m_state.determinePackable(tobeType), m_state, uvpass.getPtrPos()); //POS 0 is justified; will name id help?
       }
-    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs
+    m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
   } //genCodeCastDecendentElement
 
   void NodeCast::genCodeCastAncestorQuarkAsSubElement(File * fp, UlamValue & uvpass)
@@ -1209,7 +1209,7 @@ namespace MFM {
     //update the uvpass to have the casted quark storage, INCLUDING ITS SUBCLASS?
     uvpass = UlamValue::makePtr(tmpVarVal, tobe->getTmpStorageTypeForTmpVar(), tobeType, m_state.determinePackable(tobeType), m_state, 0); //POS 0 rightjustified;
 
-    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs
+    m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
   } //genCodeCastAncestorQuarkAsSubElement
 
   void NodeCast::genCodeCastDecendentQuark(File * fp, UlamValue & uvpass)
@@ -1252,7 +1252,7 @@ namespace MFM {
 
     // new uvpass here..
     uvpass = UlamValue::makePtr(tmpVarSuper, tobe->getTmpStorageTypeForTmpVar(), tobeType, m_state.determinePackable(tobeType), m_state, 0); //POS 0 rightjustified.
-    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs
+    m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
   } //genCodeCastDecendentQuark
 
   //SAME TYPES, to a reference, from either a reference or not
@@ -1277,7 +1277,7 @@ namespace MFM {
     assert(!tobe->isReference());
 
     uvpass.setPtrTargetType(tobeType); //minimal casting; including atomref to atom(non-ref)
-    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs
+    m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
   } //genCodeCastFromAReference
 
   void NodeCast::genCodeToStoreIntoCastAsReference(File * fp, UlamValue & uvpass)

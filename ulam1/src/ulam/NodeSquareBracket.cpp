@@ -120,7 +120,6 @@ namespace MFM {
 	  }
 	//set up idxuti..RHS
 	//cant proceed with custom array subscript if lhs is incomplete
-	//if(errorCount == 0)
 	if((errorCount == 0) && (hazyCount == 0))
 	  {
 	    if(m_isCustomArray)
@@ -291,7 +290,6 @@ namespace MFM {
     //could be a custom array which is a scalar quark. already checked.
     bool isCustomArray = m_state.isClassACustomArray(ltype);
     //array of caarray quarks is not a customarray.
-    //assert(!m_state.isScalar(ltype) || isCustomArray); //already checked, must be array
     assert(m_isCustomArray == isCustomArray); //already checked, must be array
 
     makeRoomForNodeType(m_nodeRight->getNodeType()); //offset a constant expression
@@ -684,7 +682,7 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
     //wipe out before getting item within sq brackets
     std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
-    m_state.m_currentObjSymbolsForCodeGen.clear();
+    m_state.clearCurrentObjSymbolsForCodeGen();
 
     UlamValue offset;
     m_nodeRight->genCode(fp, offset); //read into tmp var
@@ -732,7 +730,7 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
     //wipe out before getting item within sq brackets
     std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
-    m_state.m_currentObjSymbolsForCodeGen.clear();
+    m_state.clearCurrentObjSymbolsForCodeGen();
 
     UlamValue offset;
     m_nodeRight->genCode(fp, offset);

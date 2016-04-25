@@ -83,6 +83,11 @@ namespace MFM {
     return false;
   }
 
+  bool Symbol::isTmpRefSymbol()
+  {
+    return false;
+  }
+
   void Symbol::setDataMemberClass(UTI cuti)
   {
     m_dataMemberClass = cuti;

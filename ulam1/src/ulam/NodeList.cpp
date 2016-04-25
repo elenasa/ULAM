@@ -132,6 +132,7 @@ namespace MFM{
 	    rtnuti = Hzy; // all or none
 	    m_state.setGoAgain(); //since no error msg
 	  }
+#if 0
 	else if(!WritePacked(m_state.determinePackable(puti)) && !m_state.isScalar(puti))
 	  {
 	    std::ostringstream msg;
@@ -142,6 +143,7 @@ namespace MFM{
 	    MSG(m_nodes[i]->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    rtnuti = Nav;
 	  }
+#endif
       }
     setNodeType(rtnuti);
     return rtnuti;

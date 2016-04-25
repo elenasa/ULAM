@@ -220,18 +220,37 @@ namespace MFM {
 	return evs;
       }
 
-    if(m_state.isAtom(nuti))
+#if 0
+    //new but new only
+    if(!m_state.isScalar(nuti) && !m_state.isReference(nuti))
       {
-	//avoid pointer to atom situation
-	UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
-	Node::assignReturnValueToStack(rtnUV, STACK);
+	u32 slots = m_state.slotsNeeded(nuti);
+	UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, nuti, m_state.determinePackable(nuti), m_state);  //positive to current frame pointer
+	UlamValue scalarPtr = UlamValue::makeScalarPtr(rtnPtr, m_state);
+	for(u32 j = 0; j < slots; j++)
+	  {
+	    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1+j); //immediate scalar
+	    m_state.assignValue(scalarPtr,ruv);
+	    scalarPtr.incrementPtr(m_state); //by one.
+	  }
       }
     else
+#endif
       {
-	//end, so copy to -1
-	UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, nuti, m_state.determinePackable(nuti), m_state);  //positive to current frame pointer
+	//if(m_state.isAtom(nuti))
+	if(m_state.isAtom(nuti) && (m_state.isScalar(nuti) || m_state.isReference(nuti)))
+	  {
+	    //avoid pointer to atom situation
+	    UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
+	    Node::assignReturnValueToStack(rtnUV, STACK);
+	  }
+	else
+	  {
+	    //end, so copy to -1
+	    UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, nuti, m_state.determinePackable(nuti), m_state);  //positive to current frame pointer
 
-	Node::assignReturnValueToStack(rtnPtr, STACK); //uses STACK, unlike all the other nodes
+	    Node::assignReturnValueToStack(rtnPtr, STACK); //uses STACK, unlike all the other nodes
+	  }
       }
 
     evalNodeEpilog();

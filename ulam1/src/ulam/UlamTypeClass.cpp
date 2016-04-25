@@ -46,13 +46,13 @@ namespace MFM {
       return CAST_CLEAR; //same class, quark or element
     else
       {
+	UTI fmderef = m_state.getUlamTypeAsDeref(typidx); //e.g. ALT-AS
 	u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx(); //our scalar "new"
-	if(m_state.isClassASubclassOf(typidx, cuti))
+	if(m_state.isClassASubclassOf(fmderef, cuti))
 	  return CAST_CLEAR; //casting to a super class
 	else
 	  {
 	    //e.g. array item to a ref of same type
-	    UTI fmderef = m_state.getUlamTypeAsDeref(typidx);
 	    ULAMTYPECOMPARERESULTS cmpr1 = UlamType::compare(fmderef, cuti, m_state);
 	    if(cmpr1 == UTIC_SAME)
 	      return CAST_CLEAR;

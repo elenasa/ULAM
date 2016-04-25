@@ -52,6 +52,8 @@ namespace MFM{
 
     virtual Symbol * clone();
 
+    virtual bool isTmpRefSymbol();
+
     virtual const std::string getMangledPrefix();
 
     virtual const std::string getMangledName();

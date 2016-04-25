@@ -12,6 +12,11 @@ namespace MFM {
     return new SymbolTmpRef(*this);
   }
 
+  bool SymbolTmpRef::isTmpRefSymbol()
+  {
+    return true;
+  }
+
   const std::string SymbolTmpRef::getMangledPrefix()
   {
     assert(0);

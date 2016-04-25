@@ -98,11 +98,13 @@ namespace MFM {
 	m_state.setGoAgain();
       }
 
+#if 0
     if(!checkNotUnpackedArray())
       {
 	setNodeType(Nav);
 	return Nav;
       }
+#endif
 
     if(!NodeBinaryOp::checkNotVoidTypes(leftType, rightType))
       {
@@ -137,7 +139,7 @@ namespace MFM {
     if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME)
       {
 	//different msg if try to assign non-class to a class type
-	if((m_state.getUlamTypeByIndex(leftType)->getUlamTypeEnum() == Class) && (m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum() != Class))
+	if((m_state.getUlamTypeByIndex(leftType)->getUlamTypeEnum() == Class) && (m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum() != Class) && !m_state.isAtom(rightType))
 	  {
 	    std::ostringstream msg;
 	    msg << "Incompatible class type ";

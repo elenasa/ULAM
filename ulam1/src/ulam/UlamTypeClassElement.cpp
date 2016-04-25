@@ -79,11 +79,14 @@ namespace MFM {
 	  if(isScalar())
 	    method = "ReadBig";
 	  else
+	    method = "ReadBV";
+#if 0
 	    {
 	      std::ostringstream mstr;
 	      mstr << "ReadBV<" << getTotalBitSize() << ">";
 	      method = mstr.str();
 	    }
+#endif
 	}
       };
     return method;
@@ -108,11 +111,14 @@ namespace MFM {
 	  if(isScalar())
 	    method = "WriteBig";
 	  else
+	    method = "WriteBV";
+#if 0
 	    {
 	      std::ostringstream mstr;
 	      mstr << "WriteBV<" << getTotalBitSize() << ">";
 	      method = mstr.str();
 	    }
+#endif
 	}
       };
     return method;
@@ -554,25 +560,13 @@ namespace MFM {
       }
     fp->write(" }\n");
 
-    //constructor here (used by const tmpVars)
+    //constructor here (used by const tmpVars) (e.g. t3706)
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("(const ");
-    fp->write(scalarut->getTmpStorageTypeAsString().c_str()); //u64, u32, BV96
+    fp->write(getTmpStorageTypeAsString().c_str()); //u64, u32, BV96
     fp->write("& d) { ");
-    if(isScalar())
-      {
-	fp->write("write(d);");
-      }
-    else
-      {
-	fp->write("u32 n = ");
-	fp->write_decimal(getArraySize());
-	fp->write("u; while(n--) { ");
-	fp->write("writeArrayItem(d, n, ");
-	fp->write_decimal_unsigned(bitsize);
-	fp->write("); }");
-      }
+    fp->write("write(d);");
     fp->write(" }\n");
 
     // assignment constructor
@@ -634,7 +628,8 @@ namespace MFM {
   void UlamTypeClassElement::genUlamTypeReadDefinitionForC(File * fp)
   {
 
-    if(isScalar() || WritePacked(getPackable()))
+    //if(isScalar() || WritePacked(getPackable()))
+    if(WritePacked(getPackable()))
       {
 	m_state.indent(fp);
 	fp->write("const ");
@@ -648,6 +643,20 @@ namespace MFM {
 	  fp->write("u); }\n"); //done
 	else
 	  fp->write("u); } //reads entire array\n");
+      }
+    else
+      {
+	//UNPACKED
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //BV
+	fp->write(" read");
+	fp->write("() const { ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //BV
+	fp->write(" rtnunpbv; this->BVS::");
+	fp->write(readMethodForCodeGen().c_str());
+	fp->write("(0u, rtnunpbv); return rtnunpbv; ");
+	fp->write("} //reads entire BV\n");
       }
 
     if(!isScalar())
@@ -668,7 +677,8 @@ namespace MFM {
   void UlamTypeClassElement::genUlamTypeWriteDefinitionForC(File * fp)
   {
     //ref param to avoid excessive copying
-    if(isScalar() || (getPackable() == PACKEDLOADABLE))
+    //if(isScalar() || (getPackable() == PACKEDLOADABLE))
+    if(WritePacked(getPackable()))
       {
 	m_state.indent(fp);
 	fp->write("void write(const ");
@@ -682,6 +692,18 @@ namespace MFM {
 	  fp->write("u, v); }\n"); //done
 	else
 	  fp->write("u, v); } //writes entire array\n");
+      }
+    else
+      {
+	//UNPACKED
+	m_state.indent(fp);
+	fp->write("void ");
+	fp->write(" write(const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //BV
+	fp->write("& bv) { BVS::");
+	fp->write(writeMethodForCodeGen().c_str());
+	fp->write("(0u, bv); ");
+	fp->write("} //writes entire BV\n");
       }
 
     if(!isScalar())

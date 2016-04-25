@@ -110,7 +110,9 @@ namespace MFM {
   {
     s32 len = state.getTotalBitSize(utype);
     assert(len != UNKNOWNSIZE);
-    assert(state.getUlamTypeByIndex(utype)->getUlamTypeEnum() != Class);
+    //assert(state.getUlamTypeByIndex(utype)->getUlamTypeEnum() != Class);
+    if(state.getUlamTypeByIndex(utype)->getUlamTypeEnum() == Class)
+      return UlamValue::makeImmediateElement(utype, v, len);
     return UlamValue::makeImmediateLong(utype, v, len);
   } //makeImmediateLong
 
@@ -123,6 +125,26 @@ namespace MFM {
     rtnVal.putDataLong(BITSPERATOM - len, len, v); //starts from end for 32-bit boundary case
     return rtnVal;
   } //makeImmediateLong overloaded
+
+  UlamValue UlamValue::makeImmediateElement(UTI utype, u64 v, s32 len)
+  {
+    UlamValue rtnVal; //static
+    assert(len <= MAXBITSPERLONG && (s32) len >= 0); //very important!
+    rtnVal.clear();
+    rtnVal.setUlamValueTypeIdx(utype);
+    rtnVal.putData(ATOMFIRSTSTATEBITPOS, len, v); //left-justified
+    return rtnVal;
+  } //makeImmediateElement
+
+  UlamValue UlamValue::makeImmediateElementArrayLong(UTI utype, u64 v, s32 len)
+  {
+    UlamValue rtnVal; //static
+    assert(len <= MAXBITSPERLONG && (s32) len >= 0); //very important!
+    rtnVal.clear();
+    rtnVal.setUlamValueTypeIdx(utype);
+    rtnVal.putDataLong(ATOMFIRSTSTATEBITPOS, len, v); //left-justified
+    return rtnVal;
+  } //makeImmediateElementArrayLong
 
   UlamValue UlamValue::makePtr(u32 slot, STORAGE storage, UTI targetType, PACKFIT packed, CompilerState& state, u32 pos, u32 id)
   {
@@ -333,7 +355,8 @@ namespace MFM {
   {
     assert(isPtr());
     s32 len = m_uv.m_ptrValue.m_bitlenInAtom;
-    assert(len >= 0 && len <= MAXSTATEBITS); //up to caller to fix negative len
+    //assert(len >= 0 && len <= MAXSTATEBITS); //up to caller to fix negative len
+    assert(len >= 0 && len <= BITSPERATOM); //up to caller to fix negative len; atom type 96
     return len;
   } //getPtrLen
 

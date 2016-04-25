@@ -333,6 +333,16 @@ namespace MFM {
 	      rtnUV = UlamValue::makeImmediateQuarkArrayLong(uti, data, ut->getTotalBitSize());
 	      break;
 	    }
+	  else if(ut->getUlamClassType() == UC_ELEMENT)
+	    {
+	      if(!ut->isScalar())
+		rtnUV = UlamValue::makeImmediateElementArrayLong(uti, data, ut->getTotalBitSize());
+	      else
+		rtnUV = UlamValue::makeImmediateElement(uti, data, ut->getTotalBitSize());
+	      break;
+	    }
+	  else
+	    assert(0);
 	}
       default:
 	{
@@ -676,7 +686,7 @@ namespace MFM {
     uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //POS 0 rightjustified (atom-based);
     uvpass.setPtrPos(0); //entire register
 
-    m_state.m_currentObjSymbolsForCodeGen.clear(); //missing or just needed by NodeTerminalProxy?
+    m_state.clearCurrentObjSymbolsForCodeGen(); //missing or just needed by NodeTerminalProxy?
   } //genCodeReadIntoATmpVar
 
   bool NodeTerminal::setConstantValue(Token tok)

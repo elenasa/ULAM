@@ -474,7 +474,7 @@ namespace MFM {
 	  {
 	    //array
 	    PACKFIT packed = m_state.determinePackable(argType);
-	    assert(WritePacked(packed));
+	    //assert(WritePacked(packed));
 
 	    //array to transfer without reversing order again
 	    u32 baseSlot = m_state.m_funcCallStack.getRelativeTopOfStackNextSlot();
@@ -618,7 +618,8 @@ namespace MFM {
 	//adjust index if on the STACK, not for Event Window site
 	s32 nextslot = m_state.m_funcCallStack.getRelativeTopOfStackNextSlot();
 	s32 atomslot = atomPtr.getPtrSlotIndex();
-	s32 adjustedatomslot = atomslot - (nextslot + rtnslots + 1); //negative index; 1 more for atomPtr
+	//s32 adjustedatomslot = atomslot - (nextslot + rtnslots + 1); //negative index; 1 more for atomPtr
+	s32 adjustedatomslot = atomslot - (nextslot + rtnslots + 2); //negative index; 1 more for atomPtr (+uc)
 	atomPtr.setPtrSlotIndex(adjustedatomslot);
 	if(atomPtr.getUlamValueTypeIdx() == PtrAbs)
 	  atomPtr.setUlamValueTypeIdx(Ptr); //let's see..
@@ -627,6 +628,9 @@ namespace MFM {
     m_state.m_funcCallStack.pushArg(atomPtr); //*********
     argsPushed++;
     m_state.m_currentObjPtr = atomPtr; //*********
+
+    makeRoomForSlots(1, STACK); // uc placeholder
+    argsPushed++;
 
     UlamValue saveSelfPtr = m_state.m_currentSelfPtr; // restore upon return from func *****
     m_state.m_currentSelfPtr = m_state.m_currentObjPtr; // set for subsequent func calls ****
@@ -656,7 +660,8 @@ namespace MFM {
     // ANY return value placed on the STACK by a Return Statement,
     // was copied to EVALRETURN by the NodeBlockFunctionDefinition
     // before arriving here! And may be ignored at this point.
-    if(m_state.isAtom(rtnType))
+    //if(m_state.isAtom(rtnType))
+    if(m_state.isAtom(rtnType) && (m_state.isScalar(rtnType) || m_state.isReference(rtnType)))
       {
 	UlamValue rtnUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
 	Node::assignReturnValueToStack(rtnUV); //into return space on eval stack;
@@ -718,7 +723,7 @@ namespace MFM {
 	msg << "> is not a fully resolved function definition; ";
 	msg << "A call to it cannot be generated in this context";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	m_state.m_currentObjSymbolsForCodeGen.clear();
+	m_state.clearCurrentObjSymbolsForCodeGen();
 	return;
       }
 
@@ -827,7 +832,7 @@ namespace MFM {
     fp->write(arglist.str().c_str());
     fp->write(");\n");
 
-    m_state.m_currentObjSymbolsForCodeGen.clear();
+    m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeIntoABitValue
 
   void NodeFunctionCall::genCodeAReferenceIntoABitValue(File * fp, UlamValue& uvpass)
@@ -904,7 +909,7 @@ namespace MFM {
     fp->write(arglist.str().c_str());
     fp->write(");\n");
 
-    m_state.m_currentObjSymbolsForCodeGen.clear();
+    m_state.clearCurrentObjSymbolsForCodeGen();
     uvpass = rtnuvpass;
   } //genCodeAReferenceIntoABitValue
 
@@ -1235,7 +1240,7 @@ namespace MFM {
       {
 	UlamValue auvpass;
 	UTI auti;
-	m_state.m_currentObjSymbolsForCodeGen.clear(); //*************
+	m_state.clearCurrentObjSymbolsForCodeGen(); //*************
 
 	// what if ALT_ARRAYITEM?
 	if(m_state.getReferenceType(m_funcSymbol->getParameterType(i)) != ALT_NOT)
@@ -1262,7 +1267,7 @@ namespace MFM {
 	  {
 	    UlamValue auvpass;
 	    UTI auti;
-	    m_state.m_currentObjSymbolsForCodeGen.clear(); //*************
+	    m_state.clearCurrentObjSymbolsForCodeGen(); //*************
 
 	    if(m_state.getReferenceType(m_argumentNodes->getNodeType(i)) != ALT_NOT)
 	      {
@@ -1375,7 +1380,7 @@ namespace MFM {
     uvpass.setPtrSlotIndex(tmpVarArgNum);
     uvpass.setPtrStorage(TMPBITVAL);
 
-    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
+    m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
   } //genCodeReferenceArg
 
   // uses uvpass rather than stgcos, cos for classes or atoms (not primitives)

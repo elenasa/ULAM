@@ -51,12 +51,12 @@ namespace MFM {
 
   const std::string UlamTypeClassTransient::readMethodForCodeGen()
   {
-    return "ReadBV";
+    return UlamType::readMethodForCodeGen();
   }
 
   const std::string UlamTypeClassTransient::writeMethodForCodeGen()
   {
-    return "WriteBV";
+    return UlamType::writeMethodForCodeGen();
   }
 
   bool UlamTypeClassTransient::needsImmediateType()

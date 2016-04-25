@@ -756,12 +756,18 @@ namespace MFM {
       case 64:
 	method = "ReadLong";
 	break;
+      case 96:
+	method = "ReadBig";
+	break;
       default:
-	assert(!isScalar());
-	method = readArrayItemMethodForCodeGen();
-	//method = "ReadUnpacked"; //TBD
-	//MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
-	//assert(0);
+	method = "ReadBV";
+#if 0
+	{
+	  std::ostringstream mstr;
+	  mstr << "ReadBV<" << getTotalBitSize() << ">";
+	  method = mstr.str();
+	}
+#endif
       };
     return method;
   } //readMethodForCodeGen
@@ -779,12 +785,18 @@ namespace MFM {
       case 64:
 	method = "WriteLong";
 	break;
+      case 96:
+	method = "WriteBig";
+	break;
       default:
-	assert(!isScalar());
-	method = writeArrayItemMethodForCodeGen();
-	//method = "WriteUnpacked"; //TBD
-	//MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
-	//assert(0);
+	method = "WriteBV";
+#if 0
+	{
+	  std::ostringstream mstr;
+	  mstr << "WriteBV<" << getTotalBitSize() << ">";
+	  method = mstr.str();
+	}
+#endif
       };
     return method;
   } //writeMethodForCodeGen
@@ -802,8 +814,19 @@ namespace MFM {
       case 64:
 	method = "ReadLong"; //ReadArrayLong
 	break;
+      case 96:
+	method = "ReadBig";
+	break;
       default:
-	method = "ReadBV"; //TBD ReadArrayUnpacked
+	method = "ReadBV";
+#if 0
+	{
+	  std::ostringstream mstr;
+	  mstr << "ReadBV<" << getTotalBitSize() << ">";
+	  method = mstr.str();
+	}
+#endif
+	//TBD ReadArrayUnpacked
 	//assert(0);
       };
     return method;
@@ -821,6 +844,9 @@ namespace MFM {
 	break;
       case 64:
 	method = "WriteLong"; //WriteArrayLong
+	break;
+      case 96:
+	method = "WriteBig";
 	break;
       default:
 	method = "WriteBV"; //TBD WriteArrayUnpacked

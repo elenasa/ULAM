@@ -223,13 +223,15 @@ namespace MFM {
 	assert(func); //how would a function symbol be without a body?
 	u32 depth = 0;
 	u32 maxdepth = 0;
-	s32 base = 0;
+	s32 base = 0; //1 for frame ptr (was 0)
 	//add size of parameters (+ 1 for hidden) and return size
 	base += m_state.slotsNeeded(fsym->getUlamTypeIdx()); //return type
+	//base += 1; //hidden arg is a symbol, not a node (uc not needed)
+	base += 2; //hidden arg is a symbol, not a node (uc needed ?)
 	base += fsym->getTotalParameterSlots();
-	base += 1; //hidden arg is a symbol, not a node
 	func->calcMaxDepth(depth, maxdepth, base);
-	maxdepth += 1; //hidden, (frame ptr at zero implicit)
+	maxdepth += 1; //hidden, (frame ptr at zero implicit) (was += 1)
+	maxdepth += base; //??? forgotten?
 	func->setMaxDepth(maxdepth);
 	++it;
       }
