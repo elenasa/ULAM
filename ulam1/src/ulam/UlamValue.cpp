@@ -71,9 +71,12 @@ namespace MFM {
   {
     s32 len = state.getTotalBitSize(utype); //possible packed array (e.g. default qks)
     assert(len != UNKNOWNSIZE);
-    if(state.getUlamTypeByIndex(utype)->getUlamTypeEnum() == Class)
-      return UlamValue::makeImmediateQuark(utype, v, len);
-    return UlamValue::makeImmediate(utype, v, len);
+    UlamType * ut = state.getUlamTypeByIndex(utype);
+    if(ut->getUlamTypeEnum() == Class)
+      {
+	return UlamValue::makeImmediateClass(utype, v, len); //left-justified
+      }
+    return UlamValue::makeImmediate(utype, v, len); //right-justified
   } //makeImmediate
 
   UlamValue UlamValue::makeImmediate(UTI utype, u32 v, s32 len)
@@ -86,7 +89,7 @@ namespace MFM {
     return rtnVal;
   } //makeImmediate overloaded
 
-  UlamValue UlamValue::makeImmediateQuark(UTI utype, u32 v, s32 len)
+  UlamValue UlamValue::makeImmediateClass(UTI utype, u32 v, s32 len)
   {
     UlamValue rtnVal; //static
     assert(len <= MAXBITSPERINT && (s32) len >= 0); //very important!
@@ -94,25 +97,17 @@ namespace MFM {
     rtnVal.setUlamValueTypeIdx(utype);
     rtnVal.putData(ATOMFIRSTSTATEBITPOS, len, v); //left-justified
     return rtnVal;
-  } //makeImmediateQuark
-
-  UlamValue UlamValue::makeImmediateQuarkArrayLong(UTI utype, u64 v, s32 len)
-  {
-    UlamValue rtnVal; //static
-    assert(len <= MAXBITSPERLONG && (s32) len >= 0); //very important!
-    rtnVal.clear();
-    rtnVal.setUlamValueTypeIdx(utype);
-    rtnVal.putDataLong(ATOMFIRSTSTATEBITPOS, len, v); //left-justified
-    return rtnVal;
-  } //makeImmediateQuarkArrayLong
+  } //makeImmediateClass
 
   UlamValue UlamValue::makeImmediateLong(UTI utype, u64 v, CompilerState& state)
   {
     s32 len = state.getTotalBitSize(utype);
     assert(len != UNKNOWNSIZE);
-    //assert(state.getUlamTypeByIndex(utype)->getUlamTypeEnum() != Class);
-    if(state.getUlamTypeByIndex(utype)->getUlamTypeEnum() == Class)
-      return UlamValue::makeImmediateElement(utype, v, len);
+    UlamType * ut = state.getUlamTypeByIndex(utype);
+    if(ut->getUlamTypeEnum() == Class)
+      {
+	return UlamValue::makeImmediateLongClass(utype, v, len);
+      }
     return UlamValue::makeImmediateLong(utype, v, len);
   } //makeImmediateLong
 
@@ -126,17 +121,7 @@ namespace MFM {
     return rtnVal;
   } //makeImmediateLong overloaded
 
-  UlamValue UlamValue::makeImmediateElement(UTI utype, u64 v, s32 len)
-  {
-    UlamValue rtnVal; //static
-    assert(len <= MAXBITSPERLONG && (s32) len >= 0); //very important!
-    rtnVal.clear();
-    rtnVal.setUlamValueTypeIdx(utype);
-    rtnVal.putData(ATOMFIRSTSTATEBITPOS, len, v); //left-justified
-    return rtnVal;
-  } //makeImmediateElement
-
-  UlamValue UlamValue::makeImmediateElementArrayLong(UTI utype, u64 v, s32 len)
+  UlamValue UlamValue::makeImmediateLongClass(UTI utype, u64 v, s32 len)
   {
     UlamValue rtnVal; //static
     assert(len <= MAXBITSPERLONG && (s32) len >= 0); //very important!
@@ -144,7 +129,7 @@ namespace MFM {
     rtnVal.setUlamValueTypeIdx(utype);
     rtnVal.putDataLong(ATOMFIRSTSTATEBITPOS, len, v); //left-justified
     return rtnVal;
-  } //makeImmediateElementArrayLong
+  } //makeImmediateLongClass
 
   UlamValue UlamValue::makePtr(u32 slot, STORAGE storage, UTI targetType, PACKFIT packed, CompilerState& state, u32 pos, u32 id)
   {
@@ -603,7 +588,7 @@ namespace MFM {
   u32 UlamValue::getImmediateData(CompilerState & state) const
   {
     UTI utype = getUlamValueTypeIdx();
-    s32 len = state.getBitSize(utype); //scalar
+    s32 len = state.getBitSize(utype); //scalar, or packed
     assert(len != UNKNOWNSIZE);
     assert(len <= MAXBITSPERINT);
 
@@ -616,20 +601,20 @@ namespace MFM {
   u32 UlamValue::getImmediateData(s32 len, CompilerState & state) const
   {
     UTI utype = getUlamValueTypeIdx();
-    ULAMTYPE eutype = state.getUlamTypeByIndex(utype)->getUlamTypeEnum();
-    assert(eutype != UAtom);
+    ULAMTYPE eutyp = state.getUlamTypeByIndex(utype)->getUlamTypeEnum();
+    assert(eutyp != UAtom);
     assert(utype != Ptr);
     assert(state.okUTItoContinue(utype));
     assert(utype != Nouti);
     assert(len >= 0 && len <= MAXBITSPERINT);
 
-    if(eutype == Class)
-      return getImmediateQuarkData(len);
+    if(eutyp == Class)
+      return getImmediateClassData(len);
 
-    return getData(BITSPERATOM - len, len);
+    return getData(BITSPERATOM - len, len); //right-justified
   } //getImmediateData const
 
-  u32 UlamValue::getImmediateQuarkData(CompilerState & state) const
+  u32 UlamValue::getImmediateClassData(CompilerState & state) const
   {
     s32 len = state.getBitSize(getUlamValueTypeIdx()); //scalar
     assert(len != UNKNOWNSIZE);
@@ -638,17 +623,17 @@ namespace MFM {
     if(len == 0)
       return 0;
 
-    return getImmediateQuarkData(len); //left-justified
-  } //getImmediateQuark
+    return getImmediateClassData(len); //left-justified
+  } //getImmediateClassData
 
-  u32 UlamValue::getImmediateQuarkData(s32 len) const
+  u32 UlamValue::getImmediateClassData(s32 len) const
   {
     UTI utype = getUlamValueTypeIdx();
     AssertBool utypOk = ((utype != UAtom) && (utype != Ptr) && (utype != PtrAbs) && (utype != Nav) && (utype != Hzy) && (utype != Nouti));
     assert(utypOk);
     assert(len >= 0 && len <= MAXBITSPERINT);
     return getData(ATOMFIRSTSTATEBITPOS, len);
-  } //getImmediateQuarkData const
+  } //getImmediateClassData const
 
   u64 UlamValue::getImmediateDataLong(CompilerState & state) const
   {
@@ -659,8 +644,24 @@ namespace MFM {
     if(len == 0)
       return 0;
 
-    return getImmediateDataLong(len);
+    return getImmediateDataLong(len, state);
   } //getImmediateDataLong
+
+  u64 UlamValue::getImmediateDataLong(s32 len, CompilerState & state) const
+  {
+    UTI utype = getUlamValueTypeIdx();
+    ULAMTYPE eutyp = state.getUlamTypeByIndex(utype)->getUlamTypeEnum();
+    assert(eutyp != UAtom);
+    assert(utype != Ptr);
+    assert(state.okUTItoContinue(utype));
+    assert(utype != Nouti);
+    assert(len >= 0 && len <= MAXBITSPERLONG);
+
+    if(eutyp == Class)
+      return getImmediateClassDataLong(len);
+
+    return getDataLong(BITSPERATOM - len, len); //right-justified
+  } //getImmediateDataLong const
 
   u64 UlamValue::getImmediateDataLong(s32 len) const
   {
@@ -670,6 +671,27 @@ namespace MFM {
     assert(len >= 0 && len <= MAXBITSPERLONG);
     return getDataLong(BITSPERATOM - len, len);
   } //getImmediateDataLong const
+
+  u64 UlamValue::getImmediateClassDataLong(CompilerState & state) const
+  {
+    s32 len = state.getBitSize(getUlamValueTypeIdx()); //scalar
+    assert(len != UNKNOWNSIZE);
+    assert(len <= MAXBITSPERLONG);
+
+    if(len == 0)
+      return 0;
+
+    return getImmediateClassDataLong(len); //left-justified
+  } //getImmediateClassDataLong
+
+  u64 UlamValue::getImmediateClassDataLong(s32 len) const
+  {
+    UTI utype = getUlamValueTypeIdx();
+    AssertBool utypOk = ((utype != UAtom) && (utype != Ptr) && (utype != PtrAbs) && (utype != Nav) && (utype != Hzy) && (utype != Nouti));
+    assert(utypOk);
+    assert(len >= 0 && len <= MAXBITSPERLONG);
+    return getDataLong(ATOMFIRSTSTATEBITPOS, len);
+  } //getImmediateClassDataLong const
 
   // 'p' is Ptr into this destination; assumes 'data' is right-justified, unless a quark!
   void UlamValue::putDataIntoAtom(UlamValue p, UlamValue data, CompilerState& state)
@@ -700,7 +722,7 @@ namespace MFM {
 	      }
 	    else if(len <= MAXBITSPERLONG)
 	      {
-		u64 datavalue = data.getImmediateDataLong(len);
+		u64 datavalue = data.getImmediateDataLong(len, state);
 		putDataLong(p.getPtrPos(), len, datavalue);
 	      }
 	    else
@@ -722,7 +744,7 @@ namespace MFM {
 	  }
 	else if(len <= MAXBITSPERLONG)
 	  {
-	    u64 datavalue = data.getImmediateDataLong(len);
+	    u64 datavalue = data.getImmediateDataLong(len, state);
 	    putDataLong(p.getPtrPos(), len, datavalue);
 	  }
 	else

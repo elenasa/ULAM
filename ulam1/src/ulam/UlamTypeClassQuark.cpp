@@ -51,13 +51,13 @@ namespace MFM {
 	    if(len <= MAXBITSPERINT)
 	      {
 		u32 qdata = val.getDataFromAtom(pos, len);
-		val = UlamValue::makeImmediateQuark(typidx, qdata, len);
+		val = UlamValue::makeImmediateClass(typidx, qdata, len);
 	      }
 	    else if(len <= MAXBITSPERLONG)
 	      {
 		assert(0); //quarks are max 32 bits
 		u64 qdata = val.getDataLongFromAtom(pos, len);
-		val = UlamValue::makeImmediateLong(typidx, qdata, len);
+		val = UlamValue::makeImmediateLongClass(typidx, qdata, len);
 	      }
 	    else
 	      assert(0);
@@ -68,10 +68,10 @@ namespace MFM {
 	    // Coo c = (Coo) f.su; where su is a Soo : Coo
 	    s32 vlen = vut->getTotalBitSize();
 	    s32 len = getTotalBitSize();
-	    u32 vdata = val.getImmediateQuarkData(vlen); //not from element
+	    u32 vdata = val.getImmediateClassData(vlen); //not from element
 	    assert((vlen - len) >= 0); //sanity check
 	    u32 qdata = vdata >> (vlen - len); //stays left-justified
-	    val = UlamValue::makeImmediateQuark(typidx, qdata, len);
+	    val = UlamValue::makeImmediateClass(typidx, qdata, len);
 	  }
       }
     else

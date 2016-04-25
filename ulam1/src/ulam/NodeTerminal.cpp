@@ -330,15 +330,12 @@ namespace MFM {
 	  if(ut->getUlamClassType() == UC_QUARK)
 	    {
 	      assert(!ut->isScalar());
-	      rtnUV = UlamValue::makeImmediateQuarkArrayLong(uti, data, ut->getTotalBitSize());
+	      rtnUV = UlamValue::makeImmediateLongClass(uti, data, ut->getTotalBitSize());
 	      break;
 	    }
 	  else if(ut->getUlamClassType() == UC_ELEMENT)
 	    {
-	      if(!ut->isScalar())
-		rtnUV = UlamValue::makeImmediateElementArrayLong(uti, data, ut->getTotalBitSize());
-	      else
-		rtnUV = UlamValue::makeImmediateElement(uti, data, ut->getTotalBitSize());
+	      rtnUV = UlamValue::makeImmediateLongClass(uti, data, ut->getTotalBitSize());
 	      break;
 	    }
 	  else

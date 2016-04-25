@@ -450,10 +450,60 @@ namespace MFM {
 	  {
 	    UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
 	    UlamValue atomUV = UlamValue::makeDefaultAtom(scalaruti, m_state);
-	    u32 baseslot =  ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex();
-	    for(u32 j = 0; j < slots; j++)
+	    PACKFIT packFit = m_state.determinePackable(nuti);
+	    if(WritePacked(packFit))
 	      {
-		m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, baseslot + j);
+		UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+		u32 len = nut->getTotalBitSize();
+		u32 bitsize = nut->getBitSize();
+		u32 arraysize = nut->getArraySize();
+		u32 pos = 0;
+
+		if(len <= MAXBITSPERINT)
+		  {
+		    u32 dval32 = 0;
+		    dval32 = atomUV.getDataFromAtom(ATOMFIRSTSTATEBITPOS, bitsize);
+		    u32 darrval = 0;
+		    if(dval32 > 0)
+		      {
+			u32 mask = _GetNOnes32((u32) bitsize);
+			dval32 &= mask;
+			for(u32 j = 1; j <= arraysize; j++)
+			  {
+			    darrval |= (dval32 << (len - (pos + (j * bitsize))));
+			  }
+		      }
+		    UlamValue immUV = UlamValue::makeImmediateClass(nuti, darrval, len);
+		    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+		  }
+		else if(len <= MAXBITSPERLONG)
+		  {
+		    u64 dval = 0;
+		    dval = atomUV.getDataLongFromAtom(ATOMFIRSTSTATEBITPOS, bitsize);
+		    u64 darrval = 0;
+		    if(dval > 0)
+		      {
+			u32 mask = _GetNOnes64((u32) bitsize);
+			dval &= mask;
+			for(u32 j = 1; j <= arraysize; j++)
+			  {
+			    darrval |= (dval << (len - (pos + (j * bitsize))));
+			  }
+		      }
+		    UlamValue immUV = UlamValue::makeImmediateLongClass(nuti, darrval, len);
+		    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+		  }
+		else
+		  assert(0); //not write packable!
+	      }
+	    else
+	      {
+		//UNPACKED element array
+		u32 baseslot =  ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex();
+		for(u32 j = 0; j < slots; j++)
+		  {
+		    m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, baseslot + j);
+		  }
 	      }
 	  }
       }
@@ -505,7 +555,7 @@ namespace MFM {
 			  }
 		      }
 
-		    UlamValue immUV = UlamValue::makeImmediateQuark(nuti, dqarrval, len);
+		    UlamValue immUV = UlamValue::makeImmediateClass(nuti, dqarrval, len);
 		    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
 		  }
 		else if(len <= MAXBITSPERLONG)
@@ -520,14 +570,14 @@ namespace MFM {
 			  }
 		      }
 
-		    UlamValue immUV = UlamValue::makeImmediateQuarkArrayLong(nuti, dqarrval, len);
+		    UlamValue immUV = UlamValue::makeImmediateLongClass(nuti, dqarrval, len);
 		    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
 		  }
 		else
 		  {
 #if 1
-		    UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
 		    //UNPACKED array of quarks!
+		    UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
 		    UlamValue immUV = UlamValue::makeImmediate(scalaruti, dq, m_state);
 		    u32 baseslot =  ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex();
 		    for(u32 j = 0; j < slots; j++)
@@ -587,7 +637,7 @@ namespace MFM {
 	    m_state.assignValue(pluv,ruv);
 
 	    //also copy result UV to stack, -1 relative to current frame pointer
-	    Node::assignReturnValueToStack(ruv);
+	    Node::assignReturnValueToStack(ruv); //not when unpacked? how come?
 	  }
 	else //unpacked
 	  {
@@ -600,9 +650,18 @@ namespace MFM {
 		m_state.assignValue(scalarPtr,ruv);
 		scalarPtr.incrementPtr(m_state); //by one.
 	      }
+#else
+	    // more like NodeBinOpEqual, but doesn't work well with unpacked like loop above..
+	    // unpacked array requires a ptr
+	    UTI nuti = getNodeType();
+	    UlamValue ruv = UlamValue::makePtr(1+slots, EVALRETURN, nuti, m_state.determinePackable(nuti), m_state); //ptr
+	    m_state.assignValue(pluv,ruv);
+
+	    //also copy result UV to stack, -1 relative to current frame pointer
+	    Node::assignReturnValueToStack(ruv);
 #endif
 	  }
-      } //normal
+	  } //normal
       evalNodeEpilog();
     return evs;
   } //evalInitExpr
@@ -652,7 +711,7 @@ namespace MFM {
     if(classtype == UC_ELEMENT)
       {
 	  // ptr to explicit atom or element, (e.g.'f' in f.a=1) becomes new m_currentObjPtr
-	  ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), UNPACKED, m_state, 0, m_varSymbol->getId());
+	  ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
       }
     else
       {

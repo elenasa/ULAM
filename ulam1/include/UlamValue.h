@@ -106,17 +106,13 @@ namespace MFM{
 
     static UlamValue makeImmediate(UTI utype, u32 v, s32 len = 32);
 
-    static UlamValue makeImmediateQuark(UTI utype, u32 v, s32 len);
-
-    static UlamValue makeImmediateQuarkArrayLong(UTI utype, u64 v, s32 len);
+    static UlamValue makeImmediateClass(UTI utype, u32 v, s32 len);
 
     static UlamValue makeImmediateLong(UTI utype, u64 v, CompilerState& state);
 
     static UlamValue makeImmediateLong(UTI utype, u64 v, s32 len = 64);
 
-    static UlamValue makeImmediateElement(UTI utype, u64 v, s32 len);
-
-    static UlamValue makeImmediateElementArrayLong(UTI utype, u64 v, s32 len);
+    static UlamValue makeImmediateLongClass(UTI utype, u64 v, s32 len);
 
     // returns a pointer to an UlamValue of type targetType; pos==0 determined from targettype
     static UlamValue makePtr(u32 slot, STORAGE storage, UTI targetType, PACKFIT packed, CompilerState& state, u32 pos = 0);
@@ -178,12 +174,17 @@ namespace MFM{
 
     u32 getImmediateData(s32 len, CompilerState& state) const;
 
-    u32 getImmediateQuarkData(CompilerState & state) const;
-    u32 getImmediateQuarkData(s32 len) const;
+    u32 getImmediateClassData(CompilerState & state) const;
+    u32 getImmediateClassData(s32 len) const;
 
     u64 getImmediateDataLong(CompilerState & state) const;
 
+    u64 getImmediateDataLong(s32 len, CompilerState & state) const;
+
     u64 getImmediateDataLong(s32 len = 64) const;
+
+    u64 getImmediateClassDataLong(CompilerState & state) const;
+    u64 getImmediateClassDataLong(s32 len) const;
 
     void putDataIntoAtom(UlamValue p, UlamValue data, CompilerState& state);
 
