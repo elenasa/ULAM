@@ -171,7 +171,7 @@ namespace MFM {
     if(m_nodeNext)
       aok |= m_nodeNext->buildDefaultQuarkValue(dqref);
     return aok;
-  } //obuildDefaultQuarkValue
+  } //buildDefaultQuarkValue
 
   EvalStatus NodeStatements::eval()
   {

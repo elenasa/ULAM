@@ -71,14 +71,15 @@ namespace MFM {
 	u32 dq = 0;
 	AssertBool isDefinedQuark = m_state.getDefaultQuark(auti, dq); //returns scalar dq
 	assert(isDefinedQuark);
-	atomuv = UlamValue::makeImmediate(auti, dq, m_state);
+	atomuv = UlamValue::makeImmediateClass(auti, dq, aut->getTotalBitSize());
       }
     else
       assert(0);
 
     m_state.m_funcCallStack.storeUlamValueAtStackIndex(atomuv, atop); //stackframeslotindex ?
 
-    ptr = UlamValue::makePtr(atop, STACK, auti, UNPACKED, m_state, 0);
+    //ptr = UlamValue::makePtr(atop, STACK, auti, UNPACKED, m_state, 0); ??
+    ptr = UlamValue::makePtr(atop, STACK, auti, m_state.determinePackable(auti), m_state, 0);
     ptr.setUlamValueTypeIdx(PtrAbs);
     return ptr;
   } //makeUlamValuePtr

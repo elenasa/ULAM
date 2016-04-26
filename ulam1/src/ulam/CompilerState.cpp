@@ -121,19 +121,6 @@ namespace MFM {
 
   void CompilerState::clearCurrentObjSymbolsForCodeGen()
   {
-#if 0
-    std::vector<Symbol*>::iterator it;
-    for(it = m_currentObjSymbolsForCodeGen.begin(); it != m_currentObjSymbolsForCodeGen.end(); it++)
-      {
-	Symbol * sym = *it;
-	//avoid leaking temporary ref symbols
-	if(sym->isTmpRefSymbol())
-	  {
-	    delete sym;
-	    //*it = NULL;
-	  }
-      }
-#endif
     m_currentObjSymbolsForCodeGen.clear();
   } //clearCurrentObjSymbolsForCodeGen
 
@@ -845,11 +832,15 @@ namespace MFM {
     return ut->getUlamTypeName();
   }
 
+  // returns effective self name of the scalar dereferenced uti arg.
   const std::string CompilerState::getEffectiveSelfMangledNameByIndex(UTI uti)
   {
     UTI esuti = uti;
-    if(isReference(uti))
-      esuti = getUlamTypeAsDeref(uti);
+    if(!isScalar(uti))
+      esuti = getUlamTypeAsScalar(uti);
+
+    if(isReference(esuti))
+      esuti = getUlamTypeAsDeref(esuti);
 
     UlamType * esut = NULL;
     AssertBool isDef = isDefined(m_indexToUlamKey[esuti], esut);
@@ -1023,10 +1014,6 @@ namespace MFM {
     UlamType * ut = getUlamTypeByIndex(utArg);
     ALT utalt = ut->getReferenceType();
 
-#if 0
-    if(utalt != ALT_NOT)
-      return utArg //fails tests!!!
-#else
     if(utalt == altArg)
       return utArg; //same ref type
 
@@ -1043,7 +1030,6 @@ namespace MFM {
 	//assert(0); //didn't hit during testing
 	//continue..
       }
-#endif
 
     ULAMTYPE bUT = ut->getUlamTypeEnum();
     UlamKeyTypeSignature keyOfArg = ut->getUlamKeyTypeSignature();
@@ -1096,6 +1082,62 @@ namespace MFM {
       }
     return rtnb;
   } //getDefaultQuark
+
+  u64 CompilerState::getPackedDefaultElement(UTI auti)
+  {
+    PACKFIT packFit = determinePackable(auti);
+    assert(WritePacked(packFit));
+
+    UTI scalaruti = getUlamTypeAsScalar(auti);
+    UlamValue atomUV = UlamValue::makeDefaultAtom(scalaruti, *this);
+    UlamType * aut = getUlamTypeByIndex(auti);
+    u32 len = aut->getTotalBitSize();
+    u32 bitsize = aut->getBitSize();
+
+    u64 dval = 0;
+    if(len <= MAXBITSPERINT)
+      {
+	dval = atomUV.getDataFromAtom(ATOMFIRSTSTATEBITPOS, bitsize);
+      }
+    else if(len <= MAXBITSPERLONG)
+      {
+	dval = atomUV.getDataLongFromAtom(ATOMFIRSTSTATEBITPOS, bitsize);
+      }
+    else
+      assert(0);
+
+    u64 mask = _GetNOnes64(bitsize);
+    dval &= mask;
+    return dval;
+  } //getPackedDefaultElement
+
+  void CompilerState::getDefaultAsPackedArray(UTI auti, u64 dval, u64& darrval)
+  {
+    assert(okUTItoContinue(auti));
+    darrval = 0; //return
+    if(dval == 0)
+      return;
+
+    UlamType * aut = getUlamTypeByIndex(auti);
+    u32 len = aut->getTotalBitSize();
+    u32 bitsize = aut->getBitSize();
+    u32 arraysize = aut->getArraySize();
+    u32 pos = 0;
+    getDefaultAsPackedArray(len, bitsize, arraysize, pos, dval, darrval);
+  } //getDefaultAsPackedArray
+
+  void CompilerState::getDefaultAsPackedArray(u32 len, u32 bitsize, u32 arraysize, u32 pos, u64 dval, u64& darrval)
+  {
+    darrval = 0; //return
+    if(dval == 0)
+      return;
+
+    u64 mask = _GetNOnes64(bitsize);
+    dval &= mask;
+
+    for(u32 j = 1; j <= arraysize; j++)
+      darrval |= (dval << (len - (pos + (j * bitsize))));
+  } //getDefaultAsPackedArray
 
   bool CompilerState::isScalar(UTI utArg)
   {

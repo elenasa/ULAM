@@ -525,27 +525,18 @@ namespace MFM {
 	if(m_varSymbol->isDataMember())
 	  {
 	    u32 pos = 0;
-#if 0
-	    if(m_state.isPtr(uvpass.getUlamValueTypeIdx()) && (uvpass.getPtrStorage() == TMPAUTOREF))
+
+	    if(!m_state.m_currentObjSymbolsForCodeGen.empty())
 	      {
-		//pos = uvpass.getPtrPos(); //runtime, pos not known, ref will
-		UTI newnuti = m_state.getUlamTypeAsRef(nuti); //an ALT_REF
-		uvpass = UlamValue::makePtr(tmpnum, TMPAUTOREF, newnuti, m_state.determinePackable(newnuti), m_state, pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+		SymbolVariable * sym = (SymbolVariable *) m_state.m_currentObjSymbolsForCodeGen.back();
+		//here, we haven't taken into account any array indexes, So autoref instead
+		// e.g. m_bar[0].cb, and this NI is for the rhs of member select, 'cb'
+		pos = sym->getPosOffset();
 	      }
-	    else
-#endif
-	      {
-		if(!m_state.m_currentObjSymbolsForCodeGen.empty())
-		  {
-		    SymbolVariable * sym = (SymbolVariable *) m_state.m_currentObjSymbolsForCodeGen.back();
-		    //here, we haven't taken into account any array indexes, So autoref instead
-		    // e.g. m_bar[0].cb, and this NI is for the rhs of member select, 'cb'
-		    pos = sym->getPosOffset();
-		  }
-		// 'pos' modified by this data member symbol's packed bit position
-		uvpass = UlamValue::makePtr(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
-	      }
-	    uvpass.setPtrPos(pos + m_varSymbol->getPosOffset()); //could have been zero over-written.
+	    // 'pos' modified by this data member symbol's packed bit position
+	    uvpass = UlamValue::makePtr(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+
+	    uvpass.setPtrPos(pos + m_varSymbol->getPosOffset()); //could have been zero over-written (no thanks).
 	  }
 	else
 	  {
@@ -1145,14 +1136,8 @@ namespace MFM {
     //******UPDATED GLOBAL; no restore!!!**************************
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol);
 
-#if 0
-    if(m_state.isPtr(savuvpass.getUlamValueTypeIdx()) && (savuvpass.getPtrStorage() == TMPAUTOREF))
-      Node::genCodeARefFromARefStorage(fp, savuvpass, uvpass);
-    else
-#endif
-      if(uvpass.getPtrStorage() == TMPAUTOREF)
-	Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
-
+    if(uvpass.getPtrStorage() == TMPAUTOREF)
+      Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
   } //genCodeToStoreInto
 
   // overrides NodeTerminal that reads into a tmp var BitVector

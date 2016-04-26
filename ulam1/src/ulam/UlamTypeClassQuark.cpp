@@ -281,12 +281,25 @@ namespace MFM {
 
   void UlamTypeClassQuark::genUlamTypeAutoReadDefinitionForC(File * fp)
   {
-    //scalar and entire PACKEDLOADABLE array handled by base class read method
+    if(isScalar() || WritePacked(getPackable()))
+      {
+	// write must be scalar; ref param to avoid excessive copying
+	//not an array
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
+	fp->write(" read() const { ");
+	fp->write("return ");
+	fp->write("UlamRef<EC>::");
+	fp->write(readMethodForCodeGen().c_str()); //just the guts
+	fp->write("(); /* entire quark */ }\n");
+      }
+
+    //scalar and entire PACKEDLOADABLE array handled by read method
     if(!isScalar())
       {
 	//class instance idx is always the scalar uti
 	UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
-	const std::string scalarmangledName = m_state.getUlamTypeByIndex(scalaruti)->getUlamTypeMangledName();
 	//reads an item of array
 	//2nd argument generated for compatibility with underlying method
 	m_state.indent(fp);
@@ -302,30 +315,28 @@ namespace MFM {
 	fp->write(readArrayItemMethodForCodeGen().c_str());
 	fp->write("(); }\n");
       }
+  } //genUlamTypeAutoReadDefinitionForC
 
+  void UlamTypeClassQuark::genUlamTypeAutoWriteDefinitionForC(File * fp)
+  {
     if(isScalar() || WritePacked(getPackable()))
       {
 	// write must be scalar; ref param to avoid excessive copying
 	//not an array
 	m_state.indent(fp);
-	fp->write("const ");
+	fp->write("void");
+	fp->write(" write(const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
-	fp->write(" read() const { ");
-	fp->write("return ");
-	fp->write("UlamRef<EC>::");
-	fp->write(readMethodForCodeGen().c_str()); //just the guts
-	fp->write("(); /* entire quark */ }\n");
+	fp->write("& targ) { UlamRef<EC>::");
+	fp->write(writeMethodForCodeGen().c_str());
+	fp->write("(targ); /* entire quark */ }\n");
       }
-  } //genUlamTypeAutoReadDefinitionForC
 
-  void UlamTypeClassQuark::genUlamTypeAutoWriteDefinitionForC(File * fp)
-  {
-    //scalar and entire PACKEDLOADABLE array handled by base class write method
+    //scalar and entire PACKEDLOADABLE array handled by write method
     if(!isScalar())
       {
 	//class instance idx is always the scalar uti
 	UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
-	const std::string scalarmangledName = m_state.getUlamTypeByIndex(scalaruti)->getUlamTypeMangledName();
 	// writes an item of array
 	//3rd argument generated for compatibility with underlying method
 	m_state.indent(fp);
@@ -339,19 +350,6 @@ namespace MFM {
 	fp->write(").");
 	fp->write(writeArrayItemMethodForCodeGen().c_str());
 	fp->write("(v); }\n");
-      }
-
-    if(isScalar() || WritePacked(getPackable()))
-      {
-	// write must be scalar; ref param to avoid excessive copying
-	//not an array
-	m_state.indent(fp);
-	fp->write("void");
-	fp->write(" write(const ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
-	fp->write("& targ) { UlamRef<EC>::");
-	fp->write(writeMethodForCodeGen().c_str());
-	fp->write("(targ); /* entire quark */ }\n");
       }
   } //genUlamTypeAutoWriteDefinitionForC
 
@@ -461,20 +459,11 @@ namespace MFM {
 	    //very packed array
 	    if(len <= MAXBITSPERINT)
 	      {
-		u32 dqarrval = 0;
-		u32 pos = 0;
-		u32 mask = _GetNOnes32((u32) bitsize);
-		u32 arraysize = getArraySize();
-		dqval &= mask;
-		//similar to build default quark value in NodeVarDeclDM
-		for(u32 j = 1; j <= arraysize; j++)
-		  {
-		    dqarrval |= (dqval << (len - (pos + (j * bitsize))));
-		  }
+		u64 dqarrval = 0;
+		m_state.getDefaultAsPackedArray(getTotalBitSize(), getBitSize(), getArraySize(), 0, dqval, dqarrval);
 
 		std::ostringstream qdhex;
 		qdhex << "0x" << std::hex << dqarrval;
-		//fp->write(writeMethodForCodeGen().c_str());
 		fp->write("write(");
 		fp->write(qdhex.str().c_str());
 		fp->write(");");
@@ -497,19 +486,7 @@ namespace MFM {
     fp->write("(const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
     fp->write(" d) { ");
-    //if(isScalar())
-    // {
-	fp->write("write(d);");
-	//      }
-	//else
-	// {
-	//e.g. t3649
-	//fp->write("u32 n = ");
-	//fp->write_decimal(getArraySize());
-	//fp->write("u; while(n--) { ");
-	//fp->write("writeArrayItem(d, n, QUARK_SIZE");
-	//fp->write("); }");
-	//}
+    fp->write("write(d);"); //e.g. t3649
     fp->write(" }\n");
 
     // assignment constructor

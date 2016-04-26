@@ -462,7 +462,8 @@ namespace MFM {
     return rtnb;
   } //updateConstant64
 
-  //right-justified
+  //called on Quark classes only; may have quark and/or (short packed)
+  //quark array data members.
   bool NodeVarDeclDM::buildDefaultQuarkValue(u32& dqref)
   {
     bool aok = false; //init as not ready
@@ -475,51 +476,25 @@ namespace MFM {
 	assert(m_varSymbol);
 	assert(m_varSymbol->isDataMember());
 
-	u32 mask = _GetNOnes32((u32) nut->getBitSize());
 	u32 pos = m_varSymbol->getPosOffset();
 	u32 valinposition = 0;
-	s32 bitsize = m_state.getBitSize(nuti);
+	s32 bitsize = nut->getBitSize();
 	s32 quarksize = m_state.getBitSize(m_state.getCompileThisIdx());
 
 	if(classtype == UC_QUARK)
 	  {
-	    if(m_state.isScalar(nuti))
+	    u32 qval = 0;
+	    if(m_state.getDefaultQuark(nuti, qval))
 	      {
-		SymbolClass * csym = NULL;
-		if(m_state.alreadyDefinedSymbolClass(nuti, csym))
-		  {
-		    u32 qval = 0;
-		    if(csym->getDefaultQuark(qval))
-		      {
-			valinposition = (qval & mask) << (quarksize - bitsize - pos);
-			dqref |= valinposition;
-			aok = true;
-		      }
-		  }
-	      }
-	    else
-	      {
-		//CAN'T take up more than u32 and be a quark DM.
-		//array of quarks
-		// first, get default value of its scalar quark
-		UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
-		u32 bitsize = m_state.getBitSize(nuti);
-		SymbolClass * csym = NULL;
-		AssertBool isDefined = m_state.alreadyDefinedSymbolClass(scalaruti, csym);
-		assert(isDefined);
+		s32 arraysize = nut->getArraySize();
+		arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize);
 
-		u32 qval = 0;
-		AssertBool isDefinedQuark = csym->getDefaultQuark(qval);
-		assert(isDefinedQuark);
+		u64 packedval = 0;
+		//valinposition = (qval & mask) << (quarksize - bitsize - pos);
+		m_state.getDefaultAsPackedArray(quarksize, bitsize, arraysize, pos, (u64) qval, packedval); //both scalar and arrays
 
-		//initialize each array item
-		u32 arraysize = m_state.getArraySize(nuti);
-		qval &= mask;
-
-		for(u32 j = 1; j <= arraysize; j++)
-		  {
-		    dqref |= (qval << (quarksize - (pos + (j * bitsize))));
-		  }
+		valinposition = (u32) packedval;
+		dqref |= valinposition;
 		aok = true;
 	      }
 	  }
@@ -532,7 +507,10 @@ namespace MFM {
 		u64 val = 0;
 		if(((SymbolVariableDataMember *) m_varSymbol)->getInitValue(val))
 		  {
-		    valinposition = ((u32) val & mask) << (quarksize - pos - bitsize);
+		    u64 packedval = 0;
+		    //valinposition = ((u32) val & mask) << (quarksize - pos - bitsize);
+		    m_state.getDefaultAsPackedArray(quarksize, bitsize, 1, pos, (u64) val, packedval);
+		    valinposition = (u32) packedval;
 		    dqref |= valinposition;
 		    aok = true;
 		  }
@@ -558,11 +536,7 @@ namespace MFM {
     if(!nut->isScalar())
       {
 	//array of quarks
-	s32 quarksize = nut->getBitSize();
-	s32 arraysize = nut->getArraySize();
-	s32 totalbitsize = quarksize * arraysize;
-	s32 qwordsize = nut->getTotalWordSize();
-	if(qwordsize > MAXBITSPERLONG) //64
+	if(nut->getTotalWordSize() > MAXBITSPERLONG) //64
 	  {
 	    std::ostringstream msg;
 	    msg << "Not supported at this time, UNPACKED Quark array type: ";
@@ -570,9 +544,7 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    return false;
 	  }
-
-	for(s32 i = 0; i < arraysize; i++)
-	  dqval |= (dq << (totalbitsize - quarksize - (i * quarksize)));
+	m_state.getDefaultAsPackedArray(nuti, dq, dqval); //3rd arg ref
       }
     else
       dqval = dq;

@@ -98,14 +98,6 @@ namespace MFM {
 	m_state.setGoAgain();
       }
 
-#if 0
-    if(!checkNotUnpackedArray())
-      {
-	setNodeType(Nav);
-	return Nav;
-      }
-#endif
-
     if(!NodeBinaryOp::checkNotVoidTypes(leftType, rightType))
       {
     	setNodeType(Nav);

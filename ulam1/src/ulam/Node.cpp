@@ -556,7 +556,6 @@ namespace MFM {
 
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-    //ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClassType();
 
     fp->write("UlamRef<EC>(");
     fp->write(m_state.getHiddenArgName()); //ur
@@ -567,29 +566,6 @@ namespace MFM {
     fp->write(").");
     fp->write(readMethodForCodeGen(stgcosuti, uvpass).c_str()); //or just 'Read' ?
     fp->write("();\n"); //stand-alone 'self'
-
-#if 0
-    if((stgclasstype == UC_QUARK) && stgcos->getId() == m_state.m_pool.getIndexForDataString("self"))
-      {
-	fp->write(m_state.getHiddenArgName()); //ur
-	fp->write(".");
-	fp->write(readMethodForCodeGen(stgcosuti, uvpass).c_str()); //or just 'Read' ?
-	fp->write("();\n"); //stand-alone 'self'
-      }
-    else if(stgclasstype == UC_ELEMENT) //&& self???
-      {
-	fp->write(m_state.getHiddenArgName()); //ur
-	fp->write(".");
-	fp->write(readMethodForCodeGen(stgcosuti, uvpass).c_str()); //packed
-	fp->write("();\n"); //stand-alone 'self'
-      }
-    else
-      {
-	fp->write(m_state.getHiddenArgName());
-	fp->write(".ReadAtom()");
-	fp->write(";\n"); //stand-alone 'atom'
-      }
-#endif
   } //genCodeReadSelfIntoATmpVar
 
   void Node::genCodeReadAutorefIntoATmpVar(File * fp, UlamValue& uvpass)

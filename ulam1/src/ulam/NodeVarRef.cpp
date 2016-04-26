@@ -567,7 +567,7 @@ namespace MFM {
     Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    UTI scalarcosuti = m_state.getUlamTypeAsScalar(cosuti);
+    //UTI scalarcosuti = m_state.getUlamTypeAsScalar(cosuti);
 
     UTI vuti = m_varSymbol->getUlamTypeIdx(); //i.e. this ref node
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
@@ -591,11 +591,10 @@ namespace MFM {
 	fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
 	fp->write("u");
 
-	//if(vclasstype == UC_QUARK)
 	if(vetyp == Class)
 	  {
 	    fp->write(", &");
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
 	  }
       }
     else
@@ -611,7 +610,7 @@ namespace MFM {
 	    if(vclasstype == UC_QUARK)
 	      {
 		fp->write(", &");
-		fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
+		fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
 	      }
 	  }
 	else
@@ -638,7 +637,7 @@ namespace MFM {
 		if(!stgcosut->isReference())
 		  {
 		    fp->write(", 0u, &"); //origin (t3670)
-		    fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
+		    fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
 		  }
 	      }
 	    else

@@ -1549,12 +1549,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.m_currentIndentLevel++;
 
     //get all initialized data members in quark
-    SymbolClass * csym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
-    assert(isDefined);
     u32 qval = 0;
-    AssertBool isQuark = csym->getDefaultQuark(qval);
-    assert(isQuark);
+    AssertBool isDefaultQuark = m_state.getDefaultQuark(cuti, qval);
+    assert(isDefaultQuark);
 
     std::ostringstream qdhex;
     qdhex << "0x" << std::hex << qval;

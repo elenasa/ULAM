@@ -892,14 +892,14 @@ namespace MFM {
     assert(m_state.getUlamTypeByIndex(vuti)->getReferenceType() != ALT_NOT);
 
     //use possible dereference type for mangled name
-    UTI derefuti = m_state.getUlamTypeAsDeref(vuti);
+    //UTI derefuti = m_state.getUlamTypeAsDeref(vuti);
 
     // who's function is it?
     if(m_funcSymbol->isVirtualFunction())
       genCodeVirtualFunctionCall(fp, uvpass, urtmpnum); //indirect call thru func ptr
     else
       {
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(derefuti).c_str());
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
         fp->write(".");
 	fp->write(m_funcSymbol->getMangledName().c_str());
       }
