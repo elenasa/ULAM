@@ -73,6 +73,10 @@ namespace MFM {
 	assert(isDefinedQuark);
 	atomuv = UlamValue::makeImmediateClass(auti, dq, aut->getTotalBitSize());
       }
+    else if(aclasstype == UC_TRANSIENT)
+      {
+	assert(0);
+      }
     else
       assert(0);
 

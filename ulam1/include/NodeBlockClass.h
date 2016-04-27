@@ -183,6 +183,7 @@ namespace MFM{
 
     void genCodeHeaderQuark(File * fp);
     void genCodeHeaderElement(File * fp);
+    void genCodeHeaderTransient(File * fp);
 
     void genShortNameParameterTypesExtractedForHeaderFile(File * fp);
 
@@ -197,6 +198,7 @@ namespace MFM{
     void genCodeBuiltInFunctionBuildDefaultAtom(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInFunctionBuildingDefaultDataMembers(File * fp);
     void genCodeBuiltInFunctionBuildDefaultQuark(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void genCodeBuiltInFunctionBuildDefaultTransient(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
     void genCodeBuiltInVirtualTable(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 

@@ -338,6 +338,12 @@ namespace MFM {
 	      rtnUV = UlamValue::makeImmediateLongClass(uti, data, ut->getTotalBitSize());
 	      break;
 	    }
+	  if(ut->getUlamClassType() == UC_TRANSIENT)
+	    {
+	      assert(!ut->isScalar());
+	      rtnUV = UlamValue::makeImmediateLongClass(uti, data, ut->getTotalBitSize());
+	      break;
+	    }
 	  else
 	    assert(0);
 	}

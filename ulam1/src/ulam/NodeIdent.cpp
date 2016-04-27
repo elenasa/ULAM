@@ -268,7 +268,6 @@ namespace MFM {
 		m_varSymbol->resetUlamType(mappedUTI); //consistent!
 		it = mappedUTI;
 	      }
-	    //else if(m_varSymbol->isSelf())
 	    else if(m_varSymbol->isSelf() || m_state.isReference(it))
 	      {
 		m_state.completeAReferenceType(it);
@@ -312,6 +311,11 @@ namespace MFM {
 
     if(nuti == Hzy)
       return NOTREADY;
+
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    ULAMCLASSTYPE classtype = nut->getUlamClassType();
+    if((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() > MAXSTATEBITS))
+      return UNEVALUABLE;
 
     evalNodeProlog(0); //new current frame pointer
 
@@ -361,7 +365,7 @@ namespace MFM {
 	      {
 		UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 		//if(m_state.isAtom(nuti) || (nut->getUlamClassType() == UC_ELEMENT)) pls test this change!
-		if((m_state.isAtom(nuti) || (nut->getUlamClassType() == UC_ELEMENT)) && (nut->isScalar() || nut->isReference()))
+		if((m_state.isAtom(nuti) || (classtype == UC_ELEMENT) || (classtype == UC_TRANSIENT)) && (nut->isScalar() || nut->isReference()))
 		  {
 		    uv = m_state.getPtrTarget(uvp);
 		  }
@@ -483,6 +487,11 @@ namespace MFM {
 	  // ptr to explicit atom or element, (e.g.'f' in f.a=1) becomes new m_currentObjPtr
 	  ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
       }
+    else if(classtype == UC_TRANSIENT)
+      {
+	// ptr to explicit transient (<= BITSPERATOM for eval), (e.g.'f' in f.a=1) becomes new m_currentObjPtr
+	ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
+      }
     else
       {
 	if(m_varSymbol->isDataMember())
@@ -494,10 +503,12 @@ namespace MFM {
 	else
 	  {
 	    //DEBUG ONLY!!, to view ptr saved with Ref's m_varSymbol.
+#if 0
 	    if(m_varSymbol->isAutoLocal()) //ALT_REF or ALT_ARRAYITEM
 	      {
 		ptr = ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval();
 	      }
+#endif
 	    //local variable on the stack; could be array ptr!
 	    ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
 	  }
@@ -518,7 +529,12 @@ namespace MFM {
     if((classtype == UC_ELEMENT) || m_state.isAtom(nuti))
       {
 	// ptr to explicit atom or element, (e.g. 'f' in f.a=1;)
-	uvpass = UlamValue::makePtr(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, UNPACKED, m_state, 0, m_varSymbol->getId());
+	uvpass = UlamValue::makePtr(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
+      }
+    else if(classtype == UC_TRANSIENT)
+      {
+	// ptr to explicit atom or element, (e.g. 'f' in f.a=1;)
+	uvpass = UlamValue::makePtr(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
       }
     else
       {

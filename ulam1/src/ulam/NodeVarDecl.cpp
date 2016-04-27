@@ -484,6 +484,47 @@ namespace MFM {
 	      }
 	  }
       }
+    else if(classtype == UC_TRANSIENT)
+      {
+	if(m_state.isScalar(nuti))
+	  {
+	    UlamValue atomUV = UlamValue::makeDefaultAtom(m_varSymbol->getUlamTypeIdx(), m_state);
+	    m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+	  }
+	else
+	  {
+	    PACKFIT packFit = m_state.determinePackable(nuti);
+	    if(WritePacked(packFit))
+	      {
+		u64 dval = m_state.getPackedDefaultTransient(nuti);
+		u64 darrval = 0;
+		m_state.getDefaultAsPackedArray(nuti, dval, darrval); //3rd arg ref
+
+		if(len <= MAXBITSPERINT)
+		  {
+		    UlamValue immUV = UlamValue::makeImmediateClass(nuti, (u32) darrval, len);
+		    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+		  }
+		else if(len <= MAXBITSPERLONG) //t3710
+		  {
+		    UlamValue immUV = UlamValue::makeImmediateLongClass(nuti, darrval, len);
+		    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+		  }
+		else
+		  assert(0); //not write packable!
+	      }
+	    else
+	      {
+		//UNPACKED element array
+		UlamValue atomUV = UlamValue::makeDefaultAtom(m_varSymbol->getUlamTypeIdx(), m_state);
+		u32 baseslot =  ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex();
+		for(u32 j = 0; j < slots; j++)
+		  {
+		    m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, baseslot + j);
+		  }
+	      }
+	  }
+      }
     else if(!m_varSymbol->isDataMember())
       {
 	if(classtype == UC_NOTACLASS)
@@ -648,6 +689,11 @@ namespace MFM {
     if(classtype == UC_ELEMENT)
       {
 	  // ptr to explicit atom or element, (e.g.'f' in f.a=1) becomes new m_currentObjPtr
+	  ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
+      }
+    else if(classtype == UC_TRANSIENT)
+      {
+	  // ptr to explicit transient, (e.g.'f' in f.a=1) becomes new m_currentObjPtr
 	  ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
       }
     else

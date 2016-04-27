@@ -68,6 +68,7 @@ namespace MFM {
   static const char * GETCLASSLENGTH_FUNCNAME = "GetClassLength";
   static const char * BUILD_DEFAULT_ATOM_FUNCNAME = "BuildDefaultAtom";
   static const char * BUILD_DEFAULT_QUARK_FUNCNAME = "getDefaultQuark";
+  static const char * BUILD_DEFAULT_TRANSIENT_FUNCNAME = "getDefaultTransient";
 
   //use of this in the initialization list seems to be okay;
   CompilerState::CompilerState(): m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalHas(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0)
@@ -1111,6 +1112,12 @@ namespace MFM {
     return dval;
   } //getPackedDefaultElement
 
+  u64 CompilerState::getPackedDefaultTransient(UTI auti)
+  {
+    assert(0); //TBD
+    return 0;
+  } //getPackedDefaultTransient
+
   void CompilerState::getDefaultAsPackedArray(UTI auti, u64 dval, u64& darrval)
   {
     assert(okUTItoContinue(auti));
@@ -1236,7 +1243,7 @@ namespace MFM {
 
     //redirect primitives;
     ULAMCLASSTYPE classtype = ut->getUlamClassType();
-    if(!(classtype == UC_ELEMENT || classtype == UC_QUARK || classtype == UC_UNSEEN))
+    if(!(classtype == UC_ELEMENT || classtype == UC_QUARK || classtype == UC_TRANSIENT || classtype == UC_UNSEEN))
       {
 	return setSizesOfNonClass(utArg, bitsize, arraysize);
       }
@@ -2354,6 +2361,8 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       return getIsMangledFunctionName(ltype);
     else if (rclasstype == UC_ELEMENT)
       return IS_MANGLED_FUNC_NAME;
+    else if (rclasstype == UC_TRANSIENT)
+      return IS_MANGLED_FUNC_NAME;
     else
       assert(0);
 
@@ -2374,6 +2383,8 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       return BUILD_DEFAULT_ATOM_FUNCNAME; //for elements
     else if(lclasstype == UC_QUARK)
       return getDefaultQuarkFunctionName();
+    else if(lclasstype == UC_TRANSIENT)
+      return BUILD_DEFAULT_TRANSIENT_FUNCNAME;
     else
       assert(0);
     return "BUILDEFAULTATOM_ERROR";
@@ -2381,7 +2392,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   const char * CompilerState::getDefaultQuarkFunctionName()
   {
-      return BUILD_DEFAULT_QUARK_FUNCNAME;
+    return BUILD_DEFAULT_QUARK_FUNCNAME;
   } //getDefaultQuarkFunctionName
 
   std::string CompilerState::getFileNameForAClassHeader(UTI cuti, bool wSubDir)
@@ -2478,7 +2489,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   {
     assert(okUTItoContinue(uti));
     ULAMCLASSTYPE classtype = getUlamTypeByIndex(uti)->getUlamClassType();
-    assert(classtype == UC_QUARK || classtype == UC_ELEMENT);
+    assert(classtype == UC_QUARK || classtype == UC_ELEMENT || classtype == UC_TRANSIENT);
 
     std::ostringstream mangled;
     if(classtype == UC_QUARK)
@@ -2512,6 +2523,10 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 		lenstr << "::QUARK_SIZE";
 	      }
 	    else if(classtype == UC_ELEMENT)
+	      {
+		lenstr << "::LENGTH";
+	      }
+	    else if(classtype == UC_TRANSIENT)
 	      {
 		lenstr << "::LENGTH";
 	      }
@@ -2883,8 +2898,6 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     std::ostringstream tmpVar; //into
     PACKFIT packed = determinePackable(uti);
 
-    //UlamType * ut = getUlamTypeByIndex(uti);
-    //if(isAtom(uti) || (ut->getUlamClassType() == UC_ELEMENT))
     if(isAtom(uti)) //elements are packed!
       {
 	//stg = TMPBITVAL or TMPTATOM; avoid loading a T into a tmpregister!

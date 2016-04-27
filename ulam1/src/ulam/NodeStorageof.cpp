@@ -117,7 +117,12 @@ namespace MFM {
     if(aclasstype == UC_ELEMENT)
       {
 	// ptr to explicit atom or element, (e.g.'f' in f.a=1) becomes new m_currentObjPtr
-	ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, auti, UNPACKED, m_state, 0, m_varSymbol->getId());
+	ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, auti, m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
+      }
+    else if(aclasstype == UC_TRANSIENT)
+      {
+	// ptr to explicit transient, (e.g.'f' in f.a=1) becomes new m_currentObjPtr
+	ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, auti, m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
       }
     else
       {

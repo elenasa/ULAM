@@ -160,7 +160,7 @@ namespace MFM {
         return true;
       }
 
-    if((pTok.m_type != TOK_KW_ELEMENT) && (pTok.m_type != TOK_KW_QUARK) && (pTok.m_type != TOK_KW_QUARKUNION))
+    if((pTok.m_type != TOK_KW_ELEMENT) && (pTok.m_type != TOK_KW_QUARK) && (pTok.m_type != TOK_KW_QUARKUNION) && (pTok.m_type != TOK_KW_TRANSIENT))
       {
 	std::ostringstream msg;
 	msg << "Invalid Class Type <";
@@ -169,8 +169,10 @@ namespace MFM {
 	msg << Token::getTokenAsStringFromPool(TOK_KW_ELEMENT, &m_state).c_str();
 	msg << "', '";
 	msg << Token::getTokenAsStringFromPool(TOK_KW_QUARK, &m_state).c_str();
-	msg << "', or '";
+	msg << "', '";
 	msg << Token::getTokenAsStringFromPool(TOK_KW_QUARKUNION, &m_state).c_str();
+	msg << "', or '";
+	msg << Token::getTokenAsStringFromPool(TOK_KW_TRANSIENT, &m_state).c_str();
 	msg << "'";
 	MSG(&pTok, msg.str().c_str(), ERR);
 	m_state.clearStructuredCommentToken();
@@ -292,6 +294,12 @@ namespace MFM {
 	  AssertBool isReplaced = m_state.replaceUlamTypeForUpdatedClassType(cut->getUlamKeyTypeSignature(), Class, UC_QUARK, cut->isCustomArray());
 	  assert(isReplaced);
 	  cnSym->setQuarkUnion();
+	  break;
+	}
+      case TOK_KW_TRANSIENT:
+	{
+	  AssertBool isReplaced = m_state.replaceUlamTypeForUpdatedClassType(cut->getUlamKeyTypeSignature(), Class, UC_TRANSIENT, cut->isCustomArray());
+	  assert(isReplaced);
 	  break;
 	}
       default:

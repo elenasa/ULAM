@@ -29,11 +29,15 @@ namespace MFM {
     UTI valtypidx = val.getUlamValueTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(valtypidx);
     assert(vut->isScalar() && isScalar());
-    ULAMTYPE vetype = vut->getUlamTypeEnum();
+    ULAMTYPE vetyp = vut->getUlamTypeEnum();
+    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
+
     //now allowing atoms to be cast as quarks, as well as elements;
     // also allowing subclasses to be cast as their superclass (u1.2.2)
-    if(vetype == UAtom)
+    if(vetyp == UAtom)
       brtn = false; //cast atom to a quark?
+    else if(vclasstype == UC_TRANSIENT)
+      brtn = false; //cast transient to a quark?
     else if(UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME)
       {
 	//if same type nothing to do; if atom, shows as element in eval-land.
@@ -42,7 +46,6 @@ namespace MFM {
     else if(m_state.isClassASubclassOf(valtypidx, typidx))
       {
 	//2 quarks, or element (val) inherits from this quark
-	ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
 	if(vclasstype == UC_ELEMENT)
 	  {
 	    s32 pos = ATOMFIRSTSTATEBITPOS; //ancestors start at first state bit pos
@@ -495,9 +498,7 @@ namespace MFM {
     fp->write("(const ");
     fp->write(mangledName.c_str());
     fp->write("<EC> & arg) { ");
-    //fp->write(writeMethodForCodeGen().c_str());
     fp->write("write(arg.");
-    //fp->write(readMethodForCodeGen().c_str());
     fp->write("read()); }\n");
 
     m_state.m_currentIndentLevel--;
@@ -516,7 +517,6 @@ namespace MFM {
 
   void UlamTypeClassQuark::genUlamTypeReadDefinitionForC(File * fp)
   {
-    //    if(isScalar() || (getPackable() == PACKEDLOADABLE))
     if(WritePacked(getPackable()))
       {
 	m_state.indent(fp);
@@ -569,7 +569,6 @@ namespace MFM {
 
   void UlamTypeClassQuark::genUlamTypeWriteDefinitionForC(File * fp)
   {
-    //if(isScalar() || (getPackable() == PACKEDLOADABLE))
     if(WritePacked(getPackable()))
       {
 	m_state.indent(fp);

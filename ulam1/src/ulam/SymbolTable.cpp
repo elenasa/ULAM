@@ -1471,7 +1471,8 @@ namespace MFM {
 	if(!isAnonymousClass(cuti))
 	  {
 	    //first output all the element typedefs, skipping quarks
-	    if(((SymbolClass * ) sym)->getUlamClass() != UC_QUARK)
+	    //if(((SymbolClass * ) sym)->getUlamClass() != UC_QUARK)
+	    if(((SymbolClass * ) sym)->getUlamClass() == UC_ELEMENT)
 	      ((SymbolClassName *) sym)->generateTestInstanceForClassInstances(fp, NORUNTEST);
 	  }
 	it++;
@@ -1486,7 +1487,8 @@ namespace MFM {
 	Symbol * sym = it->second;
 	assert(sym->isClass());
 	//next output all the element typedefs that are m_compileThisId; skipping quarks
-	if(sym->getId() == m_state.getCompileThisId() && ((SymbolClass * ) sym)->getUlamClass() != UC_QUARK)
+	//if(sym->getId() == m_state.getCompileThisId() && ((SymbolClass * ) sym)->getUlamClass() != UC_QUARK)
+	if(sym->getId() == m_state.getCompileThisId() && ((SymbolClass * ) sym)->getUlamClass() == UC_ELEMENT)
 	  ((SymbolClassName *) sym)->generateTestInstanceForClassInstances(fp, RUNTEST);
 	it++;
 	idcounter++;

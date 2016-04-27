@@ -217,18 +217,44 @@ namespace MFM {
 
     std::ostringstream msg;
     msg << "[UTBUA] Total bits used/available by ";
-    msg << (classtype == UC_ELEMENT ? "element " : "quark ");
+    if(classtype == UC_ELEMENT)
+       msg << "element ";
+    else if(classtype == UC_QUARK)
+       msg << "quark ";
+    else if(classtype == UC_TRANSIENT)
+      msg << "transient ";
+    else
+      assert(0);
+
     msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str() << " : ";
 
     if(m_state.isComplete(suti))
       {
-	s32 remaining = (classtype == UC_ELEMENT ? (MAXSTATEBITS - total) : (MAXBITSPERQUARK - total));
+	s32 remaining = 0;
+	if(classtype == UC_ELEMENT)
+	  remaining = (MAXSTATEBITS - total);
+	else if(classtype == UC_QUARK)
+	  remaining = (MAXBITSPERQUARK - total);
+	else if(classtype == UC_TRANSIENT)
+	  remaining = total;
+	else
+	  assert(0);
+
 	msg << total << "/" << remaining;
       }
     else
       {
 	total = UNKNOWNSIZE;
-	s32 remaining = (classtype == UC_ELEMENT ? MAXSTATEBITS : MAXBITSPERQUARK);
+	s32 remaining = 0;
+	if(classtype == UC_ELEMENT)
+	  remaining = (MAXSTATEBITS);
+	else if(classtype == UC_QUARK)
+	  remaining = (MAXBITSPERQUARK);
+	else if(classtype == UC_TRANSIENT)
+	  remaining = total;
+	else
+	  assert(0);
+
 	msg << "UNKNOWN" << "/" << remaining;
       }
     MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(),INFO);
@@ -680,6 +706,8 @@ namespace MFM {
       fp->write("Element");
     else if(classtype == UC_QUARK)
       fp->write("Quark");
+    else if(classtype == UC_TRANSIENT)
+      fp->write("Transient");
     else
       assert(0);
 

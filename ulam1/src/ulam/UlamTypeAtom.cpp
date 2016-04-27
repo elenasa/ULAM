@@ -118,6 +118,8 @@ namespace MFM {
 	  scr = CAST_BAD; //only to atom, not ref
 	else if((vut->getUlamClassType() == UC_QUARK) && !vut->isReference())
 	  scr = CAST_BAD; //non-ref quark to atom is also bad (t3678)
+	else if((vut->getUlamClassType() == UC_TRANSIENT))
+	  scr = CAST_BAD; //transient to atom is also bad
 	//else atom, element ref, quark ref (possibly), are acceptable
       }
     return scr;
@@ -133,7 +135,7 @@ namespace MFM {
     u32 sizeByIntBits = nut->getTotalWordSize();
 
     assert(sizeByIntBitsToBe == sizeByIntBits);
-    assert(nut->getUlamClassType() == UC_ELEMENT);  //quarks only cast toInt
+    assert(nut->getUlamClassType() == UC_ELEMENT); //quarks only cast toInt
 
     rtnMethod << "_" << "Element"  << sizeByIntBits << "To";
     rtnMethod << getUlamTypeNameOnly().c_str() << sizeByIntBitsToBe;

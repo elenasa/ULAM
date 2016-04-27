@@ -2391,7 +2391,8 @@ namespace MFM {
 
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     //either total size is greater than a long, or each item is an element or atom
-    return((cosut->getTotalBitSize() > MAXBITSPERLONG) || (cosut->getUlamClassType() == UC_ELEMENT) || m_state.isAtom(cosuti));
+    //return((cosut->getTotalBitSize() > MAXBITSPERLONG) || (cosut->getUlamClassType() == UC_ELEMENT) || m_state.isAtom(cosuti));
+    return((cosut->getTotalBitSize() > MAXBITSPERLONG) || m_state.isAtom(cosuti));
   } //isCurrentObjectAnUnpackedArray
 
   bool Node::isHandlingImmediateType()

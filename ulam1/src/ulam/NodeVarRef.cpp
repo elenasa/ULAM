@@ -460,6 +460,11 @@ namespace MFM {
 		  {
 		    fp->write(", 0u"); //idx for storage e.g. t3615
 		  }
+		else if(vclasstype == UC_TRANSIENT)
+		  {
+		    fp->write(", 0u"); //??????
+		  }
+		//else e.g. atom do nothing
 	      }
 	  }
 
@@ -631,7 +636,6 @@ namespace MFM {
 		else if(vut->getPackable() == PACKEDLOADABLE)
 		  fp->write(", uc");
 	      }
-	    //else if((vclasstype == UC_QUARK) || (vclasstype == UC_ELEMENT))
 	    else if(vetyp == Class)
 	      {
 		if(!stgcosut->isReference())

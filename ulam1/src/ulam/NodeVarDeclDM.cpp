@@ -577,7 +577,7 @@ namespace MFM {
     ULAMCLASSTYPE thisclasstype = m_state.getUlamTypeByIndex(cuti)->getUlamClassType();
     if(thisclasstype == UC_TRANSIENT)
       {
-	if((classtype == UC_ELEMENT) || m_state.isAtom(it))
+	if(m_state.isAtom(it))
 	  {
 	    if(ut->isScalar())
 	      {
@@ -590,7 +590,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    offset += len; //includes arraysize
+	    offset += len; //includes arraysize, and other transients
 	  }
       }
     else
@@ -633,6 +633,18 @@ namespace MFM {
 		setNodeType(Nav); //compiler counts
 	      }
 	  }
+
+	if(classtype == UC_TRANSIENT)
+	  {
+	    std::ostringstream msg;
+	    msg << "Data member <" << getName() << "> of type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    msg << ", is a transient, and is NOT permitted; Local variables, ";
+	    msg << "do not have this restriction";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav); //compiler counts
+	  }
+
 	offset += len;
       } //not transient
 
@@ -688,6 +700,9 @@ namespace MFM {
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
 
     assert(m_varSymbol->getAutoLocalType() == ALT_NOT);
+
+    if(classtype == UC_TRANSIENT)
+      return NodeVarDecl::eval(); //can only be a data member of a transient
 
     if(m_state.isAtom(nuti) || (classtype == UC_ELEMENT))
       return NodeVarDecl::eval();
@@ -770,11 +785,16 @@ namespace MFM {
 	  {
 	    fp->write_decimal(m_varSymbol->getPosOffset());
 	  }
-	else
+	else if(classtype == UC_ELEMENT)
 	  {
-	    assert(classtype == UC_ELEMENT);
 	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
 	  }
+	else if(classtype == UC_TRANSIENT)
+	  {
+	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
+	  }
+	else
+	  assert(0);
 
 	fp->write("u, ");
 	fp->write_decimal(nut->getTotalBitSize()); //include arraysize

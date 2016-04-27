@@ -91,23 +91,8 @@ namespace MFM {
 
     if(resolveType(it))
       {
-	UTI scalaruti = m_state.getUlamTypeAsScalar(it);
-	UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
-	ULAMCLASSTYPE sclasstype = scalarut->getUlamClassType();
-	if(m_state.isAtom(scalaruti) || (sclasstype == UC_ELEMENT))
-	  {
-	    std::ostringstream msg;
-	    msg << "Invalid non-scalar type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << ". Requires a custom array"; //we have unpacked arrays now!
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //was ERR
-	    //it = Nav;
-	  }
-	//else
-	  {
-	    m_ready = true; // set here
-	    setNodeType(it);
-	  }
+	m_ready = true; // set here
+	setNodeType(it);
       }
     else
       {

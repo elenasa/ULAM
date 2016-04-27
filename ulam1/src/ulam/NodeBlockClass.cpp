@@ -154,7 +154,7 @@ namespace MFM {
       {
 	assert(m_state.okUTItoContinue(cuti));
 	ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(cuti)->getUlamClassType(); //may not need classtype
-	assert(classtype == UC_ELEMENT || classtype == UC_QUARK); //sanity check after eval (below)
+	assert((classtype == UC_ELEMENT) || (classtype == UC_QUARK) || (classtype == UC_TRANSIENT)); //sanity check after eval (below)
 
 	//simplifying assumption for testing purposes: center site
 	Coord c0(0,0);
@@ -839,11 +839,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     u32 reloffset = 0;
 
-    //UTI cuti = m_state.getCompileThisIdx();
-    //ULAMCLASSTYPE thisclasstype = m_state.getUlamTypeByIndex(cuti)->getUlamClassType();
-    //if(thisclasstype == UC_ELEMENT)
-    //  abspos = ATOMFIRSTSTATEBITPOS; //elements are absolute to the ATOM!!!
-
     UTI nuti = getNodeType();
     UTI superuti = m_state.isClassASubclass(nuti);
     assert(superuti != Hzy);
@@ -923,10 +918,16 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       {
 	genCodeHeaderQuark(fp);
       }
-    else //element
+    else if(classtype == UC_ELEMENT)
       {
 	genCodeHeaderElement(fp);
       }
+    else if(classtype == UC_TRANSIENT)
+      {
+	genCodeHeaderTransient(fp);
+      }
+    else
+      assert(0);
 
     //gencode declarations only for all the function definitions
     bool declOnly = true;
@@ -1096,6 +1097,67 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     // in case a function has one as a return value and/or parameter.
   } //genCodeHeaderElement
 
+  void NodeBlockClass::genCodeHeaderTransient(File * fp)
+  {
+    //use the instance UTI instead of the node's original type
+    UTI cuti = m_state.getCompileThisIdx();
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write("class ");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write(" : public UlamTransient<EC> ");
+    //fp->write_decimal_unsigned(cut->getTotalBitSize());
+    //fp->write("u> ");
+
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    genShortNameParameterTypesExtractedForHeaderFile(fp);
+
+    fp->write("\n");
+    m_state.m_currentIndentLevel--;
+
+    m_state.indent(fp);
+    fp->write("public:\n\n");
+
+    m_state.m_currentIndentLevel++;
+
+    //default constructor/destructor;
+    m_state.indent(fp);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("();\n");
+
+    m_state.indent(fp);
+    fp->write("~");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("();\n\n");
+
+    m_state.indent(fp);
+    fp->write("static ");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write(" THE_INSTANCE;\n");
+
+    fp->write("\n");
+
+    //DataMember VAR DECLS DM
+    if(m_nodeNext)
+      {
+	UlamValue uvpass;
+	m_nodeNext->genCode(fp, uvpass);  //output the BitField typedefs
+	fp->write("\n");
+      }
+
+    // if this 'element' contains more than one template (quark) data members,
+    // we need vector of offsets to generate a separate function decl/dfn for each one's POS
+    // in case a function has one as a return value and/or parameter.
+  } //genCodeHeaderTransient
+
   void NodeBlockClass::genShortNameParameterTypesExtractedForHeaderFile(File * fp)
   {
     m_state.indent(fp);
@@ -1186,7 +1248,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
       }
-    else
+    else if(classtype == UC_QUARK)
       {
 	//default constructor for quark
 	m_state.indent(fp);
@@ -1221,6 +1283,45 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
       }
+    else if(classtype == UC_TRANSIENT)
+      {
+	//default constructor for transient
+	m_state.indent(fp);
+	fp->write("template<class EC>\n");
+
+	m_state.indent(fp);
+	fp->write(cut->getUlamTypeMangledName().c_str());
+	fp->write("<EC>");
+	fp->write("::");
+	fp->write(cut->getUlamTypeMangledName().c_str());
+
+	std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
+	std::string namestrlong = removePunct(cut->getUlamTypeMangledName());
+
+	fp->write("() : UlamTransient<EC");
+	//fp->write_decimal_unsigned(len);
+	fp->write(">(MFM_UUID_FOR(\"");
+	fp->write(namestrlong.c_str());
+	fp->write("\", 0))\n");
+
+	m_state.indent(fp);
+	fp->write("{ }\n\n");
+
+	//default destructor
+	m_state.indent(fp);
+	fp->write("template<class EC>\n");
+
+	m_state.indent(fp);
+	fp->write(cut->getUlamTypeMangledName().c_str());
+	fp->write("<EC>");
+	fp->write("::~");
+	fp->write(cut->getUlamTypeMangledName().c_str());
+	fp->write("(){}\n\n");
+
+	assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
+      }
+    else
+      assert(0);
 
     generateCodeForFunctions(fp, false, classtype);
 
@@ -1263,6 +1364,10 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       }
     else if(classtype == UC_QUARK)
       generateGetPosForQuark(fp, declOnly);
+    else if(classtype == UC_TRANSIENT)
+      {
+	//assert(0);
+      }
     else
       assert(0); //sanity
   } //generateCodeForBuiltInClassFunctions
@@ -1370,7 +1475,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
-    fp->write("} //is-related-quark\n\n");
+    fp->write("} //is-related\n\n");
   } //genCodeBuiltInFunctionIsMethodQuarkRelated
 
   void NodeBlockClass::genCodeBuiltInFunctionIsRelatedQuarkType(File * fp)
@@ -1384,7 +1489,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	m_state.indent(fp);
 	fp->write("if(!strcmp(namearg,\"");
 	fp->write(superut->getUlamTypeMangledName().c_str()); //mangled, including class args!
-	fp->write("\")) return(true); //inherited quark\n");
+	fp->write("\")) return(true); //inherited class\n");
 
 	//then include any of its relatives:
 	NodeBlockClass * superClassBlock = getSuperBlockPointer();
@@ -1433,14 +1538,16 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.m_currentIndentLevel--;
 
     m_state.indent(fp);
-    fp->write("}\n");
+    fp->write("} //getClassLength\n\n");
   } //genCodeBuiltInFunctionGetClassLength
 
   void NodeBlockClass::genCodeBuiltInFunctionBuildDefaultAtom(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     //'default atom' applies only to elements
     if(classtype == UC_QUARK)
-      return genCodeBuiltInFunctionBuildDefaultQuark(fp, declOnly, classtype);;
+      return genCodeBuiltInFunctionBuildDefaultQuark(fp, declOnly, classtype);
+    else if(classtype == UC_TRANSIENT)
+      return genCodeBuiltInFunctionBuildDefaultTransient(fp, declOnly, classtype);
 
     assert(classtype == UC_ELEMENT);
 
@@ -1567,6 +1674,77 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("} //getDefaultQuark\n\n");
   } //genCodeBuiltInFunctionBuildDefaultQuark
+
+  void NodeBlockClass::genCodeBuiltInFunctionBuildDefaultTransient(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    //return;
+    assert(classtype == UC_TRANSIENT);
+
+    UTI cuti = m_state.getCompileThisIdx();
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+
+    if(declOnly)
+      {
+	m_state.indent(fp);
+	fp->write("virtual bool ");
+	fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
+	fp->write("(BitStorage<EC");
+	fp->write(">& bvsref) const;\n\n");
+	return;
+      }
+
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write("bool ");
+
+    //include the mangled class::
+    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
+    fp->write("<EC>");
+
+    fp->write("::");
+    fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
+    fp->write("(BitStorage<EC");
+    fp->write(">& bvsref) const\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    u32 len = cut->getTotalBitSize();
+
+    m_state.indent(fp);
+    fp->write("BitVectorBitStorage<EC, BitVector< ");
+    fp->write_decimal_unsigned(len);
+    fp->write("u> > da;\n");
+
+    m_state.indent(fp);
+    fp->write("UlamRef<EC> daref(0u, ");
+    fp->write_decimal_unsigned(len);
+    fp->write("u, da, &");
+    fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
+    fp->write(");\n\n");
+
+    m_state.indent(fp);
+    fp->write("// Initialize any data members:\n");
+
+    //get all initialized data members packed into 'daref'
+    genCodeBuiltInFunctionBuildingDefaultDataMembers(fp);
+
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("bvsref = da;\n");
+
+    m_state.indent(fp);
+    fp->write("return ");
+    fp->write("true;\n");
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //getDefaultTransient\n\n");
+  } //genCodeBuiltInFunctionBuildDefaultTransient
 
   void NodeBlockClass::genCodeBuiltInVirtualTable(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {

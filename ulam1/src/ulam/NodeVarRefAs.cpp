@@ -144,13 +144,6 @@ namespace MFM {
     // can't let Node::genCodeReadIntoTmpVar do this for us: need a ref.
     assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
     m_state.indent(fp);
-    //fp->write(stgcosut->getTmpStorageTypeAsString().c_str());
-    //fp->write("& "); //here it is!!
-    //fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
-    //fp->write(" = ");
-    //fp->write(stgcos->getMangledName().c_str());
-    //fp->write(".GetStorage()"); //non-const
-    //fp->write(";\n");
     fp->write(stgcosut->getUlamTypeImmediateMangledName().c_str());
     fp->write("<EC> & "); //here it is!! brilliant
     fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());

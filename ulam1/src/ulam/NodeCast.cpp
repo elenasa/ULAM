@@ -598,7 +598,6 @@ namespace MFM {
      return; //nothing to do!
 
    UlamType * vut = m_state.getUlamTypeByIndex(vuti); //after vuti replacement
-   //if(m_state.isAtom(tobeType) || m_state.isAtom(vuti) || (vclasstype == UC_ELEMENT) || (vclasstype == UC_QUARK))
    if(!tobe->isPrimitiveType() || !vut->isPrimitiveType())
      {
        return genCodeReadNonPrimitiveIntoATmpVar(fp, uvpass);
@@ -706,7 +705,10 @@ namespace MFM {
       msg << tobe->getUlamTypeName().c_str();
       msg << "(UTI" << tobeType << ") to be " << vut->getUlamTypeName().c_str();
       msg << "(UTI" << vuti << ")";
-      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+      if((tclasstype == UC_TRANSIENT) || (vclasstype == UC_TRANSIENT))
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      else
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
       return;
     }
 } //genCodeReadNonPrimitiveIntoATmpVar

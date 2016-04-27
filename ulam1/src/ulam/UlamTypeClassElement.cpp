@@ -331,6 +331,20 @@ namespace MFM {
 
   void UlamTypeClassElement::genUlamTypeAutoReadDefinitionForC(File * fp)
   {
+    if(isScalar() || WritePacked(getPackable()))
+      {
+	// write must be scalar; ref param to avoid excessive copying
+	//not an array
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
+	fp->write(" read() { ");
+	fp->write("return ");
+	fp->write("UlamRef<EC>::");
+	fp->write(readMethodForCodeGen().c_str()); //just the guts
+	fp->write("(); /* entire element */ }\n");
+      }
+
     // arrays are handled separately
     //assert(isScalar());
     //scalar and entire PACKEDLOADABLE or UNPACKED array handled by base class read method
@@ -353,24 +367,23 @@ namespace MFM {
 	fp->write(readArrayItemMethodForCodeGen().c_str());
 	fp->write("(); }\n");
       }
+  } //genUlamTypeAutoReadDefinitionForC
 
+  void UlamTypeClassElement::genUlamTypeAutoWriteDefinitionForC(File * fp)
+  {
     if(isScalar() || WritePacked(getPackable()))
       {
 	// write must be scalar; ref param to avoid excessive copying
 	//not an array
 	m_state.indent(fp);
-	fp->write("const ");
+	fp->write("void");
+	fp->write(" write(const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
-	fp->write(" read() { ");
-	fp->write("return ");
-	fp->write("UlamRef<EC>::");
-	fp->write(readMethodForCodeGen().c_str()); //just the guts
-	fp->write("(); /* entire element */ }\n");
+	fp->write("& targ) { UlamRef<EC>::");
+	fp->write(writeMethodForCodeGen().c_str());
+	fp->write("(targ); /* entire element */ }\n");
       }
-  } //genUlamTypeAutoReadDefinitionForC
 
-  void UlamTypeClassElement::genUlamTypeAutoWriteDefinitionForC(File * fp)
-  {
     // arrays are handled separately
     //assert(isScalar());
     //scalar and entire PACKEDLOADABLE array handled by base class write method
@@ -388,19 +401,6 @@ namespace MFM {
 	fp->write("Us::THE_INSTANCE)."); //effself
 	fp->write(writeArrayItemMethodForCodeGen().c_str());
 	fp->write("(v); }\n");
-      }
-
-    if(isScalar() || WritePacked(getPackable()))
-      {
-	// write must be scalar; ref param to avoid excessive copying
-	//not an array
-	m_state.indent(fp);
-	fp->write("void");
-	fp->write(" write(const ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
-	fp->write("& targ) { UlamRef<EC>::");
-	fp->write(writeMethodForCodeGen().c_str());
-	fp->write("(targ); /* entire element */ }\n");
       }
   } //genUlamTypeAutoWriteDefinitionForC
 
