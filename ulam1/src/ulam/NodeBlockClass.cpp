@@ -1686,9 +1686,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(declOnly)
       {
 	m_state.indent(fp);
-	fp->write("virtual bool ");
+	fp->write("virtual void ");
 	fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
-	fp->write("(BitStorage<EC");
+	fp->write("(u32 pos, BitStorage<EC");
 	fp->write(">& bvsref) const;\n\n");
 	return;
       }
@@ -1697,7 +1697,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("template<class EC>\n");
 
     m_state.indent(fp);
-    fp->write("bool ");
+    fp->write("void ");
 
     //include the mangled class::
     fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
@@ -1705,7 +1705,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     fp->write("::");
     fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
-    fp->write("(BitStorage<EC");
+    fp->write("(u32 pos, BitStorage<EC");
     fp->write(">& bvsref) const\n");
     m_state.indent(fp);
     fp->write("{\n");
@@ -1715,14 +1715,14 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     u32 len = cut->getTotalBitSize();
 
     m_state.indent(fp);
-    fp->write("BitVectorBitStorage<EC, BitVector< ");
+    fp->write("MFM_API_ASSERT_ARG(bvsref.GetBitSize() >= ");
     fp->write_decimal_unsigned(len);
-    fp->write("u> > da;\n");
+    fp->write("u);\n");
 
     m_state.indent(fp);
-    fp->write("UlamRef<EC> daref(0u, ");
+    fp->write("UlamRef<EC> daref(pos, ");
     fp->write_decimal_unsigned(len);
-    fp->write("u, da, &");
+    fp->write("u, bvsref, &");
     fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
     fp->write(");\n\n");
 
@@ -1733,13 +1733,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     genCodeBuiltInFunctionBuildingDefaultDataMembers(fp);
 
     fp->write("\n");
-
-    m_state.indent(fp);
-    fp->write("bvsref = da;\n");
-
-    m_state.indent(fp);
-    fp->write("return ");
-    fp->write("true;\n");
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);

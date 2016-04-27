@@ -418,6 +418,11 @@ namespace MFM {
 
     assert(m_varSymbol);
 
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    ULAMCLASSTYPE classtype = nut->getUlamClassType();
+    if((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() > MAXSTATEBITS))
+      return UNEVALUABLE;
+
     TBOOL stor = Node::getStoreIntoAble();
     if(stor != TBOOL_TRUE) //i.e. an MP
       {

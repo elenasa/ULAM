@@ -395,8 +395,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("() { ");
-    fp->write("BVS foo; MFM_API_ASSERT_ARG(Us::THE_INSTANCE.getDefaultTransient(foo)); ");
-    fp->write("this->m_stg = foo.m_stg; }\n");
+    fp->write("Us::THE_INSTANCE.getDefaultTransient(0u, *this); }\n");
 
     //constructor here (used by const tmpVars)
     m_state.indent(fp);
