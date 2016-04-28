@@ -522,7 +522,7 @@ namespace MFM {
   } //makeUlamValuePtr
 
   //new
-  void NodeIdent::makeUlamValuePtrForCodeGen(UlamValue& uvpass)
+  void NodeIdent::makeUVPassForCodeGen(UVPass& uvpass)
   {
     assert(m_varSymbol);
     s32 tmpnum = m_state.getNextTmpVarNumber();
@@ -534,12 +534,12 @@ namespace MFM {
     if((classtype == UC_ELEMENT) || m_state.isAtom(nuti))
       {
 	// ptr to explicit atom or element, (e.g. 'f' in f.a=1;)
-	uvpass = UlamValue::makePtr(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
+	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
       }
     else if(classtype == UC_TRANSIENT)
       {
 	// ptr to explicit atom or element, (e.g. 'f' in f.a=1;)
-	uvpass = UlamValue::makePtr(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
+	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
       }
     else
       {
@@ -555,18 +555,18 @@ namespace MFM {
 		pos = sym->getPosOffset();
 	      }
 	    // 'pos' modified by this data member symbol's packed bit position
-	    uvpass = UlamValue::makePtr(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+	    uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 
-	    uvpass.setPtrPos(pos + m_varSymbol->getPosOffset()); //could have been zero over-written (no thanks).
+	    //uvpass.setPassPos(pos + m_varSymbol->getPosOffset()); //could have been zero over-written (no thanks).
 	  }
 	else
 	  {
 	    //local variable on the stack; could be array ptr!
-	    uvpass = UlamValue::makePtr(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
-	    uvpass.setPtrPos(0); //could have been zero over-written.
+	    uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
+	    //uvpass.setPassPos(0); //could have been zero over-written.
 	  }
       }
-  } //makeUlamValuePtrForCodeGen
+  } //makeUVPassForCodeGen
 
   bool NodeIdent::installSymbolTypedef(TypeArgs& args, Symbol *& asymptr)
   {
@@ -1135,10 +1135,10 @@ namespace MFM {
     return rtnb;
   } //checkConstantTypedefSizes
 
-  void NodeIdent::genCode(File * fp, UlamValue & uvpass)
+  void NodeIdent::genCode(File * fp, UVPass & uvpass)
   {
     //return the ptr for an array; square bracket will resolve down to the immediate data
-    makeUlamValuePtrForCodeGen(uvpass);
+    makeUVPassForCodeGen(uvpass);
 
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol); //*********UPDATED GLOBAL;
 
@@ -1146,25 +1146,25 @@ namespace MFM {
     genCodeReadIntoATmpVar(fp, uvpass);
   } //genCode
 
-  void NodeIdent::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  void NodeIdent::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
-    //UlamValue savuvpass = uvpass;
+    //UVPass savuvpass = uvpass;
 
     //e.g. return the ptr for an array;
     //square bracket will resolve down to the immediate data
-   makeUlamValuePtrForCodeGen(uvpass);
+   makeUVPassForCodeGen(uvpass);
 
     //******UPDATED GLOBAL; no restore!!!**************************
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol);
 
-    if(uvpass.getPtrStorage() == TMPAUTOREF)
+    if(uvpass.getPassStorage() == TMPAUTOREF)
       Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
   } //genCodeToStoreInto
 
   // overrides NodeTerminal that reads into a tmp var BitVector
-  void NodeIdent::genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass)
+  void NodeIdent::genCodeReadIntoATmpVar(File * fp, UVPass & uvpass)
   {
-    if(uvpass.getPtrStorage() == TMPAUTOREF)
+    if(uvpass.getPassStorage() == TMPAUTOREF)
       Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
 
     Node::genCodeReadIntoATmpVar(fp, uvpass);

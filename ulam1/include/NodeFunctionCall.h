@@ -87,11 +87,11 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void genCode(File * fp, UVPass& uvpass);
 
-    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
+    virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
 
-    virtual void genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass);
+    virtual void genCodeReadIntoATmpVar(File * fp, UVPass & uvpass);
 
   protected:
     //helper methods override Node read/write
@@ -109,15 +109,15 @@ namespace MFM{
     SymbolFunction * m_funcSymbol;
     NodeList * m_argumentNodes;
 
-    void genCodeIntoABitValue(File * fp, UlamValue& uvpass);
-    void genCodeAReferenceIntoABitValue(File * fp, UlamValue& uvpass);
-    void genCodeVirtualFunctionCall(File * fp, UlamValue & uvpass, u32 urtmpnum);
+    void genCodeIntoABitValue(File * fp, UVPass& uvpass);
+    void genCodeAReferenceIntoABitValue(File * fp, UVPass& uvpass);
+    void genCodeVirtualFunctionCall(File * fp, UVPass & uvpass, u32 urtmpnum);
     std::string genHiddenArg2(u32& urtmpnumref);
-    std::string genHiddenArg2ForARef(File * fp, UlamValue uvpass, u32& urtmpnumref);
+    std::string genHiddenArg2ForARef(File * fp, UVPass uvpass, u32& urtmpnumref);
     std::string genHiddenArgs(u32 urtmpnum);
-    std::string genRestOfFunctionArgs(File * fp, UlamValue & uvpass);
-    void genCodeReferenceArg(File * fp, UlamValue & uvpass, u32 n);
-    void genCodeAnonymousReferenceArg(File * fp, UlamValue & uvpass, u32 n);
+    std::string genRestOfFunctionArgs(File * fp, UVPass & uvpass);
+    void genCodeReferenceArg(File * fp, UVPass & uvpass, u32 n);
+    void genCodeAnonymousReferenceArg(File * fp, UVPass & uvpass, u32 n);
     std::string genStorageType(); //for VTable entry
   };
 

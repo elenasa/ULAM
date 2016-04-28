@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeStorageof.h - Node handling the Storageof Statement for ULAM
+ * UVPass.h -  Basic handling of Passing Tmp Variables for ULAM Code Gen
  *
  * Copyright (C) 2016 The Regents of the University of New Mexico.
  * Copyright (C) 2016 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file NodeStorageof.h - Node handling the Storageof Statement for ULAM
+  \file UVPass.h -  Basic handling of Passing Tmp Variables for ULAM Code Gen
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2016 All rights reserved.
@@ -34,42 +34,61 @@
 */
 
 
-#ifndef NODESTORAGEOF_H
-#define NODESTORAGEOF_H
+#ifndef UVPASS_H
+#define UVPASS_H
 
-#include "NodeAtomof.h"
+#include "itype.h"
+#include "BitVector.h"
+#include "Constants.h"
+#include "UlamType.h"
 
 namespace MFM{
 
-  class NodeStorageof : public NodeAtomof
+  class CompilerState; //forward
+
+  struct UVPass
   {
-  public:
+    u32 m_varNum; //was slotIndex;
+    //UTI m_utypeIdx;
+    u32 m_posInStorage;
+    u32 m_bitlenInStorage;
+    u8  m_storagetype; //STORAGE
+    u8  m_packed; //PACKFIT
+    UTI m_targetType;
+    u32 m_nameid; //for code gen
 
-    NodeStorageof(Token tokof, NodeTypeDescriptor * nodetype, CompilerState & state);
+    UVPass(); //requires init to avoid Null ptr for type
+    ~UVPass();
 
-    NodeStorageof(const NodeStorageof& ref);
+    // overload for code gen to "pad" with symbol id, o.w. zero
+    static UVPass makePass(u32 varnum, TMPSTORAGE storage, UTI targetType, PACKFIT packed, CompilerState& state, u32 pos, u32 id);
 
-    virtual ~NodeStorageof();
+    PACKFIT isTargetPacked(); // Pass only
 
-    virtual Node * instantiate();
+    void setPassStorage(TMPSTORAGE s);
 
-    virtual const char * getName();
+    TMPSTORAGE getPassStorage();
 
-    virtual const std::string prettyNodeName();
+    void setPassVarNum(s32 s); //was slot index
 
-    virtual UTI checkAndLabelType();
+    s32 getPassVarNum();
 
-    virtual void genCode(File * fp, UVPass& uvpass);
+    void setPassPos(u32 pos);
 
-    virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
+    u32 getPassPos();
 
-  protected:
-    virtual UlamValue makeUlamValuePtr();
+    u32 getPassLen();
 
-  private:
+    UTI getPassTargetType();
+
+    void setPassTargetType(UTI type);
+
+    u32 getPassNameId();
+
+    void setPassNameId(u32 id);
 
   };
 
-}
+} //MFM
 
-#endif //end NODESTORAGEOF_H
+#endif //end UVPASS_H

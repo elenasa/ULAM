@@ -2791,6 +2791,23 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     m_funcCallStack.pushArg(UlamValue::makeImmediate(Int, -1)); //return slot on STACK
   } //setupCenterSiteForTesting
 
+  void CompilerState::setupCenterSiteForGenCode()
+  {
+    //call again for code gen..
+    //set up an atom in eventWindow; init m_currentObjPtr to point to it
+    //set up stacks since func call not called
+    Coord c0(0,0);
+
+    //m_classBlock ok now, reset by NodeProgram after type label done
+    UTI cuti = getCompileThisIdx();
+    m_eventWindow.setSiteElementType(c0, cuti); //includes default values
+    //m_currentSelfPtr = m_currentObjPtr = m_eventWindow.makePtrToCenter();
+
+    //set up STACK since func call not called
+    //m_funcCallStack.pushArg(m_currentObjPtr); //hidden arg on STACK
+    //m_funcCallStack.pushArg(UlamValue::makeImmediate(Int, -1)); //return slot on STACK
+  } //setupCenterSiteForGenCode
+
   //used by SourceStream to build m_textByLinePerFilePath during parsing
   void CompilerState::appendNextLineOfText(Locator loc, std::string textstr)
   {
@@ -2890,7 +2907,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return ++m_nextTmpVarNumber;
   }
 
-  const std::string CompilerState::getTmpVarAsString(UTI uti, s32 num, STORAGE stg)
+  const std::string CompilerState::getTmpVarAsString(UTI uti, s32 num, TMPSTORAGE stg)
   {
     assert(uti != Void);
     assert(okUTItoContinue(uti));

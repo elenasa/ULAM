@@ -566,7 +566,7 @@ namespace MFM {
       } //not complete
   } //printUnresolvedLocalVariables
 
-  void NodeConstantDef::genCode(File * fp, UlamValue& uvpass)
+  void NodeConstantDef::genCode(File * fp, UVPass& uvpass)
   {}
 
   void NodeConstantDef::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)

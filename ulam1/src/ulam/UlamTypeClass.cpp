@@ -307,7 +307,7 @@ namespace MFM {
     return "Bloco";
   } //getLocalStorageTypeAsString
 
-  STORAGE UlamTypeClass::getTmpStorageTypeForTmpVar()
+  TMPSTORAGE UlamTypeClass::getTmpStorageTypeForTmpVar()
   {
     return UlamType::getTmpStorageTypeForTmpVar();
   } //getTmpStorageTypeForTmpVar

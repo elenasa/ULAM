@@ -242,7 +242,7 @@ namespace MFM {
     m_ST.addClassMemberDescriptionsToMap(this->getNodeType(), classmembers); //Table of Classes request
   }
 
-  void NodeBlock::genCode(File * fp, UlamValue& uvpass)
+  void NodeBlock::genCode(File * fp, UVPass& uvpass)
   {
     m_state.indent(fp);
     fp->write("{\n");

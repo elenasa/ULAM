@@ -51,7 +51,7 @@ namespace MFM {
     return ctype.str();
   }
 
-  STORAGE UlamTypeAtom::getTmpStorageTypeForTmpVar()
+  TMPSTORAGE UlamTypeAtom::getTmpStorageTypeForTmpVar()
   {
     return TMPTATOM;
   }

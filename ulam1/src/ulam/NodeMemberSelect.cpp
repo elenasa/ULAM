@@ -289,7 +289,7 @@ namespace MFM {
     return false;
   } //getSymbolPtr
 
-  void NodeMemberSelect::genCode(File * fp, UlamValue& uvpass)
+  void NodeMemberSelect::genCode(File * fp, UVPass& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
     //apparently not so: assert(m_state.m_currentObjSymbolsForCodeGen.empty());
@@ -309,11 +309,11 @@ namespace MFM {
   } //genCode
 
   // presumably called by e.g. a binary op equal (lhs); caller saves
-  // currentObjPtr/Symbol, unlike genCode (rhs)
-  void NodeMemberSelect::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  // currentObjPass/Symbol, unlike genCode (rhs)
+  void NodeMemberSelect::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
-    UlamValue luvpass;
+    UVPass luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
     if(!m_state.m_currentObjSymbolsForCodeGen.empty() && !m_state.isScalar(m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx()))
@@ -327,10 +327,10 @@ namespace MFM {
     m_nodeRight->genCodeToStoreInto(fp, uvpass); //uvpass contains the member selected, or cos obj symbol?
   } //genCodeToStoreInto
 
-  SymbolTmpRef * NodeMemberSelect::makeTmpRefSymbolForCodeGen(UlamValue uvpass)
+  SymbolTmpRef * NodeMemberSelect::makeTmpRefSymbolForCodeGen(UVPass uvpass)
   {
-    UTI tuti = uvpass.getPtrTargetType();
-    std::string tmpvarname = m_state.getTmpVarAsString(tuti, uvpass.getPtrSlotIndex(), TMPAUTOREF);
+    UTI tuti = uvpass.getPassTargetType();
+    std::string tmpvarname = m_state.getTmpVarAsString(tuti, uvpass.getPassVarNum(), TMPAUTOREF);
     Token tidTok(TOK_IDENTIFIER, Node::getNodeLocation(), m_state.m_pool.getIndexForDataString(tmpvarname));
     SymbolTmpRef * rtnsym = new SymbolTmpRef(tidTok, tuti, m_state);
     assert(rtnsym);

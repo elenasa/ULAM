@@ -78,9 +78,9 @@ namespace MFM{
 
     virtual EvalStatus evalToStoreInto();
 
-    virtual void genCode(File * fp, UlamValue& uvpass) = 0;
+    virtual void genCode(File * fp, UVPass& uvpass) = 0;
 
-    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass) = 0;
+    virtual void genCodeToStoreInto(File * fp, UVPass& uvpass) = 0;
 
   protected:
 

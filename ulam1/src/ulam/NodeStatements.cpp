@@ -243,7 +243,7 @@ namespace MFM {
     depth = max1 > max2 ? max1 : max2; //no change to maxdepth here
   } //calcMaxDepth
 
-  void NodeStatements::genCode(File * fp, UlamValue& uvpass)
+  void NodeStatements::genCode(File * fp, UVPass& uvpass)
   {
     Locator nodeloc = getNodeLocation();
     m_state.outputTextAsComment(fp, nodeloc);
@@ -255,7 +255,7 @@ namespace MFM {
       m_nodeNext->genCode(fp, uvpass);
   } //genCode
 
-  void NodeStatements::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  void NodeStatements::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
     m_node->genCodeToStoreInto(fp, uvpass);
 

@@ -82,13 +82,13 @@ namespace MFM {
     return false;
   } //end dobinaryop
 
-  void NodeBinaryOpEqualArith::genCode(File * fp, UlamValue& uvpass)
+  void NodeBinaryOpEqualArith::genCode(File * fp, UVPass& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
     assert(m_state.m_currentObjSymbolsForCodeGen.empty());
 
     // generate rhs first; may update current object globals (e.g. function call)
-    UlamValue ruvpass;
+    UVPass ruvpass;
     m_nodeRight->genCode(fp, ruvpass);
 
     // restore current object globals
@@ -97,7 +97,7 @@ namespace MFM {
     // lhs should be the new current object: node member select updates them,
     // but a plain NodeIdent does not!!!  because genCodeToStoreInto has been repurposed
     // to mean "don't read into a TmpVar" (e.g. by NodeCast).
-    UlamValue luvpass;
+    UVPass luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);      //may update m_currentObjSymbol
 
     //wiped out by left read; need to write back into left
@@ -121,22 +121,18 @@ namespace MFM {
     fp->write(methodNameForCodeGen().c_str());
     fp->write("(");
 
-    UTI uti = uvpass.getUlamValueTypeIdx();
-    assert(m_state.isPtr(uti));
-    uti = uvpass.getPtrTargetType();
-    fp->write(m_state.getTmpVarAsString(uti, uvpass.getPtrSlotIndex()).c_str());
+    UTI uti = uvpass.getPassTargetType();
+    fp->write(m_state.getTmpVarAsString(uti, uvpass.getPassVarNum()).c_str());
     fp->write(", ");
 
-    UTI ruti = ruvpass.getUlamValueTypeIdx();
-    assert(m_state.isPtr(ruti));
-    ruti = ruvpass.getPtrTargetType();
-    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex()).c_str());
+    UTI ruti = ruvpass.getPassTargetType();
+    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPassVarNum()).c_str());
 
     fp->write(", ");
     fp->write_decimal(nut->getBitSize());
     fp->write(");\n");
 
-    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, uvpass.getPtrPos(), uvpass.getPtrNameId()); //P
+    uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, uvpass.getPassPos(), uvpass.getPassNameId()); //P
 
     // current object globals should pertain to lhs for the write
     genCodeWriteFromATmpVar(fp, luvpass, uvpass); //uses rhs' tmpvar; orig lhs

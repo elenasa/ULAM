@@ -192,25 +192,23 @@ namespace MFM {
     return evs;
   } //eval
 
-  void NodeConditionalIs::genCode(File * fp, UlamValue& uvpass)
+  void NodeConditionalIs::genCode(File * fp, UVPass& uvpass)
   {
     assert(m_nodeLeft);
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
-    UlamValue luvpass;
+    UVPass luvpass;
     m_nodeLeft->genCode(fp, luvpass); //loads lhs into tmp (T)
-    UTI luti = luvpass.getUlamValueTypeIdx();
-    assert(m_state.isPtr(luti));
-    luti = luvpass.getPtrTargetType(); //replace
-    STORAGE lstor = luvpass.getPtrStorage(); //might be AtomBitStorage
+    UTI luti = luvpass.getPassTargetType(); //replace
+    TMPSTORAGE lstor = luvpass.getPassStorage(); //might be AtomBitStorage
 
     UTI ruti = getRightType();
     UlamType * rut = m_state.getUlamTypeByIndex(ruti);
     ULAMCLASSTYPE rclasstype = rut->getUlamClassType();
     assert(!rut->isReference());
 
-    s32 tmpVarNum = luvpass.getPtrSlotIndex();
+    s32 tmpVarNum = luvpass.getPassVarNum();
     s32 tmpVarIs = m_state.getNextTmpVarNumber();
 
     m_state.indent(fp);
@@ -258,7 +256,7 @@ namespace MFM {
       assert(0);
 
     //update uvpass
-    uvpass = UlamValue::makePtr(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0); //POS 0 rightjustified (atom-based).
+    uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
   } //genCode
 
 } //end MFM

@@ -745,7 +745,7 @@ namespace MFM {
   } //evalToStoreInto
 
   // parse tree in order declared, unlike the ST.
-  void NodeVarDeclDM::genCode(File * fp, UlamValue& uvpass)
+  void NodeVarDeclDM::genCode(File * fp, UVPass& uvpass)
   {
     assert(m_varSymbol);
     assert(m_state.isComplete(getNodeType()));
@@ -756,7 +756,7 @@ namespace MFM {
   } //genCode
 
   // variable is a data member; cannot be an element
-  void NodeVarDeclDM::genCodedBitFieldTypedef(File * fp, UlamValue& uvpass)
+  void NodeVarDeclDM::genCodedBitFieldTypedef(File * fp, UVPass& uvpass)
   {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);

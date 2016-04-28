@@ -94,7 +94,7 @@ namespace MFM {
     return ctype.str();
   } //getLocalStorageTypeAsString
 
-  STORAGE UlamTypeClassTransient::getTmpStorageTypeForTmpVar()
+  TMPSTORAGE UlamTypeClassTransient::getTmpStorageTypeForTmpVar()
   {
     return UlamType::getTmpStorageTypeForTmpVar();
     //return TMPTBV;

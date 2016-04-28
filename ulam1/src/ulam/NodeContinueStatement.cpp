@@ -55,7 +55,7 @@ namespace MFM {
     return CONTINUE;
   }
 
-  void NodeContinueStatement::genCode(File * fp, UlamValue& uvpass)
+  void NodeContinueStatement::genCode(File * fp, UVPass& uvpass)
   {
     m_state.indent(fp);
     fp->write(getName());

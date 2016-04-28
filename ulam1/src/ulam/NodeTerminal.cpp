@@ -56,6 +56,12 @@ namespace MFM {
 
   const char * NodeTerminal::getName()
   {
+    u32 id = getNameId();
+    return m_state.m_pool.getDataAsString(id).c_str();
+  } //getName
+
+  u32 NodeTerminal::getNameId()
+  {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 nbitsize = nut->getBitSize();
@@ -96,8 +102,8 @@ namespace MFM {
 	}
       };
     u32 id = m_state.m_pool.getIndexForDataString(num.str());
-    return m_state.m_pool.getDataAsString(id).c_str();
-  } //getName
+    return id;
+  } //getNameId
 
   const std::string NodeTerminal::prettyNodeName()
   {
@@ -285,11 +291,9 @@ namespace MFM {
 	break;
       case Class:
 	{
-	  if(ut->getUlamClassType() == UC_QUARK)
-	    {
-	      rtnUV = UlamValue::makeImmediate(uti, data, m_state);
-	      break;
-	    }
+	  //	  if(ut->getUlamClassType() == UC_QUARK)
+	  rtnUV = UlamValue::makeImmediate(uti, data, m_state);
+	  break;
 	}
       default:
 	{
@@ -327,25 +331,8 @@ namespace MFM {
 	break;
       case Class:
 	{
-	  if(ut->getUlamClassType() == UC_QUARK)
-	    {
-	      assert(!ut->isScalar());
-	      rtnUV = UlamValue::makeImmediateLongClass(uti, data, ut->getTotalBitSize());
-	      break;
-	    }
-	  else if(ut->getUlamClassType() == UC_ELEMENT)
-	    {
-	      rtnUV = UlamValue::makeImmediateLongClass(uti, data, ut->getTotalBitSize());
-	      break;
-	    }
-	  if(ut->getUlamClassType() == UC_TRANSIENT)
-	    {
-	      assert(!ut->isScalar());
-	      rtnUV = UlamValue::makeImmediateLongClass(uti, data, ut->getTotalBitSize());
-	      break;
-	    }
-	  else
-	    assert(0);
+	  rtnUV = UlamValue::makeImmediateLongClass(uti, data, ut->getTotalBitSize());
+	  break;
 	}
       default:
 	{
@@ -359,6 +346,36 @@ namespace MFM {
     uvarg = rtnUV;
     return evs;
   } //makeTerminalValueLong
+
+  void NodeTerminal::makeTerminalPassForCodeGen(UVPass& uvpass)
+  {
+    UTI nuti = getNodeType();
+    u32 tid = getNameId();
+
+#if 0
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    s32 len = nut->getBitSize();
+    assert(len != UNKNOWNSIZE);
+    u32 tid = 0;
+    if(len <= MAXBITSPERINT)
+      {
+	char dstr[40];
+	nut->getDataAsString((u32) m_constant.uval, dstr, 'z');
+	tid = m_state.m_pool.getIndexForDataString(dstr);
+      }
+    else if(len <= MAXBITSPERLONG)
+      {
+	char dstr[70];
+	vut->getDataLongAsString(m_constant.uval, dstr, 'z');
+	tid = m_state.m_pool.getIndexForDataString(dstr);
+      }
+    else
+      assert(0);
+#endif
+
+    //TMPSTORAGE is TERMINAL, and VarNum is zero.
+    uvpass = UVPass::makePass(0, TERMINAL, nuti, m_state.determinePackable(nuti), m_state, 0, tid);
+  } //makeTerminalValueForCodeGen
 
   //used during check and label for binary arith and compare ops that have a constant term
   bool NodeTerminal::fitsInBits(UTI fituti)
@@ -633,27 +650,24 @@ namespace MFM {
     return rtnb;
   } //isWordSizeConstant
 
-  void NodeTerminal::genCode(File * fp, UlamValue& uvpass)
+  void NodeTerminal::genCode(File * fp, UVPass& uvpass)
   {
-    UlamValue tv;
-    AssertBool isNormal = (makeTerminalValue(tv) == NORMAL);
-    assert(isNormal);
+    UVPass tvpass;
+    makeTerminalPassForCodeGen(tvpass);
+
     // unclear to do this read or not; squarebracket not happy, or cast not happy ?
-    genCodeReadIntoATmpVar(fp, tv);  //tv updated to Ptr with a tmpVar "slot"
-    uvpass = tv;
+    genCodeReadIntoATmpVar(fp, tvpass);  //tv updated to a tmpVar "num"
+    uvpass = tvpass;
   } //genCode
 
-  void NodeTerminal::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  void NodeTerminal::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
-    UlamValue tv;
-    AssertBool isNormal = (makeTerminalValue(tv) == NORMAL);
-    assert(isNormal);
-    uvpass = tv; //uvpass is an immediate UV, not a PTR
+    makeTerminalPassForCodeGen(uvpass);
   } //genCodeToStoreInto
 
   // reads into a tmp var
   // (for BitVector use Node::genCodeConvertATmpVarIntoBitVector)
-  void NodeTerminal::genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass)
+  void NodeTerminal::genCodeReadIntoATmpVar(File * fp, UVPass & uvpass)
   {
     // into tmp storage first, in case of casts
     UTI nuti = getNodeType();
@@ -686,8 +700,8 @@ namespace MFM {
 
     //substitute Ptr for uvpass to contain the tmpVar number;
     //save id of constant string in Ptr;
-    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //POS 0 rightjustified (atom-based);
-    uvpass.setPtrPos(0); //entire register
+    uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0);  //POS 0 rightjustified (atom-based);
+    //    uvpass.setPtrPos(0); //entire register
 
     m_state.clearCurrentObjSymbolsForCodeGen(); //missing or just needed by NodeTerminalProxy?
   } //genCodeReadIntoATmpVar

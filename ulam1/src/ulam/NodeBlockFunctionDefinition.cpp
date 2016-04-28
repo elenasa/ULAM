@@ -418,7 +418,7 @@ namespace MFM {
     m_funcSymbol = fsymptr;
   }
 
-  void NodeBlockFunctionDefinition::genCode(File * fp, UlamValue& uvpass)
+  void NodeBlockFunctionDefinition::genCode(File * fp, UVPass& uvpass)
   {
     // m_currentObjSymbol set up by caller
     //    assert(m_state.m_currentObjSymbolForCodeGen != NULL);

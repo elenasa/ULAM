@@ -80,9 +80,9 @@ namespace MFM{
     //helper method to install symbol; also called by Resolver for unknown arraysize
     bool getArraysizeInBracket(s32 & rtnArraySize, UTI& sizetype);
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void genCode(File * fp, UVPass& uvpass);
 
-    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
+    virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
 
   protected:
 

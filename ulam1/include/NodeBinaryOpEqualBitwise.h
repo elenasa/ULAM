@@ -55,7 +55,7 @@ namespace MFM{
 
     virtual const std::string methodNameForCodeGen();
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void genCode(File * fp, UVPass& uvpass);
 
   protected:
     virtual UTI calcNodeType(UTI lt, UTI rt);  //same as NodeBinaryOpBitwise

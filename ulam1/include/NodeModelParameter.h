@@ -65,9 +65,9 @@ namespace MFM{
 
     virtual bool assignClassArgValueInStubCopy();
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void genCode(File * fp, UVPass& uvpass);
 
-    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
+    virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
 
   protected:
     virtual void checkForSymbol();

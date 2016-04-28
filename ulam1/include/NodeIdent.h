@@ -86,11 +86,11 @@ namespace MFM{
     virtual bool installSymbolParameterValue(TypeArgs& args, Symbol*& asymptr);
     virtual bool installSymbolVariable(TypeArgs& args,  Symbol *& asymptr);
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void genCode(File * fp, UVPass& uvpass);
 
-    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
+    virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
 
-    virtual void genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass);
+    virtual void genCodeReadIntoATmpVar(File * fp, UVPass & uvpass);
 
   private:
     Token m_token;
@@ -102,7 +102,7 @@ namespace MFM{
     bool checkTypedefOfTypedefSizes(TypeArgs& args, UTI tduti);
     bool checkConstantTypedefSizes(TypeArgs& args, UTI tduti);
     UlamValue makeUlamValuePtr();
-    void makeUlamValuePtrForCodeGen(UlamValue& uvpass);
+    void makeUVPassForCodeGen(UVPass& uvpass);
   };
 
 }

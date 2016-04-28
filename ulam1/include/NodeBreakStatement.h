@@ -64,7 +64,7 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void genCode(File * fp, UVPass& uvpass);
 
   protected:
 

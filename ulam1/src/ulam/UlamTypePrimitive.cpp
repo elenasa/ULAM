@@ -124,7 +124,7 @@ namespace MFM {
     return mpimangled.str();
   } //getImmediateModelParameterStorageTypeAsString
 
-  STORAGE UlamTypePrimitive::getTmpStorageTypeForTmpVar()
+  TMPSTORAGE UlamTypePrimitive::getTmpStorageTypeForTmpVar()
   {
     //immediate storage is TMPBITVAL for all UlamTypes.
     return TMPREGISTER;

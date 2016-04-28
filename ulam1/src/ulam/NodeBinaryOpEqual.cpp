@@ -473,13 +473,13 @@ namespace MFM {
     return; //work done by NodeStatements and NodeBlock
   }
 
-  void NodeBinaryOpEqual::genCode(File * fp, UlamValue& uvpass)
+  void NodeBinaryOpEqual::genCode(File * fp, UVPass& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
     assert(m_state.m_currentObjSymbolsForCodeGen.empty());
 
     // generate rhs first; may update current object globals (e.g. function call)
-    UlamValue ruvpass;
+    UVPass ruvpass;
     m_nodeRight->genCode(fp, ruvpass);
 
     // restore current object globals
@@ -488,7 +488,7 @@ namespace MFM {
     // lhs should be the new current object: node member select updates them,
     // but a plain NodeIdent does not!!!  because genCodeToStoreInto has been repurposed
     // to mean "don't read into a TmpVar" (e.g. by NodeCast).
-    UlamValue luvpass;
+    UVPass luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass); //may update m_currentObjSymbol, m_currentSelfSymbol
 
     // current object globals should pertain to lhs for the write

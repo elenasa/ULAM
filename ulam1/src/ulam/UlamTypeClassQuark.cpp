@@ -136,7 +136,7 @@ namespace MFM {
     return ctype.str();
   } //getLocalStorageTypeAsString
 
-  STORAGE UlamTypeClassQuark::getTmpStorageTypeForTmpVar()
+  TMPSTORAGE UlamTypeClassQuark::getTmpStorageTypeForTmpVar()
   {
     return UlamType::getTmpStorageTypeForTmpVar();
   } //getTmpStorageTypeForTmpVar

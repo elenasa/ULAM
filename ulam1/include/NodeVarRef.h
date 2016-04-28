@@ -79,7 +79,7 @@ namespace MFM{
 
     virtual EvalStatus evalToStoreInto();
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void genCode(File * fp, UVPass& uvpass);
 
   protected:
 
@@ -87,9 +87,9 @@ namespace MFM{
 
   private:
 
-    void genCodeAtomRefInit(File * fp, UlamValue & uvpass);
-    void genCodeArrayRefInit(File * fp, UlamValue & uvpass);
-    void genCodeArrayItemRefInit(File * fp, UlamValue & uvpass);
+    void genCodeAtomRefInit(File * fp, UVPass & uvpass);
+    void genCodeArrayRefInit(File * fp, UVPass & uvpass);
+    void genCodeArrayItemRefInit(File * fp, UVPass & uvpass);
   };
 
 } //MFM

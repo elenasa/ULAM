@@ -98,12 +98,12 @@ namespace MFM{
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void genCode(File * fp, UVPass& uvpass);
 
-  virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
+  virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
 
-    virtual void genCodeReadIntoATmpVar(File * fp, UlamValue& uvpass);
-    virtual void genCodeWriteFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
+    virtual void genCodeReadIntoATmpVar(File * fp, UVPass& uvpass);
+    virtual void genCodeWriteFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
 
   protected:
     virtual UlamValue makeImmediateUnaryOp(UTI type, u32 data, u32 len); //noop
@@ -117,18 +117,18 @@ namespace MFM{
 
     bool needsACast(); // trying to avoid extraneous casting.
 
-    void genCodeReadNonPrimitiveIntoATmpVar(File * fp, UlamValue &uvpass);
+    void genCodeReadNonPrimitiveIntoATmpVar(File * fp, UVPass &uvpass);
 
-    void genCodeCastAtomAndElement(File * fp, UlamValue & uvpass);
-    void genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass);
-    void genCodeCastDecendentElement(File * fp, UlamValue & uvpass);
-    void genCodeCastAncestorQuarkAsSubElement(File * fp, UlamValue & uvpass);
-    void genCodeCastDecendentQuark(File * fp, UlamValue & uvpass);
+    void genCodeCastAtomAndElement(File * fp, UVPass & uvpass);
+    void genCodeCastAtomAndQuark(File * fp, UVPass & uvpass);
+    void genCodeCastDecendentElement(File * fp, UVPass & uvpass);
+    void genCodeCastAncestorQuarkAsSubElement(File * fp, UVPass & uvpass);
+    void genCodeCastDecendentQuark(File * fp, UVPass & uvpass);
 
-    void genCodeCastAsReference(File * fp, UlamValue & uvpass);
-    void genCodeCastFromAReference(File * fp, UlamValue & uvpass);
-    void genCodeToStoreIntoCastAsReference(File * fp, UlamValue & uvpass);
-    void genCodeToStoreIntoCastFromAReference(File * fp, UlamValue & uvpass);
+    void genCodeCastAsReference(File * fp, UVPass & uvpass);
+    void genCodeCastFromAReference(File * fp, UVPass & uvpass);
+    void genCodeToStoreIntoCastAsReference(File * fp, UVPass & uvpass);
+    void genCodeToStoreIntoCastFromAReference(File * fp, UVPass & uvpass);
   };
 
 }

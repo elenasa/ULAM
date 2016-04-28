@@ -231,13 +231,13 @@ namespace MFM{
     return m_nodes[n]->isFunctionCall();
   } //isAFunctionCall
 
-  void NodeList::genCode(File * fp, UlamValue& uvpass, u32 n)
+  void NodeList::genCode(File * fp, UVPass& uvpass, u32 n)
   {
     assert(n < m_nodes.size());
     m_nodes[n]->genCode(fp, uvpass);
   } //genCode
 
-  void NodeList::genCodeToStoreInto(File * fp, UlamValue& uvpass, u32 n)
+  void NodeList::genCodeToStoreInto(File * fp, UVPass& uvpass, u32 n)
   {
     assert(n < m_nodes.size());
     m_nodes[n]->genCodeToStoreInto(fp, uvpass);

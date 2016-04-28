@@ -44,13 +44,13 @@ namespace MFM {
     return UlamValue::makeImmediate(type, data, len); //no change
   }
 
-  void NodeUnaryOpPlus::genCode(File * fp, UlamValue& uvpass)
+  void NodeUnaryOpPlus::genCode(File * fp, UVPass& uvpass)
   {
     assert(m_node);
     m_node->genCode(fp, uvpass); //essentially a no-op
   } //genCode
 
-  void NodeUnaryOpPlus::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  void NodeUnaryOpPlus::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
     assert(m_node);
     m_node->genCodeToStoreInto(fp, uvpass); //essentially a no-op ?

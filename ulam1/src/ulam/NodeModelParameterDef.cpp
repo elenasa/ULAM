@@ -108,7 +108,7 @@ namespace MFM {
     m_state.popClassContext(); //restore
   } //checkForSymbol
 
-  void NodeModelParameterDef::genCode(File * fp, UlamValue& uvpass)
+  void NodeModelParameterDef::genCode(File * fp, UVPass& uvpass)
   {
     assert(m_constSymbol->isDataMember());
 

@@ -367,7 +367,7 @@ namespace MFM {
     return NORMAL;
   } //evalToStoreInto
 
-  void NodeVarRef::genCode(File * fp, UlamValue & uvpass)
+  void NodeVarRef::genCode(File * fp, UVPass & uvpass)
   {
     //reference always has initial value, unless func param
     assert(m_varSymbol->isAutoLocal());
@@ -431,7 +431,7 @@ namespace MFM {
 	else
 	  {
 	    if(m_state.m_currentObjSymbolsForCodeGen.empty())
-	      fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
+	      fp->write(m_state.getTmpVarAsString(uvpass.getPassTargetType(), uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str());
 	    else
 	      fp->write(stgcos->getMangledName().c_str()); //even if self
 	    if(cos->isDataMember())
@@ -478,7 +478,7 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
   } //genCode
 
-  void NodeVarRef::genCodeAtomRefInit(File * fp, UlamValue & uvpass)
+  void NodeVarRef::genCodeAtomRefInit(File * fp, UVPass & uvpass)
   {
     //reference always has initial value, unless func param
     assert(m_varSymbol->isAutoLocal());
@@ -489,9 +489,7 @@ namespace MFM {
     UTI vuti = m_varSymbol->getUlamTypeIdx(); //i.e. this ref node
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
-    UTI puti = uvpass.getUlamValueTypeIdx();
-    if(m_state.isPtr(puti))
-      puti = uvpass.getPtrTargetType();
+    UTI puti = uvpass.getPassTargetType();
 
     //not necessarily if rhs is an unpacked array of atoms
     //assert(m_state.isAtom(vuti) && m_state.isAtom(puti)); //e.g. t3709 (aref = s[9])
@@ -512,7 +510,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    fp->write(m_state.getTmpVarAsString(puti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
+	    fp->write(m_state.getTmpVarAsString(puti, uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str());
 	  }
 
 	if(!m_state.isAtomRef(puti))
@@ -541,7 +539,7 @@ namespace MFM {
 	    else if(!stgcosut->isScalar())
 	      {
 		fp->write(", ");
-		fp->write(m_state.getTmpVarAsString(puti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
+		fp->write(m_state.getTmpVarAsString(puti, uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str());
 		fp->write(" * EC::ATOM_CONFIG::BITS_PER_ATOM");
 	      }
 	  }
@@ -554,7 +552,7 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
   } //genCodeAtomRefInit
 
-  void NodeVarRef::genCodeArrayRefInit(File * fp, UlamValue & uvpass)
+  void NodeVarRef::genCodeArrayRefInit(File * fp, UVPass & uvpass)
   {
     //reference always has initial value, unless func param
     assert(m_varSymbol->isAutoLocal());
@@ -652,7 +650,7 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
   } //genCodeArrayRefInit
 
-  void NodeVarRef::genCodeArrayItemRefInit(File * fp, UlamValue & uvpass)
+  void NodeVarRef::genCodeArrayItemRefInit(File * fp, UVPass & uvpass)
   {
     //reference always has initial value, unless func param
     assert(m_varSymbol->isAutoLocal());
@@ -691,7 +689,7 @@ namespace MFM {
 	fp->write(", ");
 	fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
 	fp->write("u + (");
-	fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
+	fp->write(m_state.getTmpVarAsString(uvpass.getPassTargetType(), uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str());
 	fp->write(" * ");
 	fp->write_decimal_unsigned(stgcosut->getBitSize());
 	fp->write("u)");
@@ -705,7 +703,7 @@ namespace MFM {
 	    fp->write(", ");
 	    fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
 	    fp->write("u + (");
-	    fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
+	    fp->write(m_state.getTmpVarAsString(uvpass.getPassTargetType(), uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str());
 	    fp->write(" * ");
 	    fp->write_decimal_unsigned(stgcosut->getBitSize());
 	    fp->write("u)");
@@ -716,7 +714,7 @@ namespace MFM {
 	    if((vclasstype == UC_NOTACLASS) && (vetype != UAtom) )
 	      {
 		fp->write(", (");
-		fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
+		fp->write(m_state.getTmpVarAsString(uvpass.getPassTargetType(), uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str());
 		fp->write(" * ");
 		fp->write_decimal_unsigned(cosut->getBitSize());
 		fp->write("u)"); //relative t3651
@@ -729,7 +727,7 @@ namespace MFM {
 	    else if(vclasstype == UC_QUARK)
 	      {
 		fp->write(", ");
-		fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
+		fp->write(m_state.getTmpVarAsString(uvpass.getPassTargetType(), uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str());
 		fp->write(" * ");
 		fp->write_decimal_unsigned(stgcosut->getBitSize());
 	      }

@@ -677,28 +677,26 @@ namespace MFM {
     return noerr;
   } //getArraysizeInBracket
 
-  void NodeSquareBracket::genCode(File * fp, UlamValue& uvpass)
+  void NodeSquareBracket::genCode(File * fp, UVPass& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
     //wipe out before getting item within sq brackets
     std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
     m_state.clearCurrentObjSymbolsForCodeGen();
 
-    UlamValue offset;
+    UVPass offset;
     m_nodeRight->genCode(fp, offset); //read into tmp var
 
     m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore
 
-    UlamValue luvpass;
+    UVPass luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
     //special case index for non-custom array: numeric unary conversion to cu32
-    UTI luti = luvpass.getPtrTargetType();
+    UTI luti = luvpass.getPassTargetType();
     if(!m_state.isClassACustomArray(luti))
       {
-	UTI offuti = offset.getUlamValueTypeIdx();
-	if(m_state.isPtr(offuti))
-	  offuti = offset.getPtrTargetType();
+	UTI offuti = offset.getPassTargetType();
 	UlamType * offut = m_state.getUlamTypeByIndex(offuti);
 	if(offut->getUlamTypeEnum() == Unary)
 	  {
@@ -712,12 +710,12 @@ namespace MFM {
 	    else //must be long
 	      fp->write("_Unary64ToCu64(");
 
-	    fp->write(m_state.getTmpVarAsString(offuti, offset.getPtrSlotIndex(), TMPREGISTER).c_str());
+	    fp->write(m_state.getTmpVarAsString(offuti, offset.getPassVarNum(), TMPREGISTER).c_str());
 	    fp->write(", ");
 	    fp->write_decimal(offut->getBitSize());
 	    fp->write(");\n");
 	    // new uvpass here
-	    offset = UlamValue::makePtr(tmpVarIdx, TMPREGISTER, Unsigned, m_state.determinePackable(offuti), m_state, 0); //POS 0 rightjustified.
+	    offset = UVPass::makePass(tmpVarIdx, TMPREGISTER, Unsigned, m_state.determinePackable(offuti), m_state, 0, 0); //POS 0 rightjustified.
 	  } //end unary special case
       } //for non custom arrays only!
 
@@ -725,19 +723,19 @@ namespace MFM {
     Node::genCodeReadIntoATmpVar(fp, uvpass); //splits on array item
   } //genCode
 
-  void NodeSquareBracket::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  void NodeSquareBracket::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
     //wipe out before getting item within sq brackets
     std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
     m_state.clearCurrentObjSymbolsForCodeGen();
 
-    UlamValue offset;
+    UVPass offset;
     m_nodeRight->genCode(fp, offset);
 
     m_state.m_currentObjSymbolsForCodeGen = saveCOSVector;  //restore
 
-    UlamValue luvpass;
+    UVPass luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
     uvpass = offset; //return

@@ -81,12 +81,12 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void genCode(File * fp, UVPass& uvpass);
 
-    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
+    virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
 
     /** reads into a tmp BitVector */
-    virtual void genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass);
+    virtual void genCodeReadIntoATmpVar(File * fp, UVPass & uvpass);
 
   private:
     virtual bool setConstantValue(Token tok);
@@ -102,8 +102,12 @@ namespace MFM{
     u64 convertForthAndBackLong(const u64 data, UTI fituti);
     bool fitsInBits32compare(UTI fituti);
 
+    u32 getNameId();
+
   protected:
-    virtual EvalStatus makeTerminalValue(UlamValue& uvarg); //used both by eval and gencode
+    virtual EvalStatus makeTerminalValue(UlamValue& uvarg); //used by eval only
+    virtual void makeTerminalPassForCodeGen(UVPass& uvpass);
+
     union {
       s64 sval;
       u64 uval;

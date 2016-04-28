@@ -419,7 +419,7 @@ namespace MFM {
     return; //work done by NodeStatements and NodeBlock
   }
 
-  void Node::genCode(File * fp, UlamValue& uvpass)
+  void Node::genCode(File * fp, UVPass& uvpass)
   {
     m_state.indent(fp);
     fp->write("virtual void ");
@@ -427,7 +427,7 @@ namespace MFM {
     fp->write("::genCode(File * fp){} is needed!!\n"); //sweet.
   }
 
-  void Node::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  void Node::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
     std::ostringstream msg;
     msg << "genCodeToStoreInto called on Node type: ";
@@ -437,14 +437,10 @@ namespace MFM {
     return;
   } //genCodeToStoreInto
 
-  void Node::genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass)
+  void Node::genCodeReadIntoATmpVar(File * fp, UVPass & uvpass)
   {
-    UTI vuti = uvpass.getUlamValueTypeIdx();
-
-    assert(m_state.isPtr(vuti)); //terminals handled in NodeTerminal as BitVector for args
-
-    s32 tmpVarNum = uvpass.getPtrSlotIndex();
-    vuti = uvpass.getPtrTargetType(); //replaces vuti w target type
+    s32 tmpVarNum = uvpass.getPassVarNum();
+    UTI vuti = uvpass.getPassTargetType(); //replaces vuti w target type
     assert(vuti != Void);
 
     // here, cos is symbol used to determine read method: either self or last of cos.
@@ -474,14 +470,14 @@ namespace MFM {
 
     // write out intermediate tmpVar (i.e. terminal) as temp BitVector arg
     // e.g. when func call is rhs of secondary member select
-    if(uvpass.getPtrNameId() == 0)
+    if(uvpass.getPassNameId() == 0)
       return genCodeConvertATmpVarIntoBitVector(fp, uvpass);
 
     m_state.indent(fp);
     fp->write("const ");
     fp->write(tmpStorageTypeForRead(cosuti, uvpass).c_str());
     fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str());
+    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPassStorage()).c_str());
     fp->write(" = ");
 
     // all the cases where = is used; else BitVector constructor for converting a tmpvar
@@ -546,7 +542,7 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeReadIntoATmpVar
 
-  void Node::genCodeReadSelfIntoATmpVar(File * fp, UlamValue & uvpass)
+  void Node::genCodeReadSelfIntoATmpVar(File * fp, UVPass & uvpass)
   {
     Symbol * stgcos = NULL;
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
@@ -568,16 +564,14 @@ namespace MFM {
     fp->write("();\n"); //stand-alone 'self'
   } //genCodeReadSelfIntoATmpVar
 
-  void Node::genCodeReadAutorefIntoATmpVar(File * fp, UlamValue& uvpass)
+  void Node::genCodeReadAutorefIntoATmpVar(File * fp, UVPass& uvpass)
   {
     //unlike the others, here, uvpass is the autoref (stg);
     //cos tell us where to go within the selected member
-    s32 tmpVarNum = uvpass.getPtrSlotIndex();
+    s32 tmpVarNum = uvpass.getPassVarNum();
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp for data
 
-    UTI vuti = uvpass.getUlamValueTypeIdx();
-    if(m_state.isPtr(vuti))
-      vuti = uvpass.getPtrTargetType();
+    UTI vuti = uvpass.getPassTargetType();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
     m_state.indent(fp);
@@ -587,23 +581,19 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2, vut->getTmpStorageTypeForTmpVar()).c_str());
     fp->write(" = ");
 
-    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str());
+    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPassStorage()).c_str());
     fp->write(".read();\n");
 
     //update uvpass
-    uvpass = UlamValue::makePtr(tmpVarNum2, vut->getTmpStorageTypeForTmpVar(), vuti, m_state.determinePackable(vuti), m_state, 0); //POS 0 justified (atom-based).
+    uvpass = UVPass::makePass(tmpVarNum2, vut->getTmpStorageTypeForTmpVar(), vuti, m_state.determinePackable(vuti), m_state, 0, 0); //POS 0 justified (atom-based).
 
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeReadAutorefIntoATmpVar
 
-  void Node::genCodeReadArrayItemIntoATmpVar(File * fp, UlamValue & uvpass)
+  void Node::genCodeReadArrayItemIntoATmpVar(File * fp, UVPass & uvpass)
   {
-    UTI vuti = uvpass.getUlamValueTypeIdx();
-
-    assert(m_state.isPtr(vuti)); //terminals handled in NodeTerminal as BitVector for args
-
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp for data
-    vuti = uvpass.getPtrTargetType(); //replaces vuti w target type
+    UTI vuti = uvpass.getPassTargetType(); //replaces vuti w target type
     assert(vuti != Void);
     assert(m_state.getUlamTypeByIndex(vuti)->isNumericType());
 
@@ -630,7 +620,7 @@ namespace MFM {
     UTI	scalarcosuti = m_state.getUlamTypeAsScalar(cosuti); //ALT_ARRAYITEM
     scalarcosuti = m_state.getUlamTypeAsDeref(scalarcosuti);
     UlamType * scalarcosut = m_state.getUlamTypeByIndex(scalarcosuti);
-    STORAGE cstor = scalarcosut->getTmpStorageTypeForTmpVar();
+    TMPSTORAGE cstor = scalarcosut->getTmpStorageTypeForTmpVar();
     u32 itemlen = cosut->getBitSize();
 
     m_state.indent(fp);
@@ -650,7 +640,7 @@ namespace MFM {
 	fp->write(", ");
 	fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
 	fp->write("u + ");
-	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex()).c_str()); //INDEX
+	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPassVarNum()).c_str()); //INDEX
 	fp->write(" * ");
 	fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM == rel pos
 	fp->write("u, ");
@@ -682,7 +672,7 @@ namespace MFM {
 	  }
 	fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
 	fp->write("u + ");
-	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex()).c_str()); //INDEX
+	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPassVarNum()).c_str()); //INDEX
 	fp->write(" * ");
 	fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
 	fp->write("u, ");
@@ -710,18 +700,14 @@ namespace MFM {
       } //end local var
 
     //update uvpass
-    uvpass = UlamValue::makePtr(tmpVarNum2, cstor, scalarcosuti, m_state.determinePackable(scalarcosuti), m_state, 0); //POS 0 rightjustified (atom-based).
+    uvpass = UVPass::makePass(tmpVarNum2, cstor, scalarcosuti, m_state.determinePackable(scalarcosuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeReadArrayItemIntoTmp
 
-  void Node::genCodeReadCustomArrayItemIntoATmpVar(File * fp, UlamValue & uvpass)
+  void Node::genCodeReadCustomArrayItemIntoATmpVar(File * fp, UVPass & uvpass)
   {
-    UTI vuti = uvpass.getUlamValueTypeIdx();
-
-    assert(m_state.isPtr(vuti)); //terminals handled in NodeTerminal as BitVector for args
-
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp for data
-    vuti = uvpass.getPtrTargetType(); //replaces vuti w target type
+    UTI vuti = uvpass.getPassTargetType(); //replaces vuti w target type
     assert(vuti != Void);
 
     //vut (index) may not be numeric when custom array
@@ -777,11 +763,11 @@ namespace MFM {
     //index is immediate Index arg of targettype in uvpass
     fp->write(localStorageTypeAsString(vuti).c_str()); //e.g. BitVector<32> exception
     fp->write("(");
-    fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex()).c_str()); //INDEX
+    fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPassVarNum()).c_str()); //INDEX
     fp->write("));\n");
 
     //update uvpass
-    uvpass = UlamValue::makePtr(tmpVarNum2, TMPBITVAL, itemuti, m_state.determinePackable(itemuti), m_state, 0); //POS 0 rightjustified (atom-based).
+    uvpass = UVPass::makePass(tmpVarNum2, TMPBITVAL, itemuti, m_state.determinePackable(itemuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
 
     genCodeConvertABitVectorIntoATmpVar(fp, uvpass); //updates uvpass again
     m_state.clearCurrentObjSymbolsForCodeGen();
@@ -789,16 +775,12 @@ namespace MFM {
 
   // two arg's luvpass fine-tunes the current symbol in case of member selection;
   // ruvpass is the ptr to value to write
-  void Node::genCodeWriteFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass)
+  void Node::genCodeWriteFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass)
   {
-    UTI luti = luvpass.getUlamValueTypeIdx();
-    assert(m_state.isPtr(luti));
-    luti = luvpass.getPtrTargetType();
+    UTI luti = luvpass.getPassTargetType();
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
 
-    UTI ruti = ruvpass.getUlamValueTypeIdx();
-    assert(m_state.isPtr(ruti)); //terminals handled in NodeTerminal
-    ruti = ruvpass.getPtrTargetType();
+    UTI ruti = ruvpass.getPassTargetType();
 
     // here, cos is symbol used to determine read method: either self or last of cos.
     // stgcos is symbol used to determine first "hidden" arg
@@ -824,7 +806,7 @@ namespace MFM {
       return genCodeWriteCustomArrayItemFromATmpVar(fp, luvpass, ruvpass); //like a func call
 
     // split off autoref stg/member selected
-    if(luvpass.getPtrStorage() == TMPAUTOREF)
+    if(luvpass.getPassStorage() == TMPAUTOREF)
       return genCodeWriteToAutorefFromATmpVar(fp, luvpass, ruvpass);
 
     if(stgcos->isSelf() && (stgcos == cos))
@@ -835,7 +817,7 @@ namespace MFM {
 
     bool isElementAncestorCast = (lut->getUlamClassType() == UC_ELEMENT) && m_state.isClassASubclassOf(ruti, luti);
 
-    UlamValue typuvpass;
+    UVPass typuvpass;
     if(isElementAncestorCast)
       {
 	//readTypefield of lhs before the write!
@@ -871,8 +853,8 @@ namespace MFM {
     //VALUE TO BE WRITTEN:
     // with immediate quarks, they are read into a tmpreg as other immediates
     // with immediate elements, too! value is not a terminal
-    STORAGE rstor = ruvpass.getPtrStorage();
-    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), rstor).c_str());
+    TMPSTORAGE rstor = ruvpass.getPassStorage();
+    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPassVarNum(), rstor).c_str());
     if(rstor == TMPBITVAL)
       {
 	//fp->write(".");
@@ -888,20 +870,16 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeWriteFromATmpVar
 
-  void Node::genCodeWriteToSelfFromATmpVar(File * fp, UlamValue & luvpass, UlamValue & ruvpass)
+  void Node::genCodeWriteToSelfFromATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass)
   {
-    UTI luti = luvpass.getUlamValueTypeIdx();
-    assert(m_state.isPtr(luti));
-    luti = luvpass.getPtrTargetType();
+    UTI luti = luvpass.getPassTargetType();
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
 
-    UTI ruti = ruvpass.getUlamValueTypeIdx();
-    assert(m_state.isPtr(ruti));
-    ruti = ruvpass.getPtrTargetType();
+    UTI ruti = ruvpass.getPassTargetType();
 
     bool isElementAncestorCast = (lut->getUlamClassType() == UC_ELEMENT) && m_state.isClassASubclassOf(ruti, luti);
 
-    UlamValue typuvpass;
+    UVPass typuvpass;
     if(isElementAncestorCast)
       {
 	//readTypefield of lhs before the write!
@@ -915,8 +893,8 @@ namespace MFM {
     fp->write(".");
     fp->write(writeMethodForCodeGen(luti, luvpass).c_str());
     fp->write("(");
-    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
-    if(ruvpass.getPtrStorage() == TMPBITVAL)
+    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPassVarNum(), ruvpass.getPassStorage()).c_str());
+    if(ruvpass.getPassStorage() == TMPBITVAL)
       {
 	//fp->write(".");
 	//fp->write(readMethodForCodeGen(ruti, ruvpass).c_str()); //or just 'Read' ?
@@ -932,15 +910,10 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeWriteToSelfFromATmpVar
 
-  void Node::genCodeWriteToAtomofRefFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass)
+  void Node::genCodeWriteToAtomofRefFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass)
   {
-    UTI luti = luvpass.getUlamValueTypeIdx();
-    assert(m_state.isPtr(luti));
-    luti = luvpass.getPtrTargetType();
-
-    UTI ruti = ruvpass.getUlamValueTypeIdx();
-    assert(m_state.isPtr(ruti));
-    ruti = ruvpass.getPtrTargetType();
+    UTI luti = luvpass.getPassTargetType();
+    UTI ruti = ruvpass.getPassTargetType();
 
     m_state.indent(fp);
     if(!m_state.m_currentObjSymbolsForCodeGen.empty())
@@ -950,7 +923,7 @@ namespace MFM {
       }
     else
       {
-	fp->write(m_state.getTmpVarAsString(luti, luvpass.getPtrSlotIndex(), luvpass.getPtrStorage()).c_str());
+	fp->write(m_state.getTmpVarAsString(luti, luvpass.getPassVarNum(), luvpass.getPassStorage()).c_str());
 	fp->write(".");
       }
 
@@ -958,8 +931,8 @@ namespace MFM {
     fp->write("(");
 
     //VALUE TO BE WRITTEN:
-    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
-    if(ruvpass.getPtrStorage() == TMPBITVAL)
+    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPassVarNum(), ruvpass.getPassStorage()).c_str());
+    if(ruvpass.getPassStorage() == TMPBITVAL)
       {
 	//fp->write(".");
 	//fp->write(readMethodForCodeGen(ruti, ruvpass).c_str()); //or just 'Read' ?
@@ -970,13 +943,13 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeWriteToAtomofRefFromATmpVar
 
-  void Node::genCodeWriteToAutorefFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass)
+  void Node::genCodeWriteToAutorefFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass)
   {
     //unlike the others, here, uvpass is the autoref (stg);
     //cos tell us where to go within the selected member
-    s32 tmpVarNum = luvpass.getPtrSlotIndex();
-    UTI luti = luvpass.getPtrTargetType();
-    UTI ruti = ruvpass.getPtrTargetType();
+    s32 tmpVarNum = luvpass.getPassVarNum();
+    UTI luti = luvpass.getPassTargetType();
+    UTI ruti = ruvpass.getPassTargetType();
 
     m_state.indent(fp);
     fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, TMPAUTOREF).c_str());
@@ -986,8 +959,8 @@ namespace MFM {
     //VALUE TO BE WRITTEN:
     // with immediate quarks, they are read into a tmpreg as other immediates
     // with immediate elements, too! value is not a terminal
-    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
-    if(ruvpass.getPtrStorage() == TMPBITVAL)
+    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPassVarNum(), ruvpass.getPassStorage()).c_str());
+    if(ruvpass.getPassStorage() == TMPBITVAL)
       {
 	//fp->write(".");
 	//fp->write(readMethodForCodeGen(ruti, ruvpass).c_str()); //or just 'Read' ?
@@ -997,7 +970,7 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeWriteToAutorefFromATmpVar
 
-  void Node::genCodeReadElementTypeField(File * fp, UlamValue & uvpass)
+  void Node::genCodeReadElementTypeField(File * fp, UVPass & uvpass)
   {
     s32 tmpVarType = m_state.getNextTmpVarNumber();
     m_state.indent(fp);
@@ -1020,13 +993,13 @@ namespace MFM {
     fp->write("); //save type\n\n");
 
     //update uvpass
-    uvpass = UlamValue::makePtr(tmpVarType, TMPREGISTER, Unsigned, m_state.determinePackable(Unsigned), m_state, 0); //POS 0 rightjustified (atom-based).
+    uvpass = UVPass::makePass(tmpVarType, TMPREGISTER, Unsigned, m_state.determinePackable(Unsigned), m_state, 0, 0); //POS 0 rightjustified (atom-based).
   } //genCodeReadElementTypeField
 
-  void Node::restoreElementTypeForAncestorCasting(File * fp, UlamValue & uvpass)
+  void Node::restoreElementTypeForAncestorCasting(File * fp, UVPass & uvpass)
   {
     // inheritance cast needs the lhs type restored after the generated write
-    s32 tmpVarType = uvpass.getPtrSlotIndex();
+    s32 tmpVarType = uvpass.getPassVarNum();
 
     m_state.indent(fp);
 
@@ -1050,16 +1023,12 @@ namespace MFM {
 
   // two arg's luvpass fine-tunes the current symbol in case of member selection;
   // ruvpass is the ptr to value to write
-  void Node::genCodeWriteArrayItemFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass)
+  void Node::genCodeWriteArrayItemFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass)
   {
-    assert(m_state.isPtr(luvpass.getUlamValueTypeIdx()));
-    UTI luti = luvpass.getPtrTargetType();
-    UTI ruti = ruvpass.getUlamValueTypeIdx();
-
-    if(m_state.isPtr(ruti))
-      ruti = ruvpass.getPtrTargetType();
+    UTI luti = luvpass.getPassTargetType();
+    UTI ruti = ruvpass.getPassTargetType();
     UlamType * rut = m_state.getUlamTypeByIndex(ruti);
-    STORAGE rstor = ruvpass.getPtrStorage();
+    TMPSTORAGE rstor = ruvpass.getPassStorage();
 
     // here, cos is symbol used to determine read method: either self or last of cos.
     // stgcos is symbol used to determine first "hidden" arg
@@ -1098,7 +1067,7 @@ namespace MFM {
 	fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
 	fp->write("u + ");
 
-	fp->write(m_state.getTmpVarAsString(luti, luvpass.getPtrSlotIndex()).c_str()); //INDEX
+	fp->write(m_state.getTmpVarAsString(luti, luvpass.getPassVarNum()).c_str()); //INDEX
 	fp->write(" * ");
 	fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM == rel pos
 	fp->write("u, ");
@@ -1120,7 +1089,7 @@ namespace MFM {
 
 	// with immediate quarks, they are read into a tmpreg as other immediates
 	// with immediate elements, too! value not a terminal
-	fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), rstor).c_str());
+	fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPassVarNum(), rstor).c_str());
 	if(rstor == TMPBITVAL)
 	  {
 	    fp->write(".read()"); //t3172
@@ -1140,7 +1109,7 @@ namespace MFM {
 	  }
 	fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
 	fp->write("u + ");
-	fp->write(m_state.getTmpVarAsString(luti, luvpass.getPtrSlotIndex()).c_str()); //INDEX
+	fp->write(m_state.getTmpVarAsString(luti, luvpass.getPassVarNum()).c_str()); //INDEX
 	fp->write(" * ");
 	fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
 	fp->write("u, ");
@@ -1167,7 +1136,7 @@ namespace MFM {
 	fp->write("(");
 	// with immediate quarks, they are read into a tmpreg as other immediates
 	// with immediate elements, too! value not a terminal
-	fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), rstor).c_str());
+	fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPassVarNum(), rstor).c_str());
 	if(rstor == TMPBITVAL)
 	  {
 	    fp->write(".read()");
@@ -1185,15 +1154,10 @@ namespace MFM {
 
   // two arg's luvpass fine-tunes the current symbol in case of member selection;
   // ruvpass is the ptr to value to write
-  void Node::genCodeWriteCustomArrayItemFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass)
+  void Node::genCodeWriteCustomArrayItemFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass)
   {
-    assert(m_state.isPtr(luvpass.getUlamValueTypeIdx()));
-
-    UTI luti = luvpass.getPtrTargetType();
-    UTI ruti = ruvpass.getUlamValueTypeIdx();
-
-    assert(m_state.isPtr(ruti)); //terminals handled in NodeTerminal
-    ruti = ruvpass.getPtrTargetType();
+    UTI luti = luvpass.getPassTargetType();
+    UTI ruti = ruvpass.getPassTargetType(); //terminals handled in NodeTerminal
 
     //rhs could be a constant; or previously cast from Int to Unary variables.
     // here, cos is symbol used to determine read method: either self or last of cos.
@@ -1246,7 +1210,7 @@ namespace MFM {
     //index is immediate Int arg
     fp->write(localStorageTypeAsString(luti).c_str()); //e.g. BitVector<32> exception
     fp->write("(");
-    fp->write(m_state.getTmpVarAsString(luti, luvpass.getPtrSlotIndex()).c_str()); //INDEX
+    fp->write(m_state.getTmpVarAsString(luti, luvpass.getPassVarNum()).c_str()); //INDEX
     fp->write("), ");
 
     //VALUE TO BE WRITTEN:
@@ -1257,7 +1221,7 @@ namespace MFM {
     UTI catype = m_state.getAClassCustomArrayType(cosuti);
     fp->write(localStorageTypeAsString(catype).c_str()); //e.g. BitVector<32> exception
     fp->write("(");
-    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
+    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPassVarNum(), ruvpass.getPassStorage()).c_str());
     //for ANY immediate atom arg from a T
     if(m_state.isAtomRef(catype))
       fp->write(", uc"); //needs effective self from T's type via uc
@@ -1268,11 +1232,9 @@ namespace MFM {
   } //genCodeWriteCustomArrayItemFromATmpVar
 
   // write out intermediate tmpVar as temp BitVector
-  void Node::genCodeConvertATmpVarIntoBitVector(File * fp, UlamValue & uvpass)
+  void Node::genCodeConvertATmpVarIntoBitVector(File * fp, UVPass & uvpass)
   {
-    UTI vuti = uvpass.getUlamValueTypeIdx();
-    assert(m_state.isPtr(vuti)); //terminals handled in NodeTerminal
-    vuti = uvpass.getPtrTargetType();
+    UTI vuti = uvpass.getPassTargetType(); //terminals handled in NodeTerminal
     assert(m_state.okUTItoContinue(vuti));
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
@@ -1287,9 +1249,9 @@ namespace MFM {
 
     fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2, TMPBITVAL).c_str());
     fp->write("("); // use constructor (not equals)
-    fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str()); //VALUE
+    fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str()); //VALUE
 
-    u32 pos = uvpass.getPtrPos(); //pos calculated by makePtr(atom-based) (e.g. quark, atom)
+    u32 pos = uvpass.getPassPos(); //pos calculated by makePass(atom-based) (e.g. quark, atom)
 
     if(m_state.isAtom(vuti))
       {
@@ -1315,25 +1277,23 @@ namespace MFM {
       }
     fp->write(");\n");
 
-    uvpass = UlamValue::makePtr(tmpVarNum2, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, pos); //POS left-justified for quarks; right for primitives.
+    uvpass = UVPass::makePass(tmpVarNum2, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, pos, 0); //POS left-justified for quarks; right for primitives.
 
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeConvertATmpVarIntoBitVector
 
   // write out immediate tmp BitValue as an intermediate tmpVar
-  void Node::genCodeConvertABitVectorIntoATmpVar(File * fp, UlamValue & uvpass)
+  void Node::genCodeConvertABitVectorIntoATmpVar(File * fp, UVPass & uvpass)
   {
-    UTI vuti = uvpass.getUlamValueTypeIdx();
-    assert(m_state.isPtr(vuti));
-    vuti = uvpass.getPtrTargetType();
+    UTI vuti = uvpass.getPassTargetType();
     assert(m_state.okUTItoContinue(vuti));
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
-    assert(uvpass.getPtrStorage() == TMPBITVAL);
+    assert(uvpass.getPassStorage() == TMPBITVAL);
 
     // write out immediate tmp BitValue as an intermediate tmpVar
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
-    STORAGE tmp2stor = vut->getTmpStorageTypeForTmpVar();
+    TMPSTORAGE tmp2stor = vut->getTmpStorageTypeForTmpVar();
 
     m_state.indent(fp);
     fp->write("const ");
@@ -1343,31 +1303,29 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2, tmp2stor).c_str());
     fp->write(" = ");
 
-    fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), TMPBITVAL).c_str());
+    fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPassVarNum(), TMPBITVAL).c_str());
     fp->write(".read(");
 
     // use immediate read for entire array
     if(isCurrentObjectAnArrayItem(vuti, uvpass))
       {
 	assert(0); //doesn't make sense for custom arrays?
-	fp->write_decimal(uvpass.getPtrLen()); //BITS_PER_ITEM
+	fp->write_decimal(uvpass.getPassLen()); //BITS_PER_ITEM
 	fp->write("u, ");
-	fp->write_decimal(adjustedImmediateArrayItemPtrPos(vuti, uvpass)); //item POS (last like others) ?
+	fp->write_decimal(adjustedImmediateArrayItemPassPos(vuti, uvpass)); //item POS (last like others) ?
 	fp->write("u");
       }
     fp->write(");\n");
 
-    uvpass = UlamValue::makePtr(tmpVarNum2, tmp2stor, vuti, m_state.determinePackable(vuti), m_state, 0); //POS 0 rightjustified (atom-based).
-    uvpass.setPtrPos(0); //entire register
+    uvpass = UVPass::makePass(tmpVarNum2, tmp2stor, vuti, m_state.determinePackable(vuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
+    uvpass.setPassPos(0); //entire register
   } //genCodeConvertABitVectorIntoATmpVar
 
   // write out auto ref tmpVar as temp BitVector; uvpass has variable w posOffset;
   // use stack for symbol? default is hidden arg
-  void Node::genCodeConvertATmpVarIntoAutoRef(File * fp, UlamValue & uvpass)
+  void Node::genCodeConvertATmpVarIntoAutoRef(File * fp, UVPass & uvpass)
   {
-    UTI vuti = uvpass.getUlamValueTypeIdx();
-    assert(m_state.isPtr(vuti));
-    vuti = uvpass.getPtrTargetType(); //offset or another autoref
+    UTI vuti = uvpass.getPassTargetType(); //offset or another autoref
 
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     Symbol * cos = NULL;
@@ -1394,11 +1352,11 @@ namespace MFM {
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
     // write out auto ref constuctor
-    s32 tmpVarNum = uvpass.getPtrSlotIndex();
+    s32 tmpVarNum = uvpass.getPassVarNum();
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
 
     // write out next chain using auto ref constuctor
-    if(uvpass.getPtrStorage() == TMPAUTOREF)
+    if(uvpass.getPassStorage() == TMPAUTOREF)
       {
 	assert(m_state.isReference(vuti));
 	m_state.indent(fp);
@@ -1441,7 +1399,7 @@ namespace MFM {
 	    fp->write(cos->getMangledName().c_str()); //local array
 	  }
 	fp->write(", ");
-	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str()); //pos variable 0-based
+	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPassStorage()).c_str()); //pos variable 0-based
 
 	if((cosclasstype == UC_QUARK) || (cosclasstype == UC_ELEMENT))
 	  {
@@ -1468,21 +1426,21 @@ namespace MFM {
       }
     fp->write(");\n");
 
-    uvpass = UlamValue::makePtr(tmpVarNum2, TMPAUTOREF, cosuti, m_state.determinePackable(cosuti), m_state, 0, cos->getId()); //POS left-justified by default.
+    uvpass = UVPass::makePass(tmpVarNum2, TMPAUTOREF, cosuti, m_state.determinePackable(cosuti), m_state, 0, cos->getId()); //POS left-justified by default.
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeConvertATmpVarIntoAutoRef
 
-  void Node::genCodeARefFromARefStorage(File * fp, UlamValue stguvpass, UlamValue uvpass)
+  void Node::genCodeARefFromARefStorage(File * fp, UVPass stguvpass, UVPass uvpass)
   {
     // write out auto ref constuctor
-    s32 tmpVarNum = stguvpass.getPtrSlotIndex();
-    s32 tmpVarNum2 = uvpass.getPtrSlotIndex();
+    s32 tmpVarNum = stguvpass.getPassVarNum();
+    s32 tmpVarNum2 = uvpass.getPassVarNum();
 
-    UTI vuti = uvpass.getPtrTargetType();
+    UTI vuti = uvpass.getPassTargetType();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     assert(m_state.isReference(vuti));
 
-    UTI stgrefuti = stguvpass.getPtrTargetType();
+    UTI stgrefuti = stguvpass.getPassTargetType();
     assert(m_state.isReference(stgrefuti));
 
     m_state.indent(fp);
@@ -1493,7 +1451,7 @@ namespace MFM {
     fp->write("("); //use constructor (not equals)
     fp->write(m_state.getTmpVarAsString(stgrefuti, tmpVarNum, TMPAUTOREF).c_str());
     fp->write(", ");
-    fp->write_decimal_unsigned(uvpass.getPtrPos());
+    fp->write_decimal_unsigned(uvpass.getPassPos());
     fp->write("u");
     fp->write(");\n");
 
@@ -1733,7 +1691,7 @@ namespace MFM {
 
     m_state.pushCurrentBlock(fblock); //before parsing the args
 
-    //create "atom" symbol whose index is "hidden" first arg (i.e. a Ptr to an Atom);
+    //create "atom" symbol whose index is "hidden" first arg (i.e. a Pass to an Atom);
     //immediately below the return value(s); and belongs to the function definition scope.
     u32 selfid = m_state.m_pool.getIndexForDataString("self"); //was "self"
     Token selfTok(TOK_IDENTIFIER, loc, selfid);
@@ -2233,17 +2191,17 @@ namespace MFM {
     return m_state.getUlamTypeByIndex(nuti)->getLocalStorageTypeAsString();
   } //localStorageTypeAsString
 
-  const std::string Node::tmpStorageTypeForRead(UTI nuti, UlamValue uvpass)
+  const std::string Node::tmpStorageTypeForRead(UTI nuti, UVPass uvpass)
   {
     return m_state.getUlamTypeByIndex(nuti)->getTmpStorageTypeAsString();
   } //tmpStorageTypeForRead
 
-  const std::string Node::tmpStorageTypeForReadArrayItem(UTI nuti, UlamValue uvpass)
+  const std::string Node::tmpStorageTypeForReadArrayItem(UTI nuti, UVPass uvpass)
   {
     return m_state.getUlamTypeByIndex(nuti)->getArrayItemTmpStorageTypeAsString();
   } //tmpStorageTypeForReadArrayItem
 
-  const std::string Node::readMethodForCodeGen(UTI nuti, UlamValue uvpass)
+  const std::string Node::readMethodForCodeGen(UTI nuti, UVPass uvpass)
   {
     std::string method;
     if(isCurrentObjectsContainingAModelParameter() >= 0)
@@ -2257,7 +2215,7 @@ namespace MFM {
     return method;
   } //readMethodForCodeGen
 
-  const std::string Node::readArrayItemMethodForCodeGen(UTI nuti, UlamValue uvpass)
+  const std::string Node::readArrayItemMethodForCodeGen(UTI nuti, UVPass uvpass)
   {
     std::string method;
     bool isCArray = isCurrentObjectACustomArrayItem(nuti, uvpass);
@@ -2273,7 +2231,7 @@ namespace MFM {
     return method;
   } //readArrayItemMethodForCodeGen
 
-  const std::string Node::writeMethodForCodeGen(UTI nuti, UlamValue uvpass)
+  const std::string Node::writeMethodForCodeGen(UTI nuti, UVPass uvpass)
   {
     std::string method;
     if(!isCurrentObjectALocalVariableOrArgument())
@@ -2285,7 +2243,7 @@ namespace MFM {
     return method;
   } //writeMethodForCodeGen
 
-  const std::string Node::writeArrayItemMethodForCodeGen(UTI nuti, UlamValue uvpass)
+  const std::string Node::writeArrayItemMethodForCodeGen(UTI nuti, UVPass uvpass)
   {
     std::string method;
     bool isCArray = isCurrentObjectACustomArrayItem(nuti, uvpass);
@@ -2368,23 +2326,23 @@ namespace MFM {
   } //calcPosOfCurrentObjects
 
   //false means its the entire array or not an array at all (use read() if PACKEDLOADABLE)
-  bool Node::isCurrentObjectAnArrayItem(UTI cosuti, UlamValue uvpass)
+  bool Node::isCurrentObjectAnArrayItem(UTI cosuti, UVPass uvpass)
   {
     //uvpass would be an array index (an int of sorts), not an array;
     //types would not be the same;
-    return(!m_state.isScalar(cosuti) && m_state.isScalar(uvpass.getPtrTargetType()));
+    return(!m_state.isScalar(cosuti) && m_state.isScalar(uvpass.getPassTargetType()));
   } //isCurrentObjectAnArrayItem
 
-  bool Node::isCurrentObjectACustomArrayItem(UTI cosuti, UlamValue uvpass)
+  bool Node::isCurrentObjectACustomArrayItem(UTI cosuti, UVPass uvpass)
   {
     // a cosuti as a scalar, customarray, may be used as a regular array,
     //     but at this point cosuti would be a scalar in either case (sigh);
     // uvpass would be an array index (an int of sorts), not an array;
     // types would not be the same;
-    return(m_state.isScalar(cosuti) && m_state.isClassACustomArray(cosuti) && uvpass.getPtrTargetType() != cosuti);
+    return(m_state.isScalar(cosuti) && m_state.isClassACustomArray(cosuti) && uvpass.getPassTargetType() != cosuti);
   } //isCurrentObjectACustomArrayItem
 
-  bool Node::isCurrentObjectAnUnpackedArray(UTI cosuti, UlamValue uvpass)
+  bool Node::isCurrentObjectAnUnpackedArray(UTI cosuti, UVPass uvpass)
   {
     if(m_state.isScalar(cosuti))
       return false;
@@ -2401,9 +2359,9 @@ namespace MFM {
     return (isCurrentObjectALocalVariableOrArgument() && ( (m_state.m_currentObjSymbolsForCodeGen.size() == 1) || (m_state.m_currentObjSymbolsForCodeGen.back()->isModelParameter())));
   } //isHandlingImmediateType
 
-  u32 Node::adjustedImmediateArrayItemPtrPos(UTI cosuti, UlamValue uvpass)
+  u32 Node::adjustedImmediateArrayItemPassPos(UTI cosuti, UVPass uvpass)
   {
-    u32 pos = uvpass.getPtrPos();
+    u32 pos = uvpass.getPassPos();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     if(cosut->getUlamClassType() == UC_NOTACLASS)
       {
@@ -2412,6 +2370,6 @@ namespace MFM {
 	pos = wordsize - (BITSPERATOM - pos); //cosut->getTotalBitSize();
       }
     return pos;
-  } //adjustedImmediateArrayItemPtrPos
+  } //adjustedImmediateArrayItemPassPos
 
 } //end MFM

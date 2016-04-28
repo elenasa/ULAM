@@ -150,11 +150,11 @@ namespace MFM {
     return ctype.str();
   } //getLocalStorageTypeAsString
 
-  STORAGE UlamTypeClassElement::getTmpStorageTypeForTmpVar()
+  TMPSTORAGE UlamTypeClassElement::getTmpStorageTypeForTmpVar()
   {
     //return TMPTATOM;
     u32 sizebyints = getTotalWordSize();
-    STORAGE rtnStgType = TMPTBV; //?
+    TMPSTORAGE rtnStgType = TMPTBV; //?
     std::string ctype;
     switch(sizebyints)
       {

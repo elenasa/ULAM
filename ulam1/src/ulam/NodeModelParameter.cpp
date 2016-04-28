@@ -101,25 +101,25 @@ namespace MFM {
     return true; //nothing to do
   } //assignClassArgValueInStubCopy
 
-  void NodeModelParameter::genCode(File * fp, UlamValue& uvpass)
+  void NodeModelParameter::genCode(File * fp, UVPass& uvpass)
   {
     if(!NodeConstant::isReadyConstant())
       m_ready = NodeConstant::updateConstant(); //sets ready here
     assert(NodeConstant::isReadyConstant()); //must be
 
-    //excerpt from makeUlamValuePtrForCodeGen in NodeIdent
+    //excerpt from makeUVPassForCodeGen in NodeIdent
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
     s32 tmpnum = m_state.getNextTmpVarNumber();
-    uvpass = UlamValue::makePtr(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, 0, m_constSymbol->getId());
+    uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, 0, m_constSymbol->getId());
 
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_constSymbol); //*******UPDATED GLOBAL;
 
     Node::genCodeReadIntoATmpVar(fp, uvpass);
   } //genCode
 
-  void NodeModelParameter::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  void NodeModelParameter::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
     assert(0);
   } //genCodeToStoreInto

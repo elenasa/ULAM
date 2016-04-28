@@ -68,7 +68,7 @@ namespace MFM{
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void genCode(File * fp, UVPass& uvpass);
 
 
   protected:

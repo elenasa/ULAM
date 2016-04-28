@@ -896,7 +896,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   }
 
   //header .h file
-  void NodeBlockClass::genCode(File * fp, UlamValue& uvpass)
+  void NodeBlockClass::genCode(File * fp, UVPass& uvpass)
   {
     //use the instance UTI instead of the node's original type
     UTI cuti = getNodeType(); //was m_state.getCompileThisIdx()
@@ -1030,7 +1030,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     //DataMember VAR DECLS DMs
     if(m_nodeNext)
       {
-	UlamValue uvpass;
+	UVPass uvpass;
 	m_nodeNext->genCode(fp, uvpass); //output the BitField typedefs
 	//NodeBlock::genCodeDeclsForVariableDataMembers(fp, classtype); //not in order declared
 	fp->write("\n");
@@ -1087,7 +1087,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     //DataMember VAR DECLS DM
     if(m_nodeNext)
       {
-	UlamValue uvpass;
+	UVPass uvpass;
 	m_nodeNext->genCode(fp, uvpass);  //output the BitField typedefs
 	fp->write("\n");
       }
@@ -1148,7 +1148,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     //DataMember VAR DECLS DM
     if(m_nodeNext)
       {
-	UlamValue uvpass;
+	UVPass uvpass;
 	m_nodeNext->genCode(fp, uvpass);  //output the BitField typedefs
 	fp->write("\n");
       }
@@ -1179,7 +1179,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   } //genShortNameParameterTypesExtractedForHeaderFile
 
   //Body for This Class only; practically empty if quark (.tcc)
-  void NodeBlockClass::genCodeBody(File * fp, UlamValue& uvpass)
+  void NodeBlockClass::genCodeBody(File * fp, UVPass& uvpass)
   {
     //use the instance UTI instead of the node's original type
     UlamType * cut = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx());
@@ -1715,7 +1715,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     u32 len = cut->getTotalBitSize();
 
     m_state.indent(fp);
-    fp->write("MFM_API_ASSERT_ARG(bvsref.GetBitSize() >= ");
+    fp->write("MFM_API_ASSERT_ARG((pos + bvsref.GetBitSize()) >= ");
     fp->write_decimal_unsigned(len);
     fp->write("u);\n");
 

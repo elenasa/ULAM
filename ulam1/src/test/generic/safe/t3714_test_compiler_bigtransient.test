@@ -1,9 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3714_test_compiler_bigtransient
+##
+## unevaluable
+##
 #!
-Exit status: 39
-Ue_Foo { Int(32) ta(39);  Int(32) test() {  System s;  Too t;  t a . 39u cast = ta t ( )get . = s ( ta )print . t sp . ta 39u cast == cast = s ( t sp . cast )assert . ta return } }
-Un_Too { Bool(7) sp(false);  Int(32) a( 87 cast);  <NOMAIN> }
+Exit status: -11
+Ue_Foo { Int(32) ta(9);  Int(32) test() {  System s;  Too t;  t a . 231u cast = ta t ( )get . = s ( ta )print . t sp . ta 231u cast == cast = s ( t sp . cast )assert . ta return } }
+Un_Too { Bool(7) sp(false);  Int(32) a( 87 cast);  Foo f[5](0,0,0,0,0);  Bits(32) bits(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## based on t3711, FIRST TRANSIENT TEST EVER in the history of the universe!!!

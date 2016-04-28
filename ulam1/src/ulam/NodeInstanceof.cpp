@@ -88,7 +88,7 @@ namespace MFM {
     return ptr;
   } //makeUlamValuePtr
 
-  void NodeInstanceof::genCode(File * fp, UlamValue& uvpass)
+  void NodeInstanceof::genCode(File * fp, UVPass& uvpass)
   {
     //generates a new instance of..
     UTI nuti = getNodeType();
@@ -170,7 +170,7 @@ namespace MFM {
       {
 	// THE READ:
 	s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp to read into
-	STORAGE rstor = nut->getTmpStorageTypeForTmpVar();
+	TMPSTORAGE rstor = nut->getTmpStorageTypeForTmpVar();
 
 	m_state.indent(fp);
 	fp->write("const ");
@@ -182,15 +182,15 @@ namespace MFM {
 	fp->write(".");
 	fp->write("read();\n");
 
-	uvpass = UlamValue::makePtr(tmpVarNum2, rstor, nuti, nut->getPackable(), m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
+	uvpass = UVPass::makePass(tmpVarNum2, rstor, nuti, nut->getPackable(), m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
       }
     else //element and uvpass stays the same (a default immediate element).
-      uvpass = UlamValue::makePtr(tmpVarNum, TMPBITVAL, nuti, nut->getPackable(), m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0); //t3657
+      uvpass = UVPass::makePass(tmpVarNum, TMPBITVAL, nuti, nut->getPackable(), m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0); //t3657
 
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
   } //genCode
 
-  void NodeInstanceof::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  void NodeInstanceof::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
     //lhs
     assert(getStoreIntoAble() == TBOOL_TRUE); //not so.

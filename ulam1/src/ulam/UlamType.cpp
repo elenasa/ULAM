@@ -354,7 +354,7 @@ namespace MFM {
     return ctype;
   } //getTmpStorageTypeAsString
 
-  STORAGE UlamType::getTmpStorageTypeForTmpVar()
+  TMPSTORAGE UlamType::getTmpStorageTypeForTmpVar()
   {
     return TMPREGISTER;
   }

@@ -46,6 +46,7 @@
 #include "Symbol.h"
 #include "UlamType.h"
 #include "UlamValue.h"
+#include "UVPass.h"
 
 namespace MFM{
 
@@ -158,13 +159,13 @@ namespace MFM{
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void genCode(File * fp, UVPass& uvpass);
 
-    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
+    virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
 
-    virtual void genCodeReadIntoATmpVar(File * fp, UlamValue& uvpass);
+    virtual void genCodeReadIntoATmpVar(File * fp, UVPass& uvpass);
 
-    virtual void genCodeWriteFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
+    virtual void genCodeWriteFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
@@ -212,31 +213,31 @@ namespace MFM{
     s32 calcPosOfCurrentObjects(bool onlyClasses = false);
 
     //false means its the entire array or not an array at all
-    bool isCurrentObjectAnArrayItem(UTI cosuti, UlamValue uvpass);
+    bool isCurrentObjectAnArrayItem(UTI cosuti, UVPass uvpass);
 
-    bool isCurrentObjectACustomArrayItem(UTI cosuti, UlamValue uvpass);
+    bool isCurrentObjectACustomArrayItem(UTI cosuti, UVPass uvpass);
 
-    bool isCurrentObjectAnUnpackedArray(UTI cosuti, UlamValue uvpass);
+    bool isCurrentObjectAnUnpackedArray(UTI cosuti, UVPass uvpass);
 
     bool isHandlingImmediateType();
 
-    u32 adjustedImmediateArrayItemPtrPos(UTI cosuti, UlamValue uvpass);
+    u32 adjustedImmediateArrayItemPassPos(UTI cosuti, UVPass uvpass);
 
-    void genCodeConvertATmpVarIntoBitVector(File * fp, UlamValue & uvpass);
+    void genCodeConvertATmpVarIntoBitVector(File * fp, UVPass & uvpass);
 
-    void genCodeConvertABitVectorIntoATmpVar(File * fp, UlamValue & uvpass);
+    void genCodeConvertABitVectorIntoATmpVar(File * fp, UVPass & uvpass);
 
     //e.g. when lhs of member select is an array item of class type
-    void genCodeConvertATmpVarIntoAutoRef(File * fp, UlamValue & uvpass);
+    void genCodeConvertATmpVarIntoAutoRef(File * fp, UVPass & uvpass);
 
     //e.g. when lhs of member select is an array item of class type, rhs data member
-    void genCodeARefFromARefStorage(File * fp, UlamValue stguvpass, UlamValue uvpass);
+    void genCodeARefFromARefStorage(File * fp, UVPass stguvpass, UVPass uvpass);
 
     virtual void checkForSymbol();
 
-    void genCodeReadElementTypeField(File * fp, UlamValue & uvpass);
+    void genCodeReadElementTypeField(File * fp, UVPass & uvpass);
 
-    void restoreElementTypeForAncestorCasting(File * fp, UlamValue & uvpass);
+    void restoreElementTypeForAncestorCasting(File * fp, UVPass & uvpass);
 
     //common helpers for safe casting
     NodeFunctionCall * buildCastingFunctionCallNode(Node * node, UTI tobeType);
@@ -249,19 +250,19 @@ namespace MFM{
     NNO m_parentNo;
     NNO m_no;
 
-    void genCodeReadSelfIntoATmpVar(File * fp, UlamValue & uvpass);
-    void genCodeWriteToSelfFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
+    void genCodeReadSelfIntoATmpVar(File * fp, UVPass & uvpass);
+    void genCodeWriteToSelfFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
 
-    void genCodeWriteToAtomofRefFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
+    void genCodeWriteToAtomofRefFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
 
-    void genCodeReadAutorefIntoATmpVar(File * fp, UlamValue& uvpass);
-    void genCodeWriteToAutorefFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
+    void genCodeReadAutorefIntoATmpVar(File * fp, UVPass& uvpass);
+    void genCodeWriteToAutorefFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
 
-    void genCodeReadArrayItemIntoATmpVar(File * fp, UlamValue& uvpass);
-    void genCodeReadCustomArrayItemIntoATmpVar(File * fp, UlamValue & uvpass);
+    void genCodeReadArrayItemIntoATmpVar(File * fp, UVPass& uvpass);
+    void genCodeReadCustomArrayItemIntoATmpVar(File * fp, UVPass & uvpass);
 
-    void genCodeWriteArrayItemFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
-    void genCodeWriteCustomArrayItemFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
+    void genCodeWriteArrayItemFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
+    void genCodeWriteCustomArrayItemFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
 
     virtual void genModelParameterHiddenArgs(File * fp, s32 epi);
 
@@ -274,14 +275,14 @@ namespace MFM{
 
     const std::string localStorageTypeAsString(UTI nuti);
 
-    const std::string tmpStorageTypeForRead(UTI nuti, UlamValue uvpass);
-    const std::string tmpStorageTypeForReadArrayItem(UTI nuti, UlamValue uvpass);
+    const std::string tmpStorageTypeForRead(UTI nuti, UVPass uvpass);
+    const std::string tmpStorageTypeForReadArrayItem(UTI nuti, UVPass uvpass);
 
-    const std::string readMethodForCodeGen(UTI nuti, UlamValue uvpass);
-    const std::string readArrayItemMethodForCodeGen(UTI nuti, UlamValue uvpass);
+    const std::string readMethodForCodeGen(UTI nuti, UVPass uvpass);
+    const std::string readArrayItemMethodForCodeGen(UTI nuti, UVPass uvpass);
 
-    const std::string writeMethodForCodeGen(UTI nuti, UlamValue uvpass);
-    const std::string writeArrayItemMethodForCodeGen(UTI nuti, UlamValue uvpass);
+    const std::string writeMethodForCodeGen(UTI nuti, UVPass uvpass);
+    const std::string writeArrayItemMethodForCodeGen(UTI nuti, UVPass uvpass);
   };
 
 }

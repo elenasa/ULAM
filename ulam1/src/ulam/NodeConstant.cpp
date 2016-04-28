@@ -224,7 +224,7 @@ namespace MFM {
     return NodeTerminal::eval();
   } //eval
 
-  void NodeConstant::genCode(File * fp, UlamValue& uvpass)
+  void NodeConstant::genCode(File * fp, UVPass& uvpass)
   {
     if(!isReadyConstant())
       m_ready = updateConstant(); //sets ready here

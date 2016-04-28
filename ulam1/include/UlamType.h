@@ -135,7 +135,7 @@ namespace MFM{
 
     virtual const std::string getTmpStorageTypeAsString(s32 sizebyints);
 
-    virtual STORAGE getTmpStorageTypeForTmpVar();
+    virtual TMPSTORAGE getTmpStorageTypeForTmpVar();
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 

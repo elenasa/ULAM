@@ -263,19 +263,19 @@ namespace MFM {
     return false; //NOT IMPLEMENTED YET!
   } //end dobinaryOperaationarray
 
-  void NodeBinaryOpCompare::genCode(File * fp, UlamValue& uvpass)
+  void NodeBinaryOpCompare::genCode(File * fp, UVPass& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
     // generate rhs first; may update current object globals (e.g. function call)
-    UlamValue ruvpass;
+    UVPass ruvpass;
     m_nodeRight->genCode(fp, ruvpass);
 
     // restore current object globals
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
-    UlamValue luvpass;
+    UVPass luvpass;
     m_nodeLeft->genCode(fp, luvpass); //updates m_currentObjSymbol
 
     UTI nuti = getNodeType();
@@ -293,17 +293,13 @@ namespace MFM {
     fp->write(methodNameForCodeGen().c_str());
     fp->write("(");
 
-    UTI luti = luvpass.getUlamValueTypeIdx();
-    assert(m_state.isPtr(luti));
-    luti = luvpass.getPtrTargetType(); //reset
-    fp->write(m_state.getTmpVarAsString(luti, luvpass.getPtrSlotIndex(), luvpass.getPtrStorage()).c_str());
+    UTI luti = luvpass.getPassTargetType(); //reset
+    fp->write(m_state.getTmpVarAsString(luti, luvpass.getPassVarNum(), luvpass.getPassStorage()).c_str());
 
     fp->write(", ");
 
-    UTI ruti = ruvpass.getUlamValueTypeIdx();
-    assert(m_state.isPtr(ruti));
-    ruti = ruvpass.getPtrTargetType(); //reset
-    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
+    UTI ruti = ruvpass.getPassTargetType(); //reset
+    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPassVarNum(), ruvpass.getPassStorage()).c_str());
 
     fp->write(", ");
 
@@ -312,7 +308,7 @@ namespace MFM {
 
     fp->write(");\n");
 
-    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //P
+    uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0);  //P
 
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode

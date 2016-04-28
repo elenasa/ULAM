@@ -122,7 +122,7 @@ namespace MFM {
     return evs;
   } //eval
 
-  void NodeSimpleStatement::genCode(File * fp, UlamValue& uvpass)
+  void NodeSimpleStatement::genCode(File * fp, UVPass& uvpass)
   {
     assert(m_node);
     m_node->genCode(fp, uvpass);

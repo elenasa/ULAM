@@ -86,7 +86,7 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void genCode(File * fp, UVPass& uvpass);
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 

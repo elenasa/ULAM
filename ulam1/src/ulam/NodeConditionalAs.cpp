@@ -251,7 +251,7 @@ namespace MFM {
     return evs;
   } //eval
 
-  void NodeConditionalAs::genCode(File * fp, UlamValue& uvpass)
+  void NodeConditionalAs::genCode(File * fp, UVPass& uvpass)
   {
     assert(m_nodeLeft);
     UTI nuti = getNodeType();
@@ -261,11 +261,9 @@ namespace MFM {
     ULAMCLASSTYPE rclasstype = rut->getUlamClassType();
     assert(!rut->isReference());
 
-    UlamValue luvpass;
+    UVPass luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass); //needs to load lhs into tmp (T); symbol's in COS vector
-    UTI luti = luvpass.getUlamValueTypeIdx();
-    assert(m_state.isPtr(luti));
-    luti = luvpass.getPtrTargetType(); //replaces
+    UTI luti = luvpass.getPassTargetType(); //replaces
     assert(m_state.okUTItoContinue(luti));
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
 
@@ -274,7 +272,7 @@ namespace MFM {
     m_nodeLeft->genCodeReadIntoATmpVar(fp, luvpass);
     m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore COS after read.
 
-    s32 tmpVarNum = luvpass.getPtrSlotIndex();
+    s32 tmpVarNum = luvpass.getPassVarNum();
     s32 tmpVarIs = m_state.getNextTmpVarNumber();
 
     m_state.indent(fp);
@@ -290,7 +288,7 @@ namespace MFM {
 	fp->write(".");
 	fp->write(m_state.getAsMangledFunctionName(luti, ruti));
 	fp->write("(");
-	fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, luvpass.getPtrStorage()).c_str());
+	fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, luvpass.getPassStorage()).c_str());
 	fp->write(");\n");
       }
     // not possible!! we already know rhs is an element
@@ -319,7 +317,7 @@ namespace MFM {
 	    fp->write(m_state.getAsMangledFunctionName(luti, ruti)); //UlamElement IsMethod
 	    fp->write("(uc, ");
 
-	    fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, luvpass.getPtrStorage()).c_str());
+	    fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, luvpass.getPassStorage()).c_str());
 	    fp->write(".GetType(), "); //from tmpvar T
 	  }
 	fp->write("\"");
@@ -333,7 +331,7 @@ namespace MFM {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     u32 lid = m_state.m_currentObjSymbolsForCodeGen.back()->getId();
 
-    uvpass = UlamValue::makePtr(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid);
+    uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid);
   } //genCode
 
 } //end MFM

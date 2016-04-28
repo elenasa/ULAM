@@ -245,21 +245,21 @@ namespace MFM {
     return; //work done by NodeStatements and NodeBlock
   }
 
-  void NodeReturnStatement::genCode(File * fp, UlamValue& uvpass)
+  void NodeReturnStatement::genCode(File * fp, UVPass& uvpass)
   {
     // return for void type has a NodeStatementEmpty m_node
     if(m_node && getNodeType() != Void)
       {
 	m_node->genCode(fp, uvpass);
-	UTI vuti = uvpass.getUlamValueTypeIdx();
+	UTI vuti = uvpass.getPassTargetType();
 
 	Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass);
 
 	m_state.indent(fp);
 	fp->write("return ");
 	fp->write("(");
-	vuti = uvpass.getPtrTargetType();
-	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
+	vuti = uvpass.getPassTargetType();
+	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str());
 
 	fp->write(");\n");
       }

@@ -706,7 +706,7 @@ namespace MFM {
   } //makeUlamValuePtr
 
   // parse tree in order declared, unlike the ST.
-  void NodeVarDecl::genCode(File * fp, UlamValue& uvpass)
+  void NodeVarDecl::genCode(File * fp, UVPass& uvpass)
   {
     assert(m_varSymbol);
     assert(m_state.isComplete(getNodeType()));
@@ -728,7 +728,7 @@ namespace MFM {
 	fp->write(" ");
 	fp->write(m_varSymbol->getMangledName().c_str());
 	fp->write("("); // use constructor (not equals)
-	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str()); //VALUE
+	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str()); //VALUE
 	if(m_state.isAtomRef(vuti))
 	  fp->write(", uc");
 	fp->write(")");

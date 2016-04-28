@@ -57,7 +57,7 @@ namespace MFM {
     return BREAK;
   }
 
-  void NodeBreakStatement::genCode(File * fp, UlamValue& uvpass)
+  void NodeBreakStatement::genCode(File * fp, UVPass& uvpass)
   {
     m_state.indent(fp);
     fp->write("break;\n");

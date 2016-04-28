@@ -85,7 +85,7 @@ namespace MFM{
 
     virtual EvalStatus evalToStoreInto();
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void genCode(File * fp, UVPass& uvpass);
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
@@ -98,7 +98,7 @@ namespace MFM{
     bool updateConstant64(u64 & newconst);
 
     bool foldDefaultQuark(u32 dq);
-    void genCodedBitFieldTypedef(File * fp, UlamValue& uvpass);
+    void genCodedBitFieldTypedef(File * fp, UVPass& uvpass);
 
   };
 } //MFM

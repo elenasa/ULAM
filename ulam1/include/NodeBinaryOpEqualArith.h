@@ -53,7 +53,7 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void genCode(File * fp, UVPass& uvpass);
 
     virtual const std::string methodNameForCodeGen();
 

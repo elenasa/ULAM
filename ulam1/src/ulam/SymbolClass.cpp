@@ -503,7 +503,8 @@ namespace MFM {
     m_state.m_currentSelfSymbolForCodeGen = this;
     m_state.clearCurrentObjSymbolsForCodeGen();
 
-    m_state.setupCenterSiteForTesting(); //temporary!!! (t3207)
+    //m_state.setupCenterSiteForTesting(); //temporary!!! (t3207, t3714)
+    m_state.setupCenterSiteForGenCode(); //temporary!!! (t3207, t3714)
 
     // mangled types and forward class declarations
     genMangledTypesHeaderFile(fm);
@@ -517,7 +518,7 @@ namespace MFM {
       genAllCapsIfndefForHeaderFile(fp);
       generateHeaderIncludes(fp);
 
-      UlamValue uvpass;
+      UVPass uvpass;
       m_classBlock->genCode(fp, uvpass); //compileThisId only, class block
 
       // include this .tcc
@@ -547,7 +548,7 @@ namespace MFM {
       m_state.m_currentIndentLevel = 0;
       fp->write(CModeForHeaderFiles); //needed for .tcc files too
 
-      UlamValue uvpass;
+      UVPass uvpass;
       m_classBlock->genCodeBody(fp, uvpass); //compileThisId only, MFM namespace
 
       delete fp; //close

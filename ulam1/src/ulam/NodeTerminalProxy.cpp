@@ -199,12 +199,12 @@ namespace MFM {
     return evs;
   } //eval
 
-  void NodeTerminalProxy::genCode(File * fp, UlamValue& uvpass)
+  void NodeTerminalProxy::genCode(File * fp, UVPass& uvpass)
   {
     return NodeTerminal::genCode(fp, uvpass);
   }
 
-  void NodeTerminalProxy::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  void NodeTerminalProxy::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
     return NodeTerminal::genCodeToStoreInto(fp, uvpass);
   }

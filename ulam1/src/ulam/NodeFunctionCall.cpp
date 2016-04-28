@@ -714,7 +714,7 @@ namespace MFM {
 
   // during genCode of a single function body "self" doesn't change!!!
   // note: uvpass arg is not equal to m_currentObjPtr; it is blank.
-  void NodeFunctionCall::genCode(File * fp, UlamValue& uvpass)
+  void NodeFunctionCall::genCode(File * fp, UVPass& uvpass)
   {
     if(!m_funcSymbol || !m_state.okUTItoContinue(getNodeType()))
       {
@@ -728,7 +728,8 @@ namespace MFM {
       }
 
     // The Call:
-    if(m_state.isPtr(uvpass.getUlamValueTypeIdx()) && (uvpass.getPtrStorage() == TMPAUTOREF))
+    //if(m_state.isPass(uvpass.getUVPassTypeIdx()) && (uvpass.getPassStorage() == TMPAUTOREF))
+    if((uvpass.getPassStorage() == TMPAUTOREF))
       genCodeAReferenceIntoABitValue(fp, uvpass);
     else
       genCodeIntoABitValue(fp, uvpass);
@@ -736,9 +737,7 @@ namespace MFM {
     // Result:
     if(getNodeType() != Void)
       {
-	UTI vuti = uvpass.getUlamValueTypeIdx();
-	assert(m_state.isPtr(vuti));
-	vuti = uvpass.getPtrTargetType();
+	UTI vuti = uvpass.getPassTargetType();
 	// can we skip reading classes???
 	if(m_state.getUlamTypeByIndex(vuti)->isPrimitiveType())
 	  {
@@ -748,12 +747,12 @@ namespace MFM {
   } //genCode
 
   // during genCode of a single function body "self" doesn't change!!!
-  void NodeFunctionCall::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  void NodeFunctionCall::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
     return genCodeIntoABitValue(fp,uvpass);
   } //codeGenToStoreInto
 
-  void NodeFunctionCall::genCodeIntoABitValue(File * fp, UlamValue& uvpass)
+  void NodeFunctionCall::genCodeIntoABitValue(File * fp, UVPass& uvpass)
   {
     // generate for value
     UTI nuti = getNodeType();
@@ -799,7 +798,7 @@ namespace MFM {
 	      pos = cos->getPosOffset(); //data member position overrides
 	  }
 
-	uvpass = UlamValue::makePtr(rtnSlot, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, justified; self id in Ptr;
+	uvpass = UVPass::makePass(rtnSlot, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, justified; self id in Pass;
 
 	// put result of function call into a variable;
 	// (C turns it into the copy constructor)
@@ -835,9 +834,9 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeIntoABitValue
 
-  void NodeFunctionCall::genCodeAReferenceIntoABitValue(File * fp, UlamValue& uvpass)
+  void NodeFunctionCall::genCodeAReferenceIntoABitValue(File * fp, UVPass& uvpass)
   {
-    UlamValue rtnuvpass;
+    UVPass rtnuvpass;
     // generate for value
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
@@ -875,7 +874,7 @@ namespace MFM {
 	else
 	  selfid = m_state.m_currentObjSymbolsForCodeGen[0]->getId();
 
-	rtnuvpass = UlamValue::makePtr(rtnSlot, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, justified; self id in Ptr;
+	rtnuvpass = UVPass::makePass(rtnSlot, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, justified; self id in Pass;
 
 	// put result of function call into a variable;
 	// (C turns it into the copy constructor)
@@ -887,8 +886,8 @@ namespace MFM {
       } //not void return
 
 
-    assert(uvpass.getPtrStorage() == TMPAUTOREF);
-    UTI vuti = uvpass.getPtrTargetType();
+    assert(uvpass.getPassStorage() == TMPAUTOREF);
+    UTI vuti = uvpass.getPassTargetType();
     assert(m_state.getUlamTypeByIndex(vuti)->getReferenceType() != ALT_NOT);
 
     //use possible dereference type for mangled name
@@ -913,7 +912,7 @@ namespace MFM {
     uvpass = rtnuvpass;
   } //genCodeAReferenceIntoABitValue
 
-  void NodeFunctionCall::genCodeVirtualFunctionCall(File * fp, UlamValue & uvpass, u32 urtmpnum)
+  void NodeFunctionCall::genCodeVirtualFunctionCall(File * fp, UVPass & uvpass, u32 urtmpnum)
   {
     assert(m_funcSymbol);
     //requires runtime lookup for virtual function pointer
@@ -972,7 +971,7 @@ namespace MFM {
   } //genCodeVirtualFunctionCall
 
   // overrides Node in case of memberselect genCode
-  void NodeFunctionCall::genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass)
+  void NodeFunctionCall::genCodeReadIntoATmpVar(File * fp, UVPass & uvpass)
   {
     return; //no-op
   }
@@ -1125,26 +1124,25 @@ namespace MFM {
     return hiddenarg2.str();
   } //genHiddenArg2
 
-  std::string NodeFunctionCall::genHiddenArg2ForARef(File * fp, UlamValue uvpass, u32& urtmpnumref)
+  std::string NodeFunctionCall::genHiddenArg2ForARef(File * fp, UVPass uvpass, u32& urtmpnumref)
   {
-    assert(m_state.isPtr(uvpass.getUlamValueTypeIdx()));
-    assert(uvpass.getPtrStorage() == TMPAUTOREF);
+    assert(uvpass.getPassStorage() == TMPAUTOREF);
 
-    UTI vuti = uvpass.getPtrTargetType();
+    UTI vuti = uvpass.getPassTargetType();
     assert(m_state.getUlamTypeByIndex(vuti)->getReferenceType() != ALT_NOT);
 
     //use possible dereference type for mangled name
     UTI derefuti = m_state.getUlamTypeAsDeref(vuti);
     UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
 
-   u32 tmpvarnum = uvpass.getPtrSlotIndex();
+   u32 tmpvarnum = uvpass.getPassVarNum();
    u32 tmpvarur = m_state.getNextTmpVarNumber();
 
     std::ostringstream hiddenarg2;
     //new ur to reflect "effective" self and the ref storage, for this funccall
     hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvarur).c_str() << "(";
     hiddenarg2 << m_state.getTmpVarAsString(derefuti, tmpvarnum, TMPAUTOREF).c_str();
-    hiddenarg2 << ", 0u, "; //left-justified (uvpass.getPtrPosOffset()?)
+    hiddenarg2 << ", 0u, "; //left-justified (uvpass.getPassPosOffset()?)
     hiddenarg2 << derefut->getTotalBitSize(); //len
     hiddenarg2 << "u, &";
     hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(derefuti).c_str();
@@ -1225,7 +1223,7 @@ namespace MFM {
     return hiddenlist.str();
   } //genModelParameterHiddenArgs
 
-  std::string NodeFunctionCall::genRestOfFunctionArgs(File * fp, UlamValue& uvpass)
+  std::string NodeFunctionCall::genRestOfFunctionArgs(File * fp, UVPass& uvpass)
   {
     std::ostringstream arglist;
 
@@ -1238,7 +1236,7 @@ namespace MFM {
     // since non-datamember variables can modify globals, save/restore before/after each
     for(u32 i = 0; i < numParams; i++)
       {
-	UlamValue auvpass;
+	UVPass auvpass;
 	UTI auti;
 	m_state.clearCurrentObjSymbolsForCodeGen(); //*************
 
@@ -1252,12 +1250,9 @@ namespace MFM {
 	    m_argumentNodes->genCode(fp, auvpass, i);
 	    Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
 	  }
-	auti = auvpass.getUlamValueTypeIdx();
-	if(m_state.isPtr(auti))
-	  {
-	    auti = auvpass.getPtrTargetType();
-	  }
-	arglist << ", " << m_state.getTmpVarAsString(auti, auvpass.getPtrSlotIndex(), auvpass.getPtrStorage()).c_str();
+
+	auti = auvpass.getPassTargetType();
+	arglist << ", " << m_state.getTmpVarAsString(auti, auvpass.getPassVarNum(), auvpass.getPassStorage()).c_str();
       } //next arg..
 
     if(m_funcSymbol->takesVariableArgs())
@@ -1265,7 +1260,7 @@ namespace MFM {
 	u32 numargs = getNumberOfArguments();
 	for(u32 i = numParams; i < numargs; i++)
 	  {
-	    UlamValue auvpass;
+	    UVPass auvpass;
 	    UTI auti;
 	    m_state.clearCurrentObjSymbolsForCodeGen(); //*************
 
@@ -1279,14 +1274,9 @@ namespace MFM {
 		Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
 	      }
 
-	    auti = auvpass.getUlamValueTypeIdx();
-	    if(m_state.isPtr(auti))
-	      {
-		auti = auvpass.getPtrTargetType();
-	      }
-
+	    auti = auvpass.getPassTargetType();
 	    // use pointer for variable arg's since all the same size that way
-	    arglist << ", &" << m_state.getTmpVarAsString(auti, auvpass.getPtrSlotIndex(), auvpass.getPtrStorage()).c_str();
+	    arglist << ", &" << m_state.getTmpVarAsString(auti, auvpass.getPassVarNum(), auvpass.getPassStorage()).c_str();
 	  } //end forloop through variable number of args
 
 	arglist << ", (void *) 0"; //indicates end of args
@@ -1298,7 +1288,7 @@ namespace MFM {
   } //genRestOfFunctionArgs
 
   // should be like NodeVarRef::genCode
-  void NodeFunctionCall::genCodeReferenceArg(File * fp, UlamValue & uvpass, u32 n)
+  void NodeFunctionCall::genCodeReferenceArg(File * fp, UVPass & uvpass, u32 n)
   {
     // get the right?-hand side, stgcos
     // can be same type (e.g. element, quark, or primitive),
@@ -1377,14 +1367,14 @@ namespace MFM {
       }
     fp->write(");\n");
 
-    uvpass.setPtrSlotIndex(tmpVarArgNum);
-    uvpass.setPtrStorage(TMPBITVAL);
+    uvpass.setPassVarNum(tmpVarArgNum);
+    uvpass.setPassStorage(TMPBITVAL);
 
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
   } //genCodeReferenceArg
 
   // uses uvpass rather than stgcos, cos for classes or atoms (not primitives)
-  void NodeFunctionCall::genCodeAnonymousReferenceArg(File * fp, UlamValue & uvpass, u32 n)
+  void NodeFunctionCall::genCodeAnonymousReferenceArg(File * fp, UVPass & uvpass, u32 n)
   {
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //such as .storageof
 
@@ -1393,15 +1383,13 @@ namespace MFM {
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
 
-    UTI puti = uvpass.getUlamValueTypeIdx();
-    assert(m_state.isPtr(puti));
-    puti = uvpass.getPtrTargetType();
+    UTI puti = uvpass.getPassTargetType();
     UlamType * put = m_state.getUlamTypeByIndex(puti);
-    STORAGE rstor = put->getUlamClassType() == UC_QUARK ? TMPREGISTER : uvpass.getPtrStorage();
+    TMPSTORAGE rstor = put->getUlamClassType() == UC_QUARK ? TMPREGISTER : uvpass.getPassStorage();
 
     assert(vut->getUlamTypeEnum() == put->getUlamTypeEnum());
 
-    s32 tmpVarArgNum = uvpass.getPtrSlotIndex();
+    s32 tmpVarArgNum = uvpass.getPassVarNum();
     s32 tmpVarArgNum2 = m_state.getNextTmpVarNumber();
 
     m_state.indent(fp);
@@ -1417,8 +1405,8 @@ namespace MFM {
 
     fp->write(");\n");
 
-    uvpass.setPtrSlotIndex(tmpVarArgNum2);
-    uvpass.setPtrStorage(TMPBITVAL);
+    uvpass.setPassVarNum(tmpVarArgNum2);
+    uvpass.setPassStorage(TMPBITVAL);
   } //genCodeAnonymousReferenceArg
 
 void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp)

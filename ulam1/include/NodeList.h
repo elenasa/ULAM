@@ -102,9 +102,9 @@ namespace MFM{
 
     bool isFunctionCall(u32 n);
 
-    void genCode(File * fp, UlamValue& uvpass, u32 n);
+    void genCode(File * fp, UVPass& uvpass, u32 n);
 
-    void genCodeToStoreInto(File * fp, UlamValue& uvpass, u32 n);
+    void genCodeToStoreInto(File * fp, UVPass& uvpass, u32 n);
 
   protected:
 

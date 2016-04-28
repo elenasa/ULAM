@@ -75,9 +75,9 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void genCode(File * fp, UVPass& uvpass);
 
-    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
+    virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
 
   protected:
 
@@ -88,7 +88,7 @@ namespace MFM{
     virtual UlamValue makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len);
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len);
 
-    SymbolTmpRef * makeTmpRefSymbolForCodeGen(UlamValue uvpass);
+    SymbolTmpRef * makeTmpRefSymbolForCodeGen(UVPass uvpass);
   };
 
 } //MFM

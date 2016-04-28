@@ -414,7 +414,7 @@ namespace MFM {
     return; //work done by NodeStatements and NodeBlock
   }
 
-  void NodeUnaryOp::genCode(File * fp, UlamValue& uvpass)
+  void NodeUnaryOp::genCode(File * fp, UVPass& uvpass)
   {
     assert(m_node);
     m_node->genCode(fp, uvpass);
@@ -434,20 +434,18 @@ namespace MFM {
     fp->write(methodNameForCodeGen().c_str());
     fp->write("(");
 
-    UTI uti = uvpass.getUlamValueTypeIdx();
-    assert(m_state.isPtr(uti));
-    uti = uvpass.getPtrTargetType();
-    fp->write(m_state.getTmpVarAsString(uti, uvpass.getPtrSlotIndex()).c_str());
+    UTI uti = uvpass.getPassTargetType();
+    fp->write(m_state.getTmpVarAsString(uti, uvpass.getPassVarNum()).c_str());
 
     fp->write(", ");
     fp->write_decimal(nut->getBitSize());
 
     fp->write(");\n");
 
-    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0); //POS 0 rightjustified.
+    uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified.
   } //genCode
 
-  void NodeUnaryOp::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  void NodeUnaryOp::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
     genCode(fp,uvpass);
   }

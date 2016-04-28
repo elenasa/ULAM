@@ -60,7 +60,7 @@ namespace MFM{
 
     virtual bool doBinaryOperationArray(s32 lslot, s32 rslot, u32 slots);
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void genCode(File * fp, UVPass& uvpass);
 
   protected:
 

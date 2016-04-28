@@ -364,6 +364,7 @@ namespace MFM{
     bool classHasACustomArraySetMethod(UTI cuti);
 
     void setupCenterSiteForTesting();
+    void setupCenterSiteForGenCode();
 
     /** used by SourceStream to build m_textByLinePerFilePath during parsing */
     void appendNextLineOfText(Locator loc, std::string textstr);
@@ -374,7 +375,7 @@ namespace MFM{
     void outputTextAsComment(File * fp, Locator nodeloc);
 
     s32 getNextTmpVarNumber();
-    const std::string getTmpVarAsString(UTI uti, s32 num, STORAGE stg = TMPREGISTER);
+    const std::string getTmpVarAsString(UTI uti, s32 num, TMPSTORAGE stg = TMPREGISTER);
     const std::string getUlamRefTmpVarAsString(s32 num);
     const std::string getUlamClassTmpVarAsString(s32 num);
     const std::string getAtomBitStorageTmpVarAsString(s32 num);

@@ -100,7 +100,7 @@ class NodeBlockFunctionDefinition : public NodeBlock
     SymbolFunction * getFuncSymbolPtr();
     void setFuncSymbolPtr(SymbolFunction * fsymptr); //during instantiation
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void genCode(File * fp, UVPass& uvpass);
 
   protected:
 

@@ -437,7 +437,7 @@ namespace MFM {
 	if(!isVirtualFunction())
 	  fp->write(" const"); //quark and element functions (incl natives) are const, not c++ static
 
-	UlamValue uvpass;
+	UVPass uvpass;
 	func->genCode(fp, uvpass);
       }
 

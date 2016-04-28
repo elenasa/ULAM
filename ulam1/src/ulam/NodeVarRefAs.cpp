@@ -125,12 +125,11 @@ namespace MFM {
 
   // this is the auto local variable's node, created at parse time,
   // for Conditional-As case.
-  void NodeVarRefAs::genCode(File * fp, UlamValue & uvpass)
+  void NodeVarRefAs::genCode(File * fp, UVPass & uvpass)
   {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     // the uvpass comes from NodeControl, and still has the POS obtained
     // during the condition statement for As..unorthodox, but necessary.
-    assert(m_state.isPtr(uvpass.getUlamValueTypeIdx()));
 
     // before shadowing the lhs of the h/as-conditional variable with its auto,
     // let's load its storage from the currentSelfSymbol:

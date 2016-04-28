@@ -58,14 +58,6 @@ namespace MFM{
 	u8  m_bits[8];  //oops! not 10 anymore
       } m_rawAtom;
 
-      /*
-      struct IntValue {
-	UTI m_utypeIdx;
-	u16 m_pad;
-	u32 m_val;
-	u32 m_pad2;
-	}*/
-
       struct PtrValue {
 	s16 m_slotIndex;
 	UTI m_utypeIdx;
@@ -78,7 +70,8 @@ namespace MFM{
       } m_ptrValue;
 
       struct Storage {
-	//AtomBitVector m_atom; //0-15 UTI, 16-24 errcorr. 25-96 designed by element data members
+	//AtomBitVector m_atom;
+	//0-15 UTI, 16-24 errcorr. 25-96 designed by element data members
 	u32 m_atom[AtomBitVector::ARRAY_LENGTH];
       } m_storage;
 

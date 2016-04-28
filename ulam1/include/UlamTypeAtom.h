@@ -62,7 +62,7 @@ namespace MFM{
 
     virtual const std::string getLocalStorageTypeAsString();
 
-    virtual STORAGE getTmpStorageTypeForTmpVar();
+    virtual TMPSTORAGE getTmpStorageTypeForTmpVar();
 
     virtual bool cast(UlamValue & val, UTI typidx);
 

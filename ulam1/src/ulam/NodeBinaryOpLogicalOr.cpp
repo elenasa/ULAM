@@ -97,7 +97,7 @@ namespace MFM {
   }
 
   //short-circuit when lhs is true
-  void NodeBinaryOpLogicalOr::genCode(File * fp, UlamValue& uvpass)
+  void NodeBinaryOpLogicalOr::genCode(File * fp, UVPass& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
@@ -115,11 +115,9 @@ namespace MFM {
     fp->write(" = false;\n");
 
     //process lhs first
-    UlamValue luvpass;
+    UVPass luvpass;
     m_nodeLeft->genCode(fp, luvpass); //updates m_currentObjSymbol
-    UTI luti = luvpass.getUlamValueTypeIdx();
-    assert(m_state.isPtr(luti)); //terminals read into tmpvar
-    luti = luvpass.getPtrTargetType();
+    UTI luti = luvpass.getPassTargetType();
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     assert(lut->getUlamTypeEnum() == Bool);
 
@@ -129,7 +127,7 @@ namespace MFM {
     fp->write("if(!"); //lhs is false
     fp->write(((UlamTypePrimitiveBool *) lut)->getConvertToCboolMethod().c_str());
     fp->write("(");
-    fp->write(m_state.getTmpVarAsString(luti, luvpass.getPtrSlotIndex()).c_str());
+    fp->write(m_state.getTmpVarAsString(luti, luvpass.getPassVarNum()).c_str());
     fp->write(", ");
     fp->write_decimal(lut->getBitSize());
     fp->write(")");
@@ -139,17 +137,15 @@ namespace MFM {
     fp->write("{\n");
     m_state.m_currentIndentLevel++;
 
-    UlamValue ruvpass;
+    UVPass ruvpass;
     m_nodeRight->genCode(fp, ruvpass);
-    UTI ruti = ruvpass.getUlamValueTypeIdx();
-    assert(m_state.isPtr(ruti));
-    ruti = ruvpass.getPtrTargetType();
+    UTI ruti = ruvpass.getPassTargetType();
 
     //set node's tmp var to whatever rhs value
     m_state.indent(fp);
     fp->write(m_state.getTmpVarAsString(nuti,tmpVarNum).c_str());
     fp->write(" = ");
-    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex()).c_str());
+    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPassVarNum()).c_str());
     fp->write(";\n");
 
     m_state.m_currentIndentLevel--;
@@ -166,14 +162,14 @@ namespace MFM {
     m_state.indent(fp);
     fp->write(m_state.getTmpVarAsString(nuti,tmpVarNum).c_str());
     fp->write(" = ");
-    fp->write(m_state.getTmpVarAsString(luvpass.getPtrTargetType(), luvpass.getPtrSlotIndex()).c_str());
+    fp->write(m_state.getTmpVarAsString(luvpass.getPassTargetType(), luvpass.getPassVarNum()).c_str());
     fp->write(";\n");
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("}\n");
 
-    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0); //P
+    uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //P
 
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode

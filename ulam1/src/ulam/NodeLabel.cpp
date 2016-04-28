@@ -58,7 +58,7 @@ namespace MFM {
     return NORMAL;
   }
 
-  void NodeLabel::genCode(File * fp, UlamValue& uvpass)
+  void NodeLabel::genCode(File * fp, UVPass& uvpass)
   {
     //no indent for label
     fp->write(m_state.getLabelNumAsString(m_labelnum).c_str());

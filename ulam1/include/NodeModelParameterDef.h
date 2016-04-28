@@ -64,7 +64,7 @@ namespace MFM{
 
     virtual bool buildDefaultQuarkValue(u32& dqref);
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void genCode(File * fp, UVPass& uvpass);
 
   protected:
     virtual void checkForSymbol();

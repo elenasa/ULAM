@@ -90,7 +90,7 @@ namespace MFM {
     return NORMAL;
   } //eval
 
-  void NodeControlWhile::genCode(File * fp, UlamValue& uvpass)
+  void NodeControlWhile::genCode(File * fp, UVPass& uvpass)
   {
     assert(m_nodeCondition && m_nodeBody);
 
@@ -106,18 +106,8 @@ namespace MFM {
     //if !condition break;
     m_nodeCondition->genCode(fp, uvpass);
 
-    bool isTerminal = false;
-    UTI cuti = uvpass.getUlamValueTypeIdx();
-
-    if(m_state.isPtr(cuti))
-      {
-	cuti = uvpass.getPtrTargetType();
-      }
-    else
-      {
-	isTerminal = true;
-      }
-
+    bool isTerminal = (uvpass.getPassStorage() == TERMINAL);
+    UTI cuti = uvpass.getPassTargetType();
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
     fp->write("\n");
@@ -126,35 +116,14 @@ namespace MFM {
 
     if(isTerminal)
       {
-	// fp->write("(bool) ");
-	// write out terminal explicitly
-       s32 len = m_state.getBitSize(cuti);
-       assert(len != UNKNOWNSIZE);
-       if(len <= MAXBITSPERINT)
-	 {
-	   u32 data = uvpass.getImmediateData(m_state);
-	   data = cut->getDataAsCu32(data); //ever negative? possible unary?
-	   char dstr[40];
-	   cut->getDataAsString(data, dstr, 'z');
-	   fp->write(dstr);
-	 }
-       else if(len <= MAXBITSPERLONG)
-	 {
-	   u64 data = uvpass.getImmediateDataLong(m_state);
-	   data = cut->getDataAsCu64(data); //ever negative? possible unary?
-	   char dstr[70];
-	   cut->getDataLongAsString(data, dstr, 'z');
-	   fp->write(dstr);
-	 }
-       else
-	 assert(0);
+	fp->write(m_state.m_pool.getDataAsString(uvpass.getPassNameId()).c_str());
       }
     else
       {
 	assert(cut->getUlamTypeEnum() == Bool);
 	fp->write(((UlamTypePrimitiveBool *) cut)->getConvertToCboolMethod().c_str());
 	fp->write("(");
-	fp->write(m_state.getTmpVarAsString(cuti, uvpass.getPtrSlotIndex()).c_str());
+	fp->write(m_state.getTmpVarAsString(cuti, uvpass.getPassVarNum()).c_str());
 	fp->write(", ");
 	fp->write_decimal(cut->getBitSize());
 	fp->write(")");

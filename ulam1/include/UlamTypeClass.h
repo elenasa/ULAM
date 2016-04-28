@@ -102,7 +102,7 @@ namespace MFM{
 
     virtual const std::string getLocalStorageTypeAsString();
 
-    virtual STORAGE getTmpStorageTypeForTmpVar();
+    virtual TMPSTORAGE getTmpStorageTypeForTmpVar();
 
     virtual const std::string castMethodForCodeGen(UTI nodetype);
 

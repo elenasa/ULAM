@@ -107,7 +107,7 @@ namespace MFM{
 
     virtual void printUnresolvedLocalVariables(u32 fid);
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void genCode(File * fp, UVPass& uvpass);
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 

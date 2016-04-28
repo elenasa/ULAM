@@ -175,7 +175,7 @@ namespace MFM {
     return evs;
   } //eval
 
-  void NodeControlIf::genCode(File * fp, UlamValue& uvpass)
+  void NodeControlIf::genCode(File * fp, UVPass& uvpass)
   {
     NodeControl::genCode(fp, uvpass);  //condition and body
 

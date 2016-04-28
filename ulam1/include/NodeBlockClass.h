@@ -155,11 +155,11 @@ namespace MFM{
 
     void generateCodeForFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void genCode(File * fp, UVPass& uvpass);
 
     virtual void genCodeExtern(File * fp, bool declOnly);
 
-    void genCodeBody(File * fp, UlamValue& uvpass);  //specific for this class
+    void genCodeBody(File * fp, UVPass& uvpass);  //specific for this class
 
     void initElementDefaultsForEval(UlamValue& uv, UTI cuti);
 

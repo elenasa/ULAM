@@ -150,7 +150,7 @@ namespace MFM {
     return ptr;
   } //makeUlamValuePtr
 
-  void NodeStorageof::genCode(File * fp, UlamValue& uvpass)
+  void NodeStorageof::genCode(File * fp, UVPass& uvpass)
   {
     //lhs, no longer allowed with packed elements
     //assert(getStoreIntoAble() == TBOOL_TRUE);
@@ -191,12 +191,12 @@ namespace MFM {
     fp->write(".CreateAtom()"); //can't be const
     fp->write("; //storageof \n");
 
-    uvpass = UlamValue::makePtr(tmpVarNum, TMPTATOM, nuti, UNPACKED, m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
+    uvpass = UVPass::makePass(tmpVarNum, TMPTATOM, nuti, UNPACKED, m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
 
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
   } //genCode
 
-  void NodeStorageof::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  void NodeStorageof::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
     //lhs
     assert(getStoreIntoAble() == TBOOL_TRUE);
@@ -247,7 +247,7 @@ namespace MFM {
     fp->write(", uc); //storageof \n");
     //fp->write("); //storageof \n");
 
-    uvpass = UlamValue::makePtr(tmpVarNum, TMPBITVAL, nuti, UNPACKED, m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
+    uvpass = UVPass::makePass(tmpVarNum, TMPBITVAL, nuti, UNPACKED, m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
 
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
   } //genCodeToStoreInto
