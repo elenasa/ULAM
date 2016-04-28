@@ -52,8 +52,6 @@ namespace MFM {
 
   static const char * HIDDEN_ARG_NAME = "ur"; //was Uv_4self, then Uv_4atom
   static const char * HIDDEN_CONTEXT_ARG_NAME = "uc"; //unmangled
-  //  static const char * AUTO_HIDDEN_CONTEXT_ARG_NAME = "uc_"; //unmangled, plus its mangled var
-  //static const char * TMP_FOR_AUTO_HIDDEN_CONTEXT_ARG_NAME = "Uh_4tluc";
   static const char * CUSTOMARRAY_GET_FUNC_NAME = "aref"; //unmangled
   static const char * CUSTOMARRAY_SET_FUNC_NAME = "aset"; //unmangled
   static const char * CUSTOMARRAY_GET_MANGLEDNAME = "Uf_4aref";
@@ -2776,7 +2774,6 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   void CompilerState::setupCenterSiteForTesting()
   {
-    //call again for code gen..
     //set up an atom in eventWindow; init m_currentObjPtr to point to it
     //set up stacks since func call not called
     Coord c0(0,0);
@@ -2793,19 +2790,11 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   void CompilerState::setupCenterSiteForGenCode()
   {
-    //call again for code gen..
-    //set up an atom in eventWindow; init m_currentObjPtr to point to it
-    //set up stacks since func call not called
     Coord c0(0,0);
 
     //m_classBlock ok now, reset by NodeProgram after type label done
     UTI cuti = getCompileThisIdx();
     m_eventWindow.setSiteElementType(c0, cuti); //includes default values
-    //m_currentSelfPtr = m_currentObjPtr = m_eventWindow.makePtrToCenter();
-
-    //set up STACK since func call not called
-    //m_funcCallStack.pushArg(m_currentObjPtr); //hidden arg on STACK
-    //m_funcCallStack.pushArg(UlamValue::makeImmediate(Int, -1)); //return slot on STACK
   } //setupCenterSiteForGenCode
 
   //used by SourceStream to build m_textByLinePerFilePath during parsing
@@ -2968,7 +2957,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   const std::string CompilerState::getUlamClassTmpVarAsString(s32 num)
   {
     std::ostringstream labelname; //into
-    labelname << "Uh_3tuclass" << ToLeximitedNumber(num);
+    labelname << "Uh_7tuclass" << ToLeximitedNumber(num);
     return labelname.str();
   } //getUlamClassTmpVarAsString
 
@@ -2982,7 +2971,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   const std::string CompilerState::getLabelNumAsString(s32 num)
   {
     std::ostringstream labelname; //into
-    labelname << "Ul_endcontrolloop_" << ToLeximitedNumber(num);
+    labelname << "Ul_214endcontrolloop" << ToLeximitedNumber(num);
     return labelname.str();
   } //getLabelNumAsString
 

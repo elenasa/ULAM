@@ -178,19 +178,14 @@ namespace MFM {
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
 
-    fp->write(m_state.getTmpVarAsString(nuti,tmpVarNum).c_str());
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
     fp->write(" = ");
 
     fp->write(methodNameForCodeGen().c_str());
     fp->write("(");
-
-    UTI uti = uvpass.getPassTargetType();
-    fp->write(m_state.getTmpVarAsString(uti, uvpass.getPassVarNum()).c_str());
+    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
     fp->write(", ");
-
-    UTI ruti = ruvpass.getPassTargetType();
-    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPassVarNum()).c_str());
-
+    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
     fp->write(", ");
     fp->write_decimal(nut->getBitSize());
     fp->write(");\n");

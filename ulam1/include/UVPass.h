@@ -38,7 +38,6 @@
 #define UVPASS_H
 
 #include "itype.h"
-#include "BitVector.h"
 #include "Constants.h"
 #include "UlamType.h"
 
@@ -46,16 +45,9 @@ namespace MFM{
 
   class CompilerState; //forward
 
-  struct UVPass
+  class UVPass
   {
-    u32 m_varNum; //was slotIndex;
-    //UTI m_utypeIdx;
-    u32 m_posInStorage;
-    u32 m_bitlenInStorage;
-    u8  m_storagetype; //STORAGE
-    u8  m_packed; //PACKFIT
-    UTI m_targetType;
-    u32 m_nameid; //for code gen
+  public:
 
     UVPass(); //requires init to avoid Null ptr for type
     ~UVPass();
@@ -86,6 +78,17 @@ namespace MFM{
     u32 getPassNameId();
 
     void setPassNameId(u32 id);
+
+    const std::string getTmpVarAsString(CompilerState & state);
+
+  private:
+    u32 m_varNum; //was slotIndex;
+    u32 m_posInStorage;
+    u32 m_bitlenInStorage;
+    u8  m_storagetype; //TMPSTORAGE
+    u8  m_packed; //PACKFIT
+    UTI m_targetType;
+    u32 m_nameid; //for code gen
 
   };
 

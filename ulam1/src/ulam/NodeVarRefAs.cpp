@@ -172,12 +172,7 @@ namespace MFM {
 	else if(!stgcosut->isReference())
 	  fp->write("0u, "); //start of atom stg
 	else
-	  {
-	    //is an atomref
-	    //fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
-	    //fp->write(".GetPos() + T::ATOM_FIRST_STATE_BIT, ");
-	    fp->write("0u + T::ATOM_FIRST_STATE_BIT, ");
-	  }
+	  fp->write("0u + T::ATOM_FIRST_STATE_BIT, "); //is an atomref (e.g. t3709)
 
 	fp->write(m_state.getHiddenContextArgName());
 	fp->write(".LookupElementTypeFromContext(");

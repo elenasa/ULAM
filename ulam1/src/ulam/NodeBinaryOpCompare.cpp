@@ -287,20 +287,17 @@ namespace MFM {
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
 
-    fp->write(m_state.getTmpVarAsString(nuti,tmpVarNum).c_str());
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
     fp->write(" = ");
 
     fp->write(methodNameForCodeGen().c_str());
     fp->write("(");
 
     UTI luti = luvpass.getPassTargetType(); //reset
-    fp->write(m_state.getTmpVarAsString(luti, luvpass.getPassVarNum(), luvpass.getPassStorage()).c_str());
+    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
 
     fp->write(", ");
-
-    UTI ruti = ruvpass.getPassTargetType(); //reset
-    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPassVarNum(), ruvpass.getPassStorage()).c_str());
-
+    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
     fp->write(", ");
 
     //compare needs size of left/right nodes (only difference!)

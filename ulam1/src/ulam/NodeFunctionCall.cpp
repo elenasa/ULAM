@@ -1237,7 +1237,6 @@ namespace MFM {
     for(u32 i = 0; i < numParams; i++)
       {
 	UVPass auvpass;
-	UTI auti;
 	m_state.clearCurrentObjSymbolsForCodeGen(); //*************
 
 	// what if ALT_ARRAYITEM?
@@ -1250,9 +1249,7 @@ namespace MFM {
 	    m_argumentNodes->genCode(fp, auvpass, i);
 	    Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
 	  }
-
-	auti = auvpass.getPassTargetType();
-	arglist << ", " << m_state.getTmpVarAsString(auti, auvpass.getPassVarNum(), auvpass.getPassStorage()).c_str();
+	arglist << ", " << auvpass.getTmpVarAsString(m_state).c_str();
       } //next arg..
 
     if(m_funcSymbol->takesVariableArgs())
@@ -1261,7 +1258,6 @@ namespace MFM {
 	for(u32 i = numParams; i < numargs; i++)
 	  {
 	    UVPass auvpass;
-	    UTI auti;
 	    m_state.clearCurrentObjSymbolsForCodeGen(); //*************
 
 	    if(m_state.getReferenceType(m_argumentNodes->getNodeType(i)) != ALT_NOT)
@@ -1273,10 +1269,8 @@ namespace MFM {
 		m_argumentNodes->genCode(fp, auvpass, i);
 		Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
 	      }
-
-	    auti = auvpass.getPassTargetType();
 	    // use pointer for variable arg's since all the same size that way
-	    arglist << ", &" << m_state.getTmpVarAsString(auti, auvpass.getPassVarNum(), auvpass.getPassStorage()).c_str();
+	    arglist << ", &" << auvpass.getTmpVarAsString(m_state).c_str();
 	  } //end forloop through variable number of args
 
 	arglist << ", (void *) 0"; //indicates end of args

@@ -556,14 +556,11 @@ namespace MFM {
 	      }
 	    // 'pos' modified by this data member symbol's packed bit position
 	    uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
-
-	    //uvpass.setPassPos(pos + m_varSymbol->getPosOffset()); //could have been zero over-written (no thanks).
 	  }
 	else
 	  {
 	    //local variable on the stack; could be array ptr!
 	    uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
-	    //uvpass.setPassPos(0); //could have been zero over-written.
 	  }
       }
   } //makeUVPassForCodeGen

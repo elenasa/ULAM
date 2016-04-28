@@ -375,7 +375,7 @@ namespace MFM{
     void outputTextAsComment(File * fp, Locator nodeloc);
 
     s32 getNextTmpVarNumber();
-    const std::string getTmpVarAsString(UTI uti, s32 num, TMPSTORAGE stg = TMPREGISTER);
+    const std::string getTmpVarAsString(UTI uti, s32 num, TMPSTORAGE stg);
     const std::string getUlamRefTmpVarAsString(s32 num);
     const std::string getUlamClassTmpVarAsString(s32 num);
     const std::string getAtomBitStorageTmpVarAsString(s32 num);

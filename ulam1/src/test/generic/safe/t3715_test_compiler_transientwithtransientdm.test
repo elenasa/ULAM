@@ -1,15 +1,17 @@
 ## -*- mode:ulam -*-
-#=t3714_test_compiler_bigtransient
+#=t3715_test_compiler_transientwithtransientdm
 ##
 ## gen output: (+ assert)
-##  Int Arg: 231
+##  Int Arg: 301
 ##
 ## unevaluable
 ##
 #!
 Exit status: -11
-Ue_Foo { Int(32) ta(9);  Int(32) test() {  System s;  Too t;  t ( 231u cast )set . ta t ( )get . = s ( ta )print . t sp . ta 231u cast == cast = s ( t sp . cast )assert . ta return } }
-Un_Too { Bool(7) sp(false);  Int(32) a( 87 cast);  Foo f[5](0,0,0,0,0);  Bits(32) bits(0);  <NOMAIN> }
+Ue_Foo { Int(32) ta(9);  Int(32) test() {  System s;  Too t;  t ( 301u cast )set . ta t ( )get . = s ( ta )print . t sp . ta 301u cast == cast = s ( t sp . cast )assert . ta return } }
+Un_Too { Bool(7) sp(false);  Int(32) a( 87 cast);  Tumi f[5](0,0,0,0,0);  Bits(32) bits(0);  <NOMAIN> }
+Un_Tumi { Bool(1) b2( true);  Unsigned(9) u2( 7u);  Foo f(0);  QW q( Int(3) qi( 3);  Bool(1) qb( true); );  <NOMAIN> }
+Uq_QW { Int(3) qi( 3);  Bool(1) qb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## based on t3711, FIRST TRANSIENT TEST EVER in the history of the universe!!!
@@ -34,10 +36,11 @@ element Foo {
 
 #:Too.ulam
   ulam 2;
+use Tumi;
 transient Too {
   Bool(7) sp;
   Int a = 87;
-  Foo f[5];
+  Tumi f[5];
   Bits bits;
   Int get()
   {
@@ -48,6 +51,24 @@ transient Too {
     a = arg;
   }
   //  Int test() { NO TESTS in TRANSIENTS
+}
+
+#:Tumi.ulam
+  ulam 2;
+use Foo;
+use QW;
+transient Tumi {
+  Bool b2 = true;
+  Unsigned(9) u2 = 7;
+  Foo f;
+  QW q;
+}
+
+#:QW.ulam
+  ulam 2;
+quark QW {
+  Int(3) qi = 3;
+  Bool qb = true;
 }
 
 #:System.ulam

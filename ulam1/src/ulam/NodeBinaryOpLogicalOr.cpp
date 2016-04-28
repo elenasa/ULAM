@@ -111,7 +111,7 @@ namespace MFM {
     //fp->write("const ");
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(nuti,tmpVarNum).c_str());
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
     fp->write(" = false;\n");
 
     //process lhs first
@@ -127,7 +127,7 @@ namespace MFM {
     fp->write("if(!"); //lhs is false
     fp->write(((UlamTypePrimitiveBool *) lut)->getConvertToCboolMethod().c_str());
     fp->write("(");
-    fp->write(m_state.getTmpVarAsString(luti, luvpass.getPassVarNum()).c_str());
+    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
     fp->write(", ");
     fp->write_decimal(lut->getBitSize());
     fp->write(")");
@@ -139,13 +139,12 @@ namespace MFM {
 
     UVPass ruvpass;
     m_nodeRight->genCode(fp, ruvpass);
-    UTI ruti = ruvpass.getPassTargetType();
 
     //set node's tmp var to whatever rhs value
     m_state.indent(fp);
-    fp->write(m_state.getTmpVarAsString(nuti,tmpVarNum).c_str());
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
     fp->write(" = ");
-    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPassVarNum()).c_str());
+    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
     fp->write(";\n");
 
     m_state.m_currentIndentLevel--;
@@ -160,9 +159,9 @@ namespace MFM {
 
     //set node's tmp var to lhs value (true)
     m_state.indent(fp);
-    fp->write(m_state.getTmpVarAsString(nuti,tmpVarNum).c_str());
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
     fp->write(" = ");
-    fp->write(m_state.getTmpVarAsString(luvpass.getPassTargetType(), luvpass.getPassVarNum()).c_str());
+    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
     fp->write(";\n");
 
     m_state.m_currentIndentLevel--;

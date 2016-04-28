@@ -251,15 +251,13 @@ namespace MFM {
     if(m_node && getNodeType() != Void)
       {
 	m_node->genCode(fp, uvpass);
-	UTI vuti = uvpass.getPassTargetType();
 
 	Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass);
 
 	m_state.indent(fp);
 	fp->write("return ");
 	fp->write("(");
-	vuti = uvpass.getPassTargetType();
-	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str());
+	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 
 	fp->write(");\n");
       }

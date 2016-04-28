@@ -272,14 +272,13 @@ namespace MFM {
     m_nodeLeft->genCodeReadIntoATmpVar(fp, luvpass);
     m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore COS after read.
 
-    s32 tmpVarNum = luvpass.getPassVarNum();
     s32 tmpVarIs = m_state.getNextTmpVarNumber();
 
     m_state.indent(fp);
     fp->write("const ");
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64, etc.
     fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarIs).c_str());
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarIs, TMPREGISTER).c_str());
     fp->write(" = ");
 
     if(rclasstype == UC_ELEMENT)
@@ -288,7 +287,7 @@ namespace MFM {
 	fp->write(".");
 	fp->write(m_state.getAsMangledFunctionName(luti, ruti));
 	fp->write("(");
-	fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, luvpass.getPassStorage()).c_str());
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
 	fp->write(");\n");
       }
     // not possible!! we already know rhs is an element
@@ -317,7 +316,7 @@ namespace MFM {
 	    fp->write(m_state.getAsMangledFunctionName(luti, ruti)); //UlamElement IsMethod
 	    fp->write("(uc, ");
 
-	    fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, luvpass.getPassStorage()).c_str());
+	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
 	    fp->write(".GetType(), "); //from tmpvar T
 	  }
 	fp->write("\"");

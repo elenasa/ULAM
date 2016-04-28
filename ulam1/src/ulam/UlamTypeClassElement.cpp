@@ -9,11 +9,7 @@
 
 namespace MFM {
 
-  UlamTypeClassElement::UlamTypeClassElement(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypeClass(key, state)
-  {
-    //setTotalWordSize(BITSPERATOM);
-    //setItemWordSize(BITSPERATOM);
-  }
+  UlamTypeClassElement::UlamTypeClassElement(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypeClass(key, state) { }
 
   ULAMCLASSTYPE UlamTypeClassElement::getUlamClassType()
   {
@@ -56,7 +52,6 @@ namespace MFM {
 
   PACKFIT UlamTypeClassElement::getPackable()
   {
-    //return UNPACKED; //was PACKED, now matches ATOM regardless of its bit size.
     return UlamType::getPackable(); //depends on PACKED size
   }
 
@@ -79,14 +74,7 @@ namespace MFM {
 	  if(isScalar())
 	    method = "ReadBig";
 	  else
-	    method = "ReadBV";
-#if 0
-	    {
-	      std::ostringstream mstr;
-	      mstr << "ReadBV<" << getTotalBitSize() << ">";
-	      method = mstr.str();
-	    }
-#endif
+	    method = "ReadBV"; //template arg deduced by gcc
 	}
       };
     return method;
@@ -111,14 +99,7 @@ namespace MFM {
 	  if(isScalar())
 	    method = "WriteBig";
 	  else
-	    method = "WriteBV";
-#if 0
-	    {
-	      std::ostringstream mstr;
-	      mstr << "WriteBV<" << getTotalBitSize() << ">";
-	      method = mstr.str();
-	    }
-#endif
+	    method = "WriteBV"; //template arg deduced by gcc
 	}
       };
     return method;
@@ -152,7 +133,6 @@ namespace MFM {
 
   TMPSTORAGE UlamTypeClassElement::getTmpStorageTypeForTmpVar()
   {
-    //return TMPTATOM;
     u32 sizebyints = getTotalWordSize();
     TMPSTORAGE rtnStgType = TMPTBV; //?
     std::string ctype;
@@ -167,9 +147,7 @@ namespace MFM {
 	break;
       case 96:
       default:
-	{
-	  rtnStgType = TMPBITVAL;
-	}
+	rtnStgType = TMPBITVAL;
       };
     return rtnStgType;
   } //getTmpStorageTypeForTmpVar
@@ -345,9 +323,7 @@ namespace MFM {
 	fp->write("(); /* entire element */ }\n");
       }
 
-    // arrays are handled separately
-    //assert(isScalar());
-    //scalar and entire PACKEDLOADABLE or UNPACKED array handled by base class read method
+    //scalar and entire PACKEDLOADABLE or UNPACKED array handled by read method
     if(!isScalar())
       {
 	//class instance idx is always the scalar uti
@@ -384,9 +360,7 @@ namespace MFM {
 	fp->write("(targ); /* entire element */ }\n");
       }
 
-    // arrays are handled separately
-    //assert(isScalar());
-    //scalar and entire PACKEDLOADABLE array handled by base class write method
+    //scalar and entire PACKEDLOADABLE array handled by write method
     if(!isScalar())
       {
 	// writes an item of array
@@ -627,8 +601,6 @@ namespace MFM {
 
   void UlamTypeClassElement::genUlamTypeReadDefinitionForC(File * fp)
   {
-
-    //if(isScalar() || WritePacked(getPackable()))
     if(WritePacked(getPackable()))
       {
 	m_state.indent(fp);
@@ -677,7 +649,6 @@ namespace MFM {
   void UlamTypeClassElement::genUlamTypeWriteDefinitionForC(File * fp)
   {
     //ref param to avoid excessive copying
-    //if(isScalar() || (getPackable() == PACKEDLOADABLE))
     if(WritePacked(getPackable()))
       {
 	m_state.indent(fp);

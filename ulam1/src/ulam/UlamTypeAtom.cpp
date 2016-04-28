@@ -330,7 +330,6 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write("(const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //T
-    //fp->write("& targ, const UlamContext<EC>& ucarg) : "); //uc consistent with atomref
     fp->write("& targ) : "); //uc consistent with atomref
     fp->write("AtomBitStorage<EC>");
     fp->write("(targ) { }\n");
@@ -340,7 +339,6 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write("(const ");
     fp->write("AtomBitStorage<EC>");
-    //fp->write("& d, const UlamContext<EC>& ucarg) : "); //uc consistent with atomref
     fp->write("& d) : "); //uc consistent with atomref
     fp->write("AtomBitStorage<EC>");
     fp->write("(d.ReadAtom()) { }\n");
@@ -719,28 +717,6 @@ namespace MFM {
     genUlamTypeReadDefinitionForC(fp);
 
     genUlamTypeWriteDefinitionForC(fp);
-
-#if 0
-    //NEEDED???
-    //read method for array item
-    m_state.indent(fp);
-    fp->write("const ");
-    fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //T, u64, or u32
-    fp->write(" readArrayItem(");
-    fp->write("const u32 index, const u32 itemlen) const { return BVS::"); //was const after )
-    fp->write(readArrayItemMethodForCodeGen().c_str());
-    fp->write("(index * itemlen, "); //const ref, rel offset
-    fp->write("itemlen); }\n");  //itemlen,
-
-    //write method for array item
-    m_state.indent(fp);
-    fp->write("void writeArrayItem(const ");
-    fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //T, u64, u32
-    fp->write("& v, const u32 index, const u32 itemlen) { BVS::");
-    fp->write(writeArrayItemMethodForCodeGen().c_str());
-    fp->write("(index * itemlen, "); //rel offset
-    fp->write("itemlen, v); }\n");  //itemlen, val
-#endif
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);

@@ -286,8 +286,7 @@ namespace MFM {
   {
     if(isScalar() || WritePacked(getPackable()))
       {
-	// write must be scalar; ref param to avoid excessive copying
-	//not an array
+	// ref param to avoid excessive copying
 	m_state.indent(fp);
 	fp->write("const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
@@ -324,7 +323,7 @@ namespace MFM {
   {
     if(isScalar() || WritePacked(getPackable()))
       {
-	// write must be scalar; ref param to avoid excessive copying
+	//ref param to avoid excessive copying
 	//not an array
 	m_state.indent(fp);
 	fp->write("void");
@@ -473,6 +472,7 @@ namespace MFM {
 	      }
 	    else
 	      {
+		//slower way
 		fp->write("u32 n = ");
 		fp->write_decimal(getArraySize());
 		fp->write("u; while(n--) { ");

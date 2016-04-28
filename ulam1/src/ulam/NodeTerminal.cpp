@@ -680,7 +680,7 @@ namespace MFM {
     fp->write(nut->getTmpStorageTypeAsString().c_str());
     fp->write(" ");
 
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum).c_str());
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
 
     fp->write(" = ");
 

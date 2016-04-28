@@ -716,7 +716,6 @@ namespace MFM {
 
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-
     ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
 
     if(m_nodeInitExpr)

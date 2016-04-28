@@ -55,7 +55,6 @@ namespace MFM {
     UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
     TBOOL lstor = m_nodeLeft->getStoreIntoAble();
     if(lstor != TBOOL_TRUE)
-    //if(m_nodeLeft->isFunctionCall())
       {
 	//e.g. funcCall is not storeintoable even if its return value is.
 	std::ostringstream msg;

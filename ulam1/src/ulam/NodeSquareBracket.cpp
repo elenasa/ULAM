@@ -703,14 +703,14 @@ namespace MFM {
 	    s32 tmpVarIdx = m_state.getNextTmpVarNumber();
 	    m_state.indent(fp);
 	    fp->write("const u32 ");
-	    fp->write(m_state.getTmpVarAsString(Unsigned, tmpVarIdx).c_str());;
+	    fp->write(m_state.getTmpVarAsString(Unsigned, tmpVarIdx, TMPREGISTER).c_str());;
 	    fp->write(" = ");
 	    if(offut->getTotalWordSize() <= MAXBITSPERINT)
 	      fp->write("_Unary32ToCu32(");
 	    else //must be long
 	      fp->write("_Unary64ToCu64(");
 
-	    fp->write(m_state.getTmpVarAsString(offuti, offset.getPassVarNum(), TMPREGISTER).c_str());
+	    fp->write(offset.getTmpVarAsString(m_state).c_str());
 	    fp->write(", ");
 	    fp->write_decimal(offut->getBitSize());
 	    fp->write(");\n");
