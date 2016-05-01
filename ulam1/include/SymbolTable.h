@@ -148,8 +148,6 @@ namespace MFM{
 
     void printPostfixForTableOfClasses(File * fp);
 
-    void buildDefaultQuarksFromTableOfClasses(); //uused
-
     void buildDefaultValuesFromTableOfClasses();
 
     void printForDebugForTableOfClasses(File * fp);

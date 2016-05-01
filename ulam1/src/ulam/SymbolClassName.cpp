@@ -311,17 +311,6 @@ namespace MFM {
     m_state.popClassContext(); //restore
   } //printUnresolvedVariablesForClassInstances
 
-  void SymbolClassName::buildDefaultQuarkForClassInstances()
-  {
-    NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
-
-    u32 dqval = 0;
-    SymbolClass::getDefaultQuark(dqval); //this instance
-    m_state.popClassContext(); //restore
-  } //buildDefaultQuarkForClassInstances
-
   void SymbolClassName::buildDefaultValueForClassInstances()
   {
     NodeBlockClass * classNode = getClassBlockNode();

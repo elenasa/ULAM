@@ -250,8 +250,7 @@ namespace MFM {
 	// let Ulam programmer know the bits used/available (needs infoOn)
 	m_state.m_programDefST.printBitSizeOfTableOfClasses();
 
-	// determine any class default values:
-	//m_state.m_programDefST.buildDefaultQuarksFromTableOfClasses();
+	// determine all class default values:
 	m_state.m_programDefST.buildDefaultValuesFromTableOfClasses();
       }
 

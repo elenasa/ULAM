@@ -862,28 +862,6 @@ namespace MFM {
       }
   } //testForTableOfClasses
 
-  void SymbolTable::buildDefaultQuarksFromTableOfClasses()
-  {
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-    while(it != m_idToSymbolPtr.end())
-      {
-	Symbol * sym = it->second;
-	assert(sym && sym->isClass());
-	UTI cuti = sym->getUlamTypeIdx();
-	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-	//skip anonymous classes
-	if(!isAnonymousClass(cuti))
-	  {
-	    ULAMCLASSTYPE classtype = cut->getUlamClassType();
-	    if( classtype == UC_QUARK)
-	      ((SymbolClassName *) sym)->buildDefaultQuarkForClassInstances(); //builds when not ready; must be qk
-	    //else if (classtype == UC_ELEMENT)
-	    //  assert(0);
-	  }
-	it++;
-      } //while
-  } //buildDefaultQuarksFromTableOfClasses
-
   void SymbolTable::buildDefaultValuesFromTableOfClasses()
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
@@ -895,11 +873,6 @@ namespace MFM {
 	//skip anonymous classes
 	if(!isAnonymousClass(cuti))
 	  {
-	    //ULAMCLASSTYPE classtype = cut->getUlamClassType();
-	    //if( classtype == UC_QUARK)
-	    //  ((SymbolClassName *) sym)->buildDefaultQuarkForClassInstances(); //builds when not ready; must be qk
-	    //else if (classtype == UC_ELEMENT)
-	    //  assert(0);
 	    ((SymbolClassName *) sym)->buildDefaultValueForClassInstances(); //builds when not ready; must be qk
 	  }
 	it++;
