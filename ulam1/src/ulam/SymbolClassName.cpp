@@ -322,6 +322,17 @@ namespace MFM {
     m_state.popClassContext(); //restore
   } //buildDefaultQuarkForClassInstances
 
+  void SymbolClassName::buildDefaultValueForClassInstances()
+  {
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+
+    BV8K dval;
+    SymbolClass::getDefaultValue(dval); //this instance
+    m_state.popClassContext(); //restore
+  } //buildDefaultValueForClassInstances
+
   void SymbolClassName::testForClassInstances(File * fp)
   {
     NodeBlockClass * classNode = getClassBlockNode();

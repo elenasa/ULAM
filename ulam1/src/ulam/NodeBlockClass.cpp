@@ -1606,16 +1606,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("AtomBitStorage<EC> da(Element<EC>::BuildDefaultAtom());\n");
 
-#if 0
-    m_state.indent(fp);
-    fp->write("UlamRef<EC> daref(0u + T::ATOM_FIRST_STATE_BIT, ");
-    fp->write_decimal_unsigned(cut->getTotalBitSize());
-    fp->write("u, da, &");
-    fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
-    fp->write(");\n");
-    fp->write("\n");
-#endif
-
     if(cut->getBitSize() > 0)
       {
 	m_state.indent(fp);
@@ -1805,15 +1795,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write("MFM_API_ASSERT_ARG((pos + bvsref.GetBitSize()) >= ");
 	fp->write_decimal_unsigned(len);
 	fp->write("u);\n");
-
-#if 0
-	m_state.indent(fp);
-	fp->write("UlamRef<EC> daref(pos, ");
-	fp->write_decimal_unsigned(len);
-	fp->write("u, bvsref, &");
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
-	fp->write(");\n\n");
-#endif
 
 	m_state.indent(fp);
 	fp->write("// Initialize any data members:\n");

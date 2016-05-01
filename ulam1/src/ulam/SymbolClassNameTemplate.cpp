@@ -1515,6 +1515,26 @@ namespace MFM {
       }
   } //buildDefaultQuarkForClassInstances
 
+  void SymbolClassNameTemplate::buildDefaultValueForClassInstances()
+  {
+    BV8K dval; //tmp
+    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
+    while(it != m_scalarClassArgStringsToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	UTI suti = csym->getUlamTypeIdx(); //this instance
+	if(m_state.isComplete(suti))
+	  {
+	    NodeBlockClass * classNode = csym->getClassBlockNode();
+	    assert(classNode);
+	    m_state.pushClassContext(suti, classNode, classNode, false, NULL);
+	    csym->getDefaultValue(dval); //this instance
+	    m_state.popClassContext();
+	  }
+	it++;
+      }
+  } //buildDefaultValueForClassInstances
+
   void SymbolClassNameTemplate::testForClassInstances(File * fp)
   {
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();

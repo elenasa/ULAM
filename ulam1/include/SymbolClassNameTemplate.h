@@ -109,7 +109,9 @@ namespace MFM{
     virtual void printBitSizeOfClassInstances();
     virtual void packBitsForClassInstances();
     virtual void printUnresolvedVariablesForClassInstances();
-    virtual void buildDefaultQuarkForClassInstances();
+
+    virtual void buildDefaultQuarkForClassInstances(); //unused?
+    virtual void buildDefaultValueForClassInstances();
 
     virtual void testForClassInstances(File * fp);
 
