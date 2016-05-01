@@ -425,15 +425,19 @@ namespace MFM {
     if(nuti == Hzy)
       return NOTREADY;
 
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    ULAMCLASSTYPE classtype = nut->getUlamClassType();
+    //ULAMTYPE etyp = nut->getUlamTypeEnum();
+    u32 len = nut->getTotalBitSize();
+
+    if((classtype == UC_TRANSIENT) && (len > MAXSTATEBITS))
+      return UNEVALUABLE;
+
     assert(m_varSymbol->getUlamTypeIdx() == nuti); //is it so? if so, some cleanup needed
 
     assert(!m_varSymbol->isAutoLocal()); //NodeVarRef::eval
 
     u32 slots = Node::makeRoomForNodeType(nuti, STACK);
-
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMCLASSTYPE classtype = nut->getUlamClassType();
-    u32 len = nut->getTotalBitSize();
 
     if(m_state.isAtom(nuti))
       {
@@ -443,8 +447,11 @@ namespace MFM {
 	for(u32 j = 0; j < slots; j++)
 	  m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, baseslot + j);
       }
-    else if(classtype == UC_ELEMENT)
+    else if((classtype == UC_ELEMENT) || (classtype == UC_TRANSIENT))
+      //else if(etyp == Class)
       {
+	//for eval purposes, a transient must fit into atom state bits, like an element
+	// any class may be a data member (see NodeVarDeclDM)
 	if(m_state.isScalar(nuti))
 	  {
 	    UlamValue atomUV = UlamValue::makeDefaultAtom(m_varSymbol->getUlamTypeIdx(), m_state);
@@ -453,9 +460,12 @@ namespace MFM {
 	else
 	  {
 	    PACKFIT packFit = m_state.determinePackable(nuti);
-	    if(WritePacked(packFit))
+	    //if(WritePacked(packFit))
+	    if(packFit == PACKEDLOADABLE)
 	      {
-		u64 dval = m_state.getPackedDefaultElement(nuti);
+		u64 dval = 0;
+		AssertBool isPackLoadableScalar = m_state.getPackedDefaultClass(nuti, dval);
+		assert(isPackLoadableScalar);
 		u64 darrval = 0;
 		m_state.getDefaultAsPackedArray(nuti, dval, darrval); //3rd arg ref
 
@@ -470,48 +480,7 @@ namespace MFM {
 		    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
 		  }
 		else
-		  assert(0); //not write packable!
-	      }
-	    else
-	      {
-		//UNPACKED element array
-		UlamValue atomUV = UlamValue::makeDefaultAtom(m_varSymbol->getUlamTypeIdx(), m_state);
-		u32 baseslot =  ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex();
-		for(u32 j = 0; j < slots; j++)
-		  {
-		    m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, baseslot + j);
-		  }
-	      }
-	  }
-      }
-    else if(classtype == UC_TRANSIENT)
-      {
-	if(m_state.isScalar(nuti))
-	  {
-	    UlamValue atomUV = UlamValue::makeDefaultAtom(m_varSymbol->getUlamTypeIdx(), m_state);
-	    m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
-	  }
-	else
-	  {
-	    PACKFIT packFit = m_state.determinePackable(nuti);
-	    if(WritePacked(packFit))
-	      {
-		u64 dval = m_state.getPackedDefaultTransient(nuti);
-		u64 darrval = 0;
-		m_state.getDefaultAsPackedArray(nuti, dval, darrval); //3rd arg ref
-
-		if(len <= MAXBITSPERINT)
-		  {
-		    UlamValue immUV = UlamValue::makeImmediateClass(nuti, (u32) darrval, len);
-		    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
-		  }
-		else if(len <= MAXBITSPERLONG) //t3710
-		  {
-		    UlamValue immUV = UlamValue::makeImmediateLongClass(nuti, darrval, len);
-		    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
-		  }
-		else
-		  assert(0); //not write packable!
+		  assert(0); //not write load packable!
 	      }
 	    else
 	      {
@@ -646,6 +615,14 @@ namespace MFM {
 
   EvalStatus NodeVarDecl::evalToStoreInto()
   {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    ULAMCLASSTYPE classtype = nut->getUlamClassType();
+    u32 len = nut->getTotalBitSize();
+
+    if((classtype == UC_TRANSIENT) && (len > MAXSTATEBITS))
+      return UNEVALUABLE;
+
     evalNodeProlog(0); //new current node eval frame pointer
 
     // return ptr to this local var (from NodeIdent's makeUlamValuePtr)

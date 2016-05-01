@@ -270,6 +270,11 @@ namespace MFM {
     return true; //pass on
   }
 
+  bool NodeTypedef::buildDefaultValue(u32 wlen, BV8K& dvref)
+  {
+    return true; //pass on
+  }
+
   EvalStatus NodeTypedef::eval()
   {
     assert(m_typedefSymbol);

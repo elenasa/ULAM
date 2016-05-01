@@ -448,31 +448,12 @@ namespace MFM {
     fp->write("() { }\n");
 
     //constructor here (used by const tmpVars)
-    //if(WritePacked(getPackable()))
-      {
-	m_state.indent(fp);
-	fp->write(mangledName.c_str());
-	fp->write("(const ");
-	//fp->write(scalarut->getTmpStorageTypeAsString().c_str()); //u32, u64
-	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64
-	fp->write(" d) { ");
-	//    if(isScalar())
-	{
-	  //fp->write(writeMethodForCodeGen().c_str());
-	  fp->write("write");
-	  fp->write("(d); }\n");
-	}
-	//else
-	// {
-	//	fp->write("u32 n = ");
-	//	fp->write_decimal(getArraySize());
-	//	fp->write("u; while(n--) { ");
-	//	fp->write("writeArrayItem(d, n, ");
-	//	fp->write_decimal_unsigned(bitsize);
-	//	fp->write("); }");
-	//	fp->write(" }\n");
-	//}
-      }
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("(const ");
+    fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64
+    fp->write(" d) { ");
+    fp->write("write(d); }\n");
 
     //copy constructor here (return by value)
     m_state.indent(fp);
@@ -480,10 +461,8 @@ namespace MFM {
     fp->write("(const ");
     fp->write(mangledName.c_str()); //u32
     fp->write("& other) { ");
-    //fp->write(writeMethodForCodeGen().c_str());
     fp->write("this->write");
     fp->write("(other.");
-    //fp->write(readMethodForCodeGen().c_str());
     fp->write("read");
     fp->write("()); }\n");
 
@@ -509,7 +488,6 @@ namespace MFM {
 
   void UlamTypePrimitive::genUlamTypeReadDefinitionForC(File * fp)
   {
-    //if(isScalar() || WritePacked(getPackable()))
     if(WritePacked(getPackable()))
       {
 	m_state.indent(fp);
@@ -561,7 +539,6 @@ namespace MFM {
 
   void UlamTypePrimitive::genUlamTypeWriteDefinitionForC(File * fp)
   {
-    //    if(isScalar() || WritePacked(getPackable()))
     if(WritePacked(getPackable()))
       {
 	m_state.indent(fp);

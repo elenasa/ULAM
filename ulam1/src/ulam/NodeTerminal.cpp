@@ -694,15 +694,12 @@ namespace MFM {
 	else
 	  assert(0);
       }
-
     fp->write(getName());
     fp->write(";\n");
 
     //substitute Ptr for uvpass to contain the tmpVar number;
     //save id of constant string in Ptr;
     uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0);  //POS 0 rightjustified (atom-based);
-    //    uvpass.setPtrPos(0); //entire register
-
     m_state.clearCurrentObjSymbolsForCodeGen(); //missing or just needed by NodeTerminalProxy?
   } //genCodeReadIntoATmpVar
 

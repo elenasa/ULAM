@@ -1082,44 +1082,28 @@ namespace MFM {
     return rtnb;
   } //getDefaultQuark
 
-  u64 CompilerState::getPackedDefaultElement(UTI auti)
+  bool CompilerState::getPackedDefaultClass(UTI auti, u64& dpkref)
   {
-    PACKFIT packFit = determinePackable(auti);
-    assert(WritePacked(packFit));
+    UlamType * aut = getUlamTypeByIndex(auti);
+    assert(aut->getUlamTypeEnum() == Class);
 
     UTI scalaruti = getUlamTypeAsScalar(auti);
-    UlamValue atomUV = UlamValue::makeDefaultAtom(scalaruti, *this);
-    UlamType * aut = getUlamTypeByIndex(auti);
-    u32 len = aut->getTotalBitSize();
-    u32 bitsize = aut->getBitSize();
 
-    u64 dval = 0;
-    if(len <= MAXBITSPERINT)
-      {
-	dval = atomUV.getDataFromAtom(ATOMFIRSTSTATEBITPOS, bitsize);
-      }
-    else if(len <= MAXBITSPERLONG)
-      {
-	dval = atomUV.getDataLongFromAtom(ATOMFIRSTSTATEBITPOS, bitsize);
-      }
-    else
-      assert(0);
+    PACKFIT packFit = determinePackable(scalaruti);
+    if(packFit != PACKEDLOADABLE) return false; //scalar fits in a long
 
-    u64 mask = _GetNOnes64(bitsize);
-    dval &= mask;
-    return dval;
-  } //getPackedDefaultElement
+    if(!okUTItoContinue(auti)) return false; //short-circuit
 
-  u64 CompilerState::getPackedDefaultTransient(UTI auti)
-  {
-    assert(0); //TBD
-    return 0;
-  } //getPackedDefaultTransient
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClass(scalaruti, csym);
+    assert(isDefined);
+    return csym->getPackedDefaultValue(dpkref); //might be zero
+  } //getPackedDefaultClass
 
   void CompilerState::getDefaultAsPackedArray(UTI auti, u64 dval, u64& darrval)
   {
     assert(okUTItoContinue(auti));
-    darrval = 0; //return
+    darrval = 0; //return ref init
     if(dval == 0)
       return;
 
@@ -1127,22 +1111,48 @@ namespace MFM {
     u32 len = aut->getTotalBitSize();
     u32 bitsize = aut->getBitSize();
     u32 arraysize = aut->getArraySize();
+    arraysize = arraysize > 0 ? arraysize : 1;
     u32 pos = 0;
     getDefaultAsPackedArray(len, bitsize, arraysize, pos, dval, darrval);
   } //getDefaultAsPackedArray
 
   void CompilerState::getDefaultAsPackedArray(u32 len, u32 bitsize, u32 arraysize, u32 pos, u64 dval, u64& darrval)
   {
-    darrval = 0; //return
+    darrval = dval; //return
     if(dval == 0)
       return;
 
     u64 mask = _GetNOnes64(bitsize);
     dval &= mask;
 
-    for(u32 j = 1; j <= arraysize; j++)
+    for(u32 j = 1; j < arraysize; j++)
       darrval |= (dval << (len - (pos + (j * bitsize))));
   } //getDefaultAsPackedArray
+
+  bool CompilerState::getDefaultClassValue(UTI cuti, BV8K& dvref)
+  {
+    if(!okUTItoContinue(cuti)) return false; //short-circuit
+
+    UlamType * cut = getUlamTypeByIndex(cuti);
+    assert(cut->getUlamTypeEnum() == Class);
+
+    bool rtnb = true;
+    if(cut->getBitSize() > 0)
+      {
+	UTI scalarcuti = getUlamTypeAsScalar(cuti);
+	SymbolClass * csym = NULL;
+	AssertBool isDefined = alreadyDefinedSymbolClass(scalarcuti, csym);
+	assert(isDefined);
+	rtnb = csym->getDefaultValue(dvref); //pass along ref
+      }
+    return rtnb;
+  } //getDefaultClassValue
+
+  void CompilerState::getDefaultAsArray(u32 bitsize, u32 arraysize, u32 tpos, const BV8K& dval, BV8K& darrval)
+  {
+    for(u32 j = 0; j < arraysize; j++)
+      dval.CopyBV(0u, tpos + (j * bitsize), bitsize, darrval); //frompos, topos, len, destBV
+  } //getDefaultAsArray
 
   bool CompilerState::isScalar(UTI utArg)
   {
@@ -1278,6 +1288,18 @@ namespace MFM {
 	  }
       }
 
+    if(classtype == UC_TRANSIENT)
+      {
+	if(total > MAXBITSPERTRANSIENT)
+	  {
+	    std::ostringstream msg;
+	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERTRANSIENT << ") for transient ";
+	    msg << ut->getUlamTypeNameBrief().c_str() << " with " << total << " bits";
+	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	    return false;
+	  }
+      }
+
     //old key
     UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
 
@@ -1392,6 +1414,7 @@ namespace MFM {
   } //initUTIAlias
 
   // return false if ERR
+  // for primitives, and all arrays (class and nonclass)
   bool CompilerState::setSizesOfNonClass(UTI utArg, s32 bitsize, s32 arraysize)
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
@@ -1405,6 +1428,7 @@ namespace MFM {
     //'Void' by default is zero and only zero bitsize (already complete)
     UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
     ULAMCLASSTYPE classtype = ut->getUlamClassType();
+    u32 total =  ut->getTotalBitSize();
 
     if((bUT != Class) && ((key.getUlamKeyTypeSignatureBitSize() == 0) || (bitsize <= 0)))
       {
@@ -1434,7 +1458,15 @@ namespace MFM {
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	return false;
       }
-
+    else if(total > MAXBITSPERTRANSIENT)
+      {
+	std::ostringstream msg;
+	msg << "Trying to exceed allotted bit size (" << MAXBITSPERTRANSIENT << ") for array ";
+	msg << ut->getUlamTypeNameBrief().c_str() << " with " << total << " bits";
+	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	return false;
+      }
+    //else
     //continue with valid number of bits
     UlamKeyTypeSignature newkey = UlamKeyTypeSignature(key.getUlamKeyTypeSignatureNameId(), bitsize, arraysize, key.getUlamKeyTypeSignatureClassInstanceIdx(), key.getUlamKeyTypeSignatureReferenceType());
 
@@ -2901,32 +2933,33 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     assert(uti != Void);
     assert(okUTItoContinue(uti));
 
-    std::ostringstream tmpVar; //into
-    PACKFIT packed = determinePackable(uti);
-
     if(isAtom(uti)) //elements are packed!
       {
 	//stg = TMPBITVAL or TMPTATOM; avoid loading a T into a tmpregister!
 	assert(stg != TMPREGISTER);
       }
 
+    std::ostringstream tmpVar; //into
+    PACKFIT packed = determinePackable(uti);
+    bool isLoadableRegister = (packed == PACKEDLOADABLE);
+
     if(stg == TMPREGISTER)
       {
-	if(WritePacked(packed))
+	if(isLoadableRegister)
 	  tmpVar << "Uh_5tlreg" ; //tmp loadable register
 	else
 	  tmpVar << "Uh_5tureg" ; //tmp unpacked register
       }
     else if(stg == TMPBITVAL)
       {
-	if(WritePacked(packed))
+	if(isLoadableRegister)
 	  tmpVar << "Uh_5tlval" ; //tmp loadable value
 	else
 	  tmpVar << "Uh_5tuval" ; //tmp unpacked value
       }
     else if(stg == TMPAUTOREF)
       {
-	if(WritePacked(packed))
+	if(isLoadableRegister)
 	  tmpVar << "Uh_6tlref" ; //tmp loadable autoref
 	else
 	  tmpVar << "Uh_6turef" ; //tmp unpacked autoref
@@ -2940,7 +2973,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	tmpVar << "Uh_4tabs" ; //tmp atombitstorage
       }
     else
-      assert(0); //remove assumptions about tmpbitval.
+      assert(0); //removes assumptions about tmpbitval.
 
     tmpVar << ToLeximitedNumber(num);
 

@@ -71,6 +71,8 @@ namespace MFM{
 
     virtual bool buildDefaultQuarkValue(u32& dqref);
 
+    virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
+
     virtual void setInitExpr(Node * node); //was setConstantExpr
 
     virtual bool foldInitExpression(); //was foldConstantExpression
@@ -98,6 +100,7 @@ namespace MFM{
     bool updateConstant64(u64 & newconst);
 
     bool foldDefaultQuark(u32 dq);
+    void foldDefaultClass();
     void genCodedBitFieldTypedef(File * fp, UVPass& uvpass);
 
   };

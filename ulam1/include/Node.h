@@ -47,6 +47,7 @@
 #include "UlamType.h"
 #include "UlamValue.h"
 #include "UVPass.h"
+#include "BitVector.h"
 
 namespace MFM{
 
@@ -132,6 +133,8 @@ namespace MFM{
     virtual UTI constantFold();
 
     virtual bool buildDefaultQuarkValue(u32& dqref);
+
+    virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
     virtual bool isNegativeConstant();
 

@@ -200,10 +200,11 @@ namespace MFM{
     UTI getUlamTypeOfConstant(ULAMTYPE etype);
     UTI getDefaultUlamTypeOfConstant(UTI ctype);
     bool getDefaultQuark(UTI cuti, u32& dqref);
-    u64 getPackedDefaultElement(UTI auti);
-    u64 getPackedDefaultTransient(UTI auti);
+    bool getPackedDefaultClass(UTI auti, u64& dpkref);
     void getDefaultAsPackedArray(UTI auti, u64 dval, u64& darrval);
     void getDefaultAsPackedArray(u32 len, u32 bitsize, u32 arraysize, u32 pos, u64 dval, u64& darrval);
+    bool getDefaultClassValue(UTI cuti, BV8K& dvref);
+    void getDefaultAsArray(u32 bitsize, u32 arraysize, u32 tpos, const BV8K& dval, BV8K& darrval);
 
     bool isScalar(UTI utArg);
     s32 getArraySize(UTI utArg);

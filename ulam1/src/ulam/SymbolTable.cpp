@@ -387,8 +387,11 @@ namespace MFM {
       }
   } //genCodeBuiltInFunctionHasOverTableOfVariableDataMember
 
+#if 0
+  //in no particular order!
   void SymbolTable::genCodeBuiltInFunctionBuildDefaultsOverTableOfVariableDataMember(File * fp, UTI cuti)
   {
+    assert(0); //not dm by dm, but using BV8K in SC for classes.
     bool useFullClassName = (cuti != m_state.getCompileThisIdx()); //from its superclass
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
@@ -398,116 +401,219 @@ namespace MFM {
 	  {
 	    UTI suti = sym->getUlamTypeIdx();
 	    UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	    u32 bitsize = sut->getBitSize();
 
-	    if(sut->getUlamClassType() == UC_QUARK)
+	    if(bitsize <= 0)
 	      {
-		if(m_state.getBitSize(suti) > 0)
-		  {
-		    u32 qval = 0;
-		    AssertBool isDefinedQuark = m_state.getDefaultQuark(suti, qval);
-		    assert(isDefinedQuark);
+		assert(bitsize == 0); // can't be UNKNOWN (<0)
+		it++;
+		continue;
+	      }
 
-		    if(m_state.isScalar(suti))
+	    if((sut->getUlamTypeEnum() == Class)) //dm is a class
+	      {
+		u32 len = sut->getTotalBitSize();
+		PACKFIT packFit = sut->getPackable();
+		if(packFit == PACKEDLOADABLE) //fits in u64
+		  {
+		    u64 dpkval = 0;
+		    AssertBool isDefinedDefault = m_state.getPackedDefaultClass(suti, dpkval);
+		    assert(isDefinedDefault);
+		    if(!sut->isScalar())
 		      {
-			std::ostringstream qdhex;
-			qdhex << "0x" << std::hex << qval;
+			// a packedloadable array, OR reference to an array of classes
+			// uses default value of its scalar class for entire array
+			u64 dpkarrval = 0;
+			m_state.getDefaultAsPackedArray(suti, dpkval, dpkarrval);
+			dpkval = dpkarrval;
+		      }
+
+		    bool isLong = true;
+		    if(len <= MAXBITSPERINT)
+		      isLong = false;
+
+		    std::ostringstream qdhex;
+		    if(isLong)
+		      qdhex << "0x" << std::hex << dpkval;
+		    else
+		      qdhex << "0x" << std::hex << (u32) dpkval;
+
+		    m_state.indent(fp);
+		    fp->write("UlamRef<EC>("); //open wrapper
+		    fp->write("daref, ");
+		    fp->write_decimal_unsigned(sym->getPosOffset()); //rel offset
+		    fp->write("u, ");
+		    fp->write_decimal_unsigned(len); //len
+		    fp->write("u, &");
+		    fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
+		    fp->write(")."); //close wrapper
+		    fp->write(sut->writeMethodForCodeGen().c_str());
+		    fp->write("(");
+		    fp->write(qdhex.str().c_str());
+		    fp->write("); //"); //include var name in a comment
+		    fp->write(m_state.m_pool.getDataAsString(sym->getId()).c_str());
+		    fp->write("=");
+		    if(isLong)
+		      fp->write_decimal_unsignedlong(dpkval);
+		    else
+		      fp->write_decimal_unsigned((u32) dpkval);
+		    fp->write("\n");
+		  }
+		else
+		  {
+		    // not packedloadable (>u64)
+		    // must be a transient's data member, or bit array in an element.
+		    ULAMCLASSTYPE thisclasstype = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamClassType();
+
+		    if(thisclasstype == UC_ELEMENT)
+		      {
+			//PACKED only (must fit in an atom)
+			assert(sut->getUlamClassType() == UC_QUARK); //sanity check
+			assert(!sut->isScalar()); //sanity
+			assert((len > MAXBITSPERLONG) && (len <= MAXSTATEBITS)); //sanity, o.w. packedloadable or zero len
+
+			BV8K dval;
+			AssertBool isDefault = m_state.getDefaultClassValue(suti, dval);
+			assert(isDefault);
+
+			BV8K darrval;
+			m_state.getDefaultAsArray(bitsize, sut->getArraySize(), 0, dval, darrval);
+			u32 uvals[ARRAY_LEN8K];
+			darrval.ToArray(uvals);
 
 			m_state.indent(fp);
-			fp->write("UlamRef<EC>("); //open wrapper
-			fp->write("daref, ");
-			fp->write_decimal_unsigned(sym->getPosOffset()); //rel offset
-			fp->write("u, ");
-			fp->write_decimal_unsigned(sut->getBitSize()); //len
-			fp->write("u, &");
-			fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
-			fp->write(")."); //close wrapper
-			fp->write(sut->writeMethodForCodeGen().c_str());
-			fp->write("(");
-			fp->write(qdhex.str().c_str());
-			fp->write("); //"); //include var name in a comment
-			fp->write(m_state.m_pool.getDataAsString(sym->getId()).c_str());
-			fp->write("=");
-			fp->write_decimal_unsigned(qval);
-			fp->write("\n");
-		      }
-		    else
-		      {
-			//an array of quarks, OR reference to an array of quarks
-			// uses default value of its scalar quark for entire array
-			PACKFIT packFit = m_state.determinePackable(suti);
-			if(WritePacked(packFit))
-			  {
-			    u64 qarrval = 0;
-			    m_state.getDefaultAsPackedArray(suti, (u64) qval, qarrval);
-			    std::ostringstream qdhex;
-			    qdhex << "0x" << std::hex << qarrval;
+			fp->write("static const u32 vales[(");
+			fp->write_decimal_unsigned(len); //==[nwords]
+			fp->write(" + 31)/32] = {\n");
 
+			m_state.m_currentIndentLevel++;
+
+			u32 nwords = (len + 31)/MAXBITSPERINT;
+			for(u32 w = 0; w < nwords; w++)
+			  {
+			    std::ostringstream dhex;
+			    dhex << "0x" << std::hex << uvals[w];
 			    m_state.indent(fp);
-			    fp->write("UlamRef<EC>("); //open wrapper
+			    fp->write(dhex.str().c_str());
+			    fp->write(",  //");
+			    fp->write_decimal_unsigned(w);
+			    fp->write("  ");
+			    fp->write_decimal_unsigned(w * MAXBITSPERINT);
+			    fp->write("\n");
+			  }
+
+			m_state.m_currentIndentLevel--;
+			m_state.indent(fp);
+			fp->write("};\n");
+
+			m_state.indent(fp);
+			fp->write("static BitVector<");
+			fp->write_decimal_unsigned(len); //must be exact len!
+			fp->write("> initBV(vales);\n");
+
+			//need to use (da) the BitStorage WriteBV here (not UlamRef):
+			m_state.indent(fp);
+			fp->write("da.WriteBV(0u + T::ATOM_FIRST_STATE_BIT + ");
+			fp->write_decimal_unsigned(sym->getPosOffset()); //rel offset
+			fp->write("u, initBV);\n");
+#if 0
+			//initialize each array item - OLD WAY ):
+			std::ostringstream qdhex;
+			qdhex << "0x" << std::hex << (u32) dpkval;
+
+			u32 arraysize = sut->getArraySize();
+			u32 itemlen = sut->getBitSize();
+			for(u32 j = 0; j < arraysize; j++)
+			  {
+			    m_state.indent(fp);
+			    fp->write("UlamRef<EC>(");
 			    fp->write("daref, ");
 			    fp->write_decimal_unsigned(sym->getPosOffset()); //rel offset
+			    fp->write("u + ");
+			    fp->write_decimal_unsigned(j * itemlen); //rel offset
 			    fp->write("u, ");
-			    fp->write_decimal_unsigned(sut->getTotalBitSize()); //array len
+			    fp->write_decimal_unsigned(itemlen); //len
 			    fp->write("u, &");
-			    fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
-			    fp->write(")."); //close wrapper
-			    fp->write(sut->writeMethodForCodeGen().c_str());
+			    fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalaruti).c_str());
+			    fp->write(").");
+			    fp->write(scalarut->writeMethodForCodeGen().c_str());
 			    fp->write("(");
 			    fp->write(qdhex.str().c_str());
 			    fp->write("); //"); //include var name in a comment
 			    fp->write(m_state.m_pool.getDataAsString(sym->getId()).c_str());
+			    fp->write("[");
+			    fp->write_decimal((s32) j);
+			    fp->write("]");
 			    fp->write("=");
 			    fp->write_decimal_unsigned(qval);
 			    fp->write("\n");
 			  }
-			else
+#endif
+		      }
+		    else
+		      {
+			// only transients can have elements or other transients as dm;
+			// and dm > u64 (except perhaps, a big array in an element!).
+			assert(thisclasstype == UC_TRANSIENT);
+
+			BV8K dval;
+			AssertBool isDefault = m_state.getDefaultClassValue(suti, dval);
+			assert(isDefault);
+
+			if(!sut->isScalar())
 			  {
-			    //UNPACKED
-			    //initialize each array item
-			    UTI scalaruti = m_state.getUlamTypeAsScalar(suti);
-			    scalaruti = m_state.getUlamTypeAsDeref(scalaruti);
-			    UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
+			    BV8K darrval;
+			    m_state.getDefaultAsArray(bitsize, sut->getArraySize(), 0, dval, darrval);
+			    dval = darrval;
+			  }
 
-			    std::ostringstream qdhex;
-			    qdhex << "0x" << std::hex << qval;
+			u32 uvals[ARRAY_LEN8K];
+			dval.ToArray(uvals);
 
-			    u32 arraysize = sut->getArraySize();
-			    u32 itemlen = sut->getBitSize();
-			    for(u32 j = 0; j < arraysize; j++)
-			      {
-				m_state.indent(fp);
-				fp->write("UlamRef<EC>(");
-				fp->write("daref, ");
-				fp->write_decimal_unsigned(sym->getPosOffset()); //rel offset
-				fp->write("u + ");
-				fp->write_decimal_unsigned(j * itemlen); //rel offset
-				fp->write("u, ");
-				fp->write_decimal_unsigned(itemlen); //len
-				fp->write("u, &");
-				fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalaruti).c_str());
-				fp->write(").");
-				fp->write(scalarut->writeMethodForCodeGen().c_str());
-				fp->write("(");
-				fp->write(qdhex.str().c_str());
-				fp->write("); //"); //include var name in a comment
-				fp->write(m_state.m_pool.getDataAsString(sym->getId()).c_str());
-				fp->write("[");
-				fp->write_decimal((s32) j);
-				fp->write("]");
-				fp->write("=");
-				fp->write_decimal_unsigned(qval);
-				fp->write("\n");
-			      }
-			  } //unpacked
-		      } //array of quarks
-		  } //countable size
-	      } //quark
-	    else if(((SymbolVariableDataMember*)sym)->hasInitValue())
+			m_state.indent(fp);
+			fp->write("static const u32 vales[(");
+			fp->write_decimal_unsigned(len); // == [nwords]
+			fp->write(" + 31)/32] = {\n");
+
+			m_state.m_currentIndentLevel++;
+
+			u32 nwords = (len + 31)/MAXBITSPERINT;
+			for(u32 w = 0; w < nwords; w++)
+			  {
+			    std::ostringstream dhex;
+			    dhex << "0x" << std::hex << uvals[w];
+			    m_state.indent(fp);
+			    fp->write(dhex.str().c_str());
+			    fp->write(",  //");
+			    fp->write_decimal_unsigned(w);
+			    fp->write("  ");
+			    fp->write_decimal_unsigned(w * MAXBITSPERINT);
+			    fp->write("\n");
+			  }
+
+			m_state.m_currentIndentLevel--;
+			m_state.indent(fp);
+			fp->write("};\n");
+
+			m_state.indent(fp);
+			fp->write("static BitVector<");
+			fp->write_decimal_unsigned(len);
+			fp->write("> initBV(vales);\n");
+
+			m_state.indent(fp);
+			fp->write("bvsref.WriteBV(pos + ");
+			fp->write(", initBV);\n");
+
+
+		  } //unpacked
+	      } //array of quarks
+	  } //class
+	else if(((SymbolVariableDataMember*)sym)->hasInitValue())
 	      {
 		assert(sut->getUlamClassType() == UC_NOTACLASS);
 		//neither typedef, nor model parameter, nor named constant
 		// but does this data member have an initialization value?
-		// o.w. zero
+		// o.w. zero (primitive arrays not initialized)
 		u64 val = 0;
 		AssertBool isDefined = ((SymbolVariableDataMember*)sym)->getInitValue(val);
 		assert(isDefined);
@@ -519,7 +625,7 @@ namespace MFM {
 		    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
 		    fp->write("<EC>::");
 		  }
-		fp->write(sym->getMangledNameForParameterType().c_str());
+		fp->write(sym->getMangledNameForParameterType().c_str()); //UlamRefFixed
 		//fp->write("(da, 0u, "); origin no longer used
 		fp->write("(daref, ");
 		fp->write("NULL)."); //non-class
@@ -529,9 +635,11 @@ namespace MFM {
 		fp->write("u);\n");
 	      }
 	  }
+
 	it++;
       } //end while
   } //genCodeBuiltInFunctionBuildDefaultsOverTableOfVariableDataMember
+#endif
 
   void SymbolTable::addClassMemberDescriptionsToMap(UTI classType, ClassMemberMap& classmembers)
   {
@@ -927,10 +1035,12 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	UTI suti = sym->getUlamTypeIdx();
+	UlamType * sut = m_state.getUlamTypeByIndex(suti);
+
 	//skip quarkunion initializations
 	if(sym->isDataMember() && variableSymbolWithCountableSize(sym) && !m_state.isClassAQuarkUnion(suti))
 	  {
-	    s32 bitsize = m_state.getBitSize(suti);
+	    s32 bitsize = sut->getBitSize();
 	    u32 pos = ((SymbolVariableDataMember *) sym)->getPosOffset();
 
 	    //updates the UV at offset with the default of sym; non-class arrays have none
@@ -939,7 +1049,7 @@ namespace MFM {
 		u64 dval = 0;
 		if(((SymbolVariableDataMember *) sym)->getInitValue(dval))
 		  {
-		    u32 wordsize = m_state.getTotalWordSize(suti);
+		    u32 wordsize = sut->getTotalWordSize();
 		    if(wordsize <= MAXBITSPERINT)
 		      uvsite.putData(pos + startpos, bitsize, (u32) dval); //absolute pos
 		    else if(wordsize <= MAXBITSPERLONG)
@@ -948,14 +1058,16 @@ namespace MFM {
 		      assert(0);
 		  }
 	      }
+#if 0
 	    else if(m_state.getUlamTypeByIndex(suti)->getUlamClassType() == UC_QUARK)
 	      {
-		UTI scalarquark = m_state.getUlamTypeAsScalar(suti);
-		SymbolClass * csym = NULL;
-		AssertBool isDefined = m_state.alreadyDefinedSymbolClass(scalarquark, csym);
-		assert(isDefined);
+		//UTI scalarquark = m_state.getUlamTypeAsScalar(suti);
+		//SymbolClass * csym = NULL;
+		//AssertBool isDefined = m_state.alreadyDefinedSymbolClass(scalarquark, csym);
+		//		assert(isDefined);
 		u32 dval = 0;
-		if(csym->getDefaultQuark(dval))
+		//if(csym->getDefaultQuark(dval))
+		if(m_state.getDefaultQuark(suti, dval))
 		  {
 		    //could be an array of quarks
 		    s32 arraysize = m_state.getArraySize(suti);
@@ -964,7 +1076,23 @@ namespace MFM {
 		      uvsite.putData(pos + startpos + i * bitsize, bitsize, dval); //absolute pos
 		  }
 	      }
-	  }
+#endif
+	    else if(sut->getUlamTypeEnum() == Class)
+	      {
+		u64 dpkval = 0;
+		if(m_state.getPackedDefaultClass(suti, dpkval))
+		  {
+		    //could be a "packloadable" array of them
+		    u32 len = sut->getTotalBitSize();
+		    s32 arraysize = sut->getArraySize();
+		    arraysize = (arraysize == NONARRAYSIZE ? 1 : arraysize);
+		    u64 dpkarr = 0;
+		    m_state.getDefaultAsPackedArray(len, bitsize, arraysize, 0u, dpkval, dpkarr);
+		    uvsite.putDataLong(pos + startpos, len, dpkarr);
+		  }
+	      }
+	    //else nothing to do?
+	  } //countable
 	it++;
       } //while
     return;

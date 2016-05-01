@@ -33,9 +33,9 @@ namespace MFM {
     "* @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>\n"
     "*/\n\n";
 
-  SymbolClass::SymbolClass(Token id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), m_quarkDefaultValue(0), m_isreadyQuarkDefaultValue(false) /* default */, m_superClass(Nouti) {}
+  SymbolClass::SymbolClass(Token id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false) /* default */, m_superClass(Nouti) {}
 
-  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), m_quarkDefaultValue(sref.m_quarkDefaultValue), m_isreadyQuarkDefaultValue(false), m_superClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_superClass))
+  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_superClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_superClass))
   {
     if(sref.m_classBlock)
       {
@@ -264,41 +264,62 @@ namespace MFM {
   {
     assert(getUlamClass() == UC_QUARK);
 
-    if(m_isreadyQuarkDefaultValue)
+    if(!m_isreadyDefaultValue)
       {
-	dqref = m_quarkDefaultValue;
+	BV8K dk;
+	getDefaultValue(dk);
+      }
+    u32 len = m_state.getBitSize(getUlamTypeIdx());
+    dqref = m_defaultValue.Read(0u, len); //return value
+    return m_isreadyDefaultValue;
+  } //getDefaultQuark
+
+  bool SymbolClass::getPackedDefaultValue(u64& dpkref)
+  {
+    if(!m_isreadyDefaultValue)
+      {
+	BV8K dk;
+	getDefaultValue(dk);
+      }
+    u32 len = m_state.getBitSize(getUlamTypeIdx());
+    dpkref = m_defaultValue.ReadLong(0u, len); //return value
+    return m_isreadyDefaultValue;
+  } //getPackedDefaultValue
+
+  bool SymbolClass::getDefaultValue(BV8K& dvref)
+  {
+    //could be any length up to 8K..(i.e. transient)
+    // element that doesn't fit into a u64
+    if(m_isreadyDefaultValue)
+      {
+	dvref = m_defaultValue;
 	return true; //short-circuit, known
       }
 
     UTI suti = getUlamTypeIdx();
     UlamType * sut = m_state.getUlamTypeByIndex(suti);
+    assert(sut && sut->isComplete());
 
-    assert(sut->isComplete());
-
-    if(sut->getBitSize() == 0)
+    u32 wordlen = sut->getTotalWordSize();
+    if(wordlen == 0)
       {
-	m_isreadyQuarkDefaultValue = true;
-	dqref = m_quarkDefaultValue = 0;
+ 	m_isreadyDefaultValue = true;
+	dvref = m_defaultValue;
 	return true; //short-circuit, no data members
       }
 
-    dqref = 0; //init
     NodeBlockClass * classblock = getClassBlockNode();
     assert(classblock);
     m_state.pushClassContext(suti, classblock, classblock, false, NULL); //missing?
 
-    if(classblock->buildDefaultQuarkValue(dqref))
-      {
-	m_isreadyQuarkDefaultValue = true;
-	m_quarkDefaultValue = dqref;
-      }
-    else
-      m_isreadyQuarkDefaultValue = false;
+    m_isreadyDefaultValue = classblock->buildDefaultValue(wordlen, m_defaultValue);
 
     m_state.popClassContext();
 
-    return m_isreadyQuarkDefaultValue;
-  } //getDefaultQuark
+    dvref = m_defaultValue;
+
+    return m_isreadyDefaultValue;
+  } //getDefaultValue
 
   void SymbolClass::testThisClass(File * fp)
   {
@@ -503,7 +524,6 @@ namespace MFM {
     m_state.m_currentSelfSymbolForCodeGen = this;
     m_state.clearCurrentObjSymbolsForCodeGen();
 
-    //m_state.setupCenterSiteForTesting(); //temporary!!! (t3207, t3714)
     m_state.setupCenterSiteForGenCode(); //temporary!!! (t3207, t3714)
 
     // mangled types and forward class declarations

@@ -173,6 +173,16 @@ namespace MFM {
     return aok;
   } //buildDefaultQuarkValue
 
+  bool NodeStatements::buildDefaultValue(u32 wlen, BV8K& dvref)
+  {
+    bool aok = true;
+    if(m_node)
+      aok |= m_node->buildDefaultValue(wlen, dvref);
+    if(m_nodeNext)
+      aok |= m_nodeNext->buildDefaultValue(wlen, dvref);
+    return aok;
+  } //buildDefaultValue
+
   EvalStatus NodeStatements::eval()
   {
     assert(m_node);

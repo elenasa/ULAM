@@ -71,6 +71,11 @@ namespace MFM {
     return true;
   }
 
+  bool NodeModelParameterDef::buildDefaultValue(u32 wlen, BV8K& dvref)
+  {
+    return true;
+  }
+
   void NodeModelParameterDef::checkForSymbol()
   {
     assert(!m_constSymbol);

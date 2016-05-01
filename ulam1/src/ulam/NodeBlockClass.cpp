@@ -588,6 +588,23 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     return aok;
   } //buildDefaultQuarkValue
 
+  //starts here, called by SymbolClass
+  bool NodeBlockClass::buildDefaultValue(u32 wlen, BV8K& dvref)
+  {
+    bool aok = true;
+    if((m_state.isClassASubclass(getNodeType()) != Nouti))
+      {
+	NodeBlockClass * superblock = getSuperBlockPointer();
+	assert(superblock);
+	aok = superblock->buildDefaultValue(wlen, dvref);
+      }
+
+    if(aok)
+      if(m_nodeNext)
+	aok = m_nodeNext->buildDefaultValue(wlen, dvref); //side-effect for dm vardecls
+    return aok;
+  } //buildDefaultValue
+
   EvalStatus NodeBlockClass::eval()
   {
     //    #define _DEBUG_SKIP_EVAL
@@ -788,6 +805,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   void NodeBlockClass::initElementDefaultsForEval(UlamValue& uv, UTI cuti)
   {
     UTI buti = getNodeType();
+
+    UlamType * but = m_state.getUlamTypeByIndex(buti);
+    if((but->getUlamClassType() == UC_TRANSIENT) && (but->getTotalBitSize() > MAXSTATEBITS))
+      return; //cannot do eval on a huge transient
+
     UTI superuti = m_state.isClassASubclass(buti);
     assert(superuti != Hzy);
     if(superuti != Nouti)
@@ -1584,6 +1606,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("AtomBitStorage<EC> da(Element<EC>::BuildDefaultAtom());\n");
 
+#if 0
     m_state.indent(fp);
     fp->write("UlamRef<EC> daref(0u + T::ATOM_FIRST_STATE_BIT, ");
     fp->write_decimal_unsigned(cut->getTotalBitSize());
@@ -1591,14 +1614,24 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
     fp->write(");\n");
     fp->write("\n");
+#endif
 
-    m_state.indent(fp);
-    fp->write("// Initialize any data members:\n");
+    if(cut->getBitSize() > 0)
+      {
+	m_state.indent(fp);
+	fp->write("// Initialize any data members:\n");
 
-    //get all initialized data members packed
-    genCodeBuiltInFunctionBuildingDefaultDataMembers(fp);
+	//get all initialized data members packed
+	if(genCodeBuiltInFunctionBuildingDefaultDataMembers(fp))
+	  {
+	    fp->write("\n");
 
-    fp->write("\n");
+	    m_state.indent(fp);
+	    fp->write("da.WriteBV(0u + T::ATOM_FIRST_STATE_BIT, ");
+	    fp->write("initBV);\n");
+	  }
+      }
+
     m_state.indent(fp);
     fp->write("return ");
     fp->write("(da.ReadAtom());\n");
@@ -1608,24 +1641,77 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("} //BuildDefaultAtom\n\n");
   } //genCodeBuiltInFunctionBuildDefaultAtom
 
-  void NodeBlockClass::genCodeBuiltInFunctionBuildingDefaultDataMembers(File * fp)
+  //return false for zero default value (effects the needed gen code)
+  bool NodeBlockClass::genCodeBuiltInFunctionBuildingDefaultDataMembers(File * fp)
   {
     UTI nuti = getNodeType();
-    if(m_state.isClassASubclass(nuti) != Nouti)
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    assert(nut->isScalar());
+
+    u32 len = nut->getTotalBitSize();
+    if(len == 0)
+      return false;
+
+    BV8K dval;
+    AssertBool isDefault = m_state.getDefaultClassValue(nuti, dval);
+    assert(isDefault);
+
+    u32 uvals[ARRAY_LEN8K];
+    dval.ToArray(uvals);
+
+    u32 nwords = (len + 31)/MAXBITSPERINT;
+
+    //short-circuit if all zeros
+    bool isZero = true;
+    for(u32 x = 0; x < nwords; x++)
       {
-	NodeBlockClass * superClassBlock = getSuperBlockPointer();
-	assert(superClassBlock);
-	superClassBlock->genCodeBuiltInFunctionBuildingDefaultDataMembers(fp);
+	if(uvals[x] != 0)
+	  {
+	    isZero = false;
+	    break;
+	  }
       }
 
-    m_ST.genCodeBuiltInFunctionBuildDefaultsOverTableOfVariableDataMember(fp, nuti);
+    if(isZero)
+      return false; //nothing to do
+
+    //build static constant array of u32's for BV8K:
+    m_state.indent(fp);
+    fp->write("static const u32 vales[(");
+    fp->write_decimal_unsigned(len); // == [nwords]
+    fp->write(" + 31)/32] = {\n");
+
+    m_state.m_currentIndentLevel++;
+
+    for(u32 w = 0; w < nwords; w++)
+      {
+	std::ostringstream dhex;
+	dhex << "0x" << std::hex << uvals[w];
+	m_state.indent(fp);
+	fp->write(dhex.str().c_str());
+	fp->write(",  //");
+	fp->write_decimal_unsigned(w);
+	fp->write("  ");
+	fp->write_decimal_unsigned(w * MAXBITSPERINT);
+	fp->write("\n");
+      }
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("};\n");
+
+    // declare perfect size BV with constant array of defaults BV8K u32's
+    m_state.indent(fp);
+    fp->write("static BitVector<");
+    fp->write_decimal_unsigned(len);
+    fp->write("> initBV(vales);\n");
+
+    return true;
   } //genCodeBuiltInFunctionBuildingDefaultDataMembers
 
   void NodeBlockClass::genCodeBuiltInFunctionBuildDefaultQuark(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     //return;
     assert(classtype == UC_QUARK);
-
     UTI cuti = m_state.getCompileThisIdx();
 
     if(declOnly)
@@ -1713,27 +1799,36 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.m_currentIndentLevel++;
 
     u32 len = cut->getTotalBitSize();
+    if(len > 0)
+      {
+	m_state.indent(fp);
+	fp->write("MFM_API_ASSERT_ARG((pos + bvsref.GetBitSize()) >= ");
+	fp->write_decimal_unsigned(len);
+	fp->write("u);\n");
 
-    m_state.indent(fp);
-    fp->write("MFM_API_ASSERT_ARG((pos + bvsref.GetBitSize()) >= ");
-    fp->write_decimal_unsigned(len);
-    fp->write("u);\n");
+#if 0
+	m_state.indent(fp);
+	fp->write("UlamRef<EC> daref(pos, ");
+	fp->write_decimal_unsigned(len);
+	fp->write("u, bvsref, &");
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
+	fp->write(");\n\n");
+#endif
 
-    m_state.indent(fp);
-    fp->write("UlamRef<EC> daref(pos, ");
-    fp->write_decimal_unsigned(len);
-    fp->write("u, bvsref, &");
-    fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
-    fp->write(");\n\n");
+	m_state.indent(fp);
+	fp->write("// Initialize any data members:\n");
 
-    m_state.indent(fp);
-    fp->write("// Initialize any data members:\n");
+	//get all initialized data members packed into 'daref'
+	// unlike element and quarks, data members can be elements and other transients
+	if(genCodeBuiltInFunctionBuildingDefaultDataMembers(fp))
+	  {
+	    fp->write("\n");
 
-    //get all initialized data members packed into 'daref'
-    genCodeBuiltInFunctionBuildingDefaultDataMembers(fp);
-
-    fp->write("\n");
-
+	    m_state.indent(fp);
+	    fp->write("bvsref.WriteBV(pos, "); //first arg
+	    fp->write("initBV);\n");
+	  }
+      }
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("} //getDefaultTransient\n\n");

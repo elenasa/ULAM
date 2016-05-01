@@ -318,6 +318,7 @@ namespace MFM {
   void UlamTypeClassTransient::genUlamTypeMangledDefinitionForC(File * fp)
   {
     s32 len = getTotalBitSize(); //could be 0, includes arrays
+    s32 bitsize = getBitSize();
 
     //class instance idx is always the scalar uti
     UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
@@ -395,7 +396,18 @@ namespace MFM {
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("() { ");
-    fp->write("Us::THE_INSTANCE.getDefaultTransient(0u, *this); }\n");
+    if(isScalar())
+      fp->write("Us::THE_INSTANCE.getDefaultTransient(0u, *this); }\n");
+    else
+      {
+	fp->write("u32 n = ");
+	fp->write_decimal_unsigned(getArraySize());
+	fp->write("u; while(n--) ");
+	fp->write("Us::THE_INSTANCE.getDefaultTransient(0u + ");
+	fp->write("n * "); //next pos = orig_pos + n * bitsize
+	fp->write_decimal_unsigned(bitsize);
+	fp->write(", *this); }\n");
+      }
 
     //constructor here (used by const tmpVars)
     m_state.indent(fp);

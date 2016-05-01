@@ -45,9 +45,9 @@
 #include "TargetMap.h"
 #include "MapClassMemberDesc.h"
 #include "VirtualTable.h"
+#include "BitVector.h"
 
 namespace MFM{
-
 
   class CompilerState;  //forward
   class SymbolClassNameTemplate;  //forward
@@ -97,7 +97,9 @@ namespace MFM{
 
     void printBitSizeOfClass();
 
-    bool getDefaultQuark(u32& dqref); //return true if ready
+    bool getDefaultQuark(u32& dqref);
+    bool getPackedDefaultValue(u64& dpkref);
+    bool getDefaultValue(BV8K& dvref); //return true if ready
 
     void testThisClass(File * fp); //eval-land
 
@@ -158,9 +160,12 @@ namespace MFM{
     SymbolClassNameTemplate * m_parentTemplate;
     bool m_quarkunion;
     bool m_stub;
-    u32 m_quarkDefaultValue;
-    bool m_isreadyQuarkDefaultValue;
+    //    u32 m_quarkDefaultValue;
+    //bool m_isreadyQuarkDefaultValue;
+    BV8K m_defaultValue; //BitVector
+    bool m_isreadyDefaultValue;
     UTI m_superClass; //single inheritance
+
 
     void generateHeaderPreamble(File * fp);
     void genAllCapsIfndefForHeaderFile(File * fp);

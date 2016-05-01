@@ -264,6 +264,12 @@ namespace MFM {
     return false;
   }
 
+  bool Node::buildDefaultValue(u32 wlen, BV8K& dvref)
+  {
+    assert(0);
+    return false;
+  }
+
   // only for constants (NodeTerminal)
   bool Node::isNegativeConstant()
   {

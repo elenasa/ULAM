@@ -74,6 +74,8 @@ namespace MFM{
 
     virtual bool buildDefaultQuarkValue(u32& dqref);
 
+    virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
+
     virtual EvalStatus eval();
 
     virtual void setNextNode(NodeStatements * s);

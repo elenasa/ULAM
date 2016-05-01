@@ -504,6 +504,11 @@ namespace MFM {
     return true; //pass on
   }
 
+  bool NodeConstantDef::buildDefaultValue(u32 wlen, BV8K& bvref)
+  {
+    return true; //pass on
+  }
+
   void NodeConstantDef::fixPendingArgumentNode()
   {
     assert(m_constSymbol);
