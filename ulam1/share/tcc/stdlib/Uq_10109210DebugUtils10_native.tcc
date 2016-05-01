@@ -18,8 +18,7 @@ namespace MFM{
     OString512 buff;
     u32 flags = Uv_5flags.read();
     T atdirect = ew.GetCenterAtomDirect();
-    UlamRefAtom<EC> tmpur(atdirect, uc.LookupElementTypeFromContext(atdirect.GetType()));
-    Uq_10109210DebugUtils10_printAtom(uc, tmpur, flags, buff);
+    Uq_10109210DebugUtils10_printAtom(uc, atdirect, flags, buff);
 
     LOG.Message("@(%2d,%2d) of %s: %s",
                 ctr.GetX(), ctr.GetY(),
@@ -84,25 +83,25 @@ namespace MFM{
   // It doesn't follow the ulam native function interface rules!
   template<class EC>
   inline void Uq_10109210DebugUtils10_printAtom(const UlamContext<EC>& uc,
-                                                UlamRef<EC>& ur, // call by value
+                                                typename EC::ATOM_CONFIG_AC::ATOM_TYPE atom, // call by value
                                                 u32 flags,
                                                 ByteSink & buff)
   {
-    typedef typename EC::ATOM_CONFIG::ATOM_TYPE T;
+    typedef typename EC::ATOM_CONFIG AC;
+    typedef typename AC::ATOM_TYPE T;
     if (!flags) return;
 
-    T& atom = ur.GetStorage();
-    u32 type = ur.GetType();
+    AtomSerializer<AC> as(atom);
+    u32 type = atom.GetType();
     const Tile<EC> & tile = uc.GetTile();
     const UlamClassRegistry<EC> & ucr = tile.GetUlamClassRegistry();
     const Element<EC> * ep = tile.GetElement(type);
 
     typedef typename EC::ATOM_CONFIG AC;
 
-    AtomSerializer<AC> as(atom);
-
     if (ep)
     {
+
       const UlamElement<EC> * uep = ep->AsUlamElement();
       if (uep)
       {
@@ -134,8 +133,7 @@ namespace MFM{
     OString512 buff;
     T atom = Uv_1a.ReadAtom();
     u32 flags = Uv_5flags.read();
-    UlamRefAtom<EC> tmpur(atom, uc.LookupElementTypeFromContext(atom.GetType()));
-    Uq_10109210DebugUtils10_printAtom(uc, tmpur, flags, buff);
+    Uq_10109210DebugUtils10_printAtom(uc, atom, flags, buff);
     if (buff.GetLength() > 0)
       LOG.Message("%s",buff.GetZString());
   } // Uf_5print
