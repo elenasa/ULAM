@@ -10,7 +10,7 @@ namespace MFM {
   {
     enum { R = EC::EVENT_WINDOW_RADIUS };
 
-    u32 radius = Uv_6radius.Read();
+    u32 radius = Uv_6radius.read();
     Ui_Ut_10161u<EC> ret(MDist<R>::get().GetLastIndex(radius));
     return ret;
   }
@@ -20,7 +20,7 @@ namespace MFM {
   {
     enum { R = EC::EVENT_WINDOW_RADIUS };
 
-    u32 radius = Uv_6radius.Read();
+    u32 radius = Uv_6radius.read();
     Ui_Ut_10161u<EC> ret(MDist<R>::get().GetFirstIndex(radius));
     return ret;
   }
