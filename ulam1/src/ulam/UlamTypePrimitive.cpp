@@ -675,11 +675,14 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("void init(T& realStg) { m_stgPtr = &realStg; }\n");
 
-    //read method; NO write method for MPs in ulam.
+    //read method: MFM model parameters are right justified in the atom
+    // NO write method for MPs in ulam.  
     m_state.indent(fp);
     fp->write("const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32, s64 or u64
-    fp->write(" read() const { MFM_API_ASSERT_NONNULL(m_stgPtr); AtomBitStorage<EC> mpfoo(*m_stgPtr); return UlamRef<EC>(0u, ");
+    fp->write(" read() const { MFM_API_ASSERT_NONNULL(m_stgPtr); AtomBitStorage<EC> mpfoo(*m_stgPtr); return UlamRef<EC>(BPA - ");
+    fp->write_decimal(len);
+    fp->write("u, ");
     fp->write_decimal(len);
     fp->write("u, mpfoo, NULL)."); //origin 0u
     fp->write(readMethodForCodeGen().c_str());
