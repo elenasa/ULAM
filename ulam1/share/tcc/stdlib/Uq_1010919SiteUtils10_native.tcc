@@ -18,7 +18,7 @@ namespace MFM{
     //! Site.ulam:7:   ARGB getIn() { ARGB a; return a; }
 
     //! Site.ulam:7:   ARGB getIn() { ARGB a; return a; }
-    const u32 Uh_tmpreg_loadable_14 = Uv_1a.Read();
+    const u32 Uh_tmpreg_loadable_14 = Uv_1a.read();
     const Ui_Ut_14181u<EC> Uh_tmpval_loadable_15(Uh_tmpreg_loadable_14);
 #endif
     Ui_Ut_14181u<EC> Uv_1a;
@@ -46,7 +46,7 @@ namespace MFM{
     EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
     Base<AC> & base = ew.GetBase();
 
-    const u32 tmp = Uv_6newVal.Read();
+    const u32 tmp = Uv_6newVal.read();
 
     base.SetPaint(tmp);
 
