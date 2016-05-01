@@ -16,10 +16,9 @@ namespace MFM{
     SPoint ctr = ew.GetCenterInTile();
 
     OString512 buff;
-    u32 flags = Uv_5flags.Read();
+    u32 flags = Uv_5flags.read();
     T atdirect = ew.GetCenterAtomDirect();
-    UlamRefAtom<EC> tmpur(atdirect, uc.LookupElementTypeFromContext(atdirect.GetType()));
-    Uq_10109210DebugUtils10_printAtom(uc, tmpur, flags, buff);
+    Uq_10109210DebugUtils10_printAtom(uc, atdirect, flags, buff);
 
     LOG.Message("@(%2d,%2d) of %s: %s",
                 ctr.GetX(), ctr.GetY(),
@@ -30,7 +29,7 @@ namespace MFM{
   template<class EC>
   void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10131i<EC> Uv_3arg) const //native
   {
-    s32 tmp = Uv_3arg.Read();
+    s32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(3); //mask
     LOG.Message("print: Int(3) 0x%x", tmp);
   }
@@ -39,7 +38,7 @@ namespace MFM{
   template<class EC>
   void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10141i<EC> Uv_3arg) const //native
   {
-    s32 tmp = Uv_3arg.Read();
+    s32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(4); //mask
     LOG.Message("print: Int(4) 0x%x", tmp);
   }
@@ -48,7 +47,7 @@ namespace MFM{
   template<class EC>
   void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_102321i<EC> Uv_3arg) const //native
   {
-    s32 tmp = Uv_3arg.Read();
+    s32 tmp = Uv_3arg.read();
     LOG.Message("print: Int: %d", tmp);
   }
 
@@ -56,7 +55,7 @@ namespace MFM{
   template<class EC>
   void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_102321u<EC> Uv_3arg) const //native
   {
-    u32 tmp = Uv_3arg.Read();
+    u32 tmp = Uv_3arg.read();
     LOG.Message("print: Unsigned: %u", tmp);
   }
 
@@ -64,7 +63,7 @@ namespace MFM{
   template<class EC>
   void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10131y<EC> Uv_3arg) const //native
   {
-    u32 tmp = Uv_3arg.Read();
+    u32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(3); //mask
     u32 count1s = PopCount(tmp);
     LOG.Message("print: Unary(3) Arg: 0x%x", count1s);
@@ -74,7 +73,7 @@ namespace MFM{
   template<class EC>
   void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10131b<EC> Uv_3arg) const //native
   {
-    u32 tmp = Uv_3arg.Read();
+    u32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(3); //mask
     bool b = _Bool32ToCbool(tmp, 3);
     LOG.Message("print: Bool(3) 0x%x (%s)", tmp, b ? "true" : "false");
@@ -84,25 +83,25 @@ namespace MFM{
   // It doesn't follow the ulam native function interface rules!
   template<class EC>
   inline void Uq_10109210DebugUtils10_printAtom(const UlamContext<EC>& uc,
-                                                UlamRef<EC>& ur, // call by value
+                                                typename EC::ATOM_CONFIG_AC::ATOM_TYPE atom, // call by value
                                                 u32 flags,
                                                 ByteSink & buff)
   {
-    typedef typename EC::ATOM_CONFIG::ATOM_TYPE T;
+    typedef typename EC::ATOM_CONFIG AC;
+    typedef typename AC::ATOM_TYPE T;
     if (!flags) return;
 
-    T& atom = ur.GetStorage();
-    u32 type = ur.GetType();
+    AtomSerializer<AC> as(atom);
+    u32 type = atom.GetType();
     const Tile<EC> & tile = uc.GetTile();
     const UlamClassRegistry<EC> & ucr = tile.GetUlamClassRegistry();
     const Element<EC> * ep = tile.GetElement(type);
 
     typedef typename EC::ATOM_CONFIG AC;
 
-    AtomSerializer<AC> as(atom);
-
     if (ep)
     {
+
       const UlamElement<EC> * uep = ep->AsUlamElement();
       if (uep)
       {
@@ -133,9 +132,8 @@ namespace MFM{
   {
     OString512 buff;
     T atom = Uv_1a.ReadAtom();
-    u32 flags = Uv_5flags.Read();
-    UlamRefAtom<EC> tmpur(atom, uc.LookupElementTypeFromContext(atom.GetType()));
-    Uq_10109210DebugUtils10_printAtom(uc, tmpur, flags, buff);
+    u32 flags = Uv_5flags.read();
+    Uq_10109210DebugUtils10_printAtom(uc, atom, flags, buff);
     if (buff.GetLength() > 0)
       LOG.Message("%s",buff.GetZString());
   } // Uf_5print
@@ -143,7 +141,7 @@ namespace MFM{
   template<class EC>
   void Uq_10109210DebugUtils10<EC>::Uf_6assert(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10111b<EC> Uv_1b) const //native
   {
-    bool btmp = Uv_1b.Read();
+    bool btmp = Uv_1b.read();
     printf("assert: arg is %d\n",btmp);
     if(!btmp)
       {
