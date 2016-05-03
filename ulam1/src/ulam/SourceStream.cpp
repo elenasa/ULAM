@@ -147,6 +147,38 @@ namespace MFM {
     return 0;
   } //push
 
+  u32 SourceStream::exists(std::string filename)
+  {
+    //map filename to string pool index (u32)
+    u32 findex = m_state.m_pool.getIndexForDataString(filename);
+
+    // if the given filename has been push'ed before, return true
+    if(isPushed(findex))
+      return 0;
+
+    if(!m_fileManager)
+      {
+	std::ostringstream errmsg;
+	errmsg << "FileManager not found";
+	u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
+	return idx; //FM no good
+      }
+
+    // attempt to open filename for reading; return false if failed.
+    std::string fullpath;
+    File * fp = m_fileManager->open(filename, READ, fullpath);
+    if(fp == NULL)
+      {
+	std::ostringstream errmsg;
+	errmsg << "Couldn't open file <" << filename << "> errno=";
+	errmsg << errno << " " << strerror(errno);
+	u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
+	return idx; //couldn't open the file
+      }
+    delete fp;
+    return 0;
+  } //exists
+
   bool SourceStream::discardTop()
   {
     if (m_openFilesStack.empty()) return false;

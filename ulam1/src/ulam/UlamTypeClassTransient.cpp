@@ -400,6 +400,22 @@ namespace MFM {
       fp->write("Us::THE_INSTANCE.getDefaultTransient(0u, *this); }\n");
     else
       {
+	BV8K dval, darrval;
+	AssertBool isDefault = m_state.getDefaultClassValue(scalaruti, dval);
+	m_state.getDefaultAsArray(bitsize, getArraySize(), 0u, dval, darrval);
+	fp->write("\n");
+	m_state.m_currentIndentLevel++;
+	if(m_state.genCodeClassDefaultConstantArray(fp, len, darrval))
+	  {
+	    m_state.indent(fp);
+	    fp->write("BVS::WriteBV(0u, "); //first arg
+	    fp->write("initBV);\n");
+	  }
+	m_state.m_currentIndentLevel--;
+	m_state.indent(fp);
+	fp->write(" }\n");
+
+#if 0
 	fp->write("u32 n = ");
 	fp->write_decimal_unsigned(getArraySize());
 	fp->write("u; while(n--) ");
@@ -407,6 +423,7 @@ namespace MFM {
 	fp->write("n * "); //next pos = orig_pos + n * bitsize
 	fp->write_decimal_unsigned(bitsize);
 	fp->write(", *this); }\n");
+#endif
       }
 
     //constructor here (used by const tmpVars)

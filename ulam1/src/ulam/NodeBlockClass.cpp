@@ -1604,7 +1604,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.m_currentIndentLevel++;
 
     m_state.indent(fp);
-    fp->write("AtomBitStorage<EC> da(Element<EC>::BuildDefaultAtom());\n");
+    fp->write("AtomBitStorage<EC> da(Element<EC>::BuildDefaultAtom());\n\n");
 
     if(cut->getBitSize() > 0)
       {
@@ -1614,8 +1614,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	//get all initialized data members packed
 	if(genCodeBuiltInFunctionBuildingDefaultDataMembers(fp))
 	  {
-	    fp->write("\n");
-
 	    m_state.indent(fp);
 	    fp->write("da.WriteBV(0u + T::ATOM_FIRST_STATE_BIT, ");
 	    fp->write("initBV);\n");
@@ -1646,56 +1644,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     AssertBool isDefault = m_state.getDefaultClassValue(nuti, dval);
     assert(isDefault);
 
-    u32 uvals[ARRAY_LEN8K];
-    dval.ToArray(uvals);
-
-    u32 nwords = (len + 31)/MAXBITSPERINT;
-
-    //short-circuit if all zeros
-    bool isZero = true;
-    for(u32 x = 0; x < nwords; x++)
-      {
-	if(uvals[x] != 0)
-	  {
-	    isZero = false;
-	    break;
-	  }
-      }
-
-    if(isZero)
-      return false; //nothing to do
-
-    //build static constant array of u32's for BV8K:
-    m_state.indent(fp);
-    fp->write("static const u32 vales[(");
-    fp->write_decimal_unsigned(len); // == [nwords]
-    fp->write(" + 31)/32] = {\n");
-
-    m_state.m_currentIndentLevel++;
-
-    for(u32 w = 0; w < nwords; w++)
-      {
-	std::ostringstream dhex;
-	dhex << "0x" << std::hex << uvals[w];
-	m_state.indent(fp);
-	fp->write(dhex.str().c_str());
-	fp->write(",  //");
-	fp->write_decimal_unsigned(w);
-	fp->write("  ");
-	fp->write_decimal_unsigned(w * MAXBITSPERINT);
-	fp->write("\n");
-      }
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("};\n");
-
-    // declare perfect size BV with constant array of defaults BV8K u32's
-    m_state.indent(fp);
-    fp->write("static BitVector<");
-    fp->write_decimal_unsigned(len);
-    fp->write("> initBV(vales);\n");
-
-    return true;
+    return m_state.genCodeClassDefaultConstantArray(fp, len, dval);
   } //genCodeBuiltInFunctionBuildingDefaultDataMembers
 
   void NodeBlockClass::genCodeBuiltInFunctionBuildDefaultQuark(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
@@ -1794,7 +1743,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	m_state.indent(fp);
 	fp->write("MFM_API_ASSERT_ARG((pos + bvsref.GetBitSize()) >= ");
 	fp->write_decimal_unsigned(len);
-	fp->write("u);\n");
+	fp->write("u);\n\n");
 
 	m_state.indent(fp);
 	fp->write("// Initialize any data members:\n");
@@ -1803,8 +1752,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	// unlike element and quarks, data members can be elements and other transients
 	if(genCodeBuiltInFunctionBuildingDefaultDataMembers(fp))
 	  {
-	    fp->write("\n");
-
 	    m_state.indent(fp);
 	    fp->write("bvsref.WriteBV(pos, "); //first arg
 	    fp->write("initBV);\n");

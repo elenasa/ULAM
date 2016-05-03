@@ -1101,7 +1101,7 @@ namespace MFM {
 		msg << "Unresolved type <";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		msg << "> was never defined; Fails labeling";
-		MSG(cnsym->getTokPtr(), msg.str().c_str(), WARN); //was ERR but typedef junk
+		MSG(cnsym->getTokPtr(), msg.str().c_str(), DEBUG); //was ERR but typedef junk; was WARN, but too many msgs when ERR with variable name suffices (error/t3370, t3492)
 		cnsym->getClassBlockNode()->setNodeType(Nav); //for compiler counter
 		//assert(0); wasn't a class at all, e.g. out-of-scope typedef/variable
 		break;
@@ -1388,25 +1388,25 @@ namespace MFM {
   } //findClassNodeNoForTableOfClasses
 
   //PRIVATE HELPER METHODS:
-  s32 SymbolTable::calcVariableSymbolTypeSize(UTI argut)
+  s32 SymbolTable::calcVariableSymbolTypeSize(UTI arguti)
   {
-    if(!m_state.okUTItoContinue(argut))
+    if(!m_state.okUTItoContinue(arguti))
       {
-	assert(argut != Nav);
-	if(argut == Nouti)
+	assert(arguti != Nav);
+	if(arguti == Nouti)
 	  return UNKNOWNSIZE;
 	//else continue if Hzy
       }
 
-    s32 totbitsize = m_state.getBitSize(argut);
+    s32 totbitsize = m_state.getBitSize(arguti);
 
-    if(m_state.getUlamTypeByIndex(argut)->getUlamClassType() == UC_NOTACLASS) //includes Atom type
+    if(m_state.getUlamTypeByIndex(arguti)->getUlamClassType() == UC_NOTACLASS) //includes Atom type
       {
 	return totbitsize; //arrays handled by caller, just bits here
       }
 
     //not a primitive (class), array
-    if(m_state.getArraySize(argut) > 0)
+    if(m_state.getArraySize(arguti) > 0)
       {
 	if(totbitsize >= 0)
 	  {
@@ -1423,19 +1423,19 @@ namespace MFM {
 	  }
 	else
 	  {
-	    assert(totbitsize <= UNKNOWNSIZE || m_state.getArraySize(argut) == UNKNOWNSIZE);
+	    assert(totbitsize <= UNKNOWNSIZE || m_state.getArraySize(arguti) == UNKNOWNSIZE);
 
-	    m_state.setBitSize(argut, CYCLEFLAG); //before the recusive call..
+	    m_state.setBitSize(arguti, CYCLEFLAG); //before the recusive call..
 
 	    //get base type, scalar type of class
 	    SymbolClass * csym = NULL;
-	    if(m_state.alreadyDefinedSymbolClass(argut, csym))
+	    if(m_state.alreadyDefinedSymbolClass(arguti, csym))
 	      {
 		return calcVariableSymbolTypeSize(csym->getUlamTypeIdx()); //NEEDS CORRECTION
 	      }
 	  }
       }
-    else if(m_state.isScalar(argut)) //not primitive type (class), and not array (scalar)
+    else if(m_state.isScalar(arguti)) //not primitive type (class), and not array (scalar)
       {
 	if(totbitsize >= 0)
 	  {
@@ -1455,7 +1455,7 @@ namespace MFM {
 	    assert(totbitsize == UNKNOWNSIZE);
 	    //get base type
 	    SymbolClass * csym = NULL;
-	    if(m_state.alreadyDefinedSymbolClass(argut, csym))
+	    if(m_state.alreadyDefinedSymbolClass(arguti, csym))
 	      {
 		s32 csize;
 		UTI cuti = csym->getUlamTypeIdx();

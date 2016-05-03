@@ -951,6 +951,7 @@ namespace MFM {
     if(!condNode)
       {
 	m_state.popClassContext(); //the pop
+	delete rtnNode;
 	return NULL; //stop this maddness
       }
 
@@ -958,6 +959,7 @@ namespace MFM {
       {
 	delete condNode;
 	m_state.popClassContext(); //the pop
+	delete rtnNode;
 	return NULL; //stop this maddness
       }
 
@@ -975,6 +977,7 @@ namespace MFM {
       {
 	delete condNode;
 	m_state.popClassContext(); //the pop
+	delete rtnNode;
 	return NULL; //stop this maddness
       }
 
@@ -999,7 +1002,6 @@ namespace MFM {
     Node * ifNode = new NodeControlIf(condNode, trueStmtNode, falseStmtNode, m_state);
     assert(ifNode);
     ifNode->setNodeLocation(ifTok.m_locator);
-
 
     NodeStatements * nextControlNode = new NodeStatements(ifNode, m_state);
     assert(nextControlNode);
@@ -1736,17 +1738,20 @@ namespace MFM {
     NodeTypeDescriptor * typeNode = NULL;
     Token pTok = typeargs.m_typeTok;
     ULAMTYPE etyp = m_state.getBaseTypeFromToken(pTok);
-    bool isAClassType = ((etyp == Class) || (etyp == Hzy) || (etyp == Holder));
+    bool mustbeAClassType = (etyp == Class);
+    bool assumeAClassType = ((etyp == Class) || (etyp == Hzy) || (etyp == Holder));
 
-    if(isAClassType)
+    if(assumeAClassType)
       {
 	//sneak peak at next tok for dot
 	Token dTok;
 	getNextToken(dTok);
 	unreadToken();
-	isAClassType = (dTok.m_type == TOK_DOT); //another clue for Hzy and Holder
+	//isAClassType = (dTok.m_type == TOK_DOT); //another clue for Hzy and Holder
+	mustbeAClassType |= (dTok.m_type == TOK_DOT); //another clue for Hzy and Holder
 
-	if(isAClassType && (etyp == Holder))
+	//if(isAClassType && (etyp == Holder))
+	if(mustbeAClassType && (etyp == Holder))
 	  {
 	    UTI huti = Nav;
 	    UTI tmpscalar= Nav;
@@ -1755,10 +1760,10 @@ namespace MFM {
 	    m_state.makeClassFromHolder(huti, pTok); //don't need cnsym here
 	  }
 
-	UTI cuti = parseClassArguments(pTok, isAClassType); //not sure what to do with the UTI? could be a declref type
-	if(isAClassType)
+	UTI cuti = parseClassArguments(pTok, mustbeAClassType); //not sure what to do with the UTI? could be a declref type; both args are refs!
+	if(mustbeAClassType)
 	  {
-	    if(m_state.isReference(cuti)) //e.g. refofSelf
+	    if(m_state.isReference(cuti)) //e.g. refofSelf, ref to array of classes
 	      {
 		typeargs.m_classInstanceIdx = m_state.getUlamTypeAsDeref(cuti);
 		typeargs.m_declRef = ALT_REF;
@@ -1768,6 +1773,7 @@ namespace MFM {
 	      typeargs.m_classInstanceIdx = cuti;
 	    else
 	      typeargs.m_classInstanceIdx = m_state.getUlamTypeAsScalar(cuti); //eg typedef class array
+	    castUTI = cuti; //in case a ref, try this???Mon May  2 10:45:32 2016
 	  }
 	else
 	  {
@@ -1846,7 +1852,11 @@ namespace MFM {
 	    UTI tduti = Nav;
 	    UTI tdscalaruti = Nouti;
 	    if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, tduti, tdscalaruti))
-	      return tduti; //done. (could be an array; or refselftype)
+	      {
+		ULAMTYPE bUT = m_state.getUlamTypeByIndex(tduti)->getUlamTypeEnum();
+		isaclass = (bUT == Class); //or Hzy or Holder?
+		return tduti; //done. (could be an array; or refselftype)
+	      }
 	    else
 	      {
 		// not necessarily a class!!
@@ -1856,6 +1866,7 @@ namespace MFM {
 		  {
 		    UTI huti = m_state.makeUlamTypeHolder();
 		    m_state.addUnknownTypeTokenToThisClassResolver(typeTok, huti);
+		    m_state.m_unseenClasses.insert(typeTok.m_dataindex); //possible class
 		    return huti;
 		  }
 	      }

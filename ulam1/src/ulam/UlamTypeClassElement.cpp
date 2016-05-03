@@ -471,12 +471,11 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write("() { ");
 
-    fp->write("AtomBitStorage<EC> tmp(");
-    fp->write("Us::THE_INSTANCE");
-    fp->write(".GetDefaultAtom()); "); //returns object of type T
-
     if(isScalar())
       {
+	fp->write("AtomBitStorage<EC> tmp(");
+	fp->write("Us::THE_INSTANCE");
+	fp->write(".GetDefaultAtom()); "); //returns object of type T
 	fp->write("BVS::WriteBig");
 	fp->write("(0u, ");
 	fp->write_decimal_unsigned(len);
@@ -486,6 +485,19 @@ namespace MFM {
       }
     else
       {
+	BV8K dval, darrval;
+	AssertBool isDefault = m_state.getDefaultClassValue(scalaruti, dval);
+	m_state.getDefaultAsArray(bitsize, getArraySize(), 0u, dval, darrval);
+	fp->write("\n");
+	m_state.m_currentIndentLevel++;
+	if(m_state.genCodeClassDefaultConstantArray(fp, len, darrval))
+	  {
+	    m_state.indent(fp);
+	    fp->write("BVS::WriteBV(0u, "); //first arg
+	    fp->write("initBV);\n");
+	  }
+	m_state.m_currentIndentLevel--;
+#if 0
 	fp->write("BV96 tmpval = tmp.");
 	fp->write("ReadBig");
 	fp->write("(0u + T::ATOM_FIRST_STATE_BIT, ");
@@ -499,8 +511,10 @@ namespace MFM {
 	fp->write(", ");
 	fp->write_decimal_unsigned(bitsize);
 	fp->write(", tmpval); }");
+#endif
       }
-    fp->write(" }\n");
+      m_state.indent(fp);
+      fp->write(" }\n");
 
     //constructor here (used by const tmpVars)
     m_state.indent(fp);

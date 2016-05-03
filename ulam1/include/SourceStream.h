@@ -90,6 +90,8 @@ namespace MFM{
     */
     u32 push(std::string filename, bool onlyOnce = true);
 
+    /** return 0 when file exists; o.w. non-zero for index of error msg */
+    u32 exists(std::string filename);
 
     /** Get the path (that had previously been push()ed) that was the
 	source of the byte returned by the most recent call to read().  If

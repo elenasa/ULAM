@@ -245,6 +245,7 @@ namespace MFM {
 
 	if(m_state.isComplete(derefuti))
 	  {
+	    //move to before known
 	    ALT altd = getReferenceType();
 	    if(nut->getReferenceType() != altd)
 	      {
@@ -299,10 +300,13 @@ namespace MFM {
 	    if(m_state.okUTItoContinue(derefuti))
 	      {
 		UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
-		AssertBool isReplaced = m_state.replaceUlamTypeForUpdatedClassType(nut->getUlamKeyTypeSignature(), Class, derefut->getUlamClassType(), derefut->isCustomArray());
-		assert(isReplaced);
-		nut = m_state.getUlamTypeByIndex(nuti);
-		nclasstype = nut->getUlamClassType();
+		if(m_state.correctAReferenceTypeWith(nuti, derefuti))
+		  {
+		    AssertBool isReplaced = m_state.replaceUlamTypeForUpdatedClassType(nut->getUlamKeyTypeSignature(), Class, derefut->getUlamClassType(), derefut->isCustomArray());
+		    assert(isReplaced);
+		    nut = m_state.getUlamTypeByIndex(nuti);
+		    nclasstype = nut->getUlamClassType();
+		  }
 	      }
 	  }
 
@@ -362,8 +366,8 @@ namespace MFM {
 		  }
 		else
 		  {
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		    rtnuti = Nav;
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    rtnuti = Hzy; //t3407
 		  }
 	      }
 	  }

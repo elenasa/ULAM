@@ -142,6 +142,7 @@ sub main
 
                 ## useful to find source of error
                 ## --track-origins=yes
+                ## --leak-check=full
 		`valgrind ./bin/culamtest $f 1> $log 2> $errlog`;
                 my $status = $?;
                 if ($status == 0) {

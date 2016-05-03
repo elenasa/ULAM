@@ -109,6 +109,7 @@ namespace MFM {
       return true; //not arrays, ok
 
     bool bOK = true;
+#if 0
     if((getPackable() != PACKEDLOADABLE) || (m_state.determinePackable(typidx) != PACKEDLOADABLE))
       {
 	//for now, limited to refs of same class, not subclasses. XXX
@@ -131,6 +132,7 @@ namespace MFM {
 	  }
       }
     else
+#endif
       {
 	s32 arraysize = getArraySize();
 	s32 varraysize = m_state.getArraySize(typidx);
@@ -353,7 +355,7 @@ namespace MFM {
 
   TMPSTORAGE UlamType::getTmpStorageTypeForTmpVar()
   {
-    return TMPREGISTER;
+    return TMPREGISTER; //size? unpacked arrays?
   }
 
   const char * UlamType::getUlamTypeAsSingleLowercaseLetter()

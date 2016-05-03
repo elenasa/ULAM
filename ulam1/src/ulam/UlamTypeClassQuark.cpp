@@ -421,6 +421,10 @@ namespace MFM {
     fp->write_decimal_unsigned(bitsize);
     fp->write("};\n");
 
+    u32 dqval = 0;
+    bool hasDQ = genUlamTypeDefaultQuarkConstant(fp, dqval);
+    //bool hasDQ = m_state.getDefaultQuark(scalaruti, dqval); //no gen code
+
     m_state.indent(fp);
     fp->write("typedef BitVector<");
     fp->write_decimal_unsigned(len);
@@ -442,11 +446,6 @@ namespace MFM {
     genUlamTypeWriteDefinitionForC(fp);
 
     //default constructor (used by local vars)
-    //(unlike element) call build default in case of initialized data members
-    u32 dqval = 0;
-    bool hasDQ = genUlamTypeDefaultQuarkConstant(fp, dqval);
-    //bool hasDQ = m_state.getDefaultQuark(scalaruti, dqval); //no gen code
-
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("() { ");
@@ -459,7 +458,7 @@ namespace MFM {
 	else
 	  {
 	    //very packed array
-	    if(len <= MAXBITSPERINT)
+	    if(len <= MAXBITSPERLONG)
 	      {
 		u64 dqarrval = 0;
 		m_state.getDefaultAsPackedArray(getTotalBitSize(), getBitSize(), getArraySize(), 0, dqval, dqarrval);
@@ -472,12 +471,27 @@ namespace MFM {
 	      }
 	    else
 	      {
+		BV8K dval, darrval;
+		AssertBool isDefault = m_state.getDefaultClassValue(scalaruti, dval);
+		m_state.getDefaultAsArray(bitsize, getArraySize(), 0u, dval, darrval);
+		fp->write("\n");
+		m_state.m_currentIndentLevel++;
+		if(m_state.genCodeClassDefaultConstantArray(fp, len, darrval))
+		  {
+		    m_state.indent(fp);
+		    fp->write("BVS::WriteBV(0u, "); //first arg
+		    fp->write("initBV);\n");
+		  }
+		m_state.m_currentIndentLevel--;
+		m_state.indent(fp);
+#if 0
 		//slower way
 		fp->write("u32 n = ");
 		fp->write_decimal(getArraySize());
 		fp->write("u; while(n--) { ");
 		fp->write("writeArrayItem(DEFAULT_QUARK, n, QUARK_SIZE");
 		fp->write("); }");
+#endif
 	      }
 	  }
       } //hasDQ

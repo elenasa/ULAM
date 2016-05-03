@@ -543,7 +543,6 @@ namespace MFM {
     ULAMTYPE etyp = nut->getUlamTypeEnum();
     if(etyp == Class) //thisClass contains a different class
       {
-	//s32 classsize = m_state.getBitSize(m_state.getCompileThisIdx());
 	u32 dmwlen = nut->getTotalWordSize();
 	if(dmwlen > 0)
 	  {

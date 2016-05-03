@@ -127,7 +127,7 @@ namespace MFM{
     std::map<UlamKeyTypeSignature, UlamType *, less_than_key> m_definedUlamTypes; //key->ulamtype *
     std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key> m_keyToAnyUTI; //key->set of indexes of ulamtype (UTI); tracks how many uti's to an "unknown" key, before delete
 
-    std::set<SymbolClassName *> m_unseenClasses;
+    std::set<u32> m_unseenClasses; //name id of possible classes
 
     std::vector<UTI> m_unionRootUTI; //UTI's root UTI to manage holder/aliases
 
@@ -205,12 +205,15 @@ namespace MFM{
     void getDefaultAsPackedArray(u32 len, u32 bitsize, u32 arraysize, u32 pos, u64 dval, u64& darrval);
     bool getDefaultClassValue(UTI cuti, BV8K& dvref);
     void getDefaultAsArray(u32 bitsize, u32 arraysize, u32 tpos, const BV8K& dval, BV8K& darrval);
+    bool genCodeClassDefaultConstantArray(File * fp, u32 len, BV8K& dval);
 
     bool isScalar(UTI utArg);
     s32 getArraySize(UTI utArg);
     s32 getBitSize(UTI utArg);
     ALT getReferenceType(UTI utArg);
     bool isReference(UTI utArg);
+    bool correctAReferenceTypeWith(UTI utiArg, UTI derefuti);
+    bool correctAnArrayTypeWith(UTI utiArg, UTI scalaruti);
     bool isComplete(UTI utArg);
     bool completeAReferenceType(UTI utArg);
     bool completeAReferenceTypeWith(UTI utArg, UTI derefuti);
@@ -278,6 +281,8 @@ namespace MFM{
     bool statusUnknownTypeInThisClassResolver(UTI huti);
 
     /** creates temporary class type for dataindex, returns the new Symbol pointer in 2nd arg; */
+    bool removeIncompleteClassSymbolFromProgramTable(u32 id); //helper
+    bool removeIncompleteClassSymbolFromProgramTable(Token nTok);
     bool addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr);
     bool addIncompleteTemplateClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr);
     UTI addStubCopyToAncestorClassTemplate(UTI stubTypeToCopy,  UTI context);

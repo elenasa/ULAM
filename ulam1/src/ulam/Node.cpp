@@ -1361,14 +1361,15 @@ namespace MFM {
 	assert(!cosut->isScalar());
 
 	UTI scalarcosuti = m_state.getUlamTypeAsScalar(cosuti);
-	UlamType * scalarcosut = m_state.getUlamTypeByIndex(scalarcosuti);
+	UTI scalarrefuti = m_state.getUlamTypeAsRef(scalarcosuti, ALT_REF);
+	UlamType * scalarrefut = m_state.getUlamTypeByIndex(scalarrefuti);
 	ULAMCLASSTYPE cosclasstype = cosut->getUlamClassType();
 
 	m_state.indent(fp);
-	//can't be const and chainable
-	fp->write(scalarcosut->getLocalStorageTypeAsString().c_str());
+	//can't be const and chainable; needs to be a ref! (e.g. t3668)
+	fp->write(scalarrefut->getLocalStorageTypeAsString().c_str());
 	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(scalarcosuti, tmpVarNum2, TMPAUTOREF).c_str());
+	fp->write(m_state.getTmpVarAsString(scalarrefuti, tmpVarNum2, TMPAUTOREF).c_str());
 	fp->write("("); // use constructor (not equals)
 
 	if(cos->isDataMember())
@@ -1406,7 +1407,8 @@ namespace MFM {
 
 	fp->write(", &");
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
-	cosuti = scalarcosuti; //for the uvpass
+	//cosuti = scalarcosuti; //for the uvpass
+	cosuti = scalarrefuti; //for the uvpass
       }
     fp->write(");\n");
 

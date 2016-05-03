@@ -328,7 +328,9 @@ namespace MFM {
 
   SymbolTmpRef * NodeMemberSelect::makeTmpRefSymbolForCodeGen(UVPass uvpass)
   {
-    UTI tuti = uvpass.getPassTargetType();
+    UTI tuti = uvpass.getPassTargetType(); //possibly not a ref, e.g. array item.
+    //if(!m_state.isReference(tuti))
+    //  tuti = m_state.getUlamTypeAsRef(tuti, ALT_REF);
     std::string tmpvarname = m_state.getTmpVarAsString(tuti, uvpass.getPassVarNum(), TMPAUTOREF);
     Token tidTok(TOK_IDENTIFIER, Node::getNodeLocation(), m_state.m_pool.getIndexForDataString(tmpvarname));
     SymbolTmpRef * rtnsym = new SymbolTmpRef(tidTok, tuti, m_state);

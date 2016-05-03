@@ -633,6 +633,7 @@ namespace MFM {
 	  if(isUnseenClass)
 	    {
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	      //m_state.removeIncompleteClassSymbolFromProgramTable(m_token); //new!!
 	      brtn = true;
 	    }
 	  else
@@ -692,7 +693,7 @@ namespace MFM {
 	UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
 	ULAMCLASSTYPE classtype = ut->getUlamClassType();
 
-	if(ut->isScalar() && args.m_arraysize != NONARRAYSIZE)
+	if(ut->isScalar() && (args.m_arraysize != NONARRAYSIZE))
 	  {
 	    args.m_declListOrTypedefScalarType = scalarUTI = uti;
 	    // o.w. build symbol (with bit and array sizes);
@@ -717,6 +718,12 @@ namespace MFM {
 	//remember tduti for references
 	symtypedef->setAutoLocalType(m_state.getReferenceType(uti));
 
+	if(isUnseenClass)
+	  {
+	    UlamType * tdut = m_state.getUlamTypeByIndex(uti);
+	    UlamKeyTypeSignature tdkey = tdut->getUlamKeyTypeSignature();
+	    m_state.makeUlamTypeFromHolder(tdkey, tdut->getUlamTypeEnum(), pmcuti, UC_UNSEEN);
+	  }
 	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr)); //true
       }
     return false;

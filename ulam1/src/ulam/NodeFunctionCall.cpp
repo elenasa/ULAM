@@ -728,7 +728,6 @@ namespace MFM {
       }
 
     // The Call:
-    //if(m_state.isPass(uvpass.getUVPassTypeIdx()) && (uvpass.getPassStorage() == TMPAUTOREF))
     if((uvpass.getPassStorage() == TMPAUTOREF))
       genCodeAReferenceIntoABitValue(fp, uvpass);
     else
@@ -888,7 +887,7 @@ namespace MFM {
 
     assert(uvpass.getPassStorage() == TMPAUTOREF);
     UTI vuti = uvpass.getPassTargetType();
-    assert(m_state.getUlamTypeByIndex(vuti)->getReferenceType() != ALT_NOT);
+    //assert(m_state.getUlamTypeByIndex(vuti)->getReferenceType() != ALT_NOT); //e.g. t3668
 
     //use possible dereference type for mangled name
     //UTI derefuti = m_state.getUlamTypeAsDeref(vuti);
@@ -1129,7 +1128,7 @@ namespace MFM {
     assert(uvpass.getPassStorage() == TMPAUTOREF);
 
     UTI vuti = uvpass.getPassTargetType();
-    assert(m_state.getUlamTypeByIndex(vuti)->getReferenceType() != ALT_NOT);
+    //assert(m_state.getUlamTypeByIndex(vuti)->getReferenceType() != ALT_NOT); (e.g. t3668, a QW that was deref'd by [].)
 
     //use possible dereference type for mangled name
     UTI derefuti = m_state.getUlamTypeAsDeref(vuti);
