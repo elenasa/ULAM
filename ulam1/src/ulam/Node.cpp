@@ -258,12 +258,6 @@ namespace MFM {
     return Nav; //parent required
   }
 
-  bool Node::buildDefaultQuarkValue(u32& dqref)
-  {
-    assert(0);
-    return false;
-  }
-
   bool Node::buildDefaultValue(u32 wlen, BV8K& dvref)
   {
     assert(0);

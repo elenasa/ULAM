@@ -106,10 +106,7 @@ namespace MFM{
 
     u32 getCustomArrayIndexTypeFromGetFunction(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
 
-    virtual bool buildDefaultQuarkValue(u32& dqref); //starts here, called by SymbolClass
-
-    virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
-
+    virtual bool buildDefaultValue(u32 wlen, BV8K& dvref); //starts here, called by SymbolClass
     void checkDuplicateFunctions();
 
     void calcMaxDepthOfFunctions();

@@ -499,11 +499,6 @@ namespace MFM {
     return uti; //ok
   } //foldConstantExpression
 
-  bool NodeConstantDef::buildDefaultQuarkValue(u32& dqref)
-  {
-    return true; //pass on
-  }
-
   bool NodeConstantDef::buildDefaultValue(u32 wlen, BV8K& bvref)
   {
     return true; //pass on

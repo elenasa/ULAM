@@ -265,11 +265,6 @@ namespace MFM {
       m_nodeTypeDesc->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   } //countNavHzyNoutiNodes
 
-  bool NodeTypedef::buildDefaultQuarkValue(u32& dqref)
-  {
-    return true; //pass on
-  }
-
   bool NodeTypedef::buildDefaultValue(u32 wlen, BV8K& dvref)
   {
     return true; //pass on

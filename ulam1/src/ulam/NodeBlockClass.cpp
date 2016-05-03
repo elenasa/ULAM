@@ -572,23 +572,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   } //getCustomArrayIndexTypeFromGetFunction
 
   //starts here, called by SymbolClass
-  bool NodeBlockClass::buildDefaultQuarkValue(u32& dqref)
-  {
-    bool aok = true;
-    if((m_state.isClassASubclass(getNodeType()) != Nouti))
-      {
-	NodeBlockClass * superblock = getSuperBlockPointer();
-	assert(superblock);
-	aok = superblock->buildDefaultQuarkValue(dqref);
-      }
-
-    if(aok)
-      if(m_nodeNext)
-	aok = m_nodeNext->buildDefaultQuarkValue(dqref); //side-effect for dm vardecls
-    return aok;
-  } //buildDefaultQuarkValue
-
-  //starts here, called by SymbolClass
   bool NodeBlockClass::buildDefaultValue(u32 wlen, BV8K& dvref)
   {
     bool aok = true;
