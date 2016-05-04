@@ -427,7 +427,6 @@ namespace MFM {
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
-    //ULAMTYPE etyp = nut->getUlamTypeEnum();
     u32 len = nut->getTotalBitSize();
 
     if((classtype == UC_TRANSIENT) && (len > MAXSTATEBITS))
@@ -436,6 +435,8 @@ namespace MFM {
     assert(m_varSymbol->getUlamTypeIdx() == nuti); //is it so? if so, some cleanup needed
 
     assert(!m_varSymbol->isAutoLocal()); //NodeVarRef::eval
+
+    assert(!m_varSymbol->isDataMember()); //see NodeVarDeclDM
 
     u32 slots = Node::makeRoomForNodeType(nuti, STACK);
 
@@ -447,121 +448,127 @@ namespace MFM {
 	for(u32 j = 0; j < slots; j++)
 	  m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, baseslot + j);
       }
+    else if(classtype == UC_NOTACLASS)
+      {
+	//local variable to a function;
+	// t.f. must be SymbolVariableStack, not SymbolVariableDataMember
+	UlamValue immUV;
+	if(len <= MAXBITSPERINT)
+	  immUV = UlamValue::makeImmediate(m_varSymbol->getUlamTypeIdx(), 0, m_state);
+	else if(len <= MAXBITSPERLONG)
+	  immUV = UlamValue::makeImmediateLong(m_varSymbol->getUlamTypeIdx(), 0, m_state);
+	else
+	  immUV = UlamValue::makePtr(((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId()); //array ptr
+
+	m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+      }
     else if((classtype == UC_ELEMENT) || (classtype == UC_TRANSIENT))
-      {
-	//for eval purposes, a transient must fit into atom state bits, like an element
-	// any class may be a data member (see NodeVarDeclDM)
-	if(m_state.isScalar(nuti))
-	  {
-	    UlamValue atomUV = UlamValue::makeDefaultAtom(m_varSymbol->getUlamTypeIdx(), m_state);
-	    m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
-	  }
-	else
-	  {
-	    PACKFIT packFit = m_state.determinePackable(nuti);
-	    if(packFit == PACKEDLOADABLE)
-	      {
-		u64 dval = 0;
-		AssertBool isPackLoadableScalar = m_state.getPackedDefaultClass(nuti, dval);
-		assert(isPackLoadableScalar);
-		u64 darrval = 0;
-		m_state.getDefaultAsPackedArray(nuti, dval, darrval); //3rd arg ref
-
-		if(len <= MAXBITSPERINT)
-		  {
-		    UlamValue immUV = UlamValue::makeImmediateClass(nuti, (u32) darrval, len);
-		    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
-		  }
-		else if(len <= MAXBITSPERLONG) //t3710
-		  {
-		    UlamValue immUV = UlamValue::makeImmediateLongClass(nuti, darrval, len);
-		    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
-		  }
-		else
-		  assert(0); //not write load packable!
-	      }
-	    else
-	      {
-		//UNPACKED element array
-		UlamValue atomUV = UlamValue::makeDefaultAtom(m_varSymbol->getUlamTypeIdx(), m_state);
-		u32 baseslot =  ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex();
-		for(u32 j = 0; j < slots; j++)
-		  {
-		    m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, baseslot + j);
-		  }
-	      }
-	  }
-      }
-    else if(!m_varSymbol->isDataMember())
-      {
-	if(classtype == UC_NOTACLASS)
-	  {
-	    //local variable to a function;
-	    // t.f. must be SymbolVariableStack, not SymbolVariableDataMember
-	    UlamValue immUV;
-	    if(len <= MAXBITSPERINT)
-	      immUV = UlamValue::makeImmediate(m_varSymbol->getUlamTypeIdx(), 0, m_state);
-	    else if(len <= MAXBITSPERLONG)
-	      immUV = UlamValue::makeImmediateLong(m_varSymbol->getUlamTypeIdx(), 0, m_state);
-	    else
-	      immUV = UlamValue::makePtr(((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId()); //array ptr
-
-	    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
-	  }
-	else
-	  {
-	    //must be a local quark! could be an array of them!!
-	    u32 dq = 0;
-	    AssertBool isDefinedQuark = m_state.getDefaultQuark(nuti, dq); //returns scalar dq
-	    assert(isDefinedQuark);
-	    if(m_state.isScalar(nuti))
-	      {
-		UlamValue immUV = UlamValue::makeImmediateClass(nuti, dq, len);
-		m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
-	      }
-	    else
-	      {
-		PACKFIT packFit = m_state.determinePackable(nuti);
-		if(WritePacked(packFit))
-		  {
-		    u64 darrval = 0;
-		    m_state.getDefaultAsPackedArray(nuti, (u64) dq, darrval); //3rd arg ref
-		    if(len <= MAXBITSPERINT) //t3706
-		      {
-			UlamValue immUV = UlamValue::makeImmediateClass(nuti, (u32) darrval, len);
-			m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
-		      }
-		    else if(len <= MAXBITSPERLONG) //t3708
-		      {
-			UlamValue immUV = UlamValue::makeImmediateLongClass(nuti, darrval, len);
-			m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
-		      }
-		  }
-		else
-		  {
-		    //UNPACKED array of quarks! t3649, t3707
-		    UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
-		    UlamValue immUV = UlamValue::makeImmediateClass(scalaruti, dq, nut->getBitSize());
-		    u32 baseslot =  ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex();
-		    for(u32 j = 0; j < slots; j++)
-		      {
-			m_state.m_funcCallStack.storeUlamValueInSlot(immUV, baseslot + j);
-		      }
-		  }
-	      }
-	  }
-      }
+      setupStackWithClassForEval(slots);
     else
-      {
-	//see NodeVarDeclDM for data members..
-	assert(0);
-      }
+      setupStackWithQuarkForEval(slots);
 
     if(m_nodeInitExpr)
       return evalInitExpr();
 
     return NORMAL;
   } //eval
+
+  void NodeVarDecl::setupStackWithClassForEval(u32 slots)
+  {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+    //for eval purposes, a transient must fit into atom state bits, like an element
+    // any class may be a data member (see NodeVarDeclDM)
+    if(nut->isScalar())
+      {
+	UlamValue atomUV = UlamValue::makeDefaultAtom(m_varSymbol->getUlamTypeIdx(), m_state);
+	m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+      }
+    else
+      {
+	PACKFIT packFit = nut->getPackable();
+	if(packFit == PACKEDLOADABLE)
+	  {
+	    u32 len = nut->getTotalBitSize();
+	    u64 dval = 0;
+	    AssertBool isPackLoadableScalar = m_state.getPackedDefaultClass(nuti, dval);
+	    assert(isPackLoadableScalar);
+	    u64 darrval = 0;
+	    m_state.getDefaultAsPackedArray(nuti, dval, darrval); //3rd arg ref
+
+	    if(len <= MAXBITSPERINT)
+	      {
+		UlamValue immUV = UlamValue::makeImmediateClass(nuti, (u32) darrval, len);
+		m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+	      }
+	    else if(len <= MAXBITSPERLONG) //t3710
+	      {
+		UlamValue immUV = UlamValue::makeImmediateLongClass(nuti, darrval, len);
+		m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+	      }
+	    else
+	      assert(0); //not write load packable!
+	  }
+	else
+	  {
+	    //UNPACKED element array
+	    UlamValue atomUV = UlamValue::makeDefaultAtom(m_varSymbol->getUlamTypeIdx(), m_state);
+	    u32 baseslot =  ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex();
+	    for(u32 j = 0; j < slots; j++)
+	      {
+		m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, baseslot + j);
+	      }
+	  }
+      }
+  } //setupStackWithClassForEval
+
+  void NodeVarDecl::setupStackWithQuarkForEval(u32 slots)
+  {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    u32 len = nut->getTotalBitSize();
+
+    //must be a local quark! could be an array of them!!
+    u32 dq = 0;
+    AssertBool isDefinedQuark = m_state.getDefaultQuark(nuti, dq); //returns scalar dq
+    assert(isDefinedQuark);
+    if(nut->isScalar())
+      {
+	UlamValue immUV = UlamValue::makeImmediateClass(nuti, dq, len);
+	m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+      }
+    else
+      {
+	PACKFIT packFit = nut->getPackable();
+	if(packFit == PACKEDLOADABLE)
+	  {
+	    u64 darrval = 0;
+	    m_state.getDefaultAsPackedArray(nuti, (u64) dq, darrval); //3rd arg ref
+	    if(len <= MAXBITSPERINT) //t3706
+	      {
+		UlamValue immUV = UlamValue::makeImmediateClass(nuti, (u32) darrval, len);
+		m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+	      }
+	    else if(len <= MAXBITSPERLONG) //t3708
+	      {
+		UlamValue immUV = UlamValue::makeImmediateLongClass(nuti, darrval, len);
+		m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+	      }
+	  }
+	else
+	  {
+	    //UNPACKED array of quarks! t3649, t3707
+	    UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
+	    UlamValue immUV = UlamValue::makeImmediateClass(scalaruti, dq, nut->getBitSize());
+	    u32 baseslot =  ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex();
+	    for(u32 j = 0; j < slots; j++)
+	      {
+		m_state.m_funcCallStack.storeUlamValueInSlot(immUV, baseslot + j);
+	      }
+	  }
+      }
+  } //setupStackWithQuarkForEval
 
   EvalStatus NodeVarDecl::evalInitExpr()
   {

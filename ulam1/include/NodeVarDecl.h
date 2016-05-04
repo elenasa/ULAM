@@ -115,7 +115,10 @@ namespace MFM{
     NNO m_currBlockNo;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
-    virtual UlamValue makeUlamValuePtr(); //for locals
+    UlamValue makeUlamValuePtr(); //for locals
+
+    void setupStackWithClassForEval(u32 slots);
+    void setupStackWithQuarkForEval(u32 slots);
   };
 
 }

@@ -101,7 +101,7 @@ namespace MFM{
     void foldDefaultClass();
     void genCodedBitFieldTypedef(File * fp, UVPass& uvpass);
 
-    virtual UlamValue makeUlamValuePtr(); //for dm
+    UlamValue makeUlamValuePtr(); //for dm
   };
 } //MFM
 
