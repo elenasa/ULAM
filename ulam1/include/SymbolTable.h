@@ -62,149 +62,27 @@ namespace MFM{
     SymbolTable(const SymbolTable& ref);
     ~SymbolTable();
 
-    void clearTheTable();
-    bool isInTable(u32 id, Symbol * & symptrref);
-    void addToTable(u32 id, Symbol * s);
-    void replaceInTable(u32 oldid, u32 newid, Symbol * s);
-    void replaceInTable(Symbol * oldsym, Symbol * newsym);
-    bool removeFromTable(u32 id, Symbol *& rtnsymptr);
+    virtual void clearTheTable();
+    virtual bool isInTable(u32 id, Symbol * & symptrref);
+    virtual void addToTable(u32 id, Symbol * s);
+    virtual void replaceInTable(u32 oldid, u32 newid, Symbol * s);
+    virtual void replaceInTable(Symbol * oldsym, Symbol * newsym);
+    virtual bool removeFromTable(u32 id, Symbol *& rtnsymptr);
 
-    Symbol * getSymbolPtr(u32 id);
+    virtual Symbol * getSymbolPtr(u32 id);
 
-    u32 getTableSize();
+    virtual u32 getTableSize();
 
-    u32 getNumberOfConstantSymbolsInTable(bool argsOnly);
-
-    //Table of Variable Data Members:
-
-    u32 getTotalSymbolSize();
-
-    s32 getTotalVariableSymbolsBitSize();
-
-    s32 getMaxVariableSymbolsBitSize();  //for quark union
-
-    //void packBitsForTableOfVariableDataMembers();  //after type labeling, before code gen
-
-    s32 findPosOfUlamTypeInTable(UTI utype, UTI& insidecuti);
-
-    void genCodeForTableOfVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);  //(unused)
-
-    void genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(File *fp);
-
-    void genCodeBuiltInFunctionHasOverTableOfVariableDataMember(File * fp);
-
-    //void genCodeBuiltInFunctionHasPosOverTableOfVariableDataMember(File * fp); (unused)
-
-    //void genCodeBuiltInFunctionBuildDefaultsOverTableOfVariableDataMember(File * fp, UTI cuti);
-
-    void addClassMemberDescriptionsToMap(UTI classType, ClassMemberMap& classmembers);
-
-    void addClassMemberFunctionDescriptionsToMap(UTI classType, ClassMemberMap& classmembers);
-
-    void printPostfixValuesForTableOfVariableDataMembers(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
-
-
-    //Table Of Functions:
-
-    bool checkTableOfFunctions();
-
-    void linkToParentNodesAcrossTableOfFunctions(NodeBlockClass * p);
-
-    void updatePrevBlockPtrAcrossTableOfFunctions(NodeBlockClass * p);
-
-    bool findNodeNoAcrossTableOfFunctions(NNO n, Node*& foundNode);
-
-    void labelTableOfFunctions();
-
-    void countNavNodesAcrossTableOfFunctions(u32& ncnt, u32& hcnt, u32& nocnt);
-
-    bool checkCustomArrayTypeFuncs();
-
-    UTI getCustomArrayReturnTypeGetFunction();
-
-    u32 getCustomArrayIndexTypeGetFunction(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
-
-    u32 countNativeFuncDeclsForTableOfFunctions();
-
-    void printUnresolvedLocalVariablesForTableOfFunctions();
-
-    void calcMaxDepthForTableOfFunctions();
-
-    void calcMaxIndexForVirtualTableOfFunctions(s32& maxidx);
-
-    void checkAbstractInstanceErrorsAcrossTableOfFunctions();
-
-    void genCodeForTableOfFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
-
-
-    // TableOfClasses:
-    void getTargets(TargetMap& classtargets);
-
-    void getClassMembers(ClassMemberMap& classmembers);
-
-    void initializeElementDefaultsForEval(UlamValue& uvsite, UTI cuti);
-
-    void testForTableOfClasses(File * fp);
-
-    void printPostfixForTableOfClasses(File * fp);
-
-    void buildDefaultValuesFromTableOfClasses();
-
-    void printForDebugForTableOfClasses(File * fp);
-
-    bool checkForUnknownTypeNamesInTableOfClasses(); //at end of parsing
-
-    bool statusNonreadyClassArgumentsInTableOfClasses();
-
-    bool fullyInstantiateTableOfClasses();
-
-    void updateLineageForTableOfClasses(); //done incrementally for stubs
-
-    void checkCustomArraysForTableOfClasses();
-
-    void checkDuplicateFunctionsForTableOfClasses();
-
-    void calcMaxDepthOfFunctionsForTableOfClasses();
-
-    bool calcMaxIndexOfVirtualFunctionsForTableOfClasses();
-
-    void checkAbstractInstanceErrorsForTableOfClasses();
-
-    bool labelTableOfClasses();
-
-    void countNavNodesAcrossTableOfClasses(u32& navcount, u32& hzycount, u32& unsetcount);
-
-    u32 reportUnknownTypeNamesAcrossTableOfClasses();
-
-    bool setBitSizeOfTableOfClasses();
-
-    void printBitSizeOfTableOfClasses();
-
-    void packBitsForTableOfClasses();
-
-    void printUnresolvedVariablesForTableOfClasses();
-
-    void generateIncludesForTableOfClasses(File * fp);
-
-    void generateForwardDefsForTableOfClasses(File * fp);
-
-    void generateTestInstancesForTableOfClasses(File * fp);
-
-    void genCodeForTableOfClasses(FileManager * fm);
-
-    UTI findClassNodeNoForTableOfClasses(NNO n);
+    virtual u32 getTotalSymbolSize();
 
   protected:
     std::map<u32, Symbol* > m_idToSymbolPtr;
+    CompilerState & m_state;
 
   private:
-    CompilerState & m_state;
-    s32 calcVariableSymbolTypeSize(UTI ut);
-    bool variableSymbolWithCountableSize(Symbol * sym);
 
-    bool isAnonymousClass(UTI cuti);
   };
 
 }
 
-#endif //end SYMBOL_H
+#endif //end SYMBOLTABLE_H

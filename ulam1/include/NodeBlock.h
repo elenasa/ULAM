@@ -39,7 +39,7 @@
 
 #include "File.h"
 #include "NodeStatements.h"
-#include "SymbolTable.h"
+#include "SymbolTableOfVariables.h"
 #include "MapClassMemberDesc.h"
 
 namespace MFM{
@@ -111,7 +111,7 @@ namespace MFM{
     virtual void addClassMemberDescriptionsToInfoMap(ClassMemberMap& classmembers);
 
   protected:
-    SymbolTable m_ST;
+    SymbolTableOfVariables m_ST;
 
     void genCodeDeclsForVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);
 

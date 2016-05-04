@@ -4,9 +4,7 @@
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
 #include "SymbolFunctionName.h"
-#include "SymbolTable.h"
 #include "SymbolTypedef.h"
-#include "SymbolVariable.h"
 #include "UlamTypeAtom.h"
 #include "UlamTypeClass.h"
 #include "UlamTypeClassElement.h"
@@ -2133,10 +2131,7 @@ namespace MFM {
 	brtn = blockNode->isIdInScope(dataindex,symptr); //check ST
 
 	//hazy check..
-	UTI buti = blockNode->getNodeType();
-	if(blockNode->isAClassBlock() && (isClassAStub(buti) || ((isClassASubclass(buti) != Nouti) && !((NodeBlockClass *) blockNode)->isSuperClassLinkReady())))
-	  hasHazyKin = true;
-
+	hasHazyKin = checkHasHazyKin(blockNode);
 	blockNode = blockNode->getPreviousBlockPointer(); //traverse the chain, including templates (not ancestors)
       }
 
@@ -2166,11 +2161,7 @@ namespace MFM {
     while(!brtn && classblock)
       {
 	brtn = classblock->isIdInScope(dataindex,symptr); //returns symbol
-
-	UTI cuti = classblock->getNodeType();
-	if(isClassAStub(cuti) || ((isClassASubclass(cuti) != Nouti) && !classblock->isSuperClassLinkReady()))
-	  hasHazyKin = true; //self is stub
-
+	hasHazyKin = checkHasHazyKin(classblock); //self is stub
 	classblock = classblock->getSuperBlockPointer(); //inheritance chain
       }
     return brtn;
@@ -2192,11 +2183,7 @@ namespace MFM {
     while(!brtn && classblock)
       {
 	brtn = classblock->isFuncIdInScope(dataindex,symptr); //returns symbol
-
-	UTI cuti = classblock->getNodeType();
-	if(isClassAStub(cuti) || ((isClassASubclass(cuti) != Nouti) && !classblock->isSuperClassLinkReady()))
-	  hasHazyKin = true; //self is stub
-
+	hasHazyKin = checkHasHazyKin(classblock); //self is stub
 	classblock = classblock->getSuperBlockPointer(); //inheritance chain
       }
     return brtn;
@@ -3426,9 +3413,22 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return ((classtype == UC_ELEMENT) || (classtype == UC_QUARK) || (classtype == UC_TRANSIENT));
   } //isASeenClass
 
+  bool CompilerState::isAnonymousClass(UTI cuti)
+  {
+    assert(okUTItoContinue(cuti));
+    return(!isARootUTI(cuti) || isHolder(cuti));
+  }
+
   bool CompilerState::okUTItoContinue(UTI uti)
   {
     return ((uti != Nav) && (uti != Hzy) && (uti != Nouti));
+  }
+
+  bool CompilerState::checkHasHazyKin(NodeBlock * block)
+  {
+    assert(block);
+    UTI buti = block->getNodeType();
+    return (block->isAClassBlock() && (isClassAStub(buti) || ((isClassASubclass(buti) != Nouti) && !((NodeBlockClass *) block)->isSuperClassLinkReady())));
   }
 
 } //end MFM

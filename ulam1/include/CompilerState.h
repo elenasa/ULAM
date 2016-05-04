@@ -60,8 +60,7 @@
 #include "SymbolClassName.h"
 #include "SymbolClassNameTemplate.h"
 #include "SymbolFunction.h"
-#include "SymbolTable.h"
-#include "SymbolVariable.h"
+#include "SymbolTableOfClasses.h"
 #include "Token.h"
 #include "Tokenizer.h"
 #include "TypeArgs.h"
@@ -82,7 +81,7 @@ namespace MFM{
 
   class Symbol;         //forward
   class NodeBlockClass; //forward
-  class SymbolTable;    //forward
+  class SymbolTableOfClasses;    //forward
 
   struct CompilerState
   {
@@ -97,7 +96,7 @@ namespace MFM{
     std::map<u32,std::vector<u32>* > m_textByLinePerFilePath;
     Locator m_locOfNextLineText;
 
-    SymbolTable m_programDefST; // holds SymbolClassName and SymbolClassNameTemplate
+    SymbolTableOfClasses m_programDefST; // holds SymbolClassName and SymbolClassNameTemplate
 
     s32 m_currentFunctionBlockDeclSize; //used to calc framestack size for function def
     s32 m_currentFunctionBlockMaxDepth; //framestack saved in NodeBlockFunctionDefinition
@@ -446,7 +445,9 @@ namespace MFM{
     bool isAtom(UTI auti);
     bool isAtomRef(UTI auti);
     bool isASeenClass(UTI cuti);
+    bool isAnonymousClass(UTI cuti);
     bool okUTItoContinue(UTI uti);
+    bool checkHasHazyKin(NodeBlock * block);
 
   private:
     ClassContextStack m_classContextStack; // the current subject of this compilation

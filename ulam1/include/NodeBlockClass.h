@@ -41,6 +41,7 @@
 #include "NodeBlockFunctionDefinition.h"
 #include "NodeList.h"
 #include "Symbol.h"
+#include "SymbolTableOfFunctions.h"
 
 namespace MFM{
 
@@ -169,7 +170,7 @@ namespace MFM{
     virtual void addClassMemberDescriptionsToInfoMap(ClassMemberMap& classmembers);
 
   protected:
-    SymbolTable m_functionST;
+    SymbolTableOfFunctions m_functionST;
     s32 m_virtualmethodMaxIdx;
 
   private:
