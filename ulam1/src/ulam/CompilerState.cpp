@@ -1255,7 +1255,7 @@ namespace MFM {
       {
 	if(getUlamTypeByIndex(utiArg)->getUlamTypeEnum() != derefut->getUlamTypeEnum())
 	  {
-	    assert(0);
+	    assert(0); //shouldn't happen now that we don't 'assumeAClassType' (t3668, t3651)
 
 	    UlamKeyTypeSignature dekey = derefut->getUlamKeyTypeSignature();
 	    UlamKeyTypeSignature newkey(dekey.getUlamKeyTypeSignatureNameId(), dekey.getUlamKeyTypeSignatureBitSize(), dekey.getUlamKeyTypeSignatureArraySize(), derefuti, ALT_REF);
@@ -1274,7 +1274,7 @@ namespace MFM {
       {
 	if(getUlamTypeByIndex(utiArg)->getUlamTypeEnum() != scalarut->getUlamTypeEnum())
 	  {
-	    assert(0);
+	    assert(0); //shouldn't happen now that we don't 'assumeAClassType' (t3668, t3651)
 
 	    UlamKeyTypeSignature sckey = scalarut->getUlamKeyTypeSignature();
 	    UlamType * arrut = getUlamTypeByIndex(utiArg);
@@ -2010,7 +2010,6 @@ namespace MFM {
 
   void CompilerState::resetUnseenClass(SymbolClassName * cnsym, Token identTok)
   {
-#if 1
     if(m_unseenClasses.empty())
       return;
 
@@ -2019,7 +2018,6 @@ namespace MFM {
       {
 	m_unseenClasses.erase(it);
       }
-#endif
     cnsym->resetUnseenClassLocation(identTok);
   } //resetUnseenClass
 

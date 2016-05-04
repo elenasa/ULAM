@@ -352,27 +352,6 @@ namespace MFM {
     UTI nuti = getNodeType();
     u32 tid = getNameId();
 
-#if 0
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    s32 len = nut->getBitSize();
-    assert(len != UNKNOWNSIZE);
-    u32 tid = 0;
-    if(len <= MAXBITSPERINT)
-      {
-	char dstr[40];
-	nut->getDataAsString((u32) m_constant.uval, dstr, 'z');
-	tid = m_state.m_pool.getIndexForDataString(dstr);
-      }
-    else if(len <= MAXBITSPERLONG)
-      {
-	char dstr[70];
-	vut->getDataLongAsString(m_constant.uval, dstr, 'z');
-	tid = m_state.m_pool.getIndexForDataString(dstr);
-      }
-    else
-      assert(0);
-#endif
-
     //TMPSTORAGE is TERMINAL, and VarNum is zero.
     uvpass = UVPass::makePass(0, TERMINAL, nuti, m_state.determinePackable(nuti), m_state, 0, tid);
   } //makeTerminalValueForCodeGen

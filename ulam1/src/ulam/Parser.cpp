@@ -1866,6 +1866,9 @@ namespace MFM {
 		  {
 		    UTI huti = m_state.makeUlamTypeHolder();
 		    m_state.addUnknownTypeTokenToThisClassResolver(typeTok, huti);
+
+		    // set contains possible unseen classes (ulamexports); see if they exist.
+		    // without being too liberal about guessing classes  (t3668, t3651) 5/2/16.
 		    m_state.m_unseenClasses.insert(typeTok.m_dataindex); //possible class
 		    return huti;
 		  }

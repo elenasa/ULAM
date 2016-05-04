@@ -484,14 +484,6 @@ namespace MFM {
 		  }
 		m_state.m_currentIndentLevel--;
 		m_state.indent(fp);
-#if 0
-		//slower way
-		fp->write("u32 n = ");
-		fp->write_decimal(getArraySize());
-		fp->write("u; while(n--) { ");
-		fp->write("writeArrayItem(DEFAULT_QUARK, n, QUARK_SIZE");
-		fp->write("); }");
-#endif
 	      }
 	  }
       } //hasDQ

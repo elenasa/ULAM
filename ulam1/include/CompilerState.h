@@ -127,7 +127,7 @@ namespace MFM{
     std::map<UlamKeyTypeSignature, UlamType *, less_than_key> m_definedUlamTypes; //key->ulamtype *
     std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key> m_keyToAnyUTI; //key->set of indexes of ulamtype (UTI); tracks how many uti's to an "unknown" key, before delete
 
-    std::set<u32> m_unseenClasses; //name id of possible classes
+    std::set<u32> m_unseenClasses; //name id of possible classes (no longer SymbolClassName *)
 
     std::vector<UTI> m_unionRootUTI; //UTI's root UTI to manage holder/aliases
 

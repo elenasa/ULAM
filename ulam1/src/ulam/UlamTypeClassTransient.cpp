@@ -414,16 +414,6 @@ namespace MFM {
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
 	fp->write(" }\n");
-
-#if 0
-	fp->write("u32 n = ");
-	fp->write_decimal_unsigned(getArraySize());
-	fp->write("u; while(n--) ");
-	fp->write("Us::THE_INSTANCE.getDefaultTransient(0u + ");
-	fp->write("n * "); //next pos = orig_pos + n * bitsize
-	fp->write_decimal_unsigned(bitsize);
-	fp->write(", *this); }\n");
-#endif
       }
 
     //constructor here (used by const tmpVars)

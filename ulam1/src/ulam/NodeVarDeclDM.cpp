@@ -748,27 +748,6 @@ namespace MFM {
 	  return ERROR;
       }
 
-    //if(classtype == UC_TRANSIENT)
-    //  return NodeVarDecl::eval(); //can only be a data member of a transient
-
-    //if(m_state.isAtom(nuti) || (classtype == UC_ELEMENT))
-    //  return NodeVarDecl::eval();
-#if 0
-    //should be correctly handled by generic class approach above
-    // make terminal expression node so rest of eval works for quarks too
-    if((classtype == UC_QUARK) && (m_nodeInitExpr == NULL))
-      {
-	u32 dqval = 0;
-	if(m_state.getDefaultQuark(nuti, dqval))
-	  {
-	    if(!foldDefaultQuark(dqval))
-	      return ERROR;
-	  }
-	else
-	  return ERROR;
-      }
-#endif
-
     // packedloadable class (e.g. quark) or nonclass data member;
     if(((SymbolVariableDataMember *) m_varSymbol)->hasInitValue())
       {

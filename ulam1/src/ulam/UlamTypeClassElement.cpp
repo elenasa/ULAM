@@ -497,21 +497,6 @@ namespace MFM {
 	    fp->write("initBV);\n");
 	  }
 	m_state.m_currentIndentLevel--;
-#if 0
-	fp->write("BV96 tmpval = tmp.");
-	fp->write("ReadBig");
-	fp->write("(0u + T::ATOM_FIRST_STATE_BIT, ");
-	fp->write_decimal_unsigned(bitsize);
-	fp->write("); ");
-	fp->write("u32 n = ");
-	fp->write_decimal_unsigned(getArraySize());
-	fp->write("u; while(n--) { ");
-	fp->write("BVS::WriteBig(n * ");
-	fp->write_decimal_unsigned(bitsize);
-	fp->write(", ");
-	fp->write_decimal_unsigned(bitsize);
-	fp->write(", tmpval); }");
-#endif
       }
       m_state.indent(fp);
       fp->write(" }\n");
