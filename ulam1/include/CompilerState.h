@@ -351,11 +351,7 @@ namespace MFM{
     /** assign pointer as value */
     void assignValuePtr(UlamValue lptr, UlamValue rptr);
 
-    /** determinePackable: returns true
-	if entire array can fit within an atom (including type);
-	or if a 32-bit immediate scalar (non-Classes);
-	discovered when installing a variable symbol
-    */
+    /** PACKEDLOADABLE fits in u32/u64, PACKED into an atom, o.w. UNPACKED */
     PACKFIT determinePackable(UTI aut);
 
     bool thisClassHasTheTestMethod();

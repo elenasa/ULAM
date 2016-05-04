@@ -52,12 +52,12 @@ namespace MFM {
 
   const std::string UlamTypeClassTransient::readMethodForCodeGen()
   {
-    return UlamType::readMethodForCodeGen();
+    return "ReadBV"; //UlamType::readMethodForCodeGen();
   }
 
   const std::string UlamTypeClassTransient::writeMethodForCodeGen()
   {
-    return UlamType::writeMethodForCodeGen();
+    return "WriteBV"; //return UlamType::writeMethodForCodeGen();
   }
 
   bool UlamTypeClassTransient::needsImmediateType()
@@ -241,19 +241,15 @@ namespace MFM {
 
   void UlamTypeClassTransient::genUlamTypeAutoReadDefinitionForC(File * fp)
   {
-    if(isScalar() || WritePacked(getPackable()))
-      {
-	// write must be scalar; ref param to avoid excessive copying
-	//not an array
-	m_state.indent(fp);
-	fp->write("const ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
-	fp->write(" read() const { ");
-	fp->write("return ");
-	fp->write("UlamRef<EC>::");
-	fp->write(readMethodForCodeGen().c_str()); //just the guts
-	fp->write("(); /* entire transient */ }\n");
-      }
+    m_state.indent(fp);
+    fp->write("const ");
+    fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
+    fp->write(" read() const { ");
+    fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
+    fp->write(" tmpbv; this->GetStorage().");
+    fp->write(readMethodForCodeGen().c_str()); //just the guts
+    fp->write("(this->GetPos(), tmpbv); ");
+    fp->write("return tmpbv; /* entire transient */ }\n");
 
     //scalar and entire PACKEDLOADABLE array handled by read method
     if(!isScalar())
@@ -280,18 +276,15 @@ namespace MFM {
 
   void UlamTypeClassTransient::genUlamTypeAutoWriteDefinitionForC(File * fp)
   {
-    if(isScalar() || WritePacked(getPackable()))
-      {
-	// write must be scalar; ref param to avoid excessive copying
-	//not an array
-	m_state.indent(fp);
-	fp->write("void");
-	fp->write(" write(const ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
-	fp->write("& targ) { UlamRef<EC>::");
-	fp->write(writeMethodForCodeGen().c_str());
-	fp->write("(targ); /* entire transient */ }\n");
-      }
+    // write must be scalar; ref param to avoid excessive copying
+    //not an array
+    m_state.indent(fp);
+    fp->write("void");
+    fp->write(" write(const ");
+    fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
+    fp->write("& targ) { this->GetStorage().");
+    fp->write(writeMethodForCodeGen().c_str());
+    fp->write("(this->GetPos(), targ); /* entire transient */ }\n");
 
     //scalar and entire PACKEDLOADABLE array handled by write method
     if(!isScalar())
@@ -448,36 +441,16 @@ namespace MFM {
 
   void UlamTypeClassTransient::genUlamTypeReadDefinitionForC(File * fp)
   {
-    if(WritePacked(getPackable()))
-      {
-	// write must be scalar; ref param to avoid excessive copying
-	//not an array
-	m_state.indent(fp);
-	fp->write("const ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
-	fp->write(" read() const { return BVS::");
-	fp->write(readMethodForCodeGen().c_str()); //just the guts
-	fp->write("(0u, ");
-	fp->write_decimal_unsigned(getTotalBitSize());
-	if(isScalar())
-	  fp->write("u); }\n"); //done
-	else
-	  fp->write("u); } //reads entire array\n");
-      }
-    else
-      {
-	//UNPACKED
-	m_state.indent(fp);
-	fp->write("const ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //BV
-	fp->write(" read");
-	fp->write("() const { ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //BV
-	fp->write(" rtnunpbv; this->BVS::");
-	fp->write(readMethodForCodeGen().c_str());
-	fp->write("(0u, rtnunpbv); return rtnunpbv; ");
-	fp->write("} //reads entire BV\n");
-      }
+    m_state.indent(fp);
+    fp->write("const ");
+    fp->write(getTmpStorageTypeAsString().c_str()); //BV
+    fp->write(" read");
+    fp->write("() const { ");
+    fp->write(getTmpStorageTypeAsString().c_str()); //BV
+    fp->write(" rtnunpbv; this->BVS::");
+    fp->write(readMethodForCodeGen().c_str());
+    fp->write("(0u, rtnunpbv); return rtnunpbv; ");
+    fp->write("} //reads entire BV\n");
 
     //scalar and entire PACKEDLOADABLE array handled by read method
     if(!isScalar())
@@ -500,35 +473,14 @@ namespace MFM {
 
   void UlamTypeClassTransient::genUlamTypeWriteDefinitionForC(File * fp)
   {
-    if(WritePacked(getPackable()))
-      {
-	// write must be scalar; ref param to avoid excessive copying
-	//not an array
-	m_state.indent(fp);
-	fp->write("void");
-	fp->write(" write(const ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
-	fp->write("& v) { BVS::");
-	fp->write(writeMethodForCodeGen().c_str());
-	fp->write("(0u, ");
-	fp->write_decimal_unsigned(getTotalBitSize());
-	if(isScalar())
-	  fp->write("u, v); }\n");
-	else
-	    fp->write("u, v); } //writes entire array\n");
-      }
-    else
-      {
-	//UNPACKED
-	m_state.indent(fp);
-	fp->write("void ");
-	fp->write(" write(const ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //BV
-	fp->write("& bv) { BVS::");
-	fp->write(writeMethodForCodeGen().c_str());
-	fp->write("(0u, bv); ");
-	fp->write("} //writes entire BV\n");
-      }
+    m_state.indent(fp);
+    fp->write("void ");
+    fp->write(" write(const ");
+    fp->write(getTmpStorageTypeAsString().c_str()); //BV
+    fp->write("& bv) { BVS::");
+    fp->write(writeMethodForCodeGen().c_str());
+    fp->write("(0u, bv); ");
+    fp->write("} //writes entire BV\n");
 
     //scalar and entire PACKEDLOADABLE array handled by write method
     if(!isScalar())

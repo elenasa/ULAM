@@ -1622,6 +1622,18 @@ namespace MFM {
 	    doErrMsg = (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
 	  }
       }
+    else if(nclasstype == UC_TRANSIENT)
+      {
+	//if((UlamType::compareForMakingCastingNode(nuti, tobeType, m_state) == UTIC_SAME))
+	rtnNode = new NodeCast(node, tobeType, NULL, m_state);
+	assert(rtnNode);
+	rtnNode->setNodeLocation(getNodeLocation());
+	rtnNode->updateLineage(getNodeNo());
+
+	//redo check and type labeling; error msg if not same
+	UTI newType = rtnNode->checkAndLabelType();
+	doErrMsg = (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
+      }
     else
       doErrMsg = true;
 
