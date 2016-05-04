@@ -1351,19 +1351,16 @@ namespace MFM {
     if(!okUTItoContinue(utiArg))
       return false;
 
-    //redirect primitives;
-    ULAMCLASSTYPE classtype = ut->getUlamClassType();
-    if(!(classtype == UC_ELEMENT || classtype == UC_QUARK || classtype == UC_TRANSIENT || classtype == UC_UNSEEN))
+    //redirect primitives and arrays (including class arrays)
+    if(ut->isPrimitiveType() || !ut->isScalar())
       {
-	return setSizesOfNonClass(utiArg, bitsize, arraysize);
+	return setSizesOfNonClassAndArrays(utiArg, bitsize, arraysize);
       }
-
-    if(!ut->isScalar())
-      return setSizesOfNonClass(utiArg, bitsize, arraysize); //arrays of classes like non-class
 
     //bitsize could be UNKNOWN or CONSTANT (negative)
     s32 total = bitsize * (arraysize > 0 ? arraysize : 1); //?
     bool isCustomArray = ut->isCustomArray();
+    ULAMCLASSTYPE classtype = ut->getUlamClassType();
 
     //verify total bits is within limits for elements and quarks
     if(classtype == UC_ELEMENT)
@@ -1517,7 +1514,7 @@ namespace MFM {
 
   // return false if ERR
   // for primitives, and all arrays (class and nonclass)
-  bool CompilerState::setSizesOfNonClass(UTI utiArg, s32 bitsize, s32 arraysize)
+  bool CompilerState::setSizesOfNonClassAndArrays(UTI utiArg, s32 bitsize, s32 arraysize)
   {
     UlamType * ut = getUlamTypeByIndex(utiArg);
     assert((ut->getUlamClassType() == UC_NOTACLASS) || !ut->isScalar());
@@ -1598,7 +1595,7 @@ namespace MFM {
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
     return true;
-  } //setSizesOfNonClass
+  } //setSizesOfNonClassAndArrays
 
   s32 CompilerState::getDefaultBitSize(UTI uti)
   {
@@ -2057,11 +2054,10 @@ namespace MFM {
 	UTI cuti = cnsym->getUlamTypeIdx();
 	assert(okUTItoContinue(cuti));
 	UlamType * cut = getUlamTypeByIndex(cuti);
-	ULAMCLASSTYPE bclasstype = cut->getUlamClassType();
 	//e.g. out-of-scope typedef is not a class, return false
-	if(bclasstype == UC_ELEMENT || bclasstype == UC_QUARK || bclasstype == UC_TRANSIENT)
+	if(isASeenClass(cuti))
 	  {
-	    AssertBool isReplaced = replaceUlamTypeForUpdatedClassType(cut->getUlamKeyTypeSignature(), Class, bclasstype, cut->isCustomArray());
+	    AssertBool isReplaced = replaceUlamTypeForUpdatedClassType(cut->getUlamKeyTypeSignature(), Class, cut->getUlamClassType(), cut->isCustomArray());
 	    assert(isReplaced);
 
 	    if(cut->getBitSize() == UNKNOWNSIZE || cut->getArraySize() == UNKNOWNSIZE)
@@ -2658,20 +2654,6 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   {
     return getCompileThisIdx();
   } //getUlamTypeForThisClass
-
-  const std::string CompilerState::getBitSizeTemplateString(UTI uti)
-  {
-    assert(okUTItoContinue(uti));
-    ULAMCLASSTYPE classtype = getUlamTypeByIndex(uti)->getUlamClassType();
-    assert(classtype == UC_QUARK || classtype == UC_ELEMENT || classtype == UC_TRANSIENT);
-
-    std::ostringstream mangled;
-    if(classtype == UC_QUARK)
-      {
-	mangled << "<" << getTotalBitSize(uti) << ">"; //?
-      }
-    return mangled.str();
-  } //getBitSizeTemplateString
 
   //unfortunately, the uti did not reveal a Class symbol;
   //already down to primitive types for casting.
@@ -3436,6 +3418,13 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     UlamType * aut = getUlamTypeByIndex(auti);
     return ((aut->getUlamTypeEnum() == UAtom) && (aut->getReferenceType() == ALT_REF));
   }
+
+  bool CompilerState::isASeenClass(UTI cuti)
+  {
+    //includes refs, and arrays!!! elements, quarks, transients, NOT UNSEEN!
+    ULAMCLASSTYPE classtype = getUlamTypeByIndex(cuti)->getUlamClassType();
+    return ((classtype == UC_ELEMENT) || (classtype == UC_QUARK) || (classtype == UC_TRANSIENT));
+  } //isASeenClass
 
   bool CompilerState::okUTItoContinue(UTI uti)
   {

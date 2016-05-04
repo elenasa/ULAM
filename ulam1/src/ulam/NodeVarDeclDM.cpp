@@ -763,7 +763,7 @@ namespace MFM {
     // (from NodeIdent's makeUlamValuePtr)
     // return ptr to this data member within the m_currentObjPtr
     // 'pos' modified by this data member symbol's packed bit position
-    UlamValue rtnUVPtr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+    UlamValue rtnUVPtr = makeUlamValuePtr();
 
     //copy result UV to stack, -1 relative to current frame pointer
     Node::assignReturnValuePtrToStack(rtnUVPtr);
@@ -771,6 +771,11 @@ namespace MFM {
     evalNodeEpilog();
     return NORMAL;
   } //evalToStoreInto
+
+  UlamValue NodeVarDeclDM::makeUlamValuePtr()
+  {
+    return UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+  }
 
   // parse tree in order declared, unlike the ST.
   void NodeVarDeclDM::genCode(File * fp, UVPass& uvpass)

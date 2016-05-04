@@ -227,7 +227,7 @@ namespace MFM{
     void updateUTIAliasForced(UTI auti, UTI buti);
     void initUTIAlias(UTI auti);
 
-    bool setSizesOfNonClass(UTI utArg, s32 bitsize, s32 arraysize);
+    bool setSizesOfNonClassAndArrays(UTI utArg, s32 bitsize, s32 arraysize);
 
     s32 getDefaultBitSize(UTI uti);
     u32 getTotalBitSize(UTI utArg);
@@ -331,8 +331,6 @@ namespace MFM{
 
     ULAMCLASSTYPE getUlamClassForThisClass();
     UTI getUlamTypeForThisClass();
-
-    const std::string getBitSizeTemplateString(UTI uti);
 
     const std::string getBitVectorLengthAsStringForCodeGen(UTI uti);
 
@@ -447,6 +445,7 @@ namespace MFM{
     bool isPtr(UTI puti);
     bool isAtom(UTI auti);
     bool isAtomRef(UTI auti);
+    bool isASeenClass(UTI cuti);
     bool okUTItoContinue(UTI uti);
 
   private:

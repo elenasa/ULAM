@@ -115,7 +115,7 @@ namespace MFM{
     NNO m_currBlockNo;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
-    UlamValue makeUlamValuePtr(); //for locals
+    virtual UlamValue makeUlamValuePtr(); //for locals
   };
 
 }

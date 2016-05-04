@@ -153,15 +153,13 @@ namespace MFM {
     if(func)
       {
 	assert(m_state.okUTItoContinue(cuti));
-	ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(cuti)->getUlamClassType(); //may not need classtype
-	assert((classtype == UC_ELEMENT) || (classtype == UC_QUARK) || (classtype == UC_TRANSIENT)); //sanity check after eval (below)
+	assert(m_state.isASeenClass(cuti)); //sanity check after eval (below)
 
 	//simplifying assumption for testing purposes: center site
 	Coord c0(0,0);
 	s32 slot = c0.convertCoordToIndex();
 
-	printPostfixDataMembersSymbols(fp, slot, ATOMFIRSTSTATEBITPOS, classtype);
-
+	printPostfixDataMembersSymbols(fp, slot, ATOMFIRSTSTATEBITPOS, m_state.getUlamTypeByIndex(cuti)->getUlamClassType()); //may not need classtype
 	func->printPostfix(fp);
       }
     else
@@ -330,8 +328,24 @@ namespace MFM {
 
 	assert(isSuperClassLinkReady());
 	ULAMCLASSTYPE superclasstype = m_state.getUlamTypeByIndex(superuti)->getUlamClassType();
-	if(superclasstype != UC_QUARK)
+	ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClassType();
+	if(classtype == UC_TRANSIENT)
 	  {
+	    if(superclasstype != UC_TRANSIENT)
+	      {
+		std::ostringstream msg;
+		msg << "Subclass '";
+		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		msg << "' inherits from '";
+		msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
+		msg << "', a class that's not a transient";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		setNodeType(Nav);
+	      }
+	  }
+	else if(superclasstype != UC_QUARK)
+	  {
+	    //for all others (elements and quarks)
 	    //must be "seen" by c&l; e.g. typedef array of quarks (t3674)
 	    std::ostringstream msg;
 	    msg << "Subclass '";
@@ -1304,7 +1318,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	std::string namestrlong = removePunct(cut->getUlamTypeMangledName());
 
 	fp->write("() : UlamTransient<EC");
-	//fp->write_decimal_unsigned(len);
 	fp->write(">(MFM_UUID_FOR(\"");
 	fp->write(namestrlong.c_str());
 	fp->write("\", 0))\n");
@@ -1685,7 +1698,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   void NodeBlockClass::genCodeBuiltInFunctionBuildDefaultTransient(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
-    //return;
     assert(classtype == UC_TRANSIENT);
 
     UTI cuti = m_state.getCompileThisIdx();

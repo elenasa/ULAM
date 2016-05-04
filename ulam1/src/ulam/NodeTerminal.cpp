@@ -685,6 +685,7 @@ namespace MFM {
   bool NodeTerminal::setConstantValue(Token tok)
   {
     bool rtnok = false;
+    errno = 0; //to check for ERANGE
     switch(tok.m_type)
       {
       case TOK_NUMBER_SIGNED:
@@ -692,9 +693,9 @@ namespace MFM {
 	  std::string numstr = m_state.getTokenDataAsString(&tok);
 	  const char * numlist = numstr.c_str();
 	  char * nEnd;
-
 	  m_constant.sval = strtol(numlist, &nEnd, 0);   //base 10, 8, or 16
-	  if (*numlist == 0 || *nEnd != 0)
+
+	  if((*numlist == 0) || (*nEnd != 0) || (errno == ERANGE))
 	    {
 	      std::ostringstream msg;
 	      msg << "Invalid signed constant <" << numstr.c_str() << ">, errno=";
@@ -712,7 +713,7 @@ namespace MFM {
 	  char * nEnd;
 
 	  m_constant.uval = strtoul(numlist, &nEnd, 0);   //base 10, 8, or 16
-	  if (*numlist == 0 || !(*nEnd == 'u' || *nEnd == 'U') || *(nEnd + 1) != 0)
+	  if((*numlist == 0) || !(*nEnd == 'u' || *nEnd == 'U') || (*(nEnd + 1) != 0) || (errno == ERANGE))
 	    {
 	      std::ostringstream msg;
 	      msg << "Invalid unsigned constant <" << numstr.c_str() << ">, errno=";

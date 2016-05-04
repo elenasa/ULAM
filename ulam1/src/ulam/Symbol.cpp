@@ -175,20 +175,18 @@ namespace MFM {
     assert(!isModelParameter());
 
     UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
-    ULAMCLASSTYPE classtype = sut->getUlamClassType();
-
     //another way, like this?
     if(isModelParameter())
       {
 	std::ostringstream epmangled;
 	epmangled << sut->getImmediateModelParameterStorageTypeAsString();
-	assert(classtype == UC_NOTACLASS);
+	assert(sut->getUlamClassType() == UC_NOTACLASS);
 	return epmangled.str();
       }
 
     // to distinguish btn an atomic parameter typedef and quark typedef;
     // use atomic parameter with array of classes
-    bool isaclass = (( (classtype == UC_QUARK) || (classtype == UC_ELEMENT) || (classtype == UC_UNSEEN) || (classtype == UC_TRANSIENT)) && sut->isScalar());
+    bool isaclass = ((sut->getUlamTypeEnum() == Class) && sut->isScalar());
 
     std::ostringstream pmangled;
     pmangled << Symbol::getParameterTypePrefix(isaclass).c_str() << getMangledName();

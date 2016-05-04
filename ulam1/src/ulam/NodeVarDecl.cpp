@@ -448,7 +448,6 @@ namespace MFM {
 	  m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, baseslot + j);
       }
     else if((classtype == UC_ELEMENT) || (classtype == UC_TRANSIENT))
-      //else if(etyp == Class)
       {
 	//for eval purposes, a transient must fit into atom state bits, like an element
 	// any class may be a data member (see NodeVarDeclDM)
@@ -460,7 +459,6 @@ namespace MFM {
 	else
 	  {
 	    PACKFIT packFit = m_state.determinePackable(nuti);
-	    //if(WritePacked(packFit))
 	    if(packFit == PACKEDLOADABLE)
 	      {
 		u64 dval = 0;
@@ -661,24 +659,9 @@ namespace MFM {
       } //done
 
     assert(!m_varSymbol->isAutoLocal()); //nodevarref, not here!
-
-    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClassType();
-    if(classtype == UC_ELEMENT)
-      {
-	  // ptr to explicit atom or element, (e.g.'f' in f.a=1) becomes new m_currentObjPtr
-	  ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
-      }
-    else if(classtype == UC_TRANSIENT)
-      {
-	  // ptr to explicit transient, (e.g.'f' in f.a=1) becomes new m_currentObjPtr
-	  ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
-      }
-    else
-      {
-	assert(!m_varSymbol->isDataMember());
-	//local variable on the stack; could be array ptr!
-	ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
-      }
+    assert(!m_varSymbol->isDataMember());
+    //local variable on the stack; could be array ptr!
+    ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
     return ptr;
   } //makeUlamValuePtr
 

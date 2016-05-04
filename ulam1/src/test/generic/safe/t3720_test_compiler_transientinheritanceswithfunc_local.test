@@ -1,0 +1,91 @@
+## -*- mode:ulam -*-
+#=t3720_test_compiler_transientinheritanceswithfunc_local
+#!
+## gencode output: (interleaved asserts)
+##Int Arg: -1
+##Int Arg: 1
+##Unsigned Arg: 11
+##
+Exit status: 11
+Ue_R { Int(32) test() {  Foo f;  f ( )behave . return } }
+Un_Foo { System s();  Bool(1) first(false);  <NOMAIN> }
+Un_Soo : Coo { :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Un_Coo : Loo { :< Int(5) lu( -1); > Bool(3) cb( true);  <NOMAIN> }
+Un_Loo { Int(5) lu( -1);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## transient inheritances, regular (non-template), with func as local variable
+## informed by t3540
+##
+#>R.ulam
+  ulam 2;
+use Foo;
+element R {
+  Int test() {
+    Foo f;
+    return f.behave();
+  }
+}
+
+#:Foo.ulam
+  ulam 2;
+use Soo;
+use System;
+transient Foo {
+  System s;
+  Bool first;
+  Int behave() {
+    Soo su;
+    first = su.cb;
+    if(su.check())
+    {
+      s.print(su.lu);
+      s.assert(su.lu == -1);
+      su.lu = 1u;
+      s.print(su.lu);
+      s.assert(su.lu == 1);
+      s.print(su.sizeof);
+      s.assert(su.sizeof == 11);
+      return su.sizeof;
+    }
+    return 0;
+  }
+}
+
+#:Soo.ulam
+  ulam 2;
+use Coo;
+transient Soo : Coo {
+  Unsigned(3) us = 4u;
+}
+
+#:Coo.ulam
+  ulam 2;
+use Loo;
+transient Coo : Loo {
+  Bool(3) cb = true;
+  Bool check()
+  {
+    return cb;
+  }
+}
+
+#:Loo.ulam
+  ulam 2;
+transient Loo {
+  Int(5) lu = -1;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.
