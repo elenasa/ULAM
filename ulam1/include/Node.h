@@ -241,8 +241,10 @@ namespace MFM{
     void restoreElementTypeForAncestorCasting(File * fp, UVPass & uvpass);
 
     //common helpers for safe casting
-    NodeFunctionCall * buildCastingFunctionCallNode(Node * node, UTI tobeType);
+    bool buildCastingFunctionCallNode(Node * node, UTI tobeType, Node*& rtnNode);
     Node * buildToIntCastingNode(Node * node);
+    Node * newCastingNode(Node * node, UTI tobeType);
+    bool newCastingNodeWithCheck(Node * node, UTI tobeType, Node*& rtnNode);
 
   private:
     TBOOL m_storeIntoAble;

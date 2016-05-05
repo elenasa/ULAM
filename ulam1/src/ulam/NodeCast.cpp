@@ -316,30 +316,33 @@ namespace MFM {
 		// build a toIntHelper function that takes the return value of 'node'
 		// as its arg and returns toInt (NodeFunctionCall *)
 		if(m_node->isFunctionCall())
-		    m_node = (Node *) Node::buildCastingFunctionCallNode((Node *) m_node, tobeType);
-		else
-		  m_node = Node::buildToIntCastingNode(m_node);
-
-		assert(m_node);
-		m_node->setNodeLocation(getNodeLocation());
-		m_node->updateLineage(getNodeNo());
-		UTI chkintuti = m_node->checkAndLabelType();
-		if(!m_state.okUTItoContinue(chkintuti))
 		  {
-		    std::ostringstream msg;
-		    msg << "Cannot cast quark ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
-		    msg << " to numeric type " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
-		    msg << " without a defined 'toInt' method";
-		    if(chkintuti == Nav)
+		    errorsFound += Node::buildCastingFunctionCallNode((Node *) m_node, tobeType, m_node);
+		  }
+		else
+		  {
+		    m_node = Node::buildToIntCastingNode(m_node);
+		    assert(m_node);
+		    m_node->setNodeLocation(getNodeLocation());
+		    m_node->updateLineage(getNodeNo());
+		    UTI chkintuti = m_node->checkAndLabelType();
+		    if(!m_state.okUTItoContinue(chkintuti))
 		      {
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			errorsFound++;
-		      }
-		    else
-		      {
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-			hazinessFound++;
+			std::ostringstream msg;
+			msg << "Cannot cast quark ";
+			msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+			msg << " to numeric type " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+			msg << " without a defined 'toInt' method";
+			if(chkintuti == Nav)
+			  {
+			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			    errorsFound++;
+			  }
+			else
+			  {
+			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+			    hazinessFound++;
+			  }
 		      }
 		  }
 	      }

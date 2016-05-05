@@ -148,7 +148,6 @@ namespace MFM {
 		  }
 	      }
 	  }
-	//	m_nodeBody->checkAndLabelType(); //side-effect
       }
     else
       {

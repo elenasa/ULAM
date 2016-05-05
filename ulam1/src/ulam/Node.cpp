@@ -1491,7 +1491,7 @@ namespace MFM {
 	return false; //short-circuit
       }
 
-    ULAMTYPECOMPARERESULTS uticr = UlamType::compare(nuti, tobeType, m_state);
+    ULAMTYPECOMPARERESULTS uticr = UlamType::compareForMakingCastingNode(nuti, tobeType, m_state);
     if(uticr == UTIC_SAME)
       {
 	//happens too often with Bool.1.-1 for some reason;
@@ -1517,14 +1517,7 @@ namespace MFM {
 	else
 	  {
 	    assert(!isExplicit);
-	    rtnNode = new NodeCast(node, tobeType, NULL, m_state);
-	    assert(rtnNode);
-	    rtnNode->setNodeLocation(getNodeLocation());
-	    rtnNode->updateLineage(getNodeNo());
-
-	    //redo check and type labeling; error msg if not same
-	    UTI newType = rtnNode->checkAndLabelType();
-	    doErrMsg = (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
+	    doErrMsg = newCastingNodeWithCheck(node, tobeType, rtnNode);
 	  }
       }
     else if(nclasstype == UC_QUARK)
@@ -1532,108 +1525,54 @@ namespace MFM {
 	if(node->isFunctionCall())
 	  {
 	    if(tobe->isReference())
-	      {
-		rtnNode = new NodeCast(node, tobeType, NULL, m_state);
-		assert(rtnNode);
-		rtnNode->setNodeLocation(getNodeLocation());
-		rtnNode->updateLineage(getNodeNo());
-	      }
+	      doErrMsg = newCastingNodeWithCheck(node, tobeType, rtnNode);
 	    else
 	      {
 		// a function call is not a valid lhs !!!
 		// 'node' is a function call that returns a quark (it's not storeintoable);
 		// build a toIntHelper function that takes the return value of 'node'
 		// as its arg and returns toInt
-		NodeFunctionCall * castFunc = buildCastingFunctionCallNode(node, tobeType);
-		if(!castFunc)
-		  doErrMsg = true;
-		else
-		  rtnNode = castFunc;
+		doErrMsg = buildCastingFunctionCallNode(node, tobeType, rtnNode);
 	      }
 	  }
 	else if(tclasstype == UC_QUARK)
 	  {
 	    //handle possible inheritance (u.1.2.2) here
 	    if(m_state.isClassASubclassOf(nuti, tobeType))
-	      {
-		rtnNode = new NodeCast(node, tobeType, NULL, m_state);
-		assert(rtnNode);
-		rtnNode->setNodeLocation(getNodeLocation());
-		rtnNode->updateLineage(getNodeNo());
-	      }
-	    else if((UlamType::compareForMakingCastingNode(nuti, tobeType, m_state) == UTIC_SAME))
-	      {
-		//cast arrayitems as their deref types
-		rtnNode = new NodeCast(node, tobeType, NULL, m_state);
-		assert(rtnNode);
-		rtnNode->setNodeLocation(getNodeLocation());
-		rtnNode->updateLineage(getNodeNo());
-	      }
+	      doErrMsg = newCastingNodeWithCheck(node, tobeType, rtnNode);
 	    else if(m_state.isARefTypeOfUlamType(nuti, tobeType))
 	      {
 		//cast ref to deref type
 		//cast non-ref to its ref type; constants & funccalls
 		// not legal for initialization; ok for assignment.
-		rtnNode = new NodeCast(node, tobeType, NULL, m_state);
-		assert(rtnNode);
-		rtnNode->setNodeLocation(getNodeLocation());
-		rtnNode->updateLineage(getNodeNo());
+		doErrMsg = newCastingNodeWithCheck(node, tobeType, rtnNode);
 	      }
 	    else
 	      doErrMsg = true;
 	  }
 	else
-	  rtnNode = buildToIntCastingNode(node);
+	  {
+	    rtnNode = buildToIntCastingNode(node);
+
+	    //redo check and type labeling; error msg if not same
+	    UTI newType = rtnNode->checkAndLabelType();
+	    doErrMsg = (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
+	  }
 
 	//redo check and type labeling; error msg if not same
 	//e.g. t3191 missing function symbol without c&l
-	if(!doErrMsg)
-	  {
-	    UTI newType = rtnNode->checkAndLabelType();
-	    doErrMsg = (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
-	    if(doErrMsg)
-	      return makeCastingNode(rtnNode, tobeType, rtnNode, false); //recurse
-	  }
+	if(doErrMsg)
+	  return makeCastingNode(rtnNode, tobeType, rtnNode, false); //recurse
       }
     else if (nclasstype == UC_ELEMENT)
       {
-	if((UlamType::compareForMakingCastingNode(nuti, tobeType, m_state) == UTIC_SAME))
-	  {
-	    rtnNode = new NodeCast(node, tobeType, NULL, m_state);
-	    assert(rtnNode);
-	    rtnNode->setNodeLocation(getNodeLocation());
-	    rtnNode->updateLineage(getNodeNo());
-
-	    //redo check and type labeling; error msg if not same
-	    UTI newType = rtnNode->checkAndLabelType();
-	    doErrMsg = (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
-	  }
-	else if(!( m_state.isAtom(tobeType) || (tobe->getUlamTypeEnum() == Class)))
+	if(!( m_state.isAtom(tobeType) || (tobe->getUlamTypeEnum() == Class)))
 	  doErrMsg = true;
 	else
-	  {
-	    rtnNode = new NodeCast(node, tobeType, NULL, m_state);
-	    assert(rtnNode);
-	    rtnNode->setNodeLocation(getNodeLocation());
-	    rtnNode->updateLineage(getNodeNo());
-
-	    //redo check and type labeling; error msg if not same
-	    UTI newType = rtnNode->checkAndLabelType();
-	    doErrMsg = (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
-	  }
+	  doErrMsg = newCastingNodeWithCheck(node, tobeType, rtnNode);
       }
     else if(nclasstype == UC_TRANSIENT)
-      {
-	//if((UlamType::compareForMakingCastingNode(nuti, tobeType, m_state) == UTIC_SAME))
-	rtnNode = new NodeCast(node, tobeType, NULL, m_state);
-	assert(rtnNode);
-	rtnNode->setNodeLocation(getNodeLocation());
-	rtnNode->updateLineage(getNodeNo());
-
-	//redo check and type labeling; error msg if not same
-	UTI newType = rtnNode->checkAndLabelType();
-	doErrMsg = (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
-      }
+      doErrMsg = newCastingNodeWithCheck(node, tobeType, rtnNode);
     else
       doErrMsg = true;
 
@@ -1659,10 +1598,29 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }
-    return !doErrMsg;
+    return !doErrMsg; //true is ok
   } //makecastingnode
 
-  NodeFunctionCall * Node::buildCastingFunctionCallNode(Node * node, UTI tobeType)
+  Node * Node::newCastingNode(Node * node, UTI tobeType)
+  {
+    Node * rtnnode = new NodeCast(node, tobeType, NULL, m_state);
+    assert(rtnnode);
+    rtnnode->setNodeLocation(getNodeLocation());
+    rtnnode->updateLineage(getNodeNo());
+    return rtnnode;
+  } //newCastingNode
+
+  bool Node::newCastingNodeWithCheck(Node * node, UTI tobeType, Node*& rtnNode)
+  {
+    rtnNode = newCastingNode(node, tobeType);
+    assert(rtnNode);
+
+    //redo check and type labeling; error msg if not same
+    UTI newType = rtnNode->checkAndLabelType();
+    return (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
+  } //newCastingNodeWithCheck
+
+  bool Node::buildCastingFunctionCallNode(Node * node, UTI tobeType, Node*& rtnNode)
   {
     Locator loc = getNodeLocation(); //used throughout
     u32 castId = m_state.m_pool.getIndexForDataString("_toIntHelper");
@@ -1782,12 +1740,15 @@ namespace MFM {
     m_state.m_currentFunctionBlockMaxDepth = 0; //reset
 
     //func call symbol to return to NodeCast; fsymptr maybe null
-    NodeFunctionCall * rtnNode = new NodeFunctionCall(funcidentTok, fsymptr, m_state);
-    assert(rtnNode);
-    rtnNode->setNodeLocation(loc);
-    rtnNode->addArgument(node);
+    NodeFunctionCall * funccall = new NodeFunctionCall(funcidentTok, fsymptr, m_state);
+    assert(funccall);
+    funccall->setNodeLocation(loc);
+    funccall->addArgument(node);
+    rtnNode = funccall;
 
-    return rtnNode;
+    //redo check and type labeling; error msg if not same
+    UTI newType = rtnNode->checkAndLabelType();
+    return (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
   } //buildCastingFunctionCallNode
 
   Node * Node::buildToIntCastingNode(Node * node)
@@ -1803,6 +1764,8 @@ namespace MFM {
     Node * mselectNode = new NodeMemberSelect(node, fcallNode, m_state);
     assert(mselectNode);
     mselectNode->setNodeLocation(identTok.m_locator);
+
+    //redo check and type labeling done by caller!!
     return mselectNode; //replace right node with new branch
   } //buildToIntCastingNode
 

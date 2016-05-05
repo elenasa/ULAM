@@ -2394,7 +2394,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	    continue;
 	  }
 
-	if(UlamType::compare(rType, it, *this) != UTIC_SAME)
+	if(UlamType::compareForArgumentMatching(rType, it, *this) != UTIC_SAME)
 	  {
 	    rtnBool = false;
 	    ULAMTYPE rBUT = getUlamTypeByIndex(rType)->getUlamTypeEnum();
@@ -2821,7 +2821,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
 	    //redo what getPtrTarget use to do, when types didn't match due to
 	    //an element/quark or a requested scalar of an arraytype
-	    if(UlamType::compare(atval.getUlamValueTypeIdx(), tuti, *this) != UTIC_SAME)
+	    if(UlamType::compareForUlamValueAssignment(atval.getUlamValueTypeIdx(), tuti, *this) != UTIC_SAME)
 	      {
 		UlamValue atvalUV = UlamValue::getPackedArrayDataFromAtom(rptr, atval, *this);
 		assignValue(nextlptr, atvalUV);

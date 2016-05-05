@@ -295,7 +295,7 @@ namespace MFM {
 	      UTI ptype = psym->getUlamTypeIdx();
 	      Node * argNode = m_argumentNodes->getNodePtr(i); //constArgs[i];
 	      UTI atype = argNode->getNodeType();
-	      if(UlamType::compare(ptype, atype, m_state) == UTIC_NOTSAME) //o.w. known same
+	      if(UlamType::compareForArgumentMatching(ptype, atype, m_state) == UTIC_NOTSAME) //o.w. known same
 		{
 		  Node * argCast = NULL;
 		  if(!Node::makeCastingNode(argNode, ptype, argCast))

@@ -252,7 +252,7 @@ namespace MFM {
 	  }
 
 	// Don't Go Beyond This Point when either it or eit are not ok.
-	if(UlamType::compare(eit, it, m_state) == UTIC_NOTSAME)
+	if(UlamType::compareForMakingCastingNode(eit, it, m_state) == UTIC_NOTSAME)
 	  {
 	    //must be safe to case (NodeVarDecl c&l) is different
 	    if(!Node::makeCastingNode(m_nodeInitExpr, it, m_nodeInitExpr))

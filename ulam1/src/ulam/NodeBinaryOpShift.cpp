@@ -22,7 +22,7 @@ namespace MFM {
 
     if(m_state.isComplete(newType))
       {
-	if(UlamType::compare(leftType, newType, m_state) != UTIC_SAME)
+	if(UlamType::compareForMakingCastingNode(leftType, newType, m_state) != UTIC_SAME)
 	  {
 	    if(!Node::makeCastingNode(m_nodeLeft, newType, m_nodeLeft))
 	      {

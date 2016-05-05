@@ -370,7 +370,8 @@ namespace MFM {
     if(funcNode)
       {
 	UTI funcType = funcNode->getNodeType();
-	if(funcType != Int)
+	//if(funcType != Int)
+	if(UlamType::compareForArgumentMatching(funcType, Int, m_state) == UTIC_NOTSAME)
 	  {
 	    std::ostringstream msg;
 	    msg << "By convention, Function '" << funcNode->getName();
