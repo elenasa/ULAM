@@ -1302,7 +1302,7 @@ namespace MFM {
 	if(!(rtnNode = parseIdentExpr(iTok)))
 	  return parseExpression(); //continue as parseAssignExpr
 
-	//next check for 'as' and 'has' ('is' is a Factor)
+	//next check for 'as' ('is' is a Factor)
 	Token cTok;
 	getNextToken(cTok);
 	unreadToken();

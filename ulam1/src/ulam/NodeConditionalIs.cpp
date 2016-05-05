@@ -83,22 +83,28 @@ namespace MFM {
     if(m_state.okUTItoContinue(ruti))
       {
 	UlamType * rut = m_state.getUlamTypeByIndex(ruti);
-	//rhs is allowed to be a quark due to inheritance.
-	ULAMCLASSTYPE rclasstype = rut->getUlamClassType();
-	if(!((rclasstype == UC_QUARK || rclasstype == UC_ELEMENT) && rut->isScalar()))
+	//rhs cannot be a ref type
+	if(rut->isReference())
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid righthand type of conditional operator '" << getName();
-	    msg << "'; must be an element name, not type: ";
+	    msg << "'; must be a class type, not a reference: ";
 	    msg << rut->getUlamTypeNameBrief().c_str();
-	    if(rclasstype == UC_UNSEEN)
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    newType = Nav;
+	  }
+	else
+	  {
+	    //rhs is allowed to be a quark due to inheritance.
+    //ULAMCLASSTYPE rclasstype = rut->getUlamClassType();
+	    //if(!((rclasstype == UC_QUARK || rclasstype == UC_ELEMENT) && rut->isScalar()))
+	    ULAMTYPE retyp = rut->getUlamTypeEnum();
+	    if(!((retyp == Class) && rut->isScalar()))
 	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //goagain set
-		newType = Hzy;
-		m_state.setGoAgain();
-	      }
-	    else
-	      {
+		std::ostringstream msg;
+		msg << "Invalid righthand type of conditional operator '" << getName();
+		msg << "'; must be a class name, not type: ";
+		msg << rut->getUlamTypeNameBrief().c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		newType = Nav;
 	      }

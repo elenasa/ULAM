@@ -1,0 +1,46 @@
+## -*- mode:ulam -*-
+#=t3728_test_compiler_elementatomisconditionalref_error
+#!
+./Foo.ulam:21:10: ERROR: Invalid righthand type of conditional operator 'is'; must be a class type, not a reference: Foo&.
+./Foo.ulam:3:9: ERROR: 13 Nodes with unresolved types detected after type labeling class: Foo.
+Unrecoverable Program Type Label FAILURE.
+#>Foo.ulam
+  ulam 2;
+use System;
+element Foo {
+  Bool sp;
+  Bool(3) bi, bh;
+  Int d;
+  Int test(){
+    System s;
+    Foo f;
+    typedef Foo & FRef;
+    FRef fref = f;
+    Atom a;
+    Bool b = false;
+    if(a is Foo)
+      b = true;
+    s.assert(!b);
+    a = fref; //easy
+    if(a is Foo)
+      bi = true;
+    s.assert(bi);
+    if(a is FRef) //'a is Foo &' is a parse error! typedef is a tougher test (c&l)
+      bh = true;
+    s.assert(bh);
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.
