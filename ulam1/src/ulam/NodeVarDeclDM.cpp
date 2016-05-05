@@ -366,7 +366,9 @@ namespace MFM {
       return false;
 
     UTI nuti = getNodeType();
-    if(!m_state.isComplete(nuti))
+    if(nuti == Nav)
+      return false;
+    else if(!m_state.isComplete(nuti))
       {
 	m_state.setGoAgain(); //since not error
 	return false;

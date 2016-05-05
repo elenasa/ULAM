@@ -111,7 +111,7 @@ namespace MFM {
 	  }
       }
 
-    if(!m_state.isComplete(ruti))
+    if(m_state.okUTItoContinue(newType) && !m_state.isComplete(ruti))
       {
 	std::ostringstream msg;
 	msg << "Righthand type of conditional operator '" << getName() << "' ";

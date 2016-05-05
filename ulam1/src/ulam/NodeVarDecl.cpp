@@ -258,7 +258,7 @@ namespace MFM {
 	      }
 	  }
 
-	  if(!m_state.isComplete(it))
+	  if(!m_state.okUTItoContinue(it) || !m_state.isComplete(it))
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete Variable Decl for type: ";
@@ -266,9 +266,14 @@ namespace MFM {
 	    msg << " used with variable symbol name '" << getName();
 	    msg << "' UTI" << it << " while labeling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    it = Hzy;
-	    m_state.setGoAgain(); //since not error
+	    if(m_state.okUTItoContinue(it) || (it == Hzy))
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		it = Hzy;
+		m_state.setGoAgain(); //since not error
+	      }
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       } //end var_symbol
 

@@ -317,7 +317,12 @@ namespace MFM {
 		// as its arg and returns toInt (NodeFunctionCall *)
 		if(m_node->isFunctionCall())
 		  {
-		    errorsFound += Node::buildCastingFunctionCallNode((Node *) m_node, tobeType, m_node);
+		    if(Node::buildCastingFunctionCallNode((Node *) m_node, tobeType, m_node))
+		      {
+			//e.g. wrong size Int (t3412)
+			if(!Node::makeCastingNode(m_node, tobeType, m_node))
+			  errorsFound++;
+		      }
 		  }
 		else
 		  {

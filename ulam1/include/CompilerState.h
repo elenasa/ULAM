@@ -443,6 +443,7 @@ namespace MFM{
     bool isASeenClass(UTI cuti);
     bool isAnonymousClass(UTI cuti);
     bool okUTItoContinue(UTI uti);
+    bool okUTItoContinue(UTI uti1, UTI uti2); //false if either is Nav
     bool checkHasHazyKin(NodeBlock * block);
 
   private:

@@ -2,8 +2,8 @@
 #=t3198_test_compiler_elementandquark_usercasttoquark_error
 #!
 ./Foo.ulam:8:14: ERROR: Cannot cast Bool(3) to Bar.
-./Foo.ulam:3:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Foo.
-./Foo.ulam:3:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: Foo.
+./Foo.ulam:8:11: ERROR: Assignment is invalid; LHS: Bar; RHS: erroneous.
+./Foo.ulam:3:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>Foo.ulam

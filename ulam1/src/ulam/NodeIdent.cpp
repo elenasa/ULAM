@@ -97,7 +97,7 @@ namespace MFM {
 
   UTI NodeIdent::checkAndLabelType()
   {
-    UTI it = Nav;  //init
+    UTI it = Nouti;  //init (was Nav)
     u32 errCnt = 0;
 
     //checkForSymbol:
@@ -234,7 +234,11 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
 	    else
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		it = Hzy;
+		m_state.setGoAgain();
+	      }
 	    errCnt++;
 	  }
       } //lookup symbol

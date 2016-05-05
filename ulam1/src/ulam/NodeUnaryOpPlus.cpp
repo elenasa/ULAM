@@ -26,6 +26,9 @@ namespace MFM {
 
   UTI NodeUnaryOpPlus::calcNodeType(UTI uti)
   {
+    if(uti == Nav)
+      return Nav;
+
     if(!m_state.isComplete(uti))
       return Hzy;
 

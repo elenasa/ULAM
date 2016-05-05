@@ -73,14 +73,21 @@ namespace MFM {
     if(it != Nav)
       it = m_node->checkAndLabelType(); //previous time through
 
-    if(!m_state.isComplete(it))
+    if(!m_state.okUTItoContinue(it) || !m_state.isComplete(it))
       {
 	std::ostringstream msg;
-	msg << "Type Bitsize specifier: " << m_state.getUlamTypeNameBriefByIndex(it);
-	msg << ", within (), is not ready";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	m_state.setGoAgain(); //since not error
-	it = Hzy;
+	msg << "Type Bitsize specifier, within (), is not ready";
+	if(m_state.okUTItoContinue(it) || (it == Hzy))
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    m_state.setGoAgain(); //since not error
+	    it = Hzy;
+	  }
+	else
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    it = Nav;
+	  }
       }
 
     // expects a constant numeric type
@@ -92,7 +99,7 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	it = Nav;
       }
-    else if( (it != Hzy) && (!(m_state.getUlamTypeByIndex(it)->isNumericType()) && m_node->isReadyConstant()))
+    else if(m_state.okUTItoContinue(it) && (!(m_state.getUlamTypeByIndex(it)->isNumericType()) && m_node->isReadyConstant()))
       {
 	std::ostringstream msg;
 	msg << "Type Bitsize specifier: " << m_state.getUlamTypeNameBriefByIndex(it);

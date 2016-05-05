@@ -3424,6 +3424,11 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return ((uti != Nav) && (uti != Hzy) && (uti != Nouti));
   }
 
+  bool CompilerState::okUTItoContinue(UTI uti1, UTI uti2)
+  {
+    return ((uti1 != Nav) && (uti2 != Nav));
+  }
+
   bool CompilerState::checkHasHazyKin(NodeBlock * block)
   {
     assert(block);

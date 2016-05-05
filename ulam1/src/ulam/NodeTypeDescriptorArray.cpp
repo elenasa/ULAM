@@ -173,6 +173,8 @@ namespace MFM {
 	else
 	  rtnuti = nuti; //could be Nav or Hzy
       } //else select not ready, so neither are we!!
+    else if(scuti == Nav)
+      rtnuti = Nav;
     else
       rtnuti = Hzy;
     return rtnb;

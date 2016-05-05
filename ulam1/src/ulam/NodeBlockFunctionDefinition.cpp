@@ -206,10 +206,10 @@ namespace MFM {
     setNodeType(it);
 
     if(it == Nav)
-      return Nav;; //bail for this iteration
+      return Nav; //bail for this iteration
 
     if(it == Hzy)
-      return Hzy;; //bail for this iteration
+      return Hzy; //bail for this iteration
 
     m_state.pushCurrentBlock(this);
 

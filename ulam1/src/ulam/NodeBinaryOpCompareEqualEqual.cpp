@@ -33,6 +33,9 @@ namespace MFM {
 
   UTI NodeBinaryOpCompareEqualEqual::calcNodeType(UTI lt, UTI rt)
   {
+    if(!m_state.okUTItoContinue(lt, rt))
+      return Nav;
+
     if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
       return Hzy; //short-circuit
 

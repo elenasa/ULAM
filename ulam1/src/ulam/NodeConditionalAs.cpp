@@ -93,28 +93,41 @@ namespace MFM {
     if(m_state.okUTItoContinue(ruti))
       {
 	UlamType * rut = m_state.getUlamTypeByIndex(ruti);
-	ULAMCLASSTYPE rclasstype = rut->getUlamClassType();
-	if(!((rclasstype == UC_QUARK || rclasstype == UC_ELEMENT) && rut->isScalar()))
+	//rhs cannot be a ref type
+	if(rut->isReference())
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid righthand type of conditional operator '" << getName();
-	    msg << "'; must be a quark or element name, not ";
+	    msg << "'; must be a class type, not a reference: ";
 	    msg << rut->getUlamTypeNameBrief().c_str();
-	    if(rclasstype == UC_UNSEEN)
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    newType = Nav;
+	  }
+	else
+	  {
+	    ULAMCLASSTYPE rclasstype = rut->getUlamClassType();
+	    if(!((rclasstype == UC_QUARK || rclasstype == UC_ELEMENT) && rut->isScalar()))
 	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //goagain set
-		newType = Hzy;
-		m_state.setGoAgain();
-	      }
-	    else
-	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		newType = Nav;
+		std::ostringstream msg;
+		msg << "Invalid righthand type of conditional operator '" << getName();
+		msg << "'; must be a quark or element name, not ";
+		msg << rut->getUlamTypeNameBrief().c_str();
+		if(rclasstype == UC_UNSEEN)
+		  {
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //goagain set
+		    newType = Hzy;
+		    m_state.setGoAgain();
+		  }
+		else
+		  {
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    newType = Nav;
+		  }
 	      }
 	  }
       }
 
-    if(!m_state.isComplete(ruti))
+    if(m_state.okUTItoContinue(newType) && !m_state.isComplete(ruti))
       {
 	std::ostringstream msg;
 	msg << "Righthand type of conditional operator '" << getName() << "' ";
@@ -124,13 +137,6 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	newType = Hzy; //goagain set by nodetypedesc
 	m_state.setGoAgain();
-      }
-    else
-      {
-	//a place to breakpoint for debugging
-	std::ostringstream msg;
-	msg << "Ready righthand type of conditional operator '" << getName();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
       }
 
     setNodeType(newType);

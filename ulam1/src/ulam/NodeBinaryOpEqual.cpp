@@ -79,6 +79,27 @@ namespace MFM {
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
 
+    if(!m_state.okUTItoContinue(leftType, rightType))
+      {
+	std::ostringstream msg;
+	msg << "Assignment is invalid";
+	msg << "; LHS: ";
+	if(leftType != Nav)
+	  msg << m_state.getUlamTypeNameBriefByIndex(leftType);
+	else
+	  msg << "erroneous";
+
+	msg << "; RHS: ";
+	if(rightType != Nav)
+	  msg << m_state.getUlamTypeNameBriefByIndex(rightType);
+	else
+	  msg << "erroneous";
+
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav);
+	return Nav;
+      }
+
     if(!m_state.isComplete(leftType) || !m_state.isComplete(rightType))
       {
     	setNodeType(Hzy);

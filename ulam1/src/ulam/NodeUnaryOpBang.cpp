@@ -35,6 +35,9 @@ namespace MFM {
 
   UTI NodeUnaryOpBang::calcNodeType(UTI uti)
   {
+    if(uti == Nav)
+      return Nav;
+
     if(!m_state.isComplete(uti))
       return Hzy;
 

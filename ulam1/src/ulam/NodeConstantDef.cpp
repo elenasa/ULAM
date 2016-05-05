@@ -290,7 +290,7 @@ namespace MFM {
 
     setNodeType(suti);
 
-    if(!(m_constSymbol->isReady()))
+    if(!m_constSymbol->isReady() && m_nodeExpr)
       {
 	UTI foldrtn = foldConstantExpression();
 	if(foldrtn == Nav)

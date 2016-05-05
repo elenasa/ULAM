@@ -102,7 +102,7 @@ namespace MFM {
 		    msg << " used with class: ";
 		    msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
 		    msg << getName();
-		    if(lut->isComplete())
+		    if(lut->isComplete() || (caType == Nav))
 		      {
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 			newType = Nav; //error!

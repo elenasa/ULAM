@@ -1,9 +1,9 @@
 ## -*- mode:ulam -*-
-#=t3728_test_compiler_elementatomisconditionalref_error
+#=t3729_test_compiler_elementatomasconditionalref_error
 #!
-./Foo.ulam:21:10: ERROR: Invalid righthand type of conditional operator 'is'; must be a class type, not a reference: Foo&.
+./Foo.ulam:21:10: ERROR: Invalid righthand type of conditional operator 'as'; must be a class type, not a reference: Foo&.
 ./Foo.ulam:3:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Foo.
-./Foo.ulam:3:9: ERROR: 12 Nodes with unresolved types detected after type labeling class: Foo.
+./Foo.ulam:3:9: ERROR: 15 Nodes with unresolved types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 #>Foo.ulam
   ulam 2;
@@ -19,14 +19,14 @@ element Foo {
     FRef fref = f;
     Atom a;
     Bool b = false;
-    if(a is Foo)
+    if(a as Foo)
       b = true;
     s.assert(!b);
     a = fref; //easy
-    if(a is Foo)
+    if(a as Foo)
       bi = true;
     s.assert(bi);
-    if(a is FRef) //'a is Foo &' is a parse error! typedef is a tougher test (c&l)
+    if(a as FRef) //'a is Foo &' is a parse error! typedef is a tougher test (c&l)
       bh = true;
     s.assert(bh);
     return 0;
