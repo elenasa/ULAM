@@ -44,11 +44,12 @@ namespace MFM {
 
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
-    if(!((m_state.isAtom(luti) || (lclasstype == UC_ELEMENT)) && lut->isScalar()))
+    ULAMTYPE letyp = lut->getUlamTypeEnum();
+    if(!((m_state.isAtom(luti) || (letyp == Class)) && lut->isScalar()))
       {
 	std::ostringstream msg;
 	msg << "Invalid lefthand type of conditional operator '" << getName();
-	msg << "'; must be an atom or an element, not type: ";
+	msg << "'; must be an atom or a class, not type: ";
 	msg << lut->getUlamTypeNameBrief().c_str();
 	if((lclasstype == UC_UNSEEN) || (luti == Hzy))
 	  {
@@ -62,6 +63,7 @@ namespace MFM {
 	    newType = Nav;
 	  }
       }
+#if 0
     else if((lclasstype == UC_ELEMENT) && lut->isScalar())
       {
 	//lefthand side needs to be an atom, not packed element
@@ -77,6 +79,7 @@ namespace MFM {
 	    return Nav; //short-circuit
 	  }
       }
+#endif
 
     assert(m_nodeTypeDesc);
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
@@ -96,7 +99,7 @@ namespace MFM {
 	else
 	  {
 	    //rhs is allowed to be a quark due to inheritance.
-    //ULAMCLASSTYPE rclasstype = rut->getUlamClassType();
+	    //ULAMCLASSTYPE rclasstype = rut->getUlamClassType();
 	    //if(!((rclasstype == UC_QUARK || rclasstype == UC_ELEMENT) && rut->isScalar()))
 	    ULAMTYPE retyp = rut->getUlamTypeEnum();
 	    if(!((retyp == Class) && rut->isScalar()))
@@ -172,6 +175,7 @@ namespace MFM {
     luti = pluv.getPtrTargetType();
     UTI ruti = getRightType();
 
+    UTI derefluti = m_state.getUlamTypeAsDeref(luti);
     // was inclusive result for eval purposes (atoms and element types are orthogonal)
     // now optional for debugging
 #define _LET_ATOM_IS_ELEMENT
@@ -181,11 +185,11 @@ namespace MFM {
 	evalNodeEpilog();
 	return UNEVALUABLE;
       }
-    bool isit = ((UlamType::compare(luti,ruti,m_state) == UTIC_SAME) || m_state.isClassASubclassOf(luti, ruti));
+    bool isit = ((UlamType::compare(derefluti,ruti,m_state) == UTIC_SAME) || m_state.isClassASubclassOf(derefluti, ruti));
 
 #else
 
-    bool isit = (m_state.isAtom(luti) || (UlamType::compare(luti,ruti,m_state) == UTIC_SAME) || m_state.isClassASubclassOf(luti, ruti));
+    bool isit = (m_state.isAtom(luti) || (UlamType::compare(derefluti,ruti,m_state) == UTIC_SAME) || m_state.isClassASubclassOf(derefluti, ruti));
 
 #endif
 
@@ -201,67 +205,128 @@ namespace MFM {
   void NodeConditionalIs::genCode(File * fp, UVPass& uvpass)
   {
     assert(m_nodeLeft);
-    UTI nuti = getNodeType();
+    UTI lnuti = m_nodeLeft->getNodeType();
+    if(m_state.isAtom(lnuti))
+      return genCodeAtomIs(fp, uvpass); //reads into tmpvar
+    else if(m_state.isReference(lnuti))
+      return genCodeReferenceIs(fp, uvpass); //doesn't read into tmpvar
+    //else ClassIs.. reads into tmp var.
+
+    UTI nuti = getNodeType(); //Bool
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
     UVPass luvpass;
-    m_nodeLeft->genCode(fp, luvpass); //loads lhs into tmp (T)
-    UTI luti = luvpass.getPassTargetType(); //replace
-    TMPSTORAGE lstor = luvpass.getPassStorage(); //might be AtomBitStorage
+    m_nodeLeft->genCode(fp, luvpass); //loads lhs into tmp (including array item)
+    UTI luti = luvpass.getPassTargetType();
 
     UTI ruti = getRightType();
     UlamType * rut = m_state.getUlamTypeByIndex(ruti);
-    ULAMCLASSTYPE rclasstype = rut->getUlamClassType();
     assert(!rut->isReference());
 
     s32 tmpVarIs = m_state.getNextTmpVarNumber();
 
     m_state.indent(fp);
     fp->write("const ");
-    fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32
+    fp->write(nut->getTmpStorageTypeAsString().c_str()); //bool
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarIs, TMPREGISTER).c_str());
     fp->write(" = ");
 
-    if((rclasstype == UC_ELEMENT))
-      {
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
-	fp->write(".");
-	fp->write(m_state.getIsMangledFunctionName(ruti));
-	fp->write("(");
-	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	if(lstor == TMPATOMBS)
-	  fp->write(".ReadAtom()");
-	fp->write(");\n");
-      }
-    else if(rclasstype == UC_QUARK)
-      {
-	UlamType * lut = m_state.getUlamTypeByIndex(luti);
-	ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
-	if(lclasstype == UC_ELEMENT)
-	  {
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(luti).c_str());
-	    fp->write(".");
-	    fp->write(m_state.getIsMangledFunctionName(luti)); //UlamElement IsMethod
-	    fp->write("("); //one arg
-	  }
-	else
-	  {
-	    //then left must be an atom
-	    fp->write(m_state.getIsMangledFunctionName(luti)); //UlamElement IsMethod
-	    fp->write("(uc, ");
-	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	    fp->write(".GetType(), "); //from tmpvar T or ABS
-	  }
-	fp->write("\"");
-	fp->write(rut->getUlamTypeMangledName().c_str());
-	fp->write("\");\n");
-      }
-    else
-      assert(0);
+    //is a class
+    fp->write(m_state.getEffectiveSelfMangledNameByIndex(luti).c_str());
+    fp->write(".");
+    fp->write(m_state.getIsMangledFunctionName(luti)); //UlamElement IsMethod
+    fp->write("("); //one arg
+
+    fp->write("\"");
+    fp->write(rut->getUlamTypeMangledName().c_str());
+    fp->write("\");\n");
 
     //update uvpass
     uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
+
+    m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCode
+
+  void NodeConditionalIs::genCodeAtomIs(File * fp, UVPass & uvpass)
+  {
+    assert(m_nodeLeft);
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+    UVPass luvpass;
+    m_nodeLeft->genCode(fp, luvpass); //loads lhs into tmp (T)
+
+    UTI luti = luvpass.getPassTargetType();
+    assert(m_state.isAtom(luti)); //or Atomref
+
+    UTI ruti = getRightType();
+    UlamType * rut = m_state.getUlamTypeByIndex(ruti);
+    assert(!rut->isReference());
+
+    s32 tmpVarIs = m_state.getNextTmpVarNumber();
+
+    m_state.indent(fp);
+    fp->write("const ");
+    fp->write(nut->getTmpStorageTypeAsString().c_str()); //bool
+    fp->write(" ");
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarIs, TMPREGISTER).c_str());
+    fp->write(" = ");
+
+    fp->write(m_state.getIsMangledFunctionName(luti)); //UlamClass IsMethod
+    fp->write("(uc, ");
+    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+    fp->write(".GetType(), "); //from tmpvar T or ABS
+    fp->write("\"");
+    fp->write(rut->getUlamTypeMangledName().c_str());
+    fp->write("\");\n");
+
+    //update uvpass
+    uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
+  } //genCodeAtomIs
+
+  void NodeConditionalIs::genCodeReferenceIs(File * fp, UVPass & uvpass)
+  {
+    assert(m_nodeLeft);
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+    UVPass luvpass;
+    m_nodeLeft->genCodeToStoreInto(fp, luvpass); //loads lhs into tmp (T)
+    UTI luti = luvpass.getPassTargetType(); //replace
+    assert(m_state.isReference(luti));
+
+    Symbol * stgcos = NULL;
+    if(m_state.m_currentObjSymbolsForCodeGen.empty())
+      stgcos = m_state.getCurrentSelfSymbolForCodeGen();
+    else
+      stgcos = m_state.m_currentObjSymbolsForCodeGen.back();
+
+    UTI ruti = getRightType();
+    UlamType * rut = m_state.getUlamTypeByIndex(ruti);
+    assert(!rut->isReference());
+
+    s32 tmpVarIs = m_state.getNextTmpVarNumber();
+
+    m_state.indent(fp);
+    fp->write("const ");
+    fp->write(nut->getTmpStorageTypeAsString().c_str()); //bool
+    fp->write(" ");
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarIs, TMPREGISTER).c_str());
+    fp->write(" = ");
+
+    //what if array?
+    fp->write(stgcos->getMangledName().c_str());
+    fp->write(".GetEffectiveSelf()->");
+    fp->write(m_state.getIsMangledFunctionName(luti)); //UlamClass IsMethod
+    fp->write("(");
+    fp->write("\"");
+    fp->write(rut->getUlamTypeMangledName().c_str());
+    fp->write("\");\n");
+
+    //update uvpass
+    uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
+  } //genCodeReferenceIs
+
 
 } //end MFM

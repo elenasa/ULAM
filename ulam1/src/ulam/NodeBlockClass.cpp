@@ -1499,22 +1499,21 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   void NodeBlockClass::genCodeBuiltInFunctionIsRelatedQuarkType(File * fp)
   {
+    UTI nuti = getNodeType();
     UTI superuti = m_state.isClassASubclass(getNodeType());
     assert(superuti != Hzy);
     if(superuti != Nouti)
       {
-	//first include superclass
-	UlamType * superut = m_state.getUlamTypeByIndex(superuti);
-	m_state.indent(fp);
-	fp->write("if(!strcmp(namearg,\"");
-	fp->write(superut->getUlamTypeMangledName().c_str()); //mangled, including class args!
-	fp->write("\")) return(true); //inherited class\n");
-
 	//then include any of its relatives:
 	NodeBlockClass * superClassBlock = getSuperBlockPointer();
 	assert(superClassBlock);
 	superClassBlock->genCodeBuiltInFunctionIsRelatedQuarkType(fp);
       }
+    //include self
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    fp->write("if(!strcmp(namearg,\"");
+    fp->write(nut->getUlamTypeMangledName().c_str()); //mangled, including class args!
+    fp->write("\")) return(true); //inherited class\n");
     //    m_ST.genCodeBuiltInFunctionHasPosOverTableOfVariableDataMember(fp);
   } //genCodeBuiltInFunctionIsRelatedQuarkType
 
