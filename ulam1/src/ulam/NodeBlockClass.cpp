@@ -270,7 +270,7 @@ namespace MFM {
   {
     // for debug purposes
     UTI cuti = m_state.getCompileThisIdx();
-    //m_state.isClassATemplate(cuti);
+    m_state.isClassATemplate(cuti);
 
     //do first, might be important!
     checkParameterNodeTypes();
@@ -282,6 +282,7 @@ namespace MFM {
     //skip the ancestor of a template
     if(m_state.okUTItoContinue(superuti))
       {
+#if 0
 	if(!m_state.isComplete(superuti))
 	  {
 	    UTI mappedUTI = superuti;
@@ -301,6 +302,7 @@ namespace MFM {
 		superuti = mappedUTI;
 	      }
 	  }
+#endif
 	//this is a subclass.
 	if(!isSuperClassLinkReady())
 	  {

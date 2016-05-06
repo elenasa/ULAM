@@ -585,7 +585,6 @@ namespace MFM {
       }
     //    else
 
-
     SymbolClassName * prematureclass = NULL;
     bool isUnseenClass = false;
     UTI pmcuti = Nouti;
@@ -593,30 +592,18 @@ namespace MFM {
       {
 	pmcuti = prematureclass->getUlamTypeIdx();
 	isUnseenClass = (m_state.getUlamTypeByIndex(pmcuti)->getUlamClassType() == UC_UNSEEN);
-	{
-	  std::ostringstream msg;
-	  msg << "Typedef '";
-	  msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
-	  msg << "' already exists as ";
-	  if(isUnseenClass)
-	    msg << " UNSEEN ";
-	  msg << "class type: ";
-	  msg << m_state.getUlamTypeNameBriefByIndex(pmcuti).c_str();
-	  if(isUnseenClass)
-	    {
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	      //m_state.removeIncompleteClassSymbolFromProgramTable(m_token); //new!!
-	      brtn = true;
-	    }
-	  else
-	    {
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	      return false; //quit!
-	    }
-	  //return false; //quit!
-	}
-      }
 
+	std::ostringstream msg;
+	msg << "Typedef alias '";
+	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
+	msg << "' already exists as ";
+	if(isUnseenClass)
+	  msg << " UNSEEN ";
+	msg << "class type: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(pmcuti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //issue 5/6/16
+	return false; //quit!
+      }
 
     if(args.m_anothertduti != Nouti)
       {
@@ -689,13 +676,6 @@ namespace MFM {
 
 	//remember tduti for references
 	symtypedef->setAutoLocalType(m_state.getReferenceType(uti));
-
-	if(isUnseenClass)
-	  {
-	    UlamType * tdut = m_state.getUlamTypeByIndex(uti);
-	    UlamKeyTypeSignature tdkey = tdut->getUlamKeyTypeSignature();
-	    m_state.makeUlamTypeFromHolder(tdkey, tdut->getUlamTypeEnum(), pmcuti, UC_UNSEEN);
-	  }
 	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr)); //true
       }
     return false;
