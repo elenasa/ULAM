@@ -91,9 +91,6 @@ namespace MFM {
     UlamValue atomuv;
 
     UTI auti = getOfType();
-    UlamType * aut = m_state.getUlamTypeByIndex(auti);
-    ULAMCLASSTYPE aclasstype = aut->getUlamClassType();
-
     assert(m_varSymbol);
 
     if(m_varSymbol->isSelf())
@@ -114,38 +111,25 @@ namespace MFM {
     if(m_varSymbol->getAutoLocalType() == ALT_AS)
       return ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval(); //haha! we're done.
 
-    if(aclasstype == UC_ELEMENT)
+    if(m_varSymbol->isDataMember())
       {
-	// ptr to explicit atom or element, (e.g.'f' in f.a=1) becomes new m_currentObjPtr
-	ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, auti, m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
-      }
-    else if(aclasstype == UC_TRANSIENT)
-      {
-	// ptr to explicit transient, (e.g.'f' in f.a=1) becomes new m_currentObjPtr
-	ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, auti, m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
+	UTI cuti = m_state.m_currentObjPtr.getPtrTargetType();
+	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+	if(cut->getUlamClassType() == UC_QUARK)
+	  ptr = atomuv; //bail
+	else
+	  // return ptr to the m_currentObjPtr that contains this data member within
+	  ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), auti, m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
       }
     else
       {
-	if(m_varSymbol->isDataMember())
-	  {
-	    UTI cuti = m_state.m_currentObjPtr.getPtrTargetType();
-	    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-	    if(cut->getUlamClassType() == UC_QUARK)
-	      ptr = atomuv; //bail
-	    else
-	      // return ptr to the m_currentObjPtr that contains this data member within
-	      ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), auti, m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
-	  }
+	UTI vuti = m_varSymbol->getUlamTypeIdx();
+	UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+	if(vut->getUlamClassType() == UC_QUARK)
+	  ptr = atomuv; //bail
 	else
-	  {
-	    UTI vuti = m_varSymbol->getUlamTypeIdx();
-	    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-	    if(vut->getUlamClassType() == UC_QUARK)
-	      ptr = atomuv; //bail
-	    else
-	      //local variable on the stack; could be array ptr!
-	      ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, auti, m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
-	  }
+	  //local variable on the stack; could be array ptr!
+	  ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, auti, m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
       }
     return ptr;
   } //makeUlamValuePtr

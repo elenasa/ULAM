@@ -9,37 +9,38 @@ Ue_Foo { System s();  Bool(7) m_b(false);  Int(32) m_idx(40);  C2D m_coord( Int(
 Uq_System { <NOMAIN> }
 Uq_C2D { Int(6) m_width( 9);  Int(6) m_height( 4);  <NOMAIN> }
 #>Foo.ulam
-ulam 1;
+  ulam 1;
 use System;
- use C2D;
- element Foo {
-System s;
-Bool(7) m_b;
- Int m_idx;
- C2D m_coord;
- Int test() {
-   m_idx = m_coord.getIndex(0,0);
-   s.print(m_idx);
- return m_idx;
- }
- }
+use C2D;
+element Foo {
+  System s;
+  Bool(7) m_b;
+  Int m_idx;
+  C2D m_coord;
+  Int test() {
+    m_idx = m_coord.getIndex(0,0);
+    s.print(m_idx);
+    return m_idx;
+  }
+}
 
 #:C2D.ulam
+  ulam 1;
 quark C2D {
- Int(6) m_width = 9;
- Int(6) m_height = 4;
+  Int(6) m_width = 9;
+  Int(6) m_height = 4;
   Void init(Int x, Int y) {
- m_width = (Int(6)) x;
- m_height = (Int(6)) y;
- return;
- }
- Int getIndex(Int a, Int b){
-return ((m_height-b) * m_width + (m_height-a));
- }
- }
+    m_width = (Int(6)) x;
+    m_height = (Int(6)) y;
+    return;
+  }
+  Int getIndex(Int a, Int b){
+    return ((m_height-b) * m_width + (m_height-a));
+  }
+}
 
 #:System.ulam
-ulam 1;
+  ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

@@ -83,7 +83,7 @@ namespace MFM{
     virtual void packBitsForClassInstances();
     virtual void printUnresolvedVariablesForClassInstances();
 
-    virtual void buildDefaultQuarkForClassInstances();
+    virtual void buildDefaultValueForClassInstances();
 
     virtual void testForClassInstances(File * fp);
 

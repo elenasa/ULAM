@@ -3,8 +3,8 @@
 #!
 ./A.ulam:5:4: ERROR: Incompatible class type Bar and Bits(32) used with binary operator=.
 ./A.ulam:6:8: ERROR: Unsigned is the supported type for shift distance, operator<<; Suggest casting Bar to Unsigned.
-./A.ulam:2:10: ERROR: 2 Nodes with erroneous types detected after type labeling class: A.
-./A.ulam:2:10: ERROR: 1 Nodes with unresolved types detected after type labeling class: A.
+./A.ulam:6:4: ERROR: Assignment is invalid; LHS: Bar; RHS: erroneous.
+./A.ulam:2:10: ERROR: 3 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 #>A.ulam
 use Bar;

@@ -252,7 +252,7 @@ namespace MFM {
 	  }
 
 	// Don't Go Beyond This Point when either it or eit are not ok.
-	if(UlamType::compare(eit, it, m_state) == UTIC_NOTSAME)
+	if(UlamType::compareForMakingCastingNode(eit, it, m_state) == UTIC_NOTSAME)
 	  {
 	    //must be safe to case (NodeVarDecl c&l) is different
 	    if(!Node::makeCastingNode(m_nodeInitExpr, it, m_nodeInitExpr))
@@ -431,7 +431,7 @@ namespace MFM {
 	else
 	  {
 	    if(m_state.m_currentObjSymbolsForCodeGen.empty())
-	      fp->write(m_state.getTmpVarAsString(uvpass.getPassTargetType(), uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str());
+	      fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	    else
 	      fp->write(stgcos->getMangledName().c_str()); //even if self
 	    if(cos->isDataMember())
@@ -510,7 +510,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    fp->write(m_state.getTmpVarAsString(puti, uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str());
+	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	  }
 
 	if(!m_state.isAtomRef(puti))
@@ -539,7 +539,7 @@ namespace MFM {
 	    else if(!stgcosut->isScalar())
 	      {
 		fp->write(", ");
-		fp->write(m_state.getTmpVarAsString(puti, uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str());
+		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 		fp->write(" * EC::ATOM_CONFIG::BITS_PER_ATOM");
 	      }
 	  }
@@ -689,7 +689,7 @@ namespace MFM {
 	fp->write(", ");
 	fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
 	fp->write("u + (");
-	fp->write(m_state.getTmpVarAsString(uvpass.getPassTargetType(), uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str());
+	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	fp->write(" * ");
 	fp->write_decimal_unsigned(stgcosut->getBitSize());
 	fp->write("u)");
@@ -703,7 +703,7 @@ namespace MFM {
 	    fp->write(", ");
 	    fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
 	    fp->write("u + (");
-	    fp->write(m_state.getTmpVarAsString(uvpass.getPassTargetType(), uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str());
+	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	    fp->write(" * ");
 	    fp->write_decimal_unsigned(stgcosut->getBitSize());
 	    fp->write("u)");
@@ -714,7 +714,7 @@ namespace MFM {
 	    if((vclasstype == UC_NOTACLASS) && (vetype != UAtom) )
 	      {
 		fp->write(", (");
-		fp->write(m_state.getTmpVarAsString(uvpass.getPassTargetType(), uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str());
+		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 		fp->write(" * ");
 		fp->write_decimal_unsigned(cosut->getBitSize());
 		fp->write("u)"); //relative t3651
@@ -727,7 +727,7 @@ namespace MFM {
 	    else if(vclasstype == UC_QUARK)
 	      {
 		fp->write(", ");
-		fp->write(m_state.getTmpVarAsString(uvpass.getPassTargetType(), uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str());
+		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 		fp->write(" * ");
 		fp->write_decimal_unsigned(stgcosut->getBitSize());
 	      }

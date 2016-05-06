@@ -1,5 +1,5 @@
 /**
-  Standard Forkbomb.  
+  Standard Forkbomb.
   \symbol FB
   \color #af0
   \symmetries all
@@ -13,5 +13,3 @@ element FB {
     ew[1] = ew[0];
   }
 }
-
-    

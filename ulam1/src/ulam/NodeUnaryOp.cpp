@@ -132,7 +132,7 @@ namespace MFM {
 
     if(m_state.isComplete(newType))
       {
-	if(UlamType::compare(newType, uti, m_state) != UTIC_SAME) //not same|dontknow
+	if(UlamType::compareForMakingCastingNode(newType, uti, m_state) != UTIC_SAME) //not same|dontknow
 	  {
 	    if(!Node::makeCastingNode(m_node, newType, m_node))
 	      newType = Nav;
@@ -428,18 +428,14 @@ namespace MFM {
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
 
-    fp->write(m_state.getTmpVarAsString(getNodeType(),tmpVarNum).c_str());
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
     fp->write(" = ");
 
     fp->write(methodNameForCodeGen().c_str());
     fp->write("(");
-
-    UTI uti = uvpass.getPassTargetType();
-    fp->write(m_state.getTmpVarAsString(uti, uvpass.getPassVarNum()).c_str());
-
+    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
     fp->write(", ");
     fp->write_decimal(nut->getBitSize());
-
     fp->write(");\n");
 
     uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified.

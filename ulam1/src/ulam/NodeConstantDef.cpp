@@ -290,7 +290,7 @@ namespace MFM {
 
     setNodeType(suti);
 
-    if(!(m_constSymbol->isReady()))
+    if(!m_constSymbol->isReady() && m_nodeExpr)
       {
 	UTI foldrtn = foldConstantExpression();
 	if(foldrtn == Nav)
@@ -499,7 +499,7 @@ namespace MFM {
     return uti; //ok
   } //foldConstantExpression
 
-  bool NodeConstantDef::buildDefaultQuarkValue(u32& dqref)
+  bool NodeConstantDef::buildDefaultValue(u32 wlen, BV8K& bvref)
   {
     return true; //pass on
   }

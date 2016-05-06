@@ -153,15 +153,13 @@ namespace MFM {
     if(func)
       {
 	assert(m_state.okUTItoContinue(cuti));
-	ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(cuti)->getUlamClassType(); //may not need classtype
-	assert((classtype == UC_ELEMENT) || (classtype == UC_QUARK) || (classtype == UC_TRANSIENT)); //sanity check after eval (below)
+	assert(m_state.isASeenClass(cuti)); //sanity check after eval (below)
 
 	//simplifying assumption for testing purposes: center site
 	Coord c0(0,0);
 	s32 slot = c0.convertCoordToIndex();
 
-	printPostfixDataMembersSymbols(fp, slot, ATOMFIRSTSTATEBITPOS, classtype);
-
+	printPostfixDataMembersSymbols(fp, slot, ATOMFIRSTSTATEBITPOS, m_state.getUlamTypeByIndex(cuti)->getUlamClassType()); //may not need classtype
 	func->printPostfix(fp);
       }
     else
@@ -330,8 +328,24 @@ namespace MFM {
 
 	assert(isSuperClassLinkReady());
 	ULAMCLASSTYPE superclasstype = m_state.getUlamTypeByIndex(superuti)->getUlamClassType();
-	if(superclasstype != UC_QUARK)
+	ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClassType();
+	if(classtype == UC_TRANSIENT)
 	  {
+	    if(superclasstype != UC_TRANSIENT)
+	      {
+		std::ostringstream msg;
+		msg << "Subclass '";
+		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		msg << "' inherits from '";
+		msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
+		msg << "', a class that's not a transient";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		setNodeType(Nav);
+	      }
+	  }
+	else if(superclasstype != UC_QUARK)
+	  {
+	    //for all others (elements and quarks)
 	    //must be "seen" by c&l; e.g. typedef array of quarks (t3674)
 	    std::ostringstream msg;
 	    msg << "Subclass '";
@@ -356,7 +370,8 @@ namespace MFM {
     if(funcNode)
       {
 	UTI funcType = funcNode->getNodeType();
-	if(funcType != Int)
+	//if(funcType != Int)
+	if(UlamType::compareForArgumentMatching(funcType, Int, m_state) == UTIC_NOTSAME)
 	  {
 	    std::ostringstream msg;
 	    msg << "By convention, Function '" << funcNode->getName();
@@ -572,21 +587,21 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   } //getCustomArrayIndexTypeFromGetFunction
 
   //starts here, called by SymbolClass
-  bool NodeBlockClass::buildDefaultQuarkValue(u32& dqref)
+  bool NodeBlockClass::buildDefaultValue(u32 wlen, BV8K& dvref)
   {
     bool aok = true;
     if((m_state.isClassASubclass(getNodeType()) != Nouti))
       {
 	NodeBlockClass * superblock = getSuperBlockPointer();
 	assert(superblock);
-	aok = superblock->buildDefaultQuarkValue(dqref);
+	aok = superblock->buildDefaultValue(wlen, dvref);
       }
 
     if(aok)
       if(m_nodeNext)
-	aok = m_nodeNext->buildDefaultQuarkValue(dqref); //side-effect for dm vardecls
+	aok = m_nodeNext->buildDefaultValue(wlen, dvref); //side-effect for dm vardecls
     return aok;
-  } //buildDefaultQuarkValue
+  } //buildDefaultValue
 
   EvalStatus NodeBlockClass::eval()
   {
@@ -788,6 +803,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   void NodeBlockClass::initElementDefaultsForEval(UlamValue& uv, UTI cuti)
   {
     UTI buti = getNodeType();
+
+    UlamType * but = m_state.getUlamTypeByIndex(buti);
+    if((but->getUlamClassType() == UC_TRANSIENT) && (but->getTotalBitSize() > MAXSTATEBITS))
+      return; //cannot do eval on a huge transient
+
     UTI superuti = m_state.isClassASubclass(buti);
     assert(superuti != Hzy);
     if(superuti != Nouti)
@@ -1299,7 +1319,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	std::string namestrlong = removePunct(cut->getUlamTypeMangledName());
 
 	fp->write("() : UlamTransient<EC");
-	//fp->write_decimal_unsigned(len);
 	fp->write(">(MFM_UUID_FOR(\"");
 	fp->write(namestrlong.c_str());
 	fp->write("\", 0))\n");
@@ -1582,23 +1601,22 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.m_currentIndentLevel++;
 
     m_state.indent(fp);
-    fp->write("AtomBitStorage<EC> da(Element<EC>::BuildDefaultAtom());\n");
+    fp->write("AtomBitStorage<EC> da(Element<EC>::BuildDefaultAtom());\n\n");
 
-    m_state.indent(fp);
-    fp->write("UlamRef<EC> daref(0u + T::ATOM_FIRST_STATE_BIT, ");
-    fp->write_decimal_unsigned(cut->getTotalBitSize());
-    fp->write("u, da, &");
-    fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
-    fp->write(");\n");
-    fp->write("\n");
+    if(cut->getBitSize() > 0)
+      {
+	m_state.indent(fp);
+	fp->write("// Initialize any data members:\n");
 
-    m_state.indent(fp);
-    fp->write("// Initialize any data members:\n");
+	//get all initialized data members packed
+	if(genCodeBuiltInFunctionBuildingDefaultDataMembers(fp))
+	  {
+	    m_state.indent(fp);
+	    fp->write("da.WriteBV(0u + T::ATOM_FIRST_STATE_BIT, ");
+	    fp->write("initBV);\n");
+	  }
+      }
 
-    //get all initialized data members packed
-    genCodeBuiltInFunctionBuildingDefaultDataMembers(fp);
-
-    fp->write("\n");
     m_state.indent(fp);
     fp->write("return ");
     fp->write("(da.ReadAtom());\n");
@@ -1608,24 +1626,28 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("} //BuildDefaultAtom\n\n");
   } //genCodeBuiltInFunctionBuildDefaultAtom
 
-  void NodeBlockClass::genCodeBuiltInFunctionBuildingDefaultDataMembers(File * fp)
+  //return false for zero default value (effects the needed gen code)
+  bool NodeBlockClass::genCodeBuiltInFunctionBuildingDefaultDataMembers(File * fp)
   {
     UTI nuti = getNodeType();
-    if(m_state.isClassASubclass(nuti) != Nouti)
-      {
-	NodeBlockClass * superClassBlock = getSuperBlockPointer();
-	assert(superClassBlock);
-	superClassBlock->genCodeBuiltInFunctionBuildingDefaultDataMembers(fp);
-      }
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    assert(nut->isScalar());
 
-    m_ST.genCodeBuiltInFunctionBuildDefaultsOverTableOfVariableDataMember(fp, nuti);
+    u32 len = nut->getTotalBitSize();
+    if(len == 0)
+      return false;
+
+    BV8K dval;
+    AssertBool isDefault = m_state.getDefaultClassValue(nuti, dval);
+    assert(isDefault);
+
+    return m_state.genCodeClassDefaultConstantArray(fp, len, dval);
   } //genCodeBuiltInFunctionBuildingDefaultDataMembers
 
   void NodeBlockClass::genCodeBuiltInFunctionBuildDefaultQuark(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     //return;
     assert(classtype == UC_QUARK);
-
     UTI cuti = m_state.getCompileThisIdx();
 
     if(declOnly)
@@ -1677,7 +1699,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   void NodeBlockClass::genCodeBuiltInFunctionBuildDefaultTransient(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
-    //return;
     assert(classtype == UC_TRANSIENT);
 
     UTI cuti = m_state.getCompileThisIdx();
@@ -1713,27 +1734,25 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.m_currentIndentLevel++;
 
     u32 len = cut->getTotalBitSize();
+    if(len > 0)
+      {
+	m_state.indent(fp);
+	fp->write("MFM_API_ASSERT_ARG((pos + bvsref.GetBitSize()) >= ");
+	fp->write_decimal_unsigned(len);
+	fp->write("u);\n\n");
 
-    m_state.indent(fp);
-    fp->write("MFM_API_ASSERT_ARG((pos + bvsref.GetBitSize()) >= ");
-    fp->write_decimal_unsigned(len);
-    fp->write("u);\n");
+	m_state.indent(fp);
+	fp->write("// Initialize any data members:\n");
 
-    m_state.indent(fp);
-    fp->write("UlamRef<EC> daref(pos, ");
-    fp->write_decimal_unsigned(len);
-    fp->write("u, bvsref, &");
-    fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
-    fp->write(");\n\n");
-
-    m_state.indent(fp);
-    fp->write("// Initialize any data members:\n");
-
-    //get all initialized data members packed into 'daref'
-    genCodeBuiltInFunctionBuildingDefaultDataMembers(fp);
-
-    fp->write("\n");
-
+	//get all initialized data members packed into 'daref'
+	// unlike element and quarks, data members can be elements and other transients
+	if(genCodeBuiltInFunctionBuildingDefaultDataMembers(fp))
+	  {
+	    m_state.indent(fp);
+	    fp->write("bvsref.WriteBV(pos, "); //first arg
+	    fp->write("initBV);\n");
+	  }
+      }
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("} //getDefaultTransient\n\n");

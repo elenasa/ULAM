@@ -41,6 +41,7 @@
 #include "NodeBlockFunctionDefinition.h"
 #include "NodeList.h"
 #include "Symbol.h"
+#include "SymbolTableOfFunctions.h"
 
 namespace MFM{
 
@@ -106,8 +107,7 @@ namespace MFM{
 
     u32 getCustomArrayIndexTypeFromGetFunction(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
 
-    bool buildDefaultQuarkValue(u32& dqref); //starts here, called by SymbolClass
-
+    virtual bool buildDefaultValue(u32 wlen, BV8K& dvref); //starts here, called by SymbolClass
     void checkDuplicateFunctions();
 
     void calcMaxDepthOfFunctions();
@@ -170,7 +170,7 @@ namespace MFM{
     virtual void addClassMemberDescriptionsToInfoMap(ClassMemberMap& classmembers);
 
   protected:
-    SymbolTable m_functionST;
+    SymbolTableOfFunctions m_functionST;
     s32 m_virtualmethodMaxIdx;
 
   private:
@@ -196,7 +196,7 @@ namespace MFM{
 
     void genCodeBuiltInFunctionGetClassLength(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInFunctionBuildDefaultAtom(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
-    void genCodeBuiltInFunctionBuildingDefaultDataMembers(File * fp);
+    bool genCodeBuiltInFunctionBuildingDefaultDataMembers(File * fp);
     void genCodeBuiltInFunctionBuildDefaultQuark(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInFunctionBuildDefaultTransient(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 

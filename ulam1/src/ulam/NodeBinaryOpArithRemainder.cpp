@@ -41,14 +41,12 @@ namespace MFM {
 	ULAMCLASSTYPE newclasstype = newut->getUlamClassType();
 	nuti = m_state.makeUlamType(tokey, typEnum, newclasstype);
 
-	if(UlamType::compare(nuti, newType, m_state) != UTIC_SAME) //not same, or dontknow
+	if(UlamType::compareForMakingCastingNode(nuti, newType, m_state) != UTIC_SAME) //not same, or dontknow
 	  {
 	    NNO pno = Node::getYourParentNo(); //save
 	    assert(pno);
-	      //not using use makeCastingNode since don't want recursive c&l call
-	    Node * castNode = new NodeCast(this, nuti, NULL, m_state);
-	    assert(castNode);
-	    castNode->setNodeLocation(getNodeLocation());
+	    //not using use makeCastingNode since don't want recursive c&l call
+	    Node * castNode = Node::newCastingNode(this, nuti);
 
 	    Node * parentNode = m_state.findNodeNoInThisClass(pno);
 	    if(!parentNode)

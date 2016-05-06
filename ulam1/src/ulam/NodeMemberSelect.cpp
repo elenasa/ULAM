@@ -55,7 +55,6 @@ namespace MFM {
     UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
     TBOOL lstor = m_nodeLeft->getStoreIntoAble();
     if(lstor != TBOOL_TRUE)
-    //if(m_nodeLeft->isFunctionCall())
       {
 	//e.g. funcCall is not storeintoable even if its return value is.
 	std::ostringstream msg;
@@ -83,10 +82,17 @@ namespace MFM {
 	msg << "Member selected is incomplete class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
 	msg << ", check and label fails this time around";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-
-	setNodeType(Hzy);
-	m_state.setGoAgain(); //since no error msg
+	if(luti == Nav)
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
+	  }
+	else
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    setNodeType(Hzy);
+	    m_state.setGoAgain(); //since no error msg
+	  }
 	return getNodeType();
       } //done
 
@@ -329,7 +335,9 @@ namespace MFM {
 
   SymbolTmpRef * NodeMemberSelect::makeTmpRefSymbolForCodeGen(UVPass uvpass)
   {
-    UTI tuti = uvpass.getPassTargetType();
+    UTI tuti = uvpass.getPassTargetType(); //possibly not a ref, e.g. array item.
+    //if(!m_state.isReference(tuti))
+    //  tuti = m_state.getUlamTypeAsRef(tuti, ALT_REF);
     std::string tmpvarname = m_state.getTmpVarAsString(tuti, uvpass.getPassVarNum(), TMPAUTOREF);
     Token tidTok(TOK_IDENTIFIER, Node::getNodeLocation(), m_state.m_pool.getIndexForDataString(tmpvarname));
     SymbolTmpRef * rtnsym = new SymbolTmpRef(tidTok, tuti, m_state);

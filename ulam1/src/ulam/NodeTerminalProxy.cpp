@@ -126,7 +126,7 @@ namespace MFM {
       }
 
     //attempt to map UTI; may not have a node type descriptor
-    if(!m_state.isComplete(m_uti))
+    if(m_state.okUTItoContinue(m_uti) && !m_state.isComplete(m_uti))
       {
 	if(m_state.isReference(m_uti)) //e.g. selftyperef
 	  m_uti = m_state.getUlamTypeAsDeref(m_uti);
@@ -285,7 +285,7 @@ namespace MFM {
     if(isReadyConstant())
       return true;
 
-    if(!m_state.isComplete(m_uti))
+    if(!m_state.okUTItoContinue(m_uti) || !m_state.isComplete(m_uti))
       {
 	std::ostringstream msg;
 	msg << "Proxy Type: " << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
@@ -293,8 +293,13 @@ namespace MFM {
 	msg << m_funcTok.getTokenString();
 	msg << "' while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	m_state.setGoAgain(); //since not error; maybe no nodetypedesc
+	if(m_state.okUTItoContinue(m_uti) || (m_uti == Hzy))
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    m_state.setGoAgain(); //since not error; maybe no nodetypedesc
+	  }
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	//rtnb = false; don't want to stop after parsing.
       }
     else

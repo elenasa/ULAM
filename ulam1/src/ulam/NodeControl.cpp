@@ -148,7 +148,6 @@ namespace MFM {
 		  }
 	      }
 	  }
-	//	m_nodeBody->checkAndLabelType(); //side-effect
       }
     else
       {
@@ -207,7 +206,7 @@ namespace MFM {
 	    assert(cut->getUlamTypeEnum() == Bool);
 	    fp->write(((UlamTypePrimitiveBool *) cut)->getConvertToCboolMethod().c_str());
 	    fp->write("((");
-	    fp->write(m_state.getTmpVarAsString(cuti, uvpass.getPassVarNum()).c_str());
+	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	    fp->write(" >= 0 ? 1 : 0), "); //test for 'has' pos
 	    fp->write_decimal(cut->getBitSize());
 	    fp->write(")");
@@ -218,7 +217,7 @@ namespace MFM {
 	    assert(cut->getUlamTypeEnum() == Bool);
 	    fp->write(((UlamTypePrimitiveBool *) cut)->getConvertToCboolMethod().c_str());
 	    fp->write("(");
-	    fp->write(m_state.getTmpVarAsString(cuti, uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str());
+	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	    fp->write(", ");
 	    fp->write_decimal(cut->getBitSize());
 	    fp->write(")");

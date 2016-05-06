@@ -366,7 +366,9 @@ namespace MFM {
       return false;
 
     UTI nuti = getNodeType();
-    if(!m_state.isComplete(nuti))
+    if(nuti == Nav)
+      return false;
+    else if(!m_state.isComplete(nuti))
       {
 	m_state.setGoAgain(); //since not error
 	return false;
@@ -462,77 +464,71 @@ namespace MFM {
     return rtnb;
   } //updateConstant64
 
-  //called on Quark classes only; may have quark and/or (short packed)
-  //quark array data members.
-  bool NodeVarDeclDM::buildDefaultQuarkValue(u32& dqref)
+  bool NodeVarDeclDM::buildDefaultValue(u32 wlen, BV8K& dvref)
   {
+    assert(m_varSymbol);
+    assert(m_varSymbol->isDataMember());
+
     bool aok = false; //init as not ready
     UTI nuti = getNodeType(); //same as symbol uti
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMCLASSTYPE classtype = nut->getUlamClassType();
 
-    if(m_nodeInitExpr || classtype == UC_QUARK)
+    u32 pos = m_varSymbol->getPosOffset();
+    s32 bitsize = nut->getBitSize();
+
+    ULAMTYPE etyp = nut->getUlamTypeEnum();
+    if(etyp == Class) //thisClass contains a different class
       {
-	assert(m_varSymbol);
-	assert(m_varSymbol->isDataMember());
-
-	u32 pos = m_varSymbol->getPosOffset();
-	u32 valinposition = 0;
-	s32 bitsize = nut->getBitSize();
-	s32 quarksize = m_state.getBitSize(m_state.getCompileThisIdx());
-
-	if(classtype == UC_QUARK)
+	u32 dmwlen = nut->getTotalWordSize();
+	if(dmwlen > 0)
 	  {
-	    u32 qval = 0;
-	    if(m_state.getDefaultQuark(nuti, qval))
+	    assert(dmwlen <= wlen);
+	    BV8K dmdv; //copies default BV
+
+	    if(m_state.getDefaultClassValue(nuti, dmdv))
 	      {
 		s32 arraysize = nut->getArraySize();
 		arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize);
-
-		u64 packedval = 0;
-		//valinposition = (qval & mask) << (quarksize - bitsize - pos);
-		m_state.getDefaultAsPackedArray(quarksize, bitsize, arraysize, pos, (u64) qval, packedval); //both scalar and arrays
-
-		valinposition = (u32) packedval;
-		dqref |= valinposition;
+		//updates dvref in place at position 'pos' in dvref
+		//from position 0 in dmdv (a copy)
+		m_state.getDefaultAsArray(bitsize, arraysize, pos, dmdv, dvref); //both scalar and arrays
 		aok = true;
 	      }
 	  }
-	else
+
+	//fold packloadable class (e.g. quark) here for node eval, printpostfix..
+	if(aok)
+	  foldDefaultClass(); //try if packedloadable
+      }
+    else if(m_nodeInitExpr)
+      {
+	//primitive (not a class!)
+	//arrays not initialized at this time
+	if(m_state.isScalar(nuti))
 	  {
-	    //arrays not initialized at this time
-	    //primitive (not a quark!)
-	    if(m_state.isScalar(nuti))
+	    u64 val = 0;
+	    if(((SymbolVariableDataMember *) m_varSymbol)->getInitValue(val))
 	      {
-		u64 val = 0;
-		if(((SymbolVariableDataMember *) m_varSymbol)->getInitValue(val))
-		  {
-		    u64 packedval = 0;
-		    //valinposition = ((u32) val & mask) << (quarksize - pos - bitsize);
-		    m_state.getDefaultAsPackedArray(quarksize, bitsize, 1, pos, (u64) val, packedval);
-		    valinposition = (u32) packedval;
-		    dqref |= valinposition;
-		    aok = true;
-		  }
+		s32 classsize = m_state.getBitSize(m_state.getCompileThisIdx());
+		u64 packedval = 0;
+		m_state.getDefaultAsPackedArray(classsize, bitsize, 1, pos, (u64) val, packedval);
+		dvref.WriteLong(pos, bitsize, packedval);
+		aok = true;
 	      }
 	  }
-
-	//fold quark here for node eval, printpostfix..
-	if(classtype == UC_QUARK && aok)
-	  foldDefaultQuark(dqref);
       }
     else
       aok = true; //no initialized value
 
     return aok;
-  } //buildDefaultQuarkValue
+  } //buildDefaultValue
 
   bool NodeVarDeclDM::foldDefaultQuark(u32 dq)
   {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     u64 dqval = 0;
-    //build dqval array
+    //bouild dqval array
     if(!nut->isScalar())
       {
 	//array of quarks
@@ -559,6 +555,43 @@ namespace MFM {
     ((SymbolVariableDataMember *) m_varSymbol)->setInitValue(dqval);
     return true;
   } //foldDefaultQuark
+
+  void NodeVarDeclDM::foldDefaultClass()
+  {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+    u64 dpkval = 0;
+    if(!m_state.getPackedDefaultClass(nuti, dpkval))
+      return; //not pack loadable (or not ok to continue)
+
+    //build dqval array
+    if(!nut->isScalar())
+      {
+	//array of packed classes
+	if(nut->getTotalWordSize() > MAXBITSPERLONG) //64
+	  {
+	    std::ostringstream msg;
+	    msg << "Not supported at this time, UN-PACKEDLOADABLE Class array type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //was ERR
+	    return;
+	  }
+	u64 dpkarr = 0;
+	m_state.getDefaultAsPackedArray(nuti, dpkval, dpkarr); //3rd arg ref
+	dpkval = dpkarr;
+      }
+    //else scalar in dpkval
+
+    //folding into a terminal node
+    NodeTerminal * newnode = new NodeTerminal(dpkval, nuti, m_state);
+    newnode->setNodeLocation(getNodeLocation());
+    delete m_nodeInitExpr;
+    m_nodeInitExpr = newnode;
+    //(in this order) i thought this was for primitives only????
+    ((SymbolVariableDataMember *) m_varSymbol)->setHasInitValue(); //???
+    ((SymbolVariableDataMember *) m_varSymbol)->setInitValue(dpkval); //???
+  } //foldDefaultClass
 
   void NodeVarDeclDM::packBitsInOrderOfDeclaration(u32& offset)
   {
@@ -697,30 +730,27 @@ namespace MFM {
       return NOTREADY;
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMCLASSTYPE classtype = nut->getUlamClassType();
+    //ULAMCLASSTYPE classtype = nut->getUlamClassType();
+    ULAMTYPE etyp = nut->getUlamTypeEnum();
 
     assert(m_varSymbol->getAutoLocalType() == ALT_NOT);
 
-    if(classtype == UC_TRANSIENT)
-      return NodeVarDecl::eval(); //can only be a data member of a transient
-
-    if(m_state.isAtom(nuti) || (classtype == UC_ELEMENT))
+    if(m_state.isAtom(nuti))
       return NodeVarDecl::eval();
 
-    // make terminal expression node so rest of eval works for quarks too
-    if((classtype == UC_QUARK) && (m_nodeInitExpr == NULL))
+    // m_nodeInitExpr exists as result of a previous fold
+    if(etyp == Class && (m_nodeInitExpr == NULL))
       {
-	u32 dqval = 0;
-	if(m_state.getDefaultQuark(nuti, dqval))
-	  {
-	    if(!foldDefaultQuark(dqval))
-	      return ERROR;
-	  }
+	//element and transient can only be a data member of a transient
+	//quarks go anywhere;
+	u64 dpkval = 0;
+	if(m_state.getPackedDefaultClass(nuti, dpkval))
+	  foldDefaultClass();
 	else
 	  return ERROR;
       }
 
-    // quark or nonclass data member;
+    // packedloadable class (e.g. quark) or nonclass data member;
     if(((SymbolVariableDataMember *) m_varSymbol)->hasInitValue())
       {
 	return NodeVarDecl::evalInitExpr();
@@ -735,7 +765,7 @@ namespace MFM {
     // (from NodeIdent's makeUlamValuePtr)
     // return ptr to this data member within the m_currentObjPtr
     // 'pos' modified by this data member symbol's packed bit position
-    UlamValue rtnUVPtr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+    UlamValue rtnUVPtr = makeUlamValuePtr();
 
     //copy result UV to stack, -1 relative to current frame pointer
     Node::assignReturnValuePtrToStack(rtnUVPtr);
@@ -743,6 +773,11 @@ namespace MFM {
     evalNodeEpilog();
     return NORMAL;
   } //evalToStoreInto
+
+  UlamValue NodeVarDeclDM::makeUlamValuePtr()
+  {
+    return UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+  }
 
   // parse tree in order declared, unlike the ST.
   void NodeVarDeclDM::genCode(File * fp, UVPass& uvpass)
@@ -760,13 +795,17 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMCLASSTYPE nclasstype = nut->getUlamClassType();
+    ULAMTYPE netyp = nut->getUlamTypeEnum();
+    //ULAMCLASSTYPE nclasstype = nut->getUlamClassType();
     ULAMCLASSTYPE classtype = m_state.getUlamClassForThisClass();
 
     m_state.indent(fp);
-    if(nclasstype == UC_QUARK && nut->isScalar())
+    //if(nclasstype == UC_QUARK && nut->isScalar())
+    if((netyp == Class) && nut->isScalar())
       {
-	// use typedef rather than atomic parameter for quarks within elements,
+	// use typedef rather than atomic parameter for classes
+	// (e.g. quarks within elements, element within transients,
+	//       transients within transients, etc).
 	// except if an array of quarks.
 	fp->write("typedef ");
 	fp->write(nut->getUlamTypeMangledName().c_str()); //for C++
@@ -803,7 +842,6 @@ namespace MFM {
 	fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
 	fp->write(";\n"); //func call parameters aren't NodeVarDecl's
       }
-
   } //genCodedBitFieldTypedef
 
   void NodeVarDeclDM::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)

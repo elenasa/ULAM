@@ -163,15 +163,15 @@ namespace MFM {
       m_nodeNext->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   } //countNavNodes
 
-  bool NodeStatements::buildDefaultQuarkValue(u32& dqref)
+  bool NodeStatements::buildDefaultValue(u32 wlen, BV8K& dvref)
   {
     bool aok = true;
     if(m_node)
-      aok |= m_node->buildDefaultQuarkValue(dqref);
+      aok |= m_node->buildDefaultValue(wlen, dvref);
     if(m_nodeNext)
-      aok |= m_nodeNext->buildDefaultQuarkValue(dqref);
+      aok |= m_nodeNext->buildDefaultValue(wlen, dvref);
     return aok;
-  } //buildDefaultQuarkValue
+  } //buildDefaultValue
 
   EvalStatus NodeStatements::eval()
   {

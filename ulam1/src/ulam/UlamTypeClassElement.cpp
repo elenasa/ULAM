@@ -9,11 +9,7 @@
 
 namespace MFM {
 
-  UlamTypeClassElement::UlamTypeClassElement(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypeClass(key, state)
-  {
-    //setTotalWordSize(BITSPERATOM);
-    //setItemWordSize(BITSPERATOM);
-  }
+  UlamTypeClassElement::UlamTypeClassElement(const UlamKeyTypeSignature key, CompilerState & state) : UlamTypeClass(key, state) { }
 
   ULAMCLASSTYPE UlamTypeClassElement::getUlamClassType()
   {
@@ -56,7 +52,6 @@ namespace MFM {
 
   PACKFIT UlamTypeClassElement::getPackable()
   {
-    //return UNPACKED; //was PACKED, now matches ATOM regardless of its bit size.
     return UlamType::getPackable(); //depends on PACKED size
   }
 
@@ -79,14 +74,7 @@ namespace MFM {
 	  if(isScalar())
 	    method = "ReadBig";
 	  else
-	    method = "ReadBV";
-#if 0
-	    {
-	      std::ostringstream mstr;
-	      mstr << "ReadBV<" << getTotalBitSize() << ">";
-	      method = mstr.str();
-	    }
-#endif
+	    method = "ReadBV"; //template arg deduced by gcc
 	}
       };
     return method;
@@ -111,14 +99,7 @@ namespace MFM {
 	  if(isScalar())
 	    method = "WriteBig";
 	  else
-	    method = "WriteBV";
-#if 0
-	    {
-	      std::ostringstream mstr;
-	      mstr << "WriteBV<" << getTotalBitSize() << ">";
-	      method = mstr.str();
-	    }
-#endif
+	    method = "WriteBV"; //template arg deduced by gcc
 	}
       };
     return method;
@@ -152,7 +133,6 @@ namespace MFM {
 
   TMPSTORAGE UlamTypeClassElement::getTmpStorageTypeForTmpVar()
   {
-    //return TMPTATOM;
     u32 sizebyints = getTotalWordSize();
     TMPSTORAGE rtnStgType = TMPTBV; //?
     std::string ctype;
@@ -167,9 +147,7 @@ namespace MFM {
 	break;
       case 96:
       default:
-	{
-	  rtnStgType = TMPBITVAL;
-	}
+	rtnStgType = TMPBITVAL;
       };
     return rtnStgType;
   } //getTmpStorageTypeForTmpVar
@@ -345,9 +323,7 @@ namespace MFM {
 	fp->write("(); /* entire element */ }\n");
       }
 
-    // arrays are handled separately
-    //assert(isScalar());
-    //scalar and entire PACKEDLOADABLE or UNPACKED array handled by base class read method
+    //scalar and entire PACKEDLOADABLE or UNPACKED array handled by read method
     if(!isScalar())
       {
 	//class instance idx is always the scalar uti
@@ -384,9 +360,7 @@ namespace MFM {
 	fp->write("(targ); /* entire element */ }\n");
       }
 
-    // arrays are handled separately
-    //assert(isScalar());
-    //scalar and entire PACKEDLOADABLE array handled by base class write method
+    //scalar and entire PACKEDLOADABLE array handled by write method
     if(!isScalar())
       {
 	// writes an item of array
@@ -497,12 +471,11 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write("() { ");
 
-    fp->write("AtomBitStorage<EC> tmp(");
-    fp->write("Us::THE_INSTANCE");
-    fp->write(".GetDefaultAtom()); "); //returns object of type T
-
     if(isScalar())
       {
+	fp->write("AtomBitStorage<EC> tmp(");
+	fp->write("Us::THE_INSTANCE");
+	fp->write(".GetDefaultAtom()); "); //returns object of type T
 	fp->write("BVS::WriteBig");
 	fp->write("(0u, ");
 	fp->write_decimal_unsigned(len);
@@ -512,21 +485,21 @@ namespace MFM {
       }
     else
       {
-	fp->write("BV96 tmpval = tmp.");
-	fp->write("ReadBig");
-	fp->write("(0u + T::ATOM_FIRST_STATE_BIT, ");
-	fp->write_decimal_unsigned(bitsize);
-	fp->write("); ");
-	fp->write("u32 n = ");
-	fp->write_decimal_unsigned(getArraySize());
-	fp->write("u; while(n--) { ");
-	fp->write("BVS::WriteBig(n * ");
-	fp->write_decimal_unsigned(bitsize);
-	fp->write(", ");
-	fp->write_decimal_unsigned(bitsize);
-	fp->write(", tmpval); }");
+	BV8K dval, darrval;
+	AssertBool isDefault = m_state.getDefaultClassValue(scalaruti, dval);
+	m_state.getDefaultAsArray(bitsize, getArraySize(), 0u, dval, darrval);
+	fp->write("\n");
+	m_state.m_currentIndentLevel++;
+	if(m_state.genCodeClassDefaultConstantArray(fp, len, darrval))
+	  {
+	    m_state.indent(fp);
+	    fp->write("BVS::WriteBV(0u, "); //first arg
+	    fp->write("initBV);\n");
+	  }
+	m_state.m_currentIndentLevel--;
       }
-    fp->write(" }\n");
+      m_state.indent(fp);
+      fp->write(" }\n");
 
     //constructor here (used by const tmpVars)
     m_state.indent(fp);
@@ -627,8 +600,6 @@ namespace MFM {
 
   void UlamTypeClassElement::genUlamTypeReadDefinitionForC(File * fp)
   {
-
-    //if(isScalar() || WritePacked(getPackable()))
     if(WritePacked(getPackable()))
       {
 	m_state.indent(fp);
@@ -677,7 +648,6 @@ namespace MFM {
   void UlamTypeClassElement::genUlamTypeWriteDefinitionForC(File * fp)
   {
     //ref param to avoid excessive copying
-    //if(isScalar() || (getPackable() == PACKEDLOADABLE))
     if(WritePacked(getPackable()))
       {
 	m_state.indent(fp);

@@ -60,8 +60,7 @@
 #include "SymbolClassName.h"
 #include "SymbolClassNameTemplate.h"
 #include "SymbolFunction.h"
-#include "SymbolTable.h"
-#include "SymbolVariable.h"
+#include "SymbolTableOfClasses.h"
 #include "Token.h"
 #include "Tokenizer.h"
 #include "TypeArgs.h"
@@ -82,7 +81,7 @@ namespace MFM{
 
   class Symbol;         //forward
   class NodeBlockClass; //forward
-  class SymbolTable;    //forward
+  class SymbolTableOfClasses;    //forward
 
   struct CompilerState
   {
@@ -97,7 +96,7 @@ namespace MFM{
     std::map<u32,std::vector<u32>* > m_textByLinePerFilePath;
     Locator m_locOfNextLineText;
 
-    SymbolTable m_programDefST; // holds SymbolClassName and SymbolClassNameTemplate
+    SymbolTableOfClasses m_programDefST; // holds SymbolClassName and SymbolClassNameTemplate
 
     s32 m_currentFunctionBlockDeclSize; //used to calc framestack size for function def
     s32 m_currentFunctionBlockMaxDepth; //framestack saved in NodeBlockFunctionDefinition
@@ -127,7 +126,7 @@ namespace MFM{
     std::map<UlamKeyTypeSignature, UlamType *, less_than_key> m_definedUlamTypes; //key->ulamtype *
     std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key> m_keyToAnyUTI; //key->set of indexes of ulamtype (UTI); tracks how many uti's to an "unknown" key, before delete
 
-    std::set<SymbolClassName *> m_unseenClasses;
+    std::set<u32> m_unseenClasses; //name id of possible classes (no longer SymbolClassName *)
 
     std::vector<UTI> m_unionRootUTI; //UTI's root UTI to manage holder/aliases
 
@@ -200,16 +199,20 @@ namespace MFM{
     UTI getUlamTypeOfConstant(ULAMTYPE etype);
     UTI getDefaultUlamTypeOfConstant(UTI ctype);
     bool getDefaultQuark(UTI cuti, u32& dqref);
-    u64 getPackedDefaultElement(UTI auti);
-    u64 getPackedDefaultTransient(UTI auti);
+    bool getPackedDefaultClass(UTI auti, u64& dpkref);
     void getDefaultAsPackedArray(UTI auti, u64 dval, u64& darrval);
     void getDefaultAsPackedArray(u32 len, u32 bitsize, u32 arraysize, u32 pos, u64 dval, u64& darrval);
+    bool getDefaultClassValue(UTI cuti, BV8K& dvref);
+    void getDefaultAsArray(u32 bitsize, u32 arraysize, u32 tpos, const BV8K& dval, BV8K& darrval);
+    bool genCodeClassDefaultConstantArray(File * fp, u32 len, BV8K& dval);
 
     bool isScalar(UTI utArg);
     s32 getArraySize(UTI utArg);
     s32 getBitSize(UTI utArg);
     ALT getReferenceType(UTI utArg);
     bool isReference(UTI utArg);
+    bool correctAReferenceTypeWith(UTI utiArg, UTI derefuti);
+    bool correctAnArrayTypeWith(UTI utiArg, UTI scalaruti);
     bool isComplete(UTI utArg);
     bool completeAReferenceType(UTI utArg);
     bool completeAReferenceTypeWith(UTI utArg, UTI derefuti);
@@ -223,7 +226,7 @@ namespace MFM{
     void updateUTIAliasForced(UTI auti, UTI buti);
     void initUTIAlias(UTI auti);
 
-    bool setSizesOfNonClass(UTI utArg, s32 bitsize, s32 arraysize);
+    bool setSizesOfNonClassAndArrays(UTI utArg, s32 bitsize, s32 arraysize);
 
     s32 getDefaultBitSize(UTI uti);
     u32 getTotalBitSize(UTI utArg);
@@ -277,6 +280,8 @@ namespace MFM{
     bool statusUnknownTypeInThisClassResolver(UTI huti);
 
     /** creates temporary class type for dataindex, returns the new Symbol pointer in 2nd arg; */
+    bool removeIncompleteClassSymbolFromProgramTable(u32 id); //helper
+    bool removeIncompleteClassSymbolFromProgramTable(Token nTok);
     bool addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr);
     bool addIncompleteTemplateClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr);
     UTI addStubCopyToAncestorClassTemplate(UTI stubTypeToCopy,  UTI context);
@@ -326,8 +331,6 @@ namespace MFM{
     ULAMCLASSTYPE getUlamClassForThisClass();
     UTI getUlamTypeForThisClass();
 
-    const std::string getBitSizeTemplateString(UTI uti);
-
     const std::string getBitVectorLengthAsStringForCodeGen(UTI uti);
 
     /** returns ulamvalue ptr to entire atom/element from m_currentSelfPtr */
@@ -348,11 +351,7 @@ namespace MFM{
     /** assign pointer as value */
     void assignValuePtr(UlamValue lptr, UlamValue rptr);
 
-    /** determinePackable: returns true
-	if entire array can fit within an atom (including type);
-	or if a 32-bit immediate scalar (non-Classes);
-	discovered when installing a variable symbol
-    */
+    /** PACKEDLOADABLE fits in u32/u64, PACKED into an atom, o.w. UNPACKED */
     PACKFIT determinePackable(UTI aut);
 
     bool thisClassHasTheTestMethod();
@@ -375,7 +374,7 @@ namespace MFM{
     void outputTextAsComment(File * fp, Locator nodeloc);
 
     s32 getNextTmpVarNumber();
-    const std::string getTmpVarAsString(UTI uti, s32 num, TMPSTORAGE stg = TMPREGISTER);
+    const std::string getTmpVarAsString(UTI uti, s32 num, TMPSTORAGE stg);
     const std::string getUlamRefTmpVarAsString(s32 num);
     const std::string getUlamClassTmpVarAsString(s32 num);
     const std::string getAtomBitStorageTmpVarAsString(s32 num);
@@ -441,7 +440,11 @@ namespace MFM{
     bool isPtr(UTI puti);
     bool isAtom(UTI auti);
     bool isAtomRef(UTI auti);
+    bool isASeenClass(UTI cuti);
+    bool isAnonymousClass(UTI cuti);
     bool okUTItoContinue(UTI uti);
+    bool okUTItoContinue(UTI uti1, UTI uti2); //false if either is Nav
+    bool checkHasHazyKin(NodeBlock * block);
 
   private:
     ClassContextStack m_classContextStack; // the current subject of this compilation

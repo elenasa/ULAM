@@ -9,7 +9,7 @@
 Unrecoverable Program Parse FAILURE.
 ##
 ##
-##      //point of this test; but invalid statement (double parens inside if condition)
+##      //point of this test; but invalid statement (double parens inside if with as-conditions)
 ##
 #>Foo.ulam
 use Counter4;

@@ -352,27 +352,6 @@ namespace MFM {
     UTI nuti = getNodeType();
     u32 tid = getNameId();
 
-#if 0
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    s32 len = nut->getBitSize();
-    assert(len != UNKNOWNSIZE);
-    u32 tid = 0;
-    if(len <= MAXBITSPERINT)
-      {
-	char dstr[40];
-	nut->getDataAsString((u32) m_constant.uval, dstr, 'z');
-	tid = m_state.m_pool.getIndexForDataString(dstr);
-      }
-    else if(len <= MAXBITSPERLONG)
-      {
-	char dstr[70];
-	vut->getDataLongAsString(m_constant.uval, dstr, 'z');
-	tid = m_state.m_pool.getIndexForDataString(dstr);
-      }
-    else
-      assert(0);
-#endif
-
     //TMPSTORAGE is TERMINAL, and VarNum is zero.
     uvpass = UVPass::makePass(0, TERMINAL, nuti, m_state.determinePackable(nuti), m_state, 0, tid);
   } //makeTerminalValueForCodeGen
@@ -680,7 +659,7 @@ namespace MFM {
     fp->write(nut->getTmpStorageTypeAsString().c_str());
     fp->write(" ");
 
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum).c_str());
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
 
     fp->write(" = ");
 
@@ -694,21 +673,19 @@ namespace MFM {
 	else
 	  assert(0);
       }
-
     fp->write(getName());
     fp->write(";\n");
 
     //substitute Ptr for uvpass to contain the tmpVar number;
     //save id of constant string in Ptr;
     uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0);  //POS 0 rightjustified (atom-based);
-    //    uvpass.setPtrPos(0); //entire register
-
     m_state.clearCurrentObjSymbolsForCodeGen(); //missing or just needed by NodeTerminalProxy?
   } //genCodeReadIntoATmpVar
 
   bool NodeTerminal::setConstantValue(Token tok)
   {
     bool rtnok = false;
+    errno = 0; //to check for ERANGE
     switch(tok.m_type)
       {
       case TOK_NUMBER_SIGNED:
@@ -716,9 +693,9 @@ namespace MFM {
 	  std::string numstr = m_state.getTokenDataAsString(&tok);
 	  const char * numlist = numstr.c_str();
 	  char * nEnd;
-
 	  m_constant.sval = strtol(numlist, &nEnd, 0);   //base 10, 8, or 16
-	  if (*numlist == 0 || *nEnd != 0)
+
+	  if((*numlist == 0) || (*nEnd != 0) || (errno == ERANGE))
 	    {
 	      std::ostringstream msg;
 	      msg << "Invalid signed constant <" << numstr.c_str() << ">, errno=";
@@ -736,7 +713,7 @@ namespace MFM {
 	  char * nEnd;
 
 	  m_constant.uval = strtoul(numlist, &nEnd, 0);   //base 10, 8, or 16
-	  if (*numlist == 0 || !(*nEnd == 'u' || *nEnd == 'U') || *(nEnd + 1) != 0)
+	  if((*numlist == 0) || !(*nEnd == 'u' || *nEnd == 'U') || (*(nEnd + 1) != 0) || (errno == ERANGE))
 	    {
 	      std::ostringstream msg;
 	      msg << "Invalid unsigned constant <" << numstr.c_str() << ">, errno=";

@@ -97,7 +97,7 @@ namespace MFM {
 
   UTI NodeIdent::checkAndLabelType()
   {
-    UTI it = Nav;  //init
+    UTI it = Nouti;  //init (was Nav)
     u32 errCnt = 0;
 
     //checkForSymbol:
@@ -234,7 +234,11 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
 	    else
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		it = Hzy;
+		m_state.setGoAgain();
+	      }
 	    errCnt++;
 	  }
       } //lookup symbol
@@ -364,8 +368,7 @@ namespace MFM {
 	    else
 	      {
 		UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-		//if(m_state.isAtom(nuti) || (nut->getUlamClassType() == UC_ELEMENT)) pls test this change!
-		if((m_state.isAtom(nuti) || (classtype == UC_ELEMENT) || (classtype == UC_TRANSIENT)) && (nut->isScalar() || nut->isReference()))
+		if((m_state.isAtom(nuti) || (classtype == UC_ELEMENT) || (classtype == UC_TRANSIENT)) && (nut->isScalar() || nut->isReference())) //pls test this change!
 		  {
 		    uv = m_state.getPtrTarget(uvp);
 		  }
@@ -486,37 +489,21 @@ namespace MFM {
     if(m_varSymbol->getAutoLocalType() == ALT_AS)
       return ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval(); //haha! we're done.
 
-    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClassType();
-    if(classtype == UC_ELEMENT)
+    if(m_varSymbol->isDataMember())
       {
-	  // ptr to explicit atom or element, (e.g.'f' in f.a=1) becomes new m_currentObjPtr
-	  ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
-      }
-    else if(classtype == UC_TRANSIENT)
-      {
-	// ptr to explicit transient (<= BITSPERATOM for eval), (e.g.'f' in f.a=1) becomes new m_currentObjPtr
-	ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
+	// return ptr to this data member within the m_currentObjPtr
+	// 'pos' modified by this data member symbol's packed bit position
+	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
       }
     else
       {
-	if(m_varSymbol->isDataMember())
-	  {
-	    // return ptr to this data member within the m_currentObjPtr
-	    // 'pos' modified by this data member symbol's packed bit position
-	    ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
-	  }
-	else
-	  {
-	    //DEBUG ONLY!!, to view ptr saved with Ref's m_varSymbol.
+	//DEBUG ONLY!!, to view ptr saved with Ref's m_varSymbol.
 #if 0
-	    if(m_varSymbol->isAutoLocal()) //ALT_REF or ALT_ARRAYITEM
-	      {
-		ptr = ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval();
-	      }
+	if(m_varSymbol->isAutoLocal()) //ALT_REF or ALT_ARRAYITEM
+	  ptr = ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval();
 #endif
-	    //local variable on the stack; could be array ptr!
-	    ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
-	  }
+	//local variable on the stack; could be array ptr!
+	ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
       }
     return ptr;
   } //makeUlamValuePtr
@@ -529,42 +516,24 @@ namespace MFM {
 
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMCLASSTYPE classtype = nut->getUlamClassType();
 
-    if((classtype == UC_ELEMENT) || m_state.isAtom(nuti))
+    if(m_varSymbol->isDataMember())
       {
-	// ptr to explicit atom or element, (e.g. 'f' in f.a=1;)
-	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
-      }
-    else if(classtype == UC_TRANSIENT)
-      {
-	// ptr to explicit atom or element, (e.g. 'f' in f.a=1;)
-	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
+	u32 pos = 0;
+	if(!m_state.m_currentObjSymbolsForCodeGen.empty())
+	  {
+	    SymbolVariable * sym = (SymbolVariable *) m_state.m_currentObjSymbolsForCodeGen.back();
+	    //here, we haven't taken into account any array indexes, So autoref instead
+	    // e.g. m_bar[0].cb, and this NI is for the rhs of member select, 'cb'
+	    pos = sym->getPosOffset();
+	  }
+	// 'pos' modified by this data member symbol's packed bit position
+	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
       }
     else
       {
-	if(m_varSymbol->isDataMember())
-	  {
-	    u32 pos = 0;
-
-	    if(!m_state.m_currentObjSymbolsForCodeGen.empty())
-	      {
-		SymbolVariable * sym = (SymbolVariable *) m_state.m_currentObjSymbolsForCodeGen.back();
-		//here, we haven't taken into account any array indexes, So autoref instead
-		// e.g. m_bar[0].cb, and this NI is for the rhs of member select, 'cb'
-		pos = sym->getPosOffset();
-	      }
-	    // 'pos' modified by this data member symbol's packed bit position
-	    uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
-
-	    //uvpass.setPassPos(pos + m_varSymbol->getPosOffset()); //could have been zero over-written (no thanks).
-	  }
-	else
-	  {
-	    //local variable on the stack; could be array ptr!
-	    uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
-	    //uvpass.setPassPos(0); //could have been zero over-written.
-	  }
+	//local variable on the stack; could be array ptr!
+	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
       }
   } //makeUVPassForCodeGen
 
@@ -636,6 +605,7 @@ namespace MFM {
 	  if(isUnseenClass)
 	    {
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	      //m_state.removeIncompleteClassSymbolFromProgramTable(m_token); //new!!
 	      brtn = true;
 	    }
 	  else
@@ -695,7 +665,7 @@ namespace MFM {
 	UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
 	ULAMCLASSTYPE classtype = ut->getUlamClassType();
 
-	if(ut->isScalar() && args.m_arraysize != NONARRAYSIZE)
+	if(ut->isScalar() && (args.m_arraysize != NONARRAYSIZE))
 	  {
 	    args.m_declListOrTypedefScalarType = scalarUTI = uti;
 	    // o.w. build symbol (with bit and array sizes);
@@ -720,6 +690,12 @@ namespace MFM {
 	//remember tduti for references
 	symtypedef->setAutoLocalType(m_state.getReferenceType(uti));
 
+	if(isUnseenClass)
+	  {
+	    UlamType * tdut = m_state.getUlamTypeByIndex(uti);
+	    UlamKeyTypeSignature tdkey = tdut->getUlamKeyTypeSignature();
+	    m_state.makeUlamTypeFromHolder(tdkey, tdut->getUlamTypeEnum(), pmcuti, UC_UNSEEN);
+	  }
 	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr)); //true
       }
     return false;

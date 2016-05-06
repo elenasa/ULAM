@@ -116,6 +116,9 @@ namespace MFM{
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
     UlamValue makeUlamValuePtr(); //for locals
+
+    void setupStackWithClassForEval(u32 slots);
+    void setupStackWithQuarkForEval(u32 slots);
   };
 
 }

@@ -140,13 +140,13 @@ src:	FORCE
 # inside the MFM tree.  NOTE: MAKE BOTH TREES FIRST!
 ULAMDIR:=share/ulam
 ULAMWORKDIR:=.gen
-$(MFM_ROOT_DIR)/res/elements/libue%.so:	$(ULAMDIR)/%/*.ulam 
+$(MFM_ROOT_DIR)/res/elements/libue%.so:	$(ULAMDIR)/%/*.ulam
 	./bin/ulam -lo --sd $(ULAMDIR)/core --sd $(ULAMDIR)/$* $(^:$(ULAMDIR)/$*/%=%)
 	mv -f $(ULAMWORKDIR)/bin/libcue.so "$@"
 	rm -rf $(ULAMWORKDIR)
-$(MFM_ROOT_DIR)/res/elements/demos/libue%.so:	$(ULAMDIR)/demos/%/*.ulam 
+$(MFM_ROOT_DIR)/res/elements/demos/libue%.so:	$(ULAMDIR)/demos/%/*.ulam
 	mkdir -p $(MFM_ROOT_DIR)/res/elements/demos
-	./bin/ulam -lo --sd $(ULAMDIR)/core --sd $(ULAMDIR)/demos/$* $(^:$(ULAMDIR)/demos/$*/%=%)
+	./bin/ulam --sa -lo --sd $(ULAMDIR)/core --sd $(ULAMDIR)/demos/$* $(^:$(ULAMDIR)/demos/$*/%=%)
 	mv -f $(ULAMWORKDIR)/bin/libcue.so "$@"
 	rm -rf $(ULAMWORKDIR)
 

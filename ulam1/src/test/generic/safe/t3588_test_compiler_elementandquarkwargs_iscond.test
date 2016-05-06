@@ -43,7 +43,7 @@ element Eltypo : Typo(1) {
   Typo(1) t;
   Int test(){
     Eltypo elf;
-    if(elf is Bar){
+    if((elf is Bar)){ //extra paren ok
       elf.func(3u);
       s.print(elf.bu);
       s.assert(elf.bu == 3);

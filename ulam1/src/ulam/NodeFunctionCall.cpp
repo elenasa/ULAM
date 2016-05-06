@@ -295,7 +295,7 @@ namespace MFM {
 	      UTI ptype = psym->getUlamTypeIdx();
 	      Node * argNode = m_argumentNodes->getNodePtr(i); //constArgs[i];
 	      UTI atype = argNode->getNodeType();
-	      if(UlamType::compare(ptype, atype, m_state) == UTIC_NOTSAME) //o.w. known same
+	      if(UlamType::compareForArgumentMatching(ptype, atype, m_state) == UTIC_NOTSAME) //o.w. known same
 		{
 		  Node * argCast = NULL;
 		  if(!Node::makeCastingNode(argNode, ptype, argCast))
@@ -728,7 +728,6 @@ namespace MFM {
       }
 
     // The Call:
-    //if(m_state.isPass(uvpass.getUVPassTypeIdx()) && (uvpass.getPassStorage() == TMPAUTOREF))
     if((uvpass.getPassStorage() == TMPAUTOREF))
       genCodeAReferenceIntoABitValue(fp, uvpass);
     else
@@ -888,7 +887,7 @@ namespace MFM {
 
     assert(uvpass.getPassStorage() == TMPAUTOREF);
     UTI vuti = uvpass.getPassTargetType();
-    assert(m_state.getUlamTypeByIndex(vuti)->getReferenceType() != ALT_NOT);
+    //assert(m_state.getUlamTypeByIndex(vuti)->getReferenceType() != ALT_NOT); //e.g. t3668
 
     //use possible dereference type for mangled name
     //UTI derefuti = m_state.getUlamTypeAsDeref(vuti);
@@ -1129,7 +1128,7 @@ namespace MFM {
     assert(uvpass.getPassStorage() == TMPAUTOREF);
 
     UTI vuti = uvpass.getPassTargetType();
-    assert(m_state.getUlamTypeByIndex(vuti)->getReferenceType() != ALT_NOT);
+    //assert(m_state.getUlamTypeByIndex(vuti)->getReferenceType() != ALT_NOT); (e.g. t3668, a QW that was deref'd by [].)
 
     //use possible dereference type for mangled name
     UTI derefuti = m_state.getUlamTypeAsDeref(vuti);
@@ -1237,7 +1236,6 @@ namespace MFM {
     for(u32 i = 0; i < numParams; i++)
       {
 	UVPass auvpass;
-	UTI auti;
 	m_state.clearCurrentObjSymbolsForCodeGen(); //*************
 
 	// what if ALT_ARRAYITEM?
@@ -1250,9 +1248,7 @@ namespace MFM {
 	    m_argumentNodes->genCode(fp, auvpass, i);
 	    Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
 	  }
-
-	auti = auvpass.getPassTargetType();
-	arglist << ", " << m_state.getTmpVarAsString(auti, auvpass.getPassVarNum(), auvpass.getPassStorage()).c_str();
+	arglist << ", " << auvpass.getTmpVarAsString(m_state).c_str();
       } //next arg..
 
     if(m_funcSymbol->takesVariableArgs())
@@ -1261,7 +1257,6 @@ namespace MFM {
 	for(u32 i = numParams; i < numargs; i++)
 	  {
 	    UVPass auvpass;
-	    UTI auti;
 	    m_state.clearCurrentObjSymbolsForCodeGen(); //*************
 
 	    if(m_state.getReferenceType(m_argumentNodes->getNodeType(i)) != ALT_NOT)
@@ -1273,10 +1268,8 @@ namespace MFM {
 		m_argumentNodes->genCode(fp, auvpass, i);
 		Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
 	      }
-
-	    auti = auvpass.getPassTargetType();
 	    // use pointer for variable arg's since all the same size that way
-	    arglist << ", &" << m_state.getTmpVarAsString(auti, auvpass.getPassVarNum(), auvpass.getPassStorage()).c_str();
+	    arglist << ", &" << auvpass.getTmpVarAsString(m_state).c_str();
 	  } //end forloop through variable number of args
 
 	arglist << ", (void *) 0"; //indicates end of args

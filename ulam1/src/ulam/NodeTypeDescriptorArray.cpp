@@ -7,7 +7,8 @@ namespace MFM {
 
   NodeTypeDescriptorArray::NodeTypeDescriptorArray(Token tokarg, UTI auti, NodeTypeDescriptor * scalarnode, CompilerState & state) : NodeTypeDescriptor(tokarg, auti, state), m_nodeScalar(scalarnode), m_unknownArraysizeSubtree(NULL)
   {
-    m_nodeScalar->updateLineage(getNodeNo()); //for unknown subtrees
+    if(m_nodeScalar)
+      m_nodeScalar->updateLineage(getNodeNo()); //for unknown subtrees
   }
 
   NodeTypeDescriptorArray::NodeTypeDescriptorArray(const NodeTypeDescriptorArray& ref) : NodeTypeDescriptor(ref), m_nodeScalar(NULL), m_unknownArraysizeSubtree(NULL)
@@ -60,11 +61,17 @@ namespace MFM {
 
   const char * NodeTypeDescriptorArray::getName()
   {
-    std::ostringstream nstr;
-    nstr << m_nodeScalar->getName();
-    nstr << "[]";
-
-    return nstr.str().c_str();
+    //VALGRIND says illegal read this way:
+    // (errors/t3219, t3320. t3389, t3498, t3499, t3502, t3674)
+    //assert(m_nodeScalar);
+    //std::ostringstream nstr;
+    //if(m_nodeScalar)
+    //  nstr << m_nodeScalar->getName();
+    //else
+    // nstr << NodeTypeDescriptor::getName();
+    //nstr << "[]";
+    //return nstr.str().c_str();
+    return NodeTypeDescriptor::getName();
   } //getName
 
   const std::string NodeTypeDescriptorArray::prettyNodeName()
@@ -166,6 +173,8 @@ namespace MFM {
 	else
 	  rtnuti = nuti; //could be Nav or Hzy
       } //else select not ready, so neither are we!!
+    else if(scuti == Nav)
+      rtnuti = Nav;
     else
       rtnuti = Hzy;
     return rtnb;

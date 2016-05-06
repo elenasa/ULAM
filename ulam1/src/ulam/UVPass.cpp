@@ -6,7 +6,7 @@
 
 namespace MFM {
 
-  UVPass::UVPass() { }
+  UVPass::UVPass() : m_varNum(0), m_posInStorage(0), m_bitlenInStorage(0), m_storagetype(TMPREGISTER), m_packed(UNPACKED), m_targetType(Nouti), m_nameid(0) { }
 
   UVPass::~UVPass() { }
 
@@ -100,5 +100,10 @@ namespace MFM {
   {
     m_nameid = id;
   } //setPassNameId
+
+  const std::string UVPass::getTmpVarAsString(CompilerState & state)
+  {
+    return state.getTmpVarAsString(getPassTargetType(), getPassVarNum(), getPassStorage());
+  }
 
 } //end MFM

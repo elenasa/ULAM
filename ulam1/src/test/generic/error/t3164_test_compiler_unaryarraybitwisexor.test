@@ -2,8 +2,8 @@
 #=t3164_test_compiler_unaryarraybitwisexor
 #!
 ./A.ulam:9:8: ERROR: Incompatible (nonscalar) types Unary(3)[2] and Unary(3)[2] for binary operator^ ; Suggest writing a loop.
-./A.ulam:1:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
-./A.ulam:1:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: A.
+./A.ulam:9:4: ERROR: Assignment is invalid; LHS: Unary(3)[2]; RHS: erroneous.
+./A.ulam:1:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>A.ulam

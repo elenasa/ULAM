@@ -152,13 +152,13 @@ namespace MFM {
 
     if(m_state.isComplete(newType))
       {
-	if(UlamType::compare(newType, leftType, m_state) != UTIC_SAME) //not same, or dontknow
+	if(UlamType::compareForMakingCastingNode(newType, leftType, m_state) != UTIC_SAME) //not same, or dontknow
 	  {
 	    if(!Node::makeCastingNode(m_nodeLeft, newType, m_nodeLeft))
 	      newType = Nav;
 	  }
 
-	if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME) //not same, or dontknow
+	if(UlamType::compareForMakingCastingNode(newType, rightType, m_state) != UTIC_SAME) //not same, or dontknow
 	  {
 	    if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
 	      newType = Nav;
@@ -717,24 +717,16 @@ namespace MFM {
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
 
-    fp->write(m_state.getTmpVarAsString(nuti,tmpVarNum).c_str());
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
     fp->write(" = ");
 
     fp->write(methodNameForCodeGen().c_str());
     fp->write("(");
-
-    UTI luti = luvpass.getPassTargetType();
-    fp->write(m_state.getTmpVarAsString(luti, luvpass.getPassVarNum()).c_str());
-
+    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
     fp->write(", ");
-
-    UTI ruti = ruvpass.getPassTargetType();
-    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPassVarNum()).c_str());
-
+    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
     fp->write(", ");
-
     fp->write_decimal(nut->getTotalBitSize()); //if scalar, it's just the bitsize
-
     fp->write(");\n");
 
     uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //P

@@ -62,7 +62,7 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    virtual bool buildDefaultQuarkValue(u32& dqref);
+    virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
     virtual void genCode(File * fp, UVPass& uvpass);
 

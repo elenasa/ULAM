@@ -2,10 +2,11 @@
 #=t3195_test_compiler_element_bitstype_assignarray
 #!
 ./Foo.ulam:11:18: ERROR: Incompatible types for binary operator+ : Bits(3), Bits(3); Suggest casting to a numeric type first.
+./Foo.ulam:11:9: ERROR: Assignment is invalid; LHS: Bits(3); RHS: erroneous.
 ./Foo.ulam:12:6: ERROR: Use a comparison operator to convert Bits(3)[3] to Bool(3)[3] for operator=.
 ./Foo.ulam:19:2: ERROR: Use explicit cast to return Bool(3) as Int(32).
-./Foo.ulam:3:9: ERROR: 3 Nodes with erroneous types detected after type labeling class: Foo.
-./Foo.ulam:3:9: ERROR: 8 Nodes with unresolved types detected after type labeling class: Foo.
+./Foo.ulam:3:9: ERROR: 4 Nodes with erroneous types detected after type labeling class: Foo.
+./Foo.ulam:3:9: ERROR: 7 Nodes with unresolved types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>Foo.ulam

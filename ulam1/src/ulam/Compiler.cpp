@@ -68,14 +68,32 @@ namespace MFM {
     std::vector<std::string> unseenFileNames;
     while(!perrs && m_state.getUnseenClassFilenames(unseenFileNames))
       {
+	std::vector<std::string> existingFileNames; //filtered
 	std::vector<std::string>::iterator it = unseenFileNames.begin();
 	while(it != unseenFileNames.end())
 	  {
 	    std::string startstr = *it;
-	    perrs += compileFile(startstr, errput, ss, P);
+	    if(ss.exists(startstr) == 0)
+	      {
+		existingFileNames.push_back(startstr);
+	      }
+	    else
+	      {
+
+	      }
+	    //else skip
 	    it++;
 	  }
+
+	std::vector<std::string>::iterator et = existingFileNames.begin();
+	while(et != existingFileNames.end())
+	  {
+	    std::string startstr = *et;
+	    perrs += compileFile(startstr, errput, ss, P);
+	    et++;
+	  }
 	unseenFileNames.clear();
+	existingFileNames.clear();
       }
 
     if(!perrs)
@@ -250,8 +268,8 @@ namespace MFM {
 	// let Ulam programmer know the bits used/available (needs infoOn)
 	m_state.m_programDefST.printBitSizeOfTableOfClasses();
 
-	// determine any quark default values:
-	m_state.m_programDefST.buildDefaultQuarksFromTableOfClasses();
+	// determine all class default values:
+	m_state.m_programDefST.buildDefaultValuesFromTableOfClasses();
       }
 
     m_state.m_programDefST.reportUnknownTypeNamesAcrossTableOfClasses();

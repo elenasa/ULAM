@@ -127,7 +127,14 @@ namespace MFM{
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
 	UTI puti = m_nodes[i]->checkAndLabelType();
-	if(!m_state.isComplete(puti))
+	if(puti == Nav)
+	  {
+	    std::ostringstream msg;
+	    msg << "Argument " << i + 1 << " has a problem";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    rtnuti = Nav;
+	  }
+	else if((rtnuti != Nav) && !m_state.isComplete(puti))
 	  {
 	    rtnuti = Hzy; // all or none
 	    m_state.setGoAgain(); //since no error msg

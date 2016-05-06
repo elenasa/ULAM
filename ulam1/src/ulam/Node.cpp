@@ -258,7 +258,7 @@ namespace MFM {
     return Nav; //parent required
   }
 
-  bool Node::buildDefaultQuarkValue(u32& dqref)
+  bool Node::buildDefaultValue(u32 wlen, BV8K& dvref)
   {
     assert(0);
     return false;
@@ -439,7 +439,6 @@ namespace MFM {
 
   void Node::genCodeReadIntoATmpVar(File * fp, UVPass & uvpass)
   {
-    s32 tmpVarNum = uvpass.getPassVarNum();
     UTI vuti = uvpass.getPassTargetType(); //replaces vuti w target type
     assert(vuti != Void);
 
@@ -477,7 +476,7 @@ namespace MFM {
     fp->write("const ");
     fp->write(tmpStorageTypeForRead(cosuti, uvpass).c_str());
     fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPassStorage()).c_str());
+    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
     fp->write(" = ");
 
     // all the cases where = is used; else BitVector constructor for converting a tmpvar
@@ -568,24 +567,24 @@ namespace MFM {
   {
     //unlike the others, here, uvpass is the autoref (stg);
     //cos tell us where to go within the selected member
-    s32 tmpVarNum = uvpass.getPassVarNum();
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp for data
 
     UTI vuti = uvpass.getPassTargetType();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+    TMPSTORAGE vstor = vut->getTmpStorageTypeForTmpVar();
 
     m_state.indent(fp);
     fp->write("const ");
     fp->write(tmpStorageTypeForRead(vuti, uvpass).c_str());
     fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2, vut->getTmpStorageTypeForTmpVar()).c_str());
+    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2, vstor).c_str());
     fp->write(" = ");
 
-    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPassStorage()).c_str());
+    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
     fp->write(".read();\n");
 
     //update uvpass
-    uvpass = UVPass::makePass(tmpVarNum2, vut->getTmpStorageTypeForTmpVar(), vuti, m_state.determinePackable(vuti), m_state, 0, 0); //POS 0 justified (atom-based).
+    uvpass = UVPass::makePass(tmpVarNum2, vstor, vuti, m_state.determinePackable(vuti), m_state, 0, 0); //POS 0 justified (atom-based).
 
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeReadAutorefIntoATmpVar
@@ -640,7 +639,7 @@ namespace MFM {
 	fp->write(", ");
 	fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
 	fp->write("u + ");
-	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPassVarNum()).c_str()); //INDEX
+	fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //INDEX
 	fp->write(" * ");
 	fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM == rel pos
 	fp->write("u, ");
@@ -672,7 +671,7 @@ namespace MFM {
 	  }
 	fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
 	fp->write("u + ");
-	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPassVarNum()).c_str()); //INDEX
+	fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //INDEX
 	fp->write(" * ");
 	fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
 	fp->write("u, ");
@@ -763,7 +762,7 @@ namespace MFM {
     //index is immediate Index arg of targettype in uvpass
     fp->write(localStorageTypeAsString(vuti).c_str()); //e.g. BitVector<32> exception
     fp->write("(");
-    fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPassVarNum()).c_str()); //INDEX
+    fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //INDEX
     fp->write("));\n");
 
     //update uvpass
@@ -854,13 +853,10 @@ namespace MFM {
     // with immediate quarks, they are read into a tmpreg as other immediates
     // with immediate elements, too! value is not a terminal
     TMPSTORAGE rstor = ruvpass.getPassStorage();
-    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPassVarNum(), rstor).c_str());
+    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
     if(rstor == TMPBITVAL)
-      {
-	//fp->write(".");
-	//fp->write(readMethodForCodeGen(ruti, ruvpass).c_str()); //or just 'Read' ?
-	fp->write(".read()");
-      }
+      fp->write(".read()");
+
     fp->write(");\n");
 
     // inheritance cast needs the lhs type restored after the generated write
@@ -893,13 +889,9 @@ namespace MFM {
     fp->write(".");
     fp->write(writeMethodForCodeGen(luti, luvpass).c_str());
     fp->write("(");
-    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPassVarNum(), ruvpass.getPassStorage()).c_str());
+    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
     if(ruvpass.getPassStorage() == TMPBITVAL)
-      {
-	//fp->write(".");
-	//fp->write(readMethodForCodeGen(ruti, ruvpass).c_str()); //or just 'Read' ?
-	fp->write(".read()");
-      }
+      fp->write(".read()");
 
     fp->write(");\n");
 
@@ -913,7 +905,6 @@ namespace MFM {
   void Node::genCodeWriteToAtomofRefFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass)
   {
     UTI luti = luvpass.getPassTargetType();
-    UTI ruti = ruvpass.getPassTargetType();
 
     m_state.indent(fp);
     if(!m_state.m_currentObjSymbolsForCodeGen.empty())
@@ -923,7 +914,7 @@ namespace MFM {
       }
     else
       {
-	fp->write(m_state.getTmpVarAsString(luti, luvpass.getPassVarNum(), luvpass.getPassStorage()).c_str());
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
 	fp->write(".");
       }
 
@@ -931,13 +922,9 @@ namespace MFM {
     fp->write("(");
 
     //VALUE TO BE WRITTEN:
-    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPassVarNum(), ruvpass.getPassStorage()).c_str());
+    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
     if(ruvpass.getPassStorage() == TMPBITVAL)
-      {
-	//fp->write(".");
-	//fp->write(readMethodForCodeGen(ruti, ruvpass).c_str()); //or just 'Read' ?
-	fp->write(".read()");
-      }
+      fp->write(".read()");
     fp->write("); //write into atomof ref\n ");
 
     m_state.clearCurrentObjSymbolsForCodeGen();
@@ -947,25 +934,19 @@ namespace MFM {
   {
     //unlike the others, here, uvpass is the autoref (stg);
     //cos tell us where to go within the selected member
-    s32 tmpVarNum = luvpass.getPassVarNum();
     UTI luti = luvpass.getPassTargetType();
-    UTI ruti = ruvpass.getPassTargetType();
 
     m_state.indent(fp);
-    fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, TMPAUTOREF).c_str());
+    fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //TMPAUTOREF
     fp->write(".");
     fp->write(writeMethodForCodeGen(luti, luvpass).c_str());
     fp->write("(");
     //VALUE TO BE WRITTEN:
     // with immediate quarks, they are read into a tmpreg as other immediates
     // with immediate elements, too! value is not a terminal
-    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPassVarNum(), ruvpass.getPassStorage()).c_str());
+    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
     if(ruvpass.getPassStorage() == TMPBITVAL)
-      {
-	//fp->write(".");
-	//fp->write(readMethodForCodeGen(ruti, ruvpass).c_str()); //or just 'Read' ?
-	fp->write(".read()");
-      }
+      fp->write(".read()");
     fp->write(");\n");
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeWriteToAutorefFromATmpVar
@@ -975,7 +956,7 @@ namespace MFM {
     s32 tmpVarType = m_state.getNextTmpVarNumber();
     m_state.indent(fp);
     fp->write("const u32 ");
-    fp->write(m_state.getTmpVarAsString(Unsigned, tmpVarType).c_str());;
+    fp->write(m_state.getTmpVarAsString(Unsigned, tmpVarType, TMPREGISTER).c_str());;
     fp->write(" = ");
 
     if(!isCurrentObjectALocalVariableOrArgument())
@@ -1017,7 +998,7 @@ namespace MFM {
 	fp->write("writeTypeField(");
       }
 
-    fp->write(m_state.getTmpVarAsString(Unsigned, tmpVarType).c_str());;
+    fp->write(m_state.getTmpVarAsString(Unsigned, tmpVarType, TMPREGISTER).c_str());;
     fp->write("); //restore type\n\n");
   } //restoreElementTypeForAncestorCasting
 
@@ -1025,7 +1006,6 @@ namespace MFM {
   // ruvpass is the ptr to value to write
   void Node::genCodeWriteArrayItemFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass)
   {
-    UTI luti = luvpass.getPassTargetType();
     UTI ruti = ruvpass.getPassTargetType();
     UlamType * rut = m_state.getUlamTypeByIndex(ruti);
     TMPSTORAGE rstor = ruvpass.getPassStorage();
@@ -1067,7 +1047,7 @@ namespace MFM {
 	fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
 	fp->write("u + ");
 
-	fp->write(m_state.getTmpVarAsString(luti, luvpass.getPassVarNum()).c_str()); //INDEX
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //INDEX
 	fp->write(" * ");
 	fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM == rel pos
 	fp->write("u, ");
@@ -1089,7 +1069,7 @@ namespace MFM {
 
 	// with immediate quarks, they are read into a tmpreg as other immediates
 	// with immediate elements, too! value not a terminal
-	fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPassVarNum(), rstor).c_str());
+	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
 	if(rstor == TMPBITVAL)
 	  {
 	    fp->write(".read()"); //t3172
@@ -1109,7 +1089,7 @@ namespace MFM {
 	  }
 	fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
 	fp->write("u + ");
-	fp->write(m_state.getTmpVarAsString(luti, luvpass.getPassVarNum()).c_str()); //INDEX
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //INDEX
 	fp->write(" * ");
 	fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
 	fp->write("u, ");
@@ -1136,7 +1116,7 @@ namespace MFM {
 	fp->write("(");
 	// with immediate quarks, they are read into a tmpreg as other immediates
 	// with immediate elements, too! value not a terminal
-	fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPassVarNum(), rstor).c_str());
+	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
 	if(rstor == TMPBITVAL)
 	  {
 	    fp->write(".read()");
@@ -1157,7 +1137,6 @@ namespace MFM {
   void Node::genCodeWriteCustomArrayItemFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass)
   {
     UTI luti = luvpass.getPassTargetType();
-    UTI ruti = ruvpass.getPassTargetType(); //terminals handled in NodeTerminal
 
     //rhs could be a constant; or previously cast from Int to Unary variables.
     // here, cos is symbol used to determine read method: either self or last of cos.
@@ -1210,7 +1189,7 @@ namespace MFM {
     //index is immediate Int arg
     fp->write(localStorageTypeAsString(luti).c_str()); //e.g. BitVector<32> exception
     fp->write("(");
-    fp->write(m_state.getTmpVarAsString(luti, luvpass.getPassVarNum()).c_str()); //INDEX
+    fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //INDEX
     fp->write("), ");
 
     //VALUE TO BE WRITTEN:
@@ -1221,7 +1200,7 @@ namespace MFM {
     UTI catype = m_state.getAClassCustomArrayType(cosuti);
     fp->write(localStorageTypeAsString(catype).c_str()); //e.g. BitVector<32> exception
     fp->write("(");
-    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPassVarNum(), ruvpass.getPassStorage()).c_str());
+    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
     //for ANY immediate atom arg from a T
     if(m_state.isAtomRef(catype))
       fp->write(", uc"); //needs effective self from T's type via uc
@@ -1249,7 +1228,7 @@ namespace MFM {
 
     fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2, TMPBITVAL).c_str());
     fp->write("("); // use constructor (not equals)
-    fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str()); //VALUE
+    fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //VALUE
 
     u32 pos = uvpass.getPassPos(); //pos calculated by makePass(atom-based) (e.g. quark, atom)
 
@@ -1303,7 +1282,7 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2, tmp2stor).c_str());
     fp->write(" = ");
 
-    fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPassVarNum(), TMPBITVAL).c_str());
+    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
     fp->write(".read(");
 
     // use immediate read for entire array
@@ -1352,7 +1331,6 @@ namespace MFM {
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
     // write out auto ref constuctor
-    s32 tmpVarNum = uvpass.getPassVarNum();
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
 
     // write out next chain using auto ref constuctor
@@ -1365,7 +1343,7 @@ namespace MFM {
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum2, TMPAUTOREF).c_str());
 	fp->write("("); //use constructor (not equals)
-	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, TMPAUTOREF).c_str());
+	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	fp->write(", ");
 	fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
 	fp->write("u");
@@ -1377,14 +1355,15 @@ namespace MFM {
 	assert(!cosut->isScalar());
 
 	UTI scalarcosuti = m_state.getUlamTypeAsScalar(cosuti);
-	UlamType * scalarcosut = m_state.getUlamTypeByIndex(scalarcosuti);
+	UTI scalarrefuti = m_state.getUlamTypeAsRef(scalarcosuti, ALT_REF);
+	UlamType * scalarrefut = m_state.getUlamTypeByIndex(scalarrefuti);
 	ULAMCLASSTYPE cosclasstype = cosut->getUlamClassType();
 
 	m_state.indent(fp);
-	//can't be const and chainable
-	fp->write(scalarcosut->getLocalStorageTypeAsString().c_str());
+	//can't be const and chainable; needs to be a ref! (e.g. t3668)
+	fp->write(scalarrefut->getLocalStorageTypeAsString().c_str());
 	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(scalarcosuti, tmpVarNum2, TMPAUTOREF).c_str());
+	fp->write(m_state.getTmpVarAsString(scalarrefuti, tmpVarNum2, TMPAUTOREF).c_str());
 	fp->write("("); // use constructor (not equals)
 
 	if(cos->isDataMember())
@@ -1399,7 +1378,7 @@ namespace MFM {
 	    fp->write(cos->getMangledName().c_str()); //local array
 	  }
 	fp->write(", ");
-	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPassStorage()).c_str()); //pos variable 0-based
+	fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //pos variable 0-based
 
 	if((cosclasstype == UC_QUARK) || (cosclasstype == UC_ELEMENT))
 	  {
@@ -1422,7 +1401,8 @@ namespace MFM {
 
 	fp->write(", &");
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
-	cosuti = scalarcosuti; //for the uvpass
+	//cosuti = scalarcosuti; //for the uvpass
+	cosuti = scalarrefuti; //for the uvpass
       }
     fp->write(");\n");
 
@@ -1434,7 +1414,6 @@ namespace MFM {
   {
     // write out auto ref constuctor
     s32 tmpVarNum = stguvpass.getPassVarNum();
-    s32 tmpVarNum2 = uvpass.getPassVarNum();
 
     UTI vuti = uvpass.getPassTargetType();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
@@ -1443,11 +1422,13 @@ namespace MFM {
     UTI stgrefuti = stguvpass.getPassTargetType();
     assert(m_state.isReference(stgrefuti));
 
+    assert(uvpass.getPassStorage() == TMPAUTOREF);
+
     m_state.indent(fp);
     //can't be const and chainable
     fp->write(vut->getLocalStorageTypeAsString().c_str());
     fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2, TMPAUTOREF).c_str());
+    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
     fp->write("("); //use constructor (not equals)
     fp->write(m_state.getTmpVarAsString(stgrefuti, tmpVarNum, TMPAUTOREF).c_str());
     fp->write(", ");
@@ -1510,7 +1491,7 @@ namespace MFM {
 	return false; //short-circuit
       }
 
-    ULAMTYPECOMPARERESULTS uticr = UlamType::compare(nuti, tobeType, m_state);
+    ULAMTYPECOMPARERESULTS uticr = UlamType::compareForMakingCastingNode(nuti, tobeType, m_state);
     if(uticr == UTIC_SAME)
       {
 	//happens too often with Bool.1.-1 for some reason;
@@ -1536,14 +1517,7 @@ namespace MFM {
 	else
 	  {
 	    assert(!isExplicit);
-	    rtnNode = new NodeCast(node, tobeType, NULL, m_state);
-	    assert(rtnNode);
-	    rtnNode->setNodeLocation(getNodeLocation());
-	    rtnNode->updateLineage(getNodeNo());
-
-	    //redo check and type labeling; error msg if not same
-	    UTI newType = rtnNode->checkAndLabelType();
-	    doErrMsg = (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
+	    doErrMsg = newCastingNodeWithCheck(node, tobeType, rtnNode);
 	  }
       }
     else if(nclasstype == UC_QUARK)
@@ -1551,98 +1525,54 @@ namespace MFM {
 	if(node->isFunctionCall())
 	  {
 	    if(tobe->isReference())
-	      {
-		rtnNode = new NodeCast(node, tobeType, NULL, m_state);
-		assert(rtnNode);
-		rtnNode->setNodeLocation(getNodeLocation());
-		rtnNode->updateLineage(getNodeNo());
-	      }
+	      doErrMsg = newCastingNodeWithCheck(node, tobeType, rtnNode);
 	    else
 	      {
 		// a function call is not a valid lhs !!!
 		// 'node' is a function call that returns a quark (it's not storeintoable);
 		// build a toIntHelper function that takes the return value of 'node'
 		// as its arg and returns toInt
-		NodeFunctionCall * castFunc = buildCastingFunctionCallNode(node, tobeType);
-		if(!castFunc)
-		  doErrMsg = true;
-		else
-		  rtnNode = castFunc;
+		doErrMsg = buildCastingFunctionCallNode(node, tobeType, rtnNode);
 	      }
 	  }
 	else if(tclasstype == UC_QUARK)
 	  {
 	    //handle possible inheritance (u.1.2.2) here
 	    if(m_state.isClassASubclassOf(nuti, tobeType))
-	      {
-		rtnNode = new NodeCast(node, tobeType, NULL, m_state);
-		assert(rtnNode);
-		rtnNode->setNodeLocation(getNodeLocation());
-		rtnNode->updateLineage(getNodeNo());
-	      }
-	    else if((UlamType::compareForMakingCastingNode(nuti, tobeType, m_state) == UTIC_SAME))
-	      {
-		//cast arrayitems as their deref types
-		rtnNode = new NodeCast(node, tobeType, NULL, m_state);
-		assert(rtnNode);
-		rtnNode->setNodeLocation(getNodeLocation());
-		rtnNode->updateLineage(getNodeNo());
-	      }
+	      doErrMsg = newCastingNodeWithCheck(node, tobeType, rtnNode);
 	    else if(m_state.isARefTypeOfUlamType(nuti, tobeType))
 	      {
 		//cast ref to deref type
 		//cast non-ref to its ref type; constants & funccalls
 		// not legal for initialization; ok for assignment.
-		rtnNode = new NodeCast(node, tobeType, NULL, m_state);
-		assert(rtnNode);
-		rtnNode->setNodeLocation(getNodeLocation());
-		rtnNode->updateLineage(getNodeNo());
+		doErrMsg = newCastingNodeWithCheck(node, tobeType, rtnNode);
 	      }
 	    else
 	      doErrMsg = true;
 	  }
 	else
-	  rtnNode = buildToIntCastingNode(node);
+	  {
+	    rtnNode = buildToIntCastingNode(node);
+
+	    //redo check and type labeling; error msg if not same
+	    UTI newType = rtnNode->checkAndLabelType();
+	    doErrMsg = (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
+	  }
 
 	//redo check and type labeling; error msg if not same
 	//e.g. t3191 missing function symbol without c&l
-#if 1
-	  if(!doErrMsg)
-	    {
-	      UTI newType = rtnNode->checkAndLabelType();
-	      doErrMsg = (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
-	      if(doErrMsg)
-		return makeCastingNode(rtnNode, tobeType, rtnNode, false); //recurse
-	    }
-#endif
+	if(doErrMsg)
+	  return makeCastingNode(rtnNode, tobeType, rtnNode, false); //recurse
       }
     else if (nclasstype == UC_ELEMENT)
       {
-	if((UlamType::compareForMakingCastingNode(nuti, tobeType, m_state) == UTIC_SAME))
-	  {
-	    rtnNode = new NodeCast(node, tobeType, NULL, m_state);
-	    assert(rtnNode);
-	    rtnNode->setNodeLocation(getNodeLocation());
-	    rtnNode->updateLineage(getNodeNo());
-
-	    //redo check and type labeling; error msg if not same
-	    UTI newType = rtnNode->checkAndLabelType();
-	    doErrMsg = (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
-	  }
-	else if(!( m_state.isAtom(tobeType) || (tobe->getUlamTypeEnum() == Class)))
+	if(!( m_state.isAtom(tobeType) || (tobe->getUlamTypeEnum() == Class)))
 	  doErrMsg = true;
 	else
-	  {
-	    rtnNode = new NodeCast(node, tobeType, NULL, m_state);
-	    assert(rtnNode);
-	    rtnNode->setNodeLocation(getNodeLocation());
-	    rtnNode->updateLineage(getNodeNo());
-
-	    //redo check and type labeling; error msg if not same
-	    UTI newType = rtnNode->checkAndLabelType();
-	    doErrMsg = (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
-	  }
+	  doErrMsg = newCastingNodeWithCheck(node, tobeType, rtnNode);
       }
+    else if(nclasstype == UC_TRANSIENT)
+      doErrMsg = newCastingNodeWithCheck(node, tobeType, rtnNode);
     else
       doErrMsg = true;
 
@@ -1668,10 +1598,29 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }
-    return !doErrMsg;
+    return !doErrMsg; //true is ok
   } //makecastingnode
 
-  NodeFunctionCall * Node::buildCastingFunctionCallNode(Node * node, UTI tobeType)
+  Node * Node::newCastingNode(Node * node, UTI tobeType)
+  {
+    Node * rtnnode = new NodeCast(node, tobeType, NULL, m_state);
+    assert(rtnnode);
+    rtnnode->setNodeLocation(getNodeLocation());
+    rtnnode->updateLineage(getNodeNo());
+    return rtnnode;
+  } //newCastingNode
+
+  bool Node::newCastingNodeWithCheck(Node * node, UTI tobeType, Node*& rtnNode)
+  {
+    rtnNode = newCastingNode(node, tobeType);
+    assert(rtnNode);
+
+    //redo check and type labeling; error msg if not same
+    UTI newType = rtnNode->checkAndLabelType();
+    return (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
+  } //newCastingNodeWithCheck
+
+  bool Node::buildCastingFunctionCallNode(Node * node, UTI tobeType, Node*& rtnNode)
   {
     Locator loc = getNodeLocation(); //used throughout
     u32 castId = m_state.m_pool.getIndexForDataString("_toIntHelper");
@@ -1697,9 +1646,7 @@ namespace MFM {
     Token selfTok(TOK_IDENTIFIER, loc, selfid);
 
     //negative indicates parameter for symbol install
-    //m_state.m_currentFunctionBlockDeclSize = -2; //slots for return + 1 hidden arg self(not uc)
     m_state.m_currentFunctionBlockDeclSize = -3; //slots for return + 1 hidden arg self(+ uc)
-
     m_state.m_currentFunctionBlockMaxDepth = 0;
 
     SymbolVariableStack * selfsym = new SymbolVariableStack(selfTok, UAtom, m_state.m_currentFunctionBlockDeclSize, m_state);
@@ -1793,12 +1740,15 @@ namespace MFM {
     m_state.m_currentFunctionBlockMaxDepth = 0; //reset
 
     //func call symbol to return to NodeCast; fsymptr maybe null
-    NodeFunctionCall * rtnNode = new NodeFunctionCall(funcidentTok, fsymptr, m_state);
-    assert(rtnNode);
-    rtnNode->setNodeLocation(loc);
-    rtnNode->addArgument(node);
+    NodeFunctionCall * funccall = new NodeFunctionCall(funcidentTok, fsymptr, m_state);
+    assert(funccall);
+    funccall->setNodeLocation(loc);
+    funccall->addArgument(node);
+    rtnNode = funccall;
 
-    return rtnNode;
+    //redo check and type labeling; error msg if not same
+    UTI newType = rtnNode->checkAndLabelType();
+    return (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
   } //buildCastingFunctionCallNode
 
   Node * Node::buildToIntCastingNode(Node * node)
@@ -1814,6 +1764,8 @@ namespace MFM {
     Node * mselectNode = new NodeMemberSelect(node, fcallNode, m_state);
     assert(mselectNode);
     mselectNode->setNodeLocation(identTok.m_locator);
+
+    //redo check and type labeling done by caller!!
     return mselectNode; //replace right node with new branch
   } //buildToIntCastingNode
 
@@ -2349,7 +2301,6 @@ namespace MFM {
 
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     //either total size is greater than a long, or each item is an element or atom
-    //return((cosut->getTotalBitSize() > MAXBITSPERLONG) || (cosut->getUlamClassType() == UC_ELEMENT) || m_state.isAtom(cosuti));
     return((cosut->getTotalBitSize() > MAXBITSPERLONG) || m_state.isAtom(cosuti));
   } //isCurrentObjectAnUnpackedArray
 

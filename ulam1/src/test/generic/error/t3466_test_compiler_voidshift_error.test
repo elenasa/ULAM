@@ -2,9 +2,10 @@
 #=t3466_test_compiler_voidshift_error
 #!
 ./A.ulam:6:13: ERROR: Void is not a supported type for binary operator<<.
+./A.ulam:6:4: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
 ./A.ulam:7:8: ERROR: Void is not a supported type for binary operator<<.
-./A.ulam:1:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: A.
-./A.ulam:1:9: ERROR: 2 Nodes with unresolved types detected after type labeling class: A.
+./A.ulam:7:4: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
+./A.ulam:1:9: ERROR: 4 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 #>A.ulam
 element A {

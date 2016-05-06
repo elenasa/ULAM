@@ -83,29 +83,35 @@ namespace MFM {
     if(m_state.okUTItoContinue(ruti))
       {
 	UlamType * rut = m_state.getUlamTypeByIndex(ruti);
-	//rhs is allowed to be a quark due to inheritance.
-	ULAMCLASSTYPE rclasstype = rut->getUlamClassType();
-	if(!((rclasstype == UC_QUARK || rclasstype == UC_ELEMENT) && rut->isScalar()))
+	//rhs cannot be a ref type
+	if(rut->isReference())
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid righthand type of conditional operator '" << getName();
-	    msg << "'; must be an element name, not type: ";
+	    msg << "'; must be a class type, not a reference: ";
 	    msg << rut->getUlamTypeNameBrief().c_str();
-	    if(rclasstype == UC_UNSEEN)
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    newType = Nav;
+	  }
+	else
+	  {
+	    //rhs is allowed to be a quark due to inheritance.
+    //ULAMCLASSTYPE rclasstype = rut->getUlamClassType();
+	    //if(!((rclasstype == UC_QUARK || rclasstype == UC_ELEMENT) && rut->isScalar()))
+	    ULAMTYPE retyp = rut->getUlamTypeEnum();
+	    if(!((retyp == Class) && rut->isScalar()))
 	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //goagain set
-		newType = Hzy;
-		m_state.setGoAgain();
-	      }
-	    else
-	      {
+		std::ostringstream msg;
+		msg << "Invalid righthand type of conditional operator '" << getName();
+		msg << "'; must be a class name, not type: ";
+		msg << rut->getUlamTypeNameBrief().c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		newType = Nav;
 	      }
 	  }
       }
 
-    if(!m_state.isComplete(ruti))
+    if(m_state.okUTItoContinue(newType) && !m_state.isComplete(ruti))
       {
 	std::ostringstream msg;
 	msg << "Righthand type of conditional operator '" << getName() << "' ";
@@ -208,14 +214,13 @@ namespace MFM {
     ULAMCLASSTYPE rclasstype = rut->getUlamClassType();
     assert(!rut->isReference());
 
-    s32 tmpVarNum = luvpass.getPassVarNum();
     s32 tmpVarIs = m_state.getNextTmpVarNumber();
 
     m_state.indent(fp);
     fp->write("const ");
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32
     fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarIs).c_str());
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarIs, TMPREGISTER).c_str());
     fp->write(" = ");
 
     if((rclasstype == UC_ELEMENT))
@@ -224,7 +229,7 @@ namespace MFM {
 	fp->write(".");
 	fp->write(m_state.getIsMangledFunctionName(ruti));
 	fp->write("(");
-	fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, lstor).c_str());
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
 	if(lstor == TMPATOMBS)
 	  fp->write(".ReadAtom()");
 	fp->write(");\n");
@@ -245,7 +250,7 @@ namespace MFM {
 	    //then left must be an atom
 	    fp->write(m_state.getIsMangledFunctionName(luti)); //UlamElement IsMethod
 	    fp->write("(uc, ");
-	    fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, lstor).c_str());
+	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
 	    fp->write(".GetType(), "); //from tmpvar T or ABS
 	  }
 	fp->write("\"");

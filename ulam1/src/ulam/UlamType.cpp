@@ -109,50 +109,26 @@ namespace MFM {
       return true; //not arrays, ok
 
     bool bOK = true;
-    if((getPackable() != PACKEDLOADABLE) || (m_state.determinePackable(typidx) != PACKEDLOADABLE))
+    s32 arraysize = getArraySize();
+    s32 varraysize = m_state.getArraySize(typidx);
+    if(arraysize != varraysize)
       {
-	//for now, limited to refs of same class, not subclasses. XXX
-	UTI anyUTI = Nouti;
-	AssertBool anyDefined = m_state.anyDefinedUTI(m_key, anyUTI);
-	assert(anyDefined);
-
 	std::ostringstream msg;
-	msg << "Casting requires UNPACKED array support: ";
+	msg << "Casting different Array sizes: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
 	msg << " TO " ;
 	msg << getUlamTypeNameBrief().c_str();
-
-	if((m_state.isARefTypeOfUlamType(typidx, anyUTI) == UTIC_SAME))
-	  MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
-	else
-	  {
-	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    bOK = false;
-	  }
       }
     else
       {
-	s32 arraysize = getArraySize();
-	s32 varraysize = m_state.getArraySize(typidx);
-	if(arraysize != varraysize)
-	  {
-	    std::ostringstream msg;
-	    msg << "Casting different Array sizes: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
-	    msg << " TO " ;
-	    msg << getUlamTypeNameBrief().c_str();
-	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
-	    bOK = false;
-	  }
-	else
-	  {
-	    std::ostringstream msg;
-	    msg << "Casting (nonScalar) Array: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
-	    msg << " TO " ;
-	    msg << getUlamTypeNameBrief().c_str();
-	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
-	  }
+	std::ostringstream msg;
+	msg << "Casting (nonScalar) Array: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
+	msg << " TO " ;
+	msg << getUlamTypeNameBrief().c_str();
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
       }
     return bOK;
   } //checkArrayCast
@@ -178,8 +154,7 @@ namespace MFM {
 
     if(key1.getUlamKeyTypeSignatureBitSize() != key2.getUlamKeyTypeSignatureBitSize())
 	  return false;
-    //if(alt1 != ALT_NOT || alt2 == ALT_NOT)
-    //  return false;
+    //if(alt1 != ALT_NOT || alt2 == ALT_NOT) return false;
 
     return true; //keys the same, except for reference type
   } //checkReferenceCast
@@ -347,8 +322,6 @@ namespace MFM {
 	  else
 	    cstr << "BitVector<" << getTotalBitSize() << ">"; //entire array
 	  ctype = cstr.str();
-	  //assert(0);
-	  //MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
 	}
       };
     return ctype;
@@ -356,7 +329,7 @@ namespace MFM {
 
   TMPSTORAGE UlamType::getTmpStorageTypeForTmpVar()
   {
-    return TMPREGISTER;
+    return TMPREGISTER; //size? unpacked arrays?
   }
 
   const char * UlamType::getUlamTypeAsSingleLowercaseLetter()
@@ -655,8 +628,7 @@ namespace MFM {
     if(key1.getUlamKeyTypeSignatureBitSize() != key2.getUlamKeyTypeSignatureBitSize())
       return UTIC_NOTSAME;
 
-    //if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
-    // return UTIC_NOTSAME; //?
+    //if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx()) return UTIC_NOTSAME;
 
     ALT alt1 = key1.getUlamKeyTypeSignatureReferenceType();
     ALT alt2 = key2.getUlamKeyTypeSignatureReferenceType();
@@ -760,14 +732,7 @@ namespace MFM {
 	method = "ReadBig";
 	break;
       default:
-	method = "ReadBV";
-#if 0
-	{
-	  std::ostringstream mstr;
-	  mstr << "ReadBV<" << getTotalBitSize() << ">";
-	  method = mstr.str();
-	}
-#endif
+	method = "ReadBV"; //template arg deduced by gcc
       };
     return method;
   } //readMethodForCodeGen
@@ -789,14 +754,7 @@ namespace MFM {
 	method = "WriteBig";
 	break;
       default:
-	method = "WriteBV";
-#if 0
-	{
-	  std::ostringstream mstr;
-	  mstr << "WriteBV<" << getTotalBitSize() << ">";
-	  method = mstr.str();
-	}
-#endif
+	method = "WriteBV"; //template arg deduced by gcc
       };
     return method;
   } //writeMethodForCodeGen
@@ -818,16 +776,7 @@ namespace MFM {
 	method = "ReadBig";
 	break;
       default:
-	method = "ReadBV";
-#if 0
-	{
-	  std::ostringstream mstr;
-	  mstr << "ReadBV<" << getTotalBitSize() << ">";
-	  method = mstr.str();
-	}
-#endif
-	//TBD ReadArrayUnpacked
-	//assert(0);
+	method = "ReadBV"; //template arg deduced by gcc
       };
     return method;
   } //readArrayItemMethodForCodeGen()
@@ -849,7 +798,7 @@ namespace MFM {
 	method = "WriteBig";
 	break;
       default:
-	method = "WriteBV"; //TBD WriteArrayUnpacked
+	method = "WriteBV"; //template arg deduced by gcc
       };
     return method;
   } //writeArrayItemMethodForCodeGen()

@@ -1,0 +1,42 @@
+## -*- mode:ulam -*-
+#=t3725_test_compiler_transientinheritelement_error
+#!
+./Soo.ulam:3:11: ERROR: Subclass 'Soo' inherits from 'Coo', a class that's not a transient.
+./Foo.ulam:3:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: Foo.
+./Foo.ulam:3:9: ERROR: 8 Nodes with unresolved types detected after type labeling class: Foo.
+Unrecoverable Program Type Label FAILURE.
+##
+## transient inheritance, regular (non-template)
+##
+#>Foo.ulam
+  ulam 2;
+use Soo;
+element Foo {
+  System s;
+  Bool first;
+  Int test() {
+    Soo su;
+    if(su.cb)
+    {
+      s.print(su.cb);
+      s.assert(su.cb);
+      return su.sizeof;
+    }
+    return 0;
+  }
+}
+
+#:Soo.ulam
+  ulam 2;
+use Coo;
+transient Soo : Coo {
+  Unsigned(3) us = 4u;
+}
+
+#:Coo.ulam
+  ulam 2;
+element Coo {
+  Bool(3) cb = true;
+}
+
+#.

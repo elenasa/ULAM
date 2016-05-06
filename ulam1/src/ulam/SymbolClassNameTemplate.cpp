@@ -1495,8 +1495,9 @@ namespace MFM {
       }
   } //printUnresolvedVariablesForClassInstances
 
-  void SymbolClassNameTemplate::buildDefaultQuarkForClassInstances()
+  void SymbolClassNameTemplate::buildDefaultValueForClassInstances()
   {
+    BV8K dval; //tmp
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
@@ -1507,13 +1508,12 @@ namespace MFM {
 	    NodeBlockClass * classNode = csym->getClassBlockNode();
 	    assert(classNode);
 	    m_state.pushClassContext(suti, classNode, classNode, false, NULL);
-	    u32 dqval = 0;
-	    csym->getDefaultQuark(dqval); //this instance
+	    csym->getDefaultValue(dval); //this instance
 	    m_state.popClassContext();
 	  }
 	it++;
       }
-  } //buildDefaultQuarkForClassInstances
+  } //buildDefaultValueForClassInstances
 
   void SymbolClassNameTemplate::testForClassInstances(File * fp)
   {

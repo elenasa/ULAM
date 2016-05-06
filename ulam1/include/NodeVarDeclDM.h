@@ -69,7 +69,7 @@ namespace MFM{
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
-    virtual bool buildDefaultQuarkValue(u32& dqref);
+    virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
     virtual void setInitExpr(Node * node); //was setConstantExpr
 
@@ -98,8 +98,10 @@ namespace MFM{
     bool updateConstant64(u64 & newconst);
 
     bool foldDefaultQuark(u32 dq);
+    void foldDefaultClass();
     void genCodedBitFieldTypedef(File * fp, UVPass& uvpass);
 
+    UlamValue makeUlamValuePtr(); //for dm
   };
 } //MFM
 

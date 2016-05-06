@@ -157,7 +157,7 @@ namespace MFM {
 	      }
 	  }
 
-	if(!m_state.isComplete(it)) //reloads
+	if(!m_state.okUTItoContinue(it) || !m_state.isComplete(it)) //reloads
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete Typedef for type: ";
@@ -165,8 +165,13 @@ namespace MFM {
 	    msg << " used with typedef symbol name '" << getName();
 	    msg << "' UTI" << it << " while labeling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    m_state.setGoAgain(); //since not error; unlike vardecl
+	    if(m_state.okUTItoContinue(it) || (it == Hzy))
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		m_state.setGoAgain(); //since not error; unlike vardecl
+	      }
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       } // got typedef symbol
 
@@ -265,7 +270,7 @@ namespace MFM {
       m_nodeTypeDesc->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   } //countNavHzyNoutiNodes
 
-  bool NodeTypedef::buildDefaultQuarkValue(u32& dqref)
+  bool NodeTypedef::buildDefaultValue(u32 wlen, BV8K& dvref)
   {
     return true; //pass on
   }
