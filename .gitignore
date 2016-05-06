@@ -25,6 +25,9 @@
 # Ignore internal dirs
 **/internal/*
 
+# Ignore temp generated code dirs
+**/.gen/*
+
 # Ignore doxygen-generated output
 doc/ref
 
