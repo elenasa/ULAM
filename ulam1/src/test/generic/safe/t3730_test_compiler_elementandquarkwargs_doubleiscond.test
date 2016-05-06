@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t3588_test_compiler_elementandquarkwargs_iscond
+#=t3730_test_compiler_elementandquarkwargs_doubleiscond
 #!
 ##
 ##   gencode output: (interleaved asserts)
@@ -8,12 +8,12 @@
 ##       Unsigned Arg: 3
 ##
 Exit status: 3
-Ue_Eltypo : Typo(1) { :< :< Unsigned(3) bu(7u); > constant Int(32) a = 1; > System s();  Unsigned(3) first(3u);  Unsigned(3) second(3u);  Typo(1) t( :< Unsigned(3) bu(7u); > constant Int(32) a = 1; );  Int(32) test() {  Eltypo elf;  { elf cast Bar is cond { elf ( 3u cast )func . s ( elf bu . cast )print . s ( elf bu . cast 3 cast == )assert . first elf bu . = } if s ( false )assert . else } s ( elf bu . cast )print . s ( elf bu . cast 3 cast == )assert . s ( first cast )print . s ( first cast 3 cast == )assert . second elf bu . = second cast return } }
+Ue_Eltypo : Typo(1) { :< :< Unsigned(3) bu(7u); > constant Int(32) a = 1; > System s();  Unsigned(3) first(3u);  Unsigned(3) second(3u);  Typo(1) t( :< Unsigned(3) bu(7u); > constant Int(32) a = 1; );  Int(32) test() {  Eltypo elf;  { elf cast Bar is elf cast Typo(1) is && cond { elf ( 3u cast )func . s ( elf bu . cast )print . s ( elf bu . cast 3 cast == )assert . first elf bu . = } if s ( false )assert . else } s ( elf bu . cast )print . s ( elf bu . cast 3 cast == )assert . s ( first cast )print . s ( first cast 3 cast == )assert . second elf bu . = second cast return } }
 Uq_Typo(Int(32) a) : Bar { /* empty class block */ }
 Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
-## informed by 3586, and loosely by 3371
+## informed by 3588, and loosely by error/3406
 ##
 #:Typo.ulam
   ulam 2;
@@ -43,7 +43,7 @@ element Eltypo : Typo(1) {
   Typo(1) t;
   Int test(){
     Eltypo elf;
-    if((elf is Bar)){ //extra paren ok
+    if((elf is Bar) && (elf is Typo(1))){
       elf.func(3u);
       s.print(elf.bu);
       s.assert(elf.bu == 3);

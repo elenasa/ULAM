@@ -1686,7 +1686,7 @@ namespace MFM {
 	    AssertBool isDefined = alreadyDefinedSymbolClassName(csym->getId(), cnsym);
 	    assert(isDefined);
 	    prevuti = cnsym->getSuperClassForClassInstance(cuti); //returns super UTI, or Nouti if no inheritance
-	    rtnb = (derefsuperp == prevuti); //compare
+	    rtnb = (prevuti != Nouti) && (UlamType::compare(derefsuperp, prevuti, *this) == UTIC_SAME); //compare (don't compare if Nouti)
 	  }
 	else
 	  prevuti = Nouti; //avoid inf loop
