@@ -273,13 +273,27 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarIs, TMPREGISTER).c_str());
     fp->write(" = ");
 
-    fp->write(m_state.getIsMangledFunctionName(luti)); //UlamClass IsMethod
-    fp->write("(uc, ");
-    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(".GetType(), "); //from tmpvar T or ABS
-    fp->write("\"");
-    fp->write(rut->getUlamTypeMangledName().c_str());
-    fp->write("\");\n");
+    if(rut->getUlamClassType() == UC_ELEMENT)
+      {
+	//reversed call to rhs' overloaded c-implemented 'Is' method;
+	// using lhs' T as argument; required for EMPTY-ELEMENT special case
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
+	fp->write(".");
+	fp->write(m_state.getIsMangledFunctionName(ruti)); //UlamElement IsMethod
+	fp->write("(");
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //from tmpvar T or ABS
+	fp->write(");\n");
+      }
+    else
+      {
+	fp->write(m_state.getIsMangledFunctionName(luti)); //UlamClass IsMethod
+	fp->write("(uc, ");
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(".GetType(), "); //from tmpvar T or ABS
+	fp->write("\"");
+	fp->write(rut->getUlamTypeMangledName().c_str());
+	fp->write("\");\n");
+      }
 
     //update uvpass
     uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
