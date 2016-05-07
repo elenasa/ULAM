@@ -8,7 +8,7 @@ namespace MFM {
   template<class EC>
   Ui_Ut_102321i<EC> Uq_1010919AtomUtils10<EC>::Uf_7getType(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_102961a<EC> Uv_1a) const
   {
-    return Ui_Ut_102321i<EC>(ur.GetType());
+    return Ui_Ut_102321i<EC>(Uv_1a.GetType());
   } // Uf_7getType
 
 
