@@ -3,24 +3,23 @@
 #!
 ##      gen code output: (2 asserts)
 ##
-##        unevaluable without assuming atoms as elements (c should be false)
-##
 Exit status: 0
-Ue_A : QW { :<> Bool(1) b(true);  Bool(1) c(true);  Int(32) test() {  System s;  b ( self.instanceof )func = s ( b )assert . Atom(96) a;  c ( a )func = s ( c ! )assert . 0 cast return } }
+Ue_R { Bool(1) b(true);  Int(32) test() {  System s;  A at;  b at ( A.instanceof )func . = s ( b )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
-Uq_QW { <NOMAIN> }
+Un_A : QW { :<> Bool(7) sp(false);  <NOMAIN> }
+Un_QW { <NOMAIN> }
 ##
 ## Dave requested a way to get default values for Self (within a quark);
 ## a loophole, since a quark would be an undefined atom, but as a ref, its done (t3679)
 ##
-  ## similar to 3685, except a transient
+## similar to 3685, except a transient
 ##
 #>R.ulam
   ulam 2;
 use System;
 use A;
 element R {
-  Bool b, c;
+  Bool b;
   Int test(){
     System s;
     A at;

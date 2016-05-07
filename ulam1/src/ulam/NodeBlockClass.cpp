@@ -270,7 +270,7 @@ namespace MFM {
   {
     // for debug purposes
     UTI cuti = m_state.getCompileThisIdx();
-    //m_state.isClassATemplate(cuti);
+    m_state.isClassATemplate(cuti);
 
     //do first, might be important!
     checkParameterNodeTypes();
@@ -282,6 +282,7 @@ namespace MFM {
     //skip the ancestor of a template
     if(m_state.okUTItoContinue(superuti))
       {
+#if 0
 	if(!m_state.isComplete(superuti))
 	  {
 	    UTI mappedUTI = superuti;
@@ -301,6 +302,7 @@ namespace MFM {
 		superuti = mappedUTI;
 	      }
 	  }
+#endif
 	//this is a subclass.
 	if(!isSuperClassLinkReady())
 	  {
@@ -1499,22 +1501,21 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   void NodeBlockClass::genCodeBuiltInFunctionIsRelatedQuarkType(File * fp)
   {
+    UTI nuti = getNodeType();
     UTI superuti = m_state.isClassASubclass(getNodeType());
     assert(superuti != Hzy);
     if(superuti != Nouti)
       {
-	//first include superclass
-	UlamType * superut = m_state.getUlamTypeByIndex(superuti);
-	m_state.indent(fp);
-	fp->write("if(!strcmp(namearg,\"");
-	fp->write(superut->getUlamTypeMangledName().c_str()); //mangled, including class args!
-	fp->write("\")) return(true); //inherited class\n");
-
 	//then include any of its relatives:
 	NodeBlockClass * superClassBlock = getSuperBlockPointer();
 	assert(superClassBlock);
 	superClassBlock->genCodeBuiltInFunctionIsRelatedQuarkType(fp);
       }
+    //include self
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    fp->write("if(!strcmp(namearg,\"");
+    fp->write(nut->getUlamTypeMangledName().c_str()); //mangled, including class args!
+    fp->write("\")) return(true); //inherited class\n");
     //    m_ST.genCodeBuiltInFunctionHasPosOverTableOfVariableDataMember(fp);
   } //genCodeBuiltInFunctionIsRelatedQuarkType
 

@@ -39,7 +39,7 @@ namespace MFM {
   bool SymbolTable::isInTable(u32 id, Symbol * & symptrref)
   {
     if(m_idToSymbolPtr.empty()) return false;
-
+#if 1
     std::map<u32, Symbol* >::iterator it = m_idToSymbolPtr.find(id);
     if(it != m_idToSymbolPtr.end())
       {
@@ -47,6 +47,20 @@ namespace MFM {
 	assert( symptrref->getId() == id);
 	return true;
       }
+#else
+    //for debugging
+    std::map<u32, Symbol* >::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	if(it->first == id)
+	  {
+	    symptrref = it->second;
+	    assert( symptrref->getId() == id);
+	    return true;
+	  }
+	it++;
+      }
+#endif
     return false;
   } //isInTable
 
