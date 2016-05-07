@@ -57,8 +57,10 @@ namespace MFM{
     u32 idx = Uv_7siteNum.read();
     SPoint loc = ew.MapToPointSymValid(idx);
 
-    typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x(Uv_3ret, NULL).Write(loc.GetX());
-    typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y(Uv_3ret, NULL).Write(loc.GetY());
+    //typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x(Uv_3ret, NULL).Write(loc.GetX());
+    UlamRef<EC>(0u, 16u, Uv_3ret, NULL).Write(loc.GetX());
+    //typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y(Uv_3ret, NULL).Write(loc.GetY());
+    UlamRef<EC>(16u, 16u, Uv_3ret, NULL).Write(loc.GetX());
 
     //! EventWindow.ulam:24:     return ret;
     const u32 Uh_tmpreg_loadable_240 = Uv_3ret.read();
@@ -72,8 +74,10 @@ namespace MFM{
     enum { R = EC::EVENT_WINDOW_RADIUS };
     const EventWindow<EC> & ew = uc.GetEventWindow();
 
-    const s32 x = _SignExtend32(typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x(Uv_5coord, NULL).read(), 16);
-    const s32 y = _SignExtend32(typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y(Uv_5coord, NULL).read(), 16);
+    //const s32 x = _SignExtend32(typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x(Uv_5coord, NULL).read(), 16);
+    const s32 x = _SignExtend32(UlamRef<EC>(0u, 16u, Uv_5coord, NULL).Read(), 16);
+    //const s32 y = _SignExtend32(typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y(Uv_5coord, NULL).read(), 16);
+    const s32 y = _SignExtend32(UlamRef<EC>(16u, 16u, Uv_5coord, NULL).Read(), 16);
     const SPoint loc(x,y);
     u32 ret;
     if (ew.InWindow(loc))
@@ -89,8 +93,10 @@ namespace MFM{
     enum { R = EC::EVENT_WINDOW_RADIUS };
     const EventWindow<EC> & ew = uc.GetEventWindow();
 
-    const s32 x = _SignExtend32(typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x(Uv_5coord, NULL).read(), 16);
-    const s32 y = _SignExtend32(typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y(Uv_5coord, NULL).read(), 16);
+    //const s32 x = _SignExtend32(typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x(Uv_5coord, NULL).read(), 16);
+    const s32 x = _SignExtend32(UlamRef<EC>(0u, 16u, Uv_5coord, NULL).Read(), 16);
+    //const s32 y = _SignExtend32(typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y(Uv_5coord, NULL).read(), 16);
+    const s32 y = _SignExtend32(UlamRef<EC>(16u, 16u, Uv_5coord, NULL).Read(), 16);
     const SPoint loc(x,y);
     u32 ret;
     if (ew.InWindow(loc))
@@ -128,17 +134,23 @@ namespace MFM{
   {
     const EventWindow<EC> & ew = uc.GetEventWindow();
 
-    const s32 x = _SignExtend32(Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x(Uv_9211directCoord, NULL).read(), 16);
-    const s32 y = _SignExtend32(Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y(Uv_9211directCoord, NULL).read(), 16);
+    //const s32 x = _SignExtend32(Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x(Uv_9211directCoord, NULL).read(), 16);
+    const s32 x = _SignExtend32(UlamRef<EC>(0u, 16u, Uv_9211directCoord, NULL).Read(), 16);
+    //const s32 y = _SignExtend32(Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y(Uv_9211directCoord, NULL).read(), 16);
+    const s32 y = _SignExtend32(UlamRef<EC>(16u, 16u, Uv_9211directCoord, NULL).Read(), 16);
+
     const SPoint direct(x,y);
 
     SPoint mapped = SymMap(direct,ew.GetSymmetry(),direct);
 
     Ui_Uq_102323C2D10<EC> Uv_3ret;
 
-    Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x(Uv_3ret, NULL).Write(mapped.GetX());
+    //Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x(Uv_3ret, NULL).Write(mapped.GetX());
+    UlamRef<EC>(0u, 16u, Uv_3ret, NULL).Write(mapped.GetX());
 
-    Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y(Uv_3ret, NULL).Write(mapped.GetY());
+    //Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y(Uv_3ret, NULL).Write(mapped.GetY());
+    UlamRef<EC>(16u, 16u, Uv_3ret, NULL).Write(mapped.GetX());
+
 
     //! EventWindow.ulam:38:     return ret;
     return Ui_Uq_102323C2D10<EC>(Uv_3ret.read());

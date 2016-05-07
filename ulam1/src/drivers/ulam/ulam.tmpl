@@ -1550,7 +1550,7 @@ sub buildSimDriver
     my $linkFailed =
         runMake("all",
                 @dbgarg,
-                "EXTERNAL_DEFINES=-Wno-error=unused-variable -DULAM_CUSTOM_ELEMENTS",
+                "EXTERNAL_DEFINES=-Wno-error=unused-variable -Wno-error=unused-but-set-variable -DULAM_CUSTOM_ELEMENTS",
                 "EXTERNAL_INCLUDES=-I $dir/include",
                 "EXTERNAL_LIBS=-L $dir/build -l cue"
         );
@@ -1591,7 +1591,7 @@ sub runGccCompilations
     my $rollupFile = "$ROLLUP_FILE_STEM.cpp";
     for my $cfile ($rollupFile, @cppFilesFromUlam, @testFilesFromUlam) {
         pISC(" # Compiling '$cfile'");
-        my $extraDefines = "-Wno-error=unused-variable";
+        my $extraDefines = "-Wno-error=unused-variable -Wno-error=unused-but-set-variable";
         if ($cfile =~ /$rollupFile$/) {
              $extraDefines .= "";
         }
@@ -1608,7 +1608,7 @@ sub makeProgram
     pISC("## Create program $progname");
 
     my $cfile = "$progname.cpp";
-    my $extraDefines = "-Wno-error=unused-variable";
+    my $extraDefines = "-Wno-error=unused-variable -Wno-error=unused-but-set-variable";
     my $gppStatus = runSingleGccCompilation("ulam_program", $cfile, $extraDefines);
     pISC("## COMPILED $cfile NOW EHAT");
     return ($gppStatus,$progname);
