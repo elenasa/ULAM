@@ -1372,15 +1372,15 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     genCodeBuiltInVirtualTable(fp, declOnly, classtype);
 
     // 'has' is for both class types
-    genCodeBuiltInFunctionHas(fp, declOnly, classtype);
+    //genCodeBuiltInFunctionHas(fp, declOnly, classtype);
 
     // 'is' quark related for both class types; overloads is-Method with namearg
-    genCodeBuiltInFunctionIsMethodQuarkRelated(fp, declOnly, classtype);
+    genCodeBuiltInFunctionIsMethodRelated(fp, declOnly, classtype);
 
     // 'is' is only for element/classes
     if(classtype == UC_ELEMENT)
       {
-	generateInternalIsMethodForElement(fp, declOnly);
+	generateInternalIsMethodForElement(fp, declOnly); //overload
 	generateInternalTypeAccessorsForElement(fp, declOnly);
       }
     else if(classtype == UC_QUARK)
@@ -1454,9 +1454,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       }
   } //genCodeBuiltInFunctionHasDataMembers
 
-  void NodeBlockClass::genCodeBuiltInFunctionIsMethodQuarkRelated(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  void NodeBlockClass::genCodeBuiltInFunctionIsMethodRelated(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
-    //'has' applies to both quarks and elements
     UTI cuti = m_state.getCompileThisIdx();
 
     if(declOnly)
@@ -1487,7 +1486,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel++;
 
-    genCodeBuiltInFunctionIsRelatedQuarkType(fp);
+    genCodeBuiltInFunctionIsRelatedType(fp);
 
     fp->write("\n");
     m_state.indent(fp);
@@ -1499,7 +1498,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("} //is-related\n\n");
   } //genCodeBuiltInFunctionIsMethodQuarkRelated
 
-  void NodeBlockClass::genCodeBuiltInFunctionIsRelatedQuarkType(File * fp)
+  void NodeBlockClass::genCodeBuiltInFunctionIsRelatedType(File * fp)
   {
     UTI nuti = getNodeType();
     UTI superuti = m_state.isClassASubclass(getNodeType());
@@ -1509,15 +1508,14 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	//then include any of its relatives:
 	NodeBlockClass * superClassBlock = getSuperBlockPointer();
 	assert(superClassBlock);
-	superClassBlock->genCodeBuiltInFunctionIsRelatedQuarkType(fp);
+	superClassBlock->genCodeBuiltInFunctionIsRelatedType(fp);
       }
-    //include self
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    m_state.indent(fp);
     fp->write("if(!strcmp(namearg,\"");
     fp->write(nut->getUlamTypeMangledName().c_str()); //mangled, including class args!
-    fp->write("\")) return(true); //inherited class\n");
-    //    m_ST.genCodeBuiltInFunctionHasPosOverTableOfVariableDataMember(fp);
-  } //genCodeBuiltInFunctionIsRelatedQuarkType
+    fp->write("\")) return(true); //inherited class, or self (last)\n");
+  } //genCodeBuiltInFunctionIsRelatedType
 
   void NodeBlockClass::genCodeBuiltInFunctionGetClassLength(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
