@@ -1374,8 +1374,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     // 'has' is for both class types
     //genCodeBuiltInFunctionHas(fp, declOnly, classtype);
 
-    // 'is' quark related for both class types; overloads is-Method with namearg
-    genCodeBuiltInFunctionIsMethodRelated(fp, declOnly, classtype);
+    // 'is' quark related for both class types; overloads is-Method with THE_INSTANCE arg
+    genCodeBuiltInFunctionIsMethodRelatedInstance(fp, declOnly, classtype);
 
     // 'is' is only for element/classes
     if(classtype == UC_ELEMENT)
@@ -1454,7 +1454,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       }
   } //genCodeBuiltInFunctionHasDataMembers
 
-  void NodeBlockClass::genCodeBuiltInFunctionIsMethodRelated(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  void NodeBlockClass::genCodeBuiltInFunctionIsMethodRelatedInstance(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     UTI cuti = m_state.getCompileThisIdx();
 
@@ -1466,7 +1466,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	m_state.indent(fp);
 	fp->write("bool ");
 	fp->write(m_state.getIsMangledFunctionName(cuti));
-	fp->write("(const char * namearg) const;\n\n"); //overloaded for quark ancestors
+	fp->write("(const UlamClass<EC> * cptrarg) const;\n\n"); //overloaded
 	return;
       }
 
@@ -1480,13 +1480,13 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
     fp->write("<EC>::");
     fp->write(m_state.getIsMangledFunctionName(cuti));
-    fp->write("(const char * namearg) const\n");
+    fp->write("(const UlamClass<EC> * cptrarg) const\n");
     m_state.indent(fp);
     fp->write("{\n");
 
     m_state.m_currentIndentLevel++;
 
-    genCodeBuiltInFunctionIsRelatedType(fp);
+    genCodeBuiltInFunctionIsRelatedInstance(fp);
 
     fp->write("\n");
     m_state.indent(fp);
@@ -1496,9 +1496,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("} //is-related\n\n");
-  } //genCodeBuiltInFunctionIsMethodQuarkRelated
+  } //genCodeBuiltInFunctionIsMethodRelatedInstance
 
-  void NodeBlockClass::genCodeBuiltInFunctionIsRelatedType(File * fp)
+  void NodeBlockClass::genCodeBuiltInFunctionIsRelatedInstance(File * fp)
   {
     UTI nuti = getNodeType();
     UTI superuti = m_state.isClassASubclass(getNodeType());
@@ -1508,14 +1508,13 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	//then include any of its relatives:
 	NodeBlockClass * superClassBlock = getSuperBlockPointer();
 	assert(superClassBlock);
-	superClassBlock->genCodeBuiltInFunctionIsRelatedType(fp);
+	superClassBlock->genCodeBuiltInFunctionIsRelatedInstance(fp);
       }
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     m_state.indent(fp);
-    fp->write("if(!strcmp(namearg,\"");
-    fp->write(nut->getUlamTypeMangledName().c_str()); //mangled, including class args!
-    fp->write("\")) return(true); //inherited class, or self (last)\n");
-  } //genCodeBuiltInFunctionIsRelatedType
+    fp->write("if(cptrarg == &");
+    fp->write(m_state.getEffectiveSelfMangledNameByIndex(nuti).c_str());
+    fp->write(") return(true); //inherited class, or self (last)\n");
+  } //genCodeBuiltInFunctionIsRelatedInstance
 
   void NodeBlockClass::genCodeBuiltInFunctionGetClassLength(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {

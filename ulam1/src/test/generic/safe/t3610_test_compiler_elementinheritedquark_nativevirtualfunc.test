@@ -18,8 +18,7 @@ element Test : System {
     print(b);
     return 0;
   }
-
-  virtual Void print(Bool arg) { }
+ virtual Void print(Bool arg) { }
 }
 
 #:System.ulam
@@ -31,7 +30,7 @@ quark System {
   Void print(Int(3) arg) native;
   Void print(Unary(3) arg) native;
   Void print(Bool(3) arg) native;
-  virtual Void print(Bool arg) native;
+  virtual Void print(Bool arg); // native;
   Void assert(Bool b) native;
 }
 #.

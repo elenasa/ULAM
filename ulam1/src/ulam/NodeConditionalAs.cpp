@@ -314,7 +314,7 @@ namespace MFM {
 	      }
 	    // uses UlamElement isMethod to de-reference a lhs atom
 	    fp->write(m_state.getAsMangledFunctionName(luti, ruti));
-	    fp->write("("); //one arg
+	    fp->write("(&"); //one arg
 	  }
 	else
 	  {
@@ -323,11 +323,13 @@ namespace MFM {
 	    fp->write("(uc, ");
 
 	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	    fp->write(".GetType(), "); //from tmpvar T
+	    fp->write(".GetType(), &"); //from tmpvar T
 	  }
-	fp->write("\"");
-	fp->write(rut->getUlamTypeMangledName().c_str());
-	fp->write("\");\n");
+	//fp->write("\"");
+	//fp->write(rut->getUlamTypeMangledName().c_str());
+	//fp->write("\");\n");
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
+	fp->write(");\n");
       }
     else
       assert(0);
