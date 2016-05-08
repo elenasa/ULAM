@@ -236,11 +236,9 @@ namespace MFM {
     fp->write(m_state.getEffectiveSelfMangledNameByIndex(luti).c_str());
     fp->write(".");
     fp->write(m_state.getIsMangledFunctionName(luti)); //UlamElement IsMethod
-    fp->write("("); //one arg
-
-    fp->write("\"");
-    fp->write(rut->getUlamTypeMangledName().c_str());
-    fp->write("\");\n");
+    fp->write("(&"); //one arg
+    fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
+    fp->write(");\n");
 
     //update uvpass
     uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
@@ -289,10 +287,9 @@ namespace MFM {
 	fp->write(m_state.getIsMangledFunctionName(luti)); //UlamClass IsMethod
 	fp->write("(uc, ");
 	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	fp->write(".GetType(), "); //from tmpvar T or ABS
-	fp->write("\"");
-	fp->write(rut->getUlamTypeMangledName().c_str());
-	fp->write("\");\n");
+	fp->write(".GetType(), &"); //from tmpvar T or ABS
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
+	fp->write(");\n");
       }
 
     //update uvpass
@@ -333,10 +330,9 @@ namespace MFM {
     fp->write(stgcos->getMangledName().c_str());
     fp->write(".GetEffectiveSelf()->");
     fp->write(m_state.getIsMangledFunctionName(luti)); //UlamClass IsMethod
-    fp->write("(");
-    fp->write("\"");
-    fp->write(rut->getUlamTypeMangledName().c_str());
-    fp->write("\");\n");
+    fp->write("(&");
+    fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
+    fp->write(");\n");
 
     //update uvpass
     uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).

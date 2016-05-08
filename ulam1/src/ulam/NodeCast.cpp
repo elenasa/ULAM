@@ -871,15 +871,9 @@ namespace MFM {
 	fp->write("(");
 	fp->write("uc, ");
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str());;
-	fp->write(", \"");
-	if(tobe->isReference())
-	  {
-	    UTI dereftobe = m_state.getUlamTypeAsDeref(tobeType);
-	    fp->write(m_state.getUlamTypeByIndex(dereftobe)->getUlamTypeMangledName().c_str());
-	  }
-	else
-	  fp->write(tobe->getUlamTypeMangledName().c_str());
-	fp->write("\"));\n");
+	fp->write(", &");
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
+	fp->write("));\n");
       }
     else
       {
@@ -950,12 +944,11 @@ namespace MFM {
 		fp->write(stgcos->getMangledName().c_str()); //ref
 		fp->write(", ");
 	      }
-	    fp->write("0u, ");
+	    fp->write("0u + T::ATOM_FIRST_STATE_BIT, ");
 	    fp->write_decimal_unsigned(tobe->getTotalBitSize());
 	    fp->write("u, ");
 	    if(!m_state.isAtomRef(vuti))
 	      {
-		//fp->write("0u, "); //origin
 		fp->write(stgcos->getMangledName().c_str());
 		fp->write(", "); //'is' storage
 	      }
@@ -1000,7 +993,7 @@ namespace MFM {
 	if(m_state.isAtom(vuti))
 	  {
 	    //from atom, for known quark:
-	    fp->write(", 0u, &"); //'is'
+	    fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, &"); //'is'
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
 	  }
 	//else
@@ -1036,16 +1029,9 @@ namespace MFM {
     fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
     fp->write(".");
     fp->write(m_state.getIsMangledFunctionName(vuti)); //UlamElement IsMethod
-    fp->write("("); //one arg
-    fp->write("\"");
-    if(tobe->isReference())
-      {
-	UTI dereftobe = m_state.getUlamTypeAsDeref(tobeType);
-	fp->write(m_state.getUlamTypeByIndex(dereftobe)->getUlamTypeMangledName().c_str());
-      }
-    else
-      fp->write(tobe->getUlamTypeMangledName().c_str());
-    fp->write("\"))\n");
+    fp->write("(&"); //one arg
+    fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
+    fp->write("))\n");
 
     m_state.m_currentIndentLevel++;
     m_state.indent(fp);
@@ -1122,8 +1108,8 @@ namespace MFM {
 
     assert(m_state.isReference(vuti)); //important!
 
-    UTI derefvuti = m_state.getUlamTypeAsDeref(vuti);
-    UlamType * derefvut = m_state.getUlamTypeByIndex(derefvuti);
+    //UTI derefvuti = m_state.getUlamTypeAsDeref(vuti);
+    //UlamType * derefvut = m_state.getUlamTypeByIndex(derefvuti);
 
     // CHANGES uvpass..and vuti, derefuti, etc.
     UVPass ruvpass;
@@ -1142,10 +1128,9 @@ namespace MFM {
     fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
     fp->write(".");
     fp->write(m_state.getIsMangledFunctionName(tobeType)); //UlamElement IsMethod
-    fp->write("("); //one arg
-    fp->write("\"");
-    fp->write(derefvut->getUlamTypeMangledName().c_str()); //related to quark
-    fp->write("\"))\n");
+    fp->write("(&"); //one arg
+    fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
+    fp->write("))\n");
 
     m_state.m_currentIndentLevel++;
     m_state.indent(fp);
