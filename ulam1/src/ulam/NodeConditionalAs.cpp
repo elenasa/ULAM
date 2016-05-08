@@ -325,9 +325,6 @@ namespace MFM {
 	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
 	    fp->write(".GetType(), &"); //from tmpvar T
 	  }
-	//fp->write("\"");
-	//fp->write(rut->getUlamTypeMangledName().c_str());
-	//fp->write("\");\n");
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
 	fp->write(");\n");
       }

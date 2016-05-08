@@ -871,15 +871,6 @@ namespace MFM {
 	fp->write("(");
 	fp->write("uc, ");
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str());;
-	//fp->write(", \"");
-	//if(tobe->isReference())
-	// {
-	//  UTI dereftobe = m_state.getUlamTypeAsDeref(tobeType);
-	//  fp->write(m_state.getUlamTypeByIndex(dereftobe)->getUlamTypeMangledName().c_str());
-	//  }
-	//else
-	//  fp->write(tobe->getUlamTypeMangledName().c_str());
-	//fp->write("\"));\n");
 	fp->write(", &");
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
 	fp->write("));\n");
@@ -1039,15 +1030,6 @@ namespace MFM {
     fp->write(".");
     fp->write(m_state.getIsMangledFunctionName(vuti)); //UlamElement IsMethod
     fp->write("(&"); //one arg
-    //fp->write("\"");
-    //if(tobe->isReference())
-    // {
-    //	UTI dereftobe = m_state.getUlamTypeAsDeref(tobeType);
-    //	fp->write(m_state.getUlamTypeByIndex(dereftobe)->getUlamTypeMangledName().c_str());
-    // }
-    //else
-    //  fp->write(tobe->getUlamTypeMangledName().c_str());
-    //fp->write("\"))\n");
     fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
     fp->write("))\n");
 
@@ -1147,9 +1129,6 @@ namespace MFM {
     fp->write(".");
     fp->write(m_state.getIsMangledFunctionName(tobeType)); //UlamElement IsMethod
     fp->write("(&"); //one arg
-    //    fp->write("\"");
-    //fp->write(derefvut->getUlamTypeMangledName().c_str()); //related to quark
-    //fp->write("\"))\n");
     fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
     fp->write("))\n");
 
