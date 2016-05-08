@@ -50,7 +50,7 @@ quark QW : Qbase{
   {
     Atom a = self.storageof;
     //Self& sra = (Self&) a; //new way!
-    Self& sra = (Self) a; //immediate quark with current values
+    Self sra = (Self) a; //immediate quark with current values
     return sra;
   }
 }

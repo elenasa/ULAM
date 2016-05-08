@@ -39,7 +39,7 @@ quark QW {
   {
     Atom a = self.storageof;
     //Self& sra = (Self&) a;  //see t3692
-    Self& sra = (Self) a; //cast turns into immediate with self's values
+    Self sra = (Self) a; //cast turns into immediate with self's values
     return sra;
   }
 }
