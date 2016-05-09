@@ -2,7 +2,7 @@
 #=t3681_test_compiler_elementandquark_Selfatomoffordefaultquarklocal_error
 ##
 ## gen output:
-##  include/Uq_10102QW10.tcc:23: FAILED: ILLEGAL_ARGUMENT
+##  include/Uq_10102QW10.tcc:23: FAILED: NOT_AN_ELEMENT
 ##
 ##  UNCAUGHT FAILURE, ABORTING
 ##

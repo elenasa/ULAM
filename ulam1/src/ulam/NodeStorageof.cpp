@@ -156,7 +156,7 @@ namespace MFM {
 
 	m_state.m_currentIndentLevel++;
 	m_state.indent(fp);
-	fp->write("FAIL(ILLEGAL_ARGUMENT);\n");
+	fp->write("FAIL(NOT_AN_ELEMENT);\n");
 	m_state.m_currentIndentLevel--;
       }
 
@@ -202,7 +202,7 @@ namespace MFM {
 
 	m_state.m_currentIndentLevel++;
 	m_state.indent(fp);
-	fp->write("FAIL(ILLEGAL_ARGUMENT);\n");
+	fp->write("FAIL(NOT_AN_ELEMENT);\n");
 	m_state.m_currentIndentLevel--;
       }
 
