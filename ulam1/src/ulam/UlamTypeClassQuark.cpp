@@ -227,14 +227,6 @@ namespace MFM {
     fp->write_decimal_unsigned(len); //includes arraysize
     fp->write("u, targ, effself) { }\n");
 
-    //constructor for conditional-as (auto)
-    m_state.indent(fp);
-    fp->write(automangledName.c_str());
-    fp->write("(AtomBitStorage<EC>& targ, u32 idx, const UlamClass<EC>* effself) : UlamRef<EC>");
-    fp->write("(idx + T::ATOM_FIRST_STATE_BIT, "); //the real pos!!!
-    fp->write_decimal_unsigned(len); //includes arraysize
-    fp->write("u, targ, effself) { }\n");
-
     //constructor for chain of autorefs (e.g. memberselect with array item)
     m_state.indent(fp);
     fp->write(automangledName.c_str());

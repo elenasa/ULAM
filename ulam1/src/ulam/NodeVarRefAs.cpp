@@ -166,14 +166,7 @@ namespace MFM {
 
     if(stgetype == UAtom)
       {
-	fp->write(", ");
-	if(vclasstype == UC_QUARK) //t3639
-	  fp->write("0u, "); //position as super
-	else if(!stgcosut->isReference())
-	  fp->write("0u, "); //start of atom stg
-	else
-	  fp->write("0u + T::ATOM_FIRST_STATE_BIT, "); //is an atomref (e.g. t3709)
-
+	fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, "); //position as super (e.g. t3639, t3709, t3675, t3408, t3336)
 	fp->write(m_state.getHiddenContextArgName());
 	fp->write(".LookupElementTypeFromContext(");
 	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str()); //t3636

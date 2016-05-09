@@ -259,14 +259,6 @@ namespace MFM {
     fp->write_decimal_unsigned(len); //includes arraysize
     fp->write("u, targ, effself) { }\n");
 
-    //constructor for conditional-as (auto)
-    m_state.indent(fp);
-    fp->write(automangledName.c_str());
-    fp->write("(AtomBitStorage<EC>& targ, u32 idx, const UlamClass<EC>* effself) : UlamRef<EC>");
-    fp->write("(idx + T::ATOM_FIRST_STATE_BIT, "); //the real pos!!!
-    fp->write_decimal_unsigned(len); //includes arraysize
-    fp->write("u, targ, effself) { }\n");
-
     //copy constructor here
     m_state.indent(fp);
     fp->write(automangledName.c_str());
@@ -553,7 +545,7 @@ namespace MFM {
     //assignment constructor, atom arg, for convenience
     m_state.indent(fp);
     fp->write(mangledName.c_str());
-    fp->write("(const AtomBitStorage<EC> & arg) { ");
+    fp->write("(const AtomRefBitStorage<EC> & arg) { ");
     fp->write("if(arg.GetType() != Us::THE_INSTANCE.GetType()) FAIL(ILLEGAL_ARGUMENT); BVS::WriteBig(0u, ");
     fp->write_decimal_unsigned(bitsize);
     fp->write("u, arg.ReadBig(0u + T::ATOM_FIRST_STATE_BIT, ");

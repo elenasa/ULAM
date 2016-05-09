@@ -684,7 +684,7 @@ namespace MFM {
 	    fp->write("tile.PlaceAtom(atom, center);\n");
 
 	    m_state.indent(fp);
-	    fp->write("AtomBitStorage<EC> atbs(atom);\n");
+	    fp->write("AtomRefBitStorage<EC> atbs(atom);\n");
 
 	    m_state.indent(fp);
 	    fp->write("UlamRef<EC> ur(EC::ATOM_CONFIG::ATOM_TYPE::ATOM_FIRST_STATE_BIT, "); //e.g. t3255
