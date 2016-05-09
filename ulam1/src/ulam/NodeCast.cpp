@@ -61,7 +61,9 @@ namespace MFM {
 
   TBOOL NodeCast::getStoreIntoAble()
   {
-    return m_node->getStoreIntoAble();
+    //if(isExplicitCast())
+    return Node::getStoreIntoAble(); //only ref casts are storeintoable
+    //return m_node->getStoreIntoAble();
   }
 
   void NodeCast::setCastType(UTI tobe)
@@ -383,6 +385,8 @@ namespace MFM {
 
     if(tobe->isReference())
       Node::setStoreIntoAble(TBOOL_TRUE);
+    else
+      Node::setStoreIntoAble(TBOOL_FALSE); //TBOOL_HZY up until now.
 
     setNodeType(getCastType()); //since neither Hzy, nor Nav
     return getNodeType();

@@ -251,18 +251,7 @@ namespace MFM {
 	    return Hzy; //short-circuit
 	  }
 
-	// Don't Go Beyond This Point when either it or eit are not ok.
-	if(UlamType::compareForMakingCastingNode(eit, it, m_state) == UTIC_NOTSAME)
-	  {
-	    //must be safe to case (NodeVarDecl c&l) is different
-	    if(!Node::makeCastingNode(m_nodeInitExpr, it, m_nodeInitExpr))
-	      {
-		setNodeType(Nav);
-		return Nav; //short-circuit
-	      }
-	  }
-
-	//check isStoreIntoAble
+	//check isStoreIntoAble, before any casting
 	//if(m_nodeInitExpr->isAConstant() || m_nodeInitExpr->isFunctionCall())
 	TBOOL istor = m_nodeInitExpr->getStoreIntoAble();
 	Node::setStoreIntoAble(istor);
@@ -282,6 +271,17 @@ namespace MFM {
 	    else
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		setNodeType(Nav);
+		return Nav; //short-circuit
+	      }
+	  }
+
+	// Don't Go Beyond This Point when either it or eit are not ok.
+	if(UlamType::compareForMakingCastingNode(eit, it, m_state) == UTIC_NOTSAME)
+	  {
+	    //must be safe to case (NodeVarDecl c&l) is different
+	    if(!Node::makeCastingNode(m_nodeInitExpr, it, m_nodeInitExpr))
+	      {
 		setNodeType(Nav);
 		return Nav; //short-circuit
 	      }

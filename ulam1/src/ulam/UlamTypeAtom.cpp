@@ -193,7 +193,7 @@ namespace MFM {
     //constructor
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(AtomBitStorage<EC>& targ, const UlamContext<EC>& uc) : UlamRef<EC>(0u, BPA, targ, uc.LookupElementTypeFromContext(targ.GetType())) { }\n");
+    fp->write("(AtomRefBitStorage<EC>& targ, const UlamContext<EC>& uc) : UlamRef<EC>(0u, BPA, targ, uc.LookupElementTypeFromContext(targ.GetType())) { }\n");
 
     //constructor for ref(auto) (e.g. t3407, 3638, 3639, 3655, 3656, 3657, 3663, 3684, 3692)
     m_state.indent(fp);
@@ -256,7 +256,7 @@ namespace MFM {
 
 	m_state.indent(fp);
 	fp->write("void write(const ");
-	fp->write("AtomBitStorage<EC>");
+	fp->write("AtomRefBitStorage<EC>");
 	fp->write("& v) { ");
 	fp->write("UlamRef<EC>::");
 	fp->write(writeMethodForCodeGen().c_str());
@@ -317,7 +317,7 @@ namespace MFM {
     fp->write("\n");
 
     m_state.indent(fp);
-    fp->write("typedef AtomBitStorage<EC> ABS;\n");
+    fp->write("typedef AtomRefBitStorage<EC> ABS;\n");
     fp->write("\n");
 
     //default constructor (used by local vars)
@@ -338,7 +338,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("(const ");
-    fp->write("AtomBitStorage<EC>");
+    fp->write("AtomRefBitStorage<EC>");
     fp->write("& d) : "); //uc consistent with atomref
     fp->write("AtomBitStorage<EC>");
     fp->write("(d.ReadAtom()) { }\n");
@@ -412,7 +412,7 @@ namespace MFM {
 
 	m_state.indent(fp);
 	fp->write("void write(const ");
-	fp->write("AtomBitStorage<EC>");
+	fp->write("AtomRefBitStorage<EC>");
 	fp->write("& v) { ");
 	fp->write("ABS::");
 	fp->write(writeMethodForCodeGen().c_str());
@@ -701,7 +701,7 @@ namespace MFM {
     //assignment constructor, atom arg, for convenience
     m_state.indent(fp);
     fp->write(mangledName.c_str());
-    fp->write("(const AtomBitStorage<EC> & arg) { ");
+    fp->write("(const AtomRefBitStorage<EC> & arg) { ");
     fp->write("BV96 tmpval = arg.ReadBig(0u, BPA); ");
     fp->write("for(u32 j = 0; j < ");
     fp->write_decimal_unsigned(arraysize);
