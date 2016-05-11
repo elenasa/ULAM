@@ -5,14 +5,10 @@
 ##
 ##        unevaluable without assuming atoms as elements (c should be false)
 ##
-./A.ulam:8:9: ERROR: Invalid argument 1 to function <func>; Cannot be used as a reference parameter.
-./A.ulam:8:7: ERROR: Assignment is invalid; LHS: Bool(1); RHS: erroneous.
-./A.ulam:4:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: A.
-Unrecoverable Program Type Label FAILURE.
-##Exit status: 0
-##Ue_A : QW { :<> Bool(1) b(true);  Bool(1) c(true);  Int(32) test() {  System s;  b ( self.storageof )func = s ##( b )assert . Atom(96) a;  c ( a cast )func = s ( c ! )assert . 0 cast return } }
-##Uq_System { <NOMAIN> }
-##Uq_QW { <NOMAIN> }
+Exit status: 0
+Ue_A : QW { :<> Bool(1) b(true);  Bool(1) c(true);  Int(32) test() {  System s;  b ( self.storageof )func = s ( b )assert . Atom(96) a;  c ( a cast )func = s ( c ! )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Uq_QW { <NOMAIN> }
 ##
 ## Dave requested a way to get default values for Self (within a quark);
 ## a loophole, since a quark would be an undefined atom, but as a ref, its done (t3679)

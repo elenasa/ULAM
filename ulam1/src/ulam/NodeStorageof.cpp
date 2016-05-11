@@ -137,7 +137,7 @@ namespace MFM {
   void NodeStorageof::genCode(File * fp, UVPass& uvpass)
   {
     //lhs, no longer allowed with packed elements
-    //assert(getStoreIntoAble() == TBOOL_TRUE);
+    assert(getStoreIntoAble() == TBOOL_TRUE);
     UTI nuti = getNodeType(); //UAtomRef
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 tmpVarNum = m_state.getNextTmpVarNumber(); //tmp for atomref
@@ -172,8 +172,7 @@ namespace MFM {
     else
       fp->write(m_varSymbol->getMangledName().c_str()); //element or atom
 
-    fp->write(".CreateAtom()"); //can't be const
-    fp->write("; //storageof \n");
+    fp->write(".ReadAtom(); //storageof \n"); //can't be const
 
     uvpass = UVPass::makePass(tmpVarNum, TMPTATOM, nuti, UNPACKED, m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
 
@@ -218,18 +217,14 @@ namespace MFM {
     else
       fp->write(m_varSymbol->getMangledName().c_str()); //element or atom
 
-    fp->write(".GetStorage(), "); //can't be const
+    fp->write(", "); //is storage! can't be const (error/t3659)
 
     if(m_state.isReference(vuti) || isself)
-      {
-    	fp->write(m_varSymbol->getMangledName().c_str());
-    	fp->write(".GetPos()"); //origin
-      }
+      fp->write(" - T::ATOM_FIRST_STATE_BIT"); //must be an effective element ref (e.g.t3684, t3663)
     else
       fp->write("0u");
 
     fp->write(", uc); //storageof \n");
-    //fp->write("); //storageof \n");
 
     uvpass = UVPass::makePass(tmpVarNum, TMPBITVAL, nuti, UNPACKED, m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
 

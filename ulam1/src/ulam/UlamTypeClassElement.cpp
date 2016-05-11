@@ -60,29 +60,6 @@ namespace MFM {
     if(!isScalar())
       return "ReadBV";
     return "ReadAtom";
-
-#if 0
-    std::string method;
-    u32 sizeByIntBits = getTotalWordSize();
-    switch(sizeByIntBits)
-      {
-      case 0: //e.g. empty elements
-      case 32:
-	method = "Read";
-	break;
-      case 64:
-	method = "ReadLong";
-	break;
-      default:
-	{
-	  if(isScalar())
-	    method = "ReadBig";
-	  else
-	    method = "ReadBV"; //template arg deduced by gcc
-	}
-      };
-    return method;
-#endif
   } //readMethodForCodeGen
 
   const std::string UlamTypeClassElement::writeMethodForCodeGen()
@@ -90,29 +67,6 @@ namespace MFM {
     if(!isScalar())
       return "WriteBV";
     return "WriteAtom";
-
-#if 0
-    std::string method;
-    u32 sizeByIntBits = getTotalWordSize();
-    switch(sizeByIntBits)
-      {
-      case 0: //e.g. empty elements
-      case 32:
-	method = "Write";
-	break;
-      case 64:
-	method = "WriteLong";
-	break;
-      default:
-	{
-	  if(isScalar())
-	    method = "WriteBig";
-	  else
-	    method = "WriteBV"; //template arg deduced by gcc
-	}
-      };
-    return method;
-#endif
   } //writeMethodForCodeGen
 
   bool UlamTypeClassElement::needsImmediateType()

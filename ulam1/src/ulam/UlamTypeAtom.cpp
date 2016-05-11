@@ -190,7 +190,7 @@ namespace MFM {
     fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
     fp->write("\n");
 
-    //constructor
+    //constructor (e.g. t3407)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(AtomRefBitStorage<EC>& targ, const UlamContext<EC>& uc) : UlamRef<EC>(0u, BPA, targ, uc.LookupElementTypeFromContext(targ.GetType())) { }\n");
