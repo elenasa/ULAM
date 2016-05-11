@@ -526,6 +526,12 @@ namespace MFM {
 	    //here, we haven't taken into account any array indexes, So autoref instead
 	    // e.g. m_bar[0].cb, and this NI is for the rhs of member select, 'cb'
 	    pos = sym->getPosOffset();
+
+	    //if sym is an element, and not isSelf, and not a ref, pos += 25 (t3637)
+	    UTI suti = sym->getUlamTypeIdx();
+	    UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	    if(!sym->isSelf() && (sut->getUlamClassType() == UC_ELEMENT) && !sut->isReference())
+	      pos += ATOMFIRSTSTATEBITPOS;
 	  }
 	// 'pos' modified by this data member symbol's packed bit position
 	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());

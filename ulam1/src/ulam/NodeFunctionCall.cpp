@@ -1101,6 +1101,8 @@ namespace MFM {
 
 		if(cos->isDataMember()) //dm of local stgcos
 		  hiddenarg2 << Node::calcPosOfCurrentObjectClasses(); //relative off;
+		else if(stgcosut->getUlamClassType() == UC_ELEMENT)
+		  hiddenarg2 << "T::ATOM_FIRST_STATE_BIT + 0"; //skip Type
 		else
 		  hiddenarg2 << "0";
 
@@ -1141,7 +1143,10 @@ namespace MFM {
     //new ur to reflect "effective" self and the ref storage, for this funccall
     hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvarur).c_str() << "(";
     hiddenarg2 << m_state.getTmpVarAsString(derefuti, tmpvarnum, TMPAUTOREF).c_str();
-    hiddenarg2 << ", 0u, "; //left-justified (uvpass.getPassPosOffset()?)
+    if(derefut->getUlamClassType() == UC_ELEMENT)
+      hiddenarg2 << ", T::ATOM_FIRST_STATE_BIT, "; //after Type in atom
+    else
+      hiddenarg2 << ", 0u, "; //left-justified (uvpass.getPassPosOffset()?)
     hiddenarg2 << derefut->getTotalBitSize(); //len
     hiddenarg2 << "u, &";
     hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(derefuti).c_str();

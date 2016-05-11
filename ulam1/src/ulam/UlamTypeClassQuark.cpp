@@ -219,7 +219,7 @@ namespace MFM {
     fp->write(scalarmangledName.c_str());
     fp->write("<EC> Us;\n");
 
-    //constructor for conditional-as (auto)
+    //constructor for conditional-as (auto); superclass ref of element (t3617);
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(BitStorage<EC>& targ, u32 idx, const UlamClass<EC>* effself) : UlamRef<EC>");

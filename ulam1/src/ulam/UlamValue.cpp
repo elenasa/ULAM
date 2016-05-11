@@ -164,7 +164,6 @@ namespace MFM {
 	// quarks too still?, CAN WE SUPPORT transients?
 	ULAMTYPE ttenum = ttut->getUlamTypeEnum();
 	if((ttenum == UAtom) || (ttenum == Class))
-	  //if((ttenum == UAtom) || (ttclasstype == UC_ELEMENT) || (ttclasstype == UC_QUARK))
 	  rtnUV.m_uv.m_ptrValue.m_posInAtom = ATOMFIRSTSTATEBITPOS; //len is predetermined
 	else
 	  {

@@ -227,7 +227,7 @@ namespace MFM {
 
   UTI NodeVarDecl::checkAndLabelType()
   {
-    UTI it = Nav;
+    UTI it = getNodeType();
 
     // instantiate, look up in current block
     if(m_varSymbol == NULL)

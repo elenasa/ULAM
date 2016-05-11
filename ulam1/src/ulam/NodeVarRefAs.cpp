@@ -138,7 +138,9 @@ namespace MFM {
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
     ULAMTYPE stgetype = stgcosut->getUlamTypeEnum();
-    assert((stgetype == UAtom) || (stgcosut->getUlamClassType() == UC_ELEMENT)); //not quark
+    ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClassType();
+
+    assert((stgetype == UAtom) || (stgclasstype == UC_ELEMENT)); //not quark, not transient
 
     // can't let Node::genCodeReadIntoTmpVar do this for us: need a ref.
     assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
@@ -166,14 +168,44 @@ namespace MFM {
 
     if(stgetype == UAtom)
       {
-	fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, "); //position as super (e.g. t3639, t3709, t3675, t3408, t3336)
+	if(vclasstype == UC_QUARK)
+	  fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, "); //position as super (e.g. t3639, t3709, t3675, t3408, t3336)
+	else if(vclasstype == UC_ELEMENT)
+	  fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, ");
+	//fp->write(", 0u, "); //t3249, t3255, t3637
+	else
+	  assert(0); //can't be a transient
+
 	fp->write(m_state.getHiddenContextArgName());
 	fp->write(".LookupElementTypeFromContext(");
 	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str()); //t3636
 	fp->write(".GetType())");
       }
+    else if((stgclasstype == UC_ELEMENT))
+      {
+	if(stgcosut->isReference())
+	  {
+	    fp->write(", 0u, "); //t3655
+	  }
+	else
+	  {
+	    if(vclasstype == UC_QUARK)
+	      fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, "); //t3586, t3589, t3637
+	    else if(vclasstype == UC_ELEMENT)
+	      //fp->write(", 0u, ");
+	      fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, "); //element ref's start at state
+	    else
+	      assert(0); //can't be a transient
+	  }
+
+	fp->write(m_state.getHiddenContextArgName());
+	fp->write(".LookupElementTypeFromContext(");
+	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
+	fp->write(".GetType())");
+      }
     else
       {
+	assert(0); //WHAT THEN???
 	if(vclasstype == UC_QUARK)
 	  {
 	    fp->write(", ");

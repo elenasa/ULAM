@@ -282,27 +282,6 @@ namespace MFM {
     //skip the ancestor of a template
     if(m_state.okUTItoContinue(superuti))
       {
-#if 0
-	if(!m_state.isComplete(superuti))
-	  {
-	    UTI mappedUTI = superuti;
-	    if(m_state.mappedIncompleteUTI(cuti, superuti, mappedUTI))
-	      {
-		std::ostringstream msg;
-		msg << "Substituting Mapped UTI" << mappedUTI;
-		msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
-		msg << " for incomplete superclass type: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
-		msg << "' UTI" << superuti << " while labeling class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		m_state.resetClassSuperclass(nuti, mappedUTI); //consistent!
-		m_state.mapTypesInCurrentClass(superuti, mappedUTI);
-		setSuperBlockPointer(NULL); //force fix
-		superuti = mappedUTI;
-	      }
-	  }
-#endif
 	//this is a subclass.
 	if(!isSuperClassLinkReady())
 	  {
@@ -372,7 +351,6 @@ namespace MFM {
     if(funcNode)
       {
 	UTI funcType = funcNode->getNodeType();
-	//if(funcType != Int)
 	if(UlamType::compareForArgumentMatching(funcType, Int, m_state) == UTIC_NOTSAME)
 	  {
 	    std::ostringstream msg;
@@ -1132,8 +1110,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("class ");
     fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write(" : public UlamTransient<EC> ");
-    //fp->write_decimal_unsigned(cut->getTotalBitSize());
-    //fp->write("u> ");
 
     m_state.indent(fp);
     fp->write("{\n");
@@ -1549,7 +1525,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.indent(fp);
     fp->write("return ");
-    fp->write_decimal_unsigned(cut->getTotalBitSize());
+    fp->write_decimal_unsigned(cut->getTotalBitSize()); //t3663
     fp->write(";\n");
 
     m_state.m_currentIndentLevel--;
@@ -1599,21 +1575,31 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.m_currentIndentLevel++;
 
     m_state.indent(fp);
-    fp->write("AtomBitStorage<EC> da(Element<EC>::BuildDefaultAtom());\n\n");
+    fp->write("AtomBitStorage<EC> da(");
+    fp->write("Element<EC>::BuildDefaultAtom());\n\n");
 
     if(cut->getBitSize() > 0)
       {
 	m_state.indent(fp);
 	fp->write("// Initialize any data members:\n");
 
-	//get all initialized data members packed
+	//get all initialized data members packed;
+	// (including 25 zeros for Type) e.g. t3510
 	if(genCodeBuiltInFunctionBuildingDefaultDataMembers(fp))
 	  {
 	    m_state.indent(fp);
-	    fp->write("da.WriteBV(0u + T::ATOM_FIRST_STATE_BIT, ");
+	    fp->write("da.WriteBV(0u, ");
 	    fp->write("initBV);\n");
 	  }
       }
+
+    //set the Type
+    m_state.indent(fp);
+    fp->write("// Set the Type:\n");
+    m_state.indent(fp);
+    fp->write("da.Write(0u, T::ATOM_FIRST_STATE_BIT, ");
+    fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
+    fp->write(".GetType());\n\n");
 
     m_state.indent(fp);
     fp->write("return ");
@@ -1634,6 +1620,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     u32 len = nut->getTotalBitSize();
     if(len == 0)
       return false;
+
+    if(nut->getUlamClassType() == UC_ELEMENT)
+      len = BITSPERATOM; //atom-based
 
     BV8K dval;
     AssertBool isDefault = m_state.getDefaultClassValue(nuti, dval);

@@ -67,6 +67,10 @@ namespace MFM{
 
     virtual bool needsImmediateType();
 
+    virtual const std::string getArrayItemTmpStorageTypeAsString();
+
+    virtual const std::string getTmpStorageTypeAsString();
+
     virtual const std::string getLocalStorageTypeAsString();
 
     virtual TMPSTORAGE getTmpStorageTypeForTmpVar();
@@ -84,6 +88,14 @@ namespace MFM{
     virtual void genUlamTypeReadDefinitionForC(File * fp);
 
     virtual void genUlamTypeWriteDefinitionForC(File * fp);
+
+    virtual const std::string readArrayItemMethodForCodeGen();
+
+    virtual const std::string writeArrayItemMethodForCodeGen();
+
+    virtual void genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp);
+
+    virtual void genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp);
 
    private:
 

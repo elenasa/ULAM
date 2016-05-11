@@ -59,6 +59,8 @@ namespace MFM {
 
   s32 SymbolTableOfVariables::getTotalVariableSymbolsBitSize()
   {
+    ULAMCLASSTYPE cclasstype = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamClassType();
+
     s32 totalsizes = 0;
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
@@ -73,6 +75,7 @@ namespace MFM {
 	  }
 
 	UTI suti = sym->getUlamTypeIdx();
+	UlamType * sut = m_state.getUlamTypeByIndex(suti);
 	s32 symsize = calcVariableSymbolTypeSize(suti); //recursively
 
 	if(symsize == CYCLEFLAG) //was < 0
@@ -99,7 +102,14 @@ namespace MFM {
 	else
 	  m_state.setBitSize(suti, symsize); //symsize does not include arrays
 
-	totalsizes += m_state.getTotalBitSize(suti); //covers up any unknown sizes; includes arrays
+	if((cclasstype == UC_TRANSIENT) && (sut->getUlamClassType() == UC_ELEMENT))
+	  {
+	    s32 arraysize = sut->getArraySize();
+	    arraysize = arraysize <= 0 ? 1 : arraysize;
+	    totalsizes += (BITSPERATOM * arraysize);
+	  }
+	else
+	  totalsizes += m_state.getTotalBitSize(suti); //covers up any unknown sizes; includes arrays
 	it++;
       } //while
     return totalsizes;

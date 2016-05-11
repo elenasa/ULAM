@@ -471,10 +471,22 @@ namespace MFM {
 
     bool aok = false; //init as not ready
     UTI nuti = getNodeType(); //same as symbol uti
+    if(nuti != m_varSymbol->getUlamTypeIdx())
+      return false; //error during packBits
+
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+    UTI cuti = m_state.getCompileThisIdx();
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
     u32 pos = m_varSymbol->getPosOffset();
     s32 bitsize = nut->getBitSize();
+
+    if(cut->getUlamClassType() == UC_ELEMENT)
+      pos += ATOMFIRSTSTATEBITPOS; //atom-based (TypeField determined at runtime)
+
+    if(nut->getUlamClassType() == UC_ELEMENT)
+      bitsize = BITSPERATOM; //atom-based
 
     ULAMTYPE etyp = nut->getUlamTypeEnum();
     if(etyp == Class) //thisClass contains a different class
@@ -610,7 +622,7 @@ namespace MFM {
     ULAMCLASSTYPE thisclasstype = m_state.getUlamTypeByIndex(cuti)->getUlamClassType();
     if(thisclasstype == UC_TRANSIENT)
       {
-	if(m_state.isAtom(it))
+	if(m_state.isAtom(it) || (classtype == UC_ELEMENT))
 	  {
 	    if(ut->isScalar())
 	      {
@@ -628,7 +640,7 @@ namespace MFM {
       }
     else
       {
-	// this datamember belongs to an element or quark
+	// this datamember belongs to an element or quark (e.g. t3190)
 	if((len > MAXBITSPERLONG) && (classtype == UC_NOTACLASS))
 	  {
 	    std::ostringstream msg;
@@ -730,13 +742,16 @@ namespace MFM {
       return NOTREADY;
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    //ULAMCLASSTYPE classtype = nut->getUlamClassType();
     ULAMTYPE etyp = nut->getUlamTypeEnum();
 
     assert(m_varSymbol->getAutoLocalType() == ALT_NOT);
 
     if(m_state.isAtom(nuti))
       return NodeVarDecl::eval();
+
+    ULAMCLASSTYPE classtype = nut->getUlamClassType();
+    if((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() > MAXSTATEBITS))
+      return UNEVALUABLE;
 
     // m_nodeInitExpr exists as result of a previous fold
     if(etyp == Class && (m_nodeInitExpr == NULL))
@@ -760,6 +775,12 @@ namespace MFM {
 
   EvalStatus NodeVarDeclDM::evalToStoreInto()
   {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    ULAMCLASSTYPE classtype = nut->getUlamClassType();
+    if((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() > MAXSTATEBITS))
+      return UNEVALUABLE;
+
     evalNodeProlog(0); //new current node eval frame pointer
 
     // (from NodeIdent's makeUlamValuePtr)
@@ -796,11 +817,9 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMTYPE netyp = nut->getUlamTypeEnum();
-    //ULAMCLASSTYPE nclasstype = nut->getUlamClassType();
     ULAMCLASSTYPE classtype = m_state.getUlamClassForThisClass();
 
     m_state.indent(fp);
-    //if(nclasstype == UC_QUARK && nut->isScalar())
     if((netyp == Class) && nut->isScalar())
       {
 	// use typedef rather than atomic parameter for classes
