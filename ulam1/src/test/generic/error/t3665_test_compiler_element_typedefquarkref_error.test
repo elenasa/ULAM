@@ -23,7 +23,7 @@ element Foo {
     q.bb = true;
     typedef QPerc& QPR;
     QPR qref = q;
-    Atom& a = (Atom) qref.storageof; //(Atom) qref;
+    Atom& a = (Atom) qref.atomof; //(Atom) qref;
 
     return 0;
   }

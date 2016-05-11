@@ -1293,10 +1293,10 @@ namespace MFM {
     // or ancestor quark if a class.
     m_argumentNodes->genCodeToStoreInto(fp, uvpass, n);
 
-    //assert(!m_state.m_currentObjSymbolsForCodeGen.empty()); such as .storageof
+    //assert(!m_state.m_currentObjSymbolsForCodeGen.empty()); such as .atomof
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
-	return genCodeAnonymousReferenceArg(fp, uvpass, n); //such as .storageof
+	return genCodeAnonymousReferenceArg(fp, uvpass, n); //such as .atomof
       }
 
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
@@ -1374,7 +1374,7 @@ namespace MFM {
   // uses uvpass rather than stgcos, cos for classes or atoms (not primitives)
   void NodeFunctionCall::genCodeAnonymousReferenceArg(File * fp, UVPass & uvpass, u32 n)
   {
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //such as .storageof
+    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //such as .stomof
 
     assert(m_funcSymbol);
     UTI vuti = m_funcSymbol->getParameterType(n);

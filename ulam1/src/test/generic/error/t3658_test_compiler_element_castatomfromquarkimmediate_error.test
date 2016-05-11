@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: -1
-Ue_Foo : QPerc { :< Bool(1) b(false); > Int(32) test() {  QPerc q;  QPerc& qref = q cast;  self.storageof qref.storageof = 1 cast return } }
+Ue_Foo : QPerc { :< Bool(1) b(false); > Int(32) test() {  QPerc q;  QPerc& qref = q cast;  self.atomof qref.atomof = 1 cast return } }
 Uq_QPerc { Bool(1) b(false);  <NOMAIN> }
 ##
 ## informed by a Dave ish 2/19/2016; should this be allowed, or error?
@@ -20,7 +20,7 @@ element Foo : QPerc {
     QPerc q;
     QPerc & qref = q;
     //self.storageof = q.storageof; //.storageof can't be used with q
-    self.storageof = qref.storageof; //(Atom) q; //clobbers storage!!
+    self.atomof = qref.atomof; //(Atom) q; //clobbers storage!!
     return 1;
   }
 }

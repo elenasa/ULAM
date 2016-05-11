@@ -232,7 +232,7 @@ namespace MFM {
 	    if(tobe->getUlamTypeEnum() == Bool)
 	      msg << "; Consider using a comparison operator";
 	    else if(m_state.isAtom(tobeType) && (nut->getUlamClassType() == UC_QUARK))
-	      msg << "; Consider using a reference (or self) with .storageof";
+	      msg << "; Consider using a reference (or self) with .atomof";
 	    if(scr == CAST_HAZY)
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);

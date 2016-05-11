@@ -37,16 +37,11 @@
 #ifndef NODEATOMOF_H
 #define NODEATOMOF_H
 
-#include "File.h"
-#include "Node.h"
-#include "Token.h"
-#include "SymbolVariable.h"
-#include "NodeTypeDescriptor.h"
-#include "NodeBlock.h"
+#include "NodeStorageof.h"
 
 namespace MFM{
 
-  class NodeAtomof : public Node
+  class NodeAtomof : public NodeStorageof
   {
   public:
 
@@ -56,51 +51,23 @@ namespace MFM{
 
     virtual ~NodeAtomof();
 
-    //    virtual Node * instantiate();
-
-    virtual void updateLineage(NNO pno);
-
-    virtual bool findNodeNo(NNO n, Node *& foundNode);
-
-    virtual void print(File * fp);
-
-    virtual void printPostfix(File * fp);
+    virtual Node * instantiate();
 
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
 
-    virtual FORECAST safeToCastTo(UTI newType);
-
     virtual UTI checkAndLabelType();
 
-    virtual EvalStatus eval();
+    virtual void genCode(File * fp, UVPass& uvpass);
 
-    virtual EvalStatus evalToStoreInto();
-
-    virtual void genCode(File * fp, UVPass& uvpass) = 0;
-
-    virtual void genCodeToStoreInto(File * fp, UVPass& uvpass) = 0;
+    virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
 
   protected:
-
-    Token m_token;
-    SymbolVariable * m_varSymbol;
-
-    UTI getOfType();
-    void setOfType(UTI oftyp);
-
-    virtual UlamValue makeUlamValuePtr() = 0;
+    virtual UlamValue makeUlamValuePtr();
 
   private:
 
-    UTI m_oftype;
-    NodeTypeDescriptor * m_nodeTypeDesc;
-    NNO m_currBlockNo;
-
-    NNO getBlockNo() const;
-
-    NodeBlock * getBlock();
   };
 
 }

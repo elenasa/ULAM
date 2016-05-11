@@ -38,7 +38,7 @@ quark QW {
   Atom func(QW qwarg)
   {
     QW& iref = qwarg;
-    Atom ia = iref.storageof;
+    Atom ia = iref.atomof;
     return ia;
   }
 }

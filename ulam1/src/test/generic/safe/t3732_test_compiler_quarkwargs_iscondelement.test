@@ -28,7 +28,7 @@ quark Bar
   Unsigned(3) bu = 7u;
   Void func(Unsigned u)
   {
-    Atom a = self.storageof;
+    Atom a = self.atomof;
     if((a is Eltypo))
       bu = (Unsigned(3)) u;
   }

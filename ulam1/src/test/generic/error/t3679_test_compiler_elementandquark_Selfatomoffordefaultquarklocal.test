@@ -45,7 +45,7 @@ quark QW {
   {
     QW i = QW.instanceof;
     QW& iref = i;
-    Atom ia = iref.storageof; //will be UNDEFINED_TYPE
+    Atom ia = iref.atomof; //will be UNDEFINED_TYPE
     // equivalent to since self is a ref:
     Atom a = self.instanceof;
     return ia;

@@ -62,7 +62,7 @@ quark Coo {
   Bool(3) cb = true;
   Self func()
   {
-    Atom f = self.storageof; //was atom, was self
+    Atom f = self.atomof; //was atom, was self
     ////Foo f = (Foo) self;
     //if(f as Foo) //for eval
     {

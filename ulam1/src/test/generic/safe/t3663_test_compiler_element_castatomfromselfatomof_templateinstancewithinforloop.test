@@ -42,11 +42,11 @@ quark QPerc(Unsigned c) {
     }
 
     if(bb)
-      a = self.storageof;
+      a = self.atomof;
 
     //if(a as Self)
     //self = a;
-    self.storageof = a;
+    self.atomof = a;
     return a;
   }
 }
