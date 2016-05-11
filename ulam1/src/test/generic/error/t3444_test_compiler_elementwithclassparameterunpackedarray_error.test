@@ -2,7 +2,6 @@
 #=t3444_test_compiler_elementwithclassparameterunpackedarray_error
 #!
 ./T.ulam:7:4: ERROR: Constant value expression for: y, is not a constant.
-./S.ulam:2:9: ERROR: Undetermined Type: <BigSite>; Suggest 'use BigSite;' if it's a class, otherwise a typedef is needed in S12.
 ./T.ulam:3:10: ERROR: 1 Nodes with erroneous types detected after type labeling class: T.
 ./T.ulam:3:10: ERROR: 2 Nodes with unresolved types detected after type labeling class: T.
 Unrecoverable Program Type Label FAILURE.

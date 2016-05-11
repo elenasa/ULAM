@@ -97,11 +97,12 @@ namespace MFM{
     bool updateConstant32(u64 & newconst);
     bool updateConstant64(u64 & newconst);
 
-    bool foldDefaultQuark(u32 dq);
     void foldDefaultClass();
     void genCodedBitFieldTypedef(File * fp, UVPass& uvpass);
 
     UlamValue makeUlamValuePtr(); //for dm
+
+    bool checkDataMemberSizeConstraints(); //during c&l
   };
 } //MFM
 

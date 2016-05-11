@@ -173,6 +173,7 @@ namespace MFM {
 	m_state.setGoAgain();
 	return Hzy;
       }
+
     if(superuti != Nouti) //has ancestor
       {
 	//is a subclass' DM..
@@ -257,8 +258,98 @@ namespace MFM {
 	//done in NodeVarDecl c&l: safeToCastTo(nuti)
       } //finished init expr node
 
+    if(m_state.isComplete(getNodeType()))
+      {
+	if(!checkDataMemberSizeConstraints())
+	  setNodeType(Nav); //err msgs, compiler counts;
+      }
+
     return getNodeType();
   } //checkAndLabelType
+
+  bool NodeVarDeclDM::checkDataMemberSizeConstraints()
+  {
+    bool rtnb = true;
+    UTI it = m_varSymbol->getUlamTypeIdx();
+    assert(m_state.isComplete(it)); //moved error check to separate pass
+    assert(getNodeType() == it);
+    UlamType * ut = m_state.getUlamTypeByIndex(it);
+    ULAMCLASSTYPE dmclasstype = ut->getUlamClassType();
+    u32 len = ut->getTotalBitSize();
+
+    UTI cuti = m_state.getCompileThisIdx();
+    ULAMCLASSTYPE thisclasstype = m_state.getUlamTypeByIndex(cuti)->getUlamClassType();
+    if(thisclasstype != UC_TRANSIENT)
+      {
+	// this datamember belongs to an element or quark (e.g. t3190)
+	// allows BIG numeric arrays, and BIG Bits and Bools Wed May 11 09:16:34 2016
+	//if((len > MAXBITSPERLONG) && (dmclasstype == UC_NOTACLASS)) //BitField constraint
+	if((len > MAXBITSPERLONG) && (dmclasstype == UC_NOTACLASS) && ut->isScalar() && ut->isNumericType())
+	  {
+	    std::ostringstream msg;
+	    msg << "Data member <" << getName() << "> of numeric scalar type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    msg << ", total size: " << (s32) m_state.getTotalBitSize(it);
+	    msg << " MUST fit into " << MAXBITSPERLONG << " bits;";
+	    msg << " Local variables do not have this restriction";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    rtnb = false;
+	  }
+
+	if(dmclasstype == UC_ELEMENT)
+	  {
+	    std::ostringstream msg;
+	    msg << "Data member <" << getName() << "> of type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    msg << ", is an element, and is NOT permitted; Local variables, quarks, ";
+	    msg << "and Model Parameters do not have this restriction";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    rtnb = false;
+	  }
+
+	if(dmclasstype == UC_QUARK)
+	  {
+	    if(!ut->isScalar() && (len > MAXSTATEBITS)) //was MAXBITSPERLONG
+	      {
+		std::ostringstream msg;
+		msg << "Data member <" << getName() << "> of class array type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		msg << ", total size: " << (s32) len;
+		msg << " MUST fit into " << MAXSTATEBITS << " bits;";
+		msg << "Local variables do not have this restriction";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		rtnb = false;
+	      }
+	  }
+
+	if(dmclasstype == UC_TRANSIENT)
+	  {
+	    std::ostringstream msg;
+	    msg << "Data member <" << getName() << "> of type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    msg << ", is a transient, and is NOT permitted; Local variables, ";
+	    msg << "do not have this restriction";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    rtnb = false;
+	  }
+      } //not transient
+
+    //this check is valid regardless of where quark resides
+    if(dmclasstype == UC_QUARK)
+      {
+	if(ut->isScalar() && (len > MAXBITSPERINT))
+	  {
+	    std::ostringstream msg;
+	    msg << "Data member <" << getName() << "> of class type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    msg << ", total size: " << (s32) len;
+	    msg << " MUST fit into " << MAXBITSPERINT << " bits";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    rtnb = false;
+	  }
+      } //quarks
+    return rtnb;
+  } //checkDataMemberSizeConstraints
 
   void NodeVarDeclDM::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
@@ -470,9 +561,8 @@ namespace MFM {
     assert(m_varSymbol->isDataMember());
 
     bool aok = false; //init as not ready
-    UTI nuti = getNodeType(); //same as symbol uti
-    if(nuti != m_varSymbol->getUlamTypeIdx())
-      return false; //error during packBits
+    UTI nuti = getNodeType(); //same as symbol uti, unless prior error
+    assert(nuti == m_varSymbol->getUlamTypeIdx());
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
@@ -535,39 +625,6 @@ namespace MFM {
     return aok;
   } //buildDefaultValue
 
-  bool NodeVarDeclDM::foldDefaultQuark(u32 dq)
-  {
-    UTI nuti = getNodeType();
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    u64 dqval = 0;
-    //bouild dqval array
-    if(!nut->isScalar())
-      {
-	//array of quarks
-	if(nut->getTotalWordSize() > MAXBITSPERLONG) //64
-	  {
-	    std::ostringstream msg;
-	    msg << "Not supported at this time, UNPACKED Quark array type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    return false;
-	  }
-	m_state.getDefaultAsPackedArray(nuti, dq, dqval); //3rd arg ref
-      }
-    else
-      dqval = dq;
-
-    //folding into a terminal node
-    NodeTerminal * newnode = new NodeTerminal(dqval, nuti, m_state);
-    newnode->setNodeLocation(getNodeLocation());
-    delete m_nodeInitExpr;
-    m_nodeInitExpr = newnode;
-    //(in this order)
-    ((SymbolVariableDataMember *) m_varSymbol)->setHasInitValue();
-    ((SymbolVariableDataMember *) m_varSymbol)->setInitValue(dqval);
-    return true;
-  } //foldDefaultQuark
-
   void NodeVarDeclDM::foldDefaultClass()
   {
     UTI nuti = getNodeType();
@@ -614,15 +671,16 @@ namespace MFM {
 
     UTI it = m_varSymbol->getUlamTypeIdx();
     assert(m_state.isComplete(it)); //moved error check to separate pass
+    assert(it == getNodeType()); //same as symbol, or shouldn't be here!
+
     UlamType * ut = m_state.getUlamTypeByIndex(it);
-    ULAMCLASSTYPE classtype = ut->getUlamClassType();
     u32 len = ut->getTotalBitSize();
 
     UTI cuti = m_state.getCompileThisIdx();
     ULAMCLASSTYPE thisclasstype = m_state.getUlamTypeByIndex(cuti)->getUlamClassType();
     if(thisclasstype == UC_TRANSIENT)
       {
-	if(m_state.isAtom(it) || (classtype == UC_ELEMENT))
+	if(m_state.isAtom(it) || (ut->getUlamClassType() == UC_ELEMENT))
 	  {
 	    if(ut->isScalar())
 	      {
@@ -635,78 +693,11 @@ namespace MFM {
 	  }
 	else
 	  {
-	    offset += len; //includes arraysize, and other transients
+	    offset += len; //includes arraysize, quarks, and other transients
 	  }
       }
-    else
-      {
-	// this datamember belongs to an element or quark (e.g. t3190)
-	if((len > MAXBITSPERLONG) && (classtype == UC_NOTACLASS))
-	  {
-	    std::ostringstream msg;
-	    msg << "Data member <" << getName() << "> of type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << ", total size: " << (s32) m_state.getTotalBitSize(it);
-	    msg << " MUST fit into " << MAXBITSPERLONG << " bits;";
-	    msg << " Local variables do not have this restriction";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav); //compiler counts
-	  }
-
-	if(classtype == UC_ELEMENT)
-	  {
-	    std::ostringstream msg;
-	    msg << "Data member <" << getName() << "> of type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << ", is an element, and is NOT permitted; Local variables, quarks, ";
-	    msg << "and Model Parameters do not have this restriction";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav); //compiler counts
-	  }
-
-	if(classtype == UC_QUARK)
-	  {
-	    if(!ut->isScalar() && (len > MAXBITSPERLONG))
-	      {
-		std::ostringstream msg;
-		msg << "Data member <" << getName() << "> of class array type: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-		msg << ", total size: " << (s32) len;
-		msg << " MUST fit into " << MAXBITSPERLONG << " bits;";
-		msg << "Local variables do not have this restriction";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		setNodeType(Nav); //compiler counts
-	      }
-	  }
-
-	if(classtype == UC_TRANSIENT)
-	  {
-	    std::ostringstream msg;
-	    msg << "Data member <" << getName() << "> of type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << ", is a transient, and is NOT permitted; Local variables, ";
-	    msg << "do not have this restriction";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav); //compiler counts
-	  }
-
-	offset += len;
-      } //not transient
-
-    //this check is valid regardless of where quark resides
-    if(classtype == UC_QUARK)
-      {
-	if(ut->isScalar() && (len > MAXBITSPERINT))
-	  {
-	    std::ostringstream msg;
-	    msg << "Data member <" << getName() << "> of class type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << ", total size: " << (s32) len;
-	    msg << " MUST fit into " << MAXBITSPERINT << " bits";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav); //compiler counts
-	  }
-      } //quarks
+    else //not transient
+      offset += len; //uses actual size for element and quark data members
   } //packBitsInOrderOfDeclaration
 
   void NodeVarDeclDM::printUnresolvedVariableDataMembers()
@@ -811,7 +802,7 @@ namespace MFM {
     return genCodedBitFieldTypedef(fp, uvpass);
   } //genCode
 
-  // variable is a data member; cannot be an element
+  // variable is a data member; cannot be an element (unless a transient!)
   void NodeVarDeclDM::genCodedBitFieldTypedef(File * fp, UVPass& uvpass)
   {
     UTI nuti = getNodeType();
@@ -836,28 +827,26 @@ namespace MFM {
       }
     else
       {
+	//arrays and non-class data members
 	fp->write("typedef UlamRefFixed");
 	fp->write("<EC, "); //BITSPERATOM
 
-	if(classtype == UC_QUARK)
+	if(classtype == UC_ELEMENT)
 	  {
-	    fp->write_decimal(m_varSymbol->getPosOffset());
-	  }
-	else if(classtype == UC_ELEMENT)
-	  {
+	    s32 arraysize = nut->getArraySize();
+	    arraysize = (arraysize <= 0 ? 1 : arraysize);
 	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
-	  }
-	else if(classtype == UC_TRANSIENT)
-	  {
-	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
+	    fp->write("u, BPA * "); //atom-based
+	    fp->write_decimal(arraysize); //include arraysize
+	    fp->write("u> ");
 	  }
 	else
-	  assert(0);
-
-	fp->write("u, ");
-	fp->write_decimal(nut->getTotalBitSize()); //include arraysize
-	fp->write("u> ");
-
+	  {
+	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
+	    fp->write("u, ");
+	    fp->write_decimal(nut->getTotalBitSize()); //include arraysize
+	    fp->write("u> ");
+	  }
 	fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
 	fp->write(";\n"); //func call parameters aren't NodeVarDecl's
       }
