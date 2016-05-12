@@ -1,0 +1,11 @@
+ulam 1;
+use Random;
+
+quark Timexp4
+{
+  XTimer(4,Unsigned(4).maxof,1u) x;
+  Void reset() { x.reset(); }
+  Unsigned count() { return x.count(); }
+  Unsigned current() { return x.current(); }
+  Bool alarm() { return x.alarm(); }
+}
