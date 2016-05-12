@@ -108,6 +108,9 @@ namespace MFM{
     u32 getCustomArrayIndexTypeFromGetFunction(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref); //starts here, called by SymbolClass
+
+    virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
+
     void checkDuplicateFunctions();
 
     void calcMaxDepthOfFunctions();

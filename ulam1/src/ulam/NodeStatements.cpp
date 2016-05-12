@@ -173,6 +173,15 @@ namespace MFM {
     return aok;
   } //buildDefaultValue
 
+  void NodeStatements::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
+  {
+    if(m_node)
+      m_node->genCodeElementTypeIntoDataMemberDefaultValue(fp, startpos);
+
+    if(m_nodeNext)
+      m_nodeNext->genCodeElementTypeIntoDataMemberDefaultValue(fp, startpos);
+  } //genCodeElementTypeIntoDataMemberDefaultValue
+
   EvalStatus NodeStatements::eval()
   {
     assert(m_node);

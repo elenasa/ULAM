@@ -1,0 +1,81 @@
+## -*- mode:ulam -*-
+#=t3735_test_compiler_atomreffromsuperquarkrefintransient
+#!
+##
+##   gencode output: (interleaved asserts)
+##	 Unsigned Arg: 3
+##       Unsigned Arg: 3
+##       Unsigned Arg: 3
+##
+Exit status: -11
+Ue_R { Int(32) test() {  System s;  Trans t;  Typo(1)& poref = t elt . cast;  poref ( 2u cast )func . Atom(96)& a = poref.atomof;  Eltypo ell = a cast;  s ( ell bu . 2u cast == )assert . ell bu . cast return } }
+Un_Trans { Bool(7) sp(false);  Eltypo elt(0);  <NOMAIN> }
+Ue_Eltypo : Typo(1) { :< :< Unsigned(3) bu( 7u); >> Unsigned(3) first(0);  Unsigned(3) second(0);  <NOMAIN> }
+Uq_Typo(Int(32) a) : Bar { /* empty class block */ }
+Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed loosely by 3588
+##
+#>R.ulam
+  ulam 2;
+use Trans;
+use System;
+element R {
+  Int test(){
+    System s;
+    Trans t;
+    Typo(1)& poref = t.elt;
+    poref.func(2u);
+    Atom & a = poref.atomof; //poref without .atomof is incompatible type
+    Eltypo ell = (Eltypo) a; //use explicit case
+    s.assert(ell.bu == 2u);
+    return ell.bu;
+  }
+}
+
+#:Trans.ulam
+  ulam 2;
+use Eltypo;
+transient Trans {
+  Bool(7) sp;
+  Eltypo elt;
+}
+
+#:Eltypo.ulam
+  ulam 2;
+use Typo;
+element Eltypo : Typo(1) {
+  Unsigned(3) first;
+  Unsigned(3) second;
+}
+
+#:Typo.ulam
+  ulam 2;
+use Bar;
+quark Typo(Int a) : Bar{
+}
+
+#:Bar.ulam
+  ulam 2;
+quark Bar
+{
+  Unsigned(3) bu = 7u;
+  Void func(Unsigned u)
+  {
+    bu = (Unsigned(3)) u;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

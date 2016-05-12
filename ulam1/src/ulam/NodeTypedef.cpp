@@ -275,6 +275,11 @@ namespace MFM {
     return true; //pass on
   }
 
+  void NodeTypedef::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
+  {
+    return;
+  }
+
   EvalStatus NodeTypedef::eval()
   {
     assert(m_typedefSymbol);

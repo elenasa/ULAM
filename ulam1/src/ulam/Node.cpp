@@ -264,6 +264,11 @@ namespace MFM {
     return false;
   }
 
+  void Node::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
+  {
+    assert(0);
+  }
+
   // only for constants (NodeTerminal)
   bool Node::isNegativeConstant()
   {
@@ -547,10 +552,15 @@ namespace MFM {
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       stgcos = m_state.getCurrentSelfSymbolForCodeGen();
     else
-      stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+     stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+
+    // NOT just ur.Read() (e.g. 3707, 3708)
+    //fp->write(m_state.getHiddenArgName()); //ur (already + 25) e.g. t3407
+    //fp->write(".");
+    //fp->write(readMethodForCodeGen(uvpass.getPassTargetType(), uvpass).c_str());
 
     fp->write("UlamRef<EC>(");
     fp->write(m_state.getHiddenArgName()); //ur (already + 25) e.g. t3407
@@ -2288,7 +2298,8 @@ namespace MFM {
 	    if(!onlyClasses || (sut->getUlamTypeEnum() == Class))
 	      {
 		pos += sym->getPosOffset();
-		if(sut->getUlamClassType() == UC_ELEMENT) //dm in transient
+		//if(sut->getUlamClassType() == UC_ELEMENT) //dm in transient
+		if((sut->getUlamClassType() == UC_ELEMENT) && (i < cosSize - 1)) //dm in transient; not the last one being written to.
 		  pos += ATOMFIRSTSTATEBITPOS;
 	      }
 	  }

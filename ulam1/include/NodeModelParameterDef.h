@@ -64,6 +64,8 @@ namespace MFM{
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
+    virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
+
     virtual void genCode(File * fp, UVPass& uvpass);
 
   protected:
