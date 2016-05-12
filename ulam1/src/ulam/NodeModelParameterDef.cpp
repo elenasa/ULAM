@@ -71,6 +71,11 @@ namespace MFM {
     return true;
   }
 
+  void NodeModelParameterDef::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
+  {
+    return;
+  }
+
   void NodeModelParameterDef::checkForSymbol()
   {
     assert(!m_constSymbol);

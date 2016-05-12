@@ -427,6 +427,11 @@ namespace MFM {
 	    fp->write(", ");
 	    fp->write_decimal_unsigned(cos->getPosOffset()); //relative of
 	    fp->write("u");
+	    if((vclasstype != UC_NOTACLASS) && (vetyp != UAtom))
+	      {
+		fp->write(", &");
+		fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
+	      }
 	  }
 	else
 	  {
@@ -453,12 +458,20 @@ namespace MFM {
 		  }
 		else if(!stgcosut->isReference()) //(e.g. t3613, 3657, 3727)
 		  fp->write(", 0u"); //needs index arg
+
+		if((vclasstype != UC_NOTACLASS) && (vetyp != UAtom))
+		  {
+		    fp->write(", &");
+		    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
+		  }
 	      }
 	    else
 	      {
-		//local var (no currentObjSymbols)
+		//local var (no currentObjSymbols, 1 arg since same type)
+		assert(UlamType::compare(uvpass.getPassTargetType(), vuti, m_state) == UTIC_SAME);
 		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 
+#if 0
 		if((vclasstype == UC_NOTACLASS) && !m_state.isAtom(vuti))
 		  {
 		    fp->write(", 0u"); //relative
@@ -481,14 +494,10 @@ namespace MFM {
 		    fp->write(", 0u"); //??????
 		  }
 		//else e.g. atom do nothing
+#endif
 	      }
 	  }
 
-	if((vclasstype != UC_NOTACLASS) && (vetyp != UAtom))
-	  {
-	    fp->write(", &");
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
-	  }
 	fp->write(");\n");
       } //storage
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?

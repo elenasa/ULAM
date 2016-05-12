@@ -504,6 +504,11 @@ namespace MFM {
     return true; //pass on
   }
 
+  void NodeConstantDef::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
+  {
+    return;
+  }
+
   void NodeConstantDef::fixPendingArgumentNode()
   {
     assert(m_constSymbol);

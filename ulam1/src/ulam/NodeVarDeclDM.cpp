@@ -625,6 +625,62 @@ namespace MFM {
     return aok;
   } //buildDefaultValue
 
+  void NodeVarDeclDM::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
+  {
+    assert(m_varSymbol);
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    ULAMCLASSTYPE nclasstype = nut->getUlamClassType();
+    if(nclasstype == UC_ELEMENT)
+      {
+	s32 arraysize = nut->getArraySize();
+	arraysize = (arraysize <= 0 ? 1 : arraysize);
+
+	m_state.indent(fp);
+	fp->write("{\n"); //limit scope of 'dam'
+	m_state.m_currentIndentLevel++;
+
+	m_state.indent(fp);
+	fp->write("AtomBitStorage<EC> gda(");
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(nuti).c_str());
+	fp->write(".GetDefaultAtom());\n");
+
+	m_state.indent(fp);
+	fp->write("u32 typefield = gda.Read(0u, T::ATOM_FIRST_STATE_BIT);\n"); //can't use GetType");
+
+	for(s32 i = 0; i < arraysize; i++) //e.g. t3714 (array of element dm); t3735
+	  {
+	    m_state.indent(fp);
+	    fp->write("initBV.Write(");
+	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset() + startpos);
+	    fp->write("u + ");
+	    fp->write_decimal_unsigned(i * BITSPERATOM);
+	    fp->write("u, T::ATOM_FIRST_STATE_BIT, typefield);\n");
+	  }
+
+	m_state.m_currentIndentLevel--;
+	m_state.indent(fp);
+	fp->write("}\n");
+      }
+    else if(nclasstype == UC_TRANSIENT)
+      {
+	s32 arraysize = nut->getArraySize();
+	arraysize = (arraysize <= 0 ? 1 : arraysize);
+
+	u32 len = nut->getBitSize(); //item
+	//any transient data members that may have element data members
+	SymbolClass * csym = NULL;
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
+	assert(isDefined);
+
+	NodeBlockClass * cblock = csym->getClassBlockNode();
+	assert(cblock);
+
+	for(s32 i = 0; i < arraysize; i++)
+	  cblock->genCodeElementTypeIntoDataMemberDefaultValue(fp, m_varSymbol->getPosOffset() + startpos + i * len); //e.g. t3715
+      }
+  } //genCodeElementTypeIntoDataMemberDefaultValue
+
   void NodeVarDeclDM::foldDefaultClass()
   {
     UTI nuti = getNodeType();

@@ -583,6 +583,19 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     return aok;
   } //buildDefaultValue
 
+  void NodeBlockClass::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
+  {
+    if((m_state.isClassASubclass(getNodeType()) != Nouti))
+      {
+	NodeBlockClass * superblock = getSuperBlockPointer();
+	assert(superblock);
+	superblock->genCodeElementTypeIntoDataMemberDefaultValue(fp, startpos);
+      }
+
+    if(m_nodeNext)
+      m_nodeNext->genCodeElementTypeIntoDataMemberDefaultValue(fp, startpos); //side-effect for dm vardecls
+  } //genCodeElementTypeIntoDataMemberDefaultValue
+
   EvalStatus NodeBlockClass::eval()
   {
     //    #define _DEBUG_SKIP_EVAL
@@ -1585,21 +1598,16 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	//get all initialized data members packed;
 	// (including 25 zeros for Type) e.g. t3510
+	//restore type.
 	if(genCodeBuiltInFunctionBuildingDefaultDataMembers(fp))
 	  {
 	    m_state.indent(fp);
-	    fp->write("da.WriteBV(0u, ");
-	    fp->write("initBV);\n");
+	    fp->write("initBV.Write(0u, T::ATOM_FIRST_STATE_BIT, ");
+	    fp->write("da.Read(0u, T::ATOM_FIRST_STATE_BIT));\n"); //can't use GetType
+	    m_state.indent(fp);
+	    fp->write("da.WriteBV(0u, initBV);\n");
 	  }
       }
-
-    //set the Type
-    m_state.indent(fp);
-    fp->write("// Set the Type:\n");
-    m_state.indent(fp);
-    fp->write("da.Write(0u, T::ATOM_FIRST_STATE_BIT, ");
-    fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
-    fp->write(".GetType());\n\n");
 
     m_state.indent(fp);
     fp->write("return ");
@@ -1735,6 +1743,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	// unlike element and quarks, data members can be elements and other transients
 	if(genCodeBuiltInFunctionBuildingDefaultDataMembers(fp))
 	  {
+	    genCodeElementTypeIntoDataMemberDefaultValue(fp, 0); //startpos = 0
+
 	    m_state.indent(fp);
 	    fp->write("bvsref.WriteBV(pos, "); //first arg
 	    fp->write("initBV);\n");

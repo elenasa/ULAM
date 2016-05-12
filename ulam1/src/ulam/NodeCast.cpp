@@ -1040,9 +1040,15 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpref, TMPBITVAL).c_str());
 	fp->write("(");
 	fp->write(stgcos->getMangledName().c_str());
-	if(!stgcos->isSelf())
-	  fp->write(".GetStorage()");
-	fp->write(", 0u, &"); //offset of decendent is always 0
+	//	if(!stgcos->isSelf())
+	//  fp->write(".GetStorage()");
+	fp->write(", "); //offset of decendent is always 0 +25
+	fp->write_decimal_unsigned(uvpass.getPassPos());
+	if(!stgcosut->isReference())
+	  fp->write("u + T::ATOM_FIRST_STATE_BIT, &"); //elements stg at 0 , state of quark at 25
+	else
+	  fp->write("u, &");
+
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
 	fp->write(");\n");
 

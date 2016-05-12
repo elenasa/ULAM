@@ -96,9 +96,24 @@ namespace MFM {
 
   TMPSTORAGE UlamTypeClassTransient::getTmpStorageTypeForTmpVar()
   {
-    return UlamType::getTmpStorageTypeForTmpVar();
-    //return TMPTBV;
-  }
+    TMPSTORAGE rtnStgType = TMPTBV;
+    u32 sizebyints = getTotalWordSize();
+    std::string ctype;
+    switch(sizebyints)
+      {
+      case 0: //e.g. empty elements
+      case 32:
+	rtnStgType = TMPREGISTER;
+	break;
+      case 64:
+	rtnStgType = TMPREGISTER;
+	break;
+      case 96:
+      default:
+	rtnStgType = TMPBITVAL;
+      };
+    return rtnStgType;
+  } //getTmpStorageTypeForTmpVar
 
   const std::string UlamTypeClassTransient::castMethodForCodeGen(UTI nodetype)
   {

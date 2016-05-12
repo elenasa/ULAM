@@ -889,9 +889,6 @@ namespace MFM {
     UTI vuti = uvpass.getPassTargetType();
     //assert(m_state.getUlamTypeByIndex(vuti)->getReferenceType() != ALT_NOT); //e.g. t3668
 
-    //use possible dereference type for mangled name
-    //UTI derefuti = m_state.getUlamTypeAsDeref(vuti);
-
     // who's function is it?
     if(m_funcSymbol->isVirtualFunction())
       genCodeVirtualFunctionCall(fp, uvpass, urtmpnum); //indirect call thru func ptr
@@ -1046,6 +1043,8 @@ namespace MFM {
       {
 	if(m_state.m_currentObjSymbolsForCodeGen.empty())
 	  hiddenarg2 << m_state.getHiddenArgName(); //same ur
+	else if(stgcos->isSelf())
+	  hiddenarg2 << m_state.getHiddenArgName(); //same ur
 	else
 	  {
 	    sameur = false;
@@ -1076,9 +1075,6 @@ namespace MFM {
 	      }
 	    else if(cos->getAutoLocalType() == ALT_AS)
 	      {
-		//stgcosuti = m_state.getUlamTypeAsDeref(stgcosuti);
-		//stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-
 		sameur = false;
 		//update ur to reflect "effective" self for this funccall
 		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
@@ -1108,14 +1104,12 @@ namespace MFM {
 
 		hiddenarg2 << "u, " << cosut->getTotalBitSize() << "u, "; //len
 		if(!stgcosut->isReference())
-		  //hiddenarg2 << "0u, " << stgcos->getMangledName().c_str() << ", "; //origin + storage
 		  hiddenarg2 << stgcos->getMangledName().c_str() << ", "; //storage
 
 		hiddenarg2 << "&";
 		hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str();
 		hiddenarg2 << ");";
 	      }
-
 	  }
       }
 
@@ -1143,10 +1137,7 @@ namespace MFM {
     //new ur to reflect "effective" self and the ref storage, for this funccall
     hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvarur).c_str() << "(";
     hiddenarg2 << m_state.getTmpVarAsString(derefuti, tmpvarnum, TMPAUTOREF).c_str();
-    if(derefut->getUlamClassType() == UC_ELEMENT)
-      hiddenarg2 << ", T::ATOM_FIRST_STATE_BIT, "; //after Type in atom
-    else
-      hiddenarg2 << ", 0u, "; //left-justified (uvpass.getPassPosOffset()?)
+    hiddenarg2 << ", " << uvpass.getPassPos() << "u, "; //element refs already +25
     hiddenarg2 << derefut->getTotalBitSize(); //len
     hiddenarg2 << "u, &";
     hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(derefuti).c_str();
