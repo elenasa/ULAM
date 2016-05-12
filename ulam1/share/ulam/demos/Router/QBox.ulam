@@ -1,7 +1,5 @@
-quark QBox(Unsigned bits)
+quark QBox(Unsigned bits) : QLine(bits)
 {
-  EventWindow ew;
-
   // Note that EventWindow.Symmetry is Unsigned(3) but since we're
   // only using the first four values, an Unsigned(2) is both more
   // robust (can't mutate into higher symmetries) and saves a bit.
@@ -18,31 +16,44 @@ quark QBox(Unsigned bits)
     else --m_sym;
   }
 
-  QLine(bits) m_line;
-  Bool update() {
+  Bool updateQBox() {
     EventWindow.Symmetry old;
     old = ew.changeSymmetry(m_sym);
 
-    if (m_line.update())
+    if (updateQLine())
       return true;
 
     Bool mod = false;
 
-    if (m_line.isMax() && ew[4] is Empty) {
-      Atom a = self;
-      m_line.m_position = m_line.m_position.minof;
+    if (isMax() && ew[4] is Empty) {
+      Atom a = self.atomof;
+      Self & s = (Self&) a;
+      s.m_position = m_position.minof;
+      s.nextSym();
+      ew[4] = a;
+      /*
+      Self s = self;
+      m_position = m_position.minof;
       nextSym();
-      ew[4] = self;
-      self = a;
+      ew[4] = self.storageof;
+      self = s;
+      */
       mod = true;
     }
 
-    if (m_line.isMin() && ew[3] is Empty) {
-      Atom a = self;
-      m_line.m_position = m_line.m_position.maxof;
+    if (isMin() && ew[3] is Empty) {
+      Atom a = self.atomof;
+      Self & s = (Self&) a;
+      s.m_position = m_position.minof;
+      s.prevSym();
+      ew[3] = a;
+      /*
+      Self s = self;
+      m_position = m_position.maxof;
       prevSym();
-      ew[3] = self;
-      self = a;
+      ew[3] = self.storageof;
+      self = s;
+      */
       mod = true;
     }
     if (mod) return mod;

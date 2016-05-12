@@ -6,12 +6,10 @@
    \author Dave Ackley
    \license public-domain
 */
-element Box
+element Box : QLine(4)
 {
-  EventWindow ew;
   typedef EventWindow.Symmetry Sym;
 
-  QLine(4) m_line;
   Sym m_sym;
 
   Void nextSym() {
@@ -25,17 +23,17 @@ element Box
   Void behave() {
     ew.changeSymmetry(m_sym);
 
-    m_line.update();
-    if (m_line.isMax() && ew[4] is Empty) {
+    updateQLine();
+    if (isMax() && ew[4] is Empty) {
       Box b = self;
-      b.m_line.m_position = m_line.m_position.minof;
+      b.m_position = m_position.minof;
       b.nextSym();
       ew[4] = b;
     }
 
-    if (m_line.isMin() && ew[3] is Empty) {
+    if (isMin() && ew[3] is Empty) {
       Box b = self;
-      b.m_line.m_position = m_line.m_position.maxof;
+      b.m_position = m_position.maxof;
       b.prevSym();
       ew[3] = b;
     }

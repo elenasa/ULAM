@@ -18,27 +18,26 @@ element WPort {
     \symmetries normal
     \diffusability 0
 */
-element Switch4
+element Switch4 : QBox(6u)
 {
   constant Unsigned cBITS = 6u;
-  QBox(cBITS) m_box;
 
   constant Unsigned cPORT_BASE_IDX = ((Unsigned)(1<<cBITS))/4u;
   constant Unsigned cPORT_WIDTH = 8;
 
   Void behave() {
-    if (m_box.update()) return;
+    if (updateQBox()) return;
 
     EventWindow ew;
-    ew.changeSymmetry(m_box.m_sym);
+    ew.changeSymmetry(m_sym);
 
-    Unsigned idx = m_box.m_line.m_position;
+    Unsigned idx = m_position;
     if (idx >= cPORT_BASE_IDX &&
         idx <= cPORT_BASE_IDX + cPORT_WIDTH) {
       if (ew[3] is Wall) 
       {
         WPort wport;
-        wport.init(m_box.m_sym);
+        wport.init(m_sym);
         ew[3] = wport;
       }
       if (ew[22] is Empty) 
@@ -49,7 +48,7 @@ element Switch4
     }
 
     // Try to seed the routing grid late, after the box is built
-    if (m_box.m_sym == 2 && idx == 2u && ew[11] is Empty)
+    if (m_sym == 2 && idx == 2u && ew[11] is Empty)
     {
       Router8 r8;
       ew[11] = r8;
