@@ -106,8 +106,14 @@ namespace MFM{
 
     virtual UTI calcNodeType(UTI lt, UTI rt) = 0;
     virtual s32 resultBitsize(UTI lt, UTI rt); //op specific
+
     void resultBitsizeCalc(UTI lt, UTI rt, s32& lbs, s32&rbs, s32&lwordsize);
+    void calcBitsizeForResult(UTI uti, s32& bs, s32&wordsize, ULAMTYPE& typEnum); //helper
+
     void resultBitsizeCalcInBits(UTI lt, UTI rt, s32& lbs, s32&rbs, s32&lwordsize);
+    void calcBitsizeForResultInBits(UTI uti, s32& bs, s32&wordsize); //helper
+
+
     virtual UTI castThyselfToResultType(UTI rt, UTI lt, UTI newType);
     //common helpers for calcNodeType:
     virtual bool checkSafeToCastTo(UTI fromType, UTI& newType);

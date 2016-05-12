@@ -321,52 +321,12 @@ namespace MFM {
 
   void NodeBinaryOp::resultBitsizeCalc(UTI lt, UTI rt, s32& lbs, s32&rbs, s32&lwordsize)
   {
-    UlamType * lut = m_state.getUlamTypeByIndex(lt);
-    UlamType * rut = m_state.getUlamTypeByIndex(rt);
-
-    //both sides complete by now!!
-    assert(lut->isComplete() && rut->isComplete());
-
     // types are either unsigned or signed (unary as unsigned)
-    ULAMTYPE ltypEnum = lut->getUlamTypeEnum();
-    ULAMTYPE rtypEnum = rut->getUlamTypeEnum();
-
-    lbs = lut->getBitSize();
-    rbs = rut->getBitSize();
-    lwordsize = (s32) lut->getTotalWordSize();
-    s32 rwordsize = (s32) rut->getTotalWordSize();
-
-    if(ltypEnum == Class)
-      {
-	if(lut->isNumericType()) //i.e. a quark
-	  {
-	    lwordsize = lbs = MAXBITSPERINT; //32
-	    ltypEnum = Int; //for mix test
-	  }
-      }
-    else if(ltypEnum == Unary)
-      {
-	lbs = (s32) _getLogBase2(lbs) + 1; //fits into unsigned
-	ltypEnum = Unsigned; //for mix test
-      }
-    else //could be Unsigned or Int, not Bits
-      assert(ltypEnum == Unsigned || ltypEnum == Int);
-
-    if(rtypEnum == Class)
-      {
-	if(rut->isNumericType()) //i.e. a quark
-	  {
-	    rwordsize = rbs = MAXBITSPERINT; //32
-	    rtypEnum = Int; //for mix test
-	  }
-      }
-    else if(rtypEnum == Unary)
-      {
-	rbs = (s32) _getLogBase2(rbs) + 1; //fits into unsigned
-	rtypEnum = Unsigned; //for mix test
-      }
-    else //could be Unsigned or Int, not Bits
-      assert(rtypEnum == Unsigned || rtypEnum == Int);
+    ULAMTYPE ltypEnum;
+    calcBitsizeForResult(lt, lbs, lwordsize, ltypEnum);
+    ULAMTYPE rtypEnum;
+    s32 rwordsize = 0;
+    calcBitsizeForResult(rt, rbs, rwordsize, rtypEnum);
 
     if(lwordsize != rwordsize)
       {
@@ -385,46 +345,53 @@ namespace MFM {
       {
 	if(ltypEnum != Int)
 	  {
+	    UlamType * lut = m_state.getUlamTypeByIndex(lt);
 	    lbs = lut->bitsizeToConvertTypeTo(Int); //fits into signed
 	    ltypEnum = Int;
 	  }
 	else if(rtypEnum != Int)
 	  {
+	    UlamType * rut = m_state.getUlamTypeByIndex(rt);
 	    rbs = rut->bitsizeToConvertTypeTo(Int); //fits into signed
 	    rtypEnum = Int;
 	  }
       }
   } //resultBitsizeCalc
 
+  void NodeBinaryOp::calcBitsizeForResult(UTI uti, s32& bs, s32&wordsize, ULAMTYPE& typEnum)
+  {
+    UlamType * ut = m_state.getUlamTypeByIndex(uti);
+
+    assert(ut->isComplete());
+
+    // type is either unsigned or signed (unary as unsigned)
+    typEnum = ut->getUlamTypeEnum();
+
+    bs = ut->getBitSize();
+    wordsize = (s32) ut->getTotalWordSize();
+
+    if(typEnum == Class)
+      {
+	if(ut->isNumericType()) //i.e. a quark
+	  {
+	    wordsize = bs = MAXBITSPERINT; //32
+	    typEnum = Int; //for mix test
+	  }
+      }
+    else if(typEnum == Unary)
+      {
+	bs = (s32) _getLogBase2(bs) + 1; //fits into unsigned
+	typEnum = Unsigned; //for mix test
+      }
+    else //could be Unsigned or Int, not Bits
+      assert(typEnum == Unsigned || typEnum == Int);
+  } //calcBitsizeForResult
+
   void NodeBinaryOp::resultBitsizeCalcInBits(UTI lt, UTI rt, s32& lbs, s32&rbs, s32&lwordsize)
   {
-    UlamType * lut = m_state.getUlamTypeByIndex(lt);
-    UlamType * rut = m_state.getUlamTypeByIndex(rt);
-
-    //both sides complete to be here!!
-    assert(lut->isComplete() && rut->isComplete());
-
-    // types are either unsigned or signed (unary as-is)
-    ULAMTYPE ltypEnum = lut->getUlamTypeEnum();
-    ULAMTYPE rtypEnum = rut->getUlamTypeEnum();
-
-    lbs = lut->getBitSize();
-    rbs = rut->getBitSize();
-    lwordsize = (s32) lut->getTotalWordSize();
-    s32 rwordsize = (s32) rut->getTotalWordSize();
-
-    if(ltypEnum == Class)
-      {
-	if(lut->isNumericType()) //i.e. a quark
-	  lwordsize = lbs = MAXBITSPERINT; //32
-      }
-
-    if(rtypEnum == Class)
-      {
-	if(rut->isNumericType()) //i.e. a quark
-	  rwordsize = rbs = MAXBITSPERINT; //32
-      }
-
+    calcBitsizeForResultInBits(lt, lbs, lwordsize);
+    s32 rwordsize = 0;
+    calcBitsizeForResultInBits(rt, rbs, rwordsize);
     if(lwordsize != rwordsize)
       {
 	std::ostringstream msg;
@@ -434,9 +401,28 @@ namespace MFM {
 	msg << " for binary operator";
 	msg << getName() << " ; Suggest a cast";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	assert(0);
+	//assert(0);
       }
   } //resultBitsizeCalcInBits
+
+  void NodeBinaryOp::calcBitsizeForResultInBits(UTI uti, s32& bs, s32&wordsize)
+  {
+    UlamType * ut = m_state.getUlamTypeByIndex(uti);
+
+    assert(ut->isComplete());
+
+    // types are either unsigned or signed (unary as-is)
+    ULAMTYPE typEnum = ut->getUlamTypeEnum();
+
+    bs = ut->getBitSize();
+    wordsize = (s32) ut->getTotalWordSize();
+
+    if(typEnum == Class)
+      {
+	if(ut->isNumericType()) //i.e. a quark
+	  wordsize = bs = MAXBITSPERINT; //32
+      }
+  } //calcBitsizeForResultInBits
 
   void NodeBinaryOp::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
