@@ -2,7 +2,7 @@
 #=t3681_test_compiler_elementandquark_Selfatomoffordefaultquarklocal_error
 ##
 ## gen output:
-##  include/Uq_10102QW10.tcc:23: FAILED: ILLEGAL_ARGUMENT
+##  include/Uq_10102QW10.tcc:23: FAILED: NOT_AN_ELEMENT
 ##
 ##  UNCAUGHT FAILURE, ABORTING
 ##
@@ -14,7 +14,7 @@ Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }
 ##
 ## Dave requested a way to get default values for Self (within a quark);
-## Self.instanceof (default) vs self.storageof (current stg)
+## Self.instanceof (default) vs self.atomof (current stg)
 ##
 #>A.ulam
   ulam 2;
@@ -46,7 +46,7 @@ element A {
 quark QW {
   Atom func()
   {
-    Atom myself = self.storageof; //see gencode
+    Atom myself = self.atomof; //see gencode
     Atom b;
     b = myself; //see gencode
     Atom a = self.instanceof;

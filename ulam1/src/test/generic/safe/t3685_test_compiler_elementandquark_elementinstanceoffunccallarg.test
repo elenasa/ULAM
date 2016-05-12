@@ -13,7 +13,7 @@ Uq_QW { <NOMAIN> }
 ## Dave requested a way to get default values for Self (within a quark);
 ## a loophole, since a quark would be an undefined atom, but as a ref, its done (t3679)
 ##
-## simialr to 3684, except arg is not a ref, and we use instanceof rather than storageof
+## simialr to 3684, except arg is not a ref, and we use instanceof rather than atomof
 ##
 #>A.ulam
   ulam 2;

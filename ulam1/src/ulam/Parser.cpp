@@ -45,7 +45,7 @@
 #include "NodeMemberSelect.h"
 #include "NodeModelParameter.h"
 #include "NodeReturnStatement.h"
-#include "NodeStorageof.h"
+#include "NodeAtomof.h"
 #include "NodeSquareBracket.h"
 #include "NodeSimpleStatement.h"
 #include "NodeStatementEmpty.h"
@@ -2254,7 +2254,7 @@ namespace MFM {
       {
 	//hail mary pass..possibly a sizeof of unseen class
 	getNextToken(nTok);
-	if((nTok.m_type != TOK_KW_SIZEOF) && (nTok.m_type != TOK_KW_INSTANCEOF) && (nTok.m_type != TOK_KW_STORAGEOF))
+	if((nTok.m_type != TOK_KW_SIZEOF) && (nTok.m_type != TOK_KW_INSTANCEOF) && (nTok.m_type != TOK_KW_ATOMOF))
 	  {
 	    std::ostringstream msg;
 	    msg << "Trying to use typedef from another class '";
@@ -2694,7 +2694,7 @@ namespace MFM {
 	    }
 	}
 	break;
-      case TOK_KW_STORAGEOF:
+      case TOK_KW_ATOMOF:
 	{
 	  if(ut->isComplete() && !m_state.isAtom(utype))
 	    {
@@ -2721,7 +2721,7 @@ namespace MFM {
 		}
 	      else
 		//input uti wasn't complete, or an atom
-		rtnNode = new NodeStorageof(memberTok, nodetype, m_state);
+		rtnNode = new NodeAtomof(memberTok, nodetype, m_state);
 	    }
 	}
 	break;
@@ -2772,8 +2772,8 @@ namespace MFM {
       case TOK_KW_INSTANCEOF:
 	rtnNode = new NodeInstanceof(memberTok, NULL, m_state);
 	break;
-      case TOK_KW_STORAGEOF:
-	rtnNode = new NodeStorageof(memberTok, NULL, m_state);
+      case TOK_KW_ATOMOF:
+	rtnNode = new NodeAtomof(memberTok, NULL, m_state);
 	break;
       default:
 	{
@@ -5098,7 +5098,7 @@ namespace MFM {
     AssertBool isPtrAbs = (m_state.makeUlamType(apkey, Ptr, UC_NOTACLASS) == PtrAbs);
     assert(isPtrAbs);
 
-    //a Ref for .storageof; comes after PtrAbs.
+    //a Ref for .atomof; comes after PtrAbs.
     UlamKeyTypeSignature arefkey(m_state.m_pool.getIndexForDataString("Atom"), ULAMTYPE_DEFAULTBITSIZE[UAtom], NONARRAYSIZE, ALT_REF);
     AssertBool isAtomRef = (m_state.makeUlamType(arefkey, UAtom, UC_NOTACLASS) == UAtomRef);
     assert(isAtomRef);

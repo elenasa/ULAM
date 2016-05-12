@@ -86,7 +86,7 @@ quark IntXY(Unsigned xbits, Unsigned ybits) {
   YCoord y;
   Atom fromXY(Int x, Int y) {
     init(x,y);
-    return self.storageof; //cannot return self as Atom type inside a quark effself
+    return self.atomof; //cannot return self as Atom type inside a quark effself
   }
   Self make(Int x, Int y) {
     Self ret;

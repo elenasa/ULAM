@@ -430,23 +430,35 @@ namespace MFM {
 	  }
 	else
 	  {
-	    if(m_state.m_currentObjSymbolsForCodeGen.empty())
-	      fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	    else
-	      fp->write(stgcos->getMangledName().c_str()); //even if self
-	    if(cos->isDataMember())
+	    //local var
+	    if(!m_state.m_currentObjSymbolsForCodeGen.empty())
 	      {
-		fp->write(", ");
-		fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
-		fp->write("u");
+		fp->write(stgcos->getMangledName().c_str()); //even if self
+		if(cos->isDataMember())
+		  {
+		    fp->write(", ");
+		    fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
+		    fp->write("u");
+		  }
+		else if(stgcos->isSelf())
+		  {
+		    fp->write(", 0u");
+		  }
+		else if(stgcosut->getUlamClassType() == UC_ELEMENT)
+		  {
+		    if(!stgcosut->isReference()) //(e.g. t3617 (super quark), t3615)
+		      fp->write(", 0u + T::ATOM_FIRST_STATE_BIT");
+		    else
+		      fp->write(", 0u"); //element ref of element stg
+		  }
+		else if(!stgcosut->isReference()) //(e.g. t3613, 3657, 3727)
+		  fp->write(", 0u"); //needs index arg
 	      }
-	    else if(stgcos->isSelf())
-	      {
-		fp->write(", 0u");
-	      }
 	    else
 	      {
-		//local var
+		//local var (no currentObjSymbols)
+		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+
 		if((vclasstype == UC_NOTACLASS) && !m_state.isAtom(vuti))
 		  {
 		    fp->write(", 0u"); //relative
@@ -456,9 +468,13 @@ namespace MFM {
 		    //left-justified, or relative if data member (even if self)
 		    fp->write(", 0u");
 		  }
-		else if((vclasstype == UC_ELEMENT) && !stgcosut->isReference())
+		else if((vclasstype == UC_ELEMENT))
 		  {
-		    fp->write(", 0u"); //idx for storage e.g. t3615
+		    UTI puti = uvpass.getPassTargetType();
+		    if(m_state.isReference(puti))
+		      fp->write(", 0u"); //idx for storage e.g. t3615
+		    else
+		      fp->write(", 0u + T::ATOM_FIRST_STATE_BIT"); // t3689
 		  }
 		else if(vclasstype == UC_TRANSIENT)
 		  {
@@ -570,7 +586,6 @@ namespace MFM {
     Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    //UTI scalarcosuti = m_state.getUlamTypeAsScalar(cosuti);
 
     UTI vuti = m_varSymbol->getUlamTypeIdx(); //i.e. this ref node
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
@@ -718,7 +733,6 @@ namespace MFM {
 		fp->write(" * ");
 		fp->write_decimal_unsigned(cosut->getBitSize());
 		fp->write("u)"); //relative t3651
-		//fp->write(", 0u"); //origin t3651
 	      }
 	    else if((vetype == UAtom))
 	      {

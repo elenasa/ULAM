@@ -37,7 +37,7 @@ quark QW {
   Bool bw;
   Self func()
   {
-    Atom a = self.storageof;
+    Atom a = self.atomof;
     //Self& sra = (Self&) a;  //see t3692
     Self sra = (Self) a; //cast turns into immediate with self's values
     return sra;

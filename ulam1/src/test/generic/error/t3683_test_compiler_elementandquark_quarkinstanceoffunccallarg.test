@@ -2,7 +2,7 @@
 #=t3683_test_compiler_elementandquark_quarkinstanceoffunccallarg
 #!
 ##      gen code output: (1 assert)
-##
+##        include/Uq_10102QW10.tcc:26: FAILED: NOT_AN_ELEMENT
 ##        unevaluable without assuming atoms as elements
 ##
 Exit status: -1
@@ -38,7 +38,7 @@ quark QW {
   Atom func(QW qwarg)
   {
     QW& iref = qwarg;
-    Atom ia = iref.storageof;
+    Atom ia = iref.atomof;
     return ia;
   }
 }

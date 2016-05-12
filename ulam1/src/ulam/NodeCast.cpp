@@ -61,9 +61,7 @@ namespace MFM {
 
   TBOOL NodeCast::getStoreIntoAble()
   {
-    //if(isExplicitCast())
     return Node::getStoreIntoAble(); //only ref casts are storeintoable
-    //return m_node->getStoreIntoAble();
   }
 
   void NodeCast::setCastType(UTI tobe)
@@ -234,7 +232,7 @@ namespace MFM {
 	    if(tobe->getUlamTypeEnum() == Bool)
 	      msg << "; Consider using a comparison operator";
 	    else if(m_state.isAtom(tobeType) && (nut->getUlamClassType() == UC_QUARK))
-	      msg << "; Consider using a reference (or self) with .storageof";
+	      msg << "; Consider using a reference (or self) with .atomof";
 	    if(scr == CAST_HAZY)
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -711,7 +709,7 @@ namespace MFM {
   void NodeCast::genCodeCastAtomAndElement(File * fp, UVPass & uvpass)
   {
     UTI tobeType = getCastType();
-    UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
+    //UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
 
     UTI vuti = uvpass.getPassTargetType();  //replace
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
@@ -739,68 +737,21 @@ namespace MFM {
 	fp->write("FAIL(BAD_CAST);\n");
 	m_state.m_currentIndentLevel--;
 
-	//read packed element (e.g. t3410, 3277)
-	s32 tmpread = m_state.getNextTmpVarNumber(); //tmp since no variable name
-	TMPSTORAGE tmpreadstorage = tobe->getTmpStorageTypeForTmpVar();
-	m_state.indent(fp);
-	fp->write("const ");
-	fp->write(tobe->getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
-	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(tobeType, tmpread, tmpreadstorage).c_str());
-	fp->write(" = ");
-	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-
-	//should this be an UlamRef using vid, like element-to-storage below???
-	if((uvpass.getPassStorage() == TMPBITVAL) || (uvpass.getPassStorage() == TMPTATOM))
-	  {
-	    if(uvpass.getPassStorage() == TMPTATOM)
-	      fp->write(".GetBits()");
-	    fp->write(".");
-	    fp->write(tobe->readMethodForCodeGen().c_str());
-	    fp->write("(0u + T::ATOM_FIRST_STATE_BIT, ");
-	    fp->write_decimal_unsigned(tobe->getTotalBitSize());
-	    fp->write("u)");
-	  }
-	fp->write(";\n");
-
-	uvpass = UVPass::makePass(tmpread, tmpreadstorage, tobeType, m_state.determinePackable(tobeType), m_state, 0, uvpass.getPassNameId()); //POS 0 rightjustified; pass along name id
+	//no need to read atom-based element (e.g. t3410, 3277)
+	uvpass.setPassTargetType(tobeType); //same variable
       }
     else
       {
 	//from element-to-atom
-	s32 tmpread = m_state.getNextTmpVarNumber(); //tmp since no variable name
-	TMPSTORAGE tmpreadstorage = tobe->getTmpStorageTypeForTmpVar();
-
-	m_state.indent(fp);
-	fp->write("const ");
-	fp->write(tobe->getTmpStorageTypeAsString().c_str()); //T
-	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(tobeType, tmpread, tmpreadstorage).c_str());
-	fp->write(" = ");
-
-	u32 vid = uvpass.getPassNameId();
-	if(vid > 0)
-	  {
-	    Token iTok(TOK_IDENTIFIER, getNodeLocation(), vid);
-	    SymbolVariableStack tmpsym(iTok, vuti, uvpass.getPassVarNum(), m_state);
-	    if(vid == m_state.m_pool.getIndexForDataString("self"))
-	      tmpsym.setIsSelf();
-
-	    fp->write(tmpsym.getMangledName().c_str());
-	  }
-	else
-	  fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //t3657
-
-	fp->write(".CreateAtom();\n");
-
-	//convert T to AtomBitStorage (e.g. t3697)
+	//convert T to AtomBitStorage (e.g. t3697, t3637)
 	u32 tabsnum = m_state.getNextTmpVarNumber();
 	m_state.indent(fp);
 	fp->write("AtomBitStorage<EC> "); //non-const
 	fp->write(m_state.getAtomBitStorageTmpVarAsString(tabsnum).c_str());
 	fp->write("(");
-	fp->write(m_state.getTmpVarAsString(tobeType, tmpread, tmpreadstorage).c_str());
+	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	fp->write(");\n");
+
 	uvpass = UVPass::makePass(tabsnum, TMPATOMBS, tobeType, m_state.determinePackable(tobeType), m_state, 0, uvpass.getPassNameId()); //POS 0 rightjustified; pass along name id);
 
 	//don't read like ref's do!
@@ -1065,7 +1016,6 @@ namespace MFM {
 
 	if(!stgcosut->isReference())
 	  {
-	    //fp->write("0u, "); //origin
 	    fp->write(stgcos->getMangledName().c_str()); //storage
 	    fp->write(", ");
 	  }
@@ -1111,9 +1061,6 @@ namespace MFM {
     UTI vuti = uvpass.getPassTargetType(); //replace
 
     assert(m_state.isReference(vuti)); //important!
-
-    //UTI derefvuti = m_state.getUlamTypeAsDeref(vuti);
-    //UlamType * derefvut = m_state.getUlamTypeByIndex(derefvuti);
 
     // CHANGES uvpass..and vuti, derefuti, etc.
     UVPass ruvpass;

@@ -1,13 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3680_test_compiler_elementandquark_Selfatomoffordefaultquarklocal_error
 #!
-./QW.ulam:6:25: ERROR: Unsupported request: 'storageof' <QW>, a Type.
+./QW.ulam:6:25: ERROR: Unsupported request: 'atomof' <QW>, a Type.
 ./QW.ulam:6:10: ERROR: Initial value of variable _IDENTIFIER is missing.
 ./QW.ulam:10:5: ERROR: Invalid Statement (possible missing semicolon).
 Unrecoverable Program Parse FAILURE.
 ##
 ## Dave requested a way to get default values for Self (within a quark);
-## Self.instanceof (default) vs self.storageof (current stg)
+## Self.instanceof (default) vs self.atomof (current stg)
 ##
 #>A.ulam
   ulam 2;
@@ -40,7 +40,7 @@ quark QW {
   Atom func()
   {
     //Atom i = (Atom) QW.instanceof;
-    Atom me = (Atom) QW.storageof;
+    Atom me = (Atom) QW.atomof;
     //Atom myself = self.storageof; //see gencode
     //Atom b;
     //b = myself; //see gencode

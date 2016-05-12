@@ -37,11 +37,11 @@
 #ifndef NODEINSTANCEOF_H
 #define NODEINSTANCEOF_H
 
-#include "NodeAtomof.h"
+#include "NodeStorageof.h"
 
 namespace MFM{
 
-  class NodeInstanceof : public NodeAtomof
+  class NodeInstanceof : public NodeStorageof
   {
   public:
 

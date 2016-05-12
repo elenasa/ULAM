@@ -232,15 +232,18 @@ namespace MFM {
 	// type set at parse time (needed for square bracket checkandlabel);
 	// so, here we just check for matching arg types (regular and Templates only).
 	m_state.m_programDefST.checkCustomArraysForTableOfClasses();
+	errCnt = m_state.m_err.getErrorCount(); //latest count
 
-	m_state.m_programDefST.checkDuplicateFunctionsForTableOfClasses();
+	if(!errCnt) m_state.m_programDefST.checkDuplicateFunctionsForTableOfClasses();
+	errCnt = m_state.m_err.getErrorCount(); //latest count
 
 	// must happen after type labeling and before eval (test)
-	m_state.m_programDefST.calcMaxDepthOfFunctionsForTableOfClasses();
+	if(!errCnt) m_state.m_programDefST.calcMaxDepthOfFunctionsForTableOfClasses();
+	errCnt = m_state.m_err.getErrorCount(); //latest count
 
 	// due to inheritance, might take more than a couple times around..
 	infcounter = 0;
-	sumbrtn = false;
+	sumbrtn = (errCnt == 0) ? false : true;
 	while(!sumbrtn)
 	  {
 	    // must happen after type labeling, check duplicateFunctions, and before eval (test)
@@ -257,22 +260,28 @@ namespace MFM {
 	      }
 	  } //while
 
+	errCnt = m_state.m_err.getErrorCount(); //latest count
+
 	//after virtual table is set, check for abstract classes used as:
 	//local var, data member, or func parameter types.
-	m_state.m_programDefST.checkAbstractInstanceErrorsForTableOfClasses();
+	if(!errCnt) m_state.m_programDefST.checkAbstractInstanceErrorsForTableOfClasses();
+	errCnt = m_state.m_err.getErrorCount(); //latest count
 
 	// must happen after type labeling and before code gen;
 	// separate pass. want UNKNOWNS reported
-	m_state.m_programDefST.packBitsForTableOfClasses();
+	if(!errCnt) m_state.m_programDefST.packBitsForTableOfClasses();
+	errCnt = m_state.m_err.getErrorCount(); //latest count
 
 	// let Ulam programmer know the bits used/available (needs infoOn)
-	m_state.m_programDefST.printBitSizeOfTableOfClasses();
+	if(!errCnt) m_state.m_programDefST.printBitSizeOfTableOfClasses();
+	errCnt = m_state.m_err.getErrorCount(); //latest count
 
 	// determine all class default values:
-	m_state.m_programDefST.buildDefaultValuesFromTableOfClasses();
+	if(!errCnt) m_state.m_programDefST.buildDefaultValuesFromTableOfClasses();
       }
 
-    m_state.m_programDefST.reportUnknownTypeNamesAcrossTableOfClasses();
+    errCnt = m_state.m_err.getErrorCount(); //latest count
+    if(!errCnt) m_state.m_programDefST.reportUnknownTypeNamesAcrossTableOfClasses();
 
     // count Nodes with illegal Nav types; walk each class' data members and funcdefs.
     // clean up duplicate functions beforehand

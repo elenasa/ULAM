@@ -2,7 +2,7 @@
 #=t3679_test_compiler_elementandquark_Selfatomoffordefaultquarklocal
 #!
 ##      gen code output: (2 asserts)
-##
+##        include/Uq_10102QW10.tcc:30: FAILED: NOT_AN_ELEMENT
 ##        unevaluable without assuming atoms as elements
 ##
 Exit status: -1
@@ -45,7 +45,7 @@ quark QW {
   {
     QW i = QW.instanceof;
     QW& iref = i;
-    Atom ia = iref.storageof; //will be UNDEFINED_TYPE
+    Atom ia = iref.atomof; //will be UNDEFINED_TYPE
     // equivalent to since self is a ref:
     Atom a = self.instanceof;
     return ia;

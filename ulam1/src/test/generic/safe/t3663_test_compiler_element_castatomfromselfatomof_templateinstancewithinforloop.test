@@ -39,14 +39,14 @@ quark QPerc(Unsigned c) {
     {
       for(Int j = -4; j <= -4; ++j)
 	bb = true;
-
-      if(bb)
-	a = self.storageof;
-
-      if(a as Self)
-	//self.storageof = a.storageof;
-	self = a;
     }
+
+    if(bb)
+      a = self.atomof;
+
+    //if(a as Self)
+    //self = a;
+    self.atomof = a;
     return a;
   }
 }

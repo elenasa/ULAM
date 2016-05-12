@@ -1,63 +1,19 @@
 #include <stdio.h>
 #include "NodeAtomof.h"
-#include "CompilerState.h"
 #include "SymbolVariableStack.h"
+#include "CompilerState.h"
 
 namespace MFM {
 
-  NodeAtomof::NodeAtomof(Token tokof, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_token(tokof), m_varSymbol(NULL), m_oftype(Nouti), m_nodeTypeDesc(nodetype), m_currBlockNo(0)
-  {
-    Node::setNodeLocation(tokof.m_locator);
-    Node::setStoreIntoAble(TBOOL_HAZY);
-  }
+  NodeAtomof::NodeAtomof(Token tokof, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeStorageof(tokof, nodetype, state) { }
 
-  NodeAtomof::NodeAtomof(const NodeAtomof& ref) : Node(ref), m_token(ref.m_token), m_varSymbol(NULL), m_oftype(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_oftype)), m_nodeTypeDesc(NULL), m_currBlockNo(ref.m_currBlockNo)
-  {
-    if(ref.m_nodeTypeDesc)
-      m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
-  }
+  NodeAtomof::NodeAtomof(const NodeAtomof& ref) : NodeStorageof(ref) { }
 
-  NodeAtomof::~NodeAtomof()
-  {
-    delete m_nodeTypeDesc;
-    m_nodeTypeDesc = NULL;
-  }
+  NodeAtomof::~NodeAtomof() { }
 
-  void NodeAtomof::updateLineage(NNO pno)
+  Node * NodeAtomof::instantiate()
   {
-    Node::updateLineage(pno);
-    if(m_nodeTypeDesc)
-      m_nodeTypeDesc->updateLineage(getNodeNo());
-  } //updateLineage
-
-  bool NodeAtomof::findNodeNo(NNO n, Node *& foundNode)
-  {
-    if(Node::findNodeNo(n, foundNode))
-      return true;
-    if(m_nodeTypeDesc && m_nodeTypeDesc->findNodeNo(n, foundNode))
-      return true;
-    return false;
-  } //findNodeNo
-
-  void NodeAtomof::print(File * fp)
-  {
-    printNodeLocation(fp);  //has same location as it's node
-    UTI myut = getNodeType();
-    char id[255];
-    if((myut == Nav) || (myut == Nouti))
-      sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
-    else if(myut == Hzy)
-      sprintf(id,"%s<HAZYTYPE>\n", prettyNodeName().c_str());
-    else
-      sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
-    fp->write(id);
-  }
-
-  void NodeAtomof::printPostfix(File * fp)
-  {
-    fp->write(" ");
-    fp->write(m_state.getTokenDataAsString(&m_token).c_str());
-    fp->write(getName());
+    return new NodeAtomof(*this);
   }
 
   const char * NodeAtomof::getName()
@@ -70,221 +26,206 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  FORECAST NodeAtomof::safeToCastTo(UTI newType)
-  {
-    return (m_state.isAtom(newType) ? CAST_CLEAR : CAST_BAD);
-  } //safeToCastTo
-
-  UTI NodeAtomof::getOfType()
-  {
-    return m_oftype;
-  }
-
-  void NodeAtomof::setOfType(UTI oftyp)
-  {
-    m_oftype = oftyp;
-  }
-
   UTI NodeAtomof::checkAndLabelType()
   {
-    UTI nuti = Nouti;
-    if(m_token.m_type == TOK_TYPE_IDENTIFIER)
+    assert(m_token.m_type == TOK_IDENTIFIER); //caught at parse time (right?)
+    UTI nuti = NodeStorageof::checkAndLabelType();
+    if(m_state.okUTItoContinue(nuti))
       {
-	assert(m_nodeTypeDesc);
-	nuti = m_nodeTypeDesc->checkAndLabelType(); //sets goagain if hzy
-      } // got type
-    else if(m_token.m_type == TOK_IDENTIFIER)
-      {
-	if(m_varSymbol == NULL)
+	assert(m_varSymbol);
+	UTI vuti = m_varSymbol->getUlamTypeIdx();
+	bool isself = m_varSymbol->isSelf(); //a ref
+
+	//refs checked at runtime; non-refs here:
+	if(!m_state.isReference(vuti) && !isself)
 	  {
-	    // like NodeIdent, in case of template instantiations
-	    //used before defined, start search with current block
-	    if(m_currBlockNo == 0)
+	    UTI oftype = NodeStorageof::getOfType();
+	    UlamType * ofut = m_state.getUlamTypeByIndex(oftype);
+	    //only an element or atom have real storage (ie. not quarks)
+	    if(ofut->getUlamClassType() == UC_QUARK)
 	      {
-		if(m_state.useMemberBlock())
+		//only way to get storage for a quark is if its a DM
+		// of an element; (XXX can't parse a.b.c.atomof)
+		if(!m_varSymbol->isDataMember())
 		  {
-		    NodeBlockClass * memberclass = m_state.getCurrentMemberClassBlock();
-		    assert(memberclass);
-		    m_currBlockNo = memberclass->getNodeNo();
+		    std::ostringstream msg;
+		    msg << "<" << m_state.getTokenDataAsString(&m_token).c_str();
+		    msg << "> is a quark and cannot be used with ";
+		    msg << getName() << "; try a reference or self";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    setNodeType(Nav);
 		  }
 		else
-		  m_currBlockNo = m_state.getCurrentBlock()->getNodeNo();
-	      }
-
-	    NodeBlock * currBlock = getBlock();
-	    if(m_state.useMemberBlock())
-	      m_state.pushCurrentBlock(currBlock);
-	    else
-	      m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
-
-	    Symbol * asymptr = NULL;
-	    bool hazyKin = false; //useful?
-
-	    //searched back through all block's ST for idx
-	    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
-	      {
-		if(hazyKin)
-		  nuti = Hzy;
-		else
 		  {
-		    if(!asymptr->isFunction() && !asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter())
+		    UTI cuti = m_state.getCompileThisIdx();
+		    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+		    std::ostringstream msg;
+		    msg << "<" << m_state.getTokenDataAsString(&m_token).c_str();
+		    msg << "> is a data member of ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		    if(cut->getUlamClassType() == UC_QUARK)
 		      {
-			nuti = asymptr->getUlamTypeIdx();
-			m_varSymbol = (SymbolVariable *) asymptr;
-			m_currBlockNo = asymptr->getBlockNoOfST(); //refined
+			msg << "; Quarks cannot be used with " << getName();
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			setNodeType(Nav);
 		      }
 		    else
 		      {
-			std::ostringstream msg;
-			msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str();
-			msg << "> is not a variable, and cannot be used as one with ";
-			msg << getName();
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			nuti = Nav;
+			msg << "; 'self' used with " << getName();
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		      }
 		  }
 	      }
-	    else
-	      {
-		std::ostringstream msg;
-		msg << "Unfound symbol variable for " << getName() << " '";
-		msg << m_state.getTokenDataAsString(&m_token).c_str();
-		msg << "'";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		nuti = Nav;
-	      }
-	    m_state.popClassContext(); //restore
-	  }
-	else
-	    nuti = m_varSymbol->getUlamTypeIdx();
-      }
-    else
-      assert(0); //shouldn't happen
-
-    if(m_state.okUTItoContinue(nuti))
-      {
-	if(m_state.isReference(nuti))
-	  nuti = m_state.getUlamTypeAsDeref(nuti); //e.g. selftyperef
-
-	if(!m_state.isComplete(nuti)) //reloads
-	  {
-	    std::ostringstream msg;
-	    msg << "Incomplete Type for '";
-	    msg << m_state.getTokenDataAsString(&m_token).c_str();
-	    msg << getName();
-	    msg << "'";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    nuti = Hzy;
-	    m_state.setGoAgain(); //since not error
-	  }
-	else
-	  {
-	    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-	    if(!((nut->getUlamTypeEnum() == Class) || m_state.isAtom(nuti)))
-	      {
-		std::ostringstream msg;
-		msg << "Invalid non-class type provided: '";
-		msg << m_state.getTokenDataAsString(&m_token).c_str();
-		msg << getName();
-		msg << "'";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		nuti = Nav;
-	      }
-
-	    if(!nut->isScalar())
-	      {
-		std::ostringstream msg;
-		msg << "Invalid non-scalar type provided: '";
-		msg << m_state.getTokenDataAsString(&m_token).c_str();
-		msg << getName();
-		msg << "'";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		nuti = Nav;
-	      }
-	  } //complete
-      } //ok
-
-    if(m_state.okUTItoContinue(nuti))
-      {
-	setOfType(nuti); //set here!!
-	if(m_token.m_type == TOK_IDENTIFIER)
-	  {
-	    //Node::setStoreIntoAble(TBOOL_TRUE);
-	    Node::setStoreIntoAble(TBOOL_FALSE); //no longer true!
-	    nuti = UAtomRef;
-	  }
-	else
-	  {
-	    Node::setStoreIntoAble(TBOOL_FALSE);
-	    nuti = UAtom;
 	  }
       }
-
-    setNodeType(nuti);
-    return nuti;
+    return getNodeType(); //UAtomRef (storeintoable)
   } //checkAndLabelType
 
-  NNO NodeAtomof::getBlockNo() const
+  UlamValue NodeAtomof::makeUlamValuePtr()
   {
-    return m_currBlockNo;
-  }
+    // (from NodeVarDecl's makeUlamValuePtr)
+    UlamValue ptr;
+    UlamValue atomuv;
 
-  NodeBlock * NodeAtomof::getBlock()
-  {
-    assert(m_currBlockNo);
-    NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
-    assert(currBlock);
-    return currBlock;
-  }
+    UTI auti = getOfType();
+    assert(m_varSymbol);
 
-  EvalStatus NodeAtomof::eval()
-  {
-    UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
-
-    if(nuti == Hzy)
-      return NOTREADY;
-
-    // quark or nonclass data member;
-    evalNodeProlog(0); //new current node eval frame pointer
-
-    makeRoomForSlots(1); //always 1 slot for ptr
-
-    UlamValue uvp = makeUlamValuePtr();
-    if(!m_state.isPtr(uvp.getUlamValueTypeIdx()))
+    if(m_varSymbol->isSelf())
       {
-	evalNodeEpilog();
-	return ERROR;
+	//when "self/atom" is a quark, we're inside a func called on a quark (e.g. dm or local)
+	//'atom' gets entire atom/element containing this quark; including its type!
+	//'self' gets type/pos/len of the quark from which 'atom' can be extracted
+	UlamValue selfuvp = m_state.m_currentSelfPtr;
+	UTI ttype = selfuvp.getPtrTargetType();
+	assert(m_state.okUTItoContinue(ttype));
+	if((m_state.getUlamTypeByIndex(ttype)->getUlamClassType() == UC_QUARK))
+	  {
+	    selfuvp = atomuv; //bail for error
+	  }
+	return selfuvp;
+      } //done
+
+    if(m_varSymbol->getAutoLocalType() == ALT_AS)
+      return ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval(); //haha! we're done.
+
+    if(m_varSymbol->isDataMember())
+      {
+	UTI cuti = m_state.m_currentObjPtr.getPtrTargetType();
+	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+	if(cut->getUlamClassType() == UC_QUARK)
+	  ptr = atomuv; //bail
+	else
+	  // return ptr to the m_currentObjPtr that contains this data member within
+	  ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), auti, m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
+      }
+    else
+      {
+	UTI vuti = m_varSymbol->getUlamTypeIdx();
+	UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+	if(vut->getUlamClassType() == UC_QUARK)
+	  ptr = atomuv; //bail
+	else
+	  //local variable on the stack; could be array ptr!
+	  ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, auti, m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
+      }
+    return ptr;
+  } //makeUlamValuePtr
+
+  void NodeAtomof::genCode(File * fp, UVPass& uvpass)
+  {
+    //lhs, no longer allowed with packed elements
+    assert(getStoreIntoAble() == TBOOL_TRUE);
+    UTI nuti = getNodeType(); //UAtomRef
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    s32 tmpVarNum = m_state.getNextTmpVarNumber(); //tmp for atomref
+
+    assert(m_varSymbol);
+    UTI vuti = m_varSymbol->getUlamTypeIdx();
+    bool isself = m_varSymbol->isSelf();
+    //if var is a data member quark, then also isself
+
+    if(m_state.isReference(vuti) || isself)
+      {
+	m_state.indent(fp);
+	fp->write("if(");
+	fp->write(m_varSymbol->getMangledName().c_str());
+	fp->write(".GetType() == T::ATOM_UNDEFINED_TYPE)\n");
+
+	m_state.m_currentIndentLevel++;
+	m_state.indent(fp);
+	fp->write("FAIL(NOT_AN_ELEMENT);\n");
+	m_state.m_currentIndentLevel--;
       }
 
-    UlamValue uv = m_state.getPtrTarget(uvp);
+    m_state.indent(fp); //non-const
+    fp->write(nut->getTmpStorageTypeAsString().c_str()); //for C++ local vars
+    fp->write(" ");
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPTATOM).c_str());
+    fp->write(" = ");
 
-    //copy result UV to stack, -1 relative to current frame pointer
-    Node::assignReturnValueToStack(uv);
+    //data member's storage is self (not a ref)
+    if(m_varSymbol->isDataMember() || isself)
+      fp->write("ur");
+    else
+      fp->write(m_varSymbol->getMangledName().c_str()); //element or atom
 
-    evalNodeEpilog();
-    return NORMAL;
-  } //eval
+    fp->write(".ReadAtom(); //atomof \n"); //can't be const
 
-  EvalStatus NodeAtomof::evalToStoreInto()
+    uvpass = UVPass::makePass(tmpVarNum, TMPTATOM, nuti, UNPACKED, m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
+
+    m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
+  } //genCode
+
+  void NodeAtomof::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
-    evalNodeProlog(0); //new current node eval frame pointer
+    //lhs
+    assert(getStoreIntoAble() == TBOOL_TRUE);
+    UTI nuti = getNodeType(); //UAtomRef
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    s32 tmpVarNum = m_state.getNextTmpVarNumber(); //tmp for atomref
 
-    // return ptr to this local var (from NodeIdent's makeUlamValuePtr)
-    UlamValue rtnUVPtr = makeUlamValuePtr();
+    assert(m_varSymbol);
+    UTI vuti = m_varSymbol->getUlamTypeIdx();
+    bool isself = m_varSymbol->isSelf();
+    //if var is a data member quark, then also isself
 
-    if(!m_state.isPtr(rtnUVPtr.getUlamValueTypeIdx()))
+    if(m_state.isReference(vuti) || isself)
       {
-	evalNodeEpilog();
-	return ERROR;
+	m_state.indent(fp);
+	fp->write("if(");
+	fp->write(m_varSymbol->getMangledName().c_str());
+	fp->write(".GetType() == T::ATOM_UNDEFINED_TYPE)\n");
+
+	m_state.m_currentIndentLevel++;
+	m_state.indent(fp);
+	fp->write("FAIL(NOT_AN_ELEMENT);\n");
+	m_state.m_currentIndentLevel--;
       }
 
-    //copy result UV to stack, -1 relative to current frame pointer
-    Node::assignReturnValuePtrToStack(rtnUVPtr);
+    m_state.indent(fp); //non-const
+    fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
+    fp->write(" ");
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
+    fp->write("(");
 
-    evalNodeEpilog();
-    return NORMAL;
-  } //evalToStoreInto
+    //data member's storage is self (not a ref)
+    if(m_varSymbol->isDataMember() || isself)
+      fp->write("ur");
+    else
+      fp->write(m_varSymbol->getMangledName().c_str()); //element or atom
+
+    fp->write(", "); //is storage! can't be const (error/t3659)
+
+    if(m_state.isReference(vuti) || isself)
+      fp->write(" - T::ATOM_FIRST_STATE_BIT"); //must be an effective element ref (e.g.t3684, t3663)
+    else
+      fp->write("0u");
+
+    fp->write(", uc); //atomof \n");
+
+    uvpass = UVPass::makePass(tmpVarNum, TMPBITVAL, nuti, UNPACKED, m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
+
+    m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
+  } //genCodeToStoreInto
 
 } //end MFM

@@ -2,7 +2,7 @@
 #=t3682_test_compiler_elementquarkinheritance_returnatomasquarkself_error
 ## gencode output (interleaved asserts):
 ##
-##     FAILED: ILLEGAL_ARGUMENT
+##     include/Uq_10163Coo10.tcc:24: FAILED: NOT_AN_ELEMENT
 ##
 ## cus evals as 6u and fails; expects 1u/
 ## dus evals as 6u and fails; expects 2u/
@@ -62,7 +62,7 @@ quark Coo {
   Bool(3) cb = true;
   Self func()
   {
-    Atom f = self.storageof; //was atom, was self
+    Atom f = self.atomof; //was atom, was self
     ////Foo f = (Foo) self;
     //if(f as Foo) //for eval
     {

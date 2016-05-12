@@ -21,7 +21,7 @@ element A : QW {
 
     Atom & aref = self; //ERROR for NOW.
     //aref = (Atom&) qref.storageof; //atom ref assignment
-    aref = qref.storageof; //atom ref assignment
+    aref = qref.atomof; //atom ref assignment
     qref.m_five = 0x5;
     A apple = (A) aref;
     c = (apple.m_five == 0x5);
@@ -38,7 +38,7 @@ quark QW : Qbase{
   Bool bw;
   Self func()
   {
-    Atom a = self.storageof;
+    Atom a = self.atomof;
     Self& sra = (Self) a; //new way! ERROR requires Self& cast
     return sra;
   }

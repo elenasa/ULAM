@@ -1101,6 +1101,8 @@ namespace MFM {
 
 		if(cos->isDataMember()) //dm of local stgcos
 		  hiddenarg2 << Node::calcPosOfCurrentObjectClasses(); //relative off;
+		else if(stgcosut->getUlamClassType() == UC_ELEMENT)
+		  hiddenarg2 << "T::ATOM_FIRST_STATE_BIT + 0"; //skip Type
 		else
 		  hiddenarg2 << "0";
 
@@ -1141,7 +1143,10 @@ namespace MFM {
     //new ur to reflect "effective" self and the ref storage, for this funccall
     hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvarur).c_str() << "(";
     hiddenarg2 << m_state.getTmpVarAsString(derefuti, tmpvarnum, TMPAUTOREF).c_str();
-    hiddenarg2 << ", 0u, "; //left-justified (uvpass.getPassPosOffset()?)
+    if(derefut->getUlamClassType() == UC_ELEMENT)
+      hiddenarg2 << ", T::ATOM_FIRST_STATE_BIT, "; //after Type in atom
+    else
+      hiddenarg2 << ", 0u, "; //left-justified (uvpass.getPassPosOffset()?)
     hiddenarg2 << derefut->getTotalBitSize(); //len
     hiddenarg2 << "u, &";
     hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(derefuti).c_str();
@@ -1288,10 +1293,10 @@ namespace MFM {
     // or ancestor quark if a class.
     m_argumentNodes->genCodeToStoreInto(fp, uvpass, n);
 
-    //assert(!m_state.m_currentObjSymbolsForCodeGen.empty()); such as .storageof
+    //assert(!m_state.m_currentObjSymbolsForCodeGen.empty()); such as .atomof
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
-	return genCodeAnonymousReferenceArg(fp, uvpass, n); //such as .storageof
+	return genCodeAnonymousReferenceArg(fp, uvpass, n); //such as .atomof
       }
 
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
@@ -1369,7 +1374,7 @@ namespace MFM {
   // uses uvpass rather than stgcos, cos for classes or atoms (not primitives)
   void NodeFunctionCall::genCodeAnonymousReferenceArg(File * fp, UVPass & uvpass, u32 n)
   {
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //such as .storageof
+    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //such as .stomof
 
     assert(m_funcSymbol);
     UTI vuti = m_funcSymbol->getParameterType(n);

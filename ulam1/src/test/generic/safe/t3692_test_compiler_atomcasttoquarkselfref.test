@@ -37,7 +37,7 @@ quark QW {
   Bool bw;
   Self func()
   {
-    Atom a = self.storageof;
+    Atom a = self.atomof;
     //    Atom& b = (Atom&) self.storageof; //also works
     Self& sra = (Self&) a; //new way!
     return sra;

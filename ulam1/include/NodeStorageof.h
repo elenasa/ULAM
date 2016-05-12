@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeStorageof.h - Node handling the Storageof Statement for ULAM
+ * NodeStorageof.h - Basic Node handling the Storageof Statement for ULAM
  *
  * Copyright (C) 2016 The Regents of the University of New Mexico.
  * Copyright (C) 2016 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file NodeStorageof.h - Node handling the Storageof Statement for ULAM
+  \file NodeStorageof.h - Basic Node handling the Storageof Statement for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2016 All rights reserved.
@@ -37,11 +37,16 @@
 #ifndef NODESTORAGEOF_H
 #define NODESTORAGEOF_H
 
-#include "NodeAtomof.h"
+#include "File.h"
+#include "Node.h"
+#include "Token.h"
+#include "SymbolVariable.h"
+#include "NodeTypeDescriptor.h"
+#include "NodeBlock.h"
 
 namespace MFM{
 
-  class NodeStorageof : public NodeAtomof
+  class NodeStorageof : public Node
   {
   public:
 
@@ -51,23 +56,51 @@ namespace MFM{
 
     virtual ~NodeStorageof();
 
-    virtual Node * instantiate();
+    //    virtual Node * instantiate();
+
+    virtual void updateLineage(NNO pno);
+
+    virtual bool findNodeNo(NNO n, Node *& foundNode);
+
+    virtual void print(File * fp);
+
+    virtual void printPostfix(File * fp);
 
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
 
+    virtual FORECAST safeToCastTo(UTI newType);
+
     virtual UTI checkAndLabelType();
 
-    virtual void genCode(File * fp, UVPass& uvpass);
+    virtual EvalStatus eval();
 
-    virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
+    virtual EvalStatus evalToStoreInto();
+
+    virtual void genCode(File * fp, UVPass& uvpass) = 0;
+
+    virtual void genCodeToStoreInto(File * fp, UVPass& uvpass) = 0;
 
   protected:
-    virtual UlamValue makeUlamValuePtr();
+
+    Token m_token;
+    SymbolVariable * m_varSymbol;
+
+    UTI getOfType();
+    void setOfType(UTI oftyp);
+
+    virtual UlamValue makeUlamValuePtr() = 0;
 
   private:
 
+    UTI m_oftype;
+    NodeTypeDescriptor * m_nodeTypeDesc;
+    NNO m_currBlockNo;
+
+    NNO getBlockNo() const;
+
+    NodeBlock * getBlock();
   };
 
 }

@@ -1,15 +1,14 @@
 ## -*- mode:ulam -*-
 #=t3659_test_compiler_element_castatomfromquarkdefault_error
 ##
+## gen output:
+##  include/Ue_10113Foo10.tcc:32: FAILED: NOT_AN_ELEMENT
+##
 ## eval error exit status: -1
 #!
-./Foo.ulam:8:5: ERROR: Storage expression for: b, must be storeintoable.
-./Foo.ulam:3:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Foo.
-./Foo.ulam:3:9: ERROR: 5 Nodes with unresolved types detected after type labeling class: Foo.
-Unrecoverable Program Type Label FAILURE.
-##Exit status: -1
-##Ue_Foo : QPerc { :< Bool(1) bb(false); > Int(32) test() {  QPerc q = QPerc.instanceof;  QPerc& qref = q cast;  Atom(96)& b = qref.storageof;  Foo f = Foo.instanceof;  Foo& fref = f cast;  Atom(96)& c = f.storageof;  1 cast return } }
-##Uq_QPerc { Bool(1) bb(false);  <NOMAIN> }
+Exit status: -1
+Ue_Foo : QPerc { :< Bool(1) bb(false); > Int(32) test() {  QPerc q = QPerc.instanceof;  QPerc& qref = q cast;  Atom(96)& b = qref.atomof;  Foo f = Foo.instanceof;  Foo& fref = f cast;  Atom(96)& c = f.atomof;  1 cast return } }
+Uq_QPerc { Bool(1) bb(false);  <NOMAIN> }
 ##
 ## informed by t3657
 ##
@@ -21,11 +20,11 @@ element Foo : QPerc {
   Int test() {
     QPerc q = QPerc.instanceof;
     QPerc& qref = q;
-    Atom& b = qref.storageof; //(Atom) qref;
+    Atom& b = qref.atomof; //(Atom) qref;
 
     Foo f = Foo.instanceof;
     Foo & fref = f;
-    Atom& c = f.storageof;
+    Atom& c = f.atomof;
     return 1;
   }
 }

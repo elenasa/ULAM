@@ -4,9 +4,9 @@
 
 namespace MFM {
 
-  NodeInstanceof::NodeInstanceof(Token tokof, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeAtomof(tokof, nodetype, state) { }
+  NodeInstanceof::NodeInstanceof(Token tokof, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeStorageof(tokof, nodetype, state) { }
 
-  NodeInstanceof::NodeInstanceof(const NodeInstanceof& ref) : NodeAtomof(ref) { }
+  NodeInstanceof::NodeInstanceof(const NodeInstanceof& ref) : NodeStorageof(ref) { }
 
   NodeInstanceof::~NodeInstanceof() { }
 
@@ -29,15 +29,15 @@ namespace MFM {
   {
     UTI nuti = getNodeType(); //UAtom for references; ow type of class/atom
     if(m_state.isAtom(nuti))
-      return NodeAtomof::safeToCastTo(newType);
+      return NodeStorageof::safeToCastTo(newType);
     return m_state.getUlamTypeByIndex(newType)->safeCast(nuti);
   } //safeToCastTo
 
   UTI NodeInstanceof::checkAndLabelType()
   {
-    NodeAtomof::checkAndLabelType();
+    NodeStorageof::checkAndLabelType();
 
-    UTI oftype = NodeAtomof::getOfType();
+    UTI oftype = NodeStorageof::getOfType();
     if(m_state.okUTItoContinue(oftype))
       {
 	bool isself = m_varSymbol ? m_varSymbol->isSelf() : false;

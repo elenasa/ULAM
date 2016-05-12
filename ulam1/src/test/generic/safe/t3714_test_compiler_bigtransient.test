@@ -2,13 +2,13 @@
 #=t3714_test_compiler_bigtransient
 ##
 ## gen output: (+ assert)
-##  Int Arg: 231
+##  Int Arg: 551
 ##
 ## unevaluable
 ##
 #!
 Exit status: -11
-Ue_Foo { Int(32) ta(9);  Int(32) test() {  System s;  Too t;  t ( 231u cast )set . ta t ( )get . = s ( ta )print . t sp . ta 231u cast == cast = s ( t sp . cast )assert . ta return } }
+Ue_Foo { Int(32) ta(9);  Int(32) test() {  System s;  Too t;  t ( 551u cast )set . ta t ( )get . = s ( ta )print . t sp . ta 551u cast == cast = s ( t sp . cast )assert . ta return } }
 Un_Too { Bool(7) sp(false);  Int(32) a( 87 cast);  Foo f[5](0,0,0,0,0);  Bits(32) bits(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
