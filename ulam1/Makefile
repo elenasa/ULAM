@@ -140,14 +140,39 @@ src:	FORCE
 # inside the MFM tree.  NOTE: MAKE BOTH TREES FIRST!
 ULAMDIR:=share/ulam
 ULAMWORKDIR:=.gen
+ULAMDEMODATE:=$(shell date +%Y%m%d%H%M%S)
+ULAMDEMOVERSION:=$(shell ./bin/ulam -V 2>&1)
+ULAMDEMOWHO:=$(shell whoami)
+ULAMDEMOKEY:="MFM-DEMOS-$(ULAMDEMODATE)-$(ULAMDEMOVERSION)-$(ULAMDEMOWHO)"
+MFZMAKEPATH:=$(MFM_ROOT_DIR)/bin/mfzmake
+makedemokey:	FORCE
+	$(MFZMAKEPATH) keygen $(ULAMDEMOKEY)
+
+burndemokey:	FORCE
+	$(MFZMAKEPATH) burn $(ULAMDEMOKEY)
+
+havedemokey:	FORCE
+	$(MFZMAKEPATH) cansign $(ULAMDEMOKEY)
+
+donothavedemokey:	FORCE
+	$(MFZMAKEPATH) keygen $(ULAMDEMOKEY) 
+	$(MFZMAKEPATH) cansign $(ULAMDEMOKEY) 2>/dev/null || exit 0
+
 $(MFM_ROOT_DIR)/res/elements/libue%.so:	$(ULAMDIR)/%/*.ulam
 	./bin/ulam -lo --sd $(ULAMDIR)/core --sd $(ULAMDIR)/$* $(^:$(ULAMDIR)/$*/%=%)
 	mv -f $(ULAMWORKDIR)/bin/libcue.so "$@"
 	rm -rf $(ULAMWORKDIR)
+
 $(MFM_ROOT_DIR)/res/elements/demos/libue%.so:	$(ULAMDIR)/demos/%/*.ulam
 	mkdir -p $(MFM_ROOT_DIR)/res/elements/demos
-	./bin/ulam --sa -lo --sd $(ULAMDIR)/core --sd $(ULAMDIR)/demos/$* $(^:$(ULAMDIR)/demos/$*/%=%)
+	./bin/ulam --sc -lo --sd $(ULAMDIR)/core --sd $(ULAMDIR)/demos/$* $(^:$(ULAMDIR)/demos/$*/%=%)
 	mv -f $(ULAMWORKDIR)/bin/libcue.so "$@"
+	rm -rf $(ULAMWORKDIR)
+
+$(MFM_ROOT_DIR)/res/elements/demos/%.mfz:	$(ULAMDIR)/demos/%/*.ulam
+	mkdir -p $(MFM_ROOT_DIR)/res/elements/demos
+	./bin/ulam --sc -z $(ULAMDEMOKEY) -o --sd $(ULAMDIR)/core --sd $(ULAMDIR)/demos/$* $(^:$(ULAMDIR)/demos/$*/%=%)
+	mv -f ./a.mfz "$@"
 	rm -rf $(ULAMWORKDIR)
 
 ULAM_MFM_TARGETS+=$(MFM_ROOT_DIR)/res/elements/libuecore.so
@@ -155,11 +180,13 @@ ULAM_DEMO_DIRS:=$(wildcard $(ULAMDIR)/demos/*)
 ULAM_DEMO_NAMES:=$(patsubst $(ULAMDIR)/demos/%,%,$(ULAM_DEMO_DIRS))
 ULAM_DEMO_LIBS:=$(patsubst %,$(MFM_ROOT_DIR)/res/elements/demos/libue%.so,$(ULAM_DEMO_NAMES))
 ULAM_MFM_TARGETS+=$(ULAM_DEMO_LIBS)
+ULAM_DEMO_MFZS:=$(patsubst %,$(MFM_ROOT_DIR)/res/elements/demos/%.mfz,$(ULAM_DEMO_NAMES))
 
-ulamexports:	$(ULAM_MFM_TARGETS)
+ulamexports:	$(ULAM_MFM_TARGETS) | makedemokey $(ULAM_DEMO_MFZS) burndemokey
+	#echo DLDL $(ULAM_DEMO_MFZS)
 
 cleanulamexports:	FORCE
-	rm -f $(ULAM_MFM_TARGETS)
+	rm -f $(ULAM_MFM_TARGETS) $(ULAM_DEMO_MFZS)
 
 # Shortcut to ulam template build
 ulam:	FORCE

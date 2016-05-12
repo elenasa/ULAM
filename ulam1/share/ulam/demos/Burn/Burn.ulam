@@ -19,31 +19,30 @@ use Trigger;
    \author Dave Ackley
    \license public-domain
  */
-element Burn {
+element Burn : Trigger {
   EventWindow ew;
   Random random;
 
   typedef EventWindow.SiteNum SiteNum;
   typedef ColorUtils.ARGB ARGB;
   typedef ColorUtils.Channel Channel;
-  typedef Unsigned(4) Counter;
+  typedef Unsigned(6) Counter;
 
-  Counter state;
-  Trigger trigger;
+  Counter mCount;
 
   Void behave() {
 
     // Am I recovering?
-    if (state < state.maxof) {
-      ++state;   // Yes
+    if (mCount < mCount.maxof) {
+      ++mCount;   // Yes
       return;
     }
 
     // I am recovered..
-    trigger.doArm();
+    doArm();
 
     // If no spark from me or someone near me..
-    if (!trigger.isPulled()) return;  // I'm done
+    if (!isPulled()) return;  // I'm done
 
     // Fire fire fire!  Try to pull every nearby trigger!
     WindowServices ws;
@@ -58,17 +57,17 @@ element Burn {
     }
 
     // Our work is done.  We're tired.
-    trigger.doSafe();
-    state = state.minof;
+    doSafe();
+    mCount = mCount.minof;
   }
 
   ARGB getColor(Unsigned selector) {
     ColorUtils cu;
     ARGB ret = cu.color(0xffffff00U);
     if (selector == 1u) {
-      Unsigned incr = Unsigned(8).maxof/(Unsigned) state.maxof;
-      ret[3] = (Channel) (incr*state);
-      ret[2] = (Channel) (incr*(state.maxof-state));
+      Unsigned incr = Unsigned(8).maxof/(Unsigned) mCount.maxof;
+      ret[3] = (Channel) (incr*mCount);
+      ret[2] = (Channel) (incr*(mCount.maxof-mCount));
     } else if (selector == 2u) {
     }
     return ret;
@@ -79,7 +78,7 @@ element Burn {
 
 /**
    An Burn atom trigger.  A Spark only survives for one event, during
-   which it decays into a Burn atom in the state of firing.
+   which it decays into a Burn atom in the mCount of firing.
 
    \symbol Sp
    \color #00f
@@ -88,10 +87,10 @@ element Spark {
   EventWindow ew;
   Void behave() {
     Burn atom;
-    atom.state = atom.state.maxof;
-    atom.trigger.doSafe();
-    atom.trigger.doArm();
-    atom.trigger.doPull();
+    atom.mCount = atom.mCount.maxof;
+    atom.doSafe();
+    atom.doArm();
+    atom.doPull();
     ew[0] = (Atom) atom;
   }
 }

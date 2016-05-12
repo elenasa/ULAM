@@ -2,18 +2,18 @@ ulam 1;
 
 quark Trigger {
   typedef Unary(2) State;
-  State state;
+  State mState;
 
   constant State cSAFE = 0;
   constant State cARMED = cSAFE + 1;
   constant State cPULLED = cARMED + 1;
 
-  Void doSafe() { state = cSAFE; }
-  Bool isSafe() { return state == cSAFE; }
+  Void doSafe() { mState = cSAFE; }
+  Bool isSafe() { return mState == cSAFE; }
 
-  Void doArm() { if (isSafe()) state = cARMED; }
-  Bool isArmed() { return state == cARMED; }
+  Void doArm() { if (isSafe()) mState = cARMED; }
+  Bool isArmed() { return mState == cARMED; }
 
-  Void doPull() { if (isArmed()) state = cPULLED; }
-  Bool isPulled() { return state == cPULLED; }
+  Void doPull() { if (isArmed()) mState = cPULLED; }
+  Bool isPulled() { return mState == cPULLED; }
 }

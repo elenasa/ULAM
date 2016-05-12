@@ -64,7 +64,7 @@ quark QPort4(Unsigned(2) extraScanDistance)  {
         && r.oneIn((Unsigned) (2<<m_lastRcvAge)))
       ++m_lastRcvAge;
 
-    Int selft = au.getType(self);
+    Int selft = au.getType(self.atomof);
 
     {
       WindowServices ws;
