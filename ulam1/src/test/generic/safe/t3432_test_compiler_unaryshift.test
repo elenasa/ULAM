@@ -10,7 +10,7 @@
 ##       after assert's abort: arg is 1
 ##      */
 Exit status: 0
-Ue_A { System s();  Unary(3) u(2u);  Unary(3) v(2u);  Int(32) test() {  v 3u cast = u v cast cast 1 cast << cast = v v cast 1 cast >> cast = s ( u )print . s ( u cast 2 == )assert . s ( v )print . s ( v cast 2 == )assert . 0 cast return } }
+Ue_A { System s();  Unary(3) u(2u);  Unary(3) v(2u);  Int(32) test() {  v 3u cast = u v cast 1 cast << cast = v v cast 1 cast >> cast = s ( u )print . s ( u cast 2 == )assert . s ( v )print . s ( v cast 2 == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ##      // cast to Bits and cast back to Unary(3): 3 >> 1 = 2   3 << 1 = 2

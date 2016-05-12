@@ -501,7 +501,7 @@ namespace MFM {
 
 	    // a data member quark, or the element itself should both GetBits from self
 	    // now, quark's self is treated as the entire atom/element storage
-	    fp->write(");\n");
+	    fp->write(");\n"); //PLS generate name of var here!!!
 	  }
       }
     else

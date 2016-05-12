@@ -4,7 +4,7 @@
 ##      // changed to <<2 instead of *4u and got a different last answer (4 instead of 7)
 ##      //developed by Dave (10092014) in c++ and then converted to Ulam.
 ##      // 7 is max that Int(4) can be positively, so 12 becomes 7.
-##      /* gen code output:
+##      /* gen code output: (asserts interleaved)
 ##	 Unsigned Arg: 1
 ##	 Unsigned Arg: 2
 ##	 Unsigned Arg: 3
@@ -15,36 +15,42 @@
 ##
 ##      // constant fold minus
 Exit status: 7
-Ue_Foo { System s();  Bar bar1( Bool(1) b(false);  Unsigned(3) x(1u);  Unsigned(3) y(2u); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3u);  Unsigned(3) y(0u); );  Int(4) i[2](6,7);  Int(32) test() {  Int(2) d;  d 1 = bar1 x . d cast = bar1 y . 2 cast = bar2 x . 3 cast = bar2 y . 0 cast = i 0 [] bar1 ( )toInt . cast = i 1 [] bar2 ( )toInt . cast = s ( bar1 x . cast )print . s ( bar1 y . cast )print . s ( bar2 x . cast )print . s ( bar2 y . cast )print . s ( i 0 [] )print . s ( i 1 [] )print . i 1 [] cast return } }
+Ue_Foo { System s();  Bar bar1( Bool(1) b(false);  Unsigned(3) x(1u);  Unsigned(3) y(2u); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3u);  Unsigned(3) y(0u); );  Int(4) i[2](6,7);  Int(32) test() {  Int(2) d;  d 1 = bar1 x . d cast = bar1 y . 2 cast = bar2 x . 3 cast = bar2 y . 0 cast = i 0 [] bar1 ( )toInt . cast = i 1 [] bar2 ( )toInt . cast = s ( bar1 x . cast )print . s ( bar1 x . cast 1 cast == )assert . s ( bar1 y . cast )print . s ( bar1 y . cast 2 cast == )assert . s ( bar2 x . cast )print . s ( bar2 x . cast 3 cast == )assert . s ( bar2 y . cast )print . s ( bar2 y . cast 0 cast == )assert . s ( i 0 [] )print . s ( i 0 [] 6 == )assert . s ( i 1 [] )print . s ( i 1 [] 7 == )assert . i 1 [] cast return } }
 Uq_System { <NOMAIN> }
 Uq_Bar { Bool(1) b(false);  Unsigned(3) x(0);  Unsigned(3) y(0);  <NOMAIN> }
 #>Foo.ulam
-ulam 1;
+  ulam 1;
 use System;
 use Bar;
 element Foo {
-System s;
-Bar bar1;
-Bar bar2;
-Int(4) i[2];
-Int test(){
-Int(2) d;
-d = 1;
-bar1.x = (Unsigned(3)) d;
-bar1.y = 2;
-bar2.x = 3;
-bar2.y = 0;
-i[0] = (Int(4)) bar1;
-i[1] = (Int(4)) bar2;
-s.print(bar1.x);
-s.print(bar1.y);
-s.print(bar2.x);
-s.print(bar2.y);
+  System s;
+  Bar bar1;
+  Bar bar2;
+  Int(4) i[2];
+  Int test(){
+    Int(2) d;
+    d = 1;
+    bar1.x = (Unsigned(3)) d;
+    bar1.y = 2;
+    bar2.x = 3;
+    bar2.y = 0;
+    i[0] = (Int(4)) bar1;
+    i[1] = (Int(4)) bar2;
+    s.print(bar1.x);
+    s.assert(bar1.x == 1);
+    s.print(bar1.y);
+    s.assert(bar1.y == 2);
+    s.print(bar2.x);
+    s.assert(bar2.x == 3);
+    s.print(bar2.y);
+    s.assert(bar2.y == 0);
 
-s.print(i[0]);
-s.print(i[1]);
+    s.print(i[0]);
+    s.assert(i[0] == 6);
+    s.print(i[1]);
+    s.assert(i[1] == 7);
 
-return i[1];}
+    return i[1];}
 }
 
 ##      //note: don't have printf's yet so comments for now
@@ -57,14 +63,15 @@ return i[1];}
 ##      //note: don't have <<2, so substituted *4; got it now! changes the answer too..
 ##
 #:Bar.ulam
-ulam 1;
+  ulam 1;
 quark Bar {
-Bool b;
-Unsigned(3) x, y;
-Int toInt(){
-return (Int) (x << 2) + y;
+  Bool b;
+  Unsigned(3) x, y;
+  Int toInt(){
+    return (Int) (x << 2) + y;
+  }
 }
-}
+
 #:System.ulam
 ulam 1;
 quark System {

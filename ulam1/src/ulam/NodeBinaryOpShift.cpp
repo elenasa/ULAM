@@ -16,15 +16,22 @@ namespace MFM {
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
     UTI newType = calcNodeType(leftType, rightType); //Bits, or Nav error
-
     setNodeType(newType);
     Node::setStoreIntoAble(TBOOL_FALSE);
 
     if(m_state.isComplete(newType))
       {
-	if(UlamType::compareForMakingCastingNode(leftType, newType, m_state) != UTIC_SAME)
+	UlamType * lut = m_state.getUlamTypeByIndex(leftType);
+	ULAMTYPE letyp = lut->getUlamTypeEnum();
+	if(letyp != Bits)
 	  {
-	    if(!Node::makeCastingNode(m_nodeLeft, newType, m_nodeLeft))
+	    s32 lbs = UNKNOWNSIZE, wordsize = UNKNOWNSIZE;
+	    NodeBinaryOp::calcBitsizeForResultInBits(leftType, lbs, wordsize);
+	    //auto cast to Bits, a downhill cast. use LHS bitsize (not result bitsize
+	    //to avoid exhaustive casting-up to 32 bits, e.g. ulamexports).
+	    UlamKeyTypeSignature newleftkey(m_state.m_pool.getIndexForDataString("Bits"), lbs);
+	    UTI newleftType = m_state.makeUlamType(newleftkey, Bits, UC_NOTACLASS);
+	    if(!Node::makeCastingNode(m_nodeLeft, newleftType, m_nodeLeft))
 	      {
 		newType = Nav;
 		setNodeType(Nav);
@@ -87,19 +94,21 @@ namespace MFM {
     if(!NodeBinaryOp::checkForPrimitiveTypes(lt, rt))
 	return Nav;
 
-    UTI newType = Nav; //init
-    // change! LHS must be Bits..up to ulam programmer to cast
-    // (including quarks).
+    UTI newType = Nav; //init to Nav
+    // LHS must be Bits..
     if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
       {
 	bool bok = true;
+	//s32 lbs = resultBitsize(lt, rt);
+	//e.g. t3432, t3463, t3467
+	s32 lbs = UNKNOWNSIZE, wordsize = UNKNOWNSIZE;
+	NodeBinaryOp::calcBitsizeForResultInBits(lt, lbs, wordsize);
 
-	s32 lbs = resultBitsize(lt, rt);
-	//auto cast to Bits, a downhill cast. use LHS bitsize.
-	UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), lbs);
-	newType = m_state.makeUlamType(newkey, Bits, UC_NOTACLASS);
+	//will auto cast to Bits, a downhill cast. using LHS bitsize (not result size).
+	UlamKeyTypeSignature newleftkey(m_state.m_pool.getIndexForDataString("Bits"), lbs);
+	UTI newleftType = m_state.makeUlamType(newleftkey, Bits, UC_NOTACLASS);
 
-	FORECAST lscr = m_nodeLeft->safeToCastTo(newType);
+	FORECAST lscr = m_nodeLeft->safeToCastTo(newleftType);
 	if(lscr != CAST_CLEAR)
 	  {
 	    std::ostringstream msg;
@@ -114,6 +123,7 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		m_state.setGoAgain(); //for compiler counts
 		newType = Hzy;
+		bok = false;
 	      }
 	    else
 	      {
@@ -137,6 +147,7 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		m_state.setGoAgain(); //for compiler counts
 		newType = Hzy;
+		bok = false;
 	      }
 	    else
 	      {
@@ -156,8 +167,15 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	      }
 	  }
-	if(!bok)
-	  newType = Nav;
+
+	if(bok)
+	  {
+	    //e.g. t3432, t3463, t3467, t3200, t3201, t3372, t3507, t3509
+	    s32 newbs = resultBitsize(lt, rt);
+	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), newbs);
+	    newType = m_state.makeUlamType(newkey, Bits, UC_NOTACLASS);
+	  }
+	//else newType = Nav or Hzy
       } //both scalars
     return newType;
   } //calcNodeType
