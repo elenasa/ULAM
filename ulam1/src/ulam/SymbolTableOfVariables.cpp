@@ -313,7 +313,7 @@ namespace MFM {
 	    UlamType * sut = m_state.getUlamTypeByIndex(suti);
 	    if(sut->getUlamClassType() == UC_QUARK)
 	      {
-		m_state.indent(fp);
+		m_state.indentUlamCode(fp);
 		fp->write("if(!strcmp(namearg,\"");
 		fp->write(sut->getUlamTypeMangledName().c_str()); //mangled, including class args!
 		fp->write("\")) return (");
@@ -325,7 +325,7 @@ namespace MFM {
 		while(superuti != Nouti) //none
 		  {
 		    UlamType * superut = m_state.getUlamTypeByIndex(superuti);
-		    m_state.indent(fp);
+		    m_state.indentUlamCode(fp);
 		    fp->write("if(!strcmp(namearg,\"");
 		    fp->write(superut->getUlamTypeMangledName().c_str()); //mangled, including class args!
 		    fp->write("\")) return (");

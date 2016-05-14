@@ -289,7 +289,7 @@ namespace MFM {
   void NodeTypedef::genCode(File * fp, UVPass& uvpass)
   {
 #if 0
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("typedef ");
 
     fp->write(m_state.getUlamTypeByIndex(m_typedefSymbol->getUlamTypeIdx())->getUlamTypeMangledName().c_str()); //for C++

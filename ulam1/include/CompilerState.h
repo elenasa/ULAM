@@ -306,7 +306,9 @@ namespace MFM{
     u32 getTokenAsATypeNameId(Token tok);
 
     bool checkFunctionReturnNodeTypes(SymbolFunction * fsym);
+    void indentUlamCode(File * fp);
     void indent(File * fp);
+
     const char * getHiddenArgName();
     const char * getHiddenContextArgName();
     u32 getCustomArrayGetFunctionNameId();
@@ -372,6 +374,7 @@ namespace MFM{
     std::string getLineOfText(Locator loc);
     std::string getLocationTextAsString(Locator nodeloc);
     void outputTextAsComment(File * fp, Locator nodeloc);
+    void outputLineNumberForDebugging(File * fp, Locator nodeloc);
 
     s32 getNextTmpVarNumber();
     const std::string getTmpVarAsString(UTI uti, s32 num, TMPSTORAGE stg);

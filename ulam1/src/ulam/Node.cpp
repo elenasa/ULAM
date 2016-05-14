@@ -426,7 +426,7 @@ namespace MFM {
 
   void Node::genCode(File * fp, UVPass& uvpass)
   {
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("virtual void ");
     fp->write(prettyNodeName().c_str());
     fp->write("::genCode(File * fp){} is needed!!\n"); //sweet.
@@ -477,7 +477,7 @@ namespace MFM {
     if(uvpass.getPassNameId() == 0)
       return genCodeConvertATmpVarIntoBitVector(fp, uvpass);
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("const ");
     fp->write(tmpStorageTypeForRead(cosuti, uvpass).c_str());
     fp->write(" ");
@@ -583,7 +583,7 @@ namespace MFM {
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     TMPSTORAGE vstor = vut->getTmpStorageTypeForTmpVar();
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("const ");
     fp->write(tmpStorageTypeForRead(vuti, uvpass).c_str());
     fp->write(" ");
@@ -632,7 +632,7 @@ namespace MFM {
     TMPSTORAGE cstor = scalarcosut->getTmpStorageTypeForTmpVar();
     u32 itemlen = cosut->getBitSize();
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("const ");
 
     fp->write(tmpStorageTypeForReadArrayItem(cosuti, uvpass).c_str());
@@ -738,13 +738,13 @@ namespace MFM {
     std::string hiddenarg2str = genHiddenArg2ForCustomArray(urtmpnum);
     if(urtmpnum > 0)
       {
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write(hiddenarg2str.c_str());
 	fp->write("\n");
       }
 
     //non-const tmp ur for this function call
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("const ");
     fp->write(localStorageTypeAsString(itemuti).c_str()); //e.g. BitVector<32> exception
     fp->write(" ");
@@ -835,7 +835,7 @@ namespace MFM {
 	genCodeReadElementTypeField(fp, typuvpass);
       }
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
 
     // a data member quark, or the element itself should both GetBits from self;
     // now, quark's self is treated as the entire atom/element storage
@@ -894,7 +894,7 @@ namespace MFM {
 	genCodeReadElementTypeField(fp, typuvpass);
       }
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write(m_state.getHiddenArgName()); //ur
     fp->write(".");
     fp->write(writeMethodForCodeGen(luti, luvpass).c_str());
@@ -916,7 +916,7 @@ namespace MFM {
   {
     UTI luti = luvpass.getPassTargetType();
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     if(!m_state.m_currentObjSymbolsForCodeGen.empty())
       {
 	//localvar for atoms
@@ -946,7 +946,7 @@ namespace MFM {
     //cos tell us where to go within the selected member
     UTI luti = luvpass.getPassTargetType();
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //TMPAUTOREF
     fp->write(".");
     fp->write(writeMethodForCodeGen(luti, luvpass).c_str());
@@ -964,7 +964,7 @@ namespace MFM {
   void Node::genCodeReadElementTypeField(File * fp, UVPass & uvpass)
   {
     s32 tmpVarType = m_state.getNextTmpVarNumber();
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("const u32 ");
     fp->write(m_state.getTmpVarAsString(Unsigned, tmpVarType, TMPREGISTER).c_str());;
     fp->write(" = ");
@@ -992,7 +992,7 @@ namespace MFM {
     // inheritance cast needs the lhs type restored after the generated write
     s32 tmpVarType = uvpass.getPassVarNum();
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
 
     if(!isCurrentObjectALocalVariableOrArgument())
       {
@@ -1049,7 +1049,7 @@ namespace MFM {
     // getbits needed to go from-atom to-BitVector
     if(!isCurrentObjectALocalVariableOrArgument())
       {
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 
 	fp->write("UlamRef<EC>("); //wrapper for array item
 	fp->write(m_state.getHiddenArgName()); //ur first arg
@@ -1090,7 +1090,7 @@ namespace MFM {
       {
 	assert(isCurrentObjectsContainingAModelParameter() == -1); //MP invalid
 	//local
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write("UlamRef<EC>("); //wrapper for array item
 	if(stgcosut->isReference())
 	  {
@@ -1165,7 +1165,7 @@ namespace MFM {
     std::string hiddenarg2str = genHiddenArg2ForCustomArray(urtmpnum);
     if(urtmpnum > 0)
       {
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write(hiddenarg2str.c_str());
 	fp->write("\n");
       }
@@ -1174,7 +1174,7 @@ namespace MFM {
     // getbits needed to go from-atom to-BitVector
     if(!isCurrentObjectALocalVariableOrArgument())
       {
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 
 	genCustomArrayMemberNameOfMethod(fp);
 	// the WRITE method
@@ -1186,7 +1186,7 @@ namespace MFM {
       {
 	assert(isCurrentObjectsContainingAModelParameter() == -1); //MP invalid
 	//local
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 
 	genCustomArrayLocalMemberNameOfMethod(fp);
 
@@ -1230,7 +1230,7 @@ namespace MFM {
     // write out intermediate tmpVar, or immediate terminal, as temp BitVector arg
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("const ");
 
     fp->write(localStorageTypeAsString(vuti).c_str()); //e.g. BitVector<32> exception
@@ -1284,7 +1284,7 @@ namespace MFM {
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
     TMPSTORAGE tmp2stor = vut->getTmpStorageTypeForTmpVar();
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("const ");
 
     fp->write(vut->getTmpStorageTypeAsString().c_str()); //u32
@@ -1347,7 +1347,7 @@ namespace MFM {
     if(uvpass.getPassStorage() == TMPAUTOREF)
       {
 	assert(m_state.isReference(vuti));
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	//can't be const and chainable
 	fp->write(cosut->getLocalStorageTypeAsString().c_str());
 	fp->write(" ");
@@ -1369,7 +1369,7 @@ namespace MFM {
 	UlamType * scalarrefut = m_state.getUlamTypeByIndex(scalarrefuti);
 	ULAMCLASSTYPE cosclasstype = cosut->getUlamClassType();
 
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	//can't be const and chainable; needs to be a ref! (e.g. t3668)
 	fp->write(scalarrefut->getLocalStorageTypeAsString().c_str());
 	fp->write(" ");
@@ -1441,7 +1441,7 @@ namespace MFM {
 
     assert(uvpass.getPassStorage() == TMPAUTOREF);
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     //can't be const and chainable
     fp->write(vut->getLocalStorageTypeAsString().c_str());
     fp->write(" ");

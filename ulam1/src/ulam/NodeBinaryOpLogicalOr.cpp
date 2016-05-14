@@ -107,7 +107,7 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     //fp->write("const ");
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
@@ -123,7 +123,7 @@ namespace MFM {
 
     //fp->write("\n");
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("if(!"); //lhs is false
     fp->write(((UlamTypePrimitiveBool *) lut)->getConvertToCboolMethod().c_str());
     fp->write("(");
@@ -133,7 +133,7 @@ namespace MFM {
     fp->write(")");
     fp->write(")\n");
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("{\n");
     m_state.m_currentIndentLevel++;
 
@@ -141,31 +141,31 @@ namespace MFM {
     m_nodeRight->genCode(fp, ruvpass);
 
     //set node's tmp var to whatever rhs value
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
     fp->write(" = ");
     fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
     fp->write(";\n");
 
     m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("}\n");
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("else\n");
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("{\n");
     m_state.m_currentIndentLevel++;
 
     //set node's tmp var to lhs value (true)
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
     fp->write(" = ");
     fp->write(luvpass.getTmpVarAsString(m_state).c_str());
     fp->write(";\n");
 
     m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("}\n");
 
     uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //P

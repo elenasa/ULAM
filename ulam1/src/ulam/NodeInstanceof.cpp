@@ -93,7 +93,7 @@ namespace MFM {
     s32 tmpVarNum = m_state.getNextTmpVarNumber(); //tmp for atomref
 
     //starts out as its default type; references (UAtom) are updated:
-    m_state.indent(fp); //non-const
+    m_state.indentUlamCode(fp); //non-const
     fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
@@ -110,7 +110,7 @@ namespace MFM {
 	if(m_state.isReference(vuti) || isself)
 	  {
 	    u32 tmpuclass = m_state.getNextTmpVarNumber(); //only for this case
-	    m_state.indent(fp);
+	    m_state.indentUlamCode(fp);
 	    fp->write("const UlamClass<EC> * ");
 	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
 	    fp->write(" = ");
@@ -118,19 +118,19 @@ namespace MFM {
 	    fp->write(".GetEffectiveSelf();\n");
 
 	    //primitive FAILS
-	    m_state.indent(fp);
+	    m_state.indentUlamCode(fp);
 	    fp->write("if(");
 	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
 	    fp->write(" == NULL) FAIL(ILLEGAL_ARGUMENT); //non-class\n");
 
 	    //an immediate default quark FAILS
-	    m_state.indent(fp);
+	    m_state.indentUlamCode(fp);
 	    fp->write("if(");
 	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
 	    fp->write("->AsUlamQuark() != NULL) ");
 	    fp->write("FAIL(ILLEGAL_ARGUMENT); //quark\n");
 
-	    m_state.indent(fp);
+	    m_state.indentUlamCode(fp);
 	    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
 	    fp->write(".WriteAtom(");
 	    fp->write("((UlamElement<EC> *) ");
@@ -140,7 +140,7 @@ namespace MFM {
 	else if(m_state.isAtom(nuti))
 	  {
 	    u32 tmpuclass = m_state.getNextTmpVarNumber(); //only for this case
-	    m_state.indent(fp);
+	    m_state.indentUlamCode(fp);
 	    fp->write("const UlamClass<EC> * ");
 	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
 	    fp->write(" = ");
@@ -149,12 +149,12 @@ namespace MFM {
 	    fp->write(".GetType()");
 	    fp->write(");\n");
 
-	    m_state.indent(fp);
+	    m_state.indentUlamCode(fp);
 	    fp->write("if(");
 	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
 	    fp->write(" == NULL) FAIL(ILLEGAL_ARGUMENT); //non-class\n");
 
-	    m_state.indent(fp);
+	    m_state.indentUlamCode(fp);
 	    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
 	    fp->write(".WriteAtom(");
 	    fp->write("((UlamElement<EC> *) ");
@@ -169,7 +169,7 @@ namespace MFM {
 	s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp to read into
 	TMPSTORAGE rstor = nut->getTmpStorageTypeForTmpVar();
 
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write("const ");
 	fp->write(nut->getTmpStorageTypeAsString().c_str()); //for C++ local vars
 	fp->write(" ");

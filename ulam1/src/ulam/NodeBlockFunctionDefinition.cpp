@@ -430,7 +430,7 @@ namespace MFM {
     assert(!isNative());
 
     fp->write("\n");
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("{\n");
 
     m_state.m_currentIndentLevel++;
@@ -440,7 +440,7 @@ namespace MFM {
     m_state.m_currentIndentLevel--;
 
     fp->write("\n");
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("} // ");
     fp->write(m_funcSymbol->getMangledName().c_str()); //end of function
     fp->write("\n\n\n");

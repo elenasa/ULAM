@@ -76,7 +76,7 @@ namespace MFM {
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write(vut->getUlamTypeMangledName().c_str()); //for C++
 
     if(vclasstype == UC_QUARK)       // called on classtype elements only

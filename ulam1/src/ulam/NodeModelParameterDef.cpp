@@ -120,7 +120,7 @@ namespace MFM {
     UTI vuti = m_constSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
 
     fp->write(vut->getImmediateModelParameterStorageTypeAsString().c_str());
     fp->write("<EC>");

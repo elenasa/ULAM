@@ -28,6 +28,9 @@ namespace MFM {
   //#define _INFO_OUTPUT
   #define _WARN_OUTPUT
 
+  //output line markers that work with gdb; TODO: comle time flag
+#define _LINES_FOR_GDB
+
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
 #else
@@ -2457,8 +2460,15 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return rtnBool;
   } //checkFunctionReturnNodeTypes
 
+  void CompilerState::indentUlamCode(File * fp)
+  {
+    outputLineNumberForDebugging(fp, m_locOfNextLineText);
+    indent(fp);
+  } //indentUlamCode
+
   void CompilerState::indent(File * fp)
   {
+    // NO outputLineNumberForDebugging
     for(u32 i = 0; i < m_currentIndentLevel; i++)
       fp->write(m_indentedSpaceLevel);
   } //indent
@@ -3031,10 +3041,23 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   void CompilerState::outputTextAsComment(File * fp, Locator nodeloc)
   {
     fp->write("\n");
-    indent(fp);
     fp->write("//! ");
     fp->write(getLocationTextAsString(nodeloc).c_str());
+    //caller needs to update m_locOfNextLineText to nodeloc
   } //outputTextAsComment
+
+  void CompilerState::outputLineNumberForDebugging(File * fp, Locator nodeloc)
+  {
+#ifdef _LINES_FOR_GDB
+    fp->write("\n");
+    fp->write("#line ");
+    fp->write_decimal_unsigned(nodeloc.getLineNo());
+    fp->write(" \"");
+    fp->write(getPathFromLocator(nodeloc).c_str());
+    fp->write("\"");
+    fp->write("\n");
+#endif
+  }
 
   s32 CompilerState::getNextTmpVarNumber()
   {

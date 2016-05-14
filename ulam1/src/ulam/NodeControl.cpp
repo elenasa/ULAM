@@ -191,7 +191,7 @@ namespace MFM {
     UTI cuti = uvpass.getPassTargetType();
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write(getName());  //if, while
     fp->write("(");
 
@@ -225,7 +225,7 @@ namespace MFM {
       }
     fp->write(")\n");
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("{\n");
     m_state.m_currentIndentLevel++;
 
@@ -237,7 +237,7 @@ namespace MFM {
     assert(!m_state.m_genCodingConditionalHas);
 
     m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("} // end ");
     fp->write(getName()); //end
     fp->write("\n");

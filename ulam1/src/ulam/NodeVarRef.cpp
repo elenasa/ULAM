@@ -415,7 +415,7 @@ namespace MFM {
 
 	assert(vetyp == cosut->getUlamTypeEnum());
 
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
 	fp->write(" ");
 
@@ -519,7 +519,7 @@ namespace MFM {
     //not necessarily if rhs is an unpacked array of atoms
     //assert(m_state.isAtom(vuti) && m_state.isAtom(puti)); //e.g. t3709 (aref = s[9])
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
     fp->write(" ");
 
@@ -604,7 +604,7 @@ namespace MFM {
     ULAMTYPE vetyp = vut->getUlamTypeEnum();
     assert(vetyp == cosut->getUlamTypeEnum());
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
     fp->write(" ");
 
@@ -701,7 +701,7 @@ namespace MFM {
     ULAMTYPE vetype = vut->getUlamTypeEnum();
     assert(vetype == cosut->getUlamTypeEnum());
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
     fp->write(" ");
 

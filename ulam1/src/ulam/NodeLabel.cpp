@@ -64,7 +64,7 @@ namespace MFM {
     fp->write(m_state.getLabelNumAsString(m_labelnum).c_str());
     fp->write(":\n");
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("__attribute__((__unused__));\n");
   } //genCode
 
