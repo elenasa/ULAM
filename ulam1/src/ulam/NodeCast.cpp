@@ -611,7 +611,7 @@ namespace MFM {
    //Primitive types:
    s32 tmpVarCastNum = m_state.getNextTmpVarNumber();
 
-   m_state.indent(fp);
+   m_state.indentUlamCode(fp);
    fp->write("const ");
    fp->write(tobe->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64, etc.
    fp->write(" ");
@@ -717,7 +717,7 @@ namespace MFM {
     // "downcast" might not be true; compare to be sure the atom is an element "Foo"
     if(m_state.isAtom(vuti)) //from atom-to-element
       {
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write("if(!");
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
 	fp->write(".");
@@ -733,7 +733,7 @@ namespace MFM {
 	fp->write("))\n");
 
 	m_state.m_currentIndentLevel++;
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write("FAIL(BAD_CAST);\n");
 	m_state.m_currentIndentLevel--;
 
@@ -745,7 +745,7 @@ namespace MFM {
 	//from element-to-atom
 	//convert T to AtomBitStorage (e.g. t3697, t3637)
 	u32 tabsnum = m_state.getNextTmpVarNumber();
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write("AtomBitStorage<EC> "); //non-const
 	fp->write(m_state.getAtomBitStorageTmpVarAsString(tabsnum).c_str());
 	fp->write("(");
@@ -787,7 +787,7 @@ namespace MFM {
     if(m_state.isAtom(vuti))
       {
 	s32 tmpVarType = m_state.getNextTmpVarNumber();
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write("const s32 ");
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str());;
 	fp->write(" = ");
@@ -810,7 +810,7 @@ namespace MFM {
 	  }
 	fp->write("GetType();\n");
 
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write("const bool ");
 	fp->write(m_state.getTmpVarAsString(Bool, tmpVarIs, TMPREGISTER).c_str());;
 	fp->write(" = ((");
@@ -839,7 +839,7 @@ namespace MFM {
 
 	//insure the qref has a (MFM) type that's not UNDEFINED
 	// hopefully, uvpass is TMPBITVAL
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write("const bool ");
 	fp->write(m_state.getTmpVarAsString(Bool, tmpVarIs, TMPREGISTER).c_str());;
 	fp->write(" = (");
@@ -849,13 +849,13 @@ namespace MFM {
 	fp->write(" != T::ATOM_UNDEFINED_TYPE);\n"); //subatomic type
       }
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("if(!");
     fp->write(m_state.getTmpVarAsString(Bool, tmpVarIs, TMPREGISTER).c_str());
     fp->write(")\n");
 
     m_state.m_currentIndentLevel++;
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("FAIL(BAD_CAST);\n\n");
     m_state.m_currentIndentLevel--;
 
@@ -885,7 +885,7 @@ namespace MFM {
 	// uses stgcos since there's no m_varSymbol in this situation.
 	// don't forget the read!
 	s32 tmpread = m_state.getNextTmpVarNumber(); //tmp since no variable name
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write("const ");
 	fp->write(tobe->getTmpStorageTypeAsString().c_str()); //u32 or T
 	fp->write(" ");
@@ -922,7 +922,7 @@ namespace MFM {
 	fp->write("();\n");
 
 	s32 tmpbv = m_state.getNextTmpVarNumber(); //tmp since no variable name
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write(tobe->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpbv, TMPBITVAL).c_str());
@@ -937,7 +937,7 @@ namespace MFM {
       {
 	//reference tobe
 	s32 tmpref = m_state.getNextTmpVarNumber(); //tmp since no variable name
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write(tobe->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpref, TMPBITVAL).c_str());
@@ -979,7 +979,7 @@ namespace MFM {
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
     // "downcast" might not be true; compare to be sure the element is-related to quark "Foo"
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("if(! ");
     fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
     fp->write(".");
@@ -989,7 +989,7 @@ namespace MFM {
     fp->write("))\n");
 
     m_state.m_currentIndentLevel++;
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("FAIL(BAD_CAST);\n");
     m_state.m_currentIndentLevel--;
 
@@ -997,7 +997,7 @@ namespace MFM {
       {
 	//read from pos 0, for length of quark
 	s32 tmpVarVal = m_state.getNextTmpVarNumber();
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write("const ");
 	fp->write(tobe->getTmpStorageTypeAsString().c_str()); //u32
 	fp->write(" ");
@@ -1034,7 +1034,7 @@ namespace MFM {
       {
 	// to be ref, don't read!
 	s32 tmpref = m_state.getNextTmpVarNumber(); //tmp since no variable name
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write(tobe->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpref, TMPBITVAL).c_str());
@@ -1080,7 +1080,7 @@ namespace MFM {
     assert(m_state.isReference(stgcosuti));
 
     // "downcast" might not be true; compare to be sure the element is-related to quark "Foo"
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("if(! ");
     fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
     fp->write(".");
@@ -1090,13 +1090,13 @@ namespace MFM {
     fp->write("))\n");
 
     m_state.m_currentIndentLevel++;
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("FAIL(BAD_CAST);\n");
     m_state.m_currentIndentLevel--;
 
     //read from pos 0, for length of quark
     s32 tmpVarVal = m_state.getNextTmpVarNumber();
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("const ");
     fp->write(tobe->getTmpStorageTypeAsString().c_str()); //u32, u64, BV96 (packed element)
     fp->write(" ");
@@ -1139,7 +1139,7 @@ namespace MFM {
     s32 tmpVarSuper = m_state.getNextTmpVarNumber();
 
     //e.g. a quark var here would be ok if a superclass
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("const ");
     fp->write(tobe->getTmpStorageTypeAsString().c_str()); //u32
     fp->write(" ");

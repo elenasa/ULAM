@@ -225,7 +225,7 @@ namespace MFM {
 
     s32 tmpVarIs = m_state.getNextTmpVarNumber();
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("const ");
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //bool
     fp->write(" ");
@@ -264,7 +264,7 @@ namespace MFM {
 
     s32 tmpVarIs = m_state.getNextTmpVarNumber();
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("const ");
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //bool
     fp->write(" ");
@@ -319,7 +319,7 @@ namespace MFM {
 
     s32 tmpVarIs = m_state.getNextTmpVarNumber();
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("const ");
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //bool
     fp->write(" ");

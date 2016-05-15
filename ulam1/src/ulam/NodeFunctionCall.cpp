@@ -761,7 +761,7 @@ namespace MFM {
     std::string hiddenarg2str = genHiddenArg2(urtmpnum);
     if(urtmpnum > 0)
       {
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write(hiddenarg2str.c_str());
 	fp->write("\n");
       }
@@ -774,7 +774,7 @@ namespace MFM {
     arglist << genRestOfFunctionArgs(fp, uvpass).c_str();
 
     //non-void RETURN value saved in a tmp BitValue; depends on return type
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     if(nuti != Void)
       {
 	u32 pos = 0; //POS 0 leftjustified;
@@ -843,7 +843,7 @@ namespace MFM {
     u32 urtmpnum = 0;
     std::string hiddenarg2str = genHiddenArg2ForARef(fp, uvpass, urtmpnum);
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write(hiddenarg2str.c_str());
     fp->write("\n");
 
@@ -855,7 +855,7 @@ namespace MFM {
     arglist << genRestOfFunctionArgs(fp, uvpass).c_str();
 
     //non-void RETURN value saved in a tmp BitValue; depends on return type
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     if(nuti != Void)
       {
 	u32 pos = 0; //POS 0 rightjustified;
@@ -1305,7 +1305,7 @@ namespace MFM {
 
     assert(vut->getUlamTypeEnum() == cosut->getUlamTypeEnum());
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
     fp->write(" ");
 
@@ -1381,7 +1381,7 @@ namespace MFM {
     s32 tmpVarArgNum = uvpass.getPassVarNum();
     s32 tmpVarArgNum2 = m_state.getNextTmpVarNumber();
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
     fp->write(" ");
 

@@ -57,7 +57,7 @@ namespace MFM {
 
   void NodeContinueStatement::genCode(File * fp, UVPass& uvpass)
   {
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write(getName());
     fp->write(" ");
     fp->write(m_state.getLabelNumAsString(m_gotolabelnum).c_str());

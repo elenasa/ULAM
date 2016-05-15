@@ -255,8 +255,7 @@ namespace MFM {
   void NodeStatements::genCode(File * fp, UVPass& uvpass)
   {
     Locator nodeloc = getNodeLocation();
-    m_state.outputTextAsComment(fp, nodeloc);
-    m_state.m_locOfNextLineText = nodeloc; //during gen code here
+    m_state.outputTextAsCommentWithLocationUpdate(fp, nodeloc);
 
     m_node->genCode(fp, uvpass);
 

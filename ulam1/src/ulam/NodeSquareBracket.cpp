@@ -701,7 +701,7 @@ namespace MFM {
 	if(offut->getUlamTypeEnum() == Unary)
 	  {
 	    s32 tmpVarIdx = m_state.getNextTmpVarNumber();
-	    m_state.indent(fp);
+	    m_state.indentUlamCode(fp);
 	    fp->write("const u32 ");
 	    fp->write(m_state.getTmpVarAsString(Unsigned, tmpVarIdx, TMPREGISTER).c_str());;
 	    fp->write(" = ");

@@ -60,7 +60,7 @@ namespace MFM {
 
   void NodeBlockEmpty::genCode(File * fp, UVPass& uvpass)
   {
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("{ /* empty */ }\n");
   }
 

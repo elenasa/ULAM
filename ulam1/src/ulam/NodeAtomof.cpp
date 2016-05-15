@@ -146,18 +146,18 @@ namespace MFM {
 
     if(m_state.isReference(vuti) || isself)
       {
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write("if(");
 	fp->write(m_varSymbol->getMangledName().c_str());
 	fp->write(".GetType() == T::ATOM_UNDEFINED_TYPE)\n");
 
 	m_state.m_currentIndentLevel++;
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write("FAIL(NOT_AN_ELEMENT);\n");
 	m_state.m_currentIndentLevel--;
       }
 
-    m_state.indent(fp); //non-const
+    m_state.indentUlamCode(fp); //non-const
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //for C++ local vars
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPTATOM).c_str());
@@ -191,18 +191,18 @@ namespace MFM {
 
     if(m_state.isReference(vuti) || isself)
       {
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write("if(");
 	fp->write(m_varSymbol->getMangledName().c_str());
 	fp->write(".GetType() == T::ATOM_UNDEFINED_TYPE)\n");
 
 	m_state.m_currentIndentLevel++;
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write("FAIL(NOT_AN_ELEMENT);\n");
 	m_state.m_currentIndentLevel--;
       }
 
-    m_state.indent(fp); //non-const
+    m_state.indentUlamCode(fp); //non-const
     fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());

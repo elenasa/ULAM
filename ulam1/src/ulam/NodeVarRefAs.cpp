@@ -144,7 +144,7 @@ namespace MFM {
 
     // can't let Node::genCodeReadIntoTmpVar do this for us: need a ref.
     assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write(stgcosut->getUlamTypeImmediateMangledName().c_str());
     fp->write("<EC> & "); //here it is!! brilliant
     fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
@@ -158,7 +158,7 @@ namespace MFM {
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
     fp->write(" ");
 

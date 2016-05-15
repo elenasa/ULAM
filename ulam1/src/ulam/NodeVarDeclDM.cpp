@@ -869,7 +869,7 @@ namespace MFM {
     m_state.indent(fp);
     if((netyp == Class) && nut->isScalar())
       {
-	// use typedef rather than atomic parameter for classes
+	// usse typedef rather than atomic parameter for classes
 	// (e.g. quarks within elements, element within transients,
 	//       transients within transients, etc).
 	// except if an array of quarks.

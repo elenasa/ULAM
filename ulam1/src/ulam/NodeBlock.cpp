@@ -244,14 +244,14 @@ namespace MFM {
 
   void NodeBlock::genCode(File * fp, UVPass& uvpass)
   {
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("{\n");
 
     m_state.m_currentIndentLevel++;
     m_nodeNext->genCode(fp, uvpass);
     m_state.m_currentIndentLevel--;
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("}\n");
   } //genCode
 

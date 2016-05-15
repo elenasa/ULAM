@@ -694,7 +694,7 @@ namespace MFM {
       {
 	m_nodeInitExpr->genCode(fp, uvpass);
 
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
 	fp->write(" ");
 	fp->write(m_varSymbol->getMangledName().c_str());
@@ -712,7 +712,7 @@ namespace MFM {
     //initialize T to default atom (might need "OurAtom" if data member ?)
     if(vclasstype == UC_ELEMENT)
       {
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
 	fp->write(" ");
 	fp->write(m_varSymbol->getMangledName().c_str());
@@ -727,14 +727,14 @@ namespace MFM {
     else if(vclasstype == UC_QUARK)
       {
 	//left-justified. no initialization
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
 	fp->write(" ");
 	fp->write(m_varSymbol->getMangledName().c_str());
       }
     else
       {
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
 	fp->write(" ");
 	fp->write(m_varSymbol->getMangledName().c_str()); //default 0

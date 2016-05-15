@@ -254,7 +254,7 @@ namespace MFM {
 
 	Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass);
 
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write("return ");
 	fp->write("(");
 	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
@@ -263,7 +263,7 @@ namespace MFM {
       }
     else
       {
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write("return;\n"); //void
       }
   } //genCode

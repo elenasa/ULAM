@@ -95,11 +95,11 @@ namespace MFM {
     assert(m_nodeCondition && m_nodeBody);
 
     //while true..
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write(getName());
     fp->write("(true)\n");
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("{\n");
     m_state.m_currentIndentLevel++;
 
@@ -111,7 +111,7 @@ namespace MFM {
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
     fp->write("\n");
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("if(!");
 
     if(isTerminal)
@@ -131,7 +131,7 @@ namespace MFM {
     fp->write(")\n");
     m_state.m_currentIndentLevel++;
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("break;\n");
     m_state.m_currentIndentLevel--;
 
@@ -139,7 +139,7 @@ namespace MFM {
     m_nodeBody->genCode(fp, uvpass);
 
     m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("} // end ");
     fp->write(getName()); //end while
     fp->write("\n");

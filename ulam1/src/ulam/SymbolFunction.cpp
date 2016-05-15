@@ -354,22 +354,27 @@ namespace MFM {
     if(!declOnly && (func->isNative() || (isVirtualFunction() && isPureVirtualFunction())))
       return;
 
-    m_state.outputTextAsComment(fp, func->getNodeLocation());
+    if(!declOnly)
+      {
+	Locator floc = func->getNodeLocation();
+	m_state.outputTextAsCommentWithLocationUpdate(fp, floc);
+      }
 
     UTI suti = getUlamTypeIdx();
     UlamType * sut = m_state.getUlamTypeByIndex(suti); //return type
 
-    m_state.indent(fp);
     if(declOnly)
       {
+	m_state.indent(fp);
 	//only ulam virtual functions are c++ static functions
 	if(isVirtualFunction())
 	  fp->write("static ");
       }
     else
       {
+	m_state.indentUlamCode(fp);
 	fp->write("template<class EC>\n"); //same for elements and quarks
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
       }
 
     fp->write(sut->getLocalStorageTypeAsString().c_str()); //return type for C++
@@ -450,7 +455,7 @@ namespace MFM {
     NodeBlockFunctionDefinition * func = getFunctionNode();
     assert(func); //how would a function symbol be without a body?
                   //natives may also be virtuals.
-
+    assert(declOnly);
     UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx()); //return type
 
     m_state.indent(fp);

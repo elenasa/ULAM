@@ -1345,6 +1345,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   void NodeBlockClass::generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
+    //ALL builtin should be hident!!!! XXXXXX
     m_state.indent(fp);
     fp->write("//BUILT-IN FUNCTIONS:\n\n");
 
@@ -1990,9 +1991,10 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       {
 	m_state.indent(fp);
 	fp->write("template<class EC>\n"); //same for elements and quarks
+	m_state.indent(fp);
       }
+    else m_state.indent(fp);
 
-    m_state.indent(fp);
     fp->write("const UlamClassDataMemberInfo & "); //return type
 
     if(!declOnly)
@@ -2060,9 +2062,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       {
 	m_state.indent(fp);
 	fp->write("template<class EC>\n"); //same for elements and quarks
+	m_state.indent(fp);
       }
+    else
+      m_state.indent(fp);
 
-    m_state.indent(fp);
     fp->write("s32 "); //return type
 
     if(!declOnly)
@@ -2108,9 +2112,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       {
 	m_state.indent(fp);
 	fp->write("template<class EC>\n"); //same for elements and quarks
+	m_state.indent(fp);
       }
+    else
+      m_state.indent(fp);
 
-    m_state.indent(fp);
     fp->write("const char * "); //return type
 
     if(!declOnly)

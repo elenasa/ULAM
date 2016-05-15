@@ -181,16 +181,16 @@ namespace MFM {
 
     if(m_nodeElse)
       {
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write("else\n");
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write("{\n");
 	m_state.m_currentIndentLevel++;
 
 	m_nodeElse->genCode(fp, uvpass);
 
 	m_state.m_currentIndentLevel--;
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write("} //end else\n");
       }
   } //genCode
