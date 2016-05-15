@@ -40,6 +40,16 @@ namespace MFM {
     return m_state.getFullLocationAsString(loc);
   }
 
+  void Compiler::enableLinesForDebug()
+  {
+    m_state.m_linesForDebug = true;
+  }
+
+  void Compiler::disableLinesForDebug()
+  {
+    m_state.m_linesForDebug = false;
+  }
+
   //compile one set of related Ulam files, as before.
   u32 Compiler::compileProgram(FileManager * infm, std::string startstr, FileManager * outfm, File * errput)
   {

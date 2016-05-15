@@ -95,6 +95,7 @@ namespace MFM{
     // documentation during code generation.
     std::map<u32,std::vector<u32>* > m_textByLinePerFilePath;
     Locator m_locOfNextLineText;
+    bool m_linesForDebug;
 
     SymbolTableOfClasses m_programDefST; // holds SymbolClassName and SymbolClassNameTemplate
 
@@ -374,6 +375,7 @@ namespace MFM{
     std::string getLineOfText(Locator loc);
     std::string getLocationTextAsString(Locator nodeloc);
     void outputTextAsComment(File * fp, Locator nodeloc);
+    void outputTextAsCommentWithLocationUpdate(File * fp, Locator nodeloc);
     void outputLineNumberForDebugging(File * fp, Locator nodeloc);
 
     s32 getNextTmpVarNumber();

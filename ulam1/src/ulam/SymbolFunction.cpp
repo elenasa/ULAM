@@ -357,8 +357,7 @@ namespace MFM {
     if(!declOnly)
       {
 	Locator floc = func->getNodeLocation();
-	m_state.outputTextAsComment(fp, floc);
-	m_state.m_locOfNextLineText = floc; //during gen code here
+	m_state.outputTextAsCommentWithLocationUpdate(fp, floc);
       }
 
     UTI suti = getUlamTypeIdx();

@@ -28,9 +28,6 @@ namespace MFM {
   //#define _INFO_OUTPUT
   #define _WARN_OUTPUT
 
-  //output line markers that work with gdb; TODO: comle time flag
-#define _LINES_FOR_GDB
-
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
 #else
@@ -70,7 +67,7 @@ namespace MFM {
   static const char * BUILD_DEFAULT_TRANSIENT_FUNCNAME = "getDefaultTransient";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalHas(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0)
+  CompilerState::CompilerState(): m_linesForDebug(true), m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalHas(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0)
   {
     m_err.init(this, debugOn, infoOn, warnOn, NULL);
     Token::initTokenMap(*this);
@@ -3043,20 +3040,26 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     fp->write("\n");
     fp->write("//! ");
     fp->write(getLocationTextAsString(nodeloc).c_str());
-    //caller needs to update m_locOfNextLineText to nodeloc
   } //outputTextAsComment
+
+  void CompilerState::outputTextAsCommentWithLocationUpdate(File * fp, Locator nodeloc)
+  {
+    outputTextAsComment(fp, nodeloc);
+    m_locOfNextLineText = nodeloc;
+  }
 
   void CompilerState::outputLineNumberForDebugging(File * fp, Locator nodeloc)
   {
-#ifdef _LINES_FOR_GDB
-    fp->write("\n");
-    fp->write("#line ");
-    fp->write_decimal_unsigned(nodeloc.getLineNo());
-    fp->write(" \"");
-    fp->write(getPathFromLocator(nodeloc).c_str());
-    fp->write("\"");
-    fp->write("\n");
-#endif
+    if(m_linesForDebug)
+      {
+	fp->write("\n");
+	fp->write("#line ");
+	fp->write_decimal_unsigned(nodeloc.getLineNo());
+	fp->write(" \"");
+	fp->write(getPathFromLocator(nodeloc).c_str());
+	fp->write("\"");
+	fp->write("\n");
+      }
   }
 
   s32 CompilerState::getNextTmpVarNumber()
