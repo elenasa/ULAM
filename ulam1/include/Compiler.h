@@ -89,9 +89,7 @@ namespace MFM{
 
     const std::string getFullPathLocationAsString(const Locator& loc);
 
-    void enableLinesForDebug();
-
-    void disableLinesForDebug();
+    void setLinesForDebug(bool doit);
 
   private:
     CompilerState m_state;  //owner

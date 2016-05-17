@@ -24,11 +24,12 @@ static void doHelp()
           "  Each CLASS is the name of an ulam element \n"
           "  (or quark or union) to be compiled.\n"
           "\n"
-          "Switches:"
+          "Switches:\n"
           " -h      Print this help and exit\n"
           " -V      Print version info and exit\n"
           " -o DIR  Set output directory to DIR\n"
           " -i DIR  Add DIR to input directory search list\n"
+          " -g      Debug\n"
           "\n",
           progname);
   exit(0);
@@ -44,6 +45,7 @@ namespace MFM
       , m_sourceFile(0)
       , m_stdout(new FileStdio(stdout, MFM::WRITE))
       , m_stderr(new FileStdio(stderr, MFM::WRITE))
+      , m_doDebug(false)
     { }
 
     ~DriverState() {
@@ -71,6 +73,12 @@ namespace MFM
       std::cerr << "INTERNAL ERROR: " << msg << std::endl;
       std::cerr << "Exiting"  << std::endl;
       throw 1;
+    }
+
+    void doDebug()
+    {
+      std::cerr << "DEBUG: #LINE enabled" << std::endl;
+      m_doDebug = true;
     }
 
     void SplitPath(char * path, std::string & dir, std::string & file)
@@ -172,6 +180,7 @@ namespace MFM
       m_stderr->write("Errors to:    m_stderr\n");
       m_stderr->write("Returning:    0 iff compilation should continue on to C-level\n");
       */
+      C.setLinesForDebug(m_doDebug);
 
       int status = C.compileFiles(m_srcFileManager, m_classfiles, m_outFileManager, m_stderr);
       if (status == 0) {
@@ -215,6 +224,7 @@ namespace MFM
     std::vector<std::string> m_classfiles;
     TargetMap m_targetMap;
     ClassMemberMap m_memberMap;
+    bool m_doDebug;
   };
 } /* namespace MFM */
 
@@ -252,6 +262,13 @@ int main(int argc, char ** argv)
             ds.AddInputDir(argv[0]);
             continue;
           }
+
+        if (!strcmp(arg,"-g"))
+	  {
+	    ds.doDebug();
+       	    continue;
+	  }
+
         if (arg[0] == '-') ds.UDie("Unrecognized switch: ", arg);
 
         noMoreSwitches = true;  // Whatever it is, it's not a switch
