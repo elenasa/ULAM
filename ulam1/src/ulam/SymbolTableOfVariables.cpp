@@ -59,7 +59,8 @@ namespace MFM {
 
   s32 SymbolTableOfVariables::getTotalVariableSymbolsBitSize()
   {
-    ULAMCLASSTYPE cclasstype = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamClassType();
+    UTI cuti = m_state.getCompileThisIdx();
+    ULAMCLASSTYPE cclasstype = m_state.getUlamTypeByIndex(cuti)->getUlamClassType();
 
     s32 totalsizes = 0;
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
@@ -75,7 +76,6 @@ namespace MFM {
 	  }
 
 	UTI suti = sym->getUlamTypeIdx();
-	UlamType * sut = m_state.getUlamTypeByIndex(suti);
 	s32 symsize = calcVariableSymbolTypeSize(suti); //recursively
 
 	if(symsize == CYCLEFLAG) //was < 0
@@ -94,7 +94,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "UNKNOWN !!! " << m_state.getUlamTypeNameByIndex(suti).c_str();
 	    msg << " UTI" << suti << " while compiling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(sym->getTokPtr(), msg.str().c_str(), DEBUG);
 	    totalsizes = UNKNOWNSIZE;
 	    break;
@@ -102,6 +102,7 @@ namespace MFM {
 	else
 	  m_state.setBitSize(suti, symsize); //symsize does not include arrays
 
+	UlamType * sut = m_state.getUlamTypeByIndex(suti); //no sooner!
 	if((cclasstype == UC_TRANSIENT) && (sut->getUlamClassType() == UC_ELEMENT))
 	  {
 	    s32 arraysize = sut->getArraySize();
@@ -109,7 +110,8 @@ namespace MFM {
 	    totalsizes += (BITSPERATOM * arraysize);
 	  }
 	else
-	  totalsizes += m_state.getTotalBitSize(suti); //covers up any unknown sizes; includes arrays
+	  totalsizes += sut->getTotalBitSize(); //covers up any unknown sizes; includes arrays
+
 	it++;
       } //while
     return totalsizes;
@@ -130,27 +132,27 @@ namespace MFM {
 	    continue;
 	  }
 
-	UTI sut = sym->getUlamTypeIdx();
-	s32 symsize = calcVariableSymbolTypeSize(sut); //recursively
+	UTI suti = sym->getUlamTypeIdx();
+	s32 symsize = calcVariableSymbolTypeSize(suti); //recursively
 
 	if(symsize == CYCLEFLAG) //was < 0
 	  {
 	    std::ostringstream msg;
-	    msg << "cycle error!!!! " << m_state.getUlamTypeNameByIndex(sut).c_str();
+	    msg << "cycle error!!!! " << m_state.getUlamTypeNameByIndex(suti).c_str();
 	    MSG(sym->getTokPtr(), msg.str().c_str(),ERR);
 	  }
 	else if(symsize == EMPTYSYMBOLTABLE)
 	  {
 	    symsize = 0;
-	    m_state.setBitSize(sut, symsize); //total bits NOT including arrays
+	    m_state.setBitSize(suti, symsize); //total bits NOT including arrays
 	  }
 	else
 	  {
-	    m_state.setBitSize(sut, symsize); //symsize does not include arrays
+	    m_state.setBitSize(suti, symsize); //symsize does not include arrays
 	  }
 
-	if((s32) m_state.getTotalBitSize(sut) > maxsize)
-	  maxsize = m_state.getTotalBitSize(sut); //includes arrays
+	if((s32) m_state.getTotalBitSize(suti) > maxsize)
+	  maxsize = m_state.getTotalBitSize(suti); //includes arrays
 
 	it++;
       }
