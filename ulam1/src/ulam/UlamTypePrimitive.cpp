@@ -215,7 +215,7 @@ namespace MFM {
     //copy constructor for autorefs
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(const UlamRef<EC>& arg) : UlamRef<EC>(arg, arg.GetPos(), arg.GetLen(), NULL) { ");
+    fp->write("(const UlamRef<EC>& arg) : UlamRef<EC>(arg, (s32) arg.GetPos(), arg.GetLen(), NULL) { ");
     fp->write("MFM_API_ASSERT_ARG(arg.GetLen() == ");
     fp->write_decimal_unsigned(len); //includes arraysize
     fp->write("); }\n"); //effself is null for primitives
@@ -223,7 +223,7 @@ namespace MFM {
     //constructor for chain of autorefs (e.g. memberselect with array item)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(const UlamRef<EC>& arg, u32 idx) : UlamRef<EC>(arg, idx, ");
+    fp->write("(const UlamRef<EC>& arg, s32 idx) : UlamRef<EC>(arg, idx, ");
     fp->write_decimal_unsigned(len); //includes arraysize
     fp->write("u, NULL) { }\n"); //effself is null for primitives
 
