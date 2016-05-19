@@ -256,7 +256,11 @@ namespace MFM{
     NNO m_no;
 
     void genCodeReadSelfIntoATmpVar(File * fp, UVPass & uvpass);
+    void genSelfNameOfMethod(File * fp);
     void genCodeWriteToSelfFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
+
+    void genCodeReadTransientIntoATmpVar(File * fp, UVPass & uvpass);
+    void genCodeWriteToTransientFromATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass);
 
     void genCodeWriteToAtomofRefFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
 

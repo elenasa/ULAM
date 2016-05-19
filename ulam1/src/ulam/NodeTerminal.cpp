@@ -194,6 +194,7 @@ namespace MFM {
 		}
 	      else
 		{
+		  //does it ever get here?
 		  s64 sval = _Int64ToCs64(m_constant.uval, bs);
 		  newbs = (s32) (_getLogBase2Long(UABS64(sval)) + 1 + 1); //fits into signed
 		  newbs = CLAMP<s32>(1, MAXBITSPERLONG, newbs);

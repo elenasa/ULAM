@@ -477,6 +477,9 @@ namespace MFM {
     if(uvpass.getPassNameId() == 0)
       return genCodeConvertATmpVarIntoBitVector(fp, uvpass);
 
+    if((m_state.getUlamTypeByIndex(cosuti)->getUlamClassType() == UC_TRANSIENT))
+      return genCodeReadTransientIntoATmpVar(fp, uvpass);
+
     m_state.indentUlamCode(fp);
     fp->write("const ");
     fp->write(tmpStorageTypeForRead(cosuti, uvpass).c_str());
@@ -555,13 +558,24 @@ namespace MFM {
      stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 
     UTI stgcosuti = stgcos->getUlamTypeIdx();
+
+    genSelfNameOfMethod(fp); // NOT just ur.Read() (e.g. big array of quarks: 3707, 3708)
+    fp->write(readMethodForCodeGen(stgcosuti, uvpass).c_str());
+    fp->write("();\n"); //stand-alone 'self'
+  } //genCodeReadSelfIntoATmpVar
+
+  void Node::genSelfNameOfMethod(File * fp)
+  {
+    Symbol * stgcos = NULL;
+    if(m_state.m_currentObjSymbolsForCodeGen.empty())
+      stgcos = m_state.getCurrentSelfSymbolForCodeGen();
+    else
+     stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+
+    UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
-    // NOT just ur.Read() (e.g. 3707, 3708)
-    //fp->write(m_state.getHiddenArgName()); //ur (already + 25) e.g. t3407
-    //fp->write(".");
-    //fp->write(readMethodForCodeGen(uvpass.getPassTargetType(), uvpass).c_str());
-
+    // NOT just ur.Read() (e.g. big array of quarks: 3707, 3708)
     fp->write("UlamRef<EC>(");
     fp->write(m_state.getHiddenArgName()); //ur (already + 25) e.g. t3407
     fp->write(", 0u, ");
@@ -569,9 +583,48 @@ namespace MFM {
     fp->write("u, &");
     fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
     fp->write(").");
-    fp->write(readMethodForCodeGen(stgcosuti, uvpass).c_str()); //or just 'Read' ?
-    fp->write("();\n"); //stand-alone 'self'
-  } //genCodeReadSelfIntoATmpVar
+  } //genSelfNameOfMethod
+
+  void Node::genCodeReadTransientIntoATmpVar(File * fp, UVPass & uvpass)
+  {
+    Symbol * cos = NULL;
+    Symbol * stgcos = NULL;
+    if(m_state.m_currentObjSymbolsForCodeGen.empty())
+      stgcos = cos = m_state.getCurrentSelfSymbolForCodeGen();
+    else
+      {
+	cos = m_state.m_currentObjSymbolsForCodeGen.back();
+	stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+      }
+
+    UTI cosuti = cos->getUlamTypeIdx();
+    UTI stgcosuti = stgcos->getUlamTypeIdx();
+
+    m_state.indentUlamCode(fp); //not const
+    fp->write(tmpStorageTypeForRead(cosuti, uvpass).c_str());
+    fp->write(" ");
+    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+    fp->write(";\n");
+
+    m_state.indentUlamCode(fp); //not const
+    if(stgcos->isSelf() && (stgcos == cos))
+      genSelfNameOfMethod(fp);
+    else
+      genLocalMemberNameOfMethod(fp);
+
+    if(m_state.isReference(stgcosuti))
+      fp->write("GetStorage()."); //need storage to do ReadBV (e.g. t3737, t3739)
+
+    //read method based on last cos
+    fp->write(readMethodForCodeGen(cosuti, uvpass).c_str());
+    fp->write("(0u, "); //pos part of local member name (UlamRef)
+    //fp->write_decimal_unsigned(uvpass.getPassPos()); //pos
+    //fp->write(", ");
+    fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //tmp var ref
+    fp->write(");\n");
+
+    m_state.clearCurrentObjSymbolsForCodeGen();
+  } //genCodeReadTransientIntoATmpVar
 
   void Node::genCodeReadAutorefIntoATmpVar(File * fp, UVPass& uvpass)
   {
@@ -824,6 +877,9 @@ namespace MFM {
     if(m_state.isAtomRef(luti) && m_state.isAtom(ruti))
       return genCodeWriteToAtomofRefFromATmpVar(fp, luvpass, ruvpass);
 
+    if((m_state.getUlamTypeByIndex(cosuti)->getUlamClassType() == UC_TRANSIENT))
+      return genCodeWriteToTransientFromATmpVar(fp, luvpass, ruvpass);
+
     bool isElementAncestorCast = (lut->getUlamClassType() == UC_ELEMENT) && m_state.isClassASubclassOf(ruti, luti);
 
     UVPass typuvpass;
@@ -911,6 +967,33 @@ namespace MFM {
 
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeWriteToSelfFromATmpVar
+
+  void Node::genCodeWriteToTransientFromATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass)
+  {
+    Symbol * cos = NULL;
+    if(m_state.m_currentObjSymbolsForCodeGen.empty())
+      {
+	cos = m_state.getCurrentSelfSymbolForCodeGen();
+      }
+    else
+      {
+	cos = m_state.m_currentObjSymbolsForCodeGen.back();
+      }
+
+    UTI cosuti = cos->getUlamTypeIdx();
+
+    m_state.indentUlamCode(fp);
+
+    //local
+    genLocalMemberNameOfMethod(fp);
+
+    fp->write(writeMethodForCodeGen(cosuti, luvpass).c_str());
+    fp->write("(0u, "); //pos part of local member name (UlamRef)
+    fp->write(ruvpass.getTmpVarAsString(m_state).c_str()); //tmp var ref
+    fp->write(");\n");
+
+    m_state.clearCurrentObjSymbolsForCodeGen();
+  } //genCodeWriteToTransientFromATmpVar
 
   void Node::genCodeWriteToAtomofRefFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass)
   {
@@ -2172,15 +2255,18 @@ namespace MFM {
 
   const std::string Node::readMethodForCodeGen(UTI nuti, UVPass uvpass)
   {
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     std::string method;
     if(isCurrentObjectsContainingAModelParameter() >= 0)
       method = "read"; //an exception
     else if(!isCurrentObjectALocalVariableOrArgument())
-      method = m_state.getUlamTypeByIndex(nuti)->readMethodForCodeGen(); //UlamRef
+      method = nut->readMethodForCodeGen(); //UlamRef
     else if(m_state.m_currentObjSymbolsForCodeGen.size() > 1)
-      method = m_state.getUlamTypeByIndex(nuti)->readMethodForCodeGen(); //UlamRef
+      method = nut->readMethodForCodeGen(); //UlamRef
+    else if(nut->getUlamClassType() == UC_TRANSIENT)
+      method = nut->readMethodForCodeGen(); //BitStorage ReadBV
     else
-      method = "read"; //local variable name
+      method = "read"; //local variable name, not a transient
     return method;
   } //readMethodForCodeGen
 
@@ -2202,13 +2288,16 @@ namespace MFM {
 
   const std::string Node::writeMethodForCodeGen(UTI nuti, UVPass uvpass)
   {
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     std::string method;
     if(!isCurrentObjectALocalVariableOrArgument())
-      method =  m_state.getUlamTypeByIndex(nuti)->writeMethodForCodeGen(); //UlamRef
+      method =  nut->writeMethodForCodeGen(); //UlamRef
     else if(m_state.m_currentObjSymbolsForCodeGen.size() > 1)
-      method = m_state.getUlamTypeByIndex(nuti)->writeMethodForCodeGen(); //UlamRef
+      method = nut->writeMethodForCodeGen(); //UlamRef
+    else if(nut->getUlamClassType() == UC_TRANSIENT)
+      method = nut->readMethodForCodeGen(); //BitStorage ReadBV
     else
-      method = "write"; //local variable name
+      method = "write"; //local variable name, not a transient
     return method;
   } //writeMethodForCodeGen
 
@@ -2243,8 +2332,8 @@ namespace MFM {
       return false; //data member, not model parameter
 
     UTI stgcosuti = m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx();
-    if(m_state.m_currentObjSymbolsForCodeGen[0]->isSelf() && !m_state.isAtom(stgcosuti) && (modelparamidx == -1))
-      return false; //self, not atom, not modelparameter
+    if(m_state.m_currentObjSymbolsForCodeGen[0]->isSelf() && !(m_state.isAtom(stgcosuti) || m_state.getUlamTypeByIndex(stgcosuti)->getUlamClassType() == UC_TRANSIENT) && (modelparamidx == -1))
+      return false; //self, neither atom nor transient, not modelparameter
     return true;
   } //isCurrentObjectALocalVariableOrArgument
 

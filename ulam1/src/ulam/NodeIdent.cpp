@@ -368,12 +368,13 @@ namespace MFM {
 	    else
 	      {
 		UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-		if((m_state.isAtom(nuti) || (classtype == UC_ELEMENT) || (classtype == UC_TRANSIENT)) && (nut->isScalar() || nut->isReference())) //pls test this change!
+		if((m_state.isAtom(nuti) || (classtype == UC_ELEMENT)) && (nut->isScalar() || nut->isReference()))
 		  {
-		    uv = m_state.getPtrTarget(uvp);
+		    uv = m_state.getPtrTarget(uvp); //error/t3676, error/t3677
 		  }
 		else
 		  {
+		    //includes (evaluable) transients (t3739)
 		    UTI vuti = uv.getUlamValueTypeIdx();
 		    // does this handle a ptr to a ptr (e.g. "self")? (see makeUlamValuePtr)
 		    if(m_state.isPtr(vuti))
