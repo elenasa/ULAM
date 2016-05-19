@@ -22,28 +22,28 @@ Exit status: 0
 Ue_Fu { System s();  Int(32) test() {  s ( 4u )print . ; s ( -8 )print . s ( 7 )print . s ( 32u cast )print . s ( 0u cast )print . s ( 4294967295u )print . s ( 3u )print . s ( 0u )print . s ( 7u )print . s ( 3u )print . s ( 0u )print . s ( 7u )print . s ( 2u )print . 0 cast return } }
 Uq_System { <NOMAIN> }
 #>Fu.ulam
-ulam 1;
+  ulam 1;
 use System;
 element Fu {
-System s;
-Int test(){
- s.print(Int(4).sizeof);
-;
- s.print(Int(4).minof);
- s.print(Int(4).maxof);
- s.print(Unsigned.sizeof);
- s.print(Unsigned.minof);
- s.print(Unsigned.maxof);
- s.print(Unary(3).sizeof);
- s.print(Unary(3).minof);
- s.print(Unary(3).maxof);
- s.print(Bool(3).sizeof);
- s.print(Bool(3).minof);
- s.print(Bool(3).maxof);
- s.print(Bits(2).sizeof);
-/* i = t.minof;
- */ return 0;
-}
+  System s;
+  Int test(){
+    s.print(Int(4).sizeof);
+    ;
+    s.print(Int(4).minof);
+    s.print(Int(4).maxof);
+    s.print(Unsigned.sizeof);
+    s.print(Unsigned.minof);
+    s.print(Unsigned.maxof);
+    s.print(Unary(3).sizeof);
+    s.print(Unary(3).minof);
+    s.print(Unary(3).maxof);
+    s.print(Bool(3).sizeof);
+    s.print(Bool(3).minof);
+    s.print(Bool(3).maxof);
+    s.print(Bits(2).sizeof);
+    /* i = t.minof;
+     */ return 0;
+  }
 }
 
 ##      // similar to t3287 except using types instead of variables.
@@ -51,7 +51,7 @@ Int test(){
 ##      // uncovered problem with type of the values for maxof, minof, sizeof; not related to lhs type.
 ##      //bool rtn1 = fms->add("Fu.ulam", "ulam 1;\nuse System;\nelement Fu {\nSystem s;\nInt test(){\ns.print(Bool(3).maxof);\n return 0;\n}\n}\n");
 #:System.ulam
-ulam 1;
+  ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;
