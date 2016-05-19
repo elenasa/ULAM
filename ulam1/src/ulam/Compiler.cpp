@@ -40,14 +40,9 @@ namespace MFM {
     return m_state.getFullLocationAsString(loc);
   }
 
-  void Compiler::enableLinesForDebug()
+  void Compiler::setLinesForDebug(bool doit)
   {
-    m_state.m_linesForDebug = true;
-  }
-
-  void Compiler::disableLinesForDebug()
-  {
-    m_state.m_linesForDebug = false;
+    m_state.m_linesForDebug = doit;
   }
 
   //compile one set of related Ulam files, as before.

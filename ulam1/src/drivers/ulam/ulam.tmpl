@@ -1025,6 +1025,8 @@ sub runUlamCompilations
     pISC("## Compile ulam files: ".join(", ",@ulamFiles));
     my $culam = getTool($ulamcTool);
     my @args;
+    push @args, "-g"
+	if($DEBUG_CPP); #prepend to beginning of array
     push @args, "-o", $ULAM_WORK_DIR;
     for my $sd (@sourceDirsConfigured) {
         push @args, "-i", $sd;
@@ -1034,6 +1036,7 @@ sub runUlamCompilations
     push @args, @ulamFiles;
     print " Compile ".join(", ",@ulamFiles).": "
         if verbose();
+
 
     my ($status,$stdout,$stderr) = runThis(undef,undef,$culam,@args);
     if ($status eq "") {
@@ -1714,7 +1717,7 @@ sub stringHashRef {
 sub modifyEnv {
     my @kv = @_;
     my %OLDENV = %ENV;
-#    pISC("## Modify environment [FROM]: ".stringHashRef(\%OLDENV));
+    #pISC("## Modify environment [FROM]: ".stringHashRef(\%OLDENV));
     print STDOUT " # Environment:" if showEnvironment();
     while (@kv) {
         my $key = shift @kv;
@@ -1726,7 +1729,7 @@ sub modifyEnv {
         print STDOUT " $key=$d$val$d" if showEnvironment();
     }
     print STDOUT "\n" if showEnvironment();
-#    pISC("## Modified environment [TO]: ".stringHashRef(\%ENV));
+    #pISC("## Modified environment [TO]: ".stringHashRef(\%ENV));
     return \%OLDENV;
 }
 
@@ -1772,6 +1775,7 @@ sub gppCompile {
     my $oldenv = modifyEnv(@extraEnvPairs);
     my @args = ("-e",
 		"-C", "$mfm", $makeTarget);
+
     print " Compile $file: "
         if verbose();
 
