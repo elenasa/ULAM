@@ -14,4 +14,9 @@ namespace MFM {
     return Hzy;
   }
 
+  const std::string UlamTypeInternalHzy::getUlamTypeNameBrief()
+  {
+    return "unresolved";
+  }
+
 } //end MFM

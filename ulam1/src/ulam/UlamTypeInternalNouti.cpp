@@ -14,4 +14,9 @@ namespace MFM {
     return Nouti;
   }
 
+  const std::string UlamTypeInternalNouti::getUlamTypeNameBrief()
+  {
+    return "unset";
+  }
+
 } //end MFM

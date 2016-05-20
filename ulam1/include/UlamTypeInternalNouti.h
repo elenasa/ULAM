@@ -53,6 +53,8 @@ namespace MFM{
 
     virtual ULAMTYPE getUlamTypeEnum();
 
+    virtual const std::string getUlamTypeNameBrief();
+
   private:
 
   };
