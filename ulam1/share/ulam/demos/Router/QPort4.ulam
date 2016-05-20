@@ -31,7 +31,7 @@ quark QPort4(Unsigned(2) extraScanDistance)  {
   GossipLevel m_heardFrom[PortId.maxof + 1];
   Once m_once;
 
-  ARGB getColor(Unsigned selector) {
+  ARGB getColorQ(Unsigned selector) {
     Cell aPkt;
     ColorUtils cu;
     if (selector == 0u || selector > 4u)   // Def
@@ -53,11 +53,13 @@ quark QPort4(Unsigned(2) extraScanDistance)  {
     if (m_once.new()) {
       m_portId = portid;
       m_lastRcvAge = m_lastRcvAge.maxof;
+      for (Unsigned i = 0; i <= PortId.maxof; ++i) {
+        m_heardFrom[i] = GossipLevel.maxof;
+      }
     }
   }
 
-  Void update(PortId portid) {
-    init(portid);
+  Void update() {
 
     // stochastic timer by hand (SHOULD USE XTimer!)
     if (m_lastRcvAge < m_lastRcvAge.maxof
@@ -116,7 +118,7 @@ quark QPort4(Unsigned(2) extraScanDistance)  {
           for (Int i = 0; i <= PortId.maxof; ++i) {
 
             // Age contacts every so often, in case they've died
-            if (r.oneIn(250)) ++m_heardFrom[i];
+            if (r.oneIn(100)) ++m_heardFrom[i];
 
             if (i == (Int) m_portId) continue;
             Int weight = 1;

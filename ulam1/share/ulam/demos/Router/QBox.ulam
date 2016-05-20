@@ -44,7 +44,7 @@ quark QBox(Unsigned bits) : QLine(bits)
     if (isMin() && ew[3] is Empty) {
       Atom a = self.atomof;
       Self & s = (Self&) a;
-      s.m_position = m_position.minof;
+      s.m_position = m_position.maxof;
       s.prevSym();
       ew[3] = a;
       /*

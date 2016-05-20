@@ -1,16 +1,15 @@
 /**
-   A 'Wall port' for Switch4.
+   A Wall-displacing port for QSwitch4.
    \diffusability 0
  */
-element QWPort : QPort4(2) {
+element WallPort : QPort4(2) {
   typedef QPort4(2) QPort;
-  //  Void init(QPort.PortId portid) { init(portid); }
-  Void behave() { update(m_portId); }
-  /* just inherit
-  QPort.ARGB getColor(Unsigned selector) {
-    return m_port.getColor(selector); 
+
+  Void behave() { update(); }
+
+  ARGB getColor(Unsigned selector) {
+    return getColorQ(selector);
   }
-  */
 }
 
 /**
@@ -36,7 +35,7 @@ quark QSwitch4(Unsigned cBITS) : QBox(cBITS)
         idx <= cPORT_BASE_IDX + cPORT_WIDTH) {
       if (ew[3] is Wall) 
       {
-        QWPort wport;
+        WallPort wport;
         wport.init(m_sym);
         ew[3] = wport;
         ret = true;
@@ -59,6 +58,20 @@ quark QSwitch4(Unsigned cBITS) : QBox(cBITS)
     }
     return ret;
   }
+}
+
+/** A self-constructing, self-maintaining, four port switch,
+    larger-sized
+
+    \symbol L4
+    \color #44c
+    \symmetries normal
+    \diffusability 0
+*/
+element LSwitch4 : QSwitch4(6)
+{
+  Void behave() { update(); }
+
 }
 
 /** A self-constructing, self-maintaining, four port switch,

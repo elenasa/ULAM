@@ -34,6 +34,11 @@ quark XTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k)
 
   Counter max() { return triggerLevel; }
 
+  Bool countAlarm() {
+    count();
+    return alarm();
+  }
+
   Counter count() {
     if (!alarm() && r.oneIn((Unsigned) (k<<time)))
       ++time;
