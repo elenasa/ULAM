@@ -1,5 +1,12 @@
 ulam 1;
+/** A model of a trigger that can safe, armed, or pulled.  Intended as
+    a common base class for excitable media models, so that different
+    elements can trigger each other.
 
+    \author Dave Ackley
+    \version 2
+    \licence public-domain
+*/
 quark Trigger {
   typedef Unary(2) State;
   State mState;
