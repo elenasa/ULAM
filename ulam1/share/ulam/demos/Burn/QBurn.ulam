@@ -1,0 +1,96 @@
+
+
+/**
+   Collective parameters for QBurn-related elements
+   \symbol BP
+ */
+element BurnParameters {
+  /**
+     Burn radius.  Max distance to burn when I burn.
+
+     \unit manhattan distance
+     \range 1..4
+   */
+  parameter Unsigned pBURN_RADIUS = 2;
+
+  /**
+     Recovery time.  How long it takes to become reburnable after a
+     burning.
+
+     \unit events
+     \range 1..100
+   */
+  parameter Unsigned pRECOVERY_TIME = 25;
+
+}
+
+use Once;
+use ColorUtils;
+
+quark QBurn : Trigger {
+  constant Unsigned cBITS = 7;
+
+  EventWindow ew;
+  Random random;
+
+  typedef EventWindow.SiteNum SiteNum;
+  typedef ColorUtils.ARGB ARGB;
+  typedef ColorUtils.Channel Channel;
+  typedef Unsigned(cBITS) Counter;
+  typedef Unary(4) Radius;
+
+  Once mOnce;
+  Radius mRadius;
+  Counter mRecoveryTime = 1;  // nonzero to keep getColor from blowinup
+  Counter mCount;
+
+  Bool update() {
+    if (mOnce.new()) {
+      BurnParameters bp;
+      mRadius = (Radius) bp.pBURN_RADIUS;
+      mRecoveryTime = (Counter) bp.pRECOVERY_TIME;
+    }
+
+    // Am I recovering?
+    if (mCount < mRecoveryTime) {
+      ++mCount;   // Yes
+      return false;
+    }
+
+    // I am recovered..
+    doArm();
+
+    // If no spark from me or someone near me..
+    if (!isPulled()) return false;  // I'm done
+
+    // Fire fire fire!  Try to pull every nearby trigger!
+    WindowServices ws;
+    ws.reset(1, mRadius);
+    for (Int slot = ws.next(); slot >= 0; slot = ws.next()) {
+      SiteNum s = (SiteNum) slot;
+      Atom other = ew[s];
+      if (other as Trigger) {
+        other.doPull();
+      }
+      ew[s] = other;
+    }
+
+    // Our work is done.  We're tired.
+    doSafe();
+    mCount = mCount.minof;
+    return true;  // Boy did we burn
+  }
+
+  ARGB getColorQ(Unsigned selector) {
+    ColorUtils cu;
+    ARGB ret = cu.color(0xffffff00U);
+    if (selector == 1u) {
+      Unsigned incrC = 100u*Unsigned(8).maxof/(Unsigned) mRecoveryTime;
+      ret[3] = (Channel) (incrC*mCount/100u);
+      ret[2] = (Channel) (incrC*(mRecoveryTime-mCount)/100u);
+    } else if (selector == 2u) {
+    }
+    return ret;
+  }
+
+}
