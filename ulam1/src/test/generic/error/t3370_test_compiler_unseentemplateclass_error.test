@@ -2,7 +2,8 @@
 #=t3370_test_compiler_unseentemplateclass_error
 #!
 ./Eltypo.ulam:4:3: ERROR: Unresolved type <Typ0> used with variable symbol name 't'.
-./Eltypo.ulam:3:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Eltypo.
+./Eltypo.ulam:4:3: ERROR: UNSEEN class type <Typ0> was never defined.
+./Eltypo.ulam:3:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: Eltypo.
 ./Eltypo.ulam:3:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: Eltypo.
 Unrecoverable Program Type Label FAILURE.
 ##
