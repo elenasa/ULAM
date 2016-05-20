@@ -562,6 +562,8 @@ namespace MFM {
     genSelfNameOfMethod(fp); // NOT just ur.Read() (e.g. big array of quarks: 3707, 3708)
     fp->write(readMethodForCodeGen(stgcosuti, uvpass).c_str());
     fp->write("();\n"); //stand-alone 'self'
+
+    m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeReadSelfIntoATmpVar
 
   void Node::genSelfNameOfMethod(File * fp)
@@ -832,7 +834,6 @@ namespace MFM {
     uvpass = UVPass::makePass(tmpVarNum2, TMPBITVAL, itemuti, m_state.determinePackable(itemuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
 
     genCodeConvertABitVectorIntoATmpVar(fp, uvpass); //updates uvpass again
-    m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeReadCustomArrayItemIntoTmp
 
   // two arg's luvpass fine-tunes the current symbol in case of member selection;
@@ -1041,6 +1042,7 @@ namespace MFM {
     if(ruvpass.getPassStorage() == TMPBITVAL)
       fp->write(".read()");
     fp->write(");\n");
+
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeWriteToAutorefFromATmpVar
 
@@ -1391,6 +1393,7 @@ namespace MFM {
 
     uvpass = UVPass::makePass(tmpVarNum2, tmp2stor, vuti, m_state.determinePackable(vuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
     uvpass.setPassPos(0); //entire register
+    m_state.clearCurrentObjSymbolsForCodeGen(); //forgotten?
   } //genCodeConvertABitVectorIntoATmpVar
 
   // write out auto ref tmpVar as temp BitVector; uvpass has variable w posOffset;
@@ -1507,6 +1510,7 @@ namespace MFM {
     fp->write(");\n");
 
     uvpass = UVPass::makePass(tmpVarNum2, TMPAUTOREF, cosuti, m_state.determinePackable(cosuti), m_state, 0, cos->getId()); //POS left-justified by default.
+
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeConvertATmpVarIntoAutoRef
 

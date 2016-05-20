@@ -1331,11 +1331,7 @@ namespace MFM {
 	else
 	  {
 	    if(m_state.isAtom(vuti))
-	      {
-		//if(!m_state.isAtomRef(vuti))
-		fp->write(", uc"); //e.g. t3684 atom to atomref;
-		//else nada - copy constructor
-	      }
+	      fp->write(", uc"); //e.g. t3684 atom to atomref;
 	    else if(vclasstype == UC_NOTACLASS)
 	      {
 		fp->write(", ");
@@ -1345,14 +1341,6 @@ namespace MFM {
 	    else if(vclasstype == UC_QUARK)
 	      fp->write(", 0u"); //left-justified
 	  }
-
-	//origin
-	//if(!m_state.isAtom(vuti)) //???
-	//  {
-	//  fp->write(", ");
-	//  fp->write_decimal_unsigned(cos->getPosOffset()); //atom origin
-	//  fp->write("u");
-	//  }
       }
     fp->write(");\n");
 
