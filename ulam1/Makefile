@@ -12,6 +12,7 @@ include VERSION.mk
 TOP_TARGETS:=
 TOP_TARGETS+=doc       # Build documentation in doc/ref
 TOP_TARGETS+=dist      # Export as tar file
+TOP_TARGETS+=topclean  # Light cleaning in top dir only
 TOP_TARGETS+=realclean # Deep cleaning: Nuke build, bin, doc/ref, also clean
 TOP_TARGETS+=projini   # Initialize CWD as an ULAM project, if it isn't already
 
@@ -33,10 +34,10 @@ doc:	FORCE
 	echo doxygen
 
 REALCLEAN_DIRS:=build bin doc/ref
-realclean:	FORCE
+realclean:	topclean
 	rm -rf $(REALCLEAN_DIRS)
 	mkdir -p  $(REALCLEAN_DIRS)
-	$(MAKE) clean
+	make clean
 
 testclean:	FORCE
 	rm -f bin/test
@@ -45,7 +46,7 @@ testclean:	FORCE
 	$(MAKE) -C src/test all
 	$(MAKE) -C src/drivers
 
-clean:	FORCE
+topclean:	FORCE
 	@rm -f *~
 
 BASENAME=$(shell basename `pwd`)
@@ -141,7 +142,7 @@ src:	FORCE
 ULAMDIR:=share/ulam
 ULAMWORKDIR:=.gen
 ULAMDEMODATE:=$(shell date +%Y%m%d%H%M%S)
-ULAMDEMOVERSION:=$(shell ./bin/ulam -V 2>&1)
+ULAMDEMOVERSION:=$(shell if [ -x ./bin/ulam ] ; then ./bin/ulam -V 2>&1 ; else echo --unknown version-- ; fi)
 ULAMDEMOWHO:=$(shell whoami)
 ULAMDEMOKEY:="MFM-DEMOS-$(ULAMDEMODATE)-$(ULAMDEMOVERSION)-$(ULAMDEMOWHO)"
 MFZMAKEPATH:=$(MFM_ROOT_DIR)/bin/mfzmake
