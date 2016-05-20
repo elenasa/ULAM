@@ -428,7 +428,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("(const ");
-    fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
+    fp->write(getTmpStorageTypeAsString().c_str()); //BVn
     fp->write("& d) { ");
     fp->write("write(d); }\n");
 

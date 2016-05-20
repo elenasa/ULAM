@@ -1,0 +1,27 @@
+## -*- mode:ulam -*-
+#=t3740_test_compiler_transientrefassignmentundefined_error
+#!
+./R.ulam:6:16: ERROR: (2) <at2> is not defined, and cannot be used with class: R.
+./R.ulam:3:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: R.
+Unrecoverable Program Type Label FAILURE.
+##
+## similar to 3739, except with an undefined assignment
+##
+#>R.ulam
+  ulam 2;
+use A;
+element R {
+  Bool b;
+  Int test(){
+    A& atref = at2; //at2 UNDEFINED!!!
+    return 0;
+  }
+}
+
+#:A.ulam
+  ulam 2;
+transient A {
+  Bool(7) sp = true;
+}
+
+#.

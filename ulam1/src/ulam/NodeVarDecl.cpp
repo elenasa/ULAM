@@ -316,7 +316,8 @@ namespace MFM {
 	  }
 
 	setNodeType(it); //needed before safeToCast
-	checkSafeToCastTo(eit, it); //may side-effect 'it'
+	if(m_state.okUTItoContinue(eit) && m_state.okUTItoContinue(it))
+	  checkSafeToCastTo(eit, it); //may side-effect 'it'
       }
     Node::setStoreIntoAble(TBOOL_TRUE);
     setNodeType(it);

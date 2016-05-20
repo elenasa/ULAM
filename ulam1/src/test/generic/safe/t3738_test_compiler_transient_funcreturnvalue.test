@@ -1,0 +1,72 @@
+## -*- mode:ulam -*-
+#=t3738_test_compiler_transient_funcreturnvalue
+#!
+##      gen code output: (4 asserts)
+##
+Exit status: 0
+Ue_R { Bool(1) b(true);  Int(32) test() {  System s;  A at;  at sp . false cast = at b . false = A at2 = at ( )funcme .;  b at2 ( A.instanceof )func . = s ( b )assert . b at2 ( at )func . = s ( b )assert . s ( at2 b . ! )assert . s ( at2 sp . ! cast )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Un_A : TW { :< Bool(1) b( true); > Bool(7) sp( true);  <NOMAIN> }
+Un_TW { Bool(1) b( true);  <NOMAIN> }
+##
+## Dave requested a way to get default values for Self (within a quark);
+## a loophole, since a quark would be an undefined atom, but as a ref, its done (t3679)
+##
+## similar to 3726, except with a transient return value
+##
+#>R.ulam
+  ulam 2;
+use System;
+use A;
+element R {
+  Bool b;
+  Int test(){
+    System s;
+    A at;
+    at.sp = false; //change default to confirm copy
+    at.b = false; //change default to confirm copy
+    A at2 = at.funcme(); //copy me
+    b = at2.func(A.instanceof);
+    s.assert(b);
+    b = at2.func(at);
+    s.assert(b);
+    s.assert(!at2.b);
+    s.assert(!at2.sp);
+    return 0;
+  }
+}
+
+#:A.ulam
+  ulam 2;
+use TW;
+transient A : TW {
+  Bool(7) sp = true;
+
+  Self funcme()
+  {
+    return self;
+  }
+}
+
+#:TW.ulam
+  ulam 2;
+transient TW {
+  Bool b = true;
+  Bool func(A aarg)
+  {
+    return (aarg is Self);
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

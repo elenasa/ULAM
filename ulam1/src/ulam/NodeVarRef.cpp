@@ -227,15 +227,12 @@ namespace MFM {
 
 	if(eit == Nouti)
 	  {
-	    assert(0);
 	    std::ostringstream msg;
 	    msg << "Storage expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
 	    msg << ", is not defined";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //possibly still hazy
-	    m_state.setGoAgain();
-	    setNodeType(Hzy);
-	    return Hzy; //short-circuit
+	    hazyCount++;
 	  }
 
 	if(errCount)
