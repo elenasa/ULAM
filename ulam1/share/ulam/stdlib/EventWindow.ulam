@@ -35,6 +35,13 @@ quark EventWindow {
   SiteNum size() native;
 
   Atom aref(SiteNum index) native;
+  /*
+  Atom aref(C2D coord) { 
+    SiteNum s = getSiteNumberRaw(coord);
+    Atom a = aref(s);
+    return a; 
+  }
+  */
   Atom aref(C2D coord) { return aref(getSiteNumberRaw(coord)); }
 
   Void aset(SiteNum index, Atom val) native;
