@@ -88,6 +88,9 @@ namespace MFM{
     void setIsSelf();
     bool isSelf();
 
+    void setIsSuper();
+    bool isSuper();
+
     NNO getBlockNoOfST();
     void setBlockNoOfST(NNO n);
 
@@ -118,7 +121,8 @@ namespace MFM{
                // base type, not array type, used here (e.g. NodeBinaryOp::calcNodeType)
     UTI m_dataMemberClass;
     ALT m_autoLocalType;
-    bool m_isSelf;       // hidden arg symbol
+    bool m_isSelf; // hidden arg symbol
+    bool m_isSuper; // to modify effective self
     NNO m_stBlockNo;
   };
 

@@ -652,6 +652,7 @@ namespace MFM {
 
   UlamValue NodeVarDecl::makeUlamValuePtr()
   {
+    assert(!m_varSymbol->isSuper());
     // (from NodeIdent's makeUlamValuePtr)
     UlamValue ptr;
     if(m_varSymbol->isSelf())

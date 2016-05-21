@@ -1040,8 +1040,6 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpref, TMPBITVAL).c_str());
 	fp->write("(");
 	fp->write(stgcos->getMangledName().c_str());
-	//	if(!stgcos->isSelf())
-	//  fp->write(".GetStorage()");
 	fp->write(", "); //offset of decendent is always 0 +25
 	fp->write_decimal_unsigned(uvpass.getPassPos());
 	if(!stgcosut->isReference())

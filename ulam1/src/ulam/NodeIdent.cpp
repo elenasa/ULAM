@@ -272,7 +272,8 @@ namespace MFM {
 		m_varSymbol->resetUlamType(mappedUTI); //consistent!
 		it = mappedUTI;
 	      }
-	    else if(m_varSymbol->isSelf() || m_state.isReference(it))
+	    //else if(m_varSymbol->isSelf() || m_state.isReference(it))
+	    else if(m_varSymbol->isSelf() || m_state.isReference(it) || m_varSymbol->isSuper())
 	      {
 		m_state.completeAReferenceType(it);
 	      }
@@ -450,7 +451,7 @@ namespace MFM {
     //must remain a ptr!!!
     if(m_state.isReference(rtnUVPtr.getPtrTargetType()) && (rtnUVPtr.getPtrStorage() == STACK))
       {
-	 UlamValue tmpref = m_state.getPtrTarget(rtnUVPtr);
+	UlamValue tmpref = m_state.getPtrTarget(rtnUVPtr);
 	 if(tmpref.isPtr())
 	   rtnUVPtr = tmpref;
 	 //else no change? (e.g. t3407)
@@ -465,8 +466,6 @@ namespace MFM {
 
   UlamValue NodeIdent::makeUlamValuePtr()
   {
-    UlamValue ptr;
-
     if(m_varSymbol->isSelf())
       {
 	//when "self/atom" is a quark, we're inside a func called on a quark (e.g. dm or local)
@@ -490,6 +489,7 @@ namespace MFM {
     if(m_varSymbol->getAutoLocalType() == ALT_AS)
       return ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval(); //haha! we're done.
 
+    UlamValue ptr;
     if(m_varSymbol->isDataMember())
       {
 	// return ptr to this data member within the m_currentObjPtr
@@ -503,7 +503,7 @@ namespace MFM {
 	if(m_varSymbol->isAutoLocal()) //ALT_REF or ALT_ARRAYITEM
 	  ptr = ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval();
 #endif
-	//local variable on the stack; could be array ptr!
+	//local variable on the stack; could be array ptr! could be 'super'
 	ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
       }
     return ptr;

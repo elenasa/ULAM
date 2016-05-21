@@ -2391,7 +2391,6 @@ namespace MFM {
 	    if(!onlyClasses || (sut->getUlamTypeEnum() == Class))
 	      {
 		pos += sym->getPosOffset();
-		//if(sut->getUlamClassType() == UC_ELEMENT) //dm in transient
 		if((sut->getUlamClassType() == UC_ELEMENT) && (i < cosSize - 1)) //dm in transient; not the last one being written to.
 		  pos += ATOMFIRSTSTATEBITPOS;
 	      }

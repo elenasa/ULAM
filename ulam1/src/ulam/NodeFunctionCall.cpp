@@ -528,8 +528,9 @@ namespace MFM {
 		  }
 		else if(autolocaltype == ALT_REF)
 		  {
-		    //unlike alt_as, alt_ref can be a primitive or a class
-		    atomPtr.setPtrTargetType(((SymbolVariableStack *) asym)->getAutoStorageTypeForEval());
+		    if(!asym->isSuper())
+		      //unlike alt_as, alt_ref can be a primitive or a class
+		      atomPtr.setPtrTargetType(((SymbolVariableStack *) asym)->getAutoStorageTypeForEval());
 		  }
 	      }
 	  } //else can't be an autolocal
@@ -943,6 +944,11 @@ namespace MFM {
 	fp->write(m_state.getHiddenArgName()); //ur
 	fp->write(".GetEffectiveSelf()->getVTableEntry(");
       }
+    else if(cos->isSuper())
+      {
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
+	fp->write(".getVTableEntry(");
+      }
     else if(urtmpnum > 0)
       {
 	fp->write(m_state.getUlamRefTmpVarAsString(urtmpnum).c_str());
@@ -1054,7 +1060,7 @@ namespace MFM {
 	    hiddenarg2 << ", " << Node::calcPosOfCurrentObjectClasses(); //relative off;
 	    hiddenarg2 << "u, " << cosut->getTotalBitSize(); //len
 	    hiddenarg2 << "u, &";
-	    hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str();
+	    hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str(); //cos->isSuper rolls as cosuti
 	    hiddenarg2 << ");";
 	  }
       }
@@ -1085,16 +1091,27 @@ namespace MFM {
 		hiddenarg2 << stgcos->getMangledName().c_str(); //effself of as-variable
 		hiddenarg2 << ".GetEffectiveSelf());";
 	      }
+	    else if(stgcos->getAutoLocalType() == ALT_REF)
+	      {
+		sameur = false;
+		//update ur to reflect "effective" self for this funccall
+		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
+		hiddenarg2 << stgcos->getMangledName().c_str() << ", ";
+		if(cos->isDataMember()) //dm of local stgcos
+		  hiddenarg2 << Node::calcPosOfCurrentObjectClasses(); //relative off;
+		else
+		  hiddenarg2 << "0";
+
+		hiddenarg2 << "u, " << cosut->getTotalBitSize(); //len
+		hiddenarg2 << "u, ";
+		hiddenarg2 << stgcos->getMangledName().c_str(); //effself of ref
+		hiddenarg2 << ".GetEffectiveSelf());"; //e.g. t3746
+	      }
 	    else
 	      {
 		sameur = false;
-		stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-
 		//new ur to reflect "effective" self and storage for this funccall
 		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
-		if(stgcosut->isReference())
-		  hiddenarg2 << stgcos->getMangledName().c_str() << ", "; //ref
-
 		if(cos->isDataMember()) //dm of local stgcos
 		  hiddenarg2 << Node::calcPosOfCurrentObjectClasses(); //relative off;
 		else if(stgcosut->getUlamClassType() == UC_ELEMENT)
@@ -1103,10 +1120,7 @@ namespace MFM {
 		  hiddenarg2 << "0";
 
 		hiddenarg2 << "u, " << cosut->getTotalBitSize() << "u, "; //len
-		if(!stgcosut->isReference())
-		  hiddenarg2 << stgcos->getMangledName().c_str() << ", "; //storage
-
-		hiddenarg2 << "&";
+		hiddenarg2 << stgcos->getMangledName().c_str() << ", &"; //storage
 		hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str();
 		hiddenarg2 << ");";
 	      }

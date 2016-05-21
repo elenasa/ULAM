@@ -187,7 +187,7 @@ namespace MFM {
     assert(m_varSymbol);
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     bool isself = m_varSymbol->isSelf();
-    //if var is a data member quark, then also isself
+    //if var is a data member quark, then also isself (or issuper)
 
     if(m_state.isReference(vuti) || isself)
       {
