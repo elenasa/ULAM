@@ -2,6 +2,7 @@
 #include "NodeBlockFunctionDefinition.h"
 #include "CompilerState.h"
 #include "SymbolVariable.h"
+#include "SymbolVariableStack.h"
 #include "SymbolFunctionName.h"
 
 namespace MFM {
@@ -216,6 +217,8 @@ namespace MFM {
     m_state.m_currentFunctionReturnNodes.clear(); //vector of return nodes
     m_state.m_currentFunctionReturnType = it;
 
+    makeSuperSymbol(-(m_state.slotsNeeded(it) + 1)); //same as self?);
+
     if(m_nodeNext) //non-empty function
       {
 	m_nodeNext->checkAndLabelType(); //side-effect
@@ -243,12 +246,48 @@ namespace MFM {
     m_nodeParameterList->addNodeToList(nodeArg);
   }
 
+  void NodeBlockFunctionDefinition::makeSuperSymbol(s32 slot)
+  {
+    //UTI nuti = getNodeType();
+    //assert(m_state.okUTItoContinue(nuti));
+    UTI cuti = m_state.getCompileThisIdx();
+    UTI superuti = m_state.isClassASubclass(cuti);
+    SymbolVariableStack * supersym = NULL;
+    u32 superid = m_state.m_pool.getIndexForDataString("super");
+    if(!NodeBlock::isIdInScope(superid, (Symbol *&) supersym))
+      {
+	if(superuti != Nouti)
+	  {
+	    assert(m_state.okUTItoContinue(superuti));
+
+	    Token superTok(TOK_IDENTIFIER, getNodeLocation(), superid);
+	    supersym = new SymbolVariableStack(superTok, m_state.getUlamTypeAsRef(superuti, ALT_REF), slot, m_state);
+	    assert(supersym);
+	    supersym->setAutoLocalType(ALT_REF);
+	    supersym->setIsSuper();
+	    m_state.addSymbolToCurrentScope(supersym); //ownership goes to the block
+	  }
+	//else ok
+      }
+    else
+      {
+	if(superuti == Nouti)
+	  {
+	    AssertBool isGone = NodeBlock::removeIdFromScope(superid, (Symbol *&) supersym);
+	    assert(isGone);
+	    delete supersym;
+	    supersym = NULL;
+	  }
+	//else ok
+      }
+  } //makeSuperSymbol
+
   void NodeBlockFunctionDefinition::printUnresolvedLocalVariables(u32 fid)
   {
     if(m_nodeParameterList)
       m_nodeParameterList->printUnresolvedLocalVariables(fid);
     m_nodeNext->printUnresolvedLocalVariables(fid);
-  } //countNavHzyNoutiNodes
+  } //printUnresolvedLocalVariables
 
   void NodeBlockFunctionDefinition::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {

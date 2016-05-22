@@ -75,6 +75,8 @@ class NodeBlockFunctionDefinition : public NodeBlock
 
     void addParameterNode(Node * nodeArg);
 
+    void makeSuperSymbol(s32 slot);
+
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
     virtual void printUnresolvedLocalVariables(u32 fid);

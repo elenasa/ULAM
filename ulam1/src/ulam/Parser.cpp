@@ -3781,19 +3781,12 @@ namespace MFM {
     selfsym->setIsSelf();
     m_state.addSymbolToCurrentScope(selfsym); //ownership goes to the block
 
-
     //create "super" symbol for the Super class type; btw, it's really a ref.
     //belongs to the function definition scope.
     UTI superuti = m_state.isClassASubclass(cuti);
-    if(superuti != Nouti)
-      {
-	u32 superid = m_state.m_pool.getIndexForDataString("super");
-	Token superTok(TOK_IDENTIFIER, identTok.m_locator, superid);
-	SymbolVariableStack * supersym = new SymbolVariableStack(superTok, m_state.getUlamTypeAsRef(superuti, ALT_REF), m_state.m_currentFunctionBlockDeclSize, m_state);
-	supersym->setAutoLocalType(ALT_REF);
-	supersym->setIsSuper();
-	m_state.addSymbolToCurrentScope(supersym); //ownership goes to the block
-      }
+    if(m_state.okUTItoContinue(superuti))
+      rtnNode->makeSuperSymbol(m_state.m_currentFunctionBlockDeclSize); //ownership goes to the block
+    //else wait until c&l
 
     //parse and add parameters to function symbol (not in ST yet!)
     parseRestOfFunctionParameters(fsymptr, rtnNode);
