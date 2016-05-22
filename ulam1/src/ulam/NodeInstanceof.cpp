@@ -37,14 +37,19 @@ namespace MFM {
   {
     NodeStorageof::checkAndLabelType();
 
-    UTI oftype = NodeStorageof::getOfType();
+    UTI oftype = NodeStorageof::getOfType(); //deref'd
     if(m_state.okUTItoContinue(oftype))
       {
-	bool isself = m_varSymbol ? (m_varSymbol->isSelf() || m_varSymbol->isSuper()) : false;
-	if(m_state.isReference(oftype) || isself) //including 'self'
+	//a virtual function (instanceof), behaves differently on ref's vs object
+	UTI vuti = m_varSymbol ? m_varSymbol->getUlamTypeIdx() : oftype;
+	bool isself = m_varSymbol ? (m_varSymbol->isSelf()) : false;
+	bool issuper = m_varSymbol ? (m_varSymbol->isSuper()) : false;
+	bool isaref = (m_state.isReference(vuti) || isself || issuper);
+
+	if(isaref) //all ref's
 	  setNodeType(UAtom); //effective type known only at runtime
 	else
-	  setNodeType(oftype); //Type or variable
+	  setNodeType(oftype); //object: Type or variable
       }
     Node::setStoreIntoAble(TBOOL_FALSE);
     return getNodeType();
@@ -106,8 +111,10 @@ namespace MFM {
 	assert(m_varSymbol);
 	UTI vuti = m_varSymbol->getUlamTypeIdx();
 	bool isself = m_varSymbol->isSelf();
+	bool issuper = m_varSymbol->isSuper();
+	bool isaref = (m_state.isReference(vuti) || isself || issuper);
 
-	if(m_state.isReference(vuti) || isself)
+	if(isaref)
 	  {
 	    u32 tmpuclass = m_state.getNextTmpVarNumber(); //only for this case
 	    m_state.indentUlamCode(fp);
@@ -128,7 +135,7 @@ namespace MFM {
 	    fp->write("if(");
 	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
 	    fp->write("->AsUlamQuark() != NULL) ");
-	    fp->write("FAIL(ILLEGAL_ARGUMENT); //quark\n");
+	    fp->write("FAIL(NOT_AN_ELEMENT); //quark\n");
 
 	    m_state.indentUlamCode(fp);
 	    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
