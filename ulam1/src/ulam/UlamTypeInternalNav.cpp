@@ -14,4 +14,9 @@ namespace MFM {
     return Nav;
   }
 
+  const std::string UlamTypeInternalNav::getUlamTypeNameBrief()
+  {
+    return "erroneous";
+  }
+
 } //end MFM

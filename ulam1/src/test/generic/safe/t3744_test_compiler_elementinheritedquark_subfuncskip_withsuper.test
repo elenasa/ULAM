@@ -1,0 +1,75 @@
+## -*- mode:ulam -*-
+#=t3744_test_compiler_elementinheritedquark_subfuncskip_withsuper
+##
+## gen output: requires quark vtable support
+## assert: arg is 1
+## after asserts abort: arg is 1
+##
+#!
+Exit status: 0
+Ue_Test : System { :<> Bool(1) brtn(true);  Int(32) test() {  E2 e2;  brtn e2 ( )cfunc . 6 cast == = ( brtn )assert 0 cast return } }
+Uq_Base { <NOMAIN> }
+Uq_Sub1 : Base { :<> <NOMAIN> }
+Ue_E2 : Sub1 { :< :<>> <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by t3743, t3602, vtable-example 11/19/15
+##
+#:Base.ulam
+  ulam 2;
+quark Base {
+  Int afunc() { return 1; } // not virtual
+  virtual Int afunc(Int a) { return 2; } // but overload of same name can be virtual
+  virtual Int bfunc() { return 3; }
+  Int vuser() {
+    return afunc(0); // virtual function invocation: Might return 2, 7, or 9 in this example!
+  }
+  Int cfunc() { return 6; } // new func
+}
+
+#:Sub1.ulam
+  ulam 2;
+use Base;
+quark Sub1 : Base {
+  Int afunc() { return 4; } // not virtual
+  virtual Int bfunc() { return super.bfunc() + 10; } // virtual override (was 5)
+}
+
+#:E2.ulam
+  ulam 2;
+use Sub1;
+element E2 : Sub1 {
+  virtual Int afunc(Int a) { return 9; }
+  Int cfunc() { return super.cfunc(); }
+}
+
+#>Test.ulam
+  ulam 2;
+use Base;
+use Sub1;
+use E2;
+use System;
+element Test : System {
+  Bool brtn;
+
+  Int test() {
+
+    E2 e2;
+    brtn = (e2.cfunc() == 6);
+    assert(brtn);
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

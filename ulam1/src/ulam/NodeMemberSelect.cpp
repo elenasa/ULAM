@@ -158,6 +158,7 @@ namespace MFM {
     evalNodeProlog(0); //new current frame pointer on node eval stack
 
     UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
+    UlamValue saveCurrentSelfPtr = m_state.m_currentSelfPtr; //*************
 
     makeRoomForSlots(1); //always 1 slot for ptr
     EvalStatus evs = m_nodeLeft->evalToStoreInto();
@@ -172,6 +173,12 @@ namespace MFM {
     UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1);
     assert(m_state.isPtr(newCurrentObjectPtr.getUlamValueTypeIdx()));
     m_state.m_currentObjPtr = newCurrentObjectPtr;
+
+    u32 superid = m_state.m_pool.getIndexForDataString("super");
+    if(newCurrentObjectPtr.getPtrNameId() == superid)
+      {
+	m_state.m_currentSelfPtr = newCurrentObjectPtr; //changes self *********
+      }
 
     u32 slot = makeRoomForNodeType(nuti);
     evs = m_nodeRight->eval(); //a Node Function Call here, or data member eval
@@ -188,6 +195,8 @@ namespace MFM {
 	evs = ERROR;
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr
+    m_state.m_currentSelfPtr = saveCurrentSelfPtr; //restore current self ptr
+
     evalNodeEpilog();
     return evs;
   } //eval
@@ -336,8 +345,6 @@ namespace MFM {
   SymbolTmpRef * NodeMemberSelect::makeTmpRefSymbolForCodeGen(UVPass uvpass)
   {
     UTI tuti = uvpass.getPassTargetType(); //possibly not a ref, e.g. array item.
-    //if(!m_state.isReference(tuti))
-    //  tuti = m_state.getUlamTypeAsRef(tuti, ALT_REF);
     std::string tmpvarname = m_state.getTmpVarAsString(tuti, uvpass.getPassVarNum(), TMPAUTOREF);
     Token tidTok(TOK_IDENTIFIER, Node::getNodeLocation(), m_state.m_pool.getIndexForDataString(tmpvarname));
     SymbolTmpRef * rtnsym = new SymbolTmpRef(tidTok, tuti, m_state);

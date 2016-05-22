@@ -3,7 +3,7 @@
 #!
 ./Soo.ulam:3:9: ERROR: Subclass 'Soo' inherits from 'Coo', a class that's not a quark.
 ./Foo.ulam:3:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: Foo.
-./Foo.ulam:3:9: ERROR: 8 Nodes with unresolved types detected after type labeling class: Foo.
+./Foo.ulam:3:9: ERROR: 4 Nodes with unresolved types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## transient inheritance, regular (non-template)
@@ -12,14 +12,11 @@ Unrecoverable Program Type Label FAILURE.
   ulam 2;
 use Soo;
 element Foo {
-  System s;
   Bool first;
   Int test() {
     Soo su;
     if(su.cb)
     {
-      s.print(su.cb);
-      s.assert(su.cb);
       return su.sizeof;
     }
     return 0;

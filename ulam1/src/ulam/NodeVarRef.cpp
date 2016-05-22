@@ -442,7 +442,7 @@ namespace MFM {
 		    fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
 		    fp->write("u");
 		  }
-		else if(stgcos->isSelf())
+		else if(stgcos->isSelf() || stgcos->isSuper())
 		  {
 		    fp->write(", 0u");
 		  }

@@ -336,6 +336,8 @@ namespace MFM {
     u32 lid = m_state.m_currentObjSymbolsForCodeGen.back()->getId();
 
     uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid);
+
+    //NO m_state.clearCurrentObjSymbolsForCodeGen()
   } //genCode
 
 } //end MFM

@@ -294,6 +294,8 @@ namespace MFM {
 
     //update uvpass
     uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
+
+    m_state.clearCurrentObjSymbolsForCodeGen(); //forgotten
   } //genCodeAtomIs
 
   void NodeConditionalIs::genCodeReferenceIs(File * fp, UVPass & uvpass)
@@ -336,6 +338,8 @@ namespace MFM {
 
     //update uvpass
     uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
+
+    m_state.clearCurrentObjSymbolsForCodeGen(); //forgotten (t3741)
   } //genCodeReferenceIs
 
 

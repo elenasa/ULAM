@@ -84,16 +84,9 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Assignment is invalid";
 	msg << "; LHS: ";
-	if(leftType != Nav)
-	  msg << m_state.getUlamTypeNameBriefByIndex(leftType);
-	else
-	  msg << "erroneous";
-
+	msg << m_state.getUlamTypeNameBriefByIndex(leftType);
 	msg << "; RHS: ";
-	if(rightType != Nav)
-	  msg << m_state.getUlamTypeNameBriefByIndex(rightType);
-	else
-	  msg << "erroneous";
+	msg << m_state.getUlamTypeNameBriefByIndex(rightType);
 
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);

@@ -1868,8 +1868,14 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("{\n");
 
     m_state.m_currentIndentLevel++;
+
     m_state.indent(fp);
-    fp->write(" return m_vtable[idx];\n");
+    fp->write("if(idx >= ");
+    fp->write_decimal_unsigned(maxidx);
+    fp->write(") FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);\n");
+
+    m_state.indent(fp);
+    fp->write("return m_vtable[idx];\n");
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("}\n\n");

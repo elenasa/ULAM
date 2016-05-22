@@ -40,7 +40,7 @@ namespace MFM {
     UTI oftype = NodeStorageof::getOfType();
     if(m_state.okUTItoContinue(oftype))
       {
-	bool isself = m_varSymbol ? m_varSymbol->isSelf() : false;
+	bool isself = m_varSymbol ? (m_varSymbol->isSelf() || m_varSymbol->isSuper()) : false;
 	if(m_state.isReference(oftype) || isself) //including 'self'
 	  setNodeType(UAtom); //effective type known only at runtime
 	else
