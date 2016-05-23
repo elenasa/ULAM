@@ -172,13 +172,17 @@ namespace MFM {
     //(i.e. data member or func call); e.g. Ptr to atom
     UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1);
     assert(m_state.isPtr(newCurrentObjectPtr.getUlamValueTypeIdx()));
-    m_state.m_currentObjPtr = newCurrentObjectPtr;
 
     u32 superid = m_state.m_pool.getIndexForDataString("super");
     if(newCurrentObjectPtr.getPtrNameId() == superid)
       {
-	m_state.m_currentSelfPtr = newCurrentObjectPtr; //changes self *********
+	if(!m_nodeRight->isFunctionCall())
+	  newCurrentObjectPtr = m_state.m_currentSelfPtr; //(t3749)
+	else
+	  m_state.m_currentSelfPtr = newCurrentObjectPtr; //changes self ********* (t3743, t3745)
       }
+
+    m_state.m_currentObjPtr = newCurrentObjectPtr;
 
     u32 slot = makeRoomForNodeType(nuti);
     evs = m_nodeRight->eval(); //a Node Function Call here, or data member eval
@@ -202,7 +206,7 @@ namespace MFM {
   } //eval
 
   //for eval, want the value of the rhs
-  bool NodeMemberSelect::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
+   bool NodeMemberSelect::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
     assert(slots);
     //the return value of a function call, or value of a data member

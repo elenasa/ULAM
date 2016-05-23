@@ -128,8 +128,9 @@ namespace MFM {
     //attempt to map UTI; may not have a node type descriptor
     if(m_state.okUTItoContinue(m_uti) && !m_state.isComplete(m_uti))
       {
+	//non-virtual functions, returns of-value of referenced type
 	if(m_state.isReference(m_uti)) //e.g. selftyperef
-	  m_uti = m_state.getUlamTypeAsDeref(m_uti);
+	  m_uti = m_state.getUlamTypeAsDeref(m_uti); //resets m_uti here!
 
 	UTI cuti = m_state.getCompileThisIdx();
 	UTI mappedUTI = Nav;

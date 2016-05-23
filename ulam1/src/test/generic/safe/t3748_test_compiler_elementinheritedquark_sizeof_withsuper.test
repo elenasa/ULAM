@@ -1,0 +1,86 @@
+## -*- mode:ulam -*-
+#=t3748_test_compiler_elementinheritedquark_sizeof_withsuper
+##
+## gen output: (3 asserts)
+##
+#!
+Exit status: 0
+Ue_Test : System { :<> Bool(1) brtn[3](true,true,true);  Int(32) test() {  E2 e2;  brtn 0 [] e2 ( )supersizefunc . 7u cast == = ( brtn 0 [] )assert Sub1 sb1;  brtn 1 [] sb1 ( )supersizefunc . 4u cast == = ( brtn 1 [] )assert Base base;  brtn 2 [] base ( )supersizefunc . 0u cast == = ( brtn 2 [] )assert 0 cast return } }
+Uq_Base { Bits(4) bits( 12u);  <NOMAIN> }
+Uq_Sub1 : Base { :< Bits(4) bits( 12u); > Int(3) sint( -1);  <NOMAIN> }
+Ue_E2 : Sub1 { :< :< Bits(4) bits( 12u); > Int(3) sint( -1); > Bool(7) esp( true);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## unlike instanceof, sizeof is a non-virtual function;
+##
+#:Base.ulam
+  ulam 2;
+quark Base {
+  Bits(4) bits = 0xc;
+  virtual Unsigned supersizefunc()
+  {
+    return 0; //no super!
+  }
+}
+
+#:Sub1.ulam
+  ulam 2;
+use Base;
+quark Sub1 : Base {
+  Int(3) sint = -1;
+  virtual Unsigned supersizefunc()
+  {
+    return super.sizeof;
+  }
+}
+
+#:E2.ulam
+  ulam 2;
+use Sub1;
+element E2 : Sub1 {
+  Bool(7) esp = true;
+  virtual Unsigned supersizefunc()
+  {
+    return super.sizeof;
+  }
+}
+
+#>Test.ulam
+  ulam 2;
+use Base;
+use Sub1;
+use E2;
+use System;
+element Test : System {
+  Bool brtn[3];
+
+  Int test() {
+
+    E2 e2;
+    brtn[0] = (e2.supersizefunc() == 7u);
+    assert(brtn[0]);
+
+    Sub1 sb1;
+    brtn[1] = (sb1.supersizefunc() == 4u);
+    assert(brtn[1]);
+
+    Base base;
+    brtn[2] = (base.supersizefunc() == 0u);
+    assert(brtn[2]);
+
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

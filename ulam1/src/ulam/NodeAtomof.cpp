@@ -142,9 +142,11 @@ namespace MFM {
     assert(m_varSymbol);
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     bool isself = m_varSymbol->isSelf();
+    bool issuper = m_varSymbol->isSuper();
+    bool isaref = (m_state.isReference(vuti) || isself || issuper);
     //if var is a data member quark, then also isself
 
-    if(m_state.isReference(vuti) || isself)
+    if(isaref)
       {
 	m_state.indentUlamCode(fp);
 	fp->write("if(");
@@ -164,10 +166,10 @@ namespace MFM {
     fp->write(" = ");
 
     //data member's storage is self (not a ref)
-    if(m_varSymbol->isDataMember() || isself)
+    if(m_varSymbol->isDataMember())
       fp->write("ur");
     else
-      fp->write(m_varSymbol->getMangledName().c_str()); //element or atom
+      fp->write(m_varSymbol->getMangledName().c_str()); //element or atom, ur for self/super
 
     fp->write(".ReadAtom(); //atomof \n"); //can't be const
 
@@ -187,9 +189,11 @@ namespace MFM {
     assert(m_varSymbol);
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     bool isself = m_varSymbol->isSelf();
+    bool issuper = m_varSymbol->isSuper();
+    bool isaref = (m_state.isReference(vuti) || isself || issuper);
     //if var is a data member quark, then also isself (or issuper)
 
-    if(m_state.isReference(vuti) || isself)
+    if(isaref)
       {
 	m_state.indentUlamCode(fp);
 	fp->write("if(");
@@ -209,14 +213,14 @@ namespace MFM {
     fp->write("(");
 
     //data member's storage is self (not a ref)
-    if(m_varSymbol->isDataMember() || isself)
+    if(m_varSymbol->isDataMember())
       fp->write("ur");
     else
-      fp->write(m_varSymbol->getMangledName().c_str()); //element or atom
+      fp->write(m_varSymbol->getMangledName().c_str()); //element or atom (ur for self/super)
 
     fp->write(", "); //is storage! can't be const (error/t3659)
 
-    if(m_state.isReference(vuti) || isself)
+    if(isaref)
       fp->write(" - T::ATOM_FIRST_STATE_BIT"); //must be an effective element ref (e.g.t3684, t3663)
     else
       fp->write("0u");

@@ -173,7 +173,7 @@ namespace MFM {
       }
     else if(isSuper())
       {
-	mangled << m_state.getHiddenArgName(); // ur ???
+	mangled << m_state.getHiddenArgName(); // also ur
       }
     else
       {

@@ -310,7 +310,7 @@ namespace MFM {
 	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     //else
-    //assert(errCnt == 0);
+    //assert(errCnt == 0); //e.g. error/t3644 (not sure what to do about it, discovery too deep)
 
     if(hzycount > 0)
       {
@@ -325,7 +325,7 @@ namespace MFM {
 	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     else
-      assert(!m_state.goAgain());
+      assert(!m_state.goAgain()); //t3740 (resets Hzy to Nav);
 
     if(unsetcount > 0)
       {

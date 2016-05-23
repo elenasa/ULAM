@@ -804,7 +804,7 @@ namespace MFM {
 			break;
 		      case Bits:
 			{
-			  args << "0x " << std::hex << uval;  //as hex
+			  args << "0x" << std::hex << uval;  //as hex
 			  isok = true;
 			}
 			break;
@@ -976,6 +976,10 @@ namespace MFM {
 	    rtnok = true;
 	  }
 	else if(superuti == Hzy) //only UNSEEN Templates
+	  {
+	    rtnok = false;
+	  }
+	else if(!m_state.isASeenClass(superuti))
 	  {
 	    rtnok = false;
 	  }

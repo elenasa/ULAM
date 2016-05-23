@@ -248,6 +248,9 @@ namespace MFM{
     Node * newCastingNode(Node * node, UTI tobeType);
     bool newCastingNodeWithCheck(Node * node, UTI tobeType, Node*& rtnNode);
 
+    //used for function calls second arg, including custom array accessors
+    std::string genHiddenArg2(u32& urtmpnumref);
+
   private:
     TBOOL m_storeIntoAble;
     UTI m_utype;
@@ -277,7 +280,6 @@ namespace MFM{
 
     void genCustomArrayMemberNameOfMethod(File * fp);
     void genCustomArrayHiddenArgs(File * fp, u32 urtmpnum);
-    std::string genHiddenArg2ForCustomArray(u32& urtmpnumref);
 
     void genLocalMemberNameOfMethodByUsTypedef(File * fp);
     void genCustomArrayLocalMemberNameOfMethod(File * fp);

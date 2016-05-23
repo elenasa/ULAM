@@ -270,10 +270,11 @@ namespace MFM {
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		it = Hzy;
-		m_state.setGoAgain(); //since not error
+		//m_state.setGoAgain(); //since not error; wait until not Nav
 	      }
 	    else
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+
 	  }
       } //end var_symbol
 
@@ -321,6 +322,10 @@ namespace MFM {
       }
     Node::setStoreIntoAble(TBOOL_TRUE);
     setNodeType(it);
+
+    if(it == Hzy)
+      m_state.setGoAgain(); //since not error
+
     return getNodeType();
   } //checkAndLabelType
 
