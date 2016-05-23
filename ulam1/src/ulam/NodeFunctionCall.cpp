@@ -759,7 +759,7 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
     u32 urtmpnum = 0;
-    std::string hiddenarg2str = genHiddenArg2(urtmpnum);
+    std::string hiddenarg2str = Node::genHiddenArg2(urtmpnum);
     if(urtmpnum > 0)
       {
 	m_state.indentUlamCode(fp);
@@ -1017,121 +1017,6 @@ namespace MFM {
 
     return hiddenargs.str();
   } //genHiddenArgs
-
-  std::string NodeFunctionCall::genHiddenArg2(u32& urtmpnumref)
-  {
-    bool sameur = true;
-    u32 tmpvar = m_state.getNextTmpVarNumber();
-
-    std::ostringstream hiddenarg2;
-    Symbol *stgcos = NULL;
-    Symbol * cos = NULL;
-
-    if(m_state.m_currentObjSymbolsForCodeGen.empty())
-      {
-	stgcos = cos = m_state.getCurrentSelfSymbolForCodeGen();
-      }
-    else
-      {
-	cos = m_state.m_currentObjSymbolsForCodeGen.back();
-	stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-      }
-
-    UTI stgcosuti = stgcos->getUlamTypeIdx();
-    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-
-    UTI cosuti = cos->getUlamTypeIdx();
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-
-    // first "hidden" arg is the context, then
-    //"hidden" ref self (ur) arg
-    if(!Node::isCurrentObjectALocalVariableOrArgument())
-      {
-	if(m_state.m_currentObjSymbolsForCodeGen.empty())
-	  hiddenarg2 << m_state.getHiddenArgName(); //same ur
-	else if(stgcos->isSelf())
-	  hiddenarg2 << m_state.getHiddenArgName(); //same ur
-	else
-	  {
-	    sameur = false;
-	    hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
-	    //update ur to reflect "effective" self for this funccall
-	    hiddenarg2 << m_state.getHiddenArgName(); //ur
-	    hiddenarg2 << ", " << Node::calcPosOfCurrentObjectClasses(); //relative off;
-	    hiddenarg2 << "u, " << cosut->getTotalBitSize(); //len
-	    hiddenarg2 << "u, &";
-	    hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str(); //cos->isSuper rolls as cosuti
-	    hiddenarg2 << ");";
-	  }
-      }
-    else
-      {
-	s32 epi = Node::isCurrentObjectsContainingAModelParameter();
-	if(epi >= 0)
-	  {
-	    //model parameters no longer classes, deprecated
-	    assert(0);
-	    hiddenarg2 << genModelParameterHiddenArgs(epi).c_str();
-	  }
-	else //local var
-	  {
-	    if(m_state.m_currentObjSymbolsForCodeGen.empty())
-	      {
-		hiddenarg2 << m_state.getHiddenArgName(); //same ur
-	      }
-	    else if(cos->getAutoLocalType() == ALT_AS)
-	      {
-		sameur = false;
-		//update ur to reflect "effective" self for this funccall
-		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
-		hiddenarg2 << stgcos->getMangledName().c_str();
-		hiddenarg2 << ", " << Node::calcPosOfCurrentObjectClasses(); //relative off;
-		hiddenarg2 << "u, " << stgcosut->getTotalBitSize(); //len
-		hiddenarg2 << "u, ";
-		hiddenarg2 << stgcos->getMangledName().c_str(); //effself of as-variable
-		hiddenarg2 << ".GetEffectiveSelf());";
-	      }
-	    else if(stgcos->getAutoLocalType() == ALT_REF)
-	      {
-		sameur = false;
-		//update ur to reflect "effective" self for this funccall
-		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
-		hiddenarg2 << stgcos->getMangledName().c_str() << ", ";
-		if(cos->isDataMember()) //dm of local stgcos
-		  hiddenarg2 << Node::calcPosOfCurrentObjectClasses(); //relative off;
-		else
-		  hiddenarg2 << "0";
-
-		hiddenarg2 << "u, " << cosut->getTotalBitSize(); //len
-		hiddenarg2 << "u, ";
-		hiddenarg2 << stgcos->getMangledName().c_str(); //effself of ref
-		hiddenarg2 << ".GetEffectiveSelf());"; //e.g. t3746
-	      }
-	    else
-	      {
-		sameur = false;
-		//new ur to reflect "effective" self and storage for this funccall
-		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
-		if(cos->isDataMember()) //dm of local stgcos
-		  hiddenarg2 << Node::calcPosOfCurrentObjectClasses(); //relative off;
-		else if(stgcosut->getUlamClassType() == UC_ELEMENT)
-		  hiddenarg2 << "T::ATOM_FIRST_STATE_BIT + 0"; //skip Type
-		else
-		  hiddenarg2 << "0";
-
-		hiddenarg2 << "u, " << cosut->getTotalBitSize() << "u, "; //len
-		hiddenarg2 << stgcos->getMangledName().c_str() << ", &"; //storage
-		hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str();
-		hiddenarg2 << ");";
-	      }
-	  }
-      }
-
-    if(!sameur)
-      urtmpnumref = tmpvar; //update arg
-
-    return hiddenarg2.str();
-  } //genHiddenArg2
 
   std::string NodeFunctionCall::genHiddenArg2ForARef(File * fp, UVPass uvpass, u32& urtmpnumref)
   {

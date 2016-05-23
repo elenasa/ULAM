@@ -790,7 +790,7 @@ namespace MFM {
     UTI itemuti = m_state.getAClassCustomArrayType(cosuti);
 
     u32 urtmpnum = 0;
-    std::string hiddenarg2str = genHiddenArg2ForCustomArray(urtmpnum);
+    std::string hiddenarg2str = genHiddenArg2(urtmpnum);
     if(urtmpnum > 0)
       {
 	m_state.indentUlamCode(fp);
@@ -1247,7 +1247,7 @@ namespace MFM {
 
     //non-const tmp ur for this function call
     u32 urtmpnum = 0;
-    std::string hiddenarg2str = genHiddenArg2ForCustomArray(urtmpnum);
+    std::string hiddenarg2str = genHiddenArg2(urtmpnum);
     if(urtmpnum > 0)
       {
 	m_state.indentUlamCode(fp);
@@ -2032,8 +2032,7 @@ namespace MFM {
 
   void Node::genCustomArrayHiddenArgs(File * fp, u32 urtmpnum)
   {
-    // first "hidden" arg is the context, then
-    //"hidden" self (atom) arg
+    // first "hidden" arg is the context, then "hidden" self (ur) arg
     fp->write("(");
     fp->write(m_state.getHiddenContextArgName()); //same uc
     fp->write(", ");
@@ -2045,15 +2044,18 @@ namespace MFM {
     return;
   } //genCustomArrayHiddenArgs
 
-  std::string Node::genHiddenArg2ForCustomArray(u32& urtmpnumref)
+  // the second hidden arg, ur/self, may need modification for
+  // function calls, including custom array accessors.
+  // formerly in NodeFunctionCall; duplicated as genHiddenArg2ForCustomArray
+  std::string Node::genHiddenArg2(u32& urtmpnumref)
   {
     bool sameur = true;
     u32 tmpvar = m_state.getNextTmpVarNumber();
 
     std::ostringstream hiddenarg2;
-
+    Symbol *stgcos = NULL;
     Symbol * cos = NULL;
-    Symbol * stgcos = NULL;
+
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
 	stgcos = cos = m_state.getCurrentSelfSymbolForCodeGen();
@@ -2063,21 +2065,23 @@ namespace MFM {
 	cos = m_state.m_currentObjSymbolsForCodeGen.back();
 	stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
       }
+
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    //    assert(!cosut->isReference()); could be  t3653
 
     // first "hidden" arg is the context, then
-    //"hidden" self (atom) arg
+    //"hidden" ref self (ur) arg
     if(!Node::isCurrentObjectALocalVariableOrArgument())
       {
 	if(m_state.m_currentObjSymbolsForCodeGen.empty())
 	  hiddenarg2 << m_state.getHiddenArgName(); //same ur
+	else if(stgcos->isSelf())
+	  hiddenarg2 << m_state.getHiddenArgName(); //same ur
 	else
 	  {
-	    //update ur to reflect "effective" self for this funccall
 	    sameur = false;
 	    hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
 	    //update ur to reflect "effective" self for this funccall
@@ -2085,56 +2089,71 @@ namespace MFM {
 	    hiddenarg2 << ", " << Node::calcPosOfCurrentObjectClasses(); //relative off;
 	    hiddenarg2 << "u, " << cosut->getTotalBitSize(); //len
 	    hiddenarg2 << "u, &";
-	    hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str();
+	    hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str(); //cos->isSuper rolls as cosuti
 	    hiddenarg2 << ");";
 	  }
       }
     else
       {
-	assert(isCurrentObjectsContainingAModelParameter() == -1); //MP invalid
-	//local var
-	if(m_state.m_currentObjSymbolsForCodeGen.empty())
+	s32 epi = Node::isCurrentObjectsContainingAModelParameter();
+	if(epi >= 0)
 	  {
-	    hiddenarg2 << m_state.getHiddenArgName(); //same ur
+	    //model parameters no longer classes, deprecated
+	    assert(0);
+	    //hiddenarg2 << genModelParameterHiddenArgs(epi).c_str();
 	  }
-	else if(stgcos->getAutoLocalType() == ALT_AS)
+	else //local var
 	  {
-	    sameur = false;
-	    hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
-	    hiddenarg2 << stgcos->getMangledName().c_str();
-	    hiddenarg2 << ", " << Node::calcPosOfCurrentObjectClasses(); //relative off;
-	    hiddenarg2 << "u, " << cosut->getTotalBitSize(); //len
-	    hiddenarg2 << "u, &";
-	    hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str();
-	    hiddenarg2 << ");";
-	  }
-	else
-	  {
-	    sameur = false;
+	    if(m_state.m_currentObjSymbolsForCodeGen.empty())
+	      {
+		hiddenarg2 << m_state.getHiddenArgName(); //same ur
+	      }
+	    else if(cos->getAutoLocalType() == ALT_AS)
+	      {
+		sameur = false;
+		//update ur to reflect "effective" self for this funccall
+		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
+		hiddenarg2 << stgcos->getMangledName().c_str();
+		hiddenarg2 << ", " << Node::calcPosOfCurrentObjectClasses(); //relative off;
+		hiddenarg2 << "u, " << stgcosut->getTotalBitSize(); //len
+		hiddenarg2 << "u, ";
+		hiddenarg2 << stgcos->getMangledName().c_str(); //effself of as-variable
+		hiddenarg2 << ".GetEffectiveSelf());";
+	      }
+	    //else if(stgcos->getAutoLocalType() == ALT_REF)
+	    else if(stgcosut->isReference()) //t3751, t3752
+	      {
+		sameur = false;
+		//update ur to reflect "effective" self for this funccall
+		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
+		hiddenarg2 << stgcos->getMangledName().c_str() << ", ";
+		if(cos->isDataMember()) //dm of local stgcos
+		  hiddenarg2 << Node::calcPosOfCurrentObjectClasses(); //relative off;
+		else
+		  hiddenarg2 << "0";
 
-	    //use possible dereference type for mangled name
-	    UTI derefuti = m_state.getUlamTypeAsDeref(cosuti);
-	    UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
-
-	    //new ur to reflect "effective" self and storage for this funccall
-	    hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
-	    if(stgcosut->isReference())
-	      hiddenarg2 << stgcos->getMangledName().c_str() << ", "; //ref
-
-	    if(cos->isDataMember()) //dm of local stgcos
-	      hiddenarg2 << Node::calcPosOfCurrentObjectClasses(); //relative off;
-	    else if(derefut->getUlamClassType() == UC_ELEMENT)
-	      hiddenarg2 << "T::ATOM_FIRST_STATE_BIT + 0"; //skip the Type
+		hiddenarg2 << "u, " << cosut->getTotalBitSize(); //len
+		hiddenarg2 << "u, ";
+		hiddenarg2 << stgcos->getMangledName().c_str(); //effself of ref
+		hiddenarg2 << ".GetEffectiveSelf());"; //e.g. t3746
+	      }
 	    else
-	      hiddenarg2 << "0";
+	      {
+		sameur = false;
+		//new ur to reflect "effective" self and storage for this funccall
+		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
+		if(cos->isDataMember()) //dm of local stgcos
+		  hiddenarg2 << Node::calcPosOfCurrentObjectClasses(); //relative off;
+		else if(stgcosut->getUlamClassType() == UC_ELEMENT)
+		  hiddenarg2 << "T::ATOM_FIRST_STATE_BIT + 0"; //skip Type
+		else
+		  hiddenarg2 << "0";
 
-	    hiddenarg2 << "u, " << derefut->getTotalBitSize() << "u, "; //len
-	    if(!stgcosut->isReference())
-	      hiddenarg2 << stgcos->getMangledName().c_str() << ", "; //storage
-
-	    hiddenarg2 << "&";
-	    hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str();
-	    hiddenarg2 << ");";
+		hiddenarg2 << "u, " << cosut->getTotalBitSize() << "u, "; //len
+		hiddenarg2 << stgcos->getMangledName().c_str() << ", &"; //storage
+		hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str();
+		hiddenarg2 << ");";
+	      }
 	  }
       }
 
@@ -2142,7 +2161,7 @@ namespace MFM {
       urtmpnumref = tmpvar; //update arg
 
     return hiddenarg2.str();
-  } //genHiddenArg2ForCustomArray
+  } //genHiddenArg2
 
   void Node::genLocalMemberNameOfMethod(File * fp)
   {
