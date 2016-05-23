@@ -60,7 +60,7 @@ namespace MFM{
 
   private:
 
-    enum { START, FILE, ANSWER } m_state;
+    enum { START, IN_FILE, ANSWER } m_state;
 
     std::string m_currentLine;
     s32 getInput(u32 index) {
@@ -103,6 +103,7 @@ namespace MFM{
     void readLine(File & input) ;
 
     void die(std::string msg) ;
+    void addUrSelf(FileManagerString & fms) ;
 
   };
 
