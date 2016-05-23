@@ -804,7 +804,7 @@ namespace MFM {
 			break;
 		      case Bits:
 			{
-			  args << "0x " << std::hex << uval;  //as hex
+			  args << "0x" << std::hex << uval;  //as hex
 			  isok = true;
 			}
 			break;
