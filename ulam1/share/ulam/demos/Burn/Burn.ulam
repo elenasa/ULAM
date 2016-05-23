@@ -6,15 +6,15 @@
    burned.
 
    Note these parameters are applied _on_the_first_event this atom
-   experiences.  Set the parameters as you wish, paint on the
-   ParamBurn, and then deliver an event to each of them using the
-   spark tool to 'set' their particular values from the current model
-   parameters.  This 'imprinting' approach allows creation of burnable
-   structures that mix different properties together.
+   experiences.  Set the parameters as you wish, paint on the Burn,
+   and then deliver an event to each of them using the spark tool to
+   'set' their particular values from the current model parameters.
+   This 'imprinting' approach allows creation of burnable structures
+   that mix different properties together.
 
    \symbol Bu
    \symmetries normal
-   \color #e44
+   \color #d33
    \author Dave Ackley
    \license public-domain
    \sa Burn
@@ -61,9 +61,8 @@ element Spark {
 
 use XTimer;
 /**
-   An AutoSpark acts like a Burn except it monitors for the last time
-   it was burned, and if that has been too long, it emits a
-   _directional_ spark.
+   An AutoSpark spontaneously ignites a radius-1 burn if it has been
+   too long since it burned.
    
    \symbol Au
    \symmetries normal
@@ -71,37 +70,23 @@ use XTimer;
    \author Dave Ackley
    \license public-domain
 
-   \sa Burn
+   \sa Burn, SparkGen
  */
 element AutoSpark : QBurn {
-  XTimer(4,11,1) mBurnTracker;
-  Unsigned mBurnHistory;
+  XTimer(4,12,1) mBurnTracker;
+  Unsigned mSparkCount;
   Void behave() {
-    if (!isPulled()) {
-      update();
-      if (!mBurnTracker.countAlarm()) 
-        return;
-      ++mBurnHistory; // Note we're sparking
-    }
-    // Here we're pulled or our count has expired
-    mBurnTracker.reset();
-      
-    // Time for our special asymmetric eastbound fire
-    for (Int slot = 1; slot <= 8; ++slot) {
-      SiteNum s = (SiteNum) slot;
-      Atom other = ew[s];
-      if (other as Trigger) {
-        // Pull autosparks in any direction, pull other
-        // triggers just to the righ.
-        if (other is AutoSpark || slot >= 2 && slot <= 4)
-          other.doPull();
-      }
-      ew[s] = other;
-    }
 
-    // We're done
-    doSafe();
-    mCount = mCount.minof;
+    mRadius = 1;
+
+    if (update()) mBurnTracker.reset(); // OK we burned
+    else if (mBurnTracker.countAlarm()) {
+
+      doPull();
+      mBurnTracker.reset(); 
+      ++mSparkCount;
+
+    }
   }
 
   ARGB getColor(Unsigned selector) {

@@ -81,7 +81,7 @@ quark QBurn : Trigger {
     return true;  // Boy did we burn
   }
 
-  ARGB getColorQ(Unsigned selector) {
+  virtual ARGB getColorQ(Unsigned selector) {
     ColorUtils cu;
     ARGB ret = cu.color(0xffffff00U);
     if (selector == 1u) {
