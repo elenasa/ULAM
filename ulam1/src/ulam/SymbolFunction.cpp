@@ -366,7 +366,8 @@ namespace MFM {
     if(declOnly)
       {
 	m_state.indent(fp);
-	//only ulam virtual functions are c++ static functions
+	//only ulam virtual functions are c++ static functions;
+	// because of vtable, cast void * from a reference.
 	if(isVirtualFunction())
 	  fp->write("static ");
       }
