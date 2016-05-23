@@ -979,6 +979,10 @@ namespace MFM {
 	  {
 	    rtnok = false;
 	  }
+	else if(!m_state.isASeenClass(superuti))
+	  {
+	    rtnok = false;
+	  }
 	else
 	  {
 	    stubsuperuti = m_state.addStubCopyToAncestorClassTemplate(superuti, stubcsym->getUlamTypeIdx());

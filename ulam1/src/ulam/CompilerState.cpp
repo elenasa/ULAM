@@ -1989,15 +1989,17 @@ namespace MFM {
     assert((superuti != Nouti) && (superuti != Hzy));
     assert(isClassAStub(superuti));
     UlamType * superut = getUlamTypeByIndex(superuti);
+
     UlamKeyTypeSignature superkey = superut->getUlamKeyTypeSignature();
     u32 superid = superkey.getUlamKeyTypeSignatureNameId();
     SymbolClassNameTemplate * superctsym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClassNameTemplate(superid, superctsym);
     assert(isDefined);
 
+    ULAMCLASSTYPE superclasstype = superut->getUlamClassType();
+    assert((superclasstype != UC_UNSEEN) && (superclasstype != UC_ELEMENT)); //quark or transient
     UlamKeyTypeSignature newstubkey(superid, UNKNOWNSIZE); //"-2" and scalar default
-    assert(superut->getUlamClassType() == UC_QUARK);
-    UTI newstubcopyuti = makeUlamType(newstubkey, Class, UC_QUARK); //**gets next unknown uti type
+    UTI newstubcopyuti = makeUlamType(newstubkey, Class, superclasstype); //**gets next unknown uti type
     superctsym->copyAStubClassInstance(superuti, newstubcopyuti, context);
     superctsym->mergeClassInstancesFromTEMP(); //not mid-iteration!!
     return newstubcopyuti;
