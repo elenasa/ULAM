@@ -83,7 +83,7 @@ namespace MFM{
   // It doesn't follow the ulam native function interface rules!
   template<class EC>
   inline void Uq_10109210DebugUtils10_printAtom(const UlamContext<EC>& uc,
-                                                typename EC::ATOM_CONFIG_AC::ATOM_TYPE atom, // call by value
+                                                typename EC::ATOM_CONFIG::ATOM_TYPE atom, // call by value
                                                 u32 flags,
                                                 ByteSink & buff)
   {
