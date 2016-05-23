@@ -1,0 +1,21 @@
+ulam 2;
+
+/**
+   Ur- Earliest ancestor of all classes.
+   \author Dave Ackley
+   \license lgpl
+ */
+quark UrSelf
+{
+  typedef Unsigned(8) ARGB[4];
+
+  /* ordering of these virtual functions tied to enum in UlamElement.h;
+     they must remain consistent; DON'T CHANGE */
+
+  virtual Void behave() { }
+  virtual ARGB getColor(Unsigned selector)
+  {
+    ARGB rtn; //default is black
+    return rtn;
+  }
+}

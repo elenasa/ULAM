@@ -365,7 +365,7 @@ namespace MFM {
     //        for validating and finding scope of program/block variables
     //class block has 2 ST: functions and data member decls, separate
     //m_state.popClassContext(); //keep on stack for name id
-    m_state.pushClassContext(cnsym->getUlamTypeIdx(), rtnNode, rtnNode, false, NULL);
+    m_state.pushClassContext(utype, rtnNode, rtnNode, false, NULL);
 
     //automatically create a Self typedef symbol for this class type
     u32 selfid = m_state.m_pool.getIndexForDataString("Self");
@@ -418,6 +418,21 @@ namespace MFM {
       {
 	unreadToken();
 	cnsym->setSuperClass(Nouti); //clear
+
+	//earliest ancestor when none designated; for all classes except UrSelf,
+	//and transients (at this time) Mon May 23 13:57:32 2016
+	u32 urid = m_state.m_pool.getIndexForDataString("UrSelf");
+	if((cnsym->getId() != urid) && (cnsym->getUlamClass() != UC_TRANSIENT))
+	  {
+	    SymbolClassName * ursym = NULL;
+	    if(!m_state.alreadyDefinedSymbolClassName(urid, ursym))
+	      {
+		//required only once!
+		Token urTok(TOK_TYPE_IDENTIFIER, qTok.m_locator, urid);
+		m_state.addIncompleteClassSymbolToProgramTable(urTok, ursym);
+	      }
+	    cnsym->setSuperClass(ursym->getUlamTypeIdx()); //reset here!!!
+	  }
       }
 
     if(!getExpectedToken(TOK_OPEN_CURLY, pTok))
@@ -430,7 +445,6 @@ namespace MFM {
 	    msg << "' unsupported";
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	  }
-
 	delete rtnNode;
 	return NULL;
       }
