@@ -142,8 +142,8 @@ namespace MFM {
 		    std::ostringstream msg;
 		    msg << "Class with parameters seen with the same name: ";
 		    msg << m_state.m_pool.getDataAsString(cnsym->getId()).c_str();
-		    MSG(m_state.getFullLocationAsString(tok.m_locator).c_str(), msg.str().c_str(), ERR);
-		    //continue so no more than one error for same problem
+		    MSG(m_state.getFullLocationAsString(tok.m_locator).c_str(), msg.str().c_str(), ERR); //No corresponding Nav Node for this ERR (e.g. error/t3644)
+		    //aok = false; continue so no more than one error for same problem
 		  }
 		kuti = cnsym->getUlamTypeIdx();
 	      }

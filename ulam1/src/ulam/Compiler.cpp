@@ -310,7 +310,7 @@ namespace MFM {
 	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     //else
-    //assert(errCnt == 0);
+    //assert(errCnt == 0); //e.g. error/t3644 (not sure what to do about it, discovery too deep)
 
     if(hzycount > 0)
       {

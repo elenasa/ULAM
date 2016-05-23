@@ -620,7 +620,7 @@ namespace MFM {
     //or this? (works for template instances too)
     if(statusUnknownTypeInThisClassResolver(auti))
     {
-      mappedUTI = auti;
+      mappedUTI = auti; //auti no longer a holder
       return true;
     }
 
