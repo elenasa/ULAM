@@ -117,9 +117,13 @@ namespace MFM {
 	      m_currBlockNo = m_state.getCurrentBlock()->getNodeNo();
 	  }
 
+	UTI cuti = m_state.getCompileThisIdx(); //for error messages
 	NodeBlock * currBlock = getBlock();
 	if(m_state.useMemberBlock())
-	  m_state.pushCurrentBlock(currBlock); //e.g. memberselect needed for already defined
+	  {
+	    m_state.pushCurrentBlock(currBlock); //e.g. memberselect needed for already defined
+	    cuti = m_state.getCurrentMemberClassBlock()->getNodeType();
+	  }
 	else
 	  m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
@@ -148,7 +152,7 @@ namespace MFM {
 		    std::ostringstream msg;
 		    msg << "Named Constant variable '" << getName();
 		    msg << "' cannot be exchanged at this time while compiling class: ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+		    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		    msg << " Parent required";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		    assert(0); //parent required
@@ -160,7 +164,7 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Exchanged kids! <" << m_state.getTokenDataAsString(&m_token).c_str();
 		msg << "> a named constant, in place of a variable with class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 
 		newnode->setYourParentNo(pno); //missing?
@@ -186,7 +190,7 @@ namespace MFM {
 		    std::ostringstream msg;
 		    msg << "Model Parameter variable '" << getName();
 		    msg << "' cannot be exchanged at this time while compiling class: ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+		    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		    msg << " Parent required";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		    assert(0); //parent required
@@ -198,7 +202,7 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Exchanged kids! <" << m_state.getTokenDataAsString(&m_token).c_str();
 		msg << "> a model parameter, in place of a variable with class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 
 		newnode->setYourParentNo(pno); //missing?
@@ -216,22 +220,23 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str();
 		msg << "> is not a variable, and cannot be used as one with class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		it = Nav;
 		errCnt++;
 	      }
 	    m_state.popClassContext(); //restore
 	  }
 	else
 	  {
-	    m_state.popClassContext(); //restore
 	    std::ostringstream msg;
 	    msg << "(2) <" << m_state.getTokenDataAsString(&m_token).c_str();
 	    msg << "> is not defined, and cannot be used with class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    if(!hazyKin)
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		it = Nav;
 	      }
 	    else
 	      {
@@ -240,6 +245,7 @@ namespace MFM {
 		m_state.setGoAgain();
 	      }
 	    errCnt++;
+	    m_state.popClassContext(); //restore
 	  }
       } //lookup symbol
 
