@@ -36,7 +36,7 @@ element Ish2 {
     return (Phase) (cur - 1);
   }
 
-  Void behave() {
+  virtual Void behave() {
     Bits(1) ngbColor[Phase.maxof+1];  // Track existing neighbor colors
 
     // THIS WORKS (WITH THE CAST):

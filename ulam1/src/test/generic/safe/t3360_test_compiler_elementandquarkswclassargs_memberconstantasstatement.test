@@ -21,7 +21,7 @@ element Foo{
 
 #:Booly.ulam
 quark Booly(Unsigned(3) firstRange, Unsigned(3) lastRange, Bool(3) bomb) {
-  Bool behave(){
+  virtual Bool behave(){
     if(bomb && lastRange != firstRange) return true;
     return false;
   }

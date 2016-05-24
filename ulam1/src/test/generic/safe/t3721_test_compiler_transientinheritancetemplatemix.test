@@ -33,7 +33,7 @@ element R {
   ulam 2;
 use Foo;
 transient Tu : Foo(1, true) {
-  Int behave(){
+  virtual Int behave(){
     return a;
   }
 }

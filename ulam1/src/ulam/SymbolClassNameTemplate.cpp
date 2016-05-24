@@ -975,6 +975,11 @@ namespace MFM {
 	    stubcsym->setSuperClass(Nouti); //no ancester
 	    rtnok = true;
 	  }
+	else if(m_state.isUrSelf(superuti))
+	  {
+	    stubcsym->setSuperClass(superuti); //UrSelf is ancester; not a stub
+	    rtnok = true;
+	  }
 	else if(superuti == Hzy) //only UNSEEN Templates
 	  {
 	    rtnok = false;

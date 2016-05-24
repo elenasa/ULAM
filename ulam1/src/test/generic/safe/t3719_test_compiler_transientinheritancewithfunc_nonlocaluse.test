@@ -36,7 +36,7 @@ use Soo;
 transient Foo {
   Bool first;
   Soo su;
-  Int behave()
+  virtual Int behave()
   {
     if(su.check())
     {

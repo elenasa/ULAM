@@ -23,12 +23,12 @@ namespace MFM {
 
   void NodeBlock::updateLineage(NNO pno)
   {
-    if(m_prevBlockNode == NULL)
+    if(getPreviousBlockPointer() == NULL)
       {
-	m_prevBlockNode = m_state.getCurrentBlock();
+	setPreviousBlockPointer(m_state.getCurrentBlock());
       }
     else
-      assert(m_prevBlockNode == m_state.getCurrentBlock());
+      assert(getPreviousBlockPointer() == m_state.getCurrentBlock());
 
     m_state.pushCurrentBlock(this);
 
@@ -102,12 +102,12 @@ namespace MFM {
     assert(m_nodeNext);
 
     //especially important for template instances (prev ptr nullified on instantiation)
-    if(m_prevBlockNode == NULL)
+    if(getPreviousBlockPointer() == NULL)
       {
-	m_prevBlockNode = m_state.getCurrentBlock();
+	setPreviousBlockPointer(m_state.getCurrentBlock());
       }
     else
-      assert(m_prevBlockNode == m_state.getCurrentBlock());
+      assert(getPreviousBlockPointer() == m_state.getCurrentBlock());
 
     m_state.pushCurrentBlock(this);
 

@@ -50,6 +50,7 @@ namespace MFM {
   {
     std::vector<std::string> afileToCompile;
     afileToCompile.push_back(startstr);
+    //afileToCompile.push_back("share/ulam/stdlib/UrSelf.ulam");
     return compileFiles(infm, afileToCompile, outfm, errput);
   }
 

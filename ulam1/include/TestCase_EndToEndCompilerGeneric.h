@@ -54,6 +54,8 @@ namespace MFM{
     /** setup test; return the string to start with */
     virtual std::string PresetTest(FileManagerString * fms) ;
 
+    virtual bool GetTestResults(FileManager * fm, std::string startstr, File * output);
+
   protected:
 
     virtual std::string GetAnswerKey() ;

@@ -1,7 +1,8 @@
 #include <iostream>
 #include <stdio.h>
-#include "TestCase_EndToEndCompilerGeneric.h"
 #include "Compiler.h"
+#include "FileManagerStdio.h"
+#include "TestCase_EndToEndCompilerGeneric.h"
 
 namespace MFM {
 
@@ -170,6 +171,42 @@ namespace MFM {
     // Default start file is first file
     return m_inputFiles[0].m_fileName;
   } //presetTest
+
+  bool TestCase_EndToEndCompilerGeneric::GetTestResults(FileManager * fm, std::string startstr, File * output)
+  {
+    Compiler C;
+    FileManagerStdio * outfm = new FileManagerStdio("./src/test/bin"); //temporary!!!
+    if(!outfm)
+      {
+	output->write("Error in making new file manager for test code generation...aborting");
+	return false;
+      }
+
+    std::vector<std::string> filesToCompile;
+    filesToCompile.push_back(startstr);
+    filesToCompile.push_back("UrSelf.ulam");
+
+    // error messages appended to output are compared to answer
+    if(C.compileFiles(fm, filesToCompile, outfm, output) == 0)
+      {
+	    //#define SKIP_EVAL
+#ifndef SKIP_EVAL
+	    if(C.testProgram(output) == 0)
+	      {
+		C.printPostFix(output);
+	      }
+	    else
+	      output->write("Unrecoverable Program Test FAILURE.\n");
+#endif
+      }
+    else
+      {
+	output->write("Unrecoverable Program Parse FAILURE.\n");
+      }
+
+    delete outfm;
+    return true;
+  } //GetTestResults
 
   std::string TestCase_EndToEndCompilerGeneric::GetAnswerKey()
   {

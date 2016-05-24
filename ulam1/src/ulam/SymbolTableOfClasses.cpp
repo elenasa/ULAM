@@ -109,8 +109,8 @@ namespace MFM {
 	Symbol * sym = it->second;
 	assert(sym && sym->isClass());
 	UTI cuti = sym->getUlamTypeIdx();
-	//skip anonymous classes
-	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti))
+	//skip anonymous classes; skip UrSelf to avoid extensive changes all test answers.
+	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti) && !m_state.isUrSelf(cuti))
 	  {
 	    NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
 	    assert(classNode);

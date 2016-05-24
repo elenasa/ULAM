@@ -28,7 +28,7 @@ element Foo(Int a){
 quark Booly(Unsigned(3) firstRange, Unsigned(3) lastRange, Bool bomb) {
   constant Int cALL_FIX2 = -2;
   constant Int cALL_FIX4 = -4;
-  Int behave(Int x, Int y){
+  virtual Int behave(Int x, Int y){
     if(bomb && lastRange != firstRange) return x;
     return y;
   }
