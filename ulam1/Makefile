@@ -177,14 +177,14 @@ $(MFM_ROOT_DIR)/res/elements/demos/%.mfz:	$(ULAMDIR)/demos/%/*.ulam
 	rm -rf $(ULAMWORKDIR)
 
 ULAM_MFM_TARGETS+=$(MFM_ROOT_DIR)/res/elements/libuecore.so
-ULAM_DEMO_DIRS:=$(wildcard $(ULAMDIR)/demos/*)
+ULAM_DEMO_PATHS:=$(wildcard $(ULAMDIR)/demos/*/.)
+ULAM_DEMO_DIRS:=$(patsubst %/.,%,$(ULAM_DEMO_PATHS))
 ULAM_DEMO_NAMES:=$(patsubst $(ULAMDIR)/demos/%,%,$(ULAM_DEMO_DIRS))
 ULAM_DEMO_LIBS:=$(patsubst %,$(MFM_ROOT_DIR)/res/elements/demos/libue%.so,$(ULAM_DEMO_NAMES))
 ULAM_MFM_TARGETS+=$(ULAM_DEMO_LIBS)
 ULAM_DEMO_MFZS:=$(patsubst %,$(MFM_ROOT_DIR)/res/elements/demos/%.mfz,$(ULAM_DEMO_NAMES))
 
-ulamexports:	$(ULAM_MFM_TARGETS) | makedemokey $(ULAM_DEMO_MFZS) burndemokey
-	#echo DLDL $(ULAM_DEMO_MFZS)
+ulamexports:	$(ULAM_MFM_TARGETS) | makedemokey $(ULAM_DEMO_MFZS) burndemokey # $(info  (ULAM_MFM_TARGETS) [$(ULAM_MFM_TARGETS)]) $(info  (ULAM_DEMO_DIRS) [$(ULAM_DEMO_DIRS)]) $(info  (ULAM_DEMO_NAMES) [$(ULAM_DEMO_NAMES)]) $(info  (ULAM_DEMO_LIBS) [$(ULAM_DEMO_LIBS)]) $(info  (ULAM_DEMO_MFZS) [$(ULAM_DEMO_MFZS)]) $(info  (ULAM_DEMO_PATHS) [$(ULAM_DEMO_PATHS)])
 
 cleanulamexports:	FORCE
 	rm -f $(ULAM_MFM_TARGETS) $(ULAM_DEMO_MFZS)
