@@ -34,7 +34,7 @@ element R {
 use Foo;
 transient Tu (Int x) : Foo {
 
-  Int behave()
+  virtual Int behave()
   {
     return mi;
   }

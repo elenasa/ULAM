@@ -27,7 +27,7 @@ element R {
 element Ish {
   typedef Unsigned(8) ARGB[4];
 
-  Void behave() {
+  virtual Void behave() {
     ARGB val;
     for (Int i = 0; i < 3; ++i)
       val[i] = 0;

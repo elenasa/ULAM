@@ -19,7 +19,7 @@ element Foo{
 #:Booly.ulam
   ulam 1;
 quark Booly(Bool bomb) {
-  Bool behave(){
+  virtual Bool behave(){
     if(bomb != false) return true;
     return false;
   }

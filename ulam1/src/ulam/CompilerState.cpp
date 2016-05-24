@@ -67,7 +67,7 @@ namespace MFM {
   static const char * BUILD_DEFAULT_TRANSIENT_FUNCNAME = "getDefaultTransient";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalHas(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0)
+  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalHas(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti)
   {
     m_err.init(this, debugOn, infoOn, warnOn, NULL);
     Token::initTokenMap(*this);
@@ -2106,10 +2106,15 @@ namespace MFM {
 	bool kinhadit = alreadyDefinedSymbol(dataindex, symptr, tmphzykin);
 
 	if(!kinhadit || (isHolder(symptr->getUlamTypeIdx())))
-	  return alreadyDefinedSymbolByAncestor(dataindex, symptr, hasHazyKin);
-
+	  {
+	    if(!alreadyDefinedSymbolByAncestor(dataindex, symptr, hasHazyKin))
+	      {
+		popClassContext(); //restore, if false on recursion
+		return false;
+	      }
+	  }
+	popClassContext(); //restore, after
 	hasHazyKin = tmphzykin;
-	popClassContext(); //restore
 	return kinhadit;
       }
     return false;
@@ -3446,6 +3451,17 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     assert(okUTItoContinue(cuti));
     return(!isARootUTI(cuti) || isHolder(cuti));
   }
+
+  void CompilerState::saveUrSelfUTI(UTI uti)
+  {
+    m_urSelfUTI = uti;
+  }
+
+  bool CompilerState::isUrSelf(UTI cuti)
+  {
+    assert(m_urSelfUTI != Nouti);
+    return (cuti == m_urSelfUTI); //no compare
+  } //isUrSelf
 
   bool CompilerState::okUTItoContinue(UTI uti)
   {

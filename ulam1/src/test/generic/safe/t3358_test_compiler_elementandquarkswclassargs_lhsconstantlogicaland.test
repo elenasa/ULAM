@@ -22,7 +22,7 @@ element Foo{
 #:Booly.ulam
   ulam 1;
 quark Booly(Unsigned(4) firstRange, Unsigned(4) lastRange, Bool bomb) {
-  Bool behave(){
+  virtual Bool behave(){
     if(bomb && lastRange != firstRange) return true;
     return false;
   }

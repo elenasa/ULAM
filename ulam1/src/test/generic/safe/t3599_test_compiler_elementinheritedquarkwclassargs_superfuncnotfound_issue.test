@@ -13,7 +13,7 @@ Uq_QSync(Unary(5) stateCount) { typedef Unary(2) Phase;  Unary(2) phase(0);  con
 use CLife;
 element CLife0 : CLife
 {
-  Void behave() {
+  virtual Void behave() {
     superBehave(); //clifeBehave(); works
   }
 

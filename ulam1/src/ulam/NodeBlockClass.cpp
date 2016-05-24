@@ -59,7 +59,7 @@ namespace MFM {
 
     UTI cuti = getNodeType();
     UTI superuti = m_state.isClassASubclass(cuti);
-    if((superuti != Nouti) && (superuti != Hzy))
+    if((superuti != Nouti) && (superuti != Hzy) && !m_state.isUrSelf(superuti))
       {
 	NodeBlockClass * superblock = getSuperBlockPointer();
 	assert(superblock || m_state.isClassAStub(superuti));
@@ -132,7 +132,8 @@ namespace MFM {
       }
 
     UTI superuti = m_state.isClassASubclass(cuti);
-    if(superuti != Nouti)
+    //skip UrSelf to avoid extensive changes to all test answers
+    if((superuti != Nouti) && !m_state.isUrSelf(superuti))
       {
 	fp->write(" : ");
 	fp->write(m_state.getUlamTypeNameBriefByIndex(superuti).c_str());  //e.g. Foo(a), an instance of
@@ -175,8 +176,11 @@ namespace MFM {
   void NodeBlockClass::printPostfixDataMembersParseTree(File * fp)
   {
     UTI cuti = getNodeType();
+    if(m_state.isUrSelf(cuti)) return;
+
     UTI superuti = m_state.isClassASubclass(cuti);
-    if((superuti != Nouti) && (superuti != Hzy))
+    //skip UrSelf to avoid extensive changes to all test answers
+    if((superuti != Nouti) && (superuti != Hzy) && !m_state.isUrSelf(superuti))
       {
 	NodeBlockClass * superblock = getSuperBlockPointer();
 	if(!isSuperClassLinkReady())
@@ -202,7 +206,8 @@ namespace MFM {
   {
     UTI cuti = getNodeType();
     UTI superuti = m_state.isClassASubclass(cuti);
-    if((superuti != Nouti) && (superuti != Hzy))
+    //skip UrSelf to avoid extensive changes to all test answers
+    if((superuti != Nouti) && (superuti != Hzy) && !m_state.isUrSelf(superuti))
       {
 	NodeBlockClass * superblock = getSuperBlockPointer();
 	assert(superblock && UlamType::compare(superblock->getNodeType(), superuti, m_state) == UTIC_SAME);

@@ -34,7 +34,7 @@ use System;
 transient Foo {
   System s;
   Bool first;
-  Int behave() {
+  virtual Int behave() {
     Soo su;
     first = su.cb;
     if(su.check())

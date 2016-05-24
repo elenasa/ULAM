@@ -421,17 +421,21 @@ namespace MFM {
 
 	//earliest ancestor when none designated; for all classes except UrSelf,
 	//and transients (at this time) Mon May 23 13:57:32 2016
-	u32 urid = m_state.m_pool.getIndexForDataString("UrSelf");
-	if((cnsym->getId() != urid) && (cnsym->getUlamClass() != UC_TRANSIENT))
+	if(cnsym->getUlamClass() != UC_TRANSIENT)
 	  {
-	    SymbolClassName * ursym = NULL;
-	    if(!m_state.alreadyDefinedSymbolClassName(urid, ursym))
+	    u32 urid = m_state.m_pool.getIndexForDataString("UrSelf");
+	    if(cnsym->getId() != urid)
 	      {
-		//required only once!
-		Token urTok(TOK_TYPE_IDENTIFIER, qTok.m_locator, urid);
-		m_state.addIncompleteClassSymbolToProgramTable(urTok, ursym);
+		SymbolClassName * ursym = NULL;
+		if(!m_state.alreadyDefinedSymbolClassName(urid, ursym))
+		  {
+		    //required only once!
+		    Token urTok(TOK_TYPE_IDENTIFIER, qTok.m_locator, urid);
+		    m_state.addIncompleteClassSymbolToProgramTable(urTok, ursym);
+		    m_state.saveUrSelfUTI(ursym->getUlamTypeIdx());
+		  }
+		cnsym->setSuperClass(ursym->getUlamTypeIdx()); //reset super here!!!
 	      }
-	    cnsym->setSuperClass(ursym->getUlamTypeIdx()); //reset here!!!
 	  }
       }
 
