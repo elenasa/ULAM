@@ -2138,7 +2138,7 @@ namespace MFM {
 	brtn = blockNode->isIdInScope(dataindex,symptr); //check ST
 
 	//hazy check..
-	hasHazyKin = checkHasHazyKin(blockNode);
+	hasHazyKin |= checkHasHazyKin(blockNode);
 	blockNode = blockNode->getPreviousBlockPointer(); //traverse the chain, including templates (not ancestors)
       }
 
@@ -2168,7 +2168,7 @@ namespace MFM {
     while(!brtn && classblock)
       {
 	brtn = classblock->isIdInScope(dataindex,symptr); //returns symbol
-	hasHazyKin = checkHasHazyKin(classblock); //self is stub
+	hasHazyKin |= checkHasHazyKin(classblock); //self is stub
 	classblock = classblock->getSuperBlockPointer(); //inheritance chain
       }
     return brtn;
@@ -2190,7 +2190,7 @@ namespace MFM {
     while(!brtn && classblock)
       {
 	brtn = classblock->isFuncIdInScope(dataindex,symptr); //returns symbol
-	hasHazyKin = checkHasHazyKin(classblock); //self is stub
+	hasHazyKin |= checkHasHazyKin(classblock); //self is stub
 	classblock = classblock->getSuperBlockPointer(); //inheritance chain
       }
     return brtn;
