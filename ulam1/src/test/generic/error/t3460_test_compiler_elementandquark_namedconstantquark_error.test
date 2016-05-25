@@ -7,7 +7,7 @@
 ./Foo.ulam:6:30: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
 ./Foo.ulam:3:9: ERROR: Invalid Type: Foo.
  ERROR: No parse tree for This Class: Foo.
-Unrecoverable Program Parse FAILURE.
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
 ##
 ##      //based on 3217
 ##      //constant can't be a quark or union

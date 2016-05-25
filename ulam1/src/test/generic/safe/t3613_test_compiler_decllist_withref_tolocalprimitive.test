@@ -7,18 +7,15 @@ Ue_A { Bool(1) sp(false);  Int(32) test() {  Int(32) a = 1 cast;  Int(32) b;  In
   ulam 2;
 element A {
   Bool sp;
-  use test;
-  b = 1;
-  b+=2;
-  c[1] = b;
-  a = c[1];
-  return d;
- }
+  Int test() {
+    Int a = 1;
+    Int b, &d = a, c[2];
+    b = 1;
+    b+=2;
+    c[1] = b;
+    a = c[1];
+    return d;
+  }
 }
-
-#:test.ulam
-Int test() {
-  Int a = 1;
-  Int b, &d = a, c[2];
 
 #.

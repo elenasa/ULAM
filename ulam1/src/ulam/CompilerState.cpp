@@ -3452,14 +3452,21 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return(!isARootUTI(cuti) || isHolder(cuti));
   }
 
-  void CompilerState::saveUrSelfUTI(UTI uti)
+  void CompilerState::saveUrSelf(UTI uti)
   {
     m_urSelfUTI = uti;
   }
 
   bool CompilerState::isUrSelf(UTI cuti)
   {
-    assert(m_urSelfUTI != Nouti);
+    if(m_urSelfUTI == Nouti)
+      {
+	UlamKeyTypeSignature ckey = getUlamTypeByIndex(cuti)->getUlamKeyTypeSignature();
+	if(ckey.getUlamKeyTypeSignatureNameId() == m_pool.getIndexForDataString("UrSelf"))
+	  saveUrSelf(cuti); //error/t3318
+	else
+	  return false; //t3336
+      }
     return (cuti == m_urSelfUTI); //no compare
   } //isUrSelf
 

@@ -3,7 +3,7 @@
 #!
 ./D.ulam:5:12: ERROR: Unexpected token <(> indicates a function call or definition; neither are valid here.
 ./D.ulam:5:12: ERROR: Invalid Statement (possible missing semicolon).
-Unrecoverable Program Parse FAILURE.
+Unrecoverable Program Parse FAILURE: <D.ulam>
 ##
 #>D.ulam
 quark D {

@@ -50,7 +50,6 @@ namespace MFM {
   {
     std::vector<std::string> afileToCompile;
     afileToCompile.push_back(startstr);
-    //afileToCompile.push_back("share/ulam/stdlib/UrSelf.ulam");
     return compileFiles(infm, afileToCompile, outfm, errput);
   }
 
@@ -83,10 +82,6 @@ namespace MFM {
 	      {
 		existingFileNames.push_back(startstr);
 	      }
-	    else
-	      {
-
-	      }
 	    //else skip
 	    it++;
 	  }
@@ -105,9 +100,11 @@ namespace MFM {
     if(!perrs)
       {
 	//across ALL parsed files
-	if(checkAndTypeLabelProgram(errput) == 0)
+	perrs = checkAndTypeLabelProgram(errput);
+	if(perrs == 0)
 	  {
 	    m_state.m_programDefST.genCodeForTableOfClasses(outfm);
+	    perrs = m_state.m_err.getErrorCount();
 	  }
 	else
 	  {
@@ -118,7 +115,7 @@ namespace MFM {
     delete P;
     delete PP;
     delete Lex;
-    return m_state.m_err.getErrorCount();
+    return perrs;
   } //compileFiles
 
   u32 Compiler::compileFile(std::string startstr, File * errput, SourceStream& ssref, Parser* p)
@@ -138,13 +135,22 @@ namespace MFM {
 		    msg << "No class '";
 		    msg << m_state.m_pool.getDataAsString(compileThisId).c_str();
 		    msg << "' in <" << startstr.c_str() << ">";
-		    errput->write(msg.str().c_str());
+		    //errput->write(msg.str().c_str());
+		    NodeBlockClass * cblock = cnsym->getClassBlockNode();
+		    if(cblock)
+		      MSG(cblock->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    else
+		      MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 		    return 1;
 		  }
 	      }
 	  }
-	return 0;
-      }
+	else
+	  {
+	    return 1; //err msg output
+	  }
+	return 0; //already parsed
+      } //not yet pushed
 
     u32 perrs = 0;
     u32 pmsg = ssref.push(startstr);

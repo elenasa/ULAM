@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3614_test_compiler_decllist_withref_casterror
 #!
-./test.ulam:2:3: ERROR: Reference variable d's type Int(32)&, and its initial value type Int(3), are incompatible sizes.
+./A.ulam:6:5: ERROR: Reference variable d's type Int(32)&, and its initial value type Int(3), are incompatible sizes.
 ./A.ulam:2:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 #>A.ulam
@@ -9,17 +9,14 @@ Unrecoverable Program Type Label FAILURE.
 element A {
   Bool sp;
   Int(3) a;
-  use test;
-  b = 1;
-  b+=2;
-  c[1] = b;
-  a = (Int(3)) c[1];
+  Int test() {
+    Int b, &d = a, c[2]; //ref requires init
+    b = 1;
+    b+=2;
+    c[1] = b;
+    a = (Int(3)) c[1];
   return d;
- }
+  }
 }
-
-#:test.ulam
-Int test() {
-  Int b, &d = a, c[2]; //ref requires init
 
 #.

@@ -449,7 +449,7 @@ namespace MFM{
     bool isAtomRef(UTI auti);
     bool isASeenClass(UTI cuti);
     bool isAnonymousClass(UTI cuti);
-    void saveUrSelfUTI(UTI uti);
+    void saveUrSelf(UTI uti);
     bool isUrSelf(UTI cuti);
     bool okUTItoContinue(UTI uti);
     bool okUTItoContinue(UTI uti1, UTI uti2); //false if either is Nav

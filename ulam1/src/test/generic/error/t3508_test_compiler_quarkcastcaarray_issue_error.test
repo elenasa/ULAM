@@ -1,10 +1,6 @@
 ## -*- mode:ulam -*-
 #=t3508_test_compiler_quarkcastcaarray_issue_error
 #!
-Exit status: -11
-Ue_D { Int(32) test() {  QPort4 s;  s ( )update . 0 cast return } }
-Uq_QPort4 { typedef Unsigned(6) SiteNum;  EventWindow ew( typedef Unsigned(6) SiteNum; );  <NOMAIN> }
-Uq_EventWindow { typedef Unsigned(6) SiteNum;  <NOMAIN> }
 ./QPort4.ulam:18:14: ERROR: Cannot explicitly cast custom array type Atom(96) to type: QPort4; Consider using a temporary variable.
 ##
 #>D.ulam

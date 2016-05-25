@@ -4,7 +4,7 @@
 ##
 ./Foo.ulam:5:4: ERROR: Unexpected input!! Try ++ as a prefix operator.
 ./Foo.ulam:5:4: ERROR: Invalid Statement (possible missing semicolon).
-Unrecoverable Program Parse FAILURE.
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
 ##
 #>Foo.ulam
 ulam 1;

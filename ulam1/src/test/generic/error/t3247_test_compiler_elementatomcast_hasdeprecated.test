@@ -26,7 +26,7 @@
 ./Foo.ulam:21:12: ERROR: (Low Level) DEPRECATED keyword <has>.
 ./Foo.ulam:21:20: ERROR: Name of variable <)>: Identifier must begin with a lower-case letter.
 ./Foo.ulam:21:20: ERROR: Invalid Statement (possible missing semicolon).
-Unrecoverable Program Parse FAILURE.
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
 #>Foo.ulam
 ##      // 'a has System' doesn't apply to eval because atoms have no class declarations; but testable for gencode
   use System;

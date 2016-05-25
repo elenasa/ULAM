@@ -7,7 +7,7 @@
 ./Foo.ulam:4:27: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
 ./Foo.ulam:2:10: ERROR: Invalid Type: Foo.
  ERROR: No parse tree for This Class: Foo.
-Unrecoverable Program Parse FAILURE.
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
 ##
 ##       //MP cannot be an array, since arrays cannot be initialized
 #>Foo.ulam

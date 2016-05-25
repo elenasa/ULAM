@@ -4,7 +4,7 @@
 ./QW.ulam:6:25: ERROR: Unsupported request: 'atomof' <QW>, a Type.
 ./QW.ulam:6:10: ERROR: Initial value of variable _IDENTIFIER is missing.
 ./QW.ulam:10:5: ERROR: Invalid Statement (possible missing semicolon).
-Unrecoverable Program Parse FAILURE.
+Unrecoverable Program Parse FAILURE: <A.ulam>
 ##
 ## Dave requested a way to get default values for Self (within a quark);
 ## Self.instanceof (default) vs self.atomof (current stg)

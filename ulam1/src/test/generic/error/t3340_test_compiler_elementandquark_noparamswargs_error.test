@@ -2,7 +2,7 @@
 #=t3340_test_compiler_elementandquark_noparamswargs_error
 #!
 ./Foo.ulam:3:13: ERROR: Class without parameters already exists with the same name: NoParms.
-Unrecoverable Program Parse FAILURE.
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
 ##
 #>Foo.ulam
 ulam 1;

@@ -3,7 +3,7 @@
 #!
 ./D.ulam:11:5: ERROR: Undefined function <times> that has already been declared as a variable.
 ./D.ulam:11:12: ERROR: Invalid Statement (possible missing semicolon).
-Unrecoverable Program Parse FAILURE.
+Unrecoverable Program Parse FAILURE: <D.ulam>
 ##
 #>D.ulam
 element D {

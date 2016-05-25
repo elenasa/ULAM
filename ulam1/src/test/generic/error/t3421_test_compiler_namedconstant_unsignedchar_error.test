@@ -3,7 +3,7 @@
 #!
 ./A.ulam:2:37: ERROR: (Low Level) Lexer prevents empty single quoted constant.
 ./A.ulam:2:34: ERROR: Missing named constant definition after '=' for 'cPRINT_NAME'.
-Unrecoverable Program Parse FAILURE.
+Unrecoverable Program Parse FAILURE: <A.ulam>
 ##
 ##      //informed by 3418, except constant type is tictic
 ##

@@ -20,18 +20,16 @@ element A {
   constant Unsigned(3) a = 7u; constant Unsigned(3) b = 5u;
   constant Unary(3) c = (Unary(3)) (a + b);
   Unsigned(4) d;
-  use test;
-  d = a + b;
-  s.print(c);
-  s.assert(c == 3);
-  s.print(d);
-  s.assert(d == 12);
-  return c;
-}
+  Int test() {
+    d = a + b;
+    s.print(c);
+    s.assert(c == 3);
+    s.print(d);
+    s.assert(d == 12);
+    return c;
+  }
 }
 
-#:test.ulam
-Int test() {
 #:System.ulam
       ulam 1;
 quark System {

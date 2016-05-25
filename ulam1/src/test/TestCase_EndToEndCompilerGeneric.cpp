@@ -183,26 +183,33 @@ namespace MFM {
       }
 
     std::vector<std::string> filesToCompile;
-    filesToCompile.push_back(startstr);
     filesToCompile.push_back("UrSelf.ulam");
+
+    for (u32 i = 0; i < m_inputFiles.size(); ++i)
+      {
+	InputFile & in = m_inputFiles[i];
+	filesToCompile.push_back(in.m_fileName);
+      }
+    //filesToCompile.push_back(startstr);
 
     // error messages appended to output are compared to answer
     if(C.compileFiles(fm, filesToCompile, outfm, output) == 0)
       {
-	    //#define SKIP_EVAL
+	//also available in NodeBlockClass::eval
+	//#define SKIP_EVAL
 #ifndef SKIP_EVAL
-	    if(C.testProgram(output) == 0)
-	      {
-		C.printPostFix(output);
-	      }
-	    else
-	      output->write("Unrecoverable Program Test FAILURE.\n");
+	if(C.testProgram(output) == 0)
+	  {
+	    C.printPostFix(output);
+	  }
+	else
+	  output->write("Unrecoverable Program Test FAILURE.\n");
 #endif
       }
-    else
-      {
-	output->write("Unrecoverable Program Parse FAILURE.\n");
-      }
+    //else
+    //  {
+    //	output->write("Unrecoverable Program Parse FAILURE.\n");
+    // }
 
     delete outfm;
     return true;

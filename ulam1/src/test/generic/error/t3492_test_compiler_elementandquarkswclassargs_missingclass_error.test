@@ -1,11 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3492_test_compiler_elementandquarkswclassargs_missingclass_error
 #!
-./R.ulam:5:5: ERROR: Unresolved type <P> used with local variable symbol name 'pvar' in function: test.
-./R.ulam:5:5: ERROR: UNSEEN class type <P> was never defined.
-./R.ulam:2:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: R.
-./R.ulam:2:9: ERROR: 3 Nodes with unresolved types detected after type labeling class: R.
-Unrecoverable Program Type Label FAILURE.
+./R.ulam:5:5: ERROR: No class 'P' in <P.ulam>.
 ##
 ##      // missing P!!!
 ##

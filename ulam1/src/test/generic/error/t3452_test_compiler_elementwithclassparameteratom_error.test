@@ -6,7 +6,7 @@
 ./T.ulam:5:10: ERROR: Invalid constant definition Type 'Atom'.
 ./T.ulam:6:2: ERROR: Invalid Statement (possible missing semicolon).
 ./T.ulam:7:4: ERROR: Too many Class Arguments (1); Class Template 'S' expects 0.
-Unrecoverable Program Parse FAILURE.
+Unrecoverable Program Parse FAILURE: <T.ulam>
 ##
 ##    //informed by t3333
 ##

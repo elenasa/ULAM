@@ -5,21 +5,23 @@ Exit status: 24
 Ue_A { System s();  Bool(7) d(false);  Int(32) a(24);  Int(32) test() {  a ( 4 cast )fact = s ( a )print . a return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
+  ulam 1;
 use System;
-element A {System s;
-Bool(7) d;
-Int test() {
-a = fact(4);
-s.print(a);
-return a;
-}
-Int a;
-Int fact(Int n) {
-if(n>0)
-return (n * fact(n-1));
-else
-return 1;
-}
+element A {
+  System s;
+  Bool(7) d;
+  Int test() {
+    a = fact(4);
+    s.print(a);
+    return a;
+  }
+  Int a;
+  Int fact(Int n) {
+    if(n>0)
+      return (n * fact(n-1));
+    else
+      return 1;
+  }
 }
 ## test system quark with native overloaded print funcs; assert
 #:System.ulam
