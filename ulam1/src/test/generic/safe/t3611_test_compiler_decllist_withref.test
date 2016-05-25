@@ -8,17 +8,14 @@ Ue_A { Bool(1) sp(false);  Int(32) a(3);  Int(32) test() {  Int(32) b;  Int(32)&
 element A {
   Bool sp;
   Int a;
-  use test;
-  b = 1;
-  b+=2;
-  c[1] = b;
-  a = c[1];
-  return d; //3
- }
+  Int test() {
+    Int b, &d = a, c[2];
+    b = 1;
+    b+=2;
+    c[1] = b;
+    a = c[1];
+    return d; //3
+  }
 }
-
-#:test.ulam
-Int test() {
-  Int b, &d = a, c[2];
 
 #.

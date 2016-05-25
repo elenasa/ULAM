@@ -376,6 +376,15 @@ namespace MFM {
     fp->write("AtomBitStorage<EC>");
     fp->write("(d.ReadAtom()) { }\n");
 
+    //copy constructor
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("(const ");
+    fp->write(mangledName.c_str());
+    fp->write("& d) : "); //uc consistent with atomref
+    fp->write("AtomBitStorage<EC>");
+    fp->write("(d.read()) { }\n");
+
     //default destructor (for completeness)
     m_state.indent(fp);
     fp->write("~");

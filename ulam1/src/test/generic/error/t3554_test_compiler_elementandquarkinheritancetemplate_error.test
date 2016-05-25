@@ -2,7 +2,7 @@
 #=t3554_test_compiler_elementandquarkinheritancetemplate_error
 #!
 ./Tu.ulam:3:18: ERROR: Missing Class Arguments for an instance stub of class template 'Foo'.
-Unrecoverable Program Parse FAILURE.
+Unrecoverable Program Parse FAILURE: <Tu.ulam>
 ##
 ##       //classes can inherit from a template instance, and vis versa; here, missing class args
 ##

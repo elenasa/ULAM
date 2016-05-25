@@ -2,7 +2,7 @@
 #=t3122_test_compiler_opequal_invalidlhs_error
 #!
 ./D.ulam:4:7: ERROR: Invalid Statement (possible missing semicolon).
-Unrecoverable Program Parse FAILURE.
+Unrecoverable Program Parse FAILURE: <D.ulam>
 ##
 #>D.ulam
 element D {

@@ -2,7 +2,7 @@
 #=t3215_test_compiler_element_modelparameterint
 #!
 ./Foo.ulam:12:9: ERROR: Invalid Statement (possible missing semicolon).
-Unrecoverable Program Parse FAILURE.
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
 ## f.chance =
 ## ./Foo.ulam:12:11: ERROR: Invalid lefthand side of equals <.>, type: Int(32).
 ## chance =

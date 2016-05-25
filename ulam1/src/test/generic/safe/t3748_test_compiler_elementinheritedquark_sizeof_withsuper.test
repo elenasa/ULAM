@@ -5,10 +5,10 @@
 ##
 #!
 Exit status: 0
-Ue_Test : System { :<> Bool(1) brtn[3](true,true,true);  Int(32) test() {  E2 e2;  brtn 0 [] e2 ( )supersizefunc . 7u cast == = ( brtn 0 [] )assert Sub1 sb1;  brtn 1 [] sb1 ( )supersizefunc . 4u cast == = ( brtn 1 [] )assert Base base;  brtn 2 [] base ( )supersizefunc . 0u cast == = ( brtn 2 [] )assert 0 cast return } }
 Uq_Base { Bits(4) bits( 12u);  <NOMAIN> }
 Uq_Sub1 : Base { :< Bits(4) bits( 12u); > Int(3) sint( -1);  <NOMAIN> }
 Ue_E2 : Sub1 { :< :< Bits(4) bits( 12u); > Int(3) sint( -1); > Bool(7) esp( true);  <NOMAIN> }
+Ue_Test : System { :<> Bool(1) brtn[3](true,true,true);  Int(32) test() {  E2 e2;  brtn 0 [] e2 ( )supersizefunc . 7u cast == = ( brtn 0 [] )assert Sub1 sb1;  brtn 1 [] sb1 ( )supersizefunc . 4u cast == = ( brtn 1 [] )assert Base base;  brtn 2 [] base ( )supersizefunc . 0u cast == = ( brtn 2 [] )assert 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## unlike instanceof, sizeof is a non-virtual function;

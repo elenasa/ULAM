@@ -6,7 +6,7 @@
 ./D.ulam:2:19: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
 ./D.ulam:1:7: ERROR: Invalid Type: D.
  ERROR: No parse tree for This Class: D.
-Unrecoverable Program Parse FAILURE.
+Unrecoverable Program Parse FAILURE: <D.ulam>
 ##
 #>D.ulam
 quark D {

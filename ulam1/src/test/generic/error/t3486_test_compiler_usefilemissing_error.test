@@ -2,7 +2,7 @@
 #=t3486_test_compiler_usefilemissing_error
 #!
 ./Foo.ulam:5:1: ERROR: (Low Level) Couldn't open file <NoParms.ulam> errno=2 No such file or directory.
-Unrecoverable Program Parse FAILURE.
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
 ##
 ##      // missing use file.
 ##

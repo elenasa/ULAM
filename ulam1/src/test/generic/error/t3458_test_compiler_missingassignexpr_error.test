@@ -2,7 +2,7 @@
 #=t3458_test_compiler_missingassignexpr_error
 #!
 ./A.ulam:3:14: ERROR: Initial value of variable _IDENTIFIER is missing.
-Unrecoverable Program Parse FAILURE.
+Unrecoverable Program Parse FAILURE: <A.ulam>
 ##
 ##      //informed by 3457, except local variable type
 ##

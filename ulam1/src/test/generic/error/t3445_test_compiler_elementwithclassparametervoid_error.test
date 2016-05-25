@@ -2,7 +2,7 @@
 #=t3445_test_compiler_elementwithclassparametervoid_error
 #!
 ./S.ulam:2:9: ERROR: Invalid constant definition Type 'Void'.
-Unrecoverable Program Parse FAILURE.
+Unrecoverable Program Parse FAILURE: <T.ulam>
 ##
 ##    //informed by t3333
 ##

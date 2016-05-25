@@ -432,7 +432,7 @@ namespace MFM {
 		    //required only once!
 		    Token urTok(TOK_TYPE_IDENTIFIER, qTok.m_locator, urid);
 		    m_state.addIncompleteClassSymbolToProgramTable(urTok, ursym);
-		    m_state.saveUrSelfUTI(ursym->getUlamTypeIdx());
+		    m_state.saveUrSelf(ursym->getUlamTypeIdx());
 		  }
 		cnsym->setSuperClass(ursym->getUlamTypeIdx()); //reset super here!!!
 	      }

@@ -6,7 +6,7 @@
 ./Tu.ulam:4:17: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
 ./Tu.ulam:2:9: ERROR: Invalid Type: Tu.
  ERROR: No parse tree for This Class: Tu.
-Unrecoverable Program Parse FAILURE.
+Unrecoverable Program Parse FAILURE: <Tu.ulam>
 ##
 ##      // cannot write into an MP in ulam (only MFM simulator!)
 ##

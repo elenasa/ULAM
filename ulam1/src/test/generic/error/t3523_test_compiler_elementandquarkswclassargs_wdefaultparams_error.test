@@ -7,7 +7,7 @@
 ./P.ulam:8:7: ERROR: Class Argument after Open Paren is missing, for template 'Q'.
 ./P.ulam:8:7: ERROR: Name of variable <,>: Identifier must begin with a lower-case letter.
 ./P.ulam:8:7: ERROR: Invalid Statement (possible missing semicolon).
-Unrecoverable Program Parse FAILURE.
+Unrecoverable Program Parse FAILURE: <P.ulam>
 ##
 #>P.ulam
 ulam 1;

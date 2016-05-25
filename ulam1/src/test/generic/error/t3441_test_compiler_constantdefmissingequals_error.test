@@ -6,7 +6,7 @@
 ./Tu.ulam:3:25: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
 ./Tu.ulam:2:9: ERROR: Invalid Type: Tu.
  ERROR: No parse tree for This Class: Tu.
-Unrecoverable Program Parse FAILURE.
+Unrecoverable Program Parse FAILURE: <Tu.ulam>
 ##
 #>Tu.ulam
 ulam 1;

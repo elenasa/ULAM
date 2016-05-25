@@ -5,7 +5,8 @@
 ./Typo.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Typo'; Possible missing ending curly brace.
 ./Typo.ulam:3:20: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
  ERROR: No parse tree for This Class: ElTypo.
-Unrecoverable Program Parse FAILURE.
+Unrecoverable Program Parse FAILURE: <ElTypo.ulam>
+./Typo.ulam:2:12: ERROR: No class 'Typo' in <Typo.ulam>.
 #>ElTypo.ulam
   ulam 1;
 use Typo;

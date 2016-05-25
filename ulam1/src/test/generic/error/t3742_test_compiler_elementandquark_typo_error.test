@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3742_test_compiler_elementandquark_typo_error
 #!
-./Eltypo.ulam:13:19: ERROR: UNSEEN class type <ElTypo> was never defined.
+./Eltypo.ulam:13:19: ERROR: UNSEEN class type <ElTypo> was never defined in <ElTypo.ulam>.
 ./Eltypo.ulam:4:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Eltypo.
 ./Eltypo.ulam:4:9: ERROR: 4 Nodes with unresolved types detected after type labeling class: Eltypo.
 Unrecoverable Program Type Label FAILURE.

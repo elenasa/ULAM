@@ -442,11 +442,9 @@ namespace MFM {
     //default constructor (used by local vars)
     m_state.indent(fp);
     fp->write(mangledName.c_str());
-    fp->write("() { ABS::");
-    fp->write(writeMethodForCodeGen().c_str());
+    fp->write("() : AtomBitStorage<EC>");
     fp->write("(Us::THE_INSTANCE");
-    fp->write(".GetDefaultAtom()); "); //returns object of type T
-    fp->write(" }\n");
+    fp->write(".GetDefaultAtom()) { }\n"); //returns object of type T
 
     //constructor here (used by const tmpVars) (e.g. t3706)
     m_state.indent(fp);

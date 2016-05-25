@@ -27,10 +27,4 @@ quark Q(Int b = 3, Unsigned(b) s = 1u) {
   Foo f;
 }
 
-#:V.ulam
-  ulam 1;
-quark V(Int a) {
-  Unsigned(a) vfoo;
-}
-
 #.

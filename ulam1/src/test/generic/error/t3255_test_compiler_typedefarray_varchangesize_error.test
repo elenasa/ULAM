@@ -7,7 +7,7 @@
 ./B.ulam:9:15: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
 ./B.ulam:2:9: ERROR: Invalid Type: B.
  ERROR: No parse tree for This Class: B.
-Unrecoverable Program Parse FAILURE.
+Unrecoverable Program Parse FAILURE: <B.ulam>
 ##
 ##      // with renames of typedefs, and arrays based on typedef
 ##      // can't change/state array size when declaring variable with array typedef

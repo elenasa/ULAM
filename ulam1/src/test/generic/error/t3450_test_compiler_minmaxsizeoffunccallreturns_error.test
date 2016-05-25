@@ -7,7 +7,7 @@
 ./T.ulam:13:14: ERROR: Invalid Statement (possible missing semicolon).
 ./T.ulam:14:17: ERROR: Unexpected token <TOK_KW_SIZEOF>; Expected _IDENTIFIER.
 ./T.ulam:14:17: ERROR: Invalid Statement (possible missing semicolon).
-Unrecoverable Program Parse FAILURE.
+Unrecoverable Program Parse FAILURE: <T.ulam>
 #>T.ulam
  ulam 1;
  element T{

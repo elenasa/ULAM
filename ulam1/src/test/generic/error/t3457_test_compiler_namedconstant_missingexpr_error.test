@@ -2,7 +2,7 @@
 #=t3457_test_compiler_namedconstant_missingexpr_error
 #!
 ./A.ulam:2:34: ERROR: Missing named constant definition after '=' for 'cPRINT_NAME'.
-Unrecoverable Program Parse FAILURE.
+Unrecoverable Program Parse FAILURE: <A.ulam>
 ##
 ##      //informed by 3418, except constant type is missing
 ##
