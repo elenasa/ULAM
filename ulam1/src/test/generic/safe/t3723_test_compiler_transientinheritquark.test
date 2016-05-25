@@ -1,10 +1,10 @@
 ## -*- mode:ulam -*-
-#=t3723_test_compiler_transientinheritquark_error
+#=t3723_test_compiler_transientinheritquark
 #!
-./Soo.ulam:3:11: ERROR: Subclass 'Soo' inherits from 'Coo', a class that's not a transient.
-./Foo.ulam:3:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: Foo.
-./Foo.ulam:3:9: ERROR: 4 Nodes with unresolved types detected after type labeling class: Foo.
-Unrecoverable Program Type Label FAILURE.
+Exit status: 6
+Ue_Foo { Bool(1) first(false);  Int(32) test() {  Soo su;  { su cb . cond { 6u cast return } if } 0 cast return } }
+Un_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 ##
 ## transient inheritance, regular (non-template)
 ##

@@ -317,14 +317,15 @@ namespace MFM {
 	ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClassType();
 	if(classtype == UC_TRANSIENT)
 	  {
-	    if(superclasstype != UC_TRANSIENT)
+	    //allow transients to inherit from either transients or quarks (t3723)
+	    if((superclasstype != UC_TRANSIENT) && (superclasstype != UC_QUARK))
 	      {
 		std::ostringstream msg;
 		msg << "Subclass '";
 		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 		msg << "' inherits from '";
 		msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
-		msg << "', a class that's not a transient";
+		msg << "', a class that's neither a transient nor a quark"; //e.g. error/t3725
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		setNodeType(Nav);
 	      }

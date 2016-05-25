@@ -420,8 +420,7 @@ namespace MFM {
 	cnsym->setSuperClass(Nouti); //clear
 
 	//earliest ancestor when none designated; for all classes except UrSelf,
-	//and transients (at this time) Mon May 23 13:57:32 2016
-	if(cnsym->getUlamClass() != UC_TRANSIENT)
+	//if(cnsym->getUlamClass() != UC_TRANSIENT)
 	  {
 	    u32 urid = m_state.m_pool.getIndexForDataString("UrSelf");
 	    if(cnsym->getId() != urid)

@@ -22,6 +22,8 @@ element Ish5 : System {
   Int test() {
     E1 e1;
     Atom a1 = e1;
+    //Atom a1;
+    //a1 = e1;
     if (a1 as E1) {
       print(a1.m_b.func());
       brtn = (a1.m_b.func() == 4);
