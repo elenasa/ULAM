@@ -970,7 +970,8 @@ namespace MFM {
     desc.m_hasTest = (func != NULL);
 
     ULAMCLASSTYPE classtype = cut->getUlamClassType();
-    desc.m_isQuark = (classtype == UC_QUARK);
+    //desc.m_isQuark = (classtype == UC_QUARK);
+    desc.m_classType = classtype;
 
     desc.m_bitsize = cut->getTotalBitSize();
     desc.m_loc = classNode->getNodeLocation();

@@ -43,7 +43,6 @@
 #include "itype.h"
 #include "NodeConstantDef.h"
 #include "UlamValue.h"
-#include "UlamType.h"
 
 namespace MFM
 {

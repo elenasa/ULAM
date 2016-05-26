@@ -38,6 +38,8 @@
 #define SYMBOLTABLEOFCLASSES_H
 
 #include "SymbolTable.h"
+#include "MapClassMemberDesc.h"
+#include "TargetMap.h"
 
 namespace MFM{
 

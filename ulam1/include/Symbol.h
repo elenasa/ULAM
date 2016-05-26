@@ -39,7 +39,7 @@
 
 #include "itype.h"
 #include "Token.h"
-#include "UlamType.h"
+#include "Constants.h"
 
 namespace MFM{
 

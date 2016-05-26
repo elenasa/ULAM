@@ -38,6 +38,7 @@
 #define SYMBOLTABLEOFFUNCTIONS_H
 
 #include "SymbolTable.h"
+#include "MapClassMemberDesc.h"
 
 namespace MFM{
 

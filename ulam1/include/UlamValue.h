@@ -40,7 +40,6 @@
 #include "itype.h"
 #include "BitVector.h"
 #include "Constants.h"
-#include "UlamType.h"
 
 namespace MFM{
 

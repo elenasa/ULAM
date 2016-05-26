@@ -4,6 +4,7 @@
 #include "SymbolTableOfClasses.h"
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
+#include "UlamTypeClass.h"
 
 namespace MFM {
 
@@ -13,6 +14,7 @@ namespace MFM {
 
   SymbolTableOfClasses::~SymbolTableOfClasses()  { }
 
+  //supports UlamElementInfo
   void SymbolTableOfClasses::getTargets(TargetMap& classtargets)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
@@ -24,13 +26,14 @@ namespace MFM {
 	//skip anonymous classes
 	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti))
 	  {
-	    if(((SymbolClass *) sym)->getUlamClass() != UC_TRANSIENT)
+	    //if(((SymbolClass *) sym)->getUlamClass() != UC_TRANSIENT)
 	      ((SymbolClassName *) sym)->getTargetDescriptorsForClassInstances(classtargets);
 	  }
 	it++;
       } //while
   } //getTargets
 
+  //supports UlamElementInfo
   void SymbolTableOfClasses::getClassMembers(ClassMemberMap& classmembers)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
@@ -42,7 +45,7 @@ namespace MFM {
 	//skip anonymous classes
 	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti))
 	  {
-	    if(((SymbolClass *) sym)->getUlamClass() != UC_TRANSIENT)
+	    //if(((SymbolClass *) sym)->getUlamClass() != UC_TRANSIENT)
 	      ((SymbolClassName *) sym)->getClassMemberDescriptionsForClassInstances(classmembers);
 	  }
 	it++;

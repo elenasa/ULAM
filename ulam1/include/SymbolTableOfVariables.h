@@ -38,6 +38,8 @@
 #define SYMBOLTABLEOFVARIABLES_H
 
 #include "SymbolTable.h"
+#include "MapClassMemberDesc.h"
+#include "UlamValue.h"
 
 namespace MFM{
 

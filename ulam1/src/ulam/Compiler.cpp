@@ -16,11 +16,15 @@ namespace MFM {
   Compiler::~Compiler()
   {  }
 
+  // support for UlamElementInfo (rgrep me!)
+  // testing available in c&l below.
   std::string Compiler::getMangledTarget()
   {
     return m_state.getFileNameForThisClassCPP();
   }
 
+  //support for UlamElementInfo (rgrep me!)
+  // testing available in c&l below.
   TargetMap Compiler::getMangledTargetsMap()
   {
     TargetMap rtnTargets;
@@ -317,7 +321,7 @@ namespace MFM {
 	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     //else
-    //assert(errCnt == 0); //e.g. error/t3644 (not sure what to do about it, discovery too deep)
+    //assert(errCnt == 0); //e.g. error/t3644 (not sure what to do about it, error discovery too deep)
 
     if(hzycount > 0)
       {
@@ -358,7 +362,7 @@ namespace MFM {
 	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
       }
 
-    // testing targetmap only
+    // testing targetmap only (matches code in main.cpp)
     //#define TESTTARGETMAP
 #ifdef TESTTARGETMAP
     TargetMap tm = getMangledTargetsMap();
@@ -372,14 +376,15 @@ namespace MFM {
 	  << " " << i->second.m_className
 	  << " " << i->first
 	  << " " << i->second.m_bitsize
-	  << " " << (i->second.m_hasTest?"test":"notest")
-	  << " " << (i->second.m_isQuark?"quark":"element")
+	  << " " << (i->second.m_hasTest ? "test" : "notest")
+	  //<< " " << (i->second.m_isQuark?"quark":"element")
+	  << " " << (i->second.m_classType == UC_QUARK ? "quark": (i->second.m_classType == UC_ELEMENT ? "element" : "transient"))
 	  << " " << MFM::HexEscape(i->second.m_structuredComment)
 	  << std::endl;
       }
 #endif
 
-    // testing class member map only
+    // testing class member map only (matches code in main.cpp)
     //#define TESTCLASSMEMBERMAP
 #ifdef TESTCLASSMEMBERMAP
     ClassMemberMap cmm = getMangledClassMembersMap();

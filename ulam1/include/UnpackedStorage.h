@@ -40,7 +40,6 @@
 #include <vector>
 #include "itype.h"
 #include "UlamValue.h"
-#include "UlamType.h"
 
 namespace MFM
 {
