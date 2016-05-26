@@ -1192,7 +1192,6 @@ namespace MFM {
 	fp->write("u, ");
 	if(!stgcosut->isReference())
 	  {
-	    //fp->write("0u, "); //origin
 	    fp->write(stgcos->getMangledName().c_str()); //storage
 	    fp->write(", ");
 	  }
@@ -1504,7 +1503,6 @@ namespace MFM {
 
 	fp->write(", &");
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
-	//cosuti = scalarcosuti; //for the uvpass
 	cosuti = scalarrefuti; //for the uvpass
       }
     fp->write(");\n");

@@ -283,8 +283,7 @@ namespace MFM {
       {
 	// this datamember belongs to an element or quark (e.g. t3190)
 	// allows BIG numeric arrays, and BIG Bits and Bools Wed May 11 09:16:34 2016
-	//if((len > MAXBITSPERLONG) && (dmclasstype == UC_NOTACLASS)) //BitField constraint
-	if((len > MAXBITSPERLONG) && (dmclasstype == UC_NOTACLASS) && ut->isScalar() && ut->isNumericType())
+	if((len > MAXBITSPERLONG) && (dmclasstype == UC_NOTACLASS) && ut->isScalar() && ut->isNumericType()) //BitField constraint
 	  {
 	    std::ostringstream msg;
 	    msg << "Data member <" << getName() << "> of numeric scalar type: ";

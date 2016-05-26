@@ -47,7 +47,6 @@ namespace MFM
   struct TargetDesc
   {
     bool m_hasTest;
-    //bool m_isQuark;
     ULAMCLASSTYPE m_classType;
     u32 m_bitsize;
     Locator m_loc;

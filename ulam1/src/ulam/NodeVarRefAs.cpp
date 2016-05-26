@@ -171,8 +171,7 @@ namespace MFM {
 	if(vclasstype == UC_QUARK)
 	  fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, "); //position as super (e.g. t3639, t3709, t3675, t3408, t3336)
 	else if(vclasstype == UC_ELEMENT)
-	  fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, ");
-	//fp->write(", 0u, "); //t3249, t3255, t3637
+	  fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, "); //t3249, t3255, t3637
 	else
 	  assert(0); //can't be a transient
 
@@ -192,7 +191,6 @@ namespace MFM {
 	    if(vclasstype == UC_QUARK)
 	      fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, "); //t3586, t3589, t3637
 	    else if(vclasstype == UC_ELEMENT)
-	      //fp->write(", 0u, ");
 	      fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, "); //element ref's start at state
 	    else
 	      assert(0); //can't be a transient

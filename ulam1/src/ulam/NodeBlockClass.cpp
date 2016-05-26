@@ -1781,7 +1781,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(declOnly)
       {
 #if 0
-	//enum for method indexes
+	//enum for method indexes; see UlamElement.h for first two.
 	m_state.indent(fp);
 	fp->write("enum VmethodNumbers {\n");
 	m_state.m_currentIndentLevel++;

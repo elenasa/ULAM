@@ -26,8 +26,7 @@ namespace MFM {
 	//skip anonymous classes
 	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti))
 	  {
-	    //if(((SymbolClass *) sym)->getUlamClass() != UC_TRANSIENT)
-	      ((SymbolClassName *) sym)->getTargetDescriptorsForClassInstances(classtargets);
+	    ((SymbolClassName *) sym)->getTargetDescriptorsForClassInstances(classtargets);
 	  }
 	it++;
       } //while
@@ -45,8 +44,7 @@ namespace MFM {
 	//skip anonymous classes
 	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti))
 	  {
-	    //if(((SymbolClass *) sym)->getUlamClass() != UC_TRANSIENT)
-	      ((SymbolClassName *) sym)->getClassMemberDescriptionsForClassInstances(classmembers);
+	    ((SymbolClassName *) sym)->getClassMemberDescriptionsForClassInstances(classmembers);
 	  }
 	it++;
       } //while
@@ -328,7 +326,9 @@ namespace MFM {
 		msg << "Unresolved type <";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		msg << "> was never defined; Fails labeling";
-		MSG(cnsym->getTokPtr(), msg.str().c_str(), DEBUG); //was ERR but typedef junk; was WARN, but too many msgs when ERR with variable name suffices (error/t3370, t3492)
+		//was ERR but typedef junk; was WARN, but too many msgs when ERR
+		//with variable name suffices (error/t3370, t3492)
+		MSG(cnsym->getTokPtr(), msg.str().c_str(), DEBUG);
 		cnsym->getClassBlockNode()->setNodeType(Nav); //for compiler counter
 		//assert(0); wasn't a class at all, e.g. out-of-scope typedef/variable
 		break;
@@ -581,7 +581,6 @@ namespace MFM {
 	Symbol * sym = it->second;
 	assert(sym->isClass());
 	//next output all the element typedefs that are m_compileThisId; skipping quarks
-	//if(sym->getId() == m_state.getCompileThisId() && ((SymbolClass * ) sym)->getUlamClass() != UC_QUARK)
 	if(sym->getId() == m_state.getCompileThisId() && ((SymbolClass * ) sym)->getUlamClass() == UC_ELEMENT)
 	  ((SymbolClassName *) sym)->generateTestInstanceForClassInstances(fp, RUNTEST);
 	it++;

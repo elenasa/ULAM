@@ -377,7 +377,6 @@ namespace MFM {
 	  << " " << i->first
 	  << " " << i->second.m_bitsize
 	  << " " << (i->second.m_hasTest ? "test" : "notest")
-	  //<< " " << (i->second.m_isQuark?"quark":"element")
 	  << " " << (i->second.m_classType == UC_QUARK ? "quark": (i->second.m_classType == UC_ELEMENT ? "element" : "transient"))
 	  << " " << MFM::HexEscape(i->second.m_structuredComment)
 	  << std::endl;

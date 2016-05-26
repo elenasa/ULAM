@@ -258,7 +258,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Storage expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
-	    msg << ", must be storeintoable";
+	    msg << ", must be storeintoable"; //e.g. constant or function call NOT so
 	    if(istor == TBOOL_HAZY)
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -467,31 +467,6 @@ namespace MFM {
 		//local var (no currentObjSymbols, 1 arg since same type)
 		assert(UlamType::compare(uvpass.getPassTargetType(), vuti, m_state) == UTIC_SAME);
 		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-
-#if 0
-		if((vclasstype == UC_NOTACLASS) && !m_state.isAtom(vuti))
-		  {
-		    fp->write(", 0u"); //relative
-		  }
-		else if(vclasstype == UC_QUARK)
-		  {
-		    //left-justified, or relative if data member (even if self)
-		    fp->write(", 0u");
-		  }
-		else if((vclasstype == UC_ELEMENT))
-		  {
-		    UTI puti = uvpass.getPassTargetType();
-		    if(m_state.isReference(puti))
-		      fp->write(", 0u"); //idx for storage e.g. t3615
-		    else
-		      fp->write(", 0u + T::ATOM_FIRST_STATE_BIT"); // t3689
-		  }
-		else if(vclasstype == UC_TRANSIENT)
-		  {
-		    fp->write(", 0u"); //??????
-		  }
-		//else e.g. atom do nothing
-#endif
 	      }
 	  }
 
