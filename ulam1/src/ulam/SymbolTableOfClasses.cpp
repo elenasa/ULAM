@@ -24,7 +24,8 @@ namespace MFM {
 	//skip anonymous classes
 	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti))
 	  {
-	    ((SymbolClassName *) sym)->getTargetDescriptorsForClassInstances(classtargets);
+	    if(((SymbolClass *) sym)->getUlamClass() != UC_TRANSIENT)
+	      ((SymbolClassName *) sym)->getTargetDescriptorsForClassInstances(classtargets);
 	  }
 	it++;
       } //while
@@ -41,7 +42,8 @@ namespace MFM {
 	//skip anonymous classes
 	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti))
 	  {
-	    ((SymbolClassName *) sym)->getClassMemberDescriptionsForClassInstances(classmembers);
+	    if(((SymbolClass *) sym)->getUlamClass() != UC_TRANSIENT)
+	      ((SymbolClassName *) sym)->getClassMemberDescriptionsForClassInstances(classmembers);
 	  }
 	it++;
       } //while
