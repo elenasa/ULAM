@@ -133,6 +133,26 @@ namespace MFM {
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
 	  }
+	else if(m_state.isAtom(nuti))
+	  {
+	    //atoms init from a quark ref could use .atomof
+	    // "clear" when complete, not the same as "bad".
+	    if(rscr != CAST_CLEAR)
+	      {
+		std::ostringstream msg;
+		msg << "Reference atom variable " << getName() << "'s type ";
+		msg << nut->getUlamTypeNameBrief().c_str();
+		msg << ", and its initial value type ";
+		msg << newt->getUlamTypeNameBrief().c_str();
+		msg << ", are incompatible";
+		if(newt->isReference() && newt->getUlamClassType() == UC_QUARK)
+		  msg << "; .atomof may help";
+		if(rscr == CAST_HAZY)
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		else
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      }
+	  }
 	else
 	  {
 	    //primitives must be EXACTLY the same size (for initialization);

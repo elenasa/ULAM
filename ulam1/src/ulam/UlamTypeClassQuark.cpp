@@ -35,7 +35,7 @@ namespace MFM {
     //now allowing atoms to be cast as quarks, as well as elements;
     // also allowing subclasses to be cast as their superclass (u1.2.2)
     if(vetyp == UAtom)
-      brtn = false; //cast atom to a quark?
+      brtn = false; //cast atom to a quark ref (in eval)?
     else if(vclasstype == UC_TRANSIENT)
       brtn = false; //cast transient to a quark?
     else if(UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME)
@@ -82,6 +82,18 @@ namespace MFM {
 
     return brtn;
   } //end cast
+
+  FORECAST UlamTypeClassQuark::safeCast(UTI typidx)
+  {
+    FORECAST scr = UlamTypeClass::safeCast(typidx);
+    if(scr == CAST_BAD)
+      {
+	//check from atom or atomref, possibly ok for quark ref (runtime)
+	if(m_state.isAtom(typidx) && isReference())
+	  scr = CAST_CLEAR;
+      }
+    return scr;
+  } //safeCast
 
   const char * UlamTypeClassQuark::getUlamTypeAsSingleLowercaseLetter()
   {

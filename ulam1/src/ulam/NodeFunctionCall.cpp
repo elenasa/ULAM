@@ -7,7 +7,6 @@
 #include "SymbolVariableStack.h"
 #include "CallStack.h"
 
-
 namespace MFM {
 
   NodeFunctionCall::NodeFunctionCall(Token tok, SymbolFunction * fsym, CompilerState & state) : Node(state), m_functionNameTok(tok), m_funcSymbol(fsym), m_argumentNodes(NULL)
@@ -17,8 +16,7 @@ namespace MFM {
     m_argumentNodes->setNodeLocation(tok.m_locator); //same as func call
   }
 
-  NodeFunctionCall::NodeFunctionCall(const NodeFunctionCall& ref) : Node(ref), m_functionNameTok(ref.m_functionNameTok), m_funcSymbol(NULL), m_argumentNodes(NULL)
-  {
+  NodeFunctionCall::NodeFunctionCall(const NodeFunctionCall& ref) : Node(ref), m_functionNameTok(ref.m_functionNameTok), m_funcSymbol(NULL), m_argumentNodes(NULL){
     m_argumentNodes = (NodeList *) ref.m_argumentNodes->instantiate();
   }
 
@@ -516,6 +514,7 @@ namespace MFM {
 	    if(m_state.alreadyDefinedSymbol(atomid, asym, hazyKin) && !hazyKin)
 	      {
 		ALT autolocaltype = asym->getAutoLocalType();
+		UTI auti = asym->getUlamTypeIdx();
 		if(autolocaltype == ALT_AS) //must be a class
 		  {
 		    atomPtr.setPtrTargetType(((SymbolVariableStack *) asym)->getAutoStorageTypeForEval());
@@ -531,6 +530,10 @@ namespace MFM {
 		    if(!asym->isSuper())
 		      //unlike alt_as, alt_ref can be a primitive or a class
 		      atomPtr.setPtrTargetType(((SymbolVariableStack *) asym)->getAutoStorageTypeForEval());
+		  }
+		else if(m_state.isClassASubclassOf(auti, atomPtr.getPtrTargetType()))
+		  {
+		    atomPtr.setPtrTargetType(auti); //t3746
 		  }
 	      }
 	  } //else can't be an autolocal
@@ -749,7 +752,7 @@ namespace MFM {
   // during genCode of a single function body "self" doesn't change!!!
   void NodeFunctionCall::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
-    return genCodeIntoABitValue(fp,uvpass);
+    genCodeIntoABitValue(fp,uvpass);
   } //codeGenToStoreInto
 
   void NodeFunctionCall::genCodeIntoABitValue(File * fp, UVPass& uvpass)

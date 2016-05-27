@@ -32,10 +32,25 @@ namespace MFM {
 	brtn = false;
       }
     else if(vetype == UAtom)
-      val.setAtomElementTypeIdx(typidx); //for testing purposes, assume ok
+      {
+	UTI dereftypidx = m_state.getUlamTypeAsDeref(typidx);
+	val.setAtomElementTypeIdx(dereftypidx); //for testing purposes, assume ok (e.g. t3754)
+      }
     //else true
     return brtn;
   } //end cast
+
+  FORECAST UlamTypeClassElement::safeCast(UTI typidx)
+  {
+    FORECAST scr = UlamTypeClass::safeCast(typidx);
+    if(scr == CAST_BAD)
+      {
+	//check from atom or atomref, possible ok for (non-packed) elements (runtime)
+	if(m_state.isAtom(typidx))
+	  scr = CAST_CLEAR;
+      }
+    return scr;
+  } //safeCast
 
   const char * UlamTypeClassElement::getUlamTypeAsSingleLowercaseLetter()
   {

@@ -177,20 +177,40 @@ namespace MFM {
 	rscr = m_nodeInitExpr->safeToCastTo(nuti); //but we're the new type!
 	if(rscr != CAST_CLEAR)
 	  {
-	    std::ostringstream msg;
-	    if(m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum() == Bool)
-	      msg << "Use a comparison operator";
+	    if(m_state.isAtom(nuti))
+	      {
+		UlamType * newt = m_state.getUlamTypeByIndex(newType);
+		UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+		std::ostringstream msg;
+		msg << "Atom variable " << getName() << "'s type ";
+		msg << nut->getUlamTypeNameBrief().c_str();
+		msg << ", and its initial value type ";
+		msg << newt->getUlamTypeNameBrief().c_str();
+		msg << ", are incompatible";
+		if(newt->isReference() && newt->getUlamClassType() == UC_QUARK)
+		  msg << "; .atomof may help";
+		if(rscr == CAST_HAZY)
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		else
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      }
 	    else
-	      msg << "Use explicit cast";
-	    msg << " to convert "; // the real converting-message
-	    msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
-	    msg << " to ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	    msg << " for variable initialization";
-	    if(rscr == CAST_BAD)
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    else
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	      {
+		std::ostringstream msg;
+		if(m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum() == Bool)
+		  msg << "Use a comparison operator";
+		else
+		  msg << "Use explicit cast";
+		msg << " to convert "; // the real converting-message
+		msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+		msg << " to ";
+		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		msg << " for variable initialization";
+		if(rscr == CAST_BAD)
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		else
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	      }
 	  }
 	else if(!Node::makeCastingNode(m_nodeInitExpr, nuti, m_nodeInitExpr))
 	  rscr = CAST_BAD; //error
@@ -209,6 +229,13 @@ namespace MFM {
 
   bool NodeVarDecl::checkSafeToCastTo(UTI fromType, UTI& newType)
   {
+    if(!m_state.isComplete(fromType) || !m_state.isComplete(newType)) //e.g. t3753
+      {
+	m_state.setGoAgain();
+	newType = Hzy;
+	return false;
+      }
+
     bool rtnOK = true;
     FORECAST scr = safeToCastTo(fromType); //reversed
     if(scr == CAST_HAZY)

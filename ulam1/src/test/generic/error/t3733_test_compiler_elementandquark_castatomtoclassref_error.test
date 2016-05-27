@@ -3,7 +3,7 @@
 #!
 ./QW.ulam:8:5: ERROR: Storage expression for: sra, must be storeintoable.
 ./A.ulam:4:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
-./A.ulam:4:9: ERROR: 7 Nodes with unresolved types detected after type labeling class: A.
+./A.ulam:4:9: ERROR: 10 Nodes with unresolved types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3692

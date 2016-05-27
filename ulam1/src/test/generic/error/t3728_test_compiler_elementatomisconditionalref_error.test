@@ -3,7 +3,7 @@
 #!
 ./Foo.ulam:21:10: ERROR: Invalid righthand type of conditional operator 'is'; must be a class type, not a reference: Foo&.
 ./Foo.ulam:3:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Foo.
-./Foo.ulam:3:9: ERROR: 12 Nodes with unresolved types detected after type labeling class: Foo.
+./Foo.ulam:3:9: ERROR: 17 Nodes with unresolved types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 #>Foo.ulam
   ulam 2;

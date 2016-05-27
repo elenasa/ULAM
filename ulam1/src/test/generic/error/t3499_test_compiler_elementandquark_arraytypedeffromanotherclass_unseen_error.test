@@ -5,7 +5,7 @@
 ./Vector.ulam:3:26: ERROR: Constant value expression for binary op/ is erroneous while compiling class: Vector(2u).
 ./Vector.ulam:3:9: ERROR: Type Bitsize specifier, within (), is not ready.
 ./R.ulam:4:10: ERROR: 6 Nodes with erroneous types detected after type labeling class: R.
-./R.ulam:4:10: ERROR: 54 Nodes with unresolved types detected after type labeling class: R.
+./R.ulam:4:10: ERROR: 71 Nodes with unresolved types detected after type labeling class: R.
 Unrecoverable Program Type Label FAILURE.
 #>R.ulam
 ulam 1;

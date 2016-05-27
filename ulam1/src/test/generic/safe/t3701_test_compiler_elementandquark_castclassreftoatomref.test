@@ -1,9 +1,11 @@
 ## -*- mode:ulam -*-
-#=t3701_test_compiler_elementandquark_castclassreftoatomref_error
+#=t3701_test_compiler_elementandquark_castclassreftoatomref
 #!
-./A.ulam:11:5: ERROR: Reference variable aref's type Atom(96)&, and its initial value type A&, are incompatible.
-./A.ulam:4:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
-Unrecoverable Program Type Label FAILURE.
+Exit status: -1
+Ue_A : QW { :< :< Unary(5) m_five(3u); > Bool(1) bw(false); > Bool(1) c(false);  Int(32) test() {  System s;  Qbase& qref = self cast;  qref m_five . 3 cast = Atom(96)& aref = self cast;  aref qref.atomof = qref m_five . 5 cast = A apple = aref cast;  c apple m_five . cast 5 == = s ( c )assert . c cast return } }
+Uq_System { <NOMAIN> }
+Uq_QW : Qbase { :< Unary(5) m_five(0); > Bool(1) bw(false);  <NOMAIN> }
+Uq_Qbase { Unary(5) m_five(0);  <NOMAIN> }
 ##
 ## informed by t3697
 ##

@@ -6,7 +6,7 @@
 ./Foo.ulam:12:6: ERROR: Use a comparison operator to convert Bits(3)[3] to Bool(3)[3] for operator=.
 ./Foo.ulam:19:2: ERROR: Use explicit cast to return Bool(3) as Int(32).
 ./Foo.ulam:3:9: ERROR: 4 Nodes with erroneous types detected after type labeling class: Foo.
-./Foo.ulam:3:9: ERROR: 7 Nodes with unresolved types detected after type labeling class: Foo.
+./Foo.ulam:3:9: ERROR: 13 Nodes with unresolved types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>Foo.ulam
