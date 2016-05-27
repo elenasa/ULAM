@@ -420,21 +420,18 @@ namespace MFM {
 	cnsym->setSuperClass(Nouti); //clear
 
 	//earliest ancestor when none designated; for all classes except UrSelf,
-	//if(cnsym->getUlamClass() != UC_TRANSIENT)
+	u32 urid = m_state.m_pool.getIndexForDataString("UrSelf");
+	if(cnsym->getId() != urid)
 	  {
-	    u32 urid = m_state.m_pool.getIndexForDataString("UrSelf");
-	    if(cnsym->getId() != urid)
+	    SymbolClassName * ursym = NULL;
+	    if(!m_state.alreadyDefinedSymbolClassName(urid, ursym))
 	      {
-		SymbolClassName * ursym = NULL;
-		if(!m_state.alreadyDefinedSymbolClassName(urid, ursym))
-		  {
-		    //required only once!
-		    Token urTok(TOK_TYPE_IDENTIFIER, qTok.m_locator, urid);
-		    m_state.addIncompleteClassSymbolToProgramTable(urTok, ursym);
-		    m_state.saveUrSelf(ursym->getUlamTypeIdx());
-		  }
-		cnsym->setSuperClass(ursym->getUlamTypeIdx()); //reset super here!!!
+		//required only once!
+		Token urTok(TOK_TYPE_IDENTIFIER, qTok.m_locator, urid);
+		m_state.addIncompleteClassSymbolToProgramTable(urTok, ursym);
+		m_state.saveUrSelf(ursym->getUlamTypeIdx());
 	      }
+	    cnsym->setSuperClass(ursym->getUlamTypeIdx()); //reset super here!!!
 	  }
       }
 
@@ -1764,10 +1761,8 @@ namespace MFM {
 	Token dTok;
 	getNextToken(dTok);
 	unreadToken();
-	//isAClassType = (dTok.m_type == TOK_DOT); //another clue for Hzy and Holder
 	mustbeAClassType |= (dTok.m_type == TOK_DOT); //another clue for Hzy and Holder
 
-	//if(isAClassType && (etyp == Holder))
 	if(mustbeAClassType && (etyp == Holder))
 	  {
 	    UTI huti = Nav;
@@ -1777,7 +1772,8 @@ namespace MFM {
 	    m_state.makeClassFromHolder(huti, pTok); //don't need cnsym here
 	  }
 
-	UTI cuti = parseClassArguments(pTok, mustbeAClassType); //not sure what to do with the UTI? could be a declref type; both args are refs!
+	//not sure what to do with the UTI? could be a declref type; both args are refs!
+	UTI cuti = parseClassArguments(pTok, mustbeAClassType);
 	if(mustbeAClassType)
 	  {
 	    if(m_state.isReference(cuti)) //e.g. refofSelf, ref to array of classes
@@ -1885,7 +1881,7 @@ namespace MFM {
 		    m_state.addUnknownTypeTokenToThisClassResolver(typeTok, huti);
 
 		    // set contains possible unseen classes (ulamexports); see if they exist.
-		    // without being too liberal about guessing classes  (t3668, t3651) 5/2/16.
+		    // without being too liberal about guessing classes(t3668, t3651) 5/2/16.
 		    m_state.m_unseenClasses.insert(typeTok.m_dataindex); //possible class
 		    return huti;
 		  }
@@ -1915,8 +1911,8 @@ namespace MFM {
     if(!m_state.alreadyDefinedSymbolClassNameTemplate(typeTok.m_dataindex, ctsym))
       {
 	unseenTemplate = true;
-	if(ctsym == NULL)
-	  m_state.addIncompleteTemplateClassSymbolToProgramTable(typeTok, ctsym); //was undefined, template; will fix instances' argument names later
+	if(ctsym == NULL) //was undefined, template; will fix instances' argument names later
+	  m_state.addIncompleteTemplateClassSymbolToProgramTable(typeTok, ctsym);
 	else
 	  {
 	    //error have a class without parameters already defined
@@ -2651,7 +2647,7 @@ namespace MFM {
 	    {
 	      if(ut->isComplete())
 		{
-		  rtnNode = makeTerminal(fTok, ut->getMax(), utype); //ut->getUlamTypeEnum());
+		  rtnNode = makeTerminal(fTok, ut->getMax(), utype);
 		  delete nodetype; //unlikely
 		  //nodetype = NULL; not a ref
 		}
@@ -2674,7 +2670,7 @@ namespace MFM {
 	    {
 	      if(ut->isComplete())
 		{
-		  rtnNode = makeTerminal(fTok, ut->getMin(), utype); //ut->getUlamTypeEnum());
+		  rtnNode = makeTerminal(fTok, ut->getMin(), utype);
 		  delete nodetype; //unlikely
 		  //nodetype = NULL; not a ref
 		}
@@ -3487,9 +3483,7 @@ namespace MFM {
     if(iTok.m_type == TOK_IDENTIFIER)
       {
 	//just the top level as a basic uti (no selects, or arrays)
-	//NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(args.m_typeTok, passuti, m_state, args.m_declRef);
 	NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(args.m_typeTok, passuti, m_state);
-
 	//another decl of same type
 	NodeVarDecl * sNode = (NodeVarDecl *) makeVariableSymbol(args, iTok, typeNode); //a decl !!
 	if (sNode)
@@ -3553,7 +3547,6 @@ namespace MFM {
 		msg << "Value of instanceof reference type ";
 		msg << eTok.getTokenStringFromPool(&m_state).c_str();
 		msg << " is missing for '";
-		//msg << identTok.getTokenStringFromPool(&m_state).c_str();
 		msg << m_state.getTokenDataAsString(&identTok).c_str() << "'";
 		MSG(&eTok, msg.str().c_str(), ERR);
 	      }

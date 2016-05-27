@@ -39,7 +39,6 @@
 
 #include "Constants.h"
 #include "Token.h"
-#include "UlamType.h"
 
 namespace MFM{
 

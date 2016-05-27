@@ -954,9 +954,6 @@ namespace MFM {
 
   SymbolVariable *  NodeIdent::makeSymbol(UTI auti, ALT reftype, UTI referencedUTI)
   {
-    //adjust decl count and max_depth, used for function definitions
-    //PACKFIT packit = m_state.determinePackable(auti);
-
     if(m_state.m_currentFunctionBlockDeclSize == 0)
       {
 	u32 baseslot = 1;  //unpacked fixed later
@@ -1117,8 +1114,6 @@ namespace MFM {
 
   void NodeIdent::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
-    //UVPass savuvpass = uvpass;
-
     //e.g. return the ptr for an array;
     //square bracket will resolve down to the immediate data
    makeUVPassForCodeGen(uvpass);

@@ -63,23 +63,6 @@ namespace MFM {
 	    newType = Nav;
 	  }
       }
-#if 0
-    else if((lclasstype == UC_ELEMENT) && lut->isScalar())
-      {
-	//lefthand side needs to be an atom, not packed element
-	//if(!Node::makeCastingNode(m_nodeLeft, UAtomRef, m_nodeLeft, false))
-	if(!Node::makeCastingNode(m_nodeLeft, UAtom, m_nodeLeft, false))
-	  {
-	    //assert(0);
-	    std::ostringstream msg;
-	    msg << "Invalid lefthand type of conditional operator '" << getName();
-	    msg << "'; Needs to be an Atom, not a packed element";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav);
-	    return Nav; //short-circuit
-	  }
-      }
-#endif
 
     assert(m_nodeTypeDesc);
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
@@ -99,8 +82,6 @@ namespace MFM {
 	else
 	  {
 	    //rhs is allowed to be a quark due to inheritance.
-	    //ULAMCLASSTYPE rclasstype = rut->getUlamClassType();
-	    //if(!((rclasstype == UC_QUARK || rclasstype == UC_ELEMENT) && rut->isScalar()))
 	    ULAMTYPE retyp = rut->getUlamTypeEnum();
 	    if(!((retyp == Class) && rut->isScalar()))
 	      {

@@ -39,7 +39,6 @@
 
 #include "itype.h"
 #include "Constants.h"
-#include "UlamType.h"
 
 namespace MFM{
 

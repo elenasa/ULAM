@@ -49,7 +49,6 @@
 #include "MapClassMemberDesc.h"
 #include "TargetMap.h"
 
-
 namespace MFM{
 
   class Compiler

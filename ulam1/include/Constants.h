@@ -52,6 +52,31 @@ namespace MFM {
 #define SIZEOFACHAR 8
 #endif
 
+#define XY(a,b,c,d) a,
+
+  enum ULAMTYPE
+  {
+#include "UlamType.inc"
+    LASTTYPE
+  };
+#undef XY
+
+#ifndef PtrAbs
+#define PtrAbs (Ptr + 2)
+#endif //PtrAbs
+
+#ifndef UAtomRef
+#define UAtomRef (Ptr + 3)
+#endif //UAtomRef
+
+  enum ULAMCLASSTYPE { UC_UNSEEN, UC_QUARK, UC_ELEMENT, UC_TRANSIENT, UC_NOTACLASS, UC_ATOM, UC_ERROR};
+
+  enum ULAMTYPECOMPARERESULTS { UTIC_DONTKNOW = -1, UTIC_NOTSAME = 0, UTIC_SAME = 1, UTIC_MUSTBESAME = 2};
+
+  enum FORECAST { CAST_BAD = 0, CAST_CLEAR, CAST_HAZY};
+
+  enum ALT { ALT_NOT = 0, ALT_AS, ALT_HAS, ALT_REF, ALT_ARRAYITEM, ALT_CAST, ALT_PTR}; //autolocaltype
+
   enum STORAGE { IMMEDIATE = 0, EVENTWINDOW, STACK, EVALRETURN, UNPACKEDSTRUCT};
 
   enum TMPSTORAGE { TERMINAL = 0, TMPREGISTER, TMPBITVAL, TMPAUTOREF, TMPTATOM, TMPATOMBS, TMPTBV};
@@ -60,15 +85,9 @@ namespace MFM {
 
 #define WritePacked(p) (p == PACKED || p == PACKEDLOADABLE)
 
-  enum ULAMTYPECOMPARERESULTS { UTIC_DONTKNOW = -1, UTIC_NOTSAME = 0, UTIC_SAME = 1, UTIC_MUSTBESAME = 2};
-
-  enum FORECAST { CAST_BAD = 0, CAST_CLEAR, CAST_HAZY};
-
-  enum ALT { ALT_NOT = 0, ALT_AS, ALT_HAS, ALT_REF, ALT_ARRAYITEM, ALT_CAST, ALT_PTR}; //autolocaltype
+  enum TBOOL { TBOOL_FALSE = 0, TBOOL_TRUE, TBOOL_HAZY};
 
   typedef  bool __attribute__((unused)) AssertBool;
-
-  enum TBOOL { TBOOL_FALSE = 0, TBOOL_TRUE, TBOOL_HAZY};
 
 #ifndef BITSPERATOM
 #define BITSPERATOM (96)

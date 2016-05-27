@@ -307,8 +307,6 @@ namespace MFM {
 		errorsFound++;
 	      }
 	    // infinite loop!! using makeCastingNode. so don't.
-	    //else if(!Node::makeCastingNode(m_node, tobeType, m_node, isExplicitCast()))
-	    //	      errorsFound++; //and goagain set
 	    else
 	      {
 		// a function call is not a valid lhs !!!

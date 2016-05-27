@@ -42,8 +42,6 @@
 #include "NodeIdent.h"
 #include "SymbolWithValue.h"
 #include "Token.h"
-#include "UlamType.h"
-
 
 namespace MFM{
 

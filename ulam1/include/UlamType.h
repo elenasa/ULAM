@@ -46,30 +46,9 @@
 
 namespace MFM{
 
-
-#define XY(a,b,c,d) a,
-
-  enum ULAMTYPE
-  {
-#include "UlamType.inc"
-    LASTTYPE
-  };
-#undef XY
-
-#ifndef PtrAbs
-#define PtrAbs (Ptr + 2)
-#endif //PtrAbs
-
-#ifndef UAtomRef
-#define UAtomRef (Ptr + 3)
-#endif //UAtomRef
-
   struct UlamValue; //forward
 
   class CompilerState; //forward
-
-  enum ULAMCLASSTYPE { UC_UNSEEN, UC_QUARK, UC_ELEMENT, UC_TRANSIENT, UC_NOTACLASS, UC_ATOM, UC_ERROR};
-
 
   class UlamType
   {

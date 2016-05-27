@@ -286,6 +286,7 @@ int main(int argc, char ** argv)
     int result = ds.RunCompilation(c);
     if (result == 0)
       {
+	//process UlamElementInfo here: (including quarks)
         for(MFM::TargetMap::const_iterator i = ds.TargetMapBegin(); i != ds.TargetMapEnd(); ++i)
           {
             std::cerr
@@ -296,7 +297,7 @@ int main(int argc, char ** argv)
               << " " << i->first
               << " " << i->second.m_bitsize
               << " " << (i->second.m_hasTest?"test":"notest")
-              << " " << (i->second.m_isQuark?"quark":"element")
+	      << " " << (i->second.m_classType == MFM::UC_QUARK ? "quark": (i->second.m_classType == MFM::UC_ELEMENT ? "element" : "transient"))
 	      << " " << MFM::HexEscape(i->second.m_structuredComment)
               << std::endl;
           }

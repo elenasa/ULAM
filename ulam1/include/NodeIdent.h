@@ -40,7 +40,6 @@
 #include "Node.h"
 #include "Token.h"
 #include "SymbolVariable.h"
-#include "UlamType.h"
 #include "NodeBlock.h"
 
 namespace MFM{
