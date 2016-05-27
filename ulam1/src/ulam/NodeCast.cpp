@@ -546,9 +546,44 @@ namespace MFM {
     //then what? (see NodeMemberSelect)
     UlamValue ruvPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1);
 
-    if(m_state.isARefTypeOfUlamType(nodeType, tobeType))
+    if(UlamType::compare(nodeType, tobeType, m_state) != UTIC_SAME)
       {
-	ruvPtr.setPtrTargetType(tobeType);
+	if(m_state.isARefTypeOfUlamType(nodeType, tobeType))
+	  {
+	    ruvPtr.setPtrTargetType(tobeType);
+	    //uv.setUlamValueTypeIdx(tobeType);
+	  }
+	else //if(!(m_state.getUlamTypeByIndex(tobeType)->cast(ruvPtr, tobeType)))
+	  {
+	    UlamValue uvp = ruvPtr;
+	    if(m_state.isReference(uvp.getPtrTargetType()))
+	      uvp = m_state.getPtrTarget(uvp);
+
+	    UlamValue uv = uvp;
+	    UTI ttype = uv.getUlamValueTypeIdx();
+	    if(m_state.isPtr(ttype))
+	      {
+		uv = m_state.getPtrTarget(uvp);
+		ttype = uv.getUlamValueTypeIdx();
+	      }
+
+	    if(m_state.isPtr(ttype) || !(m_state.getUlamTypeByIndex(tobeType)->cast(uv, tobeType)))
+	      {
+		std::ostringstream msg;
+		msg << "Cast problem during evalToStoreInto! Value type ";
+		msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+		msg << " failed to be cast as ";
+		msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		evalNodeEpilog();
+		return UNEVALUABLE;
+	      }
+	    else
+	      {
+		UTI dereftobe = m_state.getUlamTypeAsDeref(tobeType);
+		ruvPtr.setPtrTargetType(dereftobe); //t3754 case 1 & 3 (to element ref)
+	      }
+	  }
       }
     // fix absolute slot, here or at func call?
     Node::assignReturnValuePtrToStack(ruvPtr);

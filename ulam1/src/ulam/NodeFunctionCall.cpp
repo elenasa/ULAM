@@ -514,6 +514,7 @@ namespace MFM {
 	    if(m_state.alreadyDefinedSymbol(atomid, asym, hazyKin) && !hazyKin)
 	      {
 		ALT autolocaltype = asym->getAutoLocalType();
+		UTI auti = asym->getUlamTypeIdx();
 		if(autolocaltype == ALT_AS) //must be a class
 		  {
 		    atomPtr.setPtrTargetType(((SymbolVariableStack *) asym)->getAutoStorageTypeForEval());
@@ -529,6 +530,10 @@ namespace MFM {
 		    if(!asym->isSuper())
 		      //unlike alt_as, alt_ref can be a primitive or a class
 		      atomPtr.setPtrTargetType(((SymbolVariableStack *) asym)->getAutoStorageTypeForEval());
+		  }
+		else if(m_state.isClassASubclassOf(auti, atomPtr.getPtrTargetType()))
+		  {
+		    atomPtr.setPtrTargetType(auti); //t3746
 		  }
 	      }
 	  } //else can't be an autolocal

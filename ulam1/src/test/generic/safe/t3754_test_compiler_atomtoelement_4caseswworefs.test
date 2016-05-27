@@ -28,7 +28,7 @@ element Ish5 : System {
     Atom atom = e;
     Atom & a1ref = atom;
 
-    //atomref to element ref
+    //atomref to element ref (eval failed!)
     E1 & e1ref = a1ref;
     if (e1ref as E1) {
       print(e1ref.m_b.func());
@@ -45,7 +45,7 @@ element Ish5 : System {
     }
 
 
-    //atom to element ref
+    //atom to element ref (eval failed!)
     E1 & e2ref = atom;
     if (e2ref as E1) {
       print(e2ref.m_b.func());

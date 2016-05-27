@@ -32,7 +32,10 @@ namespace MFM {
 	brtn = false;
       }
     else if(vetype == UAtom)
-      val.setAtomElementTypeIdx(typidx); //for testing purposes, assume ok
+      {
+	UTI dereftypidx = m_state.getUlamTypeAsDeref(typidx);
+	val.setAtomElementTypeIdx(dereftypidx); //for testing purposes, assume ok (e.g. t3754)
+      }
     //else true
     return brtn;
   } //end cast
