@@ -209,6 +209,13 @@ namespace MFM {
 
   bool NodeVarDecl::checkSafeToCastTo(UTI fromType, UTI& newType)
   {
+    if(!m_state.isComplete(fromType) || !m_state.isComplete(newType)) //e.g. t3753
+      {
+	m_state.setGoAgain();
+	newType = Hzy;
+	return false;
+      }
+
     bool rtnOK = true;
     FORECAST scr = safeToCastTo(fromType); //reversed
     if(scr == CAST_HAZY)

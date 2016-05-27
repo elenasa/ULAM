@@ -37,6 +37,18 @@ namespace MFM {
     return brtn;
   } //end cast
 
+  FORECAST UlamTypeClassElement::safeCast(UTI typidx)
+  {
+    FORECAST scr = UlamTypeClass::safeCast(typidx);
+    if(scr == CAST_BAD)
+      {
+	//check from atom or atomref, ok for (non-packed) elements
+	if(m_state.isAtom(typidx))
+	  scr = CAST_CLEAR;
+      }
+    return scr;
+  } //safeCast
+
   const char * UlamTypeClassElement::getUlamTypeAsSingleLowercaseLetter()
   {
     return "e";

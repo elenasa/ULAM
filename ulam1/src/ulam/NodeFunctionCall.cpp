@@ -7,7 +7,6 @@
 #include "SymbolVariableStack.h"
 #include "CallStack.h"
 
-
 namespace MFM {
 
   NodeFunctionCall::NodeFunctionCall(Token tok, SymbolFunction * fsym, CompilerState & state) : Node(state), m_functionNameTok(tok), m_funcSymbol(fsym), m_argumentNodes(NULL)
@@ -17,8 +16,7 @@ namespace MFM {
     m_argumentNodes->setNodeLocation(tok.m_locator); //same as func call
   }
 
-  NodeFunctionCall::NodeFunctionCall(const NodeFunctionCall& ref) : Node(ref), m_functionNameTok(ref.m_functionNameTok), m_funcSymbol(NULL), m_argumentNodes(NULL)
-  {
+  NodeFunctionCall::NodeFunctionCall(const NodeFunctionCall& ref) : Node(ref), m_functionNameTok(ref.m_functionNameTok), m_funcSymbol(NULL), m_argumentNodes(NULL){
     m_argumentNodes = (NodeList *) ref.m_argumentNodes->instantiate();
   }
 
@@ -749,7 +747,7 @@ namespace MFM {
   // during genCode of a single function body "self" doesn't change!!!
   void NodeFunctionCall::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
-    return genCodeIntoABitValue(fp,uvpass);
+    genCodeIntoABitValue(fp,uvpass);
   } //codeGenToStoreInto
 
   void NodeFunctionCall::genCodeIntoABitValue(File * fp, UVPass& uvpass)

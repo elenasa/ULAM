@@ -97,13 +97,13 @@ namespace MFM {
     if(m_state.isAtom(typidx))
       return CAST_CLEAR; //atom to atom
 
-    //casting from quark or element to atomref is bad, since packed
+    //casting from quark or transient to atom or atomref is bad
     UlamType * vut = m_state.getUlamTypeByIndex(typidx);
-    if((getReferenceType() == ALT_REF) && (vut->getUlamTypeEnum() == Class)) //(not array item)
-      return CAST_BAD;
+    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
 
     //casting from quark or quark ref, requires explicit casting
-    return (vut->getUlamClassType() == UC_ELEMENT) ? CAST_CLEAR : CAST_BAD;
+    // elements no longer packed, ok t3753
+    return (vclasstype == UC_ELEMENT) ? CAST_CLEAR : CAST_BAD;
    } //safeCast
 
   FORECAST UlamTypeAtom::explicitlyCastable(UTI typidx)
@@ -112,15 +112,16 @@ namespace MFM {
     if(scr == CAST_CLEAR)
       {
 	UlamType * vut = m_state.getUlamTypeByIndex(typidx);
+	ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
 	if(vut->isPrimitiveType())
 	  scr = CAST_BAD;
-	else if((vut->getUlamTypeEnum() == Class) && (getReferenceType() == ALT_REF))
-	  scr = CAST_BAD; //only to atom, not ref
-	else if((vut->getUlamClassType() == UC_QUARK) && !vut->isReference())
+	//else if((vut->getUlamTypeEnum() == Class) && (getReferenceType() == ALT_REF))
+	//  scr = CAST_BAD; //only to atom, not ref
+	else if((vclasstype == UC_QUARK) && !vut->isReference())
 	  scr = CAST_BAD; //non-ref quark to atom is also bad (t3678)
-	else if((vut->getUlamClassType() == UC_TRANSIENT))
+	else if((vclasstype == UC_TRANSIENT))
 	  scr = CAST_BAD; //transient to atom is also bad
-	//else atom, element ref, quark ref (possibly), are acceptable
+	//else atom, element, element ref, quark ref (possibly), are acceptable
       }
     return scr;
   } //explicitlyCastable

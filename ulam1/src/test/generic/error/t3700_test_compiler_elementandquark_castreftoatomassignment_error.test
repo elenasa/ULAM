@@ -3,7 +3,7 @@
 #!
 ./A.ulam:16:10: ERROR: Explicit Reference cast of assignment is invalid.
 ./A.ulam:4:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
-./A.ulam:4:9: ERROR: 17 Nodes with unresolved types detected after type labeling class: A.
+./A.ulam:4:9: ERROR: 23 Nodes with unresolved types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3697

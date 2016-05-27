@@ -318,7 +318,7 @@ namespace MFM {
     if(!m_state.m_currentObjSymbolsForCodeGen.empty() && !m_state.isScalar(m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx()))
       {
 	Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
-	m_tmprefSymbol = makeTmpRefSymbolForCodeGen(uvpass);
+	m_tmprefSymbol = makeTmpRefSymbolForCodeGen(uvpass); //dm to avoid leaks
 	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmprefSymbol);
       }
 
