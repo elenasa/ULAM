@@ -1,9 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3700_test_compiler_elementandquark_castreftoatomassignment_error
 #!
-./A.ulam:16:10: ERROR: Explicit Reference cast of assignment is invalid.
+./A.ulam:11:5: ERROR: Atom variable a's type Atom(96), and its initial value type Qbase&, are incompatible; .atomof may help.
 ./A.ulam:4:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
-./A.ulam:4:9: ERROR: 23 Nodes with unresolved types detected after type labeling class: A.
+./A.ulam:4:9: ERROR: 22 Nodes with unresolved types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3697
@@ -18,14 +18,15 @@ element A : QW {
     System s;
     Qbase& qref = self;
     qref.m_five = 0x3;
-    Atom a = (Atom) qref;
+    //Atom a = (Atom) qref; //Explicit cast also helps
+    Atom a = qref; //.atomof helps!
     A apple = (A) a;
     b = (apple.m_five == 0x3);
     s.assert(b);
 
     Atom & aref = self;
-    aref = (Atom&) qref.atomof; //atom ref assignment with ref cast error
-    //aref = qref.storageof; //atom ref assignment
+    //aref = (Atom&) qref.atomof; //atom ref assignment with ref cast error; ref cast may be unnecessary
+    aref = qref.atomof; //atom ref assignment
     qref.m_five = 0x5;
     apple = (A) aref;
     c = (apple.m_five == 0x5);
@@ -44,7 +45,7 @@ quark QW : Qbase{
   {
     Atom a = self.atomof;
     //Self& sra = (Self&) a; //new way!
-    Self& sra = (Self) a; //immediate quark with current values
+    Self& sra = a; //immediate quark with current values
     return sra;
   }
 }

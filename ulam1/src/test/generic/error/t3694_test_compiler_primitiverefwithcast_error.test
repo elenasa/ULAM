@@ -1,10 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3694_test_compiler_primitiverefwithcast_error
 #!
-./A.ulam:6:16: ERROR: Cannot explicitly cast Int(3) to type: Int(32)&.
-./A.ulam:6:5: ERROR: Initial value expression for: d, initialization is invalid.
-./A.ulam:6:5: ERROR: Storage expression for: d, is invalid.
-./A.ulam:2:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: A.
+./A.ulam:6:5: ERROR: Reference variable d's type Int(32)&, and its initial value type Int(3), are incompatible sizes.
+./A.ulam:2:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 #>A.ulam
   ulam 2;
@@ -12,7 +10,7 @@ element A {
   Bool sp;
   Int(3) a;
   Int test() {
-    Int & d = (Int&) a;
+    Int & d = a; //(Int&) a; reference cast may be unnecessary
     a = 3;
     return d;
  }

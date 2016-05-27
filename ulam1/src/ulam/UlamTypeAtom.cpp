@@ -101,7 +101,7 @@ namespace MFM {
     UlamType * vut = m_state.getUlamTypeByIndex(typidx);
     ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
 
-    //casting from quark or quark ref, requires explicit casting
+    // casting from quark ref, may need .atomof (error t3696)
     // elements no longer packed, ok t3753
     return (vclasstype == UC_ELEMENT) ? CAST_CLEAR : CAST_BAD;
    } //safeCast
@@ -115,8 +115,6 @@ namespace MFM {
 	ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
 	if(vut->isPrimitiveType())
 	  scr = CAST_BAD;
-	//else if((vut->getUlamTypeEnum() == Class) && (getReferenceType() == ALT_REF))
-	//  scr = CAST_BAD; //only to atom, not ref
 	else if((vclasstype == UC_QUARK) && !vut->isReference())
 	  scr = CAST_BAD; //non-ref quark to atom is also bad (t3678)
 	else if((vclasstype == UC_TRANSIENT))

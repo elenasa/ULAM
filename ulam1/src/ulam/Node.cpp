@@ -1609,8 +1609,8 @@ namespace MFM {
 
     if(nclasstype == UC_NOTACLASS)
       {
-	//allows atom ref casts
-	if(m_state.isAtom(nuti) && !((tclasstype == UC_ELEMENT) || m_state.isAtom(tobeType)))
+	//allows atom ref casts; allows atom-to-quarkref casts
+	if(m_state.isAtom(nuti) && !((tclasstype == UC_ELEMENT) || m_state.isAtom(tobeType) || ((tclasstype == UC_QUARK) && tobe->isReference())))
 	  doErrMsg = true;
 
 	else if(nuti == Void)

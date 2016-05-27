@@ -42,7 +42,7 @@ namespace MFM {
     FORECAST scr = UlamTypeClass::safeCast(typidx);
     if(scr == CAST_BAD)
       {
-	//check from atom or atomref, ok for (non-packed) elements
+	//check from atom or atomref, possible ok for (non-packed) elements (runtime)
 	if(m_state.isAtom(typidx))
 	  scr = CAST_CLEAR;
       }

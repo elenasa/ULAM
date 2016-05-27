@@ -457,25 +457,36 @@ namespace MFM {
 
     UlamValue uv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
     UTI vuti = uv.getUlamValueTypeIdx();
+    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
     assert(!m_state.isPtr(vuti));
-    if(m_state.isAtom(nodeType) && m_state.isAtom(tobeType) && (m_state.getUlamTypeByIndex(vuti)->getUlamTypeEnum() == Class))
+    if(m_state.isAtom(nodeType) && m_state.isAtom(tobeType) && (vut->getUlamTypeEnum() == Class))
       {
 	std::ostringstream msg;
 	msg << "Cast question: Do not wipe out actual type for atom during eval! Value type ";
-	msg << m_state.getUlamTypeNameBriefByIndex(uv.getUlamValueTypeIdx()).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(vuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	evalNodeEpilog();
 	return UNEVALUABLE;
       }
-    if((m_state.isAtom(tobeType)) && (m_state.getUlamTypeByIndex(vuti)->getUlamClassType() == UC_QUARK))
+    if((m_state.isAtom(tobeType)) && (vclasstype == UC_QUARK))
       {
-	assert(m_state.isReference(vuti)); //an immediate non-ref quark should be an error
+	assert(vut->isReference()); //an immediate non-ref quark should be an error
 	std::ostringstream msg;
 	msg << "Cast question: actual type for quark ref during eval! Value type ";
-	msg << m_state.getUlamTypeNameBriefByIndex(uv.getUlamValueTypeIdx()).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(vuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	evalNodeEpilog();
 	return UNEVALUABLE;
+      }
+    if((m_state.isAtom(tobeType)) && (vclasstype == UC_ELEMENT) && vut->isReference())
+      {
+	std::ostringstream msg;
+	msg << "Cast question: actual type for element ref during eval! Value type ";
+	msg << m_state.getUlamTypeNameBriefByIndex(vuti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	evalNodeEpilog();
+	return UNEVALUABLE; //e.g. t3753
       }
     else if(UlamType::compare(nodeType, tobeType, m_state) != UTIC_SAME)
       {
@@ -487,7 +498,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Cast problem during eval! Value type ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(uv.getUlamValueTypeIdx()).c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(vuti).c_str();
 	    msg << " failed to be cast as ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
