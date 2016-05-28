@@ -216,7 +216,6 @@ namespace MFM {
 #endif
 	      }
 	  }
-	//else if(m_state.isAtomRef(tobeType) && (nut->getUlamTypeEnum() == Class))// && !nut->isReference())
 	else if(m_state.isAtomRef(tobeType) && (nclasstype == UC_QUARK) && !nut->isReference())
 	  {
 	    std::ostringstream msg;
@@ -551,7 +550,6 @@ namespace MFM {
 	if(m_state.isARefTypeOfUlamType(nodeType, tobeType))
 	  {
 	    ruvPtr.setPtrTargetType(tobeType);
-	    //uv.setUlamValueTypeIdx(tobeType);
 	  }
 	else //if(!(m_state.getUlamTypeByIndex(tobeType)->cast(ruvPtr, tobeType)))
 	  {
@@ -802,12 +800,8 @@ namespace MFM {
 	if(tobe->isReference()) //t3754
 	  {
 	    assert(stgcos);
-	    //UTI dereftobeType = m_state.getUlamTypeAsDeref(tobeType);
-	    //UlamType * dereftobe = m_state.getUlamTypeByIndex(dereftobeType);
  	    s32 tmpeleref = m_state.getNextTmpVarNumber(); //tmp since no variable name
 	    m_state.indentUlamCode(fp);
-	    //fp->write(dereftobe->getUlamTypeImmediateAutoMangledName().c_str()); //tobe as auto
-	    //fp->write("<EC> ");
 	    fp->write(tobe->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
 	    fp->write(" ");
 	    fp->write(m_state.getTmpVarAsString(tobeType, tmpeleref, TMPBITVAL).c_str());
@@ -1220,18 +1214,13 @@ namespace MFM {
 
     if(tobe->isReference()) //t3756: A& appleref = qref;
       {
-	//UTI dereftobetype = m_state.getUlamTypeAsDeref(tobeType);
-	//UlamType * dereftobe = m_state.getUlamTypeByIndex(dereftobetype);
 	m_state.indentUlamCode(fp);
 	fp->write(tobe->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
-	//	fp->write(dereftobe->getUlamTypeImmediateAutoMangledName().c_str());
-	//fp->write("<EC> ");
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpVarVal, TMPBITVAL).c_str());
 	fp->write("(");
 	fp->write(stgcos->getMangledName().c_str()); //a ref
 	fp->write(", 0u, ");
-	//fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
 	fp->write(stgcos->getMangledName().c_str()); //a ref
 	fp->write(".GetEffectiveSelf()"); //maintains eff self
 	fp->write(");\n");
@@ -1251,7 +1240,6 @@ namespace MFM {
 	fp->write(", 0u, ");
 	fp->write_decimal_unsigned(tobe->getTotalBitSize());
 	fp->write("u, ");
-	//fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
 	fp->write(stgcos->getMangledName().c_str()); //a ref
 	fp->write(".GetEffectiveSelf()"); //maintains eff self
 	fp->write(").");
@@ -1290,18 +1278,13 @@ namespace MFM {
 
 	assert(m_state.isReference(stgcos->getUlamTypeIdx()));
 
-	//UTI dereftobetype = m_state.getUlamTypeAsDeref(tobeType);
-	//UlamType * dereftobe = m_state.getUlamTypeByIndex(dereftobetype);
 	m_state.indentUlamCode(fp);
-	//fp->write(dereftobe->getUlamTypeImmediateAutoMangledName().c_str());
-	//fp->write("<EC> ");
 	fp->write(tobe->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpVarSuper, TMPBITVAL).c_str());
 	fp->write("(");
 	fp->write(stgcos->getMangledName().c_str()); //a ref
 	fp->write(", 0u, ");
-	//	fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
 	fp->write(stgcos->getMangledName().c_str()); //a ref
 	fp->write(".GetEffectiveSelf()"); //maintains eff self
 	fp->write(");\n");
