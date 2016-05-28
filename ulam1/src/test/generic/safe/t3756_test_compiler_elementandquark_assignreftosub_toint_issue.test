@@ -1,16 +1,16 @@
 ## -*- mode:ulam -*-
-#=t3697_test_compiler_elementandquark_castreftoatom
+#=t3756_test_compiler_elementandquark_assignreftosub_toint_issue
 #!
-##      gen code output: (1 assert)
-##
 Exit status: -11
-Ue_A : QW { :< :< Unary(5) m_five(3u); > Bool(1) bw(false); > Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  Qbase& qref = self cast;  qref m_five . 3 cast = Atom(96) a = qref cast;  A apple = a cast;  b apple m_five . cast 3 cast == = s ( b )assert . b cast return } }
+Ue_A : QW { :< :< Unary(5) m_five(0u); > Bool(1) bw(false); > Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  Qbase& qref = self cast;  A apple = qref cast;  A apple2;  apple2 qref cast = A apple3 = qref.atomof cast;  A& appleref = qref cast;  Atom(96)& atr = qref.atomof;  Atom(96) a = qref.atomof cast;  0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW : Qbase { :< Unary(5) m_five(0); > Bool(1) bw(false);  <NOMAIN> }
 Uq_Qbase { Unary(5) m_five(0);  <NOMAIN> }
 ##
 ## Dave requested a way to get default values for Self (within a quark);
 ## a loophole, since a quark would be an undefined atom, but as a ref, its done (t3679)
+##
+## informed by t3689: bug fixed that required a cast because toInt existed (apple = qref)
 ##
 #>A.ulam
   ulam 2;
@@ -21,14 +21,20 @@ element A : QW {
   Int test(){
     System s;
     Qbase& qref = self;
-    qref.m_five = 0x3;
-    Atom a = (Atom) qref; //unused var (qref read) -- name of test!
-    //Atom a = qref.atomof; //same result without the unused var
-    A apple = (A) a;
-    b = (apple.m_five == 0x3);
-    s.assert(b);
 
-    return (Int) b;
+    A apple = qref; //unused var (qref read)
+
+    A apple2;
+    apple2 = qref; //unused var (qref read)
+
+    A apple3 = (A) qref.atomof;
+
+    A& appleref = qref; //unused var (qref read); can't use .atomof
+
+    Atom & atr = qref.atomof;
+
+    Atom a = qref.atomof;
+    return 0;
   }
 }
 
@@ -40,7 +46,6 @@ quark QW : Qbase{
   Self func()
   {
     Atom a = self.atomof;
-    //Self& sra = (Self&) a; //new way!
     Self sra = (Self) a; //immediate quark with current values
     return sra;
   }

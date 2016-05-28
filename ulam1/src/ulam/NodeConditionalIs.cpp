@@ -197,7 +197,7 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
     UVPass luvpass;
-    m_nodeLeft->genCode(fp, luvpass); //loads lhs into tmp (including array item)
+    m_nodeLeft->genCodeToStoreInto(fp, luvpass); //loads lhs into tmp (including array item)
     UTI luti = luvpass.getPassTargetType();
 
     UTI ruti = getRightType();
