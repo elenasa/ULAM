@@ -1637,11 +1637,22 @@ namespace MFM {
 		doErrMsg = buildCastingFunctionCallNode(node, tobeType, rtnNode);
 	      }
 	  }
-	else if(tclasstype == UC_QUARK)
+	//else if(tclasstype == UC_QUARK)
+	else if(tclasstype != UC_NOTACLASS)
 	  {
 	    //handle possible inheritance (u.1.2.2) here
 	    if(m_state.isClassASubclassOf(nuti, tobeType))
 	      doErrMsg = newCastingNodeWithCheck(node, tobeType, rtnNode);
+	    else if(m_state.isClassASubclassOf(tobeType, nuti))
+	      {
+		//ok to cast a quark ref to an element, if its superclass
+		if(!m_state.isReference(nuti))
+		  doErrMsg = true;
+		//else if(!isExplicit) //contradicts UlamTypeClass::safeCast
+		//  doErrMsg = true;
+		else
+		  doErrMsg = newCastingNodeWithCheck(node, tobeType, rtnNode);
+	      }
 	    else if(m_state.isARefTypeOfUlamType(nuti, tobeType))
 	      {
 		//cast ref to deref type
@@ -1661,9 +1672,11 @@ namespace MFM {
 	    doErrMsg = (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
 	  }
 
+	// infinite loop t3756 (without explicit cast)
 	//redo check and type labeling; error msg if not same
-	//e.g. t3191 missing function symbol without c&l
-	if(doErrMsg)
+	// e.g. t3191 missing function symbol without c&l
+	// e.g. t3463 "Cannot CAST Bar as Bits"
+	if(doErrMsg && tobe->isPrimitiveType())
 	  return makeCastingNode(rtnNode, tobeType, rtnNode, false); //recurse
       }
     else if (nclasstype == UC_ELEMENT)

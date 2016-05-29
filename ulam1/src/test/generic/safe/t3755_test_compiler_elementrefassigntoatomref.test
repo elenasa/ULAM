@@ -1,0 +1,76 @@
+## -*- mode:ulam -*-
+#=t3755_test_compiler_elementrefassigntoatomref
+#!
+## gen code output: (+assert)
+## Int Arg: 4
+##
+Exit status: 0
+Ue_Ish5 : System { :<> Bool(1) brtn(true);  Int(32) test() {  E1 e1;  E1& e1ref = e1 cast;  Atom(96) a1;  a1 e1ref cast = Atom(96)& a2 = e1ref cast;  { a1 E1 as cond { E1& a1;  ( a1 m_b ( )func . . )print brtn a1 m_b ( )func . . 4 cast == = ( brtn )assert } if } 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_E1 : Sub { /* empty class block */ }
+Uq_Sub { QBase m_b();  <NOMAIN> }
+Ue_E2 : QBase { /* empty class block */ }
+Uq_QBase { <NOMAIN> }
+##
+## informed by ish-example 5/23/16, and t3751
+##
+#:Ish5.ulam
+  ulam 2;
+//use E1;
+use System;
+element Ish5 : System {
+  Bool brtn;
+  Int test() {
+    E1 e1;
+    E1& e1ref = e1;
+    Atom a1; //init
+    a1 = e1ref;
+    Atom & a2 = e1ref; //assignment
+    if (a1 as E1) {
+      print(a1.m_b.func());
+      brtn = (a1.m_b.func() == 4);
+      assert(brtn);
+    }
+    return 0;
+  }
+}
+
+#:E1.ulam
+  ulam 2;
+//use Sub;
+element E1 : Sub {
+}
+
+#:E2.ulam
+  ulam 2;
+//use Sub;
+element E2 : QBase {
+}
+
+#:Sub.ulam
+  ulam 2;
+//use QBase;
+quark Sub {
+  QBase m_b;
+}
+
+#:QBase.ulam
+  ulam 2;
+quark QBase {
+  Int func() { return 4; }
+}
+
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
+#.

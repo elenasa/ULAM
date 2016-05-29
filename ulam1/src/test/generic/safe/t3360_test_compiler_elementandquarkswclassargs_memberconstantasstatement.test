@@ -1,9 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3360_test_compiler_elementandquarkswclassargs_memberconstantasstatement
+##
+## gen output: 1 assert
+##
 #!
 Exit status: 2
-Ue_Foo { Int(32) test() {  Booly(0u,2u,true) b;  b 7u . b 2u . cast return } }
+Ue_Foo { Bool(1) sp(true);  Int(32) test() {  System s;  Booly(0u,2u,true) b;  sp b 7u . cast = s ( sp )assert . b 2u . cast return } }
 Uq_Booly(Unsigned(3) firstRange, Unsigned(3) lastRange, Bool(3) bomb) { <NOMAIN> }
+Uq_System { <NOMAIN> }
 ##
 ##      //informed by issue (see 3359): also tests Bool as 3rd class parameter
 ##      // b.bomb has NodeMemberSelect as parent, not NodeStatements event though its a "solo" statement
@@ -12,9 +16,12 @@ Uq_Booly(Unsigned(3) firstRange, Unsigned(3) lastRange, Bool(3) bomb) { <NOMAIN>
   ulam 1;
 use Booly;
 element Foo{
+  Bool sp;
   Int test(){
+    System s;
     Booly(0u, 2u, true) b;
-    b.bomb; //unused variable
+    sp = b.bomb;
+    s.assert(sp);
     return b.lastRange;
   }
 }
@@ -25,5 +32,17 @@ quark Booly(Unsigned(3) firstRange, Unsigned(3) lastRange, Bool(3) bomb) {
     if(bomb && lastRange != firstRange) return true;
     return false;
   }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
 }
 #.
