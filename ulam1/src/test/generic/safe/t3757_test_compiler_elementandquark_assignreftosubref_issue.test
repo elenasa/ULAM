@@ -29,10 +29,10 @@ element A : QW {
     QW& qwref = qref; //unused var (qref read)
 
     //casting sub-ref to base-ref
-    Qbase& qref2 = qwref;
+    Qbase& qref2 = qwref; //unused var (qwref read)
 
     //casting sub-ref to base
-    Qbase qb = qwref;
+    Qbase qb = qwref; //NOT unused qwref!
 
     return 0;
   }

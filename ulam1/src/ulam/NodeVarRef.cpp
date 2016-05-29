@@ -473,13 +473,22 @@ namespace MFM {
 		    else
 		      fp->write(", 0u"); //element ref of element stg
 		  }
-		else if(!stgcosut->isReference()) //(e.g. t3613, 3657, 3727)
+		else //if(!stgcosut->isReference()) //not ref(e.g. t3613, 3657, 3727); ref t3759
 		  fp->write(", 0u"); //needs index arg
 
 		if((vclasstype != UC_NOTACLASS) && (vetyp != UAtom))
 		  {
-		    fp->write(", &");
-		    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
+		    if(!stgcosut->isReference())
+		      {
+			fp->write(", &");
+			fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
+		      }
+		    else
+		      {
+			fp->write(", ");
+			fp->write(stgcos->getMangledName().c_str());
+			fp->write(".GetEffectiveSelf()");
+		      }
 		  }
 	      }
 	    else

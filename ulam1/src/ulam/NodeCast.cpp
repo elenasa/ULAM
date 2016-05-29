@@ -1275,18 +1275,26 @@ namespace MFM {
 	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
 	Symbol * stgcos = NULL;
 	stgcos = m_state.m_currentObjSymbolsForCodeGen[0]; //ref can't be a dm
-
-	assert(m_state.isReference(stgcos->getUlamTypeIdx()));
+	UTI stgcosuti = stgcos->getUlamTypeIdx();
 
 	m_state.indentUlamCode(fp);
 	fp->write(tobe->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpVarSuper, TMPBITVAL).c_str());
 	fp->write("(");
-	fp->write(stgcos->getMangledName().c_str()); //a ref
+	fp->write(stgcos->getMangledName().c_str()); //a ref or stg
 	fp->write(", 0u, ");
-	fp->write(stgcos->getMangledName().c_str()); //a ref
-	fp->write(".GetEffectiveSelf()"); //maintains eff self
+	if(m_state.isReference(stgcosuti))
+	  {
+
+	    fp->write(stgcos->getMangledName().c_str()); //a ref
+	    fp->write(".GetEffectiveSelf()"); //maintains eff self
+	  }
+	else
+	  {
+	    fp->write("&"); //e.g. quark-sub to quark-super-ref (t3758)
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
+	  }
 	fp->write(");\n");
 	uvpass = UVPass::makePass(tmpVarSuper, TMPBITVAL, tobeType, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified;
       }
