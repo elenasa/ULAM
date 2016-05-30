@@ -1,8 +1,14 @@
 ## -*- mode:ulam -*-
 #=t3508_test_compiler_quarkcastcaarray_issue_error
-#!
-./QPort4.ulam:18:14: ERROR: Cannot explicitly cast custom array type Atom(96) to type: QPort4; Consider using a temporary variable.
 ##
+## caught during c&l instead
+##  //./QPort4.ulam:18:14: ERROR: Cannot explicitly cast custom array type Atom(96) to type: QPort4; Consider using a temporary variable.
+##
+#!
+./QPort4.ulam:18:14: ERROR: Cannot explicitly cast Atom(96) to type: QPort4.
+./QPort4.ulam:18:4: ERROR: Initial value expression for: s, initialization is invalid.
+./D.ulam:2:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: D.
+Unrecoverable Program Type Label FAILURE.
 #>D.ulam
 use QPort4;
 element D {

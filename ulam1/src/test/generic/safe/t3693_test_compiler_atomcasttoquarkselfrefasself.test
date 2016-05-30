@@ -38,9 +38,11 @@ quark QW {
   Self func()
   {
     Atom a = self.atomof;
-    //Self& sra = (Self&) a;  //see t3692
-    Self sra = (Self) a; //cast turns into immediate with self's values
-    return sra;
+    Self& sra = (Self&) a;  //see t3692
+    //Cannot explicitly cast Atom(96) to type: QW
+    //Self sra = (Self) a; //cast turns into immediate with self's values
+    Self sa = sra; //cast turns into immediate with self's values
+    return sa;
   }
 }
 

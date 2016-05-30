@@ -4882,19 +4882,20 @@ namespace MFM {
     getNextToken(eTok);
     if(eTok.m_type == TOK_AMP)
       {
-	// maybe be needed for atom to quark ref casts???
-	//disallow reference type casts now that elements are no longer packed
-	std::ostringstream msg;
-	msg << "Cannot explicitly cast ";
-	msg << m_state.getUlamTypeNameBriefByIndex(typeNode->givenUTI());
-	msg << " as a reference type; cast may be unnecessary";
-	MSG(&eTok, msg.str().c_str(), ERR);
+	// maybe be needed for atom to quark ref casts (t3692)
 
-	//UTI refuti = m_state.getUlamTypeAsRef(typeNode->givenUTI());
-	//typeargs.m_declRef = ALT_REF;
-	//typeNode->setReferenceType(ALT_REF, typeNode->givenUTI(), refuti);
-	//typeargs.m_referencedUTI = typeNode->getReferencedUTI(); //typeNode->givenUTI();
-	//getNextToken(eTok);
+	//disallow reference type casts now that elements are no longer packed
+	//std::ostringstream msg;
+	//msg << "Cannot explicitly cast ";
+	//msg << m_state.getUlamTypeNameBriefByIndex(typeNode->givenUTI());
+	//msg << " as a reference type; cast may be unnecessary";
+	//MSG(&eTok, msg.str().c_str(), ERR);
+
+	UTI refuti = m_state.getUlamTypeAsRef(typeNode->givenUTI());
+	typeargs.m_declRef = ALT_REF;
+	typeNode->setReferenceType(ALT_REF, typeNode->givenUTI(), refuti);
+	typeargs.m_referencedUTI = typeNode->getReferencedUTI(); //typeNode->givenUTI();
+	getNextToken(eTok);
       }
 
     if(eTok.m_type == TOK_CLOSE_PAREN)

@@ -38,8 +38,7 @@ quark QW {
   Self func()
   {
     Atom a = self.atomof;
-    //Self& sra = (Self&) a; //new way! cast may be unnecessary
-    Self& sra = a; //new way!
+    Self& sra = (Self&) a; //new way! cast may be unnecessary
     return sra;
   }
 }

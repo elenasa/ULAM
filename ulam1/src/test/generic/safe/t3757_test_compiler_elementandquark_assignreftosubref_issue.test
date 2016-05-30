@@ -23,10 +23,10 @@ element A : QW {
     Qbase& qref = self;
 
     //also in t3756
-    A& appleref = qref; //unused var (qref read); can't use .atomof
+    A& appleref = (A&) qref; //unused var (qref read); can't use .atomof
 
     //casting base-ref to sub-ref
-    QW& qwref = qref; //unused var (qref read)
+    QW& qwref = (QW&) qref; //unused var (qref read)
 
     //casting sub-ref to base-ref
     Qbase& qref2 = qwref; //unused var (qwref read)
@@ -46,7 +46,7 @@ quark QW : Qbase{
   Self func()
   {
     Atom a = self.atomof;
-    Self sra = (Self) a; //immediate quark with current values
+    Self& sra = (Self&) a; //immediate quark with current values
     return sra;
   }
 }

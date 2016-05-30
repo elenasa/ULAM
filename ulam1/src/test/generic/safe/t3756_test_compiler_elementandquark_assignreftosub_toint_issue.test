@@ -22,14 +22,14 @@ element A : QW {
     System s;
     Qbase& qref = self;
 
-    A apple = qref; //unused var (qref read)
+    A apple = (A) qref; //unused var (qref read)
 
     A apple2;
-    apple2 = qref; //unused var (qref read)
+    apple2 = (A) qref; //unused var (qref read)
 
     A apple3 = (A) qref.atomof;
 
-    A& appleref = qref; //unused var (qref read); can't use .atomof
+    A& appleref = (A&) qref; //unused var (qref read); can't use .atomof
 
     Atom & atr = qref.atomof;
 
@@ -46,7 +46,7 @@ quark QW : Qbase{
   Self func()
   {
     Atom a = self.atomof;
-    Self sra = (Self) a; //immediate quark with current values
+    Self& sra = (Self&) a; //immediate quark with current values
     return sra;
   }
 }

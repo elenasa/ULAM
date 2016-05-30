@@ -208,14 +208,14 @@ namespace MFM{
     u32 m_wordLengthTotal;
     u32 m_wordLengthItem;
 
+    bool checkReferenceCast(UTI typidx);
+
   private:
 
     static ULAMTYPECOMPARERESULTS compareWithWildArrayItemReferenceType(UTI u1, UTI u2, CompilerState& state);
     static ULAMTYPECOMPARERESULTS compareWithWildReferenceType(UTI u1, UTI u2, CompilerState& state);
 
     bool checkArrayCast(UTI typidx);
-
-    bool checkReferenceCast(UTI typidx);
   };
 
 }

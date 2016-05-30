@@ -20,6 +20,18 @@ namespace MFM {
     return true;
   }
 
+  FORECAST UlamTypePrimitive::explicitlyCastable(UTI typidx)
+  {
+    FORECAST scr = UlamType::safeCast(typidx); //default
+    if(scr == CAST_CLEAR)
+      {
+	// primitives must be the same sizes when casting to a reference type
+	if(isReference() && !UlamType::checkReferenceCast(typidx))
+	  scr = CAST_BAD;
+      }
+    return scr;
+  } //explicitlyCastable
+
   bool UlamTypePrimitive::castTo32(UlamValue & val, UTI typidx)
   {
     assert(0);
