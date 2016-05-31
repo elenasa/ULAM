@@ -1322,7 +1322,22 @@ namespace MFM {
 	return true;
       }
 
-    return setUTISizes(utiArg, derefut->getBitSize(), derefut->getArraySize());
+    AssertBool sized = setUTISizes(utiArg, derefut->getBitSize(), derefut->getArraySize());
+    assert(sized);
+
+    UlamType * ut = getUlamTypeByIndex(utiArg);
+    if(!ut->isComplete())
+      {
+	ULAMCLASSTYPE classtype = ut->getUlamClassType();
+	if( classtype != UC_NOTACLASS)
+	  {
+	    assert(classtype == UC_UNSEEN);
+	    replaceUlamTypeForUpdatedClassType(ut->getUlamKeyTypeSignature(), Class, derefut->getUlamClassType(), derefut->isCustomArray()); //e.g. error/t3763
+	  }
+	else
+	  assert(0); //why not!!?
+      }
+    return getUlamTypeByIndex(utiArg)->isComplete();
   } //completeAReferenceTypeWith
 
   bool CompilerState::isHolder(UTI utiArg)

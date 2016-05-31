@@ -35,12 +35,12 @@ namespace MFM {
 	assert(m_varSymbol);
 	UTI vuti = m_varSymbol->getUlamTypeIdx();
 	bool isself = m_varSymbol->isSelf(); //a ref
+	UTI oftype = NodeStorageof::getOfType();
+	UlamType * ofut = m_state.getUlamTypeByIndex(oftype);
 
 	//refs checked at runtime; non-refs here:
 	if(!m_state.isReference(vuti) && !isself)
 	  {
-	    UTI oftype = NodeStorageof::getOfType();
-	    UlamType * ofut = m_state.getUlamTypeByIndex(oftype);
 	    //only an element or atom have real storage (ie. not quarks)
 	    if(ofut->getUlamClassType() == UC_QUARK)
 	      {
@@ -76,6 +76,24 @@ namespace MFM {
 		      }
 		  }
 	      }
+	    else if(ofut->getUlamClassType() == UC_TRANSIENT)
+	      {
+		std::ostringstream msg;
+		msg << "<" << m_state.getTokenDataAsString(&m_token).c_str();
+		msg << "> is a transient";
+		msg << "; Transients cannot be used with " << getName();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		setNodeType(Nav); //e.g. error/t3761
+	      }
+	  }
+	else if(ofut->getUlamClassType() == UC_TRANSIENT)
+	  {
+	    std::ostringstream msg;
+	    msg << "<" << m_state.getTokenDataAsString(&m_token).c_str();
+	    msg << "> is a transient";
+	    msg << "; Transients cannot be used with " << getName();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav); //e.g. error/t3762
 	  }
       }
     return getNodeType(); //UAtomRef (storeintoable)

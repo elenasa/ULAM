@@ -1,0 +1,32 @@
+## -*- mode:ulam -*-
+#=t3761_test_compiler_atomoftransient_error
+#!
+./R.ulam:8:18: ERROR: <at> is a transient; Transients cannot be used with .atomof.
+./R.ulam:8:5: ERROR: Initial value expression for: atom2, initialization is invalid.
+./A.ulam:6:12: ERROR: <self> is a transient; Transients cannot be used with .atomof.
+./R.ulam:3:9: ERROR: 4 Nodes with erroneous types detected after type labeling class: R.
+Unrecoverable Program Type Label FAILURE.
+#>R.ulam
+  ulam 2;
+use A;
+element R {
+  Bool b;
+  Int test(){
+    A at;
+    Atom atom = at.func();
+    Atom atom2 = at.atomof;
+    return 0;
+  }
+}
+
+#:A.ulam
+  ulam 2;
+transient A {
+  Bool(7) sp = true;
+  Atom func()
+  {
+    return self.atomof;
+  }
+}
+
+#.
