@@ -8,9 +8,9 @@ Ue_E { typedef Bool(1) X;  <NOMAIN> }
 Ue_D { typedef Bool(1) X;  <NOMAIN> }
 #>A.ulam
   ulam 1;
-use F;
-use E;
-use D;
+//use F;
+//use E;
+//use D;
 quark A{ }
 
 #:F.ulam

@@ -160,8 +160,6 @@ namespace MFM{
     SymbolClassNameTemplate * m_parentTemplate;
     bool m_quarkunion;
     bool m_stub;
-    //    u32 m_quarkDefaultValue;
-    //bool m_isreadyQuarkDefaultValue;
     BV8K m_defaultValue; //BitVector
     bool m_isreadyDefaultValue;
     UTI m_superClass; //single inheritance

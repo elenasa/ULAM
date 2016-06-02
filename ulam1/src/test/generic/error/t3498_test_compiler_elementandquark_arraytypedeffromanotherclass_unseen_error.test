@@ -4,7 +4,7 @@
 ./Vector.ulam:4:36: ERROR: Possible Divide By Zero Attempt.
 ./Vector.ulam:4:36: ERROR: Constant value expression for binary op/ is erroneous while compiling class: Vector(2u).
 ./R.ulam:4:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: R.
-./R.ulam:4:9: ERROR: 67 Nodes with unresolved types detected after type labeling class: R.
+./R.ulam:4:9: ERROR: 68 Nodes with unresolved types detected after type labeling class: R.
 Unrecoverable Program Type Label FAILURE.
 #>R.ulam
  ulam 1;

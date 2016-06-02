@@ -4,7 +4,7 @@
 Exit status: 1
 Uq_A { Bool(3) y(false);  <NOMAIN> }
 Ue_F { typedef A Foo;  Int(32) test() {  A f;  f y . true cast = { f y . cond f y . cast return if } 0 cast return } }
-Ue_E { typedef A X;  <NOMAIN> }
+Ue_E { typedef A P;  <NOMAIN> }
 Ue_D { typedef A X;  <NOMAIN> }
 #>A.ulam
   ulam 1;
@@ -18,7 +18,7 @@ quark A{
 #:F.ulam
   ulam 1;
 element F{
-  typedef E.X Foo;
+  typedef E.P Foo;
   Int test(){
     Foo f;
     f.y = true;
@@ -30,7 +30,7 @@ element F{
 #:E.ulam
   ulam 1;
 element E{
-  typedef D.X X;
+  typedef D.X P; //changed name to P to be less confusing
 }
 #:D.ulam
   ulam 1;

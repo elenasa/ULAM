@@ -180,6 +180,13 @@ namespace MFM {
 	//assert( suti == uti || formatAnInstancesArgValuesAsAString(suti).compare(formatAnInstancesArgValuesAsAString(uti)) == 0);
 	return true;
       }
+
+#if 0
+    UTI mappedUTI;
+    if(m_state.findaUTIAlias(basicuti, mappedUTI))
+      return findClassInstanceByUTI(mappedUTI, symptrref);
+#endif
+
     return false;
 #else
     //debug version
@@ -1194,6 +1201,8 @@ namespace MFM {
 
   void SymbolClassNameTemplate::checkAndLabelClassInstances()
   {
+    //SymbolClassName::checkAndLabelClassFirst(); //redo template for postfix output haha!
+
     // only need to c&l the unique class instances that have been deeply copied
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
@@ -1290,6 +1299,52 @@ namespace MFM {
     //so those errors no longer count at the end of resolving loop
     return;
   } //countNavNodesInClassInstances
+
+  bool SymbolClassNameTemplate::statusUnknownTypeInClassInstances(UTI huti)
+  {
+    bool aok = true;
+    bool aoktemplate = true;
+
+    //use template results for remaining stubs
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+
+    aoktemplate = SymbolClass::statusUnknownTypeInClass(huti);
+
+    m_state.popClassContext(); //restore
+
+    // only full instances need to be counted, UNLESS there's an error situation
+    // and we bailed out of the resolving loop, so do them all!
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	//skip stubs that will never get resolved
+	if(csym->isStub() && m_state.isClassATemplate(csym->getContextForPendingArgs()))
+	  //if(csym->isStub() && csym->pendingClassArgumentsForClassInstance() && m_state.isClassATemplate(csym->getContextForPendingArgs()))
+	  {
+	    it++;
+	    continue;
+	  }
+	if(csym->isStub())
+	  aok &= aoktemplate; //use template
+	else
+	  {
+	    UTI suti = csym->getUlamTypeIdx();
+	    NodeBlockClass * classNode = csym->getClassBlockNode();
+	    assert(classNode);
+	    m_state.pushClassContext(suti, classNode, classNode, false, NULL);
+
+	    aok &= csym->statusUnknownTypeInClass(huti);
+
+	    m_state.popClassContext(); //restore
+	  }
+	it++;
+      }
+    return aok;
+  } //statusUnknownTypeInClassInstances
 
   bool SymbolClassNameTemplate::statusUnknownTypeNamesInClassInstances()
   {

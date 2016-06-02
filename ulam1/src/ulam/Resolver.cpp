@@ -132,20 +132,33 @@ namespace MFM {
 		//assert(0);
 	      }
 	    else
-		aok = true; //not missing
-
+	      {
+		UTI cuti = cnsym->getUlamTypeIdx();
+		if(m_state.getUlamTypeByIndex(cuti)->getUlamClassType() == UC_UNSEEN)
+		  aok = false; //still unseen
+		else
+		  aok = true; //not missing, seen!
+	      }
 	    if(aok)
 	      {
 		assert(cnsym);
 		if(cnsym->isClassTemplate())
 		  {
-		    std::ostringstream msg;
-		    msg << "Class with parameters seen with the same name: ";
-		    msg << m_state.m_pool.getDataAsString(cnsym->getId()).c_str();
-		    MSG(m_state.getFullLocationAsString(tok.m_locator).c_str(), msg.str().c_str(), ERR); //No corresponding Nav Node for this ERR (e.g. error/t3644)
-		    //aok = false; continue so no more than one error for same problem
+		    SymbolClass * csym = NULL;
+		    if(m_state.alreadyDefinedSymbolClass(huti, csym))
+		      kuti = csym->getUlamTypeIdx(); //perhaps an alias
+		    else
+		      {
+			std::ostringstream msg;
+			msg << "Class with parameters seen with the same name: ";
+			msg << m_state.m_pool.getDataAsString(cnsym->getId()).c_str();
+			MSG(m_state.getFullLocationAsString(tok.m_locator).c_str(), msg.str().c_str(), ERR); //No corresponding Nav Node for this ERR (e.g. error/t3644)
+			//aok = false; continue so no more than one error for same problem
+			kuti = cnsym->getUlamTypeIdx();
+		      }
 		  }
-		kuti = cnsym->getUlamTypeIdx();
+		else
+		  kuti = cnsym->getUlamTypeIdx();
 	      }
 	  } //end class type
 	//else
@@ -185,10 +198,10 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Undetermined Type: <";
-	    msg << m_state.getTokenDataAsString(&tok) << ">;";
+	    msg << m_state.getTokenDataAsString(&tok) << ">; ";
 	    msg << "Suggest 'use ";
 	    msg << m_state.getTokenDataAsString(&tok) << ";' if it's a class";
-	    msg << ", otherwise a typedef is needed.";
+	    msg << ", otherwise a typedef is needed";
 	    MSG(m_state.getTokenLocationAsString(&tok).c_str(), msg.str().c_str(), DEBUG);
 	    aok = false;
 	  }
@@ -367,7 +380,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Substituting previously mapped UTI" << mappedfmuti;
-	msg << " for the fm UTI" << fmuti << " while mapping to: " << touti;
+	msg << " for the from UTI" << fmuti << ", while mapping to: " << touti;
 	msg << " in class " << m_state.getUlamTypeNameBriefByIndex(m_classUTI).c_str();
 	MSG("",msg.str().c_str(),DEBUG);
 	fmuti = mappedfmuti;

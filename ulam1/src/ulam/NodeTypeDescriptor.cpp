@@ -154,7 +154,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Substituting Mapped UTI" << mappedUTI;
 	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
-	    msg << " for incomplete descriptor type: ";
+	    msg << " for incomplete descriptor type: '";
 	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	    msg << "' UTI" << nuti << " while labeling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
@@ -326,17 +326,21 @@ namespace MFM {
 		  {
 		    UlamType * tut = m_state.getUlamTypeByIndex(tduti);
 		    UlamKeyTypeSignature tdkey = tut->getUlamKeyTypeSignature();
-		    UlamKeyTypeSignature newkey(tdkey.getUlamKeyTypeSignatureNameId(), tut->getBitSize(), tut->getArraySize(), 0, tut->getReferenceType());
+		    UlamKeyTypeSignature newkey(tdkey.getUlamKeyTypeSignatureNameId(), tut->getBitSize(), tut->getArraySize(), tduti, tut->getReferenceType());
 		    m_state.makeUlamTypeFromHolder(newkey, tut->getUlamTypeEnum(), nuti, tut->getUlamClassType());
 		    rtnuti = tduti; //reset
 		    rtnb = true;
 		    msg << "RESET ";
 		  }
 		else
-		  rtnuti = Hzy;
-
-		msg << "Unseen Class was a typedef for: ";
+		  {
+		    rtnuti = Hzy;
+		    msg << "Hazy ";
+		  }
+		msg << "Unseen Class (UTI" << nuti << ") was a typedef for: '";
 		msg << m_state.getUlamTypeNameBriefByIndex(tduti).c_str();
+		msg << "' (UTI" << tduti << ") while labeling class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	      }
 	    else
@@ -356,8 +360,9 @@ namespace MFM {
 		  }
 
 		std::ostringstream msg;
-		msg << "UNSEEN Class and incomplete descriptor for type: ";
+		msg << "UNSEEN Class and incomplete descriptor for type: '";
 		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		msg << "' (UTI" << nuti << ")";
 		if(isAnonymousClass)
 		  {
 		    msg << " replaced with type: (UTI" << auti << ")";
