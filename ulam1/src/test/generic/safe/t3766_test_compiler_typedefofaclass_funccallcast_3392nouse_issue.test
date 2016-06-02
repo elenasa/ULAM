@@ -1,20 +1,19 @@
 ## -*- mode:ulam -*-
-#=t3392_test_compiler_typedefofaclass_funccallcast_issue
+#=t3766_test_compiler_typedefofaclass_funccallcast_3392nouse_issue
 #!
 ##      //test bug fix: casting func call arg using typedef of another class
 Exit status: 7
-Ue_R { Ish2 ish( Colony(3u) colony( typedef Unsigned(3) Tail;  constant Unsigned(32) widthc = 3u;  typedef Telomeree(3u) Telo;  Telomeree(3u) t( constant Unsigned(32) width = 3u;  typedef Unsigned(3) Tail;  Unsigned(3) age(7u); ); ); );  Int(32) test() {  ish colony ( 7u cast )setTailAge . . ish colony t ( )getAge . . . cast return } }
-Uq_Telomeree(Unsigned(32) width) { typedef Unsigned(UNKNOWN) Tail;  Unsigned(UNKNOWN) age(notready);  <NOMAIN> }
-Uq_Colony(Unsigned(32) widthc) { typedef Telomeree(width) Telo;  typedef Unsigned(UNKNOWN) Tail;  Telomeree(width) t(notready);  <NOMAIN> }
+Ue_R { Ish2 ish( Colony(3u) colony( Telomeree(3u) t( typedef Unsigned(3) Tail;  constant Unsigned(32) width = 3u;  Unsigned(3) age(7u); );  constant Unsigned(32) widthc = 3u;  typedef Telomeree(3u) Telo;  typedef Unsigned(3) Tail; ); );  Int(32) test() {  ish colony ( 7u cast )setTailAge . . ish colony t ( )getAge . . . cast return } }
 Uq_Ish2 { Colony(3u) colony( typedef Telomeree(3u) Telo;  typedef Unsigned(3) Tail;  Telomeree(3u) t( typedef Unsigned(3) Tail;  Unsigned(3) age(0); ); );  <NOMAIN> }
-##      //informed by 3383,
+Uq_Colony(Unsigned(32) widthc) { typedef Telomeree(width) Telo;  typedef 0Holder(UNKNOWN) Tail;  Telomeree(width) t(notready);  <NOMAIN> }
+Uq_Telomeree(Unsigned(32) width) { typedef Unsigned(UNKNOWN) Tail;  Unsigned(UNKNOWN) age(notready);  <NOMAIN> }
+##      //informed by 3392 without the uses
 ##      // likes Telomeree first!
-## (see t3766 for no-uses version)
 #>R.ulam
   ulam 1;
-use Telomeree;
-use Colony;
-use Ish2;
+//use Telomeree;
+//use Colony;
+//use Ish2;
 element R{
   Ish2 ish;
   Int test() {  /*ish.colony.t.setAge((Unsigned(3)) 7);

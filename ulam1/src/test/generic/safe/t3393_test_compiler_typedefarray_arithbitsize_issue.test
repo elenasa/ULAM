@@ -15,7 +15,8 @@ element B {
   Void hit(Slot slot, Unsigned weight) {
     arr[slot] = (Index) (arr[slot] + (Index) weight);
   }
-  Int test(){hit((Slot) 1, 7u);
+  Int test(){
+    hit((Slot) 1, 7u);
     return arr[1];
   }
 }

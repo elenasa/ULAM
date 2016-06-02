@@ -11,20 +11,21 @@ Exit status: 2
 Ue_Tu { System s();  Int(32) me(2);  Int(32) test() {  Tu t;  Atom(96) a;  { a Tu is cond { t a cast = me 2 cast = } if } s ( me )print . me return } }
 Uq_System { <NOMAIN> }
 #>Tu.ulam
-ulam 1;
+  ulam 1;
 use System;
- element Tu {
-System s;
-Int me;
-Int test(){
-Tu t;
-Atom a; if(a is Tu){
- t = (Tu) a;
- me = 2;
- }
- s.print(me);
- return me;
-}
+element Tu {
+  System s;
+  Int me;
+  Int test(){
+    Tu t;
+    Atom a;
+    if(a is Tu){
+      t = (Tu) a;
+      me = 2;
+    }
+    s.print(me);
+    return me;
+  }
 }
 
 ##      // FAILS BAD_CAST (of course it is! we protect against this sort of thing..)

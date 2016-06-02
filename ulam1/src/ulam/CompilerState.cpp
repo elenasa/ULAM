@@ -1848,6 +1848,7 @@ namespace MFM {
 	      }
 	    else
 	      {
+		//template may not be aware of this mapping (e.g. t3379)
 		UTI mappedUTI;
 		if(findaUTIAlias(scalarUTI, mappedUTI))
 		  {
@@ -1926,11 +1927,13 @@ namespace MFM {
     UTI cuti = getCompileThisIdx();
 
 #if 1
+    //just this class (original way)
     SymbolClass * csym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
     return csym->statusUnknownTypeInClass(huti);
 #else
+    //all template class instances with same name
     UlamType * cut = getUlamTypeByIndex(cuti);
     SymbolClassName * cnsym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClassName(cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), cnsym);

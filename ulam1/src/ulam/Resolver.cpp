@@ -139,6 +139,7 @@ namespace MFM {
 		else
 		  aok = true; //not missing, seen!
 	      }
+
 	    if(aok)
 	      {
 		assert(cnsym);
