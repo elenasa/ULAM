@@ -231,6 +231,19 @@ namespace MFM {
     return;
   } //countNavNodesInClassInstances
 
+  bool SymbolClassName::statusUnknownTypeInClassInstances(UTI huti)
+  {
+    bool aok = true;
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+
+    aok = SymbolClass::statusUnknownTypeInClass(huti);
+
+    m_state.popClassContext(); //restore
+    return aok;
+  } //statusUnknownTypeInClassInstances
+
   bool SymbolClassName::statusUnknownTypeNamesInClassInstances()
   {
     bool aok = true;

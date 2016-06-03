@@ -118,8 +118,7 @@ namespace MFM {
 
 	//check for UNSEEN Class' ClassType (e.g. array of UC_QUARK)
 	UlamType * tdut = m_state.getUlamTypeByIndex(it);
-	ULAMCLASSTYPE tdclasstype = tdut->getUlamClassType();
-	if(tdclasstype == UC_UNSEEN)
+	if((tdut->getUlamTypeEnum() == Class) && (tdut->getUlamClassType() == UC_UNSEEN))
 	  {
 	    if(!m_state.completeIncompleteClassSymbolForTypedef(it))
 	      {
@@ -151,8 +150,9 @@ namespace MFM {
 		msg << " UTI" << duti << " while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		m_typedefSymbol->resetUlamType(duti); //consistent! (must be same ref type)
 		m_state.mapTypesInCurrentClass(it, duti);
+		m_state.updateUTIAliasForced(it, duti); //missing? t3764, t3373
+		m_typedefSymbol->resetUlamType(duti); //consistent! (must be same ref type)
 		it = duti;
 	      }
 	  }

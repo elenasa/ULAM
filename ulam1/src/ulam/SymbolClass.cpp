@@ -450,8 +450,12 @@ namespace MFM {
 
   UTI SymbolClass::getContextForPendingArgs()
   {
-    assert(m_resolver);
-    return m_resolver->getContextForPendingArgs();
+    //assert(m_resolver); //dangerous! when template has default parameters
+    if(m_resolver)
+      return m_resolver->getContextForPendingArgs();
+
+    assert(getParentClassTemplate() && getParentClassTemplate()->getTotalParametersWithDefaultValues() > 0);
+    return getUlamTypeIdx(); //return self UTI
   } //getContextForPendingArgs
 
   bool SymbolClass::statusNonreadyClassArguments()

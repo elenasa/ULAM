@@ -31,7 +31,8 @@ quark QPerc {
   Bool check()
   {
     Atom a = self.atomof; //atom;
-    Self input = (Self) a; //cast problem during eval!
+    //Self input = (Self) a; //Cannot explicitly cast Atom(96) to type: QPerc
+    Self& input = (Self&) a; //cast problem during eval!
     return (a is Self);
   }
 }

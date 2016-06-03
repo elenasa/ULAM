@@ -108,7 +108,7 @@ namespace MFM {
 
   FORECAST UlamTypeAtom::explicitlyCastable(UTI typidx)
   {
-    FORECAST scr = UlamType::explicitlyCastable(typidx); //default, arrays checked
+    FORECAST scr = UlamType::safeCast(typidx); //default, arrays checked
     if(scr == CAST_CLEAR)
       {
 	UlamType * vut = m_state.getUlamTypeByIndex(typidx);

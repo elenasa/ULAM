@@ -176,7 +176,7 @@ namespace MFM {
       {
 	if((utype != Class))
 	  {
-	    //trans-basic type from "Class" to Non-class
+	    //transfer-basic type from "Class" to Non-class
 	    //we need to also remove the name id from program ST
 	    u32 oldnameid = oldkey.getUlamKeyTypeSignatureNameId();
 	    AssertBool isGone = removeIncompleteClassSymbolFromProgramTable(oldnameid);
@@ -184,22 +184,51 @@ namespace MFM {
 	  }
 	else
 	  {
+	    u32 newnameid = newkey.getUlamKeyTypeSignatureNameId();
+
 	    //let the new class name be represented instead of the old (e.g. typedef)
 	    u32 oldnameid = oldkey.getUlamKeyTypeSignatureNameId();
 	    SymbolClassName * cnsym = NULL;
-	    AssertBool isDefined = alreadyDefinedSymbolClassName(oldnameid, cnsym);
-	    assert(isDefined);
-	    u32 newnameid = newkey.getUlamKeyTypeSignatureNameId();
-
-	    SymbolClassName * newcnsym = NULL;
-	    if(!alreadyDefinedSymbolClassName(newnameid, newcnsym))
+	    if(alreadyDefinedSymbolClassName(oldnameid, cnsym))
 	      {
-		cnsym->setId(newnameid);
-		m_programDefST.replaceInTable(oldnameid, newnameid, cnsym);
+		if(!cnsym->isClassTemplate())
+		  {
+		    SymbolClassName * newcnsym = NULL;
+		    if(!alreadyDefinedSymbolClassName(newnameid, newcnsym))
+		      {
+			cnsym->setId(newnameid);
+			m_programDefST.replaceInTable(oldnameid, newnameid, cnsym);
+		      }
+		    else //if(cnsym != NULL)
+		      removeIncompleteClassSymbolFromProgramTable(oldnameid);
+		  }
+		else
+		  {
+		    //old is a template, names must be the same
+		    assert(oldnameid == newnameid);
+		    SymbolClass * csym = NULL;
+		    if(((SymbolClassNameTemplate*) cnsym)->findClassInstanceByUTI(uti, csym))
+		      {
+			//already added into template; nothing to do
+		      }
+		    else if(alreadyDefinedSymbolClass(uti, csym))
+		      {
+			//must have found an alias!
+			//for a class instance in template
+		      }
+		    else
+		      assert(0);
+		    return csym->getUlamTypeIdx();
+		  }
 	      }
 	    else
-	      removeIncompleteClassSymbolFromProgramTable(oldnameid);
+	      {
+		//oldname only a typedef
+		AssertBool isDefined = alreadyDefinedSymbolClassName(newnameid, cnsym);
+		assert(isDefined);
+	      }
 	  }
+
       }
 
     //we need to keep the uti, but change the key
@@ -273,6 +302,8 @@ namespace MFM {
 
   void CompilerState::cleanupExistingHolder(UTI huti, UTI newuti)
   {
+    if(huti == newuti) return; //short-circuit (e.g. t3378) don't use compare; maybe Hzy etyp
+
     UlamType * newut = getUlamTypeByIndex(newuti);
     UlamKeyTypeSignature newkey = newut->getUlamKeyTypeSignature();
     ULAMTYPE newetyp = newut->getUlamTypeEnum();
@@ -1322,7 +1353,22 @@ namespace MFM {
 	return true;
       }
 
-    return setUTISizes(utiArg, derefut->getBitSize(), derefut->getArraySize());
+    AssertBool sized = setUTISizes(utiArg, derefut->getBitSize(), derefut->getArraySize());
+    assert(sized);
+
+    UlamType * ut = getUlamTypeByIndex(utiArg);
+    if(!ut->isComplete())
+      {
+	ULAMCLASSTYPE classtype = ut->getUlamClassType();
+	if( classtype != UC_NOTACLASS)
+	  {
+	    assert(classtype == UC_UNSEEN);
+	    replaceUlamTypeForUpdatedClassType(ut->getUlamKeyTypeSignature(), Class, derefut->getUlamClassType(), derefut->isCustomArray()); //e.g. error/t3763
+	  }
+	else
+	  assert(0); //why not!!?
+      }
+    return getUlamTypeByIndex(utiArg)->isComplete();
   } //completeAReferenceTypeWith
 
   bool CompilerState::isHolder(UTI utiArg)
@@ -1494,7 +1540,7 @@ namespace MFM {
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
     return;
-  } //updateUTIAlias
+  } //updateUTIAliasForced
 
   void CompilerState::initUTIAlias(UTI auti)
   {
@@ -1802,6 +1848,7 @@ namespace MFM {
 	      }
 	    else
 	      {
+		//template may not be aware of this mapping (e.g. t3379)
 		UTI mappedUTI;
 		if(findaUTIAlias(scalarUTI, mappedUTI))
 		  {
@@ -1878,11 +1925,22 @@ namespace MFM {
   bool CompilerState::statusUnknownTypeInThisClassResolver(UTI huti)
   {
     UTI cuti = getCompileThisIdx();
+
+#if 1
+    //just this class (original way)
     SymbolClass * csym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
-
     return csym->statusUnknownTypeInClass(huti);
+#else
+    //all template class instances with same name
+    UlamType * cut = getUlamTypeByIndex(cuti);
+    SymbolClassName * cnsym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClassName(cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), cnsym);
+    assert(isDefined);
+
+    return cnsym->statusUnknownTypeInClassInstances(huti);
+#endif
   } //statusUnknownTypeInThisClassResolver
 
   bool CompilerState::removeIncompleteClassSymbolFromProgramTable(u32 id)
@@ -3472,6 +3530,8 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   bool CompilerState::okUTItoContinue(UTI uti)
   {
+    //if((uti != Hzy) && (getUlamTypeByIndex(uti)->getUlamTypeEnum() == Hzy))
+    //  assert(0); //t3378?
     return ((uti != Nav) && (uti != Hzy) && (uti != Nouti));
   }
 

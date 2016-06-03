@@ -215,6 +215,14 @@ namespace MFM {
 		errorsFound++;
 #endif
 	      }
+	    else if(tclasstype == UC_TRANSIENT)
+	      {
+		std::ostringstream msg;
+		msg << "Cannot cast an atom to transient "; //an atom
+		msg << tobe->getUlamTypeNameBrief().c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		errorsFound++;
+	      }
 	  }
 	else if(m_state.isAtomRef(tobeType) && (nclasstype == UC_QUARK) && !nut->isReference())
 	  {
@@ -225,7 +233,9 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    errorsFound++;
 	  }
-	else if(isExplicitCast())
+
+	//and then check explicit casts
+	if(isExplicitCast())
 	  {
 	    FORECAST scr = tobe->explicitlyCastable(nodeType);
 	    if(scr != CAST_CLEAR)

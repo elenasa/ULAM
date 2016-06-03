@@ -564,39 +564,52 @@ namespace MFM {
     if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex,asymptr))
       {
 	tduti = asymptr->getUlamTypeIdx();
-	if(asymptr->isTypedef() && m_state.isHolder(tduti))
+	//if(asymptr->isTypedef() && m_state.isHolder(tduti))
+	if(asymptr->isTypedef())
 	  {
-	    //not Nav when tduti's an array; might know?
-	    args.m_declListOrTypedefScalarType = tdscalaruti;
-
-	    UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
-	    ULAMCLASSTYPE tclasstype = tdut->getUlamClassType();
-	    // keep the out-of-band name; other's might refer to its UTI.
-	    // if its UTI is a unseen class, we can update the name of the class later
-	    // don't want to rush this step since we might have a class w args and diff UTI.
-	    if((tclasstype == UC_NOTACLASS))
+	    if(m_state.isHolder(tduti))
 	      {
-		// if not a class, but a primitive type update the key
-		if(Token::getSpecialTokenWork(args.m_typeTok.m_type) == TOKSP_TYPEKEYWORD)
+		//not Nav when tduti's an array; might know?
+		args.m_declListOrTypedefScalarType = tdscalaruti;
+
+		UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
+		ULAMCLASSTYPE tclasstype = tdut->getUlamClassType();
+		// keep the out-of-band name; other's might refer to its UTI.
+		// if its UTI is a unseen class, we can update the name of the class later
+		// don't want to rush this step since we might have a class w args and diff UTI.
+		if((tclasstype == UC_NOTACLASS))
 		  {
 		    ULAMTYPE bUT = m_state.getBaseTypeFromToken(args.m_typeTok);
-		    if(args.m_bitsize == 0)
-		      args.m_bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
-		    // update the type of holder key
-		    UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, Nouti, args.m_declRef);
-		    m_state.makeUlamTypeFromHolder(newkey, bUT, tduti, UC_NOTACLASS); //update key, same uti
-		    if(m_state.hasUnknownTypeInThisClassResolver(tduti))
-		      m_state.removeKnownTypeTokenFromThisClassResolver(tduti);
+
+		    // if not a class, but a primitive type update the key
+		    if(Token::getSpecialTokenWork(args.m_typeTok.m_type) == TOKSP_TYPEKEYWORD)
+		      {
+			if(args.m_bitsize == 0)
+			  args.m_bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
+			// update the type of holder key
+			UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, Nouti, args.m_declRef);
+			m_state.makeUlamTypeFromHolder(newkey, bUT, tduti, UC_NOTACLASS); //update key, same uti
+			if(m_state.hasUnknownTypeInThisClassResolver(tduti))
+			  m_state.removeKnownTypeTokenFromThisClassResolver(tduti);
+		      }
+		    else
+		      {
+			//update holder key with name_id and possible array (UNKNOWNSIZE)
+			//possibly a class (t3379)
+			UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, args.m_classInstanceIdx, args.m_declRef);
+			//m_state.makeUlamTypeFromHolder(newkey,Holder,tduti,UC_NOTACLASS);
+			m_state.makeUlamTypeFromHolder(newkey, bUT, tduti, bUT == Class ? UC_UNSEEN : UC_NOTACLASS); //update holder key, same uti
+		      }
 		  }
-		else
-		  {
-		    //update holder key with name_id and possible array (UNKNOWNSIZE)
-		    UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, Nouti, args.m_declRef);
-		    m_state.makeUlamTypeFromHolder(newkey, Holder, tduti, UC_NOTACLASS); //update holder key, same uti
-		  }
-	      }
-	    brtn = true;
-	  }
+		brtn = true;
+	      } //holder done
+	    else if(asymptr->getId() == m_state.m_pool.getIndexForDataString("Self"))
+	      brtn = false; //e.g. error/t3391, error/t3698
+	    else if(asymptr->getId() == m_state.m_pool.getIndexForDataString("Super"))
+	      brtn = false;
+	    else
+	      brtn = true;
+	  } //a typedef already there
 	return brtn; //already there, and updated
       }
     //    else
@@ -692,6 +705,11 @@ namespace MFM {
 
 	//remember tduti for references
 	symtypedef->setAutoLocalType(m_state.getReferenceType(uti));
+
+	//check if also a holder (not necessary)
+	//if(ut->isHolder())
+	//  m_state.addUnknownTypeTokenToThisClassResolver(m_token, uti);
+
 	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr)); //true
       }
     return false;

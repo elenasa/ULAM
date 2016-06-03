@@ -6,7 +6,7 @@
 ##	 Int Arg: 3
 ##
 ## FIX in NodeConditionalIs to clear stack of symbols
-## culamtest: NodeBinaryOpCompare.cpp:272: virtual void MFM::NodeBinaryOpCompare::genCode(MFM::File*, MFM::UVPass&): Assertion `m_state.m_currentObjSymbolsForCodeGen.empty()' failed.
+## culamtest: NodeBinaryOpCompare.cpp:272: virtual void MFM::NodeBinaryOpCompare::genCode(MFM::File*, MFM::UVPass&): Assertion \`m_state.m_currentObjSymbolsForCodeGen.empty()\' failed.
 ##
 Exit status: -11
 Uq_Typo(Int(32) a) : Bar { /* empty class block */ }
@@ -14,11 +14,11 @@ Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
 Ue_Eltypo : Typo(1) { :< :< Unsigned(3) bu(7u); > constant Int(32) a = 1; > System s();  Unsigned(3) first(0u);  Int(32) test() {  Eltypo elf;  Atom(96) other = elf cast;  { other Bar as cond { Bar& other;  Int(32) slot = 3 cast;  { other Eltypo is slot 2 cast > || cond { s ( slot )print . s ( slot 2 cast > )assert . } if { s ( 0u cast )print . s ( true )assert . } else } } if } 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
-## informed by 'Burn' issue 5/19/2016
+## informed by \'Burn\' issue 5/19/2016
 ##
 #:Typo.ulam
   ulam 2;
-use Bar;
+//use Bar;
 quark Typo(Int a) : Bar{
 }
 
@@ -31,8 +31,8 @@ quark Bar
 
 #>Eltypo.ulam
   ulam 2;
-use Typo;
-use System;
+//use Typo;
+//use System;
 element Eltypo : Typo(1) {
   System s;
   Unsigned(3) first;

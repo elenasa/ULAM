@@ -64,9 +64,9 @@ namespace MFM {
 
 	    if(m_state.isClassASubclassOf(cuti, fmderef))
 	      {
-		if(m_state.isReference(typidx))
-		  return CAST_CLEAR; //casting super ref to a sub class is ok
-		return CAST_BAD; //only refs
+		//if(m_state.isReference(typidx))
+		//  return CAST_CLEAR; //casting super ref to a sub class is ok
+		return CAST_BAD; //requires explicit cast
 	      }
 
 	    //ref of this class, applies to entire arrays too
@@ -86,13 +86,13 @@ namespace MFM {
 
   FORECAST UlamTypeClass::explicitlyCastable(UTI typidx)
   {
-    FORECAST scr = UlamType::explicitlyCastable(typidx); //default, arrays checked
+    FORECAST scr = UlamType::safeCast(typidx); //default, arrays checked
     if(scr == CAST_CLEAR)
       {
 	UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
 	ULAMTYPE fetyp = fmut->getUlamTypeEnum();
-	//no casting from primitive to class; but from atom/atomref to class may be fine
-	if((fetyp != Class) || m_state.isAtom(typidx))
+	//no casting from primitive to class; but from atom/atomref to class may be fine (e.g. t3733)
+	if((fetyp != Class) && (fetyp != UAtom))
 	  return CAST_BAD;
 	else if(m_state.isAtom(typidx))
 	  return CAST_CLEAR;
@@ -105,7 +105,7 @@ namespace MFM {
 	  {
 	    //casting fm super to sub..only if fm is a ref
 	    if(!isfmref)
-	      scr = CAST_BAD;
+	      scr = CAST_BAD; //t3756, t3757
 	  }
 	else if(m_state.isClassASubclassOf(fmderef, cuti))
 	  {

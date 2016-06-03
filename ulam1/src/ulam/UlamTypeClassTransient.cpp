@@ -37,6 +37,18 @@ namespace MFM {
     return brtn;
   } //end cast
 
+  FORECAST UlamTypeClassTransient::explicitlyCastable(UTI typidx)
+  {
+    FORECAST scr = UlamTypeClass::explicitlyCastable(typidx);
+    if(scr == CAST_CLEAR)
+      {
+	//no casting from atom/atomref to transient, other classes may be fine
+	if(m_state.isAtom(typidx))
+	  scr = CAST_BAD;
+      }
+    return scr;
+  } //explicitlyCastable
+
   const char * UlamTypeClassTransient::getUlamTypeAsSingleLowercaseLetter()
   {
     return "n";

@@ -27,14 +27,12 @@ element A : QW {
     A apple2;
     c = (apple2.m_five != 0x5);
     s.assert(c);
-    //apple2 = (A) qref; //assignment: unused var (qref read)
-    apple2 = qref; //assignment: unused var (qref read)
+    apple2 = (A) qref; //assignment: unused var (qref read)
     c = (apple2.m_five == 0x5);
     s.assert(c);
 
     qref.m_five = 0x3;
-    //A apple = (A) qref; //init: unused var (qref read)
-    A apple = qref; //init: unused var (qref read)
+    A apple = (A) qref; //init: unused var (qref read)
     b = (apple.m_five == 0x3);
     s.assert(b);
 
@@ -50,8 +48,8 @@ quark QW : Qbase{
   Self func()
   {
     Atom a = self.atomof;
-    //Self& sra = (Self&) a; //new way!
-    Self sra = (Self) a; //immediate quark with current values
+    Self& sra = (Self&) a; //new way!
+    //Self sra = (Self) a; //Cannot explicitly cast Atom(96) to type: QW
     return sra;
   }
 }

@@ -93,15 +93,8 @@ namespace MFM {
 
   FORECAST UlamType::explicitlyCastable(UTI typidx)
   {
-    FORECAST scr = UlamType::safeCast(typidx); //default
-    if(scr == CAST_CLEAR)
-      {
-	// primitives must be the same sizes when casting to a reference type
-	if(isReference() && !checkReferenceCast(typidx))
-	  scr = CAST_BAD;
-      }
-    return scr;
-  } //explicitlyCastable
+    assert(0); //must be overridden (pure virtual unhappy)
+  }
 
   bool UlamType::checkArrayCast(UTI typidx)
   {

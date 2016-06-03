@@ -14,7 +14,7 @@ Uq_Telomeree(Unsigned(32) width) { typedef Unsigned(UNKNOWN) Tail;  Unsigned(UNK
 ##       // likes Telomeree first!
 #>R.ulam
   ulam 1;
-use Ish3;
+//use Ish3;
 element R{
   Ish3 ish;
   Int test() {
@@ -23,7 +23,7 @@ element R{
 }
 #:Colony.ulam
   ulam 1;
-use Telomeree;
+//use Telomeree;
 quark Colony(Unsigned widthc){
   typedef Telomeree(widthc) Telo;
   Unsigned foo() {
@@ -33,7 +33,7 @@ quark Colony(Unsigned widthc){
 
 #:Ish3.ulam
   ulam 1;
-use Colony;
+//use Colony;
 quark Ish3{
   Colony(3) colony;
 }

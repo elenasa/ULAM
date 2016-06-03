@@ -1983,6 +1983,8 @@ namespace MFM {
 	    stubuti = Nav;
 	  }
       }
+    if(stubuti != Nav)
+      isaclass = true; //we know now for sure
     return stubuti;
   } //parseClassArguments
 
@@ -2310,6 +2312,7 @@ namespace MFM {
 		symtypedef->setBlockNoOfST(memberClassNode->getNodeNo());
 		m_state.addSymbolToCurrentMemberClassScope(symtypedef);
 		m_state.addUnknownTypeTokenToAClassResolver(mcuti, pTok, huti);
+		//these will fail: t3373-8, t3380-1,5, t3764, and t3379
 		//m_state.addUnknownTypeTokenToThisClassResolver(pTok, huti); //also, compiling this one
 	      }
 	  } //end make one up, now fall through
@@ -4882,19 +4885,20 @@ namespace MFM {
     getNextToken(eTok);
     if(eTok.m_type == TOK_AMP)
       {
-	// maybe be needed for atom to quark ref casts???
-	//disallow reference type casts now that elements are no longer packed
-	std::ostringstream msg;
-	msg << "Cannot explicitly cast ";
-	msg << m_state.getUlamTypeNameBriefByIndex(typeNode->givenUTI());
-	msg << " as a reference type; cast may be unnecessary";
-	MSG(&eTok, msg.str().c_str(), ERR);
+	// maybe be needed for atom to quark ref casts (t3692)
 
-	//UTI refuti = m_state.getUlamTypeAsRef(typeNode->givenUTI());
-	//typeargs.m_declRef = ALT_REF;
-	//typeNode->setReferenceType(ALT_REF, typeNode->givenUTI(), refuti);
-	//typeargs.m_referencedUTI = typeNode->getReferencedUTI(); //typeNode->givenUTI();
-	//getNextToken(eTok);
+	//disallow reference type casts now that elements are no longer packed
+	//std::ostringstream msg;
+	//msg << "Cannot explicitly cast ";
+	//msg << m_state.getUlamTypeNameBriefByIndex(typeNode->givenUTI());
+	//msg << " as a reference type; cast may be unnecessary";
+	//MSG(&eTok, msg.str().c_str(), ERR);
+
+	UTI refuti = m_state.getUlamTypeAsRef(typeNode->givenUTI());
+	typeargs.m_declRef = ALT_REF;
+	typeNode->setReferenceType(ALT_REF, typeNode->givenUTI(), refuti);
+	typeargs.m_referencedUTI = typeNode->getReferencedUTI(); //typeNode->givenUTI();
+	getNextToken(eTok);
       }
 
     if(eTok.m_type == TOK_CLOSE_PAREN)

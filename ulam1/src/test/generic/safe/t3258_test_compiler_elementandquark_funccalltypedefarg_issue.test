@@ -6,7 +6,7 @@ Ue_TypedefIssue { typedef Unsigned(3) Symmetry;  Bool(1) b(true);  Vector t( typ
 Uq_Vector { typedef Unsigned(3) Symmetry;  Unsigned(3) m(0);  Unsigned(3) n(0);  <NOMAIN> }
 #>TypedefIssue.ulam
   ulam 1;
-use Vector;
+//use Vector;
 element TypedefIssue {
   // Types
   typedef Unsigned(3) Symmetry;

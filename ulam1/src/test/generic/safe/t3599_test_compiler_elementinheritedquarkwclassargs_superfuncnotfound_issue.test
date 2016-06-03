@@ -10,7 +10,7 @@ Uq_QSync(Unary(5) stateCount) { typedef Unary(2) Phase;  Unary(2) phase(0);  con
 ##
 #>CLife0.ulam
   ulam 2;
-use CLife;
+//use CLife;
 element CLife0 : CLife
 {
   virtual Void behave() {
@@ -26,7 +26,7 @@ element CLife0 : CLife
 
 #:CLife.ulam
   ulam 2;
-use QSync;
+//use QSync;
 quark CLife : QSync(1u) {
   //typedef QSync(1u) Super; //also automatic
 

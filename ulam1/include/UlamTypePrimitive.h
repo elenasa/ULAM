@@ -59,6 +59,8 @@ namespace MFM{
 
     virtual FORECAST safeCast(UTI typidx) = 0;
 
+    virtual FORECAST explicitlyCastable(UTI typidx);
+
     virtual void getDataAsString(const u32 data, char * valstr, char prefix) = 0;
 
     virtual void getDataLongAsString(const u64 data, char * valstr, char prefix) = 0;

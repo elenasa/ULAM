@@ -14,7 +14,7 @@ Uq_QB { <NOMAIN> }
 ##
 #>AtomOfIsh.ulam
   ulam 2;
-use QM;
+//use QM;
 element AtomOfIsh : QM {
   Int test() {
     self.qmfunc();
@@ -24,7 +24,7 @@ element AtomOfIsh : QM {
 
 #:QM.ulam
   ulam 2;
-use QB;
+//use QB;
 quark QM : QB {
   Void qmfunc() {
     self.qbfunc();
