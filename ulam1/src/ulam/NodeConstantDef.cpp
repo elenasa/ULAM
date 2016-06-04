@@ -176,6 +176,7 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    m_constSymbol->resetUlamType(duti); //consistent!
 	    m_state.mapTypesInCurrentClass(suti, duti);
+	    m_state.updateUTIAliasForced(it, duti); //help?
 	    suti = duti;
 	  }
       }

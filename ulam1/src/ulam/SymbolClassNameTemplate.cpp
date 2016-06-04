@@ -142,6 +142,9 @@ namespace MFM {
 
   bool SymbolClassNameTemplate::isClassTemplate(UTI cuti)
   {
+    if(cuti == getUlamTypeIdx())
+      return true; // template definition
+
     SymbolClass * csym = NULL;
     return !findClassInstanceByUTI(cuti, csym);
   } //isClassTemplate
@@ -167,6 +170,7 @@ namespace MFM {
     return false;
   } //getSuperClassForClassInstance
 
+  // (does not include template as an instance!)
   bool SymbolClassNameTemplate::findClassInstanceByUTI(UTI uti, SymbolClass * & symptrref)
   {
     UTI basicuti = m_state.getUlamTypeAsDeref(m_state.getUlamTypeAsScalar(uti));
@@ -839,9 +843,9 @@ namespace MFM {
   {
     SymbolClass * csym = NULL;
     if(findClassInstanceByUTI(instance, csym))
-      {
 	return csym->hasMappedUTI(auti, mappedUTI);
-      }
+    else if(instance == getUlamTypeIdx())
+      return SymbolClass::hasMappedUTI(auti, mappedUTI); // template definition
     return false;
   } //hasInstanceMappedUTI
 
@@ -849,10 +853,8 @@ namespace MFM {
   {
     SymbolClass * csym = NULL;
     if(findClassInstanceByUTI(instance, csym))
-      {
-	return csym->mapUTItoUTI(auti, mappeduti);
-      }
-    return false;
+      return csym->mapUTItoUTI(auti, mappeduti);
+    return false; //excludes template definition as instance t3526
   } //mapInstanceUTI
 
   bool SymbolClassNameTemplate::fullyInstantiate()
@@ -1323,7 +1325,6 @@ namespace MFM {
 	SymbolClass * csym = it->second;
 	//skip stubs that will never get resolved
 	if(csym->isStub() && m_state.isClassATemplate(csym->getContextForPendingArgs()))
-	  //if(csym->isStub() && csym->pendingClassArgumentsForClassInstance() && m_state.isClassATemplate(csym->getContextForPendingArgs()))
 	  {
 	    it++;
 	    continue;

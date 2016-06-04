@@ -151,7 +151,7 @@ namespace MFM {
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		m_state.mapTypesInCurrentClass(it, duti);
-		m_state.updateUTIAliasForced(it, duti); //missing? t3764, t3373
+		m_state.updateUTIAliasForced(it, duti); //t3379
 		m_typedefSymbol->resetUlamType(duti); //consistent! (must be same ref type)
 		it = duti;
 	      }

@@ -89,6 +89,18 @@ namespace MFM {
     return "10"; //zero args
   }
 
+  bool SymbolClassName::hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI)
+  {
+    assert(instance == getUlamTypeIdx());
+    return SymbolClass::hasMappedUTI(auti, mappedUTI);
+  } //hasInstanceMappedUTI
+
+  bool SymbolClassName::mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti)
+  {
+    assert(instance == getUlamTypeIdx());
+    return SymbolClass::mapUTItoUTI(auti, mappeduti);
+  } //mapInstanceUTI
+
   void SymbolClassName::updateLineageOfClass()
   {
     NodeBlockClass * classNode = getClassBlockNode();

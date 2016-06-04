@@ -65,6 +65,9 @@ namespace MFM{
 
     virtual std::string formatAnInstancesArgValuesAsAString(UTI instance);
 
+    virtual bool hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI);
+    virtual bool mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti);
+
     virtual void updateLineageOfClass();
 
     virtual void checkCustomArraysOfClassInstances();

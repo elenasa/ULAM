@@ -259,7 +259,6 @@ namespace MFM {
 		m_state.clearStructuredCommentToken();
 		return true; //we're done unless we can gobble the rest up?
 	      }
-
 	    wasIncomplete = true;
 	  }
 	cnSym = ctSym;
