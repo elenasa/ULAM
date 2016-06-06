@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeList.h - Basic handling a list of nodes for ULAM
+ * NodeListArrayInitialization.h - Handle array initialization list of nodes for ULAM
  *
  * Copyright (C) 2015-2016 The Regents of the University of New Mexico.
  * Copyright (C) 2015-2016 Ackleyshack LLC.
@@ -26,49 +26,34 @@
  */
 
 /**
-  \file NodeList.h - Basic handling a list of nodes for ULAM
+  \file NodeListArrayInitialization.h - Handle array initialization list of nodes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2016 All rights reserved.
+  \date (C) 2016 All rights reserved.
   \gpl
 */
 
 
-#ifndef NODELIST_H
-#define NODELIST_H
+#ifndef NODELISTARRAYINITIALIZATION_H
+#define NODELISTARRAYINITIALIZATION_H
 
-#include "Node.h"
-#include <vector>
+#include "NodeList.h"
 
 namespace MFM{
 
   struct CompilerState; //forward
 
-  class NodeList : public Node
+  class NodeListArrayInitialization : public NodeList
   {
   public:
 
-    NodeList(CompilerState & state);
+    NodeListArrayInitialization(CompilerState & state);
 
-    NodeList(const NodeList& ref);
+    NodeListArrayInitialization(const NodeListArrayInitialization& ref);
 
-    virtual ~NodeList();
+    virtual ~NodeListArrayInitialization();
 
     virtual Node * instantiate();
-
-    virtual void updateLineage(NNO pno);
-
-    virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
-
-    bool exchangeKids(Node * oldnptr, Node * newnptr, u32 n);
-
-    virtual bool findNodeNo(NNO n, Node *& foundNode);
-
-    virtual void checkAbstractInstanceErrors();
-
-    virtual void print(File * fp);
-
-    virtual void printPostfix(File * fp);
 
     virtual const char * getName();
 
@@ -76,44 +61,16 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
-
-    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
-
-    virtual void printUnresolvedLocalVariables(u32 fid);
-
     virtual EvalStatus eval();
 
-    EvalStatus eval(u32 n);
-
-    EvalStatus evalToStoreInto(u32 n);
-
-    void addNodeToList(Node * argNode);
-
-    u32 getNumberOfNodes() const;
-
-    u32 getTotalSlotsNeeded();
-
-    Node * getNodePtr (u32 n) const;
-
-    UTI getNodeType(u32 n); //overloads Node.h
-
-    bool isAConstant(u32 n);
-
-    bool isFunctionCall(u32 n);
-
-    void genCode(File * fp, UVPass& uvpass, u32 n);
-
-    void genCodeToStoreInto(File * fp, UVPass& uvpass, u32 n);
+    virtual void genCode(File * fp, UVPass& uvpass);
 
   protected:
-    std::vector<Node *> m_nodes;
 
   private:
-    void clearNodeList();
 
   };
 
 } //MFM
 
-#endif //NODELIST_H
+#endif //NODELISTARRAYINITIALIZATION_H

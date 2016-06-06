@@ -229,7 +229,7 @@ namespace MFM {
 	msg << "'" << getName() << "'";
 	msg << " (#" << hcnt << ")";
 	//msg << " [" << prettyNodeName().c_str() << "] ";  //ugly!
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //was INFO
       }
     else if(nuti == Nouti)
       {

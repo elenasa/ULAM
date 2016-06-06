@@ -3594,7 +3594,7 @@ namespace MFM {
 	Node * assignNode;
 	if(eTok.m_type == TOK_OPEN_CURLY)
 	  {
-	    assignNode = parseArrayInitialization(identTok); //returns a NodeList
+	    assignNode = parseArrayInitialization(identTok); //returns a NodeListArrayInitialization
 	  }
 	else
 	  assignNode = parseAssignExpr(); //makeAssignExprNode(leftNode);
@@ -3622,7 +3622,7 @@ namespace MFM {
     assert(aTok.m_type == TOK_OPEN_CURLY);
     unreadToken();
 
-    NodeList * rtnList = new NodeList(m_state); //delete if error
+    NodeListArrayInitialization * rtnList = new NodeListArrayInitialization(m_state); //delete if error
     assert(rtnList);
 
     if(!parseArrayItemInit(identTok, rtnList))
@@ -3633,7 +3633,7 @@ namespace MFM {
     return rtnList;
   } //parseArrayInitialization
 
-  bool Parser::parseArrayItemInit(Token identTok, NodeList * rtnList)
+  bool Parser::parseArrayItemInit(Token identTok, NodeListArrayInitialization * rtnList)
   {
     Token aTok;
     getNextToken(aTok);

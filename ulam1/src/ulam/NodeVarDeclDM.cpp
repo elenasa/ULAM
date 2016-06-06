@@ -238,8 +238,8 @@ namespace MFM {
 	//constant fold if possible, set symbol value
 	if(m_varSymbol)
 	  {
-	    AssertBool isDefined = ((SymbolVariableDataMember *) m_varSymbol)->hasInitValue();
-	    assert(isDefined);
+	    AssertBool hasInit = ((SymbolVariableDataMember *) m_varSymbol)->hasInitValue();
+	    assert(hasInit);
 	    if(!(((SymbolVariableDataMember *) m_varSymbol)->initValueReady()))
 	      {
 		foldInitExpression(); //sets init constant value

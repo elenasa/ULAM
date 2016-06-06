@@ -44,13 +44,15 @@ namespace MFM {
 
   bool SymbolVariableDataMember::hasInitValue()
   {
-    return m_hasInitValue; //primitive dm
+    //return m_hasInitValue; //primitive dm
+    return SymbolWithValue::hasDefault();
   }
 
   void SymbolVariableDataMember::setHasInitValue()
   {
-     m_hasInitValue = true;
+    //m_hasInitValue = true;
      m_initvalReady = false;
+     SymbolWithValue::setDefaultValue((u64) 0u); //m_hasDefault now true!
   }
 
   bool SymbolVariableDataMember::initValueReady()
@@ -64,7 +66,8 @@ namespace MFM {
 
     if(initValueReady())
       {
-	val = m_initval; //primitive dm
+	//val = m_initval; //primitive dm
+	SymbolWithValue::getDefaultValue(val);
 	return true;
       }
     return false;
@@ -73,7 +76,8 @@ namespace MFM {
   void SymbolVariableDataMember::setInitValue(const u64 val)
   {
     m_initvalReady = true;
-    m_initval = val; //primitive dm
+    //    m_initval = val; //primitive dm
+    SymbolWithValue::setDefaultValue(val);
   }
 
   // replaced by NodeVarDecl:genCode to leverage the declaration order preserved by the parse tree.
