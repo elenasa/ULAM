@@ -3,11 +3,18 @@
 
 namespace MFM {
 
-  SymbolVariable::SymbolVariable(Token id, UTI utype, CompilerState& state) : Symbol(id, utype, state), m_posOffset(0){}
+  SymbolVariable::SymbolVariable(Token id, UTI utype, CompilerState& state) : SymbolWithValue(id, utype, state), m_posOffset(0){}
 
-  SymbolVariable::SymbolVariable(const SymbolVariable& sref) : Symbol(sref), m_posOffset(sref.m_posOffset){}
+  SymbolVariable::SymbolVariable(const SymbolVariable& sref) : SymbolWithValue(sref), m_posOffset(sref.m_posOffset){}
+
+  SymbolVariable::SymbolVariable(const SymbolVariable& sref, bool keepType) : SymbolWithValue(sref, keepType), m_posOffset(sref.m_posOffset){}
 
   SymbolVariable::~SymbolVariable() {}
+
+  bool SymbolVariable::isConstant()
+  {
+    return false;
+  }
 
   s32 SymbolVariable::getStackFrameSlotIndex()
   {

@@ -37,21 +37,25 @@
 #define SYMBOLVARIABLE_H
 
 #include "UlamValue.h"
-#include "Symbol.h"
+#include "SymbolWithValue.h"
 
 namespace MFM{
 
   class CompilerState;  //forward
 
   //distinguishes between SymbolFunction, SymbolTypedef, SymbolConstantValue
-  class SymbolVariable : public Symbol
+  class SymbolVariable : public SymbolWithValue
   {
   public:
     SymbolVariable(Token id, UTI utype, CompilerState& state);
 
     SymbolVariable(const SymbolVariable& sref);
 
+    SymbolVariable(const SymbolVariable& sref, bool keepType);
+
     virtual ~SymbolVariable();
+
+    virtual bool isConstant();
 
     virtual s32 getStackFrameSlotIndex();
 

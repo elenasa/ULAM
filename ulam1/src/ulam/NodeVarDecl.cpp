@@ -286,7 +286,7 @@ namespace MFM {
 	      }
 	  }
 
-	  if(!m_state.okUTItoContinue(it) || !m_state.isComplete(it))
+	if(!m_state.okUTItoContinue(it) || !m_state.isComplete(it))
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete Variable Decl for type: ";
@@ -343,6 +343,38 @@ namespace MFM {
 	    setNodeType(Hzy);
 	    return Hzy; //short-circuit
 	  }
+
+	if((eit == Void) && !m_state.okUTItoContinue(it) && m_nodeTypeDesc)
+	  {
+	    //only possible if array type with initializers
+	    UTI duti = m_nodeTypeDesc->getNodeType();
+	    UlamType * dut = m_state.getUlamTypeByIndex(duti);
+	    assert(!dut->isScalar());
+	    assert(dut->isPrimitiveType());
+	    if(m_state.okUTItoContinue(duti) && !dut->isComplete())
+	      {
+		u32 n = ((NodeList *) m_nodeInitExpr)->getNumberOfNodes();
+		m_state.setUTISizes(duti, dut->getBitSize(), n);
+		if(m_state.isComplete(duti))
+		  {
+		    std::ostringstream msg;
+		    msg << "REPLACING Symbol UTI" << it;
+		    msg << ", " << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		    msg << " used with variable symbol name '" << getName();
+		    msg << "' with node type descriptor array type (with initializers): ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(duti).c_str();
+		    msg << " UTI" << duti << " while labeling class: ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    m_varSymbol->resetUlamType(duti); //consistent!
+		    m_state.mapTypesInCurrentClass(it, duti);
+		    m_state.updateUTIAliasForced(it, duti); //help?
+		    m_nodeInitExpr->setNodeType(duti); //replace Void too!
+		    it = duti;
+		  }
+	      }
+	    eit = duti;
+	  } //end array initializers (eit == Void)
 
 	setNodeType(it); //needed before safeToCast
 	if(m_state.okUTItoContinue(eit) && m_state.okUTItoContinue(it))
@@ -625,8 +657,8 @@ namespace MFM {
       }
 
     UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1);
-
-    u32 slots = makeRoomForNodeType(getNodeType());
+    UTI nuti = getNodeType();
+    u32 slots = makeRoomForNodeType(nuti);
 
     evs = m_nodeInitExpr->eval();
 
@@ -635,10 +667,16 @@ namespace MFM {
 	if(slots == 1)
 	  {
 	    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slots+1); //immediate scalar
-	    m_state.assignValue(pluv,ruv);
-
-	    //also copy result UV to stack, -1 relative to current frame pointer
-	    Node::assignReturnValueToStack(ruv); //not when unpacked? how come?
+	    if(m_state.isScalar(nuti))
+	      {
+		m_state.assignValue(pluv,ruv);
+		//also copy result UV to stack, -1 relative to current frame pointer
+		Node::assignReturnValueToStack(ruv); //not when unpacked? how come?
+	      }
+	    else
+	      {
+		Node::assignReturnValueToStack(pluv); //not when unpacked? how come?
+	      }
 	  }
 	else //unpacked
 	  {

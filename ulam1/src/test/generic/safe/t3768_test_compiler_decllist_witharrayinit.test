@@ -1,0 +1,43 @@
+## -*- mode:ulam -*-
+#=t3768_test_compiler_decllist_witharrayinit
+##
+## gen output: (+ asserts)
+##  Unsigned Arg: 64
+##  Int Arg: 5
+#!
+Exit status: 5
+Ue_A { Int(32) a(5);  System s();  Int(32) test() {  Int(32) b = 1 cast;  Int(32) c[2] = 4 cast 5 cast;  s ( 2u )print . s ( true )assert . a c 1 [] = s ( a )print . s ( a 5 cast == )assert . a return } }
+Uq_System { <NOMAIN> }
+##
+## informed by t3128
+##
+#>A.ulam
+  ulam 1;
+element A {
+  Int a;
+  System s;
+  Int test() {
+    Int b = 1, c[] = { 4, 5, };
+    //b+=2;
+    //c[1] = b;
+    s.print(c.sizeof);
+    s.assert(c.sizeof == 64); //not arraysize
+    a = c[1];
+    s.print(a);
+    s.assert(a == 5);
+    return a;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

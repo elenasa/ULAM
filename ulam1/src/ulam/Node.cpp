@@ -429,7 +429,7 @@ namespace MFM {
     m_state.indentUlamCode(fp);
     fp->write("virtual void ");
     fp->write(prettyNodeName().c_str());
-    fp->write("::genCode(File * fp){} is needed!!\n"); //sweet.
+    fp->write("::genCode(File * fp){} //is needed!!\n"); //sweet.
   }
 
   void Node::genCodeToStoreInto(File * fp, UVPass& uvpass)

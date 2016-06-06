@@ -5,7 +5,10 @@
 
 namespace MFM{
 
-  NodeList::NodeList(CompilerState & state) : Node(state) { }
+  NodeList::NodeList(CompilerState & state) : Node(state)
+  {
+    setNodeType(Void); //initialized to Void
+  }
 
   NodeList::NodeList(const NodeList & ref) : Node(ref)
   {
@@ -20,13 +23,18 @@ namespace MFM{
 
   NodeList::~NodeList()
   {
+    clearNodeList();
+  }
+
+  void NodeList::clearNodeList()
+  {
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
 	delete m_nodes[i];
 	m_nodes[i] = NULL;
       }
     m_nodes.clear();
-  }
+  } //clearNodeList
 
   Node * NodeList::instantiate()
   {
@@ -123,7 +131,9 @@ namespace MFM{
 
   UTI NodeList::checkAndLabelType()
   {
-    UTI rtnuti = Void; //ok
+    UTI rtnuti = Node::getNodeType(); //init to Void; //ok
+    if(rtnuti == Hzy)
+      rtnuti = Void; //resets
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
 	UTI puti = m_nodes[i]->checkAndLabelType();
@@ -138,6 +148,48 @@ namespace MFM{
 	  {
 	    rtnuti = Hzy; // all or none
 	    m_state.setGoAgain(); //since no error msg
+	  }
+	else if(rtnuti != Void)
+	  {
+	    UTI scalaruti = m_state.getUlamTypeAsScalar(rtnuti);
+	    if(UlamType::compareForArgumentMatching(puti, scalaruti, m_state) != UTIC_SAME)
+	      {
+		FORECAST scr = m_nodes[i]->safeToCastTo(scalaruti);
+		if(scr == CAST_CLEAR)
+		  {
+		    if(!Node::makeCastingNode(m_nodes[i], scalaruti, m_nodes[i]))
+		      {
+			std::ostringstream msg;
+			msg << "Argument " << i + 1 << " has a casting problem";
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			rtnuti = Nav; //no casting node
+		      }
+		    else
+		      puti = m_nodes[i]->getNodeType(); //casted item
+		  }
+		else
+		  {
+		    std::ostringstream msg;
+		    if(m_state.getUlamTypeByIndex(rtnuti)->getUlamTypeEnum() == Bool)
+		      msg << "Use a comparison operator";
+		    else
+		      msg << "Use explicit cast";
+		    msg << " to return ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(puti).c_str();
+		    msg << " as ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(scalaruti).c_str();
+		    if(scr == CAST_BAD)
+		      {
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			rtnuti = Nav;
+		      }
+		    else
+		      {
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+			rtnuti = Hzy; //Void?
+		      }
+		  }
+	      }
 	  }
       }
     setNodeType(rtnuti);
@@ -178,8 +230,14 @@ namespace MFM{
 
   EvalStatus NodeList::eval()
   {
-    assert(0);
-    return NORMAL;
+    EvalStatus evs = NORMAL;
+    for(u32 i = 0; i < m_nodes.size(); i++)
+      {
+	evs = eval(i);
+	if(evs != NORMAL)
+	  break;
+      }
+    return evs;
   } //eval
 
   EvalStatus NodeList::eval(u32 n)
@@ -237,6 +295,65 @@ namespace MFM{
     assert(n < m_nodes.size());
     return m_nodes[n]->isFunctionCall();
   } //isAFunctionCall
+
+  void NodeList::genCode(File * fp, UVPass& uvpass)
+  {
+    UTI nuti = Node::getNodeType();
+    assert(!m_state.isScalar(nuti));
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    PACKFIT packFit = nut->getPackable();
+    if(packFit == PACKEDLOADABLE)
+      {
+	//u32 len = nut->getTotalBitSize();
+	u32 wdsize = nut->getTotalWordSize();
+	//u32 bitsize = nut->getBitSize();
+	u32 n = m_nodes.size();
+
+	std::vector<UVPass> uvpassList;
+	for(u32 i = 0; i < n; i++)
+	  {
+	    UVPass uvp;
+	    genCodeToStoreInto(fp, uvp, i);
+	    uvpassList.push_back(uvp);
+	  }
+
+	u32 tmpvarnum = m_state.getNextTmpVarNumber();
+	TMPSTORAGE nstor = nut->getTmpStorageTypeForTmpVar();
+	m_state.indentUlamCode(fp);
+	fp->write("const ");
+	fp->write(nut->getTmpStorageTypeAsString().c_str());
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpvarnum, nstor).c_str());
+	fp->write(" = ");
+
+	for(u32 i = 0; i < n; i++)
+	  {
+	    UVPass uvp = uvpassList[i];
+	    if(i > 0)
+	      fp->write("| ");
+
+	    fp->write("(");
+	    fp->write(uvp.getTmpVarAsString(m_state).c_str());
+	    fp->write(" << ((");
+	    fp->write_decimal_unsigned(n); //(n - 1 - i) *
+	    fp->write(" - 1 - ");
+	    fp->write_decimal_unsigned(i);
+	    fp->write(") * (");
+	    fp->write_decimal_unsigned(wdsize); // 32/n
+	    fp->write(" / ");
+	    fp->write_decimal_unsigned(n);
+	    fp->write("))) ");
+	  }
+	fp->write(";\n");
+	uvpassList.clear();
+	uvpass = UVPass::makePass(tmpvarnum, nstor, nuti, packFit, m_state, 0, 0); //POS 0 justified (atom-based).
+      }
+    else
+      {
+	//unpacked
+	assert(0); //TBD
+      }
+  } //genCode
 
   void NodeList::genCode(File * fp, UVPass& uvpass, u32 n)
   {

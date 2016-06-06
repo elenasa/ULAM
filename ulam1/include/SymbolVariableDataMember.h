@@ -48,9 +48,13 @@ namespace MFM{
 
     SymbolVariableDataMember(const SymbolVariableDataMember& sref);
 
+    SymbolVariableDataMember(const SymbolVariableDataMember& sref, bool keepType);
+
     virtual ~SymbolVariableDataMember();
 
     virtual Symbol * clone();
+
+    virtual Symbol * cloneKeepsType();
 
     virtual u32 getDataMemberUnpackedSlotIndex();
 

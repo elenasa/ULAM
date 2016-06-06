@@ -1,8 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3419_test_compiler_packedarray_asfuncarg
+##
+## gen output (+ assert)
+##  Int Arg: 3
+##
 #!
 Exit status: 3
-Ue_A { typedef Int(3) BigSite[10];  Int(32) test() {  Int(3) site[10] = ( )func2;  Int(3) site2[10] = site;  ( site )func return } }
+Ue_A { Int(32) ans(3);  typedef Int(3) BigSite[10];  Int(32) test() {  System s;  Int(3) site[10] = ( )func2;  Int(3) site2[10] = site;  ans ( site )func = s ( ans )print . s ( ans 3 cast == )assert . ( site )func return } }
+Uq_System { <NOMAIN> }
 ##
 ##      //informed by error/t3417_
 ##      //no binaryop+ even for packed array (site1 + site2).
@@ -10,6 +15,7 @@ Ue_A { typedef Int(3) BigSite[10];  Int(32) test() {  Int(3) site[10] = ( )func2
 #>A.ulam
   ulam 1;
 element A {
+  Int ans;
   typedef Int(3) BigSite[10];
   Int func(BigSite sarr) {
     return sarr[9];
@@ -22,10 +28,26 @@ element A {
     return s;
   }
   Int test(){
+    System s;
     BigSite site = func2();
     BigSite site2 = site /*+ site2*/;
+    ans = func(site);
+    s.print(ans);
+    s.assert(ans == 3); //==saturated 9
     return func(site);
   }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
 }
 
 #.

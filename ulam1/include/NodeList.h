@@ -102,6 +102,8 @@ namespace MFM{
 
     bool isFunctionCall(u32 n);
 
+    virtual void genCode(File * fp, UVPass& uvpass);
+
     void genCode(File * fp, UVPass& uvpass, u32 n);
 
     void genCodeToStoreInto(File * fp, UVPass& uvpass, u32 n);
@@ -110,6 +112,9 @@ namespace MFM{
 
   private:
     std::vector<Node *> m_nodes;
+
+    void clearNodeList();
+
   };
 
 } //MFM

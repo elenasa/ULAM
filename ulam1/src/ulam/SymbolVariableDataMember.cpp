@@ -10,6 +10,8 @@ namespace MFM {
 
   SymbolVariableDataMember::SymbolVariableDataMember(const SymbolVariableDataMember& sref) : SymbolVariable(sref), m_dataMemberUnpackedSlotIndex(sref.m_dataMemberUnpackedSlotIndex), m_hasInitValue(sref.m_hasInitValue), m_initvalReady(false), m_initval(0) {} //initval set by node vardecl c&l
 
+    SymbolVariableDataMember::SymbolVariableDataMember(const SymbolVariableDataMember& sref, bool keepType) : SymbolVariable(sref, keepType), m_dataMemberUnpackedSlotIndex(sref.m_dataMemberUnpackedSlotIndex), m_hasInitValue(sref.m_hasInitValue), m_initvalReady(false), m_initval(0) {} //initval set by node vardecl c&l
+
   SymbolVariableDataMember::~SymbolVariableDataMember()
   {
     //   m_static.clearAllocatedMemory(); //clean up arrays,etc.
@@ -18,6 +20,11 @@ namespace MFM {
   Symbol * SymbolVariableDataMember::clone()
   {
     return new SymbolVariableDataMember(*this);
+  }
+
+  Symbol * SymbolVariableDataMember::cloneKeepsType()
+  {
+    return new SymbolVariableDataMember(*this, true);
   }
 
   u32  SymbolVariableDataMember::getDataMemberUnpackedSlotIndex()

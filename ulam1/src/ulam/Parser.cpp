@@ -3359,18 +3359,19 @@ namespace MFM {
       return leftNode;
 
     Node * rightNode = parseExpression();
-    if(!rightNode)
-      {
-	MSG(&pTok, "Array item/size is missing; Square Bracket deleted", ERR);
-	delete leftNode;
-	rtnNode = NULL;
-      }
-    else
-      {
-	rtnNode = new NodeSquareBracket(leftNode, rightNode, m_state);
-	assert(rtnNode);
-	rtnNode->setNodeLocation(pTok.m_locator);
-      }
+    //Array size may be blank if initialized; not array item!!
+    //    if(!rightNode)
+    //  {
+    //	MSG(&pTok, "Array item/size is missing; Square Bracket deleted", ERR);
+    //	delete leftNode;
+    //	rtnNode = NULL;
+    //  }
+    //else
+    {
+      rtnNode = new NodeSquareBracket(leftNode, rightNode, m_state);
+      assert(rtnNode);
+      rtnNode->setNodeLocation(pTok.m_locator);
+    }
 
     if(!getExpectedToken(TOK_CLOSE_SQUARE))
       {
@@ -3401,6 +3402,7 @@ namespace MFM {
 	break;
       case TOK_SEMICOLON:
       case TOK_CLOSE_PAREN:
+      case TOK_COMMA: /* array item init */
 	{
 	  unreadToken();
 	  rtnNode = leftNode;
@@ -3586,7 +3588,17 @@ namespace MFM {
       } //ref done
     else
       {
-	Node * assignNode = parseAssignExpr(); //makeAssignExprNode(leftNode);
+	//check for possible start of array init
+	getNextToken(eTok);
+	unreadToken();
+	Node * assignNode;
+	if(eTok.m_type == TOK_OPEN_CURLY)
+	  {
+	    assignNode = parseArrayInitialization(identTok); //returns a NodeList
+	  }
+	else
+	  assignNode = parseAssignExpr(); //makeAssignExprNode(leftNode);
+
 	if(!assignNode)
 	  {
 	    std::ostringstream msg;
@@ -3601,6 +3613,73 @@ namespace MFM {
       }
     return parseRestOfDecls(args, identTok, dNode, rtnNode, passuti); //any more?
   } //parseRestOfDeclAssignment
+
+  Node * Parser::parseArrayInitialization(Token identTok)
+  {
+    Token aTok;
+    getNextToken(aTok);
+
+    assert(aTok.m_type == TOK_OPEN_CURLY);
+    unreadToken();
+
+    NodeList * rtnList = new NodeList(m_state); //delete if error
+    assert(rtnList);
+
+    if(!parseArrayItemInit(identTok, rtnList))
+      {
+	delete rtnList;
+	rtnList = NULL; //quit? read until close_curly? semi-colon, or comma?
+      }
+    return rtnList;
+  } //parseArrayInitialization
+
+  bool Parser::parseArrayItemInit(Token identTok, NodeList * rtnList)
+  {
+    Token aTok;
+    getNextToken(aTok);
+
+    if(aTok.m_type == TOK_CLOSE_CURLY)
+      {
+	return true; //done
+      }
+    else if((aTok.m_type != TOK_COMMA))
+      {
+	u32 n = rtnList->getNumberOfNodes();
+	if(!(n == 0 && (aTok.m_type == TOK_OPEN_CURLY)))
+	  {
+	    unreadToken();
+
+	    std::ostringstream msg;
+	    msg << "Unexpected input!! Token <" << m_state.getTokenDataAsString(&aTok).c_str();
+	    msg << "> while parsing array variable " << identTok.getTokenStringFromPool(&m_state).c_str();
+	    msg << ", item " << (n + 1);
+	    MSG(&aTok, msg.str().c_str(), ERR);
+	    return false; //original caller owns rtnList, should delete if empty!
+	  }
+      }
+    //else continue..
+
+    Node * assignNode = parseAssignExpr();
+    if(!assignNode)
+      {
+	u32 n = rtnList->getNumberOfNodes();
+	std::ostringstream msg;
+	msg << "Initial value of array variable " << identTok.getTokenStringFromPool(&m_state).c_str();
+	msg << ", item " << (n + 1);
+	msg << " is missing";
+
+	if(n > 0)
+	  MSG(&aTok, msg.str().c_str(), DEBUG); //dangling comma allowed by g++
+	else
+	  {
+	    MSG(&aTok, msg.str().c_str(), ERR);
+	    return false; //original caller owns rtnList, should delete if empty!
+	  }
+      }
+    else
+      rtnList->addNodeToList(assignNode);
+    return parseArrayItemInit(identTok, rtnList); //recurse
+  } //parseArrayItemInit
 
   NodeConstantDef * Parser::parseRestOfConstantDef(NodeConstantDef * constNode, bool assignREQ, bool isStmt)
   {

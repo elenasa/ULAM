@@ -8,7 +8,8 @@ namespace MFM {
 
   NodeSquareBracket::NodeSquareBracket(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state), m_isCustomArray(false)
   {
-    m_nodeRight->updateLineage(getNodeNo()); //for unknown subtrees
+    if(m_nodeRight)
+      m_nodeRight->updateLineage(getNodeNo()); //for unknown subtrees
     Node::setStoreIntoAble(TBOOL_HAZY);
   }
 
@@ -20,6 +21,25 @@ namespace MFM {
   {
     return new NodeSquareBracket(*this);
   }
+
+  void NodeSquareBracket::updateLineage(NNO pno)
+  {
+    setYourParentNo(pno);
+    m_nodeLeft->updateLineage(getNodeNo());
+    if(m_nodeRight)
+      m_nodeRight->updateLineage(getNodeNo());
+  } //updateLineage
+
+  bool NodeSquareBracket::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+    if(m_nodeLeft && m_nodeLeft->findNodeNo(n, foundNode))
+      return true;
+    if(m_nodeRight && m_nodeRight->findNodeNo(n, foundNode))
+      return true;
+    return false;
+  } //findNodeNo
 
   void NodeSquareBracket::printOp(File * fp)
   {
@@ -44,13 +64,25 @@ namespace MFM {
   // used to select an array element; not for declaration
   UTI NodeSquareBracket::checkAndLabelType()
   {
-    assert(m_nodeLeft && m_nodeRight);
+    //    assert(m_nodeLeft && m_nodeRight);
+    assert(m_nodeLeft);
     u32 errorCount = 0;
     u32 hazyCount = 0;
     UTI newType = Nav; //init
     UTI idxuti = Nav;
 
     UTI leftType = m_nodeLeft->checkAndLabelType();
+
+    //Not caught during parsing since array size may be blank if declared with initialization
+    if(!m_nodeRight)
+      {
+	std::ostringstream msg;
+	msg << "Array item specifier is missing for ";
+	msg << m_nodeLeft->getName();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav);
+	return Nav;
+      }
 
     //for example, f.chance[i] where i is local, same as f.func(i);
     NodeBlock * currBlock = m_state.getCurrentBlock();
@@ -588,8 +620,7 @@ namespace MFM {
   //see also NodeIdent
   bool NodeSquareBracket::installSymbolVariable(TypeArgs& args,  Symbol *& asymptr)
   {
-    assert(m_nodeLeft && m_nodeRight);
-
+    //assert(m_nodeLeft && m_nodeRight);
     if(!m_nodeLeft)
       {
 	MSG(getNodeLocationAsString().c_str(), "No Identifier to build array symbol", ERR);
@@ -603,6 +634,7 @@ namespace MFM {
       }
 
     args.m_arraysize = UNKNOWNSIZE; // no eval yet
+    assert(m_nodeLeft);
     return m_nodeLeft->installSymbolVariable(args, asymptr);
   } //installSymbolVariable
 
@@ -619,6 +651,12 @@ namespace MFM {
     bool noerr = true;
     // since square brackets determine the constant size for this type, else error
     s32 newarraysize = NONARRAYSIZE;
+    if(m_nodeRight == NULL)
+      {
+	rtnArraySize = UNKNOWNSIZE; //determined by number of initialization items
+	return true;
+      }
+
     sizetype = m_nodeRight->checkAndLabelType();
     if((sizetype == Nav))
       {

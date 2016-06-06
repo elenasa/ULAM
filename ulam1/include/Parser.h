@@ -337,6 +337,10 @@ namespace MFM{
 
     Node * parseRestOfDeclAssignment(TypeArgs& args, Token identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti);
 
+    Node * parseArrayInitialization(Token identTok);
+
+    bool parseArrayItemInit(Token identTok, NodeList * rtnList);
+
     NodeConstantDef * parseRestOfConstantDef(NodeConstantDef * constNode, bool assignREQ = true, bool isStmt = true);
 
     NodeModelParameterDef * parseRestOfParameterDef(NodeModelParameterDef * paramNode);
