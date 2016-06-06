@@ -62,13 +62,6 @@ namespace MFM{
 
     virtual const std::string getMangledPrefix();
 
-    //primitive data members:
-    //bool hasInitValue();
-    //void setHasInitValue();
-    //bool initValueReady();
-    //bool getInitValue(u64& val);
-    //void setInitValue(const u64 val);
-
     virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype);
 
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
@@ -79,10 +72,6 @@ namespace MFM{
 
   private:
     u32 m_dataMemberUnpackedSlotIndex;  //untrusted
-    //bool m_hasInitValue;
-    //bool m_initvalReady;
-    //u64 m_initval;
-
   };
 
 }

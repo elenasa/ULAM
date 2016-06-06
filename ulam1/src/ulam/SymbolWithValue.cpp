@@ -79,14 +79,14 @@ namespace MFM {
     m_isReady = true;
   }
 
-  bool SymbolWithValue::hasDefault()
+  bool SymbolWithValue::hasDefaultValue()
   {
     return m_hasDefault;
   }
 
   bool SymbolWithValue::getDefaultValue(s64& val)
   {
-    assert(hasDefault());
+    assert(hasDefaultValue());
     if(isDefaultValueReady())
       {
 	val = m_default.sval;
@@ -97,7 +97,7 @@ namespace MFM {
 
   bool SymbolWithValue::getDefaultValue(u64& val)
   {
-    assert(hasDefault());
+    assert(hasDefaultValue());
     if(isDefaultValueReady())
       {
 	val = m_default.uval;
@@ -143,7 +143,7 @@ namespace MFM {
     u64 val = 0;
     if(isReady())
       val = m_constant.uval;
-    else if(hasDefault() && isDefaultValueReady())
+    else if(hasDefaultValue() && isDefaultValueReady())
       val = m_default.uval;
     else
       oktoprint = false;

@@ -238,7 +238,7 @@ namespace MFM {
 	//constant fold if possible, set symbol value
 	if(m_varSymbol)
 	  {
-	    AssertBool hasInit = m_varSymbol->hasDefault();
+	    AssertBool hasInit = m_varSymbol->hasDefaultValue();
 	    assert(hasInit);
 	    if(!(m_varSymbol->isDefaultValueReady()))
 	      {
@@ -812,7 +812,7 @@ namespace MFM {
       }
 
     // packedloadable class (e.g. quark) or nonclass data member;
-    if(m_varSymbol->hasDefault())
+    if(m_varSymbol->hasDefaultValue())
       {
 	return NodeVarDecl::evalInitExpr();
       }

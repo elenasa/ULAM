@@ -204,7 +204,7 @@ namespace MFM {
 	    u32 pos = ((SymbolVariableDataMember *) sym)->getPosOffset();
 
 	    //updates the UV at offset with the default of sym; non-class arrays have none
-	    if(((SymbolVariableDataMember *) sym)->hasDefault())
+	    if(((SymbolVariableDataMember *) sym)->hasDefaultValue())
 	      {
 		u64 dval = 0;
 		if(((SymbolVariableDataMember *) sym)->getDefaultValue(dval))

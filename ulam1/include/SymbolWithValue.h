@@ -72,7 +72,7 @@ namespace MFM{
     void setValue(s64 val);
     void setValue(u64 val);
 
-    bool hasDefault();
+    bool hasDefaultValue();
     bool getDefaultValue(s64& val);
     bool getDefaultValue(u64& val);
     void setDefaultValue(s64 val);

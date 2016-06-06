@@ -303,7 +303,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    if(!(m_constSymbol->isReady() || m_constSymbol->hasDefault()))
+	    if(!(m_constSymbol->isReady() || m_constSymbol->hasDefaultValue()))
 	      {
 		setNodeType(Hzy);
 		m_state.setGoAgain();

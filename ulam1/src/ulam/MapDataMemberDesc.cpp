@@ -5,7 +5,7 @@ namespace MFM {
 
   DataMemberDesc::DataMemberDesc(SymbolVariableDataMember * dmsym, UTI classtype, CompilerState & state) : ClassMemberDesc(dmsym, classtype, state), m_val(0)
   {
-    if(dmsym->hasDefault())
+    if(dmsym->hasDefaultValue())
       dmsym->getDefaultValue(m_val); //optional
   }
 
