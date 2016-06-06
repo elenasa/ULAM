@@ -238,12 +238,12 @@ namespace MFM {
 	//constant fold if possible, set symbol value
 	if(m_varSymbol)
 	  {
-	    AssertBool hasInit = ((SymbolVariableDataMember *) m_varSymbol)->hasInitValue();
+	    AssertBool hasInit = m_varSymbol->hasDefault();
 	    assert(hasInit);
-	    if(!(((SymbolVariableDataMember *) m_varSymbol)->initValueReady()))
+	    if(!(m_varSymbol->isDefaultValueReady()))
 	      {
 		foldInitExpression(); //sets init constant value
-		if(!(((SymbolVariableDataMember *) m_varSymbol)->initValueReady()))
+		if(!(m_varSymbol->isDefaultValueReady()))
 		  {
 		    setNodeType(Hzy);
 		    m_state.setGoAgain(); //since not error
@@ -359,7 +359,7 @@ namespace MFM {
   {
     NodeVarDecl::setInitExpr(node);
     if(m_varSymbol)
-      ((SymbolVariableDataMember *) m_varSymbol)->setHasInitValue();
+      m_varSymbol->setHasDefaultValue();
   }
 
   //from NodeConstantDef; applied here to init value.
@@ -374,7 +374,7 @@ namespace MFM {
       return false; //e.g. not a constant
 
     assert(m_varSymbol);
-    if(((SymbolVariableDataMember *) m_varSymbol)->initValueReady())
+    if(m_varSymbol->isDefaultValueReady())
       return true; //short-circuit
 
     if(!m_nodeInitExpr)
@@ -446,7 +446,7 @@ namespace MFM {
     else
       return false;
 
-    ((SymbolVariableDataMember *) m_varSymbol)->setInitValue(newconst); //isReady now!
+    m_varSymbol->setDefaultValue(newconst); //isReady now!
     return true;
   } //foldInitExpression
 
@@ -608,7 +608,7 @@ namespace MFM {
 	if(m_state.isScalar(nuti))
 	  {
 	    u64 val = 0;
-	    if(((SymbolVariableDataMember *) m_varSymbol)->getInitValue(val))
+	    if(m_varSymbol->getDefaultValue(val))
 	      {
 		s32 classsize = m_state.getBitSize(m_state.getCompileThisIdx());
 		u64 packedval = 0;
@@ -713,8 +713,8 @@ namespace MFM {
     delete m_nodeInitExpr;
     m_nodeInitExpr = newnode;
     //(in this order) i thought this was for primitives only????
-    ((SymbolVariableDataMember *) m_varSymbol)->setHasInitValue(); //???
-    ((SymbolVariableDataMember *) m_varSymbol)->setInitValue(dpkval); //???
+    m_varSymbol->setHasDefaultValue(); //?
+    m_varSymbol->setDefaultValue(dpkval); //?
   } //foldDefaultClass
 
   void NodeVarDeclDM::packBitsInOrderOfDeclaration(u32& offset)
@@ -812,7 +812,7 @@ namespace MFM {
       }
 
     // packedloadable class (e.g. quark) or nonclass data member;
-    if(((SymbolVariableDataMember *) m_varSymbol)->hasInitValue())
+    if(m_varSymbol->hasDefault())
       {
 	return NodeVarDecl::evalInitExpr();
       }

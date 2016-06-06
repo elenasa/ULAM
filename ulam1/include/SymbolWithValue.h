@@ -58,13 +58,13 @@ namespace MFM{
 
     virtual bool isConstant() = 0;
 
-    virtual bool isReady();
-
     bool isParameter();
     void setParameterFlag();
 
     bool isArgument();
     void setArgumentFlag();
+
+    virtual bool isReady();
 
     bool getLexValue(std::string& vstr);
     bool getValue(s64& val);
@@ -77,6 +77,8 @@ namespace MFM{
     bool getDefaultValue(u64& val);
     void setDefaultValue(s64 val);
     void setDefaultValue(u64 val);
+    bool isDefaultValueReady(); //new
+    void setHasDefaultValue(); //new
 
     bool foldConstantExpression();
 
@@ -93,6 +95,7 @@ namespace MFM{
   private:
     bool m_isReady;
     bool m_hasDefault;
+    bool m_isReadyDefault;
     bool m_parameter; //class params i.e. has default but no value, look at instance
     bool m_argument; //class args
 

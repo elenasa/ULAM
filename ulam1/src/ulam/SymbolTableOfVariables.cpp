@@ -204,10 +204,10 @@ namespace MFM {
 	    u32 pos = ((SymbolVariableDataMember *) sym)->getPosOffset();
 
 	    //updates the UV at offset with the default of sym; non-class arrays have none
-	    if(((SymbolVariableDataMember *) sym)->hasInitValue())
+	    if(((SymbolVariableDataMember *) sym)->hasDefault())
 	      {
 		u64 dval = 0;
-		if(((SymbolVariableDataMember *) sym)->getInitValue(dval))
+		if(((SymbolVariableDataMember *) sym)->getDefaultValue(dval))
 		  {
 		    u32 wordsize = sut->getTotalWordSize();
 		    if(wordsize <= MAXBITSPERINT)

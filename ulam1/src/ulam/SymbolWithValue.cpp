@@ -3,19 +3,19 @@
 
 namespace MFM {
 
-  SymbolWithValue::SymbolWithValue(Token id, UTI utype, CompilerState & state) : Symbol(id, utype, state), m_isReady(false), m_hasDefault(false), m_parameter(false), m_argument(false)
+  SymbolWithValue::SymbolWithValue(Token id, UTI utype, CompilerState & state) : Symbol(id, utype, state), m_isReady(false), m_hasDefault(false), m_isReadyDefault(false), m_parameter(false), m_argument(false)
   {
     m_constant.sval = 0;
     m_default.sval = 0;
   }
 
-  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref) : Symbol(sref), m_isReady(sref.m_isReady), m_hasDefault(sref.m_hasDefault), m_parameter(false), m_argument(sref.m_argument)
+  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref) : Symbol(sref), m_isReady(sref.m_isReady), m_hasDefault(sref.m_hasDefault), m_isReadyDefault(false), m_parameter(false), m_argument(sref.m_argument)
   {
     m_constant = sref.m_constant;
     m_default = sref.m_default;
   }
 
-  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref, bool keepType) : Symbol(sref, keepType), m_isReady(sref.m_isReady), m_hasDefault(sref.m_hasDefault), m_parameter(false), m_argument(sref.m_argument)
+  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref, bool keepType) : Symbol(sref, keepType), m_isReady(sref.m_isReady), m_hasDefault(sref.m_hasDefault), m_isReadyDefault(false), m_parameter(false), m_argument(sref.m_argument)
   {
     m_constant = sref.m_constant;
     m_default = sref.m_default;
@@ -23,6 +23,32 @@ namespace MFM {
 
   SymbolWithValue::~SymbolWithValue()
   { }
+
+
+  bool SymbolWithValue::isParameter()
+  {
+    return m_parameter;
+  }
+
+  void SymbolWithValue::setParameterFlag()
+  {
+    m_parameter = true;
+  }
+
+  bool SymbolWithValue::isArgument()
+  {
+    return m_argument;
+  }
+
+  void SymbolWithValue::setArgumentFlag()
+  {
+    m_argument = true;
+  }
+
+  u32 SymbolWithValue::getPosOffset()
+  {
+    return 0; //always zero
+  }
 
   bool SymbolWithValue::isReady()
   {
@@ -60,26 +86,49 @@ namespace MFM {
 
   bool SymbolWithValue::getDefaultValue(s64& val)
   {
-    val = m_default.sval;
-    return m_hasDefault;
+    assert(hasDefault());
+    if(isDefaultValueReady())
+      {
+	val = m_default.sval;
+	return true;
+      }
+    return false; //was m_hasDefault;
   }
 
   bool SymbolWithValue::getDefaultValue(u64& val)
   {
-    val = m_default.uval;
-    return  m_hasDefault;
+    assert(hasDefault());
+    if(isDefaultValueReady())
+      {
+	val = m_default.uval;
+	return true;
+      }
+    return false; //was m_hasDefault;
   }
 
   void SymbolWithValue::setDefaultValue(s64 val)
   {
     m_default.sval = val;
     m_hasDefault = true;
+    m_isReadyDefault = true;
   }
 
   void SymbolWithValue::setDefaultValue(u64 val)
   {
     m_default.uval = val;
     m_hasDefault = true;
+    m_isReadyDefault = true;
+  }
+
+  bool SymbolWithValue::isDefaultValueReady()
+  {
+    return m_isReadyDefault;
+  }
+
+  void SymbolWithValue::setHasDefaultValue()
+  {
+    m_hasDefault = true;
+    m_isReadyDefault = false;
   }
 
   bool SymbolWithValue::foldConstantExpression()
@@ -94,7 +143,7 @@ namespace MFM {
     u64 val = 0;
     if(isReady())
       val = m_constant.uval;
-    else if(hasDefault())
+    else if(hasDefault() && isDefaultValueReady())
       val = m_default.uval;
     else
       oktoprint = false;
@@ -222,31 +271,5 @@ namespace MFM {
     assert(getId() == fmid);
     setId(toid);
   }
-
-  void SymbolWithValue::setParameterFlag()
-  {
-    m_parameter = true;
-  }
-
-  bool SymbolWithValue::isParameter()
-  {
-    return m_parameter;
-  }
-
-  void SymbolWithValue::setArgumentFlag()
-  {
-    m_argument = true;
-  }
-
-  bool SymbolWithValue::isArgument()
-  {
-    return m_argument;
-  }
-
-  u32 SymbolWithValue::getPosOffset()
-  {
-    return 0; //always zero
-  }
-
 
 } //end MFM
