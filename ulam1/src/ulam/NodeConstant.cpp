@@ -96,15 +96,12 @@ namespace MFM {
     // map incomplete UTI
     if(!m_state.isComplete(it)) //reloads to recheck
       {
-	UTI cuti = m_state.getCompileThisIdx();
 	std::ostringstream msg;
 	msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	msg << " used with constant symbol name '";
-	msg << m_state.getTokenDataAsString(&m_token).c_str();
-	msg << "' UTI" << it << " while labeling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	msg << ", used with constant symbol name '";
+	msg << m_state.getTokenDataAsString(&m_token).c_str() << "'";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	// m_state.setGoAgain(); wait until updateConstant tried.
       }
 

@@ -27,6 +27,7 @@ namespace MFM {
   //#define _DEBUG_OUTPUT
   //#define _INFO_OUTPUT
   #define _WARN_OUTPUT
+  #define _WAIT_OUTPUT
 
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
@@ -44,6 +45,12 @@ namespace MFM {
   static const bool warnOn = true;
 #else
   static const bool warnOn = false;
+#endif
+
+#ifdef _WAIT_OUTPUT
+  static const bool waitOn = true; //debug msg until last resolving loop iteration, then err
+#else
+  static const bool waitOn = false; //becomes err msg
 #endif
 
   static const char * m_indentedSpaceLevel("  "); //2 spaces per level
@@ -69,7 +76,7 @@ namespace MFM {
   //use of this in the initialization list seems to be okay;
   CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalHas(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti)
   {
-    m_err.init(this, debugOn, infoOn, warnOn, NULL);
+    m_err.init(this, debugOn, infoOn, warnOn, waitOn, NULL);
     Token::initTokenMap(*this);
   }
 

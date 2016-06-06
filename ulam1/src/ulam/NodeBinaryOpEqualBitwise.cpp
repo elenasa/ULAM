@@ -82,7 +82,7 @@ namespace MFM {
 	      }
 	    else //hazy
 	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		m_state.setGoAgain(); //for compiler counts
 		newType = Hzy;
 	      }

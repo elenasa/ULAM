@@ -240,7 +240,7 @@ namespace MFM {
 	      }
 	    else
 	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		it = Hzy;
 		m_state.setGoAgain();
 	      }
@@ -289,10 +289,8 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Incomplete identifier for type: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-		msg << " used with list symbol name '" << getName();
-		msg << "' UTI" << it << " while labeling class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		msg << ", used with list symbol name '" << getName() << "'";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		it = Hzy; //missing t3754 case 1
 		m_state.setGoAgain();
 	      }

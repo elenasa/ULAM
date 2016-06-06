@@ -66,7 +66,7 @@ namespace MFM {
 	msg << " to Bool";
 	if(scr == CAST_HAZY)
 	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    m_state.setGoAgain();
 	    newType = Hzy;
 	  }

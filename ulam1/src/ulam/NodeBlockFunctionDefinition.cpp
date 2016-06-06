@@ -180,10 +180,8 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Incomplete Function Return type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	msg << " used with function name '" << getName();
-	msg << "' UTI" << it << " while labeling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	msg << ", used with function name '" << getName() << "'";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
       }
     else
       {
@@ -201,6 +199,7 @@ namespace MFM {
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  m_state.mapTypesInCurrentClass(fit, it);
 	  m_funcSymbol->resetUlamType(it); //consistent!
+	  //m_state.updateUTIAliasForced(fit, it); //Mon Jun  6 13:45:15 2016 ?
 	}
       }
 

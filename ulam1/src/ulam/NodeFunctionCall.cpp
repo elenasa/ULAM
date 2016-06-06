@@ -158,7 +158,7 @@ namespace MFM {
 	    msg << "and cannot be called";
 	    if(hasHazyArgs)
 	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		numHazyFound++;
 	      }
 	    else
@@ -184,7 +184,7 @@ namespace MFM {
 	    msg << "explicit casting is required";
 	    if(hasHazyArgs)
 	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		numHazyFound++;
 	      }
 	    else
@@ -215,7 +215,7 @@ namespace MFM {
 			msg << ">; Cannot be used as a reference parameter";
 			if(argstor == TBOOL_HAZY)
 			  {
-			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 			    numHazyFound++;
 			  }
 			else
@@ -236,7 +236,7 @@ namespace MFM {
 	msg << "> is not a defined function, or cannot be safely called in this context";
 	if(hazyKin)
 	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    numHazyFound++;
 	  }
 	else

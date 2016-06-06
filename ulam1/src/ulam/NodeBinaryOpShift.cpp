@@ -120,7 +120,7 @@ namespace MFM {
 	      msg << "(" << lbs << ")";
 	    if(lscr == CAST_HAZY)
 	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		m_state.setGoAgain(); //for compiler counts
 		newType = Hzy;
 		bok = false;
@@ -144,7 +144,7 @@ namespace MFM {
 	    msg << " to Unsigned";
 	    if(rscr == CAST_HAZY)
 	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		m_state.setGoAgain(); //for compiler counts
 		newType = Hzy;
 		bok = false;

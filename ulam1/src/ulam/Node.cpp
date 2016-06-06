@@ -179,7 +179,7 @@ namespace MFM {
 	msg << " for '" << getName() << "'";
 	if(scr == CAST_HAZY)
 	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    m_state.setGoAgain();
 	    newType = Hzy;
 	  }
@@ -229,7 +229,7 @@ namespace MFM {
 	msg << "'" << getName() << "'";
 	msg << " (#" << hcnt << ")";
 	//msg << " [" << prettyNodeName().c_str() << "] ";  //ugly!
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //was INFO
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
       }
     else if(nuti == Nouti)
       {
@@ -1574,9 +1574,9 @@ namespace MFM {
     if(nuti == Nav)
       {
 	std::ostringstream msg;
-	msg << "Cannot make casting node for an erronous type: " ;
+	msg << "Cannot make casting node for type: " ;
 	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	msg << " (UTI" << nuti << ")";
+	//msg << " (UTI" << nuti << ")";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	rtnNode = node;
 	return false; //short-circuit
@@ -1585,10 +1585,10 @@ namespace MFM {
     if(nuti == Hzy)
       {
 	std::ostringstream msg;
-	msg << "Cannot make casting node for a nonready type: " ;
+	msg << "Cannot make casting node for type: " ;
 	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	msg << " (UTI" << nuti << ")";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	//msg << " (UTI" << nuti << ")";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	rtnNode = node;
 	return false; //short-circuit
       }

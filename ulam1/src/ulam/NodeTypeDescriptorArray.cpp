@@ -157,9 +157,7 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Incomplete descriptor for scalar of array: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(scuti).c_str();
-		msg << " UTI" << scuti << " while labeling class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	      }
 	  }
 

@@ -298,7 +298,7 @@ namespace MFM {
 		msg << "' inherits from '";
 		msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
 		msg << "', a class with pending arguments";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		m_state.setGoAgain();
 		//need to break the chain; e.g. don't want template symbol addresses used
 		setSuperBlockPointer(NULL); //force to try again!! avoid inf loop
@@ -442,7 +442,7 @@ namespace MFM {
 	    msg << "' inherits from '";
 	    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
 	    msg << "', a class who max index for virtual functions is still unknown";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    //m_state.setGoAgain();
 	    return;
 	  }

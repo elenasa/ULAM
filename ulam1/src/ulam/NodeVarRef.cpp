@@ -241,7 +241,7 @@ namespace MFM {
 	    msg << "Storage expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
 	    msg << ", is not ready";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //possibly still hazy
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //possibly still hazy
 	    hazyCount++;
 	  }
 
@@ -281,7 +281,7 @@ namespace MFM {
 	    msg << ", must be storeintoable"; //e.g. constant or function call NOT so
 	    if(istor == TBOOL_HAZY)
 	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		m_state.setGoAgain();
 		it = Hzy;
 	      }

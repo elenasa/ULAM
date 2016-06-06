@@ -125,9 +125,8 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Incomplete Typedef for class type: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-		msg << " used with variable symbol name <" << getName();
-		msg << "> (UTI" << it << ")";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		msg << ", used with variable symbol name <" << getName() << ">";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	      }
 	  }
 	else if(tdut->isHolder())
@@ -162,12 +161,10 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Incomplete Typedef for type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << " used with typedef symbol name '" << getName();
-	    msg << "' UTI" << it << " while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    msg << ", used with typedef symbol name '" << getName() << "'";
 	    if(m_state.okUTItoContinue(it) || (it == Hzy))
 	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		m_state.setGoAgain(); //since not error; unlike vardecl
 	      }
 	    else

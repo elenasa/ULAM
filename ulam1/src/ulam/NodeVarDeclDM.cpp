@@ -139,7 +139,7 @@ namespace MFM {
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
 	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    m_state.setGoAgain(); //since not error
 	  }
       }
@@ -229,7 +229,7 @@ namespace MFM {
 	    msg << "Constant value expression for data member: ";
 	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
 	    msg << ", initialization is not ready";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    m_state.setGoAgain(); //since not error
 	    setNodeType(Hzy);
 	    return Hzy; //short-circuit
@@ -406,7 +406,7 @@ namespace MFM {
 	msg << m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str();
 	msg << "' initialization is not yet ready while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	m_state.setGoAgain(); //since not error
 	return false;
       }
@@ -424,7 +424,7 @@ namespace MFM {
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
 	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    m_state.setGoAgain(); //since not error
 	  }
 	return false; //necessary if not just a warning.

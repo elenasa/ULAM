@@ -291,12 +291,10 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Incomplete Variable Decl for type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << " used with variable symbol name '" << getName();
-	    msg << "' UTI" << it << " while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    msg << ", used with variable symbol name '" << getName() << "'";
 	    if(m_state.okUTItoContinue(it) || (it == Hzy))
 	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		it = Hzy;
 		//m_state.setGoAgain(); //since not error; wait until not Nav
 	      }
@@ -338,7 +336,7 @@ namespace MFM {
 	    msg << "Initial value expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
 	    msg << ", initialization is not ready";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    m_state.setGoAgain(); //since not error
 	    setNodeType(Hzy);
 	    return Hzy; //short-circuit

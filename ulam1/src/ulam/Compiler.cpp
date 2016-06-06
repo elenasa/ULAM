@@ -234,14 +234,19 @@ namespace MFM {
 	    // context reveals if stub was needed by a template and not included.
 	    break;
 	  }
+	else if(infcounter == MAX_ITERATIONS) //last time
+	  m_state.m_err.changeWaitToErrMode();
       } //while
 
+#if 0
+    //redundant thanks to WAIT msg mode..
     if(infcounter > MAX_ITERATIONS)
       {
 	m_state.m_programDefST.printUnresolvedVariablesForTableOfClasses();
 	errCnt = m_state.m_err.getErrorCount();
 	m_state.clearGoAgain(); //all Hzy types converted to Navs
       }
+#endif
 
     if(!errCnt)
       {
@@ -259,7 +264,14 @@ namespace MFM {
 
 	// due to inheritance, might take more than a couple times around..
 	u32 infcounter2 = 0;
-	sumbrtn = (errCnt == 0) ? false : true;
+	if(errCnt == 0)
+	  {
+	    sumbrtn = false;
+	    m_state.m_err.revertToWaitMode();
+	  }
+	else
+	  sumbrtn = true;
+
 	while(!sumbrtn)
 	  {
 	    // must happen after type labeling, check duplicateFunctions, and before eval (test)
@@ -271,12 +283,15 @@ namespace MFM {
 		msg << "possible INCOMPLETE Super class detected ---";
 		msg << " after " << infcounter2 << " iterations";
 		MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		//note: not an error because template uses with deferred args remain unresolved
 		break;
 	      }
+	    else if(infcounter2 == MAX_ITERATIONS) //last time
+	      m_state.m_err.changeWaitToErrMode();
 	  } //while
 
 	errCnt = m_state.m_err.getErrorCount(); //latest count
+	if(infcounter >= MAX_ITERATIONS) //restore
+	  m_state.m_err.changeWaitToErrMode();
 
 	//after virtual table is set, check for abstract classes used as:
 	//local var, data member, or func parameter types.
@@ -299,54 +314,51 @@ namespace MFM {
     errCnt = m_state.m_err.getErrorCount(); //latest count
     if(!errCnt) m_state.m_programDefST.reportUnknownTypeNamesAcrossTableOfClasses();
 
-    //if(infcounter > MAX_ITERATIONS)
+    // count Nodes with illegal Nav types; walk each class' data members and funcdefs.
+    // clean up duplicate functions beforehand
+    u32 navcount = 0;
+    u32 hzycount = 0;
+    u32 unsetcount = 0;
+
+    m_state.m_programDefST.countNavNodesAcrossTableOfClasses(navcount, hzycount, unsetcount);
+    errCnt = m_state.m_err.getErrorCount(); //latest count?
+    if(navcount > 0)
       {
-	// count Nodes with illegal Nav types; walk each class' data members and funcdefs.
-	// clean up duplicate functions beforehand
-	u32 navcount = 0;
-	u32 hzycount = 0;
-	u32 unsetcount = 0;
+	// not necessarily goAgain, e.g. atom is Empty, where Empty is a quark instead of an element
+	// the NodeTypeDescriptor is perfectly fine with a complete quark type, so no need to go again;
+	// however, in the context of "is", this is an error and t.f. a Nav node.
 
-	m_state.m_programDefST.countNavNodesAcrossTableOfClasses(navcount, hzycount, unsetcount);
-	errCnt = m_state.m_err.getErrorCount(); //latest count?
-	if(navcount > 0)
-	  {
-	    // not necessarily goAgain, e.g. atom is Empty, where Empty is a quark instead of an element
-	    // the NodeTypeDescriptor is perfectly fine with a complete quark type, so no need to go again;
-	    // however, in the context of "is", this is an error and t.f. a Nav node.
+	assert(errCnt > 0); //sanity check; ran out of iterations
 
-	    assert(errCnt > 0); //sanity check; ran out of iterations
+	std::ostringstream msg;
+	msg << navcount << " Nodes with erroneous types detected after type labeling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+    //else
+    //assert(errCnt == 0); //e.g. error/t3644 (not sure what to do about it, error discovery too deep)
 
-	    std::ostringstream msg;
-	    msg << navcount << " Nodes with erroneous types detected after type labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	    MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  }
-	//else
-	//assert(errCnt == 0); //e.g. error/t3644 (not sure what to do about it, error discovery too deep)
+    if(hzycount > 0)
+      {
+	//doesn't include incomplete stubs: if(a is S(x,y))
+	//assert(m_state.goAgain()); //sanity check; ran out of iterations
 
-	if(hzycount > 0)
-	  {
-	    //doesn't include incomplete stubs: if(a is S(x,y))
-	    //assert(m_state.goAgain()); //sanity check; ran out of iterations
+	std::ostringstream msg;
+	msg << hzycount << " Nodes with unresolved types detected after type labeling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	// if we had such a thing:
+	//msg << ". Supplying --info on command line will provide additional internal details";
+	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+    else
+      assert(!m_state.goAgain()); //t3740 (resets Hzy to Nav);
 
-	    std::ostringstream msg;
-	    msg << hzycount << " Nodes with unresolved types detected after type labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	    // if we had such a thing:
-	    //msg << ". Supplying --info on command line will provide additional internal details";
-	    MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  }
-	else
-	  assert(!m_state.goAgain()); //t3740 (resets Hzy to Nav);
-
-	if(unsetcount > 0)
-	  {
-	    std::ostringstream msg;
-	    msg << unsetcount << " Nodes with unset types detected after type labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	    MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
-	  }
+    if(unsetcount > 0)
+      {
+	std::ostringstream msg;
+	msg << unsetcount << " Nodes with unset types detected after type labeling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
       }
 
     u32 warns = m_state.m_err.getWarningCount();

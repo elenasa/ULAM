@@ -120,7 +120,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Incompatible (nonscalar) type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
-	msg << " for unary operator" << getName();
+	msg << ", for unary operator" << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
 	return Nav;
@@ -171,7 +171,7 @@ namespace MFM {
 	msg << " for unary operator" << getName();
 	if(scr == CAST_HAZY)
 	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    m_state.setGoAgain();
 	    newType = Hzy;
 	  }
@@ -311,7 +311,7 @@ namespace MFM {
 	msg << "Constant value expression for unary op" << getName();
 	msg << " is not yet ready while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	setNodeType(Hzy);
 	m_state.setGoAgain(); //for compiler counts
 	return Hzy;

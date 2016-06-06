@@ -142,7 +142,7 @@ namespace MFM {
 		      }
 		    else
 		      {
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 			newType = Hzy;
 			m_state.setGoAgain();
 			hazyCount++;
@@ -167,7 +167,7 @@ namespace MFM {
 		    msg << "; and cannot be called";
 		    if(hasHazyArgs)
 		      {
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 			idxuti = Hzy;
 			m_state.setGoAgain();
 			hazyCount++;
@@ -188,7 +188,7 @@ namespace MFM {
 		    msg << "; Explicit casting required";
 		    if(hasHazyArgs)
 		      {
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 			idxuti = Hzy;
 			m_state.setGoAgain();
 			hazyCount++;

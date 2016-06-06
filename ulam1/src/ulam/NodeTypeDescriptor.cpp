@@ -167,9 +167,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Incomplete descriptor for type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	    msg << " UTI" << nuti << " while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	  }
       }
 
@@ -361,17 +359,17 @@ namespace MFM {
 
 		std::ostringstream msg;
 		msg << "UNSEEN Class and incomplete descriptor for type: '";
-		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		msg << "' (UTI" << nuti << ")";
+		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str() << "'";
 		if(isAnonymousClass)
 		  {
+		    msg << " (UTI" << nuti << ")";
 		    msg << " replaced with type: (UTI" << auti << ")";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		    rtnuti = auti; //was Hzy
 		  }
 		else
 		  {
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		    rtnuti = Hzy; //t3407
 		  }
 	      }

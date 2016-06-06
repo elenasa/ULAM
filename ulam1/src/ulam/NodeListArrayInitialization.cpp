@@ -89,7 +89,7 @@ namespace MFM{
 		      }
 		    else
 		      {
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 			rtnuti = Hzy; //Void?
 		      }
 		  }

@@ -173,7 +173,7 @@ namespace MFM {
 	    msg << m_state.getTokenDataAsString(&m_token).c_str();
 	    msg << getName();
 	    msg << "'";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    nuti = Hzy;
 	    m_state.setGoAgain(); //since not error
 	  }
