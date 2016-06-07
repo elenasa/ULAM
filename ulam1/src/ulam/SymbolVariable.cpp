@@ -3,11 +3,11 @@
 
 namespace MFM {
 
-  SymbolVariable::SymbolVariable(Token id, UTI utype, CompilerState& state) : SymbolWithValue(id, utype, state), m_posOffset(0){}
+  SymbolVariable::SymbolVariable(Token id, UTI utype, CompilerState& state) : SymbolWithValue(id, utype, state){ }
 
-  SymbolVariable::SymbolVariable(const SymbolVariable& sref) : SymbolWithValue(sref), m_posOffset(sref.m_posOffset){}
+  SymbolVariable::SymbolVariable(const SymbolVariable& sref) : SymbolWithValue(sref){ }
 
-  SymbolVariable::SymbolVariable(const SymbolVariable& sref, bool keepType) : SymbolWithValue(sref, keepType), m_posOffset(sref.m_posOffset){}
+  SymbolVariable::SymbolVariable(const SymbolVariable& sref, bool keepType) : SymbolWithValue(sref, keepType){ }
 
   SymbolVariable::~SymbolVariable() {}
 
@@ -34,15 +34,10 @@ namespace MFM {
     return 0; //not a data member
   }
 
-  //packed bit position of data members; relative to ATOMFIRSTSTATEBITPOS (or 0u).
   u32 SymbolVariable::getPosOffset()
   {
-    return m_posOffset;
-  }
-
-  void SymbolVariable::setPosOffset(u32 offsetIntoAtom)
-  {
-    m_posOffset = offsetIntoAtom; //relative to first state bit
+    assert(0);
+    return 0; //only data members
   }
 
 } //end MFM

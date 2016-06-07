@@ -38,7 +38,7 @@
 #define NODEMODELPARAMETER_H
 
 #include "NodeConstant.h"
-#include "SymbolParameterValue.h"
+#include "SymbolModelParameterValue.h"
 
 namespace MFM{
 
@@ -46,7 +46,7 @@ namespace MFM{
   {
   public:
 
-    NodeModelParameter(Token tok, SymbolParameterValue * symptr, CompilerState & state);
+    NodeModelParameter(Token tok, SymbolModelParameterValue * symptr, CompilerState & state);
     NodeModelParameter(const NodeModelParameter& ref);
     NodeModelParameter(const NodeIdent& iref);
     virtual ~NodeModelParameter();

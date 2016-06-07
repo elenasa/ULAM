@@ -1798,7 +1798,7 @@ namespace MFM {
     while(pit != m_parameterSymbols.end())
       {
 	SymbolConstantValue * psym = *pit;
-	assert(psym->isParameter());
+	assert(psym->isClassParameter());
 
 	if(pcnt > 0)
 	  fp->write(", ");

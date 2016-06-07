@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  NodeModelParameter::NodeModelParameter(Token tok, SymbolParameterValue * symptr, CompilerState & state) : NodeConstant(tok, symptr, state) { }
+  NodeModelParameter::NodeModelParameter(Token tok, SymbolModelParameterValue * symptr, CompilerState & state) : NodeConstant(tok, symptr, state) { }
 
   NodeModelParameter::NodeModelParameter(const NodeModelParameter& ref) : NodeConstant(ref) {}
 
@@ -68,7 +68,7 @@ namespace MFM {
       {
 	if(asymptr->isModelParameter())
 	  {
-	    m_constSymbol = (SymbolParameterValue *) asymptr;
+	    m_constSymbol = (SymbolModelParameterValue *) asymptr;
 	  }
 	else
 	  {

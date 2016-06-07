@@ -58,11 +58,11 @@ namespace MFM{
 
     virtual bool isConstant() = 0;
 
-    bool isParameter();
-    void setParameterFlag();
+    bool isClassParameter();
+    void setClassParameterFlag();
 
-    bool isArgument();
-    void setArgumentFlag();
+    bool isClassArgument();
+    void setClassArgumentFlag();
 
     virtual bool isReady();
 
@@ -72,13 +72,13 @@ namespace MFM{
     void setValue(s64 val);
     void setValue(u64 val);
 
-    bool hasDefaultValue();
-    bool getDefaultValue(s64& val);
-    bool getDefaultValue(u64& val);
-    void setDefaultValue(s64 val);
-    void setDefaultValue(u64 val);
-    bool isDefaultValueReady(); //new
-    void setHasDefaultValue(); //new
+    bool hasInitValue();
+    bool getInitValue(s64& val);
+    bool getInitValue(u64& val);
+    void setInitValue(s64 val);
+    void setInitValue(u64 val);
+    bool isInitValueReady(); //new
+    void setHasInitValue(); //new
 
     bool foldConstantExpression();
 
@@ -94,10 +94,10 @@ namespace MFM{
 
   private:
     bool m_isReady;
-    bool m_hasDefault;
-    bool m_isReadyDefault;
-    bool m_parameter; //class params i.e. has default but no value, look at instance
-    bool m_argument; //class args
+    bool m_hasInitVal;
+    bool m_isReadyInitVal;
+    bool m_classParameter; //constant has default but no value, look at instance
+    bool m_classArgument; //constant has value but no default, look at template parameter
 
     union {
       s64 sval;
@@ -107,7 +107,7 @@ namespace MFM{
     union {
       s64 sval;
       u64 uval;
-    } m_default;
+    } m_initial;
 
   };
 } //MFM

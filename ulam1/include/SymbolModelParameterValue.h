@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * SymbolParameterValue.h - Handling Model Parameter Symbols for ULAM
+ * SymbolModelParameterValue.h - Handling Model Parameter Symbols for ULAM
  *
  * Copyright (C) 2015-2016 The Regents of the University of New Mexico.
  * Copyright (C) 2015-2016 Ackleyshack LLC.
@@ -26,15 +26,15 @@
  */
 
 /**
-  \file SymbolParameterValue.h - Handling Model Parameter Symbols for ULAM
+  \file SymbolModelParameterValue.h - Handling Model Parameter Symbols for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2015-2016 All rights reserved.
   \gpl
 */
 
-#ifndef SYMBOLPARAMETERVALUE_H
-#define SYMBOLPARAMETERVALUE_H
+#ifndef SYMBOLMODELPARAMETERVALUE_H
+#define SYMBOLMODELPARAMETERVALUE_H
 
 #include "SymbolWithValue.h"
 
@@ -43,13 +43,13 @@ namespace MFM{
   class CompilerState;  //forward
 
   //distinguish between Symbols
-  class SymbolParameterValue : public SymbolWithValue
+  class SymbolModelParameterValue : public SymbolWithValue
   {
   public:
-    SymbolParameterValue(Token id, UTI utype, CompilerState& state);
-    SymbolParameterValue(const SymbolParameterValue& sref);
-    SymbolParameterValue(const SymbolParameterValue& sref, bool keepType);
-    virtual ~SymbolParameterValue();
+    SymbolModelParameterValue(Token id, UTI utype, CompilerState& state);
+    SymbolModelParameterValue(const SymbolModelParameterValue& sref);
+    SymbolModelParameterValue(const SymbolModelParameterValue& sref, bool keepType);
+    virtual ~SymbolModelParameterValue();
 
     virtual Symbol * clone();
     virtual Symbol * cloneKeepsType();
@@ -70,4 +70,4 @@ namespace MFM{
   };
 } //MFM
 
-#endif //SYMBOLPARAMETERVALUE_H
+#endif //SYMBOLMODELPARAMETERVALUE_H

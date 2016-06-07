@@ -798,7 +798,13 @@ namespace MFM {
 	    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen[0];
 	    selfid = cos->getId();
 	    if(!Node::isCurrentObjectALocalVariableOrArgument())
-	      pos = cos->getPosOffset(); //data member position overrides
+	      {
+		// e.g. 'self' is not a dm, nor local var or arg (t3274, t3275, t3405)
+		if(cos->isDataMember())
+		  pos = ((SymbolVariableDataMember *) cos)->getPosOffset(); //data member position overrides
+		//else 0
+	      }
+	    //else local var or arg, including references and model parameter
 	  }
 
 	uvpass = UVPass::makePass(rtnSlot, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, justified; self id in Pass;

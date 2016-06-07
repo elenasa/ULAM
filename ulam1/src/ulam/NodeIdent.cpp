@@ -7,7 +7,7 @@
 #include "NodeTypeBitsize.h"
 #include "SymbolVariableDataMember.h"
 #include "SymbolVariableStack.h"
-#include "SymbolParameterValue.h"
+#include "SymbolModelParameterValue.h"
 #include "SymbolTypedef.h"
 #include "SymbolVariable.h"
 
@@ -501,7 +501,7 @@ namespace MFM {
       {
 	// return ptr to this data member within the m_currentObjPtr
 	// 'pos' modified by this data member symbol's packed bit position
-	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset(), m_varSymbol->getId());
       }
     else
       {
@@ -533,7 +533,8 @@ namespace MFM {
 	    SymbolVariable * sym = (SymbolVariable *) m_state.m_currentObjSymbolsForCodeGen.back();
 	    //here, we haven't taken into account any array indexes, So autoref instead
 	    // e.g. m_bar[0].cb, and this NI is for the rhs of member select, 'cb'
-	    pos = sym->getPosOffset();
+	    if(sym->isDataMember())
+	      pos = ((SymbolVariableDataMember *) sym)->getPosOffset();
 
 	    //if sym is an element, and not isSelf, and not a ref, pos += 25 (t3637)
 	    UTI suti = sym->getUlamTypeIdx();
@@ -542,7 +543,7 @@ namespace MFM {
 	      pos += ATOMFIRSTSTATEBITPOS;
 	  }
 	// 'pos' modified by this data member symbol's packed bit position
-	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos + ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset(), m_varSymbol->getId());
       }
     else
       {
@@ -792,7 +793,7 @@ namespace MFM {
     return false;
   } //installSymbolConstantValue
 
-  bool NodeIdent::installSymbolParameterValue(TypeArgs& args, Symbol*& asymptr)
+  bool NodeIdent::installSymbolModelParameterValue(TypeArgs& args, Symbol*& asymptr)
   {
     // ask current scope block if this constant name is there;
     // if so, nothing to install return symbol and false
@@ -862,14 +863,14 @@ namespace MFM {
     if(brtn)
       {
 	//create a symbol for this new model parameter, a parameter-def, with its value
-	SymbolParameterValue * symparam = new SymbolParameterValue(m_token, uti, m_state);
+	SymbolModelParameterValue * symparam = new SymbolModelParameterValue(m_token, uti, m_state);
 	m_state.addSymbolToCurrentScope(symparam);
 
 	//gets the symbol just created by makeUlamType; true.
 	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr));
       }
     return false;
-  } //installSymbolParameterValue
+  } //installSymbolModelParameterValue
 
   //see also NodeSquareBracket
   bool NodeIdent::installSymbolVariable(TypeArgs& args, Symbol *& asymptr)

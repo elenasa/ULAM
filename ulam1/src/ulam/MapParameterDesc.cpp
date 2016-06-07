@@ -3,7 +3,7 @@
 
 namespace MFM {
 
-  ParameterDesc::ParameterDesc(SymbolParameterValue * psym, UTI classtype, CompilerState & state) : ClassMemberDesc(psym, classtype, state)
+  ParameterDesc::ParameterDesc(SymbolModelParameterValue * psym, UTI classtype, CompilerState & state) : ClassMemberDesc(psym, classtype, state)
   {
     psym->getValue(m_val); //must be ready!
   }

@@ -5,8 +5,8 @@ namespace MFM {
 
   DataMemberDesc::DataMemberDesc(SymbolVariableDataMember * dmsym, UTI classtype, CompilerState & state) : ClassMemberDesc(dmsym, classtype, state), m_val(0)
   {
-    if(dmsym->hasDefaultValue())
-      dmsym->getDefaultValue(m_val); //optional
+    if(dmsym->hasInitValue())
+      dmsym->getInitValue(m_val); //optional
   }
 
   DataMemberDesc::DataMemberDesc(const DataMemberDesc& dref) : ClassMemberDesc(dref), m_val(dref.m_val) {}

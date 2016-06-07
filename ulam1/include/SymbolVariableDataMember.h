@@ -62,6 +62,10 @@ namespace MFM{
 
     virtual const std::string getMangledPrefix();
 
+    virtual u32 getPosOffset();
+
+    void setPosOffset(u32 offsetIntoAtom);
+
     virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype);
 
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
@@ -71,6 +75,7 @@ namespace MFM{
   protected:
 
   private:
+    u32 m_posOffset; //relative
     u32 m_dataMemberUnpackedSlotIndex;  //untrusted
   };
 

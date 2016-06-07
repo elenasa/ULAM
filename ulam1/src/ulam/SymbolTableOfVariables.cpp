@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <iostream>
 #include "SymbolTableOfVariables.h"
-#include "SymbolParameterValue.h"
+#include "SymbolModelParameterValue.h"
 #include "SymbolVariable.h"
 #include "SymbolVariableDataMember.h"
 #include "CompilerState.h"
@@ -31,7 +31,7 @@ namespace MFM {
 	assert(sym);
 	if(sym->isConstant())
 	  {
-	    if(!argsOnly || ((SymbolConstantValue *) sym)->isArgument())
+	    if(!argsOnly || ((SymbolConstantValue *) sym)->isClassArgument())
 	      cntOfConstants++;
 	  }
 	it++;
@@ -204,10 +204,10 @@ namespace MFM {
 	    u32 pos = ((SymbolVariableDataMember *) sym)->getPosOffset();
 
 	    //updates the UV at offset with the default of sym; non-class arrays have none
-	    if(((SymbolVariableDataMember *) sym)->hasDefaultValue())
+	    if(((SymbolVariableDataMember *) sym)->hasInitValue())
 	      {
 		u64 dval = 0;
-		if(((SymbolVariableDataMember *) sym)->getDefaultValue(dval))
+		if(((SymbolVariableDataMember *) sym)->getInitValue(dval))
 		  {
 		    u32 wordsize = sut->getTotalWordSize();
 		    if(wordsize <= MAXBITSPERINT)
@@ -251,7 +251,7 @@ namespace MFM {
 	    UTI suti = sym->getUlamTypeIdx();
 	    if(UlamType::compare(suti, utype, m_state) == UTIC_SAME)
 	      {
-		posfound = ((SymbolVariable *) sym)->getPosOffset();
+		posfound = ((SymbolVariableDataMember *) sym)->getPosOffset();
 		insidecuti = suti;
 		break;
 	      }
@@ -262,7 +262,7 @@ namespace MFM {
 		assert(superuti != Hzy);
 		if((superuti != Nouti) && (UlamType::compare(superuti, utype, m_state) == UTIC_SAME))
 		  {
-		    posfound = ((SymbolVariable *) sym)->getPosOffset(); //starts at beginning
+		    posfound = ((SymbolVariableDataMember *) sym)->getPosOffset(); //starts at beginning
 		    insidecuti = suti;
 		    break;
 		  }
@@ -319,7 +319,7 @@ namespace MFM {
 		fp->write("if(!strcmp(namearg,\"");
 		fp->write(sut->getUlamTypeMangledName().c_str()); //mangled, including class args!
 		fp->write("\")) return (");
-		fp->write_decimal(((SymbolVariable *) sym)->getPosOffset());
+		fp->write_decimal(((SymbolVariableDataMember *) sym)->getPosOffset());
 		fp->write("); //pos offset\n");
 
 		UTI superuti = m_state.isClassASubclass(suti);
@@ -331,7 +331,7 @@ namespace MFM {
 		    fp->write("if(!strcmp(namearg,\"");
 		    fp->write(superut->getUlamTypeMangledName().c_str()); //mangled, including class args!
 		    fp->write("\")) return (");
-		    fp->write_decimal(((SymbolVariable *) sym)->getPosOffset()); //same offset starts at 0
+		    fp->write_decimal(((SymbolVariableDataMember *) sym)->getPosOffset()); //same offset starts at 0
 		    fp->write("); //inherited pos offset\n");
 
 		    superuti = m_state.isClassASubclass(superuti); //any more
@@ -349,9 +349,9 @@ namespace MFM {
       {
 	ClassMemberDesc * descptr = NULL;
 	Symbol * sym = it->second;
-	if(sym->isModelParameter() && ((SymbolParameterValue *)sym)->isReady())
+	if(sym->isModelParameter() && ((SymbolModelParameterValue *)sym)->isReady())
 	  {
-	    descptr = new ParameterDesc((SymbolParameterValue *) sym, classType, m_state);
+	    descptr = new ParameterDesc((SymbolModelParameterValue *) sym, classType, m_state);
 	    assert(descptr);
 	  }
 	else if(sym->isDataMember())

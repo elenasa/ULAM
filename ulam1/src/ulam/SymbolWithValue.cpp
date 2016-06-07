@@ -3,46 +3,46 @@
 
 namespace MFM {
 
-  SymbolWithValue::SymbolWithValue(Token id, UTI utype, CompilerState & state) : Symbol(id, utype, state), m_isReady(false), m_hasDefault(false), m_isReadyDefault(false), m_parameter(false), m_argument(false)
+  SymbolWithValue::SymbolWithValue(Token id, UTI utype, CompilerState & state) : Symbol(id, utype, state), m_isReady(false), m_hasInitVal(false), m_isReadyInitVal(false), m_classParameter(false), m_classArgument(false)
   {
     m_constant.sval = 0;
-    m_default.sval = 0;
+    m_initial.sval = 0;
   }
 
-  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref) : Symbol(sref), m_isReady(sref.m_isReady), m_hasDefault(sref.m_hasDefault), m_isReadyDefault(false), m_parameter(false), m_argument(sref.m_argument)
+  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref) : Symbol(sref), m_isReady(sref.m_isReady), m_hasInitVal(sref.m_hasInitVal), m_isReadyInitVal(false), m_classParameter(false), m_classArgument(sref.m_classArgument)
   {
     m_constant = sref.m_constant;
-    m_default = sref.m_default;
+    m_initial = sref.m_initial;
   }
 
-  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref, bool keepType) : Symbol(sref, keepType), m_isReady(sref.m_isReady), m_hasDefault(sref.m_hasDefault), m_isReadyDefault(false), m_parameter(false), m_argument(sref.m_argument)
+  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref, bool keepType) : Symbol(sref, keepType), m_isReady(sref.m_isReady), m_hasInitVal(sref.m_hasInitVal), m_isReadyInitVal(false), m_classParameter(false), m_classArgument(sref.m_classArgument)
   {
     m_constant = sref.m_constant;
-    m_default = sref.m_default;
+    m_initial = sref.m_initial;
   }
 
   SymbolWithValue::~SymbolWithValue()
   { }
 
 
-  bool SymbolWithValue::isParameter()
+  bool SymbolWithValue::isClassParameter()
   {
-    return m_parameter;
+    return m_classParameter;
   }
 
-  void SymbolWithValue::setParameterFlag()
+  void SymbolWithValue::setClassParameterFlag()
   {
-    m_parameter = true;
+    m_classParameter = true;
   }
 
-  bool SymbolWithValue::isArgument()
+  bool SymbolWithValue::isClassArgument()
   {
-    return m_argument;
+    return m_classArgument;
   }
 
-  void SymbolWithValue::setArgumentFlag()
+  void SymbolWithValue::setClassArgumentFlag()
   {
-    m_argument = true;
+    m_classArgument = true;
   }
 
   u32 SymbolWithValue::getPosOffset()
@@ -52,7 +52,7 @@ namespace MFM {
 
   bool SymbolWithValue::isReady()
   {
-    return m_isReady;
+    return m_isReady; //constant value
   }
 
   bool SymbolWithValue::getValue(s64& val)
@@ -79,56 +79,56 @@ namespace MFM {
     m_isReady = true;
   }
 
-  bool SymbolWithValue::hasDefaultValue()
+  bool SymbolWithValue::hasInitValue()
   {
-    return m_hasDefault;
+    return m_hasInitVal;
   }
 
-  bool SymbolWithValue::getDefaultValue(s64& val)
+  bool SymbolWithValue::getInitValue(s64& val)
   {
-    assert(hasDefaultValue());
-    if(isDefaultValueReady())
+    assert(hasInitValue());
+    if(isInitValueReady())
       {
-	val = m_default.sval;
+	val = m_initial.sval;
 	return true;
       }
     return false; //was m_hasDefault;
   }
 
-  bool SymbolWithValue::getDefaultValue(u64& val)
+  bool SymbolWithValue::getInitValue(u64& val)
   {
-    assert(hasDefaultValue());
-    if(isDefaultValueReady())
+    assert(hasInitValue());
+    if(isInitValueReady())
       {
-	val = m_default.uval;
+	val = m_initial.uval;
 	return true;
       }
     return false; //was m_hasDefault;
   }
 
-  void SymbolWithValue::setDefaultValue(s64 val)
+  void SymbolWithValue::setInitValue(s64 val)
   {
-    m_default.sval = val;
-    m_hasDefault = true;
-    m_isReadyDefault = true;
+    m_initial.sval = val;
+    m_hasInitVal = true;
+    m_isReadyInitVal = true;
   }
 
-  void SymbolWithValue::setDefaultValue(u64 val)
+  void SymbolWithValue::setInitValue(u64 val)
   {
-    m_default.uval = val;
-    m_hasDefault = true;
-    m_isReadyDefault = true;
+    m_initial.uval = val;
+    m_hasInitVal = true;
+    m_isReadyInitVal = true;
   }
 
-  bool SymbolWithValue::isDefaultValueReady()
+  bool SymbolWithValue::isInitValueReady()
   {
-    return m_isReadyDefault;
+    return m_isReadyInitVal;
   }
 
-  void SymbolWithValue::setHasDefaultValue()
+  void SymbolWithValue::setHasInitValue()
   {
-    m_hasDefault = true;
-    m_isReadyDefault = false;
+    m_hasInitVal = true;
+    m_isReadyInitVal = false;
   }
 
   bool SymbolWithValue::foldConstantExpression()
@@ -143,8 +143,8 @@ namespace MFM {
     u64 val = 0;
     if(isReady())
       val = m_constant.uval;
-    else if(hasDefaultValue() && isDefaultValueReady())
-      val = m_default.uval;
+    else if(hasInitValue() && isInitValueReady())
+      val = m_initial.uval;
     else
       oktoprint = false;
 

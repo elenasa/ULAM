@@ -238,12 +238,12 @@ namespace MFM {
 	//constant fold if possible, set symbol value
 	if(m_varSymbol)
 	  {
-	    AssertBool hasInit = m_varSymbol->hasDefaultValue();
+	    AssertBool hasInit = m_varSymbol->hasInitValue();
 	    assert(hasInit);
-	    if(!(m_varSymbol->isDefaultValueReady()))
+	    if(!(m_varSymbol->isInitValueReady()))
 	      {
 		foldInitExpression(); //sets init constant value
-		if(!(m_varSymbol->isDefaultValueReady()))
+		if(!(m_varSymbol->isInitValueReady()))
 		  {
 		    setNodeType(Hzy);
 		    m_state.setGoAgain(); //since not error
@@ -359,13 +359,13 @@ namespace MFM {
   {
     NodeVarDecl::setInitExpr(node);
     if(m_varSymbol)
-      m_varSymbol->setHasDefaultValue();
+      m_varSymbol->setHasInitValue();
   }
 
   //from NodeConstantDef; applied here to init value.
   // called during parsing rhs of named constant;
   // Requires a constant expression, else error;
-  // (scope of eval is based on the block of const def.)
+  // (SCOPE OF EVAL IS BASED ON THE BLOCK OF CONSTDEF.)
   bool NodeVarDeclDM::foldInitExpression()
   {
     UTI nuti = getNodeType();
@@ -374,7 +374,7 @@ namespace MFM {
       return false; //e.g. not a constant
 
     assert(m_varSymbol);
-    if(m_varSymbol->isDefaultValueReady())
+    if(m_varSymbol->isInitValueReady())
       return true; //short-circuit
 
     if(!m_nodeInitExpr)
@@ -446,7 +446,7 @@ namespace MFM {
     else
       return false;
 
-    m_varSymbol->setDefaultValue(newconst); //isReady now!
+    m_varSymbol->setInitValue(newconst); //isReady now!
     return true;
   } //foldInitExpression
 
@@ -568,7 +568,7 @@ namespace MFM {
     UTI cuti = m_state.getCompileThisIdx();
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
-    u32 pos = m_varSymbol->getPosOffset();
+    u32 pos = ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset();
     s32 bitsize = nut->getBitSize();
 
     if(cut->getUlamClassType() == UC_ELEMENT)
@@ -608,7 +608,7 @@ namespace MFM {
 	if(m_state.isScalar(nuti))
 	  {
 	    u64 val = 0;
-	    if(m_varSymbol->getDefaultValue(val))
+	    if(m_varSymbol->getInitValue(val))
 	      {
 		s32 classsize = m_state.getBitSize(m_state.getCompileThisIdx());
 		u64 packedval = 0;
@@ -651,7 +651,7 @@ namespace MFM {
 	  {
 	    m_state.indent(fp);
 	    fp->write("initBV.Write(");
-	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset() + startpos);
+	    fp->write_decimal_unsigned(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset() + startpos);
 	    fp->write("u + ");
 	    fp->write_decimal_unsigned(i * BITSPERATOM);
 	    fp->write("u, T::ATOM_FIRST_STATE_BIT, typefield);\n");
@@ -676,7 +676,7 @@ namespace MFM {
 	assert(cblock);
 
 	for(s32 i = 0; i < arraysize; i++)
-	  cblock->genCodeElementTypeIntoDataMemberDefaultValue(fp, m_varSymbol->getPosOffset() + startpos + i * len); //e.g. t3715
+	  cblock->genCodeElementTypeIntoDataMemberDefaultValue(fp, ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset() + startpos + i * len); //e.g. t3715
       }
   } //genCodeElementTypeIntoDataMemberDefaultValue
 
@@ -713,8 +713,8 @@ namespace MFM {
     delete m_nodeInitExpr;
     m_nodeInitExpr = newnode;
     //(in this order) i thought this was for primitives only????
-    m_varSymbol->setHasDefaultValue(); //?
-    m_varSymbol->setDefaultValue(dpkval); //?
+    m_varSymbol->setHasInitValue(); //?
+    m_varSymbol->setInitValue(dpkval); //?
   } //foldDefaultClass
 
   void NodeVarDeclDM::packBitsInOrderOfDeclaration(u32& offset)
@@ -722,7 +722,7 @@ namespace MFM {
     assert((s32) offset >= 0); //neg is invalid
     assert(m_varSymbol);
 
-    m_varSymbol->setPosOffset(offset);
+    ((SymbolVariableDataMember *) m_varSymbol)->setPosOffset(offset);
 
     UTI it = m_varSymbol->getUlamTypeIdx();
     assert(m_state.isComplete(it)); //moved error check to separate pass
@@ -800,19 +800,19 @@ namespace MFM {
       return UNEVALUABLE;
 
     // m_nodeInitExpr exists as result of a previous fold
-    if(etyp == Class && (m_nodeInitExpr == NULL))
+    if((etyp == Class) && (m_nodeInitExpr == NULL))
       {
-	//element and transient can only be a data member of a transient
+	//element and transient can only be a data member of a transient;
 	//quarks go anywhere;
 	u64 dpkval = 0;
 	if(m_state.getPackedDefaultClass(nuti, dpkval))
-	  foldDefaultClass();
+	  foldDefaultClass(); //side-effects m_nodeInitExpr w a terminal
 	else
 	  return ERROR;
       }
 
     // packedloadable class (e.g. quark) or nonclass data member;
-    if(m_varSymbol->hasDefaultValue())
+    if(m_varSymbol->hasInitValue())
       {
 	return NodeVarDecl::evalInitExpr();
       }
@@ -843,7 +843,7 @@ namespace MFM {
 
   UlamValue NodeVarDeclDM::makeUlamValuePtr()
   {
-    return UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+    return UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset(), m_varSymbol->getId());
   }
 
   // parse tree in order declared, unlike the ST.
@@ -877,7 +877,7 @@ namespace MFM {
 	fp->write("<EC> ");
 	fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
 	fp->write("; //offset ");
-	fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
+	fp->write_decimal_unsigned(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset());
 	fp->write("u\n"); //func call parameters aren't NodeVarDecl's
       }
     else
@@ -890,14 +890,14 @@ namespace MFM {
 	  {
 	    s32 arraysize = nut->getArraySize();
 	    arraysize = (arraysize <= 0 ? 1 : arraysize);
-	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
+	    fp->write_decimal_unsigned(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset());
 	    fp->write("u, BPA * "); //atom-based
 	    fp->write_decimal(arraysize); //include arraysize
 	    fp->write("u> ");
 	  }
 	else
 	  {
-	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
+	    fp->write_decimal_unsigned(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset());
 	    fp->write("u, ");
 	    fp->write_decimal(nut->getTotalBitSize()); //include arraysize
 	    fp->write("u> ");
@@ -920,7 +920,7 @@ namespace MFM {
     fp->write("\", \"");
     fp->write(m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str());
     fp->write("\", ");
-    fp->write_decimal(m_varSymbol->getPosOffset());
+    fp->write_decimal(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset());
     fp->write("u); return i; }\n");
 
     dmcount++; //increment data member count

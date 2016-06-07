@@ -303,7 +303,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    if(!(m_constSymbol->isReady() || m_constSymbol->hasDefaultValue()))
+	    if(!(m_constSymbol->isReady() || m_constSymbol->isInitValueReady()))
 	      {
 		setNodeType(Hzy);
 		m_state.setGoAgain();
@@ -493,10 +493,10 @@ namespace MFM {
     delete m_nodeExpr;
     m_nodeExpr = newnode;
 
-    if(m_constSymbol->isParameter())
-      m_constSymbol->setDefaultValue(newconst); //hasDefault (not isReady)!
+    if(m_constSymbol->isClassParameter())
+      m_constSymbol->setInitValue(newconst); //(isInitValueReady now)!
     else
-      m_constSymbol->setValue(newconst); //isReady now!
+      m_constSymbol->setValue(newconst); //isReady now! (e.g. ClassArgument, ModelParameter)
     return uti; //ok
   } //foldConstantExpression
 

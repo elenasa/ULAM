@@ -6,6 +6,7 @@
 #include "NodeIdent.h"
 #include "NodeMemberSelect.h"
 #include "NodeVarDecl.h"
+#include "SymbolVariableDataMember.h"
 #include "SymbolVariableStack.h"
 #include "SymbolFunction.h"
 #include "SymbolFunctionName.h"
@@ -302,7 +303,7 @@ namespace MFM {
     return false;
   }
 
-  bool Node::installSymbolParameterValue(TypeArgs& args, Symbol*& asymptr)
+  bool Node::installSymbolModelParameterValue(TypeArgs& args, Symbol*& asymptr)
   {
     return false;
   }
@@ -2356,8 +2357,9 @@ namespace MFM {
   {
     //include model parameters as LocalVariableOrArgument, since more alike;
     //an element's "self" as obj[0] is like it isn't there for purposes of this discovery.
-    //quark's self is an atom, and should be treated like a local arg.
-    // note: self is not a data member.
+    //quark's self is an atom or immediate, and should be treated like a local arg.
+    // notes: self is not a data member. references cannot be data members.
+    //        func def's are dm, but func calls are not.
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       return false; //must be self, t.f. not local
 
@@ -2368,7 +2370,8 @@ namespace MFM {
     UTI stgcosuti = m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx();
     if(m_state.m_currentObjSymbolsForCodeGen[0]->isSelf() && !(m_state.isAtom(stgcosuti) || m_state.getUlamTypeByIndex(stgcosuti)->getUlamClassType() == UC_TRANSIENT) && (modelparamidx == -1))
       return false; //self, neither atom nor transient, not modelparameter
-    return true;
+
+    return true; //including references
   } //isCurrentObjectALocalVariableOrArgument
 
   // returns the index to the last object that's an MP; o.w. -1 none found;
@@ -2420,7 +2423,7 @@ namespace MFM {
 	    UlamType * sut = m_state.getUlamTypeByIndex(suti);
 	    if(!onlyClasses || (sut->getUlamTypeEnum() == Class))
 	      {
-		pos += sym->getPosOffset();
+		pos += ((SymbolVariableDataMember *) sym)->getPosOffset();
 		if((sut->getUlamClassType() == UC_ELEMENT) && (i < cosSize - 1)) //dm in transient; not the last one being written to.
 		  pos += ATOMFIRSTSTATEBITPOS;
 	      }

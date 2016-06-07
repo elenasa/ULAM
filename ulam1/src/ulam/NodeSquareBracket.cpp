@@ -611,11 +611,11 @@ namespace MFM {
   } //installSymbolConstantValue
 
   //see also NodeIdent
-  bool NodeSquareBracket::installSymbolParameterValue(TypeArgs& args, Symbol *& asymptr)
+  bool NodeSquareBracket::installSymbolModelParameterValue(TypeArgs& args, Symbol *& asymptr)
   {
     MSG(getNodeLocationAsString().c_str(), "Array size specified for model parameter", ERR);
     return false;
-  } //installSymbolParameterValue
+  } //installSymbolModelParameterValue
 
   //see also NodeIdent
   bool NodeSquareBracket::installSymbolVariable(TypeArgs& args,  Symbol *& asymptr)

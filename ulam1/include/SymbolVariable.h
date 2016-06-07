@@ -67,12 +67,12 @@ namespace MFM{
 
     virtual u32 getPosOffset();
 
-    void setPosOffset(u32 offsetIntoAtom);
+    //void setPosOffset(u32 offsetIntoAtom);
 
     virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype) = 0;
 
   protected:
-    u32 m_posOffset; //relative
+    //u32 m_posOffset; //relative
 
   private:
 

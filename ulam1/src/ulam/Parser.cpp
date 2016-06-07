@@ -66,7 +66,7 @@
 #include "SymbolConstantValue.h"
 #include "SymbolFunction.h"
 #include "SymbolFunctionName.h"
-#include "SymbolParameterValue.h"
+#include "SymbolModelParameterValue.h"
 #include "SymbolVariableDataMember.h"
 #include "SymbolVariableStack.h"
 
@@ -524,7 +524,7 @@ namespace MFM {
 	    //parameter IS a NodeConstantdef
 	    if(argNode->getSymbolPtr(argSym))
 	      {
-		((SymbolConstantValue *) argSym)->setParameterFlag();
+		((SymbolConstantValue *) argSym)->setClassParameterFlag();
 		//ownership stays with NodeBlockClass's ST
 		cntsym->addParameterSymbol((SymbolConstantValue *) argSym);
 	      }
@@ -2024,7 +2024,7 @@ namespace MFM {
 	//try to continue..
 	m_state.pushCurrentBlock(csym->getClassBlockNode()); //reset here for new arg's ST
 
-	SymbolConstantValue * argSym;
+	SymbolConstantValue * argSym = NULL;
 	if(!ctUnseen)
 	  {
 	    SymbolConstantValue * paramSym = ctsym->getParameterSymbolPtr(parmIdx);
@@ -2043,7 +2043,7 @@ namespace MFM {
 	  }
 
 	assert(argSym);
-	argSym->setArgumentFlag();
+	argSym->setClassArgumentFlag();
 	m_state.addSymbolToCurrentScope(argSym); //scope updated to new class instance in parseClassArguments
 
 	m_state.popClassContext(); //restore before making NodeConstantDef, so current context
@@ -2992,7 +2992,7 @@ namespace MFM {
 		      if(asymptr->isConstant())
 			rtnNode = new NodeConstant(pTok, (SymbolConstantValue *) asymptr, m_state);
 		      else
-			rtnNode = new NodeModelParameter(pTok, (SymbolParameterValue *) asymptr, m_state);
+			rtnNode = new NodeModelParameter(pTok, (SymbolModelParameterValue *) asymptr, m_state);
 		      assert(rtnNode);
 		      rtnNode->setNodeLocation(pTok.m_locator);
 		    }
@@ -4397,9 +4397,9 @@ namespace MFM {
 	//lvalNode could be either a NodeIdent or a NodeSquareBracket,
 	// though arrays not legal in this context!!!
 	//process identifier...check if already defined in current scope; if not, add it;
-	//return a SymbolParameterValue else some sort of primitive
+	//return a SymbolModelParameterValue else some sort of primitive
 	Symbol * asymptr = NULL;
-	if(!lvalNode->installSymbolParameterValue(args, asymptr))
+	if(!lvalNode->installSymbolModelParameterValue(args, asymptr))
 	  {
 	    if(asymptr)
 	      {
@@ -4439,7 +4439,7 @@ namespace MFM {
 	    //chain to NodeType descriptor if array (i.e. non scalar), o.w. deletes lval
 	    linkOrFreeConstantExpressionArraysize(auti, args, (NodeSquareBracket *)lvalNode, nodetyperef);
 
-	    NodeModelParameterDef * paramNode =  new NodeModelParameterDef((SymbolParameterValue *) asymptr, nodetyperef, m_state);
+	    NodeModelParameterDef * paramNode =  new NodeModelParameterDef((SymbolModelParameterValue *) asymptr, nodetyperef, m_state);
 	    assert(paramNode);
 	    paramNode->setNodeLocation(args.m_typeTok.m_locator);
 	    asymptr->setStructuredComment(); //also clears

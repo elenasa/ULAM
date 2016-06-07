@@ -3,14 +3,14 @@
 
 namespace MFM {
 
-  SymbolVariableDataMember::SymbolVariableDataMember(Token id, UTI utype, u32 slot, CompilerState& state) : SymbolVariable(id, utype, state), m_dataMemberUnpackedSlotIndex(slot)
+  SymbolVariableDataMember::SymbolVariableDataMember(Token id, UTI utype, u32 slot, CompilerState& state) : SymbolVariable(id, utype, state), m_posOffset(0), m_dataMemberUnpackedSlotIndex(slot)
   {
     setDataMemberClass(m_state.getCompileThisIdx());
   }
 
-  SymbolVariableDataMember::SymbolVariableDataMember(const SymbolVariableDataMember& sref) : SymbolVariable(sref), m_dataMemberUnpackedSlotIndex(sref.m_dataMemberUnpackedSlotIndex) { } //initval set by node vardecl c&l
+  SymbolVariableDataMember::SymbolVariableDataMember(const SymbolVariableDataMember& sref) : SymbolVariable(sref), m_posOffset(sref.m_posOffset), m_dataMemberUnpackedSlotIndex(sref.m_dataMemberUnpackedSlotIndex) { } //initval set by node vardecl c&l
 
-  SymbolVariableDataMember::SymbolVariableDataMember(const SymbolVariableDataMember& sref, bool keepType) : SymbolVariable(sref, keepType), m_dataMemberUnpackedSlotIndex(sref.m_dataMemberUnpackedSlotIndex) {} //initval set by node vardecl c&l
+  SymbolVariableDataMember::SymbolVariableDataMember(const SymbolVariableDataMember& sref, bool keepType) : SymbolVariable(sref, keepType), m_posOffset(sref.m_posOffset), m_dataMemberUnpackedSlotIndex(sref.m_dataMemberUnpackedSlotIndex) {} //initval set by node vardecl c&l
 
   SymbolVariableDataMember::~SymbolVariableDataMember()
   {
@@ -40,6 +40,17 @@ namespace MFM {
   const std::string SymbolVariableDataMember::getMangledPrefix()
   {
     return "Um_";
+  }
+
+  //packed bit position of data members; relative to ATOMFIRSTSTATEBITPOS (or 0u).
+  u32 SymbolVariableDataMember::getPosOffset()
+  {
+    return m_posOffset;
+  }
+
+  void SymbolVariableDataMember::setPosOffset(u32 offsetIntoAtom)
+  {
+    m_posOffset = offsetIntoAtom; //relative to first state bit
   }
 
   // replaced by NodeVarDecl:genCode to leverage the declaration order preserved by the parse tree.

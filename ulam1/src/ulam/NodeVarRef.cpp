@@ -2,6 +2,7 @@
 #include "NodeVarRef.h"
 #include "Token.h"
 #include "CompilerState.h"
+#include "SymbolVariableDataMember.h"
 #include "SymbolVariableStack.h"
 #include "NodeIdent.h"
 
@@ -375,7 +376,10 @@ namespace MFM {
     // (from NodeIdent's makeUlamValuePtr)
     // return ptr to this data member within the m_currentObjPtr
     // 'pos' modified by this data member symbol's packed bit position
-    UlamValue rtnUVPtr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+    u32 pos = 0;
+    if(m_varSymbol->isDataMember())
+      pos = ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset();
+    UlamValue rtnUVPtr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + pos, m_varSymbol->getId());
 
     //copy result UV to stack, -1 relative to current frame pointer
     Node::assignReturnValuePtrToStack(rtnUVPtr);
@@ -442,7 +446,7 @@ namespace MFM {
 	  {
 	    fp->write(m_state.getHiddenArgName());
 	    fp->write(", ");
-	    fp->write_decimal_unsigned(cos->getPosOffset()); //relative of
+	    fp->write_decimal_unsigned(((SymbolVariableDataMember *) cos)->getPosOffset()); //relative of
 	    fp->write("u");
 	    if((vclasstype != UC_NOTACLASS) && (vetyp != UAtom))
 	      {
@@ -459,7 +463,7 @@ namespace MFM {
 		if(cos->isDataMember())
 		  {
 		    fp->write(", ");
-		    fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
+		    fp->write_decimal_unsigned(((SymbolVariableDataMember *) cos)->getPosOffset()); //relative off
 		    fp->write("u");
 		  }
 		else if(stgcos->isSelf() || stgcos->isSuper())
@@ -559,7 +563,10 @@ namespace MFM {
 	    if(!m_state.isScalar(vuti))
 	      {
 		fp->write(", ");
-		fp->write_decimal_unsigned(stgcos->getPosOffset()); //t3671
+		if(stgcos->isDataMember())
+		  fp->write_decimal_unsigned(((SymbolVariableDataMember *) stgcos)->getPosOffset()); //t3671
+		else
+		  fp->write_decimal_unsigned(0);
 		fp->write("u");
 	      }
 	    else if(!stgcosut->isScalar())
@@ -616,7 +623,7 @@ namespace MFM {
       {
 	fp->write(m_state.getHiddenArgName());
 	fp->write(", ");
-	fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
+	fp->write_decimal_unsigned(((SymbolVariableDataMember *) cos)->getPosOffset()); //relative off
 	fp->write("u");
 
 	if(vetyp == Class)
@@ -632,7 +639,7 @@ namespace MFM {
 	if(cos->isDataMember())
 	  {
 	    fp->write(", ");
-	    fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
+	    fp->write_decimal_unsigned(((SymbolVariableDataMember *) cos)->getPosOffset()); //relative off
 	    fp->write("u");
 
 	    if(vclasstype == UC_QUARK)
@@ -712,7 +719,7 @@ namespace MFM {
       {
 	fp->write(m_state.getHiddenArgName());
 	fp->write(", ");
-	fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
+	fp->write_decimal_unsigned(((SymbolVariableDataMember *) cos)->getPosOffset()); //relative off
 	fp->write("u + (");
 	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	fp->write(" * ");
@@ -726,7 +733,7 @@ namespace MFM {
 	if(cos->isDataMember())
 	  {
 	    fp->write(", ");
-	    fp->write_decimal_unsigned(cos->getPosOffset()); //relative off
+	    fp->write_decimal_unsigned(((SymbolVariableDataMember *) cos)->getPosOffset()); //relative off
 	    fp->write("u + (");
 	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	    fp->write(" * ");
