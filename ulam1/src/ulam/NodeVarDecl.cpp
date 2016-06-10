@@ -798,7 +798,10 @@ namespace MFM {
 	      }
 	    else
 	      {
-		Node::assignReturnValueToStack(pluv); //not when unpacked? how come?
+		//(do same as scalar) t3419. t3425, t3708
+		//Node::assignReturnValueToStack(pluv); //not when unpacked? how come?
+		m_state.assignValue(pluv,ruv);
+		Node::assignReturnValueToStack(ruv);
 	      }
 	  }
 	else //unpacked
