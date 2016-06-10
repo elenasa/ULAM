@@ -198,7 +198,10 @@ namespace MFM {
 	m_state.popClassContext();
       } //end subclass error checking
 
-    if(m_nodeInitExpr)
+    //NodeVarDecl handles array initialization for both locals & dm
+    // since initial expressions must be constant for both (unlike local scalars)
+    //if(m_nodeInitExpr)
+    if(m_nodeInitExpr && m_state.isScalar(getNodeType()))
       {
 	if(!m_nodeInitExpr->isAConstant())
 	  {
@@ -236,10 +239,10 @@ namespace MFM {
 	  }
 
 	//constant fold if possible, set symbol value
-	if(m_varSymbol)
+	assert(m_varSymbol);
+
+	if(m_varSymbol->hasInitValue())
 	  {
-	    AssertBool hasInit = m_varSymbol->hasInitValue();
-	    assert(hasInit);
 	    if(!(m_varSymbol->isInitValueReady()))
 	      {
 		foldInitExpression(); //sets init constant value
@@ -251,8 +254,6 @@ namespace MFM {
 		  }
 	      }
 	  }
-	else
-	  assert(0);
 
 	//insure constant value fits in its declared type,
 	//done in NodeVarDecl c&l: safeToCastTo(nuti)
@@ -380,8 +381,15 @@ namespace MFM {
     if(!m_nodeInitExpr)
       return false;
 
+    assert(m_state.isScalar(nuti)); //arrays handled by NodeVarDecl
+
     // if here, must be a constant init value..
+    UTI foldeduti = m_nodeInitExpr->constantFold(); //c&l redone
+    if(!m_state.okUTItoContinue(foldeduti))
+      return false;
+
     u64 newconst = 0; //UlamType format (not sign extended)
+
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(nuti); //offset a constant expression
     EvalStatus evs = m_nodeInitExpr->eval();
@@ -399,7 +407,18 @@ namespace MFM {
 
     evalNodeEpilog();
 
-    if(evs == ERROR)
+    if(evs == ERROR) //what happened to NOTREADY????? (also in NodeListArrayInit.)
+      {
+	std::ostringstream msg;
+	msg << "Constant value expression for data member '";
+	msg << m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str();
+	msg << "' initialization failed while compiling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return false;
+      }
+
+    if(evs == NOTREADY)
       {
 	std::ostringstream msg;
 	msg << "Constant value expression for data member '";
@@ -430,6 +449,7 @@ namespace MFM {
 	return false; //necessary if not just a warning.
       }
 
+#if 0
     //folded here..(but no checkandlabel yet)
     if(updateConstant(newconst))
       {
@@ -445,9 +465,20 @@ namespace MFM {
       }
     else
       return false;
+#endif
 
-    m_varSymbol->setInitValue(newconst); //isReady now!
-    return true;
+    //if(((NodeTerminal *) m_nodeInitExpr)->getConstantValue(newconst))
+      {
+	if(updateConstant(newconst))
+	  {
+	    BV8K bvtmp;
+	    u32 len = m_state.getTotalBitSize(nuti);
+	    bvtmp.WriteLong(0u, len, newconst); //is newconst packed?
+	    m_varSymbol->setInitValue(bvtmp); //isReady now!
+	    return true;
+	  }
+      }
+    return false;
   } //foldInitExpression
 
   bool NodeVarDeclDM::updateConstant(u64 & newconst)
@@ -617,6 +648,8 @@ namespace MFM {
 		aok = true;
 	      }
 	  }
+	else
+	  assert(0); //TBD!!! very soon..
       }
     else
       aok = true; //no initialized value
@@ -712,9 +745,13 @@ namespace MFM {
     newnode->setNodeLocation(getNodeLocation());
     delete m_nodeInitExpr;
     m_nodeInitExpr = newnode;
+
     //(in this order) i thought this was for primitives only????
+    BV8K bvtmp;
+    u32 len = m_state.getTotalBitSize(nuti);
+    bvtmp.WriteLong(0u, len, dpkval);
     m_varSymbol->setHasInitValue(); //?
-    m_varSymbol->setInitValue(dpkval); //?
+    m_varSymbol->setInitValue(bvtmp); //t3512 (was dpkval)
   } //foldDefaultClass
 
   void NodeVarDeclDM::packBitsInOrderOfDeclaration(u32& offset)

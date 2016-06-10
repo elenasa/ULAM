@@ -232,10 +232,11 @@ namespace MFM {
 
   void UlamTypePrimitiveInt::getDataAsString(const u32 data, char * valstr, char prefix)
   {
+    s32 sdata = getDataAsCs32(data);
     if(prefix == 'z')
-      sprintf(valstr,"%d", data);
+      sprintf(valstr,"%d", sdata);
     else
-      sprintf(valstr,"%c%d", prefix, data);
+      sprintf(valstr,"%c%d", prefix, sdata);
   }
 
   void UlamTypePrimitiveInt::getDataLongAsString(const u64 data, char * valstr, char prefix)

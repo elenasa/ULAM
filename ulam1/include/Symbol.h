@@ -40,6 +40,7 @@
 #include "itype.h"
 #include "Token.h"
 #include "Constants.h"
+#include "BitVector.h"
 
 namespace MFM{
 

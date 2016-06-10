@@ -256,8 +256,17 @@ namespace MFM {
 
   UTI Node::constantFold()
   {
-    return Nav; //parent required
-  }
+    if(!isAConstant())
+      {
+	std::ostringstream msg;
+	msg << "Cannot constant fold non-constant ";
+	msg << "'" << getName() << "'";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav);
+      }
+    //see NodeBinaryOp for the actual work
+    return getNodeType(); //noop. parent required (was Nav)
+  } //constantFold
 
   bool Node::buildDefaultValue(u32 wlen, BV8K& dvref)
   {

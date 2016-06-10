@@ -139,7 +139,7 @@ namespace MFM {
   TMPSTORAGE UlamTypePrimitive::getTmpStorageTypeForTmpVar()
   {
     //immediate storage is TMPBITVAL for all UlamTypes.
-    return TMPREGISTER;
+    return UlamType::getTmpStorageTypeForTmpVar(); //TMPREGISTER
   }
 
   const std::string UlamTypePrimitive::castMethodForCodeGen(UTI nodetype)
@@ -381,7 +381,6 @@ namespace MFM {
   void UlamTypePrimitive::genUlamTypeMangledDefinitionForC(File * fp)
   {
     u32 len = getTotalBitSize(); //could be 0, includes arrays
-    //u32 bitsize = getBitSize();
 
     m_state.m_currentIndentLevel = 0;
 
@@ -466,6 +465,18 @@ namespace MFM {
     fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64
     fp->write(" d) { ");
     fp->write("write(d); }\n");
+
+    //array initialization constructor here (used by const tmpVars);
+    // in C, the array is just a pointer (since not within a struct);
+    if(!isScalar())
+      {
+	m_state.indent(fp);
+	fp->write(mangledName.c_str());
+	fp->write("(const u32");
+	fp->write(" d[");
+	fp->write_decimal_unsigned(UlamType::getTotalNumberOfWords());
+	fp->write("]) : BVS(d) { }\n");
+      }
 
     //copy constructor here (return by value)
     m_state.indent(fp);

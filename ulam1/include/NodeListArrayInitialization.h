@@ -59,16 +59,24 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual bool isAConstant();
+
     virtual UTI checkAndLabelType();
 
-    virtual EvalStatus eval();
+    bool foldInitExpression();
+
+    //virtual EvalStatus eval();
+
+    bool buildArrayValueInitialization(BV8K& bvtmp);
 
     virtual void genCode(File * fp, UVPass& uvpass);
 
   protected:
 
   private:
+    bool buildArrayItemInitialValue(u32 n, BV8K& bvtmp);
 
+    bool foldInitExpression(u32 n);
   };
 
 } //MFM

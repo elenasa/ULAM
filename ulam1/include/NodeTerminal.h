@@ -88,6 +88,9 @@ namespace MFM{
     /** reads into a tmp BitVector */
     virtual void genCodeReadIntoATmpVar(File * fp, UVPass & uvpass);
 
+    //bool getConstantValue(u64& cval);
+    //bool getConstantValue(s64& cval);
+
   private:
     virtual bool setConstantValue(Token tok);
     virtual UTI setConstantTypeForNode(Token tok);

@@ -41,10 +41,12 @@ namespace MFM{
 
   void NodeList::updateLineage(NNO pno)
   {
+    NNO nno = getNodeNo();
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
-	m_nodes[i]->updateLineage(pno);
+	m_nodes[i]->updateLineage(nno); //wrong! was pno
       }
+    Node::setYourParentNo(pno); //missing
   } //updateLineage
 
   bool NodeList::exchangeKids(Node * oldnptr, Node * newnptr)
@@ -76,6 +78,9 @@ namespace MFM{
 
   bool NodeList::findNodeNo(NNO n, Node *& foundNode)
   {
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+
     bool rtnb = false;
     for(u32 i = 0; i < m_nodes.size(); i++)
       {

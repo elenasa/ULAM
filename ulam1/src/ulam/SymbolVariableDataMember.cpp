@@ -126,6 +126,7 @@ namespace MFM {
 
     if(vclasstype == UC_QUARK)
       {
+    //outputs the data members, not just the lump value (e.g. SWV::printPostfixValue())
 	UTI scalarquark = m_state.getUlamTypeAsScalar(vuti);
 	//printPostfixValuesForClass:
 	SymbolClass * csym = NULL;

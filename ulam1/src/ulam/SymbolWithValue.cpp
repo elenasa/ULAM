@@ -5,20 +5,20 @@ namespace MFM {
 
   SymbolWithValue::SymbolWithValue(Token id, UTI utype, CompilerState & state) : Symbol(id, utype, state), m_isReady(false), m_hasInitVal(false), m_isReadyInitVal(false), m_classParameter(false), m_classArgument(false)
   {
-    m_constant.sval = 0;
-    m_initial.sval = 0;
+    //m_constantValue.sval = 0;
+    //m_initial.sval = 0;
   }
 
   SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref) : Symbol(sref), m_isReady(sref.m_isReady), m_hasInitVal(sref.m_hasInitVal), m_isReadyInitVal(false), m_classParameter(false), m_classArgument(sref.m_classArgument)
   {
-    m_constant = sref.m_constant;
-    m_initial = sref.m_initial;
+    m_constantValue = sref.m_constantValue;
+    m_initialValue = sref.m_initialValue;
   }
 
   SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref, bool keepType) : Symbol(sref, keepType), m_isReady(sref.m_isReady), m_hasInitVal(sref.m_hasInitVal), m_isReadyInitVal(false), m_classParameter(false), m_classArgument(sref.m_classArgument)
   {
-    m_constant = sref.m_constant;
-    m_initial = sref.m_initial;
+    m_constantValue = sref.m_constantValue;
+    m_initialValue = sref.m_initialValue;
   }
 
   SymbolWithValue::~SymbolWithValue()
@@ -55,27 +55,43 @@ namespace MFM {
     return m_isReady; //constant value
   }
 
-  bool SymbolWithValue::getValue(s64& val)
+  bool SymbolWithValue::getValue(u32& val)
   {
-    val = m_constant.sval;
-    return m_isReady;
+    if(isReady())
+      {
+	u32 len = m_state.getBitSize(getUlamTypeIdx());
+	val = m_constantValue.Read(0u, len); //return value
+	return true;
+      }
+    return false;
   }
 
   bool SymbolWithValue::getValue(u64& val)
   {
-    val = m_constant.uval;
-    return m_isReady;
+    if(isReady())
+      {
+	u32 len = m_state.getBitSize(getUlamTypeIdx());
+	val = m_constantValue.ReadLong(0u, len); //return value
+	return true;
+      }
+    return false;
   }
 
-  void SymbolWithValue::setValue(s64 val)
+  bool SymbolWithValue::getValue(BV8K& val)
   {
-    m_constant.sval = val;
-    m_isReady = true;
+    if(isReady())
+      {
+	val = m_constantValue; //return value
+	return true;
+      }
+    return false;
   }
 
-  void SymbolWithValue::setValue(u64 val)
+  void SymbolWithValue::setValue(const BV8K& val)
   {
-    m_constant.uval = val;
+    //m_constantValue = val;
+    u32 tbs = m_state.getTotalBitSize(getUlamTypeIdx());
+    val.CopyBV(0u, 0u, tbs, m_constantValue); //frompos, topos, len, destBV
     m_isReady = true;
   }
 
@@ -84,15 +100,16 @@ namespace MFM {
     return m_hasInitVal;
   }
 
-  bool SymbolWithValue::getInitValue(s64& val)
+  bool SymbolWithValue::getInitValue(u32& val)
   {
     assert(hasInitValue());
     if(isInitValueReady())
       {
-	val = m_initial.sval;
+	u32 len = m_state.getTotalBitSize(getUlamTypeIdx());
+	val = m_initialValue.Read(0u, len); //return value
 	return true;
       }
-    return false; //was m_hasDefault;
+    return false;
   }
 
   bool SymbolWithValue::getInitValue(u64& val)
@@ -100,22 +117,31 @@ namespace MFM {
     assert(hasInitValue());
     if(isInitValueReady())
       {
-	val = m_initial.uval;
+	u32 len = m_state.getTotalBitSize(getUlamTypeIdx());
+	val = m_initialValue.ReadLong(0u, len); //return value
 	return true;
       }
-    return false; //was m_hasDefault;
+    return false;
   }
 
-  void SymbolWithValue::setInitValue(s64 val)
+  bool SymbolWithValue::getInitValue(BV8K& val)
   {
-    m_initial.sval = val;
-    m_hasInitVal = true;
-    m_isReadyInitVal = true;
+    assert(hasInitValue());
+    if(isInitValueReady())
+      {
+	//val = m_initialValue; //return value
+	u32 tbs = m_state.getTotalBitSize(getUlamTypeIdx());
+	m_initialValue.CopyBV(0u, 0u, tbs, val);
+	return true;
+      }
+    return false;
   }
 
-  void SymbolWithValue::setInitValue(u64 val)
+  void SymbolWithValue::setInitValue(const BV8K& val)
   {
-    m_initial.uval = val;
+    //m_initialValue = val;
+    u32 tbs = m_state.getTotalBitSize(getUlamTypeIdx());
+    val.CopyBV(0u, 0u, tbs, this->m_initialValue); //frompos, topos, len, destBV
     m_hasInitVal = true;
     m_isReadyInitVal = true;
   }
@@ -138,21 +164,30 @@ namespace MFM {
 
   void SymbolWithValue::printPostfixValue(File * fp)
   {
-    UTI tuti = getUlamTypeIdx();
+    if(m_state.isScalar(getUlamTypeIdx()))
+      printPostfixValueScalar(fp);
+    else
+      printPostfixValueArray(fp);
+  } //printPostfixValue
+
+  void SymbolWithValue::printPostfixValueScalar(File * fp)
+  {
     bool oktoprint = true;
     u64 val = 0;
     if(isReady())
-      val = m_constant.uval;
+      getValue(val);
     else if(hasInitValue() && isInitValueReady())
-      val = m_initial.uval;
+      getInitValue(val);
     else
       oktoprint = false;
 
     if(oktoprint)
       {
-	u32 twordsize =  m_state.getTotalWordSize(tuti); //must be commplete
-	s32 tbs = m_state.getBitSize(tuti);
-	ULAMTYPE etype = m_state.getUlamTypeByIndex(tuti)->getUlamTypeEnum();
+	UTI tuti = getUlamTypeIdx();
+	UlamType * tut = m_state.getUlamTypeByIndex(tuti);
+	u32 twordsize =  tut->getTotalWordSize(); //must be commplete
+	s32 tbs = tut->getBitSize();
+	ULAMTYPE etype = tut->getUlamTypeEnum();
 
 	switch(etype)
 	  {
@@ -186,13 +221,12 @@ namespace MFM {
 	  case Bits:
 	    {
 	      // NO CASTING NEEDED, assume saved in its ulam-native format
-	      //oddly write_decimal wants a signed int..use new write_decimal_unsigned
 	      if( tbs <= MAXBITSPERINT)
 		fp->write_decimal_unsigned(val);
 	      else if( tbs <= MAXBITSPERLONG)
 		fp->write_decimal_unsignedlong(val);
 	      else
-		assert(0);
+		assert(0); //TBD > 64
 	      fp->write("u");
 	    }
 	    break;
@@ -202,7 +236,70 @@ namespace MFM {
       }
     else
       fp->write("NONREADYCONST");
-  } //printPostfixValue
+  } //printPostfixValueScalar
+
+  void SymbolWithValue::printPostfixValueArray(File * fp)
+  {
+    bool oktoprint = true;
+    BV8K dval;
+    if(isReady())
+      getValue(dval);
+    else if(hasInitValue() && isInitValueReady())
+      getInitValue(dval);
+    else
+      oktoprint = false;
+
+    if(!oktoprint)
+      {
+	fp->write("NONREADYCONSTARRAY");
+	return;
+      }
+
+    UTI tuti = getUlamTypeIdx();
+    UlamType * tut = m_state.getUlamTypeByIndex(tuti);
+    s32 tbs = tut->getTotalBitSize();
+    if(tbs == 0)
+      {
+	fp->write("{ }");
+	return; //nothing to do
+      }
+
+    //like the code generated in CS::genCodeClassDefaultConstantArray
+    u32 uvals[ARRAY_LEN8K];
+    dval.ToArray(uvals);
+
+    u32 nwords = tut->getTotalNumberOfWords();
+
+    //short-circuit if all zeros
+    bool isZero = true;
+    for(u32 x = 0; x < nwords; x++)
+      {
+	if(uvals[x] != 0)
+	  {
+	    isZero = false;
+	    break;
+	  }
+      }
+
+    if(isZero)
+      {
+	fp->write("{ 0..0 }");
+	return; //nothing else to do
+      }
+
+    fp->write("{ ");
+    for(u32 w = 0; w < nwords; w++)
+      {
+	std::ostringstream dhex;
+	dhex << "0x" << std::hex << uvals[w];
+
+	if(w > 0)
+	  fp->write(", ");
+
+	fp->write(dhex.str().c_str());
+      }
+    fp->write(" }");
+  } //printPostfixValueArray
 
   bool SymbolWithValue::getLexValue(std::string& vstr)
   {
@@ -210,6 +307,10 @@ namespace MFM {
 
     if(!isReady())
       return false;
+
+    u64 constantval = 0;
+    AssertBool gotVal = getValue(constantval);
+    assert(gotVal);
 
     u32 twordsize =  m_state.getTotalWordSize(tuti); //must be commplete
     s32 tbs = m_state.getBitSize(tuti);
@@ -220,12 +321,12 @@ namespace MFM {
 	{
 	  if(twordsize <= MAXBITSPERINT)
 	    {
-	      s32 sval = _Int32ToInt32((u32) m_constant.uval, tbs, MAXBITSPERINT);
+	      s32 sval = _Int32ToInt32((u32) constantval, tbs, MAXBITSPERINT);
 	      vstr = ToLeximitedNumber(sval);
 	    }
 	  else if(twordsize <= MAXBITSPERLONG)
 	    {
-	      s64 sval = _Int64ToInt64(m_constant.uval, tbs, MAXBITSPERLONG);
+	      s64 sval = _Int64ToInt64(constantval, tbs, MAXBITSPERLONG);
 	      vstr = ToLeximitedNumber64(sval);
 	    }
 	  else
@@ -234,7 +335,7 @@ namespace MFM {
 	break;
       case Bool:
 	{
-	  bool bval = _Bool64ToCbool(m_constant.uval, tbs);
+	  bool bval = _Bool64ToCbool(constantval, tbs);
 	  if(bval)
 	    vstr = ToLeximitedNumber(1); //true
 	  else
@@ -243,8 +344,8 @@ namespace MFM {
 	break;
       case Unary:
 	{
-	  s32 pval = _Unary64ToInt64(m_constant.uval, tbs, MAXBITSPERINT);
-	      vstr = ToLeximitedNumber(pval);
+	  s32 pval = _Unary64ToInt64(constantval, tbs, MAXBITSPERINT);
+	  vstr = ToLeximitedNumber(pval);
 	}
 	break;
       case Unsigned:
@@ -252,9 +353,9 @@ namespace MFM {
 	{
 	  //oddly write_decimal wants a signed int..
 	  if( tbs <= MAXBITSPERINT)
-	    vstr = ToLeximitedNumber((u32) m_constant.uval);
+	    vstr = ToLeximitedNumber((u32) constantval);
 	  else if( tbs <= MAXBITSPERLONG)
-		vstr = ToLeximitedNumber64(m_constant.uval);
+		vstr = ToLeximitedNumber64(constantval);
 	  else
 	    assert(0);
 	}

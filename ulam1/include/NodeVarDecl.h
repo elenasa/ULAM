@@ -117,6 +117,7 @@ namespace MFM{
 
     UlamValue makeUlamValuePtr(); //for locals
 
+    void setupStackWithPrimitiveForEval(u32 slots);
     void setupStackWithClassForEval(u32 slots);
     void setupStackWithQuarkForEval(u32 slots);
   };

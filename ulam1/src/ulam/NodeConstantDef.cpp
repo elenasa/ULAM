@@ -493,10 +493,13 @@ namespace MFM {
     delete m_nodeExpr;
     m_nodeExpr = newnode;
 
+    BV8K bvtmp;
+    u32 len = m_state.getTotalBitSize(uti);
+    bvtmp.WriteLong(0u, len, newconst); //is newconst packed?
     if(m_constSymbol->isClassParameter())
-      m_constSymbol->setInitValue(newconst); //(isInitValueReady now)!
+      m_constSymbol->setInitValue(bvtmp); //(isInitValueReady now)!
     else
-      m_constSymbol->setValue(newconst); //isReady now! (e.g. ClassArgument, ModelParameter)
+      m_constSymbol->setValue(bvtmp); //isReady now! (e.g. ClassArgument, ModelParameter)
     return uti; //ok
   } //foldConstantExpression
 

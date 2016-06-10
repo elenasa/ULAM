@@ -475,8 +475,8 @@ namespace MFM {
   {
     if(m_varSymbol->isSelf())
       {
-	//when "self/atom" is a quark, we're inside a func called on a quark (e.g. dm or local)
-	//'atom' gets entire atom/element containing this quark; including its type!
+	//when "self" is a quark, we're inside a func called on a quark (e.g. dm or local)
+	//'atomof' gets entire atom/element containing this quark; including its type!
 	//'self' gets type/pos/len of the quark from which 'atom' can be extracted
 	UlamValue selfuvp = m_state.m_currentSelfPtr;
 	UTI ttype = selfuvp.getPtrTargetType();

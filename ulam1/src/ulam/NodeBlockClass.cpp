@@ -59,7 +59,7 @@ namespace MFM {
 
     UTI cuti = getNodeType();
     UTI superuti = m_state.isClassASubclass(cuti);
-    if((superuti != Nouti) && (superuti != Hzy) && !m_state.isUrSelf(superuti))
+    if(m_state.okUTItoContinue(superuti) && !m_state.isUrSelf(superuti))
       {
 	NodeBlockClass * superblock = getSuperBlockPointer();
 	assert(superblock || m_state.isClassAStub(superuti));
@@ -133,7 +133,7 @@ namespace MFM {
 
     UTI superuti = m_state.isClassASubclass(cuti);
     //skip UrSelf to avoid extensive changes to all test answers
-    if((superuti != Nouti) && !m_state.isUrSelf(superuti))
+    if(m_state.okUTItoContinue(superuti) && !m_state.isUrSelf(superuti))
       {
 	fp->write(" : ");
 	fp->write(m_state.getUlamTypeNameBriefByIndex(superuti).c_str());  //e.g. Foo(a), an instance of
@@ -160,6 +160,7 @@ namespace MFM {
 	Coord c0(0,0);
 	s32 slot = c0.convertCoordToIndex();
 
+	//has (most) current values impacted by test()
 	printPostfixDataMembersSymbols(fp, slot, ATOMFIRSTSTATEBITPOS, m_state.getUlamTypeByIndex(cuti)->getUlamClassType()); //may not need classtype
 	func->printPostfix(fp);
       }
@@ -180,7 +181,7 @@ namespace MFM {
 
     UTI superuti = m_state.isClassASubclass(cuti);
     //skip UrSelf to avoid extensive changes to all test answers
-    if((superuti != Nouti) && (superuti != Hzy) && !m_state.isUrSelf(superuti))
+    if(m_state.okUTItoContinue(superuti) && !m_state.isUrSelf(superuti))
       {
 	NodeBlockClass * superblock = getSuperBlockPointer();
 	if(!isSuperClassLinkReady())
@@ -207,7 +208,7 @@ namespace MFM {
     UTI cuti = getNodeType();
     UTI superuti = m_state.isClassASubclass(cuti);
     //skip UrSelf to avoid extensive changes to all test answers
-    if((superuti != Nouti) && (superuti != Hzy) && !m_state.isUrSelf(superuti))
+    if(m_state.okUTItoContinue(superuti) && !m_state.isUrSelf(superuti))
       {
 	NodeBlockClass * superblock = getSuperBlockPointer();
 	assert(superblock && UlamType::compare(superblock->getNodeType(), superuti, m_state) == UTIC_SAME);

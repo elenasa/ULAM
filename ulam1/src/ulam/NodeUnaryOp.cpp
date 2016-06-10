@@ -393,7 +393,7 @@ namespace MFM {
     UTI nuti = getNodeType();
     u32 len = m_state.getTotalBitSize(nuti);
 
-    UlamValue uv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slot); //immediate value
+    UlamValue uv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slot); //immediate valueg
 
     if((uv.getUlamValueTypeIdx() == Nav) || (nuti == Nav))
       return false;

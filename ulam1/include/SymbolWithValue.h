@@ -67,16 +67,16 @@ namespace MFM{
     virtual bool isReady();
 
     bool getLexValue(std::string& vstr);
-    bool getValue(s64& val);
+    bool getValue(u32& val);
     bool getValue(u64& val);
-    void setValue(s64 val);
-    void setValue(u64 val);
+    bool getValue(BV8K& val);
+    void setValue(const BV8K& val);
 
     bool hasInitValue();
-    bool getInitValue(s64& val);
+    bool getInitValue(u32& val);
     bool getInitValue(u64& val);
-    void setInitValue(s64 val);
-    void setInitValue(u64 val);
+    bool getInitValue(BV8K& val);
+    void setInitValue(const BV8K& val);
     bool isInitValueReady(); //new
     void setHasInitValue(); //new
 
@@ -99,6 +99,10 @@ namespace MFM{
     bool m_classParameter; //constant has default but no value, look at instance
     bool m_classArgument; //constant has value but no default, look at template parameter
 
+    BV8K m_constantValue;
+    BV8K m_initialValue;
+
+#if 0
     union {
       s64 sval;
       u64 uval;
@@ -108,7 +112,10 @@ namespace MFM{
       s64 sval;
       u64 uval;
     } m_initial;
+#endif
 
+    void printPostfixValueScalar(File * fp);
+    void printPostfixValueArray(File * fp);
   };
 } //MFM
 
