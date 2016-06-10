@@ -379,8 +379,20 @@ namespace MFM {
 		if(m_state.okUTItoContinue(duti) && !dut->isComplete())
 		  {
 		    //if here, assume arraysize depends on number of initializers
-		    u32 n = ((NodeList *) m_nodeInitExpr)->getNumberOfNodes();
-		    m_state.setUTISizes(duti, dut->getBitSize(), n);
+		    s32 bitsize = dut->getBitSize();
+		    //if(bitsize > 0)
+		    //{
+			u32 n = ((NodeList *) m_nodeInitExpr)->getNumberOfNodes();
+			m_state.setUTISizes(duti, bitsize, n);
+			//  }
+			//else
+			//{
+			//it = Hzy;
+			//m_nodeInitExpr->setNodeType(Hzy); //replace Void too!
+			//m_state.setGoAgain();
+			//assert(0);
+			// }
+
 		    if(m_state.isComplete(duti))
 		      {
 			std::ostringstream msg;
@@ -422,7 +434,7 @@ namespace MFM {
 	    eit = it;
 	  } //end array initializers (eit == Void)
 
-	setNodeType(it); //needed before safeToCast, and folding
+    setNodeType(it); //needed before safeToCast, and folding
 
 	if(!m_state.isScalar(eit))
 	  {

@@ -207,16 +207,28 @@ namespace MFM {
 	    // support initialized non-class arrays
 	    if(((SymbolVariableDataMember *) sym)->hasInitValue())
 	      {
-		u64 dval = 0;
-		if(((SymbolVariableDataMember *) sym)->getInitValue(dval))
+		if(len <= MAXBITSPERLONG)
 		  {
-		    u32 wordsize = sut->getTotalWordSize();
-		    if(wordsize <= MAXBITSPERINT)
-		      uvsite.putData(pos + startpos, len, (u32) dval); //absolute pos
-		    else if(wordsize <= MAXBITSPERLONG)
-		      uvsite.putDataLong(pos + startpos, len, dval); //absolute pos
-		    else
-		      assert(0);
+		    u64 dval = 0;
+		    if(((SymbolVariableDataMember *) sym)->getInitValue(dval))
+		      {
+			u32 wordsize = sut->getTotalWordSize();
+			if(wordsize <= MAXBITSPERINT)
+			  uvsite.putData(pos + startpos, len, (u32) dval); //absolute pos
+			else if(wordsize <= MAXBITSPERLONG)
+			  uvsite.putDataLong(pos + startpos, len, dval); //absolute pos
+			else
+			  assert(0);
+		      }
+		  }
+		else
+		  {
+		    assert(len <= MAXSTATEBITS);
+		    BV8K dval;
+		    if(((SymbolVariableDataMember *) sym)->getInitValue(dval))
+		      {
+			uvsite.putDataBig(pos + startpos, len, dval); //t3772
+		      }
 		  }
 	      }
 	    else if(sut->getUlamTypeEnum() == Class)
@@ -239,7 +251,7 @@ namespace MFM {
 		      }
 		  }
 		else
-		  assert(0); //for eval, how could an element dm not be a quark? hence u32.
+		  assert(0); //for eval, how could an element dm not be a quark? hence u32 per.
 	      }
 	    //else nothing to do?
 	  } //countable

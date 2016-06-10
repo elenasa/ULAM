@@ -382,7 +382,8 @@ namespace MFM {
     if(m_varSymbol->isInitValueReady())
       return true; //short-circuit
 
-    assert(m_state.isScalar(nuti)); //arrays handled by NodeVarDecl
+    if(!m_state.isScalar(nuti)) //arrays handled by NodeVarDecl
+      return NodeVarDecl::foldInitExpression();
 
     assert(m_nodeInitExpr);
     // if here, must be a constant init value..
@@ -622,7 +623,7 @@ namespace MFM {
     else if(m_nodeInitExpr)
       {
 	//primitive (not a class!)
-	//arrays not initialized at this time
+	//arrays may be initialized now
 	if(m_state.isScalar(nuti))
 	  {
 	    u64 val = 0;
@@ -636,7 +637,16 @@ namespace MFM {
 	      }
 	  }
 	else
-	  assert(0); //TBD!!! very soon..
+	  {
+	    assert(m_varSymbol->hasInitValue());
+	    BV8K dval; //copies default BV
+	    if(m_varSymbol->getInitValue(dval))
+	      {
+		u32 len = nut->getTotalBitSize();
+		dval.CopyBV(0u, pos, len, dvref); //frompos, topos, len, destBV
+		aok = true;
+	      }
+	  }
       }
     else
       aok = true; //no initialized value

@@ -190,7 +190,8 @@ namespace MFM {
 	return false; //error, e.g. possible divide by zero
       }
 
-    if(as != UNKNOWNSIZE)
+    //do it anyway, progress for the bitsize (t3773)
+    //if(as != UNKNOWNSIZE)
       {
 	// keep in case a template
 	//delete m_unknownArraysizeSubtree;

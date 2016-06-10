@@ -766,14 +766,24 @@ namespace MFM {
 
     if(pTok.m_type == TOK_EQUAL)
       {
-	Node * initnode = parseExpression();
+	Token eTok;
+	//check for possible start of array init
+	getNextToken(eTok);
+	unreadToken();
+	Node * initnode;
+	if(eTok.m_type == TOK_OPEN_CURLY)
+	  {
+	    initnode = parseArrayInitialization(identTok); //returns a NodeListArrayInitialization
+	  }
+	else
+	  initnode = parseExpression();
+
 	if(initnode)
 	  ((NodeVarDeclDM*) dNode)->setInitExpr(initnode);
 	//else error
       }
     else
       unreadToken();
-
     return;
   } //parseRestOfDataMemberAssignment
 

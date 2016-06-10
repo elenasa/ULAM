@@ -1589,11 +1589,17 @@ namespace MFM {
 	    msg << "Invalid size (";
 	    msg << bitsize;
 	    msg << ") to set for primitive type: " << UlamType::getUlamTypeEnumAsString(bUT);
-	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
-	    return false;
+	    if(arraysize < 0)
+	      {
+		MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+		return false;
+	      }
+	    else
+	      MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+	    //return false;
 	  }
 	//Void with zero bitsize
-	if(arraysize != NONARRAYSIZE)
+	if((bUT == Void) && (arraysize != NONARRAYSIZE))
 	  {
 	    // disallow an array of Void(0)'s
 	    std::ostringstream msg;
