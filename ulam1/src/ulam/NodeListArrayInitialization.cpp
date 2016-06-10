@@ -79,52 +79,6 @@ namespace MFM{
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    rtnuti = Nav;
 	  }
-#if 0
-	else if(m_state.okUTItoContinue(rtnuti) && (rtnuti != Void))
-	  {
-	    //if(foldInitExpression(i)) called separately, with another c&l
-	    UTI scalaruti = m_state.getUlamTypeAsScalar(rtnuti);
-	    if(UlamType::compareForArgumentMatching(puti, scalaruti, m_state) != UTIC_SAME)
-	      {
-		FORECAST scr = m_nodes[i]->safeToCastTo(scalaruti);
-		if(scr == CAST_CLEAR)
-		  {
-		    //must complicate the parse tree (t3769 Int(4) == -1);
-		    if(!Node::makeCastingNode(m_nodes[i], scalaruti, m_nodes[i]))
-		      {
-			std::ostringstream msg;
-			msg << "Array item " << i + 1 << " has a casting problem";
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			rtnuti = Nav; //no casting node
-		      }
-		    else
-		      puti = m_nodes[i]->getNodeType(); //casted item
-		  }
-		else
-		  {
-		    std::ostringstream msg;
-		    if(m_state.getUlamTypeByIndex(rtnuti)->getUlamTypeEnum() == Bool)
-		      msg << "Use a comparison operator";
-		    else
-		      msg << "Use explicit cast";
-		    msg << " to return ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(puti).c_str();
-		    msg << " as ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(scalaruti).c_str();
-		    if(scr == CAST_BAD)
-		      {
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			rtnuti = Nav;
-		      }
-		    else
-		      {
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-			rtnuti = Hzy;
-		      }
-		  }
-	      }
-	  }
-#endif
       }
     setNodeType(rtnuti);
     return rtnuti;
@@ -146,6 +100,7 @@ namespace MFM{
   {
     UTI foldeduti = m_nodes[n]->constantFold(); //c&l possibly redone
 
+    //insure constant value fits in its array's bitsize
     UTI scalaruti = m_state.getUlamTypeAsScalar(Node::getNodeType());
     if(UlamType::compareForArgumentMatching(foldeduti, scalaruti, m_state) != UTIC_SAME)
       {
@@ -187,88 +142,6 @@ namespace MFM{
 	  }
       }
     return m_state.okUTItoContinue(foldeduti);
-
-#if 0
-    UTI itemuti = m_nodes[n]->getNodeType();
-
-    // taken from NodeVarDeclDM::foldInitExpression
-    // if here, must be a constant init value..
-    u64 newconst = 0; //UlamType format (not sign extended)
-    evalNodeProlog(0); //new current frame pointer
-    makeRoomForNodeType(itemuti); //offset a constant expression
-    EvalStatus evs = eval(n);
-    if(evs == NORMAL)
-      {
-	UlamValue cnstUV = m_state.m_nodeEvalStack.popArg();
-	u32 wordsize = m_state.getTotalWordSize(itemuti);
-	if(wordsize <= MAXBITSPERINT)
-	  newconst = cnstUV.getImmediateData(m_state);
-	else if(wordsize <= MAXBITSPERLONG)
-	  newconst = cnstUV.getImmediateDataLong(m_state);
-	else
-	  assert(0);
-      }
-
-    evalNodeEpilog();
-
-    if(evs == ERROR)
-      {
-	std::ostringstream msg;
-	msg << "Constant value expression for array item initializer '";
-	msg << n << "' initialization failed folding";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return false;
-      }
-
-    if(evs == NOTREADY)
-      {
-	std::ostringstream msg;
-	msg << "Constant value expression for array item initializer '";
-	msg << n << "' initialization is not yet ready while folding";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	m_state.setGoAgain(); //since not error
-	return false;
-      }
-
-    //insure constant value fits in its declared type
-    UTI scalaruti = m_state.getUlamTypeAsScalar(getNodeType());
-    FORECAST scr = m_nodes[n]->safeToCastTo(scalaruti);
-    if(scr != CAST_CLEAR)
-      {
-	std::ostringstream msg;
-	msg << "Constant value expression for array item initializer (";
-	msg << n; //getName() << " = " << m_nodes[n]->getName() ;
-	msg << ") initialization is not representable as ";
-	msg<< m_state.getUlamTypeNameBriefByIndex(scalaruti).c_str();
-	if(scr == CAST_BAD)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	else
-	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    m_state.setGoAgain(); //since not error
-	  }
-	return false; //necessary if not just a warning.
-      }
-
-    //folded here..(but no checkandlabel yet)
-    //if(updateConstant(newconst))
-      {
-	NodeTerminal * newnode;
-	if(m_state.getUlamTypeByIndex(scalaruti)->getUlamTypeEnum() == Int)
-	  newnode = new NodeTerminal((s64) newconst, itemuti, m_state);
-	else
-	  newnode = new NodeTerminal(newconst, itemuti, m_state);
-
-	newnode->setNodeLocation(getNodeLocation());
-	newnode->setYourParentNo(getNodeNo()); //this node is parent
-	newnode->resetNodeNo(m_nodes[n]->getNodeNo()); //missing?
-	delete m_nodes[n];
-	m_nodes[n] = newnode;
-      }
-      //else
-      //return false;
-      return true;
-#endif
   } //foldInitExpression
 
   bool NodeListArrayInitialization::buildArrayValueInitialization(BV8K& bvtmp)
@@ -314,11 +187,6 @@ namespace MFM{
 
     UlamValue ituv = m_state.m_nodeEvalStack.popArg();
 
-    //UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
-    //UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
-    //AssertBool castok = scalarut->cast(ituv, scalaruti);
-    //assert(castok);
-
     u64 foldedconst;
     u32 itemlen = m_state.getBitSize(nuti);
 
@@ -331,8 +199,7 @@ namespace MFM{
 
     evalNodeEpilog();
 
-    //if(((NodeTerminal *) m_nodes[n])->getConstantValue(foldedconst))
-    bvtmp.WriteLong(n * itemlen, itemlen, foldedconst); //is newconst packed?
+    bvtmp.WriteLong(n * itemlen, itemlen, foldedconst);
     return true;
   } //buildArrayItemInitialValue
 

@@ -56,7 +56,6 @@ namespace MFM {
 	return;
       }
 
-    //if(nut->getUlamClassType() == UC_QUARK)
     if(nut->getUlamTypeEnum() == Class) //t3717, t3718, t3719, t3739, t3714, t3715, t3735
       {
 	SymbolClass * csym = NULL;
@@ -201,7 +200,6 @@ namespace MFM {
 
     //NodeVarDecl handles array initialization for both locals & dm
     // since initial expressions must be constant for both (unlike local scalars)
-    //if(m_nodeInitExpr)
     if(m_nodeInitExpr && m_state.isScalar(getNodeType()))
       {
 	if(!m_nodeInitExpr->isAConstant())
@@ -408,7 +406,7 @@ namespace MFM {
 
     evalNodeEpilog();
 
-    if(evs == ERROR) //what happened to NOTREADY????? (also in NodeListArrayInit.)
+    if(evs == ERROR)
       {
 	std::ostringstream msg;
 	msg << "Constant value expression for data member '";
@@ -450,34 +448,13 @@ namespace MFM {
 	return false; //necessary if not just a warning.
       }
 
-#if 0
-    //folded here..(but no checkandlabel yet)
     if(updateConstant(newconst))
       {
-	NodeTerminal * newnode;
-	if(m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum() == Int)
-	  newnode = new NodeTerminal((s64) newconst, nuti, m_state);
-	else
-	  newnode = new NodeTerminal(newconst, nuti, m_state);
-
-	newnode->setNodeLocation(getNodeLocation());
-	delete m_nodeInitExpr;
-	m_nodeInitExpr = newnode;
-      }
-    else
-      return false;
-#endif
-
-    //if(((NodeTerminal *) m_nodeInitExpr)->getConstantValue(newconst))
-      {
-	if(updateConstant(newconst))
-	  {
-	    BV8K bvtmp;
-	    u32 len = m_state.getTotalBitSize(nuti);
-	    bvtmp.WriteLong(0u, len, newconst); //is newconst packed?
-	    m_varSymbol->setInitValue(bvtmp); //isReady now!
-	    return true;
-	  }
+	BV8K bvtmp;
+	u32 len = m_state.getTotalBitSize(nuti);
+	bvtmp.WriteLong(0u, len, newconst); //is newconst packed?
+	m_varSymbol->setInitValue(bvtmp); //isReady now!
+	return true;
       }
     return false;
   } //foldInitExpression
@@ -721,7 +698,6 @@ namespace MFM {
     assert(m_state.okUTItoContinue(nuti));
     assert(m_state.isComplete(nuti));
 
-    //u32 len = m_state.getTotalBitSize(nuti);
     u32 bitsize = nut->getBitSize();
     s32 arraysize = nut->getArraySize();
 
@@ -734,74 +710,8 @@ namespace MFM {
     m_state.getDefaultAsArray(bitsize, arraysize, 0u, bvtmp, bvarr);
 
     //(in this order) i thought this was for primitives only?
-    m_varSymbol->setHasInitValue(); //?
+    m_varSymbol->setHasInitValue();
     m_varSymbol->setInitValue(bvarr); //t3512
-
-#if 0
-    //build dqval array
-    if(!nut->isScalar())
-      {
-        u64 dpkval = 0;
-	if(!m_state.getPackedDefaultClass(nuti, dpkval))
-	  return; //not pack loadable (or not ok to continue)
-
-	PACKFIT packFit = determinePackable(nuti);
-	if(packFit == PACKEDLOADABLE)
-	  {
-	    //packed array of packed classes
-	    //if(nut->getTotalWordSize() > MAXBITSPERLONG) //64
-	    //  {
-	    //	std::ostringstream msg;
-		//	msg << "Not supported at this time, UN-PACKEDLOADABLE Class array type: ";
-	    //	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	    //	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //was ERR
-	    //	return;
-	    //}
-	    u64 dpkarr = 0;
-	    m_state.getDefaultAsPackedArray(nuti, dpkval, dpkarr); //3rd arg ref
-	    dpkval = dpkarr;
-	    //folding into a terminal node
-	    NodeTerminal * newnode = new NodeTerminal(dpkval, nuti, m_state);
-	    assert(newnode);
-	    newnode->setNodeLocation(getNodeLocation());
-	    newnode->setYourParentNo(getNodeNo()); //missing?
-	    delete m_nodeInitExpr;
-	    m_nodeInitExpr = newnode;
-	  }
-	else
-	  {
-	    NodeListArrayInitialization * newlist = new NodeListArrayInitialization(m_state);
-	    assert(newlist);
-	    newlist->setNodeLocation(getNodeLocation());
-	    newlist->setYourParentNo(getNodeNo()); //missing?
-	    //all the same, so only need one in list.
-	    NodeTerminal * newnode = new NodeTerminal(dpkval, scalaruti, m_state);
-	    assert(newnode);
-	    newnode->setNodeLocation(getNodeLocation());
-	    newnode->setYourParentNo(newlist->getNodeNo()); //missing?
-	    newlist->addNodeToList(newnode);
-	    delete m_nodeInitExpr;
-	    m_nodeInitExpr = newlist;
-	  }
-      }
-    else //scalar in dpkval
-      {
-	//folding into a terminal node
-	NodeTerminal * newnode = new NodeTerminal(dpkval, nuti, m_state);
-	assert(newnode);
-	newnode->setNodeLocation(getNodeLocation());
-	newnode->setYourParentNo(getNodeNo()); //missing?
-	delete m_nodeInitExpr;
-	m_nodeInitExpr = newnode;
-      }
-
-    //(in this order) i thought this was for primitives only????
-    BV8K bvtmp;
-    u32 len = m_state.getTotalBitSize(nuti);
-    bvtmp.WriteLong(0u, len, dpkval);
-    m_varSymbol->setHasInitValue(); //?
-    m_varSymbol->setInitValue(bvtmp); //t3512 (was dpkval)
-#endif
   } //foldDefaultClass
 
   void NodeVarDeclDM::packBitsInOrderOfDeclaration(u32& offset)

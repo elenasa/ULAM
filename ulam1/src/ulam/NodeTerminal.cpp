@@ -789,25 +789,4 @@ namespace MFM {
     return newType;
   } //setConstantTypeForNode
 
-#if 0
-  bool NodeTerminal::getConstantValue(u64& cval)
-  {
-    if(isReadyConstant())
-      {
-	cval = m_constant.uval;
-	return true;
-      }
-    return false;
-  }
-
-  bool NodeTerminal::getConstantValue(s64& cval)
-  {
-    if(isReadyConstant())
-      {
-	cval = m_constant.sval;
-	return true;
-      }
-    return false;
-  }
-#endif
 } //end MFM

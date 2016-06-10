@@ -405,8 +405,7 @@ namespace MFM {
 		//constant fold if possible, set symbol value
 		if(m_varSymbol->hasInitValue())
 		  {
-
-		    //move this to NodeListArrayInitialization ??????????????????
+		    //possibly move this to NodeListArrayInitialization
 		    u32 bitsize = m_state.getBitSize(eit);
 		    if(bitsize > MAXBITSPERLONG)
 		      {
@@ -767,7 +766,7 @@ namespace MFM {
       }
 
     EvalStatus evs = NORMAL; //init
-    // quark or nonclass data member;
+    // quark or non-class data member;
     evalNodeProlog(0); //new current node eval frame pointer
 
     makeRoomForSlots(1); //always 1 slot for ptr
