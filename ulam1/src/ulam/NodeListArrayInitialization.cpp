@@ -144,26 +144,51 @@ namespace MFM{
     return m_state.okUTItoContinue(foldeduti);
   } //foldInitExpression
 
+  FORECAST NodeListArrayInitialization::safeToCastTo(UTI newType)
+  {
+    UTI nuti = Node::getNodeType();
+    if(nuti == Void)
+      return CAST_HAZY;
+
+    UTI newscalaruti = m_state.getUlamTypeAsScalar(newType);
+    FORECAST scr = CAST_CLEAR;
+    for(u32 i = 0; i < m_nodes.size(); i++)
+      {
+	scr = m_nodes[i]->safeToCastTo(newscalaruti);
+	if(scr != CAST_CLEAR)
+	  break;
+      }
+    return scr;
+  } //safeToCastTo
+
   bool NodeListArrayInitialization::buildArrayValueInitialization(BV8K& bvtmp)
   {
+    UTI nuti = Node::getNodeType();
+    assert(m_state.okUTItoContinue(nuti));
+    if(nuti == Void)
+      {
+	setNodeType(Hzy);
+	m_state.setGoAgain();
+	return false;
+      }
+
     bool rtnok = true;
     u32 n = m_nodes.size();
     for(u32 i = 0; i < n; i++)
       {
-	rtnok |= buildArrayItemInitialValue(i, bvtmp);
+	rtnok |= buildArrayItemInitialValue(i, i, bvtmp);
 	if(!rtnok)
 	  break;
       }
 
     if(rtnok)
       {
-	UTI nuti = Node::getNodeType();
 	s32 arraysize = m_state.getArraySize(nuti);
 	assert(arraysize > 0);
 	//propagate last value for any remaining items not initialized
 	for(s32 i = n; i < arraysize; i++)
 	  {
-	    rtnok |= buildArrayItemInitialValue(n - 1, bvtmp);
+	    rtnok |= buildArrayItemInitialValue(n - 1, i, bvtmp);
 	    if(!rtnok)
 	      break;
 	  }
@@ -171,7 +196,7 @@ namespace MFM{
     return rtnok;
   } //buildArrayValueInitialization
 
-  bool NodeListArrayInitialization::buildArrayItemInitialValue(u32 n, BV8K& bvtmp)
+  bool NodeListArrayInitialization::buildArrayItemInitialValue(u32 n, u32 pos, BV8K& bvtmp)
   {
     UTI nuti = Node::getNodeType();
     UTI luti = m_nodes[n]->getNodeType();
@@ -199,7 +224,7 @@ namespace MFM{
 
     evalNodeEpilog();
 
-    bvtmp.WriteLong(n * itemlen, itemlen, foldedconst);
+    bvtmp.WriteLong(pos * itemlen, itemlen, foldedconst);
     return true;
   } //buildArrayItemInitialValue
 

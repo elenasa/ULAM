@@ -65,7 +65,7 @@ namespace MFM{
 
     bool foldInitExpression();
 
-    //virtual EvalStatus eval();
+    virtual FORECAST safeToCastTo(UTI newType);
 
     bool buildArrayValueInitialization(BV8K& bvtmp);
 
@@ -74,7 +74,7 @@ namespace MFM{
   protected:
 
   private:
-    bool buildArrayItemInitialValue(u32 n, BV8K& bvtmp);
+    bool buildArrayItemInitialValue(u32 n, u32 pos, BV8K& bvtmp);
 
     bool foldInitExpression(u32 n);
   };

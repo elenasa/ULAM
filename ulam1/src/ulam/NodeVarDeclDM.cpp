@@ -244,12 +244,17 @@ namespace MFM {
 	  {
 	    if(!(m_varSymbol->isInitValueReady()))
 	      {
-		foldInitExpression(); //sets init constant value
-		if(!(m_varSymbol->isInitValueReady()))
+		if(!foldInitExpression()) //sets init constant value
 		  {
-		    setNodeType(Hzy);
-		    m_state.setGoAgain(); //since not error
-		    return Hzy;
+		    if((getNodeType() == Nav) || m_nodeInitExpr->getNodeType() == Nav)
+		      return Nav;
+
+		    if(!(m_varSymbol->isInitValueReady()))
+		      {
+			setNodeType(Hzy);
+			m_state.setGoAgain(); //since not error
+			return Hzy;
+		      }
 		  }
 	      }
 	  }
@@ -377,11 +382,9 @@ namespace MFM {
     if(m_varSymbol->isInitValueReady())
       return true; //short-circuit
 
-    if(!m_nodeInitExpr)
-      return false;
-
     assert(m_state.isScalar(nuti)); //arrays handled by NodeVarDecl
 
+    assert(m_nodeInitExpr);
     // if here, must be a constant init value..
     UTI foldeduti = m_nodeInitExpr->constantFold(); //c&l redone
     if(!m_state.okUTItoContinue(foldeduti))
@@ -414,6 +417,7 @@ namespace MFM {
 	msg << "' initialization failed while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav);
 	return false;
       }
 
@@ -425,6 +429,7 @@ namespace MFM {
 	msg << "' initialization is not yet ready while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	setNodeType(Hzy);
 	m_state.setGoAgain(); //since not error
 	return false;
       }
@@ -439,10 +444,14 @@ namespace MFM {
 	msg << ") initialization is not representable as ";
 	msg<< m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	if(scr == CAST_BAD)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
+	  }
 	else
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    setNodeType(Hzy);
 	    m_state.setGoAgain(); //since not error
 	  }
 	return false; //necessary if not just a warning.

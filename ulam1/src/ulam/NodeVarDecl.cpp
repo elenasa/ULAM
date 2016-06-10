@@ -165,6 +165,8 @@ namespace MFM {
   {
     //for arrays with constant expression initializers(local or dm)
     UTI nuti = getNodeType();
+    if(!m_state.okUTItoContinue(nuti) || !m_state.isComplete(nuti))
+      return false;
 
     assert(!m_state.isScalar(nuti));
     assert(m_nodeInitExpr); //NodeListArrayInitialization
@@ -252,6 +254,9 @@ namespace MFM {
 	newType = Hzy;
 	return false;
       }
+
+    if(UlamType::compare(fromType, newType, m_state) == UTIC_SAME)
+      return true;
 
     bool rtnOK = true;
     FORECAST scr = safeToCastTo(fromType); //reversed
@@ -360,39 +365,61 @@ namespace MFM {
 	  }
 
 	//note: Void is flag that it's a list of constant initializers.
-	if((eit == Void) && !m_state.okUTItoContinue(it) && m_nodeTypeDesc)
+	if((eit == Void))// && !m_state.okUTItoContinue(it) && m_nodeTypeDesc)
 	  {
 	    //only possible if array type with initializers
 	    m_varSymbol->setHasInitValue(); //might not be ready yet
 
-	    UTI duti = m_nodeTypeDesc->getNodeType();
-	    UlamType * dut = m_state.getUlamTypeByIndex(duti);
-	    assert(!dut->isScalar());
-	    assert(dut->isPrimitiveType());
-	    if(m_state.okUTItoContinue(duti) && !dut->isComplete())
+	    if(!m_state.okUTItoContinue(it) && m_nodeTypeDesc)
 	      {
-		//if here, assume arraysize depends on number of initializers
+		UTI duti = m_nodeTypeDesc->getNodeType();
+		UlamType * dut = m_state.getUlamTypeByIndex(duti);
+		assert(!dut->isScalar());
+		assert(dut->isPrimitiveType());
+		if(m_state.okUTItoContinue(duti) && !dut->isComplete())
+		  {
+		    //if here, assume arraysize depends on number of initializers
+		    u32 n = ((NodeList *) m_nodeInitExpr)->getNumberOfNodes();
+		    m_state.setUTISizes(duti, dut->getBitSize(), n);
+		    if(m_state.isComplete(duti))
+		      {
+			std::ostringstream msg;
+			msg << "REPLACING Symbol UTI" << it;
+			msg << ", " << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+			msg << " used with variable symbol name '" << getName();
+			msg << "' with node type descriptor array type (with initializers): ";
+			msg << m_state.getUlamTypeNameBriefByIndex(duti).c_str();
+			msg << " UTI" << duti << " while labeling class: ";
+			msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+			m_varSymbol->resetUlamType(duti); //consistent!
+			m_state.mapTypesInCurrentClass(it, duti);
+			m_state.updateUTIAliasForced(it, duti); //help?
+			m_nodeInitExpr->setNodeType(duti); //replace Void too!
+			it = duti;
+		      }
+		  }
+		//else
+	      }
+	    else
+	      {
+		//arraysize specified, may have fewer initializers
+		assert(m_state.okUTItoContinue(it));
+		s32 arraysize = m_state.getArraySize(it);
+		assert(arraysize > 0);
 		u32 n = ((NodeList *) m_nodeInitExpr)->getNumberOfNodes();
-		m_state.setUTISizes(duti, dut->getBitSize(), n);
-		if(m_state.isComplete(duti))
+		if(n > (u32) arraysize)
 		  {
 		    std::ostringstream msg;
-		    msg << "REPLACING Symbol UTI" << it;
-		    msg << ", " << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-		    msg << " used with variable symbol name '" << getName();
-		    msg << "' with node type descriptor array type (with initializers): ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(duti).c_str();
-		    msg << " UTI" << duti << " while labeling class: ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		    m_varSymbol->resetUlamType(duti); //consistent!
-		    m_state.mapTypesInCurrentClass(it, duti);
-		    m_state.updateUTIAliasForced(it, duti); //help?
-		    m_nodeInitExpr->setNodeType(duti); //replace Void too!
-		    it = duti;
+		    msg << "Too many initializers (" << n << ") specified for array '";
+		    msg << getName() << "', size " << arraysize;
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    setNodeType(Nav);
 		  }
+		else
+		  m_nodeInitExpr->setNodeType(it);
 	      }
-	    eit = duti;
+	    eit = it;
 	  } //end array initializers (eit == Void)
 
 	setNodeType(it); //needed before safeToCast, and folding
@@ -421,12 +448,17 @@ namespace MFM {
 
 		    if(!(m_varSymbol->isInitValueReady()))
 		      {
-			foldInitExpression(); //sets init constant value
-			if(!(m_varSymbol->isInitValueReady()))
+			if(!foldInitExpression()) //sets init constant value
 			  {
-			    setNodeType(Hzy);
-			    m_state.setGoAgain(); //since not error
-			    return Hzy;
+			    if((getNodeType() == Nav) || m_nodeInitExpr->getNodeType() == Nav)
+			      return Nav;
+
+			    if(!(m_varSymbol->isInitValueReady()))
+			      {
+				setNodeType(Hzy);
+				m_state.setGoAgain(); //since not error
+				return Hzy;
+			      }
 			  }
 		      }
 		  }
@@ -635,6 +667,10 @@ namespace MFM {
 	else
 	  assert(0);
 
+	u32 n = slots;
+	if(hasInitVal)
+	  n = ((NodeList *) m_nodeInitExpr)->getNumberOfNodes(); //may be fewer
+
 	for(u32 j = 0; j < slots; j++)
 	  {
 	    UlamValue itemUV;
@@ -642,7 +678,8 @@ namespace MFM {
 	      {
 		evalNodeProlog(0); //new current frame pointer
 		makeRoomForNodeType(scalaruti); //offset a constant expression
-		EvalStatus evs = ((NodeListArrayInitialization *) m_nodeInitExpr)->eval(j);
+		u32 k = j < n ? j : n - 1; //repeat last initializer if fewer
+		EvalStatus evs = ((NodeListArrayInitialization *) m_nodeInitExpr)->eval(k);
 		if(evs == NORMAL)
 		  {
 		    itemUV = m_state.m_nodeEvalStack.popArg();
