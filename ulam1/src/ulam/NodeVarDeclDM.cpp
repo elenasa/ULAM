@@ -56,7 +56,8 @@ namespace MFM {
 	return;
       }
 
-    if(nut->getUlamClassType() == UC_QUARK)
+    //if(nut->getUlamClassType() == UC_QUARK)
+    if(nut->getUlamTypeEnum() == Class) //t3717, t3718, t3719, t3739, t3714, t3715, t3735
       {
 	SymbolClass * csym = NULL;
 	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
@@ -717,34 +718,82 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    assert(m_state.okUTItoContinue(nuti));
+    assert(m_state.isComplete(nuti));
 
-    u64 dpkval = 0;
-    if(!m_state.getPackedDefaultClass(nuti, dpkval))
-      return; //not pack loadable (or not ok to continue)
+    //u32 len = m_state.getTotalBitSize(nuti);
+    u32 bitsize = nut->getBitSize();
+    s32 arraysize = nut->getArraySize();
 
+    BV8K bvtmp;
+    AssertBool gotDefault = m_state.getDefaultClassValue(nuti, bvtmp);
+    assert(gotDefault); //maybe zeros
+
+    BV8K bvarr;
+    arraysize = arraysize > 0 ? arraysize : 1;
+    m_state.getDefaultAsArray(bitsize, arraysize, 0u, bvtmp, bvarr);
+
+    //(in this order) i thought this was for primitives only?
+    m_varSymbol->setHasInitValue(); //?
+    m_varSymbol->setInitValue(bvarr); //t3512
+
+#if 0
     //build dqval array
     if(!nut->isScalar())
       {
-	//array of packed classes
-	if(nut->getTotalWordSize() > MAXBITSPERLONG) //64
-	  {
-	    std::ostringstream msg;
-	    msg << "Not supported at this time, UN-PACKEDLOADABLE Class array type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //was ERR
-	    return;
-	  }
-	u64 dpkarr = 0;
-	m_state.getDefaultAsPackedArray(nuti, dpkval, dpkarr); //3rd arg ref
-	dpkval = dpkarr;
-      }
-    //else scalar in dpkval
+        u64 dpkval = 0;
+	if(!m_state.getPackedDefaultClass(nuti, dpkval))
+	  return; //not pack loadable (or not ok to continue)
 
-    //folding into a terminal node
-    NodeTerminal * newnode = new NodeTerminal(dpkval, nuti, m_state);
-    newnode->setNodeLocation(getNodeLocation());
-    delete m_nodeInitExpr;
-    m_nodeInitExpr = newnode;
+	PACKFIT packFit = determinePackable(nuti);
+	if(packFit == PACKEDLOADABLE)
+	  {
+	    //packed array of packed classes
+	    //if(nut->getTotalWordSize() > MAXBITSPERLONG) //64
+	    //  {
+	    //	std::ostringstream msg;
+		//	msg << "Not supported at this time, UN-PACKEDLOADABLE Class array type: ";
+	    //	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	    //	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //was ERR
+	    //	return;
+	    //}
+	    u64 dpkarr = 0;
+	    m_state.getDefaultAsPackedArray(nuti, dpkval, dpkarr); //3rd arg ref
+	    dpkval = dpkarr;
+	    //folding into a terminal node
+	    NodeTerminal * newnode = new NodeTerminal(dpkval, nuti, m_state);
+	    assert(newnode);
+	    newnode->setNodeLocation(getNodeLocation());
+	    newnode->setYourParentNo(getNodeNo()); //missing?
+	    delete m_nodeInitExpr;
+	    m_nodeInitExpr = newnode;
+	  }
+	else
+	  {
+	    NodeListArrayInitialization * newlist = new NodeListArrayInitialization(m_state);
+	    assert(newlist);
+	    newlist->setNodeLocation(getNodeLocation());
+	    newlist->setYourParentNo(getNodeNo()); //missing?
+	    //all the same, so only need one in list.
+	    NodeTerminal * newnode = new NodeTerminal(dpkval, scalaruti, m_state);
+	    assert(newnode);
+	    newnode->setNodeLocation(getNodeLocation());
+	    newnode->setYourParentNo(newlist->getNodeNo()); //missing?
+	    newlist->addNodeToList(newnode);
+	    delete m_nodeInitExpr;
+	    m_nodeInitExpr = newlist;
+	  }
+      }
+    else //scalar in dpkval
+      {
+	//folding into a terminal node
+	NodeTerminal * newnode = new NodeTerminal(dpkval, nuti, m_state);
+	assert(newnode);
+	newnode->setNodeLocation(getNodeLocation());
+	newnode->setYourParentNo(getNodeNo()); //missing?
+	delete m_nodeInitExpr;
+	m_nodeInitExpr = newnode;
+      }
 
     //(in this order) i thought this was for primitives only????
     BV8K bvtmp;
@@ -752,6 +801,7 @@ namespace MFM {
     bvtmp.WriteLong(0u, len, dpkval);
     m_varSymbol->setHasInitValue(); //?
     m_varSymbol->setInitValue(bvtmp); //t3512 (was dpkval)
+#endif
   } //foldDefaultClass
 
   void NodeVarDeclDM::packBitsInOrderOfDeclaration(u32& offset)
@@ -839,17 +889,27 @@ namespace MFM {
     // m_nodeInitExpr exists as result of a previous fold
     if((etyp == Class) && (m_nodeInitExpr == NULL))
       {
-	//element and transient can only be a data member of a transient;
-	//quarks go anywhere;
-	u64 dpkval = 0;
-	if(m_state.getPackedDefaultClass(nuti, dpkval))
-	  foldDefaultClass(); //side-effects m_nodeInitExpr w a terminal
+	UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
+	PACKFIT packFit = m_state.determinePackable(scalaruti);
+	if(packFit == PACKEDLOADABLE)
+	  {
+	    //element and transient can only be a data member of a transient;
+	    //quarks go anywhere; could be array of them!
+	    u64 dpkval = 0;
+	    if(m_state.getPackedDefaultClass(nuti, dpkval))
+	      foldDefaultClass(); //XXXside-effects m_nodeInitExpr w a terminal
+	    else
+	      return ERROR;
+	  }
 	else
-	  return ERROR;
+	  {
+	    //unpacked
+	    return UNEVALUABLE;
+	  }
       }
 
     // packedloadable class (e.g. quark) or nonclass data member;
-    if(m_varSymbol->hasInitValue())
+    if(m_nodeInitExpr && m_varSymbol->hasInitValue())
       {
 	return NodeVarDecl::evalInitExpr();
       }
