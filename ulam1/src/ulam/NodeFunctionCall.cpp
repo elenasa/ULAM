@@ -1210,21 +1210,24 @@ namespace MFM {
     UTI vuti = m_funcSymbol->getParameterType(n);
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
-
-    assert(vut->getUlamTypeEnum() == cosut->getUlamTypeEnum());
+    ULAMTYPE vetyp = vut->getUlamTypeEnum();
+    assert(vetyp == cosut->getUlamTypeEnum());
 
     m_state.indentUlamCode(fp);
     fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
     fp->write(" ");
 
     s32 tmpVarArgNum = m_state.getNextTmpVarNumber();
+    u32 pos = 0;
     fp->write(m_state.getTmpVarAsString(vuti, tmpVarArgNum, TMPBITVAL).c_str());
     fp->write("("); //pass ref in constructor (ref's not assigned with =)
     if(stgcos->isDataMember()) //can't be an element
       {
+	pos = Node::calcPosOfCurrentObjects();
+
 	fp->write(m_state.getHiddenArgName());
 	fp->write(", ");
-	fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
+	fp->write_decimal_unsigned(pos); //rel offset
 	fp->write("u");
       }
     else
@@ -1232,8 +1235,10 @@ namespace MFM {
 	fp->write(stgcos->getMangledName().c_str()); //stg
 	if(cos->isDataMember())
 	  {
+	    pos = Node::calcPosOfCurrentObjects();
+
 	    fp->write(", ");
-	    fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
+	    fp->write_decimal_unsigned(pos); //rel offset
 	    fp->write("u");
 	  }
 	else
@@ -1242,18 +1247,34 @@ namespace MFM {
 	      fp->write(", uc"); //e.g. t3684 atom to atomref;
 	    else if(vclasstype == UC_NOTACLASS)
 	      {
+		pos = BITSPERATOM - stgcosut->getTotalBitSize();
+
 		fp->write(", ");
-		fp->write_decimal_unsigned(BITSPERATOM - stgcosut->getTotalBitSize()); //right-justified
+		fp->write_decimal_unsigned(pos); //right-justified
 		fp->write("u");
 	      }
-	    else if(vclasstype == UC_QUARK)
-	      fp->write(", 0u"); //left-justified
+	    //else if(vclasstype == UC_QUARK)
+	    else if(vetyp == Class)
+	      {
+		fp->write(", 0u, "); //left-justified
+		if(m_state.isReference(stgcosuti))
+		  {
+		    fp->write(stgcos->getMangledName().c_str()); //stg
+		    fp->write(".GetEffectiveSelf()");
+		  }
+		else
+		  {
+		    fp->write("&");
+		    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
+		  }
+	      }
 	  }
       }
     fp->write(");\n");
 
-    uvpass.setPassVarNum(tmpVarArgNum);
-    uvpass.setPassStorage(TMPBITVAL);
+    //uvpass.setPassVarNum(tmpVarArgNum);
+    //uvpass.setPassStorage(TMPBITVAL);
+    uvpass = UVPass::makePass(tmpVarArgNum, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, pos, stgcos->getId()); //POS adjusted for BitVector, justified; self id in Pass;
 
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
   } //genCodeReferenceArg
@@ -1266,13 +1287,13 @@ namespace MFM {
     assert(m_funcSymbol);
     UTI vuti = m_funcSymbol->getParameterType(n);
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
+    //ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
+    ULAMTYPE vetyp = vut->getUlamTypeEnum();
 
     UTI puti = uvpass.getPassTargetType();
     UlamType * put = m_state.getUlamTypeByIndex(puti);
     TMPSTORAGE rstor = put->getUlamClassType() == UC_QUARK ? TMPREGISTER : uvpass.getPassStorage();
-
-    assert(vut->getUlamTypeEnum() == put->getUlamTypeEnum());
+    assert(vetyp == put->getUlamTypeEnum());
 
     s32 tmpVarArgNum = uvpass.getPassVarNum();
     s32 tmpVarArgNum2 = m_state.getNextTmpVarNumber();
@@ -1285,13 +1306,28 @@ namespace MFM {
     fp->write("("); //pass ref in constructor (ref's not assigned with =)
     fp->write(m_state.getTmpVarAsString(puti, tmpVarArgNum, rstor).c_str());
 
-    if(vclasstype == UC_QUARK)
-      fp->write(", 0u"); //left-justified
+    //if(vclasstype == UC_QUARK)
+    //  fp->write(", 0u"); //left-justified
+    if(vetyp == Class)
+      {
+	fp->write(", 0u, "); //left-justified
+	if(m_state.isReference(puti))
+	  {
+	    fp->write(m_state.getTmpVarAsString(puti, tmpVarArgNum, rstor).c_str());
+	    fp->write(".GetEffectiveSelf()");
+	  }
+	else
+	  {
+	    fp->write("&");
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(puti).c_str());
+	  }
+      }
 
     fp->write(");\n");
 
-    uvpass.setPassVarNum(tmpVarArgNum2);
-    uvpass.setPassStorage(TMPBITVAL);
+    //uvpass.setPassVarNum(tmpVarArgNum2);
+    //uvpass.setPassStorage(TMPBITVAL);
+    uvpass = UVPass::makePass(tmpVarArgNum2, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, 0, 0); //POS adjusted for BitVector, justified; self id in Pass;
   } //genCodeAnonymousReferenceArg
 
 void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp)

@@ -322,7 +322,6 @@ namespace MFM {
 
   TMPSTORAGE UlamType::getTmpStorageTypeForTmpVar()
   {
-
     return TMPREGISTER; //unpacked arrays reflected in tmp name.
   }
 
