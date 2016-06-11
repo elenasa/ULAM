@@ -79,7 +79,7 @@ namespace MFM {
 	msg << "Type Bitsize specifier, within (), is not ready";
 	if(m_state.okUTItoContinue(it) || (it == Hzy))
 	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    m_state.setGoAgain(); //since not error
 	    it = Hzy;
 	  }
@@ -104,7 +104,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Type Bitsize specifier: " << m_state.getUlamTypeNameBriefByIndex(it);
 	msg << ", within (), is not a ready numeric constant expression";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	it = Hzy;
       }
 
@@ -149,7 +149,7 @@ namespace MFM {
 	  std::ostringstream msg;
 	  msg << "Type Bitsize specifier for base type: ";
 	  msg << UlamType::getUlamTypeEnumAsString(BUT);
-	  msg << " is not a constant expression";
+	  msg << ", is not a constant expression";
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  sizetype = Nav;
 	  return false; //no rtnBitSize
@@ -159,8 +159,8 @@ namespace MFM {
 	  std::ostringstream msg;
 	  msg << "Type Bitsize specifier for base type: ";
 	  msg << UlamType::getUlamTypeEnumAsString(BUT);
-	  msg << " is not a ready constant expression";
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  msg << ", is not a ready constant expression";
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	  sizetype = Hzy;
 	  return false; //no rtnBitSize
 	}
@@ -199,7 +199,7 @@ namespace MFM {
 	msg << UlamType::getUlamTypeEnumAsString(BUT) << "(UTI" << sizetype;
 	msg << "), is not yet a \"known\" constant expression for class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	sizetype = Hzy;
 	return false;
       }
@@ -209,7 +209,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Type Bitsize specifier for base type: ";
 	msg << UlamType::getUlamTypeEnumAsString(BUT);
-	msg << " has a constant value of " << newbitsize;
+	msg << ", has a constant value of " << newbitsize;
 	msg << " that exceeds the maximum bitsize " << MAXBITSPERLONG;
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	sizetype = Nav;

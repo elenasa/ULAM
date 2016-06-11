@@ -42,6 +42,7 @@
 #include "itype.h"
 #include "CompilerState.h"
 #include "Node.h"
+#include "NodeListArrayInitialization.h"
 #include "NodeBinaryOpEqual.h"
 #include "NodeBinaryOp.h"
 #include "NodeBlock.h"
@@ -336,6 +337,10 @@ namespace MFM{
     Node * parseRestOfDecls(TypeArgs& args, Token identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti);
 
     Node * parseRestOfDeclAssignment(TypeArgs& args, Token identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti);
+
+    Node * parseArrayInitialization(Token identTok);
+
+    bool parseArrayItemInit(Token identTok, NodeListArrayInitialization * rtnList);
 
     NodeConstantDef * parseRestOfConstantDef(NodeConstantDef * constNode, bool assignREQ = true, bool isStmt = true);
 

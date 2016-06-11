@@ -490,9 +490,9 @@ namespace MFM {
 	msg << "Constant value expression for binary op" << getName();
 	msg << " is not yet ready while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	setNodeType(Hzy);
-	m_state.setGoAgain(); //for compier counts
+	m_state.setGoAgain(); //for compiler counts
 	return Hzy;
       }
 

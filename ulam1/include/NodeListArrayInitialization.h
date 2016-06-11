@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * SymbolParameterValue.h - Handling Model Parameter Symbols for ULAM
+ * NodeListArrayInitialization.h - Handle array initialization list of nodes for ULAM
  *
  * Copyright (C) 2015-2016 The Regents of the University of New Mexico.
  * Copyright (C) 2015-2016 Ackleyshack LLC.
@@ -26,48 +26,59 @@
  */
 
 /**
-  \file SymbolParameterValue.h - Handling Model Parameter Symbols for ULAM
+  \file NodeListArrayInitialization.h - Handle array initialization list of nodes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2016 All rights reserved.
+  \date (C) 2016 All rights reserved.
   \gpl
 */
 
-#ifndef SYMBOLPARAMETERVALUE_H
-#define SYMBOLPARAMETERVALUE_H
 
-#include "SymbolWithValue.h"
+#ifndef NODELISTARRAYINITIALIZATION_H
+#define NODELISTARRAYINITIALIZATION_H
+
+#include "NodeList.h"
 
 namespace MFM{
 
-  class CompilerState;  //forward
+  struct CompilerState; //forward
 
-  //distinguish between Symbols
-  class SymbolParameterValue : public SymbolWithValue
+  class NodeListArrayInitialization : public NodeList
   {
   public:
-    SymbolParameterValue(Token id, UTI utype, CompilerState& state);
-    SymbolParameterValue(const SymbolParameterValue& sref);
-    SymbolParameterValue(const SymbolParameterValue& sref, bool keepType);
-    virtual ~SymbolParameterValue();
 
-    virtual Symbol * clone();
-    virtual Symbol * cloneKeepsType();
+    NodeListArrayInitialization(CompilerState & state);
 
-    virtual bool isConstant();
+    NodeListArrayInitialization(const NodeListArrayInitialization& ref);
 
-    virtual bool isModelParameter();
+    virtual ~NodeListArrayInitialization();
 
-    virtual const std::string getMangledPrefix();
+    virtual Node * instantiate();
 
-    virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
+    virtual const char * getName();
 
-    virtual void setStructuredComment();
+    virtual const std::string prettyNodeName();
+
+    virtual bool isAConstant();
+
+    virtual UTI checkAndLabelType();
+
+    bool foldInitExpression();
+
+    virtual FORECAST safeToCastTo(UTI newType);
+
+    bool buildArrayValueInitialization(BV8K& bvtmp);
+
+    virtual void genCode(File * fp, UVPass& uvpass);
 
   protected:
 
   private:
+    bool buildArrayItemInitialValue(u32 n, u32 pos, BV8K& bvtmp);
+
+    bool foldInitExpression(u32 n);
   };
+
 } //MFM
 
-#endif //SYMBOLPARAMETERVALUE_H
+#endif //NODELISTARRAYINITIALIZATION_H

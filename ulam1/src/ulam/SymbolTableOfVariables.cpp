@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <iostream>
 #include "SymbolTableOfVariables.h"
-#include "SymbolParameterValue.h"
+#include "SymbolModelParameterValue.h"
 #include "SymbolVariable.h"
 #include "SymbolVariableDataMember.h"
 #include "CompilerState.h"
@@ -31,7 +31,7 @@ namespace MFM {
 	assert(sym);
 	if(sym->isConstant())
 	  {
-	    if(!argsOnly || ((SymbolConstantValue *) sym)->isArgument())
+	    if(!argsOnly || ((SymbolConstantValue *) sym)->isClassArgument())
 	      cntOfConstants++;
 	  }
 	it++;
@@ -200,22 +200,35 @@ namespace MFM {
 	//skip quarkunion initializations
 	if(sym->isDataMember() && variableSymbolWithCountableSize(sym) && !m_state.isClassAQuarkUnion(suti))
 	  {
-	    s32 bitsize = sut->getBitSize();
+	    s32 len = sut->getTotalBitSize(); //include arrays (e.g. t3512)
 	    u32 pos = ((SymbolVariableDataMember *) sym)->getPosOffset();
 
-	    //updates the UV at offset with the default of sym; non-class arrays have none
+	    //updates the UV at offset with the default of sym;
+	    // support initialized non-class arrays
 	    if(((SymbolVariableDataMember *) sym)->hasInitValue())
 	      {
-		u64 dval = 0;
-		if(((SymbolVariableDataMember *) sym)->getInitValue(dval))
+		if(len <= MAXBITSPERLONG)
 		  {
-		    u32 wordsize = sut->getTotalWordSize();
-		    if(wordsize <= MAXBITSPERINT)
-		      uvsite.putData(pos + startpos, bitsize, (u32) dval); //absolute pos
-		    else if(wordsize <= MAXBITSPERLONG)
-		      uvsite.putDataLong(pos + startpos, bitsize, dval); //absolute pos
-		    else
-		      assert(0);
+		    u64 dval = 0;
+		    if(((SymbolVariableDataMember *) sym)->getInitValue(dval))
+		      {
+			u32 wordsize = sut->getTotalWordSize();
+			if(wordsize <= MAXBITSPERINT)
+			  uvsite.putData(pos + startpos, len, (u32) dval); //absolute pos
+			else if(wordsize <= MAXBITSPERLONG)
+			  uvsite.putDataLong(pos + startpos, len, dval); //absolute pos
+			else
+			  assert(0);
+		      }
+		  }
+		else
+		  {
+		    assert(len <= MAXSTATEBITS);
+		    BV8K dval;
+		    if(((SymbolVariableDataMember *) sym)->getInitValue(dval))
+		      {
+			uvsite.putDataBig(pos + startpos, len, dval); //t3772
+		      }
 		  }
 	      }
 	    else if(sut->getUlamTypeEnum() == Class)
@@ -223,14 +236,22 @@ namespace MFM {
 		u64 dpkval = 0;
 		if(m_state.getPackedDefaultClass(suti, dpkval))
 		  {
-		    //could be a "packloadable" array of them
-		    u32 len = sut->getTotalBitSize();
+		    s32 bitsize = sut->getBitSize();
 		    s32 arraysize = sut->getArraySize();
 		    arraysize = (arraysize == NONARRAYSIZE ? 1 : arraysize);
-		    u64 dpkarr = 0;
-		    m_state.getDefaultAsPackedArray(len, bitsize, arraysize, 0u, dpkval, dpkarr);
-		    uvsite.putDataLong(pos + startpos, len, dpkarr);
+		    //could be a "packloadable" array of them;
+		    // u64 dpkarr = 0;
+		    //m_state.getDefaultAsPackedArray(len, bitsize, arraysize, 0u, dpkval, dpkarr);
+		    // uvsite.putDataLong(pos + startpos, len, dpkarr);
+		    //more general..
+		    u32 basepos = pos + startpos;
+		    for(s32 j=0; j < arraysize; j++)
+		      {
+			uvsite.putDataLong(basepos + j * bitsize, bitsize, dpkval);
+		      }
 		  }
+		else
+		  assert(0); //for eval, how could an element dm not be a quark? hence u32 per.
 	      }
 	    //else nothing to do?
 	  } //countable
@@ -251,7 +272,7 @@ namespace MFM {
 	    UTI suti = sym->getUlamTypeIdx();
 	    if(UlamType::compare(suti, utype, m_state) == UTIC_SAME)
 	      {
-		posfound = ((SymbolVariable *) sym)->getPosOffset();
+		posfound = ((SymbolVariableDataMember *) sym)->getPosOffset();
 		insidecuti = suti;
 		break;
 	      }
@@ -262,7 +283,7 @@ namespace MFM {
 		assert(superuti != Hzy);
 		if((superuti != Nouti) && (UlamType::compare(superuti, utype, m_state) == UTIC_SAME))
 		  {
-		    posfound = ((SymbolVariable *) sym)->getPosOffset(); //starts at beginning
+		    posfound = ((SymbolVariableDataMember *) sym)->getPosOffset(); //starts at beginning
 		    insidecuti = suti;
 		    break;
 		  }
@@ -319,7 +340,7 @@ namespace MFM {
 		fp->write("if(!strcmp(namearg,\"");
 		fp->write(sut->getUlamTypeMangledName().c_str()); //mangled, including class args!
 		fp->write("\")) return (");
-		fp->write_decimal(((SymbolVariable *) sym)->getPosOffset());
+		fp->write_decimal(((SymbolVariableDataMember *) sym)->getPosOffset());
 		fp->write("); //pos offset\n");
 
 		UTI superuti = m_state.isClassASubclass(suti);
@@ -331,7 +352,7 @@ namespace MFM {
 		    fp->write("if(!strcmp(namearg,\"");
 		    fp->write(superut->getUlamTypeMangledName().c_str()); //mangled, including class args!
 		    fp->write("\")) return (");
-		    fp->write_decimal(((SymbolVariable *) sym)->getPosOffset()); //same offset starts at 0
+		    fp->write_decimal(((SymbolVariableDataMember *) sym)->getPosOffset()); //same offset starts at 0
 		    fp->write("); //inherited pos offset\n");
 
 		    superuti = m_state.isClassASubclass(superuti); //any more
@@ -349,9 +370,9 @@ namespace MFM {
       {
 	ClassMemberDesc * descptr = NULL;
 	Symbol * sym = it->second;
-	if(sym->isModelParameter() && ((SymbolParameterValue *)sym)->isReady())
+	if(sym->isModelParameter() && ((SymbolModelParameterValue *)sym)->isReady())
 	  {
-	    descptr = new ParameterDesc((SymbolParameterValue *) sym, classType, m_state);
+	    descptr = new ParameterDesc((SymbolModelParameterValue *) sym, classType, m_state);
 	    assert(descptr);
 	  }
 	else if(sym->isDataMember())

@@ -66,7 +66,7 @@
 #include "SymbolConstantValue.h"
 #include "SymbolFunction.h"
 #include "SymbolFunctionName.h"
-#include "SymbolParameterValue.h"
+#include "SymbolModelParameterValue.h"
 #include "SymbolVariableDataMember.h"
 #include "SymbolVariableStack.h"
 
@@ -259,7 +259,6 @@ namespace MFM {
 		m_state.clearStructuredCommentToken();
 		return true; //we're done unless we can gobble the rest up?
 	      }
-
 	    wasIncomplete = true;
 	  }
 	cnSym = ctSym;
@@ -525,7 +524,7 @@ namespace MFM {
 	    //parameter IS a NodeConstantdef
 	    if(argNode->getSymbolPtr(argSym))
 	      {
-		((SymbolConstantValue *) argSym)->setParameterFlag();
+		((SymbolConstantValue *) argSym)->setClassParameterFlag();
 		//ownership stays with NodeBlockClass's ST
 		cntsym->addParameterSymbol((SymbolConstantValue *) argSym);
 	      }
@@ -767,14 +766,24 @@ namespace MFM {
 
     if(pTok.m_type == TOK_EQUAL)
       {
-	Node * initnode = parseExpression();
+	Token eTok;
+	//check for possible start of array init
+	getNextToken(eTok);
+	unreadToken();
+	Node * initnode;
+	if(eTok.m_type == TOK_OPEN_CURLY)
+	  {
+	    initnode = parseArrayInitialization(identTok); //returns a NodeListArrayInitialization
+	  }
+	else
+	  initnode = parseExpression();
+
 	if(initnode)
 	  ((NodeVarDeclDM*) dNode)->setInitExpr(initnode);
 	//else error
       }
     else
       unreadToken();
-
     return;
   } //parseRestOfDataMemberAssignment
 
@@ -2025,7 +2034,7 @@ namespace MFM {
 	//try to continue..
 	m_state.pushCurrentBlock(csym->getClassBlockNode()); //reset here for new arg's ST
 
-	SymbolConstantValue * argSym;
+	SymbolConstantValue * argSym = NULL;
 	if(!ctUnseen)
 	  {
 	    SymbolConstantValue * paramSym = ctsym->getParameterSymbolPtr(parmIdx);
@@ -2044,7 +2053,7 @@ namespace MFM {
 	  }
 
 	assert(argSym);
-	argSym->setArgumentFlag();
+	argSym->setClassArgumentFlag();
 	m_state.addSymbolToCurrentScope(argSym); //scope updated to new class instance in parseClassArguments
 
 	m_state.popClassContext(); //restore before making NodeConstantDef, so current context
@@ -2993,7 +3002,7 @@ namespace MFM {
 		      if(asymptr->isConstant())
 			rtnNode = new NodeConstant(pTok, (SymbolConstantValue *) asymptr, m_state);
 		      else
-			rtnNode = new NodeModelParameter(pTok, (SymbolParameterValue *) asymptr, m_state);
+			rtnNode = new NodeModelParameter(pTok, (SymbolModelParameterValue *) asymptr, m_state);
 		      assert(rtnNode);
 		      rtnNode->setNodeLocation(pTok.m_locator);
 		    }
@@ -3360,18 +3369,19 @@ namespace MFM {
       return leftNode;
 
     Node * rightNode = parseExpression();
-    if(!rightNode)
-      {
-	MSG(&pTok, "Array item/size is missing; Square Bracket deleted", ERR);
-	delete leftNode;
-	rtnNode = NULL;
-      }
-    else
-      {
-	rtnNode = new NodeSquareBracket(leftNode, rightNode, m_state);
-	assert(rtnNode);
-	rtnNode->setNodeLocation(pTok.m_locator);
-      }
+    //Array size may be blank if initialized; not array item!!
+    //    if(!rightNode)
+    //  {
+    //	MSG(&pTok, "Array item/size is missing; Square Bracket deleted", ERR);
+    //	delete leftNode;
+    //	rtnNode = NULL;
+    //  }
+    //else
+    {
+      rtnNode = new NodeSquareBracket(leftNode, rightNode, m_state);
+      assert(rtnNode);
+      rtnNode->setNodeLocation(pTok.m_locator);
+    }
 
     if(!getExpectedToken(TOK_CLOSE_SQUARE))
       {
@@ -3402,6 +3412,7 @@ namespace MFM {
 	break;
       case TOK_SEMICOLON:
       case TOK_CLOSE_PAREN:
+      case TOK_COMMA: /* array item init */
 	{
 	  unreadToken();
 	  rtnNode = leftNode;
@@ -3587,7 +3598,17 @@ namespace MFM {
       } //ref done
     else
       {
-	Node * assignNode = parseAssignExpr(); //makeAssignExprNode(leftNode);
+	//check for possible start of array init
+	getNextToken(eTok);
+	unreadToken();
+	Node * assignNode;
+	if(eTok.m_type == TOK_OPEN_CURLY)
+	  {
+	    assignNode = parseArrayInitialization(identTok); //returns a NodeListArrayInitialization
+	  }
+	else
+	  assignNode = parseAssignExpr(); //makeAssignExprNode(leftNode);
+
 	if(!assignNode)
 	  {
 	    std::ostringstream msg;
@@ -3602,6 +3623,73 @@ namespace MFM {
       }
     return parseRestOfDecls(args, identTok, dNode, rtnNode, passuti); //any more?
   } //parseRestOfDeclAssignment
+
+  Node * Parser::parseArrayInitialization(Token identTok)
+  {
+    Token aTok;
+    getNextToken(aTok);
+
+    assert(aTok.m_type == TOK_OPEN_CURLY);
+    unreadToken();
+
+    NodeListArrayInitialization * rtnList = new NodeListArrayInitialization(m_state); //delete if error
+    assert(rtnList);
+
+    if(!parseArrayItemInit(identTok, rtnList))
+      {
+	delete rtnList;
+	rtnList = NULL; //quit? read until close_curly? semi-colon, or comma?
+      }
+    return rtnList;
+  } //parseArrayInitialization
+
+  bool Parser::parseArrayItemInit(Token identTok, NodeListArrayInitialization * rtnList)
+  {
+    Token aTok;
+    getNextToken(aTok);
+
+    if(aTok.m_type == TOK_CLOSE_CURLY)
+      {
+	return true; //done
+      }
+    else if((aTok.m_type != TOK_COMMA))
+      {
+	u32 n = rtnList->getNumberOfNodes();
+	if(!(n == 0 && (aTok.m_type == TOK_OPEN_CURLY)))
+	  {
+	    unreadToken();
+
+	    std::ostringstream msg;
+	    msg << "Unexpected input!! Token <" << m_state.getTokenDataAsString(&aTok).c_str();
+	    msg << "> while parsing array variable " << identTok.getTokenStringFromPool(&m_state).c_str();
+	    msg << ", item " << (n + 1);
+	    MSG(&aTok, msg.str().c_str(), ERR);
+	    return false; //original caller owns rtnList, should delete if empty!
+	  }
+      }
+    //else continue..
+
+    Node * assignNode = parseAssignExpr();
+    if(!assignNode)
+      {
+	u32 n = rtnList->getNumberOfNodes();
+	std::ostringstream msg;
+	msg << "Initial value of array variable " << identTok.getTokenStringFromPool(&m_state).c_str();
+	msg << ", item " << (n + 1);
+	msg << " is missing";
+
+	if(n > 0)
+	  MSG(&aTok, msg.str().c_str(), DEBUG); //dangling comma allowed by g++
+	else
+	  {
+	    MSG(&aTok, msg.str().c_str(), ERR);
+	    return false; //original caller owns rtnList, should delete if empty!
+	  }
+      }
+    else
+      rtnList->addNodeToList(assignNode);
+    return parseArrayItemInit(identTok, rtnList); //recurse
+  } //parseArrayItemInit
 
   NodeConstantDef * Parser::parseRestOfConstantDef(NodeConstantDef * constNode, bool assignREQ, bool isStmt)
   {
@@ -4319,9 +4407,9 @@ namespace MFM {
 	//lvalNode could be either a NodeIdent or a NodeSquareBracket,
 	// though arrays not legal in this context!!!
 	//process identifier...check if already defined in current scope; if not, add it;
-	//return a SymbolParameterValue else some sort of primitive
+	//return a SymbolModelParameterValue else some sort of primitive
 	Symbol * asymptr = NULL;
-	if(!lvalNode->installSymbolParameterValue(args, asymptr))
+	if(!lvalNode->installSymbolModelParameterValue(args, asymptr))
 	  {
 	    if(asymptr)
 	      {
@@ -4361,7 +4449,7 @@ namespace MFM {
 	    //chain to NodeType descriptor if array (i.e. non scalar), o.w. deletes lval
 	    linkOrFreeConstantExpressionArraysize(auti, args, (NodeSquareBracket *)lvalNode, nodetyperef);
 
-	    NodeModelParameterDef * paramNode =  new NodeModelParameterDef((SymbolParameterValue *) asymptr, nodetyperef, m_state);
+	    NodeModelParameterDef * paramNode =  new NodeModelParameterDef((SymbolModelParameterValue *) asymptr, nodetyperef, m_state);
 	    assert(paramNode);
 	    paramNode->setNodeLocation(args.m_typeTok.m_locator);
 	    asymptr->setStructuredComment(); //also clears

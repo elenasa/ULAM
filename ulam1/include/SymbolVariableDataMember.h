@@ -48,9 +48,13 @@ namespace MFM{
 
     SymbolVariableDataMember(const SymbolVariableDataMember& sref);
 
+    SymbolVariableDataMember(const SymbolVariableDataMember& sref, bool keepType);
+
     virtual ~SymbolVariableDataMember();
 
     virtual Symbol * clone();
+
+    virtual Symbol * cloneKeepsType();
 
     virtual u32 getDataMemberUnpackedSlotIndex();
 
@@ -58,12 +62,9 @@ namespace MFM{
 
     virtual const std::string getMangledPrefix();
 
-    //primitive data members:
-    bool hasInitValue();
-    void setHasInitValue();
-    bool initValueReady();
-    bool getInitValue(u64& val);
-    void setInitValue(const u64 val);
+    virtual u32 getPosOffset();
+
+    void setPosOffset(u32 offsetIntoAtom);
 
     virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype);
 
@@ -74,11 +75,8 @@ namespace MFM{
   protected:
 
   private:
+    u32 m_posOffset; //relative
     u32 m_dataMemberUnpackedSlotIndex;  //untrusted
-    bool m_hasInitValue;
-    bool m_initvalReady;
-    u64 m_initval;
-
   };
 
 }

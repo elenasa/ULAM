@@ -89,8 +89,8 @@ namespace MFM{
     std::string formatAnInstancesArgValuesAsCommaDelimitedString(UTI instance);
 
     //helpers while deep instantiation
-    bool hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI);
-    bool mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti);
+    virtual bool hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI);
+    virtual bool mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti);
     bool fullyInstantiate();
 
     virtual Node * findNodeNoInAClassInstance(UTI instance, NNO n);

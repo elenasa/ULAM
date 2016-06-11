@@ -814,6 +814,15 @@ namespace MFM {
     a.ToArray(m_uv.m_storage.m_atom);
   } //putData
 
+  void UlamValue::putDataBig(u32 pos, s32 len, const BV8K& bvdata)
+  {
+    assert(len >= 0);
+    assert(pos + len <= BITSPERATOM);
+    AtomBitVector a(m_uv.m_storage.m_atom); //copy
+    bvdata.CopyBV(0u, pos, len, a); //frompos, topos, tolen, destbv
+    a.ToArray(m_uv.m_storage.m_atom);
+  } //putDataBig
+
   UlamValue& UlamValue::operator=(const UlamValue& rhs)
   {
     for(u32 i = 0; i < AtomBitVector::ARRAY_LENGTH; i++)

@@ -3,12 +3,14 @@
 
 namespace MFM {
 
-  SymbolVariableDataMember::SymbolVariableDataMember(Token id, UTI utype, u32 slot, CompilerState& state) : SymbolVariable(id, utype, state), m_dataMemberUnpackedSlotIndex(slot), m_hasInitValue(false), m_initvalReady(false), m_initval(0)
+  SymbolVariableDataMember::SymbolVariableDataMember(Token id, UTI utype, u32 slot, CompilerState& state) : SymbolVariable(id, utype, state), m_posOffset(0), m_dataMemberUnpackedSlotIndex(slot)
   {
     setDataMemberClass(m_state.getCompileThisIdx());
   }
 
-  SymbolVariableDataMember::SymbolVariableDataMember(const SymbolVariableDataMember& sref) : SymbolVariable(sref), m_dataMemberUnpackedSlotIndex(sref.m_dataMemberUnpackedSlotIndex), m_hasInitValue(sref.m_hasInitValue), m_initvalReady(false), m_initval(0) {} //initval set by node vardecl c&l
+  SymbolVariableDataMember::SymbolVariableDataMember(const SymbolVariableDataMember& sref) : SymbolVariable(sref), m_posOffset(sref.m_posOffset), m_dataMemberUnpackedSlotIndex(sref.m_dataMemberUnpackedSlotIndex) { } //initval set by node vardecl c&l
+
+  SymbolVariableDataMember::SymbolVariableDataMember(const SymbolVariableDataMember& sref, bool keepType) : SymbolVariable(sref, keepType), m_posOffset(sref.m_posOffset), m_dataMemberUnpackedSlotIndex(sref.m_dataMemberUnpackedSlotIndex) {} //initval set by node vardecl c&l
 
   SymbolVariableDataMember::~SymbolVariableDataMember()
   {
@@ -18,6 +20,11 @@ namespace MFM {
   Symbol * SymbolVariableDataMember::clone()
   {
     return new SymbolVariableDataMember(*this);
+  }
+
+  Symbol * SymbolVariableDataMember::cloneKeepsType()
+  {
+    return new SymbolVariableDataMember(*this, true);
   }
 
   u32  SymbolVariableDataMember::getDataMemberUnpackedSlotIndex()
@@ -35,38 +42,15 @@ namespace MFM {
     return "Um_";
   }
 
-  bool SymbolVariableDataMember::hasInitValue()
+  //packed bit position of data members; relative to ATOMFIRSTSTATEBITPOS (or 0u).
+  u32 SymbolVariableDataMember::getPosOffset()
   {
-    return m_hasInitValue; //primitive dm
+    return m_posOffset;
   }
 
-  void SymbolVariableDataMember::setHasInitValue()
+  void SymbolVariableDataMember::setPosOffset(u32 offsetIntoAtom)
   {
-     m_hasInitValue = true;
-     m_initvalReady = false;
-  }
-
-  bool SymbolVariableDataMember::initValueReady()
-  {
-    return m_initvalReady;
-  }
-
-  bool SymbolVariableDataMember::getInitValue(u64& val)
-  {
-    assert(hasInitValue());
-
-    if(initValueReady())
-      {
-	val = m_initval; //primitive dm
-	return true;
-      }
-    return false;
-  } //getInitValue
-
-  void SymbolVariableDataMember::setInitValue(const u64 val)
-  {
-    m_initvalReady = true;
-    m_initval = val; //primitive dm
+    m_posOffset = offsetIntoAtom; //relative to first state bit
   }
 
   // replaced by NodeVarDecl:genCode to leverage the declaration order preserved by the parse tree.
@@ -142,6 +126,7 @@ namespace MFM {
 
     if(vclasstype == UC_QUARK)
       {
+	//outputs the data members, not just the lump value (e.g. SWV::printPostfixValue())
 	UTI scalarquark = m_state.getUlamTypeAsScalar(vuti);
 	//printPostfixValuesForClass:
 	SymbolClass * csym = NULL;

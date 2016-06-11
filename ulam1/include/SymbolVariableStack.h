@@ -47,9 +47,13 @@ namespace MFM{
 
     SymbolVariableStack(const SymbolVariableStack& sref);
 
+    SymbolVariableStack(const SymbolVariableStack& sref, bool keepType);
+
     virtual ~SymbolVariableStack();
 
     virtual Symbol * clone();
+
+    virtual Symbol * cloneKeepsType();
 
     virtual s32 getStackFrameSlotIndex();
 
@@ -58,6 +62,8 @@ namespace MFM{
     virtual s32 getBaseArrayIndex();
 
     virtual const std::string getMangledPrefix();
+
+    virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
     virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype);
 

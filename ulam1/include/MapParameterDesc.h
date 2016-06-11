@@ -37,14 +37,14 @@
 #define MAPPARAMETERDESC_H
 
 #include "MapClassMemberDesc.h"
-#include "SymbolParameterValue.h"
+#include "SymbolModelParameterValue.h"
 
 namespace MFM
 {
   struct ParameterDesc : public ClassMemberDesc
   {
 
-    ParameterDesc(SymbolParameterValue * psym, UTI classtype, CompilerState & state);
+    ParameterDesc(SymbolModelParameterValue * psym, UTI classtype, CompilerState & state);
     ParameterDesc(const ParameterDesc& pref);
     virtual ~ParameterDesc();
     virtual const ClassMemberDesc * clone() const;

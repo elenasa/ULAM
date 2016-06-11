@@ -27,6 +27,7 @@ namespace MFM {
   //#define _DEBUG_OUTPUT
   //#define _INFO_OUTPUT
   #define _WARN_OUTPUT
+  #define _WAIT_OUTPUT
 
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
@@ -44,6 +45,12 @@ namespace MFM {
   static const bool warnOn = true;
 #else
   static const bool warnOn = false;
+#endif
+
+#ifdef _WAIT_OUTPUT
+  static const bool waitOn = true; //debug msg until last resolving loop iteration, then err
+#else
+  static const bool waitOn = false; //becomes err msg
 #endif
 
   static const char * m_indentedSpaceLevel("  "); //2 spaces per level
@@ -69,7 +76,7 @@ namespace MFM {
   //use of this in the initialization list seems to be okay;
   CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalHas(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti)
   {
-    m_err.init(this, debugOn, infoOn, warnOn, NULL);
+    m_err.init(this, debugOn, infoOn, warnOn, waitOn, NULL);
     Token::initTokenMap(*this);
   }
 
@@ -124,9 +131,9 @@ namespace MFM {
   bool CompilerState::getClassNameFromFileName(std::string startstr, u32& compileThisId)
   {
     u32 foundSuffix = startstr.find(".ulam");
-    if(foundSuffix == std::string::npos        //.ulam not found
-       || foundSuffix != startstr.length()-5   //ensure it's a suffix
-       || foundSuffix == 0)                    //and not also a prefix
+    if((foundSuffix == std::string::npos)        //.ulam not found
+       || (foundSuffix != startstr.length()-5)   //ensure it's a suffix
+       || (foundSuffix == 0))                    //and not also a prefix
       {
 	std::ostringstream msg;
         msg << "File name <" << startstr << "> doesn't end with '.ulam'";
@@ -217,7 +224,7 @@ namespace MFM {
 			//for a class instance in template
 		      }
 		    else
-		      assert(0);
+		      assert(0); //t3379 wo NodeTypedef updating UTIAlias
 		    return csym->getUlamTypeIdx();
 		  }
 	      }
@@ -366,7 +373,7 @@ namespace MFM {
     UTI uti = Nav;
     UlamType * ut = NULL; //for isDefined.
 
-    if(!isDefined(key,ut) || bitsize == UNKNOWNSIZE || arraysize == UNKNOWNSIZE)
+    if(!isDefined(key,ut) || (bitsize == UNKNOWNSIZE) || (arraysize == UNKNOWNSIZE))
       {
 	//no key, make new type, how to know baseUT? bitsize?
 	uti = makeUlamType(key, bUT, classtype); //returns uti
@@ -384,7 +391,7 @@ namespace MFM {
     UTI uti;
     UlamType * ut = NULL;
 
-    if(!isDefined(key,ut) || utype == Class || (utype != Class && key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE) || key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE)
+    if(!isDefined(key,ut) || (utype == Class) || ((utype != Class) && (key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE)) || (key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE))
       {
 	uti = m_indexToUlamKey.size();  //next index based on key
 	if(utype == Class)
@@ -740,8 +747,8 @@ namespace MFM {
     if(!okUTItoContinue(suti))
       return suti; //forgiving; e.g. may be used for unset referencedUTI
 
-    SymbolClassNameTemplate * cnsym = NULL;
-    AssertBool isDefined = alreadyDefinedSymbolClassNameTemplate(getCompileThisId(), cnsym);
+    SymbolClassName * cnsym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClassName(getCompileThisId(), cnsym);
     assert(isDefined);
 
     UTI mappedUTI;
@@ -813,7 +820,7 @@ namespace MFM {
 	    ((SymbolClassNameTemplate *)cnsymOfIncomplete)->mergeClassInstancesFromTEMP(); //not mid-iteration!! makes alreadydefined.
 	  }
       }
-      //updateUTIAlias(suti, newuti);
+    //updateUTIAlias(suti, newuti); //what if..
     return newuti;
   } //mapIncompleteUTIForCurrentClassInstance
 
@@ -825,10 +832,9 @@ namespace MFM {
     SymbolClassName * cnsym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClassName(getCompileThisId(), cnsym);
     assert(isDefined);
-    if(cnsym->isClassTemplate())
-      ((SymbolClassNameTemplate *) cnsym)->mapInstanceUTI(getCompileThisIdx(), fm, to);
-    else
-      cnsym->mapUTItoUTI(fm,to);
+    cnsym->mapInstanceUTI(getCompileThisIdx(), fm, to);
+    //when not a template, the CompileThisId && Idx belong to the same SymbolClassName;
+    // o.w. CompileThisIdx belongs to a class instance of the template (not an UTIAlias!).
   } //mapTypesInCurrentClass
 
   UlamKeyTypeSignature CompilerState::getUlamKeyTypeSignatureByIndex(UTI typidx)
@@ -1583,11 +1589,17 @@ namespace MFM {
 	    msg << "Invalid size (";
 	    msg << bitsize;
 	    msg << ") to set for primitive type: " << UlamType::getUlamTypeEnumAsString(bUT);
-	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
-	    return false;
+	    if(arraysize < 0)
+	      {
+		MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+		return false;
+	      }
+	    else
+	      MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+	    //return false;
 	  }
 	//Void with zero bitsize
-	if(arraysize != NONARRAYSIZE)
+	if((bUT == Void) && (arraysize != NONARRAYSIZE))
 	  {
 	    // disallow an array of Void(0)'s
 	    std::ostringstream msg;
@@ -1810,8 +1822,8 @@ namespace MFM {
 
   bool CompilerState::alreadyDefinedSymbolClassNameTemplate(u32 dataindex, SymbolClassNameTemplate * & symptr)
   {
-    bool rtnb = m_programDefST.isInTable(dataindex,(Symbol * &) symptr);
-    if(rtnb && !symptr->isClassTemplate())
+    bool rtnb = alreadyDefinedSymbolClassName(dataindex, (SymbolClassName *&) symptr);
+    if(rtnb && !((SymbolClassName *) symptr)->isClassTemplate())
       {
 	std::ostringstream msg;
 	msg << "Class without parameters already exists with the same name: ";
@@ -2118,7 +2130,7 @@ namespace MFM {
 	    AssertBool isReplaced = replaceUlamTypeForUpdatedClassType(cut->getUlamKeyTypeSignature(), Class, cut->getUlamClassType(), cut->isCustomArray());
 	    assert(isReplaced);
 
-	    if(cut->getBitSize() == UNKNOWNSIZE || cut->getArraySize() == UNKNOWNSIZE)
+	    if((cut->getBitSize() == UNKNOWNSIZE) || (cut->getArraySize() == UNKNOWNSIZE))
 	      {
 		std::ostringstream msg;
 		msg << "Class Instance for typedef: " << ict->getUlamTypeName().c_str();
@@ -2432,7 +2444,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
     if(m_currentFunctionReturnNodes.empty())
       {
-	if(it != Void && !fsym->isNativeFunctionDeclaration() && (!fsym->isVirtualFunction() || !fsym->isPureVirtualFunction()))
+	if((it != Void) && !fsym->isNativeFunctionDeclaration() && (!fsym->isVirtualFunction() || !fsym->isPureVirtualFunction()))
 	  {
 	    std::ostringstream msg;
 	    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
@@ -2474,7 +2486,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 		msg << getUlamTypeNameByIndex(rType).c_str() << " base type <";
 		msg << UlamType::getUlamTypeEnumAsString(rBUT) << ">";
 
-		if(fsym->getId() == m_pool.getIndexForDataString("toInt") && it == Int)
+		if((fsym->getId() == m_pool.getIndexForDataString("toInt")) && (it == Int))
 		  m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_DEBUG);
 		else
 		  m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_WARN); //ERR?
@@ -2818,7 +2830,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     assert(lptr.isPtr());
 
     //handle UAtom assignment as a singleton (not array values)
-    if(ruv.isPtr() && (UlamType::compareForUlamValueAssignment(ruv.getPtrTargetType(), UAtom, *this) == UTIC_NOTSAME || UlamType::compareForUlamValueAssignment(lptr.getPtrTargetType(), UAtom, *this) == UTIC_NOTSAME))
+    if(ruv.isPtr() && ((UlamType::compareForUlamValueAssignment(ruv.getPtrTargetType(), UAtom, *this) == UTIC_NOTSAME) || (UlamType::compareForUlamValueAssignment(lptr.getPtrTargetType(), UAtom, *this) == UTIC_NOTSAME)))
       return assignArrayValues(lptr, ruv);
 
     //r is data (includes packed arrays), store it into where lptr is pointing
@@ -3046,7 +3058,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
 	textOfLines->insert(textOfLines->end(), linenum - textOfLines->size(), blankid);
       }
-    assert(linenum >= 0 && linenum <= textOfLines->size());
+    assert((linenum >= 0) && (linenum <= textOfLines->size()));
     textOfLines->push_back(textid);
 
     m_locOfNextLineText = loc; //during parsing here (see NodeStatements)
@@ -3262,7 +3274,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       }
 
     NodeBlock * currBlock = getCurrentBlock();
-    if(currBlock && currBlock->getNodeNo() == n && getClassBlock()->getNodeType() == getCompileThisIdx())
+    if(currBlock && (currBlock->getNodeNo() == n) && (getClassBlock()->getNodeType() == getCompileThisIdx()))
       return currBlock; //avoid chix-n-egg with functiondefs
 
     SymbolClassName * cnsym = NULL;
@@ -3282,7 +3294,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	    SymbolClassNameTemplate * cntsym = NULL;
 	    AssertBool isDefined = alreadyDefinedSymbolClassNameTemplate(stubid, cntsym);
 	    assert(isDefined);
-	    rtnNode =  cntsym->findNodeNoInAClassInstance(stubuti, n);
+	    rtnNode = cntsym->findNodeNoInAClassInstance(stubuti, n);
 	  }
 	else
 	  {

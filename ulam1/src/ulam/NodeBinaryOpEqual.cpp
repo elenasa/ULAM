@@ -50,7 +50,7 @@ namespace MFM {
 	msg << " for operator" << getName();
 	if(scr == CAST_HAZY)
 	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    m_state.setGoAgain();
 	    newType = Hzy;
 	  }
@@ -177,7 +177,7 @@ namespace MFM {
 	msg << "Invalid lefthand side of equals <" << m_nodeLeft->getName();
 	msg << ">, type: " << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
 	if(lstor == TBOOL_HAZY)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	else
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }

@@ -114,7 +114,10 @@ namespace MFM {
     // (from NodeIdent's makeUlamValuePtr)
     // return ptr to this data member within the m_currentObjPtr
     // 'pos' modified by this data member symbol's packed bit position
-    UlamValue rtnUVPtr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+    u32 pos = 0;
+    if(m_varSymbol->isDataMember())
+      pos = ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset();
+    UlamValue rtnUVPtr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + pos, m_varSymbol->getId());
 
     //copy result UV to stack, -1 relative to current frame pointer
     Node::assignReturnValuePtrToStack(rtnUVPtr);

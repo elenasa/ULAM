@@ -176,6 +176,7 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    m_constSymbol->resetUlamType(duti); //consistent!
 	    m_state.mapTypesInCurrentClass(suti, duti);
+	    m_state.updateUTIAliasForced(it, duti); //help?
 	    suti = duti;
 	  }
       }
@@ -209,11 +210,16 @@ namespace MFM {
 
 	if(it == Hzy)
 	  {
+	    UTI cuti = m_state.getCompileThisIdx();
 	    std::ostringstream msg;
 	    msg << "Constant value expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
-	    msg << ", is not ready";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //possibly still hazy
+	    msg << ", is not ready, still hazy while compiling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    if(m_state.isClassATemplate(cuti))
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    m_state.setGoAgain();
 	    setNodeType(Hzy);
 	    return Hzy; //short-circuit
@@ -225,11 +231,8 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-	msg << " used with symbol name '" << getName();
-	msg << "' UTI" << suti << " while labeling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	msg << " UTI" << cuti;
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	msg << ", used with symbol name '" << getName() << "'";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	//too soon! m_state.setGoAgain(); //might not have nodetypedesc
 
 	UTI mappedUTI = Nouti;
@@ -253,10 +256,8 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Incomplete identifier for type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-	    msg << " used with symbol name '" << getName();
-	    msg << "' UTI" << suti << " while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    msg << ", used with symbol name '" << getName() << "'";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	  }
       }
     else
@@ -302,7 +303,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    if(!(m_constSymbol->isReady() || m_constSymbol->hasDefault()))
+	    if(!(m_constSymbol->isReady() || m_constSymbol->isInitValueReady()))
 	      {
 		setNodeType(Hzy);
 		m_state.setGoAgain();
@@ -424,7 +425,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Constant value expression for '";
 	msg << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
-	msg << "' is erronous while compiling class: ";
+	msg << "', is erronous while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return Nav;
@@ -435,9 +436,9 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Constant value expression for '";
 	msg << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
-	msg << "' is not yet ready while compiling class: ";
+	msg << "', is not yet ready while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	return Hzy;
       }
 
@@ -456,7 +457,7 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    return Nav;
 	  }
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	return Hzy; //necessary if not just a warning.
       }
 
@@ -476,7 +477,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Constant value expression for '";
-	msg << getName() << "' was not representable as ";
+	msg << getName() << "', was not representable as ";
 	msg<< m_state.getUlamTypeNameBriefByIndex(uti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return Nav;
@@ -492,10 +493,13 @@ namespace MFM {
     delete m_nodeExpr;
     m_nodeExpr = newnode;
 
-    if(m_constSymbol->isParameter())
-      m_constSymbol->setDefaultValue(newconst); //hasDefault (not isReady)!
+    BV8K bvtmp;
+    u32 len = m_state.getTotalBitSize(uti);
+    bvtmp.WriteLong(0u, len, newconst); //is newconst packed?
+    if(m_constSymbol->isClassParameter())
+      m_constSymbol->setInitValue(bvtmp); //(isInitValueReady now)!
     else
-      m_constSymbol->setValue(newconst); //isReady now!
+      m_constSymbol->setValue(bvtmp); //isReady now! (e.g. ClassArgument, ModelParameter)
     return uti; //ok
   } //foldConstantExpression
 

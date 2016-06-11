@@ -6,6 +6,7 @@
 #include "NodeIdent.h"
 #include "NodeMemberSelect.h"
 #include "NodeVarDecl.h"
+#include "SymbolVariableDataMember.h"
 #include "SymbolVariableStack.h"
 #include "SymbolFunction.h"
 #include "SymbolFunctionName.h"
@@ -179,7 +180,7 @@ namespace MFM {
 	msg << " for '" << getName() << "'";
 	if(scr == CAST_HAZY)
 	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    m_state.setGoAgain();
 	    newType = Hzy;
 	  }
@@ -255,8 +256,17 @@ namespace MFM {
 
   UTI Node::constantFold()
   {
-    return Nav; //parent required
-  }
+    if(!isAConstant())
+      {
+	std::ostringstream msg;
+	msg << "Cannot constant fold non-constant ";
+	msg << "'" << getName() << "'";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav);
+      }
+    //see NodeBinaryOp for the actual work
+    return getNodeType(); //noop. parent required (was Nav)
+  } //constantFold
 
   bool Node::buildDefaultValue(u32 wlen, BV8K& dvref)
   {
@@ -302,7 +312,7 @@ namespace MFM {
     return false;
   }
 
-  bool Node::installSymbolParameterValue(TypeArgs& args, Symbol*& asymptr)
+  bool Node::installSymbolModelParameterValue(TypeArgs& args, Symbol*& asymptr)
   {
     return false;
   }
@@ -429,7 +439,7 @@ namespace MFM {
     m_state.indentUlamCode(fp);
     fp->write("virtual void ");
     fp->write(prettyNodeName().c_str());
-    fp->write("::genCode(File * fp){} is needed!!\n"); //sweet.
+    fp->write("::genCode(File * fp){} //is needed!!\n"); //sweet.
   }
 
   void Node::genCodeToStoreInto(File * fp, UVPass& uvpass)
@@ -1574,9 +1584,9 @@ namespace MFM {
     if(nuti == Nav)
       {
 	std::ostringstream msg;
-	msg << "Cannot make casting node for an erronous type: " ;
+	msg << "Cannot make casting node for type: " ;
 	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	msg << " (UTI" << nuti << ")";
+	//msg << " (UTI" << nuti << ")";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	rtnNode = node;
 	return false; //short-circuit
@@ -1585,10 +1595,10 @@ namespace MFM {
     if(nuti == Hzy)
       {
 	std::ostringstream msg;
-	msg << "Cannot make casting node for a nonready type: " ;
+	msg << "Cannot make casting node for type: " ;
 	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	msg << " (UTI" << nuti << ")";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	//msg << " (UTI" << nuti << ")";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	rtnNode = node;
 	return false; //short-circuit
       }
@@ -2356,8 +2366,9 @@ namespace MFM {
   {
     //include model parameters as LocalVariableOrArgument, since more alike;
     //an element's "self" as obj[0] is like it isn't there for purposes of this discovery.
-    //quark's self is an atom, and should be treated like a local arg.
-    // note: self is not a data member.
+    //quark's self is an atom or immediate, and should be treated like a local arg.
+    // notes: self is not a data member. references cannot be data members.
+    //        func def's are dm, but func calls are not.
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       return false; //must be self, t.f. not local
 
@@ -2368,7 +2379,8 @@ namespace MFM {
     UTI stgcosuti = m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx();
     if(m_state.m_currentObjSymbolsForCodeGen[0]->isSelf() && !(m_state.isAtom(stgcosuti) || m_state.getUlamTypeByIndex(stgcosuti)->getUlamClassType() == UC_TRANSIENT) && (modelparamidx == -1))
       return false; //self, neither atom nor transient, not modelparameter
-    return true;
+
+    return true; //including references
   } //isCurrentObjectALocalVariableOrArgument
 
   // returns the index to the last object that's an MP; o.w. -1 none found;
@@ -2420,7 +2432,7 @@ namespace MFM {
 	    UlamType * sut = m_state.getUlamTypeByIndex(suti);
 	    if(!onlyClasses || (sut->getUlamTypeEnum() == Class))
 	      {
-		pos += sym->getPosOffset();
+		pos += ((SymbolVariableDataMember *) sym)->getPosOffset();
 		if((sut->getUlamClassType() == UC_ELEMENT) && (i < cosSize - 1)) //dm in transient; not the last one being written to.
 		  pos += ATOMFIRSTSTATEBITPOS;
 	      }

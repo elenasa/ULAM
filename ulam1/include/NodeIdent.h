@@ -82,7 +82,7 @@ namespace MFM{
 
     virtual bool installSymbolTypedef(TypeArgs& args, Symbol *& asymptr);
     virtual bool installSymbolConstantValue(TypeArgs& args, Symbol*& asymptr);
-    virtual bool installSymbolParameterValue(TypeArgs& args, Symbol*& asymptr);
+    virtual bool installSymbolModelParameterValue(TypeArgs& args, Symbol*& asymptr);
     virtual bool installSymbolVariable(TypeArgs& args,  Symbol *& asymptr);
 
     virtual void genCode(File * fp, UVPass& uvpass);

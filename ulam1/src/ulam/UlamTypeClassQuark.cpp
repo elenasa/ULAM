@@ -86,15 +86,6 @@ namespace MFM {
   FORECAST UlamTypeClassQuark::safeCast(UTI typidx)
   {
     FORECAST scr = UlamTypeClass::safeCast(typidx);
-
-#if 0
-    if(scr == CAST_BAD)
-      {
-	//check from atom or atomref, possibly ok for quark ref (runtime)
-	if(m_state.isAtom(typidx) && isReference())
-	  scr = CAST_CLEAR;
-      }
-#endif
     return scr;
   } //safeCast
 

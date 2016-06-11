@@ -144,7 +144,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Cannot cast a nonready type" ;
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	setNodeType(Hzy);
 	m_state.setGoAgain(); //compiler counts
 	return Hzy; //short-circuit
@@ -163,8 +163,8 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Cannot cast to nonready type: " ;
 	    msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
-	    msg << " (UTI" << tobeType << ")";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    //msg << " (UTI" << tobeType << ")";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    hazinessFound++; //goAgain set by nodetypedesc
 	  }
       }
@@ -176,8 +176,8 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Cannot cast to incomplete type: " ;
 	msg << tobe->getUlamTypeNameBrief().c_str();
-	msg << " (UTI" << tobeType << ")";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	//msg << " (UTI" << tobeType << ")";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	hazinessFound++;
       }
     else if(tobeType == Nav)
@@ -250,7 +250,7 @@ namespace MFM {
 		  msg << "; Consider using a reference (or self) with .atomof";
 		if(scr == CAST_HAZY)
 		  {
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		    hazinessFound++;
 		  }
 		else

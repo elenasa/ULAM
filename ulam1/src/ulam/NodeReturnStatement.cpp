@@ -157,7 +157,7 @@ namespace MFM {
 			  }
 			else
 			  {
-			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 			    nodeType = Hzy;
 			  }
 		      }
@@ -177,7 +177,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Function return type is still unresolved: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	nodeType = Hzy; //needed?
       }
 

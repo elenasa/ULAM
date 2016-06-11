@@ -5,7 +5,8 @@
 
 namespace MFM{
 
-  NodeList::NodeList(CompilerState & state) : Node(state) { }
+  NodeList::NodeList(CompilerState & state) : Node(state)
+  { }
 
   NodeList::NodeList(const NodeList & ref) : Node(ref)
   {
@@ -20,13 +21,18 @@ namespace MFM{
 
   NodeList::~NodeList()
   {
+    clearNodeList();
+  }
+
+  void NodeList::clearNodeList()
+  {
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
 	delete m_nodes[i];
 	m_nodes[i] = NULL;
       }
     m_nodes.clear();
-  }
+  } //clearNodeList
 
   Node * NodeList::instantiate()
   {
@@ -35,10 +41,12 @@ namespace MFM{
 
   void NodeList::updateLineage(NNO pno)
   {
+    NNO nno = getNodeNo();
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
-	m_nodes[i]->updateLineage(pno);
+	m_nodes[i]->updateLineage(nno); //wrong! was pno
       }
+    Node::setYourParentNo(pno); //missing
   } //updateLineage
 
   bool NodeList::exchangeKids(Node * oldnptr, Node * newnptr)
@@ -70,6 +78,9 @@ namespace MFM{
 
   bool NodeList::findNodeNo(NNO n, Node *& foundNode)
   {
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+
     bool rtnb = false;
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
@@ -123,7 +134,7 @@ namespace MFM{
 
   UTI NodeList::checkAndLabelType()
   {
-    UTI rtnuti = Void; //ok
+    UTI rtnuti = Void;
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
 	UTI puti = m_nodes[i]->checkAndLabelType();
@@ -179,7 +190,7 @@ namespace MFM{
   EvalStatus NodeList::eval()
   {
     assert(0);
-    return NORMAL;
+    return ERROR;
   } //eval
 
   EvalStatus NodeList::eval(u32 n)

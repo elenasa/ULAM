@@ -51,7 +51,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Incomplete lefthand type of conditional operator '" << getName();
 	msg << "'";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	setNodeType(Hzy);
 	m_state.setGoAgain();
 	return Hzy; //short-circuit
@@ -68,7 +68,7 @@ namespace MFM {
 	msg << lut->getUlamTypeNameBrief().c_str();
 	if(lclasstype == UC_UNSEEN || luti == Hzy)
 	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    newType = Hzy;
 	    m_state.setGoAgain();
 	  }
@@ -114,7 +114,7 @@ namespace MFM {
 		msg << rut->getUlamTypeNameBrief().c_str();
 		if(rclasstype == UC_UNSEEN)
 		  {
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //goagain set
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		    newType = Hzy;
 		    m_state.setGoAgain();
 		  }
@@ -130,11 +130,10 @@ namespace MFM {
     if(m_state.okUTItoContinue(newType) && !m_state.isComplete(ruti))
       {
 	std::ostringstream msg;
-	msg << "Righthand type of conditional operator '" << getName() << "' ";
+	msg << "Righthand type of conditional operator '" << getName() << "': ";
 	msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
-	msg << " is still incomplete while labeling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	msg << ", is still incomplete";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	newType = Hzy; //goagain set by nodetypedesc
 	m_state.setGoAgain();
       }

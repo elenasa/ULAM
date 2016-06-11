@@ -234,14 +234,19 @@ namespace MFM {
 	    // context reveals if stub was needed by a template and not included.
 	    break;
 	  }
+	else if(infcounter == MAX_ITERATIONS) //last time
+	  m_state.m_err.changeWaitToErrMode();
       } //while
 
+#if 0
+    //redundant thanks to WAIT msg mode..
     if(infcounter > MAX_ITERATIONS)
       {
 	m_state.m_programDefST.printUnresolvedVariablesForTableOfClasses();
 	errCnt = m_state.m_err.getErrorCount();
 	m_state.clearGoAgain(); //all Hzy types converted to Navs
       }
+#endif
 
     if(!errCnt)
       {
@@ -258,25 +263,35 @@ namespace MFM {
 	errCnt = m_state.m_err.getErrorCount(); //latest count
 
 	// due to inheritance, might take more than a couple times around..
-	infcounter = 0;
-	sumbrtn = (errCnt == 0) ? false : true;
+	u32 infcounter2 = 0;
+	if(errCnt == 0)
+	  {
+	    sumbrtn = false;
+	    m_state.m_err.revertToWaitMode();
+	  }
+	else
+	  sumbrtn = true;
+
 	while(!sumbrtn)
 	  {
 	    // must happen after type labeling, check duplicateFunctions, and before eval (test)
 	    sumbrtn = m_state.m_programDefST.calcMaxIndexOfVirtualFunctionsForTableOfClasses();
-	    if(++infcounter > MAX_ITERATIONS)
+	    if(++infcounter2 > MAX_ITERATIONS)
 	      {
 		std::ostringstream msg;
 		msg << "Incomplete calc of max index for virtual functions --- ";
 		msg << "possible INCOMPLETE Super class detected ---";
-		msg << " after " << infcounter << " iterations";
+		msg << " after " << infcounter2 << " iterations";
 		MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		//note: not an error because template uses with deferred args remain unresolved
 		break;
 	      }
+	    else if(infcounter2 == MAX_ITERATIONS) //last time
+	      m_state.m_err.changeWaitToErrMode();
 	  } //while
 
 	errCnt = m_state.m_err.getErrorCount(); //latest count
+	if(infcounter >= MAX_ITERATIONS) //restore
+	  m_state.m_err.changeWaitToErrMode();
 
 	//after virtual table is set, check for abstract classes used as:
 	//local var, data member, or func parameter types.

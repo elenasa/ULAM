@@ -291,7 +291,7 @@ namespace MFM {
 			msg << m_state.m_pool.getDataAsString(fid).c_str();
 			msg << "> has a VIRTUAL ancestor in class: ";
 			msg << m_state.getUlamTypeNameBriefByIndex(kinuti).c_str();
-			MSG(fsym->getTokPtr(), msg.str().c_str(), WARN);
+			MSG(fsym->getTokPtr(), msg.str().c_str(), DEBUG); //was WARN (e.g. behave())
 
 			fsym->setVirtualFunction(); //fix
 			assert(maxidx != UNKNOWNSIZE); //o.w. wouldn't be here yet

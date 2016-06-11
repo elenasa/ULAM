@@ -6,7 +6,7 @@
 
 namespace MFM {
 
-  NodeModelParameterDef::NodeModelParameterDef(SymbolParameterValue * symptr, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeConstantDef(symptr, nodetype, state) {}
+  NodeModelParameterDef::NodeModelParameterDef(SymbolModelParameterValue * symptr, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeConstantDef(symptr, nodetype, state) {}
 
   NodeModelParameterDef::NodeModelParameterDef(const NodeModelParameterDef& ref) : NodeConstantDef(ref) {}
 
@@ -90,7 +90,7 @@ namespace MFM {
       {
 	if(asymptr->isModelParameter())
 	  {
-	    m_constSymbol = (SymbolParameterValue *) asymptr;
+	    m_constSymbol = (SymbolModelParameterValue *) asymptr;
 	  }
 	else
 	  {

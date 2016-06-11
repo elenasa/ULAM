@@ -6,7 +6,7 @@
 namespace MFM {
 
 
-  ErrorMessageHandler::ErrorMessageHandler(): m_state(NULL), m_debugMode(true), m_infoMode(true), m_warnMode(true), m_fOut(NULL), m_errorCount(0), m_warningCount(0)
+  ErrorMessageHandler::ErrorMessageHandler(): m_state(NULL), m_debugMode(true), m_infoMode(true), m_warnMode(true), m_waitMode(true), m_fOut(NULL), m_errorCount(0), m_warningCount(0)
   {
     //awaits init() call by owner
   }
@@ -14,14 +14,25 @@ namespace MFM {
   ErrorMessageHandler::~ErrorMessageHandler(){}
 
 
-  void  ErrorMessageHandler::init(CompilerState * state, bool debugMode, bool infoMode, bool warnMode, File * fp)
+  void  ErrorMessageHandler::init(CompilerState * state, bool debugMode, bool infoMode, bool warnMode, bool waitMode, File * fp)
   {
     assert(state);
     m_state = state;
     m_debugMode = debugMode;
     m_infoMode = infoMode;
     m_warnMode = warnMode;
+    m_waitMode = waitMode;
     m_fOut = fp;
+  }
+
+  void ErrorMessageHandler::changeWaitToErrMode()
+  {
+    m_waitMode = false;
+  }
+
+  void ErrorMessageHandler::revertToWaitMode()
+  {
+    m_waitMode = true;
   }
 
   void ErrorMessageHandler::buildMessage(Token * atTok, const char * message, const char * file, const char * func, u32 atline, MSGTYPE mtype)
@@ -53,6 +64,15 @@ namespace MFM {
       case MSG_DEBUG:
 	if(m_debugMode)
 	  outputMsg(loc,message,srcDebug.str().c_str(), "debug", false);
+	break;
+      case MSG_WAIT:
+	if(m_waitMode)
+	  outputMsg(loc,message,srcDebug.str().c_str(), "debug", false);
+	else
+	  {
+	    outputMsg(loc,message,srcDebug.str().c_str(), "ERROR");
+	    incErrorCount();
+	  }
 	break;
       default:
 	break;

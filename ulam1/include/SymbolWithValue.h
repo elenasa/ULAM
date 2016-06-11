@@ -58,25 +58,27 @@ namespace MFM{
 
     virtual bool isConstant() = 0;
 
+    bool isClassParameter();
+    void setClassParameterFlag();
+
+    bool isClassArgument();
+    void setClassArgumentFlag();
+
     virtual bool isReady();
 
-    bool isParameter();
-    void setParameterFlag();
-
-    bool isArgument();
-    void setArgumentFlag();
-
     bool getLexValue(std::string& vstr);
-    bool getValue(s64& val);
+    bool getValue(u32& val);
     bool getValue(u64& val);
-    void setValue(s64 val);
-    void setValue(u64 val);
+    bool getValue(BV8K& val);
+    void setValue(const BV8K& val);
 
-    bool hasDefault();
-    bool getDefaultValue(s64& val);
-    bool getDefaultValue(u64& val);
-    void setDefaultValue(s64 val);
-    void setDefaultValue(u64 val);
+    bool hasInitValue();
+    bool getInitValue(u32& val);
+    bool getInitValue(u64& val);
+    bool getInitValue(BV8K& val);
+    void setInitValue(const BV8K& val);
+    bool isInitValueReady(); //new
+    void setHasInitValue(); //new
 
     bool foldConstantExpression();
 
@@ -92,10 +94,15 @@ namespace MFM{
 
   private:
     bool m_isReady;
-    bool m_hasDefault;
-    bool m_parameter; //class params i.e. has default but no value, look at instance
-    bool m_argument; //class args
+    bool m_hasInitVal;
+    bool m_isReadyInitVal;
+    bool m_classParameter; //constant has default but no value, look at instance
+    bool m_classArgument; //constant has value but no default, look at template parameter
 
+    BV8K m_constantValue;
+    BV8K m_initialValue;
+
+#if 0
     union {
       s64 sval;
       u64 uval;
@@ -104,8 +111,11 @@ namespace MFM{
     union {
       s64 sval;
       u64 uval;
-    } m_default;
+    } m_initial;
+#endif
 
+    void printPostfixValueScalar(File * fp);
+    void printPostfixValueArray(File * fp);
   };
 } //MFM
 

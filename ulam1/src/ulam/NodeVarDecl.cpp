@@ -5,6 +5,7 @@
 #include "SymbolVariableDataMember.h"
 #include "SymbolVariableStack.h"
 #include "NodeIdent.h"
+#include "NodeListArrayInitialization.h"
 
 namespace MFM {
 
@@ -145,7 +146,7 @@ namespace MFM {
   bool NodeVarDecl::getSymbolPtr(Symbol *& symptrref)
   {
     symptrref = m_varSymbol;
-    return true;
+    return (m_varSymbol != NULL);
   }
 
   void NodeVarDecl::setInitExpr(Node * node)
@@ -162,8 +163,26 @@ namespace MFM {
 
   bool NodeVarDecl::foldInitExpression()
   {
-    assert(0); //TBD;
-  }
+    //for arrays with constant expression initializers(local or dm)
+    UTI nuti = getNodeType();
+    if(!m_state.okUTItoContinue(nuti) || !m_state.isComplete(nuti))
+      return false;
+
+    assert(!m_state.isScalar(nuti));
+    assert(m_nodeInitExpr); //NodeListArrayInitialization
+    assert(m_varSymbol && !(m_varSymbol->isInitValueReady()));
+
+    if(((NodeListArrayInitialization *) m_nodeInitExpr)->foldInitExpression())
+      {
+	BV8K bvtmp;
+	if(((NodeListArrayInitialization *) m_nodeInitExpr)->buildArrayValueInitialization(bvtmp))
+	  {
+	    m_varSymbol->setInitValue(bvtmp);
+	    return true;
+	  }
+      }
+    return false;
+  } //foldInitExpression
 
   FORECAST NodeVarDecl::safeToCastTo(UTI newType)
   {
@@ -236,6 +255,9 @@ namespace MFM {
 	return false;
       }
 
+    if(UlamType::compare(fromType, newType, m_state) == UTIC_SAME)
+      return true;
+
     bool rtnOK = true;
     FORECAST scr = safeToCastTo(fromType); //reversed
     if(scr == CAST_HAZY)
@@ -281,21 +303,20 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		m_varSymbol->resetUlamType(duti); //consistent!
 		m_state.mapTypesInCurrentClass(it, duti);
+		m_state.updateUTIAliasForced(it, duti); //help?
 		it = duti;
 	      }
 	  }
 
-	  if(!m_state.okUTItoContinue(it) || !m_state.isComplete(it))
+	if(!m_state.okUTItoContinue(it) || !m_state.isComplete(it))
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete Variable Decl for type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << " used with variable symbol name '" << getName();
-	    msg << "' UTI" << it << " while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    msg << ", used with variable symbol name '" << getName() << "'";
 	    if(m_state.okUTItoContinue(it) || (it == Hzy))
 	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		it = Hzy;
 		//m_state.setGoAgain(); //since not error; wait until not Nav
 	      }
@@ -337,16 +358,129 @@ namespace MFM {
 	    msg << "Initial value expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
 	    msg << ", initialization is not ready";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    m_state.setGoAgain(); //since not error
 	    setNodeType(Hzy);
 	    return Hzy; //short-circuit
 	  }
 
-	setNodeType(it); //needed before safeToCast
+	//note: Void is flag that it's a list of constant initializers.
+	if((eit == Void))// && !m_state.okUTItoContinue(it) && m_nodeTypeDesc)
+	  {
+	    //only possible if array type with initializers
+	    m_varSymbol->setHasInitValue(); //might not be ready yet
+
+	    if(!m_state.okUTItoContinue(it) && m_nodeTypeDesc)
+	      {
+		UTI duti = m_nodeTypeDesc->getNodeType();
+		UlamType * dut = m_state.getUlamTypeByIndex(duti);
+		assert(!dut->isScalar());
+		assert(dut->isPrimitiveType());
+		if(m_state.okUTItoContinue(duti) && !dut->isComplete())
+		  {
+		    //if here, assume arraysize depends on number of initializers
+		    s32 bitsize = dut->getBitSize();
+		    //if(bitsize > 0)
+		    //{
+			u32 n = ((NodeList *) m_nodeInitExpr)->getNumberOfNodes();
+			m_state.setUTISizes(duti, bitsize, n);
+			//  }
+			//else
+			//{
+			//it = Hzy;
+			//m_nodeInitExpr->setNodeType(Hzy); //replace Void too!
+			//m_state.setGoAgain();
+			//assert(0);
+			// }
+
+		    if(m_state.isComplete(duti))
+		      {
+			std::ostringstream msg;
+			msg << "REPLACING Symbol UTI" << it;
+			msg << ", " << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+			msg << " used with variable symbol name '" << getName();
+			msg << "' with node type descriptor array type (with initializers): ";
+			msg << m_state.getUlamTypeNameBriefByIndex(duti).c_str();
+			msg << " UTI" << duti << " while labeling class: ";
+			msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+			m_varSymbol->resetUlamType(duti); //consistent!
+			m_state.mapTypesInCurrentClass(it, duti);
+			m_state.updateUTIAliasForced(it, duti); //help?
+			m_nodeInitExpr->setNodeType(duti); //replace Void too!
+			it = duti;
+		      }
+		  }
+		//else
+	      }
+	    else
+	      {
+		//arraysize specified, may have fewer initializers
+		assert(m_state.okUTItoContinue(it));
+		s32 arraysize = m_state.getArraySize(it);
+		assert(arraysize > 0);
+		u32 n = ((NodeList *) m_nodeInitExpr)->getNumberOfNodes();
+		if(n > (u32) arraysize)
+		  {
+		    std::ostringstream msg;
+		    msg << "Too many initializers (" << n << ") specified for array '";
+		    msg << getName() << "', size " << arraysize;
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    setNodeType(Nav);
+		  }
+		else
+		  m_nodeInitExpr->setNodeType(it);
+	      }
+	    eit = it;
+	  } //end array initializers (eit == Void)
+
+    setNodeType(it); //needed before safeToCast, and folding
+
+	if(!m_state.isScalar(eit))
+	  {
+	    if(m_state.okUTItoContinue(eit) && m_state.isComplete(eit))
+	      {
+		assert(m_varSymbol);
+		//constant fold if possible, set symbol value
+		if(m_varSymbol->hasInitValue())
+		  {
+		    //possibly move this to NodeListArrayInitialization
+		    u32 bitsize = m_state.getBitSize(eit);
+		    if(bitsize > MAXBITSPERLONG)
+		      {
+			std::ostringstream msg;
+			msg << "Constant value expression for array: ";
+			msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+			msg << ", initialization is currently limited to ";
+			msg << MAXBITSPERLONG << " bits";
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			setNodeType(Nav);
+			return Nav; //short-circuit
+		      }
+
+		    if(!(m_varSymbol->isInitValueReady()))
+		      {
+			if(!foldInitExpression()) //sets init constant value
+			  {
+			    if((getNodeType() == Nav) || m_nodeInitExpr->getNodeType() == Nav)
+			      return Nav;
+
+			    if(!(m_varSymbol->isInitValueReady()))
+			      {
+				setNodeType(Hzy);
+				m_state.setGoAgain(); //since not error
+				return Hzy;
+			      }
+			  }
+		      }
+		  }
+	      }
+	  } //array initialization
+
 	if(m_state.okUTItoContinue(eit) && m_state.okUTItoContinue(it))
 	  checkSafeToCastTo(eit, it); //may side-effect 'it'
       }
+
     Node::setStoreIntoAble(TBOOL_TRUE);
     setNodeType(it);
 
@@ -490,15 +624,7 @@ namespace MFM {
       {
 	//local variable to a function;
 	// t.f. must be SymbolVariableStack, not SymbolVariableDataMember
-	UlamValue immUV;
-	if(len <= MAXBITSPERINT)
-	  immUV = UlamValue::makeImmediate(m_varSymbol->getUlamTypeIdx(), 0, m_state);
-	else if(len <= MAXBITSPERLONG)
-	  immUV = UlamValue::makeImmediateLong(m_varSymbol->getUlamTypeIdx(), 0, m_state);
-	else
-	  immUV = UlamValue::makePtr(((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId()); //array ptr
-
-	m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+	setupStackWithPrimitiveForEval(slots);
       }
     else if((classtype == UC_ELEMENT) || (classtype == UC_TRANSIENT))
       setupStackWithClassForEval(slots);
@@ -510,6 +636,76 @@ namespace MFM {
 
     return NORMAL;
   } //eval
+
+  void NodeVarDecl::setupStackWithPrimitiveForEval(u32 slots)
+  {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    assert(m_varSymbol->getUlamTypeIdx() == nuti);
+    PACKFIT packFit = nut->getPackable();
+    if(packFit == PACKEDLOADABLE)
+      {
+	u64 dval = 0;
+	if(m_varSymbol->hasInitValue())
+	  {
+	    AssertBool gotInitVal = m_varSymbol->getInitValue(dval);
+	    assert(gotInitVal);
+	  }
+
+	UlamValue immUV;
+	u32 len = nut->getTotalBitSize();
+	if(len <= MAXBITSPERINT)
+	  immUV = UlamValue::makeImmediate(nuti, (u32) dval, m_state);
+	else if(len <= MAXBITSPERLONG)
+	  immUV = UlamValue::makeImmediateLong(nuti, dval, m_state);
+	else
+	  assert(0);
+	//immUV = UlamValue::makePtr(((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex(), STACK, nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId()); //array ptr
+	m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+      }
+    else
+      {
+	//unpacked primitive array - uses eval
+	UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
+	bool hasInitVal = m_varSymbol->hasInitValue();
+	u32 baseslot =  ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex();
+
+	UlamValue immUV;
+	u32 itemlen = nut->getBitSize();
+	if(itemlen <= MAXBITSPERINT)
+	  immUV = UlamValue::makeImmediate(scalaruti, 0, m_state);
+	else if(itemlen <= MAXBITSPERLONG)
+	  immUV = UlamValue::makeImmediateLong(scalaruti, 0, m_state);
+	else
+	  assert(0);
+
+	u32 n = slots;
+	if(hasInitVal)
+	  n = ((NodeList *) m_nodeInitExpr)->getNumberOfNodes(); //may be fewer
+
+	for(u32 j = 0; j < slots; j++)
+	  {
+	    UlamValue itemUV;
+	    if(hasInitVal)
+	      {
+		evalNodeProlog(0); //new current frame pointer
+		makeRoomForNodeType(scalaruti); //offset a constant expression
+		u32 k = j < n ? j : n - 1; //repeat last initializer if fewer
+		EvalStatus evs = ((NodeListArrayInitialization *) m_nodeInitExpr)->eval(k);
+		if(evs == NORMAL)
+		  {
+		    itemUV = m_state.m_nodeEvalStack.popArg();
+		  }
+		else
+		  assert(0); //error msg?
+		evalNodeEpilog();
+	      }
+	    else
+	      itemUV = immUV;
+	    m_state.m_funcCallStack.storeUlamValueInSlot(itemUV, baseslot + j);
+	  }
+      }
+  } //setupStackWithPrimitiveForEval
 
   void NodeVarDecl::setupStackWithClassForEval(u32 slots)
   {
@@ -610,8 +806,16 @@ namespace MFM {
 
   EvalStatus NodeVarDecl::evalInitExpr()
   {
+    //also called by NodeVarDecDM for data members with initial constant values (t3514);
+    // don't want to call m_nodeInitExpr->eval(), if this is an constant initialized
+    //     array (e.g. t3768, t3769);
+    if(m_varSymbol->hasInitValue() && !m_state.isScalar(getNodeType()))
+      {
+	return NORMAL;
+      }
+
     EvalStatus evs = NORMAL; //init
-    // quark or nonclass data member;
+    // quark or non-class data member;
     evalNodeProlog(0); //new current node eval frame pointer
 
     makeRoomForSlots(1); //always 1 slot for ptr
@@ -624,8 +828,8 @@ namespace MFM {
       }
 
     UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1);
-
-    u32 slots = makeRoomForNodeType(getNodeType());
+    UTI nuti = getNodeType();
+    u32 slots = makeRoomForNodeType(nuti);
 
     evs = m_nodeInitExpr->eval();
 
@@ -634,10 +838,19 @@ namespace MFM {
 	if(slots == 1)
 	  {
 	    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slots+1); //immediate scalar
-	    m_state.assignValue(pluv,ruv);
-
-	    //also copy result UV to stack, -1 relative to current frame pointer
-	    Node::assignReturnValueToStack(ruv); //not when unpacked? how come?
+	    if(m_state.isScalar(nuti))
+	      {
+		m_state.assignValue(pluv,ruv);
+		//also copy result UV to stack, -1 relative to current frame pointer
+		Node::assignReturnValueToStack(ruv); //not when unpacked? how come?
+	      }
+	    else
+	      {
+		//(do same as scalar) t3419. t3425, t3708
+		//Node::assignReturnValueToStack(pluv); //not when unpacked? how come?
+		m_state.assignValue(pluv,ruv);
+		Node::assignReturnValueToStack(ruv);
+	      }
 	  }
 	else //unpacked
 	  {

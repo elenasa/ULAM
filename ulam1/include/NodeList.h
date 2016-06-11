@@ -107,9 +107,11 @@ namespace MFM{
     void genCodeToStoreInto(File * fp, UVPass& uvpass, u32 n);
 
   protected:
+    std::vector<Node *> m_nodes;
 
   private:
-    std::vector<Node *> m_nodes;
+    void clearNodeList();
+
   };
 
 } //MFM

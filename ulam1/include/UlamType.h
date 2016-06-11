@@ -169,6 +169,8 @@ namespace MFM{
 
     void setItemWordSize(u32 iw);
 
+    u32 getTotalNumberOfWords();
+
     virtual bool isMinMaxAllowed();
 
     virtual u64 getMax();

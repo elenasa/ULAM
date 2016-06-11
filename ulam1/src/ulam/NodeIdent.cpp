@@ -7,7 +7,7 @@
 #include "NodeTypeBitsize.h"
 #include "SymbolVariableDataMember.h"
 #include "SymbolVariableStack.h"
-#include "SymbolParameterValue.h"
+#include "SymbolModelParameterValue.h"
 #include "SymbolTypedef.h"
 #include "SymbolVariable.h"
 
@@ -240,7 +240,7 @@ namespace MFM {
 	      }
 	    else
 	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		it = Hzy;
 		m_state.setGoAgain();
 	      }
@@ -289,10 +289,8 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Incomplete identifier for type: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-		msg << " used with list symbol name '" << getName();
-		msg << "' UTI" << it << " while labeling class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		msg << ", used with list symbol name '" << getName() << "'";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		it = Hzy; //missing t3754 case 1
 		m_state.setGoAgain();
 	      }
@@ -477,8 +475,8 @@ namespace MFM {
   {
     if(m_varSymbol->isSelf())
       {
-	//when "self/atom" is a quark, we're inside a func called on a quark (e.g. dm or local)
-	//'atom' gets entire atom/element containing this quark; including its type!
+	//when "self" is a quark, we're inside a func called on a quark (e.g. dm or local)
+	//'atomof' gets entire atom/element containing this quark; including its type!
 	//'self' gets type/pos/len of the quark from which 'atom' can be extracted
 	UlamValue selfuvp = m_state.m_currentSelfPtr;
 	UTI ttype = selfuvp.getPtrTargetType();
@@ -503,7 +501,7 @@ namespace MFM {
       {
 	// return ptr to this data member within the m_currentObjPtr
 	// 'pos' modified by this data member symbol's packed bit position
-	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset(), m_varSymbol->getId());
       }
     else
       {
@@ -535,7 +533,8 @@ namespace MFM {
 	    SymbolVariable * sym = (SymbolVariable *) m_state.m_currentObjSymbolsForCodeGen.back();
 	    //here, we haven't taken into account any array indexes, So autoref instead
 	    // e.g. m_bar[0].cb, and this NI is for the rhs of member select, 'cb'
-	    pos = sym->getPosOffset();
+	    if(sym->isDataMember())
+	      pos = ((SymbolVariableDataMember *) sym)->getPosOffset();
 
 	    //if sym is an element, and not isSelf, and not a ref, pos += 25 (t3637)
 	    UTI suti = sym->getUlamTypeIdx();
@@ -544,7 +543,7 @@ namespace MFM {
 	      pos += ATOMFIRSTSTATEBITPOS;
 	  }
 	// 'pos' modified by this data member symbol's packed bit position
-	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos + ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset(), m_varSymbol->getId());
       }
     else
       {
@@ -794,7 +793,7 @@ namespace MFM {
     return false;
   } //installSymbolConstantValue
 
-  bool NodeIdent::installSymbolParameterValue(TypeArgs& args, Symbol*& asymptr)
+  bool NodeIdent::installSymbolModelParameterValue(TypeArgs& args, Symbol*& asymptr)
   {
     // ask current scope block if this constant name is there;
     // if so, nothing to install return symbol and false
@@ -864,14 +863,14 @@ namespace MFM {
     if(brtn)
       {
 	//create a symbol for this new model parameter, a parameter-def, with its value
-	SymbolParameterValue * symparam = new SymbolParameterValue(m_token, uti, m_state);
+	SymbolModelParameterValue * symparam = new SymbolModelParameterValue(m_token, uti, m_state);
 	m_state.addSymbolToCurrentScope(symparam);
 
 	//gets the symbol just created by makeUlamType; true.
 	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr));
       }
     return false;
-  } //installSymbolParameterValue
+  } //installSymbolModelParameterValue
 
   //see also NodeSquareBracket
   bool NodeIdent::installSymbolVariable(TypeArgs& args, Symbol *& asymptr)

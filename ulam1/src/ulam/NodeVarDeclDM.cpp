@@ -56,7 +56,7 @@ namespace MFM {
 	return;
       }
 
-    if(nut->getUlamClassType() == UC_QUARK)
+    if(nut->getUlamTypeEnum() == Class) //t3717, t3718, t3719, t3739, t3714, t3715, t3735
       {
 	SymbolClass * csym = NULL;
 	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
@@ -139,7 +139,7 @@ namespace MFM {
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
 	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    m_state.setGoAgain(); //since not error
 	  }
       }
@@ -198,7 +198,9 @@ namespace MFM {
 	m_state.popClassContext();
       } //end subclass error checking
 
-    if(m_nodeInitExpr)
+    //NodeVarDecl handles array initialization for both locals & dm
+    // since initial expressions must be constant for both (unlike local scalars)
+    if(m_nodeInitExpr && m_state.isScalar(getNodeType()))
       {
 	if(!m_nodeInitExpr->isAConstant())
 	  {
@@ -229,30 +231,33 @@ namespace MFM {
 	    msg << "Constant value expression for data member: ";
 	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
 	    msg << ", initialization is not ready";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    m_state.setGoAgain(); //since not error
 	    setNodeType(Hzy);
 	    return Hzy; //short-circuit
 	  }
 
 	//constant fold if possible, set symbol value
-	if(m_varSymbol)
+	assert(m_varSymbol);
+
+	if(m_varSymbol->hasInitValue())
 	  {
-	    AssertBool isDefined = ((SymbolVariableDataMember *) m_varSymbol)->hasInitValue();
-	    assert(isDefined);
-	    if(!(((SymbolVariableDataMember *) m_varSymbol)->initValueReady()))
+	    if(!(m_varSymbol->isInitValueReady()))
 	      {
-		foldInitExpression(); //sets init constant value
-		if(!(((SymbolVariableDataMember *) m_varSymbol)->initValueReady()))
+		if(!foldInitExpression()) //sets init constant value
 		  {
-		    setNodeType(Hzy);
-		    m_state.setGoAgain(); //since not error
-		    return Hzy;
+		    if((getNodeType() == Nav) || m_nodeInitExpr->getNodeType() == Nav)
+		      return Nav;
+
+		    if(!(m_varSymbol->isInitValueReady()))
+		      {
+			setNodeType(Hzy);
+			m_state.setGoAgain(); //since not error
+			return Hzy;
+		      }
 		  }
 	      }
 	  }
-	else
-	  assert(0);
 
 	//insure constant value fits in its declared type,
 	//done in NodeVarDecl c&l: safeToCastTo(nuti)
@@ -359,13 +364,13 @@ namespace MFM {
   {
     NodeVarDecl::setInitExpr(node);
     if(m_varSymbol)
-      ((SymbolVariableDataMember *) m_varSymbol)->setHasInitValue();
+      m_varSymbol->setHasInitValue();
   }
 
   //from NodeConstantDef; applied here to init value.
   // called during parsing rhs of named constant;
   // Requires a constant expression, else error;
-  // (scope of eval is based on the block of const def.)
+  // (SCOPE OF EVAL IS BASED ON THE BLOCK OF CONSTDEF.)
   bool NodeVarDeclDM::foldInitExpression()
   {
     UTI nuti = getNodeType();
@@ -374,14 +379,20 @@ namespace MFM {
       return false; //e.g. not a constant
 
     assert(m_varSymbol);
-    if(((SymbolVariableDataMember *) m_varSymbol)->initValueReady())
+    if(m_varSymbol->isInitValueReady())
       return true; //short-circuit
 
-    if(!m_nodeInitExpr)
+    if(!m_state.isScalar(nuti)) //arrays handled by NodeVarDecl
+      return NodeVarDecl::foldInitExpression();
+
+    assert(m_nodeInitExpr);
+    // if here, must be a constant init value..
+    UTI foldeduti = m_nodeInitExpr->constantFold(); //c&l redone
+    if(!m_state.okUTItoContinue(foldeduti))
       return false;
 
-    // if here, must be a constant init value..
     u64 newconst = 0; //UlamType format (not sign extended)
+
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(nuti); //offset a constant expression
     EvalStatus evs = m_nodeInitExpr->eval();
@@ -404,9 +415,22 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Constant value expression for data member '";
 	msg << m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str();
+	msg << "' initialization failed while compiling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav);
+	return false;
+      }
+
+    if(evs == NOTREADY)
+      {
+	std::ostringstream msg;
+	msg << "Constant value expression for data member '";
+	msg << m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str();
 	msg << "' initialization is not yet ready while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	setNodeType(Hzy);
 	m_state.setGoAgain(); //since not error
 	return false;
       }
@@ -421,33 +445,28 @@ namespace MFM {
 	msg << ") initialization is not representable as ";
 	msg<< m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	if(scr == CAST_BAD)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
+	  }
 	else
 	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    setNodeType(Hzy);
 	    m_state.setGoAgain(); //since not error
 	  }
 	return false; //necessary if not just a warning.
       }
 
-    //folded here..(but no checkandlabel yet)
     if(updateConstant(newconst))
       {
-	NodeTerminal * newnode;
-	if(m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum() == Int)
-	  newnode = new NodeTerminal((s64) newconst, nuti, m_state);
-	else
-	  newnode = new NodeTerminal(newconst, nuti, m_state);
-
-	newnode->setNodeLocation(getNodeLocation());
-	delete m_nodeInitExpr;
-	m_nodeInitExpr = newnode;
+	BV8K bvtmp;
+	u32 len = m_state.getTotalBitSize(nuti);
+	bvtmp.WriteLong(0u, len, newconst); //is newconst packed?
+	m_varSymbol->setInitValue(bvtmp); //isReady now!
+	return true;
       }
-    else
-      return false;
-
-    ((SymbolVariableDataMember *) m_varSymbol)->setInitValue(newconst); //isReady now!
-    return true;
+    return false;
   } //foldInitExpression
 
   bool NodeVarDeclDM::updateConstant(u64 & newconst)
@@ -568,7 +587,7 @@ namespace MFM {
     UTI cuti = m_state.getCompileThisIdx();
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
-    u32 pos = m_varSymbol->getPosOffset();
+    u32 pos = ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset();
     s32 bitsize = nut->getBitSize();
 
     if(cut->getUlamClassType() == UC_ELEMENT)
@@ -604,16 +623,27 @@ namespace MFM {
     else if(m_nodeInitExpr)
       {
 	//primitive (not a class!)
-	//arrays not initialized at this time
+	//arrays may be initialized now
 	if(m_state.isScalar(nuti))
 	  {
 	    u64 val = 0;
-	    if(((SymbolVariableDataMember *) m_varSymbol)->getInitValue(val))
+	    if(m_varSymbol->getInitValue(val))
 	      {
 		s32 classsize = m_state.getBitSize(m_state.getCompileThisIdx());
 		u64 packedval = 0;
 		m_state.getDefaultAsPackedArray(classsize, bitsize, 1, pos, (u64) val, packedval);
 		dvref.WriteLong(pos, bitsize, packedval);
+		aok = true;
+	      }
+	  }
+	else
+	  {
+	    assert(m_varSymbol->hasInitValue());
+	    BV8K dval; //copies default BV
+	    if(m_varSymbol->getInitValue(dval))
+	      {
+		u32 len = nut->getTotalBitSize();
+		dval.CopyBV(0u, pos, len, dvref); //frompos, topos, len, destBV
 		aok = true;
 	      }
 	  }
@@ -651,7 +681,7 @@ namespace MFM {
 	  {
 	    m_state.indent(fp);
 	    fp->write("initBV.Write(");
-	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset() + startpos);
+	    fp->write_decimal_unsigned(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset() + startpos);
 	    fp->write("u + ");
 	    fp->write_decimal_unsigned(i * BITSPERATOM);
 	    fp->write("u, T::ATOM_FIRST_STATE_BIT, typefield);\n");
@@ -676,7 +706,7 @@ namespace MFM {
 	assert(cblock);
 
 	for(s32 i = 0; i < arraysize; i++)
-	  cblock->genCodeElementTypeIntoDataMemberDefaultValue(fp, m_varSymbol->getPosOffset() + startpos + i * len); //e.g. t3715
+	  cblock->genCodeElementTypeIntoDataMemberDefaultValue(fp, ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset() + startpos + i * len); //e.g. t3715
       }
   } //genCodeElementTypeIntoDataMemberDefaultValue
 
@@ -684,37 +714,23 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    assert(m_state.okUTItoContinue(nuti));
+    assert(m_state.isComplete(nuti));
 
-    u64 dpkval = 0;
-    if(!m_state.getPackedDefaultClass(nuti, dpkval))
-      return; //not pack loadable (or not ok to continue)
+    u32 bitsize = nut->getBitSize();
+    s32 arraysize = nut->getArraySize();
 
-    //build dqval array
-    if(!nut->isScalar())
-      {
-	//array of packed classes
-	if(nut->getTotalWordSize() > MAXBITSPERLONG) //64
-	  {
-	    std::ostringstream msg;
-	    msg << "Not supported at this time, UN-PACKEDLOADABLE Class array type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //was ERR
-	    return;
-	  }
-	u64 dpkarr = 0;
-	m_state.getDefaultAsPackedArray(nuti, dpkval, dpkarr); //3rd arg ref
-	dpkval = dpkarr;
-      }
-    //else scalar in dpkval
+    BV8K bvtmp;
+    AssertBool gotDefault = m_state.getDefaultClassValue(nuti, bvtmp);
+    assert(gotDefault); //maybe zeros
 
-    //folding into a terminal node
-    NodeTerminal * newnode = new NodeTerminal(dpkval, nuti, m_state);
-    newnode->setNodeLocation(getNodeLocation());
-    delete m_nodeInitExpr;
-    m_nodeInitExpr = newnode;
-    //(in this order) i thought this was for primitives only????
-    ((SymbolVariableDataMember *) m_varSymbol)->setHasInitValue(); //???
-    ((SymbolVariableDataMember *) m_varSymbol)->setInitValue(dpkval); //???
+    BV8K bvarr;
+    arraysize = arraysize > 0 ? arraysize : 1;
+    m_state.getDefaultAsArray(bitsize, arraysize, 0u, bvtmp, bvarr);
+
+    //(in this order) i thought this was for primitives only?
+    m_varSymbol->setHasInitValue();
+    m_varSymbol->setInitValue(bvarr); //t3512
   } //foldDefaultClass
 
   void NodeVarDeclDM::packBitsInOrderOfDeclaration(u32& offset)
@@ -722,7 +738,7 @@ namespace MFM {
     assert((s32) offset >= 0); //neg is invalid
     assert(m_varSymbol);
 
-    m_varSymbol->setPosOffset(offset);
+    ((SymbolVariableDataMember *) m_varSymbol)->setPosOffset(offset);
 
     UTI it = m_varSymbol->getUlamTypeIdx();
     assert(m_state.isComplete(it)); //moved error check to separate pass
@@ -800,19 +816,29 @@ namespace MFM {
       return UNEVALUABLE;
 
     // m_nodeInitExpr exists as result of a previous fold
-    if(etyp == Class && (m_nodeInitExpr == NULL))
+    if((etyp == Class) && (m_nodeInitExpr == NULL))
       {
-	//element and transient can only be a data member of a transient
-	//quarks go anywhere;
-	u64 dpkval = 0;
-	if(m_state.getPackedDefaultClass(nuti, dpkval))
-	  foldDefaultClass();
+	UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
+	PACKFIT packFit = m_state.determinePackable(scalaruti);
+	if(packFit == PACKEDLOADABLE)
+	  {
+	    //element and transient can only be a data member of a transient;
+	    //quarks go anywhere; could be array of them!
+	    u64 dpkval = 0;
+	    if(m_state.getPackedDefaultClass(nuti, dpkval))
+	      foldDefaultClass(); //XXXside-effects m_nodeInitExpr w a terminal
+	    else
+	      return ERROR;
+	  }
 	else
-	  return ERROR;
+	  {
+	    //unpacked
+	    return UNEVALUABLE;
+	  }
       }
 
     // packedloadable class (e.g. quark) or nonclass data member;
-    if(((SymbolVariableDataMember *) m_varSymbol)->hasInitValue())
+    if(m_nodeInitExpr && m_varSymbol->hasInitValue())
       {
 	return NodeVarDecl::evalInitExpr();
       }
@@ -843,7 +869,7 @@ namespace MFM {
 
   UlamValue NodeVarDeclDM::makeUlamValuePtr()
   {
-    return UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+    return UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset(), m_varSymbol->getId());
   }
 
   // parse tree in order declared, unlike the ST.
@@ -877,7 +903,7 @@ namespace MFM {
 	fp->write("<EC> ");
 	fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
 	fp->write("; //offset ");
-	fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
+	fp->write_decimal_unsigned(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset());
 	fp->write("u\n"); //func call parameters aren't NodeVarDecl's
       }
     else
@@ -890,14 +916,14 @@ namespace MFM {
 	  {
 	    s32 arraysize = nut->getArraySize();
 	    arraysize = (arraysize <= 0 ? 1 : arraysize);
-	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
+	    fp->write_decimal_unsigned(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset());
 	    fp->write("u, BPA * "); //atom-based
 	    fp->write_decimal(arraysize); //include arraysize
 	    fp->write("u> ");
 	  }
 	else
 	  {
-	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
+	    fp->write_decimal_unsigned(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset());
 	    fp->write("u, ");
 	    fp->write_decimal(nut->getTotalBitSize()); //include arraysize
 	    fp->write("u> ");
@@ -920,7 +946,7 @@ namespace MFM {
     fp->write("\", \"");
     fp->write(m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str());
     fp->write("\", ");
-    fp->write_decimal(m_varSymbol->getPosOffset());
+    fp->write_decimal(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset());
     fp->write("u); return i; }\n");
 
     dmcount++; //increment data member count

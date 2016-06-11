@@ -7,11 +7,18 @@ namespace MFM {
 
   SymbolVariableStack::SymbolVariableStack(const SymbolVariableStack& sref) : SymbolVariable(sref), m_stackFrameSlotIndex(sref.m_stackFrameSlotIndex), m_autoStgTypeForEval(sref.m_autoStgTypeForEval) {}
 
+  SymbolVariableStack::SymbolVariableStack(const SymbolVariableStack& sref, bool keepType) : SymbolVariable(sref, keepType), m_stackFrameSlotIndex(sref.m_stackFrameSlotIndex), m_autoStgTypeForEval(sref.m_autoStgTypeForEval) {}
+
   SymbolVariableStack::~SymbolVariableStack() {}
 
   Symbol *  SymbolVariableStack::clone()
   {
     return new SymbolVariableStack(*this);
+  }
+
+  Symbol * SymbolVariableStack::cloneKeepsType()
+  {
+    return new SymbolVariableStack(*this, true);
   }
 
   s32 SymbolVariableStack::getStackFrameSlotIndex()
@@ -36,6 +43,11 @@ namespace MFM {
     if(getAutoLocalType() == ALT_REF)
       return "Ur_";
     return "Uv_";
+  }
+
+  void SymbolVariableStack::printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
+  {
+    Symbol::printPostfixValuesOfVariableDeclarations(fp, slot, startpos, classtype); //pure in SymbolWithValue
   }
 
   void SymbolVariableStack::generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype)

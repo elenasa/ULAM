@@ -116,7 +116,7 @@ namespace MFM {
 		  }
 		else
 		  {
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		    setNodeType(Hzy); //mising
 		    m_state.setGoAgain(); //too
 		    return Hzy;
@@ -150,11 +150,9 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Incomplete Terminal Proxy for type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
-	    msg << " of member '";
-	    msg << m_state.getTokenDataAsString(&m_ofTok).c_str();
-	    msg << "' while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    msg << ", of member '";
+	    msg << m_state.getTokenDataAsString(&m_ofTok).c_str() << "'";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	  }
       }
 
@@ -220,6 +218,7 @@ namespace MFM {
       {
       case TOK_KW_SIZEOF:
 	{
+	  //consistent with C; (not array size if non-scalar)
 	  m_constant.uval =  cut->getTotalBitSize(); //unsigned
 	  rtnB = true;
 	}
@@ -296,7 +295,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	if(m_state.okUTItoContinue(m_uti) || (m_uti == Hzy))
 	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    m_state.setGoAgain(); //since not error; maybe no nodetypedesc
 	  }
 	else

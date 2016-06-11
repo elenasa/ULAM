@@ -157,9 +157,7 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Incomplete descriptor for scalar of array: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(scuti).c_str();
-		msg << " UTI" << scuti << " while labeling class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	      }
 	  }
 
@@ -192,7 +190,8 @@ namespace MFM {
 	return false; //error, e.g. possible divide by zero
       }
 
-    if(as != UNKNOWNSIZE)
+    //do it anyway, progress for the bitsize (t3773)
+    //if(as != UNKNOWNSIZE)
       {
 	// keep in case a template
 	//delete m_unknownArraysizeSubtree;

@@ -54,6 +54,10 @@ namespace MFM{
 
     virtual Node * instantiate();
 
+    virtual void updateLineage(NNO pno);
+
+    virtual bool findNodeNo(NNO n, Node *& foundNode);
+
     virtual void printOp(File * fp);
 
     virtual const char * getName();
@@ -74,7 +78,7 @@ namespace MFM{
 
     virtual bool installSymbolTypedef(TypeArgs& args, Symbol *& asymptr);
     virtual bool installSymbolConstantValue(TypeArgs& args, Symbol *& asymptr);
-    virtual bool installSymbolParameterValue(TypeArgs& args, Symbol*& asymptr);
+    virtual bool installSymbolModelParameterValue(TypeArgs& args, Symbol*& asymptr);
     virtual bool installSymbolVariable(TypeArgs& args,  Symbol *& asymptr);
 
     //helper method to install symbol; also called by Resolver for unknown arraysize

@@ -63,7 +63,7 @@ namespace MFM {
 	msg << "' requires a variable; may be a casted function call";
 	if(lstor == TBOOL_HAZY)
 	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    setNodeType(Hzy);
 	    m_state.setGoAgain();
 	    return Hzy;
@@ -89,7 +89,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    setNodeType(Hzy);
 	    m_state.setGoAgain(); //since no error msg
 	  }

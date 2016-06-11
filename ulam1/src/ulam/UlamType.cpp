@@ -322,7 +322,7 @@ namespace MFM {
 
   TMPSTORAGE UlamType::getTmpStorageTypeForTmpVar()
   {
-    return TMPREGISTER; //size? unpacked arrays?
+    return TMPREGISTER; //unpacked arrays reflected in tmp name.
   }
 
   const char * UlamType::getUlamTypeAsSingleLowercaseLetter()
@@ -667,6 +667,11 @@ namespace MFM {
   void UlamType::setItemWordSize(u32 iw)
   {
     m_wordLengthItem = iw; //e.g. 32, 64, 96
+  }
+
+  u32 UlamType::getTotalNumberOfWords()
+  {
+    return getTotalWordSize()/MAXBITSPERINT; //wordsize was rounded up (no +31 needed)
   }
 
   bool UlamType::isMinMaxAllowed()

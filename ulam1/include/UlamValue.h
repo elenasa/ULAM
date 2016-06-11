@@ -191,6 +191,8 @@ namespace MFM{
 
     void putDataLong(u32 pos, s32 len, u64 data);
 
+    void putDataBig(u32 pos, s32 len, const BV8K& data);
+
     UlamValue& operator=(const UlamValue& rhs);
 
     bool operator==(const UlamValue& rhs);
