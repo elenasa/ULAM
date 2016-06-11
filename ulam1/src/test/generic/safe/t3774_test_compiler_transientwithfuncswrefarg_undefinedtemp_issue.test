@@ -36,7 +36,7 @@ element Mob : WindowScanner {
 
 #:WindowServices.ulam
   ulam 2;
-use EventWindow;
+//use EventWindow;
 transient WindowServices {
   typedef Unary(4) Radius;
   typedef EventWindow.SiteNum SiteNum;

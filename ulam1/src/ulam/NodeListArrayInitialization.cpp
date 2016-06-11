@@ -31,6 +31,18 @@ namespace MFM{
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  void NodeListArrayInitialization::printPostfix(File * fp)
+  {
+    fp->write(" {");
+    for(u32 i = 0; i < m_nodes.size(); i++)
+      {
+	if(i > 0)
+	  fp->write(",");
+	m_nodes[i]->printPostfix(fp);
+      }
+    fp->write(" }");
+  } //printPostfix
+
   bool NodeListArrayInitialization::isAConstant()
   {
     bool rtnc = true;

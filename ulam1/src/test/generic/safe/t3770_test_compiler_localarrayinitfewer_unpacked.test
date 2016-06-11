@@ -7,7 +7,7 @@
 ##
 #!
 Exit status: 4
-Ue_A { Int(32) a(4);  System s();  Int(32) test() {  Int(32) c[7] = -1 cast 5 cast 4 cast;  s ( 224u )print . s ( true )assert . a c 6 [] = s ( a )print . s ( a 4 cast == )assert . a return } }
+Ue_A { Int(32) a(4);  System s();  Int(32) test() {  Int(32) c[7] = { -1 cast, 5 cast, 4 cast };  s ( 224u )print . s ( true )assert . a c 6 [] = s ( a )print . s ( a 4 cast == )assert . a return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3769

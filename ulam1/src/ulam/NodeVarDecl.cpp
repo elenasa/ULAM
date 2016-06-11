@@ -380,18 +380,8 @@ namespace MFM {
 		  {
 		    //if here, assume arraysize depends on number of initializers
 		    s32 bitsize = dut->getBitSize();
-		    //if(bitsize > 0)
-		    //{
-			u32 n = ((NodeList *) m_nodeInitExpr)->getNumberOfNodes();
-			m_state.setUTISizes(duti, bitsize, n);
-			//  }
-			//else
-			//{
-			//it = Hzy;
-			//m_nodeInitExpr->setNodeType(Hzy); //replace Void too!
-			//m_state.setGoAgain();
-			//assert(0);
-			// }
+		    u32 n = ((NodeList *) m_nodeInitExpr)->getNumberOfNodes();
+		    m_state.setUTISizes(duti, bitsize, n);
 
 		    if(m_state.isComplete(duti))
 		      {
@@ -807,8 +797,7 @@ namespace MFM {
   EvalStatus NodeVarDecl::evalInitExpr()
   {
     //also called by NodeVarDecDM for data members with initial constant values (t3514);
-    // don't want to call m_nodeInitExpr->eval(), if this is an constant initialized
-    //     array (e.g. t3768, t3769);
+    // don't call m_nodeInitExpr->eval(), if constant initialized array (e.g.t3768, t3769);
     if(m_varSymbol->hasInitValue() && !m_state.isScalar(getNodeType()))
       {
 	return NORMAL;
@@ -847,7 +836,6 @@ namespace MFM {
 	    else
 	      {
 		//(do same as scalar) t3419. t3425, t3708
-		//Node::assignReturnValueToStack(pluv); //not when unpacked? how come?
 		m_state.assignValue(pluv,ruv);
 		Node::assignReturnValueToStack(ruv);
 	      }
