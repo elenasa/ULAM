@@ -118,6 +118,10 @@ namespace MFM{
 
     virtual bool isReadyConstant();
 
+    virtual bool isNegativeConstant();
+
+    virtual bool isWordSizeConstant();
+
     virtual bool isFunctionCall();
 
     virtual bool isExplicitReferenceCast(); //only NodeCast may return true
@@ -135,10 +139,6 @@ namespace MFM{
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
     virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
-
-    virtual bool isNegativeConstant();
-
-    virtual bool isWordSizeConstant();
 
     virtual bool installSymbolTypedef(TypeArgs& args, Symbol *& asymptr);
 

@@ -1,42 +1,50 @@
 ## -*- mode:ulam -*-
-#=t3774_test_compiler_transientwithfuncswrefarg_undefinedtemp_issue
+#=t3779_test_compiler_transientwithfuncswrefarg_castvoidreturn_issue
 ##
 ## gen output: (+ asserts)
 ## Unsigned Arg: 2
 ## Unsigned Arg: 3
+## Unsigned Arg: 2
 ##
 #!
 Exit status: -11
-Ue_Mob : WindowScanner { :< typedef Unsigned(6) SiteNum; > typedef Unsigned(6) SiteNum;  Int(32) test() {  WindowServices ws;  ws ( self cast 1 cast 3 cast )scan . 0 cast return } }
+Ue_Mob : WindowScanner { :< typedef Unsigned(6) SiteNum; > typedef Unsigned(6) SiteNum;  Bool(1) sp(false);  Int(32) test() {  WindowServices ws;  ws ( self cast )scan . System s;  s ( ws mSites 3 [] . cast )print . s ( ws mSites 3 [] . cast 2 cast == )assert . 0 cast return } }
 Uq_WindowScanner { typedef Unsigned(6) SiteNum;  <NOMAIN> }
 Uq_EventWindow { typedef Unsigned(6) SiteNum;  <NOMAIN> }
 Un_WindowServices { typedef Unary(4) Radius;  typedef Unsigned(6) SiteNum;  typedef Unsigned(4) Category;  constant Unsigned(32) cCATEGORY_COUNT = 16u;  Bool(1) status(false);  Unary(4) m_inner(0);  Unary(4) m_outer(0);  Unsigned(6) m_sn( 2u);  Unsigned(6) mSites[16](0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);  EventWindow ew( typedef Unsigned(6) SiteNum; );  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
-## based on ish 06/10/2016 (undefined temp for reference argument to transient function)
+## based on ish 06/11/2016 (undefined temp for anonymous reference argument to transient function), and t3773
+## discovered gencode bug from return (Void) scan();
+## discovered bug in NodeCast::needsACast that did not cast two classes of the same size.
 ##
 #>Mob.ulam
   ulam 2;
 element Mob : WindowScanner {
   typedef EventWindow.SiteNum SiteNum;
+  Bool sp; //change the size of subclass (reveals bug in needsACast)
 
   virtual Bool visit(WindowServices &ws, Atom & a, SiteNum sn) {
     if (a is Self) ws.categorize(sn, 1);       // #1 is us
     //    else if (a is Empty) ws.categorize(sn, 2); // #2 is empty
-    else ws.categorize(sn,3);                  // #3 is everything else
+    else ws.categorize(sn, 3);                  // #3 is everything else
     return true;
   }
 
   Int test() {
     WindowServices ws;
-    ws.scan(self, 1, 3);
+    ws.scan(self);
+
+    //insure categorize was called; Void return scan (bug!)
+    System s;
+    s.print((Unsigned) ws.mSites[3]); //categ == 3
+    s.assert(ws.mSites[3] == 2);
     return 0;
   }
 }
 
 #:WindowServices.ulam
   ulam 2;
-//use EventWindow;
 transient WindowServices {
   typedef Unary(4) Radius;
   typedef EventWindow.SiteNum SiteNum;
@@ -48,6 +56,11 @@ transient WindowServices {
   SiteNum m_sn = 2;
   SiteNum mSites[cCATEGORY_COUNT];
   EventWindow ew;
+
+  Void scan(WindowScanner& scanner)
+  {
+    return scan(scanner, (Radius) 1, (Radius) 3);
+  }
 
   Void scan(WindowScanner& scanner, Radius inner, Radius outer) {
     m_inner = inner;
