@@ -398,14 +398,11 @@ namespace MFM {
     SymbolClass * newclassinstance = new SymbolClass(stubTok, newuti, newblockclass, this, m_state);
     assert(newclassinstance);
 
-    //newclassinstance->setUlamClass(getUlamClass());
     assert(newclassinstance->getUlamClass() == getUlamClass());
 
     if(isQuarkUnion())
       newclassinstance->setQuarkUnion();
 
-    //if(isCATemplate)
-    //  ((UlamTypeClass *) m_state.getUlamTypeByIndex(newuti))->setCustomArray();
     assert(((UlamTypeClass *) m_state.getUlamTypeByIndex(newuti))->isCustomArray() == isCATemplate);
 
     // we are in the middle of fully instantiating (context) or parsing;

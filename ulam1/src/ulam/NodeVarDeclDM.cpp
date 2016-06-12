@@ -163,9 +163,21 @@ namespace MFM {
   UTI NodeVarDeclDM::checkAndLabelType()
   {
     NodeVarDecl::checkAndLabelType(); //sets node type
+    UTI cuti = m_state.getCompileThisIdx();
+
+    //don't allow unions to initialize its data members
+    if(m_state.isClassAQuarkUnion(cuti) && m_nodeInitExpr)
+      {
+	std::ostringstream msg;
+	msg << "Data member '";
+	msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+	msg << "' belongs to a quark-union, and cannot be initialized";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav);
+	return Nav; //short-circuit
+      }
 
     //don't allow a subclass to shadow a superclass datamember
-    UTI cuti = m_state.getCompileThisIdx();
     UTI superuti = m_state.isClassASubclass(cuti);
     if(superuti == Hzy)
       {
@@ -382,7 +394,7 @@ namespace MFM {
     if(m_varSymbol->isInitValueReady())
       return true; //short-circuit
 
-    if(!m_state.isScalar(nuti)) //arrays handled by NodeVarDecl
+    if(!m_state.isScalar(nuti)) //arrays handled by NodeVarDecl (virtual)
       return NodeVarDecl::foldInitExpression();
 
     assert(m_nodeInitExpr);
