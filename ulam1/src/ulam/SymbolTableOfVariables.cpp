@@ -197,7 +197,7 @@ namespace MFM {
 	UTI suti = sym->getUlamTypeIdx();
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
 
-	//skip quarkunion initializations
+	//skip quarkunion initializations (o.w. misleading, which value? e.g. t3782)
 	if(sym->isDataMember() && variableSymbolWithCountableSize(sym) && !m_state.isClassAQuarkUnion(suti))
 	  {
 	    s32 len = sut->getTotalBitSize(); //include arrays (e.g. t3512)
