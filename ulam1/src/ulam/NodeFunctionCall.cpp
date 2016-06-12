@@ -1191,7 +1191,6 @@ namespace MFM {
     // or ancestor quark if a class.
     m_argumentNodes->genCodeToStoreInto(fp, uvpass, n);
 
-    //assert(!m_state.m_currentObjSymbolsForCodeGen.empty()); such as .atomof
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
 	return genCodeAnonymousReferenceArg(fp, uvpass, n); //such as .atomof
@@ -1280,16 +1279,21 @@ namespace MFM {
   // uses uvpass rather than stgcos, cos for classes or atoms (not primitives)
   void NodeFunctionCall::genCodeAnonymousReferenceArg(File * fp, UVPass & uvpass, u32 n)
   {
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //such as .stomof
+    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //such as .atomof; self (t3779)
 
     assert(m_funcSymbol);
     UTI vuti = m_funcSymbol->getParameterType(n);
+    UTI puti = uvpass.getPassTargetType();
+
+    if(UlamType::compare(vuti, puti, m_state) == UTIC_SAME) return; //unneeded, uvpass as-is
+
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     ULAMTYPE vetyp = vut->getUlamTypeEnum();
 
-    UTI puti = uvpass.getPassTargetType();
     UlamType * put = m_state.getUlamTypeByIndex(puti);
-    TMPSTORAGE rstor = put->getUlamClassType() == UC_QUARK ? TMPREGISTER : uvpass.getPassStorage();
+    //TMPSTORAGE rstor = put->getUlamClassType() == UC_QUARK ? TMPREGISTER : uvpass.getPassStorage(); //06112016 ish undefined temp. t3779
+    TMPSTORAGE rstor = uvpass.getPassStorage();
+
     assert(vetyp == put->getUlamTypeEnum());
 
     s32 tmpVarArgNum = uvpass.getPassVarNum();
