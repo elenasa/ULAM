@@ -29,4 +29,8 @@ namespace MFM {
     return isScalar(); //minof/maxof allowed in ulam
   }
 
+  const std::string UlamTypeInternalHolder::getUlamTypeNameBrief()
+  {
+    return "holder";
+  }
 } //end MFM

@@ -152,6 +152,29 @@ namespace MFM {
     return false;
   }
 
+  // only for constants (NodeTerminal)
+  bool Node::isNegativeConstant()
+  {
+    assert(0);
+    return false;
+  }
+
+  bool Node::isWordSizeConstant()
+  {
+    assert(0);
+    return false;
+  }
+
+  bool Node::isFunctionCall()
+  {
+    return false;
+  }
+
+  bool Node::isExplicitReferenceCast()
+  {
+    return false;
+  }
+
   FORECAST Node::safeToCastTo(UTI newType)
   {
     std::ostringstream msg;
@@ -277,29 +300,6 @@ namespace MFM {
   void Node::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
   {
     assert(0);
-  }
-
-  // only for constants (NodeTerminal)
-  bool Node::isNegativeConstant()
-  {
-    assert(0);
-    return false;
-  }
-
-  bool Node::isWordSizeConstant()
-  {
-    assert(0);
-    return false;
-  }
-
-  bool Node::isFunctionCall()
-  {
-    return false;
-  }
-
-  bool Node::isExplicitReferenceCast()
-  {
-    return false;
   }
 
   bool Node::installSymbolTypedef(TypeArgs& args, Symbol *& asymptr)

@@ -59,6 +59,8 @@ namespace MFM{
 
     virtual bool isMinMaxAllowed();
 
+    const std::string getUlamTypeNameBrief();
+
   private:
 
   };

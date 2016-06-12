@@ -28,8 +28,8 @@ namespace MFM {
   void NodeReturnStatement::updateLineage(NNO pno)
   {
     setYourParentNo(pno);
-    if(m_node)
-      m_node->updateLineage(getNodeNo());
+    assert(m_node);
+    m_node->updateLineage(getNodeNo());
   } //updateLineage
 
   bool NodeReturnStatement::exchangeKids(Node * oldnptr, Node * newnptr)
@@ -46,15 +46,16 @@ namespace MFM {
   {
     if(Node::findNodeNo(n, foundNode))
       return true;
-    if(m_node && m_node->findNodeNo(n, foundNode))
+    assert(m_node);
+    if(m_node->findNodeNo(n, foundNode))
       return true;
     return false;
   } //findNodeNo
 
   void NodeReturnStatement::checkAbstractInstanceErrors()
   {
-    if(m_node)
-      m_node->checkAbstractInstanceErrors();
+    assert(m_node);
+    m_node->checkAbstractInstanceErrors();
   } //checkAbstractInstanceErrors
 
   void NodeReturnStatement::print(File * fp)
@@ -70,10 +71,8 @@ namespace MFM {
       sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
 
-    if(m_node)
-      m_node->print(fp);
-    else
-      fp->write(" <EMPTYSTMT>\n");
+    assert(m_node);
+    m_node->print(fp);
 
     sprintf(id,"-----------------%s\n", prettyNodeName().c_str());
     fp->write(id);
@@ -81,11 +80,8 @@ namespace MFM {
 
   void NodeReturnStatement::printPostfix(File * fp)
   {
-    if(m_node)
-      m_node->printPostfix(fp);
-    else
-      fp->write(" <EMPTYSTMT>");
-
+    assert(m_node);
+    m_node->printPostfix(fp);
     fp->write(" ");
     fp->write(getName());
   } //printPostfix
@@ -103,10 +99,8 @@ namespace MFM {
   UTI NodeReturnStatement::checkAndLabelType()
   {
     UTI rtnType = m_state.m_currentFunctionReturnType;
-    //assert(m_node); a return without an expression (i.e. Void)
-    UTI nodeType = Void;
-    if(m_node)
-      nodeType = m_node->checkAndLabelType();
+    assert(m_node); //a return without an expression (i.e. Void) is NodeStatementEmpty!
+    UTI nodeType = m_node->checkAndLabelType();
 
     if(m_state.isComplete(nodeType) && m_state.isComplete(rtnType))
       {
@@ -124,55 +118,55 @@ namespace MFM {
 	  {
 	    if(UlamType::compare(rtnType, Void, m_state) == UTIC_NOTSAME)
 	      {
-		if(m_node)
+		if(m_node->isAConstant() && !m_node->isReadyConstant())
 		  {
-		    if(m_node->isAConstant() && !m_node->isReadyConstant())
-		      {
-			m_node->constantFold();
-		      }
+		    m_node->constantFold();
+		  }
 
-		    FORECAST scr = m_node->safeToCastTo(rtnType);
-		    if(scr == CAST_CLEAR)
+		FORECAST scr = m_node->safeToCastTo(rtnType);
+		if(scr == CAST_CLEAR)
+		  {
+		    if(!Node::makeCastingNode(m_node, rtnType, m_node))
+		      nodeType = Nav; //no casting node
+		    else
+		      nodeType = m_node->getNodeType(); //casted
+		  }
+		else
+		  {
+		    std::ostringstream msg;
+		    if(m_state.getUlamTypeByIndex(rtnType)->getUlamTypeEnum() == Bool)
+		      msg << "Use a comparison operator";
+		    else
+		      msg << "Use explicit cast";
+		    msg << " to return ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+		    msg << " as ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
+		    if(scr == CAST_BAD)
 		      {
-			if(!Node::makeCastingNode(m_node, rtnType, m_node))
-			  nodeType = Nav; //no casting node
-			else
-			  nodeType = m_node->getNodeType(); //casted
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			nodeType = Nav;
 		      }
 		    else
 		      {
-			std::ostringstream msg;
-			if(m_state.getUlamTypeByIndex(rtnType)->getUlamTypeEnum() == Bool)
-			  msg << "Use a comparison operator";
-			else
-			  msg << "Use explicit cast";
-			msg << " to return ";
-			msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
-			msg << " as ";
-			msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
-			if(scr == CAST_BAD)
-			  {
-			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			    nodeType = Nav;
-			  }
-			else
-			  {
-			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-			    nodeType = Hzy;
-			  }
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+			nodeType = Hzy;
 		      }
 		  }
-	      } //no node
+	      } //not void
 	    else
 	      {
+		//(see spike/quick-foo/foo-voidfunccastreturn.cpp) e.g.t3384, error/t3280
 		std::ostringstream msg;
 		msg << "ISO C forbids return with expression in a function returning void";
+		msg << ", unless explicit cast is used for side-effects";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		nodeType = Nav; //missing?
 	      }
 	  } // not the same
-      } // not nav
-    else if((nodeType != Nav) && !m_state.isComplete(nodeType))
+      } //both complete
+
+    if((nodeType != Nav) && !m_state.isComplete(nodeType))
       {
 	std::ostringstream msg;
 	msg << "Function return type is still unresolved: ";
@@ -240,18 +234,19 @@ namespace MFM {
 
   void NodeReturnStatement::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
-    if(m_node)
-      m_node->calcMaxDepth(depth, maxdepth, base); //funccall?
+    assert(m_node);
+    m_node->calcMaxDepth(depth, maxdepth, base); //funccall?
     return; //work done by NodeStatements and NodeBlock
   }
 
   void NodeReturnStatement::genCode(File * fp, UVPass& uvpass)
   {
-    // return for void type has a NodeStatementEmpty m_node
-    if(m_node && getNodeType() != Void)
-      {
-	m_node->genCode(fp, uvpass);
+    assert(m_node); // return for Void type has a NodeStatementEmpty m_node
 
+    m_node->genCode(fp, uvpass); //C allows the side-effect for explicit Void casts (t3779)
+
+    if(getNodeType() != Void)
+      {
 	Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass);
 
 	m_state.indentUlamCode(fp);

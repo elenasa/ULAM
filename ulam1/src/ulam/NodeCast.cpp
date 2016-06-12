@@ -1382,7 +1382,7 @@ namespace MFM {
 	msg << "(UTI" << nodeType << ") to be ";
 	msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
 	msg << "(UTI" << tobeType << ")";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	return false;
       }
 
@@ -1409,10 +1409,11 @@ namespace MFM {
 	  }
 	return true;
       }
-    // consider user requested first, then size independent;
+    // consider user requested first, then type and size independently;
+    // size secondary when different classes, possibly related (e.g. t3779)
     // even constant may need casting (e.g. narrowing for saturation)
     // Bool constants require casts to generate "full" true UVPass (>1-bit).
-    return( isExplicitCast() || (typEnum != nodetypEnum)  || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType)) || ( (nodetypEnum == Bool) && m_node->isAConstant() && (m_state.getBitSize(tobeType)>1)));
+    return( isExplicitCast() || (typEnum == Class) || (typEnum != nodetypEnum) || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType)) || ( (nodetypEnum == Bool) && m_node->isAConstant() && (m_state.getBitSize(tobeType)>1)));
   } //needsACast
 
 } //end MFM
