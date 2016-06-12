@@ -17,8 +17,6 @@ element Foo {
   Int test() {
     System s;
     Too t;
-    //t.set(t.sizeof);
-    //t.set(39);
     t.a = t.sizeof;
     ta = t.get();
     s.print(ta);

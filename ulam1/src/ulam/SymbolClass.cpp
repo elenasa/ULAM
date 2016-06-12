@@ -625,7 +625,6 @@ namespace MFM {
     if(suti != m_state.getCompileThisIdx() && m_state.getUlamTypeByIndex(suti)->isComplete())
       {
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
-	//ULAMCLASSTYPE sclasstype = sut->getUlamClassType();
 
 	m_state.indent(fp);
 	fp->write("namespace MFM { template ");

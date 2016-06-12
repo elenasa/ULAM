@@ -59,6 +59,8 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual void printPostfix(File * fp);
+
     virtual bool isAConstant();
 
     virtual UTI checkAndLabelType();

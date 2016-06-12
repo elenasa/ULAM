@@ -622,7 +622,6 @@ namespace MFM {
 	//adjust index if on the STACK, not for Event Window site
 	s32 nextslot = m_state.m_funcCallStack.getRelativeTopOfStackNextSlot();
 	s32 atomslot = atomPtr.getPtrSlotIndex();
-	//s32 adjustedatomslot = atomslot - (nextslot + rtnslots + 1); //negative index; 1 more for atomPtr
 	s32 adjustedatomslot = atomslot - (nextslot + rtnslots + 2); //negative index; 1 more for atomPtr (+uc)
 	atomPtr.setPtrSlotIndex(adjustedatomslot);
 	if(atomPtr.getUlamValueTypeIdx() == PtrAbs)
@@ -1254,13 +1253,13 @@ namespace MFM {
 		fp->write("u");
 	      }
 	    //else if(vclasstype == UC_QUARK)
-	    else if(vetyp == Class)
+	    else if(vetyp == Class) //t3774
 	      {
 		fp->write(", 0u, "); //left-justified
 		if(m_state.isReference(stgcosuti))
 		  {
 		    fp->write(stgcos->getMangledName().c_str()); //stg
-		    fp->write(".GetEffectiveSelf()");
+		    fp->write(".GetEffectiveSelf()"); //t3774
 		  }
 		else
 		  {
@@ -1272,8 +1271,7 @@ namespace MFM {
       }
     fp->write(");\n");
 
-    //uvpass.setPassVarNum(tmpVarArgNum);
-    //uvpass.setPassStorage(TMPBITVAL);
+    //uvpass.setPassVarNum(tmpVarArgNum); uvpass.setPassStorage(TMPBITVAL); //t3774
     uvpass = UVPass::makePass(tmpVarArgNum, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, pos, stgcos->getId()); //POS adjusted for BitVector, justified; self id in Pass;
 
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
@@ -1287,7 +1285,6 @@ namespace MFM {
     assert(m_funcSymbol);
     UTI vuti = m_funcSymbol->getParameterType(n);
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    //ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
     ULAMTYPE vetyp = vut->getUlamTypeEnum();
 
     UTI puti = uvpass.getPassTargetType();
@@ -1306,8 +1303,6 @@ namespace MFM {
     fp->write("("); //pass ref in constructor (ref's not assigned with =)
     fp->write(m_state.getTmpVarAsString(puti, tmpVarArgNum, rstor).c_str());
 
-    //if(vclasstype == UC_QUARK)
-    //  fp->write(", 0u"); //left-justified
     if(vetyp == Class)
       {
 	fp->write(", 0u, "); //left-justified
@@ -1325,8 +1320,6 @@ namespace MFM {
 
     fp->write(");\n");
 
-    //uvpass.setPassVarNum(tmpVarArgNum2);
-    //uvpass.setPassStorage(TMPBITVAL);
     uvpass = UVPass::makePass(tmpVarArgNum2, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, 0, 0); //POS adjusted for BitVector, justified; self id in Pass;
   } //genCodeAnonymousReferenceArg
 

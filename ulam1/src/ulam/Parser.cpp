@@ -3369,19 +3369,10 @@ namespace MFM {
       return leftNode;
 
     Node * rightNode = parseExpression();
-    //Array size may be blank if initialized; not array item!!
-    //    if(!rightNode)
-    //  {
-    //	MSG(&pTok, "Array item/size is missing; Square Bracket deleted", ERR);
-    //	delete leftNode;
-    //	rtnNode = NULL;
-    //  }
-    //else
-    {
-      rtnNode = new NodeSquareBracket(leftNode, rightNode, m_state);
-      assert(rtnNode);
-      rtnNode->setNodeLocation(pTok.m_locator);
-    }
+    //Array size may be blank if initialized (not array item!!);
+    rtnNode = new NodeSquareBracket(leftNode, rightNode, m_state);
+    assert(rtnNode);
+    rtnNode->setNodeLocation(pTok.m_locator);
 
     if(!getExpectedToken(TOK_CLOSE_SQUARE))
       {
@@ -4974,13 +4965,6 @@ namespace MFM {
     if(eTok.m_type == TOK_AMP)
       {
 	// maybe be needed for atom to quark ref casts (t3692)
-
-	//disallow reference type casts now that elements are no longer packed
-	//std::ostringstream msg;
-	//msg << "Cannot explicitly cast ";
-	//msg << m_state.getUlamTypeNameBriefByIndex(typeNode->givenUTI());
-	//msg << " as a reference type; cast may be unnecessary";
-	//MSG(&eTok, msg.str().c_str(), ERR);
 
 	UTI refuti = m_state.getUlamTypeAsRef(typeNode->givenUTI());
 	typeargs.m_declRef = ALT_REF;

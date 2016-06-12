@@ -86,7 +86,7 @@ namespace MFM {
 
 	if(m_nodeInitExpr)
 	  {
-	    // only for quarks and scalars
+	    // only for primitive scalars and arrays
 	    m_nodeInitExpr->printPostfix(fp);
 	  }
 	else

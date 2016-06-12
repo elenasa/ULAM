@@ -56,6 +56,7 @@ namespace MFM {
   // replaced by NodeVarDecl:genCode to leverage the declaration order preserved by the parse tree.
   void SymbolVariableDataMember::generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype)
   {
+    assert(classtype == UC_ELEMENT); //really?
     UTI vuti = getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
@@ -63,7 +64,7 @@ namespace MFM {
     m_state.indentUlamCode(fp);
     fp->write(vut->getUlamTypeMangledName().c_str()); //for C++
 
-    if(vclasstype == UC_QUARK)       // called on classtype elements only
+    if(vclasstype == UC_QUARK) //called on classtype elements only
       {
 	fp->write("<");
 	fp->write_decimal(getPosOffset());
