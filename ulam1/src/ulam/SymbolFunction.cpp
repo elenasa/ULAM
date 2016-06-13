@@ -408,7 +408,7 @@ namespace MFM {
 	UTI auti = asym->getUlamTypeIdx();
 	UlamType * aut = m_state.getUlamTypeByIndex(auti);
 	fp->write(aut->getLocalStorageTypeAsString().c_str()); //for C++
-	//if(aut->isReference())
+	if(aut->isReference())
 	  fp->write("&"); //gen C++ reference for Ulam ref (auto) arg; avoids g++ synthesized copy constructor
 
 	fp->write(" ");
@@ -489,7 +489,7 @@ namespace MFM {
 	UTI auti = asym->getUlamTypeIdx();
 	UlamType * aut = m_state.getUlamTypeByIndex(auti);
 	fp->write(aut->getLocalStorageTypeAsString().c_str()); //for C++
-	//if(aut->isReference())
+	if(aut->isReference())
 	  fp->write("&"); //gen C++ reference for Ulam ref (auto) arg; avoids g++ synthesized copy constructor
       }
     fp->write(")");
