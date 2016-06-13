@@ -901,7 +901,6 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMTYPE netyp = nut->getUlamTypeEnum();
-    ULAMCLASSTYPE classtype = m_state.getUlamClassForThisClass();
 
     m_state.indent(fp);
     if((netyp == Class) && nut->isScalar())
@@ -924,8 +923,11 @@ namespace MFM {
 	fp->write("typedef UlamRefFixed");
 	fp->write("<EC, "); //BITSPERATOM
 
-	if(classtype == UC_ELEMENT)
+	//if(m_state.getUlamClassForThisClass() == UC_ELEMENT) //t3714, t3779 Mob.h Up_Um_2sp
+	if(nut->getUlamClassType() == UC_ELEMENT)
 	  {
+	    //elements only data members in transients
+	    assert(m_state.getUlamClassForThisClass() == UC_TRANSIENT);
 	    s32 arraysize = nut->getArraySize();
 	    arraysize = (arraysize <= 0 ? 1 : arraysize);
 	    fp->write_decimal_unsigned(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset());
