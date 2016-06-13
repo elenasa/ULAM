@@ -7,7 +7,7 @@
 ##Unsigned Arg: 11
 ##
 Exit status: 11
-Ue_R { Int(32) test() {  Foo f;  f ( )behave . return } }
+Ue_R { Int(32) test() {  Foo f;  f ( )func . return } }
 Un_Foo { System s();  Bool(1) first(false);  <NOMAIN> }
 Un_Soo : Coo { :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
 Un_Coo : Loo { :< Int(5) lu( -1); > Bool(3) cb( true);  <NOMAIN> }
@@ -23,7 +23,7 @@ use Foo;
 element R {
   Int test() {
     Foo f;
-    return f.behave();
+    return f.func();
   }
 }
 
@@ -34,7 +34,7 @@ use System;
 transient Foo {
   System s;
   Bool first;
-  virtual Int behave() {
+  virtual Int func() {
     Soo su;
     first = su.cb;
     if(su.check())

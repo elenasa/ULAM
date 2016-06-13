@@ -5,7 +5,7 @@
 ##  Int Arg: 4
 #!
 Exit status: 4
-Ue_R { Int(32) rtn(4);  Int(32) test() {  System s;  Tu(1) t;  rtn t ( )behave . = s ( rtn )print . s ( rtn 4 cast == )assert . rtn return } }
+Ue_R { Int(32) rtn(4);  Int(32) test() {  System s;  Tu(1) t;  rtn t ( )func . = s ( rtn )print . s ( rtn 4 cast == )assert . rtn return } }
 Un_Tu(Int(32) x) : Foo { :< Int(32) mi( 4 cast); > <NOMAIN> }
 Un_Foo { Int(32) mi( 4 cast);  <NOMAIN> }
 Uq_System { <NOMAIN> }
@@ -22,7 +22,7 @@ element R {
   Int test(){
     System s;
     Tu(1) t;
-    rtn = t.behave();
+    rtn = t.func();
     s.print(rtn);
     s.assert(rtn == 4);
     return rtn;
@@ -34,7 +34,7 @@ element R {
 use Foo;
 transient Tu (Int x) : Foo {
 
-  virtual Int behave()
+  virtual Int func()
   {
     return mi;
   }

@@ -404,14 +404,57 @@ namespace MFM {
       m_nodeParameterList->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   } //countNavHzyNoutiNodes
 
-  void NodeBlockClass::checkDuplicateFunctions()
+  u32 NodeBlockClass::checkDuplicateFunctions()
   {
+    //starts here with fresh map!
+    u32 probcount = 0;
+    std::map<std::string, UTI> mangledFunctionMapWithReturnType;
+
     // check all the function names for duplicate definitions
     if(!isEmpty())
-      m_functionST.checkTableOfFunctions(); //returns prob counts, outputs errs
-  }
+      {
+	//first check own table for duplicate function definitions
+	//populate map, updates probcount, output errors
+	m_functionST.checkTableOfFunctions(mangledFunctionMapWithReturnType, probcount);
 
-    void NodeBlockClass::calcMaxDepthOfFunctions()
+	//check all ancestors for matching function definitions
+	UTI nuti = getNodeType();
+	UTI superuti = m_state.isClassASubclass(nuti);
+	if(superuti != Nouti)
+	  {
+	    NodeBlockClass * superClassBlock = getSuperBlockPointer();
+	    assert(superClassBlock);
+	    m_state.pushClassContext(superuti, superClassBlock, superClassBlock, false, NULL);
+	    superClassBlock->checkMatchingFunctionsInAncestors(mangledFunctionMapWithReturnType, probcount);
+	    m_state.popClassContext(); //restore
+	  }
+      }
+    mangledFunctionMapWithReturnType.clear(); //strings only
+    return probcount;
+  } //checkDuplicateFunctions
+
+  void NodeBlockClass::checkMatchingFunctionsInAncestors(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount)
+  {
+    // check all the function names for matches, okay if return type the same (regardless if virtual or not)
+    if(!isEmpty())
+      {
+	m_functionST.checkTableOfFunctionsInAncestor(mangledFunctionMap, probcount); //populate map, update probcount, output errors
+
+	//check next ancestor in turn
+	UTI nuti = getNodeType();
+	UTI superuti = m_state.isClassASubclass(nuti);
+	if(superuti != Nouti)
+	  {
+	    NodeBlockClass * superClassBlock = getSuperBlockPointer();
+	    assert(superClassBlock);
+	    m_state.pushClassContext(superuti, superClassBlock, superClassBlock, false, NULL);
+	    superClassBlock->checkMatchingFunctionsInAncestors(mangledFunctionMap, probcount);
+	    m_state.popClassContext(); //restore
+	  }
+      }
+  } //checkMatchingFunctionsInAncestors
+
+  void NodeBlockClass::calcMaxDepthOfFunctions()
   {
     // for all the function names, calculate their max depth
     if(!isEmpty())

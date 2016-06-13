@@ -111,7 +111,9 @@ namespace MFM{
 
     virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
 
-    void checkDuplicateFunctions();
+    u32 checkDuplicateFunctions();
+
+    void checkMatchingFunctionsInAncestors(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount);
 
     void calcMaxDepthOfFunctions();
 

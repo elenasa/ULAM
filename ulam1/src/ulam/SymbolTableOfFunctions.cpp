@@ -45,21 +45,35 @@ namespace MFM {
   } //addClassMemberFunctionDescriptionsToMap
 
   //convert UTI to mangled strings to insure overload uniqueness
-  bool SymbolTableOfFunctions::checkTableOfFunctions()
+  void SymbolTableOfFunctions::checkTableOfFunctions(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount)
   {
-    u32 probcnt = 0;
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
 	if(sym->isFunction())
 	  {
-	    probcnt += ((SymbolFunctionName *) sym)->checkFunctionNames();
+	    ((SymbolFunctionName *) sym)->checkFunctionNames(mangledFunctionMap, probcount);
 	  }
 	it++;
       }
-    return (probcnt > 0);
+    return;
   } //checkTableOfFunctions
+
+  void SymbolTableOfFunctions::checkTableOfFunctionsInAncestor(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount)
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	if(sym->isFunction())
+	  {
+	    ((SymbolFunctionName *) sym)->checkFunctionNamesInAncestor(mangledFunctionMap, probcount);
+	  }
+	it++;
+      }
+    return;
+  } //checkTableOfFunctionsInAncestor
 
   void SymbolTableOfFunctions::linkToParentNodesAcrossTableOfFunctions(NodeBlockClass * p)
   {
