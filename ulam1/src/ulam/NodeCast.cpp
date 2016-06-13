@@ -1413,6 +1413,7 @@ namespace MFM {
     // size secondary when different classes, possibly related (e.g. t3779)
     // even constant may need casting (e.g. narrowing for saturation)
     // Bool constants require casts to generate "full" true UVPass (>1-bit).
+    //return( isExplicitCast() || /*(typEnum == Class) ||*/ (typEnum != nodetypEnum) || ((typEnum != Class) && (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType))) || ( (nodetypEnum == Bool) && m_node->isAConstant() && (m_state.getBitSize(tobeType)>1))); //noop for class refs
     return( isExplicitCast() || (typEnum == Class) || (typEnum != nodetypEnum) || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType)) || ( (nodetypEnum == Bool) && m_node->isAConstant() && (m_state.getBitSize(tobeType)>1)));
   } //needsACast
 

@@ -778,6 +778,7 @@ namespace MFM {
 
     //non-void RETURN value saved in a tmp BitValue; depends on return type
     m_state.indentUlamCode(fp);
+
     if(nuti != Void)
       {
 	u32 pos = 0; //POS 0 leftjustified;
@@ -808,6 +809,12 @@ namespace MFM {
 
 	uvpass = UVPass::makePass(rtnSlot, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, justified; self id in Pass;
 
+	if(m_funcSymbol->isVirtualFunction())
+	  {
+	    genCodeVirtualFunctionCallVTableEntry(fp, uvpass, urtmpnum); //indirect call thru func ptr
+	    m_state.indentUlamCode(fp);
+	  }
+
 	// put result of function call into a variable;
 	// (C turns it into the copy constructor)
 	fp->write("const ");
@@ -821,7 +828,9 @@ namespace MFM {
     // static functions..oh yeah..but only for quarks and virtual funcs
     // who's function is it?
     if(m_funcSymbol->isVirtualFunction())
-      genCodeVirtualFunctionCall(fp, uvpass, urtmpnum); //indirect call thru func ptr
+      {
+	genCodeVirtualFunctionCall(fp, uvpass, urtmpnum); //indirect call thru func ptr
+      }
     else
       {
 	if(!Node::isCurrentObjectALocalVariableOrArgument())
@@ -863,8 +872,8 @@ namespace MFM {
     //loads any variables into tmps before used as args (needs fp)
     arglist << genRestOfFunctionArgs(fp, uvpass).c_str();
 
-    //non-void RETURN value saved in a tmp BitValue; depends on return type
     m_state.indentUlamCode(fp);
+    //non-void RETURN value saved in a tmp BitValue; depends on return type
     if(nuti != Void)
       {
 	u32 pos = 0; //POS 0 rightjustified;
@@ -884,6 +893,13 @@ namespace MFM {
 
 	rtnuvpass = UVPass::makePass(rtnSlot, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, justified; self id in Pass;
 
+
+	if(m_funcSymbol->isVirtualFunction())
+	  {
+	    genCodeVirtualFunctionCallVTableEntry(fp, uvpass, urtmpnum); //indirect call thru func ptr
+	    m_state.indentUlamCode(fp);
+	  }
+
 	// put result of function call into a variable;
 	// (C turns it into the copy constructor)
 	fp->write("const ");
@@ -900,7 +916,9 @@ namespace MFM {
 
     // who's function is it?
     if(m_funcSymbol->isVirtualFunction())
-      genCodeVirtualFunctionCall(fp, uvpass, urtmpnum); //indirect call thru func ptr
+      {
+	genCodeVirtualFunctionCall(fp, uvpass, urtmpnum); //indirect call thru func ptr
+      }
     else
       {
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
@@ -917,6 +935,96 @@ namespace MFM {
     uvpass = rtnuvpass;
   } //genCodeAReferenceIntoABitValue
 
+  void NodeFunctionCall::genCodeVirtualFunctionCallVTableEntry(File * fp, UVPass & uvpass, u32 urtmpnum)
+  {
+    assert(m_funcSymbol);
+    //requires runtime lookup for virtual function pointer
+    u32 vfidx = m_funcSymbol->getVirtualMethodIdx();
+
+    //need typedef typename for this vfunc, any vtable of any owner of this vfunc
+    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+    Symbol * cos = NULL; //any owner of func
+
+    if(cosSize != 0)
+      cos = m_state.m_currentObjSymbolsForCodeGen.back(); //"owner" of func
+    else
+      cos = m_state.getCurrentSelfSymbolForCodeGen(); //'self'
+
+    UTI cosuti = cos->getUlamTypeIdx();
+
+    fp->write("VfuncPtr Uh_tvfp"); //legitimize this tmp label TODO
+    fp->write_decimal_unsigned(uvpass.getPassVarNum()); //reuse tmp nnum temporaily!!!
+    fp->write(" = ");
+
+    //requires runtime lookup for virtual function pointer
+    if(cos->isSelf() || cosSize == 0)
+      {
+	fp->write(m_state.getHiddenArgName()); //ur
+	fp->write(".GetEffectiveSelf()->getVTableEntry(");
+      }
+    else if(cos->isSuper())
+      {
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
+	fp->write(".getVTableEntry(");
+      }
+    else if(urtmpnum > 0)
+      {
+	fp->write(m_state.getUlamRefTmpVarAsString(urtmpnum).c_str());
+	fp->write(".GetEffectiveSelf()->getVTableEntry(");
+      }
+    else if(cos->getAutoLocalType() == ALT_AS)
+      {
+	assert(0);
+	fp->write(m_state.getHiddenArgName()); //ur, should use urtmpnum!!
+	fp->write(".GetEffectiveSelf()->getVTableEntry(");
+      }
+    else
+      {
+	//unless local or dm, known at compile time!
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
+	fp->write(".getVTableEntry(");
+      }
+
+    fp->write_decimal_unsigned(vfidx);
+    fp->write(");\n"); //reading into a separate VfuncPtr tmp var
+  } //genCodeVirtualFunctionCallVTableEntry
+
+  void NodeFunctionCall::genCodeVirtualFunctionCall(File * fp, UVPass & uvpass, u32 urtmpnum)
+  {
+    assert(m_funcSymbol);
+    //requires runtime lookup for virtual function pointer
+    u32 vfidx = m_funcSymbol->getVirtualMethodIdx();
+
+    //need typedef typename for this vfunc, any vtable of any owner of this vfunc
+    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+    Symbol * cos = NULL; //any owner of func
+
+    if(cosSize != 0)
+      cos = m_state.m_currentObjSymbolsForCodeGen.back(); //"owner" of func
+    else
+      cos = m_state.getCurrentSelfSymbolForCodeGen(); //'self'
+
+    UTI cosuti = cos->getUlamTypeIdx();
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cosuti, csym);
+    assert(isDefined);
+
+    UTI cvfuti = csym->getClassForVTableEntry(vfidx);
+    UlamType * cvfut = m_state.getUlamTypeByIndex(cvfuti);
+
+    fp->write("((typename ");
+    fp->write(cvfut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>::"); //same for elements and quarks
+    fp->write(m_funcSymbol->getMangledNameWithTypes().c_str());
+    fp->write(") ");
+
+    fp->write(" (Uh_tvfp");
+    fp->write_decimal_unsigned(uvpass.getPassVarNum());
+    fp->write(")) ");
+    //args to function pointer remain
+  } //genCodeVirtualFunctionCall
+
+#if 0
   void NodeFunctionCall::genCodeVirtualFunctionCall(File * fp, UVPass & uvpass, u32 urtmpnum)
   {
     assert(m_funcSymbol);
@@ -978,7 +1086,9 @@ namespace MFM {
     fp->write_decimal_unsigned(vfidx);
     fp->write(")) ");
     //args to function pointer remain
+    fp->write(";\n"); //reading into a separate VfuncPtr tmp var
   } //genCodeVirtualFunctionCall
+#endif
 
   // overrides Node in case of memberselect genCode
   void NodeFunctionCall::genCodeReadIntoATmpVar(File * fp, UVPass & uvpass)
