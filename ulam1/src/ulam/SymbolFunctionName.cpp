@@ -355,7 +355,87 @@ namespace MFM {
   } //checkAbstractInstanceErrorsInFunctions
 
   // before generating code, remove duplicate funcs to avoid "previously declared" gcc error.
-  u32 SymbolFunctionName::checkFunctionNames()
+  void SymbolFunctionName::checkFunctionNames(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount)
+  {
+    UTI cuti = m_state.getCompileThisIdx();
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	assert(fsym);
+	if(checkForDuplicateFunctionSignature(mangledFunctionMap, probcount, fsym))
+	  {
+	    std::ostringstream msg;
+	    msg << "Check overloaded function <";
+	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
+	    msg << "> has a duplicate definition (";
+	    msg << fsym->getMangledNameWithTypes().c_str();
+	    msg << "), while compiling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(fsym->getTokPtr(), msg.str().c_str(), ERR);  //Dave says better to start as error
+	    NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
+	    assert(func);
+	    func->setNodeType(Nav); //compiler counts
+	    probcount++;
+	  }
+	++it;
+      }
+    return;
+  } //checkFunctionNames
+
+  void SymbolFunctionName::checkFunctionNamesInAncestor(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount)
+  {
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	assert(fsym);
+	//only a problem if same signature but different return types; virtual or not.
+	checkForDuplicateFunctionSignature(mangledFunctionMap, probcount, fsym);
+	++it;
+      }
+    return;
+  } //checkFunctionNamesInAncestors
+
+  bool SymbolFunctionName::checkForDuplicateFunctionSignature(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount, SymbolFunction * fsym)
+  {
+    bool dupfound = false;
+    std::string fmangled = fsym->getMangledNameWithTypes(); //key
+    UTI futi = fsym->getUlamTypeIdx(); //value of key
+    std::map<std::string, UTI>::iterator it = mangledFunctionMap.find(fmangled);
+    if(it != mangledFunctionMap.end())
+      {
+	dupfound = true;
+	UTI rtntype = it->second;
+	if(UlamType::compare(rtntype, futi, m_state) == UTIC_NOTSAME) //NEVER LEGAL!
+	  {
+	    std::ostringstream msg;
+	    msg << "Check overloaded function <";
+	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
+	    msg << "> with different return types (";
+	    msg << m_state.getUlamTypeNameBriefByIndex(rtntype).c_str();
+	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(futi).c_str();
+	    msg << "), while compiling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    MSG(fsym->getTokPtr(), msg.str().c_str(), ERR);  //Dave says better to start as error
+	    NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
+	    assert(func);
+	    func->setNodeType(Nav); //compiler counts
+	    probcount++;
+
+	    mangledFunctionMap.insert(std::pair<std::string, UTI> (fmangled, futi));
+	  }
+	//else already in map, dup
+      }
+    else
+      mangledFunctionMap.insert(std::pair<std::string, UTI> (fmangled, futi));
+
+    return dupfound;
+  } //checkForDuplicateFunctionSignature (helper)
+
+#if 0
+  // before generating code, remove duplicate funcs to avoid "previously declared" gcc error.
+  u32 SymbolFunctionName::CHECKFUNCTIONNAMES()
   {
     u32 probcount = 0;
     std::set<std::string>mangledFunctionSet; //detect duplicated UTI parameters
@@ -394,6 +474,7 @@ namespace MFM {
     dupfuncs.clear();
     return probcount;
   } //checkFunctionNames
+#endif
 
   u32 SymbolFunctionName::checkCustomArrayGetFunctions(UTI& rtnType)
   {

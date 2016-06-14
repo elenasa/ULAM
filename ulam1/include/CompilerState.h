@@ -386,6 +386,7 @@ namespace MFM{
     const std::string getUlamClassTmpVarAsString(s32 num);
     const std::string getAtomBitStorageTmpVarAsString(s32 num);
     const std::string getLabelNumAsString(s32 num);
+    const std::string getVFuncPtrTmpNumAsString(s32 num);
 
     /** for conditional h/as-magic */
     void saveIdentTokenForConditionalAs(Token iTok, Token cTok);

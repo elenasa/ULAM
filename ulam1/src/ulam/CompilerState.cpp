@@ -3224,6 +3224,13 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return labelname.str();
   } //getLabelNumAsString
 
+  const std::string CompilerState::getVFuncPtrTmpNumAsString(s32 num)
+  {
+    std::ostringstream labelname; //into
+    labelname << "Uf_tvfp" << ToLeximitedNumber(num);
+    return labelname.str();
+  } //getVFuncPtrTmpNumAsString
+
   void CompilerState::saveIdentTokenForConditionalAs(Token iTok, Token cTok)
   {
     m_identTokenForConditionalAs = iTok;

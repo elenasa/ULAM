@@ -55,7 +55,8 @@ namespace MFM{
     //Table Of Functions:
     void addClassMemberFunctionDescriptionsToMap(UTI classType, ClassMemberMap& classmembers);
 
-    bool checkTableOfFunctions();
+    void checkTableOfFunctions(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount);
+    void checkTableOfFunctionsInAncestor(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount);
 
     void linkToParentNodesAcrossTableOfFunctions(NodeBlockClass * p);
 
