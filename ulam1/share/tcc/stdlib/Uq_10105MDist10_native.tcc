@@ -6,7 +6,7 @@
 namespace MFM {
 
   template<class EC>
-  Ui_Ut_10161u<EC> Uq_10105MDist10<EC>::Uf_9212getLastIndex(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10131u<EC> Uv_6radius) const
+  Ui_Ut_10161u<EC> Uq_10105MDist10<EC>::Uf_9212getLastIndex(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10131u<EC>& Uv_6radius) const
   {
     enum { R = EC::EVENT_WINDOW_RADIUS };
 
@@ -16,7 +16,7 @@ namespace MFM {
   }
 
   template<class EC>
-  Ui_Ut_10161u<EC> Uq_10105MDist10<EC>::Uf_9213getFirstIndex(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10131u<EC> Uv_6radius) const
+  Ui_Ut_10161u<EC> Uq_10105MDist10<EC>::Uf_9213getFirstIndex(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10131u<EC>& Uv_6radius) const
   {
     enum { R = EC::EVENT_WINDOW_RADIUS };
 

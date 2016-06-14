@@ -95,8 +95,6 @@ namespace MFM{
 
     virtual const std::string writeArrayItemMethodForCodeGen();
 
-    virtual void genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp);
-
     virtual void genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp);
 
    private:

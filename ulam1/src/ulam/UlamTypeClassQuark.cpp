@@ -238,6 +238,12 @@ namespace MFM {
     fp->write(scalarmangledName.c_str());
     fp->write("<EC> Us;\n");
 
+    //read 'entire quark' method
+    genUlamTypeAutoReadDefinitionForC(fp);
+
+    //write 'entire quark' method
+    genUlamTypeAutoWriteDefinitionForC(fp);
+
     //constructor for conditional-as (auto); superclass ref of element (t3617);
     m_state.indent(fp);
     fp->write(automangledName.c_str());
@@ -253,30 +259,25 @@ namespace MFM {
     fp->write_decimal_unsigned(len); //includes arraysize
     fp->write("u, effself) { }\n");
 
-    //copy constructor here; pos relative to exisiting (i.e. same).
-    m_state.indent(fp);
-    fp->write(automangledName.c_str());
-    fp->write("(const ");
-    fp->write(automangledName.c_str());
-    fp->write("<EC>& r) : UlamRef<EC>(r, 0, r.GetLen(), r.GetEffectiveSelf()) { }\n");
-
     //default destructor (for completeness)
     m_state.indent(fp);
     fp->write("~");
     fp->write(automangledName.c_str());
     fp->write("() {}\n");
 
-    //read 'entire quark' method
-    genUlamTypeAutoReadDefinitionForC(fp);
-
-    //write 'entire quark' method
-    genUlamTypeAutoWriteDefinitionForC(fp);
+    //copy constructor here; pos relative to exisiting (i.e. same).
+    //t3617, t3631, t3668, t3669, t3672, t3689, t3692, t3693, t3697, t3746
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("(const ");
+    fp->write(automangledName.c_str());
+    fp->write("<EC>& r) : UlamRef<EC>(r, 0, r.GetLen(), r.GetEffectiveSelf()) { }\n");
 
     // aref/aset calls generated inline for immediates.
     if(isCustomArray())
       {
 	m_state.indent(fp);
-	fp->write("/* a custom array, btw ('Us' has aref, aset methods) */\n");
+	fp->write("/* a custom array ('Us' has aref, aset methods) */\n");
       }
 
     m_state.m_currentIndentLevel--;
@@ -434,7 +435,6 @@ namespace MFM {
 
     u32 dqval = 0;
     bool hasDQ = genUlamTypeDefaultQuarkConstant(fp, dqval);
-    //bool hasDQ = m_state.getDefaultQuark(scalaruti, dqval); //no gen code
 
     m_state.indent(fp);
     fp->write("typedef BitVector<");
@@ -509,7 +509,7 @@ namespace MFM {
     fp->write("write(d);"); //e.g. t3649
     fp->write(" }\n");
 
-    // assignment constructor
+    // assignment copy constructor
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("(const ");

@@ -189,6 +189,12 @@ namespace MFM {
     fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
     fp->write("\n");
 
+    //read 'entire atom' method
+    genUlamTypeAutoReadDefinitionForC(fp);
+
+    //write 'entire atom' method
+    genUlamTypeAutoWriteDefinitionForC(fp);
+
     //constructor (e.g. t3407)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
@@ -204,11 +210,18 @@ namespace MFM {
     fp->write(automangledName.c_str());
     fp->write("(const UlamRef<EC>& arg, s32 idx, const UlamContext<EC>& uc) : UlamRef<EC>(arg, idx, BPA, arg.GetEffectiveSelf()) { }\n");
 
-    //read 'entire atom' method
-    genUlamTypeAutoReadDefinitionForC(fp);
+    //copy constructor, t3701, t3735, t3753,4,5,6,7,8,9
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("(const ");
+    fp->write(automangledName.c_str());
+    fp->write("& arg) : UlamRef<EC>(arg, 0, arg.GetLen(), arg.GetEffectiveSelf()) { }\n");
 
-    //write 'entire atom' method
-    genUlamTypeAutoWriteDefinitionForC(fp);
+    //default destructor (for completeness)
+    m_state.indent(fp);
+    fp->write("~");
+    fp->write(automangledName.c_str());
+    fp->write("() {}\n");
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -582,6 +595,13 @@ namespace MFM {
     fp->write("(const UlamRef<EC>& arg, s32 idx, const UlamClass<EC>* effself) : UlamRef<EC>(arg, idx, ");
     fp->write_decimal_unsigned(len); //includes arraysize
     fp->write("u, effself) {}\n");
+
+    //copy constructor
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("(const ");
+    fp->write(automangledName.c_str());
+    fp->write("& arg) : UlamRef<EC>(arg, 0, arg.GetLen(), arg.GetEffectiveSelf()) { }\n");
 
     //default destructor (for completeness)
     m_state.indent(fp);

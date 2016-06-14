@@ -9,7 +9,7 @@ namespace MFM{
   template<class EC>
   void Uq_10109210DebugUtils10<EC>::Uf_9212printContext(const UlamContext<EC>& uc,
                                                              UlamRef<EC>& ur,
-                                                             Ui_Ut_102321u<EC> Uv_5flags) const
+                                                             Ui_Ut_102321u<EC>& Uv_5flags) const
   {
     const Tile<EC> & tile = uc.GetTile();
     const EventWindow<EC> & ew = uc.GetEventWindow();
@@ -27,7 +27,7 @@ namespace MFM{
   } // Uf_9212printContext
 
   template<class EC>
-  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10131i<EC> Uv_3arg) const //native
+  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10131i<EC>& Uv_3arg) const //native
   {
     s32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(3); //mask
@@ -36,7 +36,7 @@ namespace MFM{
 
 
   template<class EC>
-  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10141i<EC> Uv_3arg) const //native
+  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10141i<EC>& Uv_3arg) const //native
   {
     s32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(4); //mask
@@ -45,7 +45,7 @@ namespace MFM{
 
 
   template<class EC>
-  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_102321i<EC> Uv_3arg) const //native
+  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_102321i<EC>& Uv_3arg) const //native
   {
     s32 tmp = Uv_3arg.read();
     LOG.Message("print: Int: %d", tmp);
@@ -53,7 +53,7 @@ namespace MFM{
 
 
   template<class EC>
-  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_102321u<EC> Uv_3arg) const //native
+  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_102321u<EC>& Uv_3arg) const //native
   {
     u32 tmp = Uv_3arg.read();
     LOG.Message("print: Unsigned: %u", tmp);
@@ -61,7 +61,7 @@ namespace MFM{
 
 
   template<class EC>
-  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10131y<EC> Uv_3arg) const //native
+  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10131y<EC>& Uv_3arg) const //native
   {
     u32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(3); //mask
@@ -71,7 +71,7 @@ namespace MFM{
 
 
   template<class EC>
-  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10131b<EC> Uv_3arg) const //native
+  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10131b<EC>& Uv_3arg) const //native
   {
     u32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(3); //mask
@@ -128,7 +128,7 @@ namespace MFM{
 
   //! DebugUtils.ulam:10:   Void print(Atom a, Unsigned flags)
   template<class EC>
-  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102961a<EC> Uv_1a, Ui_Ut_102321u<EC> Uv_5flags) const
+  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102961a<EC>& Uv_1a, Ui_Ut_102321u<EC>& Uv_5flags) const
   {
     OString512 buff;
     T atom = Uv_1a.ReadAtom();
@@ -139,7 +139,7 @@ namespace MFM{
   } // Uf_5print
 
   template<class EC>
-  void Uq_10109210DebugUtils10<EC>::Uf_6assert(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10111b<EC> Uv_1b) const //native
+  void Uq_10109210DebugUtils10<EC>::Uf_6assert(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10111b<EC>& Uv_1b) const //native
   {
     bool btmp = Uv_1b.read();
     printf("assert: arg is %d\n",btmp);
