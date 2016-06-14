@@ -218,6 +218,12 @@ namespace MFM {
     fp->write("typedef UlamRef"); //was atomicparametertype
     fp->write("<EC> Up_Us;\n");
 
+    //read 'entire' method
+    genUlamTypeAutoReadDefinitionForC(fp);
+
+    //write 'entire' method
+    genUlamTypeAutoWriteDefinitionForC(fp);
+
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(BitStorage<EC>& targ, u32 idx, const UlamClass<EC>* effself) : UlamRef<EC>");
@@ -239,18 +245,18 @@ namespace MFM {
     fp->write(automangledName.c_str());
     fp->write("<EC>& r) : UlamRef<EC>(r, 0, r.GetLen(), r.GetEffectiveSelf()) { }\n");
 
+    //default destructor (for completeness)
+    m_state.indent(fp);
+    fp->write("~");
+    fp->write(automangledName.c_str());
+    fp->write("() {}\n");
+
     // aref/aset calls generated inline for immediates.
     if(isCustomArray())
       {
 	m_state.indent(fp);
-	fp->write("/* a custom array, btw ('Us' has aref, aset methods) */\n");
+	fp->write("/* a custom array ('Us' has aref, aset methods) */\n");
       }
-
-    //read 'entire' method
-    genUlamTypeAutoReadDefinitionForC(fp);
-
-    //write 'entire' method
-    genUlamTypeAutoWriteDefinitionForC(fp);
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -444,7 +450,7 @@ namespace MFM {
     fp->write("& d) { ");
     fp->write("write(d); }\n");
 
-    // assignment constructor
+    // assignment copy constructor
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("(const ");
