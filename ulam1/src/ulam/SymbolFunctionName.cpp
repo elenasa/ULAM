@@ -407,7 +407,7 @@ namespace MFM {
       {
 	dupfound = true;
 	UTI rtntype = it->second;
-	if(rtntype != futi) //NEVER LEGAL!
+	if(UlamType::compare(rtntype, futi, m_state) == UTIC_NOTSAME) //NEVER LEGAL!
 	  {
 	    std::ostringstream msg;
 	    msg << "Check overloaded function <";
