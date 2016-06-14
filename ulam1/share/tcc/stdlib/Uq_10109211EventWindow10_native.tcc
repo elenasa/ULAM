@@ -7,7 +7,7 @@ namespace MFM{
 
   template<class EC>
   Ui_Ut_102961a<EC> Uq_10109211EventWindow10<EC>::Uf_4aref(const UlamContext<EC> & uc, UlamRef<EC>& ur,
-							       Ui_Ut_10161u<EC> Uv_5index) const //native
+							       Ui_Ut_10161u<EC>& Uv_5index) const //native
   {
     u32 siteNumber = Uv_5index.read();
     const EventWindow<EC> & ew = uc.GetEventWindow();
@@ -17,8 +17,8 @@ namespace MFM{
 
   template<class EC>
   void Uq_10109211EventWindow10<EC>::Uf_4aset(const UlamContext<EC> & uc,
-						  UlamRef<EC>& ur, Ui_Ut_10161u<EC> Uv_5index,
-						  Ui_Ut_102961a<EC> Uv_1v) const //native
+						  UlamRef<EC>& ur, Ui_Ut_10161u<EC>& Uv_5index,
+						  Ui_Ut_102961a<EC>& Uv_1v) const //native
   {
     u32 siteNumber = Uv_5index.read();
     EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
@@ -27,7 +27,7 @@ namespace MFM{
 
   template<class EC>
   Ui_Ut_10111b<EC> Uq_10109211EventWindow10<EC>::Uf_6isLive(const UlamContext<EC> & uc,
-								UlamRef<EC>& ur, Ui_Ut_10161u<EC> Uv_5index) const
+								UlamRef<EC>& ur, Ui_Ut_10161u<EC>& Uv_5index) const
   {
     u32 siteNumber = Uv_5index.read();
     const EventWindow<EC> & ew = uc.GetEventWindow();
@@ -36,8 +36,8 @@ namespace MFM{
 
   template<class EC>
   Ui_Ut_10111b<EC> Uq_10109211EventWindow10<EC>::Uf_4swap(const UlamContext<EC> & uc, UlamRef<EC>& ur,
-							      Ui_Ut_10161u<EC> Uv_6index1,
-							      Ui_Ut_10161u<EC> Uv_6index2) const
+							      Ui_Ut_10161u<EC>& Uv_6index1,
+							      Ui_Ut_10161u<EC>& Uv_6index2) const
   {
     u32 idx1 = Uv_6index1.read();
     u32 idx2 = Uv_6index2.read();
@@ -49,7 +49,7 @@ namespace MFM{
   }
 
   template<class EC>
-  Ui_Uq_102323C2D10<EC> Uq_10109211EventWindow10<EC>::Uf_8getCoord(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10161u<EC> Uv_7siteNum) const
+  Ui_Uq_102323C2D10<EC> Uq_10109211EventWindow10<EC>::Uf_8getCoord(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10161u<EC>& Uv_7siteNum) const
   {
     //! EventWindow.ulam:21:     C2D ret;
     Ui_Uq_102323C2D10<EC> Uv_3ret;
@@ -69,7 +69,7 @@ namespace MFM{
   } // Uf_8getCoord
 
   template<class EC>
-  Ui_Ut_10161u<EC> Uq_10109211EventWindow10<EC>::Uf_9213getSiteNumber(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Uq_102323C2D10<EC> Uv_5coord) const
+  Ui_Ut_10161u<EC> Uq_10109211EventWindow10<EC>::Uf_9213getSiteNumber(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Uq_102323C2D10<EC>& Uv_5coord) const
   {
     enum { R = EC::EVENT_WINDOW_RADIUS };
     const EventWindow<EC> & ew = uc.GetEventWindow();
@@ -88,7 +88,7 @@ namespace MFM{
   }
 
   template<class EC>
-  Ui_Ut_10161u<EC> Uq_10109211EventWindow10<EC>::Uf_9216getSiteNumberRaw(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Uq_102323C2D10<EC> Uv_5coord) const
+  Ui_Ut_10161u<EC> Uq_10109211EventWindow10<EC>::Uf_9216getSiteNumberRaw(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Uq_102323C2D10<EC>& Uv_5coord) const
   {
     enum { R = EC::EVENT_WINDOW_RADIUS };
     const EventWindow<EC> & ew = uc.GetEventWindow();
@@ -116,7 +116,7 @@ namespace MFM{
 
   template<class EC>
   Ui_Ut_10131u<EC> Uq_10109211EventWindow10<EC>::Uf_9214changeSymmetry(const UlamContext<EC> & uc,UlamRef<EC>& ur,
-									    Ui_Ut_10131u<EC> Uv_6newSym) const
+									    Ui_Ut_10131u<EC>& Uv_6newSym) const
   {
     EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
 
@@ -130,7 +130,7 @@ namespace MFM{
   //! EventWindow.ulam:34:   C2D mapSym(C2D directCoord) {
   template<class EC>
   Ui_Uq_102323C2D10<EC> Uq_10109211EventWindow10<EC>::Uf_6mapSym(const UlamContext<EC> & uc, UlamRef<EC>& ur,
-								      Ui_Uq_102323C2D10<EC> Uv_9211directCoord) const
+								      Ui_Uq_102323C2D10<EC>& Uv_9211directCoord) const
   {
     const EventWindow<EC> & ew = uc.GetEventWindow();
 

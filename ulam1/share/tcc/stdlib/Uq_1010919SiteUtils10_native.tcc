@@ -39,7 +39,7 @@ namespace MFM{
   }
 
   template<class EC>
-  Ui_Ut_14181u<EC> Uq_1010919SiteUtils10<EC>::Uf_6setOut(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_14181u<EC> Uv_6newVal) const
+  Ui_Ut_14181u<EC> Uq_1010919SiteUtils10<EC>::Uf_6setOut(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_14181u<EC>& Uv_6newVal) const
   {
     typedef typename EC::ATOM_CONFIG AC;
 
@@ -67,7 +67,7 @@ namespace MFM{
   } // Uf_7getBase
 
   template<class EC>
-  void Uq_1010919SiteUtils10<EC>::Uf_7setBase(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102961a<EC> Uv_1a) const
+  void Uq_1010919SiteUtils10<EC>::Uf_7setBase(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102961a<EC>& Uv_1a) const
   {
     typedef typename EC::ATOM_CONFIG AC;
 
