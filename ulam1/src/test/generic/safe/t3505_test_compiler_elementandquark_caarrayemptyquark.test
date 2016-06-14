@@ -18,7 +18,9 @@ element Foo {
 #:Empty.ulam
 ulam 1;
 element Empty {
- /* empty element comment */ }
+ /* empty element comment */
+}
+
 #:EventWindow.ulam
 ulam 1;
 quark EventWindow {

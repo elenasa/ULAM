@@ -45,9 +45,13 @@ quark Bar {
   Void reset(Bool b) {
     b = false;
   }
-  Atom aref(Index index){ Atom a; return a;
+  Atom aref(Index index){
+    Atom a;
+    return a;
   }
-  Atom aref(Unary(2) index){ Atom a; return a;
+  Atom aref(Unary(2) index){
+    Atom a;
+    return a;
   }
   Atom aref(Gah index){
     Atom a;

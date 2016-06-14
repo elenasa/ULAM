@@ -799,6 +799,11 @@ namespace MFM {
 
     UTI itemuti = m_state.getAClassCustomArrayType(cosuti);
 
+    std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
+    UVPass auvpass = uvpass;
+    genCodeConvertATmpVarIntoBitVector(fp, auvpass); //clears stack
+    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore vector after args******
+
     u32 urtmpnum = 0;
     std::string hiddenarg2str = genHiddenArg2(urtmpnum);
     if(urtmpnum > 0)
@@ -835,16 +840,17 @@ namespace MFM {
 	fp->write(", "); //rest of args
       }
     //index is immediate Index arg of targettype in uvpass
-    fp->write(localStorageTypeAsString(vuti).c_str()); //e.g. BitVector<32> exception
-    fp->write("(");
-    fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //INDEX
-    fp->write("));\n");
-
+    //fp->write(localStorageTypeAsString(vuti).c_str()); //e.g. BitVector<32> exception
+    //fp->write("(");
+    //fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //INDEX
+    //fp->write("));\n");
+    fp->write(auvpass.getTmpVarAsString(m_state).c_str()); //INDEX
+    fp->write(");\n");
     //update uvpass
     uvpass = UVPass::makePass(tmpVarNum2, TMPBITVAL, itemuti, m_state.determinePackable(itemuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
 
-    genCodeConvertABitVectorIntoATmpVar(fp, uvpass); //updates uvpass again
-  } //genCodeReadCustomArrayItemIntoTmp
+    genCodeConvertABitVectorIntoATmpVar(fp, uvpass); //updates uvpass again (e.g. t3505 'is')
+  } //genCodeReadCustomArrayItemIntoATmpVar
 
   // two arg's luvpass fine-tunes the current symbol in case of member selection;
   // ruvpass is the ptr to value to write
@@ -1240,7 +1246,7 @@ namespace MFM {
   // ruvpass is the ptr to value to write
   void Node::genCodeWriteCustomArrayItemFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass)
   {
-    UTI luti = luvpass.getPassTargetType();
+    //UTI luti = luvpass.getPassTargetType();
 
     //rhs could be a constant; or previously cast from Int to Unary variables.
     // here, cos is symbol used to determine read method: either self or last of cos.
@@ -1253,6 +1259,19 @@ namespace MFM {
 
     UTI cosuti = cos->getUlamTypeIdx();
     assert(isCurrentObjectACustomArrayItem(cosuti, luvpass));
+
+    std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
+    UVPass auvpass = luvpass;
+    genCodeConvertATmpVarIntoBitVector(fp, auvpass); //clears stack
+    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore vector after args******
+
+    saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
+    assert(m_state.getUlamTypeByIndex(cosuti)->getUlamTypeEnum() == Class);
+    UTI catype = m_state.getAClassCustomArrayType(cosuti);
+    UVPass valuvpass = ruvpass;
+    valuvpass.setPassTargetType(catype);
+    genCodeConvertATmpVarIntoBitVector(fp, valuvpass); //clears stack
+    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore vector after args******
 
     //non-const tmp ur for this function call
     u32 urtmpnum = 0;
@@ -1291,30 +1310,33 @@ namespace MFM {
       }
 
     //index is immediate Int arg
-    fp->write(localStorageTypeAsString(luti).c_str()); //e.g. BitVector<32> exception
-    fp->write("(");
-    fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //INDEX
-    fp->write("), ");
+    //fp->write(localStorageTypeAsString(luti).c_str()); //e.g. BitVector<32> exception
+    //fp->write("(");
+    //fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //INDEX
+    //fp->write("), ");
+    fp->write(auvpass.getTmpVarAsString(m_state).c_str()); //INDEX
+    fp->write(", ");
 
     //VALUE TO BE WRITTEN:
     // with immediate quarks, they are read into a tmpreg as other immediates
     // with immediate elements, too!  value not a terminal
     // aset requires its custom array type (e.g. an atom) as its value:
-    assert(m_state.getUlamTypeByIndex(cosuti)->getUlamTypeEnum() == Class);
-    UTI catype = m_state.getAClassCustomArrayType(cosuti);
-    fp->write(localStorageTypeAsString(catype).c_str()); //e.g. BitVector<32> exception
-    fp->write("(");
-    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+    //assert(m_state.getUlamTypeByIndex(cosuti)->getUlamTypeEnum() == Class);
+    //UTI catype = m_state.getAClassCustomArrayType(cosuti);
+    //fp->write(localStorageTypeAsString(catype).c_str()); //e.g. BitVector<32> exception
+    //fp->write("(");
+    //fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
     //for ANY immediate atom arg from a T
-    if(m_state.isAtomRef(catype))
-      fp->write(", uc"); //needs effective self from T's type via uc
-
-    fp->write(") );\n");
+    //if(m_state.isAtomRef(catype))
+    //  fp->write(", uc"); //needs effective self from T's type via uc
+    //fp->write(") );\n");
+    fp->write(valuvpass.getTmpVarAsString(m_state).c_str()); //VALUE
+    fp->write(");\n");
 
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeWriteCustomArrayItemFromATmpVar
 
-  // write out intermediate tmpVar as temp BitVector
+  // write out intermediate tmpVar as temp BitVector, func args
   void Node::genCodeConvertATmpVarIntoBitVector(File * fp, UVPass & uvpass)
   {
     UTI vuti = uvpass.getPassTargetType(); //terminals handled in NodeTerminal
@@ -1325,7 +1347,7 @@ namespace MFM {
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
 
     m_state.indentUlamCode(fp);
-    fp->write("const ");
+    //fp->write("const "); //non-constant and C++ & to avoid an extra copy
 
     fp->write(localStorageTypeAsString(vuti).c_str()); //e.g. BitVector<32> exception
     fp->write(" ");
@@ -1358,7 +1380,7 @@ namespace MFM {
 	    fp->write("u");
 	  }
       }
-    fp->write(");\n");
+    fp->write("); //func arg&\n");
 
     uvpass = UVPass::makePass(tmpVarNum2, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, pos, 0); //POS left-justified for quarks; right for primitives.
 

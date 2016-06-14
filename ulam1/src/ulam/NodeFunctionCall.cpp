@@ -1291,7 +1291,6 @@ namespace MFM {
 		fp->write_decimal_unsigned(pos); //right-justified
 		fp->write("u");
 	      }
-	    //else if(vclasstype == UC_QUARK)
 	    else if(vetyp == Class) //t3774
 	      {
 		fp->write(", 0u, "); //left-justified
@@ -1331,8 +1330,7 @@ namespace MFM {
     ULAMTYPE vetyp = vut->getUlamTypeEnum();
 
     UlamType * put = m_state.getUlamTypeByIndex(puti);
-    //TMPSTORAGE rstor = put->getUlamClassType() == UC_QUARK ? TMPREGISTER : uvpass.getPassStorage(); //06112016 ish undefined temp. t3779
-    TMPSTORAGE rstor = uvpass.getPassStorage();
+    TMPSTORAGE rstor = uvpass.getPassStorage(); //t3779
 
     assert(vetyp == put->getUlamTypeEnum());
 
