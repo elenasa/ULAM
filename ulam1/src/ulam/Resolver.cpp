@@ -273,6 +273,10 @@ namespace MFM {
 
 	rtnstat = constantFoldNonreadyClassArgs(); //forgot to update rtnstat?
       }
+
+    if(m_state.isClassATemplate(getContextForPendingArgs()))
+      return true; //late short-circuit t3787
+
     return rtnstat;
   } //statusNonreadyClassArguments
 

@@ -3,12 +3,24 @@
 #!
 ##      //Constants have explicit types
 Exit status: 3
-Ue_P(Int(32) a) { constant Int(32) a = NONREADYCONST;  Unsigned(UNKNOWN) var(unknown);  Bool(1) b(false);  Int(32) test() {  P(1) pel;  pel var . 3u = pel ( pel var . )func . pel var . return } }
+Ue_R { Int(32) test() {  P(1) pel;  pel var . 3u cast = pel ( pel var . )func . pel var . cast return } }
+Ue_P(Int(32) a) { Unsigned(UNKNOWN) var(notready);  Bool(1) b(false);  <NOMAIN> }
 Uq_Q(Int(32) s) { typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }
 ##
 ##      //informed by t3344: recursive typedefs as function parameter
-#>P.ulam
+#>R.ulam
+  ulam 1;
+element R{
+  Int test() {
+    P(1) pel;
+    pel.var = 3u;
+    pel.func(pel.var);
+    return pel.var;
+  }
+}
+
+#:P.ulam
   ulam 1;
 use Q;
 use V;
@@ -18,12 +30,6 @@ element P(Int a) {
   }
   V.Woof.Foo var;
   Bool b;
-  Int test() {
-    P(1) pel;
-    pel.var = 3u;
-    pel.func(pel.var);
-    return pel.var;
-  }
 }
 
 #:Q.ulam

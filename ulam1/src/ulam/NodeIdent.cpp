@@ -142,8 +142,11 @@ namespace MFM {
 	    else if(asymptr->isConstant())
 	      {
 		// replace ourselves with a constant node instead;
-		// same node no, and loc
-		NodeConstant * newnode = new NodeConstant(*this);
+		// same node no, and loc (e.g. t3573)
+		//NodeConstant * newnode = new NodeConstant(*this);
+		NodeConstant * newnode = new NodeConstant(m_token, (SymbolWithValue *) asymptr, m_state);
+		assert(newnode);
+
 		NNO pno = Node::getYourParentNo();
 		m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
 		Node * parentNode = m_state.findNodeNoInThisClass(pno);
@@ -167,8 +170,10 @@ namespace MFM {
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 
+		newnode->setNodeLocation(getNodeLocation());
 		newnode->setYourParentNo(pno); //missing?
 		newnode->resetNodeNo(getNodeNo()); //missing?
+		newnode->setBlockNo(m_currBlockNo);
 
 		m_state.popClassContext(); //restore
 		m_state.popClassContext(); //restore
@@ -181,7 +186,10 @@ namespace MFM {
 	      {
 		// replace ourselves with a parameter node instead;
 		// same node no, and loc
-		NodeModelParameter * newnode = new NodeModelParameter(*this);
+		//NodeModelParameter * newnode = new NodeModelParameter(*this);
+		NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) asymptr, m_state);
+		assert(newnode);
+
 		NNO pno = Node::getYourParentNo();
 		m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
 		Node * parentNode = m_state.findNodeNoInThisClass(pno);
@@ -205,8 +213,10 @@ namespace MFM {
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 
+		newnode->setNodeLocation(getNodeLocation());
 		newnode->setYourParentNo(pno); //missing?
 		newnode->resetNodeNo(getNodeNo()); //missing?
+		newnode->setBlockNo(m_currBlockNo);
 
 		m_state.popClassContext(); //restore
 		m_state.popClassContext(); //restore

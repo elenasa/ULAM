@@ -1,22 +1,17 @@
 ## -*- mode:ulam -*-
 #=t3579_test_compiler_elementandquarkinheritancetemplatemix_wfunccalls
 #!
-##
-## WHY 2 EXIT STATUS? Because, there are 2 instances of Tu(x) and each has a test() method, hence 2 Exit Status.
-##  with 3 different instances of Tu, there are 3 Exit Status; however, with 3 instances of Tu(1), only 1 Exit Status.
-## perfectly clear! (see t3578 to get around it)
-##
 Exit status: 28
-Exit status: 28
-Ue_Tu(Int(32) x) : Foo { :< Int(32) mi(4); > constant Int(32) x = NONREADYCONST;  Int(32) test() {  Tu(1) tu;  Tu(2) tu2;  Foo foo;  tu ( 9 )set . tu2 ( 15 )set . foo ( )func . tu ( )func . +b tu2 ( )func . +b return } }
+Ue_R { Int(32) test() {  Tu(1) tu;  Tu(2) tu2;  Foo foo;  tu ( 9 cast )set . tu2 ( 15 cast )set . foo ( )func . tu ( )func . +b tu2 ( )func . +b return } }
+Ue_Tu(Int(32) x) : Foo { /* empty class block */ }
 Uq_Foo { Int(32) mi( 4 cast);  <NOMAIN> }
 ##
 ##       //template classes can inherit from a regular class
 ##       informed by t3567, error/t3556
 ##
-#>Tu.ulam
+#>R.ulam
   ulam 2;
-element Tu (Int x) : Foo {
+element R{
   Int test(){
     Tu(1) tu;
     Tu(2) tu2;
@@ -25,6 +20,11 @@ element Tu (Int x) : Foo {
     tu2.set(15);
     return (foo.func() + tu.func() + tu2.func() ); //expect 28
   }
+}
+
+#:Tu.ulam
+  ulam 2;
+element Tu (Int x) : Foo {
 }
 use Foo; //wait until seen, ok
 

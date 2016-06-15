@@ -51,7 +51,7 @@ namespace MFM{
 
     NodeConstant(Token tok, SymbolWithValue * symptr, CompilerState & state);
     NodeConstant(const NodeConstant& ref);
-    NodeConstant(const NodeIdent& iref);
+    //NodeConstant(const NodeIdent& iref);
     virtual ~NodeConstant();
 
     virtual Node * instantiate();
@@ -72,6 +72,7 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
+    void setBlockNo(NNO currBlock);
     NNO getBlockNo();
     NodeBlock * getBlock();
 

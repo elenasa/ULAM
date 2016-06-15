@@ -2,20 +2,26 @@
 #=t3567_test_compiler_elementandquarkinheritancetemplatemix
 #!
 Exit status: 4
-Ue_Tu(Int(32) x) : Foo { :< Int(32) mi(4); > constant Int(32) x = NONREADYCONST;  Int(32) test() {  Tu(1) tu;  tu mi . return } }
+Ue_R { Int(32) test() {  Tu(1) tu;  tu mi . return } }
+Ue_Tu(Int(32) x) : Foo { /* empty class block */ }
 Uq_Foo { Int(32) mi( 4 cast);  <NOMAIN> }
 ##
 ##       //template classes can inherit from a regular class
 ##       informed by error/t3556
 ##
-#>Tu.ulam
+#>R.ulam
   ulam 2;
-use Foo;
-element Tu (Int x) : Foo {
+element R{
   Int test(){
     Tu(1) tu;
     return tu.mi;
   }
+}
+
+#:Tu.ulam
+  ulam 2;
+use Foo;
+element Tu (Int x) : Foo {
 }
 
 #:Foo.ulam

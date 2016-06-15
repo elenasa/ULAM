@@ -564,9 +564,18 @@ namespace MFM {
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
+
+	//skip stubs that will never get resolved (e.g. t3787)
+	//if(csym->isStub() && m_state.isClassATemplate(csym->getContextForPendingArgs()))
+	//  {
+	//  it++;
+	//  continue;
+	//}
+
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
 	UTI cuti = csym->getUlamTypeIdx();
+
 	m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
 	aok &= csym->statusNonreadyClassArguments(); //could bypass if fully instantiated
@@ -993,6 +1002,11 @@ namespace MFM {
 	else if(!m_state.isASeenClass(superuti))
 	  {
 	    rtnok = false;
+	  }
+	else if(!m_state.isClassAStub(superuti))
+	  {
+	    stubcsym->setSuperClass(superuti); //not a stub; t3567, 3573, t3574, t3575
+	    rtnok = true;
 	  }
 	else
 	  {

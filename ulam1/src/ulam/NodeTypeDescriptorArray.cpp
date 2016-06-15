@@ -144,7 +144,7 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Substituting Mapped UTI" << mappedUTI;
 		msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
-		msg << " for incomplete descriptor for acalar of array: ";
+		msg << " for incomplete descriptor for scalar of array: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(scuti).c_str();
 		msg << "' UTI" << scuti << " while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();

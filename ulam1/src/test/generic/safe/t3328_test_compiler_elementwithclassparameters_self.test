@@ -9,21 +9,15 @@
 ##        unevaluable without assuming atoms as elements
 ##
 Exit status: 1
-Ue_S(Int(32) x, Int(32) y) { constant Int(32) x = NONREADYCONST;  constant Int(32) y = NONREADYCONST;  System s();  Bool(UNKNOWN) b1(unknown);  Bool(UNKNOWN) b2(unknown);  Int(32) test() {  Atom(96) a;  S(1,2) s12;  s12 b2 . s12 ( )func . = s ( s12 b2 . )print . s12 b1 . s12 ( a )func . = s ( s12 b1 . )print . s12 b2 . cast return } }
+Ue_R { System s();  Int(32) test() {  Atom(96) a;  S(1,2) s12;  s12 b2 . s12 ( )func . cast = s ( s12 b2 . )print . s12 b1 . s12 ( a )func . cast = s ( s12 b1 . )print . s12 b2 . cast return } }
 Uq_System { <NOMAIN> }
+Ue_S(Int(32) x, Int(32) y) { Bool(UNKNOWN) b1(notready);  Bool(UNKNOWN) b2(notready);  <NOMAIN> }
 ##    //informed by t3255
-#>S.ulam
+#>R.ulam
   ulam 1;
 use System;
-element S(Int x, Int y){
+element R{
   System s;
-  Bool(x+y) b1, b2;
-  Bool func() {
-    return (self is S(x,y)); //is Self also ok
-  }
-  Bool func(Atom d) {
-    return (d is S(x,y)); //is Self also ok
-  }
   Int test() {
     Atom a;
     S(1,2) s12;
@@ -32,6 +26,17 @@ element S(Int x, Int y){
     s12.b1 = s12.func(a);
     s.print(s12.b1);
     return (Int) s12.b2;
+  }
+}
+#:S.ulam
+  ulam 1;
+element S(Int x, Int y){
+  Bool(x+y) b1, b2;
+  Bool func() {
+    return (self is S(x,y)); //is Self also ok
+  }
+  Bool func(Atom d) {
+    return (d is S(x,y)); //is Self also ok
   }
 }
 ##      // simple case: OK!  "Bool(x+y) b1, b2;" works!!

@@ -2,13 +2,24 @@
 #=t3351_test_compiler_elementandquarkswclassargs2_typedeffromanotherclasstypedef
 #!
 Exit status: 2
-Ue_P(Int(32) a) { typedef Unsigned(UNKNOWN) Foo;  constant Int(32) a = NONREADYCONST;  Bool(1) b(false);  Unsigned(UNKNOWN) var(unknown);  Int(32) test() {  P(1) pel;  pel var . 2 = pel var . return } }
+Ue_R { Int(32) test() {  P(1) pel;  pel var . 2 cast = pel var . cast return } }
+Ue_P(Int(32) a) { Bool(1) b(false);  typedef Unsigned(UNKNOWN) Foo;  Unsigned(UNKNOWN) var(notready);  <NOMAIN> }
 Uq_Q(Int(32) s) { typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }
 ##
 ##      //informed by t3341: recursive typedefs as typedef type
 ##      // can an instantiated template use its template' typedef from another class? yes.
-#>P.ulam
+#>R.ulam
+  ulam 1;
+element R{
+  Int test() {
+    P(1) pel;
+    pel.var = 2;
+    return pel.var;
+  }
+}
+
+#:P.ulam
   ulam 1;
 use Q;
 use V;
@@ -16,11 +27,6 @@ element P(Int a) {
   Bool b;
   typedef V.Woof.Foo Foo;
   Foo var;
-  Int test() {
-    P(1) pel;
-    pel.var = 2;
-    return pel.var;
-  }
 }
 
 #:Q.ulam
