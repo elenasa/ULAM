@@ -4,7 +4,7 @@
 ## gen code:
 ##   include/Ue_10103Foo10.tcc:37: FAILED: ILLEGAL_ARGUMENT
 #!
-./Foo.ulam:10:5: ERROR: Storage expression for: a, must be storeintoable.
+./Foo.ulam:10:5: ERROR: Initialization for: a, must be referenceable.
 ./Foo.ulam:3:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 ##Exit status: -1

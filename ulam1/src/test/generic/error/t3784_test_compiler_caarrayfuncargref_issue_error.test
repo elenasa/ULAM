@@ -1,0 +1,33 @@
+## -*- mode:ulam -*-
+#=t3784_test_compiler_caarrayfuncargref_issue_error
+#!
+./D.ulam:9:8: ERROR: Invalid argument 1 to function <isOurBackFill>; Cannot be used as a reference parameter.
+./EventWindow.ulam:2:7: ERROR: 1 Nodes with erroneous types detected after type labeling class: EventWindow.
+./EventWindow.ulam:2:7: ERROR: 1 Nodes with unresolved types detected after type labeling class: EventWindow.
+Unrecoverable Program Type Label FAILURE.
+##
+## issue 6/14/2016
+##
+#>D.ulam
+element D {
+    Bool isOurBackFill(Atom& aref)
+    {
+      return false;
+    }
+
+  Int test() {
+    EventWindow ew;
+    if(isOurBackFill(ew[0]))
+      return 1;
+    return 0;
+  }
+}
+
+#:EventWindow.ulam
+ulam 1;
+quark EventWindow {
+  typedef Unsigned(6) SiteNum;
+  Atom aref(Int index) native;
+  Void aset(Int index, Atom val) native;
+}
+#.

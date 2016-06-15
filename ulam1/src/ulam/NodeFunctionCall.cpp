@@ -205,15 +205,16 @@ namespace MFM {
 		if(m_state.isReference(funcSymbol->getParameterType(i)))
 		  {
 		    //if(argNodes[i]->isFunctionCall())
-		    TBOOL argstor = argNodes[i]->getStoreIntoAble();
-		    if(argstor != TBOOL_TRUE)
+		    //TBOOL argstor = argNodes[i]->getStoreIntoAble();
+		    //if(argstor != TBOOL_TRUE)
+		    TBOOL argreferable = argNodes[i]->getReferenceAble();
+		    if(argreferable != TBOOL_TRUE)
 		      {
 			std::ostringstream msg;
 			msg << "Invalid argument " << i + 1 << " to function <";
 			msg << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
-			//msg << "> is a function call, and cannot be used as a reference parameter";
 			msg << ">; Cannot be used as a reference parameter";
-			if(argstor == TBOOL_HAZY)
+			if(argreferable == TBOOL_HAZY)
 			  {
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 			    numHazyFound++;
