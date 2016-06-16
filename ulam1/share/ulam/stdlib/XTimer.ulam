@@ -24,7 +24,7 @@ quark XTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k)
 
   Void reset() { time = 0; }
 
-  Void trigger() { time = triggerLevel; }
+  Void trigger() { time = (Counter) triggerLevel; }
 
   Bool alarm() { return time >= triggerLevel; }
 
@@ -32,7 +32,7 @@ quark XTimer(Unary(5) bits, Unsigned triggerLevel, Unsigned k)
 
   Void set(Counter newv) { time = newv; }
 
-  Counter max() { return triggerLevel; }
+  Counter max() { return (Counter) triggerLevel; }
 
   Bool countAlarm() {
     count();
