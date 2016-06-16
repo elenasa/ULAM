@@ -114,6 +114,17 @@ namespace MFM{
     return Ui_Ut_10161u<EC>(EventWindow<EC>::SITE_COUNT);
   }
 
+  //! EventWindow.ulam:45:   Unsigned getRadius() native;
+  template<class EC>
+  Ui_Ut_102321u<EC> Uq_10109211EventWindow10<EC>::Uf_919getRadius(const UlamContext<EC> & uc,
+                                                                 UlamRef<EC>& ur) const
+  {
+    const EventWindow<EC> & ew = uc.GetEventWindow();
+    u32 boundary = ew.GetBoundary();
+    if (boundary > 0) --boundary; // radius is one less than boundary
+    return Ui_Ut_102321u<EC>(boundary);
+  }
+
   template<class EC>
   Ui_Ut_10131u<EC> Uq_10109211EventWindow10<EC>::Uf_9214changeSymmetry(const UlamContext<EC> & uc,UlamRef<EC>& ur,
 									    Ui_Ut_10131u<EC>& Uv_6newSym) const

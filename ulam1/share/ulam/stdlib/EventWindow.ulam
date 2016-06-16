@@ -3,6 +3,15 @@ use C2D;
 use AtomUtils;
 
 /**
+   Methods to access and manipulate the active event window.  The
+   EventWindow quark is 0 bits long, because it is just an interface
+   to the singleton event window external to ulam processing.  As a
+   result, EventWindow quarks can be created with impunity, and all
+   will access the same event window state, but on the other hand, all
+   (or at least most) of the methods in this class will FAIL if there
+   is actually no event in progress, which is an issue primarily in
+   calls on the getColor method.
+
    \author Dave Ackley
    \license lgpl
  */
@@ -32,16 +41,36 @@ quark EventWindow {
   constant Dir cDIR_WEST =      6u;
   constant Dir cDIR_NORTHWEST = 7u;
 
+  /**
+     Access the maximum possible number of sites in the event window.
+     Note this function returns a fixed value (41, given the manhattan
+     distance 4 event window radius), and does not the number of \e
+     accessible sites given an event window.  
+
+     \sa getRadius()
+     \sa getAccessibleSize()
+     \sa isAccessible()
+   */
   SiteNum size() native;
 
-  Atom aref(SiteNum index) native;
-  /*
-  Atom aref(C2D coord) { 
-    SiteNum s = getSiteNumberRaw(coord);
-    Atom a = aref(s);
-    return a; 
+  /**
+     Return the maximum accessible radius in this event window, a
+     value from 0 to 4.  In general this returns whatever was the
+     '\radius' declaration in the element that started the current
+     event; if no \radius declaration was present there, this returns
+     4 and the full event window is accessible.
+   */
+  Unsigned getRadius() native;
+
+  SiteNum getAccessibleSize() {
+    MDist md;
+    typedef MDist.Radius Radius;
+    typedef MDist.Index Index;
+    Unsigned rad = getRadius();
+    return md.getFirstIndex((Radius) (rad + 1u));
   }
-  */
+
+  Atom aref(SiteNum index) native;
   Atom aref(C2D coord) { return aref(getSiteNumberRaw(coord)); }
 
   Void aset(SiteNum index, Atom val) native;
@@ -49,6 +78,9 @@ quark EventWindow {
 
   Bool isLegal(SiteNum index) { return index < size(); }
   Bool isLegal(C2D coord) { return isLegal(getSiteNumberRaw(coord)); }
+
+  Bool isAccessible(SiteNum index) { return index < getAccessibleSize() && isLive(index); }
+  Bool isAccessible(C2D coord) { return isLegal(coord) && isAccessible(getSiteNumberRaw(coord)); }
 
   Bool isLive(SiteNum index) native;
   Bool isLive(C2D coord) { return isLegal(coord) && isLive(getSiteNumberRaw(coord)); }
