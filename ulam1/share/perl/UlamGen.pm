@@ -250,6 +250,21 @@ sub normalizeClassKeys {
     $keys{'symmetries'} = $final;
 
     ###
+    # 'radius' key analysis
+    my $defaultRadius = 4;
+    if (!defined $keys{'radius'}) {
+        $keys{'radius'} = $defaultRadius;
+    } else {
+        my $r = $keys{'radius'};
+        if ($r eq "default") {
+            $r = $defaultRadius; 
+        } elsif ($r !~ /^[0-4]$/) {
+            print STDERR "\radius value '$r' not recognized; using $defaultRadius\n";
+        }
+    }
+
+
+    ###
     # 'author' key analysis
     if (!defined $keys{'author'}) {
         $keys{'author'} = "--none specified--";
@@ -381,6 +396,7 @@ EOF
     my $author = $self->makeCString($classKeys{'author'});
     my $copyright = $self->makeCString($classKeys{'copyright'});
     my $license = $self->makeCString($classKeys{'license'});
+    my $radius = $classKeys{'radius'};
     my $cver = $classKeys{'version'};
     my $cplaceable = "true";
     $cplaceable = "false" if $classKeys{'placeable'} eq "no";
@@ -450,6 +466,7 @@ namespace MFM {
     const u32 GetVersion() const { return $cver; }
 $movfunc
     const u32 GetElementColor() const { $body }
+    const u32 GetEventWindowBoundary() const { return $radius + 1; }
     const u32 GetSymmetry(const UlamContext<EC>& uc) const {
       $symbody
     }
