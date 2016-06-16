@@ -287,7 +287,6 @@ namespace MFM {
 
     if(!m_state.okUTItoContinue(m_uti) || !m_state.isComplete(m_uti))
       {
-	UTI cuti = m_state.getCompileThisIdx();
 	std::ostringstream msg;
 	msg << "Proxy Type: " << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
 	msg << " is still incomplete and unknown for its '";
@@ -296,10 +295,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	if(m_state.okUTItoContinue(m_uti) || (m_uti == Hzy))
 	  {
-	    if(m_state.isClassATemplate(cuti))
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //t3787
-	    else
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //error/t3298
 	    m_state.setGoAgain(); //since not error; maybe no nodetypedesc
 	  }
 	else

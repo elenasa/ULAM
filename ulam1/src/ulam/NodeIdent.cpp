@@ -173,7 +173,6 @@ namespace MFM {
 		newnode->setNodeLocation(getNodeLocation());
 		newnode->setYourParentNo(pno); //missing?
 		newnode->resetNodeNo(getNodeNo()); //missing?
-		newnode->setBlockNo(m_currBlockNo);
 
 		m_state.popClassContext(); //restore
 		m_state.popClassContext(); //restore
@@ -216,7 +215,6 @@ namespace MFM {
 		newnode->setNodeLocation(getNodeLocation());
 		newnode->setYourParentNo(pno); //missing?
 		newnode->resetNodeNo(getNodeNo()); //missing?
-		newnode->setBlockNo(m_currBlockNo);
 
 		m_state.popClassContext(); //restore
 		m_state.popClassContext(); //restore

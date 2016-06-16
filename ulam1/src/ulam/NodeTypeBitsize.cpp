@@ -75,15 +75,11 @@ namespace MFM {
 
     if(!m_state.okUTItoContinue(it) || !m_state.isComplete(it))
       {
-	UTI cuti = m_state.getCompileThisIdx();
 	std::ostringstream msg;
 	msg << "Type Bitsize specifier, within (), is not ready";
 	if(m_state.okUTItoContinue(it) || (it == Hzy))
 	  {
-	    if(m_state.isClassATemplate(cuti))
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //t3787
-	    else
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t3787
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t3787
 	    m_state.setGoAgain(); //since not error
 	    it = Hzy;
 	  }
@@ -160,15 +156,11 @@ namespace MFM {
 	}
       if(!m_node->isReadyConstant())
 	{
-	  UTI cuti = m_state.getCompileThisIdx();
 	  std::ostringstream msg;
 	  msg << "Type Bitsize specifier for base type: ";
 	  msg << UlamType::getUlamTypeEnumAsString(BUT);
 	  msg << ", is not a ready constant expression";
-	    if(m_state.isClassATemplate(cuti))
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //t3787
-	    else
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t3787
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t3787
 	  sizetype = Hzy;
 	  return false; //no rtnBitSize
 	}

@@ -8,9 +8,6 @@ namespace MFM {
 
   NodeModelParameter::NodeModelParameter(const NodeModelParameter& ref) : NodeConstant(ref) {}
 
-  //special constructor that replaces a var with a constant (see NodeIdent)
-  //NodeModelParameter::NodeModelParameter(const NodeIdent& iref) :  NodeConstant(iref) {}
-
   NodeModelParameter::~NodeModelParameter(){}
 
   Node * NodeModelParameter::instantiate()

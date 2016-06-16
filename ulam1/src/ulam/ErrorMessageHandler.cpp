@@ -70,8 +70,13 @@ namespace MFM {
 	  outputMsg(loc,message,srcDebug.str().c_str(), "debug", false);
 	else
 	  {
-	    outputMsg(loc,message,srcDebug.str().c_str(), "ERROR");
-	    incErrorCount();
+	    if(m_state->isClassATemplate(m_state->getCompileThisIdx()))
+	      outputMsg(loc,message,srcDebug.str().c_str(), "debug", false);
+	    else
+	      {
+		outputMsg(loc,message,srcDebug.str().c_str(), "ERROR");
+		incErrorCount();
+	      }
 	  }
 	break;
       default:

@@ -565,13 +565,7 @@ namespace MFM {
       {
 	SymbolClass * csym = it->second;
 
-	//skip stubs that will never get resolved (e.g. t3787)
-	//if(csym->isStub() && m_state.isClassATemplate(csym->getContextForPendingArgs()))
-	//  {
-	//  it++;
-	//  continue;
-	//}
-
+	//push to Resolver to skip stubs that will never get resolved (e.g. t3787)
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
 	UTI cuti = csym->getUlamTypeIdx();

@@ -882,7 +882,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("typedef EventConfig<OurSiteAll,4> OurEventConfigAll;\n");
     m_state.indent(fp);
-    fp->write("typedef SizedTile<OurEventConfigAll, 20> OurTestTile;\n");
+    fp->write("typedef SizedTile<OurEventConfigAll, 20, 100> OurTestTile;\n");
     m_state.indent(fp);
     fp->write("typedef ElementTypeNumberMap<OurEventConfigAll> OurEventTypeNumberMapAll;\n");
     fp->write("\n");

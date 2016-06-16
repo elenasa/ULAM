@@ -216,10 +216,7 @@ namespace MFM {
 	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
 	    msg << ", is not ready, still hazy while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    if(m_state.isClassATemplate(cuti))
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    else
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    m_state.setGoAgain();
 	    setNodeType(Hzy);
 	    return Hzy; //short-circuit
