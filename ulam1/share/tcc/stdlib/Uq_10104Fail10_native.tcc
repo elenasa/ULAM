@@ -28,9 +28,11 @@ namespace MFM{
     if (type != T::ATOM_UNDEFINED_TYPE) { // Have an actual element
       T atom = ur.CreateAtom();
       AtomSerializer<AC> as(atom);
-      LOG.Message("FAIL(%d) (0x%04x) by %@ in Tile %s site %@ ", code, type, &as, tile.GetLabel(), &sctr);
+      LOG.Message("FAIL(%d/0x%08x) (0x%04x) by %@ in Tile %s site %@ ", 
+                  code, code, type, &as, tile.GetLabel(), &sctr);
     } else {
-      LOG.Message("FAIL(%d) in Tile %s site %@ ", code, tile.GetLabel(), &sctr);
+      LOG.Message("FAIL(%d/0x%08x) in Tile %s site %@ ", 
+                  code, code, tile.GetLabel(), &sctr);
     }
     FAIL_BY_NUMBER(code);
   }
