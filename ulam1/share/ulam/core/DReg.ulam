@@ -7,6 +7,8 @@
    \symbol DR
    \color #033
    \symmetries all
+   \radius 1
+   \version 3
 */
 element DReg {
   EventWindow ew;

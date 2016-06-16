@@ -4,5 +4,7 @@ ulam 1;
     \color #fff
     \symmetries normal
     \diffusability 0
+    \radius 0
+    \version 2
 */
 element Wall { Void behave() { } }
