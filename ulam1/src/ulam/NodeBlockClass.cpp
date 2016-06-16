@@ -274,10 +274,6 @@ namespace MFM {
 
   UTI NodeBlockClass::checkAndLabelType()
   {
-    // for debug purposes
-    UTI cuti = m_state.getCompileThisIdx();
-    m_state.isClassATemplate(cuti);
-
     //do first, might be important!
     checkParameterNodeTypes();
 

@@ -1252,7 +1252,7 @@ namespace MFM {
 	SymbolClass * csym = it->second;
 	UTI suti = csym->getUlamTypeIdx(); //this instance
 
-	//skip stubs that will never get resolved
+	//skip stubs that will never get resolved (SFINAE)
 	if(csym->isStub() && m_state.isClassATemplate(csym->getContextForPendingArgs()))
 	  {
 	    it++;
@@ -1328,12 +1328,14 @@ namespace MFM {
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
-	//skip stubs that will never get resolved
+
+	//skip stubs that will never get resolved  (SFINAE)
 	if(csym->isStub() && m_state.isClassATemplate(csym->getContextForPendingArgs()))
 	  {
 	    it++;
 	    continue;
 	  }
+
 	if(csym->isStub())
 	  aok &= aoktemplate; //use template
 	else
@@ -1373,12 +1375,14 @@ namespace MFM {
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
-	//skip stubs that will never get resolved
+
+	//skip stubs that will never get resolved (SFINAE)
 	if(csym->isStub() && m_state.isClassATemplate(csym->getContextForPendingArgs()))
 	  {
 	    it++;
 	    continue;
 	  }
+
 	if(csym->isStub())
 	  aok &= aoktemplate; //use template
 	else

@@ -203,7 +203,7 @@ namespace MFM {
 	    msg << "Suggest 'use ";
 	    msg << m_state.getTokenDataAsString(&tok) << ";' if it's a class";
 	    msg << ", otherwise a typedef is needed";
-	    MSG(m_state.getTokenLocationAsString(&tok).c_str(), msg.str().c_str(), DEBUG);
+	    MSG(m_state.getTokenLocationAsString(&tok).c_str(), msg.str().c_str(), WAIT);
 	    aok = false;
 	  }
 	mit++;
