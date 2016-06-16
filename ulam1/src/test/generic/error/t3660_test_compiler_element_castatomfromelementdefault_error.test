@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3660_test_compiler_element_castatomfromelementdefault_error
 #!
-./Foo.ulam:6:5: ERROR: Storage expression for: c, must be storeintoable.
+./Foo.ulam:6:5: ERROR: Initialization for: c, must be referenceable.
 ./Foo.ulam:3:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 ##

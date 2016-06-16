@@ -1,6 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3125_test_compiler_typedef_scope_error
 #!
+./D.ulam:9:5: ERROR: Undetermined Type: <Bar>; Suggest 'use Bar;' if it's a class, otherwise a typedef is needed.
 ./D.ulam:9:5: ERROR: Incomplete descriptor for type: holder.
 ./D.ulam:9:5: ERROR: Incomplete Variable Decl for type: holder, used with variable symbol name 'f'.
 ./D.ulam:10:5: ERROR: Incomplete identifier for type: holder, used with list symbol name 'f'.
@@ -23,6 +24,5 @@ element D {
     return f[0];
    }
 }
-##
-##      // Bar f gave error: a.ulam:1:69: (NodeTerminalIdent.cpp:labelType:61) ERROR: (2) <f> is not defined, and cannot be called.
+
 #.

@@ -104,6 +104,10 @@ namespace MFM{
 
     void setStoreIntoAble(TBOOL s);
 
+    virtual TBOOL getReferenceAble();
+
+    void setReferenceAble(TBOOL s);
+
     Locator getNodeLocation();
 
     virtual void setNodeLocation(Locator loc);
@@ -252,8 +256,9 @@ namespace MFM{
     std::string genHiddenArg2(u32& urtmpnumref);
 
   private:
-    TBOOL m_storeIntoAble;
     UTI m_utype;
+    TBOOL m_storeIntoAble;
+    TBOOL m_referenceAble;
     Locator m_loc;
     NNO m_parentNo;
     NNO m_no;

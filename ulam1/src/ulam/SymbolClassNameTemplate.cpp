@@ -564,9 +564,12 @@ namespace MFM {
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
+
+	//push to Resolver to skip stubs that will never get resolved (e.g. t3787)
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
 	UTI cuti = csym->getUlamTypeIdx();
+
 	m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
 	aok &= csym->statusNonreadyClassArguments(); //could bypass if fully instantiated
@@ -994,6 +997,11 @@ namespace MFM {
 	  {
 	    rtnok = false;
 	  }
+	else if(!m_state.isClassAStub(superuti))
+	  {
+	    stubcsym->setSuperClass(superuti); //not a stub; t3567, 3573, t3574, t3575
+	    rtnok = true;
+	  }
 	else
 	  {
 	    stubsuperuti = m_state.addStubCopyToAncestorClassTemplate(superuti, stubcsym->getUlamTypeIdx());
@@ -1244,7 +1252,7 @@ namespace MFM {
 	SymbolClass * csym = it->second;
 	UTI suti = csym->getUlamTypeIdx(); //this instance
 
-	//skip stubs that will never get resolved
+	//skip stubs that will never get resolved (SFINAE)
 	if(csym->isStub() && m_state.isClassATemplate(csym->getContextForPendingArgs()))
 	  {
 	    it++;
@@ -1320,12 +1328,14 @@ namespace MFM {
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
-	//skip stubs that will never get resolved
+
+	//skip stubs that will never get resolved  (SFINAE)
 	if(csym->isStub() && m_state.isClassATemplate(csym->getContextForPendingArgs()))
 	  {
 	    it++;
 	    continue;
 	  }
+
 	if(csym->isStub())
 	  aok &= aoktemplate; //use template
 	else
@@ -1365,12 +1375,14 @@ namespace MFM {
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
-	//skip stubs that will never get resolved
+
+	//skip stubs that will never get resolved (SFINAE)
 	if(csym->isStub() && m_state.isClassATemplate(csym->getContextForPendingArgs()))
 	  {
 	    it++;
 	    continue;
 	  }
+
 	if(csym->isStub())
 	  aok &= aoktemplate; //use template
 	else

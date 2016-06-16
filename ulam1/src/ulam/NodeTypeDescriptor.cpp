@@ -167,7 +167,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Incomplete descriptor for type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t3787
 	  }
       }
 

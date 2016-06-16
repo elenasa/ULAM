@@ -272,14 +272,18 @@ namespace MFM {
 	//check isStoreIntoAble, before any casting
 	//if(m_nodeInitExpr->isAConstant() || m_nodeInitExpr->isFunctionCall())
 	TBOOL istor = m_nodeInitExpr->getStoreIntoAble();
-	Node::setStoreIntoAble(istor);
+	Node::setStoreIntoAble(istor); //before setReferenceAble is set
 
-	if(istor != TBOOL_TRUE)
+	TBOOL isrefable = m_nodeInitExpr->getReferenceAble();
+	Node::setReferenceAble(isrefable); //custom arrays may have different stor/ref status
+
+	if((isrefable != TBOOL_TRUE) || (istor != TBOOL_TRUE))
 	  {
+	    //error tests: t3629, t3660, t3661, t3665, t3785
 	    std::ostringstream msg;
-	    msg << "Storage expression for: ";
+	    msg << "Initialization for: ";
 	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
-	    msg << ", must be storeintoable"; //e.g. constant or function call NOT so
+	    msg << ", must be referenceable"; //e.g. constant or function call NOT so
 	    if(istor == TBOOL_HAZY)
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);

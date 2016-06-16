@@ -2,12 +2,23 @@
 #=t3356_test_compiler_elementandquarkswclassargs2_typedeffromanotherclasstypedef
 #!
 Exit status: 2
-Ue_P(Int(32) a) { constant Int(32) a = NONREADYCONST;  constant Unsigned(UNKNOWN) nvar = NONREADYCONST;  Int(4) arr[UNKNOWN](0);  Bool(1) b(false);  Int(32) test() {  P(1) pel;  pel arr 2 [] . 2 = pel arr 2 [] . return } }
+Ue_R { Int(32) test() {  P(1) pel;  pel arr 2 [] . 2 cast = pel arr 2 [] . cast return } }
+Ue_P(Int(32) a) { constant Unsigned(UNKNOWN) nvar = 3u;  Int(4) arr[UNKNOWN](notready);  Bool(1) b(false);  <NOMAIN> }
 Uq_Q(Int(32) s) { typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }
 ##
 ##      //informed by t3346:  recursive typedefs as named constant type; used for size of array
-#>P.ulam
+#>R.ulam
+  ulam 1;
+element R{
+  Int test() {
+    P(1) pel;
+    pel.arr[2] = 2;
+    return pel.arr[2];
+  }
+}
+
+#:P.ulam
   ulam 1;
 use Q;
 use V;
@@ -15,12 +26,8 @@ element P(Int a) {
   constant V.Woof.Foo nvar = 3u;
   Int(4) arr[nvar];
   Bool b;
-  Int test() {
-    P(1) pel;
-    pel.arr[2] = 2;
-    return pel.arr[2];
-  }
 }
+
 ##
 ##      // unpack array doesn't work!! define SKIPEVAL in TestCase_EndToEndCompiler to skip eval step.
 ##      // o.w. slotsNeeded assumes 1.

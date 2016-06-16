@@ -13,9 +13,6 @@ namespace MFM {
 
   NodeConstant::NodeConstant(const NodeConstant& ref) : NodeTerminal(ref), m_token(ref.m_token), m_constSymbol(NULL), m_ready(false), m_currBlockNo(ref.m_currBlockNo) {}
 
-  //special constructor that replaces a var with a constant (see NodeIdent)
-  NodeConstant::NodeConstant(const NodeIdent& iref) :  NodeTerminal(iref), m_token(iref.getToken()), m_constSymbol(NULL), m_ready(false), m_currBlockNo(iref.getBlockNo()) {}
-
   NodeConstant::~NodeConstant(){}
 
   Node * NodeConstant::instantiate()

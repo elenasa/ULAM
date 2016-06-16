@@ -50,8 +50,9 @@ namespace MFM{
   public:
 
     NodeConstant(Token tok, SymbolWithValue * symptr, CompilerState & state);
+
     NodeConstant(const NodeConstant& ref);
-    NodeConstant(const NodeIdent& iref);
+
     virtual ~NodeConstant();
 
     virtual Node * instantiate();
@@ -73,6 +74,7 @@ namespace MFM{
     virtual UTI checkAndLabelType();
 
     NNO getBlockNo();
+
     NodeBlock * getBlock();
 
     virtual bool assignClassArgValueInStubCopy();

@@ -574,7 +574,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Class Definition '";
-	msg << m_state.getUlamTypeNameBriefByIndex(cnsym->getId()).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(cnsym->getUlamTypeIdx()).c_str(); //t3786
 	msg << "'; Inheritance from invalid Class identifier '";
 	msg << m_state.getTokenDataAsString(&iTok).c_str() << "'";
 	MSG(&iTok, msg.str().c_str(), ERR);

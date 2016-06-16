@@ -79,7 +79,7 @@ namespace MFM {
 	msg << "Type Bitsize specifier, within (), is not ready";
 	if(m_state.okUTItoContinue(it) || (it == Hzy))
 	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t3787
 	    m_state.setGoAgain(); //since not error
 	    it = Hzy;
 	  }
@@ -160,7 +160,7 @@ namespace MFM {
 	  msg << "Type Bitsize specifier for base type: ";
 	  msg << UlamType::getUlamTypeEnumAsString(BUT);
 	  msg << ", is not a ready constant expression";
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t3787
 	  sizetype = Hzy;
 	  return false; //no rtnBitSize
 	}

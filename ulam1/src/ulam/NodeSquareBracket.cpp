@@ -262,6 +262,7 @@ namespace MFM {
 	      	Node::setStoreIntoAble(TBOOL_TRUE);
 	    else
 	      Node::setStoreIntoAble(TBOOL_FALSE);
+	    Node::setReferenceAble(TBOOL_FALSE); //custom arrays are not reference-able
 	  }
 	else
 	  // multi-dimensional possible; MP not ok lhs.

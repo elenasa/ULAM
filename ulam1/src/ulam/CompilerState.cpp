@@ -1937,7 +1937,6 @@ namespace MFM {
   bool CompilerState::statusUnknownTypeInThisClassResolver(UTI huti)
   {
     UTI cuti = getCompileThisIdx();
-
 #if 1
     //just this class (original way)
     SymbolClass * csym = NULL;
@@ -1950,7 +1949,6 @@ namespace MFM {
     SymbolClassName * cnsym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClassName(cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), cnsym);
     assert(isDefined);
-
     return cnsym->statusUnknownTypeInClassInstances(huti);
 #endif
   } //statusUnknownTypeInThisClassResolver

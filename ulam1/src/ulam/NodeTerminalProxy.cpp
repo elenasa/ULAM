@@ -295,7 +295,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	if(m_state.okUTItoContinue(m_uti) || (m_uti == Hzy))
 	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //error/t3298
 	    m_state.setGoAgain(); //since not error; maybe no nodetypedesc
 	  }
 	else
@@ -313,7 +313,7 @@ namespace MFM {
 	    msg << m_funcTok.getTokenString();
 	    msg << "> is still incomplete and unknown while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	    MSG(&m_funcTok, msg.str().c_str(), DEBUG);
+	    MSG(&m_funcTok, msg.str().c_str(), WAIT);
 	    m_state.setGoAgain(); //since not error
 	    rtnb = false;
 	  }

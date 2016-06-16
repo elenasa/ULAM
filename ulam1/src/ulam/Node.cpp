@@ -14,9 +14,9 @@
 
 namespace MFM {
 
-  Node::Node(CompilerState & state): m_state(state), m_storeIntoAble(TBOOL_FALSE), m_utype(Nouti), m_parentNo(0), m_no(m_state.getNextNodeNo()) {}
+  Node::Node(CompilerState & state): m_state(state), m_utype(Nouti), m_storeIntoAble(TBOOL_FALSE), m_referenceAble(TBOOL_FALSE), m_parentNo(0), m_no(m_state.getNextNodeNo()) {}
 
-  Node::Node(const Node & ref) : m_state(ref.m_state), m_storeIntoAble(ref.m_storeIntoAble), m_utype(ref.m_utype), m_loc(ref.m_loc), m_parentNo(ref.m_parentNo), m_no(ref.m_no) /* same NNO */ {}
+  Node::Node(const Node & ref) : m_state(ref.m_state), m_utype(ref.m_utype), m_storeIntoAble(ref.m_storeIntoAble), m_referenceAble(ref.m_referenceAble), m_loc(ref.m_loc), m_parentNo(ref.m_parentNo), m_no(ref.m_no) /* same NNO */ {}
 
   void Node::setYourParentNo(NNO pno)
   {
@@ -110,6 +110,17 @@ namespace MFM {
   void Node::setStoreIntoAble(TBOOL s)
   {
     m_storeIntoAble = s;
+    setReferenceAble(s); //usually the case, except custom arrays
+  }
+
+  TBOOL Node::getReferenceAble()
+  {
+    return m_referenceAble;
+  }
+
+  void Node::setReferenceAble(TBOOL s)
+  {
+    m_referenceAble = s;
   }
 
   Locator Node::getNodeLocation()
