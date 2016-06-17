@@ -1761,7 +1761,7 @@ namespace MFM {
     NodeTypeDescriptor * typeNode = NULL;
     Token pTok = typeargs.m_typeTok;
     ULAMTYPE etyp = m_state.getBaseTypeFromToken(pTok);
-    bool mustbeAClassType = (etyp == Class);
+    bool maybeAClassType = (etyp == Class);
     bool assumeAClassType = ((etyp == Class) || (etyp == Hzy) || (etyp == Holder));
 
     if(assumeAClassType)
@@ -1770,9 +1770,11 @@ namespace MFM {
 	Token dTok;
 	getNextToken(dTok);
 	unreadToken();
-	mustbeAClassType |= (dTok.m_type == TOK_DOT); //another clue for Hzy and Holder
 
-	if(mustbeAClassType && (etyp == Holder))
+	//t3796, .maxof/.minof/.sizeof isn't always a class. darn.
+	maybeAClassType |= (dTok.m_type == TOK_DOT); //another clue for Hzy and Holder
+
+	if(maybeAClassType && (etyp == Holder))
 	  {
 	    UTI huti = Nav;
 	    UTI tmpscalar= Nav;
@@ -1782,8 +1784,8 @@ namespace MFM {
 	  }
 
 	//not sure what to do with the UTI? could be a declref type; both args are refs!
-	UTI cuti = parseClassArguments(pTok, mustbeAClassType);
-	if(mustbeAClassType)
+	UTI cuti = parseClassArguments(pTok, maybeAClassType);
+	if(maybeAClassType)
 	  {
 	    if(m_state.isReference(cuti)) //e.g. refofSelf, ref to array of classes
 	      {
@@ -2345,15 +2347,14 @@ namespace MFM {
 
 	    //update token argument
 	    if(tdclasstype == UC_NOTACLASS)
-	      args.m_typeTok.init(Token::getTokenTypeFromString(tdname.c_str()), pTok.m_locator, 0);
+	      args.m_typeTok.init(Token::getTokenTypeFromString(tdname.c_str()), pTok.m_locator, 0); //(not pTok.m_dataindex, e.g.t3380, t3381, t3382)
 	    else
 	      {
 		args.m_typeTok.init(TOK_TYPE_IDENTIFIER, pTok.m_locator, m_state.m_pool.getIndexForDataString(tdname));
 		isclasstd = true;
 	      }
-
-	    //don't update rest of argument refs; typedefs have their own bit and array sizes to look up
-
+	    //don't update rest of argument refs;
+	    //typedefs have their own bit and array sizes to look up
 	    //possibly another class? go again..
 	    if(isclasstd)
 	      {
@@ -2625,8 +2626,6 @@ namespace MFM {
   Node * Parser::parseMinMaxSizeofType(Token memberTok, UTI utype, NodeTypeDescriptor * nodetype)
   {
     Node * rtnNode = NULL;
-    UlamType * ut = m_state.getUlamTypeByIndex(utype);
-
     Token pTok;
     getNextToken(pTok);
     if(pTok.m_type != TOK_DOT)
@@ -2638,125 +2637,34 @@ namespace MFM {
     switch(fTok.m_type)
       {
       case TOK_KW_SIZEOF:
-	{
-	  if(ut->isComplete())
-	    {
-	      assert(ut->getUlamClassType() == UC_NOTACLASS); //can't be a class and complete
-	      rtnNode = makeTerminal(fTok, (u64) ut->getTotalBitSize(), Unsigned);
-	      delete nodetype; //unlikely
-	      //nodetype = NULL; not a ref!
-	    }
-	  else
-	    {
-	      //input uti wasn't complete, i.e. based on sizeof some class
-	      rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, nodetype, m_state);
-	    }
-	}
+	rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, nodetype, m_state);
 	break;
       case TOK_KW_MAXOF:
-	{
-	  if(ut->isMinMaxAllowed())
-	    {
-	      if(ut->isComplete())
-		{
-		  rtnNode = makeTerminal(fTok, ut->getMax(), utype);
-		  delete nodetype; //unlikely
-		  //nodetype = NULL; not a ref
-		}
-	      else
-		rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, nodetype, m_state);
-	    }
-	  else
-	    {
-	      std::ostringstream msg;
-	      msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str();
-	      msg << "' <" << m_state.getTokenDataAsString(&memberTok).c_str();
-	      msg << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
-	      MSG(&fTok, msg.str().c_str(), ERR);
-	    }
-	}
+	rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, nodetype, m_state);
 	break;
       case TOK_KW_MINOF:
-	{
-	  if(ut->isMinMaxAllowed())
-	    {
-	      if(ut->isComplete())
-		{
-		  rtnNode = makeTerminal(fTok, ut->getMin(), utype);
-		  delete nodetype; //unlikely
-		  //nodetype = NULL; not a ref
-		}
-	      else
-		rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, nodetype, m_state);
-	    }
-	  else
-	    {
-	      std::ostringstream msg;
-	      msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str();
-	      msg << "' <" << m_state.getTokenDataAsString(&memberTok).c_str();
-	      msg << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
-	      MSG(&fTok, msg.str().c_str(), ERR);
-	    }
-	}
+	rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, nodetype, m_state);
 	break;
       case TOK_KW_INSTANCEOF:
-	{
-	  if(ut->isComplete() && !m_state.isAtom(utype))
-	    {
-	      assert(ut->getUlamClassType() == UC_NOTACLASS); //can't be a class and complete
-	      rtnNode = NULL; //caller will clean up nodetype
-
-	      std::ostringstream msg;
-	      msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str();
-	      msg << "' <" << m_state.getTokenDataAsString(&memberTok).c_str();
-	      msg << ">, non-class type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
-	      MSG(&fTok, msg.str().c_str(), ERR);
-	    }
-	  else
-	    {
-	      //input uti wasn't complete, or an atom
-	      rtnNode = new NodeInstanceof(memberTok, nodetype, m_state);
-	    }
-	}
+	rtnNode = new NodeInstanceof(memberTok, nodetype, m_state);
 	break;
       case TOK_KW_ATOMOF:
 	{
-	  if(ut->isComplete() && !m_state.isAtom(utype))
+	  if(memberTok.m_type == TOK_TYPE_IDENTIFIER)
 	    {
-	      assert(ut->getUlamClassType() == UC_NOTACLASS); //can't be a class and complete
 	      rtnNode = NULL; //caller will clean up nodetype
 
 	      std::ostringstream msg;
 	      msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str();
 	      msg << "' <" << m_state.getTokenDataAsString(&memberTok).c_str();
-	      msg << ">, non-class type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
+	      msg << ">, a Type";
 	      MSG(&fTok, msg.str().c_str(), ERR);
 	    }
 	  else
-	    {
-	      if(memberTok.m_type == TOK_TYPE_IDENTIFIER)
-		{
-		  rtnNode = NULL; //caller will clean up nodetype
-
-		  std::ostringstream msg;
-		  msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str();
-		  msg << "' <" << m_state.getTokenDataAsString(&memberTok).c_str();
-		  msg << ">, a Type";
-		  MSG(&fTok, msg.str().c_str(), ERR);
-		}
-	      else
-		//input uti wasn't complete, or an atom
-		rtnNode = new NodeAtomof(memberTok, nodetype, m_state);
-	    }
+	    //input uti wasn't complete, or an atom
+	    rtnNode = new NodeAtomof(memberTok, nodetype, m_state);
 	}
 	break;
-      case TOK_IDENTIFIER:
-	{
-	  //possible named constant?
-	  //rtnNode = new NodeConstantProxy(memberTok, utype, fTok, nodetype, m_state);
-
-	}
-	//break;
       default:
 	{
 	  //std::ostringstream msg;
