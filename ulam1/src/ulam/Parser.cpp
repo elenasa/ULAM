@@ -3036,7 +3036,7 @@ namespace MFM {
 	}
 	break;
       case TOK_OPEN_PAREN:
-	rtnNode = parseRestOfCastOrExpression();
+	rtnNode = parseRestOfCastOrExpression(false);
 	break;
       case TOK_MINUS:
       case TOK_PLUS:
@@ -3107,7 +3107,7 @@ namespace MFM {
     return rtnNode;
   } //parseRestOfFactor
 
-  Node * Parser::parseRestOfCastOrExpression()
+  Node * Parser::parseRestOfCastOrExpression(bool allowRefCasts)
   {
     Node * rtnNode = NULL;
     //just saw an open paren..
@@ -3116,7 +3116,7 @@ namespace MFM {
     getNextToken(tTok);
     if(Token::isTokenAType(tTok))
       {
-	rtnNode = makeCastNode(tTok); //also parses its child Factor
+	rtnNode = makeCastNode(tTok, allowRefCasts); //also parses its child Factor
       }
     else
       {
@@ -3563,7 +3563,7 @@ namespace MFM {
 	else if(eTok.m_type == TOK_OPEN_PAREN)
 	  {
 	    //allows casting of reference initialization
-	    Node * rightNode = parseRestOfCastOrExpression();
+	    Node * rightNode = parseRestOfCastOrExpression(true);
 	    if(!rightNode)
 	      {
 		std::ostringstream msg;
@@ -4948,7 +4948,7 @@ namespace MFM {
     return rtnNode;
   } //makeFactorNode
 
-  Node * Parser::makeCastNode(Token typeTok)
+  Node * Parser::makeCastNode(Token typeTok, bool allowRefCasts)
   {
     Node * rtnNode = NULL;
     UTI typeToBe = Nouti;
@@ -4964,14 +4964,25 @@ namespace MFM {
     getNextToken(eTok);
     if(eTok.m_type == TOK_AMP)
       {
-	// maybe be needed for atom to quark ref casts (t3692)
-
-	UTI refuti = m_state.getUlamTypeAsRef(typeNode->givenUTI());
-	typeargs.m_declRef = ALT_REF;
-	typeNode->setReferenceType(ALT_REF, typeNode->givenUTI(), refuti);
-	typeargs.m_referencedUTI = typeNode->getReferencedUTI(); //typeNode->givenUTI();
+	UTI casttype = typeNode->givenUTI();
+	if(allowRefCasts)
+	  {
+	    // check if needed for atom to quark ref casts (t3692)
+	    UTI refuti = m_state.getUlamTypeAsRef(casttype);
+	    typeargs.m_declRef = ALT_REF;
+	    typeNode->setReferenceType(ALT_REF, typeNode->givenUTI(), refuti);
+	    typeargs.m_referencedUTI = typeNode->getReferencedUTI();
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Explicit Reference casts (Type&) ";
+	    msg << "are valid for reference variable initialization";
+	    msg << ", and not in this context";
+	    MSG(&eTok, msg.str().c_str(), ERR);
+	  }
 	getNextToken(eTok);
-      }
+      } //reference cast
 
     if(eTok.m_type == TOK_CLOSE_PAREN)
       {

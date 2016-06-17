@@ -233,6 +233,7 @@ namespace MFM {
 	  }
 	else
 	  {
+	    //safe to cast, but can't be reference
 	    if(m_nodeInitExpr->isExplicitReferenceCast())
 	      {
 		std::ostringstream msg;
@@ -246,17 +247,9 @@ namespace MFM {
 	      rscr = CAST_BAD; //error
 	  } //safe cast
       }
-    else if(m_nodeInitExpr->isExplicitReferenceCast())
-      {
-	std::ostringstream msg;
-	msg << "Explicit Reference cast for variable '";
-	msg << m_state.m_pool.getDataAsString(m_vid).c_str();
-	msg << "' initialization is invalid";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	rscr = CAST_BAD;
-      }
+    //else same type, clear to cast
     return rscr;
-  } //safeToCastTo
+  } //safeToCastTo (virtual)
 
   bool NodeVarDecl::checkSafeToCastTo(UTI fromType, UTI& newType)
   {

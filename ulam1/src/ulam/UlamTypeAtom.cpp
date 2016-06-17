@@ -95,7 +95,7 @@ namespace MFM {
       return scr;
 
     if(m_state.isAtom(typidx))
-      return CAST_CLEAR; //atom to atom
+      return CAST_CLEAR; //atom/ref to atom/ref
 
     //casting from quark or transient to atom or atomref is bad
     UlamType * vut = m_state.getUlamTypeByIndex(typidx);

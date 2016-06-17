@@ -41,18 +41,18 @@ namespace MFM {
     FORECAST scr = UlamType::safeCast(typidx);
     if(scr != CAST_CLEAR)
       return scr;
-
-    if(m_state.getUlamTypeByIndex(typidx) == this)
+    UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
+    if( fmut == this)
       return CAST_CLEAR; //same class, quark or element
     else
       {
-	UTI fmderef = m_state.getUlamTypeAsDeref(typidx); //e.g. ALT-AS
+	UTI fmderef = m_state.getUlamTypeAsDeref(typidx); //e.g. ALT_AS, ALT_ARRAYITEM
 	u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx(); //our scalar "new"
 	if(m_state.isClassASubclassOf(fmderef, cuti))
 	  return CAST_CLEAR; //(up) casting to a super class
 	else
 	  {
-	    //e.g. array item to a ref of same type
+	    //e.g. array item to a ref of same type (cuti)
 	    ULAMTYPECOMPARERESULTS cmpr1 = UlamType::compare(fmderef, cuti, m_state);
 	    if(cmpr1 == UTIC_SAME)
 	      return CAST_CLEAR;
