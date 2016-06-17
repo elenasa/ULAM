@@ -259,19 +259,25 @@ namespace MFM {
     fp->write_decimal_unsigned(len); //includes arraysize
     fp->write("u, effself) { }\n");
 
-    //default destructor (for completeness)
+    //(general) copy constructor here; pos relative to exisiting (i.e. same). t3788
     m_state.indent(fp);
-    fp->write("~");
     fp->write(automangledName.c_str());
-    fp->write("() {}\n");
+    fp->write("(const UlamRef");
+    fp->write("<EC>& r) : UlamRef<EC>(r, 0, r.GetLen(), r.GetEffectiveSelf()) { }\n");
 
-    //copy constructor here; pos relative to exisiting (i.e. same).
+    //(exact) copy constructor; pos relative to exisiting (i.e. same).
     //t3617, t3631, t3668, t3669, t3672, t3689, t3692, t3693, t3697, t3746
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const ");
     fp->write(automangledName.c_str());
     fp->write("<EC>& r) : UlamRef<EC>(r, 0, r.GetLen(), r.GetEffectiveSelf()) { }\n");
+
+    //default destructor (for completeness)
+    m_state.indent(fp);
+    fp->write("~");
+    fp->write(automangledName.c_str());
+    fp->write("() {}\n");
 
     // aref/aset calls generated inline for immediates.
     if(isCustomArray())

@@ -2372,7 +2372,8 @@ namespace MFM {
     else if(m_state.m_currentObjSymbolsForCodeGen.size() > 1)
       method = nut->writeMethodForCodeGen(); //UlamRef
     else if(nut->getUlamClassType() == UC_TRANSIENT)
-      method = nut->readMethodForCodeGen(); //BitStorage ReadBV
+      //method = nut->readMethodForCodeGen(); //BitStorage ReadBV
+      method = nut->writeMethodForCodeGen(); //BitStorage ReadBV
     else
       method = "write"; //local variable name, not a transient
     return method;
