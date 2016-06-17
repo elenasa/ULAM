@@ -231,9 +231,21 @@ namespace MFM {
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	      }
 	  }
-	else if(!Node::makeCastingNode(m_nodeInitExpr, nuti, m_nodeInitExpr))
-	  rscr = CAST_BAD; //error
-      } //safe cast
+	else
+	  {
+	    if(m_nodeInitExpr->isExplicitReferenceCast())
+	      {
+		std::ostringstream msg;
+		msg << "Explicit Reference cast for variable '";
+		msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+		msg << "' initialization is invalid";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		rscr = CAST_BAD;
+	      }
+	    else if(!Node::makeCastingNode(m_nodeInitExpr, nuti, m_nodeInitExpr))
+	      rscr = CAST_BAD; //error
+	  } //safe cast
+      }
     else if(m_nodeInitExpr->isExplicitReferenceCast())
       {
 	std::ostringstream msg;
@@ -424,7 +436,7 @@ namespace MFM {
 	    eit = it;
 	  } //end array initializers (eit == Void)
 
-    setNodeType(it); //needed before safeToCast, and folding
+	setNodeType(it); //needed before safeToCast, and folding
 
 	if(!m_state.isScalar(eit))
 	  {

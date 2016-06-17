@@ -1,0 +1,62 @@
+## -*- mode:ulam -*-
+#=t3793_test_compiler_elementandquark_assignreftosub_error
+#!
+./A.ulam:11:16: ERROR: Cannot explicitly cast Qbase& to type: A.
+./A.ulam:11:5: ERROR: Initial value expression for: apple, initialization is invalid.
+./A.ulam:15:15: ERROR: Cannot explicitly cast Qbase& to type: A.
+./A.ulam:15:12: ERROR: Assignment is invalid; LHS: A; RHS: erroneous.
+./System.ulam:2:7: ERROR: 4 Nodes with erroneous types detected after type labeling class: System.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t3756
+##
+#>A.ulam
+  ulam 2;
+element A : QW {
+  Bool b, c;
+  Int test(){
+    System s;
+
+    //case 1: CastAsDecendentElement (to be ref)
+    Qbase& qref = self;
+
+    //case 2: (init) genCodeCastAncestorQuarkAsSubElement
+    A apple = (A) qref; //unused var (qref read)
+
+    //case 3: (assign) genCodeCastAncestorQuarkAsSubElement
+    A apple2;
+    apple2 = (A) qref; //unused var (qref read)
+    return 0;
+  }
+}
+
+#:QW.ulam
+  ulam 2;
+quark QW : Qbase{
+  Bool bw;
+  Self func()
+  {
+    Atom a = self.atomof;
+    Self& sra = (Self&) a; //immediate quark with current values
+    return sra;
+  }
+}
+
+#:Qbase.ulam
+  ulam 2;
+quark Qbase{
+  Unary(5) m_five;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

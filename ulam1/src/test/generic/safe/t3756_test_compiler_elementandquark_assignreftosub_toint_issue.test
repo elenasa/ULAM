@@ -1,8 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3756_test_compiler_elementandquark_assignreftosub_toint_issue
 #!
-Exit status: -11
-Ue_A : QW { :< :< Unary(5) m_five(0u); > Bool(1) bw(false); > Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  Qbase& qref = self cast;  A apple = qref cast;  A apple2;  apple2 qref cast = A apple3 = qref.atomof cast;  A& appleref = qref cast;  Atom(96)& atr = qref.atomof;  Atom(96) a = qref.atomof cast;  0 cast return } }
+Exit status: -1
+Ue_A : QW { :< :< Unary(5) m_five(0u); > Bool(1) bw(false); > Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  Qbase& qref = self cast;  A apple3 = qref.atomof cast;  A& appleref = qref cast;  Atom(96)& atr = qref.atomof;  Atom(96) a = qref.atomof cast;  0 cast return } }
 Uq_QW : Qbase { :< Unary(5) m_five(0); > Bool(1) bw(false);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 Uq_Qbase { Unary(5) m_five(0);  <NOMAIN> }
@@ -14,25 +14,31 @@ Uq_Qbase { Unary(5) m_five(0);  <NOMAIN> }
 ##
 #>A.ulam
   ulam 2;
-//use System;
-//use QW;
 element A : QW {
   Bool b, c;
   Int test(){
     System s;
+
+    //case 1: CastAsDecendentElement (to be ref)
     Qbase& qref = self;
 
-    A apple = (A) qref; //unused var (qref read)
+    //case 2: (init) genCodeCastAncestorQuarkAsSubElement
+    //A apple = (A) qref; //unused var (qref read)
 
-    A apple2;
-    apple2 = (A) qref; //unused var (qref read)
+    //case 3: (assign) genCodeCastAncestorQuarkAsSubElement
+    //A apple2;
+    //apple2 = (A) qref; //unused var (qref read)
 
+    //case 4: Atom To Element
     A apple3 = (A) qref.atomof;
 
+    //case 5: (to ref) genCodeCastAncestorQuarkAsSubElement
     A& appleref = (A&) qref; //unused var (qref read); can't use .atomof
 
+    //case 6: AtomRef to AtomRef
     Atom & atr = qref.atomof;
 
+    //case 7: AtomRef to Atom
     Atom a = qref.atomof;
     return 0;
   }
@@ -40,7 +46,6 @@ element A : QW {
 
 #:QW.ulam
   ulam 2;
-//use Qbase;
 quark QW : Qbase{
   Bool bw;
   Self func()

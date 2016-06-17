@@ -238,7 +238,13 @@ namespace MFM {
     fp->write_decimal_unsigned(len); //includes arraysize
     fp->write("u, effself) { }\n");
 
-    //copy constructor here; pos relative to exisiting (i.e. same).
+    //(general) copy constructor here; pos relative to exisiting (i.e. same).
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("(const UlamRef");
+    fp->write("<EC>& r) : UlamRef<EC>(r, 0, r.GetLen(), r.GetEffectiveSelf()) { }\n");
+
+    //(exact) copy constructor (for compiler)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const ");

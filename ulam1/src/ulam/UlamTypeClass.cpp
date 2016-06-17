@@ -49,7 +49,7 @@ namespace MFM {
 	UTI fmderef = m_state.getUlamTypeAsDeref(typidx); //e.g. ALT-AS
 	u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx(); //our scalar "new"
 	if(m_state.isClassASubclassOf(fmderef, cuti))
-	  return CAST_CLEAR; //casting to a super class
+	  return CAST_CLEAR; //(up) casting to a super class
 	else
 	  {
 	    //e.g. array item to a ref of same type
@@ -60,14 +60,10 @@ namespace MFM {
 	      return CAST_HAZY;
 
 	    if(m_state.isClassASubclassOf(fmderef, cuti))
-	      return CAST_CLEAR; //casting ref to a super class (may also be ref)
+	      return CAST_CLEAR; //(up) casting ref to a super class (may also be ref)
 
 	    if(m_state.isClassASubclassOf(cuti, fmderef))
-	      {
-		//if(m_state.isReference(typidx))
-		//  return CAST_CLEAR; //casting super ref to a sub class is ok
-		return CAST_BAD; //requires explicit cast
-	      }
+	      return CAST_BAD; //(downcast) requires explicit cast
 
 	    //ref of this class, applies to entire arrays too
 	    UTI anyUTI = Nouti;
@@ -103,8 +99,9 @@ namespace MFM {
 	u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx(); //our scalar as nonref "new"
 	if(m_state.isClassASubclassOf(cuti, fmderef))
 	  {
-	    //casting fm super to sub..only if fm is a ref
-	    if(!isfmref)
+	    //even though it may fail at runtime:
+	    //(down)casting fm super to sub..only if fm-ref && to-ref
+	    if(!isfmref || !isReference())
 	      scr = CAST_BAD; //t3756, t3757
 	  }
 	else if(m_state.isClassASubclassOf(fmderef, cuti))
