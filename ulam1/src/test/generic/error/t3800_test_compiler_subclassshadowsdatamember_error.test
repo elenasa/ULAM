@@ -1,0 +1,43 @@
+## -*- mode:ulam -*-
+#=t3800_test_compiler_subclassshadowsdatamember_error
+#!
+./A.ulam:6:3: ERROR: Data member 'j' is shadowing an ancestor.
+./A.ulam:4:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
+./A.ulam:4:9: ERROR: 3 Nodes with unresolved types detected after type labeling class: A.
+Unrecoverable Program Type Label FAILURE.
+##
+##      //informed by 3403, except constant type is more than a long >64 bits
+##
+#>A.ulam
+ ulam 2;
+use System;
+use B;
+element A : B{
+  System s;
+  Int j;
+  Int test () {
+    j = 1 + B.sizeof;
+    s.print(j);
+    return j;
+  }
+}
+
+#:B.ulam
+  ulam 1;
+quark B{
+  typedef Int(3) Bar[2];
+  Bar j;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

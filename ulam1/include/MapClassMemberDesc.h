@@ -63,7 +63,7 @@ namespace MFM
 
     virtual std::string getMemberKind() const = 0;
     virtual bool getValue(u64& vref) const;
-    virtual bool hasValue() const;
+    virtual bool hasValue() const; //default is false
     virtual std::string getValueAsString() const;
   };
 

@@ -607,14 +607,14 @@ namespace MFM {
   //see also NodeIdent
   bool NodeSquareBracket::installSymbolConstantValue(TypeArgs& args, Symbol *& asymptr)
   {
-    MSG(getNodeLocationAsString().c_str(), "Array size specified for named constant", ERR);
+    MSG(getNodeLocationAsString().c_str(), "Array type specified for named constant", ERR);
     return false;
   } //installSymbolConstantValue
 
   //see also NodeIdent
   bool NodeSquareBracket::installSymbolModelParameterValue(TypeArgs& args, Symbol *& asymptr)
   {
-    MSG(getNodeLocationAsString().c_str(), "Array size specified for model parameter", ERR);
+    MSG(getNodeLocationAsString().c_str(), "Array type specified for model parameter", ERR);
     return false;
   } //installSymbolModelParameterValue
 

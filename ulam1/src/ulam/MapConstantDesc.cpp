@@ -28,5 +28,17 @@ namespace MFM {
     return true;
   }
 
+  bool ConstantDesc::hasValue() const
+  {
+    return true;
+  }
+
+  std::string ConstantDesc::getValueAsString() const
+  {
+    std::ostringstream dhex;
+    dhex << " 0x" << std::hex << m_val;
+    return dhex.str();
+  }
+
 
 } //MFM
