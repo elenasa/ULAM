@@ -4129,6 +4129,7 @@ namespace MFM {
 	    else
 	      {
 		rtnNode =  new NodeVarDecl((SymbolVariable *) asymptr, nodetyperef, m_state);
+		((SymbolVariableStack *) asymptr)->setDeclNodeNo(rtnNode->getNodeNo());
 		m_state.clearStructuredCommentToken();
 	      }
 	    assert(rtnNode);

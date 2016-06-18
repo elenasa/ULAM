@@ -3,11 +3,11 @@
 
 namespace MFM {
 
-  SymbolVariableStack::SymbolVariableStack(Token id, UTI utype, s32 slot, CompilerState& state) : SymbolVariable(id, utype, state), m_stackFrameSlotIndex(slot), m_autoStgTypeForEval(Nouti) {}
+  SymbolVariableStack::SymbolVariableStack(Token id, UTI utype, s32 slot, CompilerState& state) : SymbolVariable(id, utype, state), m_stackFrameSlotIndex(slot), m_autoStgTypeForEval(Nouti), m_declnno(0) {}
 
-  SymbolVariableStack::SymbolVariableStack(const SymbolVariableStack& sref) : SymbolVariable(sref), m_stackFrameSlotIndex(sref.m_stackFrameSlotIndex), m_autoStgTypeForEval(sref.m_autoStgTypeForEval) {}
+  SymbolVariableStack::SymbolVariableStack(const SymbolVariableStack& sref) : SymbolVariable(sref), m_stackFrameSlotIndex(sref.m_stackFrameSlotIndex), m_autoStgTypeForEval(sref.m_autoStgTypeForEval), m_declnno(sref.m_declnno) {}
 
-  SymbolVariableStack::SymbolVariableStack(const SymbolVariableStack& sref, bool keepType) : SymbolVariable(sref, keepType), m_stackFrameSlotIndex(sref.m_stackFrameSlotIndex), m_autoStgTypeForEval(sref.m_autoStgTypeForEval) {}
+  SymbolVariableStack::SymbolVariableStack(const SymbolVariableStack& sref, bool keepType) : SymbolVariable(sref, keepType), m_stackFrameSlotIndex(sref.m_stackFrameSlotIndex), m_autoStgTypeForEval(sref.m_autoStgTypeForEval), m_declnno(sref.m_declnno) {}
 
   SymbolVariableStack::~SymbolVariableStack() {}
 
@@ -25,6 +25,18 @@ namespace MFM {
   {
     assert(!isDataMember());
     return m_stackFrameSlotIndex;
+  }
+
+  NNO SymbolVariableStack::getDeclNodeNo()
+  {
+    assert(!isDataMember());
+    return m_declnno;
+  }
+
+  void SymbolVariableStack::setDeclNodeNo(NNO nno)
+  {
+    assert(!isDataMember());
+    m_declnno = nno;
   }
 
   void SymbolVariableStack::setStackFrameSlotIndex(s32 slot)
