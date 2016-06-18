@@ -50,10 +50,14 @@ namespace MFM
     virtual const ClassMemberDesc * clone() const;
 
     virtual std::string getMemberKind() const;
-    virtual bool getValue(u64& vref) const;
+    //virtual bool getValue(u64& vref) const;
+    bool hasValue() const;
+    std::string getValueAsString() const;
 
   private:
-    u64 m_val; //intial default (as Bits)
+    bool m_hasVal;
+    u32 m_len;
+    BV8K m_val; //intial default (as Bits)
 
   };
 

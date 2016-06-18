@@ -51,7 +51,7 @@ namespace MFM
     virtual std::string getMemberKind() const;
 
   private:
-    u64 m_val; //as Bits
+    //u64 m_val; //as Bits
 
   };
 

@@ -102,18 +102,6 @@ namespace MFM{
     BV8K m_constantValue;
     BV8K m_initialValue;
 
-#if 0
-    union {
-      s64 sval;
-      u64 uval;
-    } m_constant;
-
-    union {
-      s64 sval;
-      u64 uval;
-    } m_initial;
-#endif
-
     void printPostfixValueScalar(File * fp);
     void printPostfixValueArray(File * fp);
   };

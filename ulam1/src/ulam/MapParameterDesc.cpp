@@ -28,5 +28,16 @@ namespace MFM {
     return true;
   }
 
+  bool ParameterDesc::hasValue() const
+  {
+    return true;
+  }
+
+  std::string ParameterDesc::getValueAsString() const
+  {
+    std::ostringstream dhex;
+    dhex << " 0x" << std::hex << m_val;
+    return dhex.str();
+  }
 
 } //MFM
