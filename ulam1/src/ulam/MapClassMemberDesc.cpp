@@ -34,4 +34,15 @@ namespace MFM {
     return false;
   }
 
+  bool ClassMemberDesc::hasValue() const
+  {
+    return false;
+  }
+
+  std::string ClassMemberDesc::getValueAsString() const
+  {
+    assert(0);
+    return "0x0";
+  }
+
 } //MFM
