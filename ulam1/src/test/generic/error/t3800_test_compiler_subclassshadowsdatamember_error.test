@@ -6,8 +6,6 @@
 ./A.ulam:4:9: ERROR: 3 Nodes with unresolved types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
-##      //informed by 3403, except constant type is more than a long >64 bits
-##
 #>A.ulam
  ulam 2;
 use System;
