@@ -1294,14 +1294,18 @@ namespace MFM {
 	      }
 	    else if(vetyp == Class) //t3774
 	      {
-		fp->write(", 0u, "); //left-justified
 		if(m_state.isReference(stgcosuti))
 		  {
+		    fp->write(", 0u, "); //left-justified
 		    fp->write(stgcos->getMangledName().c_str()); //stg
 		    fp->write(".GetEffectiveSelf()"); //t3774
 		  }
 		else
 		  {
+		    if(vclasstype == UC_ELEMENT) //t3795
+		      fp->write(", T::ATOM_FIRST_STATE_BIT, ");
+		    else
+		      fp->write(", 0u, "); //left-justified
 		    fp->write("&");
 		    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
 		  }

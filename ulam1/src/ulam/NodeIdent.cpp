@@ -304,6 +304,15 @@ namespace MFM {
 	      }
 	  }
       }
+
+    if(m_varSymbol && !m_varSymbol->isDataMember() && (((SymbolVariableStack *) m_varSymbol)->getDeclNodeNo() > getNodeNo()))
+      {
+	std::ostringstream msg;
+	msg << "Local variable '" << getName();
+	msg << "' was used before declared";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	it = Nav; //error/t3797
+      }
     setNodeType(it);
     return it;
   } //checkAndLabelType

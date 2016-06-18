@@ -1839,6 +1839,8 @@ namespace MFM {
     assert(argNode);
     argNode->setNodeLocation(loc);
     fsymptr->addParameterSymbol(argSym); //ownership stays w NodeBlockFunctionDefinition's ST
+    //uses "decl" nodeno of argIdentNode since it had to be created first (e.g. t3411, t3412, t3514)
+    ((SymbolVariableStack *) argSym)->setDeclNodeNo(argIdentNode->getNodeNo());
 
     //potentially needed to resolve its node type
     fblock->addParameterNode(argNode); //transfer owner

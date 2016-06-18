@@ -1,0 +1,55 @@
+## -*- mode:ulam -*-
+#=t3796_test_compiler_fromanotherclassnamedconstantmaxof_issue
+##
+## gen output (+ assert)
+## Unsigned Arg: 16
+##
+#!
+Exit status: 16
+Ue_R { Unsigned(32) ans(16u);  Int(32) test() {  System s;  QFoo qfoo;  ans qfoo 16u . = s ( ans )print . s ( ans 16u cast == )assert . ans cast return } }
+Uq_System { <NOMAIN> }
+Uq_QFoo { typedef Unsigned(4) Cat;  constant Unsigned(32) cSIZE = 16u;  <NOMAIN> }
+Uq_Q { typedef Unsigned(4) Cat;  <NOMAIN> }
+##
+## informed by issue 6/17/2016
+##
+#>R.ulam
+  ulam 2;
+element R {
+  Unsigned ans;
+  Int test() {
+    System s;
+    QFoo qfoo;
+    ans = qfoo.cSIZE;
+    s.print(ans);
+    s.assert(ans == 16u);
+    return (Int) ans;
+  }
+}
+
+#:QFoo.ulam
+  ulam 2;
+quark QFoo {
+  typedef Q.Cat Cat;
+  constant Unsigned cSIZE = Cat.maxof + 1;
+}
+
+#:Q.ulam
+  ulam 2;
+quark Q {
+  typedef Unsigned(4) Cat;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

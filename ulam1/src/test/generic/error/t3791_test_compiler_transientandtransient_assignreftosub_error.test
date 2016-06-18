@@ -1,9 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3791_test_compiler_transientandtransient_assignreftosub_error
 #!
-./R.ulam:10:5: ERROR: Explicit Reference cast for variable 'tapple' initialization is invalid.
-./System.ulam:2:7: ERROR: 1 Nodes with erroneous types detected after type labeling class: System.
-Unrecoverable Program Type Label FAILURE.
+./R.ulam:10:20: ERROR: Explicit Reference casts (Type&) are valid for reference variable initialization, and not in this context.
+Unrecoverable Program Parse FAILURE: <R.ulam>
+Unrecoverable Program Parse FAILURE: <TW.ulam>
+Unrecoverable Program Parse FAILURE: <W.ulam>
+Unrecoverable Program Parse FAILURE: <Base.ulam>
+Unrecoverable Program Parse FAILURE: <System.ulam>
 ##
 ## informed by t3790
 ##

@@ -266,10 +266,6 @@ namespace MFM {
 	      } //constantarg
 	    // catch it later for a better error message!!
 	    //else if(argNodes[i]->isFunctionCall() && m_state.isReference(puti))
-	    //  {
-	    //		rtnBool = false;
-	    //		break;
-	    //  }
 	    else
 	      {
 		//willing to cast arg Type safely TO puti; incomplete types are hazy.
@@ -392,7 +388,6 @@ namespace MFM {
     fp->write("(");
 
     fp->write("const UlamContext<EC>& uc, "); //first arg is unmangled context
-
     //the hidden arg is "atom" (was "self"), a T& (atom), now UlamRef (ur)
     fp->write("UlamRef<EC>& "); //a reference
     fp->write(m_state.getHiddenArgName());
@@ -408,9 +403,7 @@ namespace MFM {
 	UTI auti = asym->getUlamTypeIdx();
 	UlamType * aut = m_state.getUlamTypeByIndex(auti);
 	fp->write(aut->getLocalStorageTypeAsString().c_str()); //for C++
-	//if(aut->isReference())
-	fp->write("&"); //gen C++ reference for Ulam ref (auto) arg; avoids g++ synthesized copy constructor
-
+	fp->write("&"); //gen C++ reference for funcs args; avoids g++ synthesized copy constructor
 	fp->write(" ");
 	fp->write(asym->getMangledName().c_str());
       }
@@ -476,7 +469,6 @@ namespace MFM {
 
     //arg types only
     fp->write("const UlamContext<EC>&, "); //first arg is unmangled context
-    //fp->write("T& "); //the hidden arg is "atom" (was "self"), a T& (atom)
     fp->write("UlamRef<EC>& "); //the hidden arg is "atom" (was "self"), a T& (atom), now UlamRef (self)
 
     u32 numparams = getNumberOfParameters();
@@ -489,8 +481,7 @@ namespace MFM {
 	UTI auti = asym->getUlamTypeIdx();
 	UlamType * aut = m_state.getUlamTypeByIndex(auti);
 	fp->write(aut->getLocalStorageTypeAsString().c_str()); //for C++
-	//if(aut->isReference())
-	fp->write("&"); //gen C++ reference for Ulam ref (auto) arg; avoids g++ synthesized copy constructor
+	fp->write("&"); //gen C++ reference for func args; avoids g++ synthesized copy constructor
       }
     fp->write(")");
     fp->write(";\n");

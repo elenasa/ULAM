@@ -314,7 +314,7 @@ namespace MFM{
 
     Node * parseRestOfFactor(Node * leftNode);
 
-    Node * parseRestOfCastOrExpression();
+    Node * parseRestOfCastOrExpression(bool allowRefCasts);
 
     Node * parseRestOfTerm(Node * leftNode);
 
@@ -411,7 +411,7 @@ namespace MFM{
     Node * makeFactorNode();
 
     /** helper for parseRestOfCastOrExpression via parseFactor*/
-    Node * makeCastNode(Token typeTok);
+    Node * makeCastNode(Token typeTok, bool allowRefCasts);
 
     /**
        helper method to make a terminal node

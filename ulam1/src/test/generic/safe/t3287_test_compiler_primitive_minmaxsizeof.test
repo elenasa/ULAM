@@ -19,7 +19,7 @@
 ##
 ##      //constant fold minus; constants of lhs type; return sizeof Void (== 0u)
 Exit status: 0
-Ue_Fu { System s();  Int(32) test() {  Int(4) z;  s ( 4u )print . s ( -8 )print . s ( 7 )print . Unsigned(32) y;  s ( 32u cast )print . s ( 0u cast )print . s ( 4294967295u )print . Unary(3) x;  s ( 3u )print . s ( 0u )print . s ( 7u )print . Bool(3) v;  s ( 3u )print . s ( 0u )print . s ( 7u )print . Bits(2) t;  s ( 2u )print . 0u cast return } }
+Ue_Fu { System s();  Int(32) test() {  Int(4) z;  s ( 4u )print . s ( -8 )print . s ( 7 )print . Unsigned(32) y;  s ( 32u )print . s ( 0u )print . s ( 4294967295u )print . Unary(3) x;  s ( 3u )print . s ( 0u )print . s ( 7u )print . Bool(3) v;  s ( 3u )print . s ( 0u )print . s ( 7u )print . Bits(2) t;  s ( 2u )print . 0u cast return } }
 Uq_System { <NOMAIN> }
 #>Fu.ulam
   ulam 1;
