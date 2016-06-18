@@ -379,10 +379,11 @@ namespace MFM {
 	      {
 		UTI duti = m_nodeTypeDesc->getNodeType();
 		UlamType * dut = m_state.getUlamTypeByIndex(duti);
-		assert(!dut->isScalar());
-		assert(dut->isPrimitiveType());
 		if(m_state.okUTItoContinue(duti) && !dut->isComplete())
 		  {
+		    assert(!dut->isScalar());
+		    assert(dut->isPrimitiveType());
+
 		    //if here, assume arraysize depends on number of initializers
 		    s32 bitsize = dut->getBitSize();
 		    u32 n = ((NodeList *) m_nodeInitExpr)->getNumberOfNodes();

@@ -304,7 +304,6 @@ int main(int argc, char ** argv)
 
         for(MFM::ClassMemberMap::const_iterator i = ds.ClassMemberMapBegin(); i != ds.ClassMemberMapEnd(); ++i)
           {
-	    //MFM::u64 val;
 	    const MFM::ClassMemberDesc * cmd = i->second.getClassMemberDesc();
 	    std::cerr
 	      << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
@@ -314,9 +313,6 @@ int main(int argc, char ** argv)
 	      << " " << cmd->m_mangledType
 	      << " " << cmd->m_memberName
 	      << " " << cmd->m_mangledMemberName;
-
-	    //if(cmd->getValue(val))
-	    //  std::cerr << " 0x" << std::hex << val;
 
 	    if(cmd->hasValue())
 	      std::cerr << cmd->getValueAsString();

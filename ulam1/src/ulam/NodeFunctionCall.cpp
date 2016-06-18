@@ -1268,6 +1268,12 @@ namespace MFM {
 	fp->write(", ");
 	fp->write_decimal_unsigned(pos); //rel offset
 	fp->write("u");
+
+	if(cosut->getUlamTypeEnum() == Class)
+	  {
+	    fp->write(", &");
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
+	  }
       }
     else
       {
@@ -1279,6 +1285,10 @@ namespace MFM {
 	    fp->write(", ");
 	    fp->write_decimal_unsigned(pos); //rel offset
 	    fp->write("u");
+
+	    fp->write(",");
+	    fp->write(stgcos->getMangledName().c_str()); //stg
+	    fp->write(".GetEffectiveSelf()");
 	  }
 	else
 	  {

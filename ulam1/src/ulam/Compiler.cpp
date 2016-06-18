@@ -405,7 +405,7 @@ namespace MFM {
     std::cerr << "Size of class members map is " << cmm.size() << std::endl;
     for(ClassMemberMap::const_iterator i = cmm.begin(); i != cmm.end(); ++i)
       {
-	u64 val;
+	//u64 val;
 	const MFM::ClassMemberDesc * cmd = i->second.getClassMemberDesc();
 	std::cerr
 	  << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
@@ -416,8 +416,8 @@ namespace MFM {
 	  << " " << cmd->m_memberName
 	  << " " << cmd->m_mangledMemberName;
 
-	if(cmd->getValue(val))
-	  std::cerr << " 0x" << std::hex << val;
+	if(cmd->hasValue())
+	  std::cerr << cmd->getValueAsString();
 
 	std::cerr << " " << MFM::HexEscape(cmd->m_structuredComment)
 		  << std::endl;
