@@ -131,18 +131,30 @@ namespace MFM {
     // get string pool index for the full file path
     u32 fullindex = m_state.m_pool.getIndexForDataString(fullpath);
 
-    // register new filename
+    // register new filename if necessary, get index, stash file record
+    filerec frec;
+    u16 newid;
+    std::map<u32,u16>::iterator it = m_registeredFilenames.find(findex);
+
+    if(it == m_registeredFilenames.end())
+    {
+      newid = m_registeredFilenames.size() + 1;
+      frec.init(newid, fp, findex, fullindex);
+      m_fileRecords.push_back(frec);  // at position id - 1; init to 0,0
+      m_registeredFilenames.insert(std::pair<u32,u16> (findex,newid));
+    }
+    else 
+    {
+      // already registered file is okay unless onlyOnce
+      assert(!onlyOnce);
+      newid = it->second;
+      frec.init(newid, fp, findex, fullindex);
+      m_fileRecords[newid] = frec;  // reopened at previous position?
+    }
+
     // push fp onto stack of open fp's
     // suspends reading whatever it is currently reading
-    u16 newid = m_registeredFilenames.size() + 1;
-    assert(newid == m_fileRecords.size());
-
-    m_registeredFilenames.insert(std::pair<u32,u16> (findex,newid));
     m_openFilesStack.push(newid);
-
-    filerec frec;
-    frec.init(newid, fp, findex, fullindex);
-    m_fileRecords.push_back(frec);  // at position id - 1; init to 0,0
 
     return 0;
   } //push
