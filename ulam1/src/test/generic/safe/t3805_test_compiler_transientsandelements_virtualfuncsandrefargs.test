@@ -1,7 +1,9 @@
 ## -*- mode:ulam -*-
-#=t3804_test_compiler_quarks_virtualfuncsandrefargs
+#=t3805_test_compiler_transientsandelements_virtualfuncsandrefargs
 #!
 ##      gen code output (if fail, assert):
+##  Unsigned Arg: 3
+##  Unsigned Arg: 3
 ##  Unsigned Arg: 1
 ##  Unsigned Arg: 1
 ##  Unsigned Arg: 2
@@ -22,18 +24,26 @@
 ##  Unsigned Arg: 1
 ##  Unsigned Arg: 1
 ##  Unsigned Arg: 1
-##  Unsigned Arg: 2
-##  Unsigned Arg: 2
-##  Int Arg: -11
+##  Unsigned Arg: 1
+##  Unsigned Arg: 1
+##  Unsigned Arg: 3
+##  Unsigned Arg: 3
+##  Unsigned Arg: 3
+##  Unsigned Arg: 3
+##  Unsigned Arg: 1
+##  Unsigned Arg: 1
+##  Unsigned Arg: 1
+##  Unsigned Arg: 1
+##  Int Arg: -16
 ##
-Exit status: 0
-Ue_RefTest { System f();  Int(32) mChecks(-11);  Int(32) test() {  ( )runTests 0 cast return } }
+Exit status: -11
+Ue_RefTest { System f();  Int(32) mChecks(-2);  Int(32) test() {  ( )runTests 0 cast return } }
 Uq_System { <NOMAIN> }
+Ue_ESubDat : QBrt { :< Bool(1) mQBool( true); > QBrt mQdat( Bool(1) mQBool( true); );  <NOMAIN> }
 Uq_QBrt { Bool(1) mQBool( true);  <NOMAIN> }
-Uq_QDat : QBrt { :< Bool(1) mQBool( true); > Unary(3) mUnDat(0);  QBrt mBaseDat( Bool(1) mQBool( true); );  <NOMAIN> }
-Uq_QSubDat { QDat mQdat( :< Bool(1) mQBool( true); > Unary(3) mUnDat(0);  QBrt mBaseDat( Bool(1) mQBool( true); ); );  <NOMAIN> }
+Un_TDat : QBrt { :< Bool(1) mQBool( true); > Unary(3) mUnDat(0);  QBrt mBaseDat( Bool(1) mQBool( true); );  ESubDat mEleDat( :< Bool(1) mQBool( true); > QBrt mQdat( Bool(1) mQBool( true); ); );  <NOMAIN> }
 ##
-## informed by Dave!
+## informed by t3804
 ##
 #>RefTest.ulam
   ulam 2;
@@ -51,36 +61,46 @@ element RefTest {
   }
 
   Void runTests() {
+    ESubDat esub;
+    check(esub.retn(), 3u); //new -1
+
     QBrt qbrt;
     check(qbrt.retn(), 1u);
 
-    QDat qdat;
-    check(qdat.retn(), 2u);
-    check(qdat.getb(), true);
-    check(qdat.setb(false), true);
-    check(qdat.mBaseDat.getb(), true);
-    check(qdat.getb(), false);
+    TDat tdat;
+    check(tdat.retn(), 2u);
+    check(tdat.getb(), true);
+    check(tdat.setb(false), true);
+    check(tdat.mBaseDat.getb(), true);
+    check(tdat.getb(), false);
 
     QBrt& rt1 = qbrt;
-    QBrt& rt2 = qdat;
-    QBrt& rt3 = qdat.mBaseDat;
-    QDat& rt4 = qdat;
+    QBrt& rt2 = tdat;
+    QBrt& rt3 = tdat.mBaseDat;
+    TDat& rt4 = tdat;
 
     check(rt1.retn(), 1u);
     check(rt2.retn(), 2u);
     check(rt3.retn(), 1u);
-    check(rt4.mBaseDat.retn(), 1u); // -10
+    check(rt4.mBaseDat.retn(), 1u); // -11
+    check(tdat.mBaseDat.retn(), 1u); //added by me
 
-    check(qdat.mBaseDat.retn(), 1u); //added by me
+    check(rt4.mEleDat.retn(), 3u); // -13 new
+    check(tdat.mEleDat.retn(), 3u); //-14 new
+
+    check(rt4.mEleDat.mQdat.retn(), 1u); // -15 new
+    check(tdat.mEleDat.mQdat.retn(), 1u); // -16 new
+
     f.print(mChecks);
   }
 }
 
-#:QDat.ulam
+#:TDat.ulam
   ulam 2;
-quark QDat : QBrt {
+transient TDat : QBrt {
   Unary(3) mUnDat;
   QBrt mBaseDat;
+  ESubDat mEleDat;
   virtual Unsigned retn() { return 2; }
 }
 
@@ -93,10 +113,11 @@ quark QBrt {
   Bool setb(Bool b) { Bool ret = getb(); mQBool = b; return ret; }
 }
 
-#:QSubDat.ulam
+#:ESubDat.ulam
   ulam 2;
-quark QSubDat {
-  QDat mQdat;
+element ESubDat : QBrt {
+  QBrt mQdat;
+  virtual Unsigned retn() { return 3; }
 }
 
 

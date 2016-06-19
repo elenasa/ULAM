@@ -2220,7 +2220,7 @@ namespace MFM {
 		  {
 		    hiddenarg2 << Node::calcPosOfCurrentObjectClasses() << "u"; //relative off;
 		    if(cosut->getUlamClassType() == UC_ELEMENT)
-		      hiddenarg2 << "+ T::ATOM_FIRST_STATE_BIT"; //skip Type (e.g.transient?)
+		      hiddenarg2 << " + T::ATOM_FIRST_STATE_BIT"; //skip Type (e.g.transient t3805)
 		  }
 		else
 		  hiddenarg2 << "0u";

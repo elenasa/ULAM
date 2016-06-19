@@ -115,7 +115,6 @@ namespace MFM {
       {
 	UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 	UlamType * newt = m_state.getUlamTypeByIndex(newType);
-	//rscr = nut->safeCast(newType); //from newType to reference nuti
 	rscr = m_nodeInitExpr->safeToCastTo(nuti);
 
 	if((nut->getUlamTypeEnum() == Class))
@@ -269,8 +268,7 @@ namespace MFM {
 	    return Hzy; //short-circuit
 	  }
 
-	//check isStoreIntoAble, before any casting
-	//if(m_nodeInitExpr->isAConstant() || m_nodeInitExpr->isFunctionCall())
+	//check isStoreIntoAble, before any casting (i.e. named constants, func calls, NOT).
 	TBOOL istor = m_nodeInitExpr->getStoreIntoAble();
 	Node::setStoreIntoAble(istor); //before setReferenceAble is set
 
@@ -454,14 +452,6 @@ namespace MFM {
 
 	    fp->write(m_state.getHiddenArgName());
 	    fp->write(", ");
-	    //fp->write_decimal_unsigned(((SymbolVariableDataMember *) cos)->getPosOffset()); //relative of
-	    //fp->write("u");
-	    //if((vclasstype != UC_NOTACLASS) && (vetyp != UAtom))
-	    // {
-	    //fp->write(", &");
-	    //fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
-	    // }
-
 	    fp->write_decimal_unsigned(pos); //rel offset
 	    fp->write("u");
 
@@ -487,9 +477,6 @@ namespace MFM {
 		fp->write(stgcos->getMangledName().c_str()); //even if self
 		if(cos->isDataMember())
 		  {
-		    //fp->write(", ");
-		    // fp->write_decimal_unsigned(((SymbolVariableDataMember *) cos)->getPosOffset()); //relative off
-		    //fp->write("u");
 		    pos = Node::calcPosOfCurrentObjects();
 
 		    fp->write(", ");
@@ -518,9 +505,7 @@ namespace MFM {
 		      fp->write(", uc");
 		    else if(vclasstype == UC_NOTACLASS)
 		      {
-			//no longer atom-based.
-			//pos = BITSPERATOM - stgcosut->getTotalBitSize(); t3613
-
+			//no longer atom-based (pos = 0). e.g. t3617
 			fp->write(", ");
 			fp->write_decimal_unsigned(pos); //right-justified
 			fp->write("u");
@@ -544,37 +529,6 @@ namespace MFM {
 			  }
 		      }
 		  }
-#if 0
-		    else if(stgcos->isSelf() || stgcos->isSuper())
-		      {
-			fp->write(", 0u");
-		      }
-
-		    else if(stgcosut->getUlamClassType() == UC_ELEMENT)
-		      {
-			if(!stgcosut->isReference()) //(e.g. t3617 (super quark), t3615)
-			  fp->write(", 0u + T::ATOM_FIRST_STATE_BIT");
-			else
-			  fp->write(", 0u"); //element ref of element stg
-		      }
-		    else //if(!stgcosut->isReference()) //not ref(e.g. t3613, 3657, 3727);ref t3759
-		      fp->write(", 0u"); //needs index arg
-
-		    if((vclasstype != UC_NOTACLASS) && (vetyp != UAtom))
-		      {
-			if(!stgcosut->isReference())
-			  {
-			    fp->write(", &");
-			    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
-			  }
-			else
-			  {
-			    fp->write(", ");
-			    fp->write(stgcos->getMangledName().c_str());
-			    fp->write(".GetEffectiveSelf()");
-			  }
-		      }
-#endif
 	      }
 	    else
 	      {
@@ -651,7 +605,6 @@ namespace MFM {
 	      {
 		fp->write(", ");
 		if(stgcos->isDataMember())
-		  //fp->write_decimal_unsigned(((SymbolVariableDataMember *) stgcos)->getPosOffset()); //t3671
 		  fp->write_decimal_unsigned(uvpass.getPassPos()); //t3671?
 		else
 		  fp->write_decimal_unsigned(0);
@@ -711,7 +664,6 @@ namespace MFM {
       {
 	fp->write(m_state.getHiddenArgName());
 	fp->write(", ");
-	//fp->write_decimal_unsigned(((SymbolVariableDataMember *) cos)->getPosOffset()); //relative off
 	fp->write_decimal_unsigned(uvpass.getPassPos()); //relative off ?
 	fp->write("u");
 
@@ -739,13 +691,9 @@ namespace MFM {
 	if(cos->isDataMember())
 	  {
 	    fp->write(", ");
-	    //fp->write_decimal_unsigned(((SymbolVariableDataMember *) cos)->getPosOffset()); //relative off
 	    fp->write_decimal_unsigned(uvpass.getPassPos()); //rel offset ?
 	    fp->write("u");
 
-	    //if(vclasstype == UC_QUARK)
-	    //	fp->write(", &");
-	    //	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
 	    if(vetyp == Class)
 	      {
 		if(cosut->getUlamClassType() == UC_ELEMENT) //in case of transient stg
@@ -761,21 +709,13 @@ namespace MFM {
 	else
 	  {
 	    // unpack and packed array use same code, except for Atom
-	    // (e.g. t3666)
 	    if((vclasstype == UC_NOTACLASS) && (vetyp != UAtom) )
 	      {
-		//if(!stgcosut->isReference())
-		fp->write(", 0u"); //rel off to right-just prim (e.g. t3666)
+		fp->write(", 0u"); //non-atomic primitive (e.g. t3666)
 	      }
 	    else if((vetyp == UAtom))
 	      {
 		fp->write(", 0u, uc"); //Sun Jun 19 08:52:04 2016
-		// if(!stgcosut->isReference())
-		//  {
-		//  fp->write(", 0u");
-		//  }
-		//else if(vut->getPackable() == PACKEDLOADABLE)
-		//  fp->write(", uc");
 	      }
 	    else if(vetyp == Class)
 	      {
