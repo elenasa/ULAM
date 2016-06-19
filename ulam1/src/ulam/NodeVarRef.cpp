@@ -434,11 +434,13 @@ namespace MFM {
 
 	UTI cosuti = cos->getUlamTypeIdx();
 	UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+	ULAMTYPE cosetyp = cosut->getUlamTypeEnum();
 
 	ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
 	ULAMTYPE vetyp = vut->getUlamTypeEnum();
 
-	assert(vetyp == cosut->getUlamTypeEnum());
+	assert(vetyp == cosetyp);
+	u32 pos = 0;
 
 	m_state.indentUlamCode(fp);
 	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
@@ -448,59 +450,135 @@ namespace MFM {
 	fp->write("("); //pass ref in constructor (ref's not assigned with =)
 	if(stgcos->isDataMember()) //can't be an element or atom (JUST WAIT UNTIL Transients!!)
 	  {
+	    pos = Node::calcPosOfCurrentObjects();
+
 	    fp->write(m_state.getHiddenArgName());
 	    fp->write(", ");
-	    fp->write_decimal_unsigned(((SymbolVariableDataMember *) cos)->getPosOffset()); //relative of
+	    //fp->write_decimal_unsigned(((SymbolVariableDataMember *) cos)->getPosOffset()); //relative of
+	    //fp->write("u");
+	    //if((vclasstype != UC_NOTACLASS) && (vetyp != UAtom))
+	    // {
+	    //fp->write(", &");
+	    //fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
+	    // }
+
+	    fp->write_decimal_unsigned(pos); //rel offset
 	    fp->write("u");
-	    if((vclasstype != UC_NOTACLASS) && (vetyp != UAtom))
+
+	    //t.f. cos must be a data member too; effective self is that of the dm;
+	    // neither can be references.
+	    if(cosetyp == Class)
 	      {
+		if(cosut->getUlamClassType() == UC_ELEMENT) //in case of transient
+		  fp->write(" + T::ATOM_FIRST_STATE_BIT");
 		fp->write(", &");
-		fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
+		fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
+	      }
+	    else if(m_state.isAtom(cosuti)) //in case of transient
+	      {
+		fp->write(", uc");
 	      }
 	  }
 	else
 	  {
-	    //local var
+	    //local stg
 	    if(!m_state.m_currentObjSymbolsForCodeGen.empty())
 	      {
 		fp->write(stgcos->getMangledName().c_str()); //even if self
 		if(cos->isDataMember())
 		  {
-		    fp->write(", ");
-		    fp->write_decimal_unsigned(((SymbolVariableDataMember *) cos)->getPosOffset()); //relative off
-		    fp->write("u");
-		  }
-		else if(stgcos->isSelf() || stgcos->isSuper())
-		  {
-		    fp->write(", 0u");
-		  }
-		else if(stgcosut->getUlamClassType() == UC_ELEMENT)
-		  {
-		    if(!stgcosut->isReference()) //(e.g. t3617 (super quark), t3615)
-		      fp->write(", 0u + T::ATOM_FIRST_STATE_BIT");
-		    else
-		      fp->write(", 0u"); //element ref of element stg
-		  }
-		else //if(!stgcosut->isReference()) //not ref(e.g. t3613, 3657, 3727); ref t3759
-		  fp->write(", 0u"); //needs index arg
+		    //fp->write(", ");
+		    // fp->write_decimal_unsigned(((SymbolVariableDataMember *) cos)->getPosOffset()); //relative off
+		    //fp->write("u");
+		    pos = Node::calcPosOfCurrentObjects();
 
-		if((vclasstype != UC_NOTACLASS) && (vetyp != UAtom))
-		  {
-		    if(!stgcosut->isReference())
+		    fp->write(", ");
+		    fp->write_decimal_unsigned(pos); //rel offset
+		    fp->write("u");
+
+		    //effective self is that of the data member; can't be a reference
+		    if(cosetyp == Class)
 		      {
+			if(cosut->getUlamClassType() == UC_ELEMENT) //in case of transient stg
+			  fp->write(" + T::ATOM_FIRST_STATE_BIT");
 			fp->write(", &");
-			fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
+			fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
 		      }
-		    else
+		    else if(m_state.isAtom(cosuti)) //in case of transient stg
 		      {
-			fp->write(", ");
-			fp->write(stgcos->getMangledName().c_str());
-			fp->write(".GetEffectiveSelf()");
+			fp->write(", uc");
 		      }
 		  }
+		else
+		  {
+		    //cos is not a dm; neither is stgcos; t.f must be the same
+		    assert(cos == stgcos); //confirm understanding
+
+		    if(m_state.isAtom(vuti))
+		      fp->write(", uc");
+		    else if(vclasstype == UC_NOTACLASS)
+		      {
+			//no longer atom-based.
+			//pos = BITSPERATOM - stgcosut->getTotalBitSize(); t3613
+
+			fp->write(", ");
+			fp->write_decimal_unsigned(pos); //right-justified
+			fp->write("u");
+		      }
+		    else if(vetyp == Class)
+		      {
+			if(m_state.isReference(stgcosuti))
+			  {
+			    fp->write(", 0u, "); //left-justified
+			    fp->write(stgcos->getMangledName().c_str()); //stg
+			    fp->write(".GetEffectiveSelf()");
+			  }
+			else
+			  {
+			    if(vclasstype == UC_ELEMENT)
+			      fp->write(", T::ATOM_FIRST_STATE_BIT, ");
+			    else
+			      fp->write(", 0u, "); //left-justified
+			    fp->write("&");
+			    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
+			  }
+		      }
+		  }
+#if 0
+		    else if(stgcos->isSelf() || stgcos->isSuper())
+		      {
+			fp->write(", 0u");
+		      }
+
+		    else if(stgcosut->getUlamClassType() == UC_ELEMENT)
+		      {
+			if(!stgcosut->isReference()) //(e.g. t3617 (super quark), t3615)
+			  fp->write(", 0u + T::ATOM_FIRST_STATE_BIT");
+			else
+			  fp->write(", 0u"); //element ref of element stg
+		      }
+		    else //if(!stgcosut->isReference()) //not ref(e.g. t3613, 3657, 3727);ref t3759
+		      fp->write(", 0u"); //needs index arg
+
+		    if((vclasstype != UC_NOTACLASS) && (vetyp != UAtom))
+		      {
+			if(!stgcosut->isReference())
+			  {
+			    fp->write(", &");
+			    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
+			  }
+			else
+			  {
+			    fp->write(", ");
+			    fp->write(stgcos->getMangledName().c_str());
+			    fp->write(".GetEffectiveSelf()");
+			  }
+		      }
+#endif
 	      }
 	    else
 	      {
+		//WHY is this different than NodeFunctionCall::genCodeAnonymousReferenceArg??
 		//local var (no currentObjSymbols, 1 arg since same type)
 		assert(UlamType::compare(uvpass.getPassTargetType(), vuti, m_state) == UTIC_SAME);
 		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
@@ -548,7 +626,12 @@ namespace MFM {
 	  }
 
 	if(!m_state.isAtomRef(puti))
-	  fp->write(", uc"); //default copy constructor atomref to atomref, no uc
+	  {
+	    fp->write(", ");
+	    fp->write_decimal_unsigned(uvpass.getPassPos()); //Sun Jun 19 08:42:01 2016 ?
+	    fp->write("u, uc"); //t3671
+	  }
+	//else, default copy constructor atomref to atomref, no uc
       }
     else
       {
@@ -568,7 +651,8 @@ namespace MFM {
 	      {
 		fp->write(", ");
 		if(stgcos->isDataMember())
-		  fp->write_decimal_unsigned(((SymbolVariableDataMember *) stgcos)->getPosOffset()); //t3671
+		  //fp->write_decimal_unsigned(((SymbolVariableDataMember *) stgcos)->getPosOffset()); //t3671
+		  fp->write_decimal_unsigned(uvpass.getPassPos()); //t3671?
 		else
 		  fp->write_decimal_unsigned(0);
 		fp->write("u");
@@ -627,29 +711,51 @@ namespace MFM {
       {
 	fp->write(m_state.getHiddenArgName());
 	fp->write(", ");
-	fp->write_decimal_unsigned(((SymbolVariableDataMember *) cos)->getPosOffset()); //relative off
+	//fp->write_decimal_unsigned(((SymbolVariableDataMember *) cos)->getPosOffset()); //relative off
+	fp->write_decimal_unsigned(uvpass.getPassPos()); //relative off ?
 	fp->write("u");
 
 	if(vetyp == Class)
 	  {
-	    fp->write(", &");
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
+	    if(vclasstype == UC_ELEMENT)
+	      fp->write(" + T::ATOM_FIRST_STATE_BIT"); //?
+	    if(cosut->isReference())
+	      {
+		fp->write(", ");
+		fp->write(cos->getMangledName().c_str());
+		fp->write(".GetEffectiveSelf()"); //?
+	      }
+	    else
+	      {
+		fp->write(", &");
+		fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
+	      }
 	  }
       }
     else
       {
-	//local
-	fp->write(stgcos->getMangledName().c_str()); //stg
+	//local stg
+	fp->write(stgcos->getMangledName().c_str());
 	if(cos->isDataMember())
 	  {
 	    fp->write(", ");
-	    fp->write_decimal_unsigned(((SymbolVariableDataMember *) cos)->getPosOffset()); //relative off
+	    //fp->write_decimal_unsigned(((SymbolVariableDataMember *) cos)->getPosOffset()); //relative off
+	    fp->write_decimal_unsigned(uvpass.getPassPos()); //rel offset ?
 	    fp->write("u");
 
-	    if(vclasstype == UC_QUARK)
+	    //if(vclasstype == UC_QUARK)
+	    //	fp->write(", &");
+	    //	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
+	    if(vetyp == Class)
 	      {
+		if(cosut->getUlamClassType() == UC_ELEMENT) //in case of transient stg
+		  fp->write(" + T::ATOM_FIRST_STATE_BIT");
 		fp->write(", &");
 		fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
+	      }
+	    else if(m_state.isAtom(cosuti)) //in case of transient stg
+	      {
+		fp->write(", uc");
 	      }
 	  }
 	else
@@ -663,12 +769,13 @@ namespace MFM {
 	      }
 	    else if((vetyp == UAtom))
 	      {
-		if(!stgcosut->isReference())
-		  {
-		    fp->write(", 0u");
-		  }
-		else if(vut->getPackable() == PACKEDLOADABLE)
-		  fp->write(", uc");
+		fp->write(", 0u, uc"); //Sun Jun 19 08:52:04 2016
+		// if(!stgcosut->isReference())
+		//  {
+		//  fp->write(", 0u");
+		//  }
+		//else if(vut->getPackable() == PACKEDLOADABLE)
+		//  fp->write(", uc");
 	      }
 	    else if(vetyp == Class)
 	      {

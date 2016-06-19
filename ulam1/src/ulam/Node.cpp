@@ -1374,7 +1374,13 @@ namespace MFM {
 	//for ANY immediate atom arg from a T
 	//needs effective self from T's type
 	if(m_state.isAtomRef(vuti))
-	  fp->write(", uc");
+	  {
+	    fp->write(", ");
+	    fp->write_decimal_unsigned(pos); //Sun Jun 19 08:36:22 2016
+	    fp->write("u");
+
+	    fp->write(", uc");
+	  }
 	//else nothing
       }
     else
@@ -2190,8 +2196,19 @@ namespace MFM {
 
 		hiddenarg2 << "u, " << cosut->getTotalBitSize(); //len
 		hiddenarg2 << "u, ";
-		hiddenarg2 << stgcos->getMangledName().c_str(); //effself of ref
-		hiddenarg2 << ".GetEffectiveSelf());"; //e.g. t3746
+
+		if(cos->isDataMember()) //dm of local stgcos
+		  {
+		    hiddenarg2 << "&"; //effective self of dm (t3804 check -10)
+		    hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str();
+		    hiddenarg2 << ");";
+		  }
+		else
+		  {
+		    //ancestor takes on effective self of sub
+		    hiddenarg2 << stgcos->getMangledName().c_str(); //effself of ref
+		    hiddenarg2 << ".GetEffectiveSelf());"; //e.g. t3746
+		  }
 	      }
 	    else
 	      {
@@ -2199,13 +2216,25 @@ namespace MFM {
 		//new ur to reflect "effective" self and storage for this funccall
 		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
 		if(cos->isDataMember()) //dm of local stgcos
-		  hiddenarg2 << Node::calcPosOfCurrentObjectClasses(); //relative off;
-		else if(stgcosut->getUlamClassType() == UC_ELEMENT)
-		  hiddenarg2 << "T::ATOM_FIRST_STATE_BIT + 0"; //skip Type
+		  {
+		    hiddenarg2 << Node::calcPosOfCurrentObjectClasses() << "u"; //relative off;
+		    if(cosut->getUlamClassType() == UC_ELEMENT)
+		      hiddenarg2 << "+ T::ATOM_FIRST_STATE_BIT"; //skip Type (e.g.transient?)
+		  }
 		else
-		  hiddenarg2 << "0";
+		  hiddenarg2 << "0u";
 
-		hiddenarg2 << "u, " << cosut->getTotalBitSize() << "u, "; //len
+		//cos could be element if same as stgcos, or stgcos is a transient.
+		//if((stgcosut->getUlamClassType() == UC_ELEMENT) || (cosut->getUlamClassType() == UC_ELEMENT))
+		//  hiddenarg2 << " + T::ATOM_FIRST_STATE_BIT"; //skip Type
+
+		// Sun Jun 19 10:14:24 2016
+		//else if(stgcosut->getUlamClassType() == UC_ELEMENT)
+		//  hiddenarg2 << "T::ATOM_FIRST_STATE_BIT + 0"; //skip Type
+		//else
+		//  hiddenarg2 << "0";
+
+		hiddenarg2 << ", " << cosut->getTotalBitSize() << "u, "; //len
 		hiddenarg2 << stgcos->getMangledName().c_str() << ", &"; //storage
 		hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str();
 		hiddenarg2 << ");";

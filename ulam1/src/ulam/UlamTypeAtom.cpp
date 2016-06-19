@@ -196,9 +196,12 @@ namespace MFM {
     genUlamTypeAutoWriteDefinitionForC(fp);
 
     //constructor (e.g. t3407)
+#if 0
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(AtomRefBitStorage<EC>& targ, const UlamContext<EC>& uc) : UlamRef<EC>(0u, BPA, targ, uc.LookupElementTypeFromContext(targ.GetType())) { }\n");
+    //fp->write("(AtomRefBitStorage<EC>& targ, const UlamContext<EC>& uc) : UlamRef<EC>(0u, BPA, targ, uc.LookupElementTypeFromContext(targ.GetType())) { }\n");
+    fp->write("(AtomRefBitStorage<EC>& targ, u32 startidx, const UlamContext<EC>& uc) : UlamRef<EC>(startidx, BPA, targ, uc.LookupElementTypeFromContext(targ.GetType())) { }\n"); //t3671
+#endif
 
     //constructor for ref(auto) (e.g. t3407, 3638, 3639, 3655, 3656, 3657, 3663, 3684, 3692)
     m_state.indent(fp);
@@ -568,7 +571,8 @@ namespace MFM {
     //constructor for conditional-as (auto)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(BitStorage<EC>& targ, u32 idx) : UlamRef<EC>");
+    //    fp->write("(BitStorage<EC>& targ, u32 idx) : UlamRef<EC>");
+    fp->write("(BitStorage<EC>& targ, u32 idx, const UlamContext<EC>& uc) : UlamRef<EC>");
     fp->write("(idx, "); //the real pos!!!
     fp->write_decimal_unsigned(len); //includes arraysize
     fp->write("u, targ, NULL) { }\n"); //no effective self
@@ -578,7 +582,8 @@ namespace MFM {
     fp->write(automangledName.c_str());
     fp->write("("); //non-const for ref
     fp->write(mangledName.c_str());
-    fp->write("<EC>& s, const UlamContext<EC>& uc) : UlamRef<EC>(0u, ");
+    //fp->write("<EC>& s, const UlamContext<EC>& uc) : UlamRef<EC>(0u, ");
+    fp->write("<EC>& s, u32 idx, const UlamContext<EC>& uc) : UlamRef<EC>(idx, ");//0u, ");
     fp->write_decimal_unsigned(len); //includes arraysize
     fp->write("u, s, NULL) { }\n"); //no effective self
 
@@ -587,7 +592,8 @@ namespace MFM {
     fp->write(automangledName.c_str());
     fp->write("(const ");
     fp->write(automangledName.c_str());
-    fp->write("<EC>& r, const UlamContext<EC>& uc) : UlamRef<EC>(r, 0, r.GetLen(), r.GetEffectiveSelf()) { }\n");
+    //fp->write("<EC>& r, const UlamContext<EC>& uc) : UlamRef<EC>(r, 0, r.GetLen(), r.GetEffectiveSelf()) { }\n");
+    fp->write("<EC>& r, u32 idx, const UlamContext<EC>& uc) : UlamRef<EC>(r, idx, r.GetLen(), r.GetEffectiveSelf()) { }\n");
 
     //constructor for chain of autorefs (e.g. memberselect with array item)
     m_state.indent(fp);
