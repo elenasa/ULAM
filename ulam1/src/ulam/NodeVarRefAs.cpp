@@ -153,7 +153,7 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
     fp->write(" = ");
     fp->write(stgcos->getMangledName().c_str());
-    fp->write("; //c++ reference to immediate\n");
+    fp->write("; //c++ reference to immediate"); GCNL;
 
     // now we have our pos in tmpVarPos, and our T in tmpVarStg
     // time to shadow 'self' with auto local variable:
@@ -227,7 +227,7 @@ namespace MFM {
 	fp->write(", &");
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
       }
-    fp->write("); //shadows lhs of 'as'\n");
+    fp->write("); //shadows lhs of 'as'"); GCNL;
 
     m_state.m_genCodingConditionalHas = false; // done
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs ?

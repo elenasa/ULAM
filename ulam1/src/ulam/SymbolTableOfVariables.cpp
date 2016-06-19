@@ -341,7 +341,7 @@ namespace MFM {
 		fp->write(sut->getUlamTypeMangledName().c_str()); //mangled, including class args!
 		fp->write("\")) return (");
 		fp->write_decimal(((SymbolVariableDataMember *) sym)->getPosOffset());
-		fp->write("); //pos offset\n");
+		fp->write("); //pos offset"); GCNL;
 
 		UTI superuti = m_state.isClassASubclass(suti);
 		assert(superuti != Hzy);
@@ -353,7 +353,7 @@ namespace MFM {
 		    fp->write(superut->getUlamTypeMangledName().c_str()); //mangled, including class args!
 		    fp->write("\")) return (");
 		    fp->write_decimal(((SymbolVariableDataMember *) sym)->getPosOffset()); //same offset starts at 0
-		    fp->write("); //inherited pos offset\n");
+		    fp->write("); //inherited pos offset"); GCNL;
 
 		    superuti = m_state.isClassASubclass(superuti); //any more
 		  } //while

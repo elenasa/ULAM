@@ -191,7 +191,7 @@ namespace MFM {
     fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
     fp->write(", ");
     fp->write_decimal(nut->getBitSize());
-    fp->write(");\n");
+    fp->write(");"); GCNL;
 
     uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, uvpass.getPassPos(), uvpass.getPassNameId()); //P
 

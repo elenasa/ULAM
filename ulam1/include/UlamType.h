@@ -203,6 +203,7 @@ namespace MFM{
 
     virtual bool genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref);
 
+    static void genStandardConfigTypedefTypenames(File * fp, CompilerState& state);
 
   protected:
     UlamKeyTypeSignature m_key;

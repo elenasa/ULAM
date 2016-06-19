@@ -945,7 +945,7 @@ namespace MFM {
 	  fp->write(", uc");
 	fp->write(")");
 
-	fp->write(";\n"); //func call args aren't NodeVarDecl's
+	fp->write(";"); GCNL; //func call args aren't NodeVarDecl's
 	m_state.clearCurrentObjSymbolsForCodeGen();
 	return; //done
       }
@@ -980,7 +980,7 @@ namespace MFM {
 	fp->write(" ");
 	fp->write(m_varSymbol->getMangledName().c_str()); //default 0
       }
-    fp->write(";\n"); //func call args aren't NodeVarDecl's
+    fp->write(";"); GCNL; //func call args aren't NodeVarDecl's
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCode
 

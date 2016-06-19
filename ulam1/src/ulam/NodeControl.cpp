@@ -223,7 +223,7 @@ namespace MFM {
 	    fp->write(")");
 	  }
       }
-    fp->write(")\n");
+    fp->write(")"); GCNL;
 
     m_state.indentUlamCode(fp);
     fp->write("{\n");

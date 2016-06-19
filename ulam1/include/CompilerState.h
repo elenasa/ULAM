@@ -70,6 +70,13 @@
 
 namespace MFM{
 
+#define _USE_GCNL_TAG
+#ifndef _USE_GCNL_TAG
+#define GCNL (fp->write("\n"))
+#else
+#define GCNL (fp->write_tagged_end( __FILE__ , __LINE__))
+#endif
+
   struct less_than_key
   {
     //see operator< in UlamKeyTypeSignature

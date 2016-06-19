@@ -585,7 +585,7 @@ namespace MFM {
 	      }
 	  }
 
-	fp->write(");\n");
+	fp->write(");"); GCNL;
       } //storage
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
   } //genCode
@@ -668,7 +668,7 @@ namespace MFM {
 	  fp->write(", uc");
       }
 
-    fp->write(");\n");
+    fp->write(");"); GCNL;
 
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
   } //genCodeAtomRefInit
@@ -789,7 +789,7 @@ namespace MFM {
 	      assert(0);
 	  }
       } //storage
-    fp->write(");\n");
+    fp->write(");"); GCNL;
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
   } //genCodeArrayRefInit
 
@@ -881,7 +881,7 @@ namespace MFM {
 	fp->write(", &"); //left just
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
       }
-    fp->write(");\n");
+    fp->write(");"); GCNL;
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
   } //genCodeArrayItemRefInit
 

@@ -86,7 +86,7 @@ namespace MFM {
 	fp->write("[UNKNOWN]");
       }
 #endif
-    fp->write(";\n");
+    fp->write(";"); GCNL;
   } //generateCodedVariableDeclarations
 
   // replaces NodeVarDecl:printPostfix to learn the values of Class' storage in center site

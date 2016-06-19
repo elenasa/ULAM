@@ -112,7 +112,7 @@ namespace MFM {
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
-    fp->write(" = false;\n");
+    fp->write(" = false;"); GCNL;
 
     //process lhs first
     UVPass luvpass;
@@ -131,7 +131,7 @@ namespace MFM {
     fp->write(", ");
     fp->write_decimal(lut->getBitSize());
     fp->write(")");
-    fp->write(")\n");
+    fp->write(")"); GCNL;
 
     m_state.indentUlamCode(fp);
     fp->write("{\n");
@@ -145,7 +145,7 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
     fp->write(" = ");
     fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(";\n");
+    fp->write(";"); GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indentUlamCode(fp);
@@ -162,7 +162,7 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
     fp->write(" = ");
     fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(";\n");
+    fp->write(";"); GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indentUlamCode(fp);

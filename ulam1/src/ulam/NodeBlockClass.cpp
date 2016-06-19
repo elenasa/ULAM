@@ -1033,7 +1033,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     UlamType * cut = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx());
 
     m_state.indent(fp);
-    fp->write("template <class EC>\n");
+    fp->write("template <class EC>"); GCNL;
 
     m_state.indent(fp);
     fp->write("struct ");
@@ -1060,31 +1060,31 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write(" /* Requiring quarks to advertise their size in a std way.) */\n");
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
-    fp->write("};\n");
+    fp->write("};"); GCNL;
     fp->write("\n");
 
     u32 dqval;
     cut->genUlamTypeDefaultQuarkConstant(fp, dqval); //missing?
 
     m_state.indent(fp);
-    fp->write("typedef UlamRefFixed<EC, 0u, QUARK_SIZE> Up_Us; //entire quark\n\n"); //left-just
+    fp->write("typedef UlamRefFixed<EC, 0u, QUARK_SIZE> Up_Us; //entire quark"); GCNL; //left-just
+    fp->write("\n");
 
     //default constructor/destructor; initializes UlamElement with MFM__UUID_FOR
     m_state.indent(fp);
     fp->write(cut->getUlamTypeMangledName().c_str());
-    fp->write("();\n");
+    fp->write("();"); GCNL;
 
     m_state.indent(fp);
     fp->write("~");
     fp->write(cut->getUlamTypeMangledName().c_str());
-    fp->write("();\n\n");
+    fp->write("();"); GCNL;
+    fp->write("\n");
 
     m_state.indent(fp);
     fp->write("static ");
     fp->write(cut->getUlamTypeMangledName().c_str());
-    fp->write(" THE_INSTANCE;\n");
-
-    fp->write("\n");
+    fp->write(" THE_INSTANCE;"); GCNL;
 
     //DataMember VAR DECLS DMs
     if(m_nodeNext)
@@ -1129,19 +1129,18 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     //default constructor/destructor; initializes UlamElement with MFM__UUID_FOR
     m_state.indent(fp);
     fp->write(cut->getUlamTypeMangledName().c_str());
-    fp->write("();\n");
+    fp->write("();"); GCNL;
 
     m_state.indent(fp);
     fp->write("~");
     fp->write(cut->getUlamTypeMangledName().c_str());
-    fp->write("();\n\n");
+    fp->write("();"); GCNL;
+    fp->write("\n");
 
     m_state.indent(fp);
     fp->write("static ");
     fp->write(cut->getUlamTypeMangledName().c_str());
-    fp->write(" THE_INSTANCE;\n");
-
-    fp->write("\n");
+    fp->write(" THE_INSTANCE;"); GCNL;
 
     //DataMember VAR DECLS DM
     if(m_nodeNext)
@@ -1188,19 +1187,18 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     //default constructor/destructor;
     m_state.indent(fp);
     fp->write(cut->getUlamTypeMangledName().c_str());
-    fp->write("();\n");
+    fp->write("();"); GCNL;
 
     m_state.indent(fp);
     fp->write("~");
     fp->write(cut->getUlamTypeMangledName().c_str());
-    fp->write("();\n\n");
+    fp->write("();"); GCNL;
+    fp->write("\n");
 
     m_state.indent(fp);
     fp->write("static ");
     fp->write(cut->getUlamTypeMangledName().c_str());
-    fp->write(" THE_INSTANCE;\n");
-
-    fp->write("\n");
+    fp->write(" THE_INSTANCE;"); GCNL;
 
     //DataMember VAR DECLS DM
     if(m_nodeNext)
@@ -1219,18 +1217,15 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   {
     m_state.indent(fp);
     fp->write("// Extract short names for parameter types\n");
-    m_state.indent(fp);
-    fp->write("typedef typename EC::ATOM_CONFIG AC;\n");
-    m_state.indent(fp);
-    fp->write("typedef typename AC::ATOM_TYPE T;\n");
-    m_state.indent(fp);
-    fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
+
+    //typedef atomic parameter type inside struct
+    UlamType::genStandardConfigTypedefTypenames(fp, m_state);
 
     m_state.indent(fp);
-    fp->write("typedef BitVector<BPA> BV;\n");
+    fp->write("typedef BitVector<BPA> BV;"); GCNL;
 
     m_state.indent(fp);
-    fp->write("typedef BitField<BitVector<BPA>, VD::BITS, T::ATOM_FIRST_STATE_BIT, 0> BFTYP;\n"); //used to read MFM Type.
+    fp->write("typedef BitField<BitVector<BPA>, VD::BITS, T::ATOM_FIRST_STATE_BIT, 0> BFTYP;"); GCNL; //used to read MFM Type.
 
     fp->write("\n");
   } //genShortNameParameterTypesExtractedForHeaderFile
@@ -1286,7 +1281,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	m_state.indent(fp);
 	fp->write("Element<EC>::SetName(\"");
 	fp->write(namestr.c_str());
-	fp->write("\");\n");
+	fp->write("\");"); GCNL;
 
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
@@ -1301,7 +1296,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write("<EC>");
 	fp->write("::~");
 	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("(){}\n\n");
+	fp->write("(){}"); GCNL;
+	fp->write("\n");
 
 	assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
       }
@@ -1336,7 +1332,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write("<EC>");
 	fp->write("::~");
 	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("(){}\n\n");
+	fp->write("(){}"); GCNL;
+	fp->write("\n");
 
 	assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
       }
@@ -1372,7 +1369,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write("<EC>");
 	fp->write("::~");
 	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("(){}\n\n");
+	fp->write("(){}"); GCNL;
+	fp->write("\n");
 
 	assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
       }
@@ -1393,7 +1391,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   {
     //ALL builtin should be hident!!!! XXXXXX
     m_state.indent(fp);
-    fp->write("//BUILT-IN FUNCTIONS:\n\n");
+    fp->write("//BUILT-IN FUNCTIONS:\n");
+    fp->write("\n");
 
     //generate 3 UlamClass:: methods for smart ulam debugging
     u32 dmcount = 0; //pass ref
@@ -1442,7 +1441,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	m_state.indent(fp);
 	fp->write("s32 ");
 	fp->write(m_state.getHasMangledFunctionName(cuti));
-	fp->write("(const char * namearg) const;\n\n");
+	fp->write("(const char * namearg) const;"); GCNL;
+	fp->write("\n");
 	return;
       }
 
@@ -1467,7 +1467,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("\n");
     m_state.indent(fp);
     fp->write("return ");
-    fp->write("(-1); //not found\n");
+    fp->write("(-1); //not found"); GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -1502,7 +1502,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	m_state.indent(fp);
 	fp->write("bool ");
 	fp->write(m_state.getIsMangledFunctionName(cuti));
-	fp->write("(const UlamClass<EC> * cptrarg) const;\n\n"); //overloaded
+	fp->write("(const UlamClass<EC> * cptrarg) const;"); GCNL; //overloade
+	fp->write("\n");
 	return;
       }
 
@@ -1527,7 +1528,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("\n");
     m_state.indent(fp);
     fp->write("return ");
-    fp->write("(false); //not found\n");
+    fp->write("(false); //not found"); GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -1549,7 +1550,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("if(cptrarg == &");
     fp->write(m_state.getEffectiveSelfMangledNameByIndex(nuti).c_str());
-    fp->write(") return(true); //inherited class, or self (last)\n");
+    fp->write(") return(true); //inherited class, or self (last)"); GCNL;
   } //genCodeBuiltInFunctionIsRelatedInstance
 
   void NodeBlockClass::genCodeBuiltInFunctionGetClassLength(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
@@ -1560,7 +1561,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	m_state.indent(fp);
 	fp->write("virtual u32 ");
 	fp->write(m_state.getClassLengthFunctionName(cuti));
-	fp->write("() const;\n\n");
+	fp->write("() const;"); GCNL;
+	fp->write("\n");
 	return;
       }
 
@@ -1586,7 +1588,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("return ");
     fp->write_decimal_unsigned(cut->getTotalBitSize()); //t3663
-    fp->write(";\n");
+    fp->write(";"); GCNL;
 
     m_state.m_currentIndentLevel--;
 
@@ -1611,7 +1613,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	m_state.indent(fp);
 	fp->write("virtual T ");
 	fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
-	fp->write("() const;\n\n");
+	fp->write("() const;"); GCNL;
+	fp->write("\n");
 	return;
       }
 
@@ -1636,7 +1639,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.indent(fp);
     fp->write("AtomBitStorage<EC> da(");
-    fp->write("Element<EC>::BuildDefaultAtom());\n\n");
+    fp->write("Element<EC>::BuildDefaultAtom());"); GCNL;
+    fp->write("\n");
 
     if(cut->getBitSize() > 0)
       {
@@ -1650,15 +1654,15 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	  {
 	    m_state.indent(fp);
 	    fp->write("initBV.Write(0u, T::ATOM_FIRST_STATE_BIT, ");
-	    fp->write("da.Read(0u, T::ATOM_FIRST_STATE_BIT));\n"); //can't use GetType
+	    fp->write("da.Read(0u, T::ATOM_FIRST_STATE_BIT));"); GCNL; //can't use GetType
 	    m_state.indent(fp);
-	    fp->write("da.WriteBV(0u, initBV);\n");
+	    fp->write("da.WriteBV(0u, initBV);"); GCNL;
 	  }
       }
 
     m_state.indent(fp);
     fp->write("return ");
-    fp->write("(da.ReadAtom());\n");
+    fp->write("(da.ReadAtom());"); GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -1697,7 +1701,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	m_state.indent(fp);
 	fp->write("virtual u32 ");
 	fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
-	fp->write("( ) const;\n\n");
+	fp->write("( ) const;"); GCNL;
+	fp->write("\n");
 	return;
       }
 
@@ -1731,8 +1736,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("return ");
     fp->write(qdhex.str().c_str());
     fp->write("; //=");
-    fp->write_decimal_unsigned(qval);
-    fp->write("\n");
+    fp->write_decimal_unsigned(qval); GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -1752,7 +1756,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write("virtual void ");
 	fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
 	fp->write("(u32 pos, BitStorage<EC");
-	fp->write(">& bvsref) const;\n\n");
+	fp->write(">& bvsref) const;"); GCNL;
+	fp->write("\n");
 	return;
       }
 
@@ -1781,7 +1786,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	m_state.indent(fp);
 	fp->write("MFM_API_ASSERT_ARG((pos + bvsref.GetBitSize()) >= ");
 	fp->write_decimal_unsigned(len);
-	fp->write("u);\n\n");
+	fp->write("u);"); GCNL;
+	fp->write("\n");
 
 	m_state.indent(fp);
 	fp->write("// Initialize any data members:\n");
@@ -1794,7 +1800,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	    m_state.indent(fp);
 	    fp->write("bvsref.WriteBV(pos, "); //first arg
-	    fp->write("initBV);\n");
+	    fp->write("initBV);"); GCNL;
 	  }
       }
     m_state.m_currentIndentLevel--;
@@ -1838,18 +1844,20 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write("MN_MAX_METHOD_IDX\n");
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
-	fp->write("};\n\n");
+	fp->write("};"); GCNL;
+	fp->write("\n");
 #endif
 
 	m_state.indent(fp);
 	fp->write("static ");
 	fp->write("VfuncPtr m_vtable[");
 	fp->write_decimal_unsigned(maxidx);
-	fp->write("];\n");
+	fp->write("];"); GCNL;
 
 	//VTable accessor method
 	m_state.indent(fp);
-	fp->write("virtual VfuncPtr getVTableEntry(u32 idx) const;\n\n");
+	fp->write("virtual VfuncPtr getVTableEntry(u32 idx) const;"); GCNL;
+	fp->write("\n");
 	return;
       } //done w h-file
 
@@ -1899,7 +1907,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("\n");
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
-    fp->write("}; //VTABLE Definition\n\n");
+    fp->write("}; //VTABLE Definition"); GCNL;
+    fp->write("\n");
 
     //VTable accessor method
     m_state.indent(fp);
@@ -1918,10 +1927,10 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("if(idx >= ");
     fp->write_decimal_unsigned(maxidx);
-    fp->write(") FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);\n");
+    fp->write(") FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
 
     m_state.indent(fp);
-    fp->write("return m_vtable[idx];\n");
+    fp->write("return m_vtable[idx];"); GCNL;
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("}\n\n");
@@ -1939,7 +1948,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	m_state.indent(fp);
 	fp->write("bool ");
 	fp->write(m_state.getIsMangledFunctionName(cuti));
-	fp->write("(const T& targ) const;\n\n");
+	fp->write("(const T& targ) const;"); GCNL;
+	fp->write("\n");
 	return;
       }
 
@@ -1959,7 +1969,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel++;
     m_state.indent(fp);
-    fp->write("return (THE_INSTANCE.GetType() == targ.GetType());\n");
+    fp->write("return (THE_INSTANCE.GetType() == targ.GetType());"); GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -1971,9 +1981,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(declOnly)
       {
 	m_state.indent(fp);
-	fp->write("const u32 ReadTypeField(const BV bv);\n\n");
+	fp->write("const u32 ReadTypeField(const BV bv);"); GCNL;
+	fp->write("\n");
 	m_state.indent(fp);
-	fp->write("void WriteTypeField(BV& bv, const u32 v);\n\n");
+	fp->write("void WriteTypeField(BV& bv, const u32 v);"); GCNL;
+	fp->write("\n");
 	return;
       }
 
@@ -1995,7 +2007,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel++;
     m_state.indent(fp);
-    fp->write("return BFTYP::Read(bv);\n");
+    fp->write("return BFTYP::Read(bv);"); GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -2017,7 +2029,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel++;
     m_state.indent(fp);
-    fp->write("BFTYP::Write(bv, v);\n");
+    fp->write("BFTYP::Write(bv, v);"); GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -2076,10 +2088,10 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
-	fp->write("} //end switch\n");
+	fp->write("} //end switch"); GCNL;
 
 	m_state.indent(fp);
-	fp->write("FAIL(ILLEGAL_ARGUMENT);\n");
+	fp->write("FAIL(ILLEGAL_ARGUMENT);"); GCNL;
 
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
@@ -2087,7 +2099,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       }
     else
       {
-	fp->write(";\n\n"); //end of declaration
+	fp->write(";"); GCNL; //end of declaration
+	fp->write("\n");
       }
   } //generateUlamClassInfoFunction
 
@@ -2142,7 +2155,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	fp->write("return ");
 	fp->write_decimal(dmcount);
-	fp->write(";\n");
+	fp->write(";"); GCNL;
 
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
@@ -2150,7 +2163,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       }
     else
       {
-	fp->write(";\n\n");
+	fp->write(";"); GCNL;
+	fp->write("\n");
       }
   } //generateUlamClassInfoCount
 
@@ -2192,7 +2206,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	fp->write("return \"");
 	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("\";\n");
+	fp->write("\";"); GCNL;
 
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
@@ -2200,7 +2214,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       }
     else
       {
-	fp->write(";\n\n");
+	fp->write(";"); GCNL;
+	fp->write("\n");
       }
   } //generateUlamClassGetMangledName
 

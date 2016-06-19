@@ -102,7 +102,7 @@ namespace MFM {
     fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
-    fp->write(";\n");
+    fp->write(";"); GCNL;
 
     // a reference (including 'self'), returns a UAtom of effective type;
     // SINCE effective self type is known only at runtime.
@@ -122,27 +122,27 @@ namespace MFM {
 	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
 	    fp->write(" = ");
 	    fp->write(m_varSymbol->getMangledName().c_str());
-	    fp->write(".GetEffectiveSelf();\n");
+	    fp->write(".GetEffectiveSelf();"); GCNL;
 
 	    //primitive FAILS
 	    m_state.indentUlamCode(fp);
 	    fp->write("if(");
 	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
-	    fp->write(" == NULL) FAIL(ILLEGAL_ARGUMENT); //non-class\n");
+	    fp->write(" == NULL) FAIL(ILLEGAL_ARGUMENT); //non-class"); GCNL;
 
 	    //an immediate default quark FAILS
 	    m_state.indentUlamCode(fp);
 	    fp->write("if(");
 	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
 	    fp->write("->AsUlamQuark() != NULL) ");
-	    fp->write("FAIL(NOT_AN_ELEMENT); //quark\n");
+	    fp->write("FAIL(NOT_AN_ELEMENT); //quark"); GCNL;
 
 	    m_state.indentUlamCode(fp);
 	    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
 	    fp->write(".WriteAtom(");
 	    fp->write("((UlamElement<EC> *) ");
 	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
-	    fp->write(")->GetDefaultAtom()); //instanceof default element\n");
+	    fp->write(")->GetDefaultAtom()); //instanceof default element"); GCNL;
 	  }
 	else if(m_state.isAtom(nuti))
 	  {
@@ -154,19 +154,19 @@ namespace MFM {
 	    fp->write("uc.LookupElementTypeFromContext(");
 	    fp->write(m_varSymbol->getMangledName().c_str());
 	    fp->write(".GetType()");
-	    fp->write(");\n");
+	    fp->write(");"); GCNL;
 
 	    m_state.indentUlamCode(fp);
 	    fp->write("if(");
 	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
-	    fp->write(" == NULL) FAIL(ILLEGAL_ARGUMENT); //non-class\n");
+	    fp->write(" == NULL) FAIL(ILLEGAL_ARGUMENT); //non-class"); GCNL;
 
 	    m_state.indentUlamCode(fp);
 	    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
 	    fp->write(".WriteAtom(");
 	    fp->write("((UlamElement<EC> *) ");
 	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
-	    fp->write(")->GetDefaultAtom()); //instanceof default element\n");
+	    fp->write(")->GetDefaultAtom()); //instanceof default element"); GCNL;
 	  }
       }
 
@@ -184,7 +184,7 @@ namespace MFM {
 	fp->write(" = ");
 	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
 	fp->write(".");
-	fp->write("read();\n");
+	fp->write("read();"); GCNL;
 
 	uvpass = UVPass::makePass(tmpVarNum2, rstor, nuti, nut->getPackable(), m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
       }

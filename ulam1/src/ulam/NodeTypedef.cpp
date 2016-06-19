@@ -305,7 +305,7 @@ namespace MFM {
 	fp->write("[UNKNOWN]");
       }
 
-    fp->write(";\n");
+    fp->write(";"); GCNL;
 #endif
   } //genCode
 

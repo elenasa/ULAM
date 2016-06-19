@@ -517,6 +517,8 @@ namespace MFM {
   //bypasses THIS class being compiled
   void SymbolTableOfClasses::generateIncludesForTableOfClasses(File * fp)
   {
+    fp->write("//Include other classes:"); GCNL;
+
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
       {
@@ -535,6 +537,8 @@ namespace MFM {
   //bypasses THIS class being compiled
   void SymbolTableOfClasses::generateForwardDefsForTableOfClasses(File * fp)
   {
+    fp->write("//Forward Defs of other classes:"); GCNL;
+
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
       {
@@ -589,7 +593,7 @@ namespace MFM {
 
     fp->write("\n");
     m_state.indent(fp);
-    fp->write("return 0;\n");
+    fp->write("return 0;"); GCNL;
   } //generateTestInstancesForTableOfClasses
 
   void SymbolTableOfClasses::genCodeForTableOfClasses(FileManager * fm)

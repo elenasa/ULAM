@@ -65,7 +65,7 @@ namespace MFM {
     fp->write(":\n");
 
     m_state.indentUlamCode(fp);
-    fp->write("__attribute__((__unused__));\n");
+    fp->write("__attribute__((__unused__));"); GCNL;
   } //genCode
 
 } //end MFM

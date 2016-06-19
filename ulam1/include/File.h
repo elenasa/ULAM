@@ -88,6 +88,9 @@ namespace MFM
     s32 write_decimal_unsigned(const u32 data);
     s32 write_decimal_unsignedlong(const u64 data);
 
+    /** Convenience write for newlines to document source of generated code */
+    s32 write_tagged_end(const char * filename, s32 lineno);
+
     /** Attempt to close this File, and return 0 if successful.  If this
      File is has already been closed, or some I/O problem occurs,
      close() returns a negative number according to some scheme you

@@ -293,7 +293,7 @@ namespace MFM {
 	fp->write(m_state.getAsMangledFunctionName(luti, ruti));
 	fp->write("(");
 	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	fp->write(");\n");
+	fp->write(");"); GCNL;
       }
     // not possible!! we already know rhs is an element
     else if(rclasstype == UC_QUARK)
@@ -325,7 +325,7 @@ namespace MFM {
 	    fp->write(".GetType(), &"); //from tmpvar T
 	  }
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
-	fp->write(");\n");
+	fp->write(");"); GCNL;
       }
     else
       assert(0);

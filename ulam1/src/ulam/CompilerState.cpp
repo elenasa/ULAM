@@ -1242,13 +1242,13 @@ namespace MFM {
 
 	fp->write(dhex.str().c_str());
       }
-    fp->write(" };\n");
+    fp->write(" };"); GCNL;
 
     // declare perfect size BV with constant array of defaults BV8K u32's
     indent(fp);
     fp->write("static BitVector<");
     fp->write_decimal_unsigned(len);
-    fp->write("> initBV(vales);\n");
+    fp->write("> initBV(vales);"); GCNL;
     return true;
   } //genCodeClassDefaultConstantArray
 

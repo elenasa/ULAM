@@ -713,7 +713,7 @@ namespace MFM {
     fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
     fp->write(", ");
     fp->write_decimal(nut->getTotalBitSize()); //if scalar, it's just the bitsize
-    fp->write(");\n");
+    fp->write(");"); GCNL;
 
     uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //P
 

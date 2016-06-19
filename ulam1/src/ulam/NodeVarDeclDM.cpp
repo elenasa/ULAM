@@ -684,10 +684,10 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write("AtomBitStorage<EC> gda(");
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(nuti).c_str());
-	fp->write(".GetDefaultAtom());\n");
+	fp->write(".GetDefaultAtom());"); GCNL;
 
 	m_state.indent(fp);
-	fp->write("u32 typefield = gda.Read(0u, T::ATOM_FIRST_STATE_BIT);\n"); //can't use GetType");
+	fp->write("u32 typefield = gda.Read(0u, T::ATOM_FIRST_STATE_BIT);"); GCNL; //can't use GetType");
 
 	for(s32 i = 0; i < arraysize; i++) //e.g. t3714 (array of element dm); t3735
 	  {
@@ -696,7 +696,7 @@ namespace MFM {
 	    fp->write_decimal_unsigned(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset() + startpos);
 	    fp->write("u + ");
 	    fp->write_decimal_unsigned(i * BITSPERATOM);
-	    fp->write("u, T::ATOM_FIRST_STATE_BIT, typefield);\n");
+	    fp->write("u, T::ATOM_FIRST_STATE_BIT, typefield);"); GCNL;
 	  }
 
 	m_state.m_currentIndentLevel--;
@@ -915,7 +915,7 @@ namespace MFM {
 	fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
 	fp->write("; //offset ");
 	fp->write_decimal_unsigned(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset());
-	fp->write("u\n"); //func call parameters aren't NodeVarDecl's
+	fp->write("u"); GCNL; //func call parameters aren't NodeVarDecl's
       }
     else
       {
@@ -943,7 +943,7 @@ namespace MFM {
 	    fp->write("u> ");
 	  }
 	fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
-	fp->write(";\n"); //func call parameters aren't NodeVarDecl's
+	fp->write(";"); GCNL; //func call parameters aren't NodeVarDecl's
       }
   } //genCodedBitFieldTypedef
 
@@ -961,7 +961,7 @@ namespace MFM {
     fp->write(m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str());
     fp->write("\", ");
     fp->write_decimal(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset());
-    fp->write("u); return i; }\n");
+    fp->write("u); return i; }"); GCNL;
 
     dmcount++; //increment data member count
   } //generateUlamClassInfo

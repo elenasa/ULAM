@@ -766,8 +766,7 @@ namespace MFM {
     if(urtmpnum > 0)
       {
 	m_state.indentUlamCode(fp);
-	fp->write(hiddenarg2str.c_str());
-	fp->write("\n");
+	fp->write(hiddenarg2str.c_str()); GCNL;
       }
 
     std::ostringstream arglist;
@@ -846,7 +845,7 @@ namespace MFM {
     // the arguments
     fp->write("(");
     fp->write(arglist.str().c_str());
-    fp->write(");\n");
+    fp->write(");"); GCNL;
 
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeIntoABitValue
@@ -862,8 +861,7 @@ namespace MFM {
     std::string hiddenarg2str = genHiddenArg2ForARef(fp, uvpass, urtmpnum);
 
     m_state.indentUlamCode(fp);
-    fp->write(hiddenarg2str.c_str());
-    fp->write("\n");
+    fp->write(hiddenarg2str.c_str()); GCNL;
 
     std::ostringstream arglist;
     // presumably there's no = sign.., and no open brace for tmpvars
@@ -927,7 +925,7 @@ namespace MFM {
     // the arguments
     fp->write("(");
     fp->write(arglist.str().c_str());
-    fp->write(");\n");
+    fp->write(");"); GCNL;
 
     m_state.clearCurrentObjSymbolsForCodeGen();
     uvpass = rtnuvpass;
@@ -985,7 +983,7 @@ namespace MFM {
       }
 
     fp->write_decimal_unsigned(vfidx);
-    fp->write(");\n"); //reading into a separate VfuncPtr tmp var
+    fp->write(");"); GCNL; //reading into a separate VfuncPtr tmp var
   } //genCodeVirtualFunctionCallVTableEntry
 
   void NodeFunctionCall::genCodeVirtualFunctionCall(File * fp, u32 tvfpnum)
@@ -1349,7 +1347,7 @@ namespace MFM {
 	      }
 	  }
       }
-    fp->write(");\n");
+    fp->write(");"); GCNL;
 
     //uvpass.setPassVarNum(tmpVarArgNum); uvpass.setPassStorage(TMPBITVAL); //t3774
     uvpass = UVPass::makePass(tmpVarArgNum, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, pos, stgcos->getId()); //POS adjusted for BitVector, justified; self id in Pass;
@@ -1402,7 +1400,7 @@ namespace MFM {
 	  }
       }
 
-    fp->write(");\n");
+    fp->write(");"); GCNL;
 
     uvpass = UVPass::makePass(tmpVarArgNum2, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, 0, 0); //POS adjusted for BitVector, justified; self id in Pass;
   } //genCodeAnonymousReferenceArg

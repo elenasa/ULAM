@@ -677,7 +677,7 @@ namespace MFM {
 	  assert(0);
       }
     fp->write(getName());
-    fp->write(";\n");
+    fp->write(";"); GCNL;
 
     //substitute Ptr for uvpass to contain the tmpVar number;
     //save id of constant string in Ptr;

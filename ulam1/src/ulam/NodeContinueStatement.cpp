@@ -61,7 +61,7 @@ namespace MFM {
     fp->write(getName());
     fp->write(" ");
     fp->write(m_state.getLabelNumAsString(m_gotolabelnum).c_str());
-    fp->write(";\n");
+    fp->write(";"); GCNL;
   } //genCode
 
 } //end MFM

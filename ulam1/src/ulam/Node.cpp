@@ -525,7 +525,7 @@ namespace MFM {
 
 	    // a data member quark, or the element itself should both GetBits from self
 	    // now, quark's self is treated as the entire atom/element storage
-	    fp->write(");\n"); //PLS generate name of var here!!!
+	    fp->write(");"); GCNL; //PLS generate name of var here!!!
 	  }
       }
     else
@@ -545,7 +545,7 @@ namespace MFM {
 	      {
 		genModelParameterHiddenArgs(fp, epi);
 	      }
-	    fp->write(");\n");
+	    fp->write(");"); GCNL;
 	  }
 	else  //local var
 	  {
@@ -562,7 +562,7 @@ namespace MFM {
 
 		// local quark or primitive (i.e. 'notaclass'); has an immediate type:
 		// uses local variable name, and immediate read method
-		fp->write("();\n");
+		fp->write("();"); GCNL;
 	      }
 	  }
       }
@@ -582,7 +582,7 @@ namespace MFM {
 
     genSelfNameOfMethod(fp); // NOT just ur.Read() (e.g. big array of quarks: 3707, 3708)
     fp->write(readMethodForCodeGen(stgcosuti, uvpass).c_str());
-    fp->write("();\n"); //stand-alone 'self'
+    fp->write("();"); GCNL; //stand-alone 'self'
 
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeReadSelfIntoATmpVar
@@ -627,7 +627,7 @@ namespace MFM {
     fp->write(tmpStorageTypeForRead(cosuti, uvpass).c_str());
     fp->write(" ");
     fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(";\n");
+    fp->write(";"); GCNL;
 
     m_state.indentUlamCode(fp); //not const
     if(stgcos->isSelf() && (stgcos == cos))
@@ -644,7 +644,7 @@ namespace MFM {
     //fp->write_decimal_unsigned(uvpass.getPassPos()); //pos
     //fp->write(", ");
     fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //tmp var ref
-    fp->write(");\n");
+    fp->write(");"); GCNL;
 
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeReadTransientIntoATmpVar
@@ -667,7 +667,7 @@ namespace MFM {
     fp->write(" = ");
 
     fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(".read();\n");
+    fp->write(".read();"); GCNL;
 
     //update uvpass
     uvpass = UVPass::makePass(tmpVarNum2, vstor, vuti, m_state.determinePackable(vuti), m_state, 0, 0); //POS 0 justified (atom-based).
@@ -743,7 +743,7 @@ namespace MFM {
 
 	// the READ method
 	fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
-	fp->write("();\n"); // done read array item
+	fp->write("();"); GCNL; // done read array item
       }
     else //local var
       {
@@ -781,7 +781,7 @@ namespace MFM {
 	fp->write(")."); //close wrapper
 	//read method based on last cos
 	fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
-	fp->write("();\n"); //done read array item
+	fp->write("();"); GCNL; //done read array item
       } //end local var
 
     //update uvpass
@@ -856,7 +856,7 @@ namespace MFM {
     //fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //INDEX
     //fp->write("));\n");
     fp->write(auvpass.getTmpVarAsString(m_state).c_str()); //INDEX
-    fp->write(");\n");
+    fp->write(");"); GCNL;
     //update uvpass
     uvpass = UVPass::makePass(tmpVarNum2, TMPBITVAL, itemuti, m_state.determinePackable(itemuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
 
@@ -951,7 +951,7 @@ namespace MFM {
     if(rstor == TMPBITVAL)
       fp->write(".read()");
 
-    fp->write(");\n");
+    fp->write(");"); GCNL;
 
     // inheritance cast needs the lhs type restored after the generated write
     if(isElementAncestorCast)
@@ -987,7 +987,7 @@ namespace MFM {
     if(ruvpass.getPassStorage() == TMPBITVAL)
       fp->write(".read()");
 
-    fp->write(");\n");
+    fp->write(");"); GCNL;
 
     // inheritance cast needs the lhs type restored after the generated write
     if(isElementAncestorCast)
@@ -1018,7 +1018,7 @@ namespace MFM {
     fp->write(writeMethodForCodeGen(cosuti, luvpass).c_str());
     fp->write("(0u, "); //pos part of local member name (UlamRef)
     fp->write(ruvpass.getTmpVarAsString(m_state).c_str()); //tmp var ref
-    fp->write(");\n");
+    fp->write(");"); GCNL;
 
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeWriteToTransientFromATmpVar
@@ -1046,7 +1046,7 @@ namespace MFM {
     fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
     if(ruvpass.getPassStorage() == TMPBITVAL)
       fp->write(".read()");
-    fp->write("); //write into atomof ref\n ");
+    fp->write("); //write into atomof ref"); GCNL;
 
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeWriteToAtomofRefFromATmpVar
@@ -1121,7 +1121,8 @@ namespace MFM {
       }
 
     fp->write(m_state.getTmpVarAsString(Unsigned, tmpVarType, TMPREGISTER).c_str());;
-    fp->write("); //restore type\n\n");
+    fp->write("); //restore type"); GCNL;
+    fp->write("\n");
   } //restoreElementTypeForAncestorCasting
 
   // two arg's luvpass fine-tunes the current symbol in case of member selection;
@@ -1196,7 +1197,7 @@ namespace MFM {
 	  {
 	    fp->write(".read()"); //t3172
 	  }
-	fp->write(");\n");
+	fp->write(");"); GCNL;
       }
     else
       {
@@ -1248,7 +1249,7 @@ namespace MFM {
 	    fp->write(rut->readMethodForCodeGen().c_str()); //ReadAtom
 	    fp->write("()");
 	  }
-	fp->write(");\n");
+	fp->write(");"); GCNL;
       }
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeWriteArrayItemFromATmpVar
@@ -1342,7 +1343,7 @@ namespace MFM {
     //  fp->write(", uc"); //needs effective self from T's type via uc
     //fp->write(") );\n");
     fp->write(valuvpass.getTmpVarAsString(m_state).c_str()); //VALUE
-    fp->write(");\n");
+    fp->write(");"); GCNL;
 
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeWriteCustomArrayItemFromATmpVar
@@ -1397,7 +1398,7 @@ namespace MFM {
 	    fp->write("u");
 	  }
       }
-    fp->write("); //func arg&\n");
+    fp->write("); //func arg&"); GCNL;
 
     uvpass = UVPass::makePass(tmpVarNum2, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, pos, 0); //POS left-justified for quarks; right for primitives.
 
@@ -1437,7 +1438,7 @@ namespace MFM {
 	fp->write_decimal(adjustedImmediateArrayItemPassPos(vuti, uvpass)); //item POS (last like others) ?
 	fp->write("u");
       }
-    fp->write(");\n");
+    fp->write(");"); GCNL;
 
     uvpass = UVPass::makePass(tmpVarNum2, tmp2stor, vuti, m_state.determinePackable(vuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
     uvpass.setPassPos(0); //entire register
@@ -1554,7 +1555,7 @@ namespace MFM {
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
 	cosuti = scalarrefuti; //for the uvpass
       }
-    fp->write(");\n");
+    fp->write(");"); GCNL;
 
     uvpass = UVPass::makePass(tmpVarNum2, TMPAUTOREF, cosuti, m_state.determinePackable(cosuti), m_state, 0, cos->getId()); //POS left-justified by default.
 
@@ -1585,7 +1586,7 @@ namespace MFM {
     fp->write(", ");
     fp->write_decimal_unsigned(uvpass.getPassPos());
     fp->write("u");
-    fp->write(");\n");
+    fp->write(");"); GCNL;
 
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeARefFromARefStorage
