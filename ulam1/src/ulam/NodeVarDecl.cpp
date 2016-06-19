@@ -135,7 +135,8 @@ namespace MFM {
 
   const char * NodeVarDecl::getName()
   {
-    return m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str();
+    //return m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str();
+    return m_state.m_pool.getDataAsString(m_vid).c_str();
   }
 
   const std::string NodeVarDecl::prettyNodeName()
