@@ -132,7 +132,7 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
 
     m_state.indentUlamCode(fp);
-    fp->write("break;\n");
+    fp->write("break;"); GCNL;
     m_state.m_currentIndentLevel--;
 
     //else do the body

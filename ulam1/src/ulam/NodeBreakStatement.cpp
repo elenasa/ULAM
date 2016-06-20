@@ -60,7 +60,7 @@ namespace MFM {
   void NodeBreakStatement::genCode(File * fp, UVPass& uvpass)
   {
     m_state.indentUlamCode(fp);
-    fp->write("break;\n");
+    fp->write("break;"); GCNL;
   } //genCode
 
 } //end MFM

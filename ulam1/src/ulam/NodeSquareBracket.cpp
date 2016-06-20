@@ -752,7 +752,7 @@ namespace MFM {
 	    fp->write(offset.getTmpVarAsString(m_state).c_str());
 	    fp->write(", ");
 	    fp->write_decimal(offut->getBitSize());
-	    fp->write(");\n");
+	    fp->write(");"); GCNL;
 	    // new uvpass here
 	    offset = UVPass::makePass(tmpVarIdx, TMPREGISTER, Unsigned, m_state.determinePackable(offuti), m_state, 0, 0); //POS 0 rightjustified.
 	  } //end unary special case

@@ -703,7 +703,7 @@ namespace MFM {
    fp->write_decimal(tobe->getTotalBitSize()); //tobe length
 
    fp->write(")");
-   fp->write(";\n");
+   fp->write(";"); GCNL;
 
    //PROBLEM is that funccall checks for 0 nameid to use the tmp var!
    // but then if we don't pass it along Node::genMemberNameForMethod fails..
@@ -807,11 +807,11 @@ namespace MFM {
 	  fp->write(vut->readMethodForCodeGen().c_str());
 	  fp->write("()");
 	  }
-	fp->write("))\n");
+	fp->write("))"); GCNL;
 
 	m_state.m_currentIndentLevel++;
 	m_state.indentUlamCode(fp);
-	fp->write("FAIL(BAD_CAST);\n");
+	fp->write("FAIL(BAD_CAST);"); GCNL;
 	m_state.m_currentIndentLevel--;
 
 	if(tobe->isReference()) //t3754
@@ -838,7 +838,7 @@ namespace MFM {
 		fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
 	      }
 
-	    fp->write(");\n");
+	    fp->write(");"); GCNL;
 	    uvpass = UVPass::makePass(tmpeleref, TMPBITVAL, tobeType, UNPACKED, m_state, 0, stgcos->getId()); //POS moved left for type; pass along name id);
 	  }
 	else
@@ -867,7 +867,7 @@ namespace MFM {
 	    else
 	      fp->write("0u");
 
-	    fp->write(", uc);\n");
+	    fp->write(", uc);"); GCNL;
 	    uvpass = UVPass::makePass(tmpatomref, TMPBITVAL, tobeType, UNPACKED, m_state, 0, stgcos->getId()); //POS moved left for type; pass along name id);
 	  }
 	else
@@ -931,7 +931,7 @@ namespace MFM {
 		fp->write("().");
 	      }
 	  }
-	fp->write("GetType();\n");
+	fp->write("GetType();"); GCNL;
 
 	m_state.indentUlamCode(fp);
 	fp->write("const bool ");
@@ -951,7 +951,7 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str());;
 	fp->write(", &");
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
-	fp->write("));\n");
+	fp->write("));"); GCNL;
       }
     else
       {
@@ -969,7 +969,7 @@ namespace MFM {
 	fp->write(stgcos->getMangledName().c_str());
 	fp->write(".");
 	fp->write("GetType()");
-	fp->write(" != T::ATOM_UNDEFINED_TYPE);\n"); //subatomic type
+	fp->write(" != T::ATOM_UNDEFINED_TYPE);"); GCNL; //subatomic type
       }
 
     m_state.indentUlamCode(fp);
@@ -979,7 +979,8 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
     m_state.indentUlamCode(fp);
-    fp->write("FAIL(BAD_CAST);\n\n");
+    fp->write("FAIL(BAD_CAST);"); GCNL;
+    fp->write("\n");
     m_state.m_currentIndentLevel--;
 
 
@@ -1046,7 +1047,7 @@ namespace MFM {
 	  }
 
 	fp->write(tobe->readMethodForCodeGen().c_str());
-	fp->write("();\n");
+	fp->write("();"); GCNL;
 
 	s32 tmpbv = m_state.getNextTmpVarNumber(); //tmp since no variable name
 	m_state.indentUlamCode(fp);
@@ -1055,7 +1056,7 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpbv, TMPBITVAL).c_str());
 	fp->write("(");
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpread, tobe->getTmpStorageTypeForTmpVar()).c_str());
-	fp->write(");\n");
+	fp->write(");"); GCNL;
 
 	//update the uvpass to have the casted immediate quark
 	uvpass = UVPass::makePass(tmpbv, TMPBITVAL, tobeType, m_state.determinePackable(tobeType), m_state, uvpass.getPassPos(), 0); //POS 0 is justified; will name id help?
@@ -1080,7 +1081,7 @@ namespace MFM {
 	  }
 	//else
 
-	fp->write(");\n"); //like, shadow lhs of as
+	fp->write(");"); GCNL; //like, shadow lhs of as
 
 	//update the uvpass to have the casted immediate quark ref
 	uvpass = UVPass::makePass(tmpref, TMPBITVAL, tobeType, m_state.determinePackable(tobeType), m_state, uvpass.getPassPos(), 0); //POS 0 is justified; will name id help?
@@ -1118,7 +1119,7 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
     m_state.indentUlamCode(fp);
-    fp->write("FAIL(BAD_CAST);\n");
+    fp->write("FAIL(BAD_CAST);"); GCNL;
     m_state.m_currentIndentLevel--;
 
     if(!tobe->isReference())
@@ -1155,7 +1156,7 @@ namespace MFM {
 	  }
 	fp->write(").");
 	fp->write(tobe->readMethodForCodeGen().c_str());
-	fp->write("();\n");
+	fp->write("();"); GCNL;
 
 	//update the uvpass to have the casted quark value
 	uvpass = UVPass::makePass(tmpVarVal, tobe->getTmpStorageTypeForTmpVar(), tobeType, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified;
@@ -1183,7 +1184,7 @@ namespace MFM {
 	    fp->write(stgcos->getMangledName().c_str());
 	    fp->write(".GetEffectiveSelf()"); //maintains eff self
 	  }
-	fp->write(");\n");
+	fp->write(");"); GCNL;
 
 	//update the uvpass to have the casted immediate quark
 	uvpass = UVPass::makePass(tmpref, TMPBITVAL, tobeType, m_state.determinePackable(tobeType), m_state, uvpass.getPassPos(), 0); //POS 0 is justified; will name id help?
@@ -1224,7 +1225,7 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
     m_state.indentUlamCode(fp);
-    fp->write("FAIL(BAD_CAST);\n");
+    fp->write("FAIL(BAD_CAST);"); GCNL;
     m_state.m_currentIndentLevel--;
 
     //read from pos 0, for length of quark
@@ -1243,7 +1244,7 @@ namespace MFM {
 	fp->write(", 0u, ");
 	fp->write(stgcos->getMangledName().c_str()); //a ref
 	fp->write(".GetEffectiveSelf()"); //maintains eff self
-	fp->write(");\n");
+	fp->write(");"); GCNL;
 	uvpass = UVPass::makePass(tmpVarVal, TMPBITVAL, tobeType, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified;
       }
     else
@@ -1260,7 +1261,7 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpVarVal, tobe->getTmpStorageTypeForTmpVar()).c_str());
 	fp->write("(");
 	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	fp->write(");\n");
+	fp->write(");"); GCNL;
 
 	//update the uvpass to have the casted quark storage, INCLUDING ITS SUBCLASS?
 	uvpass = UVPass::makePass(tmpVarVal, tobe->getTmpStorageTypeForTmpVar(), tobeType, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified;
@@ -1298,7 +1299,7 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
     m_state.indentUlamCode(fp);
-    fp->write("FAIL(BAD_CAST);\n");
+    fp->write("FAIL(BAD_CAST);"); GCNL;
     m_state.m_currentIndentLevel--;
 
     if(!tobe->isReference())
@@ -1335,7 +1336,7 @@ namespace MFM {
 	  }
 	fp->write(").");
 	fp->write(tobe->readMethodForCodeGen().c_str());
-	fp->write("();\n");
+	fp->write("();"); GCNL;
 
 	//update the uvpass to have the casted quark value
 	uvpass = UVPass::makePass(tmpVarVal, tobe->getTmpStorageTypeForTmpVar(), tobeType, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified;
@@ -1363,7 +1364,7 @@ namespace MFM {
 	    fp->write(stgcos->getMangledName().c_str());
 	    fp->write(".GetEffectiveSelf()"); //maintains eff self
 	  }
-	fp->write(");\n");
+	fp->write(");"); GCNL;
 
 	//update the uvpass to have the casted immediate quark
 	uvpass = UVPass::makePass(tmpref, TMPBITVAL, tobeType, m_state.determinePackable(tobeType), m_state, uvpass.getPassPos(), 0); //POS 0 is justified; will name id help?
@@ -1404,7 +1405,7 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
     m_state.indentUlamCode(fp);
-    fp->write("FAIL(BAD_CAST);\n");
+    fp->write("FAIL(BAD_CAST);"); GCNL;
     m_state.m_currentIndentLevel--;
 
     //read from pos 0, for length of quark
@@ -1447,7 +1448,7 @@ namespace MFM {
 	fp->write(".GetEffectiveSelf()"); //maintains eff self
 	fp->write(").");
 	fp->write(tobe->readMethodForCodeGen().c_str()); //Read for entire element stg
-	fp->write("();\n");
+	fp->write("();"); GCNL;
 
 	//update the uvpass to have the casted quark storage, INCLUDING ITS SUBCLASS?
 	uvpass = UVPass::makePass(tmpVarVal, tobe->getTmpStorageTypeForTmpVar(), tobeType, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified;
@@ -1498,7 +1499,7 @@ namespace MFM {
 	    fp->write("&"); //e.g. quark-sub to quark-super-ref (t3758)
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
 	  }
-	fp->write(");\n");
+	fp->write(");"); GCNL;
 	uvpass = UVPass::makePass(tmpVarSuper, TMPBITVAL, tobeType, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified;
       }
     else
@@ -1519,7 +1520,7 @@ namespace MFM {
 	fp->write_decimal(shiftlen);
 	fp->write(", ");
 	fp->write_decimal(nlen);
-	fp->write(");\n");
+	fp->write(");"); GCNL;
 
 	// new uvpass here..
 	uvpass = UVPass::makePass(tmpVarSuper, tobe->getTmpStorageTypeForTmpVar(), tobeType, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified.

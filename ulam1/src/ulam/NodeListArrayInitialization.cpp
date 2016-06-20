@@ -301,7 +301,7 @@ namespace MFM{
 
 	fp->write(dhex.str().c_str());
       }
-    fp->write(" };\n");
+    fp->write(" };"); GCNL;
 
     uvpass = UVPass::makePass(tmpvarnum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, varsym->getId());
   } //genCode

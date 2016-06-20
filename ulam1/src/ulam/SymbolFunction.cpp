@@ -423,15 +423,21 @@ namespace MFM {
 	    fp->write("; //virtual");
 	    if(func->isNative())
 	      fp->write(", native");
-	    fp->write("\n\n");
+	    GCNL;
+	    fp->write("\n");
 	  }
 	else
 	  {
 	    fp->write(" const"); //quark and element functions (incl natives) are const, not c++ static
 	    if(func->isNative())
-	      fp->write("; //native\n\n");
+	      {
+		fp->write("; //native"); GCNL;
+	      }
 	    else
-	      fp->write(";\n\n");
+	      {
+		fp->write(";"); GCNL;
+	      }
+	    fp->write("\n");
 	  }
       }
     else
@@ -484,7 +490,7 @@ namespace MFM {
 	fp->write("&"); //gen C++ reference for func args; avoids g++ synthesized copy constructor
       }
     fp->write(")");
-    fp->write(";\n");
+    fp->write(";"); GCNL;
   } //generateFunctionDeclarationVirtualTypedef
 
   void SymbolFunction::setStructuredComment()

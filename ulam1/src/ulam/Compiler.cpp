@@ -429,6 +429,8 @@ namespace MFM {
 
   bool Compiler::resolvingLoop()
   {
+    //    m_state.m_programDefST.printClassListForDebugForTableOfClasses();
+
     bool sumbrtn = true;
     sumbrtn &= m_state.m_programDefST.setBitSizeOfTableOfClasses();
     sumbrtn &= m_state.m_programDefST.statusNonreadyClassArgumentsInTableOfClasses(); //without context

@@ -549,7 +549,8 @@ namespace MFM {
       m_state.indent(fp);
       fp->write("#include \"");
       fp->write(m_state.getFileNameForThisClassBody().c_str());
-      fp->write("\"\n\n");
+      fp->write("\""); GCNL;
+      fp->write("\n");
 
       // include native .tcc for this class if any declared
       if(m_classBlock->countNativeFuncDecls() > 0)
@@ -557,7 +558,8 @@ namespace MFM {
 	  m_state.indent(fp);
 	  fp->write("#include \"");
 	  fp->write(m_state.getFileNameForThisClassBodyNative().c_str());
-	  fp->write("\"\n\n");
+	  fp->write("\""); GCNL;
+	  fp->write("\n");
 	}
       genAllCapsEndifForHeaderFile(fp);
 
@@ -589,7 +591,7 @@ namespace MFM {
       m_state.indent(fp);
       fp->write("#include \"");
       fp->write(m_state.getFileNameForThisClassHeader().c_str());
-      fp->write("\"\n");
+      fp->write("\""); GCNL;
       fp->write("\n");
 
       m_state.indent(fp);
@@ -656,12 +658,12 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write("Element<EC> & elt = ");
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
-	fp->write(";\n");
+	fp->write(";"); GCNL;
 
 	m_state.indent(fp);
-	fp->write("elt.AllocateType(etnm); //Force element type allocation now\n");
+	fp->write("elt.AllocateType(etnm); //Force element type allocation now"); GCNL;
 	m_state.indent(fp);
-	fp->write("tile.RegisterElement(elt);\n");
+	fp->write("tile.RegisterElement(elt);"); GCNL;
 
 	m_state.m_currentIndentLevel--;
 
@@ -682,19 +684,19 @@ namespace MFM {
 	    m_state.indent(fp);
 	    fp->write("OurAtomAll atom = "); //OurAtomAll
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
-	    fp->write(".GetDefaultAtom();\n");
+	    fp->write(".GetDefaultAtom();"); GCNL;
 	    m_state.indent(fp);
-	    fp->write("tile.PlaceAtom(atom, center);\n");
+	    fp->write("tile.PlaceAtom(atom, center);"); GCNL;
 
 	    m_state.indent(fp);
-	    fp->write("AtomRefBitStorage<EC> atbs(atom);\n");
+	    fp->write("AtomRefBitStorage<EC> atbs(atom);"); GCNL;
 
 	    m_state.indent(fp);
 	    fp->write("UlamRef<EC> ur(EC::ATOM_CONFIG::ATOM_TYPE::ATOM_FIRST_STATE_BIT, "); //e.g. t3255
 	    fp->write_decimal_unsigned(sut->getTotalBitSize()); //t3655
 	    fp->write("u, atbs, &");
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
-	    fp->write(");\n");
+	    fp->write(");"); GCNL;
 
 	    m_state.indent(fp);
 	    //fp->write("rtn = "); //MFM::Ui_Ut_102323Int
@@ -702,10 +704,10 @@ namespace MFM {
 
 	    // pass uc with effective self setup
 	    fp->write(".Uf_4test(");
-	    fp->write("uc, ur);\n");
+	    fp->write("uc, ur);"); GCNL;
 
 	    m_state.indent(fp);
-	    fp->write("//std::cerr << rtn.read() << std::endl;\n"); //useful to return result of test?
+	    fp->write("//std::cerr << rtn.read() << std::endl;\n");//useful to return result of test?
 	    m_state.indent(fp);
 	    fp->write("//return rtn.read();\n"); //was useful to return result of test
 
@@ -735,7 +737,7 @@ namespace MFM {
     else
       assert(0);
 
-    fp->write(" header for ULAM\n");
+    fp->write(" header for ULAM"); GCNL;
 
     fp->write(CopyrightAndLicenseForUlamHeader);
   } //generateHeaderPreamble
@@ -746,7 +748,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("#ifndef ");
     fp->write(Node::allCAPS(cut->getUlamTypeMangledName().c_str()).c_str());
-    fp->write("_H\n");
+    fp->write("_H"); GCNL;
 
     m_state.indent(fp);
     fp->write("#define ");
@@ -765,13 +767,14 @@ namespace MFM {
   void SymbolClass::generateHeaderIncludes(File * fp)
   {
     m_state.indent(fp);
-    fp->write("#include \"UlamDefs.h\"\n\n");
+    fp->write("#include \"UlamDefs.h\""); GCNL;
+    fp->write("\n");
 
     //using the _Types.h file
     m_state.indent(fp);
     fp->write("#include \"");
     fp->write(m_state.getFileNameForThisTypesHeader().c_str());
-    fp->write("\"\n");
+    fp->write("\""); GCNL;
     fp->write("\n");
 
     //generate includes for all the other classes that have appeared
@@ -862,7 +865,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("#include \"");
     fp->write(m_state.getFileNameForThisClassHeader().c_str());
-    fp->write("\"\n");
+    fp->write("\""); GCNL;
 
     m_state.m_programDefST.generateIncludesForTableOfClasses(fp); //the other classes
 
@@ -876,25 +879,25 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
     //For all models
     m_state.indent(fp);
-    fp->write("typedef P3Atom OurAtomAll;\n");
+    fp->write("typedef P3Atom OurAtomAll;"); GCNL;
     m_state.indent(fp);
-    fp->write("typedef Site<P3AtomConfig> OurSiteAll;\n");
+    fp->write("typedef Site<P3AtomConfig> OurSiteAll;"); GCNL;
     m_state.indent(fp);
-    fp->write("typedef EventConfig<OurSiteAll,4> OurEventConfigAll;\n");
+    fp->write("typedef EventConfig<OurSiteAll,4> OurEventConfigAll;"); GCNL;
     m_state.indent(fp);
-    fp->write("typedef SizedTile<OurEventConfigAll, 20, 101> OurTestTile;\n");
+    fp->write("typedef SizedTile<OurEventConfigAll, 20, 101> OurTestTile;"); GCNL;
     m_state.indent(fp);
-    fp->write("typedef ElementTypeNumberMap<OurEventConfigAll> OurEventTypeNumberMapAll;\n");
+    fp->write("typedef ElementTypeNumberMap<OurEventConfigAll> OurEventTypeNumberMapAll;"); GCNL;
     fp->write("\n");
 
     m_state.indent(fp);
-    fp->write("typedef ElementTable<OurEventConfigAll> TestElementTable;\n");
+    fp->write("typedef ElementTable<OurEventConfigAll> TestElementTable;"); GCNL;
     m_state.indent(fp);
-    fp->write("typedef EventWindow<OurEventConfigAll> TestEventWindow;\n");
+    fp->write("typedef EventWindow<OurEventConfigAll> TestEventWindow;"); GCNL;
     fp->write("\n");
 
     m_state.indent(fp);
-    fp->write("typedef UlamContext<OurEventConfigAll> OurUlamContext;\n");
+    fp->write("typedef UlamContext<OurEventConfigAll> OurUlamContext;"); GCNL;
     fp->write("\n");
 
     m_state.indent(fp);
@@ -907,17 +910,17 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
 
     m_state.indent(fp);
-    fp->write("OurEventTypeNumberMapAll etnm;\n");
+    fp->write("OurEventTypeNumberMapAll etnm;"); GCNL;
     m_state.indent(fp);
-    fp->write("OurTestTile tile;\n");
+    fp->write("OurTestTile tile;"); GCNL;
     m_state.indent(fp);
-    fp->write("OurUlamContext uc;\n");
+    fp->write("OurUlamContext uc;"); GCNL;
     m_state.indent(fp);
-    fp->write("const u32 TILE_SIDE = tile.TILE_SIDE;\n");
+    fp->write("const u32 TILE_SIDE = tile.TILE_SIDE;"); GCNL;
     m_state.indent(fp);
     fp->write("SPoint center(TILE_SIDE/2, TILE_SIDE/2);  // Hitting no caches, for starters;\n");
     m_state.indent(fp);
-    fp->write("uc.SetTile(tile);\n");
+    fp->write("uc.SetTile(tile);"); GCNL;
 
     //eventually ends up at SC::generateTestInstance()
     m_state.m_programDefST.generateTestInstancesForTableOfClasses(fp);
@@ -931,7 +934,7 @@ namespace MFM {
     fp->write("} //MFM\n");
 
     //MAIN STARTS HERE !!!
-    fp->write("\n");
+    GCNL; //fp->write("\n");
     m_state.indent(fp);
     fp->write("int main(int argc, const char** argv)\n");
 
@@ -942,11 +945,11 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("return ");
-    fp->write("MFM::TestSingleElement<MFM::OurEventConfigAll>();\n");
+    fp->write("MFM::TestSingleElement<MFM::OurEventConfigAll>();"); GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
-    fp->write("} //main \n");
+    fp->write("} //main\n");
 
     delete fp; //close
   } //generateMain

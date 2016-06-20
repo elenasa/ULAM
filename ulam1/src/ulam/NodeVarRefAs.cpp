@@ -153,7 +153,7 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
     fp->write(" = ");
     fp->write(stgcos->getMangledName().c_str());
-    fp->write("; //c++ reference to immediate\n");
+    fp->write("; //c++ reference to immediate"); GCNL;
 
     // now we have our pos in tmpVarPos, and our T in tmpVarStg
     // time to shadow 'self' with auto local variable:
@@ -178,6 +178,7 @@ namespace MFM {
 	else
 	  assert(0); //can't be a transient
 
+	//note: needs effective self of the atom, not simply the RHS type.
 	fp->write(m_state.getHiddenContextArgName());
 	fp->write(".LookupElementTypeFromContext(");
 	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str()); //t3636
@@ -188,24 +189,24 @@ namespace MFM {
 	if(stgcosut->isReference())
 	  {
 	    fp->write(", 0u, "); //t3655
+	    fp->write(stgcos->getMangledName().c_str()); //stg
+	    fp->write(".GetEffectiveSelf()"); //Sat Jun 18 17:30:20 2016
 	  }
 	else
 	  {
 	    if(vclasstype == UC_QUARK)
-	      fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, "); //t3586, t3589, t3637
+	      fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, &"); //t3586, t3589, t3637
 	    else if(vclasstype == UC_ELEMENT)
-	      fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, "); //element ref's start at state
+	      fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, &"); //element ref's start at state
 	    else
 	      assert(0); //can't be a transient
+	    //must be same as look up for elements only Sat Jun 18 17:30:17 2016
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
 	  }
-
-	fp->write(m_state.getHiddenContextArgName());
-	fp->write(".LookupElementTypeFromContext(");
-	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
-	fp->write(".GetType())");
       }
     else
       {
+	//TODO: transients on lhs Sat Jun 18 17:33:38 2016
 	assert(0); //WHAT THEN???
 	if(vclasstype == UC_QUARK)
 	  {
@@ -226,7 +227,7 @@ namespace MFM {
 	fp->write(", &");
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
       }
-    fp->write("); //shadows lhs of 'as'\n");
+    fp->write("); //shadows lhs of 'as'"); GCNL;
 
     m_state.m_genCodingConditionalHas = false; // done
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs ?

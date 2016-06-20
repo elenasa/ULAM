@@ -201,21 +201,14 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("struct ");
     fp->write(automangledName.c_str());
-    fp->write(" : public UlamRef<EC>");
-    fp->write("\n");
+    fp->write(" : public UlamRef<EC>\n");
     m_state.indent(fp);
     fp->write("{\n");
 
     m_state.m_currentIndentLevel++;
 
     //typedef atomic parameter type inside struct
-    m_state.indent(fp);
-    fp->write("typedef typename EC::ATOM_CONFIG AC;\n");
-    m_state.indent(fp);
-    fp->write("typedef typename AC::ATOM_TYPE T;\n");
-    m_state.indent(fp);
-    fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
-    fp->write("\n");
+    UlamType::genStandardConfigTypedefTypenames(fp, m_state);
 
     genUlamTypeAutoReadDefinitionForC(fp);
 
@@ -226,14 +219,14 @@ namespace MFM {
     fp->write(automangledName.c_str());
     fp->write("(BitStorage<EC>& targ, u32 idx) : UlamRef<EC>(idx, ");
     fp->write_decimal_unsigned(len); //includes arraysize
-    fp->write("u, targ, NULL) { }\n"); //effself is null for primitives
+    fp->write("u, targ, NULL) { }"); GCNL; //effself is null for primitives
 
     //constructor for chain of autorefs (e.g. memberselect with array item)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const UlamRef<EC>& arg, s32 idx) : UlamRef<EC>(arg, idx, ");
     fp->write_decimal_unsigned(len); //includes arraysize
-    fp->write("u, NULL) { }\n"); //effself is null for primitives
+    fp->write("u, NULL) { }"); GCNL; //effself is null for primitives
 
     //copy constructor
     m_state.indent(fp);
@@ -243,7 +236,7 @@ namespace MFM {
     fp->write("<EC>& arg) : UlamRef<EC>(arg, 0, arg.GetLen(), NULL) { ");
     fp->write("MFM_API_ASSERT_ARG(arg.GetLen() == ");
     fp->write_decimal_unsigned(len); //includes arraysize
-    fp->write("); }\n"); //effself is null for primitives
+    fp->write("); }"); GCNL; //effself is null for primitives
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -275,7 +268,7 @@ namespace MFM {
 	fp->write("*this, index * itemlen, "); //rel offset
 	fp->write("itemlen, NULL)."); //itemlen, primitive effself
 	fp->write(readArrayItemMethodForCodeGen().c_str());
-	fp->write("(); }\n");
+	fp->write("(); }"); GCNL;
       }
 
     if(isScalar() || WritePacked(getPackable()))
@@ -289,7 +282,7 @@ namespace MFM {
 	fp->write("return ");
 	fp->write("UlamRef<EC>::");
 	fp->write(readMethodForCodeGen().c_str()); //just the guts
-	fp->write("(); /* entire */ }\n");
+	fp->write("(); /* entire */ }"); GCNL;
       }
   } //genUlamTypeAutoReadDefinitionForC
 
@@ -308,7 +301,7 @@ namespace MFM {
 	fp->write("*this, index * itemlen, "); //rel offset
 	fp->write("itemlen, NULL)."); //itemlen, primitive effself
 	fp->write(writeArrayItemMethodForCodeGen().c_str());
-	fp->write("(v); }\n");
+	fp->write("(v); }"); GCNL;
       }
 
     if(isScalar() || WritePacked(getPackable()))
@@ -321,7 +314,7 @@ namespace MFM {
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
 	fp->write("& targ) { UlamRef<EC>::");
 	fp->write(writeMethodForCodeGen().c_str());
-	fp->write("(targ); /* entire */ }\n");
+	fp->write("(targ); /* entire */ }"); GCNL;
       }
   } //genUlamTypeAutoWriteDefinitionForC
 
@@ -432,20 +425,15 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
 
     //typedef atomic parameter type inside struct
-    m_state.indent(fp);
-    fp->write("typedef typename EC::ATOM_CONFIG AC;\n");
-    m_state.indent(fp);
-    fp->write("typedef typename AC::ATOM_TYPE T;\n");
-    m_state.indent(fp);
-    fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
+    UlamType::genStandardConfigTypedefTypenames(fp, m_state);
 
     m_state.indent(fp);
     fp->write("typedef BitVector<");
     fp->write_decimal_unsigned(len);
-    fp->write("> BV;\n");
+    fp->write("> BV;"); GCNL;
 
     m_state.indent(fp);
-    fp->write("typedef BitVectorBitStorage<EC, BV> BVS;\n");
+    fp->write("typedef BitVectorBitStorage<EC, BV> BVS;"); GCNL;
     fp->write("\n");
 
     //put read/write methods before constructrtors that may use them.
@@ -458,7 +446,7 @@ namespace MFM {
     //default constructor (used by local vars)
     m_state.indent(fp);
     fp->write(mangledName.c_str());
-    fp->write("() { }\n");
+    fp->write("() { }"); GCNL;
 
     //constructor here (used by const tmpVars)
     m_state.indent(fp);
@@ -466,7 +454,7 @@ namespace MFM {
     fp->write("(const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64
     fp->write(" d) { ");
-    fp->write("write(d); }\n");
+    fp->write("write(d); }"); GCNL;
 
     //array initialization constructor here (used by const tmpVars);
     // in C, the array is just a pointer (since not within a struct);
@@ -477,7 +465,7 @@ namespace MFM {
 	fp->write("(const u32");
 	fp->write(" d[");
 	fp->write_decimal_unsigned(UlamType::getTotalNumberOfWords());
-	fp->write("]) : BVS(d) { }\n");
+	fp->write("]) : BVS(d) { }"); GCNL;
       }
 
     //copy constructor here (return by value)
@@ -489,13 +477,13 @@ namespace MFM {
     fp->write("this->write");
     fp->write("(other.");
     fp->write("read");
-    fp->write("()); }\n");
+    fp->write("()); }"); GCNL;
 
     //default destructor (for completeness)
     m_state.indent(fp);
     fp->write("~");
     fp->write(mangledName.c_str());
-    fp->write("() {}\n");
+    fp->write("() {}"); GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -524,9 +512,13 @@ namespace MFM {
 	fp->write("(0u, ");
 	fp->write_decimal_unsigned(getTotalBitSize());
 	if(isScalar())
-	  fp->write("u); }\n"); //done
+	  {
+	    fp->write("u); }"); GCNL; //done
+	  }
 	else
-	  fp->write("u); } //reads entire array\n");
+	  {
+	    fp->write("u); } //reads entire array"); GCNL;
+	  }
       }
     else
       {
@@ -540,7 +532,7 @@ namespace MFM {
 	fp->write(" rtnunpbv; this->BVS::");
 	fp->write(readMethodForCodeGen().c_str());
 	fp->write("(0u, rtnunpbv); return rtnunpbv; ");
-	fp->write("} //reads entire BV\n");
+	fp->write("} //reads entire BV"); GCNL;
       }
 
 #if 0
@@ -557,7 +549,7 @@ namespace MFM {
 	fp->write(readArrayItemMethodForCodeGen().c_str());
 	fp->write("(index * itemlen, "); //rel offset
 	fp->write("itemlen)"); //itemlen
-	fp->write("; }\n");
+	fp->write("; }"); GCNL;
       }
 #endif
   } //genUlamTypeReadDefinitionForC
@@ -576,9 +568,13 @@ namespace MFM {
 	fp->write_decimal_unsigned(getTotalBitSize());
 
 	if(isScalar())
-	  fp->write("u, v); }\n");
+	  {
+	    fp->write("u, v); }"); GCNL;
+	  }
 	else
-	  fp->write("u, v); } //writes entire array\n");
+	  {
+	    fp->write("u, v); } //writes entire array"); GCNL;
+	  }
       }
     else
       {
@@ -590,7 +586,7 @@ namespace MFM {
 	fp->write("& bv) { BVS::");
 	fp->write(writeMethodForCodeGen().c_str());
 	fp->write("(0u, bv); ");
-	fp->write("} //writes entire BV\n");
+	fp->write("} //writes entire BV"); GCNL;
       }
 
 #if 0
@@ -606,7 +602,7 @@ namespace MFM {
 	fp->write(writeArrayItemMethodForCodeGen().c_str());
 	fp->write("(index * itemlen, "); //rel offset
 	fp->write("itemlen, v)"); //itemlen, primitive effself
-	fp->write("; }\n");
+	fp->write("; }"); GCNL;
       }
 #endif
   } //genUlamTypeWriteDefinitionForC
@@ -655,27 +651,21 @@ namespace MFM {
     fp->write("// immediate model parameter definition:\n");
 
     //typedef atomic parameter type inside struct
-    m_state.indent(fp);
-    fp->write("typedef typename EC::ATOM_CONFIG AC;\n");
-    m_state.indent(fp);
-    fp->write("typedef typename AC::ATOM_TYPE T;\n");
-    m_state.indent(fp);
-    fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
-    fp->write("\n");
+    UlamType::genStandardConfigTypedefTypenames(fp, m_state);
 
     s32 len = getTotalBitSize();
 
     //reference to storage in atom
     m_state.indent(fp);
-    fp->write("T* m_stgPtr;  //ptr to storage here!\n");
+    fp->write("T* m_stgPtr;  //ptr to storage here!"); GCNL;
 
     // default constructor
     m_state.indent(fp);
     fp->write(mangledName.c_str());
-    fp->write("() : m_stgPtr(NULL) { }\n");
+    fp->write("() : m_stgPtr(NULL) { }"); GCNL;
 
     m_state.indent(fp);
-    fp->write("void init(T& realStg) { m_stgPtr = &realStg; }\n");
+    fp->write("void init(T& realStg) { m_stgPtr = &realStg; }"); GCNL;
 
     //read method: MFM model parameters are right justified in the atom
     // NO write method for MPs in ulam.
@@ -688,7 +678,7 @@ namespace MFM {
     fp->write_decimal(len);
     fp->write("u, mpfoo, NULL)."); //origin 0u
     fp->write(readMethodForCodeGen().c_str());
-    fp->write("(); }\n");
+    fp->write("(); }"); GCNL;
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);

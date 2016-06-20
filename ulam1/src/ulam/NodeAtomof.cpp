@@ -169,11 +169,11 @@ namespace MFM {
 	m_state.indentUlamCode(fp);
 	fp->write("if(");
 	fp->write(m_varSymbol->getMangledName().c_str());
-	fp->write(".GetType() == T::ATOM_UNDEFINED_TYPE)\n");
+	fp->write(".GetType() == T::ATOM_UNDEFINED_TYPE)"); GCNL;
 
 	m_state.m_currentIndentLevel++;
 	m_state.indentUlamCode(fp);
-	fp->write("FAIL(NOT_AN_ELEMENT);\n");
+	fp->write("FAIL(NOT_AN_ELEMENT);"); GCNL;
 	m_state.m_currentIndentLevel--;
       }
 
@@ -189,7 +189,7 @@ namespace MFM {
     else
       fp->write(m_varSymbol->getMangledName().c_str()); //element or atom, ur for self/super
 
-    fp->write(".ReadAtom(); //atomof \n"); //can't be const
+    fp->write(".ReadAtom(); //atomof"); GCNL; //can't be const
 
     uvpass = UVPass::makePass(tmpVarNum, TMPTATOM, nuti, UNPACKED, m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
 
@@ -216,11 +216,11 @@ namespace MFM {
 	m_state.indentUlamCode(fp);
 	fp->write("if(");
 	fp->write(m_varSymbol->getMangledName().c_str());
-	fp->write(".GetType() == T::ATOM_UNDEFINED_TYPE)\n");
+	fp->write(".GetType() == T::ATOM_UNDEFINED_TYPE)"); GCNL;
 
 	m_state.m_currentIndentLevel++;
 	m_state.indentUlamCode(fp);
-	fp->write("FAIL(NOT_AN_ELEMENT);\n");
+	fp->write("FAIL(NOT_AN_ELEMENT);"); GCNL;
 	m_state.m_currentIndentLevel--;
       }
 
@@ -243,7 +243,7 @@ namespace MFM {
     else
       fp->write("0u");
 
-    fp->write(", uc); //atomof \n");
+    fp->write(", uc); //atomof"); GCNL;
 
     uvpass = UVPass::makePass(tmpVarNum, TMPBITVAL, nuti, UNPACKED, m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
 

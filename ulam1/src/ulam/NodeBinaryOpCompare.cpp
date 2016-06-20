@@ -306,7 +306,7 @@ namespace MFM {
     //compare needs size of left/right nodes (only difference!)
     fp->write_decimal(m_state.getUlamTypeByIndex(luti)->getTotalBitSize());
 
-    fp->write(");\n");
+    fp->write(");"); GCNL;
 
     uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0);  //P
 

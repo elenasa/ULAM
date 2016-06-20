@@ -766,8 +766,7 @@ namespace MFM {
     if(urtmpnum > 0)
       {
 	m_state.indentUlamCode(fp);
-	fp->write(hiddenarg2str.c_str());
-	fp->write("\n");
+	fp->write(hiddenarg2str.c_str()); GCNL;
       }
 
     std::ostringstream arglist;
@@ -846,7 +845,7 @@ namespace MFM {
     // the arguments
     fp->write("(");
     fp->write(arglist.str().c_str());
-    fp->write(");\n");
+    fp->write(");"); GCNL;
 
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeIntoABitValue
@@ -862,8 +861,7 @@ namespace MFM {
     std::string hiddenarg2str = genHiddenArg2ForARef(fp, uvpass, urtmpnum);
 
     m_state.indentUlamCode(fp);
-    fp->write(hiddenarg2str.c_str());
-    fp->write("\n");
+    fp->write(hiddenarg2str.c_str()); GCNL;
 
     std::ostringstream arglist;
     // presumably there's no = sign.., and no open brace for tmpvars
@@ -927,7 +925,7 @@ namespace MFM {
     // the arguments
     fp->write("(");
     fp->write(arglist.str().c_str());
-    fp->write(");\n");
+    fp->write(");"); GCNL;
 
     m_state.clearCurrentObjSymbolsForCodeGen();
     uvpass = rtnuvpass;
@@ -985,7 +983,7 @@ namespace MFM {
       }
 
     fp->write_decimal_unsigned(vfidx);
-    fp->write(");\n"); //reading into a separate VfuncPtr tmp var
+    fp->write(");"); GCNL; //reading into a separate VfuncPtr tmp var
   } //genCodeVirtualFunctionCallVTableEntry
 
   void NodeFunctionCall::genCodeVirtualFunctionCall(File * fp, u32 tvfpnum)
@@ -1244,6 +1242,7 @@ namespace MFM {
     Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+    ULAMTYPE cosetyp = cosut->getUlamTypeEnum();
 
     assert(m_funcSymbol);
     UTI vuti = m_funcSymbol->getParameterType(n);
@@ -1269,15 +1268,24 @@ namespace MFM {
 	fp->write_decimal_unsigned(pos); //rel offset
 	fp->write("u");
 
-	if(cosut->getUlamTypeEnum() == Class)
+	//t.f. cos must be a data member too; effective self is that of the dm;
+	// neither can be references.
+	if(cosetyp == Class)
 	  {
+	    if(cosut->getUlamClassType() == UC_ELEMENT) //in case of transient
+	      fp->write(" + T::ATOM_FIRST_STATE_BIT");
 	    fp->write(", &");
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
+	  }
+	else if(m_state.isAtom(cosuti)) //in case of transient
+	  {
+	    fp->write(", uc");
 	  }
       }
     else
       {
-	fp->write(stgcos->getMangledName().c_str()); //stg
+	//local stg
+	fp->write(stgcos->getMangledName().c_str());
 	if(cos->isDataMember())
 	  {
 	    pos = Node::calcPosOfCurrentObjects();
@@ -1286,14 +1294,31 @@ namespace MFM {
 	    fp->write_decimal_unsigned(pos); //rel offset
 	    fp->write("u");
 
-	    fp->write(",");
-	    fp->write(stgcos->getMangledName().c_str()); //stg
-	    fp->write(".GetEffectiveSelf()");
+	    //effective self is that of the data member; can't be a reference
+	    if(cosetyp == Class)
+	      {
+		if(cosut->getUlamClassType() == UC_ELEMENT) //in case of transient stg
+		  fp->write(" + T::ATOM_FIRST_STATE_BIT");
+		fp->write(", &");
+		fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
+	      }
+	    else if(m_state.isAtom(cosuti)) //in case of transient stg
+	      {
+		fp->write(", uc");
+	      }
 	  }
 	else
 	  {
+	    //cos is not a data member; neither is stgcos; t.f. must be the same.
+	    assert(cos == stgcos); //confirm understanding.
 	    if(m_state.isAtom(vuti))
-	      fp->write(", uc"); //e.g. t3684 atom to atomref;
+	      {
+		fp->write(", ");
+		fp->write_decimal_unsigned(uvpass.getPassPos()); //Sun Jun 19 08:40:37 2016 ?
+		fp->write("u");
+
+		fp->write(", uc"); //e.g. t3684 atom to atomref;
+	      }
 	    else if(vclasstype == UC_NOTACLASS)
 	      {
 		pos = BITSPERATOM - stgcosut->getTotalBitSize();
@@ -1322,7 +1347,7 @@ namespace MFM {
 	      }
 	  }
       }
-    fp->write(");\n");
+    fp->write(");"); GCNL;
 
     //uvpass.setPassVarNum(tmpVarArgNum); uvpass.setPassStorage(TMPBITVAL); //t3774
     uvpass = UVPass::makePass(tmpVarArgNum, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, pos, stgcos->getId()); //POS adjusted for BitVector, justified; self id in Pass;
@@ -1375,7 +1400,7 @@ namespace MFM {
 	  }
       }
 
-    fp->write(");\n");
+    fp->write(");"); GCNL;
 
     uvpass = UVPass::makePass(tmpVarArgNum2, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, 0, 0); //POS adjusted for BitVector, justified; self id in Pass;
   } //genCodeAnonymousReferenceArg

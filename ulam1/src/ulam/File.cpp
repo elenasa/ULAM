@@ -68,4 +68,15 @@ namespace MFM {
       return write(str.c_str());
     }
 
+  s32 File::write_tagged_end(const char * filename, s32 lineno)
+  {
+    s32 r = 0;
+    r = write(" //gcnl:");
+    r = write(filename);
+    r = write(":");
+    r = write_decimal(lineno);
+    r = write("\n");
+    return r;
+  } //write_tagged_end
+
 } //end MFM

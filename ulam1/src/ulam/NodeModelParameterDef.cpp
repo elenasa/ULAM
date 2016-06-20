@@ -127,7 +127,7 @@ namespace MFM {
     fp->write(" ");
     fp->write(m_constSymbol->getMangledName().c_str());
 
-    fp->write("; //model parameter\n");
+    fp->write("; //model parameter"); GCNL;
   } //genCode
 
 } //end MFM

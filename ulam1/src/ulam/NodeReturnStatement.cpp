@@ -254,12 +254,12 @@ namespace MFM {
 	fp->write("(");
 	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 
-	fp->write(");\n");
+	fp->write(");"); GCNL;
       }
     else
       {
 	m_state.indentUlamCode(fp);
-	fp->write("return;\n"); //void
+	fp->write("return;"); GCNL; //void
       }
   } //genCode
 

@@ -135,7 +135,8 @@ namespace MFM {
 
   const char * NodeVarDecl::getName()
   {
-    return m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str();
+    //return m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str();
+    return m_state.m_pool.getDataAsString(m_vid).c_str();
   }
 
   const std::string NodeVarDecl::prettyNodeName()
@@ -327,7 +328,6 @@ namespace MFM {
 	      }
 	    else
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-
 	  }
       } //end var_symbol
 
@@ -945,7 +945,7 @@ namespace MFM {
 	  fp->write(", uc");
 	fp->write(")");
 
-	fp->write(";\n"); //func call args aren't NodeVarDecl's
+	fp->write(";"); GCNL; //func call args aren't NodeVarDecl's
 	m_state.clearCurrentObjSymbolsForCodeGen();
 	return; //done
       }
@@ -980,7 +980,7 @@ namespace MFM {
 	fp->write(" ");
 	fp->write(m_varSymbol->getMangledName().c_str()); //default 0
       }
-    fp->write(";\n"); //func call args aren't NodeVarDecl's
+    fp->write(";"); GCNL; //func call args aren't NodeVarDecl's
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCode
 

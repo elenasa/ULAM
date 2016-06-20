@@ -162,7 +162,11 @@ namespace MFM {
 
   UTI NodeVarDeclDM::checkAndLabelType()
   {
-    NodeVarDecl::checkAndLabelType(); //sets node type
+    UTI nuti = NodeVarDecl::checkAndLabelType(); //sets node type
+
+    if(!m_state.okUTItoContinue(nuti))
+      return nuti;
+
     UTI cuti = m_state.getCompileThisIdx();
 
     //don't allow unions to initialize its data members
@@ -179,12 +183,14 @@ namespace MFM {
 
     //don't allow a subclass to shadow a superclass datamember
     UTI superuti = m_state.isClassASubclass(cuti);
+#if 0
     if(superuti == Hzy)
       {
 	setNodeType(Hzy);
 	m_state.setGoAgain();
 	return Hzy;
       }
+#endif
 
     if(superuti != Nouti) //has ancestor
       {
@@ -202,10 +208,21 @@ namespace MFM {
 	    msg << "Data member '";
 	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
 	    msg << "' is shadowing an ancestor";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav);
-	    m_state.popClassContext();
-	    return Nav; //short-circuit
+	    if(hazyKin)
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		setNodeType(Hzy);
+		m_state.setGoAgain();
+		m_state.popClassContext();
+		return Hzy; //short-circuit
+	      }
+	    else
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		setNodeType(Nav);
+		m_state.popClassContext();
+		return Nav; //short-circuit
+	      }
 	  }
 	m_state.popClassContext();
       } //end subclass error checking
@@ -527,8 +544,8 @@ namespace MFM {
     s32 nbitsize = nut->getBitSize();
     u32 srcbitsize = m_nodeInitExpr ? m_state.getBitSize(m_nodeInitExpr->getNodeType()) : nbitsize; //was MAXBITSPERINT WRONG!
 
-    ULAMTYPE etype = nut->getUlamTypeEnum();
-    switch(etype)
+    ULAMTYPE etyp = nut->getUlamTypeEnum();
+    switch(etyp)
       {
       case Int:
 	newconst = _Int32ToInt32((u32) val, srcbitsize, nbitsize); //signextended
@@ -560,8 +577,8 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
     s32 nbitsize = nut->getBitSize();
     u32 srcbitsize = m_nodeInitExpr ? m_state.getBitSize(m_nodeInitExpr->getNodeType()) : nbitsize; //was MAXBITSPERINT WRONG!
-    ULAMTYPE etype = nut->getUlamTypeEnum();
-    switch(etype)
+    ULAMTYPE etyp = nut->getUlamTypeEnum();
+    switch(etyp)
       {
       case Int:
 	newconst = _Int64ToInt64(val, srcbitsize, nbitsize); //signextended
@@ -684,10 +701,10 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write("AtomBitStorage<EC> gda(");
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(nuti).c_str());
-	fp->write(".GetDefaultAtom());\n");
+	fp->write(".GetDefaultAtom());"); GCNL;
 
 	m_state.indent(fp);
-	fp->write("u32 typefield = gda.Read(0u, T::ATOM_FIRST_STATE_BIT);\n"); //can't use GetType");
+	fp->write("u32 typefield = gda.Read(0u, T::ATOM_FIRST_STATE_BIT);"); GCNL; //can't use GetType");
 
 	for(s32 i = 0; i < arraysize; i++) //e.g. t3714 (array of element dm); t3735
 	  {
@@ -696,7 +713,7 @@ namespace MFM {
 	    fp->write_decimal_unsigned(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset() + startpos);
 	    fp->write("u + ");
 	    fp->write_decimal_unsigned(i * BITSPERATOM);
-	    fp->write("u, T::ATOM_FIRST_STATE_BIT, typefield);\n");
+	    fp->write("u, T::ATOM_FIRST_STATE_BIT, typefield);"); GCNL;
 	  }
 
 	m_state.m_currentIndentLevel--;
@@ -915,7 +932,7 @@ namespace MFM {
 	fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
 	fp->write("; //offset ");
 	fp->write_decimal_unsigned(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset());
-	fp->write("u\n"); //func call parameters aren't NodeVarDecl's
+	fp->write("u"); GCNL; //func call parameters aren't NodeVarDecl's
       }
     else
       {
@@ -943,7 +960,7 @@ namespace MFM {
 	    fp->write("u> ");
 	  }
 	fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
-	fp->write(";\n"); //func call parameters aren't NodeVarDecl's
+	fp->write(";"); GCNL; //func call parameters aren't NodeVarDecl's
       }
   } //genCodedBitFieldTypedef
 
@@ -961,7 +978,7 @@ namespace MFM {
     fp->write(m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str());
     fp->write("\", ");
     fp->write_decimal(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset());
-    fp->write("u); return i; }\n");
+    fp->write("u); return i; }"); GCNL;
 
     dmcount++; //increment data member count
   } //generateUlamClassInfo

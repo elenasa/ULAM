@@ -415,18 +415,18 @@ namespace MFM {
   {
     UTI auti = rtnuti;
     UlamType * ut = m_state.getUlamTypeByIndex(auti);
-    ULAMTYPE etype = ut->getUlamTypeEnum();
+    ULAMTYPE etyp = ut->getUlamTypeEnum();
     if(m_unknownBitsizeSubtree)
       {
 	s32 bs = UNKNOWNSIZE;
 	//primitive with possible unknown bit sizes.
-	bool rtnb = m_unknownBitsizeSubtree->getTypeBitSizeInParen(bs, etype, auti); //eval
+	bool rtnb = m_unknownBitsizeSubtree->getTypeBitSizeInParen(bs, etyp, auti); //eval
 	if(rtnb)
 	  {
 	    if(bs < 0)
 	      {
 		std::ostringstream msg;
-		msg << "Type Bitsize specifier for " << UlamType::getUlamTypeEnumAsString(etype);
+		msg << "Type Bitsize specifier for " << UlamType::getUlamTypeEnumAsString(etyp);
 		msg << " type, within (), is a negative numeric constant expression: ";
 		msg << bs;
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

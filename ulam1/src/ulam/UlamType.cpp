@@ -838,4 +838,15 @@ namespace MFM {
     return false; //only true for quarks in UlamTypeClass
   }
 
+  void UlamType::genStandardConfigTypedefTypenames(File * fp, CompilerState& state)
+  {
+    state.indent(fp);
+    fp->write("typedef typename EC::ATOM_CONFIG AC;\n");
+    state.indent(fp);
+    fp->write("typedef typename AC::ATOM_TYPE T;\n");
+    state.indent(fp);
+    fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
+    fp->write("\n");
+  } //(static)
+
 } //end MFM
