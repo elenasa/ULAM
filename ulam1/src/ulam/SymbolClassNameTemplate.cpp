@@ -565,6 +565,12 @@ namespace MFM {
       {
 	SymbolClass * csym = it->second;
 
+	if(checkSFINAE(csym))
+	  {
+	    it++;
+	    continue; //skip templates Mon Jun 20 10:36:42 2016
+	  }
+
 	//push to Resolver to skip stubs that will never get resolved (e.g. t3787)
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
@@ -885,7 +891,12 @@ namespace MFM {
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
-	UTI cuti = csym->getUlamTypeIdx();
+
+	if(checkSFINAE(csym))
+	  {
+	    it++;
+	    continue; //skip templates Mon Jun 20 10:36:42 2016
+	  }
 
 	if(!csym->isStub())
 	  {
@@ -902,6 +913,7 @@ namespace MFM {
 	  }
 
 	//have we seen these args before?
+	UTI cuti = csym->getUlamTypeIdx();
 	SymbolClass * dupsym = NULL;
 	if(findClassInstanceByArgString(cuti, dupsym))
 	  {
@@ -1154,11 +1166,18 @@ namespace MFM {
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
+	if(checkSFINAE(csym))
+	  {
+	    it++;
+	    continue; //skip templates Mon Jun 20 10:36:42 2016
+	  }
+
+	UTI cuti = csym->getUlamTypeIdx();
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
 	if(!csym->isStub())
 	  {
-	    m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
+	    m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
 	    classNode->calcMaxIndexOfVirtualFunctions(); //do each instance
 	    m_state.popClassContext(); //restore
@@ -1168,7 +1187,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << " Class instance '";
-	    msg << m_state.getUlamTypeNameBriefByIndex(csym->getUlamTypeIdx()).c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    msg << "' is still a stub; No calc max index of virtual functions error";
 	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
@@ -1250,16 +1269,15 @@ namespace MFM {
 	u32 unsetclasscnt = nocnt;
 
 	SymbolClass * csym = it->second;
-	UTI suti = csym->getUlamTypeIdx(); //this instance
-
-	//skip stubs that will never get resolved (SFINAE)
-	if(csym->isStub() && m_state.isClassATemplate(csym->getContextForPendingArgs()))
+	//skip templates and stubs that will never get resolved (SFINAE)
+	if(checkSFINAE(csym))
 	  {
 	    it++;
 	    continue;
 	  }
 
 	//check incomplete's too as they might have produced error msgs.
+	UTI suti = csym->getUlamTypeIdx(); //this instance
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
 	m_state.pushClassContext(suti, classNode, classNode, false, NULL);
@@ -1328,19 +1346,18 @@ namespace MFM {
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
+	UTI suti = csym->getUlamTypeIdx();
 
-	//skip stubs that will never get resolved  (SFINAE)
-	if(csym->isStub() && m_state.isClassATemplate(csym->getContextForPendingArgs()))
+	if(checkSFINAE(csym))
 	  {
 	    it++;
-	    continue;
+	    continue; //skip templates, stubs that will never get resolved
 	  }
 
 	if(csym->isStub())
 	  aok &= aoktemplate; //use template
 	else
 	  {
-	    UTI suti = csym->getUlamTypeIdx();
 	    NodeBlockClass * classNode = csym->getClassBlockNode();
 	    assert(classNode);
 	    m_state.pushClassContext(suti, classNode, classNode, false, NULL);
@@ -1375,19 +1392,18 @@ namespace MFM {
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
+	UTI suti = csym->getUlamTypeIdx();
 
-	//skip stubs that will never get resolved (SFINAE)
-	if(csym->isStub() && m_state.isClassATemplate(csym->getContextForPendingArgs()))
+	if(checkSFINAE(csym))
 	  {
 	    it++;
-	    continue;
+	    continue; //skip templates and stubs that will never get resolved
 	  }
 
 	if(csym->isStub())
 	  aok &= aoktemplate; //use template
 	else
 	  {
-	    UTI suti = csym->getUlamTypeIdx();
 	    NodeBlockClass * classNode = csym->getClassBlockNode();
 	    assert(classNode);
 	    m_state.pushClassContext(suti, classNode, classNode, false, NULL);
@@ -1433,6 +1449,12 @@ namespace MFM {
 	UTI cuti = csym->getUlamTypeIdx(); //this instance
 	UTI uti = it->first; //this instance entry; may not match Symbol class' uti
 	s32 totalbits = 0;
+
+	if(checkSFINAE(csym))
+	  {
+	    it++;
+	    continue; //skip templates Mon Jun 20 10:36:42 2016
+	  }
 
 	if(m_state.isComplete(uti))
 	  {
@@ -1832,7 +1854,17 @@ namespace MFM {
   void SymbolClassNameTemplate::cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to)
   {
     fm->cloneResolverUTImap(to);
+    fm->cloneUnknownTypesMapInClass(to); //from the stub to the clone.
+    //any additional from the template? may have duplicates with stub (not added).
     SymbolClass::cloneUnknownTypesMapInClass(to); //from the template; after UTImap.
   }
+
+  bool SymbolClassNameTemplate::checkSFINAE(SymbolClass * sym)
+  {
+    //"Substitution Error Is Not A Failure"
+    //bypass if template or with context of template (stub)
+    return ((sym->getUlamTypeIdx() == getUlamTypeIdx()) || (sym->isStub() && m_state.isClassATemplate(sym->getContextForPendingArgs())));
+  }
+
 
 } //end MFM

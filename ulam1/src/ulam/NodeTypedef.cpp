@@ -89,7 +89,8 @@ namespace MFM {
   const char * NodeTypedef::getName()
   {
     //same as m_typedefSymbol->getUlamType()->getUlamTypeNameBrief()); //short type name
-    return m_state.m_pool.getDataAsString(m_typedefSymbol->getId()).c_str();
+    //return m_state.m_pool.getDataAsString(m_typedefSymbol->getId()).c_str();
+    return m_state.m_pool.getDataAsString(m_tdid).c_str(); //safer
   }
 
   const std::string NodeTypedef::prettyNodeName()

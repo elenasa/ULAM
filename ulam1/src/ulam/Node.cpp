@@ -2222,18 +2222,10 @@ namespace MFM {
 		    if(cosut->getUlamClassType() == UC_ELEMENT)
 		      hiddenarg2 << " + T::ATOM_FIRST_STATE_BIT"; //skip Type (e.g.transient t3805)
 		  }
+		else if(stgcosut->getUlamClassType() == UC_ELEMENT) //same as cos
+		  hiddenarg2 << "T::ATOM_FIRST_STATE_BIT + 0u"; //skip Type t3408, t3588, t3730, t3731, t3732
 		else
 		  hiddenarg2 << "0u";
-
-		//cos could be element if same as stgcos, or stgcos is a transient.
-		//if((stgcosut->getUlamClassType() == UC_ELEMENT) || (cosut->getUlamClassType() == UC_ELEMENT))
-		//  hiddenarg2 << " + T::ATOM_FIRST_STATE_BIT"; //skip Type
-
-		// Sun Jun 19 10:14:24 2016
-		//else if(stgcosut->getUlamClassType() == UC_ELEMENT)
-		//  hiddenarg2 << "T::ATOM_FIRST_STATE_BIT + 0"; //skip Type
-		//else
-		//  hiddenarg2 << "0";
 
 		hiddenarg2 << ", " << cosut->getTotalBitSize() << "u, "; //len
 		hiddenarg2 << stgcos->getMangledName().c_str() << ", &"; //storage

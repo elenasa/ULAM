@@ -47,8 +47,8 @@ namespace MFM {
 
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMTYPE etype = nut->getUlamTypeEnum();
-    if(etype == Bool)
+    ULAMTYPE etyp = nut->getUlamTypeEnum();
+    if(etyp == Bool)
       fp->write((_Bool64ToCbool(m_constant.uval, nut->getBitSize()) ? "true" : "false"));
     else
       fp->write(getName());
@@ -67,9 +67,9 @@ namespace MFM {
     s32 nbitsize = nut->getBitSize();
     assert(nbitsize >= 0);
     u32 wordsize = nut->getTotalWordSize();
-    ULAMTYPE etype = nut->getUlamTypeEnum();
+    ULAMTYPE etyp = nut->getUlamTypeEnum();
     std::ostringstream num;
-    switch(etype)
+    switch(etyp)
       {
       case Int:
 	if(wordsize <= MAXBITSPERINT)
@@ -116,8 +116,8 @@ namespace MFM {
     if(tok.m_type == TOK_MINUS)
       {
 	UTI nuti = getNodeType();
-	ULAMTYPE etype = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
-	if(etype == Int)
+	ULAMTYPE etyp = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
+	if(etyp == Int)
 	  {
 	    m_constant.sval = -m_constant.sval;
 	    fitsInBits(nuti); //check self
@@ -279,8 +279,8 @@ namespace MFM {
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
     assert(ut->getBitSize() >= 0);
 
-    ULAMTYPE etype = ut->getUlamTypeEnum();
-    switch(etype)
+    ULAMTYPE etyp = ut->getUlamTypeEnum();
+    switch(etyp)
       {
 	// assumes val is in proper format for its type
       case Int:
@@ -319,8 +319,8 @@ namespace MFM {
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
     assert(ut->getBitSize() >= 0);
 
-    ULAMTYPE etype = ut->getUlamTypeEnum();
-    switch(etype)
+    ULAMTYPE etyp = ut->getUlamTypeEnum();
+    switch(etyp)
       {
 	// assumes val is in proper format for its type
       case Int:
@@ -437,8 +437,8 @@ namespace MFM {
     assert(nbitsize > 0);
 
     //convert forth and back, then compare.
-    ULAMTYPE etype = nut->getUlamTypeEnum();
-    switch(etype)
+    ULAMTYPE etyp = nut->getUlamTypeEnum();
+    switch(etyp)
       {
       case Int:
 	{
@@ -499,8 +499,8 @@ namespace MFM {
     assert(nbitsize > 0);
 
     //convert forth and back, then compare.
-    ULAMTYPE etype = nut->getUlamTypeEnum();
-    switch(etype)
+    ULAMTYPE etyp = nut->getUlamTypeEnum();
+    switch(etyp)
       {
       case Int:
 	{
@@ -610,8 +610,8 @@ namespace MFM {
     bool rtnb = false;
     UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
     u32 wordsize = nut->getTotalWordSize();
-    ULAMTYPE etype = nut->getUlamTypeEnum();
-    if(etype == Int)
+    ULAMTYPE etyp = nut->getUlamTypeEnum();
+    if(etyp == Int)
       {
 	if(wordsize <= MAXBITSPERINT)
 	  rtnb = (m_constant.sval >= MAXBITSPERINT);
@@ -620,7 +620,7 @@ namespace MFM {
 	else
 	  assert(0);
       }
-    else if(etype == Unsigned)
+    else if(etyp == Unsigned)
       {
 	if(wordsize <= MAXBITSPERINT)
 	rtnb = (m_constant.uval >= (u32) MAXBITSPERINT);

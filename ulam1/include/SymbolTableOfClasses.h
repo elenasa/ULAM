@@ -64,6 +64,8 @@ namespace MFM{
 
     void printForDebugForTableOfClasses(File * fp);
 
+    void printClassListForDebugForTableOfClasses();
+
     bool checkForUnknownTypeNamesInTableOfClasses(); //at end of parsing
 
     bool statusNonreadyClassArgumentsInTableOfClasses();

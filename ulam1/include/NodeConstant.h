@@ -87,6 +87,7 @@ namespace MFM{
     Token m_token;
     SymbolWithValue * m_constSymbol;
     bool m_ready;
+    UTI m_constType;
 
     virtual void checkForSymbol();
     bool updateConstant();

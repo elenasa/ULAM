@@ -4,14 +4,15 @@
 
 namespace MFM {
 
-  NodeConstant::NodeConstant(Token tok, SymbolWithValue * symptr, CompilerState & state) : NodeTerminal(state), m_token(tok), m_constSymbol(symptr), m_ready(false), m_currBlockNo(0)
+  NodeConstant::NodeConstant(Token tok, SymbolWithValue * symptr, CompilerState & state) : NodeTerminal(state), m_token(tok), m_constSymbol(symptr), m_ready(false), m_constType(Nouti), m_currBlockNo(0)
   {
     assert(symptr);
     m_currBlockNo = symptr->getBlockNoOfST();
     m_ready = updateConstant(); //sets ready here
+    m_constType = m_constSymbol->getUlamTypeIdx();
   }
 
-  NodeConstant::NodeConstant(const NodeConstant& ref) : NodeTerminal(ref), m_token(ref.m_token), m_constSymbol(NULL), m_ready(false), m_currBlockNo(ref.m_currBlockNo) {}
+  NodeConstant::NodeConstant(const NodeConstant& ref) : NodeTerminal(ref), m_token(ref.m_token), m_constSymbol(NULL), m_ready(false), m_constType(ref.m_constType), m_currBlockNo(ref.m_currBlockNo) {}
 
   NodeConstant::~NodeConstant(){}
 
@@ -81,6 +82,8 @@ namespace MFM {
       }
     else if(isReadyConstant() && stubcopy)
       {
+	assert(m_state.okUTItoContinue(m_constType));
+	setNodeType(m_constType); //t3565, t3640, t3641, t3642, t3652
 	//stub copy case: still wants uti mapping
 	it = NodeTerminal::checkAndLabelType();
       }
@@ -233,8 +236,8 @@ namespace MFM {
       return false;
 
     if(m_constSymbol->getValue(val))
-      m_constant.uval = val; //value fits type per its constantdef
-    //else don't want default value here
+	m_constant.uval = val; //value fits type per its constantdef
+      //else don't want default value here
 
     return m_constSymbol->isReady();
   } //updateConstant

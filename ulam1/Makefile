@@ -156,7 +156,7 @@ havedemokey:	FORCE
 	$(MFZMAKEPATH) cansign $(ULAMDEMOKEY)
 
 donothavedemokey:	FORCE
-	$(MFZMAKEPATH) keygen $(ULAMDEMOKEY) 
+	$(MFZMAKEPATH) keygen $(ULAMDEMOKEY)
 	$(MFZMAKEPATH) cansign $(ULAMDEMOKEY) 2>/dev/null || exit 0
 
 $(MFM_ROOT_DIR)/res/elements/libue%.so:	$(ULAMDIR)/%/*.ulam

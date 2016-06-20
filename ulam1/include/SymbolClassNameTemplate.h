@@ -140,6 +140,8 @@ namespace MFM{
     bool takeAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     bool copyAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     void cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to);
+
+    bool checkSFINAE(SymbolClass * sym);
   };
 
 }

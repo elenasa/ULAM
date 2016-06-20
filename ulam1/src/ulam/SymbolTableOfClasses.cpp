@@ -143,6 +143,21 @@ namespace MFM {
       } //while
   } //printForDebugForTableOfClasses
 
+  void SymbolTableOfClasses::printClassListForDebugForTableOfClasses()
+  {
+    u32 cnt = 0;
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym && sym->isClass());
+	UTI suti = sym->getUlamTypeIdx();
+	std::cerr << ++cnt << ", " <<  m_state.getUlamTypeNameByIndex(suti) << ", UTI" << suti<< std::endl;
+	it++;
+      } //while
+    std::cerr << "Total: "  << cnt << ", Size: " <<  m_idToSymbolPtr.size() << std::endl;
+  } //printClassListForDebugForTableOfClasses
+
   // adds unknown type names as incomplete classes if still "hzy" after parsing done
   bool SymbolTableOfClasses::checkForUnknownTypeNamesInTableOfClasses()
   {
@@ -331,7 +346,7 @@ namespace MFM {
 		MSG(cnsym->getTokPtr(), msg.str().c_str(), DEBUG);
 		cnsym->getClassBlockNode()->setNodeType(Nav); //for compiler counter
 		//assert(0); wasn't a class at all, e.g. out-of-scope typedef/variable
-		break;
+		//break; //do the rest of the classes! Mon Jun 20 13:22:25 2016
 	      }
 	  }
 	else

@@ -187,9 +187,9 @@ namespace MFM {
 	UlamType * tut = m_state.getUlamTypeByIndex(tuti);
 	u32 twordsize =  tut->getTotalWordSize(); //must be commplete
 	s32 tbs = tut->getBitSize();
-	ULAMTYPE etype = tut->getUlamTypeEnum();
+	ULAMTYPE etyp = tut->getUlamTypeEnum();
 
-	switch(etype)
+	switch(etyp)
 	  {
 	  case Int:
 	    {
@@ -314,8 +314,8 @@ namespace MFM {
 
     u32 twordsize =  m_state.getTotalWordSize(tuti); //must be commplete
     s32 tbs = m_state.getBitSize(tuti);
-    ULAMTYPE etype = m_state.getUlamTypeByIndex(tuti)->getUlamTypeEnum();
-    switch(etype)
+    ULAMTYPE etyp = m_state.getUlamTypeByIndex(tuti)->getUlamTypeEnum();
+    switch(etyp)
       {
       case Int:
 	{

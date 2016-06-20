@@ -328,7 +328,6 @@ namespace MFM {
 	      }
 	    else
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-
 	  }
       } //end var_symbol
 
