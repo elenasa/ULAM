@@ -407,11 +407,15 @@ namespace MFM {
 
 	    //automatically create a Super typedef symbol for this class' super type
 	    u32 superid = m_state.m_pool.getIndexForDataString("Super");
-	    Token superTok(TOK_TYPE_IDENTIFIER, qTok.m_locator, superid);
-	    SymbolTypedef * symtypedef = new SymbolTypedef(superTok, superuti, superuti, m_state);
-	    m_state.addSymbolToCurrentScope(symtypedef);
+	    Symbol * symtypedef = NULL;
+	    if(!rtnNode->isIdInScope(superid, symtypedef))
+	      {
+		Token superTok(TOK_TYPE_IDENTIFIER, qTok.m_locator, superid);
+		symtypedef = new SymbolTypedef(superTok, superuti, superuti, m_state);
+		m_state.addSymbolToCurrentScope(symtypedef);
+	      }
+	    //else errors may have occurred
 	  }
-	//else errors may have occurred
       }
     else
       {
