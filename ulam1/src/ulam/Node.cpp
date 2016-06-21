@@ -640,7 +640,7 @@ namespace MFM {
 
     //read method based on last cos
     fp->write(readMethodForCodeGen(cosuti, uvpass).c_str());
-    fp->write("(0u, "); //pos part of local member name (UlamRef)
+    fp->write("(0u, "); //pos part of local member name (UlamRef) (e.g. t3739, 3788, 3789, 3795, 3805)
     //fp->write_decimal_unsigned(uvpass.getPassPos()); //pos
     //fp->write(", ");
     fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //tmp var ref
@@ -765,7 +765,6 @@ namespace MFM {
 	fp->write("u, ");
 	if(!stgcosut->isReference())
 	  {
-	    //fp->write("0u, "); //origin
 	    fp->write(stgcos->getMangledName().c_str()); //storage
 	    fp->write(", ");
 	  }
@@ -851,10 +850,6 @@ namespace MFM {
 	fp->write(", "); //rest of args
       }
     //index is immediate Index arg of targettype in uvpass
-    //fp->write(localStorageTypeAsString(vuti).c_str()); //e.g. BitVector<32> exception
-    //fp->write("(");
-    //fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //INDEX
-    //fp->write("));\n");
     fp->write(auvpass.getTmpVarAsString(m_state).c_str()); //INDEX
     fp->write(");"); GCNL;
     //update uvpass
@@ -1322,10 +1317,6 @@ namespace MFM {
       }
 
     //index is immediate Int arg
-    //fp->write(localStorageTypeAsString(luti).c_str()); //e.g. BitVector<32> exception
-    //fp->write("(");
-    //fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //INDEX
-    //fp->write("), ");
     fp->write(auvpass.getTmpVarAsString(m_state).c_str()); //INDEX
     fp->write(", ");
 
@@ -1333,15 +1324,6 @@ namespace MFM {
     // with immediate quarks, they are read into a tmpreg as other immediates
     // with immediate elements, too!  value not a terminal
     // aset requires its custom array type (e.g. an atom) as its value:
-    //assert(m_state.getUlamTypeByIndex(cosuti)->getUlamTypeEnum() == Class);
-    //UTI catype = m_state.getAClassCustomArrayType(cosuti);
-    //fp->write(localStorageTypeAsString(catype).c_str()); //e.g. BitVector<32> exception
-    //fp->write("(");
-    //fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-    //for ANY immediate atom arg from a T
-    //if(m_state.isAtomRef(catype))
-    //  fp->write(", uc"); //needs effective self from T's type via uc
-    //fp->write(") );\n");
     fp->write(valuvpass.getTmpVarAsString(m_state).c_str()); //VALUE
     fp->write(");"); GCNL;
 
@@ -1626,7 +1608,6 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Cannot make casting node for type: " ;
 	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	//msg << " (UTI" << nuti << ")";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	rtnNode = node;
 	return false; //short-circuit
@@ -1637,7 +1618,6 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Cannot make casting node for type: " ;
 	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	//msg << " (UTI" << nuti << ")";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	rtnNode = node;
 	return false; //short-circuit
@@ -2396,7 +2376,6 @@ namespace MFM {
     else if(m_state.m_currentObjSymbolsForCodeGen.size() > 1)
       method = nut->writeMethodForCodeGen(); //UlamRef
     else if(nut->getUlamClassType() == UC_TRANSIENT)
-      //method = nut->readMethodForCodeGen(); //BitStorage ReadBV
       method = nut->writeMethodForCodeGen(); //BitStorage ReadBV
     else
       method = "write"; //local variable name, not a transient

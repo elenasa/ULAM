@@ -483,8 +483,6 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
 	    msg << "', a class whose max index for virtual functions is still unknown";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    //m_state.setGoAgain();
-	    //assert(0);
 	    return;
 	  }
       }

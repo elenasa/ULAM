@@ -286,7 +286,6 @@ namespace MFM {
 		m_varSymbol->resetUlamType(mappedUTI); //consistent!
 		it = mappedUTI;
 	      }
-	    //else if(m_varSymbol->isSelf() || m_state.isReference(it))
 	    else if(m_varSymbol->isSelf() || m_state.isReference(it) || m_varSymbol->isSuper())
 	      {
 		m_state.completeAReferenceType(it);

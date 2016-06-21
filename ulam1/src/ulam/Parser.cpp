@@ -421,7 +421,7 @@ namespace MFM {
 		assert(symtypedef->getId() == superid);
 		UTI stuti = symtypedef->getUlamTypeIdx();
 		if(stuti != superuti)
-		  m_state.updateUTIAliasForced(superuti, stuti); //t3808
+		  m_state.updateUTIAliasForced(stuti, superuti); //t3808, t3806, t3807
 	      }
 	  }
       }
@@ -2224,15 +2224,6 @@ namespace MFM {
 	    UTI aclassuti = args.m_anothertduti;
 	    Token atok = args.m_typeTok;
 	    cnsym = m_state.makeClassFromHolder(aclassuti, atok);
-
-	    //makeup typedef to it here (e.g. 'Super' t3806) Tue Jun 21 08:10:33 2016
-	    //SymbolTypedef * symtypedef = new SymbolTypedef(pTok, aclassuti, Nav, m_state);
-	    //assert(symtypedef);
-	    //symtypedef->setBlockNoOfST(m_state.getCurrentMemberClassBlock()->getNodeNo());
-	    //m_state.addSymbolToCurrentMemberClassScope(symtypedef);
-	    //UTI mcuti = m_state.getCurrentMemberClassBlock()->getNodeType(); //?
-	    //m_state.addUnknownTypeTokenToAClassResolver(mcuti, pTok, aclassuti);
-
 	    args.m_classInstanceIdx = aclassuti; //since we didn't know last time
 	  }
 	else

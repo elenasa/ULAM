@@ -163,7 +163,6 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Cannot cast to nonready type: " ;
 	    msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
-	    //msg << " (UTI" << tobeType << ")";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    hazinessFound++; //goAgain set by nodetypedesc
 	  }
@@ -176,7 +175,6 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Cannot cast to incomplete type: " ;
 	msg << tobe->getUlamTypeNameBrief().c_str();
-	//msg << " (UTI" << tobeType << ")";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	hazinessFound++;
       }
@@ -1233,7 +1231,7 @@ namespace MFM {
 
     if(tobe->isReference())
       {
-	//needs a test????? //t3789 case 4: (fails to compile)
+	//t3789 case 4: (fails to compile)
 	//Incompatible class types TW& and Qbase& used to initalize reference 'twref'.
 	m_state.indentUlamCode(fp);
 	fp->write(tobe->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
@@ -1250,23 +1248,10 @@ namespace MFM {
     else
       {
 	//Compile-time error to downcast from a ref to a subclass instance. 20160616.
-	assert(0); //error caught already
-	//HOW???
 	//t3789 case 2 (init): TW tapple = (TW) qref;
 	//t3789 case 3 (assign): tapple2 = (TW) qref;
-	m_state.indentUlamCode(fp);
-	fp->write("const ");
-	fp->write(tobe->getTmpStorageTypeAsString().c_str()); //u32, u64, BV96 (packed element?)
-	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(tobeType, tmpVarVal, tobe->getTmpStorageTypeForTmpVar()).c_str());
-	fp->write("(");
-	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	fp->write(");"); GCNL;
-
-	//update the uvpass to have the casted quark storage, INCLUDING ITS SUBCLASS?
-	uvpass = UVPass::makePass(tmpVarVal, tobe->getTmpStorageTypeForTmpVar(), tobeType, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified;
+	assert(0); //error caught already
       }
-
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
   } //genCodeCastAncestorQuarkAsSubTransient
 
@@ -1428,32 +1413,10 @@ namespace MFM {
     else
       {
 	//Compile-time error to downcast from a ref to a subclass instance. 20160616.
-	assert(0); //error caught already
-
 	//t3756 case 2: (init) 'A apple = (A) qref;'
 	//t3756 case 3: (assign) 'apple2 = (A) qref;'
-	m_state.indentUlamCode(fp);
-	fp->write("const ");
-	fp->write(tobe->getTmpStorageTypeAsString().c_str()); //u32, u64, BV96 (packed element?)
-	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(tobeType, tmpVarVal, tobe->getTmpStorageTypeForTmpVar()).c_str());
-	fp->write(" = ");
-
-	fp->write("UlamRef<EC>(");
-	fp->write(stgcos->getMangledName().c_str()); //a ref
-	fp->write(", 0u, ");
-	fp->write_decimal_unsigned(tobe->getTotalBitSize());
-	fp->write("u, ");
-	fp->write(stgcos->getMangledName().c_str()); //a ref
-	fp->write(".GetEffectiveSelf()"); //maintains eff self
-	fp->write(").");
-	fp->write(tobe->readMethodForCodeGen().c_str()); //Read for entire element stg
-	fp->write("();"); GCNL;
-
-	//update the uvpass to have the casted quark storage, INCLUDING ITS SUBCLASS?
-	uvpass = UVPass::makePass(tmpVarVal, tobe->getTmpStorageTypeForTmpVar(), tobeType, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified;
+	assert(0); //error caught already
       }
-
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
   } //genCodeCastAncestorQuarkAsSubElement
 
@@ -1607,7 +1570,6 @@ namespace MFM {
     // size secondary when different classes, possibly related (e.g. t3779)
     // even constant may need casting (e.g. narrowing for saturation)
     // Bool constants require casts to generate "full" true UVPass (>1-bit).
-    //return( isExplicitCast() || /*(typEnum == Class) ||*/ (typEnum != nodetypEnum) || ((typEnum != Class) && (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType))) || ( (nodetypEnum == Bool) && m_node->isAConstant() && (m_state.getBitSize(tobeType)>1))); //noop for class refs
     return( isExplicitCast() || (typEnum == Class) || (typEnum != nodetypEnum) || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType)) || ( (nodetypEnum == Bool) && m_node->isAConstant() && (m_state.getBitSize(tobeType)>1)));
   } //needsACast
 

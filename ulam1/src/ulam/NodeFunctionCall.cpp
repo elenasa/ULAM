@@ -204,9 +204,6 @@ namespace MFM {
 	      {
 		if(m_state.isReference(funcSymbol->getParameterType(i)))
 		  {
-		    //if(argNodes[i]->isFunctionCall())
-		    //TBOOL argstor = argNodes[i]->getStoreIntoAble();
-		    //if(argstor != TBOOL_TRUE)
 		    TBOOL argreferable = argNodes[i]->getReferenceAble();
 		    if(argreferable != TBOOL_TRUE)
 		      {
@@ -253,9 +250,6 @@ namespace MFM {
 	//may preceed function parameter c&l, and fail names of args with type
 	//(e.g. Class isn't really a class).
 	std::ostringstream msg;
-	//msg << "Substituting <" << funcSymbol->getMangledNameWithTypes().c_str() << "> ";
-	//if(m_funcSymbol)
-	//    msg << "for <" << m_funcSymbol->getMangledNameWithTypes().c_str() <<">";
 	msg << "Substituting <" << m_state.m_pool.getDataAsString(funcSymbol->getId()).c_str() << "> ";
 	if(m_funcSymbol)
 	  msg << "for <" << m_state.m_pool.getDataAsString(m_funcSymbol->getId()).c_str() << ">";
@@ -269,8 +263,6 @@ namespace MFM {
 	  {
 	    msg << "Substituting <" << m_state.m_pool.getDataAsString(funcSymbol->getId()).c_str() << "> ";
 	    msg << "for <" << m_state.m_pool.getDataAsString(m_funcSymbol->getId()).c_str() << ">";
-	    //msg << "Substituting <" << funcSymbol->getMangledNameWithTypes().c_str();
-	    //msg << "> for <" << m_funcSymbol->getMangledNameWithTypes().c_str() <<">";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    m_funcSymbol = funcSymbol;
 	  }
@@ -1355,9 +1347,7 @@ namespace MFM {
       }
     fp->write(");"); GCNL;
 
-    //uvpass.setPassVarNum(tmpVarArgNum); uvpass.setPassStorage(TMPBITVAL); //t3774
-    uvpass = UVPass::makePass(tmpVarArgNum, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, pos, stgcos->getId()); //POS adjusted for BitVector, justified; self id in Pass;
-
+    uvpass = UVPass::makePass(tmpVarArgNum, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, pos, stgcos->getId()); //POS adjusted for BitVector, justified; self id in Pass; t3774
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
   } //genCodeReferenceArg
 

@@ -309,7 +309,7 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		m_varSymbol->resetUlamType(duti); //consistent!
 		m_state.mapTypesInCurrentClass(it, duti);
-		m_state.updateUTIAliasForced(it, duti); //help?
+		//m_state.updateUTIAliasForced(it, duti); //help?nope, t3808
 		it = duti;
 	      }
 	  }
@@ -370,7 +370,7 @@ namespace MFM {
 	  }
 
 	//note: Void is flag that it's a list of constant initializers.
-	if((eit == Void))// && !m_state.okUTItoContinue(it) && m_nodeTypeDesc)
+	if((eit == Void))
 	  {
 	    //only possible if array type with initializers
 	    m_varSymbol->setHasInitValue(); //might not be ready yet

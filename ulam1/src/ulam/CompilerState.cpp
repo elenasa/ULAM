@@ -3524,12 +3524,14 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   bool CompilerState::isAnonymousClass(UTI cuti)
   {
     assert(okUTItoContinue(cuti));
-    // more straight-forward way to check (less efficient)
-    // anonymous classes have their UTI number as their nameid.
-    //u32 nameid = getUlamTypeByIndex(cuti)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
-    //u32 cutiAsStringId = m_pool.getIndexForNumberAsString(cuti);
-    //return ((nameid == cutiAsStringId) || isHolder(cuti));
-    return(!isARootUTI(cuti) || isHolder(cuti));
+#if 0
+    // anonymous classes have their UTI number as their nameid. t3808
+    u32 nameid = getUlamTypeByIndex(cuti)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
+    u32 cutiAsStringId = m_pool.getIndexForNumberAsString(cuti);
+    return ((nameid == cutiAsStringId) || isHolder(cuti));
+#else
+    return(!isARootUTI(cuti) || isHolder(cuti)); //t3808
+#endif
   } //isAnonymousClass
 
   void CompilerState::saveUrSelf(UTI uti)
