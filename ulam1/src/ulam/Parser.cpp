@@ -370,6 +370,7 @@ namespace MFM {
     u32 selfid = m_state.m_pool.getIndexForDataString("Self");
     Token selfTok(TOK_TYPE_IDENTIFIER, identTok.m_locator, selfid);
     SymbolTypedef * symtypedef = new SymbolTypedef(selfTok, utype, utype, m_state); //refselftype
+    assert(symtypedef);
     m_state.addSymbolToCurrentScope(symtypedef);
 
     //need class block's ST before parsing any class parameters (i.e. named constants);
@@ -412,9 +413,16 @@ namespace MFM {
 	      {
 		Token superTok(TOK_TYPE_IDENTIFIER, qTok.m_locator, superid);
 		symtypedef = new SymbolTypedef(superTok, superuti, superuti, m_state);
+		assert(symtypedef);
 		m_state.addSymbolToCurrentScope(symtypedef);
 	      }
-	    //else errors may have occurred
+	    else //holder may have been made prior
+	      {
+		assert(symtypedef->getId() == superid);
+		UTI stuti = symtypedef->getUlamTypeIdx();
+		if(stuti != superuti)
+		  m_state.updateUTIAliasForced(superuti, stuti); //t3808
+	      }
 	  }
       }
     else
@@ -2213,8 +2221,19 @@ namespace MFM {
 	if(numDots > 1 && Token::isTokenAType(pTok))
 	  {
 	    //make an 'anonymous class'
-	    cnsym = m_state.makeClassFromHolder(args.m_anothertduti, args.m_typeTok);
-	    args.m_classInstanceIdx = args.m_anothertduti; //since we didn't know last time
+	    UTI aclassuti = args.m_anothertduti;
+	    Token atok = args.m_typeTok;
+	    cnsym = m_state.makeClassFromHolder(aclassuti, atok);
+
+	    //makeup typedef to it here (e.g. 'Super' t3806) Tue Jun 21 08:10:33 2016
+	    //SymbolTypedef * symtypedef = new SymbolTypedef(pTok, aclassuti, Nav, m_state);
+	    //assert(symtypedef);
+	    //symtypedef->setBlockNoOfST(m_state.getCurrentMemberClassBlock()->getNodeNo());
+	    //m_state.addSymbolToCurrentMemberClassScope(symtypedef);
+	    //UTI mcuti = m_state.getCurrentMemberClassBlock()->getNodeType(); //?
+	    //m_state.addUnknownTypeTokenToAClassResolver(mcuti, pTok, aclassuti);
+
+	    args.m_classInstanceIdx = aclassuti; //since we didn't know last time
 	  }
 	else
 	  {
