@@ -250,11 +250,15 @@ namespace MFM {
     if(funcSymbol && m_funcSymbol != funcSymbol)
       {
 	m_funcSymbol = funcSymbol;
-
+	//may preceed function parameter c&l, and fail names of args with type
+	//(e.g. Class isn't really a class).
 	std::ostringstream msg;
-	msg << "Substituting <" << funcSymbol->getMangledNameWithTypes().c_str() << "> ";
+	//msg << "Substituting <" << funcSymbol->getMangledNameWithTypes().c_str() << "> ";
+	//if(m_funcSymbol)
+	//    msg << "for <" << m_funcSymbol->getMangledNameWithTypes().c_str() <<">";
+	msg << "Substituting <" << m_state.m_pool.getDataAsString(funcSymbol->getId()).c_str() << "> ";
 	if(m_funcSymbol)
-	    msg << "for <" << m_funcSymbol->getMangledNameWithTypes().c_str() <<">";
+	  msg << "for <" << m_state.m_pool.getDataAsString(m_funcSymbol->getId()).c_str() << ">";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
       }
 
@@ -263,8 +267,10 @@ namespace MFM {
 	std::ostringstream msg;
 	if(funcSymbol)
 	  {
-	    msg << "Substituting <" << funcSymbol->getMangledNameWithTypes().c_str();
-	    msg << "> for <" << m_funcSymbol->getMangledNameWithTypes().c_str() <<">";
+	    msg << "Substituting <" << m_state.m_pool.getDataAsString(funcSymbol->getId()).c_str() << "> ";
+	    msg << "for <" << m_state.m_pool.getDataAsString(m_funcSymbol->getId()).c_str() << ">";
+	    //msg << "Substituting <" << funcSymbol->getMangledNameWithTypes().c_str();
+	    //msg << "> for <" << m_funcSymbol->getMangledNameWithTypes().c_str() <<">";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    m_funcSymbol = funcSymbol;
 	  }
