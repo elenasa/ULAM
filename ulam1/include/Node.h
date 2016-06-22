@@ -40,14 +40,16 @@
 #include <sstream>
 #include <stdio.h>
 #include <assert.h>
+#include "BitVector.h"
 #include "CastOps.h"
 #include "File.h"
 #include "Locator.h"
 #include "Symbol.h"
+#include "SymbolTmpRef.h"
 #include "UlamType.h"
 #include "UlamValue.h"
 #include "UVPass.h"
-#include "BitVector.h"
+
 
 namespace MFM{
 
@@ -216,6 +218,7 @@ namespace MFM{
     //index of last "static" MP object; o.w.-1
     s32 isCurrentObjectsContainingAModelParameter();
 
+    std::string calcPosOfCurrentObjectClassesAsString(UVPass uvpass);
     s32 calcPosOfCurrentObjectClasses();
     s32 calcPosOfCurrentObjects(bool onlyClasses = false);
 
@@ -230,6 +233,8 @@ namespace MFM{
 
     u32 adjustedImmediateArrayItemPassPos(UTI cosuti, UVPass uvpass);
 
+    SymbolTmpRef * makeTmpRefSymbolForCodeGen(UVPass uvpass);
+
     void genCodeConvertATmpVarIntoBitVector(File * fp, UVPass & uvpass);
 
     void genCodeConvertABitVectorIntoATmpVar(File * fp, UVPass & uvpass);
@@ -239,6 +244,8 @@ namespace MFM{
 
     //e.g. when lhs of member select is an array item of class type, rhs data member
     void genCodeARefFromARefStorage(File * fp, UVPass stguvpass, UVPass uvpass);
+
+    void genCodeReferenceInitialization(File * fp, UVPass& uvpass, Symbol * vsymptr);
 
     virtual void checkForSymbol();
 
@@ -253,7 +260,7 @@ namespace MFM{
     bool newCastingNodeWithCheck(Node * node, UTI tobeType, Node*& rtnNode);
 
     //used for function calls second arg, including custom array accessors
-    std::string genHiddenArg2(u32& urtmpnumref);
+    std::string genHiddenArg2(UVPass uvpass, u32& urtmpnumref);
 
   private:
     UTI m_utype;
@@ -299,6 +306,11 @@ namespace MFM{
 
     const std::string writeMethodForCodeGen(UTI nuti, UVPass uvpass);
     const std::string writeArrayItemMethodForCodeGen(UTI nuti, UVPass uvpass);
+
+    void genCodeAtomRefInit(File * fp, UVPass & uvpass, Symbol * vsymptr);
+    void genCodeArrayRefInit(File * fp, UVPass & uvpass, Symbol * vsymptr);
+    void genCodeArrayItemRefInit(File * fp, UVPass & uvpass, Symbol * vsymptr);
+
   };
 
 }

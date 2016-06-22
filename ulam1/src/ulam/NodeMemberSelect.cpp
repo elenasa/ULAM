@@ -318,7 +318,7 @@ namespace MFM {
     if(!m_state.m_currentObjSymbolsForCodeGen.empty() && !m_state.isScalar(m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx()))
       {
 	Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
-	m_tmprefSymbol = makeTmpRefSymbolForCodeGen(uvpass); //dm to avoid leaks
+	m_tmprefSymbol = Node::makeTmpRefSymbolForCodeGen(uvpass); //dm to avoid leaks
 	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmprefSymbol);
       }
 
@@ -338,7 +338,7 @@ namespace MFM {
     if(!m_state.m_currentObjSymbolsForCodeGen.empty() && !m_state.isScalar(m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx()))
       {
 	Node::genCodeConvertATmpVarIntoAutoRef(fp, luvpass); //uvpass becomes the autoref, and clears stack
-	m_tmprefSymbol = makeTmpRefSymbolForCodeGen(luvpass);
+	m_tmprefSymbol = Node::makeTmpRefSymbolForCodeGen(luvpass);
 	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmprefSymbol);
       }
 
@@ -346,6 +346,8 @@ namespace MFM {
     m_nodeRight->genCodeToStoreInto(fp, uvpass); //uvpass contains the member selected, or cos obj symbol?
   } //genCodeToStoreInto
 
+#if 0
+  //moved to Node!!!
   SymbolTmpRef * NodeMemberSelect::makeTmpRefSymbolForCodeGen(UVPass uvpass)
   {
     UTI tuti = uvpass.getPassTargetType(); //possibly not a ref, e.g. array item.
@@ -355,5 +357,6 @@ namespace MFM {
     assert(rtnsym);
     return rtnsym;
   } //makeTmpRefSymbolForCodeGen
+#endif
 
 } //end MFM

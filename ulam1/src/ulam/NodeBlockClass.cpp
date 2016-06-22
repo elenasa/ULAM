@@ -2087,7 +2087,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
-	fp->write("} //end switch"); GCNL;
+	fp->write("}; //end switch"); GCNL;
 
 	m_state.indent(fp);
 	fp->write("FAIL(ILLEGAL_ARGUMENT);"); GCNL;

@@ -37,7 +37,7 @@
 #define NODEMEMBERSELECT_H
 
 #include "NodeBinaryOpEqual.h"
-#include "SymbolTmpRef.h"
+//#include "SymbolTmpRef.h"
 
 namespace MFM{
 
@@ -88,7 +88,8 @@ namespace MFM{
     virtual UlamValue makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len);
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len);
 
-    SymbolTmpRef * makeTmpRefSymbolForCodeGen(UVPass uvpass);
+    // moved to Node::
+    //SymbolTmpRef * makeTmpRefSymbolForCodeGen(UVPass uvpass);
   };
 
 } //MFM

@@ -403,6 +403,10 @@ namespace MFM {
 	// or ancestor quark if a class.
 	m_nodeInitExpr->genCodeToStoreInto(fp, uvpass);
 
+	return Node::genCodeReferenceInitialization(fp, uvpass, m_varSymbol);
+      }
+
+#if 0
 	UTI vuti = m_varSymbol->getUlamTypeIdx(); //i.e. this ref node
 	UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
@@ -542,8 +546,12 @@ namespace MFM {
 	fp->write(");"); GCNL;
       } //storage
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
+#endif
+
   } //genCode
 
+#if 0
+// refactored to Node
   void NodeVarRef::genCodeAtomRefInit(File * fp, UVPass & uvpass)
   {
     //reference always has initial value, unless func param
@@ -625,7 +633,10 @@ namespace MFM {
 
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
   } //genCodeAtomRefInit
+#endif
 
+
+#if 0
   void NodeVarRef::genCodeArrayRefInit(File * fp, UVPass & uvpass)
   {
     //reference always has initial value, unless func param
@@ -732,7 +743,9 @@ namespace MFM {
     fp->write(");"); GCNL;
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
   } //genCodeArrayRefInit
+#endif
 
+#if 0
   void NodeVarRef::genCodeArrayItemRefInit(File * fp, UVPass & uvpass)
   {
     //reference always has initial value, unless func param
@@ -757,8 +770,10 @@ namespace MFM {
     assert(vut->isScalar()); //item of array
 
     ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
-    ULAMTYPE vetype = vut->getUlamTypeEnum();
-    assert(vetype == cosut->getUlamTypeEnum());
+    ULAMTYPE vetyp = vut->getUlamTypeEnum();
+    assert(vetyp == cosut->getUlamTypeEnum());
+
+    u32 pos = 0;
 
     m_state.indentUlamCode(fp);
     fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
@@ -766,11 +781,16 @@ namespace MFM {
 
     fp->write(m_varSymbol->getMangledName().c_str());
     fp->write("("); //pass ref in constructor (ref's not assigned with =)
-    if(stgcos->isDataMember()) //can't be an element or atom
+    if(stgcos->isDataMember()) //can't be an element or atom, unless we're in a TRANSIENT!!
       {
+	pos = Node::calcPosOfCurrentObjects();
+
 	fp->write(m_state.getHiddenArgName());
 	fp->write(", ");
-	fp->write_decimal_unsigned(((SymbolVariableDataMember *) cos)->getPosOffset()); //relative off
+	if((vclasstype == UC_ELEMENT) && !m_state.isReference(cosuti))
+	  fp->write("T::ATOM_FIRST_STATE_BIT + "); //need test!
+	//fp->write_decimal_unsigned(((SymbolVariableDataMember *) cos)->getPosOffset()); //relative off
+	fp->write_decimal_unsigned(pos); //rel offset
 	fp->write("u + (");
 	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	fp->write(" * ");
@@ -779,12 +799,18 @@ namespace MFM {
       }
     else
       {
-	//local
+	//local stg
 	fp->write(stgcos->getMangledName().c_str());
 	if(cos->isDataMember())
 	  {
+	    pos = Node::calcPosOfCurrentObjects();
+
 	    fp->write(", ");
-	    fp->write_decimal_unsigned(((SymbolVariableDataMember *) cos)->getPosOffset()); //relative off
+	    if(vclasstype == UC_ELEMENT)
+	      fp->write("T::ATOM_FIRST_STATE_BIT + "); //need test!
+
+	    //fp->write_decimal_unsigned(((SymbolVariableDataMember *) cos)->getPosOffset()); //relative off
+	    fp->write_decimal_unsigned(pos); //rel offset
 	    fp->write("u + (");
 	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	    fp->write(" * ");
@@ -793,8 +819,9 @@ namespace MFM {
 	  }
 	else
 	  {
-	    //local
-	    if((vclasstype == UC_NOTACLASS) && (vetype != UAtom) )
+	    //cos is not a data member; neither is stgcos; t.f. must be the same.
+	    assert(cos == stgcos); //confirm understanding.
+	    if((vclasstype == UC_NOTACLASS) && (vetyp != UAtom) )
 	      {
 		fp->write(", (");
 		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
@@ -802,21 +829,27 @@ namespace MFM {
 		fp->write_decimal_unsigned(cosut->getBitSize());
 		fp->write("u)"); //relative t3651
 	      }
-	    else if((vetype == UAtom))
+	    else if((vetyp == UAtom))
 	      {
+		fp->write(", (");
+		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+		fp->write(" * EC::ATOM_CONFIG::BITS_PER_ATOM");
 		fp->write(", uc");
 	      }
-	    else if(vclasstype == UC_QUARK)
+	    else if(vetyp == Class)
 	      {
-		fp->write(", ");
+		fp->write(", (");
+		if((vclasstype == UC_ELEMENT) && !m_state.isReference(cosuti))
+		  fp->write("T::ATOM_FIRST_STATE_BIT + "); //need test!
 		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 		fp->write(" * ");
 		fp->write_decimal_unsigned(stgcosut->getBitSize());
+		fp->write("u)"); //t3810
 	      }
 	  }
       } //storage
 
-    if((vclasstype != UC_NOTACLASS) && (vetype != UAtom))
+    if((vclasstype != UC_NOTACLASS) && (vetyp != UAtom))
       {
 	fp->write(", &"); //left just
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
@@ -824,5 +857,6 @@ namespace MFM {
     fp->write(");"); GCNL;
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
   } //genCodeArrayItemRefInit
+#endif
 
 } //end MFM

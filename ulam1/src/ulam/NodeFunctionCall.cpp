@@ -760,7 +760,7 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
     u32 urtmpnum = 0;
-    std::string hiddenarg2str = Node::genHiddenArg2(urtmpnum);
+    std::string hiddenarg2str = Node::genHiddenArg2(uvpass, urtmpnum);
     if(urtmpnum > 0)
       {
 	m_state.indentUlamCode(fp);
@@ -1220,7 +1220,8 @@ namespace MFM {
     return arglist.str();
   } //genRestOfFunctionArgs
 
-  // should be like NodeVarRef::genCode
+  // should be like NodeVarRef::genCode;
+  // oops! DOESN'T HANDLE ARRAY ITEMS!!! Wed Jun 22 08:17:29 2016
   void NodeFunctionCall::genCodeReferenceArg(File * fp, UVPass & uvpass, u32 n)
   {
     // get the right?-hand side, stgcos
@@ -1228,6 +1229,25 @@ namespace MFM {
     // or ancestor quark if a class.
     m_argumentNodes->genCodeToStoreInto(fp, uvpass, n);
 
+    //tmp var for lhs
+    s32 tmpVarArgNum = m_state.getNextTmpVarNumber();
+    assert(m_funcSymbol);
+    UTI vuti = m_funcSymbol->getParameterType(n);
+
+    u32 id = 0;
+    if(!m_state.m_currentObjSymbolsForCodeGen.empty())
+      id = m_state.m_currentObjSymbolsForCodeGen[0]->getId();
+
+    UVPass luvpass = UVPass::makePass(tmpVarArgNum, TMPAUTOREF, vuti, m_state.determinePackable(vuti), m_state, 0, id);
+    SymbolTmpRef * tmprefsym = Node::makeTmpRefSymbolForCodeGen(luvpass);
+
+    Node::genCodeReferenceInitialization(fp, uvpass, tmprefsym);
+
+    delete tmprefsym;
+    uvpass = luvpass;
+    return;
+
+#if 0
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
 	return genCodeAnonymousReferenceArg(fp, uvpass, n); //such as .atomof
@@ -1235,7 +1255,7 @@ namespace MFM {
 
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
     UTI stgcosuti = stgcos->getUlamTypeIdx();
-    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+    //UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
     Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
     UTI cosuti = cos->getUlamTypeIdx();
@@ -1319,10 +1339,10 @@ namespace MFM {
 	      }
 	    else if(vclasstype == UC_NOTACLASS)
 	      {
-		pos = BITSPERATOM - stgcosut->getTotalBitSize();
+		//pos = BITSPERATOM - stgcosut->getTotalBitSize();
 
 		fp->write(", ");
-		fp->write_decimal_unsigned(pos); //right-justified
+		fp->write_decimal_unsigned(pos); //no longer atom-based, 0u
 		fp->write("u");
 	      }
 	    else if(vetyp == Class) //t3774
@@ -1349,6 +1369,7 @@ namespace MFM {
 
     uvpass = UVPass::makePass(tmpVarArgNum, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, pos, stgcos->getId()); //POS adjusted for BitVector, justified; self id in Pass; t3774
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
+#endif
   } //genCodeReferenceArg
 
   // uses uvpass rather than stgcos, cos for classes or atoms (not primitives)

@@ -1,0 +1,71 @@
+## -*- mode:ulam -*-
+#=t3810_test_compiler_transientarray_funccallrefarg
+#!
+##      gen code output: (2 asserts)
+##
+## eval fails!
+Exit status: 0
+Ue_R { Bool(1) b(true);  Bool(1) c(true);  Int(32) test() {  System s;  A ar[3];  ar 1 [] ( )setsp . A& r = ar 2 [] cast;  QW qw;  b qw ( ar 1 [] cast )func . = s ( b )assert . r ( )setsp . c qw ( r )func . = s ( c )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Un_A : QW { :<> Bool(7) sp(false);  <NOMAIN> }
+Uq_QW { <NOMAIN> }
+##
+## Dave requested a way to get default values for Self (within a quark);
+## a loophole, since a quark would be an undefined atom, but as a ref, its done (t3679)
+##
+## similar to 3685, except a transient
+##
+#>R.ulam
+  ulam 2;
+use System;
+use A;
+element R {
+  Bool b, c;
+
+  Int test(){
+    System s;
+    A ar[3];
+    ar[1].setsp(); //sp = true;
+    A& r = ar[2];
+    QW qw;
+    b = qw.func(ar[1]);
+    s.assert(b);
+    r.setsp(); //sp = true;
+    c = qw.func(r);
+    s.assert(c);
+    return 0;
+  }
+}
+
+#:A.ulam
+  ulam 2;
+use QW;
+transient A : QW {
+  Bool(7) sp;
+  Void setsp()
+  {
+    sp = true;
+  }
+}
+
+#:QW.ulam
+  ulam 2;
+quark QW {
+  Bool func(A& aarg)
+  {
+    return aarg.sp;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.
