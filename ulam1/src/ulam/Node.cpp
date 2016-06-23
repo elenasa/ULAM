@@ -1600,9 +1600,7 @@ namespace MFM {
     UTI vuti = vsymptr->getUlamTypeIdx(); //i.e. this ref node
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
-    //Wed Jun 22 15:38:10 2016 why is this a special case???
-    //if(m_state.isAtom(vuti))
-    //  return genCodeAtomRefInit(fp, uvpass, vsymptr); //splits off before array check
+    //Wed Jun 22 15:38:10 2016 why are atoms a special case? (t3484)
 
     Symbol * cos = NULL;
     Symbol * stgcos = NULL;
@@ -1617,20 +1615,8 @@ namespace MFM {
       }
 
     UTI stgcosuti = stgcos->getUlamTypeIdx();
-#if 0
-    //Wed Jun 22 15:04:58 2016
-    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-
-    if(!stgcosut->isScalar() && !vut->isScalar())
-      return genCodeArrayRefInit(fp, uvpass, vsymptr);
-
-    if(!stgcosut->isScalar() && vut->isScalar())
-      return genCodeArrayItemRefInit(fp, uvpass, vsymptr);
-#endif
-
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    //ULAMTYPE cosetyp = cosut->getUlamTypeEnum();
 
     //do we need to check both stgcos && cos, or just cos?
     if(!cosut->isScalar() && !vut->isScalar())
@@ -1698,112 +1684,7 @@ namespace MFM {
 	  }
 	//else non-class has no effective self
       }
-
-#if 0
-    u32 pos = 0;
-
-    m_state.indentUlamCode(fp);
-    fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
-    fp->write(" ");
-
-    fp->write(vsymptr->getMangledName().c_str());
-    fp->write("("); //pass ref in constructor (ref's not assigned with =)
-    if(stgcos->isDataMember()) //can't be an element or atom (JUST WAIT UNTIL Transients!!)
-      {
-	pos = Node::calcPosOfCurrentObjects();
-
-	fp->write(m_state.getHiddenArgName());
-	fp->write(", ");
-	fp->write_decimal_unsigned(pos); //rel offset
-	fp->write("u");
-
-	//t.f. cos must be a data member too; effective self is that of the dm;
-	// neither can be references.
-	if(cosetyp == Class)
-	  {
-	    if(cosut->getUlamClassType() == UC_ELEMENT) //in case of transient
-	      fp->write(" + T::ATOM_FIRST_STATE_BIT");
-	    fp->write(", &");
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
-	  }
-	else if(m_state.isAtom(cosuti)) //in case of transient
-	  {
-	    fp->write(", uc");
-	  }
-      }
-    else
-      {
-	//local stg
-	if(!m_state.m_currentObjSymbolsForCodeGen.empty())
-	  {
-	    fp->write(stgcos->getMangledName().c_str()); //even if self
-	    if(cos->isDataMember())
-	      {
-		pos = Node::calcPosOfCurrentObjects();
-
-		fp->write(", ");
-		fp->write_decimal_unsigned(pos); //rel offset
-		fp->write("u");
-
-		//effective self is that of the data member; can't be a reference
-		if(cosetyp == Class)
-		  {
-		    if(cosut->getUlamClassType() == UC_ELEMENT) //in case of transient stg
-		      fp->write(" + T::ATOM_FIRST_STATE_BIT");
-		    fp->write(", &");
-		    fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
-		  }
-		else if(m_state.isAtom(cosuti)) //in case of transient stg
-		  {
-		    fp->write(", uc");
-		  }
-	      }
-	    else
-	      {
-		//cos is not a dm; neither is stgcos; t.f must be the same
-		assert(cos == stgcos); //confirm understanding
-
-		if(m_state.isAtom(vuti))
-		  fp->write(", uc");
-		else if(vclasstype == UC_NOTACLASS)
-		  {
-		    //no longer atom-based (pos = 0). e.g. t3617
-		    fp->write(", ");
-		    fp->write_decimal_unsigned(pos); //right-justified
-		    fp->write("u");
-		  }
-		else if(vetyp == Class)
-		  {
-		    if(m_state.isReference(stgcosuti))
-		      {
-			fp->write(", 0u, "); //left-justified
-			fp->write(stgcos->getMangledName().c_str()); //stg
-			fp->write(".GetEffectiveSelf()");
-		      }
-		    else
-		      {
-			if(vclasstype == UC_ELEMENT)
-			  fp->write(", T::ATOM_FIRST_STATE_BIT, ");
-			else
-			  fp->write(", 0u, "); //left-justified
-			fp->write("&");
-			fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
-		      }
-		  }
-	      }
-	  }
-	else
-	  {
-	    //WHY is this different than NodeFunctionCall::genCodeAnonymousReferenceArg??
-	    //local var (no currentObjSymbols, 1 arg since same type)
-	    assert(UlamType::compare(uvpass.getPassTargetType(), vuti, m_state) == UTIC_SAME);
-	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	  }
-      }
-#endif
-
     fp->write(");"); GCNL;
-
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
   } //genCodeReferenceInitialization
 
@@ -1883,9 +1764,7 @@ namespace MFM {
 	if(m_state.isScalar(vuti))
 	  fp->write(", uc");
       }
-
     fp->write(");"); GCNL;
-
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
   } //genCodeAtomRefInit
 
@@ -2056,92 +1935,6 @@ namespace MFM {
     if(vetyp == UAtom)
       fp->write(", uc"); //need a test!
 
-#if 0
-    if(stgcos->isDataMember()) //can't be an element or atom, unless we're in a TRANSIENT!!
-      {
-	pos = Node::calcPosOfCurrentObjects();
-
-	fp->write(m_state.getHiddenArgName());
-	fp->write(", ");
-	if((vclasstype == UC_ELEMENT) && !m_state.isReference(cosuti))
-	  fp->write("T::ATOM_FIRST_STATE_BIT + "); //need test!
-	fp->write_decimal_unsigned(pos); //rel offset
-	fp->write("u + (");
-	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	fp->write(" * ");
-	if(vclasstype == UC_ELEMENT)
-	  fp->write("T::BPA)"); //t3811
-	else
-	  {
-	    fp->write_decimal_unsigned(cosut->getBitSize()); //was stgcosut->
-	    fp->write("u)");
-	  }
-	if(vetyp == UAtom)
-	  fp->write(", uc"); //need a test!
-      }
-    else
-      {
-	//local stg
-	fp->write(stgcos->getMangledName().c_str());
-	if(cos->isDataMember())
-	  {
-	    pos = Node::calcPosOfCurrentObjects();
-
-	    fp->write(", ");
-	    if(vclasstype == UC_ELEMENT)
-	      fp->write("T::ATOM_FIRST_STATE_BIT + "); //need test!
-	    fp->write_decimal_unsigned(pos); //rel offset
-	    fp->write("u + (");
-	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	    fp->write(" * ");
-	    if(vclasstype == UC_ELEMENT)
-	      fp->write("T::BPA)"); //t3811
-	    else
-	      {
-		fp->write_decimal_unsigned(cosut->getBitSize());
-		fp->write("u)");
-	      }
-	    if(vetyp == UAtom)
-	      fp->write(", uc"); //need a test!
-	  }
-	else
-	  {
-	    //cos is not a data member; neither is stgcos; t.f. must be the same.
-	    assert(cos == stgcos); //confirm understanding.
-	    if((vclasstype == UC_NOTACLASS) && (vetyp != UAtom) )
-	      {
-		fp->write(", (");
-		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-		fp->write(" * ");
-		fp->write_decimal_unsigned(cosut->getBitSize());
-		fp->write("u)"); //relative t3651
-	      }
-	    else if((vetyp == UAtom))
-	      {
-		fp->write(", (");
-		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-		fp->write(" * EC::ATOM_CONFIG::BITS_PER_ATOM"); //T::BPA
-		fp->write(", uc");
-	      }
-	    else if(vetyp == Class)
-	      {
-		fp->write(", (");
-		if((vclasstype == UC_ELEMENT) && !m_state.isReference(cosuti))
-		  fp->write("T::ATOM_FIRST_STATE_BIT + ");
-		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-		fp->write(" * ");
-		if(vclasstype == UC_ELEMENT)
-		  fp->write("T::BPA");
-		else
-		  {
-		    fp->write_decimal_unsigned(cosut->getBitSize());
-		    fp->write("u)"); //t3810
-		  }
-	      }
-	  }
-      } //storage
-#endif
-
     if((vclasstype != UC_NOTACLASS) && (vetyp != UAtom))
       {
 	fp->write(", &"); //left just
@@ -2245,7 +2038,6 @@ namespace MFM {
 		doErrMsg = buildCastingFunctionCallNode(node, tobeType, rtnNode);
 	      }
 	  }
-	//else if(tclasstype == UC_QUARK)
 	else if(tclasstype != UC_NOTACLASS)
 	  {
 	    //handle possible inheritance (u.1.2.2) here
@@ -2741,17 +2533,13 @@ namespace MFM {
 		hiddenarg2 << stgcos->getMangledName().c_str(); //effself of as-variable
 		hiddenarg2 << ".GetEffectiveSelf());";
 	      }
-	    //else if(stgcos->getAutoLocalType() == ALT_REF)
 	    else if(stgcosut->isReference()) //t3751, t3752
 	      {
 		sameur = false;
 		//update ur to reflect "effective" self for this funccall
 		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
 		hiddenarg2 << stgcos->getMangledName().c_str() << ", ";
-		//if(cos->isDataMember()) //dm of local stgcos
 		hiddenarg2 << Node::calcPosOfCurrentObjectClassesAsString(uvpass); //relative off;
-		//else
-		//  hiddenarg2 << "0u";
 
 		hiddenarg2 << ", " << cosut->getTotalBitSize(); //len
 		hiddenarg2 << "u, ";
@@ -2776,20 +2564,6 @@ namespace MFM {
 		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
 
 		hiddenarg2 << Node::calcPosOfCurrentObjectClassesAsString(uvpass); //relative off;
-
-#if 0
-		if(cos->isDataMember()) //dm of local stgcos
-		  {
-		    //FAILS with array items
-		    if(cosut->getUlamClassType() == UC_ELEMENT)
-		      hiddenarg2 << " + T::ATOM_FIRST_STATE_BIT"; //skip Type (e.g.transient t3805)
-		  }
-		else if(stgcosut->getUlamClassType() == UC_ELEMENT) //same as cos
-		  hiddenarg2 << "T::ATOM_FIRST_STATE_BIT + 0u"; //skip Type t3408, t3588, t3730, t3731, t3732
-		else
-		  hiddenarg2 << "0u";
-#endif
-
 		hiddenarg2 << ", " << cosut->getTotalBitSize() << "u, "; //len
 		hiddenarg2 << stgcos->getMangledName().c_str() << ", &"; //storage
 		hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str();

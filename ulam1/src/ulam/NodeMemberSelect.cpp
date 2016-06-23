@@ -341,22 +341,8 @@ namespace MFM {
 	m_tmprefSymbol = Node::makeTmpRefSymbolForCodeGen(luvpass);
 	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmprefSymbol);
       }
-
     //uvpass = luvpass;
     m_nodeRight->genCodeToStoreInto(fp, uvpass); //uvpass contains the member selected, or cos obj symbol?
   } //genCodeToStoreInto
-
-#if 0
-  //moved to Node!!!
-  SymbolTmpRef * NodeMemberSelect::makeTmpRefSymbolForCodeGen(UVPass uvpass)
-  {
-    UTI tuti = uvpass.getPassTargetType(); //possibly not a ref, e.g. array item.
-    std::string tmpvarname = m_state.getTmpVarAsString(tuti, uvpass.getPassVarNum(), TMPAUTOREF);
-    Token tidTok(TOK_IDENTIFIER, Node::getNodeLocation(), m_state.m_pool.getIndexForDataString(tmpvarname));
-    SymbolTmpRef * rtnsym = new SymbolTmpRef(tidTok, tuti, m_state);
-    assert(rtnsym);
-    return rtnsym;
-  } //makeTmpRefSymbolForCodeGen
-#endif
 
 } //end MFM
