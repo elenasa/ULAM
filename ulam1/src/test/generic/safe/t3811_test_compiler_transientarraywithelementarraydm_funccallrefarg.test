@@ -3,17 +3,17 @@
 #!
 ##      gen code output: (2 asserts)
 ##
-## eval fails!
-Exit status: 0
-Ue_R { Bool(1) b(true);  Bool(1) c(true);  Int(32) test() {  System s;  A ar[3];  ar 1 [] ( )setsp . A& r = ar 2 [] cast;  QW qw;  b qw ( ar 1 [] cast )func . = s ( b )assert . r ( )setsp . c qw ( r )func . = s ( c )assert . 0 cast return } }
+Exit status: -11
+Ue_R { Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  QW qw;  A ar[3];  ar 1 [] mFoo 2 [] ( 1u cast )setTre . . b qw ( ar 1 [] mFoo 2 [] . cast )eunc . = s ( b )assert . Foo& fr = ar 2 [] mFoo 1 [] . cast;  fr ( 2u cast )setTre . c qw ( fr )eunc . = s ( c )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
-Un_A : QW { :<> Bool(7) sp(false);  <NOMAIN> }
+Un_A : QW { :<> Bool(7) sp(false);  Foo mFoo[3]( Unary(3) mTre(0); ), ( Unary(3) mTre(0); ), ( Unary(3) mTre(0); );  <NOMAIN> }
 Uq_QW { <NOMAIN> }
+Ue_Foo { Unary(3) mTre(0);  <NOMAIN> }
 ##
 ## Dave requested a way to get default values for Self (within a quark);
 ## a loophole, since a quark would be an undefined atom, but as a ref, its done (t3679)
 ##
-## similar to 3685, except a transient
+## similar to 3810, except transient has an array of element data member
 ##
 #>R.ulam
   ulam 2;
