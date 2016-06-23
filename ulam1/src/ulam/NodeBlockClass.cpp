@@ -62,7 +62,8 @@ namespace MFM {
     if(m_state.okUTItoContinue(superuti) && !m_state.isUrSelf(superuti))
       {
 	NodeBlockClass * superblock = getSuperBlockPointer();
-	assert(superblock || m_state.isClassAStub(superuti));
+	//e.g. not a stub, yet not complete because its superclass is a stub! (ish 06222016)
+	assert(superblock || m_state.hasClassAStub(superuti));
 	if(superblock && superblock->findNodeNo(n, foundNode))
 	  return true;
       }
