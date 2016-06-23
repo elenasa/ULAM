@@ -544,15 +544,11 @@ namespace MFM {
     u32 pos = uvpass.getPassPos(); //Thu Jun 23 16:01:08 2016
     if(m_varSymbol->isDataMember())
       {
-	//u32 pos = 0;
 	if(!m_state.m_currentObjSymbolsForCodeGen.empty())
 	  {
-	    //SymbolVariable * sym = (SymbolVariable *) m_state.m_currentObjSymbolsForCodeGen.back();
 	    Symbol * sym = m_state.m_currentObjSymbolsForCodeGen.back();
 	    //here, we haven't taken into account any array indexes, So autoref instead
 	    // e.g. m_bar[0].cb, and this NI is for the rhs of member select, 'cb'
-	    //if(sym->isDataMember())
-	    //  pos = ((SymbolVariableDataMember *) sym)->getPosOffset();
 
 	    //if sym is an element, and not isSelf, and not a ref, pos += 25 (t3637)
 	    UTI suti = sym->getUlamTypeIdx();

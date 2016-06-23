@@ -767,73 +767,6 @@ namespace MFM {
     fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
     fp->write("();"); GCNL; // done read array item
 
-#if 0
-    if(!isCurrentObjectALocalVariableOrArgument())
-      {
-	fp->write("UlamRef<EC>("); //wrapper for array item
-	fp->write(m_state.getHiddenArgName()); //ur first arg
-	fp->write(", ");
-	fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
-	fp->write("u + ");
-	fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //INDEX
-	fp->write(" * ");
-	fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM == rel pos
-	fp->write("u, ");
-	fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
-	fp->write("u, ");
-	if(cosetyp == Class)
-	  {
-	    fp->write("&");
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
-	  }
-	else
-	  fp->write("NULL"); //primitive eff self
-
-	fp->write(")."); //close wrapper
-
-	// the READ method
-	fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
-	fp->write("();"); GCNL; // done read array item
-      }
-    else //local var
-      {
-	assert(isCurrentObjectsContainingAModelParameter() == -1); //MP invalid
-	//both packed and unpacked arrays
-	fp->write("UlamRef<EC>("); //wrapper for array item
-	if(stgcosut->isReference())
-	  {
-	    fp->write(stgcos->getMangledName().c_str()); //e.g. t3617
-	    fp->write(", ");
-	  }
-	fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
-	fp->write("u + ");
-	fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //INDEX
-	fp->write(" * ");
-	fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
-	fp->write("u, ");
-	fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
-	fp->write("u, ");
-	if(!stgcosut->isReference())
-	  {
-	    fp->write(stgcos->getMangledName().c_str()); //storage
-	    fp->write(", ");
-	  }
-
-	if(cosetyp == Class)
-	  {
-	    fp->write("&");
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
-	  }
-	else
-	  fp->write("NULL"); //primitive eff self
-
-	fp->write(")."); //close wrapper
-	//read method based on last cos
-	fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
-	fp->write("();"); GCNL; //done read array item
-      } //end local var
-#endif
-
     //update uvpass
     uvpass = UVPass::makePass(tmpVarNum2, cstor, scalarcosuti, m_state.determinePackable(scalarcosuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
     m_state.clearCurrentObjSymbolsForCodeGen();
@@ -1224,8 +1157,6 @@ namespace MFM {
       }
     fp->write("("); //start index calc
     //no need to add ATOM_FIRST_STATE_BIT since we are writing the entire element, when cos is an element //t3436, t3706, t3710
-    //if((classtype == UC_ELEMENT) && !m_state.isReference(cosuti))
-    //  fp->write("T::ATOM_FIRST_STATE_BIT + "); //need test! //t3436
     fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
     fp->write("u + ");
 
@@ -1269,109 +1200,6 @@ namespace MFM {
 	fp->write("()");
       }
     fp->write(");"); GCNL;
-
-#if 0
-    // a data member quark, or the element itself should both getBits from self;
-    // now, quark's self is treated as the entire atom/element storage
-    // getbits needed to go from-atom to-BitVector
-    if(!isCurrentObjectALocalVariableOrArgument())
-      {
-	fp->write(m_state.getHiddenArgName()); //ur first arg
-	fp->write(", ");
-	if((classtype == UC_ELEMENT) && !m_state.isReference(cosuti))
-	  fp->write("T::ATOM_FIRST_STATE_BIT + "); //need test! Thu Jun 23 11:53:10 2016
-
-	fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
-	fp->write("u + ");
-
-	fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //INDEX
-	fp->write(" * ");
-	if(classtype == UC_ELEMENT)
-	  fp->write("T::BPA)"); //Thu Jun 23 11:54:01 2016
-	else
-	  {
-	    fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM == rel pos
-	    fp->write("u");
-	  }
-	fp->write(", ");
-	fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
-	fp->write("u, ");
-
-	fp->write("NULL"); //eff self, not needed for classes since write isn't virtual
-
-	fp->write(")."); //close wrapper
-
-	// the WRITE method
-	fp->write(writeArrayItemMethodForCodeGen(cosuti, luvpass).c_str());
-	fp->write("(");
-
-	// with immediate quarks, they are read into a tmpreg as other immediates
-	// with immediate elements, too! value not a terminal
-	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-	if(rstor == TMPBITVAL)
-	  {
-	    fp->write(".read()"); //t3172
-	  }
-	fp->write(");"); GCNL;
-      }
-    else
-      {
-	assert(isCurrentObjectsContainingAModelParameter() == -1); //MP invalid
-	//local
-	if(stgcosut->isReference())
-	  {
-	    fp->write(stgcos->getMangledName().c_str()); //reference
-	    fp->write(", ");
-	  }
-	if((classtype == UC_ELEMENT) && !m_state.isReference(cosuti))
-	  fp->write("T::ATOM_FIRST_STATE_BIT + "); //need test!
-	fp->write_decimal_unsigned(Node::calcPosOfCurrentObjects()); //rel offset
-	fp->write("u + ");
-
-	fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //INDEX
-	fp->write(" * ");
-	if(vclasstype == UC_ELEMENT)
-	  {
-	    fp->write("T::BPA)");
-	    fp->write(", ");
-	    fp->write("T::BPA, "); //atom-based
-	  }
-	else
-	  {
-	    fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
-	    fp->write("u, ");
-	    fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
-	    fp->write("u, ");
-	  }
-
-	if(!stgcosut->isReference())
-	  {
-	    fp->write(stgcos->getMangledName().c_str()); //storage
-	    fp->write(", ");
-	  }
-
-	fp->write("NULL"); //eff self, not needed for classes since write isn't virtual
-	fp->write(")."); //close wrapper
-
-	fp->write(writeArrayItemMethodForCodeGen(cosuti, luvpass).c_str());
-	fp->write("(");
-	// with immediate quarks, they are read into a tmpreg as other immediates
-	// with immediate elements, too! value not a terminal
-	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-	if(rstor == TMPBITVAL)
-	  {
-	    fp->write(".read()");
-	  }
-	else if(rstor == TMPATOMBS)
-	  {
-	    fp->write(".");
-	    fp->write(rut->readMethodForCodeGen().c_str()); //ReadAtom
-	    fp->write("()");
-	  }
-	fp->write(");"); GCNL;
-      }
-#endif
-
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeWriteArrayItemFromATmpVar
 
@@ -1379,8 +1207,6 @@ namespace MFM {
   // ruvpass is the ptr to value to write
   void Node::genCodeWriteCustomArrayItemFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass)
   {
-    //UTI luti = luvpass.getPassTargetType();
-
     //rhs could be a constant; or previously cast from Int to Unary variables.
     // here, cos is symbol used to determine read method: either self or last of cos.
     // stgcos is symbol used to determine "hidden" args
@@ -1467,7 +1293,7 @@ namespace MFM {
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
 
     m_state.indentUlamCode(fp);
-    //fp->write("const "); //non-constant and C++ & to avoid an extra copy
+    //non-constant and C++ & to avoid an extra copy
 
     fp->write(localStorageTypeAsString(vuti).c_str()); //e.g. BitVector<32> exception
     fp->write(" ");
@@ -1496,8 +1322,9 @@ namespace MFM {
       {
 	if(vut->getUlamClassType() == UC_NOTACLASS)
 	  {
-	    //pos = BITSPERATOM - vut->getTotalBitSize(); //right-justified atom-based ?
-	    //pos = 0u; //no longer atom-based primitives Thu Jun 23 15:51:15 2016
+	    //no longer atom-based primitives Thu Jun 23 15:51:15 2016
+	    //pos = BITSPERATOM - vut->getTotalBitSize(); //right-justified atom-based
+	    //pos = 0u;
 	  }
 
 	if(m_state.isReference(vuti))
