@@ -760,7 +760,7 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
     u32 urtmpnum = 0;
-    std::string hiddenarg2str = Node::genHiddenArg2(urtmpnum);
+    std::string hiddenarg2str = Node::genHiddenArg2(uvpass, urtmpnum);
     if(urtmpnum > 0)
       {
 	m_state.indentUlamCode(fp);
@@ -1220,7 +1220,8 @@ namespace MFM {
     return arglist.str();
   } //genRestOfFunctionArgs
 
-  // should be like NodeVarRef::genCode
+  // should be like NodeVarRef::genCode;
+  // oops! DOESN'T HANDLE ARRAY ITEMS!!! Wed Jun 22 08:17:29 2016
   void NodeFunctionCall::genCodeReferenceArg(File * fp, UVPass & uvpass, u32 n)
   {
     // get the right?-hand side, stgcos
@@ -1228,129 +1229,26 @@ namespace MFM {
     // or ancestor quark if a class.
     m_argumentNodes->genCodeToStoreInto(fp, uvpass, n);
 
-    if(m_state.m_currentObjSymbolsForCodeGen.empty())
-      {
-	return genCodeAnonymousReferenceArg(fp, uvpass, n); //such as .atomof
-      }
-
-    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-    UTI stgcosuti = stgcos->getUlamTypeIdx();
-    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-
-    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
-    UTI cosuti = cos->getUlamTypeIdx();
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    ULAMTYPE cosetyp = cosut->getUlamTypeEnum();
-
+    //tmp var for lhs
+    s32 tmpVarArgNum = m_state.getNextTmpVarNumber();
     assert(m_funcSymbol);
     UTI vuti = m_funcSymbol->getParameterType(n);
-    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
-    ULAMTYPE vetyp = vut->getUlamTypeEnum();
-    assert(vetyp == cosut->getUlamTypeEnum());
 
-    m_state.indentUlamCode(fp);
-    fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
-    fp->write(" ");
+    u32 id = 0;
+    if(!m_state.m_currentObjSymbolsForCodeGen.empty())
+      id = m_state.m_currentObjSymbolsForCodeGen[0]->getId();
 
-    s32 tmpVarArgNum = m_state.getNextTmpVarNumber();
-    u32 pos = 0;
-    fp->write(m_state.getTmpVarAsString(vuti, tmpVarArgNum, TMPBITVAL).c_str());
-    fp->write("("); //pass ref in constructor (ref's not assigned with =)
-    if(stgcos->isDataMember()) //can't be an element
-      {
-	pos = Node::calcPosOfCurrentObjects();
+    UVPass luvpass = UVPass::makePass(tmpVarArgNum, TMPAUTOREF, vuti, m_state.determinePackable(vuti), m_state, 0, id);
+    SymbolTmpRef * tmprefsym = Node::makeTmpRefSymbolForCodeGen(luvpass);
 
-	fp->write(m_state.getHiddenArgName());
-	fp->write(", ");
-	fp->write_decimal_unsigned(pos); //rel offset
-	fp->write("u");
+    Node::genCodeReferenceInitialization(fp, uvpass, tmprefsym);
 
-	//t.f. cos must be a data member too; effective self is that of the dm;
-	// neither can be references.
-	if(cosetyp == Class)
-	  {
-	    if(cosut->getUlamClassType() == UC_ELEMENT) //in case of transient
-	      fp->write(" + T::ATOM_FIRST_STATE_BIT");
-	    fp->write(", &");
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
-	  }
-	else if(m_state.isAtom(cosuti)) //in case of transient
-	  {
-	    fp->write(", uc");
-	  }
-      }
-    else
-      {
-	//local stg
-	fp->write(stgcos->getMangledName().c_str());
-	if(cos->isDataMember())
-	  {
-	    pos = Node::calcPosOfCurrentObjects();
-
-	    fp->write(", ");
-	    fp->write_decimal_unsigned(pos); //rel offset
-	    fp->write("u");
-
-	    //effective self is that of the data member; can't be a reference
-	    if(cosetyp == Class)
-	      {
-		if(cosut->getUlamClassType() == UC_ELEMENT) //in case of transient stg
-		  fp->write(" + T::ATOM_FIRST_STATE_BIT");
-		fp->write(", &");
-		fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
-	      }
-	    else if(m_state.isAtom(cosuti)) //in case of transient stg
-	      {
-		fp->write(", uc");
-	      }
-	  }
-	else
-	  {
-	    //cos is not a data member; neither is stgcos; t.f. must be the same.
-	    assert(cos == stgcos); //confirm understanding.
-	    if(m_state.isAtom(vuti))
-	      {
-		fp->write(", ");
-		fp->write_decimal_unsigned(uvpass.getPassPos()); //Sun Jun 19 08:40:37 2016 ?
-		fp->write("u");
-
-		fp->write(", uc"); //e.g. t3684 atom to atomref;
-	      }
-	    else if(vclasstype == UC_NOTACLASS)
-	      {
-		pos = BITSPERATOM - stgcosut->getTotalBitSize();
-
-		fp->write(", ");
-		fp->write_decimal_unsigned(pos); //right-justified
-		fp->write("u");
-	      }
-	    else if(vetyp == Class) //t3774
-	      {
-		if(m_state.isReference(stgcosuti))
-		  {
-		    fp->write(", 0u, "); //left-justified
-		    fp->write(stgcos->getMangledName().c_str()); //stg
-		    fp->write(".GetEffectiveSelf()"); //t3774
-		  }
-		else
-		  {
-		    if(vclasstype == UC_ELEMENT) //t3795
-		      fp->write(", T::ATOM_FIRST_STATE_BIT, ");
-		    else
-		      fp->write(", 0u, "); //left-justified
-		    fp->write("&");
-		    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
-		  }
-	      }
-	  }
-      }
-    fp->write(");"); GCNL;
-
-    uvpass = UVPass::makePass(tmpVarArgNum, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, pos, stgcos->getId()); //POS adjusted for BitVector, justified; self id in Pass; t3774
-    m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
+    delete tmprefsym;
+    uvpass = luvpass;
+    return;
   } //genCodeReferenceArg
 
+  // is this still used/needed???
   // uses uvpass rather than stgcos, cos for classes or atoms (not primitives)
   void NodeFunctionCall::genCodeAnonymousReferenceArg(File * fp, UVPass & uvpass, u32 n)
   {

@@ -549,7 +549,7 @@ namespace MFM {
       m_state.indent(fp);
       fp->write("#include \"");
       fp->write(m_state.getFileNameForThisClassBody().c_str());
-      fp->write("\""); GCNL;
+      fp->write("\"");
       fp->write("\n");
 
       // include native .tcc for this class if any declared
@@ -558,7 +558,7 @@ namespace MFM {
 	  m_state.indent(fp);
 	  fp->write("#include \"");
 	  fp->write(m_state.getFileNameForThisClassBodyNative().c_str());
-	  fp->write("\""); GCNL;
+	  fp->write("\"");
 	  fp->write("\n");
 	}
       genAllCapsEndifForHeaderFile(fp);
@@ -591,7 +591,7 @@ namespace MFM {
       m_state.indent(fp);
       fp->write("#include \"");
       fp->write(m_state.getFileNameForThisClassHeader().c_str());
-      fp->write("\""); GCNL;
+      fp->write("\"");
       fp->write("\n");
 
       m_state.indent(fp);
@@ -748,7 +748,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("#ifndef ");
     fp->write(Node::allCAPS(cut->getUlamTypeMangledName().c_str()).c_str());
-    fp->write("_H"); GCNL;
+    fp->write("_H\n");
 
     m_state.indent(fp);
     fp->write("#define ");
@@ -767,14 +767,14 @@ namespace MFM {
   void SymbolClass::generateHeaderIncludes(File * fp)
   {
     m_state.indent(fp);
-    fp->write("#include \"UlamDefs.h\""); GCNL;
+    fp->write("#include \"UlamDefs.h\"");
     fp->write("\n");
 
     //using the _Types.h file
     m_state.indent(fp);
     fp->write("#include \"");
     fp->write(m_state.getFileNameForThisTypesHeader().c_str());
-    fp->write("\""); GCNL;
+    fp->write("\"");
     fp->write("\n");
 
     //generate includes for all the other classes that have appeared
@@ -865,7 +865,8 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("#include \"");
     fp->write(m_state.getFileNameForThisClassHeader().c_str());
-    fp->write("\""); GCNL;
+    fp->write("\"");
+    fp->write("\n");
 
     m_state.m_programDefST.generateIncludesForTableOfClasses(fp); //the other classes
 
