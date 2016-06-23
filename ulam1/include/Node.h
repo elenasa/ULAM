@@ -307,7 +307,6 @@ namespace MFM{
     const std::string writeMethodForCodeGen(UTI nuti, UVPass uvpass);
     const std::string writeArrayItemMethodForCodeGen(UTI nuti, UVPass uvpass);
 
-    void genCodeAtomRefInit(File * fp, UVPass & uvpass, Symbol * vsymptr);
     void genCodeArrayRefInit(File * fp, UVPass & uvpass, Symbol * vsymptr);
     void genCodeArrayItemRefInit(File * fp, UVPass & uvpass, Symbol * vsymptr);
 
