@@ -370,6 +370,7 @@ namespace MFM {
     u32 selfid = m_state.m_pool.getIndexForDataString("Self");
     Token selfTok(TOK_TYPE_IDENTIFIER, identTok.m_locator, selfid);
     SymbolTypedef * symtypedef = new SymbolTypedef(selfTok, utype, utype, m_state); //refselftype
+    assert(symtypedef);
     m_state.addSymbolToCurrentScope(symtypedef);
 
     //need class block's ST before parsing any class parameters (i.e. named constants);
@@ -407,11 +408,22 @@ namespace MFM {
 
 	    //automatically create a Super typedef symbol for this class' super type
 	    u32 superid = m_state.m_pool.getIndexForDataString("Super");
-	    Token superTok(TOK_TYPE_IDENTIFIER, qTok.m_locator, superid);
-	    SymbolTypedef * symtypedef = new SymbolTypedef(superTok, superuti, superuti, m_state);
-	    m_state.addSymbolToCurrentScope(symtypedef);
+	    Symbol * symtypedef = NULL;
+	    if(!rtnNode->isIdInScope(superid, symtypedef))
+	      {
+		Token superTok(TOK_TYPE_IDENTIFIER, qTok.m_locator, superid);
+		symtypedef = new SymbolTypedef(superTok, superuti, superuti, m_state);
+		assert(symtypedef);
+		m_state.addSymbolToCurrentScope(symtypedef);
+	      }
+	    else //holder may have been made prior
+	      {
+		assert(symtypedef->getId() == superid);
+		UTI stuti = symtypedef->getUlamTypeIdx();
+		if(stuti != superuti)
+		  m_state.updateUTIAliasForced(stuti, superuti); //t3808, t3806, t3807
+	      }
 	  }
-	//else errors may have occurred
       }
     else
       {
@@ -2209,8 +2221,10 @@ namespace MFM {
 	if(numDots > 1 && Token::isTokenAType(pTok))
 	  {
 	    //make an 'anonymous class'
-	    cnsym = m_state.makeClassFromHolder(args.m_anothertduti, args.m_typeTok);
-	    args.m_classInstanceIdx = args.m_anothertduti; //since we didn't know last time
+	    UTI aclassuti = args.m_anothertduti;
+	    Token atok = args.m_typeTok;
+	    cnsym = m_state.makeClassFromHolder(aclassuti, atok);
+	    args.m_classInstanceIdx = aclassuti; //since we didn't know last time
 	  }
 	else
 	  {

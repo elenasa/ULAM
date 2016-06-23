@@ -111,13 +111,13 @@ namespace MFM {
 		if(!hazyKin)
 		  {
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		    setNodeType(Nav); //mising
+		    setNodeType(Nav); //missing
 		    return Nav;
 		  }
 		else
 		  {
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		    setNodeType(Hzy); //mising
+		    setNodeType(Hzy); //missing
 		    m_state.setGoAgain(); //too
 		    return Hzy;
 		  }
