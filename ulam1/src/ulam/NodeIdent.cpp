@@ -552,8 +552,7 @@ namespace MFM {
 
 	    //if sym is an element, and not isSelf, and not a ref, pos += 25 (t3637)
 	    UTI suti = sym->getUlamTypeIdx();
-	    UlamType * sut = m_state.getUlamTypeByIndex(suti);
-	    if(!sym->isSelf() && (sut->getUlamClassType() == UC_ELEMENT) && !sut->isReference())
+	    if(!sym->isSelf() && Node::needAdjustToStateBits(suti))
 	      pos += ATOMFIRSTSTATEBITPOS;
 	  }
 	// 'pos' modified by this data member symbol's packed bit position

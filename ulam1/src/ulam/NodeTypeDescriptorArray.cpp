@@ -91,7 +91,7 @@ namespace MFM {
     NodeTypeDescriptor::setReferenceType(refarg, referencedUTI);
     m_uti = refUTI; //new given as ref UTI
 
-    //reset scalar to non-reference
+    //reset scalar to non-reference, t3816
     assert(m_nodeScalar);
     m_nodeScalar->setReferenceType(ALT_NOT, Nouti, referencedUTI);
   }
@@ -132,7 +132,7 @@ namespace MFM {
     // not node select, we are the array on top of the scalar leaf
     UTI nuti = givenUTI();
 
-    //assert(!m_state.isReference(nuti)); //??? t3816
+    //assert(!m_state.isReference(nuti)); //t3816
 
     // scalar type
     assert(m_nodeScalar);
