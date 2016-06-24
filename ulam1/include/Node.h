@@ -233,6 +233,8 @@ namespace MFM{
 
     u32 adjustedImmediateArrayItemPassPos(UTI cosuti, UVPass uvpass);
 
+    bool needAdjustToStateBits(UTI cuti);
+
     SymbolTmpRef * makeTmpRefSymbolForCodeGen(UVPass uvpass);
 
     void genCodeConvertATmpVarIntoBitVector(File * fp, UVPass & uvpass);

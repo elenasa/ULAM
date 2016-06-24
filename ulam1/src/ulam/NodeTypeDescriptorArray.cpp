@@ -86,6 +86,16 @@ namespace MFM {
     m_unknownArraysizeSubtree = ceForArraySize;
   } //linkConstantExpressionArraysize
 
+  void NodeTypeDescriptorArray::setReferenceType(ALT refarg, UTI referencedUTI, UTI refUTI)
+  {
+    NodeTypeDescriptor::setReferenceType(refarg, referencedUTI);
+    m_uti = refUTI; //new given as ref UTI
+
+    //reset scalar to non-reference
+    assert(m_nodeScalar);
+    m_nodeScalar->setReferenceType(ALT_NOT, Nouti, referencedUTI);
+  }
+
   UTI NodeTypeDescriptorArray::checkAndLabelType()
   {
     UTI it = getNodeType();
@@ -122,7 +132,7 @@ namespace MFM {
     // not node select, we are the array on top of the scalar leaf
     UTI nuti = givenUTI();
 
-    assert(!m_state.isReference(nuti)); //???
+    //assert(!m_state.isReference(nuti)); //??? t3816
 
     // scalar type
     assert(m_nodeScalar);

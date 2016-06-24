@@ -179,6 +179,7 @@ namespace MFM {
     if(cnsym && cnsym->isClassTemplate())
       namestr << ((SymbolClassNameTemplate *) cnsym)->formatAnInstancesArgValuesAsCommaDelimitedString(cuti).c_str();
 
+    //note: any "[arraysize]" comes with variable name, not class type (like C decl).
     if(getReferenceType() != ALT_NOT)
       namestr << "&";
     return namestr.str();

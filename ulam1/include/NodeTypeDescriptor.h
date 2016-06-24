@@ -78,7 +78,7 @@ namespace MFM{
 
     void setReferenceType(ALT refarg, UTI referencedUTI);
 
-    void setReferenceType(ALT refarg, UTI referencedUTI, UTI refUTI);
+    virtual void setReferenceType(ALT refarg, UTI referencedUTI, UTI refUTI);
 
     virtual UTI checkAndLabelType();
 
