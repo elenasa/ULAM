@@ -40,9 +40,9 @@ namespace MFM {
     return brtn;
   } //end cast
 
-  FORECAST UlamTypeClassElement::safeCast(UTI typidx)
+  FORECAST UlamTypeClassElement::explicitlyCastable(UTI typidx)
   {
-    FORECAST scr = UlamTypeClass::safeCast(typidx);
+    FORECAST scr = UlamTypeClass::explicitlyCastable(typidx); //default, arrays checked
     if(scr == CAST_BAD)
       {
 	//check from atom or atomref, possible ok for (non-packed) elements (runtime)
@@ -50,7 +50,7 @@ namespace MFM {
 	  scr = CAST_CLEAR;
       }
     return scr;
-  } //safeCast
+  } //explicitlyCastable
 
   const char * UlamTypeClassElement::getUlamTypeAsSingleLowercaseLetter()
   {

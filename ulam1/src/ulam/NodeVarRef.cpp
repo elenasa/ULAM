@@ -126,7 +126,7 @@ namespace MFM {
 		msg << nut->getUlamTypeNameBrief().c_str();
 		msg << " and ";
 		msg << newt->getUlamTypeNameBrief().c_str();
-		msg << " used to initalize reference '" << getName() <<"'";
+		msg << " used to initialize reference '" << getName() <<"'";
 		if(rscr == CAST_HAZY)
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		else
