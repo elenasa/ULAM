@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3616_test_compiler_elementandquark_assignquarkref_error
 #!
-./Foo.ulam:8:5: ERROR: Incompatible class types Foo& and Bar used to initalize reference 'f'.
+./Foo.ulam:8:5: ERROR: Incompatible class types Foo& and Bar used to initialize reference 'f'.
 ./Foo.ulam:4:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 ##

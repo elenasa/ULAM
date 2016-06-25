@@ -1618,16 +1618,33 @@ namespace MFM {
     else
       {
 	//a reference
+	pos = Node::calcPosOfCurrentObjects();
+	assert(pos == uvpass.getPassPos()); //Sat Jun 25 12:13:43 2016
+
 	fp->write(stgcos->getMangledName().c_str());
 	if(vetyp == Class) //also not an atom
 	  {
-	    fp->write(", 0u, "); //no increment
-	    fp->write(stgcos->getMangledName().c_str()); //stg
-	    fp->write(".GetEffectiveSelf()");
+	    fp->write(", ");
+	    if(needAdjustToStateBits(cosuti))
+	      fp->write("T::ATOM_FIRST_STATE_BIT + "); //t3819
+	    fp->write_decimal_unsigned(pos); //rel offset t3819
+	    fp->write("u, ");
+	    if(cos->isDataMember())
+	      {
+		fp->write("&");
+		fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
+	      }
+	    else
+	      {
+		fp->write(stgcos->getMangledName().c_str());
+		fp->write(".GetEffectiveSelf()");
+	      }
 	  }
 	else if(vetyp == UAtom)
 	  {
-	    fp->write(", 0u, uc"); //need a test!
+	    fp->write(", ");
+	    fp->write_decimal_unsigned(pos); //rel offset
+	    fp->write("u, uc"); //need a test!
 	  }
 	//else non-class has no effective self
       }

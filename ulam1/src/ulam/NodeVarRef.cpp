@@ -121,6 +121,7 @@ namespace MFM {
 	  {
 	    if(rscr != CAST_CLEAR)
 	      {
+		//e.g. error/t3792, error/t3616
 		std::ostringstream msg;
 		msg << "Incompatible class types ";
 		msg << nut->getUlamTypeNameBrief().c_str();
