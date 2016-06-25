@@ -1405,8 +1405,8 @@ namespace MFM {
 	stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
       }
 
-    UTI stgcosuti = stgcos->getUlamTypeIdx();
-    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+    //UTI stgcosuti = stgcos->getUlamTypeIdx();
+    //UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
@@ -1473,12 +1473,12 @@ namespace MFM {
 	    if(cosSize > 0)
 	      {
 		fp->write(" + ");
-		fp->write_decimal_unsigned(pos); //rel offset (t3512, t3543, t3648, t3702, t3776)
+		fp->write_decimal_unsigned(pos); //rel offset (t3512, t3543, t3648, t3702, t3776, t3668)
 		fp->write("u");
 	      }
 
-	    if(stgcosut->isReference())
-	      fp->write(", 0u"); //t3668
+	    //if(stgcosut->isReference())
+	    //  fp->write(", 0u"); //t3668
 	  }
 	else if((cosclasstype == UC_ELEMENT))
 	  {
@@ -1487,8 +1487,8 @@ namespace MFM {
 	    if(needAdjustToStateBits(cosuti))
 	      fp->write(" + T::ATOM_FIRST_STATE_BIT"); //t3814 Fri Jun 24 13:40:52 2016
 
-	    if(stgcosut->isReference())
-	      fp->write(", 0u");
+	    //if(stgcosut->isReference())
+	    //  fp->write(", 0u");
 	  }
 	else if((cosclasstype == UC_TRANSIENT)) //t3810
 	  {
@@ -1505,8 +1505,8 @@ namespace MFM {
 		fp->write("u");
 	      }
 
-	    if(stgcosut->isReference())
-	      fp->write(", 0u");
+	    //if(stgcosut->isReference())
+	    //  fp->write(", 0u");
 	  }
 	else
 	  assert(0);
