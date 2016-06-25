@@ -204,11 +204,14 @@ namespace MFM {
     fp->write("(const ");
     fp->write(automangledName.c_str());
     fp->write("& arg) : UlamRef<EC>(arg, 0, arg.GetLen(), arg.GetEffectiveSelf()) { }"); GCNL;
+
+#if 0
     //default destructor (for completeness)
     m_state.indent(fp);
     fp->write("~");
     fp->write(automangledName.c_str());
     fp->write("() {}"); GCNL;
+#endif
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -386,11 +389,13 @@ namespace MFM {
     fp->write("AtomBitStorage<EC>");
     fp->write("(d.read()) { }"); GCNL;
 
+#if 0
     //default destructor (for completeness)
     m_state.indent(fp);
     fp->write("~");
     fp->write(mangledName.c_str());
     fp->write("() {}"); GCNL;
+#endif
 
     genUlamTypeReadDefinitionForC(fp);
 
@@ -586,11 +591,14 @@ namespace MFM {
     fp->write("(const ");
     fp->write(automangledName.c_str());
     fp->write("& arg) : UlamRef<EC>(arg, 0, arg.GetLen(), arg.GetEffectiveSelf()) { }"); GCNL;
+
+#if 0
     //default destructor (for completeness)
     m_state.indent(fp);
     fp->write("~");
     fp->write(automangledName.c_str());
     fp->write("() {}"); GCNL;
+#endif
 
     //read 'entire atom' method
     genUlamTypeAutoReadDefinitionForC(fp);
@@ -722,11 +730,13 @@ namespace MFM {
     fp->write("u; j++) ");
     fp->write("BVS::WriteBig(j * BPA, BPA, tmpval); }"); GCNL;
 
+#if 0
     //default destructor (for completeness)
     m_state.indent(fp);
     fp->write("~");
     fp->write(mangledName.c_str());
     fp->write("() {}"); GCNL;
+#endif
 
     genUlamTypeReadDefinitionForC(fp);
 

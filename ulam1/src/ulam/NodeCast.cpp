@@ -782,6 +782,7 @@ namespace MFM {
     if(tobe->isReference())
       {
 	//safe to call genCodeToStoreInto since nodeType must be storeintoable;
+	//except when assignment of Foo.instanceof (t3818)
 	UVPass ruvpass;
 	m_node->genCodeToStoreInto(fp, ruvpass); //No need to load lhs into tmp (T); symbol's in COS vector
 

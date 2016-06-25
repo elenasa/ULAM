@@ -337,7 +337,8 @@ namespace MFM {
     UVPass luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
-    if(!m_state.m_currentObjSymbolsForCodeGen.empty() && !m_state.isScalar(m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx()))
+    //check the back (not front) to process multiple member selections (e.g. t3817)
+    if(!m_state.m_currentObjSymbolsForCodeGen.empty() && !m_state.isScalar(m_state.m_currentObjSymbolsForCodeGen.back()->getUlamTypeIdx()))
       {
 	Node::genCodeConvertATmpVarIntoAutoRef(fp, luvpass); //uvpass becomes the autoref, and clears stack
 	m_tmprefSymbol = Node::makeTmpRefSymbolForCodeGen(luvpass);
