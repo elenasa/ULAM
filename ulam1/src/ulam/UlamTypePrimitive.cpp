@@ -479,11 +479,13 @@ namespace MFM {
     fp->write("read");
     fp->write("()); }"); GCNL;
 
+#if 0
     //default destructor (for completeness)
     m_state.indent(fp);
     fp->write("~");
     fp->write(mangledName.c_str());
     fp->write("() {}"); GCNL;
+#endif
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);

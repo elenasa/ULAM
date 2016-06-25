@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t3817_test_compiler_primitivearrayref_typedefref
+#=t3817_test_compiler_transientarraywithprimitivearrayref_typedefref
 #!
 ##      gen code output: (2 asserts)
 ##

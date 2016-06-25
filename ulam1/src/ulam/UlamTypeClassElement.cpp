@@ -264,10 +264,12 @@ namespace MFM {
     fp->write("u, effself) {}"); GCNL; //e.g. 3655, t3656, t3663, t3675, t3689, t3655
 
     //default destructor (for completeness)
+#if 0
     m_state.indent(fp);
     fp->write("~");
     fp->write(automangledName.c_str());
     fp->write("() {}"); GCNL;
+#endif
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -486,11 +488,13 @@ namespace MFM {
     fp->write("if(arg.GetType() != Us::THE_INSTANCE.GetType()) FAIL(ILLEGAL_ARGUMENT);");
     fp->write(" }"); GCNL;
 
+#if 0
     //default destructor (for completeness)
     m_state.indent(fp);
     fp->write("~");
     fp->write(mangledName.c_str());
     fp->write("() {}"); GCNL;
+#endif
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -715,11 +719,13 @@ namespace MFM {
     fp->write("u; j++) ");
     fp->write("writeArrayItem(tmpt, j, BPA); }"); GCNL;
 
+#if 0
     //default destructor (for completeness)
     m_state.indent(fp);
     fp->write("~");
     fp->write(mangledName.c_str());
     fp->write("() {}"); GCNL;
+#endif
 
     genUlamTypeReadDefinitionForC(fp);
 

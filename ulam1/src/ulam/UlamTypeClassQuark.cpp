@@ -270,11 +270,13 @@ namespace MFM {
     fp->write(automangledName.c_str());
     fp->write("<EC>& r) : UlamRef<EC>(r, 0, r.GetLen(), r.GetEffectiveSelf()) { }"); GCNL;
 
+#if 0
     //default destructor (for completeness)
     m_state.indent(fp);
     fp->write("~");
     fp->write(automangledName.c_str());
     fp->write("() {}"); GCNL;
+#endif
 
     // aref/aset calls generated inline for immediates.
     if(isCustomArray())
