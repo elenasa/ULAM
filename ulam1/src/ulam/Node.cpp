@@ -1604,11 +1604,11 @@ namespace MFM {
 	fp->write(", ");
 
 	if(needAdjustToStateBits(cosuti))
-	  fp->write("T::ATOM_FIRST_STATE_BIT + "); //need test!
+	  fp->write("T::ATOM_FIRST_STATE_BIT + "); //t3803
 	fp->write_decimal_unsigned(pos); //rel offset
 	fp->write("u");
 	if(vetyp == UAtom)
-	  fp->write(", uc"); //need a test!
+	  fp->write(", uc"); //t3820
 	else if(vetyp == Class)
 	  {
 	    fp->write(", &"); //left just
@@ -1644,7 +1644,7 @@ namespace MFM {
 	  {
 	    fp->write(", ");
 	    fp->write_decimal_unsigned(pos); //rel offset
-	    fp->write("u, uc"); //need a test!
+	    fp->write("u, uc"); //t3820
 	  }
 	//else non-class has no effective self
       }
@@ -1793,7 +1793,7 @@ namespace MFM {
 
     fp->write(", ");
     if(needAdjustToStateBits(cosuti))
-      fp->write("T::ATOM_FIRST_STATE_BIT + "); //need test!
+      fp->write("T::ATOM_FIRST_STATE_BIT + "); //t3816
     fp->write_decimal_unsigned(pos); //rel offset array base
     fp->write("u + (");
     fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //INDEX
@@ -1806,7 +1806,7 @@ namespace MFM {
 	fp->write("u)");
       }
     if(vetyp == UAtom)
-      fp->write(", uc"); //need a test!
+      fp->write(", uc"); //t3818
 
     if((vclasstype != UC_NOTACLASS) && (vetyp != UAtom))
       {
