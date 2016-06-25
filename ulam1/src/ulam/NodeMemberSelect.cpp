@@ -98,13 +98,15 @@ namespace MFM {
 
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMCLASSTYPE classtype = lut->getUlamClassType();
-    if((classtype == UC_NOTACLASS) && (lut->getUlamTypeEnum() != Holder))
+    if(((classtype == UC_NOTACLASS) && (lut->getUlamTypeEnum() != Holder)) || !lut->isScalar())
       {
-	// must be a 'Class' type, either quark or element
+	// must be a scalar 'Class' type, (e.g. error/t3815)
 	// doesn't complete checkandlabel for rhs (e.g. funccall is NULL, no eval)
 	std::ostringstream msg;
-	msg << "Member selected must be either a quark or an element, not type: ";
+	msg << "Member selected must be a Class, not type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
+	if(classtype != UC_NOTACLASS)
+	  msg << "[" << lut->getArraySize() << "]";
 	if(m_state.isAtom(luti))
 	  msg << "; suggest using a Conditional-As";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

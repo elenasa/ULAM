@@ -233,6 +233,8 @@ namespace MFM{
 
     u32 adjustedImmediateArrayItemPassPos(UTI cosuti, UVPass uvpass);
 
+    bool needAdjustToStateBits(UTI cuti);
+
     SymbolTmpRef * makeTmpRefSymbolForCodeGen(UVPass uvpass);
 
     void genCodeConvertATmpVarIntoBitVector(File * fp, UVPass & uvpass);
@@ -307,7 +309,6 @@ namespace MFM{
     const std::string writeMethodForCodeGen(UTI nuti, UVPass uvpass);
     const std::string writeArrayItemMethodForCodeGen(UTI nuti, UVPass uvpass);
 
-    void genCodeAtomRefInit(File * fp, UVPass & uvpass, Symbol * vsymptr);
     void genCodeArrayRefInit(File * fp, UVPass & uvpass, Symbol * vsymptr);
     void genCodeArrayItemRefInit(File * fp, UVPass & uvpass, Symbol * vsymptr);
 

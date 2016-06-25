@@ -66,6 +66,8 @@ namespace MFM{
 
     void linkConstantExpressionArraysize(NodeSquareBracket * ceForArraySize);
 
+    virtual void setReferenceType(ALT refarg, UTI referencedUTI, UTI refUTI);
+
     virtual UTI checkAndLabelType();
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
