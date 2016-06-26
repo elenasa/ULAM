@@ -29,7 +29,7 @@ element Ish5 : System {
     Atom & a1ref = atom;
 
     //atomref to element ref (eval failed!)
-    E1 & e1ref = a1ref;
+    E1 & e1ref = (E1&) a1ref;
     if (e1ref as E1) {
       print(e1ref.m_b.func());
       brtn[0] = (e1ref.m_b.func() == 4);
@@ -37,7 +37,7 @@ element Ish5 : System {
     }
 
     //atomref to element
-    E1 e1 = a1ref;
+    E1 e1 = (E1) a1ref;
     if (e1 as E1) {
       print(e1.m_b.func());
       brtn[1] = (e1.m_b.func() == 4);
@@ -46,7 +46,7 @@ element Ish5 : System {
 
 
     //atom to element ref (eval failed!)
-    E1 & e2ref = atom;
+    E1 & e2ref = (E1&) atom;
     if (e2ref as E1) {
       print(e2ref.m_b.func());
       brtn[2] = (e2ref.m_b.func() == 4);
@@ -54,7 +54,7 @@ element Ish5 : System {
     }
 
     //atom to element
-    E1 e2 = atom;
+    E1 e2 = (E1) atom;
     if (e2 as E1) {
       print(e2.m_b.func());
       brtn[3] = (e2.m_b.func() == 4);

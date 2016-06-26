@@ -140,7 +140,7 @@ namespace MFM {
 	return Nav;
       }
 
-    UTI newType = leftType; //init
+    UTI newType = leftType;
     //cast RHS if necessary and safe
     if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME)
       {
@@ -156,12 +156,28 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    newType = Nav; //error
 	  }
-	else if(checkSafeToCastTo(rightType, newType))
+	else
 	  {
-	    if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
-	      newType = Nav; //error
+	    //for assignment to reference, cast to underlying type Sat Jun 25 09:01:07 2016
+	    newType = m_state.getUlamTypeAsDeref(leftType); //init
+	    if(checkSafeToCastTo(rightType, newType))
+	      {
+		if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
+		  newType = Nav; //error
+		else
+		  {
+		    //for ulam compiler, cast to reference if necessary Sat Jun 25 09:08:37 2016
+		    if(UlamType::compare(leftType, newType, m_state) != UTIC_SAME)
+		      {
+			newType = leftType;
+			if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
+			  newType = Nav; //error
+			//else not safe, newType changed
+		      }
+		  }
+	      }
+	    //else not safe, newType changed
 	  }
-	//else not safe, newType changed
       }
     setNodeType(newType);
     return newType;

@@ -83,12 +83,6 @@ namespace MFM {
     return brtn;
   } //end cast
 
-  FORECAST UlamTypeClassQuark::safeCast(UTI typidx)
-  {
-    FORECAST scr = UlamTypeClass::safeCast(typidx);
-    return scr;
-  } //safeCast
-
   FORECAST UlamTypeClassQuark::explicitlyCastable(UTI typidx)
   {
     FORECAST scr = UlamTypeClass::explicitlyCastable(typidx);

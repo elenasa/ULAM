@@ -1,17 +1,17 @@
 ## -*- mode:ulam -*-
-#=t3818_test_compiler_transientarraywithatomarrayref_typedefref
+#=t3820_test_compiler_transientarraywithatomdm_typedefref
 #!
 ##      gen code output: (2 asserts)
 ##
 Exit status: -11
-Ue_R { Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  QW qw;  A ar[3];  ar 1 [] mToo 1 [] mAtoo 1 [] . . Foo.instanceof cast = Atom(96) a1 = ar 1 [] mToo 1 [] mAtoo 1 [] . .;  b qw ( a1 cast )aunc . = s ( b )assert . typedef Atom(96) & ATR[3];  Atom(96)& atr[3] = ar 2 [] mToo 2 [] mAtoo . . cast;  Atom(96)& at2 = atr 2 [];  at2 Foo.instanceof cast cast = c qw ( at2 )aunc . = s ( c )assert . 0 cast return } }
+Ue_R { Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  QW qw;  A ar[3];  ar 1 [] mToo 1 [] mAtoo . . Foo.instanceof cast = Atom(96) a1 = ar 1 [] mToo 1 [] mAtoo . .;  b qw ( a1 cast )aunc . = s ( b )assert . Atom(96)& at2 = ar 2 [] mToo 2 [] mAtoo . . cast;  at2 Foo.instanceof cast cast = c qw ( at2 )aunc . = s ( c )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
-Un_A : QW { :< typedef Unary(3) Coord; > Bool(7) sp(false);  Too mToo[3]( Atom(96) mAtoo[3](Atom(96)[3]Atom(96)[3]Atom(96)[3]); ), ( Atom(96) mAtoo[3](Atom(96)[3]Atom(96)[3]Atom(96)[3]); ), ( Atom(96) mAtoo[3](Atom(96)[3]Atom(96)[3]Atom(96)[3]); );  <NOMAIN> }
+Un_A : QW { :< typedef Unary(3) Coord; > Bool(7) sp(false);  Too mToo[3]( Atom(96) mAtoo(Atom(96)); ), ( Atom(96) mAtoo(Atom(96)); ), ( Atom(96) mAtoo(Atom(96)); );  <NOMAIN> }
 Uq_QW { typedef Unary(3) Coord;  <NOMAIN> }
 Ue_Foo { typedef Unary(3) Coord;  Unary(3) mTre( 1u);  Unary(3) mCoo[3](0,0,0);  <NOMAIN> }
-Un_Too { Atom(96) mAtoo[3](Atom(96)[3]Atom(96)[3]Atom(96)[3]);  <NOMAIN> }
+Un_Too { Atom(96) mAtoo(Atom(96));  <NOMAIN> }
 ##
-## similar to 3816, except has a local array ref of atom array typedef
+## similar to 3818 and t3819, except has a transient array ref with atom data member typedef
 ##
 #>R.ulam
   ulam 2;
@@ -24,14 +24,12 @@ element R {
     System s;
     QW qw;
     A ar[3];
-    ar[1].mToo[1].mAtoo[1] = Foo.instanceof;
-    Atom a1 = ar[1].mToo[1].mAtoo[1];
+    ar[1].mToo[1].mAtoo = Foo.instanceof;
+    Atom a1 = ar[1].mToo[1].mAtoo;
     b = qw.aunc(a1);
     s.assert(b);
 
-    typedef Atom& ATR[3];
-    ATR atr = ar[2].mToo[2].mAtoo;
-    Atom& at2 = atr[2];
+    Atom& at2 = ar[2].mToo[2].mAtoo;
     at2 = Foo.instanceof;
     c = qw.aunc(at2);
     s.assert(c);
@@ -90,7 +88,7 @@ element Foo {
 #:Too.ulam
   ulam 2;
 transient Too {
-  Atom mAtoo[3];
+  Atom mAtoo;
 }
 
 

@@ -1,0 +1,107 @@
+## -*- mode:ulam -*-
+#=t3818_test_compiler_transientarraywithatomarrayref_typedefref
+#!
+##      gen code output: (2 asserts)
+##
+Exit status: -11
+Ue_R { Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  QW qw;  A ar[3];  ar 1 [] mFoo ( 2u cast )setTre . . b qw ( ar 1 [] mFoo . cast )eunc . = s ( b )assert . typedef QW& QWR[4];  QW& qwr[4] = ar 1 [] mFoo mQW . . cast;  QW qw2 = qwr 2 [];  qw2 mqb . true = c qw2 ( )qunc . = s ( c )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Un_A : QW { :< typedef Unary(3) Coord;  Bool(1) mqb(false); > Bool(7) sp(false);  Foo mFoo( typedef Unary(3) Coord;  Unary(3) mTre( 1u);  Unary(3) mCoo[3](0,0,0);  typedef QW QWR[4];  QW mQW[4]( typedef Unary(3) Coord;  Bool(1) mqb(false); ), ( typedef Unary(3) Coord;  Bool(1) mqb(false); ), ( typedef Unary(3) Coord;  Bool(1) mqb(false); ), ( typedef Unary(3) Coord;  Bool(1) mqb(false); ); );  <NOMAIN> }
+Uq_QW { typedef Unary(3) Coord;  Bool(1) mqb(false);  <NOMAIN> }
+Ue_Foo { typedef Unary(3) Coord;  Unary(3) mTre( 1u);  Unary(3) mCoo[3](0,0,0);  typedef QW QWR[4];  QW mQW[4]( typedef Unary(3) Coord;  Bool(1) mqb(false); ), ( typedef Unary(3) Coord;  Bool(1) mqb(false); ), ( typedef Unary(3) Coord;  Bool(1) mqb(false); ), ( typedef Unary(3) Coord;  Bool(1) mqb(false); );  <NOMAIN> }
+##
+## similar to 3818, except transient array item has an element dm with array of quarks
+##
+#>R.ulam
+  ulam 2;
+use System;
+use A;
+element R {
+  Bool b, c;
+
+  Int test(){
+    System s;
+    QW qw;
+    A ar[3];
+
+    ar[1].mFoo.setTre(2u);
+    b = qw.eunc(ar[1].mFoo);
+    s.assert(b);
+
+    typedef QW& QWR[4];
+    QWR& qwr = ar[1].mFoo.mQW;
+    QW qw2 = qwr[2];
+    qw2.mqb = true;
+    c = qw2.qunc();
+    s.assert(c);
+    return 0;
+  }
+}
+
+#:A.ulam
+  ulam 2;
+use QW;
+transient A : QW {
+  Bool(7) sp;
+  Foo mFoo;
+  Void setsp()
+  {
+    sp = true;
+  }
+}
+
+#:QW.ulam
+  ulam 2;
+quark QW {
+  typedef Unary(3) Coord;
+  Bool mqb;
+  Bool func(A& aarg)
+  {
+    return aarg.sp;
+  }
+  Bool eunc(Foo& aarg)
+  {
+    return (aarg.mTre > Unary(3).minof && aarg.mTre < Unary(3).maxof);
+  }
+  Bool cunc(Coord& carg)
+  {
+    return (carg > Unary(3).minof && carg < Unary(3).maxof);
+  }
+  Bool aunc(Atom& aarg)
+  {
+    if(aarg as Foo)
+      return (aarg.mTre > Unary(3).minof && aarg.mTre < Unary(3).maxof);
+    return false;
+  }
+  Bool qunc()
+  {
+    return mqb;
+  }
+}
+
+#:Foo.ulam
+  ulam 2;
+element Foo {
+  typedef QW.Coord Coord;
+  Coord mTre = 1u;
+  Coord mCoo[3];
+  typedef QW QWR[4];
+  QWR mQW;
+  Void setTre(Coord uarg)
+  {
+    mTre = uarg;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

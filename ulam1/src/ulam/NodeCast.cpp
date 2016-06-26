@@ -1233,7 +1233,7 @@ namespace MFM {
     if(tobe->isReference())
       {
 	//t3789 case 4: (fails to compile)
-	//Incompatible class types TW& and Qbase& used to initalize reference 'twref'.
+	//Incompatible class types TW& and Qbase& used to initialize reference 'twref'.
 	m_state.indentUlamCode(fp);
 	fp->write(tobe->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
 	fp->write(" ");
