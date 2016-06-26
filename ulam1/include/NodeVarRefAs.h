@@ -82,6 +82,7 @@ namespace MFM{
   protected:
 
   private:
+    void genCodeRefAsSelf(File * fp, UVPass& uvpass);
 
   };
 
