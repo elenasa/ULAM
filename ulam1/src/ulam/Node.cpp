@@ -1466,12 +1466,6 @@ namespace MFM {
 	    fp->write_decimal_unsigned(cosut->getBitSize());
 	    fp->write("u");
 
-	    if(cosSize > 0)
-	      {
-		fp->write(" + ");
-		fp->write_decimal_unsigned(pos); //rel offset (t3512, t3543, t3648, t3702, t3776, t3668)
-		fp->write("u");
-	      }
 	  }
 	else if((cosclasstype == UC_ELEMENT))
 	  {
@@ -1485,17 +1479,16 @@ namespace MFM {
 	    fp->write(" * ");
 	    fp->write_decimal_unsigned(cosut->getBitSize());
 	    fp->write("u");
-
-	    if(cosSize > 0)
-	      {
-		fp->write(" + ");
-		fp->write_decimal_unsigned(pos); //rel offset
-		//assert( pos == (s32) uvpass.getPassPos()); //t3818
-		fp->write("u");
-	      }
 	  }
 	else
 	  assert(0);
+
+	if(cosSize > 0)
+	  {
+	    fp->write(" + ");
+	    fp->write_decimal_unsigned(pos); //rel offset (t3512, t3543, t3648, t3702, t3776, t3668, t3811)
+	    fp->write("u");
+	  }
 
 	fp->write(", &");
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str());
@@ -2364,8 +2357,11 @@ namespace MFM {
       {
 	if(m_state.m_currentObjSymbolsForCodeGen.empty())
 	  hiddenarg2 << m_state.getHiddenArgName(); //same ur
-	else if(stgcos->isSelf())
-	  hiddenarg2 << m_state.getHiddenArgName(); //same ur
+	else if(stgcos->isSelf() && (stgcos == cos)) //t3831
+	  {
+	    assert(0);
+	    hiddenarg2 << m_state.getHiddenArgName(); //same ur Sun Jun 26 18:31:04 2016
+	  }
 	else
 	  {
 	    sameur = false;

@@ -143,7 +143,8 @@ namespace MFM {
     ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClassType();
 
     //assert((stgetyp == UAtom) || (stgclasstype == UC_ELEMENT)); //not quark, not transient
-    assert((stgetyp == UAtom) || (stgclasstype == UC_ELEMENT) || (stgclasstype == UC_TRANSIENT)); //lhs not quark
+    //assert((stgetyp == UAtom) || (stgclasstype == UC_ELEMENT) || (stgclasstype == UC_TRANSIENT)); //lhs not quark
+    assert((stgetyp == UAtom) || (stgetyp == Class)); //lhs
 
     if(stgcos->isSelf())
       return genCodeRefAsSelf(fp, uvpass);
@@ -213,6 +214,21 @@ namespace MFM {
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
 	  }
       }
+    else if((stgclasstype == UC_QUARK))
+      {
+	// quark can be another quark, not an element, nor transient
+	fp->write(", 0u, ");
+	if(stgcosut->isReference())
+	  {
+	    fp->write(stgcos->getMangledName().c_str()); //stg
+	    fp->write(".GetEffectiveSelf()"); //tt3829
+	  }
+	else
+	  {
+	    fp->write("&"); //t3830
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
+	  }
+      }
     else
       assert(0); //WHAT THEN???
 
@@ -225,7 +241,7 @@ namespace MFM {
   void NodeVarRefAs::genCodeRefAsSelf(File * fp, UVPass& uvpass)
   {
     //no tmpref needed since 'self' (i.e. ur) is already a C++ reference
-    //t3821, t3815 (transient)
+    //t3821, t3815 (transient), t3828 (quark)
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 
     UTI vuti = m_varSymbol->getUlamTypeIdx();
@@ -241,6 +257,13 @@ namespace MFM {
     fp->write(stgcos->getMangledName().c_str()); //stg
     fp->write(".GetEffectiveSelf()");
     fp->write("); //shadows lhs of 'as'"); GCNL;
+
+    m_state.indentUlamCode(fp);
+    fp->write("UlamRef<EC>& ur = ");
+    fp->write(m_varSymbol->getMangledName().c_str());
+    fp->write("; //shadows self"); GCNL;
+
+    m_varSymbol->setIsSelf(); //nope
 
     m_state.m_genCodingConditionalHas = false; // done
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
