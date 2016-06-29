@@ -837,6 +837,9 @@ namespace MFM {
 		fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
 	      }
 
+	    if(!m_state.isAtomRef(vuti))
+	      fp->write(", uc"); //t3754
+
 	    fp->write(");"); GCNL;
 	    uvpass = UVPass::makePass(tmpeleref, TMPBITVAL, tobeType, UNPACKED, m_state, 0, stgcos->getId()); //POS moved left for type; pass along name id);
 	  }
@@ -862,11 +865,13 @@ namespace MFM {
 	    fp->write(", ");
 	    //must displace the Typefield if a ref
 	    if(vut->isReference())
-	      fp->write("- T::ATOM_FIRST_STATE_BIT");
+	      {
+		fp->write("- T::ATOM_FIRST_STATE_BIT);"); GCNL; //t3753
+	      }
 	    else
-	      fp->write("0u");
-
-	    fp->write(", uc);"); GCNL;
+	      {
+		fp->write("0u, uc);"); GCNL;
+	      }
 	    uvpass = UVPass::makePass(tmpatomref, TMPBITVAL, tobeType, UNPACKED, m_state, 0, stgcos->getId()); //POS moved left for type; pass along name id);
 	  }
 	else
@@ -1014,7 +1019,7 @@ namespace MFM {
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpread, tobe->getTmpStorageTypeForTmpVar()).c_str());
 
-	if(m_state.isAtom(vuti))
+	if(m_state.isAtom(vuti)) //from atom/ref->quark
 	  {
 	    fp->write(" = UlamRef<EC>(");
 	    if(m_state.isAtomRef(vuti))
@@ -1036,6 +1041,7 @@ namespace MFM {
 		fp->write(stgcos->getMangledName().c_str());
 		fp->write(".GetEffectiveSelf()"); //maintains eff self
 	      }
+	    fp->write(", UlamRef<EC>::CLASSIC, uc"); //Mon Jun 27 14:35:00 2016
 	    fp->write(").");
 	  }
 	else
@@ -1074,12 +1080,19 @@ namespace MFM {
 
 	if(m_state.isAtom(vuti))
 	  {
-	    //from atom, for known quark:
+	    //from atom/ref, for known quark ref: t3631, t3632, t3633
 	    fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, &"); //'is'
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
+	    if(!m_state.isAtomRef(vuti))
+	      fp->write(", uc");
 	  }
-	//else
-
+	else
+	  {
+	    //from quarkref to atomref
+	    assert(m_state.isReference(vuti));
+	    fp->write(", - T::ATOM_FIRST_STATE_BIT, uc"); //'is'
+	    assert(0); //need a test
+	  }
 	fp->write(");"); GCNL; //like, shadow lhs of as
 
 	//update the uvpass to have the casted immediate quark ref
@@ -1153,6 +1166,10 @@ namespace MFM {
 	    fp->write(stgcos->getMangledName().c_str());
 	    fp->write(".GetEffectiveSelf()"); //maintains eff self
 	  }
+
+	fp->write(", UlamRef<EC>::CLASSIC"); //Mon Jun 27 14:55:23 2016
+	if(!stgcosut->isReference())
+	  fp->write(", uc"); //Mon Jun 27 14:55:28 2016
 	fp->write(").");
 	fp->write(tobe->readMethodForCodeGen().c_str());
 	fp->write("();"); GCNL;
@@ -1183,6 +1200,9 @@ namespace MFM {
 	    fp->write(stgcos->getMangledName().c_str());
 	    fp->write(".GetEffectiveSelf()"); //maintains eff self
 	  }
+	//	fp->write(", UlamRef<EC>::CLASSIC"); //Mon Jun 27 14:55:23 2016 t3788
+	if(!stgcosut->isReference())
+	  fp->write(", uc"); //Mon Jun 27 14:55:28 2016
 	fp->write(");"); GCNL;
 
 	//update the uvpass to have the casted immediate quark
@@ -1299,13 +1319,18 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpVarVal, TMPREGISTER).c_str());
 	fp->write(" = ");
 
+	//make a temporary reference to a super-quark in an element for reading
 	fp->write("UlamRef<EC>(");
 	if(stgcosut->isReference())
 	  {
 	    fp->write(stgcos->getMangledName().c_str()); //reference
 	    fp->write(", ");
 	  }
-	fp->write("0u, "); //offset of decendent is always 0
+	else
+	  fp->write("T::ATOM_FIRST_STATE_BIT + "); //elements stg at 0 , state of quark at 25
+
+	fp->write("0u, "); //offset of decendent is always 0 from start of state bits
+
 	fp->write_decimal_unsigned(tobe->getTotalBitSize()); //len
 	fp->write("u, ");
 
@@ -1313,13 +1338,18 @@ namespace MFM {
 	  {
 	    fp->write(stgcos->getMangledName().c_str()); //storage
 	    fp->write(", &");
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
 	  }
 	else
 	  {
 	    fp->write(stgcos->getMangledName().c_str());
 	    fp->write(".GetEffectiveSelf()"); //maintains eff self
 	  }
+
+	fp->write(", UlamRef<EC>::CLASSIC"); //Mon Jun 27 15:22:00 2016
+	if(!stgcosut->isReference())
+	  fp->write(", uc"); //Mon Jun 27 14:55:28 2016
+
 	fp->write(").");
 	fp->write(tobe->readMethodForCodeGen().c_str());
 	fp->write("();"); GCNL;
@@ -1350,6 +1380,10 @@ namespace MFM {
 	    fp->write(stgcos->getMangledName().c_str());
 	    fp->write(".GetEffectiveSelf()"); //maintains eff self
 	  }
+
+	if(!stgcosut->isReference())
+	  fp->write(", uc"); //t3617
+
 	fp->write(");"); GCNL;
 
 	//update the uvpass to have the casted immediate quark
@@ -1463,6 +1497,10 @@ namespace MFM {
 	    fp->write("&"); //e.g. quark-sub to quark-super-ref (t3758)
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
 	  }
+
+	if(!m_state.isReference(stgcosuti))
+	  fp->write(", uc"); //t3758
+
 	fp->write(");"); GCNL;
 	uvpass = UVPass::makePass(tmpVarSuper, TMPBITVAL, tobeType, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified;
       }

@@ -59,12 +59,16 @@ namespace MFM {
 
     assert(m_state.okUTItoContinue(luti));
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
+    ULAMTYPE letyp = lut->getUlamTypeEnum();
     ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
-    if(!(m_state.isAtom(luti) || (lclasstype == UC_ELEMENT)) && lut->isScalar())
+    //    if(!(m_state.isAtom(luti) || (lclasstype == UC_ELEMENT)) && lut->isScalar())
+    //if(!(m_state.isAtom(luti) || (lclasstype == UC_ELEMENT) || (lclasstype == UC_TRANSIENT)))
+    if(!(m_state.isAtom(luti) || (letyp == Class)))
       {
 	std::ostringstream msg;
 	msg << "Invalid lefthand type of conditional operator '" << getName();
-	msg << "'; must be an atom or element, not ";
+	//msg << "'; must be an atom, element or transient, not ";
+	msg << "'; must be an atom or class, not ";
 	msg << lut->getUlamTypeNameBrief().c_str();
 	if(lclasstype == UC_UNSEEN || luti == Hzy)
 	  {
@@ -76,9 +80,33 @@ namespace MFM {
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    newType = Nav;
+	    setNodeType(Nav);
+	    return Nav;
 	  }
       }
 
+    if(!lut->isScalar())
+      {
+	std::ostringstream msg;
+	msg << "Invalid lefthand type of conditional operator '" << getName();
+	msg << "'; must be a scalar, not ";
+	msg << lut->getUlamTypeNameBrief().c_str();
+	if(lclasstype == UC_UNSEEN || luti == Hzy)
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    newType = Hzy;
+	    m_state.setGoAgain();
+	  }
+	else
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    newType = Nav;
+	    setNodeType(Nav);
+	    return Nav;
+	  }
+      }
+
+#if 0
     if(!strcmp(m_nodeLeft->getName(), "self")) //was "self"
       {
 	std::ostringstream msg;
@@ -87,6 +115,7 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
       }
+#endif
 
     assert(m_nodeTypeDesc);
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
@@ -106,24 +135,74 @@ namespace MFM {
 	else
 	  {
 	    ULAMCLASSTYPE rclasstype = rut->getUlamClassType();
-	    if(!((rclasstype == UC_QUARK || rclasstype == UC_ELEMENT) && rut->isScalar()))
+	    if(m_state.isAtom(luti) || (lclasstype == UC_ELEMENT))
 	      {
-		std::ostringstream msg;
-		msg << "Invalid righthand type of conditional operator '" << getName();
-		msg << "'; must be a quark or element name, not ";
-		msg << rut->getUlamTypeNameBrief().c_str();
-		if(rclasstype == UC_UNSEEN)
+		if(!((rclasstype == UC_QUARK || rclasstype == UC_ELEMENT) && rut->isScalar()))
 		  {
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		    newType = Hzy;
-		    m_state.setGoAgain();
-		  }
-		else
-		  {
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		    newType = Nav;
+		    std::ostringstream msg;
+		    msg << "Invalid righthand type of conditional operator '" << getName();
+		    msg << "'; must be a quark or element name, not ";
+		    msg << rut->getUlamTypeNameBrief().c_str();
+		    if(rclasstype == UC_UNSEEN)
+		      {
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+			newType = Hzy;
+			m_state.setGoAgain();
+		      }
+		    else
+		      {
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			newType = Nav;
+		      }
 		  }
 	      }
+	    else if(lclasstype == UC_TRANSIENT)
+	      {
+		if(!((rclasstype == UC_QUARK || rclasstype == UC_TRANSIENT) && rut->isScalar()))
+		  {
+		    std::ostringstream msg;
+		    msg << "Invalid righthand type of conditional operator '" << getName();
+		    msg << "'; must be a quark or transient name, not ";
+		    msg << rut->getUlamTypeNameBrief().c_str();
+		    if(rclasstype == UC_UNSEEN)
+		      {
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+			newType = Hzy;
+			m_state.setGoAgain();
+		      }
+		    else
+		      {
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			newType = Nav;
+		      }
+		  }
+	      }
+	    else if(lclasstype == UC_QUARK)
+	      {
+		ULAMTYPE retyp = rut->getUlamTypeEnum();
+		//any class may inherit from a quark
+		//if(!((rclasstype == UC_QUARK) && rut->isScalar()))
+		if(!((retyp == Class) && rut->isScalar()))
+		  {
+		    std::ostringstream msg;
+		    msg << "Invalid righthand type of conditional operator '" << getName();
+		    msg << "'; must be a class name, not ";
+		    msg << rut->getUlamTypeNameBrief().c_str();
+		    if(rclasstype == UC_UNSEEN)
+		      {
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+			newType = Hzy;
+			m_state.setGoAgain();
+		      }
+		    else
+		      {
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			newType = Nav;
+		      }
+		  }
+	      }
+	    else
+	      assert(0);
 	  }
       }
 
@@ -194,27 +273,38 @@ namespace MFM {
 	  }
 	else
 	  {
-	    //atom's don't work in eval, only genCode, let pass as not found.
-	    if(!m_state.isAtom(pluv.getPtrTargetType()))
+	    if(lut->getUlamClassType() == UC_TRANSIENT)
 	      {
-		std::ostringstream msg;
-		msg << "Invalid lefthand type of conditional operator '" << getName();
-		msg << "'; Class '";
-		msg << lut->getUlamTypeNameBrief().c_str();
-		msg << "' Not Found during eval";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		if(lut->getTotalBitSize() > MAXSTATEBITS)
+		  {
+		    evalNodeEpilog();
+		    return UNEVALUABLE;
+		  }
 	      }
 	    else
 	      {
-		//lhs is an atom!
-		std::ostringstream msg;
-		msg << "Unsupported lefthand type of conditional operator '" << getName();
-		msg <<  "', "  << lut->getUlamTypeNameBrief().c_str();
-		msg << "; Passing through as UNFOUND for eval";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		//atom's don't work in eval, only genCode, let pass as not found.
+		if(!m_state.isAtom(luti))
+		  {
+		    std::ostringstream msg;
+		    msg << "Invalid lefthand type of conditional operator '" << getName();
+		    msg << "'; Class '";
+		    msg << lut->getUlamTypeNameBrief().c_str();
+		    msg << "' Not Found during eval";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		  }
+		else
+		  {
+		    //lhs is an atom!
+		    std::ostringstream msg;
+		    msg << "Unsupported lefthand type of conditional operator '" << getName();
+		    msg <<  "', "  << lut->getUlamTypeNameBrief().c_str();
+		    msg << "; Passing through as UNFOUND for eval";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		  }
+		evalNodeEpilog();
+		return UNEVALUABLE;
 	      }
-	    evalNodeEpilog();
-	    return UNEVALUABLE;
 	  }
       }
     else if(rclasstype == UC_ELEMENT)
@@ -234,6 +324,15 @@ namespace MFM {
 	asit = m_state.isAtom(luti) || (UlamType::compare(luti, ruti, m_state) == UTIC_SAME);
 #endif
       }
+    else if(rclasstype == UC_TRANSIENT)
+      {
+	if(m_state.isClassASubclassOf(luti, ruti))
+	  {
+	    asit = true;
+	  }
+      }
+    else
+      assert(0); //honorable death
 
     if(asit)
       {
@@ -271,11 +370,17 @@ namespace MFM {
     UTI luti = luvpass.getPassTargetType(); //replaces
     assert(m_state.okUTItoContinue(luti));
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
+    //ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
 
-    //wiped out by reading lhs; needed later by auto NodeVarDecl
-    std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
-    m_nodeLeft->genCodeReadIntoATmpVar(fp, luvpass);
-    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore COS after read.
+    //if(lclasstype != UC_TRANSIENT)
+    //if((lclasstype != UC_TRANSIENT) && (lclasstype != UC_QUARK))
+    if(m_state.isAtom(luti))
+      {
+	//wiped out by reading lhs; needed later by auto NodeVarDecl
+	std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
+	m_nodeLeft->genCodeReadIntoATmpVar(fp, luvpass);
+	m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore COS after read.
+      }
 
     s32 tmpVarIs = m_state.getNextTmpVarNumber();
 
@@ -288,18 +393,32 @@ namespace MFM {
 
     if(rclasstype == UC_ELEMENT)
       {
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
-	fp->write(".");
-	fp->write(m_state.getAsMangledFunctionName(luti, ruti));
-	fp->write("(");
-	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	fp->write(");"); GCNL;
+	// lhs either atom or element, or super quark (self)
+	if(m_state.isAtom(luti))
+	  {
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
+	    fp->write(".");
+	    fp->write(m_state.getAsMangledFunctionName(luti, ruti));
+	    fp->write("(");
+	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	    fp->write(");"); GCNL;
+	  }
+	else
+	  {
+	    //can't be nested since elements are not inheritable from;
+	    // lhs could be SUPER quark ref (runtime)
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
+	    fp->write(".");  //t3831
+	    fp->write(m_state.getAsMangledFunctionName(luti, ruti));
+	    fp->write("(&");
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(luti).c_str());
+	    fp->write(");"); GCNL;
+	  }
       }
-    // not possible!! we already know rhs is an element
     else if(rclasstype == UC_QUARK)
       {
-	ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
-	if(lclasstype == UC_ELEMENT)
+	//if(lclasstype == UC_ELEMENT)
+	if(lut->getUlamTypeEnum() == Class) //either element, quark, or transient (t3823)
 	  {
 	    if(lut->getReferenceType() == ALT_AS) //e.g. nested-as
 	      {
@@ -311,13 +430,13 @@ namespace MFM {
 		fp->write(m_state.getEffectiveSelfMangledNameByIndex(luti).c_str());
 		fp->write(".");
 	      }
-	    // uses UlamElement isMethod to de-reference a lhs atom
 	    fp->write(m_state.getAsMangledFunctionName(luti, ruti));
 	    fp->write("(&"); //one arg
 	  }
 	else
 	  {
 	    //then left must be an atom
+	    // uses UlamElement isMethod to de-reference a lhs atom
 	    fp->write(m_state.getAsMangledFunctionName(luti, ruti)); //UlamElement IsMethod
 	    fp->write("(uc, ");
 
@@ -327,8 +446,26 @@ namespace MFM {
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
 	fp->write(");"); GCNL;
       }
+    else if(rclasstype == UC_TRANSIENT)
+      {
+	//lhs must also be a transient, or super quark?
+	if(lut->getReferenceType() == ALT_AS) //e.g. nested-as
+	  {
+	    fp->write(lut->getLocalStorageTypeAsString().c_str());
+	    fp->write("::Us::THE_INSTANCE."); //t3826
+	  }
+	else
+	  {
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(luti).c_str());
+	    fp->write(".");  //t3822
+	  }
+	fp->write(m_state.getAsMangledFunctionName(luti, ruti));
+	fp->write("(&");
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
+	fp->write(");"); GCNL;
+      }
     else
-      assert(0);
+      assert(0); // error/t3827
 
     //update uvpass, include lhs name id
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());

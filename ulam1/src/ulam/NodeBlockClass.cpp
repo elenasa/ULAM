@@ -1687,7 +1687,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     AssertBool isDefault = m_state.getDefaultClassValue(nuti, dval);
     assert(isDefault);
 
-    return m_state.genCodeClassDefaultConstantArray(fp, len, dval);
+    return m_state.genCodeClassDefaultConstantArray(fp, len, dval); //non-zero default
   } //genCodeBuiltInFunctionBuildingDefaultDataMembers
 
   void NodeBlockClass::genCodeBuiltInFunctionBuildDefaultQuark(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
@@ -1793,9 +1793,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write("// Initialize any data members:\n");
 
 	//get all initialized data members packed into 'daref'
-	// unlike element and quarks, data members can be elements and other transients
-	if(genCodeBuiltInFunctionBuildingDefaultDataMembers(fp))
+	// unlike element and quarks, data members can be elements, atoms and other transients
+	//e.g. t3811, t3812
+	//if(genCodeBuiltInFunctionBuildingDefaultDataMembers(fp))
 	  {
+	    genCodeBuiltInFunctionBuildingDefaultDataMembers(fp);
 	    genCodeElementTypeIntoDataMemberDefaultValue(fp, 0); //startpos = 0
 
 	    m_state.indent(fp);

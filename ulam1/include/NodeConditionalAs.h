@@ -65,6 +65,7 @@ namespace MFM{
 
     virtual void genCode(File * fp, UVPass& uvpass);
 
+
   protected:
 
   private:

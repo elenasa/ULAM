@@ -238,23 +238,38 @@ namespace MFM {
     //constructor for conditional-as (auto); superclass ref of element (t3617);
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(BitStorage<EC>& targ, u32 idx, const UlamClass<EC>* effself) : UlamRef<EC>");
+    fp->write("(BitStorage<EC>& targ, u32 idx, const UlamClass<EC>* effself, const UlamContext<EC>& uc) : UlamRef<EC>");
     fp->write("(idx, "); //the real pos!!!
     fp->write_decimal_unsigned(len); //includes arraysize
-    fp->write("u, targ, effself) { }"); GCNL;
+    fp->write("u, targ, effself, ");
+    if(!isScalar())
+      fp->write("UlamRef<EC>::ARRAY");
+    else
+      fp->write("UlamRef<EC>::CLASSIC");
+    fp->write(", uc) { }"); GCNL;
 
     //constructor for chain of autorefs (e.g. memberselect with array item)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const UlamRef<EC>& arg, s32 idx, const UlamClass<EC>* effself) : UlamRef<EC>(arg, idx, ");
     fp->write_decimal_unsigned(len); //includes arraysize
-    fp->write("u, effself) { }"); GCNL;
+    fp->write("u, effself, ");
+    if(!isScalar())
+      fp->write("UlamRef<EC>::ARRAY");
+    else
+      fp->write("UlamRef<EC>::CLASSIC");
+    fp->write(") { }"); GCNL;
 
     //(general) copy constructor here; pos relative to exisiting (i.e. same). t3788
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const UlamRef");
-    fp->write("<EC>& r) : UlamRef<EC>(r, 0, r.GetLen(), r.GetEffectiveSelf()) { }"); GCNL;
+    fp->write("<EC>& r) : UlamRef<EC>(r, 0, r.GetLen(), r.GetEffectiveSelf(), ");
+    if(!isScalar())
+      fp->write("UlamRef<EC>::ARRAY");
+    else
+      fp->write("UlamRef<EC>::CLASSIC");
+    fp->write(") { }"); GCNL;
 
     //(exact) copy constructor; pos relative to exisiting (i.e. same).
     //t3617, t3631, t3668, t3669, t3672, t3689, t3692, t3693, t3697, t3746
@@ -262,15 +277,14 @@ namespace MFM {
     fp->write(automangledName.c_str());
     fp->write("(const ");
     fp->write(automangledName.c_str());
-    fp->write("<EC>& r) : UlamRef<EC>(r, 0, r.GetLen(), r.GetEffectiveSelf()) { }"); GCNL;
+    fp->write("<EC>& r) : UlamRef<EC>(r, 0, r.GetLen(), r.GetEffectiveSelf(), ");
+    if(!isScalar())
+      fp->write("UlamRef<EC>::ARRAY");
+    else
+      fp->write("UlamRef<EC>::CLASSIC");
+    fp->write(") { }"); GCNL;
 
-#if 0
-    //default destructor (for completeness)
-    m_state.indent(fp);
-    fp->write("~");
-    fp->write(automangledName.c_str());
-    fp->write("() {}"); GCNL;
-#endif
+    //default destructor (intentially left out)
 
     // aref/aset calls generated inline for immediates.
     if(isCustomArray())
@@ -324,7 +338,7 @@ namespace MFM {
 	fp->write("*this, index * itemlen, "); //const ref, rel offset
 	fp->write("itemlen, &");  //itemlen,
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalaruti).c_str());
-	fp->write(").");
+	fp->write(", UlamRef<EC>::CLASSIC).");
 	fp->write(readArrayItemMethodForCodeGen().c_str());
 	fp->write("(); }"); GCNL;
       }
@@ -360,7 +374,7 @@ namespace MFM {
 	fp->write("*this, index * itemlen, "); //rel offset
 	fp->write("itemlen, &");  //itemlen,
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalaruti).c_str());
-	fp->write(").");
+	fp->write(", UlamRef<EC>::CLASSIC).");
 	fp->write(writeArrayItemMethodForCodeGen().c_str());
 	fp->write("(v); }"); GCNL;
       }

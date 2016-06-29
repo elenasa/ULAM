@@ -106,6 +106,7 @@ namespace MFM{
 
     void die(std::string msg) ;
     void addUrSelf(FileManagerString & fms) ;
+    void addEmpty(FileManagerString & fms) ;
 
   };
 

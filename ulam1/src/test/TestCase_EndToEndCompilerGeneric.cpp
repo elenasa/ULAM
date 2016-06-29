@@ -151,6 +151,27 @@ namespace MFM {
 #endif /* ULAM_SHARE_DIR */
   }
 
+  void TestCase_EndToEndCompilerGeneric::addEmpty(FileManagerString & fms)
+  {
+#ifdef ULAM_SHARE_DIR  /* UrSelf lives in stdlib */
+#define YY(s) XX(s)    /* expand */
+#define XX(s) #s       /* stringify */
+    const char * urSelfFile = YY(ULAM_SHARE_DIR) "/ulam/stdlib/Empty.ulam";
+    FILE * fp = fopen(urSelfFile, "r");
+    if (!fp) die("Can't load Empty.ulam");
+    std::string content;
+    int ch;
+    while ((ch = fgetc(fp)) >= 0) content += (char) ch;
+    fclose(fp);
+    bool ret = fms.add("Empty.ulam",content.c_str());
+    if (!ret) die("FileManagerString::LoadEmpty failed");
+#undef XX
+#undef YY
+#else  /* !ULAM_SHARE_DIR */
+    die("ULAM_SHARE_DIR not configured");
+#endif /* ULAM_SHARE_DIR */
+  }
+
   std::string TestCase_EndToEndCompilerGeneric::PresetTest(FileManagerString * fms)
   {
     if (!fms) die("Null FileManagerString");
@@ -158,6 +179,7 @@ namespace MFM {
     if (m_inputFiles.size() == 0) die("No input files in test");
 
     addUrSelf(*fms);
+    addEmpty(*fms);
 
     for (u32 i = 0; i < m_inputFiles.size(); ++i) {
       InputFile & in = m_inputFiles[i];
@@ -184,6 +206,7 @@ namespace MFM {
 
     std::vector<std::string> filesToCompile;
     filesToCompile.push_back("UrSelf.ulam");
+    filesToCompile.push_back("Empty.ulam");
 
     for (u32 i = 0; i < m_inputFiles.size(); ++i)
       {

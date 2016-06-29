@@ -1223,8 +1223,9 @@ namespace MFM {
 	  }
       }
 
-    if(isZero)
+    if(isZero && (getUlamTypeByIndex(getCompileThisIdx())->getUlamClassType() != UC_TRANSIENT))
       return false; //nothing to do
+
 
     //build static constant array of u32's for BV8K:
     indent(fp);

@@ -243,7 +243,14 @@ namespace MFM {
     else
       fp->write("0u");
 
-    fp->write(", uc); //atomof"); GCNL;
+    if(!isaref)
+      {
+	fp->write(", uc); //atomof"); GCNL;
+      }
+    else
+      {
+	fp->write("); //atomof"); GCNL; //t3684
+      }
 
     uvpass = UVPass::makePass(tmpVarNum, TMPBITVAL, nuti, UNPACKED, m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
 

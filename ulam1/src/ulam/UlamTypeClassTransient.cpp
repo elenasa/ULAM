@@ -72,6 +72,20 @@ namespace MFM {
     return "WriteBV"; //return UlamType::writeMethodForCodeGen();
   }
 
+  const std::string UlamTypeClassTransient::readArrayItemMethodForCodeGen()
+  {
+    if(isCustomArray())
+      return m_state.getCustomArrayGetMangledFunctionName();
+    return "ReadBV";
+  }
+
+  const std::string UlamTypeClassTransient::writeArrayItemMethodForCodeGen()
+  {
+    if(isCustomArray())
+      return m_state.getCustomArraySetMangledFunctionName();
+    return "WriteBV";
+  }
+
   bool UlamTypeClassTransient::needsImmediateType()
   {
     if(!isComplete())
@@ -97,6 +111,19 @@ namespace MFM {
 
     return stype.str();
   } //getTmpStorageTypeAsString
+
+  const std::string UlamTypeClassTransient::getArrayItemTmpStorageTypeAsString()
+  {
+    if(!isScalar())
+      {
+	std::ostringstream stype;
+	stype << "BitVector<" << getBitSize() << ">";
+	return stype.str();
+      }
+
+    assert(isCustomArray());
+    return m_state.getUlamTypeByIndex(getCustomArrayType())->getTmpStorageTypeAsString();
+  } //getArrayItemTmpStorageTypeAsString
 
   const std::string UlamTypeClassTransient::getLocalStorageTypeAsString()
   {
@@ -221,38 +248,52 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(BitStorage<EC>& targ, u32 idx, const UlamClass<EC>* effself) : UlamRef<EC>");
+    fp->write("(BitStorage<EC>& targ, u32 idx, const UlamClass<EC>* effself, const UlamContext<EC>& uc) : UlamRef<EC>");
     fp->write("(idx, "); //the real pos!!!
     fp->write_decimal_unsigned(len); //includes arraysize
-    fp->write("u, targ, effself) { }"); GCNL;
+    fp->write("u, targ, effself, ");
+    if(!isScalar())
+      fp->write("UlamRef<EC>::ARRAY");
+    else
+      fp->write("UlamRef<EC>::CLASSIC");
+    fp->write(", uc) { }"); GCNL;
 
     //constructor for chain of autorefs (e.g. memberselect with array item)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const UlamRef<EC>& arg, s32 idx, const UlamClass<EC>* effself) : UlamRef<EC>(arg, idx, ");
     fp->write_decimal_unsigned(len); //includes arraysize
-    fp->write("u, effself) { }"); GCNL;
+    fp->write("u, effself, ");
+    if(!isScalar())
+      fp->write("UlamRef<EC>::ARRAY");
+    else
+      fp->write("UlamRef<EC>::CLASSIC");
+    fp->write(") { }"); GCNL;
 
     //(general) copy constructor here; pos relative to exisiting (i.e. same).
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const UlamRef");
-    fp->write("<EC>& r) : UlamRef<EC>(r, 0, r.GetLen(), r.GetEffectiveSelf()) { }"); GCNL;
+    fp->write("<EC>& r) : UlamRef<EC>(r, 0, r.GetLen(), r.GetEffectiveSelf(), ");
+    if(!isScalar())
+      fp->write("UlamRef<EC>::ARRAY");
+    else
+      fp->write("UlamRef<EC>::CLASSIC");
+    fp->write(") { }"); GCNL;
 
     //(exact) copy constructor (for compiler)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const ");
     fp->write(automangledName.c_str());
-    fp->write("<EC>& r) : UlamRef<EC>(r, 0, r.GetLen(), r.GetEffectiveSelf()) { }"); GCNL;
+    fp->write("<EC>& r) : UlamRef<EC>(r, 0, r.GetLen(), r.GetEffectiveSelf(), ");
+    if(!isScalar())
+      fp->write("UlamRef<EC>::ARRAY");
+    else
+      fp->write("UlamRef<EC>::CLASSIC");
+    fp->write(") { }"); GCNL;
 
-#if 0
-    //default destructor (for completeness)
-    m_state.indent(fp);
-    fp->write("~");
-    fp->write(automangledName.c_str());
-    fp->write("() {}"); GCNL;
-#endif
+    //default destructor (intentionally left out)
 
     // aref/aset calls generated inline for immediates.
     if(isCustomArray())
@@ -304,7 +345,7 @@ namespace MFM {
 	fp->write("*this, index * itemlen, "); //const ref, rel offset
 	fp->write("itemlen, &");  //itemlen,
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalaruti).c_str());
-	fp->write(").");
+	fp->write(", UlamRef<EC>::CLASSIC).");
 	fp->write(readArrayItemMethodForCodeGen().c_str());
 	fp->write("(); }"); GCNL;
       }
@@ -332,13 +373,13 @@ namespace MFM {
 	//3rd argument generated for compatibility with underlying method
 	m_state.indent(fp);
 	fp->write("void writeArrayItem(const ");
-	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
+	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //BVi
 	fp->write(" v, const u32 index, const u32 itemlen) { ");
 	fp->write("UlamRef<EC>(");
 	fp->write("*this, index * itemlen, "); //rel offset
 	fp->write("itemlen, &");  //itemlen,
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalaruti).c_str());
-	fp->write(").");
+	fp->write(", UlamRef<EC>::CLASSIC).");
 	fp->write(writeArrayItemMethodForCodeGen().c_str());
 	fp->write("(v); }"); GCNL;
       }
@@ -348,6 +389,7 @@ namespace MFM {
   {
     s32 len = getTotalBitSize(); //could be 0, includes arrays
     s32 bitsize = getBitSize();
+    s32 arraysize = getArraySize();
 
     //class instance idx is always the scalar uti
     UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
@@ -404,6 +446,18 @@ namespace MFM {
     fp->write("typedef BitVectorBitStorage<EC, BV> BVS;"); GCNL;
     fp->write("\n");
 
+    if(!isScalar())
+      {
+	m_state.indent(fp);
+	fp->write("typedef ");
+	fp->write(getArrayItemTmpStorageTypeAsString().c_str());
+	fp->write(" BVI;"); GCNL;
+
+	m_state.indent(fp);
+	fp->write("typedef BitVectorBitStorage<EC, BVI > BVIS;"); GCNL;
+	fp->write("\n");
+      }
+
     //class typedef
     m_state.indent(fp);
     fp->write("typedef ");
@@ -426,20 +480,14 @@ namespace MFM {
       }
     else
       {
-	BV8K dval, darrval;
-	AssertBool isDefault = m_state.getDefaultClassValue(scalaruti, dval);
-	m_state.getDefaultAsArray(bitsize, getArraySize(), 0u, dval, darrval);
-	fp->write("\n");
-	m_state.m_currentIndentLevel++;
-	if(m_state.genCodeClassDefaultConstantArray(fp, len, darrval))
-	  {
-	    m_state.indent(fp);
-	    fp->write("BVS::WriteBV(0u, "); //first arg
-	    fp->write("initBV);"); GCNL;
-	  }
-	m_state.m_currentIndentLevel--;
-	m_state.indent(fp);
-	fp->write(" }\n");
+	fp->write("BVIS tmpbs; Us::THE_INSTANCE.getDefaultTransient(0u, tmpbs); ");
+	fp->write(" BVI tmpbvi; tmpbs.ReadBV(0u, tmpbvi); ");
+	fp->write("for(u32 j = 0; j < ");
+	fp->write_decimal_unsigned(arraysize);
+	fp->write("u; j++) ");
+	fp->write("writeArrayItem(tmpbvi, j, ");
+	fp->write_decimal_unsigned(bitsize);
+	fp->write("); }"); GCNL;
       }
 
     //constructor here (used by const tmpVars)
@@ -528,8 +576,7 @@ namespace MFM {
 	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
 	fp->write("& v, const u32 index, const u32 itemlen) { BVS::");
 	fp->write(writeArrayItemMethodForCodeGen().c_str());
-	fp->write("(index * itemlen, "); //rel offset
-	fp->write("itemlen, v); }"); GCNL;  //itemlen, val
+	fp->write("(index * itemlen, v); }"); GCNL;  //rel offset, val
       }
   } //genUlamTypeWriteDefinitionForC
 

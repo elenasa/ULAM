@@ -136,14 +136,20 @@ namespace MFM {
 
     // before shadowing the lhs of the h/as-conditional variable with its auto,
     // let's load its storage from the currentSelfSymbol:
-    s32 tmpVarStg = m_state.getNextTmpVarNumber();
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-    ULAMTYPE stgetype = stgcosut->getUlamTypeEnum();
+    ULAMTYPE stgetyp = stgcosut->getUlamTypeEnum();
     ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClassType();
 
-    assert((stgetype == UAtom) || (stgclasstype == UC_ELEMENT)); //not quark, not transient
+    //assert((stgetyp == UAtom) || (stgclasstype == UC_ELEMENT)); //not quark, not transient
+    //assert((stgetyp == UAtom) || (stgclasstype == UC_ELEMENT) || (stgclasstype == UC_TRANSIENT)); //lhs not quark
+    assert((stgetyp == UAtom) || (stgetyp == Class)); //lhs
+
+    if(stgcos->isSelf())
+      return genCodeRefAsSelf(fp, uvpass);
+
+    s32 tmpVarStg = m_state.getNextTmpVarNumber();
 
     // can't let Node::genCodeReadIntoTmpVar do this for us: need a ref.
     assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
@@ -159,7 +165,6 @@ namespace MFM {
     // time to shadow 'self' with auto local variable:
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
 
     m_state.indentUlamCode(fp);
     fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
@@ -169,14 +174,9 @@ namespace MFM {
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
 
-    if(stgetype == UAtom)
+    if(stgetyp == UAtom)
       {
-	if(vclasstype == UC_QUARK)
-	  fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, "); //position as super (e.g. t3639, t3709, t3675, t3408, t3336)
-	else if(vclasstype == UC_ELEMENT)
-	  fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, "); //t3249, t3255, t3637
-	else
-	  assert(0); //can't be a transient
+	fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, "); //position as super quark (e.g. t3639, t3709, t3675, t3408, t3336); as element t3249, t3255, t3637
 
 	//note: needs effective self of the atom, not simply the RHS type.
 	fp->write(m_state.getHiddenContextArgName());
@@ -194,43 +194,82 @@ namespace MFM {
 	  }
 	else
 	  {
-	    if(vclasstype == UC_QUARK)
-	      fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, &"); //t3586, t3589, t3637
-	    else if(vclasstype == UC_ELEMENT)
-	      fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, &"); //element ref's start at state
-	    else
-	      assert(0); //can't be a transient
+	    fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, &"); //t3586, t3589, t3637
 	    //must be same as look up for elements only Sat Jun 18 17:30:17 2016
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
 	  }
       }
-    else
+    else if((stgclasstype == UC_TRANSIENT))
       {
-	//TODO: transients on lhs Sat Jun 18 17:33:38 2016
-	assert(0); //WHAT THEN???
-	if(vclasstype == UC_QUARK)
+	// transient can be another transient or a quark, not an element
+	fp->write(", 0u, ");
+	if(stgcosut->isReference())
 	  {
-	    fp->write(", ");
-	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset()); //should be 0!
-	    fp->write("u");
+	    fp->write(stgcos->getMangledName().c_str()); //stg
+	    fp->write(".GetEffectiveSelf()"); //t3824
 	  }
-	else if(!stgcosut->isReference())
-	  fp->write(", 0u"); //origin of stg
 	else
 	  {
-	    //is a element reference
-	    fp->write(", ");
-	    fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str());
-	    fp->write(".GetPos()");
+	    fp->write("&"); //t3822
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
 	  }
-
-	fp->write(", &");
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
       }
+    else if((stgclasstype == UC_QUARK))
+      {
+	// quark can be another quark, not an element, nor transient
+	fp->write(", 0u, ");
+	if(stgcosut->isReference())
+	  {
+	    fp->write(stgcos->getMangledName().c_str()); //stg
+	    fp->write(".GetEffectiveSelf()"); //tt3829
+	  }
+	else
+	  {
+	    fp->write("&"); //t3830
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
+	  }
+      }
+    else
+      assert(0); //WHAT THEN???
+
+    if(!stgcosut->isReference())
+      fp->write(", uc"); //t3249
+
     fp->write("); //shadows lhs of 'as'"); GCNL;
 
     m_state.m_genCodingConditionalHas = false; // done
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs ?
   } //genCode
+
+  void NodeVarRefAs::genCodeRefAsSelf(File * fp, UVPass& uvpass)
+  {
+    //no tmpref needed since 'self' (i.e. ur) is already a C++ reference
+    //t3821, t3815 (transient), t3828 (quark)
+    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+
+    UTI vuti = m_varSymbol->getUlamTypeIdx();
+    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+
+    m_state.indentUlamCode(fp);
+    fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+    fp->write(" ");
+    fp->write(m_varSymbol->getMangledName().c_str());
+    fp->write("(");
+    fp->write(stgcos->getMangledName().c_str()); //stg
+    fp->write(", 0u, ");
+    fp->write(stgcos->getMangledName().c_str()); //stg
+    fp->write(".GetEffectiveSelf()");
+    fp->write("); //shadows lhs of 'as'"); GCNL;
+
+    m_state.indentUlamCode(fp);
+    fp->write("UlamRef<EC>& ur = ");
+    fp->write(m_varSymbol->getMangledName().c_str());
+    fp->write("; //shadows self"); GCNL;
+
+    m_varSymbol->setIsSelf(); //nope
+
+    m_state.m_genCodingConditionalHas = false; // done
+    m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
+  } //genCodeRefAsSelf
 
 } //end MFM

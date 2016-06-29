@@ -191,27 +191,23 @@ namespace MFM {
     //constructor for ref(auto) (e.g. t3407, 3638, 3639, 3655, 3656, 3657, 3663, 3684, 3692)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(BitStorage<EC>& targ, u32 startidx, const UlamContext<EC>& uc) : UlamRef<EC>(startidx, BPA, targ, uc.LookupElementTypeFromContext(targ.ReadAtom(startidx).GetType())) { }"); GCNL;
+    fp->write("(BitStorage<EC>& targ, u32 startidx, const UlamContext<EC>& uc) : UlamRef<EC>(startidx, BPA, targ, uc.LookupElementTypeFromContext(targ.ReadAtom(startidx).GetType()), UlamRef<EC>::ATOMIC, uc) { }"); GCNL;
 
     //copy constructor for autoref (chain would be unpacked array)
+    // no extra uc, consistent with other types now.
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(const UlamRef<EC>& arg, s32 idx, const UlamContext<EC>& uc) : UlamRef<EC>(arg, idx, BPA, arg.GetEffectiveSelf()) { }"); GCNL;
+    //fp->write("(const UlamRef<EC>& arg, s32 idx, const UlamContext<EC>& uc) : UlamRef<EC>(arg, idx, BPA, arg.GetEffectiveSelf(), UlamRef<EC>::ATOMIC) { }"); GCNL;
+    fp->write("(const UlamRef<EC>& arg, s32 idx) : UlamRef<EC>(arg, idx, BPA, arg.GetEffectiveSelf(), UlamRef<EC>::ATOMIC) { }"); GCNL;
 
     //copy constructor, t3701, t3735, t3753,4,5,6,7,8,9
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const ");
     fp->write(automangledName.c_str());
-    fp->write("& arg) : UlamRef<EC>(arg, 0, arg.GetLen(), arg.GetEffectiveSelf()) { }"); GCNL;
+    fp->write("& arg) : UlamRef<EC>(arg, 0, arg.GetLen(), arg.GetEffectiveSelf(), UlamRef<EC>::ATOMIC) { }"); GCNL;
 
-#if 0
-    //default destructor (for completeness)
-    m_state.indent(fp);
-    fp->write("~");
-    fp->write(automangledName.c_str());
-    fp->write("() {}"); GCNL;
-#endif
+    //default destructor (intentionally left out)
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -255,7 +251,7 @@ namespace MFM {
 	fp->write("UlamRef<EC>(");
 	fp->write("*this, index * itemlen, "); //const ref, rel offset
 	fp->write("itemlen, ");  //itemlen,
-	fp->write("uc.LookupElementTypeFromContext(this->GetType()))."); //effself
+	fp->write("uc.LookupElementTypeFromContext(this->GetType()), UlamRef<EC>::ATOMIC)."); //effself
 	fp->write(readArrayItemMethodForCodeGen().c_str());
 	fp->write("(); /* entire atom item */ }"); GCNL;
       }
@@ -300,7 +296,7 @@ namespace MFM {
 	fp->write("UlamRef<EC>(");
 	fp->write("*this, index * itemlen, "); //rel offset
 	fp->write("itemlen, ");  //itemlen,
-	fp->write("uc.LookupElementTypeFromContext(v.GetType()))."); //effself
+	fp->write("uc.LookupElementTypeFromContext(v.GetType()), UlamRef<EC>::ATOMIC)."); //effself
 	fp->write(writeArrayItemMethodForCodeGen().c_str());
 	fp->write("(v); /* entire atom item */ }"); GCNL;
       }
@@ -560,45 +556,41 @@ namespace MFM {
     fp->write("(BitStorage<EC>& targ, u32 idx, const UlamContext<EC>& uc) : UlamRef<EC>");
     fp->write("(idx, "); //the real pos!!!
     fp->write_decimal_unsigned(len); //includes arraysize
-    fp->write("u, targ, NULL) { }"); GCNL; //no effective self
+    fp->write("u, targ, NULL, UlamRef<EC>::ARRAY, uc) { }"); GCNL; //no effective self
 
-    //constructor with exact same immediate storage (uc arg unused) e.g. t3671
+    //constructor with exact same immediate storage, e.g. t3671
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("("); //non-const for ref
     fp->write(mangledName.c_str());
     fp->write("<EC>& s, u32 idx, const UlamContext<EC>& uc) : UlamRef<EC>(idx, ");//0u, ");
     fp->write_decimal_unsigned(len); //includes arraysize
-    fp->write("u, s, NULL) { }"); GCNL; //no effective self
+    fp->write("u, s, NULL, UlamRef<EC>::ARRAY, uc) { }"); GCNL; //no effective self
 
     //copy constructor here (uc arg unused)
+    //no uc for ref constructor, consistent with other types now
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const ");
     fp->write(automangledName.c_str());
-    fp->write("<EC>& r, u32 idx, const UlamContext<EC>& uc) : UlamRef<EC>(r, idx, r.GetLen(), r.GetEffectiveSelf()) { }"); GCNL;
+    //    fp->write("<EC>& r, u32 idx, const UlamContext<EC>& uc) : UlamRef<EC>(r, idx, r.GetLen(), r.GetEffectiveSelf(), UlamRef<EC>::ARRAY) { }"); GCNL;
+    fp->write("<EC>& r, u32 idx) : UlamRef<EC>(r, idx, r.GetLen(), r.GetEffectiveSelf(), UlamRef<EC>::ARRAY) { }"); GCNL;
 
     //constructor for chain of autorefs (e.g. memberselect with array item)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const UlamRef<EC>& arg, s32 idx, const UlamClass<EC>* effself) : UlamRef<EC>(arg, idx, ");
     fp->write_decimal_unsigned(len); //includes arraysize
-    fp->write("u, effself) {}"); GCNL;
+    fp->write("u, effself, UlamRef<EC>::ARRAY) {}"); GCNL;
 
     //copy constructor
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const ");
     fp->write(automangledName.c_str());
-    fp->write("& arg) : UlamRef<EC>(arg, 0, arg.GetLen(), arg.GetEffectiveSelf()) { }"); GCNL;
+    fp->write("& arg) : UlamRef<EC>(arg, 0, arg.GetLen(), arg.GetEffectiveSelf(), UlamRef<EC>::ARRAY) { }"); GCNL;
 
-#if 0
-    //default destructor (for completeness)
-    m_state.indent(fp);
-    fp->write("~");
-    fp->write(automangledName.c_str());
-    fp->write("() {}"); GCNL;
-#endif
+    //default destructor (intentionally left out)
 
     //read 'entire atom' method
     genUlamTypeAutoReadDefinitionForC(fp);
@@ -730,13 +722,7 @@ namespace MFM {
     fp->write("u; j++) ");
     fp->write("BVS::WriteBig(j * BPA, BPA, tmpval); }"); GCNL;
 
-#if 0
-    //default destructor (for completeness)
-    m_state.indent(fp);
-    fp->write("~");
-    fp->write(mangledName.c_str());
-    fp->write("() {}"); GCNL;
-#endif
+    //default destructor (intentionally left out)
 
     genUlamTypeReadDefinitionForC(fp);
 

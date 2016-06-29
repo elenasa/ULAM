@@ -217,23 +217,38 @@ namespace MFM {
     //constructor for ref (auto); wo origin
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(BitStorage<EC>& targ, u32 idx) : UlamRef<EC>(idx, ");
+    fp->write("(BitStorage<EC>& targ, u32 idx, const UlamContext<EC>& uc) : UlamRef<EC>(idx, ");
     fp->write_decimal_unsigned(len); //includes arraysize
-    fp->write("u, targ, NULL) { }"); GCNL; //effself is null for primitives
+    fp->write("u, targ, NULL, "); //effself is null for primitives
+    if(!isScalar())
+      fp->write("UlamRef<EC>::ARRAY");
+    else
+      fp->write("UlamRef<EC>::PRIMITIVE");
+    fp->write(", uc) { }"); GCNL;
 
     //constructor for chain of autorefs (e.g. memberselect with array item)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const UlamRef<EC>& arg, s32 idx) : UlamRef<EC>(arg, idx, ");
     fp->write_decimal_unsigned(len); //includes arraysize
-    fp->write("u, NULL) { }"); GCNL; //effself is null for primitives
+    fp->write("u, NULL, "); //effself is null for primitives
+    if(!isScalar())
+      fp->write("UlamRef<EC>::ARRAY");
+    else
+      fp->write("UlamRef<EC>::PRIMITIVE");
+    fp->write(") { }"); GCNL;
 
     //copy constructor
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const ");
     fp->write(automangledName.c_str()); //(was UlamRef)
-    fp->write("<EC>& arg) : UlamRef<EC>(arg, 0, arg.GetLen(), NULL) { ");
+    fp->write("<EC>& arg) : UlamRef<EC>(arg, 0, arg.GetLen(), NULL, ");
+    if(!isScalar())
+      fp->write("UlamRef<EC>::ARRAY");
+    else
+      fp->write("UlamRef<EC>::PRIMITIVE");
+    fp->write(") { ");
     fp->write("MFM_API_ASSERT_ARG(arg.GetLen() == ");
     fp->write_decimal_unsigned(len); //includes arraysize
     fp->write("); }"); GCNL; //effself is null for primitives
@@ -266,7 +281,7 @@ namespace MFM {
 	fp->write("const u32 index, const u32 itemlen) const { return ");
 	fp->write("UlamRef<EC>(");
 	fp->write("*this, index * itemlen, "); //rel offset
-	fp->write("itemlen, NULL)."); //itemlen, primitive effself
+	fp->write("itemlen, NULL, UlamRef<EC>::PRIMITIVE)."); //itemlen, primitive effself
 	fp->write(readArrayItemMethodForCodeGen().c_str());
 	fp->write("(); }"); GCNL;
       }
@@ -299,7 +314,7 @@ namespace MFM {
 	fp->write("& v, const u32 index, const u32 itemlen) { ");
 	fp->write("UlamRef<EC>(");
 	fp->write("*this, index * itemlen, "); //rel offset
-	fp->write("itemlen, NULL)."); //itemlen, primitive effself
+	fp->write("itemlen, NULL, UlamRef<EC>::PRIMITIVE)."); //itemlen, primitive effself
 	fp->write(writeArrayItemMethodForCodeGen().c_str());
 	fp->write("(v); }"); GCNL;
       }
@@ -670,15 +685,15 @@ namespace MFM {
     fp->write("void init(T& realStg) { m_stgPtr = &realStg; }"); GCNL;
 
     //read method: MFM model parameters are right justified in the atom
-    // NO write method for MPs in ulam.
+    // NO write method for MPs in ulam. t3259
     m_state.indent(fp);
     fp->write("const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32, s64 or u64
-    fp->write(" read() const { MFM_API_ASSERT_NONNULL(m_stgPtr); AtomRefBitStorage<EC> mpfoo(*m_stgPtr); return UlamRef<EC>(BPA - ");
+    fp->write(" read(const UlamContext<EC>& uc) const { MFM_API_ASSERT_NONNULL(m_stgPtr); AtomRefBitStorage<EC> mpfoo(*m_stgPtr); return UlamRef<EC>(BPA - ");
     fp->write_decimal(len); //by convention at the end of the atom
     fp->write("u, ");
     fp->write_decimal(len);
-    fp->write("u, mpfoo, NULL)."); //origin 0u
+    fp->write("u, mpfoo, NULL, UlamRef<EC>::PRIMITIVE, uc)."); //origin 0u
     fp->write(readMethodForCodeGen().c_str());
     fp->write("(); }"); GCNL;
 

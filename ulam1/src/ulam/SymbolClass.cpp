@@ -696,7 +696,7 @@ namespace MFM {
 	    fp->write_decimal_unsigned(sut->getTotalBitSize()); //t3655
 	    fp->write("u, atbs, &");
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
-	    fp->write(");"); GCNL;
+	    fp->write(", UlamRef<EC>::ATOMIC, uc);"); GCNL;
 
 	    m_state.indent(fp);
 	    //fp->write("rtn = "); //MFM::Ui_Ut_102323Int
@@ -914,6 +914,12 @@ namespace MFM {
     fp->write("OurEventTypeNumberMapAll etnm;"); GCNL;
     m_state.indent(fp);
     fp->write("OurTestTile tile;"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("Ue_10105Empty10<EC>::THE_INSTANCE.AllocateEmptyType();"); GCNL;
+    m_state.indent(fp);
+    fp->write("tile.ReplaceEmptyElement(Ue_10105Empty10<EC>::THE_INSTANCE);"); GCNL;
+
     m_state.indent(fp);
     fp->write("OurUlamContext uc;"); GCNL;
     m_state.indent(fp);

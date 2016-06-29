@@ -237,6 +237,8 @@ namespace MFM{
 
     SymbolTmpRef * makeTmpRefSymbolForCodeGen(UVPass uvpass);
 
+    std::string genUlamRefUsageAsString(UTI uti);
+
     void genCodeConvertATmpVarIntoBitVector(File * fp, UVPass & uvpass);
 
     void genCodeConvertABitVectorIntoATmpVar(File * fp, UVPass & uvpass);
