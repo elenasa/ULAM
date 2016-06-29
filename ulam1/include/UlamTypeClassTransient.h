@@ -67,9 +67,15 @@ namespace MFM{
 
     virtual const std::string writeMethodForCodeGen();
 
+    virtual const std::string readArrayItemMethodForCodeGen();
+
+    virtual const std::string writeArrayItemMethodForCodeGen();
+
     virtual bool needsImmediateType();
 
     virtual const std::string getTmpStorageTypeAsString();
+
+    virtual const std::string getArrayItemTmpStorageTypeAsString();
 
     virtual const std::string getLocalStorageTypeAsString();
 

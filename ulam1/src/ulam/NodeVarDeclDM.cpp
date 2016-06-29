@@ -737,6 +737,36 @@ namespace MFM {
 	for(s32 i = 0; i < arraysize; i++)
 	  cblock->genCodeElementTypeIntoDataMemberDefaultValue(fp, ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset() + startpos + i * len); //e.g. t3715
       }
+    else if(m_state.isAtom(nuti))
+      {
+	s32 arraysize = nut->getArraySize();
+	arraysize = (arraysize <= 0 ? 1 : arraysize);
+
+	m_state.indent(fp);
+	fp->write("{\n"); //limit scope of 'dam'
+	m_state.m_currentIndentLevel++;
+
+	m_state.indent(fp);
+	fp->write("AtomBitStorage<EC> gda(");
+	fp->write("Element_Empty<EC>::THE_INSTANCE.GetDefaultAtom());"); GCNL;
+
+	m_state.indent(fp);
+	fp->write("u32 typefield = gda.Read(0u, T::ATOM_FIRST_STATE_BIT);"); GCNL; //can't use GetType");
+
+	for(s32 i = 0; i < arraysize; i++)
+	  {
+	    m_state.indent(fp);
+	    fp->write("initBV.Write(");
+	    fp->write_decimal_unsigned(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset() + startpos);
+	    fp->write("u + ");
+	    fp->write_decimal_unsigned(i * BITSPERATOM);
+	    fp->write("u, T::ATOM_FIRST_STATE_BIT, typefield);"); GCNL;
+	  }
+
+	m_state.m_currentIndentLevel--;
+	m_state.indent(fp);
+	fp->write("}\n");
+      }
   } //genCodeElementTypeIntoDataMemberDefaultValue
 
   void NodeVarDeclDM::foldDefaultClass()

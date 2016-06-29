@@ -1081,10 +1081,17 @@ namespace MFM {
     //new ur to reflect "effective" self and the ref storage, for this funccall
     hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvarur).c_str() << "(";
     hiddenarg2 << m_state.getTmpVarAsString(derefuti, tmpvarnum, TMPAUTOREF).c_str();
-    hiddenarg2 << ", " << uvpass.getPassPos() << "u, "; //element refs already +25
-    hiddenarg2 << derefut->getTotalBitSize(); //len
-    hiddenarg2 << "u, &";
+    hiddenarg2 << ", " << uvpass.getPassPos() << "u"; //element refs already +25
+
+    // if((derefut->getUlamClassType() == UC_ELEMENT) || m_state.isAtom(derefuti))
+    //  hiddenarg2 << ", T::BPA, ";
+    // else
+      hiddenarg2 << ", " << derefut->getTotalBitSize() << "u, "; //len t3370
+
+    hiddenarg2 << "&";
     hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(derefuti).c_str();
+
+    hiddenarg2 << ", " << genUlamRefUsageAsString(derefuti).c_str(); //Mon Jun 27 2016
     hiddenarg2 << ");";
 
     urtmpnumref = tmpvarur;

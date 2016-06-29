@@ -232,6 +232,9 @@ namespace MFM {
     else
       assert(0); //WHAT THEN???
 
+    if(!stgcosut->isReference())
+      fp->write(", uc"); //t3249
+
     fp->write("); //shadows lhs of 'as'"); GCNL;
 
     m_state.m_genCodingConditionalHas = false; // done

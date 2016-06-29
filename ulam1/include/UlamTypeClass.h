@@ -122,12 +122,14 @@ namespace MFM{
 
     virtual void genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp);
 
-   private:
-
-    bool m_customArray;
+   protected:
 
     UTI getCustomArrayType();
     u32 getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
+
+  private:
+    bool m_customArray;
+
 
   };
 
