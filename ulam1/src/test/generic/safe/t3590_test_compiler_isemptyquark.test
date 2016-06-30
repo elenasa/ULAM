@@ -6,7 +6,6 @@
 #!
 Exit status: 0
 Ue_Foo { Unary(6) energy(0u);  Int(32) test() {  Atom(96) a;  { a Empty is cond { { energy cast 63u cast == cond { 1 cast return } if { energy cast 0u cast == cond { 0 cast return } if } else } } if } -1 cast return } }
-Uq_Empty { /* empty class block */ }
 ##
 ## formerly error t3402
 ##
@@ -29,10 +28,6 @@ element Foo {
   }
 }
 
-#:Empty.ulam
-  ulam 1;
-quark Empty {
-}
 ##
 ##      // gen code issue: quark doesn't have internalCMethodImplementingIs!!
 ##      //include/Ue_10163Foo0.tcc:28:57: error: ‘POS’ was not declared in this scope

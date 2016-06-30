@@ -74,7 +74,7 @@ namespace MFM {
   static const char * BUILD_DEFAULT_TRANSIENT_FUNCNAME = "getDefaultTransient";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalHas(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti)
+  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalHas(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyUTI(Nouti)
   {
     m_err.init(this, debugOn, infoOn, warnOn, waitOn, NULL);
     Token::initTokenMap(*this);
@@ -2114,7 +2114,7 @@ namespace MFM {
       return false; //short-circuit
 
     UlamType * ict = getUlamTypeByIndex(incomplete);
-    assert(ict->getUlamClassType() == UC_UNSEEN); //missing
+    assert(ict->getUlamClassType() == UC_UNSEEN); //missing, may be array
     if(alreadyDefinedSymbolClass(incomplete, csym))
       {
 	SymbolClassName * cnsym = NULL;
@@ -2128,6 +2128,7 @@ namespace MFM {
 	  {
 	    AssertBool isReplaced = replaceUlamTypeForUpdatedClassType(cut->getUlamKeyTypeSignature(), Class, cut->getUlamClassType(), cut->isCustomArray());
 	    assert(isReplaced);
+	    cut = getUlamTypeByIndex(cuti); //update (e.g. t3832)
 
 	    if((cut->getBitSize() == UNKNOWNSIZE) || (cut->getArraySize() == UNKNOWNSIZE))
 	      {
@@ -3552,6 +3553,24 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       }
     return (cuti == m_urSelfUTI); //no compare
   } //isUrSelf
+
+  void CompilerState::saveEmptyUTI(UTI uti)
+  {
+    m_emptyUTI = uti;
+  }
+
+  bool CompilerState::isEmpty(UTI cuti)
+  {
+    if(m_emptyUTI == Nouti)
+      {
+	UlamKeyTypeSignature ckey = getUlamTypeByIndex(cuti)->getUlamKeyTypeSignature();
+	if(ckey.getUlamKeyTypeSignatureNameId() == m_pool.getIndexForDataString("Empty"))
+	  saveEmptyUTI(cuti);
+	else
+	  return false;
+      }
+    return (cuti == m_emptyUTI); //no compare
+  } //isEmpty
 
   bool CompilerState::okUTItoContinue(UTI uti)
   {

@@ -2,11 +2,10 @@
 #!
 Exit status: -11
 Ue_Foo { typedef Unsigned(6) Sitenum;  Int(32) test() {  EventWindow ew;  ew 1 cast [] Empty is cast return } }
-Ue_Empty { /* empty class block */ }
 Uq_EventWindow { typedef Unsigned(6) Sitenum;  <NOMAIN> }
+##
 #>Foo.ulam
 ulam 1;
-use Empty;
 use EventWindow;
 element Foo {
   typedef EventWindow.Sitenum Sitenum;
@@ -14,11 +13,6 @@ element Foo {
     EventWindow ew;
     return (Int) (ew[(Sitenum) 1] is Empty);
   }
-}
-#:Empty.ulam
-ulam 1;
-element Empty {
- /* empty element comment */
 }
 
 #:EventWindow.ulam

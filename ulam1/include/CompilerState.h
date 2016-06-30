@@ -155,6 +155,7 @@ namespace MFM{
     NNO m_nextNodeNumber; //used to identify blocks in clone classes with unknown subtrees
 
     UTI m_urSelfUTI; //original ancestor of all classes
+    UTI m_emptyUTI; //the Empty class
 
     CompilerState();
     ~CompilerState();
@@ -459,6 +460,8 @@ namespace MFM{
     bool isAnonymousClass(UTI cuti);
     void saveUrSelf(UTI uti);
     bool isUrSelf(UTI cuti);
+    void saveEmptyUTI(UTI uti);
+    bool isEmpty(UTI cuti);
     bool okUTItoContinue(UTI uti);
     bool okUTItoContinue(UTI uti1, UTI uti2); //false if either is Nav
     bool checkHasHazyKin(NodeBlock * block);

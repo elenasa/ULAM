@@ -250,7 +250,7 @@ namespace MFM {
     if(!isScalar())
       fp->write("UlamRef<EC>::ARRAY");
     else
-      fp->write("UlamRef<EC>::ATOMIC");
+      fp->write("UlamRef<EC>::ELEMENTAL");
     fp->write(", uc) { }"); GCNL;
 
     //copy constructor here
@@ -263,7 +263,7 @@ namespace MFM {
     if(!isScalar())
       fp->write("UlamRef<EC>::ARRAY");
     else
-      fp->write("UlamRef<EC>::ATOMIC");
+      fp->write("UlamRef<EC>::ELEMENTAL");
     fp->write(") { }"); GCNL;
 
     //constructor for chain of autorefs (e.g. memberselect with array item)
@@ -275,7 +275,7 @@ namespace MFM {
     if(!isScalar())
       fp->write("UlamRef<EC>::ARRAY");
     else
-      fp->write("UlamRef<EC>::ATOMIC");
+      fp->write("UlamRef<EC>::ELEMENTAL");
     fp->write(") { }"); GCNL; //e.g. 3655, t3656, t3663, t3675, t3689, t3655
 
     //default destructor (intentially left out)
@@ -329,7 +329,7 @@ namespace MFM {
 	fp->write("UlamRef<EC>(");
 	fp->write("*this, index * itemlen, "); //const ref, rel offset
 	fp->write("itemlen, &");  //itemlen,
-	fp->write("Us::THE_INSTANCE, UlamRef<EC>::ATOMIC)."); //effself
+	fp->write("Us::THE_INSTANCE, UlamRef<EC>::ELEMENTAL)."); //effself
 	fp->write(readArrayItemMethodForCodeGen().c_str());
 	fp->write("(); }"); GCNL;
       }
@@ -381,7 +381,7 @@ namespace MFM {
 	fp->write("UlamRef<EC>(");
 	fp->write("*this, index * itemlen, "); //rel offset
 	fp->write("itemlen, &");  //itemlen,
-	fp->write("Us::THE_INSTANCE, UlamRef<EC>::ATOMIC)."); //effself
+	fp->write("Us::THE_INSTANCE, UlamRef<EC>::ELEMENTAL)."); //effself
 	fp->write(writeArrayItemMethodForCodeGen().c_str());
 	fp->write("(v); }"); GCNL;
       }
@@ -722,13 +722,7 @@ namespace MFM {
     fp->write("u; j++) ");
     fp->write("writeArrayItem(tmpt, j, BPA); }"); GCNL;
 
-#if 0
-    //default destructor (for completeness)
-    m_state.indent(fp);
-    fp->write("~");
-    fp->write(mangledName.c_str());
-    fp->write("() {}"); GCNL;
-#endif
+    //default destructor (intentionally left out)
 
     genUlamTypeReadDefinitionForC(fp);
 

@@ -6,37 +6,32 @@
 ##	 Int(4) Arg: 0xf
 ##      */
 Exit status: -1
-Ue_Foo { Bool(3) b(false);  System s();  Empty e();  Int(4) i(0);  Int(4) j(-1);  Int(32) test() {  i 0 cast = j ( i cast 1 cast -b cast )update = s ( j cast )print . s ( j )print . j cast return } }
+Ue_Foo { Bool(3) b(false);  System s();  Int(4) i(0);  Int(4) j(-1);  Int(32) test() {  Empty e;  i 0 cast = j ( i cast 1 cast -b cast )update = s ( j cast )print . s ( j )print . j cast return } }
 Uq_System { <NOMAIN> }
-Uq_Empty { /* empty class block */ }
 #>Foo.ulam
-ulam 1;
+  ulam 1;
 use System;
 use Empty;
 element Foo {
-System s;
-Empty e;
-Bool(3) b;
-Int(4) i, j;
-Int(4) update(Int(4) x)
-{
-return x;
-}
-Int test(){
-i = 0;
-j = update((Int(4)) (i - 1));
-s.print((Int) j);
-s.print(j);
-return j;
-}
+  System s;
+  Bool(3) b;
+  Int(4) i, j;
+  Int(4) update(Int(4) x)
+  {
+    return x;
+  }
+  Int test(){
+    Empty e; //can't be a data member of an element, is an element
+    i = 0;
+    j = update((Int(4)) (i - 1));
+    s.print((Int) j);
+    s.print(j);
+    return j;
+  }
 }
 ##      // test explicit cast in arg
 ##
-#:Empty.ulam
-ulam 1;
-use System;
- quark Empty {
- /* empty quark comment */ }
+
 #:System.ulam
 ulam 1;
 quark System {

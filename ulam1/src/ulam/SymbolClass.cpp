@@ -696,7 +696,7 @@ namespace MFM {
 	    fp->write_decimal_unsigned(sut->getTotalBitSize()); //t3655
 	    fp->write("u, atbs, &");
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
-	    fp->write(", UlamRef<EC>::ATOMIC, uc);"); GCNL;
+	    fp->write(", UlamRef<EC>::ELEMENTAL, uc);"); GCNL;
 
 	    m_state.indent(fp);
 	    //fp->write("rtn = "); //MFM::Ui_Ut_102323Int

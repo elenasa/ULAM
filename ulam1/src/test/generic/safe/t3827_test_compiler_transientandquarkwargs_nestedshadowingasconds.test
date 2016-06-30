@@ -1,12 +1,19 @@
 ## -*- mode:ulam -*-
 #=t3637_test_compiler_elementandquarkwargs_nestedshadowingasconds
-#!
-./R.ulam:11:14: ERROR: Invalid lefthand type of conditional operator 'as'; must be an atom, element or transient, not Typo(1)&.
-./System.ulam:2:7: ERROR: 1 Nodes with erroneous types detected after type labeling class: System.
-./System.ulam:2:7: ERROR: 10 Nodes with unresolved types detected after type labeling class: System.
-Unrecoverable Program Type Label FAILURE.
 ##
-## informed by 3826
+##   gencode output (3 asserts):
+##	 Unsigned Arg: 3
+##       Unsigned Arg: 3
+##
+#!
+Exit status: 5
+Ue_R { Bool(1) first(true);  Bool(1) second(true);  Int(32) test() {  System s;  Eltypo elf;  elf t ( 5u cast )func . . { elf Typo(1) as cond { Typo(1)& elf;  { elf Bar as cond { Bar& elf;  elf ( 3u cast )func . s ( elf bu . cast )print . first elf bu . cast 3 cast == = s ( first )assert . } if s ( false )assert . else } s ( elf bu . cast )print . second elf bu . cast 3 cast == = s ( second )assert . s ( first )assert . } if } elf t bu . . cast return } }
+Uq_System { <NOMAIN> }
+Un_Eltypo : Typo(1) { :< :< Unsigned(3) bu( 7u); >> Typo(1) t( :< Unsigned(3) bu( 7u); >);  <NOMAIN> }
+Uq_Typo(Int(32) a) : Bar { /* empty class block */ }
+Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
+##
+## informed by 3826, no longer invalid
 ##
 #:R.ulam
   ulam 2;

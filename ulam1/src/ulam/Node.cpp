@@ -744,6 +744,8 @@ namespace MFM {
       }
 
     fp->write("("); //start index calc
+
+    //no need to add ATOM_FIRST_STATE_BIT since we are writing the entire element, when cos is an element
     if(needAdjustToStateBits(cosuti))
       fp->write("T::ATOM_FIRST_STATE_BIT + "); //need test!
     fp->write_decimal_unsigned(pos); //rel offset of array base (e.g.t3147, t3148, t3153, t3177..)
@@ -753,8 +755,10 @@ namespace MFM {
     fp->write(" * ");
     if(classtype == UC_ELEMENT)
       {
-	fp->write("T::BPA), "); //atom-based item length
-	fp->write("T::BPA, "); //atom-based length
+    	fp->write("T::BPA), "); //atom-based item length (e.g. t3832)
+    	//fp->write("T::BPA, "); //atom-based length
+	fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
+	fp->write("u, ");
       }
     else
       {
@@ -781,15 +785,22 @@ namespace MFM {
 	fp->write("&");
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
       }
+    else if(classtype == UC_ELEMENT)
+      {
+	fp->write("NULL"); //element ref may rely on uc.Lookup (t3832)
+      }
     else
       {
+	//CLASSIC ref cannot rely on uc.Lookup
 	//array's effective self is NULL. can't get it this way. (e.g. t3819)
-	//	fp->write(stgcos->getMangledName().c_str());
-	//fp->write(".GetEffectiveSelf()"); //maintains eff self
-	fp->write("NULL");
+	fp->write("&");
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
       }
 
     fp->write(", ");
+    //    if(classtype == UC_ELEMENT)
+    //  fp->write("UlamRef<EC>::ATOMIC"); //writing entire element
+    //else
     fp->write(genUlamRefUsageAsString(scalarcosuti).c_str()); //t3230,1
     if(!stgcosut->isReference() && isLocal)
       fp->write(", uc");
@@ -1163,7 +1174,7 @@ namespace MFM {
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    ULAMCLASSTYPE classtype = cosut->getUlamClassType();
+    //ULAMCLASSTYPE classtype = cosut->getUlamClassType();
     UTI	scalarcosuti = m_state.getUlamTypeAsScalar(cosuti); //ALT_ARRAYITEM
     scalarcosuti = m_state.getUlamTypeAsDeref(scalarcosuti);
 
@@ -1189,18 +1200,21 @@ namespace MFM {
 	fp->write(", ");
       }
     fp->write("("); //start index calc
-    //no need to add ATOM_FIRST_STATE_BIT since we are writing the entire element, when cos is an element //t3436, t3706, t3710
+
+    //still adding ATOM_FIRST_STATE_BIT to write the entire element, when cos is an element; uses ELEMENTAL //t3436, t3706, t3710
+    if(needAdjustToStateBits(cosuti))
+      fp->write("T::ATOM_FIRST_STATE_BIT + ");
     fp->write_decimal_unsigned(pos); //rel offset
     fp->write("u + ");
 
     fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //INDEX
     fp->write(" * ");
-    if(classtype == UC_ELEMENT)
-      {
-	fp->write("T::BPA), "); //atom-based item length
-	fp->write("T::BPA, "); //entire atom-based length
-      }
-    else
+    //    if(classtype == UC_ELEMENT)
+    //  {
+    //	fp->write("T::BPA), "); //atom-based item length
+    //	fp->write("T::BPA, "); //entire atom-based length
+    //  }
+    //else
       {
 	fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
 	fp->write("u), ");
@@ -1235,6 +1249,9 @@ namespace MFM {
       }
 
     fp->write(", ");
+    //    if(classtype == UC_ELEMENT)
+    // fp->write("UlamRef<EC>::ATOMIC"); //writing entire element (e.g. t3436)
+    //else
     fp->write(genUlamRefUsageAsString(scalarcosuti).c_str()); //t3230,1
     if(!stgcosut->isReference() && isLocal)
       fp->write(", uc");
@@ -1754,6 +1771,8 @@ namespace MFM {
     ULAMTYPE vetyp = vut->getUlamTypeEnum();
     assert(vetyp == cosut->getUlamTypeEnum());
 
+    u32 pos = Node::calcPosOfCurrentObjects(); //Wed Jun 29 19:34:30 2016
+
     m_state.indentUlamCode(fp);
     fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
     fp->write(" ");
@@ -1765,7 +1784,8 @@ namespace MFM {
       {
 	fp->write(m_state.getHiddenArgName());
 	fp->write(", ");
-	fp->write_decimal_unsigned(uvpass.getPassPos()); //relative off array base
+	//fp->write_decimal_unsigned(uvpass.getPassPos()); //relative off array base
+	fp->write_decimal_unsigned(pos); //relative off array base
 	fp->write("u");
 
 	if(vetyp == Class)
@@ -1786,7 +1806,9 @@ namespace MFM {
 	if(cos->isDataMember())
 	  {
 	    fp->write(", ");
-	    fp->write_decimal_unsigned(uvpass.getPassPos()); //rel offset array base
+	    //	    fp->write_decimal_unsigned(uvpass.getPassPos()); //rel offset array base
+	    fp->write_decimal_unsigned(pos); //rel offset array base (t3832)
+
 	    fp->write("u");
 
 	    if(vetyp == Class)
@@ -1895,8 +1917,8 @@ namespace MFM {
       }
 
     //    if(vetyp == UAtom)
-    if(!m_state.isReference(stgcosuti))
-      fp->write(", uc"); //t3818
+    if(!m_state.isReference(stgcosuti) && isLocal)
+      fp->write(", uc"); //t3818, t3653, t3654
 
     fp->write(");"); GCNL;
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
@@ -2302,8 +2324,8 @@ namespace MFM {
 	//fp->write(cos->getMangledName().c_str());
 	//fp->write(".ReadAtom(");
 	//fp->write_decimal_unsigned(pos);
-	//fp->write(").GetType())"); //need a test
-	assert(0);
+	//fp->write(").GetType())");
+	//assert(0); //need a test
       }
     else
       fp->write("NULL"); //primitive eff self (e.g. t3102)
@@ -2632,8 +2654,9 @@ namespace MFM {
       }
 
     //reading entire thing, t.f. no adjustment (t3735)
-    //if(needAdjustToStateBits(cosuti))
-    //  fp->write("T::ATOM_FIRST_STATE_BIT + ");
+    // using ELEMENTATL, t.f. adjust
+    if(needAdjustToStateBits(cosuti))
+      fp->write("T::ATOM_FIRST_STATE_BIT + ");
 
     fp->write_decimal_unsigned(pos); //rel offset
     fp->write("u, ");
@@ -2979,7 +3002,7 @@ namespace MFM {
 	else if(classtype == UC_TRANSIENT)
 	  usageStr << "CLASSIC";
 	else if(classtype == UC_ELEMENT)
-	  usageStr << "ATOMIC";
+	  usageStr << "ELEMENTAL";
 	else
 	  assert(0);
       }
