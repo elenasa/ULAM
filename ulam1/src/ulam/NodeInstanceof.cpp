@@ -151,7 +151,7 @@ namespace MFM {
 	    fp->write("const UlamClass<EC> * ");
 	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
 	    fp->write(" = ");
-	    fp->write("uc.LookupElementTypeFromContext(");
+	    fp->write("uc.LookupUlamElementTypeFromContext(");
 	    fp->write(m_varSymbol->getMangledName().c_str());
 	    fp->write(".GetType()");
 	    fp->write(");"); GCNL;
