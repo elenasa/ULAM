@@ -898,7 +898,7 @@ namespace MFM {
     fp->write("\n");
 
     m_state.indent(fp);
-    fp->write("typedef UlamContext<OurEventConfigAll> OurUlamContext;"); GCNL;
+    fp->write("typedef UlamContextEvent<OurEventConfigAll> OurUlamContext;"); GCNL;
     fp->write("\n");
 
     m_state.indent(fp);
@@ -921,7 +921,7 @@ namespace MFM {
     fp->write("tile.ReplaceEmptyElement(Ue_10105Empty10<EC>::THE_INSTANCE);"); GCNL;
 
     m_state.indent(fp);
-    fp->write("OurUlamContext uc;"); GCNL;
+    fp->write("OurUlamContext uc(tile.GetElementTable());"); GCNL;
     m_state.indent(fp);
     fp->write("const u32 TILE_SIDE = tile.TILE_SIDE;"); GCNL;
     m_state.indent(fp);

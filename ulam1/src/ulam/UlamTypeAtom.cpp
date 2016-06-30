@@ -191,7 +191,7 @@ namespace MFM {
     //constructor for ref(auto) (e.g. t3407, 3638, 3639, 3655, 3656, 3657, 3663, 3684, 3692)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(BitStorage<EC>& targ, u32 startidx, const UlamContext<EC>& uc) : UlamRef<EC>(startidx, BPA, targ, uc.LookupElementTypeFromContext(targ.ReadAtom(startidx).GetType()), UlamRef<EC>::ATOMIC, uc) { }"); GCNL;
+    fp->write("(BitStorage<EC>& targ, u32 startidx, const UlamContext<EC>& uc) : UlamRef<EC>(startidx, BPA, targ, uc.LookupUlamElementTypeFromContext(targ.ReadAtom(startidx).GetType()), UlamRef<EC>::ATOMIC, uc) { }"); GCNL;
 
     //copy constructor for autoref (chain would be unpacked array,
     // e.g. 3812 requires NULL effself)
@@ -251,7 +251,7 @@ namespace MFM {
 	fp->write("UlamRef<EC>(");
 	fp->write("*this, index * itemlen, "); //const ref, rel offset
 	fp->write("itemlen, ");  //itemlen,
-	fp->write("uc.LookupElementTypeFromContext(this->GetType()), UlamRef<EC>::ATOMIC)."); //effself
+	fp->write("uc.LookupUlamElementTypeFromContext(this->GetType()), UlamRef<EC>::ATOMIC)."); //effself
 	fp->write(readArrayItemMethodForCodeGen().c_str());
 	fp->write("(); /* entire atom item */ }"); GCNL;
       }
@@ -296,7 +296,7 @@ namespace MFM {
 	fp->write("UlamRef<EC>(");
 	fp->write("*this, index * itemlen, "); //rel offset
 	fp->write("itemlen, ");  //itemlen,
-	fp->write("uc.LookupElementTypeFromContext(v.GetType()), UlamRef<EC>::ATOMIC)."); //effself
+	fp->write("uc.LookupUlamElementTypeFromContext(v.GetType()), UlamRef<EC>::ATOMIC)."); //effself
 	fp->write(writeArrayItemMethodForCodeGen().c_str());
 	fp->write("(v); /* entire atom item */ }"); GCNL;
       }

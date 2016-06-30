@@ -1380,7 +1380,7 @@ static int $elementTestFuncName(bool output)
   OurSite storage[SIDE*SIDE];
   OurTile theTile(SIDE,storage);
   theTile.Init();
-  OurUlamContext ouc;
+  OurUlamContext ouc(theTile.GetElementTable());
   ouc.SetTile(theTile);
   OurEventWindow & ew = ouc.GetEventWindow();
   MFM::s32 ctr = theTile.GetTileSide()/2;
@@ -1466,7 +1466,7 @@ typedef MFM::P3Atom OurAtom;
 typedef MFM::Site<MFM::P3AtomConfig> OurSite;
 typedef MFM::EventConfig<OurSite, 4> OurEventConfig;
 typedef MFM::ElementTypeNumberMap<OurEventConfig> OurElementTypeNumberMap;
-typedef MFM::UlamContext<OurEventConfig> OurUlamContext;
+typedef MFM::UlamContextEvent<OurEventConfig> OurUlamContext;
 typedef MFM::Tile<OurEventConfig> OurTile;
 typedef MFM::EventWindow<OurEventConfig> OurEventWindow;
 

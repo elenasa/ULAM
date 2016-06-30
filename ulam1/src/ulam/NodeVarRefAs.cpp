@@ -178,7 +178,7 @@ namespace MFM {
 
 	//note: needs effective self of the atom, not simply the RHS type.
 	fp->write(m_state.getHiddenContextArgName());
-	fp->write(".LookupElementTypeFromContext(");
+	fp->write(".LookupUlamElementTypeFromContext(");
 	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str()); //t3636
 	fp->write(".GetType())");
       }
