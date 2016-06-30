@@ -3,7 +3,6 @@
 #!
 Exit status: 0
 Ue_Eltypo { typedef Empty EArr[4];  Int(32) test() {  Empty arr[4];  0u cast return } }
-Uq_Empty { /* empty class block */ }
 ##
 ##      //arraysize zero ok, but not bitsize zero!
 ##      // gcc balks at BitVector for immediate (Dave fixed it)
@@ -18,8 +17,4 @@ element Eltypo {
   }
 }
 
-#:Empty.ulam
-  ulam 1;
-quark Empty
-{ }
 #.

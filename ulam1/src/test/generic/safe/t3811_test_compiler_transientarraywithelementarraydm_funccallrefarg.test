@@ -71,7 +71,7 @@ element Foo {
   Void setTre(Unary(3) uarg)
   {
     mTre = uarg;
-    Unary(3) meu = mTre;
+    Unary(3) meu = mTre; //confirmation
   }
 }
 

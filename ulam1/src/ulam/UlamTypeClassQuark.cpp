@@ -264,12 +264,14 @@ namespace MFM {
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const UlamRef");
-    fp->write("<EC>& r) : UlamRef<EC>(r, 0, r.GetLen(), r.GetEffectiveSelf(), ");
-    if(!isScalar())
-      fp->write("UlamRef<EC>::ARRAY");
-    else
-      fp->write("UlamRef<EC>::CLASSIC");
-    fp->write(") { }"); GCNL;
+    //    fp->write("<EC>& r) : UlamRef<EC>(r, 0, r.GetLen(), r.GetEffectiveSelf(), ");
+    //if(!isScalar())
+    //fp->write("UlamRef<EC>::ARRAY");
+    //else
+    //  fp->write("UlamRef<EC>::CLASSIC");
+    fp->write("<EC>& r) : UlamRef<EC>(r, ");
+    fp->write_decimal_unsigned(len); //includes arraysize
+    fp->write("u) { }"); GCNL;
 
     //(exact) copy constructor; pos relative to exisiting (i.e. same).
     //t3617, t3631, t3668, t3669, t3672, t3689, t3692, t3693, t3697, t3746
@@ -277,11 +279,12 @@ namespace MFM {
     fp->write(automangledName.c_str());
     fp->write("(const ");
     fp->write(automangledName.c_str());
-    fp->write("<EC>& r) : UlamRef<EC>(r, 0, r.GetLen(), r.GetEffectiveSelf(), ");
-    if(!isScalar())
-      fp->write("UlamRef<EC>::ARRAY");
-    else
-      fp->write("UlamRef<EC>::CLASSIC");
+    //fp->write("<EC>& r) : UlamRef<EC>(r, 0, r.GetLen(), r.GetEffectiveSelf(), ");
+    //    if(!isScalar())
+    //  fp->write("UlamRef<EC>::ARRAY");
+    //else
+    //  fp->write("UlamRef<EC>::CLASSIC");
+    fp->write("<EC>& r) : UlamRef<EC>(r, r.GetLen()");
     fp->write(") { }"); GCNL;
 
     //default destructor (intentially left out)

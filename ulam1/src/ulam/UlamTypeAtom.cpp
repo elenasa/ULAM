@@ -193,12 +193,12 @@ namespace MFM {
     fp->write(automangledName.c_str());
     fp->write("(BitStorage<EC>& targ, u32 startidx, const UlamContext<EC>& uc) : UlamRef<EC>(startidx, BPA, targ, uc.LookupElementTypeFromContext(targ.ReadAtom(startidx).GetType()), UlamRef<EC>::ATOMIC, uc) { }"); GCNL;
 
-    //copy constructor for autoref (chain would be unpacked array)
+    //copy constructor for autoref (chain would be unpacked array,
+    // e.g. 3812 requires NULL effself)
     // no extra uc, consistent with other types now.
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    //fp->write("(const UlamRef<EC>& arg, s32 idx, const UlamContext<EC>& uc) : UlamRef<EC>(arg, idx, BPA, arg.GetEffectiveSelf(), UlamRef<EC>::ATOMIC) { }"); GCNL;
-    fp->write("(const UlamRef<EC>& arg, s32 idx) : UlamRef<EC>(arg, idx, BPA, arg.GetEffectiveSelf(), UlamRef<EC>::ATOMIC) { }"); GCNL;
+    fp->write("(const UlamRef<EC>& arg, s32 idx) : UlamRef<EC>(arg, idx, BPA, NULL, UlamRef<EC>::ATOMIC) { }"); GCNL;
 
     //copy constructor, t3701, t3735, t3753,4,5,6,7,8,9
     m_state.indent(fp);

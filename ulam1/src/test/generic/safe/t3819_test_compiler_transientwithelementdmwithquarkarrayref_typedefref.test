@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t3818_test_compiler_transientarraywithatomarrayref_typedefref
+#=t3819_test_compiler_transientwithelementdmwithquarkarrayref_typedefref
 #!
 ##      gen code output: (2 asserts)
 ##
