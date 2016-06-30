@@ -21,18 +21,17 @@ namespace MFM{
     s32 code = Uv_4code.read();
     u32 type = ur.GetType();
     typedef typename EC::ATOM_CONFIG AC;
-    const Tile<EC> & tile = uc.GetTile();
     SPoint ctr = uc.GetEventWindow().GetCenterInTile();
     SPointSerializer sctr(ctr);
 
     if (type != T::ATOM_UNDEFINED_TYPE) { // Have an actual element
       T atom = ur.CreateAtom();
       AtomSerializer<AC> as(atom);
-      LOG.Message("FAIL(%d/0x%08x) (0x%04x) by %@ in Tile %s site %@ ", 
-                  code, code, type, &as, tile.GetLabel(), &sctr);
+      LOG.Message("FAIL(%d/0x%08x) (0x%04x) by %@ in %s site %@ ", 
+                  code, code, type, &as, uc.GetContextLabel(), &sctr);
     } else {
-      LOG.Message("FAIL(%d/0x%08x) in Tile %s site %@ ", 
-                  code, code, tile.GetLabel(), &sctr);
+      LOG.Message("FAIL(%d/0x%08x) in %s site %@ ", 
+                  code, code, uc.GetContextLabel(), &sctr);
     }
     FAIL_BY_NUMBER(code);
   }
