@@ -381,51 +381,12 @@ namespace MFM {
 
   EvalStatus NodeSquareBracket::evalACustomArray()
   {
-#if 1
     //custom array should call aref? eval MUST NOT be used to get arraysize in bracket.
     std::ostringstream msg;
     msg << "Custom Array subscript";
     msg << " requires aref function call; Unsupported for eval";
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
     return UNEVALUABLE;
-#endif
-
-    UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
-
-    if(nuti == Hzy)
-      return NOTREADY;
-
-    evalNodeProlog(0); //new current frame pointer
-
-    makeRoomForSlots(1); //always 1 slot for ptr
-    EvalStatus evs = m_nodeLeft->evalToStoreInto();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
-
-    UlamValue pluv = m_state.m_nodeEvalStack.popArg();
-    UTI ltype = pluv.getPtrTargetType();
-
-    //could be a custom array which is a scalar quark. already checked.
-    bool isCustomArray = m_state.isClassACustomArray(ltype);
-    //array of caarray quarks is not a customarray.
-    assert(m_isCustomArray == isCustomArray);
-
-    makeRoomForNodeType(m_nodeRight->getNodeType()); //offset a constant expression
-    evs = m_nodeRight->eval();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
-
-    UlamValue offset = m_state.m_nodeEvalStack.popArg();
-    evalNodeEpilog();
-    return evs;
   } //evalACustomArray
 
   EvalStatus NodeSquareBracket::evalToStoreInto()
@@ -497,64 +458,12 @@ namespace MFM {
 
   EvalStatus NodeSquareBracket::evalToStoreIntoACustomArray()
   {
-#if 1
     //custom array should call aset? eval MUST NOT be used to get arraysize in bracket.
     std::ostringstream msg;
     msg << "Custom Array subscript";
     msg << " requires aset function call; Unsupported for evalToStoreInto";
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
     return UNEVALUABLE;
-#endif
-
-    assert(m_isCustomArray);
-    evalNodeProlog(0); //new current frame pointer
-
-    makeRoomForSlots(1); //always 1 slot for ptr
-    EvalStatus evs = m_nodeLeft->evalToStoreInto();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
-
-    UlamValue pluv = m_state.m_nodeEvalStack.popArg();
-
-    makeRoomForNodeType(m_nodeRight->getNodeType()); //offset a constant expression
-    evs = m_nodeRight->eval();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
-
-    UlamValue offset = m_state.m_nodeEvalStack.popArg();
-
-    UTI auti = pluv.getPtrTargetType();
-    assert(m_state.isScalar(auti) && m_state.isClassACustomArray(auti));
-
-    UTI caType = m_state.getAClassCustomArrayType(auti);
-    UlamType * caut = m_state.getUlamTypeByIndex(caType);
-    u32 pos = pluv.getPtrPos();
-    if(caut->getBitSize() > MAXBITSPERINT)
-      pos = 0;
-    //  itemUV = UlamValue::makeAtom(caType);
-    //else
-    //  itemUV = UlamValue::makeImmediate(caType, 0, m_state);  //quietly skip for now
-
-    //use CA type, not the left ident's type
-    UlamValue scalarPtr = UlamValue::makePtr(pluv.getPtrSlotIndex(),
-					     pluv.getPtrStorage(),
-					     caType,
-					     m_state.determinePackable(caType), //PACKEDLOADABLE
-					     m_state,
-					     pos /* base pos of array */
-					     );
-
-    //copy result UV to stack, -1 relative to current frame pointer
-    Node::assignReturnValuePtrToStack(scalarPtr);
-
-    evalNodeEpilog();
-    return evs;
   } //evalToStoreIntoACustomArray
 
   bool NodeSquareBracket::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)

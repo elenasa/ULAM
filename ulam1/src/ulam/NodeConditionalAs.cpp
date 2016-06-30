@@ -61,13 +61,10 @@ namespace MFM {
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMTYPE letyp = lut->getUlamTypeEnum();
     ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
-    //    if(!(m_state.isAtom(luti) || (lclasstype == UC_ELEMENT)) && lut->isScalar())
-    //if(!(m_state.isAtom(luti) || (lclasstype == UC_ELEMENT) || (lclasstype == UC_TRANSIENT)))
     if(!(m_state.isAtom(luti) || (letyp == Class)))
       {
 	std::ostringstream msg;
 	msg << "Invalid lefthand type of conditional operator '" << getName();
-	//msg << "'; must be an atom, element or transient, not ";
 	msg << "'; must be an atom or class, not ";
 	msg << lut->getUlamTypeNameBrief().c_str();
 	if(lclasstype == UC_UNSEEN || luti == Hzy)
@@ -105,17 +102,6 @@ namespace MFM {
 	    return Nav;
 	  }
       }
-
-#if 0
-    if(!strcmp(m_nodeLeft->getName(), "self")) //was "self"
-      {
-	std::ostringstream msg;
-	msg << "Invalid lefthand identifier of conditional operator '" << getName();
-	msg << "'; Suggest using a variable of type Atom as 'self'";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	newType = Nav;
-      }
-#endif
 
     assert(m_nodeTypeDesc);
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
@@ -181,7 +167,6 @@ namespace MFM {
 	      {
 		ULAMTYPE retyp = rut->getUlamTypeEnum();
 		//any class may inherit from a quark
-		//if(!((rclasstype == UC_QUARK) && rut->isScalar()))
 		if(!((retyp == Class) && rut->isScalar()))
 		  {
 		    std::ostringstream msg;
@@ -370,10 +355,7 @@ namespace MFM {
     UTI luti = luvpass.getPassTargetType(); //replaces
     assert(m_state.okUTItoContinue(luti));
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
-    //ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
 
-    //if(lclasstype != UC_TRANSIENT)
-    //if((lclasstype != UC_TRANSIENT) && (lclasstype != UC_QUARK))
     if(m_state.isAtom(luti))
       {
 	//wiped out by reading lhs; needed later by auto NodeVarDecl
@@ -417,7 +399,6 @@ namespace MFM {
       }
     else if(rclasstype == UC_QUARK)
       {
-	//if(lclasstype == UC_ELEMENT)
 	if(lut->getUlamTypeEnum() == Class) //either element, quark, or transient (t3823)
 	  {
 	    if(lut->getReferenceType() == ALT_AS) //e.g. nested-as
@@ -472,7 +453,6 @@ namespace MFM {
     u32 lid = m_state.m_currentObjSymbolsForCodeGen.back()->getId();
 
     uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid);
-
     //NO m_state.clearCurrentObjSymbolsForCodeGen()
   } //genCode
 

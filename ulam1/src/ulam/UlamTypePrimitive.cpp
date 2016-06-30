@@ -494,13 +494,7 @@ namespace MFM {
     fp->write("read");
     fp->write("()); }"); GCNL;
 
-#if 0
-    //default destructor (for completeness)
-    m_state.indent(fp);
-    fp->write("~");
-    fp->write(mangledName.c_str());
-    fp->write("() {}"); GCNL;
-#endif
+    //default destructor (intentionally left out)
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -551,24 +545,6 @@ namespace MFM {
 	fp->write("(0u, rtnunpbv); return rtnunpbv; ");
 	fp->write("} //reads entire BV"); GCNL;
       }
-
-#if 0
-    //scalar and entire PACKEDLOADABLE array handled by base class read method
-    if(!isScalar())
-      {
-	//reads an item of array;
-	//2nd argument generated for compatibility with underlying method
-	m_state.indent(fp);
-	fp->write("const ");
-	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
-	fp->write(" readArrayItem(");
-	fp->write("const u32 index, const u32 itemlen) const { return BVS::");
-	fp->write(readArrayItemMethodForCodeGen().c_str());
-	fp->write("(index * itemlen, "); //rel offset
-	fp->write("itemlen)"); //itemlen
-	fp->write("; }"); GCNL;
-      }
-#endif
   } //genUlamTypeReadDefinitionForC
 
   void UlamTypePrimitive::genUlamTypeWriteDefinitionForC(File * fp)
@@ -605,23 +581,6 @@ namespace MFM {
 	fp->write("(0u, bv); ");
 	fp->write("} //writes entire BV"); GCNL;
       }
-
-#if 0
-    //scalar and entire PACKEDLOADABLE array handled by base class write method
-    if(!isScalar())
-      {
-	// writes an element of array
-	//3rd argument generated for compatibility with underlying method
-	m_state.indent(fp);
-	fp->write("void writeArrayItem(const ");
-	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32, s64 or u64
-	fp->write(" v, const u32 index, const u32 itemlen) { BVS::");
-	fp->write(writeArrayItemMethodForCodeGen().c_str());
-	fp->write("(index * itemlen, "); //rel offset
-	fp->write("itemlen, v)"); //itemlen, primitive effself
-	fp->write("; }"); GCNL;
-      }
-#endif
   } //genUlamTypeWriteDefinitionForC
 
   void UlamTypePrimitive::genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp)

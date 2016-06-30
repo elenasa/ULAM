@@ -309,7 +309,7 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		m_varSymbol->resetUlamType(duti); //consistent!
 		m_state.mapTypesInCurrentClass(it, duti);
-		//m_state.updateUTIAliasForced(it, duti); //help?nope, t3808
+		//m_state.updateUTIAliasForced(it, duti); //help?NOPE, t3808
 		it = duti;
 	      }
 	  }
