@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3832_test_compiler_transientwithtransientdmwithelementarrayref_typedefref
 #!
-##      gen code output: (2 asserts)
+##      gen code output: (5 asserts)
 ##
 Exit status: -11
 Ue_R { Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  QW qw;  A ar[3];  typedef Foo& FAR[4];  Foo& f = ar 1 [] mToo mFAR 1 [] . . cast;  Foo fv = f cast;  s ( f mTre . cast 1u cast == )assert . Too& toor = ar 1 [] mToo . cast;  Foo& foot1 = toor mFAR 1 [] . cast;  Foo foot1v = foot1 cast;  s ( foot1 mTre . cast 1u cast == )assert . f mTre . 2u cast = s ( foot1 mTre . cast 2u == )assert . ar 1 [] mToo mFAR 1 [] ( 2u cast )setTre . . . b qw ( ar 1 [] mToo mFAR 1 [] . . cast )eunc . = s ( b )assert . Foo& fart[4] = toor mFAR . cast;  Foo footfart1 = fart 1 [];  Foo& far[4] = ar 1 [] mToo mFAR . . cast;  Foo& far1 = far 1 [] cast;  Foo foo1 = far1 cast;  Foo foo2 = far 1 [];  foo2 ( 1u cast )setTre . c qw ( foo2 cast )eunc . = s ( c )assert . 0 cast return } }
@@ -48,9 +48,9 @@ element R {
 
     FAR far = ar[1].mToo.mFAR;
     Foo& far1 = far[1];
-    Foo foo1 = far1; //<<<ILLEGAL ARG
+    Foo foo1 = far1; //bug fixed <<<ILLEGAL ARG
 
-    Foo foo2 = far[1]; //<<<ILLEGAL ARG
+    Foo foo2 = far[1]; //bug fixed <<<ILLEGAL ARG
     foo2.setTre(1u);
     c = qw.eunc(foo2);
     s.assert(c);

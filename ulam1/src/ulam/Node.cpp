@@ -2319,7 +2319,7 @@ namespace MFM {
       }
     else if(m_state.isAtom(cosuti))
       {
-	fp->write("NULL");
+	fp->write("NULL"); //t3833
 	//	fp->write("uc.LookupElementTypeFromContext(");
 	//fp->write(cos->getMangledName().c_str());
 	//fp->write(".ReadAtom(");

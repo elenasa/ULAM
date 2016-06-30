@@ -1090,8 +1090,7 @@ namespace MFM {
 	  {
 	    //from quarkref to atomref
 	    assert(m_state.isReference(vuti));
-	    fp->write(", - T::ATOM_FIRST_STATE_BIT, uc"); //'is'
-	    //assert(0); //need a test
+	    fp->write(", - T::ATOM_FIRST_STATE_BIT"); //'is' t3834
 	  }
 	fp->write(");"); GCNL; //like, shadow lhs of as
 
