@@ -92,6 +92,13 @@ quark EventWindow {
 
   C2D getCoord(SiteNum siteNum) native;
 
+  C2D getCoordRaw(SiteNum siteNum) {
+    Symmetry old = changeSymmetry(cSYMMETRY_000L);
+    C2D raw = getCoord(siteNum);
+    changeSymmetry(old);
+    return raw;
+  }
+
   /**
      Map directCoord through the current symmetry and return the
      corresponding position.
