@@ -23,7 +23,7 @@
   Void setX(Int ax) { x = (Coord) ax; }
   Void setY(Int ay) { y = (Coord) ay; }
 
-  Self make(Coord x, Coord y)
+  Self make(Int x, Int y)
   {
     Self ret;
     ret.init(x,y);
@@ -47,7 +47,7 @@
   }
 
   Self negate() {
-    return make((Coord) -x, (Coord) -y);
+    return make((Coord) -(Int) x, (Coord) -(Int) y);
   }
 
   /**
