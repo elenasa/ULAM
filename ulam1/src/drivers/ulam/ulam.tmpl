@@ -1196,12 +1196,13 @@ EOF
             my $stubname = lexEncode("_uelstub",$libraryStubPtrArrayCount);
             my $elsname = "UlamElementLibraryStub";
             my $putinarray = 1;
-            if ($en eq "Ue_10105Empty10") {
-                $infoinstancename = "_ueinfoEmpty";
-                $stubname = "_uelstubEmpty";
-                $elsname = "UlamEmptyElementLibraryStub";
-                $putinarray = 0;
-            }
+# Thu Jun 30 15:48:05 2016 Trying the special-casing on the mfms side
+#            if ($en eq "Ue_10105Empty10") {
+#                $infoinstancename = "_ueinfoEmpty";
+#                $stubname = "_uelstubEmpty";
+#                $elsname = "UlamEmptyElementLibraryStub";
+#                $putinarray = 0;
+#            }
             $libraryStubPtrArrayStatics .= <<EOF;
 
   static MFM::$infoname<MFM::StdEventConfig> $infoinstancename(MFM::$en<MFM::StdEventConfig>::THE_INSTANCE);
