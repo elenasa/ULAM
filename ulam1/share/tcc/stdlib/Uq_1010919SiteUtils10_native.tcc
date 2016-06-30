@@ -6,7 +6,11 @@ namespace MFM{
   Ui_Ut_10121u<EC> Uq_1010919SiteUtils10<EC>::Uf_8getTouch(const UlamContext<EC>& uc, UlamRef<EC>& ur) const
   {
     typedef typename EC::ATOM_CONFIG AC;
-    const Site<AC> & site = uc.GetSite();
+
+    MFM_API_ASSERT_STATE(uc.HasEventWindow());
+    EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
+
+    const Site<AC> & site = ew.GetSite();
     return Ui_Ut_10121u<EC>(site.RecentTouch());
   }
 
@@ -71,6 +75,7 @@ namespace MFM{
   {
     typedef typename EC::ATOM_CONFIG AC;
 
+    MFM_API_ASSERT_STATE(uc.HasEventWindow());
     EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
     Base<AC> & base = ew.GetBase();
 
