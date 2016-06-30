@@ -385,13 +385,7 @@ namespace MFM {
     fp->write("AtomBitStorage<EC>");
     fp->write("(d.read()) { }"); GCNL;
 
-#if 0
-    //default destructor (for completeness)
-    m_state.indent(fp);
-    fp->write("~");
-    fp->write(mangledName.c_str());
-    fp->write("() {}"); GCNL;
-#endif
+    //default destructor (intentionally left out)
 
     genUlamTypeReadDefinitionForC(fp);
 

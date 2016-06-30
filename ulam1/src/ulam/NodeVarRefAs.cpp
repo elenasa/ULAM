@@ -142,8 +142,6 @@ namespace MFM {
     ULAMTYPE stgetyp = stgcosut->getUlamTypeEnum();
     ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClassType();
 
-    //assert((stgetyp == UAtom) || (stgclasstype == UC_ELEMENT)); //not quark, not transient
-    //assert((stgetyp == UAtom) || (stgclasstype == UC_ELEMENT) || (stgclasstype == UC_TRANSIENT)); //lhs not quark
     assert((stgetyp == UAtom) || (stgetyp == Class)); //lhs
 
     if(stgcos->isSelf())

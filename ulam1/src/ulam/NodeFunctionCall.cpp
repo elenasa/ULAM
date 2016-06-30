@@ -1068,7 +1068,7 @@ namespace MFM {
     assert(uvpass.getPassStorage() == TMPAUTOREF);
 
     UTI vuti = uvpass.getPassTargetType();
-    //assert(m_state.getUlamTypeByIndex(vuti)->getReferenceType() != ALT_NOT); (e.g. t3668, a QW that was deref'd by [].)
+    //vuti may not be a ref (e.g. t3668, a QW that was deref'd by [].)
 
     //use possible dereference type for mangled name
     UTI derefuti = m_state.getUlamTypeAsDeref(vuti);
@@ -1082,11 +1082,7 @@ namespace MFM {
     hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvarur).c_str() << "(";
     hiddenarg2 << m_state.getTmpVarAsString(derefuti, tmpvarnum, TMPAUTOREF).c_str();
     hiddenarg2 << ", " << uvpass.getPassPos() << "u"; //element refs already +25
-
-    // if((derefut->getUlamClassType() == UC_ELEMENT) || m_state.isAtom(derefuti))
-    //  hiddenarg2 << ", T::BPA, ";
-    // else
-      hiddenarg2 << ", " << derefut->getTotalBitSize() << "u, "; //len t3370
+    hiddenarg2 << ", " << derefut->getTotalBitSize() << "u, "; //len t3370
 
     hiddenarg2 << "&";
     hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(derefuti).c_str();

@@ -183,15 +183,6 @@ namespace MFM {
 
     //don't allow a subclass to shadow a superclass datamember
     UTI superuti = m_state.isClassASubclass(cuti);
-#if 0
-    if(superuti == Hzy)
-      {
-	setNodeType(Hzy);
-	m_state.setGoAgain();
-	return Hzy;
-      }
-#endif
-
     if(superuti != Nouti) //has ancestor
       {
 	//is a subclass' DM..
@@ -970,8 +961,7 @@ namespace MFM {
 	fp->write("typedef UlamRefFixed");
 	fp->write("<EC, "); //BITSPERATOM
 
-	//if(m_state.getUlamClassForThisClass() == UC_ELEMENT) //t3714, t3779 Mob.h Up_Um_2sp
-	if(nut->getUlamClassType() == UC_ELEMENT)
+	if(nut->getUlamClassType() == UC_ELEMENT) //t3714, t3779 Mob.h Up_Um_2sp
 	  {
 	    //elements only data members in transients
 	    assert(m_state.getUlamClassForThisClass() == UC_TRANSIENT);

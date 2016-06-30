@@ -433,49 +433,6 @@ namespace MFM {
     return dupfound;
   } //checkForDuplicateFunctionSignature (helper)
 
-#if 0
-  // before generating code, remove duplicate funcs to avoid "previously declared" gcc error.
-  u32 SymbolFunctionName::CHECKFUNCTIONNAMES()
-  {
-    u32 probcount = 0;
-    std::set<std::string>mangledFunctionSet; //detect duplicated UTI parameters
-    std::vector<std::string>dupfuncs;
-
-    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
-    while(it != m_mangledFunctionNames.end())
-      {
-	std::string fkey = it->first;
-	SymbolFunction * fsym = it->second;
-	std::string fmangled = fsym->getMangledNameWithTypes();
-	std::pair<std::set<std::string>::iterator, bool> ret;
-	ret = mangledFunctionSet.insert(fmangled);
-	bool overloaded = ret.second; //false if already existed, i.e. not added
-	if(!overloaded) //shouldn't be a duplicate, but if it is handle it
-	  {
-	    std::ostringstream msg;
-	    msg << "Check overloaded function <";
-	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
-	    msg << "> has a duplicate definition (" << fmangled.c_str();
-	    msg << "), while compiling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	    MSG(fsym->getTokPtr(), msg.str().c_str(), ERR);  //Dave says better to start as error
-	    NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
-	    assert(func);
-	    func->setNodeType(Nav); //compiler counts
-	    probcount++;
-	    dupfuncs.push_back(fkey);
-	  }
-	++it;
-      }
-    mangledFunctionSet.clear(); //strings only
-
-    //no longer try to erase the dup function; prefer the error msg Thu Jan 21 11:24:07 2016
-    //unclear which dup function is found/removed; case of more than one dup is handled similarly;
-    dupfuncs.clear();
-    return probcount;
-  } //checkFunctionNames
-#endif
-
   u32 SymbolFunctionName::checkCustomArrayGetFunctions(UTI& rtnType)
   {
     u32 probcount = 0;
