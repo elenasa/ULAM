@@ -1364,9 +1364,7 @@ namespace MFM {
 	  {
 	    fp->write(", ");
 	    fp->write_decimal_unsigned(pos); //Sun Jun 19 08:36:22 2016
-	    fp->write("u");
-
-	    fp->write(", uc");
+	    fp->write("u, uc");
 	  }
 	//else nothing
       }
@@ -1538,7 +1536,7 @@ namespace MFM {
 	    fp->write(" * BPA"); //t3670
 
 	    if(needAdjustToStateBits(cosuti))
-	      fp->write(" + T::ATOM_FIRST_STATE_BIT"); //t3814 Fri Jun 24 13:40:52 2016
+	      fp->write(" + T::ATOM_FIRST_STATE_BIT"); //t3814
 	  }
 	else if((cosclasstype == UC_TRANSIENT)) //t3810
 	  {
@@ -1612,7 +1610,7 @@ namespace MFM {
     UTI vuti = vsymptr->getUlamTypeIdx(); //i.e. this ref node
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
-    //Wed Jun 22 15:38:10 2016 why are atoms a special case? (t3484)
+    //Wed Jun 22 15:38:10 2016 atoms no longer a special case (t3484)
 
     Symbol * cos = NULL;
     Symbol * stgcos = NULL;
@@ -1652,7 +1650,7 @@ namespace MFM {
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
 	//WHY is this different than NodeFunctionCall::genCodeAnonymousReferenceArg??
-	//local var (no currentObjSymbols, 1 arg since same type) e.g. t3617
+	//local var (no currentObjSymbols, 1 arg since same type) e.g. t3617, t3779
 	assert(UlamType::compare(uvpass.getPassTargetType(), vuti, m_state) == UTIC_SAME);
 	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	fp->write(");"); GCNL;
@@ -1808,8 +1806,8 @@ namespace MFM {
 	      {
 		if(!stgcosut->isReference())
 		  {
-		    //effective self for arrays is NULL Tue Jun 28 12:39:59 2016
-		    fp->write(", 0u, NULL"); //(t3670) 3668, t3669, t3670
+		    //effective self for arrays is NULL
+		    fp->write(", 0u, NULL"); //t3670 3668, t3669, t3670
 		  }
 	      }
 	    else
@@ -2458,7 +2456,7 @@ namespace MFM {
 	  hiddenarg2 << m_state.getHiddenArgName(); //same ur
 	else if(stgcos->isSelf() && (stgcos == cos)) //t3831, t3274, t3275
 	  {
-	    hiddenarg2 << m_state.getHiddenArgName(); //same ur Sun Jun 26 18:31:04 2016
+	    hiddenarg2 << m_state.getHiddenArgName(); //same ur
 	  }
 	else
 	  {
@@ -2470,7 +2468,7 @@ namespace MFM {
 	    hiddenarg2 << ", " << cosut->getTotalBitSize() << "u, &"; //len
 
 	    hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str(); //cos->isSuper rolls as cosuti
-	    hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str(); //Mon Jun 27 16:17:56 2016
+	    hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str();
 	    hiddenarg2 << ");";
 	  }
       }
@@ -2489,42 +2487,29 @@ namespace MFM {
 	      {
 		hiddenarg2 << m_state.getHiddenArgName(); //same ur
 	      }
-	    else if(cos->getAutoLocalType() == ALT_AS)
-	      {
-		sameur = false;
-		//update ur to reflect "effective" self for this funccall (t3249, t3255)
-		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
-		hiddenarg2 << stgcos->getMangledName().c_str();
-		hiddenarg2 << ", " << Node::calcPosOfCurrentObjectClassesAsString(uvpass); //relative off;
-		hiddenarg2 << ", " << stgcosut->getTotalBitSize() << "u, "; //len
-		hiddenarg2 << stgcos->getMangledName().c_str(); //effself of as-variable
-		hiddenarg2 << ".GetEffectiveSelf()";
-
-		hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str() << ");";
-	      }
-	    else if(stgcosut->isReference()) //t3751, t3752
+	    else if(stgcosut->isReference()) //t3751, t3752, (ALT_AS: t3249, t3255)
 	      {
 		sameur = false;
 		//update ur to reflect "effective" self for this funccall
 		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
 		hiddenarg2 << stgcos->getMangledName().c_str() << ", ";
-		hiddenarg2 << Node::calcPosOfCurrentObjectClassesAsString(uvpass); //relative off;
-		hiddenarg2 << ", " << cosut->getTotalBitSize() << "u, "; //len
 
 		if(cos->isDataMember()) //dm of local stgcos
 		  {
+		    hiddenarg2 << Node::calcPosOfCurrentObjectClassesAsString(uvpass); //relative off;
+		    hiddenarg2 << ", " << cosut->getTotalBitSize() << "u, "; //len
+
 		    hiddenarg2 << "&"; //effective self of dm (t3804 check -10)
 		    hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str();
+		    hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str();
+		    hiddenarg2 << ");";
 		  }
 		else
 		  {
 		    //ancestor takes on effective self of sub
-		    hiddenarg2 << stgcos->getMangledName().c_str(); //effself of ref
-		    hiddenarg2 << ".GetEffectiveSelf()"; //e.g. t3746
+		    //uses UlamRef 2 arg copy constructor to maintain EffSelf and UsageType of ref
+		    hiddenarg2 << cosut->getTotalBitSize() << "u);" ; //len t3637, t3746
 		  }
-
-		hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str(); //Mon Jun 27 2016
-		hiddenarg2 << ");";
 	      }
 	    else
 	      {
@@ -2538,7 +2523,7 @@ namespace MFM {
 		hiddenarg2 << stgcos->getMangledName().c_str() << ", &"; //storage
 		hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str();
 
-		hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str(); //Mon Jun 27 2016
+		hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str();
 		hiddenarg2 << ", uc";
 		hiddenarg2 << ");";
 	      }

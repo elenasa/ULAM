@@ -1087,7 +1087,7 @@ namespace MFM {
     hiddenarg2 << "&";
     hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(derefuti).c_str();
 
-    hiddenarg2 << ", " << genUlamRefUsageAsString(derefuti).c_str(); //Mon Jun 27 2016
+    hiddenarg2 << ", " << genUlamRefUsageAsString(derefuti).c_str();
     hiddenarg2 << ");";
 
     urtmpnumref = tmpvarur;
@@ -1224,7 +1224,6 @@ namespace MFM {
   } //genRestOfFunctionArgs
 
   // should be like NodeVarRef::genCode;
-  // oops! DOESN'T HANDLE ARRAY ITEMS!!! Wed Jun 22 08:17:29 2016
   void NodeFunctionCall::genCodeReferenceArg(File * fp, UVPass & uvpass, u32 n)
   {
     // get the right?-hand side, stgcos
@@ -1255,6 +1254,7 @@ namespace MFM {
   // uses uvpass rather than stgcos, cos for classes or atoms (not primitives)
   void NodeFunctionCall::genCodeAnonymousReferenceArg(File * fp, UVPass & uvpass, u32 n)
   {
+    assert(0);
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //such as .atomof; self (t3779)
 
     assert(m_funcSymbol);

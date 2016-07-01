@@ -567,7 +567,6 @@ namespace MFM {
     fp->write(automangledName.c_str());
     fp->write("(const ");
     fp->write(automangledName.c_str());
-    //    fp->write("<EC>& r, u32 idx, const UlamContext<EC>& uc) : UlamRef<EC>(r, idx, r.GetLen(), r.GetEffectiveSelf(), UlamRef<EC>::ARRAY) { }"); GCNL;
     fp->write("<EC>& r, u32 idx) : UlamRef<EC>(r, idx, r.GetLen(), r.GetEffectiveSelf(), UlamRef<EC>::ARRAY) { }"); GCNL;
 
     //constructor for chain of autorefs (e.g. memberselect with array item)

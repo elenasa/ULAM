@@ -653,7 +653,10 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Name of variable/function <";
 		msg << m_state.getTokenDataAsString(&iTok).c_str();
-		msg << ">: Identifier must begin with a lower-case letter";
+		if((Token::getSpecialTokenWork(iTok.m_type) == TOKSP_KEYWORD))
+		  msg << ">: Identifier must not be a reserved keyword";
+		else
+		  msg << ">: Identifier must begin with a lower-case letter";
 		MSG(&iTok, msg.str().c_str(), ERR);
 	      }
 	    m_state.clearStructuredCommentToken();
@@ -1742,7 +1745,10 @@ namespace MFM {
 	//user error!
 	std::ostringstream msg;
 	msg << "Name of variable <" << m_state.getTokenDataAsString(&iTok).c_str();
-	msg << ">: Identifier must begin with a lower-case letter";
+	if((Token::getSpecialTokenWork(iTok.m_type) == TOKSP_KEYWORD))
+	  msg << ">: Identifier must not be a reserved keyword";
+	else
+	  msg << ">: Identifier must begin with a lower-case letter";
 	MSG(&iTok, msg.str().c_str(), ERR);
 	unreadToken();
 	delete typeNode;
