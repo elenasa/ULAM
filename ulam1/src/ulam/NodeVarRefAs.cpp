@@ -163,6 +163,7 @@ namespace MFM {
     // time to shadow 'self' with auto local variable:
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
 
     m_state.indentUlamCode(fp);
     fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
@@ -181,6 +182,8 @@ namespace MFM {
 	fp->write(".LookupUlamElementTypeFromContext(");
 	fp->write(m_state.getTmpVarAsString(stgcosuti, tmpVarStg, TMPBITVAL).c_str()); //t3636
 	fp->write(".GetType())");
+	if(vclasstype == UC_QUARK)
+	  fp->write(", UlamRef<EC>::ELEMENTAL"); //becomes elemental, t3835
       }
     else if((stgclasstype == UC_ELEMENT))
       {
@@ -196,6 +199,8 @@ namespace MFM {
 	    //must be same as look up for elements only Sat Jun 18 17:30:17 2016
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
 	  }
+	if(vclasstype == UC_QUARK)
+	  fp->write(", UlamRef<EC>::ELEMENTAL"); //stays elemental
       }
     else if((stgclasstype == UC_TRANSIENT))
       {
@@ -211,6 +216,8 @@ namespace MFM {
 	    fp->write("&"); //t3822
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
 	  }
+	if(vclasstype == UC_QUARK)
+	  fp->write(", UlamRef<EC>::CLASSIC"); //stays classic
       }
     else if((stgclasstype == UC_QUARK))
       {
@@ -226,6 +233,8 @@ namespace MFM {
 	    fp->write("&"); //t3830
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
 	  }
+	assert(vclasstype == UC_QUARK);
+	fp->write(", UlamRef<EC>::CLASSIC"); //stays classic
       }
     else
       assert(0); //WHAT THEN???

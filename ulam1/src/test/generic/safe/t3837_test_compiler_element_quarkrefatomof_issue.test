@@ -1,0 +1,67 @@
+## -*- mode:ulam -*-
+#=t3837_test_compiler_element_quarkrefatomof_issue
+##
+##  gen output (+ interleaved asserts)
+##  Int Arg: 2
+##  Unsigned Arg: 1
+##  Unsigned Arg: 96
+##
+#!
+Exit status: -11
+Ue_Foo : QPerc { :< Bool(1) bb(false); > Int(32) mi(0);  Int(32) test() {  System s;  Atom(96) a = Foo.instanceof cast;  QPerc& qref = a cast;  Atom(96) aqinas = qref.atomof cast;  mi qref ( )func . = s ( 1u )print . s ( true )assert . s ( 96u )print . s ( true )assert . s ( mi )print . bb mi 2 cast == = s ( bb )assert . mi return } }
+Uq_QPerc { Bool(1) bb(false);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by t3835, a Dave ish 7/1/2016;
+##
+#>Foo.ulam
+  ulam 2;
+use QPerc;
+element Foo : QPerc {
+
+  Int mi = 0;
+  virtual Int func()
+  {
+    return 2;
+  }
+
+  Int test() {
+    System s;
+    Atom a = Foo.instanceof; //init for test;
+    QPerc& qref = (QPerc&) a;
+    Atom aqinas = qref.atomof; //cannot generate usage CLASSIC->ILLEGAL_STATE
+    mi = qref.func();
+    s.print(qref.sizeof); // == 1
+    s.assert(qref.sizeof == QPerc.sizeof);
+    s.print(aqinas.sizeof); // == 96
+    s.assert(aqinas.sizeof == Atom.sizeof);
+
+    s.print(mi);
+    bb = (mi == 2);
+    s.assert(bb);
+    return mi;
+  }
+}
+
+#:QPerc.ulam
+  ulam 2;
+quark QPerc {
+  Bool bb;
+  virtual Int func()
+  {
+    return 1;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.
