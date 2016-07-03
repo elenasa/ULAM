@@ -28,7 +28,7 @@ element A {
   System s;
   typedef QW BigSite[10]; //try packed first!
   typedef BigSite & BSRef;
-  typedef BSRef & BRR;
+  typedef BSRef BRR;
   Bool sp;
   BigSite site;
 

@@ -1015,7 +1015,7 @@ namespace MFM {
     if(bUT == Class)
       return cuti; //try this Mon May  2 10:36:56 2016
 
-    u32 bitsize = keyOfArg.getUlamKeyTypeSignatureBitSize();
+    s32 bitsize = keyOfArg.getUlamKeyTypeSignatureBitSize();
     u32 nameid = keyOfArg.getUlamKeyTypeSignatureNameId();
     UlamKeyTypeSignature baseKey(nameid, bitsize, NONARRAYSIZE, cuti, ALT_ARRAYITEM);  //default array size is NONARRAYSIZE, new reftype
     ULAMCLASSTYPE classtype = ut->getUlamClassType();
@@ -1033,8 +1033,8 @@ namespace MFM {
 
     ULAMTYPE bUT = ut->getUlamTypeEnum();
     UlamKeyTypeSignature keyOfArg = ut->getUlamKeyTypeSignature();
-    u32 bitsize = keyOfArg.getUlamKeyTypeSignatureBitSize();
-    u32 arraysize = keyOfArg.getUlamKeyTypeSignatureArraySize();
+    s32 bitsize = keyOfArg.getUlamKeyTypeSignatureBitSize();
+    s32 arraysize = keyOfArg.getUlamKeyTypeSignatureArraySize();
     UTI classidx = keyOfArg.getUlamKeyTypeSignatureClassInstanceIdx();
 
     if((bUT == Class) && ut->isScalar())
@@ -1081,8 +1081,8 @@ namespace MFM {
     ULAMTYPE bUT = ut->getUlamTypeEnum();
     UlamKeyTypeSignature keyOfArg = ut->getUlamKeyTypeSignature();
 
-    u32 bitsize = keyOfArg.getUlamKeyTypeSignatureBitSize();
-    u32 arraysize = keyOfArg.getUlamKeyTypeSignatureArraySize();
+    s32 bitsize = keyOfArg.getUlamKeyTypeSignatureBitSize();
+    s32 arraysize = keyOfArg.getUlamKeyTypeSignatureArraySize();
     UTI classidx = keyOfArg.getUlamKeyTypeSignatureClassInstanceIdx();
     u32 nameid = keyOfArg.m_typeNameId;
     UlamKeyTypeSignature baseKey(nameid, bitsize, arraysize, classidx, altArg);  //default array size is zero

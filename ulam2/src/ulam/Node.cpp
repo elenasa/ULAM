@@ -754,16 +754,14 @@ namespace MFM {
     if(classtype == UC_ELEMENT)
       {
     	fp->write("T::BPA), "); //atom-based item length (e.g. t3832)
-	fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
-	fp->write("u, ");
       }
     else
       {
 	fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
 	fp->write("u), ");
-	fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
-	fp->write("u, ");
       }
+    fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
+    fp->write("u, ");
 
     if(!stgcosut->isReference() && isLocal)
       {
@@ -1168,6 +1166,7 @@ namespace MFM {
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+    ULAMCLASSTYPE cosclasstype = cosut->getUlamClassType();
     UTI	scalarcosuti = m_state.getUlamTypeAsScalar(cosuti); //ALT_ARRAYITEM
     scalarcosuti = m_state.getUlamTypeAsDeref(scalarcosuti);
 
@@ -1201,8 +1200,13 @@ namespace MFM {
     fp->write("u + ");
     fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //INDEX
     fp->write(" * ");
-    fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
-    fp->write("u), ");
+    if((cosclasstype == UC_ELEMENT))
+      fp->write("BPA), "); //t3670, t3841
+    else
+      {
+	fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
+	fp->write("u), ");
+      }
     fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
     fp->write("u, ");
 

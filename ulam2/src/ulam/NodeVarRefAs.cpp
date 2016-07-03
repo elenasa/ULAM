@@ -52,6 +52,13 @@ namespace MFM {
     return CAST_CLEAR; //created automatically when 'as' is true
   }
 
+  bool NodeVarRefAs::checkReferenceCompatibility(UTI uti)
+  {
+    assert(m_state.okUTItoContinue(uti));
+    assert(m_state.getUlamTypeByIndex(uti)->isReference());
+    return true; //ok
+  } //checkReferenceCompatibility
+
   UTI NodeVarRefAs::checkAndLabelType()
   {
     UTI it = NodeVarRef::checkAndLabelType();

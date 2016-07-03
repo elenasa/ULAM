@@ -67,6 +67,8 @@ namespace MFM{
 
     virtual FORECAST safeToCastTo(UTI newType);
 
+    virtual bool checkReferenceCompatibility(UTI uti);
+
     virtual UTI checkAndLabelType();
 
     virtual void packBitsInOrderOfDeclaration(u32& offset);

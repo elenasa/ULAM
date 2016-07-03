@@ -25,7 +25,7 @@ namespace MFM {
 
   bool UlamTypeAtom::needsImmediateType()
   {
-    return true; //isComplete();
+    return isComplete(); //t3671
   }
 
   const std::string UlamTypeAtom::getArrayItemTmpStorageTypeAsString()
@@ -495,10 +495,12 @@ namespace MFM {
   void UlamTypeAtom::genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp)
   {
     s32 len = getTotalBitSize(); //could be 0, includes arrays
+    s32 arraysize = getArraySize();
+    assert( arraysize >= 0); //zero-length array is legal to declare, but not access
+    if(arraysize == 0)
+      return; //duplicates scalar
 
     m_state.m_currentIndentLevel = 0;
-    UTI scalarUTI = UAtom;
-    const std::string scalarmangledName = m_state.getUlamTypeByIndex(scalarUTI)->getUlamTypeMangledName();
     const std::string automangledName = getUlamTypeImmediateAutoMangledName();
     const std::string mangledName = getUlamTypeImmediateMangledName();
     std::ostringstream  ud;
@@ -608,13 +610,15 @@ namespace MFM {
   void UlamTypeAtom::genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp)
   {
     s32 len = getTotalBitSize(); //could be 0, includes arrays
-    u32 arraysize = getArraySize();
+    s32 arraysize = getArraySize();
+
+    assert( arraysize >= 0); //zero-length array is legal to declare, but not access
+    if(arraysize == 0)
+      return; //duplicates scalar
 
     m_state.m_currentIndentLevel = 0;
 
     //class instance idx is always the scalar uti
-    UTI scalaruti =  UAtom;
-    const std::string scalarmangledName = m_state.getUlamTypeByIndex(scalaruti)->getUlamTypeMangledName();
     const std::string mangledName = getUlamTypeImmediateMangledName();
     std::ostringstream  ud;
     ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)

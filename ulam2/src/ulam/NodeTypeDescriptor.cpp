@@ -100,7 +100,7 @@ namespace MFM {
   void NodeTypeDescriptor::setReferenceType(ALT refarg, UTI referencedUTI, UTI refUTI)
   {
     setReferenceType(refarg, referencedUTI);
-    m_uti = refUTI; //new given as ref UTI
+    m_uti = refUTI; //new given as ref UTI Sat Jul  2 15:10:29 2016
   }
 
   UTI NodeTypeDescriptor::checkAndLabelType()
@@ -138,7 +138,14 @@ namespace MFM {
     UTI nuti = givenUTI(); //start with given.
 
     if(getReferenceType() != ALT_NOT)
-      rtnb = resolveReferenceType(nuti); //may update nuti
+      {
+	rtnb = resolveReferenceType(nuti); //may update nuti
+	if(nuti == Nav)
+	  {
+	    rtnuti = Nav;
+	    return false;
+	  }
+      }
 
     if(!m_state.isComplete(nuti))
       {
@@ -209,6 +216,7 @@ namespace MFM {
     //if reference is not complete, but its deref is, use its sizes to complete us.
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     UTI derefuti = getReferencedUTI();
+
     if(!m_state.okUTItoContinue(derefuti))
       {
 	if(nut->getUlamTypeEnum() == Class)
@@ -241,6 +249,8 @@ namespace MFM {
 	      }
 	  } //incomplete deref
 
+	UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
+
 	if(m_state.isComplete(derefuti))
 	  {
 	    //move to before known
@@ -251,10 +261,18 @@ namespace MFM {
 		nut =  m_state.getUlamTypeByIndex(nuti);
 		setReferenceType(altd, derefuti, nuti); //updates given too!
 	      }
+	    else if(derefut->getReferenceType() != ALT_NOT)
+	      {
+		std::ostringstream msg;
+		msg << "Referencing a reference type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		rtnuti = Nav;
+		return false;
+	      }
 	    else
 	      setReferenceType(altd, derefuti);
 
-	    UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
 	    // we might have set the size of a holder ref. still a holder. darn.
 	    if(!m_state.completeAReferenceTypeWith(nuti, derefuti) && m_state.isHolder(nuti))
 	      {

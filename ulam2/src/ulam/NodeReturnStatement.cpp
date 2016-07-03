@@ -158,7 +158,7 @@ namespace MFM {
 	      {
 		//(see spike/quick-foo/foo-voidfunccastreturn.cpp) e.g.t3384, error/t3280
 		std::ostringstream msg;
-		msg << "ISO C forbids return with expression in a function returning void";
+		msg << "Cannot return non-void expression in a function returning void";
 		msg << ", unless explicit cast is used for side-effects";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		nodeType = Nav; //missing?

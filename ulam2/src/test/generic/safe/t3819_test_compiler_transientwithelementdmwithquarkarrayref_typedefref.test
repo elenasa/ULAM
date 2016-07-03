@@ -29,7 +29,7 @@ element R {
     s.assert(b);
 
     typedef QW& QWR[4];
-    QWR& qwr = ar[1].mFoo.mQW;
+    QWR qwr = ar[1].mFoo.mQW;
     QW qw2 = qwr[2];
     qw2.mqb = true;
     c = qw2.qunc();

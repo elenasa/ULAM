@@ -47,12 +47,16 @@ namespace MFM{
   public:
 
     NodeStatements(Node * s, CompilerState & state);
+
     NodeStatements(const NodeStatements& ref);
+
     virtual ~NodeStatements();
 
     virtual Node * instantiate();
 
     virtual void updateLineage(NNO pno);
+
+    virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
 
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 

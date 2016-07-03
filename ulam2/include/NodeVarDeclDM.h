@@ -65,6 +65,8 @@ namespace MFM{
 
     virtual FORECAST safeToCastTo(UTI newType);
 
+    virtual bool checkReferenceCompatibility(UTI uti);
+
     virtual UTI checkAndLabelType();
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);

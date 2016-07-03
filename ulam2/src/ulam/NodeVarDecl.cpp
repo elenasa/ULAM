@@ -6,6 +6,7 @@
 #include "SymbolVariableStack.h"
 #include "NodeIdent.h"
 #include "NodeListArrayInitialization.h"
+#include "NodeVarRef.h"
 
 namespace MFM {
 
@@ -280,7 +281,67 @@ namespace MFM {
     return rtnOK;
   } //checkSafeToCastTo
 
-  UTI NodeVarDecl::checkAndLabelType()
+  bool NodeVarDecl::checkReferenceCompatibility(UTI uti)
+  {
+    assert(m_state.okUTItoContinue(uti));
+    if(m_state.getUlamTypeByIndex(uti)->isReference())
+      {
+	UTI cuti = m_state.getCompileThisIdx();
+	std::ostringstream msg;
+	msg << "Variable '";
+	msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+	msg << "', is a reference -- do surgery";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+
+	// replace ourselves with a ref node instead;
+	// same node no, and loc (e.g. t3666,t3669, t3670-3, t3819)
+	NodeVarRef * newnode = new NodeVarRef(m_varSymbol, NULL, m_state);
+	assert(newnode);
+
+	NNO pno = Node::getYourParentNo();
+	Node * parentNode = m_state.findNodeNoInThisClass(pno);
+	if(!parentNode)
+	  {
+	    std::ostringstream msg;
+	    msg << "Reference variable '" << getName();
+	    msg << "' cannot be exchanged at this time while compiling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    msg << " Parent required";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    assert(0); //parent required
+	  }
+
+	AssertBool swapOk = parentNode->exchangeKids(this, newnode);
+	assert(swapOk);
+
+	{
+	  std::ostringstream msg;
+	  msg << "Exchanged kids! <" << m_state.m_pool.getDataAsString(m_vid).c_str();
+	  msg << "> a reference variable, in place of a variable within class: ";
+	  msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	}
+
+	if(m_nodeTypeDesc)
+	  newnode->m_nodeTypeDesc = (NodeTypeDescriptor *) m_nodeTypeDesc->instantiate();
+
+	if(m_nodeInitExpr)
+	  newnode->m_nodeInitExpr = (Node *) m_nodeInitExpr->instantiate();
+
+	newnode->setNodeLocation(getNodeLocation());
+	newnode->setYourParentNo(pno); //missing?
+	newnode->resetNodeNo(getNodeNo()); //missing?
+
+	delete this; //suicide is painless..
+
+	// we must be the last thing called by checkandlabel
+	// to return properly to our parent
+	return newnode->checkAndLabelType();
+      }
+    return true; //ok
+  } //checkReferenceCompatibility
+
+UTI NodeVarDecl::checkAndLabelType()
   {
     UTI it = getNodeType();
 
@@ -483,7 +544,14 @@ namespace MFM {
     if(it == Hzy)
       m_state.setGoAgain(); //since not error
 
-    return getNodeType();
+    //checkReferenceCompatibilty must be called at the end since
+    // NodeVarDecl may do surgery on itself
+    if(m_state.okUTItoContinue(it) && !checkReferenceCompatibility(it))
+      {
+	it = Nav; //err msg by checkReferenceCompatibility
+	setNodeType(Nav); //failed
+      }
+    return it; //in case of surgery don't call getNodeType();
   } //checkAndLabelType
 
   void NodeVarDecl::checkForSymbol()

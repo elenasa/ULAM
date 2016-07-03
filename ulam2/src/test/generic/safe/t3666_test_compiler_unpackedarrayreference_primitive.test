@@ -26,7 +26,7 @@ element A {
   System s;
   typedef Int BigSite[10]; //try packed first!
   typedef BigSite & BSRef;
-  typedef BSRef & BRR;
+  typedef BSRef BRR;
 
   Int test(){
     BigSite site;

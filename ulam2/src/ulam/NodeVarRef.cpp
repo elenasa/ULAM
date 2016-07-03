@@ -198,6 +198,21 @@ namespace MFM {
     return rscr;
   } //safeToCastTo
 
+  bool NodeVarRef::checkReferenceCompatibility(UTI uti)
+  {
+    assert(m_state.okUTItoContinue(uti));
+    if((!m_state.getUlamTypeByIndex(uti)->isReference()))
+      {
+	std::ostringstream msg;
+	msg << "Variable reference '";
+	msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+	msg << "', is invalid";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return false;
+      }
+    return true; //ok
+  } //checkReferenceCompatibility
+
   UTI NodeVarRef::checkAndLabelType()
   {
     UTI it = NodeVarDecl::checkAndLabelType();
@@ -211,6 +226,7 @@ namespace MFM {
 	  hazyCount++;
 	assert(it != Nouti);
       }
+#if 0
     else if((!m_state.getUlamTypeByIndex(it)->isReference()))
       {
 	std::ostringstream msg;
@@ -220,7 +236,7 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	errCount++;
       }
-
+#endif
     ////requires non-constant, non-funccall value
     //NOASSIGN REQUIRED (e.g. for function parameters) doesn't have to have this!
     if(m_nodeInitExpr)

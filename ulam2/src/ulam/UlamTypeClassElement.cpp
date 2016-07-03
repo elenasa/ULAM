@@ -606,6 +606,11 @@ namespace MFM {
   void UlamTypeClassElement::genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp)
   {
     s32 arraysize = getArraySize();
+
+    assert(arraysize >= 0); //zero-length array is legal to declare, but not access
+    if(arraysize == 0)
+      return; //duplicates scalar
+
     s32 len = BITSPERATOM * arraysize;//getTotalBitSize(); //could be 0, includes arrays
 
     m_state.m_currentIndentLevel = 0;

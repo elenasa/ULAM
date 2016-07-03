@@ -160,6 +160,21 @@ namespace MFM {
     return rscr;
   } //safeToCastTo
 
+  bool NodeVarDeclDM::checkReferenceCompatibility(UTI uti)
+  {
+    assert(m_state.okUTItoContinue(uti));
+    if(m_state.getUlamTypeByIndex(uti)->isReference())
+      {
+	std::ostringstream msg;
+	msg << "Data member '";
+	msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+	msg << "', is a reference";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return false;
+      }
+    return true; //ok
+  } //checkReferenceCompatibility
+
   UTI NodeVarDeclDM::checkAndLabelType()
   {
     UTI nuti = NodeVarDecl::checkAndLabelType(); //sets node type

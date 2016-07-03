@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t3670_test_compiler_unpackedarrayreference_element
+#=t3841_test_compiler_zerolengtharrayreference_element
 #!
 ##      /* gen code output:
 ##	 Int Arg: 0
@@ -14,11 +14,11 @@
 ##	 Int Arg: 9
 ##      */
 Exit status: 10
-Ue_A { System s();  typedef QW BigSite[10];  typedef QW& BSRef[10];  typedef QW& BRR[10];  Int(32) test() {  QW site[10];  QW& siteref[10] = site cast;  QW& brr[10] = siteref;  QW qw;  { Int(32) i = 0 cast;  i 10 cast < cond { siteref i [] qw = siteref i [] ( 1 cast i )set . s ( brr i [] ( 1 cast )get . )print . } _1: i 1 cast += while } 10 cast return } }
+Ue_A { System s();  typedef QW NoSite[0];  typedef QW& NoRef[0];  typedef QW& NRR[0];  typedef QW BigSite[10];  typedef QW& BSRef[10];  typedef QW& BRR[10];  Int(32) test() {  QW nosite[0];  QW& nositeref[0] = nosite cast;  QW& nrr[0] = nositeref;  QW site[10];  QW& siteref[10] = site cast;  QW& brr[10] = siteref;  QW qw;  { Int(32) i = 0 cast;  i 10 cast < cond { siteref i [] qw = siteref i [] ( 1 cast i )set . s ( brr i [] ( 1 cast )get . )print . } _1: i 1 cast += while } 10 cast return } }
 Ue_QW { Bool(1) bw(false);  Int(8) iwarr[3](0,0,0);  Bits(9) tw(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
-## informed by t3668
+## informed by t3670 and t3840
 ##
 #>A.ulam
   ulam 2;
@@ -26,11 +26,22 @@ use QW;
 use System;
 element A {
   System s;
+
+  typedef QW NoSite[0];
+  typedef NoSite & NoRef;
+  typedef NoRef NRR;
+
   typedef QW BigSite[10];
   typedef BigSite & BSRef;
   typedef BSRef BRR;
 
   Int test(){
+    NoSite nosite;
+    NoRef nositeref = nosite;
+    NRR nrr = nositeref; //ref to ref
+    QW qwno = nosite[0]; //?
+
+    //the rest should gcc compile without ambiguity
     BigSite site;
     BSRef siteref = site;
     BRR brr = siteref; //ref to ref
