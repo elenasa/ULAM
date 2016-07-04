@@ -203,8 +203,10 @@ namespace MFM {
 
     if(arraysize > 0)
       mangled << ToLeximitedNumber(arraysize);
+    else if(arraysize == 0)
+      mangled << ToLeximitedNumber(-1); //distinct from scalar
     else
-      mangled << 10;
+      mangled << 10; //scalar NONARRAYSIZE
 
     if(bitsize > 0)
       mangled << ToLeximitedNumber(bitsize);

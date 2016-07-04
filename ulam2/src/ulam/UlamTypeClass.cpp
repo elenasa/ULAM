@@ -133,6 +133,8 @@ namespace MFM {
 
     if(arraysize > 0)
       mangled << ToLeximitedNumber(arraysize);
+    else if(arraysize == 0)
+      mangled << ToLeximitedNumber(-1); //distinct from scalar
     else
       mangled << 10;
 

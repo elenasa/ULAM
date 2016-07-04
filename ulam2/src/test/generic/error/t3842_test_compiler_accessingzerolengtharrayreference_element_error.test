@@ -1,25 +1,14 @@
 ## -*- mode:ulam -*-
-#=t3841_test_compiler_zerolengtharrayreference_element
+#=t3842_test_compiler_accessingzerolengtharrayreference_element_error
 #!
 ##      /* gen code output:
-##        2 asserts +
-##	 Int Arg: 0
-##	 Int Arg: 1
-##	 Int Arg: 2
-##	 Int Arg: 3
-##	 Int Arg: 4
-##	 Int Arg: 5
-##	 Int Arg: 6
-##	 Int Arg: 7
-##	 Int Arg: 8
-##	 Int Arg: 9
+##   include/Ue_10101A10.tcc:39: FAILED: ARRAY_INDEX_OUT_OF_BOUNDS
 ##      */
-Exit status: 10
-Ue_A { System s();  typedef QW NoSite[0];  typedef QW& NoRef[0];  typedef QW& NRR[0];  typedef QW BigSite[10];  typedef QW& BSRef[10];  typedef QW& BRR[10];  Int(32) test() {  QW nosite[0];  QW& nositeref[0] = nosite cast;  QW& nrr[0] = nositeref;  s ( true )assert . s ( true )assert . QW site[10];  QW& siteref[10] = site cast;  QW& brr[10] = siteref;  QW qw;  { Int(32) i = 0 cast;  i 10 cast < cond { siteref i [] qw = siteref i [] ( 1 cast i )set . s ( brr i [] ( 1 cast )get . )print . } _1: i 1 cast += while } 10 cast return } }
-Ue_QW { Bool(1) bw(false);  Int(8) iwarr[3](0,0,0);  Bits(9) tw(0);  <NOMAIN> }
-Uq_System { <NOMAIN> }
+./A.ulam:19:21: ERROR: Array subscript [0] exceeds the size (0) of array 'nosite'.
+Exit status: -1
+Unrecoverable Program Test FAILURE.
 ##
-## informed by t3670 and t3840
+## informed by t3841
 ##
 #>A.ulam
   ulam 2;
@@ -40,10 +29,7 @@ element A {
     NoSite nosite;
     NoRef nositeref = nosite;
     NRR nrr = nositeref; //ref to ref
-    //QW qwno = nosite[0]; //ARRAY_INDEX_OUT_OF_BOUNDS (t3842)
-
-    s.assert(NoSite.sizeof == 0);
-    s.assert(nosite.sizeof == 0);
+    QW qwno = nosite[0]; //?
 
     //the rest should gcc compile without ambiguity
     BigSite site;

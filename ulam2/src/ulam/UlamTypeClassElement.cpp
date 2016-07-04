@@ -112,9 +112,8 @@ namespace MFM {
     if(!isScalar())
       {
 	s32 arraysize = getArraySize();
-	arraysize = (arraysize <= 0 ? 1 : arraysize);
-	s32 len = BITSPERATOM * arraysize;//getTotalBitSize(); //could be 0, includes arrays
-
+	s32 len = BITSPERATOM * arraysize; //atom-based; could be 0, includes arrays
+	//BitVector<0> handled by BitVector.h
 	std::ostringstream cstr;
 	cstr << "BitVector<" << len << ">";
 	return cstr.str();
@@ -175,7 +174,7 @@ namespace MFM {
     if(!isScalar())
       {
 	s32 arraysize = getArraySize();
-	arraysize = (arraysize <= 0 ? 1 : arraysize);
+	assert( arraysize >= 0); //zero-length array is legal to declare, but not access
 	len = BITSPERATOM * arraysize; //could be 0, includes arrays
       }
 
@@ -606,12 +605,10 @@ namespace MFM {
   void UlamTypeClassElement::genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp)
   {
     s32 arraysize = getArraySize();
-
     assert(arraysize >= 0); //zero-length array is legal to declare, but not access
-    if(arraysize == 0)
-      return; //duplicates scalar
 
     s32 len = BITSPERATOM * arraysize;//getTotalBitSize(); //could be 0, includes arrays
+    len = len == 0 ? 1 : len; //1 bit for C++, when zero length array (local)
 
     m_state.m_currentIndentLevel = 0;
 

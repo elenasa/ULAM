@@ -272,6 +272,14 @@ namespace MFM {
 	    u64 datavalue = atval.getDataLongFromAtom(scalarPtr, state);
 	    atval= UlamValue::makeImmediateLong(suti, datavalue, state);
 	  }
+	else if(slen == BITSPERATOM)
+	  {
+	    //returns entire atval; e.g. array of atoms (t3840)
+	    if(state.isAtom(suti))
+	      atval = makeAtom();
+	    else
+	      atval = makeDefaultAtom(suti, state); //element
+	  }
 	else
 	  assert(0);
       }

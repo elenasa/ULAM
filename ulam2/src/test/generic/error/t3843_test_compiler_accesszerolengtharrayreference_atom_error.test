@@ -1,13 +1,13 @@
 ## -*- mode:ulam -*-
-#=t3840_test_compiler_zerolengtharrayreference_atom
+#=t3843_test_compiler_accesszerolengtharrayreference_atom_error
 #!
-##      gen code output: 10 asserts
+##      include/Ue_10101A10.tcc:38: FAILED: ARRAY_INDEX_OUT_OF_BOUNDS
 ##
-Exit status: -11
-Ue_A { System s();  typedef Atom(96) BigSite[10];  typedef Atom(96) & BSRef[10];  typedef Atom(96) & BRR[10];  typedef Atom(96) NoSite[0];  typedef Atom(96) & NoRef[0];  typedef Atom(96) & NRR[0];  Int(32) test() {  Atom(96) nosite[0];  Atom(96)& nositeref[0] = nosite cast;  Atom(96)& nrr[0] = nositeref;  s ( true )assert . s ( true )assert . Atom(96) site[10];  Atom(96)& siteref[10] = site cast;  Atom(96)& brr[10] = siteref;  Atom(96) a = self.atomof cast;  { Int(32) i = 0 cast;  i 10 cast < cond { siteref i [] a = s ( brr i [] A is )assert . } _1: i 1 cast += while } 10 cast return } }
-Uq_System { <NOMAIN> }
+./A.ulam:17:21: ERROR: Array subscript [0] exceeds the size (0) of array 'nosite'.
+Exit status: -1
+Unrecoverable Program Test FAILURE.
 ##
-## informed by t3671
+## informed by t3840, t3671
 ##
 #>A.ulam
   ulam 2;
@@ -26,7 +26,7 @@ element A {
     NoSite nosite;
     NoRef nositeref = nosite;
     NRR nrr = nositeref; //ref to ref
-    //Atom an = nosite[0]; ////ARRAY_INDEX_OUT_OF_BOUNDS (t3843)
+    Atom an = nosite[0]; ////ARRAY_INDEX_OUT_OF_BOUNDS (t3842)
 
     s.assert(NoSite.sizeof == 0);
     s.assert(nosite.sizeof == 0);

@@ -61,7 +61,7 @@ namespace MFM {
     return "_SquareBracket_Stub";
   }
 
-  // used to select an array element; not for declaration
+  // used to select an array item; not for declaration
   UTI NodeSquareBracket::checkAndLabelType()
   {
     //    assert(m_nodeLeft && m_nodeRight);
@@ -150,6 +150,9 @@ namespace MFM {
 		  }
 	      }
 	  }
+	//else
+	// arraysize is zero! not accessible. runtime check? Sun Jul  3 17:38:42 2016
+
 	//set up idxuti..RHS
 	//cant proceed with custom array subscript if lhs is incomplete
 	if((errorCount == 0) && (hazyCount == 0))
@@ -665,6 +668,22 @@ namespace MFM {
 	    // new uvpass here
 	    offset = UVPass::makePass(tmpVarIdx, TMPREGISTER, Unsigned, m_state.determinePackable(offuti), m_state, 0, 0); //POS 0 rightjustified.
 	  } //end unary special case
+
+	//runtime check to avoid accessing beyond array (Sun Jul  3 17:49:47 2016 )
+	UlamType * lut = m_state.getUlamTypeByIndex(luti);
+	s32 arraysize = lut->getArraySize();
+	assert(!lut->isScalar());
+	m_state.indentUlamCode(fp);
+	fp->write("if(");
+	fp->write(offset.getTmpVarAsString(m_state).c_str());
+	fp->write(" >= ");
+	fp->write_decimal(arraysize);
+	fp->write(")"); GCNL;
+
+	m_state.m_currentIndentLevel++;
+	m_state.indentUlamCode(fp);
+	fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
+	m_state.m_currentIndentLevel--;
       } //for non custom arrays only!
 
     uvpass = offset;

@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t3841_test_compiler_zerolengtharrayreference_element
+#=t3844_test_compiler_zerolengtharrayreference_quark
 #!
 ##      /* gen code output:
 ##        2 asserts +
@@ -16,10 +16,10 @@
 ##      */
 Exit status: 10
 Ue_A { System s();  typedef QW NoSite[0];  typedef QW& NoRef[0];  typedef QW& NRR[0];  typedef QW BigSite[10];  typedef QW& BSRef[10];  typedef QW& BRR[10];  Int(32) test() {  QW nosite[0];  QW& nositeref[0] = nosite cast;  QW& nrr[0] = nositeref;  s ( true )assert . s ( true )assert . QW site[10];  QW& siteref[10] = site cast;  QW& brr[10] = siteref;  QW qw;  { Int(32) i = 0 cast;  i 10 cast < cond { siteref i [] qw = siteref i [] ( 1 cast i )set . s ( brr i [] ( 1 cast )get . )print . } _1: i 1 cast += while } 10 cast return } }
-Ue_QW { Bool(1) bw(false);  Int(8) iwarr[3](0,0,0);  Bits(9) tw(0);  <NOMAIN> }
+Uq_QW { Bool(1) bw(false);  Int(8) iwarr[3](0,0,0);  Bits(7) tw(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
-## informed by t3670 and t3840
+## informed by t3668
 ##
 #>A.ulam
   ulam 2;
@@ -32,7 +32,7 @@ element A {
   typedef NoSite & NoRef;
   typedef NoRef NRR;
 
-  typedef QW BigSite[10];
+  typedef QW BigSite[10]; //try packed first!
   typedef BigSite & BSRef;
   typedef BSRef BRR;
 
@@ -40,7 +40,7 @@ element A {
     NoSite nosite;
     NoRef nositeref = nosite;
     NRR nrr = nositeref; //ref to ref
-    //QW qwno = nosite[0]; //ARRAY_INDEX_OUT_OF_BOUNDS (t3842)
+    //QW qwno = nosite[0]; //ARRAY_INDEX_OUT_OF_BOUNDS (t3845)
 
     s.assert(NoSite.sizeof == 0);
     s.assert(nosite.sizeof == 0);
@@ -61,10 +61,10 @@ element A {
 
 #:QW.ulam
   ulam 2;
-element QW {
+quark QW {
   Bool bw;
   Int(8) iwarr[3];
-  Bits(9) tw; // total > 32 bits
+  Bits(7) tw;
   Void set(Int i, Int v)
   {
     iwarr[i] = (Int(8)) v;

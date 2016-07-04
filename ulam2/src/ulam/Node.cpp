@@ -1227,10 +1227,16 @@ namespace MFM {
 	fp->write("&");
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
       }
+    else if(cosclasstype == UC_ELEMENT)
+      {
+	fp->write("NULL"); //element ref may rely on uc.Lookup
+      }
     else
       {
-	fp->write(stgcos->getMangledName().c_str());
-	fp->write(".GetEffectiveSelf()"); //maintains eff self
+	//CLASSIC ref cannot rely on uc.Lookup
+	//array's effective self is NULL. can't get it this way. (e.g. t3844)
+	fp->write("&");
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
       }
 
     fp->write(", ");
@@ -1884,14 +1890,21 @@ namespace MFM {
 
     if((vclasstype != UC_NOTACLASS) && (vetyp != UAtom))
       {
-	if(stgcosut->isReference())
+	if(!stgcosut->isReference())
+	  {
+	    fp->write(", &"); //left just
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
+	  }
+	else if(vclasstype == UC_ELEMENT)
 	  {
 	    fp->write(", NULL"); //for lookup t3832, t3811
 	  }
 	else
 	  {
-	    fp->write(", &"); //left just
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
+	    //CLASSIC ref cannot rely on uc.Lookup
+	    //array's effective self is NULL. can't get it this way
+	    fp->write("&");
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
 	  }
       }
 
