@@ -109,6 +109,8 @@ namespace MFM{
     SymbolFunction * m_funcSymbol;
     NodeList * m_argumentNodes;
 
+    bool getVirtualFunctionForEval(UlamValue & atomPtr, NodeBlockFunctionDefinition *& rtnfunc);
+
     void genCodeIntoABitValue(File * fp, UVPass& uvpass);
     void genCodeAReferenceIntoABitValue(File * fp, UVPass& uvpass);
     void genCodeVirtualFunctionCallVTableEntry(File * fp, u32 tvfpnum, u32 urtmpnum);

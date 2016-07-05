@@ -503,117 +503,11 @@ namespace MFM {
     // t.f. we use the classblock stack to track the block ST's
     if(m_funcSymbol->isVirtualFunction())
       {
-	u32 vtidx = m_funcSymbol->getVirtualMethodIdx();
-	u32 atomid = atomPtr.getPtrNameId();
-	if(atomid != 0)
+	if(!getVirtualFunctionForEval(atomPtr, func))
 	  {
-	    //if auto local as, set shadowed lhs type (, and pos?)
-	    Symbol * asym = NULL;
-	    bool hazyKin = false;
-	    if(m_state.alreadyDefinedSymbol(atomid, asym, hazyKin) && !hazyKin)
-	      {
-		ALT autolocaltype = asym->getAutoLocalType();
-		UTI auti = asym->getUlamTypeIdx();
-		if(autolocaltype == ALT_AS) //must be a class
-		  {
-		    atomPtr.setPtrTargetType(((SymbolVariableStack *) asym)->getAutoStorageTypeForEval());
-		  }
-		else if(autolocaltype == ALT_HAS)
-		  {
-		    assert(0); //deprecated
-		    // auto type is the type of the data member,
-		    // rather than the base (rhs)
-		  }
-		else if(autolocaltype == ALT_REF)
-		  {
-		    if(!asym->isSuper())
-		      //unlike alt_as, alt_ref can be a primitive or a class
-		      atomPtr.setPtrTargetType(((SymbolVariableStack *) asym)->getAutoStorageTypeForEval());
-		  }
-		else if(m_state.isClassASubclassOf(auti, atomPtr.getPtrTargetType()))
-		  {
-		    atomPtr.setPtrTargetType(auti); //t3746
-		  }
-	      }
-	  } //else can't be an autolocal
-
-	UTI cuti = atomPtr.getPtrTargetType(); //must be a class
-	SymbolClass * vcsym = NULL;
-	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, vcsym);
-	assert(isDefined);
-	UTI vtcuti = vcsym->getClassForVTableEntry(vtidx);
-
-	//is the virtual class uti the same as what we already have?
-	NNO funcstnno = m_funcSymbol->getBlockNoOfST();
-	UTI funcclassuti = m_state.findAClassByNodeNo(funcstnno);
-	if(funcclassuti != vtcuti)
-	  {
-	    SymbolClass * vtcsym = NULL;
-	    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(vtcuti, vtcsym);
-	    assert(isDefined);
-
-	    NodeBlockClass * memberClassNode = vtcsym->getClassBlockNode();
-	    assert(memberClassNode);  //e.g. forgot the closing brace on quark definition
-	    //set up compiler state to use the member class block for symbol searches
-	    m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
-
-	    Symbol * fnsymptr = NULL;
-	    bool hazyKin = false;
-	    AssertBool isDefinedFunc = (m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex, fnsymptr, hazyKin) && !hazyKin);
-	    assert(isDefinedFunc);
-
-	    //find this func in the virtual class; get its func def.
-	    std::vector<UTI> pTypes;
-	    u32 numparams = m_funcSymbol->getNumberOfParameters();
-	    for(u32 j = 0; j < numparams; j++)
-	      {
-		Symbol * psym = m_funcSymbol->getParameterSymbolPtr(j);
-		assert(psym);
-		pTypes.push_back(psym->getUlamTypeIdx());
-	      }
-
-	    SymbolFunction * funcSymbol = NULL;
-	    u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionStrictlyByTypes(pTypes, funcSymbol);
-
-	    if(numFuncs != 1)
-	      {
-		std::ostringstream msg;
-		msg << "Virtual function <" << funcSymbol->getMangledNameWithTypes().c_str();
-		msg << "> is ";
-		if(numFuncs > 1)
-		  msg << "ambiguous";
-		else
-		  msg << "not found";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		assert(0);
-	      }
-
-	    if(!funcSymbol->isVirtualFunction())
-	      {
-		std::ostringstream msg;
-		msg << "Function <" << funcSymbol->getMangledNameWithTypes().c_str();
-		msg << "> is not virtual";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		m_state.popClassContext(); //restore here
-		evalNodeEpilog();
-		return ERROR;
-	      }
-
-	    if(funcSymbol->isPureVirtualFunction())
-	      {
-		std::ostringstream msg;
-		msg << "Virtual function <" << funcSymbol->getMangledNameWithTypes().c_str();
-		msg << "> is pure; cannot be called";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		m_state.popClassContext(); //restore here
-		evalNodeEpilog();
-		return ERROR;
-	      }
-
-	    m_state.popClassContext(); //restore here
-
-	    func = funcSymbol->getFunctionNode(); //replace with virtual function def!!!
-	  } //end use virtual function
+	    evalNodeEpilog();
+	    return ERROR;
+	  }
       } //end virtual function
 
     if(atomPtr.getPtrStorage() == STACK)
@@ -713,6 +607,120 @@ namespace MFM {
     symptrref = m_funcSymbol;
     return true;
   }
+
+  bool NodeFunctionCall::getVirtualFunctionForEval(UlamValue & atomPtr, NodeBlockFunctionDefinition *& rtnfunc)
+  {
+    bool rtnok = true; //false if error, o.w. rtnfunc is good (changed or not)
+    u32 vtidx = m_funcSymbol->getVirtualMethodIdx();
+    u32 atomid = atomPtr.getPtrNameId();
+    if(atomid != 0)
+      {
+	//if auto local as, set shadowed lhs type (, and pos?)
+	Symbol * asym = NULL;
+	bool hazyKin = false;
+	if(m_state.alreadyDefinedSymbol(atomid, asym, hazyKin) && !hazyKin)
+	  {
+	    ALT autolocaltype = asym->getAutoLocalType();
+	    UTI auti = asym->getUlamTypeIdx();
+	    if(autolocaltype == ALT_AS) //must be a class
+	      {
+		atomPtr.setPtrTargetType(((SymbolVariableStack *) asym)->getAutoStorageTypeForEval());
+	      }
+	    else if(autolocaltype == ALT_HAS)
+	      {
+		assert(0); //deprecated
+		// auto type is the type of the data member,
+		// rather than the base (rhs)
+	      }
+	    else if(autolocaltype == ALT_REF)
+	      {
+		if(!asym->isSuper())
+		  //unlike alt_as, alt_ref can be a primitive or a class
+		  atomPtr.setPtrTargetType(((SymbolVariableStack *) asym)->getAutoStorageTypeForEval());
+	      }
+	    else if(m_state.isClassASubclassOf(auti, atomPtr.getPtrTargetType()))
+	      {
+		atomPtr.setPtrTargetType(auti); //t3746
+	      }
+	  }
+      } //else can't be an autolocal
+
+    UTI cuti = atomPtr.getPtrTargetType(); //must be a class
+    SymbolClass * vcsym = NULL;
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, vcsym);
+    assert(isDefined);
+    UTI vtcuti = vcsym->getClassForVTableEntry(vtidx);
+
+    //is the virtual class uti the same as what we already have?
+    NNO funcstnno = m_funcSymbol->getBlockNoOfST();
+    UTI funcclassuti = m_state.findAClassByNodeNo(funcstnno);
+    if(funcclassuti != vtcuti)
+      {
+	SymbolClass * vtcsym = NULL;
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(vtcuti, vtcsym);
+	assert(isDefined);
+
+	NodeBlockClass * memberClassNode = vtcsym->getClassBlockNode();
+	assert(memberClassNode);  //e.g. forgot the closing brace on quark definition
+	//set up compiler state to use the member class block for symbol searches
+	m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
+
+	Symbol * fnsymptr = NULL;
+	bool hazyKin = false;
+	AssertBool isDefinedFunc = (m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex, fnsymptr, hazyKin) && !hazyKin);
+	assert(isDefinedFunc);
+
+	//find this func in the virtual class; get its func def.
+	std::vector<UTI> pTypes;
+	u32 numparams = m_funcSymbol->getNumberOfParameters();
+	for(u32 j = 0; j < numparams; j++)
+	  {
+	    Symbol * psym = m_funcSymbol->getParameterSymbolPtr(j);
+	    assert(psym);
+	    pTypes.push_back(psym->getUlamTypeIdx());
+	  }
+
+	SymbolFunction * funcSymbol = NULL;
+	u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionStrictlyByTypes(pTypes, funcSymbol);
+
+	if(numFuncs != 1)
+	  {
+	    std::ostringstream msg;
+	    msg << "Virtual function <" << funcSymbol->getMangledNameWithTypes().c_str();
+	    msg << "> is ";
+	    if(numFuncs > 1)
+	      msg << "ambiguous";
+	    else
+	      msg << "not found";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    assert(0);
+	  }
+
+	if(!funcSymbol->isVirtualFunction())
+	  {
+	    std::ostringstream msg;
+	    msg << "Function <" << funcSymbol->getMangledNameWithTypes().c_str();
+	    msg << "> is not virtual";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    rtnok = false;
+	  }
+	else if(funcSymbol->isPureVirtualFunction())
+	  {
+	    std::ostringstream msg;
+	    msg << "Virtual function <" << funcSymbol->getMangledNameWithTypes().c_str();
+	    msg << "> is pure; cannot be called";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    rtnok = false;
+	  }
+
+	m_state.popClassContext(); //restore here
+
+	if(rtnok)
+	  rtnfunc = funcSymbol->getFunctionNode(); //replace with virtual function def!!!
+      } //end use virtual function
+    //else no change to rtnfunc
+    return rtnok;
+  } //getVirtualFunctionForEval
 
   // during genCode of a single function body "self" doesn't change!!!
   // note: uvpass arg is not equal to m_currentObjPtr; it is blank.
