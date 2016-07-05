@@ -12,16 +12,16 @@ Unrecoverable Program Test FAILURE.
 ##
 #>A.ulam
   ulam 2;
-use QW;
+use EW;
 use System;
 element A {
   System s;
 
-  typedef QW NoSite[0];
+  typedef EW NoSite[0];
   typedef NoSite & NoRef;
   typedef NoRef NRR;
 
-  typedef QW BigSite[10];
+  typedef EW BigSite[10];
   typedef BigSite & BSRef;
   typedef BSRef BRR;
 
@@ -29,15 +29,15 @@ element A {
     NoSite nosite;
     NoRef nositeref = nosite;
     NRR nrr = nositeref; //ref to ref
-    QW qwno = nosite[0]; //?
+    EW ewno = nosite[0]; //?
 
     //the rest should gcc compile without ambiguity
     BigSite site;
     BSRef siteref = site;
     BRR brr = siteref; //ref to ref
-    QW qw;
+    EW ew;
     for(Int i = 0; i < 10; ++i){
-      siteref[i] = qw;
+      siteref[i] = ew;
       siteref[i].set(1, i);
       s.print(brr[i].get(1));
     }
@@ -45,9 +45,9 @@ element A {
   }
 }
 
-#:QW.ulam
+#:EW.ulam
   ulam 2;
-element QW {
+element EW {
   Bool bw;
   Int(8) iwarr[3];
   Bits(9) tw; // total > 32 bits

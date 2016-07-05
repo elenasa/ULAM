@@ -63,6 +63,8 @@ namespace MFM{
 
     virtual PACKFIT getPackable();
 
+    virtual u32 getSizeofUlamType();
+
     virtual const std::string readMethodForCodeGen();
 
     virtual const std::string writeMethodForCodeGen();

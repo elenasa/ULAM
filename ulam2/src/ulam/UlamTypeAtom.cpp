@@ -496,7 +496,7 @@ namespace MFM {
   {
     s32 len = getTotalBitSize(); //could be 0, includes arrays
     s32 arraysize = getArraySize();
-    assert( arraysize >= 0); //zero-length array is legal to declare, but not access
+    assert(arraysize >= 0); //zero-length array is legal to declare, but not access
 
     m_state.m_currentIndentLevel = 0;
     const std::string automangledName = getUlamTypeImmediateAutoMangledName();

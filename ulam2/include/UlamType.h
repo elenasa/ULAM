@@ -144,6 +144,8 @@ namespace MFM{
 
     u32 getTotalBitSize(); //bitsize * arraysize, accounting for constants and scalars
 
+    virtual u32 getSizeofUlamType();
+
     ALT getReferenceType();
 
     bool isReference();

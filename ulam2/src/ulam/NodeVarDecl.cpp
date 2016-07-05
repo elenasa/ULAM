@@ -475,9 +475,9 @@ UTI NodeVarDecl::checkAndLabelType()
 		//arraysize specified, may have fewer initializers
 		assert(m_state.okUTItoContinue(it));
 		s32 arraysize = m_state.getArraySize(it);
-		assert(arraysize > 0);
+		assert(arraysize >= 0); //t3847
 		u32 n = ((NodeList *) m_nodeInitExpr)->getNumberOfNodes();
-		if(n > (u32) arraysize)
+		if((n > (u32) arraysize) && (arraysize > 0)) //not an error: t3847
 		  {
 		    std::ostringstream msg;
 		    msg << "Too many initializers (" << n << ") specified for array '";

@@ -15,6 +15,12 @@ namespace MFM {
     return UC_ERROR; //for compiler only
   }
 
+  u32 UlamTypeInternal::getSizeofUlamType()
+  {
+    assert(0);
+    return 0;
+  }
+
   bool UlamTypeInternal::needsImmediateType()
   {
     return false;

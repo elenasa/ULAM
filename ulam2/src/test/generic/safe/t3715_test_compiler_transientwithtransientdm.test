@@ -30,7 +30,7 @@ element Foo {
     t.set(t.sizeof);
     ta = t.get();
     s.print(ta);
-    t.sp = (ta == t.sizeof);
+    t.sp = (ta == 881u);
     s.assert(t.sp);
     return ta;
   }

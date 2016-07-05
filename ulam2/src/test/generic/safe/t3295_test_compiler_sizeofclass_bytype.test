@@ -3,12 +3,12 @@
 #!
 ##      /* gen output:
 ##	 Int Arg: 0
-##	 Int Arg: 64
+##	 Int Arg: 96
 ##      */
 ##
 ##      //node terminal proxy
-Exit status: 64
-Ue_Fu { System s();  Int(32) u(0);  Int(32) v(64);  Int(32) test() {  u 0u cast = s ( u )print . v 64u cast = s ( v )print . v return } }
+Exit status: 96
+Ue_Fu { System s();  Int(32) u(0);  Int(32) v(96);  Int(32) test() {  u 0u cast = s ( u )print . v 96u cast = s ( v )print . v return } }
 Uq_System { <NOMAIN> }
 #>Fu.ulam
 ulam 1;

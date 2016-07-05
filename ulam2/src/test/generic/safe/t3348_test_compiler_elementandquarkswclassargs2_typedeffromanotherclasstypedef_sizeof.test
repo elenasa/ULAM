@@ -3,13 +3,13 @@
 #!
 ##      /* gen code output:
 ##	 Unsigned Arg: 1
-##	 Unsigned Arg: 33
-##	 Unsigned Arg: 33
+##	 Unsigned Arg: 96
+##	 Unsigned Arg: 96
 ##      */
 ##      //Constants have explicit types
 ##
 Exit status: 1
-Ue_R { Int(32) test() {  System s;  constant Unsigned(3) var = 3u;  P(1u) pel;  s ( pel 1u . )print . s ( 33u )print . s ( 33u )print . pel 1u . cast return } }
+Ue_R { Int(32) test() {  System s;  constant Unsigned(3) var = 3u;  P(1u) pel;  s ( pel 1u . )print . s ( 96u )print . s ( 96u )print . pel 1u . cast return } }
 Ue_P(Unsigned(32) a) { Bool(UNKNOWN) b(notready);  Int(32) foo(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }

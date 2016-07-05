@@ -1409,7 +1409,7 @@ namespace MFM {
       }
 
     //bitsize could be UNKNOWN or CONSTANT (negative)
-    s32 total = bitsize * (arraysize > 0 ? arraysize : 1); //?
+    s32 total = bitsize * (arraysize >= 0 ? arraysize : 1); //? allow zero arraysize..Mon Jul  4 13:56:27 2016
     bool isCustomArray = ut->isCustomArray();
     ULAMCLASSTYPE classtype = ut->getUlamClassType();
 

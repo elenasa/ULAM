@@ -434,6 +434,11 @@ namespace MFM {
     return bitsize * arraysize; // >= 0
   }
 
+  u32 UlamType::getSizeofUlamType()
+  {
+    return getTotalBitSize(); //by default
+  }
+
   ALT UlamType::getReferenceType()
   {
     return m_key.getUlamKeyTypeSignatureReferenceType();

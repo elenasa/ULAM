@@ -67,8 +67,19 @@ namespace MFM {
 
   PACKFIT UlamTypeClassElement::getPackable()
   {
-    return UNPACKED; //UlamType::getPackable(); //depends on PACKED size
+    //atom-based, no longer PACKED
+    return UNPACKED; //UlamType::getPackable();
   }
+
+  u32 UlamTypeClassElement::getSizeofUlamType()
+  {
+    //atom-based sizeof for both scalar and arrays of elements
+    s32 arraysize = getArraySize();
+    arraysize = (arraysize == NONARRAYSIZE) ? 1 : arraysize;
+    s32 len = BITSPERATOM * arraysize; //atom-based; could be 0 bits.
+    //BitVector<0> handled by BitVector.h
+    return len; //t3841, t3400
+  } //getSizeofUlamType
 
   const std::string UlamTypeClassElement::readMethodForCodeGen()
   {
@@ -111,11 +122,8 @@ namespace MFM {
   {
     if(!isScalar())
       {
-	s32 arraysize = getArraySize();
-	s32 len = BITSPERATOM * arraysize; //atom-based; could be 0, includes arrays
-	//BitVector<0> handled by BitVector.h
 	std::ostringstream cstr;
-	cstr << "BitVector<" << len << ">";
+	cstr << "BitVector<" << getSizeofUlamType() << ">";
 	return cstr.str();
       }
     return "T";
@@ -170,12 +178,13 @@ namespace MFM {
   void UlamTypeClassElement::genUlamTypeMangledAutoDefinitionForC(File * fp)
   {
     // handles both scalar and arrays (unpacked or packed)
-    s32 len = getTotalBitSize(); //NOT (BITSPERATOM - ATOMFIRSTSTATEBITPOS)
+    // scalar, NOT 96: (e.g. 3249, t3255, t3259, t3407,8, t3615, t3636,7,8,9,t3655,6, t3670,75, t3706,9,10
+    // t3751,2,3,4,5,6,7,9, t3788, t3795, t3817,18,20, t3831,32, t3841)
+    s32 len = getTotalBitSize(); //NOT (BITSPERATOM - ATOMFIRSTSTATEBITPOS), NOT 96.
     if(!isScalar())
       {
-	s32 arraysize = getArraySize();
-	assert( arraysize >= 0); //zero-length array is legal to declare, but not access
-	len = BITSPERATOM * arraysize; //could be 0, includes arrays
+    	assert(getArraySize() >= 0); //zero-length array is legal to declare, but not access
+    	len = getSizeofUlamType(); //could be 0, includes arrays
       }
 
     //class instance idx is always the scalar uti
@@ -604,11 +613,10 @@ namespace MFM {
 
   void UlamTypeClassElement::genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp)
   {
-    s32 arraysize = getArraySize();
+    s32 arraysize = getArraySize(); //needed for loops
     assert(arraysize >= 0); //zero-length array is legal to declare, but not access
 
-    s32 len = BITSPERATOM * arraysize;//getTotalBitSize(); //could be 0, includes arrays
-    len = len == 0 ? 1 : len; //1 bit for C++, when zero length array (local)
+    s32 len = getSizeofUlamType(); //could be 0, includes arrays
 
     m_state.m_currentIndentLevel = 0;
 

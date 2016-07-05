@@ -2,13 +2,14 @@
 #=t3325_test_compiler_namedconstant_self
 #!
 ##      /* gen code output:
-##	 Int Arg: 34
+##	 Int Arg: 98
 ##       */
 ##      //different casts since Constants have explicit types
 ##      //constant fold: j 1 33 +b, 1 32u cast +b
+##      // elements now atom-based
 ##
-Exit status: 34
-Ue_A { System s();  Int(32) j(34);  Int(32) test() {  constant Int(32) cOW = 33;  j 34 cast = s ( j )print . j return } }
+Exit status: 98
+Ue_A { System s();  Int(32) j(98);  Int(32) test() {  constant Int(32) cOW = 97;  j 98 cast = s ( j )print . j return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   use System;

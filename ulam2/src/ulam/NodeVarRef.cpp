@@ -226,17 +226,6 @@ namespace MFM {
 	  hazyCount++;
 	assert(it != Nouti);
       }
-#if 0
-    else if((!m_state.getUlamTypeByIndex(it)->isReference()))
-      {
-	std::ostringstream msg;
-	msg << "Variable reference '";
-	msg << m_state.m_pool.getDataAsString(m_vid).c_str();
-	msg << "', is invalid";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	errCount++;
-      }
-#endif
     ////requires non-constant, non-funccall value
     //NOASSIGN REQUIRED (e.g. for function parameters) doesn't have to have this!
     if(m_nodeInitExpr)

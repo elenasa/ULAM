@@ -196,7 +196,7 @@ namespace MFM{
     if(rtnok)
       {
 	s32 arraysize = m_state.getArraySize(nuti);
-	assert(arraysize > 0);
+	assert(arraysize >= 0); //t3847
 	//propagate last value for any remaining items not initialized
 	for(s32 i = n; i < arraysize; i++)
 	  {

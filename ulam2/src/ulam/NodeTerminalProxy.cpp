@@ -219,7 +219,7 @@ namespace MFM {
       case TOK_KW_SIZEOF:
 	{
 	  //consistent with C; (not array size if non-scalar)
-	  m_constant.uval =  cut->getTotalBitSize(); //unsigned
+	  m_constant.uval =  cut->getSizeofUlamType(); //unsigned
 	  rtnB = true;
 	}
 	break;

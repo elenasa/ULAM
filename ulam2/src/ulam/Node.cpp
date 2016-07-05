@@ -2597,6 +2597,8 @@ namespace MFM {
     UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
     assert(!cosclassut->isReference());
 
+    assert(cosclassut->isScalar()); //cos array (t3147-48)
+
     u32 pos = Node::calcPosOfCurrentObjects();
 
     fp->write("UlamRef<EC>("); //wrapper for local storage
@@ -2612,8 +2614,28 @@ namespace MFM {
 
     fp->write_decimal_unsigned(pos); //rel offset
     fp->write("u, ");
-    fp->write_decimal_unsigned(cosut->getTotalBitSize());
-    fp->write("u, "); //len
+    if((stgcosut->getUlamClassType() == UC_TRANSIENT) && (cosut->getUlamClassType() == UC_ELEMENT))
+      {
+	//elements too (t3735)..arrays of elements (t3735)?
+	if(needAdjustToStateBits(cosuti))
+	  {
+	    assert(cosut->isScalar()); //sanity
+	    fp->write_decimal_unsigned(cosut->getTotalBitSize());
+	    fp->write("u, ");
+	  }
+	else
+	  {
+	    s32 carraysize = cosut->getArraySize();
+	    carraysize = (carraysize == NONARRAYSIZE ? 1 : carraysize);
+	    fp->write_decimal_unsigned(carraysize);
+	    fp->write(" * T::BPA, ");
+	  }
+      }
+    else
+      {
+	fp->write_decimal_unsigned(cosut->getTotalBitSize());
+	fp->write("u, "); //len
+      }
 
     if(!stgcosut->isReference())
       {

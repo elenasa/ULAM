@@ -8,7 +8,7 @@
 Exit status: 0
 Ue_R { Int(32) test() {  Foo(1,3u) f;  Foo(1,3u) p;  f sp . true = 0 cast return } }
 Ue_Foo(Int(32) x, Unsigned(32) y) { Bool(UNKNOWN) sp(notready);  Bool(UNKNOWN) b(notready);  Bool(UNKNOWN) c[UNKNOWN](notready);  <NOMAIN> }
-Ue_Poo { Bool(1) valb[3](false,false,false);  <NOMAIN> }
+Uq_Poo { Bool(1) valb[3](false,false,false);  <NOMAIN> }
 ##
 ##      //decl list with array, first c[1], then try c[x]
 ##      // use separate calling element R
@@ -16,31 +16,31 @@ Ue_Poo { Bool(1) valb[3](false,false,false);  <NOMAIN> }
   ulam 1;
 use Foo;
 element R{
-Int test() {
-  Foo(1,3u) f;
-  Foo(1,Poo.sizeof) p;
-  f.sp = (f.sizeof == p.sizeof);
-  return 0;
-}
+  Int test() {
+    Foo(1,3u) f;
+    Foo(1,Poo.sizeof) p;
+    f.sp = (f.sizeof == p.sizeof);
+    return 0;
+  }
 }
 
 #:Foo.ulam
-ulam 1;
+  ulam 1;
 use Poo;
 element Foo(Int x, Unsigned y) {
-Bool(x) sp;
-Bool(y) b,c[x];
- }
+  Bool(x) sp;
+  Bool(y) b,c[x];
+}
 ##      //bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Poo;\nelement Foo(Int x, Int y) {\nBool(x) sp;\nBool(y) b,c;\nInt test() {\nFoo(1,3) f;\n Foo(1,Poo.sizeof) p;\n f.sp = (f.sizeof == p.sizeof);\n return 0;\n }\n }\n");
 ##      // try without decl list
 ##      //bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Poo;\nelement Foo(Int x, Int y) {\nBool(x) sp;\nBool(y) b;\nInt test() {\nFoo(1,3) f;\n Foo(1,Poo.sizeof) p;\n f.sp = (f.sizeof == p.sizeof);\n return 0;\n }\n }\n");
 ##
 #:Poo.ulam
-ulam 1;
- element Poo {
- Bool valb[3];
+  ulam 1;
+quark Poo {
+  Bool valb[3];
   Void reset(Bool b) {
- b = false;
- }
- }
+    b = false;
+  }
+}
 #.

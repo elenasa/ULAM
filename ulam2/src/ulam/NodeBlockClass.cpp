@@ -1681,7 +1681,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       return false;
 
     if(nut->getUlamClassType() == UC_ELEMENT)
-      len = BITSPERATOM; //atom-based
+      len = BITSPERATOM; //atom-based (not empty)
 
     BV8K dval;
     AssertBool isDefault = m_state.getDefaultClassValue(nuti, dval);

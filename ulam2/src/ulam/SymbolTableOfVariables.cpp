@@ -106,8 +106,10 @@ namespace MFM {
 	if((cclasstype == UC_TRANSIENT) && (sut->getUlamClassType() == UC_ELEMENT))
 	  {
 	    s32 arraysize = sut->getArraySize();
-	    arraysize = arraysize <= 0 ? 1 : arraysize;
-	    totalsizes += (BITSPERATOM * arraysize);
+	    //arraysize = arraysize <= 0 ? 1 : arraysize;
+	    arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //Mon Jul  4 14:14:44 2016
+	    if(sut->getBitSize() > 0)
+	      totalsizes += (BITSPERATOM * arraysize);
 	  }
 	else
 	  totalsizes += sut->getTotalBitSize(); //covers up any unknown sizes; includes arrays
@@ -119,6 +121,10 @@ namespace MFM {
 
   s32 SymbolTableOfVariables::getMaxVariableSymbolsBitSize()
   {
+    UTI cuti = m_state.getCompileThisIdx();
+    ULAMCLASSTYPE cclasstype = m_state.getUlamTypeByIndex(cuti)->getUlamClassType();
+    assert(cclasstype == UC_QUARK);
+
     s32 maxsize = 0;
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
@@ -151,8 +157,10 @@ namespace MFM {
 	    m_state.setBitSize(suti, symsize); //symsize does not include arrays
 	  }
 
-	if((s32) m_state.getTotalBitSize(suti) > maxsize)
-	  maxsize = m_state.getTotalBitSize(suti); //includes arrays
+	UlamType * sut = m_state.getUlamTypeByIndex(suti); //no sooner!
+	s32 x = (s32) sut->getTotalBitSize();
+	if(x > maxsize)
+	  maxsize = x; //includes arrays
 
 	it++;
       }
@@ -437,19 +445,23 @@ namespace MFM {
 	//else continue if Hzy
       }
 
-    s32 totbitsize = m_state.getBitSize(arguti);
-
-    if(m_state.getUlamTypeByIndex(arguti)->getUlamClassType() == UC_NOTACLASS) //includes Atom type
+    UlamType * argut = m_state.getUlamTypeByIndex(arguti);
+    s32 totbitsize = argut->getBitSize(); // why not total bit size? findNodeNoInThisClass fails (e.g. t3144, etc)
+    ULAMCLASSTYPE argclasstype = argut->getUlamClassType();
+    if(argclasstype == UC_NOTACLASS) //includes Atom type
       {
 	return totbitsize; //arrays handled by caller, just bits here
       }
+    //else element size adjusted for Transents by getTotalVariableSymbolsBitSize, after bitsize is set.
 
     //not a primitive (class), array
-    if(m_state.getArraySize(arguti) > 0)
+    s32 argarraysize = argut->getArraySize();
+    //if(argut->getArraySize() > 0)
+    if(argarraysize >= 0) //Mon Jul  4 14:30:01 2016
       {
 	if(totbitsize >= 0)
 	  {
-	    return totbitsize;
+	    return totbitsize; //array size adjustment by caller getTotal or getMax..
 	  }
 	if(totbitsize == CYCLEFLAG) //was < 0
 	  {

@@ -629,7 +629,7 @@ namespace MFM {
       pos += ATOMFIRSTSTATEBITPOS; //atom-based (TypeField determined at runtime)
 
     if(nut->getUlamClassType() == UC_ELEMENT)
-      bitsize = BITSPERATOM; //atom-based
+      bitsize = BITSPERATOM; //atom-based data member
 
     ULAMTYPE etyp = nut->getUlamTypeEnum();
     if(etyp == Class) //thisClass contains a different class
@@ -643,7 +643,7 @@ namespace MFM {
 	    if(m_state.getDefaultClassValue(nuti, dmdv))
 	      {
 		s32 arraysize = nut->getArraySize();
-		arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize);
+		arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //could be 0
 		//updates dvref in place at position 'pos' in dvref
 		//from position 0 in dmdv (a copy)
 		m_state.getDefaultAsArray(bitsize, arraysize, pos, dmdv, dvref); //both scalar and arrays
@@ -698,7 +698,8 @@ namespace MFM {
     if(nclasstype == UC_ELEMENT)
       {
 	s32 arraysize = nut->getArraySize();
-	arraysize = (arraysize <= 0 ? 1 : arraysize);
+	//arraysize = (arraysize <= 0 ? 1 : arraysize);
+	arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //allow zero Mon Jul  4 14:08:47 2016
 
 	m_state.indent(fp);
 	fp->write("{\n"); //limit scope of 'dam'
@@ -810,30 +811,8 @@ namespace MFM {
     assert(it == getNodeType()); //same as symbol, or shouldn't be here!
 
     UlamType * ut = m_state.getUlamTypeByIndex(it);
-    u32 len = ut->getTotalBitSize();
-
-    UTI cuti = m_state.getCompileThisIdx();
-    ULAMCLASSTYPE thisclasstype = m_state.getUlamTypeByIndex(cuti)->getUlamClassType();
-    if(thisclasstype == UC_TRANSIENT)
-      {
-	if(m_state.isAtom(it) || (ut->getUlamClassType() == UC_ELEMENT))
-	  {
-	    if(ut->isScalar())
-	      {
-		offset += BITSPERATOM; //allocate full size of atom
-	      }
-	    else
-	      {
-		offset += (BITSPERATOM * ut->getArraySize());
-	      }
-	  }
-	else
-	  {
-	    offset += len; //includes arraysize, quarks, and other transients
-	  }
-      }
-    else //not transient
-      offset += len; //uses actual size for element and quark data members
+    u32 len = ut->getSizeofUlamType(); //ut->getTotalBitSize();
+    offset += len; //uses atom-based size for element, and actual size for quark data members
   } //packBitsInOrderOfDeclaration
 
   void NodeVarDeclDM::printUnresolvedVariableDataMembers()
@@ -981,9 +960,13 @@ namespace MFM {
 	    //elements only data members in transients
 	    assert(m_state.getUlamClassForThisClass() == UC_TRANSIENT);
 	    s32 arraysize = nut->getArraySize();
-	    arraysize = (arraysize <= 0 ? 1 : arraysize);
+	    //arraysize = (arraysize <= 0 ? 1 : arraysize);
+	    arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //Mon Jul  4 14:11:41 2016
 	    fp->write_decimal_unsigned(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset());
-	    fp->write("u, BPA * "); //atom-based
+	    if(nut->getBitSize() > 0)
+	      fp->write("u, BPA * "); //atom-based
+	    else
+	      fp->write("u, 0u * "); //empty atom //t3400
 	    fp->write_decimal(arraysize); //include arraysize
 	    fp->write("u> ");
 	  }
