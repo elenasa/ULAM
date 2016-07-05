@@ -126,6 +126,9 @@ namespace MFM {
       pos = ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset();
     UlamValue rtnUVPtr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + pos, m_varSymbol->getId());
 
+    if(m_state.m_currentObjPtr.getUlamValueTypeIdx() == PtrAbs)
+      rtnUVPtr.setUlamValueTypeIdx(PtrAbs);
+
     //copy result UV to stack, -1 relative to current frame pointer
     Node::assignReturnValuePtrToStack(rtnUVPtr);
 

@@ -461,7 +461,7 @@ namespace MFM {
 	      {
 		assert(m_state.isPtr(auv.getUlamValueTypeIdx()));
 		u32 absrefslot = m_state.m_funcCallStack.getAbsoluteStackIndexOfSlot(auv.getPtrSlotIndex());
-		auv.setPtrSlotIndex(absrefslot);
+		auv.setPtrSlotIndex(absrefslot); //t3810 CallStack assert; t3635
 		auv.setUlamValueTypeIdx(PtrAbs);
 	      }
 	    m_state.m_funcCallStack.pushArg(auv);

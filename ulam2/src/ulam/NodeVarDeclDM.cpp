@@ -913,8 +913,12 @@ namespace MFM {
 
   UlamValue NodeVarDeclDM::makeUlamValuePtr()
   {
-    return UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset(), m_varSymbol->getId());
-  }
+    UlamValue ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset(), m_varSymbol->getId());
+
+    if(m_state.m_currentObjPtr.getUlamValueTypeIdx() == PtrAbs)
+      ptr.setUlamValueTypeIdx(PtrAbs);
+    return ptr;
+  } //makeUlamValuePtr
 
   // parse tree in order declared, unlike the ST.
   void NodeVarDeclDM::genCode(File * fp, UVPass& uvpass)
