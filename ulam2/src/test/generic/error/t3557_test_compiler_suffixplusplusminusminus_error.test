@@ -1,19 +1,37 @@
 ## -*- mode:ulam -*-
 #=t3557_test_compiler_suffixplusplusminusminus_error
 #!
-##
-./Foo.ulam:5:4: ERROR: Unexpected input!! Try ++ as a prefix operator.
-./Foo.ulam:5:4: ERROR: Invalid Statement (possible missing semicolon).
+./Foo.ulam:6:29: ERROR: Unexpected input!! Try ++ as a prefix operator.
+./Foo.ulam:14:12: ERROR: Unexpected input!! Try ++ as a prefix operator.
+./Foo.ulam:14:15: ERROR: Invalid Statement (possible missing semicolon).
+./Foo.ulam:20:6: ERROR: Unexpected input!! Try ++ as a prefix operator.
+./Foo.ulam:21:6: ERROR: Unexpected input!! Try -- as a prefix operator.
 Unrecoverable Program Parse FAILURE: <Foo.ulam>
 ##
 #>Foo.ulam
-ulam 1;
+  ulam 1;
 element Foo {
-Int test() {
-  Int a;
-  a++;
-  return a;
-}
+  Void func() {
+    typedef Unsigned(8) ARGB[4];
+    ARGB val;
+    for (Int i = 0; i < 3; i++)
+      val[i] = 0;
+  }
+
+  Void wunc() {
+    typedef Unsigned(8) ARGB[4];
+    ARGB val;
+    Int i = 0;
+    while(i++ < 3)
+      val[i] = 0;
+  }
+
+  Int test() {
+    Int a;
+    a++;
+    a--;
+    return a;
+  }
 }
 
 #.

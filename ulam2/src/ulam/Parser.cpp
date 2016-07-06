@@ -1539,7 +1539,7 @@ namespace MFM {
 	    msg << "Unexpected input!! Try ";
 	    msg << m_state.getTokenDataAsString(&pTok).c_str();
 	    msg << " as a prefix operator";
-	    MSG(&pTok, msg.str().c_str(), ERR);
+	    MSG(&pTok, msg.str().c_str(), ERR); //t3557
 	  }
 
 	MSG(&pTok, "Invalid Statement (possible missing semicolon)", ERR);
@@ -3334,6 +3334,18 @@ namespace MFM {
       case TOK_COMMA: /* array item init */
 	{
 	  unreadToken();
+	  rtnNode = leftNode;
+	  break;
+	}
+      case TOK_PLUS_PLUS:
+      case TOK_MINUS_MINUS:
+	{
+	  // catch in for-loop (error/t3557)
+	  std::ostringstream msg;
+	  msg << "Unexpected input!! Try ";
+	  msg << m_state.getTokenDataAsString(&pTok).c_str();
+	  msg << " as a prefix operator";
+	  MSG(&pTok, msg.str().c_str(), ERR);
 	  rtnNode = leftNode;
 	  break;
 	}
