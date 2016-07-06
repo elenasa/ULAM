@@ -323,8 +323,8 @@ namespace MFM {
       {
 	UTI asuti = ruti; //as deref'd type
 	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), asuti, m_state.determinePackable(asuti), m_state, pluv.getPtrPos() + 0, pluv.getPtrNameId());
-	if(pluv.getUlamValueTypeIdx() == PtrAbs)
-	  ptr.setUlamValueTypeIdx(PtrAbs);
+
+	ptr.checkForAbsolutePtr(pluv);
 
 	m_state.m_currentAutoObjPtr = ptr;
 	m_state.m_currentAutoStorageType = luti;

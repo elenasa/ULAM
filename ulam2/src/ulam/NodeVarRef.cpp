@@ -381,16 +381,7 @@ namespace MFM {
   {
     evalNodeProlog(0); //new current node eval frame pointer
 
-    // (from NodeIdent's makeUlamValuePtr)
-    // return ptr to this data member within the m_currentObjPtr
-    // 'pos' modified by this data member symbol's packed bit position
-    u32 pos = 0;
-    if(m_varSymbol->isDataMember())
-      pos = ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset();
-    UlamValue rtnUVPtr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + pos, m_varSymbol->getId());
-
-    if(m_state.m_currentObjPtr.getUlamValueTypeIdx() == PtrAbs)
-      rtnUVPtr.setUlamValueTypeIdx(PtrAbs);
+    UlamValue rtnUVPtr = NodeVarRef::makeUlamValuePtr();
 
     //copy result UV to stack, -1 relative to current frame pointer
     Node::assignReturnValuePtrToStack(rtnUVPtr);
@@ -398,6 +389,21 @@ namespace MFM {
     evalNodeEpilog();
     return NORMAL;
   } //evalToStoreInto
+
+    // (from NodeIdent's makeUlamValuePtr)
+    // return ptr to this data member within the m_currentObjPtr
+    // 'pos' modified by this data member symbol's packed bit position
+  UlamValue NodeVarRef::makeUlamValuePtr()
+  {
+    u32 pos = 0;
+    if(m_varSymbol->isDataMember())
+      pos = ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset();
+
+    UlamValue ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + pos, m_varSymbol->getId());
+
+    ptr.checkForAbsolutePtr(m_state.m_currentObjPtr);
+    return ptr;
+  } //makeUlamValuePtr
 
   void NodeVarRef::genCode(File * fp, UVPass & uvpass)
   {

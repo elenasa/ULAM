@@ -460,9 +460,9 @@ namespace MFM {
 	    if(paramreftype == ALT_REF && (auv.getPtrStorage() == STACK))
 	      {
 		assert(m_state.isPtr(auv.getUlamValueTypeIdx()));
-		assert(auv.getUlamValueTypeIdx() != PtrAbs); //doing that conversion here!
+		assert(!auv.isPtrAbs()); //doing that conversion here!
 		u32 absrefslot = m_state.m_funcCallStack.getAbsoluteStackIndexOfSlot(auv.getPtrSlotIndex());
-		auv.setPtrSlotIndex(absrefslot); //t3810 CallStack assert; t3635
+		auv.setPtrSlotIndex(absrefslot); //t3810, t3635
 		auv.setUlamValueTypeIdx(PtrAbs);
 	      }
 	    m_state.m_funcCallStack.pushArg(auv);
@@ -518,8 +518,8 @@ namespace MFM {
 	s32 atomslot = atomPtr.getPtrSlotIndex();
 	s32 adjustedatomslot = atomslot - (nextslot + rtnslots + 2); //negative index; 1 more for atomPtr (+uc)
 	atomPtr.setPtrSlotIndex(adjustedatomslot);
-	if(atomPtr.getUlamValueTypeIdx() == PtrAbs)
-	  atomPtr.setUlamValueTypeIdx(Ptr); //let's see..
+	if(atomPtr.isPtrAbs())
+	  atomPtr.setUlamValueTypeIdx(Ptr); //let's see..t3114 and 160+ more tests
       }
     // push the "hidden" first arg, and update the current object ptr (restore later)
     m_state.m_funcCallStack.pushArg(atomPtr); //*********

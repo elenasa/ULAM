@@ -5134,7 +5134,7 @@ namespace MFM {
     AssertBool isHolder = (m_state.makeUlamType(hkey, Holder, UC_NOTACLASS) == Holder);
     assert(isHolder);
 
-    //a Ptr for absolute indexing (i.e. reference class params); comes after Holder.
+    //a Ptr for absolute indexing (i.e. reference class params) in eval; comes after Holder. (ALT_PTR not really used)
     UlamKeyTypeSignature apkey(m_state.m_pool.getIndexForDataString("0Ptr"), ULAMTYPE_DEFAULTBITSIZE[Ptr], NONARRAYSIZE, ALT_PTR);
     AssertBool isPtrAbs = (m_state.makeUlamType(apkey, Ptr, UC_NOTACLASS) == PtrAbs);
     assert(isPtrAbs);

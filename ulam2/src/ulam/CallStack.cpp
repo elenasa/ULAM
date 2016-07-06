@@ -111,7 +111,7 @@ namespace MFM {
   void CallStack::assignUlamValue(UlamValue pluv, UlamValue ruv, CompilerState& state)
   {
     assert(pluv.isPtr());
-    if(pluv.getUlamValueTypeIdx() == PtrAbs)
+    if(pluv.isPtrAbs())
       return assignUlamValueAtAbsoluteIndex(pluv, ruv, state); //short-circuit
 
     assert(!ruv.isPtr());
@@ -160,7 +160,7 @@ namespace MFM {
 
   void CallStack::assignUlamValueAtAbsoluteIndex(UlamValue pluv, UlamValue ruv, CompilerState& state)
   {
-    assert(pluv.getUlamValueTypeIdx() == PtrAbs);
+    assert(pluv.isPtrAbs());
     assert(!ruv.isPtr());
 
     s32 leftbaseindex = pluv.getPtrSlotIndex(); //even for scalars

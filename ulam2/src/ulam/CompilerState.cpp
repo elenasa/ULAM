@@ -2773,15 +2773,14 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
     UlamValue aptr = UlamValue::makePtr(m_currentSelfPtr.getPtrSlotIndex(), m_currentSelfPtr.getPtrStorage(), tuti, determinePackable(tuti), *this, 0, m_currentSelfPtr.getPtrNameId());
 
-    if(m_currentSelfPtr.getUlamValueTypeIdx() == PtrAbs)
-      aptr.setUlamValueTypeIdx(PtrAbs);
+    aptr.checkForAbsolutePtr(m_currentSelfPtr);
     return aptr;
   } //getAtomPtrFromSelfPtr (for eval)
 
   UlamValue CompilerState::getPtrTarget(UlamValue ptr)
   {
     assert(ptr.isPtr());
-    if(ptr.getUlamValueTypeIdx() == PtrAbs)
+    if(ptr.isPtrAbs())
       return getPtrTargetFromAbsoluteIndex(ptr); //short-circuit
 
     //slot + storage
@@ -2805,7 +2804,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   UlamValue CompilerState::getPtrTargetFromAbsoluteIndex(UlamValue ptr)
   {
-    assert(ptr.getUlamValueTypeIdx() == PtrAbs);
+    assert(ptr.isPtrAbs());
 
     //slot + storage
     UlamValue valAtIdx;

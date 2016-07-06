@@ -137,8 +137,7 @@ namespace MFM {
 	    // return ptr to the m_currentObjPtr that contains this data member within
 	    ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), auti, m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
 
-	    if(m_state.m_currentObjPtr.getUlamValueTypeIdx() == PtrAbs)
-	      ptr.setUlamValueTypeIdx(PtrAbs);
+	    ptr.checkForAbsolutePtr(m_state.m_currentObjPtr);
 	  }
       }
     else

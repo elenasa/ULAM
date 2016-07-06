@@ -518,8 +518,8 @@ namespace MFM {
 	// return ptr to this data member within the m_currentObjPtr
 	// 'pos' modified by this data member symbol's packed bit position
 	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset(), m_varSymbol->getId());
-	if(m_state.m_currentObjPtr.getUlamValueTypeIdx() == PtrAbs)
-	  ptr.setUlamValueTypeIdx(PtrAbs); //t3810
+
+	ptr.checkForAbsolutePtr(m_state.m_currentObjPtr); //t3810
       }
     else
       {

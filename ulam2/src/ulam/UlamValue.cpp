@@ -200,10 +200,15 @@ namespace MFM {
 					 arrayPtr.getPtrPos(),    /* base pos of array */
 					 arrayPtr.getPtrNameId()  /* incl nameid of array */
 					 );
-    if(arrayPtr.getUlamValueTypeIdx() == PtrAbs)
-      rtnUV.setUlamValueTypeIdx(PtrAbs);
+    rtnUV.checkForAbsolutePtr(arrayPtr);
     return rtnUV;
   } //makeScalarPtr
+
+  void UlamValue::checkForAbsolutePtr(const UlamValue fmptr)
+  {
+    if(fmptr.isPtrAbs())
+      setUlamValueTypeIdx(PtrAbs); //match it
+  } //checkForAbsolutePtr
 
   UTI UlamValue::getUlamValueTypeIdx() const
   {
@@ -291,6 +296,11 @@ namespace MFM {
     UTI puti = getUlamValueTypeIdx();
     return ((puti == Ptr) || (puti == PtrAbs));
   } //isPtr
+
+  bool UlamValue::isPtrAbs() const
+  {
+    return (getUlamValueTypeIdx() == PtrAbs);
+  }
 
   PACKFIT UlamValue::isTargetPacked()
   {

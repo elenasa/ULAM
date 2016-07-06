@@ -114,6 +114,8 @@ namespace MFM{
 
     static UlamValue makeScalarPtr(UlamValue arrayPtr, CompilerState& state);
 
+    void checkForAbsolutePtr(const UlamValue fmptr);
+
     UTI  getUlamValueTypeIdx() const;
 
     void setUlamValueTypeIdx(UTI utype);
@@ -123,6 +125,8 @@ namespace MFM{
     void setAtomElementTypeIdx(UTI utype);
 
     bool isPtr() const;
+
+    bool isPtrAbs() const;
 
     PACKFIT isTargetPacked(); // Ptr only
 
