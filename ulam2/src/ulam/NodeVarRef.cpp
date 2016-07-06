@@ -381,7 +381,7 @@ namespace MFM {
   {
     evalNodeProlog(0); //new current node eval frame pointer
 
-    UlamValue rtnUVPtr = NodeVarRef::makeUlamValuePtr();
+    UlamValue rtnUVPtr = makeUlamValuePtr();
 
     //copy result UV to stack, -1 relative to current frame pointer
     Node::assignReturnValuePtrToStack(rtnUVPtr);

@@ -85,8 +85,6 @@ namespace MFM{
 
   private:
 
-    UlamValue makeUlamValuePtr(); //for eval
-
     void genCodeRefAsSelf(File * fp, UVPass& uvpass);
   };
 

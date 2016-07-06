@@ -160,6 +160,8 @@ namespace MFM{
 
     virtual EvalStatus evalToStoreInto();
 
+    virtual UlamValue makeUlamValuePtr();
+
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 
     virtual void printUnresolvedVariableDataMembers();

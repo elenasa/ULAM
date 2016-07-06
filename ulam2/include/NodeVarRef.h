@@ -87,9 +87,9 @@ namespace MFM{
 
     virtual void printTypeAndName(File * fp);
 
-  private:
+    virtual UlamValue makeUlamValuePtr();
 
-    UlamValue makeUlamValuePtr();
+  private:
 
   };
 

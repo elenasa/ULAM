@@ -349,6 +349,17 @@ namespace MFM {
     return ERROR;
   }
 
+  UlamValue Node::makeUlamValuePtr()
+  {
+    std::ostringstream msg;
+    msg << "virtual UlamValue " << prettyNodeName().c_str();
+    msg << "::makeUlamValuePtr(){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+
+    UlamValue ptr;
+    return ptr;
+  } //makeUlamValuePtr
+
   void Node::evalNodeProlog(u32 depth)
   {
     //space for local variables on node eval stack; adjusts current fp;

@@ -91,6 +91,9 @@ namespace MFM{
 
     virtual void genCodeReadIntoATmpVar(File * fp, UVPass & uvpass);
 
+  protected:
+    virtual UlamValue makeUlamValuePtr();
+
   private:
     Token m_token;
     SymbolVariable * m_varSymbol;
@@ -100,7 +103,6 @@ namespace MFM{
     bool checkVariableTypedefSizes(TypeArgs& args, UTI auti);
     bool checkTypedefOfTypedefSizes(TypeArgs& args, UTI tduti);
     bool checkConstantTypedefSizes(TypeArgs& args, UTI tduti);
-    UlamValue makeUlamValuePtr();
     void makeUVPassForCodeGen(UVPass& uvpass);
   };
 

@@ -250,8 +250,8 @@ namespace MFM {
 
     makeRoomForSlots(1); //always 1 slot for ptr
 
-    UlamValue uvp = makeUlamValuePtr();
-    if(!m_state.isPtr(uvp.getUlamValueTypeIdx()))
+    UlamValue uvp = makeUlamValuePtr(); //virtual
+    if(!uvp.isPtr())
       {
 	evalNodeEpilog();
 	return ERROR;
@@ -271,9 +271,9 @@ namespace MFM {
     evalNodeProlog(0); //new current node eval frame pointer
 
     // return ptr to this local var (from NodeIdent's makeUlamValuePtr)
-    UlamValue rtnUVPtr = makeUlamValuePtr();
+    UlamValue rtnUVPtr = makeUlamValuePtr(); //virtual
 
-    if(!m_state.isPtr(rtnUVPtr.getUlamValueTypeIdx()))
+    if(!rtnUVPtr.isPtr())
       {
 	evalNodeEpilog();
 	return ERROR;

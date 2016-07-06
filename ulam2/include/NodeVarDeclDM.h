@@ -95,6 +95,8 @@ namespace MFM{
 
   protected:
 
+    virtual UlamValue makeUlamValuePtr(); //for dm
+
   private:
 
     bool updateConstant(u64 & newconst);
@@ -103,8 +105,6 @@ namespace MFM{
 
     void foldDefaultClass();
     void genCodedBitFieldTypedef(File * fp, UVPass& uvpass);
-
-    UlamValue makeUlamValuePtr(); //for dm
 
     bool checkDataMemberSizeConstraints(); //during c&l
   };

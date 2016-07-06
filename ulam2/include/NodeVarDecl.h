@@ -113,11 +113,11 @@ namespace MFM{
     virtual bool checkSafeToCastTo(UTI fromType, UTI& newType);
     EvalStatus evalInitExpr();
 
+    virtual UlamValue makeUlamValuePtr(); //for locals
+
   private:
     NNO m_currBlockNo;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
-
-    UlamValue makeUlamValuePtr(); //for locals
 
     void setupStackWithPrimitiveForEval(u32 slots);
     void setupStackWithClassForEval(u32 slots);
