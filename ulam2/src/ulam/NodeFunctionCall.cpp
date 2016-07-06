@@ -460,6 +460,7 @@ namespace MFM {
 	    if(paramreftype == ALT_REF && (auv.getPtrStorage() == STACK))
 	      {
 		assert(m_state.isPtr(auv.getUlamValueTypeIdx()));
+		assert(auv.getUlamValueTypeIdx() != PtrAbs); //doing that conversion here!
 		u32 absrefslot = m_state.m_funcCallStack.getAbsoluteStackIndexOfSlot(auv.getPtrSlotIndex());
 		auv.setPtrSlotIndex(absrefslot); //t3810 CallStack assert; t3635
 		auv.setUlamValueTypeIdx(PtrAbs);

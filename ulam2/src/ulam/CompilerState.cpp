@@ -2772,6 +2772,9 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     UTI tuti = tuv.getUlamValueTypeIdx();
 
     UlamValue aptr = UlamValue::makePtr(m_currentSelfPtr.getPtrSlotIndex(), m_currentSelfPtr.getPtrStorage(), tuti, determinePackable(tuti), *this, 0, m_currentSelfPtr.getPtrNameId());
+
+    if(m_currentSelfPtr.getUlamValueTypeIdx() == PtrAbs)
+      aptr.setUlamValueTypeIdx(PtrAbs);
     return aptr;
   } //getAtomPtrFromSelfPtr (for eval)
 
