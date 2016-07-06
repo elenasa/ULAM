@@ -309,7 +309,6 @@ namespace MFM {
     fp->write(");"); GCNL;
 
     uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0);  //P
-
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode
 

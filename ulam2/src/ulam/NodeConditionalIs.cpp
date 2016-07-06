@@ -222,7 +222,6 @@ namespace MFM {
 
     //update uvpass
     uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
-
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCode
 
@@ -274,7 +273,6 @@ namespace MFM {
 
     //update uvpass
     uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
-
     m_state.clearCurrentObjSymbolsForCodeGen(); //forgotten
   } //genCodeAtomIs
 
@@ -318,7 +316,6 @@ namespace MFM {
 
     //update uvpass
     uvpass = UVPass::makePass(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
-
     m_state.clearCurrentObjSymbolsForCodeGen(); //forgotten (t3741)
   } //genCodeReferenceIs
 

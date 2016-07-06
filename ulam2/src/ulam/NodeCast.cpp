@@ -699,9 +699,7 @@ namespace MFM {
 
    fp->write(", ");
    fp->write_decimal(tobe->getTotalBitSize()); //tobe length
-
-   fp->write(")");
-   fp->write(";"); GCNL;
+   fp->write(");"); GCNL;
 
    //PROBLEM is that funccall checks for 0 nameid to use the tmp var!
    // but then if we don't pass it along Node::genMemberNameForMethod fails..
@@ -835,11 +833,8 @@ namespace MFM {
 	      {
 		fp->write("&");
 		fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
+		fp->write(", uc"); //t3754
 	      }
-
-	    if(!m_state.isAtomRef(vuti))
-	      fp->write(", uc"); //t3754
-
 	    fp->write(");"); GCNL;
 	    uvpass = UVPass::makePass(tmpeleref, TMPBITVAL, tobeType, UNPACKED, m_state, 0, stgcos->getId()); //POS moved left for type; pass along name id);
 	  }
@@ -1201,7 +1196,6 @@ namespace MFM {
 	    fp->write(stgcos->getMangledName().c_str());
 	    fp->write(".GetEffectiveSelf()"); //maintains eff self
 	  }
-
 	fp->write(");"); GCNL;
 
 	//update the uvpass to have the casted immediate quark
@@ -1435,7 +1429,7 @@ namespace MFM {
 	fp->write(", 0u, ");
 	fp->write(stgcos->getMangledName().c_str()); //a ref
 	fp->write(".GetEffectiveSelf()"); //maintains eff self
-	fp->write(");\n");
+	fp->write(");"); GCNL;
 	uvpass = UVPass::makePass(tmpVarVal, TMPBITVAL, tobeType, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified;
       }
     else
@@ -1485,7 +1479,6 @@ namespace MFM {
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
 	    fp->write(", uc");
 	  }
-
 	fp->write(");"); GCNL;
 	uvpass = UVPass::makePass(tmpVarSuper, TMPBITVAL, tobeType, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified;
       }
@@ -1512,7 +1505,6 @@ namespace MFM {
 	// new uvpass here..
 	uvpass = UVPass::makePass(tmpVarSuper, tobe->getTmpStorageTypeForTmpVar(), tobeType, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified.
       }
-
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
   } //genCodeCastDecendentQuark
 

@@ -688,7 +688,6 @@ namespace MFM {
 
     //update uvpass
     uvpass = UVPass::makePass(tmpVarNum2, vstor, vuti, m_state.determinePackable(vuti), m_state, 0, 0); //POS 0 justified (atom-based).
-
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeReadAutorefIntoATmpVar
 
@@ -883,9 +882,9 @@ namespace MFM {
     //index is immediate Index arg of targettype in uvpass
     fp->write(auvpass.getTmpVarAsString(m_state).c_str()); //INDEX
     fp->write(");"); GCNL;
+
     //update uvpass
     uvpass = UVPass::makePass(tmpVarNum2, TMPBITVAL, itemuti, m_state.determinePackable(itemuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
-
     genCodeConvertABitVectorIntoATmpVar(fp, uvpass); //updates uvpass again (e.g. t3505 'is')
   } //genCodeReadCustomArrayItemIntoATmpVar
 
@@ -1119,7 +1118,8 @@ namespace MFM {
 	genLocalMemberNameOfMethod(fp);
 	fp->write("readTypeField(");
       }
-    fp->write("); //save type\n\n");
+    fp->write("); //save type"); GCNL;
+    fp->write("\n");
 
     //update uvpass
     uvpass = UVPass::makePass(tmpVarType, TMPREGISTER, Unsigned, m_state.determinePackable(Unsigned), m_state, 0, 0); //POS 0 rightjustified (atom-based).
@@ -1408,7 +1408,6 @@ namespace MFM {
     fp->write("); //func arg&"); GCNL;
 
     uvpass = UVPass::makePass(tmpVarNum2, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, pos, 0); //POS left-justified for quarks; right for primitives.
-
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeConvertATmpVarIntoBitVector
 
@@ -1587,7 +1586,6 @@ namespace MFM {
       }
 
     uvpass = UVPass::makePass(tmpVarNum2, TMPAUTOREF, cosuti, m_state.determinePackable(cosuti), m_state, 0, cos->getId()); //POS left-justified by default.
-
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeConvertATmpVarIntoAutoRef
 

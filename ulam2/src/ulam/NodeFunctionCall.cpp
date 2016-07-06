@@ -1305,7 +1305,6 @@ namespace MFM {
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(puti).c_str());
 	  }
       }
-
     fp->write(");"); GCNL;
 
     uvpass = UVPass::makePass(tmpVarArgNum2, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, 0, 0); //POS adjusted for BitVector, justified; self id in Pass;
