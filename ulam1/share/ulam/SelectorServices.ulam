@@ -1,0 +1,137 @@
+ulam 1;
+
+use Random;
+use Fail;
+
+/**
+   A service for assisting with selections, such selecting the maximum
+   or minimum of some set of possibilities -- breaking ties, if any,
+   randomly but fairly among the winners.  Can also be used for making
+   a weighted random selection among some set.
+
+   \placeable no
+
+   \author Dave Ackley
+   \license lgpl
+ */
+element SelectorServices {
+  // Typedefs
+  typedef Unsigned(16) Count;  //< The weight of the current winning choice
+  typedef Int(16) Key;         //< The 'id' (e.g., eventwindow idx) of the current winning choice
+
+  // Utilities
+  Random r;
+  Fail fail;
+
+  // Data members
+  Count c;
+  Key k;
+  Int v;
+
+  /**
+     Forget any existing choice.  After reset is called, getCount()
+     will return 0 and selectionMade will return false.
+   */
+  Void reset() { c = 0; }
+
+  /**
+     Include 'value' as a possible minimum value.  This is a
+     convenience routine for when you only want the extremal value and
+     there is no associated 'key'.
+
+     NOTE: You should not call more than one of 'count', 'maximize',
+     or 'minimize', without calling 'reset' first!  If you do, the
+     results are undefined.
+   */
+  Void minimize(Int value) { minimize(0, value); }
+
+  /**
+     Include 'value' as a possible minimum value, associated with the
+     given 'key'.
+
+     NOTE: You should not call more than one of 'count', 'maximize',
+     or 'minimize', without calling 'reset' first!  If you do, the
+     results are undefined.
+   */
+  Void minimize(Int key, Int value) {
+    if (check(key, value, 1) && value < v) take(key, value);
+  }
+
+  /**
+     Include 'value' as a possible maximum value.  This is a
+     convenience routine for when you only want the extremal value and
+     there is no associated 'key'.
+
+     NOTE: You should not call more than one of 'count', 'maximize',
+     or 'minimize', without calling 'reset' first!  If you do, the
+     results are undefined.
+   */
+  Void maximize(Int value) { maximize(0, value); }
+
+  /**
+     Include 'value' as a possible maximum value, associated with the
+     given 'key'.
+
+     NOTE: You should not call more than one of 'count', 'maximize',
+     or 'minimize', without calling 'reset' first!  If you do, the
+     results are undefined.
+   */
+  Void maximize(Int key, Int value) {
+    if (check(key, value, 1) && value > v) take(key, value);
+  }
+
+
+  /**
+     Include 'key' as a possible random pick, giving it 'weight'
+     votes.  This is used you want a weighted random pick among a set
+     of choices, with no minimizing or maximizing.
+
+     NOTE: You should not call more than one of 'count', 'maximize',
+     or 'minimize', without calling 'reset' first!  If you do, the
+     results are undefined.
+   */
+  Void count(Int key, Int weight) { check(key, 1, weight); }
+
+  Unsigned getCount() { return c; }
+  Bool selectionMade() { return getCount() > 0; }
+  Int getSelectedKey() {
+    if (!selectionMade()) fail.fail();
+    return k;
+  }
+  Int getSelectedValue() {
+    if (!selectionMade()) fail.fail();
+    return v;
+  }
+
+  /**
+     Unconditionally choose the current key and value.  (Primarily an
+     internal routine).
+   */
+  Void take(Int key, Int value) {
+    k = (Key) key;
+    v = value;
+  }
+
+  /**
+     Return true if value needs to be checked for being a new extreme.
+     (Primarily an internal routine).
+  */
+  Bool check(Int key, Int value, Int weight) {
+    if (weight <= 0)
+      return false;
+
+    if (c == 0) {
+      c = weight;
+      take(key, value);
+      return false;
+    }
+
+    if (v == value) {
+      if (r.oddsOf((Unsigned) weight, (Unsigned) (c += (Count) weight)))
+        take(key, value);
+      return false;
+    }
+    return true;
+  }
+
+}

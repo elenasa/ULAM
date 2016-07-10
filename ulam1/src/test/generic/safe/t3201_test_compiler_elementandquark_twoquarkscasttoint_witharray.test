@@ -1,0 +1,79 @@
+## -*- mode:ulam -*-
+#=t3201_test_compiler_elementandquark_twoquarkscasttoint_witharray
+#!
+##      // changed to <<2 instead of *4u and got a different last answer (4 instead of 7)
+##      //developed by Dave (10092014) in c++ and then converted to Ulam.
+##      // 7 is max that Int(4) can be positively, so 12 becomes 7.
+##      /* gen code output:
+##	 Unsigned Arg: 1
+##	 Unsigned Arg: 2
+##	 Unsigned Arg: 3
+##	 Unsigned Arg: 0
+##	 Int(4) Arg: 0x6
+##	 Int(4) Arg: 0x7
+##      */
+##
+##      // constant fold minus
+Exit status: 7
+Ue_Foo { System s();  Bar bar1( Bool(1) b(false);  Unsigned(3) x(1);  Unsigned(3) y(2); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3);  Unsigned(3) y(0); );  Int(4) i[2](6,7);  Int(32) test() {  Int(2) d;  d 1 = bar1 x . d cast = bar1 y . 2 cast = bar2 x . 3 cast = bar2 y . 0 cast = i 0 [] bar1 ( )toInt . cast cast = i 1 [] bar2 ( )toInt . cast cast = s ( bar1 x . cast )print . s ( bar1 y . cast )print . s ( bar2 x . cast )print . s ( bar2 y . cast )print . s ( i 0 [] )print . s ( i 1 [] )print . i 1 [] cast return } }
+Uq_System { <NOMAIN> }
+Uq_Bar { Bool(1) b(false);  Unsigned(3) x(1);  Unsigned(3) y(2);  <NOMAIN> }
+#>Foo.ulam
+ulam 1;
+use System;
+use Bar;
+element Foo {
+System s;
+Bar bar1;
+Bar bar2;
+Int(4) i[2];
+Int test(){
+Int(2) d;
+d = 1;
+bar1.x = (Unsigned(3)) d;
+bar1.y = 2;
+bar2.x = 3;
+bar2.y = 0;
+i[0] = (Int(4)) bar1;
+i[1] = (Int(4)) bar2;
+s.print((Unsigned) bar1.x);
+s.print((Unsigned) bar1.y);
+s.print((Unsigned) bar2.x);
+s.print((Unsigned) bar2.y);
+
+s.print(i[0]);
+s.print(i[1]);
+
+return i[1];}
+}
+
+##      //note: don't have printf's yet so comments for now
+##      // printf(\"%d\n\", (Int) bar1);\nprintf(\"%d\n\", (Int) bar2);\n STARS AND SLASHES OH MY!!!
+##
+##      // fixed a bug that didn't address different int bit sizes automatically during casting
+##
+##      // test with array data member (lhs), and return array item[1]. [currently not supported by simulator]
+##
+##      //note: don't have <<2, so substituted *4; got it now! changes the answer too..
+##
+#:Bar.ulam
+ulam 1;
+quark Bar {
+Bool b;
+Unsigned(3) x, y;
+Int toInt(){
+return (Int) (x << 2) + y;
+}
+}
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

@@ -1,0 +1,16 @@
+## -*- mode:ulam -*-
+#=t3133_test_compiler_invalidlhs_funccall_error
+#!
+## //./D.ulam:7:8: ERROR: Lefthand side of equals is 'Not StoreIntoAble': <foo>, type: Int(8).
+#>D.ulam
+quark D {
+Int(8) a;
+Int(8) foo() {
+  return 1;
+}
+Int test() {
+ foo() = a;
+ return foo();
+}
+}
+#.

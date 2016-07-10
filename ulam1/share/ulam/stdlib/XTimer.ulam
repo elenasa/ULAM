@@ -1,0 +1,43 @@
+ulam 1;
+use Random;
+
+/**
+   Stochastic timer, with extended features.  Consumes \c bits for a
+   counter.  The alarm() method begins returning true after, on
+   average, approximately 2**triggerLevel-1 calls on count().  The
+   current count may be accessed by calling current().  The count can
+   be forced to the maximum by calling trigger(), and restarted from 0
+   by calling reset().
+
+   \author Dave Ackley
+   \version 2
+   \license lgpl
+ */
+quark XTimer(Unary(5) bits, Unsigned triggerLevel)
+{
+  // With a max counter width of 5, the max value of Counter.maxof is
+  // 31, so 1u<<time cannot overflow
+  typedef Unsigned(bits) Counter;
+
+  Random r;
+  Counter time;
+
+  Void reset() { time = 0; }
+
+  Void trigger() { time = triggerLevel; }
+
+  Bool alarm() { return time >= triggerLevel; }
+
+  Counter current() { return time; }
+
+  Void set(Counter newv) { time = newv; }
+
+  Counter max() { return triggerLevel; }
+
+  Counter count() {
+    Unsigned k = 1;
+    if (!alarm() && r.oneIn((Unsigned) (k<<time)))
+      ++time;
+    return time;
+  }
+}

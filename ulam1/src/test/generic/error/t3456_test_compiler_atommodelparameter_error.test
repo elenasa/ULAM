@@ -1,0 +1,22 @@
+## -*- mode:ulam -*-
+#=t3456_test_compiler_atommodelparameter_error
+#!
+##
+##./Tu.ulam:4:17: ERROR: Missing '=' after model parameter definition.
+##
+Ue_Tu {
+##
+##      // cannot write into an MP in ulam (only MFM simulator!)
+##
+#>Tu.ulam
+ulam 1;
+element Tu {
+typedef Atom A;
+ parameter A aep;
+  Int test(){
+ aep = self;
+ return 0;
+}
+}
+
+#.

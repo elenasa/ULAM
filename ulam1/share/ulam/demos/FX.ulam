@@ -1,0 +1,16 @@
+/**
+  FX swaps positions left and right
+  \color #F03
+  \symmetries normal
+*/
+element FX {
+  EventWindow ew;
+  Bool m_flip;
+
+  Void behave(){
+    if (m_flip = !m_flip)
+      ew.swap(0,1);
+    else
+      ew.swap(0,4);
+  }
+}

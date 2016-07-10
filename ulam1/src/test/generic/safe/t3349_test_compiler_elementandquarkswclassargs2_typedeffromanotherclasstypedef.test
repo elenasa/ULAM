@@ -1,0 +1,48 @@
+## -*- mode:ulam -*-
+#=t3349_test_compiler_elementandquarkswclassargs2_typedeffromanotherclasstypedef
+#!
+Exit status: 3
+Ue_R { Int(32) test() {  3u = var const P(3u) pel;  3u cast return } }
+Ue_P { constant Unsigned(3) a = NONREADYCONST;  Bool(UNKNOWN) b(unknown);  <NOMAIN> }
+Uq_V { typedef Q(3) Woof;  <NOMAIN> }
+Uq_Q { constant Int(32) s = NONREADYCONST;  typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }
+##
+##      // LINKER ERRORS if test is in P and not R.
+#>R.ulam
+ulam 1;
+use P;
+ use V;
+ element R {
+Int test() {
+constant V.Woof.Foo var = 3u;
+ P(var) pel;
+ return pel.sizeof;
+}
+}
+##      // simplify for debug
+##      //bool rtn4 = fms->add("R.ulam","ulam 1;\nuse P;\nelement R {\nInt test() {\nconstant Unsigned(3) var = 3u;\n P(var) pel;\n return pel.sizeof;\n}\n}\n");
+##
+##      // simplify for debug
+##      //bool rtn4 = fms->add("R.ulam","ulam 1;\nuse P;\nelement R {\nInt test() {\n P(1u) pel;\n return pel.sizeof;\n}\n}\n");
+##
+##
+##
+##      // informed by 3339: P is now parametric
+##      // recursive typedefs as local variable type
+#:P.ulam
+ulam 1;
+ element P(Unsigned(3) a) {
+Bool(a) b;
+}
+#:Q.ulam
+ulam 1;
+quark Q(Int s) {
+typedef Unsigned(s) Foo;
+}
+#:V.ulam
+ulam 1;
+use Q;
+ quark V {
+typedef Q(3) Woof;
+}
+#.
