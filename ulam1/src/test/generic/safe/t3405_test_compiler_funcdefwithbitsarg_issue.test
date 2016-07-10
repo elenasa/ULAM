@@ -4,18 +4,18 @@
 Exit status: 3
 Ue_Foo { Bool(1) b(true);  Bits(7) s(3);  Int(32) test() {  s 3u cast = b self ( s )check . = s cast return } }
 #>Foo.ulam
-  ulam 1;
-element Foo {
-  Bool b;
-  Bits(7) s;
-  Bool check(Bits(7) idx){
-    return true;
-  }
-  Int test() {
-    s = 3u;
-    b = self.check(s);
-    return (Int) s;
-  }
+ulam 1;
+ element Foo {
+Bool b;
+ Bits(7) s;
+Bool check(Bits(7) idx){
+ return true;
 }
+ Int test() {
+s = 3u;
+b = self.check(s);
+return (Int) s;
+ }
+ }
 
 #.

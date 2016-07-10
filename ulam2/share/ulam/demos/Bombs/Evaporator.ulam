@@ -1,0 +1,18 @@
+/** 
+  Evaporator is the unforkbomb, the world's most humble element.  Also
+  known as glue (try flooding a gap with Ev).  Compare to FB.
+
+  \symbol Ev
+  \color #a3ef99
+  \symmetries all
+
+  \author Dave Ackley
+  \license public-domain
+
+*/
+element Evaporator {
+  EventWindow ew;
+  Void behave() { 
+    ew[0] = ew[1]; 
+  }
+}

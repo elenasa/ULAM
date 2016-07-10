@@ -1,13 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3406_test_compiler_elementandquark_compoundconditionalas_error
 #!
-./Foo.ulam:10:10: ERROR: Invalid Statement (possible missing semicolon).
-./Foo.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Foo'; Possible missing ending curly brace.
-./Foo.ulam:15:3: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', or 'union'.
-./Foo.ulam:2:9: ERROR: Invalid Type: Foo.
- ERROR: No parse tree for This Class: Foo.
-Unrecoverable Program Parse FAILURE.
 ##
+##./Foo.ulam:10:10: ERROR: Invalid Statement (possible missing semicolon).
+##
+Exit status: 0
+Ue_Foo { Counter4 m_c4( Int(32) d(0); );  Int(32) e(0);  Bool(1) b(false);  Int(32) test() {  Atom(96) aq;  Foo f;  aq f cast = aq Counter4 as cond { Counter4 aq;  aq ( )incr . e aq ( )get . = } if e return } }
+Uq_Counter4 { Int(32) d(0);  <NOMAIN> }
 ##
 ##      //point of this test; but invalid statement (double parens inside if condition)
 ##

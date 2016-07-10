@@ -1,0 +1,112 @@
+## -*- mode:ulam -*-
+#=t3839_test_compiler_transientwithtransientdmwithelementarrayref_refoftypedefref_error
+#!
+##      gen code output: (2 asserts)
+##
+./R.ulam:13:5: ERROR: Referencing a reference type: Foo&.
+./Foo.ulam:2:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Foo.
+./Foo.ulam:2:9: ERROR: 16 Nodes with unresolved types detected after type labeling class: Foo.
+Unrecoverable Program Type Label FAILURE.
+##
+## similar to 3832, except wondering what happens with ref of ref
+## with added debugging statements.
+##
+#>R.ulam
+  ulam 2;
+use System;
+use A;
+element R {
+  Bool b, c;
+
+  Int test(){
+    System s;
+    QW qw;
+    A ar[3];
+    typedef Foo& FAR[4];
+
+    FAR& far = ar[1].mToo.mFAR; //ref of ref?
+    Foo& far1 = far[1];
+    Foo foo1 = far1; //bug fixed <<<ILLEGAL ARG
+    s.assert(foo1.mTre == 1u);
+
+    Foo foo2 = far[1]; //bug fixed <<<ILLEGAL ARG
+    foo2.setTre(1u);
+    c = qw.eunc(foo2);
+    s.assert(c);
+    return 0;
+  }
+}
+
+#:A.ulam
+  ulam 2;
+use QW;
+transient A : QW {
+  Bool(7) sp;
+  Too mToo;
+  Void setsp()
+  {
+    sp = true;
+  }
+}
+
+#:QW.ulam
+  ulam 2;
+quark QW {
+  typedef Unary(3) Coord;
+  Bool mqb;
+  Bool func(A& aarg)
+  {
+    return aarg.sp;
+  }
+  Bool eunc(Foo& aarg)
+  {
+    return (aarg.mTre > Unary(3).minof && aarg.mTre < Unary(3).maxof);
+  }
+  Bool cunc(Coord& carg)
+  {
+    return (carg > Unary(3).minof && carg < Unary(3).maxof);
+  }
+  Bool aunc(Atom& aarg)
+  {
+    if(aarg as Foo)
+      return (aarg.mTre > Unary(3).minof && aarg.mTre < Unary(3).maxof);
+    return false;
+  }
+  Bool qunc()
+  {
+    return mqb;
+  }
+}
+
+#:Too.ulam
+  ulam 2;
+transient Too {
+  typedef Foo FAR[4];
+  Bool sp = true; //provides an offset to mFAR
+  FAR mFAR;
+}
+
+#:Foo.ulam
+  ulam 2;
+element Foo {
+  typedef QW.Coord Coord;
+  Coord mTre = 1u;
+  Coord mCoo[3];
+  Void setTre(Coord uarg)
+  {
+    mTre = uarg;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

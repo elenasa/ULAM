@@ -1,0 +1,37 @@
+## -*- mode:ulam -*-
+#=t3771_test_compiler_localarrayinittoomany_unpacked_error
+#!
+./A.ulam:6:5: ERROR: Too many initializers (3) specified for array 'c', size 2.
+./System.ulam:2:7: ERROR: 11 Nodes with unresolved types detected after type labeling class: System.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t3770
+##
+#>A.ulam
+  ulam 2;
+element A {
+  Int a;
+  System s;
+  Int test() {
+    Int c[2] = { -1, 5, 4};
+    s.print(c.sizeof);
+    s.assert(c.sizeof == 224);
+    a = c[1];
+    s.print(a);
+    s.assert(a == 5);
+    return a;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

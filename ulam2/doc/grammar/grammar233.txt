@@ -1,0 +1,119 @@
+[Development version: ulam-2.0.0]
+
+<LIBRARY> := <PROGRAM_DEF>* + <EOF>
+<PROGRAM_DEF> := <QUARK_OR_UNION_DEF> | <ELEMENT_DEF>
+<ELEMENT_DEF> := 'element' + <ELEMENT_IDENT> + ( 0 | ':' + <QUARK_OR_UNION_INSTANCE> ) + <CLASS_BLOCK>
+<ELEMENT_IDENT> := <TYPE_IDENT> + ( 0 | '(' + <CLASS_PARAM_DECLS> + ')' )
+<ELEMENT_INSTANCE> := <TYPE_IDENT> + ( 0 | '(' + <CLASS_ARGS> + ')' )
+<QUARK_OR_UNION_DEF> := ('quark' | 'union') + <QUARK_OR_UNION_IDENT> +
+                        ( 0 | ':' + <QUARK_OR_UNION_INSTANCE> ) + <CLASS_BLOCK>
+<QUARK_OR_UNION_IDENT> := <TYPE_IDENT> + ( 0 | '(' + <CLASS_PARAM_DECLS> + ')')
+<QUARK_OR_UNION_INSTANCE> := <TYPE_IDENT> + ( 0 | '(' + <CLASS_ARGS> + ')' )
+
+<CLASS_PARAM_DECLS> := <CLASS_PARAM> | <CLASS_PARAM> + ',' + <CLASS_PARAM_DECLS>
+<CLASS_PARAM>  := <TYPE> + <IDENT> + ( 0 | '=' + <CONSTANT_EXPRESSION> )
+<CLASS_ARGS> := 0 | <CLASS_ARG> | <CLASS_ARG> + ',' + <CLASS_ARGS>
+<CLASS_ARG> := <CONSTANT_EXPRESSION>
+
+<CLASS_BLOCK> := '{' + <CLASS_MEMBERS> + '}'
+<CLASS_MEMBERS> := ( 0 | <FUNC_DEF> | <DATA_MEMBER_DEF> + ';' | <PARAMETER_DEF> + ';' |
+	       <CONST_DEF> + ';' | <TYPE_DEF> + ';' )*
+
+<TYPE> := <TYPE_NAME> | <TYPE_NAME> + '(' + <CONSTANT_EXPRESSION> + ')' | <TYPE_REF>
+<TYPE_NAME> := <TYPE_TOKEN> | <TYPE_IDENT> | <TYPE_IDENT> + ( '.' + <TYPE_IDENT>)*
+<TYPE_TOKEN> := 'Int' | 'Unsigned' | 'Bool' | 'Unary' | 'Bits' | 'Atom' | 'Void'
+<TYPE_REF> := <TYPE> + '&'
+
+<TYPE_DEF> := 'typedef' + <TYPE> + <TYPE_EXPRESSION>
+<TYPE_EXPRESSION> := <TYPE_IDENT> | <TYPE_IDENT> + '[' + <CONSTANT_EXPRESSION> + ']'
+<CONST_DEF> := 'constant' + <TYPE> + <IDENT> + '=' + <CONSTANT_EXPRESSION>
+<PARAMETER_DEF> := 'parameter' + <TYPE> + <IDENT> + '=' + <CONSTANT_EXPRESSION>
+
+<DATA_MEMBER_DEF> := <TYPE> + <DM_VAR_STATEMENT_DECLS>
+<DM_VAR_STATEMENT_DECLS> := <DM_VAR_STATEMENT_DECL> | <DM_VAR_STATEMENT_DECL> + ',' + <DM_VAR_STATEMENT_DECLS>
+<DM_VAR_STATEMENT_DECL> := <VAR_DECL> + ( 0 | '=' + <CONSTANT_EXPRESSION> )
+<VAR_DECL> := <LVAL_EXPRESSION>
+
+<FUNC_DEF> := <ULAM_FUNC_DEF> | <NATIVE_FUNC_DEF> | <VIRTUAL_FUNC_DEF>
+<ULAM_FUNC_DEF> := <FUNC_DECL> + <BLOCK>
+<NATIVE_FUNC_DEF> := <FUNC_DECL> + 'native' + ';'
+<VIRTUAL_FUNC_DEF> := 'virtual' + ( <ULAM_FUNC_DEF> | <NATIVE_FUNC_DEF>
+		   | ';')
+<FUNC_DECL> := <TYPE> + <IDENT> + '(' + <FUNC_PARAM_DECLS> + ')'
+<FUNC_PARAM_DECLS> := 0 | '...' | <FUNC_PARAMS> | <FUNC_PARAMS> + ',' + '...'
+<FUNC_PARAMS> := <FUNC_PARAM> | <FUNC_PARAM> + ',' + <FUNC_PARAMS>
+<FUNC_PARAM>  := <TYPE> + <VAR_DECL>
+
+<BLOCK> := '{' + <STATEMENTS> + '}'
+<STATEMENTS> := 0 | <STATEMENT> + <STATEMENTS>
+<STATEMENT> := <SIMPLE_STATEMENT> | <CONTROL_STATEMENT> | <BLOCK>
+
+<CONTROL_STATEMENT> := <IF_STATEMENT> | <WHILE_STATEMENT> | <FOR_STATEMENT> | <BREAK_STATEMENT>
+                       | <CONTINUE_STATEMENT>
+<IF_STATEMENT> := 'if' + '(' + <CONDITIONAL_EXPRESSION> + ') + <STATEMENT> + <OPT_ELSE_STATEMENT>
+<OPT_ELSE_STATEMENT> := 0 | 'else' + <STATEMENT>
+<WHILE_STATEMENT> := 'while' + '(' + <CONDITIONAL_EXPRESSION> + ')' + <STATEMENT>
+   => equiv to a parse tree shaped like:
+      while(true) { if(!<CONDITIONAL_EXPR) break; <STATEMENT> }
+
+<FOR_STATEMENT> := 'for' + '('
+		   	+ ( 0 | <STATEMENT_DECL> | <ASSIGN_EXPRESSION>) + ';'
+                        + ( 0 | <CONDITIONAL_EXPRESSION>) + ';'
+                        + ( 0 | <ASSIGN_EXPRESSION>) + ')'
+                        + <STATEMENT>
+  => equiv to a parse tree shaped like:
+  { <STATEMENT_DECL> while (<CONDITIONAL_EXPRESSION>) { <STATEMENT> <ASSIGN_EXPRESSION> } }
+<BREAK_STATEMENT> := 'break' + ';'
+<CONTINUE_STATEMENT> := 'continue' + ';'
+<CONDITIONAL_EXPRESSION> := <SIMPLE_COND_DECL> | <ASSIGN_EXPRESSION>
+<SIMPLE_COND_DECL> := <IDENT> + 'as' + <TYPE_IDENT>
+
+
+<SIMPLE_STATEMENT> := ( 0 | <STATEMENT_DECL> | <TYPE_DEF> | <CONST_DEF> | <ASSIGN_EXPRESSION>
+                          | <RETURN_STATEMENT> ) + ';'
+
+<STATEMENT_DECL> := <TYPE> + <VAR_STATEMENT_DECLS>
+<VAR_STATEMENT_DECLS> := <VAR_STATEMENT_DECL> | <VAR_STATEMENT_DECL> + ',' + <VAR_STATEMENT_DECLS>
+<VAR_STATEMENT_DECL> := <VAR_DECL> + ( 0 | '=' + <ASSIGN_EXPRESSION> )
+
+<RETURN_STATEMENT> := 'return' + ( 0 | <ASSIGN_EXPRESSION>)
+
+<ASSIGN_EXPRESSION> := <EXPRESSION> | <LVAL_EXPRESSION> + <ASSIGN_OP> + <ASSIGN_EXPRESSION>
+<ASSIGN_OP> := '=' | '+=' | '-=' | '*=' | '&=' | '|=' | '^='
+
+<LVAL_EXPRESSION> := <IDENT> | <IDENT> + '[' + <EXPRESSION> + ']' |
+		  <IDENT> + '.' + 'storageof'
+<IDENT_EXPRESSION> := <LVAL_EXPRESSION> | <MEMBER_SELECT_EXPRESSION> | <FUNC_CALL>
+<MEMBER_SELECT_EXPRESSION> := <IDENT_EXPRESSION> + '.' + ( <IDENT_EXPRESSION> | <OF_CONSTANT> )
+<FUNC_CALL> := <IDENT> + '(' + <ARGS> + ')'
+<ARGS> := 0 | <ARG> | <ARG> + ',' + <ARGS>
+<ARG>  := <ASSIGN_EXPRESSION>
+
+<CONSTANT_EXPRESSION> := <EXPRESSION>
+<EXPRESSION> := <LOGICAL_EXPRESSION> | <EXPRESSION> <LOGICALOP> <LOGICAL_EXPRESSION>
+<LOGICALOP> := '&&' | '||'
+<LOGICAL_EXPRESSION> := <BIT_EXPRESSION> | <LOGICAL_EXPRESSION> <BITOP> <BIT_EXPRESSION>
+<BITOP> := '&' | '|' | '^'
+<BIT_EXPRESSION> := <EQ_EXPRESSION> | <BIT_EXPRESSION> <EQOP> <EQ_EXPRESSION>
+<EQOP> := '==' | '!='
+<EQ_EXPRESSION> := <COMPARE_EXPRESSION> | <EQ_EXPRESSION> <COMPOP> <COMPARE_EXPRESSION>
+<COMPOP> := '<' | '>' | '<=' | '>='
+<COMPARE_EXPRESSION> := <SHIFT_EXPRESSION> | <COMPARE_EXPRESSION> <SHIFTOP> <SHIFT_EXPRESSION>
+<SHIFTOP> := '<<' | '>>'
+<SHIFT_EXPRESSION> := <TERM> | <SHIFT_EXPRESSION> <ADDOP> <TERM>
+<ADDOP> := '+' | '-'
+<TERM> := <FACTOR> | <TERM> <MULOP> <FACTOR>
+<MULOP> := '*' | '/' | '%'
+<FACTOR> := <IDENT_EXPRESSION> | <NUMBER> | '(' + <ASSIGN_EXPRESSION> + ')' | <UNOP_EXPRESSION>
+            |  <OF_EXPRESSION>
+<UNOP_EXPRESSION> := <UNOP> + <FACTOR> | <IDENT_EXPRESSION> + 'is' + <TYPE_IDENT> |
+		     <LVAL_UNOP> + <LVAL_EXPRESSION>
+<UNOP> := '-' | '+' | '!' | <CAST>
+<CAST> := '(' + <TYPE> + ')'
+<LVAL_UNOP> := '++' | '--'
+<OF_EXPRESSION> := <TYPE> + '.' + <OF_CONSTANT>
+
+<OF_CONSTANT> := 'minof' | 'maxof' | 'sizeof' | 'instanceof'
+<TYPE_IDENT> := /^[A-Z][A-Za-z0-9\_]*/
+<IDENT> := /^[a-z][A-Za-z0-9\_]*/
+[use newlines per line for genCode comments]

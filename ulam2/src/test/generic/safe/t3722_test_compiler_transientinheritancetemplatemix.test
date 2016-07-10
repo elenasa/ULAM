@@ -1,0 +1,61 @@
+## -*- mode:ulam -*-
+#=t3722_test_compiler_transientinheritancetemplatemix
+##
+## gen output: (+ assert)
+##  Int Arg: 4
+#!
+Exit status: 4
+Ue_R { Int(32) rtn(4);  Int(32) test() {  System s;  Tu(1) t;  rtn t ( )func . = s ( rtn )print . s ( rtn 4 cast == )assert . rtn return } }
+Un_Tu(Int(32) x) : Foo { :< Int(32) mi( 4 cast); > <NOMAIN> }
+Un_Foo { Int(32) mi( 4 cast);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+##       //template classes can inherit from a regular class
+##       informed by error/t3567
+##
+#>R.ulam
+  ulam 2;
+use Tu;
+use System;
+element R {
+  Int rtn = 0;
+  Int test(){
+    System s;
+    Tu(1) t;
+    rtn = t.func();
+    s.print(rtn);
+    s.assert(rtn == 4);
+    return rtn;
+  }
+}
+
+#:Tu.ulam
+  ulam 2;
+use Foo;
+transient Tu (Int x) : Foo {
+
+  virtual Int func()
+  {
+    return mi;
+  }
+}
+
+#:Foo.ulam
+  ulam 2;
+transient Foo {
+  Int mi = 4;
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

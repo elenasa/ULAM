@@ -21,8 +21,7 @@ namespace MFM {
 	  {
 	    u32 pid = sref.m_parameterSymbols[i]->getId();
 	    Symbol * sym = NULL; //NOT here: sref.m_parameterSymbols[i]->clone();
-	    bool hazyKin = false; //don't care?
-	    assert(m_state.alreadyDefinedSymbol(pid, sym, hazyKin));
+	    assert(m_state.alreadyDefinedSymbol(pid, sym));
 	    m_parameterSymbols.push_back(sym);
 	  }
 	m_state.popClassContext();
@@ -144,31 +143,21 @@ namespace MFM {
     std::ostringstream mangled;
     mangled << Symbol::getMangledName(); //e.g. Uf_14name, with lexNumbers
 
-    u32 numParams = m_parameterSymbols.size();
-    mangled << ToLeximitedNumber(numParams); //"10" if none
+    // use void type when no parameters
+    if(m_parameterSymbols.empty())
+      {
+	UlamType * vit = m_state.getUlamTypeByIndex(Void);
+	mangled << vit->getUlamTypeMangledName().c_str();
+      }
 
     // append mangled type name, e.g. 1023213Int, for each parameter
-    // for template classes, including arg values 10133Bar121013iu1510111b11 for uniqueness
     // note: though Classes (as args) may be 'incomplete' (i.e. bit size == UNKNOWN),
     //        during this parse stage, the key remains consistent.
-    for(u32 i = 0; i < numParams; i++)
+    for(u32 i = 0; i < m_parameterSymbols.size(); i++)
       {
 	Symbol * sym = m_parameterSymbols[i];
-	UTI suti = sym->getUlamTypeIdx();
-	UlamType * sut = m_state.getUlamTypeByIndex(suti);
-
-	// dropping Uprefix:
-	mangled << sut->getUlamTypeMangledType().c_str();
-
-	//append args' types and values or '10' is none
-	if(sut->getUlamTypeEnum() == Class)
-	  {
-	    UlamKeyTypeSignature keyOfArgType = sut->getUlamKeyTypeSignature();
-
-	    SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(keyOfArgType.getUlamKeyTypeSignatureNameId());
-	    assert(cnsym);
-	    mangled << cnsym->formatAnInstancesArgValuesAsAString(suti);
-	  }
+	UlamType * sut = m_state.getUlamTypeByIndex(sym->getUlamTypeIdx());
+	mangled << sut->getUlamTypeMangledName().c_str();
       }
     return mangled.str();
   } //getMangledNameWithTypes
@@ -204,7 +193,7 @@ namespace MFM {
     return rtnBool;
   } //matchingTypesStrictly
 
-  bool SymbolFunction::matchingTypes(std::vector<UTI> argTypes, std::vector<Node *> constantArg, bool& hasHazyArgs, u32& numUTmatch)
+  bool SymbolFunction::matchingTypes(std::vector<UTI> argTypes, std::vector<Node *> constantArg, bool& hasHazyArgs)
   {
     u32 numArgs = argTypes.size();
     u32 numParams = m_parameterSymbols.size();
@@ -233,11 +222,7 @@ namespace MFM {
 		  }
 		else if(scr == CAST_HAZY)
 		  hasHazyArgs = true;
-		else //CAST_CLEAR
-		  {
-		    if(m_state.getUlamTypeByIndex(puti)->getUlamTypeEnum() == m_state.getUlamTypeByIndex(argTypes[i])->getUlamTypeEnum())
-		      numUTmatch++;
-		  }
+		//else CAST_CLEAR
 	      } //constantarg
 	    else
 	      {
@@ -250,16 +235,9 @@ namespace MFM {
 		  }
 		else if(scr == CAST_HAZY)
 		  hasHazyArgs = true;
-		else //CAST_CLEAR
-		  {
-		    if(m_state.getUlamTypeByIndex(puti)->getUlamTypeEnum() == m_state.getUlamTypeByIndex(argTypes[i])->getUlamTypeEnum())
-		      numUTmatch++;
-		  }
+		//else CAST_CLEAR
 	      }
 	  }
-	else
-	  numUTmatch++;
-
       } //next param
     return rtnBool;
   } //matchingTypes
@@ -320,7 +298,7 @@ namespace MFM {
 
     fp->write("UlamContext<EC>& uc, "); //first arg is unmangled context
 
-    //the hidden arg is "atom" (was "self"), a T& (atom)
+    //the hidden arg is "self", a T& (atom)
     fp->write("T& "); //a reference
     fp->write(m_state.getHiddenArgName());
 
@@ -368,15 +346,5 @@ namespace MFM {
 	func->genCode(fp, uvpass);
       }
   } //generateFunctionDeclaration
-
-  void SymbolFunction::setStructuredComment()
-  {
-    Token scTok;
-    if(m_state.getStructuredCommentToken(scTok)) //and clears it
-      {
-	m_structuredCommentToken = scTok;
-	m_gotStructuredCommentToken = true;
-      }
-  } //setStructuredComment
 
 } //end MFM

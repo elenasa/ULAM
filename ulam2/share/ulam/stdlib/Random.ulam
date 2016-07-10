@@ -1,0 +1,43 @@
+ulam 1;
+
+/**
+   Pseudorandom number generation service.  The Random quark is a pure
+   interface to the per-Tile PRNG system, which is an implementation
+   of Mersenne Twister.  From the ulam level the Random number
+   generator is a preexisting singleton service: There is no way to
+   create additional or alternate instances of the underlying
+   generator, and there is no provision for seeding or reseeding it.
+ */
+
+quark Random {
+
+  Unsigned bits(Unsigned bitCount) native;
+  Unsigned bits(Int max) {
+    if (max <= 0) return 0;
+    return bits((Unsigned) max);
+  }
+
+  Unsigned create(Unsigned max) native;
+  Unsigned create(Int max) {
+    if (max <= 0) return 0;
+    return create((Unsigned) max);
+  }
+
+  Int between(Int lo, Int hi) {
+    if (lo > hi) {
+      Int t = hi;
+      hi = lo;
+      lo = t;
+    }
+    return lo + (Int) create(hi - lo + 1);
+  }
+
+  Bool oddsOf(Unsigned thisMany, Unsigned outOfThisMany) {
+    return create(outOfThisMany) < thisMany;
+  }
+  Bool oddsOf(Int thisMany, Int outOfThisMany) {
+    return ((Int) create(outOfThisMany)) < thisMany;
+  }
+
+  Bool oneIn(Unsigned odds) { return oddsOf((Unsigned) 1, odds); }
+}

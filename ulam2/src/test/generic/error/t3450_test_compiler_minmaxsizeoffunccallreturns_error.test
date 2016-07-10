@@ -1,0 +1,29 @@
+## -*- mode:ulam -*-
+#=t3450_test_compiler_minmaxsizeoffunccallreturns_error
+#!
+./T.ulam:12:14: ERROR: Unexpected token <TOK_KW_MINOF>; Expected _IDENTIFIER.
+./T.ulam:12:14: ERROR: Invalid Statement (possible missing semicolon).
+./T.ulam:13:14: ERROR: Unexpected token <TOK_KW_MAXOF>; Expected _IDENTIFIER.
+./T.ulam:13:14: ERROR: Invalid Statement (possible missing semicolon).
+./T.ulam:14:17: ERROR: Unexpected token <TOK_KW_SIZEOF>; Expected _IDENTIFIER.
+./T.ulam:14:17: ERROR: Invalid Statement (possible missing semicolon).
+Unrecoverable Program Parse FAILURE: <T.ulam>
+#>T.ulam
+ ulam 1;
+ element T{
+typedef Int(7) B;
+ B m,n;
+ B func1() {
+ return 5;
+}
+ B func2() {
+ return 7;
+}
+ Int test(){
+ m = func1().minof;
+ n = func2().maxof;
+ return func1().sizeof;
+}
+ }
+
+#.

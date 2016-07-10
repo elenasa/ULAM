@@ -24,7 +24,7 @@ namespace MFM {
       {
 	if(UlamType::compare(leftType, newType, m_state) != UTIC_SAME)
 	  {
-	    if(!Node::makeCastingNode(m_nodeLeft, newType, m_nodeLeft))
+	    if(!makeCastingNode(m_nodeLeft, newType, m_nodeLeft))
 	      {
 		newType = Nav;
 		setNodeType(Nav);
@@ -33,7 +33,7 @@ namespace MFM {
 	//shift by unsigned type; cast if need be. safety checked by calcNodeType.
 	if(m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum() != Unsigned)
 	  {
-	    if(!Node::makeCastingNode(m_nodeRight, Unsigned, m_nodeRight))
+	    if(!makeCastingNode(m_nodeRight, Unsigned, m_nodeRight))
 	      {
 		newType = Nav;
 		setNodeType(Nav);

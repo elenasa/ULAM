@@ -1,0 +1,117 @@
+## -*- mode:ulam -*-
+#=t3600_test_compiler_elementinheritedquark_virtualfuncs
+##
+## gen output: * 13
+##assert: arg is 1
+##after asserts abort: arg is 1
+##
+#!
+Exit status: 0
+Uq_Base { <NOMAIN> }
+Uq_Sub1 : Base { :<> <NOMAIN> }
+Ue_E1 : Base { :<> <NOMAIN> }
+Ue_E2 : Sub1 { :< :<>> <NOMAIN> }
+Ue_Test : System { :<> Bool(1) brtn[13](true,true,true,true,true,true,true,true,true,true,true,true,true);  Int(32) test() {  E1 e1;  brtn 6 [] e1 ( )afunc . 1 cast == = ( brtn 6 [] )assert brtn 7 [] e1 ( 1 cast )afunc . 7 cast == = ( brtn 7 [] )assert brtn 8 [] e1 ( )bfunc . 8 cast == = ( brtn 8 [] )assert E2 e2;  brtn 9 [] e2 ( )afunc . 4 cast == = ( brtn 9 [] )assert brtn 10 [] e2 ( 1 cast )afunc . 9 cast == = ( brtn 10 [] )assert brtn 11 [] e2 ( )bfunc . 5 cast == = ( brtn 11 [] )assert brtn 12 [] e2 ( )cfunc . 10 cast == = ( brtn 12 [] )assert Base b;  brtn 0 [] b ( )afunc . 1 cast == = ( brtn 0 [] )assert brtn 1 [] b ( 1 cast )afunc . 2 cast == = ( brtn 1 [] )assert Sub1 s1;  brtn 2 [] s1 ( )afunc . 4 cast == = ( brtn 2 [] )assert brtn 3 [] s1 ( 1 cast )afunc . 2 cast == = ( brtn 3 [] )assert brtn 4 [] s1 ( )bfunc . 5 cast == = ( brtn 4 [] )assert brtn 5 [] s1 ( )cfunc . 6 cast == = ( brtn 5 [] )assert 0 cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by vtable-example 11/17/15
+##
+#:Base.ulam
+  ulam 2;
+quark Base {
+  Int afunc() { return 1; } // not virtual
+  virtual Int afunc(Int a) { return 2; } // but overload of same name can be virtual
+  virtual Int bfunc() { return 3; }
+}
+
+#:Sub1.ulam
+  ulam 2;
+use Base;
+quark Sub1 : Base {
+  Int afunc() { return 4; } // not virtual
+  virtual Int bfunc() { return 5; } // virtual override
+  virtual Int cfunc() { return 6; } // new func
+}
+
+#:E1.ulam
+  ulam 2;
+use Base;
+element E1 : Base {
+  virtual Int afunc(Int a) { return 7; } // virtual override
+  virtual Int bfunc() { return 8; } // virtual override
+}
+
+#:E2.ulam
+  ulam 2;
+use Sub1;
+element E2 : Sub1 {
+  virtual Int afunc(Int a) { return 9; }
+  virtual Int cfunc() { return 10; }
+}
+
+#>Test.ulam
+  ulam 2;
+use Base;
+use Sub1;
+use E1;
+use E2;
+use System;
+element Test : System {
+  Bool brtn[13];
+  Int test() {
+
+    E1 e1;
+    brtn[6] = (e1.afunc() == 1);
+    assert(brtn[6]);
+    brtn[7] = (e1.afunc(1) == 7);
+    assert(brtn[7]);
+    brtn[8] = (e1.bfunc() == 8);
+    assert(brtn[8]);
+
+    E2 e2;
+    brtn[9] = (e2.afunc() == 4);
+    assert(brtn[9]);
+    brtn[10] = (e2.afunc(1) == 9);
+    assert(brtn[10]);
+    brtn[11] = (e2.bfunc() == 5);
+    assert(brtn[11]);
+    brtn[12] = (e2.cfunc() == 10);
+    assert(brtn[12]);
+
+    //       requires immediate quark vtable support
+    Base b;
+    brtn[0] = (b.afunc() == 1);
+    assert(brtn[0]);
+    brtn[1] = (b.afunc(1) == 2);
+    assert(brtn[1]);
+
+    //       requires immediate quark vtable support
+    Sub1 s1;
+    brtn[2] = (s1.afunc() == 4);
+    assert(brtn[2]);
+    brtn[3] = (s1.afunc(1) == 2);
+    assert(brtn[3]);
+    brtn[4] = (s1.bfunc() == 5);
+    assert(brtn[4]);
+    brtn[5] = (s1.cfunc() == 6);
+    assert(brtn[5]);
+
+    // Note none of the above _requires_ vtable use, since all that
+    // type info is known at compile time.  But now we rock it out..
+    // (see t3601)
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

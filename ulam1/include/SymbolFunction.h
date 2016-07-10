@@ -77,13 +77,11 @@ namespace MFM{
     bool checkParameterTypes();
 
     bool matchingTypesStrictly(std::vector<UTI> argTypes);
-    bool matchingTypes(std::vector<UTI> argTypes, std::vector<Node *> constantArg, bool& hasHazyArgs, u32& numUTmatch);
+    bool matchingTypes(std::vector<UTI> argTypes, std::vector<Node *> constantArg, bool& hasHazyArgs);
 
     u32 isNativeFunctionDeclaration();
 
     void generateFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
-
-    virtual void setStructuredComment();
 
   protected:
 

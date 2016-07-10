@@ -1,0 +1,70 @@
+## -*- mode:ulam -*-
+#=t3807_test_compiler_supertypedeffromanotherclass_issue
+#!
+##  gen code output (+ assert):
+##  Unsigned Arg: 5
+##
+Exit status: 5
+Ue_GenBlock { typedef Content BlockSuper;  typedef Bits(5) MyTag;  Content bs( :< typedef Bits(5) MyTag;  constant Unsigned(5) cQID_TAG_BITS = 5u;  constant Bits(32) speciesID = -17960947u;  constant Unsigned(5) myTagBits = 5u;  constant Unsigned(5) myProgressBits = 4u;  constant Unsigned(32) triggerLevel = 15u;  constant Bits(32) cSPECIES_ID = -17960947u;  Bits(5) mTag(0); > constant Unsigned(32) cQID_TAG_BITS = 5u;  constant Unsigned(32) cQID_DOG_BITS = 4u;  constant Unsigned(32) cQID_DOG_TRIGGER = 15u; );  Unsigned(32) tagsize(5u);  Int(32) test() {  System s;  tagsize 5u = s ( 5u )print . s ( tagsize 5u cast == )assert . tagsize cast return } }
+Uq_Block : Content { /* empty class block */ }
+Uq_System { <NOMAIN> }
+Uq_Content : QID(0xfeedf00d,5u,4u,fu) { :< constant Bits(32) cSPECIES_ID = 4277006349u;  constant Unsigned(5) cQID_TAG_BITS = 5u;  typedef Bits(5) MyTag;  Bits(5) mTag(0); > constant Unsigned(32) cQID_TAG_BITS = 5u;  constant Unsigned(32) cQID_DOG_BITS = 4u;  constant Unsigned(32) cQID_DOG_TRIGGER = 15u;  <NOMAIN> }
+Uq_QID(Bits(32) speciesID, Unsigned(5) myTagBits, Unsigned(5) myProgressBits, Unsigned(32) triggerLevel) { constant Bits(32) cSPECIES_ID = speciesID;  constant Unsigned(5) cQID_TAG_BITS = myTagBits;  typedef Bits(UNKNOWN) MyTag;  Bits(UNKNOWN) mTag(notready);  <NOMAIN> }
+##
+## informed by t3806,7 (issue 6/20/2016)
+##
+#>GenBlock.ulam
+  ulam 2;
+element GenBlock {
+  typedef Block.Super BlockSuper; //i.e. Content
+  typedef BlockSuper.Super.MyTag MyTag;
+
+  BlockSuper bs;
+  Unsigned tagsize;
+
+  Int test() {
+    System s;
+    tagsize = MyTag.sizeof;
+    s.print(MyTag.sizeof);
+    s.assert(tagsize == 5u);
+    return (Int) tagsize;
+  }
+}
+
+#:Block.ulam
+  ulam 2;
+quark Block : Content
+{
+  //typedef Content.Super.MyTag MyTag; t3806
+}
+
+#:Content.ulam
+  ulam 2;
+quark Content : QID(0xFEEDF00Du, 5, 4, 15) {
+  constant Unsigned cQID_TAG_BITS = 5;
+  constant Unsigned cQID_DOG_BITS = 4;
+  constant Unsigned cQID_DOG_TRIGGER = 15;
+}
+
+#:QID.ulam
+  ulam 2;
+quark QID(Bits speciesID, Unsigned(5) myTagBits, Unsigned(5) myProgressBits, Unsigned triggerLevel) {
+  constant Bits cSPECIES_ID = speciesID;
+
+  constant Unsigned(5) cQID_TAG_BITS = myTagBits;
+  typedef Bits(cQID_TAG_BITS) MyTag;
+  MyTag mTag;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

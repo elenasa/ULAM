@@ -1,0 +1,17 @@
+ulam 1;
+
+/** Plant.  Convert Res into Plants, DLA style.  Consumed by Animals
+
+    \symbol Pl
+    \symmetries all
+    \color #3e2
+    \license lgpl
+ */
+
+element Plant {
+  EventWindow ew;
+  Void behave() {
+    if (ew[1] is Res)
+      ew[1] = self;
+  }
+}

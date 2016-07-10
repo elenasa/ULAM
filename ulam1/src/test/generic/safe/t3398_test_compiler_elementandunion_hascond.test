@@ -2,32 +2,31 @@
 #=t3398_test_compiler_elementandunion_hascond
 #!
 ##
-##      /* gen code output:
+##      /* gen code output: (correct answer unlike eval exit status)
 ##	 Int Arg: 1
 ##      */
 Exit status: 1
-Ue_Eltypo { System s();  Typo(1) t( constant Int(32) a = 1;  Unsigned(1) u(0u);  Int(2) i(0); );  Int(32) test() {  Eltypo el;  el Typo(1) has cond { Typo(1) el;  el u . 1u = s ( el u . cast )print . el u . cast return } if 2u cast return } }
-Uq_Typo(Int(32) a) { Unsigned(UNKNOWN) u(unknown);  Int(UNKNOWN) i(unknown);  <NOMAIN> }
+Ue_Eltypo { System s();  Typo(1) t( constant Int(32) a = 1;  Unsigned(1) u(0);  Int(2) i(0); );  Int(32) test() {  Eltypo el;  el Typo(1) has cond { s ( t 1 . )print . t 1 . return } if 2u cast return } }
+Uq_Typo { constant Int(32) a = NONREADYCONST;  Unsigned(UNKNOWN) u(0);  Int(UNKNOWN) i(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ##      //uses union instead of quark:
 ##
 #>Eltypo.ulam
-  ulam 1;
+ulam 1;
 use Typo;
 use System;
-element Eltypo {
-  System s;
-  Typo(1) t;
-  Int test(){
-    Eltypo el;
-    if(el has Typo(1)){
-      el.u = 1u;
-      s.print(el.u);
-      return el.u;
-    }
-    return t.sizeof;
-  }
+ element Eltypo {
+ System s;
+ Typo(1) t;
+ Int test(){
+     Eltypo el;
+     if(el has Typo(1)){
+     s.print(t.a);
+     return t.a;
+     }
+      return t.sizeof;
+ }
 }
 
 #:Typo.ulam

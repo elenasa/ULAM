@@ -1,0 +1,64 @@
+## -*- mode:ulam -*-
+#=t3847_test_compiler_templateclasswith_zerolengtharray_primitive_usecase
+##
+##   gen code output: (+ interleaved asserts)
+##	 Unsigned Arg: 0
+##	 Unsigned Arg: 10
+##
+#!
+Exit status: 0
+Ue_A { System s();  Int(32) test() {  QW(0u) qwz;  Unsigned(32) az = qwz ( )getID .;  s ( az )print . s ( az 0u cast == )assert . QW(10u) qwt;  Unsigned(32) at = qwt ( )getID .;  s ( at )print . s ( at 10u cast == )assert . 0u cast return } }
+Uq_QW(Unsigned(5) arrsizearg) { typedef Unsigned(1) NIDE[UNKNOWN];  Unsigned(1) m_idearr[UNKNOWN](notready);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by Dave 7/3/2016: okay to declare, just not access, a zero-length array
+##
+#>A.ulam
+  ulam 2;
+use QW;
+use System;
+element A {
+  System s;
+
+  Int test(){
+    QW(0) qwz;
+    Unsigned az = qwz.getID();
+    s.print(az);
+    s.assert(az == 0u);
+
+    QW(10) qwt;
+    Unsigned at = qwt.getID();
+    s.print(at);
+    s.assert(at == 10u);
+
+    return qwz.sizeof;
+  }
+}
+
+#:QW.ulam
+  ulam 2;
+quark QW (Unsigned(5) arrsizearg) {
+  typedef Unsigned(1) NIDE[arrsizearg];
+  NIDE m_idearr = { 1 }; //init all one's
+
+  Unsigned getID()
+  {
+    Unsigned ret = 0;
+    for(Int i = 0; i < arrsizearg; ++i)
+      ret += m_idearr[i];
+    return ret;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

@@ -1,0 +1,38 @@
+## -*- mode:ulam -*-
+#=t3480_test_compiler_negshift_error
+#!
+./A.ulam:9:5: ERROR: Use a comparison operator to convert Int(32) to Bool(1) for 'while'.
+./A.ulam:10:25: ERROR: Unsigned is the supported type for shift distance, operator<<; Suggest casting Int(2) to Unsigned.
+./A.ulam:10:12: ERROR: Cannot cast erroneous type.
+./A.ulam:10:9: ERROR: Assignment is invalid; LHS: Unsigned(32); RHS: erroneous.
+./A.ulam:11:20: ERROR: Unsigned is the supported type for shift distance, operator>>; Suggest casting Int(2) to Unsigned.
+./A.ulam:11:12: ERROR: Cannot cast erroneous type.
+./A.ulam:11:9: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
+./A.ulam:2:9: ERROR: 7 Nodes with erroneous types detected after type labeling class: A.
+Unrecoverable Program Type Label FAILURE.
+##
+##      //informed by t3246
+##
+#>A.ulam
+  ulam 1;
+element A {
+  Bool(7) b;
+  Unsigned d;
+  Int test(){
+    Int a;
+    a = 8;
+    d = 1;
+    while(a){
+      d = (Unsigned) (d << -1);
+      a = (Int) (a >> -1);
+    }
+    return (Int) d;
+  }
+}
+##
+##      // oops! >> is infinite WHILE loop
+##      //bool rtn1 = fms->add("A.ulam","element A {\nBool(7) b;\nUnsigned d;\nInt test(){Int a;\n a = 8;\nd = 1;\nwhile(a){\nd = (Unsigned) ((Bits) d << (Unsigned) -1);\n a = (Int) ((Bits) a >> (Unsigned) -1);\n}\nreturn (Int) d;\n }\n }\n");
+##      //ok.
+##      //bool rtn1 = fms->add("A.ulam","element A {\nBool(7) b;\nUnsigned d;\nInt test(){Int a;\n a = 8;\nd = 1;\n d = (Unsigned) ((Bits) d << (Unsigned) -1);\n a = (Int) ((Bits) a >> (Unsigned) -1);\nreturn (Int) d;\n }\n }\n");
+##
+#.

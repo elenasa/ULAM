@@ -1,0 +1,41 @@
+## -*- mode:ulam -*-
+#=t3254_test_compiler_typedefarray_changesize_error
+#!
+./B.ulam:8:16: ERROR: Array size [] is included in typedef 'IndArr', and cannot be redefined by typedef 'IArray'.
+./B.ulam:8:16: ERROR: Invalid typedef of base type <Unsigned> and Name <IArray> (missing symbol).
+./B.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'B'; Possible missing ending curly brace.
+./B.ulam:8:25: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
+./B.ulam:2:9: ERROR: Invalid Type: B.
+ ERROR: No parse tree for This Class: B.
+Unrecoverable Program Parse FAILURE: <B.ulam>
+##
+##      // with renames of typedefs, and arrays based on typedef
+##      // can't resize an array typedef
+##
+#>B.ulam
+use System;
+element B {
+System s;
+Bool(7) b;
+typedef Unsigned(8) Index;
+typedef Index NIdx;
+typedef NIdx IndArr[4];
+typedef IndArr IArray[2];
+ IArray arr;
+ Int test(){ arr[0] = 1;
+ return arr[0] == 0;
+ }
+ }
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

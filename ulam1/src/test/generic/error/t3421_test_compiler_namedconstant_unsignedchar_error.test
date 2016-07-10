@@ -1,9 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3421_test_compiler_namedconstant_unsignedchar_error
 #!
-./A.ulam:2:37: ERROR: (Low Level) Lexer prevents empty single quoted constant.
-./A.ulam:2:34: ERROR: Missing named constant definition after '=' for 'cPRINT_NAME'.
-Unrecoverable Program Parse FAILURE.
+##
+##./A.ulam:2:37: ERROR: (Low Level) Lexer prevents empty single quoted constant.
+##./A.ulam:2:34: ERROR: Missing named constant definition after '=' for 'cPRINT_NAME'.
+##
+Exit status: 26
+Ue_A { constant Unsigned(8) cPRINT_NAME = 26;  Int(32) test() {  26u cast return } }
 ##
 ##      //informed by 3418, except constant type is tictic
 ##

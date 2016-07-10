@@ -1,0 +1,36 @@
+## -*- mode:ulam -*-
+#=t3610_test_compiler_elementinheritedquark_nativevirtualfunc
+##
+##
+#!
+Exit status: 0
+Ue_Test : System { :<> Int(32) test() {  Bool(1) b = true;  ( b )print 0 cast return } }
+Uq_System { <NOMAIN> }
+##
+##
+#>Test.ulam
+  ulam 2;
+use System;
+element Test : System {
+
+  Int test() {
+    Bool b = true;
+    print(b);
+    return 0;
+  }
+ virtual Void print(Bool arg) { }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  virtual Void print(Bool arg); // native;
+  Void assert(Bool b) native;
+}
+#.

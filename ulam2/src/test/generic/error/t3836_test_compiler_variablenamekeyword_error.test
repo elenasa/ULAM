@@ -1,0 +1,34 @@
+## -*- mode:ulam -*-
+#=t3836_test_compiler_variablenamekeyword_error
+#!
+./Foo.ulam:11:12: ERROR: Name of variable <as>: Identifier must not be a reserved keyword.
+./Foo.ulam:11:12: ERROR: Invalid Statement (possible missing semicolon).
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
+##
+## informed by t3835 by my mistake
+##
+#>Foo.ulam
+  ulam 2;
+use QPerc;
+element Foo : QPerc {
+
+  Int test() {
+
+    bb = true;
+    Atom a = Foo.instanceof; //init for test;
+    if(a as QPerc)
+    {
+      Atom as = a.atomof; //can't use a keyword as a variable
+      return 1;
+    }
+    return 0;
+  }
+}
+
+#:QPerc.ulam
+  ulam 2;
+quark QPerc {
+  Bool bb;
+}
+
+#.

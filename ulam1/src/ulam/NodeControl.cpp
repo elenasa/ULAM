@@ -119,7 +119,7 @@ namespace MFM {
 	  {
 	    if(Node::checkSafeToCastTo(cuti, newType) == CAST_CLEAR)
 	      {
-		if(!Node::makeCastingNode(m_nodeCondition, newType, m_nodeCondition))
+		if(!makeCastingNode(m_nodeCondition, newType, m_nodeCondition))
 		  newType = Nav;
 	      }
 	    else
@@ -134,7 +134,7 @@ namespace MFM {
 	      {
 		if(Node::checkSafeToCastTo(cuti, newType))
 		  {
-		    if(!Node::makeCastingNode(m_nodeCondition, cuti, m_nodeCondition))
+		    if(!makeCastingNode(m_nodeCondition, cuti, m_nodeCondition))
 		      newType = Nav;
 		    else
 		      newType = cuti;
@@ -146,10 +146,7 @@ namespace MFM {
 	m_nodeBody->checkAndLabelType(); //side-effect
       }
     else
-      {
-	newType = cuti;
-	m_state.setGoAgain();
-      }
+      newType = cuti;
 
     setNodeType(newType);  //stays the same
     setStoreIntoAble(false);
@@ -226,13 +223,13 @@ namespace MFM {
       }
     else
       {
-	if(m_state.m_genCodingConditionalHas)
+	if(m_state.m_genCodingConditionalAs)
 	  {
 	    assert(cut->getUlamTypeEnum() == Bool);
 	    fp->write(((UlamTypeBool *) cut)->getConvertToCboolMethod().c_str());
 	    fp->write("((");
 	    fp->write(m_state.getTmpVarAsString(cuti, uvpass.getPtrSlotIndex()).c_str());
-	    fp->write(" >= 0 ? 1 : 0), "); //test for 'has' pos
+	    fp->write(" >= 0 ? 1 : 0), "); //test for 'has' part of 'as'
 	    fp->write_decimal(cut->getBitSize());
 	    fp->write(")");
 	  }
@@ -254,12 +251,12 @@ namespace MFM {
     fp->write("{\n");
     m_state.m_currentIndentLevel++;
 
-    //note: in case of has-conditional, uvpass still has the tmpvariable containing the pos!
+    //note: in case of as-conditional, uvpass still has the tmpvariable containing the pos!
     m_nodeBody->genCode(fp, uvpass);
 
     //probably should have been done within the body, to avoid any
     //subsequent if/whiles from misinterpretting it as there's; if so, again, moot.
-    assert(!m_state.m_genCodingConditionalHas);
+    assert(!m_state.m_genCodingConditionalAs);
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);

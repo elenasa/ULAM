@@ -6,25 +6,25 @@
 ##	 Unsigned Arg: 3
 ##      */
 Exit status: 1
-Ue_A { Bool(1) b(true);  System s();  Bool(3) a(true);  Unary(3) d(3u);  Unsigned(6) e(3u);  Int(32) test() {  a true cast = e d a cast cast 3 cast * cast = cast = s ( d )print . s ( e cast )print . b d cast 0 cast != = b cast return } }
+Ue_A { Bool(1) b(true);  System s();  Bool(3) a(true);  Unary(3) d(3);  Unsigned(6) e(3);  Int(32) test() {  a true cast = e d a cast cast 3 cast * cast = cast = s ( d )print . s ( e cast )print . b d cast 0 cast != = b cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
 use System;
 element A {
 System s;
 Bool(3) a;
-Bool b;
-Unary(3) d;
+ Bool b;
+ Unary(3) d;
 Unsigned(6) e;
-Int test() {
-  a = true;
+ Int test() {
+a = true;
   e = d = (Unary(3))((Unary(3)) a * 3);
-  s.print(d);
-  s.print((Unsigned)e);
-  b = (d != 0);
-  return (Int) b;
-}
-}
+ s.print(d);
+ s.print((Unsigned)e);
+ b = (d != 0);
+ return (Int) b;
+ }
+ }
 
 #:System.ulam
 ulam 1;

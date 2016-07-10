@@ -59,16 +59,16 @@ namespace MFM {
       }
   } //getTargetDescriptorsForClassInstances()
 
-  void SymbolClassNameTemplate::getClassMemberDescriptionsForClassInstances(ClassMemberMap& classmembers)
+  void SymbolClassNameTemplate::getModelParameterDescriptionsForClassInstances(ParameterMap& classmodelparameters)
   {
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
-	csym->addClassMemberDescriptionsMapEntry(classmembers);
+	csym->addModelParameterDescriptionsMapEntry(classmodelparameters);
 	it++;
       }
-  } //getClassMemberDescriptionsForClassInstances
+  } //getModelParameterDescriptionsForClassInstances
 
   void SymbolClassNameTemplate::addParameterSymbol(SymbolConstantValue * sym)
   {
@@ -79,29 +79,6 @@ namespace MFM {
   {
     return m_parameterSymbols.size();
   }
-
-  bool SymbolClassNameTemplate::parameterHasDefaultValue(u32 n)
-  {
-    // used while parsing, so c&l not called, and symbol hasDefault not yet set.
-    //SymbolConstantValue * psym = getParameterSymbolPtr(n);
-    //return psym->hasDefault();
-    assert(n < m_parameterSymbols.size());
-    NodeBlockClass * templateclassblock = getClassBlockNode();
-    Node * pnode = templateclassblock->getParameterNode(n);
-    assert(pnode);
-    return ((NodeConstantDef *) pnode)->hasConstantExpr();
-  } //parameterHasDefaultValue
-
-  u32 SymbolClassNameTemplate::getTotalParametersWithDefaultValues()
-  {
-    u32 count = 0;
-    for(u32 i = 0; i < m_parameterSymbols.size(); i++)
-      {
-	if(parameterHasDefaultValue(i))
-	  count++;
-      }
-    return count;
-  } //getTotalParametersWithDefaultValues
 
   u32 SymbolClassNameTemplate::getTotalParameterSlots()
   {
@@ -115,7 +92,7 @@ namespace MFM {
     return totalsizes;
   } //getTotalParameterSlots
 
-  SymbolConstantValue * SymbolClassNameTemplate::getParameterSymbolPtr(u32 n)
+  Symbol * SymbolClassNameTemplate::getParameterSymbolPtr(u32 n)
   {
     assert(n < m_parameterSymbols.size());
     return m_parameterSymbols[n];
@@ -131,28 +108,6 @@ namespace MFM {
     SymbolClass * csym = NULL;
     return !findClassInstanceByUTI(cuti, csym);
   } //isClassTemplate
-
-  void SymbolClassNameTemplate::setSuperClassForClassInstance(UTI superclass, UTI instance)
-  {
-    SymbolClass * csym = NULL;
-    if(findClassInstanceByUTI(instance, csym))
-      csym->setSuperClass(superclass); //Nav is none, not a subclass.
-    else if(instance == getUlamTypeIdx())
-      SymbolClass::setSuperClass(superclass); //instance is template definition
-    else
-      //not found???
-      assert(0);
-  } //setSuperClassForClassInstance
-
-  UTI SymbolClassNameTemplate::getSuperClassForClassInstance(UTI instance)
-  {
-    SymbolClass * csym = NULL;
-    if(findClassInstanceByUTI(instance, csym))
-      return csym->getSuperClass(); //Nav is none, not a subclass.
-    else if(instance == getUlamTypeIdx())
-      return SymbolClass::getSuperClass(); //instance is template definition
-    return false;
-  } //getSuperClassForClassInstance
 
   bool SymbolClassNameTemplate::findClassInstanceByUTI(UTI uti, SymbolClass * & symptrref)
   {
@@ -284,7 +239,6 @@ namespace MFM {
     if(m_scalarClassInstanceIdxToSymbolPtr.size() > 0)
       {
 	u32 numparams = getNumberOfParameters();
-	u32 numDefaultParams = getTotalParametersWithDefaultValues();
 	std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
 	while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
 	  {
@@ -303,10 +257,9 @@ namespace MFM {
 	    //can have 0Holder symbols for possible typedefs seen from another class
 	    //which will increase the count of symbols; can only test for at least
 	    u32 cargs = cblock->getNumberOfSymbolsInTable();
-	    if((cargs < numparams) && ((cargs + numDefaultParams) < numparams))
+	    if(cargs < numparams)
 	      {
 		//number of arguments in class instance does not match the number of parameters
-		// including those with default values (u.1.2.1)
 		std::ostringstream msg;
 		msg << "Number of Arguments (" << cargs << ") in class instance '";
 		msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
@@ -320,9 +273,7 @@ namespace MFM {
 	    //replace the temporary id with the official parameter name id;
 	    //update the class instance's ST.
 	    u32 foundArgs = 0;
-	    s32 firstDefaultParamUsed = -1;
-	    s32 lastDefaultParamUsed = -1;
-	    for(s32 i = 0; i < (s32) numparams; i++)
+	    for(u32 i = 0; i < numparams; i++)
 	      {
 		Symbol * argsym = NULL;
 		std::ostringstream sname;
@@ -336,37 +287,11 @@ namespace MFM {
 		    cblock->replaceIdInScope(sid, m_parameterSymbols[i]->getId(), argsym);
 		    foundArgs++;
 		  }
-		else
-		  {
-		    if(firstDefaultParamUsed < 0)
-		      firstDefaultParamUsed = lastDefaultParamUsed = i;
-		    else if(i > (lastDefaultParamUsed + 1))
-		      {
-			//error, must continue to be defaults after first one
-			std::ostringstream msg;
-			msg << "Arg " << i + 1 << " (of " << numparams;
-			msg << ") in class instance '";
-			msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
-			msg << "' comes after the last default parameter value used (";
-			msg << lastDefaultParamUsed << ") to fix";
-			MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
-		      }
-		    else
-		      {
-			lastDefaultParamUsed = i;
-			// and make a new symbol that's like the default param
-			SymbolConstantValue * asym2 = new SymbolConstantValue(* ((SymbolConstantValue * ) argsym));
-			assert(asym2);
-			asym2->setBlockNoOfST(cblock->getNodeNo());
-			m_state.addSymbolToCurrentScope(asym2);
-			foundArgs++;
-		      }
-		  }
 	      }
 
 	    if(foundArgs != numparams)
 	      {
-		//num arguments in class instance does not match number of parameters
+		//number of arguments in class instance does not match the number of parameters
 		std::ostringstream msg;
 		msg << "Number of Arguments (" << foundArgs << ") in class instance '";
 		msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
@@ -376,8 +301,7 @@ namespace MFM {
 	      }
 
 	    //importantly, also link the class instance's class block to the classsymbolname's.
-	    // later, during c&l if a subclass, the previous ptr is the class block of the superclass
-	    //cblock->setPreviousBlockPointer(getClassBlockNode());
+	    cblock->setPreviousBlockPointer(getClassBlockNode());
 	    it++;
 	  } //while
       } //any class instances
@@ -451,32 +375,28 @@ namespace MFM {
 	while(pit != m_parameterSymbols.end())
 	  {
 	    SymbolConstantValue * psym = *pit;
+	    //get 'instance's value
 	    Symbol * asym = NULL;
-	    bool hazyKin = false; //don't care
-	    assert(m_state.alreadyDefinedSymbol(psym->getId(), asym, hazyKin));
+	    assert(m_state.alreadyDefinedSymbol(psym->getId(), asym));
 	    UTI auti = asym->getUlamTypeIdx();
 	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
-
+	    u32 awordsize = m_state.getTotalWordSize(auti); //must be complete!
+	    s32 abs = m_state.getBitSize(auti);
 	    ULAMTYPE eutype = aut->getUlamTypeEnum();
 
-	    //append 'instance's arg (mangled) type
 	    args << aut->getUlamTypeMangledType().c_str();
 
-	    //append 'instance's arg value
 	    bool isok = false;
 	    u64 uval;
 	    if(((SymbolConstantValue *) asym)->getValue(uval))
 	      {
-		u32 awordsize = m_state.getTotalWordSize(auti); //must be complete!
-		s32 abs = m_state.getBitSize(auti);
-
 		switch(eutype)
 		  {
 		  case Int:
 		    {
-		      if(awordsize <= MAXBITSPERINT)
+		      if(awordsize == MAXBITSPERINT)
 			args << ToLeximitedNumber(_SignExtend32((u32)uval, (u32) abs));
-		      else if(awordsize <= MAXBITSPERLONG)
+		      else if(awordsize == MAXBITSPERLONG)
 			args << ToLeximitedNumber64(_SignExtend64(uval, (u32) abs));
 		      else
 			assert(0);
@@ -486,9 +406,9 @@ namespace MFM {
 		  case Unsigned:
 		  case Bits:
 		    {
-		      if(awordsize <= MAXBITSPERINT)
+		      if(awordsize == MAXBITSPERINT)
 			args << ToLeximitedNumber((u32) uval);
-		      else if(awordsize <= MAXBITSPERLONG)
+		      else if(awordsize == MAXBITSPERLONG)
 			args << ToLeximitedNumber64(uval);
 		      else
 			assert(0);
@@ -505,9 +425,9 @@ namespace MFM {
 		  case Bool:
 		    {
 		      bool bval;
-		      if(awordsize <= MAXBITSPERINT)
+		      if(awordsize == MAXBITSPERINT)
 			bval = _Bool32ToCbool((u32) uval, m_state.getBitSize(auti));
-		      else if(awordsize <= MAXBITSPERLONG)
+		      else if(awordsize == MAXBITSPERLONG)
 			bval = _Bool64ToCbool(uval, m_state.getBitSize(auti));
 		      else
 			assert(0);
@@ -577,8 +497,7 @@ namespace MFM {
 	    //get 'instance's value
 	    bool isok = false;
 	    Symbol * asym = NULL;
-	    bool hazyKin = false; //don't care
-	    assert(m_state.alreadyDefinedSymbol(psym->getId(), asym, hazyKin));
+	    assert(m_state.alreadyDefinedSymbol(psym->getId(), asym));
 	    UTI auti = asym->getUlamTypeIdx();
 	    if(m_state.isComplete(auti))
 	      {
@@ -593,9 +512,9 @@ namespace MFM {
 		      {
 		      case Int:
 			{
-			  if(awordsize <= MAXBITSPERINT)
+			  if(awordsize == MAXBITSPERINT)
 			    args << _SignExtend32((u32)uval, abs);
-			  else if(awordsize <= MAXBITSPERLONG)
+			  else if(awordsize == MAXBITSPERLONG)
 			    args << _SignExtend64(uval, abs);
 			  else
 			    assert(0);
@@ -618,9 +537,9 @@ namespace MFM {
 		      case Bool:
 			{
 			  bool bval;
-			  if(awordsize <= MAXBITSPERINT)
+			  if(awordsize == MAXBITSPERINT)
 			    bval = _Bool32ToCbool((u32) uval, abs);
-			  else if(awordsize <= MAXBITSPERLONG)
+			  else if(awordsize == MAXBITSPERLONG)
 			    bval = _Bool64ToCbool(uval, abs);
 			  else
 			    assert(0);
@@ -732,7 +651,7 @@ namespace MFM {
 	// first time for this cuti, and ready args!
 	m_state.pushClassContext(cuti, NULL, NULL, false, NULL);
 	mapInstanceUTI(cuti, getUlamTypeIdx(), cuti); //map template->instance, instead of fudging.
-	SymbolClass * clone = new SymbolClass(*this); // no longer a stub!
+	SymbolClass * clone = new SymbolClass(*this);
 
 	//at this point we have a NodeBlockClass! update the context
 	//keep the template's location (for targetmap)
@@ -742,8 +661,7 @@ namespace MFM {
 	m_state.popClassContext();
 	m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
-	//set previous block pointer for function definition blocks, as updating lineage
-	// to this class block
+	//set previous block pointer for function definition blocks, as updating lineage.
 	classNode->updatePrevBlockPtrOfFuncSymbolsInTable();
 
 	if(!takeAnInstancesArgValues(csym, clone)) //instead of keeping template's unknown values
@@ -766,7 +684,7 @@ namespace MFM {
       } //while
 
     // done with iteration; go ahead and merge any entries into the non-temp map
-    //mergeClassInstancesFromTEMP(); //try at end as well for inherited stubs.
+    //mergeClassInstancesFromTEMP();
     return aok;
   } //fullyInstantiate
 
@@ -804,12 +722,19 @@ namespace MFM {
 	assert(classNode);
 	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-	classNode->findNodeNo(n, foundNode); //classblock node no IS the same across instances
-
-	//if not in the tree, ask the resolver
-	if(!foundNode)
-	  csym->findNodeNoInResolver(n, foundNode);
-
+	// classblock node no is NOT the same across instances, NOT TRUE anymore!!!
+	// unlike ALL the other node blocks. sigh.
+	//if(n == getClassBlockNode()->getNodeNo())
+	//  foundNode = classNode; //slight-of-hand magic
+	//else
+	  {
+	    classNode->findNodeNo(n, foundNode);
+	    //if not in the tree, ask the resolver
+	    if(!foundNode)
+	      {
+		csym->findNodeNoInResolver(n, foundNode);
+	      }
+	  }
 	m_state.popClassContext(); //restore
       }
     return foundNode;
@@ -1114,26 +1039,6 @@ namespace MFM {
       }
   } //packBitsForClassInstances
 
-  void SymbolClassNameTemplate::buildDefaultQuarkForClassInstances()
-  {
-    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
-    while(it != m_scalarClassArgStringsToSymbolPtr.end())
-      {
-	SymbolClass * csym = it->second;
-	UTI suti = csym->getUlamTypeIdx(); //this instance
-	if(m_state.isComplete(suti))
-	  {
-	    NodeBlockClass * classNode = csym->getClassBlockNode();
-	    assert(classNode);
-	    m_state.pushClassContext(suti, classNode, classNode, false, NULL);
-	    u32 dqval = 0;
-	    csym->getDefaultQuark(dqval); //this instance
-	    m_state.popClassContext();
-	  }
-	it++;
-      }
-  } //buildDefaultQuarkForClassInstances
-
   void SymbolClassNameTemplate::testForClassInstances(File * fp)
   {
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
@@ -1219,8 +1124,7 @@ namespace MFM {
     assert(fmclassblock);
     u32 cargs = fmclassblock->getNumberOfSymbolsInTable();
     u32 numparams = getNumberOfParameters();
-    u32 numDefaultParams = getTotalParametersWithDefaultValues();
-    if((cargs < numparams) && ((cargs + numDefaultParams) < numparams))
+    if(cargs < numparams)
       {
 	//error! number of arguments in stub does not match the number of parameters
 	std::ostringstream msg;
@@ -1242,7 +1146,7 @@ namespace MFM {
 	SymbolConstantValue * psym = *pit;
 	//save 'instance's arg constant symbols in a temporary list
 	Symbol * asym = NULL;
-	m_state.takeSymbolFromCurrentScope(psym->getId(), asym); //ownership transferred to temp list; NULL if using default value
+	assert(m_state.takeSymbolFromCurrentScope(psym->getId(), asym)); //ownership transferred to temp list
 	instancesArgs.push_back((SymbolConstantValue *) asym);
 	pit++;
       } //next param
@@ -1255,15 +1159,11 @@ namespace MFM {
     //replace the clone's arg symbols
     for(u32 i = 0; i < m_parameterSymbols.size(); i++)
       {
-	SymbolConstantValue * asym = instancesArgs[i]; //asym might be null if default used
-	u32 aid = m_parameterSymbols[i]->getId();
+	SymbolConstantValue * asym = instancesArgs[i];
+	u32 aid = asym->getId();
 	Symbol * clonesym = NULL;
-	bool hazyKin = false; //don't care
-	assert(m_state.alreadyDefinedSymbol(aid, clonesym, hazyKin));
-	if(asym)
-	  m_state.replaceSymbolInCurrentScope(clonesym, asym); //deletes old, adds new
-	else
-	  m_state.addSymbolToCurrentScope(clonesym); //adds new
+	assert(m_state.alreadyDefinedSymbol(aid, clonesym));
+	m_state.replaceSymbolInCurrentScope(clonesym, asym); //deletes old, adds new
       } //next arg
 
     instancesArgs.clear(); //don't delete the symbols
@@ -1277,8 +1177,7 @@ namespace MFM {
     assert(fmclassblock);
     u32 cargs = fmclassblock->getNumberOfSymbolsInTable();
     u32 numparams = getNumberOfParameters();
-    u32 numDefaultParams = getTotalParametersWithDefaultValues();
-    if((cargs < numparams) && ((cargs + numDefaultParams) < numparams))
+    if(cargs < numparams)
       {
 	//error! number of arguments in stub does not match the number of parameters
 	std::ostringstream msg;
@@ -1300,8 +1199,7 @@ namespace MFM {
 	SymbolConstantValue * psym = *pit;
 	//save 'instance's arg constant symbols in a temporary list
 	Symbol * asym = NULL;
-	bool hazyKin = false; //don't care
-	assert(m_state.alreadyDefinedSymbol(psym->getId(), asym, hazyKin)); //no ownership change
+	assert(m_state.alreadyDefinedSymbol(psym->getId(), asym)); //no ownership change
 	instancesArgs.push_back((SymbolConstantValue *) asym); //for reference only
 	pit++;
       } //next param
@@ -1326,37 +1224,6 @@ namespace MFM {
     instancesArgs.clear(); //don't delete the symbols
     return true;
   } //copyAnInstancesArgValues
-
-  void SymbolClassNameTemplate::printClassTemplateArgsForPostfix(File * fp)
-  {
-    u32 pcnt = 0;
-
-    fp->write("(");
-
-    std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
-    while(pit != m_parameterSymbols.end())
-      {
-	SymbolConstantValue * psym = *pit;
-	assert(psym->isParameter());
-
-	if(pcnt > 0)
-	  fp->write(", ");
-
-	fp->write(m_state.getUlamTypeNameBriefByIndex(psym->getUlamTypeIdx()).c_str());
-	fp->write(" ");
-	fp->write(m_state.m_pool.getDataAsString(psym->getId()).c_str());
-
-	if(parameterHasDefaultValue(pcnt))
-	  {
-	    fp->write(" = ");
-	    psym->printPostfixValue(fp);
-	  }
-	pcnt++;
-	pit++;
-      } //next param
-
-    fp->write(")");
-  } //printClassTemplateArgsForPostfix
 
   // done promptly after the full instantiation
   void SymbolClassNameTemplate::cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to)

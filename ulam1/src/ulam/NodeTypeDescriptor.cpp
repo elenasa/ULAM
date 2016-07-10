@@ -126,7 +126,7 @@ namespace MFM {
 	    nuti = mappedUTI;
 	  }
 
-	if(!m_state.isComplete(nuti)) //reloads to recheck for debug message
+	if(!m_state.isComplete(nuti)) //reloads to recheck
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete descriptor for type: ";
@@ -189,19 +189,10 @@ namespace MFM {
 	bool rtnb = m_unknownBitsizeSubtree->getTypeBitSizeInParen(bs, etype); //eval
 	if(rtnb)
 	  {
-	    if(bs < 0)
-	      {
-		std::ostringstream msg;
-		msg << "Type Bitsize specifier for " << UlamType::getUlamTypeEnumAsString(etype);
-		msg << " type, within (), is a negative numeric constant expression: ";
-		msg << bs;
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		// auti = Nav;
-		return false;
-	      }
-
-	    // keep m_unknownBitsizeSubtree in case of template (don't delete)
-	    m_state.setUTISizes(auti, bs, ut->getArraySize()); //update UlamType, outputs errors
+	    // keep in case of template
+	    // delete m_unknownBitsizeSubtree;
+	    // m_unknownBitsizeSubtree = NULL;
+	    m_state.setUTISizes(auti, bs, ut->getArraySize()); //update UlamType
 	  }
       }
     return (m_state.isComplete(auti)); //repeat if bitsize is still unknown

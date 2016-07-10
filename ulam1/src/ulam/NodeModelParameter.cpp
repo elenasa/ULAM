@@ -23,7 +23,7 @@ namespace MFM {
     fp->write(" ");
     fp->write(getName());
     fp->write("(");
-    fp->write(NodeConstant::getName());
+    fp->write(NodeTerminal::getName());
     fp->write(")");
   }
 
@@ -45,7 +45,7 @@ namespace MFM {
 
   FORECAST NodeModelParameter::safeToCastTo(UTI newType)
   {
-    if(NodeConstant::isReadyConstant())
+    if(isReadyConstant())
       {
 	FORECAST scr = m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
 	if(scr == CAST_CLEAR)
@@ -63,8 +63,7 @@ namespace MFM {
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
     Symbol * asymptr = NULL;
-    bool hazyKin = false;
-    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin) && !hazyKin)
+    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex,asymptr))
       {
 	if(asymptr->isModelParameter())
 	  {
@@ -85,10 +84,7 @@ namespace MFM {
 	msg << "(2) Model Parameter <" << m_state.getTokenDataAsString(&m_token).c_str();
 	msg << "> is not defined, and cannot be used with class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	if(!hazyKin)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     m_state.popClassContext(); //restore
   } //checkForSymbol
@@ -103,9 +99,8 @@ namespace MFM {
 
   void NodeModelParameter::genCode(File * fp, UlamValue& uvpass)
   {
-    if(!NodeConstant::isReadyConstant())
-      m_ready = NodeConstant::updateConstant(); //sets ready here
-    assert(NodeConstant::isReadyConstant()); //must be
+    if(!isReadyConstant())
+      m_ready = updateConstant(); //sets ready here
 
     //excerpt from makeUlamValuePtrForCodeGen in NodeIdent
     UTI nuti = getNodeType();

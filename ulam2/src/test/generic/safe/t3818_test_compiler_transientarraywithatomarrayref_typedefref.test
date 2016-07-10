@@ -1,0 +1,108 @@
+## -*- mode:ulam -*-
+#=t3818_test_compiler_transientarraywithatomarrayref_typedefref
+#!
+##      gen code output: (2 asserts)
+##
+Exit status: -11
+Ue_R { Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  QW qw;  A ar[3];  ar 1 [] mToo 1 [] mAtoo 1 [] . . Foo.instanceof cast = Atom(96) a1 = ar 1 [] mToo 1 [] mAtoo 1 [] . .;  b qw ( a1 cast )aunc . = s ( b )assert . typedef Atom(96) & ATR[3];  Atom(96)& atr[3] = ar 2 [] mToo 2 [] mAtoo . . cast;  Atom(96)& at2 = atr 2 [];  at2 Foo.instanceof cast cast = c qw ( at2 )aunc . = s ( c )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Un_A : QW { :< typedef Unary(3) Coord; > Bool(7) sp(false);  Too mToo[3]( Atom(96) mAtoo[3](Atom(96)[3]Atom(96)[3]Atom(96)[3]); ), ( Atom(96) mAtoo[3](Atom(96)[3]Atom(96)[3]Atom(96)[3]); ), ( Atom(96) mAtoo[3](Atom(96)[3]Atom(96)[3]Atom(96)[3]); );  <NOMAIN> }
+Uq_QW { typedef Unary(3) Coord;  <NOMAIN> }
+Ue_Foo { typedef Unary(3) Coord;  Unary(3) mTre( 1u);  Unary(3) mCoo[3](0,0,0);  <NOMAIN> }
+Un_Too { Atom(96) mAtoo[3](Atom(96)[3]Atom(96)[3]Atom(96)[3]);  <NOMAIN> }
+##
+## similar to 3816, except has a local array ref of atom array typedef
+##
+#>R.ulam
+  ulam 2;
+use System;
+use A;
+element R {
+  Bool b, c;
+
+  Int test(){
+    System s;
+    QW qw;
+    A ar[3];
+    ar[1].mToo[1].mAtoo[1] = Foo.instanceof;
+    Atom a1 = ar[1].mToo[1].mAtoo[1];
+    b = qw.aunc(a1);
+    s.assert(b);
+
+    typedef Atom& ATR[3];
+    ATR atr = ar[2].mToo[2].mAtoo;
+    Atom& at2 = atr[2];
+    at2 = Foo.instanceof;
+    c = qw.aunc(at2);
+    s.assert(c);
+    return 0;
+  }
+}
+
+#:A.ulam
+  ulam 2;
+use QW;
+transient A : QW {
+  Bool(7) sp;
+  Too mToo[3];
+  Void setsp()
+  {
+    sp = true;
+  }
+}
+
+#:QW.ulam
+  ulam 2;
+quark QW {
+ typedef Unary(3) Coord;
+  Bool func(A& aarg)
+  {
+    return aarg.sp;
+  }
+  Bool eunc(Foo& aarg)
+  {
+    return (aarg.mTre > Unary(3).minof && aarg.mTre < Unary(3).maxof);
+  }
+  Bool cunc(Coord& carg)
+  {
+    return (carg > Unary(3).minof && carg < Unary(3).maxof);
+  }
+  Bool aunc(Atom& aarg)
+  {
+    if(aarg as Foo)
+      return (aarg.mTre > Unary(3).minof && aarg.mTre < Unary(3).maxof);
+    return false;
+  }
+}
+
+#:Foo.ulam
+  ulam 2;
+element Foo {
+  typedef QW.Coord Coord;
+  Coord mTre = 1u;
+  Coord mCoo[3];
+  Void setTre(Coord uarg)
+  {
+    mTre = uarg;
+  }
+}
+
+#:Too.ulam
+  ulam 2;
+transient Too {
+  Atom mAtoo[3];
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

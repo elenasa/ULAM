@@ -22,13 +22,13 @@ namespace MFM {
 	u32 errCnt = 0;
 	if(UlamType::compare(rightType, newType, m_state) != UTIC_SAME)
 	  {
-	    if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
+	    if(!makeCastingNode(m_nodeRight, newType, m_nodeRight))
 	      errCnt++;
 	  }
 
 	if(UlamType::compare(leftType, newType, m_state) != UTIC_SAME)
 	  {
-	    if(!Node::makeCastingNode(m_nodeLeft, newType, m_nodeLeft))
+	    if(!makeCastingNode(m_nodeLeft, newType, m_nodeLeft))
 	      errCnt++;
 	  }
 
@@ -162,8 +162,8 @@ namespace MFM {
     u32 wordsize = m_state.getTotalWordSize(luti);
     if(wordsize == MAXBITSPERINT)
       {
-	u32 ldata = luv.getImmediateData(len, m_state);
-	u32 rdata = ruv.getImmediateData(len, m_state);
+	u32 ldata = luv.getImmediateData(len);
+	u32 rdata = ruv.getImmediateData(len);
 	rtnUV = makeImmediateBinaryOp(luti, ldata, rdata, len);
       }
     else if(wordsize == MAXBITSPERLONG)
@@ -172,8 +172,8 @@ namespace MFM {
 	u64 rdata = ruv.getImmediateDataLong(len);
 	rtnUV = makeImmediateLongBinaryOp(luti, ldata, rdata, len);
       }
-    else
-      assert(0); //e.g. 0
+    //else
+      //assert(0);
 
     if(rtnUV.getUlamValueTypeIdx() == Nav)
       return false;
@@ -248,6 +248,12 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
+#ifdef TMPVARBRACES
+    m_state.indent(fp);
+    fp->write("{\n");
+    m_state.m_currentIndentLevel++;
+#endif
+
     // generate rhs first; may update current object globals (e.g. function call)
     UlamValue ruvpass;
     m_nodeRight->genCode(fp, ruvpass);
@@ -293,6 +299,11 @@ namespace MFM {
 
     uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //P
 
+#ifdef TMPVARBRACES
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n"); //close for tmpVar
+#endif
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode
 

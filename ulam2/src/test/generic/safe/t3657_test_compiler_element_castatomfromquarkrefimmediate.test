@@ -1,0 +1,67 @@
+## -*- mode:ulam -*-
+#=t3657_test_compiler_element_castatomfromquarkrefimmediate
+##
+## gen output: 3 asserts
+## eval: bb is false; should be true
+#!
+Exit status: -11
+Ue_Foo : QPerc { :< Bool(1) bb(false); > Int(32) test() {  System s;  QPerc q;  q bb . true = s ( q bb . )assert . QPerc& qref = q cast;  s ( qref bb . )assert . QPerc b = QPerc.instanceof;  s ( b bb . q bb . != )assert . Atom(96) c = Foo.instanceof cast;  Atom(96) d = self.atomof cast;  self d cast cast = Atom(96) e;  e self.instanceof = Foo f;  f e cast = ; 0 cast return } }
+Uq_QPerc { Bool(1) bb(false);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by a Dave ish 2/19/2016;
+##
+#>Foo.ulam
+  ulam 2;
+use QPerc;
+use System;
+element Foo : QPerc {
+
+  Int test() {
+    System s;
+    QPerc q;
+    q.bb = true;
+    s.assert(q.bb);
+
+    QPerc& qref = q;
+    s.assert(qref.bb);
+
+    //Atom& a = qref.storageof; //(Atom) qref; ILLEGAL_ARGUMENT
+
+    QPerc b = QPerc.instanceof; //not a lhs ref (see t3659)
+    s.assert(b.bb != q.bb);
+
+    Atom c = Foo.instanceof; //not a lhs ref (see t3659)
+
+    Atom d = self.atomof;
+    self = (Foo) d; //self.storage invalid lhs
+
+    Atom e;
+    e = self.instanceof;
+
+    Foo f;
+    f = (Foo) e;; //f.storageof invalid lhs
+
+    return 0;
+  }
+}
+
+#:QPerc.ulam
+  ulam 2;
+quark QPerc {
+  Bool bb;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
+#.

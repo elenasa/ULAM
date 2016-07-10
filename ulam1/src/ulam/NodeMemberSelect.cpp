@@ -54,25 +54,13 @@ namespace MFM {
 	//e.g. funcCall is not storeintoable even if its return
 	//     value is.
 	std::ostringstream msg;
-	msg << "Member selected must be a valid lefthand side: ";
+	msg << "Member selected must be a valid lefthand side, type: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
 	msg << m_nodeLeft->getName();
 	msg << " requires a variable; may be a casted function call";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
 	return Nav;
-      } //done
-
-    if(!m_state.isComplete(luti))
-      {
-	std::ostringstream msg;
-	msg << "Member selected is incomplete class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
-	msg << ", check and label fails this time around";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-
-	setNodeType(Nav);
-	m_state.setGoAgain(); //since no error msg
-	return getNodeType();
       } //done
 
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
@@ -90,6 +78,18 @@ namespace MFM {
 
 	setNodeType(Nav);
 	return Nav;
+      } //done
+
+    if(!m_state.isComplete(luti)) //reloads
+      {
+	std::ostringstream msg;
+	msg << "Member selected is incomplete class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
+	msg << ", check and label fails this time around";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+
+	setNodeType(Nav);
+	return getNodeType();
       } //done
 
     std::string className = m_state.getUlamTypeNameBriefByIndex(luti); //help me debug
@@ -272,9 +272,6 @@ namespace MFM {
 
     m_nodeLeft->genCodeToStoreInto(fp, uvpass);
 
-    if(!m_state.m_currentObjSymbolsForCodeGen.empty() && !m_state.isScalar(m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx()))
-      Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
-
     m_nodeRight->genCode(fp, uvpass);  // is this ok?
 
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
@@ -286,11 +283,7 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
     m_nodeLeft->genCodeToStoreInto(fp, uvpass);
-
-    if(!m_state.m_currentObjSymbolsForCodeGen.empty() && !m_state.isScalar(m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx()))
-      Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
-
-    m_nodeRight->genCodeToStoreInto(fp, uvpass); //uvpass contains the member selected, or cos obj symbol?
+    m_nodeRight->genCodeToStoreInto(fp, uvpass); //uvpass contains the member selected
   } //genCodeToStoreInto
 
 } //end MFM

@@ -52,7 +52,6 @@ namespace MFM{
     UTI m_anothertduti;
     UTI m_declListOrTypedefScalarType;
     bool m_assignOK;
-    bool m_isStmt;
 
     TypeArgs();
     TypeArgs(const TypeArgs& tref);

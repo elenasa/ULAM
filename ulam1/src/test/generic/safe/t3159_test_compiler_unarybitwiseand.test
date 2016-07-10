@@ -6,7 +6,7 @@
 ##	Unsigned Arg: 0
 ##      */
 Exit status: 1
-Ue_A { Unary(3) b(1u);  System s();  Unary(3) a(2u);  Unary(3) c(1u);  Unsigned(2) e(2u);  Unsigned(2) f(1u);  Unsigned(2) g(0u);  Int(32) test() {  a e 2 cast = cast = b f 1 cast = cast = c a cast b cast & cast = s ( c )print . g e cast f cast & cast = s ( g cast )print . c cast return } }
+Ue_A { Unary(3) b(1);  System s();  Unary(3) a(2);  Unary(3) c(1);  Unsigned(2) e(2);  Unsigned(2) f(1);  Unsigned(2) g(0);  Int(32) test() {  a e 2 cast = cast = b f 1 cast = cast = c a cast b cast & cast = s ( c )print . g e cast f cast & cast = s ( g cast )print . c cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
 use System;
@@ -20,7 +20,7 @@ Unary(3) a, b, c;
  c = (Unary(3)) (a & b);
 s.print(c);
 g = (Unsigned(2)) (e & f);
-s.print(g);
+s.print((Unsigned) g);
  return c;
  }
  }

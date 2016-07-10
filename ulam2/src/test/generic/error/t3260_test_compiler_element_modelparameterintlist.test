@@ -1,0 +1,43 @@
+## -*- mode:ulam -*-
+#=t3260_test_compiler_element_modelparameterintlist
+#!
+##
+./Foo.ulam:6:22: ERROR: Missing ';' after model parameter definition 'chance'; Lists not supported.
+./Foo.ulam:3:2: ERROR: Empty/Incomplete Class Definition 'Foo'; Possible missing ending curly brace.
+./Foo.ulam:7:2: ERROR: Invalid Class Type <Int>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
+./Foo.ulam:3:10: ERROR: Invalid Type: Foo.
+ ERROR: No parse tree for This Class: Foo.
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
+##
+#>Foo.ulam
+ulam 1;
+use System;
+ element Foo {
+System s;
+Bool(7) sp;
+parameter Int chance = 1, choice = 2, result = 3;
+ Int(8) a, b, c;
+ Int test() {
+ Foo f;
+ s.print(chance);
+a = f.chance;
+s.print(choice);
+b = f.choice;
+s.print(result);
+c = f.result;
+return f.chance;
+ }
+ }
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

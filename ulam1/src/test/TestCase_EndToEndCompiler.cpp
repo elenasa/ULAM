@@ -8,10 +8,12 @@ namespace MFM {
   bool TestCase_EndToEndCompiler::GetTestResults(FileManager * fm, std::string startstr, File * output)
   {
     Compiler C;
+    bool rtn = false;
 
     // error messages appended to output are compared to answer
     if(C.parseProgram(fm, startstr, output) == 0)
       {
+	rtn = true;
 	if(C.checkAndTypeLabelProgram(output) == 0)
 	  {
 	    //#define SKIP_EVAL
@@ -35,7 +37,7 @@ namespace MFM {
       {
 	output->write("Unrecoverable Program Parse FAILURE.\n");
       }
-    return true;
+    return rtn;
   } //GetTestResults
 
 

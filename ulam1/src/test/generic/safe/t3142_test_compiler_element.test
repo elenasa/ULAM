@@ -4,14 +4,13 @@
 Exit status: 1
 Ue_Foo { Bool(7) sp(false);  Int(32) a(0);  Int(32) test() {  Foo f;  1 cast return } }
 #>Foo.ulam
-ulam 1;
-element Foo {
-  Bool(7) sp;
-  Int a;
-  Int test() {
-    Foo f;
-    return 1;
-  }
-}
+ulam 1; element Foo {
+Bool(7) sp;
+ Int a;
+ Int test() {
+ Foo f;
+  return 1;
+ }
+ }
 
 #.

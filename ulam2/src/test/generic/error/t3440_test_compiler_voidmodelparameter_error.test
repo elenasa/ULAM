@@ -1,0 +1,17 @@
+## -*- mode:ulam -*-
+#=t3440_test_compiler_voidmodelparameter_error
+#!
+./Tu.ulam:4:12: ERROR: Invalid use of type Void with symbol name 'vep'.
+./Tu.ulam:2:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Tu.
+Unrecoverable Program Type Label FAILURE.
+#>Tu.ulam
+ulam 1;
+element Tu {
+typedef Void V0;
+ parameter V0 vep = 0;
+  Int test(){
+ return 0;
+}
+}
+
+#.

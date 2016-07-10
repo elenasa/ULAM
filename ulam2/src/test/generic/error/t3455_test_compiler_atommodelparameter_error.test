@@ -1,0 +1,18 @@
+## -*- mode:ulam -*-
+#=t3455_test_compiler_atommodelparameter_error
+#!
+./Tu.ulam:4:13: ERROR: Constant value expression for: aep, is not a constant.
+./Tu.ulam:2:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Tu.
+Unrecoverable Program Type Label FAILURE.
+##
+#>Tu.ulam
+  ulam 1;
+element Tu {
+  typedef Atom A;
+  parameter A aep = self;
+  Int test(){
+    return 0;
+  }
+}
+
+#.

@@ -1,0 +1,83 @@
+/**
+   Simple 'burnable' active media demo.  Render a bunch of these guys
+   with Atom #1 and then create a Spark atom (below) next to them,
+   while the grid is running.  Try various Burn shapes and
+   arrangements.  Can you make a fire that never goes out?
+
+   \symbol SB
+   \symmetries normal
+   \color #e44
+   \author Dave Ackley
+   \license public-domain
+ */
+element SimpleBurn : Trigger {
+  EventWindow ew;
+  Random random;
+
+  typedef Unsigned(6) Counter;
+  Counter mCount;
+
+  Void behave() {
+
+    // Am I recovering?
+    if (mCount < mCount.maxof) {
+      ++mCount;   // Yes
+      return;
+    }
+
+    // I am recovered..
+    doArm();
+
+    // If no spark from me or someone near me..
+    if (!isPulled()) return;  // I'm done
+
+    // Fire fire fire!  Try to pull every nearby trigger!
+    for (EventWindow.SiteNum slot = 1; slot <= 8; ++slot) {
+      Atom other = ew[slot];
+      if (other as Trigger) {
+        other.doPull();
+      }
+      ew[slot] = other;
+    }
+
+    // Our work is done.  We're tired.
+    doSafe();
+    mCount = mCount.minof;
+  }
+
+  typedef ColorUtils.ARGB ARGB;
+  typedef ColorUtils.Channel Channel;
+
+  ARGB getColor(Unsigned selector) {
+    ColorUtils cu;
+    ARGB ret = cu.color(0xffffff00U);
+    if (selector == 1u) {
+      Unsigned incr = Unsigned(8).maxof/(Unsigned) mCount.maxof;
+      ret[3] = (Channel) (incr*mCount);
+      ret[2] = (Channel) (incr*(mCount.maxof-mCount));
+    } else if (selector == 2u) {
+    }
+    return ret;
+  }
+
+}
+
+
+/**
+   A SimpleBurn atom trigger.  A Spark only survives for one event,
+   during which it decays into a SimpleBurn atom in the act of firing.
+
+   \symbol SS
+   \color #00f
+ */
+element SimpleSpark {
+  EventWindow ew;
+  Void behave() {
+    SimpleBurn atom;
+    atom.mCount = atom.mCount.maxof;
+    atom.doSafe();
+    atom.doArm();
+    atom.doPull();
+    ew[0] = (Atom) atom;
+  }
+}

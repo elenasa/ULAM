@@ -1,0 +1,62 @@
+## -*- mode:ulam -*-
+#=t3512_test_compiler_elementandquarkcaarray_withquarkinit
+##
+## gen output: (interleaved asserts)
+## Unsigned Arg: 63
+## Unsigned Arg: 63
+## Unsigned Arg: 63
+##
+#!
+Exit status: 0
+Ue_Foo { typedef Bar Pop[2];  Bool(3) b(true);  Int(4) m_i(1);  Bar m_bar2[2]( typedef Unsigned(6) Index;  Bool(1) val_b[3](false,false,false);  Unsigned(6) val_u(63u);  typedef Unsigned(6) Index;  Bool(1) val_b[3](false,false,false);  Unsigned(6) val_u(63u); );  Bar sbar( typedef Unsigned(6) Index;  Bool(1) val_b[3](false,false,false);  Unsigned(6) val_u(63u); );  Int(32) test() {  System s;  s ( m_bar2 0 [] val_u . cast )print . s ( m_bar2 0 [] val_u . 63u == )assert . s ( m_bar2 1 [] val_u . cast )print . s ( m_bar2 1 [] val_u . 63u == )assert . s ( sbar val_u . cast )print . s ( sbar val_u . 63u == )assert . 0 cast return } }
+Uq_Bar { typedef Unsigned(6) Index;  Bool(1) val_b[3](false,false,false);  Unsigned(6) val_u( 63u);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+#>Foo.ulam
+  ulam 1;
+use Bar;
+element Foo {
+  typedef Bar Pop[2];
+  Bool(3) b = true;
+  Int(4) m_i = 1;
+  Pop m_bar2;
+  Bar sbar;
+
+  Int test() {
+    System s;
+    s.print((Unsigned) m_bar2[0].val_u);
+    s.assert(m_bar2[0].val_u == 63u);
+
+    s.print((Unsigned) m_bar2[1].val_u);
+    s.assert(m_bar2[1].val_u == 63u);
+
+    s.print((Unsigned) sbar.val_u);
+    s.assert(sbar.val_u == 63u);
+
+    return 0;
+  }
+}
+
+#:Bar.ulam
+  ulam 1;
+quark Bar {
+  typedef Unsigned(6) Index;
+  Bool val_b[3];
+  Index val_u = Index.maxof;
+  Void reset(Index u) {
+    val_u = u;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

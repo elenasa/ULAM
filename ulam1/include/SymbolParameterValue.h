@@ -62,12 +62,16 @@ namespace MFM{
 
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
-    virtual void setStructuredComment();
+    void setStructuredComment();
+
+    bool getStructuredComment(Token& scTok);
 
   protected:
 
   private:
     UTI m_childOf; //needed for symbol's mangled name
+    Token m_structuredCommentToken;
+    bool m_gotStructuredCommentToken;
   };
 } //MFM
 

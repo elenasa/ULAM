@@ -1,0 +1,68 @@
+## -*- mode:ulam -*-
+#=t3708_test_compiler_longarrayofquarks_asfuncarg
+##
+## gen output: (+ assert)
+##      Int Arg: 3
+##
+#!
+Exit status: 3
+Ue_A : QW { :< Int(3) qint(0);  typedef QW BigSite[20]; > typedef QW BigSite[20];  Int(32) nineth(3);  Int(32) test() {  System s;  QW site[20] = ( )func2;  QW site2[20];  site2 ( )func2 = nineth ( site )func = s ( nineth )print . s ( nineth 3 cast == )assert . ( site )func return } }
+Uq_QW { Int(3) qint(0);  typedef QW BigSite[20];  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by 3704
+## ok with BitStorage (see t3417)
+##
+#>A.ulam
+  ulam 2;
+use QW;
+use System;
+element A : QW {
+  Int nineth;
+  typedef QW.BigSite BigSite;
+  Int test(){
+    System s;
+    //both forms compile!!
+    BigSite site = func2();
+    BigSite site2;
+    site2 = func2();
+    nineth = func(site);
+    s.print(nineth);
+    s.assert(nineth == 3);
+    return func(site);
+  }
+}
+##
+##      //bool rtn1 = fms->add("A.ulam","element A {\ntypedef Int BigSite[20];\nInt test(){\n BigSite site, site2; site = site2;\n return 2;\n }\n }\n");
+
+#:QW.ulam
+  ulam 1;
+quark QW {
+  Int(3) qint;
+  typedef QW BigSite[20];
+
+  Int func(BigSite sarr) {
+    return sarr[9].qint;
+  }
+  BigSite func2() {
+    BigSite s;
+    for(Int i = 0; i < 20; ++i){
+      s[i] = self;
+    }
+    s[9].qint = 3;
+    return s;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

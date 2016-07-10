@@ -1,0 +1,85 @@
+## -*- mode:ulam -*-
+#=t3586_test_compiler_elementandquarkwargs_hascond
+#!
+##
+##   gencode output (interleaved asserts):
+##	 Unsigned Arg: 3
+##       Unsigned Arg: 3
+##       Unsigned Arg: 3
+##       Unsigned Arg: 7
+##
+##
+Exit status: 7
+Uq_Typo(Int(32) a) : Bar { :< Bool(1) b(false);  Unsigned(3) bu( 7u); > Bool(1) by(false);  <NOMAIN> }
+Uq_Bar { Bool(1) b(false);  Unsigned(3) bu( 7u);  <NOMAIN> }
+Ue_Eltypo : Typo(1) { :< :< Bool(1) b(false);  Unsigned(3) bu(7u); > constant Int(32) a = 1;  Bool(1) by(false); > System s();  Unsigned(3) first(3u);  Unsigned(3) second(7u);  Typo(1) t( :< Bool(1) b(false);  Unsigned(3) bu(7u); > constant Int(32) a = 1;  Bool(1) by(false); );  Int(32) test() {  Eltypo elf;  { elf Bar as cond { Bar& elf;  elf ( 3u cast )func . s ( elf bu . cast )print . s ( elf bu . cast 3 cast == )assert . first elf bu . = } if s ( false )assert . else } s ( elf bu . cast )print . s ( elf bu . cast 3 cast == )assert . s ( first cast )print . s ( first cast 3 cast == )assert . s ( elf t bu . . cast )print . s ( elf t bu . . cast 7 == )assert . second elf t bu . . = second cast return } }
+Uq_System { <NOMAIN> }
+##
+## 'has' deprecated, change Eltyp to inherit from Typo(1), and use 'as' on local
+## informed loosely by t3371
+## see t3588 and t3589 for 'as' and 'is' versions
+##
+#:Typo.ulam
+  ulam 2;
+use Bar;
+quark Typo(Int a) : Bar{
+  Bool by; //remove shadow since for no reason
+}
+
+#:Bar.ulam
+  ulam 2;
+quark Bar
+{
+  Bool b; //testing offset
+  Unsigned(3) bu = 7u;
+  Void func(Unsigned u)
+  {
+    bu = (Unsigned(3)) u;
+  }
+}
+
+#>Eltypo.ulam
+  ulam 2;
+use Typo;
+use System;
+element Eltypo : Typo(1) {
+  System s;
+  Unsigned(3) first;
+  Unsigned(3) second;
+  Typo(1) t;
+  Int test(){
+    Eltypo elf;
+
+    if(elf as Bar){ //was has
+      elf.func(3u);
+      s.print(elf.bu);
+      s.assert(elf.bu == 3);
+      first = elf.bu; //3u, from 7u
+    }
+    else
+      s.assert(false);
+
+    s.print(elf.bu); //should be 3 too
+    s.assert(elf.bu == 3);
+    s.print(first); //3
+    s.assert(first == 3);
+
+    s.print(elf.t.bu); //no change to dm, 7
+    s.assert(elf.t.bu == 7); //no change to dm, 7
+    second = elf.t.bu;
+    return second;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

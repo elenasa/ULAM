@@ -1,0 +1,37 @@
+## -*- mode:ulam -*-
+#=t3515_test_compiler_elementandquarks_typedeffromanotherclasstypedef_minmaxsizeofinits
+#!
+##      /* no gen code output */
+##
+Exit status: 3
+Ue_P { Bool(1) b(false);  constant Unsigned(3) var = 3u;  Unsigned(3) x(0u);  Unsigned(3) y(7u);  Unsigned(3) z(3u);  Unsigned(3) i(0u);  Unsigned(3) j(7u);  Unsigned(3) k(3u);  Int(32) test() {  3u cast return } }
+Uq_V { typedef Q Woof;  <NOMAIN> }
+Uq_Q { typedef Unsigned(3) Foo;  <NOMAIN> }
+##
+## informed by t3290
+##
+#>P.ulam
+  ulam 1;
+use V;
+element P {
+  Bool b;
+  constant V.Woof.Foo var = 3;
+  Unsigned(3) x = var.minof, y = var.maxof, z = var.sizeof;
+  Unsigned(3) i = V.Woof.Foo.minof, j = V.Woof.Foo.maxof, k = V.Woof.Foo.sizeof;
+  Int test() {
+    return var;
+  }
+}
+
+#:Q.ulam
+  ulam 1;
+quark Q {
+  typedef Unsigned(3) Foo;
+}
+#:V.ulam
+  ulam 1;
+use Q;
+quark V {
+  typedef Q Woof;
+}
+#.

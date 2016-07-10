@@ -11,7 +11,7 @@
 ##      // constant fold: j 1 3 +b =, and j 2 4 *
 ##
 Exit status: 7
-Ue_A { System s();  Int(32) j(7);  Int(32) i(7);  Int(32) test() {  constant Int(32) cOW = 3;  j 4 cast = s ( j )print . { j j 3 +b = s ( j )print . Int(32) j;  constant Int(32) cOW = 4;  j 8 cast = s ( j )print . } i j = s ( i )print . j return } }
+Ue_A { System s();  Int(32) j(7);  Int(32) i(7);  Int(32) test() {  3 = cOW const j 4 cast = s ( j )print . { j j 3 +b = s ( j )print . Int(32) j;  4 = cOW const j 8 cast = s ( j )print . } i j = s ( i )print . j return } }
 Uq_System { <NOMAIN> }
 ##      //requires new grammar: tests scope
 ##

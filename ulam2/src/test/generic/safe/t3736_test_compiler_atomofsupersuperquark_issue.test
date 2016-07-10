@@ -1,0 +1,42 @@
+## -*- mode:ulam -*-
+#=t3736_test_compiler_atomofsupersuperquark_issue
+#!
+##
+##   gencode output: (interleaved asserts)
+## include/Uq_10102QB10.tcc:23: FAILED: NOT_AN_ELEMENT
+##
+Exit status: -11
+Ue_AtomOfIsh : QM { :< :<>> Int(32) test() {  self ( )qmfunc . 0 cast return } }
+Uq_QM : QB { :<> <NOMAIN> }
+Uq_QB { <NOMAIN> }
+##
+## informed by AtomOfIsh 5/12/2016
+##
+#>AtomOfIsh.ulam
+  ulam 2;
+//use QM;
+element AtomOfIsh : QM {
+  Int test() {
+    self.qmfunc();
+    return 0;
+  }
+}
+
+#:QM.ulam
+  ulam 2;
+//use QB;
+quark QM : QB {
+  Void qmfunc() {
+    self.qbfunc();
+  }
+}
+
+#:QB.ulam
+  ulam 2;
+quark QB {
+  Void qbfunc() {
+    // Should work but dies with NOT_AN_ELEMENT
+    Atom a = self.atomof;
+  }
+}
+#.

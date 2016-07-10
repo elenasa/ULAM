@@ -11,20 +11,20 @@ use System;
  use Bar;
  element Foo {
  typedef Bar Pop[2];
- System s;
- Bool(3) b;
+System s;
+Bool(3) b;
  Int(4) m_i;
  Pop m_bar2;
  Bool check(Int v) {
  return true;
  }
  Int test() {
-   Bar sbar;
-   Atom a;
-   a = sbar[0];
-   sbar[1] = a;
-   sbar.reset(true);
-   return 0;
+Bar sbar;
+Atom a;
+ a = sbar[0];
+sbar[1] = a;
+sbar.reset(true);
+return 0;
  }
  }
 #:Bar.ulam

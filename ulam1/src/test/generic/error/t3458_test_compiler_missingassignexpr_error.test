@@ -1,8 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3458_test_compiler_missingassignexpr_error
 #!
-./A.ulam:3:26: ERROR: Right operand of binary operator= is missing; Assignment deleted.
-Unrecoverable Program Parse FAILURE.
+##
+##./A.ulam:3:26: ERROR: Right operand of binary operator= is missing; Assignment deleted.
+##
+Exit status: -1
 ##
 ##      //informed by 3457, except local variable type
 ##

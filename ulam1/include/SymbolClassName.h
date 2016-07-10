@@ -50,16 +50,15 @@ namespace MFM{
 
     void resetUnseenClassLocation(Token identTok);
 
-    virtual void setStructuredComment();
+    void setStructuredComment();
+
+    bool getStructuredComment(Token& scTok);
 
     virtual void getTargetDescriptorsForClassInstances(TargetMap& classtargets);
 
-    virtual void getClassMemberDescriptionsForClassInstances(ClassMemberMap& classmembers);
+    virtual void getModelParameterDescriptionsForClassInstances(ParameterMap& classmodelparameters);
 
     virtual bool isClassTemplate();
-
-    virtual void setSuperClassForClassInstance(UTI superclass, UTI instance);
-    virtual UTI getSuperClassForClassInstance(UTI instance);
 
     virtual Node * findNodeNoInAClassInstance(UTI instance, NNO n);
 
@@ -78,8 +77,6 @@ namespace MFM{
     virtual void printBitSizeOfClassInstances();
     virtual void packBitsForClassInstances();
 
-    virtual void buildDefaultQuarkForClassInstances();
-
     virtual void testForClassInstances(File * fp);
 
     virtual void generateCodeForClassInstances(FileManager * fm);
@@ -93,7 +90,8 @@ namespace MFM{
    protected:
 
   private:
-
+    Token m_structuredCommentToken;
+    bool m_gotStructuredCommentToken;
   };
 
 }

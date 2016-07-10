@@ -43,7 +43,7 @@
 #include "NodeSquareBracket.h"
 #include "NodeConstantDef.h"
 #include "TargetMap.h"
-#include "MapClassMemberDesc.h"
+#include "ParameterMap.h"
 
 namespace MFM{
 
@@ -64,9 +64,6 @@ namespace MFM{
     virtual bool isClass();
 
     virtual bool isClassTemplate(UTI cuti);
-
-    void setSuperClass(UTI superclass);
-    UTI getSuperClass();
 
     void setClassBlockNode(NodeBlockClass * node);
 
@@ -98,8 +95,6 @@ namespace MFM{
 
     void printBitSizeOfClass();
 
-    bool getDefaultQuark(u32& dqref); //return true if ready
-
     void testThisClass(File * fp); //eval-land
 
     bool statusNonreadyClassArguments();
@@ -127,7 +122,7 @@ namespace MFM{
 
     void addTargetDescriptionMapEntry(TargetMap& classtargets, u32 scid);
 
-    void addClassMemberDescriptionsMapEntry(ClassMemberMap& classmembers);
+    void addModelParameterDescriptionsMapEntry(ParameterMap& classmodelparameters);
 
   protected:
     Resolver * m_resolver;
@@ -139,9 +134,6 @@ namespace MFM{
     SymbolClassNameTemplate * m_parentTemplate;
     bool m_quarkunion;
     bool m_stub;
-    u32 m_quarkDefaultValue;
-    bool m_isreadyQuarkDefaultValue;
-    UTI m_superClass; //single inheritance
 
     void generateHeaderPreamble(File * fp);
     void genAllCapsIfndefForHeaderFile(File * fp);

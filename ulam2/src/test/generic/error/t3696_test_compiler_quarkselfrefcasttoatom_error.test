@@ -1,0 +1,58 @@
+## -*- mode:ulam -*-
+#=t3696_test_compiler_quarkselfrefcasttoatom_error
+#!
+##      gen code output: (1 asserts)
+##
+##        unevaluable: expected exit status 1
+##
+./QW.ulam:8:5: ERROR: Reference atom variable aref's type Atom(96)&, and its initial value type QW&, are incompatible; .atomof may help.
+./A.ulam:4:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
+Unrecoverable Program Type Label FAILURE.
+##
+## Dave requested a way to get default values for Self (within a quark);
+## a loophole, since a quark would be an undefined atom, but as a ref, its done (t3679)
+##
+## informed by t3692, inverted from quarkref to atom without .atomof
+##
+#>A.ulam
+  ulam 2;
+use System;
+use QW;
+element A : QW {
+  Bool b, c;
+  Int test(){
+    System s;
+    bw = true;
+    QW q = func();
+    b = q.bw;
+    s.assert(b);
+    return (Int) b;
+  }
+}
+
+#:QW.ulam
+  ulam 2;
+quark QW {
+  Bool bw;
+  Self func()
+  {
+    Self & qref = self;
+    //Atom& aref = (Atom&) qref; //ref cast may be unnecessary
+    Atom& aref = qref; //.atomof can help!
+    Self& sra = (Self&) aref;
+    return sra;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

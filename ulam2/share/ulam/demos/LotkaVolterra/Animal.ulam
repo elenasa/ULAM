@@ -1,0 +1,45 @@
+ulam 1;
+
+/** Animal.
+
+    \symbol An
+    \symmetries all
+    \color #e05
+    \author Dave
+    \license lgpl
+ */
+
+element Animal {
+  typedef Unsigned(7) Hunger;
+  Hunger hunger;
+  EventWindow ew;
+
+  typedef EventWindow.SiteNum SiteNum;
+
+  /** Days food per plant.
+      \range 0..50
+   */
+  parameter Hunger pPLANT_ENERGY = 10;
+
+  Void behave() {
+    if (++hunger == hunger.maxof) {
+      for (SiteNum i = 0; i < 5u; ++i) {
+        Res r;
+        if (i == 0 || ew[i] is Empty)
+          ew[i] = r;
+      }
+      return;
+    }
+
+    if (ew[1] is Plant) {
+      if ((hunger -= pPLANT_ENERGY) == hunger.minof) {
+        hunger = (hunger.maxof-hunger.minof)/2;
+        ew[1] = self;
+        return;
+      }
+      Empty e;
+      ew[1] = e;
+    }
+    if (ew[1] is Empty)  ew.swap(0,1);
+  }
+}

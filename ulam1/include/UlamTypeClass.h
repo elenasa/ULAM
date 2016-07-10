@@ -90,6 +90,10 @@ namespace MFM{
 
     void setCustomArray();
 
+    UTI getCustomArrayType();
+
+    u32 getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
+
     virtual s32 getBitSize();
 
     virtual bool isHolder();
@@ -112,6 +116,8 @@ namespace MFM{
 
     virtual const std::string getImmediateStorageTypeAsString();
 
+    virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
+
     virtual void genUlamTypeReadDefinitionForC(File * fp);
 
     virtual void genUlamTypeWriteDefinitionForC(File * fp);
@@ -126,10 +132,6 @@ namespace MFM{
 
     virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
 
-    virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
-
-    virtual bool genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref);
-
    private:
 
     ULAMCLASSTYPE m_class;
@@ -142,10 +144,6 @@ namespace MFM{
     void genUlamTypeElementMangledDefinitionForC(File * fp);
     void genUlamTypeElementReadDefinitionForC(File * fp);
     void genUlamTypeElementWriteDefinitionForC(File * fp);
-
-    UTI getCustomArrayType();
-    u32 getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
-
 
   };
 

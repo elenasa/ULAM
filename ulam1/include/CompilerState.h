@@ -115,9 +115,9 @@ namespace MFM{
     bool m_gotStructuredCommentToken; // avoid testing uninitialized value
     Token m_precedingStructuredCommentToken; //for next class or parameter
 
-    bool m_parsingConditionalAs;          // used for Conditional-As/Has parsing
-    Token m_identTokenForConditionalAs;   // used for Conditional-As/Has parsing
-    bool m_genCodingConditionalHas; // used for Conditional-Has code gen
+    bool m_parsingConditionalAs;          // used for Conditional-As parsing
+    Token m_identTokenForConditionalAs;   // used for Conditional-As parsing
+    bool m_genCodingConditionalAs; // used for Conditional-As code gen
 
     CallStack m_funcCallStack;    //local variables and arguments
     UEventWindow  m_eventWindow;  //storage for 41 atoms (elements)
@@ -141,7 +141,6 @@ namespace MFM{
     UlamValue m_currentObjPtr; //used in eval of members: data or funcs; updated at each '.'
     UlamValue m_currentSelfPtr; //used in eval of func calls: updated after args,
                                 // becomes currentObjPtr for args
-    UlamValue m_currentAutoObjPtr; //used in eval, lhs of conditional as/has:
 
     std::vector<Symbol *> m_currentObjSymbolsForCodeGen;  //used in code generation;
     Symbol * m_currentSelfSymbolForCodeGen; //used in code gen; parallels m_currentSelf
@@ -189,7 +188,6 @@ namespace MFM{
     UTI getUlamTypeAsScalar(UTI utArg);
     UTI getUlamTypeOfConstant(ULAMTYPE etype);
     UTI getDefaultUlamTypeOfConstant(UTI ctype);
-    bool getDefaultQuark(UTI cuti, u32& dqref);
 
     bool isScalar(UTI utArg);
     s32 getArraySize(UTI utArg);
@@ -210,24 +208,13 @@ namespace MFM{
     u32 getTotalBitSize(UTI utArg);
     u32 getTotalWordSize(UTI utArg);
     s32 slotsNeeded(UTI uti);
-    bool isClassATemplate(UTI cuti);
-    UTI isClassASubclass(UTI cuti); //returns super UTI, or Nav if no inheritance
-    bool isClassASuperclassOf(UTI cuti, UTI superp);
-    bool isClassAStub(UTI cuti);
-    bool hasClassAStub(UTI cuti);
-    bool isClassAQuarkUnion(UTI cuti);
-    bool isClassACustomArray(UTI cuti);
-    UTI getAClassCustomArrayType(UTI cuti);
-    UTI getAClassCustomArrayIndexType(UTI cuti, Node * rnode, UTI& idxuti, bool& hasHazyArgs);
 
     /** return true and the Symbol pointer in 2nd arg if found;
 	search SymbolTables LIFO order; o.w. return false
     */
-    bool alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
-    bool isFuncIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
-    bool isFuncIdInClassScopeNNO(NNO cnno, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
-    bool isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
-
+    bool alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr);
+    bool isFuncIdInClassScope(u32 dataindex, Symbol * & symptr);
+    bool isIdInClassScope(u32 dataindex, Symbol * & symptr);
     void addSymbolToCurrentScope(Symbol * symptr); //ownership goes to the block
     void addSymbolToCurrentMemberClassScope(Symbol * symptr); //making stuff up for member
     void replaceSymbolInCurrentScope(u32 oldid, Symbol * symptr); //same symbol, new id
@@ -244,8 +231,8 @@ namespace MFM{
     bool alreadyDefinedSymbolClass(UTI uti, SymbolClass * & symptr);
 
     /** creates temporary class type for dataindex, returns the new Symbol pointer in 2nd arg; */
-    bool addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr);
-    bool addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr);
+    void addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr);
+    void addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr);
 
     void resetUnseenClass(SymbolClassName * cnsym, Token identTok);
     bool getUnseenClassFilenames(std::vector<std::string>& unseenFiles);
@@ -274,11 +261,9 @@ namespace MFM{
     u32 getCustomArraySetFunctionNameId();
     const char * getCustomArrayGetMangledFunctionName();
     const char * getCustomArraySetMangledFunctionName();
-    const char * getIsMangledFunctionName(UTI ltype);
+    const char * getIsMangledFunctionName();
     const char * getHasMangledFunctionName(UTI ltype);
     const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
-    const char * getBuildDefaultAtomFunctionName(UTI ltype);
-    const char * getDefaultQuarkFunctionName();
 
     std::string getFileNameForAClassHeader(UTI cuti, bool wSubDir = false);
     std::string getFileNameForThisClassHeader(bool wSubDir = false);
@@ -294,9 +279,6 @@ namespace MFM{
     const std::string getBitSizeTemplateString(UTI uti);
 
     const std::string getBitVectorLengthAsStringForCodeGen(UTI uti);
-
-    /** returns ulamvalue ptr to entire atom/element from m_currentSelfPtr */
-    UlamValue getAtomPtrFromSelfPtr();
 
     /** returns immediate target value: extracts data from packed targets;
 	unpacked array targets are invalid */
@@ -350,17 +332,11 @@ namespace MFM{
     NNO getNextNodeNo();
 
     Node * findNodeNoInThisClass(NNO n);
-    Node * findNodeNoInAClass(NNO n, UTI cuti);
-    UTI findAClassByNodeNo(NNO n);
-    NodeBlockClass * getAClassBlock(UTI cuti);
-    NNO getAClassBlockNo(UTI cuti);
 
     /** methods for context switching */
     u32 getCompileThisId();
 
     UTI getCompileThisIdx();
-
-    SymbolClass * getCurrentSelfSymbolForCodeGen();
 
     NodeBlock * getCurrentBlock();
 

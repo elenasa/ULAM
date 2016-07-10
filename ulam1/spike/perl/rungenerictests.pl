@@ -40,9 +40,9 @@ BEGIN {
 my $TOPLEVEL = "$ULAM_ROOT";
 my $TESTDIR =  "$ULAM_ROOT/src/test/generic";
 my $TESTBIN =  "$ULAM_ROOT/src/test/bin";
-my $EXEC_TEST_VALGRIND = 0;  #=1 produces uncomparable log files (grep for "leaked" in them).
+my $EXEC_TEST_VALGRIND = 0;  #=1 produces uncomparable log files
 my $SRC_DIR = "safe";
-#my $SRC_DIR = "error"; # only t3508 FAILS (core dump)
+#my $SRC_DIR = "error";
 my $TESTGENCODE = 0; # 0 is faster; 1 is thorough
 
 sub usage_abort
@@ -134,42 +134,20 @@ sub main
 
 	    if($EXEC_TEST_VALGRIND)
 	    {
-		# one at a time, results in testerrlog
-		# grep for:
-                # All heap blocks were freed -- no leaks are possible
-
-		$TESTGENCODE && `make -C $TESTDIR clean`; #before test
-
-		`valgrind ./bin/culamtest $f 1> $log 2> $errlog`;
-                my $status = $?;
-                if ($status == 0) {
-                    ++$testsPassed;
-                } else {
-                    ++$testsFailed;
-                    print "FAILED: $testnum\n";
-                }
-
-                ## compile and run generated code
-		if($TESTGENCODE)
-		{
-		    `make -C $TESTDIR gen`;
-		    `$TESTBIN/main 1>> $log 2>> $errlog`;
-		}
-
+		`cp $src $dest 1> $log 2> $errlog`;
+		`COMMANDS=1 make -C $TOPLEVEL testclean 1>> $log 2>> $errlog`;
+		`valgrind ./bin/test 1>> $log 2>> $errlog`;
+		`COMMANDS=1 make -C $TESTDIR gen 1>> $log 2>> $errlog`;
+		`valgrind $TESTDIR/bin/main 1>> $log 2>> $errlog`;
+		#clean up
+		$dest = $dest . "/" . $testf;
+		`rm -f $dest`;
 	    }
 	    else
 	    {
 		$TESTGENCODE && `make -C $TESTDIR clean`; #before test
 
-		if($SRC_DIR =~ /error/)
-		{
-		    `./bin/culamtest $f 1> $log`;  ##outputs errlog to stderr
-		}
-		else
-		{
-		    `./bin/culamtest $f 1> $log 2> $errlog`;
-		}
-
+		`./bin/culamtest $f 1> $log 2> $errlog`;
                 my $status = $?;
                 if ($status == 0) {
                     ++$testsPassed;

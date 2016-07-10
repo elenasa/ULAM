@@ -110,7 +110,7 @@ namespace MFM {
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		newType = Nav; //error
 	      }
-	    else if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
+	    else if(!makeCastingNode(m_nodeRight, newType, m_nodeRight))
 	      newType = Nav; //error
 	  }
       }
@@ -293,7 +293,7 @@ namespace MFM {
     if(wordsize == MAXBITSPERINT)
       {
 	u32 ldata = luv.getDataFromAtom(pluv, m_state);
-	u32 rdata = ruv.getImmediateData(len, m_state);
+	u32 rdata = ruv.getImmediateData(len);
 	rtnUV = makeImmediateBinaryOp(nuti, ldata, rdata, len);
       }
     else if(wordsize == MAXBITSPERLONG)
@@ -302,9 +302,8 @@ namespace MFM {
 	u64 rdata = ruv.getImmediateDataLong(len);
 	rtnUV = makeImmediateLongBinaryOp(nuti, ldata, rdata, len);
       }
-    else
-      assert(0); //e.g. 0
-
+    //else
+    //assert(0);
     if(rtnUV.getUlamValueTypeIdx() == Nav)
       return false;
 
@@ -403,6 +402,12 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
     assert(m_state.m_currentObjSymbolsForCodeGen.empty());
 
+#ifdef TMPVARBRACES
+    m_state.indent(fp);
+    fp->write("{\n");
+    m_state.m_currentIndentLevel++;
+#endif
+
     // generate rhs first; may update current object globals (e.g. function call)
     UlamValue ruvpass;
     m_nodeRight->genCode(fp, ruvpass);
@@ -421,6 +426,11 @@ namespace MFM {
 
     uvpass = ruvpass; //in case we're the rhs of an equals..
 
+#ifdef TMPVARBRACES
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n"); //close for tmpVar
+#endif
     assert(m_state.m_currentObjSymbolsForCodeGen.empty());
   } //genCode
 

@@ -1,0 +1,20 @@
+## -*- mode:ulam -*-
+#=t3400_test_compiler_arraysizeof_lengthzero
+#!
+Exit status: 384
+Ue_Eltypo { typedef Empty EArr[4];  Int(32) test() {  Empty arr[4];  384u cast return } }
+##
+##      //arraysize zero ok, but not bitsize zero!
+##      // gcc balks at BitVector for immediate (Dave fixed it)
+#>Eltypo.ulam
+  ulam 1;
+use Empty;
+element Eltypo {
+  typedef Empty EArr[4];
+  Int test(){
+    EArr arr;
+    return arr.sizeof;
+  }
+}
+
+#.

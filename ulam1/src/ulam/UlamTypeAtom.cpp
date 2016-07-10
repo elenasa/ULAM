@@ -63,7 +63,7 @@ namespace MFM {
     // how can it be both in an UlamValue?
     // what of its contents?
     // val = UlamValue::makeAtom(valtypidx);
-    val.setUlamValueTypeIdx(typidx); //try this
+
     return brtn;
   } //end cast
 

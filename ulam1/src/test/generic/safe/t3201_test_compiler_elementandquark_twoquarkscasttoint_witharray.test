@@ -15,9 +15,9 @@
 ##
 ##      // constant fold minus
 Exit status: 7
-Ue_Foo { System s();  Bar bar1( Bool(1) b(false);  Unsigned(3) x(1u);  Unsigned(3) y(2u); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3u);  Unsigned(3) y(0u); );  Int(4) i[2](6,7);  Int(32) test() {  Int(2) d;  d 1 = bar1 x . d cast = bar1 y . 2 cast = bar2 x . 3 cast = bar2 y . 0 cast = i 0 [] bar1 ( )toInt . cast cast = i 1 [] bar2 ( )toInt . cast cast = s ( bar1 x . cast )print . s ( bar1 y . cast )print . s ( bar2 x . cast )print . s ( bar2 y . cast )print . s ( i 0 [] )print . s ( i 1 [] )print . i 1 [] cast return } }
+Ue_Foo { System s();  Bar bar1( Bool(1) b(false);  Unsigned(3) x(1);  Unsigned(3) y(2); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3);  Unsigned(3) y(0); );  Int(4) i[2](6,7);  Int(32) test() {  Int(2) d;  d 1 = bar1 x . d cast = bar1 y . 2 cast = bar2 x . 3 cast = bar2 y . 0 cast = i 0 [] bar1 ( )toInt . cast cast = i 1 [] bar2 ( )toInt . cast cast = s ( bar1 x . cast )print . s ( bar1 y . cast )print . s ( bar2 x . cast )print . s ( bar2 y . cast )print . s ( i 0 [] )print . s ( i 1 [] )print . i 1 [] cast return } }
 Uq_System { <NOMAIN> }
-Uq_Bar { Bool(1) b(false);  Unsigned(3) x(0);  Unsigned(3) y(0);  <NOMAIN> }
+Uq_Bar { Bool(1) b(false);  Unsigned(3) x(1);  Unsigned(3) y(2);  <NOMAIN> }
 #>Foo.ulam
 ulam 1;
 use System;
@@ -36,10 +36,10 @@ bar2.x = 3;
 bar2.y = 0;
 i[0] = (Int(4)) bar1;
 i[1] = (Int(4)) bar2;
-s.print(bar1.x);
-s.print(bar1.y);
-s.print(bar2.x);
-s.print(bar2.y);
+s.print((Unsigned) bar1.x);
+s.print((Unsigned) bar1.y);
+s.print((Unsigned) bar2.x);
+s.print((Unsigned) bar2.y);
 
 s.print(i[0]);
 s.print(i[1]);

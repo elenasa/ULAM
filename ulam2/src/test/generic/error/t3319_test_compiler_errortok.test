@@ -1,0 +1,20 @@
+## -*- mode:ulam -*-
+#=t3319_test_compiler_errortok
+#!
+./A.ulam:3:6: ERROR: Weird! Lexer could not find match for <@>.
+./A.ulam:3:11: ERROR: Weird! Lexer could not find match for <@>.
+./A.ulam:1:1: ERROR: Empty/Incomplete Class Definition 'A'; Possible missing ending curly brace.
+./A.ulam:5:2: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
+./A.ulam:1:9: ERROR: Invalid Type: A.
+ ERROR: No parse tree for This Class: A.
+Unrecoverable Program Parse FAILURE: <A.ulam>
+##
+#>A.ulam
+element A {
+ Int a; Int test() {
+ a = @3 + @2;
+ }
+ return a;
+ }
+
+#.

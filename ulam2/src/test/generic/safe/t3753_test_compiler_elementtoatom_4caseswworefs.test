@@ -1,0 +1,101 @@
+## -*- mode:ulam -*-
+#=t3753_test_compiler_elementtoatom_4caseswworefs
+#!
+## gen code output: (interleaved asserts)
+## Int Arg: 4
+## Int Arg: 4
+## Int Arg: 4
+## Int Arg: 4
+##
+## eval fails on elements refs (first and third tests)
+##
+Exit status: 0
+Ue_Ish5 : System { :<> Bool(1) brtn[4](true,true,true,true);  Int(32) test() {  E1 e1;  E1& e1ref = e1 cast;  Atom(96)& a1ref = e1ref cast;  { a1ref E1 as cond { E1& a1ref;  ( a1ref m_b ( )func . . )print brtn 0 [] a1ref m_b ( )func . . 4 cast == = ( brtn 0 [] )assert } if } Atom(96)& a2ref = e1 cast;  { a2ref E1 as cond { E1& a2ref;  ( a2ref m_b ( )func . . )print brtn 1 [] a2ref m_b ( )func . . 4 cast == = ( brtn 1 [] )assert } if } Atom(96) a1 = e1ref cast;  { a1ref E1 as cond { E1& a1ref;  ( a1ref m_b ( )func . . )print brtn 2 [] a1ref m_b ( )func . . 4 cast == = ( brtn 2 [] )assert } if } Atom(96) a2 = e1 cast;  { a2 E1 as cond { E1& a2;  ( a2 m_b ( )func . . )print brtn 3 [] a2 m_b ( )func . . 4 cast == = ( brtn 3 [] )assert } if } 0 cast return } }
+Uq_System { <NOMAIN> }
+Ue_E1 : Sub { /* empty class block */ }
+Uq_Sub { QBase m_b();  <NOMAIN> }
+Uq_QBase { <NOMAIN> }
+##
+## informed by ish-example 5/23/16, and t3751
+##
+#:Ish5.ulam
+  ulam 2;
+//use E1;
+use System;
+element Ish5 : System {
+  Bool brtn[4];
+  Int test() {
+    E1 e1;
+    E1& e1ref = e1;
+
+    //element ref to atomref (eval fails)
+    Atom & a1ref = e1ref;
+    if (a1ref as E1) {
+      print(a1ref.m_b.func());
+      brtn[0] = (a1ref.m_b.func() == 4);
+      assert(brtn[0]);
+    }
+
+    //element to atomref
+    Atom & a2ref = e1;
+    if (a2ref as E1) {
+      print(a2ref.m_b.func());
+      brtn[1] = (a2ref.m_b.func() == 4);
+      assert(brtn[1]);
+    }
+
+
+    //element ref to atom (eval fails)
+    Atom a1 = e1ref;
+    if (a1ref as E1) {
+      print(a1ref.m_b.func());
+      brtn[2] = (a1ref.m_b.func() == 4);
+      assert(brtn[2]);
+    }
+
+    //element to atom
+    Atom a2 = e1;
+    if (a2 as E1) {
+      print(a2.m_b.func());
+      brtn[3] = (a2.m_b.func() == 4);
+      assert(brtn[3]);
+    }
+
+    return 0;
+  }
+}
+
+#:E1.ulam
+  ulam 2;
+//use Sub;
+element E1 : Sub {
+}
+
+
+#:Sub.ulam
+  ulam 2;
+//use QBase;
+quark Sub {
+  QBase m_b;
+}
+
+#:QBase.ulam
+  ulam 2;
+quark QBase {
+  Int func() { return 4; }
+}
+
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
+#.

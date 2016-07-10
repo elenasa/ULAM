@@ -88,8 +88,7 @@ namespace MFM {
     Symbol * asymptr = NULL;
     if(m_uti == Nav)
       {
-	bool hazyKin = false;
-	if(m_state.alreadyDefinedSymbol(m_ofTok.m_dataindex, asymptr, hazyKin) && !hazyKin)
+	if(m_state.alreadyDefinedSymbol(m_ofTok.m_dataindex,asymptr))
 	  {
 	    m_uti = asymptr->getUlamTypeIdx();
 	    std::ostringstream msg;
@@ -98,7 +97,6 @@ namespace MFM {
 	    msg << "' Proxy, as type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    m_state.setGoAgain(); //since not error
 	  }
 	else
 	  {
@@ -108,10 +106,7 @@ namespace MFM {
 		msg << "Undetermined type for missing member '";
 		msg << m_state.getTokenDataAsString(&m_ofTok).c_str();
 		msg << "' Proxy";
-		if(!hazyKin)
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		else
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		return Nav;
 	      }
 	  }
@@ -280,7 +275,6 @@ namespace MFM {
 	msg << "' while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	m_state.setGoAgain(); //since not error; maybe no nodetypedesc
 	//rtnb = false; don't want to stop after parsing.
       }
     else
@@ -295,7 +289,6 @@ namespace MFM {
 	    msg << "> is still incomplete and unknown while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(&m_funcTok, msg.str().c_str(), DEBUG);
-	    m_state.setGoAgain(); //since not error
 	    rtnb = false;
 	  }
 	else

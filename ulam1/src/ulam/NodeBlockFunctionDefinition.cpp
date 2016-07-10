@@ -37,7 +37,7 @@ namespace MFM {
   void NodeBlockFunctionDefinition::updateLineage(NNO pno)
   {
     NodeBlock::updateLineage(pno);
-    m_state.pushCurrentBlock(this); //before?
+    m_state.pushCurrentBlock(this);
     if(m_nodeTypeDesc)
       {
 	m_nodeTypeDesc->updateLineage(getNodeNo());
@@ -219,8 +219,8 @@ namespace MFM {
     if(m_nodeNext) //non-empty function
       {
 	m_nodeNext->checkAndLabelType(); //side-effect
-	if(!m_state.checkFunctionReturnNodeTypes(m_funcSymbol)) //gives some errors
-	  setNodeType(Nav); //tries to avoid assert in resolving loop; return sets goagain
+	if(!m_state.checkFunctionReturnNodeTypes(m_funcSymbol)) //gives errors
+	  setNodeType(Nav); //avoid assert in resolving loop
       }
     else
       {
@@ -300,7 +300,7 @@ namespace MFM {
       }
     else
       {
-	m_state.m_funcCallStack.returnFrame(m_state);
+	m_state.m_funcCallStack.returnFrame();
 	evalNodeEpilog();
 	return evs;
       }
@@ -310,7 +310,7 @@ namespace MFM {
     //in reverse order ([0] is last at bottom)
     assignReturnValueToStack(rtnUV);
 
-    m_state.m_funcCallStack.returnFrame(m_state);
+    m_state.m_funcCallStack.returnFrame();
     evalNodeEpilog();
     return NORMAL;
   } //eval
@@ -351,10 +351,9 @@ namespace MFM {
       m_nodeParameterList->calcMaxDepth(max1, nomaxdepth, base);
 
     //set self slot just below return value
-    u32 selfid = m_state.m_pool.getIndexForDataString("atom");
+    u32 selfid = m_state.m_pool.getIndexForDataString("self");
     Symbol * selfsym = NULL;
-    bool hazyKin = false; //return is always false?
-    assert(m_state.alreadyDefinedSymbol(selfid, selfsym, hazyKin) && !hazyKin);
+    assert(m_state.alreadyDefinedSymbol(selfid, selfsym));
     s32 newslot = -1 - m_state.slotsNeeded(getNodeType());
     s32 oldslot = ((SymbolVariable *) selfsym)->getStackFrameSlotIndex();
     if(oldslot != newslot)

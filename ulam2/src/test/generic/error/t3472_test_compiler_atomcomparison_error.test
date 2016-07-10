@@ -1,0 +1,24 @@
+## -*- mode:ulam -*-
+#=t3472_test_compiler_atomcomparison_error
+#!
+./A.ulam:5:10: ERROR: Non-primitive type <Atom(96)> is not supported as left operand type for binary operator<.
+./A.ulam:5:10: ERROR: Non-primitive type <Atom(96)> is not supported as right operand type for binary operator<.
+./A.ulam:5:6: ERROR: Assignment is invalid; LHS: Bool(1); RHS: erroneous.
+./A.ulam:6:10: ERROR: Non-primitive type <Atom(96)> is not supported as left operand type for binary operator!=.
+./A.ulam:6:10: ERROR: Non-primitive type <Atom(96)> is not supported as right operand type for binary operator!=.
+./A.ulam:6:6: ERROR: Assignment is invalid; LHS: Bool(1); RHS: erroneous.
+./A.ulam:7:2: ERROR: Use explicit cast to return Bool(1) as Int(32).
+./A.ulam:1:9: ERROR: 5 Nodes with erroneous types detected after type labeling class: A.
+Unrecoverable Program Type Label FAILURE.
+#>A.ulam
+element A {
+Int test() {
+ Bool bad;
+ Atom a, b;
+ bad = a < b;
+ bad = a != b;
+ return bad;
+ }
+ }
+
+#.

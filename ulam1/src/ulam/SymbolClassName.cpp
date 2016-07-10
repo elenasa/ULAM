@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  SymbolClassName::SymbolClassName(Token id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClass(id, utype, classblock, NULL/* parent template */, state)
+  SymbolClassName::SymbolClassName(Token id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClass(id, utype, classblock, NULL/* parent template */, state), m_gotStructuredCommentToken(false)
   {
     unsetStub(); //regular class; classblock may be null if utype is UC_UNSEEN class type.
   }
@@ -30,6 +30,17 @@ namespace MFM {
       }
   } //setStructuredComment
 
+  bool SymbolClassName::getStructuredComment(Token& scTok)
+  {
+    if(m_gotStructuredCommentToken)
+      {
+	assert(m_structuredCommentToken.m_type == TOK_STRUCTURED_COMMENT);
+	scTok = m_structuredCommentToken;
+	return true;
+      }
+    return false;
+  } //getStructuredComment
+
   void SymbolClassName::getTargetDescriptorsForClassInstances(TargetMap& classtargets)
   {
     u32 scid = 0;
@@ -40,26 +51,15 @@ namespace MFM {
     SymbolClass::addTargetDescriptionMapEntry(classtargets, scid);
   } //getTargetDescriptorsForClassInstances
 
-  void SymbolClassName::getClassMemberDescriptionsForClassInstances(ClassMemberMap& classmembers)
+  void SymbolClassName::getModelParameterDescriptionsForClassInstances(ParameterMap& classmodelparameters)
   {
-    SymbolClass::addClassMemberDescriptionsMapEntry(classmembers);
-  } //getClassMemberDescriptionsForClassInstances
+    SymbolClass::addModelParameterDescriptionsMapEntry(classmodelparameters);
+  } //getModelParameterDescriptionsForClassInstances
 
   bool SymbolClassName::isClassTemplate()
   {
     return false;
   } //isClassTemplate
-
-  void SymbolClassName::setSuperClassForClassInstance(UTI superclass, UTI instance)
-  {
-    assert(instance == getUlamTypeIdx());
-    SymbolClass::setSuperClass(superclass);
-  } //setSuperClassForClassInstance
-
-  UTI SymbolClassName::getSuperClassForClassInstance(UTI instance)
-  {
-    return SymbolClass::getSuperClass(); //Nav is none, not a subclass.
-  } //getSuperClassForClassInstance
 
   Node * SymbolClassName::findNodeNoInAClassInstance(UTI instance, NNO n)
   {
@@ -103,21 +103,7 @@ namespace MFM {
 
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-    UTI superclass = getSuperClassForClassInstance(getUlamTypeIdx());
-    if(superclass == Nav)
-      classNode->updateLineage(0);
-    else
-      {
-	//for inheritance, get the node no of superblock
-	u32 sid = m_state.getUlamKeyTypeSignatureByIndex(superclass).getUlamKeyTypeSignatureNameId();
-	SymbolClassName * cnsym = NULL;
-	assert(m_state.alreadyDefinedSymbolClassName(sid, cnsym));
-	NodeBlockClass * superblock = cnsym->getClassBlockNode();
-	assert(superblock);
-
-	classNode->updateLineage(superblock->getNodeNo());
-      }
-
+    classNode->updateLineage(0);
     m_state.popClassContext(); //restore
   } //updateLineageOfClass
 
@@ -200,7 +186,6 @@ namespace MFM {
   {
     bool aok = true;
     assert(!isClassTemplate());
-
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode); //infinite loop "Incomplete Class <> was never defined, fails sizing"
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
@@ -247,17 +232,6 @@ namespace MFM {
     classNode->packBitsForVariableDataMembers();
     m_state.popClassContext(); //restore
   } //packBitsForClassInstances
-
-  void SymbolClassName::buildDefaultQuarkForClassInstances()
-  {
-    NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
-
-    u32 dqval = 0;
-    SymbolClass::getDefaultQuark(dqval); //this instance
-    m_state.popClassContext(); //restore
-  } //buildDefaultQuarkForClassInstances
 
   void SymbolClassName::testForClassInstances(File * fp)
   {

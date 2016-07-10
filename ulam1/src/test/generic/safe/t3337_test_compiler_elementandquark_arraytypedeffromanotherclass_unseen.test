@@ -6,8 +6,8 @@
 ##
 Exit status: 1
 Ue_R { Int(32) test() {  TypedefIssue ish;  ish ( )foo . return } }
-Ue_TypedefIssue { typedef Unsigned(3) Symmetry[2];  Unsigned(3) x[2](0,0);  Bool(1) b(false);  Vector t( typedef Unsigned(3) Channel;  typedef Unsigned(3) Symmetry[2];  Unsigned(3) m[2](0,0); );  <NOMAIN> }
-Uq_Vector { typedef Unsigned(3) Channel;  typedef Unsigned(3) Symmetry[2];  Unsigned(3) m[2](0,0);  <NOMAIN> }
+Ue_TypedefIssue { typedef Unsigned(3) Symmetry[2];  Unsigned(3) x[2](0,0);  Bool(1) b(false);  Vector t( typedef Unsigned(3) Symmetry[2];  Unsigned(3) m[2](0,0);  typedef Unsigned(3) Channel; );  <NOMAIN> }
+Uq_Vector { typedef Unsigned(3) Symmetry[2];  Unsigned(3) m[2](0,0);  typedef Unsigned(3) Channel;  <NOMAIN> }
 ##
 ##      //informed by 3269, UNSEEN..
 #>R.ulam

@@ -39,16 +39,15 @@ namespace MFM {
     assert(m_nodeTypeDesc);
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
 
-    //rhs is allowed to be a quark due to inheritance.
     ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
-    if(!((rclasstype == UC_QUARK || rclasstype == UC_ELEMENT) && m_state.isScalar(ruti)))
+    if(!(rclasstype == UC_ELEMENT && m_state.isScalar(ruti)))
       {
 	std::ostringstream msg;
 	msg << "Invalid righthand type of conditional operator '" << getName();
 	msg << "'; must be an element name, not type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(ruti).c_str();
 	if(rclasstype == UC_UNSEEN || ruti == Nav)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //goagain set
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	else
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
@@ -62,7 +61,7 @@ namespace MFM {
 	msg << " is still incomplete while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	newType = Nav; //goagain set by nodetypedesc
+	newType = Nav;
       }
     setNodeType(newType);
     setStoreIntoAble(false);
@@ -81,8 +80,7 @@ namespace MFM {
 
   const std::string NodeConditionalIs::methodNameForCodeGen()
   {
-    assert(m_nodeLeft);
-    return  std::string(m_state.getIsMangledFunctionName(m_nodeLeft->getNodeType()));
+    return  std::string(m_state.getIsMangledFunctionName());
   }
 
   EvalStatus  NodeConditionalIs::eval()
@@ -112,8 +110,7 @@ namespace MFM {
     UTI ruti = getRightType();
 
     // inclusive result for eval purposes (atoms and element types are orthogonal)
-    bool isit = (luti == UAtom || UlamType::compare(luti,ruti,m_state) == UTIC_SAME || m_state.isClassASuperclassOf(luti, ruti));
-
+    bool isit = (luti == UAtom || UlamType::compare(luti,ruti,m_state) == UTIC_SAME);
     UlamValue rtnuv = UlamValue::makeImmediate(nuti, (u32) isit, m_state);
 
     //also copy result UV to stack, -1 relative to current frame pointer
@@ -142,47 +139,25 @@ namespace MFM {
     s32 tmpVarNum = luvpass.getPtrSlotIndex();
     s32 tmpVarIs = m_state.getNextTmpVarNumber();
 
-    m_state.indent(fp);
+     m_state.indent(fp);
     fp->write("const ");
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarIs).c_str());
     fp->write(" = ");
 
+    fp->write(rut->getUlamTypeMangledName().c_str());
     if(rclasstype == UC_ELEMENT)
-      {
-	fp->write(rut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>::THE_INSTANCE.");
-	fp->write(m_state.getIsMangledFunctionName(ruti));
-	fp->write("(");
-	fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, luvpass.getPtrStorage()).c_str());
-	fp->write(");\n");
-      }
+      fp->write("<EC>::THE_INSTANCE.");
     else if(rclasstype == UC_QUARK)
-      {
-	UlamType * lut = m_state.getUlamTypeByIndex(luti);
-	ULAMCLASSTYPE lclasstype = lut->getUlamClass();
-	if(lclasstype == UC_ELEMENT)
-	  {
-	    fp->write(lut->getUlamTypeMangledName().c_str());
-	    fp->write("<EC>::THE_INSTANCE.");
-	    fp->write(m_state.getIsMangledFunctionName(luti)); //UlamElement IsMethod
-	    fp->write("("); //one arg
-	  }
-	else
-	  {
-	    //atom then?
-	    fp->write(m_state.getIsMangledFunctionName(luti)); //UlamElement IsMethod
-	    fp->write("(uc, ");
-	    fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, luvpass.getPtrStorage()).c_str());
-	    fp->write(".GetType(), "); //from tmpvar T
-	  }
-	fp->write("\"");
-	fp->write(rut->getUlamTypeMangledName().c_str());
-	fp->write("\");\n");
-      }
+      fp->write("<EC,POS>::");
     else
       assert(0);
+
+    fp->write(methodNameForCodeGen().c_str()); //mangled
+    fp->write("(");
+    fp->write(m_state.getTmpVarAsString(luti, tmpVarNum).c_str());
+    fp->write(");\n");
 
     //update uvpass
     uvpass = UlamValue::makePtr(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0); //POS 0 rightjustified (atom-based).

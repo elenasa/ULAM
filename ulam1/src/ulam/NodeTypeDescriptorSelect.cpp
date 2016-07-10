@@ -109,8 +109,7 @@ namespace MFM {
 	    m_state.pushClassContext(seluti, csym->getClassBlockNode(), csym->getClassBlockNode(), false, NULL);
 	    // find our id in the "selected" class, must be a typedef at top level
 	    Symbol * asymptr = NULL;
-	    bool hazyKin = false;
-	    if(m_state.alreadyDefinedSymbol(m_typeTok.m_dataindex, asymptr, hazyKin) && !hazyKin)
+	    if(m_state.alreadyDefinedSymbol(m_typeTok.m_dataindex, asymptr))
 	      {
 		if(asymptr->isTypedef())
 		  {
@@ -158,11 +157,9 @@ namespace MFM {
 		msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
 		msg <<" while compiling: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-		if(!hazyKin)
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //new
-		else
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	      }
+
 	    m_state.popClassContext();
 	  }
 	else

@@ -1,0 +1,21 @@
+## -*- mode:ulam -*-
+#=t3611_test_compiler_decllist_withref
+#!
+Exit status: 3
+Ue_A { Bool(1) sp(false);  Int(32) a(3);  Int(32) test() {  Int(32) b;  Int(32)& d = a cast;  Int(32) c[2];  b 1 cast = b 2 cast += c 1 [] b = a c 1 [] = d cast return } }
+#>A.ulam
+  ulam 2;
+element A {
+  Bool sp;
+  Int a;
+  Int test() {
+    Int b, &d = a, c[2];
+    b = 1;
+    b+=2;
+    c[1] = b;
+    a = c[1];
+    return d; //3
+  }
+}
+
+#.

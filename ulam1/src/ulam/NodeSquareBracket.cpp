@@ -61,7 +61,7 @@ namespace MFM {
     if(leftType != Nav)
       {
 	UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-	isCustomArray = m_state.isClassACustomArray(leftType);
+        isCustomArray = lut->isCustomArray();
 
 	if(lut->isScalar())
 	  {
@@ -90,7 +90,8 @@ namespace MFM {
 		// all the overload matching in func call node's c&l, because
 		// we ([]) can't tell which side of = we are on, and whether we should
 		// be a aref or aset.
-		UTI caType = m_state.getAClassCustomArrayType(leftType);
+		UTI caType = ((UlamTypeClass *) lut)->getCustomArrayType();
+
 		if(!m_state.isComplete(caType))
 		  {
 		    std::ostringstream msg;
@@ -102,7 +103,7 @@ namespace MFM {
 		    if(lut->isComplete())
 		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    else
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		    newType = Nav; //error!
 		    errorCount++;
 		  }
@@ -116,7 +117,7 @@ namespace MFM {
 	    if(isCustomArray)
 	      {
 		bool hasHazyArgs = false;
-		u32 camatches = m_state.getAClassCustomArrayIndexType(leftType, m_nodeRight, idxuti, hasHazyArgs);
+		u32 camatches = ((UlamTypeClass *) lut)->getCustomArrayIndexTypeFor(m_nodeRight, idxuti, hasHazyArgs);
 		if(camatches == 0)
 		  {
 		    std::ostringstream msg;
@@ -144,7 +145,7 @@ namespace MFM {
 		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    idxuti = Nav; //error!
 		    errorCount++;
-		  }
+		      }
 	      }
 	    else
 	      {
@@ -171,7 +172,7 @@ namespace MFM {
 	  {
 	    if(m_nodeRight->safeToCastTo(idxuti) == CAST_CLEAR)
 	      {
-		if(!Node::makeCastingNode(m_nodeRight, idxuti, m_nodeRight))
+		if(!makeCastingNode(m_nodeRight, idxuti, m_nodeRight))
 		  {
 		    newType = Nav; //error!
 		    errorCount++;
@@ -189,15 +190,13 @@ namespace MFM {
       {
 	// sq bracket purpose in life is to account for array elements;
 	if(isCustomArray)
-	  newType = m_state.getAClassCustomArrayType(leftType);
+	  newType = ((UlamTypeClass *) m_state.getUlamTypeByIndex(leftType))->getCustomArrayType();
 	else
 	  newType = m_state.getUlamTypeAsScalar(leftType);
 
 	// multi-dimensional possible; MP not ok lhs.
 	setStoreIntoAble(m_nodeLeft->isStoreIntoAble());
       }
-    else
-      m_state.setGoAgain(); //covers non-error(debug) messages for incompletes
 
     setNodeType(newType);
     return newType;
@@ -236,7 +235,8 @@ namespace MFM {
     UTI ltype = pluv.getPtrTargetType();
 
     //could be a custom array which is a scalar quark. already checked.
-    bool isCustomArray = m_state.isClassACustomArray(ltype);
+    UlamType * lut = m_state.getUlamTypeByIndex(ltype);
+    bool isCustomArray = lut->isCustomArray();
 
     assert(!m_state.isScalar(ltype) || isCustomArray); //already checked, must be array
 
@@ -328,9 +328,10 @@ namespace MFM {
     s32 offsetInt = m_state.getUlamTypeByIndex(offset.getUlamValueTypeIdx())->getDataAsCs32(offsetdata);
 
     UTI auti = pluv.getPtrTargetType();
-    if(m_state.isClassACustomArray(auti))
+    UlamType * aut = m_state.getUlamTypeByIndex(auti);
+    if(aut->isCustomArray())
       {
-	UTI caType = m_state.getAClassCustomArrayType(auti);
+	UTI caType = ((UlamTypeClass *) aut)->getCustomArrayType();
 	UlamType * caut = m_state.getUlamTypeByIndex(caType);
 	u32 pos = pluv.getPtrPos();
 	if(caut->getBitSize() > MAXBITSPERINT)
@@ -529,36 +530,8 @@ namespace MFM {
     UlamValue luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
-    //special case index for non-custom array: numeric unary conversion to cu32
-    UTI luti = luvpass.getPtrTargetType();
-    if(!m_state.isClassACustomArray(luti))
-      {
-	UTI offuti = offset.getUlamValueTypeIdx();
-	if(offuti == Ptr)
-	  offuti = offset.getPtrTargetType();
-	UlamType * offut = m_state.getUlamTypeByIndex(offuti);
-	if(offut->getUlamTypeEnum() == Unary)
-	  {
-	    s32 tmpVarIdx = m_state.getNextTmpVarNumber();
-	    m_state.indent(fp);
-	    fp->write("const u32 ");
-	    fp->write(m_state.getTmpVarAsString(Unsigned, tmpVarIdx).c_str());;
-	    fp->write(" = ");
-	    if(offut->getTotalWordSize() <= MAXBITSPERINT)
-	      fp->write("_Unary32ToCu32(");
-	    else //must be long
-	      fp->write("_Unary64ToCu64(");
-
-	    fp->write(m_state.getTmpVarAsString(offuti, offset.getPtrSlotIndex(), TMPREGISTER).c_str());
-	    fp->write(", ");
-	    fp->write_decimal(offut->getBitSize());
-	    fp->write(");\n");
-	    // new uvpass here
-	    offset = UlamValue::makePtr(tmpVarIdx, TMPREGISTER, Unsigned, m_state.determinePackable(offuti), m_state, 0); //POS 0 rightjustified.
-	  } //end unary special case
-      } //for non custom arrays only!
-
     uvpass = offset;
+
     Node::genCodeReadIntoATmpVar(fp, uvpass); //splits on array item
   } //genCode
 

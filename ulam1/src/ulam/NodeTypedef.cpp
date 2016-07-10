@@ -49,10 +49,6 @@ namespace MFM {
 
   void NodeTypedef::printPostfix(File * fp)
   {
-    assert(m_typedefSymbol);
-    if(m_typedefSymbol->getId() == m_state.m_pool.getIndexForDataString("Self")) return;
-    if(m_typedefSymbol->getId() == m_state.m_pool.getIndexForDataString("Super")) return;
-
     UTI tuti = m_typedefSymbol->getUlamTypeIdx();
     UlamKeyTypeSignature tkey = m_state.getUlamKeyTypeSignatureByIndex(tuti);
     UlamType * tut = m_state.getUlamTypeByIndex(tuti);
@@ -130,7 +126,7 @@ namespace MFM {
 	UTI cuti = m_state.getCompileThisIdx();
 	if(m_nodeTypeDesc)
 	  {
-	    UTI duti = m_nodeTypeDesc->checkAndLabelType(); //sets goagain if nav
+	    UTI duti = m_nodeTypeDesc->checkAndLabelType();
 	    if(duti != Nav && duti != it)
 	      {
 		std::ostringstream msg;
@@ -158,7 +154,6 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    //it = Nav; unlike vardecl
-	    m_state.setGoAgain(); //since not error
 	  }
       } // got typedef symbol
 
@@ -173,8 +168,7 @@ namespace MFM {
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
     Symbol * asymptr = NULL;
-    bool hazyKin = false;
-    if(m_state.alreadyDefinedSymbol(m_tdid, asymptr, hazyKin) && !hazyKin)
+    if(m_state.alreadyDefinedSymbol(m_tdid, asymptr))
       {
 	if(asymptr->isTypedef())
 	  {
@@ -186,6 +180,7 @@ namespace MFM {
 	    msg << "(1) <" << m_state.m_pool.getDataAsString(m_tdid).c_str();
 	    msg << "> is not a typedef, and cannot be used as one";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    //errCnt++;
 	  }
       }
     else
@@ -193,10 +188,8 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "(2) Typedef <" << m_state.m_pool.getDataAsString(m_tdid).c_str();
 	msg << "> is not defined, and cannot be used";
-	if(!hazyKin)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	//errCnt++;
       }
     m_state.popClassContext(); //restore
   } //toinstantiate
@@ -225,11 +218,6 @@ namespace MFM {
     if(m_nodeTypeDesc)
       m_nodeTypeDesc->countNavNodes(cnt);
   } //countNavNodes
-
-  bool NodeTypedef::buildDefaultQuarkValue(u32& dqref)
-  {
-    return true; //pass on
-  }
 
   EvalStatus NodeTypedef::eval()
   {
