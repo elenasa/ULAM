@@ -55,11 +55,8 @@ namespace MFM {
 
   UTI NodeBinaryOpArith::calcNodeType(UTI lt, UTI rt)
   {
-    if(!m_state.okUTItoContinue(lt, rt))
-      return Nav;
-
     if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
-      return Hzy;
+      return Nav;
 
     //no atoms, elements nor void as either operand
     if(!NodeBinaryOp::checkForPrimitiveTypes(lt, rt))
@@ -91,15 +88,16 @@ namespace MFM {
 	if(ltypEnum == Unsigned && rtypEnum == Unsigned)
 	  {
 	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Unsigned"), newbs);
-	    newType = m_state.makeUlamType(newkey, Unsigned, UC_NOTACLASS);
+	    newType = m_state.makeUlamType(newkey, Unsigned);
 	  }
 	else
 	  {
 	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Int"), newbs);
-	    newType = m_state.makeUlamType(newkey, Int, UC_NOTACLASS);
+	    newType = m_state.makeUlamType(newkey, Int);
 	  }
 
-	checkSafeToCastTo(getNodeType(), newType); //Nav, Hzy, or nochange; outputs error msg
+	if(!NodeBinaryOp::checkSafeToCastTo(newType))
+	  newType = Nav; //outputs error msg
       } //both scalars
     return newType;
   } //calcNodeType

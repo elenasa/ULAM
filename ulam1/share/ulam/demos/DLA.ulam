@@ -1,0 +1,17 @@
+/**
+   Diffusion Limited Aggregation demo
+   \symbol DL
+   \color #838
+   \symmetries all
+*/
+element DLA {
+  typedef DLA Self;
+  EventWindow ew;
+  Void behave() {
+    if (ew[1] is Res) {
+      Self kid;
+      ew[1] = kid;  // Could be ew[1] = self; since DLA has no state.
+      return;       // But this way we're sure to get a fresh atom.
+    }
+  }
+}

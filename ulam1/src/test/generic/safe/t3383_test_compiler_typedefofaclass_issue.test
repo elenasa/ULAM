@@ -1,51 +1,45 @@
 ## -*- mode:ulam -*-
 #=t3383_test_compiler_typedefofaclass_issue
 #!
+##
 ##      //test bug fix: typedef of a class' typedef
 ##      //Ish2.ulam:6:16: ERROR: Invalid Class Type: <Tail>; KEYWORD should be: 'element', 'quark', or 'union'.
 ##      //							    ERROR: No parse tree for This Class: Ish2.
 Exit status: 3
-Ue_R { Ish2 ish( Colony(3u) colony( constant Unsigned(32) widthc = 3u;  typedef Telomeree(3u) Telo;  typedef Unsigned(3) TeloTail;  Telomeree(3u) t( constant Unsigned(32) width = 3u;  typedef Unsigned(3) Tail;  Unsigned(3) age(0u); ); ); );  Int(32) test() {  3u cast return } }
-Uq_Telomeree(Unsigned(32) width) { typedef Unsigned(UNKNOWN) Tail;  Unsigned(UNKNOWN) age(notready);  <NOMAIN> }
-Uq_Colony(Unsigned(32) widthc) { typedef Telomeree(width) Telo;  typedef Unsigned(UNKNOWN) TeloTail;  Telomeree(width) t(notready);  <NOMAIN> }
-Uq_Ish2 { Colony(3u) colony( typedef Telomeree(3u) Telo;  typedef Unsigned(3) TeloTail;  Telomeree(3u) t( typedef Unsigned(3) Tail;  Unsigned(3) age(0); ); );  <NOMAIN> }
+Ue_R { Ish2 ish( Colony(3u) colony( constant Unsigned(32) widthc = 3;  typedef Telomeree(3u) Telo;  typedef Unsigned(3) TeloTail;  Telomeree(3u) t( constant Unsigned(32) width = 3;  typedef Unsigned(3) Tail;  Unsigned(3) age(0); ); ); );  Int(32) test() {  3u cast return } }
+Uq_Telomeree { constant Unsigned(32) width = NONREADYCONST;  typedef Unsigned(UNKNOWN) Tail;  Unsigned(UNKNOWN) age(0);  <NOMAIN> }
+Uq_Colony { constant Unsigned(32) widthc = NONREADYCONST;  typedef Telomeree(width) Telo;  typedef Unsigned(UNKNOWN) TeloTail;  Telomeree(width) t( constant Unsigned(32) width = NONREADYCONST; );  <NOMAIN> }
+Uq_Ish2 { Colony(3u) colony( constant Unsigned(32) widthc = 3;  typedef Telomeree(3u) Telo;  typedef Unsigned(3) TeloTail;  Telomeree(3u) t( constant Unsigned(32) width = 3;  typedef Unsigned(3) Tail;  Unsigned(3) age(0); ); );  <NOMAIN> }
 ##
 ##      // likes Telomeree first!
-##    //(see t3764 without uses)
-##
 #>R.ulam
-  ulam 1;
 use Telomeree;
-use Colony;
-use Ish2;
-element R{
-  Ish2 ish;
-  Int test() {
-    return ish.sizeof;
-  }
+ use Colony;
+ use Ish2;
+  element R{
+Ish2 ish;
+ Int test() { return ish.sizeof;
+}
 }
 ##     // this order fails:  ERROR: Number of Arguments (2) in class instance: Telomeree, does not match the required number of parameters (1) to fix.
 ##      //bool rtn3 = fms->add("R.ulam", " use Colony;\n  use Telomeree;\n use Ish2;\n element R{\nIsh2 ish;\n Int test() { return ish.sizeof;\n}\n}");
 ##
 
 #:Colony.ulam
-  ulam 1;
 quark Colony(Unsigned widthc){
-  typedef Telomeree(widthc) Telo;
-  typedef Telo.Tail TeloTail;
+ typedef Telomeree(widthc) Telo;
+ typedef Telo.Tail TeloTail;
   Telo t;
-}
+  }
 
 #:Ish2.ulam
-  ulam 1;
 quark Ish2{
-  Colony(3) colony;
-}
+Colony(3) colony;
+  }
 
 #:Telomeree.ulam
-  ulam 1;
 quark Telomeree(Unsigned width){
-  typedef Unsigned(width) Tail;
-  Tail age;
-}
+ typedef Unsigned(width) Tail;
+ Tail age;
+  }
 #.

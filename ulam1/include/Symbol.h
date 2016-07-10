@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * Symbol.h -  Basic handling of Symbols for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file Symbol.h -  Basic handling of Symbols for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -39,8 +39,7 @@
 
 #include "itype.h"
 #include "Token.h"
-#include "Constants.h"
-#include "BitVector.h"
+#include "UlamType.h"
 
 namespace MFM{
 
@@ -58,8 +57,6 @@ namespace MFM{
     virtual Symbol * cloneKeepsType();
 
     void resetIdToken(Token newtok);
-    void setId(u32 newid);
-
     u32 getId();
     Locator getLoc();
     Token * getTokPtr(); //for err msgs
@@ -73,30 +70,23 @@ namespace MFM{
     virtual bool isTypedef();
     virtual bool isConstant();
     virtual bool isClass();
-    virtual bool isTmpRefSymbol();
 
-    void setDataMemberClass(UTI cuti);
-    UTI getDataMemberClass();
+    void setDataMember();
     bool isDataMember();
 
     virtual bool isModelParameter();
 
-    void setAutoLocalType(Token cTok);
-    void setAutoLocalType(ALT alt);
-    ALT getAutoLocalType();
+    void setAutoLocal();
     bool isAutoLocal();
 
     void setIsSelf();
     bool isSelf();
 
-    void setIsSuper();
-    bool isSuper();
-
     NNO getBlockNoOfST();
     void setBlockNoOfST(NNO n);
 
 
-    virtual const std::string getMangledName();
+    const std::string getMangledName();
 
     static const std::string getParameterTypePrefix(bool isaclass);
 
@@ -106,24 +96,17 @@ namespace MFM{
 
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
-    virtual void setStructuredComment();
-
-    virtual bool getStructuredComment(Token& scTok);
-
   protected:
     CompilerState & m_state;
-
-    Token m_structuredCommentToken;
-    bool m_gotStructuredCommentToken;
+    void setId(u32 newid);
 
   private:
     Token m_idtok; // id to its name (string) in lexer; also in ST
     UTI m_uti; // may seem redundant, but not; from NodeVarDecl, before m_value known.
                // base type, not array type, used here (e.g. NodeBinaryOp::calcNodeType)
-    UTI m_dataMemberClass;
-    ALT m_autoLocalType;
-    bool m_isSelf; // hidden arg symbol
-    bool m_isSuper; // to modify effective self
+    bool m_dataMember;
+    bool m_autoLocal;
+    bool m_isSelf;       // hidden arg symbol
     NNO m_stBlockNo;
   };
 

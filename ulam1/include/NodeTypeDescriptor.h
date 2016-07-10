@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeTypeDescriptor.h - Basic Node Type descriptor for ULAM
  *
- * Copyright (C) 2015-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2016 Ackleyshack LLC.
+ * Copyright (C) 2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeTypeDescriptor.h - Basic Node Type descriptor for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2016 All rights reserved.
+  \date (C) 2015 All rights reserved.
   \gpl
 */
 
@@ -47,8 +47,6 @@ namespace MFM{
   public:
 
     NodeTypeDescriptor(Token typetoken, UTI auti, CompilerState & state);
-
-    NodeTypeDescriptor(Token typetoken, UTI auti, CompilerState & state, ALT refarg, UTI referencedUTIarg);
 
     NodeTypeDescriptor(const NodeTypeDescriptor& ref);
 
@@ -72,17 +70,9 @@ namespace MFM{
 
     UTI givenUTI();
 
-    UTI getReferencedUTI();
-
-    ALT getReferenceType();
-
-    void setReferenceType(ALT refarg, UTI referencedUTI);
-
-    virtual void setReferenceType(ALT refarg, UTI referencedUTI, UTI refUTI);
-
     virtual UTI checkAndLabelType();
 
-    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
+    virtual void countNavNodes(u32& cnt);
 
     virtual bool assignClassArgValueInStubCopy();
 
@@ -95,14 +85,9 @@ namespace MFM{
 
   private:
     NodeTypeBitsize * m_unknownBitsizeSubtree;
-    ALT m_refType;
-    UTI m_referencedUTI;
 
     virtual bool resolveType(UTI& rtnuti);
-    bool resolveReferenceType(UTI& rtnuti);
-    bool resolveClassType(UTI& rtnuti);
-    bool resolvePrimitiveOrArrayType(UTI& rtnuti);
-    bool resolveTypeBitsize(UTI& rtnuti);
+    bool resolveTypeBitsize(UTI auti);
   };
 
 } //MFM

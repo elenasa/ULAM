@@ -30,7 +30,7 @@ namespace MFM {
 	nodeType = Nav;
       }
 
-    if((nodeType != Nav) && !nut->isScalar())
+    if(nodeType != Nav && !nut->isScalar())
       {
 	std::ostringstream msg;
 	msg << "Non-scalars require a loop for operator" << getName();
@@ -82,13 +82,19 @@ namespace MFM {
     return false;
   } //end dobinaryop
 
-  void NodeBinaryOpEqualArith::genCode(File * fp, UVPass& uvpass)
+  void NodeBinaryOpEqualArith::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
     assert(m_state.m_currentObjSymbolsForCodeGen.empty());
 
+#ifdef TMPVARBRACES
+    m_state.indent(fp);
+    fp->write("{\n");
+    m_state.m_currentIndentLevel++;
+#endif
+
     // generate rhs first; may update current object globals (e.g. function call)
-    UVPass ruvpass;
+    UlamValue ruvpass;
     m_nodeRight->genCode(fp, ruvpass);
 
     // restore current object globals
@@ -97,7 +103,7 @@ namespace MFM {
     // lhs should be the new current object: node member select updates them,
     // but a plain NodeIdent does not!!!  because genCodeToStoreInto has been repurposed
     // to mean "don't read into a TmpVar" (e.g. by NodeCast).
-    UVPass luvpass;
+    UlamValue luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);      //may update m_currentObjSymbol
 
     //wiped out by left read; need to write back into left
@@ -110,28 +116,40 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
 
-    m_state.indentUlamCode(fp);
+    m_state.indent(fp);
     fp->write("const ");
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
 
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
+    fp->write(m_state.getTmpVarAsString(nuti,tmpVarNum).c_str());
     fp->write(" = ");
 
     fp->write(methodNameForCodeGen().c_str());
     fp->write("(");
-    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+
+    UTI uti = uvpass.getUlamValueTypeIdx();
+    assert(uti == Ptr);
+    fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), uvpass.getPtrSlotIndex()).c_str());
     fp->write(", ");
-    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+
+    UTI ruti = ruvpass.getUlamValueTypeIdx();
+    assert(ruti == Ptr);
+    fp->write(m_state.getTmpVarAsString(ruvpass.getPtrTargetType(), ruvpass.getPtrSlotIndex()).c_str());
+
     fp->write(", ");
     fp->write_decimal(nut->getBitSize());
-    fp->write(");"); GCNL;
+    fp->write(");\n");
 
-    uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, uvpass.getPassPos(), uvpass.getPassNameId()); //P
+    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, uvpass.getPtrPos(), uvpass.getPtrNameId()); //P
 
     // current object globals should pertain to lhs for the write
     genCodeWriteFromATmpVar(fp, luvpass, uvpass); //uses rhs' tmpvar; orig lhs
 
+#ifdef TMPVARBRACES
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n"); //close for tmpVar
+#endif
     assert(m_state.m_currentObjSymbolsForCodeGen.empty());
   } //genCode
 

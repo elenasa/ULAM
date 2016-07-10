@@ -1,0 +1,16 @@
+ulam 2;
+
+quark C2D {
+  typedef Int(16) Coord;
+
+load C2Dincomplete;
+
+}
+
+quark C2DT(Unsigned coordBits) {
+  typedef Int(coordBits) Coord;
+
+load C2Dincomplete;
+
+}
+

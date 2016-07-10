@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeTypeDescriptorSelect.h - Node Descriptor for Type Selection for ULAM
  *
- * Copyright (C) 2015-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2016 Ackleyshack LLC.
+ * Copyright (C) 2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeTypeDescriptorSelect.h - Node Descriptor for Type Selection for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2016 All rights reserved.
+  \date (C) 2015 All rights reserved.
   \gpl
 */
 
@@ -45,7 +45,7 @@ namespace MFM{
   {
   public:
 
-    NodeTypeDescriptorSelect(Token tokarg, UTI auti, NodeTypeDescriptor * node, CompilerState & state);
+    NodeTypeDescriptorSelect(Token typetoken, UTI auti, NodeTypeDescriptor * node, CompilerState & state);
 
     NodeTypeDescriptorSelect(const NodeTypeDescriptorSelect& ref);
 
@@ -65,7 +65,7 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
+    virtual void countNavNodes(u32& cnt);
 
   private:
     NodeTypeDescriptor * m_nodeSelect; //selected from, or null

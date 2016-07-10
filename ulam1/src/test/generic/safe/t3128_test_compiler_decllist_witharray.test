@@ -4,17 +4,18 @@
 Exit status: 3
 Ue_A { Int(32) a(3);  Int(32) test() {  Int(32) b;  Int(32) c[2];  b 1 cast = b 2 cast += c 1 [] b = a c 1 [] = b return } }
 #>A.ulam
-  ulam 1;
 element A {
-  Int a;
-  Int test() {
-    Int b, c[2];
-    b = 1;
-    b+=2;
-    c[1] = b;
-    a = c[1];
-    return b;
-  }
+ Int a;
+ use test;
+  b = 1;
+ b+=2;
+ c[1] = b;
+ a = c[1];
+ return b;
 }
+ }
+#:test.ulam
+Int test() {
+ Int b, c[2];
 
 #.

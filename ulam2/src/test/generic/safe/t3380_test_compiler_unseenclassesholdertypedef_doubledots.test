@@ -1,0 +1,36 @@
+## -*- mode:ulam -*-
+#=t3380_test_compiler_unseenclassesholdertypedef_doubledots
+#!
+Exit status: 0
+Ue_F { Int(32) test() {  0 cast return } }
+Ue_A { typedef Int(32) ZZ;  <NOMAIN> }
+Uq_X { typedef B Y;  <NOMAIN> }
+Ue_B { typedef Int(32) Z;  <NOMAIN> }
+##
+##      // try B before X too..t3381
+#>F.ulam
+  ulam 1;
+use A;
+use X;
+use B;
+element F{ Int test() {
+    return 0;
+  }
+}
+
+#:A.ulam
+  ulam 1;
+element A{
+  typedef X.Y.Z ZZ;
+}
+#:X.ulam
+  ulam 1;
+quark X{
+  typedef B Y;
+}
+#:B.ulam
+  ulam 1;
+element B{
+  typedef Int Z;
+}
+#.

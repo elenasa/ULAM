@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeStatements.h - Node linking Statements for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeStatements.h - Node linking Statements for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -56,25 +56,13 @@ namespace MFM{
 
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
-    virtual void checkAbstractInstanceErrors();
-
     virtual void print(File * fp);
 
     virtual void printPostfix(File * fp);
 
-    virtual bool isAConstant();
-
-    virtual bool isFunctionCall();
-
-    virtual bool isExplicitReferenceCast(); //only NodeCast may return true
-
     virtual UTI checkAndLabelType();
 
-    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
-
-    virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
-
-    virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
+    virtual void countNavNodes(u32& cnt);
 
     virtual EvalStatus eval();
 
@@ -86,15 +74,11 @@ namespace MFM{
 
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 
-    virtual void printUnresolvedVariableDataMembers();
-
-    virtual void printUnresolvedLocalVariables(u32 fid);
-
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
-    virtual void genCode(File * fp, UVPass& uvpass);
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
-    virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
+    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
     virtual void genCodeExtern(File * fp, bool declOnly);
 

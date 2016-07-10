@@ -4,9 +4,12 @@
 
 namespace MFM {
 
-  NodeModelParameter::NodeModelParameter(Token tok, SymbolModelParameterValue * symptr, CompilerState & state) : NodeConstant(tok, symptr, state) { }
+  NodeModelParameter::NodeModelParameter(Token tok, SymbolParameterValue * symptr, CompilerState & state) : NodeConstant(tok, symptr, state) { }
 
   NodeModelParameter::NodeModelParameter(const NodeModelParameter& ref) : NodeConstant(ref) {}
+
+  //special constructor that replaces a var with a constant (see NodeIdent)
+  NodeModelParameter::NodeModelParameter(const NodeIdent& iref) :  NodeConstant(iref) {}
 
   NodeModelParameter::~NodeModelParameter(){}
 
@@ -20,7 +23,7 @@ namespace MFM {
     fp->write(" ");
     fp->write(getName());
     fp->write("(");
-    fp->write(NodeConstant::getName());
+    fp->write(NodeTerminal::getName());
     fp->write(")");
   }
 
@@ -42,7 +45,7 @@ namespace MFM {
 
   FORECAST NodeModelParameter::safeToCastTo(UTI newType)
   {
-    if(NodeConstant::isReadyConstant())
+    if(isReadyConstant())
       {
 	FORECAST scr = m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
 	if(scr == CAST_CLEAR)
@@ -60,12 +63,11 @@ namespace MFM {
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
     Symbol * asymptr = NULL;
-    bool hazyKin = false;
-    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin) && !hazyKin)
+    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex,asymptr))
       {
 	if(asymptr->isModelParameter())
 	  {
-	    m_constSymbol = (SymbolModelParameterValue *) asymptr;
+	    m_constSymbol = (SymbolParameterValue *) asymptr;
 	  }
 	else
 	  {
@@ -80,12 +82,9 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "(2) Model Parameter <" << m_state.getTokenDataAsString(&m_token).c_str();
-	msg << "> is not defined, and cannot be used with class: o";
+	msg << "> is not defined, and cannot be used with class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	if(!hazyKin)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     m_state.popClassContext(); //restore
   } //checkForSymbol
@@ -98,25 +97,22 @@ namespace MFM {
     return true; //nothing to do
   } //assignClassArgValueInStubCopy
 
-  void NodeModelParameter::genCode(File * fp, UVPass& uvpass)
+  void NodeModelParameter::genCode(File * fp, UlamValue& uvpass)
   {
-    if(!NodeConstant::isReadyConstant())
-      m_ready = NodeConstant::updateConstant(); //sets ready here
-    assert(NodeConstant::isReadyConstant()); //must be
+    if(!isReadyConstant())
+      m_ready = updateConstant(); //sets ready here
 
-    //excerpt from makeUVPassForCodeGen in NodeIdent
+    //excerpt from makeUlamValuePtrForCodeGen in NodeIdent
     UTI nuti = getNodeType();
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-
     s32 tmpnum = m_state.getNextTmpVarNumber();
-    uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, 0, m_constSymbol->getId());
+    uvpass = UlamValue::makePtr(tmpnum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, m_constSymbol->getId());
 
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_constSymbol); //*******UPDATED GLOBAL;
 
     Node::genCodeReadIntoATmpVar(fp, uvpass);
   } //genCode
 
-  void NodeModelParameter::genCodeToStoreInto(File * fp, UVPass& uvpass)
+  void NodeModelParameter::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     assert(0);
   } //genCodeToStoreInto

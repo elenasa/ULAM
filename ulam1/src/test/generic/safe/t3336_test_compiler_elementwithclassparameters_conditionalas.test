@@ -1,15 +1,15 @@
 ## -*- mode:ulam -*-
 #=t3336_test_compiler_elementwithclassparameters_conditionalas
 #!
-##      /* gen code output (with assert):
+##      /* gen code output:
 ##	 Int Arg: 1
 ##      */
 ##      //Constants have explicit types
-##      //eval can't test 'as' since atoms have no types: e(7), not e(0).
+##      //eval can't test 'as' since atoms have no types.
 ##
-Exit status: -11
-Ue_Foo : Counter4(3) { :< constant Int(32) x = 3;  Int(3) d(0); > System s();  Int(32) e(0);  constant Int(32) v = 3;  Int(32) test() {  Atom(96) a;  Foo f;  a f cast = { a Counter4(3) as cond { Counter4(3)& a;  a ( )incr . e a ( )get . = s ( e )print . } if e 7 cast = else } s ( e 1 cast == )assert . e return } }
-Uq_Counter4(Int(32) x) { Int(UNKNOWN) d(notready);  <NOMAIN> }
+Exit status: 7
+Ue_Foo { System s();  Int(32) e(7);  constant Int(32) v = 3;  Counter4(3) cv( constant Int(32) x = 3;  Int(3) d(0); );  Int(32) test() {  Atom(96) a;  Foo f;  a f cast = a Counter4(3) as cond { Counter4(3) a;  a ( )incr . e a ( )get . = s ( e )print . } if e 7 cast = else e return } }
+Uq_Counter4 { constant Int(32) x = NONREADYCONST;  Int(UNKNOWN) d(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ##      //informed by t3249_test_compiler_elementandquark_conditionalas
@@ -17,43 +17,40 @@ Uq_System { <NOMAIN> }
 ##      // enhanced by a 'named constant', v;
 ##
 #>Foo.ulam
-  ulam 1;
 use Counter4;
 use System;
-//element Foo : Counter4(Foo.v) {
-//element Foo : Counter4(v) {
-element Foo : Counter4(2+1) {
-  System s;
-  Int e;
-  constant Int v = 3;
-  Int test(){
-    Atom a;
-    Foo f;
-    a = f;
-    if(a as Counter4(v))
-    {
-      a.incr();
-      e = a.get();
-      s.print(e);
-    }
-    else
-      e=7;
-    s.assert(e==1);
-    return e;
-  }
+ element Foo {
+System s;
+Int e;
+constant Int v = 3;
+Counter4(v) cv;
+ Int test(){
+Atom a;
+Foo f;
+ a = f;
+if(a as Counter4(v))
+ {
+ a.incr();
+e = a.get();
+ s.print(e);
 }
+else
+ e=7;
+ return e;
+}
+ }
 
 #:Counter4.ulam
-  ulam 1;
+ulam 1;
 quark Counter4(Int x) {
-  Int(x) d;
-  Void incr(){
-    d+=1;
-  }
-  Int get(){
-    return d;
-  }
+Int(x) d;
+Void incr(){
+d+=1;
 }
+Int get(){
+return d;
+}
+ }
 ##
 ##      // without named constant..returns 1 (yay!)
 ##      //bool rtn1 = fms->add("Foo.ulam","use Counter4;\nuse System;\n element Foo {\nSystem s;\nInt e;\nCounter4(3) cv;\n Int test(){\nAtom a;\nFoo f;\n a = f;\nif(a as Counter4(3))\n {\n a.incr();\ne = a.get();\n s.print(e);\n}\nelse\n e=7;\n return e;\n}\n }\n");

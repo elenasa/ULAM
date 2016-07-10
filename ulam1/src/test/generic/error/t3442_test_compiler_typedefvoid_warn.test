@@ -1,10 +1,11 @@
 ## -*- mode:ulam -*-
 #=t3442_test_compiler_typedefvoid_warn
 #!
-./A.ulam:2:13: Warning: Void bitsize expression disregarded; size is zero.
-Exit status: 0
-Ue_A { typedef Void V0;  Int(32) test() {  ( )func 0u cast return } }
 ##
+##./A.ulam:2:13: Warning: Void bitsize expression disregarded; size is zero.
+##
+Exit status: 0
+Ue_A { typedef Void(0) V0;  Int(32) test() {  ( )func 0u cast return } }
 #>A.ulam
 element A {
 typedef Void(300) V0;

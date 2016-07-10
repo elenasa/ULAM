@@ -53,23 +53,13 @@ namespace MFM {
     return false;
   } //findNodeNo
 
-  void NodeStatements::checkAbstractInstanceErrors()
-  {
-    if(m_node)
-      m_node->checkAbstractInstanceErrors();
-    if(m_nodeNext)
-      m_nodeNext->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
-
   void NodeStatements::print(File * fp)
   {
     printNodeLocation(fp); //has same location as it's node
     UTI myut = getNodeType();
     char id[255];
-    if((myut == Nav) || (myut == Nouti))
+    if(myut == Nav)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
-    if(myut == Hzy)
-      sprintf(id,"%s<HAZYTYPE>\n", prettyNodeName().c_str());
     else
       sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
@@ -110,36 +100,6 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  bool NodeStatements::isAConstant()
-  {
-    bool rtn = m_node->isAConstant();
-    if(rtn && m_nodeNext)
-      rtn &= m_nodeNext->isAConstant(); //side-effect
-    return rtn;
-  } //isAConstant
-
-  bool NodeStatements::isFunctionCall()
-  {
-
-    if(m_node->isFunctionCall())
-      return true;
-
-    if(m_nodeNext)
-      return m_nodeNext->isFunctionCall(); //side-effect
-
-    return false;
-  } //isFunctionCall
-
-  bool NodeStatements::isExplicitReferenceCast()
-  {
-    if(m_node->isExplicitReferenceCast())
-      return true;
-
-    if(m_nodeNext)
-      return m_nodeNext->isExplicitReferenceCast();
-    return false;
-  } //isExplicitReferenceCast
-
   UTI NodeStatements::checkAndLabelType()
   {
     assert(m_node);
@@ -155,32 +115,13 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-  void NodeStatements::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
+  void NodeStatements::countNavNodes(u32& cnt)
   {
     if(m_node)
-      m_node->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+      m_node->countNavNodes(cnt);
     if(m_nodeNext)
-      m_nodeNext->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+      m_nodeNext->countNavNodes(cnt);
   } //countNavNodes
-
-  bool NodeStatements::buildDefaultValue(u32 wlen, BV8K& dvref)
-  {
-    bool aok = true;
-    if(m_node)
-      aok |= m_node->buildDefaultValue(wlen, dvref);
-    if(m_nodeNext)
-      aok |= m_nodeNext->buildDefaultValue(wlen, dvref);
-    return aok;
-  } //buildDefaultValue
-
-  void NodeStatements::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
-  {
-    if(m_node)
-      m_node->genCodeElementTypeIntoDataMemberDefaultValue(fp, startpos);
-
-    if(m_nodeNext)
-      m_nodeNext->genCodeElementTypeIntoDataMemberDefaultValue(fp, startpos);
-  } //genCodeElementTypeIntoDataMemberDefaultValue
 
   EvalStatus NodeStatements::eval()
   {
@@ -223,23 +164,6 @@ namespace MFM {
       m_nodeNext->packBitsInOrderOfDeclaration(offset);
   } //packBitsInOrderOfDeclaration
 
-  void NodeStatements::printUnresolvedVariableDataMembers()
-  {
-    m_node->printUnresolvedVariableDataMembers(); //updates offset
-
-    if(m_nodeNext)
-      m_nodeNext->printUnresolvedVariableDataMembers();
-  } //printUnresolvedVariableDataMembers
-
-  void NodeStatements::printUnresolvedLocalVariables(u32 fid)
-  {
-    if(m_node)
-      m_node->printUnresolvedLocalVariables(fid); //updates offset
-
-    if(m_nodeNext)
-      m_nodeNext->printUnresolvedLocalVariables(fid);
-  } //printUnresolvedLocalVariables
-
   void NodeStatements::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
     u32 max2 = depth;
@@ -252,18 +176,31 @@ namespace MFM {
     depth = max1 > max2 ? max1 : max2; //no change to maxdepth here
   } //calcMaxDepth
 
-  void NodeStatements::genCode(File * fp, UVPass& uvpass)
+  void NodeStatements::genCode(File * fp, UlamValue& uvpass)
   {
     Locator nodeloc = getNodeLocation();
-    m_state.outputTextAsCommentWithLocationUpdate(fp, nodeloc);
+    m_state.outputTextAsComment(fp, nodeloc);
+    m_state.m_locOfNextLineText = nodeloc; //during gen code here
+
+#ifdef TMPVARBRACES
+    m_state.indent(fp);
+    fp->write("{\n"); //open for tmpvar arg's
+    m_state.m_currentIndentLevel++;
+#endif
 
     m_node->genCode(fp, uvpass);
+
+#ifdef TMPVARBRACES
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n"); //close for tmpVar
+#endif
 
     if(m_nodeNext)
       m_nodeNext->genCode(fp, uvpass);
   } //genCode
 
-  void NodeStatements::genCodeToStoreInto(File * fp, UVPass& uvpass)
+  void NodeStatements::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     m_node->genCodeToStoreInto(fp, uvpass);
 

@@ -153,7 +153,7 @@ namespace MFM {
       {
 	std::ostringstream errmsg;
 	errmsg << "Non-numeric ulam version: ";
-	errmsg << nTok.getTokenStringFromPool(&m_state).c_str();
+	errmsg << nTok.getTokenString();
 	u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
 	tok.init(TOK_ERROR_LOWLEVEL, ulamTok.m_locator, idx);
 	rtnBool = false;
@@ -164,7 +164,7 @@ namespace MFM {
       {
 	std::ostringstream errmsg;
 	errmsg << "ulam version ending with <";
-	errmsg << nTok.getTokenStringFromPool(&m_state).c_str() << ">";
+	errmsg << nTok.getTokenString() << ">";
 	u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
 	tok.init(TOK_ERROR_LOWLEVEL, ulamTok.m_locator, idx);
 	rtnBool = false;

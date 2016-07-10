@@ -6,11 +6,11 @@
 
 namespace MFM {
 
-  Symbol::Symbol(Token id, UTI utype, CompilerState & state) : m_state(state), m_gotStructuredCommentToken(false), m_idtok(id), m_uti(utype), m_dataMemberClass(Nouti), m_autoLocalType(ALT_NOT), m_isSelf(false), m_isSuper(false), m_stBlockNo(state.getCurrentBlockNo()){}
+  Symbol::Symbol(Token id, UTI utype, CompilerState & state) : m_state(state), m_idtok(id), m_uti(utype), m_dataMember(false), m_autoLocal(false), m_isSelf(false), m_stBlockNo(state.getCurrentBlockNo()) {}
 
-  Symbol::Symbol(const Symbol & sref) : m_state(sref.m_state), m_structuredCommentToken(sref.m_structuredCommentToken), m_gotStructuredCommentToken(sref.m_gotStructuredCommentToken), m_idtok(sref.m_idtok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_uti)), m_dataMemberClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_dataMemberClass)), m_autoLocalType(sref.m_autoLocalType), m_isSelf(sref.m_isSelf), m_isSuper(sref.m_isSuper), m_stBlockNo(sref.m_stBlockNo) {}
+  Symbol::Symbol(const Symbol & sref) : m_state(sref.m_state), m_idtok(sref.m_idtok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_uti)), m_dataMember(sref.m_dataMember), m_autoLocal(sref.m_autoLocal), m_isSelf(sref.m_isSelf), m_stBlockNo(sref.m_stBlockNo) {}
 
-  Symbol::Symbol(const Symbol& sref, bool keepType) : m_state(sref.m_state), m_structuredCommentToken(sref.m_structuredCommentToken), m_gotStructuredCommentToken(sref.m_gotStructuredCommentToken), m_idtok(sref.m_idtok), m_uti(sref.m_uti), m_dataMemberClass(sref.m_dataMemberClass), m_autoLocalType(sref.m_autoLocalType), m_isSelf(sref.m_isSelf), m_isSuper(sref.m_isSuper), m_stBlockNo(sref.m_stBlockNo) {}
+  Symbol::Symbol(const Symbol& sref, bool keepType) : m_state(sref.m_state), m_idtok(sref.m_idtok), m_uti(sref.m_uti), m_dataMember(sref.m_dataMember), m_autoLocal(sref.m_autoLocal), m_isSelf(sref.m_isSelf), m_stBlockNo(sref.m_stBlockNo) {}
 
   Symbol::~Symbol(){}
 
@@ -47,9 +47,7 @@ namespace MFM {
 
   void Symbol::resetUlamType(UTI newuti) //e.g. mappedUTI, fix _N class args
   {
-    //assert((m_state.getReferenceType(m_uti) == m_state.getReferenceType(newuti)) || m_state.isHolder(m_uti)); Fri Jun 24 15:41:16 2016 (e.g. t3816)
     m_uti = newuti;
-    setAutoLocalType(m_state.getReferenceType(newuti));
   }
 
   UTI Symbol::getUlamTypeIdx()
@@ -83,24 +81,14 @@ namespace MFM {
     return false;
   }
 
-  bool Symbol::isTmpRefSymbol()
+  void Symbol::setDataMember()
   {
-    return false;
-  }
-
-  void Symbol::setDataMemberClass(UTI cuti)
-  {
-    m_dataMemberClass = cuti;
-  }
-
-  UTI Symbol::getDataMemberClass()
-  {
-    return m_dataMemberClass;
+    m_dataMember = true;
   }
 
   bool Symbol::isDataMember()
   {
-    return (m_dataMemberClass != Nouti);
+    return m_dataMember;
   }
 
   bool Symbol::isModelParameter()
@@ -108,30 +96,14 @@ namespace MFM {
     return false;
   }
 
-  void Symbol::setAutoLocalType(Token cTok)
+  void Symbol::setAutoLocal()
   {
-    if(cTok.m_type == TOK_KW_AS)
-      setAutoLocalType(ALT_AS);
-    else if(cTok.m_type == TOK_AMP)
-      setAutoLocalType(ALT_REF);
-    else
-      setAutoLocalType(ALT_NOT);
-  } //setAutoLocalType (helper)
-
-  void Symbol::setAutoLocalType(ALT alt)
-  {
-    assert(m_state.getUlamTypeByIndex(getUlamTypeIdx())->getReferenceType() == alt);
-    m_autoLocalType = alt;
-  }
-
-  ALT Symbol::getAutoLocalType()
-  {
-    return m_autoLocalType;
+      m_autoLocal = true;
   }
 
   bool Symbol::isAutoLocal()
   {
-    return (m_autoLocalType != ALT_NOT);
+    return m_autoLocal;
   }
 
   void Symbol::setIsSelf()
@@ -142,16 +114,6 @@ namespace MFM {
   bool Symbol::isSelf()
   {
     return m_isSelf;
-  }
-
-  void Symbol::setIsSuper()
-  {
-    m_isSuper = true;
-  }
-
-  bool Symbol::isSuper()
-  {
-    return m_isSuper;
   }
 
   NNO Symbol::getBlockNoOfST()
@@ -166,22 +128,12 @@ namespace MFM {
 
   const std::string Symbol::getMangledName()
   {
-    std::ostringstream mangled;
-    if(isSelf())
-      {
-	mangled << m_state.getHiddenArgName(); // ur
-      }
-    else if(isSuper())
-      {
-	mangled << m_state.getHiddenArgName(); // also ur
-      }
-    else
-      {
-	std::string nstr = m_state.getDataAsStringMangled(getId());
-	mangled << getMangledPrefix() << nstr.c_str();
-      }
-    return mangled.str();
-  } //getMangledName
+       std::ostringstream mangled;
+       std::string nstr = m_state.getDataAsStringMangled(getId());
+
+       mangled << getMangledPrefix() << nstr.c_str();
+       return mangled.str();
+  }
 
   //atomic parameter type, not model parameter.
   const std::string Symbol::getMangledNameForParameterType()
@@ -189,18 +141,22 @@ namespace MFM {
     assert(!isModelParameter());
 
     UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
+    ULAMCLASSTYPE classtype = sut->getUlamClass();
+
     //another way, like this?
     if(isModelParameter())
       {
 	std::ostringstream epmangled;
 	epmangled << sut->getImmediateModelParameterStorageTypeAsString();
-	assert(sut->getUlamClassType() == UC_NOTACLASS);
+	//if(classtype == UC_QUARK)
+	//  epmangled << "::Us";
+	assert(classtype == UC_NOTACLASS);
 	return epmangled.str();
       }
 
     // to distinguish btn an atomic parameter typedef and quark typedef;
     // use atomic parameter with array of classes
-    bool isaclass = ((sut->getUlamTypeEnum() == Class) && sut->isScalar());
+    bool isaclass = (( classtype == UC_QUARK || classtype == UC_ELEMENT || classtype == UC_UNSEEN) && sut->isScalar());
 
     std::ostringstream pmangled;
     pmangled << Symbol::getParameterTypePrefix(isaclass).c_str() << getMangledName();
@@ -216,21 +172,5 @@ namespace MFM {
     {
       assert(0);
     }
-
-  void Symbol::setStructuredComment()
-  {
-    assert(0);
-  } //setStructuredComment
-
-  bool Symbol::getStructuredComment(Token& scTok)
-  {
-    if(m_gotStructuredCommentToken)
-      {
-	assert(m_structuredCommentToken.m_type == TOK_STRUCTURED_COMMENT);
-	scTok = m_structuredCommentToken;
-	return true;
-      }
-    return false;
-  } //getStructuredComment
 
 } //end MFM

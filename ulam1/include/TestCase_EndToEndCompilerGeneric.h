@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * TestCase_EndToEndCompilerGeneric.h -  Load ULAM compiler test details from a file
  *
- * Copyright (C) 2015-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2016 Ackleyshack LLC.
+ * Copyright (C) 2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file TestCase_EndToEndCompilerGeneric.h -  Load ULAM compiler test details from a file
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2016 All rights reserved.
+  \date (C) 2015 All rights reserved.
   \gpl
 */
 
@@ -54,15 +54,13 @@ namespace MFM{
     /** setup test; return the string to start with */
     virtual std::string PresetTest(FileManagerString * fms) ;
 
-    virtual bool GetTestResults(FileManager * fm, std::string startstr, File * output);
-
   protected:
 
     virtual std::string GetAnswerKey() ;
 
   private:
 
-    enum { START, IN_FILE, ANSWER } m_state;
+    enum { START, FILE, ANSWER } m_state;
 
     std::string m_currentLine;
     s32 getInput(u32 index) {
@@ -105,8 +103,6 @@ namespace MFM{
     void readLine(File & input) ;
 
     void die(std::string msg) ;
-    void addUrSelf(FileManagerString & fms) ;
-    void addEmpty(FileManagerString & fms) ;
 
   };
 

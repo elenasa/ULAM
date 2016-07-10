@@ -47,21 +47,13 @@ namespace MFM {
     return false;
   } //findNodeNo
 
-  void NodeSimpleStatement::checkAbstractInstanceErrors()
-  {
-    if(m_node)
-      m_node->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
-
   void NodeSimpleStatement::print(File * fp)
   {
     printNodeLocation(fp);  //has same location as it's node
     UTI myut = getNodeType();
     char id[255];
-    if((myut == Nav) || (myut == Nouti))
+    if(myut == Nav)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
-    else if(myut == Hzy)
-      sprintf(id,"%s<HAZYTYPE>\n", prettyNodeName().c_str());
     else
       sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
@@ -106,9 +98,9 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-  void NodeSimpleStatement::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
+  void NodeSimpleStatement::countNavNodes(u32& cnt)
   {
-    m_node->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+    m_node->countNavNodes(cnt);
   }
 
   EvalStatus NodeSimpleStatement::eval()
@@ -122,7 +114,7 @@ namespace MFM {
     return evs;
   } //eval
 
-  void NodeSimpleStatement::genCode(File * fp, UVPass& uvpass)
+  void NodeSimpleStatement::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_node);
     m_node->genCode(fp, uvpass);

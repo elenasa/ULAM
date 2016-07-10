@@ -20,10 +20,8 @@ namespace MFM {
     printNodeLocation(fp);  //has same location as it's node
     UTI myut = getNodeType();
     char id[255];
-    if((myut == Nav) || (myut == Nouti))
+    if(myut == Nav)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
-    else if(myut == Hzy)
-      sprintf(id,"%s<HAZYTYPE>\n", prettyNodeName().c_str());
     else
       sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
@@ -57,10 +55,10 @@ namespace MFM {
     return BREAK;
   }
 
-  void NodeBreakStatement::genCode(File * fp, UVPass& uvpass)
+  void NodeBreakStatement::genCode(File * fp, UlamValue& uvpass)
   {
-    m_state.indentUlamCode(fp);
-    fp->write("break;"); GCNL;
+    m_state.indent(fp);
+    fp->write("break;\n");
   } //genCode
 
 } //end MFM

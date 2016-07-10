@@ -1,0 +1,50 @@
+## -*- mode:ulam -*-
+#=t3508_test_compiler_quarkcastcaarray_issue_error
+##
+## caught during c&l instead
+##  //./QPort4.ulam:18:14: ERROR: Cannot explicitly cast custom array type Atom(96) to type: QPort4; Consider using a temporary variable.
+##
+#!
+./QPort4.ulam:18:14: ERROR: Cannot explicitly cast Atom(96) to type: QPort4.
+./QPort4.ulam:18:4: ERROR: Initial value expression for: s, initialization is invalid.
+./EventWindow.ulam:2:7: ERROR: 2 Nodes with erroneous types detected after type labeling class: EventWindow.
+Unrecoverable Program Type Label FAILURE.
+#>D.ulam
+//use QPort4;
+element D {
+  Int test() {
+    QPort4 s;
+    s.update();
+    return 0;
+  }
+}
+
+#:QPort4.ulam
+//  use EventWindow;
+quark QPort4
+{
+  //  typedef QPort4 Self;
+  typedef EventWindow.SiteNum SiteNum;
+  EventWindow ew;
+  Void update()
+  {
+    SiteNum selfIdx = 1;
+   // outputs: BAD_CAST FAILURE
+   //Atom aa = ew[selfIdx]; //eadded
+   //Self s = (Self) aa;
+
+   // outputs compiler error (see above); then C++ error follows (why did we go on?)
+   //include/Uq_10106QPort410.tcc:36:82: error: ‘Um_2ew’ was not declared in this scope
+   //  Uh_tmpreg_loadable_216 = UlamElement<EC>::PositionOfDataMember(uc, Um_2ew.read
+
+   Self s = (Self) ew[selfIdx];
+  }
+}
+#:EventWindow.ulam
+ulam 1;
+quark EventWindow {
+  typedef Unsigned(6) SiteNum;
+  Atom aref(Int index) native;
+  Void aset(Int index, Atom val) native;
+}
+#.

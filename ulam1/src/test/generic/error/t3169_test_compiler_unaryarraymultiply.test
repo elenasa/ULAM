@@ -1,11 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3169_test_compiler_unaryarraymultiply
 #!
-./A.ulam:9:9: ERROR: Incompatible (nonscalar) types Unary(3)[2] and Unary(3)[2] for binary operator* ; Suggest writing a loop.
-./A.ulam:9:5: ERROR: Assignment is invalid; LHS: Unary(3)[2]; RHS: erroneous.
-./A.ulam:1:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: A.
-Unrecoverable Program Type Label FAILURE.
+##./A.ulam:9:9: ERROR: Incompatible (nonscalar) types Unary(3)[2] and Unary(3)[2] for binary operator* ; Suggest writing a loop.
 ##
+Ue_A { typedef Unary(3) Mu[2];  Unary(3) a[2](2,1);  Unary(3) b[2](3,1);  Unary(3) c[2](3,1);  Int(32) test() {  a 0 [] 2 cast = a 1 [] 1 cast = b 0 [] 3 cast = b 1 [] 1 cast = c a b * = c 0 [] cast return } }
+Exit status:
 #>A.ulam
 element A {
  typedef Unary(3) Mu[2];

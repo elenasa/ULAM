@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeModelParameter.h - Node handling Model Parameters for ULAM
  *
- * Copyright (C) 2015-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2016 Ackleyshack LLC.
+ * Copyright (C) 2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeModelParameter.h - Node handling Model Parameters for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2016 All rights reserved.
+  \date (C) 2015 All rights reserved.
   \gpl
 */
 
@@ -38,7 +38,7 @@
 #define NODEMODELPARAMETER_H
 
 #include "NodeConstant.h"
-#include "SymbolModelParameterValue.h"
+#include "SymbolParameterValue.h"
 
 namespace MFM{
 
@@ -46,10 +46,9 @@ namespace MFM{
   {
   public:
 
-    NodeModelParameter(Token tok, SymbolModelParameterValue * symptr, CompilerState & state);
-
+    NodeModelParameter(Token tok, SymbolParameterValue * symptr, CompilerState & state);
     NodeModelParameter(const NodeModelParameter& ref);
-
+    NodeModelParameter(const NodeIdent& iref);
     virtual ~NodeModelParameter();
 
     virtual Node * instantiate();
@@ -66,9 +65,9 @@ namespace MFM{
 
     virtual bool assignClassArgValueInStubCopy();
 
-    virtual void genCode(File * fp, UVPass& uvpass);
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
-    virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
+    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
   protected:
     virtual void checkForSymbol();

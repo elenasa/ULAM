@@ -23,12 +23,12 @@ namespace MFM {
 
   void NodeBlock::updateLineage(NNO pno)
   {
-    if(getPreviousBlockPointer() == NULL)
+    if(m_prevBlockNode == NULL)
       {
-	setPreviousBlockPointer(m_state.getCurrentBlock());
+	m_prevBlockNode = m_state.getCurrentBlock();
       }
     else
-      assert(getPreviousBlockPointer() == m_state.getCurrentBlock());
+      assert(m_prevBlockNode == m_state.getCurrentBlock());
 
     m_state.pushCurrentBlock(this);
 
@@ -50,21 +50,13 @@ namespace MFM {
     return false;
   } //findNodeNo
 
-  void NodeBlock::checkAbstractInstanceErrors()
-  {
-    if(m_nodeNext)
-      m_nodeNext->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
-
   void NodeBlock::print(File * fp)
   {
     printNodeLocation(fp);
     UTI myut = getNodeType();
     char id[255];
-    if((myut == Nav) || (myut == Nouti))
+    if(myut == Nav)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
-    else if(myut == Hzy)
-      sprintf(id,"%s<HAZYTYPE>\n", prettyNodeName().c_str());
     else
       sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
@@ -101,14 +93,6 @@ namespace MFM {
   {
     assert(m_nodeNext);
 
-    //especially important for template instances (prev ptr nullified on instantiation)
-    if(getPreviousBlockPointer() == NULL)
-      {
-	setPreviousBlockPointer(m_state.getCurrentBlock());
-      }
-    else
-      assert(getPreviousBlockPointer() == m_state.getCurrentBlock());
-
     m_state.pushCurrentBlock(this);
 
     m_nodeNext->checkAndLabelType();
@@ -120,21 +104,17 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-  void NodeBlock::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
+  void NodeBlock::countNavNodes(u32& cnt)
   {
-    Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt); //missing
-    m_nodeNext->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+    Node::countNavNodes(cnt); //missing
+    m_nodeNext->countNavNodes(cnt);
   }
 
   EvalStatus NodeBlock::eval()
   {
-    // block stack needed for symbol lookup during eval of virtual func call on as-conditional auto
-    m_state.pushCurrentBlock(this);
     assert(m_nodeNext);
-    EvalStatus evs = m_nodeNext->eval();
-    m_state.popClassContext(); //restore
-    return evs;
-  } //eval
+    return m_nodeNext->eval(); //no return value
+  }
 
   void NodeBlock::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
@@ -190,11 +170,6 @@ namespace MFM {
     m_prevBlockNode = b;
   }
 
-  bool NodeBlock::isAClassBlock()
-  {
-    return false;
-  }
-
   u32 NodeBlock::getNumberOfSymbolsInTable()
   {
     return m_ST.getTableSize();
@@ -221,6 +196,11 @@ namespace MFM {
     return m_ST.getMaxVariableSymbolsBitSize();
   }
 
+  s32 NodeBlock::findUlamTypeInTable(UTI utype)
+  {
+    return m_ST.findPosOfUlamTypeInTable(utype);
+  }
+
   SymbolTable * NodeBlock::getSymbolTablePtr()
   {
     return &m_ST;
@@ -237,23 +217,27 @@ namespace MFM {
     m_ST.genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(fp);
   }
 
-  void NodeBlock::addClassMemberDescriptionsToInfoMap(ClassMemberMap& classmembers)
+  void NodeBlock::addModelParameterDescriptionsToInfoMap(ParameterMap& classmodelparameters)
   {
-    m_ST.addClassMemberDescriptionsToMap(this->getNodeType(), classmembers); //Table of Classes request
+    m_ST.addModelParameterDescriptionsToMap(this->getNodeType(), classmodelparameters); //Table of Classes request
   }
 
-  void NodeBlock::genCode(File * fp, UVPass& uvpass)
+  void NodeBlock::generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
-    m_state.indentUlamCode(fp);
+    m_ST.genCodeBuiltInFunctionsOverTableOfVariableDataMember(fp, declOnly, classtype);
+  }
+
+  void NodeBlock::genCode(File * fp, UlamValue& uvpass)
+  {
+    m_state.indent(fp);
     fp->write("{\n");
 
     m_state.m_currentIndentLevel++;
     m_nodeNext->genCode(fp, uvpass);
     m_state.m_currentIndentLevel--;
 
-    m_state.indentUlamCode(fp);
+    m_state.indent(fp);
     fp->write("}\n");
   } //genCode
-
 
 } //end MFM

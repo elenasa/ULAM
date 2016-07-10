@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeBlock.h - Basic Node for handling Blocks for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeBlock.h - Basic Node for handling Blocks for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -39,8 +39,7 @@
 
 #include "File.h"
 #include "NodeStatements.h"
-#include "SymbolTableOfVariables.h"
-#include "MapClassMemberDesc.h"
+#include "SymbolTable.h"
 
 namespace MFM{
 
@@ -60,8 +59,6 @@ namespace MFM{
 
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
-    virtual void checkAbstractInstanceErrors();
-
     virtual void print(File * fp);
 
     virtual void printPostfix(File * fp);
@@ -72,7 +69,7 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
+    virtual void countNavNodes(u32& cnt);
 
     virtual EvalStatus eval();
 
@@ -94,31 +91,33 @@ namespace MFM{
 
     void setPreviousBlockPointer(NodeBlock *);
 
-    virtual bool isAClassBlock();
+    u32 getNumberOfSymbolsInTable();
 
-    virtual u32 getNumberOfSymbolsInTable();
+    u32 getSizeOfSymbolsInTable();
 
-    virtual u32 getSizeOfSymbolsInTable();
+    s32 getBitSizesOfVariableSymbolsInTable();
 
-    virtual s32 getBitSizesOfVariableSymbolsInTable();
+    s32 getMaxBitSizeOfVariableSymbolsInTable();
 
-    virtual s32 getMaxBitSizeOfVariableSymbolsInTable();
+    s32 findUlamTypeInTable(UTI utype);
 
-    virtual void genCode(File * fp, UVPass& uvpass);
+    SymbolTable * getSymbolTablePtr(); //used for print postfix
+
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
     void genModelParameterImmediateDefinitions(File * fp);
 
-    virtual void addClassMemberDescriptionsToInfoMap(ClassMemberMap& classmembers);
+    void addModelParameterDescriptionsToInfoMap(ParameterMap& classmodelparameters);
 
   protected:
-    SymbolTableOfVariables m_ST;
+    SymbolTable m_ST;
 
     void genCodeDeclsForVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);
 
+    virtual void generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+
   private:
     NodeBlock * m_prevBlockNode;
-
-    SymbolTable * getSymbolTablePtr(); //use with caution, esp. with inheritance
 
   };
 

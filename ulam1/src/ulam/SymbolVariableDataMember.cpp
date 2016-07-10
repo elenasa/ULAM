@@ -3,14 +3,12 @@
 
 namespace MFM {
 
-  SymbolVariableDataMember::SymbolVariableDataMember(Token id, UTI utype, u32 slot, CompilerState& state) : SymbolVariable(id, utype, state), m_posOffset(0), m_dataMemberUnpackedSlotIndex(slot)
+  SymbolVariableDataMember::SymbolVariableDataMember(Token id, UTI utype, PACKFIT packed, u32 slot, CompilerState& state) : SymbolVariable(id, utype, packed, state), m_dataMemberUnpackedSlotIndex(slot)
   {
-    setDataMemberClass(m_state.getCompileThisIdx());
+    setDataMember();
   }
 
-  SymbolVariableDataMember::SymbolVariableDataMember(const SymbolVariableDataMember& sref) : SymbolVariable(sref), m_posOffset(sref.m_posOffset), m_dataMemberUnpackedSlotIndex(sref.m_dataMemberUnpackedSlotIndex) { } //initval set by node vardecl c&l
-
-  SymbolVariableDataMember::SymbolVariableDataMember(const SymbolVariableDataMember& sref, bool keepType) : SymbolVariable(sref, keepType), m_posOffset(sref.m_posOffset), m_dataMemberUnpackedSlotIndex(sref.m_dataMemberUnpackedSlotIndex) {} //initval set by node vardecl c&l
+  SymbolVariableDataMember::SymbolVariableDataMember(const SymbolVariableDataMember& sref) : SymbolVariable(sref), m_dataMemberUnpackedSlotIndex(sref.m_dataMemberUnpackedSlotIndex) {}
 
   SymbolVariableDataMember::~SymbolVariableDataMember()
   {
@@ -20,11 +18,6 @@ namespace MFM {
   Symbol * SymbolVariableDataMember::clone()
   {
     return new SymbolVariableDataMember(*this);
-  }
-
-  Symbol * SymbolVariableDataMember::cloneKeepsType()
-  {
-    return new SymbolVariableDataMember(*this, true);
   }
 
   u32  SymbolVariableDataMember::getDataMemberUnpackedSlotIndex()
@@ -42,29 +35,17 @@ namespace MFM {
     return "Um_";
   }
 
-  //packed bit position of data members; relative to ATOMFIRSTSTATEBITPOS (or 0u).
-  u32 SymbolVariableDataMember::getPosOffset()
-  {
-    return m_posOffset;
-  }
-
-  void SymbolVariableDataMember::setPosOffset(u32 offsetIntoAtom)
-  {
-    m_posOffset = offsetIntoAtom; //relative to first state bit
-  }
-
   // replaced by NodeVarDecl:genCode to leverage the declaration order preserved by the parse tree.
   void SymbolVariableDataMember::generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype)
   {
-    assert(classtype == UC_ELEMENT); //really?
     UTI vuti = getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
+    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
 
-    m_state.indentUlamCode(fp);
+    m_state.indent(fp);
     fp->write(vut->getUlamTypeMangledName().c_str()); //for C++
 
-    if(vclasstype == UC_QUARK) //called on classtype elements only
+    if(vclasstype == UC_QUARK)       // called on classtype elements only
       {
 	fp->write("<");
 	fp->write_decimal(getPosOffset());
@@ -86,7 +67,7 @@ namespace MFM {
 	fp->write("[UNKNOWN]");
       }
 #endif
-    fp->write(";"); GCNL;
+    fp->write(";\n");
   } //generateCodedVariableDeclarations
 
   // replaces NodeVarDecl:printPostfix to learn the values of Class' storage in center site
@@ -95,8 +76,7 @@ namespace MFM {
     UTI vuti = getUlamTypeIdx();
     UlamKeyTypeSignature vkey = m_state.getUlamKeyTypeSignatureByIndex(vuti);
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
-    ULAMTYPE vetyp = vut->getUlamTypeEnum();
+    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
 
     fp->write(" ");
     if(vclasstype == UC_NOTACLASS)
@@ -127,19 +107,22 @@ namespace MFM {
 
     if(vclasstype == UC_QUARK)
       {
-	//outputs the data members, not just the lump value (e.g. SWV::printPostfixValue())
-	UTI scalarquark = m_state.getUlamTypeAsScalar(vuti);
 	//printPostfixValuesForClass:
 	SymbolClass * csym = NULL;
-	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(scalarquark, csym);
-	assert(isDefined);
-
-	NodeBlockClass * classNode = csym->getClassBlockNode();
-	assert(classNode);
-	u32 newstartpos = startpos + getPosOffset();
-	s32 len = vut->getBitSize();
-	for(s32 i = 0; i < size; i++)
-	  classNode->printPostfixDataMembersSymbols(fp, slot, newstartpos + len * i, vclasstype);
+	if(m_state.alreadyDefinedSymbolClass(vuti, csym))
+	  {
+	    NodeBlockClass * classNode = csym->getClassBlockNode();
+	    assert(classNode);
+	    SymbolTable * stptr = classNode->getSymbolTablePtr(); //ST of data members
+	    u32 newstartpos = startpos + getPosOffset();
+	    s32 len = vut->getBitSize();
+	    for(s32 i = 0; i < size; i++)
+	      stptr->printPostfixValuesForTableOfVariableDataMembers(fp, slot, newstartpos + len * i, vclasstype);
+	  }
+	else
+	  {
+	    assert(0); //error!
+	  }
       }
     else
       {
@@ -150,37 +133,29 @@ namespace MFM {
 
 	if(size > 0)
 	  {
+	    //simplifying assumption for testing purposes: center site
+	    //Coord c0(0,0);
+	    //u32 slot = c0.convertCoordToIndex();
+
 	    //build the string of values (for both scalar and packed array)
 	    UlamValue arrayPtr = UlamValue::makePtr(slot, EVENTWINDOW, vuti, packFit, m_state, startpos + getPosOffset(), getId());
 	    UlamValue nextPtr = UlamValue::makeScalarPtr(arrayPtr, m_state);
 
 	    UlamValue atval = m_state.getPtrTarget(nextPtr);
-	    s32 len = m_state.getBitSize(vuti);
-	    if(len == UNKNOWNSIZE)
-	      {
-		sprintf(valstr,"unknown");
-		for(s32 i = 1; i < size; i++)
-		  {
-		    strcat(valstr,", unknown");
-		  }
-	      }
-	    else if(len <= MAXBITSPERINT)
+	    s32 len = nextPtr.getPtrLen();
+	    assert(len != UNKNOWNSIZE);
+	    if(len <= MAXBITSPERINT)
 	      {
 		u32 data = atval.getDataFromAtom(nextPtr, m_state);
 		vut->getDataAsString(data, valstr, 'z'); //'z' -> no preceeding ','
-		if(vetyp == Unsigned || vetyp == Unary)
-		  strcat(valstr, "u");
 
 		for(s32 i = 1; i < size; i++)
 		  {
 		    char tmpstr[8];
-		    AssertBool isNext = nextPtr.incrementPtr(m_state);
-		    assert(isNext);
+		    assert(nextPtr.incrementPtr(m_state));
 		    atval = m_state.getPtrTarget(nextPtr);
 		    data = atval.getDataFromAtom(nextPtr, m_state);
 		    vut->getDataAsString(data, tmpstr, ',');
-		    if(vetyp == Unsigned || vetyp == Unary)
-		      strcat(tmpstr, "u");
 		    strcat(valstr,tmpstr);
 		  }
 	      }
@@ -188,19 +163,14 @@ namespace MFM {
 	      {
 		u64 data = atval.getDataLongFromAtom(nextPtr, m_state);
 		vut->getDataLongAsString(data, valstr, 'z'); //'z' -> no preceeding ','
-		if(vetyp == Unsigned || vetyp == Unary)
-		  strcat(valstr, "u");
 
 		for(s32 i = 1; i < size; i++)
 		  {
 		    char tmpstr[8];
-		    AssertBool isNext = nextPtr.incrementPtr(m_state);
-		    assert(isNext);
+		    assert(nextPtr.incrementPtr(m_state));
 		    atval = m_state.getPtrTarget(nextPtr);
 		    data = atval.getDataLongFromAtom(nextPtr, m_state);
 		    vut->getDataLongAsString(data, tmpstr, ',');
-		    if(vetyp == Unsigned || vetyp == Unary)
-		      strcat(tmpstr, "u");
 		    strcat(valstr,tmpstr);
 		  }
 	      }
@@ -218,15 +188,5 @@ namespace MFM {
       } //not a quark
     fp->write("); ");
   } //printPostfixValuesOfVariableDeclarations
-
-  void SymbolVariableDataMember::setStructuredComment()
-  {
-    Token scTok;
-    if(m_state.getStructuredCommentToken(scTok)) //and clears it
-      {
-	m_structuredCommentToken = scTok;
-	m_gotStructuredCommentToken = true;
-      }
-  } //setStructuredComment
 
 } //end MFM

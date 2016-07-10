@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeTerminal.h - Basic Node handling Terminals for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeTerminal.h - Basic Node handling Terminals for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016  All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -81,12 +81,12 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
-    virtual void genCode(File * fp, UVPass& uvpass);
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
-    virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
+    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
     /** reads into a tmp BitVector */
-    virtual void genCodeReadIntoATmpVar(File * fp, UVPass & uvpass);
+    virtual void genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass);
 
   private:
     virtual bool setConstantValue(Token tok);
@@ -102,12 +102,8 @@ namespace MFM{
     u64 convertForthAndBackLong(const u64 data, UTI fituti);
     bool fitsInBits32compare(UTI fituti);
 
-    u32 getNameId();
-
   protected:
-    virtual EvalStatus makeTerminalValue(UlamValue& uvarg); //used by eval only
-    virtual void makeTerminalPassForCodeGen(UVPass& uvpass);
-
+    virtual EvalStatus makeTerminalValue(UlamValue& uvarg); //used both by eval and gencode
     union {
       s64 sval;
       u64 uval;

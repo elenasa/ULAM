@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolVariableStack.h -  Stack Variable Symbol handling for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014 The Regents of the University of New Mexico.
+ * Copyright (C) 2014 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,15 +27,16 @@
 
 /**
   \file SymbolVariableStack.h -  Stack Variable Symbol handling for ULAM
-  \author Elena S. Ackley.
+  \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014 All rights reserved.
   \gpl
 */
 
 #ifndef SYMBOLVARIABLESTACK_H
 #define SYMBOLVARIABLESTACK_H
 
+#include "UlamValue.h"
 #include "SymbolVariable.h"
 
 namespace MFM{
@@ -43,49 +44,28 @@ namespace MFM{
   class SymbolVariableStack : public SymbolVariable
   {
   public:
-    SymbolVariableStack(Token id, UTI utype, s32 slot, CompilerState& state);
+    SymbolVariableStack(Token id, UTI utype, PACKFIT packed, s32 slot, CompilerState& state);
 
     SymbolVariableStack(const SymbolVariableStack& sref);
-
-    SymbolVariableStack(const SymbolVariableStack& sref, bool keepType);
 
     virtual ~SymbolVariableStack();
 
     virtual Symbol * clone();
 
-    virtual Symbol * cloneKeepsType();
-
     virtual s32 getStackFrameSlotIndex();
 
     virtual void setStackFrameSlotIndex(s32 slot);
-
-    NNO getDeclNodeNo();
-
-    void setDeclNodeNo(NNO nno);
 
     virtual s32 getBaseArrayIndex();
 
     virtual const std::string getMangledPrefix();
 
-    virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
-
     virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype);
-
-    UlamValue getAutoPtrForEval();
-
-    void setAutoPtrForEval(UlamValue ptr);
-
-    UTI getAutoStorageTypeForEval();
-
-    void setAutoStorageTypeForEval(UTI uti);
 
   protected:
 
   private:
     s32 m_stackFrameSlotIndex;
-    UlamValue m_autoPtrForEval;
-    UTI m_autoStgTypeForEval;
-    NNO m_declnno;
   };
 
 }

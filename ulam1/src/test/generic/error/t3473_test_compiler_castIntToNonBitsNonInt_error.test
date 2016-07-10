@@ -1,13 +1,14 @@
 ## -*- mode:ulam -*-
 #=t3473_test_compiler_castIntToNonBitsNonInt_error
 #!
-./A.ulam:7:5: ERROR: Use explicit cast to convert Int(3) to Unary(3) for operator=.
-./A.ulam:8:4: ERROR: Use explicit cast to convert Unsigned(4) to Unary(3) for operator=.
-./A.ulam:9:4: ERROR: Use explicit cast to convert Int(3) to Unsigned(32) for operator=.
-./A.ulam:10:3: ERROR: Use explicit cast to convert Unsigned(32) to Int(3) for operator=.
-./A.ulam:11:4: ERROR: Use explicit cast to convert Unsigned(3) to Int(3) for operator=.
-./A.ulam:1:9: ERROR: 5 Nodes with erroneous types detected after type labeling class: A.
-Unrecoverable Program Type Label FAILURE.
+##
+##./A.ulam:7:5: ERROR: Use explicit cast to convert Int(3) to Unary(3) for operator=.
+##./A.ulam:8:4: ERROR: Use explicit cast to convert Unsigned(4) to Unary(3) for operator=.
+##./A.ulam:9:4: ERROR: Use explicit cast to convert Int(3) to Unsigned(32) for operator=.
+##./A.ulam:10:3: ERROR: Use explicit cast to convert Unsigned(32) to Int(3) for operator=.
+##./A.ulam:11:4: ERROR: Use explicit cast to convert Unsigned(3) to Int(3) for operator=.
+##
+Exit status: -1
 ##
 ## // no matter how big the unsigned, can't do it.
 ##

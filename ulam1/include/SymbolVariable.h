@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolVariable.h -  Basic handling of Variable Symbols for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,9 +27,9 @@
 
 /**
   \file SymbolVariable.h -  Basic handling of Variable Symbols for ULAM
-  \author Elena S. Ackley.
+  \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -37,25 +37,21 @@
 #define SYMBOLVARIABLE_H
 
 #include "UlamValue.h"
-#include "SymbolWithValue.h"
+#include "Symbol.h"
 
 namespace MFM{
 
   class CompilerState;  //forward
 
   //distinguishes between SymbolFunction, SymbolTypedef, SymbolConstantValue
-  class SymbolVariable : public SymbolWithValue
+  class SymbolVariable : public Symbol
   {
   public:
-    SymbolVariable(Token id, UTI utype, CompilerState& state);
+    SymbolVariable(Token id, UTI utype, PACKFIT packed, CompilerState& state);
 
     SymbolVariable(const SymbolVariable& sref);
 
-    SymbolVariable(const SymbolVariable& sref, bool keepType);
-
     virtual ~SymbolVariable();
-
-    virtual bool isConstant();
 
     virtual s32 getStackFrameSlotIndex();
 
@@ -67,12 +63,16 @@ namespace MFM{
 
     virtual u32 getPosOffset();
 
-    //void setPosOffset(u32 offsetIntoAtom);
+    void setPosOffset(u32 offsetIntoAtom);
+
+    PACKFIT isPacked();
+    void setPacked(PACKFIT p);
 
     virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype) = 0;
 
   protected:
-    //u32 m_posOffset; //relative
+    u32 m_posOffset;
+    PACKFIT m_packed;
 
   private:
 

@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeReturnStatement.h - Node handling the Return Statement for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeReturnStatement.h - Node handling the Return Statement for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016  All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -58,15 +58,13 @@ namespace MFM{
 
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
-    virtual void checkAbstractInstanceErrors();
-
     virtual void print(File * fp);
 
     virtual void printPostfix(File * fp);
 
     virtual UTI checkAndLabelType();
 
-    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
+    virtual void countNavNodes(u32& cnt);
 
     virtual EvalStatus eval();
 
@@ -74,9 +72,7 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    virtual void genCode(File * fp, UVPass& uvpass);
-
-    virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
   protected:
 

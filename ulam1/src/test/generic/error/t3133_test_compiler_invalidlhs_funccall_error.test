@@ -1,20 +1,16 @@
 ## -*- mode:ulam -*-
 #=t3133_test_compiler_invalidlhs_funccall_error
 #!
-./D.ulam:8:11: ERROR: Invalid lefthand side of equals <foo>, type: Int(8).
-./D.ulam:2:7: ERROR: 1 Nodes with erroneous types detected after type labeling class: D.
-Unrecoverable Program Type Label FAILURE.
-##
+## //./D.ulam:7:8: ERROR: Lefthand side of equals is 'Not StoreIntoAble': <foo>, type: Int(8).
 #>D.ulam
-  ulam 1;
 quark D {
-  Int(8) a;
-  Int(8) foo() {
-    return 1;
-  }
-  Int test() {
-    foo() = a;
-    return foo();
-  }
+Int(8) a;
+Int(8) foo() {
+  return 1;
+}
+Int test() {
+ foo() = a;
+ return foo();
+}
 }
 #.

@@ -2,45 +2,40 @@
 #=t3374_test_compiler_unseenclassesholdertypedefswarrays
 #!
 Exit status: 1
-Uq_A { /* empty class block */ }
-Ue_F { typedef Bool(3) Foo[2];  Int(32) test() {  Bool(3) f[2];  f 0 [] true cast = { f 0 [] cond f 0 [] cast return if } 0 cast return } }
+Uq_A { /* empty class block */ }Ue_F { typedef Bool(3) Foo[2];  Int(32) test() {  Bool(3) f[2];  f 0 [] true cast = f 0 [] cond f 0 [] cast return if 0 cast return } }
 Ue_E { typedef Bool(3) X[2];  <NOMAIN> }
 Ue_D { typedef Bool(3) X;  <NOMAIN> }
 #>A.ulam
-  ulam 1;
 use F;
-use E;
-use D;
-quark A{ }
+ use E;
+ use D;
+ quark A{ }
 
 ##
 ##      // array is part of E.X typedef
 #:F.ulam
-  ulam 1;
 element F{
-  typedef E.X Foo;
-  Int test(){
-    Foo f;
-    f[0] = true;
-    if(f[0])
-      return (Int) f[0];
-    return 0;
-  }
+ typedef E.X Foo;
+ Int test(){
+ Foo f;
+ f[0] = true;
+ if(f[0])
+ return (Int) f[0];
+ return 0;
+}
 }
 ##
 ##      //simplfy for testing
 ##      //bool rtn2 = fms->add("F.ulam", "element F{\n typedef E.X Foo;\n Int test(){\n return 0;\n}\n}\n");
 ##
 #:E.ulam
-  ulam 1;
 element E{
-  typedef D.X X[2];
-}
+ typedef D.X X[2];
+ }
 ##
 ##      //test constant expression bitwise; requires explicit cast back to Int from Bits after bitwise |
 #:D.ulam
-  ulam 1;
 element D{
-  typedef Bool((Int) (2|1)) X;
-}
+ typedef Bool((Int) (2|1)) X;
+ }
 #.

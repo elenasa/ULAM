@@ -2,16 +2,10 @@
 #=t3497_test_compiler_elementandquark_arraytypedeffromanotherclass_unseen
 #!
 ##      //No error about zero bitsize!!
-##
-## was Wed Jun  1 16:36:26 2016
-## Ue_TypedefIssue(Unsigned(32) tif) { typedef Unsigned(UNKNOWN) Symmetry[UNKNOWN];  Unsigned(UNKNOWN) x[UNKNOWN](notready);  Bool(1) b(false);  Vector(vec) t(notready);  <NOMAIN> }
-## now:
-## Ue_TypedefIssue(Unsigned(32) tif) { typedef 0Holder(UNKNOWN) Symmetry;  0Holder(UNKNOWN) x(notready);  Bool(1) b(false);  Vector(vec) t(notready);  <NOMAIN> }
-##
 Exit status: 12
 Ue_R { Int(32) test() {  TypedefIssue(2u) ish;  ish ( )foo2 . return } }
-Uq_Vector(Unsigned(32) vec) { typedef Unsigned(UNKNOWN) Channel;  typedef Unsigned(UNKNOWN) Symmetry[UNKNOWN];  Unsigned(UNKNOWN) m[UNKNOWN](notready);  <NOMAIN> }
-Ue_TypedefIssue(Unsigned(32) tif) { typedef Unsigned(UNKNOWN) Symmetry[UNKNOWN];  Unsigned(UNKNOWN) x[UNKNOWN](notready);  Bool(1) b(false);  Vector(vec) t(notready);  <NOMAIN> }
+Ue_TypedefIssue { constant Unsigned(32) tif = NONREADYCONST;  typedef 0Holder(UNKNOWN) Symmetry;  0Holder(UNKNOWN) x(0Holder(UNKNOWN));  Bool(1) b(false);  Vector(vec) t( constant Unsigned(32) vec = NONREADYCONST; );  <NOMAIN> }
+Uq_Vector { typedef Unsigned(UNKNOWN) Symmetry[UNKNOWN];  Unsigned(UNKNOWN) m[UNKNOWN](0);  constant Unsigned(32) vec = NONREADYCONST;  typedef Unsigned(UNKNOWN) Channel;  <NOMAIN> }
 ##
 ##      //informed by 3337, array subscript delayed.
 ##      //informed by 3269, UNSEEN..
@@ -21,47 +15,46 @@ Ue_TypedefIssue(Unsigned(32) tif) { typedef Unsigned(UNKNOWN) Symmetry[UNKNOWN];
 ##      // must already be parsed! (e.g. couldn't use element yet! because its Class Block doesn't exist)?
 ##
 #>R.ulam
-  ulam 1;
-use Vector;
-use TypedefIssue;
-//use Vector;
-element R {
-  Int test(){
-    TypedefIssue(2u) ish;
-    return ish.foo2();
-  }
+ulam 1;
+ use TypedefIssue;
+ use Vector;
+ element R {
+ Int test(){
+TypedefIssue(2u) ish;
+ return ish.foo2();
 }
+ }
 
 #:TypedefIssue.ulam
-  ulam 1;
+ulam 1;
 element TypedefIssue(Unsigned tif) {
-  typedef Vector(tif).Symmetry Symmetry;
-  Symmetry x;
-  Bool b;
-  Vector(tif) t;
-  Int foo() {
-    x[0] = 2;
-    x[1] = 1;
-    if(t.set(x))
-      b=true;
-    return t.m[1];
-  } Int foo2() {
-    return x.sizeof;
-  }
+typedef Vector(tif).Symmetry Symmetry;
+ Symmetry x;
+ Bool b;
+Vector(tif) t;
+ Int foo() {
+x[0] = 2;
+ x[1] = 1;
+if(t.set(x))
+ b=true;
+return t.m[1];
+} Int foo2() {
+ return x.sizeof;
+}
 }
 
 ##
 ##       //see t3498 for divide by zero error in arraysize.
 #:Vector.ulam
-  ulam 1;
+ulam 1;
 quark Vector(Unsigned vec) {
-  typedef Unsigned(2u*vec) Channel;
-  typedef Channel Symmetry[vec+1u];
-  Symmetry m;
-  Bool set(Symmetry vector) {
-    m[0]=vector[0];
-    m[1]=vector[1];
-    return (m[0]!=0 && m[1]!=0);
-  }
+typedef Unsigned(2u*vec) Channel;
+ typedef Channel Symmetry[vec+1u];
+ Symmetry m;
+Bool set(Symmetry vector) {
+m[0]=vector[0];
+ m[1]=vector[1];
+ return (m[0]!=0 && m[1]!=0);
+ }
 }
 #.

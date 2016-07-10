@@ -5,11 +5,10 @@
 #include "SymbolVariableDataMember.h"
 #include "SymbolVariableStack.h"
 #include "NodeIdent.h"
-#include "NodeListArrayInitialization.h"
 
 namespace MFM {
 
-  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_varSymbol(sym), m_vid(0), m_nodeInitExpr(NULL), m_currBlockNo(0), m_nodeTypeDesc(nodetype)
+  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_varSymbol(sym), m_vid(0), m_currBlockNo(0), m_nodeTypeDesc(nodetype)
   {
     if(sym)
       {
@@ -18,22 +17,16 @@ namespace MFM {
       }
   }
 
-  NodeVarDecl::NodeVarDecl(const NodeVarDecl& ref) : Node(ref), m_varSymbol(NULL), m_vid(ref.m_vid), m_nodeInitExpr(NULL), m_currBlockNo(ref.m_currBlockNo), m_nodeTypeDesc(NULL)
+  NodeVarDecl::NodeVarDecl(const NodeVarDecl& ref) : Node(ref), m_varSymbol(NULL), m_vid(ref.m_vid), m_currBlockNo(ref.m_currBlockNo), m_nodeTypeDesc(NULL)
   {
     if(ref.m_nodeTypeDesc)
       m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
-
-    if(ref.m_nodeInitExpr)
-      m_nodeInitExpr = (Node *) ref.m_nodeInitExpr->instantiate();
   }
 
   NodeVarDecl::~NodeVarDecl()
   {
     delete m_nodeTypeDesc;
     m_nodeTypeDesc = NULL;
-
-    delete m_nodeInitExpr;
-    m_nodeInitExpr = NULL;
   }
 
   Node * NodeVarDecl::instantiate()
@@ -46,19 +39,7 @@ namespace MFM {
     Node::updateLineage(pno);
     if(m_nodeTypeDesc)
       m_nodeTypeDesc->updateLineage(getNodeNo());
-    if(m_nodeInitExpr)
-      m_nodeInitExpr->updateLineage(getNodeNo());
   } //updateLineage
-
-  bool NodeVarDecl::exchangeKids(Node * oldnptr, Node * newnptr)
-  {
-    if(m_nodeInitExpr == oldnptr)
-      {
-	m_nodeInitExpr = newnptr;
-	return true;
-      }
-    return false;
-  } //exhangeKids
 
   bool NodeVarDecl::findNodeNo(NNO n, Node *& foundNode)
   {
@@ -66,46 +47,11 @@ namespace MFM {
       return true;
     if(m_nodeTypeDesc && m_nodeTypeDesc->findNodeNo(n, foundNode))
       return true;
-    if(m_nodeInitExpr && m_nodeInitExpr->findNodeNo(n, foundNode))
-      return true;
     return false;
   } //findNodeNo
 
-  void NodeVarDecl::checkAbstractInstanceErrors()
-  {
-    UTI nuti = getNodeType();
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    if(nut->getUlamTypeEnum() == Class)
-      {
-	UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
-	SymbolClass * csym = NULL;
-	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(scalaruti, csym);
-	assert(isDefined);
-	if(csym->isAbstract())
-	  {
-	    std::ostringstream msg;
-	    msg << "Instance of Abstract Class ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	    msg << " used with variable symbol name '" << getName() << "'";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav);
-	  }
-      }
-  } //checkAbstractInstanceErrors
-
-  //see also SymbolVariable: printPostfixValuesOfVariableDeclarations via ST.
+  // see SymbolVariable: printPostfixValuesOfVariableDeclarations via ST.
   void NodeVarDecl::printPostfix(File * fp)
-  {
-    printTypeAndName(fp);
-    if(m_nodeInitExpr)
-      {
-	fp->write(" =");
-	m_nodeInitExpr->printPostfix(fp);
-      }
-    fp->write("; ");
-  } //printPostfix
-
-  void NodeVarDecl::printTypeAndName(File * fp)
   {
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamKeyTypeSignature vkey = m_state.getUlamKeyTypeSignatureByIndex(vuti);
@@ -131,12 +77,13 @@ namespace MFM {
       {
 	fp->write("[UNKNOWN]");
       }
-  } //printTypeAndName
+
+    fp->write("; ");
+  } //printPostfix
 
   const char * NodeVarDecl::getName()
   {
-    //return m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str();
-    return m_state.m_pool.getDataAsString(m_vid).c_str();
+    return m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str();
   }
 
   const std::string NodeVarDecl::prettyNodeName()
@@ -147,142 +94,12 @@ namespace MFM {
   bool NodeVarDecl::getSymbolPtr(Symbol *& symptrref)
   {
     symptrref = m_varSymbol;
-    return (m_varSymbol != NULL);
+    return true;
   }
-
-  void NodeVarDecl::setInitExpr(Node * node)
-  {
-    assert(node);
-    m_nodeInitExpr = node;
-    m_nodeInitExpr->updateLineage(getNodeNo()); //for unknown subtrees
-  }
-
-  bool NodeVarDecl::hasInitExpr()
-  {
-    return (m_nodeInitExpr != NULL);
-  }
-
-  bool NodeVarDecl::foldInitExpression()
-  {
-    //for arrays with constant expression initializers(local or dm)
-    UTI nuti = getNodeType();
-    if(!m_state.okUTItoContinue(nuti) || !m_state.isComplete(nuti))
-      return false;
-
-    assert(!m_state.isScalar(nuti));
-    assert(m_nodeInitExpr); //NodeListArrayInitialization
-    assert(m_varSymbol && !(m_varSymbol->isInitValueReady()));
-
-    if(((NodeListArrayInitialization *) m_nodeInitExpr)->foldInitExpression())
-      {
-	BV8K bvtmp;
-	if(((NodeListArrayInitialization *) m_nodeInitExpr)->buildArrayValueInitialization(bvtmp))
-	  {
-	    m_varSymbol->setInitValue(bvtmp);
-	    return true;
-	  }
-      }
-    return false;
-  } //foldInitExpression
-
-  FORECAST NodeVarDecl::safeToCastTo(UTI newType)
-  {
-    assert(m_nodeInitExpr);
-
-    FORECAST rscr = CAST_CLEAR;
-    UTI nuti = getNodeType();
-    //cast RHS if necessary and safe
-    if(UlamType::compare(nuti, newType, m_state) != UTIC_SAME)
-      {
-	rscr = m_nodeInitExpr->safeToCastTo(nuti); //but we're the new type!
-	if(rscr != CAST_CLEAR)
-	  {
-	    if(m_state.isAtom(nuti))
-	      {
-		UlamType * newt = m_state.getUlamTypeByIndex(newType);
-		UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-		std::ostringstream msg;
-		msg << "Atom variable " << getName() << "'s type ";
-		msg << nut->getUlamTypeNameBrief().c_str();
-		msg << ", and its initial value type ";
-		msg << newt->getUlamTypeNameBrief().c_str();
-		msg << ", are incompatible";
-		if(newt->isReference() && newt->getUlamClassType() == UC_QUARK)
-		  msg << "; .atomof may help";
-		if(rscr == CAST_HAZY)
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		else
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	      }
-	    else
-	      {
-		std::ostringstream msg;
-		if(m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum() == Bool)
-		  msg << "Use a comparison operator";
-		else
-		  msg << "Use explicit cast";
-		msg << " to convert "; // the real converting-message
-		msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
-		msg << " to ";
-		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		msg << " for variable initialization";
-		if(rscr == CAST_BAD)
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		else
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	      }
-	  }
-	else
-	  {
-	    //safe to cast, but can't be reference
-	    if(m_nodeInitExpr->isExplicitReferenceCast())
-	      {
-		std::ostringstream msg;
-		msg << "Explicit Reference cast for variable '";
-		msg << m_state.m_pool.getDataAsString(m_vid).c_str();
-		msg << "' initialization is invalid";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		rscr = CAST_BAD;
-	      }
-	    else if(!Node::makeCastingNode(m_nodeInitExpr, nuti, m_nodeInitExpr))
-	      rscr = CAST_BAD; //error
-	  } //safe cast
-      }
-    //else same type, clear to cast
-    return rscr;
-  } //safeToCastTo (virtual)
-
-  bool NodeVarDecl::checkSafeToCastTo(UTI fromType, UTI& newType)
-  {
-    if(!m_state.isComplete(fromType) || !m_state.isComplete(newType)) //e.g. t3753
-      {
-	m_state.setGoAgain();
-	newType = Hzy;
-	return false;
-      }
-
-    if(UlamType::compare(fromType, newType, m_state) == UTIC_SAME)
-      return true;
-
-    bool rtnOK = true;
-    FORECAST scr = safeToCastTo(fromType); //reversed
-    if(scr == CAST_HAZY)
-      {
-	m_state.setGoAgain();
-	newType = Hzy;
-	rtnOK = false;
-      }
-    else if(scr == CAST_BAD)
-      {
-	newType = Nav;
-	rtnOK = false;
-      }
-    return rtnOK;
-  } //checkSafeToCastTo
 
   UTI NodeVarDecl::checkAndLabelType()
   {
-    UTI it = getNodeType();
+    UTI it = Nav;
 
     // instantiate, look up in current block
     if(m_varSymbol == NULL)
@@ -295,8 +112,8 @@ namespace MFM {
 	UTI cuti = m_state.getCompileThisIdx();
 	if(m_nodeTypeDesc)
 	  {
-	    UTI duti = m_nodeTypeDesc->checkAndLabelType(); //sets goagain
-	    if(m_state.okUTItoContinue(duti) && (duti != it))
+	    UTI duti = m_nodeTypeDesc->checkAndLabelType();
+	    if(duti != Nav && duti != it)
 	      {
 		std::ostringstream msg;
 		msg << "REPLACING Symbol UTI" << it;
@@ -309,25 +126,20 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		m_varSymbol->resetUlamType(duti); //consistent!
 		m_state.mapTypesInCurrentClass(it, duti);
-		//m_state.updateUTIAliasForced(it, duti); //help?NOPE, t3808
 		it = duti;
 	      }
 	  }
 
-	if(!m_state.okUTItoContinue(it) || !m_state.isComplete(it))
+	if(!m_state.isComplete(it))
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete Variable Decl for type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << ", used with variable symbol name '" << getName() << "'";
-	    if(m_state.okUTItoContinue(it) || (it == Hzy))
-	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		it = Hzy;
-		//m_state.setGoAgain(); //since not error; wait until not Nav
-	      }
-	    else
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    msg << " used with variable symbol name '" << getName();
+	    msg << "' UTI" << it << " while labeling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    it = Nav;
 	  }
       } //end var_symbol
 
@@ -343,146 +155,7 @@ namespace MFM {
 	it = Nav;
       }
 
-    if(m_nodeInitExpr)
-      {
-	UTI eit = m_nodeInitExpr->checkAndLabelType();
-	if(eit == Nav)
-	  {
-	    std::ostringstream msg;
-	    msg << "Initial value expression for: ";
-	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
-	    msg << ", initialization is invalid";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav);
-	    return Nav; //short-circuit
-	  }
-
-	if(eit == Hzy)
-	  {
-	    std::ostringstream msg;
-	    msg << "Initial value expression for: ";
-	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
-	    msg << ", initialization is not ready";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    m_state.setGoAgain(); //since not error
-	    setNodeType(Hzy);
-	    return Hzy; //short-circuit
-	  }
-
-	//note: Void is flag that it's a list of constant initializers.
-	if((eit == Void))
-	  {
-	    //only possible if array type with initializers
-	    m_varSymbol->setHasInitValue(); //might not be ready yet
-
-	    if(!m_state.okUTItoContinue(it) && m_nodeTypeDesc)
-	      {
-		UTI duti = m_nodeTypeDesc->getNodeType();
-		UlamType * dut = m_state.getUlamTypeByIndex(duti);
-		if(m_state.okUTItoContinue(duti) && !dut->isComplete())
-		  {
-		    assert(!dut->isScalar());
-		    assert(dut->isPrimitiveType());
-
-		    //if here, assume arraysize depends on number of initializers
-		    s32 bitsize = dut->getBitSize();
-		    u32 n = ((NodeList *) m_nodeInitExpr)->getNumberOfNodes();
-		    m_state.setUTISizes(duti, bitsize, n);
-
-		    if(m_state.isComplete(duti))
-		      {
-			std::ostringstream msg;
-			msg << "REPLACING Symbol UTI" << it;
-			msg << ", " << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-			msg << " used with variable symbol name '" << getName();
-			msg << "' with node type descriptor array type (with initializers): ";
-			msg << m_state.getUlamTypeNameBriefByIndex(duti).c_str();
-			msg << " UTI" << duti << " while labeling class: ";
-			msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-			m_varSymbol->resetUlamType(duti); //consistent!
-			m_state.mapTypesInCurrentClass(it, duti);
-			m_state.updateUTIAliasForced(it, duti); //help?
-			m_nodeInitExpr->setNodeType(duti); //replace Void too!
-			it = duti;
-		      }
-		  }
-		//else
-	      }
-	    else
-	      {
-		//arraysize specified, may have fewer initializers
-		assert(m_state.okUTItoContinue(it));
-		s32 arraysize = m_state.getArraySize(it);
-		assert(arraysize > 0);
-		u32 n = ((NodeList *) m_nodeInitExpr)->getNumberOfNodes();
-		if(n > (u32) arraysize)
-		  {
-		    std::ostringstream msg;
-		    msg << "Too many initializers (" << n << ") specified for array '";
-		    msg << getName() << "', size " << arraysize;
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		    setNodeType(Nav);
-		  }
-		else
-		  m_nodeInitExpr->setNodeType(it);
-	      }
-	    eit = it;
-	  } //end array initializers (eit == Void)
-
-	setNodeType(it); //needed before safeToCast, and folding
-
-	if(!m_state.isScalar(eit))
-	  {
-	    if(m_state.okUTItoContinue(eit) && m_state.isComplete(eit))
-	      {
-		assert(m_varSymbol);
-		//constant fold if possible, set symbol value
-		if(m_varSymbol->hasInitValue())
-		  {
-		    //possibly move this to NodeListArrayInitialization
-		    u32 bitsize = m_state.getBitSize(eit);
-		    if(bitsize > MAXBITSPERLONG)
-		      {
-			std::ostringstream msg;
-			msg << "Constant value expression for array: ";
-			msg << m_state.m_pool.getDataAsString(m_vid).c_str();
-			msg << ", initialization is currently limited to ";
-			msg << MAXBITSPERLONG << " bits";
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			setNodeType(Nav);
-			return Nav; //short-circuit
-		      }
-
-		    if(!(m_varSymbol->isInitValueReady()))
-		      {
-			if(!foldInitExpression()) //sets init constant value
-			  {
-			    if((getNodeType() == Nav) || m_nodeInitExpr->getNodeType() == Nav)
-			      return Nav;
-
-			    if(!(m_varSymbol->isInitValueReady()))
-			      {
-				setNodeType(Hzy);
-				m_state.setGoAgain(); //since not error
-				return Hzy;
-			      }
-			  }
-		      }
-		  }
-	      }
-	  } //array initialization
-
-	if(m_state.okUTItoContinue(eit) && m_state.okUTItoContinue(it))
-	  checkSafeToCastTo(eit, it); //may side-effect 'it'
-      }
-
-    Node::setStoreIntoAble(TBOOL_TRUE);
     setNodeType(it);
-
-    if(it == Hzy)
-      m_state.setGoAgain(); //since not error
-
     return getNodeType();
   } //checkAndLabelType
 
@@ -493,8 +166,7 @@ namespace MFM {
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
     Symbol * asymptr = NULL;
-    bool hazyKin = false;
-    if(m_state.alreadyDefinedSymbol(m_vid, asymptr, hazyKin) && !hazyKin)
+    if(m_state.alreadyDefinedSymbol(m_vid, asymptr))
       {
 	if(!asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter() && !asymptr->isFunction())
 	  {
@@ -513,12 +185,8 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "(2) Variable <" << m_state.m_pool.getDataAsString(m_vid).c_str();
 	msg << "> is not defined, and cannot be used";
-	if(!hazyKin)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-      } //alreadyDefined
-
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
     m_state.popClassContext(); //restore
   } //checkForSymbol
 
@@ -535,6 +203,80 @@ namespace MFM {
     return currBlock;
   }
 
+  void NodeVarDecl::packBitsInOrderOfDeclaration(u32& offset)
+  {
+    assert((s32) offset >= 0); //neg is invalid
+    assert(m_varSymbol);
+
+    m_varSymbol->setPosOffset(offset);
+    UTI it = m_varSymbol->getUlamTypeIdx();
+
+    if(!m_state.isComplete(it))
+      {
+	UTI cuti = m_state.getCompileThisIdx();
+	UTI mappedUTI = Nav;
+	if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
+	  {
+	    std::ostringstream msg;
+	    msg << "Substituting Mapped UTI" << mappedUTI;
+	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
+	    msg << " for incomplete Variable Decl for type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    msg << " used with variable symbol name '" << getName();
+	    msg << "' (UTI" << it << ") while bit packing class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    it = mappedUTI;
+	    m_varSymbol->resetUlamType(it); //consistent!
+	  }
+
+	if(!m_state.isComplete(it)) //reloads
+	  {
+	    std::ostringstream msg;
+	    msg << "Unresolved type <";
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    msg << "> used with variable symbol name '" << getName();
+	    msg << "' found while bit packing class ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+      } //not complete
+
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(it)->getUlamClass();
+    if(m_state.getTotalBitSize(it) > MAXBITSPERLONG && classtype == UC_NOTACLASS)
+      {
+	std::ostringstream msg;
+	msg << "Data member <" << getName() << "> of type: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	msg << ", total size: " << (s32) m_state.getTotalBitSize(it);
+	msg << " MUST fit into " << MAXBITSPERLONG << " bits;";
+	msg << " Local variables do not have this restriction";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+
+    if(m_state.getTotalBitSize(it) > MAXBITSPERINT && classtype == UC_QUARK)
+      {
+	std::ostringstream msg;
+	msg << "Data member <" << getName() << "> of type: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	msg << ", total size: " << (s32) m_state.getTotalBitSize(it);
+	msg << " MUST fit into " << MAXBITSPERINT << " bits;";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+
+    if(classtype == UC_ELEMENT)
+      {
+	std::ostringstream msg;
+	msg << "Data member <" << getName() << "> of type: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	msg << ", is an element, and is NOT permitted; Local variables, quarks, ";
+	msg << "and Model Parameters do not have this restriction";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+
+    offset += m_state.getTotalBitSize(m_varSymbol->getUlamTypeIdx());
+  } //packBitsInOrderOfDeclaration
+
   void NodeVarDecl::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
     assert(m_varSymbol);
@@ -549,38 +291,15 @@ namespace MFM {
 	((SymbolVariable *) m_varSymbol)->setStackFrameSlotIndex(newslot);
       }
     depth += m_state.slotsNeeded(getNodeType());
-
-    if(m_nodeInitExpr)
-      m_nodeInitExpr->calcMaxDepth(depth, maxdepth, base);
   } //calcMaxDepth
 
-  void NodeVarDecl::printUnresolvedLocalVariables(u32 fid)
-  {
-    assert(m_varSymbol);
-    UTI it = m_varSymbol->getUlamTypeIdx();
-    if(!m_state.isComplete(it))
-      {
-	// e.g. error/t3298 Int(Fu.sizeof)
-	std::ostringstream msg;
-	msg << "Unresolved type <";
-	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	msg << "> used with local variable symbol name '" << getName() << "'";
-	msg << " in function: " << m_state.m_pool.getDataAsString(fid);
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setNodeType(Nav); //compiler counts
-      } //not complete
-  } //printUnresolvedLocalVariables
-
-  void NodeVarDecl::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
+  void NodeVarDecl::countNavNodes(u32& cnt)
   {
     if(m_nodeTypeDesc)
-      m_nodeTypeDesc->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+      m_nodeTypeDesc->countNavNodes(cnt);
 
-    if(m_nodeInitExpr)
-      m_nodeInitExpr->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
-
-    Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
-  } //countNavHzyNoutiNodes
+    Node::countNavNodes(cnt);
+  } //countNavNodes
 
   EvalStatus NodeVarDecl::eval()
   {
@@ -590,403 +309,224 @@ namespace MFM {
     if(nuti == Nav)
       return ERROR;
 
-    if(nuti == Hzy)
-      return NOTREADY;
-
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMCLASSTYPE classtype = nut->getUlamClassType();
-    u32 len = nut->getTotalBitSize();
-
-    if((classtype == UC_TRANSIENT) && (len > MAXSTATEBITS))
-      return UNEVALUABLE;
-
-    assert(m_varSymbol->getUlamTypeIdx() == nuti); //is it so? if so, some cleanup needed
-
-    assert(!m_varSymbol->isAutoLocal()); //NodeVarRef::eval
-
-    assert(!m_varSymbol->isDataMember()); //see NodeVarDeclDM
-
-    u32 slots = Node::makeRoomForNodeType(nuti, STACK);
-
-    if(m_state.isAtom(nuti))
+    if(nuti == UAtom || m_state.getUlamTypeByIndex(nuti)->getUlamClass() == UC_ELEMENT)
       {
 	UlamValue atomUV = UlamValue::makeAtom(m_varSymbol->getUlamTypeIdx());
-	//scalar or UNPACKED array of atoms (t3709)
-	u32 baseslot =  ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex();
-	for(u32 j = 0; j < slots; j++)
-	  m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, baseslot + j);
-      }
-    else if(classtype == UC_NOTACLASS)
-      {
-	//local variable to a function;
-	// t.f. must be SymbolVariableStack, not SymbolVariableDataMember
-	setupStackWithPrimitiveForEval(slots);
-      }
-    else if((classtype == UC_ELEMENT) || (classtype == UC_TRANSIENT))
-      setupStackWithClassForEval(slots);
-    else
-      setupStackWithQuarkForEval(slots);
-
-    if(m_nodeInitExpr)
-      return evalInitExpr();
-
-    return NORMAL;
-  } //eval
-
-  void NodeVarDecl::setupStackWithPrimitiveForEval(u32 slots)
-  {
-    UTI nuti = getNodeType();
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    assert(m_varSymbol->getUlamTypeIdx() == nuti);
-    PACKFIT packFit = nut->getPackable();
-    if(packFit == PACKEDLOADABLE)
-      {
-	u64 dval = 0;
-	if(m_varSymbol->hasInitValue())
-	  {
-	    AssertBool gotInitVal = m_varSymbol->getInitValue(dval);
-	    assert(gotInitVal);
-	  }
-
-	UlamValue immUV;
-	u32 len = nut->getTotalBitSize();
-	if(len <= MAXBITSPERINT)
-	  immUV = UlamValue::makeImmediate(nuti, (u32) dval, m_state);
-	else if(len <= MAXBITSPERLONG)
-	  immUV = UlamValue::makeImmediateLong(nuti, dval, m_state);
-	else
-	  assert(0);
-	//immUV = UlamValue::makePtr(((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex(), STACK, nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId()); //array ptr
-	m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
-      }
-    else
-      {
-	//unpacked primitive array - uses eval
-	UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
-	bool hasInitVal = m_varSymbol->hasInitValue();
-	u32 baseslot =  ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex();
-
-	UlamValue immUV;
-	u32 itemlen = nut->getBitSize();
-	if(itemlen <= MAXBITSPERINT)
-	  immUV = UlamValue::makeImmediate(scalaruti, 0, m_state);
-	else if(itemlen <= MAXBITSPERLONG)
-	  immUV = UlamValue::makeImmediateLong(scalaruti, 0, m_state);
-	else
-	  assert(0);
-
-	u32 n = slots;
-	if(hasInitVal)
-	  n = ((NodeList *) m_nodeInitExpr)->getNumberOfNodes(); //may be fewer
-
-	for(u32 j = 0; j < slots; j++)
-	  {
-	    UlamValue itemUV;
-	    if(hasInitVal)
-	      {
-		evalNodeProlog(0); //new current frame pointer
-		makeRoomForNodeType(scalaruti); //offset a constant expression
-		u32 k = j < n ? j : n - 1; //repeat last initializer if fewer
-		EvalStatus evs = ((NodeListArrayInitialization *) m_nodeInitExpr)->eval(k);
-		if(evs == NORMAL)
-		  {
-		    itemUV = m_state.m_nodeEvalStack.popArg();
-		  }
-		else
-		  assert(0); //error msg?
-		evalNodeEpilog();
-	      }
-	    else
-	      itemUV = immUV;
-	    m_state.m_funcCallStack.storeUlamValueInSlot(itemUV, baseslot + j);
-	  }
-      }
-  } //setupStackWithPrimitiveForEval
-
-  void NodeVarDecl::setupStackWithClassForEval(u32 slots)
-  {
-    UTI nuti = getNodeType();
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-
-    //for eval purposes, a transient must fit into atom state bits, like an element
-    // any class may be a data member (see NodeVarDeclDM)
-    if(nut->isScalar())
-      {
-	UlamValue atomUV = UlamValue::makeDefaultAtom(m_varSymbol->getUlamTypeIdx(), m_state);
 	m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
       }
     else
       {
-	PACKFIT packFit = nut->getPackable();
-	if(packFit == PACKEDLOADABLE)
+	if(!m_varSymbol->isDataMember())
 	  {
-	    u32 len = nut->getTotalBitSize();
-	    u64 dval = 0;
-	    AssertBool isPackLoadableScalar = m_state.getPackedDefaultClass(nuti, dval);
-	    assert(isPackLoadableScalar);
-	    u64 darrval = 0;
-	    m_state.getDefaultAsPackedArray(nuti, dval, darrval); //3rd arg ref
-
+	    //local variable to a function
+	    u32 len = m_state.getTotalBitSize(nuti);
+	    UlamValue immUV;
 	    if(len <= MAXBITSPERINT)
-	      {
-		UlamValue immUV = UlamValue::makeImmediateClass(nuti, (u32) darrval, len);
-		m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
-	      }
-	    else if(len <= MAXBITSPERLONG) //t3710
-	      {
-		UlamValue immUV = UlamValue::makeImmediateLongClass(nuti, darrval, len);
-		m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
-	      }
+	      immUV = UlamValue::makeImmediate(m_varSymbol->getUlamTypeIdx(), 0, m_state);
+	    else if(len <= MAXBITSPERLONG)
+	      immUV = UlamValue::makeImmediateLong(m_varSymbol->getUlamTypeIdx(), 0, m_state);
 	    else
-	      assert(0); //not write load packable!
+	      immUV = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId()); //array ptr
+
+	    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableDataMember *) m_varSymbol)->getStackFrameSlotIndex());
 	  }
 	else
 	  {
-	    //UNPACKED element array
-	    UlamValue atomUV = UlamValue::makeDefaultAtom(m_varSymbol->getUlamTypeIdx(), m_state);
-	    u32 baseslot =  ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex();
-	    for(u32 j = 0; j < slots; j++)
-	      {
-		m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, baseslot + j);
-	      }
+	    assert(0);
 	  }
       }
-  } //setupStackWithClassForEval
-
-  void NodeVarDecl::setupStackWithQuarkForEval(u32 slots)
-  {
-    UTI nuti = getNodeType();
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    u32 len = nut->getTotalBitSize();
-
-    //must be a local quark! could be an array of them!!
-    u32 dq = 0;
-    AssertBool isDefinedQuark = m_state.getDefaultQuark(nuti, dq); //returns scalar dq
-    assert(isDefinedQuark);
-    if(nut->isScalar())
-      {
-	UlamValue immUV = UlamValue::makeImmediateClass(nuti, dq, len);
-	m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
-      }
-    else
-      {
-	PACKFIT packFit = nut->getPackable();
-	if(packFit == PACKEDLOADABLE)
-	  {
-	    u64 darrval = 0;
-	    m_state.getDefaultAsPackedArray(nuti, (u64) dq, darrval); //3rd arg ref
-	    if(len <= MAXBITSPERINT) //t3706
-	      {
-		UlamValue immUV = UlamValue::makeImmediateClass(nuti, (u32) darrval, len);
-		m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
-	      }
-	    else if(len <= MAXBITSPERLONG) //t3708
-	      {
-		UlamValue immUV = UlamValue::makeImmediateLongClass(nuti, darrval, len);
-		m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
-	      }
-	  }
-	else
-	  {
-	    //UNPACKED array of quarks! t3649, t3707
-	    UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
-	    UlamValue immUV = UlamValue::makeImmediateClass(scalaruti, dq, nut->getBitSize());
-	    u32 baseslot =  ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex();
-	    for(u32 j = 0; j < slots; j++)
-	      {
-		m_state.m_funcCallStack.storeUlamValueInSlot(immUV, baseslot + j);
-	      }
-	  }
-      }
-  } //setupStackWithQuarkForEval
-
-  EvalStatus NodeVarDecl::evalInitExpr()
-  {
-    //also called by NodeVarDecDM for data members with initial constant values (t3514);
-    // don't call m_nodeInitExpr->eval(), if constant initialized array (e.g.t3768, t3769);
-    if(m_varSymbol->hasInitValue() && !m_state.isScalar(getNodeType()))
-      {
-	return NORMAL;
-      }
-
-    EvalStatus evs = NORMAL; //init
-    // quark or non-class data member;
-    evalNodeProlog(0); //new current node eval frame pointer
-
-    makeRoomForSlots(1); //always 1 slot for ptr
-
-    evs = evalToStoreInto();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
-
-    UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1);
-    UTI nuti = getNodeType();
-    u32 slots = makeRoomForNodeType(nuti);
-
-    evs = m_nodeInitExpr->eval();
-
-    if(evs == NORMAL)
-      {
-	if(slots == 1)
-	  {
-	    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slots+1); //immediate scalar
-	    if(m_state.isScalar(nuti))
-	      {
-		m_state.assignValue(pluv,ruv);
-		//also copy result UV to stack, -1 relative to current frame pointer
-		Node::assignReturnValueToStack(ruv); //not when unpacked? how come?
-	      }
-	    else
-	      {
-		//(do same as scalar) t3419. t3425, t3708
-		m_state.assignValue(pluv,ruv);
-		Node::assignReturnValueToStack(ruv);
-	      }
-	  }
-	else //unpacked
-	  {
-	    //t3704, t3706, t3707, t3709
-	    UlamValue scalarPtr = UlamValue::makeScalarPtr(pluv, m_state);
-	    for(u32 j = 0; j < slots; j++)
-	      {
-		UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1+1+j); //immediate scalar
-		m_state.assignValue(scalarPtr,ruv);
-		scalarPtr.incrementPtr(m_state); //by one.
-	      }
-	  }
-      } //normal
-
-    evalNodeEpilog();
-    return evs;
-  } //evalInitExpr
-
-  EvalStatus NodeVarDecl::evalToStoreInto()
-  {
-    UTI nuti = getNodeType();
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMCLASSTYPE classtype = nut->getUlamClassType();
-    u32 len = nut->getTotalBitSize();
-
-    if((classtype == UC_TRANSIENT) && (len > MAXSTATEBITS))
-      return UNEVALUABLE;
-
-    evalNodeProlog(0); //new current node eval frame pointer
-
-    // return ptr to this local var (from NodeIdent's makeUlamValuePtr)
-    UlamValue rtnUVPtr = makeUlamValuePtr();
-
-    u32 absslot = m_state.m_funcCallStack.getAbsoluteStackIndexOfSlot(rtnUVPtr.getPtrSlotIndex());
-    rtnUVPtr.setPtrSlotIndex(absslot);
-    rtnUVPtr.setUlamValueTypeIdx(PtrAbs);
-
-    //copy result UV to stack, -1 relative to current frame pointer
-    Node::assignReturnValuePtrToStack(rtnUVPtr);
-
-    evalNodeEpilog();
     return NORMAL;
-  } //evalToStoreInto
+  } //eval
 
-  UlamValue NodeVarDecl::makeUlamValuePtr()
+  EvalStatus  NodeVarDecl::evalToStoreInto()
   {
-    assert(!m_varSymbol->isSuper());
-    // (from NodeIdent's makeUlamValuePtr)
-    UlamValue ptr;
-    if(m_varSymbol->isSelf())
-      {
-	//when "self/atom" is a quark, we're inside a func called on a quark (e.g. dm or local)
-	//'atom' gets entire atom/element containing this quark; including its type!
-	//'self' gets type/pos/len of the quark from which 'atom' can be extracted
-	UlamValue selfuvp = m_state.m_currentSelfPtr;
-	UTI ttype = selfuvp.getPtrTargetType();
-	assert(m_state.okUTItoContinue(ttype));
-	if((m_state.getUlamTypeByIndex(ttype)->getUlamClassType() == UC_QUARK))
-	  {
-	    if(m_varSymbol->isSelf())
-	      selfuvp = m_state.getAtomPtrFromSelfPtr();
-	    //else
-	  }
-	return selfuvp;
-      } //done
-
-    assert(!m_varSymbol->isAutoLocal()); //nodevarref, not here!
-    assert(!m_varSymbol->isDataMember());
-    //local variable on the stack; could be array ptr!
-    ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
-    return ptr;
-  } //makeUlamValuePtr
+    assert(0); //no way to get here!
+    return ERROR;
+  }
 
   // parse tree in order declared, unlike the ST.
-  void NodeVarDecl::genCode(File * fp, UVPass& uvpass)
+  void NodeVarDecl::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_varSymbol);
-    assert(m_state.isComplete(getNodeType()));
+    assert(getNodeType() != Nav);
 
-    assert(!m_varSymbol->isDataMember()); //NodeVarDeclDM::genCode
-    assert(!m_varSymbol->isAutoLocal()); //NodeVarRef::genCode
+    if(m_varSymbol->isDataMember())
+      {
+	return genCodedBitFieldTypedef(fp, uvpass);
+      }
+
+    if(m_varSymbol->isAutoLocal())
+      {
+	return genCodedAutoLocal(fp, uvpass);
+      }
 
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
 
-    if(m_nodeInitExpr)
+    m_state.indent(fp);
+    if(!m_varSymbol->isDataMember())
       {
-	m_nodeInitExpr->genCode(fp, uvpass);
-
-	m_state.indentUlamCode(fp);
-	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
-	fp->write(" ");
-	fp->write(m_varSymbol->getMangledName().c_str());
-	fp->write("("); // use constructor (not equals)
-	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str()); //VALUE
-	if(m_state.isAtomRef(vuti))
-	  fp->write(", uc");
-	fp->write(")");
-
-	fp->write(";"); GCNL; //func call args aren't NodeVarDecl's
-	m_state.clearCurrentObjSymbolsForCodeGen();
-	return; //done
+	fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars
       }
+    else
+      {
+	fp->write(vut->getUlamTypeMangledName().c_str()); //for C++
+	assert(0); //doesn't happen anymore..
+      }
+
+    fp->write(" ");
+    fp->write(m_varSymbol->getMangledName().c_str());
+
+    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
 
     //initialize T to default atom (might need "OurAtom" if data member ?)
     if(vclasstype == UC_ELEMENT)
       {
-	m_state.indentUlamCode(fp);
-	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
-	fp->write(" ");
-	fp->write(m_varSymbol->getMangledName().c_str());
-	if(vut->isScalar() && m_nodeInitExpr) //default constructor includes a GetDefaultAtom
-	  {
-	    fp->write("(");
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
-	    fp->write(".GetDefaultAtom())"); //returns object of type T
-	  }
-	//else
+	fp->write(" = ");
+	fp->write(m_state.getUlamTypeByIndex(vuti)->getUlamTypeMangledName().c_str());
+	fp->write("<EC>");
+	fp->write("::THE_INSTANCE");
+	fp->write(".GetDefaultAtom()"); //returns object of type T
       }
-    else if(vclasstype == UC_QUARK)
+
+    if(vclasstype == UC_QUARK)
       {
-	//left-justified. no initialization
-	m_state.indentUlamCode(fp);
-	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
-	fp->write(" ");
-	fp->write(m_varSymbol->getMangledName().c_str());
+	//right-justified?
+      }
+
+    fp->write(";\n"); //func call parameters aren't NodeVarDecl's
+  } //genCode
+
+
+  // variable is a data member; not an element
+  void NodeVarDecl::genCodedBitFieldTypedef(File * fp, UlamValue& uvpass)
+  {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    ULAMCLASSTYPE nclasstype = nut->getUlamClass();
+    ULAMCLASSTYPE classtype = m_state.getUlamClassForThisClass();
+
+    m_state.indent(fp);
+    if(nclasstype == UC_QUARK && nut->isScalar())
+      {
+	// use typedef rather than atomic parameter for quarks within elements,
+	// except if an array of quarks.
+	fp->write("typedef ");
+	fp->write(nut->getUlamTypeMangledName().c_str()); //for C++
+	fp->write("<EC, ");
+	if(classtype == UC_ELEMENT)
+	  fp->write_decimal(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
+	else
+	  {
+	    //inside a quark
+	    fp->write("POS + ");
+	    fp->write_decimal(m_varSymbol->getPosOffset());
+	  }
       }
     else
       {
-	m_state.indentUlamCode(fp);
-	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
-	fp->write(" ");
-	fp->write(m_varSymbol->getMangledName().c_str()); //default 0
+	fp->write("typedef AtomicParameterType");
+	fp->write("<EC"); //BITSPERATOM
+	fp->write(", ");
+	fp->write(nut->getUlamTypeVDAsStringForC().c_str());
+	fp->write(", ");
+	fp->write_decimal(nut->getTotalBitSize());   //include arraysize
+	fp->write(", ");
+	if(classtype == UC_QUARK)
+	  {
+	    fp->write("POS + ");
+	    fp->write_decimal(m_varSymbol->getPosOffset());
+	  }
+	else
+	  {
+	    assert(classtype == UC_ELEMENT);
+	    fp->write_decimal(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
+	  }
       }
-    fp->write(";"); GCNL; //func call args aren't NodeVarDecl's
-    m_state.clearCurrentObjSymbolsForCodeGen();
-  } //genCode
+    fp->write("> ");
+    fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
+    fp->write(";\n"); //func call parameters aren't NodeVarDecl's
+  } //genCodedBitFieldTypedef
+
+  // this is the auto local variable's node, created at parse time,
+  // for Conditional-As case.
+  void NodeVarDecl::genCodedAutoLocal(File * fp, UlamValue & uvpass)
+  {
+    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    // the uvpass comes from NodeControl, and still has the POS obtained
+    // during the condition statement for As..unorthodox, but necessary.
+    assert(uvpass.getUlamValueTypeIdx() == Ptr);
+    s32 tmpVarPos = uvpass.getPtrSlotIndex();
+
+    // before shadowing the lhs of the as-conditional variable with its auto,
+    // let's load its storage from the currentSelfSymbol:
+    s32 tmpVarStg = m_state.getNextTmpVarNumber();
+    UTI stguti = m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx();
+    UlamType * stgut = m_state.getUlamTypeByIndex(stguti);
+    assert(stguti == UAtom || stgut->getUlamClass() == UC_ELEMENT);
+
+    // can't let Node::genCodeReadIntoTmpVar do this for us:
+    assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
+    m_state.indent(fp);
+    fp->write(stgut->getTmpStorageTypeAsString().c_str());
+    fp->write("& ");
+    fp->write(m_state.getTmpVarAsString(stguti, tmpVarStg, TMPBITVAL).c_str());
+    fp->write(" = ");
+    fp->write(m_state.m_currentObjSymbolsForCodeGen[0]->getMangledName().c_str());
+
+    if(m_varSymbol->getId() != m_state.m_pool.getIndexForDataString("self"))
+      fp->write(".getRef()");
+    fp->write(";\n");
+
+    // now we have our pos in tmpVarPos, and our T in tmpVarStg
+    // time to shadow 'self' with auto local variable:
+    UTI vuti = m_varSymbol->getUlamTypeIdx();
+    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+
+    m_state.indent(fp);
+    fp->write(vut->getUlamTypeImmediateAutoMangledName().c_str()); //for C++ local vars, ie non-data members
+
+    fp->write("<EC> ");
+    fp->write(m_varSymbol->getMangledName().c_str());
+    fp->write("(");
+    fp->write(m_state.getTmpVarAsString(stguti, tmpVarStg, TMPBITVAL).c_str());
+
+    if(vclasstype == UC_QUARK)
+      {
+	fp->write(", ");
+	fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), tmpVarPos).c_str());
+      }
+    else if(vclasstype == UC_ELEMENT)
+      {
+	fp->write(", true"); //invokes 'badass' constructor
+      }
+    else
+      assert(0);
+
+    fp->write(");   //shadows lhs of 'as'\n");
+
+    m_state.m_genCodingConditionalAs = false; // done
+    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs ?
+  } //genCodedAutoLocal
 
   void NodeVarDecl::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {
-    assert(0); //see NodeVarDeclDM data members only
+    UTI nuti = getNodeType();
+
+    //output a case of switch statement
+    m_state.indent(fp);
+    fp->write("case ");
+    fp->write_decimal(dmcount);
+    fp->write(": { static UlamClassDataMemberInfo i(\"");
+    fp->write(m_state.getUlamTypeByIndex(nuti)->getUlamTypeMangledName().c_str());
+    fp->write("\", \"");
+    fp->write(m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str());
+    fp->write("\", ");
+    fp->write_decimal(m_varSymbol->getPosOffset());
+    fp->write("u); return i; }\n");
+
+    dmcount++; //increment data member count
   } //generateUlamClassInfo
 
 } //end MFM

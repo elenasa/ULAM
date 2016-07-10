@@ -1,0 +1,42 @@
+## -*- mode:ulam -*-
+#=t3373_test_compiler_unseenclassesholdertypedefs
+#!
+Exit status: 1
+Uq_A { /* empty class block */ }
+Ue_F { typedef Bool(1) Foo;  Int(32) test() {  Bool(1) f;  f true = { f cond f cast return if } 0 cast return } }
+Ue_E { typedef Bool(1) X;  <NOMAIN> }
+Ue_D { typedef Bool(1) X;  <NOMAIN> }
+#>A.ulam
+  ulam 1;
+//use F;
+//use E;
+//use D;
+quark A{ }
+
+#:F.ulam
+  ulam 1;
+element F{
+  typedef E.X Foo;
+  Int test(){
+    Foo f;
+    f = true;
+    if(f)
+      return (Int) f;
+    return 0;
+  }
+}
+##
+##      // simplify for testing
+##      //bool rtn2 = fms->add("F.ulam", "element F{\n typedef E.X Foo;\n Int test(){\n Foo f;\n return 0;\n}\n}\n");
+
+#:E.ulam
+  ulam 1;
+element E{
+  typedef D.X X;
+}
+#:D.ulam
+  ulam 1;
+element D{
+  typedef Bool X;
+}
+#.

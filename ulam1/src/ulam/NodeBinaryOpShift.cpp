@@ -16,22 +16,15 @@ namespace MFM {
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
     UTI newType = calcNodeType(leftType, rightType); //Bits, or Nav error
-    setNodeType(newType);
-    Node::setStoreIntoAble(TBOOL_FALSE);
 
-    if(m_state.isComplete(newType))
+    setNodeType(newType);
+    setStoreIntoAble(false);
+
+    if(newType != Nav && m_state.isComplete(newType))
       {
-	UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-	ULAMTYPE letyp = lut->getUlamTypeEnum();
-	if(letyp != Bits)
+	if(UlamType::compare(leftType, newType, m_state) != UTIC_SAME)
 	  {
-	    s32 lbs = UNKNOWNSIZE, wordsize = UNKNOWNSIZE;
-	    NodeBinaryOp::calcBitsizeForResultInBits(leftType, lbs, wordsize);
-	    //auto cast to Bits, a downhill cast. use LHS bitsize (not result bitsize
-	    //to avoid exhaustive casting-up to 32 bits, e.g. ulamexports).
-	    UlamKeyTypeSignature newleftkey(m_state.m_pool.getIndexForDataString("Bits"), lbs);
-	    UTI newleftType = m_state.makeUlamType(newleftkey, Bits, UC_NOTACLASS);
-	    if(!Node::makeCastingNode(m_nodeLeft, newleftType, m_nodeLeft))
+	    if(!makeCastingNode(m_nodeLeft, newType, m_nodeLeft))
 	      {
 		newType = Nav;
 		setNodeType(Nav);
@@ -40,7 +33,7 @@ namespace MFM {
 	//shift by unsigned type; cast if need be. safety checked by calcNodeType.
 	if(m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum() != Unsigned)
 	  {
-	    if(!Node::makeCastingNode(m_nodeRight, Unsigned, m_nodeRight))
+	    if(!makeCastingNode(m_nodeRight, Unsigned, m_nodeRight))
 	      {
 		newType = Nav;
 		setNodeType(Nav);
@@ -48,7 +41,7 @@ namespace MFM {
 	  }
       } //complete
 
-    if((newType != Nav) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+    if(newType != Nav && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
       return constantFold();
 
     return newType;
@@ -84,31 +77,26 @@ namespace MFM {
 
   UTI NodeBinaryOpShift::calcNodeType(UTI lt, UTI rt)
   {
-    if(!m_state.okUTItoContinue(lt, rt))
-      return Nav;
-
     if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
-      return Hzy;
+      return Nav;
 
     //no atoms, elements, nor void as either operand
     if(!NodeBinaryOp::checkForPrimitiveTypes(lt, rt))
 	return Nav;
 
-    UTI newType = Nav; //init to Nav
-    // LHS must be Bits..
+    UTI newType = Nav; //init
+    // change! LHS must be Bits..up to ulam programmer to cast
+    // (including quarks).
     if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
       {
 	bool bok = true;
-	//s32 lbs = resultBitsize(lt, rt);
-	//e.g. t3432, t3463, t3467
-	s32 lbs = UNKNOWNSIZE, wordsize = UNKNOWNSIZE;
-	NodeBinaryOp::calcBitsizeForResultInBits(lt, lbs, wordsize);
 
-	//will auto cast to Bits, a downhill cast. using LHS bitsize (not result size).
-	UlamKeyTypeSignature newleftkey(m_state.m_pool.getIndexForDataString("Bits"), lbs);
-	UTI newleftType = m_state.makeUlamType(newleftkey, Bits, UC_NOTACLASS);
+	s32 lbs = resultBitsize(lt, rt);
+	//auto cast to Bits, a downhill cast. use LHS bitsize.
+	UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), lbs);
+	newType = m_state.makeUlamType(newkey, Bits);
 
-	FORECAST lscr = m_nodeLeft->safeToCastTo(newleftType);
+	FORECAST lscr = m_nodeLeft->safeToCastTo(newType);
 	if(lscr != CAST_CLEAR)
 	  {
 	    std::ostringstream msg;
@@ -119,17 +107,10 @@ namespace MFM {
 	    if(lbs > 0)
 	      msg << "(" << lbs << ")";
 	    if(lscr == CAST_HAZY)
-	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		m_state.setGoAgain(); //for compiler counts
-		newType = Hzy;
-		bok = false;
-	      }
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    else
-	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		bok = false; //Nav;
-	      }
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    bok = false; //Nav;
 	  }
 
 	// RHS of shift must be Unsigned, or positive constant.
@@ -143,17 +124,10 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
 	    msg << " to Unsigned";
 	    if(rscr == CAST_HAZY)
-	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		m_state.setGoAgain(); //for compiler counts
-		newType = Hzy;
-		bok = false;
-	      }
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    else
-	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		bok = false; //Nav;
-	      }
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    bok = false; //Nav;
 	  }
 
 	//check for big shift values
@@ -168,14 +142,8 @@ namespace MFM {
 	      }
 	  }
 
-	if(bok)
-	  {
-	    //e.g. t3432, t3463, t3467, t3200, t3201, t3372, t3507, t3509
-	    s32 newbs = resultBitsize(lt, rt);
-	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), newbs);
-	    newType = m_state.makeUlamType(newkey, Bits, UC_NOTACLASS);
-	  }
-	//else newType = Nav or Hzy
+	if(!bok)
+	  newType = Nav;
       } //both scalars
     return newType;
   } //calcNodeType

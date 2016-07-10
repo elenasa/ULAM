@@ -1,0 +1,35 @@
+## -*- mode:ulam -*-
+#=t3257_test_compiler_arrayplusequal_issue
+#!
+Exit status: 0
+Ue_B { typedef Unsigned(8) Count;  typedef Unsigned(8) CountArray[4];  typedef Unsigned(2) Slot;  Unsigned(8) hitCount[4](1u,0u,0u,0u);  Int(32) test() {  ( 0 cast 1 cast )hit 0 cast return ; } }
+##      /*
+##	 typedef Unsigned(8) Count;
+##	 typedef Count CountArray[4];
+##	 typedef Unsigned(2) Slot;
+##	 CountArray hitCount;
+##
+##	 Void hit(Slot slot, Unsigned weight) {
+##	    hitCount[slot] += weight;
+##	 }
+##	 // //! WindowUtils.ulam:75:     hitCount[slot] += weight;
+##	 */
+##
+#>B.ulam
+  ulam 1;
+element B {
+  typedef Unsigned(8) Count;
+  typedef Count CountArray[4];
+  typedef Unsigned(2) Slot;
+  CountArray hitCount;
+  Void hit(Slot slot, Unsigned weight) {
+    hitCount[slot] += (Unsigned(8)) weight;
+  }
+  Int test(){
+    hit((Slot) 0, (Unsigned) 1);
+    return 0;
+    ;
+  }
+}
+
+#.

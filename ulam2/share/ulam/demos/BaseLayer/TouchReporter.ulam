@@ -1,0 +1,60 @@
+/**
+   Demonstrate touch awareness features of SiteUtils.
+   \symbol TR
+   \color #838
+   \symmetries all
+*/
+element TouchReporter {
+  typedef SiteUtils.TouchType TouchType;
+
+  typedef ColorUtils.Channel Channel;
+  typedef ColorUtils.ARGB ARGB;
+
+  typedef Unsigned(4) Timer;
+
+  EventWindow ew;
+  ColorUtils cu;
+  SiteUtils su;
+
+  TouchType m_touchType;
+  Timer m_touchCounter;
+
+  Void behave() {
+    TouchType tmp;
+    if ((tmp = su.getTouch()) != su.cTOUCH_TYPE_NONE)
+    {
+      if (tmp > m_touchType) {
+        m_touchType = tmp;
+        m_touchCounter = m_touchCounter.maxof;
+      }
+    } else if (--m_touchCounter == m_touchCounter.minof)
+    {
+      m_touchType = su.cTOUCH_TYPE_NONE;
+    }
+
+  }
+
+  ARGB getColor(Unsigned selector) {
+    ARGB tmp;
+    Channel c = m_touchCounter * m_touchCounter;
+    tmp[0] = 0xffu;
+    tmp[1] = 33u;
+    tmp[2] = 33u;
+    tmp[3] = 33u;
+    if (m_touchType == su.cTOUCH_TYPE_HEAVY) {
+      tmp[1] = c;
+      tmp[2] = c;
+      tmp[3] = c;
+    }
+    else if (m_touchType == su.cTOUCH_TYPE_LIGHT)
+    {
+      tmp[2] = c;
+      tmp[3] = c;
+    }
+    else if (m_touchType == su.cTOUCH_TYPE_PROXIMITY)
+    {
+      tmp[3] = c;
+    }
+    return tmp;
+  }
+}

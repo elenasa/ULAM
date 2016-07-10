@@ -5,24 +5,23 @@ Exit status: 1
 Ue_A { Int(3) b(2);  System s();  Bool(1) d(true);  Int(3) a(1);  Int(32) test() {  a 3 = b 2 = a a cast b cast ^ cast = s ( a )print . d a 1 cast == = a cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
-  ulam 1;
-use System;
-element A {
-  System s;
-  Bool d;
-  Int(3) a, b;
-  Int test() {
-    a = 3;
-    b = 2;
-    a = (Int(3)) ( a ^ b);
-    s.print(a);
-    d = (a == 1);
-    return a;
-  }
+ulam 1; use System; element A {System s;
+Bool d;
+Int(3) a, b;
+use test;
+a = 3;
+b = 2;
+a = (Int(3)) ( a ^ b);
+s.print(a);
+d = (a == 1);
+return a;
+}
 }
 
+#:test.ulam
+Int test() {
 #:System.ulam
-  ulam 1;
+ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

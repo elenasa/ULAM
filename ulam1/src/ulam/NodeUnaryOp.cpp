@@ -43,21 +43,13 @@ namespace MFM {
     return false;
   } //findNodeNo
 
-  void NodeUnaryOp::checkAbstractInstanceErrors()
-  {
-    if(m_node)
-      m_node->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
-
   void NodeUnaryOp::print(File * fp)
   {
     printNodeLocation(fp);
     UTI myut = getNodeType();
     char id[255];
-    if((myut == Nav) || (myut == Nouti))
+    if(myut == Nav)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
-    else if(myut == Hzy)
-      sprintf(id,"%s<HAZYTYPE>\n", prettyNodeName().c_str());
     else
       sprintf(id,"%s<%s>\n",prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
@@ -115,45 +107,40 @@ namespace MFM {
     assert(m_node);
     UTI uti = m_node->checkAndLabelType();
 
-    if(m_state.isComplete(uti) && !m_state.isScalar(uti)) //array unsupported at this time
+    if(!m_state.isScalar(uti)) //array unsupported at this time
       {
 	std::ostringstream msg;
 	msg << "Incompatible (nonscalar) type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
-	msg << ", for unary operator" << getName();
+	msg << " for unary operator" << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
 	return Nav;
       }
 
     UTI newType = Nav;
-    if(uti != Nav)
+    if(uti)
       newType = calcNodeType(uti); //does safety check
 
-    if(m_state.isComplete(newType))
+    if(newType != Nav && m_state.isComplete(newType))
       {
-	if(UlamType::compareForMakingCastingNode(newType, uti, m_state) != UTIC_SAME) //not same|dontknow
+	if(UlamType::compare(newType, uti, m_state) != UTIC_SAME) //not same|dontknow
 	  {
-	    if(!Node::makeCastingNode(m_node, newType, m_node))
+	    if(!makeCastingNode(m_node, newType, m_node))
 	      newType = Nav;
 	  }
       }
-    else
-      {
-	newType = Hzy;
-	m_state.setGoAgain(); //since not error
-      }
 
     setNodeType(newType);
-    Node::setStoreIntoAble(TBOOL_FALSE);
+    setStoreIntoAble(false);
 
-    if((newType != Nav) && isAConstant() && m_node->isReadyConstant())
+    if(newType != Nav && isAConstant() && m_node->isReadyConstant())
       return constantFold();
 
     return newType;
   } //checkAndLabelType
 
-  bool NodeUnaryOp::checkSafeToCastTo(UTI unused, UTI& newType)
+  bool NodeUnaryOp::checkSafeToCastTo(UTI newType)
   {
     bool rtnOK = true;
     FORECAST scr = m_node->safeToCastTo(newType);
@@ -170,16 +157,9 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
 	msg << " for unary operator" << getName();
 	if(scr == CAST_HAZY)
-	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    m_state.setGoAgain();
-	    newType = Hzy;
-	  }
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	else
-	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    newType = Nav;
-	  }
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	rtnOK = false;
       } //not safe
     return rtnOK;
@@ -188,8 +168,7 @@ namespace MFM {
   s32 NodeUnaryOp::resultBitsize(UTI uti)
   {
     s32 newbs = m_state.getBitSize(uti);
-    assert(m_state.okUTItoContinue(uti));
-    ULAMCLASSTYPE ct = m_state.getUlamTypeByIndex(uti)->getUlamClassType();
+    ULAMCLASSTYPE ct = m_state.getUlamTypeByIndex(uti)->getUlamClass();
 
     if(ct == UC_QUARK)
       newbs = MAXBITSPERINT; //32
@@ -245,10 +224,10 @@ namespace MFM {
     return rtnOK;
   } //checkForNumericType
 
-  void NodeUnaryOp::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
+  void NodeUnaryOp::countNavNodes(u32& cnt)
   {
-    Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt); //missing
-    m_node->countNavHzyNoutiNodes(ncnt, hcnt, nocnt); //no need to count self?
+    Node::countNavNodes(cnt); //missing
+    m_node->countNavNodes(cnt); //no need to count self?
   }
 
   UTI NodeUnaryOp::constantFold()
@@ -258,24 +237,8 @@ namespace MFM {
 
     if(nuti == Nav) return Nav; //nothing to do yet
 
-    //if(nuti == Hzy) return Hzy; //nothing to do yet TRY?
-
     // if here, must be a constant..
     assert(isAConstant());
-
-    NNO pno = Node::getYourParentNo();
-    assert(pno);
-    Node * parentNode = m_state.findNodeNoInThisClass(pno);
-    if(!parentNode)
-      {
-	std::ostringstream msg;
-	msg << "Constant value expression for unary op" << getName();
-	msg << " cannot be constant-folded at this time while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	msg << " Parent required";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	assert(0); //parent required
-      }
 
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(nuti); //offset a constant expression
@@ -284,9 +247,9 @@ namespace MFM {
       {
 	UlamValue cnstUV = m_state.m_nodeEvalStack.popArg();
 	u32 wordsize = m_state.getTotalWordSize(nuti);
-	if(wordsize <= MAXBITSPERINT)
+	if(wordsize == MAXBITSPERINT)
 	  val = cnstUV.getImmediateData(m_state);
-	else if(wordsize <= MAXBITSPERLONG)
+	else if(wordsize == MAXBITSPERLONG)
 	  val = cnstUV.getImmediateDataLong(m_state);
 	else
 	  assert(0);
@@ -298,23 +261,11 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Constant value expression for unary op" << getName();
-	msg << " is erroneous while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setNodeType(Nav);
-	return Nav;
-      }
-
-    if(evs == NOTREADY)
-      {
-	std::ostringstream msg;
-	msg << "Constant value expression for unary op" << getName();
 	msg << " is not yet ready while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	setNodeType(Hzy);
-	m_state.setGoAgain(); //for compiler counts
-	return Hzy;
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	setNodeType(Nav);
+	return Nav;
       }
 
     //replace ourselves (and kids) with a node terminal; new NNO unlike template's
@@ -322,8 +273,12 @@ namespace MFM {
     assert(newnode);
     newnode->setNodeLocation(getNodeLocation());
 
-    AssertBool swapOk = parentNode->exchangeKids(this, newnode);
-    assert(swapOk);
+    NNO pno = Node::getYourParentNo();
+    assert(pno);
+    Node * parentNode = m_state.findNodeNoInThisClass(pno);
+    assert(parentNode);
+
+    assert(parentNode->exchangeKids(this, newnode));
 
     std::ostringstream msg;
     msg << "Exchanged kids! for unary operator" << getName();
@@ -352,9 +307,6 @@ namespace MFM {
     UTI nuti = getNodeType();
     if(nuti == Nav)
       return ERROR;
-
-    if(nuti == Hzy)
-      return NOTREADY;
 
     evalNodeProlog(0); //new current frame pointer
     u32 slots = makeRoomForNodeType(nuti);
@@ -393,28 +345,18 @@ namespace MFM {
     UTI nuti = getNodeType();
     u32 len = m_state.getTotalBitSize(nuti);
 
-    UlamValue uv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slot); //immediate valueg
+    UlamValue uv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slot); //immediate value
 
-    if((uv.getUlamValueTypeIdx() == Nav) || (nuti == Nav))
+    if(uv.getUlamValueTypeIdx() == Nav || nuti == Nav)
       return false;
 
-    if((uv.getUlamValueTypeIdx() == Hzy) || (nuti == Hzy))
-      return false;
-
-    u32 data = uv.getImmediateData(len, m_state);
+    u32 data = uv.getImmediateData(len);
     UlamValue rtnUV = makeImmediateUnaryOp(nuti, data, len);
     m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
     return true;
   } //dounaryopImmediate
 
-  void NodeUnaryOp::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
-  {
-    assert(m_node);
-    m_node->calcMaxDepth(depth, maxdepth, base); //funccall?
-    return; //work done by NodeStatements and NodeBlock
-  }
-
-  void NodeUnaryOp::genCode(File * fp, UVPass& uvpass)
+  void NodeUnaryOp::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_node);
     m_node->genCode(fp, uvpass);
@@ -423,25 +365,31 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
 
-    m_state.indentUlamCode(fp);
+    m_state.indent(fp);
     fp->write("const ");
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
 
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
+    fp->write(m_state.getTmpVarAsString(getNodeType(),tmpVarNum).c_str());
     fp->write(" = ");
 
     fp->write(methodNameForCodeGen().c_str());
     fp->write("(");
-    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+
+    UTI uti = uvpass.getUlamValueTypeIdx();
+    assert(uti == Ptr);
+
+    fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), uvpass.getPtrSlotIndex()).c_str());
+
     fp->write(", ");
     fp->write_decimal(nut->getBitSize());
-    fp->write(");"); GCNL;
 
-    uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified.
+    fp->write(");\n");
+
+    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0); //POS 0 rightjustified.
   } //genCode
 
-  void NodeUnaryOp::genCodeToStoreInto(File * fp, UVPass& uvpass)
+  void NodeUnaryOp::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     genCode(fp,uvpass);
   }

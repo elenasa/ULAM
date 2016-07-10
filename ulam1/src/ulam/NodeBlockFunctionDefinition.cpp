@@ -2,7 +2,6 @@
 #include "NodeBlockFunctionDefinition.h"
 #include "CompilerState.h"
 #include "SymbolVariable.h"
-#include "SymbolVariableStack.h"
 #include "SymbolFunctionName.h"
 
 namespace MFM {
@@ -38,7 +37,7 @@ namespace MFM {
   void NodeBlockFunctionDefinition::updateLineage(NNO pno)
   {
     NodeBlock::updateLineage(pno);
-    m_state.pushCurrentBlock(this); //before?
+    m_state.pushCurrentBlock(this);
     if(m_nodeTypeDesc)
       {
 	m_nodeTypeDesc->updateLineage(getNodeNo());
@@ -61,14 +60,6 @@ namespace MFM {
     return false;
   } //findNodeNo
 
-  void NodeBlockFunctionDefinition::checkAbstractInstanceErrors()
-  {
-    if(m_nodeParameterList)
-      m_nodeParameterList->checkAbstractInstanceErrors();
-    if(m_nodeNext)
-      m_nodeNext->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
-
   void NodeBlockFunctionDefinition::setNodeLocation(Locator loc)
   {
     m_nodeParameterList->setNodeLocation(loc);
@@ -80,10 +71,8 @@ namespace MFM {
     printNodeLocation(fp);
     UTI myut = getNodeType();
     char id[255];
-    if((myut == Nav) || (myut == Nouti))
+    if(myut==Nav)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
-    if(myut == Hzy)
-      sprintf(id,"%s<HAZYTYPE>\n", prettyNodeName().c_str());
     else
       sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
@@ -180,12 +169,15 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Incomplete Function Return type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	msg << ", used with function name '" << getName() << "'";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	msg << " used with function name '" << getName();
+	msg << "' UTI" << it << " while labeling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	it = Nav;
       }
     else
       {
-	if(m_state.okUTItoContinue(fit) && (fit != it)) //exact UTI match
+	if(fit != Nav && fit != it) //exact UTI match
 	{
 	  std::ostringstream msg;
 	  msg << "Resetting function symbol UTI" << fit;
@@ -199,30 +191,36 @@ namespace MFM {
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  m_state.mapTypesInCurrentClass(fit, it);
 	  m_funcSymbol->resetUlamType(it); //consistent!
-	  //m_state.updateUTIAliasForced(fit, it); //Mon Jun  6 13:45:15 2016 ?
 	}
+
+	PACKFIT packed = m_state.determinePackable(it);
+	if(!WritePacked(packed) && !m_state.isScalar(it))
+	  {
+	    std::ostringstream msg;
+	    msg << "Function Definition <" << getName();
+	    msg << "> return type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    msg << " requires UNPACKED array support";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    it = Nav;
+	  }
       }
 
     setNodeType(it);
 
     if(it == Nav)
-      return Nav; //bail for this iteration
-
-    if(it == Hzy)
-      return Hzy; //bail for this iteration
+      return Nav;; //bail for this iteration
 
     m_state.pushCurrentBlock(this);
 
     m_state.m_currentFunctionReturnNodes.clear(); //vector of return nodes
     m_state.m_currentFunctionReturnType = it;
 
-    makeSuperSymbol(-(m_state.slotsNeeded(it) + 1)); //same as self?);
-
     if(m_nodeNext) //non-empty function
       {
 	m_nodeNext->checkAndLabelType(); //side-effect
-	if(!m_state.checkFunctionReturnNodeTypes(m_funcSymbol)) //gives some errors
-	  setNodeType(Nav); //tries to avoid assert in resolving loop; return sets goagain
+	if(!m_state.checkFunctionReturnNodeTypes(m_funcSymbol)) //gives errors
+	  setNodeType(Nav); //avoid assert in resolving loop
       }
     else
       {
@@ -245,57 +243,14 @@ namespace MFM {
     m_nodeParameterList->addNodeToList(nodeArg);
   }
 
-  void NodeBlockFunctionDefinition::makeSuperSymbol(s32 slot)
+  void NodeBlockFunctionDefinition::countNavNodes(u32& cnt)
   {
-    //UTI nuti = getNodeType();
-    //assert(m_state.okUTItoContinue(nuti));
-    UTI cuti = m_state.getCompileThisIdx();
-    UTI superuti = m_state.isClassASubclass(cuti);
-    SymbolVariableStack * supersym = NULL;
-    u32 superid = m_state.m_pool.getIndexForDataString("super");
-    if(!NodeBlock::isIdInScope(superid, (Symbol *&) supersym))
-      {
-	if(superuti != Nouti)
-	  {
-	    assert(m_state.okUTItoContinue(superuti));
-
-	    Token superTok(TOK_IDENTIFIER, getNodeLocation(), superid);
-	    supersym = new SymbolVariableStack(superTok, m_state.getUlamTypeAsRef(superuti, ALT_REF), slot, m_state);
-	    assert(supersym);
-	    supersym->setAutoLocalType(ALT_REF);
-	    supersym->setIsSuper();
-	    m_state.addSymbolToCurrentScope(supersym); //ownership goes to the block
-	  }
-	//else ok
-      }
-    else
-      {
-	if(superuti == Nouti)
-	  {
-	    AssertBool isGone = NodeBlock::removeIdFromScope(superid, (Symbol *&) supersym);
-	    assert(isGone);
-	    delete supersym;
-	    supersym = NULL;
-	  }
-	//else ok
-      }
-  } //makeSuperSymbol
-
-  void NodeBlockFunctionDefinition::printUnresolvedLocalVariables(u32 fid)
-  {
-    if(m_nodeParameterList)
-      m_nodeParameterList->printUnresolvedLocalVariables(fid);
-    m_nodeNext->printUnresolvedLocalVariables(fid);
-  } //printUnresolvedLocalVariables
-
-  void NodeBlockFunctionDefinition::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
-  {
-    NodeBlock::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+    NodeBlock::countNavNodes(cnt);
     if(m_nodeTypeDesc)
-      m_nodeTypeDesc->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+      m_nodeTypeDesc->countNavNodes(cnt);
     if(m_nodeParameterList)
-      m_nodeParameterList->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
-  } //countNavHzyNoutiNodes
+      m_nodeParameterList->countNavNodes(cnt);
+  } //countNavNodes
 
   EvalStatus NodeBlockFunctionDefinition::eval()
   {
@@ -306,34 +261,23 @@ namespace MFM {
     if(nuti == Nav)
       return ERROR;
 
-    if(nuti == Hzy)
-      return NOTREADY;
-
-    //for eval, native function blocks (NodeBlockEmpty) return Normal.
-    //if(isNative()) return UNEVALUABLE;
-
-    m_state.pushCurrentBlock(this); //push func def
-
     // m_currentObjPtr set up by caller
-    assert(m_state.okUTItoContinue(m_state.m_currentObjPtr.getPtrTargetType()));
+    assert(m_state.m_currentObjPtr.getUlamValueTypeIdx() != Nav);
     m_state.m_currentFunctionReturnType = nuti; //to help find hidden first arg
 
     evalNodeProlog(0); //new current frame pointer on node eval stack
     makeRoomForNodeType(nuti); //place for return vals node eval stack
 
     m_state.m_funcCallStack.addFrameSlots(getMaxDepth()); //local variables on callstack!
-    //makeRoomForSlots(getMaxDepth(), STACK); //local variables on callstack!
 
     EvalStatus evs = m_nodeNext->eval();
-
-    m_state.popClassContext(); //restore
 
     PACKFIT packRtn = m_state.determinePackable(nuti);
     UlamValue rtnUV;
 
     if(evs == RETURN)
       {
-	if(m_state.isAtom(nuti) && (m_state.isScalar(nuti) || m_state.isReference(nuti)))
+	if(nuti == UAtom)
 	  {
 	    //avoid pointer to atom situation
 	    rtnUV = m_state.m_funcCallStack.loadUlamValueFromSlot(-1); //popArg();
@@ -356,7 +300,7 @@ namespace MFM {
       }
     else
       {
-	m_state.m_funcCallStack.returnFrame(m_state);
+	m_state.m_funcCallStack.returnFrame();
 	evalNodeEpilog();
 	return evs;
       }
@@ -364,9 +308,9 @@ namespace MFM {
     //save results in the node eval stackframe for function caller
     //return each element of the array by value,
     //in reverse order ([0] is last at bottom)
-    Node::assignReturnValueToStack(rtnUV);
+    assignReturnValueToStack(rtnUV);
 
-    m_state.m_funcCallStack.returnFrame(m_state);
+    m_state.m_funcCallStack.returnFrame();
     evalNodeEpilog();
     return NORMAL;
   } //eval
@@ -409,10 +353,8 @@ namespace MFM {
     //set self slot just below return value
     u32 selfid = m_state.m_pool.getIndexForDataString("self");
     Symbol * selfsym = NULL;
-    bool hazyKin = false; //return is always false?
-    AssertBool isDefined = m_state.alreadyDefinedSymbol(selfid, selfsym, hazyKin) && !hazyKin;
-    assert(isDefined);
-    s32 newslot = -2 - m_state.slotsNeeded(getNodeType()); //2nd hidden arg (was -1 - ???)
+    assert(m_state.alreadyDefinedSymbol(selfid, selfsym));
+    s32 newslot = -1 - m_state.slotsNeeded(getNodeType());
     s32 oldslot = ((SymbolVariable *) selfsym)->getStackFrameSlotIndex();
     if(oldslot != newslot)
       {
@@ -426,13 +368,10 @@ namespace MFM {
     NodeBlock::calcMaxDepth(depth, maxdepth, 1); // one for the frame ptr offset
     m_state.popClassContext();
 
-#if 0
-    // not sure this is the case??? Sat Apr 23 10:44:39 2016
     // special case test function:
     u32 testid = m_state.m_pool.getIndexForDataString("test");
     if(m_funcSymbol->getId() == testid)
       maxdepth += 1; //add spot for return since no caller does
-#endif
   } //calcMaxDepth
 
   void NodeBlockFunctionDefinition::setNative()
@@ -456,7 +395,7 @@ namespace MFM {
     m_funcSymbol = fsymptr;
   }
 
-  void NodeBlockFunctionDefinition::genCode(File * fp, UVPass& uvpass)
+  void NodeBlockFunctionDefinition::genCode(File * fp, UlamValue& uvpass)
   {
     // m_currentObjSymbol set up by caller
     //    assert(m_state.m_currentObjSymbolForCodeGen != NULL);
@@ -468,7 +407,7 @@ namespace MFM {
     assert(!isNative());
 
     fp->write("\n");
-    m_state.indentUlamCode(fp);
+    m_state.indent(fp);
     fp->write("{\n");
 
     m_state.m_currentIndentLevel++;
@@ -478,7 +417,7 @@ namespace MFM {
     m_state.m_currentIndentLevel--;
 
     fp->write("\n");
-    m_state.indentUlamCode(fp);
+    m_state.indent(fp);
     fp->write("} // ");
     fp->write(m_funcSymbol->getMangledName().c_str()); //end of function
     fp->write("\n\n\n");

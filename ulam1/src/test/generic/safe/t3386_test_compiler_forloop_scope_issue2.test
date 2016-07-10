@@ -7,32 +7,31 @@
 ##	 Int Arg: 0
 ##      */
 Exit status: 0
-Ue_A { Bool(7) b(true);  System s();  Int(32) d(0);  Int(32) test() {  d 3 cast = Int(32) index;  { index 0 cast = index d < cond b index 0 cast != cast = _1: index 1 cast += while } { Int(32) index = 0 cast;  index 3 cast < cond { d 1 cast -= s ( d )print . } _2: index 1 cast += while } d return } }
+Ue_A { Bool(7) b(true);  System s();  Int(32) d(0);  Int(32) test() {  d 3 cast = Int(32) index;  { index 0 cast = index d < cond b index 0 cast != cast = _1: index 1 cast += while } { Int(32) index;  index 0 cast = index 3 cast < cond { d 1 cast -= s ( d )print . } _2: index 1 cast += while } d return } }
 Uq_System { <NOMAIN> }
 ##
 ##       //informed by: WindowUtils, and 3266
 #>A.ulam
-  ulam 1;
 use System;
 element A {
-  System s;
-  Bool(7) b;
-  Int d;
-  Int test(){
-    d = 3;
-    Int index;
-    for(index = 0; index < d; ++index)
-      b = index != 0;
-    for(Int index = 0; index < 3; ++index){
-      --d;
-      s.print(d);
-    }
-    return d;
-  }
+System s;
+Bool(7) b;
+Int d;
+Int test(){
+d = 3;
+Int index;
+ for(index = 0; index < d; ++index)
+ b = index != 0;
+  for(Int index = 0; index < 3; ++index){
+ --d;
+s.print(d);
+ }
+ return d;
+}
 }
 
 #:System.ulam
-  ulam 1;
+ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

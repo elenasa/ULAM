@@ -17,18 +17,18 @@ namespace MFM {
     UTI rightType = m_nodeRight->checkAndLabelType();
 
     UTI newType = calcNodeType(leftType, rightType); //for casting
-    if(m_state.isComplete(newType))
+    if(newType != Nav && m_state.isComplete(newType))
       {
 	u32 errCnt = 0;
-	if(UlamType::compareForMakingCastingNode(rightType, newType, m_state) != UTIC_SAME)
+	if(UlamType::compare(rightType, newType, m_state) != UTIC_SAME)
 	  {
-	    if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
+	    if(!makeCastingNode(m_nodeRight, newType, m_nodeRight))
 	      errCnt++;
 	  }
 
-	if(UlamType::compareForMakingCastingNode(leftType, newType, m_state) != UTIC_SAME)
+	if(UlamType::compare(leftType, newType, m_state) != UTIC_SAME)
 	  {
-	    if(!Node::makeCastingNode(m_nodeLeft, newType, m_nodeLeft))
+	    if(!makeCastingNode(m_nodeLeft, newType, m_nodeLeft))
 	      errCnt++;
 	  }
 
@@ -38,10 +38,10 @@ namespace MFM {
 	  newType = Bool; //always Bool (default size) for node; after castings!
       }
     setNodeType(newType);
-    Node::setStoreIntoAble(TBOOL_FALSE);
+    setStoreIntoAble(false);
 
     //still may need casting (e.g. unary compared to an int) before constantfolding
-    if((newType != Nav) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+    if(newType != Nav && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
       return NodeBinaryOp::constantFold();
 
     return newType;
@@ -50,11 +50,8 @@ namespace MFM {
   //same as arith rules for relative comparisons.
   UTI NodeBinaryOpCompare::calcNodeType(UTI lt, UTI rt)
   {
-    if(!m_state.okUTItoContinue(lt, rt))
-      return Nav;
-
     if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
-      return Hzy;
+      return Nav;
 
     //no atoms, elements nor void as either operand
     if(!NodeBinaryOp::checkForPrimitiveTypes(lt, rt))
@@ -85,15 +82,16 @@ namespace MFM {
 	if(ltypEnum == Unsigned && rtypEnum == Unsigned)
 	  {
 	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Unsigned"), newbs);
-	    newType = m_state.makeUlamType(newkey, Unsigned, UC_NOTACLASS);
+	    newType = m_state.makeUlamType(newkey, Unsigned);
 	  }
 	else
 	  {
 	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Int"), newbs);
-	    newType = m_state.makeUlamType(newkey, Int, UC_NOTACLASS);
+	    newType = m_state.makeUlamType(newkey, Int);
 	  }
 
-	checkSafeToCastTo(getNodeType(), newType); ////Nav, Hzy or no change; outputs error msg
+	if(!NodeBinaryOp::checkSafeToCastTo(newType))
+	  newType = Nav; //outputs error msg
       } //both scalars
     return newType;
   } //calcNodeType
@@ -160,15 +158,12 @@ namespace MFM {
     if((luv.getUlamValueTypeIdx() == Nav) || (ruv.getUlamValueTypeIdx() == Nav))
       return false;
 
-    if((luv.getUlamValueTypeIdx() == Hzy) || (ruv.getUlamValueTypeIdx() == Hzy))
-      return false;
-
     UlamValue rtnUV;
     u32 wordsize = m_state.getTotalWordSize(luti);
     if(wordsize == MAXBITSPERINT)
       {
-	u32 ldata = luv.getImmediateData(len, m_state);
-	u32 rdata = ruv.getImmediateData(len, m_state);
+	u32 ldata = luv.getImmediateData(len);
+	u32 rdata = ruv.getImmediateData(len);
 	rtnUV = makeImmediateBinaryOp(luti, ldata, rdata, len);
       }
     else if(wordsize == MAXBITSPERLONG)
@@ -177,18 +172,15 @@ namespace MFM {
 	u64 rdata = ruv.getImmediateDataLong(len);
 	rtnUV = makeImmediateLongBinaryOp(luti, ldata, rdata, len);
       }
-    else
-      assert(0); //e.g. 0
+    //else
+      //assert(0);
 
     if(rtnUV.getUlamValueTypeIdx() == Nav)
       return false;
 
-    if(rtnUV.getUlamValueTypeIdx() == Hzy)
-      return false;
-
     m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
     return true;
-  } //dobinaryOperationImmediate
+  } //dobinaryopImmediate
 
   //unlike NodeBinaryOp, NodeBinaryOpCompare has a node type that's different from
   // its nodes, where left and right nodes are casted to be the same.
@@ -202,7 +194,7 @@ namespace MFM {
     UTI ruti = m_nodeRight->getNodeType();
     s32 arraysize = m_state.getArraySize(luti);
 
-    assert(arraysize == m_state.getArraySize(nuti)); //node is same array size as lhs/rhs
+    assert(arraysize = m_state.getArraySize(nuti)); //node is same array size as lhs/rhs
 
     s32 bitsize = m_state.getBitSize(luti);
     UTI scalartypidx = m_state.getUlamTypeAsScalar(luti);
@@ -222,9 +214,6 @@ namespace MFM {
     UlamValue lp = UlamValue::makeScalarPtr(lArrayPtr, m_state);
     UlamValue rp = UlamValue::makeScalarPtr(rArrayPtr, m_state);
 
-    u32 navCount = 0;
-    u32 hzyCount = 0;
-
     //make immediate result for each element inside loop
     for(s32 i = 0; i < arraysize; i++)
       {
@@ -240,76 +229,81 @@ namespace MFM {
 	else
 	  {
 	    rtnUV = makeImmediateBinaryOp(scalartypidx, ldata, rdata, bitsize);
-	    if(rtnUV.getUlamValueTypeIdx() == Nav)
-	      navCount++;
-	    else if(rtnUV.getUlamValueTypeIdx() == Hzy)
-	      hzyCount++;
 
 	    //cp result UV to stack, -1 (first array element deepest) relative to current frame pointer
 	    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -slots + i);
 	  }
-	AssertBool isNextLeft = lp.incrementPtr(m_state);
-	assert(isNextLeft);
-	AssertBool isNextRight = rp.incrementPtr(m_state);
-	assert(isNextRight);
+	assert(lp.incrementPtr(m_state));
+	assert(rp.incrementPtr(m_state));
       } //forloop
-
-    if(navCount > 0)
-      return false;
-
-    if(hzyCount > 0)
-      return false;
 
     if(WritePacked(packRtn))
       m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1); //store accumulated packed result
 
-    return false; //NOT IMPLEMENTED YET!
-  } //end dobinaryOperaationarray
+    return false;
+  } //end dobinaryoparray
 
-  void NodeBinaryOpCompare::genCode(File * fp, UVPass& uvpass)
+  void NodeBinaryOpCompare::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
+#ifdef TMPVARBRACES
+    m_state.indent(fp);
+    fp->write("{\n");
+    m_state.m_currentIndentLevel++;
+#endif
+
     // generate rhs first; may update current object globals (e.g. function call)
-    UVPass ruvpass;
+    UlamValue ruvpass;
     m_nodeRight->genCode(fp, ruvpass);
 
     // restore current object globals
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
-    UVPass luvpass;
+    UlamValue luvpass;
     m_nodeLeft->genCode(fp, luvpass); //updates m_currentObjSymbol
 
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
 
-    m_state.indentUlamCode(fp);
+    m_state.indent(fp);
     fp->write("const ");
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
 
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
+    fp->write(m_state.getTmpVarAsString(nuti,tmpVarNum).c_str());
     fp->write(" = ");
 
     fp->write(methodNameForCodeGen().c_str());
     fp->write("(");
 
-    UTI luti = luvpass.getPassTargetType(); //reset
-    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+    UTI luti = luvpass.getUlamValueTypeIdx();
+    assert(luti == Ptr);
+    luti = luvpass.getPtrTargetType(); //reset
+    fp->write(m_state.getTmpVarAsString(luti, luvpass.getPtrSlotIndex()).c_str());
 
     fp->write(", ");
-    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+
+    UTI ruti = ruvpass.getUlamValueTypeIdx();
+    assert(ruti == Ptr);
+    fp->write(m_state.getTmpVarAsString(ruvpass.getPtrTargetType(), ruvpass.getPtrSlotIndex()).c_str());
+
     fp->write(", ");
 
     //compare needs size of left/right nodes (only difference!)
     fp->write_decimal(m_state.getUlamTypeByIndex(luti)->getTotalBitSize());
 
-    fp->write(");"); GCNL;
+    fp->write(");\n");
 
-    uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0);  //P
+    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //P
 
+#ifdef TMPVARBRACES
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n"); //close for tmpVar
+#endif
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode
 

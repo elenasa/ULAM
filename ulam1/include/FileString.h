@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * FileString.h - Basic File handling in Strings for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014 The Regents of the University of New Mexico.
+ * Copyright (C) 2014 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file FileString.h - Basic File handling in Strings for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014 All rights reserved.
   \gpl
 */
 
@@ -51,7 +51,7 @@ namespace MFM
     {
     public:
       FileString(std::string & strptr, enum Mode mode);
-
+      
       ~FileString();
 
       /**  Reads the next unread byte stored in the string inside the
@@ -59,7 +59,7 @@ namespace MFM
 	   etc), returning -1 (EOF) if the end of the string has been reached.
       */
       virtual s32 read();
-
+      
 
       /**  Concatenates the given byte onto the string inside the FileString
 	   (assuming appropriate open mode, non-error conditions, etc)
@@ -68,13 +68,14 @@ namespace MFM
 
 
       virtual s32 close();
+     
 
-
-    private:
-      std::string & m_str;
-      enum Mode m_mode;
+    private:      
+      std::string & m_str;   
+      enum Mode m_mode; 
       size_t m_at;
   };
 }
 
 #endif  /* FILESTRING_H */
+    

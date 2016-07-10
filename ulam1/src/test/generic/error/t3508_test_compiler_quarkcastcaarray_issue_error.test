@@ -1,16 +1,18 @@
 ## -*- mode:ulam -*-
 #=t3508_test_compiler_quarkcastcaarray_issue_error
-##
-## caught during c&l instead
-##  //./QPort4.ulam:18:14: ERROR: Cannot explicitly cast custom array type Atom(96) to type: QPort4; Consider using a temporary variable.
-##
 #!
-./QPort4.ulam:18:14: ERROR: Cannot explicitly cast Atom(96) to type: QPort4.
-./QPort4.ulam:18:4: ERROR: Initial value expression for: s, initialization is invalid.
-./EventWindow.ulam:2:7: ERROR: 2 Nodes with erroneous types detected after type labeling class: EventWindow.
-Unrecoverable Program Type Label FAILURE.
+##
+##culamtest: UlamValue.cpp:480: MFM::u32 MFM::UlamValue::getImmediateData(MFM::s32) const: Assertion `getUlamValueTypeIdx() != UAtom' failed.
+##
+## without eval (NodeBlockClass define _DEBUG_SKIP_EVAL), only gencode:
+## ./QPort4.ulam:12:15: ERROR: Cannot explicitly cast custom array type Atom(96) to type: QPort4; Consider using a temporary variable.
+##
+Exit status: 0
+Ue_D { Int(32) test() {  QPort4 s;  s ( )update . 0 cast return } }
+Uq_QPort4 { typedef Unsigned(6) SiteNum;  typedef QPort4 Self;  EventWindow ew( typedef Unsigned(6) SiteNum; );  <NOMAIN> }
+Uq_EventWindow { typedef Unsigned(6) SiteNum;  <NOMAIN> }
 #>D.ulam
-//use QPort4;
+use QPort4;
 element D {
   Int test() {
     QPort4 s;
@@ -20,24 +22,18 @@ element D {
 }
 
 #:QPort4.ulam
-//  use EventWindow;
+  use EventWindow;
 quark QPort4
 {
-  //  typedef QPort4 Self;
+  typedef QPort4 Self;
   typedef EventWindow.SiteNum SiteNum;
   EventWindow ew;
   Void update()
   {
     SiteNum selfIdx = 1;
-   // outputs: BAD_CAST FAILURE
-   //Atom aa = ew[selfIdx]; //eadded
-   //Self s = (Self) aa;
-
-   // outputs compiler error (see above); then C++ error follows (why did we go on?)
-   //include/Uq_10106QPort410.tcc:36:82: error: ‘Um_2ew’ was not declared in this scope
-   //  Uh_tmpreg_loadable_216 = UlamElement<EC>::PositionOfDataMember(uc, Um_2ew.read
-
-   Self s = (Self) ew[selfIdx];
+    //Atom aa = ew[selfIdx]; //eadded
+    //Self s = (Self) aa;
+    Self s = (Self) ew[selfIdx];
   }
 }
 #:EventWindow.ulam

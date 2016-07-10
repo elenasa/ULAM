@@ -1,10 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3444_test_compiler_elementwithclassparameterunpackedarray_error
 #!
-./T.ulam:7:4: ERROR: Constant value expression for: y, is not a constant.
-./T.ulam:3:10: ERROR: 1 Nodes with erroneous types detected after type labeling class: T.
-./T.ulam:3:10: ERROR: 2 Nodes with unresolved types detected after type labeling class: T.
-Unrecoverable Program Type Label FAILURE.
+##
+##./S.ulam:2:17: ERROR: Named Constant 'y' cannot be based on a class type: BigSite.
+##./S.ulam:2:17: ERROR: Invalid constant definition of Type <BigSite> and Name <y>.
+##./T.ulam:7:10: ERROR: Too many Class Arguments (2); Class Template 'S' expects 1.
+##
+Exit status: -1
 ##
 ##    //informed by t3445
 ##

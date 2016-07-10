@@ -1,15 +1,15 @@
 ## -*- mode:ulam -*-
 #=t3487_test_compiler_ulamversion_error
 #!
-./Foo.ulam:3:1: ERROR: (Low Level) ulam version ending with <Int>.
-./Foo.ulam:1:1: ERROR: Empty/Incomplete Class Definition 'Foo'; Possible missing ending curly brace.
-./Foo.ulam:4:5: ERROR: Invalid Class Type <test>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
-./Foo.ulam:1:9: ERROR: Invalid Type: Foo.
- ERROR: No parse tree for This Class: Foo.
-Unrecoverable Program Parse FAILURE: <Foo.ulam>
-./NoParms.ulam:2:7: ERROR: Conflicting class args previously seen for class with no parameters <NoParms>.
-./Foo.ulam:2:1: ERROR: Invalid Type: NoParms.
-Unrecoverable Program Parse FAILURE: <NoParms.ulam>
+##
+##./Foo.ulam:3:1: ERROR: (Low Level) ulam version ending with <Int>.
+##./Foo.ulam:1:1: ERROR: Empty/Incomplete Class Definition 'Foo'; Possible missing ending curly brace.
+##./Foo.ulam:4:5: ERROR: Invalid Class Type <test>; KEYWORD should be 'element', 'quark', or 'union'.
+##./Foo.ulam:1:9: ERROR: Invalid Type: Foo.
+##
+Exit status: 0
+Ue_Foo { NoParms(1) boom( constant Unary(32) a = 1; );  Int(32) test() {  0 return } }
+Uq_NoParms { /* empty class block */
 ##
 ##      // invalid ulam version (note '1a' is fine, just no floats!)
 ##      //informed by 3340

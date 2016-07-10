@@ -11,27 +11,26 @@
 ##	 Unsigned Arg: 3 (**note: use to be 4)
 ##      */
 Exit status: 3
-Ue_Fu { System s();  Int(3) n(-4);  Int(3) m(3);  Unsigned(3) u(3u);  Int(32) test() {  n -4 cast = s ( n )print . s ( -4 cast )print . s ( 3 cast )print . s ( n -4 == )assert . m n - = s ( m )print . u n - cast = s ( u cast )print . m cast return } }
+Ue_Fu { System s();  Int(3) n(4);  Int(3) m(3);  Unsigned(3) u(3);  Int(32) test() {  n -4 cast = s ( n )print . s ( -4 cast )print . s ( 3 cast )print . s ( n -4 == )assert . m n - = s ( m )print . u n - cast = s ( u cast )print . m cast return } }
 Uq_System { <NOMAIN> }
 #>Fu.ulam
-  ulam 1;
+ulam 1;
 use System;
 element Fu {
-  System s;
-  Int(3) n,m;
-  Unsigned(3) u;
-  Int test(){
-    n = -4;
-    s.print(n);
-    s.print( (Int) n.minof);
-    s.print( (Int) n.maxof);
-    s.assert(n == n.minof);
-    m = -n;
-    s.print(m);
-    u = (Unsigned(3)) -n;
-    s.print(u);
-    return m;
-  }
+System s;
+Int(3) n,m;
+Unsigned(3) u;
+ Int test(){
+ n = -4;
+ s.print(n);
+ s.print( (Int) n.minof);
+ s.print( (Int) n.maxof);
+ s.assert(n == n.minof);
+ m = -n;
+ s.print(m);
+ u = (Unsigned(3)) -n; s.print((Unsigned) u);
+return m;
+}
 }
 
 ##
@@ -39,7 +38,7 @@ element Fu {
 ##      //bool rtn1 = fms->add("Fu.ulam", "ulam 1;\nuse System;\nelement Fu {\nSystem s;\nInt(3) n;\n Int test(){\n n = -4;\n/* s.print(n);\n*/ s.print( n.minof);\n return 0;\n}\n}\n");
 ##
 #:System.ulam
-  ulam 1;
+ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

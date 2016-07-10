@@ -1,0 +1,47 @@
+## -*- mode:ulam -*-
+#=t3241_test_compiler_unarymod
+##      /* gen code output:
+##	 Unary(3) Arg: 0x2
+##	 Unary(3) Arg: 0x1
+##	 Unary(3) Arg: 0x0
+##      */
+#!
+Exit status: 2
+Ue_A { Unary(3) b(3u);  System s();  Unary(3) a(2u);  Unary(3) c(2u);  Unary(3) d(1u);  Unary(3) f(0u);  Unary(4) e(4u);  Int(32) test() {  a 2u cast = b 3u cast = c a cast b cast % cast = s ( c )print . d b cast a cast / cast = s ( d )print . e 4 cast = f e cast a cast % cast cast = s ( f )print . c cast return } }
+Uq_System { <NOMAIN> }
+#>A.ulam
+  ulam 1;
+use System;
+element A {
+  System s;
+  Unary(3) a, b, c, d, f;
+  Unary(4) e;
+  Int test() {
+    a = 2u;
+    b = 3u;
+    c = a % b;
+    s.print(c);
+    d = b / a;
+    s.print(d);
+    e = 4;
+    f = (e % a);
+    s.print(f);
+    return c;
+  }
+}
+##      //2 / 1 == 2 bit
+##      // need explicit cast (Unary(3)) using e in rhs equation:
+##      //./A.ulam:13:3: ERROR: Attempting to implicitly cast from RHS type: Unsigned(4), to Unary type: Unary(3) for binary operator= without casting.
+##
+
+#:System.ulam
+ulam 1;
+quark System {Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

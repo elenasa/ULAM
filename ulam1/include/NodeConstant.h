@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeConstant.h - Node handling NamedConstants for ULAM
  *
- * Copyright (C) 2015-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2016 Ackleyshack LLC.
+ * Copyright (C) 2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeConstant.h - Node handling Named Constants for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2016 All rights reserved.
+  \date (C) 2015 All rights reserved.
   \gpl
 */
 
@@ -42,6 +42,8 @@
 #include "NodeIdent.h"
 #include "SymbolWithValue.h"
 #include "Token.h"
+#include "UlamType.h"
+
 
 namespace MFM{
 
@@ -50,9 +52,8 @@ namespace MFM{
   public:
 
     NodeConstant(Token tok, SymbolWithValue * symptr, CompilerState & state);
-
     NodeConstant(const NodeConstant& ref);
-
+    NodeConstant(const NodeIdent& iref);
     virtual ~NodeConstant();
 
     virtual Node * instantiate();
@@ -74,20 +75,18 @@ namespace MFM{
     virtual UTI checkAndLabelType();
 
     NNO getBlockNo();
-
     NodeBlock * getBlock();
 
     virtual bool assignClassArgValueInStubCopy();
 
     virtual EvalStatus eval();
 
-    virtual void genCode(File * fp, UVPass& uvpass);
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
   protected:
     Token m_token;
     SymbolWithValue * m_constSymbol;
     bool m_ready;
-    UTI m_constType;
 
     virtual void checkForSymbol();
     bool updateConstant();

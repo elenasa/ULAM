@@ -1,0 +1,97 @@
+## -*- mode:ulam -*-
+#=t3810_test_compiler_transientarray_funccallrefarg
+#!
+##      gen code output: (4 asserts)
+##
+Exit status: 0
+Ue_R { Bool(1) b(true);  Bool(1) c(true);  Bool(1) d(true);  Bool(1) e(true);  Int(32) test() {  System s;  QW qw;  A asingle;  asingle ( )setsp . b qw ( asingle cast )func . = s ( b )assert . A& singleref = asingle cast;  c qw ( singleref )func . = s ( c )assert . A ar[3];  ar 1 [] ( )setsp . d qw ( ar 1 [] cast )func . = s ( d )assert . A& r = ar 2 [] cast;  r ( )setsp . e qw ( r )func . = s ( e )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Un_A : QW { :<> Bool(7) sp(false);  <NOMAIN> }
+Uq_QW { <NOMAIN> }
+##
+## Dave requested a way to get default values for Self (within a quark);
+## a loophole, since a quark would be an undefined atom, but as a ref, its done (t3679)
+##
+## similar to 3685, except a transient
+##
+## revealed bug in eval,NodeIdent makeUlamValuePtr when m_currentObject was PtrAbs, new ptr should be too!
+##
+#>R.ulam
+  ulam 2;
+use System;
+use A;
+element R {
+  Bool b, c, d, e;
+
+  Int test(){
+    System s;
+    QW qw;
+    A asingle;
+    //case 0: not an array, just a ref arg
+    asingle.setsp(); //sp = true;
+    //b = asingle.getsp(); //WORKS
+    b = qw.func(asingle); //assert CallStack:106
+
+    //b = asingle.sp; WORKS!
+    s.assert(b);
+
+    A& singleref = asingle;
+    //c = singleref.getsp(); //WORKS
+    c = qw.func(singleref); //assert CallStack:106
+    s.assert(c);
+
+    A ar[3];
+    //case 1:
+    ar[1].setsp(); //sp = true;
+    d = qw.func(ar[1]);
+    //d = ar[1].sp;
+    s.assert(d);
+
+    //case 2:
+    A& r = ar[2];
+    r.setsp(); //sp = true;
+    e = qw.func(r);
+    //e = r.sp;
+    s.assert(e);
+
+    return 0;
+  }
+}
+
+#:A.ulam
+  ulam 2;
+use QW;
+transient A : QW {
+  Bool(7) sp;
+  Void setsp()
+  {
+    sp = true;
+  }
+
+  Bool(7) getsp()
+  {
+    return sp;
+  }
+}
+
+#:QW.ulam
+  ulam 2;
+quark QW {
+  Bool func(A& aarg)
+  {
+    return aarg.sp;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

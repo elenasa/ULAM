@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-  NodeTypeDescriptorSelect::NodeTypeDescriptorSelect(Token tokarg, UTI auti, NodeTypeDescriptor * node, CompilerState & state) : NodeTypeDescriptor(tokarg, auti, state), m_nodeSelect(node)
+  NodeTypeDescriptorSelect::NodeTypeDescriptorSelect(Token typetoken, UTI auti, NodeTypeDescriptor * node, CompilerState & state) : NodeTypeDescriptor(typetoken, auti, state), m_nodeSelect(node)
   {
     if(m_nodeSelect)
       m_nodeSelect->updateLineage(getNodeNo()); //for unknown subtrees
@@ -51,15 +51,14 @@ namespace MFM {
 
   const char * NodeTypeDescriptorSelect::getName()
   {
+    std::ostringstream nstr;
     if(m_nodeSelect)
       {
-	//std::ostringstream nstr;
-	//nstr << m_nodeSelect->getName();
-	//nstr << ".";
-	//return nstr.str().c_str();
-	return m_nodeSelect->getName();
+	nstr << m_nodeSelect->getName();
+	nstr << ".";
       }
-    return NodeTypeDescriptor::getName();
+    nstr << m_state.getTokenDataAsString(&m_typeTok);
+    return nstr.str().c_str();
   } //getName
 
   const std::string NodeTypeDescriptorSelect::prettyNodeName()
@@ -78,7 +77,8 @@ namespace MFM {
 	m_ready = true; // set here
       }
     else
-	m_state.setGoAgain();
+      m_state.setGoAgain();
+
 
     setNodeType(it);
     return getNodeType();
@@ -100,18 +100,16 @@ namespace MFM {
     if(m_nodeSelect->isReadyType())
       {
 	UlamType * selut = m_state.getUlamTypeByIndex(seluti);
-	ULAMTYPE seletyp = selut->getUlamTypeEnum();
-	if(seletyp == Class)
+	ULAMTYPE seletype = selut->getUlamTypeEnum();
+	if(seletype == Class)
 	  {
 	    SymbolClass * csym = NULL;
-	    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(seluti, csym);
-	    assert(isDefined);
+	    assert(m_state.alreadyDefinedSymbolClass(seluti, csym));
 
 	    m_state.pushClassContext(seluti, csym->getClassBlockNode(), csym->getClassBlockNode(), false, NULL);
 	    // find our id in the "selected" class, must be a typedef at top level
 	    Symbol * asymptr = NULL;
-	    bool hazyKin = false;
-	    if(m_state.alreadyDefinedSymbol(m_typeTok.m_dataindex, asymptr, hazyKin) && !hazyKin)
+	    if(m_state.alreadyDefinedSymbol(m_typeTok.m_dataindex, asymptr))
 	      {
 		if(asymptr->isTypedef())
 		  {
@@ -129,54 +127,13 @@ namespace MFM {
 			    std::ostringstream msg;
 			    msg << "Substituting Mapped UTI" << mappedUTI << ", ";
 			    msg << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
-			    msg << " for incomplete descriptor type: '";
+			    msg << " for incomplete descriptor type: ";
 			    msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
 			    msg << "' UTI" << auti << " while labeling class: ";
 			    msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-			    rtnuti = mappedUTI;
-			    rtnb = true;
+			    auti = mappedUTI;
 			  }
-			else if(m_state.alreadyDefinedSymbolByAncestor(m_typeTok.m_dataindex, asymptr, hazyKin) && !hazyKin)
-			  {
-			    if(asymptr->isTypedef())
-			      {
-				rtnuti = asymptr->getUlamTypeIdx();
-				rtnb = true;
-			      }
-			    else
-			      {
-				//error id is not a typedef
-				std::ostringstream msg;
-				msg << "Not a typedef <" << m_state.getTokenDataAsString(&m_typeTok).c_str();
-				msg << "> in another class ancester, " ;;
-				msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
-				msg <<" while compiling: ";
-				msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-				MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-				rtnuti = Nav; //?
-			      }
-			  }
-			else
-			  rtnuti = Hzy;
-
-			if(rtnb)
-			  {
-			    if(m_state.hasUnknownTypeInThisClassResolver(auti))
-			      {
-			    	m_state.removeKnownTypeTokenFromThisClassResolver(auti);
-			    	m_state.cleanupExistingHolder(auti, rtnuti);
-			      }
-			    else if(m_state.isHolder(rtnuti))
-			      {
-				rtnuti = Hzy; //not so fast!!
-				rtnb = false;
-			      }
-			  }
-		      }
-		    else
-		      {
-			//incomplete, but not a holder!! yippee (alittle progress)
 		      }
 		  }
 		else
@@ -189,7 +146,6 @@ namespace MFM {
 		    msg <<" while compiling: ";
 		    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-		    rtnuti = Nav; //?
 		  }
 	      }
 	    else
@@ -201,18 +157,10 @@ namespace MFM {
 		msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
 		msg <<" while compiling: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-		if(!hazyKin)
-		  {
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //new
-		    rtnuti = Nav;
-		  }
-		else
-		  {
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		    rtnuti = Hzy;
-		  }
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	      }
-	    m_state.popClassContext(); //restore
+
+	    m_state.popClassContext();
 	  }
 	else
 	  {
@@ -221,23 +169,19 @@ namespace MFM {
 	    msg << "Type selected by <" << m_state.getTokenDataAsString(&m_typeTok).c_str();
 	    msg << "> is NOT another class, " ;
 	    msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
-	    msg << ", rather a " << UlamType::getUlamTypeEnumAsString(seletyp) << " type,";
+	    msg << ", rather a " << UlamType::getUlamTypeEnumAsString(seletype) << " type,";
 	    msg <<" while compiling: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    rtnuti = Nav;
 	  }
-      }
-    else
-      rtnuti = Hzy; //else select not ready, so neither are we!!
+      } //else select not ready, so neither are we!!
     return rtnb;
   } //resolveType
 
-  void NodeTypeDescriptorSelect::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
+  void NodeTypeDescriptorSelect::countNavNodes(u32& cnt)
   {
-    NodeTypeDescriptor::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
-    if(m_nodeSelect)
-      m_nodeSelect->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+    Node::countNavNodes(cnt);
+    m_nodeSelect->countNavNodes(cnt);
   }
 
 } //end MFM

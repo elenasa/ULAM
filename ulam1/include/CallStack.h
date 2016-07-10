@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * callStack.h - Basic Call Stack handling for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file CallStack.h - Basic Call Stack handling for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -40,6 +40,7 @@
 #include <vector>
 #include "itype.h"
 #include "UlamValue.h"
+#include "UlamType.h"
 
 namespace MFM
 {
@@ -58,25 +59,11 @@ namespace MFM
     //returns new "zero"
     u32 addFrameSlots(u32 depth);
 
-    void returnFrame(CompilerState& state);
+    void returnFrame();
 
     u32 getCurrentFramePointer();
 
     u32 getRelativeTopOfStackNextSlot();
-
-    u32 getAbsoluteTopOfStackIndexOfNextSlot();
-
-    u32 getAbsoluteStackIndexOfSlot(s32 slot);
-
-    void storeUlamValueAtStackIndex(UlamValue uv, u32 index);
-
-    UlamValue loadUlamValueFromStackIndex(u32 index);
-
-    void storeUlamValueInSlot(UlamValue uv, s32 slot);
-
-    UlamValue loadUlamValueFromSlot(s32 slot); //recurse until no Ptr
-
-    UlamValue loadUlamValuePtrFromSlot(s32 slot); //once through
 
     void assignUlamValue(UlamValue luv, UlamValue ruv, CompilerState& state);
 
@@ -88,16 +75,16 @@ namespace MFM
 
     UlamValue popArg();           //doesn't change framepointer
 
+    UlamValue loadUlamValueFromSlot(s32 slot);
+
+    void storeUlamValueInSlot(UlamValue uv, s32 slot);
+
   private:
     std::vector<UlamValue> m_frames;
     u32 m_currentFrame;
     UTI m_intType;
 
-    UlamValue loadUlamValueSingleFromSlot(s32 slot); //once through
-
-    void assignUlamValueAtAbsoluteIndex(UlamValue pluv, UlamValue ruv, CompilerState& state);
   };
-
 }
 
 #endif  /* CALLSTACK_H */

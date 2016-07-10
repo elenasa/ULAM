@@ -1,0 +1,24 @@
+ulam 1;
+use Random;
+
+quark XTimer(Unary(5) bits)
+{
+  // With a max counter width of 5, the max value of Counter.maxof is
+  // 31, so 1u<<time cannot overflow
+  // (Wed Jul  1 14:22:21 2015 temporary for culam: cast to unsigned)
+  typedef Unsigned((Unsigned) bits) Counter;
+  Random r;
+  Counter time;
+
+  Void reset() { time = 0; }
+  Void trigger() { time = time.maxof; }
+
+  Bool alarm() { return time == time.maxof; }
+
+  Counter current() { return time; }
+  Counter count() {
+    if (!alarm() && r.oneIn((Unsigned) (1u<<time)))
+      ++time;
+    return time;
+  }
+}

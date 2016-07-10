@@ -1,19 +1,24 @@
 ## -*- mode:ulam -*-
 #=t3492_test_compiler_elementandquarkswclassargs_missingclass_error
 #!
-./R.ulam:5:5: ERROR: No class 'P' in <P.ulam>.
+##
+##./R.ulam:5:2: ERROR: Unresolved type <P> was never defined; Fails sizing.
+##./R.ulam:5:2: ERROR: Unresolved type <P> was never defined; Fails labeling.
+##
+Exit status: 3
+Ue_R { Int(32) psize(3);  Int(32) test() {  P(3) pvar;  psize pvar ( )poo . = psize return } }
+Uq_P { constant Int(32) a = NONREADYCONST;  Bool(UNKNOWN) b(false);  <NOMAIN> }
 ##
 ##      // missing P!!!
 ##
 #>R.ulam
-  ulam 1;
+ulam 1;
 element R {
-  Int psize;
-  Int test() {
-    P(3) pvar;
-    psize = pvar.poo();
-    return psize;
-  }
+ Int psize;
+ Int test() {
+ P(3) pvar; psize = pvar.poo();
+ return psize;
+}
 }
 use P;
 

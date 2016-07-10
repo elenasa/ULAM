@@ -48,7 +48,7 @@ namespace MFM {
     return;  //overrides NodeBlock
   }
 
-  void NodeBlockEmpty::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
+  void NodeBlockEmpty::countNavNodes(u32& cnt)
   {
     return;
   }
@@ -58,10 +58,10 @@ namespace MFM {
     return NORMAL;
   }
 
-  void NodeBlockEmpty::genCode(File * fp, UVPass& uvpass)
+  void NodeBlockEmpty::genCode(File * fp, UlamValue& uvpass)
   {
-    m_state.indentUlamCode(fp);
-    fp->write("{ /* empty */ }"); GCNL;
+    m_state.indent(fp);
+    fp->write("{ /* empty */ }\n");
   }
 
 } //end MFM

@@ -35,12 +35,6 @@ namespace MFM {
 
   UTI NodeUnaryOpBang::calcNodeType(UTI uti)
   {
-    if(uti == Nav)
-      return Nav;
-
-    if(!m_state.isComplete(uti))
-      return Hzy;
-
     ULAMTYPE typEnum = m_state.getUlamTypeByIndex(uti)->getUlamTypeEnum();
     if(typEnum == Bits)
       {
@@ -65,11 +59,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
 	msg << " to Bool";
 	if(scr == CAST_HAZY)
-	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    m_state.setGoAgain();
-	    newType = Hzy;
-	  }
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	else
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
@@ -77,7 +67,7 @@ namespace MFM {
       {
 	// safe to cast. use a bool bitsize.
 	UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bool"), newbs);
-	newType = m_state.makeUlamType(newkey, Bool, UC_NOTACLASS);
+	newType = m_state.makeUlamType(newkey, Bool);
       }
     return newType;
   } //calcNodeType

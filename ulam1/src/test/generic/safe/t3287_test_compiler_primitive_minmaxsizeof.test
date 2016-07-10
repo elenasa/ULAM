@@ -19,34 +19,34 @@
 ##
 ##      //constant fold minus; constants of lhs type; return sizeof Void (== 0u)
 Exit status: 0
-Ue_Fu { System s();  Int(32) test() {  Int(4) z;  s ( 4u )print . s ( -8 )print . s ( 7 )print . Unsigned(32) y;  s ( 32u )print . s ( 0u )print . s ( 4294967295u )print . Unary(3) x;  s ( 3u )print . s ( 0u )print . s ( 7u )print . Bool(3) v;  s ( 3u )print . s ( 0u )print . s ( 7u )print . Bits(2) t;  s ( 2u )print . 0u cast return } }
+Ue_Fu { System s();  Int(32) test() {  Int(4) z;  s ( 4u )print . s ( -8 )print . s ( 7 )print . Unsigned(32) y;  s ( 32u cast )print . s ( 0u cast )print . s ( 4294967295u )print . Unary(3) x;  s ( 3u )print . s ( 0u )print . s ( 7u )print . Bool(3) v;  s ( 3u )print . s ( 0u )print . s ( 7u )print . Bits(2) t;  s ( 2u )print . 0u cast return } }
 Uq_System { <NOMAIN> }
 #>Fu.ulam
-  ulam 1;
+ulam 1;
 use System;
 element Fu {
-  System s;
-  Int test(){
-    Int(4) z; s.print(z.sizeof);
-    s.print(z.minof);
-    s.print(z.maxof);
-    Unsigned y;
-    s.print(y.sizeof);
-    s.print(y.minof);
-    s.print(y.maxof);
-    Unary(3) x;
-    s.print(x.sizeof);
-    s.print(x.minof);
-    s.print(x.maxof);
-    Bool(3) v;
-    s.print(v.sizeof);
-    s.print(v.minof);
-    s.print(v.maxof);
-    Bits(2) t;
-    s.print(t.sizeof);
-    /*i = t.minof;
-      unsupported request minof Bits */  return Void.sizeof;
-  }
+System s;
+Int test(){
+Int(4) z; s.print(z.sizeof);
+ s.print(z.minof);
+ s.print(z.maxof);
+Unsigned y;
+ s.print((Unsigned) y.sizeof);
+ s.print((Unsigned) y.minof);
+ s.print(y.maxof);
+Unary(3) x;
+ s.print(x.sizeof);
+ s.print(x.minof);
+ s.print(x.maxof);
+ Bool(3) v;
+ s.print(v.sizeof);
+ s.print(v.minof);
+ s.print(v.maxof);
+Bits(2) t;
+ s.print(t.sizeof);
+ /*i = t.minof;
+ unsupported request minof Bits */  return Void.sizeof;
+}
 }
 
 
@@ -55,7 +55,7 @@ element Fu {
 ##
 
 #:System.ulam
-  ulam 1;
+ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

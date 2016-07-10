@@ -26,12 +26,6 @@ namespace MFM {
 
   UTI NodeUnaryOpPlus::calcNodeType(UTI uti)
   {
-    if(uti == Nav)
-      return Nav;
-
-    if(!m_state.isComplete(uti))
-      return Hzy;
-
     if(!NodeUnaryOp::checkForPrimitiveType(uti))
       return Nav; //outputs error msg
 
@@ -47,13 +41,13 @@ namespace MFM {
     return UlamValue::makeImmediate(type, data, len); //no change
   }
 
-  void NodeUnaryOpPlus::genCode(File * fp, UVPass& uvpass)
+  void NodeUnaryOpPlus::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_node);
     m_node->genCode(fp, uvpass); //essentially a no-op
   } //genCode
 
-  void NodeUnaryOpPlus::genCodeToStoreInto(File * fp, UVPass& uvpass)
+  void NodeUnaryOpPlus::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     assert(m_node);
     m_node->genCodeToStoreInto(fp, uvpass); //essentially a no-op ?

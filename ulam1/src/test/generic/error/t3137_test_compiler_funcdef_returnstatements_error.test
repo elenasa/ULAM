@@ -1,10 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3137_test_compiler_funcdef_returnstatements_error
 #!
-./D.ulam:6:3: ERROR: Returning incompatible (nonscalar) types: Int(3) as Int(3)[8].
-./D.ulam:1:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: D.
-Unrecoverable Program Type Label FAILURE.
-##
+##./D.ulam:5:1: ERROR: Returning incompatible (nonscalar) types: Int(3) as Int(3)[8].
+##./D.ulam:8:3: ERROR: Incompatible (nonscalar) types Int(3)[8] and Int(3)[8] for binary operator= ; Suggest writing a loop.
+Ue_D { typedef Int(3) Foo[8];  Int(3) d[8](1,0,0,0,0,0,0,0);  Int test() {  Bool mybool;  mybool true = d ( mybool )foo = d 0 [] } }
 #>D.ulam
 element D {
 typedef Int(3) Foo [8];

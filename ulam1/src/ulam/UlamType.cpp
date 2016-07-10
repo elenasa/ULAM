@@ -26,7 +26,8 @@ namespace MFM {
 #undef XY
 
 
-  UlamType::UlamType(const UlamKeyTypeSignature key, CompilerState & state) : m_key(key), m_state(state), m_wordLengthTotal(0), m_wordLengthItem(0)  {}
+  UlamType::UlamType(const UlamKeyTypeSignature key, CompilerState & state) : m_key(key), m_state(state), m_wordLengthTotal(0), m_wordLengthItem(0), m_max(S32_MIN), m_min(S32_MAX)
+  {}
 
   UlamType * UlamType::getUlamType()
   {
@@ -55,17 +56,21 @@ namespace MFM {
     return m_key;
   }
 
-  bool UlamType::isNumericType()
-  {
-    return false;
-  }
-
-  bool UlamType::isPrimitiveType()
-  {
-    return false;
-  }
-
   bool UlamType::cast(UlamValue & val, UTI typidx)
+  {
+    assert(0);
+    //std::cerr << "UlamType (cast) error! " << std::endl;
+    return false;
+  }
+
+  bool UlamType::castTo32(UlamValue & val, UTI typidx)
+  {
+    assert(0);
+    //std::cerr << "UlamType (cast) error! " << std::endl;
+    return false;
+  }
+
+  bool UlamType::castTo64(UlamValue & val, UTI typidx)
   {
     assert(0);
     //std::cerr << "UlamType (cast) error! " << std::endl;
@@ -81,20 +86,17 @@ namespace MFM {
 	msg << "Casting UNKNOWN sizes; " << getBitSize();
 	msg << ", Value Type and size was: " << typidx << "," << m_state.getBitSize(typidx);
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
-	return CAST_HAZY;  //includes Navs & Hzy's
+	return CAST_HAZY;  //includes Navs
       }
 
     //let packable arrays of same size pass...
-    if(!checkArrayCast(typidx))
-      return CAST_BAD;
-
-    return CAST_CLEAR;
+    return checkArrayCast(typidx) ? CAST_CLEAR : CAST_BAD;
   } //safeCast
 
   FORECAST UlamType::explicitlyCastable(UTI typidx)
   {
-    assert(0); //must be overridden (pure virtual unhappy)
-  }
+    return UlamType::safeCast(typidx); //default
+  } //explicitlyCastable
 
   bool UlamType::checkArrayCast(UTI typidx)
   {
@@ -102,55 +104,43 @@ namespace MFM {
       return true; //not arrays, ok
 
     bool bOK = true;
-    s32 arraysize = getArraySize();
-    s32 varraysize = m_state.getArraySize(typidx);
-    if(arraysize != varraysize)
+    if(getPackable() != PACKEDLOADABLE || m_state.determinePackable(typidx) != PACKEDLOADABLE)
       {
 	std::ostringstream msg;
-	msg << "Casting different Array sizes: ";
+	msg << "Casting requires UNPACKED array support: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
 	msg << " TO " ;
 	msg << getUlamTypeNameBrief().c_str();
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
-	    bOK = false;
+
+	bOK = false;
       }
     else
       {
-	std::ostringstream msg;
-	msg << "Casting (nonScalar) Array: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
-	msg << " TO " ;
-	msg << getUlamTypeNameBrief().c_str();
-	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+	s32 arraysize = getArraySize();
+	s32 varraysize = m_state.getArraySize(typidx);
+	if(arraysize != varraysize)
+	  {
+	    std::ostringstream msg;
+	    msg << "Casting different Array sizes: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
+	    msg << " TO " ;
+	    msg << getUlamTypeNameBrief().c_str();
+	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	    bOK = false;
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Casting (nonScalar) Array: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
+	    msg << " TO " ;
+	    msg << getUlamTypeNameBrief().c_str();
+	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+	  }
       }
     return bOK;
   } //checkArrayCast
-
-  bool UlamType::checkReferenceCast(UTI typidx)
-  {
-    //both complete; typidx is a reference
-    UlamKeyTypeSignature key1 = getUlamKeyTypeSignature();
-    UlamKeyTypeSignature key2 = m_state.getUlamKeyTypeSignatureByIndex(typidx);
-    ALT alt1 = key1.getUlamKeyTypeSignatureReferenceType();
-    ALT alt2 = key2.getUlamKeyTypeSignatureReferenceType();
-
-    if(key1.getUlamKeyTypeSignatureNameId() != key2.getUlamKeyTypeSignatureNameId())
-      return false;
-    if(key1.getUlamKeyTypeSignatureArraySize() != key2.getUlamKeyTypeSignatureArraySize())
-      return false;
-    if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
-      return false;
-
-    //skip rest in the case of array item, continue with usual size fit
-    if(alt1 == ALT_ARRAYITEM || alt2 == ALT_ARRAYITEM)
-      return true;
-
-    if(key1.getUlamKeyTypeSignatureBitSize() != key2.getUlamKeyTypeSignatureBitSize())
-	  return false;
-    //if(alt1 != ALT_NOT || alt2 == ALT_NOT) return false;
-
-    return true; //keys the same, except for reference type
-  } //checkReferenceCast
 
   void UlamType::getDataAsString(const u32 data, char * valstr, char prefix)
   {
@@ -191,15 +181,60 @@ namespace MFM {
     return UNKNOWNSIZE; //atom, class, nav, ptr, holder
   }
 
+  ULAMCLASSTYPE UlamType::getUlamClass()
+  {
+    return UC_NOTACLASS;
+  }
+
+  bool UlamType::isNumericType()
+  {
+    return false;
+  }
+
+  bool UlamType::isPrimitiveType()
+  {
+    return false;
+  }
+
+  const std::string UlamType::getUlamTypeAsStringForC()
+  {
+    assert(isComplete());
+
+    s32 len = getTotalBitSize(); //includes arrays
+    assert(len >= 0);
+    u32 roundUpSize = getTotalWordSize();
+
+    std::ostringstream ctype;
+    ctype << "BitField<BitVector<" << roundUpSize << ">, ";
+
+    if(isScalar())
+      ctype << getUlamTypeVDAsStringForC() << ", ";
+    else
+      ctype << "VD::BITS, "; //use BITS for arrays
+
+    if(!isScalar() && getPackable() != PACKEDLOADABLE)
+      {
+	s32 itemlen = getBitSize(); //per item
+	ctype << itemlen << ", " << getItemWordSize() - itemlen << ">";
+      }
+    else
+      ctype << len << ", " << roundUpSize - len << ">";
+
+    return ctype.str();
+  } //getUlamTypeAsStringForC
+
+  const std::string UlamType::getUlamTypeVDAsStringForC()
+  {
+    assert(0);
+    return "VD::NOTDEFINED";
+  }
+
   const std::string UlamType::getUlamTypeMangledType()
   {
     // e.g. parsing overloaded functions, may not be complete.
     std::ostringstream mangled;
     s32 bitsize = getBitSize();
     s32 arraysize = getArraySize();
-
-    if(isReference())
-      mangled << "r";
 
     if(arraysize > 0)
       mangled << ToLeximitedNumber(arraysize);
@@ -228,13 +263,7 @@ namespace MFM {
 
   const std::string UlamType::getUlamTypeUPrefix()
   {
-
     return "Ut_";
-  }
-
-  bool UlamType::needsImmediateType()
-  {
-    return false; //isComplete();
   }
 
   const std::string UlamType::getUlamTypeImmediateMangledName()
@@ -246,39 +275,28 @@ namespace MFM {
 
   const std::string UlamType::getUlamTypeImmediateAutoMangledName()
   {
-    assert(needsImmediateType());
+    assert(0); //only elements and quarks so far
+  }
 
-    if(isReference())
-      {
-	assert(0);
-	return getUlamTypeImmediateMangledName();
-      }
+  bool UlamType::needsImmediateType()
+  {
+    return isComplete();
+  }
 
-    //same as non-ref except for the 'r'
-    std::ostringstream  automn;
-    automn << "Ui_";
-    automn << getUlamTypeUPrefix().c_str();
-    automn << "r";
-    automn << getUlamTypeMangledType();
-    return automn.str();
-  } //getUlamTypeImmediateAutoMangledName
-
-  const std::string UlamType::getLocalStorageTypeAsString()
+  const std::string UlamType::getImmediateStorageTypeAsString()
   {
     std::ostringstream ctype;
-    ctype << getUlamTypeImmediateMangledName();
-    ctype << "<EC>"; //name of struct w typedef(bf) and storage(bv);
+    ctype << getUlamTypeImmediateMangledName(); //name of struct w typedef(bf) and storage(bv);
     return ctype.str();
-  } //getLocalStorageTypeAsString
+  } //getImmediateStorageTypeAsString
 
   const std::string UlamType::getImmediateModelParameterStorageTypeAsString()
   {
-    assert(0);
     std::ostringstream mpimangled;
     //substitutes Up_ for Ut_ for model parameter immediate
     mpimangled << "Ui_Up_" << getUlamTypeMangledType();
     return mpimangled.str();
-  } //getImmediateModelParameterStorageTypeAsString
+  } //getImmediateStorageTypeAsString
 
   const std::string UlamType::getArrayItemTmpStorageTypeAsString()
   {
@@ -302,76 +320,269 @@ namespace MFM {
       case 64:
 	ctype = "u64";
 	break;
-      case 96:
-	ctype = "BV96";
-	break;
       default:
 	{
-	  assert(!isScalar());
-	  //ctype = getTmpStorageTypeAsString(getItemWordSize()); //u32, u64 (inf loop)
-	  std::ostringstream cstr;
-	  if(sizebyints == (s32) getItemWordSize())
-	    cstr << "BitVector<" << getBitSize() << ">";
-	  else
-	    cstr << "BitVector<" << getTotalBitSize() << ">"; //entire array
-	  ctype = cstr.str();
+	  ctype = getTmpStorageTypeAsString(getItemWordSize()); //u32, u64
+	  //assert(0);
+	  //MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
 	}
       };
     return ctype;
   } //getTmpStorageTypeAsString
-
-  TMPSTORAGE UlamType::getTmpStorageTypeForTmpVar()
-  {
-    return TMPREGISTER; //unpacked arrays reflected in tmp name.
-  }
 
   const char * UlamType::getUlamTypeAsSingleLowercaseLetter()
   {
     return UlamType::getUlamTypeEnumCodeChar(getUlamTypeEnum());
   } //getUlamTypeAsSingleLowercaseLetter
 
-  const std::string UlamType::castMethodForCodeGen(UTI nodetype)
+  void UlamType::genUlamTypeMangledDefinitionForC(File * fp)
   {
-    std::ostringstream rtnMethod;
-    UlamType * nut = m_state.getUlamTypeByIndex(nodetype);
-    //base types e.g. Int, Bool, Unary, Foo, Bar..
-    u32 sizeByIntBitsToBe = getTotalWordSize();
-    u32 sizeByIntBits = nut->getTotalWordSize();
+    m_state.m_currentIndentLevel = 0;
+    const std::string mangledName = getUlamTypeImmediateMangledName();
+    std::ostringstream  ud;
+    ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
+    std::string udstr = ud.str();
 
-    if(sizeByIntBitsToBe != sizeByIntBits)
+    u32 sizeByIntBits = getTotalWordSize();
+
+    m_state.indent(fp);
+    fp->write("#ifndef ");
+    fp->write(udstr.c_str());
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("#define ");
+    fp->write(udstr.c_str());
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("namespace MFM{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("struct ");
+    fp->write(mangledName.c_str());
+    fp->write("\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    //typedef bitfield inside struct
+    m_state.m_currentIndentLevel++;
+    m_state.indent(fp);
+    fp->write("typedef ");
+    fp->write(getUlamTypeAsStringForC().c_str()); //e.g. BitField
+    fp->write(" BF;\n");
+
+    //storage here
+    m_state.indent(fp);
+    fp->write("BitVector<");
+    fp->write_decimal(sizeByIntBits);
+    fp->write(">");
+    fp->write(" m_stg;\n");
+
+    //default constructor (used by local vars)
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("() : m_stg() { }\n");
+
+    //constructor here (used by const tmpVars)
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("(const ");
+    fp->write(getTmpStorageTypeAsString().c_str()); //u32
+    fp->write(" d) : m_stg(d) {}\n");
+
+    //read BV method
+    genUlamTypeReadDefinitionForC(fp);
+
+    //write BV method
+    genUlamTypeWriteDefinitionForC(fp);
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("};\n");
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //MFM\n");
+
+    m_state.indent(fp);
+    fp->write("#endif /*");
+    fp->write(udstr.c_str());
+    fp->write(" */\n\n");
+  } //genUlamTypeMangledDefinitionForC
+
+  void UlamType::genUlamTypeReadDefinitionForC(File * fp)
+  {
+    if(isScalar() || getPackable() == PACKEDLOADABLE)
       {
-	std::ostringstream msg;
-	msg << "Casting different word sizes; " << sizeByIntBits;
-	msg << ", Value Type and size was: " << nut->getUlamTypeName().c_str();
-	msg << ", to be: " << sizeByIntBitsToBe << " for type: ";
-	msg << getUlamTypeName().c_str();
-	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //u32
+	fp->write(" read() const { return BF::");
+	fp->write(readMethodForCodeGen().c_str());
 
-	//use the larger word size
-	if(sizeByIntBitsToBe < sizeByIntBits) //downcast using larger
-	  sizeByIntBitsToBe = sizeByIntBits;
+	if(isScalar())
+	  fp->write("(m_stg); }\n"); //done
 	else
-	  sizeByIntBits = sizeByIntBitsToBe;
+	  fp->write("(m_stg); }   //reads entire array\n");
       }
-    rtnMethod << "_" << nut->getUlamTypeNameOnly().c_str() << sizeByIntBits << "To";
-    rtnMethod << getUlamTypeNameOnly().c_str() << sizeByIntBitsToBe;
-    return rtnMethod.str();
-  } //castMethodForCodeGen
 
-  void UlamType::genUlamTypeMangledAutoDefinitionForC(File * fp)
-  {
-    assert(0); //see UlamTypePrimitive
-  } //genUlamTypeMangledAutoDefinitionForC
+    if(!isScalar())
+      {
+	//reads an element of array
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
+	fp->write(" readArrayItem(");
+	fp->write("const u32 index, const u32 unitsize) const { return BF::");
+	fp->write(readArrayItemMethodForCodeGen().c_str());
+	fp->write("(m_stg, index, unitsize");
+	fp->write("); }\n");
+      }
+  } //genUlamTypeReadDefinitionForC
 
-  void UlamType::genUlamTypeAutoReadDefinitionForC(File * fp)
+  void UlamType::genUlamTypeWriteDefinitionForC(File * fp)
   {
-    assert(0);
+    if(isScalar() || getPackable() == PACKEDLOADABLE)
+      {
+	m_state.indent(fp);
+	fp->write("void write(const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
+	fp->write(" v) { BF::");
+	fp->write(writeMethodForCodeGen().c_str());
+
+	if(isScalar())
+	  fp->write("(m_stg, v); }\n");
+	else
+	  fp->write("(m_stg, v); }   //writes entire array\n");
+      }
+
+    if(!isScalar())
+      {
+	// writes an element of array
+	m_state.indent(fp);
+	fp->write("void writeArrayItem(const ");
+	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
+	fp->write(" v, const u32 index, const u32 unitsize) { BF::");
+	fp->write(writeArrayItemMethodForCodeGen().c_str());
+	fp->write("(m_stg, v, index, unitsize");
+	fp->write("); }\n");
+      }
+  } //genUlamTypeWriteDefinitionForC
+
+  void UlamType::genUlamTypeMangledImmediateDefinitionForC(File * fp)
+  {
+    const std::string mangledName = getUlamTypeImmediateMangledName();
+    std::ostringstream  up;
+
+    m_state.indent(fp);
+    fp->write("typedef ");
+    fp->write(getUlamTypeAsStringForC().c_str()); //e.g. BitVector
+    fp->write(" ");
+    fp->write(mangledName.c_str());
+    fp->write(";\n");
   }
 
-  void UlamType::genUlamTypeAutoWriteDefinitionForC(File * fp)
+  void UlamType::genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp)
   {
-    assert(0);
-  }
+    assert(isScalar());
+
+    const std::string mangledName = getImmediateModelParameterStorageTypeAsString();
+
+    std::ostringstream  ud;
+    ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
+    std::string udstr = ud.str();
+
+    m_state.m_currentIndentLevel = 0;
+
+    m_state.indent(fp);
+    fp->write("#ifndef ");
+    fp->write(udstr.c_str());
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("#define ");
+    fp->write(udstr.c_str());
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("namespace MFM{\n");
+    fp->write("\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+    m_state.indent(fp);
+    fp->write("struct ");
+    fp->write(mangledName.c_str());
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("// immediate model parameter definition:\n");
+
+    //typedef atomic parameter type inside struct
+    m_state.indent(fp);
+    fp->write("typedef typename EC::ATOM_CONFIG AC;\n");
+    m_state.indent(fp);
+    fp->write("typedef typename AC::ATOM_TYPE T;\n");
+    m_state.indent(fp);
+    fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
+    fp->write("\n");
+
+    s32 len = getTotalBitSize();
+
+    m_state.indent(fp);
+    fp->write("typedef AtomicParameterType");
+    fp->write("<EC"); //BITSPERATOM
+    fp->write(", ");
+    fp->write(getUlamTypeVDAsStringForC().c_str());
+    fp->write(", ");
+    fp->write_decimal(len);
+    fp->write(", ");
+    fp->write_decimal(BITSPERATOM - len); //right-justified
+    fp->write("> ");
+    fp->write(" Up_Us;\n");
+
+    //reference to storage in atom
+    m_state.indent(fp);
+    fp->write("T* m_stgPtr;  //ptr to storage here!\n");
+
+    // constructor with args
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("() : m_stgPtr(NULL) { }\n");
+
+    m_state.indent(fp);
+    fp->write("const ");
+    fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
+    fp->write(" read() const { MFM_API_ASSERT_NONNULL(m_stgPtr); return Up_Us::");
+    fp->write(readMethodForCodeGen().c_str());
+    fp->write("(m_stgPtr->GetBits() ); }\n");
+
+    m_state.indent(fp);
+    fp->write("void init(T& realStg) { m_stgPtr = &realStg; }\n");
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("};\n");
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //MFM\n");
+
+    m_state.indent(fp);
+    fp->write("#endif /*");
+    fp->write(udstr.c_str());
+    fp->write(" */\n\n");
+  } //genUlamTypeMangledImmediateModelParameterDefinitionForC
 
   const char * UlamType::getUlamTypeEnumCodeChar(ULAMTYPE etype)
   {
@@ -396,11 +607,6 @@ namespace MFM {
       }
     return rtnUT; //static method
   } //getEnumFromUlamTypeString
-
-  ULAMCLASSTYPE UlamType::getUlamClassType()
-  {
-    return UC_ERROR;
-  }
 
   bool UlamType::isScalar()
   {
@@ -432,16 +638,6 @@ namespace MFM {
     return bitsize * arraysize; // >= 0
   }
 
-  ALT UlamType::getReferenceType()
-  {
-    return m_key.getUlamKeyTypeSignatureReferenceType();
-  }
-
-  bool UlamType::isReference()
-  {
-    return m_key.getUlamKeyTypeSignatureReferenceType() != ALT_NOT;
-  }
-
   bool UlamType::isHolder()
   {
     return false;
@@ -454,18 +650,14 @@ namespace MFM {
 
   ULAMTYPECOMPARERESULTS UlamType::compare(UTI u1, UTI u2, CompilerState& state)  //static
   {
-    assert((u1 != Nouti) && (u2 != Nouti));
-
     if(u1 == u2) return UTIC_SAME; //short-circuit
 
-    if((u1 == Nav) || (u2 == Nav)) return UTIC_NOTSAME;
-
-    if((u1 == Hzy) || (u2 == Hzy)) return UTIC_DONTKNOW;
+    if(u1 == Nav || u2 == Nav) return UTIC_NOTSAME;
 
     UlamType * ut1 = state.getUlamTypeByIndex(u1);
     UlamType * ut2 = state.getUlamTypeByIndex(u2);
-    ULAMCLASSTYPE ct1 = ut1->getUlamClassType();
-    ULAMCLASSTYPE ct2 = ut2->getUlamClassType();
+    ULAMCLASSTYPE ct1 = ut1->getUlamClass();
+    ULAMCLASSTYPE ct2 = ut2->getUlamClass();
     UlamKeyTypeSignature key1 = ut1->getUlamKeyTypeSignature();
     UlamKeyTypeSignature key2 = ut2->getUlamKeyTypeSignature();
 
@@ -500,163 +692,16 @@ namespace MFM {
     return (ut1 == ut2) ? UTIC_SAME : UTIC_NOTSAME;
   } //compare (static)
 
-  ULAMTYPECOMPARERESULTS UlamType::compareWithWildArrayItemReferenceType(UTI u1, UTI u2, CompilerState& state)  //static
-  {
-    assert((u1 != Nouti) && (u2 != Nouti));
-
-    if(u1 == u2) return UTIC_SAME; //short-circuit
-
-    if((u1 == Nav) || (u2 == Nav)) return UTIC_NOTSAME;
-
-    if((u1 == Hzy) || (u2 == Hzy)) return UTIC_DONTKNOW;
-
-    UlamType * ut1 = state.getUlamTypeByIndex(u1);
-    UlamType * ut2 = state.getUlamTypeByIndex(u2);
-    ULAMCLASSTYPE ct1 = ut1->getUlamClassType();
-    ULAMCLASSTYPE ct2 = ut2->getUlamClassType();
-    UlamKeyTypeSignature key1 = ut1->getUlamKeyTypeSignature();
-    UlamKeyTypeSignature key2 = ut2->getUlamKeyTypeSignature();
-
-    // Given Class Arguments: we may end up with different sizes given different
-    // argument values which may or may not be known while parsing!
-    // t.f. classes are much more like the primitive ulamtypes now.
-    // Was The Case: classes with unknown bitsizes are essentially as complete
-    // as they can be during parse time; and will have the same UTIs.
-    if(!ut1->isComplete())
-      {
-	if(ct1 == UC_NOTACLASS || ut1->getArraySize() == UNKNOWNSIZE)
-	  return UTIC_DONTKNOW;
-
-	//class with known arraysize(scalar or o.w.); no more Nav ids.
-	if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
-	  return UTIC_DONTKNOW;
-      }
-
-    if(!ut2->isComplete())
-      {
-	if(ct2 == UC_NOTACLASS || ut2->getArraySize() == UNKNOWNSIZE)
-	  return UTIC_DONTKNOW;
-
-	//class with known arraysize(scalar or o.w.); no more Nav ids.
-	if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
-	  return UTIC_DONTKNOW;
-      }
-
-    //both complete!
-    //keys may have different reference types in the case of array items
-    if(key1.getUlamKeyTypeSignatureNameId() != key2.getUlamKeyTypeSignatureNameId())
-       return UTIC_NOTSAME;
-
-    if(key1.getUlamKeyTypeSignatureArraySize() != key2.getUlamKeyTypeSignatureArraySize())
-      return UTIC_NOTSAME;
-
-    if(key1.getUlamKeyTypeSignatureBitSize() != key2.getUlamKeyTypeSignatureBitSize())
-      return UTIC_NOTSAME;
-
-    if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
-      return UTIC_NOTSAME; //?
-
-    ALT alt1 = key1.getUlamKeyTypeSignatureReferenceType();
-    ALT alt2 = key2.getUlamKeyTypeSignatureReferenceType();
-    if(alt1 != alt2)
-      {
-	if(alt1 == ALT_ARRAYITEM || alt2 == ALT_ARRAYITEM)
-	  return UTIC_SAME;
-	else
-	  return UTIC_NOTSAME;
-      }
-    return UTIC_SAME;
-  } //compareWithWildArrayItemReferenceType (static)
-
-  ULAMTYPECOMPARERESULTS UlamType::compareWithWildReferenceType(UTI u1, UTI u2, CompilerState& state)  //static
-  {
-    assert((u1 != Nouti) && (u2 != Nouti));
-
-    if(u1 == u2) return UTIC_SAME; //short-circuit
-
-    if((u1 == Nav) || (u2 == Nav)) return UTIC_NOTSAME;
-
-    if((u1 == Hzy) || (u2 == Hzy)) return UTIC_DONTKNOW;
-
-    UlamType * ut1 = state.getUlamTypeByIndex(u1);
-    UlamType * ut2 = state.getUlamTypeByIndex(u2);
-    ULAMCLASSTYPE ct1 = ut1->getUlamClassType();
-    ULAMCLASSTYPE ct2 = ut2->getUlamClassType();
-    UlamKeyTypeSignature key1 = ut1->getUlamKeyTypeSignature();
-    UlamKeyTypeSignature key2 = ut2->getUlamKeyTypeSignature();
-
-    // Given Class Arguments: we may end up with different sizes given different
-    // argument values which may or may not be known while parsing!
-    // t.f. classes are much more like the primitive ulamtypes now.
-    // Was The Case: classes with unknown bitsizes are essentially as complete
-    // as they can be during parse time; and will have the same UTIs.
-    if(!ut1->isComplete())
-      {
-	if(ct1 == UC_NOTACLASS || ut1->getArraySize() == UNKNOWNSIZE)
-	  return UTIC_DONTKNOW;
-
-	//class with known arraysize(scalar or o.w.); no more Nav ids.
-	if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
-	  return UTIC_DONTKNOW;
-      }
-
-    if(!ut2->isComplete())
-      {
-	if(ct2 == UC_NOTACLASS || ut2->getArraySize() == UNKNOWNSIZE)
-	  return UTIC_DONTKNOW;
-
-	//class with known arraysize(scalar or o.w.); no more Nav ids.
-	if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
-	  return UTIC_DONTKNOW;
-      }
-
-    //both complete!
-    //keys may have different reference types: (e.g. atomref = atom, atom = atomref)
-    if(key1.getUlamKeyTypeSignatureNameId() != key2.getUlamKeyTypeSignatureNameId())
-       return UTIC_NOTSAME;
-
-    if(key1.getUlamKeyTypeSignatureArraySize() != key2.getUlamKeyTypeSignatureArraySize())
-      return UTIC_NOTSAME;
-
-    if(key1.getUlamKeyTypeSignatureBitSize() != key2.getUlamKeyTypeSignatureBitSize())
-      return UTIC_NOTSAME;
-
-    //if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx()) return UTIC_NOTSAME;
-
-    ALT alt1 = key1.getUlamKeyTypeSignatureReferenceType();
-    ALT alt2 = key2.getUlamKeyTypeSignatureReferenceType();
-    if(alt1 != alt2)
-      {
-	return UTIC_SAME; //wild
-      }
-    return UTIC_SAME;
-  } //compareWithWildReferenceType (static)
-
-  ULAMTYPECOMPARERESULTS UlamType::compareForArgumentMatching(UTI u1, UTI u2, CompilerState& state)  //static
-  {
-    return UlamType::compareWithWildArrayItemReferenceType(u1, u2, state);
-  }
-
-  ULAMTYPECOMPARERESULTS UlamType::compareForMakingCastingNode(UTI u1, UTI u2, CompilerState& state)  //static
-  {
-    return UlamType::compareWithWildArrayItemReferenceType(u1, u2, state);
-  }
-
-  ULAMTYPECOMPARERESULTS UlamType::compareForUlamValueAssignment(UTI u1, UTI u2, CompilerState& state)  //static
-  {
-    return UlamType::compareWithWildReferenceType(u1, u2, state);
-  }
-
   u32 UlamType::getTotalWordSize()
   {
     assert(isComplete());
-    return m_wordLengthTotal; //e.g. 0, 32, 64, 96
+    return m_wordLengthTotal; //e.g. 32, 64, 96
   }
 
   u32 UlamType::getItemWordSize()
   {
     assert(isComplete());
-    return m_wordLengthItem; //e.g. 0, 32, 64, 96
+    return m_wordLengthItem; //e.g. 32, 64, 96
   }
 
   void UlamType::setTotalWordSize(u32 tw)
@@ -669,34 +714,39 @@ namespace MFM {
     m_wordLengthItem = iw; //e.g. 32, 64, 96
   }
 
-  u32 UlamType::getTotalNumberOfWords()
-  {
-    return getTotalWordSize()/MAXBITSPERINT; //wordsize was rounded up (no +31 needed)
-  }
-
   bool UlamType::isMinMaxAllowed()
   {
-    return false; //isScalar(); //minof/maxof allowed in ulam
+    return isScalar(); //minof/maxof allowed in ulam
   }
 
   u64 UlamType::getMax()
   {
-    assert(0);
+    return m_max;
   }
 
   s64 UlamType::getMin()
   {
-    assert(0);
+    return m_min;
   }
 
   u64 UlamType::getMax(UlamValue& rtnUV, UTI uti)
   {
-    assert(0);
+    u32 wordsize = getTotalWordSize();
+    if(wordsize == MAXBITSPERINT)
+      rtnUV = UlamValue::makeImmediate(uti, (u32) m_max, m_state);
+    else if(wordsize == MAXBITSPERLONG)
+      rtnUV = UlamValue::makeImmediateLong(uti, m_max, m_state);
+    return m_max;
   } //getMax (UlamValue)
 
   s64 UlamType::getMin(UlamValue& rtnUV, UTI uti)
   {
-    assert(0);
+    u32 wordsize = getTotalWordSize();
+    if(wordsize == MAXBITSPERINT)
+      rtnUV = UlamValue::makeImmediate(uti, (s32) m_min, m_state);
+    else if(wordsize == MAXBITSPERLONG)
+      rtnUV = UlamValue::makeImmediateLong(uti, (s64) m_min, m_state);
+    return m_min;
   } //getMin (UlamValue)
 
   PACKFIT UlamType::getPackable()
@@ -705,6 +755,7 @@ namespace MFM {
     u32 len = getTotalBitSize(); //could be 0, e.g. 'unknown'
 
     //scalars are considered packable (arraysize == NONARRAYSIZE); Atoms and Ptrs are NOT.
+    //if(len <= MAXBITSPERINT)
     if(len <= MAXBITSPERLONG)
       rtn = PACKEDLOADABLE;
     else
@@ -726,11 +777,10 @@ namespace MFM {
       case 64:
 	method = "ReadLong";
 	break;
-      case 96:
-	method = "ReadBig";
-	break;
       default:
-	method = "ReadBV"; //template arg deduced by gcc
+	method = "ReadUnpacked"; //TBD
+	//MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
+	assert(0);
       };
     return method;
   } //readMethodForCodeGen
@@ -748,11 +798,10 @@ namespace MFM {
       case 64:
 	method = "WriteLong";
 	break;
-      case 96:
-	method = "WriteBig";
-	break;
       default:
-	method = "WriteBV"; //template arg deduced by gcc
+	method = "WriteUnpacked"; //TBD
+	//MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
+	assert(0);
       };
     return method;
   } //writeMethodForCodeGen
@@ -765,16 +814,14 @@ namespace MFM {
       {
       case 0: //e.g. empty quarks
       case 32:
-	method = "Read"; //ReadArray
+	method = "ReadArray";
 	break;
       case 64:
-	method = "ReadLong"; //ReadArrayLong
-	break;
-      case 96:
-	method = "ReadBig";
+	method = "ReadArrayLong";
 	break;
       default:
-	method = "ReadBV"; //template arg deduced by gcc
+	method = "ReadArrayUnpacked"; //TBD
+	//assert(0);
       };
     return method;
   } //readArrayItemMethodForCodeGen()
@@ -787,66 +834,49 @@ namespace MFM {
       {
       case 0: //e.g. empty quarks
       case 32:
-	method = "Write"; //WriteArray
+	method = "WriteArray";
 	break;
       case 64:
-	method = "WriteLong"; //WriteArrayLong
-	break;
-      case 96:
-	method = "WriteBig";
+	method = "WriteArrayLong";
 	break;
       default:
-	method = "WriteBV"; //template arg deduced by gcc
+	method = "WriteArrayUnpacked"; //TBD
       };
     return method;
   } //writeArrayItemMethodForCodeGen()
 
-  //generates immediates with local storage
-  void UlamType::genUlamTypeMangledDefinitionForC(File * fp)
+  const std::string UlamType::castMethodForCodeGen(UTI nodetype)
   {
-    assert(0);
-  } //genUlamTypeMangledDefinitionForC
+    std::ostringstream rtnMethod;
+    UlamType * nut = m_state.getUlamTypeByIndex(nodetype);
+    //base types e.g. Int, Bool, Unary, Foo, Bar..
+    u32 sizeByIntBitsToBe = getTotalWordSize();
+    u32 sizeByIntBits = nut->getTotalWordSize();
 
-  void UlamType::genUlamTypeReadDefinitionForC(File * fp)
+    if(sizeByIntBitsToBe != sizeByIntBits)
+      {
+	std::ostringstream msg;
+	msg << "Casting different word sizes; " << sizeByIntBits;
+	msg << ", Value Type and size was: " << nut->getUlamTypeName().c_str();
+	msg << ", to be: " << sizeByIntBitsToBe << " for type: ";
+	msg << getUlamTypeName().c_str();
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+
+	//use the larger word size
+	if(sizeByIntBitsToBe < sizeByIntBits) //downcast using larger
+	  sizeByIntBitsToBe = sizeByIntBits;
+	else
+	  sizeByIntBits = sizeByIntBitsToBe;
+      }
+
+    rtnMethod << "_" << nut->getUlamTypeNameOnly().c_str() << sizeByIntBits << "To";
+    rtnMethod << getUlamTypeNameOnly().c_str() << sizeByIntBitsToBe;
+    return rtnMethod.str();
+  } //castMethodForCodeGen
+
+  void UlamType::genUlamTypeMangledAutoDefinitionForC(File * fp)
   {
-    assert(0);
+    assert(0); //only quarks and elements so far
   }
-
-  void UlamType::genUlamTypeWriteDefinitionForC(File * fp)
-  {
-    assert(0);
-  }
-
-  void UlamType::genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp)
-  {
-    assert(0);
-  } //genUlamTypeMangledUnpackedArrayAutoDefinitionForC
-
-  void UlamType::genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp)
-  {
-    assert(0);
-  } //genUlamTypeMangledUnpackedArrayDefinitionForC
-
-  void UlamType::genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp)
-  {
-    assert(0);
-  } //genUlamTypeMangledImmediateModelParameterDefinitionForC
-
-  bool UlamType::genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref)
-  {
-    assert(0);
-    return false; //only true for quarks in UlamTypeClass
-  }
-
-  void UlamType::genStandardConfigTypedefTypenames(File * fp, CompilerState& state)
-  {
-    state.indent(fp);
-    fp->write("typedef typename EC::ATOM_CONFIG AC;\n");
-    state.indent(fp);
-    fp->write("typedef typename AC::ATOM_TYPE T;\n");
-    state.indent(fp);
-    fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
-    fp->write("\n");
-  } //(static)
 
 } //end MFM

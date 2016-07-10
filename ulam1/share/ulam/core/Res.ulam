@@ -3,8 +3,6 @@
    \symbol R
    \color #60662e
    \symmetries all
-   \radius 1
-   \version 3
 */
 
 element Res {

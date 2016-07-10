@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolWithValue.h - Basic handling of symbols with values for ULAM
  *
- * Copyright (C) 2015-2106 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2016 Ackleyshack LLC.
+ * Copyright (C) 2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolWithValue.h - Basic handling of symbols with values for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2016 All rights reserved.
+  \date (C) 2015 All rights reserved.
   \gpl
 */
 
@@ -58,31 +58,18 @@ namespace MFM{
 
     virtual bool isConstant() = 0;
 
-    bool isClassParameter();
-    void setClassParameterFlag();
-
-    bool isClassArgument();
-    void setClassArgumentFlag();
-
     virtual bool isReady();
 
-    bool getLexValue(std::string& vstr);
-    bool getValue(u32& val);
-    bool getValue(u64& val);
-    bool getValue(BV8K& val);
-    void setValue(const BV8K& val);
+    bool isParameter();
+    void setParameterFlag();
 
-    bool hasInitValue();
-    bool getInitValue(u32& val);
-    bool getInitValue(u64& val);
-    bool getInitValue(BV8K& val);
-    void setInitValue(const BV8K& val);
-    bool isInitValueReady(); //new
-    void setHasInitValue(); //new
+    bool getLexValue(std::string& vstr);
+    bool getValue(s64& val);
+    bool getValue(u64& val);
+    void setValue(s64 val);
+    void setValue(u64 val);
 
     bool foldConstantExpression();
-
-    void printPostfixValue(File * fp);
 
     virtual const std::string getMangledPrefix() = 0;
 
@@ -92,18 +79,16 @@ namespace MFM{
 
   protected:
 
+    void printPostfixValue(File * fp);
+
   private:
     bool m_isReady;
-    bool m_hasInitVal;
-    bool m_isReadyInitVal;
-    bool m_classParameter; //constant has default but no value, look at instance
-    bool m_classArgument; //constant has value but no default, look at template parameter
+    bool m_parameter; //i.e. no value, look at instance
 
-    BV8K m_constantValue;
-    BV8K m_initialValue;
-
-    void printPostfixValueScalar(File * fp);
-    void printPostfixValueArray(File * fp);
+    union {
+      s64 sval;
+      u64 uval;
+    } m_constant;
   };
 } //MFM
 

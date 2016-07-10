@@ -11,23 +11,21 @@ Exit status: 0
 Ue_A { Int(3) b(3);  System s();  Bool(1) d(false);  Int(3) a(3);  Int(3) c(3);  Int(32) test() {  a 3 = b 3 = c a cast b cast +b cast = s ( c )print . a b += s ( a )print . d a cast c cast -b 0 cast != = s ( d ! )assert . d cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
-  ulam 1;
 use System;
-element A {
-  System s;
-  Bool d;
-  Int(3) a, b, c;
-  Int test() {
-    a = 3;
-    b = b.maxof; //was 4
-    c =(Int(3)) (a + b);
-    s.print(c);
-    a+=b;
-    s.print(a);
-    d=(a-c)!=0;
-    s.assert(!d);
-    return (Int) d;
-  }
+element A {System s;
+Bool d;
+Int(3) a, b, c;
+Int test() {
+a = 3;
+b = b.maxof; //was 4
+c =(Int(3)) (a + b);
+s.print(c);
+a+=b;
+s.print(a);
+d=(a-c)!=0;
+s.assert(!d);
+return (Int) d;
+}
 }
 
 #:System.ulam

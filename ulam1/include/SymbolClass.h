@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolClass.h -  Basic handling of Class Symbols for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolClass.h -  Basic handling of Class Symbols for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -43,11 +43,10 @@
 #include "NodeSquareBracket.h"
 #include "NodeConstantDef.h"
 #include "TargetMap.h"
-#include "MapClassMemberDesc.h"
-#include "VirtualTable.h"
-#include "BitVector.h"
+#include "ParameterMap.h"
 
 namespace MFM{
+
 
   class CompilerState;  //forward
   class SymbolClassNameTemplate;  //forward
@@ -66,9 +65,6 @@ namespace MFM{
 
     virtual bool isClassTemplate(UTI cuti);
 
-    void setSuperClass(UTI superclass);
-    UTI getSuperClass();
-
     void setClassBlockNode(NodeBlockClass * node);
 
     NodeBlockClass * getClassBlockNode();
@@ -77,7 +73,9 @@ namespace MFM{
 
     virtual const std::string getMangledPrefix();
 
-    ULAMCLASSTYPE getUlamClass(); //helper
+    ULAMCLASSTYPE getUlamClass();
+
+    void setUlamClass(ULAMCLASSTYPE type);
 
     void setQuarkUnion();
 
@@ -97,18 +95,7 @@ namespace MFM{
 
     void printBitSizeOfClass();
 
-    bool getDefaultQuark(u32& dqref);
-    bool getPackedDefaultValue(u64& dpkref);
-    bool getDefaultValue(BV8K& dvref); //return true if ready
-
     void testThisClass(File * fp); //eval-land
-
-    void addUnknownTypeTokenToClass(Token tok, UTI huti);
-    Token removeKnownTypeTokenFromClass(UTI huti);
-    bool hasUnknownTypeInClass(UTI huti);
-    bool statusUnknownTypeInClass(UTI huti);
-    bool statusUnknownTypeNamesInClass();
-    u32 reportUnknownTypeNamesInClass();
 
     bool statusNonreadyClassArguments();
 
@@ -118,14 +105,12 @@ namespace MFM{
     bool pendingClassArgumentsForClassInstance();
     void cloneResolverForStubClassInstance(const SymbolClass* csym, UTI context);
     void cloneResolverUTImap(SymbolClass * csym);
-    void cloneUnknownTypesMapInClass(SymbolClass * to);
 
     UTI getContextForPendingArgs();
 
     bool mapUTItoUTI(UTI auti, UTI mappedUTI);
     bool hasMappedUTI(UTI auti, UTI& mappedUTI);
     bool findNodeNoInResolver(NNO n, Node *& foundNode);
-    void countNavNodesInClassResolver(u32& ncnt, u32& hcnt, u32& nocnt);
 
     virtual void generateCode(FileManager * fm);
 
@@ -137,18 +122,7 @@ namespace MFM{
 
     void addTargetDescriptionMapEntry(TargetMap& classtargets, u32 scid);
 
-    void addClassMemberDescriptionsMapEntry(ClassMemberMap& classmembers);
-
-    void initVTable(s32 initialmax);
-    void updateVTable(u32 idx, SymbolFunction * fsym, UTI kinuti, bool isPure);
-    VT& getVTableRef();
-    bool isPureVTableEntry(u32 idx);
-    UTI getClassForVTableEntry(u32 idx);
-    std::string getMangledFunctionNameForVTableEntry(u32 idx);
-    std::string getMangledFunctionNameWithTypesForVTableEntry(u32 idx);
-    struct VTEntry getVTableEntry(u32 idx);
-
-    bool isAbstract();
+    void addModelParameterDescriptionsMapEntry(ParameterMap& classmodelparameters);
 
   protected:
     Resolver * m_resolver;
@@ -160,10 +134,6 @@ namespace MFM{
     SymbolClassNameTemplate * m_parentTemplate;
     bool m_quarkunion;
     bool m_stub;
-    BV8K m_defaultValue; //BitVector
-    bool m_isreadyDefaultValue;
-    UTI m_superClass; //single inheritance
-
 
     void generateHeaderPreamble(File * fp);
     void genAllCapsIfndefForHeaderFile(File * fp);
@@ -175,8 +145,6 @@ namespace MFM{
     void generateMain(FileManager * fm);
 
     static std::string firstletterTolowercase(const std::string s);
-
-    VT m_vtable;
   };
 
 }

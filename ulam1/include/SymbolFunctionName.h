@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolFunctionName.h -  Function Symbol Name handling for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolFunctionName.h -  Function Symbol Name handling for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016   All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -41,7 +41,6 @@
 #include <vector>
 #include "Symbol.h"
 #include "SymbolFunction.h"
-#include "MapClassMemberDesc.h"
 
 namespace MFM{
 
@@ -66,25 +65,15 @@ namespace MFM{
 
     bool overloadFunction(SymbolFunction * fsym);
 
-    u32 findMatchingFunctionStrictlyByTypes(std::vector<UTI> argTypes, SymbolFunction *& funcSymbol);
+    u32 findMatchingFunction(std::vector<UTI> argTypes, SymbolFunction *& funcSymbol);
 
-    u32 findMatchingFunction(std::vector<Node*> argNodes, SymbolFunction *& funcSymbol);
-
-    u32 findMatchingFunctionWithSafeCasts(std::vector<Node*> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
-
-    u32 findMatchingFunctionWithSafeCastsInAncestors(std::vector<Node*> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
+    u32 findMatchingFunctionWithConstantsAsArgs(std::vector<UTI> argTypes, std::vector<Node*> constArgs, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
 
     u32 getDepthSumOfFunctions();
 
     void calcMaxDepthOfFunctions(); //called after all UTI sizes are known
 
-    void calcMaxIndexOfVirtualFunctions(s32& maxidx);
-
-    void checkAbstractInstanceErrorsInFunctions();
-
-    void checkFunctionNames(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount);
-
-    void checkFunctionNamesInAncestor(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount);
+    u32 checkFunctionNames();
 
     u32 checkCustomArrayGetFunctions(UTI& rtnType);
 
@@ -102,23 +91,17 @@ namespace MFM{
 
     bool labelFunctions();
 
-    void countNavNodesInFunctionDefs(u32& ncnt, u32& hcnt, u32& nocnt);
-
-    void printUnresolvedLocalVariablesInFunctionDefs();
+    u32 countNavNodesInFunctionDefs();
 
     u32 countNativeFuncDecls();
 
     void generateCodedFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
-
-    void addFunctionDescriptionsToClassMemberMap(UTI classType, ClassMemberMap & classmembers);
 
   protected:
 
   private:
     std::map<std::string, SymbolFunction *> m_mangledFunctionNames; //mangled func name -> symbol function ptr
     bool isDefined(std::string mangledFName, SymbolFunction * & foundSym);
-
-    bool checkForDuplicateFunctionSignature(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount, SymbolFunction * fsym);
   };
 
 }

@@ -1,49 +1,41 @@
 ## -*- mode:ulam -*-
 #=t3407_test_compiler_quarkwithselfaselement
 #!
-##      /* gen code output (+ assert):
+##      /* gen code output:
 ##	 Int Arg: 1
 ##	 Int Arg: 2
 ##      */
-##
-## eval ans incorrect: i(2), exit status -11 or -1?
+##      //eval self doesn't reflect correctly: is an atom for quark's function call hidden arg
 ##
 Exit status: 0
-Ue_ElT : Typo { :<> Int(32) i(0);  Int(32) test() {  System s;  Atom(96) mar = self cast;  ( mar cast )incr self mar cast cast = s ( i )print . ( mar cast )incr self mar cast cast = s ( i )print . s ( i 2 cast == )assert . i return } }
+Ue_ElT { Int(32) i(0);  Typo t();  Typo r();  Int(32) test() {  System s;  t ( )incr . s ( i )print . r ( )incr . s ( i )print . i return } }
 Uq_Typo { <NOMAIN> }
 Uq_System { <NOMAIN> }
 #>ElT.ulam
-  ulam 1;
+ulam 1;
 use Typo;
 use System;
-element ElT : Typo {
-  Int i;
-  Int test() {
-    System s;
-    Atom mar = self;
-    incr(mar);
-    self = (ElT) mar;
-    s.print(i);
-    incr(mar);
-    self = (ElT) mar;
-    s.print(i);
-    s.assert(i == 2);
-    return i;
-  }
+ element ElT {
+Typo t,r;
+Int i;
+ Int test() {
+System s;
+ t.incr();
+ s.print(i);
+ r.incr();
+ s.print(i);
+ return i;
 }
+ }
 
 #:Typo.ulam
-  ulam 1;
+ulam 1;
 quark Typo {
-  Void incr(Atom& aref){
-    //Atom a = self.storageof; //atom; //self;
-    if(aref as ElT) {
-      aref.i += 1;
-      //self = a; //can't cast ElT& to Typo&, unless subclasso
-    }
-    //self.storageof = a; //atom = a; //self = a; invalid lhs
-    //self = (Typo) a; //ILLEGAL_ARGUMENT
-  }
+Void incr(){
+ if(self as ElT) {
+ self.i += 1;
+}
+}
  }
 #:System.ulam
 ulam 1;

@@ -51,13 +51,6 @@ namespace MFM {
     return false;
   } //findNodeNo
 
-  void NodeControlIf::checkAbstractInstanceErrors()
-  {
-    NodeControl::checkAbstractInstanceErrors();
-    if(m_nodeElse)
-      m_nodeElse->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
-
   void NodeControlIf::print(File * fp)
   {
     NodeControl::print(fp);
@@ -121,12 +114,12 @@ namespace MFM {
     depth += maxbody > maxelse ? maxbody : maxelse;
   } //calcMaxDepth
 
-  void NodeControlIf::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
+  void NodeControlIf::countNavNodes(u32& cnt)
   {
-    NodeControl::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+    NodeControl::countNavNodes(cnt);
     if(m_nodeElse)
-      m_nodeElse->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
-  } //countNavHzyNoutiNodes
+      m_nodeElse->countNavNodes(cnt);
+  } //countNavNodes
 
   EvalStatus  NodeControlIf::eval()
   {
@@ -135,9 +128,6 @@ namespace MFM {
     UTI nuti = getNodeType();
     if(nuti == Nav)
       return ERROR;
-
-    if(nuti == Hzy)
-      return NOTREADY;
 
     evalNodeProlog(0); //new current frame pointer
 
@@ -169,30 +159,42 @@ namespace MFM {
     // stored in a variable somewhere.
 
     //also copy result UV to stack, -1 relative to current frame pointer
-    Node::assignReturnValueToStack(cuv); //skip this for a break statement ???
+    assignReturnValueToStack(cuv); //skip this for a break statement ???
 
     evalNodeEpilog();
     return evs;
   } //eval
 
-  void NodeControlIf::genCode(File * fp, UVPass& uvpass)
+  void NodeControlIf::genCode(File * fp, UlamValue& uvpass)
   {
+#ifdef TMPVARBRACES
+    m_state.indent(fp);
+    fp->write("{\n");  //for overall tmpvars
+    m_state.m_currentIndentLevel++;
+#endif
+
     NodeControl::genCode(fp, uvpass);  //condition and body
 
     if(m_nodeElse)
       {
-	m_state.indentUlamCode(fp);
+	m_state.indent(fp);
 	fp->write("else\n");
-	m_state.indentUlamCode(fp);
+	m_state.indent(fp);
 	fp->write("{\n");
 	m_state.m_currentIndentLevel++;
 
 	m_nodeElse->genCode(fp, uvpass);
 
 	m_state.m_currentIndentLevel--;
-	m_state.indentUlamCode(fp);
+	m_state.indent(fp);
 	fp->write("} //end else\n");
       }
+
+#ifdef TMPVARBRACES
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n");  //overall tmpvar
+#endif
   } //genCode
 
 } //end MFM

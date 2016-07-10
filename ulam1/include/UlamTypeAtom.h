@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * UlamTypeAtom.h -  Basic handling of the Atom UlamType for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file UlamTypeAtom.h -  Basic handling of the Atom UlamType for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -52,47 +52,25 @@ namespace MFM{
 
     virtual ULAMTYPE getUlamTypeEnum();
 
-    virtual ULAMCLASSTYPE getUlamClassType();
+    virtual const std::string getUlamTypeVDAsStringForC();
 
     virtual bool needsImmediateType();
 
-    virtual const std::string getArrayItemTmpStorageTypeAsString();
-
     virtual const std::string getTmpStorageTypeAsString();
 
-    virtual const std::string getLocalStorageTypeAsString();
+    virtual const std::string getImmediateStorageTypeAsString();
 
-    virtual TMPSTORAGE getTmpStorageTypeForTmpVar();
+    virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
 
     virtual bool cast(UlamValue & val, UTI typidx);
 
     virtual FORECAST safeCast(UTI typidx);
-
-    virtual FORECAST explicitlyCastable(UTI typidx);
-
-    virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
-
-    virtual void genUlamTypeAutoReadDefinitionForC(File * fp);
-
-    virtual void genUlamTypeAutoWriteDefinitionForC(File * fp);
 
     virtual void genUlamTypeMangledDefinitionForC(File * fp);
 
     virtual void genUlamTypeReadDefinitionForC(File * fp);
 
     virtual void genUlamTypeWriteDefinitionForC(File * fp);
-
-    virtual void genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp);
-
-    virtual void genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp);
-
-    virtual const std::string readMethodForCodeGen();
-
-    virtual const std::string writeMethodForCodeGen();
-
-    virtual const std::string readArrayItemMethodForCodeGen();
-
-    virtual const std::string writeArrayItemMethodForCodeGen();
 
     virtual bool isMinMaxAllowed();
 

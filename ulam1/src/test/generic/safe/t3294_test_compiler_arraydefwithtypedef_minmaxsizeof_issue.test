@@ -6,28 +6,28 @@
 ##      */
 ##
 Exit status: 1
-Ue_Efoo { System s();  typedef Unsigned(3) PortId;  Bool(1) heardFrom[8](false,false,false,false,false,false,false,false);  Int(32) test() {  typedef Bool(3) B3;  Bool(3) b = true cast;  s ( 8u )print . b cast return } }
+Ue_Efoo { System s();  typedef Unsigned(3) PortId;  Bool(1) heardFrom[8](false,false,false,false,false,false,false,false);  Int(32) test() {  typedef Bool(3) B3;  Bool(3) b;  b true cast = s ( 8u )print . b cast return } }
 Uq_System { <NOMAIN> }
 #>Efoo.ulam
-  ulam 1;
+ulam 1;
 use System;
 element Efoo {
-  System s;
-  typedef Unsigned(3) PortId;
-  Bool heardFrom[PortId.maxof + 1];
-  Int test(){
-    typedef Bool(PortId.sizeof) B3;
-    B3 b = true;
-    s.print(heardFrom.sizeof);
-    return (Int) b;
-  }
-}
+System s;
+typedef Unsigned(3) PortId;
+ Bool heardFrom[PortId.maxof + 1];
+ Int test(){
+typedef Bool(PortId.sizeof) B3;
+ B3 b = true;
+s.print(heardFrom.sizeof);
+ return (Int) b;
+ }
+ }
 
 ##      // should be all right (note: [7 + 1] works)
 ##
 ##      // test system quark with native overloaded print funcs; assert
 #:System.ulam
-  ulam 1;
+ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

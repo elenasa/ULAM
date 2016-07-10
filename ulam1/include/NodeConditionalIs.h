@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeConditionalIs.h - Node for handling Is Expressions for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeConditionalIs.h - Node for handling Is Expressions for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -61,16 +61,12 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
-    virtual void genCode(File * fp, UVPass& uvpass);
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
     //TODO:
-    //virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
+    //virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
   protected:
-
-  private:
-    void genCodeAtomIs(File * fp, UVPass & uvpass);
-    void genCodeReferenceIs(File * fp, UVPass & uvpass);
 
   };
 

@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeBinaryOp.h - Basic Node for handling Binary Operations for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeBinaryOp.h - Basic Node for handling Binary Operations for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -58,8 +58,6 @@ namespace MFM{
 
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
-    virtual void checkAbstractInstanceErrors();
-
     virtual void print(File * fp);
 
     virtual void printPostfix(File * fp);
@@ -72,13 +70,11 @@ namespace MFM{
 
     virtual bool isReadyConstant();
 
-    virtual bool isFunctionCall();
-
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType();
 
-    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
+    virtual void countNavNodes(u32& cnt);
 
     virtual UTI constantFold();
 
@@ -86,11 +82,9 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
-    virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
-    virtual void genCode(File * fp, UVPass& uvpass);
-
-    virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
+    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
   protected:
     Node * m_nodeLeft;
@@ -106,17 +100,11 @@ namespace MFM{
 
     virtual UTI calcNodeType(UTI lt, UTI rt) = 0;
     virtual s32 resultBitsize(UTI lt, UTI rt); //op specific
-
     void resultBitsizeCalc(UTI lt, UTI rt, s32& lbs, s32&rbs, s32&lwordsize);
-    void calcBitsizeForResult(UTI uti, s32& bs, s32&wordsize, ULAMTYPE& typEnum); //helper
-
     void resultBitsizeCalcInBits(UTI lt, UTI rt, s32& lbs, s32&rbs, s32&lwordsize);
-    void calcBitsizeForResultInBits(UTI uti, s32& bs, s32&wordsize); //helper
-
-
     virtual UTI castThyselfToResultType(UTI rt, UTI lt, UTI newType);
     //common helpers for calcNodeType:
-    virtual bool checkSafeToCastTo(UTI fromType, UTI& newType);
+    bool checkSafeToCastTo(UTI newType);
     bool checkForPrimitiveTypes(UTI lt, UTI rt);
     bool checkNotVoidTypes(UTI lt, UTI rt);
     bool checkForNumericTypes(UTI lt, UTI rt);

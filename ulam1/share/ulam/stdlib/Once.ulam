@@ -1,44 +1,23 @@
-ulam 2;
+ulam 1;
 
-/** A resettable single-shot latch with templated width.  Space cost
-    is 2*bitpairs + 1.
-
-    \author Dave Ackley
-    \version 2
-    \license public-domain
-*/
-quark OnceT(Unary(15) bitpairs)
+quark Once_(Unary(15) bitpairs)
 {
   constant Unsigned oddw = 2*bitpairs + 1;
   typedef Bool(oddw) WBool;
   WBool done;
-
-  /** 
-    Test and set the latch.  Returns true if this is the first time
-    new() has been called (ever, or since the most recent call to
-    reset() ).
-
-    \sa reset
-   */
   Bool new() {
     if (done) return false;
     return done = true;
   }
-
-  /**
-     set the latch to 'unfired' again, so that the next call to new()
-     will return true.
-
-     \sa new
-   */
   Bool reset() {
     Bool was = done;
     done = false;
-    return was;
+    return done;
   }
 }
 
-/** A resettable single-shot latch.  Space cost: 1 bit
-    \sa OnceT
- */
-quark Once : OnceT(0) { }
+quark Once {
+  Once_(0) once;
+  Bool new() { return once.new(); }
+  Bool reset() { return once.reset(); }
+}

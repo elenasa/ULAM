@@ -24,12 +24,11 @@ static void doHelp()
           "  Each CLASS is the name of an ulam element \n"
           "  (or quark or union) to be compiled.\n"
           "\n"
-          "Switches:\n"
+          "Switches:"
           " -h      Print this help and exit\n"
           " -V      Print version info and exit\n"
           " -o DIR  Set output directory to DIR\n"
           " -i DIR  Add DIR to input directory search list\n"
-          " -g      Debug\n"
           "\n",
           progname);
   exit(0);
@@ -45,7 +44,6 @@ namespace MFM
       , m_sourceFile(0)
       , m_stdout(new FileStdio(stdout, MFM::WRITE))
       , m_stderr(new FileStdio(stderr, MFM::WRITE))
-      , m_doDebug(false)
     { }
 
     ~DriverState() {
@@ -73,12 +71,6 @@ namespace MFM
       std::cerr << "INTERNAL ERROR: " << msg << std::endl;
       std::cerr << "Exiting"  << std::endl;
       throw 1;
-    }
-
-    void doDebug()
-    {
-      std::cerr << "DEBUG: #LINE enabled" << std::endl;
-      m_doDebug = true;
     }
 
     void SplitPath(char * path, std::string & dir, std::string & file)
@@ -180,12 +172,11 @@ namespace MFM
       m_stderr->write("Errors to:    m_stderr\n");
       m_stderr->write("Returning:    0 iff compilation should continue on to C-level\n");
       */
-      C.setLinesForDebug(m_doDebug);
 
       int status = C.compileFiles(m_srcFileManager, m_classfiles, m_outFileManager, m_stderr);
       if (status == 0) {
         m_targetMap = C.getMangledTargetsMap();
-        m_memberMap = C.getMangledClassMembersMap();
+        m_parameterMap = C.getMangledParametersMap();
       }
       return status;
     }
@@ -200,19 +191,14 @@ namespace MFM
       return m_targetMap.end();
     }
 
-    ClassMemberMap::const_iterator ClassMemberMapBegin() const
+    ParameterMap::const_iterator ParameterMapBegin() const
     {
-      return m_memberMap.begin();
+      return m_parameterMap.begin();
     }
 
-    ClassMemberMap::const_iterator ClassMemberMapEnd() const
+    ParameterMap::const_iterator ParameterMapEnd() const
     {
-      return m_memberMap.end();
-    }
-
-    ClassMemberMap & GetClassMemberMap()
-    {
-      return m_memberMap;
+      return m_parameterMap.end();
     }
 
   private:
@@ -223,8 +209,7 @@ namespace MFM
     File * m_stderr;
     std::vector<std::string> m_classfiles;
     TargetMap m_targetMap;
-    ClassMemberMap m_memberMap;
-    bool m_doDebug;
+    ParameterMap m_parameterMap;
   };
 } /* namespace MFM */
 
@@ -262,13 +247,6 @@ int main(int argc, char ** argv)
             ds.AddInputDir(argv[0]);
             continue;
           }
-
-        if (!strcmp(arg,"-g"))
-	  {
-	    ds.doDebug();
-       	    continue;
-	  }
-
         if (arg[0] == '-') ds.UDie("Unrecognized switch: ", arg);
 
         noMoreSwitches = true;  // Whatever it is, it's not a switch
@@ -286,7 +264,6 @@ int main(int argc, char ** argv)
     int result = ds.RunCompilation(c);
     if (result == 0)
       {
-	//process UlamElementInfo here: (including quarks)
         for(MFM::TargetMap::const_iterator i = ds.TargetMapBegin(); i != ds.TargetMapEnd(); ++i)
           {
             std::cerr
@@ -297,29 +274,26 @@ int main(int argc, char ** argv)
               << " " << i->first
               << " " << i->second.m_bitsize
               << " " << (i->second.m_hasTest?"test":"notest")
-	      << " " << (i->second.m_classType == MFM::UC_QUARK ? "quark": (i->second.m_classType == MFM::UC_ELEMENT ? "element" : "transient"))
+              << " " << (i->second.m_isQuark?"quark":"element")
 	      << " " << MFM::HexEscape(i->second.m_structuredComment)
               << std::endl;
           }
 
-        for(MFM::ClassMemberMap::const_iterator i = ds.ClassMemberMapBegin(); i != ds.ClassMemberMapEnd(); ++i)
+        for(MFM::ParameterMap::const_iterator i = ds.ParameterMapBegin(); i != ds.ParameterMapEnd(); ++i)
           {
-	    const MFM::ClassMemberDesc * cmd = i->second.getClassMemberDesc();
-	    std::cerr
-	      << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
-	      << cmd->getMemberKind() << " "
-	      << MFM::HexEscape(c.getFullPathLocationAsString(cmd->m_loc))
-	      << " " << cmd->m_mangledClassName
-	      << " " << cmd->m_mangledType
-	      << " " << cmd->m_memberName
-	      << " " << cmd->m_mangledMemberName;
+            std::cerr
+              << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
+	      << "PARAMETER "
+              << MFM::HexEscape(c.getFullPathLocationAsString(i->second.m_loc))
+              << " " << i->second.m_mangledClassName
+              << " " << i->second.m_mangledType
+	      << " " << i->second.m_parameterName
+              << " " << i->second.m_mangledParameterName
+	      << " 0x" << std::hex << i->second.m_val
+	      << " " << MFM::HexEscape(i->second.m_structuredComment)
+              << std::endl;
+          }
 
-	    if(cmd->hasValue())
-	      std::cerr << cmd->getValueAsString();
-
-	    std::cerr << " " << MFM::HexEscape(cmd->m_structuredComment)
-		      << std::endl;
-	  }
       }
     return result;
   }

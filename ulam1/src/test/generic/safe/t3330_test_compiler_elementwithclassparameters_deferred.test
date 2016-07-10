@@ -6,7 +6,7 @@
 ##
 Exit status: 0
 Ue_T { S(1,2) m( constant Int(32) x = 1;  constant Int(32) y = 2; );  Int(32) test() {  m ( )func . 0 cast return } }
-Uq_S(Int(32) x, Int(32) y) { <NOMAIN> }
+Uq_S { constant Int(32) x = NONREADYCONST;  constant Int(32) y = NONREADYCONST;  <NOMAIN> }
 ##
 ##    //informed by t3255
 ##    //can't return named constant in another class 'return S(1,2).x;'

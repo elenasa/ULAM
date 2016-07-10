@@ -1,8 +1,7 @@
 #include <iostream>
 #include <stdio.h>
-#include "Compiler.h"
-#include "FileManagerStdio.h"
 #include "TestCase_EndToEndCompilerGeneric.h"
+#include "Compiler.h"
 
 namespace MFM {
 
@@ -34,7 +33,7 @@ namespace MFM {
           die("Impossible");
         case START:
           die("Non '#' content with no file or answer active");
-        case IN_FILE:
+        case FILE:
           newFileData(m_currentLine);
           break;
         case ANSWER:
@@ -66,7 +65,7 @@ namespace MFM {
         // FALL THROUGH
 
       case ':':           // name of next input file
-        m_state = IN_FILE;
+        m_state = FILE;
         newInputFile(m_currentLine.substr(2));
         continue;
 
@@ -130,56 +129,11 @@ namespace MFM {
     assert(0);
   }
 
-  void TestCase_EndToEndCompilerGeneric::addUrSelf(FileManagerString & fms)
-  {
-#ifdef ULAM_SHARE_DIR  /* UrSelf lives in stdlib */
-#define YY(s) XX(s)    /* expand */
-#define XX(s) #s       /* stringify */
-    const char * urSelfFile = YY(ULAM_SHARE_DIR) "/ulam/stdlib/UrSelf.ulam";
-    FILE * fp = fopen(urSelfFile, "r");
-    if (!fp) die("Can't load UrSelf.ulam");
-    std::string content;
-    int ch;
-    while ((ch = fgetc(fp)) >= 0) content += (char) ch;
-    fclose(fp);
-    bool ret = fms.add("UrSelf.ulam",content.c_str());
-    if (!ret) die("FileManagerString::LoadUrSelf failed");
-#undef XX
-#undef YY
-#else  /* !ULAM_SHARE_DIR */
-    die("ULAM_SHARE_DIR not configured");
-#endif /* ULAM_SHARE_DIR */
-  }
-
-  void TestCase_EndToEndCompilerGeneric::addEmpty(FileManagerString & fms)
-  {
-#ifdef ULAM_SHARE_DIR  /* UrSelf lives in stdlib */
-#define YY(s) XX(s)    /* expand */
-#define XX(s) #s       /* stringify */
-    const char * urSelfFile = YY(ULAM_SHARE_DIR) "/ulam/stdlib/Empty.ulam";
-    FILE * fp = fopen(urSelfFile, "r");
-    if (!fp) die("Can't load Empty.ulam");
-    std::string content;
-    int ch;
-    while ((ch = fgetc(fp)) >= 0) content += (char) ch;
-    fclose(fp);
-    bool ret = fms.add("Empty.ulam",content.c_str());
-    if (!ret) die("FileManagerString::LoadEmpty failed");
-#undef XX
-#undef YY
-#else  /* !ULAM_SHARE_DIR */
-    die("ULAM_SHARE_DIR not configured");
-#endif /* ULAM_SHARE_DIR */
-  }
-
   std::string TestCase_EndToEndCompilerGeneric::PresetTest(FileManagerString * fms)
   {
     if (!fms) die("Null FileManagerString");
 
     if (m_inputFiles.size() == 0) die("No input files in test");
-
-    addUrSelf(*fms);
-    addEmpty(*fms);
 
     for (u32 i = 0; i < m_inputFiles.size(); ++i) {
       InputFile & in = m_inputFiles[i];
@@ -193,50 +147,6 @@ namespace MFM {
     // Default start file is first file
     return m_inputFiles[0].m_fileName;
   } //presetTest
-
-  bool TestCase_EndToEndCompilerGeneric::GetTestResults(FileManager * fm, std::string startstr, File * output)
-  {
-    Compiler C;
-    FileManagerStdio * outfm = new FileManagerStdio("./src/test/bin"); //temporary!!!
-    if(!outfm)
-      {
-	output->write("Error in making new file manager for test code generation...aborting");
-	return false;
-      }
-
-    std::vector<std::string> filesToCompile;
-    filesToCompile.push_back("UrSelf.ulam");
-    filesToCompile.push_back("Empty.ulam");
-
-    for (u32 i = 0; i < m_inputFiles.size(); ++i)
-      {
-	InputFile & in = m_inputFiles[i];
-	filesToCompile.push_back(in.m_fileName);
-      }
-    //filesToCompile.push_back(startstr);
-
-    // error messages appended to output are compared to answer
-    if(C.compileFiles(fm, filesToCompile, outfm, output) == 0)
-      {
-	//also available in NodeBlockClass::eval
-	//#define SKIP_EVAL
-#ifndef SKIP_EVAL
-	if(C.testProgram(output) == 0)
-	  {
-	    C.printPostFix(output);
-	  }
-	else
-	  output->write("Unrecoverable Program Test FAILURE.\n");
-#endif
-      }
-    //else
-    //  {
-    //	output->write("Unrecoverable Program Parse FAILURE.\n");
-    // }
-
-    delete outfm;
-    return true;
-  } //GetTestResults
 
   std::string TestCase_EndToEndCompilerGeneric::GetAnswerKey()
   {

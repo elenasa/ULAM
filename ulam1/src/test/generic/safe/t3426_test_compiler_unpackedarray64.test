@@ -14,30 +14,26 @@
 ##	 Int Arg: -2147483640
 ##      */
 Exit status: 640
-Ue_A { typedef Int(64) BigSite[10];  Int(32) test() {  System s;  Int(64) site[10];  { Int(32) i = 0 cast;  i 10 cast < cond { Int(64) k = i 2147483647 +b cast;  site i [] k = s ( site i [] cast )print . } _1: i 1 cast += while } 640u cast return } }
+Ue_A { typedef Int(64) BigSite[10];  Int(32) test() {  System s;  Int(64) site[10];  { Int(32) i;  i 0 cast = i 10 cast < cond { Int(64) k;  k i 2147483647 +b cast = site i [] k = s ( site i [] cast )print . } _1: i 1 cast += while } 640u cast return } }
 Uq_System { <NOMAIN> }
 ##
 ##      //informed by t3276:
 #>A.ulam
-  ulam 1;
 use System;
-element A {
-  typedef Int(64) BigSite[10];
-  Int test(){
-    System s;
-    BigSite site;
-    for(Int i = 0; i < 10; ++i)
-    {
-      Int(64) k = i + Int.maxof;
-      site[i] = k;
-      s.print((Int) site[i]);
-    }
-    return site.sizeof;
-  }
-}
+ element A {
+typedef Int(64) BigSite[10];
+Int test(){System s;
+  BigSite site;  for(Int i = 0; i < 10; ++i){
+Int(64) k = i + Int.maxof;
+ site[i] = k;
+ s.print((Int) site[i]);
+ }
+ return site.sizeof;
+ }
+ }
 
 #:System.ulam
-  ulam 1;
+ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

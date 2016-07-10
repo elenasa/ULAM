@@ -20,7 +20,7 @@ namespace MFM {
     printNodeLocation(fp);  //has same location as its node
     UTI myut = getNodeType();
     char id[255];
-    if((myut == Nav) || (myut == Nouti))
+    if(myut == Nav)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
     else
       sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
@@ -55,13 +55,13 @@ namespace MFM {
     return CONTINUE;
   }
 
-  void NodeContinueStatement::genCode(File * fp, UVPass& uvpass)
+  void NodeContinueStatement::genCode(File * fp, UlamValue& uvpass)
   {
-    m_state.indentUlamCode(fp);
+    m_state.indent(fp);
     fp->write(getName());
     fp->write(" ");
     fp->write(m_state.getLabelNumAsString(m_gotolabelnum).c_str());
-    fp->write(";"); GCNL;
+    fp->write(";\n");
   } //genCode
 
 } //end MFM

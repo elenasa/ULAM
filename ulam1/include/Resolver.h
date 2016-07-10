@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * Resolver.h -  Managing of Class UNKNOWN Subtrees for ULAM
  *
- * Copyright (C) 2015-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2016 Ackleyshack LLC.
+ * Copyright (C) 2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file Resolver.h - Managing of Class UNKNOWN Subtrees for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2016 All rights reserved.
+  \date (C) 2015 All rights reserved.
   \gpl
 */
 
@@ -43,6 +43,7 @@
 #include "itype.h"
 #include "NodeConstantDef.h"
 #include "UlamValue.h"
+#include "UlamType.h"
 
 namespace MFM
 {
@@ -57,13 +58,6 @@ namespace MFM
     Resolver(UTI instance, CompilerState& state);
     ~Resolver();
 
-    void addUnknownTypeToken(Token tok, UTI huti);
-    Token removeKnownTypeToken(UTI huti);
-    bool hasUnknownTypeToken(UTI huti);
-    bool statusUnknownType(UTI huti);
-    bool statusAnyUnknownTypeNames(); //should be resolved after parsingxb
-    u32 reportAnyUnknownTypeNames();
-
     //these exist in a stubs only!
     bool assignClassArgValuesInStubCopy();
     bool statusNonreadyClassArguments();
@@ -76,30 +70,22 @@ namespace MFM
     bool mapUTItoUTI(UTI fmuti, UTI touti);
     bool findMappedUTI(UTI auti, UTI& mappedUTI);
     bool findNodeNo(NNO n, Node *& foundNode);
-    void countNavNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
     void cloneUTImap(SymbolClass * csym);
-    void cloneUnknownTypesTokenMap(SymbolClass * csym);
 
   protected:
 
   private:
     std::vector<NodeConstantDef *> m_nonreadyClassArgSubtrees; //constant expr to resolve, and empty for a class' args.
     std::map<UTI, UTI> m_mapUTItoUTI; //mult-purpose: instantiating stubs; unknown typedefs from another class
-    std::map<UTI, Token> m_unknownTypeTokens; //possible unknown typedef from ancestor class
-
     CompilerState& m_state;
     UTI m_classUTI;
     UTI m_classContextUTIForPendingArgs; //used to evaluate pending class args in context
 
     bool findNodeNoInNonreadyClassArgs(NNO n, Node *& foundNode);
-    void countNavNodesInPendingArgs(u32& ncnt, u32& hcnt, u32& nocnt);
 
     void clearLeftoverSubtrees();
     void clearLeftoverNonreadyClassArgSubtrees();
-    void clearLeftoverUnknownTypeTokens();
-
-    bool checkUnknownTypeToResolve(UTI huti, Token tok);
   };
 
 }

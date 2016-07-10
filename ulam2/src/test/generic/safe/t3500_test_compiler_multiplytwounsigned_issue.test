@@ -1,0 +1,21 @@
+## -*- mode:ulam -*-
+#=t3500_test_compiler_multiplytwounsigned_issue
+#!
+Exit status: 0
+Ue_A { typedef Unsigned(4) Timer;  Int(32) test() {  Unsigned(4) t;  Unsigned(8) res = t cast t cast *;  ; res cast return } }
+##
+##      // picked lhs of equal so no casting would be asked for!
+##      // twice around the c&l loop added r+ l for multiply.
+##
+#>A.ulam
+  ulam 1;
+element A {
+  typedef Unsigned(4) Timer;
+  Int test() {
+    Timer t;
+    Unsigned(8) res = t * t;
+    ;
+    return res;
+  }
+}
+#.

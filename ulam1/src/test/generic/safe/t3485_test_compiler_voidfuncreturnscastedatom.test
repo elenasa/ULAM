@@ -4,17 +4,17 @@
 Exit status: 0
 Ue_Tu { Bool(3) me(false);  Int(32) test() {  ( )func 0 cast return } }
 #>Tu.ulam
-  ulam 1;
+ulam 1;
 element Tu {
-  Bool(3) me;
-  Void func() {
-    Atom a;
-    return (Void) a;
-  }
-  Int test(){
-    func();
-    return 0;
-  }
+ Bool(3) me;
+Void func() {
+Atom a;
+ return (Void) a;
+}
+ Int test(){
+ func();
+return 0;
+}
 }
 
 #.

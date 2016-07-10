@@ -1,0 +1,32 @@
+## -*- mode:ulam -*-
+#=t3222_test_compiler_localatom
+#!
+Exit status: 96
+Ue_A { Int(3) b(0);  System s();  Bool(1) d(false);  Int(3) a(0);  Int(3) c(0);  Int(32) test() {  typedef Atom(96) T;  Atom(96) tm;  96u cast return } }
+Uq_System { <NOMAIN> }
+#>A.ulam
+  ulam 1;
+use System;
+element A {
+  System s;
+  Bool d;
+  Int(3) a, b, c;
+  Int test() {
+    typedef Atom T;
+    T tm;
+    return T.sizeof;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

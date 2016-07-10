@@ -39,9 +39,6 @@ namespace MFM {
   // replaces NodeTypedef:printPostfix to learn the values of Class' storage in center site
   void SymbolTypedef::printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
   {
-    if(getId() == m_state.m_pool.getIndexForDataString("Self")) return;
-    if(getId() == m_state.m_pool.getIndexForDataString("Super")) return;
-
     UTI tuti = getUlamTypeIdx();
     UlamKeyTypeSignature tkey = m_state.getUlamKeyTypeSignatureByIndex(tuti);
     UlamType * tut = m_state.getUlamTypeByIndex(tuti);
@@ -50,11 +47,7 @@ namespace MFM {
 
     fp->write(" ");
     if(tut->getUlamTypeEnum() != Class)
-      {
       fp->write(tkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str());
-      if(tut->isReference())
-	fp->write(" &"); //an array of refs as written, should be ref to an array.
-      }
     else
       fp->write(tut->getUlamTypeNameBrief().c_str());
 
@@ -75,15 +68,5 @@ namespace MFM {
 
     fp->write("; ");
   } //printPostfixValuesOfVariableDeclarations
-
-  void SymbolTypedef::setStructuredComment()
-  {
-    Token scTok;
-    if(m_state.getStructuredCommentToken(scTok)) //and clears it
-      {
-	m_structuredCommentToken = scTok;
-	m_gotStructuredCommentToken = true;
-      }
-  } //setStructuredComment
 
 } //end MFM

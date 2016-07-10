@@ -1,0 +1,25 @@
+## -*- mode:ulam -*-
+#=t3157_test_compiler_unaryarrayadd
+#!
+./A.ulam:9:7: ERROR: Incompatible (nonscalar) types Unary(3)[2] and Unary(3)[2] for binary operator+ ; Suggest writing a loop.
+./A.ulam:9:3: ERROR: Assignment is invalid; LHS: Unary(3)[2]; RHS: erroneous.
+./A.ulam:1:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: A.
+Unrecoverable Program Type Label FAILURE.
+##
+##      //exercises, append in NodeBinaryOpAdd;
+##      //note2: c[0] total exceeds 3 bits, so we get the max.
+##
+#>A.ulam
+element A {
+typedef Unary(3) Mu[2];
+Mu a, b, c;
+Int test() {
+a[0] = 2;
+a[1] = 1;
+b[0] = 3;
+b[1] = 1;
+c = a + b;
+return c[0];
+}
+}
+#.

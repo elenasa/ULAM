@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * Token.h -  Basic handling of Tokens for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014 The Regents of the University of New Mexico.
+ * Copyright (C) 2014 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file Token.h -  Basic handling of Tokens for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014 All rights reserved.
   \gpl
 */
 
@@ -40,11 +40,11 @@
 #include "Locator.h"
 #include "itype.h"
 #include "File.h"
-#include <string>
+
 
 namespace MFM{
 
-  enum SpecialTokenWork { TOKSP_UNCLEAR=0, TOKSP_KEYWORD, TOKSP_TYPEKEYWORD, TOKSP_CTLKEYWORD, TOKSP_SINGLE, TOKSP_COMMENT, TOKSP_DQUOTE, TOKSP_SQUOTE, TOKSP_HASDATA, TOKSP_DEPRECATED, TOKSP_ERROR};
+  enum SpecialTokenWork { TOKSP_UNCLEAR=0, TOKSP_KEYWORD, TOKSP_TYPEKEYWORD, TOKSP_CTLKEYWORD, TOKSP_SINGLE, TOKSP_COMMENT, TOKSP_DQUOTE, TOKSP_SQUOTE, TOKSP_HASDATA, TOKSP_ERROR};
 
 
 #define XX(a,b,c) TOK_##a,
@@ -73,22 +73,14 @@ namespace MFM{
 
     ~Token();
 
-    static void initTokenMap(CompilerState & state);
-
     void init(TokenType t, Locator l, u32 d);
-
-    u32 getTokenStringId();
-    u32 getTokenEnumNameId();
 
     const char * getTokenString();
     const char * getTokenEnumName();
 
-    const std::string getTokenStringFromPool(CompilerState * state);
-    static const std::string getTokenAsStringFromPool(TokenType ttype, CompilerState * state);
-    const std::string getTokenEnumNameFromPool(CompilerState * state);
-
     static SpecialTokenWork getSpecialTokenWork(TokenType ttype);
     static TokenType getTokenTypeFromString(const char * aname);
+    static const char *  getTokenAsString(TokenType ttype);
 
     /**
 	ulam says an identifier is a Type when it starts with a capital letter
@@ -97,11 +89,8 @@ namespace MFM{
     static bool isTokenAType(Token tok);
     static bool isUpper(char c);
 
-    bool operator<(const Token & tok2) const;
-
     void print(File * fp, CompilerState * state);
 
-  private:
   };
 }
 

@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolClassNameTemplate.h -  Class Symbol "Template" for ULAM
  *
- * Copyright (C) 2015-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2016 Ackleyshack LLC.
+ * Copyright (C) 2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolClassNameTemplate.h -  Class Symbol "Template" for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2016 All rights reserved.
+  \date (C) 2015 All rights reserved.
   \gpl
 */
 
@@ -48,23 +48,15 @@ namespace MFM{
 
     virtual void getTargetDescriptorsForClassInstances(TargetMap& classtargets);
 
-    virtual void getClassMemberDescriptionsForClassInstances(ClassMemberMap& classmembers);
+    virtual void getModelParameterDescriptionsForClassInstances(ParameterMap& classmodelparameters);
 
     void addParameterSymbol(SymbolConstantValue * argSym);
     u32 getNumberOfParameters();
-    bool parameterHasDefaultValue(u32 n);
-    u32 getTotalParametersWithDefaultValues();
-
     u32 getTotalParameterSlots();
-    SymbolConstantValue * getParameterSymbolPtr(u32 n);
-    SymbolConstantValue * findParameterSymbolByNameId(u32 pnid);
+    Symbol * getParameterSymbolPtr(u32 n);
 
     virtual bool isClassTemplate();
     bool isClassTemplate(UTI cuti);
-
-    virtual void setSuperClassForClassInstance(UTI superclass, UTI instance);
-    virtual UTI getSuperClassForClassInstance(UTI instance);
-
     bool findClassInstanceByUTI(UTI uti, SymbolClass * & symptrref);
     bool findClassInstanceByArgString(UTI cuti, SymbolClass *& csymptr);
 
@@ -74,13 +66,12 @@ namespace MFM{
     bool pendingClassArgumentsForStubClassInstance(UTI instance);
 
     SymbolClass * makeAStubClassInstance(Token typeTok, UTI cuti); //to hold class args, and cUTI
-    SymbolClass * makeAStubClassInstanceHolder(Token typeTok, UTI suti);
     void copyAStubClassInstance(UTI instance, UTI newuti, UTI context);
-
-    void mergeClassInstancesFromTEMP();
 
     /** replaces temporary class argument names, updates the ST, and the class type */
     void fixAnyClassInstances();
+
+    //    virtual bool statusUnknownConstantExpressionsInClassInstances();
 
     bool statusNonreadyClassArgumentsInStubClassInstances();
     bool constantFoldClassArgumentsInAStubClassInstance(UTI instance);
@@ -89,30 +80,22 @@ namespace MFM{
     std::string formatAnInstancesArgValuesAsCommaDelimitedString(UTI instance);
 
     //helpers while deep instantiation
-    virtual bool hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI);
-    virtual bool mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti);
+    bool hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI);
+    bool mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti);
     bool fullyInstantiate();
 
     virtual Node * findNodeNoInAClassInstance(UTI instance, NNO n);
 
+    void updateLineageOfClassInstanceUTI(UTI cuti); //during full instantiateion
+
     virtual void checkCustomArraysOfClassInstances();
     virtual void checkDuplicateFunctionsForClassInstances();
     virtual void calcMaxDepthOfFunctionsForClassInstances();
-    virtual bool calcMaxIndexOfVirtualFunctionsForClassInstances();
-    virtual void checkAbstractInstanceErrorsForClassInstances();
-
     virtual void checkAndLabelClassInstances();
-    virtual void countNavNodesInClassInstances(u32& ncnt, u32& hcnt, u32& nocnt);
-
-    virtual bool statusUnknownTypeInClassInstances(UTI huti);
-    virtual bool statusUnknownTypeNamesInClassInstances();
-    virtual u32 reportUnknownTypeNamesInClassInstances();
+    virtual u32 countNavNodesInClassInstances();
     virtual bool setBitSizeOfClassInstances();
     virtual void printBitSizeOfClassInstances();
     virtual void packBitsForClassInstances();
-    virtual void printUnresolvedVariablesForClassInstances();
-
-    virtual void buildDefaultValueForClassInstances();
 
     virtual void testForClassInstances(File * fp);
 
@@ -124,8 +107,6 @@ namespace MFM{
 
     virtual void generateTestInstanceForClassInstances(File * fp, bool runtest);
 
-    void printClassTemplateArgsForPostfix(File * fp);
-
    protected:
 
   private:
@@ -136,12 +117,10 @@ namespace MFM{
     std::map<std::string, SymbolClass* > m_scalarClassArgStringsToSymbolPtr; //merged set
     std::map<UTI, std::map<UTI,UTI> > m_mapOfTemplateUTIToInstanceUTIPerClassInstance;
 
-    bool checkTemplateAncestorBeforeAStubInstantiation(SymbolClass * stubcsym);
+    void mergeClassInstancesFromTEMP();
     bool takeAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     bool copyAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     void cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to);
-
-    bool checkSFINAE(SymbolClass * sym);
   };
 
 }

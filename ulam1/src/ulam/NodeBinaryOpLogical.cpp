@@ -19,11 +19,8 @@ namespace MFM {
 
   UTI NodeBinaryOpLogical::calcNodeType(UTI lt, UTI rt)  //logical
   {
-    if(!m_state.okUTItoContinue(lt, rt))
-      return Nav;
-
     if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
-      return Hzy;
+      return Nav;
 
     //no atoms, elements nor voids as either operand
     if(!NodeBinaryOp::checkForPrimitiveTypes(lt, rt))
@@ -47,16 +44,9 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
 	    msg << " to Bool";
 	    if(lscr == CAST_BAD || rscr == CAST_BAD)
-	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		newType = Nav;
-	      }
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    else
-	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //hazy
-		m_state.setGoAgain();
-		newType = Hzy;
-	      }
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //hazy
 	  }
 	else
 	  {
@@ -65,7 +55,7 @@ namespace MFM {
 	    maxbs = (lbs > rbs ? lbs : rbs);
 	    //both bool. ok to cast. use larger bool bitsize.
 	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bool"), maxbs);
-	    newType = m_state.makeUlamType(newkey, Bool, UC_NOTACLASS);
+	    newType = m_state.makeUlamType(newkey, Bool);
 	  }
       } //both scalars
     return newType;

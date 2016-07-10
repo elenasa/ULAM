@@ -1,11 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3189_test_compiler_elementandquark_memberselectedfunc_error
 #!
-./Foo.ulam:11:20: ERROR: Member selected must be a valid lefthand side: 'func' requires a variable; may be a casted function call.
-./Foo.ulam:11:8: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
-./Foo.ulam:3:10: ERROR: 2 Nodes with erroneous types detected after type labeling class: Foo.
-./Foo.ulam:3:10: ERROR: 5 Nodes with unresolved types detected after type labeling class: Foo.
-Unrecoverable Program Type Label FAILURE.
+##
+##./Foo.ulam:11:20: ERROR: Member selected must be a valid lefthand side, type: C2Dfunc requires a variable; may be a casted function call.
 ##
 ##      //member selection with a function call must be first saved to a
 ##      //variable since we results are returned-by-value (see t3188)

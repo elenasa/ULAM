@@ -6,19 +6,18 @@
 
 namespace MFM{
 
-  template<class EC>
-  void Uq_10109210DebugUtils10<EC>::Uf_9212printContext(const UlamContext<EC>& uc,
-                                                             UlamRef<EC>& ur,
-                                                             Ui_Ut_102321u<EC>& Uv_5flags) const
+  template<class EC, u32 POS>
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_9212printContext(UlamContext<EC>& uc,
+                                                             typename EC::ATOM_CONFIG::ATOM_TYPE & Uv_4self,
+                                                             Ui_Ut_102321u Uv_5flags)
   {
-    const Tile<EC> & tile = uc.GetTile();
-    const EventWindow<EC> & ew = uc.GetEventWindow();
-    SPoint ctr = ew.GetCenterInTile();
-
     OString512 buff;
     u32 flags = Uv_5flags.read();
-    T atdirect = ew.GetCenterAtomDirect();
-    Uq_10109210DebugUtils10_printAtom(uc, atdirect, flags, buff);
+    Uq_10109210DebugUtils10_printAtom(uc, Uv_4self, flags, buff);
+
+    Tile<EC> & tile = uc.GetTile();
+    EventWindow<EC> & ew = uc.GetEventWindow();
+    SPoint ctr = ew.GetCenterInTile();
 
     LOG.Message("@(%2d,%2d) of %s: %s",
                 ctr.GetX(), ctr.GetY(),
@@ -26,8 +25,8 @@ namespace MFM{
                 buff.GetZString());
   } // Uf_9212printContext
 
-  template<class EC>
-  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10131i<EC>& Uv_3arg) const //native
+  template<class EC, u32 POS>
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10131i Uv_3arg) //native
   {
     s32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(3); //mask
@@ -35,8 +34,8 @@ namespace MFM{
   }
 
 
-  template<class EC>
-  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10141i<EC>& Uv_3arg) const //native
+  template<class EC, u32 POS>
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10141i Uv_3arg) //native
   {
     s32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(4); //mask
@@ -44,24 +43,24 @@ namespace MFM{
   }
 
 
-  template<class EC>
-  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_102321i<EC>& Uv_3arg) const //native
+  template<class EC, u32 POS>
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_102321i Uv_3arg) //native
   {
     s32 tmp = Uv_3arg.read();
     LOG.Message("print: Int: %d", tmp);
   }
 
 
-  template<class EC>
-  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_102321u<EC>& Uv_3arg) const //native
+  template<class EC, u32 POS>
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_102321u Uv_3arg) //native
   {
     u32 tmp = Uv_3arg.read();
     LOG.Message("print: Unsigned: %u", tmp);
   }
 
 
-  template<class EC>
-  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10131y<EC>& Uv_3arg) const //native
+  template<class EC, u32 POS>
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10131y Uv_3arg) //native
   {
     u32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(3); //mask
@@ -70,8 +69,8 @@ namespace MFM{
   }
 
 
-  template<class EC>
-  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10131b<EC>& Uv_3arg) const //native
+  template<class EC, u32 POS>
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10131b Uv_3arg) //native
   {
     u32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(3); //mask
@@ -82,26 +81,24 @@ namespace MFM{
   // Note this is a template function, not a template class member!
   // It doesn't follow the ulam native function interface rules!
   template<class EC>
-  inline void Uq_10109210DebugUtils10_printAtom(const UlamContext<EC>& uc,
-                                                typename EC::ATOM_CONFIG::ATOM_TYPE atom, // call by value
+  inline void Uq_10109210DebugUtils10_printAtom(UlamContext<EC>& uc,
+                                                typename EC::ATOM_CONFIG::ATOM_TYPE & atom,
                                                 u32 flags,
                                                 ByteSink & buff)
   {
-    typedef typename EC::ATOM_CONFIG AC;
-    typedef typename AC::ATOM_TYPE T;
+    typedef typename EC::ATOM_CONFIG::ATOM_TYPE T;
     if (!flags) return;
 
-    AtomSerializer<AC> as(atom);
     u32 type = atom.GetType();
-    const Tile<EC> & tile = uc.GetTile();
-    const UlamClassRegistry<EC> & ucr = tile.GetUlamClassRegistry();
+    Tile<EC> & tile = uc.GetTile();
+    const UlamClassRegistry & ucr = tile.GetUlamClassRegistry();
     const Element<EC> * ep = tile.GetElement(type);
 
     typedef typename EC::ATOM_CONFIG AC;
+    AtomSerializer<AC> as(atom);
 
     if (ep)
     {
-
       const UlamElement<EC> * uep = ep->AsUlamElement();
       if (uep)
       {
@@ -127,19 +124,19 @@ namespace MFM{
   }
 
   //! DebugUtils.ulam:10:   Void print(Atom a, Unsigned flags)
-  template<class EC>
-  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102961a<EC>& Uv_1a, Ui_Ut_102321u<EC>& Uv_5flags) const
+  template<class EC, u32 POS>
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(UlamContext<EC>& uc, T& Uv_4self, Ui_Ut_102961a<EC> Uv_1a, Ui_Ut_102321u Uv_5flags)
   {
     OString512 buff;
-    T atom = Uv_1a.ReadAtom();
+    T atom = Uv_1a.read();
     u32 flags = Uv_5flags.read();
     Uq_10109210DebugUtils10_printAtom(uc, atom, flags, buff);
     if (buff.GetLength() > 0)
       LOG.Message("%s",buff.GetZString());
   } // Uf_5print
 
-  template<class EC>
-  void Uq_10109210DebugUtils10<EC>::Uf_6assert(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10111b<EC>& Uv_1b) const //native
+  template<class EC, u32 POS>
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_6assert(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10111b Uv_1b) //native
   {
     bool btmp = Uv_1b.read();
     printf("assert: arg is %d\n",btmp);
