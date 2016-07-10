@@ -1,9 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3112_test_compiler_funcdecl_incomplete_error
 #!
-./D.ulam:1:36: ERROR: Unexpected input!! Token <;> after function declaration.
-Unrecoverable Program Parse FAILURE.
-##
+##   //./D.ulam:1:36: ERROR: Unexpected input!! Token: <;> after function declaration..
+Uq_D { Void(0) m(Int(32) m, Bool(1) b[3]); }
 #>D.ulam
 quark D { Void m(Int m, Bool b[3]) ; }
 #.

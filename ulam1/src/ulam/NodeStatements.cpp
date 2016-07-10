@@ -123,16 +123,6 @@ namespace MFM {
       m_nodeNext->countNavNodes(cnt);
   } //countNavNodes
 
-  bool NodeStatements::buildDefaultQuarkValue(u32& dqref)
-  {
-    bool aok = true;
-    if(m_node)
-      aok |= m_node->buildDefaultQuarkValue(dqref);
-    if(m_nodeNext)
-      aok |= m_nodeNext->buildDefaultQuarkValue(dqref);
-    return aok;
-  } //obuildDefaultQuarkValue
-
   EvalStatus NodeStatements::eval()
   {
     assert(m_node);
@@ -192,7 +182,19 @@ namespace MFM {
     m_state.outputTextAsComment(fp, nodeloc);
     m_state.m_locOfNextLineText = nodeloc; //during gen code here
 
+#ifdef TMPVARBRACES
+    m_state.indent(fp);
+    fp->write("{\n"); //open for tmpvar arg's
+    m_state.m_currentIndentLevel++;
+#endif
+
     m_node->genCode(fp, uvpass);
+
+#ifdef TMPVARBRACES
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n"); //close for tmpVar
+#endif
 
     if(m_nodeNext)
       m_nodeNext->genCode(fp, uvpass);

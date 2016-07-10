@@ -1,0 +1,19 @@
+## -*- mode:ulam -*-
+#=t3415_test_compiler_namedconstantmisspell_error
+#!
+./A.ulam:4:11: ERROR: Constant value expression for: cPRINT_ALL, is not a constant.
+./A.ulam:1:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
+Unrecoverable Program Type Label FAILURE.
+##
+##      //informed by 3314, except misspelled c_PRINT_VALUE
+##
+#>A.ulam
+element A{
+ constant Bits(3) cPRINT_NAME = 2;
+ constant Bits(3) cPRINT_VALUE = 1;
+ constant Bits(3) cPRINT_ALL = cPRINT_NAME | c_PRINT_VALUE;
+Int test () {
+ return 0;
+}
+}
+#.

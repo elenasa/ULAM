@@ -2,7 +2,7 @@
 #=t3422_test_compiler_namedconstant_specialchars
 #!
 Exit status: 0
-Ue_A { Int(32) test() {  constant Unsigned(8) cA = 7u;  constant Unsigned(8) cB = 8u;  constant Unsigned(8) cT = 9u;  constant Unsigned(8) cN = 10u;  constant Unsigned(8) cV = 11u;  constant Unsigned(8) cF = 12u;  constant Unsigned(8) cR = 13u;  constant Unsigned(8) cDQ = 34u;  constant Unsigned(8) cTIC = 39u;  constant Unsigned(8) cQ = 63u;  constant Unsigned(8) cESC = 92u;  0 cast return } }
+Ue_A { Int(32) test() {  7u = cA const 8u = cB const 9u = cT const 10u = cN const 11u = cV const 12u = cF const 13u = cR const 34u = cDQ const 39u = cTIC const 63u = cQ const 92u = cESC const 0 cast return } }
 ##
 ##      //informed by 3414, except constant type is unsigned char
 #>A.ulam

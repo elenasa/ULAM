@@ -1,0 +1,38 @@
+## -*- mode:ulam -*-
+#=t3197_test_compiler_elementandquark_usercastquarknotoint_error
+#!
+./Foo.ulam:13:12: ERROR: Cannot cast quark Bar to numeric type Unary(4) without a defined 'toInt' method.
+./Foo.ulam:13:9: ERROR: Assignment is invalid; LHS: Unary(4); RHS: erroneous.
+./Foo.ulam:3:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: Foo.
+Unrecoverable Program Type Label FAILURE.
+##
+#>Foo.ulam
+  ulam 1;
+use Bar;
+element Foo {
+  Unary(4) m_i;
+  Bar m_bar;
+  Bar check(Int v) {
+    Bar b;
+    b.val_b[1] = true;
+    return b;
+  }
+  Int test() {
+    m_bar = check(1);
+    m_i = (Unary(4)) m_bar;
+    return m_i;
+  }
+}
+
+#:Bar.ulam
+  ulam 1;
+quark Bar {
+  Bool val_b[3];
+  Void reset(Bool b) {
+    b = false;
+  }
+  /*Int toInt(){
+    return 7;
+    }*/
+}
+#.

@@ -1,0 +1,57 @@
+## -*- mode:ulam -*-
+#=t3721_test_compiler_transientinheritancetemplatemix
+##
+## gen output: (+ assert)
+##  Int Arg: 1
+#!
+Exit status: 1
+Ue_R { Int(32) rtn(1);  Int(32) test() {  System s;  Tu t;  rtn t ( )behave . = s ( rtn )print . s ( rtn 1 cast == )assert . rtn return } }
+Un_Tu : Foo(1,true) { :<> <NOMAIN> }
+Un_Foo(Int(32) a, Bool(1) b) { /* empty class block */ }
+Uq_System { <NOMAIN> }
+##
+##       //classes can inherit from a template instance, and vis versa
+##       informed by error/t3566
+##
+#>R.ulam
+  ulam 2;
+use Tu;
+use System;
+element R {
+  Int rtn = 0;
+  Int test(){
+    System s;
+    Tu t;
+    rtn = t.behave();
+    s.print(rtn);
+    s.assert(rtn == 1);
+    return rtn;
+  }
+}
+
+#:Tu.ulam
+  ulam 2;
+use Foo;
+transient Tu : Foo(1, true) {
+  virtual Int behave(){
+    return a;
+  }
+}
+
+#:Foo.ulam
+  ulam 2;
+transient Foo(Int a, Bool b) {
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

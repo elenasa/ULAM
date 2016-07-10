@@ -1,0 +1,71 @@
+## -*- mode:ulam -*-
+#=t3741_test_compiler_elementandquark_iscondinlogicalor_issue
+#!
+##
+##   gencode output: (+ assert)
+##	 Int Arg: 3
+##
+## FIX in NodeConditionalIs to clear stack of symbols
+## culamtest: NodeBinaryOpCompare.cpp:272: virtual void MFM::NodeBinaryOpCompare::genCode(MFM::File*, MFM::UVPass&): Assertion \`m_state.m_currentObjSymbolsForCodeGen.empty()\' failed.
+##
+Exit status: -11
+Uq_Typo(Int(32) a) : Bar { /* empty class block */ }
+Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
+Ue_Eltypo : Typo(1) { :< :< Unsigned(3) bu(7u); > constant Int(32) a = 1; > System s();  Unsigned(3) first(0u);  Int(32) test() {  Eltypo elf;  Atom(96) other = elf cast;  { other Bar as cond { Bar& other;  Int(32) slot = 3 cast;  { other Eltypo is slot 2 cast > || cond { s ( slot )print . s ( slot 2 cast > )assert . } if { s ( 0u cast )print . s ( true )assert . } else } } if } 0 cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by \'Burn\' issue 5/19/2016
+##
+#:Typo.ulam
+  ulam 2;
+//use Bar;
+quark Typo(Int a) : Bar{
+}
+
+#:Bar.ulam
+  ulam 2;
+quark Bar
+{
+  Unsigned(3) bu = 7u;
+}
+
+#>Eltypo.ulam
+  ulam 2;
+//use Typo;
+//use System;
+element Eltypo : Typo(1) {
+  System s;
+  Unsigned(3) first;
+  Int test(){
+    Eltypo elf;
+    Atom other = elf;
+    if(other as Bar)
+    {
+      Int slot = 3;
+      if(other is Eltypo || slot > 2)
+      {
+	s.print(slot);
+	s.assert(slot > 2);
+      }
+      else
+      {
+	s.print(0u);
+	s.assert(true);
+      }
+    }
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

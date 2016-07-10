@@ -1,0 +1,133 @@
+## -*- mode:ulam -*-
+#=t3832_test_compiler_transientwithtransientdmwithelementarrayref_typedefref
+#!
+##      gen code output: (5 asserts)
+##
+Exit status: -11
+Ue_R { Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  QW qw;  A ar[3];  typedef Foo& FAR[4];  Foo& f = ar 1 [] mToo mFAR 1 [] . . cast;  Foo fv = f cast;  s ( f mTre . cast 1u cast == )assert . Too& toor = ar 1 [] mToo . cast;  Foo& foot1 = toor mFAR 1 [] . cast;  Foo foot1v = foot1 cast;  s ( foot1 mTre . cast 1u cast == )assert . f mTre . 2u cast = s ( foot1 mTre . cast 2u == )assert . ar 1 [] mToo mFAR 1 [] ( 2u cast )setTre . . . b qw ( ar 1 [] mToo mFAR 1 [] . . cast )eunc . = s ( b )assert . Foo& fart[4] = toor mFAR . cast;  Foo footfart1 = fart 1 [];  Foo& far[4] = ar 1 [] mToo mFAR . . cast;  Foo& far1 = far 1 [] cast;  Foo foo1 = far1 cast;  Foo foo2 = far 1 [];  foo2 ( 1u cast )setTre . c qw ( foo2 cast )eunc . = s ( c )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Un_A : QW { :< typedef Unary(3) Coord;  Bool(1) mqb(false); > Bool(7) sp(false);  Too mToo( typedef Foo FAR[4];  Bool(1) sp( true);  Foo mFAR[4]( typedef Unary(3) Coord;  Unary(3) mTre( 1u);  Unary(3) mCoo[3](0,0,0); ), ( typedef Unary(3) Coord;  Unary(3) mTre( 1u);  Unary(3) mCoo[3](0,0,0); ), ( typedef Unary(3) Coord;  Unary(3) mTre( 1u);  Unary(3) mCoo[3](0,0,0); ), ( typedef Unary(3) Coord;  Unary(3) mTre( 1u);  Unary(3) mCoo[3](0,0,0); ); );  <NOMAIN> }
+Uq_QW { typedef Unary(3) Coord;  Bool(1) mqb(false);  <NOMAIN> }
+Ue_Foo { typedef Unary(3) Coord;  Unary(3) mTre( 1u);  Unary(3) mCoo[3](0,0,0);  <NOMAIN> }
+Un_Too { typedef Foo FAR[4];  Bool(1) sp( true);  Foo mFAR[4]( typedef Unary(3) Coord;  Unary(3) mTre( 1u);  Unary(3) mCoo[3](0,0,0); ), ( typedef Unary(3) Coord;  Unary(3) mTre( 1u);  Unary(3) mCoo[3](0,0,0); ), ( typedef Unary(3) Coord;  Unary(3) mTre( 1u);  Unary(3) mCoo[3](0,0,0); ), ( typedef Unary(3) Coord;  Unary(3) mTre( 1u);  Unary(3) mCoo[3](0,0,0); );  <NOMAIN> }
+##
+## similar to 3819, except transient array item has a transient dm with array of elements
+## with added debugging statements.
+##
+#>R.ulam
+  ulam 2;
+use System;
+use A;
+element R {
+  Bool b, c;
+
+  Int test(){
+    System s;
+    QW qw;
+    A ar[3];
+    typedef Foo& FAR[4];
+
+    Foo& f = ar[1].mToo.mFAR[1]; //view
+    Foo fv = f;
+    s.assert(f.mTre == 1u);
+
+    Too& toor = ar[1].mToo;
+    Foo & foot1 = toor.mFAR[1]; //same as f?
+    Foo foot1v = foot1;
+    s.assert(foot1.mTre == 1u);
+
+    f.mTre = 2u;
+    s.assert(foot1.mTre == 2u);
+
+    ar[1].mToo.mFAR[1].setTre(2u);
+    b = qw.eunc(ar[1].mToo.mFAR[1]);
+    s.assert(b);
+
+    FAR fart = toor.mFAR;
+    Foo footfart1 = fart[1];
+
+    FAR far = ar[1].mToo.mFAR;
+    Foo& far1 = far[1];
+    Foo foo1 = far1; //bug fixed <<<ILLEGAL ARG
+
+    Foo foo2 = far[1]; //bug fixed <<<ILLEGAL ARG
+    foo2.setTre(1u);
+    c = qw.eunc(foo2);
+    s.assert(c);
+    return 0;
+  }
+}
+
+#:A.ulam
+  ulam 2;
+use QW;
+transient A : QW {
+  Bool(7) sp;
+  Too mToo;
+  Void setsp()
+  {
+    sp = true;
+  }
+}
+
+#:QW.ulam
+  ulam 2;
+quark QW {
+  typedef Unary(3) Coord;
+  Bool mqb;
+  Bool func(A& aarg)
+  {
+    return aarg.sp;
+  }
+  Bool eunc(Foo& aarg)
+  {
+    return (aarg.mTre > Unary(3).minof && aarg.mTre < Unary(3).maxof);
+  }
+  Bool cunc(Coord& carg)
+  {
+    return (carg > Unary(3).minof && carg < Unary(3).maxof);
+  }
+  Bool aunc(Atom& aarg)
+  {
+    if(aarg as Foo)
+      return (aarg.mTre > Unary(3).minof && aarg.mTre < Unary(3).maxof);
+    return false;
+  }
+  Bool qunc()
+  {
+    return mqb;
+  }
+}
+
+#:Too.ulam
+  ulam 2;
+transient Too {
+  typedef Foo FAR[4];
+  Bool sp = true; //provides an offset to mFAR
+  FAR mFAR;
+}
+
+#:Foo.ulam
+  ulam 2;
+element Foo {
+  typedef QW.Coord Coord;
+  Coord mTre = 1u;
+  Coord mCoo[3];
+  Void setTre(Coord uarg)
+  {
+    mTre = uarg;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

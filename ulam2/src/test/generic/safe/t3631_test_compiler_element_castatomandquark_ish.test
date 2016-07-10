@@ -1,0 +1,52 @@
+## -*- mode:ulam -*-
+#=t3631_test_compiler_element_castatomandquark_ish
+##
+## gen output: assert
+## eval: b is false; should be true
+#!
+Exit status: -11
+Ue_Foo : QPerc { :<> Bool(1) b(false);  Int(32) test() {  System s;  b ( )check = s ( b )assert . b ! cast return } }
+Uq_QPerc { <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by a Dave ish 1/8/2016
+##
+#>Foo.ulam
+  ulam 2;
+use QPerc;
+use System;
+element Foo : QPerc {
+  Bool b;
+  Int test() {
+    System s;
+    b = check();
+    s.assert(b);
+    return (Int) !b; //zero is good
+  }
+}
+
+#:QPerc.ulam
+  ulam 2;
+quark QPerc {
+  Bool check()
+  {
+    Atom a = self.atomof; //atom;
+    //Self input = (Self) a; //Cannot explicitly cast Atom(96) to type: QPerc
+    Self& input = (Self&) a; //cast problem during eval!
+    return (a is Self);
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
+#.

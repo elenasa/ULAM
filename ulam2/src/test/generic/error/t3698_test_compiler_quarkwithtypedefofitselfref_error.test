@@ -1,0 +1,30 @@
+## -*- mode:ulam -*-
+#=t3698_test_compiler_quarkwithtypedefofitselfref_error
+##./Typo.ulam:3:11: ERROR: Redefinition of Self with node type descriptor type: Typo& as a reference.
+##
+#!
+./Typo.ulam:3:11: ERROR: Self has a previous declaration as 'Typo' and cannot be used as a typedef.
+./Typo.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Typo'; Possible missing ending curly brace.
+./Typo.ulam:3:21: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
+ ERROR: No parse tree for This Class: ElTypo.
+Unrecoverable Program Parse FAILURE: <ElTypo.ulam>
+./Typo.ulam:2:12: ERROR: No class 'Typo' in <Typo.ulam>.
+##
+## informed by 3391
+##
+#>ElTypo.ulam
+  ulam 1;
+use Typo;
+element ElTypo {
+  Typo t;
+  Int test() {
+    return 0;
+  }
+}
+
+#:Typo.ulam
+  ulam 1;
+quark Typo {
+  typedef Typo& Self; //causes assert l153 NodeTypedef c&l
+}
+#.

@@ -1,0 +1,28 @@
+## -*- mode:ulam -*-
+#=t3357_test_compiler_elementandquarkswclassargs_lhsconstantcompare
+#!
+Exit status: 0
+Ue_Foo { Int(32) test() {  Booly(true) b;  b ( )behave . 0 cast return } }
+Uq_Booly(Bool(1) bomb) { Bool(1) m_bo(false);  <NOMAIN> }
+##
+##      //informed by issue: also tests Bool as class parameter; behave Void virtual
+#>Foo.ulam
+  ulam 1;
+use Booly;
+element Foo{
+  Int test(){
+    Booly(true) b;
+    b.behave();
+    return 0;
+  }
+}
+
+#:Booly.ulam
+  ulam 1;
+quark Booly(Bool bomb) {
+  Bool m_bo;
+  virtual Void behave(){
+    m_bo = bomb;
+  }
+}
+#.

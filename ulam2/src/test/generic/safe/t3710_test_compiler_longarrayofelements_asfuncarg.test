@@ -1,0 +1,59 @@
+## -*- mode:ulam -*-
+#=t3710_test_compiler_longarrayofelements_asfuncarg
+##
+## gen output: (+ assert)
+##      Int Arg: 9
+##
+#!
+Exit status: 9
+Ue_A { Bool(1) sp(true);  Int(5) nineth(9);  typedef A BigSite[10];  Int(32) test() {  System s;  A site[10] = ( )func2;  A site2[10];  site2 ( )func2 = nineth ( site )func = s ( nineth cast )print . sp nineth 9 == = s ( sp )assert . ( site )func cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by 3706 (Int(5) not Int), and 3708 (Quark array, not element)
+##
+#>A.ulam
+  ulam 2;
+use System;
+element A {
+  Bool sp;
+  Int(5) nineth = 1;
+  typedef A BigSite[10];
+  Int(5) func(BigSite sarr) {
+    return sarr[9].nineth;
+  }
+  BigSite func2() {
+    BigSite s;
+    for(Int i = 0; i < 10; ++i){
+      s[i] = self;
+    }
+    s[9].nineth = 9;
+    return s;
+  }
+  Int test(){
+    System s;
+    //both forms compile!!
+    BigSite site = func2();
+    BigSite site2;
+    site2 = func2();
+    nineth = func(site);
+    s.print(nineth);
+    sp = (nineth == 9);
+    s.assert(sp);
+    return func(site);
+  }
+}
+##
+##      //bool rtn1 = fms->add("A.ulam","element A {\ntypedef Int BigSite[10];\nInt test(){\n BigSite site, site2; site = site2;\n return 2;\n }\n }\n");
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

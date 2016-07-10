@@ -4,7 +4,7 @@
 ##
 ##      //Bits exception for fits test (eventhough doesn't allowminmax).
 Exit status: 0
-Ue_A { constant Bits(3) cPRINT_NAME = 2u;  constant Bits(3) cPRINT_VALUE = 1u;  constant Bits(3) cPRINT_ALL = 3u;  Int(32) test() {  0 cast return } }
+Ue_A { constant Bits(3) cPRINT_NAME = 2;  constant Bits(3) cPRINT_VALUE = 1;  constant Bits(3) cPRINT_ALL = 3;  Int(32) test() {  0 cast return } }
 #>A.ulam
 element A{
 constant Bits(3) cPRINT_NAME = 2;

@@ -1,19 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3492_test_compiler_elementandquarkswclassargs_missingclass_error
 #!
-./R.ulam:5:2: ERROR: Unresolved type <P> was never defined; Fails sizing.
-./R.ulam:5:2: ERROR: Unresolved type <P> was never defined; Fails labeling.
-./R.ulam:5:2: ERROR: Unresolved No.1.
-./R.ulam:5:2: ERROR: Unresolved No.2.
-./R.ulam:5:19: ERROR: Unresolved No.3.
-./R.ulam:5:26: ERROR: Unresolved No.4.
-./R.ulam:5:26: ERROR: Unresolved No.5.
-./R.ulam:5:26: ERROR: Unresolved No.6.
-./R.ulam:4:2: Warning: 6 nodes with unresolved types remain in function <test> (Uf_4test,1).
-./R.ulam:4:6: Warning: Summary: 6 nodes with unresolved types remain in  a single function <test> in class: R.
-./R.ulam:2:9: Warning: 6 data member nodes with unresolved types remain in class 'R'.
-./R.ulam:2:9: ERROR: 6 Nodes with unresolved types detected after type labeling class: R.
-Unrecoverable Program Type Label FAILURE.
+##
+##./R.ulam:5:2: ERROR: Unresolved type <P> was never defined; Fails sizing.
+##./R.ulam:5:2: ERROR: Unresolved type <P> was never defined; Fails labeling.
+##
+Exit status: 3
+Ue_R { Int(32) psize(3);  Int(32) test() {  P(3) pvar;  psize pvar ( )poo . = psize return } }
+Uq_P { constant Int(32) a = NONREADYCONST;  Bool(UNKNOWN) b(false);  <NOMAIN> }
 ##
 ##      // missing P!!!
 ##

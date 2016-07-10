@@ -1,0 +1,48 @@
+## -*- mode:ulam -*-
+#=t3148_test_compiler_elementmemberselect_returnarray
+#!
+##      //code gen output:
+##      //Bool(3) Arg: 0x0 (false)
+##      //Bool(3) Arg: 0x0 (false)
+##      //Bool(3) Arg: 0x7 (true)
+##      //Bool(3) Arg: 0x7 (true)
+Exit status: 0
+Ue_Foo { typedef Bool(1) BA[6];  System s();  Bool(1) m_ba[6](false,true,false,true,false,true);  Int(32) test() {  Foo f;  f m_ba 0 [] . true = f m_ba . f ( 1 cast )check . = m_ba f m_ba . = s ( f m_ba 0 [] . cast )print . s ( m_ba 0 [] cast )print . s ( f m_ba 5 [] . cast )print . s ( m_ba 5 [] cast )print . 0 cast return } }
+Uq_System { <NOMAIN> }
+#>Foo.ulam
+  ulam 1;
+use System;
+element Foo {
+  typedef Bool BA[6];
+  System s;
+  BA m_ba;
+  BA check(Int v) {
+ BA rba;
+ rba[1] = rba[3] = rba[5] = true;
+ return rba;
+  }
+  Int test() {
+    Foo f;
+    f.m_ba[0] = true;
+    f.m_ba = f.check(1);
+    m_ba = f.m_ba;
+    s.print(f.m_ba[0]);
+    s.print(m_ba[0]);
+    s.print( (Bool(3)) f.m_ba[5]);
+    s.print( (Bool(3)) m_ba[5]);
+ return 0;
+  }
+ }
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

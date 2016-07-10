@@ -5,21 +5,20 @@ Exit status: 4
 Ue_A { Int(32) b(2);  Int(32) c(4);  Int(32) test() {  Bar a;  b 1 cast a ( )toInt . cast cast << cast = c a ( )toInt . cast 2 cast << cast = c return } }
 Uq_Bar { <NOMAIN> }
 #>A.ulam
-  use Bar;
-element A {
-  Int b, c;
-  Int test() {
-    Bar a;
-    b = (Int) (1 << (Unsigned) a);
-    c = (Int) (a << 2);
-    return c;
-  }
-}
+use Bar;
+ element A {
+ Int b, c;
+ Int test() {
+ Bar a;
+ b = (Int) (1 << (Unsigned) a);
+ c = (Int) (a << 2);
+ return c;
+ }
+ }
 
 #:Bar.ulam
-  quark Bar {
-  Int toInt() {
-    return 1;
-  }
+quark Bar {
+ Int toInt() { return 1;
+}
  }
 #.

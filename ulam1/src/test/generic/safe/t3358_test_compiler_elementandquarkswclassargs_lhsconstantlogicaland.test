@@ -3,7 +3,7 @@
 #!
 Exit status: 1
 Ue_Foo { Int(32) test() {  Booly(7u,8u,true) b;  b ( )behave . cast return } }
-Uq_Booly(Unsigned(4) firstRange, Unsigned(4) lastRange, Bool(1) bomb) { <NOMAIN> }
+Uq_Booly { constant Unsigned(4) firstRange = NONREADYCONST;  constant Unsigned(4) lastRange = NONREADYCONST;  constant Bool(1) bomb = NONREADYCONST;  <NOMAIN> }
 ##
 ##      //this version also tests class arguments with bitsize, and saturation (i.e. 8 == 7)
 #>Foo.ulam

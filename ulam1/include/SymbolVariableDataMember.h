@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolVariableDataMember.h -  Data Member Variable Symbol handling for ULAM
  *
- * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2015 Ackleyshack LLC.
+ * Copyright (C) 2014 The Regents of the University of New Mexico.
+ * Copyright (C) 2014 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolVariableDataMember.h - Data Member Variable Symbol handling for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2015 All rights reserved.
+  \date (C) 2014 All rights reserved.
   \gpl
 */
 
@@ -37,6 +37,7 @@
 #ifndef SYMBOLVARIABLEDATAMEMBER_H
 #define SYMBOLVARIABLEDATAMEMBER_H
 
+#include "UlamValue.h"
 #include "SymbolVariable.h"
 
 namespace MFM{
@@ -58,25 +59,14 @@ namespace MFM{
 
     virtual const std::string getMangledPrefix();
 
-    bool hasInitValue();
-    void setHasInitValue();
-    bool initValueReady();
-    bool getInitValue(u64& val);
-    void setInitValue(u64 val);
-
     virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype);
 
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
-
-    virtual void setStructuredComment();
 
   protected:
 
   private:
     u32 m_dataMemberUnpackedSlotIndex;  //untrusted
-    bool m_hasInitValue;
-    bool m_initvalReady;
-    u64 m_initval;
 
   };
 

@@ -1,0 +1,61 @@
+## -*- mode:ulam -*-
+#=t3533_test_compiler_elementinheritanceswithfunc_nonlocaluse
+##
+## genoutput: (assert if fails)
+## <blank>
+#!
+Exit status: 77
+Ue_Foo : Soo { :< :< Bool(3) cb(true); > Unsigned(3) us(4u); > Bool(7) sp(false);  Int(32) a(73);  Int(32) test() {  System s;  { ( )check cond us cast a +b return if } s ( false )assert . 0 cast return } }
+Uq_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## chained class inheritance, regular (non-template), with a function call
+## without local variable; informed by t3530
+##
+#>Foo.ulam
+  ulam 2;
+use Soo;
+use System;
+element Foo : Soo {
+  Bool(7) sp;
+  Int a = 73;
+  Int test() {
+    System s;
+    if(check())
+      return us + a;
+    s.assert(false);
+    return 0;
+  }
+}
+
+#:Soo.ulam
+  ulam 2;
+use Coo;
+quark Soo : Coo {
+  Unsigned(3) us = 4u;
+}
+
+#:Coo.ulam
+  ulam 2;
+quark Coo {
+  Bool(3) cb = true;
+  Bool check()
+  {
+    return cb;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

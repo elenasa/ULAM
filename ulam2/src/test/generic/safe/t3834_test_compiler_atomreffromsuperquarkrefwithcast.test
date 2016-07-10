@@ -1,0 +1,70 @@
+## -*- mode:ulam -*-
+#=t3834_test_compiler_atomreffromsuperquarkrefwithcast
+##
+##   gencode output: (+1 assert)
+##   Unsigned Arg: 2
+##
+#!
+Exit status: 2
+Ue_R { Int(32) test() {  System s;  Eltypo elt;  Typo(1)& poref = elt cast;  poref ( 2u cast )func . Atom(96)& a = poref cast;  Eltypo ell = a cast;  s ( ell bu . cast )print . s ( ell bu . 2u cast == )assert . ell bu . cast return } }
+Uq_System { <NOMAIN> }
+Ue_Eltypo : Typo(1) { :< :< Unsigned(3) bu( 7u); >> Unsigned(3) first(0);  Unsigned(3) second(0);  <NOMAIN> }
+Uq_Typo(Int(32) a) : Bar { /* empty class block */ }
+Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
+##
+## informed by 3735, uses cast rather than atomof
+##
+#>R.ulam
+  ulam 2;
+use System;
+element R {
+  Int test(){
+    System s;
+    Eltypo elt;
+    Typo(1)& poref = elt;
+    poref.func(2u);
+    Atom & a = (Atom &) poref; //with cast, not atomof
+    Eltypo ell = (Eltypo) a; //use explicit case
+    s.print(ell.bu);
+    s.assert(ell.bu == 2u);
+    return ell.bu;
+  }
+}
+
+#:Eltypo.ulam
+  ulam 2;
+use Typo;
+element Eltypo : Typo(1) {
+  Unsigned(3) first;
+  Unsigned(3) second;
+}
+
+#:Typo.ulam
+  ulam 2;
+use Bar;
+quark Typo(Int a) : Bar{
+}
+
+#:Bar.ulam
+  ulam 2;
+quark Bar
+{
+  Unsigned(3) bu = 7u;
+  Void func(Unsigned u)
+  {
+    bu = (Unsigned(3)) u;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

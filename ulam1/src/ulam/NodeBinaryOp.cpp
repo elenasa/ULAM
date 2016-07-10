@@ -143,13 +143,13 @@ namespace MFM {
       {
 	if(UlamType::compare(newType, leftType, m_state) != UTIC_SAME) //not same, or dontknow
 	  {
-	    if(!Node::makeCastingNode(m_nodeLeft, newType, m_nodeLeft))
+	    if(!makeCastingNode(m_nodeLeft, newType, m_nodeLeft))
 	      newType = Nav;
 	  }
 
 	if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME) //not same, or dontknow
 	  {
-	    if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
+	    if(!makeCastingNode(m_nodeRight, newType, m_nodeRight))
 	      newType = Nav;
 	  }
       }
@@ -532,8 +532,8 @@ namespace MFM {
     u32 wordsize = m_state.getTotalWordSize(nuti);
     if(wordsize == MAXBITSPERINT)
       {
-	u32 ldata = luv.getImmediateData(len, m_state);
-	u32 rdata = ruv.getImmediateData(len, m_state);
+	u32 ldata = luv.getImmediateData(len);
+	u32 rdata = ruv.getImmediateData(len);
 	rtnUV = makeImmediateBinaryOp(nuti, ldata, rdata, len);
       }
     else if(wordsize == MAXBITSPERLONG)
@@ -542,8 +542,8 @@ namespace MFM {
 	u64 rdata = ruv.getImmediateDataLong(len);
 	rtnUV = makeImmediateLongBinaryOp(nuti, ldata, rdata, len);
       }
-    else
-      assert(0);
+    //    else
+    //  assert(0);
     if(rtnUV.getUlamValueTypeIdx() == Nav)
       return false;
 
@@ -612,6 +612,12 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
+#ifdef TMPVARBRACES
+    m_state.indent(fp);
+    fp->write("{\n");
+    m_state.m_currentIndentLevel++;
+#endif
+
     //generate rhs first; may update current object globals (e.g. function call)
     UlamValue ruvpass;
     m_nodeRight->genCode(fp, ruvpass);
@@ -656,6 +662,11 @@ namespace MFM {
 
     uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0); //P
 
+#ifdef TMPVARBRACES
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n"); //close for tmpVar
+#endif
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode
 

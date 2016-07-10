@@ -1,0 +1,89 @@
+## -*- mode:ulam -*-
+#=t3814_test_compiler_transientarraywithelementarrayref
+#!
+##      gen code output: (2 asserts)
+##
+Exit status: -11
+Ue_R { Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  QW qw;  A ar[3];  typedef Foo FA3[3];  Foo& faar1[3] = ar 1 [] mFoo . cast;  faar1 2 [] ( 1u cast )setTre . b qw ( faar1 2 [] cast )eunc . = s ( b )assert . Foo& faar2[3] = ar 2 [] mFoo . cast;  Foo& fr = faar2 1 [] cast;  fr ( 2u cast )setTre . c qw ( fr )eunc . = s ( c )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Un_A : QW { :<> Bool(7) sp(false);  Foo mFoo[3]( Unary(3) mTre(0); ), ( Unary(3) mTre(0); ), ( Unary(3) mTre(0); );  <NOMAIN> }
+Uq_QW { <NOMAIN> }
+Ue_Foo { Unary(3) mTre(0);  <NOMAIN> }
+##
+## similar to 3811, except has a local array ref of element array data member in transient
+##
+#>R.ulam
+  ulam 2;
+use System;
+use A;
+element R {
+  Bool b, c;
+
+  Int test(){
+    System s;
+    QW qw;
+    A ar[3];
+
+    typedef Foo FA3[3];
+    FA3& faar1 = ar[1].mFoo;
+    faar1[2].setTre(1u);
+    b = qw.eunc(faar1[2]);
+    s.assert(b);
+
+    FA3& faar2 = ar[2].mFoo;
+    Foo& fr = faar2[1];
+    fr.setTre(2u);
+    c = qw.eunc(fr);
+    s.assert(c);
+    return 0;
+  }
+}
+
+#:A.ulam
+  ulam 2;
+use QW;
+transient A : QW {
+  Bool(7) sp;
+  Foo mFoo[3];
+  Void setsp()
+  {
+    sp = true;
+  }
+}
+
+#:QW.ulam
+  ulam 2;
+quark QW {
+  Bool func(A& aarg)
+  {
+    return aarg.sp;
+  }
+  Bool eunc(Foo& aarg)
+  {
+    return (aarg.mTre > Unary(3).minof && aarg.mTre < Unary(3).maxof);
+  }
+}
+
+#:Foo.ulam
+  ulam 2;
+element Foo {
+  Unary(3) mTre;
+  Void setTre(Unary(3) uarg)
+  {
+    mTre = uarg;
+  }
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

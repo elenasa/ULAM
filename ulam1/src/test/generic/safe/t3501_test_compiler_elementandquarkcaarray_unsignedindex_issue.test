@@ -8,50 +8,50 @@ Uq_Gah { /* empty class block */ }
 ##
 ##      //informed by 3223
 #>Foo.ulam
-  ulam 1;
-use Bar;
-element Foo {
-  typedef Bar Pop[2];
-  Bool(3) b;
-  Int(4) m_i;
-  Pop m_bar2;
-  Bar sbar;
-  Bool check(Int v) {
-    return true;
-  }
-  Int test() {
-    Atom a;
-    a = sbar[4];
-    sbar[5] = a;
-    a = sbar[(Unary(2))2];
-    Gah g;
-    a = sbar[g];
-    return 0;
-  }
-}
+ulam 1;
+ use Bar;
+ element Foo {
+ typedef Bar Pop[2];
+Bool(3) b;
+ Int(4) m_i;
+ Pop m_bar2;
+Bar sbar;
+ Bool check(Int v) {
+ return true;
+ }
+ Int test() {
+Atom a;
+ a = sbar[4];
+sbar[5] = a;
+ a = sbar[(Unary(2))2];
+ Gah g;
+ a = sbar[g];
+ return 0;
+ }
+ }
 ##      //./Foo.ulam:16:10: ERROR: Ambiguous matches (2) of custom array get function for argument type Int(3); Explicit casting required.
 
 #:Bar.ulam
-  ulam 1;
+ulam 1;
 use Gah;
-quark Bar {
-  typedef Unsigned(6) Index;
-  Bool val_b[3];
+ quark Bar {
+ typedef Unsigned(6) Index;
+ Bool val_b[3];
   Void reset(Bool b) {
-    b = false;
-  }
-  Atom aref(Index index){ Atom a; return a;
-  }
-  Atom aref(Unary(2) index){ Atom a; return a;
-  }
-  Atom aref(Gah index){
-    Atom a;
-    return a;
-  }
-  Void aset(Index index, Atom v) {
-    return;
-  }
+ b = false;
+ }
+ Atom aref(Index index){ Atom a; return a;
 }
+ Atom aref(Unary(2) index){ Atom a; return a;
+}
+ Atom aref(Gah index){
+ Atom a;
+ return a;
+}
+ Void aset(Index index, Atom v) {
+ return;
+}
+ }
 ##      //./Foo.ulam:16:10: ERROR: Ambiguous matches (2) of custom array get function for argument type Int(2); Explicit casting required.
 ##      //./Foo.ulam:17:5: ERROR: Ambiguous matches (2) of custom array get function for argument type Int(2); Explicit casting required.
 ##      //bool rtn2 = fms->add("Bar.ulam"," ulam 1;\n quark Bar {\n typedef Unsigned(6) Index;\n Bool val_b[3];\n  Void reset(Bool b) {\n b = false;\n }\n Atom aref(Index index){ Atom a; return a;\n}\n Atom aref(Unary(2) index){ Atom a; return a;\n}\n Void aset(Index index, Atom v) {\n return;\n}\n }\n");
@@ -59,8 +59,8 @@ quark Bar {
 ##
 ##       //try overloading aref with a quark that has no toInt for custom array subscripting
 #:Gah.ulam
-  ulam 1;
-quark Gah {
-  //no toInt on purpose
-}
+ulam 1;
+ quark Gah {
+ //no toInt on purpose
+ }
 #.

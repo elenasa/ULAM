@@ -9,7 +9,7 @@
 ##	 Unsigned Arg: 3
 ##      */
 Exit status: 0
-Ue_Fu { System s();  constant Int(3) n = -3;  Unsigned(3) u(3u);  Int(32) test() {  s ( -3 )print . s ( -3 cast )print . s ( -4 )print . s ( 3 )print . u 3 cast = s ( u cast )print . 0 cast return } }
+Ue_Fu { System s();  constant Int(3) n = -3;  Unsigned(3) u(3);  Int(32) test() {  s ( -3 )print . s ( -3 cast )print . s ( -4 )print . s ( 3 )print . u 3 cast = s ( u cast )print . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ##      //informed by t3288
@@ -25,8 +25,7 @@ Unsigned(3) u;
  s.print((Int) n);
  s.print( n.minof);
  s.print( n.maxof);
- u = -n;
- s.print(u);
+ u = -n; s.print((Unsigned) u);
  return 0;
 }
 }

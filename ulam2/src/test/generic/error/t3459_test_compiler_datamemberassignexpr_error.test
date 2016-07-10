@@ -1,0 +1,18 @@
+## -*- mode:ulam -*-
+#=t3459_test_compiler_datamemberassignexpr_error
+#!
+./A.ulam:4:10: ERROR: (2) <cPRINT_NAME> is not defined, and cannot be used with class: A.
+./A.ulam:1:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: A.
+Unrecoverable Program Type Label FAILURE.
+##
+##      //informed by 3457, except data member
+##
+#>A.ulam
+element A{
+ Unsigned(8) cprint_name = ;
+ Int test () {
+  return cPRINT_NAME;
+}
+}
+
+#.

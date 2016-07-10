@@ -59,7 +59,7 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 nbitsize = nut->getBitSize();
-    assert(nbitsize >= 0);
+    assert(nbitsize > 0);
     u32 wordsize = nut->getTotalWordSize();
     ULAMTYPE etype = nut->getUlamTypeEnum();
     std::ostringstream num;
@@ -249,9 +249,9 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
     u32 wordsize = m_state.getUlamTypeByIndex(nuti)->getTotalWordSize();
-    if(wordsize <= MAXBITSPERINT)
+    if(wordsize == MAXBITSPERINT)
       return makeTerminalValue(uvarg, (u32) m_constant.uval, nuti);
-    else if(wordsize <= MAXBITSPERLONG)
+    else if(wordsize == MAXBITSPERLONG)
       return makeTerminalValueLong(uvarg, m_constant.uval, nuti);
     else
       assert(0);
@@ -264,7 +264,7 @@ namespace MFM {
     EvalStatus evs = NORMAL; //init ok
     assert(uti != Nav);
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
-    assert(ut->getBitSize() >= 0);
+    assert(ut->getBitSize() > 0);
 
     ULAMTYPE etype = ut->getUlamTypeEnum();
     switch(etype)
@@ -279,14 +279,6 @@ namespace MFM {
       case Bits:
 	rtnUV = UlamValue::makeImmediate(uti, data, m_state);
 	break;
-      case Class:
-	{
-	  if(ut->getUlamClass() == UC_QUARK)
-	    {
-	      rtnUV = UlamValue::makeImmediate(uti, data, m_state);
-	      break;
-	    }
-	}
       default:
 	{
 	  std::ostringstream msg;
@@ -306,7 +298,7 @@ namespace MFM {
     EvalStatus evs = NORMAL; //init ok
     assert(uti != Nav);
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
-    assert(ut->getBitSize() >= 0);
+    assert(ut->getBitSize() > 0);
 
     ULAMTYPE etype = ut->getUlamTypeEnum();
     switch(etype)
@@ -347,7 +339,6 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	msg << ", to fit into type: " << m_state.getUlamTypeNameBriefByIndex(fituti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	m_state.setGoAgain(); //since not an error
 	return false;
       }
 #if 0
@@ -368,16 +359,15 @@ namespace MFM {
 	msg << "Constant is not-a-valid type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	m_state.setGoAgain(); //since not an error
 	return false;
       }
 
     u32 fwordsize = fit->getTotalWordSize();
-    if(fwordsize <= MAXBITSPERINT) //32
+    if(fwordsize == MAXBITSPERINT) //32
       {
 	rtnb = fitsInBits32(fituti);
       }
-    else if(fwordsize <= MAXBITSPERLONG) //64
+    else if(fwordsize == MAXBITSPERLONG) //64
       {
 	rtnb = fitsInBits64(fituti);
       }
@@ -526,7 +516,7 @@ namespace MFM {
     bool fb1 = m_state.getUlamTypeByIndex(fituti)->cast(uv, fituti);
     //2nd cast back to node type:
     bool fb2 = m_state.getUlamTypeByIndex(nuti)->cast(uv, nuti);
-    return ((fb1 && fb2) ? uv.getImmediateData(MAXBITSPERINT, m_state) : ~data);
+    return ((fb1 && fb2) ? uv.getImmediateData() : ~data);
   } //convertForthAndBack
 
   u64 NodeTerminal::convertForthAndBackLong(const u64 data, UTI fituti)
@@ -557,14 +547,12 @@ namespace MFM {
 	    if(sval < 0)
 	      rtnb = true;
 	  }
-	else if(wordsize <= MAXBITSPERLONG)
+	else
 	  {
 	    s64 sval = _Int64ToCs64(m_constant.uval, (u32) nbitsize);
 	    if(sval < 0)
 	      rtnb = true;
 	  }
-	else
-	  assert(0);
       }
     return rtnb;
   } //isNegativeConstant

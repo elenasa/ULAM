@@ -1,0 +1,18 @@
+## -*- mode:ulam -*-
+#=t3797_test_compiler_localvardecllate_issue_error
+#!
+./A.ulam:4:5: ERROR: Local variable 'm' was used before declared.
+./A.ulam:4:7: ERROR: Assignment is invalid; LHS: erroneous; RHS: Int(3).
+./A.ulam:2:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: A.
+Unrecoverable Program Type Label FAILURE.
+##
+#>A.ulam
+  ulam 1;
+element A {
+  Int test() {
+    m = 3;
+    Int m;
+    return m;
+  }
+}
+#.

@@ -31,8 +31,8 @@ Int test(){
 ;
  s.print(Int(4).minof);
  s.print(Int(4).maxof);
- s.print(Unsigned.sizeof);
- s.print(Unsigned.minof);
+ s.print((Unsigned) Unsigned.sizeof);
+ s.print((Unsigned) Unsigned.minof);
  s.print(Unsigned.maxof);
  s.print(Unary(3).sizeof);
  s.print(Unary(3).minof);

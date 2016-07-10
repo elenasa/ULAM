@@ -2,7 +2,7 @@
 #=t3136_test_compiler_twofuncdefs
 #!
 Exit status: 0
-Ue_A { Bool(7) b(false);  System s();  Unsigned(32) x(15u);  Unsigned(32) y(0u);  Int(32) test() {  y x ( 4 cast 5 cast )times cast = = s ( x )print . y ( x x )max = s ( y )print . y cast return } }
+Ue_A { Bool(7) b(false);  System s();  Unsigned(32) x(15);  Unsigned(32) y(0);  Int(32) test() {  y x ( 4 cast 5 cast )times cast = = s ( x )print . y ( x x )max = s ( y )print . y cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
 use System;

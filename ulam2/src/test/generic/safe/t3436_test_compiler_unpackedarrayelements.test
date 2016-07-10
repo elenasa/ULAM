@@ -1,0 +1,23 @@
+## -*- mode:ulam -*-
+#=t3436_test_compiler_unpackedarrayelements
+#!
+Exit status: 10
+Ue_A { Int(32) test() {  A site[10];  { Int(32) i = 0 cast;  i 10 cast < cond { site i [] self cast = } _1: i 1 cast += while } 10 cast return } }
+## (was)
+##./A.ulam:4:5: ERROR: Invalid non-scalar type: A. Requires a custom array.
+##
+##      // taken from t3436; here, tests non-typedef decl
+##
+#>A.ulam
+  ulam 1;
+element A {
+  Int test(){
+    A site[10];
+    for(Int i = 0; i < 10; ++i){
+      site[i] = self;
+    }
+    return 10;
+  }
+}
+
+#.

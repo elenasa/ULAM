@@ -1,17 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3285_test_compiler_funccallargsnomatch_error
 #!
-./Tu.ulam:7:4: ERROR: (1) <print> has no defined function with 2 matching argument types: Bool(1), Int(3), and cannot be called.
-./Tu.ulam:8:3: ERROR: (1) <print> has no defined function with 0 matching argument types: and cannot be called.
-./Tu.ulam:7:4: ERROR: Unresolved No.1.
-./Tu.ulam:7:4: ERROR: Unresolved No.2.
-./Tu.ulam:8:3: ERROR: Unresolved No.3.
-./Tu.ulam:8:3: ERROR: Unresolved No.4.
-./Tu.ulam:5:1: Warning: 4 nodes with unresolved types remain in function <test> (Uf_4test,1).
-./Tu.ulam:5:5: Warning: Summary: 4 nodes with unresolved types remain in  a single function <test> in class: Tu.
-./Tu.ulam:3:10: Warning: 4 data member nodes with unresolved types remain in class 'Tu'.
-./Tu.ulam:3:10: ERROR: 4 Nodes with unresolved types detected after type labeling class: Tu.
-Unrecoverable Program Type Label FAILURE.
+##
+##./Tu.ulam:7:4: ERROR: (1) <print> has no defined function with 2 matching argument types: Bool(1), Int(3), and cannot be called.
+##./Tu.ulam:8:3: ERROR: (1) <print> has no defined function with 0 matching argument types: and cannot be called.
 ##
 ##       //no matching function: error should list the type, not just the number
 ##

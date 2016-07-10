@@ -69,15 +69,7 @@ namespace MFM{
     void setValue(s64 val);
     void setValue(u64 val);
 
-    bool hasDefault();
-    bool getDefaultValue(s64& val);
-    bool getDefaultValue(u64& val);
-    void setDefaultValue(s64 val);
-    void setDefaultValue(u64 val);
-
     bool foldConstantExpression();
-
-    void printPostfixValue(File * fp);
 
     virtual const std::string getMangledPrefix() = 0;
 
@@ -87,21 +79,16 @@ namespace MFM{
 
   protected:
 
+    void printPostfixValue(File * fp);
+
   private:
     bool m_isReady;
-    bool m_hasDefault;
-    bool m_parameter; //class params i.e. has default but no value, look at instance
+    bool m_parameter; //i.e. no value, look at instance
 
     union {
       s64 sval;
       u64 uval;
     } m_constant;
-
-    union {
-      s64 sval;
-      u64 uval;
-    } m_default;
-
   };
 } //MFM
 

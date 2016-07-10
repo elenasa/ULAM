@@ -1,0 +1,27 @@
+## -*- mode:ulam -*-
+#=t3444_test_compiler_elementwithclassparameterunpackedarray_error
+#!
+./T.ulam:7:4: ERROR: Constant value expression for: y, is not a constant.
+./T.ulam:3:10: ERROR: 1 Nodes with erroneous types detected after type labeling class: T.
+./T.ulam:3:10: ERROR: 2 Nodes with unresolved types detected after type labeling class: T.
+Unrecoverable Program Type Label FAILURE.
+##
+##    //informed by t3445
+##
+#>T.ulam
+ ulam 1;
+use S;
+ element T{
+typedef Int BigSite[10];
+ Int test(){
+BigSite site;
+ S(site, 3) n;
+ return 0;
+}
+ }
+
+#:S.ulam
+ulam 1;
+quark S(BigSite y, Int i){
+ }
+#.

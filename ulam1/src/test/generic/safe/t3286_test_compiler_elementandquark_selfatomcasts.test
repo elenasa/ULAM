@@ -1,29 +1,28 @@
 ## -*- mode:ulam -*-
 #=t3286_test_compiler_elementandquark_selfatomcasts
 #!
+##      /* gen code output:
+##      */
 Exit status: 0
 Ue_Foo { Int(32) test() {  Atom(96) a;  Bar b;  b ( self cast )func . a self cast = 0 cast return } }
 Uq_Bar { <NOMAIN> }
-##
-##      // in element, 'self' is an element: cast self to an atom arg, and as RHS.
-##      // in quark, 'self' is a quark, 'atom' is an atom: cannot cast self to an atom (rhs)
-##
 #>Foo.ulam
-  use Bar;
+use Bar;
 element Foo {
-  Int test(){
-    Atom a;
-    Bar b;
-    b.func((Atom) self);
-    a = (Atom) self;
-    return 0;
-  }
-}
+Int test(){Atom a;
+Bar b;
+b.func((Atom) self);
+ a = (Atom) self;
+ return 0;
+ }
+ }
 
+##      // in element, 'self' is an element: cast self to an atom arg, and as RHS.
+##
+##      // in quark, 'self' is an atom: cast self to an an atom (rhs)
 #:Bar.ulam
 quark Bar {
-  Void func(Atom a){
-    Atom t = atom; //was self
-  }
+Void func(Atom a){Atom t = self;
+}
 }
 #.

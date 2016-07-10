@@ -1,0 +1,69 @@
+## -*- mode:ulam -*-
+#=t3348_test_compiler_elementandquarkswclassargs2_typedeffromanotherclasstypedef_sizeof
+#!
+##      /* gen code output:
+##	 Unsigned Arg: 1
+##	 Unsigned Arg: 96
+##	 Unsigned Arg: 96
+##      */
+##      //Constants have explicit types
+##
+Exit status: 1
+Ue_R { Int(32) test() {  System s;  constant Unsigned(3) var = 3u;  P(1u) pel;  s ( pel 1u . )print . s ( 96u )print . s ( 96u )print . pel 1u . cast return } }
+Ue_P(Unsigned(32) a) { Bool(UNKNOWN) b(notready);  Int(32) foo(0);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+Uq_V { typedef Q(3) Woof;  <NOMAIN> }
+Uq_Q(Int(32) s) { typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }
+##
+##      // informed by 3339: P is now parametric
+##      // recursive typedefs as local variable type
+##      //pel.b.sizeof
+##      //P.ulam:9:15: ERROR: Member selected must be either a quark or an element, not type: Bool(1).
+##
+#>R.ulam
+  ulam 1;
+use P;
+use System;
+use V;
+element R {
+  Int test() {
+    System s;
+    constant V.Woof.Foo var = 3u;
+    P(1u) pel;
+    s.print(pel.b.sizeof);
+    s.print(P(1u).sizeof);
+    s.print(pel.sizeof);
+    return (Int) pel.b.sizeof;
+  }
+}
+
+#:P.ulam
+  ulam 1;
+element P(Unsigned a) {
+  Bool(a) b;
+  Int foo;
+}
+
+#:Q.ulam
+  ulam 1;
+quark Q(Int s) {
+  typedef Unsigned(s) Foo;
+}
+#:V.ulam
+  ulam 1;
+use Q;
+quark V {
+  typedef Q(3) Woof;
+}
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

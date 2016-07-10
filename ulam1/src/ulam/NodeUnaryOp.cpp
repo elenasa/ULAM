@@ -126,13 +126,10 @@ namespace MFM {
       {
 	if(UlamType::compare(newType, uti, m_state) != UTIC_SAME) //not same|dontknow
 	  {
-	    if(!Node::makeCastingNode(m_node, newType, m_node))
+	    if(!makeCastingNode(m_node, newType, m_node))
 	      newType = Nav;
 	  }
       }
-    else
-      m_state.setGoAgain(); //since not error
-
 
     setNodeType(newType);
     setStoreIntoAble(false);
@@ -250,9 +247,9 @@ namespace MFM {
       {
 	UlamValue cnstUV = m_state.m_nodeEvalStack.popArg();
 	u32 wordsize = m_state.getTotalWordSize(nuti);
-	if(wordsize <= MAXBITSPERINT)
+	if(wordsize == MAXBITSPERINT)
 	  val = cnstUV.getImmediateData(m_state);
-	else if(wordsize <= MAXBITSPERLONG)
+	else if(wordsize == MAXBITSPERLONG)
 	  val = cnstUV.getImmediateDataLong(m_state);
 	else
 	  assert(0);
@@ -353,7 +350,7 @@ namespace MFM {
     if(uv.getUlamValueTypeIdx() == Nav || nuti == Nav)
       return false;
 
-    u32 data = uv.getImmediateData(len, m_state);
+    u32 data = uv.getImmediateData(len);
     UlamValue rtnUV = makeImmediateUnaryOp(nuti, data, len);
     m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
     return true;

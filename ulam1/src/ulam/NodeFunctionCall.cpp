@@ -94,9 +94,8 @@ namespace MFM {
     u32 constantArgs = 0;
     u32 navArgs = 0;
     UTI listuti = Nav;
-    bool hazyKin = false;
 
-    if(m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex,fnsymptr, hazyKin) && !hazyKin)
+    if(m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex,fnsymptr))
       {
         //use member block doesn't apply to arguments; no change to current block
 	m_state.pushCurrentBlockAndDontUseMemberBlock(m_state.getCurrentBlock()); //set forall args
@@ -183,10 +182,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "(2) <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
 	msg << "> is not a defined function, and cannot be called";
-	if(hazyKin)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	numErrorsFound++;
       }
 
@@ -226,7 +222,7 @@ namespace MFM {
 	      if(UlamType::compare(ptype, atype, m_state) == UTIC_NOTSAME) //o.w. known same
 		{
 		  Node * argCast = NULL;
-		  if(!Node::makeCastingNode(argNode, ptype, argCast))
+		  if(!makeCastingNode(argNode, ptype, argCast))
 		    {
 		      argsWithCastErr.push_back(i); //error!
 		    }
@@ -245,7 +241,7 @@ namespace MFM {
 		      {
 			Node * argNode = constArgs[i];//m_argumentNodes->getNodePtr(i);
 			Node * argCast = NULL;
-			if(!Node::makeCastingNode(argNode, m_state.getDefaultUlamTypeOfConstant(argTypes[i]), argCast))
+			if(!makeCastingNode(argNode, m_state.getDefaultUlamTypeOfConstant(argTypes[i]), argCast))
 			  {
 			    argsWithCastErr.push_back(i); //error!
 			  }
@@ -512,6 +508,15 @@ namespace MFM {
     std::ostringstream arglist;
 
     // presumably there's no = sign.., and no open brace for tmpvars
+#ifdef TMPVARBRACES
+    if(nuti == Void)
+      {
+	m_state.indent(fp);
+	fp->write("{\n");    //open for tmpvar arg's
+	m_state.m_currentIndentLevel++;
+      }
+#endif
+
     // first "hidden" arg is the context
     arglist << m_state.getHiddenContextArgName() << ", ";
 
@@ -532,7 +537,7 @@ namespace MFM {
 	    Symbol * stgcos = NULL;
 	    if(m_state.m_currentObjSymbolsForCodeGen.empty())
 	      {
-		stgcos = m_state.getCurrentSelfSymbolForCodeGen();
+		stgcos = m_state.m_currentSelfSymbolForCodeGen;
 	      }
 	    else
 	      {
@@ -608,11 +613,11 @@ namespace MFM {
 
 	u32 selfid = 0;
 	if(m_state.m_currentObjSymbolsForCodeGen.empty())
-	  selfid = m_state.getCurrentSelfSymbolForCodeGen()->getId(); //a use for CSS
+	  selfid = m_state.m_currentSelfSymbolForCodeGen->getId(); //a use for CSS
 	else
 	  selfid = m_state.m_currentObjSymbolsForCodeGen[0]->getId();
 
-	uvpass = UlamValue::makePtr(rtnSlot, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, justified; self id in Ptr;
+	uvpass = UlamValue::makePtr(rtnSlot, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, rightjustified; self id in Ptr;
 
 	// put result of function call into a variable;
 	// (C turns it into the copy constructor)
@@ -640,6 +645,14 @@ namespace MFM {
     fp->write(arglist.str().c_str());
     fp->write(");\n");
 
+#ifdef TMPVARBRACES
+    if(nuti == Void)
+      {
+	m_state.m_currentIndentLevel--;
+	m_state.indent(fp);
+	fp->write("}\n"); //close for tmpVar
+      }
+#endif
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //codeGenIntoABitValue
 
@@ -653,73 +666,9 @@ namespace MFM {
   {
     assert(!isCurrentObjectALocalVariableOrArgument());
 
-    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-    u32 startcos = 0;
-
-    Symbol * stgcos = m_state.getCurrentSelfSymbolForCodeGen();
-    UTI stgcosuti = stgcos->getUlamTypeIdx(); //more general instead of current class
-
-    // use NodeNo for inheritance
-    NNO cosBlockNo = m_funcSymbol->getBlockNoOfST();
-    NNO stgcosBlockNo = stgcos->getBlockNoOfST(); //m_state.getAClassBlockNo(stgcosuti);
-
-    Symbol * cos = NULL;
-    UTI cosuti = Nav;
-    if(cosSize != 0)
-      {
-	cos = m_state.m_currentObjSymbolsForCodeGen.back(); //"owner" of func
-	cosuti = cos->getUlamTypeIdx();
-	if(!m_state.isClassASubclass(cosuti))
-	  cosBlockNo = cos->getBlockNoOfST(); //compare owner and self
-	else
-	  stgcosBlockNo = cos->getBlockNoOfST();
-      }
-
-    if(cosBlockNo != stgcosBlockNo)
-      {
-	s32 subcos = Node::isCurrentObjectsContainingASubClass();
-	if(subcos >= 0)
-	  {
-	    startcos = subcos + 1;
-
-	    UTI cosclassuti = Node::findTypeOfSubClassAndBlockNo(cosBlockNo, subcos);
-	    UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
-
-	    fp->write(cosclassut->getUlamTypeMangledName().c_str());
-	    if(cosclassut->getUlamClass() == UC_ELEMENT)
-	      fp->write("<EC>::THE_INSTANCE.");
-	    else
-	      {
-		fp->write("<EC,");
-		fp->write("T::ATOM_FIRST_STATE_BIT");
-		fp->write(">::");
-	      }
-	  }
-	else if(m_state.isClassASubclass(stgcosuti)) //self is subclass
-	  {
-	    Node * foundnode = m_state.findNodeNoInAClass(cosBlockNo, stgcosuti);
-	    assert(foundnode);
-	    UTI superuti = foundnode->getNodeType();
-	    UlamType * superut = m_state.getUlamTypeByIndex(superuti);
-	    fp->write(superut->getUlamTypeMangledName().c_str());
-	    if(superut->getUlamClass() == UC_ELEMENT)
-	      {
-		fp->write("<EC>::THE_INSTANCE.");
-		startcos = cosSize; //bypass all that follows
-	      }
-	    else
-	      {
-		//self is a quark
-		fp->write("<EC,");
-		fp->write("T::ATOM_FIRST_STATE_BIT");
-		fp->write(">::");
-	      }
-	  }
-	//else do nothing for inheritance
-      }
-
     //iterate over COS vector; empty if current object is self
-    for(u32 i = startcos; i < cosSize; i++)
+    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+    for(u32 i = 0; i < cosSize; i++)
       {
 	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
 	if(sym->isSelf())
@@ -800,7 +749,7 @@ namespace MFM {
     Symbol * stgcos = NULL;
 
     if(epi == 0)
-      stgcos = m_state.getCurrentSelfSymbolForCodeGen();
+      stgcos = m_state.m_currentSelfSymbolForCodeGen;
     else
       stgcos = m_state.m_currentObjSymbolsForCodeGen[epi - 1]; //***
 
@@ -832,13 +781,10 @@ namespace MFM {
 
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
 
-    u32 startcos = 1;
-    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 
-    //if(stgcos->isSelf())
-    //  return;
+    if(stgcos->isSelf())
+      return;
 
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
@@ -854,29 +800,12 @@ namespace MFM {
 	//assert(0);
       }
 
-    // use NodeNo for inheritance
-    bool useSuperClassName = false;
-    NNO cosBlockNo = m_funcSymbol->getBlockNoOfST();
-    NNO stgcosBlockNo = m_state.getAClassBlockNo(stgcosuti);
-    if(stgcosBlockNo != cosBlockNo)
-      {
-	s32 subcos = Node::isCurrentObjectsContainingASubClass();
-	if(subcos >= 0)
-	  {
-	    startcos = subcos + 1; //for loop later
-
-	    UTI cosclassuti = Node::findTypeOfSubClassAndBlockNo(cosBlockNo, subcos);
-	    stgcosuti = cosclassuti; // resets stgcosuti here!!
-	    stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-	    useSuperClassName = true;
-	  }
-      }
-
     ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClass();
     if(stgclasstype == UC_ELEMENT)
       {
 	fp->write(stgcosut->getUlamTypeMangledName().c_str());
 	fp->write("<EC>::");
+
 	//depending on the "owner" of the func, the instance is needed
 	Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
 	UTI cosuti = cos->getUlamTypeIdx();
@@ -885,22 +814,13 @@ namespace MFM {
       }
     else
       {
-	if(useSuperClassName)
-	  {
-	    fp->write(stgcosut->getUlamTypeMangledName().c_str());
-	    fp->write("<EC,");
-	    fp->write("T::ATOM_FIRST_STATE_BIT");
-	    fp->write(">::");
-	  }
-	else
-	  {
-	  //immediate quark..
-	  fp->write(stgcosut->getImmediateStorageTypeAsString().c_str());
-	  fp->write("::Us::"); //typedef
-	  }
+	//immediate quark..
+	fp->write(stgcosut->getImmediateStorageTypeAsString().c_str());
+	fp->write("::Us::"); //typedef
       }
 
-    for(u32 i = startcos; i < cosSize; i++)
+    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+    for(u32 i = 1; i < cosSize; i++)
       {
 	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
 	fp->write(sym->getMangledNameForParameterType().c_str());

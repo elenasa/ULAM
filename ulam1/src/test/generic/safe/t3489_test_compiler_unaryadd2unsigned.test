@@ -6,7 +6,7 @@
 ##	 Unsigned Arg: 12
 ##      */
 Exit status: 3
-Ue_A { constant Unsigned(3) b = 5u;  System s();  constant Unsigned(3) a = 7u;  constant Unary(3) c = 7u;  Unsigned(4) d(12u);  Int(32) test() {  d 12u = s ( 7u )print . s ( d cast )print . 7u cast return } }
+Ue_A { constant Unsigned(3) b = 5;  System s();  constant Unsigned(3) a = 7;  constant Unary(3) c = 3;  Unsigned(4) d(12);  Int(32) test() {  d 12u = s ( 7u )print . s ( d cast )print . 7u cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
 use System;
@@ -18,7 +18,7 @@ constant Unsigned(3) a = 7u; constant Unsigned(3) b = 5u;
  use test;
  d = a + b;
  s.print(c);
- s.print(d);
+ s.print((Unsigned) d);
  return c;
  }
  }

@@ -1,0 +1,31 @@
+## -*- mode:ulam -*-
+#=t3734_test_compiler_bitsshift_issue
+#!
+Exit status: 2
+Ue_A { Unsigned(2) m_lastRcvAge(2u);  Int(32) test() {  m_lastRcvAge 1 cast = ( )update m_lastRcvAge cast return } }
+##
+##
+#>A.ulam
+  ulam 1;
+element A {
+  Unsigned(2) m_lastRcvAge;
+  Int test() {
+    m_lastRcvAge = 1;
+    update();
+    return m_lastRcvAge;
+  }
+
+  Void update() {
+    // stochastic timer by hand (SHOULD USE XTimer!)
+    if (m_lastRcvAge < m_lastRcvAge.maxof
+        && oneIn((Unsigned) (2<<m_lastRcvAge)))
+      ++m_lastRcvAge;
+  }
+
+  Bool oneIn(Unsigned odds) {
+    return true;
+  }
+
+}
+
+#.

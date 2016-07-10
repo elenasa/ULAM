@@ -121,7 +121,7 @@ namespace MFM {
 		    FORECAST scr = m_node->safeToCastTo(rtnType);
 		    if( scr == CAST_CLEAR)
 		      {
-			if(!Node::makeCastingNode(m_node, rtnType, m_node))
+			if(!makeCastingNode(m_node, rtnType, m_node))
 			  nodeType = Nav;
 			else
 			  nodeType = m_node->getNodeType(); //casted
@@ -163,7 +163,6 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	// nodeType = Nav; needed?
-	m_state.setGoAgain();
       }
 
     //check later against defined function return type
@@ -222,6 +221,11 @@ namespace MFM {
     // return for void type has a NodeStatementEmpty m_node
     if(m_node && getNodeType() != Void)
       {
+#ifdef TMPVARBRACES
+	m_state.indent(fp);
+	fp->write("{\n");
+	m_state.m_currentIndentLevel++;
+#endif
 	m_node->genCode(fp, uvpass);
 	UTI vuti = uvpass.getUlamValueTypeIdx();
 
@@ -233,7 +237,14 @@ namespace MFM {
 	vuti = uvpass.getPtrTargetType();
 	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
 
-	fp->write(");\n");
+	fp->write(")");
+	fp->write(";\n");
+
+#ifdef TMPVARBRACES
+	m_state.m_currentIndentLevel--;
+	m_state.indent(fp);
+	fp->write("}\n");
+#endif
       }
     else
       {

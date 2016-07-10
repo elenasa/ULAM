@@ -1,8 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3454_test_compiler_atommodelparameter_error
 #!
-./Tu.ulam:5:18: ERROR: Missing model parameter definition after '=' for 'aep'.
-Unrecoverable Program Parse FAILURE.
+##
+##./Tu.ulam:5:18: ERROR: Missing model parameter definition after '=' for 'aep'.
+##
+Ue_Tu {
 #>Tu.ulam
 ulam 1;
  use Empty;

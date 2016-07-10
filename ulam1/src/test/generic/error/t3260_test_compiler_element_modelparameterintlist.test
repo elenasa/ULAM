@@ -2,13 +2,12 @@
 #=t3260_test_compiler_element_modelparameterintlist
 #!
 ##
-./Foo.ulam:6:22: ERROR: Missing ';' after model parameter definition 'chance'; Lists not supported.
-./Foo.ulam:3:2: ERROR: Empty/Incomplete Class Definition 'Foo'; Possible missing ending curly brace.
-./Foo.ulam:7:2: ERROR: Invalid Class Type <Int>; KEYWORD should be 'element', 'quark', or 'union'.
-./Foo.ulam:3:10: ERROR: Invalid Type: Foo.
- ERROR: No parse tree for This Class: Foo.
-Unrecoverable Program Parse FAILURE.
+##      //./Foo.ulam:6:22: ERROR: Missing ';' after model parameter definition 'chance'; Lists not supported.
+##      // model parameter chance not stored (as static variable) for eval
 ##
+Exit status: 3
+Ue_Foo { Int(8) b(2);  System s();  Bool(7) sp(false);  Int(8) a(1);  Int(8) c(3);  Int(32) test() {  Foo f;  f chance . 1 = s ( chance )print . a f chance . cast = f choice . 2 = s ( choice )print . b f choice . cast = f result . 3 = s ( result )print . c f result . cast = f chance . return } }
+Uq_System { <NOMAIN> }
 #>Foo.ulam
 ulam 1;
 use System;

@@ -1,0 +1,54 @@
+## -*- mode:ulam -*-
+#=t3136_test_compiler_twofuncdefs
+##
+## gen output: (asserts interleaved)
+## Unsigned Arg: 15
+## Unsigned Arg: 0
+##
+#!
+Exit status: 0
+Ue_A { Bool(7) b(false);  System s();  Unsigned(32) x(15u);  Unsigned(32) y(0u);  Int(32) test() {  y x ( 4 cast 5 cast )times cast = = s ( x )print . s ( x 15u cast == )assert . y ( x x )max = s ( y )print . s ( y 0u cast == )assert . y cast return } }
+Uq_System { <NOMAIN> }
+#>A.ulam
+  ulam 1;
+use System;
+element A {
+  System s;
+  Int times(Int m, Int n) {
+    Int e;
+    while( --m > 0 )
+      e += n;
+    return e;
+  }
+  Int max(Int a, Int b) {
+    return (a - b);
+  }
+  Unsigned max(Unsigned a, Unsigned b){
+    return a - b;
+  }
+  Bool(7) b;
+  Unsigned x, y;
+  Int test(){
+    y = x = (Unsigned) times(4,5);
+    s.print(x); //15
+    s.assert(x==15u);
+    y = max(x,x);
+    s.print(y); //0
+    s.assert(y==0u);
+    return (Int) y;
+  }
+}
+
+## try overload 'max' with Unsigned args and return Unsigned; let x and y be Unsigned
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

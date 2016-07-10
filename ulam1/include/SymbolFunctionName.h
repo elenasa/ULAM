@@ -41,7 +41,6 @@
 #include <vector>
 #include "Symbol.h"
 #include "SymbolFunction.h"
-#include "MapClassMemberDesc.h"
 
 namespace MFM{
 
@@ -70,8 +69,6 @@ namespace MFM{
 
     u32 findMatchingFunctionWithConstantsAsArgs(std::vector<UTI> argTypes, std::vector<Node*> constArgs, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
 
-    u32 findMatchingFunctionWithConstantsAsArgsInAncestors(std::vector<UTI> argTypes, std::vector<Node*> constArgs, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
-
     u32 getDepthSumOfFunctions();
 
     void calcMaxDepthOfFunctions(); //called after all UTI sizes are known
@@ -99,8 +96,6 @@ namespace MFM{
     u32 countNativeFuncDecls();
 
     void generateCodedFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
-
-    void addFunctionDescriptionsToClassMemberMap(UTI classType, ClassMemberMap & classmembers);
 
   protected:
 

@@ -43,7 +43,7 @@ namespace MFM {
 
   static const char * m_indentedSpaceLevel("  "); //2 spaces per level
 
-  static const char * HIDDEN_ARG_NAME = "Uv_4atom"; //was Uv_4self
+  static const char * HIDDEN_ARG_NAME = "Uv_4self";
   static const char * HIDDEN_CONTEXT_ARG_NAME = "uc"; //unmangled
   static const char * CUSTOMARRAY_GET_FUNC_NAME = "aref"; //unmangled
   static const char * CUSTOMARRAY_SET_FUNC_NAME = "aset"; //unmangled
@@ -51,16 +51,11 @@ namespace MFM {
   static const char * CUSTOMARRAY_SET_MANGLEDNAME = "Uf_4aset";
 
   static const char * IS_MANGLED_FUNC_NAME = "internalCMethodImplementingIs"; //Uf_2is
-  static const char * IS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamElement<EC>::IsMethod"; //Uf_2is
-
   static const char * HAS_MANGLED_FUNC_NAME = "PositionOfDataMemberType"; //Uf_3has
   static const char * HAS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamElement<EC>::PositionOfDataMember";
 
-  static const char * BUILD_DEFAULT_ATOM_FUNCNAME = "BuildDefaultAtom";
-  static const char * BUILD_DEFAULT_QUARK_FUNCNAME = "getDefaultQuark";
-
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalHas(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0)
+  CompilerState::CompilerState(): m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0)
   {
     m_err.init(this, debugOn, infoOn, warnOn, NULL);
   }
@@ -492,13 +487,6 @@ namespace MFM {
 	    return (cnsymOfIncomplete->hasMappedUTI(auti, mappedUTI));
 	  }
       }
-
-    // try in Symbol Class..
-    // check for inheritance
-    //    UTI superuti = isClassASubclass(cuti);
-    //if(superuti != Nav)
-    //  return mappedIncompleteUTI(superuti, auti, mappedUTI);
-
     return false; //for compiler
   } //mappedIncompleteUTI
 
@@ -623,7 +611,9 @@ namespace MFM {
     UTI tmpforscalaruti = Nav;
     //is this name already a typedef for a complex type?
     if(getUlamTypeByTypedefName(tok.m_dataindex, ut, tmpforscalaruti))
-      bUT = getUlamTypeByIndex(ut)->getUlamTypeEnum();
+      {
+	bUT = getUlamTypeByIndex(ut)->getUlamTypeEnum();
+      }
     else if(Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD)
       {
 	std::string typeName = getTokenAsATypeName(tok); //Int, etc
@@ -632,7 +622,10 @@ namespace MFM {
 	bUT = UlamType::getEnumFromUlamTypeString(typeName.c_str()); //could be Element, etc.;
       }
     else
-      bUT = Class; //it's an element or quark! base type is Class.
+      {
+	//it's an element or quark! base type is Class.
+	bUT = Class;
+      }
     return bUT;
   } //getBaseTypeFromToken
 
@@ -693,13 +686,12 @@ namespace MFM {
   {
     bool rtnBool = false;
     Symbol * asymptr = NULL;
-    bool hazyKin = false; //useful?
 
     //e.g. KEYWORDS have no m_dataindex (=0); short-circuit
     if(nameIdx == 0) return false;
 
     //searched back through all block's ST for idx
-    if(alreadyDefinedSymbol(nameIdx, asymptr, hazyKin))
+    if(alreadyDefinedSymbol(nameIdx, asymptr))
       {
 	if(asymptr->isTypedef())
 	  {
@@ -746,24 +738,6 @@ namespace MFM {
   {
     return ctype; // use its own type
   } //getDefaultUlamTypeOfConstant
-
-  bool CompilerState::getDefaultQuark(UTI cuti, u32& dqref)
-  {
-    if(cuti == Nav) return false; //short-circuit
-
-    bool rtnb = false;
-    if(getUlamTypeByIndex(cuti)->getUlamClass() == UC_QUARK)
-      {
-	rtnb = true;
-	if(getBitSize(cuti) > 0)
-	  {
-	    SymbolClass * csym = NULL;
-	    assert(alreadyDefinedSymbolClass(cuti, csym));
-	    rtnb = csym->getDefaultQuark(dqref);
-	  }
-      }
-    return rtnb;
-  } //getDefaultQuark
 
   bool CompilerState::isScalar(UTI utArg)
   {
@@ -964,14 +938,12 @@ namespace MFM {
     //disallow zero-sized primitives (no such thing as a BitVector<0u>)
     //'Void' by default is zero and only zero bitsize (already complete)
     UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
-    if(key.getUlamKeyTypeSignatureBitSize() == 0 || bitsize <= 0)
+    if(key.getUlamKeyTypeSignatureBitSize() == 0 || bitsize == 0)
       {
-	if(bUT != Void || bitsize < 0)
+	if(bUT != Void)
 	  {
 	    std::ostringstream msg;
-	    msg << "Invalid size (";
-	    msg << bitsize;
-	    msg << ") to set for primitive type: " << UlamType::getUlamTypeEnumAsString(bUT);
+	    msg << "Invalid zero sizes to set for nonClass: " << ut->getUlamTypeNameBrief().c_str();
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return;
 	  }
@@ -1055,106 +1027,6 @@ namespace MFM {
     return arraysize;
   } //slotsNeeded
 
-  bool CompilerState::isClassATemplate(UTI cuti)
-  {
-    SymbolClass * csym = NULL;
-    assert(alreadyDefinedSymbolClass(cuti, csym));
-    return csym->isClassTemplate(cuti);
-  } //isClassATemplate
-
-  UTI CompilerState::isClassASubclass(UTI cuti)
-  {
-    UTI subuti = getUlamTypeAsScalar(cuti); //in case of array
-
-    SymbolClass * csym = NULL;
-    if(alreadyDefinedSymbolClass(subuti, csym))
-      {
-	SymbolClassName * cnsym = NULL;
-	assert(alreadyDefinedSymbolClassName(csym->getId(), cnsym));
-	return cnsym->getSuperClassForClassInstance(subuti); //returns super UTI, or Nav if no inheritance
-      }
-    return Nav; //even for non-classes
-  } //isClassASubclass
-
-  bool CompilerState::isClassASuperclassOf(UTI cuti, UTI superp)
-  {
-    bool rtnb = false;
-    UTI prevuti = cuti; //init for the loop
-    while(!rtnb && prevuti != Nav)
-      {
-	cuti = prevuti;
-	SymbolClass * csym = NULL;
-	if(alreadyDefinedSymbolClass(cuti, csym))
-	  {
-	    SymbolClassName * cnsym = NULL;
-	    assert(alreadyDefinedSymbolClassName(csym->getId(), cnsym));
-	    prevuti = cnsym->getSuperClassForClassInstance(cuti); //returns super UTI, or Nav if no inheritance
-	    rtnb = (superp == prevuti); //compare
-	  }
-	else
-	  prevuti = Nav; //avoid inf loop
-      }
-    return rtnb; //even for non-classes
-  } //isClassASuperclassOf
-
-  bool CompilerState::isClassAStub(UTI cuti)
-  {
-    SymbolClass * csym = NULL;
-    if(alreadyDefinedSymbolClass(cuti, csym))
-      return csym->isStub();
-
-    return false; //even for non-classes
-  } //isClassAStub
-
-  bool CompilerState::hasClassAStub(UTI cuti)
-  {
-    bool rtnb = false;
-    UTI prevuti = cuti; //init for the loop
-
-    while(!rtnb && prevuti != Nav)
-      {
-	rtnb = isClassAStub(prevuti);
-	prevuti = isClassASubclass(prevuti);
-      }
-    return rtnb; //even for non-classes
-  } //hasClassAStub
-
-  bool CompilerState::isClassAQuarkUnion(UTI cuti)
-  {
-    SymbolClass * csym = NULL;
-    if(alreadyDefinedSymbolClass(cuti, csym))
-      {
-	return csym->isQuarkUnion();
-      }
-    return false; //even for non-classes
-  } //isClassAQuarkUnion
-
-  bool CompilerState::isClassACustomArray(UTI cuti)
-  {
-    if(!isScalar(cuti)) return false;
-
-    SymbolClass * csym = NULL;
-    if(alreadyDefinedSymbolClass(cuti, csym))
-      {
-	return csym->isCustomArray(); //checks via classblock in case of inheritance
-      }
-    return false; //even for non-classes
-  } //isClassACustomArray
-
-  UTI CompilerState::getAClassCustomArrayType(UTI cuti)
-  {
-    SymbolClass * csym = NULL;
-    assert(alreadyDefinedSymbolClass(cuti, csym));
-    return csym->getCustomArrayType(); //checks via classblock in case of inheritance
-  } //getAClassCustomArrayType
-
-  UTI CompilerState::getAClassCustomArrayIndexType(UTI cuti, Node * rnode, UTI& idxuti, bool& hasHazyArgs)
-  {
-    SymbolClass * csym = NULL;
-    assert(alreadyDefinedSymbolClass(cuti, csym));
-    return csym->getCustomArrayIndexTypeFor(rnode, idxuti, hasHazyArgs); //checks via classblock in case of inheritance
-  } //getAClassCustomArrayIndexType
-
   bool CompilerState::alreadyDefinedSymbolClassName(u32 dataindex, SymbolClassName * & symptr)
   {
     return m_programDefST.isInTable(dataindex,(Symbol * &) symptr);
@@ -1217,7 +1089,7 @@ namespace MFM {
   } //alreadyDefinedSymbolClass
 
   //temporary UlamType which will be updated during type labeling.
-  bool CompilerState::addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr)
+  void CompilerState::addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr)
   {
     u32 dataindex = cTok.m_dataindex;
     assert(symptr == NULL && !alreadyDefinedSymbolClassName(dataindex,symptr));
@@ -1239,11 +1111,10 @@ namespace MFM {
     m_unseenClasses.insert(symptr);
 
     popClassContext();
-    return true; //compatible with alreadyDefinedSymbolClassName return
   } //addIncompleteClassSymbolToProgramTable
 
   //temporary UlamType which will be updated during type labeling.
-  bool CompilerState::addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr)
+  void CompilerState::addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr)
   {
     u32 dataindex = cTok.m_dataindex;
     assert(symptr == NULL && !alreadyDefinedSymbolClassNameTemplate(dataindex,symptr));
@@ -1265,7 +1136,6 @@ namespace MFM {
     m_unseenClasses.insert(symptr);
 
     popClassContext();
-    return true; //compatible with alreadyDefinedSymbolClassNameTemplate return
   } //addIncompleteClassSymbolToProgramTable
 
   void CompilerState::resetUnseenClass(SymbolClassName * cnsym, Token identTok)
@@ -1348,10 +1218,9 @@ namespace MFM {
     return rtnB;
   } //completeIncompleteClassSymbolForTypedef
 
-  bool CompilerState::alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr, bool& hasHazyKin)
+  bool CompilerState::alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr)
   {
     bool brtn = false;
-    assert(!hasHazyKin);
 
     //start with the current "top" block and look down the stack
     //until the 'variable id' is found.
@@ -1363,69 +1232,50 @@ namespace MFM {
 
     while(!brtn && blockNode)
       {
-	brtn = blockNode->isIdInScope(dataindex,symptr); //check ST
-
-	//hazy check..
-	UTI buti = blockNode->getNodeType();
-	if(blockNode->isAClassBlock() && (isClassAStub(buti) || (isClassASubclass(buti) && !((NodeBlockClass *) blockNode)->isSuperClassLinkReady())))
-	  hasHazyKin = true;
-
+	brtn = blockNode->isIdInScope(dataindex,symptr);
 	blockNode = blockNode->getPreviousBlockPointer(); //traverse the chain
       }
 
     //data member variables in class block; function symbols are linked to their
     //function def block; check function data members separately.
     if(!brtn)
-      brtn = isFuncIdInClassScope(dataindex, symptr, hasHazyKin);
+      brtn = isFuncIdInClassScope(dataindex, symptr);
+
     return brtn;
   } //alreadyDefinedSymbol
 
-  bool CompilerState::isFuncIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin)
+  bool CompilerState::isFuncIdInClassScope(u32 dataindex, Symbol * & symptr)
   {
     bool brtn = false;
-    //assert(!hasHazyKin); might come from alreadyDefinedSymbol now, and have a hazy chain.
-
-    //start with the current "top" block and look down the stack
-    //until the 'variable id' is found.
-    NodeBlockClass * classblock = getClassBlock();
-
-    //substitute another selected class block to search for data member
     if(useMemberBlock())
-      classblock = getCurrentMemberClassBlock();
-
-    while(!brtn && classblock)
       {
-	brtn = classblock->isFuncIdInScope(dataindex,symptr); //returns symbol
-
-	UTI cuti = classblock->getNodeType();
-	if(isClassAStub(cuti) || (isClassASubclass(cuti) && !classblock->isSuperClassLinkReady()))
-	  hasHazyKin = true; //self is stub
-
-	classblock = (NodeBlockClass *) classblock->getPreviousBlockPointer(); //inheritance chain
+	NodeBlockClass * memberblock = getCurrentMemberClassBlock();
+	if(memberblock)
+	  brtn = memberblock->isFuncIdInScope(dataindex,symptr);
+      }
+    else
+      {
+	NodeBlockClass * classblock = getClassBlock();
+	if(classblock)
+	  brtn = classblock->isFuncIdInScope(dataindex,symptr);
       }
     return brtn;
   } //isFuncIdInClassScope
 
-  bool CompilerState::isFuncIdInClassScopeNNO(NNO cnno, u32 dataindex, Symbol * & symptr, bool& hasHazyKin)
+  bool CompilerState::isIdInClassScope(u32 dataindex, Symbol * & symptr)
   {
-    UTI cuti = findAClassByNodeNo(cnno); //class of cnno
-    assert(cuti != Nav);
-    assert(!hasHazyKin);
-    return isFuncIdInAClassScope(cuti, dataindex, symptr, hasHazyKin);
-  } //isFuncIdInClassScopeNNO
+    bool brtn = false;
+    if(useMemberBlock())
+      {
+	NodeBlockClass * memberblock = getCurrentMemberClassBlock();
+	if(memberblock)
+	  brtn = memberblock->isIdInScope(dataindex,symptr);
+      }
+    else
+      brtn = getClassBlock()->isIdInScope(dataindex,symptr);
 
-bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & symptr, bool& hasHazyKin)
-  {
-    SymbolClass * csym = NULL;
-    assert(alreadyDefinedSymbolClass(cuti, csym));
-    NodeBlockClass * cblock = csym->getClassBlockNode();
-    assert(cblock);
-    pushClassContext(cuti, cblock, cblock, false, NULL);
-
-    bool rtnb = isFuncIdInClassScope(dataindex, symptr, hasHazyKin);
-    popClassContext(); //don't forget!!
-    return rtnb;
-  } //isFuncIdInAClassScope
+    return brtn;
+  } //isIdInClassScope
 
   //symbol ownership goes to the current block (end of vector)
   void CompilerState::addSymbolToCurrentScope(Symbol * symptr)
@@ -1539,8 +1389,6 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return m_pool.getIndexForDataString(nstr);
   }
 
-  // note: we may miss a missing return value for non-void function; non-trivial to
-  // do logic-flow analysis; gcc catches them until ulam template absorbs gcc errors.
   bool CompilerState::checkFunctionReturnNodeTypes(SymbolFunction * fsym)
   {
     bool rtnBool = true;
@@ -1664,11 +1512,8 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return CUSTOMARRAY_SET_MANGLEDNAME;
   }
 
-  const char * CompilerState::getIsMangledFunctionName(UTI ltype)
+  const char * CompilerState::getIsMangledFunctionName()
   {
-    if(ltype == UAtom)
-      return IS_MANGLED_FUNC_NAME_FOR_ATOM;
-
     return IS_MANGLED_FUNC_NAME;
   }
 
@@ -1683,31 +1528,13 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   {
     ULAMCLASSTYPE rclasstype = getUlamTypeByIndex(rtype)->getUlamClass();
     if(rclasstype == UC_QUARK)
-      return getIsMangledFunctionName(ltype);
+      return getHasMangledFunctionName(ltype);
     else if (rclasstype == UC_ELEMENT)
       return IS_MANGLED_FUNC_NAME;
     else
       assert(0);
-
     return "AS_ERROR";
   } //getAsMangledFunctionName
-
-  const char * CompilerState::getBuildDefaultAtomFunctionName(UTI ltype)
-  {
-    ULAMCLASSTYPE lclasstype = getUlamTypeByIndex(ltype)->getUlamClass();
-    if(lclasstype == UC_ELEMENT)
-      return BUILD_DEFAULT_ATOM_FUNCNAME; //for elements
-    else if(lclasstype == UC_QUARK)
-      return getDefaultQuarkFunctionName();
-    else
-      assert(0);
-    return "BUILDEFAULTATOM_ERROR";
-  } //getBuildDefaultAtomFunctionName
-
-  const char * CompilerState::getDefaultQuarkFunctionName()
-  {
-      return BUILD_DEFAULT_QUARK_FUNCNAME;
-  } //getDefaultQuarkFunctionName
 
   std::string CompilerState::getFileNameForAClassHeader(UTI cuti, bool wSubDir)
   {
@@ -1846,20 +1673,9 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return lenstr.str();
   } //getBitVectorLengthAsStringForCodeGen
 
-  UlamValue CompilerState::getAtomPtrFromSelfPtr()
-  {
-    UlamValue tuv = getPtrTarget(m_currentSelfPtr);
-    UTI tuti = tuv.getUlamValueTypeIdx();
-
-    UlamValue aptr = UlamValue::makePtr(m_currentSelfPtr.getPtrSlotIndex(), m_currentSelfPtr.getPtrStorage(), tuti, determinePackable(tuti), *this, 0, m_currentSelfPtr.getPtrNameId());
-    return aptr;
-  } //getAtomPtrFromSelfPtr (for eval)
-
   UlamValue CompilerState::getPtrTarget(UlamValue ptr)
   {
-    // change to recurse in case of ptr to ptr (e.g. auto for h/as)
     assert(ptr.getUlamValueTypeIdx() == Ptr);
-
     //slot + storage
     UlamValue valAtIdx;
     switch(ptr.getPtrStorage())
@@ -2006,13 +1822,17 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   bool CompilerState::thisClassHasTheTestMethod()
   {
-    NodeBlockFunctionDefinition * func = getClassBlock()->findTestFunctionNode();
+    Symbol * csym = m_programDefST.getSymbolPtr(getCompileThisId()); //safer approach
+    NodeBlockClass * classNode = ((SymbolClass *) csym)->getClassBlockNode();
+    assert(classNode);
+    NodeBlockFunctionDefinition * func = classNode->findTestFunctionNode();
     return (func != NULL);
   } //thisClassHasTheTestMethod
 
   bool CompilerState::thisClassIsAQuark()
   {
-    UTI cuti = getCompileThisIdx();
+    Symbol * csym = m_programDefST.getSymbolPtr(getCompileThisId());
+    UTI cuti = csym->getUlamTypeIdx();
     return(getUlamTypeByIndex(cuti)->getUlamClass() == UC_QUARK);
   } //thisClassIsAQuark
 
@@ -2036,8 +1856,10 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     Coord c0(0,0);
 
     //m_classBlock ok now, reset by NodeProgram after type label done
-    UTI cuti = getCompileThisIdx();
-    m_eventWindow.setSiteElementType(c0, cuti); //includes default values
+    Symbol * csym = m_programDefST.getSymbolPtr(getCompileThisId()); //safer approach
+    UTI cuti = csym->getUlamTypeIdx();
+
+    m_eventWindow.setSiteElementType(c0, cuti);
     m_currentSelfPtr = m_currentObjPtr = m_eventWindow.makePtrToCenter();
 
     //set up STACK since func call not called
@@ -2153,30 +1975,22 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
     if(uti == UAtom || getUlamTypeByIndex(uti)->getUlamClass() == UC_ELEMENT)
       {
-	assert(stg != TMPREGISTER);
-	//stg = TMPBITVAL; //avoid loading a T into a tmpregister!
+	stg = TMPBITVAL; //avoid loading a T into a tmpregister!
       }
 
     if(stg == TMPREGISTER)
       {
 	if(WritePacked(packed))
-	  tmpVar << "Uh_5tlreg" ; //tmp loadable register
+	  tmpVar << "Uh_tmpreg_loadable_" ;
 	else
-	  tmpVar << "Uh_5tureg" ; //tmp unpacked register
+	  tmpVar << "Uh_tmpreg_unpacked_" ;
       }
     else if(stg == TMPBITVAL)
       {
 	if(WritePacked(packed))
-	  tmpVar << "Uh_5tlval" ; //tmp loadable value
+	  tmpVar << "Uh_tmpval_loadable_" ;
 	else
-	  tmpVar << "Uh_5tuval" ; //tmp unpacked value
-      }
-    else if(stg == TMPAUTOREF)
-      {
-	if(WritePacked(packed))
-	  tmpVar << "Uh_6tlaref" ; //tmp loadable autoref
-	else
-	  tmpVar << "Uh_6tuaref" ; //tmp unpacked autoref
+	  tmpVar << "Uh_tmpval_unpacked_" ;
       }
     else
       assert(0); //remove assumptions about tmpbitval.
@@ -2249,33 +2063,6 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return cnsym->findNodeNoInAClassInstance(getCompileThisIdx(), n);
   } //findNodeNoInThisClass
 
-  Node * CompilerState::findNodeNoInAClass(NNO n, UTI cuti)
-  {
-    u32 cid = getUlamKeyTypeSignatureByIndex(cuti).getUlamKeyTypeSignatureNameId();
-    SymbolClassName * cnsym = NULL;
-    assert(alreadyDefinedSymbolClassName(cid, cnsym));
-    return cnsym->findNodeNoInAClassInstance(cuti, n);
-  } //findNodeNoInAClass
-
-  UTI CompilerState::findAClassByNodeNo(NNO n)
-  {
-    return m_programDefST.findClassNodeNoForTableOfClasses(n); //Nav not found
-  } //findAClassByNodeNo
-
-  NodeBlockClass * CompilerState::getAClassBlock(UTI cuti)
-  {
-    SymbolClass * csym = NULL;
-    assert(alreadyDefinedSymbolClass(cuti, csym));
-    return csym->getClassBlockNode();
-  } //getAClassBlock
-
-  NNO CompilerState::getAClassBlockNo(UTI cuti)
-  {
-    SymbolClass * csym = NULL;
-    assert(alreadyDefinedSymbolClass(cuti, csym));
-    return csym->getClassBlockNode()->getNodeNo();
-  } //getAClassBlockNo
-
   u32 CompilerState::getCompileThisId()
   {
     ClassContext cc;
@@ -2289,18 +2076,6 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     assert(m_classContextStack.getCurrentClassContext(cc));
     return cc.getCompileThisIdx();
   }
-
-  SymbolClass * CompilerState::getCurrentSelfSymbolForCodeGen()
-  {
-    return (SymbolClass *) m_currentSelfSymbolForCodeGen;
-#if 0
-    // no longer all self in h/as conditionals.
-    Symbol * selfsym = NULL;
-    u32 selfid = m_pool.getIndexForDataString("self");
-    assert(alreadyDefinedSymbol(selfid, selfsym, hazyKin));
-    return (SymbolClass *) selfsym;
-#endif
-  } //getCurrentSelfSymbolForCodeGen
 
   NodeBlock * CompilerState::getCurrentBlock()
   {

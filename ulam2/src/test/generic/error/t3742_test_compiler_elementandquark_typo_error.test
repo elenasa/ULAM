@@ -1,0 +1,66 @@
+## -*- mode:ulam -*-
+#=t3742_test_compiler_elementandquark_typo_error
+#!
+./Eltypo.ulam:13:19: ERROR: Incomplete descriptor for type: ElTypo.
+./Eltypo.ulam:13:19: ERROR: UNSEEN Class and incomplete descriptor for type: 'ElTypo'.
+./Eltypo.ulam:13:16: ERROR: Righthand type of conditional operator 'is': unresolved, is still incomplete.
+./Eltypo.ulam:13:19: ERROR: UNSEEN class type <ElTypo> was never defined in <ElTypo.ulam>.
+./Eltypo.ulam:4:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Eltypo.
+./Eltypo.ulam:4:9: ERROR: 4 Nodes with unresolved types detected after type labeling class: Eltypo.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by safe/t3741, (see t3370)
+##
+#:Typo.ulam
+  ulam 2;
+use Bar;
+quark Typo(Int a) : Bar{
+}
+
+#:Bar.ulam
+  ulam 2;
+quark Bar
+{
+  Unsigned(3) bu = 7u;
+}
+
+#>Eltypo.ulam
+  ulam 2;
+use Typo;
+use System;
+element Eltypo : Typo(1) {
+  System s;
+  Unsigned(3) first;
+  Int test(){
+    Eltypo elf;
+    Atom other = elf;
+    if(other as Bar)
+    {
+      Int slot = 3;
+      if(other is ElTypo || slot > 2) //el typo!!
+      {
+	s.print(slot);
+	s.assert(slot > 2);
+      }
+      else
+      {
+	s.print(0u);
+	s.assert(true);
+      }
+    }
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

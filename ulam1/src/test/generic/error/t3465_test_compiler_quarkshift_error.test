@@ -1,16 +1,14 @@
 ## -*- mode:ulam -*-
 #=t3465_test_compiler_quarkshift_error
 #!
-./A.ulam:5:4: ERROR: Incompatible class type Bar and Bits(32) used with binary operator=.
-./A.ulam:6:8: ERROR: Unsigned is the supported type for shift distance, operator<<; Suggest casting Bar to Unsigned.
-./A.ulam:5:4: ERROR: Unresolved No.1.
-./A.ulam:6:4: ERROR: Unresolved No.2.
-./A.ulam:6:8: ERROR: Unresolved No.3.
-./A.ulam:3:1: Warning: 3 nodes with unresolved types remain in function <test> (Uf_4test,1).
-./A.ulam:3:5: Warning: Summary: 3 nodes with unresolved types remain in  a single function <test> in class: A.
-./A.ulam:2:10: Warning: 3 data member nodes with unresolved types remain in class 'A'.
-./A.ulam:2:10: ERROR: 3 Nodes with unresolved types detected after type labeling class: A.
-Unrecoverable Program Type Label FAILURE.
+##
+##./A.ulam:5:4: ERROR: Incompatible class type Bar and Bits(32) used with binary operator=.
+##./A.ulam:6:8: ERROR: Unsigned is the supported type for shift distance, operator<<; Suggest casting Bar to Unsigned.
+## after casts in place:
+##./A.ulam:5:7: ERROR: Cannot cast Bits(32) to Bar.
+##./A.ulam:6:4: ERROR: Incompatible class type Bar and Bits(3) used with binary operator=.
+##
+Exit status: -1
 #>A.ulam
 use Bar;
  element A {

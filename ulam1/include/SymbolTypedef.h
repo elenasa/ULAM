@@ -64,8 +64,6 @@ namespace MFM{
 
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
-    virtual void setStructuredComment();
-
   protected:
 
   private:

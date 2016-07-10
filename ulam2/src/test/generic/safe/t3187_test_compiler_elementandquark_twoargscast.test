@@ -1,0 +1,62 @@
+## -*- mode:ulam -*-
+#=t3187_test_compiler_elementandquark_twoargscast
+#!
+## gencode output:
+## Int Arg: 40
+## Int Arg: 36
+##      //36 saturates to 31; NO LONGER!!
+Exit status: 36
+Ue_Foo { System s();  Int(32) m_idx(40);  Int(6) m_x(9);  Int(6) m_spare(0);  Int(6) m_y(4);  Int(32) test() {  m_idx ( m_x cast m_y cast )func = s ( m_idx )print . s ( m_x cast m_y cast * cast )print . m_x cast m_y cast * cast return } }
+Uq_C2D { Int(6) m_width( 9);  Int(6) m_height( 4);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+#>Foo.ulam
+  ulam 1;
+use C2D;
+use System;
+element Foo {
+  System s;
+  Int m_idx;
+  Int(6) m_x = 9, m_spare, m_y = 4;
+  Int func(Int i, Int j) {
+    C2D c;
+    c.init(i,j);
+    return c.getIndex(0,0);
+  }
+  Int test() {
+    m_idx = func((Int) m_x,(Int) m_y);
+    s.print(m_idx);
+    s.print(m_x * m_y);
+    return (m_x * m_y);
+  }
+}
+
+##
+##      //note: getIndex calculation done as Int(32) since args are Ints.
+
+#:C2D.ulam
+  ulam 1;
+quark C2D {
+  Int(6) m_width = 9;
+  Int(6) m_height = 4;
+  Void init(Int x, Int y) {
+    m_width = (Int(6)) x;
+    m_height = (Int(6)) y;
+    return;
+  }
+  Int getIndex(Int a, Int b){
+    return ((m_height-b) * m_width + (m_height-a));
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

@@ -1,0 +1,32 @@
+## -*- mode:ulam -*-
+#=t3703_test_compiler_unpackedarray_asfuncarg_binoperror
+#!
+./A.ulam:15:26: ERROR: Incompatible (nonscalar) types Int(32)[10] and Int(32)[10] for binary operator+ ; Suggest writing a loop.
+./A.ulam:15:5: ERROR: Initial value expression for: site2, initialization is invalid.
+./A.ulam:1:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: A.
+Unrecoverable Program Type Label FAILURE.
+##
+## formerly part of error/t3417
+##
+#>A.ulam
+element A {
+  typedef Int BigSite[10];
+  Int func(BigSite sarr) {
+    return sarr[9];
+  }
+  BigSite func2() {
+    BigSite s;
+    for(Int i = 0; i < 10; ++i){
+      s[i] = i;
+    }
+    return s;
+  }
+  Int test(){
+    BigSite site = func2();
+    BigSite site2 = site + site2; //THE ERROR
+    return func(site);
+  }
+ }
+##
+##      //bool rtn1 = fms->add("A.ulam","element A {\ntypedef Int BigSite[10];\nInt test(){\n BigSite site, site2; site = site2;\n return 2;\n }\n }\n");
+#.

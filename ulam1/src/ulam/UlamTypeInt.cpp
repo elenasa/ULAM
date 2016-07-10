@@ -64,16 +64,16 @@ namespace MFM {
 
     u32 wordsize = getTotalWordSize();
     u32 valwordsize = m_state.getTotalWordSize(valtypidx);
-    if(wordsize <= MAXBITSPERINT)
+    if(wordsize == MAXBITSPERINT)
       {
-	if(valwordsize <= MAXBITSPERINT)
+	if(valwordsize == MAXBITSPERINT)
 	  brtn = castTo32(val, typidx);
-	else if(valwordsize <= MAXBITSPERLONG)
+	else if(valwordsize == MAXBITSPERLONG)
 	  brtn = castTo64(val, typidx); //downcast
 	else
 	  assert(0);
       }
-    else if(wordsize <= MAXBITSPERLONG)
+    else if(wordsize == MAXBITSPERLONG)
       brtn = castTo64(val, typidx);
     else
       {
@@ -137,9 +137,9 @@ namespace MFM {
     u32 valwordsize = m_state.getTotalWordSize(valtypidx);
     u64 data;
 
-    if(valwordsize <= MAXBITSPERINT)
+    if(valwordsize == MAXBITSPERINT)
       data = (u64) val.getImmediateData(m_state);
-    else if(valwordsize <= MAXBITSPERLONG)
+    else if(valwordsize == MAXBITSPERLONG)
       data = val.getImmediateDataLong(m_state);
     else
       assert(0);
@@ -177,9 +177,9 @@ namespace MFM {
     if(brtn)
       {
 	u32 wordsize = getTotalWordSize(); //tobe
-	if(wordsize <= MAXBITSPERINT) //downcast
+	if(wordsize == MAXBITSPERINT) //downcast
 	  val = UlamValue::makeImmediate(typidx, (u32) sdata, m_state); //overwrite val
-	else if(wordsize <= MAXBITSPERLONG)
+	else if(wordsize == MAXBITSPERLONG)
 	  val = UlamValue::makeImmediateLong(typidx, sdata, m_state); //overwrite val
 	else
 	  assert(0);

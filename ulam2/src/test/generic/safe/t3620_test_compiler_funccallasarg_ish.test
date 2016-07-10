@@ -1,0 +1,42 @@
+## -*- mode:ulam -*-
+#=t3620_test_compiler_funccallasarg_ish
+#!
+Exit status: 5
+Ue_Ish { typedef Int(2) I3;  Int(32) p(5);  Int(32) test() {  Unsigned(32) n = 3 cast;  Unsigned(32) m = 4 cast;  Int(32) o = 5 cast;  p ( ( ( n )bound cast ( m )bound cast )max o )max = p return } }
+##
+#>Ish.ulam
+  ulam 1;
+element Ish
+{
+  typedef Int(2) I3;
+
+  I3 bound(Unsigned a)
+  {
+    if((Int) a > I3.maxof)
+      return I3.maxof;
+    return (I3) a;
+  }
+
+  Int max(Unsigned a, Unsigned b)
+  {
+    return max((Int) a, (Int) b);
+  }
+
+  Int max(Int a, Int b)
+  {
+    if(a > b)
+      return a;
+    return b;
+  }
+
+  Int p;
+  Int test()
+  {
+    Unsigned n = 3, m = 4;
+    Int o = 5;
+    p = max(max(bound(n), bound(m)), o);
+    return p;
+  }
+}
+
+#.

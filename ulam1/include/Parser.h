@@ -45,10 +45,10 @@
 #include "NodeBinaryOpEqual.h"
 #include "NodeBinaryOp.h"
 #include "NodeBlock.h"
-#include "NodeConditional.h"
+#include "NodeConditionalAs.h"
 #include "NodeConstantDef.h"
 #include "NodeFunctionCall.h"
-#include "NodeModelParameterDef.h"
+#include "NodeParameterDef.h"
 #include "NodeStatements.h"
 #include "NodeSquareBracket.h"
 #include "NodeTypeDescriptor.h"
@@ -99,16 +99,10 @@ namespace MFM{
 
     void parseRestOfClassParameters(SymbolClassNameTemplate * ctsym, NodeBlockClass * cblock);
 
-    bool parseRestOfClassInheritance(SymbolClassName * cnsym, SymbolClassName *& supercnsym, UTI& superuti);
-
     /**
        <DATA_MEMBERS> := ( 0 | <FUNC_DEF> | <PARAMETER_DEF> + ';' | <TYPE_DEF> + ';'| <CONST_DEF> + ';' )*
      */
     bool parseDataMember(NodeStatements *& nextNode);
-
-    Node * parseRestOfDataMember(TypeArgs& args, Token identTok, Node * dNode, UTI passuti);
-
-    void parseRestOfDataMemberAssignment(TypeArgs& args, Token identTok, Node * dNode, UTI passuti);
 
     /**
 	<BLOCK> := '{' + <STATEMENTS> + '}'
@@ -161,7 +155,7 @@ namespace MFM{
     /**
        (helper for 'as' condition in if/while)
     */
-    Node * setupAsConditionalBlockAndParseStatements(NodeConditional * asNode);
+    Node * setupAsConditionalBlockAndParseStatements(NodeConditionalAs * asNode);
 
     /**
 	<SIMPLE_STATEMENT> := ( 0 | <STATEMENT_DECL> | <TYPE_DEF> | <CONST_DEF> | <ASSIGN_EXPR> |
@@ -181,7 +175,7 @@ namespace MFM{
     /**
        <CONST_DEF> := 'constant' + <TYPE> + <IDENT> + '=' + <EXPRESSION>
     */
-    Node * parseConstdef(bool assignREQ = true, bool isStmt = true);
+    Node * parseConstdef(bool assignOK = true);
 
     /**
        <PARAMETER_DEF> := 'parameter' + <TYPE> + <IDENT> + '=' + <EXPRESSION>
@@ -336,9 +330,9 @@ namespace MFM{
 
     Node * parseRestOfDeclAssignment(TypeArgs& args, Token identTok, Node * dNode, UTI passuti);
 
-    NodeConstantDef * parseRestOfConstantDef(NodeConstantDef * constNode, bool assignREQ = true, bool isStmt = true);
+    NodeConstantDef * parseRestOfConstantDef(NodeConstantDef * constNode, bool assignOK = true);
 
-    NodeModelParameterDef * parseRestOfParameterDef(NodeModelParameterDef * paramNode);
+    NodeParameterDef * parseRestOfParameterDef(NodeParameterDef * paramNode);
 
     /**
 	<FUNC_DEF>  := <ULAM_FUNC_DEF> | <NATIVE_FUNC_DEF>

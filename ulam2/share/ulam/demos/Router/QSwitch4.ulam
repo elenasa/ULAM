@@ -1,0 +1,104 @@
+/**
+   A Wall-displacing port for QSwitch4.
+   \diffusability 0
+ */
+element WallPort : QPort4(2) {
+  typedef QPort4(2) QPort;
+
+  Void behave() { update(); }
+
+  ARGB getColor(Unsigned selector) {
+    return getColorQ(selector);
+  }
+}
+
+/**
+   A quarked-out four port data switch.  cBITS is the log2 of the side
+   of the router box.
+ */
+quark QSwitch4(Unsigned cBITS) : QBox(cBITS)
+{
+
+  constant Unsigned cPORT_BASE_IDX = ((Unsigned)(1<<cBITS))/4u;
+  constant Unsigned cPORT_WIDTH = 8;
+
+  Bool update() {
+    if (updateQBox()) return true;
+
+    Bool ret = false;
+
+    EventWindow ew;
+    ew.changeSymmetry(m_sym);
+
+    Unsigned idx = m_position;
+    if (idx >= cPORT_BASE_IDX &&
+        idx <= cPORT_BASE_IDX + cPORT_WIDTH) {
+      if (ew[3] is Wall) 
+      {
+        WallPort wport;
+        wport.init(m_sym);
+        ew[3] = wport;
+        ret = true;
+      }
+
+      if (ew[22] is Empty) 
+      {
+        Wall wall;
+        ew[22] = wall;
+        ret = true;
+      }
+    }
+
+    // Try to seed the routing grid late, after the box is built
+    if (m_sym == 2 && idx == 2u && ew[11] is Empty)
+    {
+      Router8 r8;
+      ew[11] = r8;
+      ret = true;
+    }
+    return ret;
+  }
+}
+
+/** A self-constructing, self-maintaining, four port switch,
+    larger-sized
+
+    \symbol L4
+    \color #44c
+    \symmetries normal
+    \diffusability 0
+*/
+element LSwitch4 : QSwitch4(6)
+{
+  Void behave() { update(); }
+
+}
+
+/** A self-constructing, self-maintaining, four port switch,
+    medium-sized
+
+    \symbol M4
+    \color #44c
+    \symmetries normal
+    \diffusability 0
+*/
+element MSwitch4 : QSwitch4(5)
+{
+  Void behave() { update(); }
+
+}
+
+/** A self-constructing, self-maintaining, four port switch,
+    tiny-sized
+
+    \symbol T4
+    \color #44c
+    \symmetries normal
+    \diffusability 0
+*/
+element TSwitch4 : QSwitch4(4)
+{
+  Void behave() { update(); }
+
+}
+

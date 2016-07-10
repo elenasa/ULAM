@@ -1,0 +1,41 @@
+ulam 1;
+
+quark DebugUtils {
+
+  ///// WARNING! THESE CONSTANTS MUST BE MANUALLY KEPT
+  ///// IN SYNC WITH THE CORRESPONDING enum PrintFlags
+  ///// DEFINITIONS IN MFM/src/core/include/UlamClass.h
+
+  constant Unsigned cPRINT_SYMBOL =          0x00000001; //< Include element symbol
+  constant Unsigned cPRINT_FULL_NAME =       0x00000002; //< Include element name
+  constant Unsigned cPRINT_ATOM_BODY =       0x00000004; //< Include entire atom in hex
+  constant Unsigned cPRINT_MEMBER_VALUES =   0x00000008; //< Include data member values
+  constant Unsigned cPRINT_MEMBER_BITVALS =  0x00000010; //< Include data member values as bits in hex
+  constant Unsigned cPRINT_MEMBER_NAMES =    0x00000020; //< Include data member names
+  constant Unsigned cPRINT_MEMBER_TYPES =    0x00000040; //< Include data member types
+  constant Unsigned cPRINT_SIZE0_MEMBERS =   0x00000080; //< Include size 0 data members
+  constant Unsigned cPRINT_MEMBER_ARRAYS =   0x00000100; //< Print array values individually
+  constant Unsigned cPRINT_RECURSE_QUARKS =  0x00000200; //< Print quarks recursively
+
+  constant Unsigned cPRINT_NOTHING = Unsigned.minof;
+  constant Unsigned cPRINT_HEX_ATOM = cPRINT_SYMBOL|cPRINT_ATOM_BODY;
+  constant Unsigned cPRINT_TOP_MEMBERS = cPRINT_SYMBOL|cPRINT_MEMBER_VALUES;
+  constant Unsigned cPRINT_MEMBERS = cPRINT_SYMBOL|cPRINT_MEMBER_NAMES|cPRINT_MEMBER_VALUES;
+  constant Unsigned cPRINT_QUARK_MEMBERS = cPRINT_MEMBERS|cPRINT_RECURSE_QUARKS;
+  constant Unsigned cPRINT_ALL_MEMBERS = cPRINT_SYMBOL|cPRINT_MEMBER_VALUES|cPRINT_RECURSE_QUARKS|cPRINT_MEMBER_ARRAYS;
+  constant Unsigned cPRINT_EVERYTHING = Unsigned.maxof;
+
+  Void print(Atom arg) { print(arg, cPRINT_MEMBERS); }
+  Void print(Atom a, Unsigned flags) native;
+
+  Void printContext() { printContext(cPRINT_QUARK_MEMBERS); }
+  Void printContext(Unsigned flags) native;
+
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}

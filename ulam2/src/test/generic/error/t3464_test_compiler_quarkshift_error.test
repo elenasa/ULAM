@@ -1,0 +1,28 @@
+## -*- mode:ulam -*-
+#=t3464_test_compiler_quarkshift_error
+#!
+./A.ulam:6:7: ERROR: Non-primitive type <Bar> is not supported as right operand type for binary operator<<.
+./A.ulam:6:3: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
+./A.ulam:7:8: ERROR: Non-primitive type <Bar> is not supported as left operand type for binary operator<<.
+./A.ulam:7:4: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
+./A.ulam:2:10: ERROR: 4 Nodes with erroneous types detected after type labeling class: A.
+Unrecoverable Program Type Label FAILURE.
+##
+##      //quark has no toInt method:
+##
+#>A.ulam
+use Bar;
+ element A {
+ Int b, c;
+ Int test() {
+ Bar a;
+b = 1 << a;
+ c = a << 2;
+ return 0;
+ }
+ }
+
+#:Bar.ulam
+quark Bar {
+  }
+#.

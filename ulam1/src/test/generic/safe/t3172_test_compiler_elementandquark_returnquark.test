@@ -6,31 +6,31 @@
 ##	Unsigned Arg: 15
 ##      */
 Exit status: 15
-Ue_Foo { System s();  typedef Bar Pop[2];  Unsigned(4) m_i(0u);  Bar m_bar[2]( Bool(1) val_b[3](false,false,false);  Bool(1) val_b[3](false,true,false); );  Int(32) test() {  Foo f;  f m_i . 15 cast = m_bar 1 [] f ( 1 cast )check . = s ( f m_i . cast )print . f m_i . cast return } }
+Ue_Foo { System s();  typedef Bar Pop[2];  Unsigned(4) m_i(0);  Bar m_bar[2]( Bool(1) val_b[3](false,false,false);  Bool(1) val_b[3](false,true,false); );  Int(32) test() {  Foo f;  f m_i . 15 cast = m_bar 1 [] f ( 1 cast )check . = s ( f m_i . cast )print . f m_i . cast return } }
 Uq_System { <NOMAIN> }
 Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
 #>Foo.ulam
-  ulam 1;
+ulam 1;
 use System;
-use Bar;
-element Foo {
-  System s;
-  typedef Bar Pop[2];
-  Unsigned(4) m_i;
-  Pop m_bar;
-  Bar check(Int v) {
-    Bar b;
-    b.val_b[1] = true;
-    return b;
-  }
-  Int test() {
-    Foo f;
-    f.m_i = 15;
-    m_bar[1] = f.check(1);
-    s.print(f.m_i);
-    return f.m_i;
-  }
-}
+ use Bar;
+ element Foo {
+System s;
+ typedef Bar Pop[2];
+ Unsigned(4) m_i;
+ Pop m_bar;
+ Bar check(Int v) {
+ Bar b;
+ b.val_b[1] = true;
+ return b;
+ }
+ Int test() {
+ Foo f;
+ f.m_i = 15;
+ m_bar[1] = f.check(1);
+s.print((Unsigned) f.m_i);
+ return f.m_i;
+ }
+ }
 ##      // array of quarks, as typedef
 ##      //modified gencode to allow quarks as return values, and parameters.
 ##

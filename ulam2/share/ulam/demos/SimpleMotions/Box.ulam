@@ -1,0 +1,28 @@
+/**
+  Box is a demo element.
+  \color #666
+  \symbol Bx
+  \symmetries normal
+
+  \author Xinyu Chen
+  \author Dave Ackley
+
+  \license lgpl
+*/
+element Box{
+  // Typedefs
+  typedef EventWindow.Symmetry Symmetry;
+
+  // Utilities
+  EventWindow ew;
+
+  // Data members
+  Unsigned(2) ns;
+
+  Void behave(){
+    ew.changeSymmetry((Symmetry) ns);
+    if(ns == ns.maxof) ns = ns.minof;
+    else ++ns;
+    ew.swap(0, 1);
+  }
+}

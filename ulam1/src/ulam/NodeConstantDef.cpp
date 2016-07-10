@@ -10,8 +10,7 @@ namespace MFM {
   {
     if(symptr)
       {
-	// node uses current block no, not the one saved in the symbol
-	// (e.g. pending class args)
+	// node uses current block no, not the one saved in the symbol (e.g. pending class args)
 	m_cid = symptr->getId();
       }
     else
@@ -74,7 +73,6 @@ namespace MFM {
 
   void NodeConstantDef::printPostfix(File * fp)
   {
-#if 0
     if(m_nodeExpr)
       {
 	m_nodeExpr->printPostfix(fp);
@@ -82,24 +80,7 @@ namespace MFM {
       }
     fp->write(getName());
     fp->write(" const");
-#endif
-    //in case the node belongs to the template, use the symbol uti, o.w. 0Nav.
-    UTI suti = m_constSymbol ? m_constSymbol->getUlamTypeIdx() : getNodeType();
-    //like SymbolConstantValue
-    fp->write(" constant");
-
-    fp->write(" ");
-    fp->write(m_state.getUlamTypeNameBriefByIndex(suti).c_str());
-    fp->write(" ");
-    fp->write(m_state.m_pool.getDataAsString(m_cid).c_str());
-
-    if(m_nodeExpr)
-      {
-	fp->write(" =");
-	m_nodeExpr->printPostfix(fp);
-      }
-    fp->write("; ");
-  } //printPostfix
+  }
 
   const char * NodeConstantDef::getName()
   {
@@ -147,31 +128,7 @@ namespace MFM {
 	return Nav;
       }
 
-    UTI suti = m_constSymbol->getUlamTypeIdx();
-    UTI cuti = m_state.getCompileThisIdx();
-
-    // type of the constant
-    if(m_nodeTypeDesc)
-      {
-	UTI duti = m_nodeTypeDesc->checkAndLabelType(); //clobbers any expr it
-	if(duti != Nav && suti != duti)
-	  {
-	    std::ostringstream msg;
-	    msg << "REPLACING Symbol UTI" << suti;
-	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-	    msg << " used with " << prettyNodeName().c_str() << " symbol name '" << getName();
-	    msg << "' with node type descriptor type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(duti).c_str();
-	    msg << " UTI" << duti << " while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    m_constSymbol->resetUlamType(duti); //consistent!
-	    m_state.mapTypesInCurrentClass(suti, duti);
-	    suti = duti;
-	  }
-      }
-
-    // NOASSIGN REQUIRED (e.g. for class parameters) doesn't have to have this!
+    // NOASSIGN (e.g. for class parameters) doesn't have this!
     if(m_nodeExpr)
       {
 	if(!m_nodeExpr->isAConstant())
@@ -199,6 +156,31 @@ namespace MFM {
 	    setNodeType(Nav);
 	    return Nav; //short-circuit
 	  }
+
+      }
+
+    UTI suti = m_constSymbol->getUlamTypeIdx();
+    UTI cuti = m_state.getCompileThisIdx();
+
+    // type of the constant
+    if(m_nodeTypeDesc)
+      {
+	UTI duti = m_nodeTypeDesc->checkAndLabelType(); //clobbers any expr it
+	if(duti != Nav && suti != duti)
+	  {
+	    std::ostringstream msg;
+	    msg << "REPLACING Symbol UTI" << suti;
+	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	    msg << " used with " << prettyNodeName().c_str() << " symbol name '" << getName();
+	    msg << "' with node type descriptor type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(duti).c_str();
+	    msg << " UTI" << duti << " while labeling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    m_constSymbol->resetUlamType(duti); //consistent!
+	    m_state.mapTypesInCurrentClass(suti, duti);
+	    suti = duti;
+	  }
       }
 
     if(!m_state.isComplete(suti)) //reloads
@@ -210,7 +192,6 @@ namespace MFM {
 	msg << "' UTI" << suti << " while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	//too soon! m_state.setGoAgain(); //might not have nodetypedesc
       }
     else
       {
@@ -247,13 +228,11 @@ namespace MFM {
 
     if(!(m_constSymbol->isReady()))
       {
-	foldConstantExpression();
-	if(!(m_constSymbol->isReady() || m_constSymbol->hasDefault()))
-	  {
-	    setNodeType(Nav);
-	    m_state.setGoAgain();
-	  }
+        foldConstantExpression();
+        if(!(m_constSymbol->isReady()))
+          setNodeType(Nav);
       }
+
     return getNodeType();
   } //checkAndLabelType
 
@@ -264,8 +243,7 @@ namespace MFM {
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
     Symbol * asymptr = NULL;
-    bool hazyKin = false;
-    if(m_state.alreadyDefinedSymbol(m_cid, asymptr, hazyKin))
+    if(m_state.alreadyDefinedSymbol(m_cid, asymptr))
       {
 	if(asymptr->isConstant())
 	  {
@@ -284,10 +262,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "(2) Named Constant <" << m_state.m_pool.getDataAsString(m_cid).c_str();
 	msg << "> is not defined, and cannot be used";
-	if(!hazyKin)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     m_state.popClassContext(); //restore
   } //checkForSymbols
@@ -324,11 +299,6 @@ namespace MFM {
   {
     m_nodeExpr = node;
     m_nodeExpr->updateLineage(getNodeNo()); //for unknown subtrees
-  }
-
-  bool NodeConstantDef::hasConstantExpr()
-  {
-    return (m_nodeExpr != NULL);
   }
 
   // called during parsing rhs of named constant;
@@ -410,10 +380,7 @@ namespace MFM {
     else
       return false;
 
-    if(m_constSymbol->isParameter())
-      m_constSymbol->setDefaultValue(newconst); //hasDefault (not isReady)!
-    else
-      m_constSymbol->setValue(newconst); //isReady now!
+    m_constSymbol->setValue(newconst); //isReady now!
     return true;
   } //foldConstantExpression
 
@@ -515,11 +482,6 @@ namespace MFM {
       };
     return rtnb;
   } //updateConstant64
-
-  bool NodeConstantDef::buildDefaultQuarkValue(u32& dqref)
-  {
-    return true; //pass on
-  }
 
   void NodeConstantDef::fixPendingArgumentNode()
   {

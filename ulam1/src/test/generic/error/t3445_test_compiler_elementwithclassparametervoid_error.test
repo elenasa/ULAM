@@ -1,8 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3445_test_compiler_elementwithclassparametervoid_error
 #!
-./S.ulam:2:9: ERROR: Invalid constant definition Type 'Void'.
-Unrecoverable Program Parse FAILURE.
+##
+##./S.ulam:2:9: ERROR: Invalid constant definition Type <Void>.
+##
+Exit status: 7
+Ue_T { Int(32) j(7);  System s();  Int(32) test() {  Int(4) b;  S(2,2) n;  j n ( b )func . = s ( j )print . j return } }
+Uq_S { constant Int(CONSTANT) x = NONREADYCONST;  constant Int(CONSTANT) y = NONREADYCONST;  Int(UNKNOWN) i(0);  Int(UNKNOWN) j(0);  <NOMAIN> }
+Uq_System { <NOMAIN> }
 ##
 ##    //informed by t3333
 ##

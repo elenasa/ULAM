@@ -1,13 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3441_test_compiler_constantdefmissingequals_error
 #!
-./Tu.ulam:3:25: ERROR: Missing '=' after named constant definition 'c_noway'.
-./Tu.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Tu'; Possible missing ending curly brace.
-./Tu.ulam:3:25: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', or 'union'.
-./Tu.ulam:2:9: ERROR: Invalid Type: Tu.
- ERROR: No parse tree for This Class: Tu.
-Unrecoverable Program Parse FAILURE.
 ##
+##./Tu.ulam:3:25: ERROR: Missing '=' after named constant definition.
+##
+Ue_Tu {
 #>Tu.ulam
 ulam 1;
 element Tu {

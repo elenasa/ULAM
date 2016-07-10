@@ -5,39 +5,37 @@
 ##	 Int Arg: 1
 ##	 Int Arg: 2
 ##      */
+##      //eval self doesn't reflect correctly: is an atom for quark's function call hidden arg
 ##
-##
-Exit status: 2
-Ue_ElT { Int(32) i(2);  Typo t();  Typo r();  Int(32) test() {  System s;  t ( )incr . s ( i )print . r ( )incr . s ( i )print . i return } }
+Exit status: 0
+Ue_ElT { Int(32) i(0);  Typo t();  Typo r();  Int(32) test() {  System s;  t ( )incr . s ( i )print . r ( )incr . s ( i )print . i return } }
 Uq_Typo { <NOMAIN> }
 Uq_System { <NOMAIN> }
 #>ElT.ulam
-  ulam 1;
+ulam 1;
 use Typo;
 use System;
-element ElT {
-  Int i;
-  Typo t,r;
-  Int test() {
-    System s;
-    t.incr();
-    s.print(i);
-    r.incr();
-    s.print(i);
-    return i;
-  }
+ element ElT {
+Typo t,r;
+Int i;
+ Int test() {
+System s;
+ t.incr();
+ s.print(i);
+ r.incr();
+ s.print(i);
+ return i;
 }
+ }
 
 #:Typo.ulam
-  ulam 1;
+ulam 1;
 quark Typo {
-  Void incr(){
-    Atom a = atom; //self;
-    if(a as ElT) {
-      a.i += 1;
-    }
-    atom = a; //self = a;
-  }
+Void incr(){
+ if(self as ElT) {
+ self.i += 1;
+}
+}
  }
 #:System.ulam
 ulam 1;

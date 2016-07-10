@@ -1,16 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3481_test_compiler_logicalandwithconstant_error
 #!
-./A.ulam:6:6: ERROR: Cannot explicitly cast Int(4) to type: Bool(3); Consider using a comparison operator.
-./A.ulam:7:1: ERROR: Use explicit cast to return Bool(3) as Int(32).
-./A.ulam:6:3: ERROR: Unresolved No.1.
-./A.ulam:6:17: ERROR: Unresolved No.2.
-./A.ulam:7:1: ERROR: Unresolved No.3.
-./A.ulam:3:1: Warning: 3 nodes with unresolved types remain in function <test> (Uf_4test,1).
-./A.ulam:3:5: Warning: Summary: 3 nodes with unresolved types remain in  a single function <test> in class: A.
-./A.ulam:1:9: Warning: 3 data member nodes with unresolved types remain in class 'A'.
-./A.ulam:1:9: ERROR: 3 Nodes with unresolved types detected after type labeling class: A.
-Unrecoverable Program Type Label FAILURE.
+##
+##./A.ulam:6:6: ERROR: Cannot explicitly cast Int(4) to type: Bool(3); Consider using a comparison operator.
+##./A.ulam:7:1: ERROR: Use explicit cast to return Bool(3) as Int(32).
+##
+Exit status: 1
+Ue_A { Bool(3) d(true);  Int(32) test() {  Bool(3) a;  Bool(3) b;  a true cast = b true cast = d 7 cast b && = d cast return } }
 ##
 ##      //informed by t3242
 ##

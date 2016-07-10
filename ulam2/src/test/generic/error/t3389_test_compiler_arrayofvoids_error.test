@@ -1,0 +1,20 @@
+## -*- mode:ulam -*-
+#=t3389_test_compiler_arrayofvoids_error
+#!
+./A.ulam:2:6: Warning: Void bitsize expression disregarded; size is zero.
+./A.ulam:7:0: ERROR: Invalid Void type array: Void[UNKNOWN].
+./A.ulam:1:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
+./A.ulam:1:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: A.
+Unrecoverable Program Type Label FAILURE.
+##
+##      //informed by3311
+##
+#>A.ulam
+element A {
+ Void(0) a[5];
+ Int test() {
+ return 1;
+}
+ }
+
+#.

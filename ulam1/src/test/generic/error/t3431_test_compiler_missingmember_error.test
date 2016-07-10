@@ -1,15 +1,11 @@
 ## -*- mode:ulam -*-
 #=t3431_test_compiler_missingmember_error
 #!
-./A.ulam:5:15: ERROR: Undetermined type for missing member 'long' Proxy.
-./A.ulam:5:4: ERROR: Unresolved No.1.
-./A.ulam:5:8: ERROR: Unresolved No.2.
-./A.ulam:5:15: ERROR: Unresolved No.3.
-./A.ulam:2:2: Warning: 3 nodes with unresolved types remain in function <test> (Uf_4test,1).
-./A.ulam:2:6: Warning: Summary: 3 nodes with unresolved types remain in  a single function <test> in class: A.
-./A.ulam:1:10: Warning: 3 data member nodes with unresolved types remain in class 'A'.
-./A.ulam:1:10: ERROR: 3 Nodes with unresolved types detected after type labeling class: A.
-Unrecoverable Program Type Label FAILURE.
+##
+##./A.ulam:5:15: ERROR: Undetermined type for missing member 'long' Proxy.
+##
+Exit status: 64
+Ue_A { Int(32) test() {  typedef Int(64) Long;  Int(64) k;  Int(64) m;  m k 9223372036854775807 +b = 64u cast return } }
 ##
 ##      //infomed by t3428
 ##      // typo long.maxof..
