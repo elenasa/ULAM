@@ -28,8 +28,8 @@ namespace MFM {
   void NodeReturnStatement::updateLineage(NNO pno)
   {
     setYourParentNo(pno);
-    assert(m_node);
-    m_node->updateLineage(getNodeNo());
+    if(m_node)
+      m_node->updateLineage(getNodeNo());
   } //updateLineage
 
   bool NodeReturnStatement::exchangeKids(Node * oldnptr, Node * newnptr)
@@ -46,33 +46,26 @@ namespace MFM {
   {
     if(Node::findNodeNo(n, foundNode))
       return true;
-    assert(m_node);
-    if(m_node->findNodeNo(n, foundNode))
+    if(m_node && m_node->findNodeNo(n, foundNode))
       return true;
     return false;
   } //findNodeNo
-
-  void NodeReturnStatement::checkAbstractInstanceErrors()
-  {
-    assert(m_node);
-    m_node->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
 
   void NodeReturnStatement::print(File * fp)
   {
     printNodeLocation(fp);  //has same location as it's node
     UTI myut = getNodeType();
     char id[255];
-    if((myut == Nav) || (myut == Nouti))
+    if(myut == Nav)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
-    else if(myut == Hzy)
-      sprintf(id,"%s<HAZYTYPE>\n", prettyNodeName().c_str());
     else
       sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
 
-    assert(m_node);
-    m_node->print(fp);
+    if(m_node)
+      m_node->print(fp);
+    else
+      fp->write(" <EMPTYSTMT>\n");
 
     sprintf(id,"-----------------%s\n", prettyNodeName().c_str());
     fp->write(id);
@@ -80,8 +73,11 @@ namespace MFM {
 
   void NodeReturnStatement::printPostfix(File * fp)
   {
-    assert(m_node);
-    m_node->printPostfix(fp);
+    if(m_node)
+      m_node->printPostfix(fp);
+    else
+      fp->write(" <EMPTYSTMT>");
+
     fp->write(" ");
     fp->write(getName());
   } //printPostfix
@@ -99,8 +95,10 @@ namespace MFM {
   UTI NodeReturnStatement::checkAndLabelType()
   {
     UTI rtnType = m_state.m_currentFunctionReturnType;
-    assert(m_node); //a return without an expression (i.e. Void) is NodeStatementEmpty!
-    UTI nodeType = m_node->checkAndLabelType();
+    //assert(m_node); a return without an expression (i.e. Void)
+    UTI nodeType = Void;
+    if(m_node)
+      nodeType = m_node->checkAndLabelType();
 
     if(m_state.isComplete(nodeType) && m_state.isComplete(rtnType))
       {
@@ -114,82 +112,71 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    nodeType = Nav;
 	  }
-	else if(UlamType::compareForArgumentMatching(nodeType, rtnType, m_state) != UTIC_SAME)
+	else if(UlamType::compare(nodeType, rtnType, m_state) != UTIC_SAME)
 	  {
 	    if(UlamType::compare(rtnType, Void, m_state) == UTIC_NOTSAME)
 	      {
-		if(m_node->isAConstant() && !m_node->isReadyConstant())
+		if(m_node)
 		  {
-		    m_node->constantFold();
-		  }
-
-		FORECAST scr = m_node->safeToCastTo(rtnType);
-		if(scr == CAST_CLEAR)
-		  {
-		    if(!Node::makeCastingNode(m_node, rtnType, m_node))
-		      nodeType = Nav; //no casting node
+		    FORECAST scr = m_node->safeToCastTo(rtnType);
+		    if( scr == CAST_CLEAR)
+		      {
+			if(!makeCastingNode(m_node, rtnType, m_node))
+			  nodeType = Nav;
+			else
+			  nodeType = m_node->getNodeType(); //casted
+		      }
 		    else
-		      nodeType = m_node->getNodeType(); //casted
+		      {
+			std::ostringstream msg;
+			if(m_state.getUlamTypeByIndex(rtnType)->getUlamTypeEnum() == Bool)
+			  msg << "Use a comparison operator";
+			else
+			  msg << "Use explicit cast";
+			msg << " to return ";
+			msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+			msg << " as ";
+			msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
+			if(scr == CAST_BAD)
+			  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			else
+			  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+			nodeType = Nav; //missing?
+		      }
 		  }
 		else
-		  {
-		    std::ostringstream msg;
-		    if(m_state.getUlamTypeByIndex(rtnType)->getUlamTypeEnum() == Bool)
-		      msg << "Use a comparison operator";
-		    else
-		      msg << "Use explicit cast";
-		    msg << " to return ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
-		    msg << " as ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
-		    if(scr == CAST_BAD)
-		      {
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			nodeType = Nav;
-		      }
-		    else
-		      {
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-			nodeType = Hzy;
-		      }
-		  }
-	      } //not void
+		  nodeType = Nav;  //no casting node
+	      }
 	    else
 	      {
-		//(see spike/quick-foo/foo-voidfunccastreturn.cpp) e.g.t3384, error/t3280
 		std::ostringstream msg;
 		msg << "ISO C forbids return with expression in a function returning void";
-		msg << ", unless explicit cast is used for side-effects";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		nodeType = Nav; //missing?
 	      }
-	  } // not the same
-      } //both complete
-
-    if((nodeType != Nav) && !m_state.isComplete(nodeType))
+	  }
+      } // not nav
+    else if(!m_state.isComplete(nodeType))
       {
 	std::ostringstream msg;
 	msg << "Function return type is still unresolved: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	nodeType = Hzy; //needed?
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	// nodeType = Nav; needed?
       }
 
     //check later against defined function return type
     m_state.m_currentFunctionReturnNodes.push_back(this);
 
-    if(nodeType == Hzy)
-      m_state.setGoAgain();
-
     setNodeType(nodeType); //return take type of their node
     return nodeType;
   } //checkAndLabelType
 
-  void NodeReturnStatement::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
+  void NodeReturnStatement::countNavNodes(u32& cnt)
   {
-    Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt); //missing
+    Node::countNavNodes(cnt); //missing
     if(m_node)
-      m_node->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+      m_node->countNavNodes(cnt);
   }
 
   EvalStatus NodeReturnStatement::eval()
@@ -197,9 +184,6 @@ namespace MFM {
     UTI nuti = getNodeType();
     if(nuti == Nav)
       return ERROR;
-
-    if(nuti == Hzy)
-      return NOTREADY;
 
     if(!m_node)
       return RETURN;
@@ -209,57 +193,63 @@ namespace MFM {
     EvalStatus evs = m_node->eval();
     if(evs != NORMAL)
       {
-	assert((evs != CONTINUE) && (evs != BREAK));
+	assert(evs != CONTINUE && evs != BREAK);
 	evalNodeEpilog();
 	return evs;
       }
 
-    if(m_state.isAtom(nuti) && (m_state.isScalar(nuti) || m_state.isReference(nuti)))
+    if(nuti == UAtom)
       {
 	//avoid pointer to atom situation
 	UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
-	Node::assignReturnValueToStack(rtnUV, STACK);
+	assignReturnValueToStack(rtnUV, STACK);
       }
     else
       {
 	//end, so copy to -1
 	UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, nuti, m_state.determinePackable(nuti), m_state);  //positive to current frame pointer
 
-	Node::assignReturnValueToStack(rtnPtr, STACK); //uses STACK, unlike all the other nodes
+	assignReturnValueToStack(rtnPtr, STACK); //uses STACK, unlike all the other nodes
       }
 
     evalNodeEpilog();
     return RETURN;
   } //eval
 
-  void NodeReturnStatement::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
+  void NodeReturnStatement::genCode(File * fp, UlamValue& uvpass)
   {
-    assert(m_node);
-    m_node->calcMaxDepth(depth, maxdepth, base); //funccall?
-    return; //work done by NodeStatements and NodeBlock
-  }
-
-  void NodeReturnStatement::genCode(File * fp, UVPass& uvpass)
-  {
-    assert(m_node); // return for Void type has a NodeStatementEmpty m_node
-
-    m_node->genCode(fp, uvpass); //C allows the side-effect for explicit Void casts (t3779)
-
-    if(getNodeType() != Void)
+    // return for void type has a NodeStatementEmpty m_node
+    if(m_node && getNodeType() != Void)
       {
+#ifdef TMPVARBRACES
+	m_state.indent(fp);
+	fp->write("{\n");
+	m_state.m_currentIndentLevel++;
+#endif
+	m_node->genCode(fp, uvpass);
+	UTI vuti = uvpass.getUlamValueTypeIdx();
+
 	Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass);
 
-	m_state.indentUlamCode(fp);
+	m_state.indent(fp);
 	fp->write("return ");
 	fp->write("(");
-	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	vuti = uvpass.getPtrTargetType();
+	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
 
-	fp->write(");"); GCNL;
+	fp->write(")");
+	fp->write(";\n");
+
+#ifdef TMPVARBRACES
+	m_state.m_currentIndentLevel--;
+	m_state.indent(fp);
+	fp->write("}\n");
+#endif
       }
     else
       {
-	m_state.indentUlamCode(fp);
-	fp->write("return;"); GCNL; //void
+	m_state.indent(fp);
+	fp->write("return;\n"); //void
       }
   } //genCode
 

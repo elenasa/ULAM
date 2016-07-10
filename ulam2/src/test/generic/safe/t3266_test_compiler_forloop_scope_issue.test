@@ -1,0 +1,46 @@
+## -*- mode:ulam -*-
+#=t3266_test_compiler_forloop_scope_issue
+#!
+##      /* gen code output:
+##	 Int Arg: 2
+##	 Int Arg: 1
+##	 Int Arg: 0
+##      */
+Exit status: 0
+Ue_A { Bool(7) b(true);  System s();  Int(32) d(0);  Int(32) test() {  d 3 cast = { Int(32) index = 0 cast;  index d < cond b index 0 cast != cast = _1: index 1 cast += while } { Unsigned(32) index = 0 cast;  index 3u cast < cond { d 1 cast -= s ( d )print . } _2: index 1 cast += while } d return } }
+Uq_System { <NOMAIN> }
+#>A.ulam
+  ulam 1;
+use System;
+element A {
+  System s;
+  Bool(7) b;
+  Int d;
+  Int test(){
+    d = 3;
+    for(Int index = 0; index < d; index+=1)
+      b = index!=0;
+    for(Unsigned index = 0; index < 3u; index+=1){
+      d-=1;
+      s.print(d);
+    }
+    return d;
+  }
+}
+
+##      //informed by: WindowUtils
+##      // in second forloop:, must use 3u in comparison, since signed wins when mixed;
+##      //./A.ulam:10:32: ERROR: Use explicit cast to convert Unsigned(32) and Int(3) to Int(32) for binary operator<.
+##      // oddly, 1u is not needed for initialization because with '=' lhs wins!
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

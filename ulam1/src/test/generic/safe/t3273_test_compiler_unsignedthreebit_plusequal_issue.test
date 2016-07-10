@@ -40,26 +40,24 @@
 ##	 Unsigned Arg: 7
 ##      */
 Exit status: 0
-Ue_A { System s();  Int(32) test() {  Unsigned(3) x = 0 cast;  Unsigned(3) y = 0 cast;  Unsigned(3) z = 0 cast;  { Int(32) i = 0 cast;  i 12 cast < cond { x 1 cast += s ( x cast )print . y 1 cast += s ( y cast )print . z z cast 1 cast +b cast = s ( z cast )print . } _1: i 1 cast += while } 0 cast return } }
+Ue_A { System s();  Int(32) test() {  Unsigned(3) x;  x 0 cast = Unsigned(3) y;  y 0 cast = Unsigned(3) z;  z 0 cast = { Int(32) i;  i 0 cast = i 12 cast < cond { x 1 cast += s ( x cast )print . y 1 cast += s ( y cast )print . z z cast 1 cast +b cast = s ( z cast )print . } _1: i 1 cast += while } 0 cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
-  ulam 1;
 use System;
 element A {
-  System s;
-  Int test(){
-    Unsigned(3) x = 0, y = 0, z = 0;
-    for(Int i = 0; i < 12; ++i){
-      x+=1;
-      s.print(x);
-      ++y;
-      s.print(y);
-      z = (Unsigned(3)) (z + 1);
-      s.print(z);
-    }
-    return 0;
-  }
-}
+System s;
+Int test(){ Unsigned(3) x = 0, y = 0, z = 0;
+ for(Int i = 0; i < 12; ++i){
+ x+=1;
+ s.print((Unsigned) x);
+++y;
+ s.print((Unsigned) y);
+z = (Unsigned(3)) (z + 1);
+ s.print((Unsigned) z);
+ }
+ return 0;
+ }
+ }
 
 ##      // ++, += 1 and z = z + 1 all the same; saturates.
 #:System.ulam

@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * UlamValue.h -  Basic handling of UlamValues for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file UlamValue.h -  Basic handling of UlamValues for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -40,6 +40,7 @@
 #include "itype.h"
 #include "BitVector.h"
 #include "Constants.h"
+#include "UlamType.h"
 
 namespace MFM{
 
@@ -57,6 +58,14 @@ namespace MFM{
 	u8  m_bits[8];  //oops! not 10 anymore
       } m_rawAtom;
 
+      /*
+      struct IntValue {
+	UTI m_utypeIdx;
+	u16 m_pad;
+	u32 m_val;
+	u32 m_pad2;
+	}*/
+
       struct PtrValue {
 	s16 m_slotIndex;
 	UTI m_utypeIdx;
@@ -69,8 +78,7 @@ namespace MFM{
       } m_ptrValue;
 
       struct Storage {
-	//AtomBitVector m_atom;
-	//0-15 UTI, 16-24 errcorr. 25-96 designed by element data members
+	//AtomBitVector m_atom; //0-15 UTI, 16-24 errcorr. 25-96 designed by element data members
 	u32 m_atom[AtomBitVector::ARRAY_LENGTH];
       } m_storage;
 
@@ -84,9 +92,6 @@ namespace MFM{
 
     void init(UTI utype, u32 v, CompilerState& state);
 
-    // returns Atom with default values set
-    static UlamValue makeDefaultAtom(UTI elementType, CompilerState& state);
-
     // returns cleared Atom with element type set
     static UlamValue makeAtom(UTI elementType);
 
@@ -98,13 +103,9 @@ namespace MFM{
 
     static UlamValue makeImmediate(UTI utype, u32 v, s32 len = 32);
 
-    static UlamValue makeImmediateClass(UTI utype, u32 v, s32 len);
-
     static UlamValue makeImmediateLong(UTI utype, u64 v, CompilerState& state);
 
     static UlamValue makeImmediateLong(UTI utype, u64 v, s32 len = 64);
-
-    static UlamValue makeImmediateLongClass(UTI utype, u64 v, s32 len);
 
     // returns a pointer to an UlamValue of type targetType; pos==0 determined from targettype
     static UlamValue makePtr(u32 slot, STORAGE storage, UTI targetType, PACKFIT packed, CompilerState& state, u32 pos = 0);
@@ -122,13 +123,9 @@ namespace MFM{
 
     void setAtomElementTypeIdx(UTI utype);
 
-    bool isPtr() const;
-
     PACKFIT isTargetPacked(); // Ptr only
 
     UlamValue getValAt(u32 offset, CompilerState& state) const; // Ptr only, arrays
-
-    void setPtrStorage(STORAGE s);
 
     STORAGE getPtrStorage();
 
@@ -164,19 +161,11 @@ namespace MFM{
 
     u32 getImmediateData(CompilerState& state) const;
 
-    u32 getImmediateData(s32 len, CompilerState& state) const;
-
-    u32 getImmediateClassData(CompilerState & state) const;
-    u32 getImmediateClassData(s32 len) const;
+    u32 getImmediateData(s32 len = 32) const;
 
     u64 getImmediateDataLong(CompilerState & state) const;
 
-    u64 getImmediateDataLong(s32 len, CompilerState & state) const;
-
     u64 getImmediateDataLong(s32 len = 64) const;
-
-    u64 getImmediateClassDataLong(CompilerState & state) const;
-    u64 getImmediateClassDataLong(s32 len) const;
 
     void putDataIntoAtom(UlamValue p, UlamValue data, CompilerState& state);
 
@@ -191,11 +180,11 @@ namespace MFM{
 
     void putDataLong(u32 pos, s32 len, u64 data);
 
-    void putDataBig(u32 pos, s32 len, const BV8K& data);
-
     UlamValue& operator=(const UlamValue& rhs);
 
     bool operator==(const UlamValue& rhs);
+
+    void genCodeBitField(File * fp, CompilerState& state);
   };
 
 }

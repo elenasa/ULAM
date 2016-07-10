@@ -2,8 +2,8 @@
  * NodeSquareBracket.h - Basic Node for handling
  *                               Array Subscripts for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -30,7 +30,7 @@
   \file NodeSquareBracket.h - Basic Node for handling Array Subscripts for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016  All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -54,10 +54,6 @@ namespace MFM{
 
     virtual Node * instantiate();
 
-    virtual void updateLineage(NNO pno);
-
-    virtual bool findNodeNo(NNO n, Node *& foundNode);
-
     virtual void printOp(File * fp);
 
     virtual const char * getName();
@@ -67,6 +63,8 @@ namespace MFM{
     virtual const std::string methodNameForCodeGen();
 
     virtual UTI checkAndLabelType();
+
+    virtual void countNavNodes(u32& cnt);
 
     virtual bool assignClassArgValueInStubCopy();
 
@@ -78,24 +76,19 @@ namespace MFM{
 
     virtual bool installSymbolTypedef(TypeArgs& args, Symbol *& asymptr);
     virtual bool installSymbolConstantValue(TypeArgs& args, Symbol *& asymptr);
-    virtual bool installSymbolModelParameterValue(TypeArgs& args, Symbol*& asymptr);
+    virtual bool installSymbolParameterValue(TypeArgs& args, Symbol*& asymptr);
     virtual bool installSymbolVariable(TypeArgs& args,  Symbol *& asymptr);
 
     //helper method to install symbol; also called by Resolver for unknown arraysize
-    bool getArraysizeInBracket(s32 & rtnArraySize, UTI& sizetype);
+    bool getArraysizeInBracket(s32 & rtnArraySize);
 
-    virtual void genCode(File * fp, UVPass& uvpass);
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
-    virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
+    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
   protected:
 
   private:
-    bool m_isCustomArray;
-
-    EvalStatus evalACustomArray(); //requires call to aref
-    EvalStatus evalToStoreIntoACustomArray(); //requires call to aset
-
     virtual bool doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
     virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len);
     virtual UlamValue makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len);

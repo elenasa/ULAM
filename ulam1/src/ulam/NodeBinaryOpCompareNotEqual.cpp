@@ -33,11 +33,8 @@ namespace MFM {
 
   UTI NodeBinaryOpCompareNotEqual::calcNodeType(UTI lt, UTI rt)
   {
-    if(!m_state.okUTItoContinue(lt, rt))
-      return Nav;
-
     if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
-      return Hzy; //short-circuit
+      return Nav; //short-circuit
 
     UTI newType = Nav; //init
     ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
@@ -53,9 +50,10 @@ namespace MFM {
 	    s32 newbs = (lbs > rbs ? lbs : rbs);
 
 	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), newbs);
-	    newType = m_state.makeUlamType(newkey, Bits, UC_NOTACLASS);
+	    newType = m_state.makeUlamType(newkey, Bits);
 
-	    checkSafeToCastTo(getNodeType(), newType); //Nav, Hzy or no change; outputs error msg
+	    if(!NodeBinaryOp::checkSafeToCastTo(newType))
+	      newType = Nav; //outputs error msg
 	  }
 	return newType; //done
       }
@@ -66,7 +64,8 @@ namespace MFM {
 	if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
 	  {
 	    newType = Bool;
-	    checkSafeToCastTo(getNodeType(), newType); //Nav, Hzy or no change; outputs error msg
+	    if(!NodeBinaryOp::checkSafeToCastTo(newType))
+	      newType = Nav; //outputs error msg
 	  }
 	return newType; //done
       }

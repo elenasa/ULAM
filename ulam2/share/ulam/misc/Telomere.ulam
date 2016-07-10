@@ -1,0 +1,43 @@
+ulam 1;
+use AtomUtils;
+use EventWindow;
+use Empty;
+
+/**
+  Controlled growth into a colony
+  containing 2**(2**(width-1)) atoms.
+
+  Usage: Include this as an atomic data
+  member and call its dup(SiteNum) method
+  sometimes with the number of an empty
+  site.
+ */
+
+quark Telomere(Unsigned width) {
+  typedef Unsigned(width) Tail;
+  typedef EventWindow.SiteNum SiteNum;
+  EventWindow ew;
+  AtomUtils au;
+  Tail age;
+
+  /**
+    Duplicate self to ew[to] if self's
+    isn't too old and ew[to] is a live,
+    empty site.
+
+    \return false only if it failed to dup
+    because of an unacceptable
+    destination, true otherwise.
+   */
+  Bool dup(SiteNum to) {
+    if (age < Unsigned(width).maxof) {
+      if (!ew.isLive(to)) return false;
+      if (!au.isEmpty(ew[to])) return false;
+      age += 1; // Must increment before copying!
+      ew[to] = self;
+    }
+    return true;
+  }
+  Void setAge(Tail newAge) { age = newAge;  }
+  Tail getAge() { return age; }
+}

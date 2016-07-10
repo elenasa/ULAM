@@ -6,17 +6,16 @@
 ##      */
 ##
 Exit status: 0
-Ue_B { System s();  Int(32) test() {  Int(3) arr[3];  s ( 9u )print . 0 cast return } }
+Ue_B { System s();  Int(32) test() {  Int(3) arr[3];  s ( 9u cast )print . 0 cast return } }
 Uq_System { <NOMAIN> }
 #>B.ulam
 use System;
 element B {
 System s;
-Int test(){
-  Int(3) arr[Int(3).maxof];
-  s.print(arr.sizeof);
-  return 0;
-}
+Int test(){ Int(3) arr[Int(3).maxof];
+s.print((Unsigned) arr.sizeof);
+ return 0;
+ }
  }
 
 ##

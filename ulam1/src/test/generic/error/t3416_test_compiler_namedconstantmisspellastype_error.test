@@ -1,0 +1,21 @@
+## -*- mode:ulam -*-
+#=t3416_test_compiler_namedconstantmisspellastype_error
+#!
+##./A.ulam:4:30: ERROR: Missing named constant definition after '=' for 'cPRINT_ALL'.
+##
+Exit status: 0
+Ue_A { constant Bits(3) cPRINT_NAME = 2;  constant Bits(3) cPRINT_VALUE = 1;  constant Bits(3) cPRINT_ALL = 3;  Int(32) test() {  0 return } }
+##
+##      //informed by 3415, except misspelled PRINT_VALUE; culam thinks it's a class!
+##
+#>A.ulam
+element A{
+ constant Bits(3) cPRINT_NAME = 2;
+ constant Bits(3) cPRINT_VALUE = 1;
+ constant Bits(3) cPRINT_ALL = cPRINT_NAME | PRINT_VALUE;
+Int test () {
+ return 0;
+}
+}
+
+#.

@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * Compiler.h - Basic top-level Compiler for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file Compiler.h - Basic top-level Compiler for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -41,12 +41,12 @@
 #include <vector>
 #include <map>
 #include "CompilerState.h"
-#include "SourceStream.h"
 #include "FileManager.h"
 #include "File.h"
 #include "Node.h"
+#include "ParameterMap.h"
 #include "Parser.h"
-#include "MapClassMemberDesc.h"
+#include "SourceStream.h"
 #include "TargetMap.h"
 
 namespace MFM{
@@ -84,11 +84,9 @@ namespace MFM{
 
     TargetMap getMangledTargetsMap();
 
-    ClassMemberMap getMangledClassMembersMap();
+    ParameterMap getMangledParametersMap();
 
     const std::string getFullPathLocationAsString(const Locator& loc);
-
-    void setLinesForDebug(bool doit);
 
   private:
     CompilerState m_state;  //owner

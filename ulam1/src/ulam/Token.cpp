@@ -1,24 +1,8 @@
+#include <string.h>
 #include "Token.h"
 #include "CompilerState.h"
 
 namespace MFM {
-
-#define XX(a,b,c) 0,
-
-  static u32 tok_stringid[] = {
-#include "Token.inc"
-  };
-
-#undef XX
-
-#define XX(a,b,c) 0,
-
-  static u32 tok_nameid[] = {
-#include "Token.inc"
-  };
-
-#undef XX
-
 
 #define XX(a,b,c) b,
 
@@ -54,17 +38,6 @@ namespace MFM {
 
   Token::~Token() {}
 
-  void Token::initTokenMap(CompilerState & state)
-  {
-#define XX(a,b,c) tok_stringid[TOK_##a] = state.m_pool.getIndexForDataString(std::string(b));
-#include "Token.inc"
-#undef XX
-
-#define XX(a,b,c) tok_nameid[TOK_##a] = state.m_pool.getIndexForDataString(std::string(tok_name[TOK_##a]));
-#include "Token.inc"
-#undef XX
-  } //initTokenMap (static)
-
   void Token::init(TokenType t, Locator l, u32 d)
     {
       m_type = t;
@@ -77,37 +50,14 @@ namespace MFM {
     return tok_string[m_type];
   }
 
-  u32 Token::getTokenStringId()
-  {
-    return tok_stringid[m_type];
-  }
-
-  const std::string Token::getTokenStringFromPool(CompilerState * state)
-  {
-    assert(state);
-    return state->m_pool.getDataAsString(tok_stringid[m_type]);
-  }
-
-  const std::string Token::getTokenAsStringFromPool(TokenType ttype, CompilerState * state)
-  {
-    assert(state);
-    return state->m_pool.getDataAsString(tok_stringid[ttype]);
-  } //static
-
   const char * Token::getTokenEnumName()
   {
     return tok_name[m_type];
   }
 
-  u32 Token::getTokenEnumNameId()
+  const char *  Token::getTokenAsString(TokenType ttype)
   {
-    return tok_nameid[m_type];
-  }
-
-  const std::string Token::getTokenEnumNameFromPool(CompilerState * state)
-  {
-    assert(state);
-    return state->m_pool.getDataAsString(tok_nameid[m_type]);
+    return  tok_string[ttype];
   }
 
   SpecialTokenWork Token::getSpecialTokenWork(TokenType ttype)
@@ -159,11 +109,6 @@ namespace MFM {
   bool Token::isUpper(char c)
   {
     return(c > 0x40 && c < 0x5B);
-  }
-
-  bool Token::operator<(const Token & tok2) const
-  {
-    return (m_dataindex < tok2.m_dataindex);
   }
 
 }

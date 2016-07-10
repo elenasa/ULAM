@@ -7,7 +7,7 @@
 ##      */
 ##
 Exit status: 0
-Ue_A { System s();  Bool(1) sp(true);  Int(3) spi(3);  Int(32) test() {  Bool(1) mybool = true;  spi ( mybool 7 cast )foo cast = s ( spi )print . sp ( mybool )foo = s ( sp cast )print . 0 cast return } }
+Ue_A { System s();  Bool(1) sp(true);  Int(3) spi(3);  Int(32) test() {  Bool(1) mybool;  mybool true = spi ( mybool 7 cast )foo cast = s ( spi )print . sp ( mybool )foo = s ( sp cast )print . 0 cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
 ulam 1;

@@ -3,50 +3,47 @@
 #!
 ##      /* gen code output:
 ##	 Int(3) Arg: 0x2
-##       assert: arg is 1
-##       after assert's abort: arg is 1
 ##      */
 ##      // correct answer in gen code output, not exit status.
-Exit status: -11
-Ue_IntArrayTest { typedef Int(3) Intn;  constant Int(32) isn = 3;  IAN(3) ia( constant Int(32) n = 3;  typedef Int(3) Intn; );  Int(32) test() {  System s;  Int(3) a;  a ( )func = s ( a )print . s ( a 2 == )assert . a cast return } }
-Uq_IAN(Int(32) n) { typedef Int(UNKNOWN) Intn;  <NOMAIN> }
+Exit status: 0
+Ue_IntArrayTest { typedef Int(3) Intn;  constant Int(32) isn = 3;  IAN(3) ia( constant Int(32) n = 3;  typedef Int(3) Intn; );  Int(32) test() {  System s;  Int(3) a;  a ( )func = s ( a )print . a cast return } }
+Uq_IAN { constant Int(32) n = NONREADYCONST;  typedef Int(UNKNOWN) Intn;  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ##      //informed by 3416 only return is Int("3") instead of atom; using class args for bitsize "3"
 ##      // (don't have to use native aref).
 #>IntArrayTest.ulam
-  ulam 1;
+ulam 1;
 use IAN;
-use System;
-element IntArrayTest {
-  constant Int isn = 3;
-  typedef Int(isn) Intn;
-  IAN(isn) ia;
+ use System;
+ element IntArrayTest {
+constant Int isn = 3;
+ typedef Int(isn) Intn;
+ IAN(isn) ia;
   Intn func() {
-    return ia[1];
-  }
-  Int test() {
-    System s;
-    Intn a;
-    a = func();
-    s.print(a);
-    s.assert(a == 2);
-    return a;
+ return ia[1];
+ }
+ Int test() {
+System s;
+ Intn a;
+ a = func();
+ s.print(a);
+ return a;
   }
 }
 
 ##
 ##      //./IAN.ulam:5:2: ERROR: Returning Int(32) as a smaller type Int(3) requires explicit casting.
 #:IAN.ulam
-  ulam 1;
+ulam 1;
 quark IAN(Int n) {
-  typedef Int(n) Intn;
-  Intn aref(Int index){
-    return (Intn) (n - index);
-  }
+typedef Int(n) Intn;
+ Intn aref(Int index){
+ return (Intn) (n - index);
+}
 }
 #:System.ulam
-  ulam 1;
+ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

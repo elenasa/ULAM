@@ -13,10 +13,10 @@
 ##Int(4) Arg: 0x4    (changed from 3 to 4 with modification to Int(4) and <<2
 ##Int Arg: 4
 Exit status: -1
-Ue_Foo { Bool(1) b(false);  System m_s();  Gah m_gah( Bool(1) b(false);  System m_s();  Int(4) a(4);  Int(4) d(4); );  Int(4) i(0);  Int(4) j(-1);  Bar m_bar( Bool(1) b(true);  System m_s();  Unsigned(3) x(3u);  Unsigned(3) y(0u);  Gah m_gah( Bool(1) b(false);  System m_s();  Int(4) a(0);  Int(4) d(0); ); );  Int(32) test() {  i 0 cast = j ( i cast 1 cast -b cast )update = m_s ( j cast )print . m_s ( j )print . m_bar ( 3 cast -1 cast )set . m_gah ( 4 cast 4 cast )set . j cast return } }
-Uq_Bar { System m_s();  Bool(1) b(false);  Unsigned(3) x(0);  Unsigned(3) y(0);  Gah m_gah( System m_s();  Bool(1) b(false);  Int(4) a(0);  Int(4) d(0); );  <NOMAIN> }
+Ue_Foo { Bool(1) b(false);  System m_s();  Gah m_gah( Bool(1) b(false);  System m_s();  Int(4) a(4);  Int(4) d(4); );  Int(4) i(0);  Int(4) j(15);  Bar m_bar( Bool(1) b(true);  System m_s();  Unsigned(3) x(3);  Unsigned(3) y(0);  Gah m_gah( Bool(1) b(false);  System m_s();  Int(4) a(0);  Int(4) d(0); ); );  Int(32) test() {  i 0 cast = j ( i cast 1 cast -b cast )update = m_s ( j cast )print . m_s ( j )print . m_bar ( 3 cast -1 cast )set . m_gah ( 4 cast 4 cast )set . j cast return } }
+Uq_Bar { Bool(1) b(false);  System m_s();  Unsigned(3) x(0);  Unsigned(3) y(3);  Gah m_gah( Bool(1) b(true);  System m_s();  Int(4) a(9);  Int(4) d(1); );  <NOMAIN> }
 Uq_System { <NOMAIN> }
-Uq_Gah { System m_s();  Bool(1) b(false);  Int(4) a(0);  Int(4) d(0);  <NOMAIN> }
+Uq_Gah { Bool(1) b(false);  System m_s();  Int(4) a(0);  Int(4) d(15);  <NOMAIN> }
 #>Foo.ulam
 ulam 1;
 use Bar;
@@ -63,8 +63,8 @@ return 0;
 Void set(Int xarg, Int yarg){
 x=(Unsigned(3)) xarg;
 y=(Unsigned(3)) yarg;
-m_s.print(x);
-m_s.print(y);
+m_s.print((Unsigned) x);
+m_s.print((Unsigned) y);
 
 if(yarg!=0)
 {

@@ -1,17 +1,18 @@
 ## -*- mode:ulam -*-
 #=t3154_test_compiler_typebitsize_evenbool_warn
 #!
-./C.ulam:6:2: Warning: Bool Type with EVEN number of bits is internally inconsistent;  Reduced by one to 3 bits.
-./C.ulam:10:9: ERROR: Use explicit cast to convert Int(6) to Int(3) for operator=.
-./C.ulam:11:4: ERROR: Use a comparison operator to convert Int(3) to Bool(3) for operator=.
-./C.ulam:12:4: ERROR: Bits is the supported type for bitwise operator&=.
-./C.ulam:12:4: ERROR: Righthand type Int(3) is not representable as Bool(3). Bits is the supported type for bitwise operator&=.
-./C.ulam:2:9: ERROR: 3 Nodes with erroneous types detected after type labeling class: C.
-Unrecoverable Program Type Label FAILURE.
 ##
+##./C.ulam:5:2: Warning: Bool Type with EVEN number of bits is internally inconsistent; Reduced by one to 3 bits.
+##./C.ulam:9:9: ERROR: Use explicit cast to convert Int(6) to Int(3) for operator=.
+##./C.ulam:10:4: ERROR: Use a comparison operator to convert Int(3) to Bool(3) for operator=.
+##./C.ulam:11:4: ERROR: Bits is the supported type for bitwise operator&=.
+##./C.ulam:11:4: ERROR: Righthand type Int(3) is not representable as Bool(3). Bits is the supported type for bitwise operator&=.
+##
+## // note: 15 fits into 3 bits and turns into 7;
+Exit status: 0
+Ue_C { Bool(1) a(true);  Int(3) m_i[4](2,3,0,0);  Int(6) m_u(15);  Bool(3) b(true);  Int(32) test() {  m_i 0 [] 2 cast = m_u 15 cast = m_i 1 [] m_u cast = b m_i 0 [] cast = b m_i 0 [] cast &= a b cast = 0 return }
 #>C.ulam
-ulam 1;
-element C {
+ulam 1; element C {
  Bool a;
  Int(3) m_i[4];
  Int(6) m_u;

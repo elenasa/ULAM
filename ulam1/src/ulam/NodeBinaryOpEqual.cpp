@@ -3,10 +3,7 @@
 
 namespace MFM {
 
-  NodeBinaryOpEqual::NodeBinaryOpEqual(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state)
-  {
-    Node::setStoreIntoAble(TBOOL_HAZY);
-  }
+  NodeBinaryOpEqual::NodeBinaryOpEqual(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state) {}
 
   NodeBinaryOpEqual::NodeBinaryOpEqual(const NodeBinaryOpEqual& ref) : NodeBinaryOp(ref) {}
 
@@ -32,46 +29,6 @@ namespace MFM {
     return "_Equal_Stub";
   }
 
-  bool NodeBinaryOpEqual::checkSafeToCastTo(UTI unused, UTI& newType)
-  {
-    bool rtnOK = true;
-    FORECAST scr = m_nodeRight->safeToCastTo(newType);
-    if(scr != CAST_CLEAR)
-      {
-	std::ostringstream msg;
-	if(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Bool)
-	  msg << "Use a comparison operator";
-	else
-	  msg << "Use explicit cast";
-	msg << " to convert "; // the real converting-message
-	msg << m_state.getUlamTypeNameBriefByIndex(m_nodeRight->getNodeType()).c_str();
-	msg << " to ";
-	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
-	msg << " for operator" << getName();
-	if(scr == CAST_HAZY)
-	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    m_state.setGoAgain();
-	    newType = Hzy;
-	  }
-	else
-	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    newType = Nav;
-	  }
-	rtnOK = false;
-      } //not safe
-    else if(m_nodeRight->isExplicitReferenceCast())
-      {
-	std::ostringstream msg;
-	msg << "Explicit Reference cast of assignment is invalid";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	newType = Nav;
-	rtnOK = false;
-      }
-    return rtnOK;
-  } //checkSafeToCastTo
-
   UTI NodeBinaryOpEqual::checkAndLabelType()
   {
     assert(m_nodeLeft && m_nodeRight);
@@ -79,52 +36,28 @@ namespace MFM {
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
 
-    if(!m_state.okUTItoContinue(leftType, rightType))
-      {
-	std::ostringstream msg;
-	msg << "Assignment is invalid";
-	msg << "; LHS: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(leftType);
-	msg << "; RHS: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(rightType);
-
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setNodeType(Nav);
-	return Nav;
-      }
-
     if(!m_state.isComplete(leftType) || !m_state.isComplete(rightType))
       {
-    	setNodeType(Hzy);
-	m_state.setGoAgain(); //for compiler counts
-    	return Hzy; //not quietly
+    	setNodeType(Nav);
+    	return Nav; //not quietly
       }
 
-    TBOOL stor = checkStoreIntoAble();
-    if(stor == TBOOL_FALSE)
+    if(!checkStoreIntoAble())
       {
 	setNodeType(Nav);
 	return Nav;
       }
-    else if(stor == TBOOL_HAZY)
+
+    if(!checkNotUnpackedArray())
       {
-	setNodeType(Hzy);
-	m_state.setGoAgain();
+	setNodeType(Nav);
+	return Nav;
       }
 
     if(!NodeBinaryOp::checkNotVoidTypes(leftType, rightType))
       {
     	setNodeType(Nav);
     	return Nav;
-      }
-
-    if(m_nodeRight->isExplicitReferenceCast())
-      {
-	std::ostringstream msg;
-	msg << "Explicit Reference cast of assignment is invalid";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setNodeType(Nav);
-	return Nav;
       }
 
     if(m_state.isScalar(leftType) ^ m_state.isScalar(rightType))
@@ -140,12 +73,12 @@ namespace MFM {
 	return Nav;
       }
 
-    UTI newType = leftType;
+    UTI newType = leftType; //init
     //cast RHS if necessary and safe
     if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME)
       {
 	//different msg if try to assign non-class to a class type
-	if((m_state.getUlamTypeByIndex(leftType)->getUlamTypeEnum() == Class) && (m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum() != Class) && !m_state.isAtom(rightType))
+	if(m_state.getUlamTypeByIndex(leftType)->getUlamTypeEnum() == Class)
 	  {
 	    std::ostringstream msg;
 	    msg << "Incompatible class type ";
@@ -158,47 +91,49 @@ namespace MFM {
 	  }
 	else
 	  {
-	    //for assignment to reference, cast to underlying type Sat Jun 25 09:01:07 2016
-	    newType = m_state.getUlamTypeAsDeref(leftType); //init
-	    if(checkSafeToCastTo(rightType, newType))
+	    FORECAST rscr = m_nodeRight->safeToCastTo(newType);
+	    if(rscr != CAST_CLEAR)
 	      {
-		if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
-		  newType = Nav; //error
+		std::ostringstream msg;
+		if(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Bool)
+		  msg << "Use a comparison operator";
 		else
-		  {
-		    //for ulam compiler, cast to reference if necessary Sat Jun 25 09:08:37 2016
-		    if(UlamType::compare(leftType, newType, m_state) != UTIC_SAME)
-		      {
-			newType = leftType;
-			if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
-			  newType = Nav; //error
-			//else not safe, newType changed
-		      }
-		  }
+		  msg << "Use explicit cast";
+		msg << " to convert "; // the real converting-message
+		msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
+		msg << " to ";
+		msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+		msg << " for operator" << getName();
+		if(rscr == CAST_BAD)
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		else
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		newType = Nav; //error
 	      }
-	    //else not safe, newType changed
+	    else if(!makeCastingNode(m_nodeRight, newType, m_nodeRight))
+	      newType = Nav; //error
 	  }
       }
+
     setNodeType(newType);
+    setStoreIntoAble((newType != Nav)); //ok true
     return newType;
   } //checkAndLabelType
 
-  TBOOL NodeBinaryOpEqual::checkStoreIntoAble()
+  bool NodeBinaryOpEqual::checkStoreIntoAble()
   {
-    TBOOL lstor = m_nodeLeft->getStoreIntoAble();
-    if(lstor != TBOOL_TRUE)
+    if(!m_nodeLeft->isStoreIntoAble())
       {
 	UTI lt = m_nodeLeft->getNodeType();
 	std::ostringstream msg;
 	msg << "Invalid lefthand side of equals <" << m_nodeLeft->getName();
 	msg << ">, type: " << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
-	if(lstor == TBOOL_HAZY)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setStoreIntoAble(false);
+	return false;
       }
-    setStoreIntoAble(lstor);
-    return lstor;
+    setStoreIntoAble(true);
+    return true;
   } //checkStoreIntoAble
 
   bool NodeBinaryOpEqual::checkNotUnpackedArray()
@@ -248,9 +183,6 @@ namespace MFM {
     if(nuti == Nav)
       return ERROR;
 
-    if(nuti == Hzy)
-      return NOTREADY;
-
     evalNodeProlog(0); //new current frame pointer on node eval stack
 
     makeRoomForSlots(1); //always 1 slot for ptr
@@ -286,9 +218,6 @@ namespace MFM {
     if(nuti == Nav)
       return ERROR;
 
-    if(nuti == Hzy)
-      return NOTREADY;
-
     evalNodeProlog(0);
 
     makeRoomForSlots(1); //always 1 slot for ptr
@@ -301,7 +230,7 @@ namespace MFM {
 
     UlamValue luvPtr = UlamValue::makePtr(1, EVALRETURN, nuti, m_state.determinePackable(nuti), m_state); //positive to current frame pointer
 
-    Node::assignReturnValuePtrToStack(luvPtr);
+    assignReturnValuePtrToStack(luvPtr);
 
     evalNodeEpilog();
     return NORMAL;
@@ -311,7 +240,7 @@ namespace MFM {
   {
     assert(slots);
     UTI nuti = getNodeType();
-    UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(lslot);
+    UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(lslot);
     UlamValue ruv;
 
     if(m_state.isScalar(nuti))
@@ -332,22 +261,13 @@ namespace MFM {
 	  }
       }
 
-    UTI ruti = ruv.getUlamValueTypeIdx();
-    if(ruti == Nav || nuti == Nav)
+    if(ruv.getUlamValueTypeIdx() == Nav || nuti == Nav)
       return false;
 
-    if(ruti == Hzy || nuti == Hzy)
-      return false;
-
-    //before assert in CS, fails
-    UTI luti = pluv.getPtrTargetType();
-    if( m_state.isPtr(ruti) || (UlamType::compareForUlamValueAssignment(luti, ruti, m_state) == UTIC_SAME) || m_state.isAtom(luti) || m_state.isAtom(ruti))
-      m_state.assignValue(pluv,ruv);
-    else
-      return false;
+    m_state.assignValue(pluv,ruv);
 
     //also copy result UV to stack, -1 relative to current frame pointer
-    Node::assignReturnValueToStack(ruv);
+    assignReturnValueToStack(ruv);
     return true;
   } //dobinaryoperation
 
@@ -358,8 +278,8 @@ namespace MFM {
     u32 len = m_state.getTotalBitSize(nuti);
 
     // 'pluv' is where the resulting sum needs to be stored
-    UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(lslot); //a Ptr
-    assert(m_state.isPtr(pluv.getUlamValueTypeIdx()) && (pluv.getPtrTargetType() == nuti));
+    UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(lslot); //a Ptr
+    assert(pluv.getUlamValueTypeIdx() == Ptr && pluv.getPtrTargetType() == nuti);
 
     assert(slots == 1);
     UlamValue luv = m_state.getPtrTarget(pluv);  //no eval!!
@@ -368,15 +288,12 @@ namespace MFM {
     if((luv.getUlamValueTypeIdx() == Nav) || (ruv.getUlamValueTypeIdx() == Nav))
       return false;
 
-    if((luv.getUlamValueTypeIdx() == Hzy) || (ruv.getUlamValueTypeIdx() == Hzy))
-      return false;
-
     UlamValue rtnUV;
     u32 wordsize = m_state.getTotalWordSize(nuti);
     if(wordsize == MAXBITSPERINT)
       {
 	u32 ldata = luv.getDataFromAtom(pluv, m_state);
-	u32 rdata = ruv.getImmediateData(len, m_state);
+	u32 rdata = ruv.getImmediateData(len);
 	rtnUV = makeImmediateBinaryOp(nuti, ldata, rdata, len);
       }
     else if(wordsize == MAXBITSPERLONG)
@@ -385,13 +302,9 @@ namespace MFM {
 	u64 rdata = ruv.getImmediateDataLong(len);
 	rtnUV = makeImmediateLongBinaryOp(nuti, ldata, rdata, len);
       }
-    else
-      assert(0); //e.g. 0
-
+    //else
+    //assert(0);
     if(rtnUV.getUlamValueTypeIdx() == Nav)
-      return false;
-
-    if(rtnUV.getUlamValueTypeIdx() == Hzy)
       return false;
 
     m_state.assignValue(pluv,rtnUV);
@@ -417,8 +330,8 @@ namespace MFM {
       }
 
     // 'pluv' is where the resulting sum needs to be stored
-    UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(lslot); //a Ptr
-    assert(m_state.isPtr(pluv.getUlamValueTypeIdx()) && (pluv.getPtrTargetType() == nuti));
+    UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(lslot); //a Ptr
+    assert(pluv.getUlamValueTypeIdx() == Ptr && pluv.getPtrTargetType() == nuti);
 
     // point to base array slots, packedness determines its 'pos'
     UlamValue lArrayPtr = pluv;
@@ -427,9 +340,6 @@ namespace MFM {
     // to use incrementPtr(), 'pos' depends on packedness
     UlamValue lp = UlamValue::makeScalarPtr(lArrayPtr, m_state);
     UlamValue rp = UlamValue::makeScalarPtr(rArrayPtr, m_state);
-
-    u32 navCount = 0;
-    u32 hzyCount = 0;
 
     //make immediate result for each element inside loop
     for(s32 i = 0; i < arraysize; i++)
@@ -447,10 +357,6 @@ namespace MFM {
 	  {
 	    // else, unpacked array
 	    rtnUV = makeImmediateBinaryOp(scalartypidx, ldata, rdata, bitsize);
-	    if(rtnUV.getUlamValueTypeIdx() == Nav)
-	      navCount++;
-	    else if(rtnUV.getUlamValueTypeIdx() == Hzy)
-	      hzyCount++;
 
 	    // overwrite lhs copy with result UV
 	    m_state.assignValue(lp, rtnUV);
@@ -459,16 +365,11 @@ namespace MFM {
 	    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -slots + i);
 	  }
 
-	AssertBool isNextLeft = lp.incrementPtr(m_state);
-	assert(isNextLeft);
-	AssertBool isNextRight = rp.incrementPtr(m_state);
-	assert(isNextRight);
+	assert(lp.incrementPtr(m_state));
+	assert(rp.incrementPtr(m_state));
       } //forloop
 
-    if(navCount > 0)
-      return false;
-
-    if(hzyCount > 0)
+    if(rtnUV.getUlamValueTypeIdx() == Nav)
       return false;
 
     if(WritePacked(packRtn))
@@ -496,20 +397,19 @@ namespace MFM {
     assert(0); //unused
   }
 
-  void NodeBinaryOpEqual::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
-  {
-    assert(m_nodeRight);
-    m_nodeRight->calcMaxDepth(depth, maxdepth, base); //funccall?
-    return; //work done by NodeStatements and NodeBlock
-  }
-
-  void NodeBinaryOpEqual::genCode(File * fp, UVPass& uvpass)
+  void NodeBinaryOpEqual::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
     assert(m_state.m_currentObjSymbolsForCodeGen.empty());
 
+#ifdef TMPVARBRACES
+    m_state.indent(fp);
+    fp->write("{\n");
+    m_state.m_currentIndentLevel++;
+#endif
+
     // generate rhs first; may update current object globals (e.g. function call)
-    UVPass ruvpass;
+    UlamValue ruvpass;
     m_nodeRight->genCode(fp, ruvpass);
 
     // restore current object globals
@@ -518,7 +418,7 @@ namespace MFM {
     // lhs should be the new current object: node member select updates them,
     // but a plain NodeIdent does not!!!  because genCodeToStoreInto has been repurposed
     // to mean "don't read into a TmpVar" (e.g. by NodeCast).
-    UVPass luvpass;
+    UlamValue luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass); //may update m_currentObjSymbol, m_currentSelfSymbol
 
     // current object globals should pertain to lhs for the write
@@ -526,6 +426,11 @@ namespace MFM {
 
     uvpass = ruvpass; //in case we're the rhs of an equals..
 
+#ifdef TMPVARBRACES
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n"); //close for tmpVar
+#endif
     assert(m_state.m_currentObjSymbolsForCodeGen.empty());
   } //genCode
 

@@ -5,24 +5,26 @@
 
 namespace MFM{
 
-  template<class CC>
-  Ui_Ut_102961a<CC> Uq_10109211EventWindow10<CC>::Uf_4aref(const UlamContext<CC> & uc, UlamRef<CC>& ur, Ui_Ut_102321i<CC>& Uv_5index) const //native
+  template<class CC, u32 POS>
+  Ui_Ut_102961a<CC> Uq_10109211EventWindow10<CC,POS>::Uf_4aref(UlamContext<CC> & uc,
+                                                                T& Uv_4self, Ui_Ut_102321i Uv_5index)	 //native
   {
     u32 siteNumber = Uv_5index.read();
 
-    const EventWindow<CC> & ew = uc.GetEventWindow();
+    EventWindow<CC> & ew = uc.GetEventWindow();
     const T & a = ew.GetAtomSym(siteNumber);
 
     return Ui_Ut_102961a<CC>(a);
   }
 
-  template<class CC>
-  void Uq_10109211EventWindow10<CC>::Uf_4aset(const UlamContext<CC> & uc, UlamRef<CC>& ur, Ui_Ut_102321i<CC>& Uv_5index, Ui_Ut_102961a<CC>& Uv_1v) const //native
+  template<class CC, u32 POS>
+  void Uq_10109211EventWindow10<CC,POS>::Uf_4aset(UlamContext<CC> & uc, T& Uv_4self,
+						 Ui_Ut_102321i Uv_5index, Ui_Ut_102961a<CC> Uv_1v) //native
   {
     u32 siteNumber = Uv_5index.read();
 
-    EventWindow<CC> & ew = const_cast <UlamContext<CC> &>(uc).GetEventWindow();
-    ew.SetAtomSym(siteNumber, Uv_1v.ReadAtom());
+    EventWindow<CC> & ew = uc.GetEventWindow();
+    ew.SetAtomSym(siteNumber, Uv_1v.read());
   }
 
 } //MFM

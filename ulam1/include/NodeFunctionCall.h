@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeFunctionCall.h - Basic Node for handling Function Calls for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeFunctionCall.h - Basic Node for handling Function Calls for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -71,7 +71,7 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
+    virtual void countNavNodes(u32& cnt);
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
@@ -87,38 +87,29 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
-    virtual void genCode(File * fp, UVPass& uvpass);
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
-    virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
+    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
-    virtual void genCodeReadIntoATmpVar(File * fp, UVPass & uvpass);
+    virtual void genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass);
 
   protected:
     //helper methods override Node read/write
     virtual void genMemberNameOfMethod(File * fp);
 
     virtual void genModelParameterMemberNameOfMethod(File * fp, s32 epi);
-
-    virtual std::string genModelParameterHiddenArgs(s32 epi);
-
+    std::string genModelParameterHiddenArgs(s32 epi);
     virtual void genLocalMemberNameOfMethod(File * fp);
+
+    void genCodeIntoABitValue(File * fp, UlamValue& uvpass);
 
   private:
 
     Token m_functionNameTok;
     SymbolFunction * m_funcSymbol;
+    //std::vector<Node *> m_argumentNodes;
     NodeList * m_argumentNodes;
 
-    void genCodeIntoABitValue(File * fp, UVPass& uvpass);
-    void genCodeAReferenceIntoABitValue(File * fp, UVPass& uvpass);
-    void genCodeVirtualFunctionCallVTableEntry(File * fp, u32 tvfpnum, u32 urtmpnum);
-    void genCodeVirtualFunctionCall(File * fp, u32 tvfpnum);
-    std::string genHiddenArg2ForARef(File * fp, UVPass uvpass, u32& urtmpnumref);
-    std::string genHiddenArgs(u32 urtmpnum);
-    std::string genRestOfFunctionArgs(File * fp, UVPass & uvpass);
-    void genCodeReferenceArg(File * fp, UVPass & uvpass, u32 n);
-    void genCodeAnonymousReferenceArg(File * fp, UVPass & uvpass, u32 n);
-    std::string genStorageType(); //for VTable entry
   };
 
 }

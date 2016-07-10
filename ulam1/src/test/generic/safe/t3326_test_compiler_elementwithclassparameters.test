@@ -4,23 +4,23 @@
 ##     //Constants have explicit types
 Exit status: 3
 Ue_R { Int(32) test() {  Foo(3) e;  Foo(4) f;  f a . 3 cast = f a . cast return } }
-Ue_Foo(Int(32) n) { Unsigned(UNKNOWN) a(notready);  <NOMAIN> }
+Ue_Foo { constant Int(32) n = NONREADYCONST;  Unsigned(UNKNOWN) a(0);  <NOMAIN> }
 #>R.ulam
-  ulam 1;
+ulam 1;
 use Foo;
-element R{
-  Int test() {
-    Foo(3) e;
-    Foo(4) f;
-    f.a = 3;
-    return f.a;
-  }
-}
+ element R{
+ Int test() {
+Foo(3) e;
+ Foo(4) f;
+ f.a = 3;
+ return f.a;
+ }
+ }
 ##      //simplified to debugging, only one instance, no cast for assignment;
 
 #:Foo.ulam
-  ulam 1;
-element Foo(Int n){
-  Unsigned(n) a;
+ulam 1;
+ element Foo(Int n){
+Unsigned(n) a;
 }
 #.

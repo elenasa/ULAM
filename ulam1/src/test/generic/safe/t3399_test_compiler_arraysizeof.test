@@ -6,13 +6,13 @@ Ue_Eltypo { typedef Int(3) IArr[0];  Int(32) test() {  Int(3) arr[0];  0u cast r
 ##
 ##      //arraysize zero ok, but not bitsize zero for nonClass primitive types!
 #>Eltypo.ulam
-  ulam 1;
-element Eltypo {
-  typedef Int(3) IArr[0];
-  Int test(){
-    IArr arr;
-    return arr.sizeof;
-  }
+ulam 1;
+ element Eltypo {
+typedef Int(3) IArr[0];
+ Int test(){
+IArr arr;
+ return arr.sizeof;
 }
+ }
 
 #.

@@ -2,21 +2,21 @@
 #=t3267_test_compiler_elementandquark_typedeffromanotherclass
 #!
 Exit status: 2
-Ue_TypedefIssue { Unsigned(3) x[2](0u,2u);  Bool(1) b(true);  Vector t( typedef Unsigned(3) Symmetry;  Unsigned(3) m(2u);  Unsigned(3) n(1u); );  Int(32) test() {  { t ( 2 cast 1 cast )set . cond b true = if } x 1 [] t m . = x 1 [] cast return } }
-Uq_Vector { typedef Unsigned(3) Symmetry;  Unsigned(3) m(0);  Unsigned(3) n(0);  <NOMAIN> }
+Ue_TypedefIssue { Unsigned(3) x[2](0,2);  Bool(1) b(true);  Vector t( typedef Unsigned(3) Symmetry;  Unsigned(3) m(2);  Unsigned(3) n(1); );  Int(32) test() {  t ( 2 cast 1 cast )set . cond b true = if x 1 [] t m . = x 1 [] cast return } }
+Uq_Vector { typedef Unsigned(3) Symmetry;  Unsigned(3) m(0);  Unsigned(3) n(2);  <NOMAIN> }
 #>TypedefIssue.ulam
-  ulam 1;
+ulam 1;
 use Vector;
-element TypedefIssue {
-  Vector.Symmetry x[2];
-  Bool b;
-  Vector t;
-  Int test() {
-    if(t.set((Vector.Symmetry) 2, (Vector.Symmetry) 1))
-      b=true;
-    x[1]=t.m;
-    return x[1];
-  }
+ element TypedefIssue {
+Vector.Symmetry x[2];
+ Bool b;
+Vector t;
+ Int test() {
+if(t.set((Vector.Symmetry) 2, (Vector.Symmetry) 1))
+ b=true;
+ x[1]=t.m;
+ return x[1];
+}
 }
 
 ##
@@ -24,15 +24,15 @@ element TypedefIssue {
 ##      // must already be parsed! (e.g. couldn't use element yet! because its Class Block doesn't exist).
 ##
 #:Vector.ulam
-  ulam 1;
+ulam 1;
 quark Vector {
-  typedef Unsigned(3) Symmetry;
-  Symmetry m;
-  Symmetry n;
-  Bool set(Symmetry vector, Symmetry index) {
-    m=vector;
-    n=index;
-    return (m!=0 && n!=0);
-  }
+typedef Unsigned(3) Symmetry;
+ Symmetry m;
+Symmetry n;
+ Bool set(Symmetry vector, Symmetry index) {
+m=vector;
+n=index;
+ return (m!=0 && n!=0);
+ }
 }
 #.

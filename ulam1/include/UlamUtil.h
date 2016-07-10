@@ -1,7 +1,6 @@
 /*                                              -*- mode:C++ -*-
   UlamUtil.h Utility methods for ulam
-  Copyright (C) 2014-2016 The Regents of the University of New Mexico.  All rights reserved.
-  Copyright (C) 2014-2016 Ackleyshack LLC.
+  Copyright (C) 2014-2015 The Regents of the University of New Mexico.  All rights reserved.
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -23,7 +22,7 @@
   \file UlamUtil.h Utility methods for ulam
   \author David H. Ackley.
   \author Elena S. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \lgpl
  */
 #ifndef ULAMUTIL_H

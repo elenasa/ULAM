@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * TargetMap.h - Map of class targets for ULAM
  *
- * Copyright (C) 2015-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2016 Ackleyshack LLC.
+ * Copyright (C) 2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file TargetMap.h -  Map of class targets for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2016 All rights reserved.
+  \date (C) 2015 All rights reserved.
   \gpl
 */
 
@@ -40,14 +40,13 @@
 #include <string>
 #include "itype.h"
 #include "Locator.h"
-#include "Constants.h"
 
 namespace MFM
 {
   struct TargetDesc
   {
     bool m_hasTest;
-    ULAMCLASSTYPE m_classType;
+    bool m_isQuark;
     u32 m_bitsize;
     Locator m_loc;
     std::string m_className;

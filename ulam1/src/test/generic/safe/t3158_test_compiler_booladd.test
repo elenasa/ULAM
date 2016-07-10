@@ -6,25 +6,24 @@
 ##	 Unary(3) Arg: 0x1
 ##      */
 Exit status: 1
-Ue_A { Bool(3) b(false);  System s();  Bool(3) a(true);  Bool(3) c(true);  Unary(3) d(1u);  Int(32) test() {  a true cast = b false cast = c a cast cast b cast cast +b 0u cast > cast = s ( c )print . d c cast = s ( d )print . c cast return } }
+Ue_A { Bool(3) b(false);  System s();  Bool(3) a(true);  Bool(3) c(true);  Unary(3) d(1);  Int(32) test() {  a true cast = b false cast = c a cast cast b cast cast +b 0u cast > cast = s ( c )print . d c cast = s ( d )print . c cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
-  ulam 1;
 use System;
 element A {
-  System s;
-  Bool(3) a, b, c;
-  Unary(3) d;
-  Int test() {
-    a = true;
-    b = false;
-    c = (((Unsigned(3)) a + (Unsigned(3)) b) > 0u);
-    s.print(c);
-    d = (Unary(3)) c;
-    s.print(d);
-    return (Int) c;
-  }
-}
+System s;
+Bool(3) a, b, c;
+ Unary(3) d;
+ use test;
+a = true;
+b = false;
+ c = (((Unsigned(3)) a + (Unsigned(3)) b) > 0u);
+ s.print(c);
+ d = (Unary(3)) c;
+s.print(d);
+ return (Int) c;
+ }
+ }
 
 ##      //./A.ulam:9:4: ERROR: Attempting to implicitly cast a non-Bool type, RHS: Unsigned(3), to a Bool type: Bool(3) for binary operator= without casting.
 ##      //./A.ulam:10:8: ERROR: Incompatible Bool type for binary operator+. Suggest casting to a numeric type first.
@@ -34,8 +33,10 @@ element A {
 ##      //bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool sp;\n Bool(3) a, b, c;\n Unary(3) d;\n use test;\na = true;\nb = false;\n c = a + b;\ns.print(c);\n d = c;\ns.print(d);\n return c;\n }\n }\n");
 ##
 ##      //./A.ulam:9:42: ERROR: Use explicit cast to convert Unsigned(4) and Int(2) to Int(4) for binary operator>.
+#:test.ulam
+Int test() {
 #:System.ulam
-  ulam 1;
+ulam 1;
 quark System {Void print(Unsigned arg) native;
 Void print(Int arg) native;
 Void print(Int(4) arg) native;

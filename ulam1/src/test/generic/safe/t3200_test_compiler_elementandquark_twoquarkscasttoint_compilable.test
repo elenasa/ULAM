@@ -5,7 +5,7 @@
 ##      //developed by Dave (10092014) in c++ and then converted to Ulam.
 ##      //Int(4) maxes out at 7, not 12.
 ##      //added prints
-##      /* gen code output: (asserts interleaved)
+##      /* gen code output:
 ##	 Unsigned Arg: 1
 ##	 Unsigned Arg: 2
 ##	 Unsigned Arg: 3
@@ -16,46 +16,35 @@
 ##
 ##      //constant fold minus
 Exit status: 0
-Ue_Foo { System s();  Bar bar1( Bool(1) b(false);  Unsigned(3) x(1u);  Unsigned(3) y(2u); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3u);  Unsigned(3) y(0u); );  Int(4) i(6);  Int(4) j(7);  Int(32) test() {  Int(2) d;  d 1 = bar1 x . d cast = bar1 y . 2u cast = bar2 x . 3u cast = bar2 y . 0u cast = i bar1 ( )toInt . cast = j bar2 ( )toInt . cast = s ( bar1 x . cast )print . s ( bar1 x . cast 1 cast == )assert . s ( bar1 y . cast )print . s ( bar1 y . cast 2 cast == )assert . s ( bar2 x . cast )print . s ( bar2 x . cast 3 cast == )assert . s ( bar2 y . cast )print . s ( bar2 y . cast 0 cast == )assert . s ( bar1 ( )toInt . )print . s ( bar1 ( )toInt . 6 cast == )assert . s ( i )print . s ( i 6 == )assert . s ( bar2 ( )toInt . )print . s ( bar2 ( )toInt . 12 cast == )assert . s ( j )print . s ( j 7 == )assert . 0 cast return } }
+Ue_Foo { System s();  Bar bar1( Bool(1) b(false);  Unsigned(3) x(1);  Unsigned(3) y(2); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3);  Unsigned(3) y(0); );  Int(4) i(6);  Int(4) j(7);  Int(32) test() {  Int(2) d;  d 1 = bar1 x . d cast = bar1 y . 2u cast = bar2 x . 3u cast = bar2 y . 0u cast = i bar1 ( )toInt . cast cast = j bar2 ( )toInt . cast cast = s ( bar1 x . cast )print . s ( bar1 y . cast )print . s ( bar2 x . cast )print . s ( bar2 y . cast )print . s ( i )print . s ( j )print . 0 cast return } }
 Uq_System { <NOMAIN> }
-Uq_Bar { Bool(1) b(false);  Unsigned(3) x(0);  Unsigned(3) y(0);  <NOMAIN> }
+Uq_Bar { Bool(1) b(false);  Unsigned(3) x(1);  Unsigned(3) y(2);  <NOMAIN> }
 #>Foo.ulam
-  ulam 1;
+ulam 1;
 use System;
 use Bar;
 element Foo {
-  System s;
-  Bar bar1;
-  Bar bar2;
-  Int(4) i, j;
-  Int test(){
-    Int(2) d;
-    d = 1;
-    bar1.x = (Unsigned(3)) d;
-    bar1.y = 2u;
-    bar2.x = 3u;
-    bar2.y = 0u;
-    i = (Int(4)) bar1;
-    j = (Int(4)) bar2;
-    s.print(bar1.x); //1
-    s.assert(bar1.x == 1);
-    s.print(bar1.y); //2
-    s.assert(bar1.y == 2);
-    s.print(bar2.x); //3
-    s.assert(bar2.x == 3);
-    s.print(bar2.y); //0
-    s.assert(bar2.y == 0);
+System s;
+Bar bar1;
+Bar bar2;
+Int(4) i, j;
+Int test(){
+Int(2) d;
+d = 1;
+bar1.x = (Unsigned(3)) d;
+bar1.y = 2u;
+bar2.x = 3u;
+bar2.y = 0u;
+i = (Int(4)) bar1;
+j = (Int(4)) bar2;
+s.print((Unsigned) bar1.x);
+s.print((Unsigned) bar1.y);
+s.print((Unsigned) bar2.x);
+s.print((Unsigned) bar2.y);
 
-    s.print(bar1);
-    s.assert(bar1 == 6);
-    s.print(i); //6
-    s.assert(i == 6);
-    s.print(bar2);
-    s.assert(bar2 == 12);
-    s.print(j); //7
-    s.assert(j == 7);
-    return 0;
-  }
+s.print(i);
+s.print(j);
+return 0;}
 }
 
 ##      // fixed a bug that didn't address different int bit sizes automatically during casting
@@ -67,15 +56,14 @@ element Foo {
 ##      //note: don't have <<2, so substituted *4; use 3 bits so not to cross word boundary
 ##
 #:Bar.ulam
-  ulam 1;
+ulam 1;
 quark Bar {
-  Bool b;
-  Unsigned(3) x, y;
-  Int toInt(){
-    return (Int) (x << 2) + y;
-  }
+Bool b;
+Unsigned(3) x, y;
+Int toInt(){
+return (Int)  (x << 2) + y;
 }
-
+}
 #:System.ulam
 ulam 1;
 quark System {

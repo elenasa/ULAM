@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * UlamTypeClass.h -  Basic handling of the Class UlamType for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file UlamTypeClass.h -  Basic handling of the Class UlamType for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -48,7 +48,7 @@ namespace MFM{
   {
   public:
 
-    UlamTypeClass(const UlamKeyTypeSignature key, CompilerState& state);
+    UlamTypeClass(const UlamKeyTypeSignature key, CompilerState& state, ULAMCLASSTYPE type = UC_UNSEEN);
 
     virtual ~UlamTypeClass(){}
 
@@ -62,13 +62,15 @@ namespace MFM{
 
     virtual FORECAST safeCast(UTI typidx);
 
-    virtual FORECAST explicitlyCastable(UTI typidx);
-
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
+
+    virtual const std::string getUlamTypeVDAsStringForC();
 
     virtual const std::string getUlamTypeMangledType();
 
     virtual  const std::string getUlamTypeMangledName();
+
+    virtual const std::string getUlamTypeAsStringForC();
 
     virtual const std::string getUlamTypeUPrefix();
 
@@ -78,19 +80,29 @@ namespace MFM{
 
     virtual void getDataLongAsString(const u64 data, char * valstr, char prefix);
 
-    virtual ULAMCLASSTYPE getUlamClassType();
+    virtual ULAMCLASSTYPE getUlamClass();
+
+    void setUlamClass(ULAMCLASSTYPE type);
+
+    virtual bool isScalar();
 
     virtual bool isCustomArray();
 
     void setCustomArray();
 
+    UTI getCustomArrayType();
+
+    u32 getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
+
+    virtual s32 getBitSize();
+
     virtual bool isHolder();
 
     virtual bool isComplete();
 
-    virtual const std::string readMethodForCodeGen();
+    virtual bool isMinMaxAllowed();
 
-    virtual const std::string writeMethodForCodeGen();
+    virtual PACKFIT getPackable();
 
     virtual bool needsImmediateType();
 
@@ -98,15 +110,13 @@ namespace MFM{
 
     virtual const std::string getUlamTypeImmediateAutoMangledName();
 
+    virtual const std::string getTmpStorageTypeAsString();
+
     virtual const std::string getArrayItemTmpStorageTypeAsString();
 
-    virtual const std::string getLocalStorageTypeAsString();
+    virtual const std::string getImmediateStorageTypeAsString();
 
-    virtual TMPSTORAGE getTmpStorageTypeForTmpVar();
-
-    virtual const std::string castMethodForCodeGen(UTI nodetype);
-
-    virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
+    virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
 
     virtual void genUlamTypeReadDefinitionForC(File * fp);
 
@@ -116,20 +126,24 @@ namespace MFM{
 
     virtual const std::string writeArrayItemMethodForCodeGen();
 
+    virtual const std::string castMethodForCodeGen(UTI nodetype);
+
     virtual void genUlamTypeMangledDefinitionForC(File * fp);
 
-    virtual void genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp);
+    virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
 
-    virtual void genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp);
+   private:
 
-   protected:
-
-    UTI getCustomArrayType();
-    u32 getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
-
-  private:
+    ULAMCLASSTYPE m_class;
     bool m_customArray;
 
+    void genUlamTypeQuarkMangledDefinitionForC(File * fp);
+    void genUlamTypeQuarkReadDefinitionForC(File * fp);
+    void genUlamTypeQuarkWriteDefinitionForC(File * fp);
+
+    void genUlamTypeElementMangledDefinitionForC(File * fp);
+    void genUlamTypeElementReadDefinitionForC(File * fp);
+    void genUlamTypeElementWriteDefinitionForC(File * fp);
 
   };
 

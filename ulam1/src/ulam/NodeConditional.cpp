@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "NodeConditional.h"
 #include "CompilerState.h"
-#include "UlamTypePrimitiveBool.h"
+#include "UlamTypeBool.h"
 
 namespace MFM {
 
@@ -50,22 +50,14 @@ namespace MFM {
     return false;
   } //findNodeNo
 
-  void NodeConditional::checkAbstractInstanceErrors()
-  {
-    if(m_nodeLeft)
-      m_nodeLeft->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
-
   void NodeConditional::print(File * fp)
   {
     printNodeLocation(fp);
     UTI myut = getNodeType();
     UTI ruti = getRightType();
     char id[255];
-    if((myut == Nav) || (myut == Nouti))
+    if(myut == Nav)
       sprintf(id,"%s<NOTYPE>\n",prettyNodeName().c_str());
-    else if(myut == Hzy)
-      sprintf(id,"%s<HAZYTYPE>\n",prettyNodeName().c_str());
     else
       sprintf(id,"%s<%s>\n",prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
@@ -74,9 +66,10 @@ namespace MFM {
     assert(m_nodeLeft);
     m_nodeLeft->print(fp);
 
-    sprintf(id," %s ", getName());
+    sprintf(id," %s ",getName());
     fp->write(id);
 
+    //fp->write(m_typeTok.getTokenString());
     fp->write(m_state.getUlamKeyTypeSignatureByIndex(ruti).getUlamKeyTypeSignatureName(&m_state).c_str());
     fp->write("\n");
   } //print
@@ -107,11 +100,11 @@ namespace MFM {
     return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
   } //safeToCastTo
 
-  void NodeConditional::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
+  void NodeConditional::countNavNodes(u32& cnt)
   {
-    Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
-    m_nodeLeft->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
-    m_nodeTypeDesc->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+    Node::countNavNodes(cnt); //missing
+    m_nodeLeft->countNavNodes(cnt);
+    m_nodeTypeDesc->countNavNodes(cnt);
   }
 
   UTI NodeConditional::getRightType()

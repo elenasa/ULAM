@@ -6,27 +6,25 @@
 ##	 Unary(3) Arg: 0x0
 ##      */
 Exit status: 1
-Ue_A { Unary(3) b(1u);  System s();  Bool(1) sp(false);  Unary(3) a(2u);  Unary(3) c(1u);  Unary(3) d(0u);  Int(32) test() {  a 2 cast = b 1 cast = c a cast b cast -b cast = s ( c )print . d b cast a cast -b cast = s ( d )print . c cast return } }
+Ue_A { Unary(3) b(1);  System s();  Bool(1) sp(false);  Unary(3) a(2);  Unary(3) c(1);  Unary(3) d(0);  Int(32) test() {  a 2 cast = b 1 cast = c a cast b cast -b cast = s ( c )print . d b cast a cast -b cast = s ( d )print . c cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
-  ulam 1;
 use System;
-element A {
-  System s;
-  Bool sp;
-  Unary(3) a, b, c, d;
-  Int test() {
-    a = 2;
-    b = 1;
-    c = (Unary(3)) (a - b);
-    s.print(c);
-    d = (Unary(3)) (b - a);
-    s.print(d);
-    return c;
-  }
-}
+element A {System s;
+Bool sp;
+Unary(3) a, b, c, d;
+ use test;
+  a = 2;
+ b = 1;
+ c = (Unary(3)) (a - b);
+s.print(c);
+ d = (Unary(3)) (b - a);
+s.print(d);
+ return c;
+ } }
 ##      //2 - 1 == 1 bit; for negative unary, d is 0
-
+#:test.ulam
+Int test() {
 #:System.ulam
 ulam 1;
 quark System {Void print(Unsigned arg) native;

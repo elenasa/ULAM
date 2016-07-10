@@ -2,27 +2,21 @@
 #=t3352_test_compiler_elementandquarkswclassargs2_typedeffromanotherclasstypedef
 #!
 Exit status: 3
-Ue_R { Int(32) test() {  P(1) pel;  pel 3u . cast return } }
-Ue_P(Int(32) a) { constant Unsigned(UNKNOWN) nvar = 3u;  <NOMAIN> }
-Uq_Q(Int(32) s) { typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }
+Ue_P { constant Int(32) a = NONREADYCONST;  constant Unsigned(UNKNOWN) nvar = NONREADYCONST;  Int(32) test() {  P(1) pel;  pel nvar . return } }
+Uq_Q { constant Int(32) s = NONREADYCONST;  typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }
 ##
 ##      //informed by t3342:  recursive typedefs as named constant type
-#>R.ulam
-  ulam 1;
-element R{
-  Int test() {
-    P(1) pel;
-    return pel.nvar;
-  }
-}
-
-#:P.ulam
-  ulam 1;
+#>P.ulam
+ulam 1;
 use Q;
 use V;
-element P(Int a) {
-  constant V.Woof.Foo nvar = 3u;
+ element P(Int a) {
+constant V.Woof.Foo nvar = 3u;
+Int test() {
+ P(1) pel;
+return pel.nvar;
+}
 }
 ##
 ##      // this works, but limited to 32?
@@ -38,14 +32,14 @@ element P(Int a) {
 ##
 
 #:Q.ulam
-  ulam 1;
+ulam 1;
 quark Q(Int s) {
-  typedef Unsigned(s) Foo;
+typedef Unsigned(s) Foo;
 }
 #:V.ulam
-  ulam 1;
+ulam 1;
 use Q;
-quark V {
-  typedef Q(3) Woof;
+ quark V {
+typedef Q(3) Woof;
 }
 #.

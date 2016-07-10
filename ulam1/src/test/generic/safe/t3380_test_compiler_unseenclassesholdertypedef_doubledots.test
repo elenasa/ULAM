@@ -9,28 +9,24 @@ Ue_B { typedef Int(32) Z;  <NOMAIN> }
 ##
 ##      // try B before X too..t3381
 #>F.ulam
-  ulam 1;
 use A;
-use X;
-use B;
-element F{ Int test() {
-    return 0;
-  }
+ use X;
+ use B;
+ element F{ Int test() {
+ return 0;
 }
+ }
 
 #:A.ulam
-  ulam 1;
 element A{
-  typedef X.Y.Z ZZ;
+ typedef X.Y.Z ZZ;
 }
 #:X.ulam
-  ulam 1;
 quark X{
-  typedef B Y;
-}
+ typedef B Y;
+ }
 #:B.ulam
-  ulam 1;
 element B{
-  typedef Int Z;
-}
+ typedef Int Z;
+ }
 #.

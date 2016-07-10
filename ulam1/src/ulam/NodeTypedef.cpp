@@ -49,10 +49,6 @@ namespace MFM {
 
   void NodeTypedef::printPostfix(File * fp)
   {
-    assert(m_typedefSymbol);
-    if(m_typedefSymbol->getId() == m_state.m_pool.getIndexForDataString("Self")) return;
-    if(m_typedefSymbol->getId() == m_state.m_pool.getIndexForDataString("Super")) return;
-
     UTI tuti = m_typedefSymbol->getUlamTypeIdx();
     UlamKeyTypeSignature tkey = m_state.getUlamKeyTypeSignatureByIndex(tuti);
     UlamType * tut = m_state.getUlamTypeByIndex(tuti);
@@ -61,11 +57,7 @@ namespace MFM {
 
     fp->write(" ");
     if(tut->getUlamTypeEnum() != Class)
-      {
-	fp->write(tkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str());
-	if(tut->isReference())
-	  fp->write(" &"); //an array of refs as written, should be ref to an array.
-      }
+      fp->write(tkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str());
     else
       fp->write(tut->getUlamTypeNameBrief().c_str());
 
@@ -89,8 +81,7 @@ namespace MFM {
   const char * NodeTypedef::getName()
   {
     //same as m_typedefSymbol->getUlamType()->getUlamTypeNameBrief()); //short type name
-    //return m_state.m_pool.getDataAsString(m_typedefSymbol->getId()).c_str();
-    return m_state.m_pool.getDataAsString(m_tdid).c_str(); //safer
+    return m_state.m_pool.getDataAsString(m_typedefSymbol->getId()).c_str();
   }
 
   const std::string NodeTypedef::prettyNodeName()
@@ -114,32 +105,29 @@ namespace MFM {
 
     if(m_typedefSymbol)
       {
-	//m_typedefSymbol is the (rhs) type alias
 	it = m_typedefSymbol->getUlamTypeIdx();
 
 	//check for UNSEEN Class' ClassType (e.g. array of UC_QUARK)
 	UlamType * tdut = m_state.getUlamTypeByIndex(it);
-	if((tdut->getUlamTypeEnum() == Class) && (tdut->getUlamClassType() == UC_UNSEEN))
+	ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
+	if(tdclasstype == UC_UNSEEN)
 	  {
 	    if(!m_state.completeIncompleteClassSymbolForTypedef(it))
 	      {
 		std::ostringstream msg;
 		msg << "Incomplete Typedef for class type: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-		msg << ", used with variable symbol name <" << getName() << ">";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		msg << " used with variable symbol name <" << getName();
+		msg << "> (UTI" << it << ")";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	      }
-	  }
-	else if(tdut->isHolder())
-	  {
-	    m_state.statusUnknownTypeInThisClassResolver(it);
 	  }
 
 	UTI cuti = m_state.getCompileThisIdx();
 	if(m_nodeTypeDesc)
 	  {
-	    UTI duti = m_nodeTypeDesc->checkAndLabelType(); //sets goagain if nav
-	    if(m_state.okUTItoContinue(duti) && (duti != it))
+	    UTI duti = m_nodeTypeDesc->checkAndLabelType();
+	    if(duti != Nav && duti != it)
 	      {
 		std::ostringstream msg;
 		msg << "REPLACING Symbol UTI" << it;
@@ -150,26 +138,22 @@ namespace MFM {
 		msg << " UTI" << duti << " while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		m_typedefSymbol->resetUlamType(duti); //consistent!
 		m_state.mapTypesInCurrentClass(it, duti);
-		m_state.updateUTIAliasForced(it, duti); //t3379
-		m_typedefSymbol->resetUlamType(duti); //consistent! (must be same ref type)
 		it = duti;
 	      }
 	  }
 
-	if(!m_state.okUTItoContinue(it) || !m_state.isComplete(it)) //reloads
+	if(!m_state.isComplete(it)) //reloads
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete Typedef for type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << ", used with typedef symbol name '" << getName() << "'";
-	    if(m_state.okUTItoContinue(it) || (it == Hzy))
-	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		m_state.setGoAgain(); //since not error; unlike vardecl
-	      }
-	    else
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    msg << " used with typedef symbol name '" << getName();
+	    msg << "' UTI" << it << " while labeling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    //it = Nav; unlike vardecl
 	  }
       } // got typedef symbol
 
@@ -184,8 +168,7 @@ namespace MFM {
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
     Symbol * asymptr = NULL;
-    bool hazyKin = false;
-    if(m_state.alreadyDefinedSymbol(m_tdid, asymptr, hazyKin) && !hazyKin)
+    if(m_state.alreadyDefinedSymbol(m_tdid, asymptr))
       {
 	if(asymptr->isTypedef())
 	  {
@@ -197,6 +180,7 @@ namespace MFM {
 	    msg << "(1) <" << m_state.m_pool.getDataAsString(m_tdid).c_str();
 	    msg << "> is not a typedef, and cannot be used as one";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    //errCnt++;
 	  }
       }
     else
@@ -204,10 +188,8 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "(2) Typedef <" << m_state.m_pool.getDataAsString(m_tdid).c_str();
 	msg << "> is not defined, and cannot be used";
-	if(!hazyKin)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	//errCnt++;
       }
     m_state.popClassContext(); //restore
   } //toinstantiate
@@ -230,53 +212,12 @@ namespace MFM {
     //do nothing, but override
   }
 
-  void NodeTypedef::printUnresolvedVariableDataMembers()
+  void NodeTypedef::countNavNodes(u32& cnt)
   {
-    assert(m_typedefSymbol);
-    UTI it = m_typedefSymbol->getUlamTypeIdx();
-    if(!m_state.isComplete(it))
-      {
-	std::ostringstream msg;
-	msg << "Unresolved type <";
-	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	msg << "> used with typedef symbol name '" << getName() << "'";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setNodeType(Nav); //compiler counts
-      } //not complete
-  } //printUnresolvedVariableDataMembers
-
-  void NodeTypedef::printUnresolvedLocalVariables(u32 fid)
-  {
-    assert(m_typedefSymbol);
-    UTI it = m_typedefSymbol->getUlamTypeIdx();
-    if(!m_state.isComplete(it))
-      {
-	std::ostringstream msg;
-	msg << "Unresolved type <";
-	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	msg << "> used with typedef symbol name '" << getName() << "'";
-	msg << " in function: " << m_state.m_pool.getDataAsString(fid);
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setNodeType(Nav); //compiler counts
-      } //not complete
-  } //printUnresolvedLocalVariables
-
-  void NodeTypedef::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
-  {
-    Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+    Node::countNavNodes(cnt);
     if(m_nodeTypeDesc)
-      m_nodeTypeDesc->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
-  } //countNavHzyNoutiNodes
-
-  bool NodeTypedef::buildDefaultValue(u32 wlen, BV8K& dvref)
-  {
-    return true; //pass on
-  }
-
-  void NodeTypedef::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
-  {
-    return;
-  }
+      m_nodeTypeDesc->countNavNodes(cnt);
+  } //countNavNodes
 
   EvalStatus NodeTypedef::eval()
   {
@@ -284,10 +225,10 @@ namespace MFM {
     return NORMAL;
   } //eval
 
-  void NodeTypedef::genCode(File * fp, UVPass& uvpass)
+  void NodeTypedef::genCode(File * fp, UlamValue& uvpass)
   {
 #if 0
-    m_state.indentUlamCode(fp);
+    m_state.indent(fp);
     fp->write("typedef ");
 
     fp->write(m_state.getUlamTypeByIndex(m_typedefSymbol->getUlamTypeIdx())->getUlamTypeMangledName().c_str()); //for C++
@@ -306,7 +247,7 @@ namespace MFM {
 	fp->write("[UNKNOWN]");
       }
 
-    fp->write(";"); GCNL;
+    fp->write(";\n");
 #endif
   } //genCode
 

@@ -47,8 +47,8 @@ namespace MFM {
 
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMTYPE etyp = nut->getUlamTypeEnum();
-    if(etyp == Bool)
+    ULAMTYPE etype = nut->getUlamTypeEnum();
+    if(etype == Bool)
       fp->write((_Bool64ToCbool(m_constant.uval, nut->getBitSize()) ? "true" : "false"));
     else
       fp->write(getName());
@@ -56,20 +56,14 @@ namespace MFM {
 
   const char * NodeTerminal::getName()
   {
-    u32 id = getNameId();
-    return m_state.m_pool.getDataAsString(id).c_str();
-  } //getName
-
-  u32 NodeTerminal::getNameId()
-  {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 nbitsize = nut->getBitSize();
-    assert(nbitsize >= 0);
+    assert(nbitsize > 0);
     u32 wordsize = nut->getTotalWordSize();
-    ULAMTYPE etyp = nut->getUlamTypeEnum();
+    ULAMTYPE etype = nut->getUlamTypeEnum();
     std::ostringstream num;
-    switch(etyp)
+    switch(etype)
       {
       case Int:
 	if(wordsize <= MAXBITSPERINT)
@@ -102,8 +96,8 @@ namespace MFM {
 	}
       };
     u32 id = m_state.m_pool.getIndexForDataString(num.str());
-    return id;
-  } //getNameId
+    return m_state.m_pool.getDataAsString(id).c_str();
+  } //getName
 
   const std::string NodeTerminal::prettyNodeName()
   {
@@ -116,8 +110,8 @@ namespace MFM {
     if(tok.m_type == TOK_MINUS)
       {
 	UTI nuti = getNodeType();
-	ULAMTYPE etyp = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
-	if(etyp == Int)
+	ULAMTYPE etype = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
+	if(etype == Int)
 	  {
 	    m_constant.sval = -m_constant.sval;
 	    fitsInBits(nuti); //check self
@@ -153,11 +147,10 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
     ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
-    UlamType * newut = m_state.getUlamTypeByIndex(newType);
-    ULAMTYPE typEnum = newut->getUlamTypeEnum();
+    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
 
     //special cases: not a matter of fitting
-    if((typEnum == Bool) || (ntypEnum == Bool) || (typEnum == UAtom) || (typEnum == Class) || (typEnum == Void))
+    if(typEnum == Bool || ntypEnum == Bool || typEnum == UAtom || typEnum == Class || typEnum == Void)
       return m_state.getUlamTypeByIndex(newType)->safeCast(nuti);
 
     //for non-bool terminal check for complete types and arrays before fits.
@@ -190,14 +183,11 @@ namespace MFM {
 		{
 		  s32 sval = _Int32ToCs32((u32) m_constant.uval, bs);
 		  newbs = (s32) (_getLogBase2(UABS32(sval)) + 1 + 1); //fits into signed
-		  newbs = CLAMP<s32>(1, MAXBITSPERINT, newbs); //e.g. Int.minof (t3737)
 		}
 	      else
 		{
-		  //does it ever get here?
 		  s64 sval = _Int64ToCs64(m_constant.uval, bs);
 		  newbs = (s32) (_getLogBase2Long(UABS64(sval)) + 1 + 1); //fits into signed
-		  newbs = CLAMP<s32>(1, MAXBITSPERLONG, newbs);
 		}
 	    }
 	    break;
@@ -226,7 +216,7 @@ namespace MFM {
 	//use UTI with same base type and new bitsize:
 	u32 enumStrIdx = m_state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(typEnum));
 	UlamKeyTypeSignature newkey(enumStrIdx, newbs);
-	UTI newType = m_state.makeUlamType(newkey, typEnum, UC_NOTACLASS);
+	UTI newType = m_state.makeUlamType(newkey, typEnum);
 	setNodeType(newType);
       }
     return getNodeType();
@@ -238,11 +228,8 @@ namespace MFM {
     if(nuti == Nav)
       return ERROR;
 
-    if(nuti == Hzy)
-      return NOTREADY;
-
     if(!m_state.isComplete(nuti))
-      return NOTREADY;
+      return ERROR;
 
     EvalStatus evs = NORMAL; //init ok
     evalNodeProlog(0); //new current frame pointer
@@ -262,9 +249,9 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
     u32 wordsize = m_state.getUlamTypeByIndex(nuti)->getTotalWordSize();
-    if(wordsize <= MAXBITSPERINT)
+    if(wordsize == MAXBITSPERINT)
       return makeTerminalValue(uvarg, (u32) m_constant.uval, nuti);
-    else if(wordsize <= MAXBITSPERLONG)
+    else if(wordsize == MAXBITSPERLONG)
       return makeTerminalValueLong(uvarg, m_constant.uval, nuti);
     else
       assert(0);
@@ -275,29 +262,23 @@ namespace MFM {
   {
     UlamValue rtnUV; //init to Nav error case
     EvalStatus evs = NORMAL; //init ok
-    assert(m_state.isComplete(uti));
+    assert(uti != Nav);
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
-    assert(ut->getBitSize() >= 0);
+    assert(ut->getBitSize() > 0);
 
-    ULAMTYPE etyp = ut->getUlamTypeEnum();
-    switch(etyp)
+    ULAMTYPE etype = ut->getUlamTypeEnum();
+    switch(etype)
       {
 	// assumes val is in proper format for its type
       case Int:
-	rtnUV = UlamValue::makeImmediate(uti, (s32) data, m_state);
-	break;
+	  rtnUV = UlamValue::makeImmediate(uti, (s32) data, m_state);
+	  break;
       case Bool:
       case Unsigned:
       case Unary:
       case Bits:
 	rtnUV = UlamValue::makeImmediate(uti, data, m_state);
 	break;
-      case Class:
-	{
-	  //	  if(ut->getUlamClassType() == UC_QUARK)
-	  rtnUV = UlamValue::makeImmediate(uti, data, m_state);
-	  break;
-	}
       default:
 	{
 	  std::ostringstream msg;
@@ -315,12 +296,12 @@ namespace MFM {
   {
     UlamValue rtnUV; //init to Nav error case
     EvalStatus evs = NORMAL; //init ok
-    assert(m_state.isComplete(uti));
+    assert(uti != Nav);
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
-    assert(ut->getBitSize() >= 0);
+    assert(ut->getBitSize() > 0);
 
-    ULAMTYPE etyp = ut->getUlamTypeEnum();
-    switch(etyp)
+    ULAMTYPE etype = ut->getUlamTypeEnum();
+    switch(etype)
       {
 	// assumes val is in proper format for its type
       case Int:
@@ -332,11 +313,6 @@ namespace MFM {
       case Bits:
 	rtnUV = UlamValue::makeImmediateLong(uti, data, m_state);
 	break;
-      case Class:
-	{
-	  rtnUV = UlamValue::makeImmediateLongClass(uti, data, ut->getTotalBitSize());
-	  break;
-	}
       default:
 	{
 	  std::ostringstream msg;
@@ -350,21 +326,11 @@ namespace MFM {
     return evs;
   } //makeTerminalValueLong
 
-  void NodeTerminal::makeTerminalPassForCodeGen(UVPass& uvpass)
-  {
-    UTI nuti = getNodeType();
-    u32 tid = getNameId();
-
-    //TMPSTORAGE is TERMINAL, and VarNum is zero.
-    uvpass = UVPass::makePass(0, TERMINAL, nuti, m_state.determinePackable(nuti), m_state, 0, tid);
-  } //makeTerminalValueForCodeGen
-
   //used during check and label for binary arith and compare ops that have a constant term
   bool NodeTerminal::fitsInBits(UTI fituti)
   {
     bool rtnb = false;
     UTI nuti = getNodeType(); //constant type
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     UlamType * fit = m_state.getUlamTypeByIndex(fituti);
     if(!fit->isComplete())
       {
@@ -372,45 +338,36 @@ namespace MFM {
 	msg << "Unknown size!! constant type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	msg << ", to fit into type: " << m_state.getUlamTypeNameBriefByIndex(fituti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	m_state.setGoAgain(); //since not an error
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	return false;
       }
+#if 0
+    // does this matter any more Fri Jul 10 12:34:19 2015
+    if(!fit->isMinMaxAllowed() && (fit->getUlamTypeEnum() != Bits))
+      {
+	std::ostringstream msg;
+	msg << "Cannot check constant '" << getName() << "' fits into type: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(fituti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //warn?
+	return false;
+      }
+#endif
+
     if(nuti == Nav)
       {
 	std::ostringstream msg;
 	msg << "Constant is not-a-valid type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return false;
-      }
-    if(nuti == Hzy)
-      {
-	std::ostringstream msg;
-	msg << "Constant is not-a-valid type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	m_state.setGoAgain(); //since not an error
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	return false;
       }
 
-    u32 nwordsize = nut->getTotalWordSize();
     u32 fwordsize = fit->getTotalWordSize();
-    if(nwordsize > fwordsize)
-      {
-	std::ostringstream msg;
-	msg << "Word size incompatible. Not supported at this time, constant type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str() << ", to fit into type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(fituti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return false;
-      }
-
-    if(fwordsize <= MAXBITSPERINT) //32
+    if(fwordsize == MAXBITSPERINT) //32
       {
 	rtnb = fitsInBits32(fituti);
       }
-    else if(fwordsize <= MAXBITSPERLONG) //64
+    else if(fwordsize == MAXBITSPERLONG) //64
       {
 	rtnb = fitsInBits64(fituti);
       }
@@ -437,8 +394,8 @@ namespace MFM {
     assert(nbitsize > 0);
 
     //convert forth and back, then compare.
-    ULAMTYPE etyp = nut->getUlamTypeEnum();
-    switch(etyp)
+    ULAMTYPE etype = nut->getUlamTypeEnum();
+    switch(etype)
       {
       case Int:
 	{
@@ -499,8 +456,8 @@ namespace MFM {
     assert(nbitsize > 0);
 
     //convert forth and back, then compare.
-    ULAMTYPE etyp = nut->getUlamTypeEnum();
-    switch(etyp)
+    ULAMTYPE etype = nut->getUlamTypeEnum();
+    switch(etype)
       {
       case Int:
 	{
@@ -559,7 +516,7 @@ namespace MFM {
     bool fb1 = m_state.getUlamTypeByIndex(fituti)->cast(uv, fituti);
     //2nd cast back to node type:
     bool fb2 = m_state.getUlamTypeByIndex(nuti)->cast(uv, nuti);
-    return ((fb1 && fb2) ? uv.getImmediateData(MAXBITSPERINT, m_state) : ~data);
+    return ((fb1 && fb2) ? uv.getImmediateData() : ~data);
   } //convertForthAndBack
 
   u64 NodeTerminal::convertForthAndBackLong(const u64 data, UTI fituti)
@@ -590,14 +547,12 @@ namespace MFM {
 	    if(sval < 0)
 	      rtnb = true;
 	  }
-	else if(wordsize <= MAXBITSPERLONG)
+	else
 	  {
 	    s64 sval = _Int64ToCs64(m_constant.uval, (u32) nbitsize);
 	    if(sval < 0)
 	      rtnb = true;
 	  }
-	else
-	  assert(0);
       }
     return rtnb;
   } //isNegativeConstant
@@ -610,8 +565,8 @@ namespace MFM {
     bool rtnb = false;
     UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
     u32 wordsize = nut->getTotalWordSize();
-    ULAMTYPE etyp = nut->getUlamTypeEnum();
-    if(etyp == Int)
+    ULAMTYPE etype = nut->getUlamTypeEnum();
+    if(etype == Int)
       {
 	if(wordsize <= MAXBITSPERINT)
 	  rtnb = (m_constant.sval >= MAXBITSPERINT);
@@ -620,7 +575,7 @@ namespace MFM {
 	else
 	  assert(0);
       }
-    else if(etyp == Unsigned)
+    else if(etype == Unsigned)
       {
 	if(wordsize <= MAXBITSPERINT)
 	rtnb = (m_constant.uval >= (u32) MAXBITSPERINT);
@@ -632,37 +587,38 @@ namespace MFM {
     return rtnb;
   } //isWordSizeConstant
 
-  void NodeTerminal::genCode(File * fp, UVPass& uvpass)
+  void NodeTerminal::genCode(File * fp, UlamValue& uvpass)
   {
-    UVPass tvpass;
-    makeTerminalPassForCodeGen(tvpass);
-
+    UlamValue tv;
+    assert(makeTerminalValue(tv) == NORMAL);
     // unclear to do this read or not; squarebracket not happy, or cast not happy ?
-    genCodeReadIntoATmpVar(fp, tvpass);  //tv updated to a tmpVar "num"
-    uvpass = tvpass;
+    genCodeReadIntoATmpVar(fp, tv);  //tv updated to Ptr with a tmpVar "slot"
+    uvpass = tv;
   } //genCode
 
-  void NodeTerminal::genCodeToStoreInto(File * fp, UVPass& uvpass)
+  void NodeTerminal::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
-    makeTerminalPassForCodeGen(uvpass);
+    UlamValue tv;
+    assert(makeTerminalValue(tv) == NORMAL);
+    uvpass = tv; //uvpass is an immediate UV, not a PTR
   } //genCodeToStoreInto
 
   // reads into a tmp var
   // (for BitVector use Node::genCodeConvertATmpVarIntoBitVector)
-  void NodeTerminal::genCodeReadIntoATmpVar(File * fp, UVPass & uvpass)
+  void NodeTerminal::genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass)
   {
     // into tmp storage first, in case of casts
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32	tmpVarNum = m_state.getNextTmpVarNumber();
 
-    m_state.indentUlamCode(fp);
+    m_state.indent(fp);
     fp->write("const ");
 
     fp->write(nut->getTmpStorageTypeAsString().c_str());
     fp->write(" ");
 
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum).c_str());
 
     fp->write(" = ");
 
@@ -676,19 +632,21 @@ namespace MFM {
 	else
 	  assert(0);
       }
+
     fp->write(getName());
-    fp->write(";"); GCNL;
+    fp->write(";\n");
 
     //substitute Ptr for uvpass to contain the tmpVar number;
     //save id of constant string in Ptr;
-    uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0);  //POS 0 rightjustified (atom-based);
-    m_state.clearCurrentObjSymbolsForCodeGen(); //missing or just needed by NodeTerminalProxy?
+    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //POS 0 rightjustified (atom-based);
+    uvpass.setPtrPos(0); //entire register
+
+    m_state.m_currentObjSymbolsForCodeGen.clear(); //missing or just needed by NodeTerminalProxy?
   } //genCodeReadIntoATmpVar
 
   bool NodeTerminal::setConstantValue(Token tok)
   {
     bool rtnok = false;
-    errno = 0; //to check for ERANGE
     switch(tok.m_type)
       {
       case TOK_NUMBER_SIGNED:
@@ -696,9 +654,9 @@ namespace MFM {
 	  std::string numstr = m_state.getTokenDataAsString(&tok);
 	  const char * numlist = numstr.c_str();
 	  char * nEnd;
-	  m_constant.sval = strtol(numlist, &nEnd, 0);   //base 10, 8, or 16
 
-	  if((*numlist == 0) || (*nEnd != 0) || (errno == ERANGE))
+	  m_constant.sval = strtol(numlist, &nEnd, 0);   //base 10, 8, or 16
+	  if (*numlist == 0 || *nEnd != 0)
 	    {
 	      std::ostringstream msg;
 	      msg << "Invalid signed constant <" << numstr.c_str() << ">, errno=";
@@ -716,7 +674,7 @@ namespace MFM {
 	  char * nEnd;
 
 	  m_constant.uval = strtoul(numlist, &nEnd, 0);   //base 10, 8, or 16
-	  if((*numlist == 0) || !(*nEnd == 'u' || *nEnd == 'U') || (*(nEnd + 1) != 0) || (errno == ERANGE))
+	  if (*numlist == 0 || !(*nEnd == 'u' || *nEnd == 'U') || *(nEnd + 1) != 0)
 	    {
 	      std::ostringstream msg;
 	      msg << "Invalid unsigned constant <" << numstr.c_str() << ">, errno=";
@@ -773,7 +731,7 @@ namespace MFM {
 	{
 	  u32 uid = m_state.m_pool.getIndexForDataString("Unsigned");
 	  UlamKeyTypeSignature key(uid, SIZEOFACHAR, NONARRAYSIZE, 0);
-	  newType = m_state.makeUlamType(key, Unsigned, UC_NOTACLASS);
+	  newType = m_state.makeUlamType(key, Unsigned);
 	}
 	break;
       default:
@@ -785,7 +743,7 @@ namespace MFM {
 	}
       };
     setNodeType(newType);
-    Node::setStoreIntoAble(TBOOL_FALSE);
+    setStoreIntoAble(false);
     return newType;
   } //setConstantTypeForNode
 

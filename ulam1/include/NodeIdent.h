@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeIdent.h - Node handling Identifiers for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeIdent.h - Node handling Identifiers for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -40,6 +40,7 @@
 #include "Node.h"
 #include "Token.h"
 #include "SymbolVariable.h"
+#include "UlamType.h"
 #include "NodeBlock.h"
 
 namespace MFM{
@@ -66,14 +67,11 @@ namespace MFM{
 
     const Token& getToken() const;
 
-    bool isAConstant();
-
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType();
 
     NNO getBlockNo() const;
-
     NodeBlock * getBlock();
 
     virtual EvalStatus eval();
@@ -82,26 +80,26 @@ namespace MFM{
 
     virtual bool installSymbolTypedef(TypeArgs& args, Symbol *& asymptr);
     virtual bool installSymbolConstantValue(TypeArgs& args, Symbol*& asymptr);
-    virtual bool installSymbolModelParameterValue(TypeArgs& args, Symbol*& asymptr);
+    virtual bool installSymbolParameterValue(TypeArgs& args, Symbol*& asymptr);
     virtual bool installSymbolVariable(TypeArgs& args,  Symbol *& asymptr);
 
-    virtual void genCode(File * fp, UVPass& uvpass);
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
-    virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
+    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
-    virtual void genCodeReadIntoATmpVar(File * fp, UVPass & uvpass);
+    virtual void genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass);
 
   private:
     Token m_token;
     SymbolVariable * m_varSymbol;
     NNO m_currBlockNo;
 
-    SymbolVariable *  makeSymbol(UTI auti, ALT reftype, UTI referencedUTI);
+    SymbolVariable *  makeSymbol(UTI aut);
     bool checkVariableTypedefSizes(TypeArgs& args, UTI auti);
     bool checkTypedefOfTypedefSizes(TypeArgs& args, UTI tduti);
     bool checkConstantTypedefSizes(TypeArgs& args, UTI tduti);
     UlamValue makeUlamValuePtr();
-    void makeUVPassForCodeGen(UVPass& uvpass);
+    UlamValue makeUlamValuePtrForCodeGen();
   };
 
 }

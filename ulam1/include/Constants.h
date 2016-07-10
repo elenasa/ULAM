@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * Constants.h Useful common constants for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file Constants.h Useful common constants for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -52,42 +52,14 @@ namespace MFM {
 #define SIZEOFACHAR 8
 #endif
 
-#define XY(a,b,c,d) a,
-
-  enum ULAMTYPE
-  {
-#include "UlamType.inc"
-    LASTTYPE
-  };
-#undef XY
-
-#ifndef PtrAbs
-#define PtrAbs (Ptr + 2)
-#endif //PtrAbs
-
-#ifndef UAtomRef
-#define UAtomRef (Ptr + 3)
-#endif //UAtomRef
-
-  enum ULAMCLASSTYPE { UC_UNSEEN, UC_QUARK, UC_ELEMENT, UC_TRANSIENT, UC_NOTACLASS, UC_ATOM, UC_ERROR};
-
-  enum ULAMTYPECOMPARERESULTS { UTIC_DONTKNOW = -1, UTIC_NOTSAME = 0, UTIC_SAME = 1, UTIC_MUSTBESAME = 2};
-
-  enum FORECAST { CAST_BAD = 0, CAST_CLEAR, CAST_HAZY};
-
-  enum ALT { ALT_NOT = 0, ALT_AS, ALT_HAS, ALT_REF, ALT_ARRAYITEM, ALT_CAST, ALT_PTR}; //autolocaltype
-
-  enum STORAGE { IMMEDIATE = 0, EVENTWINDOW, STACK, EVALRETURN, UNPACKEDSTRUCT};
-
-  enum TMPSTORAGE { TERMINAL = 0, TMPREGISTER, TMPBITVAL, TMPAUTOREF, TMPTATOM, TMPATOMBS, TMPTBV};
-
+  enum STORAGE { IMMEDIATE = 0, EVENTWINDOW, STACK, EVALRETURN, UNPACKEDSTRUCT, TMPREGISTER, TMPBITVAL};
   enum PACKFIT { UNPACKED = 0, PACKED, PACKEDLOADABLE};
 
 #define WritePacked(p) (p == PACKED || p == PACKEDLOADABLE)
 
-  enum TBOOL { TBOOL_FALSE = 0, TBOOL_TRUE, TBOOL_HAZY};
+  enum ULAMTYPECOMPARERESULTS { UTIC_DONTKNOW = -1, UTIC_NOTSAME = 0, UTIC_SAME = 1, UTIC_MUSTBESAME = 2};
 
-  typedef  bool __attribute__((unused)) AssertBool;
+  enum FORECAST { CAST_BAD, CAST_CLEAR, CAST_HAZY};
 
 #ifndef BITSPERATOM
 #define BITSPERATOM (96)
@@ -104,14 +76,6 @@ namespace MFM {
 #ifndef MAXBITSPERQUARK
 #define MAXBITSPERQUARK (32)
 #endif //MAXBITSPERQUARK
-
-#ifndef MAXBITSPERTRANSIENT
-#define MAXBITSPERTRANSIENT (8192)
-#endif //MAXBITSPERTRANSIENT
-
-#ifndef ARRAY_LEN8K
-#define ARRAY_LEN8K (MAXBITSPERTRANSIENT / MAXBITSPERINT)
-#endif //ARRAY_LEN8K
 
 #ifndef MAXBITSPERINT
 #define MAXBITSPERINT (32)

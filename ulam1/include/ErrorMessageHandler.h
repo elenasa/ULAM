@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * ErrorMessageHandler.h - Basic Error Message handling for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file ErrorMessageHandler.h - Basic Error Message handling for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -52,7 +52,7 @@ namespace MFM
 
   class CompilerState; //forward
 
-  enum MSGTYPE { MSG_ERR=0, MSG_WARN, MSG_INFO, MSG_DEBUG, MSG_WAIT};
+  enum MSGTYPE { MSG_ERR=0, MSG_WARN, MSG_INFO, MSG_DEBUG};
 
 
   class ErrorMessageHandler
@@ -63,23 +63,17 @@ namespace MFM
 
     ~ErrorMessageHandler();
 
-    void init(CompilerState * state, bool debugMode, bool infoMode, bool warnMode, bool waitMode, File * fp);
-
-    void changeWaitToErrMode();
-
-    void revertToWaitMode();
+    void init(CompilerState * state, bool debugMode, bool infoMode, bool warnMode, File * fp);
 
     void setFileOutput(File * fp);
 
     u32 getErrorCount();
-
     u32 getWarningCount();
 
     //ability to reset counts between parsing, labeling, eval
     void clearCounts();
 
     void buildMessage(Token * atTok, const char * message, const char * file, const char * func, u32 atline, MSGTYPE mtype);
-
     void buildMessage(const char *, const char * message, const char * file, const char * func, u32 atline, MSGTYPE mtype);
 
 
@@ -88,7 +82,6 @@ namespace MFM
     bool m_debugMode;
     bool m_infoMode;
     bool m_warnMode;
-    bool m_waitMode;
     File * m_fOut;
 
     u32 m_errorCount;

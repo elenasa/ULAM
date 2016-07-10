@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeTypeDescriptorArray.h - Node Type Array descriptor for ULAM
  *
- * Copyright (C) 2015-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2016 Ackleyshack LLC.
+ * Copyright (C) 2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeTypeDescriptorArray.h - Node Type Array descriptor for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2016 All rights reserved.
+  \date (C) 2015 All rights reserved.
   \gpl
 */
 
@@ -46,7 +46,7 @@ namespace MFM{
   {
   public:
 
-    NodeTypeDescriptorArray(Token tokarg, UTI auti, NodeTypeDescriptor * scalarnode, CompilerState & state);
+    NodeTypeDescriptorArray(Token typetoken, UTI auti, NodeTypeDescriptor * scalarnode, CompilerState & state);
 
     NodeTypeDescriptorArray(const NodeTypeDescriptorArray& ref);
 
@@ -66,11 +66,9 @@ namespace MFM{
 
     void linkConstantExpressionArraysize(NodeSquareBracket * ceForArraySize);
 
-    virtual void setReferenceType(ALT refarg, UTI referencedUTI, UTI refUTI);
-
     virtual UTI checkAndLabelType();
 
-    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
+    virtual void countNavNodes(u32& cnt);
 
   private:
     NodeTypeDescriptor * m_nodeScalar;
@@ -78,10 +76,8 @@ namespace MFM{
 
     virtual bool resolveType(UTI& rtnuti);
 
-    bool resolveTypeArraysize(UTI& rtnuti, UTI scuti);
+    bool resolveTypeArraysize(UTI auti, UTI scuti);
     bool attemptToResolveHolderArrayType(UTI auti, UTI buti);
-    void checkAndMatchClassTypes(UTI auti, UTI scuti);
-    void checkAndMatchBaseUlamTypes(UTI auti, UTI scuti);
   };
 
 } //MFM

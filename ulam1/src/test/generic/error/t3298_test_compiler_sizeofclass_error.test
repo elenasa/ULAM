@@ -1,23 +1,19 @@
 ## -*- mode:ulam -*-
 #=t3298_test_compiler_sizeofclass_error
 #!
-./Fu.ulam:4:3: ERROR: Incomplete descriptor for type: Int(UNKNOWN).
-./Fu.ulam:4:10: ERROR: Incomplete Terminal Proxy for type: Fu, of member 'Fu'.
-./Fu.ulam:4:7: ERROR: Incomplete descriptor for type: Fu.
-./Fu.ulam:4:10: ERROR: Proxy Type: Fu is still incomplete and unknown for its 'sizeof' while compiling class: Fu.
-./Fu.ulam:4:3: ERROR: Type Bitsize specifier for base type: Int, is not a ready constant expression.
-./Fu.ulam:4:3: ERROR: Incomplete Variable Decl for type: Int(UNKNOWN), used with variable symbol name 'u'.
-./Fu.ulam:2:9: ERROR: 2 Nodes with unresolved types detected after type labeling class: Fu.
-Unrecoverable Program Type Label FAILURE.
 ##
+##./Fu.ulam:4:1: ERROR: Unresolved type <Int(UNKNOWN)> used with variable symbol name 'u' found while bit packing class Fu.
+##
+Ue_Fu { System s();  Int(32) u(0);  Int(32) v(64);  Int(32) test() {  u 0u cast = s ( u )print . v 64u cast = s ( v )print . v return } }
+Exit status:
 #>Fu.ulam
-  ulam 1;
+ulam 1;
 element Fu {
-  Bool b;
-  Int(Fu.sizeof) u;
-  Int test(){
-    return 0;
-  }
+Bool b;
+Int(Fu.sizeof) u;
+Int test(){
+ return 0;
+}
 }
 
 #.

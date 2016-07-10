@@ -52,7 +52,7 @@ namespace MFM {
       {
 	fp->write(m_state.getTokenDataAsString(&m_ofTok).c_str());
 	fp->write(" ");
-	fp->write(m_funcTok.getTokenString());
+	fp->write(m_state.getTokenDataAsString(&m_funcTok).c_str());
 	fp->write(" .");
       }
   } //printPostfix
@@ -62,7 +62,7 @@ namespace MFM {
     if(isReadyConstant())
       return NodeTerminal::getName();
 
-    return m_funcTok.getTokenString();
+    return m_state.getTokenDataAsString(&m_funcTok).c_str();
   }
 
   const std::string NodeTerminalProxy::prettyNodeName()
@@ -86,19 +86,17 @@ namespace MFM {
   {
     //when minmaxsizeof a selected member
     Symbol * asymptr = NULL;
-    if(m_uti == Nouti)
+    if(m_uti == Nav)
       {
-	bool hazyKin = false;
-	if(m_state.alreadyDefinedSymbol(m_ofTok.m_dataindex, asymptr, hazyKin) && !hazyKin)
+	if(m_state.alreadyDefinedSymbol(m_ofTok.m_dataindex,asymptr))
 	  {
 	    m_uti = asymptr->getUlamTypeIdx();
 	    std::ostringstream msg;
-	    msg << "Determined type for member '";
+	    msg << "Determined incomplete type for member '";
 	    msg << m_state.getTokenDataAsString(&m_ofTok).c_str();
 	    msg << "' Proxy, as type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    //m_state.setGoAgain(); //since not error
 	  }
 	else
 	  {
@@ -108,30 +106,15 @@ namespace MFM {
 		msg << "Undetermined type for missing member '";
 		msg << m_state.getTokenDataAsString(&m_ofTok).c_str();
 		msg << "' Proxy";
-		if(!hazyKin)
-		  {
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		    setNodeType(Nav); //missing
-		    return Nav;
-		  }
-		else
-		  {
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		    setNodeType(Hzy); //missing
-		    m_state.setGoAgain(); //too
-		    return Hzy;
-		  }
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		return Nav;
 	      }
 	  }
       }
 
     //attempt to map UTI; may not have a node type descriptor
-    if(m_state.okUTItoContinue(m_uti) && !m_state.isComplete(m_uti))
+    if(!m_state.isComplete(m_uti))
       {
-	//non-virtual functions, returns of-value of referenced type
-	if(m_state.isReference(m_uti)) //e.g. selftyperef
-	  m_uti = m_state.getUlamTypeAsDeref(m_uti); //resets m_uti here!
-
 	UTI cuti = m_state.getCompileThisIdx();
 	UTI mappedUTI = Nav;
 	if(m_state.mappedIncompleteUTI(cuti, m_uti, mappedUTI))
@@ -150,9 +133,11 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Incomplete Terminal Proxy for type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
-	    msg << ", of member '";
-	    msg << m_state.getTokenDataAsString(&m_ofTok).c_str() << "'";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    msg << " of member '";
+	    msg << m_state.getTokenDataAsString(&m_ofTok).c_str();
+	    msg << "' while labeling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
       }
 
@@ -164,11 +149,11 @@ namespace MFM {
     return getNodeType(); //updated to Unsigned, hopefully
   } //checkandLabelType
 
-  void NodeTerminalProxy::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
+  void NodeTerminalProxy::countNavNodes(u32& cnt)
   {
-    Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+    Node::countNavNodes(cnt);
     if(m_nodeTypeDesc)
-      m_nodeTypeDesc->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+      m_nodeTypeDesc->countNavNodes(cnt);
   } //countNavNodes
 
   EvalStatus NodeTerminalProxy::eval()
@@ -177,14 +162,11 @@ namespace MFM {
     if(nuti == Nav)
       return ERROR;
 
-    if(nuti == Hzy)
-      return NOTREADY;
-
     EvalStatus evs = NORMAL; //init ok
     evalNodeProlog(0); //new current frame pointer
 
     if(!m_state.isComplete(m_uti))
-      evs = NOTREADY;
+      evs = ERROR;
     else
       {
 	UlamValue rtnUV;
@@ -198,12 +180,12 @@ namespace MFM {
     return evs;
   } //eval
 
-  void NodeTerminalProxy::genCode(File * fp, UVPass& uvpass)
+  void NodeTerminalProxy::genCode(File * fp, UlamValue& uvpass)
   {
     return NodeTerminal::genCode(fp, uvpass);
   }
 
-  void NodeTerminalProxy::genCodeToStoreInto(File * fp, UVPass& uvpass)
+  void NodeTerminalProxy::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     return NodeTerminal::genCodeToStoreInto(fp, uvpass);
   }
@@ -218,7 +200,6 @@ namespace MFM {
       {
       case TOK_KW_SIZEOF:
 	{
-	  //consistent with C; (not array size if non-scalar)
 	  m_constant.uval =  cut->getTotalBitSize(); //unsigned
 	  rtnB = true;
 	}
@@ -269,7 +250,7 @@ namespace MFM {
       };
 
     setNodeType(newType);
-    Node::setStoreIntoAble(TBOOL_FALSE);
+    setStoreIntoAble(false);
     return newType;
   } //setConstantTypeForNode
 
@@ -285,21 +266,15 @@ namespace MFM {
     if(isReadyConstant())
       return true;
 
-    if(!m_state.okUTItoContinue(m_uti) || !m_state.isComplete(m_uti))
+    if(!m_state.isComplete(m_uti))
       {
 	std::ostringstream msg;
 	msg << "Proxy Type: " << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
 	msg << " is still incomplete and unknown for its '";
-	msg << m_funcTok.getTokenString();
+	msg << m_state.getTokenDataAsString(&m_funcTok).c_str();
 	msg << "' while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	if(m_state.okUTItoContinue(m_uti) || (m_uti == Hzy))
-	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //error/t3298
-	    m_state.setGoAgain(); //since not error; maybe no nodetypedesc
-	  }
-	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	//rtnb = false; don't want to stop after parsing.
       }
     else
@@ -310,11 +285,10 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Proxy Type: " << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
 	    msg << " constant value for its <";
-	    msg << m_funcTok.getTokenString();
+	    msg << m_state.getTokenDataAsString(&m_funcTok).c_str();
 	    msg << "> is still incomplete and unknown while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	    MSG(&m_funcTok, msg.str().c_str(), WAIT);
-	    m_state.setGoAgain(); //since not error
+	    MSG(&m_funcTok, msg.str().c_str(), DEBUG);
 	    rtnb = false;
 	  }
 	else

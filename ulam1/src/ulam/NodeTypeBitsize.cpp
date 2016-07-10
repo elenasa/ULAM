@@ -68,30 +68,19 @@ namespace MFM {
 
   UTI NodeTypeBitsize::checkAndLabelType()
   {
-    UTI it = getNodeType();
-
-    if(it != Nav)
-      it = m_node->checkAndLabelType(); //previous time through
-
-    if(!m_state.okUTItoContinue(it) || !m_state.isComplete(it))
+    UTI it = Nav;
+    it = m_node->checkAndLabelType();
+    if(!m_state.isComplete(it))
       {
 	std::ostringstream msg;
-	msg << "Type Bitsize specifier, within (), is not ready";
-	if(m_state.okUTItoContinue(it) || (it == Hzy))
-	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t3787
-	    m_state.setGoAgain(); //since not error
-	    it = Hzy;
-	  }
-	else
-	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    it = Nav;
-	  }
+	msg << "Type Bitsize specifier: " << m_state.getUlamTypeNameBriefByIndex(it);
+	msg << ", within (), is not ready";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	return Nav; //short-circuit
       }
 
     // expects a constant numeric type
-    if(!m_node->isAConstant())
+    if( !m_node->isAConstant() || (!(m_state.getUlamTypeByIndex(it)->isNumericType()) && m_node->isReadyConstant()))
       {
 	std::ostringstream msg;
 	msg << "Type Bitsize specifier: " << m_state.getUlamTypeNameBriefByIndex(it);
@@ -99,23 +88,14 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	it = Nav;
       }
-    else if(m_state.okUTItoContinue(it) && (!(m_state.getUlamTypeByIndex(it)->isNumericType()) && m_node->isReadyConstant()))
-      {
-	std::ostringstream msg;
-	msg << "Type Bitsize specifier: " << m_state.getUlamTypeNameBriefByIndex(it);
-	msg << ", within (), is not a ready numeric constant expression";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	it = Hzy;
-      }
-
     setNodeType(it);
     return getNodeType();
   } //checkAndLabelType
 
-  void NodeTypeBitsize::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
+  void NodeTypeBitsize::countNavNodes(u32& cnt)
   {
-    Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
-    m_node->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+    Node::countNavNodes(cnt);
+    m_node->countNavNodes(cnt);
   }
 
   bool NodeTypeBitsize::assignClassArgValueInStubCopy()
@@ -133,100 +113,91 @@ namespace MFM {
   // called during parsing Type of variable, typedef, func return val;
   // Requires a constant expression for the bitsize, else error;
   // guards against even Bool's.
-  bool NodeTypeBitsize::getTypeBitSizeInParen(s32& rtnBitSize, ULAMTYPE BUT, UTI& sizetype)
+  bool NodeTypeBitsize::getTypeBitSizeInParen(s32& rtnBitSize, ULAMTYPE BUT)
   {
     s32 newbitsize = UNKNOWNSIZE;
-    sizetype = checkAndLabelType();
-    if(sizetype == Nav) //could be hzy
+    UTI sizetype = checkAndLabelType();
+    if(sizetype != Nav)
       {
-	return false; //no rtnBitSize
-      }
-    else
-    {
-      // perhaps not ready.
-      if(!m_node->isAConstant())
-	{
-	  std::ostringstream msg;
-	  msg << "Type Bitsize specifier for base type: ";
-	  msg << UlamType::getUlamTypeEnumAsString(BUT);
-	  msg << ", is not a constant expression";
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  sizetype = Nav;
-	  return false; //no rtnBitSize
-	}
-      if(!m_node->isReadyConstant())
-	{
-	  std::ostringstream msg;
-	  msg << "Type Bitsize specifier for base type: ";
-	  msg << UlamType::getUlamTypeEnumAsString(BUT);
-	  msg << ", is not a ready constant expression";
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t3787
-	  sizetype = Hzy;
-	  return false; //no rtnBitSize
-	}
-      if(sizetype == Hzy)
-	return false; //no rtnBitSize
-    }
-
-    //eval for bit size constant:
-
-    evalNodeProlog(0); //new current frame pointer
-    makeRoomForNodeType(getNodeType()); //offset a constant expression
-    if(m_node->eval() == NORMAL)
-      {
-	UlamValue bitUV = m_state.m_nodeEvalStack.popArg();
-	UTI bituti = bitUV.getUlamValueTypeIdx();
-	if(bituti == Nav)
-	  newbitsize = UNKNOWNSIZE;
-	else
+	evalNodeProlog(0); //new current frame pointer
+	makeRoomForNodeType(getNodeType()); //offset a constant expression
+	if(m_node->eval() == NORMAL)
 	  {
-	    if(m_state.getBitSize(bituti) == UNKNOWNSIZE)
-	      newbitsize = bitUV.getImmediateData(MAXBITSPERINT, m_state); //use default
+	    UlamValue bitUV = m_state.m_nodeEvalStack.popArg();
+	    UTI bituti = bitUV.getUlamValueTypeIdx();
+	    if( bituti == Nav)
+	      newbitsize = UNKNOWNSIZE;
 	    else
-	      newbitsize = bitUV.getImmediateData(m_state);
+	      {
+		if(m_state.getBitSize(bituti) == UNKNOWNSIZE)
+		  newbitsize = bitUV.getImmediateData(MAXBITSPERINT); //use default
+		else
+		  newbitsize = bitUV.getImmediateData(m_state);
 
-	    //prepare bitsize into C-format:
-	    newbitsize = m_state.getUlamTypeByIndex(bituti)->getDataAsCs32(newbitsize);
+		//prepare bitsize into C-format:
+		newbitsize = m_state.getUlamTypeByIndex(bituti)->getDataAsCs32(newbitsize);
+	      }
+	  }
+
+	evalNodeEpilog();
+
+	if(newbitsize == UNKNOWNSIZE)
+	  {
+	    std::ostringstream msg;
+	    msg << "Type Bitsize specifier for base type: ";
+	    msg << UlamType::getUlamTypeEnumAsString(BUT) << "(UTI" << sizetype;
+	    msg << "), is not yet a \"known\" constant expression for class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    return false;
+	  }
+
+	//if(newbitsize > MAXBITSPERINT)
+	if(newbitsize > MAXBITSPERLONG)
+	  {
+	    std::ostringstream msg;
+	    msg << "Type Bitsize specifier for base type: ";
+	    msg << UlamType::getUlamTypeEnumAsString(BUT);
+	    msg << " has a constant value of " << newbitsize;
+	    msg << " that exceeds the maximum bitsize " << MAXBITSPERLONG;
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    return false;
+	  }
+
+	// warn against even Bool bits, and reduce by 1.
+	if(BUT == Bool  && ((newbitsize % 2) == 0) )
+	  {
+	    newbitsize--;
+	    std::ostringstream msg;
+	    msg << "Bool Type with EVEN number of bits is internally inconsistent;";
+	    msg << "  Reduced by one to " << newbitsize << " bits" ;
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	  }
       }
-
-    evalNodeEpilog();
-
-    if(newbitsize == UNKNOWNSIZE)
+    else
       {
-	std::ostringstream msg;
-	msg << "Type Bitsize specifier for base type: ";
-	msg << UlamType::getUlamTypeEnumAsString(BUT) << "(UTI" << sizetype;
-	msg << "), is not yet a \"known\" constant expression for class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	sizetype = Hzy;
-	return false;
+	// it's a Nav, perhaps not ready.
+	if( !m_node->isAConstant())
+	  {
+	    std::ostringstream msg;
+	    msg << "Type Bitsize specifier for base type: ";
+	    msg << UlamType::getUlamTypeEnumAsString(BUT);
+	    msg << " is not a constant expression";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    return false;
+	  }
+	if(!m_node->isReadyConstant())
+	  {
+	    std::ostringstream msg;
+	    msg << "Type Bitsize specifier for base type: ";
+	    msg << UlamType::getUlamTypeEnumAsString(BUT);
+	    msg << " is not a ready constant expression";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    return false;
+	  }
       }
-
-    if(newbitsize > MAXBITSPERLONG)
-      {
-	std::ostringstream msg;
-	msg << "Type Bitsize specifier for base type: ";
-	msg << UlamType::getUlamTypeEnumAsString(BUT);
-	msg << ", has a constant value of " << newbitsize;
-	msg << " that exceeds the maximum bitsize " << MAXBITSPERLONG;
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	sizetype = Nav;
-	return false;
-      }
-
-    // warn against even Bool bits, and reduce by 1.
-    if(BUT == Bool  && ((newbitsize % 2) == 0) )
-      {
-	newbitsize--;
-	std::ostringstream msg;
-	msg << "Bool Type with EVEN number of bits is internally inconsistent;";
-	msg << "  Reduced by one to " << newbitsize << " bits" ;
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-      }
-  rtnBitSize = newbitsize;
-  return true;
-} //getTypeBitSizeInParen
+    rtnBitSize = newbitsize;
+    return true;
+  } //getTypeBitSizeInParen
 
 } //end MFM

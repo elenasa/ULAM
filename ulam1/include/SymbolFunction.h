@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolFunction.h -  Function Symbol handling for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolFunction.h -  Function Symbol handling for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016   All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -61,7 +61,6 @@ namespace MFM{
     u32 getTotalParameterSlots();
 
     Symbol * getParameterSymbolPtr(u32 n);
-    UTI getParameterType(u32 n);
 
     void markForVariableArgs(bool m = true);
     bool takesVariableArgs();
@@ -78,26 +77,11 @@ namespace MFM{
     bool checkParameterTypes();
 
     bool matchingTypesStrictly(std::vector<UTI> argTypes);
-    bool matchingTypesStrictly(std::vector<Node *> argNodes);
-    bool matchingTypes(std::vector<Node *> argNodes, bool& hasHazyArgs, u32& numUTmatch);
+    bool matchingTypes(std::vector<UTI> argTypes, std::vector<Node *> constantArg, bool& hasHazyArgs);
 
     u32 isNativeFunctionDeclaration();
 
-    bool isVirtualFunction();
-    void setVirtualFunction();
-
-    bool isPureVirtualFunction();
-    void setPureVirtualFunction();
-
-    u32 getVirtualMethodIdx();
-    void setVirtualMethodIdx(u32 idx);
-
-    bool isDefinedInAQuark();
-    void setDefinedInAQuark();
-
     void generateFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
-
-    virtual void setStructuredComment();
 
   protected:
 
@@ -106,12 +90,6 @@ namespace MFM{
     std::vector<Symbol *> m_parameterSymbols;  // variable or function can be an args
     NodeBlockFunctionDefinition * m_functionNode;
     bool m_hasVariableArgs;
-    bool m_isVirtual; //overloaded funcs may have different virtual status
-    bool m_pureVirtual; //overloaded funcs may have different pure virtual status
-    u32 m_virtualIdx;
-    bool m_definedinaQuark;
-    void generateFunctionDeclarationVirtualTypedef(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
-
   };
 
 }

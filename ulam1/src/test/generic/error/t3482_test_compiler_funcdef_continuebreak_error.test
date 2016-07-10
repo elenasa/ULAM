@@ -1,10 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3482_test_compiler_funcdef_continuebreak_error
 #!
-./A.ulam:8:2: ERROR: Continue statement not within loop.
-./A.ulam:9:2: ERROR: Unexpected input!! Token <else>.
-./A.ulam:10:2: ERROR: Break statement not within loop or switch.
-Unrecoverable Program Parse FAILURE: <A.ulam>
+##
+##./A.ulam:8:2: ERROR: Continue statement not within loop.
+##./A.ulam:9:2: ERROR: Unexpected input!! Token <else>.
+##./A.ulam:10:2: ERROR: Break statement not within loop or switch.
+##
+Ue_A { Bool(7) b(false);  Int(32) d(20);  System s();  Int(32) test() {  d ( 4 cast 5 cast )times = s ( d )print . d return } }
+Exit status:
 #>A.ulam
 use System;
 element A {

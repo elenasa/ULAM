@@ -1,13 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3254_test_compiler_typedefarray_changesize_error
 #!
-./B.ulam:8:16: ERROR: Array size [] is included in typedef 'IndArr', and cannot be redefined by typedef 'IArray'.
-./B.ulam:8:16: ERROR: Invalid typedef of base type <Unsigned> and Name <IArray> (missing symbol).
-./B.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'B'; Possible missing ending curly brace.
-./B.ulam:8:25: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
-./B.ulam:2:9: ERROR: Invalid Type: B.
- ERROR: No parse tree for This Class: B.
-Unrecoverable Program Parse FAILURE: <B.ulam>
+##
+##      //./B.ulam:8:16: ERROR: Arraysize [] is included in typedef: <IndArr>, and cannot be redefined by typedef: <IArray>.
+##      //./B.ulam:8:16: ERROR: Invalid typedef of base type: <Unsigned> and Name: <IArray> (missing symbol).
+##
+Ue_B { Bool(7) b(false);  System s();  typedef Unsigned(8) Index;  typedef Unsigned(8) NIdx;  typedef Unsigned(8) IndArr[4];  typedef Unsigned(8)[4] IArray[2] /* INVALID */;  IArray(8) arr[4](1,0,0,0);  Int(32) test() {  arr 0 [] 1 cast = arr 0 [] cast 0 cast == cast return } }
+Exit status:
 ##
 ##      // with renames of typedefs, and arrays based on typedef
 ##      // can't resize an array typedef

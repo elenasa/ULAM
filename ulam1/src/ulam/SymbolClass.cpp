@@ -33,14 +33,13 @@ namespace MFM {
     "* @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>\n"
     "*/\n\n";
 
-  SymbolClass::SymbolClass(Token id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false) /* default */, m_superClass(Nouti) {}
+  SymbolClass::SymbolClass(Token id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true) /* default */ {}
 
-  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_superClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_superClass))
+  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub)
   {
     if(sref.m_classBlock)
       {
 	m_classBlock = (NodeBlockClass * ) sref.m_classBlock->instantiate(); //note: wasn't correct uti during cloning
-	// note: if superclass, the prevBlockPtr of m_classBlock hasn't been set yet!
       }
     else
       m_classBlock = NULL; //i.e. UC_UNSEEN
@@ -102,16 +101,6 @@ namespace MFM {
     return false;
   }
 
-  void SymbolClass::setSuperClass(UTI superclass)
-  {
-    m_superClass = superclass;
-  } //setSuperClass
-
-  UTI SymbolClass::getSuperClass()
-  {
-    return m_superClass; //Nouti is none, not a subclass.
-  } //getSuperClass
-
   const std::string SymbolClass::getMangledPrefix()
   {
     return m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamTypeUPrefix();
@@ -119,7 +108,12 @@ namespace MFM {
 
   ULAMCLASSTYPE SymbolClass::getUlamClass()
   {
-    return  m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClassType(); //helper
+    return  m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClass();
+  }
+
+  void SymbolClass::setUlamClass(ULAMCLASSTYPE type)
+  {
+    ((UlamTypeClass * ) m_state.getUlamTypeByIndex(getUlamTypeIdx()))->setUlamClass(type);
   }
 
   void SymbolClass::setQuarkUnion()
@@ -144,10 +138,8 @@ namespace MFM {
 
   bool SymbolClass::isCustomArray()
   {
-    NodeBlockClass * classNode = getClassBlockNode(); //instance
-    assert(classNode);
-    return classNode->hasCustomArray(); //checks any super classes
-  } //isCustomArray
+    return m_state.getUlamTypeByIndex(getUlamTypeIdx())->isCustomArray(); //canonical
+  }
 
   UTI SymbolClass::getCustomArrayType()
   {
@@ -195,131 +187,43 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "cycle error!! " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
 	MSG(Symbol::getTokPtr(), msg.str().c_str(),DEBUG);
-	aok = false;
-      }
-    else if(totalbits == EMPTYSYMBOLTABLE)
-      {
-	totalbits = 0;
-	aok = true;
-      }
-    else if(totalbits != UNKNOWNSIZE)
-      aok = true; //not UNKNOWN
+	    aok = false;
+	  }
+	else if(totalbits == EMPTYSYMBOLTABLE)
+	  {
+	    totalbits = 0;
+	    aok = true;
+	  }
+	else if(totalbits != UNKNOWNSIZE)
+	  aok = true; //not UNKNOWN
     return aok;
-  } //trySetBitSizeWithUTIValues
+  } //trySetBitSize
 
   void SymbolClass::printBitSizeOfClass()
   {
     UTI suti = getUlamTypeIdx();
-    assert(m_state.okUTItoContinue(suti));
     u32 total = m_state.getTotalBitSize(suti);
     UlamType * sut = m_state.getUlamTypeByIndex(suti);
-    ULAMCLASSTYPE classtype = sut->getUlamClassType();
+    ULAMCLASSTYPE classtype = sut->getUlamClass();
 
     std::ostringstream msg;
     msg << "[UTBUA] Total bits used/available by ";
-    if(classtype == UC_ELEMENT)
-       msg << "element ";
-    else if(classtype == UC_QUARK)
-       msg << "quark ";
-    else if(classtype == UC_TRANSIENT)
-      msg << "transient ";
-    else
-      assert(0);
-
+    msg << (classtype == UC_ELEMENT ? "element " : "quark ");
     msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str() << " : ";
 
     if(m_state.isComplete(suti))
       {
-	s32 remaining = 0;
-	if(classtype == UC_ELEMENT)
-	  remaining = (MAXSTATEBITS - total);
-	else if(classtype == UC_QUARK)
-	  remaining = (MAXBITSPERQUARK - total);
-	else if(classtype == UC_TRANSIENT)
-	  remaining = total;
-	else
-	  assert(0);
-
+	s32 remaining = (classtype == UC_ELEMENT ? (MAXSTATEBITS - total) : (MAXBITSPERQUARK - total));
 	msg << total << "/" << remaining;
       }
     else
       {
 	total = UNKNOWNSIZE;
-	s32 remaining = 0;
-	if(classtype == UC_ELEMENT)
-	  remaining = (MAXSTATEBITS);
-	else if(classtype == UC_QUARK)
-	  remaining = (MAXBITSPERQUARK);
-	else if(classtype == UC_TRANSIENT)
-	  remaining = total;
-	else
-	  assert(0);
-
+	s32 remaining = (classtype == UC_ELEMENT ? MAXSTATEBITS : MAXBITSPERQUARK);
 	msg << "UNKNOWN" << "/" << remaining;
       }
     MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(),INFO);
   } //printBitSizeOfClass
-
-  bool SymbolClass::getDefaultQuark(u32& dqref)
-  {
-    assert(getUlamClass() == UC_QUARK);
-
-    if(!m_isreadyDefaultValue)
-      {
-	BV8K dk;
-	getDefaultValue(dk);
-      }
-    u32 len = m_state.getBitSize(getUlamTypeIdx());
-    dqref = m_defaultValue.Read(0u, len); //return value
-    return m_isreadyDefaultValue;
-  } //getDefaultQuark
-
-  bool SymbolClass::getPackedDefaultValue(u64& dpkref)
-  {
-    if(!m_isreadyDefaultValue)
-      {
-	BV8K dk;
-	getDefaultValue(dk);
-      }
-    u32 len = m_state.getBitSize(getUlamTypeIdx());
-    dpkref = m_defaultValue.ReadLong(0u, len); //return value
-    return m_isreadyDefaultValue;
-  } //getPackedDefaultValue
-
-  bool SymbolClass::getDefaultValue(BV8K& dvref)
-  {
-    //could be any length up to 8K..(i.e. transient)
-    // element that doesn't fit into a u64
-    if(m_isreadyDefaultValue)
-      {
-	dvref = m_defaultValue;
-	return true; //short-circuit, known
-      }
-
-    UTI suti = getUlamTypeIdx();
-    UlamType * sut = m_state.getUlamTypeByIndex(suti);
-    assert(sut && sut->isComplete());
-
-    u32 wordlen = sut->getTotalWordSize();
-    if(wordlen == 0)
-      {
- 	m_isreadyDefaultValue = true;
-	dvref = m_defaultValue;
-	return true; //short-circuit, no data members
-      }
-
-    NodeBlockClass * classblock = getClassBlockNode();
-    assert(classblock);
-    m_state.pushClassContext(suti, classblock, classblock, false, NULL); //missing?
-
-    m_isreadyDefaultValue = classblock->buildDefaultValue(wordlen, m_defaultValue);
-
-    m_state.popClassContext();
-
-    dvref = m_defaultValue;
-
-    return m_isreadyDefaultValue;
-  } //getDefaultValue
 
   void SymbolClass::testThisClass(File * fp)
   {
@@ -338,15 +242,12 @@ namespace MFM {
 	EvalStatus evs = classNode->eval();
 	if(evs != NORMAL)
 	  {
-	    if(evs == UNEVALUABLE)
-	      rtnValue = -11;
-	    else
-	      rtnValue = -1; //error!
+	    rtnValue = -1; //error!
 	  }
 	else
 	  {
 	    UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
-	    rtnValue = rtnUV.getImmediateData(32, m_state);
+	    rtnValue = rtnUV.getImmediateData(32);
 	  }
 
 	//#define CURIOUS_T3146
@@ -360,7 +261,7 @@ namespace MFM {
 	  MSG(Symbol::getTokPtr(),msg.str().c_str() , INFO);
 	}
 #endif
-	m_state.m_nodeEvalStack.returnFrame(m_state); //epilog
+	m_state.m_nodeEvalStack.returnFrame(); //epilog
 
 	fp->write("Exit status: " ); //in compared answer
 	fp->write_decimal(rtnValue);
@@ -368,48 +269,6 @@ namespace MFM {
       } //test eval
     m_state.popClassContext(); //missing?
   } //testThisClass
-
-  void SymbolClass::addUnknownTypeTokenToClass(Token tok, UTI huti)
-  {
-    if(!m_resolver)
-      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
-    assert(m_resolver);
-    m_resolver->addUnknownTypeToken(tok, huti);
-  } //addUnknownTypeNameIdToClass
-
-  Token SymbolClass::removeKnownTypeTokenFromClass(UTI huti)
-  {
-    assert(m_resolver);
-    return m_resolver->removeKnownTypeToken(huti);
-  } //removeKnownTypeNameIdToClass
-
-  bool SymbolClass::hasUnknownTypeInClass(UTI huti)
-  {
-    if(!m_resolver)
-      return false;
-    return m_resolver->hasUnknownTypeToken(huti);
-  }
-
-  bool SymbolClass::statusUnknownTypeInClass(UTI huti)
-  {
-    if(!m_resolver)
-      return false;
-    return m_resolver->statusUnknownType(huti);
-  }
-
-  bool SymbolClass::statusUnknownTypeNamesInClass()
-  {
-    if(!m_resolver)
-      return true;
-    return m_resolver->statusAnyUnknownTypeNames();
-  }
-
-  u32 SymbolClass::reportUnknownTypeNamesInClass()
-  {
-    if(!m_resolver)
-      return 0;
-    return m_resolver->reportAnyUnknownTypeNames();
-  }
 
   void SymbolClass::linkConstantExpressionForPendingArg(NodeConstantDef * constNode)
   {
@@ -441,21 +300,10 @@ namespace MFM {
     m_resolver->cloneUTImap(csym);
   } //cloneResolverUTImap
 
-  void SymbolClass::cloneUnknownTypesMapInClass(SymbolClass * to)
-  {
-    if(!m_resolver)
-      return;
-    return m_resolver->cloneUnknownTypesTokenMap(to);
-  }
-
   UTI SymbolClass::getContextForPendingArgs()
   {
-    //assert(m_resolver); //dangerous! when template has default parameters
-    if(m_resolver)
-      return m_resolver->getContextForPendingArgs();
-
-    assert(getParentClassTemplate() && getParentClassTemplate()->getTotalParametersWithDefaultValues() > 0);
-    return getUlamTypeIdx(); //return self UTI
+    assert(m_resolver);
+    return m_resolver->getContextForPendingArgs();
   } //getContextForPendingArgs
 
   bool SymbolClass::statusNonreadyClassArguments()
@@ -482,21 +330,10 @@ namespace MFM {
 
   bool SymbolClass::hasMappedUTI(UTI auti, UTI& mappedUTI)
   {
-    bool rtnb = false;
-    if(m_resolver)
-      rtnb = m_resolver->findMappedUTI(auti, mappedUTI);
+    if(!m_resolver)
+      return false; //not found
 
-    UTI superuti = getSuperClass();
-    if(superuti == auti)
-      mappedUTI = auti;
-    else if(!rtnb && (superuti != Nouti) && (superuti != Hzy))
-      {
-	SymbolClass * csym = NULL;
-	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(getSuperClass(), csym);
-	assert(isDefined);
-	rtnb = (csym->hasMappedUTI(auti, mappedUTI));
-      }
-    return rtnb;
+    return m_resolver->findMappedUTI(auti, mappedUTI);
   } //hasMappedUTI
 
   bool SymbolClass::findNodeNoInResolver(NNO n, Node *& foundNode)
@@ -507,12 +344,6 @@ namespace MFM {
     return m_resolver->findNodeNo(n, foundNode);
   } //findNodeNoInResolver
 
-  void SymbolClass::countNavNodesInClassResolver(u32& ncnt, u32& hcnt, u32& nocnt)
-  {
-    if(m_resolver)
-      m_resolver->countNavNodes(ncnt, hcnt, nocnt);
-  }
-
   /////////////////////////////////////////////////////////////////////////////////
   // from NodeProgram
   /////////////////////////////////////////////////////////////////////////////////
@@ -522,13 +353,13 @@ namespace MFM {
     //class context already pushed..
     assert(m_classBlock);
 
-    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClassType();
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClass();
 
     // setup for codeGen
     m_state.m_currentSelfSymbolForCodeGen = this;
-    m_state.clearCurrentObjSymbolsForCodeGen();
+    m_state.m_currentObjSymbolsForCodeGen.clear();
 
-    m_state.setupCenterSiteForGenCode(); //temporary!!! (t3207, t3714)
+    m_state.setupCenterSiteForTesting(); //temporary!!!
 
     // mangled types and forward class declarations
     genMangledTypesHeaderFile(fm);
@@ -542,15 +373,14 @@ namespace MFM {
       genAllCapsIfndefForHeaderFile(fp);
       generateHeaderIncludes(fp);
 
-      UVPass uvpass;
+      UlamValue uvpass;
       m_classBlock->genCode(fp, uvpass); //compileThisId only, class block
 
       // include this .tcc
       m_state.indent(fp);
       fp->write("#include \"");
       fp->write(m_state.getFileNameForThisClassBody().c_str());
-      fp->write("\"");
-      fp->write("\n");
+      fp->write("\"\n\n");
 
       // include native .tcc for this class if any declared
       if(m_classBlock->countNativeFuncDecls() > 0)
@@ -558,8 +388,7 @@ namespace MFM {
 	  m_state.indent(fp);
 	  fp->write("#include \"");
 	  fp->write(m_state.getFileNameForThisClassBodyNative().c_str());
-	  fp->write("\"");
-	  fp->write("\n");
+	  fp->write("\"\n\n");
 	}
       genAllCapsEndifForHeaderFile(fp);
 
@@ -574,7 +403,7 @@ namespace MFM {
       m_state.m_currentIndentLevel = 0;
       fp->write(CModeForHeaderFiles); //needed for .tcc files too
 
-      UVPass uvpass;
+      UlamValue uvpass;
       m_classBlock->genCodeBody(fp, uvpass); //compileThisId only, MFM namespace
 
       delete fp; //close
@@ -591,11 +420,16 @@ namespace MFM {
       m_state.indent(fp);
       fp->write("#include \"");
       fp->write(m_state.getFileNameForThisClassHeader().c_str());
-      fp->write("\"");
+      fp->write("\"\n");
       fp->write("\n");
 
       m_state.indent(fp);
       fp->write("namespace MFM{\n\n");
+
+      //m_state.m_currentIndentLevel++;
+      //m_classBlock->genCodeExtern(fp, false); //def for MP
+      //m_state.m_currentIndentLevel = 0;
+
       fp->write("} //MFM\n\n");
 
       delete fp; //close
@@ -627,10 +461,16 @@ namespace MFM {
     if(suti != m_state.getCompileThisIdx() && m_state.getUlamTypeByIndex(suti)->isComplete())
       {
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	ULAMCLASSTYPE sclasstype = sut->getUlamClass();
 
 	m_state.indent(fp);
 	fp->write("namespace MFM { template ");
-	fp->write("<class EC> "); //same for elements and quarks
+	if(sclasstype == UC_QUARK)
+	  fp->write("<class EC, u32 POS> ");
+	else if(sclasstype == UC_ELEMENT)
+	  fp->write("<class EC> ");
+	else
+	  assert(0);
 
 	fp->write("struct ");
 	fp->write(sut->getUlamTypeMangledName().c_str());
@@ -657,13 +497,13 @@ namespace MFM {
 
 	m_state.indent(fp);
 	fp->write("Element<EC> & elt = ");
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
-	fp->write(";"); GCNL;
+	fp->write(sut->getUlamTypeMangledName().c_str());
+	fp->write("<EC>::THE_INSTANCE;\n");
 
 	m_state.indent(fp);
-	fp->write("elt.AllocateType(etnm); //Force element type allocation now"); GCNL;
+	fp->write("elt.AllocateType(etnm); //Force element type allocation now\n");
 	m_state.indent(fp);
-	fp->write("tile.RegisterElement(elt);"); GCNL;
+	fp->write("tile.RegisterElement(elt);\n");
 
 	m_state.m_currentIndentLevel--;
 
@@ -675,45 +515,21 @@ namespace MFM {
 	if(getId() == m_state.getCompileThisId())
 	  {
 	    fp->write("\n");
+	    m_state.indent(fp);
+	    fp->write("atom = "); //OurAtomAll
+	    fp->write(sut->getUlamTypeMangledName().c_str());
+	    fp->write("<EC>::THE_INSTANCE.GetDefaultAtom();\n");
+	    m_state.indent(fp);
+	    fp->write("tile.PlaceAtom(atom, center);\n");
+	    m_state.indent(fp);
+	    fp->write("rtn = "); //MFM::Ui_Ut_102323Int
+	    fp->write(sut->getUlamTypeMangledName().c_str());
+	    fp->write("<EC>::THE_INSTANCE.Uf_4test(uc, atom);\n");
 
 	    m_state.indent(fp);
-	    fp->write("{\n");
-
-	    m_state.m_currentIndentLevel++;
-
-	    m_state.indent(fp);
-	    fp->write("OurAtomAll atom = "); //OurAtomAll
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
-	    fp->write(".GetDefaultAtom();"); GCNL;
-	    m_state.indent(fp);
-	    fp->write("tile.PlaceAtom(atom, center);"); GCNL;
-
-	    m_state.indent(fp);
-	    fp->write("AtomRefBitStorage<EC> atbs(atom);"); GCNL;
-
-	    m_state.indent(fp);
-	    fp->write("UlamRef<EC> ur(EC::ATOM_CONFIG::ATOM_TYPE::ATOM_FIRST_STATE_BIT, "); //e.g. t3255
-	    fp->write_decimal_unsigned(sut->getTotalBitSize()); //t3655
-	    fp->write("u, atbs, &");
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
-	    fp->write(", UlamRef<EC>::ELEMENTAL, uc);"); GCNL;
-
-	    m_state.indent(fp);
-	    //fp->write("rtn = "); //MFM::Ui_Ut_102323Int
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
-
-	    // pass uc with effective self setup
-	    fp->write(".Uf_4test(");
-	    fp->write("uc, ur);"); GCNL;
-
-	    m_state.indent(fp);
-	    fp->write("//std::cerr << rtn.read() << std::endl;\n");//useful to return result of test?
+	    fp->write("//std::cerr << rtn.read() << std::endl;\n"); //useful to return result of test?
 	    m_state.indent(fp);
 	    fp->write("//return rtn.read();\n"); //was useful to return result of test
-
-	    m_state.m_currentIndentLevel--;
-	    m_state.indent(fp);
-	    fp->write("}\n");
 	  }
       }
   } //generateTestInstance
@@ -727,17 +543,15 @@ namespace MFM {
     fp->write("* ");
     fp->write(m_state.m_pool.getDataAsString(m_state.getCompileThisId()).c_str());
     fp->write(".h - ");
-    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClassType();
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClass();
     if(classtype == UC_ELEMENT)
       fp->write("Element");
     else if(classtype == UC_QUARK)
       fp->write("Quark");
-    else if(classtype == UC_TRANSIENT)
-      fp->write("Transient");
     else
       assert(0);
 
-    fp->write(" header for ULAM"); GCNL;
+    fp->write(" header for ULAM\n");
 
     fp->write(CopyrightAndLicenseForUlamHeader);
   } //generateHeaderPreamble
@@ -767,14 +581,13 @@ namespace MFM {
   void SymbolClass::generateHeaderIncludes(File * fp)
   {
     m_state.indent(fp);
-    fp->write("#include \"UlamDefs.h\"");
-    fp->write("\n");
+    fp->write("#include \"UlamDefs.h\"\n\n");
 
     //using the _Types.h file
     m_state.indent(fp);
     fp->write("#include \"");
     fp->write(m_state.getFileNameForThisTypesHeader().c_str());
-    fp->write("\"");
+    fp->write("\"\n");
     fp->write("\n");
 
     //generate includes for all the other classes that have appeared
@@ -808,24 +621,23 @@ namespace MFM {
     while(it != m_state.m_definedUlamTypes.end())
       {
 	UlamType * ut = it->second;
-	//e.g. skip constants, include atom, references done automatically
-	if(ut->needsImmediateType() && (ut->getUlamClassType() == UC_NOTACLASS) && !ut->isReference())
-	  {
-	    ut->genUlamTypeMangledAutoDefinitionForC(fp); //references
-	    ut->genUlamTypeMangledDefinitionForC(fp);
-	  }
+	//e.g. skip constants, include atom
+	if(ut->needsImmediateType() && ut->getUlamClass() == UC_NOTACLASS)
+	  ut->genUlamTypeMangledDefinitionForC(fp);
 	it++;
       }
 
-    //same except now for user defined Class types:
+    //same except now for user defined Class types
     it = m_state.m_definedUlamTypes.begin();
     while(it != m_state.m_definedUlamTypes.end())
       {
 	UlamType * ut = it->second;
-	if(ut->needsImmediateType() && (ut->getUlamClassType() != UC_NOTACLASS) && !ut->isReference())
+	ULAMCLASSTYPE classtype = ut->getUlamClass();
+	if(ut->needsImmediateType() && classtype != UC_NOTACLASS)
 	  {
-	    ut->genUlamTypeMangledAutoDefinitionForC(fp); //references
 	    ut->genUlamTypeMangledDefinitionForC(fp);
+	    if(classtype == UC_QUARK)
+	      ut->genUlamTypeMangledAutoDefinitionForC(fp);
 	  }
 	it++;
       }
@@ -865,8 +677,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("#include \"");
     fp->write(m_state.getFileNameForThisClassHeader().c_str());
-    fp->write("\"");
-    fp->write("\n");
+    fp->write("\"\n");
 
     m_state.m_programDefST.generateIncludesForTableOfClasses(fp); //the other classes
 
@@ -880,25 +691,25 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
     //For all models
     m_state.indent(fp);
-    fp->write("typedef P3Atom OurAtomAll;"); GCNL;
+    fp->write("typedef P3Atom OurAtomAll;\n");
     m_state.indent(fp);
-    fp->write("typedef Site<P3AtomConfig> OurSiteAll;"); GCNL;
+    fp->write("typedef Site<P3AtomConfig> OurSiteAll;\n");
     m_state.indent(fp);
-    fp->write("typedef EventConfig<OurSiteAll,4> OurEventConfigAll;"); GCNL;
+    fp->write("typedef EventConfig<OurSiteAll,4> OurEventConfigAll;\n");
     m_state.indent(fp);
-    fp->write("typedef SizedTile<OurEventConfigAll, 20, 101> OurTestTile;"); GCNL;
+    fp->write("typedef SizedTile<OurEventConfigAll, 20> OurTestTile;\n");
     m_state.indent(fp);
-    fp->write("typedef ElementTypeNumberMap<OurEventConfigAll> OurEventTypeNumberMapAll;"); GCNL;
+    fp->write("typedef ElementTypeNumberMap<OurEventConfigAll> OurEventTypeNumberMapAll;\n");
     fp->write("\n");
 
     m_state.indent(fp);
-    fp->write("typedef ElementTable<OurEventConfigAll> TestElementTable;"); GCNL;
+    fp->write("typedef ElementTable<OurEventConfigAll> TestElementTable;\n");
     m_state.indent(fp);
-    fp->write("typedef EventWindow<OurEventConfigAll> TestEventWindow;"); GCNL;
+    fp->write("typedef EventWindow<OurEventConfigAll> TestEventWindow;\n");
     fp->write("\n");
 
     m_state.indent(fp);
-    fp->write("typedef UlamContextEvent<OurEventConfigAll> OurUlamContext;"); GCNL;
+    fp->write("typedef UlamContext<OurEventConfigAll> OurUlamContext;\n");
     fp->write("\n");
 
     m_state.indent(fp);
@@ -911,25 +722,18 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
 
     m_state.indent(fp);
-    fp->write("OurEventTypeNumberMapAll etnm;"); GCNL;
+    fp->write("OurEventTypeNumberMapAll etnm;\n");
     m_state.indent(fp);
-    fp->write("OurTestTile tile;"); GCNL;
-
+    fp->write("OurTestTile tile;\n");
     m_state.indent(fp);
-    fp->write("Ue_10105Empty10<EC>::THE_INSTANCE.AllocateEmptyType();"); GCNL;
+    fp->write("OurUlamContext uc;\n");
     m_state.indent(fp);
-    fp->write("tile.ReplaceEmptyElement(Ue_10105Empty10<EC>::THE_INSTANCE);"); GCNL;
-
-    m_state.indent(fp);
-    fp->write("OurUlamContext uc(tile.GetElementTable());"); GCNL;
-    m_state.indent(fp);
-    fp->write("const u32 TILE_SIDE = tile.TILE_SIDE;"); GCNL;
+    fp->write("const u32 TILE_SIDE = tile.TILE_SIDE;\n");
     m_state.indent(fp);
     fp->write("SPoint center(TILE_SIDE/2, TILE_SIDE/2);  // Hitting no caches, for starters;\n");
     m_state.indent(fp);
-    fp->write("uc.SetTile(tile);"); GCNL;
+    fp->write("uc.SetTile(tile);\n");
 
-    //eventually ends up at SC::generateTestInstance()
     m_state.m_programDefST.generateTestInstancesForTableOfClasses(fp);
 
     m_state.m_currentIndentLevel--;
@@ -941,7 +745,7 @@ namespace MFM {
     fp->write("} //MFM\n");
 
     //MAIN STARTS HERE !!!
-    GCNL; //fp->write("\n");
+    fp->write("\n");
     m_state.indent(fp);
     fp->write("int main(int argc, const char** argv)\n");
 
@@ -952,11 +756,11 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("return ");
-    fp->write("MFM::TestSingleElement<MFM::OurEventConfigAll>();"); GCNL;
+    fp->write("MFM::TestSingleElement<MFM::OurEventConfigAll>();\n");
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
-    fp->write("} //main\n");
+    fp->write("} //main \n");
 
     delete fp; //close
   } //generateMain
@@ -982,8 +786,8 @@ namespace MFM {
     NodeBlockFunctionDefinition * func = classNode->findTestFunctionNode();
     desc.m_hasTest = (func != NULL);
 
-    ULAMCLASSTYPE classtype = cut->getUlamClassType();
-    desc.m_classType = classtype;
+    ULAMCLASSTYPE classtype = cut->getUlamClass();
+    desc.m_isQuark = (classtype == UC_QUARK);
 
     desc.m_bitsize = cut->getTotalBitSize();
     desc.m_loc = classNode->getNodeLocation();
@@ -1003,97 +807,11 @@ namespace MFM {
     classtargets.insert(std::pair<std::string, struct TargetDesc>(mangledName, desc));
   } //addTargetDesciptionMapEntry
 
-  void SymbolClass::addClassMemberDescriptionsMapEntry(ClassMemberMap& classmembers)
+  void SymbolClass::addModelParameterDescriptionsMapEntry(ParameterMap& classmodelparameters)
   {
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
-    classNode->addClassMemberDescriptionsToInfoMap(classmembers);
-  } //addClassMemberDesciptionsMapEntry
+    classNode->addModelParameterDescriptionsToInfoMap(classmodelparameters);
+  } //addModelParameterDesciptionsMapEntry
 
-  void SymbolClass::initVTable(s32 initialmax)
-  {
-    if(initialmax == UNKNOWNSIZE) return; //nothing to initialize
-    assert(initialmax >= 0);
-    if((u32) initialmax == m_vtable.size()) return; //not first time here
-
-    if(getSuperClass() != Nouti)
-      {
-	SymbolClass * csym = NULL;
-	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(getSuperClass(), csym);
-	assert(isDefined);
-	//copy superclass' VTable
-	for(s32 i = 0; i < initialmax; i++)
-	  {
-	    struct VTEntry ve = csym->getVTableEntry(i);
-	    m_vtable.push_back(ve);
-	  }
-      }
-    //else empty.
-    assert(m_vtable.size() == (u32) initialmax);
-  } //initVTable
-
-  void SymbolClass::updateVTable(u32 idx, SymbolFunction * fsym, UTI kinuti, bool isPure)
-  {
-    if(idx < m_vtable.size())
-      {
-	m_vtable[idx].m_funcPtr = fsym;
-	m_vtable[idx].m_ofClassUTI = kinuti;
-	m_vtable[idx].m_isPure = isPure;
-      }
-    else
-      {
-	struct VTEntry ve;
-	ve.m_funcPtr = fsym;
-	ve.m_ofClassUTI = kinuti;
-	ve.m_isPure = isPure;
-	m_vtable.push_back(ve);
-      }
-  }//updateVTable
-
-  VT& SymbolClass::getVTableRef()
-  {
-    return m_vtable;
-  }
-
-  bool SymbolClass::isPureVTableEntry(u32 idx)
-  {
-    assert(idx < m_vtable.size());
-    return m_vtable[idx].m_isPure;
-  }
-
-  UTI SymbolClass::getClassForVTableEntry(u32 idx)
-  {
-    assert(idx < m_vtable.size());
-    return m_vtable[idx].m_ofClassUTI;
-  }
-
-  std::string SymbolClass::getMangledFunctionNameForVTableEntry(u32 idx)
-  {
-    assert(idx < m_vtable.size());
-    return m_vtable[idx].m_funcPtr->getMangledName(); //need to cast overloaded-ness
-  }
-
-  std::string SymbolClass::getMangledFunctionNameWithTypesForVTableEntry(u32 idx)
-  {
-    assert(idx < m_vtable.size());
-    assert(!m_vtable[idx].m_isPure);
-    return m_vtable[idx].m_funcPtr->getMangledNameWithTypes();
-  }
-
-  struct VTEntry SymbolClass::getVTableEntry(u32 idx)
-  {
-    assert(idx < m_vtable.size());
-    return m_vtable[idx];
-  }
-
-  bool SymbolClass::isAbstract()
-  {
-    u32 vtsize = m_vtable.size();
-    for(u32 i = 0; i < vtsize; i++)
-      {
-	if(m_vtable[i].m_isPure)
-	  return true;
-      }
-    return false;
-  }
 } //end MFM

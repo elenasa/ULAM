@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * UlamKeyTypeSignature.h -  Basic handling of UlamType Keys for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file UlamKeyTypeSignature.h -  Basic handling of UlamType Keys for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016   All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -51,11 +51,10 @@ namespace MFM{
     s32 m_bits;
     s32 m_arraySize;
     UTI m_classInstanceIdx;
-    ALT m_referenceType;
 
     UlamKeyTypeSignature();
-    UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize=NONARRAYSIZE, ALT reftype = ALT_NOT);
-    UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize, UTI classinstanceIdx, ALT reftype = ALT_NOT);
+    UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize=NONARRAYSIZE);
+    UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize, UTI classinstanceIdx);
     ~UlamKeyTypeSignature();
 
     void append(UTI cuti);
@@ -65,7 +64,6 @@ namespace MFM{
     s32 getUlamKeyTypeSignatureBitSize();
     s32 getUlamKeyTypeSignatureArraySize();
     UTI getUlamKeyTypeSignatureClassInstanceIdx();
-    ALT getUlamKeyTypeSignatureReferenceType();
 
     const std::string getUlamKeyTypeSignatureNameAndBitSize(CompilerState * state);
     const std::string getUlamKeyTypeSignatureNameAndSize(CompilerState * state);
@@ -73,8 +71,8 @@ namespace MFM{
     const std::string getUlamKeyTypeSignatureAsString(CompilerState * state);
     static const std::string getUlamKeyTypeSignatureAsString(UlamKeyTypeSignature utk, CompilerState * state);
 
-    bool operator<(const UlamKeyTypeSignature & key2) const;
-    bool operator==(const UlamKeyTypeSignature & key2) const;
+    bool operator<(const UlamKeyTypeSignature & key2);
+    bool operator==(const UlamKeyTypeSignature & key2);
   };
 
 

@@ -1,16 +1,87 @@
-ulam 2;
+ulam 1;
 
 quark C2D {
+  typedef Unsigned(3) Dir;
   typedef Int(16) Coord;
 
-load C2Dincomplete;
+  Coord x;
+  Coord y;
 
+  Void init(Int ax, Int ay) {
+    init((Coord) ax, (Coord) ay);
+  }
+
+  Void init(Coord ax, Coord ay) {
+    x = ax;
+    y = ay;
+  }
+
+  Int getX() { return (Int) x; }
+  Int getY() { return (Int) y; }
+
+  Void setX(Int ax) { x = (Coord) ax; }
+  Void setY(Int ay) { y = (Coord) ay; }
+
+  C2D make(Coord x, Coord y)
+  {
+    C2D ret;
+    ret.init(x,y);
+    return ret;
+  }
+
+  Bool equals(C2D other) {
+    return x == other.x && y == other.y;
+  }
+
+  C2D add(C2D other) {
+    return make((Coord) (x + other.x), (Coord) (y + other.y));
+  }
+
+  C2D subtract(C2D other) {
+    return make((Coord) (x - other.x), (Coord) (y - other.y));
+  }
+
+  Int dot(C2D other) {
+    return x * other.x + y * other.y;
+  }
+
+  /**
+     Return the von Neumann neighbor in the direction d
+   */
+  C2D neighbor(Dir d) {
+    if (d==0) return make( 0, 1);
+    if (d==1) return make( 1, 1);
+    if (d==2) return make( 1, 0);
+    if (d==3) return make( 1,-1);
+    if (d==4) return make( 0,-1);
+    if (d==5) return make(-1,-1);
+    if (d==6) return make(-1, 0);
+    /* d==7*/ return make(-1, 1);
+  }
+
+  /**
+     Return the event window point at distance 4 in the direction d.
+   */
+  C2D corner(Dir d) {
+    if (d==0) return make( 0, 4);
+    if (d==1) return make( 2, 2);
+    if (d==2) return make( 4, 0);
+    if (d==3) return make( 2,-2);
+    if (d==4) return make( 0,-4);
+    if (d==5) return make(-2,-2);
+    if (d==6) return make(-4, 0);
+    /* d==7*/ return make(-2, 2);
+  }
+
+  Unsigned length() {
+    C2D origin;
+    return manhattanDistance(origin);
+  }
+
+  Unsigned manhattanDistance(C2D other) {
+    Int dx = x - other.x, dy = y - other.y;
+    if (dx < 0) dx = -dx;
+    if (dy < 0) dy = -dy;
+    return (Unsigned) (dx + dy);
+  }
 }
-
-quark C2DT(Unsigned coordBits) {
-  typedef Int(coordBits) Coord;
-
-load C2Dincomplete;
-
-}
-

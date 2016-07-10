@@ -2,23 +2,22 @@
 #=t3110_test_compiler_bitwiseorequal
 #!
 Exit status: 3
-Ue_A { Unary(3) b(2u);  System s();  Bool(1) l(false);  Bits(3) a(3);  Int(32) test() {  a 1 cast = b 2 cast = a b cast |= s ( a cast )print . a cast return } }
+Ue_A { Unary(3) b(2);  System s();  Bool(1) l(false);  Bits(3) a(3);  Int(32) test() {  a 1 cast = b 2 cast = a b cast |= s ( a cast )print . a cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
-  ulam 1;
+ulam 1;
 use System;
-element A {
-  System s;
-  Bool l;
-  Bits(3) a;
-  Unary(3) b;
-  Int test() {
-    a = 1;
-    b = 2;
-    a|=b;
-    s.print((Int) a);
-    return (Int) a;
-  }
+element A {System s;
+Bool l;
+Bits(3) a;
+ Unary(3) b;
+Int test() {
+a = 1;
+b = 2;
+a|=b;
+s.print((Int) a);
+return (Int) a;
+}
 }
 #:System.ulam
 ulam 1;

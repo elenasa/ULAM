@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  SymbolClassName::SymbolClassName(Token id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClass(id, utype, classblock, NULL/* parent template */, state)
+  SymbolClassName::SymbolClassName(Token id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClass(id, utype, classblock, NULL/* parent template */, state), m_gotStructuredCommentToken(false)
   {
     unsetStub(); //regular class; classblock may be null if utype is UC_UNSEEN class type.
   }
@@ -30,6 +30,17 @@ namespace MFM {
       }
   } //setStructuredComment
 
+  bool SymbolClassName::getStructuredComment(Token& scTok)
+  {
+    if(m_gotStructuredCommentToken)
+      {
+	assert(m_structuredCommentToken.m_type == TOK_STRUCTURED_COMMENT);
+	scTok = m_structuredCommentToken;
+	return true;
+      }
+    return false;
+  } //getStructuredComment
+
   void SymbolClassName::getTargetDescriptorsForClassInstances(TargetMap& classtargets)
   {
     u32 scid = 0;
@@ -40,26 +51,15 @@ namespace MFM {
     SymbolClass::addTargetDescriptionMapEntry(classtargets, scid);
   } //getTargetDescriptorsForClassInstances
 
-  void SymbolClassName::getClassMemberDescriptionsForClassInstances(ClassMemberMap& classmembers)
+  void SymbolClassName::getModelParameterDescriptionsForClassInstances(ParameterMap& classmodelparameters)
   {
-    SymbolClass::addClassMemberDescriptionsMapEntry(classmembers);
-  } //getClassMemberDescriptionsForClassInstances
+    SymbolClass::addModelParameterDescriptionsMapEntry(classmodelparameters);
+  } //getModelParameterDescriptionsForClassInstances
 
   bool SymbolClassName::isClassTemplate()
   {
     return false;
   } //isClassTemplate
-
-  void SymbolClassName::setSuperClassForClassInstance(UTI superclass, UTI instance)
-  {
-    assert(instance == getUlamTypeIdx());
-    SymbolClass::setSuperClass(superclass);
-  } //setSuperClassForClassInstance
-
-  UTI SymbolClassName::getSuperClassForClassInstance(UTI instance)
-  {
-    return SymbolClass::getSuperClass(); //Nouti is none, not a subclass.
-  } //getSuperClassForClassInstance
 
   Node * SymbolClassName::findNodeNoInAClassInstance(UTI instance, NNO n)
   {
@@ -84,24 +84,9 @@ namespace MFM {
 
   std::string SymbolClassName::formatAnInstancesArgValuesAsAString(UTI instance)
   {
-    UTI basicuti = m_state.getUlamTypeAsDeref(m_state.getUlamTypeAsScalar(instance));
-    UTI rootbasicuti = basicuti;
-    m_state.findaUTIAlias(basicuti, rootbasicuti); //in case alias Mon Jun 20 14:39:07 2016
-    assert((rootbasicuti == getUlamTypeIdx()) || (m_state.isARefTypeOfUlamType(rootbasicuti, getUlamTypeIdx()) == UTIC_SAME)); //or could be a reference
+    assert(instance == getUlamTypeIdx());
     return "10"; //zero args
-  } //formatAnInstancesArgValuesAsAString
-
-  bool SymbolClassName::hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI)
-  {
-    assert(instance == getUlamTypeIdx());
-    return SymbolClass::hasMappedUTI(auti, mappedUTI);
-  } //hasInstanceMappedUTI
-
-  bool SymbolClassName::mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti)
-  {
-    assert(instance == getUlamTypeIdx());
-    return SymbolClass::mapUTItoUTI(auti, mappeduti);
-  } //mapInstanceUTI
+  }
 
   void SymbolClassName::updateLineageOfClass()
   {
@@ -118,7 +103,6 @@ namespace MFM {
 
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-    //skip super classes here.
     classNode->updateLineage(0);
     m_state.popClassContext(); //restore
   } //updateLineageOfClass
@@ -153,28 +137,6 @@ namespace MFM {
     m_state.popClassContext(); //restore
   } //calcMaxDepthOfFunctionsForClassInstances
 
-  bool SymbolClassName::calcMaxIndexOfVirtualFunctionsForClassInstances()
-  {
-    NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
-
-    classNode->calcMaxIndexOfVirtualFunctions();
-    m_state.popClassContext(); //restore
-    return (classNode->getVirtualMethodMaxIdx() != UNKNOWNSIZE);
-  } //calcMaxIndexOfVirtualFunctionsForClassInstances
-
-  void SymbolClassName::checkAbstractInstanceErrorsForClassInstances()
-  {
-    NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
-
-    classNode->checkAbstractInstanceErrors();
-    m_state.popClassContext(); //restore
-    return;
-  } //checkAbstractInstanceErrorsForClassInstances
-
   void SymbolClassName::checkAndLabelClassFirst()
   {
     NodeBlockClass * classNode = getClassBlockNode();
@@ -199,88 +161,31 @@ namespace MFM {
     checkAndLabelClassFirst();
   } //checkAndLabelClassInstances
 
-  void SymbolClassName::countNavNodesInClassInstances(u32& ncnt, u32& hcnt, u32& nocnt)
+  u32 SymbolClassName::countNavNodesInClassInstances()
   {
     assert(!isClassTemplate());
-    u32 navCounter = ncnt;
-    u32 hzyCounter = hcnt;
-    u32 unsetCounter = nocnt;
-
+    u32 navCounter = 0;
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-    classNode->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
-    if((ncnt - navCounter) > 0)
+    classNode->countNavNodes(navCounter);
+    if(navCounter > 0)
       {
 	std::ostringstream msg;
-	msg << navCounter << " data member nodes with erroneous types remain in class '";
+	msg << navCounter << " data member nodes with unresolved types remain in class '";
 	msg << m_state.getUlamTypeNameBriefByIndex(getUlamTypeIdx()).c_str();
 	msg << "'";
-	MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+	MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
       }
-
-    if((hcnt - hzyCounter) > 0)
-      {
-	std::ostringstream msg;
-	msg << hzyCounter << " data member nodes with unresolved types remain in class '";
-	msg << m_state.getUlamTypeNameBriefByIndex(getUlamTypeIdx()).c_str();
-	msg << "'";
-	MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
-      }
-
-    if((nocnt - unsetCounter) > 0)
-      {
-	std::ostringstream msg;
-	msg << unsetCounter << " data member nodes with unset types remain in class '";
-	msg << m_state.getUlamTypeNameBriefByIndex(getUlamTypeIdx()).c_str();
-	msg << "'";
-	MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
-      }
-
-    SymbolClass::countNavNodesInClassResolver(ncnt, hcnt, nocnt);
-
     m_state.popClassContext(); //restore
-
-    return;
+    return navCounter;
   } //countNavNodesInClassInstances
-
-  bool SymbolClassName::statusUnknownTypeInClassInstances(UTI huti)
-  {
-    bool aok = true;
-    NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
-
-    aok = SymbolClass::statusUnknownTypeInClass(huti);
-
-    m_state.popClassContext(); //restore
-    return aok;
-  } //statusUnknownTypeInClassInstances
-
-  bool SymbolClassName::statusUnknownTypeNamesInClassInstances()
-  {
-    bool aok = true;
-    NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
-
-    aok = SymbolClass::statusUnknownTypeNamesInClass();
-
-    m_state.popClassContext(); //restore
-    return aok;
-  } //statusUnknownTypeNamesInClassInstances
-
-  u32 SymbolClassName::reportUnknownTypeNamesInClassInstances()
-  {
-    return SymbolClass::reportUnknownTypeNamesInClass();
-  } //reportUnknownTypeNamesInClassInstances
 
   bool SymbolClassName::setBitSizeOfClassInstances()
   {
     bool aok = true;
     assert(!isClassTemplate());
-
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode); //infinite loop "Incomplete Class <> was never defined, fails sizing"
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
@@ -327,27 +232,6 @@ namespace MFM {
     classNode->packBitsForVariableDataMembers();
     m_state.popClassContext(); //restore
   } //packBitsForClassInstances
-
-  void SymbolClassName::printUnresolvedVariablesForClassInstances()
-  {
-    NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
-
-    classNode->printUnresolvedVariableDataMembers();
-    m_state.popClassContext(); //restore
-  } //printUnresolvedVariablesForClassInstances
-
-  void SymbolClassName::buildDefaultValueForClassInstances()
-  {
-    NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
-
-    BV8K dval;
-    SymbolClass::getDefaultValue(dval); //this instance
-    m_state.popClassContext(); //restore
-  } //buildDefaultValueForClassInstances
 
   void SymbolClassName::testForClassInstances(File * fp)
   {

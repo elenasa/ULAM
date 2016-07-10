@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeVarDecl.h -  Basic Node handling Variable Declarations for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeVarDecl.h -  Basic Node handling Variable Declarations for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -58,11 +58,7 @@ namespace MFM{
 
     virtual void updateLineage(NNO pno);
 
-    virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
-
     virtual bool findNodeNo(NNO n, Node *& foundNode);
-
-    virtual void checkAbstractInstanceErrors();
 
     virtual void printPostfix(File * f);
 
@@ -72,54 +68,38 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
-    virtual void setInitExpr(Node * node);
-
-    bool hasInitExpr();
-
-    virtual bool foldInitExpression();
-
-    virtual FORECAST safeToCastTo(UTI newType);
-
     virtual UTI checkAndLabelType();
 
-    virtual NNO getBlockNo();
+    NNO getBlockNo();
 
-    virtual NodeBlock * getBlock();
+    NodeBlock * getBlock();
+
+    virtual void packBitsInOrderOfDeclaration(u32& offset);
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
-    virtual void printUnresolvedLocalVariables(u32 fid);
-
-    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
+    virtual void countNavNodes(u32& cnt);
 
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();
 
-    virtual void genCode(File * fp, UVPass& uvpass);
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
   protected:
-    SymbolVariable * m_varSymbol;
-    u32 m_vid; // to instantiate
-
-    Node * m_nodeInitExpr;
-
     virtual void checkForSymbol();
-    virtual void printTypeAndName(File * fp);
-    virtual bool checkSafeToCastTo(UTI fromType, UTI& newType);
-    EvalStatus evalInitExpr();
 
   private:
+    SymbolVariable * m_varSymbol;
+    u32 m_vid; // to instantiate
     NNO m_currBlockNo;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
-    UlamValue makeUlamValuePtr(); //for locals
+    void genCodedBitFieldTypedef(File * fp, UlamValue& uvpass);
+    void genCodedAutoLocal(File * fp, UlamValue & uvpass);
 
-    void setupStackWithPrimitiveForEval(u32 slots);
-    void setupStackWithClassForEval(u32 slots);
-    void setupStackWithQuarkForEval(u32 slots);
   };
 
 }

@@ -1,15 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3125_test_compiler_typedef_scope_error
 #!
-./D.ulam:9:5: ERROR: Undetermined Type: <Bar>; Suggest 'use Bar;' if it's a class, otherwise a typedef is needed.
-./D.ulam:9:5: ERROR: Incomplete descriptor for type: holder.
-./D.ulam:9:5: ERROR: Incomplete Variable Decl for type: holder, used with variable symbol name 'f'.
-./D.ulam:10:5: ERROR: Incomplete identifier for type: holder, used with list symbol name 'f'.
-./D.ulam:11:12: ERROR: Incomplete identifier for type: holder, used with list symbol name 'f'.
-./D.ulam:11:5: ERROR: Function return type is still unresolved: unresolved.
-./D.ulam:1:9: ERROR: 8 Nodes with unresolved types detected after type labeling class: D.
-Unrecoverable Program Type Label FAILURE.
-##
+##./D.ulam:10:6: ERROR: Invalid Type: Bar used with [].
+##./D.ulam:11:13: ERROR: Invalid Type: Bar used with [].
+Ue_D { Int(32) test() {  { typedef Int(32) Bar[2];  Bar e[2];  e 0 [] 4 = } 3 } }
 #>D.ulam
 element D {
   Int test()
@@ -24,5 +18,6 @@ element D {
     return f[0];
    }
 }
-
+##
+##      // Bar f gave error: a.ulam:1:69: (NodeTerminalIdent.cpp:labelType:61) ERROR: (2) <f> is not defined, and cannot be called.
 #.

@@ -4,15 +4,17 @@
 
 namespace MFM {
 
-  NodeConstant::NodeConstant(Token tok, SymbolWithValue * symptr, CompilerState & state) : NodeTerminal(state), m_token(tok), m_constSymbol(symptr), m_ready(false), m_constType(Nouti), m_currBlockNo(0)
+  NodeConstant::NodeConstant(Token tok, SymbolWithValue * symptr, CompilerState & state) : NodeTerminal(state), m_token(tok), m_constSymbol(symptr), m_ready(false), m_currBlockNo(0)
   {
     assert(symptr);
     m_currBlockNo = symptr->getBlockNoOfST();
     m_ready = updateConstant(); //sets ready here
-    m_constType = m_constSymbol->getUlamTypeIdx();
   }
 
-  NodeConstant::NodeConstant(const NodeConstant& ref) : NodeTerminal(ref), m_token(ref.m_token), m_constSymbol(NULL), m_ready(false), m_constType(ref.m_constType), m_currBlockNo(ref.m_currBlockNo) {}
+  NodeConstant::NodeConstant(const NodeConstant& ref) : NodeTerminal(ref), m_token(ref.m_token), m_constSymbol(NULL), m_ready(false), m_currBlockNo(ref.m_currBlockNo) {}
+
+  //special constructor that replaces a var with a constant (see NodeIdent)
+  NodeConstant::NodeConstant(const NodeIdent& iref) :  NodeTerminal(iref), m_token(iref.getToken()), m_constSymbol(NULL), m_ready(false), m_currBlockNo(iref.getBlockNo()) {}
 
   NodeConstant::~NodeConstant(){}
 
@@ -29,9 +31,7 @@ namespace MFM {
 
   const char * NodeConstant::getName()
   {
-    if(isReadyConstant())
-      return NodeTerminal::getName();
-    return m_state.getTokenDataAsString(&m_token).c_str();
+    return NodeTerminal::getName();
   }
 
   const std::string NodeConstant::prettyNodeName()
@@ -65,59 +65,42 @@ namespace MFM {
   UTI NodeConstant::checkAndLabelType()
   {
     UTI it = Nav;
-
-    bool stubcopy = m_state.isClassAStub(m_state.getCompileThisIdx());
-
     //instantiate, look up in class block; skip if stub copy and already ready.
-    if(!stubcopy && m_constSymbol == NULL)
-	checkForSymbol();
-    else
-      {
-	stubcopy = m_state.hasClassAStub(m_state.getCompileThisIdx()); //includes ancestors
-      }
+    if(m_constSymbol == NULL && !isReadyConstant())
+      checkForSymbol();
 
     if(m_constSymbol)
       {
 	it = m_constSymbol->getUlamTypeIdx();
       }
-    else if(isReadyConstant() && stubcopy)
+    else if(isReadyConstant())
       {
-	assert(m_state.okUTItoContinue(m_constType));
-	setNodeType(m_constType); //t3565, t3640, t3641, t3642, t3652
 	//stub copy case: still wants uti mapping
+	//it = NodeTerminal::getNodeType();
 	it = NodeTerminal::checkAndLabelType();
-      }
-    else if(stubcopy)
-      {
-	// still need its symbol for a value
-	// use the member class (unlike checkForSymbol)
       }
 
     // map incomplete UTI
     if(!m_state.isComplete(it)) //reloads to recheck
       {
+	UTI cuti = m_state.getCompileThisIdx();
 	std::ostringstream msg;
 	msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	msg << ", used with constant symbol name '";
-	msg << m_state.getTokenDataAsString(&m_token).c_str() << "'";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	// m_state.setGoAgain(); wait until updateConstant tried.
+	msg << " used with constant symbol name '";
+	msg << m_state.getTokenDataAsString(&m_token).c_str();
+	msg << "' UTI" << it << " while labeling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
       }
 
     setNodeType(it);
-    Node::setStoreIntoAble(TBOOL_FALSE);
+    setStoreIntoAble(false);
 
     //copy m_constant from Symbol into NodeTerminal parent.
     if(!isReadyConstant())
       m_ready = updateConstant(); //sets ready here
-    if(!isReadyConstant())
-      {
-	it = Hzy;
-	if(!stubcopy)
-	  m_constSymbol = NULL; //lookup again too! (e.g. inherited template instances)
-	m_state.setGoAgain();
-      }
+
     return it;
   } //checkAndLabelType
 
@@ -128,8 +111,7 @@ namespace MFM {
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
     Symbol * asymptr = NULL;
-    bool hazyKin = false;
-    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
+    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex,asymptr))
       {
 	if(asymptr->isConstant())
 	  {
@@ -150,10 +132,7 @@ namespace MFM {
 	msg << "(2) Named Constant <" << m_state.getTokenDataAsString(&m_token).c_str();
 	msg << "> is not defined, and cannot be used with class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	if(!hazyKin)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     m_state.popClassContext(); //restore
   } //checkForSymbol
@@ -194,11 +173,9 @@ namespace MFM {
       return true; //nothing to do
 
     Symbol * asymptr = NULL;
-    bool hazyKin = false;
-    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
+    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex,asymptr))
       {
-	assert(hazyKin); //always hazy, right?
-	if(asymptr->isConstant() && ((SymbolConstantValue *) asymptr)->isReady()) //???
+	if(asymptr->isConstant())
 	  {
 	    u64 val = 0;
 	    ((SymbolConstantValue *) asymptr)->getValue(val);
@@ -221,11 +198,10 @@ namespace MFM {
     return NodeTerminal::eval();
   } //eval
 
-  void NodeConstant::genCode(File * fp, UVPass& uvpass)
+  void NodeConstant::genCode(File * fp, UlamValue& uvpass)
   {
     if(!isReadyConstant())
       m_ready = updateConstant(); //sets ready here
-    assert(isReadyConstant()); //must be
     NodeTerminal::genCode(fp, uvpass);
   } //genCode
 
@@ -234,10 +210,8 @@ namespace MFM {
     u64 val;
     if(!m_constSymbol)
       return false;
-
-    if(m_constSymbol->getValue(val))
-	m_constant.uval = val; //value fits type per its constantdef
-      //else don't want default value here
+    m_constSymbol->getValue(val);
+    m_constant.uval = val; //value fits type per its constantdef
 
     return m_constSymbol->isReady();
   } //updateConstant

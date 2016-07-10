@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolVariableDataMember.h -  Data Member Variable Symbol handling for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014 The Regents of the University of New Mexico.
+ * Copyright (C) 2014 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolVariableDataMember.h - Data Member Variable Symbol handling for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016   All rights reserved.
+  \date (C) 2014 All rights reserved.
   \gpl
 */
 
@@ -37,6 +37,7 @@
 #ifndef SYMBOLVARIABLEDATAMEMBER_H
 #define SYMBOLVARIABLEDATAMEMBER_H
 
+#include "UlamValue.h"
 #include "SymbolVariable.h"
 
 namespace MFM{
@@ -44,17 +45,13 @@ namespace MFM{
   class SymbolVariableDataMember : public SymbolVariable
   {
   public:
-    SymbolVariableDataMember(Token id, UTI utype, u32 slot, CompilerState& state);
+    SymbolVariableDataMember(Token id, UTI utype, PACKFIT packed, u32 slot, CompilerState& state);
 
     SymbolVariableDataMember(const SymbolVariableDataMember& sref);
-
-    SymbolVariableDataMember(const SymbolVariableDataMember& sref, bool keepType);
 
     virtual ~SymbolVariableDataMember();
 
     virtual Symbol * clone();
-
-    virtual Symbol * cloneKeepsType();
 
     virtual u32 getDataMemberUnpackedSlotIndex();
 
@@ -62,21 +59,15 @@ namespace MFM{
 
     virtual const std::string getMangledPrefix();
 
-    virtual u32 getPosOffset();
-
-    void setPosOffset(u32 offsetIntoAtom);
-
     virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype);
 
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
-    virtual void setStructuredComment();
-
   protected:
 
   private:
-    u32 m_posOffset; //relative
     u32 m_dataMemberUnpackedSlotIndex;  //untrusted
+
   };
 
 }

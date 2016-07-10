@@ -6,14 +6,12 @@
 
 namespace MFM {
 
-  NodeSquareBracket::NodeSquareBracket(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state), m_isCustomArray(false)
+  NodeSquareBracket::NodeSquareBracket(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state)
   {
-    if(m_nodeRight)
-      m_nodeRight->updateLineage(getNodeNo()); //for unknown subtrees
-    Node::setStoreIntoAble(TBOOL_HAZY);
+    m_nodeRight->updateLineage(getNodeNo()); //for unknown subtrees
   }
 
-  NodeSquareBracket::NodeSquareBracket(const NodeSquareBracket& ref) : NodeBinaryOp(ref), m_isCustomArray(ref.m_isCustomArray) {}
+  NodeSquareBracket::NodeSquareBracket(const NodeSquareBracket& ref) : NodeBinaryOp(ref) {}
 
   NodeSquareBracket::~NodeSquareBracket(){}
 
@@ -21,25 +19,6 @@ namespace MFM {
   {
     return new NodeSquareBracket(*this);
   }
-
-  void NodeSquareBracket::updateLineage(NNO pno)
-  {
-    setYourParentNo(pno);
-    m_nodeLeft->updateLineage(getNodeNo());
-    if(m_nodeRight)
-      m_nodeRight->updateLineage(getNodeNo());
-  } //updateLineage
-
-  bool NodeSquareBracket::findNodeNo(NNO n, Node *& foundNode)
-  {
-    if(Node::findNodeNo(n, foundNode))
-      return true;
-    if(m_nodeLeft && m_nodeLeft->findNodeNo(n, foundNode))
-      return true;
-    if(m_nodeRight && m_nodeRight->findNodeNo(n, foundNode))
-      return true;
-    return false;
-  } //findNodeNo
 
   void NodeSquareBracket::printOp(File * fp)
   {
@@ -64,25 +43,13 @@ namespace MFM {
   // used to select an array element; not for declaration
   UTI NodeSquareBracket::checkAndLabelType()
   {
-    //    assert(m_nodeLeft && m_nodeRight);
-    assert(m_nodeLeft);
+    assert(m_nodeLeft && m_nodeRight);
     u32 errorCount = 0;
-    u32 hazyCount = 0;
     UTI newType = Nav; //init
     UTI idxuti = Nav;
 
     UTI leftType = m_nodeLeft->checkAndLabelType();
-
-    //Not caught during parsing since array size may be blank if declared with initialization
-    if(!m_nodeRight)
-      {
-	std::ostringstream msg;
-	msg << "Array item specifier is missing for ";
-	msg << m_nodeLeft->getName();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setNodeType(Nav);
-	return Nav;
-      }
+    bool isCustomArray = false;
 
     //for example, f.chance[i] where i is local, same as f.func(i);
     NodeBlock * currBlock = m_state.getCurrentBlock();
@@ -91,23 +58,22 @@ namespace MFM {
 
     m_state.popClassContext();
 
-    if(m_state.isComplete(leftType))
+    if(leftType != Nav)
       {
 	UlamType * lut = m_state.getUlamTypeByIndex(leftType);
+        isCustomArray = lut->isCustomArray();
 
 	if(lut->isScalar())
 	  {
-	    m_isCustomArray = m_state.isClassACustomArray(leftType);
-
 	    if(lut->isHolder())
 	      {
 		std::ostringstream msg;
 		msg << "Incomplete Type: " << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
 		msg << " used with " << getName();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		hazyCount++;
+		errorCount++;
 	      }
-	    else if(!m_isCustomArray)
+	    else if(!isCustomArray)
 	      {
 		std::ostringstream msg;
 		msg << "Invalid Type: " << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
@@ -117,15 +83,15 @@ namespace MFM {
 	      }
 	    else
 	      {
-		// either an array of custom array classes or
-		// a custom array; t.f. lhs is a quark!
-		assert(lut->getUlamTypeEnum() == Class);
+		//must be a custom array; t.f. lhs is a quark!
+		assert(lut->getUlamClass() != UC_NOTACLASS);
 
 		// can't substitute a function call node for square brackets to leverage
 		// all the overload matching in func call node's c&l, because
 		// we ([]) can't tell which side of = we are on, and whether we should
 		// be a aref or aset.
-		UTI caType = m_state.getAClassCustomArrayType(leftType);
+		UTI caType = ((UlamTypeClass *) lut)->getCustomArrayType();
+
 		if(!m_state.isComplete(caType))
 		  {
 		    std::ostringstream msg;
@@ -134,30 +100,24 @@ namespace MFM {
 		    msg << " used with class: ";
 		    msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
 		    msg << getName();
-		    if(lut->isComplete() || (caType == Nav))
-		      {
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			newType = Nav; //error!
-			errorCount++;
-		      }
+		    if(lut->isComplete())
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    else
-		      {
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-			newType = Hzy;
-			m_state.setGoAgain();
-			hazyCount++;
-		      }
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    newType = Nav; //error!
+		    errorCount++;
 		  }
 	      }
 	  }
+
 	//set up idxuti..RHS
 	//cant proceed with custom array subscript if lhs is incomplete
-	if((errorCount == 0) && (hazyCount == 0))
+	if(errorCount == 0)
 	  {
-	    if(m_isCustomArray)
+	    if(isCustomArray)
 	      {
 		bool hasHazyArgs = false;
-		u32 camatches = m_state.getAClassCustomArrayIndexType(leftType, m_nodeRight, idxuti, hasHazyArgs);
+		u32 camatches = ((UlamTypeClass *) lut)->getCustomArrayIndexTypeFor(m_nodeRight, idxuti, hasHazyArgs);
 		if(camatches == 0)
 		  {
 		    std::ostringstream msg;
@@ -166,18 +126,11 @@ namespace MFM {
 		    msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
 		    msg << "; and cannot be called";
 		    if(hasHazyArgs)
-		      {
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-			idxuti = Hzy;
-			m_state.setGoAgain();
-			hazyCount++;
-		      }
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		    else
-		      {
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			idxuti = Nav; //error!
-			errorCount++;
-		      }
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    idxuti = Nav; //error!
+		    errorCount++;
 		  }
 		else if(camatches > 1)
 		  {
@@ -187,27 +140,19 @@ namespace MFM {
 		    msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
 		    msg << "; Explicit casting required";
 		    if(hasHazyArgs)
-		      {
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-			idxuti = Hzy;
-			m_state.setGoAgain();
-			hazyCount++;
-		      }
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		    else
-		      {
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			idxuti = Nav; //error!
-			errorCount++;
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    idxuti = Nav; //error!
+		    errorCount++;
 		      }
-		  }
-		//else a match! but which? aref or aset?
 	      }
 	    else
 	      {
 		//not custom array
 		//must be some kind of numeric type: Int, Unsigned, or Unary..of any bit size
 		UlamType * rut = m_state.getUlamTypeByIndex(rightType);
-		if(m_state.okUTItoContinue(rightType) && !rut->isNumericType())
+		if(rightType != Nav && !rut->isNumericType())
 		  {
 		    std::ostringstream msg;
 		    msg << "Array item specifier requires numeric type: ";
@@ -223,66 +168,45 @@ namespace MFM {
 	      }
 	  } //errorcount is zero
 
-	if(m_state.okUTItoContinue(idxuti) && (UlamType::compare(idxuti, rightType, m_state) == UTIC_NOTSAME))
+	if(idxuti != Nav && UlamType::compare(idxuti, rightType, m_state) == UTIC_NOTSAME)
 	  {
-	    FORECAST rscr = m_nodeRight->safeToCastTo(idxuti);
-	    if(rscr == CAST_CLEAR)
+	    if(m_nodeRight->safeToCastTo(idxuti) == CAST_CLEAR)
 	      {
-		if(!Node::makeCastingNode(m_nodeRight, idxuti, m_nodeRight))
-		  errorCount++;
+		if(!makeCastingNode(m_nodeRight, idxuti, m_nodeRight))
+		  {
+		    newType = Nav; //error!
+		    errorCount++;
+		  }
 	      }
-	    else if(rscr == CAST_HAZY)
-	      hazyCount++;
 	    else
-	      errorCount++;
+	      {
+		newType = Nav; //error!
+		errorCount++;
+	      }
 	  }
-      } //lt not nav, might be Hzy
-    else
-      {
-	if(leftType == Nav)
-	  errorCount++;
-	else if(leftType == Hzy)
-	  hazyCount++;
-	else
-	  hazyCount++;
-      }
+      } //lt not nav
 
-    if((errorCount == 0) && (hazyCount == 0))
+    if(errorCount == 0)
       {
 	// sq bracket purpose in life is to account for array elements;
-	//if(isCustomArray)
-	if(m_isCustomArray && m_state.isScalar(leftType))
-	  newType = m_state.getAClassCustomArrayType(leftType);
+	if(isCustomArray)
+	  newType = ((UlamTypeClass *) m_state.getUlamTypeByIndex(leftType))->getCustomArrayType();
 	else
 	  newType = m_state.getUlamTypeAsScalar(leftType);
 
-	if(m_isCustomArray)
-	  {
-	    if(m_state.classHasACustomArraySetMethod(leftType))
-	      	Node::setStoreIntoAble(TBOOL_TRUE);
-	    else
-	      Node::setStoreIntoAble(TBOOL_FALSE);
-	    Node::setReferenceAble(TBOOL_FALSE); //custom arrays are not reference-able
-	  }
-	else
-	  // multi-dimensional possible; MP not ok lhs.
-	  Node::setStoreIntoAble(m_nodeLeft->getStoreIntoAble());
+	// multi-dimensional possible; MP not ok lhs.
+	setStoreIntoAble(m_nodeLeft->isStoreIntoAble());
       }
-    else
-      {
-	if(errorCount != 0)
-	  newType = Nav;
-	else if(hazyCount != 0)
-	  {
-	    newType = Hzy;
-	    m_state.setGoAgain(); //covers non-error(debug) messages for incompletes
-	  }
-	else
-	  assert(0);
-      }
+
     setNodeType(newType);
     return newType;
   } //checkAndLabelType
+
+  void NodeSquareBracket::countNavNodes(u32& cnt)
+  {
+    m_nodeLeft->countNavNodes(cnt);
+    m_nodeRight->countNavNodes(cnt);
+  }
 
   UTI NodeSquareBracket::calcNodeType(UTI lt, UTI rt)
   {
@@ -296,16 +220,6 @@ namespace MFM {
     UTI nuti = getNodeType();
     if(nuti == Nav)
       return ERROR;
-
-    if(nuti == Hzy)
-      return NOTREADY;
-
-    if(m_isCustomArray)
-      {
-	return evalACustomArray();
-      }
-
-    assert(!m_isCustomArray);
 
     evalNodeProlog(0); //new current frame pointer
 
@@ -321,9 +235,10 @@ namespace MFM {
     UTI ltype = pluv.getPtrTargetType();
 
     //could be a custom array which is a scalar quark. already checked.
-    bool isCustomArray = m_state.isClassACustomArray(ltype);
-    //array of caarray quarks is not a customarray.
-    assert(m_isCustomArray == isCustomArray); //already checked, must be array
+    UlamType * lut = m_state.getUlamTypeByIndex(ltype);
+    bool isCustomArray = lut->isCustomArray();
+
+    assert(!m_state.isScalar(ltype) || isCustomArray); //already checked, must be array
 
     makeRoomForNodeType(m_nodeRight->getNodeType()); //offset a constant expression
     evs = m_nodeRight->eval();
@@ -343,7 +258,7 @@ namespace MFM {
 	u32 offsetdata = offset.getImmediateData(m_state);
 	offsetInt = offut->getDataAsCs32(offsetdata);
 
-	if((offsetInt >= arraysize)) // && !isCustomArray)
+	if((offsetInt >= arraysize) && !isCustomArray)
 	  {
 	    Symbol * lsymptr;
 	    u32 lid = 0;
@@ -358,36 +273,26 @@ namespace MFM {
 	    return ERROR;
 	  }
       }
-    else
+    else if(!isCustomArray)
       {
-	Symbol * lsymptr;
-	u32 lid = 0;
-	if(getSymbolPtr(lsymptr))
-	  lid = lsymptr->getId();
+	    Symbol * lsymptr;
+	    u32 lid = 0;
+	    if(getSymbolPtr(lsymptr))
+	      lid = lsymptr->getId();
 
-	std::ostringstream msg;
-	msg << "Array subscript of array '";
-	msg << m_state.m_pool.getDataAsString(lid).c_str();
-	msg << "' requires a numeric type";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	evalNodeEpilog();
-	return ERROR;
+	    std::ostringstream msg;
+	    msg << "Array subscript of array '";
+	    msg << m_state.m_pool.getDataAsString(lid).c_str();
+	    msg << "' requires a numeric type";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    evalNodeEpilog();
+	    return ERROR;
       }
 
-    Node::assignReturnValueToStack(pluv.getValAt(offsetInt, m_state));
+    assignReturnValueToStack(pluv.getValAt(offsetInt, m_state));
     evalNodeEpilog();
     return NORMAL;
   } //eval
-
-  EvalStatus NodeSquareBracket::evalACustomArray()
-  {
-    //custom array should call aref? eval MUST NOT be used to get arraysize in bracket.
-    std::ostringstream msg;
-    msg << "Custom Array subscript";
-    msg << " requires aref function call; Unsupported for eval";
-    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-    return UNEVALUABLE;
-  } //evalACustomArray
 
   EvalStatus NodeSquareBracket::evalToStoreInto()
   {
@@ -395,16 +300,6 @@ namespace MFM {
     UTI nuti = getNodeType();
     if(nuti == Nav)
       return ERROR;
-
-    if(nuti == Hzy)
-      return NOTREADY;
-
-    if(m_isCustomArray)
-      {
-	return evalToStoreIntoACustomArray();
-      }
-
-    assert(!m_isCustomArray);
 
     evalNodeProlog(0); //new current frame pointer
 
@@ -417,7 +312,6 @@ namespace MFM {
       }
 
     UlamValue pluv = m_state.m_nodeEvalStack.popArg();
-    UTI auti = pluv.getPtrTargetType();
 
     makeRoomForNodeType(m_nodeRight->getNodeType()); //offset a constant expression
     evs = m_nodeRight->eval();
@@ -428,43 +322,61 @@ namespace MFM {
       }
 
     UlamValue offset = m_state.m_nodeEvalStack.popArg();
+
     // constant expression only required for array declaration
     u32 offsetdata = offset.getImmediateData(m_state);
     s32 offsetInt = m_state.getUlamTypeByIndex(offset.getUlamValueTypeIdx())->getDataAsCs32(offsetdata);
-    //adjust pos by offset * len, according to its scalar type
-    UlamValue scalarPtr = UlamValue::makeScalarPtr(pluv, m_state);
-    if(scalarPtr.incrementPtr(m_state, offsetInt))
-      //copy result UV to stack, -1 relative to current frame pointer
-      Node::assignReturnValuePtrToStack(scalarPtr);
+
+    UTI auti = pluv.getPtrTargetType();
+    UlamType * aut = m_state.getUlamTypeByIndex(auti);
+    if(aut->isCustomArray())
+      {
+	UTI caType = ((UlamTypeClass *) aut)->getCustomArrayType();
+	UlamType * caut = m_state.getUlamTypeByIndex(caType);
+	u32 pos = pluv.getPtrPos();
+	if(caut->getBitSize() > MAXBITSPERINT)
+	  pos = 0;
+	//  itemUV = UlamValue::makeAtom(caType);
+	//else
+	//  itemUV = UlamValue::makeImmediate(caType, 0, m_state);  //quietly skip for now XXX
+
+	//use CA type, not the left ident's type
+	UlamValue scalarPtr = UlamValue::makePtr(pluv.getPtrSlotIndex(),
+						 pluv.getPtrStorage(),
+						 caType,
+						 m_state.determinePackable(caType), //PACKEDLOADABLE
+						 m_state,
+						 pos /* base pos of array */
+						 );
+
+	//copy result UV to stack, -1 relative to current frame pointer
+	assignReturnValuePtrToStack(scalarPtr);
+      }
     else
       {
-	s32 arraysize = m_state.getArraySize(auti);
-	Symbol * lsymptr;
-	u32 lid = 0;
-	if(getSymbolPtr(lsymptr))
-	  lid = lsymptr->getId();
+	//adjust pos by offset * len, according to its scalar type
+	UlamValue scalarPtr = UlamValue::makeScalarPtr(pluv, m_state);
+	if(scalarPtr.incrementPtr(m_state, offsetInt))
+	  //copy result UV to stack, -1 relative to current frame pointer
+	  assignReturnValuePtrToStack(scalarPtr);
+	else
+	  {
+	    s32 arraysize = m_state.getArraySize(pluv.getPtrTargetType());
+	    Symbol * lsymptr;
+	    u32 lid = 0;
+	    if(getSymbolPtr(lsymptr))
+	      lid = lsymptr->getId();
 
-	std::ostringstream msg;
-	msg << "Array subscript [" << offsetInt << "] exceeds the size (" << arraysize;
-	msg << ") of array '" << m_state.m_pool.getDataAsString(lid).c_str() << "'";
-	msg << " to store into";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	evs = ERROR;
+	    std::ostringstream msg;
+	    msg << "Array subscript [" << offsetInt << "] exceeds the size (" << arraysize;
+	    msg << ") of array '" << m_state.m_pool.getDataAsString(lid).c_str() << "'";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    evs = ERROR;
+	  }
       }
-
     evalNodeEpilog();
     return evs;
   } //evalToStoreInto
-
-  EvalStatus NodeSquareBracket::evalToStoreIntoACustomArray()
-  {
-    //custom array should call aset? eval MUST NOT be used to get arraysize in bracket.
-    std::ostringstream msg;
-    msg << "Custom Array subscript";
-    msg << " requires aset function call; Unsupported for evalToStoreInto";
-    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-    return UNEVALUABLE;
-  } //evalToStoreIntoACustomArray
 
   bool NodeSquareBracket::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
@@ -516,21 +428,22 @@ namespace MFM {
   //see also NodeIdent
   bool NodeSquareBracket::installSymbolConstantValue(TypeArgs& args, Symbol *& asymptr)
   {
-    MSG(getNodeLocationAsString().c_str(), "Array type specified for named constant", ERR);
+    MSG(getNodeLocationAsString().c_str(), "Array size specified for named constant", ERR);
     return false;
   } //installSymbolConstantValue
 
   //see also NodeIdent
-  bool NodeSquareBracket::installSymbolModelParameterValue(TypeArgs& args, Symbol *& asymptr)
+  bool NodeSquareBracket::installSymbolParameterValue(TypeArgs& args, Symbol *& asymptr)
   {
-    MSG(getNodeLocationAsString().c_str(), "Array type specified for model parameter", ERR);
+    MSG(getNodeLocationAsString().c_str(), "Array size specified for model parameter", ERR);
     return false;
-  } //installSymbolModelParameterValue
+  } //installSymbolParameterValue
 
   //see also NodeIdent
   bool NodeSquareBracket::installSymbolVariable(TypeArgs& args,  Symbol *& asymptr)
   {
-    //assert(m_nodeLeft && m_nodeRight);
+    assert(m_nodeLeft && m_nodeRight);
+
     if(!m_nodeLeft)
       {
 	MSG(getNodeLocationAsString().c_str(), "No Identifier to build array symbol", ERR);
@@ -544,7 +457,6 @@ namespace MFM {
       }
 
     args.m_arraysize = UNKNOWNSIZE; // no eval yet
-    assert(m_nodeLeft);
     return m_nodeLeft->installSymbolVariable(args, asymptr);
   } //installSymbolVariable
 
@@ -556,25 +468,13 @@ namespace MFM {
 
   // eval() no longer performed before check and label
   // returns false if error; UNKNOWNSIZE is not an error!
-  bool NodeSquareBracket::getArraysizeInBracket(s32 & rtnArraySize, UTI& sizetype)
+  bool NodeSquareBracket::getArraysizeInBracket(s32 & rtnArraySize)
   {
     bool noerr = true;
     // since square brackets determine the constant size for this type, else error
     s32 newarraysize = NONARRAYSIZE;
-    if(m_nodeRight == NULL)
-      {
-	rtnArraySize = UNKNOWNSIZE; //determined by number of initialization items
-	return true;
-      }
-
-    sizetype = m_nodeRight->checkAndLabelType();
-    if((sizetype == Nav))
-      {
-	rtnArraySize = UNKNOWNSIZE;
-	return false;
-      }
-
-    if((sizetype == Hzy))
+    UTI sizetype = m_nodeRight->checkAndLabelType();
+    if(sizetype == Nav)
       {
 	rtnArraySize = UNKNOWNSIZE;
 	return true;
@@ -587,8 +487,7 @@ namespace MFM {
       {
 	evalNodeProlog(0); //new current frame pointer
 	makeRoomForNodeType(sizetype); //offset a constant expression
-	EvalStatus evs = m_nodeRight->eval();
-	if(evs == NORMAL)
+	if(m_nodeRight->eval() == NORMAL)
 	  {
 	    UlamValue arrayUV = m_state.m_nodeEvalStack.popArg();
 	    u32 arraysizedata = arrayUV.getImmediateData(m_state);
@@ -597,93 +496,58 @@ namespace MFM {
 	      {
 		MSG(getNodeLocationAsString().c_str(),
 		    "Array size specifier in [] is not a positive number", ERR);
-		sizetype = Nav;
 		noerr = false;
 	      }
 	    //else unknown is not an error
 	  }
-	else if(evs == NOTREADY)
-	  {
-	    noerr = false;
-	    sizetype = Hzy;
-	  }
 	else //newarraysize = UNKNOWNSIZE; //still true
-	  {
-	    noerr = false;
-	    sizetype = Nav;
-	  }
+	  noerr = false;
+
 	evalNodeEpilog();
       }
     else
       {
 	MSG(getNodeLocationAsString().c_str(),
 	    "Array size specifier in [] is not a constant number", ERR);
-	sizetype = Nav;
 	noerr = false;
       }
     rtnArraySize = newarraysize;
     return noerr;
   } //getArraysizeInBracket
 
-  void NodeSquareBracket::genCode(File * fp, UVPass& uvpass)
+  void NodeSquareBracket::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
     //wipe out before getting item within sq brackets
     std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
-    m_state.clearCurrentObjSymbolsForCodeGen();
+    m_state.m_currentObjSymbolsForCodeGen.clear();
 
-    UVPass offset;
+    UlamValue offset;
     m_nodeRight->genCode(fp, offset); //read into tmp var
 
     m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore
 
-    UVPass luvpass;
+    UlamValue luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
-    //special case index for non-custom array: numeric unary conversion to cu32
-    UTI luti = luvpass.getPassTargetType();
-    if(!m_state.isClassACustomArray(luti))
-      {
-	UTI offuti = offset.getPassTargetType();
-	UlamType * offut = m_state.getUlamTypeByIndex(offuti);
-	if(offut->getUlamTypeEnum() == Unary)
-	  {
-	    s32 tmpVarIdx = m_state.getNextTmpVarNumber();
-	    m_state.indentUlamCode(fp);
-	    fp->write("const u32 ");
-	    fp->write(m_state.getTmpVarAsString(Unsigned, tmpVarIdx, TMPREGISTER).c_str());;
-	    fp->write(" = ");
-	    if(offut->getTotalWordSize() <= MAXBITSPERINT)
-	      fp->write("_Unary32ToCu32(");
-	    else //must be long
-	      fp->write("_Unary64ToCu64(");
-
-	    fp->write(offset.getTmpVarAsString(m_state).c_str());
-	    fp->write(", ");
-	    fp->write_decimal(offut->getBitSize());
-	    fp->write(");"); GCNL;
-	    // new uvpass here
-	    offset = UVPass::makePass(tmpVarIdx, TMPREGISTER, Unsigned, m_state.determinePackable(offuti), m_state, 0, 0); //POS 0 rightjustified.
-	  } //end unary special case
-      } //for non custom arrays only!
-
     uvpass = offset;
+
     Node::genCodeReadIntoATmpVar(fp, uvpass); //splits on array item
   } //genCode
 
-  void NodeSquareBracket::genCodeToStoreInto(File * fp, UVPass& uvpass)
+  void NodeSquareBracket::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
     //wipe out before getting item within sq brackets
     std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
-    m_state.clearCurrentObjSymbolsForCodeGen();
+    m_state.m_currentObjSymbolsForCodeGen.clear();
 
-    UVPass offset;
+    UlamValue offset;
     m_nodeRight->genCode(fp, offset);
 
     m_state.m_currentObjSymbolsForCodeGen = saveCOSVector;  //restore
 
-    UVPass luvpass;
+    UlamValue luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
     uvpass = offset; //return

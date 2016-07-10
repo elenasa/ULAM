@@ -15,6 +15,7 @@ namespace MFM {
     m_lastReadLoc = frec.m_loc;     // copy invalid loc
   }
 
+
   SourceStream::~SourceStream()
   {
     m_registeredFilenames.clear();
@@ -41,11 +42,12 @@ namespace MFM {
       }
 
     m_fileRecords[id].setUnreadFlag(true);
-  } //unread
+  }
 
   s32 SourceStream::read()
   {
-    if (m_openFilesStack.empty()) return -1; //top behavior undefined when empty
+    // m_lastReadByte = -1; ???
+    if (m_openFilesStack.empty()) return -1;  //top behavior undefined when empty
 
     u16 id = m_openFilesStack.top();
 
@@ -60,7 +62,7 @@ namespace MFM {
       {
 	m_lastReadByte = fp->read();
 
-	updateLineOfText(id, m_lastReadByte); // before line no incremented
+	updateLineOfText(id, m_lastReadByte);                     // before line no incremented
 
 	m_fileRecords[id].m_loc.updateLineByteNo(m_lastReadByte); // update access record
 
@@ -69,7 +71,8 @@ namespace MFM {
 
 	m_lastReadLoc = m_fileRecords[id].m_loc;
 	// automatically close and 'pop', and the next byte of the most
-	// recently suspended file is returned instead, if any remain.
+	//recently suspended file is returned instead, if any remain.
+	//if(c < 0)
 	// if error (not EOF) return error, do not pop the stack
 	if(m_lastReadByte == EOF)
 	  {
@@ -78,14 +81,17 @@ namespace MFM {
 	  }
       }
     //else no further 'push'ed files remain, return -1
+
     return m_lastReadByte;
   } //read
+
 
   bool SourceStream::isPushed(std::string filename)
   {
     u32 findex = m_state.m_pool.getIndexForDataString(filename);
     return isPushed(findex);
   } //isPushed
+
 
   bool SourceStream::isPushed(u32 findex)
   {
@@ -98,6 +104,7 @@ namespace MFM {
     return false;
   } //isPushed
 
+
   u32 SourceStream::push(std::string filename, bool onlyOnce)
   {
     //map filename to string pool index (u32)
@@ -105,7 +112,9 @@ namespace MFM {
 
     // if the given filename has been push'ed before, return true
     if(onlyOnce && isPushed(findex))
-      return 0;
+      {
+	return 0;
+      }
 
     if(!m_fileManager)
       {
@@ -131,65 +140,22 @@ namespace MFM {
     // get string pool index for the full file path
     u32 fullindex = m_state.m_pool.getIndexForDataString(fullpath);
 
-    // register new filename if necessary, get index, stash file record
-    filerec frec;
-    u16 newid;
-    std::map<u32,u16>::iterator it = m_registeredFilenames.find(findex);
-
-    if(it == m_registeredFilenames.end())
-    {
-      newid = m_registeredFilenames.size() + 1;
-      frec.init(newid, fp, findex, fullindex);
-      m_fileRecords.push_back(frec);  // at position id - 1; init to 0,0
-      m_registeredFilenames.insert(std::pair<u32,u16> (findex,newid));
-    }
-    else 
-    {
-      // already registered file is okay unless onlyOnce
-      assert(!onlyOnce);
-      newid = it->second;
-      frec.init(newid, fp, findex, fullindex);
-      m_fileRecords[newid] = frec;  // reopened at previous position?
-    }
-
+    // register new filename
     // push fp onto stack of open fp's
     // suspends reading whatever it is currently reading
+    u16 newid = m_registeredFilenames.size() + 1;
+    assert(newid == m_fileRecords.size());
+
+    m_registeredFilenames.insert(std::pair<u32,u16> (findex,newid));
     m_openFilesStack.push(newid);
+
+    filerec frec;
+    frec.init(newid, fp, findex, fullindex);
+    m_fileRecords.push_back(frec);  // at position id - 1; init to 0,0
 
     return 0;
   } //push
 
-  u32 SourceStream::exists(std::string filename)
-  {
-    //map filename to string pool index (u32)
-    u32 findex = m_state.m_pool.getIndexForDataString(filename);
-
-    // if the given filename has been push'ed before, return true
-    if(isPushed(findex))
-      return 0;
-
-    if(!m_fileManager)
-      {
-	std::ostringstream errmsg;
-	errmsg << "FileManager not found";
-	u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
-	return idx; //FM no good
-      }
-
-    // attempt to open filename for reading; return false if failed.
-    std::string fullpath;
-    File * fp = m_fileManager->open(filename, READ, fullpath);
-    if(fp == NULL)
-      {
-	std::ostringstream errmsg;
-	errmsg << "Couldn't open file <" << filename << "> errno=";
-	errmsg << errno << " " << strerror(errno);
-	u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
-	return idx; //couldn't open the file
-      }
-    delete fp;
-    return 0;
-  } //exists
 
   bool SourceStream::discardTop()
   {
@@ -203,11 +169,13 @@ namespace MFM {
     return true;
   } //discardTop
 
+
   const std::string SourceStream::getPathFromLocator(Locator & loc) const
   {
     u32 idx = loc.getPathIndex();
     return m_state.m_pool.getDataAsString(idx);
   }
+
 
   Locator SourceStream::getLocator() const
   {
@@ -216,16 +184,22 @@ namespace MFM {
     if (m_openFilesStack.empty())
       {
 	if(m_fileRecords.size() > 1)
-	  return m_fileRecords[1].m_loc;
+	  {
+	    return m_fileRecords[1].m_loc;
+	  }
 	else
-	  return m_fileRecords[0].m_loc; //invalid locator w id 0
+	  {
+	    return m_fileRecords[0].m_loc; //invalid locator w id 0
+	  }
       }
 
     u16 id = m_openFilesStack.top();
 
     // if top has not yet been read, return the previous one
     if(m_fileRecords[id].m_fp != NULL && ((Locator) m_fileRecords[id].m_loc).hasNeverBeenRead())
-      return m_lastReadLoc;
+      {
+	return m_lastReadLoc;
+      }
 
     // If the most recent call to read() returned an error, return the
     //	locator of the File that had the error. Still on stack.
@@ -235,17 +209,20 @@ namespace MFM {
     return m_fileRecords[id].m_loc;
   } //getLocator
 
+
   u16 SourceStream::getLineNumber() const
   {
     Locator lloc = getLocator();
     return lloc.getLineNo();
-  }
+}
+
 
   u16 SourceStream::getByteNumberInLine() const
   {
     Locator lloc = getLocator();
     return lloc.getByteNo();
   }
+
 
   u32 SourceStream::getFileUlamVersion() const
   {
@@ -254,15 +231,20 @@ namespace MFM {
     if (m_openFilesStack.empty())
       {
 	if(m_fileRecords.size() > 1)
-	  return m_fileRecords[1].m_version;
+	  {
+	    return m_fileRecords[1].m_version;
+	  }
 	else
-	  return 0;
+	  {
+	    return 0;
+	  }
       }
 
     u16 id = m_openFilesStack.top();
 
     return m_fileRecords[id].m_version;
   } //getFileUlamVersion
+
 
   void SourceStream::setFileUlamVersion(u32 ver)
   {
@@ -271,13 +253,19 @@ namespace MFM {
     if (m_openFilesStack.empty())
       {
 	if(m_fileRecords.size() > 1)
-	  m_fileRecords[1].m_version = ver;
+	  {
+	    m_fileRecords[1].m_version = ver;
+	  }
 	else
-	  return; //error!
+	  {
+	    //error!
+	    return;
+	  }
       }
     u16 id = m_openFilesStack.top();
     m_fileRecords[id].m_version = ver;
   } //setFileUlamVersion
+
 
   bool SourceStream::getFileIdFromLocator(Locator loc, u32& idref)
   {
@@ -294,11 +282,14 @@ namespace MFM {
     return brtn;
   } //getFileIdFromLocator
 
+
   std::string SourceStream::getLineOfTextAsString(u32 id) const
   {
     assert(id > 0 && id < m_fileRecords.size());
+
     return m_fileRecords[id].getLineOfText();
   } //getLineOfTextAsString
+
 
   void SourceStream::updateLineOfText(u32 id, char c)
   {

@@ -1,0 +1,33 @@
+## -*- mode:ulam -*-
+#=t3168_test_compiler_unaryarraysubtract
+#!
+./A.ulam:10:10: ERROR: Incompatible (nonscalar) types Unary(3)[2] and Unary(3)[2] for binary operator- ; Suggest writing a loop.
+./A.ulam:10:6: ERROR: Assignment is invalid; LHS: Unary(3)[2]; RHS: erroneous.
+./A.ulam:12:6: ERROR: Use explicit cast to convert Unsigned(3) to Unary(3) for operator=.
+./A.ulam:1:9: ERROR: 3 Nodes with erroneous types detected after type labeling class: A.
+Unrecoverable Program Type Label FAILURE.
+##
+#>A.ulam
+element A {
+ typedef Unary(3) Mu[2];
+ Mu a, b, c;
+ Unary(3) x, y, z;
+ Int test() {
+   a[0] = 2;
+   a[1] = 1;
+   b[0] = 3;
+   b[1] = 1;
+   c = a - b;
+   x = 2; y = 3;
+   z = x - y;
+   return c[0];
+ }
+}
+##
+##      //exercises, append in NodeBinaryOpAdd;
+##      //
+##      //bool rtn1 = fms->add("A.ulam","element A { typedef Unary(3) Mu[2]; Mu a, b, c; use test;  a[0] = 2; a[1] = 1; b[0] = 3; b[1] = 1; c = a - b; return c[0]; } }");
+##
+##      // does it matter if they are scalars or arrays operated on?
+##
+#.

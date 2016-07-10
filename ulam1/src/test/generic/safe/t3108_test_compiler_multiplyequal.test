@@ -5,19 +5,17 @@ Exit status: 3
 Ue_A { Int(3) b(3);  System s();  Bool(1) l(false);  Int(3) a(3);  Int(32) test() {  a 2 = b 3 = a b *= s ( a )print . a cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
-  ulam 1;
 use System;
-element A {
-  System s;
-  Bool l;
-  Int(3) a, b;
-  Int test() {
-    a = 2;
-    b = 3;
-    a*=b;
-    s.print(a);
-    return a;
-  }
+element A {System s;
+Bool l;
+Int(3) a, b;
+Int test() {
+a = 2;
+b = 3;
+a*=b;
+s.print(a);
+return a;
+}
 }
 ## test system quark with native overloaded print funcs; assert
 #:System.ulam

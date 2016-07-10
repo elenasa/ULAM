@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeConstantDef.h - Node handling Constant Definition for ULAM
  *
- * Copyright (C) 2015-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2016 Ackleyshack LLC.
+ * Copyright (C) 2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeConstantDef.h - Node handling Constant Definition for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2016 All rights reserved.
+  \date (C) 2015 All rights reserved.
   \gpl
 */
 
@@ -61,8 +61,6 @@ namespace MFM{
 
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
-    virtual void checkAbstractInstanceErrors();
-
     virtual void printPostfix(File * f);
 
     virtual const char * getName();
@@ -75,11 +73,9 @@ namespace MFM{
 
     u32 getSymbolId();
 
-    bool getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref);
-
     virtual UTI checkAndLabelType();
 
-    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
+    virtual void countNavNodes(u32& cnt);
 
     NNO getBlockNo();
 
@@ -89,13 +85,7 @@ namespace MFM{
 
     void setConstantExpr(Node * node);
 
-    bool hasConstantExpr();
-
-    UTI foldConstantExpression();
-
-    virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
-
-    virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
+    bool foldConstantExpression();
 
     void fixPendingArgumentNode();
 
@@ -105,11 +95,7 @@ namespace MFM{
 
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 
-    virtual void printUnresolvedVariableDataMembers();
-
-    virtual void printUnresolvedLocalVariables(u32 fid);
-
-    virtual void genCode(File * fp, UVPass& uvpass);
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
@@ -123,6 +109,10 @@ namespace MFM{
   private:
     NNO m_currBlockNo;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
+
+    bool updateConstant(u64 & newconst);
+    bool updateConstant32(u64 & newconst);
+    bool updateConstant64(u64 & newconst);
   };
 
 } //MFM

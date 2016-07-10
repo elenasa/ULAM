@@ -6,32 +6,33 @@
 ##	Unsigned Arg: 0
 ##      */
 Exit status: 1
-Ue_A { Unary(3) b(1u);  System s();  Unary(3) a(2u);  Unary(3) c(1u);  Unsigned(2) e(2u);  Unsigned(2) f(1u);  Unsigned(2) g(0u);  Int(32) test() {  a e 2 cast = cast = b f 1 cast = cast = c a cast b cast & cast = s ( c )print . g e cast f cast & cast = s ( g cast )print . c cast return } }
+Ue_A { Unary(3) b(1);  System s();  Unary(3) a(2);  Unary(3) c(1);  Unsigned(2) e(2);  Unsigned(2) f(1);  Unsigned(2) g(0);  Int(32) test() {  a e 2 cast = cast = b f 1 cast = cast = c a cast b cast & cast = s ( c )print . g e cast f cast & cast = s ( g cast )print . c cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
-  ulam 1;
 use System;
 element A {
-  System s;
-  Unary(3) a, b, c;
-  Unsigned(2) e, f, g;
-  Int test() {
-    a = e = 2;
-    b = f = 1;
-    c = (Unary(3)) (a & b);
-    s.print(c);
-    g = (Unsigned(2)) (e & f);
-    s.print(g);
-    return c;
-  }
-}
+System s;
+Unary(3) a, b, c;
+ Unsigned(2) e, f, g;
+ use test;
+  a = e = 2;
+ b = f = 1;
+ c = (Unary(3)) (a & b);
+s.print(c);
+g = (Unsigned(2)) (e & f);
+s.print((Unsigned) g);
+ return c;
+ }
+ }
 
 ##      // need explicit casting for bitwise op. Note: implicit cast ok returning Unary(3) as Int.
 ##      // a is 2 bits; b is 1 bit; a & b = 1 bit as Unary.3 (c); notice as Int.3 (g), 2 & 1 = 0
 ##
 ##      //./A.ulam:9:20: ERROR: Use explicit cast to convert Unary(3) and Unary(3) to Bits(2) for binary operator&.
+#:test.ulam
+Int test() {
 #:System.ulam
-  ulam 1;
+ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

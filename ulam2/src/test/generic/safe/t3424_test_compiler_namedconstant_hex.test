@@ -1,0 +1,25 @@
+## -*- mode:ulam -*-
+#=t3424_test_compiler_namedconstant_hex
+#!
+Exit status: 0
+Ue_A { Int(32) test() {  constant Unsigned(8) c255 = 255u;  constant Unsigned(8) c225 = 225u;  constant Unsigned(8) c136 = 136u;  constant Unsigned(8) c59 = 59u;  constant Unsigned(8) c14 = 14u;  constant Unsigned(8) c13 = 13u;  constant Unsigned(8) c12 = 12u;  constant Unsigned(8) c1 = 1u;  constant Unsigned(8) cZ = 0u;  0 cast return } }
+##
+##      // one or two hex digits (0 - 9, A-Z, a-z)
+#>A.ulam
+  ulam 1;
+element A{
+  Int test () {
+    constant Unsigned(8) c255 = '\xFf';
+    constant Unsigned(8) c225 = '\xE1';
+    constant Unsigned(8) c136 = '\x88';
+    constant Unsigned(8) c59 = '\x3b';
+    constant Unsigned(8) c14 = '\xE';
+    constant Unsigned(8) c13 = '\xd';
+    constant Unsigned(8) c12 = '\xC';
+    constant Unsigned(8) c1 = '\x01';
+    constant Unsigned(8) cZ = '\x0';
+    return 0;
+  }
+}
+
+#.

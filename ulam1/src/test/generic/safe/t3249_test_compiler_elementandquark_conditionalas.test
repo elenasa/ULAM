@@ -1,34 +1,37 @@
 ## -*- mode:ulam -*-
 #=t3249_test_compiler_elementandquark_conditionalas
+##      //Foo.ulam:14:7: fyi: Invalid type for LHS of conditional operator 'as', <Atom.96.-1>; Passing through as UNFOUND for eval.
 ##
-## unevaluable without assuming atoms as elements
+##      // no cast before cond
 #!
-Exit status: 1
-Ue_Foo : Counter4 { :< Int(32) d(0); > Bool(3) bi(true);  Bool(3) bh(true);  Int(32) e(1);  Int(32) test() {  Foo f;  Atom(96) a = f cast;  { a Foo as cond { Foo& a;  a bi . true cast = bi true cast = } if } { f Counter4 as cond { Counter4& f;  bh true cast = f ( )incr . e f ( )get . = } if } e return } }
+Exit status: 0
+Ue_Foo { Bool(1) sp(false);  Bool(3) bi(false);  Bool(3) bh(false);  Counter4 m_c4( Int(32) d(0); );  Int(32) e(0);  Int(32) test() {  Atom(96) a;  Foo f;  Bool(1) b;  a Foo as cond { Foo a;  a bi . true cast = } if a f cast = a Counter4 as cond { Counter4 a;  bh true cast = a ( )incr . e a ( )get . = } if { bh false cast = } else e return } }
 Uq_Counter4 { Int(32) d(0);  <NOMAIN> }
 #>Foo.ulam
-  ulam 2;
 use Counter4;
-element Foo : Counter4 {
-  Bool(3) bi, bh;
-  Int e;
-  Int test(){
-    Foo f;
-    Atom a = f; //easy
-    if(a as Foo)
-    {
-      a.bi = true;
-      bi = true;
-    }
-
-    if(f as Counter4){
-      bh = true;
-      f.incr();
-      e=f.get();
-    }
-    return e;
-  }
+element Foo {
+Bool sp;
+ Bool(3) bi, bh;
+ Counter4 m_c4;
+ Int e;
+ Int test(){
+ Atom a;
+ Foo f;
+ Bool b;
+if(a as Foo)
+a.bi = true;
+ a = f; //easy
+ if(a as Counter4){
+ bh = true;
+ a.incr();
+ e=a.get();
+ }
+ else {
+ bh = false;
 }
+return e;
+}
+ }
 
 ##    //no else case:
 ##      //bool rtn1 = fms->add("Foo.ulam","use Counter4;\nelement Foo {\nBool sp;\n Bool(3) bi, bh;\n Counter4 m_c4;\n Int e;\n Int test(){\n Atom a;\n Foo f;\n Bool b;\n a = f; //easy\n if(a as Counter4){\n bi = true;\n a.incr();\n e=a.get();\n }\nreturn e;\n}\n }\n");
@@ -37,14 +40,14 @@ element Foo : Counter4 {
 ##      //bool rtn1 = fms->add("Foo.ulam","use Counter4;\nelement Foo {\nBool sp;\n Bool(3) bi, bh;\n Counter4 m_c4;\n Int e;\n Int test(){\n Atom a;\n Foo f;\n Bool b;\n a = f; //easy\n if(a as Counter4)\na.incr();\nreturn e;\n}\n }\n");
 ##
 #:Counter4.ulam
-  ulam 2;
+ulam 1;
 quark Counter4 {
-  Int d;
-  Void incr(){
-    d+=1;
-  }
-  Int get(){
-    return d;
-  }
+Int d;
+Void incr(){
+d+=1;
 }
+Int get(){
+return d;
+}
+ }
 #.

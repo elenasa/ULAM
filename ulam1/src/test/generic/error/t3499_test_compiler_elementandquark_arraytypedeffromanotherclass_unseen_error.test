@@ -1,12 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3499_test_compiler_elementandquark_arraytypedeffromanotherclass_unseen_error
 #!
-./Vector.ulam:3:26: ERROR: Possible Divide By Zero Attempt.
-./Vector.ulam:3:26: ERROR: Constant value expression for binary op/ is erroneous while compiling class: Vector(2u).
-./Vector.ulam:3:9: ERROR: Type Bitsize specifier, within (), is not ready.
-./R.ulam:4:10: ERROR: 6 Nodes with erroneous types detected after type labeling class: R.
-./R.ulam:4:10: ERROR: 72 Nodes with unresolved types detected after type labeling class: R.
-Unrecoverable Program Type Label FAILURE.
+##
+##./Vector.ulam:3:26: ERROR: Possible Divide By Zero Attempt.
+##
+Exit status: 12
+Ue_R { Int(32) test() {  TypedefIssue(2u) ish;  ish ( )foo2 . return } }
+Ue_TypedefIssue { constant Unsigned(32) tif = NONREADYCONST;  typedef 0Holder(UNKNOWN) Symmetry;  0Holder(UNKNOWN) x(0Holder(UNKNOWN));  Bool(1) b(false);  Vector(vec) t( constant Unsigned(32) vec = NONREADYCONST; );  <NOMAIN> }
+Uq_Vector { typedef Unsigned(UNKNOWN) Symmetry[UNKNOWN];  Unsigned(UNKNOWN) m[UNKNOWN](0);  constant Unsigned(32) vec = NONREADYCONST;  typedef Unsigned(UNKNOWN) Channel;  <NOMAIN> }
 #>R.ulam
 ulam 1;
  use TypedefIssue;

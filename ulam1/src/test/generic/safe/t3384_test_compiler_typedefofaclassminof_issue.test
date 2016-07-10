@@ -6,43 +6,39 @@
 ##      //							    ERROR: No parse tree for This Class: Ish2.
 ##
 Exit status: 7
-Ue_R { Ish3 ish( Colony(3u) colony( constant Unsigned(32) widthc = 3u;  typedef Telomeree(3u) Telo; ); );  Int(32) test() {  ish colony ( )foo . . cast return } }
-Uq_Ish3 { Colony(3u) colony( typedef Telomeree(3u) Telo; );  <NOMAIN> }
-Uq_Colony(Unsigned(32) widthc) { typedef Telomeree(width) Telo;  <NOMAIN> }
-Uq_Telomeree(Unsigned(32) width) { typedef Unsigned(UNKNOWN) Tail;  Unsigned(UNKNOWN) age(notready);  <NOMAIN> }
+Ue_R { Ish3 ish( Colony(3u) colony( constant Unsigned(32) widthc = 3;  typedef Telomeree(3u) Telo; ); );  Int(32) test() {  ish colony ( )foo . . cast return } }
+Uq_Ish3 { Colony(3u) colony( constant Unsigned(32) widthc = 3;  typedef Telomeree(3u) Telo; );  <NOMAIN> }
+Uq_Colony { constant Unsigned(32) widthc = NONREADYCONST;  typedef Telomeree(width) Telo;  <NOMAIN> }
+Uq_Telomeree { constant Unsigned(32) width = NONREADYCONST;  typedef Unsigned(UNKNOWN) Tail;  Unsigned(UNKNOWN) age(0);  <NOMAIN> }
 ##
 ##       // likes Telomeree first!
 #>R.ulam
-  ulam 1;
-//use Ish3;
-element R{
+use Ish3;
+  element R{
   Ish3 ish;
-  Int test() {
-    return (Int) ish.colony.foo();
-  }
+ Int test() {
+ return (Int) ish.colony.foo();
+}
 }
 #:Colony.ulam
-  ulam 1;
-//use Telomeree;
-quark Colony(Unsigned widthc){
-  typedef Telomeree(widthc) Telo;
-  Unsigned foo() {
-    return Telo.Tail.maxof;
-  }
+use Telomeree;
+ quark Colony(Unsigned widthc){
+ typedef Telomeree(widthc) Telo;
+ Unsigned foo() {
+ return Telo.Tail.maxof;
+ }
 }
 
 #:Ish3.ulam
-  ulam 1;
-//use Colony;
+use Colony;
 quark Ish3{
-  Colony(3) colony;
+Colony(3) colony;
 }
 
 #:Telomeree.ulam
-  ulam 1;
 quark Telomeree(Unsigned width){
-  typedef Unsigned(width) Tail;
-  Tail age;
+ typedef Unsigned(width) Tail;
+ Tail age;
 }
 ##      //bool rtn3 = fms->add("R.ulam", "use Telomeree;\n use Colony;\n use Ish3;\n  element R{\nIsh3 ish;\n Int test() { return 0;\n}\n}");
 ##      //      bool rtn3 = fms->add("R.ulam", "use Ish3;\n  element R{\nIsh3 ish;\n Int test() { return 0;\n}\n}");

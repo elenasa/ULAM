@@ -1,6 +1,6 @@
 /*                                              -*- mode:C++ -*-
   itype.h Short names for sized ints, and limits
-  Copyright (C) 2008-2016 The Regents of the University of New Mexico.  All rights reserved.
+  Copyright (C) 2008-2014 The Regents of the University of New Mexico.  All rights reserved.
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,7 @@
 /**
   \file itype.h Short names for sized ints, and limits
   \author David H. Ackley.
-  \date (C) 2008-2016 All rights reserved.
+  \date (C) 2014 All rights reserved.
   \lgpl
  */
 #ifndef ITYPE_H
@@ -94,9 +94,10 @@ typedef volatile const uintptr_t uvcptr; /**< Unsigned volatile const type the s
 #define U16_MIN    ((u16)0)            /**< Minimum value of unsigned 16 bit */
 #define U32_MAX    ((u32)4294967295UL) /**< Maximum value of unsigned 32 bit */
 #define U32_MIN    ((u32)0)            /**< Minimum value of unsigned 32 bit */
-#define U64_MAX    ((((u64)0xffffffff)<<32)|0xffffffff) /**< Maximum value of unsigned 64 bit */
+#define U64_MAX    ((((u64)0xffffffff)<<32)|0xffffffff) /**< Maximum value of unsigned 64 bit */ 
                                        /* U64_MAX hacked with an expression to avoid C99ish syntax.. */
 #define U64_MIN    ((u64)0LL)          /**< Minimum value of unsigned 64 bit */
 } /* namespace MFM */
 
 #endif  /* ITYPE_H */
+

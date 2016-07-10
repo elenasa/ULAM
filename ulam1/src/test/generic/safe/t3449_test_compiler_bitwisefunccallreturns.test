@@ -2,28 +2,28 @@
 #=t3449_test_compiler_bitwisefunccallreturns
 #!
 Exit status: 5
-Ue_T { typedef Unary(7) B;  typedef Bits(7) C;  Unary(7) m(5u);  Unary(7) n(2u);  Unary(7) r(5u);  Unary(7) a(2u);  Unary(7) h(3u);  Int(32) test() {  m ( )func1 = n ( )func2 = r ( )func1 cast ( )func2 cast | cast = a ( )func1 cast ( )func2 cast & cast = h ( )func1 cast ( )func2 cast ^ cast = r cast return } }
+Ue_T { typedef Bits(7) T;  typedef Unary(7) B;  Unary(7) m(5);  Unary(7) n(2);  Unary(7) r(5);  Unary(7) a(2);  Unary(7) h(3);  Int(32) test() {  m ( )func1 = n ( )func2 = r ( )func1 cast ( )func2 cast | cast = a ( )func1 cast ( )func2 cast & cast = h ( )func1 cast ( )func2 cast ^ cast = r cast return } }
 #>T.ulam
-  ulam 1;
-element T{
-  typedef Unary(7) B;
-  typedef Bits(7) C;
-  B m,n,r,a,h;
-  B func1() {
-    return '\5';
-  }
-  B func2() {
-    return '\2';
-  }
-  Int test(){
-    m = func1();
-    n = func2();
-    r =  (B) ((C) func1() | (C) func2());
-    a =  (B) ((C)func1() & (C)func2());
-    h = (B) ((C) func1() ^ (C) func2());
-    return r;
-  }
+ ulam 1;
+ element T{
+ typedef Unary(7) B;
+ typedef Bits(7) T;
+ B m,n,r,a,h;
+ B func1() {
+ return '\5';
 }
+ B func2() {
+ return '\2';
+}
+ Int test(){
+ m = func1();
+ n = func2();
+ r =  (B) ((T) func1() | (T) func2());
+ a =  (B) ((T)func1() & (T)func2());
+ h = (B) ((T) func1() ^ (T) func2());
+ return r;
+}
+ }
 
 ##
 ##      //explicit cast to Bits(7), T.

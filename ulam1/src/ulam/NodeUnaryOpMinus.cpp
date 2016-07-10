@@ -35,12 +35,6 @@ namespace MFM {
 
   UTI NodeUnaryOpMinus::calcNodeType(UTI uti)
   {
-    if(uti == Nav)
-      return Nav;
-
-    if(!m_state.isComplete(uti))
-      return Hzy;
-
     if(!NodeUnaryOp::checkForPrimitiveType(uti))
       return Nav; //outputs error msg
 
@@ -49,9 +43,11 @@ namespace MFM {
 
     s32 newbs = NodeUnaryOp::resultBitsize(uti);
     UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Int"), newbs);
-    UTI newType = m_state.makeUlamType(newkey, Int, UC_NOTACLASS);
+    UTI newType = m_state.makeUlamType(newkey, Int);
 
-    checkSafeToCastTo(getNodeType(), newType); //Nav, Hzy, or no change; outputs err msg
+    if(!NodeUnaryOp::checkSafeToCastTo(newType))
+      newType = Nav; //outputs error msg
+
     return newType;
   } //calcNodeType
 

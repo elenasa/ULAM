@@ -8,45 +8,44 @@
 ##      */
 ##      //eval self doesn't reflect correctly (see gen output): is an atom for quark's function call hidden arg
 ##
-Exit status: 1
-Ue_Foo { System s();  IntXY(3u,4u) n( constant Unsigned(32) xbits = 3u;  constant Unsigned(32) ybits = 4u;  typedef Int(3) XCoord;  typedef Int(4) YCoord;  Int(3) x(1);  Int(4) y(2); );  Int(32) test() {  n ( 1 cast 2 cast )init . Int(32) i = ( n )func;  s ( i )print . s ( n x . )print . i return } }
-Uq_IntXY(Unsigned(32) xbits, Unsigned(32) ybits) { typedef Int(UNKNOWN) XCoord;  typedef Int(UNKNOWN) YCoord;  Int(UNKNOWN) x(notready);  Int(UNKNOWN) y(notready);  <NOMAIN> }
+Exit status: 0
+Ue_Foo { System s();  IntXY(3u,4u) n( constant Unsigned(32) xbits = 3;  constant Unsigned(32) ybits = 4;  typedef IntXY(3u,4u) Self;  typedef Int(3) XCoord;  typedef Int(4) YCoord;  Int(3) x(1);  Int(4) y(2); );  Int(32) test() {  n ( 1 cast 2 cast )init . Int(32) i;  i ( self cast )func = s ( i )print . s ( n x . )print . i return } }
+Uq_IntXY { constant Unsigned(32) xbits = NONREADYCONST;  constant Unsigned(32) ybits = NONREADYCONST;  typedef IntXY(xbits,ybits) Self;  typedef Int(UNKNOWN) XCoord;  typedef Int(UNKNOWN) YCoord;  Int(UNKNOWN) x(0);  Int(UNKNOWN) y(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 #>Foo.ulam
-  ulam 1;
+ulam 1;
 use IntXY;
 use System;
-element Foo {
-  System s;
-  IntXY(3u,4u) n;
-  Int func(IntXY(3u,4u) arg) {
-    return arg.x;
-  }
-  Int test() {
-    n.init(1,2);
-    //    Int i = func((IntXY(3,4)) self);
-    Int i = func(n);
-    s.print(i);
-    s.print(n.x);
-    return i;
-  }
+ element Foo {
+System s;
+ IntXY(3u,4u) n;
+ Int func(IntXY(3,4) arg) {
+ return arg.x;
 }
+ Int test() {
+ n.init(1,2);
+ Int i = func((IntXY(3,4)) self);
+ s.print(i);
+ s.print(n.x);
+ return i;
+}
+ }
 
 #:IntXY.ulam
-  ulam 1;
+ulam 1;
 quark IntXY(Unsigned xbits, Unsigned ybits) {
-  //  typedef IntXY(xbits, ybits) Self;
-  typedef Int(xbits) XCoord;
-  typedef Int(ybits) YCoord;
-  XCoord x;
-  YCoord y;
+ typedef IntXY(xbits, ybits) Self;
+ typedef Int(xbits) XCoord;
+ typedef Int(ybits) YCoord;
+ XCoord x;
+ YCoord y;
   Void init(Int ax, Int ay) {
-    x = (XCoord) ax;
-    y = (YCoord) ay;
-    if(x == x.minof) ++x;
-    if(y == y.minof) ++y;
-  }
+ x = (XCoord) ax;
+ y = (YCoord) ay;
+ if(x == x.minof) ++x;
+ if(y == y.minof) ++y;
 }
+  }
 #:System.ulam
 ulam 1;
 quark System {

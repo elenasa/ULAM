@@ -2,8 +2,8 @@
 /**                                        -*- mode:C++ -*-
  * TypeArgs.h - Type Arguments for ULAM
  *
- * Copyright (C) 2015-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2016 Ackleyshack LLC.
+ * Copyright (C) 2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -28,9 +28,9 @@
 
 /**
   \file TypeArgs.h - Type Arguments for ULAM
-  \author Elena S. Ackley.
+  \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2016 All rights reserved.
+  \date (C) 2015 All rights reserved.
   \gpl
 */
 
@@ -39,6 +39,7 @@
 
 #include "Constants.h"
 #include "Token.h"
+#include "UlamType.h"
 
 namespace MFM{
 
@@ -51,9 +52,6 @@ namespace MFM{
     UTI m_anothertduti;
     UTI m_declListOrTypedefScalarType;
     bool m_assignOK;
-    bool m_isStmt;
-    ALT m_declRef;
-    UTI m_referencedUTI;
 
     TypeArgs();
     TypeArgs(const TypeArgs& tref);
@@ -61,7 +59,6 @@ namespace MFM{
 
     void init(Token typetoken);
     TypeArgs& operator=(const TypeArgs& tref);
-    void setdeclref(Token ftoken, UTI referencedType);
   };
 
 } //MFM

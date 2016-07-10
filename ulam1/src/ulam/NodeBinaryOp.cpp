@@ -54,21 +54,13 @@ namespace MFM {
     return false;
   } //findNodeNo
 
-  void NodeBinaryOp::checkAbstractInstanceErrors()
-  {
-      m_nodeLeft->checkAbstractInstanceErrors();
-      m_nodeRight->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
-
   void NodeBinaryOp::print(File * fp)
   {
     printNodeLocation(fp);
     UTI myut = getNodeType();
     char id[255];
-    if((myut == Nav) || (myut == Nouti))
+    if(myut == Nav)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
-    else if(myut == Hzy)
-      sprintf(id,"%s<HAZYTYPE>\n", prettyNodeName().c_str());
     else
       sprintf(id,"%s<%s>\n",prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
@@ -121,12 +113,6 @@ namespace MFM {
     return false;
   }
 
-  bool NodeBinaryOp::isFunctionCall()
-  {
-    assert(m_nodeLeft && m_nodeRight);
-    return m_nodeLeft->isFunctionCall() || m_nodeRight->isFunctionCall();
-  }
-
   FORECAST NodeBinaryOp::safeToCastTo(UTI newType)
   {
     //ulamtype checks for complete, non array, and type specific rules
@@ -142,25 +128,28 @@ namespace MFM {
 
     // efficiency bites! no sooner, need left and right side-effects
     // (e.g. NodeControl condition is Bool at start; stubs need Symbol ptrs)
-    if(m_state.isComplete(getNodeType()))
+    if(getNodeType() != Nav)
       return getNodeType();
 
-    UTI newType = calcNodeType(leftType, rightType); //does safety check
+    UTI newType = Nav;
+
+    if(m_state.isComplete(leftType) && m_state.isComplete(rightType))
+      newType = calcNodeType(leftType, rightType); //does safety check
 
     setNodeType(newType);
-    Node::setStoreIntoAble(TBOOL_FALSE);
+    setStoreIntoAble(false);
 
-    if(m_state.isComplete(newType))
+    if(newType != Nav && m_state.isComplete(newType))
       {
-	if(UlamType::compareForMakingCastingNode(newType, leftType, m_state) != UTIC_SAME) //not same, or dontknow
+	if(UlamType::compare(newType, leftType, m_state) != UTIC_SAME) //not same, or dontknow
 	  {
-	    if(!Node::makeCastingNode(m_nodeLeft, newType, m_nodeLeft))
+	    if(!makeCastingNode(m_nodeLeft, newType, m_nodeLeft))
 	      newType = Nav;
 	  }
 
-	if(UlamType::compareForMakingCastingNode(newType, rightType, m_state) != UTIC_SAME) //not same, or dontknow
+	if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME) //not same, or dontknow
 	  {
-	    if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
+	    if(!makeCastingNode(m_nodeRight, newType, m_nodeRight))
 	      newType = Nav;
 	  }
       }
@@ -168,7 +157,7 @@ namespace MFM {
     //before constant folding; if needed (e.g. Remainder, Divide)
     castThyselfToResultType(rightType, leftType, newType);
 
-    if((newType != Nav) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+    if(newType != Nav && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
       return constantFold();
 
     return newType;
@@ -179,12 +168,12 @@ namespace MFM {
     return newType; //noop
   }
 
-  bool NodeBinaryOp::checkSafeToCastTo(UTI unused, UTI& newType)
+  bool NodeBinaryOp::checkSafeToCastTo(UTI newType)
   {
     bool rtnOK = true;
     FORECAST lsafe = m_nodeLeft->safeToCastTo(newType);
     FORECAST rsafe = m_nodeRight->safeToCastTo(newType);
-    if(lsafe != CAST_CLEAR || rsafe != CAST_CLEAR )
+    if( lsafe != CAST_CLEAR || rsafe != CAST_CLEAR )
       {
 	std::ostringstream msg;
 	if(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Bool)
@@ -211,10 +200,7 @@ namespace MFM {
   bool NodeBinaryOp::checkForPrimitiveTypes(UTI lt, UTI rt)
   {
     bool rtnOK = true;
-    UlamType * lut = m_state.getUlamTypeByIndex(lt);
-    bool lqint = (lut->getUlamClassType() == UC_QUARK) && m_state.quarkHasAToIntMethod(lt);
-    // for binary ops: check for quark with toInt method;
-    if(!lut->isPrimitiveType() && !lqint)
+    if(!m_state.getUlamTypeByIndex(lt)->isPrimitiveType())
       {
 	std::ostringstream msg;
 	msg << "Non-primitive type <";
@@ -225,9 +211,7 @@ namespace MFM {
 	rtnOK = false;
       }
 
-    UlamType * rut = m_state.getUlamTypeByIndex(rt);
-    bool rqint = (rut->getUlamClassType() == UC_QUARK) && m_state.quarkHasAToIntMethod(rt);
-    if(!rut->isPrimitiveType() && !rqint)
+    if(!m_state.getUlamTypeByIndex(rt)->isPrimitiveType())
       {
 	std::ostringstream msg;
 	msg << "Non-primitive type <";
@@ -321,114 +305,107 @@ namespace MFM {
 
   void NodeBinaryOp::resultBitsizeCalc(UTI lt, UTI rt, s32& lbs, s32&rbs, s32&lwordsize)
   {
-    // types are either unsigned or signed (unary as unsigned)
-    ULAMTYPE ltypEnum;
-    calcBitsizeForResult(lt, lbs, lwordsize, ltypEnum);
-    ULAMTYPE rtypEnum;
-    s32 rwordsize = 0;
-    calcBitsizeForResult(rt, rbs, rwordsize, rtypEnum);
+    UlamType * lut = m_state.getUlamTypeByIndex(lt);
+    UlamType * rut = m_state.getUlamTypeByIndex(rt);
 
-    if(lwordsize != rwordsize)
+    //both sides complete by now!!
+    assert(lut->isComplete() && rut->isComplete());
+
+    // types are either unsigned or signed (unary as unsigned)
+    ULAMTYPE ltypEnum = lut->getUlamTypeEnum();
+    ULAMTYPE rtypEnum = rut->getUlamTypeEnum();
+
+    lbs = lut->getBitSize();
+    rbs = rut->getBitSize();
+    lwordsize = (s32) lut->getTotalWordSize();
+    s32 rwordsize = (s32) rut->getTotalWordSize();
+
+    if(ltypEnum == Class)
       {
-	std::ostringstream msg;
-	msg << "Word sizes incompatible for types ";
-	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
-	msg << " and " << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
-	msg << " for binary operator";
-	msg << getName() << " ; Suggest a cast";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	assert(0);
+	if(lut->isNumericType()) //i.e. a quark
+	  {
+	    lwordsize = lbs = MAXBITSPERINT; //32
+	    ltypEnum = Int; //for mix test
+	  }
       }
+    else if(ltypEnum == Unary)
+      {
+	lbs = (s32) _getLogBase2(lbs) + 1; //fits into unsigned
+	ltypEnum = Unsigned; //for mix test
+      }
+    else //could be Unsigned or Int, not Bits
+      assert(ltypEnum == Unsigned || ltypEnum == Int);
+
+    if(rtypEnum == Class)
+      {
+	if(rut->isNumericType()) //i.e. a quark
+	  {
+	    rwordsize = rbs = MAXBITSPERINT; //32
+	    rtypEnum = Int; //for mix test
+	  }
+      }
+    else if(rtypEnum == Unary)
+      {
+	rbs = (s32) _getLogBase2(rbs) + 1; //fits into unsigned
+	rtypEnum = Unsigned; //for mix test
+      }
+    else //could be Unsigned or Int, not Bits
+      assert(rtypEnum == Unsigned || rtypEnum == Int);
+
+    assert(lwordsize == rwordsize);
 
     // adjust for mixed sign and unsigned types
     if(ltypEnum != rtypEnum && (ltypEnum == Int || rtypEnum == Int))
       {
 	if(ltypEnum != Int)
 	  {
-	    UlamType * lut = m_state.getUlamTypeByIndex(lt);
 	    lbs = lut->bitsizeToConvertTypeTo(Int); //fits into signed
 	    ltypEnum = Int;
 	  }
 	else if(rtypEnum != Int)
 	  {
-	    UlamType * rut = m_state.getUlamTypeByIndex(rt);
 	    rbs = rut->bitsizeToConvertTypeTo(Int); //fits into signed
 	    rtypEnum = Int;
 	  }
       }
   } //resultBitsizeCalc
 
-  void NodeBinaryOp::calcBitsizeForResult(UTI uti, s32& bs, s32&wordsize, ULAMTYPE& typEnum)
-  {
-    UlamType * ut = m_state.getUlamTypeByIndex(uti);
-
-    assert(ut->isComplete());
-
-    // type is either unsigned or signed (unary as unsigned)
-    typEnum = ut->getUlamTypeEnum();
-
-    bs = ut->getBitSize();
-    wordsize = (s32) ut->getTotalWordSize();
-
-    if(typEnum == Class)
-      {
-	if(ut->isNumericType()) //i.e. a quark
-	  {
-	    wordsize = bs = MAXBITSPERINT; //32
-	    typEnum = Int; //for mix test
-	  }
-      }
-    else if(typEnum == Unary)
-      {
-	bs = (s32) _getLogBase2(bs) + 1; //fits into unsigned
-	typEnum = Unsigned; //for mix test
-      }
-    else //could be Unsigned or Int, not Bits
-      assert(typEnum == Unsigned || typEnum == Int);
-  } //calcBitsizeForResult
-
   void NodeBinaryOp::resultBitsizeCalcInBits(UTI lt, UTI rt, s32& lbs, s32&rbs, s32&lwordsize)
   {
-    calcBitsizeForResultInBits(lt, lbs, lwordsize);
-    s32 rwordsize = 0;
-    calcBitsizeForResultInBits(rt, rbs, rwordsize);
-    if(lwordsize != rwordsize)
-      {
-	std::ostringstream msg;
-	msg << "Word sizes incompatible for types ";
-	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
-	msg << " and " << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
-	msg << " for binary operator";
-	msg << getName() << " ; Suggest a cast";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	//assert(0);
-      }
-  } //resultBitsizeCalcInBits
+    UlamType * lut = m_state.getUlamTypeByIndex(lt);
+    UlamType * rut = m_state.getUlamTypeByIndex(rt);
 
-  void NodeBinaryOp::calcBitsizeForResultInBits(UTI uti, s32& bs, s32&wordsize)
-  {
-    UlamType * ut = m_state.getUlamTypeByIndex(uti);
-
-    assert(ut->isComplete());
+    //both sides complete to be here!!
+    assert(lut->isComplete() && rut->isComplete());
 
     // types are either unsigned or signed (unary as-is)
-    ULAMTYPE typEnum = ut->getUlamTypeEnum();
+    ULAMTYPE ltypEnum = lut->getUlamTypeEnum();
+    ULAMTYPE rtypEnum = rut->getUlamTypeEnum();
 
-    bs = ut->getBitSize();
-    wordsize = (s32) ut->getTotalWordSize();
+    lbs = lut->getBitSize();
+    rbs = rut->getBitSize();
+    lwordsize = (s32) lut->getTotalWordSize();
+    s32 rwordsize = (s32) rut->getTotalWordSize();
 
-    if(typEnum == Class)
+    if(ltypEnum == Class)
       {
-	if(ut->isNumericType()) //i.e. a quark
-	  wordsize = bs = MAXBITSPERINT; //32
+	if(lut->isNumericType()) //i.e. a quark
+	  lwordsize = lbs = MAXBITSPERINT; //32
       }
-  } //calcBitsizeForResultInBits
 
-  void NodeBinaryOp::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
+    if(rtypEnum == Class)
+      {
+	if(rut->isNumericType()) //i.e. a quark
+	  rwordsize = rbs = MAXBITSPERINT; //32
+      }
+    assert(lwordsize == rwordsize);
+  } //resultBitsizeCalcInBits
+
+  void NodeBinaryOp::countNavNodes(u32& cnt)
   {
-    Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt); //missing
-    m_nodeLeft->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
-    m_nodeRight->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+    Node::countNavNodes(cnt); //missing
+    m_nodeLeft->countNavNodes(cnt);
+    m_nodeRight->countNavNodes(cnt);
   }
 
   UTI NodeBinaryOp::constantFold()
@@ -437,24 +414,9 @@ namespace MFM {
     UTI nuti = getNodeType();
 
     if(nuti == Nav) return Nav; //nothing to do yet
-    //if(nuti == Hzy) return Hzy; //nothing to do yet TRY?
 
     // if here, must be a constant..
     assert(isAConstant());
-
-    NNO pno = Node::getYourParentNo();
-    assert(pno);
-    Node * parentNode = m_state.findNodeNoInThisClass(pno);
-    if(!parentNode)
-      {
-	std::ostringstream msg;
-	msg << "Constant value expression for binary op" << getName();
-	msg << " cannot be constant-folded at this time while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	msg << " Parent required";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	assert(0); //parent required
-      }
 
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(nuti); //offset a constant expression
@@ -477,23 +439,11 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Constant value expression for binary op" << getName();
-	msg << " is erroneous while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setNodeType(Nav);
-	return Nav;
-      }
-
-    if(evs == NOTREADY)
-      {
-	std::ostringstream msg;
-	msg << "Constant value expression for binary op" << getName();
 	msg << " is not yet ready while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	setNodeType(Hzy);
-	m_state.setGoAgain(); //for compiler counts
-	return Hzy;
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	setNodeType(Nav);
+	return Nav;
       }
 
     //replace ourselves (and kids) with a node terminal; new NNO unlike template's
@@ -501,8 +451,12 @@ namespace MFM {
     assert(newnode);
     newnode->setNodeLocation(getNodeLocation());
 
-    AssertBool swapOk = parentNode->exchangeKids(this, newnode);
-    assert(swapOk);
+    NNO pno = Node::getYourParentNo();
+    assert(pno);
+    Node * parentNode = m_state.findNodeNoInThisClass(pno);
+    assert(parentNode);
+
+    assert(parentNode->exchangeKids(this, newnode));
 
     std::ostringstream msg;
     msg << "Exchanged kids! for binary operator" << getName();
@@ -574,15 +528,12 @@ namespace MFM {
     if((luv.getUlamValueTypeIdx() == Nav) || (ruv.getUlamValueTypeIdx() == Nav))
       return false;
 
-    if((luv.getUlamValueTypeIdx() == Hzy) || (ruv.getUlamValueTypeIdx() == Hzy))
-      return false;
-
     UlamValue rtnUV;
     u32 wordsize = m_state.getTotalWordSize(nuti);
     if(wordsize == MAXBITSPERINT)
       {
-	u32 ldata = luv.getImmediateData(len, m_state);
-	u32 rdata = ruv.getImmediateData(len, m_state);
+	u32 ldata = luv.getImmediateData(len);
+	u32 rdata = ruv.getImmediateData(len);
 	rtnUV = makeImmediateBinaryOp(nuti, ldata, rdata, len);
       }
     else if(wordsize == MAXBITSPERLONG)
@@ -591,13 +542,9 @@ namespace MFM {
 	u64 rdata = ruv.getImmediateDataLong(len);
 	rtnUV = makeImmediateLongBinaryOp(nuti, ldata, rdata, len);
       }
-    else
-      assert(0);
-
+    //    else
+    //  assert(0);
     if(rtnUV.getUlamValueTypeIdx() == Nav)
-      return false;
-
-    if(rtnUV.getUlamValueTypeIdx() == Hzy)
       return false;
 
     m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
@@ -628,9 +575,6 @@ namespace MFM {
     UlamValue lp = UlamValue::makeScalarPtr(lArrayPtr, m_state);
     UlamValue rp = UlamValue::makeScalarPtr(rArrayPtr, m_state);
 
-    u32 navCount = 0;
-    u32 hzyCount = 0;
-
     //make immediate result for each element inside loop
     for(s32 i = 0; i < arraysize; i++)
       {
@@ -646,24 +590,16 @@ namespace MFM {
 	else
 	  {
 	    rtnUV = makeImmediateBinaryOp(scalartypidx, ldata, rdata, bitsize);
-	    if(rtnUV.getUlamValueTypeIdx() == Nav)
-	      navCount++;
-	    else if(rtnUV.getUlamValueTypeIdx() == Hzy)
-	      hzyCount++;
+
 	    //copy result UV to stack, -1 (first array element deepest) relative to current frame pointer
 	    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -slots + i);
 	  }
 
-	AssertBool isNextLeft = lp.incrementPtr(m_state);
-	assert(isNextLeft);
-	AssertBool isNextRight = rp.incrementPtr(m_state);
-	assert(isNextRight);
+	assert(lp.incrementPtr(m_state));
+	assert(rp.incrementPtr(m_state));
       } //forloop
 
-    if(navCount > 0)
-      return false;
-
-    if(hzyCount > 0)
+    if(rtnUV.getUlamValueTypeIdx() == Nav)
       return false;
 
     if(WritePacked(packRtn))
@@ -671,56 +607,70 @@ namespace MFM {
     return true;
   } //dobinaryoparray
 
-  void NodeBinaryOp::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
-  {
-    assert(m_nodeLeft && m_nodeRight);
-    m_nodeLeft->calcMaxDepth(depth, maxdepth, base); //funccall?
-    m_nodeRight->calcMaxDepth(depth, maxdepth, base); //funccall?
-    return; //work done by NodeStatements and NodeBlock
-  }
-
-  void NodeBinaryOp::genCode(File * fp, UVPass& uvpass)
+  void NodeBinaryOp::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
+#ifdef TMPVARBRACES
+    m_state.indent(fp);
+    fp->write("{\n");
+    m_state.m_currentIndentLevel++;
+#endif
+
     //generate rhs first; may update current object globals (e.g. function call)
-    UVPass ruvpass;
+    UlamValue ruvpass;
     m_nodeRight->genCode(fp, ruvpass);
 
     //restore current object globals
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
-    UVPass luvpass;
+    UlamValue luvpass;
     m_nodeLeft->genCode(fp, luvpass); //updates m_currentObjSymbol
 
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
 
-    m_state.indentUlamCode(fp);
+    m_state.indent(fp);
     fp->write("const ");
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
 
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
+    fp->write(m_state.getTmpVarAsString(nuti,tmpVarNum).c_str());
     fp->write(" = ");
 
     fp->write(methodNameForCodeGen().c_str());
     fp->write("(");
-    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+
+    UTI luti = luvpass.getUlamValueTypeIdx();
+    assert(luti == Ptr);
+
+    fp->write(m_state.getTmpVarAsString(luvpass.getPtrTargetType(), luvpass.getPtrSlotIndex()).c_str());
+
     fp->write(", ");
-    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+
+    UTI ruti = ruvpass.getUlamValueTypeIdx();
+    assert(ruti == Ptr);
+    fp->write(m_state.getTmpVarAsString(ruvpass.getPtrTargetType(), ruvpass.getPtrSlotIndex()).c_str());
+
     fp->write(", ");
+
     fp->write_decimal(nut->getTotalBitSize()); //if scalar, it's just the bitsize
-    fp->write(");"); GCNL;
 
-    uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //P
+    fp->write(");\n");
 
+    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0); //P
+
+#ifdef TMPVARBRACES
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n"); //close for tmpVar
+#endif
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode
 
-  void NodeBinaryOp::genCodeToStoreInto(File * fp, UVPass& uvpass)
+  void NodeBinaryOp::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     genCode(fp,uvpass);
   }

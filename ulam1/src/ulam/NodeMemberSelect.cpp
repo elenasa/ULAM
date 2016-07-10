@@ -3,17 +3,11 @@
 
 namespace MFM {
 
-  NodeMemberSelect::NodeMemberSelect(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqual(left,right,state), m_tmprefSymbol(NULL)
-  {
-    Node::setStoreIntoAble(TBOOL_HAZY);
-  }
+  NodeMemberSelect::NodeMemberSelect(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqual(left,right,state) {}
 
-  NodeMemberSelect::NodeMemberSelect(const NodeMemberSelect& ref) : NodeBinaryOpEqual(ref), m_tmprefSymbol(NULL) {}
+  NodeMemberSelect::NodeMemberSelect(const NodeMemberSelect& ref) : NodeBinaryOpEqual(ref) {}
 
-  NodeMemberSelect::~NodeMemberSelect()
-  {
-    delete m_tmprefSymbol;
-  }
+  NodeMemberSelect::~NodeMemberSelect(){}
 
   Node * NodeMemberSelect::instantiate()
   {
@@ -53,72 +47,55 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
 
     UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
-    TBOOL lstor = m_nodeLeft->getStoreIntoAble();
-    if(lstor != TBOOL_TRUE)
+
+    //    if(!m_nodeLeft->isStoreIntoAble())
+    if(m_nodeLeft->isFunctionCall())
       {
-	//e.g. funcCall is not storeintoable even if its return value is.
+	//e.g. funcCall is not storeintoable even if its return
+	//     value is.
 	std::ostringstream msg;
-	msg << "Member selected must be a valid lefthand side: '";
+	msg << "Member selected must be a valid lefthand side, type: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
 	msg << m_nodeLeft->getName();
-	msg << "' requires a variable; may be a casted function call";
-	if(lstor == TBOOL_HAZY)
-	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    setNodeType(Hzy);
-	    m_state.setGoAgain();
-	    return Hzy;
-	  }
-	else
-	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav);
-	    return Nav;
-	  }
-      } //done
-
-    if(!m_state.isComplete(luti))
-      {
-	std::ostringstream msg;
-	msg << "Member selected is incomplete class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
-	msg << ", check and label fails this time around";
-	if(luti == Nav)
-	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav);
-	  }
-	else
-	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    setNodeType(Hzy);
-	    m_state.setGoAgain(); //since no error msg
-	  }
-	return getNodeType();
-      } //done
-
-    UlamType * lut = m_state.getUlamTypeByIndex(luti);
-    ULAMCLASSTYPE classtype = lut->getUlamClassType();
-    if(((classtype == UC_NOTACLASS) && (lut->getUlamTypeEnum() != Holder)) || !lut->isScalar())
-      {
-	// must be a scalar 'Class' type, (e.g. error/t3815)
-	// doesn't complete checkandlabel for rhs (e.g. funccall is NULL, no eval)
-	std::ostringstream msg;
-	msg << "Member selected must be a Class, not type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
-	if(classtype != UC_NOTACLASS)
-	  msg << "[" << lut->getArraySize() << "]";
-	if(m_state.isAtom(luti))
-	  msg << "; suggest using a Conditional-As";
+	msg << " requires a variable; may be a casted function call";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
 	return Nav;
       } //done
 
+    UlamType * lut = m_state.getUlamTypeByIndex(luti);
+    ULAMCLASSTYPE classtype = lut->getUlamClass();
+    if(classtype == UC_NOTACLASS && lut->getUlamTypeEnum() != Holder)
+      {
+	// must be a 'Class' type, either quark or element
+	// doesn't complete checkandlabel for rhs (e.g. funccall is NULL, no eval)
+	std::ostringstream msg;
+	msg << "Member selected must be either a quark or an element, not type: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
+	if(luti == UAtom)
+	  msg << "; suggest using a Conditional-As";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+
+	setNodeType(Nav);
+	return Nav;
+      } //done
+
+    if(!m_state.isComplete(luti)) //reloads
+      {
+	std::ostringstream msg;
+	msg << "Member selected is incomplete class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
+	msg << ", check and label fails this time around";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+
+	setNodeType(Nav);
+	return getNodeType();
+      } //done
+
     std::string className = m_state.getUlamTypeNameBriefByIndex(luti); //help me debug
 
     SymbolClass * csym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(luti, csym);
-    assert(isDefined);
+    assert(m_state.alreadyDefinedSymbolClass(luti, csym));
 
     NodeBlockClass * memberClassNode = csym->getClassBlockNode();
     assert(memberClassNode);  //e.g. forgot the closing brace on quark definition
@@ -133,7 +110,7 @@ namespace MFM {
     setNodeType(rightType);
 
     //based on righthand side
-    Node::setStoreIntoAble(m_nodeRight->getStoreIntoAble());
+    setStoreIntoAble(m_nodeRight->isStoreIntoAble());
     return getNodeType();
   } //checkAndLabelType
 
@@ -154,13 +131,9 @@ namespace MFM {
     if(nuti == Nav)
       return ERROR;
 
-    if(nuti == Hzy)
-      return NOTREADY;
-
     evalNodeProlog(0); //new current frame pointer on node eval stack
 
     UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
-    UlamValue saveCurrentSelfPtr = m_state.m_currentSelfPtr; //*************
 
     makeRoomForSlots(1); //always 1 slot for ptr
     EvalStatus evs = m_nodeLeft->evalToStoreInto();
@@ -172,18 +145,8 @@ namespace MFM {
 
     //UPDATE selected member (i.e. element or quark) before eval of rhs
     //(i.e. data member or func call); e.g. Ptr to atom
-    UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1);
-    assert(m_state.isPtr(newCurrentObjectPtr.getUlamValueTypeIdx()));
-
-    u32 superid = m_state.m_pool.getIndexForDataString("super");
-    if(newCurrentObjectPtr.getPtrNameId() == superid)
-      {
-	if(!m_nodeRight->isFunctionCall())
-	  newCurrentObjectPtr = m_state.m_currentSelfPtr; //(t3749)
-	else
-	  m_state.m_currentSelfPtr = newCurrentObjectPtr; //changes self ********* (t3743, t3745)
-      }
-
+    UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
+    assert(newCurrentObjectPtr.getUlamValueTypeIdx() == Ptr);
     m_state.m_currentObjPtr = newCurrentObjectPtr;
 
     u32 slot = makeRoomForNodeType(nuti);
@@ -201,14 +164,12 @@ namespace MFM {
 	evs = ERROR;
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr
-    m_state.m_currentSelfPtr = saveCurrentSelfPtr; //restore current self ptr
-
     evalNodeEpilog();
     return evs;
   } //eval
 
   //for eval, want the value of the rhs
-   bool NodeMemberSelect::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
+  bool NodeMemberSelect::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
     assert(slots);
     //the return value of a function call, or value of a data member
@@ -228,14 +189,11 @@ namespace MFM {
 	rtnUV = UlamValue::makePtr(rslot, EVALRETURN, ruti, UNPACKED, m_state);
       }
 
-    if((rtnUV.getUlamValueTypeIdx() == Nav) || (ruti == Nav))
-      return false;
-
-    if((rtnUV.getUlamValueTypeIdx() == Hzy) || (ruti == Hzy))
+    if(rtnUV.getUlamValueTypeIdx() == Nav || ruti == Nav)
       return false;
 
     //copy result UV to stack, -1 relative to current frame pointer
-    Node::assignReturnValueToStack(rtnUV);
+    assignReturnValueToStack(rtnUV);
     return true;
   } //doBinaryOperation
 
@@ -244,9 +202,6 @@ namespace MFM {
     UTI nuti = getNodeType();
     if(nuti == Nav)
       return ERROR;
-
-    if(nuti == Hzy)
-      return NOTREADY;
 
     evalNodeProlog(0);
 
@@ -262,8 +217,8 @@ namespace MFM {
 
     //UPDATE selected member (i.e. element or quark) before eval of rhs
     // (i.e. data member or func call)
-    UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1); //e.g. Ptr to atom
-    assert(m_state.isPtr(newCurrentObjectPtr.getUlamValueTypeIdx()));
+    UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1); //e.g. Ptr to atom
+    assert(newCurrentObjectPtr.getUlamValueTypeIdx() == Ptr);
     m_state.m_currentObjPtr = newCurrentObjectPtr;
 
     makeRoomForSlots(1); //always 1 slot for ptr
@@ -274,9 +229,9 @@ namespace MFM {
 	return evs;
       }
 
-    UlamValue ruvPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(2);
+    UlamValue ruvPtr = m_state.m_nodeEvalStack.loadUlamValueFromSlot(2);
 
-    Node::assignReturnValuePtrToStack(ruvPtr);
+    assignReturnValuePtrToStack(ruvPtr);
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr **********
 
@@ -310,20 +265,12 @@ namespace MFM {
     return false;
   } //getSymbolPtr
 
-  void NodeMemberSelect::genCode(File * fp, UVPass& uvpass)
+  void NodeMemberSelect::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
     //apparently not so: assert(m_state.m_currentObjSymbolsForCodeGen.empty());
 
     m_nodeLeft->genCodeToStoreInto(fp, uvpass);
-
-    //check the back (not front) to process multiple member selections (e.g. t3818)
-    if(!m_state.m_currentObjSymbolsForCodeGen.empty() && !m_state.isScalar(m_state.m_currentObjSymbolsForCodeGen.back()->getUlamTypeIdx()))
-      {
-	Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
-	m_tmprefSymbol = Node::makeTmpRefSymbolForCodeGen(uvpass); //dm to avoid leaks
-	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmprefSymbol);
-      }
 
     m_nodeRight->genCode(fp, uvpass);  // is this ok?
 
@@ -331,22 +278,12 @@ namespace MFM {
   } //genCode
 
   // presumably called by e.g. a binary op equal (lhs); caller saves
-  // currentObjPass/Symbol, unlike genCode (rhs)
-  void NodeMemberSelect::genCodeToStoreInto(File * fp, UVPass& uvpass)
+  // currentObjPtr/Symbol, unlike genCode (rhs)
+  void NodeMemberSelect::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
-    UVPass luvpass;
-    m_nodeLeft->genCodeToStoreInto(fp, luvpass);
-
-    //check the back (not front) to process multiple member selections (e.g. t3817)
-    if(!m_state.m_currentObjSymbolsForCodeGen.empty() && !m_state.isScalar(m_state.m_currentObjSymbolsForCodeGen.back()->getUlamTypeIdx()))
-      {
-	Node::genCodeConvertATmpVarIntoAutoRef(fp, luvpass); //uvpass becomes the autoref, and clears stack
-	m_tmprefSymbol = Node::makeTmpRefSymbolForCodeGen(luvpass);
-	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmprefSymbol);
-      }
-    //uvpass = luvpass;
-    m_nodeRight->genCodeToStoreInto(fp, uvpass); //uvpass contains the member selected, or cos obj symbol?
+    m_nodeLeft->genCodeToStoreInto(fp, uvpass);
+    m_nodeRight->genCodeToStoreInto(fp, uvpass); //uvpass contains the member selected
   } //genCodeToStoreInto
 
 } //end MFM

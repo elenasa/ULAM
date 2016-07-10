@@ -38,9 +38,6 @@ namespace MFM {
     if(nuti == Nav)
       return ERROR;
 
-    if(nuti == Hzy)
-      return NOTREADY;
-
     u32 len = m_state.getTotalBitSize(nuti);
 
     evalNodeProlog(0); //new current frame pointer
@@ -56,7 +53,7 @@ namespace MFM {
 
     //short-circuit if lhs is false
     UlamValue luv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slot); //immediate value
-    u32 ldata = luv.getImmediateData(len, m_state);
+    u32 ldata = luv.getImmediateData(len);
     if(_Bool32ToCbool(ldata, len) == false)
       {
 	//copies return UV to stack, -1 relative to current frame pointer
@@ -102,62 +99,77 @@ namespace MFM {
   }
 
   //short-circuit when lhs is false
-  void NodeBinaryOpLogicalAnd::genCode(File * fp, UVPass& uvpass)
+  void NodeBinaryOpLogicalAnd::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
+
+#ifdef TMPVARBRACES
+    m_state.indent(fp);
+    fp->write("{\n");
+    m_state.m_currentIndentLevel++;
+#endif
 
     //initialize node result to false
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
 
-    m_state.indentUlamCode(fp);
+    m_state.indent(fp);
     //fp->write("const ");
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
-    fp->write(" = false;"); GCNL;
+    fp->write(m_state.getTmpVarAsString(nuti,tmpVarNum).c_str());
+    fp->write(" = false;\n");
 
     //process lhs first
-    UVPass luvpass;
+    UlamValue luvpass;
     m_nodeLeft->genCode(fp, luvpass); //updates m_currentObjSymbol
-    UTI luti = luvpass.getPassTargetType();
+    UTI luti = luvpass.getUlamValueTypeIdx();
+    assert(luti == Ptr); //terminals read into tmpvar
+    luti = luvpass.getPtrTargetType();
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     assert(lut->getUlamTypeEnum() == Bool);
 
     //fp->write("\n");
 
-    m_state.indentUlamCode(fp);
+    m_state.indent(fp);
     fp->write("if(");
-    fp->write(((UlamTypePrimitiveBool *) lut)->getConvertToCboolMethod().c_str());
+    fp->write(((UlamTypeBool *) lut)->getConvertToCboolMethod().c_str());
     fp->write("(");
-    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+    fp->write(m_state.getTmpVarAsString(luti, luvpass.getPtrSlotIndex()).c_str());
     fp->write(", ");
     fp->write_decimal(lut->getBitSize());
     fp->write(")");
-    fp->write(")"); GCNL;
+    fp->write(")\n");
 
-    m_state.indentUlamCode(fp);
+    m_state.indent(fp);
     fp->write("{\n");
     m_state.m_currentIndentLevel++;
 
-    UVPass ruvpass;
+    UlamValue ruvpass;
     m_nodeRight->genCode(fp, ruvpass);
+    UTI ruti = ruvpass.getUlamValueTypeIdx();
+    assert(ruti == Ptr);
 
     //set node tmp var to rhs value
-    m_state.indentUlamCode(fp);
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
+    m_state.indent(fp);
+    fp->write(m_state.getTmpVarAsString(nuti,tmpVarNum).c_str());
     fp->write(" = ");
-    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(";"); GCNL;
+    fp->write(m_state.getTmpVarAsString(ruvpass.getPtrTargetType(), ruvpass.getPtrSlotIndex()).c_str());
+    fp->write(";\n");
 
     m_state.m_currentIndentLevel--;
-    m_state.indentUlamCode(fp);
+    m_state.indent(fp);
     fp->write("}\n");
 
-    uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //P
+    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0); //P
 
+#ifdef TMPVARBRACES
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n"); //close for tmpVar
+#endif
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode
 

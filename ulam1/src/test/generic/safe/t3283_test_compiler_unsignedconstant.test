@@ -10,7 +10,7 @@
 ##      */
 ##      //now printing from saved value
 Exit status: 0
-Ue_Fu { System s();  Int(32) i(2147483647);  Int(32) test() {  Unsigned(32) u = 4294967295u;  s ( u )print . i 2147483648u cast = s ( i )print . 0 cast return } }
+Ue_Fu { System s();  Int(32) i(2147483647);  Int(32) test() {  Unsigned(32) u;  u 4294967295u = s ( u )print . i 2147483648u cast = s ( i )print . 0 cast return } }
 Uq_System { <NOMAIN> }
 #>Fu.ulam
 ulam 1;

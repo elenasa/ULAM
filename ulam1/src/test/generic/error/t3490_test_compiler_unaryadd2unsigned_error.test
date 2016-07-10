@@ -4,10 +4,11 @@
 ##
 ##      // try as named constants
 ##      // without explicit cast of (a+b) we get error:
-./A.ulam:6:11: ERROR: Constant value expression for 'c' is not representable as Unary(3).
-./A.ulam:2:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
-./A.ulam:2:9: ERROR: 4 Nodes with unresolved types detected after type labeling class: A.
-Unrecoverable Program Type Label FAILURE.
+##./A.ulam:6:11: ERROR: Constant value expression for (c = 12u) is not representable as Unary(3).
+##
+Exit status: 3
+Ue_A { constant Unsigned(3) b = 5;  System s();  constant Unsigned(3) a = 7;  constant Unary(3) c = 3;  Int(32) test() {  s ( 7u )print . 7u cast return } }
+Uq_System { <NOMAIN> }
 #>A.ulam
 use System;
 element A {

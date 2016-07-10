@@ -1,10 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3321_test_compiler_arrayoutofbounds_error
 #!
-./A.ulam:7:9: ERROR: Array subscript [2] exceeds the size (2) of array 'a'.
-Exit status: -1
-Unrecoverable Program Test FAILURE.
 ##
+##./A.ulam:7:9: ERROR: Array subscript [2] exceeds the size (2) of array 'a'.
+##
+Exit status: -1
 #>A.ulam
 ulam 1;
  element A{

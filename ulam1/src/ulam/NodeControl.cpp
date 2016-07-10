@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "NodeControl.h"
 #include "CompilerState.h"
-#include "UlamTypePrimitiveBool.h"
+#include "UlamTypeBool.h"
 
 namespace MFM {
 
@@ -52,21 +52,13 @@ namespace MFM {
     return m_nodeBody->findNodeNo(n, foundNode);
   } //findNodeNo
 
-  void NodeControl::checkAbstractInstanceErrors()
-  {
-    m_nodeCondition->checkAbstractInstanceErrors();
-    m_nodeBody->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
-
   void NodeControl::print(File * fp)
   {
     printNodeLocation(fp);
     UTI myut = getNodeType();
     char id[255];
-    if((myut == Nav) || (myut == Nouti))
+    if(myut == Nav)
       sprintf(id,"%s<NOTYPE>\n",prettyNodeName().c_str());
-    else if(myut == Hzy)
-      sprintf(id,"%s<HAZYTYPE>\n",prettyNodeName().c_str());
     else
       sprintf(id,"%s<%s>\n",prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
@@ -118,19 +110,20 @@ namespace MFM {
 
     // condition should be a bool, safely cast
     UTI cuti = m_nodeCondition->checkAndLabelType();
-    if(m_state.okUTItoContinue(cuti) && m_state.isComplete(cuti))
+    if(cuti != Nav && m_state.isComplete(cuti))
       {
 	assert(m_state.isScalar(cuti));
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 	ULAMTYPE ctypEnum = cut->getUlamTypeEnum();
 	if(ctypEnum != newEnumTyp)
 	  {
-	    if(checkSafeToCastTo(cuti, newType))
+	    if(Node::checkSafeToCastTo(cuti, newType) == CAST_CLEAR)
 	      {
-		if(!Node::makeCastingNode(m_nodeCondition, newType, m_nodeCondition))
+		if(!makeCastingNode(m_nodeCondition, newType, m_nodeCondition))
 		  newType = Nav;
 	      }
-	    //else not safe, newType changed
+	    else
+	      newType = Nav;
 	  }
 	else
 	  {
@@ -139,26 +132,24 @@ namespace MFM {
 	    //until c-bool is needed
 	    if(cuti != newType)
 	      {
-		if(checkSafeToCastTo(cuti, newType))
+		if(Node::checkSafeToCastTo(cuti, newType))
 		  {
-		    if(!Node::makeCastingNode(m_nodeCondition, cuti, m_nodeCondition))
+		    if(!makeCastingNode(m_nodeCondition, cuti, m_nodeCondition))
 		      newType = Nav;
 		    else
 		      newType = cuti;
 		  }
+		else
+		  newType = Nav;
 	      }
 	  }
+	m_nodeBody->checkAndLabelType(); //side-effect
       }
     else
-      {
-	newType = Hzy; //was = cuti;
-	m_state.setGoAgain();
-      }
-
-    m_nodeBody->checkAndLabelType(); //side-effect
+      newType = cuti;
 
     setNodeType(newType);  //stays the same
-    Node::setStoreIntoAble(TBOOL_FALSE);
+    setStoreIntoAble(false);
     return getNodeType();
   } //checkAndLabelType
 
@@ -170,14 +161,14 @@ namespace MFM {
     m_nodeBody->calcMaxDepth(depth, maxdepth, base);
   } //calcMaxDepth
 
-  void NodeControl::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
+  void NodeControl::countNavNodes(u32& cnt)
   {
-    Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt); //missing
-    m_nodeCondition->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
-    m_nodeBody->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+    Node::countNavNodes(cnt); //missing
+    m_nodeCondition->countNavNodes(cnt);
+    m_nodeBody->countNavNodes(cnt);
   }
 
-  void NodeControl::genCode(File * fp, UVPass& uvpass)
+  void NodeControl::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeCondition && m_nodeBody);
 
@@ -187,27 +178,58 @@ namespace MFM {
 
     m_nodeCondition->genCode(fp, uvpass);
 
-    bool isTerminal = (uvpass.getPassStorage() == TERMINAL);
-    UTI cuti = uvpass.getPassTargetType();
+    bool isTerminal = false;
+    UTI cuti = uvpass.getUlamValueTypeIdx();
+
+    if(cuti == Ptr)
+      {
+	cuti = uvpass.getPtrTargetType();
+      }
+    else
+      {
+	isTerminal = true;
+      }
+
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
-    m_state.indentUlamCode(fp);
+    m_state.indent(fp);
     fp->write(getName());  //if, while
     fp->write("(");
 
     if(isTerminal)
       {
-	fp->write(m_state.m_pool.getDataAsString(uvpass.getPassNameId()).c_str());
+	// fp->write("(bool) ");
+	// write out terminal explicitly
+       s32 len = m_state.getBitSize(cuti);
+       assert(len != UNKNOWNSIZE);
+       if(len <= MAXBITSPERINT)
+	 {
+	   u32 data = uvpass.getImmediateData(m_state);
+	   data = cut->getDataAsCu32(data); //ever negative? possible unary?
+	   char dstr[40];
+	   cut->getDataAsString(data, dstr, 'z');
+	   fp->write(dstr);
+	 }
+       else if(len <= MAXBITSPERLONG)
+	 {
+	   u64 data = uvpass.getImmediateDataLong(m_state);
+	   data = cut->getDataAsCu64(data); //ever negative? possible unary?
+	   char dstr[70];
+	   cut->getDataLongAsString(data, dstr, 'z');
+	   fp->write(dstr);
+	 }
+       else
+	 assert(0);
       }
     else
       {
-	if(m_state.m_genCodingConditionalHas)
+	if(m_state.m_genCodingConditionalAs)
 	  {
 	    assert(cut->getUlamTypeEnum() == Bool);
-	    fp->write(((UlamTypePrimitiveBool *) cut)->getConvertToCboolMethod().c_str());
+	    fp->write(((UlamTypeBool *) cut)->getConvertToCboolMethod().c_str());
 	    fp->write("((");
-	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	    fp->write(" >= 0 ? 1 : 0), "); //test for 'has' pos
+	    fp->write(m_state.getTmpVarAsString(cuti, uvpass.getPtrSlotIndex()).c_str());
+	    fp->write(" >= 0 ? 1 : 0), "); //test for 'has' part of 'as'
 	    fp->write_decimal(cut->getBitSize());
 	    fp->write(")");
 	  }
@@ -215,29 +237,29 @@ namespace MFM {
 	  {
 	    //regular condition
 	    assert(cut->getUlamTypeEnum() == Bool);
-	    fp->write(((UlamTypePrimitiveBool *) cut)->getConvertToCboolMethod().c_str());
+	    fp->write(((UlamTypeBool *) cut)->getConvertToCboolMethod().c_str());
 	    fp->write("(");
-	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	    fp->write(m_state.getTmpVarAsString(cuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
 	    fp->write(", ");
 	    fp->write_decimal(cut->getBitSize());
 	    fp->write(")");
 	  }
       }
-    fp->write(")"); GCNL;
+    fp->write(")\n");
 
-    m_state.indentUlamCode(fp);
+    m_state.indent(fp);
     fp->write("{\n");
     m_state.m_currentIndentLevel++;
 
-    //note: in case of has-conditional, uvpass still has the tmpvariable containing the pos!
+    //note: in case of as-conditional, uvpass still has the tmpvariable containing the pos!
     m_nodeBody->genCode(fp, uvpass);
 
     //probably should have been done within the body, to avoid any
-    //subsequent if/whiles from misinterpretting it as theirs; if so, again, moot.
-    assert(!m_state.m_genCodingConditionalHas);
+    //subsequent if/whiles from misinterpretting it as there's; if so, again, moot.
+    assert(!m_state.m_genCodingConditionalAs);
 
     m_state.m_currentIndentLevel--;
-    m_state.indentUlamCode(fp);
+    m_state.indent(fp);
     fp->write("} // end ");
     fp->write(getName()); //end
     fp->write("\n");

@@ -2,8 +2,8 @@
 /**                                        -*- mode:C++ -*-
  * CompilerState.h - Global Compiler State for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -30,7 +30,7 @@
   \file CompilerState.h - Global Compiler State for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -60,7 +60,8 @@
 #include "SymbolClassName.h"
 #include "SymbolClassNameTemplate.h"
 #include "SymbolFunction.h"
-#include "SymbolTableOfClasses.h"
+#include "SymbolTable.h"
+#include "SymbolVariable.h"
 #include "Token.h"
 #include "Tokenizer.h"
 #include "TypeArgs.h"
@@ -70,25 +71,25 @@
 
 namespace MFM{
 
-#define _USE_GCNL_TAG
-#ifndef _USE_GCNL_TAG
-#define GCNL (fp->write("\n"))
-#else
-#define GCNL (fp->write_tagged_end( __FILE__ , __LINE__))
-#endif
-
   struct less_than_key
   {
-    //see operator< in UlamKeyTypeSignature
     inline bool operator() (const UlamKeyTypeSignature key1, const UlamKeyTypeSignature key2)
     {
-      return (key1 < key2);
+      if(key1.m_typeNameId < key2.m_typeNameId) return true;
+      if(key1.m_typeNameId > key2.m_typeNameId) return false;
+      if(key1.m_bits < key2.m_bits) return true;
+      if(key1.m_bits > key2.m_bits ) return false;
+      if(key1.m_arraySize < key2.m_arraySize) return true;
+      if(key1.m_arraySize > key2.m_arraySize) return false;
+      if(key1.m_classInstanceIdx < key2.m_classInstanceIdx) return true;
+      if(key1.m_classInstanceIdx > key2.m_classInstanceIdx) return false;
+      return false;
     }
   };
 
   class Symbol;         //forward
   class NodeBlockClass; //forward
-  class SymbolTableOfClasses;    //forward
+  class SymbolTable;    //forward
 
   struct CompilerState
   {
@@ -102,9 +103,8 @@ namespace MFM{
     // documentation during code generation.
     std::map<u32,std::vector<u32>* > m_textByLinePerFilePath;
     Locator m_locOfNextLineText;
-    bool m_linesForDebug;
 
-    SymbolTableOfClasses m_programDefST; // holds SymbolClassName and SymbolClassNameTemplate
+    SymbolTable m_programDefST; // holds SymbolClassName and SymbolClassNameTemplate
 
     s32 m_currentFunctionBlockDeclSize; //used to calc framestack size for function def
     s32 m_currentFunctionBlockMaxDepth; //framestack saved in NodeBlockFunctionDefinition
@@ -115,10 +115,9 @@ namespace MFM{
     bool m_gotStructuredCommentToken; // avoid testing uninitialized value
     Token m_precedingStructuredCommentToken; //for next class or parameter
 
-    bool m_parsingConditionalAs;          // used for Conditional-As/Has parsing
-    Token m_identTokenForConditionalAs;   // used for Conditional-As/Has parsing
-    Token m_parsingConditionalToken;       // used for Conditional-As/Has parsing
-    bool m_genCodingConditionalHas; // used for Conditional-Has code gen
+    bool m_parsingConditionalAs;          // used for Conditional-As parsing
+    Token m_identTokenForConditionalAs;   // used for Conditional-As parsing
+    bool m_genCodingConditionalAs; // used for Conditional-As code gen
 
     CallStack m_funcCallStack;    //local variables and arguments
     UEventWindow  m_eventWindow;  //storage for 41 atoms (elements)
@@ -126,7 +125,6 @@ namespace MFM{
                                   //uses evalNodeProlog/Epilog; EVALRETURN storage
 
     bool m_goAgainResolveLoop; //true means a node has a type that's not ready
-    UTI m_pendingArgStubContext; //non-Nav helps find parentNode in case of surgery
 
     ErrorMessageHandler m_err;
 
@@ -134,7 +132,7 @@ namespace MFM{
     std::map<UlamKeyTypeSignature, UlamType *, less_than_key> m_definedUlamTypes; //key->ulamtype *
     std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key> m_keyToAnyUTI; //key->set of indexes of ulamtype (UTI); tracks how many uti's to an "unknown" key, before delete
 
-    std::set<u32> m_unseenClasses; //name id of possible classes (no longer SymbolClassName *)
+    std::set<SymbolClassName *> m_unseenClasses;
 
     std::vector<UTI> m_unionRootUTI; //UTI's root UTI to manage holder/aliases
 
@@ -143,45 +141,34 @@ namespace MFM{
     UlamValue m_currentObjPtr; //used in eval of members: data or funcs; updated at each '.'
     UlamValue m_currentSelfPtr; //used in eval of func calls: updated after args,
                                 // becomes currentObjPtr for args
-    UlamValue m_currentAutoObjPtr; //used in eval, uses rhs type of conditional as/has:
-    UTI m_currentAutoStorageType; //used in eval, uses lhs type of conditional as/has:
 
     std::vector<Symbol *> m_currentObjSymbolsForCodeGen;  //used in code generation;
     Symbol * m_currentSelfSymbolForCodeGen; //used in code gen; parallels m_currentSelf
-    bool m_gencodingAVirtualFunctionDefinedInAQuark; //uses less efficient read/write without POS template arg
-
     u32 m_currentIndentLevel; //used in code generation: func def, blocks, control body
     s32 m_nextTmpVarNumber; //used in code gen when a "slot index" is not available
     NNO m_nextNodeNumber; //used to identify blocks in clone classes with unknown subtrees
-
-    UTI m_urSelfUTI; //original ancestor of all classes
-    UTI m_emptyUTI; //the Empty class
 
     CompilerState();
     ~CompilerState();
 
     void clearAllDefinedUlamTypes();
     void clearAllLinesOfText();
-    void clearCurrentObjSymbolsForCodeGen();
 
     bool getClassNameFromFileName(std::string startstr, u32& compileThisId);
 
     UTI makeUlamTypeHolder();
-    UTI makeUlamTypeFromHolder(UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti, ULAMCLASSTYPE classtype);
-    UTI makeUlamTypeFromHolder(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti, ULAMCLASSTYPE classtype);
-    SymbolClassName * makeClassFromHolder(UTI huti, Token tok);
-    void cleanupExistingHolder(UTI huti, UTI newuti);
+    UTI makeUlamTypeFromHolder(UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti);
+    UTI makeUlamTypeFromHolder(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti);
     SymbolClassName * makeAnonymousClassFromHolder(UTI cuti, Locator cloc);
 
-    UTI makeUlamType(Token typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx, ALT reftype = ALT_NOT, ULAMCLASSTYPE classtype = UC_NOTACLASS);
-    UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype, ULAMCLASSTYPE classtype);
+    UTI makeUlamType(Token typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx);
+    UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
     bool isDefined(UlamKeyTypeSignature key, UlamType *& foundUT);
     bool anyDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI);
-    UlamType * createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype, ULAMCLASSTYPE classtype);
+    UlamType * createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
     void incrementKeyToAnyUTICounter(UlamKeyTypeSignature key, UTI utarg);
     u32 decrementKeyToAnyUTICounter(UlamKeyTypeSignature key, UTI utarg);
     bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key, UTI utarg);
-    bool replaceUlamTypeForUpdatedClassType(UlamKeyTypeSignature key, ULAMTYPE etype, ULAMCLASSTYPE classtype, bool isCArray);
     bool mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI);
     UTI mapIncompleteUTIForCurrentClassInstance(UTI suti);
     void mapTypesInCurrentClass(UTI fm, UTI to);
@@ -190,7 +177,6 @@ namespace MFM{
     UlamType * getUlamTypeByIndex(UTI uti);
     const std::string getUlamTypeNameBriefByIndex(UTI uti);
     const std::string getUlamTypeNameByIndex(UTI uti);
-    const std::string getEffectiveSelfMangledNameByIndex(UTI uti);
 
     ULAMTYPE getBaseTypeFromToken(Token tok);
     UTI getUlamTypeFromToken(Token tok, s32 typebitsize, s32 arraysize);
@@ -200,71 +186,35 @@ namespace MFM{
 
     /** turns array into its single element type */
     UTI getUlamTypeAsScalar(UTI utArg);
-    /** turns a reference into its dereferenced type */
-    UTI getUlamTypeAsDeref(UTI utArg);
-    /** turns a regular type into its referenced type */
-    UTI getUlamTypeAsRef(UTI utArg);
-    UTI getUlamTypeAsRef(UTI utArg, ALT altArg);
-    ULAMTYPECOMPARERESULTS isARefTypeOfUlamType(UTI refuti, UTI ofuti); //true if de-refuti is same as ofuti
-
     UTI getUlamTypeOfConstant(ULAMTYPE etype);
     UTI getDefaultUlamTypeOfConstant(UTI ctype);
-    bool getDefaultQuark(UTI cuti, u32& dqref);
-    bool getPackedDefaultClass(UTI auti, u64& dpkref);
-    void getDefaultAsPackedArray(UTI auti, u64 dval, u64& darrval);
-    void getDefaultAsPackedArray(u32 len, u32 bitsize, u32 arraysize, u32 pos, u64 dval, u64& darrval);
-    bool getDefaultClassValue(UTI cuti, BV8K& dvref);
-    void getDefaultAsArray(u32 bitsize, u32 arraysize, u32 tpos, const BV8K& dval, BV8K& darrval);
-    bool genCodeClassDefaultConstantArray(File * fp, u32 len, BV8K& dval);
 
     bool isScalar(UTI utArg);
     s32 getArraySize(UTI utArg);
     s32 getBitSize(UTI utArg);
-    ALT getReferenceType(UTI utArg);
-    bool isReference(UTI utArg);
-    bool correctAReferenceTypeWith(UTI utiArg, UTI derefuti);
-    bool correctAnArrayTypeWith(UTI utiArg, UTI scalaruti);
     bool isComplete(UTI utArg);
-    bool completeAReferenceType(UTI utArg);
-    bool completeAReferenceTypeWith(UTI utArg, UTI derefuti);
     bool isHolder(UTI utArg);
-    bool setBitSize(UTI utArg, s32 total);
-    bool setUTISizes(UTI utArg, s32 bitsize, s32 arraysize);
+    void setBitSize(UTI utArg, s32 total);
+    void setUTISizes(UTI utArg, s32 bitsize, s32 arraysize);
     void mergeClassUTI(UTI olduti, UTI cuti);
     bool isARootUTI(UTI auti);
     bool findaUTIAlias(UTI auti, UTI& aliasuti);
     void updateUTIAlias(UTI auti, UTI buti);
-    void updateUTIAliasForced(UTI auti, UTI buti);
     void initUTIAlias(UTI auti);
 
-    bool setSizesOfNonClassAndArrays(UTI utArg, s32 bitsize, s32 arraysize);
+    void setSizesOfNonClass(UTI utArg, s32 bitsize, s32 arraysize);
 
     s32 getDefaultBitSize(UTI uti);
     u32 getTotalBitSize(UTI utArg);
     u32 getTotalWordSize(UTI utArg);
     s32 slotsNeeded(UTI uti);
-    bool isClassATemplate(UTI cuti);
-    UTI isClassASubclass(UTI cuti); //returns super UTI, or Nav if no inheritance
-    void resetClassSuperclass(UTI cuti, UTI superuti);
-    bool isClassASubclassOf(UTI cuti, UTI superp);
-    bool isClassAStub(UTI cuti);
-    bool hasClassAStub(UTI cuti);
-    bool isClassAQuarkUnion(UTI cuti);
-    bool isClassACustomArray(UTI cuti);
-    UTI getAClassCustomArrayType(UTI cuti);
-    UTI getAClassCustomArrayIndexType(UTI cuti, Node * rnode, UTI& idxuti, bool& hasHazyArgs);
 
     /** return true and the Symbol pointer in 2nd arg if found;
 	search SymbolTables LIFO order; o.w. return false
     */
-    bool alreadyDefinedSymbolByAncestor(u32 dataindex, Symbol *& symptr, bool& hasHazyKin);
-    bool alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
-    bool isDataMemberIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
-    bool isFuncIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
-    bool isFuncIdInClassScopeNNO(NNO cnno, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
-    bool isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
-    bool findMatchingFunctionInAncestor(UTI cuti, u32 fid, std::vector<UTI> typeVec, SymbolFunction*& fsymref, UTI& foundInAncestor);
-
+    bool alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr);
+    bool isFuncIdInClassScope(u32 dataindex, Symbol * & symptr);
+    bool isIdInClassScope(u32 dataindex, Symbol * & symptr);
     void addSymbolToCurrentScope(Symbol * symptr); //ownership goes to the block
     void addSymbolToCurrentMemberClassScope(Symbol * symptr); //making stuff up for member
     void replaceSymbolInCurrentScope(u32 oldid, Symbol * symptr); //same symbol, new id
@@ -280,22 +230,9 @@ namespace MFM{
     /** return true and the SymbolClass pointer in 2nd arg if uti found; */
     bool alreadyDefinedSymbolClass(UTI uti, SymbolClass * & symptr);
 
-    /** return true and the SymbolClass pointer in 2nd arg if holder with uti as key nameid found; */
-    bool alreadyDefinedSymbolClassAsHolder(UTI uti, SymbolClass * & symptr);
-
-    /** in case of typedef's in ancestor class */
-    void addUnknownTypeTokenToAClassResolver(UTI cuti, Token tok, UTI huti);
-    void addUnknownTypeTokenToThisClassResolver(Token tok, UTI huti);
-    Token removeKnownTypeTokenFromThisClassResolver(UTI huti);
-    bool hasUnknownTypeInThisClassResolver(UTI huti);
-    bool statusUnknownTypeInThisClassResolver(UTI huti);
-
     /** creates temporary class type for dataindex, returns the new Symbol pointer in 2nd arg; */
-    bool removeIncompleteClassSymbolFromProgramTable(u32 id); //helper
-    bool removeIncompleteClassSymbolFromProgramTable(Token nTok);
-    bool addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr);
-    bool addIncompleteTemplateClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr);
-    UTI addStubCopyToAncestorClassTemplate(UTI stubTypeToCopy,  UTI context);
+    void addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr);
+    void addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr);
 
     void resetUnseenClass(SymbolClassName * cnsym, Token identTok);
     bool getUnseenClassFilenames(std::vector<std::string>& unseenFiles);
@@ -317,21 +254,16 @@ namespace MFM{
     u32 getTokenAsATypeNameId(Token tok);
 
     bool checkFunctionReturnNodeTypes(SymbolFunction * fsym);
-    void indentUlamCode(File * fp);
     void indent(File * fp);
-
     const char * getHiddenArgName();
     const char * getHiddenContextArgName();
     u32 getCustomArrayGetFunctionNameId();
     u32 getCustomArraySetFunctionNameId();
     const char * getCustomArrayGetMangledFunctionName();
     const char * getCustomArraySetMangledFunctionName();
-    const char * getIsMangledFunctionName(UTI ltype);
+    const char * getIsMangledFunctionName();
     const char * getHasMangledFunctionName(UTI ltype);
     const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
-    const char * getClassLengthFunctionName(UTI ltype);
-    const char * getBuildDefaultAtomFunctionName(UTI ltype);
-    const char * getDefaultQuarkFunctionName();
 
     std::string getFileNameForAClassHeader(UTI cuti, bool wSubDir = false);
     std::string getFileNameForThisClassHeader(bool wSubDir = false);
@@ -344,16 +276,13 @@ namespace MFM{
     ULAMCLASSTYPE getUlamClassForThisClass();
     UTI getUlamTypeForThisClass();
 
-    const std::string getBitVectorLengthAsStringForCodeGen(UTI uti);
+    const std::string getBitSizeTemplateString(UTI uti);
 
-    /** returns ulamvalue ptr to entire atom/element from m_currentSelfPtr */
-    UlamValue getAtomPtrFromSelfPtr();
+    const std::string getBitVectorLengthAsStringForCodeGen(UTI uti);
 
     /** returns immediate target value: extracts data from packed targets;
 	unpacked array targets are invalid */
     UlamValue getPtrTarget(UlamValue ptr);
-
-    UlamValue getPtrTargetFromAbsoluteIndex(UlamValue ptr);
 
     /** general purpose store value (except for Ptr as value) */
     void assignValue(UlamValue lptr, UlamValue ruv);
@@ -364,7 +293,11 @@ namespace MFM{
     /** assign pointer as value */
     void assignValuePtr(UlamValue lptr, UlamValue rptr);
 
-    /** PACKEDLOADABLE fits in u32/u64, PACKED into an atom, o.w. UNPACKED */
+    /** determinePackable: returns true
+	if entire array can fit within an atom (including type);
+	or if a 32-bit immediate scalar (non-Classes);
+	discovered when installing a variable symbol
+    */
     PACKFIT determinePackable(UTI aut);
 
     bool thisClassHasTheTestMethod();
@@ -373,10 +306,7 @@ namespace MFM{
 
     bool quarkHasAToIntMethod(UTI quti);
 
-    bool classHasACustomArraySetMethod(UTI cuti);
-
     void setupCenterSiteForTesting();
-    void setupCenterSiteForGenCode();
 
     /** used by SourceStream to build m_textByLinePerFilePath during parsing */
     void appendNextLineOfText(Locator loc, std::string textstr);
@@ -385,19 +315,13 @@ namespace MFM{
     std::string getLineOfText(Locator loc);
     std::string getLocationTextAsString(Locator nodeloc);
     void outputTextAsComment(File * fp, Locator nodeloc);
-    void outputTextAsCommentWithLocationUpdate(File * fp, Locator nodeloc);
-    void outputLineNumberForDebugging(File * fp, Locator nodeloc);
 
     s32 getNextTmpVarNumber();
-    const std::string getTmpVarAsString(UTI uti, s32 num, TMPSTORAGE stg);
-    const std::string getUlamRefTmpVarAsString(s32 num);
-    const std::string getUlamClassTmpVarAsString(s32 num);
-    const std::string getAtomBitStorageTmpVarAsString(s32 num);
+    const std::string getTmpVarAsString(UTI uti, s32 num, STORAGE stg = TMPREGISTER);
     const std::string getLabelNumAsString(s32 num);
-    const std::string getVFuncPtrTmpNumAsString(s32 num);
 
-    /** for conditional h/as-magic */
-    void saveIdentTokenForConditionalAs(Token iTok, Token cTok);
+    /** for conditional as-magic */
+    void saveIdentTokenForConditionalAs(Token iTok);
 
     /** class or model parameter structured comment for MFM */
     void saveStructuredCommentToken(Token scTok);
@@ -408,17 +332,11 @@ namespace MFM{
     NNO getNextNodeNo();
 
     Node * findNodeNoInThisClass(NNO n);
-    Node * findNodeNoInAClass(NNO n, UTI cuti);
-    UTI findAClassByNodeNo(NNO n);
-    NodeBlockClass * getAClassBlock(UTI cuti);
-    NNO getAClassBlockNo(UTI cuti);
 
     /** methods for context switching */
     u32 getCompileThisId();
 
     UTI getCompileThisIdx();
-
-    SymbolClass * getCurrentSelfSymbolForCodeGen();
 
     NodeBlock * getCurrentBlock();
 
@@ -453,22 +371,8 @@ namespace MFM{
     UTI getUnsignedLongUTI();
     UTI getBigBitsUTI();
 
-    bool isPtr(UTI puti);
-    bool isAtom(UTI auti);
-    bool isAtomRef(UTI auti);
-    bool isASeenClass(UTI cuti);
-    bool isAnonymousClass(UTI cuti);
-    void saveUrSelf(UTI uti);
-    bool isUrSelf(UTI cuti);
-    void saveEmptyUTI(UTI uti);
-    bool isEmpty(UTI cuti);
-    bool okUTItoContinue(UTI uti);
-    bool okUTItoContinue(UTI uti1, UTI uti2); //false if either is Nav
-    bool checkHasHazyKin(NodeBlock * block);
-
   private:
     ClassContextStack m_classContextStack; // the current subject of this compilation
-
 
   };
 }

@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * TestCase_EndToEndIO.h -  Basic handling of End-To-End IO Tests for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014 The Regents of the University of New Mexico.
+ * Copyright (C) 2014 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file TestCase_EndToEndIO.h -  Basic handling of End-To-End IO Tests for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014 All rights reserved.
   \gpl
 */
 
@@ -59,25 +59,25 @@ namespace MFM{
 
     /** called by driver to setup test, run test and check test results */
     virtual bool RunTests(File * errorOutput);
-
+    
     /** setup test; return the string to start with */
     virtual std::string PresetTest(FileManagerString * fms) = 0;
 
     /** runs the test; returns true with results in output; false when error in output  */
-    virtual bool GetTestResults(FileManager * fm, std::string startstr, File * output);
-
+    virtual bool GetTestResults(FileManager * fm, std::string startstr, File * output);    
+    
     /** checks the results using the answer key to compare with */
     virtual bool CheckResults(FileManagerString * fms, File * output) = 0;
 
 
-  protected:
+  protected:  
 
     /** helper method does simple compare of "results" with answerkey */
     bool CompareResultsWithAnswerKey(FileManagerString * fms, File * errorOutput);
 
     virtual std::string GetAnswerKey() = 0;
 
-    private:
+    private:    
   };
 
 }

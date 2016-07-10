@@ -30,36 +30,27 @@ namespace MFM {
     //because the result bitsize for mod should be the right bitsize
     // create a cast! combining newType's base type and right resultbitsize.
     // could be the same, or "unsafe".
-    if(m_state.okUTItoContinue(newType) && m_state.isComplete(newType))
+    if(newType != Nav && m_state.isComplete(newType))
       {
 	UlamType * newut = m_state.getUlamTypeByIndex(newType);
 	ULAMTYPE typEnum = newut->getUlamTypeEnum();
 	u32 convertSize = m_state.getUlamTypeByIndex(rt)->bitsizeToConvertTypeTo(typEnum);
 	u32 enumStrIdx = m_state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(typEnum));
 	UlamKeyTypeSignature tokey(enumStrIdx, convertSize, NONARRAYSIZE);
-	ULAMCLASSTYPE newclasstype = newut->getUlamClassType();
-	nuti = m_state.makeUlamType(tokey, typEnum, newclasstype);
+	nuti = m_state.makeUlamType(tokey, typEnum);
 
-	if(UlamType::compareForMakingCastingNode(nuti, newType, m_state) != UTIC_SAME) //not same, or dontknow
+	if(UlamType::compare(nuti, newType, m_state) != UTIC_SAME) //not same, or dontknow
 	  {
 	    NNO pno = Node::getYourParentNo(); //save
 	    assert(pno);
-	    //not using use makeCastingNode since don't want recursive c&l call
-	    Node * castNode = Node::newCastingNode(this, nuti);
+	      //not using use makeCastingNode since don't want recursive c&l call
+	    Node * castNode = new NodeCast(this, nuti, NULL, m_state);
+	    assert(castNode);
+	    castNode->setNodeLocation(getNodeLocation());
 
 	    Node * parentNode = m_state.findNodeNoInThisClass(pno);
-	    if(!parentNode)
-	      {
-		std::ostringstream msg;
-		msg << "Remainder cast cannot be exchanged at this time while compiling class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-		msg << " Parent required";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		assert(0); //parent required
-	      }
-
-	    AssertBool swapOk = parentNode->exchangeKids(this, castNode);
-	    assert(swapOk);
+	    assert(parentNode);
+	    assert(parentNode->exchangeKids(this, castNode));
 
 	    std::ostringstream msg;
 	    msg << "Exchanged kids! of parent of binary operator" << getName();
@@ -89,8 +80,6 @@ namespace MFM {
     if(rdata == 0)
       {
 	MSG(getNodeLocationAsString().c_str(), "Possible Division By Zero Attempt in Modulus", ERR);
-	rtnUV.setUlamValueTypeIdx(Nav);
-	setNodeType(Nav); //compiler counts
 	return rtnUV;
       }
 
@@ -124,8 +113,6 @@ namespace MFM {
     if(rdata == 0)
       {
 	MSG(getNodeLocationAsString().c_str(), "Possible Division By Zero Attempt in Modulus", ERR);
-	rtnUV.setUlamValueTypeIdx(Nav);
-	setNodeType(Nav); //compiler counts
 	return rtnUV;
       }
 
@@ -157,8 +144,6 @@ namespace MFM {
     if(rdata == 0)
       {
 	MSG(getNodeLocationAsString().c_str(), "Possible Remainder By Zero Attempt", ERR);
-	refUV.setUlamValueTypeIdx(Nav);
-	setNodeType(Nav); //compiler counts
 	return;
       }
 

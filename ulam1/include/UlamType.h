@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * UlamType.h -  Basic handling of UlamTypes for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file UlamType.h -  Basic handling of UlamTypes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -46,9 +46,22 @@
 
 namespace MFM{
 
+
+#define XY(a,b,c,d) a,
+
+  enum ULAMTYPE
+  {
+#include "UlamType.inc"
+    LASTTYPE
+  };
+#undef XY
+
   struct UlamValue; //forward
 
   class CompilerState; //forward
+
+  enum ULAMCLASSTYPE { UC_UNSEEN, UC_QUARK, UC_ELEMENT, UC_NOTACLASS, UC_ATOM };
+
 
   class UlamType
   {
@@ -65,10 +78,6 @@ namespace MFM{
     virtual const std::string getUlamTypeNameOnly();
 
     UlamKeyTypeSignature getUlamKeyTypeSignature();
-
-    virtual bool isNumericType();
-
-    virtual bool isPrimitiveType();
 
     virtual bool cast(UlamValue& val, UTI typidx);
 
@@ -90,7 +99,17 @@ namespace MFM{
 
     virtual s32 bitsizeToConvertTypeTo(ULAMTYPE tobUT);
 
+    virtual ULAMCLASSTYPE getUlamClass();
+
     virtual ULAMTYPE getUlamTypeEnum() = 0;
+
+    virtual bool isNumericType();
+
+    virtual bool isPrimitiveType();
+
+    virtual const std::string getUlamTypeAsStringForC();
+
+    virtual const std::string getUlamTypeVDAsStringForC();
 
     virtual const std::string getUlamTypeMangledType();
 
@@ -98,13 +117,13 @@ namespace MFM{
 
     virtual const std::string getUlamTypeUPrefix();
 
-    virtual bool needsImmediateType();
-
     virtual const std::string getUlamTypeImmediateMangledName();
 
     virtual const std::string getUlamTypeImmediateAutoMangledName();
 
-    virtual const std::string getLocalStorageTypeAsString();
+    virtual bool needsImmediateType();
+
+    virtual const std::string getImmediateStorageTypeAsString();
 
     virtual const std::string getImmediateModelParameterStorageTypeAsString();
 
@@ -114,25 +133,23 @@ namespace MFM{
 
     virtual const std::string getTmpStorageTypeAsString(s32 sizebyints);
 
-    virtual TMPSTORAGE getTmpStorageTypeForTmpVar();
-
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
-    virtual const std::string castMethodForCodeGen(UTI nodetype);
+    virtual void genUlamTypeMangledDefinitionForC(File * fp);
 
-    virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
+    virtual void genUlamTypeMangledImmediateDefinitionForC(File * fp);
 
-    virtual void genUlamTypeAutoReadDefinitionForC(File * fp);
+    virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
 
-    virtual void genUlamTypeAutoWriteDefinitionForC(File * fp);
+    virtual void genUlamTypeReadDefinitionForC(File * fp);
+
+    virtual void genUlamTypeWriteDefinitionForC(File * fp);
 
     static const char * getUlamTypeEnumCodeChar(ULAMTYPE etype);
 
     static const char * getUlamTypeEnumAsString(ULAMTYPE etype);
 
     static ULAMTYPE getEnumFromUlamTypeString(const char * typestr);
-
-    virtual ULAMCLASSTYPE getUlamClassType();
 
     virtual bool isScalar(); //arraysize == NOTARRAYSIZE is scalar
 
@@ -144,20 +161,11 @@ namespace MFM{
 
     u32 getTotalBitSize(); //bitsize * arraysize, accounting for constants and scalars
 
-    ALT getReferenceType();
-
-    bool isReference();
-
     virtual bool isHolder();
 
     virtual bool isComplete(); //neither bitsize nor arraysize is "unknown"
 
     static ULAMTYPECOMPARERESULTS compare(UTI u1, UTI u2, CompilerState& state);
-
-    static ULAMTYPECOMPARERESULTS compareForArgumentMatching(UTI u1, UTI u2, CompilerState& state);
-    static ULAMTYPECOMPARERESULTS compareForMakingCastingNode(UTI u1, UTI u2, CompilerState& state);
-
-    static ULAMTYPECOMPARERESULTS compareForUlamValueAssignment(UTI u1, UTI u2, CompilerState& state);
 
     /** Number of bits (rounded up to nearest 32 bits) required to
     hold the total bit size  */
@@ -169,17 +177,15 @@ namespace MFM{
 
     void setItemWordSize(u32 iw);
 
-    u32 getTotalNumberOfWords();
-
     virtual bool isMinMaxAllowed();
 
-    virtual u64 getMax();
+    u64 getMax();
 
-    virtual s64 getMin();
+    s64 getMin();
 
-    virtual u64 getMax(UlamValue& rtnUV, UTI uti);
+    u64 getMax(UlamValue& rtnUV, UTI uti);
 
-    virtual s64 getMin(UlamValue& rtnUV, UTI uti);
+    s64 getMin(UlamValue& rtnUV, UTI uti);
 
     virtual PACKFIT getPackable();
 
@@ -189,36 +195,26 @@ namespace MFM{
     virtual const std::string readArrayItemMethodForCodeGen();
     virtual const std::string writeArrayItemMethodForCodeGen();
 
-    virtual void genUlamTypeMangledDefinitionForC(File * fp);
+    virtual const std::string castMethodForCodeGen(UTI nodetype);
 
-    virtual void genUlamTypeReadDefinitionForC(File * fp);
-
-    virtual void genUlamTypeWriteDefinitionForC(File * fp);
-
-    virtual void genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp);
-
-    virtual void genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp);
-
-    virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
-
-    virtual bool genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref);
-
-    static void genStandardConfigTypedefTypenames(File * fp, CompilerState& state);
+    virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
 
   protected:
     UlamKeyTypeSignature m_key;
     CompilerState& m_state;
     u32 m_wordLengthTotal;
     u32 m_wordLengthItem;
-
-    bool checkReferenceCast(UTI typidx);
+    u64 m_max;
+    s64 m_min;
 
   private:
 
-    static ULAMTYPECOMPARERESULTS compareWithWildArrayItemReferenceType(UTI u1, UTI u2, CompilerState& state);
-    static ULAMTYPECOMPARERESULTS compareWithWildReferenceType(UTI u1, UTI u2, CompilerState& state);
+    virtual bool castTo32(UlamValue & val, UTI typidx);
+
+    virtual bool castTo64(UlamValue & val, UTI typidx);
 
     bool checkArrayCast(UTI typidx);
+
   };
 
 }

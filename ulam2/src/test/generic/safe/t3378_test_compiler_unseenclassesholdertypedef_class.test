@@ -1,0 +1,40 @@
+## -*- mode:ulam -*-
+#=t3378_test_compiler_unseenclassesholdertypedef_class
+#!
+Exit status: 1
+Uq_A { Bool(3) y(false);  <NOMAIN> }
+Ue_F { typedef A Foo;  Int(32) test() {  A f;  f y . true cast = { f y . cond f y . cast return if } 0 cast return } }
+Ue_E { typedef A P;  <NOMAIN> }
+Ue_D { typedef A X;  <NOMAIN> }
+#>A.ulam
+  ulam 1;
+use F;
+use E;
+use D;
+quark A{
+  Bool(3) y;
+}
+
+#:F.ulam
+  ulam 1;
+element F{
+  typedef E.P Foo;
+  Int test(){
+    Foo f;
+    f.y = true;
+    if(f.y)
+      return (Int) f.y;
+    return 0;
+  }
+}
+#:E.ulam
+  ulam 1;
+element E{
+  typedef D.X P; //changed name to P to be less confusing
+}
+#:D.ulam
+  ulam 1;
+element D{
+  typedef A X;
+}
+#.

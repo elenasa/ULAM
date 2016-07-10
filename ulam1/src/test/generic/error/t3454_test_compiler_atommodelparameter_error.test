@@ -1,10 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3454_test_compiler_atommodelparameter_error
 #!
-./Tu.ulam:5:18: ERROR: Missing model parameter definition after '=' for 'aep'.
-./Tu.ulam:5:18: ERROR: Missing ';' after model parameter definition 'aep'; Lists not supported.
-./Tu.ulam:9:1: ERROR: Invalid Class Type <}>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
-Unrecoverable Program Parse FAILURE: <Tu.ulam>
+##
+##./Tu.ulam:5:18: ERROR: Missing model parameter definition after '=' for 'aep'.
+##
+Ue_Tu {
 #>Tu.ulam
 ulam 1;
  use Empty;

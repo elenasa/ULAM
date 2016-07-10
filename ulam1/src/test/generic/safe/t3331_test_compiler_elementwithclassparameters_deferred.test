@@ -12,50 +12,50 @@
 ##      //Constants have explicit types
 ##
 Exit status: 6
-Ue_T { Bool(3) b(false);  Unsigned(32) i(6u);  Unsigned(32) j(70u);  System s();  Bool(3) c(true);  Int(32) test() {  Unsigned(32) x;  Unsigned(32) y;  S(1,2) m;  i 6u = x m ( )func . cast = b i x == cast = s ( i )print . s ( x )print . s ( b )print . j 70u = y 70u = c j y == cast = s ( j )print . s ( y )print . s ( c )print . i cast return } }
+Ue_T { Bool(3) b(false);  Unsigned(32) i(6);  Unsigned(32) j(70);  System s();  Bool(3) c(true);  Int(32) test() {  Unsigned(32) x;  Unsigned(32) y;  S(1,2) m;  i 6u = x m ( )func . cast = b i x == cast = s ( i )print . s ( x )print . s ( b )print . j 70u = y 70u = c j y == cast = s ( j )print . s ( y )print . s ( c )print . i cast return } }
 Uq_System { <NOMAIN> }
-Uq_S(Int(32) x, Int(32) y) { Int(UNKNOWN) i(notready);  Int(UNKNOWN) j(notready);  <NOMAIN> }
+Uq_S { constant Int(32) x = NONREADYCONST;  constant Int(32) y = NONREADYCONST;  Int(UNKNOWN) i(0);  Int(UNKNOWN) j(0);  <NOMAIN> }
 ##    //informed by t3330
 ##    // here we set i using S(1,2).sizeof
 ##
 #>T.ulam
-  ulam 1;
+ ulam 1;
 use System;
 use S;
-element T{
-  System s;
-  Unsigned i,j;
-  Bool(3) b,c;
-  Int test(){
-    Unsigned x,y;
-    S(1,2) m;
-    i = S(1,2).sizeof;
-    x = (Unsigned) m.func(); b = (i == x);
-    s.print(i);
-    s.print(x);
-    s.print(b);
-    j = self.sizeof;
-    y = T.sizeof;
-    c = (j == y);
-    s.print(j);
-    s.print(y);
-    s.print(c);
-    return (Int) i;
-  }
+ element T{
+System s;
+Unsigned i,j;
+Bool(3) b,c;
+ Int test(){
+Unsigned x,y;
+ S(1,2) m;
+i = S(1,2).sizeof;
+ x = (Unsigned) m.func(); b = (i == x);
+ s.print(i);
+s.print(x);
+ s.print(b);
+ j = self.sizeof;
+y = T.sizeof;
+ c = (j == y);
+ s.print(j);
+ s.print(y);
+ s.print(c);
+return (Int) i;
 }
+ }
 ##      //rtn2 and rtn1 here match the answer perfectly!
 ##      //bool rtn2 = fms->add("T.ulam"," ulam 1;\nuse System;\nuse S;\n element T{\nSystem s;\nUnsigned i,j;\nBool(3) b,c;\n Int test(){\nUnsigned x,y;\n S(1,2) m;\ni = m.sizeof;\n x = m.func(); b = (i == x);\n s.print(i);\ns.print(x);\n s.print(b);\n j = self.sizeof;\ny = T.sizeof;\n c = (j == y);\n s.print(j);\n s.print(y);\n s.print(c);\n return i;\n}\n }\n");
 ##      //bool rtn1 = fms->add("S.ulam"," ulam 1;\nquark S(Int x, Int y){\nInt(x+y) i,j;\n Int func(){\nreturn (x + y);\n}\n }\n");
 ##
 
 #:S.ulam
-  ulam 1;
+ulam 1;
 quark S(Int x, Int y){
-  Int(x+y) i,j;
-  Int func(){
-    return  /* S(x,y).sizeof*/ (x + y) /* Int(x+y).sizeof */ /* i.sizeof*/;
-  }
+Int(x+y) i,j;
+ Int func(){
+return  /* S(x,y).sizeof*/ (x + y) /* Int(x+y).sizeof */ /* i.sizeof*/;
 }
+ }
 ##      //infinite loop 'S(x+y,n) s;' with x+y as class arg!
 ##      //note: quark self.sizeof returns 96 (an atom's size).
 ##      //note: S(x,y).sizeof in S returns UNKNOWN (-2 == 2147483647).

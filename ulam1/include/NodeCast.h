@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeCast.h - Basic Node for handling Type Casting for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeCast.h - Basic Node for handling Type Casting for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -58,23 +58,12 @@ namespace MFM{
 
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
-    virtual void checkAbstractInstanceErrors();
-
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
 
-    virtual TBOOL getStoreIntoAble();
-
-    void setCastType(UTI tobe);
-
-    UTI getCastType();
-
     void setExplicitCast();
-
     bool isExplicitCast();
-
-    virtual bool isAConstant();
 
     virtual bool isReadyConstant();
 
@@ -82,28 +71,19 @@ namespace MFM{
 
     virtual bool isWordSizeConstant();
 
-    virtual bool isFunctionCall();
-
-    virtual bool isExplicitReferenceCast(); //only NodeCast may return true
-
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType();
 
-    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
+    virtual void countNavNodes(u32& cnt);
 
     virtual EvalStatus eval();
 
-    virtual EvalStatus evalToStoreInto();
+    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
-    virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
-
-    virtual void genCode(File * fp, UVPass& uvpass);
-
-  virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
-
-    virtual void genCodeReadIntoATmpVar(File * fp, UVPass& uvpass);
-    virtual void genCodeWriteFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
+    virtual void genCodeReadIntoATmpVar(File * fp, UlamValue& uvpass);
+    virtual void genCodeWriteFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
 
   protected:
     virtual UlamValue makeImmediateUnaryOp(UTI type, u32 data, u32 len); //noop
@@ -111,26 +91,13 @@ namespace MFM{
     virtual UTI calcNodeType(UTI uti); //override
 
   private:
-    UTI m_castToBe; //instead of nodetype used for Nav, Hzy, etc.
     bool m_explicit;   // requested by user (not automatic)
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
     bool needsACast(); // trying to avoid extraneous casting.
 
-    void genCodeReadNonPrimitiveIntoATmpVar(File * fp, UVPass &uvpass);
-
-    void genCodeCastAtomAndElement(File * fp, UVPass & uvpass);
-    void genCodeCastAtomAndQuark(File * fp, UVPass & uvpass);
-    void genCodeCastDecendentTransient(File * fp, UVPass & uvpass);
-    void genCodeCastAncestorQuarkAsSubTransient(File * fp, UVPass & uvpass);
-    void genCodeCastDecendentElement(File * fp, UVPass & uvpass);
-    void genCodeCastAncestorQuarkAsSubElement(File * fp, UVPass & uvpass);
-    void genCodeCastDecendentQuark(File * fp, UVPass & uvpass);
-
-    void genCodeCastAsReference(File * fp, UVPass & uvpass);
-    void genCodeCastFromAReference(File * fp, UVPass & uvpass);
-    void genCodeToStoreIntoCastAsReference(File * fp, UVPass & uvpass);
-    void genCodeToStoreIntoCastFromAReference(File * fp, UVPass & uvpass);
+    void genCodeCastAtomAndElement(File * fp, UlamValue & uvpass);
+    void genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass);
   };
 
 }

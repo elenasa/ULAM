@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeList.h - Basic handling a list of nodes for ULAM
  *
- * Copyright (C) 2015-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2016 Ackleyshack LLC.
+ * Copyright (C) 2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeList.h - Basic handling a list of nodes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2016 All rights reserved.
+  \date (C) 2015 All rights reserved.
   \gpl
 */
 
@@ -64,8 +64,6 @@ namespace MFM{
 
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
-    virtual void checkAbstractInstanceErrors();
-
     virtual void print(File * fp);
 
     virtual void printPostfix(File * fp);
@@ -78,15 +76,11 @@ namespace MFM{
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
-    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
-
-    virtual void printUnresolvedLocalVariables(u32 fid);
+    virtual void countNavNodes(u32& cnt);
 
     virtual EvalStatus eval();
 
     EvalStatus eval(u32 n);
-
-    EvalStatus evalToStoreInto(u32 n);
 
     void addNodeToList(Node * argNode);
 
@@ -100,18 +94,12 @@ namespace MFM{
 
     bool isAConstant(u32 n);
 
-    bool isFunctionCall(u32 n);
-
-    void genCode(File * fp, UVPass& uvpass, u32 n);
-
-    void genCodeToStoreInto(File * fp, UVPass& uvpass, u32 n);
+    void genCode(File * fp, UlamValue& uvpass, u32 n);
 
   protected:
-    std::vector<Node *> m_nodes;
 
   private:
-    void clearNodeList();
-
+    std::vector<Node *> m_nodes;
   };
 
 } //MFM

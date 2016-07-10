@@ -461,7 +461,7 @@ sub printSummaryHelp
     print STDERR "\nBasic command forms:\n";
     print STDERR "  $0 [OPTIONSWITCHES] INFOSWITCH\n";
     print STDERR "  $0 [OPTIONSWITCHES] COMMANDSWITCH File1.ext File2.ext .....\n";
-    print STDERR "      Extensions are usually .ulam, .mfs, or 'C-like' (.cpp, .h, etc)\n";
+    print STDERR "      Extensions are usually either .ulam or 'C-like' (.cpp, .h, etc)\n";
     print STDERR "      Extension '.mfz' specifies package name for -z\n";
     print STDERR "\n";
 }
@@ -1025,8 +1025,6 @@ sub runUlamCompilations
     pISC("## Compile ulam files: ".join(", ",@ulamFiles));
     my $culam = getTool($ulamcTool);
     my @args;
-    push @args, "-g"
-	if($DEBUG_CPP); #prepend to beginning of array
     push @args, "-o", $ULAM_WORK_DIR;
     for my $sd (@sourceDirsConfigured) {
         push @args, "-i", $sd;
@@ -1036,7 +1034,6 @@ sub runUlamCompilations
     push @args, @ulamFiles;
     print " Compile ".join(", ",@ulamFiles).": "
         if verbose();
-
 
     my ($status,$stdout,$stderr) = runThis(undef,undef,$culam,@args);
     if ($status eq "") {
@@ -1100,9 +1097,8 @@ sub runUlamCompilations
                 next;
             }
 
-            # Ignore unrecognized info lines unless verbose
-            print STDERR "Ignoring unrecognized: '$row'\n"
-                if verbose();
+            # Anything else: NYI, complain, continue
+            print STDERR "Unrecognized compiler information line: '$row'\n";
         }
         if (scalar(@elementCNamesFromUlam)==0) {
             $status = "No elements found, cannot build library";
@@ -1196,13 +1192,12 @@ EOF
             my $stubname = lexEncode("_uelstub",$libraryStubPtrArrayCount);
             my $elsname = "UlamElementLibraryStub";
             my $putinarray = 1;
-# Thu Jun 30 15:48:05 2016 Trying the special-casing on the mfms side
-#            if ($en eq "Ue_10105Empty10") {
-#                $infoinstancename = "_ueinfoEmpty";
-#                $stubname = "_uelstubEmpty";
-#                $elsname = "UlamEmptyElementLibraryStub";
-#                $putinarray = 0;
-#            }
+            if ($en eq "Ue_10105Empty10") {
+                $infoinstancename = "_ueinfoEmpty";
+                $stubname = "_uelstubEmpty";
+                $elsname = "UlamEmptyElementLibraryStub";
+                $putinarray = 0;
+            }
             $libraryStubPtrArrayStatics .= <<EOF;
 
   static MFM::$infoname<MFM::StdEventConfig> $infoinstancename(MFM::$en<MFM::StdEventConfig>::THE_INSTANCE);
@@ -1230,17 +1225,12 @@ EOF
             my $stubname = lexEncode("_uqinstance",$quarkPtrArrayCount);
             $quarkPtrArrayStatics .= <<EOF;
 
-  static MFM::$en<MFM::StdEventConfig> $stubname;
+  static MFM::$en<MFM::StdEventConfig,0> $stubname;
 EOF
             $quarkPtrArrayInits .= "," if $quarkPtrArrayInits ne "";
             $quarkPtrArrayInits .= "\n    &$stubname";
             ++$quarkPtrArrayCount;
         }
-    }
-
-    if ($libraryStubPtrArrayCount == 0) {
-        # Avoid zero length array if no elements
-        $libraryStubPtrArrayInits = "0";
     }
 
     if ($quarkPtrArrayCount == 0) {
@@ -1264,7 +1254,7 @@ $libraryStubPtrArrayStatics
   static MFM::ElementLibraryStub<MFM::StdEventConfig> * (_elementStubPtrArray_[]) = {$libraryStubPtrArrayInits
   };
 $quarkPtrArrayStatics
-  static MFM::UlamClass<MFM::StdEventConfig> * (_otherUlamClassPtrArray_[]) = {$quarkPtrArrayInits
+  static MFM::UlamClass * (_otherUlamClassPtrArray_[]) = {$quarkPtrArrayInits
   };
   static MFM::ElementLibrary<MFM::StdEventConfig> el = {
     MFM::ELEMENT_LIBRARY_MAGIC,
@@ -1380,7 +1370,7 @@ static int $elementTestFuncName(bool output)
   OurSite storage[SIDE*SIDE];
   OurTile theTile(SIDE,storage);
   theTile.Init();
-  OurUlamContext ouc(theTile.GetElementTable());
+  OurUlamContext ouc;
   ouc.SetTile(theTile);
   OurEventWindow & ew = ouc.GetEventWindow();
   MFM::s32 ctr = theTile.GetTileSide()/2;
@@ -1466,7 +1456,7 @@ typedef MFM::P3Atom OurAtom;
 typedef MFM::Site<MFM::P3AtomConfig> OurSite;
 typedef MFM::EventConfig<OurSite, 4> OurEventConfig;
 typedef MFM::ElementTypeNumberMap<OurEventConfig> OurElementTypeNumberMap;
-typedef MFM::UlamContextEvent<OurEventConfig> OurUlamContext;
+typedef MFM::UlamContext<OurEventConfig> OurUlamContext;
 typedef MFM::Tile<OurEventConfig> OurTile;
 typedef MFM::EventWindow<OurEventConfig> OurEventWindow;
 
@@ -1559,7 +1549,7 @@ sub buildSimDriver
     my $linkFailed =
         runMake("all",
                 @dbgarg,
-                "EXTERNAL_DEFINES=-Wno-error=unused-variable -Wno-error=unused-but-set-variable -DULAM_CUSTOM_ELEMENTS",
+                "EXTERNAL_DEFINES=-Wno-error=unused-variable -DULAM_CUSTOM_ELEMENTS",
                 "EXTERNAL_INCLUDES=-I $dir/include",
                 "EXTERNAL_LIBS=-L $dir/build -l cue"
         );
@@ -1600,7 +1590,7 @@ sub runGccCompilations
     my $rollupFile = "$ROLLUP_FILE_STEM.cpp";
     for my $cfile ($rollupFile, @cppFilesFromUlam, @testFilesFromUlam) {
         pISC(" # Compiling '$cfile'");
-        my $extraDefines = "-Wno-error=unused-variable -Wno-error=unused-but-set-variable";
+        my $extraDefines = "-Wno-error=unused-variable";
         if ($cfile =~ /$rollupFile$/) {
              $extraDefines .= "";
         }
@@ -1617,7 +1607,7 @@ sub makeProgram
     pISC("## Create program $progname");
 
     my $cfile = "$progname.cpp";
-    my $extraDefines = "-Wno-error=unused-variable -Wno-error=unused-but-set-variable";
+    my $extraDefines = "-Wno-error=unused-variable";
     my $gppStatus = runSingleGccCompilation("ulam_program", $cfile, $extraDefines);
     pISC("## COMPILED $cfile NOW EHAT");
     return ($gppStatus,$progname);
@@ -1723,7 +1713,7 @@ sub stringHashRef {
 sub modifyEnv {
     my @kv = @_;
     my %OLDENV = %ENV;
-    #pISC("## Modify environment [FROM]: ".stringHashRef(\%OLDENV));
+#    pISC("## Modify environment [FROM]: ".stringHashRef(\%OLDENV));
     print STDOUT " # Environment:" if showEnvironment();
     while (@kv) {
         my $key = shift @kv;
@@ -1735,7 +1725,7 @@ sub modifyEnv {
         print STDOUT " $key=$d$val$d" if showEnvironment();
     }
     print STDOUT "\n" if showEnvironment();
-    #pISC("## Modified environment [TO]: ".stringHashRef(\%ENV));
+#    pISC("## Modified environment [TO]: ".stringHashRef(\%ENV));
     return \%OLDENV;
 }
 
@@ -1781,7 +1771,6 @@ sub gppCompile {
     my $oldenv = modifyEnv(@extraEnvPairs);
     my @args = ("-e",
 		"-C", "$mfm", $makeTarget);
-
     print " Compile $file: "
         if verbose();
 

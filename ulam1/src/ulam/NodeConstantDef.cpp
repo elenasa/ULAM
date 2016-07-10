@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include "NodeConstantDef.h"
-#include "NodeConstant.h"
 #include "NodeTerminal.h"
 #include "CompilerState.h"
 
@@ -11,8 +10,7 @@ namespace MFM {
   {
     if(symptr)
       {
-	// node uses current block no, not the one saved in the symbol
-	// (e.g. pending class args)
+	// node uses current block no, not the one saved in the symbol (e.g. pending class args)
 	m_cid = symptr->getId();
       }
     else
@@ -73,31 +71,16 @@ namespace MFM {
     return false;
   } //findNodeNo
 
-  void NodeConstantDef::checkAbstractInstanceErrors()
-  {
-    if(m_nodeExpr)
-      m_nodeExpr->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
-
   void NodeConstantDef::printPostfix(File * fp)
   {
-    //in case the node belongs to the template, use the symbol uti, o.w. 0Nav.
-    UTI suti = m_constSymbol ? m_constSymbol->getUlamTypeIdx() : getNodeType();
-    //like SymbolConstantValue
-    fp->write(" constant");
-
-    fp->write(" ");
-    fp->write(m_state.getUlamTypeNameBriefByIndex(suti).c_str());
-    fp->write(" ");
-    fp->write(m_state.m_pool.getDataAsString(m_cid).c_str());
-
     if(m_nodeExpr)
       {
-	fp->write(" =");
 	m_nodeExpr->printPostfix(fp);
+	fp->write(" = ");
       }
-    fp->write("; ");
-  } //printPostfix
+    fp->write(getName());
+    fp->write(" const");
+  }
 
   const char * NodeConstantDef::getName()
   {
@@ -130,19 +113,9 @@ namespace MFM {
     return m_cid;
   }
 
-  bool NodeConstantDef::getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref)
-  {
-    if(m_nodeTypeDesc)
-      {
-	nodetypedescref = m_nodeTypeDesc;
-	return true;
-      }
-    return false;
-  }
-
   UTI NodeConstantDef::checkAndLabelType()
   {
-    UTI it = Nouti; //expression type
+    UTI it = Nav; //expression type
 
     // instantiate, look up in current block
     if(m_constSymbol == NULL)
@@ -155,36 +128,9 @@ namespace MFM {
 	return Nav;
       }
 
-    UTI suti = m_constSymbol->getUlamTypeIdx();
-    UTI cuti = m_state.getCompileThisIdx();
-
-    // type of the constant
-    if(m_nodeTypeDesc)
-      {
-	UTI duti = m_nodeTypeDesc->checkAndLabelType(); //clobbers any expr it
-	if(m_state.okUTItoContinue(duti) && (suti != duti))
-	  {
-	    std::ostringstream msg;
-	    msg << "REPLACING Symbol UTI" << suti;
-	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-	    msg << " used with " << prettyNodeName().c_str() << " symbol name '" << getName();
-	    msg << "' with node type descriptor type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(duti).c_str();
-	    msg << " UTI" << duti << " while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    msg << " UTI" << cuti;
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    m_constSymbol->resetUlamType(duti); //consistent!
-	    m_state.mapTypesInCurrentClass(suti, duti);
-	    m_state.updateUTIAliasForced(it, duti); //help?
-	    suti = duti;
-	  }
-      }
-
-    // NOASSIGN REQUIRED (e.g. for class parameters) doesn't have to have this!
+    // NOASSIGN (e.g. for class parameters) doesn't have this!
     if(m_nodeExpr)
       {
-	//check constant before check-and-label to avoid handling not-ready-type Nav's
 	if(!m_nodeExpr->isAConstant())
 	  {
 	    std::ostringstream msg;
@@ -203,65 +149,55 @@ namespace MFM {
 	    msg << "Constant value expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
 	    msg << ", is invalid";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    if(m_nodeExpr->isReadyConstant())
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    setNodeType(Nav);
 	    return Nav; //short-circuit
 	  }
 
-	if(it == Hzy)
+      }
+
+    UTI suti = m_constSymbol->getUlamTypeIdx();
+    UTI cuti = m_state.getCompileThisIdx();
+
+    // type of the constant
+    if(m_nodeTypeDesc)
+      {
+	UTI duti = m_nodeTypeDesc->checkAndLabelType(); //clobbers any expr it
+	if(duti != Nav && suti != duti)
 	  {
-	    UTI cuti = m_state.getCompileThisIdx();
 	    std::ostringstream msg;
-	    msg << "Constant value expression for: ";
-	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
-	    msg << ", is not ready, still hazy while compiling class: ";
+	    msg << "REPLACING Symbol UTI" << suti;
+	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	    msg << " used with " << prettyNodeName().c_str() << " symbol name '" << getName();
+	    msg << "' with node type descriptor type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(duti).c_str();
+	    msg << " UTI" << duti << " while labeling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    m_state.setGoAgain();
-	    setNodeType(Hzy);
-	    return Hzy; //short-circuit
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    m_constSymbol->resetUlamType(duti); //consistent!
+	    m_state.mapTypesInCurrentClass(suti, duti);
+	    suti = duti;
 	  }
-      } //end node expression
+      }
 
     if(!m_state.isComplete(suti)) //reloads
       {
 	std::ostringstream msg;
 	msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-	msg << ", used with symbol name '" << getName() << "'";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	//too soon! m_state.setGoAgain(); //might not have nodetypedesc
-
-	UTI mappedUTI = Nouti;
-	if(m_state.mappedIncompleteUTI(cuti, suti, mappedUTI))
-	  {
-	    std::ostringstream msg;
-	    msg << "Substituting Mapped UTI" << mappedUTI;
-	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
-	    msg << " for incomplete list type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << "' UTI" << suti << " while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    m_state.mapTypesInCurrentClass(suti, mappedUTI); //before setting equal?
-	    m_constSymbol->resetUlamType(mappedUTI); //consistent!
-	    suti = mappedUTI;
-	  }
-
-	if(!m_state.isComplete(suti)) //reloads to recheck for debug message
-	  {
-	    std::ostringstream msg;
-	    msg << "Incomplete identifier for type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-	    msg << ", used with symbol name '" << getName() << "'";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	  }
+	msg << " used with symbol name '" << getName();
+	msg << "' UTI" << suti << " while labeling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
       }
     else
       {
 	ULAMTYPE eit = m_state.getUlamTypeByIndex(it)->getUlamTypeEnum();
 	ULAMTYPE esuti = m_state.getUlamTypeByIndex(suti)->getUlamTypeEnum();
-	if(m_state.okUTItoContinue(it) && (eit != esuti))
+	if(eit != esuti)
 	  {
 	    std::ostringstream msg;
 	    msg << prettyNodeName().c_str() << " '" << getName();
@@ -270,8 +206,10 @@ namespace MFM {
 	    msg << m_state.getUlamTypeByIndex(it)->getUlamTypeNameOnly().c_str() << ">";
 	    msg << " while labeling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    msg << " UTI" << cuti;
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    //this is UNSAFE to do willy nilly..let folding catch it.
+	    //it = suti; //default it==Int for temp class args, maynot match after seeing the template
+	    //if(m_nodeExpr) m_nodeExpr->setNodeType(it); //sync the terminal's type too
 	  }
 
 	if(esuti == Void)
@@ -288,25 +226,13 @@ namespace MFM {
 
     setNodeType(suti);
 
-    if(!m_constSymbol->isReady() && m_nodeExpr)
+    if(!(m_constSymbol->isReady()))
       {
-	UTI foldrtn = foldConstantExpression();
-	if(foldrtn == Nav)
-	  setNodeType(Nav);
-	else if(foldrtn == Hzy)
-	  {
-	    setNodeType(Hzy);
-	    m_state.setGoAgain();
-	  }
-	else
-	  {
-	    if(!(m_constSymbol->isReady() || m_constSymbol->isInitValueReady()))
-	      {
-		setNodeType(Hzy);
-		m_state.setGoAgain();
-	      }
-	  }
+        foldConstantExpression();
+        if(!(m_constSymbol->isReady()))
+          setNodeType(Nav);
       }
+
     return getNodeType();
   } //checkAndLabelType
 
@@ -317,8 +243,7 @@ namespace MFM {
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
     Symbol * asymptr = NULL;
-    bool hazyKin = false;
-    if(m_state.alreadyDefinedSymbol(m_cid, asymptr, hazyKin))
+    if(m_state.alreadyDefinedSymbol(m_cid, asymptr))
       {
 	if(asymptr->isConstant())
 	  {
@@ -337,23 +262,20 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "(2) Named Constant <" << m_state.m_pool.getDataAsString(m_cid).c_str();
 	msg << "> is not defined, and cannot be used";
-	if(!hazyKin)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     m_state.popClassContext(); //restore
   } //checkForSymbols
 
-  void NodeConstantDef::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
+  void NodeConstantDef::countNavNodes(u32& cnt)
   {
-    Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+    Node::countNavNodes(cnt);
     if(m_nodeExpr)
-      m_nodeExpr->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+      m_nodeExpr->countNavNodes(cnt);
 
     if(m_nodeTypeDesc)
-      m_nodeTypeDesc->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
-  } //countNavHzyNoutiNodes
+      m_nodeTypeDesc->countNavNodes(cnt);
+  } //countNavNodes
 
   NNO NodeConstantDef::getBlockNo()
   {
@@ -379,89 +301,33 @@ namespace MFM {
     m_nodeExpr->updateLineage(getNodeNo()); //for unknown subtrees
   }
 
-  bool NodeConstantDef::hasConstantExpr()
-  {
-    return (m_nodeExpr != NULL);
-  }
-
   // called during parsing rhs of named constant;
   // Requires a constant expression, else error;
   // (scope of eval is based on the block of const def.)
-  UTI NodeConstantDef::foldConstantExpression()
+  bool NodeConstantDef::foldConstantExpression()
   {
     UTI uti = getNodeType();
 
-    if(uti == Nav)
-      return Nav;
-
-    if(!m_state.isComplete(uti)) //not complete includes Hzy
-      return Hzy; //e.g. not a constant; total word size (below) requires completeness
+    if(uti == Nav || !m_state.isComplete(uti))
+      return false; //e.g. not a constant
 
     assert(m_constSymbol);
     if(m_constSymbol->isReady())
-      return uti;
+      return true;
 
     if(!m_nodeExpr)
-      return Nav;
+      {
+        return false;
+      }
 
     // if here, must be a constant..
     u64 newconst = 0; //UlamType format (not sign extended)
-
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(uti); //offset a constant expression
-
     EvalStatus evs = m_nodeExpr->eval();
-    UlamValue cnstUV;
     if( evs == NORMAL)
-      cnstUV = m_state.m_nodeEvalStack.popArg();
-
-    evalNodeEpilog();
-
-    if(evs == ERROR)
       {
-	std::ostringstream msg;
-	msg << "Constant value expression for '";
-	msg << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
-	msg << "', is erronous while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return Nav;
-      }
-
-    if(evs == NOTREADY)
-      {
-	std::ostringstream msg;
-	msg << "Constant value expression for '";
-	msg << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
-	msg << "', is not yet ready while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	return Hzy;
-      }
-
-    //t3403, t3490
-    //insure constant value fits in its declared type
-    // no saturation without an explicit cast.
-    FORECAST scr = m_nodeExpr->safeToCastTo(uti);
-    if(scr != CAST_CLEAR)
-      {
-	std::ostringstream msg;
-	msg << "Constant value expression for '";
-	msg << getName() << "' is not representable as ";
-	msg<< m_state.getUlamTypeNameBriefByIndex(uti).c_str();
-	if(scr == CAST_BAD)
-	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    return Nav;
-	  }
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	return Hzy; //necessary if not just a warning.
-      }
-
-    //cast first, also does safeCast
-    UlamType * ut = m_state.getUlamTypeByIndex(uti);
-    if(ut->cast(cnstUV, uti))
-      {
+	UlamValue cnstUV = m_state.m_nodeEvalStack.popArg();
 	u32 wordsize = m_state.getTotalWordSize(uti);
 	if(wordsize == MAXBITSPERINT)
 	  newconst = cnstUV.getImmediateData(m_state);
@@ -470,45 +336,152 @@ namespace MFM {
 	else
 	  assert(0);
       }
-    else
+
+    evalNodeEpilog();
+
+    if(evs == ERROR)
       {
 	std::ostringstream msg;
 	msg << "Constant value expression for '";
-	msg << getName() << "', was not representable as ";
-	msg<< m_state.getUlamTypeNameBriefByIndex(uti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return Nav;
+	msg << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
+	msg << "' is not yet ready while compiling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	return false;
       }
 
-    //then do the surgery
-    NodeTerminal * newnode;
-    if(m_state.getUlamTypeByIndex(uti)->getUlamTypeEnum() == Int)
-      newnode = new NodeTerminal((s64) newconst, uti, m_state);
-    else
-      newnode = new NodeTerminal(newconst, uti, m_state);
-    newnode->setNodeLocation(getNodeLocation());
-    delete m_nodeExpr;
-    m_nodeExpr = newnode;
+    //insure constant value fits in its declared type
+    FORECAST scr = m_nodeExpr->safeToCastTo(uti);
+    if(scr != CAST_CLEAR)
+      {
+	std::ostringstream msg;
+	msg << "Constant value expression for (";
+	msg << getName() << " = " << m_nodeExpr->getName() << ") is not representable as ";
+	msg<< m_state.getUlamTypeNameBriefByIndex(uti).c_str();
+	if(scr == CAST_BAD)
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	return false; //necessary if not just a warning.
+      }
 
-    BV8K bvtmp;
-    u32 len = m_state.getTotalBitSize(uti);
-    bvtmp.WriteLong(0u, len, newconst); //is newconst packed?
-    if(m_constSymbol->isClassParameter())
-      m_constSymbol->setInitValue(bvtmp); //(isInitValueReady now)!
+    if(updateConstant(newconst))
+      {
+	NodeTerminal * newnode;
+	if(m_state.getUlamTypeByIndex(uti)->getUlamTypeEnum() == Int)
+	  newnode = new NodeTerminal((s64) newconst, uti, m_state);
+	else
+	  newnode = new NodeTerminal(newconst, uti, m_state);
+
+	newnode->setNodeLocation(getNodeLocation());
+	delete m_nodeExpr;
+	m_nodeExpr = newnode;
+      }
     else
-      m_constSymbol->setValue(bvtmp); //isReady now! (e.g. ClassArgument, ModelParameter)
-    return uti; //ok
+      return false;
+
+    m_constSymbol->setValue(newconst); //isReady now!
+    return true;
   } //foldConstantExpression
 
-  bool NodeConstantDef::buildDefaultValue(u32 wlen, BV8K& bvref)
+  bool NodeConstantDef::updateConstant(u64 & newconst)
   {
-    return true; //pass on
-  }
+    if(!m_constSymbol)
+      return false;
 
-  void NodeConstantDef::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
+    UTI nuti = getNodeType();
+    if(!m_state.isComplete(nuti))
+      return false;
+
+    //store in UlamType format
+    bool rtnb = true;
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    s32 nbitsize = nut->getBitSize();
+    assert(nbitsize > 0);
+    u32 wordsize = nut->getTotalWordSize();
+    if(wordsize == MAXBITSPERINT)
+      rtnb = updateConstant32(newconst);
+    else if(wordsize == MAXBITSPERLONG)
+      rtnb = updateConstant64(newconst);
+    else
+      assert(0);
+
+    if(!rtnb)
+      {
+	std::ostringstream msg;
+	msg << "Constant Type Unknown: ";
+	msg <<  m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+    return rtnb;
+  } //updateConstant
+
+  bool NodeConstantDef::updateConstant32(u64 & newconst)
   {
-    return;
-  }
+    u64 val = newconst; //wo any sign extend to start
+    //store in UlamType format
+    bool rtnb = true;
+    UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
+    s32 nbitsize = nut->getBitSize();
+    u32 srcbitsize = m_nodeExpr ? m_state.getBitSize(m_nodeExpr->getNodeType()) : nbitsize; //was MAXBITSPERINT WRONG!
+
+    ULAMTYPE etype = nut->getUlamTypeEnum();
+    switch(etype)
+      {
+      case Int:
+	newconst = _Int32ToInt32((u32) val, srcbitsize, nbitsize); //signextended
+	break;
+      case Unsigned:
+	newconst = _Unsigned32ToUnsigned32((u32) val, srcbitsize, nbitsize);
+	break;
+      case Bool:
+	//newconst = _Unsigned32ToBool32(val, MAXBITSPERINT, nbitsize);
+	newconst = _CboolToBool32( (bool) val, nbitsize);
+	break;
+      case Unary:
+	newconst =  _Unsigned32ToUnary32((u32) val, srcbitsize, nbitsize);
+	break;
+      case Bits:
+	newconst = _Unsigned32ToBits32((u32) val, srcbitsize, nbitsize);
+	break;
+      default:
+	rtnb = false;
+      };
+    return rtnb;
+  } //updateConstant32
+
+  bool NodeConstantDef::updateConstant64(u64 & newconst)
+  {
+    u64 val = newconst; //wo any sign extend to start
+    //store in UlamType format
+    bool rtnb = true;
+    UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
+    s32 nbitsize = nut->getBitSize();
+    u32 srcbitsize = m_nodeExpr ? m_state.getBitSize(m_nodeExpr->getNodeType()) : nbitsize; //was MAXBITSPERINT WRONG!
+    ULAMTYPE etype = nut->getUlamTypeEnum();
+    switch(etype)
+      {
+      case Int:
+	newconst = _Int64ToInt64(val, srcbitsize, nbitsize); //signextended
+	break;
+      case Unsigned:
+	newconst = _Unsigned64ToUnsigned64(val, srcbitsize, nbitsize);
+	break;
+      case Bool:
+	//newconst = _Unsigned64ToBool64(val, MAXBITSPERLONG, nbitsize);
+	newconst = _CboolToBool64( (bool) val, nbitsize);
+	break;
+      case Unary:
+	newconst =  _Unsigned64ToUnary64(val, srcbitsize, nbitsize);
+	break;
+      case Bits:
+	newconst = _Unsigned64ToBits64(val, srcbitsize, nbitsize);
+	break;
+      default:
+	  rtnb = false;
+      };
+    return rtnb;
+  } //updateConstant64
 
   void NodeConstantDef::fixPendingArgumentNode()
   {
@@ -540,39 +513,7 @@ namespace MFM {
     //do nothing, but override
   }
 
-  void NodeConstantDef::printUnresolvedVariableDataMembers()
-  {
-    assert(m_constSymbol);
-    UTI it = m_constSymbol->getUlamTypeIdx();
-    if(!m_state.isComplete(it))
-      {
-	std::ostringstream msg;
-	msg << "Unresolved type <";
-	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	msg << "> used with constant def symbol name '" << getName() << "'";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setNodeType(Nav); //compiler counts
-      } //not complete
-  } //printUnresolvedVariableDataMembers
-
-  void NodeConstantDef::printUnresolvedLocalVariables(u32 fid)
-  {
-    assert(m_constSymbol);
-    UTI it = m_constSymbol->getUlamTypeIdx();
-    if(!m_state.isComplete(it))
-      {
-	// e.g. error/t3298 Int(Fu.sizeof)
-	std::ostringstream msg;
-	msg << "Unresolved type <";
-	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	msg << "> used with local variable symbol name '" << getName() << "'";
-	msg << " in function: " << m_state.m_pool.getDataAsString(fid);
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setNodeType(Nav); //compiler counts
-      } //not complete
-  } //printUnresolvedLocalVariables
-
-  void NodeConstantDef::genCode(File * fp, UVPass& uvpass)
+  void NodeConstantDef::genCode(File * fp, UlamValue& uvpass)
   {}
 
   void NodeConstantDef::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)

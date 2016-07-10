@@ -1,0 +1,22 @@
+/** Grow something like Frobworld grass.
+    \symbol Gr
+    \color #2e3
+*/
+element Grass {
+  EventWindow ew;
+  AtomUtils au;
+  DebugUtils du;
+
+  Void behave() {
+    WindowServices wu;
+    Int mt = au.getType((Atom) self); // get my type
+    wu.reset(1,1);  // scan from dist 1 to dist 1..
+    if (wu.scan(mt, wu.cEMPTY_SITES_HIT)) {
+      // if less than 2 of us and at least one empty at dist 1
+      if (wu.getHits(0) < 2  && wu.getHits(1) > 0)
+      {
+        ew[wu.getPick(1)] = self;  // Be like me!
+      }
+    }
+  }
+}

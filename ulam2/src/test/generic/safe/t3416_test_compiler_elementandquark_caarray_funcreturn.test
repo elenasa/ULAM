@@ -1,0 +1,55 @@
+## -*- mode:ulam -*-
+#=t3416_test_compiler_elementandquark_caarray_funcreturn
+##
+## gen output assert
+##
+#!
+Exit status: -11
+Ue_EventWindowTest { EventWindow ew();  Int(32) test() {  System s;  Int(32) rtn = -1 cast;  Atom(96) a = ( )func;  Atom(96) aw = self.instanceof;  { aw EventWindowTest is cond rtn 0 cast = if rtn 1 cast = else } s ( rtn 0 cast == )assert . rtn return } }
+Uq_EventWindow { <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+##      //can't use a func to return ew[0] even on the rhs? OK now.
+##      // see t3413 for error as lhs.
+#>EventWindowTest.ulam
+  ulam 1;
+use EventWindow;
+use System;
+element EventWindowTest {
+  EventWindow ew;
+  Atom func() {
+    return ew[0]; //parse only
+  }
+  Int test() {
+    System s;
+    Int rtn = -1;
+    Atom a = func();
+    Atom aw = self.instanceof;
+    if(aw is Self)
+      rtn = 0;
+    else
+      rtn = 1;
+    s.assert(rtn == 0);
+    return rtn;
+  }
+}
+
+#:EventWindow.ulam
+  ulam 1;
+quark EventWindow {
+  Atom aref(Int index) native;
+  Void aset(Int index, Atom val) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.
