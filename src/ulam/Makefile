@@ -19,7 +19,7 @@ $(BUILD_DIR)/libulam.a: ${OBJS}
 	ranlib $@
 
 $(BUILD_DIR)/%.o: %.cpp $(HDRS) $(INCS) $(ALLDEP) | $(BUILD_DIR)
-	g++ -c ${CFLAGS} ${INCLUDES} $< -o $@
+	g++ -c ${CFLAGS} ${DEFINES} ${INCLUDES} $< -o $@
 
 clean:	FORCE
 	@rm -f *~

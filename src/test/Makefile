@@ -28,7 +28,7 @@ $(BUILD_DIR)/libtests.a: $(OBJS)
 	@echo '$(TESTS)' > $(BUILD_DIR)/tests.inc
 
 $(BUILD_DIR)/%.o: %.cpp $(HDRS) $(ALLDEP) | $(BUILD_DIR)
-	g++ -c $(CFLAGS) $(INCLUDES) $< -o $@
+	g++ -c $(CFLAGS) ${DEFINES} $(INCLUDES) $< -o $@
 
 gen: $(TGEN_DIR)
 #	cp $(SHARE_DIR)/tcc/*.tcc $(TGEN_DIR)/include/.

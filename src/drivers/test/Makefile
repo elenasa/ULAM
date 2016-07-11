@@ -25,7 +25,7 @@ $(BIN_DIR)/$(DRIVER_NAME): ${OBJS} | $(BIN_DIR)
 ##	$(BIN_DIR)/test
 
 $(BUILD_DIR)/%.o: %.cpp $(HDRS) $(ALLDEP) | $(BUILD_DIR)
-	g++ -c ${CFLAGS} ${INCLUDES} $< -o $@
+	g++ -c ${CFLAGS} ${DEFINES} ${INCLUDES} $< -o $@
 
 clean:	FORCE
 	@rm -f *~
