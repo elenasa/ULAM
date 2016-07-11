@@ -1,6 +1,0 @@
-ulam 1;
-
-quark Fail {
-  Void fail() native;
-  Void fail(Int code) native;
-}
