@@ -1,6 +1,0 @@
-ulam 1;
-
-quark Point {
-  Int(16) x;
-  Int(16) y;
-}

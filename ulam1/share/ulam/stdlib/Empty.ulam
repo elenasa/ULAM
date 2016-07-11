@@ -1,9 +1,0 @@
-ulam 1;
-
-/**
-   This stub is linked to the actual Element_Empty by special-case
-   setup code.
-   \symbol E
-   \color 0x000
- */
-element Empty { }
