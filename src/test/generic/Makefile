@@ -4,7 +4,6 @@ INCLUDE_DIR:=$(BASE_DIR)/include
 TGEN_DIR:=$(BASE_DIR)/src/test/bin
 SPIKE_DIR:=$(BASE_DIR)/spike
 SHARE_DIR:=$(BASE_DIR)/share
-#MFM_ROOT_DIR:=/home/elenas/WORK/ulam/repo/MFMv2
 MFM_INCLUDE_DIR:=$(MFM_ROOT_DIR)/src/core/include
 MFM_PLATFORM_INCLUDE_DIR:=$(MFM_ROOT_DIR)/src/platform-linux/include
 
@@ -36,14 +35,18 @@ gen: $(TGEN_DIR)
 	cp $(SPIKE_DIR)/native/makefile $(TGEN_DIR)/.
 	make -C $(TGEN_DIR)
 
+initdirs:	FORCE
+	mkdir -p $(TGEN_DIR)/include
+	mkdir -p $(TGEN_DIR)/src
+
 clean:	FORCE
 	@rm -f *~
 	@rm -f $(OBJS)
 	@rm -f $(BUILD_DIR)/*.o
 	@rm -f $(BUILD_DIR)/libtests.a
 	@rm -f $(BUILD_DIR)/tests.inc
-	@rm -f $(TGEN_DIR)/src/*.*
-	@rm -f $(TGEN_DIR)/include/*.*
+	@rm -f $(TGEN_DIR)/src/*
+	@rm -f $(TGEN_DIR)/include/*
 	@rm -f $(TGEN_DIR)/*.o
 	@rm -f $(TGEN_DIR)/main
 

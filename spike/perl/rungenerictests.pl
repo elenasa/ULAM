@@ -112,6 +112,9 @@ sub main
 
     my $testsPassed = 0;
     my $testsFailed = 0;
+
+    `make -C $TESTDIR initdirs`; #before test
+
     foreach $f (sort @files)
     {
 	if ($f =~ /t(\d+).*\.test$/ )
@@ -132,13 +135,13 @@ sub main
 	    # useful System Quark:
 	    #`cp $TESTDIR/$SRC_DIR/t3207_test_compiler_quarksystem_inside_a_quark.cpp $TESTDIR/.`;
 
+	    `make -C $TESTDIR clean`; #before test
+
 	    if($EXEC_TEST_VALGRIND)
 	    {
 		# one at a time, results in testerrlog
 		# grep for:
                 # All heap blocks were freed -- no leaks are possible
-
-		$TESTGENCODE && `make -C $TESTDIR clean`; #before test
 
                 ## useful to find source of error
                 ## --track-origins=yes
@@ -162,8 +165,6 @@ sub main
 	    }
 	    else
 	    {
-		$TESTGENCODE && `make -C $TESTDIR clean`; #before test
-
 		if($SRC_DIR =~ /error/)
 		{
 		    `./bin/culamtest $f 1> $log`;  ##outputs errlog to stderr
