@@ -4,7 +4,6 @@ INCLUDE_DIR:=$(BASE_DIR)/include
 TGEN_DIR:=$(BASE_DIR)/src/test/bin
 SPIKE_DIR:=$(BASE_DIR)/spike
 SHARE_DIR:=$(BASE_DIR)/share
-#MFM_ROOT_DIR:=/home/elenas/WORK/ulam/repo/MFMv2
 MFM_INCLUDE_DIR:=$(MFM_ROOT_DIR)/src/core/include
 MFM_PLATFORM_INCLUDE_DIR:=$(MFM_ROOT_DIR)/src/platform-linux/include
 
