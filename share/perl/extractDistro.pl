@@ -1,8 +1,6 @@
 #!/usr/bin/perl -w
 # -*- mode:perl -*-
 
-my $ULAM_VERSION_SUBTREE = "ulam2";
-
 # $content eq "src" means:
 #
 #   Everything needed to compile culam itself, and mfm.  Used to
@@ -19,30 +17,44 @@ my $ULAM_VERSION_SUBTREE = "ulam2";
 #
 my $content = shift @ARGV;
 defined $content and ($content eq "src" or $content eq "bin")
-    or die "Usage: $0 src|bin COMBINED_ROOT_DIR OUTPUT_DIR (bad src|bin)\n";
+    or die "Usage: $0 src|bin PKGNAME_ROOT_DIR OUTPUT_DIR (bad src|bin)\n";
 
-my $COMBINED_ROOT_DIR = shift @ARGV;
-defined $COMBINED_ROOT_DIR and -d $COMBINED_ROOT_DIR
-    or die "Usage: $0 src|bin COMBINED_ROOT_DIR OUTPUT_DIR (bad MFM_TREE)\n";
-$COMBINED_ROOT_DIR =~ s!/$!!;
+my $PKGNAME_ROOT_DIR = shift @ARGV;
+defined $PKGNAME_ROOT_DIR and -d $PKGNAME_ROOT_DIR
+    or die "Usage: $0 src|bin PKGNAME_ROOT_DIR OUTPUT_DIR (bad PKGNAME_ROOT_DIR)\n";
+$PKGNAME_ROOT_DIR =~ s!/$!!;
+# Last component of PKGNAME_ROOT_DIR must be the package name
+$PKGNAME_ROOT_DIR =~ m!.*?([^/]+)$! or die "No pkg name match in '$PKGNAME_ROOT_DIR'";
+my $PACKAGE_NAME = $1;
+$PACKAGE_NAME =~ /^[a-zA-Z][a-zA-Z0-9]*$/
+    or die "Usage: $0 src|bin PKGNAME_ROOT_DIR OUTPUT_DIR (bad format PACKAGE_NAME at end of PKGNAME_ROOT_DIR)\n";
+my $MAGIC_PACKAGE_VERSION = "";
+if ($PACKAGE_NAME =~ /.*?([0-9]+)$/) {
+    $MAGIC_PACKAGE_VERSION = $1;
+}
+print "Package name '$PACKAGE_NAME', Magic package version '$MAGIC_PACKAGE_VERSION'\n";
 
 my $OUTPUT_DIR = shift @ARGV;
 defined $OUTPUT_DIR
-    or die "Usage: $0 src|bin COMBINED_ROOT_DIR OUTPUT_DIR (missing OUTPUT_DIR)\n";
+    or die "Usage: $0 src|bin PKGNAME_ROOT_DIR OUTPUT_DIR (missing OUTPUT_DIR)\n";
 $OUTPUT_DIR =~ s!/$!!;
 -e $OUTPUT_DIR && !-d $OUTPUT_DIR
-    and die "Usage: $0 src|bin COMBINED_ROOT_DIR OUTPUT_DIR (not a dir OUTPUT_DIR)\n";
+    and die "Usage: $0 src|bin PKGNAME_ROOT_DIR OUTPUT_DIR (not a dir OUTPUT_DIR)\n";
 
-# The MFM tree shall be at $COMBINED_ROOT_DIR/MFM
-# The ULAM tree shall be at $COMBINED_ROOT_DIR/$ULAM_VERSION_SUBTREE
+if (scalar(@ARGV) != 0) {
+    die "Usage: $0 src|bin PKGNAME_ROOT_DIR OUTPUT_DIR (extra arguments: @ARGV)\n";
+}
 
-my $MFM_TREE = "$COMBINED_ROOT_DIR/MFM";
-my $ULAM_TREE = "$COMBINED_ROOT_DIR/$ULAM_VERSION_SUBTREE";
+# The MFM tree shall be at $PKGNAME_ROOT_DIR/MFM
+# The ULAM tree shall be at $PKGNAME_ROOT_DIR/ULAM
+
+my $MFM_TREE = "$PKGNAME_ROOT_DIR/MFM";
+my $ULAM_TREE = "$PKGNAME_ROOT_DIR/ULAM";
 
 defined $MFM_TREE and -d $MFM_TREE
-    or die "Usage: $0 src|bin COMBINED_ROOT_DIR OUTPUT_DIR (not found '$MFM_TREE')\n";
+    or die "Usage: $0 src|bin PKGNAME_ROOT_DIR OUTPUT_DIR (not found '$MFM_TREE')\n";
 defined $ULAM_TREE and -d $ULAM_TREE
-    or die "Usage: $0 src|bin COMBINED_ROOT_DIR OUTPUT_DIR (not found '$ULAM_TREE')\n";
+    or die "Usage: $0 src|bin PKGNAME_ROOT_DIR OUTPUT_DIR (not found '$ULAM_TREE')\n";
 
 my %categories = (
     "MFM_source" =>       ["MFM", "src", "find src -name '*.cpp' -o -name '*.tmpl' -o -name '*.src'"],
@@ -52,22 +64,25 @@ my %categories = (
     "MFM_libraries" =>    ["MFM", "bin", "find build -name '*.a'"],
     "MFM_binaries" =>     ["MFM", "bin", "find bin -name 'mfms' -o -name 'mfzmake' -o -name 'mfzrun'"],
 
+    "MFM_topmakefile" =>  ["MFM", "usrc", "ls -1 Makefile"],
+    "MFM_doc" =>          ["MFM", "usrc", "ls -1 *.md"],
+
     "ULAM_source" =>      ["ULAM", "usrc", "find src -name '*.cpp' -o -name '*.tmpl' -o -name '*.src'"],
     "ULAM_headers" =>     ["ULAM", "usrc", "find include -name '*.h' -o  -name '*.inc'"],
     "ULAM_makefiles" =>   ["ULAM", "usrc", "find Makefile *.mk src -name '[Mm]akefile' -o -name '*.mk'"],
     "ULAM_binaries" =>    ["ULAM", "bin", "find bin -name 'ulam' -o -name 'culam'"],
     "ULAM_shared_files"=> ["ULAM", "src", "find share"],
 
-    "ULAM_packaging" =>   ["TOP", "usrc", "find debian"],
-    "ULAM_topmakefile" => ["TOP", "usrc", "ls -1 Makefile"],
-    "ULAM_doc" =>         ["TOP", "usrc", "ls -1 *.md"],
+    "ULAM_packaging" =>   ["ULAM", "usrc", "find debian"],
+    "ULAM_topmakefile" => ["ULAM", "usrc", "ls -1 Makefile"],
+    "ULAM_doc" =>         ["ULAM", "usrc", "ls -1 *.md"],
     );
 
 use File::Path qw(make_path remove_tree);
 
 make_path( $OUTPUT_DIR );
 my $DISTRO_MFM = `readlink -f $OUTPUT_DIR/MFM`;
-my $DISTRO_ULAM = `readlink -f $OUTPUT_DIR/$ULAM_VERSION_SUBTREE`;
+my $DISTRO_ULAM = `readlink -f $OUTPUT_DIR/ULAM`;
 my $DISTRO_TOP = `readlink -f $OUTPUT_DIR`;
 
 chomp($DISTRO_MFM);
@@ -85,7 +100,7 @@ for my $c (sort keys %categories) {
     my $indir = $indirs{$tree};
     my $outdir = $outdirs{$tree};
     my $lines = `cd $indir; $cmd`;
-    die "'cd $indir; $cmd' found nothing -- are the tree dirs right?\n"
+    die "For $c/$type: 'cd $indir; $cmd' found nothing -- are the tree dirs right?\n"
         if $lines eq "";
     my @lines = split("\n",$lines);
     for my $line (@lines) {
@@ -108,5 +123,45 @@ for my $c (sort keys %categories) {
 
 `echo "MFM_ROOT_DIR := $DISTRO_MFM" > $DISTRO_ULAM/Makefile.local.mk`
     if $content ne "bin";
-`mkdir $DISTRO_ULAM/build`;
+
+# Copy up the whole debian dir
+`cp -a $OUTPUT_DIR/ULAM/debian/ $OUTPUT_DIR/debian`;
+my @files = <$OUTPUT_DIR/debian/*>;
+
+# Replace .tmpl files
+foreach my $file (@files) {
+    next if $file =~ /^[.]/;
+    next if -d $file;
+    my $ifile = $file;
+    next unless ($file =~ s/[.]tmpl$//);
+    open(RF,"<$ifile") or die "$!";
+    my $string;
+    {
+        local $/=undef;
+        $string = <RF>;
+        close RF or die "$!";
+    }
+    $string =~ s/<XD:PKG_NAME>/$PACKAGE_NAME/g;
+    $string =~ s/<XD:MAGIC_PKG_VERSION>/$MAGIC_PACKAGE_VERSION/g;
+    $string =~ s/<XD:COMMENT[^>]*>//sg;
+
+    open(WF,">$file") or die "$!";
+    print WF $string;
+    close(WF) or die "$!";
+
+    unlink($ifile) or die "$!";
+}
+
+open(TOPMAKE,">$OUTPUT_DIR/Makefile") or die "$!";
+print TOPMAKE <<EOM;
+all:	FORCE
+	make -C MFM
+	make -C ULAM
+
+.PHONY:	FORCE
+EOM
+close TOPMAKE or die $!;
+
+mkdir("$DISTRO_ULAM/build") or die "$!";
+
 exit 0;
