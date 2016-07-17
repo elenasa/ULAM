@@ -16,7 +16,7 @@ DEB_SYMLINK_BIN_DIR := $(DESTDIR)/usr/bin
 
 install:	FORCE
 	install -d $(DEB_COMBINED_ROOT_DIR)
-	./ULAM/share/perl/extractDistro.pl bin .. $(DEB_COMBINED_ROOT_DIR)
+	./ULAM/share/perl/extractDistro.pl bin ../<XD:PKG_NAME> $(DEB_COMBINED_ROOT_DIR)
 
 testinstalled:	FORCE
 	# These should just not die
