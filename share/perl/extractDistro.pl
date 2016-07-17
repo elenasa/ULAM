@@ -133,7 +133,7 @@ for my $c (sort keys %categories) {
         }
     }
 }
-print "Categorical extraction complete\n"
+print "Categorical extraction complete\n";
 
 ################# THE TREE IS CREATED.  FINAL CUSTOMIZATIONS
 
