@@ -20,19 +20,9 @@ defined $content and ($content eq "src" or $content eq "bin")
     or die "Usage: $0 src|bin PKGNAME_ROOT_DIR OUTPUT_DIR (bad src|bin)\n";
 
 my $PKGNAME_ROOT_DIR = shift @ARGV;
+$PKGNAME_ROOT_DIR =~ s!/$!!;
 defined $PKGNAME_ROOT_DIR and -d $PKGNAME_ROOT_DIR
     or die "Usage: $0 src|bin PKGNAME_ROOT_DIR OUTPUT_DIR (bad PKGNAME_ROOT_DIR)\n";
-$PKGNAME_ROOT_DIR =~ s!/$!!;
-# Last component of PKGNAME_ROOT_DIR must be the package name
-$PKGNAME_ROOT_DIR =~ m!.*?([^/]+)$! or die "No pkg name match in '$PKGNAME_ROOT_DIR'";
-my $PACKAGE_NAME = $1;
-$PACKAGE_NAME =~ /^[a-zA-Z][a-zA-Z0-9]*$/
-    or die "Usage: $0 src|bin PKGNAME_ROOT_DIR OUTPUT_DIR (bad format PACKAGE_NAME at end of PKGNAME_ROOT_DIR)\n";
-my $MAGIC_PACKAGE_VERSION = "";
-if ($PACKAGE_NAME =~ /.*?([0-9]+)$/) {
-    $MAGIC_PACKAGE_VERSION = $1;
-}
-print "Package name '$PACKAGE_NAME', Magic package version '$MAGIC_PACKAGE_VERSION'\n";
 
 my $OUTPUT_DIR = shift @ARGV;
 defined $OUTPUT_DIR
@@ -40,6 +30,19 @@ defined $OUTPUT_DIR
 $OUTPUT_DIR =~ s!/$!!;
 -e $OUTPUT_DIR && !-d $OUTPUT_DIR
     and die "Usage: $0 src|bin PKGNAME_ROOT_DIR OUTPUT_DIR (not a dir OUTPUT_DIR)\n";
+
+$OUTPUT_DIR =~ s!/$!!;
+# Last component of OUTPUT_DIR must be the package name
+$OUTPUT_DIR =~ m!.*?([^/]+)$! or die "No pkg name match in '$OUTPUT_DIR'";
+my $PACKAGE_NAME = $1;
+$PACKAGE_NAME =~ /^[a-zA-Z][a-zA-Z0-9]*$/
+    or die "Usage: $0 src|bin PKGNAME_ROOT_DIR OUTPUT_DIR (bad format PACKAGE_NAME at end of OUTPUT_DIR)\n";
+my $MAGIC_PACKAGE_VERSION = "";
+if ($PACKAGE_NAME =~ /.*?([0-9]+)$/) {
+    $MAGIC_PACKAGE_VERSION = $1;
+}
+print "Package name '$PACKAGE_NAME', Magic package version '$MAGIC_PACKAGE_VERSION'\n";
+
 
 if (scalar(@ARGV) != 0) {
     die "Usage: $0 src|bin PKGNAME_ROOT_DIR OUTPUT_DIR (extra arguments: @ARGV)\n";

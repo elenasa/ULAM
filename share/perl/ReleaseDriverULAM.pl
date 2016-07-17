@@ -165,7 +165,7 @@ sub REPO_BUILD {
 sub FIRST_EXTRACT {
     print "Extracting files for test build..";
 
-    my $ret = `$extractPath src ../$PACKAGENAME extract1 >logs/FIRST_EXTRACT.log 2>&1 || echo \$?`;
+    my $ret = `$extractPath src . extract1/$PACKAGENAME >logs/FIRST_EXTRACT.log 2>&1 || echo \$?`;
     return "First extract failed ($ret)"
         unless $ret eq "";
 
@@ -174,14 +174,14 @@ sub FIRST_EXTRACT {
 }
 
 sub TREE_BUILD {
-    print "Building extract1 tree..";
+    print "Building extract1/$PACKAGENAME tree..";
     my $ret;
-    $ret = `cd extract1 && make >../logs/TREE_BUILD.log 2>&1 || echo -n \$?`;
+    $ret = `cd extract1/$PACKAGENAME && make >../logs/TREE_BUILD.log 2>&1 || echo -n \$?`;
     return "Tree build failed ($ret)"
         unless $ret eq "";
 
     print "OK\n";
-    print "Removing extract1 tree..";
+    print "Removing extract1/$PACKAGENAME tree..";
 
     $ret = `rm -r extract1  || echo -n \$?`;
     return "Tree deletion failed ($ret)"
