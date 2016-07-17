@@ -88,7 +88,7 @@ my %categories = (
     "ULAM_binaries" =>    ["ULAM", "bin", "find bin -name 'ulam' -o -name 'culam'"],
     "ULAM_shared_files"=> ["ULAM", "src", "find share"],
 
-    "ULAM_packaging" =>   ["ULAM", "usrc", "find debian"],
+    "ULAM_packaging" =>   ["ULAM", "src", "find debian"],
     "ULAM_topmakefile" => ["ULAM", "usrc", "ls -1 Makefile"],
     "ULAM_doc" =>         ["ULAM", "usrc", "ls -1 *.md"],
     );
@@ -124,7 +124,7 @@ for my $c (sort keys %categories) {
         next if -d $src;
         $src =~ s!^$indir/!! or die "Couldn't find '$indir' at front of '$src'\n";
         my $cmd = "mkdir -p $outdir && cd $indir;cp --parents $src $outdir";
-        print " $cmd..";
+        print " $c: $src $outdir..";
         my $res = `$cmd || echo -n \$?`;
         if ($res eq "") {
             print "OK\n"
@@ -133,6 +133,7 @@ for my $c (sort keys %categories) {
         }
     }
 }
+print "Categorical extraction complete\n"
 
 ################# THE TREE IS CREATED.  FINAL CUSTOMIZATIONS
 
