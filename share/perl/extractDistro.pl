@@ -140,6 +140,9 @@ print "Categorical extraction complete\n";
 `echo "MFM_ROOT_DIR := $DISTRO_MFM" > $DISTRO_ULAM/Makefile.local.mk`
     if $content ne "bin";
 
+# Copy up the ULAM README
+`cp $OUTPUT_DIR/ULAM/README.md $OUTPUT_DIR/`;
+
 # Copy up the whole debian dir
 `cp -a $OUTPUT_DIR/ULAM/debian/ $OUTPUT_DIR/debian`;
 my @files = <$OUTPUT_DIR/debian/*>;
