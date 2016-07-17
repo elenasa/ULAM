@@ -159,7 +159,7 @@ all:	FORCE
 	make -C ULAM
 
 install:	FORCE
-	make -C debian/Makedebian.mk install
+	make -C debian -f Makedebian.mk install
 
 .PHONY:	FORCE
 EOM

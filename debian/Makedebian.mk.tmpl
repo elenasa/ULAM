@@ -1,5 +1,5 @@
 # Extra stuff for debian install
-# Note this is meant to be run as 'make -C Makedebian.mk install'!
+# Note this is meant to be run as 'make -f debian/Makedebian.mk install'!
 #
 # Strategy 20150713: This is completely and obviously awful (if also
 # painfully typical) but it appears a seriously non-finite task to do
@@ -24,7 +24,7 @@ testinstalled:	FORCE
 	$(DEB_SYMLINK_BIN_DIR)/mfms<XD:MAGIC_PKG_VERSION> -v
 	$(DEB_SYMLINK_BIN_DIR)/mfzmake<XD:MAGIC_PKG_VERSION> -v
 
-include VERSION.mk
+include ULAM/VERSION.mk
 version:	FORCE
 	@echo $(ULAM_VERSION_NUMBER)
 

@@ -19,14 +19,14 @@ EOS
 step("REPO_BUILD",<<EOS);
 
   Builds both repos, to ensure they do build at _REPO_BUILD_TIME eras,
-  to get final_TREEVERSION.mk files created, and to get the base ulam
-  version number that we are releasing.
+  and to get final_TREEVERSION.mk files created.
 
 EOS
 step("FIRST_EXTRACT",<<EOS);
 
   Runs extractDistro.pl on those built repos, targeting a temporary
-  directory, to get just the distro files.
+  directory, to get just the distro files, and generate a Makefile
+  and debian/ in the top-level.
 
 EOS
 step("TREE_BUILD",<<EOS);
@@ -130,7 +130,6 @@ sub REPO_BUILD {
         unless $ret eq "";
     print "OK\n";
 
-
     print "Building ULAM repo..";
     $ret = `cd ULAM && COMMANDS=1 make >../logs/ULAM_REPO_BUILD.log 2>&1 || echo -n \$?`;
     return "ULAM repo build failed ($ret)"
@@ -143,16 +142,14 @@ sub REPO_BUILD {
         unless $ret eq "";
     print "OK\n";
 
-    print "Getting version number from MFM..";
-    $mfm_version_tag = `cd MFM;make version`;
-    chomp($mfm_version_tag);
-    $mfm_version_tag =~ /^\d+[.]\d+[.]\d+$/ or return "MFM version not found, got '$mfm_version_tag'";
+#    print "Getting version number from MFM..";
+    $MFMTAG =~ /^v([0-9.]+)$/ or return "Bad MFMTAG '$MFMTAG'";
+    $mfm_version_tag = $1;
     print "$mfm_version_tag\n";
 
-    print "Getting version number from ULAM..";
-    $ulam_version_tag = `cd ULAM;make -f Makedebian.mk --quiet version`;
-    chomp($ulam_version_tag);
-    $ulam_version_tag =~ /^\d+[.]\d+[.]\d+$/ or return "Ulam version not found, got '$ulam_version_tag'";
+#    print "Getting version number from ULAM..";
+    $ULAMTAG =~ /^v([0-9.]+)$/ or return "Bad ULAMTAG '$ULAMTAG'";
+    $ulam_version_tag = $1;
     print "$ulam_version_tag\n";
 
     print "Getting git version tags\n";
