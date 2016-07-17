@@ -1,8 +1,5 @@
 #!/usr/bin/perl -w
-#XXX FOR RELEASE USE THIS:    
-# my $extractPath = "ULAM/share/perl/extractDistro.pl";
-#XXX FOR HACKING ON extractDistro.pl USING THIS:
-my $extractPath = "/home/ackley/papers/MF/asrepo/RT13/code/ULAM-fork/ULAM/share/perl/extractDistro.pl";
+my $extractPath = "ULAM/share/perl/extractDistro.pl";
 
 my ($ULAMTAG, $MFMTAG, $PACKAGENAME); processArgs(@ARGV);
 my %steps; sub step { $steps{scalar(keys %steps).". ".$_[0]} = $_[1]; }
@@ -103,16 +100,14 @@ sub REPO_CHECK_OUT {
     my $git_clone_output = `git clone $GIT_URL 2>&1`;
     print "done\n";
     print "Checking out $ULAMTAG..";
-# XXXX    my $git_clone_output2 = `cd ULAM;git checkout $ULAMTAG 2>&1`;
-    my $git_clone_output2 = `cd ULAM;git checkout develop 2>&1`;
+    my $git_clone_output2 = `cd ULAM;git checkout $ULAMTAG 2>&1`;
     print "done\n";
 
     print "Cloning repo $MFM_GIT_URL..";
     my $git_mfm_clone_output = `git clone $MFM_GIT_URL 2>&1`;
     print "done\n";
     print "Checking out $MFMTAG..";
-# XXXX    my $git_mfm_clone_output2 = `cd MFM;git checkout $MFMTAG 2>&1`;
-    my $git_mfm_clone_output2 = `cd MFM;git checkout develop 2>&1`;
+    my $git_mfm_clone_output2 = `cd MFM;git checkout $MFMTAG 2>&1`;
     print "done\n";
 
     print "Making Makefile.local.mk..";
