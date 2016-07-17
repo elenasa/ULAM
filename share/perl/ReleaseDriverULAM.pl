@@ -165,7 +165,7 @@ sub REPO_BUILD {
 sub FIRST_EXTRACT {
     print "Extracting files for test build..";
 
-    my $ret = `$extractPath src . extract1/$PACKAGENAME >logs/FIRST_EXTRACT.log 2>&1 || echo \$?`;
+    my $ret = `$extractPath src . extract1 $PACKAGENAME >logs/FIRST_EXTRACT.log 2>&1 || echo \$?`;
     return "First extract failed ($ret)"
         unless $ret eq "";
 
@@ -174,14 +174,14 @@ sub FIRST_EXTRACT {
 }
 
 sub TREE_BUILD {
-    print "Building extract1/$PACKAGENAME tree..";
+    print "Building extract1 tree..";
     my $ret;
-    $ret = `cd extract1/$PACKAGENAME && make >../logs/TREE_BUILD.log 2>&1 || echo -n \$?`;
+    $ret = `cd extract1 && make >../logs/TREE_BUILD.log 2>&1 || echo -n \$?`;
     return "Tree build failed ($ret)"
         unless $ret eq "";
 
     print "OK\n";
-    print "Removing extract1/$PACKAGENAME tree..";
+    print "Removing extract1 tree..";
 
     $ret = `rm -r extract1  || echo -n \$?`;
     return "Tree deletion failed ($ret)"
@@ -194,7 +194,7 @@ sub TREE_BUILD {
 sub SECOND_EXTRACT {
     print "Extracting files for distribution..";
     my $distroName = "ulam-$ulam_version_tag";
-    my $ret = `$extractPath src ../$PACKAGENAME $distroName >logs/SECOND_EXTRACT.log 2>&1 || echo \$?`;
+    my $ret = `$extractPath src . $distroName $PACKAGENAME >logs/SECOND_EXTRACT.log 2>&1 || echo \$?`;
     return "Second extract failed ($ret)"
         unless $ret eq "";
     print "OK\n";

@@ -15,28 +15,40 @@
 #   will become the debian binary package, and will ultimately get
 #   installed under /usr/lib/ulam
 #
+sub dieUsage {
+    my $msg = shift;
+    if (!defined($msg)) { 
+        $msg = "";
+    } else {
+        $msg = " ($msg)";
+    }
+    die "Usage: $0 src|bin COMBINED_ROOT_DIR OUTPUT_DIR PACKAGE_NAME$msg\n";
+}
 my $content = shift @ARGV;
 defined $content and ($content eq "src" or $content eq "bin")
-    or die "Usage: $0 src|bin PKGNAME_ROOT_DIR OUTPUT_DIR (bad src|bin)\n";
+    or dieUsage("bad src|bin");
 
-my $PKGNAME_ROOT_DIR = shift @ARGV;
-$PKGNAME_ROOT_DIR =~ s!/$!!;
-defined $PKGNAME_ROOT_DIR and -d $PKGNAME_ROOT_DIR
-    or die "Usage: $0 src|bin PKGNAME_ROOT_DIR OUTPUT_DIR (bad PKGNAME_ROOT_DIR)\n";
+my $COMBINED_ROOT_DIR = shift @ARGV;
+$COMBINED_ROOT_DIR =~ s!/$!!;
+defined $COMBINED_ROOT_DIR and -d $COMBINED_ROOT_DIR
+    or dieUsage("bad COMBINED_ROOT_DIR");
 
 my $OUTPUT_DIR = shift @ARGV;
 defined $OUTPUT_DIR
-    or die "Usage: $0 src|bin PKGNAME_ROOT_DIR OUTPUT_DIR (missing OUTPUT_DIR)\n";
+    or dieUsage("missing OUTPUT_DIR");
 $OUTPUT_DIR =~ s!/$!!;
 -e $OUTPUT_DIR && !-d $OUTPUT_DIR
-    and die "Usage: $0 src|bin PKGNAME_ROOT_DIR OUTPUT_DIR (not a dir OUTPUT_DIR)\n";
+    and dieUsage("not a dir OUTPUT_DIR");
 
 $OUTPUT_DIR =~ s!/$!!;
-# Last component of OUTPUT_DIR must be the package name
-$OUTPUT_DIR =~ m!.*?([^/]+)$! or die "No pkg name match in '$OUTPUT_DIR'";
-my $PACKAGE_NAME = $1;
+
+
+my $PACKAGE_NAME = shift @ARGV;
+defined($PACKAGE_NAME)
+    or dieUsage("missing PACKAGE_NAME");
+
 $PACKAGE_NAME =~ /^[a-zA-Z][a-zA-Z0-9]*$/
-    or die "Usage: $0 src|bin PKGNAME_ROOT_DIR OUTPUT_DIR (bad format PACKAGE_NAME at end of OUTPUT_DIR)\n";
+    or dieUsage("bad format PACKAGE_NAME");
 my $MAGIC_PACKAGE_VERSION = "";
 if ($PACKAGE_NAME =~ /.*?([0-9]+)$/) {
     $MAGIC_PACKAGE_VERSION = $1;
@@ -45,19 +57,19 @@ print "Package name '$PACKAGE_NAME', Magic package version '$MAGIC_PACKAGE_VERSI
 
 
 if (scalar(@ARGV) != 0) {
-    die "Usage: $0 src|bin PKGNAME_ROOT_DIR OUTPUT_DIR (extra arguments: @ARGV)\n";
+    dieUsage("extra arguments: @ARGV");
 }
 
-# The MFM tree shall be at $PKGNAME_ROOT_DIR/MFM
-# The ULAM tree shall be at $PKGNAME_ROOT_DIR/ULAM
+# The MFM tree shall be at $COMBINED_ROOT_DIR/MFM
+# The ULAM tree shall be at $COMBINED_ROOT_DIR/ULAM
 
-my $MFM_TREE = "$PKGNAME_ROOT_DIR/MFM";
-my $ULAM_TREE = "$PKGNAME_ROOT_DIR/ULAM";
+my $MFM_TREE = "$COMBINED_ROOT_DIR/MFM";
+my $ULAM_TREE = "$COMBINED_ROOT_DIR/ULAM";
 
 defined $MFM_TREE and -d $MFM_TREE
-    or die "Usage: $0 src|bin PKGNAME_ROOT_DIR OUTPUT_DIR (not found '$MFM_TREE')\n";
+    or dieUsage("not found '$MFM_TREE'");
 defined $ULAM_TREE and -d $ULAM_TREE
-    or die "Usage: $0 src|bin PKGNAME_ROOT_DIR OUTPUT_DIR (not found '$ULAM_TREE')\n";
+    or dieUsage("not found '$ULAM_TREE'");
 
 my %categories = (
     "MFM_source" =>       ["MFM", "src", "find src -name '*.cpp' -o -name '*.tmpl' -o -name '*.src'"],
