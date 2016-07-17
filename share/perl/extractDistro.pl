@@ -90,7 +90,7 @@ my %categories = (
 
     "ULAM_packaging" =>   ["ULAM", "src", "find debian"],
     "ULAM_topmakefile" => ["ULAM", "usrc", "ls -1 Makefile"],
-    "ULAM_doc" =>         ["ULAM", "usrc", "ls -1 *.md"],
+    "ULAM_doc" =>         ["ULAM", "bin", "ls -1 *.md"],
     );
 
 use File::Path qw(make_path remove_tree);
