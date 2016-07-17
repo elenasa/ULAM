@@ -181,6 +181,13 @@ install:	FORCE
 EOM
 close TOPMAKE or die $!;
 
-mkdir("$DISTRO_ULAM/build") or die "$!";
+# Ensure we have the build dir (src won't, bin will)
+my $buildDir = "$DISTRO_ULAM/build";
+if (-d $buildDir) {
+    print "Build directory $buildDir exists\n";
+} else {
+    mkdir($buildDir) 
+        or die "$!";
+}
 
 exit 0;
