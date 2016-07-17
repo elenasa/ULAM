@@ -11,7 +11,7 @@
 # references -- which this way, at least for now, will continue to
 # work.  Then we do symlinks in /usr/bin for the programs.
 
-DEB_COMBINED_ROOT_DIR := $(DESTDIR)/usr/lib/ulam/
+DEB_COMBINED_ROOT_DIR := $(DESTDIR)/usr/lib/<XD:PKG_NAME>/
 DEB_SYMLINK_BIN_DIR := $(DESTDIR)/usr/bin
 
 install:	FORCE
@@ -20,9 +20,9 @@ install:	FORCE
 
 testinstalled:	FORCE
 	# These should just not die
-	$(DEB_SYMLINK_BIN_DIR)/ulam -V
-	$(DEB_SYMLINK_BIN_DIR)/mfms -v
-	$(DEB_SYMLINK_BIN_DIR)/mfzmake -v
+	$(DEB_SYMLINK_BIN_DIR)/ulam<XD:MAGIC_PKG_VERSION> -V
+	$(DEB_SYMLINK_BIN_DIR)/mfms<XD:MAGIC_PKG_VERSION> -v
+	$(DEB_SYMLINK_BIN_DIR)/mfzmake<XD:MAGIC_PKG_VERSION> -v
 
 include VERSION.mk
 version:	FORCE

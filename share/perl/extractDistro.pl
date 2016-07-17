@@ -158,6 +158,9 @@ all:	FORCE
 	make -C MFM
 	make -C ULAM
 
+install:	FORCE
+	make -C debian/Makedebian.mk install
+
 .PHONY:	FORCE
 EOM
 close TOPMAKE or die $!;
