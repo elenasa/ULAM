@@ -103,14 +103,16 @@ sub REPO_CHECK_OUT {
     my $git_clone_output = `git clone $GIT_URL 2>&1`;
     print "done\n";
     print "Checking out $ULAMTAG..";
-    my $git_clone_output2 = `cd ULAM;git checkout $ULAMTAG 2>&1`;
+# XXXX    my $git_clone_output2 = `cd ULAM;git checkout $ULAMTAG 2>&1`;
+    my $git_clone_output2 = `cd ULAM;git checkout develop 2>&1`;
     print "done\n";
 
     print "Cloning repo $MFM_GIT_URL..";
     my $git_mfm_clone_output = `git clone $MFM_GIT_URL 2>&1`;
     print "done\n";
     print "Checking out $MFMTAG..";
-    my $git_mfm_clone_output2 = `cd MFM;git checkout $MFMTAG 2>&1`;
+# XXXX    my $git_mfm_clone_output2 = `cd MFM;git checkout $MFMTAG 2>&1`;
+    my $git_mfm_clone_output2 = `cd MFM;git checkout develop 2>&1`;
     print "done\n";
 
     print "Making Makefile.local.mk..";
