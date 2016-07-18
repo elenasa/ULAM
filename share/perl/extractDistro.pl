@@ -175,7 +175,9 @@ open(TOPMAKE,">$OUTPUT_DIR/Makefile") or die "$!";
 print TOPMAKE <<EOM;
 all:	FORCE
 	make -C MFM
-	make -C ULAM
+	make -C ULAM 
+	make -C ULAM cleanulamexports
+	make -C ULAM ulamexports
 
 install:	FORCE
 	make -f debian/Makedebian.mk install
