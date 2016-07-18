@@ -60,8 +60,7 @@ namespace MFM
 
     u32 getIndexForNumberAsString(u32 num);
 
-    std::string getDataAsString(u32 dataindex);
-
+    const std::string & getDataAsString(u32 dataindex);
 
   private:
 

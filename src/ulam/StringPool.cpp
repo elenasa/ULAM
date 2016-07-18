@@ -43,7 +43,7 @@ namespace MFM {
     return getIndexForDataString(nstr.str());
   }
 
-  std::string StringPool::getDataAsString(u32 dataindex)
+  const std::string & StringPool::getDataAsString(u32 dataindex)
   {
     assert(m_dataAsString.size() > dataindex && dataindex > 0);
     return m_dataAsString[dataindex];
