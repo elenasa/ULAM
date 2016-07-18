@@ -30,7 +30,7 @@ namespace MFM {
       {
 	idx = m_stringToDataIndex.size() + 1;
 	assert(idx == m_dataAsString.size());
-	m_stringToDataIndex.insert(std::pair<std::string,u32> (str.c_str(),idx));
+	m_stringToDataIndex.insert(std::pair<std::string,u32> (str,idx));
 	m_dataAsString.push_back(str);
       }
     return idx;
