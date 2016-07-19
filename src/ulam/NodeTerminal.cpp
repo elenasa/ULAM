@@ -696,17 +696,26 @@ namespace MFM {
 	  std::string numstr = m_state.getTokenDataAsString(&tok);
 	  const char * numlist = numstr.c_str();
 	  char * nEnd;
-	  m_constant.sval = strtol(numlist, &nEnd, 0);   //base 10, 8, or 16
 
-	  if((*numlist == 0) || (*nEnd != 0) || (errno == ERANGE))
+          // Based on example in http://man.openbsd.org/strtol.3
+          long temp = strtol(numlist, &nEnd, 0);   //base 10, 8, or 16
+	  if((*numlist == 0) || (*nEnd != 0) || 
+             ((errno == ERANGE) && (temp == LONG_MAX || temp == LONG_MIN)) || 
+             (temp > INT_MAX || temp < INT_MIN)) 
 	    {
 	      std::ostringstream msg;
-	      msg << "Invalid signed constant <" << numstr.c_str() << ">, errno=";
-	      msg << errno << ": " << strerror(errno);
+	      msg << "Invalid signed constant <" << numstr.c_str() << ">";
+              if (errno)
+                {
+                  msg << ", errno=" << errno << ": " << strerror(errno);
+                }
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    }
 	  else
-	    rtnok = true;
+            {
+              m_constant.sval = temp;
+              rtnok = true;
+            }
 	}
 	break;
       case TOK_NUMBER_UNSIGNED:

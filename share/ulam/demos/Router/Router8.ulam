@@ -57,15 +57,15 @@ element Router8 {
   ARGB getColor(Unsigned selector) {
     Cell aPkt;
     ColorUtils cu;
-    Unsigned def = (Unsigned) 0xffff2222;
+    Unsigned def = 0xffff2222u;
     if (selector == 0u || selector > 4u)   // Def
       return cu.color(def);
     if (selector == 1u || selector == 4u|| selector == 3u)  // PoPa, Po, Pa
-      return cu.color((Unsigned) 0xff808080);
+      return cu.color(0xff808080u);
     /* selector == 2 or 3 */
     if (lastAge < 3)
       return aPkt.portColor(lastDstPort);
-    return cu.color((Unsigned) 0xff404040);
+    return cu.color(0xff404040u);
   }
 
 
