@@ -1080,6 +1080,7 @@ namespace MFM {
     if(!condNode)
       {
 	m_state.popClassContext(); //the pop
+	delete rtnNode;
 	return NULL; //stop this maddness
       }
 
@@ -1087,6 +1088,7 @@ namespace MFM {
       {
 	delete condNode;
 	m_state.popClassContext(); //the pop
+	delete rtnNode;
 	return NULL; //stop this maddness
       }
 
@@ -1100,6 +1102,7 @@ namespace MFM {
       {
 	delete condNode;
 	m_state.popClassContext(); //the pop
+	delete rtnNode;
 	return NULL; //stop this maddness
       }
 
@@ -1174,9 +1177,9 @@ namespace MFM {
 
     if(pTok.m_type != TOK_SEMICOLON)
       {
+	m_state.popClassContext(); //where was it?
 	delete rtnNode;
 	delete declNode; //stop this maddness
-	m_state.popClassContext(); //where was it?
 	return NULL;
       }
 
@@ -1191,18 +1194,18 @@ namespace MFM {
 
 	if(!condNode)
 	  {
+	    m_state.popClassContext(); //where was it?
 	    delete rtnNode;
 	    delete declNode;
-	    m_state.popClassContext(); //where was it?
 	    return NULL; //stop this maddness
 	  }
 
 	if(!getExpectedToken(TOK_SEMICOLON))
 	  {
+	    m_state.popClassContext(); //where was it?
 	    delete rtnNode;
 	    delete declNode;
 	    delete condNode;
-	    m_state.popClassContext(); //where was it?
 	    return NULL;
 	  }
       }
@@ -1225,20 +1228,20 @@ namespace MFM {
 	assignNode = parseAssignExpr();
 	if(!assignNode)
 	  {
+	    m_state.popClassContext(); //where was it?
 	    delete rtnNode;
 	    delete declNode;
 	    delete condNode;
-	    m_state.popClassContext(); //where was it?
 	    return NULL; //stop this maddness
 	  }
 
 	if(!getExpectedToken(TOK_CLOSE_PAREN))
 	  {
+	    m_state.popClassContext(); //where was it?
 	    delete rtnNode;
 	    delete declNode;
 	    delete condNode;
 	    delete assignNode;
-	    m_state.popClassContext(); //where was it?
 	    return NULL; //stop this maddness
 	  }
       } //done with assign expr, could be null
@@ -1255,11 +1258,11 @@ namespace MFM {
 
     if(!trueNode)
       {
+	m_state.popClassContext(); //where was it?
 	delete rtnNode;
 	delete declNode;
 	delete condNode;
 	delete assignNode;
-	m_state.popClassContext(); //where was it?
 	return NULL; //stop this maddness
       }
 
