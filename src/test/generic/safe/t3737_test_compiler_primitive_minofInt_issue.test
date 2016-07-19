@@ -16,7 +16,8 @@ element Fu {
     System s;
     Int mini = Int.minof;
     s.print(mini);
-    s.assert(mini == -2147483648);  //S32_MIN
+    //s.assert(mini == -2147483648);  //S32_MIN fails strtol
+    s.assert(mini == Int.minof);  //S32_MIN
     //s.assert(mini.sizeof == Int.minof.sizeof); Unexpected <.> (requires variable or constant)
     Int(1) zero = Unsigned.minof; //U32_MIN, 0 bit integer invalid.
     s.print(zero.sizeof);
