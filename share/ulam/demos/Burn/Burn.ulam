@@ -1,0 +1,96 @@
+
+/**
+   'Burnable' active media demo (modifiable parameters version).  This
+   version provides parameters to customize how far sparks fly when I
+   burn, and how long it takes me to become burnable again after I've
+   burned.
+
+   Note these parameters are applied _on_the_first_event this atom
+   experiences.  Set the parameters as you wish, paint on the Burn,
+   and then deliver an event to each of them using the spark tool to
+   'set' their particular values from the current model parameters.
+   This 'imprinting' approach allows creation of burnable structures
+   that mix different properties together.
+
+   \symbol Bu
+   \symmetries normal
+   \color #d33
+   \author Dave Ackley
+   \license public-domain
+   \sa Burn
+ */
+element Burn : QBurn {
+  Void behave() { update(); }
+
+  ARGB getColor(Unsigned selector) {
+    return getColorQ(selector);
+  }
+}
+
+use WindowServices;
+
+/**
+   A Spark only survives for one event, during which it tries to
+   fire the current neighborhood, and then disappears.
+
+   \symbol Sp
+   \color #00f
+ */
+element Spark {
+  typedef EventWindow.SiteNum SiteNum;
+  EventWindow ew;
+  Void behave() {
+
+    // Fire fire fire!  Try to pull every nearby trigger!
+    WindowServices ws;
+    BurnParameters bp; // Need an instance to access model parameters..
+    ws.reset(1u, (Unsigned(3)) bp.pBURN_RADIUS);
+    for (Int slot = ws.next(); slot >= 0; slot = ws.next()) {
+      SiteNum s = (SiteNum) slot;
+      Atom other = ew[s];
+      if (other as Trigger) {
+        other.doPull();
+      }
+      ew[s] = other;
+    }
+    // Our work is done
+    ew[0] = Empty.instanceof;
+  }
+
+}
+
+use XTimer;
+/**
+   An AutoSpark spontaneously ignites a radius-1 burn if it has been
+   too long since it burned.
+   
+   \symbol Au
+   \symmetries normal
+   \color #f55
+   \author Dave Ackley
+   \license public-domain
+
+   \sa Burn, SparkGen
+ */
+element AutoSpark : QBurn {
+  XTimer(4,12,1) mBurnTracker;
+  Unsigned mSparkCount;
+  Void behave() {
+
+    mRadius = 1;
+
+    if (update()) mBurnTracker.reset(); // OK we burned
+    else if (mBurnTracker.countAlarm()) {
+
+      doPull();
+      mBurnTracker.reset(); 
+      ++mSparkCount;
+
+    }
+  }
+
+  ARGB getColor(Unsigned selector) {
+    return getColorQ(selector);
+  }
+
+}

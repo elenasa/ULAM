@@ -1,0 +1,67 @@
+## -*- mode:ulam -*-
+#=t3499_test_compiler_elementandquark_arraytypedeffromanotherclass_unseen_error
+#!
+./Vector.ulam:3:26: ERROR: Possible Divide By Zero Attempt.
+./Vector.ulam:3:26: ERROR: Constant value expression for binary op/ is erroneous while compiling class: Vector(2u).
+./Vector.ulam:3:9: ERROR: Type Bitsize specifier, within (), is not ready.
+./R.ulam:4:10: ERROR: 6 Nodes with erroneous types detected after type labeling class: R.
+./R.ulam:4:10: ERROR: 72 Nodes with unresolved types detected after type labeling class: R.
+Unrecoverable Program Type Label FAILURE.
+#>R.ulam
+ulam 1;
+ use TypedefIssue;
+ use Vector;
+ element R {
+ Int test(){
+TypedefIssue(2u) ish;
+ return ish.foo2();
+}
+ }
+
+#:TypedefIssue.ulam
+ulam 1;
+element TypedefIssue(Unsigned tif) {
+typedef Vector(tif).Symmetry Symmetry;
+ Symmetry x;
+ Bool b;
+Vector(tif) t;
+ Int foo() {
+x[0] = 2;
+ x[1] = 1;
+if(t.set(x))
+ b=true;
+return t.m[1];
+} Int foo2() {
+ return x.sizeof;
+}
+}
+
+##
+##       //Divide by Zero can also be detected in Symmetry arraysize (t3498)
+#:Vector.ulam
+ulam 1;
+quark Vector(Unsigned vec) {
+typedef Unsigned((2u*vec)/vec.minof) Channel;
+ typedef Channel Symmetry[vec+1u];
+ Symmetry m;
+Bool set(Symmetry vector) {
+m[0]=vector[0];
+ m[1]=vector[1];
+ return (m[0]!=0 && m[1]!=0);
+ }
+}
+
+##
+##     //./Vector.ulam:3:26: ERROR: Possible Divide By Zero Attempt.
+##      //No error about zero bitsize!!
+##
+##      //informed by t3499, bitsize has error
+##      //./Vector.ulam:4:35: ERROR: Possible Divide By Zero Attempt.
+##
+##      //informed by 3337, array subscript delayed.
+##      //informed by 3269, UNSEEN..
+##
+##      // informed by t3268: array typedef 'Symmetry' from quark used
+##      // as typedef, data member array, and casted arg in element.
+##
+#.

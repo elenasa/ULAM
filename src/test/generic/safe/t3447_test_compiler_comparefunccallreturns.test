@@ -1,0 +1,21 @@
+## -*- mode:ulam -*-
+#=t3447_test_compiler_comparefunccallreturns
+#!
+Exit status: 1
+Ue_T { Bool(1) b(true);  Int(32) test() {  b ( )func1 ( )func2 == = b cast return } }
+#>T.ulam
+  ulam 1;
+element T{
+  Bool b;
+  Int func1() {
+    return 1;
+  }
+  Int func2() {
+    return Bool.sizeof;
+  }
+  Int test(){
+    b = func1() == func2(); return (Int) b;
+  }
+}
+
+#.

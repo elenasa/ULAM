@@ -1,0 +1,70 @@
+/**
+   Dynamic Regulator.  A parameterized version of the empty space
+   regulation and Res production.
+
+   \author Dave Ackley
+   \license lgpl
+   \symbol DR
+   \color #033
+   \symmetries all
+   \radius 1
+   \version 3
+*/
+element DReg {
+  EventWindow ew;
+  Random random;
+
+  /**
+     DReg creation.  The odds of filling an adjacent empty with a DReg.
+
+     \unit odds
+     \range 1..5000
+   */
+  parameter Unsigned pDREG_CREATE = 1000;
+
+  /**
+     Res creation.  The odds of filling an adjacent empty with a Res,
+     assuming it wasn't filled with a DReg.
+
+     \unit odds
+     \range 1..2000
+   */
+  parameter Unsigned pRES_CREATE = 200;
+
+  /**
+      Destroy DReg.  The odds of erasing an adjacent DReg.
+
+     \unit odds
+     \range 1..2000
+   */
+  parameter Unsigned pDREG_DESTROY = 10;
+
+  /**
+      General destruction.  The odds of erasing an adjacent non-empty,
+      non-DReg.
+
+     \unit odds
+     \range 1..2000
+   */
+  parameter Unsigned pANY_DESTROY = 100;
+
+  Void behave() {
+    Atom other = ew[1];
+    Empty empty;
+    Res res;
+    if (other is Empty) {
+
+      if (random.oneIn(pDREG_CREATE)) ew[1] = self;
+      else if (random.oneIn(pRES_CREATE)) ew[1] = res;
+      ew.swap(0,1);
+
+    }
+    else if ((other is DReg && random.oneIn(pDREG_DESTROY)) ||
+             random.oneIn(pANY_DESTROY)) {
+
+      ew[1] = empty;
+      ew.swap(0,1);
+
+    }
+  }
+}

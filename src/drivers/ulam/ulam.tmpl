@@ -1,0 +1,1890 @@
+#!/usr/bin/perl -Tw
+# -*- perl -*-
+
+####PERL CONFIG
+my $ORIG_PATH = $ENV{'PATH'};
+delete @ENV{'PATH', 'IFS', 'CDPATH', 'ENV', 'BASH_ENV'};
+
+## Import mfz functions from the MFM tree at 'compile' time
+##
+## NOTE the MFM_ROOT_DIR substituted here is, in general, NOT THE SAME
+## as the $MFM_ROOT_DIR derived below!  _This_ earlier value is as of
+## the ULAM_REPO_BUILD_TIME or ULAM_DISTRO_BUILD_TIME eras only; that
+## later value is also used in the ULAM_INSTALLED_RUN_TIME era.
+##
+<<<INCLUDE:@MFM_ROOT_DIR@/src/drivers/mfzrun/common.pl.inc>>>
+SetUDieMsg("Type '$0 -h' for help\n");
+
+use Capture::Tiny 'capture';
+use Cwd 'abs_path';
+use Carp;
+
+####DIRECTORY PATHS WITH DEFAULTS
+
+  ##TEMPLATE SUBSTITUTIONS
+  my $ULAM_VERSION_MAJOR='@ULAM_VERSION_MAJOR@';
+  my $ULAM_VERSION_MINOR='@ULAM_VERSION_MINOR@';
+  my $ULAM_VERSION_REV='@ULAM_VERSION_REV@';
+  my $ULAM_BUILD_TIMESTAMP='@ULAM_BUILD_TIMESTAMP@';
+  my $ULAM_BUILD_WHO='@ULAM_BUILD_WHO@';
+  my $ULAM_BUILD_WHERE='@ULAM_BUILD_WHERE@';
+  my $MFM_BUILD_VERSION='@MFM_VERSION_NUMBER@';
+  my $MFM_TREE_VERSION='@MFM_TREE_VERSION@';
+  my $ULAM_TREE_VERSION='@ULAM_TREE_VERSION@';
+  IDie("Templates have not been substituted -- this is not the script you are looking for.\n")
+      if $ULAM_VERSION_MAJOR =~ /@/ or $ULAM_TREE_VERSION =~ /@/;
+
+use File::Spec;
+use Cwd 'abs_path';
+
+my $SCRIPT_PATH;
+my $ULAM_ROOT;
+my $CULAM_PATH;
+my $ULAM_SHARE_DIR;
+
+BEGIN {
+    use File::Basename;
+
+    $SCRIPT_PATH = __FILE__;
+    $SCRIPT_PATH = File::Spec->rel2abs( readlink $SCRIPT_PATH, dirname($SCRIPT_PATH))
+        if -l $SCRIPT_PATH;
+
+    $ULAM_ROOT = dirname($SCRIPT_PATH)."/..";
+
+    # Note we're not allowing spaces in the path.  F-U if that's a problem.
+    if ($ULAM_ROOT =~ /^([^" \*\?\[\]\$\|<>&%()!;\\]+)$/) {
+    	$ULAM_ROOT = $1;
+    } else {
+    	die "Bad characters in path '$ULAM_ROOT'";
+    }
+
+    $CULAM_PATH = "$ULAM_ROOT/bin/culam";
+    $ULAM_SHARE_DIR = "$ULAM_ROOT/share";
+
+    push @INC, "$ULAM_SHARE_DIR/perl";
+}
+
+sub TryToReadWholeFile {
+    my $file = shift;
+    return undef unless -r $file;
+    return ReadWholeFile($file);
+}
+
+my $MFM_ROOT_DIR= "$ULAM_ROOT/../MFM";  # DEFAULT, HOPE AND PRAY.. THIS ONLY WORKS ON THE INSTALLED TREE
+
+# Look for ulam's local config makefile and 'parse' (yeah that's it) what we find
+my $makefilelocalpath = "$ULAM_ROOT/Makefile.local.mk";
+my $makefilelocal = TryToReadWholeFile($makefilelocalpath);
+if (defined($makefilelocal) &&
+    $makefilelocal =~ /^\s*MFM_ROOT_DIR\s*:=\s*([^\s#]+)\s*(#.*)?$/m) {
+    $MFM_ROOT_DIR = $1;
+    # Do makefile's substitution by hand here
+    $MFM_ROOT_DIR =~ s/\$\(ULAM_ROOT_DIR\)/$ULAM_ROOT/;
+}
+
+use UlamGen;
+
+####VARIABLES MODIFIED BY SWITCHES
+my $ULAM_WORK_DIR=undef;
+my $ULAM_BIN_DIR=undef;
+my $SHOW_COMMANDS = 0;
+my $SHOW_ENVIRONMENT = 0;
+my $SHOW_OUTPUT = 0;
+my $SHOW_TESTS = 0;
+my $SHOW_ALL = 0;
+my $CLEAN_CPP = 0;
+my $DEBUG_CPP = undef;
+my $OPTIMIZE_CPP = undef;
+my $KEEP_GOING = 0;
+my $VERBOSE_OUTPUT = 0;
+
+my $ROLLUP_FILE_STEM = "UlamCustomElements";
+
+####TOOL PATH NAMES
+my $makeTool = "GNU Make system builder";
+my $gppTool = "Compiler for C++ -> native code";
+my $mfzTool = "MFZ package creator";
+my $arTool = "Archive maker for .o files";
+my $ulamcTool = "Compiler for ulam -> C++";
+my $mfmRootTool = "Movable Feast Machine source distribution";
+#my $infoTool = "Element metadata parser";
+
+my %tools;
+$tools{$ulamcTool} =
+    [ $CULAM_PATH,
+      sub {
+          my $p = shift;
+          my $status = runThis("^culam", undef, $p,"-V");
+          return $status;
+      }
+    ];
+$tools{$mfzTool} =
+    [ "$MFM_ROOT_DIR/bin/mfzmake",
+      sub {
+          my $p = shift;
+          my $status = runThis("^mfzmake", undef, $p,"-v");
+          return $status;
+      }
+    ];
+
+configureMSD($MFM_ROOT_DIR);
+
+sub getTool {
+    my $tname = shift;
+    my $r = $tools{$tname};
+    IDie("Not tool name '$tname'")
+        unless defined($r);
+    return $r->[0];
+}
+
+my $gpp = findStandardTool("g++");
+$tools{$gppTool} =
+    [ $gpp,
+      sub {
+          my $p = shift;
+          my $status = runThis("^g[+][+] ", undef, $p,"--version");
+          return $status;
+      }
+    ];
+my $ar = findStandardTool("ar");
+$tools{$arTool} =
+    [ $ar,
+      sub {
+          my $p = shift;
+          my $status = runThis("^GNU ar ", undef, $p,"--version");
+          return $status;
+      }
+    ];
+my $make = findStandardTool("make");
+$tools{$makeTool} =
+    [ $make,
+      sub {
+          my $p = shift;
+          my $status = runThis("^GNU Make", undef, $p,"--version");
+          return $status;
+      }
+    ];
+my @toolNames = ($makeTool, $gppTool, $arTool, $mfmRootTool, $ulamcTool);
+
+sub matchOrCall {
+    my ($thing, $arg) = @_;
+    my $type = ref($thing);
+    if ($type eq "") {
+        if ($arg !~ /$thing/) {
+            return "Unmatched";
+        }
+        return "";
+    }
+    if ($type eq "CODE") {
+        return &$thing($stdout);
+    }
+    IDie("Unhandled '$thing'\n");
+}
+
+sub showCommands { return $SHOW_COMMANDS || $SHOW_ALL; }
+sub showEnvironment { return $SHOW_COMMANDS || $SHOW_ALL; }
+sub showOutput { return $SHOW_COMMANDS || $SHOW_ALL; }
+sub showTests { return $SHOW_TESTS || $SHOW_ALL; }
+sub verbose { return $VERBOSE_OUTPUT || $SHOW_ALL; }
+
+sub runThis {
+    my ($matchout, $matcherr, $cmd, @args) = @_;
+    if (showCommands()) {
+        print STDERR " ".join(" ",$cmd, @args)."\n";
+    }
+    my $status = "";
+    my ($stdout, $stderr, $exit) = capture {
+        open(HANDLE, "-|", $cmd, @args) or return "Running '$cmd' failed: $!";
+        my $output = "";
+        while (<HANDLE>) {
+            $output .= $_;
+        }
+        print STDOUT $output;
+        if (!close HANDLE) {
+            $status = "Close failed: $?";
+        }
+#        return "";
+    };
+    if ($exit ne "") {
+        $status = $exit;
+    } else {
+        if (defined($matchout)) {
+            $status .= matchOrCall($matchout, $stdout);
+        }
+        if (defined($matcherr)) {
+            $status .= matchOrCall($matcherr, $stderr);
+        }
+    }
+    if (showOutput()) {
+        print " # BEGIN(STDOUT)\n$stdout\n # END(STDOUT)\n";  #print "\n" unless $stdout =~ /.*\n$/;
+        print " # BEGIN(STDERR)\n$stderr\n # END(STDERR)\n";  #print "\n" unless $stderr =~ /.*\n$/;
+        print " # STATUS($status)\n";#     print "\n" unless $status =~ /.*\n$/;
+    }
+    return ($status,$stdout,$stderr);
+}
+
+####COMMAND LINE PROCESSING
+use Getopt::Long;
+use Pod::Usage;
+
+my $actionCmd; # compile, test, etc
+
+Getopt::Long::Configure ("gnu_getopt");    # Mostly for bundling + permute
+Getopt::Long::Configure ("noauto_abbrev"); # I find auto_abbrev unnerving
+#Getopt::Long::Configure ("debug");
+
+sub findStandardTool {
+    my $tname = shift;
+    my $tool = `/usr/bin/which $tname`;
+    chomp($tool);
+    return blessShellReaching($tool);
+}
+
+sub blessShellReaching {
+    my $taintedPath = shift;
+     $taintedPath =~ m!^([-+_/a-zA-Z0-9]+)$!
+         or UDie("'$taintedPath' contains unexpected characters!");
+    return $1;
+}
+
+sub lexEncode {
+    my ($prefix, $num) = @_;
+    my $len = length($num);
+    my $lex;
+    if ($len > 8) {
+        $lex = "9".lexEncode($len).$num;
+    } else {
+        $lex = $len.$num;
+    }
+    return $prefix.$lex;
+}
+
+my @sections;
+my %secCounts;
+sub getSectionId {
+    my $section = shift;
+    if (!defined $secCounts{$section}) {
+        $secCounts{$section} = 0;
+        push @sections, $section;
+    }
+    my $count = $secCounts{$section}++;
+    return lexEncode("$section.",$count);
+}
+
+sub getSectionNames {
+    return @sections;
+}
+
+my %swinfo = (
+    "help" => {
+        aliases => "h|?",
+        desc => "Print this help, then exit",
+        id => getSectionId("Information"),
+        handler => \&entryOcmd
+    },
+    "briefversion" => {
+        aliases => "V",
+        desc => "Print minimal version information, then exit",
+        id => getSectionId("Information"),
+        handler => \&entryOcmd
+    },
+    "version" => {
+        aliases => "",
+        desc => "Print full version information, then exit",
+        id => getSectionId("Information"),
+        handler => \&entryOcmd
+    },
+    "checktools" => {
+        aliases => "C",
+        desc => "Report tool paths; exit successfully if all are found",
+        id => getSectionId("Information"),
+        handler => \&entryOcmd
+    },
+    "executables" => {
+        aliases => "e",
+        desc => "Generate executable binaries from .ulam (implies --library)",
+        id => getSectionId("Command"),
+        handler => \&entryCmd
+    },
+    "mfzpackage" => {
+        aliases => "z",
+        type => "s",
+        desc => "Create .mfz package signed by HANDLE (implies --library)",
+        id => getSectionId("Command"),
+        default => "-",
+        handler => \&entryOpt
+    },
+    "library" => {
+        aliases => "l",
+        desc => "Create .so library file .ulam (implies --compile)",
+        id => getSectionId("Command"),
+        handler => \&entryCmd
+    },
+    "compile" => {
+        aliases => "c",
+        desc => "Compile .ulam to .o object files (implies --ulamcompile)",
+        id => getSectionId("Command"),
+        handler => \&entryCmd
+    },
+    "ulamtest" => {
+        aliases => "ut",
+        desc => "Generate the ulamtest binary from .ulam (implies --compile)",
+        id => getSectionId("Command"),
+        handler => \&entryCmd
+    },
+    "test" => {
+        aliases => "t",
+        desc => "Run the ulamtest binary (implies --ulamtest)",
+        id => getSectionId("Command"),
+        handler => \&entryCmd
+    },
+    "debug" => {
+        aliases => "g",
+        desc => "Include debugging symbols in compiled binaries",
+        variable => \$DEBUG_CPP,
+        id => getSectionId("Option"),
+        handler => \&entryVar
+    },
+    "optimization" => {
+        aliases => "o",
+        desc => "Turn on compiler optimizations",
+        variable => \$OPTIMIZE_CPP,
+        id => getSectionId("Option"),
+        handler => \&entryVar
+    },
+    "sourceDir" => {
+        aliases => "sd",
+        type => "s",
+        desc => "Directory containing source .ulam files",
+        default => ".",
+        id => getSectionId("Option"),
+        handler => \&entryOpt
+    },
+    "workDir" => {
+        aliases => "wd",
+        type => "s",
+        desc => "Work directory for all compiler files",
+        variable => \$ULAM_WORK_DIR,
+        id => getSectionId("Option"),
+        handler => \&entryVar
+    },
+    "outputDir" => {
+        aliases => "od",
+        type => "s",
+        desc => "Directory for final compiled outputs",
+        variable => \$ULAM_BIN_DIR,
+        id => getSectionId("Option"),
+        handler => \&entryVar
+    },
+    "mfmSourceDir" => {
+        aliases => "msd",
+        type => "s",
+        desc => "Root of the MFM source tree",
+        default => "$MFM_ROOT_DIR",
+        id => getSectionId("Option"),
+        handler => \&entryOpt
+    },
+    "ulamcompile" => {
+        aliases => "uc",
+        desc => "Compile .ulam to intermediate C++ and stop",
+        id => getSectionId("Debugging"),
+        handler => \&entryCmd
+    },
+    "showcommands" => {
+        aliases => "sc",
+        desc => "Print commands before running them",
+        variable => \$SHOW_COMMANDS,
+        id => getSectionId("Debugging"),
+        handler => \&entryVar
+    },
+    "verbose" => {
+        aliases => "v",
+        desc => "Print extra information during operation",
+        variable => \$VERBOSE_OUTPUT,
+        id => getSectionId("Debugging"),
+        handler => \&entryVar
+    },
+    "showenvironment" => {
+        aliases => "se",
+        desc => "Print environment variables before setting them",
+        variable => \$SHOW_ENVIRONMENT,
+        id => getSectionId("Debugging"),
+        handler => \&entryVar
+    },
+    "showoutput" => {
+        aliases => "so",
+        desc => "Print command output even when the command succeeds",
+        variable => \$SHOW_OUTPUT,
+        id => getSectionId("Debugging"),
+        handler => \&entryVar
+    },
+    "showtests" => {
+        aliases => "st",
+        desc => "Print test output even when test succeeds",
+        variable => \$SHOW_TESTS,
+        id => getSectionId("Debugging"),
+        handler => \&entryVar
+    },
+    "showall" => {
+        aliases => "sa",
+        desc => "Equivalent to --sc --se --so --st",
+        variable => \$SHOW_ALL,
+        id => getSectionId("Debugging"),
+        handler => \&entryVar
+    },
+    "keepGoing" => {
+        aliases => "k",
+        desc => "Don't abort overall compilation on errors",
+        variable => \$KEEP_GOING,
+        id => getSectionId("Option"),
+        handler => \&entryVar
+    },
+    );
+
+my $maxSwitchNameSize;
+sub ComputeMaxSwitchNameSize {
+    my $max = 0;
+    for my $key (keys %swinfo) {
+        my $swnames = getSwNameList($key);
+        my $len = length($swnames);
+        if ($len > $max) {
+            $max = $len;
+        }
+    }
+    $maxSwitchNameSize = $max;
+}
+ComputeMaxSwitchNameSize();
+
+sub printSummaryHelp
+{
+    print STDERR "\nThis is the top-level ulam compilation driver\n";
+    print STDERR "\nBasic command forms:\n";
+    print STDERR "  $0 [OPTIONSWITCHES] INFOSWITCH\n";
+    print STDERR "  $0 [OPTIONSWITCHES] COMMANDSWITCH File1.ext File2.ext .....\n";
+    print STDERR "      Extensions are usually .ulam, .mfs, or 'C-like' (.cpp, .h, etc)\n";
+    print STDERR "      Extension '.mfz' specifies package name for -z\n";
+    print STDERR "\n";
+}
+
+sub printSectionsHelp
+{
+    my @sections = @_;
+    @sections = getSectionNames()
+        unless scalar(@sections) > 0;
+    for my $section (@sections) {
+        printSectionHelp($section);
+    }
+}
+
+sub getSectionSwitchList {
+    my $section = shift or IDie;
+    my %secs;
+    for my $key (keys %swinfo) {
+        my $rinfo = $swinfo{$key};
+        my $id = $rinfo->{"id"};
+        my ($sect,$num) = split(/[.]/, $id);
+        next unless $sect eq $section;
+        $secs{$num} = $key;
+    }
+    my @ret;
+    for my $key (sort keys %secs) {
+        push @ret, $secs{$key}
+    }
+    return @ret;
+}
+
+sub printSwitchHelp {
+    my $switch = shift or IDie;
+    my $swnames = getSwNameList($switch);
+    my $rinfo = getSwinfo($switch);
+    my $desc = $rinfo->{"desc"} or die "No desc for '$switch' you moke";
+    my $default = $rinfo->{"default"};
+    if (defined($default)) {
+        my $delim = "";
+        my $type = $rinfo->{"type"};
+        $delim = "'" if $type eq "s";
+        $desc .= "; default: $delim$default$delim";
+    }
+    my $width = $maxSwitchNameSize + 2;
+    printf STDERR "%${width}s  %s\n",$swnames,$desc;
+}
+
+sub printSectionHelp {
+    my $section = shift or IDie;
+    print STDERR "$section switches:\n";
+    for my $switch (getSectionSwitchList($section)) {
+        printSwitchHelp($switch);
+    }
+    print STDERR "\n";
+}
+
+sub printHelp {
+    printSummaryHelp();
+    printSectionsHelp();
+}
+
+sub printToolPath {
+    my $toolName = shift;
+    return checkTool($toolName,1);
+}
+
+sub checkTool {
+    my ($toolName, $printit) = @_;
+    my $rl = $tools{$toolName};
+    my $toolPath = $rl->[0];
+    my $toolSub = $rl->[1];
+
+    my $status;
+    if (!defined($toolPath) || $toolPath eq "") {
+        $toolPath = "";
+        $status = "Not configured";
+    } else {
+        $status = &$toolSub($toolPath);
+    }
+    my $statName = "OK";
+    my $prefix = "    ";
+    if ($status ne "") {
+        $statName = "PROBLEM: $status";
+        $prefix = "X-> ";
+    }
+    if (defined($printit) && $printit) {
+        print STDERR "  $toolName:\n    Path='$toolPath'\n${prefix}Status=$statName\n";
+    }
+    return $status eq "";
+}
+
+sub printVersion {
+    print STDERR "ulam-$ULAM_VERSION_MAJOR.$ULAM_VERSION_MINOR.$ULAM_VERSION_REV\n";
+}
+
+sub printFullVersion {
+    print STDERR "ULAM compilation driver version ";
+    printVersion();
+    print STDERR " Built for MFM $MFM_BUILD_VERSION";
+    print STDERR "\n at $ULAM_BUILD_TIMESTAMP by $ULAM_BUILD_WHO\@$ULAM_BUILD_WHERE";
+    print STDERR "\n from source commits $ULAM_TREE_VERSION (ulam) and $MFM_TREE_VERSION (mfm)";
+    print STDERR "\n";
+}
+
+sub printToolPathsAndExit {
+    my $status = 0;
+    for my $tool (@toolNames) {
+        $status++ unless printToolPath($tool);
+    }
+    exit $status;
+}
+
+sub pISC {
+    return unless showCommands();
+    my $arg = shift;
+    print STDERR "$arg\n";
+}
+
+sub checkTools {
+    pISC("## Check tools");
+    my $status = 0;
+    for my $tool (@toolNames) {
+        my $r = checkTool($tool);
+        $status++ unless $r;
+    }
+    return $status;
+}
+
+sub getSwinfo {
+    my $key = shift;
+    my $rinfo = $swinfo{$key};
+    IDie("No '$key' info")
+        unless defined $rinfo;
+    return $rinfo;
+}
+
+sub getSwNameList {
+    my $key = shift;
+    my $joiner = shift;
+    $joiner = "," unless defined $joiner;
+    my $rinfo = getSwinfo($key);
+    my $ret = "--$key";
+    my $aliases = $rinfo->{"aliases"} || "";
+    for my $key (split /\|/, $aliases) {
+        if (length($key)==1) {
+            $ret .= "$joiner -$key";
+        } else {
+            $ret .= "$joiner --$key";
+        }
+    }
+    return $ret;
+}
+
+sub configureMSD {
+    my $path = shift;
+    $MFM_ROOT_DIR = $path;
+    $tools{$mfmRootTool} =
+        [ $MFM_ROOT_DIR,
+          sub {
+              my $p = shift;
+              my $status = runThis("^MFMsim",undef,
+                                    getTool($makeTool),
+                                   "--no-print-directory",
+                                    "-C",
+                                    "$p",
+                                    "identify"
+                                   );
+              return $status;
+          }
+        ];
+}
+
+my @sourceDirsConfigured;
+sub configureSD {
+    my $path = shift;
+    push @sourceDirsConfigured, $path;
+#    print "CSD:".join(",",@sourceDirsConfigured)."\n";
+}
+
+my $mfzhandle = undef;
+sub configureMFZHandle {
+    my ($arg) = @_;
+    UDie "Only one -z / --mfzpackage switch allowed"
+        if defined $mfzhandle && $mfzhandle ne $arg;
+    $mfzhandle = GetLegalHandle($arg);
+    if ($arg eq "-") {
+        print STDOUT " Default package signing handle: OK\n"
+            if verbose();
+    }
+
+    # Let's check the handle's good early..
+    my $privkeyfile = GetPrivateKeyFile($mfzhandle);
+    UDie "MFZ signing handle '$mfzhandle' not found"
+        unless -r $privkeyfile;
+    entryCmd("mfzpackage"); # to get dupes checked and $actionCmd set
+    print STDOUT " MFZ package signing handle '$mfzhandle': OK\n"
+        if verbose();
+}
+
+sub entryOpt {
+    my ($key, $val) = @_;
+    return configureMSD($val) if $key eq "mfmSourceDir";
+    return configureSD($val) if $key eq "sourceDir";
+    return configureMFZHandle($val) if $key eq "mfzpackage";
+    IDie("Unrecognized entryOpt($key,$val)\n");
+}
+
+my %entryVarsAlreadySeen;
+sub entryVar {
+    my ($switch, $val) = @_;
+    my $rinfo = getSwinfo($switch);
+    my $vref = $rinfo->{'variable'};
+    IDie unless defined $vref;
+    UDie getSwNameList($switch," or")." can appear at most once\n"
+        if defined $entryVarsAlreadySeen{$switch};
+    $entryVarsAlreadySeen{$switch} = 1;
+    $$vref = $val;
+}
+
+sub entryCmd {
+    my ($key, $val) = @_;
+    UDie "Cannot specify "
+        .getSwNameList($key," or")
+        ." with "
+        .getSwNameList($actionCmd," or")
+        ."\n"
+        if defined($actionCmd) && $actionCmd ne $key;
+    $actionCmd = $key;
+}
+
+sub entryOcmd {
+    my ($key, $val) = @_;
+    if ($key eq "help") {
+        printHelp();
+        exit;
+    }
+    if ($key eq "briefversion") {
+        printVersion();
+        exit;
+    }
+    if ($key eq "version") {
+        printFullVersion();
+        exit;
+    }
+    if ($key eq "checktools") {
+        printToolPathsAndExit();
+    }
+    IDie "unknown OCmd($key)\n";
+}
+
+sub genOpts {
+    my @list;
+    for my $key (keys %swinfo) {
+        my $r = $swinfo{$key};
+        my $optkey = $key;
+        if (defined($r->{"aliases"}) && $r->{"aliases"} ne "") {
+            $optkey .= "|$r->{aliases}"
+        }
+        $optkey .= "=$r->{type}"
+            if defined($r->{"type"});
+        my $optval = $r->{"handler"};
+        unshift @list, $optkey, $optval;
+    }
+#    print join(" ",@list);
+    return @list;
+}
+
+########
+####PROCESS COMMAND LINE ARGUMENTS HERE
+
+GetOptions(genOpts())
+     or UDie("Command line switch processing failed\n");
+
+my $confErrs = checkTools();
+if ($confErrs != 0) {
+    printf(STDERR
+           "%d configuration problem%s detected!\n",
+           $confErrs, $confErrs==1?"":"s");
+    printToolPathsAndExit();
+}
+
+my @files = @ARGV;
+UDie("No input files\n") unless @files;
+my (@ulamFiles, @normalPackableFiles, @includeFiles, @otherSrcFiles, @mfsFiles, @mfzFiles, @txtFiles);
+
+my %extensionDispatch = (
+    "ulam" => \@ulamFiles,
+    "mfs" => \@mfsFiles,
+    "mfz" => \@mfzFiles,
+    "h" => \@includeFiles,
+    "tcc" => \@includeFiles,
+    "cpp" => \@otherSrcFiles,
+    "c" => \@otherSrcFiles,
+    "S" => \@otherSrcFiles,
+    "txt" => \@txtFiles,
+    "md" => \@txtFiles,
+    );
+
+
+sub separateFiles {
+    my @f = @_;
+    while (my $file = shift @f) {
+        my $handled = 0;
+#        if (-e $file && $file =~ /[.]([^.]+)$/) {
+        if ($file =~ /[.]([^.]+)$/) {
+            my $ext = $1;
+            my $ar = $extensionDispatch{$ext};
+            if (defined $ar) {
+                push @{$ar}, $file;
+                $handled = 1;
+            }
+        }
+        print STDERR "Warning: Skipping unrecognized file type '$file'\n"
+            unless $handled;
+    }
+}
+# my $usdfiles = `ls $ULAM_SHARE_DIR/ulam/stdlib/*.ulam`;
+# chomp($usdfiles);
+# my @stdUlamFiles = split(/\s+/,$usdfiles);
+
+my $tsdfiles = `ls $ULAM_SHARE_DIR/tcc/stdlib/*.tcc`;
+chomp($tsdfiles);
+my @stdTccFiles = split(/\s+/,$tsdfiles);
+
+# Fri Mar  6 16:05:47 2015 Do we still need this?  Can we work around another way?
+# Barf; need to compile the stdUlamFiles to get the mangled names into
+# @elementNamesFromUlam, and thence into AllocateEmptyTypes()..
+#separateFiles(@files, @stdUlamFiles, @stdTccFiles);
+
+sub checkMFZFiles {
+    if (scalar(@mfzFiles) == 0) {
+        if ($actionCmd eq "mfzpackage") {
+            my $mfz = "a.mfz";
+            push @mfzFiles, $mfz; # ..and it's good enough for me
+        }
+    } else {
+        if ($actionCmd eq "mfzpackage") {
+            if (scalar(@mfzFiles) > 1) {
+                UDie "Need at most one .MFZ file, found: ".join(", ", @mfzFiles);
+            }
+        } else {
+            UDie "MFZ files legal only with --$actionCmd";
+        }
+    }
+    if ($actionCmd eq "mfzpackage") {
+        my $f = $mfzFiles[0];
+        print STDOUT " MFZ package to create: $f\n"
+            if verbose();
+    }
+}
+
+sub positionLiteralFiles {
+    pISC("## Copy files");
+    my $bd = getWorkDir();
+    copyFilesTo("$bd/include",@includeFiles);
+    copyFilesTo("$bd/src",@otherSrcFiles);
+}
+
+sub copyFilesTo {
+    my ($destPath, @files) = @_;
+    for my $file (@files) {
+        copyFileTo($file,$destPath);
+    }
+}
+
+sub copyFileTo {
+    my ($file, $destDir) = @_;
+    -d $destDir or IDie("'$destDir' not dir");
+    my ($status,$stdout,$stderr) = runThis(undef,undef,'/bin/cp',"-p",$file,$destDir);
+    UDie("Can't copy '$file' to '$destDir': $status\n") if $status ne "";
+}
+
+####FILE TYPE ANALYSIS
+# Split up user-supplied files by extensions
+separateFiles(@files);
+
+# Collect the files we can pack without special concerns
+@normalPackableFiles = sort (@mfsFiles, @includeFiles, @includeFiles, @otherSrcFiles, @txtFiles);
+
+# Add in standard files maybe needed for the build (but which we won't pack)
+separateFiles(@stdTccFiles);
+
+####ACTION SELECTION
+if (!defined($actionCmd)) {
+    # If any .ulam, .mfz, or .mfs files were specified, fake up a -z-
+    # equivalent and hope for the best.  Otherwise punt
+    if (scalar(@mfzFiles) > 0
+        || scalar(@mfsFiles) > 0
+        || scalar(@ulamFiles) > 0) {
+        configureMFZHandle("-");
+    } else {
+        UDie("No command specified\n")
+    }
+}
+
+checkMFZFiles();
+
+
+####EXECUTION ENGINE
+
+# Well, let's actually try to do something here
+
+exit compilationDriver();
+
+my @testFilesFromUlam;
+my @cppFilesFromUlam;
+my @objectFilesFromUlamCpps;
+my @elementCNamesFromUlam;
+my @quarkCNamesFromUlam;
+my %ulamFileTargets;
+
+sub compilationDriver {
+    prepareWorkDir();
+    positionLiteralFiles();
+
+    my $buildResults = runUlamCompilations();
+    UDie("$buildResults ulam build problem(s) detected\n")
+        if $buildResults;
+
+    $buildResults = runUlamInfoGeneration();
+    UDie("$buildResults ulam info generation problem(s) detected\n")
+        if $buildResults;
+
+    return 0 if $actionCmd eq "ulamcompile";
+
+    if ($actionCmd eq "test" || $actionCmd eq "ulamtest" ) {
+        ($buildResults, my $testfile) = buildTests();
+        UDie("$buildResults tests creation problem(s) detected\n")
+            if $buildResults;
+#        IDie("Do what with $testfile?");
+        push @testFilesFromUlam, $testfile;
+    }
+
+    ($buildResults, my $allocatorcpp) = writeElementAllocatorStub();
+    UDie("$buildResults stub creation problem(s) detected\n")
+        if $buildResults;
+
+    $buildResults = runGccCompilations();
+    UDie("$buildResults g++ build problem(s) detected\n")
+        if $buildResults;
+
+    return 0 if $actionCmd eq "compile";
+
+#    ($buildResults, my $libfile) = buildLibrary();
+    ($buildResults, my $libfile) = buildSharedLibrary();
+    UDie("$buildResults library creation problem(s) detected\n")
+        if $buildResults;
+
+    return 0 if $actionCmd eq "library";
+
+    if ($actionCmd eq "executables") {
+        IDie("executable construction under reconstruction :(");
+        ($buildResults) = buildExecutables();
+        UDie("$buildResults executable creation problem(s) detected\n")
+            if $buildResults;
+        return 0;
+    }
+
+    if ($actionCmd eq "mfzpackage") {
+        ($buildResults) = buildMFZ();
+        UDie("$buildResults executable creation problem(s) detected\n")
+            if $buildResults;
+        return 0;
+    }
+
+    if ($actionCmd eq "test") {
+        ($buildResults) = buildTestMain();
+        UDie("$buildResults test main creation problem(s) detected\n")
+            if $buildResults;
+        ($buildResults,my $exefile) = makeProgram("testmain");
+        UDie("$buildResults testdriver linking problem(s) detected\n")
+            if $buildResults;
+
+        return 0 if $actionCmd eq "ulamtest";
+
+        ($buildResults) = runTestMain("testmain");
+        UDie("$buildResults test(s) failed\n")
+            if $buildResults;
+
+        return 0;
+    }
+
+    IDie("Unrecognized action '$actionCmd'");
+}
+
+sub myMkdir {
+    my $path = shift;
+    my ($status,$stdout,$stderr) = runThis(undef,undef,'/bin/mkdir',"-p",$path);
+    UDie("Can't make dir '$path': $status\n") if $status ne "";
+}
+
+sub myRmRf {
+    my $path = shift;
+    my ($status,$stdout,$stderr);
+
+    ($status,$stdout,$stderr) = runThis(undef,undef,'/bin/rm',"-rf",$path);
+    UDie("Can't remove '$path': $status\n") if $status ne "";
+}
+
+sub checkOrMakeDir
+{
+    my ($bd,$forceEmpty) = @_;
+    if (defined($forceEmpty) && $forceEmpty && -e $bd && -d $bd) {
+        myRmRf($bd);
+    }
+
+    if (!-e $bd) {
+        myMkdir($bd);
+    } else {
+        pISC(" # Exists: $bd");
+    }
+
+    UDie "'$bd' is not a directory\n" unless -d $bd;
+    UDie "'$bd' is not accessible\n" unless -R $bd and -W $bd;
+}
+
+sub prepareWorkDir
+{
+    defaultWorkDir();
+    pISC("## Make dirs");
+    my $wd = getWorkDir();
+    checkOrMakeDir($wd,1);
+    checkOrMakeDir("$wd/src");
+    checkOrMakeDir("$wd/include");
+    checkOrMakeDir("$wd/build");
+    checkOrMakeDir("$wd/bin");
+}
+
+my %testableClasses;
+my %elementCNameToUlamFile;
+my %elementCNameToUlamName;
+my %elementCNameToStructuredComment;
+my %infoStructName;
+my %infoStructCode;
+
+my %modelParmInfoMap;
+
+sub runGccMakeForTests
+{
+    my @testables = map { s/[.]cpp$//; $_} sort values %testableClasses;
+    print "TEST:".join(",", @testables)."\n";
+    my $body = "";
+    for my $test (@testables) {
+        $body .= <<EOM;
+ XXX
+EOM
+    }
+
+    IDie("Implementme $actionCmd:$body\n");
+}
+
+sub deHexEscape
+{
+    my $str = shift;
+    $str =~ s/%([A-Fa-f\d]{2})/chr hex $1/eg;
+    return $str;
+}
+
+sub runUlamCompilations
+{
+    pISC("## Compile ulam files: ".join(", ",@ulamFiles));
+    my $culam = getTool($ulamcTool);
+    my @args;
+    push @args, "-g"
+	if($DEBUG_CPP); #prepend to beginning of array
+    push @args, "-o", $ULAM_WORK_DIR;
+    for my $sd (@sourceDirsConfigured) {
+        push @args, "-i", $sd;
+    }
+    push @args, "-i", "$ULAM_ROOT/share/ulam/stdlib";
+    push @args, "-i", "$ULAM_ROOT/share/ulam/core";
+    push @args, @ulamFiles;
+    print " Compile ".join(", ",@ulamFiles).": "
+        if verbose();
+
+
+    my ($status,$stdout,$stderr) = runThis(undef,undef,$culam,@args);
+    if ($status eq "") {
+        print STDOUT "OK\n"
+            if verbose();
+        my $info = $stderr;
+        chomp($info);
+        $stderr = "";
+        my @rows = split(/\n/, $info);
+        for my $row (@rows) {
+            my ($ulam,$info,$type,@args) = split(/ /,$row);
+            if ($ulam ne "ULAM" || $info ne "INFO:") {
+                # Not our business..  Leave in case it's important to somebody else..
+                $stderr .= "$row\n";
+                next;
+            }
+	    if ($type eq "PARAMETER") {
+                my ($path,$ename,$type,$uname,$pname,$default,$scmt) = @args;
+#                print STDERR "KDPM(path=$path,ename=$ename,type=$type,uname=$uname,pname=$pname,default=$default,scmt=$scmt)\n";
+
+                $scmt = "" if $scmt eq "NONE";
+
+                # Analyze loc for sortability
+                $path =~ s/:(\d+):(\d+):$// or die "No loc in '$path'?";
+                my ($line,$byteinline) = ($1,$2);
+                $path = deHexEscape($path);
+
+                # Make info record
+                #          file   line#  byte#        uname,  parm    type   def     doc
+                my $rec = [$path, $line, $byteinline, $uname, $pname, $type, $default, deHexEscape($scmt)];
+
+                # Stash it for later sorting and merging with possible scmt
+                push @{$modelParmInfoMap{$ename}}, $rec;
+#                print STDERR "KDPM($rec, ".join(",",@{$rec}).")\n";
+#                print STDERR "KDPM($ename ::".join(";",@{$modelParmInfoMap{$ename}}).")\n";
+                next;
+            }
+	    if ($type eq "TARGET") {
+                my ($path,$name,$cname,$size,$testflag,$classtype,$scmt) = @args;
+                defined $scmt or die "Successful exit but not enough fields in '$row'";
+                # For now, strip location info.. :(
+                $path =~ s/:\d+:\d+:$// or die "No loc in '$path'?";
+                $path = deHexEscape($path);
+                $ulamFileTargets{$path} = 1;
+                my $cfile = "$cname.cpp";
+                push @cppFilesFromUlam, $cfile;
+                push @objectFilesFromUlamCpps, "$ULAM_WORK_DIR/build/$cname.o";
+
+                if ($testflag eq "test") {
+                    $testableClasses{$cname} = $cfile;
+                }
+                if ($classtype eq "element") {
+                    push @elementCNamesFromUlam, $cname;
+                    $elementCNameToUlamFile{$cname} = $path;
+                    $elementCNameToUlamName{$cname} = $name;
+                    $elementCNameToStructuredComment{$cname} = deHexEscape($scmt);
+#                print "INFO($path,$name,$size,$testflag,$classtype)='$elementCNameToUlamFile{$cname}'\n";
+                } elsif ($classtype eq "quark") {
+                    push @quarkCNamesFromUlam, $cname;
+                }
+                next;
+            }
+
+            # Ignore unrecognized info lines unless verbose
+            print STDERR "Ignoring unrecognized: '$row'\n"
+                if verbose();
+        }
+        if (scalar(@elementCNamesFromUlam)==0) {
+            $status = "No elements found, cannot build library";
+        }
+    }
+    if ($status ne "") {
+        print " Compile ".join(", ",@ulamFiles).": "
+            unless verbose();
+        print STDOUT "ERROR: $status\n$stderr\n";
+    }
+    return $status ne "";
+}
+
+sub runUlamInfoGeneration
+{
+    pISC("## Extract ulam element information");
+    for my $eltCName (@elementCNamesFromUlam) {
+        my $ufile = $elementCNameToUlamFile{$eltCName};
+        my $uname = $elementCNameToUlamName{$eltCName};
+        IDie unless defined $ufile;
+        pISC(" # Processing '$ufile' metadata");
+        my ($name, $code) = generateUlamElementInfo($ufile,$uname,$eltCName);
+        $infoForElement{$eltCName} = [$name, $code];
+    }
+    return 0;
+}
+
+sub writeElementAllocatorStub {
+    my $base = $ROLLUP_FILE_STEM;
+    my $baseguard = uc($base)."_H";
+    my $hdr = "$base.h";
+    my $cpp = "$base.cpp";
+    my $inc = "$ULAM_WORK_DIR/include/$hdr";
+    my $src = "$ULAM_WORK_DIR/src/$cpp";
+    my $fname = "DefineNeededUlamCustomElements";
+
+    open(my $hdrhdl, ">", $inc)
+        or UDie("Can't write '$inc': $!\n");
+    print $hdrhdl <<EOF;
+#ifndef $baseguard
+#define $baseguard
+
+#include "AbstractDriver.h"
+
+EOF
+    {
+        my %seen;
+        for my $en (@elementCNamesFromUlam, @quarkCNamesFromUlam) {
+            next if $seen{$en};
+            $seen{$en} = 1;
+            print $hdrhdl <<EOF;
+#include "$en.h"
+EOF
+        }
+    }
+
+    print $hdrhdl <<EOF;
+
+EOF
+    {
+        my %seen;
+        for my $en (@elementCNamesFromUlam) {
+            next if $seen{$en};
+            $seen{$en} = 1;
+            my ($infoname, $infocode) = @{$infoForElement{$en}};
+            print $hdrhdl "/* Metadata for $infoname */\n$infocode\n";
+        }
+    }
+
+    print $hdrhdl <<EOF;
+#endif /* $baseguard */
+EOF
+
+    close $hdrhdl or UDie("Error closing '$inc': $!\n");
+    my $libraryStubPtrArrayStatics = "";
+    my $libraryStubPtrArrayInits = "";
+    my $libraryStubPtrArrayCount = 0;
+
+    my $quarkPtrArrayStatics = "";
+    my $quarkPtrArrayInits = "";
+    my $quarkPtrArrayCount = 0;
+
+    # PROCESS THE ELEMENTS
+    {
+        my %seen;
+        for my $en (@elementCNamesFromUlam) {
+            next if $seen{$en};
+            $seen{$en} = 1;
+            my ($infoname, $infocode) = @{$infoForElement{$en}};
+            my $infoinstancename = lexEncode("_ueinfo",$libraryStubPtrArrayCount);
+            my $stubname = lexEncode("_uelstub",$libraryStubPtrArrayCount);
+            my $elsname = "UlamElementLibraryStub";
+            my $putinarray = 1;
+# Thu Jun 30 15:48:05 2016 Trying the special-casing on the mfms side
+#            if ($en eq "Ue_10105Empty10") {
+#                $infoinstancename = "_ueinfoEmpty";
+#                $stubname = "_uelstubEmpty";
+#                $elsname = "UlamEmptyElementLibraryStub";
+#                $putinarray = 0;
+#            }
+            $libraryStubPtrArrayStatics .= <<EOF;
+
+  static MFM::$infoname<MFM::StdEventConfig> $infoinstancename(MFM::$en<MFM::StdEventConfig>::THE_INSTANCE);
+  static MFM::$elsname<MFM::StdEventConfig> $stubname (
+      MFM::$en<MFM::StdEventConfig>::THE_INSTANCE,
+      &$infoinstancename);
+EOF
+            if ($putinarray) {
+                $libraryStubPtrArrayInits .= "," if $libraryStubPtrArrayInits ne "";
+                $libraryStubPtrArrayInits .= "\n    &$stubname";
+                ++$libraryStubPtrArrayCount;
+            }
+#        print STDERR "IIFFI($infoname, $infocode,$libraryStubPtrArrayStatics,$libraryStubPtrArrayInits)\n";
+#        die;
+        }
+    }
+
+    # PROCESS THE QUARKS
+    {
+        my %seen;
+        for my $en (@quarkCNamesFromUlam) {
+            next if $seen{$en};
+            $seen{$en} = 1;
+
+            my $stubname = lexEncode("_uqinstance",$quarkPtrArrayCount);
+            $quarkPtrArrayStatics .= <<EOF;
+
+  static MFM::$en<MFM::StdEventConfig> $stubname;
+EOF
+            $quarkPtrArrayInits .= "," if $quarkPtrArrayInits ne "";
+            $quarkPtrArrayInits .= "\n    &$stubname";
+            ++$quarkPtrArrayCount;
+        }
+    }
+
+    if ($libraryStubPtrArrayCount == 0) {
+        # Avoid zero length array if no elements
+        $libraryStubPtrArrayInits = "0";
+    }
+
+    if ($quarkPtrArrayCount == 0) {
+        # Avoid zero length array if no quarks
+        $quarkPtrArrayInits = "0";
+    }
+
+    open(my $handle, ">", $src)
+        or UDie("Can't write '$src': $!\n");
+    print $handle <<EOF;
+
+#include "$hdr"
+
+#ifdef ELEMENT_PLUG_IN
+
+#include "StdEventConfig.h"
+#include "ElementLibraryLoader.h"
+
+extern "C" {
+$libraryStubPtrArrayStatics
+  static MFM::ElementLibraryStub<MFM::StdEventConfig> * (_elementStubPtrArray_[]) = {$libraryStubPtrArrayInits
+  };
+$quarkPtrArrayStatics
+  static MFM::UlamClass<MFM::StdEventConfig> * (_otherUlamClassPtrArray_[]) = {$quarkPtrArrayInits
+  };
+  static MFM::ElementLibrary<MFM::StdEventConfig> el = {
+    MFM::ELEMENT_LIBRARY_MAGIC,
+    MFM::ELEMENT_LIBRARY_VERSION,
+    MFM::ELEMENT_LIBRARY_SUBVERSION,
+    0,
+    MFM_BUILD_DATE,
+    MFM_BUILD_TIME,
+    $libraryStubPtrArrayCount,
+    _elementStubPtrArray_,
+    $quarkPtrArrayCount,
+    _otherUlamClassPtrArray_
+  };
+  void * MFM_ELEMENT_LIBRARY_LOADER_SYMBOL =  &el;
+}
+
+#endif /* ELEMENT_PLUG_IN */
+
+EOF
+    close $handle or UDie("Error closing '$src': $!\n");
+    return (0,$cpp);
+}
+
+sub buildSharedLibrary
+{
+    pISC("## Create library");
+    my $libfile = "$ULAM_WORK_DIR/bin/libcue.so";
+    my $rollupObject = "$ULAM_WORK_DIR/build/$ROLLUP_FILE_STEM.o";
+    my @bslargs = ("-g2", "-shared", "-rdynamic", "-o", $libfile, $rollupObject, @objectFilesFromUlamCpps);
+
+    print " Create $libfile shared library: "
+        if verbose();
+
+    my $gpp = getTool($gppTool);
+    my ($status, $stdout, $stderr);
+    {
+        my $HOLD_PATH = $ENV{PATH};
+        $ENV{PATH} = '/bin:/usr/bin'; # collect2 wants to run ld and etc
+        ($status,$stdout,$stderr) = runThis(undef,undef,$gpp,@bslargs);
+        pISC("## USED PATH ($ENV{PATH})");
+        if (defined($HOLD_PATH)) {
+            $ENV{PATH} = $HOLD_PATH;
+            pISC("## RESET PATH ($ENV{PATH})");
+        } else {
+            delete $ENV{PATH};
+        }
+    }
+
+    if ($status ne "") {
+        print " Create $libfile shared library: "
+            unless verbose();
+        print STDOUT "ERROR: $status\n$stderr\n";
+    } else {
+        print STDOUT "OK\n"
+            if verbose();
+        return (0, $libfile);
+    }
+    return $status ne "";
+}
+
+sub buildMFZ
+{
+    pISC("## Create MFZ package");
+    my $libfile = "$ULAM_WORK_DIR/bin/libcue.so";
+    my $output = $mfzFiles[0];
+    my @mfzmakeargs = ("make", $mfzhandle, $output, keys %ulamFileTargets, @normalPackableFiles, $libfile);
+
+    my ($status, $stdout, $stderr);
+    print " Create $output package: "
+        if verbose();
+
+    my $mfz = getTool($mfzTool);
+
+    {
+        my $HOLD_PATH = $ENV{PATH};
+        $ENV{PATH} = '/bin:/usr/bin'; # collect2 wants to run ld and etc
+        ($status,$stdout,$stderr) = runThis(undef,undef,$mfz,@mfzmakeargs);
+        pISC("## USED PATH ($ENV{PATH})");
+        if (defined($HOLD_PATH)) {
+            $ENV{PATH} = $HOLD_PATH;
+            pISC("## RESET PATH ($ENV{PATH})");
+        } else {
+            delete $ENV{PATH};
+        }
+    }
+
+    if ($status ne "") {
+        print " Create $output package: "
+            unless verbose();
+        print STDOUT "ERROR: $status\n$stderr\n";
+    } else {
+        print STDOUT "OK\n"
+            if verbose();
+
+        return (0, $output);
+    }
+    return $status ne "";
+}
+
+sub generateTestForTestable {
+    my ($handle, $elementName) = @_;
+    my $elementTestFuncName = "Test_$elementName";
+    print $handle <<EOF;
+
+#include "$elementName.h"
+
+static int $elementTestFuncName(bool output)
+{
+
+  OurElementTypeNumberMap etnm;
+  AllocateElementTypes<OurEventConfig>(etnm);
+
+  OurSite storage[SIDE*SIDE];
+  OurTile theTile(SIDE,storage);
+  theTile.Init();
+  OurUlamContext ouc(theTile.GetElementTable());
+  ouc.SetTile(theTile);
+  OurEventWindow & ew = ouc.GetEventWindow();
+  MFM::s32 ctr = theTile.GetTileSide()/2;
+  if (!ew.InitForEvent(MFM::SPoint(ctr,ctr)))
+    return 99;
+  typedef MFM::$elementName<OurEventConfig> OurElement;
+  OurElement& elt = OurElement::THE_INSTANCE;
+  OurAtom atom = elt.GetDefaultAtom();
+  ew.SetCenterAtomSym(atom);
+
+  MFM::Ui_Ut_102321i rtn;
+  rtn = OurElement::THE_INSTANCE.Uf_4test(ouc, atom);
+  int count = rtn.read();
+  if (output) {
+    if (count == 0)
+      printf("%s: OK\\n","$elementTestFuncName");
+    else
+      printf("%s: ERROR RETURN %d\\n","$elementTestFuncName", count);
+  }
+  return count;
+}
+
+EOF
+    return $elementTestFuncName;
+}
+
+sub buildTests
+{
+    pISC("## Create test driver");
+
+    # Goal 1: Have a prewritten test function that sets up a test
+    #         environment.  Stored where?
+    #
+    # Goal 2: Have a prewritten test driver that has a small amount of
+    #         generated code each testable element, that sets up the
+    #         test environment, puts an instance of the
+    #         element-under-test (EUT) into the center site, and then
+    #         calls Uf_4test appropriately for that element.  This way
+    #         we require no base class declaration of the test function.
+
+    my $testbase = "testdriver";
+    my $testbaseguard = uc($testbase)."_H";
+    my $testhdr = "$testbase.h";
+    my $testcpp = "$testbase.cpp";
+    my $testinc = "$ULAM_WORK_DIR/include/$testhdr";
+    my $testsrc = "$ULAM_WORK_DIR/src/$testcpp";
+
+    my $testdecl = "int RunAllTests(bool output)";
+    open(my $hdrhdl, ">", $testinc)
+        or UDie("Can't write '$testinc': $!\n");
+    print $hdrhdl <<EOF;
+#ifndef $testbaseguard
+#define $testbaseguard
+
+ extern $testdecl;
+
+#endif /* $testbaseguard */
+EOF
+    close $hdrhdl or UDie("Error closing '$testinc': $!\n");
+    open(my $handle, ">", $testsrc)
+        or UDie("Can't write '$testsrc': $!\n");
+    print $handle <<EOF;
+
+#include "$testhdr"
+
+EOF
+    {
+        my %seen;
+        for my $en (@elementCNamesFromUlam) {
+            next if $seen{$en};
+            $seen{$en} = 1;
+
+            print $handle <<EOF;
+#include "$en.h"
+EOF
+        }
+    }
+
+    print $handle <<EOF;
+
+const MFM::u32 SIDE = 12;
+typedef MFM::P3Atom OurAtom;
+typedef MFM::Site<MFM::P3AtomConfig> OurSite;
+typedef MFM::EventConfig<OurSite, 4> OurEventConfig;
+typedef MFM::ElementTypeNumberMap<OurEventConfig> OurElementTypeNumberMap;
+typedef MFM::UlamContextEvent<OurEventConfig> OurUlamContext;
+typedef MFM::Tile<OurEventConfig> OurTile;
+typedef MFM::EventWindow<OurEventConfig> OurEventWindow;
+
+template <class EC>
+static void AllocateElementTypes(MFM::ElementTypeNumberMap<EC> & etnm)
+{
+  static bool initted = false;
+  if (initted) return;
+  initted = true;
+EOF
+    {
+        my %seen;
+        for my $en (@elementCNamesFromUlam) {
+            next if $seen{$en};
+            $seen{$en} = 1;
+
+            if ($en eq "Ue_10105Empty10") {
+                print $handle <<EOF;
+  MFM::$en<EC>::THE_INSTANCE.MakeAlternateNameForTestingInternal(MFM::Element_Empty<EC>::THE_INSTANCE);
+EOF
+            } else {
+                print $handle <<EOF;
+  MFM::$en<EC>::THE_INSTANCE.AllocateType(etnm);
+EOF
+            }
+        }
+    }
+    print $handle <<EOF;
+}
+
+EOF
+    my @testfuncs;
+    for my $eltName (sort keys %testableClasses) {
+        my $testcpp = generateTestForTestable($handle, $eltName);
+        push @testfuncs, $testcpp;
+    }
+    print $handle <<EOF;
+
+$testdecl
+{
+  int testsFailed = 0;
+
+EOF
+    for my $testfunc (@testfuncs) {
+        print $handle <<EOF;
+  testsFailed += $testfunc(output);
+EOF
+   }
+    print $handle <<EOF;
+  return testsFailed > 99 ? 99 : testsFailed;
+}
+EOF
+    close $handle or UDie("Error closing '$testsrc': $!\n");
+   return (0,$testcpp);
+}
+
+sub buildTestMain
+{
+    pISC("## Create test main");
+
+    my $testbase = "testdriver";
+    my $testhdr = "$testbase.h";
+
+    my $testsrc = "$ULAM_WORK_DIR/src/testmain.cpp";
+
+    open(my $handle, ">", $testsrc)
+        or UDie("Can't write '$testsrc': $!\n");
+    print $handle <<EOF;
+#include "$testhdr"
+
+int main(int argc, char **argv) {
+  return RunAllTests(argc > 1);
+}
+EOF
+    close $handle or UDie("Error closing '$testsrc': $!\n");
+   return (0,$testbase);
+}
+
+sub buildSimDriver
+{
+    pISC("## Build custom simulator");
+    my $dir = getWorkDir();
+
+    my $var = join("=",getDebugArgs());
+    my @dbgarg;
+    push @dbgarg, $var if $var ne "";
+    my $HOLD_PATH = $ENV{PATH};
+    $ENV{PATH} = '/bin:/usr/bin'; # collect2 wants to run ld and etc
+
+    my $linkFailed =
+        runMake("all",
+                @dbgarg,
+                "EXTERNAL_DEFINES=-Wno-error=unused-variable -Wno-error=unused-but-set-variable -DULAM_CUSTOM_ELEMENTS",
+                "EXTERNAL_INCLUDES=-I $dir/include",
+                "EXTERNAL_LIBS=-L $dir/build -l cue"
+        );
+    $ENV{PATH} = $HOLD_PATH;
+    UDie("What") if $linkFailed;
+}
+
+sub runSingleGccCompilation
+{
+    my ($target, $cfile, $extraDefines) = @_;
+    pISC("  # Single compile: $cfile");
+
+    my $dir = getWorkDir();
+    my $gppStatus = 0;
+    $gppStatus =
+        gppCompile($cfile,$target,
+                   getDebugArgs(),
+                   "EXTERNAL_DEFINES", $extraDefines,
+                   "EXTERNAL_INCLUDES",
+                      " -I $ULAM_SHARE_DIR/tcc/stdlib -I $MFM_ROOT_DIR/src/sim/include -I $MFM_ROOT_DIR/src/elements/include",
+                   "ULAM_CPPFLAGS", "-Wno-unused-variable",
+                   "ULAM_SRC_DIR", "$dir/src",
+                   "ULAM_CPP_FILE", $cfile,
+                   "ULAM_BLD_DIR", "$dir/build",
+                   "ULAM_BIN_DIR", "$dir/bin",
+                   "MFM_ROOT_DIR", $MFM_ROOT_DIR,
+                   "USE_PATH", $ORIG_PATH
+        );
+    my $fileStatus = $gppStatus;
+    return $fileStatus;
+}
+
+sub runGccCompilations
+{
+    pISC("## Compile C++");
+    my $status = 0;
+    my $dir = getWorkDir();
+    my $rollupFile = "$ROLLUP_FILE_STEM.cpp";
+    for my $cfile ($rollupFile, @cppFilesFromUlam, @testFilesFromUlam) {
+        pISC(" # Compiling '$cfile'");
+        my $extraDefines = "-Wno-error=unused-variable -Wno-error=unused-but-set-variable";
+        if ($cfile =~ /$rollupFile$/) {
+             $extraDefines .= "";
+        }
+        my $fileStatus = runSingleGccCompilation("ulam_cppcompile", $cfile, $extraDefines);
+        $status += $fileStatus;
+        last if $fileStatus != 0 && $KEEP_GOING == 0;
+    }
+    return $status;
+}
+
+sub makeProgram
+{
+    my $progname = shift;
+    pISC("## Create program $progname");
+
+    my $cfile = "$progname.cpp";
+    my $extraDefines = "-Wno-error=unused-variable -Wno-error=unused-but-set-variable";
+    my $gppStatus = runSingleGccCompilation("ulam_program", $cfile, $extraDefines);
+    pISC("## COMPILED $cfile NOW EHAT");
+    return ($gppStatus,$progname);
+}
+
+sub runUlamCompile {
+    my ($file) = @_;
+    my $culam = getTool($ulamcTool);
+    my @args = ($file);
+    push @args, $ULAM_WORK_DIR;
+    print " Compile $file: "
+        if verbose();
+    my ($status,$stdout,$stderr) = runThis(undef,undef,$culam,@args);
+    if ($status ne "") {
+        print " Compile $file: "
+            unless verbose();
+        print STDOUT "ERROR: $status\n$stderr\n";
+    } else {
+        my $info = $stderr;
+        chomp($info);
+#        print STDOUT "INFO($info)\n";
+        my ($cfile, $hastest) = split(/ /, $info);
+        print STDOUT "OK\n"
+            if verbose();
+        return (0, $cfile, $hastest eq 'TEST');
+    }
+    return $status ne "";
+}
+
+sub runTestMain {
+    my $prog = shift;
+    my $dir = getWorkDir();
+    my $path = "$dir/bin/$prog";
+    my @args = ();
+    push @args, "output"
+        if showTests();
+    print " Running $path: ";
+    my ($status,$stdout,$stderr) = runThis(undef,undef,$path,@args);
+    if ($status ne "") {
+        print STDOUT "ERROR: $status\n$stderr\n";
+    } else {
+        print STDOUT "OK\n";
+    }
+    print STDOUT $stdout if showTests() && !showOutput();
+    return ($status ne "");
+}
+
+
+sub generateUlamElementInfo {
+    my ($file,$className,$mangledName) = @_;
+    my $ug = UlamGen->new($className, $mangledName, $file);
+    print " Element metadating $className from $file: "
+        if verbose();
+    my $doc = $elementCNameToStructuredComment{$mangledName};
+    die unless defined $doc;
+    $ug->addClassDoc($doc);
+#    $ug->dump();
+    my $mparmref = $modelParmInfoMap{$mangledName};
+    if (defined $mparmref) {
+        for my $parm (@{$mparmref}) {
+            my ($path, $line, $col, $uname, $valStg, $mangledType, $def, $scmt) = @{$parm};
+#            print "NORG'".join(", ",@{$parm})."'\n";
+            $ug->addModelParameter($uname,$mangledType,$mangledName,$valStg,$def,$scmt);
+        }
+    }
+    my ($structName, $ulamElementInfoCode) = $ug->generateUlamElementInfo();
+    print "OK\n"
+        if verbose();
+    return ($structName, $ulamElementInfoCode);
+}
+
+sub UNSAFE_TEMPORARY_MV_FILES
+{
+    my $bd = shift;
+    $bd =~ /^(.*)$/ or die;
+    $bd = $1;
+    system("/bin/mv $bd/*.h $bd/*.tcc $bd/include");
+    system("/bin/mv $bd/*.cpp $bd/src");
+}
+
+sub printEnv {
+    my $pref = shift;
+    for my $key (sort keys %ENV) {
+        print "$pref $key=$ENV{$key}\n";
+    }
+}
+
+sub stringHashRef {
+    my $href = shift;
+    my $str = "";
+    for my $key (sort keys %{$href}) {
+        $str .= ", " unless $str eq "";
+        my $val = $href->{$key};
+        if (defined($val)) {
+            $str .= "$key='$val'";
+        } else {
+            $str .= "$key=<<UNDEF>>";  # Without surrounding 's..
+        }
+    }
+    return $str;
+}
+
+sub modifyEnv {
+    my @kv = @_;
+    my %OLDENV = %ENV;
+    #pISC("## Modify environment [FROM]: ".stringHashRef(\%OLDENV));
+    print STDOUT " # Environment:" if showEnvironment();
+    while (@kv) {
+        my $key = shift @kv;
+        IDie if scalar @kv == 0;
+        my $val = shift @kv;
+        $ENV{$key} = $val;
+        my $d = "";
+        $d = "'" if $val =~ /.*\s.*/;
+        print STDOUT " $key=$d$val$d" if showEnvironment();
+    }
+    print STDOUT "\n" if showEnvironment();
+    #pISC("## Modified environment [TO]: ".stringHashRef(\%ENV));
+    return \%OLDENV;
+}
+
+sub restoreEnv {
+    my $oldEref = shift;
+    %ENV = %{$oldEref};
+#    pISC("## Restored environment: ".stringHashRef(\%ENV));
+}
+
+sub changeEnv {
+    printEnv("BEFORE");
+    my $save = modifyEnv("iamgod","psfdhfsd","key",43);
+    printEnv("MIDDLE");
+    restoreEnv($save);
+    printEnv("AFTERR");
+    exit(2);
+}
+
+sub defaultWorkDir {
+    $ULAM_WORK_DIR = "./.gen"
+        unless defined $ULAM_WORK_DIR;
+    $ULAM_WORK_DIR = abs_path($ULAM_WORK_DIR);
+    if ($ULAM_WORK_DIR =~ m!^([-_a-zA-Z0-9./]+)$!) {
+        $ULAM_WORK_DIR = $1;
+    }
+}
+
+sub getDebugArgs {
+    return ("DEBUG",1) if defined $DEBUG_CPP && $DEBUG_CPP;
+    return ("COMMANDS",1) if showCommands();
+    return ();
+}
+
+sub getWorkDir {
+    die unless defined $ULAM_WORK_DIR;
+    return $ULAM_WORK_DIR;
+}
+
+sub gppCompile {
+    my ($file,$makeTarget,@extraEnvPairs) = @_;
+    my $make = getTool($makeTool);
+    my $mfm = getTool($mfmRootTool);
+    my $oldenv = modifyEnv(@extraEnvPairs);
+    my @args = ("-e",
+		"-C", "$mfm", $makeTarget);
+
+    print " Compile $file: "
+        if verbose();
+
+    my ($status,$stdout,$stderr) = runThis(undef,undef,$make,@args);
+    restoreEnv($oldenv);
+    if ($status ne "") {
+        print " Compile $file: "
+            unless verbose();
+        print STDOUT "ERROR: $status\nstdout={$stdout}\nstderr=$stderr\n";
+    } else {
+        print STDOUT "OK\n"
+            if verbose();
+    }
+    return $status ne "";
+}
+
+sub runMake {
+    IDie("runMake deprecated");
+    my ($makeTarget,@args) = @_;
+    my $make = getTool($makeTool);
+    my $mfm = getTool($mfmRootTool);
+    my @env = ("MFM_ROOT_DIR", $MFM_ROOT_DIR, "USE_PATH", $ORIG_PATH);
+    my $oldenv = modifyEnv(@env);
+    unshift @args,"-e","-C", "$mfm", $makeTarget;
+    print " Make $makeTarget: "
+        if verbose();
+
+    my ($status,$stdout,$stderr) = runThis(undef,undef,$make,@args);
+    restoreEnv($oldenv);
+    if (showCommands()) {
+        print STDOUT $stdout;
+    }
+    if ($status ne "") {
+        print " Make $makeTarget: "
+            unless verbose();
+        print STDOUT "runMake ERROR: $status\nstdout={$stdout}\nstderr=$stderr\n";
+    } else {
+        print STDOUT "OK\n"
+            if verbose();
+    }
+    return $status ne "";
+}
+
+####POD
+#pod2usage(1) if $help;
+#pod2usage(-exitstatus => 0, -verbose => 2) if $man;
+
+=head1 NAME
+
+ulam - Top-level ulam compilation driver
+
+=head1 SYNOPSIS
+
+ulam -h
+ulam [options] [file ...]
+
+ Options:
+   -h               brief help message
+
+=head1 OPTIONS
+
+=over 8
+
+=item -h
+
+Print a brief help message and exits.
+
+=back
+
+=head1 DESCRIPTION
+
+Non-existent :(
+
+=head1 EXAMPLES
+
+ulam -h
+
+   Print out switch info
+
+ulam -c Foo.ulam Bar.ulam
+
+   Compile Foo.ulam and Bar.ulam with resulting .o files appearing in
+   .gen/build/ in the current directory
+
+ulam --wd /tmp/ulam -c Foo.ulam Bar.ulam
+
+   Same but use '/tmp/ulam/' as the work directory (so .o files go to
+   /tmp/ulam/build/ )
+
+ulam -e *.ulam /some/directory/*.ulam
+
+   Build the simulator executable including all the .ulam files found
+   in both the current directory and in /some/directory/ .  The
+   results appear in the 'bin/' directory inside the MFM simulator
+   source tree (which must have been previously configured to be found
+   now.)
+
+ulam --msd=/home/user/MFMv2/ -e *.ulam /some/directory/*.ulam
+
+   Same but use the MFM simulator source tree in '/home/user/MFMv2'.
+
+ulam -t *.ulam
+
+   Build a testmain program that runs the 'Int test()' methods found
+   in all elements in all the given .ulam files.  If all goes well the
+   driver ends up in .gen/bin/testmain inside the current directory.

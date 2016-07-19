@@ -1,0 +1,45 @@
+## -*- mode:ulam -*-
+#=t3278_test_compiler_elementandquarkMP_issue
+#!
+##
+##include/Ue_10104Ebar10_Types.h:336: FAILED: NULL_POINTER
+##
+##      //problem with eval answer is that an atom type appears the same as tu.
+##
+Exit status: 0
+Ue_Ebar { System s();  parameter Int(32) shouldBeOK = 512;  Int(32) test() {  s ( shouldBeOK(512) )print . 0 cast return } }
+Uq_System { <NOMAIN> }
+Uq_Qfoo { <NOMAIN> }
+#>Ebar.ulam
+  ulam 1;
+use System;
+element Ebar{
+  System s;
+  parameter Int shouldBeOK = 512;
+  Int test(){
+    s.print(shouldBeOK);
+    return 0;
+  }
+}
+
+#:Qfoo.ulam
+  ulam 1;
+use Ebar;
+quark Qfoo{
+  Void func(){
+    Ebar ebar;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

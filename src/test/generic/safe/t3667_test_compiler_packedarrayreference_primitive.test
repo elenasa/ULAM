@@ -1,0 +1,53 @@
+## -*- mode:ulam -*-
+#=t3667_test_compiler_packedarrayreference_primitive
+#!
+##      /* gen code output:
+##	 Int Arg: 0
+##	 Int Arg: 1
+##	 Int Arg: 2
+##	 Int Arg: 3
+##	 Int Arg: 3
+##	 Int Arg: 3
+##	 Int Arg: 3
+##	 Int Arg: 3
+##	 Int Arg: 3
+##	 Int Arg: 3
+##      */
+Exit status: 10
+Ue_A { System s();  typedef Int(3) BigSite[10];  typedef Int(3) & BSRef[10];  typedef Int(3) & BRR[10];  Int(32) test() {  Int(3) site[10];  Int(3)& siteref[10] = site cast;  Int(3)& brr[10] = siteref;  { Int(32) i = 0 cast;  i 10 cast < cond { siteref i [] i cast = s ( brr i [] )print . } _1: i 1 cast += while } 10 cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by: t3276
+#>A.ulam
+  ulam 2;
+use System;
+element A {
+  System s;
+  typedef Int(3) BigSite[10]; //try packed!
+  typedef BigSite & BSRef;
+  typedef BSRef BRR;
+
+  Int test(){
+    BigSite site;
+    BSRef siteref = site;
+    BRR brr = siteref;
+    for(Int i = 0; i < 10; ++i){
+      siteref[i] = (Int(3)) i;
+      s.print(brr[i]);
+    }
+    return 10;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

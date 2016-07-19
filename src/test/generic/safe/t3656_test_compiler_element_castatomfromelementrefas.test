@@ -1,0 +1,52 @@
+## -*- mode:ulam -*-
+#=t3656_test_compiler_element_castatomfromelementrefas
+##
+##        unevaluable without assuming atoms as elements
+##
+## gen code: 1 assert
+##
+#!
+Exit status: 1
+Ue_Foo : QPerc { :< Bool(1) b(true); > Int(32) test() {  System s;  Atom(96) a = self cast;  { a Foo as cond { Foo& a;  a b . true = self a cast cast = } if } s ( b )assert . 1 cast return } }
+Uq_QPerc { Bool(1) b(false);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by t3655
+##
+#>Foo.ulam
+  ulam 2;
+use QPerc;
+use System;
+element Foo : QPerc {
+
+  Int test() {
+    System s;
+    Atom a = self;
+    if(a as Self)
+    {
+      a.b = true;
+      self = a;
+    }
+    s.assert(b);
+    return 1;
+  }
+}
+
+#:QPerc.ulam
+  ulam 2;
+quark QPerc {
+  Bool b;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

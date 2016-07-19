@@ -1,0 +1,37 @@
+## -*- mode:ulam -*-
+#=t3385_test_compiler_firsttypeastypedefofclass_doubledots
+#!
+Exit status: -4
+Ue_F { Int(32) test() {  -4 cast return } }
+Ue_A { typedef X H;  typedef Int(3) ZZ;  <NOMAIN> }
+Uq_X { typedef B Y;  <NOMAIN> }
+Ue_B { typedef Int(3) Z;  <NOMAIN> }
+##
+##       // B before X too..(informed by t3380)
+#>F.ulam
+  ulam 1;
+use A;
+use B;
+use X;
+element F{ Int test() {
+    return A.ZZ.minof;
+  }
+}
+
+#:A.ulam
+  ulam 1;
+element A{
+  typedef X H;
+  typedef H.Y.Z ZZ;
+}
+#:X.ulam
+  ulam 1;
+quark X{
+  typedef B Y;
+}
+#:B.ulam
+  ulam 1;
+element B{
+  typedef Int(3) Z;
+}
+#.

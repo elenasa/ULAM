@@ -1,0 +1,36 @@
+## -*- mode:ulam -*-
+#=t3253_test_compiler_typedefarray_issue
+#!
+Exit status: 0
+Ue_B { Bool(7) b(false);  System s();  typedef Unsigned(8) Index;  typedef Unsigned(8) NIdx;  typedef Unsigned(8) IndArr[4];  typedef Unsigned(8) IArray[4];  Unsigned(8) arr[4](1u,0u,0u,0u);  Int(32) test() {  arr 0 [] 1 cast = arr 0 [] cast 0 cast == cast return } }
+Uq_System { <NOMAIN> }
+#>B.ulam
+  ulam 1;
+use System;
+element B {
+  System s;
+  Bool(7) b;
+  typedef Unsigned(8) Index;
+  typedef Index NIdx;
+  typedef NIdx IndArr[4];
+  typedef IndArr IArray;
+  IArray arr;
+  Int test(){ arr[0] = 1;
+    return (Int) (arr[0] == 0);
+  }
+}
+
+##      // with renames of typedefs, and arrays based on typedef
+##
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

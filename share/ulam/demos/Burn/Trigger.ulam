@@ -1,0 +1,26 @@
+ulam 1;
+/** A model of a trigger that can safe, armed, or pulled.  Intended as
+    a common base class for excitable media models, so that different
+    elements can trigger each other.
+
+    \author Dave Ackley
+    \version 2
+    \licence public-domain
+*/
+quark Trigger {
+  typedef Unary(2) State;
+  State mState;
+
+  constant State cSAFE = 0;
+  constant State cARMED = cSAFE + 1;
+  constant State cPULLED = cARMED + 1;
+
+  Void doSafe() { mState = cSAFE; }
+  Bool isSafe() { return mState == cSAFE; }
+
+  Void doArm() { if (isSafe()) mState = cARMED; }
+  Bool isArmed() { return mState == cARMED; }
+
+  Void doPull() { if (isArmed()) mState = cPULLED; }
+  Bool isPulled() { return mState == cPULLED; }
+}

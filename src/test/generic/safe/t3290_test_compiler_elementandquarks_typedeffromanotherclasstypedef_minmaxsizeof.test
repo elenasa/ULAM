@@ -1,0 +1,47 @@
+## -*- mode:ulam -*-
+#=t3290_test_compiler_elementandquarks_typedeffromanotherclasstypedef_minmaxsizeof
+#!
+##      /* no gen code output */
+##      // several casts unneeded.
+Exit status: 3
+Ue_P { Bool(1) b(false);  Unsigned(3) x(0u);  Unsigned(3) y(7u);  Unsigned(3) z(3u);  Unsigned(3) i(0u);  Unsigned(3) j(7u);  Unsigned(3) k(3u);  Int(32) test() {  Unsigned(3) var = 3 cast;  x 0u = y 7u = z 3u cast = i 0u = j 7u = k 3u cast = var cast return } }
+Uq_Q { typedef Unsigned(3) Foo;  <NOMAIN> }
+Uq_V { typedef Q Woof;  <NOMAIN> }
+#>P.ulam
+  ulam 1;
+use Q;
+use V;
+element P {
+  Bool b;
+  Unsigned(3) x,y,z;
+  Unsigned(3) i,j,k;
+  Int test() {
+    V.Woof.Foo var = 3;
+    x = var.minof;
+    y = var.maxof;
+    z = var.sizeof;
+    i = V.Woof.Foo.minof;
+    j = V.Woof.Foo.maxof;
+    k = V.Woof.Foo.sizeof;
+    return var;
+  }
+}
+
+##      // recursive typedefs
+##      // must already be parsed!
+##
+##      //simplify for debugging
+##      //bool rtn1 = fms->add("P.ulam","ulam 1;\nuse Q;\nuse V;\n element P {\n Int test() {\nreturn V.Woof.Foo.minof;\n }\n}\n");
+##      //bool rtn1 = fms->add("P.ulam","ulam 1;\nuse V;\n element P {\n Int test() {\nV.Woof.Foo var = 2;\n Unsigned(3) z = var.sizeof;\n return z;\n }\n}\n");
+#:Q.ulam
+  ulam 1;
+quark Q {
+  typedef Unsigned(3) Foo;
+}
+#:V.ulam
+  ulam 1;
+use Q;
+quark V {
+  typedef Q Woof;
+}
+#.

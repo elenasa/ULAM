@@ -1,0 +1,23 @@
+## -*- mode:ulam -*-
+#=t3414_test_compiler_namedconstantbits
+#!
+##
+##      //Bits exception for fits test (eventhough doesn't allowminmax).
+Exit status: 0
+Ue_A { constant Bits(3) cPRINT_NAME = 2u;  constant Bits(3) cPRINT_VALUE = 1u;  constant Bits(3) cPRINT_ALL = 3u;  Int(32) test() {  0 cast return } }
+#>A.ulam
+  ulam 1;
+element A{
+  constant Bits(3) cPRINT_NAME = 2;
+  constant Bits(3) cPRINT_VALUE = 1;
+  constant Bits(3) cPRINT_ALL = cPRINT_NAME | cPRINT_VALUE;
+  Int test () {
+    return 0;
+  }
+}
+##
+##
+##      //informed by 3324, except constant type is 3-bits only
+##      //bool rtn1 = fms->add("A.ulam","element A{\nconstant Unsigned(3) cPRINT_NAME = 2;\n constant Unsigned(3) cPRINT_VALUE = 1;\n constant Unsigned(3) cPRINT_ALL = cPRINT_NAME | cPRINT_VALUE;\nInt test () {\n return 0;\n}\n}\n");
+##
+#.

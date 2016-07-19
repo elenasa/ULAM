@@ -1,0 +1,18 @@
+## -*- mode:ulam -*-
+#=t3838_test_compiler_ulamversion_error
+#!
+./Foo.ulam:1:1: ERROR: Declared source version 3, exceeds the current compiler version 2.
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
+##
+##      // invalid ulam version (note '1a' is fine, just no floats!)
+##      //informed by 3487
+##
+#>Foo.ulam
+ulam 3;
+element Foo{
+  Int test() {
+    return 0;
+  }
+}
+
+#.

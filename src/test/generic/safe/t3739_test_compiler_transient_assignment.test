@@ -1,0 +1,73 @@
+## -*- mode:ulam -*-
+#=t3739_test_compiler_transient_assignment
+#!
+##      gen code output: (3 asserts)
+##
+Exit status: 0
+Ue_R { Bool(1) b(true);  Int(32) test() {  System s;  A at;  at sp . false cast = A& atref = at cast;  b atref ( A.instanceof )func . = s ( b )assert . b atref ( at )func . = s ( b )assert . s ( atref sp . ! cast )assert . TW tw;  tw atref m_tw . = 0 cast return } }
+Uq_System { <NOMAIN> }
+Un_A { Bool(7) sp( true);  TW m_tw( Bool(1) b( true);  Bits(3) ts( 2u); );  <NOMAIN> }
+Un_TW { Bool(1) b( true);  Bits(3) ts( 2u);  <NOMAIN> }
+##
+## similar to 3737, except with a transient ref and transient data member assignments
+##
+#>R.ulam
+  ulam 2;
+use System;
+use A;
+element R {
+  Bool b;
+  Int test(){
+    System s;
+    A at;
+    at.sp = false; //change default to confirm copy
+    A& atref = at; //transient ref init
+    b = atref.func(A.instanceof);
+    s.assert(b);
+    b = atref.func(at);
+    s.assert(b);
+    s.assert(!atref.sp);
+
+    TW tw;
+    tw = atref.m_tw; //transient dm assignment
+    return 0;
+  }
+}
+
+#:A.ulam
+  ulam 2;
+use TW;
+transient A {
+  Bool(7) sp = true;
+  TW m_tw;
+  Self funcme()
+  {
+    return self;
+  }
+
+  Bool func(A aarg)
+  {
+    return (aarg is Self);
+  }
+
+}
+
+#:TW.ulam
+  ulam 2;
+transient TW {
+  Bool b = true;
+  Bits(3) ts = 0x2;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

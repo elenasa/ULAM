@@ -1,0 +1,70 @@
+## -*- mode:ulam -*-
+#=t3209_test_compiler_elementandquark_quarkunion
+##
+##      /* gen code output:
+##	 Int(4) Arg: 0x1
+##	 Bool(3) Arg: 0x0 (false)
+##	 Int(4) Arg: 0xf
+##	 Bool(3) Arg: 0x7 (true)
+##      */
+#!
+Exit status: 1
+Ue_Foo { Bool(3) b(false);  Bool(1) e(false);  System s();  Int(4) i(1);  Gah m_gah( Bool(3) b(true);  Int(4) a(-1);  Unary(7) c(4u);  Unsigned(6) d(60u);  Bits(2) e(3);  Bool(1) f(true); );  Int(32) test() {  i 1 cast = m_gah ( i cast )set . s ( m_gah a . )print . s ( m_gah b . )print . m_gah ( true )set . s ( m_gah a . )print . s ( m_gah b . )print . i cast return } }
+Uq_Gah { Bool(3) b(false);  Int(4) a(0);  Unary(7) c(0);  Unsigned(6) d(0);  Bits(2) e(0);  Bool(1) f(false);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+#>Foo.ulam
+ulam 1;
+use Gah;
+use System;
+element Foo {
+System s;
+Bool(3) b;
+Int(4) i;
+Gah m_gah;
+Bool e;
+Int test(){
+i = 1;
+m_gah.set((Int) i);
+s.print(m_gah.a);
+s.print(m_gah.b);
+m_gah.set(true);
+s.print(m_gah.a);
+s.print(m_gah.b);
+return i;
+}
+}
+
+#:Gah.ulam
+ulam 1;
+union Gah{
+Bool(3) b;
+Int(4) a;
+Unary(7) c;
+Unsigned(6) d;
+Bits(2) e;
+Bool f;
+Void set(Int xarg){
+a=(Int(4)) xarg;
+}
+Void set(Unsigned xarg){
+d=(Unsigned(6)) xarg;
+}
+Void set(Unary xarg){
+c= (Unary(7)) xarg;
+}
+Void set(Bool xarg){
+b=xarg;
+}
+}
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

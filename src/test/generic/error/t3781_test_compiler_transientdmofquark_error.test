@@ -1,0 +1,39 @@
+## -*- mode:ulam -*-
+#=t3781_test_compiler_transientdmofquark_error
+#!
+./Soo.ulam:5:3: ERROR: Data member <m_cu> of type: Coo, is a transient, and is NOT permitted; Local variables, do not have this restriction.
+./Foo.ulam:3:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Foo.
+Unrecoverable Program Type Label FAILURE.
+##
+## transient not valid data member of quark (from t3780)
+##
+#>Foo.ulam
+  ulam 2;
+use Soo;
+element Foo {
+  Bool first;
+  Soo m_sume;
+  Int test() {
+    if(m_sume.m_cu.cb)
+    {
+      return m_sume.sizeof;
+    }
+    return 0;
+  }
+}
+
+#:Soo.ulam
+  ulam 2;
+use Coo;
+quark Soo {
+  Unsigned(3) us = 4u;
+  Coo m_cu;
+}
+
+#:Coo.ulam
+  ulam 2;
+transient Coo {
+  Bool(3) cb = true;
+}
+
+#.

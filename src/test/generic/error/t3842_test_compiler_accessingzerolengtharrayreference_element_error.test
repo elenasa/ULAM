@@ -1,0 +1,77 @@
+## -*- mode:ulam -*-
+#=t3842_test_compiler_accessingzerolengtharrayreference_element_error
+#!
+##      /* gen code output:
+##   include/Ue_10101A10.tcc:39: FAILED: ARRAY_INDEX_OUT_OF_BOUNDS
+##      */
+./A.ulam:19:21: ERROR: Array subscript [0] exceeds the size (0) of array 'nosite'.
+Exit status: -1
+Unrecoverable Program Test FAILURE.
+##
+## informed by t3841
+##
+#>A.ulam
+  ulam 2;
+use EW;
+use System;
+element A {
+  System s;
+
+  typedef EW NoSite[0];
+  typedef NoSite & NoRef;
+  typedef NoRef NRR;
+
+  typedef EW BigSite[10];
+  typedef BigSite & BSRef;
+  typedef BSRef BRR;
+
+  Int test(){
+    NoSite nosite;
+    NoRef nositeref = nosite;
+    NRR nrr = nositeref; //ref to ref
+    EW ewno = nosite[0]; //?
+
+    //the rest should gcc compile without ambiguity
+    BigSite site;
+    BSRef siteref = site;
+    BRR brr = siteref; //ref to ref
+    EW ew;
+    for(Int i = 0; i < 10; ++i){
+      siteref[i] = ew;
+      siteref[i].set(1, i);
+      s.print(brr[i].get(1));
+    }
+    return 10;
+  }
+}
+
+#:EW.ulam
+  ulam 2;
+element EW {
+  Bool bw;
+  Int(8) iwarr[3];
+  Bits(9) tw; // total > 32 bits
+  Void set(Int i, Int v)
+  {
+    iwarr[i] = (Int(8)) v;
+  }
+
+  Int get(Int i)
+  {
+    return iwarr[i];
+  }
+
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

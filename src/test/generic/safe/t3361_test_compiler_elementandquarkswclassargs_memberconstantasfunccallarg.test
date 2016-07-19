@@ -1,0 +1,43 @@
+## -*- mode:ulam -*-
+#=t3361_test_compiler_elementandquarkswclassargs_memberconstantasfunccallarg
+#!
+Exit status: -2
+Ue_R { Int(32) test() {  Foo(0) f;  f ( )copy . return } }
+Ue_Foo(Int(32) a) { <NOMAIN> }
+Uq_Booly(Unsigned(3) firstRange, Unsigned(3) lastRange, Bool(1) bomb) { constant Int(32) cALL_FIX2 = -2;  constant Int(32) cALL_FIX4 = -4;  <NOMAIN> }
+##
+##      //informed by issue (see 3359): required 3 conditions; caused by missing ClassContext pop after Constant surgery.
+##      // 1. func call (behave) has at least 2 MEMBER-SELECTED constant args,
+##      // 2. func call (behave) is also member-selected, and in a member-function (i.e. copy) of Foo (not test);
+##      // 3. Foo is parametric (not regular).
+##
+#>R.ulam
+  ulam 1;
+element R{
+  Int test(){
+    Foo(0) f;
+    return f.copy();
+  }
+}
+
+#:Foo.ulam
+  ulam 1;
+use Booly;
+element Foo(Int a){
+  Int copy(){
+    Booly(0u, 2u, true) b;
+    return b.behave(b.cALL_FIX2, b.cALL_FIX4);
+  }
+}
+
+#:Booly.ulam
+  ulam 1;
+quark Booly(Unsigned(3) firstRange, Unsigned(3) lastRange, Bool bomb) {
+  constant Int cALL_FIX2 = -2;
+  constant Int cALL_FIX4 = -4;
+  virtual Int behave(Int x, Int y){
+    if(bomb && lastRange != firstRange) return x;
+    return y;
+  }
+}
+#.

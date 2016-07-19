@@ -1,0 +1,13 @@
+## -*- mode:ulam -*-
+#=t3318_test_compiler_declintonly_nomain_error
+#!
+## sh: 1: /home/elenas/WORK/ulam/repo/ULAM/ulam2/src/test/bin/main: not found
+## (requires gencode)
+##
+Ue_A { Int(32) a(0);  <NOMAIN> }
+#>A.ulam
+element A{
+Int a;
+}
+
+#.

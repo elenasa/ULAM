@@ -1,0 +1,82 @@
+## -*- mode:ulam -*-
+#=t3791_test_compiler_transientandtransient_assignreftosub_error
+#!
+./R.ulam:10:20: ERROR: Explicit Reference casts (Type&) are valid for reference variable initialization, and not in this context.
+Unrecoverable Program Parse FAILURE: <R.ulam>
+Unrecoverable Program Parse FAILURE: <TW.ulam>
+Unrecoverable Program Parse FAILURE: <W.ulam>
+Unrecoverable Program Parse FAILURE: <Base.ulam>
+Unrecoverable Program Parse FAILURE: <System.ulam>
+##
+## informed by t3790
+##
+#>R.ulam
+  ulam 2;
+element R {
+  Int test(){
+    System s;
+    TW tw;
+    //case 1: CastDecendentTransient
+    Base& ref = tw;
+
+    //case 2:  (init) CastAncestorQuarkAsSubTransient
+    TW tapple = (TW&) ref; //CANNOT ASSIGN sub ref to instance
+
+    //case 3: (assignment) CastAncestorQuarkAsSubTransient
+    //TW tapple2;
+    //tapple2 = (TW) qref; //unused var (qref read)
+
+    //case 4:  (init to ref) CastAncestorQuarkAsSubTransient
+    //ERROR: Incompatible class types TW& and Qbase& used to initalize reference 'twref'.
+    //TW& twref = qref;
+
+    //case 5: ERROR: Cannot cast an atom to transient T.
+    //T tapple3 = (T) qref.atomof;
+
+    //case 6: ERROR: Cannot cast an atom to transient T.
+    //    T& tappleref = (T&) qref; //unused var (qref read); can't use .atomof
+
+    //case 7: FAILS NOT_AN_ELEMENT
+    //Atom & atr = qref.atomof;
+
+    //case 8: FAILS NOT_AN_ELEMENT
+    //Atom a = qref.atomof;
+    return 0;
+  }
+}
+
+#:TW.ulam
+  ulam 2;
+transient TW : W {
+  Bool b, c;
+}
+
+#:W.ulam
+  ulam 2;
+transient W : Base{
+  Bool bw;
+  Self func()
+  {
+    Self me;
+    return me;
+  }
+}
+
+#:Base.ulam
+  ulam 2;
+quark Base{
+  Unary(5) m_five;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

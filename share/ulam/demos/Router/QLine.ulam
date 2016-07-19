@@ -1,0 +1,27 @@
+quark QLine(Unsigned bits) 
+{
+  EventWindow ew;
+  typedef Unsigned(bits) Position;
+
+  Position m_position;
+  Bool isMin() { return m_position == Position.minof; }
+  Bool isMax() { return m_position == Position.maxof; }
+  Bool updateQLine() {
+    Bool ret = false;
+    if (!isMin() && ew[1] is Empty) {
+      Atom a = self.atomof;
+      Self & s = (Self&) a;
+      --s.m_position;
+      ew[1] = a;
+      ret = true;
+    }
+    if (!isMax() && ew[4] is Empty) {
+      Atom a = self.atomof;
+      Self & s = (Self&) a;
+      ++s.m_position;
+      ew[4] = a;
+      ret = true;
+    }
+    return ret;
+  }
+}

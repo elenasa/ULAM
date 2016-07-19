@@ -1,0 +1,56 @@
+## -*- mode:ulam -*-
+#=t3782_test_compiler_initializedmofquarkunion_error
+#!
+./Soo.ulam:4:3: ERROR: Data member 'us' belongs to a quark-union, and cannot be initialized.
+./System.ulam:2:7: ERROR: 1 Nodes with erroneous types detected after type labeling class: System.
+./System.ulam:2:7: ERROR: 18 Nodes with unresolved types detected after type labeling class: System.
+Unrecoverable Program Type Label FAILURE.
+##
+## data members of quark unions cannot be initialized
+##
+#>Foo.ulam
+  ulam 2;
+use Soo;
+element Foo {
+  Bool first, second;
+  Soo m_sume;
+  Int test() {
+    System s;
+    first = (m_sume.us == 4u);
+    s.print((Unsigned) m_sume.us);
+    s.assert(first);
+
+    second = m_sume.m_cu.cb;
+    s.print(m_sume.m_cu.cb);
+    s.assert(second);
+    return 0;
+  }
+}
+
+#:Soo.ulam
+  ulam 2;
+use Coo;
+union Soo {
+  Unsigned(3) us = 4u;
+  Coo m_cu;
+}
+
+#:Coo.ulam
+  ulam 2;
+quark Coo {
+  Bool(3) cb = true;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

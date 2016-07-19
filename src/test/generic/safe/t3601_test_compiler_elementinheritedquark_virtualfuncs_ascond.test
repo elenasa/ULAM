@@ -1,0 +1,121 @@
+## -*- mode:ulam -*-
+#=t3601_test_compiler_elementinheritedquark_virtualfuncs_ascond
+#!
+##
+## gen code output: (times 10)
+## assert: arg is 1
+##after asserts abort: arg is 1
+##
+Exit status: -11
+Uq_Base { <NOMAIN> }
+Uq_Sub1 : Base { :<> <NOMAIN> }
+Ue_E1 : Base { :<> <NOMAIN> }
+Ue_E2 : Sub1 { :< :<>> <NOMAIN> }
+Ue_Test : System { :<> Bool(1) b[10](false,false,false,false,false,false,false,false,false,false);  Int(32) test() {  E1 e1;  Atom(96) a1 = e1 cast;  { a1 Sub1 as cond { Sub1& a1;  } if } { e1 Base as cond { Base& e1;  b 0 [] e1 ( )afunc . 1 cast == = ( b 0 [] )assert b 1 [] e1 ( 1 cast )afunc . 7 cast == = ( b 1 [] )assert b 2 [] e1 ( )bfunc . 8 cast == = ( b 2 [] )assert } if } E2 e2;  E2 a2 = e2;  { a2 Base as cond { Base& a2;  b 3 [] a2 ( )afunc . 1 cast == = ( b 3 [] )assert b 4 [] a2 ( 1 cast )afunc . 9 cast == = ( b 4 [] )assert b 5 [] a2 ( )bfunc . 5 cast == = ( b 5 [] )assert } if } { a2 Sub1 as cond { Sub1& a2;  b 6 [] a2 ( )afunc . 4 cast == = ( b 6 [] )assert b 7 [] a2 ( 1 cast )afunc . 9 cast == = ( b 7 [] )assert b 8 [] a2 ( )bfunc . 5 cast == = ( b 8 [] )assert b 9 [] a2 ( )cfunc . 10 cast == = ( b 9 [] )assert } if } 0 cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by vtable-example 11/17/15, t3600
+##
+#:Base.ulam
+  ulam 2;
+quark Base {
+  Int afunc() { return 1; } // not virtual
+  virtual Int afunc(Int a) { return 2; } // but overload of same name can be virtual
+  virtual Int bfunc() { return 3; }
+}
+
+#:Sub1.ulam
+  ulam 2;
+use Base;
+quark Sub1 : Base {
+  Int afunc() { return 4; } // not virtual
+  virtual Int bfunc() { return 5; } // virtual override
+  virtual Int cfunc() { return 6; } // new func
+}
+
+#:E1.ulam
+  ulam 2;
+use Base;
+element E1 : Base {
+  virtual Int afunc(Int a) { return 7; } // virtual override
+  virtual Int bfunc() { return 8; } // virtual override
+}
+
+#:E2.ulam
+  ulam 2;
+use Sub1;
+element E2 : Sub1 {
+  virtual Int afunc(Int a) { return 9; }
+  virtual Int cfunc() { return 10; }
+}
+
+#>Test.ulam
+  ulam 2;
+use Base;
+use Sub1;
+use E1;
+use E2;
+use System;
+element Test : System {
+  Bool b[10]; //test results should all be true when we're done!
+
+  Int test() {
+    E1 e1;
+
+    //but eval Atom type loses element info...
+    Atom a1 = e1;     // (Atom a1 is copy of e1, unknown to culam)
+
+    //./Test.ulam:33:12: ERROR: Invalid lefthand type of conditional operator 'as'; Class 'E1' Not Found during eval.
+    if (a1 as Sub1) {      // not true!!
+     }
+
+    if (e1 as Base) {      // succeeds
+      b[0] = (e1.afunc() == 1);
+      assert(b[0]);
+      b[1]  = (e1.afunc(1) == 7);
+      assert(b[1]); // E1's vtable used!
+      b[2] = (e1.bfunc() == 8);
+      assert(b[2]); // ditto!
+    }
+
+
+
+    E2 e2;
+    E2 a2 = e2;     // (a2 is copy of e2, unknown to culam)
+
+    if (a2 as Base) {      // succeeds
+      b[3] = (a2.afunc() == 1); // !! not 4!  afunc() is not virtual
+      assert(b[3]);
+      b[4] = (a2.afunc(1) == 9); // E2's vtable used!
+      assert(b[4]);
+      b[5] = (a2.bfunc() == 5); // ditto!
+      assert(b[5]);
+    }
+
+    if (a2 as Sub1) {      // succeeds
+      b[6] = (a2.afunc() == 4); // !! not 1!  a2 is a Sub1 here
+      assert(b[6]);
+      b[7] = (a2.afunc(1) == 9); // E2's vtable used!
+      assert(b[7]);
+      b[8] = (a2.bfunc() == 5); // ditto!
+      assert(b[8]);
+      b[9] = (a2.cfunc() == 10); // ditto!
+      assert(b[9]);
+    }
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
+#.

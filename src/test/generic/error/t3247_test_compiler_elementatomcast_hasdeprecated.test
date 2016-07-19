@@ -1,0 +1,70 @@
+## -*- mode:ulam -*-
+#=t3247_test_compiler_elementatomcast_hasdeprecated
+##      /* gen code output:
+##	 assert: arg is 1
+##	 after assert's abort: arg is 1
+##	 assert: arg is 1
+##	 after assert's abort: arg is 1
+##      */
+##      // no cast cond
+##      //constant fold minus
+##
+##      //./Foo.ulam:17:4: ERROR: Cannot cast to type: Foo (UTI16); use Conditional-As.
+##      //./Foo.ulam:17:4: ERROR: Cannot CAST type: Atom(96) as a Foo(39)<16>.
+##
+## Exit status: 0
+## Ue_Foo { System s();  Bool(1) sp(false);  Bool(3) bi(true);  Bool(3) bh(true);  Int(32) d(0);  Int(32) test() {  Atom(96) a;  Foo f;  Bool(1) b;  b false = a System has cond { System a;  b true = } if s ( b ! )assert . a f cast = a Foo is cond bi true cast = if a System has cond { System a;  b true = } if s ( b )assert . f a cast = f System has cond { System f;  bh true cast = } if d return } }
+## Uq_System { <NOMAIN> }
+##
+#!
+./Foo.ulam:11:12: ERROR: DEPRECATED keyword <has>.
+./Foo.ulam:11:20: ERROR: Name of variable <)>: Identifier must begin with a lower-case letter.
+./Foo.ulam:11:20: ERROR: Invalid Statement (possible missing semicolon).
+./Foo.ulam:17:12: ERROR: DEPRECATED keyword <has>.
+./Foo.ulam:17:20: ERROR: Name of variable <)>: Identifier must begin with a lower-case letter.
+./Foo.ulam:17:20: ERROR: Invalid Statement (possible missing semicolon).
+./Foo.ulam:21:12: ERROR: DEPRECATED keyword <has>.
+./Foo.ulam:21:20: ERROR: Name of variable <)>: Identifier must begin with a lower-case letter.
+./Foo.ulam:21:20: ERROR: Invalid Statement (possible missing semicolon).
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
+#>Foo.ulam
+##      // 'a has System' doesn't apply to eval because atoms have no class declarations; but testable for gencode
+  use System;
+element Foo {
+  System s;
+  Bool sp;
+  Bool(3) bi, bh;
+  Int d;
+  Int test(){
+    Atom a;
+    Foo f;
+    Bool b = false;
+    if(a has System)
+      b = true;
+    s.assert(!b);
+    a = f; //easy
+    if(a is Foo)
+      bi = true;
+    if(a has System)
+      b = true;
+    s.assert(b);
+    f = (Foo) a; //make sure a is a foo
+    if(f has System)
+      bh = true;
+    //    d = (Int) (a has System) + 3;
+    return d;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

@@ -1,0 +1,31 @@
+## -*- mode:ulam -*-
+#=t3661_test_compiler_element_castatomfromfunccall_error
+#!
+./Foo.ulam:6:5: ERROR: Initialization for: b, must be referenceable.
+./Foo.ulam:3:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Foo.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t3660
+##
+#>Foo.ulam
+  ulam 2;
+use QPerc;
+element Foo : QPerc {
+
+  Int test() {
+    Atom& b = afunc();
+    return 1;
+  }
+}
+
+#:QPerc.ulam
+  ulam 2;
+quark QPerc {
+  Bool bb;
+  Atom afunc()
+  {
+    return self.atomof;
+  }
+}
+
+#.

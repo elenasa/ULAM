@@ -1,0 +1,43 @@
+## -*- mode:ulam -*-
+#=t3772_test_compiler_dmarrayinitfewer_unpacked
+##
+## gen output: (+ asserts)
+##  Unsigned Arg: 66
+##  Bool(3) Arg: 0x7 (true)
+##
+#!
+Exit status: 0
+Ue_A { Bool(1) b(true);  Int(6) c[11](-1,5,4,4,4,4,4,4,4,4,4);  System s();  Int(32) test() {  s ( 66u )print . s ( true )assert . b c 6 [] 4 cast == = s ( b cast )print . s ( b )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by t3770
+##
+#>A.ulam
+  ulam 2;
+element A {
+  Bool b;
+  Int(6) c[11] = { -1, 5, 4, };
+
+  System s;
+  Int test() {
+    s.print(c.sizeof);
+    s.assert(c.sizeof == 66);
+    b = (c[6] == 4);
+    s.print(b);
+    s.assert(b);
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

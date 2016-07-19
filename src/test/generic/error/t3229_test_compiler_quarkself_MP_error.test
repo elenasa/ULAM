@@ -1,0 +1,25 @@
+#=t3229_test_compiler_quarkself_MP_error
+#!
+./S.ulam:3:11: ERROR: Model Parameters cannot survive within a quark.
+Unrecoverable Program Parse FAILURE: <T.ulam>
+##
+##      //informed by 3228
+#>T.ulam
+ ulam 1;
+ use S;
+ element T{
+ S(3) m_s;
+ Bool(3) b1,b2;
+ Int test() {
+ S(1) s, t;
+ b1 = m_s.iep;
+ b2 = t.iep;
+ return s.iep;
+ }
+ }
+#:S.ulam
+ulam 1;
+ quark S(Unsigned a){
+parameter Bool(a) iep = (a != 0); //self.iep fails
+  }
+#.

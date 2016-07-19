@@ -1,0 +1,109 @@
+## -*- mode:ulam -*-
+#=t3783_test_compiler_virtualfuncswrefarg_sameargsdiffrtn_issue
+##
+## gen output: (+ asserts)
+## Unsigned Arg: 2
+## Unsigned Arg: 3
+## Unsigned Arg: 2
+##
+#!
+./WindowScanner.ulam:4:16: ERROR: Check overloaded function <visit> with different return types (Void, Bool(1)), while compiling class: WindowScanner.
+./System.ulam:2:7: ERROR: 1 Nodes with erroneous types detected after type labeling class: System.
+Unrecoverable Program Type Label FAILURE.
+##
+## based on 3 day ish 06/10/2016 - 06/13/2016 caused by virtual func 'visit' with different return types
+## thought it was a virtual problem, or inheritance, reference args getting clobbered..a mess.
+## must catch this error! same function signature in ancestors ok;
+## never legal to have different return types for same func args.
+##
+#>Mob.ulam
+  ulam 2;
+element Mob : WindowScanner {
+  typedef EventWindow.SiteNum SiteNum;
+  Bool sp; //change the size of subclass (reveals bug in needsACast)
+
+  virtual Void visit(WindowServices &ws, Atom & a, SiteNum sn) {
+    if (a is Self) ws.categorize(sn, 1);       // #1 is us
+    //    else if (a is Empty) ws.categorize(sn, 2); // #2 is empty
+    else ws.categorize(sn, 3);                  // #3 is everything else
+  }
+
+  Int test() {
+    WindowServices ws;
+    ws.scan(self);
+
+    //insure categorize was called; Void return scan (bug!)
+    System s;
+    s.print((Unsigned) ws.mSites[3]); //categ == 3
+    s.assert(ws.mSites[3] == 2);
+    return 0;
+  }
+}
+
+#:WindowServices.ulam
+  ulam 2;
+transient WindowServices {
+  typedef Unary(4) Radius;
+  typedef EventWindow.SiteNum SiteNum;
+  typedef Unsigned(4) Category;
+  constant Unsigned cCATEGORY_COUNT = Category.maxof + 1;
+
+  Bool status;
+  Radius m_inner, m_outer;
+  SiteNum m_sn = 2;
+  SiteNum mSites[cCATEGORY_COUNT];
+  EventWindow ew;
+
+  Void scan(WindowScanner& scanner)
+  {
+    return scan(scanner, (Radius) 1, (Radius) 3);
+  }
+
+  Void scan(WindowScanner& scanner, Radius inner, Radius outer) {
+    m_inner = inner;
+    m_outer = outer;
+    Atom a = ew[m_sn];
+    status = scanner.visit(self, a, m_sn);
+  }
+
+  SiteNum categorize(SiteNum sn, Category categ)
+  {
+    System s;
+    mSites[categ] = sn;
+    m_sn = sn;
+    s.print((Unsigned) sn);
+    s.assert(sn == 2);
+    s.print((Unsigned) categ);
+    s.assert(categ == 3);
+    return sn;
+  }
+}
+
+#:WindowScanner.ulam
+  ulam 2;
+quark WindowScanner {
+  typedef EventWindow.SiteNum SiteNum;
+  virtual Bool visit(WindowServices& ws, Atom & a, SiteNum sn) ;
+}
+
+#:EventWindow.ulam
+  ulam 1;
+quark EventWindow{
+  typedef Unsigned(6) SiteNum;
+  Atom aref(Int index) native;
+  Void aset(Int index, Atom v) native;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

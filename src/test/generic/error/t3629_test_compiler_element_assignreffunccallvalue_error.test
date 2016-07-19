@@ -1,0 +1,34 @@
+## -*- mode:ulam -*-
+#=t3629_test_compiler_element_assignreffunccallvalue_error
+#!
+./Foo.ulam:17:5: ERROR: Initialization for: bref, must be referenceable.
+./Foo.ulam:2:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Foo.
+./Foo.ulam:2:9: ERROR: 2 Nodes with unresolved types detected after type labeling class: Foo.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t3628
+##
+#>Foo.ulam
+  ulam 2;
+element Foo {
+  Int(4) m_i;
+  Bool(3) m_b;
+  Void check(Bool(3)& bok) {
+    bok = lessthanmax(m_i);
+  }
+
+  Bool(3) lessthanmax(Int(4) iarg)
+  {
+    if (iarg < 7)
+      return true;
+    return false;
+  }
+
+  Int test() {
+    Bool(3) & bref = lessthanmax(m_i); //should fail
+    m_i = 3;
+    check(m_b);
+    return m_i;
+  }
+}
+#.

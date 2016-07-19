@@ -1,0 +1,26 @@
+## -*- mode:ulam -*-
+#=t3479_test_compiler_ambiguousfunccallwithconstants_error
+#!
+./Tu.ulam:12:9: ERROR: Ambiguous matches (2) of function <func> called with 1 argument type: Int(2), explicit casting is required.
+./Tu.ulam:2:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: Tu.
+Unrecoverable Program Type Label FAILURE.
+##
+##      //t3476 uses 9; here 1 fits both.
+##
+#>Tu.ulam
+ulam 1;
+element Tu {
+typedef Int(3) I;
+ I func(I arg) {
+return arg;
+}
+ typedef Int(4) J;
+ J func(J arg) {
+return arg;
+}
+ Int test(){
+ return func(1);
+}
+}
+
+#.
