@@ -1206,7 +1206,7 @@ namespace MFM {
 	    delete rtnNode;
 	    delete declNode;
 	    delete condNode;
-	    return NULL;
+	    return NULL; //stop this maddness
 	  }
       }
     else
@@ -2771,9 +2771,9 @@ namespace MFM {
 
     if(!parseRestOfFunctionCallArguments(rtnNode))
       {
-	delete rtnNode;
 	m_state.popClassContext();
-	return NULL;
+	delete rtnNode;
+	return NULL; //stop this maddness
       }
 
     m_state.popClassContext();
