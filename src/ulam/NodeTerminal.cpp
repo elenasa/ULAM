@@ -2,6 +2,7 @@
 #include <errno.h>
 #include "NodeTerminal.h"
 #include "CompilerState.h"
+#include "strto64.h"
 
 namespace MFM {
 
@@ -695,41 +696,32 @@ namespace MFM {
 	{
 	  std::string numstr = m_state.getTokenDataAsString(&tok);
 	  const char * numlist = numstr.c_str();
-	  char * nEnd;
+	  const char * errMsg;
 
-          // Based on example in http://man.openbsd.org/strtol.3
-          long temp = strtol(numlist, &nEnd, 0);   //base 10, 8, or 16
-	  if((*numlist == 0) || (*nEnd != 0) || 
-             ((errno == ERANGE) && (temp == LONG_MAX || temp == LONG_MIN)) || 
-             (temp > INT_MAX || temp < INT_MIN)) 
+	  m_constant.sval = strtos64(numlist, errMsg);
+	  if(errMsg)
 	    {
 	      std::ostringstream msg;
-	      msg << "Invalid signed constant <" << numstr.c_str() << ">";
-              if (errno)
-                {
-                  msg << ", errno=" << errno << ": " << strerror(errno);
-                }
+	      msg << "Invalid signed constant <" << numstr.c_str() << ">: ";
+              msg << errMsg;
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    }
 	  else
-            {
-              m_constant.sval = temp;
-              rtnok = true;
-            }
+	    rtnok = true;
 	}
 	break;
       case TOK_NUMBER_UNSIGNED:
 	{
 	  std::string numstr = m_state.getTokenDataAsString(&tok);
 	  const char * numlist = numstr.c_str();
-	  char * nEnd;
+	  const char * errMsg;
 
-	  m_constant.uval = strtoul(numlist, &nEnd, 0);   //base 10, 8, or 16
-	  if((*numlist == 0) || !(*nEnd == 'u' || *nEnd == 'U') || (*(nEnd + 1) != 0) || (errno == ERANGE))
+	  m_constant.uval = strtou64(numlist, errMsg);
+	  if(errMsg)
 	    {
 	      std::ostringstream msg;
-	      msg << "Invalid unsigned constant <" << numstr.c_str() << ">, errno=";
-	      msg << errno << ": " << strerror(errno);
+	      msg << "Invalid unsigned constant <" << numstr.c_str() << ">: ";
+              msg << errMsg;
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    }
 	  else
