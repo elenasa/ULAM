@@ -47,6 +47,11 @@ namespace MFM {
     return UlamValue::makeImmediate(type, data, len); //no change
   }
 
+  UlamValue NodeUnaryOpPlus::makeImmediateLongUnaryOp(UTI type, u64 data, u32 len)
+  {
+    return UlamValue::makeImmediateLong(type, data, len); //no change
+  }
+
   void NodeUnaryOpPlus::genCode(File * fp, UVPass& uvpass)
   {
     assert(m_node);

@@ -107,6 +107,7 @@ namespace MFM{
 
   protected:
     virtual UlamValue makeImmediateUnaryOp(UTI type, u32 data, u32 len); //noop
+    virtual UlamValue makeImmediateLongUnaryOp(UTI type, u64 data, u32 len); //noop
 
     virtual UTI calcNodeType(UTI uti); //override
 
