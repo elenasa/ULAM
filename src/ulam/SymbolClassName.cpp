@@ -4,14 +4,14 @@
 
 namespace MFM {
 
-  SymbolClassName::SymbolClassName(Token id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClass(id, utype, classblock, NULL/* parent template */, state)
+  SymbolClassName::SymbolClassName(const Token& id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClass(id, utype, classblock, NULL/* parent template */, state)
   {
     unsetStub(); //regular class; classblock may be null if utype is UC_UNSEEN class type.
   }
 
   SymbolClassName::~SymbolClassName(){}
 
-  void SymbolClassName::resetUnseenClassLocation(Token identTok)
+  void SymbolClassName::resetUnseenClassLocation(const Token& identTok)
   {
     //during parsing
     Symbol::resetIdToken(identTok);

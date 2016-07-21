@@ -333,7 +333,7 @@ namespace MFM {
     return false; //keep going until EOF is reached
   } //parseThisClass
 
-  NodeBlockClass * Parser::parseClassBlock(SymbolClassName * cnsym, Token identTok)
+  NodeBlockClass * Parser::parseClassBlock(SymbolClassName * cnsym, const Token& identTok)
   {
     bool inherits = false;
     UTI utype = cnsym->getUlamTypeIdx(); //we know its type..sweeter
@@ -728,7 +728,7 @@ namespace MFM {
     return brtn;
   } //parseDataMember
 
-  Node * Parser::parseRestOfDataMember(TypeArgs& args, Token identTok, Node * dNode, UTI passuti)
+  Node * Parser::parseRestOfDataMember(TypeArgs& args, const Token& identTok, Node * dNode, UTI passuti)
   {
     Token pTok;
     getNextToken(pTok);
@@ -774,7 +774,7 @@ namespace MFM {
     return parseRestOfDataMember(args, iTok, rtnNode, passuti); //iTok in case of =
   } //parseRestOfDataMember
 
-  void Parser::parseRestOfDataMemberAssignment(TypeArgs& args, Token identTok, Node * dNode, UTI passuti)
+  void Parser::parseRestOfDataMemberAssignment(TypeArgs& args, const Token& identTok, Node * dNode, UTI passuti)
   {
     Token pTok;
     getNextToken(pTok);
@@ -967,7 +967,7 @@ namespace MFM {
     return rtnNode;
   } //parseControlStatement
 
-  Node * Parser::parseControlIf(Token ifTok)
+  Node * Parser::parseControlIf(const Token& ifTok)
   {
     if(!getExpectedToken(TOK_OPEN_PAREN))
       {
@@ -1057,7 +1057,7 @@ namespace MFM {
     return rtnNode;
   } //parseControlIf
 
-  Node * Parser::parseControlWhile(Token wTok)
+  Node * Parser::parseControlWhile(const Token& wTok)
   {
     if(!getExpectedToken(TOK_OPEN_PAREN))
       {
@@ -1141,7 +1141,7 @@ namespace MFM {
     return rtnNode;
   } //parseControlWhile
 
-  Node * Parser::parseControlFor(Token fTok)
+  Node * Parser::parseControlFor(const Token& fTok)
   {
     if(!getExpectedToken(TOK_OPEN_PAREN))
       return NULL;
@@ -2472,7 +2472,7 @@ namespace MFM {
     return parseRestOfAssignExpr(rtnNode);
   } //parseAssignExpr
 
-  Node * Parser::parseLvalExpr(Token identTok)
+  Node * Parser::parseLvalExpr(const Token& identTok)
   {
     Token pTok;
     getNextToken(pTok);
@@ -2505,7 +2505,7 @@ namespace MFM {
   } //parseLvalExpr
 
   //lvalExpr + func Calls + member select (dot)
-  Node * Parser::parseIdentExpr(Token identTok)
+  Node * Parser::parseIdentExpr(const Token& identTok)
   {
     Node * rtnNode = NULL;
     Token pTok;
@@ -2560,7 +2560,7 @@ namespace MFM {
     return rtnNode;
   } //parseIdentExpr
 
-  Node * Parser::parseMemberSelectExpr(Token memberTok)
+  Node * Parser::parseMemberSelectExpr(const Token& memberTok)
   {
     Node * rtnNode = NULL;
     Symbol * dsymptr = NULL;
@@ -2646,7 +2646,7 @@ namespace MFM {
     return parseRestOfMemberSelectExpr(rtnNode); //recurse
   } //parseRestOfMemberSelectExpr
 
-  Node * Parser::parseMinMaxSizeofType(Token memberTok, UTI utype, NodeTypeDescriptor * nodetype)
+  Node * Parser::parseMinMaxSizeofType(const Token& memberTok, UTI utype, NodeTypeDescriptor * nodetype)
   {
     Node * rtnNode = NULL;
     Token pTok;
@@ -2702,7 +2702,7 @@ namespace MFM {
   } //parseMinMaxSizeofType
 
   // overloaded for when type is not available
-  Node * Parser::parseMinMaxSizeofType(Token memberTok)
+  Node * Parser::parseMinMaxSizeofType(const Token& memberTok)
   {
     Node * rtnNode = NULL;
 
@@ -2744,7 +2744,7 @@ namespace MFM {
     return rtnNode; //may be null if not minof, maxof, sizeof, but a member or func selected
   } //parseMinMaxSizeofType (overloaded, type unavail)
 
-  Node * Parser::parseFunctionCall(Token identTok)
+  Node * Parser::parseFunctionCall(const Token& identTok)
   {
     Symbol * asymptr = NULL;
     NodeBlock * currBlock = m_state.getCurrentBlock();
@@ -3370,7 +3370,7 @@ namespace MFM {
   // are a child of the NodeVarDeclDM subclass (see parseDataMember).
   // References (locals only) save their initialized value, a
   // storeintoable ("lval") expression, in their NodeVarRef.
-  Node * Parser::parseRestOfDecls(TypeArgs& args, Token identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti)
+  Node * Parser::parseRestOfDecls(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti)
   {
     //rtnNode is NodeStatments on list recursion, contains the NodeVarD ptr
     //dNode is the NodeVarD ptr needed for assignments
@@ -3458,7 +3458,7 @@ namespace MFM {
     return parseRestOfDecls(args, iTok, dNode, rtnNode, passuti); //iTok in case of =
   } //parseRestOfDecls
 
-  Node * Parser::parseRestOfDeclAssignment(TypeArgs& args, Token identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti)
+  Node * Parser::parseRestOfDeclAssignment(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti)
   {
     assert(dNode);
     Token eTok;
@@ -3558,7 +3558,7 @@ namespace MFM {
     return parseRestOfDecls(args, identTok, dNode, rtnNode, passuti); //any more?
   } //parseRestOfDeclAssignment
 
-  Node * Parser::parseArrayInitialization(Token identTok)
+  Node * Parser::parseArrayInitialization(const Token& identTok)
   {
     Token aTok;
     getNextToken(aTok);
@@ -3577,7 +3577,7 @@ namespace MFM {
     return rtnList;
   } //parseArrayInitialization
 
-  bool Parser::parseArrayItemInit(Token identTok, NodeListArrayInitialization * rtnList)
+  bool Parser::parseArrayItemInit(const Token& identTok, NodeListArrayInitialization * rtnList)
   {
     Token aTok;
     getNextToken(aTok);
@@ -3730,7 +3730,7 @@ namespace MFM {
     return rtnNode;
   } //parseRestOfParameterDef
 
-  NodeBlockFunctionDefinition * Parser::makeFunctionBlock(TypeArgs& args, Token identTok, NodeTypeDescriptor * nodetype, bool isVirtual)
+  NodeBlockFunctionDefinition * Parser::makeFunctionBlock(TypeArgs& args, const Token& identTok, NodeTypeDescriptor * nodetype, bool isVirtual)
   {
     NodeBlockFunctionDefinition * rtnNode = NULL;
 
@@ -4044,7 +4044,7 @@ namespace MFM {
     return brtn;
   } //parseFunctionBody
 
-  Node * Parser::makeFunctionSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor * nodetype, bool isVirtual)
+  Node * Parser::makeFunctionSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor * nodetype, bool isVirtual)
   {
     //first check that the function name begins with a lower case letter
     if(Token::isTokenAType(identTok))
@@ -4099,7 +4099,7 @@ namespace MFM {
     return rtnNode;
   } //makeFunctionSymbol
 
-  Node * Parser::makeVariableSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor *& nodetyperef)
+  Node * Parser::makeVariableSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef)
   {
     assert(!Token::isTokenAType(identTok)); //capitalization check done by Lexer
 
@@ -4192,7 +4192,7 @@ namespace MFM {
     return rtnNode;
   } //makeVariableSymbol
 
-  Node * Parser::makeTypedefSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor *& nodetyperef)
+  Node * Parser::makeTypedefSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef)
   {
     NodeTypedef * rtnNode = NULL;
     Node * lvalNode = parseLvalExpr(identTok);
@@ -4262,7 +4262,7 @@ namespace MFM {
     return rtnNode;
   } //makeTypedefSymbol
 
-  Node * Parser::makeConstdefSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor *& nodetyperef)
+  Node * Parser::makeConstdefSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef)
   {
     NodeConstantDef * rtnNode = NULL;
     Node * lvalNode = parseIdentExpr(identTok); //calls parseLvalExpr
@@ -4333,7 +4333,7 @@ namespace MFM {
     return rtnNode;
   } //makeConstdefSymbol
 
-  Node * Parser::makeParameterSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor *& nodetyperef)
+  Node * Parser::makeParameterSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef)
   {
     NodeModelParameterDef * rtnNode = NULL;
     Node * lvalNode = parseIdentExpr(identTok); //calls parseLvalExpr
@@ -4892,7 +4892,7 @@ namespace MFM {
     return rtnNode;
   } //makeFactorNode
 
-  Node * Parser::makeCastNode(Token typeTok, bool allowRefCasts)
+  Node * Parser::makeCastNode(const Token& typeTok, bool allowRefCasts)
   {
     Node * rtnNode = NULL;
     UTI typeToBe = Nouti;

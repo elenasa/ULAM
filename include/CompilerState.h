@@ -169,11 +169,11 @@ namespace MFM{
     UTI makeUlamTypeHolder();
     UTI makeUlamTypeFromHolder(UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti, ULAMCLASSTYPE classtype);
     UTI makeUlamTypeFromHolder(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti, ULAMCLASSTYPE classtype);
-    SymbolClassName * makeClassFromHolder(UTI huti, Token tok);
+    SymbolClassName * makeClassFromHolder(UTI huti, const Token& tok);
     void cleanupExistingHolder(UTI huti, UTI newuti);
     SymbolClassName * makeAnonymousClassFromHolder(UTI cuti, Locator cloc);
 
-    UTI makeUlamType(Token typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx, ALT reftype = ALT_NOT, ULAMCLASSTYPE classtype = UC_NOTACLASS);
+    UTI makeUlamType(const Token& typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx, ALT reftype = ALT_NOT, ULAMCLASSTYPE classtype = UC_NOTACLASS);
     UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype, ULAMCLASSTYPE classtype);
     bool isDefined(UlamKeyTypeSignature key, UlamType *& foundUT);
     bool anyDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI);
@@ -192,8 +192,8 @@ namespace MFM{
     const std::string getUlamTypeNameByIndex(UTI uti);
     const std::string getEffectiveSelfMangledNameByIndex(UTI uti);
 
-    ULAMTYPE getBaseTypeFromToken(Token tok);
-    UTI getUlamTypeFromToken(Token tok, s32 typebitsize, s32 arraysize);
+    ULAMTYPE getBaseTypeFromToken(const Token& tok);
+    UTI getUlamTypeFromToken(const Token& tok, s32 typebitsize, s32 arraysize);
     UTI getUlamTypeFromToken(TypeArgs & args);
 
     bool getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType);
@@ -284,20 +284,20 @@ namespace MFM{
     bool alreadyDefinedSymbolClassAsHolder(UTI uti, SymbolClass * & symptr);
 
     /** in case of typedef's in ancestor class */
-    void addUnknownTypeTokenToAClassResolver(UTI cuti, Token tok, UTI huti);
-    void addUnknownTypeTokenToThisClassResolver(Token tok, UTI huti);
+    void addUnknownTypeTokenToAClassResolver(UTI cuti, const Token& tok, UTI huti);
+    void addUnknownTypeTokenToThisClassResolver(const Token& tok, UTI huti);
     Token removeKnownTypeTokenFromThisClassResolver(UTI huti);
     bool hasUnknownTypeInThisClassResolver(UTI huti);
     bool statusUnknownTypeInThisClassResolver(UTI huti);
 
     /** creates temporary class type for dataindex, returns the new Symbol pointer in 2nd arg; */
     bool removeIncompleteClassSymbolFromProgramTable(u32 id); //helper
-    bool removeIncompleteClassSymbolFromProgramTable(Token nTok);
-    bool addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr);
-    bool addIncompleteTemplateClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr);
+    bool removeIncompleteClassSymbolFromProgramTable(const Token& nTok);
+    bool addIncompleteClassSymbolToProgramTable(const Token& cTok, SymbolClassName * & symptr);
+    bool addIncompleteTemplateClassSymbolToProgramTable(const Token& cTok, SymbolClassNameTemplate * & symptr);
     UTI addStubCopyToAncestorClassTemplate(UTI stubTypeToCopy,  UTI context);
 
-    void resetUnseenClass(SymbolClassName * cnsym, Token identTok);
+    void resetUnseenClass(SymbolClassName * cnsym, const Token& identTok);
     bool getUnseenClassFilenames(std::vector<std::string>& unseenFiles);
 
     /** during type labeling, sets ULAMCLASSTYPE for typedefs that
@@ -305,7 +305,7 @@ namespace MFM{
     bool completeIncompleteClassSymbolForTypedef(UTI incomplete) ;
 
     /** helper methods for error messaging, uses string pool */
-    const std::string getTokenLocationAsString(Token * tok);
+    const std::string getTokenLocationAsString(const Token * tok);
     const std::string getFullLocationAsString(const Locator& loc);
     const std::string getPathFromLocator(const Locator& loc);
     const std::string getFullPathFromLocator(const Locator& loc);
@@ -397,10 +397,10 @@ namespace MFM{
     const std::string getVFuncPtrTmpNumAsString(s32 num);
 
     /** for conditional h/as-magic */
-    void saveIdentTokenForConditionalAs(Token iTok, Token cTok);
+    void saveIdentTokenForConditionalAs(const Token& iTok, const Token& cTok);
 
     /** class or model parameter structured comment for MFM */
-    void saveStructuredCommentToken(Token scTok);
+    void saveStructuredCommentToken(const Token& scTok);
     void clearStructuredCommentToken();
     bool getStructuredCommentToken(Token& scTok);
 

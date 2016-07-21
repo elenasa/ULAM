@@ -44,7 +44,7 @@ namespace MFM{
   class SymbolVariableDataMember : public SymbolVariable
   {
   public:
-    SymbolVariableDataMember(Token id, UTI utype, u32 slot, CompilerState& state);
+    SymbolVariableDataMember(const Token& id, UTI utype, u32 slot, CompilerState& state);
 
     SymbolVariableDataMember(const SymbolVariableDataMember& sref);
 

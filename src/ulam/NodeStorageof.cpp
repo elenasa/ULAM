@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-  NodeStorageof::NodeStorageof(Token tokof, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_token(tokof), m_varSymbol(NULL), m_oftype(Nouti), m_nodeTypeDesc(nodetype), m_currBlockNo(0)
+  NodeStorageof::NodeStorageof(const Token& tokof, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_token(tokof), m_varSymbol(NULL), m_oftype(Nouti), m_nodeTypeDesc(nodetype), m_currBlockNo(0)
   {
     Node::setNodeLocation(tokof.m_locator);
     Node::setStoreIntoAble(TBOOL_HAZY);

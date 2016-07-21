@@ -3,7 +3,7 @@
 
 namespace MFM {
 
-  SymbolTmpRef::SymbolTmpRef(Token id, UTI utype, CompilerState & state) : Symbol(id, utype, state){}
+  SymbolTmpRef::SymbolTmpRef(const Token& id, UTI utype, CompilerState & state) : Symbol(id, utype, state){}
 
   SymbolTmpRef::~SymbolTmpRef() {}
 

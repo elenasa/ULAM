@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-  NodeAtomof::NodeAtomof(Token tokof, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeStorageof(tokof, nodetype, state) { }
+  NodeAtomof::NodeAtomof(const Token& tokof, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeStorageof(tokof, nodetype, state) { }
 
   NodeAtomof::NodeAtomof(const NodeAtomof& ref) : NodeStorageof(ref) { }
 

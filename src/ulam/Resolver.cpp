@@ -53,7 +53,7 @@ namespace MFM {
     m_unknownTypeTokens.clear();
   } //clearLeftoverUnknownTypeTokens
 
-  void Resolver::addUnknownTypeToken(Token tok, UTI huti)
+  void Resolver::addUnknownTypeToken(const Token& tok, UTI huti)
   {
     m_unknownTypeTokens.insert(std::pair<UTI, Token> (huti, tok));
   }
@@ -104,7 +104,7 @@ namespace MFM {
     return aok;
   } //statusUnknownType
 
-  bool Resolver::checkUnknownTypeToResolve(UTI huti, Token tok)
+  bool Resolver::checkUnknownTypeToResolve(UTI huti, const Token& tok)
   {
     bool aok = false;
     ULAMTYPE etyp = m_state.getBaseTypeFromToken(tok);

@@ -43,7 +43,7 @@ namespace MFM{
   class SymbolClassNameTemplate : public SymbolClassName
   {
   public:
-    SymbolClassNameTemplate(Token id, UTI utype, NodeBlockClass * classblock, CompilerState& state);
+    SymbolClassNameTemplate(const Token& id, UTI utype, NodeBlockClass * classblock, CompilerState& state);
     virtual ~SymbolClassNameTemplate();
 
     virtual void getTargetDescriptorsForClassInstances(TargetMap& classtargets);
@@ -73,8 +73,8 @@ namespace MFM{
 
     bool pendingClassArgumentsForStubClassInstance(UTI instance);
 
-    SymbolClass * makeAStubClassInstance(Token typeTok, UTI cuti); //to hold class args, and cUTI
-    SymbolClass * makeAStubClassInstanceHolder(Token typeTok, UTI suti);
+    SymbolClass * makeAStubClassInstance(const Token& typeTok, UTI cuti); //to hold class args, and cUTI
+    SymbolClass * makeAStubClassInstanceHolder(const Token& typeTok, UTI suti);
     void copyAStubClassInstance(UTI instance, UTI newuti, UTI context);
 
     void mergeClassInstancesFromTEMP();
