@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: 0
-Ue_A { constant Int(64) j = 8608405511173251618;  Int(32) test() {  System s;  s ( true )assert . Int(64) k = 9223372036854775807;  s ( 8608405511173251618 k < )assert . Int(64) l = -9223372036854775808;  s ( 8608405511173251618 l > )assert . 0 cast return } }
+Ue_A { constant Int(64) j = HexU64(0x77773333, 0xffff2222);  Int(32) test() {  System s;  s ( true )assert . Int(64) k = HexU64(0x7fffffff, 0xffffffff);  s ( HexU64(0x77773333, 0xffff2222) k < )assert . Int(64) l = HexU64(0x80000000, 0x0);  s ( HexU64(0x77773333, 0xffff2222) l > )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by error test: t3848

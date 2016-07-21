@@ -83,7 +83,8 @@ namespace MFM {
 	else
 	  {
 	    s64 sval = _Int64ToCs64(m_constant.uval, nbitsize);
-	    num << sval;
+	    num << ToSignedDecimal(sval);
+	    //num << sval;
 	  }
 	break;
       case Bool:
@@ -94,7 +95,8 @@ namespace MFM {
 	if(nut->getTotalWordSize() <= MAXBITSPERINT)
 	  num << (u32) m_constant.uval << "u";
 	else
-	  num << m_constant.uval << "u";
+	  //num << m_constant.uval << "u";
+	  num << ToUnsignedDecimal(m_constant.uval);
 	break;
       default:
 	{
@@ -686,9 +688,9 @@ namespace MFM {
 
     fp->write(" = ");
 
+    u32 wordsize = nut->getTotalWordSize();
     if(isNegativeConstant())
       {
-	u32 wordsize = nut->getTotalWordSize();
 	if(wordsize <= MAXBITSPERINT)
 	  fp->write("(u32) ");
 	else if(wordsize <= MAXBITSPERLONG)
@@ -696,6 +698,7 @@ namespace MFM {
 	else
 	  assert(0);
       }
+
     fp->write(getName());
     fp->write(";"); GCNL;
 
