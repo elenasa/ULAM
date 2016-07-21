@@ -98,7 +98,6 @@ namespace MFM {
 	    msg << "' Proxy, as type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    //m_state.setGoAgain(); //since not error
 	  }
 	else
 	  {

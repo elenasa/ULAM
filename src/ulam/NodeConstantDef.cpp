@@ -83,7 +83,7 @@ namespace MFM {
   {
     //in case the node belongs to the template, use the symbol uti, o.w. 0Nav.
     UTI suti = m_constSymbol ? m_constSymbol->getUlamTypeIdx() : getNodeType();
-    //like SymbolConstantValue
+    //see also SymbolConstantValue
     fp->write(" constant");
 
     fp->write(" ");

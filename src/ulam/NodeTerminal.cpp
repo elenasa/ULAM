@@ -51,7 +51,7 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMTYPE etyp = nut->getUlamTypeEnum();
-    assert(etyp == m_etyp); //true? Thu Jul 21 01:47:36 2016
+    assert(etyp == m_etyp); //true?
     if(etyp == Bool)
       fp->write((_Bool64ToCbool(m_constant.uval, nut->getBitSize()) ? "true" : "false"));
     else
@@ -84,7 +84,6 @@ namespace MFM {
 	  {
 	    s64 sval = _Int64ToCs64(m_constant.uval, nbitsize);
 	    num << ToSignedDecimal(sval);
-	    //num << sval;
 	  }
 	break;
       case Bool:
@@ -95,7 +94,6 @@ namespace MFM {
 	if(nut->getTotalWordSize() <= MAXBITSPERINT)
 	  num << (u32) m_constant.uval << "u";
 	else
-	  //num << m_constant.uval << "u";
 	  num << ToUnsignedDecimal(m_constant.uval);
 	break;
       default:
@@ -121,7 +119,6 @@ namespace MFM {
     if(tok.m_type == TOK_MINUS)
       {
 	UTI nuti = getNodeType();
-	//ULAMTYPE etyp = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
 	if(m_etyp == Int)
 	  {
 	    m_constant.sval = -m_constant.sval;
@@ -175,57 +172,29 @@ namespace MFM {
 
   UTI NodeTerminal::checkAndLabelType()
   {
-    //UTI nuti = getNodeType(); //done by constructor using default size
-    //UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-
-    //assert(nut->isComplete());
-
-    //numeric tokens are implcitily 64-bits Thu Jul 21 10:27:04 2016
-    // o.w. 64-bit constants get truncated; here, no sign extension unless explicitly cast to Int.
-    s32 bs = MAXBITSPERLONG; //nut->getBitSize();
+    //numeric tokens are implicitily 64-bits
+    // o.w. 64-bit constants got truncated; but no 32-bit sign extension.
+    s32 bs = MAXBITSPERLONG;
 
     //update bitsize to fit the constant value
-    //if(bs == m_state.getDefaultBitSize(nuti))
     if(!m_state.okUTItoContinue(getNodeType()))
       {
 	s32 newbs = bs;
-	//u32 wordsize = nut->getTotalWordSize();
-	ULAMTYPE typEnum = m_etyp; //nut->getUlamTypeEnum();
-	switch(typEnum)
+	switch(m_etyp)
 	  {
 	  case Int:
 	    {
-	      //if(wordsize <= MAXBITSPERINT)
-	      //	{
-	      //	  s32 sval = _Int32ToCs32((u32) m_constant.uval, bs);
-	      //	  newbs = (s32) (_getLogBase2(UABS32(sval)) + 1 + 1); //fits into signed
-	      //	  newbs = CLAMP<s32>(1, MAXBITSPERINT, newbs); //e.g. Int.minof (t3737)
-	      //	}
-	      //else
-		{
-		  //does it ever get here?
-		  s64 sval = _Int64ToCs64(m_constant.uval, bs);
-		  newbs = (s32) (_getLogBase2Long(UABS64(sval)) + 1 + 1); //fits into signed
-		  newbs = CLAMP<s32>(1, MAXBITSPERLONG, newbs);
-		}
-
+	      s64 sval = _Int64ToCs64(m_constant.uval, bs);
+	      newbs = (s32) (_getLogBase2Long(UABS64(sval)) + 1 + 1); //fits into signed
+	      newbs = CLAMP<s32>(1, MAXBITSPERLONG, newbs);
 	    }
 	    break;
 	  case Bits:
 	  case Unsigned:
-	    {
-	      //if(wordsize <= MAXBITSPERINT)
-	      //	newbs = (s32) _getLogBase2((u32) m_constant.uval) + 1; //fits into unsigned
-	      //else
-		newbs = (s32) _getLogBase2Long(m_constant.uval) + 1; //fits into unsigned
-	    }
+	    newbs = (s32) _getLogBase2Long(m_constant.uval) + 1; //fits into unsigned
 	    break;
 	  case Unary:
-	    {
-	      //u32 wordsize = nut->getTotalWordSize();
-	      //newbs = (s32) (m_constant.uval > wordsize ? wordsize : m_constant.uval);
-	      newbs = (s32) (m_constant.uval > MAXBITSPERLONG ? MAXBITSPERLONG : m_constant.uval);
-	    }
+	    newbs = (s32) (m_constant.uval > MAXBITSPERLONG ? MAXBITSPERLONG : m_constant.uval);
 	    break;
 	  case Bool:
 	    newbs = BITS_PER_BOOL;
@@ -235,11 +204,12 @@ namespace MFM {
 	  };
 
 	//use UTI with same base type and new bitsize:
-	u32 enumStrIdx = m_state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(typEnum));
+	u32 enumStrIdx = m_state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(m_etyp));
 	UlamKeyTypeSignature newkey(enumStrIdx, newbs);
-	UTI newType = m_state.makeUlamType(newkey, typEnum, UC_NOTACLASS);
+	UTI newType = m_state.makeUlamType(newkey, m_etyp, UC_NOTACLASS);
 	setNodeType(newType);
       }
+
     if(getNodeType() == Hzy)
       m_state.setGoAgain();
     return getNodeType();
@@ -306,11 +276,8 @@ namespace MFM {
 	rtnUV = UlamValue::makeImmediate(uti, data, m_state);
 	break;
       case Class:
-	{
-	  //	  if(ut->getUlamClassType() == UC_QUARK)
-	  rtnUV = UlamValue::makeImmediate(uti, data, m_state);
-	  break;
-	}
+	rtnUV = UlamValue::makeImmediate(uti, data, m_state);
+	break;
       default:
 	{
 	  std::ostringstream msg;
@@ -346,10 +313,8 @@ namespace MFM {
 	rtnUV = UlamValue::makeImmediateLong(uti, data, m_state);
 	break;
       case Class:
-	{
-	  rtnUV = UlamValue::makeImmediateLongClass(uti, data, ut->getTotalBitSize());
-	  break;
-	}
+	rtnUV = UlamValue::makeImmediateLongClass(uti, data, ut->getTotalBitSize());
+	break;
       default:
 	{
 	  std::ostringstream msg;
@@ -403,7 +368,6 @@ namespace MFM {
 	msg << "Constant is not-a-valid type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	//m_state.setGoAgain(); //since not an error
 	return false;
       }
 
@@ -415,8 +379,6 @@ namespace MFM {
 	msg << "Word size incompatible. Not supported at this time, constant type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str() << ", to fit into type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(fituti).c_str();
-	//MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	//return false;
 	fwordsize = nwordsize; //t3851
       }
 
@@ -568,13 +530,6 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
     UlamValue uv;
-    //    u32 wordsize = m_state.getUlamTypeByIndex(nuti)->getTotalWordSize();
-    //if(wordsize <= MAXBITSPERINT)
-    //  return makeTerminalValue(uv, data, nuti);
-    //else if(wordsize <= MAXBITSPERLONG)
-    //  return makeTerminalValueLong(uv, (u64) data, nuti);
-    //else
-    //  assert(0);
     makeTerminalValue(uv, data, nuti);
 
     //first cast to fit type:
@@ -783,33 +738,17 @@ namespace MFM {
     switch(tok.m_type)
       {
       case TOK_NUMBER_SIGNED:
-#if 0
-	{
-	  u32 uid = m_state.m_pool.getIndexForDataString("Int");
-	  UlamKeyTypeSignature key(uid, MAXBITSPERLONG, NONARRAYSIZE, 0);
-	  newType = m_state.makeUlamType(key, Int, UC_NOTACLASS);
-	}
-#endif
-	//newType = Int; //m_state.getUlamTypeOfConstant(Int);
 	m_etyp = Int;
 	newType = Hzy;
 	break;
       case TOK_NUMBER_UNSIGNED:
-#if 0
-	{
-	  u32 uid = m_state.m_pool.getIndexForDataString("Unsigned");
-	  UlamKeyTypeSignature key(uid, MAXBITSPERLONG, NONARRAYSIZE, 0);
-	  newType = m_state.makeUlamType(key, Unsigned, UC_NOTACLASS);
-	}
-#endif
-	//newType = Unsigned; //m_state.getUlamTypeOfConstant(Unsigned);
 	m_etyp = Unsigned;
 	newType = Hzy;
 	break;
       case TOK_KW_TRUE:
       case TOK_KW_FALSE:
 	m_etyp = Bool;
-	newType = Bool; //m_state.getUlamTypeOfConstant(Bool);
+	newType = Bool;
 	break;
       case TOK_SQUOTED_STRING:
 	{

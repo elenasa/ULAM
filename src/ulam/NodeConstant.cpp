@@ -102,7 +102,7 @@ namespace MFM {
 	msg << ", used with constant symbol name '";
 	msg << m_state.getTokenDataAsString(m_token).c_str() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	// m_state.setGoAgain(); wait until updateConstant tried.
+	//wait until updateConstant tried.
       }
 
     setNodeType(it);
