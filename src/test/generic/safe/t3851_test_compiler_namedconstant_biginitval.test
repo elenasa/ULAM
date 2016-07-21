@@ -1,0 +1,43 @@
+## -*- mode:ulam -*-
+#=t3851_test_compiler_namedconstant_biginitval
+##
+## gen output: (3 asserts)
+##
+#!
+Exit status: 0
+Ue_A { constant Int(64) j = 8608405511173251618;  Int(32) test() {  System s;  s ( true )assert . Int(64) k = 9223372036854775807;  s ( 8608405511173251618 k < )assert . Int(64) l = -9223372036854775808;  s ( 8608405511173251618 l > )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by error test: t3848
+##
+#>A.ulam
+ ulam 2;
+element A {
+  constant Int(64) j = 0x77773333ffff2222;
+  Int test () {
+    System s;
+    s.assert(j != 0xffff2222); //bug revealed
+
+    Int(64) k = Int(64).maxof;
+    s.assert(j < k);
+
+    //warning: this decimal constant is unsigned only in ISO C90 [enabled by default]
+    Int(64) l = Int(64).minof;
+    s.assert(j > l);
+
+    return 0;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

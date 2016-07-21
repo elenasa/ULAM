@@ -2384,15 +2384,15 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return "";
   }
 
-  const std::string CompilerState::getTokenDataAsString(Token * tok)
+  const std::string CompilerState::getTokenDataAsString(const Token & tok)
   {
-    assert(tok);
-    if(tok->m_dataindex > 0)
+    //assert(tok);
+    if(tok.m_dataindex > 0)
       {
-	return m_pool.getDataAsString(tok->m_dataindex);
+	return m_pool.getDataAsString(tok.m_dataindex);
       }
     //return std::string(tok->getTokenString()); //VG: Invalid Read
-    return tok->getTokenStringFromPool(this);
+    return tok.getTokenStringFromPool(this);
   }
 
   std::string CompilerState::getDataAsStringMangled(u32 dataindex)
@@ -2404,7 +2404,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   } //getDataAsStringMangled
 
   //does it check for existence?
-  const std::string CompilerState::getTokenAsATypeName(Token tok)
+  const std::string CompilerState::getTokenAsATypeName(const Token& tok)
   {
     if(Token::isTokenAType(tok))
       {
@@ -2423,13 +2423,13 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 		return tdut->getUlamTypeNameOnly();
 	      }
 	    else
-	      return getTokenDataAsString(&tok); //a class
+	      return getTokenDataAsString(tok); //a class
 	  }
       }
     return "Nav";
   } //getTokenAsATypeName
 
-  u32 CompilerState::getTokenAsATypeNameId(Token tok)
+  u32 CompilerState::getTokenAsATypeNameId(const Token& tok)
   {
     std::string nstr = getTokenAsATypeName(tok);
     return m_pool.getIndexForDataString(nstr);

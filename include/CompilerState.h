@@ -311,10 +311,10 @@ namespace MFM{
     const std::string getFullPathFromLocator(const Locator& loc);
 
     /** helper method, uses string pool */
-    const std::string getTokenDataAsString(Token * tok);
+    const std::string getTokenDataAsString(const Token & tok);
     std::string getDataAsStringMangled(u32 dataindex);
-    const std::string getTokenAsATypeName(Token tok);
-    u32 getTokenAsATypeNameId(Token tok);
+    const std::string getTokenAsATypeName(const Token& tok);
+    u32 getTokenAsATypeNameId(const Token& tok);
 
     bool checkFunctionReturnNodeTypes(SymbolFunction * fsym);
     void indentUlamCode(File * fp);

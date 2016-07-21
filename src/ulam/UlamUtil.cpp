@@ -178,6 +178,7 @@ namespace MFM
     // due to ANSI C99 limitations, so we do this instead.
     std::stringstream os;
     os << std::dec << data;
+    //os << "0x" << std::hex << data; //Wed Jul 20 22:37:44 2016
     return os.str();
   }
 

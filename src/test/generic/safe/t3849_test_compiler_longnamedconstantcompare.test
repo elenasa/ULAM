@@ -13,7 +13,7 @@ Uq_System { <NOMAIN> }
 #>A.ulam
  ulam 2;
 element A {
-  constant Int(64) j = 0xffff2222;
+  constant Int(64) j = 0xffff2222; //numeric tokens are implicitly 64-bits. to sign extend cast to 32.
   Int i;
   Int n;
   Int test () {

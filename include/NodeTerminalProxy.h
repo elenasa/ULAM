@@ -47,7 +47,7 @@ class NodeTerminalProxy : public NodeTerminal
 {
 public:
 
-    NodeTerminalProxy(Token memberTok, UTI memberType, Token funcTok, NodeTypeDescriptor * nodetype, CompilerState & state);
+    NodeTerminalProxy(const Token& memberTok, UTI memberType, const Token& funcTok, NodeTypeDescriptor * nodetype, CompilerState & state);
 
     NodeTerminalProxy(const NodeTerminalProxy& ref);
 
@@ -86,8 +86,8 @@ public:
     bool m_ready;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
-    virtual bool setConstantValue(Token tok);
-    virtual UTI setConstantTypeForNode(Token tok);
+    virtual bool setConstantValue(const Token& tok);
+    virtual UTI setConstantTypeForNode(const Token& tok);
     bool updateProxy();
   };
 

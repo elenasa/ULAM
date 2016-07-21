@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  NodeTerminalProxy::NodeTerminalProxy(Token memberTok, UTI memberType, Token funcTok, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeTerminal( (u64) UNKNOWNSIZE, memberType, state), m_ofTok(memberTok), m_uti(memberType), m_funcTok(funcTok), m_ready(false), m_nodeTypeDesc(nodetype)
+  NodeTerminalProxy::NodeTerminalProxy(const Token& memberTok, UTI memberType, const Token& funcTok, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeTerminal( (u64) UNKNOWNSIZE, memberType, state), m_ofTok(memberTok), m_uti(memberType), m_funcTok(funcTok), m_ready(false), m_nodeTypeDesc(nodetype)
   {
     Node::setNodeLocation(funcTok.m_locator);
     // is memberType is corrected for sizeof during c&l
@@ -50,7 +50,7 @@ namespace MFM {
       fp->write(NodeTerminal::getName());
     else
       {
-	fp->write(m_state.getTokenDataAsString(&m_ofTok).c_str());
+	fp->write(m_state.getTokenDataAsString(m_ofTok).c_str());
 	fp->write(" ");
 	fp->write(m_funcTok.getTokenString());
 	fp->write(" .");
@@ -94,7 +94,7 @@ namespace MFM {
 	    m_uti = asymptr->getUlamTypeIdx();
 	    std::ostringstream msg;
 	    msg << "Determined type for member '";
-	    msg << m_state.getTokenDataAsString(&m_ofTok).c_str();
+	    msg << m_state.getTokenDataAsString(m_ofTok).c_str();
 	    msg << "' Proxy, as type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -106,7 +106,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Undetermined type for missing member '";
-		msg << m_state.getTokenDataAsString(&m_ofTok).c_str();
+		msg << m_state.getTokenDataAsString(m_ofTok).c_str();
 		msg << "' Proxy";
 		if(!hazyKin)
 		  {
@@ -151,7 +151,7 @@ namespace MFM {
 	    msg << "Incomplete Terminal Proxy for type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
 	    msg << ", of member '";
-	    msg << m_state.getTokenDataAsString(&m_ofTok).c_str() << "'";
+	    msg << m_state.getTokenDataAsString(m_ofTok).c_str() << "'";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	  }
       }
@@ -208,7 +208,7 @@ namespace MFM {
     return NodeTerminal::genCodeToStoreInto(fp, uvpass);
   }
 
-  bool NodeTerminalProxy::setConstantValue(Token tok)
+  bool NodeTerminalProxy::setConstantValue(const Token& tok)
   {
     bool rtnB = false;
     UlamType * cut = m_state.getUlamTypeByIndex(m_uti);
@@ -248,7 +248,7 @@ namespace MFM {
   } //setConstantValue
 
   //minof, maxof use type of lhs, sizeof is just unsigned32
-  UTI NodeTerminalProxy::setConstantTypeForNode(Token tok)
+  UTI NodeTerminalProxy::setConstantTypeForNode(const Token& tok)
   {
     UTI newType = Nav; //init
     switch(tok.m_type)

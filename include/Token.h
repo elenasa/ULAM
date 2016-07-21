@@ -83,9 +83,9 @@ namespace MFM{
     const char * getTokenString();
     const char * getTokenEnumName();
 
-    const std::string getTokenStringFromPool(CompilerState * state);
+    const std::string getTokenStringFromPool(CompilerState * state) const;
     static const std::string getTokenAsStringFromPool(TokenType ttype, CompilerState * state);
-    const std::string getTokenEnumNameFromPool(CompilerState * state);
+    const std::string getTokenEnumNameFromPool(CompilerState * state) const;
 
     static SpecialTokenWork getSpecialTokenWork(TokenType ttype);
     static TokenType getTokenTypeFromString(const char * aname);

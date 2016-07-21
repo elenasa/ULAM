@@ -9,7 +9,7 @@
 ##      // elements now atom-based
 ##
 Exit status: 98
-Ue_A { System s();  Int(32) j(98);  Int(32) test() {  constant Int(32) cOW = 97;  j 98 cast = s ( j )print . j return } }
+Ue_A { System s();  Int(32) j(98);  Int(32) test() {  constant Int(32) cOW = 97;  j 98 = s ( j )print . j return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
   use System;

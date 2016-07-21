@@ -57,7 +57,7 @@ namespace MFM {
 
   const char * NodeTypeDescriptor::getName()
   {
-    return m_state.getTokenDataAsString(&m_typeTok).c_str();
+    return m_state.getTokenDataAsString(m_typeTok).c_str();
   } //getName
 
   const std::string NodeTypeDescriptor::prettyNodeName()

@@ -148,7 +148,7 @@ namespace MFM {
 			      {
 				//error id is not a typedef
 				std::ostringstream msg;
-				msg << "Not a typedef <" << m_state.getTokenDataAsString(&m_typeTok).c_str();
+				msg << "Not a typedef <" << m_state.getTokenDataAsString(m_typeTok).c_str();
 				msg << "> in another class ancester, " ;;
 				msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
 				msg <<" while compiling: ";
@@ -183,7 +183,7 @@ namespace MFM {
 		  {
 		    //error id is not a typedef
 		    std::ostringstream msg;
-		    msg << "Not a typedef <" << m_state.getTokenDataAsString(&m_typeTok).c_str();
+		    msg << "Not a typedef <" << m_state.getTokenDataAsString(m_typeTok).c_str();
 		    msg << "> in another class, " ;;
 		    msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
 		    msg <<" while compiling: ";
@@ -196,7 +196,7 @@ namespace MFM {
 	      {
 		//error! id not found
 		std::ostringstream msg;
-		msg << "Undefined Typedef <" << m_state.getTokenDataAsString(&m_typeTok).c_str();
+		msg << "Undefined Typedef <" << m_state.getTokenDataAsString(m_typeTok).c_str();
 		msg << "> in another class, " ;;
 		msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
 		msg <<" while compiling: ";
@@ -218,7 +218,7 @@ namespace MFM {
 	  {
 	    //error has to be a class
 	    std::ostringstream msg;
-	    msg << "Type selected by <" << m_state.getTokenDataAsString(&m_typeTok).c_str();
+	    msg << "Type selected by <" << m_state.getTokenDataAsString(m_typeTok).c_str();
 	    msg << "> is NOT another class, " ;
 	    msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
 	    msg << ", rather a " << UlamType::getUlamTypeEnumAsString(seletyp) << " type,";

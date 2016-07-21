@@ -37,7 +37,7 @@ namespace MFM {
 
   const char * NodeIdent::getName()
   {
-    return m_state.getTokenDataAsString(&m_token).c_str();
+    return m_state.getTokenDataAsString(m_token).c_str();
   }
 
   const std::string NodeIdent::prettyNodeName()
@@ -165,7 +165,7 @@ namespace MFM {
 		assert(swapOk);
 
 		std::ostringstream msg;
-		msg << "Exchanged kids! <" << m_state.getTokenDataAsString(&m_token).c_str();
+		msg << "Exchanged kids! <" << m_state.getTokenDataAsString(m_token).c_str();
 		msg << "> a named constant, in place of a variable with class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -207,7 +207,7 @@ namespace MFM {
 		assert(swapOk);
 
 		std::ostringstream msg;
-		msg << "Exchanged kids! <" << m_state.getTokenDataAsString(&m_token).c_str();
+		msg << "Exchanged kids! <" << m_state.getTokenDataAsString(m_token).c_str();
 		msg << "> a model parameter, in place of a variable with class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -226,7 +226,7 @@ namespace MFM {
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str();
+		msg << "(1) <" << m_state.getTokenDataAsString(m_token).c_str();
 		msg << "> is not a variable, and cannot be used as one with class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -238,7 +238,7 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "(2) <" << m_state.getTokenDataAsString(&m_token).c_str();
+	    msg << "(2) <" << m_state.getTokenDataAsString(m_token).c_str();
 	    msg << "> is not defined, and cannot be used with class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    if(!hazyKin)
@@ -1036,7 +1036,7 @@ namespace MFM {
 	//error can't support double arrays
 	std::ostringstream msg;
 	msg << "Array size [] is included in typedef '";
-	msg <<  m_state.getTokenDataAsString(&args.m_typeTok).c_str();
+	msg <<  m_state.getTokenDataAsString(args.m_typeTok).c_str();
 	msg << "', and cannot be redefined by variable '";
 	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -1058,7 +1058,7 @@ namespace MFM {
 	    //error can't support different bitsizes
 	    std::ostringstream msg;
 	    msg << "Bit size (" << tdbitsize << ") is included in typedef '";
-	    msg <<  m_state.getTokenDataAsString(&args.m_typeTok).c_str();
+	    msg <<  m_state.getTokenDataAsString(args.m_typeTok).c_str();
 	    msg << "', and cannot be redefined by variable '";
 	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << "'";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -1082,7 +1082,7 @@ namespace MFM {
 	//error can't support typedefs changing arraysizes
 	std::ostringstream msg;
 	msg << "Array size [] is included in typedef '";
-	msg <<  m_state.getTokenDataAsString(&args.m_typeTok).c_str();
+	msg <<  m_state.getTokenDataAsString(args.m_typeTok).c_str();
 	msg << "', and cannot be redefined by typedef '";
 	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -1110,7 +1110,7 @@ namespace MFM {
 	//error can't support named constant arrays
 	std::ostringstream msg;
 	msg << "Array size [] is included in typedef '";
-	msg <<  m_state.getTokenDataAsString(&args.m_typeTok).c_str();
+	msg <<  m_state.getTokenDataAsString(args.m_typeTok).c_str();
 	msg  << "', and cannot be used by a named constant '";
 	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

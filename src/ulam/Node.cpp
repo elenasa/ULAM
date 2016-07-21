@@ -148,7 +148,7 @@ namespace MFM {
     return false;
   }
 
-  void Node::constantFoldAToken(Token tok)
+  void Node::constantFoldAToken(const Token& tok)
   {
     assert(0); //only NodeTerminal has this defined; NodeConstant bypasses
   }

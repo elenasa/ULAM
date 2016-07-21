@@ -82,7 +82,7 @@ namespace MFM {
     return tok_stringid[m_type];
   }
 
-  const std::string Token::getTokenStringFromPool(CompilerState * state)
+  const std::string Token::getTokenStringFromPool(CompilerState * state) const
   {
     assert(state);
     return state->m_pool.getDataAsString(tok_stringid[m_type]);
@@ -104,7 +104,7 @@ namespace MFM {
     return tok_nameid[m_type];
   }
 
-  const std::string Token::getTokenEnumNameFromPool(CompilerState * state)
+  const std::string Token::getTokenEnumNameFromPool(CompilerState * state) const
   {
     assert(state);
     return state->m_pool.getDataAsString(tok_nameid[m_type]);
@@ -150,7 +150,7 @@ namespace MFM {
     if(m_dataindex > 0)
       {
 	fp->write(40); // ( ascii decimal
-	fp->write(state->getTokenDataAsString(this).c_str());
+	fp->write(state->getTokenDataAsString(*this).c_str());
 	fp->write(41); // ) ascii decimal
       }
     fp->write(10); // \n ascii decimal for LF
