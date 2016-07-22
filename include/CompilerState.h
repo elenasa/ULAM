@@ -106,6 +106,8 @@ namespace MFM{
 
     SymbolTableOfClasses m_programDefST; // holds SymbolClassName and SymbolClassNameTemplate
 
+    std::map<u32, SymbolTableOfVariables *> m_localsPerFilePath; //holds ST of local constants and typedefs
+
     s32 m_currentFunctionBlockDeclSize; //used to calc framestack size for function def
     s32 m_currentFunctionBlockMaxDepth; //framestack saved in NodeBlockFunctionDefinition
 
@@ -162,6 +164,7 @@ namespace MFM{
 
     void clearAllDefinedUlamTypes();
     void clearAllLinesOfText();
+    void clearAllLocalsPerFilePath();
     void clearCurrentObjSymbolsForCodeGen();
 
     bool getClassNameFromFileName(std::string startstr, u32& compileThisId);
@@ -260,6 +263,8 @@ namespace MFM{
     bool alreadyDefinedSymbolByAncestor(u32 dataindex, Symbol *& symptr, bool& hasHazyKin);
     bool alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isDataMemberIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
+    bool isIdInLocalFileScope(Locator loc, u32 id, Symbol *& symptr);
+
     bool isFuncIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isFuncIdInClassScopeNNO(NNO cnno, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);

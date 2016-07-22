@@ -84,6 +84,7 @@ namespace MFM {
   {
     clearAllDefinedUlamTypes();
     clearAllLinesOfText();
+    clearAllLocalsPerFilePath();
     clearCurrentObjSymbolsForCodeGen();
   }
 
@@ -119,9 +120,20 @@ namespace MFM {
 	v->clear();
 	delete v;
       }
-
     m_textByLinePerFilePath.clear();
   } //clearAllLinesOfText
+
+  void CompilerState::clearAllLocalsPerFilePath()
+  {
+    std::map<u32, SymbolTableOfVariables*>::iterator it;
+
+    for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
+      {
+	SymbolTableOfVariables * localst = it->second;
+	delete localst;
+      }
+    m_localsPerFilePath.clear();
+  } //clearAllLocalsPerFilePath
 
   void CompilerState::clearCurrentObjSymbolsForCodeGen()
   {
@@ -2239,10 +2251,29 @@ namespace MFM {
       {
 	brtn = classblock->isIdInScope(dataindex,symptr); //returns symbol
 	hasHazyKin |= checkHasHazyKin(classblock); //self is stub
+	if(!brtn)
+	  brtn = isIdInLocalFileScope(classblock->getNodeLocation(), dataindex, symptr); //local constant or typedef
+
 	classblock = classblock->getSuperBlockPointer(); //inheritance chain
       }
     return brtn;
   } //isDataMemberIdInClassScope
+
+  bool CompilerState::isIdInLocalFileScope(Locator loc, u32 id, Symbol *& symptr)
+  {
+    bool brtn = false;
+    u32 pathidx = loc.getPathIndex();
+
+    std::map<u32, SymbolTableOfVariables*>::iterator it = m_localsPerFilePath.find(pathidx);
+
+    if(it != m_localsPerFilePath.end())
+      {
+	SymbolTableOfVariables * localst = it->second;
+	assert(localst);
+	brtn = localst->isInTable(id, symptr);
+      }
+    return brtn;
+  } //isIdInLocalFileScope
 
   bool CompilerState::isFuncIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin)
   {

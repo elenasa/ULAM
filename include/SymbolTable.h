@@ -60,7 +60,7 @@ namespace MFM{
 
     SymbolTable(CompilerState& state);
     SymbolTable(const SymbolTable& ref);
-    ~SymbolTable();
+    virtual ~SymbolTable();
 
     virtual void clearTheTable();
     virtual bool isInTable(u32 id, Symbol * & symptrref);

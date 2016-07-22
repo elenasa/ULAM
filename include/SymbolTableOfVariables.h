@@ -49,7 +49,7 @@ namespace MFM{
 
     SymbolTableOfVariables(CompilerState& state);
     SymbolTableOfVariables(const SymbolTableOfVariables& ref);
-    ~SymbolTableOfVariables();
+    virtual ~SymbolTableOfVariables();
 
     u32 getNumberOfConstantSymbolsInTable(bool argsOnly);
 

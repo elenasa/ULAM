@@ -48,7 +48,7 @@ namespace MFM{
 
     SymbolTableOfFunctions(CompilerState& state);
     SymbolTableOfFunctions(const SymbolTableOfFunctions& ref);
-    ~SymbolTableOfFunctions();
+    virtual ~SymbolTableOfFunctions();
 
     virtual u32 getTotalSymbolSize();
 
