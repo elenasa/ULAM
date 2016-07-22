@@ -1,0 +1,32 @@
+## -*- mode:ulam -*-
+#=t3848_test_compiler_namedconstant_toobiginit_error
+#!
+./A.ulam:3:24: ERROR: Invalid signed constant <0xffffffffffff2222>: Positive number overflows Int(64).
+Unrecoverable Program Parse FAILURE: <A.ulam>
+Unrecoverable Program Parse FAILURE: <System.ulam>
+##
+## informed by t3798, 32-bit max initialization to be compatible with 32-bit platform
+##
+#>A.ulam
+ ulam 2;
+element A {
+  constant Int(64) j = 0xffffffffffff2222;
+  Int test () {
+    System s;
+    s.assert(j < 0);
+    return 0;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

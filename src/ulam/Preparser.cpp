@@ -106,7 +106,7 @@ namespace MFM {
 	  case TOK_TYPE_IDENTIFIER:
 	  case TOK_IDENTIFIER:
 	    {
-	      pStr.append(m_state.getTokenDataAsString(&pTok));
+	      pStr.append(m_state.getTokenDataAsString(pTok));
 	      break;
 	    }
 	  case TOK_DOT:
@@ -137,7 +137,7 @@ namespace MFM {
 
     if(nTok.m_type == TOK_NUMBER_SIGNED)
       {
-	std::string nstr = m_state.getTokenDataAsString(&nTok);
+	std::string nstr = m_state.getTokenDataAsString(nTok);
 	const char * numlist = nstr.c_str();
 	char * nEnd;
 	s32 numval = strtol(numlist, &nEnd, 0);   //base 10, 8, or 16

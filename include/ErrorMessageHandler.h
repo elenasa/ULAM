@@ -78,7 +78,7 @@ namespace MFM
     //ability to reset counts between parsing, labeling, eval
     void clearCounts();
 
-    void buildMessage(Token * atTok, const char * message, const char * file, const char * func, u32 atline, MSGTYPE mtype);
+    void buildMessage(const Token * atTok, const char * message, const char * file, const char * func, u32 atline, MSGTYPE mtype);
 
     void buildMessage(const char *, const char * message, const char * file, const char * func, u32 atline, MSGTYPE mtype);
 

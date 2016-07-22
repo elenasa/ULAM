@@ -56,7 +56,7 @@ namespace MFM{
   class SymbolClass : public Symbol
   {
   public:
-    SymbolClass(Token id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state);
+    SymbolClass(const Token& id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state);
     SymbolClass(const SymbolClass& sref);
     virtual ~SymbolClass();
 
@@ -103,7 +103,7 @@ namespace MFM{
 
     void testThisClass(File * fp); //eval-land
 
-    void addUnknownTypeTokenToClass(Token tok, UTI huti);
+    void addUnknownTypeTokenToClass(const Token& tok, UTI huti);
     Token removeKnownTypeTokenFromClass(UTI huti);
     bool hasUnknownTypeInClass(UTI huti);
     bool statusUnknownTypeInClass(UTI huti);

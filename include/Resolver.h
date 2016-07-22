@@ -57,7 +57,7 @@ namespace MFM
     Resolver(UTI instance, CompilerState& state);
     ~Resolver();
 
-    void addUnknownTypeToken(Token tok, UTI huti);
+    void addUnknownTypeToken(const Token& tok, UTI huti);
     Token removeKnownTypeToken(UTI huti);
     bool hasUnknownTypeToken(UTI huti);
     bool statusUnknownType(UTI huti);
@@ -99,7 +99,7 @@ namespace MFM
     void clearLeftoverNonreadyClassArgSubtrees();
     void clearLeftoverUnknownTypeTokens();
 
-    bool checkUnknownTypeToResolve(UTI huti, Token tok);
+    bool checkUnknownTypeToResolve(UTI huti, const Token& tok);
   };
 
 }

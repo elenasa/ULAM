@@ -104,6 +104,7 @@ namespace MFM{
     virtual bool doUnaryOperation(s32 slot, u32 nslots);
     virtual bool doUnaryOperationImmediate(s32 slot, u32 nslots);
     virtual UlamValue makeImmediateUnaryOp(UTI type, u32 data, u32 len) = 0;
+    virtual UlamValue makeImmediateLongUnaryOp(UTI type, u64 data, u32 len) = 0;
 
   };
 

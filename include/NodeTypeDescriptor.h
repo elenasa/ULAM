@@ -46,9 +46,9 @@ namespace MFM{
   {
   public:
 
-    NodeTypeDescriptor(Token typetoken, UTI auti, CompilerState & state);
+    NodeTypeDescriptor(const Token& typetoken, UTI auti, CompilerState & state);
 
-    NodeTypeDescriptor(Token typetoken, UTI auti, CompilerState & state, ALT refarg, UTI referencedUTIarg);
+    NodeTypeDescriptor(const Token& typetoken, UTI auti, CompilerState & state, ALT refarg, UTI referencedUTIarg);
 
     NodeTypeDescriptor(const NodeTypeDescriptor& ref);
 

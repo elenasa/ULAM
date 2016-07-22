@@ -3,7 +3,7 @@
 
 namespace MFM {
 
-  SymbolVariable::SymbolVariable(Token id, UTI utype, CompilerState& state) : SymbolWithValue(id, utype, state){ }
+  SymbolVariable::SymbolVariable(const Token& id, UTI utype, CompilerState& state) : SymbolWithValue(id, utype, state){ }
 
   SymbolVariable::SymbolVariable(const SymbolVariable& sref) : SymbolWithValue(sref){ }
 

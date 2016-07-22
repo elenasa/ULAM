@@ -47,7 +47,7 @@ namespace MFM{
   class SymbolVariable : public SymbolWithValue
   {
   public:
-    SymbolVariable(Token id, UTI utype, CompilerState& state);
+    SymbolVariable(const Token& id, UTI utype, CompilerState& state);
 
     SymbolVariable(const SymbolVariable& sref);
 

@@ -49,7 +49,7 @@ namespace MFM{
   {
   public:
 
-    NodeConstant(Token tok, SymbolWithValue * symptr, CompilerState & state);
+    NodeConstant(const Token& tok, SymbolWithValue * symptr, CompilerState & state);
 
     NodeConstant(const NodeConstant& ref);
 
@@ -65,7 +65,7 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
-    virtual void constantFoldAToken(Token tok);
+    virtual void constantFoldAToken(const Token& tok);
 
     virtual bool isReadyConstant();
 

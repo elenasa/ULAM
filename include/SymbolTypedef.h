@@ -48,7 +48,7 @@ namespace MFM{
   class SymbolTypedef : public Symbol
   {
   public:
-    SymbolTypedef(Token id, UTI utype, UTI scalaruti, CompilerState& state);
+    SymbolTypedef(const Token& id, UTI utype, UTI scalaruti, CompilerState& state);
     SymbolTypedef(const SymbolTypedef& sref);
     SymbolTypedef(const SymbolTypedef& sref, bool keeptype);
     ~SymbolTypedef();

@@ -48,7 +48,7 @@ namespace MFM{
   {
   public:
 
-    NodeIdent(Token tok, SymbolVariable * symptr, CompilerState & state);
+    NodeIdent(const Token& tok, SymbolVariable * symptr, CompilerState & state);
     NodeIdent(const NodeIdent& ref);
     virtual ~NodeIdent();
 

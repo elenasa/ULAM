@@ -83,9 +83,9 @@ namespace MFM{
     const char * getTokenString();
     const char * getTokenEnumName();
 
-    const std::string getTokenStringFromPool(CompilerState * state);
+    const std::string getTokenStringFromPool(CompilerState * state) const;
     static const std::string getTokenAsStringFromPool(TokenType ttype, CompilerState * state);
-    const std::string getTokenEnumNameFromPool(CompilerState * state);
+    const std::string getTokenEnumNameFromPool(CompilerState * state) const;
 
     static SpecialTokenWork getSpecialTokenWork(TokenType ttype);
     static TokenType getTokenTypeFromString(const char * aname);
@@ -94,7 +94,7 @@ namespace MFM{
 	ulam says an identifier is a Type when it starts with a capital letter
 	or is predefined (e.g. Int, Bool, etc).
     */
-    static bool isTokenAType(Token tok);
+    static bool isTokenAType(const Token& tok);
     static bool isUpper(char c);
 
     bool operator<(const Token & tok2) const;

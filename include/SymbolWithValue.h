@@ -46,7 +46,7 @@ namespace MFM{
   class SymbolWithValue : public Symbol
   {
   public:
-    SymbolWithValue(Token id, UTI utype, CompilerState& state);
+    SymbolWithValue(const Token& id, UTI utype, CompilerState& state);
     SymbolWithValue(const SymbolWithValue& sref);
     SymbolWithValue(const SymbolWithValue& sref, bool keepType);
     virtual ~SymbolWithValue();

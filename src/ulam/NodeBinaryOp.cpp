@@ -336,8 +336,8 @@ namespace MFM {
 	msg << " and " << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
 	msg << " for binary operator";
 	msg << getName() << " ; Suggest a cast";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	assert(0);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	lwordsize = (lwordsize > rwordsize ? lwordsize : rwordsize); //t3849
       }
 
     // adjust for mixed sign and unsigned types
@@ -398,10 +398,10 @@ namespace MFM {
 	msg << "Word sizes incompatible for types ";
 	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
 	msg << " and " << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
-	msg << " for binary operator";
+	msg << " for (bitwise) binary operator";
 	msg << getName() << " ; Suggest a cast";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	//assert(0);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	lwordsize = (lwordsize > rwordsize ? lwordsize : rwordsize); //t3850 (leftshift)
       }
   } //resultBitsizeCalcInBits
 

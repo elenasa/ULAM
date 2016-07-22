@@ -5,13 +5,13 @@
 
 namespace MFM {
 
-  NodeTypeDescriptor::NodeTypeDescriptor(Token tokarg, UTI auti, CompilerState & state) : Node(state), m_typeTok(tokarg), m_uti(auti), m_ready(false), m_unknownBitsizeSubtree(NULL), m_refType(ALT_NOT), m_referencedUTI(Nouti)
+  NodeTypeDescriptor::NodeTypeDescriptor(const Token& tokarg, UTI auti, CompilerState & state) : Node(state), m_typeTok(tokarg), m_uti(auti), m_ready(false), m_unknownBitsizeSubtree(NULL), m_refType(ALT_NOT), m_referencedUTI(Nouti)
   {
     setNodeLocation(m_typeTok.m_locator);
   }
 
   // use by ALT_AS.
-  NodeTypeDescriptor::NodeTypeDescriptor(Token tokarg, UTI auti, CompilerState & state, ALT refarg, UTI referencedUTIarg) : Node(state), m_typeTok(tokarg), m_uti(auti), m_ready(false), m_unknownBitsizeSubtree(NULL), m_refType(refarg), m_referencedUTI(referencedUTIarg)
+  NodeTypeDescriptor::NodeTypeDescriptor(const Token& tokarg, UTI auti, CompilerState & state, ALT refarg, UTI referencedUTIarg) : Node(state), m_typeTok(tokarg), m_uti(auti), m_ready(false), m_unknownBitsizeSubtree(NULL), m_refType(refarg), m_referencedUTI(referencedUTIarg)
   {
     setNodeLocation(m_typeTok.m_locator);
   }
@@ -57,7 +57,7 @@ namespace MFM {
 
   const char * NodeTypeDescriptor::getName()
   {
-    return m_state.getTokenDataAsString(&m_typeTok).c_str();
+    return m_state.getTokenDataAsString(m_typeTok).c_str();
   } //getName
 
   const std::string NodeTypeDescriptor::prettyNodeName()

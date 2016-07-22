@@ -46,7 +46,7 @@ namespace MFM{
   class SymbolModelParameterValue : public SymbolWithValue
   {
   public:
-    SymbolModelParameterValue(Token id, UTI utype, CompilerState& state);
+    SymbolModelParameterValue(const Token& id, UTI utype, CompilerState& state);
     SymbolModelParameterValue(const SymbolModelParameterValue& sref);
     SymbolModelParameterValue(const SymbolModelParameterValue& sref, bool keepType);
     virtual ~SymbolModelParameterValue();

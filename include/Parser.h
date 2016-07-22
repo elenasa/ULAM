@@ -97,7 +97,7 @@ namespace MFM{
     /**
 	<CLASS_BLOCK> := '{' + <DATA_MEMBERS> + '}'
     */
-    NodeBlockClass * parseClassBlock(SymbolClassName * cnsym, Token identTok);
+    NodeBlockClass * parseClassBlock(SymbolClassName * cnsym, const Token& identTok);
 
     void parseRestOfClassParameters(SymbolClassNameTemplate * ctsym, NodeBlockClass * cblock);
 
@@ -108,9 +108,9 @@ namespace MFM{
      */
     bool parseDataMember(NodeStatements *& nextNode);
 
-    Node * parseRestOfDataMember(TypeArgs& args, Token identTok, Node * dNode, UTI passuti);
+    Node * parseRestOfDataMember(TypeArgs& args, const Token& identTok, Node * dNode, UTI passuti);
 
-    void parseRestOfDataMemberAssignment(TypeArgs& args, Token identTok, Node * dNode, UTI passuti);
+    void parseRestOfDataMemberAssignment(TypeArgs& args, const Token& identTok, Node * dNode, UTI passuti);
 
     /**
 	<BLOCK> := '{' + <STATEMENTS> + '}'
@@ -139,20 +139,20 @@ namespace MFM{
 	<IF_STATEMENT> := 'if' + '(' + <CONDITIONAL_EXPR> + ')' + <STATEMENT> + <OPT_ELSE_STATEMENT>
 	<OPT_ELSE_STATEMENT> := 0 | 'else' + <STATEMENT>
     */
-    Node * parseControlIf(Token ifTok);
+    Node * parseControlIf(const Token& ifTok);
 
     /**
        <WHILE_STATEMENT> := 'while' + '(' + <CONDITIONAL_EXPR> + ')' + <STATEMENT>
        => equiv to a parse tree shaped like: while(true) { if(! <CONDITIONAL_EXPR) break; <STATEMENT> }
     */
-    Node * parseControlWhile(Token wTok);
+    Node * parseControlWhile(const Token& wTok);
 
     /**
        <FOR_STATEMENT> := 'for' + '(' + ( 0 | <STATEMENT_DECL>) + ';' + ( 0 | <CONDITIONAL_EXPRESSION>)
                                 + ';' + ( 0 | <ASSIGN_EXPRESSION>) + ')' + <STATEMENT>
 			=> equiv to a parse tree shaped like: { <STATEMENT_DECL>  while ( <CONDITIONAL_EXPR> ) { <STATEMENT> <ASSIGN_EXPRESSION> } }
      */
-    Node * parseControlFor(Token fTok);
+    Node * parseControlFor(const Token& fTok);
 
     /**
        <CONDITIONAL_EXPR> := <SIMPLE_COND_DECL> | <ASSIGN_EXPR>
@@ -234,28 +234,28 @@ namespace MFM{
        <LVAL_EXPRESSION> := <IDENT> | <IDENT> + '[' + <EXPRESSION> + ']'
        <IDENT> := /^[a-z][A-Za-z0-9\_]*
     */
-    Node * parseLvalExpr(Token identTok);
+    Node * parseLvalExpr(const Token& identTok);
 
     /**
        <IDENT_EXPRESSION> := <LVAL_EXPRESSION> | <MEMBER_SELECT_EXPRESSION> | <FUNC_CALL>
     */
-    Node * parseIdentExpr(Token identTok);
+    Node * parseIdentExpr(const Token& identTok);
 
     /**
 	<MEMBER_SELECT_EXPRESSION> := <IDENT_EXPRESSION> + '.' + <IDENT_EXPRESSION>
     */
-    Node * parseMemberSelectExpr(Token memberTok);
+    Node * parseMemberSelectExpr(const Token& memberTok);
 
     Node * parseRestOfMemberSelectExpr(Node * classInstanceNode);
 
-    Node * parseMinMaxSizeofType(Token memberTok, UTI utype, NodeTypeDescriptor * nodetype);
+    Node * parseMinMaxSizeofType(const Token& memberTok, UTI utype, NodeTypeDescriptor * nodetype);
 
-    Node * parseMinMaxSizeofType(Token memberTok); //member selected type unavailable at parse
+    Node * parseMinMaxSizeofType(const Token& memberTok); //member selected type unavailable at parse
 
     /**
        <FUNC_CALL> := <IDENT> + '(' + <ARGS> + ')'
     */
-    Node * parseFunctionCall(Token identTok);
+    Node * parseFunctionCall(const Token& identTok);
 
     /**
        <ARGS>    := 0 | <ARG> | <ARG> + ',' + <ARGS>
@@ -334,13 +334,13 @@ namespace MFM{
 
     Node * parseRestOfAssignExpr(Node * leftNode);
 
-    Node * parseRestOfDecls(TypeArgs& args, Token identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti);
+    Node * parseRestOfDecls(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti);
 
-    Node * parseRestOfDeclAssignment(TypeArgs& args, Token identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti);
+    Node * parseRestOfDeclAssignment(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti);
 
-    Node * parseArrayInitialization(Token identTok);
+    Node * parseArrayInitialization(const Token& identTok);
 
-    bool parseArrayItemInit(Token identTok, NodeListArrayInitialization * rtnList);
+    bool parseArrayItemInit(const Token& identTok, NodeListArrayInitialization * rtnList);
 
     NodeConstantDef * parseRestOfConstantDef(NodeConstantDef * constNode, bool assignREQ = true, bool isStmt = true);
 
@@ -356,7 +356,7 @@ namespace MFM{
 	<FUNC_PARAMS> := <FUNC_PARAM> | <FUNC_PARAM> + ',' + <FUNC_PARAMS>
 	<FUNC_PARAM>  := <TYPE> + <VAR_DECL>
      */
-    NodeBlockFunctionDefinition * makeFunctionBlock(TypeArgs& args, Token identTok, NodeTypeDescriptor * nodetype, bool isVirtual);
+    NodeBlockFunctionDefinition * makeFunctionBlock(TypeArgs& args, const Token& identTok, NodeTypeDescriptor * nodetype, bool isVirtual);
 
     void parseRestOfFunctionParameters(SymbolFunction * sym, NodeBlockFunctionDefinition * fblock);
 
@@ -368,19 +368,19 @@ namespace MFM{
 
 
     /** helper for parseDataMember */
-    Node * makeFunctionSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor * nodetype, bool isVirtual);
+    Node * makeFunctionSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor * nodetype, bool isVirtual);
 
     /** helper for parseDecl and parseRestOfDecls */
-    Node * makeVariableSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor *& nodetyperef);
+    Node * makeVariableSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef);
 
     /** helper for parseTypedef */
-    Node * makeTypedefSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor *& nodetyperef);
+    Node * makeTypedefSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef);
 
     /** helper for parseConstdef */
-    Node * makeConstdefSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor *& nodetyperef);
+    Node * makeConstdefSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef);
 
     /** helper for parseParameter */
-    Node * makeParameterSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor *& nodetyperef);
+    Node * makeParameterSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef);
 
     /** helper method for parseConditionalExpr */
     Node * makeConditionalExprNode(Node * leftNode);
@@ -411,7 +411,7 @@ namespace MFM{
     Node * makeFactorNode();
 
     /** helper for parseRestOfCastOrExpression via parseFactor*/
-    Node * makeCastNode(Token typeTok, bool allowRefCasts);
+    Node * makeCastNode(const Token& typeTok, bool allowRefCasts);
 
     /**
        helper method to make a terminal node

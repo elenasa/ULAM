@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-  SymbolFunction::SymbolFunction(Token id, UTI typetoreturn, CompilerState& state ) : Symbol(id,typetoreturn,state), m_functionNode(NULL), m_hasVariableArgs(false), m_isVirtual(false), m_pureVirtual(false), m_definedinaQuark(false)
+  SymbolFunction::SymbolFunction(const Token& id, UTI typetoreturn, CompilerState& state ) : Symbol(id,typetoreturn,state), m_functionNode(NULL), m_hasVariableArgs(false), m_isVirtual(false), m_pureVirtual(false), m_definedinaQuark(false)
   {
     setDataMemberClass(m_state.getCompileThisIdx()); // by definition all function definitions are data members
   }

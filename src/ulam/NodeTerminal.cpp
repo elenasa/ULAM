@@ -6,9 +6,9 @@
 
 namespace MFM {
 
-  NodeTerminal::NodeTerminal(CompilerState & state) : Node(state) {}
+  NodeTerminal::NodeTerminal(CompilerState & state) : Node(state), m_etyp(Hzy) {}
 
-  NodeTerminal::NodeTerminal(Token tok, CompilerState & state) : Node(state)
+  NodeTerminal::NodeTerminal(const Token& tok, CompilerState & state) : Node(state), m_etyp(Hzy)
   {
     Node::setNodeLocation(tok.m_locator); //in case of errors
     setConstantTypeForNode(tok);
@@ -20,6 +20,7 @@ namespace MFM {
   {
     setNodeType(utype);
     m_constant.sval = val;
+    m_etyp = state.getUlamTypeByIndex(utype)->getUlamTypeEnum();
     //uptocaller to set node location.
   }
 
@@ -28,12 +29,13 @@ namespace MFM {
   {
     setNodeType(utype);
     m_constant.uval = val;
+    m_etyp = state.getUlamTypeByIndex(utype)->getUlamTypeEnum();
     //uptocaller to set node location.
   }
 
-  NodeTerminal::NodeTerminal(const NodeTerminal& ref) : Node(ref), m_constant(ref.m_constant) {}
+  NodeTerminal::NodeTerminal(const NodeTerminal& ref) : Node(ref), m_etyp(ref.m_etyp), m_constant(ref.m_constant) {}
 
-  NodeTerminal::NodeTerminal(const NodeIdent& iref) : Node(iref) {}
+  NodeTerminal::NodeTerminal(const NodeIdent& iref) : Node(iref), m_etyp(Hzy) {}
 
   NodeTerminal::~NodeTerminal(){}
 
@@ -49,6 +51,7 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMTYPE etyp = nut->getUlamTypeEnum();
+    assert(etyp == m_etyp); //true?
     if(etyp == Bool)
       fp->write((_Bool64ToCbool(m_constant.uval, nut->getBitSize()) ? "true" : "false"));
     else
@@ -67,13 +70,12 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 nbitsize = nut->getBitSize();
     assert(nbitsize >= 0);
-    u32 wordsize = nut->getTotalWordSize();
     ULAMTYPE etyp = nut->getUlamTypeEnum();
     std::ostringstream num;
     switch(etyp)
       {
       case Int:
-	if(wordsize <= MAXBITSPERINT)
+	if(nut->getTotalWordSize() <= MAXBITSPERINT)
 	  {
 	    s32 sval = _Int32ToCs32((u32) m_constant.uval, nbitsize);
 	    num << sval;
@@ -81,7 +83,7 @@ namespace MFM {
 	else
 	  {
 	    s64 sval = _Int64ToCs64(m_constant.uval, nbitsize);
-	    num << sval;
+	    num << ToSignedDecimal(sval);
 	  }
 	break;
       case Bool:
@@ -89,10 +91,10 @@ namespace MFM {
       case Unary:
       case Bits:
 	// NO CASTING NEEDED, assume saved in its ulam-native format
-	if(wordsize <= MAXBITSPERINT)
+	if(nut->getTotalWordSize() <= MAXBITSPERINT)
 	  num << (u32) m_constant.uval << "u";
 	else
-	  num << m_constant.uval << "u";
+	  num << ToUnsignedDecimal(m_constant.uval);
 	break;
       default:
 	{
@@ -112,13 +114,12 @@ namespace MFM {
   }
 
   // this is the application of unary minus to produce a negative number
-  void NodeTerminal::constantFoldAToken(Token tok)
+  void NodeTerminal::constantFoldAToken(const Token& tok)
   {
     if(tok.m_type == TOK_MINUS)
       {
 	UTI nuti = getNodeType();
-	ULAMTYPE etyp = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
-	if(etyp == Int)
+	if(m_etyp == Int)
 	  {
 	    m_constant.sval = -m_constant.sval;
 	    fitsInBits(nuti); //check self
@@ -133,7 +134,7 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "Constant Folding Token <" << m_state.getTokenDataAsString(&tok).c_str();
+	msg << "Constant Folding Token <" << m_state.getTokenDataAsString(tok).c_str();
 	msg << "> currently unsupported";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	assert(0);
@@ -171,51 +172,29 @@ namespace MFM {
 
   UTI NodeTerminal::checkAndLabelType()
   {
-    UTI nuti = getNodeType(); //done by constructor using default size
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    //numeric tokens are implicitily 64-bits
+    // o.w. 64-bit constants got truncated; but no 32-bit sign extension.
+    s32 bs = MAXBITSPERLONG;
 
-    assert(nut->isComplete());
-
-    s32 bs = nut->getBitSize();
     //update bitsize to fit the constant value
-    if(bs == m_state.getDefaultBitSize(nuti))
+    if(!m_state.okUTItoContinue(getNodeType()))
       {
 	s32 newbs = bs;
-	u32 wordsize = nut->getTotalWordSize();
-	ULAMTYPE typEnum = nut->getUlamTypeEnum();
-	switch(typEnum)
+	switch(m_etyp)
 	  {
 	  case Int:
 	    {
-	      if(wordsize <= MAXBITSPERINT)
-		{
-		  s32 sval = _Int32ToCs32((u32) m_constant.uval, bs);
-		  newbs = (s32) (_getLogBase2(UABS32(sval)) + 1 + 1); //fits into signed
-		  newbs = CLAMP<s32>(1, MAXBITSPERINT, newbs); //e.g. Int.minof (t3737)
-		}
-	      else
-		{
-		  //does it ever get here?
-		  s64 sval = _Int64ToCs64(m_constant.uval, bs);
-		  newbs = (s32) (_getLogBase2Long(UABS64(sval)) + 1 + 1); //fits into signed
-		  newbs = CLAMP<s32>(1, MAXBITSPERLONG, newbs);
-		}
+	      s64 sval = _Int64ToCs64(m_constant.uval, bs);
+	      newbs = (s32) (_getLogBase2Long(UABS64(sval)) + 1 + 1); //fits into signed
+	      newbs = CLAMP<s32>(1, MAXBITSPERLONG, newbs);
 	    }
 	    break;
 	  case Bits:
 	  case Unsigned:
-	    {
-	      if(wordsize <= MAXBITSPERINT)
-		newbs = (s32) _getLogBase2((u32) m_constant.uval) + 1; //fits into unsigned
-	      else
-		newbs = (s32) _getLogBase2Long(m_constant.uval) + 1; //fits into unsigned
-	    }
+	    newbs = (s32) _getLogBase2Long(m_constant.uval) + 1; //fits into unsigned
 	    break;
 	  case Unary:
-	    {
-	      u32 wordsize = nut->getTotalWordSize();
-	      newbs = (s32) (m_constant.uval > wordsize ? wordsize : m_constant.uval);
-	    }
+	    newbs = (s32) (m_constant.uval > MAXBITSPERLONG ? MAXBITSPERLONG : m_constant.uval);
 	    break;
 	  case Bool:
 	    newbs = BITS_PER_BOOL;
@@ -225,11 +204,14 @@ namespace MFM {
 	  };
 
 	//use UTI with same base type and new bitsize:
-	u32 enumStrIdx = m_state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(typEnum));
+	u32 enumStrIdx = m_state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(m_etyp));
 	UlamKeyTypeSignature newkey(enumStrIdx, newbs);
-	UTI newType = m_state.makeUlamType(newkey, typEnum, UC_NOTACLASS);
+	UTI newType = m_state.makeUlamType(newkey, m_etyp, UC_NOTACLASS);
 	setNodeType(newType);
       }
+
+    if(getNodeType() == Hzy)
+      m_state.setGoAgain();
     return getNodeType();
   } //checkAndLabelType
 
@@ -294,11 +276,8 @@ namespace MFM {
 	rtnUV = UlamValue::makeImmediate(uti, data, m_state);
 	break;
       case Class:
-	{
-	  //	  if(ut->getUlamClassType() == UC_QUARK)
-	  rtnUV = UlamValue::makeImmediate(uti, data, m_state);
-	  break;
-	}
+	rtnUV = UlamValue::makeImmediate(uti, data, m_state);
+	break;
       default:
 	{
 	  std::ostringstream msg;
@@ -334,10 +313,8 @@ namespace MFM {
 	rtnUV = UlamValue::makeImmediateLong(uti, data, m_state);
 	break;
       case Class:
-	{
-	  rtnUV = UlamValue::makeImmediateLongClass(uti, data, ut->getTotalBitSize());
-	  break;
-	}
+	rtnUV = UlamValue::makeImmediateLongClass(uti, data, ut->getTotalBitSize());
+	break;
       default:
 	{
 	  std::ostringstream msg;
@@ -374,7 +351,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	msg << ", to fit into type: " << m_state.getUlamTypeNameBriefByIndex(fituti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	m_state.setGoAgain(); //since not an error
+	//m_state.setGoAgain(); //since not an error (t3461)
 	return false;
       }
     if(nuti == Nav)
@@ -391,7 +368,6 @@ namespace MFM {
 	msg << "Constant is not-a-valid type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	m_state.setGoAgain(); //since not an error
 	return false;
       }
 
@@ -403,8 +379,7 @@ namespace MFM {
 	msg << "Word size incompatible. Not supported at this time, constant type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str() << ", to fit into type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(fituti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return false;
+	fwordsize = nwordsize; //t3851
       }
 
     if(fwordsize <= MAXBITSPERINT) //32
@@ -556,6 +531,7 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamValue uv;
     makeTerminalValue(uv, data, nuti);
+
     //first cast to fit type:
     bool fb1 = m_state.getUlamTypeByIndex(fituti)->cast(uv, fituti);
     //2nd cast back to node type:
@@ -667,9 +643,9 @@ namespace MFM {
 
     fp->write(" = ");
 
+    u32 wordsize = nut->getTotalWordSize();
     if(isNegativeConstant())
       {
-	u32 wordsize = nut->getTotalWordSize();
 	if(wordsize <= MAXBITSPERINT)
 	  fp->write("(u32) ");
 	else if(wordsize <= MAXBITSPERLONG)
@@ -677,6 +653,7 @@ namespace MFM {
 	else
 	  assert(0);
       }
+
     fp->write(getName());
     fp->write(";"); GCNL;
 
@@ -686,7 +663,7 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen(); //missing or just needed by NodeTerminalProxy?
   } //genCodeReadIntoATmpVar
 
-  bool NodeTerminal::setConstantValue(Token tok)
+  bool NodeTerminal::setConstantValue(const Token& tok)
   {
     bool rtnok = false;
     errno = 0; //to check for ERANGE
@@ -694,7 +671,7 @@ namespace MFM {
       {
       case TOK_NUMBER_SIGNED:
 	{
-	  std::string numstr = m_state.getTokenDataAsString(&tok);
+	  std::string numstr = m_state.getTokenDataAsString(tok);
 	  const char * numlist = numstr.c_str();
 	  const char * errMsg;
 
@@ -712,7 +689,7 @@ namespace MFM {
 	break;
       case TOK_NUMBER_UNSIGNED:
 	{
-	  std::string numstr = m_state.getTokenDataAsString(&tok);
+	  std::string numstr = m_state.getTokenDataAsString(tok);
 	  const char * numlist = numstr.c_str();
 	  const char * errMsg;
 
@@ -738,7 +715,7 @@ namespace MFM {
 	break;
       case TOK_SQUOTED_STRING:
 	{
-	  std::string numstr = m_state.getTokenDataAsString(&tok);
+	  std::string numstr = m_state.getTokenDataAsString(tok);
 	  assert(numstr.length() == 1);
 	  m_constant.uval = (u8) numstr[0];
 	  rtnok = true;
@@ -748,27 +725,30 @@ namespace MFM {
 	{
 	    std::ostringstream msg;
 	    msg << "Token is neither a number, nor a boolean: <";
-	    msg <<  m_state.getTokenDataAsString(&tok).c_str() << ">";
+	    msg <<  m_state.getTokenDataAsString(tok).c_str() << ">";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	}
       };
     return rtnok;
   } //setConstantValue
 
-  UTI NodeTerminal::setConstantTypeForNode(Token tok)
+  UTI NodeTerminal::setConstantTypeForNode(const Token& tok)
   {
     UTI newType = Nav; //init
     switch(tok.m_type)
       {
       case TOK_NUMBER_SIGNED:
-	newType = Int; //m_state.getUlamTypeOfConstant(Int);
+	m_etyp = Int;
+	newType = Hzy;
 	break;
       case TOK_NUMBER_UNSIGNED:
-	newType = Unsigned; //m_state.getUlamTypeOfConstant(Unsigned);
+	m_etyp = Unsigned;
+	newType = Hzy;
 	break;
       case TOK_KW_TRUE:
       case TOK_KW_FALSE:
-	newType = Bool; //m_state.getUlamTypeOfConstant(Bool);
+	m_etyp = Bool;
+	newType = Bool;
 	break;
       case TOK_SQUOTED_STRING:
 	{
@@ -776,12 +756,13 @@ namespace MFM {
 	  UlamKeyTypeSignature key(uid, SIZEOFACHAR, NONARRAYSIZE, 0);
 	  newType = m_state.makeUlamType(key, Unsigned, UC_NOTACLASS);
 	}
+	m_etyp = Unsigned;
 	break;
       default:
 	{
 	  std::ostringstream msg;
 	  msg << "Token not a number or boolean: <";
-	  msg << m_state.getTokenDataAsString(&tok).c_str() << ">";
+	  msg << m_state.getTokenDataAsString(tok).c_str() << ">";
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	}
       };

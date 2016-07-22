@@ -84,8 +84,12 @@ namespace MFM {
 
   UlamValue NodeUnaryOpBang::makeImmediateUnaryOp(UTI type, u32 data, u32 len)
   {
-    //return UlamValue::makeImmediate(type, !((bool) data), len);
     return UlamValue::makeImmediate(type, _LogicalBangBool32(data, len), len);
+  }
+
+  UlamValue NodeUnaryOpBang::makeImmediateLongUnaryOp(UTI type, u64 data, u32 len)
+  {
+    return UlamValue::makeImmediateLong(type, _LogicalBangBool64(data, len), len);
   }
 
 } //end MFM

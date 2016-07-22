@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  NodeInstanceof::NodeInstanceof(Token tokof, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeStorageof(tokof, nodetype, state) { }
+  NodeInstanceof::NodeInstanceof(const Token& tokof, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeStorageof(tokof, nodetype, state) { }
 
   NodeInstanceof::NodeInstanceof(const NodeInstanceof& ref) : NodeStorageof(ref) { }
 

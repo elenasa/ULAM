@@ -177,7 +177,10 @@ namespace MFM
     // We must avoid printfs involving 64 bit quantities,
     // due to ANSI C99 limitations, so we do this instead.
     std::stringstream os;
-    os << std::dec << data;
+    //os << std::dec << data;
+    u32 svalhi = (u32) _ShiftFromBitNumber64((u64) data, 32);
+    u32 svallo = (u32) (_GetMask64(0, 32) & data);
+    os << "HexU64(" << std::hex << "0x" << svalhi << ", " << std::hex << "0x" << svallo << ")";
     return os.str();
   }
 
@@ -186,7 +189,10 @@ namespace MFM
     // We must avoid printfs involving 64 bit quantities,
     // due to ANSI C99 limitations, so we do this instead.
     std::stringstream os;
-    os << std::dec << data;
+    //os << std::dec << data;
+    u32 uvalhi = (u32) _ShiftFromBitNumber64(data, 32);
+    u32 uvallo = (u32) (_GetMask64(0, 32) & data);
+    os << "HexU64(" << std::hex << "0x" << uvalhi << ", " << std::hex << "0x" << uvallo << ")";
     return os.str();
   }
 

@@ -52,7 +52,7 @@ namespace MFM{
   class SymbolFunctionName : public Symbol
   {
   public:
-    SymbolFunctionName(Token id, UTI typetoreturn, CompilerState& state);
+    SymbolFunctionName(const Token& id, UTI typetoreturn, CompilerState& state);
 
     SymbolFunctionName(const SymbolFunctionName& sref);
 

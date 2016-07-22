@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  NodeConstant::NodeConstant(Token tok, SymbolWithValue * symptr, CompilerState & state) : NodeTerminal(state), m_token(tok), m_constSymbol(symptr), m_ready(false), m_constType(Nouti), m_currBlockNo(0)
+  NodeConstant::NodeConstant(const Token& tok, SymbolWithValue * symptr, CompilerState & state) : NodeTerminal(state), m_token(tok), m_constSymbol(symptr), m_ready(false), m_constType(Nouti), m_currBlockNo(0)
   {
     assert(symptr);
     m_currBlockNo = symptr->getBlockNoOfST();
@@ -31,7 +31,7 @@ namespace MFM {
   {
     if(isReadyConstant())
       return NodeTerminal::getName();
-    return m_state.getTokenDataAsString(&m_token).c_str();
+    return m_state.getTokenDataAsString(m_token).c_str();
   }
 
   const std::string NodeConstant::prettyNodeName()
@@ -45,7 +45,7 @@ namespace MFM {
     return (m_constSymbol != NULL); //true;
   }
 
-  void NodeConstant::constantFoldAToken(Token tok)
+  void NodeConstant::constantFoldAToken(const Token& tok)
   {
     //not same meaning as NodeTerminal; bypass.
   }
@@ -100,9 +100,9 @@ namespace MFM {
 	msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 	msg << ", used with constant symbol name '";
-	msg << m_state.getTokenDataAsString(&m_token).c_str() << "'";
+	msg << m_state.getTokenDataAsString(m_token).c_str() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	// m_state.setGoAgain(); wait until updateConstant tried.
+	//wait until updateConstant tried.
       }
 
     setNodeType(it);
@@ -138,7 +138,7 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str();
+	    msg << "(1) <" << m_state.getTokenDataAsString(m_token).c_str();
 	    msg << "> is not a constant, and cannot be used as one with class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -147,7 +147,7 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "(2) Named Constant <" << m_state.getTokenDataAsString(&m_token).c_str();
+	msg << "(2) Named Constant <" << m_state.getTokenDataAsString(m_token).c_str();
 	msg << "> is not defined, and cannot be used with class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	if(!hazyKin)
@@ -181,7 +181,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Block NNO " << m_currBlockNo << " for <";
-	msg << m_state.getTokenDataAsString(&m_token).c_str();
+	msg << m_state.getTokenDataAsString(m_token).c_str();
 	msg << "> does not match the current block no ";
 	msg << m_state.getCurrentBlockNo();
 	msg << "; its value cannot be used in stub copy, with class: ";
