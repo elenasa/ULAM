@@ -74,7 +74,7 @@ namespace MFM {
   static const char * BUILD_DEFAULT_TRANSIENT_FUNCNAME = "getDefaultTransient";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalHas(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyUTI(Nouti)
+  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalHas(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyUTI(Nouti)
   {
     m_err.init(this, debugOn, infoOn, warnOn, waitOn, NULL);
     Token::initTokenMap(*this);
@@ -2353,11 +2353,57 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return rtnb;
   } //findMatchingFunctionInAncestor
 
+  bool CompilerState::isIdInCurrentScope(u32 id, Symbol *& asymptr)
+  {
+    bool brtn = false;
+    if(isParsingLocalDef())
+      brtn = isIdInLocalFileScope(getLocalScopeLocator(), id, asymptr);
+    else
+      brtn = getCurrentBlock()->isIdInScope(id, asymptr);
+    return brtn;
+  } //isIdInCurrentScope
+
   //symbol ownership goes to the current block (end of vector)
   void CompilerState::addSymbolToCurrentScope(Symbol * symptr)
   {
-    getCurrentBlock()->addIdToScope(symptr->getId(), symptr);
+    if(isParsingLocalDef())
+      addSymbolToLocalScope(symptr);
+    else
+      getCurrentBlock()->addIdToScope(symptr->getId(), symptr);
   }
+
+  void CompilerState::addSymbolToLocalScope(Symbol * symptr)
+  {
+    assert(symptr);
+    u32 pathidx = getLocalScopeLocator().getPathIndex();
+
+    std::map<u32, SymbolTableOfVariables*>::iterator it = m_localsPerFilePath.find(pathidx);
+
+    if(it != m_localsPerFilePath.end())
+      {
+	SymbolTableOfVariables * localst = it->second;
+	assert(localst);
+	localst->addToTable(symptr->getId(), symptr);
+      }
+    else
+      {
+	//add new entry for this file
+	SymbolTableOfVariables * newst = new SymbolTableOfVariables(*this);
+	assert(newst);
+
+	std::pair<std::map<u32, SymbolTableOfVariables*>::iterator, bool> reti;
+	reti = m_localsPerFilePath.insert(std::pair<u32, SymbolTableOfVariables*>(pathidx,newst)); //map owns ST
+	bool notdupi = reti.second; //false if already existed, i.e. not added
+	if(!notdupi)
+	  {
+	    delete newst;
+	    newst = NULL;
+	    assert(0);
+	  }
+	else
+	  newst->addToTable(symptr->getId(), symptr);
+      }
+  } //addSymbolToLocalScope
 
   //symbol ownership goes to the member block (end of vector)
   // making stuff up!
@@ -3295,6 +3341,28 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       }
     return false;
   } //getStructuredCommentToken
+
+  void CompilerState::setLocalScopeForParsing(const Token& localTok)
+  {
+    m_parsingLocalDef = true;
+    m_currentLocalDefToken = localTok;
+  }
+
+  void CompilerState::clearLocalScopeForParsing()
+  {
+    m_parsingLocalDef = false;
+  }
+
+  bool CompilerState::isParsingLocalDef()
+  {
+    return m_parsingLocalDef;
+  }
+
+  Locator CompilerState::getLocalScopeLocator()
+  {
+    assert(isParsingLocalDef());
+    return m_currentLocalDefToken.m_locator;
+  }
 
   NNO CompilerState::getNextNodeNo()
   {

@@ -107,6 +107,8 @@ namespace MFM{
     SymbolTableOfClasses m_programDefST; // holds SymbolClassName and SymbolClassNameTemplate
 
     std::map<u32, SymbolTableOfVariables *> m_localsPerFilePath; //holds ST of local constants and typedefs
+    bool m_parsingLocalDef; //used for populating m_localsPerFilePath
+    Token m_currentLocalDefToken; //used to identify current file path when m_parsingLocalDef is true
 
     s32 m_currentFunctionBlockDeclSize; //used to calc framestack size for function def
     s32 m_currentFunctionBlockMaxDepth; //framestack saved in NodeBlockFunctionDefinition
@@ -270,7 +272,9 @@ namespace MFM{
     bool isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool findMatchingFunctionInAncestor(UTI cuti, u32 fid, std::vector<UTI> typeVec, SymbolFunction*& fsymref, UTI& foundInAncestor);
 
+    bool isIdInCurrentScope(u32 id, Symbol *& asymptr);
     void addSymbolToCurrentScope(Symbol * symptr); //ownership goes to the block
+    void addSymbolToLocalScope(Symbol * symptr); //ownership goes to the m_localsPerFilePath ST
     void addSymbolToCurrentMemberClassScope(Symbol * symptr); //making stuff up for member
     void replaceSymbolInCurrentScope(u32 oldid, Symbol * symptr); //same symbol, new id
     void replaceSymbolInCurrentScope(Symbol * oldsym, Symbol * newsym); //same id, new symbol
@@ -408,6 +412,12 @@ namespace MFM{
     void saveStructuredCommentToken(const Token& scTok);
     void clearStructuredCommentToken();
     bool getStructuredCommentToken(Token& scTok);
+
+    /** helpers: local def location and flag for parsing*/
+    void setLocalScopeForParsing(const Token& localTok);
+    void clearLocalScopeForParsing();
+    bool isParsingLocalDef();
+    Locator getLocalScopeLocator();
 
     /** to identify each node */
     NNO getNextNodeNo();

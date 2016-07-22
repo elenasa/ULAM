@@ -104,6 +104,11 @@ namespace MFM{
     bool parseRestOfClassInheritance(SymbolClassName * cnsym, SymbolClass *& supercsym, UTI& superuti);
 
     /**
+	<LOCAL_DEF> := 'local' + ( <TYPE_DEF> | <CONST_DEF> ) + ';'
+     */
+    void parseLocalDef();
+
+    /**
        <DATA_MEMBERS> := ( 0 | <FUNC_DEF> | <PARAMETER_DEF> + ';' | <TYPE_DEF> + ';'| <CONST_DEF> + ';' )*
      */
     bool parseDataMember(NodeStatements *& nextNode);

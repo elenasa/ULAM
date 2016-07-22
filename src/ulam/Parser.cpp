@@ -162,21 +162,33 @@ namespace MFM {
 
     if((pTok.m_type != TOK_KW_ELEMENT) && (pTok.m_type != TOK_KW_QUARK) && (pTok.m_type != TOK_KW_QUARKUNION) && (pTok.m_type != TOK_KW_TRANSIENT))
       {
-	std::ostringstream msg;
-	msg << "Invalid Class Type <";
-	msg << m_state.getTokenDataAsString(pTok).c_str();
-	msg << ">; KEYWORD should be '";
-	msg << Token::getTokenAsStringFromPool(TOK_KW_ELEMENT, &m_state).c_str();
-	msg << "', '";
-	msg << Token::getTokenAsStringFromPool(TOK_KW_QUARK, &m_state).c_str();
-	msg << "', '";
-	msg << Token::getTokenAsStringFromPool(TOK_KW_QUARKUNION, &m_state).c_str();
-	msg << "', or '";
-	msg << Token::getTokenAsStringFromPool(TOK_KW_TRANSIENT, &m_state).c_str();
-	msg << "'";
-	MSG(&pTok, msg.str().c_str(), ERR);
-	m_state.clearStructuredCommentToken();
-	return true; //we're done.
+	if(pTok.m_type == TOK_KW_LOCALDEF)
+	  {
+	    m_state.setLocalScopeForParsing(pTok);
+	    parseLocalDef();
+	    m_state.clearLocalScopeForParsing();
+	    return parseThisClass();
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Invalid Class Type <";
+	    msg << m_state.getTokenDataAsString(pTok).c_str();
+	    msg << ">; KEYWORD should be '";
+	    msg << Token::getTokenAsStringFromPool(TOK_KW_ELEMENT, &m_state).c_str();
+	    msg << "', '";
+	    msg << Token::getTokenAsStringFromPool(TOK_KW_QUARK, &m_state).c_str();
+	    msg << "', '";
+	    msg << Token::getTokenAsStringFromPool(TOK_KW_QUARKUNION, &m_state).c_str();
+	    msg << "', or '";
+	    msg << Token::getTokenAsStringFromPool(TOK_KW_TRANSIENT, &m_state).c_str();
+	    msg << "', or '";
+	    msg << Token::getTokenAsStringFromPool(TOK_KW_LOCALDEF, &m_state).c_str();
+	    msg << "'";
+	    MSG(&pTok, msg.str().c_str(), ERR);
+	    m_state.clearStructuredCommentToken();
+	    return true; //we're done.
+	  }
       }
 
     //each class has its own parse tree; each "compileThis",
@@ -594,6 +606,59 @@ namespace MFM {
     return rtninherits;
   } //parseRestOfClassInheritance
 
+  void Parser::parseLocalDef()
+  {
+    //Node * tmpNode = NULL;
+    Token pTok;
+    getNextToken(pTok);
+
+    if(pTok.m_type == TOK_KW_TYPEDEF)
+      {
+	//parse Typedef's starting with keyword first
+	//tmpNode =
+	  parseTypedef();
+      }
+    else if(pTok.m_type == TOK_KW_CONSTDEF)
+      {
+	//parse Named Constant starting with keyword first
+	//	tmpNode =
+parseConstdef();
+      }
+    else
+      {
+	//error!
+      }
+
+    if(!getExpectedToken(TOK_SEMICOLON))
+      {
+	//delete tmpNode;
+	//tmpNode = NULL;
+	getTokensUntil(TOK_SEMICOLON); //does this help?
+      }
+
+#if 0
+    if(tmpNode)
+      {
+	if(!getExpectedToken(TOK_SEMICOLON))
+	  {
+	    delete tmpNode;
+	    tmpNode = NULL;
+	    getTokensUntil(TOK_SEMICOLON); //does this help?
+	  }
+	else
+	  {
+	    if(tmpNode)
+	      {
+		brtn = true;
+		nextNode = new NodeStatements(tmpNode, m_state);
+		assert(nextNode);
+		nextNode->setNodeLocation(tmpNode->getNodeLocation());
+	      }
+	  }
+      }
+#endif
+  } //parseLocalDef
+
   bool Parser::parseDataMember(NodeStatements *& nextNode)
   {
     bool brtn = false;
@@ -606,6 +671,14 @@ namespace MFM {
       {
 	unreadToken();
 	return false; //done!
+      }
+    else if(pTok.m_type == TOK_KW_LOCALDEF)
+      {
+	std::ostringstream msg;
+	msg << "Local definition as data member; Not supported";
+	MSG(&pTok, msg.str().c_str(), ERR);
+	getTokensUntil(TOK_SEMICOLON); //does this help?
+	return false;
       }
 
     if(pTok.m_type == TOK_KW_TYPEDEF)

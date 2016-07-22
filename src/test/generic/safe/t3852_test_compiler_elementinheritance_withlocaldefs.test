@@ -1,0 +1,29 @@
+## -*- mode:ulam -*-
+#=t3852_test_compiler_elementinheritance_withlocaldefs
+#!
+Exit status: 77
+Ue_Foo : Soo { :< Unsigned(3) us(4u); > Bool(7) sp(false);  Int(32) a(73);  Int(32) test() {  Foo f;  f us . cast f a . +b return } }
+Uq_Soo { Unsigned(3) us( 4u);  <NOMAIN> }
+##
+## first test of local defs
+##
+#>Foo.ulam
+  ulam 2;
+local constant Unsigned(3) soosize = 3u;
+local typedef Soo(soosize) Soo3;
+element Foo : Soo3 {
+  Bool(7) sp;
+  Int a = 73;
+  Int test() {
+    Foo f;
+    return f.sizeof; //=42
+  }
+}
+
+#:Soo.ulam
+  ulam 2;
+quark Soo(Unsigned(3) v) {
+  Unsigned(v) us = 4u;
+}
+
+#.

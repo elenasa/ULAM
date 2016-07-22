@@ -573,10 +573,9 @@ namespace MFM {
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.
-    if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex,asymptr))
+    if(m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr))
       {
 	tduti = asymptr->getUlamTypeIdx();
-	//if(asymptr->isTypedef() && m_state.isHolder(tduti))
 	if(asymptr->isTypedef())
 	  {
 	    if(m_state.isHolder(tduti))
@@ -609,7 +608,6 @@ namespace MFM {
 			//update holder key with name_id and possible array (UNKNOWNSIZE)
 			//possibly a class (t3379)
 			UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, args.m_classInstanceIdx, args.m_declRef);
-			//m_state.makeUlamTypeFromHolder(newkey,Holder,tduti,UC_NOTACLASS);
 			m_state.makeUlamTypeFromHolder(newkey, bUT, tduti, bUT == Class ? UC_UNSEEN : UC_NOTACLASS); //update holder key, same uti
 		      }
 		  }
@@ -719,10 +717,9 @@ namespace MFM {
 	symtypedef->setAutoLocalType(m_state.getReferenceType(uti));
 
 	//check if also a holder (not necessary)
-	//if(ut->isHolder())
-	//  m_state.addUnknownTypeTokenToThisClassResolver(m_token, uti);
+	//if(ut->isHolder()) m_state.addUnknownTypeTokenToThisClassResolver(m_token, uti);
 
-	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr)); //true
+	return (m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr)); //true
       }
     return false;
   } //installSymbolTypedef
@@ -732,7 +729,7 @@ namespace MFM {
     // ask current scope block if this constant name is there;
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.
-    if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr))
+    if(m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr))
       {
 	if(m_state.isHolder(asymptr->getUlamTypeIdx()))
 	  {
@@ -801,7 +798,7 @@ namespace MFM {
 	m_state.addSymbolToCurrentScope(symconstdef);
 
 	//gets the symbol just created by makeUlamType; true.
-	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr));
+	return (m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr));
       }
     return false;
   } //installSymbolConstantValue
@@ -811,7 +808,7 @@ namespace MFM {
     // ask current scope block if this constant name is there;
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.
-    if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr))
+    if(m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr))
       {
 	if(m_state.isHolder(asymptr->getUlamTypeIdx()))
 	  {
@@ -880,7 +877,7 @@ namespace MFM {
 	m_state.addSymbolToCurrentScope(symparam);
 
 	//gets the symbol just created by makeUlamType; true.
-	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr));
+	return (m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr));
       }
     return false;
   } //installSymbolModelParameterValue
@@ -891,7 +888,7 @@ namespace MFM {
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.
-    if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr))
+    if(m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr))
       {
 	if(!(asymptr->isFunction()) && !(asymptr->isTypedef()) && !(asymptr->isConstant()) && !(asymptr->isModelParameter()))
 	  setSymbolPtr((SymbolVariable *) asymptr); //updates Node's symbol, if is variable
