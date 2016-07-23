@@ -608,55 +608,52 @@ namespace MFM {
 
   void Parser::parseLocalDef()
   {
-    //Node * tmpNode = NULL;
+    NodeBlockLocals * locals = m_state.makeLocalScopeBlock(m_state.getLocalScopeLocator());
+    assert(locals);
+
+    m_state.pushCurrentBlock(locals); //so Symbol get's correct ST NodeNo.
+
+    Node * localDefNode = NULL;
     Token pTok;
     getNextToken(pTok);
 
     if(pTok.m_type == TOK_KW_TYPEDEF)
       {
 	//parse Typedef's starting with keyword first
-	//tmpNode =
-	  parseTypedef();
+	localDefNode = parseTypedef();
       }
     else if(pTok.m_type == TOK_KW_CONSTDEF)
       {
 	//parse Named Constant starting with keyword first
-	//	tmpNode =
-parseConstdef();
+	localDefNode = parseConstdef();
       }
     else
       {
-	//error!
-      }
-
-    if(!getExpectedToken(TOK_SEMICOLON))
-      {
-	//delete tmpNode;
-	//tmpNode = NULL;
+	std::ostringstream msg;
+	msg << "Local Definitions are named constants and typedefs; not '"; //t3854
+	msg << m_state.getTokenDataAsString(pTok).c_str() << "'";
+	MSG(&pTok, msg.str().c_str(), ERR);
 	getTokensUntil(TOK_SEMICOLON); //does this help?
       }
 
-#if 0
-    if(tmpNode)
+    m_state.popClassContext();
+
+    if(localDefNode)
       {
 	if(!getExpectedToken(TOK_SEMICOLON))
 	  {
-	    delete tmpNode;
-	    tmpNode = NULL;
+	    delete localDefNode;
+	    localDefNode = NULL;
 	    getTokensUntil(TOK_SEMICOLON); //does this help?
 	  }
 	else
 	  {
-	    if(tmpNode)
+	    if(localDefNode)
 	      {
-		brtn = true;
-		nextNode = new NodeStatements(tmpNode, m_state);
-		assert(nextNode);
-		nextNode->setNodeLocation(tmpNode->getNodeLocation());
+		locals->appendNextNode(localDefNode);
 	      }
 	  }
       }
-#endif
   } //parseLocalDef
 
   bool Parser::parseDataMember(NodeStatements *& nextNode)
@@ -675,7 +672,7 @@ parseConstdef();
     else if(pTok.m_type == TOK_KW_LOCALDEF)
       {
 	std::ostringstream msg;
-	msg << "Local definition as data member; Not supported";
+	msg << "Local definition as data member; Not supported"; //t3856
 	MSG(&pTok, msg.str().c_str(), ERR);
 	getTokensUntil(TOK_SEMICOLON); //does this help?
 	return false;
@@ -1594,6 +1591,13 @@ parseConstdef();
       {
 	//eat error token
       }
+    else if(pTok.m_type == TOK_KW_LOCALDEF)
+      {
+	std::ostringstream msg;
+	msg << "Local definition as variable; Not supported"; //t3857
+	MSG(&pTok, msg.str().c_str(), ERR);
+	getTokensUntil(TOK_SEMICOLON); //does this help?
+      }
     else
       {
 	unreadToken();
@@ -2150,7 +2154,10 @@ parseConstdef();
 
 	assert(argSym);
 	argSym->setClassArgumentFlag();
-	m_state.addSymbolToCurrentScope(argSym); //scope updated to new class instance in parseClassArguments
+	//m_state.addSymbolToCurrentScope(argSym); //scope updated to new class instance in parseClassArguments
+	// grrrr...
+	argSym->setBlockNoOfST(m_state.getCurrentBlockNo());
+	m_state.getCurrentBlock()->addIdToScope(argSym->getId(), argSym);
 
 	m_state.popClassContext(); //restore before making NodeConstantDef, so current context
 
@@ -3421,6 +3428,17 @@ parseConstdef();
 	  msg << "Unexpected input!! Try ";
 	  msg << m_state.getTokenDataAsString(pTok).c_str();
 	  msg << " as a prefix operator";
+	  MSG(&pTok, msg.str().c_str(), ERR);
+	  rtnNode = leftNode;
+	  break;
+	}
+      case TOK_SLASH_EQUAL:
+	{
+	  //would have expected to work: error/t3853
+	  std::ostringstream msg;
+	  msg << "Operator ";
+	  msg << m_state.getTokenDataAsString(pTok).c_str();
+	  msg << " is not supported";
 	  MSG(&pTok, msg.str().c_str(), ERR);
 	  rtnNode = leftNode;
 	  break;

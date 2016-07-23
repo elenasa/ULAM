@@ -4,7 +4,7 @@
 ./T.ulam:4:19: ERROR: Array size [] is included in typedef 'BigSite', and cannot be used by a named constant 'x'.
 ./T.ulam:4:19: ERROR: Invalid constant definition of Type <Int> and Name <x>.
 ./T.ulam:2:2: ERROR: Empty/Incomplete Class Definition 'T'; Possible missing ending curly brace.
-./T.ulam:4:24: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
+./T.ulam:4:24: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./T.ulam:2:10: ERROR: Invalid Type: T.
  ERROR: No parse tree for This Class: T.
 Unrecoverable Program Parse FAILURE: <T.ulam>

@@ -212,7 +212,8 @@ namespace MFM {
 
     //for regular classes and templates, only; since NNOs used
     //followed by the first c&l in case of re-orgs
-    m_state.m_programDefST.updateLineageForTableOfClasses();
+    //m_state.m_programDefST.updateLineageForTableOfClasses();
+    m_state.updateLineageAndFirstCheckAndLabelPass();
 
     u32 errCnt = m_state.m_err.getErrorCount();
     bool sumbrtn = (errCnt != 0);
@@ -439,6 +440,7 @@ namespace MFM {
 
     //checkAndLabelTypes: lineage updated incrementally
     sumbrtn &= m_state.m_programDefST.labelTableOfClasses(); //labelok, stubs not labeled, checks goagain flag!
+    sumbrtn &= m_state.checkAndLabelPassForLocals();
     return sumbrtn;
   } //resolvingLoop
 

@@ -4,7 +4,7 @@
 ./B.ulam:9:9: ERROR: Array size [] is included in typedef 'IArray', and cannot be redefined by variable 'arr'.
 ./B.ulam:9:2: ERROR: Invalid variable declaration of base type <Unsigned> and Name <arr> (missing symbol).
 ./B.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'B'; Possible missing ending curly brace.
-./B.ulam:9:15: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
+./B.ulam:9:15: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./B.ulam:2:9: ERROR: Invalid Type: B.
  ERROR: No parse tree for This Class: B.
 Unrecoverable Program Parse FAILURE: <B.ulam>

@@ -125,12 +125,12 @@ namespace MFM {
 
   void CompilerState::clearAllLocalsPerFilePath()
   {
-    std::map<u32, SymbolTableOfVariables*>::iterator it;
+    std::map<u32, NodeBlockLocals *>::iterator it;
 
     for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
       {
-	SymbolTableOfVariables * localst = it->second;
-	delete localst;
+	NodeBlockLocals * locals = it->second;
+	delete locals;
       }
     m_localsPerFilePath.clear();
   } //clearAllLocalsPerFilePath
@@ -2170,6 +2170,36 @@ namespace MFM {
     return rtnB;
   } //completeIncompleteClassSymbolForTypedef
 
+  void CompilerState::updateLineageAndFirstCheckAndLabelPass()
+  {
+    m_programDefST.updateLineageForTableOfClasses(); //+ first c&l
+    updateLineageAndFirstCheckAndLabelPassForLocals();
+  }
+
+  void CompilerState::updateLineageAndFirstCheckAndLabelPassForLocals()
+  {
+    std::map<u32, NodeBlockLocals *>::iterator it;
+    for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
+      {
+	NodeBlockLocals * locals = it->second;
+	locals->updateLineage(0);
+	locals->checkAndLabelType();
+      }
+  } //updateLineageAndFirstCheckAndLabelPassForLocals
+
+  bool CompilerState::checkAndLabelPassForLocals()
+  {
+    clearGoAgain();
+
+    std::map<u32, NodeBlockLocals *>::iterator it;
+    for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
+      {
+	NodeBlockLocals * locals = it->second;
+	locals->checkAndLabelType();
+      }
+    return (!goAgain() && (m_err.getErrorCount() + m_err.getWarningCount() == 0));
+  } //checkAndLabelPassForLocals
+
   bool CompilerState::alreadyDefinedSymbolByAncestor(u32 dataindex, Symbol *& symptr, bool& hasHazyKin)
   {
     //maybe in current class as a holder, which doesn't progress the search (just the opposite, stops it!).
@@ -2264,13 +2294,13 @@ namespace MFM {
     bool brtn = false;
     u32 pathidx = loc.getPathIndex();
 
-    std::map<u32, SymbolTableOfVariables*>::iterator it = m_localsPerFilePath.find(pathidx);
+    std::map<u32, NodeBlockLocals*>::iterator it = m_localsPerFilePath.find(pathidx);
 
     if(it != m_localsPerFilePath.end())
       {
-	SymbolTableOfVariables * localst = it->second;
-	assert(localst);
-	brtn = localst->isInTable(id, symptr);
+	NodeBlockLocals * locals = it->second;
+	assert(locals);
+	brtn = locals->isIdInScope(id, symptr);
       }
     return brtn;
   } //isIdInLocalFileScope
@@ -2356,53 +2386,32 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   bool CompilerState::isIdInCurrentScope(u32 id, Symbol *& asymptr)
   {
     bool brtn = false;
-    if(isParsingLocalDef())
-      brtn = isIdInLocalFileScope(getLocalScopeLocator(), id, asymptr);
-    else
-      brtn = getCurrentBlock()->isIdInScope(id, asymptr);
+    //if(isParsingLocalDef())
+    //  brtn = isIdInLocalFileScope(getLocalScopeLocator(), id, asymptr);
+    //else
+    brtn = getCurrentBlock()->isIdInScope(id, asymptr);
     return brtn;
   } //isIdInCurrentScope
 
   //symbol ownership goes to the current block (end of vector)
   void CompilerState::addSymbolToCurrentScope(Symbol * symptr)
   {
-    if(isParsingLocalDef())
-      addSymbolToLocalScope(symptr);
-    else
-      getCurrentBlock()->addIdToScope(symptr->getId(), symptr);
+    //if(isParsingLocalDef())
+    //  addSymbolToLocalScope(symptr);
+    //else
+    getCurrentBlock()->addIdToScope(symptr->getId(), symptr);
   }
 
   void CompilerState::addSymbolToLocalScope(Symbol * symptr)
   {
     assert(symptr);
-    u32 pathidx = getLocalScopeLocator().getPathIndex();
+    NodeBlockLocals * locals = makeLocalScopeBlock(getLocalScopeLocator());
+    assert(locals);
 
-    std::map<u32, SymbolTableOfVariables*>::iterator it = m_localsPerFilePath.find(pathidx);
+    //fix node no before adding; wasn't current block since wasn't in a class def.
+    symptr->setBlockNoOfST(locals->getNodeNo());
 
-    if(it != m_localsPerFilePath.end())
-      {
-	SymbolTableOfVariables * localst = it->second;
-	assert(localst);
-	localst->addToTable(symptr->getId(), symptr);
-      }
-    else
-      {
-	//add new entry for this file
-	SymbolTableOfVariables * newst = new SymbolTableOfVariables(*this);
-	assert(newst);
-
-	std::pair<std::map<u32, SymbolTableOfVariables*>::iterator, bool> reti;
-	reti = m_localsPerFilePath.insert(std::pair<u32, SymbolTableOfVariables*>(pathidx,newst)); //map owns ST
-	bool notdupi = reti.second; //false if already existed, i.e. not added
-	if(!notdupi)
-	  {
-	    delete newst;
-	    newst = NULL;
-	    assert(0);
-	  }
-	else
-	  newst->addToTable(symptr->getId(), symptr);
-      }
+    locals->addIdToScope(symptr->getId(), symptr);
   } //addSymbolToLocalScope
 
   //symbol ownership goes to the member block (end of vector)
@@ -3363,6 +3372,38 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     assert(isParsingLocalDef());
     return m_currentLocalDefToken.m_locator;
   }
+
+  NodeBlockLocals * CompilerState::makeLocalScopeBlock(Locator loc)
+  {
+    NodeBlockLocals * rtnLocals = NULL;
+    u32 pathidx = loc.getPathIndex();
+    std::map<u32, NodeBlockLocals*>::iterator it = m_localsPerFilePath.find(pathidx);
+
+    if(it != m_localsPerFilePath.end())
+      {
+	rtnLocals = it->second;
+	assert(rtnLocals);
+      }
+    else
+      {
+      	//add new entry for this loc
+	NodeBlockLocals * newblocklocals = new NodeBlockLocals(NULL, *this);
+	assert(newblocklocals);
+	newblocklocals->setNodeLocation(loc);
+
+	std::pair<std::map<u32, NodeBlockLocals*>::iterator, bool> reti;
+	reti = m_localsPerFilePath.insert(std::pair<u32, NodeBlockLocals*>(pathidx,newblocklocals)); //map owns block
+	bool notdupi = reti.second; //false if already existed, i.e. not added
+	if(!notdupi)
+	  {
+	    delete newblocklocals;
+	    newblocklocals = NULL;
+	    assert(0);
+	  }
+	rtnLocals = newblocklocals;
+      }
+    return rtnLocals;
+  } //makeLocalScopeBlock
 
   NNO CompilerState::getNextNodeNo()
   {

@@ -3,7 +3,7 @@
 #!
 ./S.ulam:4:13: ERROR: Model Parameters cannot survive within a quark.
 ./S.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'S'; Possible missing ending curly brace.
-./S.ulam:5:3: ERROR: Invalid Class Type <Bool>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
+./S.ulam:5:3: ERROR: Invalid Class Type <Bool>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
  ERROR: No parse tree for This Class: T.
 Unrecoverable Program Parse FAILURE: <T.ulam>
 ./S.ulam:4:31: ERROR: No class 'S' in <S.ulam>.

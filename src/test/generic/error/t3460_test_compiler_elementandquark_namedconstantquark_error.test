@@ -4,7 +4,7 @@
 ./Foo.ulam:6:15: ERROR: Named Constant 'barchance' cannot be based on a class type: Bar.
 ./Foo.ulam:6:15: ERROR: Invalid constant definition of Type <Bar> and Name <barchance>.
 ./Foo.ulam:3:1: ERROR: Empty/Incomplete Class Definition 'Foo'; Possible missing ending curly brace.
-./Foo.ulam:6:30: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
+./Foo.ulam:6:30: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./Foo.ulam:3:9: ERROR: Invalid Type: Foo.
  ERROR: No parse tree for This Class: Foo.
 Unrecoverable Program Parse FAILURE: <Foo.ulam>

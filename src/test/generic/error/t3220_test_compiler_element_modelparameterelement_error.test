@@ -4,7 +4,7 @@
 ./Foo.ulam:5:16: ERROR: Model Parameter 'poochance' cannot be based on a class type: Poo.
 ./Foo.ulam:5:16: ERROR: Invalid Model Parameter: Poo poochance.
 ./Foo.ulam:3:1: ERROR: Empty/Incomplete Class Definition 'Foo'; Possible missing ending curly brace.
-./Foo.ulam:5:25: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
+./Foo.ulam:5:25: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./Foo.ulam:3:9: ERROR: Invalid Type: Foo.
  ERROR: No parse tree for This Class: Foo.
 Unrecoverable Program Parse FAILURE: <Foo.ulam>

@@ -3,7 +3,7 @@
 #!
 ./A.ulam:5:31: ERROR: Missing named constant definition after '=' for 'cPRINT_ALL'.
 ./A.ulam:5:31: ERROR: Missing ';' after named constant definition 'cPRINT_ALL'; Lists not supported.
-./A.ulam:9:1: ERROR: Invalid Class Type <}>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
+./A.ulam:9:1: ERROR: Invalid Class Type <}>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 Unrecoverable Program Parse FAILURE: <A.ulam>
 ##
 ##      //informed by 3415, except misspelled PRINT_VALUE; culam thinks it's a class!

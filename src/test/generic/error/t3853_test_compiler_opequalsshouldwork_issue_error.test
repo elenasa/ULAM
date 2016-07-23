@@ -1,0 +1,36 @@
+## -*- mode:ulam -*-
+#=t3853_test_compiler_opequalsshouldwork_issue_error
+#!
+./Foo.ulam:8:7: ERROR: Operator /= is not supported.
+./Foo.ulam:8:10: ERROR: Invalid Statement (possible missing semicolon).
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
+Unrecoverable Program Parse FAILURE: <System.ulam>
+##
+## dave ish 7/23/2016, '/=' is not in the grammar.
+##
+#>Foo.ulam
+  ulam 2;
+element Foo {
+  Int a = 1;
+
+  Int test() {
+    System s;
+    a *= 2;
+    a /= 2; //TOK_SLASH_EQUAL
+    s.assert(a == 1);
+    return a;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

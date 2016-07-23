@@ -4,11 +4,11 @@
 ./Content.ulam:2:17: ERROR: Class Definition 'Content'; Inheritance from invalid Class identifier 'public'.
 ./Content.ulam:2:24: ERROR: Unexpected token <TOK_TYPE_IDENTIFIER>; Expected {.
 ./Content.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Content'; Possible missing ending curly brace.
-./Content.ulam:2:24: ERROR: Invalid Class Type <QID>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
+./Content.ulam:2:24: ERROR: Invalid Class Type <QID>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./Content.ulam:2:7: ERROR: Invalid Type: Content.
  ERROR: No parse tree for This Class: Content.
 Unrecoverable Program Parse FAILURE: <Content.ulam>
-./Content.ulam:2:27: ERROR: Invalid Class Type <(>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
+./Content.ulam:2:27: ERROR: Invalid Class Type <(>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 Unrecoverable Program Parse FAILURE: <QID.ulam>
 ##
 ## issue 6/15/2016, honorable death

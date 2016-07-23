@@ -50,6 +50,7 @@
 #include "UEventWindow.h"
 #include "File.h"
 #include "NodeBlock.h"
+#include "NodeBlockLocals.h"
 #include "NodeCast.h"
 #include "NodeConstantDef.h"
 #include "NodeReturnStatement.h"
@@ -106,7 +107,7 @@ namespace MFM{
 
     SymbolTableOfClasses m_programDefST; // holds SymbolClassName and SymbolClassNameTemplate
 
-    std::map<u32, SymbolTableOfVariables *> m_localsPerFilePath; //holds ST of local constants and typedefs
+    std::map<u32, NodeBlockLocals *> m_localsPerFilePath; //holds block of local constants and typedefs
     bool m_parsingLocalDef; //used for populating m_localsPerFilePath
     Token m_currentLocalDefToken; //used to identify current file path when m_parsingLocalDef is true
 
@@ -313,6 +314,10 @@ namespace MFM{
 	involved incomplete Class types */
     bool completeIncompleteClassSymbolForTypedef(UTI incomplete) ;
 
+    void updateLineageAndFirstCheckAndLabelPass();
+    void updateLineageAndFirstCheckAndLabelPassForLocals();
+    bool checkAndLabelPassForLocals();
+
     /** helper methods for error messaging, uses string pool */
     const std::string getTokenLocationAsString(const Token * tok);
     const std::string getFullLocationAsString(const Locator& loc);
@@ -418,6 +423,7 @@ namespace MFM{
     void clearLocalScopeForParsing();
     bool isParsingLocalDef();
     Locator getLocalScopeLocator();
+    NodeBlockLocals * makeLocalScopeBlock(Locator loc);
 
     /** to identify each node */
     NNO getNextNodeNo();

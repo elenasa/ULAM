@@ -190,6 +190,8 @@ namespace MFM{
     void genCodeHeaderElement(File * fp);
     void genCodeHeaderTransient(File * fp);
 
+    void genThisUlamSuperClassAsAHeaderComment(File * fp);
+
     void genShortNameParameterTypesExtractedForHeaderFile(File * fp);
 
     void generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);

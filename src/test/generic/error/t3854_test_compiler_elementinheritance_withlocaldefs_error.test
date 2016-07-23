@@ -1,0 +1,30 @@
+## -*- mode:ulam -*-
+#=t3854_test_compiler_elementinheritance_withlocaldefs_error
+#!
+./Foo.ulam:2:7: ERROR: Local Definitions are named constants and typedefs; not 'Unsigned'.
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
+Unrecoverable Program Parse FAILURE: <Soo.ulam>
+##
+## first test of local defs errors
+##
+#>Foo.ulam
+  ulam 2;
+local Unsigned(3) soosize = 3u; //missing constant
+element Foo : Soo(3u) {
+  Bool(7) sp;
+  Unsigned a = 73;
+  Int test() {
+    Foo f;
+    a = f.us;
+    a = Soo3.sizeof;
+    sp = (a == 3u);
+    return (Int) a; //=3
+  }
+}
+
+#:Soo.ulam
+  ulam 2;
+quark Soo(Unsigned(3) v) {
+  Unsigned(v) us = 4u;
+}
+#.

@@ -1,0 +1,33 @@
+## -*- mode:ulam -*-
+#=t3857_test_compiler_elementinheritance_withlocaldefs_error
+#!
+./Foo.ulam:8:5: ERROR: Local definition as variable; Not supported.
+./Foo.ulam:9:5: ERROR: Invalid Statement (possible missing semicolon).
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
+Unrecoverable Program Parse FAILURE: <Soo.ulam>
+##
+## test of local defs errors: illegal local keyword
+##
+#>Foo.ulam
+  ulam 2;
+local constant Unsigned(3) soosize = 3u;
+local typedef Soo(soosize) Soo3;
+element Foo : Soo3 {
+  Bool(7) sp;
+  Unsigned a = 73;
+  Int test() {
+    local constant Unsigned(3) localvar = 7u; //illegal local
+    Foo f;
+    a = f.us;
+    a = Soo3.sizeof;
+    sp = (a == 3u);
+    return (Int) a; //=3
+  }
+}
+
+#:Soo.ulam
+  ulam 2;
+quark Soo(Unsigned(3) v) {
+  Unsigned(v) us = 4u;
+}
+#.
