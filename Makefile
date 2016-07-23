@@ -12,6 +12,7 @@
 
 ifndef DEBIAN_PACKAGE_NAME
 export DEBIAN_PACKAGE_NAME:=ulam
+export MAGIC_DEBIAN_PACKAGE_VERSION:=
 endif
 $(info Building ULAM for Debian package name: $(DEBIAN_PACKAGE_NAME))
 
@@ -90,6 +91,8 @@ export ULAM_BUILD_WHERE:=$(shell hostname)
 DEFINES+=-DBUILD_DATE="0x$(ULAM_BUILD_DATE)" -DBUILD_TIME="0x$(ULAM_BUILD_TIME)" -DBUILD_DATE_TIME="$(ULAM_BUILD_TIMESTAMP)"
 DEFINES+=-DULAM_VERSION_MAJOR=$(ULAM_VERSION_MAJOR) -DULAM_VERSION_MINOR=$(ULAM_VERSION_MINOR) -DULAM_VERSION_REV=$(ULAM_VERSION_REV)
 DEFINES+=-DULAM_TREE_VERSION="$(ULAM_TREE_VERSION)"
+DEFINES+=-DDEBIAN_PACKAGE_NAME="$(DEBIAN_PACKAGE_NAME)"
+DEFINES+=-DMAGIC_DEBIAN_PACKAGE_VERSION="$(MAGIC_DEBIAN_PACKAGE_VERSION)"
 export DEFINES
 
 # Compilation flags from top level
@@ -190,7 +193,7 @@ ULAM_DEMO_LIST_FILE:=$(MFM_ROOT_DIR)/res/elements/demos.dat
 
 $(MFM_ROOT_DIR)/res/elements/demos/%.mfz:	$(ULAMDIR)/demos/%/*.ulam
 	mkdir -p $(MFM_ROOT_DIR)/res/elements/demos
-	./bin/ulam -z $(ULAMDEMOKEY) -o --sc $(ULAMDIR)/core --sd $(ULAMDIR)/demos/$* $(^:$(ULAMDIR)/demos/$*/%.ulam=%.ulam) $@ $(wildcard $(ULAMDIR)/demos/$*/*.mfs) $(wildcard $(ULAMDIR)/demos/$*/args.txt)
+	./bin/ulam -z $(ULAMDEMOKEY) -o --sc --sd $(ULAMDIR)/core --sd $(ULAMDIR)/demos/$* $(^:$(ULAMDIR)/demos/$*/%.ulam=%.ulam) $@ $(wildcard $(ULAMDIR)/demos/$*/*.mfs) $(wildcard $(ULAMDIR)/demos/$*/args.txt)
 	mv -f $(ULAMWORKDIR)/bin/libcue.so "$(MFM_ROOT_DIR)/res/elements/demos/libue$*.so"
 	printf "$*\0$@\0$(MFM_ROOT_DIR)/res/elements/demos/libue$*.so\0$(^:$(ULAMDIR)/demos/$*/%.ulam=%)\0\0\n" >> $(ULAM_DEMO_LIST_FILE)
 	rm -rf $(ULAMWORKDIR)
