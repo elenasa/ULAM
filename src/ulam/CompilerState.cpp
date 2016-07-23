@@ -3373,7 +3373,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return m_currentLocalDefToken.m_locator;
   }
 
-  NodeBlockLocals * CompilerState::makeLocalScopeBlock(Locator loc)
+  NodeBlockLocals * CompilerState::getLocalScopeBlock(Locator loc)
   {
     NodeBlockLocals * rtnLocals = NULL;
     u32 pathidx = loc.getPathIndex();
@@ -3384,12 +3384,20 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	rtnLocals = it->second;
 	assert(rtnLocals);
       }
-    else
+    return rtnLocals;
+  } //getLocalScopeBlock
+
+  NodeBlockLocals * CompilerState::makeLocalScopeBlock(Locator loc)
+  {
+    NodeBlockLocals * rtnLocals = getLocalScopeBlock(loc);
+    if(!rtnLocals)
       {
       	//add new entry for this loc
 	NodeBlockLocals * newblocklocals = new NodeBlockLocals(NULL, *this);
 	assert(newblocklocals);
 	newblocklocals->setNodeLocation(loc);
+
+	u32 pathidx = loc.getPathIndex();
 
 	std::pair<std::map<u32, NodeBlockLocals*>::iterator, bool> reti;
 	reti = m_localsPerFilePath.insert(std::pair<u32, NodeBlockLocals*>(pathidx,newblocklocals)); //map owns block
@@ -3415,21 +3423,14 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     if(useMemberBlock())
       {
 	UTI mbuti = getCurrentMemberClassBlock()->getNodeType();
-	u32 mbid = getUlamKeyTypeSignatureByIndex(mbuti).getUlamKeyTypeSignatureNameId();
-	SymbolClassName * cnsym = NULL;
-	AssertBool isDefined = alreadyDefinedSymbolClassName(mbid, cnsym);
-	assert(isDefined);
-	return cnsym->findNodeNoInAClassInstance(mbuti, n);
+	return findNodeNoInAClass(n, mbuti);
       }
 
     NodeBlock * currBlock = getCurrentBlock();
     if(currBlock && (currBlock->getNodeNo() == n) && (getClassBlock()->getNodeType() == getCompileThisIdx()))
       return currBlock; //avoid chix-n-egg with functiondefs
 
-    SymbolClassName * cnsym = NULL;
-    AssertBool isDefined = alreadyDefinedSymbolClassName(getCompileThisId(), cnsym);
-    assert(isDefined);
-    Node * rtnNode = cnsym->findNodeNoInAClassInstance(getCompileThisIdx(), n);
+    Node * rtnNode = findNodeNoInAClass(n, getCompileThisIdx());
 
     //last resort, if we are in the middle of resolving pending args for a stub
     // and to do constant folding, we need to find the parent node that's in the
@@ -3444,6 +3445,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	    AssertBool isDefined = alreadyDefinedSymbolClassNameTemplate(stubid, cntsym);
 	    assert(isDefined);
 	    rtnNode = cntsym->findNodeNoInAClassInstance(stubuti, n);
+	    //local def?
 	  }
 	else
 	  {
@@ -3458,17 +3460,30 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   Node * CompilerState::findNodeNoInAClass(NNO n, UTI cuti)
   {
+    Node * rtnNode = NULL;
     u32 cid = getUlamKeyTypeSignatureByIndex(cuti).getUlamKeyTypeSignatureNameId();
     SymbolClassName * cnsym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClassName(cid, cnsym);
     assert(isDefined);
-    return cnsym->findNodeNoInAClassInstance(cuti, n);
+    rtnNode = cnsym->findNodeNoInAClassInstance(cuti, n);
+    if(!rtnNode)
+      rtnNode = findNodeNoInALocalScope(cnsym->getLoc(), n); //local def?
+    return rtnNode;
   } //findNodeNoInAClass
 
   UTI CompilerState::findAClassByNodeNo(NNO n)
   {
     return m_programDefST.findClassNodeNoForTableOfClasses(n); //Nav not found
   } //findAClassByNodeNo
+
+  Node * CompilerState::findNodeNoInALocalScope(Locator loc, NNO n)
+  {
+    Node * rtnNode = NULL;
+    NodeBlockLocals * locals = getLocalScopeBlock(loc);
+    if(locals)
+      locals->findNodeNo(n, rtnNode);
+    return rtnNode;
+  }
 
   NodeBlockClass * CompilerState::getAClassBlock(UTI cuti)
   {

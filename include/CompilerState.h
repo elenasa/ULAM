@@ -423,6 +423,7 @@ namespace MFM{
     void clearLocalScopeForParsing();
     bool isParsingLocalDef();
     Locator getLocalScopeLocator();
+    NodeBlockLocals * getLocalScopeBlock(Locator loc);
     NodeBlockLocals * makeLocalScopeBlock(Locator loc);
 
     /** to identify each node */
@@ -431,6 +432,8 @@ namespace MFM{
     Node * findNodeNoInThisClass(NNO n);
     Node * findNodeNoInAClass(NNO n, UTI cuti);
     UTI findAClassByNodeNo(NNO n);
+    Node * findNodeNoInALocalScope(Locator loc, NNO n);
+
     NodeBlockClass * getAClassBlock(UTI cuti);
     NNO getAClassBlockNo(UTI cuti);
 
