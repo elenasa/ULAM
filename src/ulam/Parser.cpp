@@ -2154,10 +2154,7 @@ namespace MFM {
 
 	assert(argSym);
 	argSym->setClassArgumentFlag();
-	//m_state.addSymbolToCurrentScope(argSym); //scope updated to new class instance in parseClassArguments
-	// grrrr...
-	argSym->setBlockNoOfST(m_state.getCurrentBlockNo());
-	m_state.getCurrentBlock()->addIdToScope(argSym->getId(), argSym);
+	m_state.addSymbolToCurrentScope(argSym); //scope updated to new class instance in parseClassArguments
 
 	m_state.popClassContext(); //restore before making NodeConstantDef, so current context
 

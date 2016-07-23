@@ -2277,31 +2277,30 @@ namespace MFM {
     if(useMemberBlock())
       classblock = getCurrentMemberClassBlock();
 
+    Locator classloc;
+    if(classblock)
+      classloc = classblock->getNodeLocation(); //to check local scope
+
     while(!brtn && classblock)
       {
 	brtn = classblock->isIdInScope(dataindex,symptr); //returns symbol
 	hasHazyKin |= checkHasHazyKin(classblock); //self is stub
-	if(!brtn)
-	  brtn = isIdInLocalFileScope(classblock->getNodeLocation(), dataindex, symptr); //local constant or typedef
-
 	classblock = classblock->getSuperBlockPointer(); //inheritance chain
       }
+
+    //search current class file scope only (not ancestors')
+    if(!brtn)
+      brtn = isIdInLocalFileScope(classloc, dataindex, symptr); //local constant or typedef
+
     return brtn;
   } //isDataMemberIdInClassScope
 
   bool CompilerState::isIdInLocalFileScope(Locator loc, u32 id, Symbol *& symptr)
   {
     bool brtn = false;
-    u32 pathidx = loc.getPathIndex();
-
-    std::map<u32, NodeBlockLocals*>::iterator it = m_localsPerFilePath.find(pathidx);
-
-    if(it != m_localsPerFilePath.end())
-      {
-	NodeBlockLocals * locals = it->second;
-	assert(locals);
-	brtn = locals->isIdInScope(id, symptr);
-      }
+    NodeBlockLocals * locals = getLocalScopeBlock(loc);
+    if(locals)
+      brtn = locals->isIdInScope(id, symptr);
     return brtn;
   } //isIdInLocalFileScope
 
@@ -2386,9 +2385,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   bool CompilerState::isIdInCurrentScope(u32 id, Symbol *& asymptr)
   {
     bool brtn = false;
-    //if(isParsingLocalDef())
-    //  brtn = isIdInLocalFileScope(getLocalScopeLocator(), id, asymptr);
-    //else
+    //also applies when isParsingLocalDef()
     brtn = getCurrentBlock()->isIdInScope(id, asymptr);
     return brtn;
   } //isIdInCurrentScope
@@ -2396,9 +2393,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   //symbol ownership goes to the current block (end of vector)
   void CompilerState::addSymbolToCurrentScope(Symbol * symptr)
   {
-    //if(isParsingLocalDef())
-    //  addSymbolToLocalScope(symptr);
-    //else
+    //also applies when isParsingLocalDef()
     getCurrentBlock()->addIdToScope(symptr->getId(), symptr);
   }
 
@@ -2407,9 +2402,6 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     assert(symptr);
     NodeBlockLocals * locals = makeLocalScopeBlock(getLocalScopeLocator());
     assert(locals);
-
-    //fix node no before adding; wasn't current block since wasn't in a class def.
-    symptr->setBlockNoOfST(locals->getNodeNo());
 
     locals->addIdToScope(symptr->getId(), symptr);
   } //addSymbolToLocalScope
@@ -3430,7 +3422,8 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     if(currBlock && (currBlock->getNodeNo() == n) && (getClassBlock()->getNodeType() == getCompileThisIdx()))
       return currBlock; //avoid chix-n-egg with functiondefs
 
-    Node * rtnNode = findNodeNoInAClass(n, getCompileThisIdx());
+    UTI cuti = getCompileThisIdx();
+    Node * rtnNode = findNodeNoInAClass(n, cuti);
 
     //last resort, if we are in the middle of resolving pending args for a stub
     // and to do constant folding, we need to find the parent node that's in the
@@ -3446,14 +3439,26 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	    assert(isDefined);
 	    rtnNode = cntsym->findNodeNoInAClassInstance(stubuti, n);
 	    //local def?
+	    if(!rtnNode)
+	      rtnNode = findNodeNoInALocalScope(cntsym->getLoc(), n);
 	  }
 	else
 	  {
-	    //what if in ancestor?
+	    //what if in ancestor? (not its local scope)
 	    UTI superuti = isClassASubclass(getCompileThisIdx());
 	    if((superuti != Nouti) && (superuti != Hzy))
 	      rtnNode = findNodeNoInAClass(n, superuti);
 	  }
+      }
+
+    if(!rtnNode)
+      {
+	//check in local scope
+	u32 cid = getUlamKeyTypeSignatureByIndex(cuti).getUlamKeyTypeSignatureNameId();
+	SymbolClassName * cnsym = NULL;
+	AssertBool isDefined = alreadyDefinedSymbolClassName(cid, cnsym);
+	assert(isDefined);
+	rtnNode = findNodeNoInALocalScope(cnsym->getLoc(), n);
       }
     return rtnNode;
   } //findNodeNoInThisClass
@@ -3466,8 +3471,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     AssertBool isDefined = alreadyDefinedSymbolClassName(cid, cnsym);
     assert(isDefined);
     rtnNode = cnsym->findNodeNoInAClassInstance(cuti, n);
-    if(!rtnNode)
-      rtnNode = findNodeNoInALocalScope(cnsym->getLoc(), n); //local def?
+    //don't check local scope automatically, e.g. in case of superclass
     return rtnNode;
   } //findNodeNoInAClass
 

@@ -1,17 +1,13 @@
 ## -*- mode:ulam -*-
-#=t3858_test_compiler_elementinheritance_withlocaldefs_filescope
-##
-## gen output: (+ 3 asserts)
-## Unsigned Arg: 4
-## Unsigned Arg: 3
-##
+#=t3860_test_compiler_elementinheritance_withlocaldefs_separatefilescope_error
 #!
-Exit status: 3
-Ue_Foo : Soo(3u) { :< Unsigned(3) us(4u);  constant Unsigned(3) v = 3u; > Bool(7) sp(true);  Unsigned(32) a(3u);  Int(32) test() {  System s;  Foo f;  a f us . cast = s ( a )print . s ( a 4u cast == )assert . a 3u = s ( a )print . s ( a 3u cast == )assert . sp ( )func cast = s ( sp cast )assert . a cast return } }
-Uq_Soo(Unsigned(3) v) { Unsigned(UNKNOWN) us(notready);  <NOMAIN> }
-Uq_System { <NOMAIN> }
+./Soo.ulam:6:24: ERROR: (2) <soosize> is not defined, and cannot be used with class: Soo11.
+./Soo.ulam:10:16: ERROR: UNSEEN class type <Soo3> was never defined in <Soo3.ulam>.
+./System.ulam:2:7: ERROR: 1 Nodes with erroneous types detected after type labeling class: System.
+./System.ulam:2:7: ERROR: 4 Nodes with unresolved types detected after type labeling class: System.
+Unrecoverable Program Type Label FAILURE.
 ##
-## test of local defs: 2 related classes same file scope
+## test of local defs: different file scopes, informed by t3859
 ##
 #>Foo.ulam
   ulam 2;
@@ -31,20 +27,22 @@ element Foo : Soo3 {
     s.assert(a == 3u);
 
     sp = func();
-    s.assert(sp);
+    s.assert(!sp);
     return (Int) a; //=3
   }
 }
 
+#:Soo.ulam
+  ulam 2;
 quark Soo(Unsigned(3) v) {
   Unsigned(v) us = 4u;
   Bool check()
   {
-    return us.sizeof == soosize; //uses local constant
+    return us.sizeof < soosize; //no local constant
   }
   Bool func()
   {
-    if(self is Soo3) //uses local typedef
+    if(self is Soo3) //nolocal typedef
       return check();
     return false;
   }
