@@ -9,7 +9,7 @@ mfz:	$(DEMO).mfz
 run:	$(DEMO).mfz
 	mfzrun $(DEMO).mfz
 
-$(DEMO).mfz:	*.ulam
+$(DEMO).mfz:	*.ulam *.mfs
 	../../../../bin/ulam $(DEPS) $^ $@
 
 clean:

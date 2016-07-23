@@ -1,0 +1,66 @@
+/**
+  Adjustable-radius Forkbomb quark.  Demonstrates a basic use of
+  WindowServices to do variable-radius eventwindow iteration.
+
+  \author Dave Ackley
+  \license public-domain
+*/
+quark QFB {
+
+  // Do the bombing
+  Void bomb(Unsigned(3) bombRadius) {
+    typedef EventWindow.SiteNum SiteNum;
+    EventWindow ew;
+    WindowServices ws;
+    ws.reset(1, bombRadius);
+    for (Int slot = ws.next(); slot >= 0; slot = ws.next()) {
+      ew[(SiteNum) slot] = ew[0];
+    }
+  }
+}
+
+/**
+  Adjustable-radius forkbomb.  Demonstrates a model parameter used to
+  specify the bomb radius.  (Note that changing model parameters
+  during simulation is, strictly speaking, _not_ indefinitely
+  scalable.  We allow it for exploration in simulation only!)
+
+  \symbol AB
+  \color #50f
+
+  \author Dave Ackley
+  \license public-domain
+*/
+element AradBomb : QFB { 
+  /** Bomb radius.  Distance to bomb on each event.
+      \unit sites
+      \range 1..4
+  */  
+  parameter Unsigned(3) pBOMB_RADIUS = 1;
+  Void behave() {
+    bomb(pBOMB_RADIUS);
+  }
+}
+
+/**
+  Alternate arad bomb.  With a separate parameter, and a different
+  color so we can see who's winning
+
+  \symbol A2
+  \color #473
+
+  \author Dave Ackley
+  \license public-domain
+*/
+element AradBomb2 : QFB { 
+  /** Bomb radius.  Distance to bomb on each event.
+      \unit sites
+      \range 1..4
+  */  
+  parameter Unsigned(3) pBOMB_RADIUS = 1;
+
+  Void behave() {
+    bomb(pBOMB_RADIUS);
+  }
+
+}

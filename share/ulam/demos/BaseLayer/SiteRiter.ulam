@@ -1,3 +1,5 @@
+ulam 2; 
+
 use SiteUtils;
 
 /**
@@ -11,7 +13,9 @@ use SiteUtils;
    can use the site paint to communicate.
 
    \symbol SR
+   \color #c00
    \symmetries all
+   \radius 1
    \author Dave
    \license public domain
  */
@@ -26,14 +30,14 @@ element SiteRiter {
   Random random;
 
   // Data members
-  ARGB m_color;
+  ARGB m_color = {0xff, 0, 0, 0};
 
   Void behave() {
-    m_color[0] = 0xff;
 
+    // Modify our color a little
     for (Int i = 1; i < 4; ++i) {
       Int color = m_color[i];
-      color += random.between(-1,1);
+      color += random.between(-2,2);
       m_color[i] = (Channel) color;
     }
 
@@ -43,4 +47,5 @@ element SiteRiter {
     // And beat it!
     ew.swap(0,1);
   }
+
 }
