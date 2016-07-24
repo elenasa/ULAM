@@ -195,7 +195,7 @@ $(MFM_ROOT_DIR)/res/elements/demos/%.mfz:	$(ULAMDIR)/demos/%/*.ulam
 	mkdir -p $(MFM_ROOT_DIR)/res/elements/demos
 	./bin/ulam -z $(ULAMDEMOKEY) -o --sc --sd $(ULAMDIR)/core --sd $(ULAMDIR)/demos/$* $(^:$(ULAMDIR)/demos/$*/%.ulam=%.ulam) $@ $(wildcard $(ULAMDIR)/demos/$*/*.mfs) $(wildcard $(ULAMDIR)/demos/$*/args.txt)
 	mv -f $(ULAMWORKDIR)/bin/libcue.so "$(MFM_ROOT_DIR)/res/elements/demos/libue$*.so"
-	printf "$*\0$@\0$(MFM_ROOT_DIR)/res/elements/demos/libue$*.so\0$(^:$(ULAMDIR)/demos/$*/%.ulam=%)\0\0\n" >> $(ULAM_DEMO_LIST_FILE)
+	printf "$*\0elements/demos/$*.mfz\0elements/demos/libue$*.so\0$(^:$(ULAMDIR)/demos/$*/%.ulam=%)\0\0\n" >> $(ULAM_DEMO_LIST_FILE)
 	rm -rf $(ULAMWORKDIR)
 
 ULAM_MFM_TARGETS+=$(MFM_ROOT_DIR)/res/elements/libuecore.so
