@@ -780,6 +780,42 @@ namespace MFM {
 	uti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, NONARRAYSIZE, Nouti);
 	brtn = true;
       }
+    else if(args.m_classInstanceIdx != Nouti)
+      {
+	NodeBlockClass * cblock = m_state.getAClassBlock(args.m_classInstanceIdx);
+	assert(cblock);
+	m_state.pushClassContextUsingMemberClassBlock(cblock);
+
+	Symbol * aconstsym = NULL;
+	bool hazykin = false;
+	if(m_state.isDataMemberIdInClassScope(m_token.m_dataindex, aconstsym, hazykin))
+	  {
+	    std::ostringstream msg;
+	    msg << "Named Constant '";
+	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
+	    msg << "' is defined in class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(args.m_classInstanceIdx).c_str();
+	    msg << "; use a variable to access it"; //really? that's the best we can do???? t3861
+	    if(aconstsym->isConstant())
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		asymptr = aconstsym;
+	      }
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+	else
+	  {
+	    // no class types for constants
+	    std::ostringstream msg;
+	    msg << "Named Constant '";
+	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
+	    msg << "' cannot be a class type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(args.m_classInstanceIdx).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+	m_state.popClassContext();
+      }
     else
       {
 	// no class types for constants
@@ -1123,7 +1159,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Named Constant '";
 	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
-	msg << "' cannot be based on a class type: ";
+	msg << "' cannot be a class type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(tduti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	rtnb = false;

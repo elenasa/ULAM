@@ -3480,6 +3480,24 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return m_programDefST.findClassNodeNoForTableOfClasses(n); //Nav not found
   } //findAClassByNodeNo
 
+  NodeBlockLocals * CompilerState::findALocalScopeByNodeNo(NNO n)
+  {
+    NodeBlockLocals * rtnlocals = NULL;
+    std::map<u32, NodeBlockLocals *>::iterator it;
+
+    for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
+      {
+	NodeBlockLocals * locals = it->second;
+	assert(locals);
+	if(locals->getNodeNo() == n)
+	  {
+	    rtnlocals = locals;
+	    break;
+	  }
+      }
+    return rtnlocals;
+  } //findALocalScopeByNodeNo
+
   Node * CompilerState::findNodeNoInALocalScope(Locator loc, NNO n)
   {
     Node * rtnNode = NULL;

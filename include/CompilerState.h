@@ -432,6 +432,7 @@ namespace MFM{
     Node * findNodeNoInThisClass(NNO n);
     Node * findNodeNoInAClass(NNO n, UTI cuti);
     UTI findAClassByNodeNo(NNO n);
+    NodeBlockLocals * findALocalScopeByNodeNo(NNO n);
     Node * findNodeNoInALocalScope(Locator loc, NNO n);
 
     NodeBlockClass * getAClassBlock(UTI cuti);

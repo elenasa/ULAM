@@ -4352,7 +4352,8 @@ namespace MFM {
 
   Node * Parser::makeConstdefSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef)
   {
-    NodeConstantDef * rtnNode = NULL;
+    //NodeConstantDef * rtnNode = NULL;
+    Node * rtnNode = NULL;
     Node * lvalNode = parseIdentExpr(identTok); //calls parseLvalExpr
     if(lvalNode)
       {
@@ -4365,12 +4366,23 @@ namespace MFM {
 	  {
 	    if(asymptr)
 	      {
-		std::ostringstream msg;
-		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
-		msg << " has a previous declaration as '";
-		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
-		msg << "' and cannot be used as a named constant";
-		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
+		if((args.m_classInstanceIdx != Nouti))
+		  {
+		    assert(asymptr->isConstant());
+		    //from another class..all we need is a NodeConstant that refers to it
+		    rtnNode = new NodeConstant(identTok, (SymbolWithValue *) asymptr, m_state);
+		    assert(rtnNode);
+		    rtnNode->setNodeLocation(identTok.m_locator);
+		  }
+		else
+		  {
+		    std::ostringstream msg;
+		    msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
+		    msg << " has a previous declaration as '";
+		    msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
+		    msg << "' and cannot be used as a named constant";
+		    MSG(&args.m_typeTok, msg.str().c_str(), ERR);
+		  }
 	      }
 	    else
 	      {

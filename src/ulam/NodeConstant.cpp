@@ -167,6 +167,20 @@ namespace MFM {
   {
     assert(m_currBlockNo);
     NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
+    if(!currBlock)
+      {
+	UTI anotherclassuti = m_state.findAClassByNodeNo(m_currBlockNo);
+	if(anotherclassuti != Nav)
+	  {
+	    currBlock = m_state.getAClassBlock(anotherclassuti);
+	    assert(currBlock);
+	    if(currBlock->getNodeNo() != m_currBlockNo)
+	      currBlock = NULL;
+	  }
+	//try local scope
+	if(!currBlock)
+	  currBlock = m_state.findALocalScopeByNodeNo(m_currBlockNo);
+      }
     assert(currBlock);
     return currBlock;
   }
