@@ -166,7 +166,8 @@ ULAMDEMOKEY:="MFM-DEMOS-$(ULAMDEMODATE)-$(ULAMDEMOVERSION)-$(ULAMDEMOWHO)"
 MFZMAKEPATH:=$(MFM_ROOT_DIR)/bin/mfzmake
 makedemokey:	FORCE
 	KEYPATH=`$(MFZMAKEPATH) keygen $(ULAMDEMOKEY) | awk -F ' "[^"]+" | ' '{print $$4}'` && \
-	cp $$KEYPATH $(MFM_ROOT_DIR)/res/public_keys
+	mkdir -p $(MFM_ROOT_DIR)/res/public_keys/ && \
+	cp $$KEYPATH $(MFM_ROOT_DIR)/res/public_keys/
 
 burndemokey:	FORCE
 	$(MFZMAKEPATH) burn $(ULAMDEMOKEY)
