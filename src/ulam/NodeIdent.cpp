@@ -804,11 +804,21 @@ namespace MFM {
 	    else
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
+	else if(m_state.getUlamTypeByIndex(args.m_classInstanceIdx)->getUlamClassType() == UC_UNSEEN)
+	  {
+	    Locator cloc = cblock->getNodeLocation(); //or args.typeTok.m_locator??
+	    UTI huti = m_state.makeUlamTypeHolder();
+	    SymbolConstantValue * holderconstsym = new SymbolConstantValue(m_token, huti, m_state);
+	    assert(holderconstsym);
+	    holderconstsym->setBlockNoOfST(m_state.getLocalScopeBlock(cloc)->getNodeNo());
+	    m_state.addSymbolToLocalScope(holderconstsym, cloc); //or localscope? or def?
+	    asymptr = holderconstsym; //t3862
+	  }
 	else
 	  {
 	    // no class types for constants
 	    std::ostringstream msg;
-	    msg << "Named Constant '";
+	    msg << "Named constant '";
 	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
 	    msg << "' cannot be a class type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(args.m_classInstanceIdx).c_str();

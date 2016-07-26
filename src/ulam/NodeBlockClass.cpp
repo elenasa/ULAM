@@ -338,8 +338,24 @@ namespace MFM {
 	    msg << "' inherits from '";
 	    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
 	    msg << "', a class that's not a quark";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav);
+	    if(superclasstype == UC_UNSEEN)
+	      {
+		if(!m_state.statusUnknownTypeInThisClassResolver(superclasstype))
+		  {
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		    setNodeType(Hzy);
+		    m_state.setGoAgain(); //t3862
+		  }
+		else
+		  {
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		  }
+	      }
+	    else
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		setNodeType(Nav);
+	      }
 	  }
       } //done with inheritance checks, continue.
 

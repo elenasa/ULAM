@@ -1976,7 +1976,9 @@ namespace MFM {
 	    if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, tduti, tdscalaruti))
 	      {
 		ULAMTYPE bUT = m_state.getUlamTypeByIndex(tduti)->getUlamTypeEnum();
-		isaclass = (bUT == Class); //or Hzy or Holder?
+		isaclass |= (bUT == Class); //or Hzy or Holder?
+		if(isaclass && (bUT == Holder))
+		  m_state.makeClassFromHolder(tduti, typeTok); //t3862
 		return tduti; //done. (could be an array; or refselftype)
 	      }
 	    else

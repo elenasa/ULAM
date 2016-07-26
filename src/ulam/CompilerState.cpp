@@ -2397,10 +2397,10 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     getCurrentBlock()->addIdToScope(symptr->getId(), symptr);
   }
 
-  void CompilerState::addSymbolToLocalScope(Symbol * symptr)
+  void CompilerState::addSymbolToLocalScope(Symbol * symptr, Locator loc)
   {
     assert(symptr);
-    NodeBlockLocals * locals = makeLocalScopeBlock(getLocalScopeLocator());
+    NodeBlockLocals * locals = makeLocalScopeBlock(loc); //getLocalScopeLocator
     assert(locals);
 
     locals->addIdToScope(symptr->getId(), symptr);

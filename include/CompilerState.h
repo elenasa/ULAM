@@ -275,7 +275,7 @@ namespace MFM{
 
     bool isIdInCurrentScope(u32 id, Symbol *& asymptr);
     void addSymbolToCurrentScope(Symbol * symptr); //ownership goes to the block
-    void addSymbolToLocalScope(Symbol * symptr); //ownership goes to the m_localsPerFilePath ST
+    void addSymbolToLocalScope(Symbol * symptr, Locator loc); //ownership goes to the m_localsPerFilePath ST
     void addSymbolToCurrentMemberClassScope(Symbol * symptr); //making stuff up for member
     void replaceSymbolInCurrentScope(u32 oldid, Symbol * symptr); //same symbol, new id
     void replaceSymbolInCurrentScope(Symbol * oldsym, Symbol * newsym); //same id, new symbol
