@@ -123,7 +123,7 @@ for my $c (sort keys %categories) {
         die "Can't find '$src' -- are the tree dirs right?" unless -e "$src";
         next if -d $src;
         $src =~ s!^$indir/!! or die "Couldn't find '$indir' at front of '$src'\n";
-        my $cmd = "mkdir -p $outdir && cd $indir;cp --parents $src $outdir";
+        my $cmd = "mkdir -p $outdir && cd $indir;cp --parents '$src' $outdir";
         print " $c: $src $outdir..";
         my $res = `$cmd || echo -n \$?`;
         if ($res eq "") {
