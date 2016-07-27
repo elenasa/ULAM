@@ -275,7 +275,7 @@ namespace MFM{
     assert(gotInitVal);
 
     u32 uvals[ARRAY_LEN8K];
-    dval.ToArray(uvals); //the magic!
+    dval.ToArray(uvals); //the magic! (32-bit ints)
 
     u32 tmpvarnum = m_state.getNextTmpVarNumber();
     TMPSTORAGE nstor = nut->getTmpStorageTypeForTmpVar();
@@ -285,23 +285,52 @@ namespace MFM{
     //similar to CS::genCodeClassDefaultConstantArray,
     // except indentUlamCode, to a tmpvar, and no BitVector.
     m_state.indentUlamCode(fp);
-    fp->write("const u32 ");
-    fp->write(m_state.getTmpVarAsString(nuti, tmpvarnum, nstor).c_str());
-    fp->write("[");
-    fp->write_decimal_unsigned(nwords); // proper length == [nwords]
-    fp->write("] = { ");
+    fp->write("const ");
 
-    for(u32 w = 0; w < nwords; w++)
+    if(nut->getPackable() != PACKEDLOADABLE)
       {
-	std::ostringstream dhex;
-	dhex << "0x" << std::hex << uvals[w];
+	//exact size bitvector as 32-bit array, regardless of itemwordsize
+	fp->write("u32 ");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpvarnum, nstor).c_str());
+	fp->write("[");
+	fp->write_decimal_unsigned(nwords); // proper length == [nwords]
+	fp->write("] = { ");
 
-	if(w > 0)
-	  fp->write(", ");
+	for(u32 w = 0; w < nwords; w++)
+	  {
+	    std::ostringstream dhex;
+	      dhex << "0x" << std::hex << uvals[w];
+
+	    if(w > 0)
+	      fp->write(", ");
+
+	    fp->write(dhex.str().c_str());
+	  }
+	fp->write(" };"); GCNL;
+      }
+    else
+      {
+	//entire array packedloadable (t3863)
+	fp->write(nut->getTmpStorageTypeAsString().c_str()); //entire array, u32 or u64
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpvarnum, nstor).c_str());
+	fp->write(" = ");
+
+	std::ostringstream dhex;
+	if(nwords <= 1) //32
+	  {
+	    dhex << "0x" << std::hex << uvals[0];
+	  }
+	else if(nwords == 2) //64
+	  {
+	    dhex << "HexU64(" << "0x" << std::hex << uvals[0] << ", 0x" << std::hex << uvals[1] << ")";
+	  }
+	else
+	  assert(0);
 
 	fp->write(dhex.str().c_str());
+	fp->write(";"); GCNL;
       }
-    fp->write(" };"); GCNL;
 
     uvpass = UVPass::makePass(tmpvarnum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, varsym->getId());
   } //genCode
