@@ -988,6 +988,9 @@ namespace MFM {
     Node * condNode = parseConditionalExpr();
     if(!condNode)
       {
+	std::ostringstream msg;
+	msg << "Invalid if-condition"; //t3864
+	MSG(&ifTok, msg.str().c_str(), ERR);
 	m_state.popClassContext(); //the pop
 	delete rtnNode;
 	return NULL; //stop this maddness
@@ -1013,6 +1016,9 @@ namespace MFM {
 
     if(!trueNode)
       {
+	std::ostringstream msg;
+	msg << "Incomplete true block; if-control";
+	MSG(&ifTok, msg.str().c_str(), ERR);
 	delete condNode;
 	m_state.popClassContext(); //the pop
 	delete rtnNode;
@@ -1079,6 +1085,9 @@ namespace MFM {
     Node * condNode = parseConditionalExpr();
     if(!condNode)
       {
+	std::ostringstream msg;
+	msg << "Invalid while-condition";
+	MSG(&wTok, msg.str().c_str(), ERR);
 	m_state.popClassContext(); //the pop
 	delete rtnNode;
 	return NULL; //stop this maddness
@@ -1100,6 +1109,10 @@ namespace MFM {
 
     if(!trueNode)
       {
+	std::ostringstream msg;
+	msg << "Incomplete true block; while-control";
+	MSG(&wTok, msg.str().c_str(), ERR);
+
 	delete condNode;
 	m_state.popClassContext(); //the pop
 	delete rtnNode;
@@ -1177,6 +1190,9 @@ namespace MFM {
 
     if(pTok.m_type != TOK_SEMICOLON)
       {
+	std::ostringstream msg;
+	msg << "Malformed for-control";
+	MSG(&pTok, msg.str().c_str(), ERR);
 	m_state.popClassContext(); //where was it?
 	delete rtnNode;
 	delete declNode; //stop this maddness
@@ -1194,6 +1210,9 @@ namespace MFM {
 
 	if(!condNode)
 	  {
+	    std::ostringstream msg;
+	    msg << "Invalid for-condition";
+	    MSG(&qTok, msg.str().c_str(), ERR);
 	    m_state.popClassContext(); //where was it?
 	    delete rtnNode;
 	    delete declNode;
@@ -1228,6 +1247,10 @@ namespace MFM {
 	assignNode = parseAssignExpr();
 	if(!assignNode)
 	  {
+	    std::ostringstream msg;
+	    msg << "Malformed assignment; for-control";
+	    MSG(&rTok, msg.str().c_str(), ERR);
+
 	    m_state.popClassContext(); //where was it?
 	    delete rtnNode;
 	    delete declNode;
@@ -1258,6 +1281,10 @@ namespace MFM {
 
     if(!trueNode)
       {
+	std::ostringstream msg;
+	msg << "Incomplete true block; for-loop";
+	MSG(&rTok, msg.str().c_str(), ERR);
+
 	m_state.popClassContext(); //where was it?
 	delete rtnNode;
 	delete declNode;
