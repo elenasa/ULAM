@@ -711,6 +711,8 @@ namespace MFM {
 		return (cnsymOfIncomplete->hasMappedUTI(auti, mappedUTI));
 	      }
 	  }
+#if 0
+	//Type is not a Class, e.g. Unsigned, no lookup!
 	else if(aut->isScalar())
 	  {
 	    Symbol * symOfIncomplete = NULL;
@@ -722,6 +724,7 @@ namespace MFM {
 		return true;
 	      }
 	  }
+#endif
 	//else?
       } //not a holder
 
@@ -2020,7 +2023,7 @@ namespace MFM {
 
     NodeBlockClass * classblock = new NodeBlockClass(NULL, *this);
     assert(classblock);
-    classblock->setNodeLocation(cTok.m_locator);
+    //classblock->setNodeLocation(cTok.m_locator); only where first used, not defined!
     classblock->setNodeType(cuti);
 
     //avoid Invalid Read whenconstructing class' Symbol
@@ -2182,8 +2185,30 @@ namespace MFM {
     for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
       {
 	NodeBlockLocals * locals = it->second;
+	assert(locals);
+
+	Locator nloc = locals->getNodeLocation();
+	u32 pathidx = nloc.getPathIndex();
+	u32 nidFromLoc;
+
+	AssertBool isFileName = getClassNameFromFileName(m_pool.getDataAsString(pathidx), nidFromLoc);
+	assert(isFileName);
+
+	//get name-sake class UTI from node loc's path id
+	SymbolClassName * cnsym = NULL;
+	AssertBool isDefined = alreadyDefinedSymbolClassName(nidFromLoc, cnsym);
+	assert(isDefined);
+	NodeBlockClass * cblock = cnsym->getClassBlockNode();
+	assert(cblock);
+
+	UTI cuti = cnsym->getUlamTypeIdx();
+
+	pushClassContext(cuti, locals, cblock, false, NULL);
+
 	locals->updateLineage(0);
 	locals->checkAndLabelType();
+
+	popClassContext(); //restore
       }
   } //updateLineageAndFirstCheckAndLabelPassForLocals
 
@@ -2195,7 +2220,28 @@ namespace MFM {
     for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
       {
 	NodeBlockLocals * locals = it->second;
+
+	Locator nloc = locals->getNodeLocation();
+	u32 pathidx = nloc.getPathIndex();
+	u32 nidFromLoc;
+
+	AssertBool isFileName = getClassNameFromFileName(m_pool.getDataAsString(pathidx), nidFromLoc);
+	assert(isFileName);
+
+	//get name-sake class UTI from node loc's path id
+	SymbolClassName * cnsym = NULL;
+	AssertBool isDefined = alreadyDefinedSymbolClassName(nidFromLoc, cnsym);
+	assert(isDefined);
+	NodeBlockClass * cblock = cnsym->getClassBlockNode();
+	assert(cblock);
+
+	UTI cuti = cnsym->getUlamTypeIdx();
+
+	pushClassContext(cuti, locals, cblock, false, NULL);
+
 	locals->checkAndLabelType();
+
+	popClassContext(); //restore
       }
     return (!goAgain() && (m_err.getErrorCount() + m_err.getWarningCount() == 0));
   } //checkAndLabelPassForLocals

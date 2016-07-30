@@ -96,13 +96,28 @@ namespace MFM {
     // map incomplete UTI
     if(!m_state.isComplete(it)) //reloads to recheck
       {
-	std::ostringstream msg;
-	msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	msg << ", used with constant symbol name '";
-	msg << m_state.getTokenDataAsString(m_token).c_str() << "'";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	//wait until updateConstant tried.
+	UTI mappedUTI = it;
+	if(m_state.findaUTIAlias(it, mappedUTI))
+	  {
+	    std::ostringstream msg;
+	    msg << "REPLACE " << prettyNodeName().c_str() << " for type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    msg << ", used with alias type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    it = mappedUTI;
+	  }
+
+	if(!m_state.isComplete(it)) //reloads to recheck
+	  {
+	    std::ostringstream msg;
+	    msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    msg << ", used with constant symbol name '";
+	    msg << m_state.getTokenDataAsString(m_token).c_str() << "'";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    //wait until updateConstant tried.
+	  }
       }
 
     setNodeType(it);

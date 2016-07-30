@@ -1058,6 +1058,9 @@ namespace MFM {
     Node * condNode = parseConditionalExpr();
     if(!condNode)
       {
+	std::ostringstream msg;
+	msg << "Invalid if-condition"; //t3864
+	MSG(&ifTok, msg.str().c_str(), ERR);
 	m_state.popClassContext(); //the pop
 	delete rtnNode;
 	return NULL; //stop this maddness
@@ -1083,6 +1086,9 @@ namespace MFM {
 
     if(!trueNode)
       {
+	std::ostringstream msg;
+	msg << "Incomplete true block; if-control";
+	MSG(&ifTok, msg.str().c_str(), ERR);
 	delete condNode;
 	m_state.popClassContext(); //the pop
 	delete rtnNode;
@@ -1149,6 +1155,9 @@ namespace MFM {
     Node * condNode = parseConditionalExpr();
     if(!condNode)
       {
+	std::ostringstream msg;
+	msg << "Invalid while-condition";
+	MSG(&wTok, msg.str().c_str(), ERR);
 	m_state.popClassContext(); //the pop
 	delete rtnNode;
 	return NULL; //stop this maddness
@@ -1170,6 +1179,10 @@ namespace MFM {
 
     if(!trueNode)
       {
+	std::ostringstream msg;
+	msg << "Incomplete true block; while-control";
+	MSG(&wTok, msg.str().c_str(), ERR);
+
 	delete condNode;
 	m_state.popClassContext(); //the pop
 	delete rtnNode;
@@ -1247,6 +1260,9 @@ namespace MFM {
 
     if(pTok.m_type != TOK_SEMICOLON)
       {
+	std::ostringstream msg;
+	msg << "Malformed for-control";
+	MSG(&pTok, msg.str().c_str(), ERR);
 	m_state.popClassContext(); //where was it?
 	delete rtnNode;
 	delete declNode; //stop this maddness
@@ -1264,6 +1280,9 @@ namespace MFM {
 
 	if(!condNode)
 	  {
+	    std::ostringstream msg;
+	    msg << "Invalid for-condition";
+	    MSG(&qTok, msg.str().c_str(), ERR);
 	    m_state.popClassContext(); //where was it?
 	    delete rtnNode;
 	    delete declNode;
@@ -1298,6 +1317,10 @@ namespace MFM {
 	assignNode = parseAssignExpr();
 	if(!assignNode)
 	  {
+	    std::ostringstream msg;
+	    msg << "Malformed assignment; for-control";
+	    MSG(&rTok, msg.str().c_str(), ERR);
+
 	    m_state.popClassContext(); //where was it?
 	    delete rtnNode;
 	    delete declNode;
@@ -1328,6 +1351,10 @@ namespace MFM {
 
     if(!trueNode)
       {
+	std::ostringstream msg;
+	msg << "Incomplete true block; for-loop";
+	MSG(&rTok, msg.str().c_str(), ERR);
+
 	m_state.popClassContext(); //where was it?
 	delete rtnNode;
 	delete declNode;
@@ -2423,7 +2450,7 @@ namespace MFM {
 		SymbolTypedef * symtypedef = new SymbolTypedef(pTok, huti, Nav, m_state);
 		assert(symtypedef);
 		symtypedef->setBlockNoOfST(memberClassNode->getNodeNo());
-		m_state.addSymbolToCurrentMemberClassScope(symtypedef);
+		m_state.addSymbolToCurrentMemberClassScope(symtypedef); //not local scope
 		m_state.addUnknownTypeTokenToAClassResolver(mcuti, pTok, huti);
 		//these will fail: t3373-8, t3380-1,5, t3764, and t3379
 		//m_state.addUnknownTypeTokenToThisClassResolver(pTok, huti); //also, compiling this one
@@ -2489,6 +2516,20 @@ namespace MFM {
 	//possibly another class? go again..
 	parseTypeFromAnotherClassesTypedef(args, rtnb, numDots, rtnTypeDesc);
       }
+    else if(pTok.m_type == TOK_IDENTIFIER)
+      {
+	if(m_state.getUlamTypeByIndex(args.m_classInstanceIdx)->getUlamClassType() == UC_UNSEEN)
+	  {
+	    //UTI huti = m_state.makeUlamTypeHolder();
+	    //SymbolConstantValue * holderconstsym = new SymbolConstantValue(pTok, huti, m_state);
+	    //assert(holderconstsym);
+
+	    //holderconstsym->setBlockNoOfST(memberClassNode->getNodeNo());
+	    //m_state.addSymbolToCurrentMemberClassScope(holderconstsym); //not local scope
+	    //args.m_anothertduti = huti; //not a good name !!! t3862
+	    unreadToken();
+	  }
+      }
     else
       {
 	args.m_bitsize = UNKNOWNSIZE; //t.f. unknown bitsize or arraysize or both?
@@ -2499,6 +2540,57 @@ namespace MFM {
     m_state.popClassContext(); //restore
     return;
   } //parseTypeFromAnotherClassesTypedef
+
+  Node * Parser::parseNamedConstantFromAnotherClass(const TypeArgs& args)
+  {
+    //when a lower case ident comes after a Type ident, it must be a constant!
+    Node * rtnNode = NULL;
+    Token iTok;
+    getNextToken(iTok);
+    assert(iTok.m_type == TOK_IDENTIFIER);
+
+    // args.m_classInstanceIdx set up by parseTypeDescriptor and parseTypeFromAnotherClassesTypedef
+    if(args.m_classInstanceIdx != Nouti)
+      {
+	SymbolClass * acsym = NULL;
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(args.m_classInstanceIdx, acsym);
+	assert(isDefined);
+
+	NodeBlockClass * memberClassNode = acsym->getClassBlockNode();
+	assert(memberClassNode); //e.g. forgot the closing brace on quark def once; or UNSEEN
+
+	//set up compiler state to use the member class block for symbol searches
+	m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
+
+	Symbol * sym = NULL;
+	bool hazyKin = false; //don't care
+	if(!m_state.alreadyDefinedSymbol(iTok.m_dataindex, sym, hazyKin))
+	  {
+	    UlamType * acut = m_state.getUlamTypeByIndex(args.m_classInstanceIdx);
+	    if(acut->getUlamClassType() == UC_UNSEEN)
+	      {
+		UTI huti = m_state.makeUlamTypeHolder();
+		SymbolConstantValue * holderconstsym = new SymbolConstantValue(iTok, huti, m_state);
+		assert(holderconstsym);
+
+		holderconstsym->setBlockNoOfST(memberClassNode->getNodeNo());
+		m_state.addSymbolToCurrentMemberClassScope(holderconstsym); //not local scope
+		sym = holderconstsym;
+	      }
+	  }
+	//else defined
+
+	if(sym->isConstant()) // || sym->isModelParameter())
+	  {
+	    rtnNode = new NodeConstant(iTok, (SymbolConstantValue *) sym, m_state); //t3862
+	    assert(rtnNode);
+	    rtnNode->setNodeLocation(iTok.m_locator);
+	  }
+
+	m_state.popClassContext(); //restore
+      }
+    return rtnNode;
+  } //parseNamedConstantFromAnotherClass
 
   Node * Parser::parseReturn()
   {
@@ -2977,7 +3069,10 @@ namespace MFM {
 	    getNextToken(iTok);
 	    if(iTok.m_type == TOK_IDENTIFIER)
 	      {
-		rtnNode = makeConstdefSymbol(typeargs, iTok, typeNode);
+		unreadToken();
+		rtnNode = parseNamedConstantFromAnotherClass(typeargs);
+		delete typeNode;
+		typeNode = NULL;
 	      }
 	    else
 	      {
@@ -4371,10 +4466,14 @@ namespace MFM {
 		if((args.m_classInstanceIdx != Nouti))
 		  {
 		    assert(asymptr->isConstant());
-		    //from another class..all we need is a NodeConstant that refers to it
+		    //constant from another class..all we need is a NodeConstant that refers to it
 		    rtnNode = new NodeConstant(identTok, (SymbolWithValue *) asymptr, m_state);
 		    assert(rtnNode);
 		    rtnNode->setNodeLocation(identTok.m_locator);
+		    //constant from another class..RHS, not simply use of it..how do we know???
+		    // can we test if within a func def? then not localdef nor dm, but possibly local variable constant def,
+		    // rule: only non-localdef's can be referred to by ClassType.
+		    //assert(0); //t3862
 		  }
 		else
 		  {

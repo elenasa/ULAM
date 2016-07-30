@@ -15,7 +15,7 @@ Uq_System { <NOMAIN> }
 ##
 #>Soo.ulam
   ulam 2;
-local constant Unsigned(3) coosize = Foo.soosize;
+local constant Unsigned(3) coosize = Foo.coosize; //compileThisIdx is Empty
 quark Soo(Unsigned(3) v) {
   Unsigned(v) us = 4u;
   Bool check()
@@ -24,8 +24,8 @@ quark Soo(Unsigned(3) v) {
   }
   Bool func()
   {
-    typedef Foo.Soo3 Soo3;
-    if(self is Soo3) //uses its typedef from another class' local
+    //typedef Foo.Soo3 Soo3;
+    if(self is Soo(3u)) //uses its typedef from another class' local
       return check();
     return false;
   }
@@ -36,6 +36,7 @@ quark Soo(Unsigned(3) v) {
 local constant Unsigned(3) soosize = 3u;
 local typedef Soo(soosize) Soo3;
 element Foo : Soo3 {
+  constant Unsigned(3) coosize = soosize; //local.soosize
   Bool(7) sp;
   Unsigned a = 73;
   Int test() {

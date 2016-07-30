@@ -152,7 +152,6 @@ namespace MFM {
 	// if Nav, use token
 	UTI mappedUTI = nuti;
 	UTI cuti = m_state.getCompileThisIdx();
-
 	// the symbol associated with this type, was mapped during instantiation
 	// since we're call AFTER that (not during), we can look up our
 	// new UTI and pass that on up the line of NodeType Selects, if any.
