@@ -2067,7 +2067,7 @@ namespace MFM {
 
     NodeBlockClass * classblock = new NodeBlockClass(NULL, *this);
     assert(classblock);
-    classblock->setNodeLocation(cTok.m_locator);
+    //classblock->setNodeLocation(cTok.m_locator); only where first used, not defined!
     classblock->setNodeType(cuti);
 
     //avoid Invalid Read whenconstructing class' Symbol

@@ -369,8 +369,9 @@ namespace MFM {
 	NodeBlock * prevBlock = m_state.getCurrentBlock();
 	if(prevBlock != rtnNode)
 	  rtnNode->setPreviousBlockPointer(prevBlock);
+	rtnNode->setNodeLocation(identTok.m_locator); //missing
+	assert(utype == rtnNode->getNodeType());
       }
-
 
     //current, this block's symbol table added to parse tree stack
     //        for validating and finding scope of program/block variables
