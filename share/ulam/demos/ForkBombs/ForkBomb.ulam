@@ -7,7 +7,7 @@
   \author Dave Ackley
   \license public-domain
 */
-element FB {
+element ForkBomb {
   EventWindow ew;
   Void behave() {
     ew[1] = ew[0];

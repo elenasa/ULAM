@@ -123,7 +123,7 @@ for my $c (sort keys %categories) {
         die "Can't find '$src' -- are the tree dirs right?" unless -e "$src";
         next if -d $src;
         $src =~ s!^$indir/!! or die "Couldn't find '$indir' at front of '$src'\n";
-        my $cmd = "mkdir -p $outdir && cd $indir;cp --parents $src $outdir";
+        my $cmd = "mkdir -p $outdir && cd $indir;cp --parents '$src' $outdir";
         print " $c: $src $outdir..";
         my $res = `$cmd || echo -n \$?`;
         if ($res eq "") {
@@ -147,12 +147,23 @@ print "Categorical extraction complete\n";
 `cp -a $OUTPUT_DIR/ULAM/debian/ $OUTPUT_DIR/debian`;
 my @files = <$OUTPUT_DIR/debian/*>;
 
+sub xdsub {
+    my $string = shift;
+    $string =~ s/<XD:PKG_NAME>/$PACKAGE_NAME/g;
+    $string =~ s/<XD:MAGIC_PKG_VERSION>/$MAGIC_PACKAGE_VERSION/g;
+    $string =~ s/<XD:COMMENT[^>]*>//sg;
+    return $string;
+}
+
 # Replace .tmpl files
 foreach my $file (@files) {
     next if $file =~ /^[.]/;
     next if -d $file;
+
     my $ifile = $file;
     next unless ($file =~ s/[.]tmpl$//);
+    $file = xdsub($file);
+
     open(RF,"<$ifile") or die "$!";
     my $string;
     {
@@ -160,9 +171,7 @@ foreach my $file (@files) {
         $string = <RF>;
         close RF or die "$!";
     }
-    $string =~ s/<XD:PKG_NAME>/$PACKAGE_NAME/g;
-    $string =~ s/<XD:MAGIC_PKG_VERSION>/$MAGIC_PACKAGE_VERSION/g;
-    $string =~ s/<XD:COMMENT[^>]*>//sg;
+    $string = xdsub($string);
 
     open(WF,">$file") or die "$!";
     print WF $string;
@@ -173,6 +182,9 @@ foreach my $file (@files) {
 
 open(TOPMAKE,">$OUTPUT_DIR/Makefile") or die "$!";
 print TOPMAKE <<EOM;
+export DEBIAN_PACKAGE_NAME:=$PACKAGE_NAME
+export MAGIC_DEBIAN_PACKAGE_VERSION:=$MAGIC_PACKAGE_VERSION
+
 all:	FORCE
 	make -C MFM
 	make -C ULAM 

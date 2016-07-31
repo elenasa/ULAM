@@ -20,6 +20,7 @@ $(BUILD_DIR):
 
 $(BIN_DIR)/%: ./%.tmpl FORCE | $(BIN_DIR) # just always do this -- depends on ENV vars
 	sed \
+	    -e "s|@DEBIAN_PACKAGE_NAME@|$(DEBIAN_PACKAGE_NAME)|" \
 	    -e "s|@CULAM_PATH@|$(ULAM_ROOT_DIR)/bin/culam|" \
 	    -e "s|@ULAM_VERSION_MAJOR@|$(ULAM_VERSION_MAJOR)|" \
 	    -e "s|@ULAM_VERSION_MINOR@|$(ULAM_VERSION_MINOR)|" \
