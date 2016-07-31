@@ -287,7 +287,7 @@ namespace MFM {
   //extends use of addIncompleteClassSymbolToProgramTable, if seen before, but
   // didn't know it was a class; before resorting to AnonymousClass that may
   // never get resolved.
-  SymbolClassName * CompilerState::makeClassFromHolder(UTI huti, Token tok)
+  SymbolClassName * CompilerState::makeClassFromHolder(UTI huti, const Token& tok)
   {
     SymbolClassName * cnsym = NULL;
     if(hasUnknownTypeInThisClassResolver(huti))
@@ -352,7 +352,7 @@ namespace MFM {
 
   //convenience method (refactors code originally from installSymbol)
   //if exists, just returns it, o.w. makes it; trick to know the base ULAMTYPE
-  UTI CompilerState::makeUlamType(Token typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx, ALT reftype, ULAMCLASSTYPE classtype)
+  UTI CompilerState::makeUlamType(const Token& typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx, ALT reftype, ULAMCLASSTYPE classtype)
   {
     //type names begin with capital letter..and the rest can be either
     u32 typeNameId = getTokenAsATypeNameId(typeTok); //Foo, Int, etc
@@ -897,7 +897,7 @@ namespace MFM {
     return esmangled.str();
   } //getEffectiveSelfMangledNameByIndex
 
-  ULAMTYPE CompilerState::getBaseTypeFromToken(Token tok)
+  ULAMTYPE CompilerState::getBaseTypeFromToken(const Token& tok)
   {
     ULAMTYPE bUT = Nav;
     UTI uti = Nav;
@@ -925,7 +925,7 @@ namespace MFM {
     return bUT;
   } //getBaseTypeFromToken
 
-  UTI CompilerState::getUlamTypeFromToken(Token tok, s32 typebitsize, s32 arraysize)
+  UTI CompilerState::getUlamTypeFromToken(const Token& tok, s32 typebitsize, s32 arraysize)
   {
     UTI uti = Nav;
     UTI tmpforscalaruti = Nouti;
@@ -1897,7 +1897,7 @@ namespace MFM {
   } //alreadyDefinedSymbolClassAsHolder
 
   //temporary type name which will be updated during type labeling.
-  void CompilerState::addUnknownTypeTokenToAClassResolver(UTI cuti, Token tok, UTI huti)
+  void CompilerState::addUnknownTypeTokenToAClassResolver(UTI cuti, const Token& tok, UTI huti)
   {
     SymbolClass * csym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
@@ -1907,7 +1907,7 @@ namespace MFM {
   } //addUnknownTypeTokenToThisClassResolver
 
   //temporary type name which will be updated during type labeling.
-  void CompilerState::addUnknownTypeTokenToThisClassResolver(Token tok, UTI huti)
+  void CompilerState::addUnknownTypeTokenToThisClassResolver(const Token& tok, UTI huti)
   {
     addUnknownTypeTokenToAClassResolver(getCompileThisIdx(), tok, huti);
   } //addUnknownTypeTokenToThisClassResolver
@@ -1960,7 +1960,7 @@ namespace MFM {
     return removeIncompleteClassSymbolFromProgramTable(ntok);
   }
 
-  bool CompilerState::removeIncompleteClassSymbolFromProgramTable(Token nTok)
+  bool CompilerState::removeIncompleteClassSymbolFromProgramTable(const Token& nTok)
   {
     bool rtnb = false;
     u32 id = nTok.m_dataindex;
@@ -1989,7 +1989,7 @@ namespace MFM {
   } //removeIncompleteClassSymbolFromProgramTable
 
   //temporary UlamType which will be updated during type labeling.
-  bool CompilerState::addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr)
+  bool CompilerState::addIncompleteClassSymbolToProgramTable(const Token& cTok, SymbolClassName * & symptr)
   {
     u32 dataindex = cTok.m_dataindex;
     bool isNotDefined = (symptr == NULL) && !alreadyDefinedSymbolClassName(dataindex, symptr);
@@ -2024,7 +2024,7 @@ namespace MFM {
   } //addIncompleteClassSymbolToProgramTable
 
   //temporary UlamType which will be updated during type labeling.
-  bool CompilerState::addIncompleteTemplateClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr)
+  bool CompilerState::addIncompleteTemplateClassSymbolToProgramTable(const Token& cTok, SymbolClassNameTemplate * & symptr)
   {
     u32 dataindex = cTok.m_dataindex;
     AssertBool isNotDefined = ((symptr == NULL) && !alreadyDefinedSymbolClassNameTemplate(dataindex,symptr));
@@ -2074,7 +2074,7 @@ namespace MFM {
     return newstubcopyuti;
   } //addStubCopyToAncestorClassTemplate
 
-  void CompilerState::resetUnseenClass(SymbolClassName * cnsym, Token identTok)
+  void CompilerState::resetUnseenClass(SymbolClassName * cnsym, const Token& identTok)
   {
     if(m_unseenClasses.empty())
       return;
@@ -2355,7 +2355,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   }
 
   //Token to location as string:
-  const std::string CompilerState::getTokenLocationAsString(Token * tok)
+  const std::string CompilerState::getTokenLocationAsString(const Token * tok)
   {
     if(!tok)
       return std::string("");
@@ -2384,15 +2384,15 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return "";
   }
 
-  const std::string CompilerState::getTokenDataAsString(Token * tok)
+  const std::string CompilerState::getTokenDataAsString(const Token & tok)
   {
-    assert(tok);
-    if(tok->m_dataindex > 0)
+    //assert(tok);
+    if(tok.m_dataindex > 0)
       {
-	return m_pool.getDataAsString(tok->m_dataindex);
+	return m_pool.getDataAsString(tok.m_dataindex);
       }
     //return std::string(tok->getTokenString()); //VG: Invalid Read
-    return tok->getTokenStringFromPool(this);
+    return tok.getTokenStringFromPool(this);
   }
 
   std::string CompilerState::getDataAsStringMangled(u32 dataindex)
@@ -2404,7 +2404,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   } //getDataAsStringMangled
 
   //does it check for existence?
-  const std::string CompilerState::getTokenAsATypeName(Token tok)
+  const std::string CompilerState::getTokenAsATypeName(const Token& tok)
   {
     if(Token::isTokenAType(tok))
       {
@@ -2423,13 +2423,13 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 		return tdut->getUlamTypeNameOnly();
 	      }
 	    else
-	      return getTokenDataAsString(&tok); //a class
+	      return getTokenDataAsString(tok); //a class
 	  }
       }
     return "Nav";
   } //getTokenAsATypeName
 
-  u32 CompilerState::getTokenAsATypeNameId(Token tok)
+  u32 CompilerState::getTokenAsATypeNameId(const Token& tok)
   {
     std::string nstr = getTokenAsATypeName(tok);
     return m_pool.getIndexForDataString(nstr);
@@ -3233,14 +3233,14 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return labelname.str();
   } //getVFuncPtrTmpNumAsString
 
-  void CompilerState::saveIdentTokenForConditionalAs(Token iTok, Token cTok)
+  void CompilerState::saveIdentTokenForConditionalAs(const Token& iTok, const Token& cTok)
   {
     m_identTokenForConditionalAs = iTok;
     m_parsingConditionalToken = cTok;
     m_parsingConditionalAs = true; //cleared manually
   } //saveIdentTokenForConditionalAs
 
-  void CompilerState::saveStructuredCommentToken(Token scTok)
+  void CompilerState::saveStructuredCommentToken(const Token& scTok)
   {
     m_precedingStructuredCommentToken = scTok;
     m_gotStructuredCommentToken = true;

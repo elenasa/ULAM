@@ -59,9 +59,9 @@ namespace MFM{
     TypeArgs(const TypeArgs& tref);
     ~TypeArgs();
 
-    void init(Token typetoken);
+    void init(const Token& typetoken);
     TypeArgs& operator=(const TypeArgs& tref);
-    void setdeclref(Token ftoken, UTI referencedType);
+    void setdeclref(const Token& ftoken, UTI referencedType);
   };
 
 } //MFM

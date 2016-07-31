@@ -44,11 +44,11 @@ namespace MFM{
   class SymbolClassName : public SymbolClass
   {
   public:
-    SymbolClassName(Token id, UTI utype, NodeBlockClass * classblock, CompilerState& state);
+    SymbolClassName(const Token& id, UTI utype, NodeBlockClass * classblock, CompilerState& state);
 
     virtual ~SymbolClassName();
 
-    void resetUnseenClassLocation(Token identTok);
+    void resetUnseenClassLocation(const Token& identTok);
 
     virtual void setStructuredComment();
 

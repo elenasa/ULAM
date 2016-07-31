@@ -23,8 +23,8 @@ namespace MFM {
       }
     else if(bitsize <= MAXBITSPERLONG)
       {
-	m_wordLengthTotal = calcWordSizeLong(getTotalBitSize());
-	m_wordLengthItem = calcWordSizeLong(bitsize);
+	m_wordLengthTotal = calcWordSize(getTotalBitSize());
+	m_wordLengthItem = calcWordSize(bitsize);
 	m_max = _GetNOnes64((u64) bitsize);
 	m_min = 0;
       }

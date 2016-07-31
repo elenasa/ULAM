@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  SymbolClassNameTemplate::SymbolClassNameTemplate(Token id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClassName(id, utype, classblock, state)
+  SymbolClassNameTemplate::SymbolClassNameTemplate(const Token& id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClassName(id, utype, classblock, state)
   {
     //setParentClassTemplate(this);
   }
@@ -252,7 +252,7 @@ namespace MFM {
     return rtnpending;
   } //pendingClassArgumentsForStubClassInstance
 
-  SymbolClass * SymbolClassNameTemplate::makeAStubClassInstance(Token typeTok, UTI stubcuti)
+  SymbolClass * SymbolClassNameTemplate::makeAStubClassInstance(const Token& typeTok, UTI stubcuti)
   {
     NodeBlockClass * templateclassblock = getClassBlockNode();
     assert(templateclassblock);
@@ -298,7 +298,7 @@ namespace MFM {
   } //makeAStubClassInstance
 
   // no stub available to copy, may need placeholder args too (unused)
-  SymbolClass * SymbolClassNameTemplate::makeAStubClassInstanceHolder(Token typeTok, UTI suti)
+  SymbolClass * SymbolClassNameTemplate::makeAStubClassInstanceHolder(const Token& typeTok, UTI suti)
   {
     NodeBlockClass * templateclassblock = getClassBlockNode();
     assert(templateclassblock);

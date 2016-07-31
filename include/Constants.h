@@ -166,20 +166,17 @@ namespace MFM {
 #define calcWordSize(l) ((l / MAXBITSPERINT) * MAXBITSPERINT + ( (l % MAXBITSPERINT) > 0 ? MAXBITSPERINT : 0))
 
   /** Number of bits (rounded up to nearest 64 bits) required to
-      hold the bit size argument l */
+      hold the bit size argument l (no longer required since exact BitVector uses number of u32's) */
 #define calcWordSizeLong(l) ((l / MAXBITSPERLONG) * MAXBITSPERLONG + ( (l % MAXBITSPERLONG) > 0 ? MAXBITSPERLONG : 0))
 
 #define calcBitsizeSignedMax(l) (l == MAXBITSPERINT ? S32_MAX : ((1 << (l - 1)) - 1))
 #define calcBitsizeSignedMin(l) (l == MAXBITSPERINT ? S32_MIN : _SignExtend32((1 << (l - 1)), l))
-  //#define calcBitsizeSignedMin(l) (l == MAXBITSPERINT ? S32_MIN : (1 << (l - 1)))
 
 #define calcBitsizeUnsignedMax(l) (l == MAXBITSPERINT ? U32_MAX : (1u << l) - 1)
 #define calcBitsizeUnsignedMin(l) (0)
 
-
 #define calcBitsizeSignedMaxLong(l) (l == MAXBITSPERLONG ? S64_MAX : ((1 << (l - 1)) - 1))
 #define calcBitsizeSignedMinLong(l) (l == MAXBITSPERLONG ? S64_MIN : _SignExtend64((1 << (l - 1)), l))
-  //#define calcBitsizeSignedMinLong(l) (l == MAXBITSPERLONG ? S64_MIN : (1 << (l - 1)))
 
 #define calcBitsizeUnsignedMaxLong(l) (l == MAXBITSPERLONG ? U64_MAX : (1u << l) - 1)
 #define calcBitsizeUnsignedMinLong(l) (0)

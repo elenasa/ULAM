@@ -49,7 +49,7 @@ namespace MFM{
   class Symbol
   {
   public:
-    Symbol(Token id, UTI utype, CompilerState& state);
+    Symbol(const Token& id, UTI utype, CompilerState& state);
     Symbol(const Symbol& sref);
     Symbol(const Symbol& sref, bool keepType);
     virtual ~Symbol(); //abstract
@@ -57,7 +57,7 @@ namespace MFM{
     virtual Symbol * clone() = 0;
     virtual Symbol * cloneKeepsType();
 
-    void resetIdToken(Token newtok);
+    void resetIdToken(const Token& newtok);
     void setId(u32 newid);
 
     u32 getId();
@@ -81,7 +81,7 @@ namespace MFM{
 
     virtual bool isModelParameter();
 
-    void setAutoLocalType(Token cTok);
+    void setAutoLocalType(const Token& cTok);
     void setAutoLocalType(ALT alt);
     ALT getAutoLocalType();
     bool isAutoLocal();

@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-  NodeAtomof::NodeAtomof(Token tokof, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeStorageof(tokof, nodetype, state) { }
+  NodeAtomof::NodeAtomof(const Token& tokof, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeStorageof(tokof, nodetype, state) { }
 
   NodeAtomof::NodeAtomof(const NodeAtomof& ref) : NodeStorageof(ref) { }
 
@@ -49,7 +49,7 @@ namespace MFM {
 		if(!m_varSymbol->isDataMember())
 		  {
 		    std::ostringstream msg;
-		    msg << "<" << m_state.getTokenDataAsString(&m_token).c_str();
+		    msg << "<" << m_state.getTokenDataAsString(m_token).c_str();
 		    msg << "> is a quark and cannot be used with ";
 		    msg << getName() << "; try a reference or self";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -60,7 +60,7 @@ namespace MFM {
 		    UTI cuti = m_state.getCompileThisIdx();
 		    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 		    std::ostringstream msg;
-		    msg << "<" << m_state.getTokenDataAsString(&m_token).c_str();
+		    msg << "<" << m_state.getTokenDataAsString(m_token).c_str();
 		    msg << "> is a data member of ";
 		    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		    if(cut->getUlamClassType() == UC_QUARK)
@@ -79,7 +79,7 @@ namespace MFM {
 	    else if(ofut->getUlamClassType() == UC_TRANSIENT)
 	      {
 		std::ostringstream msg;
-		msg << "<" << m_state.getTokenDataAsString(&m_token).c_str();
+		msg << "<" << m_state.getTokenDataAsString(m_token).c_str();
 		msg << "> is a transient";
 		msg << "; Transients cannot be used with " << getName();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -89,7 +89,7 @@ namespace MFM {
 	else if(ofut->getUlamClassType() == UC_TRANSIENT)
 	  {
 	    std::ostringstream msg;
-	    msg << "<" << m_state.getTokenDataAsString(&m_token).c_str();
+	    msg << "<" << m_state.getTokenDataAsString(m_token).c_str();
 	    msg << "> is a transient";
 	    msg << "; Transients cannot be used with " << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

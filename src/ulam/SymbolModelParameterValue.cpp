@@ -3,7 +3,7 @@
 
 namespace MFM {
 
-  SymbolModelParameterValue::SymbolModelParameterValue(Token id, UTI utype, CompilerState & state) : SymbolWithValue(id, utype, state)
+  SymbolModelParameterValue::SymbolModelParameterValue(const Token& id, UTI utype, CompilerState & state) : SymbolWithValue(id, utype, state)
   {
     setDataMemberClass(m_state.getCompileThisIdx());
   }

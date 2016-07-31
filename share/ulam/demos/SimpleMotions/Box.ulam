@@ -1,8 +1,9 @@
 /**
-  Box is a demo element.
+  Box modifies the EventWindow symmetry to swap itself 
+  around the four sides of a box.
+
   \color #666
   \symbol Bx
-  \symmetries normal
 
   \author Xinyu Chen
   \author Dave Ackley
@@ -17,7 +18,7 @@ element Box{
   EventWindow ew;
 
   // Data members
-  Unsigned(2) ns;
+  Unsigned(2) ns; // Unsigned(2) for the first four symmetries
 
   Void behave(){
     ew.changeSymmetry((Symmetry) ns);

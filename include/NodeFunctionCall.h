@@ -49,7 +49,7 @@ namespace MFM{
   {
   public:
 
-    NodeFunctionCall(Token fname, SymbolFunction * fsym, CompilerState & state);
+    NodeFunctionCall(const Token& fname, SymbolFunction * fsym, CompilerState & state);
     NodeFunctionCall(const NodeFunctionCall& ref);
     virtual ~NodeFunctionCall();
 

@@ -46,7 +46,7 @@ namespace MFM{
   {
   public:
 
-    NodeTypeDescriptorArray(Token tokarg, UTI auti, NodeTypeDescriptor * scalarnode, CompilerState & state);
+    NodeTypeDescriptorArray(const Token& tokarg, UTI auti, NodeTypeDescriptor * scalarnode, CompilerState & state);
 
     NodeTypeDescriptorArray(const NodeTypeDescriptorArray& ref);
 

@@ -401,8 +401,21 @@ namespace MFM {
     if((uv.getUlamValueTypeIdx() == Hzy) || (nuti == Hzy))
       return false;
 
-    u32 data = uv.getImmediateData(len, m_state);
-    UlamValue rtnUV = makeImmediateUnaryOp(nuti, data, len);
+    UlamValue rtnUV;
+    u32 wordsize = m_state.getUlamTypeByIndex(nuti)->getTotalWordSize();
+    if(wordsize <= MAXBITSPERINT)
+      {
+	u32 data = uv.getImmediateData(len, m_state);
+	rtnUV = makeImmediateUnaryOp(nuti, data, len);
+      }
+    else if(wordsize <= MAXBITSPERLONG)
+      {
+	u64 data = uv.getImmediateDataLong(len, m_state); //t3849
+	rtnUV = makeImmediateLongUnaryOp(nuti, data, len);
+      }
+    else
+      assert(0);
+
     m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
     return true;
   } //dounaryopImmediate

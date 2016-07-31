@@ -1,0 +1,59 @@
+ulam 2;
+
+/** Interface used by WindowScanner.  Subclass SiteVisitor and define
+    visit() to create a custom scanner.
+
+   \author Dave Ackley
+   \license lgpl
+ */
+quark SiteVisitor {
+  typedef EventWindow.SiteNum SiteNum;
+  virtual Void visit(WindowScanner& ws, Atom & a, SiteNum sn) ;
+}
+
+use WindowScanner;
+use EventWindow;
+
+/** Sample SiteVisitor implementation.  SiteVisitorByType could be
+    used for functionality similar to \c WindowServices, though it is
+    not a drop-in replacemnt.
+
+    \sa WindowServices
+
+    \author Dave Ackley
+    \license lgpl
+ */
+transient SiteVisitorByType : SiteVisitor {
+  typedef EventWindow.SiteNum SiteNum;
+  AtomUtils au;
+
+  typedef Unsigned(16) ElementType;
+  typedef WindowScanner.Category Category;
+  constant Unsigned cCATEGORY_COUNT = Category.maxof + 1;// XXX Wish it was: WindowScanner.cCATEGORY_COUNT;
+
+  ElementType mType[cCATEGORY_COUNT];
+  Bool mInUse[cCATEGORY_COUNT];
+
+  Void reset() {
+    for (Unsigned i = 0; i < cCATEGORY_COUNT; ++i) 
+      unsetType((Category) i);
+  }
+  
+  Void setType(Category c, ElementType et) {
+    mType[c] = et;
+    mInUse[c] = true;
+  }
+
+  Void unsetType(Category c) {
+    mInUse[c] = false;
+    mType[c] = 0;
+  }
+
+  virtual Void visit(WindowScanner& wsrv, Atom & a, SiteNum sn) 
+  {
+    ElementType et = (ElementType) au.getType(a);
+    for (Unsigned i = 0; i < cCATEGORY_COUNT; ++i)
+      if (mInUse[i] && mType[i] == et)
+        wsrv.categorize(sn, (Category) i);
+  }
+}

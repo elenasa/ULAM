@@ -594,7 +594,15 @@ namespace MFM {
 	if(evs == NORMAL)
 	  {
 	    UlamValue arrayUV = m_state.m_nodeEvalStack.popArg();
-	    u32 arraysizedata = arrayUV.getImmediateData(m_state);
+	    u32 arraysizedata = 0;
+	    u32 wordsize = sizeut->getTotalWordSize();
+	    if(wordsize <= MAXBITSPERINT)
+	      arraysizedata = arrayUV.getImmediateData(m_state);
+	    else if(wordsize <= MAXBITSPERLONG)
+	      arraysizedata = (u32) arrayUV.getImmediateDataLong(m_state);
+	    else
+	      assert(0);
+
 	    newarraysize = sizeut->getDataAsCs32(arraysizedata);
 	    if(newarraysize < 0 && newarraysize != UNKNOWNSIZE) //NONARRAY or UNKNOWN
 	      {

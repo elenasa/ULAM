@@ -49,7 +49,7 @@ namespace MFM{
   public:
 
     NodeTerminal(CompilerState & state); //for NodeConstant
-    NodeTerminal(Token tok, CompilerState & state);
+    NodeTerminal(const Token& tok, CompilerState & state);
     NodeTerminal(s64 val, UTI utype, CompilerState & state);
     NodeTerminal(u64 val, UTI utype, CompilerState & state);
     NodeTerminal(const NodeTerminal& ref);
@@ -65,7 +65,7 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    virtual void constantFoldAToken(Token tok);
+    virtual void constantFoldAToken(const Token& tok);
 
     virtual bool isAConstant();
 
@@ -89,8 +89,10 @@ namespace MFM{
     virtual void genCodeReadIntoATmpVar(File * fp, UVPass & uvpass);
 
   private:
-    virtual bool setConstantValue(Token tok);
-    virtual UTI setConstantTypeForNode(Token tok);
+    ULAMTYPE m_etyp;
+
+    virtual bool setConstantValue(const Token& tok);
+    virtual UTI setConstantTypeForNode(const Token& tok);
 
     bool fitsInBits(UTI fituti);
     bool fitsInBits32(UTI fituti);

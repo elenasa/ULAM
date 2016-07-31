@@ -47,7 +47,7 @@ namespace MFM{
   class SymbolTmpRef : public Symbol
   {
   public:
-    SymbolTmpRef(Token id, UTI utype, CompilerState& state);
+    SymbolTmpRef(const Token& id, UTI utype, CompilerState& state);
     ~SymbolTmpRef();
 
     virtual Symbol * clone();

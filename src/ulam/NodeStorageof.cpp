@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-  NodeStorageof::NodeStorageof(Token tokof, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_token(tokof), m_varSymbol(NULL), m_oftype(Nouti), m_nodeTypeDesc(nodetype), m_currBlockNo(0)
+  NodeStorageof::NodeStorageof(const Token& tokof, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_token(tokof), m_varSymbol(NULL), m_oftype(Nouti), m_nodeTypeDesc(nodetype), m_currBlockNo(0)
   {
     Node::setNodeLocation(tokof.m_locator);
     Node::setStoreIntoAble(TBOOL_HAZY);
@@ -56,7 +56,7 @@ namespace MFM {
   void NodeStorageof::printPostfix(File * fp)
   {
     fp->write(" ");
-    fp->write(m_state.getTokenDataAsString(&m_token).c_str());
+    fp->write(m_state.getTokenDataAsString(m_token).c_str());
     fp->write(getName());
   }
 
@@ -136,7 +136,7 @@ namespace MFM {
 		    else
 		      {
 			std::ostringstream msg;
-			msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str();
+			msg << "(1) <" << m_state.getTokenDataAsString(m_token).c_str();
 			msg << "> is not a variable, and cannot be used as one with ";
 			msg << getName();
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -148,7 +148,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Unfound symbol variable for " << getName() << " '";
-		msg << m_state.getTokenDataAsString(&m_token).c_str();
+		msg << m_state.getTokenDataAsString(m_token).c_str();
 		msg << "'";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		nuti = Nav;
@@ -170,7 +170,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete Type for '";
-	    msg << m_state.getTokenDataAsString(&m_token).c_str();
+	    msg << m_state.getTokenDataAsString(m_token).c_str();
 	    msg << getName();
 	    msg << "'";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
@@ -184,7 +184,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Invalid non-class type provided: '";
-		msg << m_state.getTokenDataAsString(&m_token).c_str();
+		msg << m_state.getTokenDataAsString(m_token).c_str();
 		msg << getName();
 		msg << "'";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -195,7 +195,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Invalid non-scalar type provided: '";
-		msg << m_state.getTokenDataAsString(&m_token).c_str();
+		msg << m_state.getTokenDataAsString(m_token).c_str();
 		msg << getName();
 		msg << "'";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

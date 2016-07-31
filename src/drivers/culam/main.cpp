@@ -238,6 +238,9 @@ int main(int argc, char ** argv)
 
     const char * outdir = 0;
     bool noMoreSwitches = false;
+
+    ds.AddClassName("UrSelf.ulam"); //insure VTable order
+
     for (; argc > 0; --argc, ++argv)
       {
         const char * arg = argv[0];

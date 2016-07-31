@@ -65,6 +65,7 @@ namespace MFM{
     virtual UTI calcNodeType(UTI uti);
 
     virtual UlamValue makeImmediateUnaryOp(UTI type, u32 data, u32 len);
+    virtual UlamValue makeImmediateLongUnaryOp(UTI type, u64 data, u32 len);
 
   private:
 

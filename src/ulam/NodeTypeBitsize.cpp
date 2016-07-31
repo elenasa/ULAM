@@ -180,13 +180,21 @@ namespace MFM {
 	  newbitsize = UNKNOWNSIZE;
 	else
 	  {
-	    if(m_state.getBitSize(bituti) == UNKNOWNSIZE)
+	    UlamType * bitut = m_state.getUlamTypeByIndex(bituti);
+	    if(bitut->getBitSize() == UNKNOWNSIZE)
 	      newbitsize = bitUV.getImmediateData(MAXBITSPERINT, m_state); //use default
 	    else
-	      newbitsize = bitUV.getImmediateData(m_state);
-
+	      {
+		u32 wordsize = bitut->getTotalWordSize();
+		if(wordsize <= MAXBITSPERINT)
+		  newbitsize = bitUV.getImmediateData(m_state);
+		else if(wordsize <= MAXBITSPERLONG)
+		  newbitsize = (s32) bitUV.getImmediateDataLong(m_state);
+		else
+		  assert(0);
+	      }
 	    //prepare bitsize into C-format:
-	    newbitsize = m_state.getUlamTypeByIndex(bituti)->getDataAsCs32(newbitsize);
+	    newbitsize = bitut->getDataAsCs32(newbitsize);
 	  }
       }
 

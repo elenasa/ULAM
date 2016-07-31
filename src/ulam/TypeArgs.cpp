@@ -19,7 +19,7 @@ namespace MFM {
 
   TypeArgs::~TypeArgs() {}
 
-  void TypeArgs::init(Token typetoken)
+  void TypeArgs::init(const Token& typetoken)
   {
     m_typeTok = typetoken;
     m_bitsize = UNKNOWNSIZE;
@@ -48,7 +48,7 @@ namespace MFM {
     return *this;
   }
 
-  void TypeArgs::setdeclref(Token ftoken, UTI referencedType)
+  void TypeArgs::setdeclref(const Token& ftoken, UTI referencedType)
   {
     switch(ftoken.m_type)
       {

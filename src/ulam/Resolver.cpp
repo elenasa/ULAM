@@ -53,7 +53,7 @@ namespace MFM {
     m_unknownTypeTokens.clear();
   } //clearLeftoverUnknownTypeTokens
 
-  void Resolver::addUnknownTypeToken(Token tok, UTI huti)
+  void Resolver::addUnknownTypeToken(const Token& tok, UTI huti)
   {
     m_unknownTypeTokens.insert(std::pair<UTI, Token> (huti, tok));
   }
@@ -104,7 +104,7 @@ namespace MFM {
     return aok;
   } //statusUnknownType
 
-  bool Resolver::checkUnknownTypeToResolve(UTI huti, Token tok)
+  bool Resolver::checkUnknownTypeToResolve(UTI huti, const Token& tok)
   {
     bool aok = false;
     ULAMTYPE etyp = m_state.getBaseTypeFromToken(tok);
@@ -199,9 +199,9 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Undetermined Type: <";
-	    msg << m_state.getTokenDataAsString(&tok) << ">; ";
+	    msg << m_state.getTokenDataAsString(tok) << ">; ";
 	    msg << "Suggest 'use ";
-	    msg << m_state.getTokenDataAsString(&tok) << ";' if it's a class";
+	    msg << m_state.getTokenDataAsString(tok) << ";' if it's a class";
 	    msg << ", otherwise a typedef is needed";
 	    MSG(m_state.getTokenLocationAsString(&tok).c_str(), msg.str().c_str(), WAIT);
 	    aok = false;
@@ -229,9 +229,9 @@ namespace MFM {
 	Token tok = mit->second;
 	std::ostringstream msg;
 	msg << "Undetermined Type: <";
-	msg << m_state.getTokenDataAsString(&tok) << ">; ";
+	msg << m_state.getTokenDataAsString(tok) << ">; ";
 	msg << "Suggest 'use ";
-	msg << m_state.getTokenDataAsString(&tok) << ";' if it's a class";
+	msg << m_state.getTokenDataAsString(tok) << ";' if it's a class";
 	msg << ", otherwise a typedef is needed in ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_classUTI).c_str();
 	MSG(m_state.getTokenLocationAsString(&tok).c_str(), msg.str().c_str(), ERR);

@@ -33,7 +33,7 @@ namespace MFM {
     "* @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>\n"
     "*/\n\n";
 
-  SymbolClass::SymbolClass(Token id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false) /* default */, m_superClass(Nouti) {}
+  SymbolClass::SymbolClass(const Token& id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false) /* default */, m_superClass(Nouti) {}
 
   SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_superClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_superClass))
   {
@@ -369,7 +369,7 @@ namespace MFM {
     m_state.popClassContext(); //missing?
   } //testThisClass
 
-  void SymbolClass::addUnknownTypeTokenToClass(Token tok, UTI huti)
+  void SymbolClass::addUnknownTypeTokenToClass(const Token& tok, UTI huti)
   {
     if(!m_resolver)
       m_resolver = new Resolver(getUlamTypeIdx(), m_state);

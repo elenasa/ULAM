@@ -9,7 +9,7 @@
 
 namespace MFM {
 
-  NodeFunctionCall::NodeFunctionCall(Token tok, SymbolFunction * fsym, CompilerState & state) : Node(state), m_functionNameTok(tok), m_funcSymbol(fsym), m_argumentNodes(NULL)
+  NodeFunctionCall::NodeFunctionCall(const Token& tok, SymbolFunction * fsym, CompilerState & state) : Node(state), m_functionNameTok(tok), m_funcSymbol(fsym), m_argumentNodes(NULL)
   {
     m_argumentNodes = new NodeList(state);
     assert(m_argumentNodes);
@@ -62,7 +62,7 @@ namespace MFM {
 
   const char * NodeFunctionCall::getName()
   {
-    return m_state.getTokenDataAsString(&m_functionNameTok).c_str();
+    return m_state.getTokenDataAsString(m_functionNameTok).c_str();
   }
 
   const std::string NodeFunctionCall::prettyNodeName()
@@ -144,7 +144,7 @@ namespace MFM {
 	if(numFuncs == 0)
 	  {
 	    std::ostringstream msg;
-	    msg << "(1) <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
+	    msg << "(1) <" << m_state.getTokenDataAsString(m_functionNameTok).c_str();
 	    msg << "> has no defined function with " << numargs;
 	    msg << " matching argument type";
 	    if(numargs != 1)
@@ -171,7 +171,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Ambiguous matches (" << numFuncs << ") of function <";
-	    msg << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
+	    msg << m_state.getTokenDataAsString(m_functionNameTok).c_str();
 	    msg << "> called with " << numargs << " argument type";
 	    if(numargs != 1)
 	      msg << "s";
@@ -209,7 +209,7 @@ namespace MFM {
 		      {
 			std::ostringstream msg;
 			msg << "Invalid argument " << i + 1 << " to function <";
-			msg << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
+			msg << m_state.getTokenDataAsString(m_functionNameTok).c_str();
 			msg << ">; Cannot be used as a reference parameter";
 			if(argreferable == TBOOL_HAZY)
 			  {
@@ -230,7 +230,7 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "(2) <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
+	msg << "(2) <" << m_state.getTokenDataAsString(m_functionNameTok).c_str();
 	msg << "> is not a defined function, or cannot be safely called in this context";
 	if(hazyKin)
 	  {
@@ -336,7 +336,7 @@ namespace MFM {
 		  }
 
 		msg << " to function <";
-		msg << m_state.getTokenDataAsString(&m_functionNameTok).c_str() <<">";
+		msg << m_state.getTokenDataAsString(m_functionNameTok).c_str() <<">";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		argsWithCastErr.clear();
 	      }
@@ -583,7 +583,7 @@ namespace MFM {
     std::ostringstream msg;
     msg << "Eval of function calls as lefthand values is not currently supported.";
     msg << " Save the results of <";
-    msg << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
+    msg << m_state.getTokenDataAsString(m_functionNameTok).c_str();
     msg << "> to a variable, type: ";
     msg << m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str();
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -730,7 +730,7 @@ namespace MFM {
     if(!m_funcSymbol || !m_state.okUTItoContinue(getNodeType()))
       {
 	std::ostringstream msg;
-	msg << "(3) <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
+	msg << "(3) <" << m_state.getTokenDataAsString(m_functionNameTok).c_str();
 	msg << "> is not a fully resolved function definition; ";
 	msg << "A call to it cannot be generated in this context";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

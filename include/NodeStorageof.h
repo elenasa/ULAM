@@ -50,7 +50,7 @@ namespace MFM{
   {
   public:
 
-    NodeStorageof(Token tokof, NodeTypeDescriptor * nodetype, CompilerState & state);
+    NodeStorageof(const Token& tokof, NodeTypeDescriptor * nodetype, CompilerState & state);
 
     NodeStorageof(const NodeStorageof& ref);
 

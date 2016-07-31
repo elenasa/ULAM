@@ -3,7 +3,7 @@
 
 namespace MFM {
 
-  SymbolWithValue::SymbolWithValue(Token id, UTI utype, CompilerState & state) : Symbol(id, utype, state), m_isReady(false), m_hasInitVal(false), m_isReadyInitVal(false), m_classParameter(false), m_classArgument(false)
+  SymbolWithValue::SymbolWithValue(const Token& id, UTI utype, CompilerState & state) : Symbol(id, utype, state), m_isReady(false), m_hasInitVal(false), m_isReadyInitVal(false), m_classParameter(false), m_classArgument(false)
   {
     //m_constantValue.sval = 0;
     //m_initial.sval = 0;

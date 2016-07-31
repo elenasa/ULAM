@@ -604,6 +604,12 @@ namespace MFM {
     return UlamValue();
   }
 
+  UlamValue NodeCast::makeImmediateLongUnaryOp(UTI type, u64 data, u32 len)
+  {
+    assert(0); // n/a
+    return UlamValue();
+  }
+
   void NodeCast::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
     if(m_node)
