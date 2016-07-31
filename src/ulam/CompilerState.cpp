@@ -940,6 +940,10 @@ namespace MFM {
 	//no way to get the bUT, except to assume typeName is one of them?
 	bUT = UlamType::getEnumFromUlamTypeString(typeName.c_str()); //could be Element, etc.;
       }
+    else if(tok.m_type == TOK_KW_LOCALDEF)
+      {
+	bUT = LocalsFileScope;
+      }
     else
       {
 	//check for existing Class type
@@ -965,6 +969,11 @@ namespace MFM {
 	  {
 	    uti = makeUlamType(tok, typebitsize, arraysize, Nouti);
 	  }
+	else if(tok.m_type == TOK_KW_LOCALDEF)
+	  {
+	    UlamKeyTypeSignature lkey(tok.m_locator.getPathIndex(), 0); //bits 0
+	    uti = makeUlamType(lkey, LocalsFileScope, UC_NOTACLASS);
+	  }
 	else
 	  {
 	    //check for existing Class type
@@ -988,6 +997,11 @@ namespace MFM {
 	if(Token::getSpecialTokenWork(args.m_typeTok.m_type) == TOKSP_TYPEKEYWORD)
 	  {
 	    uti = makeUlamType(args.m_typeTok, args.m_bitsize, args.m_arraysize, Nouti);
+	  }
+	else if(args.m_typeTok.m_type == TOK_KW_LOCALDEF)
+	  {
+	    UlamKeyTypeSignature lkey(args.m_typeTok.m_locator.getPathIndex(), 0); //bits 0
+	    uti = makeUlamType(lkey, LocalsFileScope, UC_NOTACLASS);
 	  }
 	else
 	  {
@@ -1026,6 +1040,20 @@ namespace MFM {
 	    rtnBool = true;
 	  }
       }
+
+    if(rtnBool && isHolder(rtnType)) //t3861, t3862
+      {
+	Symbol * try2symptr = NULL;
+	//check local scope if class scope produces a holder
+	if(isIdInLocalFileScope(nameIdx, try2symptr))
+	  {
+	    UTI tuti = try2symptr->getUlamTypeIdx();
+	    assert(getUlamTypeByIndex(tuti)->getUlamTypeEnum() != Holder);
+	    rtnType = tuti;
+	    rtnScalarType = ((SymbolTypedef *) try2symptr)->getScalarUTI();
+	  }
+      }
+
     return rtnBool;
   } //getUlamTypeByTypedefName
 
@@ -2040,7 +2068,7 @@ namespace MFM {
 
     NodeBlockClass * classblock = new NodeBlockClass(NULL, *this);
     assert(classblock);
-    //classblock->setNodeLocation(cTok.m_locator); only where first used, not defined!
+    classblock->setNodeLocation(cTok.m_locator); //only where first used, not defined!
     classblock->setNodeType(cuti);
 
     //avoid Invalid Read whenconstructing class' Symbol
@@ -2067,7 +2095,7 @@ namespace MFM {
 
     NodeBlockClass * classblock = new NodeBlockClass(NULL, *this);
     assert(classblock);
-    //classblock->setNodeLocation(cTok.m_locator); only where first used, not defined!
+    classblock->setNodeLocation(cTok.m_locator); //only where first used, not defined!
     classblock->setNodeType(cuti);
 
     //avoid Invalid Read whenconstructing class' Symbol
@@ -2340,10 +2368,6 @@ namespace MFM {
     if(useMemberBlock())
       cblock = getCurrentMemberClassBlock();
 
-    Locator cloc;
-    if(cblock)
-      cloc = cblock->getNodeLocation(); //to check local scope
-
     while(!brtn && cblock)
       {
 	brtn = cblock->isIdInScope(dataindex,symptr); //returns symbol
@@ -2353,15 +2377,28 @@ namespace MFM {
 
     //search current class file scope only (not ancestors')
     if(!brtn)
-      brtn = isIdInLocalFileScope(cloc, dataindex, symptr); //local constant or typedef
+      brtn = isIdInLocalFileScope(dataindex, symptr); //local constant or typedef
 
     return brtn;
   } //isDataMemberIdInClassScope
 
-  bool CompilerState::isIdInLocalFileScope(Locator loc, u32 id, Symbol *& symptr)
+  bool CompilerState::isIdInLocalFileScope(u32 id, Symbol *& symptr)
   {
     bool brtn = false;
-    NodeBlockLocals * locals = getLocalScopeBlock(loc);
+
+    //start with the current class block and look up family tree
+    //until the 'variable id' is found.
+    NodeBlockContext * cblock = getContextBlock();
+
+    //substitute another selected class block to search for data member
+    if(useMemberBlock())
+      cblock = getCurrentMemberClassBlock();
+
+    Locator cloc;
+    if(cblock)
+      cloc = cblock->getNodeLocation(); //to check local scope
+
+    NodeBlockLocals * locals = getLocalScopeBlock(cloc);
     if(locals)
       brtn = locals->isIdInScope(id, symptr);
     return brtn;

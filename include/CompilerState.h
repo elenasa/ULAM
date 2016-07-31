@@ -267,7 +267,7 @@ namespace MFM{
     bool alreadyDefinedSymbolByAncestor(u32 dataindex, Symbol *& symptr, bool& hasHazyKin);
     bool alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isDataMemberIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
-    bool isIdInLocalFileScope(Locator loc, u32 id, Symbol *& symptr);
+    bool isIdInLocalFileScope(u32 id, Symbol *& symptr);
 
     bool isFuncIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isFuncIdInClassScopeNNO(NNO cnno, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);

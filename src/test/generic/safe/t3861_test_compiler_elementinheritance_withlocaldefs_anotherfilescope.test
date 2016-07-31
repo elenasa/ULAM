@@ -7,19 +7,19 @@
 ##
 #!
 Exit status: 3
-Ue_Foo : Soo(3u) { :< Unsigned(3) us(4u);  constant Unsigned(3) v = 3u; > Bool(7) sp(true);  Unsigned(32) a(3u);  Int(32) test() {  System s;  Foo f;  a f us . cast = s ( a )print . s ( a 4u cast == )assert . a 3u = s ( a )print . s ( a 3u cast == )assert . sp ( )func cast = s ( sp cast )assert . a cast return } }
+Ue_Foo : Soo(3u) { :< Unsigned(3) us(4u);  constant Unsigned(3) v = 3u; > constant Unsigned(3) soosize = 3u;  Bool(7) sp(true);  Unsigned(32) a(3u);  Int(32) test() {  System s;  Foo f;  a f us . cast = s ( a )print . s ( a 4u cast == )assert . a 3u = s ( a )print . s ( a 3u cast == )assert . sp ( )func cast = s ( sp cast )assert . a cast return } }
 Uq_Soo(Unsigned(3) v) { Unsigned(UNKNOWN) us(notready);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
-## test of local defs: different file scopes, CANNOT use locals from another class, informed by t3859
+## test of local defs: different file scopes, CANNOT use locals from another class, without "exporting" to class scope; informed by t3859
 ##
 #>Foo.ulam
   ulam 2;
 local constant Unsigned(3) soosize = 3u;
 local typedef Soo(soosize) Soo3;
 element Foo : Soo3 {
-  //constant Unsigned(3) soosize = local.soosize; //??
-  //typedef Soo3 local.Soo3; //??
+  constant Unsigned(3) soosize = local.soosize; //exported
+  typedef local.Soo3 Soo3; //exported
   Bool(7) sp;
   Unsigned a = 73;
   Int test() {
@@ -44,13 +44,12 @@ quark Soo(Unsigned(3) v) {
   Unsigned(v) us = 4u;
   Bool check()
   {
-    return us.sizeof == v; //Foo.soosize; //can't use another's local constant
+    return us.sizeof == Foo.soosize; //v; can't use another's local constant
   }
   Bool func()
   {
-    //typedef Foo.Soo3 Soo3;
-    //if(self is Soo3) //uses its typedef from another class' local
-    if(self is Soo(3u)) //can't use its typedef from another class' local
+    typedef Foo.Soo3 Soo3;
+    if(self is Soo3) //uses its typedef from another class' local
       return check();
     return false;
   }

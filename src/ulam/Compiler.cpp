@@ -139,7 +139,6 @@ namespace MFM {
 		    msg << "No class '";
 		    msg << m_state.m_pool.getDataAsString(compileThisId).c_str();
 		    msg << "' in <" << startstr.c_str() << ">";
-		    //errput->write(msg.str().c_str());
 		    NodeBlockClass * cblock = cnsym->getClassBlockNode();
 		    if(cblock)
 		      MSG(cblock->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

@@ -1698,6 +1698,40 @@ namespace MFM {
 	    typeNode = NULL;
 	  }
       }
+    else if(pTok.m_type == TOK_KW_LOCALDEF)
+      {
+	//assuming locals defined before they are referred to
+	NodeBlockLocals * locals = m_state.getLocalScopeBlock(pTok.m_locator);
+	if(!locals)
+	  {
+	    std::ostringstream msg;
+	    msg << "Keyword 'local' for file scope: ";
+	    msg << m_state.getPathFromLocator(pTok.m_locator).c_str();
+	    msg << "; has no defs";
+	    MSG(&pTok, msg.str().c_str(), ERR);
+	  }
+	else
+	  {
+	    Token dTok;
+	    getNextToken(dTok);
+	    if(dTok.m_type == TOK_DOT)
+	      {
+		m_state.pushClassContext(locals->getNodeType(), locals, locals, false, NULL);
+
+		rtnNode = parseTypedef(); //recurse (t3861, t3862)
+
+		m_state.popClassContext();
+	      }
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "Keyword 'local' for file scope: ";
+		msg << m_state.getPathFromLocator(pTok.m_locator).c_str();
+		msg << "; used incorrectly as a typedef Base (no dot)";
+		MSG(&pTok, msg.str().c_str(), ERR);
+	      }
+	  }
+      }
     else
       {
 	std::ostringstream msg;
@@ -2005,8 +2039,10 @@ namespace MFM {
 	      {
 		ULAMTYPE bUT = m_state.getUlamTypeByIndex(tduti)->getUlamTypeEnum();
 		isaclass |= (bUT == Class); //or Hzy or Holder?
-		if(isaclass && (bUT == Holder))
-		  m_state.makeClassFromHolder(tduti, typeTok); //t3862
+		if(isaclass && m_state.isHolder(tduti)) //(bUT == Holder))
+		  {
+		    m_state.makeClassFromHolder(tduti, typeTok); //t3862
+		  }
 		return tduti; //done. (could be an array; or refselftype)
 	      }
 	    else
@@ -2989,7 +3025,7 @@ namespace MFM {
 
     //if not eqop, parseRestOfBitExpression returns its arg
     return parseRestOfBitExpression(rtnNode);
-  } //parseExpression
+  } //parseBitExpression
 
   Node * Parser::parseEqExpression()
   {
@@ -2999,7 +3035,7 @@ namespace MFM {
 
     //if not compop, parseRestOfEqExpression returns its arg
     return parseRestOfEqExpression(rtnNode);
-  } //parseExpression
+  } //parseEqExpression
 
   Node * Parser::parseCompareExpression()
   {
@@ -3144,6 +3180,41 @@ namespace MFM {
       case TOK_CLOSE_PAREN:
       case TOK_COMMA: //for functionall args
 	unreadToken();
+	break;
+      case TOK_KW_LOCALDEF:
+	{
+	  //assuming locals defined before they are referred to
+	  NodeBlockLocals * locals = m_state.getLocalScopeBlock(pTok.m_locator);
+	  if(!locals)
+	    {
+	      std::ostringstream msg;
+	      msg << "Keyword 'local' for file scope: ";
+	      msg << m_state.getPathFromLocator(pTok.m_locator).c_str();
+	      msg << "; has no defs";
+	      MSG(&pTok, msg.str().c_str(), ERR);
+	    }
+	  else
+	    {
+	      Token dTok;
+	      getNextToken(dTok);
+	      if(dTok.m_type == TOK_DOT)
+		{
+		  m_state.pushClassContext(locals->getNodeType(), locals, locals, false, NULL);
+
+		  rtnNode = parseFactor(); //recurse (t3861, t3862)
+
+		  m_state.popClassContext();
+		}
+	      else
+		{
+		  std::ostringstream msg;
+		  msg << "Keyword 'local' for file scope: ";
+		  msg << m_state.getPathFromLocator(pTok.m_locator).c_str();
+		  msg << "; used incorrectly as a factor (no dot)";
+		  MSG(&pTok, msg.str().c_str(), ERR);
+		}
+	    }
+	}
 	break;
       case TOK_ERROR_LOWLEVEL:
 	{
