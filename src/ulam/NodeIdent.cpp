@@ -71,8 +71,9 @@ namespace MFM {
     if(!m_varSymbol)
       {
 	//is it a constant within the member?
-	NodeBlockClass * memberclass = m_state.getClassBlock();
+	NodeBlockContext * memberclass = m_state.getContextBlock();
 	assert(memberclass);
+
 	m_state.pushCurrentBlock(memberclass);
 
 	Symbol * asymptr = NULL;
@@ -730,19 +731,10 @@ namespace MFM {
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.
     UTI holdUTIForAlias = Nouti;
-    if((args.m_classInstanceIdx == Nouti) && m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr))
+    if(m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr))
       {
 	if(m_state.isHolder(asymptr->getUlamTypeIdx()))
-	  {
-	    //remove it! then continue..
-	    Symbol * rmsym = NULL;
-	    if(m_state.getCurrentBlock()->removeIdFromScope(m_token.m_dataindex, rmsym))
-	      {
-		assert(rmsym == asymptr); //sanity check removal
-		holdUTIForAlias = rmsym->getUlamTypeIdx(); //t3862
-		asymptr = NULL;
-	      }
-	  }
+	  holdUTIForAlias = asymptr->getUlamTypeIdx(); //t3862
 	else
 	  return false; //already there
       }
@@ -752,32 +744,7 @@ namespace MFM {
     UTI uti = Nav;
     UTI tdscalaruti = Nav;
 
-    if(args.m_classInstanceIdx != Nouti)
-      {
-	NodeBlockClass * cblock = m_state.getAClassBlock(args.m_classInstanceIdx);
-	assert(cblock);
-	m_state.pushClassContextUsingMemberClassBlock(cblock);
-
-	Symbol * aconstsym = NULL;
-	bool hazykin = false;
-	if(m_state.isDataMemberIdInClassScope(m_token.m_dataindex, aconstsym, hazykin))
-	  {
-	    std::ostringstream msg;
-	    msg << "Named Constant '";
-	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
-	    msg << "' is defined in class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(args.m_classInstanceIdx).c_str();
-	    msg << "; use a variable to access it"; //really? that's the best we can do???? t3861
-	    if(aconstsym->isConstant())
-	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		asymptr = aconstsym;
-	      }
-	    else
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  }
-      }
-    else if(args.m_anothertduti != Nouti)
+    if(args.m_anothertduti != Nouti)
       {
 	if(checkConstantTypedefSizes(args, args.m_anothertduti))
 	  {
@@ -808,56 +775,6 @@ namespace MFM {
 	uti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, NONARRAYSIZE, Nouti);
 	brtn = true;
       }
-#if 0
-    else if(args.m_classInstanceIdx != Nouti)
-      {
-	NodeBlockClass * cblock = m_state.getAClassBlock(args.m_classInstanceIdx);
-	assert(cblock);
-	m_state.pushClassContextUsingMemberClassBlock(cblock);
-
-	Symbol * aconstsym = NULL;
-	bool hazykin = false;
-	if(m_state.isDataMemberIdInClassScope(m_token.m_dataindex, aconstsym, hazykin))
-	  {
-	    std::ostringstream msg;
-	    msg << "Named Constant '";
-	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
-	    msg << "' is defined in class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(args.m_classInstanceIdx).c_str();
-	    msg << "; use a variable to access it"; //really? that's the best we can do???? t3861
-	    if(aconstsym->isConstant())
-	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		asymptr = aconstsym;
-	      }
-	    else
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  }
-	else if(m_state.getUlamTypeByIndex(args.m_classInstanceIdx)->getUlamClassType() == UC_UNSEEN)
-	  {
-	    UTI huti = m_state.makeUlamTypeHolder();
-	    SymbolConstantValue * holderconstsym = new SymbolConstantValue(m_token, huti, m_state);
-	    assert(holderconstsym);
-
-	    Locator cloc = cblock->getNodeLocation(); //or args.typeTok.m_locator??
-	    holderconstsym->setBlockNoOfST(m_state.getLocalScopeBlock(cloc)->getNodeNo());
-	    m_state.addSymbolToLocalScope(holderconstsym, cloc); //or localscope? or def?
-	    asymptr = holderconstsym; //t3862
-	  }
-	else
-	  {
-	    // no class types for constants
-	    std::ostringstream msg;
-	    msg << "Named constant '";
-	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
-	    msg << "' cannot be a class type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(args.m_classInstanceIdx).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  }
-	m_state.popClassContext();
-      }
-#endif
-
     else
       {
 	// no class types for constants
@@ -871,9 +788,18 @@ namespace MFM {
 
     if(brtn)
       {
-	//create a symbol for this new named constant, a constant-def, with its value
-	SymbolConstantValue * symconstdef = new SymbolConstantValue(m_token, uti, m_state);
-	m_state.addSymbolToCurrentScope(symconstdef);
+	if(!asymptr)
+	  {
+	    //create a symbol for this new named constant, a constant-def, with its value
+	    SymbolConstantValue * symconstdef = new SymbolConstantValue(m_token, uti, m_state);
+	    m_state.addSymbolToCurrentScope(symconstdef);
+	  }
+	else
+	  {
+	    UlamType * newut = m_state.getUlamTypeByIndex(uti);
+	    UlamKeyTypeSignature newkey = newut->getUlamKeyTypeSignature();
+	    m_state.makeUlamTypeFromHolder(newkey, newut->getUlamTypeEnum(), holdUTIForAlias, newut->getUlamClassType());
+	  }
 
 	if(holdUTIForAlias != Nouti)
 	  m_state.updateUTIAliasForced(holdUTIForAlias, uti); //t3862

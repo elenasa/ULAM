@@ -2516,24 +2516,10 @@ namespace MFM {
 	//possibly another class? go again..
 	parseTypeFromAnotherClassesTypedef(args, rtnb, numDots, rtnTypeDesc);
       }
-    else if(pTok.m_type == TOK_IDENTIFIER)
-      {
-	if(m_state.getUlamTypeByIndex(args.m_classInstanceIdx)->getUlamClassType() == UC_UNSEEN)
-	  {
-	    //UTI huti = m_state.makeUlamTypeHolder();
-	    //SymbolConstantValue * holderconstsym = new SymbolConstantValue(pTok, huti, m_state);
-	    //assert(holderconstsym);
-
-	    //holderconstsym->setBlockNoOfST(memberClassNode->getNodeNo());
-	    //m_state.addSymbolToCurrentMemberClassScope(holderconstsym); //not local scope
-	    //args.m_anothertduti = huti; //not a good name !!! t3862
-	    unreadToken();
-	  }
-      }
     else
       {
 	args.m_bitsize = UNKNOWNSIZE; //t.f. unknown bitsize or arraysize or both?
-	unreadToken(); //put the whatever came after the dot (e.g. 'sizeof') back
+	unreadToken(); //put the whatever came after the dot (e.g. 'sizeof', name constant) back
 	rtnb = false;
       }
 
@@ -3921,7 +3907,9 @@ namespace MFM {
 
     //all functions are defined in this "class" block; or external 'use' for declarations.
     //this is a block with its own ST
-    NodeBlockClass * currClassBlock = m_state.getClassBlock();
+    NodeBlockContext * cblock = m_state.getContextBlock();
+    assert(cblock && cblock->isAClassBlock());
+    NodeBlockClass * currClassBlock = (NodeBlockClass *) cblock;
     NodeBlock * prevBlock = m_state.getCurrentBlock();
     if(prevBlock != currClassBlock)
       {
@@ -4248,7 +4236,11 @@ namespace MFM {
     //ask current scope class block if this identifier name is there (no embedded funcs)
     //(checks functions and variables and typedefs); if not a function, BAIL;
     //check for overloaded function, after parameter types available
-    if(m_state.getClassBlock()->isIdInScope(identTok.m_dataindex,asymptr) && !asymptr->isFunction())
+    NodeBlockContext * cblock = m_state.getContextBlock();
+    assert(cblock && cblock->isAClassBlock());
+    NodeBlockClass * currClassBlock = (NodeBlockClass *) cblock;
+
+    if(currClassBlock->isIdInScope(identTok.m_dataindex,asymptr) && !asymptr->isFunction())
       {
 	std::ostringstream msg;
 	msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
@@ -4463,27 +4455,12 @@ namespace MFM {
 	  {
 	    if(asymptr)
 	      {
-		if((args.m_classInstanceIdx != Nouti))
-		  {
-		    assert(asymptr->isConstant());
-		    //constant from another class..all we need is a NodeConstant that refers to it
-		    rtnNode = new NodeConstant(identTok, (SymbolWithValue *) asymptr, m_state);
-		    assert(rtnNode);
-		    rtnNode->setNodeLocation(identTok.m_locator);
-		    //constant from another class..RHS, not simply use of it..how do we know???
-		    // can we test if within a func def? then not localdef nor dm, but possibly local variable constant def,
-		    // rule: only non-localdef's can be referred to by ClassType.
-		    //assert(0); //t3862
-		  }
-		else
-		  {
-		    std::ostringstream msg;
-		    msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
-		    msg << " has a previous declaration as '";
-		    msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
-		    msg << "' and cannot be used as a named constant";
-		    MSG(&args.m_typeTok, msg.str().c_str(), ERR);
-		  }
+		std::ostringstream msg;
+		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
+		msg << " has a previous declaration as '";
+		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
+		msg << "' and cannot be used as a named constant";
+		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
 	      }
 	    else
 	      {
@@ -5349,6 +5326,11 @@ namespace MFM {
     UlamKeyTypeSignature hkey(m_state.m_pool.getIndexForDataString("0Holder"), UNKNOWNSIZE);
     AssertBool isHolder = (m_state.makeUlamType(hkey, Holder, UC_NOTACLASS) == Holder);
     assert(isHolder);
+
+    //UTI for local defs within the scope of an ulam file; first one is UrSelf.ulam
+    UlamKeyTypeSignature lkey(m_state.m_pool.getIndexForDataString("UrSelf.ulam"), ULAMTYPE_DEFAULTBITSIZE[LocalsFileScope]); //bits 0
+    AssertBool isLocalsFileScope = (m_state.makeUlamType(lkey, LocalsFileScope, UC_NOTACLASS) == LocalsFileScope);
+    assert(isLocalsFileScope);
 
     //a Ptr for absolute indexing (i.e. reference class params) in eval; comes after Holder. (ALT_PTR not really used)
     UlamKeyTypeSignature apkey(m_state.m_pool.getIndexForDataString("0Ptr"), ULAMTYPE_DEFAULTBITSIZE[Ptr], NONARRAYSIZE, ALT_PTR);

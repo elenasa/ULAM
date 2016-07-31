@@ -538,7 +538,7 @@ namespace MFM {
 		    assert(classblock);
 
 		    //a class cannot contain a copy of itself!
-		    if(classblock == m_state.getClassBlock())
+		    if(classblock == m_state.getContextBlock())
 		      {
 			UTI suti = csym->getUlamTypeIdx();
 			std::ostringstream msg;

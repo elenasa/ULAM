@@ -2121,7 +2121,18 @@ namespace MFM {
     u32 castId = m_state.m_pool.getIndexForDataString("_toIntHelper");
     Token funcidentTok(TOK_IDENTIFIER, loc, castId);
 
-    NodeBlockClass * currClassBlock = m_state.getClassBlock();
+    NodeBlockContext * cblock = m_state.getContextBlock();
+    if(!cblock->isAClassBlock())
+      {
+	std::ostringstream msg;
+	msg << "Attempting to build a casting function call '";
+	msg << m_state.m_pool.getDataAsString(castId);
+	msg << "' outside a class scope" ;
+	MSG(&funcidentTok, msg.str().c_str(), DEBUG);
+	return false;
+      }
+
+    NodeBlockClass * currClassBlock = (NodeBlockClass *) cblock;
 
     //make the function def, with node (quark) type as its param, returns Int (always)
     SymbolFunction * fsymptr = new SymbolFunction(funcidentTok, Int /*tobeType*/, m_state);

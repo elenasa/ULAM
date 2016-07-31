@@ -50,6 +50,7 @@
 #include "UEventWindow.h"
 #include "File.h"
 #include "NodeBlock.h"
+#include "NodeBlockContext.h"
 #include "NodeBlockLocals.h"
 #include "NodeCast.h"
 #include "NodeConstantDef.h"
@@ -424,6 +425,8 @@ namespace MFM{
     bool isParsingLocalDef();
     Locator getLocalScopeLocator();
     NodeBlockLocals * getLocalScopeBlock(Locator loc);
+    NodeBlockLocals * getLocalScopeBlockByIndex(UTI luti);
+    NodeBlockLocals * getLocalScopeBlockByPathId(u32 pathid);
     NodeBlockLocals * makeLocalScopeBlock(Locator loc);
 
     /** to identify each node */
@@ -449,15 +452,15 @@ namespace MFM{
 
     NNO getCurrentBlockNo();
 
-    NodeBlockClass * getClassBlock();
+    NodeBlockContext * getContextBlock();
 
-    NNO getClassBlockNo();
+    NNO getContextBlockNo();
 
     bool useMemberBlock();
 
     NodeBlockClass * getCurrentMemberClassBlock();
 
-    void pushClassContext(UTI idx, NodeBlock * currblock, NodeBlockClass * classblock, bool usemember, NodeBlockClass * memberblock);
+    void pushClassContext(UTI idx, NodeBlock * currblock, NodeBlockContext * contextblock, bool usemember, NodeBlockClass * memberblock);
 
     void popClassContext();
 
@@ -481,6 +484,7 @@ namespace MFM{
     bool isPtr(UTI puti);
     bool isAtom(UTI auti);
     bool isAtomRef(UTI auti);
+    bool isAClass(UTI uti);
     bool isASeenClass(UTI cuti);
     bool isAnonymousClass(UTI cuti);
     void saveUrSelf(UTI uti);

@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
- * NodeBlockLocals.h - Node for handling Local Defs for ULAM
+ * NodeBlockContext.h - Basic handling of Contexts for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2016 The Regents of the University of New Mexico.
+ * Copyright (C) 2016 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -26,49 +26,37 @@
  */
 
 /**
-  \file NodeBlockLocals.h - Node for handling Local Defs for ULAM
+  \file NodeBlockContext.h - Basic handling of Contexts for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2016 All rights reserved.
   \gpl
 */
 
 
-#ifndef NODEBLOCKLOCALS_H
-#define NODEBLOCKLOCALS_H
+#ifndef NODEBLOCKCONTEXT_H
+#define NODEBLOCKCONTEXT_H
 
-#include "NodeBlockContext.h"
+#include "NodeBlock.h"
 
 
 namespace MFM{
 
-  class NodeBlockLocals : public NodeBlockContext
+  class NodeBlockContext : public NodeBlock
   {
   public:
 
-    NodeBlockLocals(NodeBlock * prevBlockNode, CompilerState & state);
+    NodeBlockContext(NodeBlock * prevBlockNode, CompilerState & state);
 
-    NodeBlockLocals(const NodeBlockLocals& ref);
+    NodeBlockContext(const NodeBlockContext& ref);
 
-    virtual ~NodeBlockLocals();
-
-    virtual Node * instantiate();
-
-    virtual void printPostfix(File * fp);
+    virtual ~NodeBlockContext();
 
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
 
-    virtual bool isAClassBlock();
-
-    void appendNextNode(Node * node);
-
-    virtual UTI checkAndLabelType();
-
-    virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
-
-    virtual void genCode(File * fp, UVPass& uvpass);
+    virtual bool isAClassBlock() = 0;
 
 
   protected:
@@ -76,10 +64,9 @@ namespace MFM{
 
   private:
 
-    NodeStatements * m_nodeEndingStmt; //ptr to last statement node while parsing.
 
   };
 
 }
 
-#endif //end NODEBLOCKLOCALS_H
+#endif //end NODEBLOCKCONTEXT_H

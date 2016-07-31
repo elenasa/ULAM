@@ -230,7 +230,7 @@ namespace MFM {
 	    msg << errCnt << " Errors found during resolving loop --- ";
 	    msg << "possible INCOMPLETE (or Template) class detected --- ";
 	    msg << "after " << infcounter << " iterations";
-	    MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    MSG(m_state.getContextBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    //note: not an error because template uses with deferred args remain unresolved; however,
 	    // context reveals if stub was needed by a template and not included.
 	    break;
@@ -283,7 +283,7 @@ namespace MFM {
 		msg << "Incomplete calc of max index for virtual functions --- ";
 		msg << "possible INCOMPLETE Super class detected ---";
 		msg << " after " << infcounter2 << " iterations";
-		MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		MSG(m_state.getContextBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		break;
 	      }
 	    else if(infcounter2 == MAX_ITERATIONS) //last time
@@ -334,7 +334,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << navcount << " Nodes with erroneous types detected after type labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	MSG(m_state.getContextBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     //else
     //assert(errCnt == 0); //e.g. error/t3644 (not sure what to do about it, error discovery too deep)
@@ -349,7 +349,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	// if we had such a thing:
 	//msg << ". Supplying --info on command line will provide additional internal details";
-	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	MSG(m_state.getContextBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     else
       assert(!m_state.goAgain()); //t3740 (resets Hzy to Nav);
@@ -359,7 +359,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << unsetcount << " Nodes with unset types detected after type labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+	MSG(m_state.getContextBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
       }
 
     u32 warns = m_state.m_err.getWarningCount();
@@ -367,7 +367,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << warns << " warning" << (warns > 1 ? "s " : " ") << "during type labeling";
-	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+	MSG(m_state.getContextBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
       }
 
     errCnt = m_state.m_err.getErrorCount();
@@ -375,7 +375,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << errCnt << " TOO MANY TYPELABEL ERRORS";
-	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+	MSG(m_state.getContextBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
       }
 
     // testing targetmap only (matches code in main.cpp)

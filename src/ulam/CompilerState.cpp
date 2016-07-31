@@ -12,6 +12,7 @@
 #include "UlamTypeClassTransient.h"
 #include "UlamTypeInternalHolder.h"
 #include "UlamTypeInternalHzy.h"
+#include "UlamTypeInternalLocalsFileScope.h"
 #include "UlamTypeInternalNav.h"
 #include "UlamTypeInternalNouti.h"
 #include "UlamTypeInternalPtr.h"
@@ -564,6 +565,9 @@ namespace MFM {
       case Holder:
 	ut = new UlamTypeInternalHolder(key, *this);
 	break;
+      case LocalsFileScope:
+	ut = new UlamTypeInternalLocalsFileScope(key, *this);
+	break;
       default:
 	{
 	  std::ostringstream msg;
@@ -657,6 +661,12 @@ namespace MFM {
   // no side-effects, except to 3rd arg when return is true.
   bool CompilerState::mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI)
   {
+    if(!isAClass(cuti))
+      {
+	//a local scope (t3862)
+	return findaUTIAlias(auti, mappedUTI);
+      }
+
     SymbolClass * csym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
@@ -841,13 +851,17 @@ namespace MFM {
 
   void CompilerState::mapTypesInCurrentClass(UTI fm, UTI to)
   {
+    UTI cuti = getCompileThisIdx();
+    if(!isAClass(cuti))
+      return; //a local def, skip
+
     if(getReferenceType(to) != ALT_NOT)
       return; //only a reference to a class type, skip
 
     SymbolClassName * cnsym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClassName(getCompileThisId(), cnsym);
     assert(isDefined);
-    cnsym->mapInstanceUTI(getCompileThisIdx(), fm, to);
+    cnsym->mapInstanceUTI(cuti, fm, to);
     //when not a template, the CompileThisId && Idx belong to the same SymbolClassName;
     // o.w. CompileThisIdx belongs to a class instance of the template (not an UTIAlias!).
   } //mapTypesInCurrentClass
@@ -1708,6 +1722,9 @@ namespace MFM {
 
   bool CompilerState::isClassATemplate(UTI cuti)
   {
+    if(!isAClass(cuti))
+      return false;
+
     SymbolClass * csym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
@@ -2317,26 +2334,26 @@ namespace MFM {
 
     //start with the current class block and look up family tree
     //until the 'variable id' is found.
-    NodeBlockClass * classblock = getClassBlock();
+    NodeBlockContext * cblock = getContextBlock();
 
     //substitute another selected class block to search for data member
     if(useMemberBlock())
-      classblock = getCurrentMemberClassBlock();
+      cblock = getCurrentMemberClassBlock();
 
-    Locator classloc;
-    if(classblock)
-      classloc = classblock->getNodeLocation(); //to check local scope
+    Locator cloc;
+    if(cblock)
+      cloc = cblock->getNodeLocation(); //to check local scope
 
-    while(!brtn && classblock)
+    while(!brtn && cblock)
       {
-	brtn = classblock->isIdInScope(dataindex,symptr); //returns symbol
-	hasHazyKin |= checkHasHazyKin(classblock); //self is stub
-	classblock = classblock->getSuperBlockPointer(); //inheritance chain
+	brtn = cblock->isIdInScope(dataindex,symptr); //returns symbol
+	hasHazyKin |= checkHasHazyKin(cblock); //self is stub
+	cblock = cblock->isAClassBlock() ? ((NodeBlockClass *) cblock)->getSuperBlockPointer() : NULL; //inheritance chain
       }
 
     //search current class file scope only (not ancestors')
     if(!brtn)
-      brtn = isIdInLocalFileScope(classloc, dataindex, symptr); //local constant or typedef
+      brtn = isIdInLocalFileScope(cloc, dataindex, symptr); //local constant or typedef
 
     return brtn;
   } //isDataMemberIdInClassScope
@@ -2357,17 +2374,20 @@ namespace MFM {
 
     //start with the current class block and look up family tree
     //until the 'variable id' is found.
-    NodeBlockClass * classblock = getClassBlock();
+    NodeBlockContext * cblock = getContextBlock();
 
     //substitute another selected class block to search for data member
     if(useMemberBlock())
-      classblock = getCurrentMemberClassBlock();
+      cblock = getCurrentMemberClassBlock();
 
-    while(!brtn && classblock)
+    if(cblock && !cblock->isAClassBlock())
+      return false;
+
+    while(!brtn && cblock)
       {
-	brtn = classblock->isFuncIdInScope(dataindex,symptr); //returns symbol
-	hasHazyKin |= checkHasHazyKin(classblock); //self is stub
-	classblock = classblock->getSuperBlockPointer(); //inheritance chain
+	brtn = ((NodeBlockClass *) cblock)->isFuncIdInScope(dataindex,symptr); //returns symbol
+	hasHazyKin |= checkHasHazyKin(cblock); //self is stub
+	cblock = ((NodeBlockClass *) cblock)->getSuperBlockPointer(); //inheritance chain
       }
     return brtn;
   } //isFuncIdInClassScope
@@ -3079,7 +3099,10 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   bool CompilerState::thisClassHasTheTestMethod()
   {
-    NodeBlockFunctionDefinition * func = getClassBlock()->findTestFunctionNode();
+    NodeBlockFunctionDefinition * func = NULL;
+    NodeBlockContext * cblock = getContextBlock();
+    if(cblock->isAClassBlock())
+      func = ((NodeBlockClass *) cblock)->findTestFunctionNode();
     return (func != NULL);
   } //thisClassHasTheTestMethod
 
@@ -3393,11 +3416,15 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   {
     m_parsingLocalDef = true;
     m_currentLocalDefToken = localTok;
+    NodeBlockLocals * locals = makeLocalScopeBlock(localTok.m_locator);
+    assert(locals);
+    pushClassContext(locals->getNodeType(), locals, locals, false, NULL);
   }
 
   void CompilerState::clearLocalScopeForParsing()
   {
     m_parsingLocalDef = false;
+    popClassContext(); //restore
   }
 
   bool CompilerState::isParsingLocalDef()
@@ -3413,17 +3440,31 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   NodeBlockLocals * CompilerState::getLocalScopeBlock(Locator loc)
   {
-    NodeBlockLocals * rtnLocals = NULL;
     u32 pathidx = loc.getPathIndex();
-    std::map<u32, NodeBlockLocals*>::iterator it = m_localsPerFilePath.find(pathidx);
+    return getLocalScopeBlockByPathId(pathidx);
+  } //getLocalScopeBlock
+
+  NodeBlockLocals * CompilerState::getLocalScopeBlockByIndex(UTI luti)
+  {
+    UlamType * lut = getUlamTypeByIndex(luti);
+    u32 pathid = lut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
+    return getLocalScopeBlockByPathId(pathid);
+  } //getLocalScopeBlockByIndex
+
+  NodeBlockLocals * CompilerState::getLocalScopeBlockByPathId(u32 pathid)
+  {
+    NodeBlockLocals * rtnLocals = NULL;
+
+    std::map<u32, NodeBlockLocals*>::iterator it = m_localsPerFilePath.find(pathid);
 
     if(it != m_localsPerFilePath.end())
       {
 	rtnLocals = it->second;
 	assert(rtnLocals);
+	assert(getUlamTypeByIndex(rtnLocals->getNodeType())->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId() == pathid); //sanity check
       }
     return rtnLocals;
-  } //getLocalScopeBlock
+  } //getLocalScopeBlockByPathId
 
   NodeBlockLocals * CompilerState::makeLocalScopeBlock(Locator loc)
   {
@@ -3431,7 +3472,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     if(!rtnLocals)
       {
       	//add new entry for this loc
-	NodeBlockLocals * newblocklocals = new NodeBlockLocals(NULL, *this);
+	NodeBlockLocals * newblocklocals = new NodeBlockLocals(NULL, *this); //no previous block
 	assert(newblocklocals);
 	newblocklocals->setNodeLocation(loc);
 
@@ -3446,6 +3487,11 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	    newblocklocals = NULL;
 	    assert(0);
 	  }
+
+	//set node type based on ulam file name id
+	UlamKeyTypeSignature lkey(pathidx, 0, NONARRAYSIZE, 0, ALT_NOT);
+	UTI luti = makeUlamType(lkey, LocalsFileScope, UC_NOTACLASS);
+	newblocklocals->setNodeType(luti);
 	rtnLocals = newblocklocals;
       }
     return rtnLocals;
@@ -3465,7 +3511,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       }
 
     NodeBlock * currBlock = getCurrentBlock();
-    if(currBlock && (currBlock->getNodeNo() == n) && (getClassBlock()->getNodeType() == getCompileThisIdx()))
+    if(currBlock && (currBlock->getNodeNo() == n) && (getContextBlock()->getNodeType() == getCompileThisIdx()))
       return currBlock; //avoid chix-n-egg with functiondefs
 
     UTI cuti = getCompileThisIdx();
@@ -3607,21 +3653,21 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return 0; //genesis of class symbol
   } //getCurrentBlockNo
 
-  NodeBlockClass * CompilerState::getClassBlock()
+  NodeBlockContext * CompilerState::getContextBlock()
   {
     ClassContext cc;
     AssertBool isDefined = m_classContextStack.getCurrentClassContext(cc);
     assert(isDefined);
-    return cc.getClassBlock();
+    return cc.getContextBlock();
   }
 
-  NNO CompilerState::getClassBlockNo()
+  NNO CompilerState::getContextBlockNo()
   {
     ClassContext cc;
     AssertBool isDefined = m_classContextStack.getCurrentClassContext(cc);
     assert(isDefined);
-    if(cc.getClassBlock())
-      return cc.getClassBlock()->getNodeNo();
+    if(cc.getContextBlock())
+      return cc.getContextBlock()->getNodeNo();
     return 0;
   }
 
@@ -3641,10 +3687,10 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return cc.getCurrentMemberClassBlock();
   }
 
-  void CompilerState::pushClassContext(UTI idx, NodeBlock * currblock, NodeBlockClass * classblock, bool usemember, NodeBlockClass * memberblock)
+  void CompilerState::pushClassContext(UTI idx, NodeBlock * currblock, NodeBlockContext * contextblock, bool usemember, NodeBlockClass * memberblock)
   {
     u32 id = getUlamKeyTypeSignatureByIndex(idx).getUlamKeyTypeSignatureNameId();
-    ClassContext cc(id, idx, currblock, classblock, usemember, memberblock); //new
+    ClassContext cc(id, idx, currblock, contextblock, usemember, memberblock); //new
     m_classContextStack.pushClassContext(cc);
   }
 
@@ -3739,6 +3785,11 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     //do not include ALT_AS, ALT_ARRAYITEM, etc as Ref here. Specifically a ref (&).
     UlamType * aut = getUlamTypeByIndex(auti);
     return ((aut->getUlamTypeEnum() == UAtom) && (aut->getReferenceType() == ALT_REF));
+  }
+
+  bool CompilerState::isAClass(UTI uti)
+  {
+    return (getUlamTypeByIndex(uti)->getUlamTypeEnum() == Class);
   }
 
   bool CompilerState::isASeenClass(UTI cuti)

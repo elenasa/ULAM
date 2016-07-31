@@ -37,7 +37,7 @@
 #ifndef NODEBLOCKCLASS_H
 #define NODEBLOCKCLASS_H
 
-#include "NodeBlock.h"
+#include "NodeBlockContext.h"
 #include "NodeBlockFunctionDefinition.h"
 #include "NodeList.h"
 #include "Symbol.h"
@@ -45,12 +45,14 @@
 
 namespace MFM{
 
-  class NodeBlockClass : public NodeBlock
+  class NodeBlockClass : public NodeBlockContext
   {
   public:
 
-    NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s = NULL);
+    NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state);
+
     NodeBlockClass(const NodeBlockClass& ref);
+
     virtual ~NodeBlockClass();
 
     virtual Node * instantiate();
@@ -136,7 +138,7 @@ namespace MFM{
 
      s32 findUlamTypeInTable(UTI utype, UTI& insidecuti);
 
-    bool isFuncIdInScope(u32 id, Symbol * & symptrref);
+    virtual bool isFuncIdInScope(u32 id, Symbol * & symptrref);
 
     void addFuncIdToScope(u32 id, Symbol * symptr);
 

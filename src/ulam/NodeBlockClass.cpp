@@ -7,13 +7,13 @@
 
 namespace MFM {
 
-  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_functionST(state), m_virtualmethodMaxIdx(UNKNOWNSIZE), m_superBlockNode(NULL), m_isEmpty(false)
+  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state) : NodeBlockContext(prevBlockNode, state), m_functionST(state), m_virtualmethodMaxIdx(UNKNOWNSIZE), m_superBlockNode(NULL), m_isEmpty(false)
   {
     m_nodeParameterList = new NodeList(state);
     assert(m_nodeParameterList);
   }
 
-  NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlock(ref), m_functionST(ref.m_functionST) /* deep copy */, m_virtualmethodMaxIdx(ref.m_virtualmethodMaxIdx), m_superBlockNode(NULL), m_isEmpty(ref.m_isEmpty), m_nodeParameterList(NULL)
+  NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlockContext(ref), m_functionST(ref.m_functionST) /* deep copy */, m_virtualmethodMaxIdx(ref.m_virtualmethodMaxIdx), m_superBlockNode(NULL), m_isEmpty(ref.m_isEmpty), m_nodeParameterList(NULL)
   {
     setNodeType(m_state.getCompileThisIdx());
     m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate(); //instances don't need this; its got symbols
@@ -331,31 +331,15 @@ namespace MFM {
 	else if(superclasstype != UC_QUARK)
 	  {
 	    //for all others (elements and quarks)
-	    //must be "seen" by c&l; e.g. typedef array of quarks (t3674)
+	    //must be "seen" by now; e.g. typedef array of quarks (t3674), t3862
 	    std::ostringstream msg;
 	    msg << "Subclass '";
 	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	    msg << "' inherits from '";
 	    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
 	    msg << "', a class that's not a quark";
-	    if(superclasstype == UC_UNSEEN)
-	      {
-		if(!m_state.statusUnknownTypeInThisClassResolver(superclasstype))
-		  {
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		    setNodeType(Hzy);
-		    m_state.setGoAgain(); //t3862
-		  }
-		else
-		  {
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		  }
-	      }
-	    else
-	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		setNodeType(Nav);
-	      }
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
 	  }
       } //done with inheritance checks, continue.
 

@@ -280,10 +280,19 @@ namespace MFM {
   {
     bool rtnb = true;
     UTI context = getContextForPendingArgs();
-    SymbolClass * contextSym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(context, contextSym);
-    assert(isDefined);
-    m_state.pushClassContext(context, contextSym->getClassBlockNode(), contextSym->getClassBlockNode(), false, NULL);
+    if(m_state.isAClass(context))
+      {
+	SymbolClass * contextSym = NULL;
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(context, contextSym);
+	assert(isDefined);
+	m_state.pushClassContext(context, contextSym->getClassBlockNode(), contextSym->getClassBlockNode(), false, NULL);
+      }
+    else
+      {
+	NodeBlockLocals * locals = m_state.getLocalScopeBlockByIndex(context);
+	assert(locals);
+	m_state.pushClassContext(context, locals, locals, false, NULL);
+      }
 
     m_state.m_pendingArgStubContext = m_classUTI; //set for folding surgery
 

@@ -4,9 +4,9 @@
 
 namespace MFM {
 
-  NodeBlockLocals::NodeBlockLocals(NodeBlock * prevBlockNode, CompilerState & state): NodeBlock(prevBlockNode, state, NULL), m_nodeEndingStmt(this) {}
+  NodeBlockLocals::NodeBlockLocals(NodeBlock * prevBlockNode, CompilerState & state): NodeBlockContext(prevBlockNode, state), m_nodeEndingStmt(this) {}
 
-  NodeBlockLocals::NodeBlockLocals(const NodeBlockLocals& ref) : NodeBlock(ref) {}
+  NodeBlockLocals::NodeBlockLocals(const NodeBlockLocals& ref) : NodeBlockContext(ref) {}
 
   NodeBlockLocals::~NodeBlockLocals() {}
 
@@ -31,6 +31,11 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  bool NodeBlockLocals::isAClassBlock()
+  {
+    return false;
+  }
+
   void NodeBlockLocals::appendNextNode(Node * node)
   {
     assert(node);
@@ -44,7 +49,11 @@ namespace MFM {
 
   UTI NodeBlockLocals::checkAndLabelType()
   {
-    return NodeBlock::checkAndLabelType();
+    UTI savnuti = getNodeType();
+    assert(savnuti != Nouti);
+    NodeBlock::checkAndLabelType();
+    setNodeType(savnuti);
+    return savnuti;
   }
 
   void NodeBlockLocals::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)

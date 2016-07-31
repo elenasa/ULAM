@@ -106,7 +106,7 @@ namespace MFM {
       delete m_functionNode; //clean up any previous declarations
 
     m_functionNode = func; //could be null if error occurs while parsing func body
-    Symbol::setBlockNoOfST(m_state.getClassBlockNo()); //SF not in the func def ST
+    Symbol::setBlockNoOfST(m_state.getContextBlockNo()); //SF not in the func def ST
   } //setFunctionNode
 
   NodeBlockFunctionDefinition *  SymbolFunction::getFunctionNode()

@@ -223,7 +223,9 @@ namespace MFM {
   bool SymbolTableOfFunctions::checkCustomArrayTypeFuncs()
   {
     bool rtnBool = false;
-    NodeBlockClass * cblock = m_state.getClassBlock();
+    NodeBlockContext * cblock = m_state.getContextBlock();
+    assert(cblock && cblock->isAClassBlock());
+    NodeBlockClass * currClassBlock = (NodeBlockClass *) cblock;
 
     Symbol * fnsymget = NULL;
     if(isInTable(m_state.getCustomArrayGetFunctionNameId(), fnsymget))
@@ -234,7 +236,7 @@ namespace MFM {
 	// as they may change.
 
 	//class type should already be flagged as a custom array
-	UTI cuti = cblock->getNodeType();
+	UTI cuti = currClassBlock->getNodeType();
 	if(!m_state.isClassACustomArray(cuti))
 	  {
 	    std::ostringstream msg;
