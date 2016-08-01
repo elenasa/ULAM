@@ -1041,6 +1041,7 @@ namespace MFM {
 	  }
       }
 
+#if 0
     if(rtnBool && isHolder(rtnType)) //t3861, t3862
       {
 	Symbol * try2symptr = NULL;
@@ -1053,7 +1054,7 @@ namespace MFM {
 	    rtnScalarType = ((SymbolTypedef *) try2symptr)->getScalarUTI();
 	  }
       }
-
+#endif
     return rtnBool;
   } //getUlamTypeByTypedefName
 

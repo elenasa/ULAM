@@ -585,6 +585,11 @@ namespace MFM {
 
     if(iTok.m_type == TOK_TYPE_IDENTIFIER)
       {
+	//only search for class arguments for ancestors in local scope
+	NodeBlockLocals * locals = m_state.getLocalScopeBlock(m_state.getContextBlock()->getNodeLocation());
+	if(locals)
+	  m_state.pushClassContext(locals->getNodeType(), locals, locals, false, NULL);
+
 	bool isaclass = true;
 	superuti = parseClassArguments(iTok, isaclass);
 	if(superuti != Nav)
@@ -594,6 +599,9 @@ namespace MFM {
 	    assert(isDefined);
 	    rtninherits = true;
 	  }
+
+	if(locals)
+	  m_state.popClassContext();
       }
     else
       {
@@ -1661,7 +1669,7 @@ namespace MFM {
   //Typedefs are not transferred to generated code;
   //they are a short-hand for ulamtypes (e.g. arrays)
   //that may be used as function return types; scope-specific.
-  Node * Parser::parseTypedef()
+  Node * Parser::parseTypedef(bool localbase)
   {
     Node * rtnNode = NULL;
     Token pTok;
@@ -1683,6 +1691,9 @@ namespace MFM {
 	    getNextToken(iTok);
 	  }
 
+	if(localbase)
+	  m_state.popClassContext();
+
 	//insure the typedef name starts with a capital letter
 	if(iTok.m_type == TOK_TYPE_IDENTIFIER)
 	  {
@@ -1700,35 +1711,45 @@ namespace MFM {
       }
     else if(pTok.m_type == TOK_KW_LOCALDEF)
       {
-	//assuming locals defined before they are referred to
-	NodeBlockLocals * locals = m_state.getLocalScopeBlock(pTok.m_locator);
-	if(!locals)
+	if(localbase)
 	  {
 	    std::ostringstream msg;
-	    msg << "Keyword 'local' for file scope: ";
-	    msg << m_state.getPathFromLocator(pTok.m_locator).c_str();
-	    msg << "; has no defs";
+	    msg << "Invalid local typedef base of already local base";
 	    MSG(&pTok, msg.str().c_str(), ERR);
+	    m_state.popClassContext();
 	  }
 	else
 	  {
-	    Token dTok;
-	    getNextToken(dTok);
-	    if(dTok.m_type == TOK_DOT)
-	      {
-		m_state.pushClassContext(locals->getNodeType(), locals, locals, false, NULL);
-
-		rtnNode = parseTypedef(); //recurse (t3861, t3862)
-
-		m_state.popClassContext();
-	      }
-	    else
+	    //assuming locals defined before they are referred to
+	    NodeBlockLocals * locals = m_state.getLocalScopeBlock(pTok.m_locator);
+	    if(!locals)
 	      {
 		std::ostringstream msg;
 		msg << "Keyword 'local' for file scope: ";
 		msg << m_state.getPathFromLocator(pTok.m_locator).c_str();
-		msg << "; used incorrectly as a typedef Base (no dot)";
+		msg << "; has no defs";
 		MSG(&pTok, msg.str().c_str(), ERR);
+	      }
+	    else
+	      {
+		Token dTok;
+		getNextToken(dTok);
+		if(dTok.m_type == TOK_DOT)
+		  {
+		    m_state.pushClassContext(locals->getNodeType(), locals, locals, false, NULL);
+
+		    rtnNode = parseTypedef(true); //recurse (t3861, t3862)
+
+		    //m_state.popClassContext(); popping done after base parsed
+		  }
+		else
+		  {
+		    std::ostringstream msg;
+		    msg << "Keyword 'local' for file scope: ";
+		    msg << m_state.getPathFromLocator(pTok.m_locator).c_str();
+		    msg << "; used incorrectly as a typedef Base (no dot)";
+		    MSG(&pTok, msg.str().c_str(), ERR);
+		  }
 	      }
 	  }
       }
@@ -1738,6 +1759,8 @@ namespace MFM {
 	msg << "Invalid typedef Base Type <";
 	msg << m_state.getTokenDataAsString(pTok).c_str() << ">";
 	MSG(&pTok, msg.str().c_str(), ERR);
+	if(localbase)
+	  m_state.popClassContext();
       }
     return rtnNode;
   } //parseTypedef
