@@ -193,7 +193,7 @@ namespace MFM{
     /**
        <PARAMETER_DEF> := 'parameter' + <TYPE> + <IDENT> + '=' + <EXPRESSION>
     */
-    Node * parseParameter();
+    Node * parseModelParameter();
 
     /**
        <DECL> := <TYPE> + <VAR_DECLS>
@@ -208,9 +208,9 @@ namespace MFM{
     */
     Node * parseDecl(bool parseSingleDecl = false);
 
-
-    NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs, bool delAfterDotFails = false);
-    NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs, UTI& castUTI, bool delAfterDotFails);
+    NodeTypeDescriptor * parseTypeDescriptorIncludingLocalScope(TypeArgs& typeargs, bool isaclass, bool delAfterDotFails); //second helper
+    NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs, bool isaclass = false, bool delAfterDotFails = false); //helper
+    NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs, UTI& castUTI, bool isaclassarg, bool delAfterDotFails);
 
     UTI parseClassArguments(Token& typeTok, bool& isaclass);
     void parseRestOfClassArguments(SymbolClass * csym, SymbolClassNameTemplate * ctsym, u32& parmIdx);
@@ -317,7 +317,7 @@ namespace MFM{
        <UNOP_EXPRESSION> := <UNOP> + <FACTOR> | <IDENT_EXPRES> + ('is' | 'has') + <TYPE_IDENT>
        <UNOP> := '-' | '+' | '!' | <CAST>
      */
-    Node * parseFactor();
+    Node * parseFactor(bool localbase = false);
 
     Node * parseRestOfFactor(Node * leftNode);
 
@@ -386,8 +386,8 @@ namespace MFM{
     /** helper for parseConstdef */
     Node * makeConstdefSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef);
 
-    /** helper for parseParameter */
-    Node * makeParameterSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef);
+    /** helper for parseModelParameter */
+    Node * makeModelParameterSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef);
 
     /** helper method for parseConditionalExpr */
     Node * makeConditionalExprNode(Node * leftNode);

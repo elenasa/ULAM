@@ -76,6 +76,7 @@ namespace MFM {
     if(resolveType(it))
       {
 	m_ready = true; // set here
+	m_uti = it; //new given reset here!!! Mon Aug  1 12:02:52 2016
       }
     else
 	m_state.setGoAgain();

@@ -109,6 +109,7 @@ namespace MFM {
     if(resolveType(it))
       {
 	m_ready = true; // set here
+	m_uti = it; //new given reset here!!! Mon Aug  1 12:02:52 2016
 	setNodeType(it);
       }
     else
@@ -231,16 +232,17 @@ namespace MFM {
     if(aholder ^ bholder)
       {
 	//if auti or buti is a holder, but not both, update a key
+	// keep holder's arraysize, and reference type (error/t3839)
 	UlamKeyTypeSignature akey = aut->getUlamKeyTypeSignature();
 	UlamKeyTypeSignature bkey = but->getUlamKeyTypeSignature();
 	if(aholder)
 	  {
-	    UlamKeyTypeSignature newkey(bkey.getUlamKeyTypeSignatureNameId(), bkey.getUlamKeyTypeSignatureBitSize(), akey.getUlamKeyTypeSignatureArraySize(), bkey.getUlamKeyTypeSignatureClassInstanceIdx());
+	    UlamKeyTypeSignature newkey(bkey.getUlamKeyTypeSignatureNameId(), bkey.getUlamKeyTypeSignatureBitSize(), akey.getUlamKeyTypeSignatureArraySize(), bkey.getUlamKeyTypeSignatureClassInstanceIdx(), akey.getUlamKeyTypeSignatureReferenceType());
 	    m_state.makeUlamTypeFromHolder(akey, newkey, but->getUlamTypeEnum(), auti, but->getUlamClassType());
 	  }
 	else
 	  {
-	    UlamKeyTypeSignature newkey(akey.getUlamKeyTypeSignatureNameId(), akey.getUlamKeyTypeSignatureBitSize(), bkey.getUlamKeyTypeSignatureArraySize(), bkey.getUlamKeyTypeSignatureClassInstanceIdx());
+	    UlamKeyTypeSignature newkey(akey.getUlamKeyTypeSignatureNameId(), akey.getUlamKeyTypeSignatureBitSize(), bkey.getUlamKeyTypeSignatureArraySize(), akey.getUlamKeyTypeSignatureClassInstanceIdx(), bkey.getUlamKeyTypeSignatureReferenceType());
 	    m_state.makeUlamTypeFromHolder(bkey, newkey, aut->getUlamTypeEnum(), buti, aut->getUlamClassType());
 	  }
 	rtnstat = true;

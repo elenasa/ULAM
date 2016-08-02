@@ -721,20 +721,6 @@ namespace MFM {
 		return (cnsymOfIncomplete->hasMappedUTI(auti, mappedUTI));
 	      }
 	  }
-#if 0
-	//Type is not a Class, e.g. Unsigned, no lookup!
-	else if(aut->isScalar())
-	  {
-	    Symbol * symOfIncomplete = NULL;
-	    bool tmphzykin = false;
-
-	    if(alreadyDefinedSymbol(anameid, symOfIncomplete, tmphzykin))
-	      {
-		mappedUTI = symOfIncomplete->getUlamTypeIdx();
-		return true;
-	      }
-	  }
-#endif
 	//else?
       } //not a holder
 
@@ -1040,21 +1026,6 @@ namespace MFM {
 	    rtnBool = true;
 	  }
       }
-
-#if 0
-    if(rtnBool && isHolder(rtnType)) //t3861, t3862
-      {
-	Symbol * try2symptr = NULL;
-	//check local scope if class scope produces a holder
-	if(isIdInLocalFileScope(nameIdx, try2symptr))
-	  {
-	    UTI tuti = try2symptr->getUlamTypeIdx();
-	    assert(getUlamTypeByIndex(tuti)->getUlamTypeEnum() != Holder);
-	    rtnType = tuti;
-	    rtnScalarType = ((SymbolTypedef *) try2symptr)->getScalarUTI();
-	  }
-      }
-#endif
     return rtnBool;
   } //getUlamTypeByTypedefName
 
@@ -3840,14 +3811,8 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   bool CompilerState::isAnonymousClass(UTI cuti)
   {
     assert(okUTItoContinue(cuti));
-#if 0
-    // anonymous classes have their UTI number as their nameid. t3808
-    u32 nameid = getUlamTypeByIndex(cuti)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
-    u32 cutiAsStringId = m_pool.getIndexForNumberAsString(cuti);
-    return ((nameid == cutiAsStringId) || isHolder(cuti));
-#else
-    return(!isARootUTI(cuti) || isHolder(cuti)); //t3808
-#endif
+    // anonymous classes have their UTI number as their nameid. (t3808)
+    return(!isARootUTI(cuti) || isHolder(cuti));
   } //isAnonymousClass
 
   void CompilerState::saveUrSelf(UTI uti)
