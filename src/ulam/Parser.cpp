@@ -746,19 +746,6 @@ namespace MFM {
 	if(getExpectedToken(TOK_OPEN_PAREN))
 	  {
 	    isFunc = true;
-	    if(pTok.m_type == TOK_KW_LOCALDEF)
-	      {
-		std::ostringstream msg;
-		msg << "Local filescope definition as return type; Not supported; In function <"; //t3869
-		msg << m_state.getTokenDataAsString(iTok).c_str() << ">";
-		MSG(&pTok, msg.str().c_str(), ERR);
-		m_state.clearStructuredCommentToken();
-		delete typeNode;
-		typeNode = NULL;
-		unreadToken(); //?
-		return false; //done!
-	      }
-
 	    //eats the '(' when found; NULL if error occurred
 	    rtnNode = makeFunctionSymbol(typeargs, iTok, typeNode, isVirtual); //with params
 	    if(rtnNode)
@@ -4259,7 +4246,7 @@ namespace MFM {
 	    MSG(&pTok, "Variable args (...) indicated multiple times", ERR);
 	  }
       }
-    else if(Token::isTokenAType(pTok))
+    else if(Token::isTokenAType(pTok) || (pTok.m_type == TOK_KW_LOCALDEF))
       {
 	unreadToken();
 	Node * argNode = parseDecl(SINGLEDECL); //singleton
@@ -4289,12 +4276,6 @@ namespace MFM {
 		MSG(&pTok, msg.str().c_str(), ERR);
 	      }
 	  }
-      }
-    else if(pTok.m_type == TOK_KW_LOCALDEF)
-      {
-	std::ostringstream msg;
-	msg << "Local filescope definition as function parameter type; Not supported";
-	MSG(&pTok, msg.str().c_str(), ERR);
       }
     else
       {

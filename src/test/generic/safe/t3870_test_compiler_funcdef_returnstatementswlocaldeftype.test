@@ -1,0 +1,68 @@
+## -*- mode:ulam -*-
+#=t3870_test_compiler_funcdef_returnstatementswlocaldeftype
+##
+## gen output: (interleaved asserts)
+## Int(3) Arg: 0x1
+## Int(3) Arg: 0x2
+##
+#!
+Exit status: 2
+Ue_D { Int(3) d(2);  Int(32) test() {  System s;  Qw qw;  d ( qw ( )getW . )foo = s ( d )print . s ( d 1 cast == )assert . d ( qw ( )getW . )foo = s ( d )print . s ( d 2 == )assert . d cast return } }
+Uq_System { <NOMAIN> }
+Uq_Qw { typedef Int(3) Woo;  Int(3) w(0);  <NOMAIN> }
+##
+## informed by error/t3869: return types and parameter types may be local since just an alias
+## here, Foo and Woo alias the same type in different files.
+##
+#>D.ulam
+  ulam 2;  //3 not allowed yet!
+local typedef Int(3) Foo;
+element D {
+  local.Foo foo(local.Foo val) {
+    local.Foo m;
+    m = val;
+    return m;
+  }
+
+  Int test() {
+    System s;
+    Qw qw;
+    d = foo(qw.getW());
+    s.print(d);
+    s.assert(d == 1);
+
+    d = foo(qw.getW());
+    s.print(d);
+    s.assert(d == 2);
+
+    return d; /* match return type */
+  }
+  local.Foo d;
+}
+
+
+#:Qw.ulam
+  ulam 2;
+quark Qw {
+  typedef Int(3) Woo;
+  Woo w;
+  Woo getW()
+  {
+    w += 1;
+    return w;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

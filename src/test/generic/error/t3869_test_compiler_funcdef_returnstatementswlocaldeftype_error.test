@@ -1,12 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3869_test_compiler_funcdef_returnstatementswlocaldeftype_error
 #!
-./D.ulam:4:3: ERROR: Local filescope definition as return type; Not supported; In function <foo>.
-./D.ulam:3:1: ERROR: Empty/Incomplete Class Definition 'D'; Possible missing ending curly brace.
-./D.ulam:4:16: ERROR: Invalid Class Type <(>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
-./D.ulam:3:9: ERROR: Invalid Type: D.
- ERROR: No parse tree for This Class: D.
-Unrecoverable Program Parse FAILURE: <D.ulam>
+./D.ulam:7:5: ERROR: Returning incompatible (nonscalar) types: Int(3) as Int(3)[8].
+./D.ulam:3:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: D.
+Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3137
 ##
