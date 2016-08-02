@@ -661,10 +661,9 @@ namespace MFM {
   // no side-effects, except to 3rd arg when return is true.
   bool CompilerState::mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI)
   {
-    if(!isAClass(cuti))
+    if(isALocalsFileScope(cuti))
       {
-	//a local scope (t3862)
-	return findaUTIAlias(auti, mappedUTI);
+	return findaUTIAlias(auti, mappedUTI); 	//not a class (t3862)
       }
 
     SymbolClass * csym = NULL;
@@ -838,7 +837,7 @@ namespace MFM {
   void CompilerState::mapTypesInCurrentClass(UTI fm, UTI to)
   {
     UTI cuti = getCompileThisIdx();
-    if(!isAClass(cuti))
+    if(isALocalsFileScope(cuti))
       return; //a local def, skip
 
     if(getReferenceType(to) != ALT_NOT)
@@ -1931,6 +1930,7 @@ namespace MFM {
   //temporary type name which will be updated during type labeling.
   void CompilerState::addUnknownTypeTokenToAClassResolver(UTI cuti, const Token& tok, UTI huti)
   {
+    assert(!isALocalsFileScope(cuti));
     SymbolClass * csym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
@@ -1941,12 +1941,14 @@ namespace MFM {
   //temporary type name which will be updated during type labeling.
   void CompilerState::addUnknownTypeTokenToThisClassResolver(const Token& tok, UTI huti)
   {
+    assert(!isThisLocalsFileScope());
     addUnknownTypeTokenToAClassResolver(getCompileThisIdx(), tok, huti);
   } //addUnknownTypeTokenToThisClassResolver
 
   //temporary type name which will be updated during type labeling.
   Token CompilerState::removeKnownTypeTokenFromThisClassResolver(UTI huti)
   {
+    assert(!isThisLocalsFileScope());
     UTI cuti = getCompileThisIdx();
     SymbolClass * csym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
@@ -1958,6 +1960,9 @@ namespace MFM {
   //before removing, check existence
   bool CompilerState::hasUnknownTypeInThisClassResolver(UTI huti)
   {
+    if(isThisLocalsFileScope())
+      return false;
+
     UTI cuti = getCompileThisIdx();
     SymbolClass * csym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
@@ -1969,6 +1974,7 @@ namespace MFM {
   //false if not there, or still hazy; true if resolved; called during c&l
   bool CompilerState::statusUnknownTypeInThisClassResolver(UTI huti)
   {
+    assert(!isThisLocalsFileScope());
     UTI cuti = getCompileThisIdx();
 #if 1
     //just this class (original way)
@@ -2204,23 +2210,8 @@ namespace MFM {
 	NodeBlockLocals * locals = it->second;
 	assert(locals);
 
-	Locator nloc = locals->getNodeLocation();
-	u32 pathidx = nloc.getPathIndex();
-	u32 nidFromLoc;
-
-	AssertBool isFileName = getClassNameFromFileName(m_pool.getDataAsString(pathidx), nidFromLoc);
-	assert(isFileName);
-
-	//get name-sake class UTI from node loc's path id
-	SymbolClassName * cnsym = NULL;
-	AssertBool isDefined = alreadyDefinedSymbolClassName(nidFromLoc, cnsym);
-	assert(isDefined);
-	NodeBlockClass * cblock = cnsym->getClassBlockNode();
-	assert(cblock);
-
-	UTI cuti = cnsym->getUlamTypeIdx();
-
-	pushClassContext(cuti, locals, cblock, false, NULL);
+	UTI luti = locals->getNodeType();
+	pushClassContext(luti, locals, locals, false, NULL);
 
 	locals->updateLineage(0);
 	locals->checkAndLabelType();
@@ -2237,24 +2228,10 @@ namespace MFM {
     for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
       {
 	NodeBlockLocals * locals = it->second;
+	assert(locals);
 
-	Locator nloc = locals->getNodeLocation();
-	u32 pathidx = nloc.getPathIndex();
-	u32 nidFromLoc;
-
-	AssertBool isFileName = getClassNameFromFileName(m_pool.getDataAsString(pathidx), nidFromLoc);
-	assert(isFileName);
-
-	//get name-sake class UTI from node loc's path id
-	SymbolClassName * cnsym = NULL;
-	AssertBool isDefined = alreadyDefinedSymbolClassName(nidFromLoc, cnsym);
-	assert(isDefined);
-	NodeBlockClass * cblock = cnsym->getClassBlockNode();
-	assert(cblock);
-
-	UTI cuti = cnsym->getUlamTypeIdx();
-
-	pushClassContext(cuti, locals, cblock, false, NULL);
+	UTI luti = locals->getNodeType();
+	pushClassContext(luti, locals, locals, false, NULL);
 
 	locals->checkAndLabelType();
 
@@ -3610,6 +3587,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   NodeBlockClass * CompilerState::getAClassBlock(UTI cuti)
   {
+    assert(!isALocalsFileScope(cuti));
     SymbolClass * csym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
@@ -3618,6 +3596,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   NNO CompilerState::getAClassBlockNo(UTI cuti)
   {
+    assert(!isALocalsFileScope(cuti));
     SymbolClass * csym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
@@ -3794,6 +3773,16 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     //do not include ALT_AS, ALT_ARRAYITEM, etc as Ref here. Specifically a ref (&).
     UlamType * aut = getUlamTypeByIndex(auti);
     return ((aut->getUlamTypeEnum() == UAtom) && (aut->getReferenceType() == ALT_REF));
+  }
+
+  bool CompilerState::isThisLocalsFileScope()
+  {
+    return isALocalsFileScope(getCompileThisIdx());
+  }
+
+  bool CompilerState::isALocalsFileScope(UTI uti)
+  {
+    return (getUlamTypeByIndex(uti)->getUlamTypeEnum() == LocalsFileScope);
   }
 
   bool CompilerState::isAClass(UTI uti)

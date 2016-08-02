@@ -484,6 +484,8 @@ namespace MFM{
     bool isPtr(UTI puti);
     bool isAtom(UTI auti);
     bool isAtomRef(UTI auti);
+    bool isThisLocalsFileScope();
+    bool isALocalsFileScope(UTI uti);
     bool isAClass(UTI uti);
     bool isASeenClass(UTI cuti);
     bool isAnonymousClass(UTI cuti);

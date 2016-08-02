@@ -2143,11 +2143,21 @@ namespace MFM {
 		else
 		  {
 		    UTI huti = m_state.makeUlamTypeHolder();
-		    m_state.addUnknownTypeTokenToThisClassResolver(typeTok, huti);
+		    if(!m_state.isThisLocalsFileScope())
+		      {
+			m_state.addUnknownTypeTokenToThisClassResolver(typeTok, huti);
 
-		    // set contains possible unseen classes (ulamexports); see if they exist.
-		    // without being too liberal about guessing classes(t3668, t3651) 5/2/16.
-		    m_state.m_unseenClasses.insert(typeTok.m_dataindex); //possible class
+			// set contains possible unseen classes (ulamexports); see if they exist.
+			// without being too liberal about guessing classes(t3668, t3651) 5/2/16.
+			m_state.m_unseenClasses.insert(typeTok.m_dataindex); //possible class
+		      }
+		    else //yet defined in local file scope; add a holder (t3873)
+		      {
+			SymbolTypedef * symtypedef = new SymbolTypedef(typeTok, huti, Nav, m_state);
+			assert(symtypedef);
+			symtypedef->setBlockNoOfST(m_state.getContextBlock()->getNodeNo());
+			m_state.addSymbolToCurrentScope(symtypedef); //local scope
+		      }
 		    return huti;
 		  }
 	      }
@@ -2665,6 +2675,8 @@ namespace MFM {
     // args.m_classInstanceIdx set up by parseTypeDescriptor and parseTypeFromAnotherClassesTypedef
     if(args.m_classInstanceIdx != Nouti)
       {
+	assert(!m_state.isALocalsFileScope(args.m_classInstanceIdx));
+
 	SymbolClass * acsym = NULL;
 	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(args.m_classInstanceIdx, acsym);
 	assert(isDefined);
@@ -3226,6 +3238,19 @@ namespace MFM {
 		    }
 		  return rtnNode; //done.
 		}
+	    }
+	  else if(localbase || m_state.isThisLocalsFileScope())
+	    {
+	      //make holder for this localdef constant not seen yet!
+	      UTI huti = m_state.makeUlamTypeHolder();
+	      SymbolConstantValue * constsym = new SymbolConstantValue(pTok, huti, m_state);
+	      constsym->setBlockNoOfST(m_state.getContextBlock()->getNodeNo());
+	      m_state.addSymbolToCurrentScope(constsym);
+
+	      rtnNode = new NodeConstant(pTok, constsym, m_state);
+	      assert(rtnNode);
+	      rtnNode->setNodeLocation(pTok.m_locator);
+	      return rtnNode; //t3873
 	    }
 
 	  rtnNode = parseIdentExpr(pTok);
