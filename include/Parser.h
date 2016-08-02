@@ -183,7 +183,7 @@ namespace MFM{
        <TYPEDEF> := 'typedef' + <TYPE> + <TYPE_EXPRESSION>
        <TYPE_EXPRESSION> := ( <TYPE_IDENT> | <TYPE_IDENT> + '[' + <EXPRESSION> + ']')
     */
-    Node * parseTypedef(bool localbase = false);
+    Node * parseTypedef();
 
     /**
        <CONST_DEF> := 'constant' + <TYPE> + <IDENT> + '=' + <EXPRESSION>
@@ -208,7 +208,8 @@ namespace MFM{
     */
     Node * parseDecl(bool parseSingleDecl = false);
 
-    NodeTypeDescriptor * parseTypeDescriptorIncludingLocalScope(TypeArgs& typeargs, bool isaclass, bool delAfterDotFails); //second helper
+    NodeTypeDescriptor * parseTypeDescriptorIncludingLocalScope(TypeArgs& typeargs, bool isaclass, bool delAfterDotFails); //helper
+    NodeTypeDescriptor * parseTypeDescriptorIncludingLocalScope(TypeArgs& typeargs, UTI& castUTI, bool isaclass, bool delAfterDotFails); //helper
     NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs, bool isaclass = false, bool delAfterDotFails = false); //helper
     NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs, UTI& castUTI, bool isaclassarg, bool delAfterDotFails);
 

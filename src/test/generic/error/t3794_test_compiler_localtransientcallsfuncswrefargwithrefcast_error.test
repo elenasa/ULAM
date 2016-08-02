@@ -1,7 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3794_test_compiler_localtransientcallsfuncswrefargwithrefcast_error
 #!
-./Mob.ulam:10:26: ERROR: Explicit Reference casts (Type&) are valid for reference variable initialization, and not in this context.
+./Mob.ulam:10:23: ERROR: Explicit Reference casts (Type&) are valid for reference variable initialization, and not in this context.
+./Mob.ulam:10:29: ERROR: Invalid Statement (possible missing semicolon).
 Unrecoverable Program Parse FAILURE: <Mob.ulam>
 Unrecoverable Program Parse FAILURE: <XMob.ulam>
 Unrecoverable Program Parse FAILURE: <WindowServices.ulam>

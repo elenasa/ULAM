@@ -9,7 +9,7 @@
 ./Foo.ulam:4:9: ERROR: Invalid Type: Foo.
  ERROR: No parse tree for This Class: Foo.
 Unrecoverable Program Parse FAILURE: <Foo.ulam>
-./Foo.ulam:6:16: ERROR: Local Definitions are named constants and typedefs; not '.'.
+./Foo.ulam:6:16: ERROR: Local filescope definitions are named constants and typedefs; not '.'.
 ./Foo.ulam:7:3: ERROR: Invalid Class Type <Bool>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 Unrecoverable Program Parse FAILURE: <System.ulam>
 ##

@@ -532,7 +532,7 @@ namespace MFM {
     //since the class starts a new "block" (i.e. ST);
     //the argument to parseDecl will prevent it from looking
     //for restofdecls
-    if(Token::isTokenAType(pTok))
+    if(Token::isTokenAType(pTok) || (pTok.m_type == TOK_KW_LOCALDEF))
       {
 	unreadToken();
 
@@ -639,7 +639,7 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "Local Definitions are named constants and typedefs; not '"; //t3854
+	msg << "Local filescope definitions are named constants and typedefs; not '"; //t3854
 	msg << m_state.getTokenDataAsString(pTok).c_str() << "'";
 	MSG(&pTok, msg.str().c_str(), ERR);
 	getTokensUntil(TOK_SEMICOLON); //does this help?
@@ -678,14 +678,6 @@ namespace MFM {
 	unreadToken();
 	return false; //done!
       }
-    else if(pTok.m_type == TOK_KW_LOCALDEF)
-      {
-	std::ostringstream msg;
-	msg << "Local definition as data member; Not supported"; //t3856
-	MSG(&pTok, msg.str().c_str(), ERR);
-	getTokensUntil(TOK_SEMICOLON); //does this help?
-	return false;
-      }
 
     if(pTok.m_type == TOK_KW_TYPEDEF)
       {
@@ -711,33 +703,38 @@ namespace MFM {
 	  unreadToken(); //put back for parsing type descriptor
 
 	TypeArgs typeargs;
-	NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs, false, true);
+	NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalScope(typeargs, false, true);
 
 	if(typeNode == NULL)
-	  return false; //expecting a type, not sizeof, probably an error!
+	  {
+	    m_state.clearStructuredCommentToken(); //missing
+	    return false; //expecting a type, not sizeof, probably an error! (t3856)
+	  }
+
+	if(typeargs.m_declRef != ALT_NOT)
+	  {
+	    std::ostringstream msg;
+	    msg << "Reference as data member or function return type; Not supported";
+	    MSG(&pTok, msg.str().c_str(), ERR);
+	    m_state.clearStructuredCommentToken();
+	    delete typeNode;
+	    typeNode = NULL;
+	    return false; //done!
+	  }
 
 	Token iTok;
 	getNextToken(iTok);
 	if(iTok.m_type != TOK_IDENTIFIER)
 	  {
 	    //user error!
-	    if(iTok.m_type == TOK_AMP)
-	      {
-		std::ostringstream msg;
-		msg << "Reference as data member or function return type; Not supported";
-		MSG(&iTok, msg.str().c_str(), ERR);
-	      }
+	    std::ostringstream msg;
+	    msg << "Name of variable/function <";
+	    msg << m_state.getTokenDataAsString(iTok).c_str();
+	    if((Token::getSpecialTokenWork(iTok.m_type) == TOKSP_KEYWORD))
+	      msg << ">: Identifier must not be a reserved keyword";
 	    else
-	      {
-		std::ostringstream msg;
-		msg << "Name of variable/function <";
-		msg << m_state.getTokenDataAsString(iTok).c_str();
-		if((Token::getSpecialTokenWork(iTok.m_type) == TOKSP_KEYWORD))
-		  msg << ">: Identifier must not be a reserved keyword";
-		else
-		  msg << ">: Identifier must begin with a lower-case letter";
-		MSG(&iTok, msg.str().c_str(), ERR);
-	      }
+	      msg << ">: Identifier must begin with a lower-case letter";
+	    MSG(&iTok, msg.str().c_str(), ERR);
 	    m_state.clearStructuredCommentToken();
 	    delete typeNode;
 	    typeNode = NULL;
@@ -749,12 +746,25 @@ namespace MFM {
 	if(getExpectedToken(TOK_OPEN_PAREN))
 	  {
 	    isFunc = true;
+	    if(pTok.m_type == TOK_KW_LOCALDEF)
+	      {
+		std::ostringstream msg;
+		msg << "Local filescope definition as return type; Not supported; In function <"; //t3869
+		msg << m_state.getTokenDataAsString(iTok).c_str() << ">";
+		MSG(&pTok, msg.str().c_str(), ERR);
+		m_state.clearStructuredCommentToken();
+		delete typeNode;
+		typeNode = NULL;
+		unreadToken(); //?
+		return false; //done!
+	      }
+
 	    //eats the '(' when found; NULL if error occurred
 	    rtnNode = makeFunctionSymbol(typeargs, iTok, typeNode, isVirtual); //with params
 	    if(rtnNode)
 	      brtn = true; //rtnNode belongs to the symbolFunction
 	    else
-	    //MSG(&pTok, "INCOMPLETE Function Definition", ERR);
+	      //MSG(&pTok, "INCOMPLETE Function Definition", ERR);
 	      m_state.clearStructuredCommentToken();
 	  }
 	else
@@ -1584,6 +1594,15 @@ namespace MFM {
 	unreadToken();
 	rtnNode = parseDecl(); //updates symbol table
       }
+    else if(pTok.m_type == TOK_KW_LOCALDEF)
+      {
+	//std::ostringstream msg;
+	//msg << "Local definition as variable; Not supported"; //t3857
+	//MSG(&pTok, msg.str().c_str(), ERR);
+	//getTokensUntil(TOK_SEMICOLON); //does this help?
+	unreadToken();
+	rtnNode = parseDecl(); //updates symbol table
+      }
     else if(pTok.m_type == TOK_KW_TYPEDEF)
       {
 	rtnNode = parseTypedef();
@@ -1627,13 +1646,6 @@ namespace MFM {
       {
 	//eat error token
       }
-    else if(pTok.m_type == TOK_KW_LOCALDEF)
-      {
-	std::ostringstream msg;
-	msg << "Local definition as variable; Not supported"; //t3857
-	MSG(&pTok, msg.str().c_str(), ERR);
-	getTokensUntil(TOK_SEMICOLON); //does this help?
-      }
     else
       {
 	unreadToken();
@@ -1669,30 +1681,28 @@ namespace MFM {
   //Typedefs are not transferred to generated code;
   //they are a short-hand for ulamtypes (e.g. arrays)
   //that may be used as function return types; scope-specific.
-  Node * Parser::parseTypedef(bool localbase)
+  Node * Parser::parseTypedef()
   {
     Node * rtnNode = NULL;
     Token pTok;
     getNextToken(pTok);
 
-    if(Token::isTokenAType(pTok))
+    //if(Token::isTokenAType(pTok))
+    if(Token::isTokenAType(pTok) || (pTok.m_type == TOK_KW_LOCALDEF))
       {
 	unreadToken();
 	TypeArgs typeargs;
-	NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs);
-	assert(typeNode);
+	NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalScope(typeargs, false, false);
+
+	if(!typeNode)
+	  {
+	    std::ostringstream msg;
+	    msg << "Invalid typedef base Type";
+	    MSG(&pTok, msg.str().c_str(), ERR); //t3866, t3861, t3862
+	  }
 
 	Token iTok;
 	getNextToken(iTok);
-	if(iTok.m_type == TOK_AMP)
-	  {
-	    typeargs.m_declRef = ALT_REF;
-	    typeargs.m_referencedUTI = typeNode->getReferencedUTI(); //typeNode->givenUTI();
-	    getNextToken(iTok);
-	  }
-
-	if(localbase)
-	  m_state.popClassContext();
 
 	//insure the typedef name starts with a capital letter
 	if(iTok.m_type == TOK_TYPE_IDENTIFIER)
@@ -1709,57 +1719,12 @@ namespace MFM {
 	    typeNode = NULL;
 	  }
       }
-    else if(pTok.m_type == TOK_KW_LOCALDEF)
-      {
-	if(localbase)
-	  {
-	    std::ostringstream msg;
-	    msg << "Invalid local typedef base of already local base";
-	    MSG(&pTok, msg.str().c_str(), ERR); //t3866
-	    m_state.popClassContext();
-	  }
-	else
-	  {
-	    //assuming locals defined before they are referred to
-	    NodeBlockLocals * locals = m_state.getLocalScopeBlock(pTok.m_locator);
-	    if(!locals)
-	      {
-		std::ostringstream msg;
-		msg << "Keyword 'local' for file scope: ";
-		msg << m_state.getPathFromLocator(pTok.m_locator).c_str();
-		msg << "; has no defs";
-		MSG(&pTok, msg.str().c_str(), ERR);
-	      }
-	    else
-	      {
-		Token dTok;
-		getNextToken(dTok);
-		if(dTok.m_type == TOK_DOT)
-		  {
-		    m_state.pushClassContext(locals->getNodeType(), locals, locals, false, NULL);
-
-		    rtnNode = parseTypedef(true); //recurse (t3861, t3862)
-		    //m_state.popClassContext(); popping done after base parsed in recursion
-		  }
-		else
-		  {
-		    std::ostringstream msg;
-		    msg << "Keyword 'local' for file scope: ";
-		    msg << m_state.getPathFromLocator(pTok.m_locator).c_str();
-		    msg << "; used incorrectly as a typedef Base (no dot)";
-		    MSG(&pTok, msg.str().c_str(), ERR);
-		  }
-	      }
-	  }
-      }
     else
       {
 	std::ostringstream msg;
 	msg << "Invalid typedef Base Type <";
 	msg << m_state.getTokenDataAsString(pTok).c_str() << ">";
 	MSG(&pTok, msg.str().c_str(), ERR);
-	if(localbase)
-	  m_state.popClassContext();
       }
     return rtnNode;
   } //parseTypedef
@@ -1774,18 +1739,33 @@ namespace MFM {
     Token pTok;
     getNextToken(pTok);
 
-    if(Token::isTokenAType(pTok) && (pTok.m_type != TOK_KW_TYPE_VOID) && (pTok.m_type != TOK_KW_TYPE_ATOM))
+    if( (Token::isTokenAType(pTok) || (pTok.m_type == TOK_KW_LOCALDEF)) && (pTok.m_type != TOK_KW_TYPE_VOID) && (pTok.m_type != TOK_KW_TYPE_ATOM))
       {
 	unreadToken();
 	TypeArgs typeargs;
-	NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs);
-	assert(typeNode);
+	NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalScope(typeargs, false, false);
+	if(!typeNode)
+	  {
+	    std::ostringstream msg;
+	    msg << "Invalid named constant Type '";
+	    msg << m_state.getTokenDataAsString(pTok).c_str() << "'";
+	    MSG(&pTok, msg.str().c_str(), ERR); //t3857?
+	    if(isStmt)
+	      getTokensUntil(TOK_SEMICOLON);
+	    else
+	      {
+		Token tmpTok;
+		getNextToken(tmpTok); //by pass identTok only
+	      }
+	    return NULL; //done
+	  }
+
 	typeargs.m_assignOK = assignREQ;
 	typeargs.m_isStmt = isStmt;
 
 	Token iTok;
 	getNextToken(iTok);
-	//insure the typedef name starts with a lower case letter
+	//insure the constant def name starts with a lower case letter
 	if(iTok.m_type == TOK_IDENTIFIER)
 	  {
 	    rtnNode = makeConstdefSymbol(typeargs, iTok, typeNode);
@@ -1834,11 +1814,11 @@ namespace MFM {
 	return NULL;
       }
 
-    if(Token::isTokenAType(pTok) && pTok.m_type != TOK_KW_TYPE_VOID && pTok.m_type != TOK_KW_TYPE_ATOM)
+    if((Token::isTokenAType(pTok) || (pTok.m_type == TOK_KW_LOCALDEF)) && (pTok.m_type != TOK_KW_TYPE_VOID) && (pTok.m_type != TOK_KW_TYPE_ATOM))
       {
 	unreadToken();
 	TypeArgs typeargs;
-	NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs, false, true);
+	NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalScope(typeargs, false, true);
 	if(typeNode)
 	  {
 	    typeargs.m_assignOK = true;
@@ -1860,6 +1840,14 @@ namespace MFM {
 		typeNode = NULL;
 	      }
 	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Invalid Model Parameter Type <";
+	    msg << m_state.getTokenDataAsString(pTok).c_str();
+	    msg << ">";
+	    MSG(&pTok, msg.str().c_str(), ERR);
+	  }
       }
     else
       {
@@ -1874,25 +1862,28 @@ namespace MFM {
     return rtnNode;
   } //parseModelParameter
 
-  //used for data members or local function variables; or
+  //used for includingloclocal function variables; or
   //'singledecl' function parameters; no longer for function defs.
   Node * Parser::parseDecl(bool parseSingleDecl)
   {
     Node * rtnNode = NULL;
     TypeArgs typeargs;
-    NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs);
-    assert(typeNode);
-    if(parseSingleDecl)
-      typeargs.m_isStmt = false; //for function params (e.g. refs)
+    NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalScope(typeargs, false, false);
 
     Token iTok;
     getNextToken(iTok);
-    if(iTok.m_type == TOK_AMP)
+
+    if(!typeNode)
       {
-	typeargs.m_declRef = ALT_REF;
-	typeargs.m_referencedUTI = typeNode->getReferencedUTI();
-	getNextToken(iTok);
+	std::ostringstream msg;
+	msg << "Invalid Type for named variable";
+	MSG(&iTok, msg.str().c_str(), ERR);
+	unreadToken();
+	return NULL;
       }
+
+    if(parseSingleDecl)
+      typeargs.m_isStmt = false; //for function params (e.g. refs)
 
     if(iTok.m_type == TOK_IDENTIFIER)
       {
@@ -1923,6 +1914,12 @@ namespace MFM {
 
   NodeTypeDescriptor * Parser::parseTypeDescriptorIncludingLocalScope(TypeArgs& typeargs, bool isaclass, bool delAfterDotFails)
   {
+    UTI dropCastUTI = Nouti;
+    return parseTypeDescriptorIncludingLocalScope(typeargs, dropCastUTI, isaclass, delAfterDotFails);
+  }
+
+  NodeTypeDescriptor * Parser::parseTypeDescriptorIncludingLocalScope(TypeArgs& typeargs, UTI& castUTI, bool isaclass, bool delAfterDotFails)
+  {
     //typeargs initialized later, first token re-read here
     Token pTok;
     getNextToken(pTok);
@@ -1936,7 +1933,7 @@ namespace MFM {
 	if(!locals)
 	  {
 	    std::ostringstream msg;
-	    msg << "Keyword 'local' for file scope: ";
+	    msg << "Keyword 'local' for filescope: ";
 	    msg << m_state.getPathFromLocator(pTok.m_locator).c_str();
 	    msg << "; has no defs";
 	    MSG(&pTok, msg.str().c_str(), ERR);
@@ -1947,26 +1944,43 @@ namespace MFM {
 	    getNextToken(dTok);
 	    if(dTok.m_type == TOK_DOT)
 	      {
-		m_state.pushClassContext(locals->getNodeType(), locals, locals, false, NULL);
+		Token nTok;
+		getNextToken(nTok);
+		if(Token::isTokenAType(nTok))
+		  {
+		    typeargs.init(nTok);
+		    m_state.pushClassContext(locals->getNodeType(), locals, locals, false, NULL);
 
-		typeNode = parseTypeDescriptor(typeargs, isaclass, delAfterDotFails);
+		    typeNode = parseTypeDescriptor(typeargs, castUTI, isaclass, delAfterDotFails);
 
-		m_state.popClassContext();
+		    m_state.popClassContext();
+		  }
+		else
+		  {
+		    unreadToken();
+
+		    std::ostringstream msg;
+		    msg << "Expected a Type after the keyword 'local' for filescope: ";
+		    msg << m_state.getPathFromLocator(pTok.m_locator).c_str();
+		    msg << "; used incorrectly";
+		    MSG(&pTok, msg.str().c_str(), ERR);
+		  }
 	      }
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "Keyword 'local' for file scope: ";
+		msg << "Keyword 'local' for filescope: ";
 		msg << m_state.getPathFromLocator(pTok.m_locator).c_str();
-		msg << "; used incorrectly (no dot)";
+		msg << "; used incorrectly in this context";
 		MSG(&pTok, msg.str().c_str(), ERR);
 	      }
 	  }
       }
     else if(Token::isTokenAType(pTok))
       {
-	unreadToken();
-	typeNode = parseTypeDescriptor(typeargs, isaclass, delAfterDotFails);
+	//unreadToken();
+	typeargs.init(pTok);
+	typeNode = parseTypeDescriptor(typeargs, castUTI, isaclass, delAfterDotFails);
       }
     else
       unreadToken();
@@ -2069,9 +2083,10 @@ namespace MFM {
 
     Token dTok;
     getNextToken(dTok);
-    unreadToken();
+    //unreadToken();
     if(dTok.m_type == TOK_DOT)
       {
+	unreadToken();
 	if(!parseTypeFromAnotherClassesTypedef(typeargs, typeNode))
 	  {
 	    if(delAfterDotFails)
@@ -2079,20 +2094,32 @@ namespace MFM {
 		delete typeNode;
 		typeNode = NULL;
 	      }
+	    else
+	      getNextToken(dTok); //?
 	  }
 	else
-	  castUTI = typeargs.m_anothertduti;
+	  {
+	    castUTI = typeargs.m_anothertduti;
+	    getNextToken(dTok);
+	  }
       }
-    else if(dTok.m_type == TOK_AMP)
+
+    //else fall thru
+    if(dTok.m_type == TOK_AMP)
       {
 	typeargs.m_declRef = ALT_REF; //a declared reference
 	typeargs.m_referencedUTI = castUTI; //?
 	typeargs.m_assignOK = true; //required
 	typeargs.m_isStmt = true; //unless a func param
 	// change uti to reference key
+	UTI refuti = m_state.getUlamTypeAsRef(castUTI); //t3692
 	assert(typeNode);
-	typeNode->setReferenceType(ALT_REF, castUTI);
+	//typeNode->setReferenceType(ALT_REF, castUTI);
+	typeNode->setReferenceType(ALT_REF, castUTI, refuti);
       }
+    else
+      unreadToken();
+
     return typeNode;
   } //parseTypeDescriptor
 
@@ -3272,7 +3299,7 @@ namespace MFM {
 	      if(!locals)
 		{
 		  std::ostringstream msg;
-		  msg << "Keyword 'local' for file scope: ";
+		  msg << "Keyword 'local' for filescope: ";
 		  msg << m_state.getPathFromLocator(pTok.m_locator).c_str();
 		  msg << "; has no defs";
 		  MSG(&pTok, msg.str().c_str(), ERR);
@@ -3292,7 +3319,7 @@ namespace MFM {
 		  else
 		    {
 		      std::ostringstream msg;
-		      msg << "Keyword 'local' for file scope: ";
+		      msg << "Keyword 'local' for filescope: ";
 		      msg << m_state.getPathFromLocator(pTok.m_locator).c_str();
 		      msg << "; used incorrectly as a factor (no dot)";
 		      MSG(&pTok, msg.str().c_str(), ERR);
@@ -3362,8 +3389,9 @@ namespace MFM {
     //if next token is a type this a user cast, o.w. expression
     Token tTok;
     getNextToken(tTok);
-    if(Token::isTokenAType(tTok))
+    if(Token::isTokenAType(tTok) || (tTok.m_type == TOK_KW_LOCALDEF))
       {
+	unreadToken();
 	rtnNode = makeCastNode(tTok, allowRefCasts); //also parses its child Factor
       }
     else
@@ -3758,7 +3786,7 @@ namespace MFM {
 
     if(iTok.m_type == TOK_IDENTIFIER)
       {
-	//just the top level as a basic uti (no selects, or arrays)
+	//just the top level as a basic uti (no selects, or arrays, or refs???)
 	NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(args.m_typeTok, passuti, m_state);
 	//another decl of same type
 	NodeVarDecl * sNode = (NodeVarDecl *) makeVariableSymbol(args, iTok, typeNode); //a decl !!
@@ -4261,6 +4289,12 @@ namespace MFM {
 		MSG(&pTok, msg.str().c_str(), ERR);
 	      }
 	  }
+      }
+    else if(pTok.m_type == TOK_KW_LOCALDEF)
+      {
+	std::ostringstream msg;
+	msg << "Local filescope definition as function parameter type; Not supported";
+	MSG(&pTok, msg.str().c_str(), ERR);
       }
     else
       {
@@ -5233,36 +5267,32 @@ namespace MFM {
     Node * rtnNode = NULL;
     UTI typeToBe = Nouti;
     TypeArgs typeargs;
-    typeargs.init(typeTok);
+    //typeargs.init(typeTok);
 
     //we want the casting UTI, without deleting any failed dots because, why?
     // because it might be a minof,maxof,sizeof..which wouldn't be a cast at all!
-    NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs, typeToBe, false, false);
-    assert(typeNode);
+    NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalScope(typeargs, typeToBe, false, false);
+    if(!typeNode)
+      {
+	std::ostringstream msg;
+	msg << "Invalid Type for casting ";
+	MSG(&typeTok, msg.str().c_str(), ERR);
+	return NULL;
+      }
+
+    if((typeargs.m_declRef != ALT_NOT) && !allowRefCasts)
+      {
+	std::ostringstream msg;
+	msg << "Explicit Reference casts (Type&) ";
+	msg << "are valid for reference variable initialization";
+	msg << ", and not in this context";
+	MSG(&typeTok, msg.str().c_str(), ERR);
+	delete typeNode;
+	return NULL;
+      } //reference cast
 
     Token eTok;
     getNextToken(eTok);
-    if(eTok.m_type == TOK_AMP)
-      {
-	UTI casttype = typeNode->givenUTI();
-	if(allowRefCasts)
-	  {
-	    // check if needed for atom to quark ref casts (t3692)
-	    UTI refuti = m_state.getUlamTypeAsRef(casttype);
-	    typeargs.m_declRef = ALT_REF;
-	    typeNode->setReferenceType(ALT_REF, typeNode->givenUTI(), refuti);
-	    typeargs.m_referencedUTI = typeNode->getReferencedUTI();
-	  }
-	else
-	  {
-	    std::ostringstream msg;
-	    msg << "Explicit Reference casts (Type&) ";
-	    msg << "are valid for reference variable initialization";
-	    msg << ", and not in this context";
-	    MSG(&eTok, msg.str().c_str(), ERR);
-	  }
-	getNextToken(eTok);
-      } //reference cast
 
     if(eTok.m_type == TOK_CLOSE_PAREN)
       {

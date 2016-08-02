@@ -1,9 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3630_test_compiler_element_reffuncreturnvalue_error
 #!
-./Foo.ulam:16:10: ERROR: Reference as data member or function return type; Not supported.
+./Foo.ulam:16:3: ERROR: Reference as data member or function return type; Not supported.
 ./Foo.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Foo'; Possible missing ending curly brace.
-./Foo.ulam:16:10: ERROR: Invalid Class Type <&>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./Foo.ulam:16:12: ERROR: Invalid Class Type <getMB>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./Foo.ulam:2:9: ERROR: Invalid Type: Foo.
  ERROR: No parse tree for This Class: Foo.
 Unrecoverable Program Parse FAILURE: <Foo.ulam>

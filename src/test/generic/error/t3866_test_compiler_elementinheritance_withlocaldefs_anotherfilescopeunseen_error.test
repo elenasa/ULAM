@@ -1,7 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3866_test_compiler_elementinheritance_withlocaldefs_anotherfilescopeunseen_error
 #!
-./Foo.ulam:6:17: ERROR: Invalid local typedef base of already local base.
+./Foo.ulam:6:11: ERROR: Expected a Type after the keyword 'local' for filescope: Foo.ulam; used incorrectly.
+./Foo.ulam:6:11: ERROR: Invalid typedef base Type.
+./Foo.ulam:6:17: ERROR: Invalid typedef Alias <local>, Type Identifier (2nd arg) requires capitalization.
 ./Foo.ulam:4:1: ERROR: Empty/Incomplete Class Definition 'Foo'; Possible missing ending curly brace.
 ./Foo.ulam:6:22: ERROR: Invalid Class Type <.>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./Foo.ulam:4:9: ERROR: Invalid Type: Foo.
