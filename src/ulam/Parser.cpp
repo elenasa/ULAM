@@ -19,6 +19,7 @@
 #include "NodeBinaryOpCompareGreaterEqual.h"
 #include "NodeBinaryOpEqual.h"
 #include "NodeBinaryOpEqualArithAdd.h"
+#include "NodeBinaryOpEqualArithDivide.h"
 #include "NodeBinaryOpEqualArithMultiply.h"
 #include "NodeBinaryOpEqualArithSubtract.h"
 #include "NodeBinaryOpEqualBitwiseAnd.h"
@@ -3353,6 +3354,7 @@ namespace MFM {
       case TOK_PLUS_EQUAL:
       case TOK_MINUS_EQUAL:
       case TOK_STAR_EQUAL:
+      case TOK_SLASH_EQUAL:
       case TOK_AMP_EQUAL:
       case TOK_PIPE_EQUAL:
       case TOK_HAT_EQUAL:
@@ -4528,6 +4530,9 @@ namespace MFM {
 	    break;
 	  case TOK_STAR_EQUAL:
 	    rtnNode = new NodeBinaryOpEqualArithMultiply(leftNode, rightNode, m_state);
+	    break;
+	  case TOK_SLASH_EQUAL:
+	    rtnNode = new NodeBinaryOpEqualArithDivide(leftNode, rightNode, m_state);
 	    break;
 	  case TOK_AMP_EQUAL:
 	    rtnNode = new NodeBinaryOpEqualBitwiseAnd(leftNode, rightNode, m_state);
