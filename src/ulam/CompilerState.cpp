@@ -3483,6 +3483,14 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return rtnLocals;
   } //makeLocalScopeBlock
 
+  u32 CompilerState::findTypedefNameIdInLocalScopeByIndex(UTI uti)
+  {
+    NodeBlockLocals * rtnLocals = getLocalScopeBlock(getContextBlockLoc());
+    if(rtnLocals)
+      return rtnLocals->findTypedefNameIdByType(uti);
+    return 0; //not found
+  } //findTypedefNameIdInLocalScopeByIndex
+
   NNO CompilerState::getNextNodeNo()
   {
     return ++m_nextNodeNumber; //first one is 1
@@ -3657,6 +3665,15 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     if(cc.getContextBlock())
       return cc.getContextBlock()->getNodeNo();
     return 0;
+  }
+
+  Locator CompilerState::getContextBlockLoc()
+  {
+    ClassContext cc;
+    AssertBool isDefined = m_classContextStack.getCurrentClassContext(cc);
+    assert(isDefined);
+    assert(cc.getContextBlock());
+    return cc.getContextBlock()->getNodeLocation();
   }
 
   bool CompilerState::useMemberBlock()

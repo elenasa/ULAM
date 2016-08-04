@@ -18,12 +18,13 @@ namespace MFM {
   void NodeBlockLocals::printPostfix(File * fp)
   {
     fp->write(" locals: ");
-    NodeBlock::printPostfix(fp);
+    if(m_nodeNext)
+      NodeBlock::printPostfix(fp);
   }
 
   const char * NodeBlockLocals::getName()
   {
-    return "locals";
+    return "localdefs";
   }
 
   const std::string NodeBlockLocals::prettyNodeName()
@@ -51,7 +52,10 @@ namespace MFM {
   {
     UTI savnuti = getNodeType();
     assert(savnuti != Nouti);
-    NodeBlock::checkAndLabelType();
+
+    //possibly empty (e.g. error/t3875)
+    if(m_nodeNext)
+      NodeBlock::checkAndLabelType();
     setNodeType(savnuti);
     return savnuti;
   }

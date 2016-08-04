@@ -104,6 +104,8 @@ namespace MFM{
 
     virtual s32 getMaxBitSizeOfVariableSymbolsInTable();
 
+    u32 findTypedefNameIdByType(UTI uti);
+
     virtual void genCode(File * fp, UVPass& uvpass);
 
     void genModelParameterImmediateDefinitions(File * fp);

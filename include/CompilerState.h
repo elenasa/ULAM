@@ -429,6 +429,8 @@ namespace MFM{
     NodeBlockLocals * getLocalScopeBlockByPathId(u32 pathid);
     NodeBlockLocals * makeLocalScopeBlock(Locator loc);
 
+    u32 findTypedefNameIdInLocalScopeByIndex(UTI uti);
+
     /** to identify each node */
     NNO getNextNodeNo();
 
@@ -455,6 +457,8 @@ namespace MFM{
     NodeBlockContext * getContextBlock();
 
     NNO getContextBlockNo();
+
+    Locator getContextBlockLoc();
 
     bool useMemberBlock();
 

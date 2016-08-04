@@ -39,6 +39,27 @@ namespace MFM {
     return cntOfConstants;
   } //getNumberOfConstantSymbolsInTable
 
+  u32 SymbolTableOfVariables::findTypedefSymbolNameIdByTypeInTable(UTI type)
+  {
+    u32 rtnId = 0;
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym);
+	if(sym->isTypedef())
+	  {
+	    if(sym->getUlamTypeIdx() == type) //compare?
+	      {
+		rtnId = sym->getId();
+		break;
+	      }
+	  }
+	it++;
+      }
+    return rtnId;
+  } //findTypedefSymbolNameIdByTypeInTable
+
   //called by NodeBlock.
   u32 SymbolTableOfVariables::getTotalSymbolSize()
   {

@@ -285,6 +285,29 @@ namespace MFM {
     //skip the ancestor of a template
     if(m_state.okUTItoContinue(superuti))
       {
+	if(m_state.isHolder(superuti)) //t3874
+	  {
+	    UTI mappedUTI = superuti;
+	    //if(findaUTIAlias(superuti, mappedUTI))
+	    if(m_state.mappedIncompleteUTI(nuti, superuti, mappedUTI))
+	      {
+		std::ostringstream msg;
+		msg << "Substituting mapped UTI" << mappedUTI;
+		msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
+		msg << " for SUPERCLASS holder type: '";
+		msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
+		msg << "' UTI" << superuti << " while labeling class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		m_state.setGoAgain();
+		//need to break the chain; e.g. don't want template symbol addresses used
+		setSuperBlockPointer(NULL); //force to try again!! avoid inf loop
+		superuti = mappedUTI;
+		m_state.resetClassSuperclass(nuti, superuti);
+		return Hzy; //short-circuit
+	      }
+	  }
+
 	//this is a subclass.
 	if(!isSuperClassLinkReady())
 	  {
@@ -330,15 +353,30 @@ namespace MFM {
 	  }
 	else if(superclasstype != UC_QUARK)
 	  {
-	    //for all others (elements and quarks)
-	    //must be "seen" by now; e.g. typedef array of quarks (t3674), t3862
-	    std::ostringstream msg;
-	    msg << "Subclass '";
-	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	    msg << "' inherits from '";
-	    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
-	    msg << "', a class that's not a quark";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    //O(n) search of localdefs for nicer error message (t3875)
+	    u32 lostid = m_state.findTypedefNameIdInLocalScopeByIndex(superuti);
+	    if(lostid > 0)
+	      {
+		std::ostringstream msg;
+		msg << "Subclass '";
+		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		msg << "' inherits from '";
+		msg << m_state.m_pool.getDataAsString(lostid).c_str();
+		msg << "', an unresolved local filescope typedef";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      }
+	    else
+	      {
+		//for all others (elements and quarks)
+		//must be "seen" by now; e.g. typedef array of quarks (t3674), t3862
+		std::ostringstream msg;
+		msg << "Subclass '";
+		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		msg << "' inherits from '";
+		msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
+		msg << "', a class that's not a quark";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      }
 	    setNodeType(Nav);
 	  }
       } //done with inheritance checks, continue.

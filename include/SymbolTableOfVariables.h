@@ -53,6 +53,8 @@ namespace MFM{
 
     u32 getNumberOfConstantSymbolsInTable(bool argsOnly);
 
+    u32 findTypedefSymbolNameIdByTypeInTable(UTI type);
+
     //Table of Variable Data Members:
 
     virtual u32 getTotalSymbolSize();

@@ -69,7 +69,8 @@ namespace MFM {
       sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
 
-    m_nodeNext->print(fp);
+    if(m_nodeNext)
+      m_nodeNext->print(fp);
 
     sprintf(id,"-----------------%s\n", prettyNodeName().c_str());
     fp->write(id);
@@ -123,14 +124,17 @@ namespace MFM {
   void NodeBlock::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
     Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt); //missing
-    m_nodeNext->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+    if(m_nodeNext)
+      m_nodeNext->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   }
 
   EvalStatus NodeBlock::eval()
   {
+    if(!m_nodeNext)
+      return ERROR;
+
     // block stack needed for symbol lookup during eval of virtual func call on as-conditional auto
     m_state.pushCurrentBlock(this);
-    assert(m_nodeNext);
     EvalStatus evs = m_nodeNext->eval();
     m_state.popClassContext(); //restore
     return evs;
@@ -219,6 +223,11 @@ namespace MFM {
       return EMPTYSYMBOLTABLE; //should allow no variable data members
 
     return m_ST.getMaxVariableSymbolsBitSize();
+  }
+
+  u32 NodeBlock::findTypedefNameIdByType(UTI uti)
+  {
+    return m_ST.findTypedefSymbolNameIdByTypeInTable(uti); //0 == not found
   }
 
   SymbolTable * NodeBlock::getSymbolTablePtr()

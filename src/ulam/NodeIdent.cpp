@@ -612,6 +612,12 @@ namespace MFM {
 			m_state.makeUlamTypeFromHolder(newkey, bUT, tduti, bUT == Class ? UC_UNSEEN : UC_NOTACLASS); //update holder key, same uti
 		      }
 		  }
+		else if(tclasstype == UC_UNSEEN)
+		  {
+		    if(m_state.isThisLocalsFileScope() && args.m_classInstanceIdx != Nouti)
+		      m_state.updateUTIAliasForced(tduti, args.m_classInstanceIdx); //t3874
+		    //else (t3378, t3379)
+		  }
 		brtn = true;
 	      } //holder done
 	    else if(asymptr->getId() == m_state.m_pool.getIndexForDataString("Self"))

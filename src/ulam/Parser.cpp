@@ -585,10 +585,62 @@ namespace MFM {
     Token iTok;
     getNextToken(iTok);
 
+    //forward declaration of localdef (t3874)
+    if(iTok.m_type == TOK_KW_LOCALDEF)
+      {
+	if(!getExpectedToken(TOK_DOT))
+	  {
+	    return false;
+	  }
+	NodeBlockLocals * locals = m_state.makeLocalScopeBlock(m_state.getContextBlockLoc());
+	assert(locals);
+
+	m_state.pushClassContext(locals->getNodeType(), locals, locals, false, NULL);
+
+	getNextToken(iTok);
+	if(iTok.m_type == TOK_TYPE_IDENTIFIER)
+	  {
+	    SymbolClassName * supercnsym = NULL;
+	    if(!m_state.alreadyDefinedSymbolClassName(iTok.m_dataindex, supercnsym))
+	      {
+		//check if aleady a typedef..else make one
+		UTI tduti = Nav;
+		UTI tdscalaruti = Nouti;
+		if(!m_state.getUlamTypeByTypedefName(iTok.m_dataindex, tduti, tdscalaruti))
+		  {
+		    //make a typedef holder for a class
+		    UTI huti = m_state.makeUlamTypeHolder();
+		    m_state.makeClassFromHolder(huti, iTok); //anonymous class
+		    SymbolTypedef * symtypedef = new SymbolTypedef(iTok, huti, huti, m_state);
+		    assert(symtypedef);
+		    symtypedef->setBlockNoOfST(m_state.getContextBlockNo());
+		    m_state.addSymbolToCurrentScope(symtypedef); //local scope
+
+		    cnsym->setSuperClassForClassInstance(huti, cnsym->getUlamTypeIdx()); //set here!!
+		    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(huti, supercsym);
+		    assert(isDefined);
+		    rtninherits = true;
+		  }
+	      }
+	    else
+	      {
+		//error! using keyword local. with an already defined class
+		std::ostringstream msg;
+		msg << "Invalid inheritance from local filescope; Class Definition '";
+		msg << m_state.getUlamTypeNameBriefByIndex(cnsym->getUlamTypeIdx()).c_str();
+		msg << "' is not a typedef";
+		MSG(&iTok, msg.str().c_str(), ERR);
+	      }
+	  }
+	m_state.popClassContext(); //restore
+	return rtninherits;
+      }
+
+    //o.w. implicit localdef typedefs and constants
     if(iTok.m_type == TOK_TYPE_IDENTIFIER)
       {
-	//only search for class arguments for ancestors in local scope
-	NodeBlockLocals * locals = m_state.getLocalScopeBlock(m_state.getContextBlock()->getNodeLocation());
+	//only search for typedefs, and class arguments for ancestors in local scope
+	NodeBlockLocals * locals = m_state.getLocalScopeBlock(m_state.getContextBlockLoc());
 	if(locals)
 	  m_state.pushClassContext(locals->getNodeType(), locals, locals, false, NULL);
 
@@ -1918,7 +1970,8 @@ namespace MFM {
     if(pTok.m_type == TOK_KW_LOCALDEF)
       {
 	//assuming locals defined before they are referred to
-	NodeBlockLocals * locals = m_state.getLocalScopeBlock(pTok.m_locator);
+	//	NodeBlockLocals * locals = m_state.getLocalScopeBlock(pTok.m_locator);
+	NodeBlockLocals * locals = m_state.makeLocalScopeBlock(pTok.m_locator);
 	if(!locals)
 	  {
 	    std::ostringstream msg;
@@ -2157,7 +2210,7 @@ namespace MFM {
 		      {
 			SymbolTypedef * symtypedef = new SymbolTypedef(typeTok, huti, Nav, m_state);
 			assert(symtypedef);
-			symtypedef->setBlockNoOfST(m_state.getContextBlock()->getNodeNo());
+			symtypedef->setBlockNoOfST(m_state.getContextBlockNo());
 			m_state.addSymbolToCurrentScope(symtypedef); //local scope
 		      }
 		    return huti;
@@ -3246,7 +3299,7 @@ namespace MFM {
 	      //make holder for this localdef constant not seen yet!
 	      UTI huti = m_state.makeUlamTypeHolder();
 	      SymbolConstantValue * constsym = new SymbolConstantValue(pTok, huti, m_state);
-	      constsym->setBlockNoOfST(m_state.getContextBlock()->getNodeNo());
+	      constsym->setBlockNoOfST(m_state.getContextBlockNo());
 	      m_state.addSymbolToCurrentScope(constsym);
 
 	      rtnNode = new NodeConstant(pTok, constsym, m_state);
@@ -3309,7 +3362,8 @@ namespace MFM {
 	  else
 	    {
 	      //assuming locals defined before they are referred to
-	      NodeBlockLocals * locals = m_state.getLocalScopeBlock(pTok.m_locator);
+	      //NodeBlockLocals * locals = m_state.getLocalScopeBlock(pTok.m_locator);
+	      NodeBlockLocals * locals = m_state.makeLocalScopeBlock(pTok.m_locator);
 	      if(!locals)
 		{
 		  std::ostringstream msg;
@@ -3684,7 +3738,7 @@ namespace MFM {
       case TOK_PLUS_EQUAL:
       case TOK_MINUS_EQUAL:
       case TOK_STAR_EQUAL:
-      case TOK_SLASH_EQUAL:
+      case TOK_SLASH_EQUAL: //3853
       case TOK_PERCENTSIGN_EQUAL:
       case TOK_AMP_EQUAL:
       case TOK_PIPE_EQUAL:
@@ -3709,17 +3763,6 @@ namespace MFM {
 	  msg << "Unexpected input!! Try ";
 	  msg << m_state.getTokenDataAsString(pTok).c_str();
 	  msg << " as a prefix operator";
-	  MSG(&pTok, msg.str().c_str(), ERR);
-	  rtnNode = leftNode;
-	  break;
-	}
-      case TOK_SLASH_EQUAL:
-	{
-	  //would have expected to work: error/t3853
-	  std::ostringstream msg;
-	  msg << "Operator ";
-	  msg << m_state.getTokenDataAsString(pTok).c_str();
-	  msg << " is not supported";
 	  MSG(&pTok, msg.str().c_str(), ERR);
 	  rtnNode = leftNode;
 	  break;
@@ -4510,10 +4553,11 @@ namespace MFM {
 	      }
 	    else
 	      {
-		//installSymbol failed for other reasons (e.g. problem with []); rtnNode is NULL;
+		//installSymbol failed for other reasons (e.g. problem with []);
+		// rtnNode is NULL; (t3255)
 		std::ostringstream msg;
 		msg << "Invalid variable declaration of base type <";
-		msg << m_state.getTokenAsATypeName(args.m_typeTok).c_str() << "> and Name <";
+		msg << m_state.getTokenAsATypeName(args.m_typeTok).c_str() << "> and name <";
 		msg << m_state.getTokenDataAsString(identTok).c_str() << "> (missing symbol)";
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
 	      }
@@ -4596,12 +4640,12 @@ namespace MFM {
 	      }
 	    else
 	      {
-		//installSymbol failed for other reasons
+		//installSymbol failed for other reasons (t3254)
 		//(e.g. problem with []) , error already output. rtnNode is NULL;
 		std::ostringstream msg;
 		msg << "Invalid typedef of base type <";
 		msg << m_state.getTokenAsATypeName(args.m_typeTok).c_str();
-		msg << "> and Name <" << m_state.getTokenDataAsString(identTok).c_str();
+		msg << "> and name <" << m_state.getTokenDataAsString(identTok).c_str();
 		msg << "> (missing symbol)";
 		MSG(&identTok, msg.str().c_str(), ERR);
 	      }
@@ -4666,11 +4710,11 @@ namespace MFM {
 	    else
 	      {
 		//installSymbol failed for other reasons (e.g. problem with []), error already output.
-		//rtnNode is NULL;
+		//rtnNode is NULL; (t3446, t3451, t3460)
 		std::ostringstream msg;
-		msg << "Invalid constant definition of Type <";
+		msg << "Invalid constant definition of type <";
 		msg << m_state.getTokenAsATypeName(args.m_typeTok).c_str();
-		msg << "> and Name <" << m_state.getTokenDataAsString(identTok).c_str();
+		msg << "> and name <" << m_state.getTokenDataAsString(identTok).c_str();
 		msg << ">";
 		MSG(&identTok, msg.str().c_str(), ERR);
 	      }
