@@ -26,6 +26,8 @@
 #include "NodeBinaryOpEqualBitwiseAnd.h"
 #include "NodeBinaryOpEqualBitwiseOr.h"
 #include "NodeBinaryOpEqualBitwiseXor.h"
+#include "NodeBinaryOpEqualShiftLeft.h"
+#include "NodeBinaryOpEqualShiftRight.h"
 #include "NodeBinaryOpLogicalAnd.h"
 #include "NodeBinaryOpLogicalOr.h"
 #include "NodeBinaryOpShiftLeft.h"
@@ -3360,6 +3362,8 @@ namespace MFM {
       case TOK_AMP_EQUAL:
       case TOK_PIPE_EQUAL:
       case TOK_HAT_EQUAL:
+      case TOK_SHIFT_LEFT_EQUAL:
+      case TOK_SHIFT_RIGHT_EQUAL:
 	unreadToken();
 	rtnNode = makeAssignExprNode(leftNode);
 	rtnNode = parseRestOfExpression(rtnNode); //any more?
@@ -4547,6 +4551,12 @@ namespace MFM {
 	    break;
 	  case TOK_HAT_EQUAL:
 	    rtnNode = new NodeBinaryOpEqualBitwiseXor(leftNode, rightNode, m_state);
+	    break;
+	  case TOK_SHIFT_LEFT_EQUAL:
+	    rtnNode = new NodeBinaryOpEqualShiftLeft(leftNode, rightNode, m_state);
+	    break;
+	  case TOK_SHIFT_RIGHT_EQUAL:
+	    rtnNode = new NodeBinaryOpEqualShiftRight(leftNode, rightNode, m_state);
 	    break;
 	  default:
 	    {

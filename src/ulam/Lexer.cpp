@@ -275,6 +275,16 @@ namespace MFM {
 		if(emsg != 0)
 		  return emsg;
 	      }
+	    else if((ttype == TOK_SHIFT_LEFT) || (ttype == TOK_SHIFT_RIGHT))
+	      {
+		u32 smsg = checkShiftEqualToken(astring, firstloc);
+		if(smsg == 1)
+		  ttype = getTokenTypeFromString(astring);
+		else if(smsg > 1)
+		  return smsg;
+		//else no change
+	      }
+
 	    tok.init(ttype, firstloc, 0);
 	    return 0;
 	  }
@@ -322,6 +332,28 @@ namespace MFM {
     return bok;
   } //checkellipsistoken
 
+  u32 Lexer::checkShiftEqualToken(std::string& astring, Locator firstloc)
+  {
+    u32 bok = 0;
+    s32 c3 = m_SS.read();
+    if(c3 >= 0)
+      {
+	if(c3 == '=')
+	  {
+	    astring.push_back(c3);
+	    bok = 1;
+	  }
+	else
+	  unread();
+      }
+    else
+      {
+	std::ostringstream errmsg;
+	errmsg << "Lexer could not find anything after logical shift <" << astring << ">";
+	bok = m_state.m_pool.getIndexForDataString(errmsg.str());
+      }
+    return bok;
+  } //checkShiftEqualToken
 
   u32 Lexer::makeDoubleQuoteToken(std::string& astring, Token & tok)
   {
