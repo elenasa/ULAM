@@ -210,6 +210,7 @@ namespace MFM {
 		//not custom array
 		//must be some kind of numeric type: Int, Unsigned, or Unary..of any bit size
 		UlamType * rut = m_state.getUlamTypeByIndex(rightType);
+		ULAMTYPE retyp = rut->getUlamTypeEnum();
 		if(m_state.okUTItoContinue(rightType) && !rut->isNumericType())
 		  {
 		    std::ostringstream msg;
@@ -219,8 +220,10 @@ namespace MFM {
 		    idxuti = Nav; //error!
 		    errorCount++;
 		  }
-		else if(rut->getUlamTypeEnum() == Class)
+		else if(retyp == Class)
 		  idxuti = Int;
+		else if(retyp == Unary)
+		  idxuti = Unsigned; //t3877
 		else
 		  idxuti = rightType; //default unless caarray
 	      }
@@ -655,6 +658,7 @@ namespace MFM {
     UTI luti = luvpass.getPassTargetType();
     if(!m_state.isClassACustomArray(luti))
       {
+#if 0
 	UTI offuti = offset.getPassTargetType();
 	UlamType * offut = m_state.getUlamTypeByIndex(offuti);
 	if(offut->getUlamTypeEnum() == Unary)
@@ -676,6 +680,7 @@ namespace MFM {
 	    // new uvpass here
 	    offset = UVPass::makePass(tmpVarIdx, TMPREGISTER, Unsigned, m_state.determinePackable(offuti), m_state, 0, 0); //POS 0 rightjustified.
 	  } //end unary special case
+#endif
 
 	//runtime check to avoid accessing beyond array (Sun Jul  3 17:49:47 2016 )
 	UlamType * lut = m_state.getUlamTypeByIndex(luti);
