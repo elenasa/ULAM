@@ -1,4 +1,4 @@
-[Development version: ulam-2.0.0]
+[Development version: ulam-3.0.0]
 
 <LIBRARY> := <PROGRAM_OR_LOCAL_DEF>* + <EOF>
 <PROGRAM_OR_LOCAL_DEF> := <PROGRAM_DEF> | <LOCAL_DEF>
@@ -87,7 +87,7 @@
 <RETURN_STATEMENT> := 'return' + ( 0 | <ASSIGN_EXPRESSION>)
 
 <ASSIGN_EXPRESSION> := <EXPRESSION> | <LVAL_EXPRESSION> + <ASSIGN_OP> + <ASSIGN_EXPRESSION>
-<ASSIGN_OP> := '=' | '+=' | '-=' | '*=' | '&=' | '|=' | '^='
+<ASSIGN_OP> := '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>>='
 
 <LVAL_EXPRESSION> := <IDENT> | <IDENT> + '[' + <EXPRESSION> + ']' | <IDENT> + '.' + 'atomof'
 <IDENT_EXPRESSION> := <LVAL_EXPRESSION> | <MEMBER_SELECT_EXPRESSION> | <FUNC_CALL>
