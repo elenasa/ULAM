@@ -19,11 +19,15 @@
 #include "NodeBinaryOpCompareGreaterEqual.h"
 #include "NodeBinaryOpEqual.h"
 #include "NodeBinaryOpEqualArithAdd.h"
+#include "NodeBinaryOpEqualArithDivide.h"
 #include "NodeBinaryOpEqualArithMultiply.h"
+#include "NodeBinaryOpEqualArithRemainder.h"
 #include "NodeBinaryOpEqualArithSubtract.h"
 #include "NodeBinaryOpEqualBitwiseAnd.h"
 #include "NodeBinaryOpEqualBitwiseOr.h"
 #include "NodeBinaryOpEqualBitwiseXor.h"
+#include "NodeBinaryOpEqualShiftLeft.h"
+#include "NodeBinaryOpEqualShiftRight.h"
 #include "NodeBinaryOpLogicalAnd.h"
 #include "NodeBinaryOpLogicalOr.h"
 #include "NodeBinaryOpShiftLeft.h"
@@ -357,8 +361,9 @@ namespace MFM {
 	NodeBlock * prevBlock = m_state.getCurrentBlock();
 	if(prevBlock != rtnNode)
 	  rtnNode->setPreviousBlockPointer(prevBlock);
+	rtnNode->setNodeLocation(identTok.m_locator); //missing
+	assert(utype == rtnNode->getNodeType());
       }
-
 
     //current, this block's symbol table added to parse tree stack
     //        for validating and finding scope of program/block variables
@@ -3352,9 +3357,13 @@ namespace MFM {
       case TOK_PLUS_EQUAL:
       case TOK_MINUS_EQUAL:
       case TOK_STAR_EQUAL:
+      case TOK_SLASH_EQUAL:
+      case TOK_PERCENTSIGN_EQUAL:
       case TOK_AMP_EQUAL:
       case TOK_PIPE_EQUAL:
       case TOK_HAT_EQUAL:
+      case TOK_SHIFT_LEFT_EQUAL:
+      case TOK_SHIFT_RIGHT_EQUAL:
 	unreadToken();
 	rtnNode = makeAssignExprNode(leftNode);
 	rtnNode = parseRestOfExpression(rtnNode); //any more?
@@ -4528,6 +4537,12 @@ namespace MFM {
 	  case TOK_STAR_EQUAL:
 	    rtnNode = new NodeBinaryOpEqualArithMultiply(leftNode, rightNode, m_state);
 	    break;
+	  case TOK_SLASH_EQUAL:
+	    rtnNode = new NodeBinaryOpEqualArithDivide(leftNode, rightNode, m_state);
+	    break;
+	  case TOK_PERCENTSIGN_EQUAL:
+	    rtnNode = new NodeBinaryOpEqualArithRemainder(leftNode, rightNode, m_state);
+	    break;
 	  case TOK_AMP_EQUAL:
 	    rtnNode = new NodeBinaryOpEqualBitwiseAnd(leftNode, rightNode, m_state);
 	    break;
@@ -4536,6 +4551,12 @@ namespace MFM {
 	    break;
 	  case TOK_HAT_EQUAL:
 	    rtnNode = new NodeBinaryOpEqualBitwiseXor(leftNode, rightNode, m_state);
+	    break;
+	  case TOK_SHIFT_LEFT_EQUAL:
+	    rtnNode = new NodeBinaryOpEqualShiftLeft(leftNode, rightNode, m_state);
+	    break;
+	  case TOK_SHIFT_RIGHT_EQUAL:
+	    rtnNode = new NodeBinaryOpEqualShiftRight(leftNode, rightNode, m_state);
 	    break;
 	  default:
 	    {

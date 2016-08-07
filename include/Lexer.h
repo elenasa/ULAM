@@ -75,6 +75,7 @@ namespace MFM{
     u32 makeNumberToken(std::string& anumber, Token & tok);
     u32 makeOperatorToken(std::string& astring, Token & tok);
     u32 checkEllipsisToken(std::string& astring, Locator firstloc);
+    u32 checkShiftEqualToken(std::string& astring, Locator firstloc);
 
     u32 makeDoubleQuoteToken(std::string& astring, Token & tok);
     u32 makeSingleQuoteToken(std::string& astring, Token & tok);

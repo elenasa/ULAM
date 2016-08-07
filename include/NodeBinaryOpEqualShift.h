@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeBinaryOpEqualBitwise.h -  Basic Node for handling Bitwise Operator Equal for ULAM
+ * NodeBinaryOpEqualShift.h -  Basic Node for handling Shift Operator Equal for ULAM
  *
  * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
  * Copyright (C) 2014-2016 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file NodeBinaryOpEqualBitwise.h - Basic Node for handling Bitwise Operator Equal for ULAM
+  \file NodeBinaryOpEqualShift.h - Basic Node for handling Shift Operator Equal for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2016 All rights reserved.
@@ -34,22 +34,22 @@
 */
 
 
-#ifndef NODEBINARYOPEQUALBITWISE_H
-#define NODEBINARYOPEQUALBITWISE_H
+#ifndef NODEBINARYOPEQUALSHIFT_H
+#define NODEBINARYOPEQUALSHIFT_H
 
 #include "NodeBinaryOpEqual.h"
 
 namespace MFM{
 
-  class NodeBinaryOpEqualBitwise : public NodeBinaryOpEqual
+  class NodeBinaryOpEqualShift : public NodeBinaryOpEqual
   {
   public:
 
-    NodeBinaryOpEqualBitwise(Node * left, Node * right, CompilerState & state);
+    NodeBinaryOpEqualShift(Node * left, Node * right, CompilerState & state);
 
-    NodeBinaryOpEqualBitwise(const NodeBinaryOpEqualBitwise& ref);
+    NodeBinaryOpEqualShift(const NodeBinaryOpEqualShift& ref);
 
-    virtual ~NodeBinaryOpEqualBitwise();
+    virtual ~NodeBinaryOpEqualShift();
 
     virtual UTI checkAndLabelType();
 
@@ -58,11 +58,11 @@ namespace MFM{
     virtual void genCode(File * fp, UVPass& uvpass);
 
   protected:
-    virtual UTI calcNodeType(UTI lt, UTI rt);  //same as NodeBinaryOpBitwise
+    virtual UTI calcNodeType(UTI lt, UTI rt);  //same as NodeBinaryOpShift
 
     virtual bool doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
   };
 
 }
 
-#endif //NODEBINARYOPEQUALBITWISE_H
+#endif //NODEBINARYOPEQUALSHIFT_H

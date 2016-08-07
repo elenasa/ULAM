@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeBinaryOpEqualBitwise.h -  Basic Node for handling Bitwise Operator Equal for ULAM
+ * NodeBinaryOpEqualArithDivide.h - Node for handling Divide Equal for ULAM
  *
  * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
  * Copyright (C) 2014-2016 Ackleyshack LLC.
@@ -26,43 +26,44 @@
  */
 
 /**
-  \file NodeBinaryOpEqualBitwise.h - Basic Node for handling Bitwise Operator Equal for ULAM
+  \file NodeBinaryOpEqualArithDivide.h - Node for handling Divide Equal for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014-2016 All rights reserved.
   \gpl
 */
 
+#ifndef NODEBINARYOPEQUALARITHDIVIDE_H
+#define NODEBINARYOPEQUALARITHDIVIDE_H
 
-#ifndef NODEBINARYOPEQUALBITWISE_H
-#define NODEBINARYOPEQUALBITWISE_H
-
-#include "NodeBinaryOpEqual.h"
+#include "NodeBinaryOpEqualArith.h"
 
 namespace MFM{
 
-  class NodeBinaryOpEqualBitwise : public NodeBinaryOpEqual
+  class NodeBinaryOpEqualArithDivide : public NodeBinaryOpEqualArith
   {
   public:
 
-    NodeBinaryOpEqualBitwise(Node * left, Node * right, CompilerState & state);
+    NodeBinaryOpEqualArithDivide(Node * left, Node * right, CompilerState & state);
+    NodeBinaryOpEqualArithDivide(const NodeBinaryOpEqualArithDivide& ref);
+    virtual ~NodeBinaryOpEqualArithDivide();
 
-    NodeBinaryOpEqualBitwise(const NodeBinaryOpEqualBitwise& ref);
+    virtual Node * instantiate();
 
-    virtual ~NodeBinaryOpEqualBitwise();
+    virtual const char * getName();
 
-    virtual UTI checkAndLabelType();
+    virtual const std::string prettyNodeName();
 
     virtual const std::string methodNameForCodeGen();
 
-    virtual void genCode(File * fp, UVPass& uvpass);
-
   protected:
-    virtual UTI calcNodeType(UTI lt, UTI rt);  //same as NodeBinaryOpBitwise
 
-    virtual bool doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
+    virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len);
+    virtual UlamValue makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len);
+    virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len);
+
   };
 
 }
 
-#endif //NODEBINARYOPEQUALBITWISE_H
+#endif //end NODEBINARYOPEQUALARITHDIVIDE_H

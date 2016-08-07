@@ -210,6 +210,7 @@ namespace MFM {
 		//not custom array
 		//must be some kind of numeric type: Int, Unsigned, or Unary..of any bit size
 		UlamType * rut = m_state.getUlamTypeByIndex(rightType);
+		ULAMTYPE retyp = rut->getUlamTypeEnum();
 		if(m_state.okUTItoContinue(rightType) && !rut->isNumericType())
 		  {
 		    std::ostringstream msg;
@@ -219,8 +220,10 @@ namespace MFM {
 		    idxuti = Nav; //error!
 		    errorCount++;
 		  }
-		else if(rut->getUlamTypeEnum() == Class)
+		else if(retyp == Class)
 		  idxuti = Int;
+		else if(retyp == Unary)
+		  idxuti = Unsigned; //t3877, t3543, t3591, t3594, t3702
 		else
 		  idxuti = rightType; //default unless caarray
 	      }
@@ -253,7 +256,6 @@ namespace MFM {
     if((errorCount == 0) && (hazyCount == 0))
       {
 	// sq bracket purpose in life is to account for array elements;
-	//if(isCustomArray)
 	if(m_isCustomArray && m_state.isScalar(leftType))
 	  newType = m_state.getAClassCustomArrayType(leftType);
 	else
@@ -655,28 +657,6 @@ namespace MFM {
     UTI luti = luvpass.getPassTargetType();
     if(!m_state.isClassACustomArray(luti))
       {
-	UTI offuti = offset.getPassTargetType();
-	UlamType * offut = m_state.getUlamTypeByIndex(offuti);
-	if(offut->getUlamTypeEnum() == Unary)
-	  {
-	    s32 tmpVarIdx = m_state.getNextTmpVarNumber();
-	    m_state.indentUlamCode(fp);
-	    fp->write("const u32 ");
-	    fp->write(m_state.getTmpVarAsString(Unsigned, tmpVarIdx, TMPREGISTER).c_str());;
-	    fp->write(" = ");
-	    if(offut->getTotalWordSize() <= MAXBITSPERINT)
-	      fp->write("_Unary32ToCu32(");
-	    else //must be long
-	      fp->write("_Unary64ToCu64(");
-
-	    fp->write(offset.getTmpVarAsString(m_state).c_str());
-	    fp->write(", ");
-	    fp->write_decimal(offut->getBitSize());
-	    fp->write(");"); GCNL;
-	    // new uvpass here
-	    offset = UVPass::makePass(tmpVarIdx, TMPREGISTER, Unsigned, m_state.determinePackable(offuti), m_state, 0, 0); //POS 0 rightjustified.
-	  } //end unary special case
-
 	//runtime check to avoid accessing beyond array (Sun Jul  3 17:49:47 2016 )
 	UlamType * lut = m_state.getUlamTypeByIndex(luti);
 	s32 arraysize = lut->getArraySize();
