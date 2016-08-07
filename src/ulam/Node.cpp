@@ -2316,14 +2316,41 @@ namespace MFM {
     fp->write("UlamRef<EC>("); //wrapper for dm
     fp->write(m_state.getHiddenArgName()); //ur first arg
     fp->write(", ");
+
+    //reading entire thing, using ELEMENTAL, t.f. adjust (t3880)
+    if(needAdjustToStateBits(cosuti))
+      fp->write("T::ATOM_FIRST_STATE_BIT + ");
+
     fp->write_decimal_unsigned(pos); //rel offset
     fp->write("u, ");
-    fp->write_decimal_unsigned(cosut->getTotalBitSize());
-    fp->write("u, ");
+
+    if(cosut->getUlamClassType() == UC_ELEMENT)
+      {
+	//atom-based element as dm in transient (t3880)
+	if(needAdjustToStateBits(cosuti))
+	  {
+	    assert(cosut->isScalar()); //sanity
+	    fp->write_decimal_unsigned(cosut->getTotalBitSize());
+	    fp->write("u, ");
+	  }
+	else
+	  {
+	    s32 carraysize = cosut->getArraySize();
+	    carraysize = (carraysize == NONARRAYSIZE ? 1 : carraysize);
+	    fp->write_decimal_unsigned(carraysize);
+	    fp->write(" * T::BPA, ");
+	  }
+      }
+    else
+      {
+	fp->write_decimal_unsigned(cosut->getTotalBitSize());
+	fp->write("u, "); //len
+      }
+
     if(cosut->getUlamTypeEnum() == Class)
       {
 	fp->write("&");
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosclassuti).c_str()); //t3175
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str()); //t3175
       }
     else if(m_state.isAtom(cosuti))
       fp->write("NULL"); //t3833
