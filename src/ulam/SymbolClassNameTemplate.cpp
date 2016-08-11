@@ -72,7 +72,7 @@ namespace MFM {
 
   void SymbolClassNameTemplate::addParameterSymbol(SymbolConstantValue * sym)
   {
-    m_parameterSymbols.push_back(sym);
+    m_parameterSymbols.push_back(sym); //just a pointer; classblock owns the constdef node (& symbol)
   }
 
   u32 SymbolClassNameTemplate::getNumberOfParameters()
@@ -88,7 +88,21 @@ namespace MFM {
     assert(templateclassblock); //fails if UNSEEN during parsing
     Node * pnode = templateclassblock->getParameterNode(n);
     assert(pnode);
-    return ((NodeConstantDef *) pnode)->hasConstantExpr();
+#if 0
+    Symbol * constSym = NULL;
+    if(((NodeConstantDef *) pnode)->getSymbolPtr(constSym))
+      {
+	assert(constSym->isConstant());
+	return ((SymbolConstantValue *) constSym)->hasInitValue();
+      }
+    return false;
+#endif
+#if 0
+    SymbolConstantValue * constSym = getParameterSymbolPtr(n);
+    assert(constSym);
+    return constSym->hasInitValue();
+#endif
+    return ((NodeConstantDef *) pnode)->hasConstantExpr(); //t3526
   } //parameterHasDefaultValue
 
   u32 SymbolClassNameTemplate::getTotalParametersWithDefaultValues()
@@ -531,6 +545,16 @@ namespace MFM {
 		    assert(asym2);
 		    asym2->setBlockNoOfST(cblock->getNodeNo());
 		    m_state.addSymbolToCurrentScope(asym2);
+
+		    // possible pending value for default param
+		    NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassblock->getParameterNode(i);
+		    assert(paramConstDef);
+		    NodeConstantDef * argConstDef = (NodeConstantDef *) paramConstDef->instantiate();
+		    assert(argConstDef);
+		    //fold later; non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (stub)
+		    argConstDef->setSymbolPtr(asym2); //since we have it handy
+		    csym->linkConstantExpressionForPendingArg(argConstDef);
+
 		    foundArgs++;
 		  }
 	      }
@@ -556,6 +580,45 @@ namespace MFM {
 	it++;
       } //while
   } //fixAnyClassInstances
+
+  void SymbolClassNameTemplate::fixAClassStubsDefaultArgs(SymbolClass * stubcsym, u32 defaultstartidx)
+  {
+    NodeBlockClass * templateclassblock = getClassBlockNode();
+    assert(templateclassblock); //fails if UNSEEN during parsing
+
+    assert(stubcsym);
+    NodeBlockClass * cblock = stubcsym->getClassBlockNode();
+    assert(cblock);
+
+    //m_state.pushCurrentBlock(cblock); //reset here for new arg's ST
+    //m_state.pushCurrentBlockAndDontUseMemberBlock(cblock);
+    m_state.pushClassContext(stubcsym->getUlamTypeIdx(), cblock, cblock, false, NULL);
+
+    u32 numparams = getNumberOfParameters();
+    assert(numparams - defaultstartidx <= getTotalParametersWithDefaultValues());
+
+    //update the class instance's ST, and Resolver with defaults.
+    for(u32 i = defaultstartidx; i < numparams; i++)
+      {
+	SymbolConstantValue * paramSym = getParameterSymbolPtr(i);
+	assert(paramSym);
+	// and make a new symbol that's like the default param
+	SymbolConstantValue * asym2 = new SymbolConstantValue(* paramSym);
+	assert(asym2);
+	asym2->setBlockNoOfST(cblock->getNodeNo()); //stub NNO same as template, at this point
+	m_state.addSymbolToCurrentScope(asym2);
+
+	// possible pending value for default param
+	NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassblock->getParameterNode(i);
+	assert(paramConstDef);
+	NodeConstantDef * argConstDef = (NodeConstantDef *) paramConstDef->instantiate();
+	assert(argConstDef);
+	//fold later; non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (stub)
+	argConstDef->setSymbolPtr(asym2); //since we have it handy
+	stubcsym->linkConstantExpressionForPendingArg(argConstDef);
+      }
+    m_state.popClassContext(); //restore
+  } //fixAClassStubsDefaultsArgs
 
   bool SymbolClassNameTemplate::statusNonreadyClassArgumentsInStubClassInstances()
   {

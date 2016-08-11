@@ -35,7 +35,6 @@ namespace MFM {
 
   NodeTerminal::NodeTerminal(const NodeTerminal& ref) : Node(ref), m_etyp(ref.m_etyp), m_constant(ref.m_constant) {}
 
-  NodeTerminal::NodeTerminal(const NodeIdent& iref) : Node(iref), m_etyp(Hzy) {}
 
   NodeTerminal::~NodeTerminal(){}
 

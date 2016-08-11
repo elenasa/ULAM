@@ -77,7 +77,7 @@ namespace MFM{
 
     virtual void setInitExpr(Node * node); //was setConstantExpr
 
-    virtual bool foldInitExpression(); //was foldConstantExpression
+    virtual bool foldArrayInitExpression(); //was foldConstantExpression
 
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 

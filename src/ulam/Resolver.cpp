@@ -351,9 +351,10 @@ namespace MFM {
     while(vit != rslvr.m_nonreadyClassArgSubtrees.end())
       {
 	NodeConstantDef * ceNode = *vit;
+	assert(ceNode);
 	ceNode->fixPendingArgumentNode();
 	NodeConstantDef * cloneNode = new NodeConstantDef(*ceNode);
-
+	assert(cloneNode);
 	Symbol * cvsym = NULL;
 	AssertBool isDefined = classblock->isIdInScope(cloneNode->getSymbolId(), cvsym);
 	assert(isDefined);
@@ -441,8 +442,8 @@ namespace MFM {
     while(vit != m_nonreadyClassArgSubtrees.end())
       {
 	NodeConstantDef * ceNode = *vit;
-	assert(ceNode);
-	if(ceNode->findNodeNo(n, foundNode))
+	//assert(ceNode); t3328
+	if(ceNode && ceNode->findNodeNo(n, foundNode))
 	  {
 	    rtnB = true;
 	    break;

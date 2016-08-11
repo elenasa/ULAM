@@ -279,7 +279,7 @@ namespace MFM {
 	  {
 	    if(!(m_varSymbol->isInitValueReady()))
 	      {
-		if(!foldInitExpression()) //sets init constant value
+		if(!foldArrayInitExpression()) //sets init constant value
 		  {
 		    if((getNodeType() == Nav) || m_nodeInitExpr->getNodeType() == Nav)
 		      return Nav;
@@ -406,7 +406,7 @@ namespace MFM {
   // called during parsing rhs of named constant;
   // Requires a constant expression, else error;
   // (SCOPE OF EVAL IS BASED ON THE BLOCK OF CONSTDEF.)
-  bool NodeVarDeclDM::foldInitExpression()
+  bool NodeVarDeclDM::foldArrayInitExpression()
   {
     UTI nuti = getNodeType();
 
@@ -418,7 +418,7 @@ namespace MFM {
       return true; //short-circuit
 
     if(!m_state.isScalar(nuti)) //arrays handled by NodeVarDecl (virtual)
-      return NodeVarDecl::foldInitExpression();
+      return NodeVarDecl::foldArrayInitExpression();
 
     assert(m_nodeInitExpr);
     // if here, must be a constant init value..
@@ -502,7 +502,7 @@ namespace MFM {
 	return true;
       }
     return false;
-  } //foldInitExpression
+  } //foldArrayInitExpression
 
   bool NodeVarDeclDM::updateConstant(u64 & newconst)
   {

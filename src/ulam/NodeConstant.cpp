@@ -123,16 +123,22 @@ namespace MFM {
     setNodeType(it);
     Node::setStoreIntoAble(TBOOL_FALSE);
 
-    //copy m_constant from Symbol into NodeTerminal parent.
-    if(!isReadyConstant())
-      m_ready = updateConstant(); //sets ready here
-    if(!isReadyConstant())
+    if(m_state.isScalar(it)) //t3881 ?
       {
-	it = Hzy;
-	if(!stubcopy)
-	  m_constSymbol = NULL; //lookup again too! (e.g. inherited template instances)
-	m_state.setGoAgain();
+	//copy m_constant from Symbol into NodeTerminal parent.
+	if(!isReadyConstant())
+	  m_ready = updateConstant(); //sets ready here
+	if(!isReadyConstant())
+	  {
+	    it = Hzy;
+	    if(!stubcopy)
+	      m_constSymbol = NULL; //lookup again too! (e.g. inherited template instances)
+	    m_state.setGoAgain();
+	  }
       }
+    else
+      assert(0); //TODO!! t3881
+
     return it;
   } //checkAndLabelType
 
@@ -249,6 +255,12 @@ namespace MFM {
       return ERROR;
     return NodeTerminal::eval();
   } //eval
+
+  EvalStatus NodeConstant::evalToStoreInto()
+  {
+    //possible constant array item (t3881)
+    return UNEVALUABLE;
+  }
 
   void NodeConstant::genCode(File * fp, UVPass& uvpass)
   {

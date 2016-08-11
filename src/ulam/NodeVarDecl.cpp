@@ -163,7 +163,7 @@ namespace MFM {
     return (m_nodeInitExpr != NULL);
   }
 
-  bool NodeVarDecl::foldInitExpression()
+  bool NodeVarDecl::foldArrayInitExpression()
   {
     //for arrays with constant expression initializers(local or dm)
     UTI nuti = getNodeType();
@@ -174,7 +174,7 @@ namespace MFM {
     assert(m_nodeInitExpr); //NodeListArrayInitialization
     assert(m_varSymbol && !(m_varSymbol->isInitValueReady()));
 
-    if(((NodeListArrayInitialization *) m_nodeInitExpr)->foldInitExpression())
+    if(((NodeListArrayInitialization *) m_nodeInitExpr)->foldArrayInitExpression())
       {
 	BV8K bvtmp;
 	if(((NodeListArrayInitialization *) m_nodeInitExpr)->buildArrayValueInitialization(bvtmp))
@@ -184,7 +184,7 @@ namespace MFM {
 	  }
       }
     return false;
-  } //foldInitExpression
+  } //foldArrayInitExpression
 
   FORECAST NodeVarDecl::safeToCastTo(UTI newType)
   {
@@ -517,7 +517,7 @@ UTI NodeVarDecl::checkAndLabelType()
 
 		    if(!(m_varSymbol->isInitValueReady()))
 		      {
-			if(!foldInitExpression()) //sets init constant value
+			if(!foldArrayInitExpression()) //sets init constant value
 			  {
 			    if((getNodeType() == Nav) || m_nodeInitExpr->getNodeType() == Nav)
 			      return Nav;
@@ -755,7 +755,7 @@ UTI NodeVarDecl::checkAndLabelType()
 		evalNodeProlog(0); //new current frame pointer
 		makeRoomForNodeType(scalaruti); //offset a constant expression
 		u32 k = j < n ? j : n - 1; //repeat last initializer if fewer
-		EvalStatus evs = ((NodeListArrayInitialization *) m_nodeInitExpr)->eval(k);
+		EvalStatus evs = ((NodeList *) m_nodeInitExpr)->eval(k);
 		if(evs == NORMAL)
 		  {
 		    itemUV = m_state.m_nodeEvalStack.popArg();

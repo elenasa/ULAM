@@ -81,6 +81,7 @@ namespace MFM{
 
     /** replaces temporary class argument names, updates the ST, and the class type */
     void fixAnyClassInstances();
+    void fixAClassStubsDefaultArgs(SymbolClass * stubcsym, u32 defaultstartidx);
 
     bool statusNonreadyClassArgumentsInStubClassInstances();
     bool constantFoldClassArgumentsInAStubClassInstance(UTI instance);

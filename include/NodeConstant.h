@@ -39,7 +39,6 @@
 
 #include "NodeBlock.h"
 #include "NodeTerminal.h"
-#include "NodeIdent.h"
 #include "SymbolWithValue.h"
 #include "Token.h"
 
@@ -80,6 +79,8 @@ namespace MFM{
     virtual bool assignClassArgValueInStubCopy();
 
     virtual EvalStatus eval();
+
+    virtual EvalStatus evalToStoreInto();
 
     virtual void genCode(File * fp, UVPass& uvpass);
 

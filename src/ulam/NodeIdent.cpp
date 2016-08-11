@@ -48,7 +48,7 @@ namespace MFM {
   bool NodeIdent::getSymbolPtr(Symbol *& symptrref)
   {
     symptrref = m_varSymbol;
-    return true;
+    return (m_varSymbol != NULL); //true not-null
   }
 
   void NodeIdent::setSymbolPtr(SymbolVariable * vsymptr)
@@ -67,7 +67,7 @@ namespace MFM {
   bool NodeIdent::isAConstant()
   {
     bool rtn = false;
-    //may not have known at parse time;
+    //may not have known at parse time; no side-effects until c&l
     if(!m_varSymbol)
       {
 	//is it a constant within the member?
@@ -80,13 +80,12 @@ namespace MFM {
 	bool hazyKin = false;
 	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
 	  {
-	    if(asymptr->isConstant())
-	      {
-		rtn = true; //no side-effects until c&l
-	      }
+	    rtn = asymptr->isConstant();
 	  }
 	m_state.popClassContext(); //restore
       }
+    else
+      rtn = m_varSymbol->isConstant();
     return rtn;
   } //isAConstant
 
@@ -104,6 +103,7 @@ namespace MFM {
     //checkForSymbol:
     //2 cases: use was before def, look up in class block; cloned unknown
     if(m_varSymbol == NULL)
+      //if((m_varSymbol == NULL) || m_varSymbol->isConstant())
       {
 	//used before defined, start search with current block
 	if(m_currBlockNo == 0)
@@ -130,8 +130,10 @@ namespace MFM {
 
 	Symbol * asymptr = NULL;
 	bool hazyKin = false;
-	// don't capture symbol ptr yet if part of incomplete chain.
-	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin) && !hazyKin)
+	// don't capture symbol ptr yet if part of incomplete chain. (but what about stub class args t3526, t3525?)
+	//if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin) && !hazyKin)
+	//if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin) && (!hazyKin || m_state.m_pendingArgStubContext == currBlock->getNodeType()))
+	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
 	  {
 	    if(!asymptr->isFunction() && !asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter())
 	      {
@@ -144,7 +146,6 @@ namespace MFM {
 	      {
 		// replace ourselves with a constant node instead;
 		// same node no, and loc (e.g. t3573)
-		//NodeConstant * newnode = new NodeConstant(*this);
 		NodeConstant * newnode = new NodeConstant(m_token, (SymbolWithValue *) asymptr, m_state);
 		assert(newnode);
 
@@ -257,11 +258,128 @@ namespace MFM {
 	    m_state.popClassContext(); //restore
 	  }
       } //lookup symbol
+    else if(m_varSymbol->isConstant())
+      {
+	// CONSTANT ARRAY? TBD..
+	assert(m_state.isScalar(m_varSymbol->getUlamTypeIdx()));
+
+	//used before defined, start search with current block
+	if(m_currBlockNo == 0)
+	  {
+	    if(m_state.useMemberBlock())
+	      {
+		NodeBlockClass * memberclass = m_state.getCurrentMemberClassBlock();
+		assert(memberclass);
+		m_currBlockNo = memberclass->getNodeNo();
+	      }
+	    else
+	      m_currBlockNo = m_state.getCurrentBlock()->getNodeNo();
+	  }
+
+	UTI cuti = m_state.getCompileThisIdx(); //for error messages
+	NodeBlock * currBlock = getBlock();
+
+	// replace ourselves with a constant node instead;
+	// same node no, and loc (e.g. t3573, t3526)
+	NodeConstant * newnode = new NodeConstant(m_token, (SymbolWithValue *) m_varSymbol, m_state);
+	assert(newnode);
+
+	NNO pno = Node::getYourParentNo();
+	m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
+	Node * parentNode = m_state.findNodeNoInThisClass(pno);
+	if(!parentNode)
+	  {
+	    std::ostringstream msg;
+	    msg << "Named Constant (non-null) variable '" << getName();
+	    msg << "' cannot be exchanged at this time while compiling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    msg << " Parent required";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    assert(0); //parent required
+	  }
+
+	AssertBool swapOk = parentNode->exchangeKids(this, newnode);
+	assert(swapOk);
+
+	std::ostringstream msg;
+	msg << "Exchanged kids! <" << m_state.getTokenDataAsString(m_token).c_str();
+	msg << "> a named constant, in place of a variable with class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+
+	newnode->setNodeLocation(getNodeLocation());
+	newnode->setYourParentNo(pno); //missing?
+	newnode->resetNodeNo(getNodeNo()); //missing?
+
+	m_state.popClassContext(); //restore
+
+	delete this; //suicide is painless..
+
+	return newnode->checkAndLabelType();
+      }
+    else if(m_varSymbol->isModelParameter())
+      {
+	//used before defined, start search with current block
+	if(m_currBlockNo == 0)
+	  {
+	    if(m_state.useMemberBlock())
+	      {
+		NodeBlockClass * memberclass = m_state.getCurrentMemberClassBlock();
+		assert(memberclass);
+		m_currBlockNo = memberclass->getNodeNo();
+	      }
+	    else
+	      m_currBlockNo = m_state.getCurrentBlock()->getNodeNo();
+	  }
+
+	UTI cuti = m_state.getCompileThisIdx(); //for error messages
+	NodeBlock * currBlock = getBlock();
+
+	// replace ourselves with a parameter node instead;
+	// same node no, and loc
+	//NodeModelParameter * newnode = new NodeModelParameter(*this);
+	NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) m_varSymbol, m_state);
+	assert(newnode);
+
+	NNO pno = Node::getYourParentNo();
+	m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
+	Node * parentNode = m_state.findNodeNoInThisClass(pno);
+	if(!parentNode)
+	  {
+	    std::ostringstream msg;
+	    msg << "Model Parameter variable '" << getName();
+	    msg << "' cannot be exchanged at this time while compiling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    msg << " Parent required";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    assert(0); //parent required
+	  }
+
+	AssertBool swapOk = parentNode->exchangeKids(this, newnode);
+	assert(swapOk);
+
+	std::ostringstream msg;
+	msg << "Exchanged kids! <" << m_state.getTokenDataAsString(m_token).c_str();
+	msg << "> a model parameter, in place of a variable with class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+
+	newnode->setNodeLocation(getNodeLocation());
+	newnode->setYourParentNo(pno); //missing?
+	newnode->resetNodeNo(getNodeNo()); //missing?
+
+	m_state.popClassContext(); //restore
+	m_state.popClassContext(); //restore
+
+	delete this; //suicide is painless..
+
+	return newnode->checkAndLabelType();
+      }
 
     if(!errCnt && m_varSymbol)
       {
 	it = m_varSymbol->getUlamTypeIdx();
-	Node::setStoreIntoAble(TBOOL_TRUE); //store into an array entotal?
+	Node::setStoreIntoAble(m_varSymbol->isConstant() ? TBOOL_FALSE : TBOOL_TRUE); //store into an array entotal? t3881
 
 	//from NodeTypeDescriptor..e.g. for function call args in NodeList.
 	if(!m_state.isComplete(it))
@@ -305,14 +423,20 @@ namespace MFM {
 	  }
       }
 
+
     if(m_varSymbol && !m_varSymbol->isDataMember() && (((SymbolVariableStack *) m_varSymbol)->getDeclNodeNo() > getNodeNo()))
       {
 	std::ostringstream msg;
 	msg << "Local variable '" << getName();
 	msg << "' was used before declared";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	it = Nav; //error/t3797
+	//MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	//it = Nav; //error/t3797
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	m_varSymbol = NULL; //t3881
+	it = Hzy;
+	m_state.setGoAgain();
       }
+
     setNodeType(it);
     return it;
   } //checkAndLabelType
@@ -1114,6 +1238,7 @@ namespace MFM {
   {
     bool rtnb = true;
     UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
+#if 0
     s32 tdarraysize = tdut->getArraySize();
     if(args.m_arraysize != NONARRAYSIZE || tdarraysize != NONARRAYSIZE)
       {
@@ -1127,6 +1252,7 @@ namespace MFM {
 	rtnb = false;
       }
     assert(args.m_arraysize == NONARRAYSIZE);
+#endif
 
     args.m_bitsize = tdut->getBitSize(); //ok to use typedef bitsize
 

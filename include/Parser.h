@@ -320,6 +320,8 @@ namespace MFM{
      */
     Node * parseFactor(bool localbase = false);
 
+    Node * parseFactorStartingWithAType(const Token& tTok);
+
     Node * parseRestOfFactor(Node * leftNode);
 
     Node * parseRestOfCastOrExpression(bool allowRefCasts);
@@ -346,9 +348,9 @@ namespace MFM{
 
     Node * parseRestOfDeclAssignment(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti);
 
-    Node * parseArrayInitialization(const Token& identTok);
+    Node * parseArrayInitialization(u32 identId);
 
-    bool parseArrayItemInit(const Token& identTok, NodeListArrayInitialization * rtnList);
+    bool parseArrayItemInit(u32 identId, NodeListArrayInitialization * rtnList);
 
     NodeConstantDef * parseRestOfConstantDef(NodeConstantDef * constNode, bool assignREQ = true, bool isStmt = true);
 

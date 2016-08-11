@@ -209,9 +209,8 @@ namespace MFM {
     m_state.m_err.setFileOutput(output);
     m_state.m_err.clearCounts();
 
-    //for regular classes and templates, only; since NNOs used
-    //followed by the first c&l in case of re-orgs
-    //m_state.m_programDefST.updateLineageForTableOfClasses();
+    //for regular classes and templates, plus locals filescope
+    //(NNOs used); followed by the first c&l in case of re-orgs
     m_state.updateLineageAndFirstCheckAndLabelPass();
 
     u32 errCnt = m_state.m_err.getErrorCount();
@@ -314,53 +313,11 @@ namespace MFM {
     errCnt = m_state.m_err.getErrorCount(); //latest count
     if(!errCnt) m_state.m_programDefST.reportUnknownTypeNamesAcrossTableOfClasses();
 
-    // count Nodes with illegal Nav types; walk each class' data members and funcdefs.
+    // count nodes with illegal Nav types; walk each class' data members and funcdefs.
     // clean up duplicate functions beforehand
-    u32 navcount = 0;
-    u32 hzycount = 0;
-    u32 unsetcount = 0;
+    m_state.countNavHzyNoutiNodesPass();
 
-    m_state.m_programDefST.countNavNodesAcrossTableOfClasses(navcount, hzycount, unsetcount);
-    errCnt = m_state.m_err.getErrorCount(); //latest count?
-    if(navcount > 0)
-      {
-	// not necessarily goAgain, e.g. atom is Empty, where Empty is a quark instead of an element
-	// the NodeTypeDescriptor is perfectly fine with a complete quark type, so no need to go again;
-	// however, in the context of "is", this is an error and t.f. a Nav node.
-
-	assert(errCnt > 0); //sanity check; ran out of iterations
-
-	std::ostringstream msg;
-	msg << navcount << " Nodes with erroneous types detected after type labeling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(m_state.getContextBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-      }
-    //else
-    //assert(errCnt == 0); //e.g. error/t3644 (not sure what to do about it, error discovery too deep)
-
-    if(hzycount > 0)
-      {
-	//doesn't include incomplete stubs: if(a is S(x,y))
-	//assert(m_state.goAgain()); //sanity check; ran out of iterations
-
-	std::ostringstream msg;
-	msg << hzycount << " Nodes with unresolved types detected after type labeling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	// if we had such a thing:
-	//msg << ". Supplying --info on command line will provide additional internal details";
-	MSG(m_state.getContextBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-      }
-    else
-      assert(!m_state.goAgain()); //t3740 (resets Hzy to Nav);
-
-    if(unsetcount > 0)
-      {
-	std::ostringstream msg;
-	msg << unsetcount << " Nodes with unset types detected after type labeling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(m_state.getContextBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
-      }
-
+    //Summarize: warning/error counts
     u32 warns = m_state.m_err.getWarningCount();
     if(warns > 0)
       {
@@ -377,51 +334,16 @@ namespace MFM {
 	MSG(m_state.getContextBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
       }
 
-    // testing targetmap only (matches code in main.cpp)
     //#define TESTTARGETMAP
 #ifdef TESTTARGETMAP
-    TargetMap tm = getMangledTargetsMap();
-    std::cerr << "Size of target map is " << tm.size() << std::endl;
-    for(TargetMap::const_iterator i = tm.begin(); i != tm.end(); ++i)
-      {
-	std::cerr
-	  << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
-	  << "TARGET "
-	  << MFM::HexEscape(getFullPathLocationAsString(i->second.m_loc))
-	  << " " << i->second.m_className
-	  << " " << i->first
-	  << " " << i->second.m_bitsize
-	  << " " << (i->second.m_hasTest ? "test" : "notest")
-	  << " " << (i->second.m_classType == UC_QUARK ? "quark": (i->second.m_classType == UC_ELEMENT ? "element" : "transient"))
-	  << " " << MFM::HexEscape(i->second.m_structuredComment)
-	  << std::endl;
-      }
+    testTargetMap(); // testing targetmap only
+
 #endif
 
-    // testing class member map only (matches code in main.cpp)
     //#define TESTCLASSMEMBERMAP
 #ifdef TESTCLASSMEMBERMAP
-    ClassMemberMap cmm = getMangledClassMembersMap();
-    std::cerr << "Size of class members map is " << cmm.size() << std::endl;
-    for(ClassMemberMap::const_iterator i = cmm.begin(); i != cmm.end(); ++i)
-      {
-	//u64 val;
-	const MFM::ClassMemberDesc * cmd = i->second.getClassMemberDesc();
-	std::cerr
-	  << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
-	  << cmd->getMemberKind() << " "
-	  << MFM::HexEscape(getFullPathLocationAsString(cmd->m_loc))
-	  << " " << cmd->m_mangledClassName
-	  << " " << cmd->m_mangledType
-	  << " " << cmd->m_memberName
-	  << " " << cmd->m_mangledMemberName;
+    testClassMemberMap(); // testing class member map only
 
-	if(cmd->hasValue())
-	  std::cerr << cmd->getValueAsString();
-
-	std::cerr << " " << MFM::HexEscape(cmd->m_structuredComment)
-		  << std::endl;
-      }
 #endif
 
     return m_state.m_err.getErrorCount();
@@ -460,6 +382,55 @@ namespace MFM {
     m_state.m_programDefST.testForTableOfClasses(output);
     return m_state.m_err.getErrorCount();
   } //testProgram
+
+  void Compiler::testTargetMap()
+  {
+    //matches code in main.cpp
+    TargetMap tm = getMangledTargetsMap();
+    std::cerr << "Size of target map is " << tm.size() << std::endl;
+    for(TargetMap::const_iterator i = tm.begin(); i != tm.end(); ++i)
+      {
+	std::cerr
+	  << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
+	  << "TARGET "
+	  << MFM::HexEscape(getFullPathLocationAsString(i->second.m_loc))
+	  << " " << i->second.m_className
+	  << " " << i->first
+	  << " " << i->second.m_bitsize
+	  << " " << (i->second.m_hasTest ? "test" : "notest")
+	  << " " << (i->second.m_classType == UC_QUARK ? "quark": (i->second.m_classType == UC_ELEMENT ? "element" : "transient"))
+	  << " " << MFM::HexEscape(i->second.m_structuredComment)
+	  << std::endl;
+      }
+    return;
+  } //testTargetMap
+
+  void Compiler::testClassMemberMap()
+  {
+    //matches code in main.cpp
+    ClassMemberMap cmm = getMangledClassMembersMap();
+    std::cerr << "Size of class members map is " << cmm.size() << std::endl;
+    for(ClassMemberMap::const_iterator i = cmm.begin(); i != cmm.end(); ++i)
+      {
+	//u64 val;
+	const MFM::ClassMemberDesc * cmd = i->second.getClassMemberDesc();
+	std::cerr
+	  << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
+	  << cmd->getMemberKind() << " "
+	  << MFM::HexEscape(getFullPathLocationAsString(cmd->m_loc))
+	  << " " << cmd->m_mangledClassName
+	  << " " << cmd->m_mangledType
+	  << " " << cmd->m_memberName
+	  << " " << cmd->m_mangledMemberName;
+
+	if(cmd->hasValue())
+	  std::cerr << cmd->getValueAsString();
+
+	std::cerr << " " << MFM::HexEscape(cmd->m_structuredComment)
+		  << std::endl;
+      }
+    return;
+  } //testClassMemberMap
 
   void Compiler::printPostFix(File * output)
   {

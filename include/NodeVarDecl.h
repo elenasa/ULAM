@@ -76,7 +76,7 @@ namespace MFM{
 
     bool hasInitExpr();
 
-    virtual bool foldInitExpression();
+    virtual bool foldArrayInitExpression();
 
     virtual FORECAST safeToCastTo(UTI newType);
 

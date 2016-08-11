@@ -89,23 +89,25 @@ namespace MFM {
 	    it = Nav;
 	  }
       }
-
-    // expects a constant numeric type
-    if(!m_node->isAConstant())
+    else
       {
-	std::ostringstream msg;
-	msg << "Type Bitsize specifier: " << m_state.getUlamTypeNameBriefByIndex(it);
-	msg << ", within (), is not a numeric constant expression";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	it = Nav;
-      }
-    else if(m_state.okUTItoContinue(it) && (!(m_state.getUlamTypeByIndex(it)->isNumericType()) && m_node->isReadyConstant()))
-      {
-	std::ostringstream msg;
-	msg << "Type Bitsize specifier: " << m_state.getUlamTypeNameBriefByIndex(it);
-	msg << ", within (), is not a ready numeric constant expression";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	it = Hzy;
+	// expects a constant numeric type (t3526)
+	if(!m_node->isAConstant())
+	  {
+	    std::ostringstream msg;
+	    msg << "Type Bitsize specifier: " << m_state.getUlamTypeNameBriefByIndex(it);
+	    msg << ", within (), is not a numeric constant expression";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    it = Nav;
+	  }
+	else if(!(m_state.getUlamTypeByIndex(it)->isNumericType()) && m_node->isReadyConstant())
+	  {
+	    std::ostringstream msg;
+	    msg << "Type Bitsize specifier: " << m_state.getUlamTypeNameBriefByIndex(it);
+	    msg << ", within (), is not a ready numeric constant expression";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    it = Hzy;
+	  }
       }
 
     setNodeType(it);
@@ -141,32 +143,34 @@ namespace MFM {
       {
 	return false; //no rtnBitSize
       }
+    else if(sizetype == Hzy)
+      {
+	return false; //no rtnBitSize (t3526)
+      }
     else
-    {
-      // perhaps not ready.
-      if(!m_node->isAConstant())
-	{
-	  std::ostringstream msg;
-	  msg << "Type Bitsize specifier for base type: ";
-	  msg << UlamType::getUlamTypeEnumAsString(BUT);
-	  msg << ", is not a constant expression";
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  sizetype = Nav;
-	  return false; //no rtnBitSize
-	}
-      if(!m_node->isReadyConstant())
-	{
-	  std::ostringstream msg;
-	  msg << "Type Bitsize specifier for base type: ";
-	  msg << UlamType::getUlamTypeEnumAsString(BUT);
-	  msg << ", is not a ready constant expression";
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t3787
-	  sizetype = Hzy;
-	  return false; //no rtnBitSize
-	}
-      if(sizetype == Hzy)
-	return false; //no rtnBitSize
-    }
+      {
+	// perhaps not ready.
+	if(!m_node->isAConstant())
+	  {
+	    std::ostringstream msg;
+	    msg << "Type Bitsize specifier for base type: ";
+	    msg << UlamType::getUlamTypeEnumAsString(BUT);
+	    msg << ", is not a constant expression";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    sizetype = Nav;
+	    return false; //no rtnBitSize
+	  }
+	if(!m_node->isReadyConstant())
+	  {
+	    std::ostringstream msg;
+	    msg << "Type Bitsize specifier for base type: ";
+	    msg << UlamType::getUlamTypeEnumAsString(BUT);
+	    msg << ", is not a ready constant expression";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t3787
+	    sizetype = Hzy;
+	    return false; //no rtnBitSize
+	  }
+      }
 
     //eval for bit size constant:
 

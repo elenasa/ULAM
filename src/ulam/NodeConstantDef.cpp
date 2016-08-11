@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "NodeConstantDef.h"
 #include "NodeConstant.h"
+#include "NodeListArrayInitialization.h"
 #include "NodeTerminal.h"
 #include "CompilerState.h"
 
@@ -114,7 +115,7 @@ namespace MFM {
   bool NodeConstantDef::getSymbolPtr(Symbol *& symptrref)
   {
     symptrref = m_constSymbol;
-    return true;
+    return (m_constSymbol != NULL); //true;
   }
 
   void NodeConstantDef::setSymbolPtr(SymbolWithValue * cvsymptr)
@@ -176,7 +177,7 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    m_constSymbol->resetUlamType(duti); //consistent!
 	    m_state.mapTypesInCurrentClass(suti, duti);
-	    m_state.updateUTIAliasForced(it, duti); //help?
+	    m_state.updateUTIAliasForced(suti, duti); //help? (not when we used it and it == 0, instead of suti)
 	    suti = duti;
 	  }
       }
@@ -184,6 +185,7 @@ namespace MFM {
     // NOASSIGN REQUIRED (e.g. for class parameters) doesn't have to have this!
     if(m_nodeExpr)
       {
+#if 0
 	//check constant before check-and-label to avoid handling not-ready-type Nav's
 	if(!m_nodeExpr->isAConstant())
 	  {
@@ -195,6 +197,7 @@ namespace MFM {
 	    setNodeType(Nav);
 	    return Nav; //short-circuit
 	  }
+#endif
 
 	it = m_nodeExpr->checkAndLabelType();
 	if(it == Nav)
@@ -284,7 +287,28 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    suti = Nav;
 	  }
-      }
+
+	//note: Void is flag that it's a list of constant initializers.
+	if((eit == Void))
+	  {
+	    //only possible if array type with initializers
+	    //arraysize specified, may have fewer initializers
+	    assert(m_state.okUTItoContinue(suti));
+	    s32 arraysize = m_state.getArraySize(suti);
+	    assert(arraysize >= 0); //t3847
+	    u32 n = ((NodeList *) m_nodeExpr)->getNumberOfNodes();
+	    if((n > (u32) arraysize) && (arraysize > 0)) //not an error: t3847
+	      {
+		std::ostringstream msg;
+		msg << "Too many initializers (" << n << ") specified for array '";
+		msg << getName() << "', size " << arraysize;
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		setNodeType(Nav);
+	      }
+	    else
+	      m_nodeExpr->setNodeType(suti);
+	  }
+      } //end array initializers (eit == Void)
 
     setNodeType(suti);
 
@@ -295,6 +319,12 @@ namespace MFM {
 	  setNodeType(Nav);
 	else if(foldrtn == Hzy)
 	  {
+	    std::ostringstream msg;
+	    msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	    msg << ", used with symbol name '" << getName() << "', after folding";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+
 	    setNodeType(Hzy);
 	    m_state.setGoAgain();
 	  }
@@ -302,6 +332,10 @@ namespace MFM {
 	  {
 	    if(!(m_constSymbol->isReady() || m_constSymbol->isInitValueReady()))
 	      {
+		std::ostringstream msg;
+		msg << "Constant symbol '" << getName() << "' is not ready";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+
 		setNodeType(Hzy);
 		m_state.setGoAgain();
 	      }
@@ -404,6 +438,24 @@ namespace MFM {
     if(!m_nodeExpr)
       return Nav;
 
+    if(!m_state.isScalar(uti))
+      {
+	// similar to NodeVarDecl (t3881)
+	if(!(m_constSymbol->isReady() || m_constSymbol->isInitValueReady() || foldArrayInitExpression()))
+	  {
+	    if((getNodeType() == Nav) || m_nodeExpr->getNodeType() == Nav)
+	      return Nav;
+
+	    if(!(m_constSymbol->isReady() || m_constSymbol->isInitValueReady()))
+	      {
+		setNodeType(Hzy);
+		m_state.setGoAgain(); //since not error
+		return Hzy;
+	      }
+	  }
+	return uti;
+      }
+
     // if here, must be a constant..
     u64 newconst = 0; //UlamType format (not sign extended)
 
@@ -480,6 +532,9 @@ namespace MFM {
 	return Nav;
       }
 
+#if 1
+    // BUT WHY when Symbol is all we need/want? because it indicates
+    // there's a default value before c&l (see SCNT::getTotalParametersWithDefaultValues) (t3526)
     //then do the surgery
     NodeTerminal * newnode;
     if(m_state.getUlamTypeByIndex(uti)->getUlamTypeEnum() == Int)
@@ -489,6 +544,10 @@ namespace MFM {
     newnode->setNodeLocation(getNodeLocation());
     delete m_nodeExpr;
     m_nodeExpr = newnode;
+#else
+    delete m_nodeExpr;
+    m_nodeExpr = NULL;
+#endif
 
     BV8K bvtmp;
     u32 len = m_state.getTotalBitSize(uti);
@@ -499,6 +558,32 @@ namespace MFM {
       m_constSymbol->setValue(bvtmp); //isReady now! (e.g. ClassArgument, ModelParameter)
     return uti; //ok
   } //foldConstantExpression
+
+  bool NodeConstantDef::foldArrayInitExpression()
+  {
+    //for arrays with constant expression initializers(local or dm)
+    UTI nuti = getNodeType();
+    if(!m_state.okUTItoContinue(nuti) || !m_state.isComplete(nuti))
+      return false;
+
+    assert(!m_state.isScalar(nuti));
+    assert(m_nodeExpr); //NodeListArrayInitialization
+    assert(m_constSymbol && !(m_constSymbol->isReady() || m_constSymbol->isInitValueReady()));
+
+    if(((NodeListArrayInitialization *) m_nodeExpr)->foldArrayInitExpression())
+      {
+	BV8K bvtmp;
+	if(((NodeListArrayInitialization *) m_nodeExpr)->buildArrayValueInitialization(bvtmp))
+	  {
+	    if(m_constSymbol->isClassParameter())
+	      m_constSymbol->setInitValue(bvtmp);
+	    else
+	      m_constSymbol->setValue(bvtmp); //isReady now! (e.g. ClassArgument, ModelParameter)
+	    return true;
+	  }
+      }
+    return false;
+  } //foldArrayInitExpression
 
   bool NodeConstantDef::buildDefaultValue(u32 wlen, BV8K& bvref)
   {

@@ -84,9 +84,9 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
-    EvalStatus eval(u32 n);
+    virtual EvalStatus eval(u32 n);
 
-    EvalStatus evalToStoreInto(u32 n);
+    virtual EvalStatus evalToStoreInto(u32 n);
 
     void addNodeToList(Node * argNode);
 

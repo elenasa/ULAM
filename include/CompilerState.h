@@ -318,6 +318,8 @@ namespace MFM{
     void updateLineageAndFirstCheckAndLabelPass();
     void updateLineageAndFirstCheckAndLabelPassForLocals();
     bool checkAndLabelPassForLocals();
+    bool countNavHzyNoutiNodesPass();
+    void countNavNodesForLocals(u32& navcount, u32& hzycount, u32& unsetcount);
 
     /** helper methods for error messaging, uses string pool */
     const std::string getTokenLocationAsString(const Token * tok);

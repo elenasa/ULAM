@@ -96,7 +96,7 @@ namespace MFM{
     return rtnuti;
   } //checkAndLabelType
 
-  bool NodeListArrayInitialization::foldInitExpression()
+  bool NodeListArrayInitialization::foldArrayInitExpression()
   {
     bool rtnok = true;
     for(u32 i = 0; i < m_nodes.size(); i++)
@@ -173,6 +173,18 @@ namespace MFM{
     return scr;
   } //safeToCastTo
 
+  EvalStatus NodeListArrayInitialization::eval()
+  {
+    EvalStatus evs = NORMAL;
+    for(u32 i = 0; i < m_nodes.size(); i++)
+      {
+	evs = NodeList::eval(i);
+	if(evs != NORMAL)
+	  break;
+      }
+    return evs;
+  } //eval
+
   bool NodeListArrayInitialization::buildArrayValueInitialization(BV8K& bvtmp)
   {
     UTI nuti = Node::getNodeType();
@@ -215,7 +227,7 @@ namespace MFM{
 
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(luti); //a constant expression
-    EvalStatus evs = eval(n);
+    EvalStatus evs = NodeList::eval(n);
     if(evs != NORMAL)
       {
 	evalNodeEpilog();

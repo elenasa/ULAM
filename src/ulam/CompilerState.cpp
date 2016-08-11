@@ -2240,6 +2240,78 @@ namespace MFM {
     return (!goAgain() && (m_err.getErrorCount() + m_err.getWarningCount() == 0));
   } //checkAndLabelPassForLocals
 
+  bool CompilerState::countNavHzyNoutiNodesPass()
+  {
+    bool rtnb = true;
+    u32 navcount = 0;
+    u32 hzycount = 0;
+    u32 unsetcount = 0;
+
+    m_programDefST.countNavNodesAcrossTableOfClasses(navcount, hzycount, unsetcount);
+    countNavNodesForLocals(navcount, hzycount, unsetcount);
+
+    u32 errCnt = m_err.getErrorCount(); //latest count
+    if(navcount > 0)
+      {
+	// not necessarily goAgain, e.g. atom is Empty, where Empty is a quark instead of an element
+	// the NodeTypeDescriptor is perfectly fine with a complete quark type, so no need to go again;
+	// however, in the context of "is", this is an error and t.f. a Nav node.
+
+	assert(errCnt > 0); //sanity check; ran out of iterations
+
+	std::ostringstream msg;
+	msg << navcount << " Nodes with erroneous types detected after type labeling class: ";
+	msg << getUlamTypeNameBriefByIndex(getCompileThisIdx()).c_str();
+	MSG2(getFullLocationAsString(getContextBlockLoc()).c_str(), msg.str().c_str(), ERR);
+	rtnb = false;
+      }
+    //else
+    //assert(errCnt == 0); //e.g. error/t3644 (not sure what to do about it, error discovery too deep)
+
+    if(hzycount > 0)
+      {
+	//doesn't include incomplete stubs: if(a is S(x,y))
+	//assert(m_state.goAgain()); //sanity check; ran out of iterations
+
+	std::ostringstream msg;
+	msg << hzycount << " Nodes with unresolved types detected after type labeling class: ";
+	msg << getUlamTypeNameBriefByIndex(getCompileThisIdx()).c_str();
+	// if we had such a thing:
+	//msg << ". Supplying --info on command line will provide additional internal details";
+	MSG2(getFullLocationAsString(getContextBlockLoc()).c_str(), msg.str().c_str(), ERR);
+	rtnb = false;
+      }
+    else
+      assert(!goAgain()); //t3740 (resets Hzy to Nav);
+
+    if(unsetcount > 0)
+      {
+	std::ostringstream msg;
+	msg << unsetcount << " Nodes with unset types detected after type labeling class: ";
+	msg << getUlamTypeNameBriefByIndex(getCompileThisIdx()).c_str();
+	MSG2(getFullLocationAsString(getContextBlockLoc()).c_str(), msg.str().c_str(), INFO);
+      }
+    return rtnb;
+  } //countNavHzyNoutiNodesPass
+
+  void CompilerState::countNavNodesForLocals(u32& navcount, u32& hzycount, u32& unsetcount)
+  {
+    std::map<u32, NodeBlockLocals *>::iterator it;
+    for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
+      {
+	NodeBlockLocals * locals = it->second;
+	assert(locals);
+
+	UTI luti = locals->getNodeType();
+	pushClassContext(luti, locals, locals, false, NULL);
+
+	locals->countNavHzyNoutiNodes(navcount, hzycount, unsetcount);
+
+	popClassContext(); //restore
+      }
+    return;
+  } //countNavNodesForLocals
+
   bool CompilerState::alreadyDefinedSymbolByAncestor(u32 dataindex, Symbol *& symptr, bool& hasHazyKin)
   {
     //maybe in current class as a holder, which doesn't progress the search (just the opposite, stops it!).
@@ -3540,11 +3612,16 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     if(!rtnNode)
       {
 	//check in local scope
-	u32 cid = getUlamKeyTypeSignatureByIndex(cuti).getUlamKeyTypeSignatureNameId();
-	SymbolClassName * cnsym = NULL;
-	AssertBool isDefined = alreadyDefinedSymbolClassName(cid, cnsym);
-	assert(isDefined);
-	rtnNode = findNodeNoInALocalScope(cnsym->getLoc(), n);
+        if(isALocalsFileScope(cuti))
+	  rtnNode = findNodeNoInALocalScope(getContextBlockLoc(), n); //t3873
+	else
+	  {
+	    u32 cid = getUlamKeyTypeSignatureByIndex(cuti).getUlamKeyTypeSignatureNameId();
+	    SymbolClassName * cnsym = NULL;
+	    AssertBool isDefined = alreadyDefinedSymbolClassName(cid, cnsym);
+	    assert(isDefined);
+	    rtnNode = findNodeNoInALocalScope(cnsym->getLoc(), n);
+	  }
       }
     return rtnNode;
   } //findNodeNoInThisClass
@@ -3552,6 +3629,10 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   Node * CompilerState::findNodeNoInAClass(NNO n, UTI cuti)
   {
     Node * rtnNode = NULL;
+
+    if(isALocalsFileScope(cuti))
+      return NULL; //not a class (t3873)
+
     u32 cid = getUlamKeyTypeSignatureByIndex(cuti).getUlamKeyTypeSignatureNameId();
     SymbolClassName * cnsym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClassName(cid, cnsym);
