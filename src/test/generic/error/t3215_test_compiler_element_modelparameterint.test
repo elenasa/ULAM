@@ -2,8 +2,8 @@
 #=t3215_test_compiler_element_modelparameterint
 #!
 ./Foo.ulam:12:9: ERROR: Invalid lefthand side of equals <chance>, type: Int(32).
-./System.ulam:2:7: ERROR: 1 Nodes with erroneous types detected after type labeling class: System.
-./System.ulam:2:7: ERROR: 9 Nodes with unresolved types detected after type labeling class: System.
+./Foo.ulam:3:10: ERROR: 1 Nodes with erroneous types detected after type labeling class: Foo.
+./Foo.ulam:3:10: ERROR: 9 Nodes with unresolved types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## generate code for test:

@@ -72,10 +72,6 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    NNO getBlockNo() const;
-
-    NodeBlock * getBlock();
-
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();
@@ -98,6 +94,13 @@ namespace MFM{
     Token m_token;
     SymbolVariable * m_varSymbol;
     NNO m_currBlockNo;
+
+    void setupBlockNo();
+    void setBlockNo(NNO n);
+    NNO getBlockNo() const;
+    NodeBlock * getBlock();
+    bool exchangeNodeWithParent(Node * newnode);
+
 
     SymbolVariable *  makeSymbol(UTI auti, ALT reftype, UTI referencedUTI);
     bool checkVariableTypedefSizes(TypeArgs& args, UTI auti);

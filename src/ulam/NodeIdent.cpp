@@ -16,7 +16,7 @@ namespace MFM {
   NodeIdent::NodeIdent(const Token& tok, SymbolVariable * symptr, CompilerState & state) : Node(state), m_token(tok), m_varSymbol(symptr), m_currBlockNo(0)
   {
     if(symptr)
-      m_currBlockNo = symptr->getBlockNoOfST();
+      setBlockNo(symptr->getBlockNoOfST());
     Node::setStoreIntoAble(TBOOL_HAZY);
   }
 
@@ -55,8 +55,43 @@ namespace MFM {
   {
     assert(vsymptr);
     m_varSymbol = vsymptr;
-    m_currBlockNo = vsymptr->getBlockNoOfST();
+    setBlockNo(vsymptr->getBlockNoOfST());
     assert(m_currBlockNo);
+  }
+
+  void NodeIdent::setupBlockNo()
+  {
+    //define before used, start search with current block
+    if(m_currBlockNo == 0)
+      {
+	if(m_state.useMemberBlock())
+	  {
+	    NodeBlockClass * memberclass = m_state.getCurrentMemberClassBlock();
+	    assert(memberclass);
+	    setBlockNo(memberclass->getNodeNo());
+	  }
+	else
+	  setBlockNo(m_state.getCurrentBlock()->getNodeNo());
+      }
+  } //setupBlockNo
+
+  void NodeIdent::setBlockNo(NNO n)
+  {
+    assert(n > 0);
+    m_currBlockNo = n;
+  }
+
+  NNO NodeIdent::getBlockNo() const
+  {
+    return m_currBlockNo;
+  }
+
+  NodeBlock * NodeIdent::getBlock()
+  {
+    assert(m_currBlockNo);
+    NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
+    assert(currBlock);
+    return currBlock;
   }
 
   const Token& NodeIdent::getToken() const
@@ -100,24 +135,12 @@ namespace MFM {
     UTI it = Nouti;  //init (was Nav)
     u32 errCnt = 0;
 
+    setupBlockNo(); //in case zero
+
     //checkForSymbol:
     //2 cases: use was before def, look up in class block; cloned unknown
     if(m_varSymbol == NULL)
-      //if((m_varSymbol == NULL) || m_varSymbol->isConstant())
       {
-	//used before defined, start search with current block
-	if(m_currBlockNo == 0)
-	  {
-	    if(m_state.useMemberBlock())
-	      {
-		NodeBlockClass * memberclass = m_state.getCurrentMemberClassBlock();
-		assert(memberclass);
-		m_currBlockNo = memberclass->getNodeNo();
-	      }
-	    else
-	      m_currBlockNo = m_state.getCurrentBlock()->getNodeNo();
-	  }
-
 	UTI cuti = m_state.getCompileThisIdx(); //for error messages
 	NodeBlock * currBlock = getBlock();
 	if(m_state.useMemberBlock())
@@ -130,9 +153,7 @@ namespace MFM {
 
 	Symbol * asymptr = NULL;
 	bool hazyKin = false;
-	// don't capture symbol ptr yet if part of incomplete chain. (but what about stub class args t3526, t3525?)
-	//if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin) && !hazyKin)
-	//if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin) && (!hazyKin || m_state.m_pendingArgStubContext == currBlock->getNodeType()))
+	// must capture symbol ptr even if part of incomplete chain to do any necessary surgery (e.g. stub class args t3526, t3525)
 	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
 	  {
 	    if(!asymptr->isFunction() && !asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter())
@@ -140,7 +161,7 @@ namespace MFM {
 		setSymbolPtr((SymbolVariable *) asymptr);
 		//assert(asymptr->getBlockNoOfST() == m_currBlockNo); not necessarily true
 		// e.g. var used before defined, and then is a data member outside current func block.
-		m_currBlockNo = asymptr->getBlockNoOfST(); //refined
+		setBlockNo(asymptr->getBlockNoOfST()); //refined
 	      }
 	    else if(asymptr->isConstant())
 	      {
@@ -149,34 +170,9 @@ namespace MFM {
 		NodeConstant * newnode = new NodeConstant(m_token, (SymbolWithValue *) asymptr, m_state);
 		assert(newnode);
 
-		NNO pno = Node::getYourParentNo();
-		m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
-		Node * parentNode = m_state.findNodeNoInThisClass(pno);
-		if(!parentNode)
-		  {
-		    std::ostringstream msg;
-		    msg << "Named Constant variable '" << getName();
-		    msg << "' cannot be exchanged at this time while compiling class: ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		    msg << " Parent required";
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		    assert(0); //parent required
-		  }
-
-		AssertBool swapOk = parentNode->exchangeKids(this, newnode);
+		AssertBool swapOk = exchangeNodeWithParent(newnode);
 		assert(swapOk);
 
-		std::ostringstream msg;
-		msg << "Exchanged kids! <" << m_state.getTokenDataAsString(m_token).c_str();
-		msg << "> a named constant, in place of a variable with class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-
-		newnode->setNodeLocation(getNodeLocation());
-		newnode->setYourParentNo(pno); //missing?
-		newnode->resetNodeNo(getNodeNo()); //missing?
-
-		m_state.popClassContext(); //restore
 		m_state.popClassContext(); //restore
 
 		delete this; //suicide is painless..
@@ -187,38 +183,12 @@ namespace MFM {
 	      {
 		// replace ourselves with a parameter node instead;
 		// same node no, and loc
-		//NodeModelParameter * newnode = new NodeModelParameter(*this);
 		NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) asymptr, m_state);
 		assert(newnode);
 
-		NNO pno = Node::getYourParentNo();
-		m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
-		Node * parentNode = m_state.findNodeNoInThisClass(pno);
-		if(!parentNode)
-		  {
-		    std::ostringstream msg;
-		    msg << "Model Parameter variable '" << getName();
-		    msg << "' cannot be exchanged at this time while compiling class: ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		    msg << " Parent required";
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		    assert(0); //parent required
-		  }
-
-		AssertBool swapOk = parentNode->exchangeKids(this, newnode);
+		AssertBool swapOk = exchangeNodeWithParent(newnode);
 		assert(swapOk);
 
-		std::ostringstream msg;
-		msg << "Exchanged kids! <" << m_state.getTokenDataAsString(m_token).c_str();
-		msg << "> a model parameter, in place of a variable with class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-
-		newnode->setNodeLocation(getNodeLocation());
-		newnode->setYourParentNo(pno); //missing?
-		newnode->resetNodeNo(getNodeNo()); //missing?
-
-		m_state.popClassContext(); //restore
 		m_state.popClassContext(); //restore
 
 		delete this; //suicide is painless..
@@ -257,61 +227,19 @@ namespace MFM {
 	    errCnt++;
 	    m_state.popClassContext(); //restore
 	  }
-      } //lookup symbol
+      } //lookup symbol done
     else if(m_varSymbol->isConstant())
       {
 	// CONSTANT ARRAY? TBD..
 	assert(m_state.isScalar(m_varSymbol->getUlamTypeIdx()));
-
-	//used before defined, start search with current block
-	if(m_currBlockNo == 0)
-	  {
-	    if(m_state.useMemberBlock())
-	      {
-		NodeBlockClass * memberclass = m_state.getCurrentMemberClassBlock();
-		assert(memberclass);
-		m_currBlockNo = memberclass->getNodeNo();
-	      }
-	    else
-	      m_currBlockNo = m_state.getCurrentBlock()->getNodeNo();
-	  }
-
-	UTI cuti = m_state.getCompileThisIdx(); //for error messages
-	NodeBlock * currBlock = getBlock();
 
 	// replace ourselves with a constant node instead;
 	// same node no, and loc (e.g. t3573, t3526)
 	NodeConstant * newnode = new NodeConstant(m_token, (SymbolWithValue *) m_varSymbol, m_state);
 	assert(newnode);
 
-	NNO pno = Node::getYourParentNo();
-	m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
-	Node * parentNode = m_state.findNodeNoInThisClass(pno);
-	if(!parentNode)
-	  {
-	    std::ostringstream msg;
-	    msg << "Named Constant (non-null) variable '" << getName();
-	    msg << "' cannot be exchanged at this time while compiling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    msg << " Parent required";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    assert(0); //parent required
-	  }
-
-	AssertBool swapOk = parentNode->exchangeKids(this, newnode);
+	AssertBool swapOk = exchangeNodeWithParent(newnode);
 	assert(swapOk);
-
-	std::ostringstream msg;
-	msg << "Exchanged kids! <" << m_state.getTokenDataAsString(m_token).c_str();
-	msg << "> a named constant, in place of a variable with class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-
-	newnode->setNodeLocation(getNodeLocation());
-	newnode->setYourParentNo(pno); //missing?
-	newnode->resetNodeNo(getNodeNo()); //missing?
-
-	m_state.popClassContext(); //restore
 
 	delete this; //suicide is painless..
 
@@ -319,57 +247,13 @@ namespace MFM {
       }
     else if(m_varSymbol->isModelParameter())
       {
-	//used before defined, start search with current block
-	if(m_currBlockNo == 0)
-	  {
-	    if(m_state.useMemberBlock())
-	      {
-		NodeBlockClass * memberclass = m_state.getCurrentMemberClassBlock();
-		assert(memberclass);
-		m_currBlockNo = memberclass->getNodeNo();
-	      }
-	    else
-	      m_currBlockNo = m_state.getCurrentBlock()->getNodeNo();
-	  }
-
-	UTI cuti = m_state.getCompileThisIdx(); //for error messages
-	NodeBlock * currBlock = getBlock();
-
 	// replace ourselves with a parameter node instead;
 	// same node no, and loc
-	//NodeModelParameter * newnode = new NodeModelParameter(*this);
 	NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) m_varSymbol, m_state);
 	assert(newnode);
 
-	NNO pno = Node::getYourParentNo();
-	m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
-	Node * parentNode = m_state.findNodeNoInThisClass(pno);
-	if(!parentNode)
-	  {
-	    std::ostringstream msg;
-	    msg << "Model Parameter variable '" << getName();
-	    msg << "' cannot be exchanged at this time while compiling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    msg << " Parent required";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    assert(0); //parent required
-	  }
-
-	AssertBool swapOk = parentNode->exchangeKids(this, newnode);
+	AssertBool swapOk = exchangeNodeWithParent(newnode);
 	assert(swapOk);
-
-	std::ostringstream msg;
-	msg << "Exchanged kids! <" << m_state.getTokenDataAsString(m_token).c_str();
-	msg << "> a model parameter, in place of a variable with class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-
-	newnode->setNodeLocation(getNodeLocation());
-	newnode->setYourParentNo(pno); //missing?
-	newnode->resetNodeNo(getNodeNo()); //missing?
-
-	m_state.popClassContext(); //restore
-	m_state.popClassContext(); //restore
 
 	delete this; //suicide is painless..
 
@@ -441,18 +325,48 @@ namespace MFM {
     return it;
   } //checkAndLabelType
 
-  NNO NodeIdent::getBlockNo() const
+  bool NodeIdent::exchangeNodeWithParent(Node * newnode)
   {
-    return m_currBlockNo;
-  }
+    UTI cuti = m_state.getCompileThisIdx(); //for error messages
+    NodeBlock * currBlock = getBlock();
 
-  NodeBlock * NodeIdent::getBlock()
-  {
-    assert(m_currBlockNo);
-    NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
-    assert(currBlock);
-    return currBlock;
-  }
+    NNO pno = Node::getYourParentNo();
+
+    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
+
+    Node * parentNode = m_state.findNodeNoInThisClass(pno);
+    if(!parentNode)
+      {
+	std::ostringstream msg;
+	msg << "Variable '" << getName();
+	msg << "' cannot be exchanged at this time while compiling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	msg << " Parent required";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	assert(0); //parent required
+	m_state.popClassContext(); //restore
+	return false;
+      }
+
+    AssertBool swapOk = parentNode->exchangeKids(this, newnode);
+    assert(swapOk);
+
+    std::ostringstream msg;
+    msg << "Exchanged kids! <" << m_state.getTokenDataAsString(m_token).c_str();
+    msg << "> " << prettyNodeName().c_str();
+    msg << ", in place of a variable identifier within class: ";
+    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+
+    m_state.popClassContext(); //restore
+
+    //common to all new nodes:
+    newnode->setNodeLocation(getNodeLocation());
+    newnode->setYourParentNo(pno);
+    newnode->resetNodeNo(getNodeNo());
+
+    return true;
+  } //exchangeNodeWithParent
 
   EvalStatus NodeIdent::eval()
   {
