@@ -110,6 +110,8 @@ namespace MFM{
 
   bool NodeListArrayInitialization::foldInitExpression(u32 n)
   {
+    assert(n < m_nodes.size()); //error/t3446
+
     UTI foldeduti = m_nodes[n]->constantFold(); //c&l possibly redone
 
     //insure constant value fits in its array's bitsize

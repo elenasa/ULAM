@@ -1238,22 +1238,21 @@ namespace MFM {
   {
     bool rtnb = true;
     UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
-#if 0
     s32 tdarraysize = tdut->getArraySize();
-    if(args.m_arraysize != NONARRAYSIZE || tdarraysize != NONARRAYSIZE)
+    //    if((args.m_arraysize != NONARRAYSIZE) || (tdarraysize != NONARRAYSIZE))
+    if((args.m_arraysize != NONARRAYSIZE) && (tdarraysize != NONARRAYSIZE))
       {
-	//error can't support named constant arrays
+	//error can't support named constant arrays (error/t3446)
 	std::ostringstream msg;
 	msg << "Array size [] is included in typedef '";
 	msg <<  m_state.getTokenDataAsString(args.m_typeTok).c_str();
 	msg  << "', and cannot be used by a named constant '";
 	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	rtnb = false;
+	return false;
       }
-    assert(args.m_arraysize == NONARRAYSIZE);
-#endif
 
+    //    assert(args.m_arraysize == NONARRAYSIZE);
     args.m_bitsize = tdut->getBitSize(); //ok to use typedef bitsize
 
     // constants can't be classes either

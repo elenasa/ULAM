@@ -5,12 +5,11 @@
 ./Foo.ulam:5:32: ERROR: Missing named constant definition after '=' for 'soosize'.
 ./Foo.ulam:5:32: ERROR: Missing ';' after named constant definition 'soosize'; Lists not supported.
 ./Foo.ulam:4:1: ERROR: Empty/Incomplete Class Definition 'Foo'; Possible missing ending curly brace.
-./Foo.ulam:6:3: ERROR: Invalid Class Type <typedef>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./Foo.ulam:5:45: ERROR: Invalid Class Type <.>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./Foo.ulam:4:9: ERROR: Invalid Type: Foo.
  ERROR: No parse tree for This Class: Foo.
 Unrecoverable Program Parse FAILURE: <Foo.ulam>
-./Foo.ulam:6:16: ERROR: Local filescope definitions are named constants and typedefs; not '.'.
-./Foo.ulam:7:3: ERROR: Invalid Class Type <Bool>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./Foo.ulam:5:46: ERROR: Invalid Class Type <soosize>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 Unrecoverable Program Parse FAILURE: <System.ulam>
 ##
 ## test of local defs: different file scopes, uses locals from another class, informed by t3865

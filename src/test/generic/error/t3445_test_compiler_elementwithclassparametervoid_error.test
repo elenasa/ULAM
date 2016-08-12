@@ -2,7 +2,13 @@
 #=t3445_test_compiler_elementwithclassparametervoid_error
 #!
 ./S.ulam:2:9: ERROR: Invalid constant definition Type 'Void'.
+./S.ulam:2:9: ERROR: Problem with parameter definition 1 for template class: S.
+./S.ulam:2:15: ERROR: Unexpected token <TOK_COMMA>; Expected {.
+./S.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'S'; Possible missing ending curly brace.
+./S.ulam:2:15: ERROR: Invalid Class Type <,>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+ ERROR: No parse tree for This Class: T.
 Unrecoverable Program Parse FAILURE: <T.ulam>
+./S.ulam:1:7: ERROR: No class 'S' in <S.ulam>.
 ##
 ##    //informed by t3333
 ##

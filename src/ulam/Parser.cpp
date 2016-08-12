@@ -569,6 +569,15 @@ namespace MFM {
 	    //sanity check for default values
 	    assert(!assignrequired || ((NodeConstantDef *) argNode)->hasConstantExpr());
 	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Problem with parameter definition " << numparams + 1;
+	    msg << " for template class: ";
+	    msg << m_state.m_pool.getDataAsString(cntsym->getId()).c_str();
+	    MSG(&pTok, msg.str().c_str(), ERR); //t3524
+	    return;
+	  }
       }
     else
       {
@@ -4155,11 +4164,14 @@ Node * Parser::parseArrayInitialization(u32 identId)
 	    msg << "Missing named constant definition after '=' for '";
 	    msg << m_state.m_pool.getDataAsString(constId).c_str() << "'";
 	    MSG(&pTok, msg.str().c_str(), ERR);
+	    delete constNode; //also deletes the symbol, and nodetypedesc.
+	    constNode = NULL;
+	    rtnNode = NULL;
 	  }
       }
     else
       {
-	//let the = constant expr be optional in case of class params
+	//let the = constant expr be optional in case of class params (error/t3524)
 	if(assignREQ)
 	  {
 	    std::ostringstream msg;
@@ -4172,11 +4184,10 @@ Node * Parser::parseArrayInitialization(u32 identId)
 		//perhaps read until semi-colon
 		getTokensUntil(TOK_SEMICOLON);
 		unreadToken();
-
-		delete constNode; //also deletes the symbol, and nodetypedesc.
-		constNode = NULL;
-		rtnNode = NULL;
 	      }
+	    delete constNode; //also deletes the symbol, and nodetypedesc.
+	    constNode = NULL;
+	    rtnNode = NULL;
 	  }
 	else
 	  {
@@ -4845,6 +4856,9 @@ Node * Parser::parseArrayInitialization(u32 identId)
 	      asymptr->setStructuredComment(); //also clears
 
 	    rtnNode = parseRestOfConstantDef(constNode, args.m_assignOK, args.m_isStmt);
+
+	    if(!rtnNode)
+	      m_state.clearStructuredCommentToken(); //t3524
 	  }
       }
     else

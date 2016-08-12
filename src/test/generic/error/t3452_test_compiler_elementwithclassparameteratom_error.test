@@ -2,11 +2,13 @@
 #=t3452_test_compiler_elementwithclassparameteratom_error
 #!
 ./S.ulam:2:10: ERROR: Invalid constant definition Type 'Atom'.
-./S.ulam:2:16: ERROR: Class Template 'S' has NO parameters; Parens are inapplicable.
-./T.ulam:5:10: ERROR: Invalid constant definition Type 'Atom'.
-./T.ulam:6:2: ERROR: Invalid Statement (possible missing semicolon).
-./T.ulam:7:4: ERROR: Too many Class Arguments (1); Class Template 'S' expects 0.
+./S.ulam:2:10: ERROR: Problem with parameter definition 1 for template class: S.
+./S.ulam:2:16: ERROR: Unexpected token <TOK_CLOSE_PAREN>; Expected {.
+./S.ulam:2:2: ERROR: Empty/Incomplete Class Definition 'S'; Possible missing ending curly brace.
+./S.ulam:2:16: ERROR: Invalid Class Type <)>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+ ERROR: No parse tree for This Class: T.
 Unrecoverable Program Parse FAILURE: <T.ulam>
+./S.ulam:1:7: ERROR: No class 'S' in <S.ulam>.
 ##
 ##    //informed by t3333
 ##

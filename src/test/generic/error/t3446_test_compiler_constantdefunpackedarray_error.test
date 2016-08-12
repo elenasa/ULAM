@@ -1,13 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3446_test_compiler_constantdefunpackedarray_error
 #!
-./T.ulam:4:19: ERROR: Array size [] is included in typedef 'BigSite', and cannot be used by a named constant 'x'.
-./T.ulam:4:19: ERROR: Invalid constant definition of type <Int> and name <x>.
-./T.ulam:2:2: ERROR: Empty/Incomplete Class Definition 'T'; Possible missing ending curly brace.
-./T.ulam:4:24: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
-./T.ulam:2:10: ERROR: Invalid Type: T.
- ERROR: No parse tree for This Class: T.
-Unrecoverable Program Parse FAILURE: <T.ulam>
+./T.ulam:4:11: ERROR: Constant value expression for: x, array/scalar mismatch.
+./T.ulam:2:10: ERROR: 1 Nodes with erroneous types detected after type labeling class: T.
+Unrecoverable Program Type Label FAILURE.
 ##
 ##    //informed by t3445
 ##

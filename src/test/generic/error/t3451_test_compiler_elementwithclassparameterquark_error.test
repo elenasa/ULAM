@@ -3,8 +3,13 @@
 #!
 ./S.ulam:3:12: ERROR: Named Constant 'v' cannot be based on a class type: Q.
 ./S.ulam:3:12: ERROR: Invalid constant definition of type <Q> and name <v>.
-./S.ulam:3:13: ERROR: Class Template 'S' has NO parameters; Parens are inapplicable.
+./S.ulam:3:10: ERROR: Problem with parameter definition 1 for template class: S.
+./S.ulam:3:13: ERROR: Unexpected token <TOK_CLOSE_PAREN>; Expected {.
+./S.ulam:3:2: ERROR: Empty/Incomplete Class Definition 'S'; Possible missing ending curly brace.
+./S.ulam:3:13: ERROR: Invalid Class Type <)>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+ ERROR: No parse tree for This Class: T.
 Unrecoverable Program Parse FAILURE: <T.ulam>
+./S.ulam:2:6: ERROR: No class 'S' in <S.ulam>.
 ##
 ##    //informed by t3333
 ##

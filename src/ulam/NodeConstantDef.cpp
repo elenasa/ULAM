@@ -224,6 +224,28 @@ namespace MFM {
 	    setNodeType(Hzy);
 	    return Hzy; //short-circuit
 	  }
+
+	if(!m_nodeExpr->isAConstant())
+	  {
+	    std::ostringstream msg;
+	    msg << "Constant value expression for: ";
+	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
+	    msg << ", is not a constant";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
+	    return Nav; //short-circuit (error/t3453)
+	  }
+
+	if(m_state.isScalar(it) ^ m_state.isScalar(suti))
+	  {
+	    std::ostringstream msg;
+	    msg << "Constant value expression for: ";
+	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
+	    msg << ", array/scalar mismatch";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
+	    return Nav; //short-circuit (t3446)
+	  }
       } //end node expression
 
     if(!m_state.isComplete(suti)) //reloads
@@ -567,7 +589,7 @@ namespace MFM {
       return false;
 
     assert(!m_state.isScalar(nuti));
-    assert(m_nodeExpr); //NodeListArrayInitialization
+    assert(m_nodeExpr && !m_state.isScalar(m_nodeExpr->getNodeType())); //NodeListArrayInitialization
     assert(m_constSymbol && !(m_constSymbol->isReady() || m_constSymbol->isInitValueReady()));
 
     if(((NodeListArrayInitialization *) m_nodeExpr)->foldArrayInitExpression())

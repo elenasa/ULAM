@@ -6,10 +6,13 @@
 namespace MFM{
 
   NodeList::NodeList(CompilerState & state) : Node(state)
-  { }
+  {
+    m_nodes.clear(); //init
+  }
 
   NodeList::NodeList(const NodeList & ref) : Node(ref)
   {
+    m_nodes.clear(); //init
     u32 numparams = ref.getNumberOfNodes();
     for(u32 i = 0; i < numparams; i++)
       {
