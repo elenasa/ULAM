@@ -130,7 +130,7 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	      }
 	  }
-	else if(tdut->isHolder())
+	else if(tdut->isHolder() && !m_state.isThisLocalsFileScope())
 	  {
 	    m_state.statusUnknownTypeInThisClassResolver(it);
 	  }

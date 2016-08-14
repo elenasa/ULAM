@@ -182,6 +182,42 @@ namespace MFM {
 	  }
       }
 
+    //move before m_nodeExpr "Void" check (t3883)
+    if(!m_state.isComplete(suti)) //reloads
+      {
+	std::ostringstream msg;
+	msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	msg << ", used with symbol name '" << getName() << "'";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	//too soon! m_state.setGoAgain(); //might not have nodetypedesc
+
+	UTI mappedUTI = Nouti;
+	if(m_state.mappedIncompleteUTI(cuti, suti, mappedUTI))
+	  {
+	    std::ostringstream msg;
+	    msg << "Substituting Mapped UTI" << mappedUTI;
+	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
+	    msg << " for incomplete list type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    msg << "' UTI" << suti << " while labeling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    m_state.mapTypesInCurrentClass(suti, mappedUTI); //before setting equal?
+	    m_constSymbol->resetUlamType(mappedUTI); //consistent!
+	    suti = mappedUTI;
+	  }
+
+	if(!m_state.isComplete(suti)) //reloads to recheck for debug message
+	  {
+	    std::ostringstream msg;
+	    msg << "Incomplete identifier for type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	    msg << ", used with symbol name '" << getName() << "'";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	  }
+      }
+
     // NOASSIGN REQUIRED (e.g. for class parameters) doesn't have to have this!
     if(m_nodeExpr)
       {
@@ -303,41 +339,7 @@ namespace MFM {
 	  }
       } //end node expression
 
-    if(!m_state.isComplete(suti)) //reloads
-      {
-	std::ostringstream msg;
-	msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-	msg << ", used with symbol name '" << getName() << "'";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	//too soon! m_state.setGoAgain(); //might not have nodetypedesc
-
-	UTI mappedUTI = Nouti;
-	if(m_state.mappedIncompleteUTI(cuti, suti, mappedUTI))
-	  {
-	    std::ostringstream msg;
-	    msg << "Substituting Mapped UTI" << mappedUTI;
-	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
-	    msg << " for incomplete list type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << "' UTI" << suti << " while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    m_state.mapTypesInCurrentClass(suti, mappedUTI); //before setting equal?
-	    m_constSymbol->resetUlamType(mappedUTI); //consistent!
-	    suti = mappedUTI;
-	  }
-
-	if(!m_state.isComplete(suti)) //reloads to recheck for debug message
-	  {
-	    std::ostringstream msg;
-	    msg << "Incomplete identifier for type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-	    msg << ", used with symbol name '" << getName() << "'";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	  }
-      }
-    else
+    if(m_state.isComplete(suti)) //reloads
       {
 	ULAMTYPE eit = m_state.getUlamTypeByIndex(it)->getUlamTypeEnum();
 	ULAMTYPE esuti = m_state.getUlamTypeByIndex(suti)->getUlamTypeEnum();

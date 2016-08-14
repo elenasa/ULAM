@@ -184,12 +184,12 @@ namespace MFM {
       {
 	rtnb = resolveClassType(nuti);
       }
-    else if(etyp == Holder)
+    else if((etyp == Holder) && !m_state.isThisLocalsFileScope())
       {
 	//non-class reference, handled in resolveReferenceType
 	if(getReferenceType() == ALT_NOT)
 	  {
-	    // non-class, non-ref
+	    // non-class, non-ref, non-localdef scope
 	    if(!(rtnb = m_state.statusUnknownTypeInThisClassResolver(nuti)))
 	      nuti = Hzy;
 	  }
@@ -366,7 +366,7 @@ namespace MFM {
 
 		if(nut->isHolder())
 		  {
-		    if(!m_state.statusUnknownTypeInThisClassResolver(nuti))
+		    if(m_state.isThisLocalsFileScope() || !m_state.statusUnknownTypeInThisClassResolver(nuti))
 		      auti = Hzy;
 		  }
 		else if(!m_state.isARootUTI(nuti))
