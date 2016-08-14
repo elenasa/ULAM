@@ -985,6 +985,12 @@ namespace MFM {
       }
   } //genCodedBitFieldTypedef
 
+  void NodeVarDeclDM::genCodeConstantArrayInitialization(File * fp)
+  { }
+
+  void NodeVarDeclDM::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  { }
+
   void NodeVarDeclDM::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {
     UTI nuti = getNodeType();

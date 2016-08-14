@@ -9,24 +9,31 @@ Uq_System { <NOMAIN> }
 ##
 #>A.ulam
   ulam 2;
-local constant UrSelf.ARGB rtn1 = {0xff, 0 }; //typedf in UrSelf as Unsigned(8) ARGB[4]
+//local constant UrSelf.ARGB rtn1 = {0xff, 0 }; //typedf in UrSelf as Unsigned(8) ARGB[4]
 local typedef Unsigned(16) BIGARGB[4];
-local constant BIGARGB rtn2 = {0xffee, 0 }; //u64
+//local constant BIGARGB rtn2 = {0xffee, 0 }; //u64
 local typedef Unsigned(33) WEIRDOG[5];
-local constant WEIRDOG rtn3 = {0x123456789u, 0};
+//local constant WEIRDOG rtn3 = {0x123456789u, 0};
 element A {
   Bool b1, b2, b3;
+  constant BIGARGB rtn2 = {0xffee, 0 }; //u64 try as DataMEMBER
+  constant WEIRDOG rtn3 = {0x123456789u, 0}; //try as DataMEMBER
   Int test() {
+    //constant BIGARGB rtn2 = {0xffee, 0 }; //u64 try as IMMEDIATE
+    //constant WEIRDOG rtn3 = {0x123456789u, 0}; //try as IMMEDIATE
+
     System s;
-    b1 = (rtn1[0] < rtn1[3]);
-    s.assert(b1);
-    //b2 = (rtn2[0] > rtn2[3]);
-    //s.assert(b2);
+    //b1 = (rtn1[0] < rtn1[3]);
+    //s.assert(b1);
+    b2 = (rtn2[0] > rtn2[3]);
+    s.assert(b2);
     //b3 = (rtn3[0] > rtn3[4]);
     //s.assert(b3);
     return 0;
   }
 }
+
+
 
 #:System.ulam
   ulam 1;

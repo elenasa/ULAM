@@ -1052,6 +1052,16 @@ UTI NodeVarDecl::checkAndLabelType()
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCode
 
+  void NodeVarDecl::genCodeConstantArrayInitialization(File * fp)
+  {
+    assert(0); //see NodeVarDeclDM
+  }
+
+  void NodeVarDecl::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  {
+    assert(0); //see NodeVarDeclDM
+  }
+
   void NodeVarDecl::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {
     assert(0); //see NodeVarDeclDM data members only

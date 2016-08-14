@@ -100,6 +100,10 @@ namespace MFM{
 
     virtual void genCode(File * fp, UVPass& uvpass);
 
+    virtual void genCodeConstantArrayInitialization(File * fp);
+
+    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
+
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
   protected:

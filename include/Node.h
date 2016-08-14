@@ -178,6 +178,10 @@ namespace MFM{
 
     virtual void genCodeWriteFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
 
+    virtual void genCodeConstantArrayInitialization(File * fp);
+
+    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
+
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
     virtual void genCodeExtern(File * fp, bool declOnly);

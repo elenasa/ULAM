@@ -262,11 +262,9 @@ namespace MFM{
 
     // returns a u32 array of the proper length built with BV8K
     // as tmpvar in uvpass
-    // need parent (NodeVarDecl) to get initialized value (BV8K)
+    // need parent (NodeVarDecl/NodeConstantDef) to get initialized value (BV8K)
     NNO pno = Node::getYourParentNo();
-    //m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
-    Node * parentNode = m_state.findNodeNoInThisClass(pno);
-    //m_state.popClassContext(); //restore
+    Node * parentNode = m_state.findNodeNoInThisClass(pno); //also checks localsfilescope
     if(!parentNode)
       {
 	std::ostringstream msg;
@@ -279,14 +277,27 @@ namespace MFM{
 	return;
       }
 
-    SymbolVariable * varsym = NULL;
-    AssertBool gotSymbol = parentNode->getSymbolPtr((Symbol *&) varsym);
+    SymbolWithValue * vsym = NULL;
+    AssertBool gotSymbol = parentNode->getSymbolPtr((Symbol *&) vsym);
     assert(gotSymbol);
-    assert(varsym->hasInitValue());
 
+    //assert(vsym->hasInitValue());
+    bool aok = true;
     BV8K dval;
-    AssertBool gotInitVal = varsym->getInitValue(dval);
-    assert(gotInitVal);
+    if(vsym->isReady())
+      {
+	AssertBool gotValue = vsym->getValue(dval);
+	assert(gotValue);
+      }
+    else if(vsym->hasInitValue())
+      {
+	AssertBool gotInitVal = vsym->getInitValue(dval);
+	assert(gotInitVal);
+      }
+    else
+      aok = false;
+
+    assert(aok);
 
     u32 uvals[ARRAY_LEN8K];
     dval.ToArray(uvals); //the magic! (32-bit ints)
@@ -299,6 +310,7 @@ namespace MFM{
     //similar to CS::genCodeClassDefaultConstantArray,
     // except indentUlamCode, to a tmpvar, and no BitVector.
     m_state.indentUlamCode(fp);
+    //fp->write("static "); //??
     fp->write("const ");
 
     if(nut->getPackable() != PACKEDLOADABLE)
@@ -346,7 +358,7 @@ namespace MFM{
 	fp->write(";"); GCNL;
       }
 
-    uvpass = UVPass::makePass(tmpvarnum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, varsym->getId());
+    uvpass = UVPass::makePass(tmpvarnum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, vsym->getId());
   } //genCode
 
 } //MFM

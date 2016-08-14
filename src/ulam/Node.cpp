@@ -1929,6 +1929,16 @@ namespace MFM {
     // no externs
   }
 
+  void Node::genCodeConstantArrayInitialization(File * fp)
+  {
+    assert(0); //fufilled by NodeConstantDef
+  }
+
+  void Node::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  {
+    assert(0); //fufilled by NodeConstantDef
+  }
+
   void Node::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {
     assert(0); //fufilled by NodeVarDecl, NodeBlock; bypassed by NodeTypedef and NodeConstDef

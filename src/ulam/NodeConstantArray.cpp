@@ -1,68 +1,71 @@
 #include <stdlib.h>
-#include "NodeConstant.h"
+#include "NodeConstantArray.h"
 #include "CompilerState.h"
 
 namespace MFM {
 
-  NodeConstant::NodeConstant(const Token& tok, SymbolWithValue * symptr, CompilerState & state) : NodeTerminal(state), m_token(tok), m_constSymbol(symptr), m_ready(false), m_constType(Nouti), m_currBlockNo(0)
+  NodeConstantArray::NodeConstantArray(const Token& tok, SymbolWithValue * symptr, CompilerState & state) : Node(state), m_token(tok), m_constSymbol(symptr), m_constType(Nouti), m_currBlockNo(0)
   {
     assert(symptr);
     m_currBlockNo = symptr->getBlockNoOfST();
-    m_ready = updateConstant(); //sets ready here
     m_constType = m_constSymbol->getUlamTypeIdx();
   }
 
-  NodeConstant::NodeConstant(const NodeConstant& ref) : NodeTerminal(ref), m_token(ref.m_token), m_constSymbol(NULL), m_ready(false), m_constType(ref.m_constType), m_currBlockNo(ref.m_currBlockNo) {}
+  NodeConstantArray::NodeConstantArray(const NodeConstantArray& ref) : Node(ref), m_token(ref.m_token), m_constSymbol(NULL), m_constType(ref.m_constType), m_currBlockNo(ref.m_currBlockNo) {}
 
-  NodeConstant::~NodeConstant(){}
+  NodeConstantArray::~NodeConstantArray(){}
 
-  Node * NodeConstant::instantiate()
+  Node * NodeConstantArray::instantiate()
   {
-    return new NodeConstant(*this);
+    return new NodeConstantArray(*this);
   }
 
-  void NodeConstant::printPostfix(File * fp)
+  void NodeConstantArray::printPostfix(File * fp)
   {
     fp->write(" ");
     fp->write(getName());
   }
 
-  const char * NodeConstant::getName()
+  const char * NodeConstantArray::getName()
   {
-    if(isReadyConstant())
-      return NodeTerminal::getName();
+    //if(isReadyConstant())
+    //  return NodeTerminal::getName();
     return m_state.getTokenDataAsString(m_token).c_str();
   }
 
-  const std::string NodeConstant::prettyNodeName()
+  const std::string NodeConstantArray::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  bool NodeConstant::getSymbolPtr(Symbol *& symptrref)
+  bool NodeConstantArray::getSymbolPtr(Symbol *& symptrref)
   {
     symptrref = m_constSymbol;
     return (m_constSymbol != NULL); //true;
   }
 
-  void NodeConstant::constantFoldAToken(const Token& tok)
+  void NodeConstantArray::constantFoldAToken(const Token& tok)
   {
     //not same meaning as NodeTerminal; bypass.
   }
 
-  bool NodeConstant::isReadyConstant()
+  bool NodeConstantArray::isReadyConstant()
   {
-    return m_ready;
+    return m_constSymbol && m_constSymbol->isReady(); //m_ready;
   }
 
-  FORECAST NodeConstant::safeToCastTo(UTI newType)
+  FORECAST NodeConstantArray::safeToCastTo(UTI newType)
   {
     if(isReadyConstant())
-      return NodeTerminal::safeToCastTo(newType);
+      {
+	UlamType * newut = m_state.getUlamTypeByIndex(newType);
+	//return NodeTerminal::safeToCastTo(newType);
+	return newut->safeCast(getNodeType());
+      }
     return CAST_HAZY;
   } //safeToCastTo
 
-  UTI NodeConstant::checkAndLabelType()
+  UTI NodeConstantArray::checkAndLabelType()
   {
     UTI it = Nav;
 
@@ -70,27 +73,19 @@ namespace MFM {
 
     //instantiate, look up in class block; skip if stub copy and already ready.
     if(!stubcopy && m_constSymbol == NULL)
-	checkForSymbol();
+      checkForSymbol();
     else
-      {
-	stubcopy = m_state.hasClassAStub(m_state.getCompileThisIdx()); //includes ancestors
-      }
+      stubcopy = m_state.hasClassAStub(m_state.getCompileThisIdx()); //includes ancestors
 
     if(m_constSymbol)
-      {
-	it = m_constSymbol->getUlamTypeIdx();
-      }
-    else if(isReadyConstant() && stubcopy)
+      it = m_constSymbol->getUlamTypeIdx();
+    else if(stubcopy)
       {
 	assert(m_state.okUTItoContinue(m_constType));
 	setNodeType(m_constType); //t3565, t3640, t3641, t3642, t3652
 	//stub copy case: still wants uti mapping
-	it = NodeTerminal::checkAndLabelType();
-      }
-    else if(stubcopy)
-      {
-	// still need its symbol for a value
-	// use the member class (unlike checkForSymbol)
+	//it = NodeTerminal::checkAndLabelType();
+	it = m_constType; //?
       }
 
     // map incomplete UTI
@@ -123,26 +118,18 @@ namespace MFM {
     setNodeType(it);
     Node::setStoreIntoAble(TBOOL_FALSE);
 
-    if(m_state.isScalar(it)) //t3881 ?
+    if(!isReadyConstant())
       {
-	//copy m_constant from Symbol into NodeTerminal parent.
-	if(!isReadyConstant())
-	  m_ready = updateConstant(); //sets ready here
-	if(!isReadyConstant())
-	  {
-	    it = Hzy;
-	    if(!stubcopy)
-	      m_constSymbol = NULL; //lookup again too! (e.g. inherited template instances)
-	    m_state.setGoAgain();
-	  }
+	it = Hzy;
+	if(!stubcopy)
+	  m_constSymbol = NULL; //lookup again too! (e.g. inherited template instances)
+	m_state.setGoAgain();
       }
-    else
-      assert(0); //TODO!! t3881
 
     return it;
   } //checkAndLabelType
 
-  void NodeConstant::checkForSymbol()
+  void NodeConstantArray::checkForSymbol()
   {
     //in case of a cloned unknown
     NodeBlock * currBlock = getBlock();
@@ -179,12 +166,12 @@ namespace MFM {
     m_state.popClassContext(); //restore
   } //checkForSymbol
 
-  NNO NodeConstant::getBlockNo()
+  NNO NodeConstantArray::getBlockNo()
   {
     return m_currBlockNo;
   }
 
-  NodeBlock * NodeConstant::getBlock()
+  NodeBlock * NodeConstantArray::getBlock()
   {
     assert(m_currBlockNo);
     NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
@@ -209,7 +196,7 @@ namespace MFM {
   //class context set prior to calling us; purpose is to get
   // the value of this constant from the context before
   // constant folding happens.
-  bool NodeConstant::assignClassArgValueInStubCopy()
+  bool NodeConstantArray::assignClassArgValueInStubCopy()
   {
     // insure current block NNOs match
     if(m_currBlockNo != m_state.getCurrentBlockNo())
@@ -225,9 +212,10 @@ namespace MFM {
 	return false;
       }
 
-    if(m_ready)
+    if(isReadyConstant())
       return true; //nothing to do
 
+    bool isready = false;
     Symbol * asymptr = NULL;
     bool hazyKin = false;
     if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
@@ -235,53 +223,116 @@ namespace MFM {
 	assert(hazyKin); //always hazy, right?
 	if(asymptr->isConstant() && ((SymbolConstantValue *) asymptr)->isReady()) //???
 	  {
-	    u64 val = 0;
-	    ((SymbolConstantValue *) asymptr)->getValue(val);
-	    m_constant.uval = val;
-	    m_ready = true;
+	    isready = true;
 	    //note: m_constSymbol may be NULL; ok in this circumstance (i.e. stub copy).
 	  }
       }
-    return m_ready;
+    return isready;
   } //assignClassArgValueInStubCopy
 
-  EvalStatus NodeConstant::eval()
+  EvalStatus NodeConstantArray::eval()
   {
     if(!isReadyConstant())
-      m_ready = updateConstant();
-    if(!isReadyConstant())
       return ERROR;
-    if(!m_state.isComplete(getNodeType()))
+
+    UTI nuti = getNodeType();
+    if(!m_state.isComplete(nuti))
       return ERROR;
-    return NodeTerminal::eval();
+
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    u32 len = nut->getTotalBitSize();
+    if(len > MAXSTATEBITS)
+      return UNEVALUABLE;
+
+    return UNEVALUABLE; //for now..
+
+    EvalStatus evs = NORMAL; //init ok
+    evalNodeProlog(0); //new current frame pointer
+
+    makeRoomForSlots(1);
+    UlamValue rtnUV = UlamValue::makeAtom(nuti);
+
+    BV8K dval;
+    if(m_constSymbol->getValue(dval))
+      rtnUV.putDataBig(BITSPERATOM - len, len, dval); //right-justified in atom
+    else
+      evs = ERROR;
+
+    //copy result UV to stack, -1 relative to current frame pointer
+    if(evs == NORMAL)
+      Node::assignReturnValueToStack(rtnUV);
+
+    evalNodeEpilog();
+    return evs;
   } //eval
 
-  EvalStatus NodeConstant::evalToStoreInto()
+  EvalStatus NodeConstantArray::evalToStoreInto()
   {
     //possible constant array item (t3881)
-    assert(0);
-    return UNEVALUABLE;
-  }
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
 
-  void NodeConstant::genCode(File * fp, UVPass& uvpass)
+    if(nuti == Hzy)
+      return NOTREADY;
+
+    assert(m_constSymbol);
+
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    if(nut->getTotalBitSize() > MAXSTATEBITS)
+      return UNEVALUABLE;
+
+    return UNEVALUABLE; //for now..
+
+    evalNodeProlog(0); //new current node eval frame pointer
+    makeRoomForNodeType(nuti); //offset a constant expression
+    EvalStatus evs = eval();
+    if( evs == NORMAL)
+      {
+	UlamValue cnstuv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1); //immediate valu
+	UlamValue arrayPtr = UlamValue::makePtr(1, EVALRETURN, nuti, nut->getPackable(), m_state);
+
+	u32 absslot = m_state.m_funcCallStack.getAbsoluteStackIndexOfSlot(arrayPtr.getPtrSlotIndex());
+	arrayPtr.setPtrSlotIndex(absslot);
+	arrayPtr.setUlamValueTypeIdx(PtrAbs);
+
+	Node::assignReturnValuePtrToStack(arrayPtr);
+      }
+
+    evalNodeEpilog();
+    return evs;
+  } //evalToStoreInto
+
+  void NodeConstantArray::genCode(File * fp, UVPass& uvpass)
   {
-    if(!isReadyConstant())
-      m_ready = updateConstant(); //sets ready here
     assert(isReadyConstant()); //must be
-    NodeTerminal::genCode(fp, uvpass);
+
+    //return the ptr for an array; square bracket will resolve down to the immediate data
+    makeUVPassForCodeGen(uvpass);
+
+    m_state.m_currentObjSymbolsForCodeGen.push_back(m_constSymbol); //*********UPDATED GLOBAL;
+
+    // UNCLEAR: should this be consistent with constants?
+    Node::genCodeReadIntoATmpVar(fp, uvpass);
   } //genCode
 
-  bool NodeConstant::updateConstant()
+  void NodeConstantArray::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
-    u64 val;
-    if(!m_constSymbol)
-      return false;
+    assert(isReadyConstant()); //must be
+    makeUVPassForCodeGen(uvpass);
 
-    if(m_constSymbol->getValue(val))
-	m_constant.uval = val; //value fits type per its constantdef
-      //else don't want default value here
+    //******UPDATED GLOBAL; no restore!!!**************************
+    m_state.m_currentObjSymbolsForCodeGen.push_back(m_constSymbol);
+  } //genCodeToStoreInto
 
-    return m_constSymbol->isReady();
-  } //updateConstant
+  void NodeConstantArray::makeUVPassForCodeGen(UVPass& uvpass)
+  {
+    assert(m_constSymbol);
+    s32 tmpnum = m_state.getNextTmpVarNumber();
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+    uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, 0, m_constSymbol->getId());
+  }
 
 } //end MFM

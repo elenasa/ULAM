@@ -58,6 +58,8 @@ namespace MFM{
 
     virtual const std::string getMangledPrefix();
 
+    virtual const std::string getMangledName();
+
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
     virtual void setStructuredComment();

@@ -168,6 +168,10 @@ namespace MFM{
 
     void genCodeBody(File * fp, UVPass& uvpass);  //specific for this class
 
+    virtual void genCodeConstantArrayInitialization(File * fp);
+
+    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
+
     void initElementDefaultsForEval(UlamValue& uv, UTI cuti);
 
     NodeBlockFunctionDefinition * findTestFunctionNode();

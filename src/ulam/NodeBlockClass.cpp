@@ -1324,6 +1324,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write(namestrlong.c_str());
 	fp->write("\", 0))\n");
 
+	genCodeConstantArrayInitialization(fp);
+
 	m_state.indent(fp);
 	fp->write("{\n");
 
@@ -1376,6 +1378,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write(namestrlong.c_str());
 	fp->write("\", 0))\n");
 
+	genCodeConstantArrayInitialization(fp);
+
 	m_state.indent(fp);
 	fp->write("{ }\n\n");
 
@@ -1413,6 +1417,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write(namestrlong.c_str());
 	fp->write("\", 0))\n");
 
+	genCodeConstantArrayInitialization(fp);
+
 	m_state.indent(fp);
 	fp->write("{ }\n\n");
 
@@ -1449,6 +1455,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("//BUILT-IN FUNCTIONS:\n");
     fp->write("\n");
+
+    //define built-in init method for any "data member" constant arrays:
+    generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
 
     //generate 3 UlamClass:: methods for smart ulam debugging
     u32 dmcount = 0; //pass ref
@@ -1851,15 +1860,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	//get all initialized data members packed into 'daref'
 	// unlike element and quarks, data members can be elements, atoms and other transients
 	//e.g. t3811, t3812
-	//if(genCodeBuiltInFunctionBuildingDefaultDataMembers(fp))
-	  {
-	    genCodeBuiltInFunctionBuildingDefaultDataMembers(fp);
-	    genCodeElementTypeIntoDataMemberDefaultValue(fp, 0); //startpos = 0
+	genCodeBuiltInFunctionBuildingDefaultDataMembers(fp);
+	genCodeElementTypeIntoDataMemberDefaultValue(fp, 0); //startpos = 0
 
-	    m_state.indent(fp);
-	    fp->write("bvsref.WriteBV(pos, "); //first arg
-	    fp->write("initBV);"); GCNL;
-	  }
+	m_state.indent(fp);
+	fp->write("bvsref.WriteBV(pos, "); //first arg
+	fp->write("initBV);"); GCNL;
       }
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -2102,6 +2108,18 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write("__inline__ const u32 GetPos() const { return 0u; }\n"); //?????
       }
   } //generateGetPosForQuark
+
+  void NodeBlockClass::genCodeConstantArrayInitialization(File * fp)
+  {
+    if(m_nodeNext)
+      m_nodeNext->genCodeConstantArrayInitialization(fp);
+  }
+
+  void NodeBlockClass::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  {
+    if(m_nodeNext)
+      m_nodeNext->generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
+  }
 
   void NodeBlockClass::generateUlamClassInfoFunction(File * fp, bool declOnly, u32& dmcount)
   {

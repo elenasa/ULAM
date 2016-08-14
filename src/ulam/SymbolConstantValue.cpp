@@ -32,6 +32,29 @@ namespace MFM {
     return "Uc_";
   }
 
+  const std::string SymbolConstantValue::getMangledName()
+  {
+    if(m_state.isScalar(getUlamTypeIdx()))
+      return Symbol::getMangledName();
+
+    //local filescope constant arrays end with filescope name (e.g. _8Foo.ulam)
+    std::ostringstream mangled;
+    std::string nstr = m_state.getDataAsStringMangled(getId());
+    mangled << getMangledPrefix() << nstr.c_str();
+
+    NodeBlockLocals * locals = m_state.findALocalScopeByNodeNo(getBlockNoOfST());
+    if(locals != NULL)
+      {
+	UTI locuti = locals->getNodeType();
+	UlamType * locut = m_state.getUlamTypeByIndex(locuti);
+	u32 classid = 0;
+	AssertBool foundClassName = m_state.getClassNameFromFileName(locut->getUlamTypeNameOnly(), classid); //without trailing .ulam (no dots allowed)
+	assert(foundClassName);
+	mangled << "_" << m_state.getDataAsStringMangled(classid).c_str() << "_ulam"; //leximited
+      }
+    return mangled.str();
+  } //getMangledName
+
   // replaces NodeConstantValue:printPostfix to learn the values of Class' storage in center site
   void SymbolConstantValue::printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
   {

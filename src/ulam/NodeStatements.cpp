@@ -290,6 +290,24 @@ namespace MFM {
       m_nodeNext->genCodeExtern(fp, declOnly);
   } //genCodeExtern
 
+  void NodeStatements::genCodeConstantArrayInitialization(File * fp)
+  {
+    if(m_node)
+      m_node->genCodeConstantArrayInitialization(fp);
+
+    if(m_nodeNext)
+      m_nodeNext->genCodeConstantArrayInitialization(fp);
+  }
+
+  void NodeStatements::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  {
+    if(m_node)
+      m_node->generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
+
+    if(m_nodeNext)
+      m_nodeNext->generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
+  }
+
   void NodeStatements::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {
     m_node->generateUlamClassInfo(fp, declOnly, dmcount);

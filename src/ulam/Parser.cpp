@@ -40,6 +40,7 @@
 #include "NodeConditionalAs.h"
 #include "NodeConditionalIs.h"
 #include "NodeConstant.h"
+#include "NodeConstantArray.h"
 #include "NodeContinueStatement.h"
 #include "NodeControlIf.h"
 #include "NodeControlWhile.h"
@@ -759,6 +760,12 @@ namespace MFM {
       {
 	//parse Named Constant starting with keyword first
 	rtnNode = parseConstdef();
+	if(rtnNode)
+	  {
+	    Symbol * csym = NULL;
+	    if(rtnNode->getSymbolPtr(csym))
+	      csym->setDataMemberClass(m_state.getCompileThisIdx());
+	  }
       }
     else if(pTok.m_type == TOK_KW_PARAMETER)
       {
@@ -2786,7 +2793,11 @@ namespace MFM {
 
 	if(sym->isConstant()) // || sym->isModelParameter())
 	  {
-	    rtnNode = new NodeConstant(iTok, (SymbolConstantValue *) sym, m_state); //t3862
+	    UTI suti = sym->getUlamTypeIdx();
+	    if(m_state.isScalar(suti))
+	      rtnNode = new NodeConstant(iTok, (SymbolConstantValue *) sym, m_state); //t3862
+	    else
+	      rtnNode = new NodeConstantArray(iTok, (SymbolConstantValue *) sym, m_state);
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(iTok.m_locator);
 	  }

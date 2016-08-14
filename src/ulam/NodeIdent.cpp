@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "NodeConstant.h"
+#include "NodeConstantArray.h"
 #include "NodeIdent.h"
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
@@ -165,9 +166,15 @@ namespace MFM {
 	      }
 	    else if(asymptr->isConstant())
 	      {
+		UTI auti = asymptr->getUlamTypeIdx();
 		// replace ourselves with a constant node instead;
 		// same node no, and loc (e.g. t3573)
-		NodeConstant * newnode = new NodeConstant(m_token, (SymbolWithValue *) asymptr, m_state);
+		Node * newnode = NULL;
+
+		if(m_state.isScalar(auti))
+		  newnode = new NodeConstant(m_token, (SymbolWithValue *) asymptr, m_state);
+		else
+		  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) asymptr, m_state);
 		assert(newnode);
 
 		AssertBool swapOk = exchangeNodeWithParent(newnode);
@@ -231,11 +238,15 @@ namespace MFM {
     else if(m_varSymbol->isConstant())
       {
 	// CONSTANT ARRAY? TBD..
-	assert(m_state.isScalar(m_varSymbol->getUlamTypeIdx()));
+	UTI vuti = m_varSymbol->getUlamTypeIdx();
 
 	// replace ourselves with a constant node instead;
 	// same node no, and loc (e.g. t3573, t3526)
-	NodeConstant * newnode = new NodeConstant(m_token, (SymbolWithValue *) m_varSymbol, m_state);
+	Node * newnode = NULL;
+	if(m_state.isScalar(vuti))
+	  newnode = new NodeConstant(m_token, (SymbolWithValue *) m_varSymbol, m_state);
+	else
+	  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) m_varSymbol, m_state);
 	assert(newnode);
 
 	AssertBool swapOk = exchangeNodeWithParent(newnode);

@@ -310,6 +310,12 @@ namespace MFM {
 #endif
   } //genCode
 
+  void NodeTypedef::genCodeConstantArrayInitialization(File * fp)
+  {}
+
+  void NodeTypedef::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  {}
+
   void NodeTypedef::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {}
 

@@ -185,20 +185,6 @@ namespace MFM {
     // NOASSIGN REQUIRED (e.g. for class parameters) doesn't have to have this!
     if(m_nodeExpr)
       {
-#if 0
-	//check constant before check-and-label to avoid handling not-ready-type Nav's
-	if(!m_nodeExpr->isAConstant())
-	  {
-	    std::ostringstream msg;
-	    msg << "Constant value expression for: ";
-	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
-	    msg << ", is not a constant";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav);
-	    return Nav; //short-circuit
-	  }
-#endif
-
 	it = m_nodeExpr->checkAndLabelType();
 	if(it == Nav)
 	  {
@@ -236,7 +222,76 @@ namespace MFM {
 	    return Nav; //short-circuit (error/t3453)
 	  }
 
-	if(m_state.isScalar(it) ^ m_state.isScalar(suti))
+	//note: Void is flag that it's a list of constant initializers;
+	// code lifted from NodeVarDecl.cpp c&l.
+	if(it == Void)
+	  {
+	    //only possible if array type with initializers
+	    //m_constSymbol->setHasInitValue(); //might not be ready yet
+	    if(!m_state.okUTItoContinue(suti) && m_nodeTypeDesc)
+	      {
+		UTI duti = m_nodeTypeDesc->getNodeType();
+		UlamType * dut = m_state.getUlamTypeByIndex(duti);
+		if(m_state.okUTItoContinue(duti) && !dut->isComplete())
+		  {
+		    assert(!dut->isScalar());
+		    assert(dut->isPrimitiveType());
+
+		    //if here, assume arraysize depends on number of initializers
+		    s32 bitsize = dut->getBitSize();
+		    u32 n = ((NodeList *) m_nodeExpr)->getNumberOfNodes();
+		    m_state.setUTISizes(duti, bitsize, n);
+
+		    if(m_state.isComplete(duti))
+		      {
+			std::ostringstream msg;
+			msg << "REPLACING Symbol UTI" << it;
+			msg << ", " << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+			msg << " used with variable symbol name '" << getName();
+			msg << "' with node type descriptor array type (with initializers): ";
+			msg << m_state.getUlamTypeNameBriefByIndex(duti).c_str();
+			msg << " UTI" << duti << " while labeling class: ";
+			msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+			m_constSymbol->resetUlamType(duti); //consistent!
+			m_state.mapTypesInCurrentClass(suti, duti);
+			m_state.updateUTIAliasForced(suti, duti); //help?
+			m_nodeExpr->setNodeType(duti); //replace Void too!
+			it = duti;
+		      }
+		  }
+		//else
+	      }
+	    else if(m_state.okUTItoContinue(suti) && m_state.isComplete(suti))
+	      {
+		//arraysize specified, may have fewer initializers
+		s32 arraysize = m_state.getArraySize(suti);
+		assert(arraysize >= 0); //t3847
+		u32 n = ((NodeList *) m_nodeExpr)->getNumberOfNodes();
+		if((n > (u32) arraysize) && (arraysize > 0)) //not an error: t3847
+		  {
+		    std::ostringstream msg;
+		    msg << "Too many initializers (" << n << ") specified for array '";
+		    msg << getName() << "', size " << arraysize;
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    setNodeType(Nav);
+		    it = Nav;
+		  }
+		else
+		  {
+		    m_nodeExpr->setNodeType(suti);
+		    it = suti;
+		  }
+	      }
+	    else
+	      {
+		assert(suti != Nav);
+		it = Hzy;
+		m_state.setGoAgain();
+	      }
+	  } //end array initializers (eit == Void)
+
+	if(m_state.okUTItoContinue(it) && (m_state.isScalar(it) ^ m_state.isScalar(suti)))
 	  {
 	    std::ostringstream msg;
 	    msg << "Constant value expression for: ";
@@ -589,8 +644,9 @@ namespace MFM {
       return false;
 
     assert(!m_state.isScalar(nuti));
-    assert(m_nodeExpr && !m_state.isScalar(m_nodeExpr->getNodeType())); //NodeListArrayInitialization
+    //assert(m_nodeExpr && (!m_state.isScalar(m_nodeExpr->getNodeType())); //NodeListArrayInitialization
     assert(m_constSymbol && !(m_constSymbol->isReady() || m_constSymbol->isInitValueReady()));
+    assert(m_nodeExpr);
 
     if(((NodeListArrayInitialization *) m_nodeExpr)->foldArrayInitExpression())
       {
@@ -680,7 +736,142 @@ namespace MFM {
   } //printUnresolvedLocalVariables
 
   void NodeConstantDef::genCode(File * fp, UVPass& uvpass)
-  {}
+  {
+    UTI nuti = getNodeType();
+    //if(!m_state.isScalar(nuti) && m_state.isThisLocalsFileScope())
+    if(!m_state.isScalar(nuti))
+      {
+	assert(m_constSymbol);
+	assert(m_state.isComplete(nuti));
+	assert(m_constSymbol->getUlamTypeIdx() == nuti); //sanity check
+	UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+	if(m_state.isThisLocalsFileScope() ||  m_constSymbol->isDataMember())
+	  //else if(m_state.findAClassByNodeNo(m_constSymbol->getBlockNoOfST()) != Nav) i.e. dm
+	  {
+	    //as a "data member", or locals filescope, will be initialized in no-arg constructor
+	    m_state.indentUlamCode(fp);
+	    fp->write("const ");
+	    fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
+	    fp->write(" ");
+	    fp->write(m_constSymbol->getMangledName().c_str());
+	    fp->write(";"); GCNL;
+	  }
+	else
+	  {
+	    //immediate use
+	    assert(m_nodeExpr);
+	    m_nodeExpr->genCode(fp, uvpass);
+
+	    m_state.indentUlamCode(fp);
+	    fp->write("const ");
+	    fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
+	    fp->write(" ");
+	    fp->write(m_constSymbol->getMangledName().c_str());
+	    fp->write("("); // use constructor (not equals)
+	    fp->write(m_state.getTmpVarAsString(nuti, uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str()); //VALUE
+	    fp->write(");"); GCNL;
+	    m_state.clearCurrentObjSymbolsForCodeGen();
+	  }
+      }
+    return; //done
+  } //genCode
+
+  void NodeConstantDef::genCodeConstantArrayInitialization(File * fp)
+  {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+    if(nut->isScalar())
+      return;
+
+    //no-arg constructor to initialize const arrays using special method
+    // (based on: 'Init' + constants's mangled name)
+    m_state.m_currentIndentLevel+=2;
+    m_state.indent(fp);
+    fp->write(",");
+    fp->write(m_constSymbol->getMangledName().c_str());
+    fp->write("(Init");
+    fp->write(m_constSymbol->getMangledName().c_str());
+    fp->write("())\n");
+    m_state.m_currentIndentLevel-=2;
+  } //genCodeConstantArrayInitialization
+
+  void NodeConstantDef::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+    if(nut->isScalar())
+      return;
+
+    if(declOnly)
+      {
+	//unique typedef for this constant array (number of u32's)
+	m_state.indent(fp);
+	fp->write("typedef u32 TypeForInit");
+	fp->write(m_constSymbol->getMangledName().c_str());
+	fp->write("[");
+	fp->write_decimal_unsigned(nut->getTotalNumberOfWords());
+	fp->write("];\n");
+
+	//unique function to initialize const array "data members" in class no-arg constructor
+	m_state.indent(fp);
+	fp->write("TypeForInit");
+	fp->write(m_constSymbol->getMangledName().c_str());
+	fp->write("& Init");
+	fp->write(m_constSymbol->getMangledName().c_str());
+	fp->write("();"); GCNL;
+	fp->write("\n");
+	return;
+      }
+
+    UTI cuti = m_state.getCompileThisIdx();
+    //include the mangled class::
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+    //    bool isLocalsFileScope = m_state.isLocalsFileScope();
+
+    //unique function to initialize const array "data members" in class no-arg constructor
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write("typename ");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>::");
+    fp->write("TypeForInit");
+    fp->write(m_constSymbol->getMangledName().c_str());
+    fp->write("& ");
+
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>::");
+    fp->write("Init");
+    fp->write(m_constSymbol->getMangledName().c_str());
+    fp->write("()\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("static ");
+    fp->write("u32 ");
+    fp->write("initVal[");
+    fp->write_decimal_unsigned(nut->getTotalNumberOfWords());
+    fp->write("] = ");
+    m_constSymbol->printPostfixValue(fp);
+    fp->write(";\n");
+
+    m_state.indent(fp);
+    fp->write("return initVal;\n");
+
+    m_state.m_currentIndentLevel--;
+
+    m_state.indent(fp);
+    fp->write("} //Init");
+    fp->write(m_constSymbol->getMangledName().c_str()); GCNL;
+    fp->write("\n");
+  } //generateBuiltinConstantArrayInitializationFunction
 
   void NodeConstantDef::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {}
