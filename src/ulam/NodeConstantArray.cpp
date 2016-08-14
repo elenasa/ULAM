@@ -54,6 +54,11 @@ namespace MFM {
     return m_constSymbol && m_constSymbol->isReady(); //m_ready;
   }
 
+  bool NodeConstantArray::isAConstant()
+  {
+    return true;
+  }
+
   FORECAST NodeConstantArray::safeToCastTo(UTI newType)
   {
     if(isReadyConstant())

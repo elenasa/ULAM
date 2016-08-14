@@ -224,6 +224,9 @@ namespace MFM{
     //index of last "static" MP object; o.w.-1
     s32 isCurrentObjectsContainingAModelParameter();
 
+    //index of last named constant (array) object; o.w.-1
+    s32 isCurrentObjectsContainingAConstant();
+
     std::string calcPosOfCurrentObjectClassesAsString(UVPass uvpass);
     s32 calcPosOfCurrentObjectClasses();
     s32 calcPosOfCurrentObjects(bool onlyClasses = false);

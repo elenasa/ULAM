@@ -775,6 +775,13 @@ namespace MFM {
 
     if(!stgcosut->isReference() && isLocal)
       {
+	if(stgcos->isConstant() && stgcos->isDataMember())
+	  {
+	    UTI stgcosclassuti = stgcos->getDataMemberClass(); //t3881
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosclassuti).c_str());
+	    fp->write(".");
+	  }
+
 	fp->write(stgcos->getMangledName().c_str()); //storage
 	fp->write(", ");
       }
@@ -2838,13 +2845,17 @@ namespace MFM {
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       return false; //must be self, t.f. not local
 
+    s32 namedconstantidx = isCurrentObjectsContainingAConstant();
+    if(m_state.m_currentObjSymbolsForCodeGen[0]->isDataMember() && (namedconstantidx > -1))
+      return true; //data member, and named constant array: treat like local
+
     s32 modelparamidx = isCurrentObjectsContainingAModelParameter();
     if(m_state.m_currentObjSymbolsForCodeGen[0]->isDataMember() && (modelparamidx == -1))
       return false; //data member, not model parameter
 
     UTI stgcosuti = m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx();
-    if(m_state.m_currentObjSymbolsForCodeGen[0]->isSelf() && !(m_state.isAtom(stgcosuti) || m_state.getUlamTypeByIndex(stgcosuti)->getUlamClassType() == UC_TRANSIENT) && (modelparamidx == -1))
-      return false; //self, neither atom nor transient, not modelparameter
+    if(m_state.m_currentObjSymbolsForCodeGen[0]->isSelf() && !(m_state.isAtom(stgcosuti) || m_state.getUlamTypeByIndex(stgcosuti)->getUlamClassType() == UC_TRANSIENT) && (modelparamidx == -1) && (namedconstantidx == -1))
+      return false; //self, neither atom nor transient, not modelparameter, nor named constant array
 
     return true; //including references
   } //isCurrentObjectALocalVariableOrArgument
@@ -2865,7 +2876,25 @@ namespace MFM {
 	  }
       }
     return indexOfLastMP;
-  } //isCurrentObjectsContainingAModelgParameter
+  } //isCurrentObjectsContainingAModelParameter
+
+  // returns the index to the last object that's a named constant; o.w. -1 none found;
+  // preceeding object is the "owner", others before it are irrelevant;
+  s32 Node::isCurrentObjectsContainingAConstant()
+  {
+    s32 indexOfLast = -1;
+    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+    for(s32 i = cosSize - 1; i >= 0; i--)
+      {
+	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
+	if(sym->isConstant())
+	  {
+	    indexOfLast = i;
+	    break;
+	  }
+      }
+    return indexOfLast;
+  } //isCurrentObjectsContainingAConstant
 
   // used by genHiddenArg2 for function calls; uvpass may contain the index
   // of an array item, o.w. the current arg's tmp var (unneeded here).

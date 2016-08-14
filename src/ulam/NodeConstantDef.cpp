@@ -751,7 +751,7 @@ namespace MFM {
 	  {
 	    //as a "data member", or locals filescope, will be initialized in no-arg constructor
 	    m_state.indentUlamCode(fp);
-	    fp->write("const ");
+	    //fp->write("const "); ?????????????????????????//
 	    fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
 	    fp->write(" ");
 	    fp->write(m_constSymbol->getMangledName().c_str());
@@ -764,7 +764,7 @@ namespace MFM {
 	    m_nodeExpr->genCode(fp, uvpass);
 
 	    m_state.indentUlamCode(fp);
-	    fp->write("const ");
+	    //fp->write("const "); ?????????????????????????????
 	    fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
 	    fp->write(" ");
 	    fp->write(m_constSymbol->getMangledName().c_str());

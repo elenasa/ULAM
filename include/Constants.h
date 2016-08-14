@@ -169,16 +169,16 @@ namespace MFM {
       hold the bit size argument l (no longer required since exact BitVector uses number of u32's) */
 #define calcWordSizeLong(l) ((l / MAXBITSPERLONG) * MAXBITSPERLONG + ( (l % MAXBITSPERLONG) > 0 ? MAXBITSPERLONG : 0))
 
-#define calcBitsizeSignedMax(l) (l == MAXBITSPERINT ? S32_MAX : ((1 << (l - 1)) - 1))
-#define calcBitsizeSignedMin(l) (l == MAXBITSPERINT ? S32_MIN : _SignExtend32((1 << (l - 1)), l))
+#define calcBitsizeSignedMax(l) (l == MAXBITSPERINT ? S32_MAX : _GetNOnes31(l - 1)) //((1 <<(l - 1)) - 1))
+#define calcBitsizeSignedMin(l) (l == MAXBITSPERINT ? S32_MIN : _SignExtend32(_GetNOnes31(l - 1) + 1, l)) //(1 << (l - 1)), l))
 
-#define calcBitsizeUnsignedMax(l) (l == MAXBITSPERINT ? U32_MAX : (1u << l) - 1)
+#define calcBitsizeUnsignedMax(l) (l == MAXBITSPERINT ? U32_MAX : _GetNOnes31(l)) //(1u << l) - 1)
 #define calcBitsizeUnsignedMin(l) (0)
 
-#define calcBitsizeSignedMaxLong(l) (l == MAXBITSPERLONG ? S64_MAX : ((1 << (l - 1)) - 1))
-#define calcBitsizeSignedMinLong(l) (l == MAXBITSPERLONG ? S64_MIN : _SignExtend64((1 << (l - 1)), l))
+#define calcBitsizeSignedMaxLong(l) (l == MAXBITSPERLONG ? S64_MAX : _GetNOnes63(l - 1)) //((1 << (l - 1)) - 1))
+#define calcBitsizeSignedMinLong(l) (l == MAXBITSPERLONG ? S64_MIN : _SignExtend64(_GetNOnes63(l - 1) + 1, l)) //(1 << (l - 1)), l))
 
-#define calcBitsizeUnsignedMaxLong(l) (l == MAXBITSPERLONG ? U64_MAX : (1u << l) - 1)
+#define calcBitsizeUnsignedMaxLong(l) (l == MAXBITSPERLONG ? U64_MAX : _GetNOnes63(l)) //(1u << l) - 1)
 #define calcBitsizeUnsignedMinLong(l) (0)
 
 #define WSUBDIR true

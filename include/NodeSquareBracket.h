@@ -66,6 +66,8 @@ namespace MFM{
 
     virtual const std::string methodNameForCodeGen();
 
+    virtual bool isAConstant();
+
     virtual UTI checkAndLabelType();
 
     virtual bool assignClassArgValueInStubCopy();
