@@ -502,20 +502,6 @@ UTI NodeVarDecl::checkAndLabelType()
 		//constant fold if possible, set symbol value
 		if(m_varSymbol->hasInitValue())
 		  {
-		    //possibly move this to NodeListArrayInitialization
-		    u32 bitsize = m_state.getBitSize(eit);
-		    if(bitsize > MAXBITSPERLONG)
-		      {
-			std::ostringstream msg;
-			msg << "Constant value expression for array: ";
-			msg << m_state.m_pool.getDataAsString(m_vid).c_str();
-			msg << ", initialization is currently limited to ";
-			msg << MAXBITSPERLONG << " bits";
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			setNodeType(Nav);
-			return Nav; //short-circuit
-		      }
-
 		    if(!(m_varSymbol->isInitValueReady()))
 		      {
 			if(!foldArrayInitExpression()) //sets init constant value

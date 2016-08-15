@@ -369,9 +369,9 @@ namespace MFM {
 		msg << getName() << "', size " << arraysize;
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		setNodeType(Nav);
+		return Nav;
 	      }
-	    else
-	      m_nodeExpr->setNodeType(suti);
+	    m_nodeExpr->setNodeType(suti);
 	  }
       } //end array initializers (eit == Void)
 
