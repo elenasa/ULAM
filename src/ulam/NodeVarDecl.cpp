@@ -343,54 +343,55 @@ namespace MFM {
 
 UTI NodeVarDecl::checkAndLabelType()
   {
-    UTI it = getNodeType();
-
     // instantiate, look up in current block
     if(m_varSymbol == NULL)
       checkForSymbol();
 
-    if(m_varSymbol)
+    //short circuit, avoid assert
+    if(!m_varSymbol)
       {
-	it = m_varSymbol->getUlamTypeIdx(); //base type has arraysize
+	setNodeType(Nav);
+	return Nav;
+      }
 
-	UTI cuti = m_state.getCompileThisIdx();
-	if(m_nodeTypeDesc)
-	  {
-	    UTI duti = m_nodeTypeDesc->checkAndLabelType(); //sets goagain
-	    if(m_state.okUTItoContinue(duti) && (duti != it))
-	      {
-		std::ostringstream msg;
-		msg << "REPLACING Symbol UTI" << it;
-		msg << ", " << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-		msg << " used with variable symbol name '" << getName();
-		msg << "' with node type descriptor type: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(duti).c_str();
-		msg << " UTI" << duti << " while labeling class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		m_varSymbol->resetUlamType(duti); //consistent!
-		m_state.mapTypesInCurrentClass(it, duti);
-		//m_state.updateUTIAliasForced(it, duti); //help?NOPE, t3808
-		it = duti;
-	      }
-	  }
-
-	if(!m_state.okUTItoContinue(it) || !m_state.isComplete(it))
+    UTI it = m_varSymbol->getUlamTypeIdx(); //base type has arraysize
+    UTI cuti = m_state.getCompileThisIdx();
+    if(m_nodeTypeDesc)
+      {
+	UTI duti = m_nodeTypeDesc->checkAndLabelType(); //sets goagain
+	if(m_state.okUTItoContinue(duti) && (duti != it))
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete Variable Decl for type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << ", used with variable symbol name '" << getName() << "'";
-	    if(m_state.okUTItoContinue(it) || (it == Hzy))
-	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		it = Hzy;
-		//m_state.setGoAgain(); //since not error; wait until not Nav
-	      }
-	    else
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    msg << "REPLACING Symbol UTI" << it;
+	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    msg << " used with variable symbol name '" << getName();
+	    msg << "' with node type descriptor type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(duti).c_str();
+	    msg << " UTI" << duti << " while labeling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    m_varSymbol->resetUlamType(duti); //consistent!
+	    m_state.mapTypesInCurrentClass(it, duti);
+	    //m_state.updateUTIAliasForced(it, duti); //help?NOPE, t3808
+	    it = duti;
 	  }
-      } //end var_symbol
+      }
+
+    if(!m_state.okUTItoContinue(it) || !m_state.isComplete(it))
+      {
+	std::ostringstream msg;
+	msg << "Incomplete Variable Decl for type: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	msg << ", used with variable symbol name '" << getName() << "'";
+	if(m_state.okUTItoContinue(it) || (it == Hzy))
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    it = Hzy;
+	    //m_state.setGoAgain(); //since not error; wait until not Nav
+	  }
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
 
     ULAMTYPE etyp = m_state.getUlamTypeByIndex(it)->getUlamTypeEnum();
     if(etyp == Void)
@@ -401,7 +402,8 @@ UTI NodeVarDecl::checkAndLabelType()
 	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 	msg << " with variable symbol name '" << getName() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	it = Nav;
+	setNodeType(Nav); //could be clobbered by Hazy node expr
+	return Nav;
       }
 
     if(m_nodeInitExpr)
@@ -470,23 +472,22 @@ UTI NodeVarDecl::checkAndLabelType()
 		  }
 		//else
 	      }
-	    else
+	    else if(m_state.isComplete(it))
 	      {
 		//arraysize specified, may have fewer initializers
-		assert(m_state.okUTItoContinue(it));
 		s32 arraysize = m_state.getArraySize(it);
 		assert(arraysize >= 0); //t3847
 		u32 n = ((NodeList *) m_nodeInitExpr)->getNumberOfNodes();
-		if((n > (u32) arraysize) && (arraysize > 0)) //not an error: t3847
+		if((n > (u32) arraysize) && (arraysize > 0))
 		  {
 		    std::ostringstream msg;
 		    msg << "Too many initializers (" << n << ") specified for array '";
 		    msg << getName() << "', size " << arraysize;
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    setNodeType(Nav);
+		    return Nav;
 		  }
-		else
-		  m_nodeInitExpr->setNodeType(it);
+		m_nodeInitExpr->setNodeType(it); //replace Void
 	      }
 	    eit = it;
 	  } //end array initializers (eit == Void)
@@ -519,7 +520,7 @@ UTI NodeVarDecl::checkAndLabelType()
 		      {
 			if(!foldArrayInitExpression()) //sets init constant value
 			  {
-			    if((getNodeType() == Nav) || m_nodeInitExpr->getNodeType() == Nav)
+			    if((getNodeType() == Nav) || (m_nodeInitExpr->getNodeType() == Nav))
 			      return Nav;
 
 			    if(!(m_varSymbol->isInitValueReady()))
@@ -530,13 +531,13 @@ UTI NodeVarDecl::checkAndLabelType()
 			      }
 			  }
 		      }
-		  }
+		  } //has init val
 	      }
 	  } //array initialization
 
 	if(m_state.okUTItoContinue(eit) && m_state.okUTItoContinue(it))
 	  checkSafeToCastTo(eit, it); //may side-effect 'it'
-      }
+      } //end node expression
 
     Node::setStoreIntoAble(TBOOL_TRUE);
     setNodeType(it);

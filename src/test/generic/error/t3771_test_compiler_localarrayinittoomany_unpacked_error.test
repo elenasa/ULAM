@@ -2,7 +2,8 @@
 #=t3771_test_compiler_localarrayinittoomany_unpacked_error
 #!
 ./A.ulam:6:5: ERROR: Too many initializers (3) specified for array 'c', size 2.
-./System.ulam:2:7: ERROR: 13 Nodes with unresolved types detected after type labeling class: System.
+./System.ulam:2:7: ERROR: 1 Nodes with erroneous types detected after type labeling class: System.
+./System.ulam:2:7: ERROR: 11 Nodes with unresolved types detected after type labeling class: System.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3770

@@ -177,45 +177,39 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    m_constSymbol->resetUlamType(duti); //consistent!
 	    m_state.mapTypesInCurrentClass(suti, duti);
-	    m_state.updateUTIAliasForced(suti, duti); //help? (not when we used it and it == 0, instead of suti)
+	    //m_state.updateUTIAliasForced(suti, duti); //help? (not when we used it and it == 0, instead of suti)
 	    suti = duti;
 	  }
       }
 
     //move before m_nodeExpr "Void" check (t3883)
-    if(!m_state.isComplete(suti)) //reloads
+    if(!m_state.okUTItoContinue(suti) || !m_state.isComplete(suti))
       {
 	std::ostringstream msg;
 	msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
 	msg << ", used with symbol name '" << getName() << "'";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	//too soon! m_state.setGoAgain(); //might not have nodetypedesc
-
-	UTI mappedUTI = Nouti;
-	if(m_state.mappedIncompleteUTI(cuti, suti, mappedUTI))
+	if(m_state.okUTItoContinue(suti) || (suti == Hzy))
 	  {
-	    std::ostringstream msg;
-	    msg << "Substituting Mapped UTI" << mappedUTI;
-	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
-	    msg << " for incomplete list type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << "' UTI" << suti << " while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    m_state.mapTypesInCurrentClass(suti, mappedUTI); //before setting equal?
-	    m_constSymbol->resetUlamType(mappedUTI); //consistent!
-	    suti = mappedUTI;
-	  }
-
-	if(!m_state.isComplete(suti)) //reloads to recheck for debug message
-	  {
-	    std::ostringstream msg;
-	    msg << "Incomplete identifier for type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-	    msg << ", used with symbol name '" << getName() << "'";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    suti = Hzy;
+	    //m_state.setGoAgain(); //since not error; wait until not Nav
 	  }
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+
+    ULAMTYPE etyp = m_state.getUlamTypeByIndex(suti)->getUlamTypeEnum();
+    if(etyp == Void)
+      {
+	//void only valid use is as a func return type
+	std::ostringstream msg;
+	msg << "Invalid use of type ";
+	msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	msg << " with symbol name '" << getName() << "'";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav); //could be clobbered by Hazy node expr
+	return Nav;
       }
 
     // NOASSIGN REQUIRED (e.g. for class parameters) doesn't have to have this!
@@ -356,16 +350,8 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
 
-	if(esuti == Void)
-	  {
-	    //void only valid use is as a func return type
-	    std::ostringstream msg;
-	    msg << "Invalid use of type ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-	    msg << " with symbol name '" << getName() << "'";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    suti = Nav;
-	  }
+	//Moved: esuti == Void 	    //void only valid use is as a func return type
+	// to be more like NodeVarDecl
 
 	//note: Void is flag that it's a list of constant initializers.
 	if((eit == Void))
