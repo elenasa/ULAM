@@ -107,7 +107,7 @@ namespace MFM {
 	perrs = checkAndTypeLabelProgram(errput);
 	if(perrs == 0)
 	  {
-	    m_state.m_programDefST.genCodeForTableOfClasses(outfm);
+	    m_state.generateCodeForUlamClasses(outfm);
 	    perrs = m_state.m_err.getErrorCount();
 	  }
 	else
@@ -454,7 +454,7 @@ namespace MFM {
 	errorOutput->write("Error in making new file manager for test code generation...aborting");
 	return;
       }
-    m_state.m_programDefST.genCodeForTableOfClasses(fm);
+    m_state.generateCodeForUlamClasses(fm);
     delete fm;
   } //generateCodedProgram (tests)
 

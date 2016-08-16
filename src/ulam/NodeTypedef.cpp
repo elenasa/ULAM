@@ -316,6 +316,9 @@ namespace MFM {
   void NodeTypedef::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
   {}
 
+  void NodeTypedef::cloneAndAppendNode(std::vector<Node *> & cloneVec)
+  {}
+
   void NodeTypedef::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {}
 

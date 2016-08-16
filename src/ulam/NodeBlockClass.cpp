@@ -1023,6 +1023,10 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       {
 	genCodeHeaderTransient(fp);
       }
+    else if(classtype == UC_LOCALFILESCOPES)
+      {
+	genCodeHeaderLocalFilescopes(fp);
+      }
     else
       assert(0);
 
@@ -1258,6 +1262,66 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     // in case a function has one as a return value and/or parameter.
   } //genCodeHeaderTransient
 
+  void NodeBlockClass::genCodeHeaderLocalFilescopes(File * fp)
+  {
+    //use the instance UTI instead of the node's original type
+    UTI cuti = m_state.getCompileThisIdx();
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write("class ");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write(" : public UlamClass<EC> ");
+
+    genThisUlamSuperClassAsAHeaderComment(fp);
+
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    genShortNameParameterTypesExtractedForHeaderFile(fp);
+
+    fp->write("\n");
+    m_state.m_currentIndentLevel--;
+
+    m_state.indent(fp);
+    fp->write("public:\n\n");
+
+    m_state.m_currentIndentLevel++;
+
+    //default constructor/destructor;
+    m_state.indent(fp);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("();"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("~");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("();"); GCNL;
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("static ");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write(" THE_INSTANCE;"); GCNL;
+
+    //DataMember VAR DECLS DM
+    if(m_nodeNext)
+      {
+	UVPass uvpass;
+	m_nodeNext->genCode(fp, uvpass);  //output the BitField typedefs
+	fp->write("\n");
+      }
+
+    // if this 'element' contains more than one template (quark) data members,
+    // we need vector of offsets to generate a separate function decl/dfn for each one's POS
+    // in case a function has one as a return value and/or parameter.
+  } //genCodeHeaderLocalFilescopes
+
   void NodeBlockClass::genThisUlamSuperClassAsAHeaderComment(File * fp)
   {
     UTI superuti = m_state.isClassASubclass(m_state.getCompileThisIdx());
@@ -1298,6 +1362,14 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     //don't include own header file, since .tcc is included in the .h
     //generate include statements for all the other classes that have appeared
     m_state.m_programDefST.generateIncludesForTableOfClasses(fp);
+
+    if(classtype != UC_LOCALFILESCOPES)
+      {
+	m_state.indent(fp);
+	fp->write("#include \"");
+	fp->write(m_state.getMangledClassNameForUlamLocalFilescopes());
+	fp->write(".h\""); GCNL;
+      }
     fp->write("\n");
 
     m_state.indent(fp);
@@ -1436,6 +1508,43 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
       }
+    else if(classtype == UC_LOCALFILESCOPES)
+      {
+	//default constructor for LocalFilescopes
+	m_state.indent(fp);
+	fp->write("template<class EC>\n");
+
+	m_state.indent(fp);
+	fp->write(cut->getUlamTypeMangledName().c_str());
+	fp->write("<EC>");
+	fp->write("::");
+	fp->write(cut->getUlamTypeMangledName().c_str());
+
+	std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
+	std::string namestrlong = removePunct(cut->getUlamTypeMangledName());
+
+	fp->write("() : UlamClass<EC");
+	fp->write(">()\n");
+
+	genCodeConstantArrayInitialization(fp);
+
+	m_state.indent(fp);
+	fp->write("{ }\n\n");
+
+	//default destructor
+	m_state.indent(fp);
+	fp->write("template<class EC>\n");
+
+	m_state.indent(fp);
+	fp->write(cut->getUlamTypeMangledName().c_str());
+	fp->write("<EC>");
+	fp->write("::~");
+	fp->write(cut->getUlamTypeMangledName().c_str());
+	fp->write("(){}"); GCNL;
+	fp->write("\n");
+
+	assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
+      }
     else
       assert(0);
 
@@ -1488,6 +1597,10 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     else if(classtype == UC_TRANSIENT)
       {
 	//assert(0);
+      }
+    else if(classtype == UC_LOCALFILESCOPES)
+      {
+
       }
     else
       assert(0); //sanity
@@ -1668,6 +1781,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       return genCodeBuiltInFunctionBuildDefaultQuark(fp, declOnly, classtype);
     else if(classtype == UC_TRANSIENT)
       return genCodeBuiltInFunctionBuildDefaultTransient(fp, declOnly, classtype);
+    else if(classtype == UC_LOCALFILESCOPES)
+      return;
 
     assert(classtype == UC_ELEMENT);
 
@@ -1874,6 +1989,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   void NodeBlockClass::genCodeBuiltInVirtualTable(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
+    if(classtype == UC_LOCALFILESCOPES)
+      return;
+
     //VTable applies to both quarks and elements
     UTI cuti = m_state.getCompileThisIdx();
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);

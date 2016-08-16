@@ -195,6 +195,7 @@ namespace MFM{
     void genCodeHeaderQuark(File * fp);
     void genCodeHeaderElement(File * fp);
     void genCodeHeaderTransient(File * fp);
+    void genCodeHeaderLocalFilescopes(File * fp);
 
     void genThisUlamSuperClassAsAHeaderComment(File * fp);
 

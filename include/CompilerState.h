@@ -318,6 +318,9 @@ namespace MFM{
     void updateLineageAndFirstCheckAndLabelPass();
     void updateLineageAndFirstCheckAndLabelPassForLocals();
     bool checkAndLabelPassForLocals();
+    void generateCodeForUlamClasses(FileManager * fm);
+    void generateUlamClassForLocals(FileManager * fm);
+
     bool countNavHzyNoutiNodesPass();
     void countNavNodesForLocals(u32& navcount, u32& hzycount, u32& unsetcount);
 
@@ -357,6 +360,7 @@ namespace MFM{
     std::string getFileNameForThisClassCPP(bool wSubDir = false);
     std::string getFileNameForThisTypesHeader(bool wSubDir = false);
     std::string getFileNameForThisClassMain(bool wSubDir = false);
+    const char * getMangledClassNameForUlamLocalFilescopes();
 
     ULAMCLASSTYPE getUlamClassForThisClass();
     UTI getUlamTypeForThisClass();

@@ -40,6 +40,7 @@
 #include <sstream>
 #include <stdio.h>
 #include <assert.h>
+#include <vector>
 #include "BitVector.h"
 #include "CastOps.h"
 #include "File.h"
@@ -181,6 +182,8 @@ namespace MFM{
     virtual void genCodeConstantArrayInitialization(File * fp);
 
     virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
+
+    virtual void cloneAndAppendNode(std::vector<Node *> & cloneVec);
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 

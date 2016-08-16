@@ -70,6 +70,7 @@ namespace MFM{
 
     virtual void genCode(File * fp, UVPass& uvpass);
 
+    virtual void cloneAndAppendNode(std::vector<Node *> & cloneVec);
 
   protected:
 

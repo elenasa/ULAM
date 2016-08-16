@@ -308,6 +308,15 @@ namespace MFM {
       m_nodeNext->generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
   }
 
+  void NodeStatements::cloneAndAppendNode(std::vector<Node *> & cloneVec)
+  {
+    if(m_node)
+      m_node->cloneAndAppendNode(cloneVec);
+
+    if(m_nodeNext)
+      m_nodeNext->cloneAndAppendNode(cloneVec);
+  }
+
   void NodeStatements::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {
     m_node->generateUlamClassInfo(fp, declOnly, dmcount);

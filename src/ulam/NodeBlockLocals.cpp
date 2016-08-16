@@ -71,4 +71,10 @@ namespace MFM {
     assert(0);
   }
 
+  void NodeBlockLocals::cloneAndAppendNode(std::vector<Node *> & cloneVec)
+  {
+    if(m_nodeNext)
+      m_nodeNext->cloneAndAppendNode(cloneVec);
+  }
+
 } //end MFM

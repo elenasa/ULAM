@@ -50,7 +50,7 @@ namespace MFM {
 	u32 classid = 0;
 	AssertBool foundClassName = m_state.getClassNameFromFileName(locut->getUlamTypeNameOnly(), classid); //without trailing .ulam (no dots allowed)
 	assert(foundClassName);
-	mangled << "_" << m_state.getDataAsStringMangled(classid).c_str() << "_ulam"; //leximited
+	mangled << "_" << m_state.getDataAsStringMangled(classid).c_str() << "4ulam"; //leximited
       }
     return mangled.str();
   } //getMangledName

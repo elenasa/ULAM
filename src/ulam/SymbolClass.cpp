@@ -522,7 +522,7 @@ namespace MFM {
     //class context already pushed..
     assert(m_classBlock);
 
-    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClassType();
+    ULAMCLASSTYPE classtype = getUlamClass();
 
     // setup for codeGen
     m_state.m_currentSelfSymbolForCodeGen = this;
@@ -727,13 +727,15 @@ namespace MFM {
     fp->write("* ");
     fp->write(m_state.m_pool.getDataAsString(m_state.getCompileThisId()).c_str());
     fp->write(".h - ");
-    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClassType();
+    ULAMCLASSTYPE classtype = getUlamClass();
     if(classtype == UC_ELEMENT)
       fp->write("Element");
     else if(classtype == UC_QUARK)
       fp->write("Quark");
     else if(classtype == UC_TRANSIENT)
       fp->write("Transient");
+    else if(classtype == UC_LOCALFILESCOPES)
+      fp->write("LocalFilescopes");
     else
       assert(0);
 
@@ -777,8 +779,19 @@ namespace MFM {
     fp->write("\"");
     fp->write("\n");
 
+    if(getUlamClass() == UC_LOCALFILESCOPES)
+      return;
+
     //generate includes for all the other classes that have appeared
     m_state.m_programDefST.generateForwardDefsForTableOfClasses(fp);
+
+    m_state.indent(fp);
+    fp->write("namespace MFM { template ");
+    fp->write("<class EC> "); //same for elements and quarks
+
+    fp->write("struct ");
+    fp->write(m_state.getMangledClassNameForUlamLocalFilescopes());
+    fp->write("; }  //FORWARD"); GCNL;
   } //generateHeaderIncludes
 
   // create structs with BV, as storage, and typedef
@@ -869,6 +882,11 @@ namespace MFM {
     fp->write("\n");
 
     m_state.m_programDefST.generateIncludesForTableOfClasses(fp); //the other classes
+
+    m_state.indent(fp);
+    fp->write("#include \"");
+    fp->write(m_state.getMangledClassNameForUlamLocalFilescopes());
+    fp->write(".h\""); GCNL;
 
     //namespace MFM
     fp->write("\n");

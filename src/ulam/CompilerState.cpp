@@ -10,6 +10,7 @@
 #include "UlamTypeClassElement.h"
 #include "UlamTypeClassQuark.h"
 #include "UlamTypeClassTransient.h"
+#include "UlamTypeClassLocalFilescopes.h"
 #include "UlamTypeInternalHolder.h"
 #include "UlamTypeInternalHzy.h"
 #include "UlamTypeInternalLocalsFileScope.h"
@@ -73,6 +74,9 @@ namespace MFM {
   static const char * BUILD_DEFAULT_ATOM_FUNCNAME = "BuildDefaultAtom";
   static const char * BUILD_DEFAULT_QUARK_FUNCNAME = "getDefaultQuark";
   static const char * BUILD_DEFAULT_TRANSIENT_FUNCNAME = "getDefaultTransient";
+
+  static const char * ULAMLOCALFILESCOPES_CLASSNAME = "UlamLocalFilescopes";
+  static const char * ULAMLOCALFILESCOPES_MANGLED_CLASSNAME = "Ul_10109219UlamLocalFilescopes10";
 
   //use of this in the initialization list seems to be okay;
   CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalHas(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyUTI(Nouti)
@@ -550,6 +554,9 @@ namespace MFM {
 	      break;
 	    case UC_UNSEEN:
 	      ut = new UlamTypeClass(key, *this);
+	      break;
+	    case UC_LOCALFILESCOPES:
+	      ut = new UlamTypeClassLocalFilescopes(key, *this);
 	      break;
 	    default:
 	      assert(0);
@@ -2007,7 +2014,7 @@ namespace MFM {
       {
 	UTI cuti = cnsym->getUlamTypeIdx();
 	UlamType * cut = getUlamTypeByIndex(cuti);
-	assert(cut->getUlamClassType() == UC_UNSEEN);
+	assert((cut->getUlamClassType() == UC_UNSEEN) || (cut->getUlamClassType() == UC_LOCALFILESCOPES));
 
 	UlamKeyTypeSignature ckey = cut->getUlamKeyTypeSignature();
 
@@ -2239,6 +2246,63 @@ namespace MFM {
       }
     return (!goAgain() && (m_err.getErrorCount() + m_err.getWarningCount() == 0));
   } //checkAndLabelPassForLocals
+
+  void CompilerState::generateCodeForUlamClasses(FileManager * fm)
+  {
+    m_programDefST.genCodeForTableOfClasses(fm);
+    generateUlamClassForLocals(fm);
+  }
+
+  void CompilerState::generateUlamClassForLocals(FileManager * fm)
+  {
+    //create a temporary "class" !!!
+    u32 cid = m_pool.getIndexForDataString(ULAMLOCALFILESCOPES_CLASSNAME);
+    Token cTok(TOK_IDENTIFIER, m_currentLocalDefToken.m_locator, cid); //use last localdef location?
+    SymbolClassName * cnsym = NULL;
+    AssertBool isDefined = addIncompleteClassSymbolToProgramTable(cTok, cnsym);
+    assert(isDefined);
+
+    UTI cuti = cnsym->getUlamTypeIdx();
+    UlamType * cut = getUlamTypeByIndex(cuti);
+    AssertBool isReplaced = replaceUlamTypeForUpdatedClassType(cut->getUlamKeyTypeSignature(), Class, UC_LOCALFILESCOPES, false);
+    assert(isReplaced);
+
+    //populate with NodeConstantDefs clones for gencode purposes; same symbol.
+    std::vector<Node*> fmLocals;
+
+    std::map<u32, NodeBlockLocals *>::iterator it;
+    for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
+      {
+	NodeBlockLocals * locals = it->second;
+	assert(locals);
+
+	locals->cloneAndAppendNode(fmLocals);
+      }
+
+    NodeBlockClass * classblock = cnsym->getClassBlockNode();
+    assert(classblock);
+    NodeStatements * endingstmt = classblock;
+
+    std::vector<Node *>::iterator vit;
+    for(vit = fmLocals.begin(); vit != fmLocals.end(); vit++)
+      {
+	Node * cenode = *vit;
+	assert(cenode);
+	NodeStatements * nextstmt = new NodeStatements(cenode, *this); //tfr node ownership
+	assert(nextstmt);
+	nextstmt->setNodeLocation(cenode->getNodeLocation());
+	assert(endingstmt);
+	endingstmt->setNextNode(nextstmt);
+	endingstmt = nextstmt;
+      }
+    fmLocals.clear(); //done with vector of clones
+
+    //generate a single class, .h, _Types.h, .tcc and .cpp
+    cnsym->generateCodeForClassInstances(fm);
+
+    AssertBool isGone = removeIncompleteClassSymbolFromProgramTable(cTok);
+    assert(isGone);
+  } //generateUlamClassForLocals
 
   bool CompilerState::countNavHzyNoutiNodesPass()
   {
@@ -2916,6 +2980,11 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str() << "_main.cpp";
     return f.str();
   } //getFileNameForThisClassMain
+
+  const char * CompilerState::getMangledClassNameForUlamLocalFilescopes()
+  {
+    return ULAMLOCALFILESCOPES_MANGLED_CLASSNAME;
+  } //getMangledClassNameForUlamLocalFilescopes
 
   ULAMCLASSTYPE CompilerState::getUlamClassForThisClass()
   {
@@ -3880,7 +3949,8 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   bool CompilerState::isALocalsFileScope(UTI uti)
   {
-    return (getUlamTypeByIndex(uti)->getUlamTypeEnum() == LocalsFileScope);
+    UlamType * ut = getUlamTypeByIndex(uti);
+    return ((ut->getUlamTypeEnum() == LocalsFileScope) || (ut->getUlamClassType() == UC_LOCALFILESCOPES));
   }
 
   bool CompilerState::isAClass(UTI uti)

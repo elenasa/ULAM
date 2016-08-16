@@ -861,6 +861,20 @@ namespace MFM {
     fp->write("\n");
   } //generateBuiltinConstantArrayInitializationFunction
 
+  void NodeConstantDef::cloneAndAppendNode(std::vector<Node *> & cloneVec)
+  {
+    if(!m_state.isScalar(getNodeType()))
+      {
+	NodeConstantDef * cloneofme = (NodeConstantDef *) this->instantiate();
+	assert(cloneofme);
+	SymbolConstantValue * csymptr = NULL;
+	AssertBool isSym = this->getSymbolPtr((Symbol *&) csymptr);
+	assert(isSym);
+	((NodeConstantDef *) cloneofme)->setSymbolPtr(csymptr); //another ptr to same symbol
+	cloneVec.push_back(cloneofme);
+      }
+  }
+
   void NodeConstantDef::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {}
 

@@ -775,11 +775,23 @@ namespace MFM {
 
     if(!stgcosut->isReference() && isLocal)
       {
-	if(stgcos->isConstant() && stgcos->isDataMember())
+	if(stgcos->isConstant())
 	  {
-	    UTI stgcosclassuti = stgcos->getDataMemberClass(); //t3881
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosclassuti).c_str());
-	    fp->write(".");
+	    if(stgcos->isDataMember())
+	      {
+		UTI stgcosclassuti = stgcos->getDataMemberClass(); //t3881
+		fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosclassuti).c_str());
+		fp->write(".");
+	      }
+	    else
+	      {
+		NodeBlockLocals * locals = m_state.findALocalScopeByNodeNo(stgcos->getBlockNoOfST());
+		if(locals != NULL)
+		  {
+		    fp->write(m_state.getMangledClassNameForUlamLocalFilescopes());
+		    fp->write("<EC>::THE_INSTANCE.");
+		  }
+	      }
 	  }
 
 	fp->write(stgcos->getMangledName().c_str()); //storage
@@ -1942,6 +1954,11 @@ namespace MFM {
   }
 
   void Node::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  {
+    assert(0); //fufilled by NodeConstantDef
+  }
+
+  void Node::cloneAndAppendNode(std::vector<Node *> & cloneVec)
   {
     assert(0); //fufilled by NodeConstantDef
   }

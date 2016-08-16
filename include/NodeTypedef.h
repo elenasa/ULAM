@@ -94,6 +94,8 @@ namespace MFM{
 
     virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
 
+    virtual void cloneAndAppendNode(std::vector<Node *> & cloneVec);
+
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
   protected:
