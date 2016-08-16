@@ -418,7 +418,7 @@ namespace MFM{
     /**
        helper method to make unary factor nodes
     */
-    Node * makeFactorNode();
+    Node * makeFactorNodePreUnaryOp();
 
     /** helper for parseRestOfCastOrExpression via parseFactor*/
     Node * makeCastNode(const Token& typeTok, bool allowRefCasts);

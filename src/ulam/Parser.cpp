@@ -2832,21 +2832,6 @@ namespace MFM {
     Token iTok;
     if(getExpectedToken(TOK_IDENTIFIER, iTok, QUIETLY))
       {
-#if 0
-	//constant arrays (t3881) makes this unuseable!
-	//check for a named constant already defined (e.g. class
-	//parameter) and continue parsing expression instead of ident.
-	Symbol * sym = NULL;
-	bool hazyKin = false; //don't care
-	if(m_state.alreadyDefinedSymbol(iTok.m_dataindex, sym, hazyKin))
-	  {
-	    if(sym->isConstant() || sym->isModelParameter())
-	      {
-		unreadToken();
-		return parseExpression();
-	      }
-	  }
-#endif
 	//though function calls are not proper lhs values in assign
 	//expression; they are parsed here (due to the two token look
 	//ahead, which drops the Identifier Token before parseExpression) and is
@@ -3292,35 +3277,6 @@ namespace MFM {
       {
 	unreadToken();
 	return parseFactorStartingWithAType(pTok); //rtnNode could be NULL
-
-#if 0
-	TypeArgs typeargs;
-	NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs);
-	assert(typeNode);
-	UTI uti = typeNode->givenUTI();
-
-	//returns either a terminal or proxy
-	rtnNode = parseMinMaxSizeofType(pTok, uti, typeNode); //optionally, gets next dot token
-	if(!rtnNode)
-	  {
-	    Token iTok;
-	    getNextToken(iTok);
-	    if(iTok.m_type == TOK_IDENTIFIER)
-	      {
-		unreadToken();
-		rtnNode = parseNamedConstantFromAnotherClass(typeargs);
-		delete typeNode;
-		typeNode = NULL;
-	      }
-	    else
-	      {
-		//clean up, some kind of error parsing min/max/sizeof
-		delete typeNode;
-		typeNode = NULL;
-	      }
-	  }
-	return rtnNode; //rtnNode could be NULL!
-#endif
       } //not a Type
 
     //continue as normal..
@@ -3328,54 +3284,9 @@ namespace MFM {
       {
       case TOK_IDENTIFIER:
 	{
-#if 0
-	  Symbol * asymptr = NULL;
-	  bool hazyKin = false; //don't care
-	  if(m_state.alreadyDefinedSymbol(pTok.m_dataindex, asymptr, hazyKin))
-	    {
-	      //if already defined named constant, or model parameter, in current block,
-	      //then return a NodeConstant (or NodeMP), instead of NodeIdent, without arrays.
-	      if(asymptr->isConstant() || asymptr->isModelParameter())
-		{
-		  Token dTok;
-		  getNextToken(dTok);
-		  unreadToken();
-		  if(dTok.m_type == TOK_DOT)
-		    rtnNode = parseMinMaxSizeofType(pTok, asymptr->getUlamTypeIdx(), NULL);
-		  else
-		    {
-		      if(asymptr->isConstant())
-			rtnNode = new NodeConstant(pTok, (SymbolConstantValue *) asymptr, m_state);
-		      else
-			rtnNode = new NodeModelParameter(pTok, (SymbolModelParameterValue *) asymptr, m_state);
-		      assert(rtnNode);
-		      rtnNode->setNodeLocation(pTok.m_locator);
-		    }
-		  return rtnNode; //done.
-		}
-	    }
-	  else if(localbase || m_state.isThisLocalsFileScope())
-	    {
-	      //make holder for this localdef constant not seen yet!
-	      UTI huti = m_state.makeUlamTypeHolder();
-	      SymbolConstantValue * constsym = new SymbolConstantValue(pTok, huti, m_state);
-	      constsym->setBlockNoOfST(m_state.getContextBlockNo());
-	      m_state.addSymbolToCurrentScope(constsym);
-
-	      rtnNode = new NodeConstant(pTok, constsym, m_state);
-	      assert(rtnNode);
-	      rtnNode->setNodeLocation(pTok.m_locator);
-	      return rtnNode; //t3873
-	    }
-#endif
-
 	  rtnNode = parseIdentExpr(pTok);
 	  //test ahead for UNOP_EXPRESSION so that any consecutive binary
 	  //ops aren't misinterpreted as a unary operator (e.g. +,-).
-	  //Token tTok;
-	  //getNextToken(tTok);
-	  //unreadToken();
-	  //if(tTok.m_type == TOK_KW_IS)
 	  rtnNode = parseRestOfFactor(rtnNode);
 	}
 	break;
@@ -3403,7 +3314,7 @@ namespace MFM {
       case TOK_PLUS_PLUS:
       case TOK_MINUS_MINUS:
 	unreadToken();
-	rtnNode = makeFactorNode(); //unary op
+	rtnNode = makeFactorNodePreUnaryOp(); //unary op
 	//rtnNode = parseRestOfFactor(NULL); //parseUnop
 	break;
       case TOK_EOF:
@@ -3519,16 +3430,6 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 
     switch(pTok.m_type)
       {
-#if 0
-      case TOK_MINUS:
-      case TOK_PLUS:
-      case TOK_BANG:
-      case TOK_PLUS_PLUS:
-      case TOK_MINUS_MINUS:
-	assert(!leftNode);
-	rtnNode = makeFactorNode(); //unary op
-	break;
-#endif
       case TOK_KW_IS:
 	assert(leftNode);
 	rtnNode = makeConditionalExprNode(leftNode);
@@ -5386,7 +5287,7 @@ Node * Parser::parseArrayInitialization(u32 identId)
     return rtnNode;
   } //makeTermNode
 
-  Node * Parser::makeFactorNode()
+  Node * Parser::makeFactorNodePreUnaryOp()
   {
     Node * rtnNode = NULL;
     Token pTok;
@@ -5396,7 +5297,8 @@ Node * Parser::parseArrayInitialization(u32 identId)
     if(!factorNode)
       {
 	std::ostringstream msg;
-	msg << "Factor is missing; Unary operation " << pTok.getTokenStringFromPool(&m_state).c_str() << " deleted";
+	msg << "Factor is missing; Unary operation ";
+	msg << pTok.getTokenStringFromPool(&m_state).c_str() << " deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	return NULL;
       }
@@ -5451,7 +5353,7 @@ Node * Parser::parseArrayInitialization(u32 identId)
       };
 
     return rtnNode;
-  } //makeFactorNode
+  } //makeFactorNodePreUnaryOp
 
   Node * Parser::makeCastNode(const Token& typeTok, bool allowRefCasts)
   {

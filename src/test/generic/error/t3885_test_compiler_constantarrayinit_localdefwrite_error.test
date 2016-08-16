@@ -1,0 +1,28 @@
+## -*- mode:ulam -*-
+#=t3883_test_compiler_constantarrayinit_localdef
+#!
+./A.ulam:12:13: ERROR: Invalid lefthand side of equals <[]>, type: Unsigned(33).
+./A.ulam:7:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
+./A.ulam:7:9: ERROR: 4 Nodes with unresolved types detected after type labeling class: A.
+Unrecoverable Program Type Label FAILURE.
+##
+## first error write test of constant arrays: oddly rtn3 gives the ERROR msg first, rtn1 & rtn2 are Hzy;
+##        but without rtn3, both rtn1 and rtn2 give ERRORS.
+#>A.ulam
+  ulam 2;
+local constant UrSelf.ARGB rtn1 = {0xff, 0 }; //typedf in UrSelf as Unsigned(8) ARGB[4]
+local typedef Unsigned(16) BIGARGB[4];
+local constant BIGARGB rtn2 = {0xffee, 0 }; //u64
+local typedef Unsigned(33) WEIRDOG[5];
+local constant WEIRDOG rtn3 = {0x123456789u, 0};
+element A {
+  Bool b1, b2, b3;
+  Int test() {
+    rtn1[0] = 0xf; //Hzy
+    rtn2[1] = rtn1[0]; //Hzy
+    rtn3[2] = 0; //first ERROR during resolving loop
+    return 0;
+  }
+}
+
+#.

@@ -88,20 +88,6 @@ namespace MFM {
     assert(templateclassblock); //fails if UNSEEN during parsing
     Node * pnode = templateclassblock->getParameterNode(n);
     assert(pnode);
-#if 0
-    Symbol * constSym = NULL;
-    if(((NodeConstantDef *) pnode)->getSymbolPtr(constSym))
-      {
-	assert(constSym->isConstant());
-	return ((SymbolConstantValue *) constSym)->hasInitValue();
-      }
-    return false;
-#endif
-#if 0
-    SymbolConstantValue * constSym = getParameterSymbolPtr(n);
-    assert(constSym);
-    return constSym->hasInitValue();
-#endif
     return ((NodeConstantDef *) pnode)->hasConstantExpr(); //t3526
   } //parameterHasDefaultValue
 
