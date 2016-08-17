@@ -111,6 +111,8 @@ namespace MFM{
     virtual bool setBitSizeOfClassInstances();
     virtual void printBitSizeOfClassInstances();
     virtual void packBitsForClassInstances();
+    virtual void setupConstantSlotIndexesForClassInstances(u32& cslotidx);
+
     virtual void printUnresolvedVariablesForClassInstances();
 
     virtual void buildDefaultValueForClassInstances();

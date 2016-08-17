@@ -512,6 +512,24 @@ namespace MFM {
       }
   } //packBitsForTableOfClasses
 
+  void SymbolTableOfClasses::setupConstantSlotIndexesForTableOfClasses(u32& cslotidx)
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym && sym->isClass());
+
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti))
+	  {
+	    ((SymbolClassName *) sym)->setupConstantSlotIndexesForClassInstances(cslotidx);
+	  }
+	it++;
+      }
+  } //setupConstantSlotIndexesForTableOfClasses
+
   void SymbolTableOfClasses::printUnresolvedVariablesForTableOfClasses()
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();

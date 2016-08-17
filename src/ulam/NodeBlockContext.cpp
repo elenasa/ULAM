@@ -20,4 +20,10 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  void NodeBlockContext::assignConstantSlotIndex(u32& cslotidx)
+  {
+    if(m_nodeNext)
+      m_nodeNext->assignConstantSlotIndex(cslotidx);
+  }
+
 } //end MFM

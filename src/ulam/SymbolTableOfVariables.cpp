@@ -328,7 +328,7 @@ namespace MFM {
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
-	if(!sym->isTypedef() && sym->isDataMember()) //including model parameters
+	if(!sym->isTypedef() && !sym->isConstant() && sym->isDataMember()) //including model parameters
 	  {
 	    ((SymbolVariable *) sym)->generateCodedVariableDeclarations(fp, classtype);
 	  }
@@ -402,11 +402,6 @@ namespace MFM {
 	    descptr = new ParameterDesc((SymbolModelParameterValue *) sym, classType, m_state);
 	    assert(descptr);
 	  }
-	else if(sym->isDataMember())
-	  {
-	    descptr = new DataMemberDesc((SymbolVariableDataMember *) sym, classType, m_state);
-	    assert(descptr);
-	  }
 	else if(sym->isTypedef())
 	  {
 	    descptr = new TypedefDesc((SymbolTypedef *) sym, classType, m_state);
@@ -415,6 +410,11 @@ namespace MFM {
 	else if(sym->isConstant() && ((SymbolConstantValue *)sym)->isReady())
 	  {
 	    descptr = new ConstantDesc((SymbolConstantValue *) sym, classType, m_state);
+	    assert(descptr);
+	  }
+	else if(sym->isDataMember()) //comes after isConstant
+	  {
+	    descptr = new DataMemberDesc((SymbolVariableDataMember *) sym, classType, m_state);
 	    assert(descptr);
 	  }
 	else

@@ -398,6 +398,7 @@ namespace MFM{
 
     void setupCenterSiteForTesting();
     void setupCenterSiteForGenCode();
+    void setupConstantSlotIndexesForEval();
 
     /** used by SourceStream to build m_textByLinePerFilePath during parsing */
     void appendNextLineOfText(Locator loc, std::string textstr);

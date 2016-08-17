@@ -328,6 +328,16 @@ namespace MFM {
     m_state.popClassContext(); //restore
   } //packBitsForClassInstances
 
+  void SymbolClassName::setupConstantSlotIndexesForClassInstances(u32& cslotidx)
+  {
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+
+    classNode->assignConstantSlotIndex(cslotidx);
+    m_state.popClassContext(); //restore
+  } //setupConstantSlotIndexesForClassInstances
+
   void SymbolClassName::printUnresolvedVariablesForClassInstances()
   {
     NodeBlockClass * classNode = getClassBlockNode();

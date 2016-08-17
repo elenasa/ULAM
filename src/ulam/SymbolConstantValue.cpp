@@ -3,16 +3,16 @@
 
 namespace MFM {
 
-  SymbolConstantValue::SymbolConstantValue(const Token& id, UTI utype, CompilerState & state) : SymbolWithValue(id, utype, state)
+  SymbolConstantValue::SymbolConstantValue(const Token& id, UTI utype, CompilerState & state) : SymbolWithValue(id, utype, state), m_constantStackFrameAbsoluteSlotIndex(0)
   {
     NodeBlockLocals * locals = m_state.findALocalScopeByNodeNo(this->getBlockNoOfST());
     if(locals != NULL)
       setLocalFilescopeDef(locals->getNodeType());
   }
 
-  SymbolConstantValue::SymbolConstantValue(const SymbolConstantValue & sref) : SymbolWithValue(sref) {}
+  SymbolConstantValue::SymbolConstantValue(const SymbolConstantValue & sref) : SymbolWithValue(sref), m_constantStackFrameAbsoluteSlotIndex(sref.m_constantStackFrameAbsoluteSlotIndex) {}
 
-  SymbolConstantValue::SymbolConstantValue(const SymbolConstantValue & sref, bool keepType) : SymbolWithValue(sref, keepType) {}
+  SymbolConstantValue::SymbolConstantValue(const SymbolConstantValue & sref, bool keepType) : SymbolWithValue(sref, keepType), m_constantStackFrameAbsoluteSlotIndex(sref.m_constantStackFrameAbsoluteSlotIndex) {}
 
   SymbolConstantValue::~SymbolConstantValue()
   { }
@@ -85,5 +85,25 @@ namespace MFM {
 	m_gotStructuredCommentToken = true;
       }
   } //setStructuredComment
+
+  void SymbolConstantValue::setConstantStackFrameAbsoluteSlotIndex(u32 slot)
+  {
+    assert(isLocalFilescopeDef() || isDataMember());
+    assert(!m_state.isScalar(getUlamTypeIdx()));
+    assert(slot > 0);
+    m_constantStackFrameAbsoluteSlotIndex = slot;
+  }
+
+  u32 SymbolConstantValue::getConstantStackFrameAbsoluteSlotIndex()
+  {
+    assert(isLocalFilescopeDef() || isDataMember());
+    assert(!m_state.isScalar(getUlamTypeIdx()));
+    return m_constantStackFrameAbsoluteSlotIndex;
+  }
+
+  u32 SymbolConstantValue::getConstantBaseArrayIndex()
+  {
+    return getConstantStackFrameAbsoluteSlotIndex();
+  }
 
 } //end MFM

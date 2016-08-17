@@ -1954,6 +1954,11 @@ namespace MFM {
     assert(0); //fufilled by NodeConstantDef
   }
 
+  void Node::assignConstantSlotIndex(u32& cslotidx)
+  {
+    assert(0); //fufilled by NodeConstantDef
+  }
+
   void Node::cloneAndAppendNode(std::vector<Node *> & cloneVec)
   {
     assert(0); //fufilled by NodeConstantDef

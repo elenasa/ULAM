@@ -3310,6 +3310,26 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     m_eventWindow.setSiteElementType(c0, cuti); //includes default values
   } //setupCenterSiteForGenCode
 
+  void CompilerState::setupConstantSlotIndexesForEval()
+  {
+    //assign consecutive absolute slot indexes for constant arrays: data members and localdefs,
+    // in their stack m_constantStack for eval.
+    u32 slotnum = 1;
+
+    // "data member" constant defs:
+    m_programDefST.setupConstantSlotIndexesForTableOfClasses(slotnum);
+
+    //local filescope constant defs:
+    std::map<u32, NodeBlockLocals *>::iterator it;
+    for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
+      {
+	NodeBlockLocals * locals = it->second;
+	assert(locals);
+
+	locals->assignConstantSlotIndex(slotnum);
+      }
+  } //setupConstantSlotIndexesForEval
+
   //used by SourceStream to build m_textByLinePerFilePath during parsing
   void CompilerState::appendNextLineOfText(Locator loc, std::string textstr)
   {

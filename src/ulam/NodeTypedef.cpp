@@ -230,6 +230,9 @@ namespace MFM {
     //do nothing, but override
   }
 
+  void NodeTypedef::assignConstantSlotIndex(u32& cslotidx)
+  {}
+
   void NodeTypedef::printUnresolvedVariableDataMembers()
   {
     assert(m_typedefSymbol);

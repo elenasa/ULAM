@@ -115,7 +115,7 @@ namespace MFM {
 
   void NodeModelParameterDef::genCode(File * fp, UVPass& uvpass)
   {
-    assert(m_constSymbol->isDataMember());
+    assert(m_constSymbol->isModelParameter());
 
     UTI vuti = m_constSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);

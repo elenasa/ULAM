@@ -859,6 +859,18 @@ namespace MFM {
     fp->write("\n");
   } //generateBuiltinConstantArrayInitializationFunction
 
+  void NodeConstantDef::assignConstantSlotIndex(u32& cslotidx)
+  {
+    UTI nuti = getNodeType();
+    if(!m_state.isScalar(nuti))
+      {
+	u32 slotsneeded = m_state.slotsNeeded(nuti);
+	assert(m_constSymbol);
+	((SymbolConstantValue *) m_constSymbol)->setConstantStackFrameAbsoluteSlotIndex(cslotidx);
+	cslotidx += slotsneeded;
+      }
+  } //assignConstantSlotIndex
+
   void NodeConstantDef::cloneAndAppendNode(std::vector<Node *> & cloneVec)
   {
     if(!m_state.isScalar(getNodeType()))
