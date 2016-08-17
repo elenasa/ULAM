@@ -783,14 +783,10 @@ namespace MFM {
 		fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosclassuti).c_str());
 		fp->write(".");
 	      }
-	    else
+	    else if(stgcos->isLocalFilescopeDef())
 	      {
-		NodeBlockLocals * locals = m_state.findALocalScopeByNodeNo(stgcos->getBlockNoOfST());
-		if(locals != NULL)
-		  {
-		    fp->write(m_state.getMangledClassNameForUlamLocalFilescopes());
-		    fp->write("<EC>::THE_INSTANCE.");
-		  }
+		fp->write(m_state.getMangledClassNameForUlamLocalFilescopes());
+		fp->write("<EC>::THE_INSTANCE.");
 	      }
 	  }
 
@@ -2864,7 +2860,7 @@ namespace MFM {
 
     s32 namedconstantidx = isCurrentObjectsContainingAConstant();
     if(m_state.m_currentObjSymbolsForCodeGen[0]->isDataMember() && (namedconstantidx > -1))
-      return true; //data member, and named constant array: treat like local
+      return true; //data member, and named constant array: treat like local storage
 
     s32 modelparamidx = isCurrentObjectsContainingAModelParameter();
     if(m_state.m_currentObjSymbolsForCodeGen[0]->isDataMember() && (modelparamidx == -1))

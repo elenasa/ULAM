@@ -728,7 +728,6 @@ namespace MFM {
   void NodeConstantDef::genCode(File * fp, UVPass& uvpass)
   {
     UTI nuti = getNodeType();
-    //if(!m_state.isScalar(nuti) && m_state.isThisLocalsFileScope())
     if(!m_state.isScalar(nuti))
       {
 	assert(m_constSymbol);
@@ -736,12 +735,10 @@ namespace MFM {
 	assert(m_constSymbol->getUlamTypeIdx() == nuti); //sanity check
 	UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
-	if(m_state.isThisLocalsFileScope() ||  m_constSymbol->isDataMember())
-	  //else if(m_state.findAClassByNodeNo(m_constSymbol->getBlockNoOfST()) != Nav) i.e. dm
+	if(m_constSymbol->isLocalFilescopeDef() ||  m_constSymbol->isDataMember())
 	  {
-	    //as a "data member", or locals filescope, will be initialized in no-arg constructor
+	    //as a "data member", or locals filescope, will be initialized in no-arg constructor (non-const)
 	    m_state.indentUlamCode(fp);
-	    //fp->write("const "); ?????????????????????????//
 	    fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
 	    fp->write(" ");
 	    fp->write(m_constSymbol->getMangledName().c_str());
@@ -749,12 +746,11 @@ namespace MFM {
 	  }
 	else
 	  {
-	    //immediate use
+	    //immediate use (also, non-const)
 	    assert(m_nodeExpr);
 	    m_nodeExpr->genCode(fp, uvpass);
 
 	    m_state.indentUlamCode(fp);
-	    //fp->write("const "); ?????????????????????????????
 	    fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
 	    fp->write(" ");
 	    fp->write(m_constSymbol->getMangledName().c_str());

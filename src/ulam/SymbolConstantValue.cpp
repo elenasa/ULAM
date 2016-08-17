@@ -3,7 +3,12 @@
 
 namespace MFM {
 
-  SymbolConstantValue::SymbolConstantValue(const Token& id, UTI utype, CompilerState & state) : SymbolWithValue(id, utype, state) {}
+  SymbolConstantValue::SymbolConstantValue(const Token& id, UTI utype, CompilerState & state) : SymbolWithValue(id, utype, state)
+  {
+    NodeBlockLocals * locals = m_state.findALocalScopeByNodeNo(this->getBlockNoOfST());
+    if(locals != NULL)
+      setLocalFilescopeDef(locals->getNodeType());
+  }
 
   SymbolConstantValue::SymbolConstantValue(const SymbolConstantValue & sref) : SymbolWithValue(sref) {}
 
@@ -42,10 +47,9 @@ namespace MFM {
     std::string nstr = m_state.getDataAsStringMangled(getId());
     mangled << getMangledPrefix() << nstr.c_str();
 
-    NodeBlockLocals * locals = m_state.findALocalScopeByNodeNo(getBlockNoOfST());
-    if(locals != NULL)
+    if(isLocalFilescopeDef())
       {
-	UTI locuti = locals->getNodeType();
+	UTI locuti = getLocalFilescopeType();
 	UlamType * locut = m_state.getUlamTypeByIndex(locuti);
 	u32 classid = 0;
 	AssertBool foundClassName = m_state.getClassNameFromFileName(locut->getUlamTypeNameOnly(), classid); //without trailing .ulam (no dots allowed)

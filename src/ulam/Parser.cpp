@@ -760,6 +760,12 @@ namespace MFM {
       {
 	//parse Named Constant starting with keyword first
 	rtnNode = parseConstdef();
+
+	// simulated "data member" flag for constantdef symbols; to
+	// distinguish between function scope and filescope constants;
+	// not set in Symbol constructor, like Localfilescope flag, since
+	// ClassParameter constant defs (e.g. t3328, t3329, t3330..)
+	// also have the same BlockNoST as its class.
 	if(rtnNode)
 	  {
 	    Symbol * csym = NULL;
@@ -2867,26 +2873,20 @@ namespace MFM {
     //bool hazyKin = false; //don't care
     //may continue when symbol not defined yet (e.g. Decl)
     // don't return a NodeConstant, instead of NodeIdent, without arrays
-    // even if already defined as one.
+    // even if already defined as one. lazy evaluate.
     //    bool isDefined = m_state.alreadyDefinedSymbol(identTok.m_dataindex, asymptr, hazyKin);
     bool isDefined = m_state.isIdInCurrentScope(identTok.m_dataindex, asymptr); //t3887
     if(!isDefined && (identTok.m_type == TOK_IDENTIFIER))
       {
-#if 1
 	if(m_state.isThisLocalsFileScope())
 	  {
-	    //make holder for this localdef constant not seen yet!
+	    //make holder for this localdef constant not seen yet! (t3873)
 	    UTI huti = m_state.makeUlamTypeHolder();
 	    SymbolConstantValue * constsym = new SymbolConstantValue(identTok, huti, m_state);
 	    constsym->setBlockNoOfST(m_state.getContextBlockNo());
 	    m_state.addSymbolToCurrentScope(constsym);
 	    asymptr = constsym;
-	    //rtnNode = new NodeConstant(identTok, constsym, m_state);
-	    //assert(rtnNode);
-	    //rtnNode->setNodeLocation(identTok.m_locator);
-	    //return rtnNode; //t3873
 	  }
-#endif
       }
 
     //o.w. make a variable;  symbol could be Null! a constant/array, or a model parameter..crap!
