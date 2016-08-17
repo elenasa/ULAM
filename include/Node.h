@@ -83,7 +83,7 @@ namespace MFM{
 
     NNO getNodeNo();
 
-    void resetNodeNo(NNO no); //for constant folding
+    virtual void resetNodeNo(NNO no); //for constant folding
 
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 

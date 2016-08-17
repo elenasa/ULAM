@@ -59,10 +59,6 @@ namespace MFM{
 
     virtual void setStackFrameSlotIndex(s32 slot);
 
-    NNO getDeclNodeNo();
-
-    void setDeclNodeNo(NNO nno);
-
     virtual s32 getBaseArrayIndex();
 
     virtual const std::string getMangledPrefix();
@@ -85,7 +81,7 @@ namespace MFM{
     s32 m_stackFrameSlotIndex;
     UlamValue m_autoPtrForEval;
     UTI m_autoStgTypeForEval;
-    NNO m_declnno;
+
   };
 
 }

@@ -217,9 +217,8 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "(2) <" << m_state.getTokenDataAsString(m_token).c_str();
-	    msg << "> is not defined, and cannot be used with class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    msg << "Variable <" << m_state.getTokenDataAsString(m_token).c_str();
+	    msg << "> is not defined, or was used before declared in a function";
 	    if(!hazyKin)
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -321,15 +320,24 @@ namespace MFM {
 
     if(m_varSymbol && !m_varSymbol->isDataMember() && (((SymbolVariableStack *) m_varSymbol)->getDeclNodeNo() > getNodeNo()))
       {
+	NodeBlock * currBlock = getBlock();
+	currBlock = currBlock->getPreviousBlockPointer();
 	std::ostringstream msg;
 	msg << "Local variable '" << getName();
 	msg << "' was used before declared";
-	//MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	//it = Nav; //error/t3797
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	m_varSymbol = NULL; //t3881
-	it = Hzy;
-	m_state.setGoAgain();
+	if(currBlock)
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    setBlockNo(currBlock->getNodeNo());
+	    m_varSymbol = NULL; //t3881, t3306, t3323
+	    it = Hzy;
+	    m_state.setGoAgain();
+	  }
+	else
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    it = Nav; //error/t3797
+	  }
       }
 
     setNodeType(it);
@@ -867,6 +875,7 @@ namespace MFM {
 
   bool NodeIdent::installSymbolModelParameterValue(TypeArgs& args, Symbol*& asymptr)
   {
+    assert(!m_state.useMemberBlock());
     // ask current scope block if this constant name is there;
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.

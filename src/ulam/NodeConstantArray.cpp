@@ -7,7 +7,7 @@ namespace MFM {
   NodeConstantArray::NodeConstantArray(const Token& tok, SymbolWithValue * symptr, CompilerState & state) : Node(state), m_token(tok), m_constSymbol(symptr), m_constType(Nouti), m_currBlockNo(0)
   {
     assert(symptr);
-    m_currBlockNo = symptr->getBlockNoOfST();
+    setBlockNo(symptr->getBlockNoOfST());
     m_constType = m_constSymbol->getUlamTypeIdx();
   }
 
@@ -160,18 +160,44 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "(2) Named Constant <" << m_state.getTokenDataAsString(m_token).c_str();
-	msg << "> is not defined, and cannot be used with class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << "Named Constant Array <" << m_state.getTokenDataAsString(m_token).c_str();
+	msg << "> is not defined, or was used before declared in a function";
 	if(!hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
       }
     m_state.popClassContext(); //restore
+
+    if(m_constSymbol && !m_constSymbol->isDataMember() && (m_state.findALocalScopeByNodeNo(m_constSymbol->getBlockNoOfST()) == NULL) && (m_constSymbol->getDeclNodeNo() > getNodeNo()))
+      {
+	NodeBlock * currBlock = getBlock();
+	currBlock = currBlock->getPreviousBlockPointer();
+	std::ostringstream msg;
+	msg << "Named constant array '" << getName();
+	msg << "' was used before declared in a function";
+	if(currBlock)
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    setBlockNo(currBlock->getNodeNo());
+	    m_constSymbol = NULL;
+	    return checkForSymbol();
+	  }
+	else
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    m_constSymbol = NULL;
+	  }
+      }
   } //checkForSymbol
 
-  NNO NodeConstantArray::getBlockNo()
+  void NodeConstantArray::setBlockNo(NNO n)
+  {
+    assert(n > 0);
+    m_currBlockNo = n;
+  }
+
+  NNO NodeConstantArray::getBlockNo() const
   {
     return m_currBlockNo;
   }

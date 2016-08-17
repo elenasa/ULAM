@@ -2572,15 +2572,20 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   bool CompilerState::isIdInCurrentScope(u32 id, Symbol *& asymptr)
   {
-    bool brtn = false;
+    NodeBlock * blockNode = getCurrentBlock();
+
+    //substitute another selected class block to search for data member
+    if(useMemberBlock())
+      blockNode = getCurrentMemberClassBlock();
+
     //also applies when isParsingLocalDef()
-    brtn = getCurrentBlock()->isIdInScope(id, asymptr);
-    return brtn;
+    return blockNode && blockNode->isIdInScope(id, asymptr);
   } //isIdInCurrentScope
 
   //symbol ownership goes to the current block (end of vector)
   void CompilerState::addSymbolToCurrentScope(Symbol * symptr)
   {
+    assert(!useMemberBlock());
     //also applies when isParsingLocalDef()
     getCurrentBlock()->addIdToScope(symptr->getId(), symptr);
   }
@@ -2605,18 +2610,21 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   //symbol is same, just id changed
   void CompilerState::replaceSymbolInCurrentScope(u32 oldid, Symbol * symptr)
   {
+    assert(!useMemberBlock());
     getCurrentBlock()->replaceIdInScope(oldid, symptr->getId(), symptr);
   }
 
   //deletes the oldsym, id's must be identical
   void CompilerState::replaceSymbolInCurrentScope(Symbol * oldsym, Symbol * newsym)
   {
+    assert(!useMemberBlock());
     getCurrentBlock()->replaceIdInScope(oldsym, newsym);
   }
 
   //symbol ownership goes to the caller;
   bool CompilerState::takeSymbolFromCurrentScope(u32 id, Symbol *& rtnsymptr)
   {
+    assert(!useMemberBlock());
     return getCurrentBlock()->removeIdFromScope(id, rtnsymptr);
   }
 

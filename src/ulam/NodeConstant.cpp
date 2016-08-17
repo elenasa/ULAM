@@ -7,7 +7,7 @@ namespace MFM {
   NodeConstant::NodeConstant(const Token& tok, SymbolWithValue * symptr, CompilerState & state) : NodeTerminal(state), m_token(tok), m_constSymbol(symptr), m_ready(false), m_constType(Nouti), m_currBlockNo(0)
   {
     assert(symptr);
-    m_currBlockNo = symptr->getBlockNoOfST();
+    setBlockNo(symptr->getBlockNoOfST());
     m_ready = updateConstant(); //sets ready here
     m_constType = m_constSymbol->getUlamTypeIdx();
   }
@@ -168,18 +168,44 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "(2) Named Constant <" << m_state.getTokenDataAsString(m_token).c_str();
-	msg << "> is not defined, and cannot be used with class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << "Named Constant <" << m_state.getTokenDataAsString(m_token).c_str();
+	msg << "> is not defined, or was used before declared in a function";
 	if(!hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
       }
     m_state.popClassContext(); //restore
+
+    if(m_constSymbol && !m_constSymbol->isDataMember() && (m_state.findALocalScopeByNodeNo(m_constSymbol->getBlockNoOfST()) == NULL) && (m_constSymbol->getDeclNodeNo() > getNodeNo()))
+      {
+	NodeBlock * currBlock = getBlock();
+	currBlock = currBlock->getPreviousBlockPointer();
+	std::ostringstream msg;
+	msg << "Named constant '" << getName();
+	msg << "' was used before declared in a function scope";
+	if(currBlock)
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    setBlockNo(currBlock->getNodeNo());
+	    m_constSymbol = NULL; //t3323
+	    return checkForSymbol();
+	  }
+	else
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    m_constSymbol = NULL;
+	  }
+      }
   } //checkForSymbol
 
-  NNO NodeConstant::getBlockNo()
+  void NodeConstant::setBlockNo(NNO n)
+  {
+    assert(n > 0);
+    m_currBlockNo = n;
+  }
+
+  NNO NodeConstant::getBlockNo() const
   {
     return m_currBlockNo;
   }

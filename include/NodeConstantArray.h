@@ -74,10 +74,6 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    NNO getBlockNo();
-
-    NodeBlock * getBlock();
-
     virtual bool assignClassArgValueInStubCopy();
 
     virtual EvalStatus eval();
@@ -97,6 +93,10 @@ namespace MFM{
 
   private:
     NNO m_currBlockNo;
+
+    void setBlockNo(NNO n);
+    NNO getBlockNo() const;
+    NodeBlock * getBlock();
 
     void makeUVPassForCodeGen(UVPass& uvpass);
 

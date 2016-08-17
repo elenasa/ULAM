@@ -16,6 +16,7 @@ namespace MFM {
       {
 	m_vid = sym->getId();
 	m_currBlockNo = sym->getBlockNoOfST();
+	sym->setDeclNodeNo(getNodeNo());
       }
   }
 
@@ -60,6 +61,13 @@ namespace MFM {
       }
     return false;
   } //exhangeKids
+
+  void NodeVarDecl::resetNodeNo(NNO no) //for constant folding
+  {
+    Node::resetNodeNo(no);
+    if(m_varSymbol)
+      m_varSymbol->setDeclNodeNo(no);
+  }
 
   bool NodeVarDecl::findNodeNo(NNO n, Node *& foundNode)
   {
@@ -311,6 +319,10 @@ namespace MFM {
 	    assert(0); //parent required
 	  }
 
+	newnode->setNodeLocation(getNodeLocation());
+	newnode->setYourParentNo(pno);
+	newnode->resetNodeNo(getNodeNo()); //and symbol declnodeno
+
 	AssertBool swapOk = parentNode->exchangeKids(this, newnode);
 	assert(swapOk);
 
@@ -327,10 +339,6 @@ namespace MFM {
 
 	if(m_nodeInitExpr)
 	  newnode->m_nodeInitExpr = (Node *) m_nodeInitExpr->instantiate();
-
-	newnode->setNodeLocation(getNodeLocation());
-	newnode->setYourParentNo(pno); //missing?
-	newnode->resetNodeNo(getNodeNo()); //missing?
 
 	delete this; //suicide is painless..
 
@@ -532,7 +540,7 @@ UTI NodeVarDecl::checkAndLabelType()
       m_state.setGoAgain(); //since not error
 
     //checkReferenceCompatibilty must be called at the end since
-    // NodeVarDecl may do surgery on itself
+    // NodeVarDecl may do surgery on itself (e.g. t3666)
     if(m_state.okUTItoContinue(it) && !checkReferenceCompatibility(it))
       {
 	it = Nav; //err msg by checkReferenceCompatibility
@@ -554,6 +562,7 @@ UTI NodeVarDecl::checkAndLabelType()
 	if(!asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter() && !asymptr->isFunction())
 	  {
 	    m_varSymbol = (SymbolVariable *) asymptr;
+	    m_varSymbol->setDeclNodeNo(getNodeNo());
 	  }
 	else
 	  {

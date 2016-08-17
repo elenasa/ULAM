@@ -15,6 +15,7 @@ namespace MFM {
 	// node uses current block no, not the one saved in the symbol
 	// (e.g. pending class args)
 	m_cid = symptr->getId();
+	symptr->setDeclNodeNo(getNodeNo());
       }
     else
       m_cid = 0; //error
@@ -422,6 +423,7 @@ namespace MFM {
 	if(asymptr->isConstant())
 	  {
 	    m_constSymbol = (SymbolConstantValue *) asymptr;
+	    m_constSymbol->setDeclNodeNo(getNodeNo());
 	  }
 	else
 	  {

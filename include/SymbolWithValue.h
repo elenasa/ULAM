@@ -90,6 +90,10 @@ namespace MFM{
 
     void changeConstantId(u32 fmid, u32 toid); //for premature class instances
 
+    virtual NNO getDeclNodeNo();
+
+    virtual void setDeclNodeNo(NNO nno);
+
   protected:
 
   private:
@@ -101,6 +105,8 @@ namespace MFM{
 
     BV8K m_constantValue;
     BV8K m_initialValue;
+
+    NNO m_declnno;
 
     void printPostfixValueScalar(File * fp);
     void printPostfixValueArray(File * fp);

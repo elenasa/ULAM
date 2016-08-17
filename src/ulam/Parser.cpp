@@ -2864,11 +2864,12 @@ namespace MFM {
     unreadToken(); //put whatever back
 
     Symbol * asymptr = NULL;
-    bool hazyKin = false; //don't care
+    //bool hazyKin = false; //don't care
     //may continue when symbol not defined yet (e.g. Decl)
     // don't return a NodeConstant, instead of NodeIdent, without arrays
     // even if already defined as one.
-    bool isDefined = m_state.alreadyDefinedSymbol(identTok.m_dataindex, asymptr, hazyKin);
+    //    bool isDefined = m_state.alreadyDefinedSymbol(identTok.m_dataindex, asymptr, hazyKin);
+    bool isDefined = m_state.isIdInCurrentScope(identTok.m_dataindex, asymptr); //t3887
     if(!isDefined && (identTok.m_type == TOK_IDENTIFIER))
       {
 #if 1
@@ -4609,7 +4610,6 @@ Node * Parser::parseArrayInitialization(u32 identId)
 	    else
 	      {
 		rtnNode =  new NodeVarDecl((SymbolVariable *) asymptr, nodetyperef, m_state);
-		((SymbolVariableStack *) asymptr)->setDeclNodeNo(rtnNode->getNodeNo());
 		m_state.clearStructuredCommentToken();
 	      }
 	    assert(rtnNode);
