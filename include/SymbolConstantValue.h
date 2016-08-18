@@ -66,7 +66,6 @@ namespace MFM{
 
     void setConstantStackFrameAbsoluteSlotIndex(u32 slot);
     u32 getConstantStackFrameAbsoluteSlotIndex();
-    u32 getConstantBaseArrayIndex();
 
   protected:
 

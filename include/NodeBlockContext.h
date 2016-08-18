@@ -58,8 +58,6 @@ namespace MFM{
 
     virtual bool isAClassBlock() = 0;
 
-    virtual void assignConstantSlotIndex(u32& cslotidx);
-
   protected:
 
 

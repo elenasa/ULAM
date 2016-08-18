@@ -340,6 +340,20 @@ namespace MFM {
     return;
   } //calcMaxIndexOfVirtualFunctions
 
+  void SymbolFunctionName::setupConstantSlotIndexesInFunctions(u32& cslotidx)
+  {
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
+	assert(func); //how would a function symbol be without a body?
+	func->assignConstantSlotIndex(cslotidx);
+	++it;
+      }
+    return;
+  } //setupConstantSlotIndexesInFunctions
+
   void SymbolFunctionName::checkAbstractInstanceErrorsInFunctions()
   {
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();

@@ -693,6 +693,84 @@ namespace MFM {
     //do nothing, but override
   }
 
+  void NodeConstantDef::assignConstantSlotIndex(u32& cslotidx)
+  {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    if(!nut->isScalar())
+      {
+	u32 slotsneeded = m_state.slotsNeeded(nuti);
+	assert(m_constSymbol);
+	((SymbolConstantValue *) m_constSymbol)->setConstantStackFrameAbsoluteSlotIndex(cslotidx);
+	assert(nut->isPrimitiveType());
+	Node::makeRoomForSlots(slotsneeded, CNSTSTACK);
+	setupStackWithPrimitiveForEval(slotsneeded);
+	cslotidx += slotsneeded;
+      }
+  } //assignConstantSlotIndex
+
+  void NodeConstantDef::setupStackWithPrimitiveForEval(u32 slots)
+  {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    assert(m_constSymbol->getUlamTypeIdx() == nuti);
+    PACKFIT packFit = nut->getPackable();
+    if(packFit == PACKEDLOADABLE)
+      {
+	u64 dval = 0;
+	AssertBool gotVal = m_constSymbol->getValue(dval);
+	assert(gotVal);
+
+	UlamValue immUV;
+	u32 len = nut->getTotalBitSize();
+	if(len <= MAXBITSPERINT)
+	  immUV = UlamValue::makeImmediate(nuti, (u32) dval, m_state);
+	else if(len <= MAXBITSPERLONG)
+	  immUV = UlamValue::makeImmediateLong(nuti, dval, m_state);
+	else
+	  assert(0);
+	//immUV = UlamValue::makePtr(((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex(), CNSTSTACK, nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId()); //array ptr
+	m_state.m_constantStack.storeUlamValueAtStackIndex(immUV, ((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex());
+      }
+    else
+      {
+	//unpacked primitive array - uses eval
+	UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
+	u32 baseslot =  ((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex();
+
+	UlamValue immUV;
+	u32 itemlen = nut->getBitSize();
+	if(itemlen <= MAXBITSPERINT)
+	  immUV = UlamValue::makeImmediate(scalaruti, 0, m_state);
+	else if(itemlen <= MAXBITSPERLONG)
+	  immUV = UlamValue::makeImmediateLong(scalaruti, 0, m_state);
+	else
+	  assert(0);
+
+	u32 n = ((NodeList *) m_nodeExpr)->getNumberOfNodes(); //may be fewer
+	//assert(n == slots);
+
+	for(u32 j = 0; j < slots; j++)
+	  {
+	    UlamValue itemUV;
+	    evalNodeProlog(0); //new current frame pointer
+	    makeRoomForNodeType(scalaruti); //offset a constant expression
+	    u32 k = j < n ? j : n - 1; //repeat last initializer if fewer
+	    EvalStatus evs = ((NodeList *) m_nodeExpr)->eval(k);
+	    if(evs == NORMAL)
+	      {
+		itemUV = m_state.m_nodeEvalStack.popArg();
+	      }
+	    else
+	      assert(0); //error msg?
+
+	    evalNodeEpilog();
+
+	    m_state.m_constantStack.storeUlamValueAtStackIndex(itemUV, baseslot + j);
+	  }
+      }
+  } //setupStackWithPrimitiveForEval
+
   void NodeConstantDef::printUnresolvedVariableDataMembers()
   {
     assert(m_constSymbol);
@@ -858,18 +936,6 @@ namespace MFM {
     fp->write(m_constSymbol->getMangledName().c_str()); GCNL;
     fp->write("\n");
   } //generateBuiltinConstantArrayInitializationFunction
-
-  void NodeConstantDef::assignConstantSlotIndex(u32& cslotidx)
-  {
-    UTI nuti = getNodeType();
-    if(!m_state.isScalar(nuti))
-      {
-	u32 slotsneeded = m_state.slotsNeeded(nuti);
-	assert(m_constSymbol);
-	((SymbolConstantValue *) m_constSymbol)->setConstantStackFrameAbsoluteSlotIndex(cslotidx);
-	cslotidx += slotsneeded;
-      }
-  } //assignConstantSlotIndex
 
   void NodeConstantDef::cloneAndAppendNode(std::vector<Node *> & cloneVec)
   {

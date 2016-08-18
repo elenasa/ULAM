@@ -150,6 +150,12 @@ namespace MFM {
     maxdepth = max2 > maxdepth ? max2 : maxdepth; //no change to depth here
   } //calcMaxDepth
 
+  void NodeBlock::assignConstantSlotIndex(u32& cslotidx)
+  {
+    if(m_nodeNext)
+      m_nodeNext->assignConstantSlotIndex(cslotidx);
+  }
+
   bool NodeBlock::isIdInScope(u32 id, Symbol * & symptrref)
   {
     return m_ST.isInTable(id, symptrref);

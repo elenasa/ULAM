@@ -165,13 +165,13 @@ namespace MFM{
 
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 
+    virtual void assignConstantSlotIndex(u32& cslotidx);
+
     virtual void printUnresolvedVariableDataMembers();
 
     virtual void printUnresolvedLocalVariables(u32 fid);
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
-
-    virtual void assignConstantSlotIndex(u32& cslotidx);
 
     virtual void genCode(File * fp, UVPass& uvpass);
 

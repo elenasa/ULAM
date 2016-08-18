@@ -815,9 +815,6 @@ namespace MFM {
     offset += len; //uses atom-based size for element, and actual size for quark data members
   } //packBitsInOrderOfDeclaration
 
-  void NodeVarDeclDM::assignConstantSlotIndex(u32& cslotidx)
-  {}
-
   void NodeVarDeclDM::printUnresolvedVariableDataMembers()
   {
     assert(m_varSymbol);

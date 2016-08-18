@@ -88,7 +88,6 @@ namespace MFM {
 
   void SymbolConstantValue::setConstantStackFrameAbsoluteSlotIndex(u32 slot)
   {
-    assert(isLocalFilescopeDef() || isDataMember());
     assert(!m_state.isScalar(getUlamTypeIdx()));
     assert(slot > 0);
     m_constantStackFrameAbsoluteSlotIndex = slot;
@@ -96,14 +95,8 @@ namespace MFM {
 
   u32 SymbolConstantValue::getConstantStackFrameAbsoluteSlotIndex()
   {
-    assert(isLocalFilescopeDef() || isDataMember());
     assert(!m_state.isScalar(getUlamTypeIdx()));
     return m_constantStackFrameAbsoluteSlotIndex;
-  }
-
-  u32 SymbolConstantValue::getConstantBaseArrayIndex()
-  {
-    return getConstantStackFrameAbsoluteSlotIndex();
   }
 
 } //end MFM

@@ -199,12 +199,25 @@ namespace MFM {
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
-	assert(sym->isFunction());
+	assert(sym && sym->isFunction());
 	((SymbolFunctionName *) sym)->calcMaxIndexOfVirtualFunctions(maxidx);
 	it++;
       }
     return;
   } //calcMaxIndexForVirtualTableOfFunctions
+
+  void SymbolTableOfFunctions::setupConstantSlotIndexesForTableOfFunctions(u32& cslotidx)
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym && sym->isFunction());
+
+	((SymbolFunctionName *) sym)->setupConstantSlotIndexesInFunctions(cslotidx);
+	it++;
+      }
+  } //setupConstantSlotIndexesForTableOfFunctions
 
   void SymbolTableOfFunctions::checkAbstractInstanceErrorsAcrossTableOfFunctions()
   {

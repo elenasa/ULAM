@@ -447,6 +447,9 @@ namespace MFM {
 		  rtnb = state.m_eventWindow.isValidSite(m_uv.m_ptrValue.m_slotIndex, c);
 		}
 		break;
+	      case CNSTSTACK:
+		rtnb = (m_uv.m_ptrValue.m_slotIndex > 0) && ((u32) m_uv.m_ptrValue.m_slotIndex < state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot());
+		break;
 	      default:
 		assert(0);
 	      };

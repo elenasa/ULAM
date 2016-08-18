@@ -393,6 +393,8 @@ namespace MFM {
 	  m_state.m_nodeEvalStack.pushArg(tmpUV);
 	else if (where == STACK)
 	  m_state.m_funcCallStack.pushArg(tmpUV);
+	else if (where == CNSTSTACK)
+	  m_state.m_constantStack.pushArg(tmpUV);
 	else
 	  assert(0);
       }
@@ -439,6 +441,11 @@ namespace MFM {
   void Node::packBitsInOrderOfDeclaration(u32& offset)
   {
     assert(0);
+  }
+
+  void Node::assignConstantSlotIndex(u32& cslotidx)
+  {
+    //noop
   }
 
   void Node::printUnresolvedVariableDataMembers()
@@ -1950,11 +1957,6 @@ namespace MFM {
   }
 
   void Node::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
-  {
-    assert(0); //fufilled by NodeConstantDef
-  }
-
-  void Node::assignConstantSlotIndex(u32& cslotidx)
   {
     assert(0); //fufilled by NodeConstantDef
   }

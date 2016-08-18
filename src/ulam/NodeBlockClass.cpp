@@ -966,6 +966,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       m_nodeNext->packBitsInOrderOfDeclaration(reloffset);
   } //packBitsForVariableDataMembers
 
+  void NodeBlockClass::assignConstantSlotIndex(u32& cslotidx)
+  {
+    NodeBlock::assignConstantSlotIndex(cslotidx);
+    m_functionST.setupConstantSlotIndexesForTableOfFunctions(cslotidx);
+  }
+
   void NodeBlockClass::printUnresolvedVariableDataMembers()
   {
     if(m_nodeNext)

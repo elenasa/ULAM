@@ -98,6 +98,7 @@ namespace MFM{
     NNO getBlockNo() const;
     NodeBlock * getBlock();
 
+    UlamValue makeUlamValuePtr();
     void makeUVPassForCodeGen(UVPass& uvpass);
 
   };

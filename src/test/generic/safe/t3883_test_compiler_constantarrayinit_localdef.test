@@ -9,11 +9,9 @@
 ##   Unsigned Arg: 4294967295
 ##   Unsigned Arg: 0
 ##
-## currently, constant arrays are unevaluable!
-##
 #!
-Exit status: -11
-Ue_A { Bool(1) b1(false);  Bool(1) b2(false);  Bool(1) b3(false);  Int(32) test() {  System s;  s ( rtn1 0 [] cast )print . s ( rtn1 3 [] cast )print . b1 rtn1 0 [] rtn1 3 [] > = s ( b1 )assert . s ( rtn2 0 [] cast )print . s ( rtn2 3 [] cast )print . b2 rtn2 0 [] rtn2 3 [] > = s ( b2 )assert . s ( rtn3 0 [] cast )print . s ( rtn3 4 [] cast )print . b3 rtn3 0 [] rtn3 4 [] > = s ( b3 )assert . 0 cast return } }
+Exit status: 0
+Ue_A { Bool(1) b1(true);  Bool(1) b2(true);  Bool(1) b3(true);  Int(32) test() {  System s;  s ( rtn1 0 [] cast )print . s ( rtn1 3 [] cast )print . b1 rtn1 0 [] rtn1 3 [] > = s ( b1 )assert . s ( rtn2 0 [] cast )print . s ( rtn2 3 [] cast )print . b2 rtn2 0 [] rtn2 3 [] > = s ( b2 )assert . s ( rtn3 0 [] cast )print . s ( rtn3 4 [] cast )print . b3 rtn3 0 [] rtn3 4 [] > = s ( b3 )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## first test of constant arrays:

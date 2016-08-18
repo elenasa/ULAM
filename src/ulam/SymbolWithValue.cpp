@@ -57,7 +57,7 @@ namespace MFM {
   {
     if(isReady())
       {
-	u32 len = m_state.getBitSize(getUlamTypeIdx());
+	u32 len = m_state.getTotalBitSize(getUlamTypeIdx());
 	val = m_constantValue.Read(0u, len); //return value
 	return true;
       }
@@ -68,7 +68,7 @@ namespace MFM {
   {
     if(isReady())
       {
-	u32 len = m_state.getBitSize(getUlamTypeIdx());
+	u32 len = m_state.getTotalBitSize(getUlamTypeIdx());
 	val = m_constantValue.ReadLong(0u, len); //return value
 	return true;
       }
@@ -311,7 +311,7 @@ namespace MFM {
     assert(gotVal);
 
     u32 twordsize =  m_state.getTotalWordSize(tuti); //must be commplete
-    s32 tbs = m_state.getBitSize(tuti);
+    s32 tbs = m_state.getTotalBitSize(tuti);
     ULAMTYPE etyp = m_state.getUlamTypeByIndex(tuti)->getUlamTypeEnum();
     switch(etyp)
       {

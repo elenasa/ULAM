@@ -3075,6 +3075,9 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       case EVENTWINDOW:
 	valAtIdx = m_eventWindow.loadAtomFromSite(ptr.getPtrSlotIndex());
 	break;
+      case CNSTSTACK:
+	valAtIdx = m_constantStack.loadUlamValueFromStackIndex(ptr.getPtrSlotIndex());
+	break;
       default:
 	assert(0); //error!
       };
@@ -3098,6 +3101,9 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       case EVENTWINDOW:
 	assert(0);
 	valAtIdx = m_eventWindow.loadAtomFromSite(ptr.getPtrSlotIndex()); //?
+	break;
+      case CNSTSTACK:
+	valAtIdx = m_constantStack.loadUlamValueFromStackIndex(ptr.getPtrSlotIndex());
 	break;
       default:
 	assert(0); //error!
@@ -3129,6 +3135,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       case EVENTWINDOW:
 	m_eventWindow.assignUlamValue(lptr, ruv);
 	break;
+      case CNSTSTACK:
       default:
 	assert(0);
       };
@@ -3222,6 +3229,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       case EVENTWINDOW:
 	m_eventWindow.assignUlamValuePtr(lptr, rptr);
 	break;
+      case CNSTSTACK:
       default:
 	assert(0);
       };
@@ -3312,11 +3320,13 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   void CompilerState::setupConstantSlotIndexesForEval()
   {
-    //assign consecutive absolute slot indexes for constant arrays: data members and localdefs,
-    // in their stack m_constantStack for eval.
+    //assign consecutive absolute slot indexes for constant arrays:
+    // data members, function scope, and localdefs,
+    // in the stack m_constantStack for eval. t3881, t3882, t3883
     u32 slotnum = 1;
+    m_constantStack.addFrameSlots(1);
 
-    // "data member" constant defs:
+    // "data member" constant defs, and function scope constant defs:
     m_programDefST.setupConstantSlotIndexesForTableOfClasses(slotnum);
 
     //local filescope constant defs:
@@ -3328,6 +3338,11 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
 	locals->assignConstantSlotIndex(slotnum);
       }
+
+    std::ostringstream msg;
+    msg << "Total eval stack slots for constant arrays: " << slotnum;
+    MSG2("", msg.str().c_str(), DEBUG);
+    assert(m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot() == slotnum + 1);
   } //setupConstantSlotIndexesForEval
 
   //used by SourceStream to build m_textByLinePerFilePath during parsing

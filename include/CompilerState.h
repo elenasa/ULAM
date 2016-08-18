@@ -130,6 +130,7 @@ namespace MFM{
     UEventWindow  m_eventWindow;  //storage for 41 atoms (elements)
     CallStack m_nodeEvalStack;    //for node eval return values,
                                   //uses evalNodeProlog/Epilog; EVALRETURN storage
+    CallStack m_constantStack;    //for constant arrays (non-function variables); CNSTSTACK
 
     bool m_goAgainResolveLoop; //true means a node has a type that's not ready
     UTI m_pendingArgStubContext; //non-Nav helps find parentNode in case of surgery

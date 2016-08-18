@@ -270,36 +270,16 @@ namespace MFM {
     if(!m_state.isComplete(nuti))
       return ERROR;
 
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    u32 len = nut->getTotalBitSize();
-    if(len > MAXSTATEBITS)
-      return UNEVALUABLE;
-
-    return UNEVALUABLE; //for now..
-
-    EvalStatus evs = NORMAL; //init ok
-    evalNodeProlog(0); //new current frame pointer
-
-    makeRoomForSlots(1);
-    UlamValue rtnUV = UlamValue::makeAtom(nuti);
-
-    BV8K dval;
-    if(m_constSymbol->getValue(dval))
-      rtnUV.putDataBig(BITSPERATOM - len, len, dval); //right-justified in atom
-    else
-      evs = ERROR;
-
-    //copy result UV to stack, -1 relative to current frame pointer
-    if(evs == NORMAL)
-      Node::assignReturnValueToStack(rtnUV);
+    UlamValue rtnUVPtr = makeUlamValuePtr();
+    Node::assignReturnValueToStack(rtnUVPtr);
 
     evalNodeEpilog();
-    return evs;
+    return NORMAL;
   } //eval
 
   EvalStatus NodeConstantArray::evalToStoreInto()
   {
-    //possible constant array item (t3881)
+    //possible access of constant array item (t3881)
     UTI nuti = getNodeType();
     if(nuti == Nav)
       return ERROR;
@@ -309,30 +289,25 @@ namespace MFM {
 
     assert(m_constSymbol);
 
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    if(nut->getTotalBitSize() > MAXSTATEBITS)
-      return UNEVALUABLE;
-
-    return UNEVALUABLE; //for now..
-
     evalNodeProlog(0); //new current node eval frame pointer
-    makeRoomForNodeType(nuti); //offset a constant expression
-    EvalStatus evs = eval();
-    if( evs == NORMAL)
-      {
-	UlamValue cnstuv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1); //immediate valu
-	UlamValue arrayPtr = UlamValue::makePtr(1, EVALRETURN, nuti, nut->getPackable(), m_state);
 
-	u32 absslot = m_state.m_funcCallStack.getAbsoluteStackIndexOfSlot(arrayPtr.getPtrSlotIndex());
-	arrayPtr.setPtrSlotIndex(absslot);
-	arrayPtr.setUlamValueTypeIdx(PtrAbs);
-
-	Node::assignReturnValuePtrToStack(arrayPtr);
-      }
+    UlamValue rtnUVPtr = makeUlamValuePtr();
+    Node::assignReturnValuePtrToStack(rtnUVPtr);
 
     evalNodeEpilog();
-    return evs;
+    return NORMAL;
   } //evalToStoreInto
+
+  UlamValue NodeConstantArray::makeUlamValuePtr()
+  {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+    UlamValue absptr = UlamValue::makePtr(((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex(), CNSTSTACK, nuti, nut->getPackable(), m_state, 0, m_constSymbol->getId());
+    absptr.setUlamValueTypeIdx(PtrAbs);
+
+    return absptr;
+  }
 
   void NodeConstantArray::genCode(File * fp, UVPass& uvpass)
   {
