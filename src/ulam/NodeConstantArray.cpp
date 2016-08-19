@@ -28,8 +28,6 @@ namespace MFM {
 
   const char * NodeConstantArray::getName()
   {
-    //if(isReadyConstant())
-    //  return NodeTerminal::getName();
     return m_state.getTokenDataAsString(m_token).c_str();
   }
 
@@ -270,6 +268,9 @@ namespace MFM {
     if(!m_state.isComplete(nuti))
       return ERROR;
 
+    if(((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex() == 0)
+      return NOTREADY;
+
     UlamValue rtnUVPtr = makeUlamValuePtr();
     Node::assignReturnValueToStack(rtnUVPtr);
 
@@ -289,6 +290,9 @@ namespace MFM {
 
     assert(m_constSymbol);
 
+    if(((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex() == 0)
+      return NOTREADY;
+
     evalNodeProlog(0); //new current node eval frame pointer
 
     UlamValue rtnUVPtr = makeUlamValuePtr();
@@ -302,6 +306,9 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+    assert(m_constSymbol);
+    assert(((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex() > 0);
 
     UlamValue absptr = UlamValue::makePtr(((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex(), CNSTSTACK, nuti, nut->getPackable(), m_state, 0, m_constSymbol->getId());
     absptr.setUlamValueTypeIdx(PtrAbs);

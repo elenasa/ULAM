@@ -83,6 +83,7 @@ namespace MFM {
   {
     m_err.init(this, debugOn, infoOn, warnOn, waitOn, NULL);
     Token::initTokenMap(*this);
+    m_constantStack.addFrameSlots(1); //initialize for incremental update
   }
 
   CompilerState::~CompilerState()
@@ -3320,6 +3321,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   void CompilerState::setupConstantSlotIndexesForEval()
   {
+    assert(0);
     //assign consecutive absolute slot indexes for constant arrays:
     // data members, function scope, and localdefs,
     // in the stack m_constantStack for eval. t3881, t3882, t3883

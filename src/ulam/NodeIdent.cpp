@@ -828,6 +828,13 @@ namespace MFM {
 	if(!checkConstantTypedefSizes(args, args.m_declListOrTypedefScalarType))
 	  return false;
 	uti = args.m_declListOrTypedefScalarType;
+	if(args.m_arraysize != NONARRAYSIZE) //t3890
+	  {
+	    UlamType * ut = m_state.getUlamTypeByIndex(uti);
+	    UlamKeyTypeSignature skey = ut->getUlamKeyTypeSignature();
+	    UlamKeyTypeSignature akey(skey.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, Nouti, ALT_NOT);
+	    uti = m_state.makeUlamType(akey, ut->getUlamTypeEnum(), ut->getUlamClassType());
+	  }
 	brtn = true;
       }
     else if(Token::getSpecialTokenWork(args.m_typeTok.m_type) == TOKSP_TYPEKEYWORD)
@@ -835,7 +842,8 @@ namespace MFM {
 	//UlamTypes automatically created for the base types with different array sizes.
 	//but with typedef's "scope" of use, typedef needed to be checked first.
 	// scalar uti
-	uti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, NONARRAYSIZE, Nouti);
+	//uti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, NONARRAYSIZE, Nouti);
+	uti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, args.m_arraysize, Nouti);
 	brtn = true;
       }
     else
@@ -994,6 +1002,13 @@ namespace MFM {
 	if(!checkVariableTypedefSizes(args, args.m_declListOrTypedefScalarType))
 	  return false;
 	auti = args.m_declListOrTypedefScalarType;
+	if(args.m_arraysize != NONARRAYSIZE)
+	  {
+	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
+	    UlamKeyTypeSignature skey = aut->getUlamKeyTypeSignature();
+	    UlamKeyTypeSignature akey(skey.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, Nouti, ALT_NOT);
+	    auti = m_state.makeUlamType(akey, aut->getUlamTypeEnum(), aut->getUlamClassType());
+	  }
 	brtn = true;
       }
     else if(Token::getSpecialTokenWork(args.m_typeTok.m_type) == TOKSP_TYPEKEYWORD)

@@ -576,8 +576,10 @@ namespace MFM {
     NodeBlockClass * cblock = stubcsym->getClassBlockNode();
     assert(cblock);
 
-    //m_state.pushCurrentBlock(cblock); //reset here for new arg's ST
-    //m_state.pushCurrentBlockAndDontUseMemberBlock(cblock);
+    //BUT we need this stub as CompileThisIdx for any stub copies,
+    // so, do the push and correct the resolver pendingArgs context later (t3891).
+    //we don't want to push cblock context, because we want any new
+    // Resolver for stubcsym to pick up the correct context.
     m_state.pushClassContext(stubcsym->getUlamTypeIdx(), cblock, cblock, false, NULL);
 
     u32 numparams = getNumberOfParameters();
@@ -592,7 +594,7 @@ namespace MFM {
 	SymbolConstantValue * asym2 = new SymbolConstantValue(* paramSym);
 	assert(asym2);
 	asym2->setBlockNoOfST(cblock->getNodeNo()); //stub NNO same as template, at this point
-	m_state.addSymbolToCurrentScope(asym2);
+	cblock->addIdToScope(asym2->getId(), asym2);
 
 	// possible pending value for default param
 	NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassblock->getParameterNode(i);
@@ -600,10 +602,11 @@ namespace MFM {
 	NodeConstantDef * argConstDef = (NodeConstantDef *) paramConstDef->instantiate();
 	assert(argConstDef);
 	//fold later; non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (stub)
-	argConstDef->setSymbolPtr(asym2); //since we have it handy
+	argConstDef->setSymbolPtr(asym2); //since we have it handy, sets declnno
 	stubcsym->linkConstantExpressionForPendingArg(argConstDef);
       }
     m_state.popClassContext(); //restore
+    stubcsym->setContextForPendingArgs(m_state.getCompileThisIdx()); //reset
   } //fixAClassStubsDefaultsArgs
 
   bool SymbolClassNameTemplate::statusNonreadyClassArgumentsInStubClassInstances()

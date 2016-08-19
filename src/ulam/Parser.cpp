@@ -2000,7 +2000,6 @@ namespace MFM {
     if(pTok.m_type == TOK_KW_LOCALDEF)
       {
 	//assuming locals defined before they are referred to
-	//	NodeBlockLocals * locals = m_state.getLocalScopeBlock(pTok.m_locator);
 	NodeBlockLocals * locals = m_state.makeLocalScopeBlock(pTok.m_locator);
 	if(!locals)
 	  {

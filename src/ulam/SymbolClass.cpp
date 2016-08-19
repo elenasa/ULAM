@@ -448,6 +448,13 @@ namespace MFM {
     return m_resolver->cloneUnknownTypesTokenMap(to);
   }
 
+void SymbolClass::setContextForPendingArgs(UTI context)
+  {
+    //assert(m_resolver); //dangerous! when template has default parameters
+    if(m_resolver)
+      return m_resolver->setContextForPendingArgs(context);
+  } //setContextForPendingArgs
+
   UTI SymbolClass::getContextForPendingArgs()
   {
     //assert(m_resolver); //dangerous! when template has default parameters
@@ -462,14 +469,14 @@ namespace MFM {
   {
     if(!m_resolver) //stubs only!
       return true;
-    return m_resolver->statusNonreadyClassArguments();
+    return m_resolver->statusNonreadyClassArguments(this);
   }
 
   bool SymbolClass::constantFoldNonreadyClassArguments()
   {
     if(!m_resolver)
       return true; //nothing to do
-    return m_resolver->constantFoldNonreadyClassArgs();
+    return m_resolver->constantFoldNonreadyClassArgs(this);
   }
 
   bool SymbolClass::mapUTItoUTI(UTI auti, UTI mappedUTI)

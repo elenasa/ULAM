@@ -255,7 +255,7 @@ namespace MFM {
     return aok;
   } //assignClassArgValuesInStubCopy
 
-  bool Resolver::statusNonreadyClassArguments()
+  bool Resolver::statusNonreadyClassArguments(SymbolClass * stubcsym)
   {
     bool rtnstat = true; //ok, empty
     if(!m_nonreadyClassArgSubtrees.empty())
@@ -271,12 +271,12 @@ namespace MFM {
 	msg << " trying to update now";
 	MSG("", msg.str().c_str(), DEBUG);
 
-	rtnstat = constantFoldNonreadyClassArgs(); //forgot to update rtnstat?
+	rtnstat = constantFoldNonreadyClassArgs(stubcsym); //forgot to update rtnstat?
       }
     return rtnstat;
   } //statusNonreadyClassArguments
 
-  bool Resolver::constantFoldNonreadyClassArgs()
+  bool Resolver::constantFoldNonreadyClassArgs(SymbolClass * stubcsym)
   {
     bool rtnb = true;
     UTI context = getContextForPendingArgs();
@@ -285,7 +285,8 @@ namespace MFM {
 	SymbolClass * contextSym = NULL;
 	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(context, contextSym);
 	assert(isDefined);
-	m_state.pushClassContext(context, contextSym->getClassBlockNode(), contextSym->getClassBlockNode(), false, NULL);
+	NodeBlockClass * contextclassblock = contextSym->getClassBlockNode();
+	m_state.pushClassContext(context, contextclassblock, contextclassblock, false, NULL);
       }
     else
       {
@@ -296,6 +297,13 @@ namespace MFM {
 
     m_state.m_pendingArgStubContext = m_classUTI; //set for folding surgery
 
+    bool defaultval = false;
+    bool pushedtemplate = false;
+    assert(stubcsym);
+    NodeBlockClass * stubclassblock = stubcsym->getClassBlockNode();
+    assert(stubclassblock);
+    Locator saveStubLoc = stubclassblock->getNodeLocation();
+
     std::vector<NodeConstantDef *> leftCArgs;
     std::vector<NodeConstantDef *>::iterator vit = m_nonreadyClassArgSubtrees.begin();
     while(vit != m_nonreadyClassArgSubtrees.end())
@@ -303,6 +311,23 @@ namespace MFM {
 	NodeConstantDef * ceNode = *vit;
 	if(ceNode)
 	  {
+	    defaultval = ceNode->hasDefaultSymbolValue();
+	    //OMG! if this was a default value for class arg, t3891,
+	    // we want to use the the template as the 'context' rather than where the
+	    // stub was declared.
+	    if(defaultval && !pushedtemplate)
+	      {
+		assert(stubcsym);
+		SymbolClassNameTemplate * templateparent = stubcsym->getParentClassTemplate();
+		assert(templateparent);
+		NodeBlockClass * templateclassblock = templateparent->getClassBlockNode();
+		//m_state.pushClassContext(templateparent->getUlamTypeIdx(), templateclassblock, templateclassblock, false, NULL);
+		stubclassblock->setNodeLocation(templateclassblock->getNodeLocation());
+		m_state.pushClassContext(m_classUTI, stubclassblock, stubclassblock, false, NULL);
+		pushedtemplate = true;
+	      }
+	    assert(defaultval == pushedtemplate); //once a default, always a default
+
 	    UTI uti = ceNode->checkAndLabelType();
 	    if(m_state.okUTItoContinue(uti)) //i.e. ready
 	      {
@@ -314,6 +339,12 @@ namespace MFM {
 	  }
 	vit++;
       } //while thru vector of incomplete args only
+
+    if(pushedtemplate)
+      {
+	m_state.popClassContext(); //no longer need stub context
+	stubclassblock->setNodeLocation(saveStubLoc);
+      }
 
     m_state.m_pendingArgStubContext = Nouti; //clear flag
     m_state.popClassContext(); //restore previous context
@@ -353,18 +384,18 @@ namespace MFM {
 	NodeConstantDef * ceNode = *vit;
 	assert(ceNode);
 	ceNode->fixPendingArgumentNode();
-	NodeConstantDef * cloneNode = new NodeConstantDef(*ceNode);
+	NodeConstantDef * cloneNode = (NodeConstantDef *) ceNode->instantiate(); //new NodeConstantDef(*ceNode);
 	assert(cloneNode);
 	Symbol * cvsym = NULL;
 	AssertBool isDefined = classblock->isIdInScope(cloneNode->getSymbolId(), cvsym);
 	assert(isDefined);
-	cloneNode->setSymbolPtr((SymbolConstantValue *) cvsym);
+	cloneNode->setSymbolPtr((SymbolConstantValue *) cvsym); //sets declnno
 
 	linkConstantExpressionForPendingArg(cloneNode); //resolve later
 	vit++;
       }
 
-    m_classContextUTIForPendingArgs = context; //update (might not be needed anymore?)
+    setContextForPendingArgs(context); //update (might not be needed anymore?)
 
     //Cannot MIX the current block (context) to find symbols while
     //using this stub copy to find parent NNOs for constant folding;
@@ -376,6 +407,11 @@ namespace MFM {
     assignClassArgValuesInStubCopy();
     m_state.popClassContext(); //restore previous context
   } //clonePendingClassArgumentsForStubClassInstance
+
+  void Resolver::setContextForPendingArgs(UTI context)
+  {
+    m_classContextUTIForPendingArgs = context;
+  }
 
   UTI Resolver::getContextForPendingArgs()
   {

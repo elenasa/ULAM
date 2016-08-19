@@ -142,6 +142,12 @@ namespace MFM {
     return false;
   }
 
+  bool NodeConstantDef::hasDefaultSymbolValue()
+  {
+    assert(m_constSymbol);
+    return m_constSymbol->hasInitValue();
+  }
+
   UTI NodeConstantDef::checkAndLabelType()
   {
     UTI it = Nouti; //expression type
@@ -257,7 +263,9 @@ namespace MFM {
 	// code lifted from NodeVarDecl.cpp c&l.
 	if(it == Void)
 	  {
-	    //only possible if array type with initializers
+	    //only possible if array type with initializers;
+	    assert(!m_state.okUTItoContinue(suti) || !m_state.isScalar(suti));
+
 	    //m_constSymbol->setHasInitValue(); //might not be ready yet
 	    if(!m_state.okUTItoContinue(suti) && m_nodeTypeDesc)
 	      {
@@ -285,8 +293,9 @@ namespace MFM {
 			msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 			m_constSymbol->resetUlamType(duti); //consistent!
-			m_state.mapTypesInCurrentClass(suti, duti);
-			m_state.updateUTIAliasForced(suti, duti); //help?
+			//m_state.mapTypesInCurrentClass(suti, duti);
+			//m_state.updateUTIAliasForced(suti, duti); //help?
+			suti = m_constSymbol->getUlamTypeIdx(); //reset after alias (t3890, t3891)
 			m_nodeExpr->setNodeType(duti); //replace Void too!
 			it = duti;
 		      }
@@ -520,6 +529,11 @@ namespace MFM {
 		return Hzy;
 	      }
 	  }
+	else
+	  {
+	    u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
+	    assignConstantSlotIndex(tmpslotnum);
+	  }
 	return uti;
       }
 
@@ -711,6 +725,7 @@ namespace MFM {
 
   void NodeConstantDef::setupStackWithPrimitiveForEval(u32 slots)
   {
+    //similar to NodeVarDecl method
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     assert(m_constSymbol->getUlamTypeIdx() == nuti);
@@ -748,7 +763,6 @@ namespace MFM {
 	  assert(0);
 
 	u32 n = ((NodeList *) m_nodeExpr)->getNumberOfNodes(); //may be fewer
-	//assert(n == slots);
 
 	for(u32 j = 0; j < slots; j++)
 	  {

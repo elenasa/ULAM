@@ -66,11 +66,12 @@ namespace MFM
 
     //these exist in a stubs only!
     bool assignClassArgValuesInStubCopy();
-    bool statusNonreadyClassArguments();
-    bool constantFoldNonreadyClassArgs();
+    bool statusNonreadyClassArguments(SymbolClass * stubcsym);
+    bool constantFoldNonreadyClassArgs(SymbolClass * stubcsym);
     void linkConstantExpressionForPendingArg(NodeConstantDef * ceNode);
     bool pendingClassArgumentsForClassInstance();
     void clonePendingClassArgumentsForStubClassInstance(const Resolver& rslvr, UTI context, SymbolClass * mycsym);
+    void setContextForPendingArgs(UTI context);
     UTI getContextForPendingArgs();
 
     bool mapUTItoUTI(UTI fmuti, UTI touti);

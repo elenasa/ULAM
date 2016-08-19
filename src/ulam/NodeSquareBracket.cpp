@@ -524,11 +524,26 @@ namespace MFM {
     return m_nodeLeft->installSymbolTypedef(args, asymptr);
   } //installSymbolTypedef
 
-  //see also NodeIdent
+  //see also NodeIdent (t3890)
   bool NodeSquareBracket::installSymbolConstantValue(TypeArgs& args, Symbol *& asymptr)
   {
-    MSG(getNodeLocationAsString().c_str(), "Array type specified for named constant", ERR);
-    return false;
+    if(!m_nodeLeft)
+      {
+	MSG(getNodeLocationAsString().c_str(), "No Identifier to build array symbol", ERR);
+	return false;
+      }
+
+    if(args.m_arraysize > NONARRAYSIZE)
+      {
+	MSG(getNodeLocationAsString().c_str(), "Array size specified twice", ERR);
+	return false;
+      }
+
+    args.m_arraysize = UNKNOWNSIZE; // no eval yet
+    assert(m_nodeLeft);
+    return m_nodeLeft->installSymbolConstantValue(args, asymptr);
+    //    MSG(getNodeLocationAsString().c_str(), "Array type specified for named constant", ERR);
+    //return false;
   } //installSymbolConstantValue
 
   //see also NodeIdent

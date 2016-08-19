@@ -77,6 +77,8 @@ namespace MFM{
 
     bool getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref);
 
+    bool hasDefaultSymbolValue();
+
     virtual UTI checkAndLabelType();
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);

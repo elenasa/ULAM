@@ -9,8 +9,10 @@ namespace MFM {
 
   NodeBinaryOp::NodeBinaryOp(const NodeBinaryOp& ref) : Node(ref)
   {
+    assert(ref.m_nodeLeft);
     m_nodeLeft = ref.m_nodeLeft->instantiate();
-    m_nodeRight = ref.m_nodeRight->instantiate();
+    if(ref.m_nodeRight)
+      m_nodeRight = ref.m_nodeRight->instantiate();
   }
 
   NodeBinaryOp::~NodeBinaryOp()
