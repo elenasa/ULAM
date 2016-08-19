@@ -841,8 +841,6 @@ namespace MFM {
       {
 	//UlamTypes automatically created for the base types with different array sizes.
 	//but with typedef's "scope" of use, typedef needed to be checked first.
-	// scalar uti
-	//uti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, NONARRAYSIZE, Nouti);
 	uti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, args.m_arraysize, Nouti);
 	brtn = true;
       }
@@ -1188,7 +1186,6 @@ namespace MFM {
     bool rtnb = true;
     UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
     s32 tdarraysize = tdut->getArraySize();
-    //    if((args.m_arraysize != NONARRAYSIZE) || (tdarraysize != NONARRAYSIZE))
     if((args.m_arraysize != NONARRAYSIZE) && (tdarraysize != NONARRAYSIZE))
       {
 	//error can't support named constant arrays (error/t3446)
@@ -1200,8 +1197,6 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return false;
       }
-
-    //    assert(args.m_arraysize == NONARRAYSIZE);
     args.m_bitsize = tdut->getBitSize(); //ok to use typedef bitsize
 
     // constants can't be classes either

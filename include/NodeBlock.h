@@ -78,8 +78,6 @@ namespace MFM{
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
-    virtual void assignConstantSlotIndex(u32& cslotidx);
-
     virtual bool isIdInScope(u32 id, Symbol * & symptrref);
 
     void addIdToScope(u32 id, Symbol * symptr);

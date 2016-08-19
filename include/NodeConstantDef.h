@@ -109,8 +109,6 @@ namespace MFM{
 
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 
-    virtual void assignConstantSlotIndex(u32& cslotidx);
-
     virtual void printUnresolvedVariableDataMembers();
 
     virtual void printUnresolvedLocalVariables(u32 fid);
@@ -137,6 +135,8 @@ namespace MFM{
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
     void setupStackWithPrimitiveForEval(u32 slots);
+    void assignConstantSlotIndex(u32& cslotidx);
+
   };
 
 } //MFM

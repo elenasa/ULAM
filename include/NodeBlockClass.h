@@ -150,8 +150,6 @@ namespace MFM{
 
     void packBitsForVariableDataMembers();
 
-    virtual void assignConstantSlotIndex(u32& cslotidx);
-
     virtual void printUnresolvedVariableDataMembers();
 
     virtual void printUnresolvedLocalVariables(u32 fid);

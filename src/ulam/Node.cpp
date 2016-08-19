@@ -443,11 +443,6 @@ namespace MFM {
     assert(0);
   }
 
-  void Node::assignConstantSlotIndex(u32& cslotidx)
-  {
-    //noop
-  }
-
   void Node::printUnresolvedVariableDataMembers()
   {
     assert(0);

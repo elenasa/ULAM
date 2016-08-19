@@ -302,9 +302,6 @@ namespace MFM {
 	if(!errCnt) m_state.m_programDefST.packBitsForTableOfClasses();
 	errCnt = m_state.m_err.getErrorCount(); //latest count
 
-	//if(!errCnt) m_state.setupConstantSlotIndexesForEval();
-	//errCnt = m_state.m_err.getErrorCount(); //latest count?
-
 	// let Ulam programmer know the bits used/available (needs infoOn)
 	if(!errCnt) m_state.m_programDefST.printBitSizeOfTableOfClasses();
 	errCnt = m_state.m_err.getErrorCount(); //latest count

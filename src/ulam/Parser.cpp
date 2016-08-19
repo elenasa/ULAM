@@ -535,8 +535,7 @@ namespace MFM {
 
     //allows class name to be same as parameter name
     //since the class starts a new "block" (i.e. ST);
-    //the argument to parseDecl will prevent it from looking
-    //for restofdecls
+    //the argument to parseDecl will prevent it from looking for restofdecls
     if(Token::isTokenAType(pTok) || (pTok.m_type == TOK_KW_LOCALDEF))
       {
 	unreadToken();
@@ -2154,7 +2153,6 @@ namespace MFM {
 
     Token dTok;
     getNextToken(dTok);
-    //unreadToken();
     if(dTok.m_type == TOK_DOT)
       {
 	unreadToken();
@@ -2185,7 +2183,6 @@ namespace MFM {
 	// change uti to reference key
 	UTI refuti = m_state.getUlamTypeAsRef(castUTI); //t3692
 	assert(typeNode);
-	//typeNode->setReferenceType(ALT_REF, castUTI);
 	typeNode->setReferenceType(ALT_REF, castUTI, refuti);
       }
     else
@@ -2888,7 +2885,8 @@ namespace MFM {
 	  }
       }
 
-    //o.w. make a variable;  symbol could be Null! a constant/array, or a model parameter..crap!
+    //o.w. make a variable; symbol could be Null! a constant/array, or a model parameter!
+    // fixed during c&l.
     Node * rtnNode = new NodeIdent(identTok, (SymbolVariable *) asymptr, m_state);
     assert(rtnNode);
     rtnNode->setNodeLocation(identTok.m_locator);
@@ -3315,7 +3313,6 @@ namespace MFM {
       case TOK_MINUS_MINUS:
 	unreadToken();
 	rtnNode = makeFactorNodePreUnaryOp(); //unary op
-	//rtnNode = parseRestOfFactor(NULL); //parseUnop
 	break;
       case TOK_EOF:
       case TOK_CLOSE_CURLY:
@@ -3334,8 +3331,7 @@ namespace MFM {
 	    }
 	  else
 	    {
-	      //assuming locals defined before they are referred to
-	      //NodeBlockLocals * locals = m_state.getLocalScopeBlock(pTok.m_locator);
+	      //makes 'locals' scope if used before defined
 	      NodeBlockLocals * locals = m_state.makeLocalScopeBlock(pTok.m_locator);
 	      if(!locals)
 		{

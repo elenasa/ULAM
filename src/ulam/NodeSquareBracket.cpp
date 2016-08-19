@@ -70,7 +70,6 @@ namespace MFM {
   // used to select an array item; not for declaration
   UTI NodeSquareBracket::checkAndLabelType()
   {
-    //    assert(m_nodeLeft && m_nodeRight);
     assert(m_nodeLeft);
     u32 errorCount = 0;
     u32 hazyCount = 0;
@@ -542,8 +541,6 @@ namespace MFM {
     args.m_arraysize = UNKNOWNSIZE; // no eval yet
     assert(m_nodeLeft);
     return m_nodeLeft->installSymbolConstantValue(args, asymptr);
-    //    MSG(getNodeLocationAsString().c_str(), "Array type specified for named constant", ERR);
-    //return false;
   } //installSymbolConstantValue
 
   //see also NodeIdent

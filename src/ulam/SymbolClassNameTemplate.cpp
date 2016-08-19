@@ -1636,25 +1636,6 @@ namespace MFM {
       }
   } //packBitsForClassInstances
 
-  void SymbolClassNameTemplate::setupConstantSlotIndexesForClassInstances(u32& cslotidx)
-  {
-    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
-    while(it != m_scalarClassArgStringsToSymbolPtr.end())
-      {
-	SymbolClass * csym = it->second;
-	UTI suti = csym->getUlamTypeIdx(); //this instance
-	if(m_state.isComplete(suti))
-	  {
-	    NodeBlockClass * classNode = csym->getClassBlockNode();
-	    assert(classNode);
-	    m_state.pushClassContext(suti, classNode, classNode, false, NULL);
-	    classNode->assignConstantSlotIndex(cslotidx); //this instance
-	    m_state.popClassContext();
-	  }
-	it++;
-      }
-  } //setupConstantSlotIndexesForClassInstances
-
   void SymbolClassNameTemplate::printUnresolvedVariablesForClassInstances()
   {
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();

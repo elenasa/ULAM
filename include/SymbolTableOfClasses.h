@@ -96,8 +96,6 @@ namespace MFM{
 
     void packBitsForTableOfClasses();
 
-    void setupConstantSlotIndexesForTableOfClasses(u32& cslotidx);
-
     void printUnresolvedVariablesForTableOfClasses();
 
     void generateIncludesForTableOfClasses(File * fp);

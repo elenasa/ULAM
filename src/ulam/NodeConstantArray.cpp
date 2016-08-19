@@ -62,7 +62,6 @@ namespace MFM {
     if(isReadyConstant())
       {
 	UlamType * newut = m_state.getUlamTypeByIndex(newType);
-	//return NodeTerminal::safeToCastTo(newType);
 	return newut->safeCast(getNodeType());
       }
     return CAST_HAZY;
@@ -87,8 +86,7 @@ namespace MFM {
 	assert(m_state.okUTItoContinue(m_constType));
 	setNodeType(m_constType); //t3565, t3640, t3641, t3642, t3652
 	//stub copy case: still wants uti mapping
-	//it = NodeTerminal::checkAndLabelType();
-	it = m_constType; //?
+	it = m_constType;
       }
 
     // map incomplete UTI

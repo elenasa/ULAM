@@ -262,15 +262,6 @@ namespace MFM {
     depth = max1 > max2 ? max1 : max2; //no change to maxdepth here
   } //calcMaxDepth
 
-  void NodeStatements::assignConstantSlotIndex(u32& cslotidx)
-  {
-    if(m_node)
-      m_node->assignConstantSlotIndex(cslotidx);
-
-    if(m_nodeNext)
-      m_nodeNext->assignConstantSlotIndex(cslotidx);
-  }
-
   void NodeStatements::genCode(File * fp, UVPass& uvpass)
   {
     Locator nodeloc = getNodeLocation();

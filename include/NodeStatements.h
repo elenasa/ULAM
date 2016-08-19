@@ -96,8 +96,6 @@ namespace MFM{
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
-    virtual void assignConstantSlotIndex(u32& cslotidx);
-
     virtual void genCode(File * fp, UVPass& uvpass);
 
     virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);

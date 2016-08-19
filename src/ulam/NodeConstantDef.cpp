@@ -184,7 +184,6 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    m_constSymbol->resetUlamType(duti); //consistent!
 	    m_state.mapTypesInCurrentClass(suti, duti);
-	    //m_state.updateUTIAliasForced(suti, duti); //help? (not when we used it and it == 0, instead of suti)
 	    suti = duti;
 	  }
       }
@@ -199,8 +198,7 @@ namespace MFM {
 	if(m_state.okUTItoContinue(suti) || (suti == Hzy))
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    suti = Hzy;
-	    //m_state.setGoAgain(); //since not error; wait until not Nav
+	    suti = Hzy; //since not error; wait to goagain until not Nav
 	  }
 	else
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -266,7 +264,6 @@ namespace MFM {
 	    //only possible if array type with initializers;
 	    assert(!m_state.okUTItoContinue(suti) || !m_state.isScalar(suti));
 
-	    //m_constSymbol->setHasInitValue(); //might not be ready yet
 	    if(!m_state.okUTItoContinue(suti) && m_nodeTypeDesc)
 	      {
 		UTI duti = m_nodeTypeDesc->getNodeType();
@@ -293,8 +290,6 @@ namespace MFM {
 			msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 			m_constSymbol->resetUlamType(duti); //consistent!
-			//m_state.mapTypesInCurrentClass(suti, duti);
-			//m_state.updateUTIAliasForced(suti, duti); //help?
 			suti = m_constSymbol->getUlamTypeIdx(); //reset after alias (t3890, t3891)
 			m_nodeExpr->setNodeType(duti); //replace Void too!
 			it = duti;
@@ -361,7 +356,7 @@ namespace MFM {
 	  }
 
 	//Moved: esuti == Void 	    //void only valid use is as a func return type
-	// to be more like NodeVarDecl
+	// (to be more like NodeVarDecl)
 
 	//note: Void is flag that it's a list of constant initializers.
 	if((eit == Void))
@@ -613,7 +608,6 @@ namespace MFM {
 	return Nav;
       }
 
-#if 1
     // BUT WHY when Symbol is all we need/want? because it indicates
     // there's a default value before c&l (see SCNT::getTotalParametersWithDefaultValues) (t3526)
     //then do the surgery
@@ -625,10 +619,7 @@ namespace MFM {
     newnode->setNodeLocation(getNodeLocation());
     delete m_nodeExpr;
     m_nodeExpr = newnode;
-#else
-    delete m_nodeExpr;
-    m_nodeExpr = NULL;
-#endif
+
 
     BV8K bvtmp;
     u32 len = m_state.getTotalBitSize(uti);
@@ -648,7 +639,6 @@ namespace MFM {
       return false;
 
     assert(!m_state.isScalar(nuti));
-    //assert(m_nodeExpr && (!m_state.isScalar(m_nodeExpr->getNodeType())); //NodeListArrayInitialization
     assert(m_constSymbol && !(m_constSymbol->isReady() || m_constSymbol->isInitValueReady()));
     assert(m_nodeExpr);
 
@@ -744,7 +734,7 @@ namespace MFM {
 	  immUV = UlamValue::makeImmediateLong(nuti, dval, m_state);
 	else
 	  assert(0);
-	//immUV = UlamValue::makePtr(((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex(), CNSTSTACK, nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId()); //array ptr
+
 	m_state.m_constantStack.storeUlamValueAtStackIndex(immUV, ((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex());
       }
     else
