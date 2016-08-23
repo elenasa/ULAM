@@ -10,7 +10,7 @@ Ue_T { Int(32) r(3);  Int(32) test() {  System s;  constant Int(32)[10] site = {
 Uq_System { <NOMAIN> }
 Uq_S(Int(32)[10] y, Int(32) x) { <NOMAIN> }
 ##
-##    //informed by t3444,5
+##    //informed by t3444,5: local func-scope constant new
 ##
 #>T.ulam
  ulam 1;

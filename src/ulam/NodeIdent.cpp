@@ -90,6 +90,10 @@ namespace MFM {
   NodeBlock * NodeIdent::getBlock()
   {
     assert(m_currBlockNo);
+    //case where the typebitsize is an expression in a stub; trying to resolve pending arg;
+    // context is location of stub useage; use this version of findNodeNo that checks
+    // m_pendingArgStubContext and starts the search there if so (t3626);
+    // note: the template has its NodeIdent surgerized, but after the stub parsing.
     NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClassStubFirst(m_currBlockNo);
     assert(currBlock);
     return currBlock;

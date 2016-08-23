@@ -16,7 +16,6 @@ element P {
     Q() q; //ok
     Q(4) w; //ok
     return (Int) (w.sizeof + q.sizeof + z.sizeof);
-    //return (Int) (z.sizeof);
   }
 }
 

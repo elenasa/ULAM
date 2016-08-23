@@ -831,7 +831,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   u32 NodeBlockClass::getNumberOfPotentialClassArgumentSymbols()
   {
-    return m_ST.getNumberOfConstantSymbolsInTable(true);
+    //return m_ST.getNumberOfConstantSymbolsInTable(true);
+    return getNumberOfArgumentNodes();
   } //getNumberOfPotentialClassArgumentSymbols
 
   u32 NodeBlockClass::getSizeOfSymbolsInTable()

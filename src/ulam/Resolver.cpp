@@ -318,6 +318,7 @@ namespace MFM {
 	  {
 	    ceNode->fixPendingArgumentNode(); //possibly renames if arg unseen tmp name.
 	    defaultval = ceNode->hasDefaultSymbolValue();
+
 	    //OMG! if this was a default value for class arg, t3891,
 	    // we want to use the class stub/template as the 'context' rather than where the
 	    // stub was declared.

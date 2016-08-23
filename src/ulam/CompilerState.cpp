@@ -3698,7 +3698,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	AssertBool isDefined = alreadyDefinedSymbolClassNameTemplate(stubid, cntsym);
 	assert(isDefined);
 	rtnNode = cntsym->findNodeNoInAClassInstance(stubuti, n);
-	//local def?
+	//local def, using template's local scope
 	if(!rtnNode)
 	  rtnNode = findNodeNoInALocalScope(cntsym->getLoc(), n);
       }

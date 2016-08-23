@@ -249,7 +249,7 @@ namespace MFM {
   bool SymbolClassNameTemplate::pendingClassArgumentsForStubClassInstance(UTI instance)
   {
     bool rtnpending = false;
-    if(getNumberOfParameters() > 0)
+    if((getNumberOfParameters() > 0) || (getUlamClass() == UC_UNSEEN))
       {
 	SymbolClass * csym = NULL;
 	AssertBool isDefined = findClassInstanceByUTI(instance, csym);
@@ -379,7 +379,7 @@ namespace MFM {
   //instead of a copy, let's start new
   void SymbolClassNameTemplate::copyAStubClassInstance(UTI instance, UTI newuti, UTI context)
   {
-    assert(getNumberOfParameters() > 0);
+    assert((getNumberOfParameters() > 0) || (getUlamClass() == UC_UNSEEN));
     assert(instance != newuti);
 
     SymbolClass * csym = NULL;
@@ -498,8 +498,11 @@ namespace MFM {
 	    continue;
 	  }
 
+	//provides proper context for any stub copies, e.g. default parameter values (t3895)
+	m_state.pushClassContext(suti, cblock, cblock, false, NULL);
+
 	//replace the temporary id with the official parameter name id;
-	//update the class instance's ST.
+	//update the class instance's ST, and argument list.
 	u32 foundArgs = 0;
 	s32 firstDefaultParamUsed = -1;
 	s32 lastDefaultParamUsed = -1;
@@ -521,7 +524,8 @@ namespace MFM {
 	      {
 		if(firstDefaultParamUsed < 0)
 		  firstDefaultParamUsed = lastDefaultParamUsed = i;
-		else if(i > (lastDefaultParamUsed + 1))
+
+		if(i > (lastDefaultParamUsed + 1))
 		  {
 		    //error, must continue to be defaults after first one
 		    std::ostringstream msg;
@@ -535,21 +539,28 @@ namespace MFM {
 		else
 		  {
 		    lastDefaultParamUsed = i;
-		    // and make a new symbol that's like the default param
-		    SymbolConstantValue * asym2 = new SymbolConstantValue(* ((SymbolConstantValue * ) argsym));
-		    assert(asym2);
-		    asym2->setBlockNoOfST(cblock->getNodeNo());
-		    m_state.addSymbolToCurrentScope(asym2);
 
-		    // possible pending value for default param
-		    NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassblock->getParameterNode(i);
-		    assert(paramConstDef);
-		    NodeConstantDef * argConstDef = (NodeConstantDef *) paramConstDef->instantiate();
-		    assert(argConstDef);
-		    //fold later; non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (stub)
-		    argConstDef->setSymbolPtr(asym2); //since we have it handy
-		    csym->linkConstantExpressionForPendingArg(argConstDef);
+		    SymbolConstantValue * psym = m_parameterSymbols[i];
+		    u32 pid = psym->getId();
 
+		    if(!cblock->isIdInScope(pid,argsym))
+		      {
+			// and make a new symbol that's like the default param
+			SymbolConstantValue * asym2 = new SymbolConstantValue(*psym);
+			assert(asym2);
+			//asym2->setBlockNoOfST(cblock->getNodeNo());
+			//m_state.addSymbolToCurrentScope(asym2);
+			cblock->addIdToScope(pid, asym2);
+
+			// possible pending value for default param
+			NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassblock->getParameterNode(i);
+			assert(paramConstDef);
+			NodeConstantDef * argConstDef = (NodeConstantDef *) paramConstDef->instantiate();
+			assert(argConstDef);
+			//fold later; non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (stub)
+			argConstDef->setSymbolPtr(asym2); //since we have it handy
+			csym->linkConstantExpressionForPendingArg(argConstDef);
+		      }
 		    foundArgs++;
 		  }
 	      }
@@ -571,7 +582,9 @@ namespace MFM {
 	cblock->setSuperBlockPointer(NULL); //wait for c&l when no longer a stub
 
 	if(isCATemplate)
-	  ((UlamTypeClass *) m_state.getUlamTypeByIndex(csym->getUlamTypeIdx()))->setCustomArray();
+	  ((UlamTypeClass *) sut)->setCustomArray();
+
+	m_state.popClassContext(); //restore
 	it++;
       } //while
   } //fixAnyClassInstances
@@ -1392,7 +1405,6 @@ namespace MFM {
 	    msg << "'";
 	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
 	  }
-
 	m_state.popClassContext(); //restore
 	it++;
       }
@@ -1843,7 +1855,8 @@ namespace MFM {
     NodeBlockClass * fmclassblock = fm->getClassBlockNode();
     assert(fmclassblock);
     // (don't care about inherited symbols for class args, so use NodeBlock)
-    u32 cargs = fmclassblock->NodeBlock::getNumberOfSymbolsInTable();
+    //u32 cargs = fmclassblock->NodeBlock::getNumberOfSymbolsInTable();
+    u32 cargs = fmclassblock->getNumberOfArgumentNodes();
     u32 numparams = getNumberOfParameters();
     u32 numDefaultParams = getTotalParametersWithDefaultValues();
     if((cargs < numparams) && ((cargs + numDefaultParams) < numparams))
@@ -1861,19 +1874,31 @@ namespace MFM {
     m_state.pushClassContext(fm->getUlamTypeIdx(), fmclassblock, fmclassblock, false, NULL);
     std::vector<SymbolConstantValue *> instancesArgs;
 
-    //copy values from stub into temp list
-    std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
-    while(pit != m_parameterSymbols.end())
+    //copy values from stub into temp list; can't use parametersymbol if template still unseen (t3895)
+    bool ctUnseen = (getUlamClass() == UC_UNSEEN);
+    for(u32 fmidx = 0; fmidx < cargs; fmidx++)
       {
-	SymbolConstantValue * psym = *pit;
+	u32 snameid = 0;
+	if(!ctUnseen)
+	  {
+	    SymbolConstantValue * paramSym = getParameterSymbolPtr(fmidx);
+	    assert(paramSym);
+	    snameid = paramSym->getId();
+	  }
+	else
+	  {
+	    std::ostringstream sname;
+	    sname << "_" << fmidx;
+	    snameid = m_state.m_pool.getIndexForDataString(sname.str());
+	  }
+
 	//save 'instance's arg constant symbols in a temporary list
-	Symbol * asym = NULL;
+	Symbol * argSym = NULL;
 	bool hazyKin = false; //don't care
-	AssertBool isDefined = m_state.alreadyDefinedSymbol(psym->getId(), asym, hazyKin); //no ownership change;
+	AssertBool isDefined = m_state.alreadyDefinedSymbol(snameid, argSym, hazyKin); //no ownership change;
 	assert(isDefined);
-	instancesArgs.push_back((SymbolConstantValue *) asym); //for reference only
-	pit++;
-      } //next param
+	instancesArgs.push_back((SymbolConstantValue *) argSym); //for reference only
+      }
 
     m_state.popClassContext(); //restore
 
@@ -1882,7 +1907,7 @@ namespace MFM {
     m_state.pushClassContext(to->getUlamTypeIdx(), toclassblock, toclassblock, false, NULL);
 
     //make replicas for the clone's arg symbols in its ST; change blockNo.
-    for(u32 i = 0; i < m_parameterSymbols.size(); i++)
+    for(u32 i = 0; i < cargs; i++)
       {
 	SymbolConstantValue * asym = instancesArgs[i];
 	SymbolConstantValue * asym2 = new SymbolConstantValue(*asym);
