@@ -6,7 +6,7 @@ namespace MFM {
 
   NodeBlockContext::NodeBlockContext(NodeBlock * prevBlockNode, CompilerState & state): NodeBlock(prevBlockNode, state, NULL){}
 
-  NodeBlockContext::NodeBlockContext(const NodeBlockContext& ref) : NodeBlock(ref) {}
+  NodeBlockContext::NodeBlockContext(const NodeBlockContext& ref) : NodeBlock(ref){}
 
   NodeBlockContext::~NodeBlockContext() {}
 

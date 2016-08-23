@@ -4,7 +4,6 @@
 ./A.ulam:6:6: ERROR: Cannot explicitly cast Int(4) to type: Bool(3); Consider using a comparison operator.
 ./A.ulam:6:3: ERROR: Assignment is invalid; LHS: Bool(3); RHS: erroneous.
 ./A.ulam:7:1: ERROR: Use explicit cast to return Bool(3) as Int(32).
-./A.ulam:1:9: ERROR: 4 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //informed by t3242

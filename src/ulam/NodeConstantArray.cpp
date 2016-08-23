@@ -11,7 +11,10 @@ namespace MFM {
     m_constType = m_constSymbol->getUlamTypeIdx();
   }
 
-  NodeConstantArray::NodeConstantArray(const NodeConstantArray& ref) : Node(ref), m_token(ref.m_token), m_constSymbol(NULL), m_constType(ref.m_constType), m_currBlockNo(ref.m_currBlockNo) {}
+  NodeConstantArray::NodeConstantArray(const NodeConstantArray& ref) : Node(ref), m_token(ref.m_token), m_constSymbol(NULL), m_constType(ref.m_constType), m_currBlockNo(ref.m_currBlockNo)
+  {
+    //can we use the same address for a constant symbol?
+  }
 
   NodeConstantArray::~NodeConstantArray(){}
 
@@ -165,7 +168,7 @@ namespace MFM {
       }
     m_state.popClassContext(); //restore
 
-    if(m_constSymbol && !m_constSymbol->isDataMember() && !m_constSymbol->isLocalFilescopeDef() && (m_constSymbol->getDeclNodeNo() > getNodeNo()))
+    if(m_constSymbol && !m_constSymbol->isDataMember() && !m_constSymbol->isLocalFilescopeDef() && !m_constSymbol->isClassArgument() && (m_constSymbol->getDeclNodeNo() > getNodeNo()))
       {
 	NodeBlock * currBlock = getBlock();
 	currBlock = currBlock->getPreviousBlockPointer();
@@ -200,6 +203,7 @@ namespace MFM {
 
   NodeBlock * NodeConstantArray::getBlock()
   {
+#if 0
     assert(m_currBlockNo);
     NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
     if(!currBlock)
@@ -216,6 +220,11 @@ namespace MFM {
 	if(!currBlock)
 	  currBlock = m_state.findALocalScopeByNodeNo(m_currBlockNo);
       }
+    assert(currBlock);
+    return currBlock;
+#endif
+    assert(m_currBlockNo);
+    NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClassStubFirst(m_currBlockNo);
     assert(currBlock);
     return currBlock;
   }
@@ -256,6 +265,14 @@ namespace MFM {
       }
     return isready;
   } //assignClassArgValueInStubCopy
+
+  bool NodeConstantArray::getArrayValue(BV8K& bvtmp)
+  {
+    bool brtn = false;
+    if(isReadyConstant())
+      brtn = m_constSymbol->getValue(bvtmp);
+    return brtn;
+  }
 
   EvalStatus NodeConstantArray::eval()
   {

@@ -2,7 +2,6 @@
 #=t3413_test_compiler_elementandquark_caarray_funcreturn_error
 #!
 ./EventWindowTest.ulam:15:9: ERROR: Invalid lefthand side of equals <func>, type: Atom(96).
-./EventWindowTest.ulam:3:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: EventWindowTest.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>EventWindowTest.ulam

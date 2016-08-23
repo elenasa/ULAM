@@ -31,8 +31,8 @@ namespace MFM {
 	std::vector<NodeConstantDef *>::iterator vit = m_nonreadyClassArgSubtrees.begin();
 	while(vit != m_nonreadyClassArgSubtrees.end())
 	  {
-	    NodeConstantDef * ceNode = *vit;
-	    delete ceNode;
+	    //NodeConstantDef * ceNode = *vit; NodeBlockClass is new owner!
+	    //delete ceNode;
 	    *vit = NULL;
 	    vit++;
 	  }
@@ -255,6 +255,11 @@ namespace MFM {
     return aok;
   } //assignClassArgValuesInStubCopy
 
+  u32 Resolver::countNonreadyClassArgs()
+  {
+    return m_nonreadyClassArgSubtrees.size();
+  }
+
   bool Resolver::statusNonreadyClassArguments(SymbolClass * stubcsym)
   {
     bool rtnstat = true; //ok, empty
@@ -311,9 +316,10 @@ namespace MFM {
 	NodeConstantDef * ceNode = *vit;
 	if(ceNode)
 	  {
+	    ceNode->fixPendingArgumentNode(); //possibly renames if arg unseen tmp name.
 	    defaultval = ceNode->hasDefaultSymbolValue();
 	    //OMG! if this was a default value for class arg, t3891,
-	    // we want to use the the template as the 'context' rather than where the
+	    // we want to use the class stub/template as the 'context' rather than where the
 	    // stub was declared.
 	    if(defaultval && !pushedtemplate)
 	      {
@@ -321,8 +327,7 @@ namespace MFM {
 		SymbolClassNameTemplate * templateparent = stubcsym->getParentClassTemplate();
 		assert(templateparent);
 		NodeBlockClass * templateclassblock = templateparent->getClassBlockNode();
-		//m_state.pushClassContext(templateparent->getUlamTypeIdx(), templateclassblock, templateclassblock, false, NULL);
-		stubclassblock->setNodeLocation(templateclassblock->getNodeLocation());
+		stubclassblock->setNodeLocation(templateclassblock->getNodeLocation()); //temporarily change stub loc, in case of local filescope
 		m_state.pushClassContext(m_classUTI, stubclassblock, stubclassblock, false, NULL);
 		pushedtemplate = true;
 	      }
@@ -331,7 +336,7 @@ namespace MFM {
 	    UTI uti = ceNode->checkAndLabelType();
 	    if(m_state.okUTItoContinue(uti)) //i.e. ready
 	      {
-		delete ceNode;
+		//delete ceNode; NodeBlockClass is the owner now.
 		*vit = NULL;
 	      }
 	    else
@@ -371,6 +376,7 @@ namespace MFM {
     return !m_nonreadyClassArgSubtrees.empty();
   } //pendingClassArgumentsForClassInstance
 
+#if 0
   void Resolver::clonePendingClassArgumentsForStubClassInstance(const Resolver& rslvr, UTI context, SymbolClass * mycsym)
   {
     NodeBlockClass * classblock = mycsym->getClassBlockNode();
@@ -378,10 +384,15 @@ namespace MFM {
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(context, contextSym);
     assert(isDefined);
 
-    std::vector<NodeConstantDef *>::const_iterator vit = rslvr.m_nonreadyClassArgSubtrees.begin();
-    while(vit != rslvr.m_nonreadyClassArgSubtrees.end())
+    u32 numArgs = classblock->getNumberOfArgumentNodes();
+    assert(rslvr.m_nonreadyClassArgSubtrees.size() <= numArgs);
+
+    for(u32 i = 0; i < numArgs; i++)
+	//    std::vector<NodeConstantDef *>::const_iterator vit = rslvr.m_nonreadyClassArgSubtrees.begin();
+	//while(vit != rslvr.m_nonreadyClassArgSubtrees.end())
       {
-	NodeConstantDef * ceNode = *vit;
+	//	NodeConstantDef * ceNode = *vit;
+	NodeConstantDef * ceNode = classblock->getArgumentNode(i);
 	assert(ceNode);
 	ceNode->fixPendingArgumentNode();
 	NodeConstantDef * cloneNode = (NodeConstantDef *) ceNode->instantiate(); //new NodeConstantDef(*ceNode);
@@ -407,6 +418,7 @@ namespace MFM {
     assignClassArgValuesInStubCopy();
     m_state.popClassContext(); //restore previous context
   } //clonePendingClassArgumentsForStubClassInstance
+#endif
 
   void Resolver::setContextForPendingArgs(UTI context)
   {
@@ -462,6 +474,7 @@ namespace MFM {
     return brtn;
   } //findMappedUTI
 
+#if 0
   bool Resolver::findNodeNo(NNO n, Node *& foundNode)
   {
     if(findNodeNoInNonreadyClassArgs(n, foundNode))
@@ -488,10 +501,13 @@ namespace MFM {
       }
     return rtnB;
   } //findNodeNoInNonreadyClassArgs
+#endif
 
+#if 0
   void Resolver::countNavNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
-    countNavNodesInPendingArgs(ncnt, hcnt, nocnt);
+    assert(0); //who calls me? stop it!
+    //countNavNodesInPendingArgs(ncnt, hcnt, nocnt);
   }
 
   void Resolver::countNavNodesInPendingArgs(u32& ncnt, u32& hcnt, u32& nocnt)
@@ -505,6 +521,7 @@ namespace MFM {
 	vit++;
       }
   } //countNavNodesInPendingArgs
+#endif
 
   void Resolver::cloneUTImap(SymbolClass * csym)
   {

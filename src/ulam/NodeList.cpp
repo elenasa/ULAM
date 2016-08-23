@@ -192,8 +192,16 @@ namespace MFM{
 
   EvalStatus NodeList::eval()
   {
-    assert(0);
-    return ERROR;
+    //assert(0);
+    //return ERROR;
+    EvalStatus evs = NORMAL;
+    for(u32 i = 0; i < m_nodes.size(); i++)
+      {
+	evs = m_nodes[i]->eval(); //for side-effects
+	if(evs != NORMAL)
+	  break;
+      }
+    return evs;
   } //eval
 
   EvalStatus NodeList::eval(u32 n)
@@ -252,6 +260,17 @@ namespace MFM{
     return m_nodes[n]->isFunctionCall();
   } //isAFunctionCall
 
+  bool NodeList::isAList()
+  {
+    return true;
+  }
+
+  void NodeList::genCode(File * fp, UVPass& uvpass)
+  {
+    for(u32 i = 0; i < m_nodes.size(); i++)
+      m_nodes[i]->genCode(fp, uvpass);
+  } //genCode
+
   void NodeList::genCode(File * fp, UVPass& uvpass, u32 n)
   {
     assert(n < m_nodes.size());
@@ -263,5 +282,21 @@ namespace MFM{
     assert(n < m_nodes.size());
     m_nodes[n]->genCodeToStoreInto(fp, uvpass);
   } //genCode
+
+  void NodeList::genCodeConstantArrayInitialization(File * fp)
+  {
+    for(u32 i = 0; i < m_nodes.size(); i++)
+      {
+	m_nodes[i]->genCodeConstantArrayInitialization(fp);
+      }
+  }
+
+  void NodeList::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  {
+    for(u32 i = 0; i < m_nodes.size(); i++)
+      {
+	m_nodes[i]->generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
+      }
+  }
 
 } //MFM

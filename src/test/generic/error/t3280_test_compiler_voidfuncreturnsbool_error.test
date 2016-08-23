@@ -4,7 +4,6 @@
 ./Tu.ulam:5:2: ERROR: Cannot return non-void expression in a function returning void, unless explicit cast is used for side-effects.
 ./Tu.ulam:8:5: ERROR: Void is not a supported type for binary operator|=.
 ./Tu.ulam:9:2: ERROR: Use explicit cast to return Bool(3) as Int(32).
-./Tu.ulam:2:10: ERROR: 3 Nodes with erroneous types detected after type labeling class: Tu.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>Tu.ulam

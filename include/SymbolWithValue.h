@@ -88,6 +88,8 @@ namespace MFM{
 
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype) = 0;
 
+    bool getArrayValueAsString(std::string& vstr);
+
     void changeConstantId(u32 fmid, u32 toid); //for premature class instances
 
     virtual NNO getDeclNodeNo();

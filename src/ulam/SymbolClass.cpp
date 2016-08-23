@@ -417,7 +417,12 @@ namespace MFM {
       m_resolver = new Resolver(getUlamTypeIdx(), m_state);
     assert(m_stub); //stubs only have pending args
     m_resolver->linkConstantExpressionForPendingArg(constNode);
-  }
+
+    //new owner of the NodeConstantDef! Sun Aug 21 09:09:57 2016
+    NodeBlockClass * cblock = getClassBlockNode();
+    assert(cblock);
+    cblock->addArgumentNode(constNode);
+  } //linkConstantExpressionForPendingArg
 
   bool SymbolClass::pendingClassArgumentsForClassInstance()
   {
@@ -426,6 +431,7 @@ namespace MFM {
     return m_resolver->pendingClassArgumentsForClassInstance();
   }
 
+#if 0
   void SymbolClass::cloneResolverForStubClassInstance(const SymbolClass * csym, UTI context)
   {
     assert(csym); //from
@@ -433,6 +439,67 @@ namespace MFM {
       m_resolver = new Resolver(getUlamTypeIdx(), m_state);
     m_resolver->clonePendingClassArgumentsForStubClassInstance(*(csym->m_resolver), context, this);
   } //cloneResolverForStubClassInstance
+#endif
+
+  void SymbolClass::cloneArgumentNodesForClassInstance(SymbolClass * fmcsym, UTI context, bool toStub)
+  {
+    assert(fmcsym); //from
+    NodeBlockClass * fmclassblock = fmcsym->getClassBlockNode();
+    assert(fmclassblock);
+    NodeBlockClass * classblock = getClassBlockNode();
+    assert(classblock);
+
+    u32 numArgs = fmclassblock->getNumberOfArgumentNodes();
+    bool argsPending = fmcsym->pendingClassArgumentsForClassInstance();
+
+    assert(!argsPending || (fmcsym->countNonreadyClassArguments() == numArgs));
+
+    for(u32 i = 0; i < numArgs; i++)
+      {
+	NodeConstantDef * ceNode = (NodeConstantDef *) fmclassblock->getArgumentNode(i);
+	assert(ceNode);
+	ceNode->fixPendingArgumentNode();
+	NodeConstantDef * cloneNode = (NodeConstantDef *) ceNode->instantiate(); //new NodeConstantDef(*ceNode);
+	assert(cloneNode);
+	assert(ceNode->getNodeNo() == cloneNode->getNodeNo());
+
+	Symbol * cvsym = NULL;
+	AssertBool isDefined = classblock->isIdInScope(cloneNode->getSymbolId(), cvsym);
+	assert(isDefined);
+	cloneNode->setSymbolPtr((SymbolConstantValue *) cvsym); //sets declnno
+
+	if(toStub)
+	  linkConstantExpressionForPendingArg(cloneNode); //resolve later; adds to classblock
+	else
+	  classblock->addArgumentNode(cloneNode);
+      }
+
+    if(toStub)
+      {
+	SymbolClass * contextSym = NULL;
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(context, contextSym);
+	assert(isDefined);
+
+	setContextForPendingArgs(context); //update (might not be needed anymore?)
+
+	//Cannot MIX the current block (context) to find symbols while
+	//using this stub copy to find parent NNOs for constant folding;
+	//therefore we separate them so that all we do now is update the
+	//constant values in the stub copy's Resolver map.
+	//Resolution of all context-dependent arg expressions will occur
+	//during the resolving loop..
+	m_state.pushClassContext(context, contextSym->getClassBlockNode(), contextSym->getClassBlockNode(), false, NULL);
+	assignClassArgValuesInStubCopy();
+	m_state.popClassContext(); //restore previous context
+      }
+  } //cloneArgumentNodesForClassInstance
+
+  void SymbolClass::assignClassArgValuesInStubCopy()
+  {
+    assert(m_resolver);
+    AssertBool isAssigned = m_resolver->assignClassArgValuesInStubCopy();
+    assert(isAssigned);
+  }
 
   void SymbolClass::cloneResolverUTImap(SymbolClass * csym)
   {
@@ -472,11 +539,11 @@ void SymbolClass::setContextForPendingArgs(UTI context)
     return m_resolver->statusNonreadyClassArguments(this);
   }
 
-  bool SymbolClass::constantFoldNonreadyClassArguments()
+  u32 SymbolClass::countNonreadyClassArguments()
   {
     if(!m_resolver)
-      return true; //nothing to do
-    return m_resolver->constantFoldNonreadyClassArgs(this);
+      return 0; //nothing to do
+    return m_resolver->countNonreadyClassArgs();
   }
 
   bool SymbolClass::mapUTItoUTI(UTI auti, UTI mappedUTI)
@@ -506,6 +573,7 @@ void SymbolClass::setContextForPendingArgs(UTI context)
     return rtnb;
   } //hasMappedUTI
 
+#if 0
   bool SymbolClass::findNodeNoInResolver(NNO n, Node *& foundNode)
   {
     if(!m_resolver)
@@ -513,13 +581,15 @@ void SymbolClass::setContextForPendingArgs(UTI context)
 
     return m_resolver->findNodeNo(n, foundNode);
   } //findNodeNoInResolver
+#endif
 
+#if 0
   void SymbolClass::countNavNodesInClassResolver(u32& ncnt, u32& hcnt, u32& nocnt)
   {
     if(m_resolver)
       m_resolver->countNavNodes(ncnt, hcnt, nocnt);
   }
-
+#endif
   /////////////////////////////////////////////////////////////////////////////////
   // from NodeProgram
   /////////////////////////////////////////////////////////////////////////////////

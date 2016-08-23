@@ -2282,19 +2282,25 @@ namespace MFM {
 
     NodeBlockClass * classblock = cnsym->getClassBlockNode();
     assert(classblock);
-    NodeStatements * endingstmt = classblock;
+    //NodeStatements * endingstmt = classblock;
+    assert(classblock->getLastStatementNodePtr() == classblock); //check this.
 
     std::vector<Node *>::iterator vit;
     for(vit = fmLocals.begin(); vit != fmLocals.end(); vit++)
       {
 	Node * cenode = *vit;
 	assert(cenode);
+
+	classblock->appendNextNode(cenode); //tfr node ownership
+
+#if 0
 	NodeStatements * nextstmt = new NodeStatements(cenode, *this); //tfr node ownership
 	assert(nextstmt);
 	nextstmt->setNodeLocation(cenode->getNodeLocation());
 	assert(endingstmt);
 	endingstmt->setNextNode(nextstmt);
 	endingstmt = nextstmt;
+#endif
       }
     fmLocals.clear(); //done with vector of clones
 
@@ -2325,9 +2331,8 @@ namespace MFM {
 	assert(errCnt > 0); //sanity check; ran out of iterations
 
 	std::ostringstream msg;
-	msg << navcount << " Nodes with erroneous types detected after type labeling class: ";
-	msg << getUlamTypeNameBriefByIndex(getCompileThisIdx()).c_str();
-	MSG2(getFullLocationAsString(getContextBlockLoc()).c_str(), msg.str().c_str(), ERR);
+	msg << navcount << " Nodes with erroneous types detected after type labeling";
+	MSG2("", msg.str().c_str(), INFO);
 	rtnb = false;
       }
     //else
@@ -2339,11 +2344,10 @@ namespace MFM {
 	//assert(m_state.goAgain()); //sanity check; ran out of iterations
 
 	std::ostringstream msg;
-	msg << hzycount << " Nodes with unresolved types detected after type labeling class: ";
-	msg << getUlamTypeNameBriefByIndex(getCompileThisIdx()).c_str();
+	msg << hzycount << " Nodes with unresolved types detected after type labeling";
 	// if we had such a thing:
 	//msg << ". Supplying --info on command line will provide additional internal details";
-	MSG2(getFullLocationAsString(getContextBlockLoc()).c_str(), msg.str().c_str(), ERR);
+	MSG2("", msg.str().c_str(), INFO);
 	rtnb = false;
       }
     else
@@ -2353,8 +2357,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << unsetcount << " Nodes with unset types detected after type labeling class: ";
-	msg << getUlamTypeNameBriefByIndex(getCompileThisIdx()).c_str();
-	MSG2(getFullLocationAsString(getContextBlockLoc()).c_str(), msg.str().c_str(), INFO);
+	MSG2("", msg.str().c_str(), INFO);
       }
     return rtnb;
   } //countNavHzyNoutiNodesPass
@@ -3668,7 +3671,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
     UTI cuti = getCompileThisIdx();
     Node * rtnNode = findNodeNoInAClass(n, cuti);
-
+#if 0
     //last resort, if we are in the middle of resolving pending args for a stub
     // and to do constant folding, we need to find the parent node that's in the
     // stub's resolver, NOT the context where the stub appears.
@@ -3694,6 +3697,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	      rtnNode = findNodeNoInAClass(n, superuti);
 	  }
       }
+#endif
 
     if(!rtnNode)
       {
@@ -3711,6 +3715,30 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       }
     return rtnNode;
   } //findNodeNoInThisClass
+
+  Node * CompilerState::findNodeNoInThisClassStubFirst(NNO n)
+  {
+    Node * rtnNode = NULL;
+    //if we are in the middle of resolving pending args for a stub
+    // and to do constant folding, we need to find the parent node that's in the
+    // stub's argument list (was resolver), NOT the context where the stub appears.
+    UTI stubuti = m_pendingArgStubContext;
+    if(stubuti != Nouti)
+      {
+	u32 stubid = getUlamKeyTypeSignatureByIndex(stubuti).getUlamKeyTypeSignatureNameId();
+	SymbolClassNameTemplate * cntsym = NULL;
+	AssertBool isDefined = alreadyDefinedSymbolClassNameTemplate(stubid, cntsym);
+	assert(isDefined);
+	rtnNode = cntsym->findNodeNoInAClassInstance(stubuti, n);
+	//local def?
+	if(!rtnNode)
+	  rtnNode = findNodeNoInALocalScope(cntsym->getLoc(), n);
+      }
+
+    if(!rtnNode)
+      rtnNode = findNodeNoInThisClass(n);
+    return rtnNode;
+  } //findNodeNoInThisClassStubFirst
 
   Node * CompilerState::findNodeNoInAClass(NNO n, UTI cuti)
   {
@@ -3800,6 +3828,15 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return (SymbolClass *) m_currentSelfSymbolForCodeGen;
   } //getCurrentSelfSymbolForCodeGen
 
+  void CompilerState::appendNodeToCurrentBlock(Node * node)
+  {
+    NodeBlock * cblock = getCurrentBlock();
+    if(useMemberBlock())
+      cblock = getCurrentMemberClassBlock(); //??
+    assert(cblock);
+    cblock->appendNextNode(node); //adds a NodeStatements, becomes the new end
+  } //appendNodeToCurrentBlock
+
   NodeBlock * CompilerState::getCurrentBlock()
   {
     ClassContext cc;
@@ -3869,6 +3906,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   void CompilerState::popClassContext()
   {
     m_classContextStack.popClassContext();
+    //assert(m_classContextStack.getClassContextStackSize() > 0);
   }
 
   void CompilerState::pushCurrentBlock(NodeBlock * currblock)

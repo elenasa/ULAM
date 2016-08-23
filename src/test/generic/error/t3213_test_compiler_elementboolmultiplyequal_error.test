@@ -5,7 +5,6 @@
 ./Foo.ulam:7:3: ERROR: Assignment is invalid; LHS: Bool(3); RHS: erroneous.
 ./Foo.ulam:8:3: ERROR: Arithmetic Operations are invalid on 'Bool' type.
 ./Foo.ulam:9:1: ERROR: Use explicit cast to return Bool(3) as Int(32).
-./Foo.ulam:2:10: ERROR: 4 Nodes with erroneous types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>Foo.ulam

@@ -296,6 +296,103 @@ namespace MFM {
     fp->write(" }");
   } //printPostfixValueArray
 
+#if 0
+  bool SymbolWithValue::getArrayValueAsString(std::string& vstr)
+  {
+    bool oktoprint = true;
+    BV8K dval;
+    if(isReady())
+      getValue(dval);
+    else if(hasInitValue() && isInitValueReady())
+      getInitValue(dval);
+    else
+      oktoprint = false;
+
+    if(!oktoprint)
+      {
+	return false;
+      }
+
+    UTI tuti = getUlamTypeIdx();
+    UlamType * tut = m_state.getUlamTypeByIndex(tuti);
+    s32 tbs = tut->getTotalBitSize();
+
+    if(tbs == 0)
+      {
+	vstr = "0"; //no "0x" hex indicates empty array
+	return true;
+      }
+
+    std::ostringstream ostream;
+    ostream << "0x";
+
+    for(s32 i = 0; i < tbs; i++)
+      {
+	ostream << std::hex << dval.Read(i, 1);
+      }
+    vstr = ostream.str();
+    return true;
+  } //getArrayValueAsString
+#endif
+
+  bool SymbolWithValue::getArrayValueAsString(std::string& vstr)
+  {
+    bool oktoprint = true;
+    BV8K dval;
+    if(isReady())
+      getValue(dval);
+    else if(hasInitValue() && isInitValueReady())
+      getInitValue(dval);
+    else
+      oktoprint = false;
+
+    if(!oktoprint)
+      {
+	return false;
+      }
+
+    UTI tuti = getUlamTypeIdx();
+    UlamType * tut = m_state.getUlamTypeByIndex(tuti);
+    s32 tbs = tut->getTotalBitSize();
+
+    if(tbs == 0)
+      {
+	vstr = "10"; //empty array
+	return true;
+      }
+
+    //like the code generated in CS::genCodeClassDefaultConstantArray
+    u32 uvals[ARRAY_LEN8K];
+    dval.ToArray(uvals);
+
+    u32 nwords = tut->getTotalNumberOfWords();
+
+    //short-circuit if all zeros
+    bool isZero = true;
+    for(u32 x = 0; x < nwords; x++)
+      {
+	if(uvals[x] != 0)
+	  {
+	    isZero = false;
+	    break;
+	  }
+      }
+
+    if(isZero)
+      {
+	vstr = "10"; //all zeros
+	return true;
+      }
+
+    std::ostringstream ostream;
+    for(u32 i = 0; i < nwords; i++)
+      {
+	ostream << ToLeximitedNumber(uvals[i]);
+      }
+    vstr = ostream.str();
+    return true;
+  } //getArrayValueAsString
+
   bool SymbolWithValue::getLexValue(std::string& vstr)
   {
     UTI tuti = getUlamTypeIdx();

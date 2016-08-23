@@ -4,12 +4,16 @@
 
 namespace MFM {
 
-  NodeBlock::NodeBlock(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeStatements(NULL, state), m_ST(state), m_prevBlockNode(prevBlockNode)
+  NodeBlock::NodeBlock(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeStatements(NULL, state), m_ST(state), m_prevBlockNode(prevBlockNode), m_nodeEndingStmt(this)
   {
-    setNextNode(s);
+    if(s)
+      {
+	setNextNode(s);
+	setLastStatementNodePtr(s);
+      }
   }
 
-  NodeBlock::NodeBlock(const NodeBlock& ref) : NodeStatements(ref), m_ST(ref.m_ST) /* deep copy */, m_prevBlockNode(NULL) {}
+  NodeBlock::NodeBlock(const NodeBlock& ref) : NodeStatements(ref), m_ST(ref.m_ST) /* deep copy */, m_prevBlockNode(NULL), m_nodeEndingStmt(ref.m_nodeEndingStmt) {}
 
   NodeBlock::~NodeBlock()
   {
@@ -98,6 +102,27 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  void NodeBlock::setLastStatementNodePtr(NodeStatements * laststmt)
+  {
+    m_nodeEndingStmt = laststmt;
+  }
+
+  NodeStatements * NodeBlock::getLastStatementNodePtr()
+  {
+    return m_nodeEndingStmt;
+  }
+
+  void NodeBlock::appendNextNode(Node * node)
+  {
+    assert(node);
+    NodeStatements * nextNode = new NodeStatements(node, m_state);
+    assert(nextNode);
+    nextNode->setNodeLocation(node->getNodeLocation());
+    assert(m_nodeEndingStmt);
+    m_nodeEndingStmt->setNextNode(nextNode);
+    m_nodeEndingStmt = nextNode;
+  } //appendNextNode
+
   UTI NodeBlock::checkAndLabelType()
   {
     assert(m_nodeNext);
@@ -177,11 +202,6 @@ namespace MFM {
   bool NodeBlock::removeIdFromScope(u32 id, Symbol *& rtnsymptr)
   {
     return m_ST.removeFromTable(id, rtnsymptr);
-  }
-
-  void NodeBlock::removeAllSymbolsFromScope()
-  {
-    m_ST.clearTheTable();
   }
 
   NodeBlock * NodeBlock::getPreviousBlockPointer()

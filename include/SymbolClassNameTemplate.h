@@ -84,7 +84,6 @@ namespace MFM{
     void fixAClassStubsDefaultArgs(SymbolClass * stubcsym, u32 defaultstartidx);
 
     bool statusNonreadyClassArgumentsInStubClassInstances();
-    bool constantFoldClassArgumentsInAStubClassInstance(UTI instance);
 
     virtual std::string formatAnInstancesArgValuesAsAString(UTI instance);
     std::string formatAnInstancesArgValuesAsCommaDelimitedString(UTI instance);
@@ -144,6 +143,9 @@ namespace MFM{
     void cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to);
 
     bool checkSFINAE(SymbolClass * sym);
+
+    std::map<UTI, SymbolClass* > m_stubsToDelete;
+    void trashStub(UTI uti, SymbolClass * symptr);
   };
 
 }

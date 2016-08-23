@@ -13,6 +13,8 @@ namespace MFM {
     m_nodeLeft = ref.m_nodeLeft->instantiate();
     if(ref.m_nodeRight)
       m_nodeRight = ref.m_nodeRight->instantiate();
+    else
+      m_nodeRight = NULL; //t3890
   }
 
   NodeBinaryOp::~NodeBinaryOp()
@@ -446,7 +448,8 @@ namespace MFM {
 
     NNO pno = Node::getYourParentNo();
     assert(pno);
-    Node * parentNode = m_state.findNodeNoInThisClass(pno);
+    //Node * parentNode = m_state.findNodeNoInThisClass(pno);
+    Node * parentNode = m_state.findNodeNoInThisClassStubFirst(pno);
     if(!parentNode)
       {
 	std::ostringstream msg;

@@ -442,6 +442,7 @@ namespace MFM{
     NNO getNextNodeNo();
 
     Node * findNodeNoInThisClass(NNO n);
+    Node * findNodeNoInThisClassStubFirst(NNO n);
     Node * findNodeNoInAClass(NNO n, UTI cuti);
     UTI findAClassByNodeNo(NNO n);
     NodeBlockLocals * findALocalScopeByNodeNo(NNO n);
@@ -456,6 +457,8 @@ namespace MFM{
     UTI getCompileThisIdx();
 
     SymbolClass * getCurrentSelfSymbolForCodeGen();
+
+    void appendNodeToCurrentBlock(Node * node);
 
     NodeBlock * getCurrentBlock();
 

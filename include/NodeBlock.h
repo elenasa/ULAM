@@ -70,6 +70,12 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    void setLastStatementNodePtr(NodeStatements * laststmt);
+
+    NodeStatements * getLastStatementNodePtr();
+
+    void appendNextNode(Node * node);
+
     virtual UTI checkAndLabelType();
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
@@ -87,8 +93,6 @@ namespace MFM{
     void replaceIdInScope(Symbol * oldsym, Symbol * newsym);
 
     bool removeIdFromScope(u32 id, Symbol *& rtnsymptr);
-
-    void removeAllSymbolsFromScope();
 
     NodeBlock * getPreviousBlockPointer();
 
@@ -119,6 +123,7 @@ namespace MFM{
 
   private:
     NodeBlock * m_prevBlockNode;
+    NodeStatements * m_nodeEndingStmt; //ptr to last statement node while parsing.
 
     SymbolTable * getSymbolTablePtr(); //use with caution, esp. with inheritance
 

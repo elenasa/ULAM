@@ -177,7 +177,7 @@ namespace MFM {
       }
     m_state.popClassContext(); //restore
 
-    if(m_constSymbol && !m_constSymbol->isDataMember() && !m_constSymbol->isLocalFilescopeDef() && (m_constSymbol->getDeclNodeNo() > getNodeNo()))
+    if(m_constSymbol && !m_constSymbol->isDataMember() && !m_constSymbol->isLocalFilescopeDef() && !m_constSymbol->isClassArgument() && (m_constSymbol->getDeclNodeNo() > getNodeNo()))
       {
 	NodeBlock * currBlock = getBlock();
 	currBlock = currBlock->getPreviousBlockPointer();

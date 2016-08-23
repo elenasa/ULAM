@@ -307,7 +307,8 @@ namespace MFM {
 	assert(newnode);
 
 	NNO pno = Node::getYourParentNo();
-	Node * parentNode = m_state.findNodeNoInThisClass(pno);
+	//Node * parentNode = m_state.findNodeNoInThisClass(pno);
+	Node * parentNode = m_state.findNodeNoInThisClassStubFirst(pno);
 	if(!parentNode)
 	  {
 	    std::ostringstream msg;
@@ -356,12 +357,13 @@ UTI NodeVarDecl::checkAndLabelType()
       checkForSymbol();
 
     //short circuit, avoid assert
-    if(!m_varSymbol)
+    if(m_varSymbol == NULL)
       {
 	setNodeType(Nav);
 	return Nav;
       }
 
+    assert(m_varSymbol);
     UTI it = m_varSymbol->getUlamTypeIdx(); //base type has arraysize
     UTI cuti = m_state.getCompileThisIdx();
     if(m_nodeTypeDesc)
@@ -580,7 +582,7 @@ UTI NodeVarDecl::checkAndLabelType()
 	if(!hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t3577
       } //alreadyDefined
 
     m_state.popClassContext(); //restore

@@ -181,6 +181,11 @@ namespace MFM {
     return false;
   }
 
+  bool Node::isAList()
+  {
+    return false;
+  }
+
   bool Node::isExplicitReferenceCast()
   {
     return false;
@@ -789,6 +794,11 @@ namespace MFM {
 	      {
 		fp->write(m_state.getMangledClassNameForUlamLocalFilescopes());
 		fp->write("<EC>::THE_INSTANCE.");
+	      }
+	    else if(((SymbolWithValue *) cos)->isClassArgument())
+	      {
+		fp->write(m_state.getEffectiveSelfMangledNameByIndex(m_state.getCompileThisIdx()).c_str());
+		fp->write("."); //t3894
 	      }
 	  }
 
@@ -2203,7 +2213,7 @@ namespace MFM {
     typeargs.m_arraysize = nut->getArraySize();
     typeargs.m_classInstanceIdx = nodeType;
 
-    u32 argid = m_state.m_pool.getIndexForDataString("arg");
+    u32 argid = m_state.m_pool.getIndexForDataString("arg"); //t3411, t3412
     Token argTok(TOK_IDENTIFIER, loc, argid);
     NodeIdent * argIdentNode = new NodeIdent(argTok, NULL, m_state);
     assert(argIdentNode);
@@ -2220,7 +2230,7 @@ namespace MFM {
     argNode->setNodeLocation(loc);
     fsymptr->addParameterSymbol(argSym); //ownership stays w NodeBlockFunctionDefinition's ST
     //uses "decl" nodeno of argIdentNode since it had to be created first (e.g. t3411, t3412, t3514)
-    ((SymbolVariableStack *) argSym)->setDeclNodeNo(argIdentNode->getNodeNo());
+    ((SymbolVariableStack *) argSym)->setDeclNodeNo(argIdentNode->getNodeNo()); //fix
 
     //potentially needed to resolve its node type
     fblock->addParameterNode(argNode); //transfer owner
@@ -2264,11 +2274,14 @@ namespace MFM {
 	assert(returnNode);
 	returnNode->setNodeLocation(loc);
 
+	//fblock->appendNextNode(returnNode);
+#if 1
 	NodeStatements * sNode = new NodeStatements(returnNode, m_state);
 	assert(sNode);
 	sNode->setNodeLocation(loc);
-
 	fblock->setNextNode(sNode);
+#endif
+
 	fblock->setDefinition();
 	fblock->setMaxDepth(0); //no local variables, except params
       }

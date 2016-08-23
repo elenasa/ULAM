@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  NodeBlockLocals::NodeBlockLocals(NodeBlock * prevBlockNode, CompilerState & state): NodeBlockContext(prevBlockNode, state), m_nodeEndingStmt(this) {}
+  NodeBlockLocals::NodeBlockLocals(NodeBlock * prevBlockNode, CompilerState & state): NodeBlockContext(prevBlockNode, state) {}
 
   NodeBlockLocals::NodeBlockLocals(const NodeBlockLocals& ref) : NodeBlockContext(ref) {}
 
@@ -36,17 +36,6 @@ namespace MFM {
   {
     return false;
   }
-
-  void NodeBlockLocals::appendNextNode(Node * node)
-  {
-    assert(node);
-    NodeStatements * nextNode = new NodeStatements(node, m_state);
-    assert(nextNode);
-    nextNode->setNodeLocation(node->getNodeLocation());
-    assert(m_nodeEndingStmt);
-    m_nodeEndingStmt->setNextNode(nextNode);
-    m_nodeEndingStmt = nextNode;
-  } //appendNextNode
 
   UTI NodeBlockLocals::checkAndLabelType()
   {

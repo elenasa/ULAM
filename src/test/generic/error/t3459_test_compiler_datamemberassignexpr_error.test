@@ -2,7 +2,6 @@
 #=t3459_test_compiler_datamemberassignexpr_error
 #!
 ./A.ulam:4:10: ERROR: Variable <cPRINT_NAME> is not defined, or was used before declared in a function.
-./A.ulam:1:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //informed by 3457, except data member

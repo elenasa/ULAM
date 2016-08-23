@@ -81,7 +81,7 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    UTI getNodeType();
+    UTI getNodeType(); //not virtual!!
 
     virtual bool isAClassBlock();
 
@@ -97,7 +97,17 @@ namespace MFM{
 
     void addParameterNode(Node * nodeArg);
 
-    Node * getParameterNode(u32 n) const;
+    Node * getParameterNode(u32 n);
+
+    u32 getNumberOfParameterNodes();
+
+    bool checkArgumentNodeTypes();
+
+    void addArgumentNode(Node * nodeArg);
+
+    Node * getArgumentNode(u32 n);
+
+    u32 getNumberOfArgumentNodes();
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
@@ -191,6 +201,7 @@ namespace MFM{
     bool m_isEmpty; //replaces separate node
     UTI m_templateClassParentUTI;
     NodeList * m_nodeParameterList; //constants
+    NodeList * m_nodeArgumentList;  //template instance
 
     void genCodeHeaderQuark(File * fp);
     void genCodeHeaderElement(File * fp);

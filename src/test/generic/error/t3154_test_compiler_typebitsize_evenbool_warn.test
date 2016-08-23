@@ -6,7 +6,6 @@
 ./C.ulam:11:4: ERROR: Use a comparison operator to convert Int(3) to Bool(3) for operator=.
 ./C.ulam:12:4: ERROR: Bits is the supported type for bitwise operator&=.
 ./C.ulam:12:4: ERROR: Righthand type Int(3) is not representable as Bool(3). Bits is the supported type for bitwise operator&=.
-./C.ulam:2:9: ERROR: 3 Nodes with erroneous types detected after type labeling class: C.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>C.ulam

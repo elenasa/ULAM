@@ -3,8 +3,6 @@
 #!
 ./Q.ulam:2:20: ERROR: Type Bitsize specifier for Unsigned type, within (), is a negative numeric constant expression: -4.
 ./P.ulam:11:0: ERROR: Invalid size (0) to set for primitive type: Unsigned.
-./P.ulam:3:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: P.
-./P.ulam:3:9: ERROR: 4 Nodes with unresolved types detected after type labeling class: P.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3526

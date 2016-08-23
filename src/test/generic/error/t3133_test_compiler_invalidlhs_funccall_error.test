@@ -2,7 +2,6 @@
 #=t3133_test_compiler_invalidlhs_funccall_error
 #!
 ./D.ulam:8:11: ERROR: Invalid lefthand side of equals <foo>, type: Int(8).
-./D.ulam:2:7: ERROR: 1 Nodes with erroneous types detected after type labeling class: D.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>D.ulam

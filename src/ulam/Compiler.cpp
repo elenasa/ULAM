@@ -228,7 +228,7 @@ namespace MFM {
 	    msg << errCnt << " Errors found during resolving loop --- ";
 	    msg << "possible INCOMPLETE (or Template) class detected --- ";
 	    msg << "after " << infcounter << " iterations";
-	    MSG(m_state.getContextBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    MSG("", msg.str().c_str(), DEBUG);
 	    //note: not an error because template uses with deferred args remain unresolved; however,
 	    // context reveals if stub was needed by a template and not included.
 	    break;
@@ -281,7 +281,7 @@ namespace MFM {
 		msg << "Incomplete calc of max index for virtual functions --- ";
 		msg << "possible INCOMPLETE Super class detected ---";
 		msg << " after " << infcounter2 << " iterations";
-		MSG(m_state.getContextBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		MSG("", msg.str().c_str(), ERR);
 		break;
 	      }
 	    else if(infcounter2 == MAX_ITERATIONS) //last time
@@ -323,7 +323,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << warns << " warning" << (warns > 1 ? "s " : " ") << "during type labeling";
-	MSG(m_state.getContextBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+	MSG("", msg.str().c_str(), INFO);
       }
 
     errCnt = m_state.m_err.getErrorCount();
@@ -331,7 +331,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << errCnt << " TOO MANY TYPELABEL ERRORS";
-	MSG(m_state.getContextBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+	MSG("", msg.str().c_str(), INFO);
       }
 
     //#define TESTTARGETMAP

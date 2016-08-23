@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "NodeConstantDef.h"
 #include "NodeConstant.h"
+#include "NodeConstantArray.h"
 #include "NodeListArrayInitialization.h"
 #include "NodeTerminal.h"
 #include "CompilerState.h"
@@ -224,7 +225,12 @@ namespace MFM {
 	if(it == Nav)
 	  {
 	    std::ostringstream msg;
-	    msg << "Constant value expression for: ";
+	    msg << "Constant value expression for";
+	    if(m_constSymbol && m_constSymbol->isClassArgument())
+	      msg << " class argument";
+	    else if(m_constSymbol && m_constSymbol->isClassParameter())
+	      msg << " class parameter";
+	    msg << ": ";
 	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
 	    msg << ", is invalid";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -249,7 +255,12 @@ namespace MFM {
 	if(!m_nodeExpr->isAConstant())
 	  {
 	    std::ostringstream msg;
-	    msg << "Constant value expression for: ";
+	    msg << "Constant value expression for";
+	    if(m_constSymbol && m_constSymbol->isClassArgument())
+	      msg << " class argument";
+	    else if(m_constSymbol && m_constSymbol->isClassParameter())
+	      msg << " class parameter";
+	    msg << ": ";
 	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
 	    msg << ", is not a constant";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -329,7 +340,12 @@ namespace MFM {
 	if(m_state.okUTItoContinue(it) && (m_state.isScalar(it) ^ m_state.isScalar(suti)))
 	  {
 	    std::ostringstream msg;
-	    msg << "Constant value expression for: ";
+	    msg << "Constant value expression for";
+	    if(m_constSymbol && m_constSymbol->isClassArgument())
+	      msg << " class argument";
+	    else if(m_constSymbol && m_constSymbol->isClassParameter())
+	      msg << " class parameter";
+	    msg << ": ";
 	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
 	    msg << ", array/scalar mismatch";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -524,10 +540,14 @@ namespace MFM {
 		return Hzy;
 	      }
 	  }
-	else
+	else //if(!(m_constSymbol->isClassParameter() || m_constSymbol->isClassArgument()))
 	  {
-	    u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
-	    assignConstantSlotIndex(tmpslotnum);
+	    if(!(m_constSymbol->isClassParameter()))
+	      {
+		// class args/param values do not belong on the CNSTSTACK (t3894)
+		u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
+		assignConstantSlotIndex(tmpslotnum);
+	      }
 	  }
 	return uti;
       }
@@ -642,19 +662,30 @@ namespace MFM {
     assert(m_constSymbol && !(m_constSymbol->isReady() || m_constSymbol->isInitValueReady()));
     assert(m_nodeExpr);
 
-    if(((NodeListArrayInitialization *) m_nodeExpr)->foldArrayInitExpression())
+    //build BV8K: a use (i.e. NodeConstantArray) like a class arg,
+    //or already folded initialization, to avoid invalid casting to
+    //NodeListArrayInitialization (t3894)
+    bool brtn = false;
+    BV8K bvtmp;
+    if(m_nodeExpr->isAList() && ((NodeListArrayInitialization *) m_nodeExpr)->foldArrayInitExpression())
       {
-	BV8K bvtmp;
 	if(((NodeListArrayInitialization *) m_nodeExpr)->buildArrayValueInitialization(bvtmp))
-	  {
-	    if(m_constSymbol->isClassParameter())
-	      m_constSymbol->setInitValue(bvtmp);
-	    else
-	      m_constSymbol->setValue(bvtmp); //isReady now! (e.g. ClassArgument, ModelParameter)
-	    return true;
-	  }
+	  brtn = true;
       }
-    return false;
+    else if(((NodeConstantArray *) m_nodeExpr)->getArrayValue(bvtmp))
+      {
+	brtn = true;
+      }
+
+    if(brtn)
+      {
+	if(m_constSymbol->isClassParameter())
+	  m_constSymbol->setInitValue(bvtmp);
+	else
+	  m_constSymbol->setValue(bvtmp); //isReady now! (e.g. ClassArgument, ModelParameter)
+      }
+
+    return brtn;
   } //foldArrayInitExpression
 
   bool NodeConstantDef::buildDefaultValue(u32 wlen, BV8K& bvref)
@@ -737,7 +768,7 @@ namespace MFM {
 
 	m_state.m_constantStack.storeUlamValueAtStackIndex(immUV, ((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex());
       }
-    else
+    else if(m_nodeExpr->isAList())
       {
 	//unpacked primitive array - uses eval
 	UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
@@ -772,6 +803,27 @@ namespace MFM {
 
 	    m_state.m_constantStack.storeUlamValueAtStackIndex(itemUV, baseslot + j);
 	  }
+      }
+    else //not a list, not packedloadable
+      {
+	assert(m_constSymbol->isClassArgument()); //??
+	//m_nodeExpr is NodeConstantArray, access items like a NodeSquareBracket
+	u32 baseslot =  ((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex();
+
+	evalNodeProlog(0); //new current frame pointer
+	makeRoomForSlots(1); //always 1 slot for ptr
+	EvalStatus evs = m_nodeExpr->evalToStoreInto();
+	assert(evs == NORMAL);
+
+	UlamValue pluv = m_state.m_nodeEvalStack.popArg();
+	assert(pluv.getPtrTargetType() == nuti);
+
+	for(u32 j = 0; j < slots; j++)
+	  {
+	    UlamValue itemUV = pluv.getValAt(j, m_state);
+	    m_state.m_constantStack.storeUlamValueAtStackIndex(itemUV, baseslot + j);
+	  }
+	evalNodeEpilog();
       }
   } //setupStackWithPrimitiveForEval
 
@@ -817,9 +869,9 @@ namespace MFM {
 	assert(m_constSymbol->getUlamTypeIdx() == nuti); //sanity check
 	UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
-	if(m_constSymbol->isLocalFilescopeDef() ||  m_constSymbol->isDataMember())
+	if(m_constSymbol->isLocalFilescopeDef() ||  m_constSymbol->isDataMember() || m_constSymbol->isClassArgument())
 	  {
-	    //as a "data member", or locals filescope, will be initialized in no-arg constructor (non-const)
+	    //as a "data member", locals filescope, or class arguement: initialized in no-arg constructor (non-const)
 	    m_state.indentUlamCode(fp);
 	    fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
 	    fp->write(" ");

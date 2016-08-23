@@ -2,8 +2,6 @@
 #=t3883_test_compiler_constantarrayinit_localdef
 #!
 ./A.ulam:12:13: ERROR: Invalid lefthand side of equals <[]>, type: Unsigned(33).
-./A.ulam:7:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
-./A.ulam:7:9: ERROR: 4 Nodes with unresolved types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## first error write test of constant arrays: oddly rtn3 gives the ERROR msg first, rtn1 & rtn2 are Hzy;

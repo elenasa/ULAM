@@ -3,7 +3,6 @@
 #!
 ./Tu.ulam:4:21: ERROR: Variable <self> is not defined, or was used before declared in a function.
 ./Tu.ulam:4:13: ERROR: Constant value expression for: aep, is invalid.
-./Tu.ulam:2:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: Tu.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>Tu.ulam

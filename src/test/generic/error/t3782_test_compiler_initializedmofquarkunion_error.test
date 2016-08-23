@@ -2,8 +2,6 @@
 #=t3782_test_compiler_initializedmofquarkunion_error
 #!
 ./Soo.ulam:4:3: ERROR: Data member 'us' belongs to a quark-union, and cannot be initialized.
-./System.ulam:2:7: ERROR: 1 Nodes with erroneous types detected after type labeling class: System.
-./System.ulam:2:7: ERROR: 18 Nodes with unresolved types detected after type labeling class: System.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## data members of quark unions cannot be initialized

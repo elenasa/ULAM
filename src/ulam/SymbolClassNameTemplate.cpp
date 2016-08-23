@@ -27,6 +27,18 @@ namespace MFM {
 	it++;
       }
     m_scalarClassInstanceIdxToSymbolPtr.clear(); //many-to-1 (possible after fully instantiated)
+
+    std::map<UTI, SymbolClass* >::iterator pit = m_scalarClassInstanceIdxToSymbolPtrTEMP.begin();
+    while(pit != m_scalarClassInstanceIdxToSymbolPtrTEMP.end())
+      {
+	SymbolClass * sym = pit->second;
+	if(sym && sym->isStub())
+	  {
+	    delete sym;
+	    pit->second = NULL;
+	  }
+	pit++;
+      }
     m_scalarClassInstanceIdxToSymbolPtrTEMP.clear(); //should be empty after each cloneInstance attempt
 
     // need to delete class instance symbols; ownership belongs here!
@@ -41,6 +53,17 @@ namespace MFM {
     m_scalarClassArgStringsToSymbolPtr.clear();
 
     m_mapOfTemplateUTIToInstanceUTIPerClassInstance.clear();
+
+    //empty trash: delete any stubs that were replaced by full class instances
+    std::map<UTI, SymbolClass* >::iterator dit = m_stubsToDelete.begin();
+    while(dit != m_stubsToDelete.end())
+      {
+	SymbolClass * dsym = dit->second;
+	delete dsym;
+	dit->second = NULL;
+	dit++;
+      }
+    m_stubsToDelete.clear();
   } //destructor
 
   void SymbolClassNameTemplate::getTargetDescriptorsForClassInstances(TargetMap& classtargets)
@@ -174,7 +197,6 @@ namespace MFM {
   bool SymbolClassNameTemplate::findClassInstanceByUTI(UTI uti, SymbolClass * & symptrref)
   {
     UTI basicuti = m_state.getUlamTypeAsDeref(m_state.getUlamTypeAsScalar(uti));
-#if 1
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(basicuti);
     if(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
@@ -185,29 +207,15 @@ namespace MFM {
 	return true;
       }
 
-#if 0
-    UTI mappedUTI;
-    if(m_state.findaUTIAlias(basicuti, mappedUTI))
-      return findClassInstanceByUTI(mappedUTI, symptrref);
-#endif
+    //in case in the middle of stub copy..(t3328)
+    std::map<UTI, SymbolClass* >::iterator tit = m_scalarClassInstanceIdxToSymbolPtrTEMP.find(basicuti);
+    if(tit != m_scalarClassInstanceIdxToSymbolPtrTEMP.end())
+      {
+	symptrref = tit->second;
+	return true;
+      }
 
     return false;
-#else
-    //debug version
-    bool rtn = false;
-    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
-    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
-      {
-	if(it->first == basicuti)
-	  {
-	    symptrref = it->second;
-	    rtn = true;
-	    break;
-	  }
-	it++;
-      }
-    return rtn;
-#endif
   } //findClassInstanceByUTI
 
   bool SymbolClassNameTemplate::findClassInstanceByArgString(UTI cuti, SymbolClass *& csymptr)
@@ -412,7 +420,8 @@ namespace MFM {
 	//can't addClassInstanceUTI(newuti, newclassinstance) ITERATION IN PROGRESS!!!
 	m_scalarClassInstanceIdxToSymbolPtrTEMP.insert(std::pair<UTI,SymbolClass*> (newuti,newclassinstance));
 
-	newclassinstance->cloneResolverForStubClassInstance(csym, context);
+	//newclassinstance->cloneResolverForStubClassInstance(csym, context);
+	newclassinstance->cloneArgumentNodesForClassInstance(csym, context, true);
 	csym->cloneResolverUTImap(newclassinstance);
       }
     else
@@ -649,23 +658,6 @@ namespace MFM {
     return aok;
   } //statusNonreadyClassArgumentsInStubClassInstances
 
-  bool SymbolClassNameTemplate::constantFoldClassArgumentsInAStubClassInstance(UTI instance)
-  {
-    bool aok = true;
-    SymbolClass * csym = NULL;
-    if(findClassInstanceByUTI(instance, csym))
-      {
-	NodeBlockClass * classNode = csym->getClassBlockNode();
-	assert(classNode);
-	UTI cuti = csym->getUlamTypeIdx();
-	m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
-
-	aok = csym->statusNonreadyClassArguments();
-	m_state.popClassContext();
-      }
-    return aok;
-  } //constantFoldClassArgumentsInAStubClassInstance
-
   std::string SymbolClassNameTemplate::formatAnInstancesArgValuesAsAString(UTI instance)
   {
     std::ostringstream args;
@@ -701,6 +693,7 @@ namespace MFM {
 	std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
 	while(pit != m_parameterSymbols.end())
 	  {
+	    bool isok = false;
 	    SymbolConstantValue * psym = *pit;
 	    Symbol * asym = NULL;
 	    bool hazyKin = false; //don't care
@@ -709,69 +702,79 @@ namespace MFM {
 	    UTI auti = asym->getUlamTypeIdx();
 	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
 
-	    ULAMTYPE eutype = aut->getUlamTypeEnum();
-
 	    //append 'instance's arg (mangled) type
 	    args << aut->getUlamTypeMangledType().c_str();
 	    assert(!aut->isReference());
-
-	    //append 'instance's arg value
-	    bool isok = false;
-	    u64 uval;
-	    if(((SymbolConstantValue *) asym)->getValue(uval))
+	    if(!aut->isScalar())
 	      {
-		u32 awordsize = m_state.getTotalWordSize(auti); //must be complete!
-		s32 abs = m_state.getBitSize(auti);
-
-		switch(eutype)
+		std::string arrvalstr;
+		if(((SymbolConstantValue *) asym)->getArrayValueAsString(arrvalstr))
 		  {
-		  case Int:
-		    {
-		      if(awordsize <= MAXBITSPERINT)
-			args << ToLeximitedNumber(_SignExtend32((u32)uval, (u32) abs));
-		      else if(awordsize <= MAXBITSPERLONG)
-			args << ToLeximitedNumber64(_SignExtend64(uval, (u32) abs));
-		      else
-			assert(0);
-		      isok = true;
-		    }
-		  break;
-		  case Unsigned:
-		  case Bits:
-		    {
-		      if(awordsize <= MAXBITSPERINT)
-			args << ToLeximitedNumber((u32) uval);
-		      else if(awordsize <= MAXBITSPERLONG)
-			args << ToLeximitedNumber64(uval);
-		      else
-			assert(0);
-		      isok = true;
-		    }
-		    break;
-		  case Unary:
-		    {
-		      u32 pval = _Unary64ToUnsigned64(uval, abs, MAXBITSPERINT);
-		      args << ToLeximitedNumber(pval);
-		      isok = true;
-		    }
-		    break;
-		  case Bool:
-		    {
-		      bool bval;
-		      if(awordsize <= MAXBITSPERINT)
-			bval = _Bool32ToCbool((u32) uval, m_state.getBitSize(auti));
-		      else if(awordsize <= MAXBITSPERLONG)
-			bval = _Bool64ToCbool(uval, m_state.getBitSize(auti));
-		      else
-			assert(0);
+		    isok = true;
+		    //args << ToLeximited(arrvalstr.length()) << arrvalstr; //like UlamUtil.cpp
+		    args << arrvalstr; //lex'd by array of u32's
+		  }
+	      }
+	    else
+	      {
+		//append 'instance's arg value (scalar)
+		u64 uval;
+		if(((SymbolConstantValue *) asym)->getValue(uval))
+		  {
+		    u32 awordsize = m_state.getTotalWordSize(auti); //must be complete!
+		    s32 abs = m_state.getBitSize(auti);
+		    ULAMTYPE eutype = aut->getUlamTypeEnum();
 
-		      args << ToLeximitedNumber((u32) bval);
-		      isok = true;
-		    }
-		    break;
-		  default:
-		    assert(0);
-		  };
+		    switch(eutype)
+		      {
+		      case Int:
+			{
+			  if(awordsize <= MAXBITSPERINT)
+			    args << ToLeximitedNumber(_SignExtend32((u32)uval, (u32) abs));
+			  else if(awordsize <= MAXBITSPERLONG)
+			    args << ToLeximitedNumber64(_SignExtend64(uval, (u32) abs));
+			  else
+			    assert(0);
+			  isok = true;
+			}
+			break;
+		      case Unsigned:
+		      case Bits:
+			{
+			  if(awordsize <= MAXBITSPERINT)
+			    args << ToLeximitedNumber((u32) uval);
+			  else if(awordsize <= MAXBITSPERLONG)
+			    args << ToLeximitedNumber64(uval);
+			  else
+			    assert(0);
+			  isok = true;
+			}
+			break;
+		      case Unary:
+			{
+			  u32 pval = _Unary64ToUnsigned64(uval, abs, MAXBITSPERINT);
+			  args << ToLeximitedNumber(pval);
+			  isok = true;
+			}
+			break;
+		      case Bool:
+			{
+			  bool bval;
+			  if(awordsize <= MAXBITSPERINT)
+			    bval = _Bool32ToCbool((u32) uval, m_state.getBitSize(auti));
+			  else if(awordsize <= MAXBITSPERLONG)
+			    bval = _Bool64ToCbool(uval, m_state.getBitSize(auti));
+			  else
+			    assert(0);
+
+			  args << ToLeximitedNumber((u32) bval);
+			  isok = true;
+			}
+			break;
+		      default:
+			assert(0);
+		      };
+		  }
 	      }
 
 	    if(!isok)
@@ -834,65 +837,79 @@ namespace MFM {
 	    AssertBool isDefined = m_state.alreadyDefinedSymbol(psym->getId(), asym, hazyKin);
 	    assert(isDefined);
 	    UTI auti = asym->getUlamTypeIdx();
-	    if(m_state.isComplete(auti))
+	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
+	    if(aut->isComplete())
 	      {
-		u32 awordsize = m_state.getTotalWordSize(auti); //requires completeness
-		s32 abs = m_state.getBitSize(auti);
-		ULAMTYPE eutype = m_state.getUlamTypeByIndex(auti)->getUlamTypeEnum();
-
-		u64 uval;
-		if(((SymbolConstantValue *) asym)->getValue(uval))
+		if(!aut->isScalar())
 		  {
-		    switch(eutype)
+		    std::string arrvalstr;
+		    if(((SymbolConstantValue *) asym)->getArrayValueAsString(arrvalstr))
 		      {
-		      case Int:
-			{
-			  if(awordsize <= MAXBITSPERINT)
-			    args << _SignExtend32((u32)uval, abs);
-			  else if(awordsize <= MAXBITSPERLONG)
-			    args << _SignExtend64(uval, abs);
-			  else
-			    assert(0);
-			  isok = true;
-			}
-			break;
-		      case Unsigned:
-			{
-			  args << uval << "u";
-			  isok = true;
-			}
-			break;
-		      case Unary:
-			{
-			  u32 pval = _Unary64ToUnsigned64(uval, abs, MAXBITSPERINT);
-			  args << pval;
-			  isok = true;
-			}
-			break;
-		      case Bool:
-			{
-			  bool bval;
-			  if(awordsize <= MAXBITSPERINT)
-			    bval = _Bool32ToCbool((u32) uval, abs);
-			  else if(awordsize <= MAXBITSPERLONG)
-			    bval = _Bool64ToCbool(uval, abs);
-			  else
-			    assert(0);
-
-			  args << (bval ? "true" : "false");
-			  isok = true;
-			}
-			break;
-		      case Bits:
-			{
-			  args << "0x" << std::hex << uval;  //as hex
-			  isok = true;
-			}
-			break;
-		      default:
-			assert(0);
-		      };
+			isok = true;
+			// args << "0x" << std::hex << arrvalstr;  //as hex
+			args << arrvalstr;  //lex'd array of u32's
+		      }
 		  }
+		else
+		  {
+		    u32 awordsize = aut->getTotalWordSize(); //requires completeness
+		    s32 abs = aut->getBitSize();
+		    ULAMTYPE eutype = aut->getUlamTypeEnum();
+
+		    u64 uval;
+		    if(((SymbolConstantValue *) asym)->getValue(uval))
+		      {
+			switch(eutype)
+			  {
+			  case Int:
+			    {
+			      if(awordsize <= MAXBITSPERINT)
+				args << _SignExtend32((u32)uval, abs);
+			      else if(awordsize <= MAXBITSPERLONG)
+				args << _SignExtend64(uval, abs);
+			      else
+				assert(0);
+			      isok = true;
+			    }
+			    break;
+			  case Unsigned:
+			    {
+			      args << uval << "u";
+			      isok = true;
+			    }
+			    break;
+			  case Unary:
+			    {
+			      u32 pval = _Unary64ToUnsigned64(uval, abs, MAXBITSPERINT);
+			      args << pval;
+			      isok = true;
+			    }
+			    break;
+			  case Bool:
+			    {
+			      bool bval;
+			      if(awordsize <= MAXBITSPERINT)
+				bval = _Bool32ToCbool((u32) uval, abs);
+			      else if(awordsize <= MAXBITSPERLONG)
+				bval = _Bool64ToCbool(uval, abs);
+			      else
+				assert(0);
+
+			      args << (bval ? "true" : "false");
+			      isok = true;
+			    }
+			    break;
+			  case Bits:
+			    {
+			      args << "0x" << std::hex << uval;  //as hex
+			      isok = true;
+			    }
+			    break;
+			  default:
+			    assert(0);
+			  };
+		      }
+		  } //isscalar
 	      } //iscomplete
 
 	    if(!isok)
@@ -983,8 +1000,9 @@ namespace MFM {
 	  {
 	    UTI duti = dupsym->getUlamTypeIdx();
 	    m_state.mergeClassUTI(cuti, duti);
-	    delete csym;
-	    csym = NULL;
+	    //delete csym;
+	    //csym = NULL;
+	    trashStub(cuti, csym);
 	    it->second = dupsym; //duplicate! except different UTIs
 	    it++;
 	    continue;
@@ -1025,11 +1043,14 @@ namespace MFM {
 	  }
 	else
 	  {
+	    clone->cloneArgumentNodesForClassInstance(csym, csym->getContextForPendingArgs(), false);
 	    cloneAnInstancesUTImap(csym, clone);
 
 	    it->second = clone; //replace with the full copy
-	    delete csym; //done with stub
-	    csym = NULL;
+	    //HELP!
+	    //delete csym; //done with stub
+	    //csym = NULL;
+	    trashStub(cuti, csym);
 
 	    addClassInstanceByArgString(cuti, clone); //new entry, and owner of symbol class
 
@@ -1127,11 +1148,6 @@ namespace MFM {
 	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
 	classNode->findNodeNo(n, foundNode); //classblock node no IS the same across instances
-
-	//if not in the tree, ask the resolver
-	if(!foundNode)
-	  csym->findNodeNoInResolver(n, foundNode);
-
 	m_state.popClassContext(); //restore
       }
     return foundNode;
@@ -1377,10 +1393,7 @@ namespace MFM {
 	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
 	  }
 
-	csym->countNavNodesInClassResolver(ncnt, hcnt, nocnt);
-
 	m_state.popClassContext(); //restore
-
 	it++;
       }
 
@@ -1930,5 +1943,13 @@ namespace MFM {
     return ((sym->getUlamTypeIdx() == getUlamTypeIdx()) || (sym->isStub() && m_state.isClassATemplate(sym->getContextForPendingArgs())));
   }
 
+  // in case of a class stub was saved as a variable symbol in a NodeVarDecl plus ST;
+  // wait to safely delete the stub even after it is fully instantiated (e.g. t3577 VG).
+  void SymbolClassNameTemplate::trashStub(UTI uti, SymbolClass * symptr)
+  {
+    std::pair<std::map<UTI,SymbolClass *>::iterator,bool> ret;
+    ret = m_stubsToDelete.insert(std::pair<UTI,SymbolClass*> (uti,symptr)); //stub
+    assert(ret.second); //false if already existed, i.e. not added
+  }
 
 } //end MFM

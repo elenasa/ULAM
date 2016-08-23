@@ -3,8 +3,6 @@
 #!
 ./Soo.ulam:6:24: ERROR: Variable <soosize> is not defined, or was used before declared in a function.
 ./Soo.ulam:10:16: ERROR: UNSEEN class type <Soo3> was never defined in <Soo3.ulam>.
-./System.ulam:2:7: ERROR: 1 Nodes with erroneous types detected after type labeling class: System.
-./System.ulam:2:7: ERROR: 4 Nodes with unresolved types detected after type labeling class: System.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## test of local defs: different file scopes, informed by t3859

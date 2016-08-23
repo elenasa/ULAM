@@ -2,7 +2,6 @@
 #=t3446_test_compiler_constantdefunpackedarray_error
 #!
 ./T.ulam:4:11: ERROR: Constant value expression for: x, array/scalar mismatch.
-./T.ulam:2:10: ERROR: 1 Nodes with erroneous types detected after type labeling class: T.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##    //informed by t3445

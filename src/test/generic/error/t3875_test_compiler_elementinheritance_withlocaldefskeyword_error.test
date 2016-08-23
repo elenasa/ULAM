@@ -2,8 +2,6 @@
 #=t3875_test_compiler_elementinheritance_withlocaldefskeyword_error
 #!
 ./Foo.ulam:2:9: ERROR: Subclass 'Foo' inherits from 'Moo', an unresolved local filescope typedef.
-./Moo.ulam:2:7: ERROR: 2 Nodes with erroneous types detected after type labeling class: Moo.
-./Moo.ulam:2:7: ERROR: 5 Nodes with unresolved types detected after type labeling class: Moo.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## test of local defs errors, mis-using local keyword as forward decl

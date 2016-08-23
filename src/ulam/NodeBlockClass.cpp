@@ -11,18 +11,27 @@ namespace MFM {
   {
     m_nodeParameterList = new NodeList(state);
     assert(m_nodeParameterList);
+    m_nodeArgumentList = new NodeList(state);
+    assert(m_nodeArgumentList);
   }
 
-  NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlockContext(ref), m_functionST(ref.m_functionST) /* deep copy */, m_virtualmethodMaxIdx(ref.m_virtualmethodMaxIdx), m_superBlockNode(NULL), m_isEmpty(ref.m_isEmpty), m_nodeParameterList(NULL)
+  NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlockContext(ref), m_functionST(ref.m_functionST) /* deep copy */, m_virtualmethodMaxIdx(ref.m_virtualmethodMaxIdx), m_superBlockNode(NULL), m_isEmpty(ref.m_isEmpty), m_nodeParameterList(NULL), m_nodeArgumentList(NULL)
   {
     setNodeType(m_state.getCompileThisIdx());
-    m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate(); //instances don't need this; its got symbols
+    m_nodeParameterList = new NodeList(m_state);
+    assert(m_nodeParameterList);
+    m_nodeArgumentList = new NodeList(m_state);
+    assert(m_nodeArgumentList);
+    //m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate(); //instances don't need this; its got symbols
+    //m_nodeArgumentList = (NodeList *) ref.m_nodeArgumentList->instantiate(); //instances only need this for constant array arguments; templates don't need this.
   }
 
   NodeBlockClass::~NodeBlockClass()
   {
     delete m_nodeParameterList;
     m_nodeParameterList = NULL;
+    delete m_nodeArgumentList;
+    m_nodeArgumentList = NULL;
   }
 
   Node * NodeBlockClass::instantiate()
@@ -49,6 +58,8 @@ namespace MFM {
       m_nodeNext->updateLineage(getNodeNo());
     if(m_nodeParameterList)
       m_nodeParameterList->updateLineage(getNodeNo());
+    if(m_nodeArgumentList)
+      m_nodeArgumentList->updateLineage(getNodeNo());
     m_functionST.linkToParentNodesAcrossTableOfFunctions(this); //all the function defs
   } //updateLineage
 
@@ -73,6 +84,8 @@ namespace MFM {
       return true;
     if(m_nodeParameterList && m_nodeParameterList->findNodeNo(n, foundNode))
       return true;
+    if(m_nodeArgumentList && m_nodeArgumentList->findNodeNo(n, foundNode))
+      return true;
     return false;
   } //findNodeNo
 
@@ -87,6 +100,8 @@ namespace MFM {
   {
     if(m_nodeParameterList)
       m_nodeParameterList->setNodeLocation(loc);
+    if(m_nodeArgumentList)
+      m_nodeArgumentList->setNodeLocation(loc);
     Node::setNodeLocation(loc);
   }
 
@@ -123,7 +138,7 @@ namespace MFM {
     fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeUPrefix().c_str());  //e.g. Ue_Foo
     fp->write(getName());  //unmangled
 
-    //output class template arguments type and name
+    //output class template parameter type and name
     if(m_nodeParameterList->getNumberOfNodes() > 0)
       {
 	SymbolClassNameTemplate * cnsym = NULL;
@@ -234,7 +249,7 @@ namespace MFM {
   UTI NodeBlockClass::getNodeType()
   {
     UTI cuti = Node::getNodeType();
-    if(cuti == Int) //kludge nodetype clobbered to test
+    if(cuti == Int) //kludge nodetype clobbered to test eval
       cuti = m_state.getCompileThisIdx();
     return cuti;
   }
@@ -278,6 +293,14 @@ namespace MFM {
   {
     //do first, might be important!
     checkParameterNodeTypes();
+
+    //Argument c&l handled during pending arg step of resolving loop
+    //if(!checkArgumentNodeTypes())
+    //  {
+    //	std::ostringstream msg;
+    //	msg << "Arguments not ready yet";
+    //	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+    //  }
 
     // Inheritance checks
     UTI nuti = getNodeType();
@@ -411,20 +434,70 @@ namespace MFM {
   bool NodeBlockClass::checkParameterNodeTypes()
   {
     if(m_nodeParameterList)
-      return m_nodeParameterList->checkAndLabelType();
+      {
+	assert((m_nodeParameterList->getNumberOfNodes() == 0) || m_state.isClassATemplate(getNodeType()));
+	return m_nodeParameterList->checkAndLabelType();
+      }
     return true;
   }
 
   void NodeBlockClass::addParameterNode(Node * nodeArg)
   {
     assert(m_nodeParameterList); //must be a template
+    assert(m_state.isClassATemplate(getNodeType()));
     m_nodeParameterList->addNodeToList(nodeArg);
   }
 
-  Node * NodeBlockClass::getParameterNode(u32 n) const
+  Node * NodeBlockClass::getParameterNode(u32 n)
   {
     assert(m_nodeParameterList); //must be a template
+    assert(m_state.isClassATemplate(getNodeType()));
     return m_nodeParameterList->getNodePtr(n);
+  }
+
+  u32 NodeBlockClass::getNumberOfParameterNodes()
+  {
+    assert(m_nodeParameterList); //must be a template
+    assert(m_state.isClassATemplate(getNodeType()));
+    return m_nodeParameterList->getNumberOfNodes();
+  }
+
+  bool NodeBlockClass::checkArgumentNodeTypes()
+  {
+    //unlike Parameter Nodes, the argument Nodes are c&l during
+    // the resolving loop, pendingArgs step (t3894).
+    if(m_nodeArgumentList)
+      {
+	u32 n = m_nodeArgumentList->getNumberOfNodes();
+	assert((n == 0) || !m_state.isClassATemplate(getNodeType()));
+	//return m_nodeArgumentList->checkAndLabelType();
+	u32 navcnt, hzycnt, nocnt;
+	navcnt = hzycnt = nocnt = 0;
+	m_nodeArgumentList->countNavHzyNoutiNodes(navcnt, hzycnt, nocnt);
+	return (navcnt + hzycnt == 0);
+      }
+    return true;
+  }
+
+  void NodeBlockClass::addArgumentNode(Node * nodeArg)
+  {
+    assert(m_nodeArgumentList); //must be a template class instance
+    assert(!m_state.isClassATemplate(getNodeType()));
+    m_nodeArgumentList->addNodeToList(nodeArg);
+  }
+
+  Node * NodeBlockClass::getArgumentNode(u32 n)
+  {
+    assert(m_nodeArgumentList); //must be a template class instance
+    assert(!m_state.isClassATemplate(getNodeType()));
+    return m_nodeArgumentList->getNodePtr(n);
+  }
+
+  u32 NodeBlockClass::getNumberOfArgumentNodes()
+  {
+    assert(m_nodeArgumentList); //must be a template class instance
+    assert(!m_state.isClassATemplate(getNodeType()));
+    return m_nodeArgumentList->getNumberOfNodes();
   }
 
   void NodeBlockClass::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
@@ -438,6 +511,9 @@ namespace MFM {
 
     if(m_nodeParameterList)
       m_nodeParameterList->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+
+    if(m_nodeArgumentList)
+      m_nodeArgumentList->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   } //countNavHzyNoutiNodes
 
   u32 NodeBlockClass::checkDuplicateFunctions()
@@ -703,6 +779,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     evalNodeProlog(0); //new current frame pointer for nodeeval stack
 
     EvalStatus evs = ERROR; //init
+
+    m_nodeArgumentList->eval();
 
     // NodeVarDecl's make UlamValue storage now, so don't want their
     // side-effects for the class definition, rather the instance.
@@ -1132,12 +1210,18 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write(" THE_INSTANCE;"); GCNL;
 
+    // any constant array class arguments
+    if(m_nodeArgumentList)
+      {
+	UVPass uvpass;
+	m_nodeArgumentList->genCode(fp, uvpass);
+      }
+
     //DataMember VAR DECLS DMs
     if(m_nodeNext)
       {
 	UVPass uvpass;
 	m_nodeNext->genCode(fp, uvpass); //output the BitField typedefs
-	//NodeBlock::genCodeDeclsForVariableDataMembers(fp, classtype); //not in order declared
 	fp->write("\n");
       }
     //default constructor/destructor
@@ -1189,6 +1273,13 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("static ");
     fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write(" THE_INSTANCE;"); GCNL;
+
+    // any constant array class arguments
+    if(m_nodeArgumentList)
+      {
+	UVPass uvpass;
+	m_nodeArgumentList->genCode(fp, uvpass);
+      }
 
     //DataMember VAR DECLS DM
     if(m_nodeNext)
@@ -1249,6 +1340,13 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("static ");
     fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write(" THE_INSTANCE;"); GCNL;
+
+    // any constant array class arguments
+    if(m_nodeArgumentList)
+      {
+	UVPass uvpass;
+	m_nodeArgumentList->genCode(fp, uvpass);
+      }
 
     //DataMember VAR DECLS DM
     if(m_nodeNext)
@@ -2230,12 +2328,18 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   void NodeBlockClass::genCodeConstantArrayInitialization(File * fp)
   {
+    if(m_nodeArgumentList)
+      m_nodeArgumentList->genCodeConstantArrayInitialization(fp);
+
     if(m_nodeNext)
       m_nodeNext->genCodeConstantArrayInitialization(fp);
   }
 
   void NodeBlockClass::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
   {
+    if(m_nodeArgumentList)
+      m_nodeArgumentList->generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
+
     if(m_nodeNext)
       m_nodeNext->generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
   }

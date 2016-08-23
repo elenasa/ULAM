@@ -76,6 +76,8 @@ namespace MFM{
 
     virtual bool assignClassArgValueInStubCopy();
 
+    bool getArrayValue(BV8K& bvtmp);
+
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();

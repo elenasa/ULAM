@@ -62,8 +62,6 @@ namespace MFM{
 
     virtual bool isAClassBlock();
 
-    void appendNextNode(Node * node);
-
     virtual UTI checkAndLabelType();
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
@@ -76,8 +74,6 @@ namespace MFM{
 
 
   private:
-
-    NodeStatements * m_nodeEndingStmt; //ptr to last statement node while parsing.
 
   };
 

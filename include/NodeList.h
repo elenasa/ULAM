@@ -102,9 +102,17 @@ namespace MFM{
 
     bool isFunctionCall(u32 n);
 
+    virtual bool isAList();
+
+    virtual void genCode(File * fp, UVPass& uvpass);
+
     void genCode(File * fp, UVPass& uvpass, u32 n);
 
     void genCodeToStoreInto(File * fp, UVPass& uvpass, u32 n);
+
+    virtual void genCodeConstantArrayInitialization(File * fp);
+
+    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
 
   protected:
     std::vector<Node *> m_nodes;

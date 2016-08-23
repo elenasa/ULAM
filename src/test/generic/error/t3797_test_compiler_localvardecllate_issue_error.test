@@ -3,7 +3,6 @@
 #!
 ./A.ulam:4:5: ERROR: Variable <m> is not defined, or was used before declared in a function.
 ./A.ulam:4:7: ERROR: Assignment is invalid; LHS: erroneous; RHS: Int(3).
-./A.ulam:2:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>A.ulam

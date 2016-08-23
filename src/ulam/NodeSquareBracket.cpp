@@ -61,12 +61,6 @@ namespace MFM {
     return "_SquareBracket_Stub";
   }
 
-  bool NodeSquareBracket::isAConstant()
-  {
-    assert(m_nodeLeft);
-    return m_nodeLeft->isAConstant();
-  }
-
   // used to select an array item; not for declaration
   UTI NodeSquareBracket::checkAndLabelType()
   {

@@ -3,7 +3,6 @@
 #!
 ./Foo.ulam:12:10: ERROR: Invalid argument 1 to function <func>; Cannot be used as a reference parameter.
 ./Foo.ulam:12:8: ERROR: Assignment is invalid; LHS: Bool(1); RHS: erroneous.
-./Foo.ulam:3:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3661

@@ -564,6 +564,7 @@ namespace MFM {
 	      MSG(&pTok, "No symbol from class parameter declaration", ERR);
 
 	    //potentially needed to resolve its node type
+	    assert(cblock);
 	    cblock->addParameterNode(argNode);
 
 	    //sanity check for default values
@@ -2409,7 +2410,7 @@ namespace MFM {
 	argSym->setClassArgumentFlag();
 	m_state.addSymbolToCurrentScope(argSym); //scope updated to new class instance in parseClassArguments
 
-	m_state.popClassContext(); //restore before making NodeConstantDef, so current context
+	//m_state.popClassContext(); //restore before making NodeConstantDef, so current context
 
 	NodeTypeDescriptor * argTypeDesc = NULL;
 	if(!ctUnseen)
@@ -2437,6 +2438,7 @@ namespace MFM {
 	constNode->setConstantExpr(exprNode);
 	//fold later; non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (stub)
 	csym->linkConstantExpressionForPendingArg(constNode);
+	m_state.popClassContext(); //restore after making NodeConstantDef, so current context is class
       } //too many args
 
     getNextToken(pTok);
@@ -5626,7 +5628,6 @@ Node * Parser::parseArrayInitialization(u32 identId)
     //initialize call stack with 'Int' UlamType pointer
     m_state.m_funcCallStack.init(Int);
     m_state.m_nodeEvalStack.init(Int);
-    //m_state.m_eventWindow.init(iidx); //necessary?
   } //initPrimitiveUlamTypes
 
 } //end MFM
