@@ -431,16 +431,6 @@ namespace MFM {
     return m_resolver->pendingClassArgumentsForClassInstance();
   }
 
-#if 0
-  void SymbolClass::cloneResolverForStubClassInstance(const SymbolClass * csym, UTI context)
-  {
-    assert(csym); //from
-    if(!m_resolver)
-      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
-    m_resolver->clonePendingClassArgumentsForStubClassInstance(*(csym->m_resolver), context, this);
-  } //cloneResolverForStubClassInstance
-#endif
-
   void SymbolClass::cloneArgumentNodesForClassInstance(SymbolClass * fmcsym, UTI context, bool toStub)
   {
     assert(fmcsym); //from
@@ -573,23 +563,6 @@ void SymbolClass::setContextForPendingArgs(UTI context)
     return rtnb;
   } //hasMappedUTI
 
-#if 0
-  bool SymbolClass::findNodeNoInResolver(NNO n, Node *& foundNode)
-  {
-    if(!m_resolver)
-      return false; //not found
-
-    return m_resolver->findNodeNo(n, foundNode);
-  } //findNodeNoInResolver
-#endif
-
-#if 0
-  void SymbolClass::countNavNodesInClassResolver(u32& ncnt, u32& hcnt, u32& nocnt)
-  {
-    if(m_resolver)
-      m_resolver->countNavNodes(ncnt, hcnt, nocnt);
-  }
-#endif
   /////////////////////////////////////////////////////////////////////////////////
   // from NodeProgram
   /////////////////////////////////////////////////////////////////////////////////

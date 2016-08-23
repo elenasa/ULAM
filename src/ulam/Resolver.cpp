@@ -376,50 +376,6 @@ namespace MFM {
     return !m_nonreadyClassArgSubtrees.empty();
   } //pendingClassArgumentsForClassInstance
 
-#if 0
-  void Resolver::clonePendingClassArgumentsForStubClassInstance(const Resolver& rslvr, UTI context, SymbolClass * mycsym)
-  {
-    NodeBlockClass * classblock = mycsym->getClassBlockNode();
-    SymbolClass * contextSym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(context, contextSym);
-    assert(isDefined);
-
-    u32 numArgs = classblock->getNumberOfArgumentNodes();
-    assert(rslvr.m_nonreadyClassArgSubtrees.size() <= numArgs);
-
-    for(u32 i = 0; i < numArgs; i++)
-	//    std::vector<NodeConstantDef *>::const_iterator vit = rslvr.m_nonreadyClassArgSubtrees.begin();
-	//while(vit != rslvr.m_nonreadyClassArgSubtrees.end())
-      {
-	//	NodeConstantDef * ceNode = *vit;
-	NodeConstantDef * ceNode = classblock->getArgumentNode(i);
-	assert(ceNode);
-	ceNode->fixPendingArgumentNode();
-	NodeConstantDef * cloneNode = (NodeConstantDef *) ceNode->instantiate(); //new NodeConstantDef(*ceNode);
-	assert(cloneNode);
-	Symbol * cvsym = NULL;
-	AssertBool isDefined = classblock->isIdInScope(cloneNode->getSymbolId(), cvsym);
-	assert(isDefined);
-	cloneNode->setSymbolPtr((SymbolConstantValue *) cvsym); //sets declnno
-
-	linkConstantExpressionForPendingArg(cloneNode); //resolve later
-	vit++;
-      }
-
-    setContextForPendingArgs(context); //update (might not be needed anymore?)
-
-    //Cannot MIX the current block (context) to find symbols while
-    //using this stub copy to find parent NNOs for constant folding;
-    //therefore we separate them so that all we do now is update the
-    //constant values in the stub copy's Resolver map.
-    //Resolution of all context-dependent arg expressions will occur
-    //during the resolving loop..
-    m_state.pushClassContext(context, contextSym->getClassBlockNode(), contextSym->getClassBlockNode(), false, NULL);
-    assignClassArgValuesInStubCopy();
-    m_state.popClassContext(); //restore previous context
-  } //clonePendingClassArgumentsForStubClassInstance
-#endif
-
   void Resolver::setContextForPendingArgs(UTI context)
   {
     m_classContextUTIForPendingArgs = context;
@@ -473,55 +429,6 @@ namespace MFM {
       }
     return brtn;
   } //findMappedUTI
-
-#if 0
-  bool Resolver::findNodeNo(NNO n, Node *& foundNode)
-  {
-    if(findNodeNoInNonreadyClassArgs(n, foundNode))
-      return true;
-
-    return false;
-  } //findNodeNo
-
-  bool Resolver::findNodeNoInNonreadyClassArgs(NNO n, Node *& foundNode)
-  {
-    bool rtnB = false;
-
-    std::vector<NodeConstantDef *>::const_iterator vit = m_nonreadyClassArgSubtrees.begin();
-    while(vit != m_nonreadyClassArgSubtrees.end())
-      {
-	NodeConstantDef * ceNode = *vit;
-	//assert(ceNode); t3328
-	if(ceNode && ceNode->findNodeNo(n, foundNode))
-	  {
-	    rtnB = true;
-	    break;
-	  }
-	vit++;
-      }
-    return rtnB;
-  } //findNodeNoInNonreadyClassArgs
-#endif
-
-#if 0
-  void Resolver::countNavNodes(u32& ncnt, u32& hcnt, u32& nocnt)
-  {
-    assert(0); //who calls me? stop it!
-    //countNavNodesInPendingArgs(ncnt, hcnt, nocnt);
-  }
-
-  void Resolver::countNavNodesInPendingArgs(u32& ncnt, u32& hcnt, u32& nocnt)
-  {
-    std::vector<NodeConstantDef *>::const_iterator vit = m_nonreadyClassArgSubtrees.begin();
-    while(vit != m_nonreadyClassArgSubtrees.end())
-      {
-	NodeConstantDef * ceNode = *vit;
-	assert(ceNode);
-	ceNode->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
-	vit++;
-      }
-  } //countNavNodesInPendingArgs
-#endif
 
   void Resolver::cloneUTImap(SymbolClass * csym)
   {

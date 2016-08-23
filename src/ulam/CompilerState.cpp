@@ -2290,17 +2290,7 @@ namespace MFM {
       {
 	Node * cenode = *vit;
 	assert(cenode);
-
 	classblock->appendNextNode(cenode); //tfr node ownership
-
-#if 0
-	NodeStatements * nextstmt = new NodeStatements(cenode, *this); //tfr node ownership
-	assert(nextstmt);
-	nextstmt->setNodeLocation(cenode->getNodeLocation());
-	assert(endingstmt);
-	endingstmt->setNextNode(nextstmt);
-	endingstmt = nextstmt;
-#endif
       }
     fmLocals.clear(); //done with vector of clones
 
@@ -3671,33 +3661,6 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
     UTI cuti = getCompileThisIdx();
     Node * rtnNode = findNodeNoInAClass(n, cuti);
-#if 0
-    //last resort, if we are in the middle of resolving pending args for a stub
-    // and to do constant folding, we need to find the parent node that's in the
-    // stub's resolver, NOT the context where the stub appears.
-    if(!rtnNode)
-      {
-	UTI stubuti = m_pendingArgStubContext;
-	if(stubuti != Nouti)
-	  {
-	    u32 stubid = getUlamKeyTypeSignatureByIndex(stubuti).getUlamKeyTypeSignatureNameId();
-	    SymbolClassNameTemplate * cntsym = NULL;
-	    AssertBool isDefined = alreadyDefinedSymbolClassNameTemplate(stubid, cntsym);
-	    assert(isDefined);
-	    rtnNode = cntsym->findNodeNoInAClassInstance(stubuti, n);
-	    //local def?
-	    if(!rtnNode)
-	      rtnNode = findNodeNoInALocalScope(cntsym->getLoc(), n);
-	  }
-	else
-	  {
-	    //what if in ancestor? (not its local scope)
-	    UTI superuti = isClassASubclass(getCompileThisIdx());
-	    if((superuti != Nouti) && (superuti != Hzy))
-	      rtnNode = findNodeNoInAClass(n, superuti);
-	  }
-      }
-#endif
 
     if(!rtnNode)
       {
@@ -3715,6 +3678,11 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       }
     return rtnNode;
   } //findNodeNoInThisClass
+
+  Node * CompilerState::findNodeNoInThisClassForParent(NNO n)
+  {
+    return findNodeNoInThisClassStubFirst(n);
+  }
 
   Node * CompilerState::findNodeNoInThisClassStubFirst(NNO n)
   {

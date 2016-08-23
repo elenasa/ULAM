@@ -55,8 +55,7 @@ NodeBinaryOpArithDivide::NodeBinaryOpArithDivide(const NodeBinaryOpArithDivide& 
 	    Node * castNode = Node::newCastingNode(this, nuti);
 	    assert(castNode);
 
-	    //Node * parentNode = m_state.findNodeNoInThisClass(pno);
-	    Node * parentNode = m_state.findNodeNoInThisClassStubFirst(pno);
+	    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
 	    if(!parentNode)
 	      {
 		std::ostringstream msg;

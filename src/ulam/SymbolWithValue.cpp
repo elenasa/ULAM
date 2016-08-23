@@ -328,7 +328,7 @@ namespace MFM {
 
     for(s32 i = 0; i < tbs; i++)
       {
-	ostream << std::hex << dval.Read(i, 1);
+	ostream << std::hex << dval.Read(i, 1); //per bit?
       }
     vstr = ostream.str();
     return true;

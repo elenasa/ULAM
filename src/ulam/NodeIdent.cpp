@@ -90,7 +90,6 @@ namespace MFM {
   NodeBlock * NodeIdent::getBlock()
   {
     assert(m_currBlockNo);
-    //    NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
     NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClassStubFirst(m_currBlockNo);
     assert(currBlock);
     return currBlock;
@@ -354,8 +353,7 @@ namespace MFM {
 
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
 
-    //Node * parentNode = m_state.findNodeNoInThisClass(pno);
-    Node * parentNode = m_state.findNodeNoInThisClassStubFirst(pno);
+    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
     if(!parentNode)
       {
 	std::ostringstream msg;

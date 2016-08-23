@@ -442,6 +442,7 @@ namespace MFM{
     NNO getNextNodeNo();
 
     Node * findNodeNoInThisClass(NNO n);
+    Node * findNodeNoInThisClassForParent(NNO n);
     Node * findNodeNoInThisClassStubFirst(NNO n);
     Node * findNodeNoInAClass(NNO n, UTI cuti);
     UTI findAClassByNodeNo(NNO n);

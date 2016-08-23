@@ -47,8 +47,7 @@ namespace MFM {
 	    //not using use makeCastingNode since don't want recursive c&l call
 	    Node * castNode = Node::newCastingNode(this, nuti);
 
-	    //Node * parentNode = m_state.findNodeNoInThisClass(pno);
-	    Node * parentNode = m_state.findNodeNoInThisClassStubFirst(pno);
+	    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
 	    if(!parentNode)
 	      {
 		std::ostringstream msg;

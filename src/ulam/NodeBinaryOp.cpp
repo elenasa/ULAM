@@ -448,8 +448,8 @@ namespace MFM {
 
     NNO pno = Node::getYourParentNo();
     assert(pno);
-    //Node * parentNode = m_state.findNodeNoInThisClass(pno);
-    Node * parentNode = m_state.findNodeNoInThisClassStubFirst(pno);
+
+    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
     if(!parentNode)
       {
 	std::ostringstream msg;
