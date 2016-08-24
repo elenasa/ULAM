@@ -1,12 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3896_test_compiler_unpackedconstantarray_aslocalvarinitval
 ##
-## gen output: (+ assert)
+## gen output: (+ asserts)
+##      Int Arg: 9
 ##      Int Arg: 9
 ##
 #!
 Exit status: 9
-Ue_A { Int(32) nineth(9);  typedef Int(32) BigSite[10];  constant Int(32)[10] cSite = { 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9 };  Int(32) test() {  System s;  Int(32) site[10] = cSite;  nineth ( site )func = s ( nineth )print . s ( nineth 9 cast == )assert . nineth return } }
+Ue_A { Int(32) nineth(9);  typedef Int(32) BigSite[10];  constant Int(32)[10] cSite = { 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9 };  Int(32) test() {  System s;  Int(32) site[10] = cSite;  nineth ( site )func = s ( nineth )print . s ( nineth 9 cast == )assert . Int(32) site2[10];  site2 cSite = nineth ( site2 )func = s ( nineth )print . s ( nineth 9 cast == )assert . nineth return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by 3704, initialize local variable with a constant array
@@ -25,10 +26,17 @@ element A {
 
   Int test(){
     System s;
-    BigSite site = cSite;
+    BigSite site = cSite; //initialized
     nineth = func(site); // == site[9]; both work.
     s.print(nineth);
     s.assert(nineth == 9);
+
+    BigSite site2;
+    site2 = cSite; //assignment
+    nineth = func(site2); // == site[9]; both work.
+    s.print(nineth);
+    s.assert(nineth == 9);
+
     return nineth;
   }
 }
