@@ -71,6 +71,8 @@ namespace MFM{
     bool getValue(u64& val);
     bool getValue(BV8K& val);
     void setValue(const BV8K& val);
+    bool getArrayItemValue(u32 item, u32& rtnitem);
+    bool getArrayItemValue(u32 item, u64& rtnitem);
 
     bool hasInitValue();
     bool getInitValue(u32& val);
@@ -79,6 +81,8 @@ namespace MFM{
     void setInitValue(const BV8K& val);
     bool isInitValueReady(); //new
     void setHasInitValue(); //new
+    bool getArrayItemInitValue(u32 item, u32& rtnitem);
+    bool getArrayItemInitValue(u32 item, u64& rtnitem);
 
     bool foldConstantExpression();
 

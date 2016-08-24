@@ -92,6 +92,40 @@ namespace MFM {
     m_isReady = true;
   }
 
+  bool SymbolWithValue::getArrayItemValue(u32 item, u32& rtnitem)
+  {
+    if(isReady())
+      {
+	UTI suti = getUlamTypeIdx();
+	UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	u32 bs = sut->getBitSize();
+	s32 arrsize = sut->getArraySize();
+	assert(bs <= MAXBITSPERINT);
+	assert((arrsize >= 0) && (item < (u32) arrsize));
+	//no casting!
+	rtnitem = m_constantValue.Read(item * bs, bs);
+	return true;
+      }
+    return false;
+  }
+
+  bool SymbolWithValue::getArrayItemValue(u32 item, u64& rtnitem)
+  {
+    if(isReady())
+      {
+	UTI suti = getUlamTypeIdx();
+	UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	u32 bs = sut->getBitSize();
+	s32 arrsize = sut->getArraySize();
+	assert(bs <= MAXBITSPERLONG);
+	assert((arrsize >= 0) && (item < (u32) arrsize));
+	//no casting!
+	rtnitem = m_constantValue.ReadLong(item * bs, bs);
+	return true;
+      }
+    return false;
+  }
+
   bool SymbolWithValue::hasInitValue()
   {
     return m_hasInitVal;
@@ -150,6 +184,42 @@ namespace MFM {
   {
     m_hasInitVal = true;
     m_isReadyInitVal = false;
+  }
+
+  bool SymbolWithValue::getArrayItemInitValue(u32 item, u32& rtnitem)
+  {
+    assert(hasInitValue());
+    if(isInitValueReady())
+      {
+	UTI suti = getUlamTypeIdx();
+	UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	u32 bs = sut->getBitSize();
+	s32 arrsize = sut->getArraySize();
+	assert(bs <= MAXBITSPERINT);
+	assert((arrsize >= 0) && (item < (u32) arrsize));
+	//no casting!
+	rtnitem = m_initialValue.Read(item * bs, bs);
+	return true;
+      }
+    return false;
+  }
+
+  bool SymbolWithValue::getArrayItemInitValue(u32 item, u64& rtnitem)
+  {
+    assert(hasInitValue());
+    if(isInitValueReady())
+      {
+	UTI suti = getUlamTypeIdx();
+	UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	u32 bs = sut->getBitSize();
+	s32 arrsize = sut->getArraySize();
+	assert(bs <= MAXBITSPERLONG);
+	assert((arrsize >= 0) && (item < (u32) arrsize));
+	//no casting!
+	rtnitem = m_initialValue.ReadLong(item * bs, bs);
+	return true;
+      }
+    return false;
   }
 
   bool SymbolWithValue::foldConstantExpression()

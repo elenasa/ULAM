@@ -752,7 +752,6 @@ UTI NodeVarDecl::checkAndLabelType()
 	    else
 	      assert(0);
 
-	    u32 n = slots;
 	    for(u32 j = 0; j < slots; j++)
 	      {
 		UlamValue itemUV = immUV;
@@ -762,20 +761,26 @@ UTI NodeVarDecl::checkAndLabelType()
 	else if(hasInitVal)
 	  {
 	    //unpacked constant array, either list or named constant array;
-	    // (no casting without eval approach) (t3704, t3769, t3896)
-	    BV8K bvtmp;
-	    AssertBool gotVal = m_varSymbol->getInitValue(bvtmp);
-	    assert(gotVal);
-
+	    // (items cast during constant folding) (t3704, t3769, t3896)
 	    u32 itemlen = nut->getBitSize();
 
 	    for(u32 j = 0; j < slots; j++)
 	      {
 		UlamValue itemUV;
 		if(itemlen <= MAXBITSPERINT)
-		  itemUV = UlamValue::makeImmediate(scalaruti, bvtmp.Read(j * itemlen, itemlen), m_state);
+		  {
+		    u32 ival = 0;
+		    AssertBool gotVal = m_varSymbol->getArrayItemInitValue(j, ival);
+		    assert(gotVal);
+		    itemUV = UlamValue::makeImmediate(scalaruti, ival, m_state);
+		  }
 		else if(itemlen <= MAXBITSPERLONG)
-		  itemUV = UlamValue::makeImmediateLong(scalaruti, bvtmp.ReadLong(j * itemlen, itemlen), m_state);
+		  {
+		    u64 ivalong = 0;
+		    AssertBool gotVal = m_varSymbol->getArrayItemInitValue(j, ivalong);
+		    assert(gotVal);
+		    itemUV = UlamValue::makeImmediateLong(scalaruti, ivalong, m_state);
+		  }
 		else
 		  assert(0);
 		m_state.m_funcCallStack.storeUlamValueInSlot(itemUV, baseslot + j);
