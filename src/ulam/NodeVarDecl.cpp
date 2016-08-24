@@ -5,6 +5,7 @@
 #include "SymbolVariableDataMember.h"
 #include "SymbolVariableStack.h"
 #include "NodeIdent.h"
+#include "NodeConstantArray.h"
 #include "NodeListArrayInitialization.h"
 #include "NodeVarRef.h"
 
@@ -144,7 +145,6 @@ namespace MFM {
 
   const char * NodeVarDecl::getName()
   {
-    //return m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str();
     return m_state.m_pool.getDataAsString(m_vid).c_str();
   }
 
@@ -182,16 +182,23 @@ namespace MFM {
     assert(m_nodeInitExpr); //NodeListArrayInitialization
     assert(m_varSymbol && !(m_varSymbol->isInitValueReady()));
 
-    if(((NodeListArrayInitialization *) m_nodeInitExpr)->foldArrayInitExpression())
+    //similar to NodeConstantDef's foldArrayInitExpression
+    bool brtn = false;
+    BV8K bvtmp;
+    if(m_nodeInitExpr->isAList() && ((NodeListArrayInitialization *) m_nodeInitExpr)->foldArrayInitExpression())
       {
-	BV8K bvtmp;
 	if(((NodeListArrayInitialization *) m_nodeInitExpr)->buildArrayValueInitialization(bvtmp))
-	  {
-	    m_varSymbol->setInitValue(bvtmp);
-	    return true;
-	  }
+	  brtn = true;
       }
-    return false;
+    else if(((NodeConstantArray *) m_nodeInitExpr)->getArrayValue(bvtmp))
+      {
+	brtn = true;
+      }
+
+    if(brtn)
+      m_varSymbol->setInitValue(bvtmp);
+
+    return brtn;
   } //foldArrayInitExpression
 
   FORECAST NodeVarDecl::safeToCastTo(UTI newType)
@@ -500,6 +507,9 @@ UTI NodeVarDecl::checkAndLabelType()
 	      }
 	    eit = it;
 	  } //end array initializers (eit == Void)
+	else
+	  if(!m_state.isScalar(it) && m_nodeInitExpr->isAConstant())
+	    m_varSymbol->setHasInitValue(); //t3896
 
 	setNodeType(it); //needed before safeToCast, and folding
 
@@ -702,12 +712,13 @@ UTI NodeVarDecl::checkAndLabelType()
   {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    assert(m_varSymbol->getUlamTypeIdx() == nuti);
+    assert(m_varSymbol && m_varSymbol->getUlamTypeIdx() == nuti);
+    bool hasInitVal = m_varSymbol->hasInitValue();
     PACKFIT packFit = nut->getPackable();
     if(packFit == PACKEDLOADABLE)
       {
 	u64 dval = 0;
-	if(m_varSymbol->hasInitValue())
+	if(hasInitVal)
 	  {
 	    AssertBool gotInitVal = m_varSymbol->getInitValue(dval);
 	    assert(gotInitVal);
@@ -721,49 +732,54 @@ UTI NodeVarDecl::checkAndLabelType()
 	  immUV = UlamValue::makeImmediateLong(nuti, dval, m_state);
 	else
 	  assert(0);
-	//immUV = UlamValue::makePtr(((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex(), STACK, nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId()); //array ptr
+
 	m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
       }
     else
       {
 	//unpacked primitive array - uses eval
 	UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
-	bool hasInitVal = m_varSymbol->hasInitValue();
 	u32 baseslot =  ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex();
 
-	UlamValue immUV;
-	u32 itemlen = nut->getBitSize();
-	if(itemlen <= MAXBITSPERINT)
-	  immUV = UlamValue::makeImmediate(scalaruti, 0, m_state);
-	else if(itemlen <= MAXBITSPERLONG)
-	  immUV = UlamValue::makeImmediateLong(scalaruti, 0, m_state);
-	else
-	  assert(0);
-
-	u32 n = slots;
-	if(hasInitVal)
-	  n = ((NodeList *) m_nodeInitExpr)->getNumberOfNodes(); //may be fewer
-
-	for(u32 j = 0; j < slots; j++)
+	if(!hasInitVal)
 	  {
-	    UlamValue itemUV;
-	    if(hasInitVal)
-	      {
-		evalNodeProlog(0); //new current frame pointer
-		makeRoomForNodeType(scalaruti); //offset a constant expression
-		u32 k = j < n ? j : n - 1; //repeat last initializer if fewer
-		EvalStatus evs = ((NodeList *) m_nodeInitExpr)->eval(k);
-		if(evs == NORMAL)
-		  {
-		    itemUV = m_state.m_nodeEvalStack.popArg();
-		  }
-		else
-		  assert(0); //error msg?
-		evalNodeEpilog();
-	      }
+	    UlamValue immUV;
+	    u32 itemlen = nut->getBitSize();
+	    if(itemlen <= MAXBITSPERINT)
+	      immUV = UlamValue::makeImmediate(scalaruti, 0, m_state);
+	    else if(itemlen <= MAXBITSPERLONG)
+	      immUV = UlamValue::makeImmediateLong(scalaruti, 0, m_state);
 	    else
-	      itemUV = immUV;
-	    m_state.m_funcCallStack.storeUlamValueInSlot(itemUV, baseslot + j);
+	      assert(0);
+
+	    u32 n = slots;
+	    for(u32 j = 0; j < slots; j++)
+	      {
+		UlamValue itemUV = immUV;
+		m_state.m_funcCallStack.storeUlamValueInSlot(itemUV, baseslot + j);
+	      }
+	  }
+	else if(hasInitVal)
+	  {
+	    //unpacked constant array, either list or named constant array;
+	    // (no casting without eval approach) (t3704, t3769, t3896)
+	    BV8K bvtmp;
+	    AssertBool gotVal = m_varSymbol->getInitValue(bvtmp);
+	    assert(gotVal);
+
+	    u32 itemlen = nut->getBitSize();
+
+	    for(u32 j = 0; j < slots; j++)
+	      {
+		UlamValue itemUV;
+		if(itemlen <= MAXBITSPERINT)
+		  itemUV = UlamValue::makeImmediate(scalaruti, bvtmp.Read(j * itemlen, itemlen), m_state);
+		else if(itemlen <= MAXBITSPERLONG)
+		  itemUV = UlamValue::makeImmediateLong(scalaruti, bvtmp.ReadLong(j * itemlen, itemlen), m_state);
+		else
+		  assert(0);
+		m_state.m_funcCallStack.storeUlamValueInSlot(itemUV, baseslot + j);
+	      }
 	  }
       }
   } //setupStackWithPrimitiveForEval
@@ -870,9 +886,8 @@ UTI NodeVarDecl::checkAndLabelType()
     //also called by NodeVarDecDM for data members with initial constant values (t3514);
     // don't call m_nodeInitExpr->eval(), if constant initialized array (e.g.t3768, t3769);
     if(m_varSymbol->hasInitValue() && !m_state.isScalar(getNodeType()))
-      {
-	return NORMAL;
-      }
+      //if(m_varSymbol->hasInitValue() && m_nodeInitExpr->isAList())
+      return NORMAL;
 
     EvalStatus evs = NORMAL; //init
     // quark or non-class data member;
@@ -897,7 +912,7 @@ UTI NodeVarDecl::checkAndLabelType()
       {
 	if(slots == 1)
 	  {
-	    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slots+1); //immediate scalar
+	    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slots+1); //immediate scalar + 1 for pluv
 	    if(m_state.isScalar(nuti))
 	      {
 		m_state.assignValue(pluv,ruv);
@@ -915,9 +930,11 @@ UTI NodeVarDecl::checkAndLabelType()
 	  {
 	    //t3704, t3706, t3707, t3709
 	    UlamValue scalarPtr = UlamValue::makeScalarPtr(pluv, m_state);
+
+	    u32 slotoff = 1 + 1;
 	    for(u32 j = 0; j < slots; j++)
 	      {
-		UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1+1+j); //immediate scalar
+		UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slotoff+j); //immediate scalar
 		m_state.assignValue(scalarPtr,ruv);
 		scalarPtr.incrementPtr(m_state); //by one.
 	      }

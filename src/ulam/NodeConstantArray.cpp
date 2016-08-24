@@ -281,6 +281,8 @@ namespace MFM {
     if(((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex() == 0)
       return NOTREADY;
 
+    evalNodeProlog(0); //new current node eval frame pointer, t3897
+
     UlamValue rtnUVPtr = makeUlamValuePtr();
     Node::assignReturnValueToStack(rtnUVPtr);
 

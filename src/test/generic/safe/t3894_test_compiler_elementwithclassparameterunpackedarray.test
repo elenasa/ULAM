@@ -13,7 +13,7 @@ Uq_S(Int(32)[10] y, Int(32) x) { <NOMAIN> }
 ##    //informed by t3444,5: local func-scope constant new
 ##
 #>T.ulam
- ulam 1;
+ ulam 2;
 local typedef Int BigSite[10];
 element T{
   Int r;
@@ -21,11 +21,10 @@ element T{
     System s;
     constant BigSite site = { 1, 2, 3, 4 };
     S(site, 3) n;
-    r = n.func(); //n.y[3]; //site[3];
+    r = n.func();
     s.print(r);
     s.assert(r==3);
-    //return n.y[n.x];
-    return r; //n.y[n.x];
+    return r;
   }
 }
 
@@ -33,7 +32,6 @@ quark S(BigSite y, Int x){
   Int func()
   {
     return y[x - 1];
-    //return x; ok.
   }
  }
 

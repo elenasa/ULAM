@@ -305,77 +305,6 @@ namespace MFM {
     return newclassinstance;
   } //makeAStubClassInstance
 
-  // no stub available to copy, may need placeholder args too (unused)
-  SymbolClass * SymbolClassNameTemplate::makeAStubClassInstanceHolder(const Token& typeTok, UTI suti)
-  {
-    NodeBlockClass * templateclassblock = getClassBlockNode();
-    assert(templateclassblock);
-    bool isCATemplate = ((UlamTypeClass *) m_state.getUlamTypeByIndex(getUlamTypeIdx()))->isCustomArray();
-
-    //previous block is template's class block, and new NNO here!
-    NodeBlockClass * newblockclass = new NodeBlockClass(templateclassblock, m_state);
-    assert(newblockclass);
-    newblockclass->setNodeLocation(typeTok.m_locator);
-    newblockclass->setNodeType(suti);
-    newblockclass->resetNodeNo(templateclassblock->getNodeNo()); //keep NNO consistent (new)
-
-    Token stubTok(TOK_IDENTIFIER, typeTok.m_locator, getId());
-    SymbolClass * newclassinstance = new SymbolClass(stubTok, suti, newblockclass, this, m_state);
-    assert(newclassinstance);
-    if(isQuarkUnion())
-      newclassinstance->setQuarkUnion();
-
-    if(isCATemplate)
-      ((UlamTypeClass *) m_state.getUlamTypeByIndex(suti))->setCustomArray();
-
-    addClassInstanceUTI(suti, newclassinstance); //link here
-
-    //need place holder args too!
-    std::vector<SymbolConstantValue *> argsForLater;
-    m_state.pushClassContext(suti, newblockclass, newblockclass, false, NULL);
-
-    u32 numparams = getNumberOfParameters();
-    bool ctUnseen = (getUlamClass() == UC_UNSEEN);
-    for(u32 parmIdx = 0; parmIdx < numparams; parmIdx++)
-      {
-	SymbolConstantValue * argSym = NULL;
-	if(!ctUnseen)
-	  {
-	    SymbolConstantValue * paramSym = getParameterSymbolPtr(parmIdx);
-	    assert(paramSym);
-	    Token argTok(TOK_IDENTIFIER, typeTok.m_locator, paramSym->getId()); //use current locator
-	    argSym = new SymbolConstantValue(argTok, paramSym->getUlamTypeIdx(), m_state); //like param, not copy
-	  }
-	else
-	  {
-	    std::ostringstream sname;
-	    sname << "_" << parmIdx;
-	    u32 snameid = m_state.m_pool.getIndexForDataString(sname.str());
-	    Token argTok(TOK_IDENTIFIER, typeTok.m_locator, snameid); //use current locator
-	    //stub id,  m_state.getUlamTypeOfConstant(Int) stub type, state
-	    argSym = new SymbolConstantValue(argTok, Int, m_state);
-	  }
-	assert(argSym);
-	m_state.addSymbolToCurrentScope(argSym); //scope updated to new class instance in parseClassArguments
-	argsForLater.push_back(argSym);
-      }
-
-    m_state.popClassContext(); //restore before making NodeConstantDef, so current context
-
-    //make Node with argument symbol wo trying to fold const expr;
-    // add to list of unresolved for this uti
-    // NULL node type descriptor, no token, yet know uti
-    for(u32 argIdx = 0; argIdx < numparams; argIdx++)
-      {
-	NodeConstantDef * constNode = new NodeConstantDef(argsForLater[argIdx], NULL, m_state);
-	assert(constNode);
-	constNode->setNodeLocation(typeTok.m_locator);
-	//fold later; non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (stub)
-	newclassinstance->linkConstantExpressionForPendingArg(constNode);
-      }
-     return newclassinstance;
-  } //makeAStubClassInstanceHolder
-
   //instead of a copy, let's start new
   void SymbolClassNameTemplate::copyAStubClassInstance(UTI instance, UTI newuti, UTI context)
   {
@@ -1855,7 +1784,6 @@ namespace MFM {
     NodeBlockClass * fmclassblock = fm->getClassBlockNode();
     assert(fmclassblock);
     // (don't care about inherited symbols for class args, so use NodeBlock)
-    //u32 cargs = fmclassblock->NodeBlock::getNumberOfSymbolsInTable();
     u32 cargs = fmclassblock->getNumberOfArgumentNodes();
     u32 numparams = getNumberOfParameters();
     u32 numDefaultParams = getTotalParametersWithDefaultValues();
@@ -1874,7 +1802,8 @@ namespace MFM {
     m_state.pushClassContext(fm->getUlamTypeIdx(), fmclassblock, fmclassblock, false, NULL);
     std::vector<SymbolConstantValue *> instancesArgs;
 
-    //copy values from stub into temp list; can't use parametersymbol if template still unseen (t3895)
+    //copy values from stub into temp list;
+    //can't use parametersymbol if template still unseen (t3895)
     bool ctUnseen = (getUlamClass() == UC_UNSEEN);
     for(u32 fmidx = 0; fmidx < cargs; fmidx++)
       {

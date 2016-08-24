@@ -74,7 +74,6 @@ namespace MFM{
     bool pendingClassArgumentsForStubClassInstance(UTI instance);
 
     SymbolClass * makeAStubClassInstance(const Token& typeTok, UTI cuti); //to hold class args, and cUTI
-    SymbolClass * makeAStubClassInstanceHolder(const Token& typeTok, UTI suti);
     void copyAStubClassInstance(UTI instance, UTI newuti, UTI context);
 
     void mergeClassInstancesFromTEMP();
