@@ -2274,8 +2274,8 @@ namespace MFM {
 	assert(returnNode);
 	returnNode->setNodeLocation(loc);
 
-	//fblock->appendNextNode(returnNode);
-#if 1
+	fblock->appendNextNode(returnNode);
+#if 0
 	NodeStatements * sNode = new NodeStatements(returnNode, m_state);
 	assert(sNode);
 	sNode->setNodeLocation(loc);

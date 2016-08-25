@@ -484,11 +484,12 @@ namespace MFM {
 	return rtnNode; //allow empty class
       }
 
+#if 0
     //keep the data member var decls, starting with NodeBlockClass, keeping it for return
-    NodeStatements * nextNode = rtnNode;
-    NodeStatements * stmtNode = NULL;
+    //NodeStatements * nextNode = rtnNode;
+    //NodeStatements * stmtNode = NULL;
 
-    while(parseDataMember(stmtNode))
+    //while(parseDataMember(stmtNode))
       {
 	//stmtNode could be false, in case of function def
 	if(stmtNode)
@@ -498,6 +499,9 @@ namespace MFM {
 	    stmtNode = NULL;
 	  }
       }
+#endif
+
+    while(parseDataMember()) { }
 
     if(!getExpectedToken(TOK_CLOSE_CURLY))
       {
@@ -737,7 +741,8 @@ namespace MFM {
       }
   } //parseLocalDef
 
-  bool Parser::parseDataMember(NodeStatements *& nextNode)
+  //bool Parser::parseDataMember(NodeStatements *& nextNode)
+  bool Parser::parseDataMember()
   {
     bool brtn = false;
     Node * rtnNode = NULL;
@@ -879,9 +884,12 @@ namespace MFM {
 	    if(rtnNode)
 	      {
 		brtn = true;
+		m_state.getCurrentBlock()->appendNextNode(rtnNode);
+#if 0
 		nextNode = new NodeStatements(rtnNode, m_state);
 		assert(nextNode);
 		nextNode->setNodeLocation(rtnNode->getNodeLocation());
+#endif
 	      }
 	  }
       }

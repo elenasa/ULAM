@@ -111,7 +111,8 @@ namespace MFM{
     /**
        <DATA_MEMBERS> := ( 0 | <FUNC_DEF> | <PARAMETER_DEF> + ';' | <TYPE_DEF> + ';'| <CONST_DEF> + ';' )*
      */
-    bool parseDataMember(NodeStatements *& nextNode);
+    //bool parseDataMember(NodeStatements *& nextNode);
+    bool parseDataMember();
 
     Node * parseRestOfDataMember(TypeArgs& args, const Token& identTok, Node * dNode, UTI passuti);
 
