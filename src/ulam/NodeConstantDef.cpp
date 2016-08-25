@@ -337,7 +337,7 @@ namespace MFM {
 	      }
 	  } //end array initializers (eit == Void)
 
-	if(m_state.okUTItoContinue(it) && (m_state.isScalar(it) ^ m_state.isScalar(suti)))
+	if(m_state.okUTItoContinue(it) && m_state.okUTItoContinue(suti) && (m_state.isScalar(it) ^ m_state.isScalar(suti)))
 	  {
 	    std::ostringstream msg;
 	    msg << "Constant value expression for";
@@ -350,7 +350,7 @@ namespace MFM {
 	    msg << ", array/scalar mismatch";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
-	    return Nav; //short-circuit (t3446)
+	    return Nav; //short-circuit (t3446, t3898)
 	  }
       } //end node expression
 

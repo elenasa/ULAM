@@ -407,7 +407,9 @@ namespace MFM {
       {
 	if(!m_state.okUTItoContinue(nuti))
 	  {
-	    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+	    //use given UTI, not the not-ok nuti here..
+	    assert(m_state.okUTItoContinue(givenUTI()));
+	    UlamType * nut = m_state.getUlamTypeByIndex(givenUTI());
 	    ULAMTYPE etyp = nut->getUlamTypeEnum();
 	    s32 arraysize = nut->getArraySize(); //NONARRAYSIZE for scalars
 	    //use default primitive bitsize; (assumes scalar)
@@ -424,6 +426,21 @@ namespace MFM {
       {
 	//primitive with possible unknown bit size
 	rtnb = resolveTypeBitsize(nuti);
+      }
+
+    if(!m_state.okUTItoContinue(nuti))
+      {
+	UTI tduti = Nouti;
+	UTI tmpforscalaruti = Nouti;
+	bool isTypedef = m_state.getUlamTypeByTypedefName(m_typeTok.m_dataindex, tduti, tmpforscalaruti);
+
+	if(isTypedef)
+	  {
+	    m_state.updateUTIAliasForced(givenUTI(), tduti); //t3898
+	    nuti = tduti;
+	    if(!(rtnb = m_state.isComplete(nuti)))
+	      nuti = Hzy;
+	  }
       }
     rtnuti = nuti;
     return rtnb;
