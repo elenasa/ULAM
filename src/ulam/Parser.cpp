@@ -171,7 +171,7 @@ namespace MFM {
 	if(pTok.m_type == TOK_KW_LOCALDEF)
 	  {
 	    m_state.setLocalScopeForParsing(pTok);
-	    parseLocalDef();
+	    parseLocalDef(); //returns bool
 	    m_state.clearLocalScopeForParsing();
 	    return parseThisClass();
 	  }
@@ -676,8 +676,9 @@ namespace MFM {
     return rtninherits;
   } //parseRestOfClassInheritance
 
-  void Parser::parseLocalDef()
+  bool Parser::parseLocalDef()
   {
+    bool brtn = true;
     NodeBlockLocals * locals = m_state.makeLocalScopeBlock(m_state.getLocalScopeLocator());
     assert(locals);
 
@@ -690,7 +691,7 @@ namespace MFM {
     if(pTok.m_type == TOK_KW_TYPEDEF)
       {
 	//parse Typedef's starting with keyword first
-	localDefNode = parseTypedef();
+	brtn = parseTypedef();
       }
     else if(pTok.m_type == TOK_KW_CONSTDEF)
       {
@@ -704,17 +705,19 @@ namespace MFM {
 	msg << m_state.getTokenDataAsString(pTok).c_str() << "'";
 	MSG(&pTok, msg.str().c_str(), ERR);
 	getTokensUntil(TOK_SEMICOLON); //does this help?
+	brtn = false;
       }
 
     m_state.popClassContext();
 
-    if(localDefNode)
+    if(localDefNode || brtn)
       {
 	if(!getExpectedToken(TOK_SEMICOLON))
 	  {
 	    delete localDefNode;
 	    localDefNode = NULL;
 	    getTokensUntil(TOK_SEMICOLON); //does this help?
+	    brtn = false;
 	  }
 	else
 	  {
@@ -724,6 +727,7 @@ namespace MFM {
 	      }
 	  }
       }
+    return brtn;
   } //parseLocalDef
 
   bool Parser::parseDataMember()
@@ -744,7 +748,7 @@ namespace MFM {
     if(pTok.m_type == TOK_KW_TYPEDEF)
       {
 	//parse Typedef's starting with keyword first
-	rtnNode = parseTypedef();
+	isAlreadyAppended = parseTypedef();
       }
     else if(pTok.m_type == TOK_KW_CONSTDEF)
       {
@@ -899,10 +903,7 @@ namespace MFM {
 	NodeVarDecl * sNode = makeVariableSymbol(args, iTok, typeNode); //a decl
 	if (sNode)
 	  {
-	    //parseRestOfDataMemberAssignment(args, identTok, sNode, passuti);
 	    parseRestOfAssignment(iTok, sNode);
-
-	    //m_state.getCurrentBlock->appendNextNode(dNode);
 	    m_state.getCurrentBlock()->appendNextNode(sNode);
 	  }
 	else  //error msg?
@@ -937,7 +938,8 @@ namespace MFM {
 	Node * initnode;
 	if(eTok.m_type == TOK_OPEN_CURLY)
 	  {
-	    initnode = parseArrayInitialization(identTok.m_dataindex); //returns a NodeListArrayInitialization
+	    //returns a NodeListArrayInitialization
+	    initnode = parseArrayInitialization(identTok.m_dataindex);
 	  }
 	else
 	  initnode = parseExpression();
@@ -1640,7 +1642,7 @@ namespace MFM {
       }
     else if(pTok.m_type == TOK_KW_TYPEDEF)
       {
-	rtnNode = parseTypedef();
+	parseTypedef();
       }
     else if(pTok.m_type == TOK_KW_CONSTDEF)
       {
@@ -1716,13 +1718,13 @@ namespace MFM {
   //Typedefs are not transferred to generated code;
   //they are a short-hand for ulamtypes (e.g. arrays)
   //that may be used as function return types; scope-specific.
-  Node * Parser::parseTypedef()
+  //Node * Parser::parseTypedef()
+  bool Parser::parseTypedef()
   {
-    Node * rtnNode = NULL;
+    bool brtn = false;
     Token pTok;
     getNextToken(pTok);
 
-    //if(Token::isTokenAType(pTok))
     if(Token::isTokenAType(pTok) || (pTok.m_type == TOK_KW_LOCALDEF))
       {
 	unreadToken();
@@ -1742,7 +1744,12 @@ namespace MFM {
 	//insure the typedef name starts with a capital letter
 	if(iTok.m_type == TOK_TYPE_IDENTIFIER)
 	  {
-	    rtnNode = makeTypedefSymbol(typeargs, iTok, typeNode);
+	    NodeTypedef * rtnNode = makeTypedefSymbol(typeargs, iTok, typeNode);
+	    if(rtnNode)
+	      {
+		m_state.getCurrentBlock()->appendNextNode(rtnNode);
+		brtn = true;
+	      }
 	  }
 	else
 	  {
@@ -1761,7 +1768,7 @@ namespace MFM {
 	msg << m_state.getTokenDataAsString(pTok).c_str() << ">";
 	MSG(&pTok, msg.str().c_str(), ERR);
       }
-    return rtnNode;
+    return brtn;
   } //parseTypedef
 
   //Named constants (constdefs) are not transferred to generated code;
@@ -4623,7 +4630,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
     return rtnNode;
   } //makeVariableSymbol
 
-  Node * Parser::makeTypedefSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef)
+  NodeTypedef * Parser::makeTypedefSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef)
   {
     NodeTypedef * rtnNode = NULL;
     Node * lvalNode = parseLvalExpr(identTok);
