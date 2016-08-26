@@ -765,7 +765,7 @@ namespace MFM {
     else if(pTok.m_type == TOK_KW_PARAMETER)
       {
 	//static model parameter for elements, not quarks
-	rtnNode = parseModelParameter();
+	isAlreadyAppended = parseModelParameter();
       }
     else //regular data member: function or variable
       {
@@ -1886,9 +1886,9 @@ namespace MFM {
     return rtnNode;
   } //parseClassParameterConstdef
 
-  Node * Parser::parseModelParameter()
+  bool Parser::parseModelParameter()
   {
-    Node * rtnNode = NULL;
+    bool brtn = false;
     Token pTok;
     getNextToken(pTok);
 
@@ -1899,7 +1899,7 @@ namespace MFM {
 	msg << "Model Parameters cannot survive within a quark";
 	MSG(&pTok, msg.str().c_str(), ERR);
 	getTokensUntil(TOK_SEMICOLON); //does this help?
-	return NULL;
+	return false;
       }
 
     if((Token::isTokenAType(pTok) || (pTok.m_type == TOK_KW_LOCALDEF)) && (pTok.m_type != TOK_KW_TYPE_VOID) && (pTok.m_type != TOK_KW_TYPE_ATOM))
@@ -1915,7 +1915,12 @@ namespace MFM {
 	    getNextToken(iTok);
 	    if(iTok.m_type == TOK_IDENTIFIER)
 	      {
-		rtnNode = makeModelParameterSymbol(typeargs, iTok, typeNode);
+		NodeModelParameterDef * modelNode = makeModelParameterSymbol(typeargs, iTok, typeNode);
+		if(modelNode)
+		  {
+		    m_state.getCurrentBlock()->appendNextNode(modelNode);
+		    brtn = true;
+		  }
 	      }
 	    else
 	      {
@@ -1947,7 +1952,7 @@ namespace MFM {
 	MSG(&pTok, msg.str().c_str(), ERR);
 	unreadToken();
       }
-    return rtnNode;
+    return brtn;
   } //parseModelParameter
 
   //used for includingloclocal function variables; or
@@ -4820,7 +4825,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
     return rtnNode;
   } //makeConstdefSymbol
 
-  Node * Parser::makeModelParameterSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef)
+  NodeModelParameterDef * Parser::makeModelParameterSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef)
   {
     NodeModelParameterDef * rtnNode = NULL;
     Node * lvalNode = parseIdentExpr(identTok); //calls parseLvalExpr

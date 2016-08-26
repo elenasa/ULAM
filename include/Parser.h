@@ -199,7 +199,7 @@ namespace MFM{
     /**
        <PARAMETER_DEF> := 'parameter' + <TYPE> + <IDENT> + '=' + <EXPRESSION>
     */
-    Node * parseModelParameter();
+    bool parseModelParameter();
 
     /**
        <DECL> := <TYPE> + <VAR_DECLS>
@@ -398,7 +398,7 @@ namespace MFM{
     NodeConstantDef * makeConstdefSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef);
 
     /** helper for parseModelParameter */
-    Node * makeModelParameterSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef);
+    NodeModelParameterDef * makeModelParameterSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef);
 
     /** helper method for parseConditionalExpr */
     Node * makeConditionalExprNode(Node * leftNode);
