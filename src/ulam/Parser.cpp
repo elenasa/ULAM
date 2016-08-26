@@ -35,6 +35,7 @@
 #include "NodeBlock.h"
 #include "NodeBlockEmpty.h"
 #include "NodeBlockFunctionDefinition.h"
+#include "NodeBlockInvisible.h"
 #include "NodeBreakStatement.h"
 #include "NodeCast.h"
 #include "NodeConditionalAs.h"
@@ -1035,7 +1036,7 @@ namespace MFM {
 	if(!initnode)
 	  {
 	    std::ostringstream msg;
-	    msg << "Initial value of " << identTok.getTokenStringFromPool(&m_state).c_str();
+	    msg << "Initial value of " << m_state.getTokenDataAsString(identTok).c_str();
 	    msg << " is missing";
 	    MSG(&identTok, msg.str().c_str(), ERR);
 	    brtn = false;
@@ -1048,7 +1049,7 @@ namespace MFM {
     return brtn; // true even if no assignment; false on error
   } //parseRestOfAssignment
 
-  Node * Parser::parseBlock()
+  NodeBlock * Parser::parseBlock()
   {
     Token pTok;
     NodeBlock * rtnNode = NULL;
@@ -1128,7 +1129,12 @@ namespace MFM {
 	if(pTok.m_type != TOK_CLOSE_CURLY && pTok.m_type != TOK_EOF)
 	  return parseStatements(); //try again
 	else
-	  return false; //NULL;
+	  {
+	    NodeBlock * currblock = m_state.getCurrentBlock();
+	    assert(currblock);
+	    //not the same if decl appended.
+	    return (currblock != currblock->getLastStatementNodePtr());
+	  }
       }
     //else continue...
     m_state.getCurrentBlock()->appendNextNode(sNode);
@@ -1174,6 +1180,36 @@ namespace MFM {
       }
     return rtnNode;
   } //parseStatement
+
+  NodeBlock * Parser::parseStatementAsBlock()
+  {
+    NodeBlock * rtnNode = NULL;
+    Token pTok;
+    getNextToken(pTok);
+    unreadToken();
+    if(pTok.m_type == TOK_OPEN_CURLY)
+      {
+	rtnNode = parseBlock();
+      }
+    else
+      {
+	//create a fake block to hold the statement (e.g. decl)
+	NodeBlock * currBlock = m_state.getCurrentBlock();
+	rtnNode = new NodeBlockInvisible(currBlock, m_state);
+	assert(rtnNode);
+	rtnNode->setNodeLocation(pTok.m_locator);
+
+	//current, this block's symbol table added to parse tree stack
+	//        for validating and finding scope of program/block variables
+	m_state.pushCurrentBlock(rtnNode); //without pop first
+	Node * sNode = parseStatement();
+	if(sNode)  //e.g. due to an invalid token perhaps; decl already appended
+	  m_state.getCurrentBlock()->appendNextNode(sNode);
+	assert(m_state.getCurrentBlock() == rtnNode); //sanity?
+	m_state.popClassContext(); //restore
+      }
+    return rtnNode;
+  } //parseStatementAsBlock
 
   Node * Parser::parseControlStatement()
   {
@@ -1263,7 +1299,7 @@ namespace MFM {
       }
     else
       {
-	trueNode = parseStatement();
+	trueNode = parseStatementAsBlock();
       }
 
     if(!trueNode)
@@ -1277,25 +1313,32 @@ namespace MFM {
 	return NULL; //stop this maddness
       }
 
+#if 0
+    //it's in a block; that IS a statement!!
     //wrapping body in NodeStatements produces proper comment for genCode
     NodeStatements * trueStmtNode = new NodeStatements(trueNode, m_state);
     assert(trueStmtNode);
     trueStmtNode->setNodeLocation(trueNode->getNodeLocation());
+#endif
 
-    Node * falseStmtNode = NULL;
-
+    //Node * falseStmtNode = NULL;
+    Node * falseNode = NULL;
     if(getExpectedToken(TOK_KW_ELSE))
       {
-	Node * falseNode = parseStatement();
+	falseNode = parseStatementAsBlock();
+#if 0
+	//it's in a block; that IS a statement!!
 	if(falseNode != NULL)
 	  {
 	    falseStmtNode = new NodeStatements(falseNode, m_state);
 	    assert(falseStmtNode);
 	    falseStmtNode->setNodeLocation(falseNode->getNodeLocation());
 	  }
+#endif
       }
 
-    Node * ifNode = new NodeControlIf(condNode, trueStmtNode, falseStmtNode, m_state);
+    //Node * ifNode = new NodeControlIf(condNode, trueStmtNode, falseStmtNode, m_state);
+    Node * ifNode = new NodeControlIf(condNode, trueNode, falseNode, m_state);
     assert(ifNode);
     ifNode->setNodeLocation(ifTok.m_locator);
 
@@ -1357,11 +1400,11 @@ namespace MFM {
 	return NULL; //stop this maddness
       }
 
-    Node * trueNode = NULL;
+    NodeBlock * trueNode = NULL;
     if(m_state.m_parsingConditionalAs)
       trueNode = setupAsConditionalBlockAndParseStatements((NodeConditional *) condNode);
     else
-      trueNode = parseStatement();
+      trueNode = parseStatementAsBlock();
 
     if(!trueNode)
       {
@@ -1375,22 +1418,29 @@ namespace MFM {
 	return NULL; //stop this maddness
       }
 
+#if 0
+    //it's in a block; that IS a statement!!
     //wrapping body in NodeStatements produces proper comment for genCode
     NodeStatements * trueStmtNode = new NodeStatements(trueNode, m_state);
     assert(trueStmtNode);
     trueStmtNode->setNodeLocation(trueNode->getNodeLocation());
+#endif
 
     //end of while loop label, linked to end of body (true statement)
     Node * labelNode = new NodeLabel(controlLoopLabelNum, m_state);
     assert(labelNode);
     labelNode->setNodeLocation(wTok.m_locator);
 
+#if 0
     NodeStatements * labelStmtNode = new NodeStatements(labelNode, m_state);
     assert(labelStmtNode);
     labelStmtNode->setNodeLocation(wTok.m_locator);
     trueStmtNode->setNextNode(labelStmtNode);
+#endif
+    trueNode->appendNextNode(labelNode);
 
-    Node * whileNode = new NodeControlWhile(condNode, trueStmtNode, m_state);
+    //Node * whileNode = new NodeControlWhile(condNode, trueStmtNode, m_state);
+    Node * whileNode = new NodeControlWhile(condNode, trueNode, m_state);
     assert(whileNode);
     whileNode->setNodeLocation(wTok.m_locator);
 
@@ -1448,7 +1498,7 @@ namespace MFM {
 	Node * declNode = parseAssignExpr();
 	if(declNode)
 	  {
-	    currBlock->appendNextNode(declNode);
+	    rtnNode->appendNextNode(declNode);
 	  }
 	else //error msg?
 	  assert(0);
@@ -1536,14 +1586,14 @@ namespace MFM {
 	  }
       } //done with assign expr, could be null
 
-    Node * trueNode = NULL;
+    NodeBlock * trueNode = NULL;
     if(m_state.m_parsingConditionalAs)
       {
 	trueNode = setupAsConditionalBlockAndParseStatements((NodeConditional *) condNode);
       }
     else
       {
-	trueNode = parseStatement(); //even an empty statement has a node!
+	trueNode = parseStatementAsBlock(); //even an empty statement has a node!
       }
 
     if(!trueNode)
@@ -1574,35 +1624,46 @@ namespace MFM {
 #endif
 
     //loose pieces joined by NodeControlWhile:
+
+#if 0
+    //it's in a block; that IS a statement!!
     //wrapping body in NodeStatements produces proper comment for genCode
     NodeStatements * trueStmtNode = new NodeStatements(trueNode, m_state);
     assert(trueStmtNode);
     trueStmtNode->setNodeLocation(trueNode->getNodeLocation());
+#endif
 
     //end of while loop label, linked to end of body, before assign statement
     Node * labelNode = new NodeLabel(controlLoopLabelNum, m_state);
     assert(labelNode);
     labelNode->setNodeLocation(rTok.m_locator);
 
+#if 0
     NodeStatements * labelStmtNode = new NodeStatements(labelNode, m_state);
     assert(labelStmtNode);
     labelStmtNode->setNodeLocation(rTok.m_locator);
-    trueStmtNode->setNextNode(labelStmtNode);
+#endif
+    //trueStmtNode->setNextNode(labelStmtNode);
+    trueNode->appendNextNode(labelNode);
 
     if(assignNode)
       {
+#if 0
 	NodeStatements * nextAssignNode = new NodeStatements(assignNode, m_state);
 	assert(nextAssignNode);
 	nextAssignNode->setNodeLocation(assignNode->getNodeLocation());
 	labelStmtNode->setNextNode(nextAssignNode); //***link assign to label after truestmt
+#endif
+	trueNode->appendNextNode(assignNode); //***link assign to label after truestmt
       }
 
-    Node * whileNode = new NodeControlWhile(condNode, trueStmtNode, m_state);
+    //Node * whileNode = new NodeControlWhile(condNode, trueStmtNode, m_state);
+    Node * whileNode = new NodeControlWhile(condNode, trueNode, m_state);
     assert(whileNode);
     whileNode->setNodeLocation(fTok.m_locator);
 
     //links while to decl or to rtn block (no decl)
-    currBlock->appendNextNode(whileNode);
+    rtnNode->appendNextNode(whileNode);
 
 #if 0
     NodeStatements * nextControlNode = new NodeStatements(whileNode, m_state);
@@ -1666,7 +1727,7 @@ namespace MFM {
     return parseRestOfAssignExpr(rtnNode);
   } //parseConditionalExpr
 
-  Node * Parser::setupAsConditionalBlockAndParseStatements(NodeConditional * asNode)
+  NodeBlock * Parser::setupAsConditionalBlockAndParseStatements(NodeConditional * asNode)
   {
     assert(m_state.m_parsingConditionalAs);
 

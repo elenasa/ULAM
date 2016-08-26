@@ -2,7 +2,7 @@
 #=t3435_test_compiler_unpackedarrayatom
 #!
 Exit status: 10
-Ue_A { typedef Atom(96) BigSite[10];  Int(32) test() {  Atom(96) site[10];  { Int(32) i = 0 cast;  i 10 cast < cond { site i [] self cast = } _1: i 1 += while } 10 cast return } }
+Ue_A { typedef Atom(96) BigSite[10];  Int(32) test() {  Atom(96) site[10];  { Int(32) i = 0 cast;  i 10 cast < cond { site i [] self cast = _1: i 1 += } while } 10 cast return } }
 ## (was)
 ##./A.ulam:2:9: ERROR: Invalid non-scalar type: Atom(96)[10]. Requires a custom array.
 ##

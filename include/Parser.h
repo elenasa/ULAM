@@ -123,7 +123,7 @@ namespace MFM{
     /**
 	<BLOCK> := '{' + <STATEMENTS> + '}'
     */
-    Node * parseBlock();
+    NodeBlock * parseBlock();
 
     /**
 	<STATEMENTS> := NULL | <STATEMENT> + <STATEMENTS>
@@ -135,6 +135,8 @@ namespace MFM{
 	<STATEMENT> := <SIMPLE_STATEMENT> | <CONTROL_STATEMENT> | <BLOCK>
      */
     Node * parseStatement();
+
+    NodeBlock * parseStatementAsBlock();
 
     /**
 	<CONTROL_STATEMENT> := <IF_STATEMENT> | <WHILE_STATEMENT> | <FOR_STATEMENT> |
@@ -172,7 +174,7 @@ namespace MFM{
     /**
        (helper for 'as' condition in if/while)
     */
-    Node * setupAsConditionalBlockAndParseStatements(NodeConditional * asNode);
+    NodeBlock * setupAsConditionalBlockAndParseStatements(NodeConditional * asNode);
 
     /**
 	<SIMPLE_STATEMENT> := ( 0 | <STATEMENT_DECL> | <TYPE_DEF> | <CONST_DEF> | <ASSIGN_EXPR> |
