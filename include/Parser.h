@@ -111,11 +111,8 @@ namespace MFM{
     /**
        <DATA_MEMBERS> := ( 0 | <FUNC_DEF> | <PARAMETER_DEF> + ';' | <TYPE_DEF> + ';'| <CONST_DEF> + ';' )*
      */
-    //bool parseDataMember(NodeStatements *& nextNode);
     bool parseDataMember();
 
-    //Node * parseRestOfDataMember(TypeArgs& args, const Token& identTok, Node * dNode, UTI passuti);
-    //void parseRestOfDataMemberAssignment(TypeArgs& args, const Token& identTok, Node * dNode, UTI passuti);
     bool parseRestOfDataMember(TypeArgs& args, UTI passuti);
 
     bool parseRestOfAssignment(const Token& identTok, Node * dNode);
@@ -128,7 +125,6 @@ namespace MFM{
     /**
 	<STATEMENTS> := NULL | <STATEMENT> + <STATEMENTS>
     */
-    //Node * parseStatements();
     bool parseStatements();
 
     /**
@@ -212,7 +208,6 @@ namespace MFM{
 
        (when flag is true stops after one decl for function parameters).
     */
-    //Node * parseDecl(bool parseSingleDecl = false);
     bool parseDecl();
 
     NodeTypeDescriptor * parseTypeDescriptorIncludingLocalScope(TypeArgs& typeargs, bool isaclass, bool delAfterDotFails); //helper
@@ -351,8 +346,6 @@ namespace MFM{
 
     Node * parseRestOfAssignExpr(Node * leftNode);
 
-    //Node * parseRestOfDecls(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti);
-    //Node * parseRestOfDeclAssignment(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti);
     bool parseRestOfDecls(TypeArgs& args, UTI passuti);
     bool parseRestOfDeclAssignment(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode);
     bool parseRestOfRefAssignment(const Token& identTok, NodeVarDecl * dNode);
