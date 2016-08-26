@@ -386,7 +386,7 @@ namespace MFM{
 
 
     /** helper for parseDataMember */
-    Node * makeFunctionSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor * nodetype, bool isVirtual);
+    NodeBlockFunctionDefinition * makeFunctionSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor * nodetype, bool isVirtual);
 
     /** helper for parseDecl and parseRestOfDecls */
     NodeVarDecl * makeVariableSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef);

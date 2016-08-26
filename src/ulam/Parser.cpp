@@ -678,7 +678,7 @@ namespace MFM {
 
   bool Parser::parseLocalDef()
   {
-    bool brtn = true;
+    bool brtn = false;
     NodeBlockLocals * locals = m_state.makeLocalScopeBlock(m_state.getLocalScopeLocator());
     assert(locals);
 
@@ -704,7 +704,6 @@ namespace MFM {
 	msg << m_state.getTokenDataAsString(pTok).c_str() << "'";
 	MSG(&pTok, msg.str().c_str(), ERR);
 	getTokensUntil(TOK_SEMICOLON); //does this help?
-	brtn = false;
       }
 
     m_state.popClassContext();
@@ -723,8 +722,6 @@ namespace MFM {
   bool Parser::parseDataMember()
   {
     bool brtn = false;
-    Node * rtnNode = NULL;
-    bool isFunc = false;
     bool isAlreadyAppended = false;
     Token pTok;
     getNextToken(pTok);
@@ -818,11 +815,10 @@ namespace MFM {
 	//need next token to distinguish a function from a variable declaration (quietly)
 	if(getExpectedToken(TOK_OPEN_PAREN))
 	  {
-	    isFunc = true;
 	    //eats the '(' when found; NULL if error occurred
-	    rtnNode = makeFunctionSymbol(typeargs, iTok, typeNode, isVirtual); //with params
-	    if(rtnNode)
-	      brtn = true; //rtnNode belongs to the symbolFunction
+	    NodeBlockFunctionDefinition * funcdefNode = makeFunctionSymbol(typeargs, iTok, typeNode, isVirtual); //with params
+	    if(funcdefNode)
+	      brtn = true; //funcdefNode belongs to the symbolFunction; not appended to tree
 	    else
 	      //MSG(&pTok, "INCOMPLETE Function Definition", ERR);
 	      m_state.clearStructuredCommentToken();
@@ -856,20 +852,12 @@ namespace MFM {
       } //regular data member
 
     //common end processing, except for function defs
-    if((rtnNode && !isFunc) || isAlreadyAppended)
+    if(isAlreadyAppended)
       {
 	if(!getExpectedToken(TOK_SEMICOLON))
-	  {
-	    delete rtnNode;
-	    rtnNode = NULL;
-	    getTokensUntil(TOK_SEMICOLON); //does this help?
-	  }
+	  getTokensUntil(TOK_SEMICOLON); //does this help?
 	else
-	  {
-	    brtn = true;
-	    if(rtnNode)
-	      m_state.getCurrentBlock()->appendNextNode(rtnNode);
-	  }
+	  brtn = true;
       }
     return brtn;
   } //parseDataMember
@@ -4529,7 +4517,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
     return brtn;
   } //parseFunctionBody
 
-  Node * Parser::makeFunctionSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor * nodetype, bool isVirtual)
+  NodeBlockFunctionDefinition * Parser::makeFunctionSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor * nodetype, bool isVirtual)
   {
     //first check that the function name begins with a lower case letter
     if(Token::isTokenAType(identTok))
@@ -4568,7 +4556,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 
     //not in scope, or not yet defined, or possible overloading
     //o.w. build symbol for function: return type + name + parameter symbols
-    Node * rtnNode = makeFunctionBlock(args, identTok, nodetype, isVirtual);
+    NodeBlockFunctionDefinition * rtnNode = makeFunctionBlock(args, identTok, nodetype, isVirtual);
 
     //exclude the declaration & definition from the parse tree
     //(since in SymbolFunction) & return NULL.
@@ -4577,10 +4565,10 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 
     if(rtnNode)
       {
-	if((qTok.m_type != TOK_CLOSE_CURLY) && (((NodeBlockFunctionDefinition *) rtnNode)->isNative() && qTok.m_type != TOK_SEMICOLON))
+	if((qTok.m_type != TOK_CLOSE_CURLY) && (rtnNode->isNative() && qTok.m_type != TOK_SEMICOLON))
 	  {
 	    //first remove the pointer to this node from its symbol
-	    ((NodeBlockFunctionDefinition *) rtnNode)->getFuncSymbolPtr()->setFunctionNode((NodeBlockFunctionDefinition *) NULL); //deletes node
+	    rtnNode->getFuncSymbolPtr()->setFunctionNode((NodeBlockFunctionDefinition *) NULL); //deletes node
 	    rtnNode = NULL;
 	    MSG(&qTok, "INCOMPLETE Function Definition", ERR);
 	  }
