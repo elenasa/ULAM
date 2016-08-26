@@ -114,9 +114,11 @@ namespace MFM{
     //bool parseDataMember(NodeStatements *& nextNode);
     bool parseDataMember();
 
-    Node * parseRestOfDataMember(TypeArgs& args, const Token& identTok, Node * dNode, UTI passuti);
+    //Node * parseRestOfDataMember(TypeArgs& args, const Token& identTok, Node * dNode, UTI passuti);
+    //void parseRestOfDataMemberAssignment(TypeArgs& args, const Token& identTok, Node * dNode, UTI passuti);
+    bool parseRestOfDataMember(TypeArgs& args, UTI passuti);
 
-    void parseRestOfDataMemberAssignment(TypeArgs& args, const Token& identTok, Node * dNode, UTI passuti);
+    bool parseRestOfAssignment(const Token& identTok, Node * dNode);
 
     /**
 	<BLOCK> := '{' + <STATEMENTS> + '}'
@@ -126,7 +128,8 @@ namespace MFM{
     /**
 	<STATEMENTS> := NULL | <STATEMENT> + <STATEMENTS>
     */
-    Node * parseStatements();
+    //Node * parseStatements();
+    bool parseStatements();
 
     /**
 	<STATEMENT> := <SIMPLE_STATEMENT> | <CONTROL_STATEMENT> | <BLOCK>
@@ -207,7 +210,8 @@ namespace MFM{
 
        (when flag is true stops after one decl for function parameters).
     */
-    Node * parseDecl(bool parseSingleDecl = false);
+    //Node * parseDecl(bool parseSingleDecl = false);
+    bool parseDecl();
 
     NodeTypeDescriptor * parseTypeDescriptorIncludingLocalScope(TypeArgs& typeargs, bool isaclass, bool delAfterDotFails); //helper
     NodeTypeDescriptor * parseTypeDescriptorIncludingLocalScope(TypeArgs& typeargs, UTI& castUTI, bool isaclass, bool delAfterDotFails); //helper
@@ -345,9 +349,11 @@ namespace MFM{
 
     Node * parseRestOfAssignExpr(Node * leftNode);
 
-    Node * parseRestOfDecls(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti);
-
-    Node * parseRestOfDeclAssignment(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti);
+    //Node * parseRestOfDecls(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti);
+    //Node * parseRestOfDeclAssignment(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti);
+    bool parseRestOfDecls(TypeArgs& args, UTI passuti);
+    bool parseRestOfDeclAssignment(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode);
+    bool parseRestOfRefAssignment(const Token& identTok, NodeVarDecl * dNode);
 
     Node * parseArrayInitialization(u32 identId);
 
@@ -371,6 +377,8 @@ namespace MFM{
 
     void parseRestOfFunctionParameters(SymbolFunction * sym, NodeBlockFunctionDefinition * fblock);
 
+    NodeVarDecl * parseFunctionParameterDecl();
+
     /**
 	helper method for function definition, populates funcNode,
 	returns true if body parsed
@@ -382,7 +390,7 @@ namespace MFM{
     Node * makeFunctionSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor * nodetype, bool isVirtual);
 
     /** helper for parseDecl and parseRestOfDecls */
-    Node * makeVariableSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef);
+    NodeVarDecl * makeVariableSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef);
 
     /** helper for parseTypedef */
     Node * makeTypedefSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef);

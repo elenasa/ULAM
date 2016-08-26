@@ -484,23 +484,7 @@ namespace MFM {
 	return rtnNode; //allow empty class
       }
 
-#if 0
-    //keep the data member var decls, starting with NodeBlockClass, keeping it for return
-    //NodeStatements * nextNode = rtnNode;
-    //NodeStatements * stmtNode = NULL;
-
-    //while(parseDataMember(stmtNode))
-      {
-	//stmtNode could be false, in case of function def
-	if(stmtNode)
-	  {
-	    nextNode->setNextNode(stmtNode);
-	    nextNode = stmtNode;
-	    stmtNode = NULL;
-	  }
-      }
-#endif
-
+    //append data members to class block's tree
     while(parseDataMember()) { }
 
     if(!getExpectedToken(TOK_CLOSE_CURLY))
@@ -741,12 +725,12 @@ namespace MFM {
       }
   } //parseLocalDef
 
-  //bool Parser::parseDataMember(NodeStatements *& nextNode)
   bool Parser::parseDataMember()
   {
     bool brtn = false;
     Node * rtnNode = NULL;
     bool isFunc = false;
+    bool isAlreadyAppended = false;
     Token pTok;
     getNextToken(pTok);
 
@@ -858,12 +842,14 @@ namespace MFM {
 	    //not '(', so token is unread, and we know
 	    //it's a variable, not a function; also handles arrays
 	    UTI passuti = typeNode->givenUTI(); //before it may become an array
-	    rtnNode = makeVariableSymbol(typeargs, iTok, typeNode);
+	    NodeVarDecl * dmNode = makeVariableSymbol(typeargs, iTok, typeNode);
 
-	    if(rtnNode)
+	    if(dmNode)
 	      {
-		parseRestOfDataMemberAssignment(typeargs, iTok, rtnNode, passuti);
-		rtnNode = parseRestOfDataMember(typeargs, iTok, rtnNode, passuti);
+		//parseRestOfDataMemberAssignment(typeargs, iTok, rtnNode, passuti);
+		parseRestOfAssignment(iTok, dmNode);
+		m_state.getCurrentBlock()->appendNextNode(dmNode);
+		isAlreadyAppended = parseRestOfDataMember(typeargs, passuti); //appends to tree
 	      }
 	    else
 	      m_state.clearStructuredCommentToken();
@@ -871,7 +857,7 @@ namespace MFM {
       } //regular data member
 
     //common end processing, except for function defs
-    if(rtnNode && !isFunc)
+    if((rtnNode && !isFunc) || isAlreadyAppended)
       {
 	if(!getExpectedToken(TOK_SEMICOLON))
 	  {
@@ -881,21 +867,62 @@ namespace MFM {
 	  }
 	else
 	  {
+	    brtn = true;
 	    if(rtnNode)
-	      {
-		brtn = true;
-		m_state.getCurrentBlock()->appendNextNode(rtnNode);
-#if 0
-		nextNode = new NodeStatements(rtnNode, m_state);
-		assert(nextNode);
-		nextNode->setNodeLocation(rtnNode->getNodeLocation());
-#endif
-	      }
+	      m_state.getCurrentBlock()->appendNextNode(rtnNode);
 	  }
       }
     return brtn;
   } //parseDataMember
 
+  bool Parser::parseRestOfDataMember(TypeArgs& args, UTI passuti)
+  {
+    bool brtn = true;
+    Token pTok;
+    getNextToken(pTok);
+
+    args.m_arraysize = NONARRAYSIZE; //clear for decl list (args ref)
+
+    if(pTok.m_type != TOK_COMMA)
+      {
+	unreadToken();
+	return true;
+      }
+
+    Token iTok;
+    getNextToken(iTok);
+    if(iTok.m_type == TOK_IDENTIFIER)
+      {
+	//just the top level as a basic uti (no selects, or arrays)
+	NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(args.m_typeTok, passuti, m_state);
+	//another decl of same type
+	NodeVarDecl * sNode = makeVariableSymbol(args, iTok, typeNode); //a decl
+	if (sNode)
+	  {
+	    //parseRestOfDataMemberAssignment(args, identTok, sNode, passuti);
+	    parseRestOfAssignment(iTok, sNode);
+
+	    //m_state.getCurrentBlock->appendNextNode(dNode);
+	    m_state.getCurrentBlock()->appendNextNode(sNode);
+	  }
+	else  //error msg?
+	  brtn = false;
+      }
+    else
+      {
+	//perhaps read until semi-colon
+	getTokensUntil(TOK_SEMICOLON);
+	unreadToken();
+	brtn = false;
+      }
+
+    if(brtn)
+      return parseRestOfDataMember(args, passuti); //iTok in case of =
+
+    return false;
+  } //parseRestOfDataMember
+
+#if 0
   Node * Parser::parseRestOfDataMember(TypeArgs& args, const Token& identTok, Node * dNode, UTI passuti)
   {
     Token pTok;
@@ -917,11 +944,16 @@ namespace MFM {
 	//just the top level as a basic uti (no selects, or arrays)
 	NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(args.m_typeTok, passuti, m_state);
 	//another decl of same type
-	Node * sNode = makeVariableSymbol(args, iTok, typeNode); //a decl
+	NodeVarDecl * sNode = makeVariableSymbol(args, iTok, typeNode); //a decl
 	if (sNode)
 	  {
-	    parseRestOfDataMemberAssignment(args, identTok, sNode, passuti);
+	    //parseRestOfDataMemberAssignment(args, identTok, sNode, passuti);
+	    parseRestOfAssignment(identTok, sNode);
 
+	    //m_state.getCurrentBlock->appendNextNode(dNode);
+	    m_state.getCurrentBlock()->appendNextNode(sNode);
+	    rtnNode = sNode; //????
+#if 0
 	    rtnNode =  new NodeStatements(dNode, m_state);
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(dNode->getNodeLocation());
@@ -930,6 +962,7 @@ namespace MFM {
 	    assert(nextNode);
 	    nextNode->setNodeLocation(dNode->getNodeLocation());
 	    ((NodeStatements *) rtnNode)->setNextNode(nextNode);
+#endif
 	  }
 	//else  error?
       }
@@ -941,7 +974,9 @@ namespace MFM {
       }
     return parseRestOfDataMember(args, iTok, rtnNode, passuti); //iTok in case of =
   } //parseRestOfDataMember
+#endif
 
+#if 0
   void Parser::parseRestOfDataMemberAssignment(TypeArgs& args, const Token& identTok, Node * dNode, UTI passuti)
   {
     Token pTok;
@@ -961,14 +996,57 @@ namespace MFM {
 	else
 	  initnode = parseExpression();
 
-	if(initnode)
+	if(!initnode)
+	  {
+	    std::ostringstream msg;
+	    msg << "Initial value of data member " << identTok.getTokenStringFromPool(&m_state).c_str();
+	    msg << " is missing";
+	    MSG(&identTok, msg.str().c_str(), ERR);
+	  }
+	else
 	  ((NodeVarDeclDM*) dNode)->setInitExpr(initnode);
-	//else error
       }
     else
       unreadToken();
     return;
   } //parseRestOfDataMemberAssignment
+#endif
+
+  bool Parser::parseRestOfAssignment(const Token& identTok, Node * dNode)
+  {
+    bool brtn = true;
+    Token pTok;
+    getNextToken(pTok);
+
+    if(pTok.m_type == TOK_EQUAL)
+      {
+	Token eTok;
+	//check for possible start of array init
+	getNextToken(eTok);
+	unreadToken();
+	Node * initnode;
+	if(eTok.m_type == TOK_OPEN_CURLY)
+	  {
+	    initnode = parseArrayInitialization(identTok.m_dataindex); //returns a NodeListArrayInitialization
+	  }
+	else
+	  initnode = parseExpression();
+
+	if(!initnode)
+	  {
+	    std::ostringstream msg;
+	    msg << "Initial value of " << identTok.getTokenStringFromPool(&m_state).c_str();
+	    msg << " is missing";
+	    MSG(&identTok, msg.str().c_str(), ERR);
+	    brtn = false;
+	  }
+	else
+	  ((NodeVarDecl *) dNode)->setInitExpr(initnode);
+      }
+    else
+      unreadToken();
+    return brtn; // true even if no assignment; false on error
+  } //parseRestOfAssignment
 
   Node * Parser::parseBlock()
   {
@@ -995,11 +1073,12 @@ namespace MFM {
     //        for validating and finding scope of program/block variables
     m_state.pushCurrentBlock(rtnNode);
 
-    NodeStatements * nextNode = (NodeStatements *) parseStatements();
+    //NodeStatements * nextNode = (NodeStatements *) parseStatements();
 
-    if(nextNode) //could be Null, in case of errors
-      rtnNode->setNextNode(nextNode);
-    else
+    //if(nextNode) //could be Null, in case of errors
+    //  rtnNode->setNextNode(nextNode);
+    //else
+    if(!parseStatements())
       {
 	//replace NodeBlock with a NodeBlockEmpty
 	delete rtnNode;
@@ -1034,38 +1113,43 @@ namespace MFM {
     return rtnNode;
   } //parseBlock
 
-  Node * Parser::parseStatements()
+  //  Node * Parser::parseStatements()
+  bool Parser::parseStatements()
   {
+    bool brtn = true;
     Node * sNode = parseStatement();
-    if(!sNode)  //e.g. due to an invalid token perhaps
+    if(!sNode)  //e.g. due to an invalid token perhaps; decl already appended
       {
 	MSG("", "EMPTY STATEMENT!! when in doubt, count", DEBUG);
 
 	Token pTok;
 	getNextToken(pTok);
+	unreadToken();
 	if(pTok.m_type != TOK_CLOSE_CURLY && pTok.m_type != TOK_EOF)
-	  {
-	    unreadToken();
-	    return parseStatements(); //try again
-	  }
+	  return parseStatements(); //try again
 	else
-	  {
-	    unreadToken();
-	    return NULL;
-	  }
+	  return false; //NULL;
       }
+    //else continue...
+    m_state.getCurrentBlock()->appendNextNode(sNode);
 
+#if 0
     NodeStatements * rtnNode = new NodeStatements(sNode, m_state);
     assert(rtnNode);
     rtnNode->setNodeLocation(sNode->getNodeLocation());
+#endif
 
     if(!getExpectedToken(TOK_CLOSE_CURLY))
       {
-	rtnNode->setNextNode((NodeStatements *) parseStatements()); //more statements
+	//	rtnNode->setNextNode((NodeStatements *) parseStatements()); //more statements
+	brtn = parseStatements(); //more statements, appended
       }
     else
-      unreadToken();
-    return rtnNode;
+      {
+	unreadToken();
+	//brtn = false; t3126
+      }
+    return brtn; //rtnNode;
   } //parseStatements
 
   Node * Parser::parseStatement()
@@ -1215,11 +1299,15 @@ namespace MFM {
     assert(ifNode);
     ifNode->setNodeLocation(ifTok.m_locator);
 
+    rtnNode->appendNextNode(ifNode);
+
+#if 0
     NodeStatements * nextControlNode = new NodeStatements(ifNode, m_state);
     assert(nextControlNode);
     nextControlNode->setNodeLocation(ifNode->getNodeLocation());
 
     rtnNode->setNextNode(nextControlNode); //***link if to rtn block
+#endif
 
     //this block's ST is no longer in scope
     currBlock = m_state.getCurrentBlock(); //reload
@@ -1306,11 +1394,15 @@ namespace MFM {
     assert(whileNode);
     whileNode->setNodeLocation(wTok.m_locator);
 
+#if 0
     NodeStatements * nextControlNode = new NodeStatements(whileNode, m_state);
     assert(nextControlNode);
     nextControlNode->setNodeLocation(whileNode->getNodeLocation());
 
     rtnNode->setNextNode(nextControlNode); //***link while to rtn block
+#endif
+
+    rtnNode->appendNextNode(whileNode);
 
     //this block's ST is no longer in scope
     currBlock = m_state.getCurrentBlock(); //reload
@@ -1342,17 +1434,24 @@ namespace MFM {
     Token pTok;
     getNextToken(pTok);
 
-    Node * declNode = NULL; //may be empty
+    //Node * declNode = NULL; //may be empty
     if(Token::isTokenAType(pTok))
       {
 	unreadToken();
-	declNode = parseDecl(); //updates symbol table
+	AssertBool hasdeclnode = parseDecl(); //updates symbol table
+	assert(hasdeclnode); //error msg?
 	getNextToken(pTok);
       }
     else if(pTok.m_type == TOK_IDENTIFIER)
       {
 	unreadToken();
-	declNode = parseAssignExpr();
+	Node * declNode = parseAssignExpr();
+	if(declNode)
+	  {
+	    currBlock->appendNextNode(declNode);
+	  }
+	else //error msg?
+	  assert(0);
 	getNextToken(pTok);
       }
 
@@ -1363,7 +1462,7 @@ namespace MFM {
 	MSG(&pTok, msg.str().c_str(), ERR);
 	m_state.popClassContext(); //where was it?
 	delete rtnNode;
-	delete declNode; //stop this maddness
+	//delete declNode; //stop this maddness
 	return NULL;
       }
 
@@ -1383,7 +1482,7 @@ namespace MFM {
 	    MSG(&qTok, msg.str().c_str(), ERR);
 	    m_state.popClassContext(); //where was it?
 	    delete rtnNode;
-	    delete declNode;
+	    //delete declNode;
 	    return NULL; //stop this maddness
 	  }
 
@@ -1391,7 +1490,7 @@ namespace MFM {
 	  {
 	    m_state.popClassContext(); //where was it?
 	    delete rtnNode;
-	    delete declNode;
+	    //delete declNode;
 	    delete condNode;
 	    return NULL; //stop this maddness
 	  }
@@ -1421,7 +1520,7 @@ namespace MFM {
 
 	    m_state.popClassContext(); //where was it?
 	    delete rtnNode;
-	    delete declNode;
+	    //delete declNode;
 	    delete condNode;
 	    return NULL; //stop this maddness
 	  }
@@ -1430,7 +1529,7 @@ namespace MFM {
 	  {
 	    m_state.popClassContext(); //where was it?
 	    delete rtnNode;
-	    delete declNode;
+	    //delete declNode;
 	    delete condNode;
 	    delete assignNode;
 	    return NULL; //stop this maddness
@@ -1455,13 +1554,15 @@ namespace MFM {
 
 	m_state.popClassContext(); //where was it?
 	delete rtnNode;
-	delete declNode;
+	//delete declNode;
 	delete condNode;
 	delete assignNode;
 	return NULL; //stop this maddness
       }
 
     //link the pieces together..
+    // decl was first in the block
+#if 0
     NodeStatements * nextNode = NULL;
     if(declNode)
       {
@@ -1470,9 +1571,10 @@ namespace MFM {
 	nextNode->setNodeLocation(declNode->getNodeLocation());
 	rtnNode->setNextNode(nextNode); //***link decl as first in block
       }
+#endif
 
+    //loose pieces joined by NodeControlWhile:
     //wrapping body in NodeStatements produces proper comment for genCode
-    //might need another block here ?
     NodeStatements * trueStmtNode = new NodeStatements(trueNode, m_state);
     assert(trueStmtNode);
     trueStmtNode->setNodeLocation(trueNode->getNodeLocation());
@@ -1499,6 +1601,10 @@ namespace MFM {
     assert(whileNode);
     whileNode->setNodeLocation(fTok.m_locator);
 
+    //links while to decl or to rtn block (no decl)
+    currBlock->appendNextNode(whileNode);
+
+#if 0
     NodeStatements * nextControlNode = new NodeStatements(whileNode, m_state);
     assert(nextControlNode);
     nextControlNode->setNodeLocation(whileNode->getNodeLocation());
@@ -1507,9 +1613,11 @@ namespace MFM {
       nextNode->setNextNode(nextControlNode); //***link while to decl
     else
       rtnNode->setNextNode(nextControlNode); //***link while to rtn block (no decl)
+#endif
 
     //this block's ST is no longer in scope
     currBlock = m_state.getCurrentBlock(); //reload
+
     if(currBlock)
       m_state.m_currentFunctionBlockDeclSize -= currBlock->getSizeOfSymbolsInTable();
 
@@ -1621,17 +1729,22 @@ namespace MFM {
     assert(varNode);
     varNode->setNodeLocation(asNode->getNodeLocation());
 
+#if 0
     NodeStatements * stmtsNode = new NodeStatements(varNode, m_state);
     assert(stmtsNode);
     stmtsNode->setNodeLocation(varNode->getNodeLocation());
 
     blockNode->setNextNode(stmtsNode);
+#endif
+
+    blockNode->appendNextNode(varNode);
 
     if(!singleStmtExpected)
       {
 	if(!getExpectedToken(TOK_CLOSE_CURLY))
 	  {
-	    stmtsNode->setNextNode((NodeStatements *) parseStatements()); //more statements
+	    //stmtsNode->setNextNode((NodeStatements *) parseStatements()); //more statements
+	    parseStatements(); //more statements, appended
 	    getExpectedToken(TOK_CLOSE_CURLY);
 	  }
 	//else
@@ -1640,10 +1753,15 @@ namespace MFM {
     else
       {
 	Node * sNode = parseStatement(); //get one statement only
+	if(sNode)
+	  blockNode->appendNextNode(sNode);
+	//else error msg? (or a decl alreadyappended)
+#if 0
 	NodeStatements * nextNode = new NodeStatements(sNode, m_state);
 	assert(nextNode);
 	nextNode->setNodeLocation(sNode->getNodeLocation());
 	stmtsNode->setNextNode(nextNode);
+#endif
       }
 
     //this block's ST is no longer in scope
@@ -1671,7 +1789,7 @@ namespace MFM {
     else if(Token::isTokenAType(pTok))
       {
 	unreadToken();
-	rtnNode = parseDecl(); //updates symbol table
+	parseDecl(); //updates symbol table & parse tree
       }
     else if(pTok.m_type == TOK_KW_LOCALDEF)
       {
@@ -1680,7 +1798,7 @@ namespace MFM {
 	//MSG(&pTok, msg.str().c_str(), ERR);
 	//getTokensUntil(TOK_SEMICOLON); //does this help?
 	unreadToken();
-	rtnNode = parseDecl(); //updates symbol table
+	parseDecl(); //updates symbol table & parse tree
       }
     else if(pTok.m_type == TOK_KW_TYPEDEF)
       {
@@ -1943,9 +2061,12 @@ namespace MFM {
 
   //used for includingloclocal function variables; or
   //'singledecl' function parameters; no longer for function defs.
-  Node * Parser::parseDecl(bool parseSingleDecl)
+  // default parseSingleDecl is false;
+  //Node * Parser::parseDecl(bool parseSingleDecl)
+  bool Parser::parseDecl()
   {
-    Node * rtnNode = NULL;
+    //Node * rtnNode = NULL;
+    bool brtn = true;
     TypeArgs typeargs;
     NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalScope(typeargs, false, false);
 
@@ -1958,21 +2079,23 @@ namespace MFM {
 	msg << "Invalid Type for named variable";
 	MSG(&iTok, msg.str().c_str(), ERR);
 	unreadToken();
-	return NULL;
+	return false;
       }
-
-    if(parseSingleDecl)
-      typeargs.m_isStmt = false; //for function params (e.g. refs)
 
     if(iTok.m_type == TOK_IDENTIFIER)
       {
 	UTI passuti = typeNode->givenUTI(); //before it may become an array
-	rtnNode = makeVariableSymbol(typeargs, iTok, typeNode);
-	if(rtnNode && !parseSingleDecl)
+	NodeVarDecl * rtnNode = makeVariableSymbol(typeargs, iTok, typeNode);
+	if(rtnNode)
 	  {
+	    parseRestOfDeclAssignment(typeargs, iTok, rtnNode);
+	    m_state.getCurrentBlock()->appendNextNode(rtnNode);
 	    //for multi's of same type (rtnType), and/or its assignment
-	    return parseRestOfDecls(typeargs, iTok, (NodeVarDecl *) rtnNode, rtnNode, passuti);
+	    //return parseRestOfDecls(typeargs, iTok, (NodeVarDecl *) rtnNode, rtnNode, passuti);
+	    return parseRestOfDecls(typeargs, passuti);
 	  }
+	else //error msg?
+	  brtn = false;
       }
     else
       {
@@ -1987,8 +2110,9 @@ namespace MFM {
 	unreadToken();
 	delete typeNode;
 	typeNode = NULL;
+	brtn = false;
       }
-    return rtnNode;
+    return brtn;
   } //parseDecl
 
   NodeTypeDescriptor * Parser::parseTypeDescriptorIncludingLocalScope(TypeArgs& typeargs, bool isaclass, bool delAfterDotFails)
@@ -3797,7 +3921,70 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
   // are a child of the NodeVarDeclDM subclass (see parseDataMember).
   // References (locals only) save their initialized value, a
   // storeintoable ("lval") expression, in their NodeVarRef.
-  Node * Parser::parseRestOfDecls(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti)
+  bool Parser::parseRestOfDecls(TypeArgs& args, UTI passuti)
+  {
+    bool brtn = true;
+    Token pTok;
+    getNextToken(pTok);
+
+    args.m_arraysize = NONARRAYSIZE; //clear for decl list (args ref)
+
+    if(pTok.m_type != TOK_COMMA)
+      {
+	unreadToken(); //likely semicolon
+	return true; //done
+      }
+
+    Token iTok;
+    getNextToken(iTok);
+
+    if(iTok.m_type == TOK_AMP)
+      {
+	args.m_declRef = ALT_REF;
+	args.m_referencedUTI = passuti; //?
+	getNextToken(iTok);
+      }
+
+    if(iTok.m_type == TOK_IDENTIFIER)
+      {
+	//just the top level as a basic uti (no selects, or arrays, or refs???)
+	NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(args.m_typeTok, passuti, m_state);
+	//another decl of same type
+	NodeVarDecl * sNode = makeVariableSymbol(args, iTok, typeNode); //a decl !!
+	if(sNode)
+	  {
+	    parseRestOfDeclAssignment(args, iTok, sNode);
+	    m_state.getCurrentBlock()->appendNextNode(sNode);
+	  }
+	else //error msg?
+	  brtn = false;
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << "Variable name is missing after comma; Token <";
+	msg << m_state.getTokenDataAsString(pTok).c_str() << ">";
+	MSG(&iTok, msg.str().c_str(), ERR);
+	brtn = false;
+      }
+
+    if(brtn)
+      return parseRestOfDecls(args, passuti); //recurse
+
+    getTokensUntil(TOK_SEMICOLON); //perhaps read until semi-colon
+    unreadToken();
+    return false;
+  } //parseRestOfDecls
+
+#if 0
+  //assignOK true by default. These assignments are for local
+  // variables, not data members.  They create a parse subtree for the
+  // NodeVarDecl; and do not have to be constant expressions. Data
+  // member initialization expressions are constant expressions, and
+  // are a child of the NodeVarDeclDM subclass (see parseDataMember).
+  // References (locals only) save their initialized value, a
+  // storeintoable ("lval") expression, in their NodeVarRef.
+  Node * Parser::PARSERESTOFDECLS(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti)
   {
     //rtnNode is NodeStatments on list recursion, contains the NodeVarD ptr
     //dNode is the NodeVarD ptr needed for assignments
@@ -3809,6 +3996,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 
     args.m_arraysize = NONARRAYSIZE; //clear for decl list (args ref)
 
+#if 0
     if(pTok.m_type == TOK_EQUAL) //first check for '='
       {
 	if(args.m_assignOK)
@@ -3839,7 +4027,10 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	unreadToken();
 	return rtnNode; //done
       }
-    else if(pTok.m_type != TOK_COMMA)
+    else
+#endif
+
+      if(pTok.m_type != TOK_COMMA)
       {
 	unreadToken(); //likely semicolon
 	return rtnNode; //done
@@ -3860,7 +4051,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	//just the top level as a basic uti (no selects, or arrays, or refs???)
 	NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(args.m_typeTok, passuti, m_state);
 	//another decl of same type
-	NodeVarDecl * sNode = (NodeVarDecl *) makeVariableSymbol(args, iTok, typeNode); //a decl !!
+	NodeVarDecl * sNode = makeVariableSymbol(args, iTok, typeNode); //a decl !!
 	if (sNode)
 	  {
 	    rtnNode =  new NodeStatements(rtnNode, m_state);
@@ -3884,7 +4075,9 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
       }
     return parseRestOfDecls(args, iTok, dNode, rtnNode, passuti); //iTok in case of =
   } //parseRestOfDecls
+#endif
 
+#if 0
   Node * Parser::parseRestOfDeclAssignment(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti)
   {
     assert(dNode);
@@ -3895,6 +4088,9 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
     //update dNode with init expression: lval for ref, assign for local car
     if(args.m_declRef == ALT_REF)
       {
+	parseRestOfRefAssignment(identTok, dNode);
+
+#if 0
 	getNextToken(eTok);
 	if(eTok.m_type == TOK_IDENTIFIER)
 	  {
@@ -3954,11 +4150,16 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	    msg << "> for initial value of reference";
 	    MSG(&eTok, msg.str().c_str(), ERR);
 	  }
+#endif
 	args.m_declRef = ALT_NOT; //clear flag in case of decl list
 	//keep args.m_referenced type???
       } //ref done
     else
       {
+	unreadToken();
+	parseRestOfAssignment(identTok, dNode);
+
+#if 0
 	//check for possible start of array init
 	getNextToken(eTok);
 	unreadToken();
@@ -3981,12 +4182,129 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	  {
 	    dNode->setInitExpr(assignNode);
 	  }
+#endif
       }
     return parseRestOfDecls(args, identTok, dNode, rtnNode, passuti); //any more?
   } //parseRestOfDeclAssignment
+#endif
 
-Node * Parser::parseArrayInitialization(u32 identId)
-{
+  bool Parser::parseRestOfDeclAssignment(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode)
+  {
+    assert(dNode);
+    Token eTok;
+    getNextToken(eTok);
+
+    if(eTok.m_type == TOK_EQUAL) //first check for '='
+      {
+	if(!args.m_assignOK)
+	  {
+	    //assignments not permitted
+	    std::ostringstream msg;
+	    msg << "Cannot assign to variable <";
+	    msg << m_state.getTokenDataAsString(identTok).c_str() << ">";
+	    MSG(&eTok, msg.str().c_str(), ERR);
+	    getTokensUntil(TOK_SEMICOLON); //rest of statement is ignored.
+	    unreadToken();
+	    assert(0); //? if not, when
+	    return false; //done
+	  }
+	//else continue..
+      }
+    else if(args.m_declRef == ALT_REF)
+      {
+	//assignments required for references
+	std::ostringstream msg;
+	msg << "Must assign to reference <" << m_state.getTokenDataAsString(identTok).c_str();
+	msg << "> at the time of its declaration";
+	MSG(&eTok, msg.str().c_str(), ERR);
+	getTokensUntil(TOK_SEMICOLON); //rest of statement is ignored.
+	unreadToken();
+	return false; //done
+      }
+
+    //continuing..
+    bool brtn = true;
+    //update dNode with init expression: lval for ref, assign for local car
+    if(args.m_declRef == ALT_REF)
+      {
+	brtn = parseRestOfRefAssignment(identTok, dNode);
+	args.m_declRef = ALT_NOT; //clear flag in case of decl list
+	//keep args.m_referenced type???
+      } //ref done
+    else
+      {
+	unreadToken();
+	brtn = parseRestOfAssignment(identTok, dNode);
+      }
+    return brtn;
+  } //parseRestOfDeclAssignment
+
+  bool Parser::parseRestOfRefAssignment(const Token& identTok, NodeVarDecl * dNode)
+  {
+    bool brtn = true;
+    Token eTok;
+    getNextToken(eTok);
+    if(eTok.m_type == TOK_IDENTIFIER)
+      {
+	Node * rightNode = parseIdentExpr(eTok); //parseLvalExpr(eTok);
+	if(!rightNode)
+	  {
+	    std::ostringstream msg;
+	    msg << "Value of reference " << identTok.getTokenStringFromPool(&m_state).c_str();
+	    msg << " is missing";
+	    MSG(&identTok, msg.str().c_str(), ERR);
+	    brtn = false;
+	  }
+	else
+	  ((NodeVarRef *) dNode)->setInitExpr(rightNode);
+      }
+    else if(eTok.m_type == TOK_TYPE_IDENTIFIER)
+      {
+	unreadToken();
+	//can only be .instanceof
+	Node * rightNode = parseFactor(); //parseMinMaxSizeofType(eTok);
+	if(!rightNode)
+	  {
+	    std::ostringstream msg;
+	    msg << "Value of instanceof reference type ";
+	    msg << eTok.getTokenStringFromPool(&m_state).c_str();
+	    msg << " is missing for '";
+	    msg << m_state.getTokenDataAsString(identTok).c_str() << "'";
+	    MSG(&eTok, msg.str().c_str(), ERR);
+	    brtn = false;
+	  }
+	else
+	  ((NodeVarRef *) dNode)->setInitExpr(rightNode);
+      }
+    else if(eTok.m_type == TOK_OPEN_PAREN)
+      {
+	//allows casting of reference initialization
+	Node * rightNode = parseRestOfCastOrExpression(true);
+	if(!rightNode)
+	  {
+	    std::ostringstream msg;
+	    msg << "Value of casted reference type ";
+	    msg << " is missing for '";
+	    msg << m_state.getTokenDataAsString(identTok).c_str() << "'";
+	    MSG(&eTok, msg.str().c_str(), ERR);
+	    brtn = false;
+	  }
+	else
+	  ((NodeVarRef *) dNode)->setInitExpr(rightNode);
+      }
+    else //error
+      {
+	std::ostringstream msg;
+	msg << "Unexpected token <" << eTok.getTokenStringFromPool(&m_state).c_str();
+	msg << "> for initial value of reference";
+	MSG(&eTok, msg.str().c_str(), ERR);
+	brtn = false;
+      }
+    return brtn;
+  } //parseRestOfRefAssignment
+
+  Node * Parser::parseArrayInitialization(u32 identId)
+  {
     Token aTok;
     getNextToken(aTok);
 
@@ -4260,7 +4578,7 @@ Node * Parser::parseArrayInitialization(u32 identId)
     SymbolVariableStack * selfsym = new SymbolVariableStack(selfTok, m_state.getUlamTypeAsRef(cuti, ALT_REF), m_state.m_currentFunctionBlockDeclSize, m_state);
     selfsym->setAutoLocalType(ALT_REF);
     selfsym->setIsSelf();
-    m_state.addSymbolToCurrentScope(selfsym); //ownership goes to the block
+    m_state.addSymbolToCurrentScope(selfsym); //ownership goes to the funcdef block
 
     //create "super" symbol for the Super class type; btw, it's really a ref.
     //belongs to the function definition scope.
@@ -4350,7 +4668,7 @@ Node * Parser::parseArrayInitialization(u32 identId)
     else if(Token::isTokenAType(pTok) || (pTok.m_type == TOK_KW_LOCALDEF))
       {
 	unreadToken();
-	Node * argNode = parseDecl(SINGLEDECL); //singleton
+	NodeVarDecl * argNode = parseFunctionParameterDecl();
 	Symbol * argSym = NULL;
 
 	//could be null symbol already in scope
@@ -4396,6 +4714,48 @@ Node * Parser::parseArrayInitialization(u32 identId)
     return parseRestOfFunctionParameters(fsym, fblock);
   } //parseRestOfFunctionParameters
 
+  //similar to parseDecl, except singletons and no assignments
+  NodeVarDecl * Parser::parseFunctionParameterDecl()
+  {
+    NodeVarDecl * rtnNode = NULL;
+    TypeArgs typeargs;
+    NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalScope(typeargs, false, false);
+
+    Token iTok;
+    getNextToken(iTok);
+
+    if(!typeNode)
+      {
+	std::ostringstream msg;
+	msg << "Invalid Type for function parameter";
+	MSG(&iTok, msg.str().c_str(), ERR);
+	unreadToken();
+	return NULL;
+      }
+
+    typeargs.m_isStmt = false; //for function params (e.g. refs)
+
+    if(iTok.m_type == TOK_IDENTIFIER)
+      {
+	rtnNode = makeVariableSymbol(typeargs, iTok, typeNode);
+      }
+    else
+      {
+	//user error!
+	std::ostringstream msg;
+	msg << "Function parameter <" << m_state.getTokenDataAsString(iTok).c_str();
+	if((Token::getSpecialTokenWork(iTok.m_type) == TOKSP_KEYWORD))
+	  msg << ">: Name must not be a reserved keyword";
+	else
+	  msg << ">: Name must begin with a lower-case letter";
+	MSG(&iTok, msg.str().c_str(), ERR);
+	unreadToken();
+	delete typeNode;
+	typeNode = NULL;
+      }
+    return rtnNode;
+  } //parseFunctionParameterDecl
+
   bool Parser::parseFunctionBody(NodeBlockFunctionDefinition *& funcNode)
   {
     bool brtn = false;
@@ -4412,17 +4772,19 @@ Node * Parser::parseArrayInitialization(u32 identId)
 	getNextToken(pTok);
 	unreadToken();
 
-	NodeStatements * nextNode;
+	//NodeStatements * nextNode;
 	if(pTok.m_type == TOK_CLOSE_CURLY)
 	  {
-	    nextNode = new NodeBlockEmpty(m_state.getCurrentBlock(), m_state); //legal
+	    NodeStatements * nextNode = new NodeBlockEmpty(m_state.getCurrentBlock(), m_state); //legal
 	    assert(nextNode);
 	    nextNode->setNodeLocation(pTok.m_locator);
+	    funcNode->setNextNode(nextNode);
 	  }
 	else
-	  nextNode = (NodeStatements *) parseStatements();
+	  //nextNode = (NodeStatements *) parseStatements();
+	  parseStatements();
 
-	funcNode->setNextNode(nextNode);
+	//funcNode->setNextNode(nextNode);
 
 	if(!getExpectedToken(TOK_CLOSE_CURLY))
 	  {
@@ -4549,7 +4911,7 @@ Node * Parser::parseArrayInitialization(u32 identId)
     return rtnNode;
   } //makeFunctionSymbol
 
-  Node * Parser::makeVariableSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef)
+  NodeVarDecl * Parser::makeVariableSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef)
   {
     assert(!Token::isTokenAType(identTok)); //capitalization check done by Lexer
 

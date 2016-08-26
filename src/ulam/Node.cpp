@@ -2275,13 +2275,6 @@ namespace MFM {
 	returnNode->setNodeLocation(loc);
 
 	fblock->appendNextNode(returnNode);
-#if 0
-	NodeStatements * sNode = new NodeStatements(returnNode, m_state);
-	assert(sNode);
-	sNode->setNodeLocation(loc);
-	fblock->setNextNode(sNode);
-#endif
-
 	fblock->setDefinition();
 	fblock->setMaxDepth(0); //no local variables, except params
       }

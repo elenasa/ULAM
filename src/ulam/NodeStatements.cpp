@@ -6,17 +6,13 @@ namespace MFM {
 
   NodeStatements::NodeStatements(Node * s, CompilerState & state) : Node(state), m_node(s), m_nodeNext(NULL) {}
 
-  NodeStatements::NodeStatements(const NodeStatements& ref) : Node(ref)
+  NodeStatements::NodeStatements(const NodeStatements& ref) : Node(ref), m_node(NULL), m_nodeNext(NULL)
   {
     if(ref.m_node)
       m_node = ref.m_node->instantiate();
-    else
-      m_node = NULL;
 
     if(ref.m_nodeNext)
       m_nodeNext = (NodeStatements *) ref.m_nodeNext->instantiate();
-    else
-      m_nodeNext = NULL;
   }
 
   NodeStatements::~NodeStatements()
