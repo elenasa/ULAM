@@ -2282,8 +2282,7 @@ namespace MFM {
 
     NodeBlockClass * classblock = cnsym->getClassBlockNode();
     assert(classblock);
-    //NodeStatements * endingstmt = classblock;
-    assert(classblock->getLastStatementNodePtr() == classblock); //check this.
+    assert(classblock->getLastStatementPtr() == classblock); //check this.
 
     std::vector<Node *>::iterator vit;
     for(vit = fmLocals.begin(); vit != fmLocals.end(); vit++)

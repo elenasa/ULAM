@@ -70,9 +70,9 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    void setLastStatementNodePtr(NodeStatements * laststmt);
+    void setLastStatementPtr(NodeStatements * laststmt);
 
-    NodeStatements * getLastStatementNodePtr();
+    NodeStatements * getLastStatementPtr();
 
     void appendNextNode(Node * node);
 

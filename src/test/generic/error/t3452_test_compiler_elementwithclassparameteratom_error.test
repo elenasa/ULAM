@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3452_test_compiler_elementwithclassparameteratom_error
 #!
-./S.ulam:2:10: ERROR: Invalid constant definition Type 'Atom'.
+./S.ulam:2:10: ERROR: Invalid class parameter Type 'Atom'.
 ./S.ulam:2:10: ERROR: Problem with parameter definition 1 for template class: S.
 ./S.ulam:2:16: ERROR: Unexpected token <TOK_CLOSE_PAREN>; Expected {.
 ./S.ulam:2:2: ERROR: Empty/Incomplete Class Definition 'S'; Possible missing ending curly brace.

@@ -486,7 +486,7 @@ namespace MFM {
       }
 
     //append data members to class block's tree
-    while(parseDataMember()) { }
+    while(parseDataMember());
 
     if(!getExpectedToken(TOK_CLOSE_CURLY))
       {
@@ -533,7 +533,7 @@ namespace MFM {
 	// subsequent parameters must also to avoid ambiguity when instaniated
 	u32 numparams = cntsym->getNumberOfParameters();
 	bool assignrequired = ( (numparams == 0) ? NOASSIGNOK : cntsym->parameterHasDefaultValue(numparams - 1));
-	Node * argNode = parseConstdef(assignrequired, false); //2nd arg->not statement
+	Node * argNode = parseClassParameterConstdef(assignrequired);
 	Symbol * argSym = NULL;
 
 	//could be null symbol already in scope
@@ -684,7 +684,6 @@ namespace MFM {
 
     m_state.pushCurrentBlock(locals); //so Symbol get's correct ST NodeNo.
 
-    Node * localDefNode = NULL;
     Token pTok;
     getNextToken(pTok);
 
@@ -696,7 +695,7 @@ namespace MFM {
     else if(pTok.m_type == TOK_KW_CONSTDEF)
       {
 	//parse Named Constant starting with keyword first
-	localDefNode = parseConstdef();
+	brtn = parseConstdef();
       }
     else
       {
@@ -710,21 +709,12 @@ namespace MFM {
 
     m_state.popClassContext();
 
-    if(localDefNode || brtn)
+    if(brtn)
       {
 	if(!getExpectedToken(TOK_SEMICOLON))
 	  {
-	    delete localDefNode;
-	    localDefNode = NULL;
 	    getTokensUntil(TOK_SEMICOLON); //does this help?
 	    brtn = false;
-	  }
-	else
-	  {
-	    if(localDefNode)
-	      {
-		locals->appendNextNode(localDefNode);
-	      }
 	  }
       }
     return brtn;
@@ -753,17 +743,22 @@ namespace MFM {
     else if(pTok.m_type == TOK_KW_CONSTDEF)
       {
 	//parse Named Constant starting with keyword first
-	rtnNode = parseConstdef();
+	isAlreadyAppended = parseConstdef();
 
 	// simulated "data member" flag for constantdef symbols; to
 	// distinguish between function scope and filescope constants;
 	// not set in Symbol constructor, like Localfilescope flag, since
 	// ClassParameter constant defs (e.g. t3328, t3329, t3330..)
 	// also have the same BlockNoST as its class.
-	if(rtnNode)
+	if(isAlreadyAppended)
 	  {
+	    NodeStatements * laststmt = m_state.getCurrentBlock()->getLastStatementPtr();
+	    assert(laststmt);
+	    Node * getthisnode = NULL;
+	    AssertBool gotnode = laststmt->getNodePtr(getthisnode);
+	    assert(gotnode);
 	    Symbol * csym = NULL;
-	    if(rtnNode->getSymbolPtr(csym))
+	    if(getthisnode->getSymbolPtr(csym))
 	      csym->setDataMemberClass(m_state.getCompileThisIdx());
 	  }
       }
@@ -1044,7 +1039,7 @@ namespace MFM {
 	    NodeBlock * currblock = m_state.getCurrentBlock();
 	    assert(currblock);
 	    //not the same if decl appended.
-	    return (currblock != currblock->getLastStatementNodePtr());
+	    return (currblock != currblock->getLastStatementPtr());
 	  }
       }
     //else continue...
@@ -1646,7 +1641,7 @@ namespace MFM {
       }
     else if(pTok.m_type == TOK_KW_CONSTDEF)
       {
-	rtnNode = parseConstdef();
+	parseConstdef();
       }
     else if(pTok.m_type == TOK_KW_RETURN)
       {
@@ -1771,13 +1766,10 @@ namespace MFM {
     return brtn;
   } //parseTypedef
 
-  //Named constants (constdefs) are not transferred to generated code;
-  //they are a short-hand for scalar constant expressions (e.g. terminals),
-  //that are not 'storeintoable'; scope-specific.
-  //doubles as class parameter without keyword or assignment.
-  Node * Parser::parseConstdef(bool assignREQ, bool isStmt)
+
+  bool Parser::parseConstdef()
   {
-    Node * rtnNode = NULL;
+    bool brtn = false;
     Token pTok;
     getNextToken(pTok);
 
@@ -1792,25 +1784,24 @@ namespace MFM {
 	    msg << "Invalid named constant Type '";
 	    msg << m_state.getTokenDataAsString(pTok).c_str() << "'";
 	    MSG(&pTok, msg.str().c_str(), ERR); //t3857?
-	    if(isStmt)
-	      getTokensUntil(TOK_SEMICOLON);
-	    else
-	      {
-		Token tmpTok;
-		getNextToken(tmpTok); //by pass identTok only
-	      }
-	    return NULL; //done
+	    getTokensUntil(TOK_SEMICOLON);
+	    return false; //done
 	  }
 
-	typeargs.m_assignOK = assignREQ;
-	typeargs.m_isStmt = isStmt;
+	typeargs.m_assignOK = true;
+	typeargs.m_isStmt = true;
 
 	Token iTok;
 	getNextToken(iTok);
 	//insure the constant def name starts with a lower case letter
 	if(iTok.m_type == TOK_IDENTIFIER)
 	  {
-	    rtnNode = makeConstdefSymbol(typeargs, iTok, typeNode);
+	    NodeConstantDef * constNode = makeConstdefSymbol(typeargs, iTok, typeNode);
+	    if(constNode)
+	      {
+		m_state.getCurrentBlock()->appendNextNode(constNode);
+		brtn = true;
+	      }
 	  }
 	else
 	  {
@@ -1829,16 +1820,71 @@ namespace MFM {
 	msg << "Invalid constant definition Type '";
 	msg << m_state.getTokenDataAsString(pTok).c_str() << "'";
 	MSG(&pTok, msg.str().c_str(), ERR);
-	if(isStmt)
-	  getTokensUntil(TOK_SEMICOLON);
-	else
+	getTokensUntil(TOK_SEMICOLON);
+      }
+    return brtn;
+  } //parseConstdef
+
+  //Named constants (constdefs) are not transferred to generated code;
+  //they are a short-hand for scalar constant expressions (e.g. terminals),
+  //that are not 'storeintoable'; scope-specific.
+  //doubles as class parameter without keyword or assignment.
+  NodeConstantDef * Parser::parseClassParameterConstdef(bool assignREQ)
+  {
+    NodeConstantDef * rtnNode = NULL;
+    Token pTok;
+    getNextToken(pTok);
+
+    if( (Token::isTokenAType(pTok) || (pTok.m_type == TOK_KW_LOCALDEF)) && (pTok.m_type != TOK_KW_TYPE_VOID) && (pTok.m_type != TOK_KW_TYPE_ATOM))
+      {
+	unreadToken();
+	TypeArgs typeargs;
+	NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalScope(typeargs, false, false);
+	if(!typeNode)
 	  {
+	    std::ostringstream msg;
+	    msg << "Invalid class parameter Type '";
+	    msg << m_state.getTokenDataAsString(pTok).c_str() << "'";
+	    MSG(&pTok, msg.str().c_str(), ERR); //t3857?
 	    Token tmpTok;
 	    getNextToken(tmpTok); //by pass identTok only
+	    return NULL; //done
+	  }
+
+	typeargs.m_assignOK = assignREQ;
+	typeargs.m_isStmt = false;
+
+	Token iTok;
+	getNextToken(iTok);
+	//insure the constant def name starts with a lower case letter
+	if(iTok.m_type == TOK_IDENTIFIER)
+	  {
+	    rtnNode = makeConstdefSymbol(typeargs, iTok, typeNode);
+	    //don't append a class parameter to parse tree; its scope is different
+	    // (i.e. it can be shadowed by a class data member or other named constant)
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Invalid class parameter constant definition Alias '";
+	    msg << m_state.getTokenDataAsString(iTok).c_str();
+	    msg << "'; identifer (2nd arg) requires lower-case";
+	    MSG(&iTok, msg.str().c_str(), ERR);
+	    delete typeNode;
+	    typeNode = NULL;
 	  }
       }
+    else
+      {
+	std::ostringstream msg;
+	msg << "Invalid class parameter Type '";
+	msg << m_state.getTokenDataAsString(pTok).c_str() << "'";
+	MSG(&pTok, msg.str().c_str(), ERR);
+	Token tmpTok;
+	getNextToken(tmpTok); //by pass identTok only
+      }
     return rtnNode;
-  } //parseConstdef
+  } //parseClassParameterConstdef
 
   Node * Parser::parseModelParameter()
   {
@@ -4700,10 +4746,9 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
     return rtnNode;
   } //makeTypedefSymbol
 
-  Node * Parser::makeConstdefSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef)
+  NodeConstantDef * Parser::makeConstdefSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef)
   {
-    //NodeConstantDef * rtnNode = NULL;
-    Node * rtnNode = NULL;
+    NodeConstantDef * rtnNode = NULL;
     Node * lvalNode = parseIdentExpr(identTok); //calls parseLvalExpr
     if(lvalNode)
       {

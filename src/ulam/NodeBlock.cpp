@@ -9,7 +9,7 @@ namespace MFM {
     if(s)
       {
 	setNextNode(s);
-	setLastStatementNodePtr(s);
+	setLastStatementPtr(s);
       }
   }
 
@@ -102,13 +102,14 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  void NodeBlock::setLastStatementNodePtr(NodeStatements * laststmt)
+  void NodeBlock::setLastStatementPtr(NodeStatements * laststmt)
   {
     m_nodeEndingStmt = laststmt;
   }
 
-  NodeStatements * NodeBlock::getLastStatementNodePtr()
+  NodeStatements * NodeBlock::getLastStatementPtr()
   {
+    assert(m_nodeEndingStmt != NULL);
     return m_nodeEndingStmt;
   }
 
