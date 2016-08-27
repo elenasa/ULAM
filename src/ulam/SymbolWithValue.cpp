@@ -296,7 +296,7 @@ namespace MFM {
 	    }
 	    break;
 	  default:
-	    assert(0);
+	    m_state.abortUndefinedUlamPrimitiveType();
 	  };
       }
     else
@@ -523,7 +523,7 @@ namespace MFM {
 	}
 	break;
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
       };
     return true;
   } //getLexValue

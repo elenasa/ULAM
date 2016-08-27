@@ -81,7 +81,7 @@ namespace MFM {
     else if(aclasstype == UC_TRANSIENT)
       atomuv = UlamValue::makeDefaultAtom(auti, m_state); //size limited to atom for eval
     else
-      assert(0);
+      m_state.abortUndefinedUlamClassType();
 
     m_state.m_funcCallStack.storeUlamValueAtStackIndex(atomuv, atop); //stackframeslotindex ?
 

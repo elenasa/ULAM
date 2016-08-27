@@ -223,7 +223,7 @@ namespace MFM {
 	}
 	break;
       default:
-	assert(0);
+	m_state.abortUndefinedUlamType();
 	//std::cerr << "UlamTypePrimitiveInt (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };
@@ -300,7 +300,7 @@ namespace MFM {
       case Class:
 	break;
       default:
-	assert(0);
+	m_state.abortUndefinedUlamType();
 	//std::cerr << "UlamTypePrimitiveInt (convertTo) error! " << tobUT << std::endl;
       };
     return (tobitsize > wordsize ? wordsize : tobitsize);

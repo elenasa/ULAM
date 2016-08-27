@@ -224,7 +224,7 @@ namespace MFM {
     else if(classtype == UC_TRANSIENT)
       msg << "transient ";
     else
-      assert(0);
+      m_state.abortUndefinedUlamClassType();
 
     msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str() << " : ";
 
@@ -238,7 +238,7 @@ namespace MFM {
 	else if(classtype == UC_TRANSIENT)
 	  remaining = total;
 	else
-	  assert(0);
+	  m_state.abortUndefinedUlamClassType();
 
 	msg << total << "/" << remaining;
       }
@@ -253,7 +253,7 @@ namespace MFM {
 	else if(classtype == UC_TRANSIENT)
 	  remaining = total;
 	else
-	  assert(0);
+	  m_state.abortUndefinedUlamClassType();
 
 	msg << "UNKNOWN" << "/" << remaining;
       }
@@ -787,7 +787,7 @@ void SymbolClass::setContextForPendingArgs(UTI context)
     else if(classtype == UC_LOCALFILESCOPES)
       fp->write("LocalFilescopes");
     else
-      assert(0);
+      m_state.abortUndefinedUlamClassType();
 
     fp->write(" header for ULAM"); GCNL;
 

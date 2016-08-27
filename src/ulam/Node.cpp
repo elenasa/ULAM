@@ -1592,7 +1592,7 @@ namespace MFM {
 	    fp->write("u");
 	  }
 	else
-	  assert(0);
+	  m_state.abortUndefinedUlamClassType();
 
 	if(cosSize > 0)
 	  {
@@ -1857,7 +1857,7 @@ namespace MFM {
 		  }
 	      }
 	    else
-	      assert(0);
+	      m_state.abortUndefinedUlamType();
 	  }
 	if(!stgcosut->isReference())
 	  fp->write(", uc");  //t3635
@@ -3073,7 +3073,7 @@ namespace MFM {
 	else if(classtype == UC_ELEMENT)
 	  usageStr << "ELEMENTAL";
 	else
-	  assert(0);
+	  m_state.abortUndefinedUlamClassType();
       }
     return usageStr.str();
   } //genUlamRefUsageAsString

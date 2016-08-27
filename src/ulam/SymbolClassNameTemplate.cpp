@@ -707,7 +707,7 @@ namespace MFM {
 			}
 			break;
 		      default:
-			assert(0);
+			m_state.abortUndefinedUlamPrimitiveType();
 		      };
 		  }
 	      }
@@ -841,7 +841,7 @@ namespace MFM {
 			    }
 			    break;
 			  default:
-			    assert(0);
+			    m_state.abortUndefinedUlamPrimitiveType();
 			  };
 		      }
 		  } //isscalar

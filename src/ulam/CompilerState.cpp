@@ -560,7 +560,7 @@ namespace MFM {
 	      ut = new UlamTypeClassLocalFilescopes(key, *this);
 	      break;
 	    default:
-	      assert(0);
+	      abortUndefinedUlamClassType();
 	    };
 	}
 	break;
@@ -581,7 +581,7 @@ namespace MFM {
 	  std::ostringstream msg;
 	  msg << "Undefined ULAMTYPE base type <" << utype << ">" ;
 	  MSG2("",msg.str().c_str(),DEBUG);
-	  assert(0);
+	  abortUndefinedUlamType();
 	}
       };
     assert(ut);
@@ -1390,7 +1390,7 @@ namespace MFM {
     if(!ut->isComplete())
       {
 	ULAMCLASSTYPE classtype = ut->getUlamClassType();
-	if( classtype != UC_NOTACLASS)
+	if(classtype != UC_NOTACLASS)
 	  {
 	    assert(classtype == UC_UNSEEN);
 	    replaceUlamTypeForUpdatedClassType(ut->getUlamKeyTypeSignature(), Class, derefut->getUlamClassType(), derefut->isCustomArray()); //e.g. error/t3763
@@ -2851,7 +2851,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     else if (rclasstype == UC_TRANSIENT)
       return IS_MANGLED_FUNC_NAME;
     else
-      assert(0);
+      abortUndefinedUlamClassType();
 
     return "AS_ERROR";
   } //getAsMangledFunctionName
@@ -2873,7 +2873,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     else if(lclasstype == UC_TRANSIENT)
       return BUILD_DEFAULT_TRANSIENT_FUNCNAME;
     else
-      assert(0);
+      abortUndefinedUlamClassType();
     return "BUILDEFAULTATOM_ERROR";
   } //getBuildDefaultAtomFunctionName
 
@@ -3009,10 +3009,10 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 		lenstr << "::LENGTH";
 	      }
 	    else
-	      assert(0); //error!! neither quark nor element
+	      abortUndefinedUlamClassType(); //error!! neither quark nor element
 	  }
 	else
-	    assert(0); //error!! no class symbol for this type
+	    abortUndefinedUlamClassType(); //error!! no class symbol for this type
       }
     return lenstr.str();
   } //getBitVectorLengthAsStringForCodeGen
@@ -4022,6 +4022,21 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   }
 
   void CompilerState::abortGreaterThanMaxBitsPerLong()
+  {
+    assert(0);
+  }
+
+  void CompilerState::abortUndefinedUlamType()
+  {
+    assert(0);
+  }
+
+  void CompilerState::abortUndefinedUlamClassType()
+  {
+    assert(0);
+  }
+
+  void CompilerState::abortUndefinedUlamPrimitiveType()
   {
     assert(0);
   }

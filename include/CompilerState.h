@@ -513,6 +513,9 @@ namespace MFM{
     bool checkHasHazyKin(NodeBlock * block);
 
     void abortGreaterThanMaxBitsPerLong();
+    void abortUndefinedUlamType();
+    void abortUndefinedUlamClassType();
+    void abortUndefinedUlamPrimitiveType();
 
   private:
     ClassContextStack m_classContextStack; // the current subject of this compilation

@@ -320,7 +320,7 @@ namespace MFM {
 	  break;
 	}
       default:
-	assert(0); //checked prior
+	m_state.abortUndefinedUlamClassType(); //checked prior
       };
 
     cnSym->setStructuredComment(); //also clears

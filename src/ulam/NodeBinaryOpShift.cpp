@@ -198,7 +198,7 @@ namespace MFM {
 	methodname << UlamType::getUlamTypeEnumAsString(etyp);
 	break;
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	methodname << "NAV";
 	break;
       };

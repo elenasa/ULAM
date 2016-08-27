@@ -285,7 +285,7 @@ namespace MFM {
 		msg << "' was at slot: " << oldslot << ", new slot is " << slot;
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		supersym->setStackFrameSlotIndex(slot);
-		//assert(0); //t3704, t3706, t3707, t3709, t3710
+		//t3704, t3706, t3707, t3709, t3710
 	      }
 	  }
       }

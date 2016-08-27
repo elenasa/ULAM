@@ -1108,7 +1108,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	genCodeHeaderLocalFilescopes(fp);
       }
     else
-      assert(0);
+      m_state.abortUndefinedUlamClassType();
 
     //gencode declarations only for all the function definitions
     bool declOnly = true;
@@ -1646,7 +1646,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
       }
     else
-      assert(0);
+      m_state.abortUndefinedUlamClassType();
 
     generateCodeForFunctions(fp, false, classtype);
 
@@ -1703,7 +1703,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	//nothing to do
       }
     else
-      assert(0); //sanity
+      m_state.abortUndefinedUlamClassType(); //sanity
   } //generateCodeForBuiltInClassFunctions
 
   void NodeBlockClass::genCodeBuiltInFunctionHas(File * fp, bool declOnly, ULAMCLASSTYPE classtype)

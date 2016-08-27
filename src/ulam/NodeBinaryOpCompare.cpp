@@ -121,7 +121,7 @@ namespace MFM {
 	methodname << "Bool";
 	break;
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	methodname << "NAV";
 	break;
       };
@@ -178,7 +178,7 @@ namespace MFM {
 	rtnUV = makeImmediateLongBinaryOp(luti, ldata, rdata, len);
       }
     else
-      assert(0); //e.g. 0
+      m_state.abortGreaterThanMaxBitsPerLong(); //e.g. 0
 
     if(rtnUV.getUlamValueTypeIdx() == Nav)
       return false;
@@ -195,6 +195,7 @@ namespace MFM {
   bool NodeBinaryOpCompare::doBinaryOperationArray(s32 lslot, s32 rslot, u32 slots)
   {
     assert(0); //not implemented yet..TODO return bool.
+#if 0
     UlamValue rtnUV;
     UTI nuti = getNodeType(); //Bool, same array size as lhs/rhs
 
@@ -262,7 +263,7 @@ namespace MFM {
 
     if(WritePacked(packRtn))
       m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1); //store accumulated packed result
-
+#endif
     return false; //NOT IMPLEMENTED YET!
   } //end dobinaryOperaationarray
 

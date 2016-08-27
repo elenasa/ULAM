@@ -238,7 +238,7 @@ namespace MFM {
 	fp->write(", UlamRef<EC>::CLASSIC"); //stays classic
       }
     else
-      assert(0); //WHAT THEN???
+      m_state.abortUndefinedUlamClassType(); //WHAT THEN???
 
     if(!stgcosut->isReference())
       fp->write(", uc"); //t3249

@@ -27,7 +27,7 @@ namespace MFM {
 	methodname << "Unsigned";
 	break;
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	methodname << "NAV";
 	break;
       };

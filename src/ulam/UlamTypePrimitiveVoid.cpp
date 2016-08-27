@@ -142,7 +142,7 @@ namespace MFM {
 	brtn = true; //anything casts to void ok
 	break;
       default:
-	assert(0);
+	m_state.abortUndefinedUlamType();
 	//std::cerr << "UlamTypePrimitiveVoid (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };
@@ -167,7 +167,7 @@ namespace MFM {
       case Class:
 	break;
       default:
-	assert(0);
+	m_state.abortUndefinedUlamType();
 	//std::cerr << "UlamTypePrimitiveVoid (convertTo) error! " << tobUT << std::endl;
       };
     return tobitsize;

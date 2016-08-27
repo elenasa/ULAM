@@ -187,7 +187,7 @@ namespace MFM {
 		  }
 	      }
 	    else
-	      assert(0);
+	      m_state.abortUndefinedUlamClassType();
 	  }
       }
 
@@ -317,7 +317,7 @@ namespace MFM {
 	  }
       }
     else
-      assert(0); //honorable death
+      m_state.abortUndefinedUlamClassType(); //honorable death
 
     if(asit)
       {
@@ -449,7 +449,7 @@ namespace MFM {
 	fp->write(");"); GCNL;
       }
     else
-      assert(0); // error/t3827
+      m_state.abortUndefinedUlamClassType(); // error/t3827
 
     //update uvpass, include lhs name id
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());

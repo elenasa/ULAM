@@ -199,7 +199,7 @@ namespace MFM {
 	    newbs = BITS_PER_BOOL;
 	    break;
 	  default:
-	    assert(0);
+	    m_state.abortUndefinedUlamPrimitiveType();
 	  };
 
 	//use UTI with same base type and new bitsize:
