@@ -4890,13 +4890,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	rtnNode = new NodeConditionalAs(leftNode, typeNode, m_state);
 	break;
       default:
-	{
-	  std::ostringstream msg;
-	  msg << " Unexpected input!! Token <";
-	  msg << m_state.getTokenDataAsString(fTok).c_str() << ">, aborting";
-	  MSG(&fTok, msg.str().c_str(), DEBUG);
-	  assert(0);
-	}
+	abortUnexpectedToken(fTok);
 	break;
       };
     assert(rtnNode);
@@ -4957,13 +4951,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	    rtnNode = new NodeBinaryOpEqualShiftRight(leftNode, rightNode, m_state);
 	    break;
 	  default:
-	    {
-	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token <";
-	      msg << m_state.getTokenDataAsString(pTok).c_str() << ">, aborting";
-	      MSG(&pTok, msg.str().c_str(), DEBUG);
-	      assert(0);
-	    }
+	    abortUnexpectedToken(pTok);
 	    break;
 	  };
 	assert(rtnNode);
@@ -4998,13 +4986,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	    rtnNode = new NodeBinaryOpLogicalOr(leftNode, rightNode, m_state);
 	    break;
 	  default:
-	    {
-	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token <";
-	      msg  << m_state.getTokenDataAsString(pTok).c_str() << ">, aborting";
-	      MSG(&pTok, msg.str().c_str(), DEBUG);
-	      assert(0);
-	    }
+	    abortUnexpectedToken(pTok);
 	    break;
 	  };
 	assert(rtnNode);
@@ -5042,13 +5024,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	    rtnNode = new NodeBinaryOpBitwiseXor(leftNode, rightNode, m_state);
 	    break;
 	  default:
-	    {
-	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token <";
-	      msg << m_state.getTokenDataAsString(pTok).c_str() << ">, aborting";
-	      MSG(&pTok, msg.str().c_str(), DEBUG);
-	      assert(0);
-	    }
+	    abortUnexpectedToken(pTok);
 	    break;
 	  };
 	assert(rtnNode);
@@ -5083,13 +5059,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	    rtnNode = new NodeBinaryOpCompareNotEqual(leftNode, rightNode, m_state);
 	    break;
 	  default:
-	    {
-	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token <";
-	      msg << m_state.getTokenDataAsString(pTok).c_str() << ">, aborting";
-	      MSG(&pTok, msg.str().c_str(), DEBUG);
-	      assert(0);
-	    }
+	    abortUnexpectedToken(pTok);
 	    break;
 	  };
 	assert(rtnNode);
@@ -5130,13 +5100,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	    rtnNode = new NodeBinaryOpCompareGreaterEqual(leftNode, rightNode, m_state);
 	    break;
 	  default:
-	    {
-	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token <";
-	      msg << m_state.getTokenDataAsString(pTok).c_str() << ">, aborting";
-	      MSG(&pTok, msg.str().c_str(), DEBUG);
-	      assert(0);
-	    }
+	    abortUnexpectedToken(pTok);
 	    break;
 	  };
 	assert(rtnNode);
@@ -5171,13 +5135,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	    rtnNode = new NodeBinaryOpShiftRight(leftNode, rightNode, m_state);
 	    break;
 	  default:
-	    {
-	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token <";
-	      msg << m_state.getTokenDataAsString(pTok).c_str() << ">, aborting";
-	      MSG(&pTok, msg.str().c_str(), DEBUG);
-	      assert(0);
-	    }
+	    abortUnexpectedToken(pTok);
 	    break;
 	  };
 	assert(rtnNode);
@@ -5212,13 +5170,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	    rtnNode = new NodeBinaryOpArithSubtract(leftNode, rightNode, m_state);
 	    break;
 	  default:
-	    {
-	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token <";
-	      msg << m_state.getTokenDataAsString(pTok).c_str() << ">, aborting";
-	      MSG(&pTok, msg.str().c_str(), DEBUG);
-	      assert(0);
-	    }
+	    abortUnexpectedToken(pTok);
 	    break;
 	  };
 	assert(rtnNode);
@@ -5256,13 +5208,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	    rtnNode = new NodeBinaryOpArithRemainder(leftNode, rightNode, m_state);
 	    break;
 	  default:
-	    {
-	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token <";
-	      msg << m_state.getTokenDataAsString(pTok).c_str() << ">, aborting";
-	      MSG(&pTok, msg.str().c_str(), DEBUG);
-	      assert(0);
-	    }
+	    abortUnexpectedToken(pTok);
 	    break;
 	  };
 	assert(rtnNode);
@@ -5326,13 +5272,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	rtnNode->setNodeLocation(pTok.m_locator);
 	break;
       default:
-	{
-	  std::ostringstream msg;
-	  msg << " Unexpected input!! Token <" << m_state.getTokenDataAsString(pTok).c_str();
-	  msg << ">, aborting";
-	  MSG(&pTok, msg.str().c_str(), DEBUG);
-	  assert(0);
-	}
+	abortUnexpectedToken(pTok);
 	break;
       };
 
@@ -5533,6 +5473,15 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
       }
     return;
   } //getTokensUntil
+
+  void Parser::abortUnexpectedToken(Token& tok)
+  {
+    std::ostringstream msg;
+    msg << " Unexpected input!! Token <" << m_state.getTokenDataAsString(tok).c_str();
+    msg << ">, aborting";
+    MSG(&tok, msg.str().c_str(), DEBUG);
+    assert(0);
+  }
 
   void Parser::initPrimitiveUlamTypes()
   {

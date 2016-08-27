@@ -459,6 +459,9 @@ namespace MFM{
      */
     void getTokensUntil(TokenType lastTok);
 
+    /** helper, assert with debug message */
+    void abortUnexpectedToken(Token& tok);
+
     /**
 	initializes primitive UlamTypes into classBlock Symbol Table
      */
