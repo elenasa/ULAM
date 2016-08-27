@@ -282,7 +282,7 @@ namespace MFM {
   EvalStatus NodeConstant::evalToStoreInto()
   {
     //possible constant array item (t3881)
-    assert(0);
+    m_state.abortShouldntGetHere();
     return UNEVALUABLE;
   }
 

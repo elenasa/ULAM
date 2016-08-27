@@ -68,7 +68,7 @@ namespace MFM {
 
   void NodeVarRefAs::packBitsInOrderOfDeclaration(u32& offset)
   {
-    assert(0); //refs can't be data members
+    m_state.abortShouldntGetHere(); //refs can't be data members
   } //packBitsInOrderOfDeclaration
 
   void NodeVarRefAs::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)

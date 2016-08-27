@@ -26,7 +26,7 @@ namespace MFM {
 
   const std::string NodeBinaryOpLogicalOr::methodNameForCodeGen()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return "notapplicable_logicalOr";
   } //methodNameForCodeGen
 
@@ -78,19 +78,19 @@ namespace MFM {
 
   UlamValue NodeBinaryOpLogicalOr::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
-    assert(0); //overridden by eval
+    m_state.abortShouldntGetHere(); //overridden by eval
     return UlamValue();
   } //makeImmediateBinaryOp
 
   UlamValue NodeBinaryOpLogicalOr::makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len)
   {
-    assert(0); //overridden by eval
+    m_state.abortShouldntGetHere(); //overridden by eval
     return UlamValue();
   } //makeImmediateLongBinaryOp
 
   void NodeBinaryOpLogicalOr::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
-    assert(0); //not implemented yet!
+    m_state.abortNotImplementedYet(); //not implemented yet!
     return;
   }
 

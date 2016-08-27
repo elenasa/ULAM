@@ -342,7 +342,7 @@ namespace MFM{
 	    dhex << "HexU64(" << "0x" << std::hex << uvals[0] << ", 0x" << std::hex << uvals[1] << ")";
 	  }
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
 
 	fp->write(dhex.str().c_str());
 	fp->write(";"); GCNL;

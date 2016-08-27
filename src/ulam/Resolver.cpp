@@ -129,7 +129,7 @@ namespace MFM {
 		    aok = m_state.isHolder(cnsym->getUlamTypeIdx()) ? false : true;
 		  }
 		//else
-		//assert(0);
+		//m_state.abortShouldntGetHere();
 	      }
 	    else
 	      {

@@ -63,7 +63,7 @@ namespace MFM {
 
   Symbol * SymbolClass::clone()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return new SymbolClass(*this);
   }
 

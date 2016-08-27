@@ -46,37 +46,37 @@ namespace MFM {
 
   void UlamTypePrimitiveVoid::getDataAsString(const u32 data, char * valstr, char prefix)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     sprintf(valstr,"%s", getUlamTypeName().c_str());
   }
 
   void UlamTypePrimitiveVoid::getDataLongAsString(const u64 data, char * valstr, char prefix)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     sprintf(valstr,"%s", getUlamTypeName().c_str());
   }
 
   s32 UlamTypePrimitiveVoid::getDataAsCs32(const u32 data)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return (s32) data;
   }
 
   u32 UlamTypePrimitiveVoid::getDataAsCu32(const u32 data)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return data;
   }
 
   s64 UlamTypePrimitiveVoid::getDataAsCs64(const u64 data)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return (s64) data;
   }
 
   u64 UlamTypePrimitiveVoid::getDataAsCu64(const u64 data)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return data;
   }
 
@@ -180,19 +180,19 @@ namespace MFM {
 
   void UlamTypePrimitiveVoid::genUlamTypeMangledAutoDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return;
   }
 
  void UlamTypePrimitiveVoid::genUlamTypeReadDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return;
   }
 
  void UlamTypePrimitiveVoid::genUlamTypeWriteDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return;
   }
 
@@ -208,19 +208,19 @@ namespace MFM {
 
  void UlamTypePrimitiveVoid::genUlamTypeMangledDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return;
   }
 
  void UlamTypePrimitiveVoid::genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return;
   }
 
  void UlamTypePrimitiveVoid::genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return;
   }
 } //end MFM

@@ -484,7 +484,7 @@ namespace MFM {
 	  }
 	if(totbitsize == CYCLEFLAG) //was < 0
 	  {
-	    assert(0);
+	    m_state.abortShouldntGetHere();
 	    return CYCLEFLAG;
 	  }
 	if(totbitsize == EMPTYSYMBOLTABLE)

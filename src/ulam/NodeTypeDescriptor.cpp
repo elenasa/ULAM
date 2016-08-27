@@ -503,7 +503,7 @@ namespace MFM {
 
   EvalStatus NodeTypeDescriptor::eval()
   {
-    assert(0);  //not in parse tree; part of Node's type
+    m_state.abortShouldntGetHere();  //not in parse tree; part of Node's type
     return NORMAL;
   } //eval
 

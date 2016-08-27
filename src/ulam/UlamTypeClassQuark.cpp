@@ -58,7 +58,7 @@ namespace MFM {
 	      }
 	    else if(len <= MAXBITSPERLONG)
 	      {
-		assert(0); //quarks are max 32 bits
+		m_state.abortNotSupported(); //quarks are max 32 bits
 		u64 qdata = val.getDataLongFromAtom(pos, len);
 		val = UlamValue::makeImmediateLongClass(typidx, qdata, len);
 	      }

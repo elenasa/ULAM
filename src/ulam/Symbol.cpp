@@ -16,7 +16,7 @@ namespace MFM {
 
   Symbol * Symbol::cloneKeepsType()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return NULL;
   }
 
@@ -59,7 +59,7 @@ namespace MFM {
 
   u32 Symbol::getPosOffset()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return 0; //data members only, incl. symbolparametervalue
   }
 
@@ -230,12 +230,12 @@ namespace MFM {
 
   void Symbol::printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
     {
-      assert(0);
+      m_state.abortShouldntGetHere();
     }
 
   void Symbol::setStructuredComment()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   } //setStructuredComment
 
   bool Symbol::getStructuredComment(Token& scTok)

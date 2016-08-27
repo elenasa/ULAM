@@ -629,7 +629,7 @@ namespace MFM {
 	      }
 	    else if(autolocaltype == ALT_HAS)
 	      {
-		assert(0); //deprecated
+		m_state.abortNotSupported(); //deprecated
 		// auto type is the type of the data member,
 		// rather than the base (rhs)
 	      }
@@ -977,7 +977,7 @@ namespace MFM {
       }
     else if(cos->getAutoLocalType() == ALT_AS)
       {
-	assert(0);
+	m_state.abortShouldntGetHere();
 	fp->write(m_state.getHiddenArgName()); //ur, should use urtmpnum!!
 	fp->write(".GetEffectiveSelf()->getVTableEntry(");
       }
@@ -1055,7 +1055,7 @@ namespace MFM {
 
   void NodeFunctionCall::genModelParameterMemberNameOfMethod(File * fp, s32 epi)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   } //genModelParamenterMemberNameOfMethod
 
   std::string NodeFunctionCall::genHiddenArgs(u32 urtmpnum)
@@ -1167,7 +1167,7 @@ namespace MFM {
 
     if(epcosclasstype != UC_NOTACLASS)
       {
-	assert(0);
+	m_state.abortShouldntGetHere();
 	hiddenlist << ".getRef()";
       }
     return hiddenlist.str();
@@ -1262,7 +1262,7 @@ namespace MFM {
   // uses uvpass rather than stgcos, cos for classes or atoms (not primitives)
   void NodeFunctionCall::genCodeAnonymousReferenceArg(File * fp, UVPass & uvpass, u32 n)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
 #if 0
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //such as .atomof; self (t3779)
 

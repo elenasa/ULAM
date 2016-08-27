@@ -67,7 +67,7 @@ namespace MFM {
 
   bool UlamType::cast(UlamValue & val, UTI typidx)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     //std::cerr << "UlamType (cast) error! " << std::endl;
     return false;
   }
@@ -93,7 +93,8 @@ namespace MFM {
 
   FORECAST UlamType::explicitlyCastable(UTI typidx)
   {
-    assert(0); //must be overridden (pure virtual unhappy)
+    m_state.abortShouldntGetHere(); //must be overridden (pure virtual unhappy)
+    return CAST_BAD;
   }
 
   bool UlamType::checkArrayCast(UTI typidx)
@@ -164,25 +165,25 @@ namespace MFM {
 
   s32 UlamType::getDataAsCs32(const u32 data)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return (s32) data;
   }
 
   u32 UlamType::getDataAsCu32(const u32 data)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return data;
   }
 
   s64 UlamType::getDataAsCs64(const u64 data)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return (s64) data;
   }
 
   u64 UlamType::getDataAsCu64(const u64 data)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return data;
   }
 
@@ -252,7 +253,7 @@ namespace MFM {
 
     if(isReference())
       {
-	assert(0);
+	m_state.abortShouldntGetHere();
 	return getUlamTypeImmediateMangledName();
       }
 
@@ -275,7 +276,7 @@ namespace MFM {
 
   const std::string UlamType::getImmediateModelParameterStorageTypeAsString()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     std::ostringstream mpimangled;
     //substitutes Up_ for Ut_ for model parameter immediate
     mpimangled << "Ui_Up_" << getUlamTypeMangledType();
@@ -362,17 +363,17 @@ namespace MFM {
 
   void UlamType::genUlamTypeMangledAutoDefinitionForC(File * fp)
   {
-    assert(0); //see UlamTypePrimitive
+    m_state.abortShouldntGetHere(); //see UlamTypePrimitive
   } //genUlamTypeMangledAutoDefinitionForC
 
   void UlamType::genUlamTypeAutoReadDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
   void UlamType::genUlamTypeAutoWriteDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
   const char * UlamType::getUlamTypeEnumCodeChar(ULAMTYPE etype)
@@ -688,22 +689,26 @@ namespace MFM {
 
   u64 UlamType::getMax()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
+    return S64_MIN;
   }
 
   s64 UlamType::getMin()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
+    return S64_MAX;
   }
 
   u64 UlamType::getMax(UlamValue& rtnUV, UTI uti)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
+    return 0L;
   } //getMax (UlamValue)
 
   s64 UlamType::getMin(UlamValue& rtnUV, UTI uti)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
+    return S64_MAX;
   } //getMin (UlamValue)
 
   PACKFIT UlamType::getPackable()
@@ -811,37 +816,37 @@ namespace MFM {
   //generates immediates with local storage
   void UlamType::genUlamTypeMangledDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   } //genUlamTypeMangledDefinitionForC
 
   void UlamType::genUlamTypeReadDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
   void UlamType::genUlamTypeWriteDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
   void UlamType::genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   } //genUlamTypeMangledUnpackedArrayAutoDefinitionForC
 
   void UlamType::genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   } //genUlamTypeMangledUnpackedArrayDefinitionForC
 
   void UlamType::genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   } //genUlamTypeMangledImmediateModelParameterDefinitionForC
 
   bool UlamType::genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return false; //only true for quarks in UlamTypeClass
   }
 

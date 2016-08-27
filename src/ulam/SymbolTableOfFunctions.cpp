@@ -25,7 +25,7 @@ namespace MFM {
 	u32 depth = ((SymbolFunctionName *) sym)->getDepthSumOfFunctions();
 	totalsizes += depth;
 	//was used for debugging (see NodeBlockClass eval)
-	assert(0); //function symbols are not in same table as variables
+	m_state.abortShouldntGetHere(); //function symbols are not in same table as variables
       }
     it++;
     return totalsizes;

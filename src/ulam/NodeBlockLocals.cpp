@@ -57,7 +57,7 @@ namespace MFM {
   void NodeBlockLocals::genCode(File * fp, UVPass& uvpass)
   {
     //noop, neither named constants nor typedefs require generated C++ code.
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
   void NodeBlockLocals::cloneAndAppendNode(std::vector<Node *> & cloneVec)

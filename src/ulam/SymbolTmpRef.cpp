@@ -19,7 +19,7 @@ namespace MFM {
 
   const std::string SymbolTmpRef::getMangledPrefix()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return "UX";  //included in mangled name
   }
 

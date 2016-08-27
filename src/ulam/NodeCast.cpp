@@ -599,13 +599,13 @@ namespace MFM {
 
   UlamValue NodeCast::makeImmediateUnaryOp(UTI type, u32 data, u32 len)
   {
-    assert(0); // n/a
+    m_state.abortShouldntGetHere(); // n/a
     return UlamValue();
   }
 
   UlamValue NodeCast::makeImmediateLongUnaryOp(UTI type, u64 data, u32 len)
   {
-    assert(0); // n/a
+    m_state.abortShouldntGetHere(); // n/a
     return UlamValue();
   }
 
@@ -769,7 +769,7 @@ namespace MFM {
 
   void NodeCast::genCodeWriteFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     genCodeWriteFromATmpVar(fp, luvpass, ruvpass);
   }
 
@@ -1266,7 +1266,7 @@ namespace MFM {
 	//Compile-time error to downcast from a ref to a subclass instance. 20160616.
 	//t3789 case 2 (init): TW tapple = (TW) qref;
 	//t3789 case 3 (assign): tapple2 = (TW) qref;
-	assert(0); //error caught already
+	m_state.abortShouldntGetHere(); //error caught already
       }
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
   } //genCodeCastAncestorQuarkAsSubTransient
@@ -1442,7 +1442,7 @@ namespace MFM {
 	//Compile-time error to downcast from a ref to a subclass instance. 20160616.
 	//t3756 case 2: (init) 'A apple = (A) qref;'
 	//t3756 case 3: (assign) 'apple2 = (A) qref;'
-	assert(0); //error caught already
+	m_state.abortShouldntGetHere(); //error caught already
       }
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
   } //genCodeCastAncestorQuarkAsSubElement

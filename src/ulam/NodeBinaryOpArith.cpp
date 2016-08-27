@@ -47,7 +47,7 @@ namespace MFM {
 #ifdef SUPPORT_ARITHMETIC_ARRAY_OPS
 	return doBinaryOperationArray(lslot, rslot, slots);
 #else
-	assert(0);
+	m_state.abortNotImplementedYet();
 #endif //defined below...
       }
     return false;

@@ -241,7 +241,8 @@ namespace MFM {
 	}
 	break;
       default:
-	assert(0);
+	m_state.abortShouldntGetHere();
+	break;
       };
     return rtnB;
   } //setConstantValue
@@ -264,7 +265,8 @@ namespace MFM {
 	break;
       }
       default:
-	assert(0);
+	m_state.abortShouldntGetHere();
+	break;
       };
 
     setNodeType(newType);

@@ -139,7 +139,7 @@ namespace MFM {
 
   void NodeBinaryOpCompareEqualEqual::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
-    assert(0); //not implemented yet!
+    m_state.abortNotImplementedYet(); //not implemented yet!
 #if 0
     UTI type = refUV.getUlamValueTypeIdx();
     ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();

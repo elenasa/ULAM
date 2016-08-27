@@ -136,7 +136,7 @@ namespace MFM {
 	msg << "Constant Folding Token <" << m_state.getTokenDataAsString(tok).c_str();
 	msg << "> currently unsupported";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	assert(0);
+	m_state.abortShouldntGetHere();
       }
   } //constantFoldAToken
 

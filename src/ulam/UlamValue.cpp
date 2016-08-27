@@ -286,7 +286,7 @@ namespace MFM {
 	      atval = makeDefaultAtom(suti, state); //element
 	  }
 	else
-	  assert(0);
+	  state.abortNotSupported();
       }
     return atval;
   } //getValAt
@@ -427,7 +427,7 @@ namespace MFM {
 		}
 		break;
 	      default:
-		assert(0);
+		state.abortUndefinedCallStack();
 	      };
 	  }
 	else if(getUlamValueTypeIdx() == PtrAbs)
@@ -451,11 +451,11 @@ namespace MFM {
 		rtnb = (m_uv.m_ptrValue.m_slotIndex > 0) && ((u32) m_uv.m_ptrValue.m_slotIndex < state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot());
 		break;
 	      default:
-		assert(0);
+		state.abortUndefinedCallStack();
 	      };
 	  }
 	else
-	  assert(0);
+	  state.abortShouldntGetHere();
       }
     return rtnb;
   } //incrementPtr
@@ -532,7 +532,7 @@ namespace MFM {
       {
 	//must get data piecemeal, too big to fit into one int
 	//use getPackedArrayDataIntoAtom(p, data, state);
-	assert(0);
+	state.abortShouldntGetHere();
       }
 
     assert(p.getPtrLen() <= MAXBITSPERINT);
@@ -573,7 +573,7 @@ namespace MFM {
       {
 	//must get data piecemeal, too big to fit into one int
 	//use getPackedArrayDataIntoAtom(p, data, state);
-	assert(0);
+	state.abortShouldntGetHere();
       }
 
     assert(p.getPtrLen() <= MAXBITSPERLONG);

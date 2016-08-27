@@ -512,10 +512,14 @@ namespace MFM{
     bool okUTItoContinue(UTI uti1, UTI uti2); //false if either is Nav
     bool checkHasHazyKin(NodeBlock * block);
 
-    void abortGreaterThanMaxBitsPerLong();
-    void abortUndefinedUlamType();
-    void abortUndefinedUlamClassType();
-    void abortUndefinedUlamPrimitiveType();
+    inline void abortGreaterThanMaxBitsPerLong() { assert(0); }
+    inline void abortUndefinedUlamType() { assert(0); }
+    inline void abortUndefinedUlamClassType() { assert(0); }
+    inline void abortUndefinedUlamPrimitiveType() { assert(0); }
+    inline void abortUndefinedCallStack() { assert(0); }
+    inline void abortNotImplementedYet() { assert(0); }
+    inline void abortNotSupported() { assert(0); }
+    inline void abortShouldntGetHere() { assert(0); }
 
   private:
     ClassContextStack m_classContextStack; // the current subject of this compilation

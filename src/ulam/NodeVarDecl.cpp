@@ -1057,17 +1057,17 @@ UTI NodeVarDecl::checkAndLabelType()
 
   void NodeVarDecl::genCodeConstantArrayInitialization(File * fp)
   {
-    assert(0); //see NodeVarDeclDM
+    m_state.abortShouldntGetHere(); //see NodeVarDeclDM
   }
 
   void NodeVarDecl::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
   {
-    assert(0); //see NodeVarDeclDM
+    m_state.abortShouldntGetHere(); //see NodeVarDeclDM
   }
 
   void NodeVarDecl::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {
-    assert(0); //see NodeVarDeclDM data members only
+    m_state.abortShouldntGetHere(); //see NodeVarDeclDM data members only
   } //generateUlamClassInfo
 
 } //end MFM

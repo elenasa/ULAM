@@ -242,7 +242,7 @@ namespace MFM {
 			//for a class instance in template
 		      }
 		    else
-		      assert(0); //t3379 wo NodeTypedef updating UTIAlias
+		      abortShouldntGetHere(); //t3379 wo NodeTypedef updating UTIAlias
 		    return csym->getUlamTypeIdx();
 		  }
 	      }
@@ -875,7 +875,7 @@ namespace MFM {
 	    << m_indexToUlamKey.size() << ", returning Nav INSTEAD";
 	MSG2("", msg.str().c_str(),DEBUG);
 	typidx = 0;
-	assert(0);
+	abortShouldntGetHere();
       }
     AssertBool isDef = isDefined(m_indexToUlamKey[typidx], rtnUT);
     assert(isDef);
@@ -1110,7 +1110,7 @@ namespace MFM {
 	msg << "Attempting to ref (" << altArg << ") a reference type <" ;
 	msg <<  getUlamTypeNameByIndex(utiArg) << ">";
 	MSG2("", msg.str().c_str(), DEBUG);
-	//assert(0); //didn't hit during testing
+	//abortShouldntGetHere(); //didn't hit during testing
 	//continue..
       }
 
@@ -1396,7 +1396,7 @@ namespace MFM {
 	    replaceUlamTypeForUpdatedClassType(ut->getUlamKeyTypeSignature(), Class, derefut->getUlamClassType(), derefut->isCustomArray()); //e.g. error/t3763
 	  }
 	else
-	  assert(0); //why not!!?
+	  abortShouldntGetHere(); //why not!!?
       }
     return getUlamTypeByIndex(utiArg)->isComplete();
   } //completeAReferenceTypeWith
@@ -3051,7 +3051,8 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	valAtIdx = m_constantStack.loadUlamValueFromStackIndex(ptr.getPtrSlotIndex());
 	break;
       default:
-	assert(0); //error!
+	abortUndefinedCallStack(); //error!
+	break;
       };
     return valAtIdx; //return as-is
   } //getPtrTarget
@@ -3071,14 +3072,15 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	valAtIdx = m_nodeEvalStack.loadUlamValueFromStackIndex(ptr.getPtrSlotIndex());
 	break;
       case EVENTWINDOW:
-	assert(0);
+	abortShouldntGetHere();
 	valAtIdx = m_eventWindow.loadAtomFromSite(ptr.getPtrSlotIndex()); //?
 	break;
       case CNSTSTACK:
 	valAtIdx = m_constantStack.loadUlamValueFromStackIndex(ptr.getPtrSlotIndex());
 	break;
       default:
-	assert(0); //error!
+	abortUndefinedCallStack(); //error!
+	break;
       };
     return valAtIdx; //return as-is
   } //getPtrTargetFromAbsoluteIndex
@@ -3109,7 +3111,8 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	break;
       case CNSTSTACK:
       default:
-	assert(0);
+	abortUndefinedCallStack();
+	break;
       };
   } //assignValue
 
@@ -3203,7 +3206,8 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	break;
       case CNSTSTACK:
       default:
-	assert(0);
+       abortUndefinedCallStack();
+       break;
       };
   } //assignValuePtr
 
@@ -3453,7 +3457,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	tmpVar << "Uh_4tabs" ; //tmp atombitstorage
       }
     else
-      assert(0); //removes assumptions about tmpbitval.
+      abortShouldntGetHere(); //removes assumptions about tmpbitval.
 
     tmpVar << ToLeximitedNumber(num);
 
@@ -4019,26 +4023,6 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     assert(block);
     UTI buti = block->getNodeType();
     return (block->isAClassBlock() && (isClassAStub(buti) || ((isClassASubclass(buti) != Nouti) && !((NodeBlockClass *) block)->isSuperClassLinkReady())));
-  }
-
-  void CompilerState::abortGreaterThanMaxBitsPerLong()
-  {
-    assert(0);
-  }
-
-  void CompilerState::abortUndefinedUlamType()
-  {
-    assert(0);
-  }
-
-  void CompilerState::abortUndefinedUlamClassType()
-  {
-    assert(0);
-  }
-
-  void CompilerState::abortUndefinedUlamPrimitiveType()
-  {
-    assert(0);
   }
 
 } //end MFM

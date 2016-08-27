@@ -138,7 +138,7 @@ namespace MFM {
     if(getSite(c,s))
       s->setSiteLive(b);
     //error site doesn't exist
-    assert(0);
+    m_state.abortShouldntGetHere();
   } //setSiteLive
 
   UlamValue UEventWindow::loadAtomFromSite(u32 index) //converts index into 2D coord, returns Atom
@@ -207,7 +207,7 @@ namespace MFM {
 
   void UEventWindow::assignUlamValuePtr(UlamValue pluv, UlamValue puv)
   {
-    assert(0); //invalid assignment
+    m_state.abortShouldntGetHere(); //invalid assignment
   }
 
   UlamValue UEventWindow::makePtrToCenter()

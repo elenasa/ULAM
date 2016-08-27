@@ -11,13 +11,13 @@ namespace MFM {
 
   ULAMCLASSTYPE UlamTypeInternal::getUlamClassType()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return UC_ERROR; //for compiler only
   }
 
   u32 UlamTypeInternal::getSizeofUlamType()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return 0;
   }
 
@@ -28,13 +28,13 @@ namespace MFM {
 
   const std::string UlamTypeInternal::getLocalStorageTypeAsString()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return "internalerror";
   }
 
   const std::string UlamTypeInternal::castMethodForCodeGen(UTI nodetype)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return "internalerror";
   }
 
@@ -45,25 +45,25 @@ namespace MFM {
 
   const std::string UlamTypeInternal::readMethodForCodeGen()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return "internalreadmethoderror";
   }
 
   const std::string UlamTypeInternal::writeMethodForCodeGen()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return "internalwritemethoderror";
   }
 
   const std::string UlamTypeInternal::readArrayItemMethodForCodeGen()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return "internalreadarrayitemmethoderror";
   }
 
   const std::string UlamTypeInternal::writeArrayItemMethodForCodeGen()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return "internalwritearrayitemmethoderror";
   }
 

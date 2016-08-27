@@ -118,7 +118,7 @@ namespace MFM {
 
   void NodeModelParameter::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   } //genCodeToStoreInto
 
 } //end MFM

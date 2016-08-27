@@ -282,7 +282,7 @@ namespace MFM {
 	    m_state.setGoAgain(); //covers non-error(debug) messages for incompletes
 	  }
 	else
-	  assert(0);
+	  m_state.abortShouldntGetHere();
       }
     setNodeType(newType);
     return newType;
@@ -290,7 +290,7 @@ namespace MFM {
 
   UTI NodeSquareBracket::calcNodeType(UTI lt, UTI rt)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return Int;
   }
 
@@ -477,13 +477,13 @@ namespace MFM {
 
   UlamValue NodeSquareBracket::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
-    assert(0); //unused
+    m_state.abortShouldntGetHere(); //unused
     return UlamValue();
   }
 
   UlamValue NodeSquareBracket::makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len)
   {
-    assert(0); //unused
+    m_state.abortShouldntGetHere(); //unused
     return UlamValue();
   }
 

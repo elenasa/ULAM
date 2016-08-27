@@ -117,7 +117,7 @@ namespace MFM {
 
   u32 SymbolTable::getTotalSymbolSize()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return 0;
   } //getTotalSymbolSize
 

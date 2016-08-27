@@ -159,7 +159,7 @@ namespace MFM {
 	    nuti = m_varSymbol->getUlamTypeIdx();
       }
     else
-      assert(0); //shouldn't happen
+      m_state.abortShouldntGetHere(); //shouldn't happen
 
     if(m_state.okUTItoContinue(nuti))
       {

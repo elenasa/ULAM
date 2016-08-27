@@ -180,7 +180,7 @@ namespace MFM {
     else if(instance == getUlamTypeIdx())
       SymbolClass::setSuperClass(superclass); //instance is template definition
     else
-      assert(0); //not found???
+      m_state.abortShouldntGetHere(); //not found???
   } //setSuperClassForClassInstance
 
   UTI SymbolClassNameTemplate::getSuperClassForClassInstance(UTI instance)

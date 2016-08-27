@@ -833,7 +833,7 @@ namespace MFM {
 
   void NodeVarDeclDM::printUnresolvedLocalVariables()
   {
-    assert(0); //override
+    m_state.abortShouldntGetHere(); //override
   }
 
   EvalStatus NodeVarDeclDM::eval()

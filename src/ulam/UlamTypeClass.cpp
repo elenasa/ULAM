@@ -32,7 +32,7 @@ namespace MFM {
 
   bool UlamTypeClass::cast(UlamValue & val, UTI typidx)
   {
-    assert(0); //neither element nor quark
+    m_state.abortShouldntGetHere(); //neither element nor quark
     return false;
   } //end cast
 
@@ -117,7 +117,7 @@ namespace MFM {
 
   const char * UlamTypeClass::getUlamTypeAsSingleLowercaseLetter()
   {
-    assert(0); //UC_UNSEEN
+    m_state.abortShouldntGetHere(); //UC_UNSEEN
     return UlamType::getUlamTypeEnumCodeChar(getUlamTypeEnum());
   } //getUlamTypeAsSingleLowercaseLetter()
 
@@ -279,7 +279,7 @@ namespace MFM {
 
     if(isReference())
       {
-	assert(0); //use ImmediateMangledName
+	m_state.abortShouldntGetHere(); //use ImmediateMangledName
 	return getUlamTypeImmediateMangledName();
       }
 
@@ -303,7 +303,7 @@ namespace MFM {
 
   const std::string UlamTypeClass::getLocalStorageTypeAsString()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return "Bloco";
   } //getLocalStorageTypeAsString
 
@@ -314,23 +314,23 @@ namespace MFM {
 
   const std::string UlamTypeClass::castMethodForCodeGen(UTI nodetype)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return "_NoCast";
   } //castMethodForCodeGen
 
   void UlamTypeClass::genUlamTypeMangledAutoDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
   void UlamTypeClass::genUlamTypeReadDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
   void UlamTypeClass::genUlamTypeWriteDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
   const std::string UlamTypeClass::readArrayItemMethodForCodeGen()
@@ -349,17 +349,17 @@ namespace MFM {
 
   void UlamTypeClass::genUlamTypeMangledDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
   void UlamTypeClass::genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
   void UlamTypeClass::genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
 } //end MFM

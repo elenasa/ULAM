@@ -57,7 +57,7 @@ namespace MFM {
 
   void SymbolVariableStack::generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     //not sure what this should do for local variables, if anything,
   }
 

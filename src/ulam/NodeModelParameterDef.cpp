@@ -43,7 +43,7 @@ namespace MFM {
 
   void NodeModelParameterDef::fixPendingArgumentNode()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
   UTI NodeModelParameterDef::checkAndLabelType()

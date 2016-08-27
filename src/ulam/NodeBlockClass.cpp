@@ -1055,7 +1055,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   void NodeBlockClass::printUnresolvedLocalVariables(u32 fid)
   {
-    assert(0); //override
+    m_state.abortShouldntGetHere(); //override
   } //printUnresolvedLocalVariables
 
   u32 NodeBlockClass::countNativeFuncDecls()

@@ -128,7 +128,7 @@ namespace MFM {
 
   EvalStatus NodeTypeBitsize::eval()
   {
-    assert(0);  //not in parse tree; part of symbol's type
+    m_state.abortShouldntGetHere();  //not in parse tree; part of symbol's type
     return NORMAL;
   }
 

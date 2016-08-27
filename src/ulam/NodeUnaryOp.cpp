@@ -89,7 +89,7 @@ namespace MFM {
 
   const std::string NodeUnaryOp::methodNameForCodeGen()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return "_UNARY_NOOP";
   }
 

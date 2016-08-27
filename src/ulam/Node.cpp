@@ -150,7 +150,7 @@ namespace MFM {
 
   void Node::constantFoldAToken(const Token& tok)
   {
-    assert(0); //only NodeTerminal has this defined; NodeConstant bypasses
+    m_state.abortShouldntGetHere(); //only NodeTerminal has this defined; NodeConstant bypasses
   }
 
   bool Node::isAConstant()
@@ -166,13 +166,13 @@ namespace MFM {
   // only for constants (NodeTerminal)
   bool Node::isNegativeConstant()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return false;
   }
 
   bool Node::isWordSizeConstant()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return false;
   }
 
@@ -309,13 +309,13 @@ namespace MFM {
 
   bool Node::buildDefaultValue(u32 wlen, BV8K& dvref)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return false;
   }
 
   void Node::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
   bool Node::installSymbolTypedef(TypeArgs& args, Symbol *& asymptr)
@@ -401,7 +401,7 @@ namespace MFM {
 	else if (where == CNSTSTACK)
 	  m_state.m_constantStack.pushArg(tmpUV);
 	else
-	  assert(0);
+	  m_state.abortUndefinedCallStack();
       }
     return slots;
   }
@@ -445,12 +445,12 @@ namespace MFM {
 
   void Node::packBitsInOrderOfDeclaration(u32& offset)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
   void Node::printUnresolvedVariableDataMembers()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   } //printUnresolvedVariableDataMembers
 
   void Node::printUnresolvedLocalVariables(u32 fid)
@@ -477,7 +477,7 @@ namespace MFM {
     msg << "genCodeToStoreInto called on Node type: ";
     msg << m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str() << ", and failed.";
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-    assert(0);
+    m_state.abortShouldntGetHere();
     return;
   } //genCodeToStoreInto
 
@@ -1958,22 +1958,22 @@ namespace MFM {
 
   void Node::genCodeConstantArrayInitialization(File * fp)
   {
-    assert(0); //fufilled by NodeConstantDef
+    m_state.abortShouldntGetHere(); //fufilled by NodeConstantDef
   }
 
   void Node::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
   {
-    assert(0); //fufilled by NodeConstantDef
+    m_state.abortShouldntGetHere(); //fufilled by NodeConstantDef
   }
 
   void Node::cloneAndAppendNode(std::vector<Node *> & cloneVec)
   {
-    assert(0); //fufilled by NodeConstantDef
+    m_state.abortShouldntGetHere(); //fufilled by NodeConstantDef
   }
 
   void Node::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {
-    assert(0); //fufilled by NodeVarDecl, NodeBlock; bypassed by NodeTypedef and NodeConstDef
+    m_state.abortShouldntGetHere(); //fufilled by NodeVarDecl, NodeBlock; bypassed by NodeTypedef and NodeConstDef
   }
 
   std::string Node::allCAPS(const char * s) //static method
@@ -2424,7 +2424,7 @@ namespace MFM {
 	fp->write(".");
       }
     else
-      assert(0);
+      m_state.abortShouldntGetHere();
 
     fp->write(cos->getMangledName().c_str());
     fp->write(".");
@@ -2574,7 +2574,7 @@ namespace MFM {
 	if(epi >= 0)
 	  {
 	    //model parameters no longer classes, deprecated
-	    assert(0);
+	    m_state.abortNotSupported();
 	    //hiddenarg2 << genModelParameterHiddenArgs(epi).c_str();
 	  }
 	else //local var
