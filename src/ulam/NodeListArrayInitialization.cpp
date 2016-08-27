@@ -265,17 +265,7 @@ namespace MFM{
     // need parent (NodeVarDecl/NodeConstantDef) to get initialized value (BV8K)
     NNO pno = Node::getYourParentNo();
     Node * parentNode = m_state.findNodeNoInThisClass(pno); //also checks localsfilescope
-    if(!parentNode)
-      {
-	std::ostringstream msg;
-	msg << "Array value '" << getName();
-	msg << "' cannot be initialized at this time while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	msg << " Parent required";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	assert(0); //parent required
-	return;
-      }
+    assert(parentNode);
 
     SymbolWithValue * vsym = NULL;
     AssertBool gotSymbol = parentNode->getSymbolPtr((Symbol *&) vsym);

@@ -1462,10 +1462,10 @@ namespace MFM {
     fp->write(uvpass.getTmpVarAsString(m_state).c_str());
     fp->write(".read(");
 
-    // use immediate read for entire array
+    // use immediate read for entire array; doesn't make sense for custom arrays
+    assert(!isCurrentObjectAnArrayItem(vuti, uvpass));
     if(isCurrentObjectAnArrayItem(vuti, uvpass))
       {
-	assert(0); //doesn't make sense for custom arrays?
 	fp->write_decimal(uvpass.getPassLen()); //BITS_PER_ITEM
 	fp->write("u, ");
 	fp->write_decimal(adjustedImmediateArrayItemPassPos(vuti, uvpass)); //item POS (last like others) ?
@@ -2193,11 +2193,7 @@ namespace MFM {
     u32 selfid = m_state.m_pool.getIndexForDataString("self"); //was "self"
     Token selfTok(TOK_IDENTIFIER, loc, selfid);
 
-    //negative indicates parameter for symbol install
-    m_state.m_parsingVariableSymbolTypeFlag = STF_FUNCPARAMETER;
-    //    m_state.m_currentFunctionBlockDeclSize = -3; //slots for return + 1 hidden arg self(+ uc)
-    //m_state.m_currentFunctionBlockMaxDepth = 0;
-
+    m_state.m_parsingVariableSymbolTypeFlag = STF_FUNCPARAMETER; //for symbol install
     SymbolVariableStack * selfsym = new SymbolVariableStack(selfTok, UAtom, m_state);
     selfsym->setIsSelf();
     m_state.addSymbolToCurrentScope(selfsym); //ownership goes to the fblock
@@ -2264,10 +2260,7 @@ namespace MFM {
       }
     else
       {
-	//starts with positive one for local variables
-	m_state.m_parsingVariableSymbolTypeFlag = STF_FUNCLOCALVAR;
-	//m_state.m_currentFunctionBlockDeclSize = 1;
-	//m_state.m_currentFunctionBlockMaxDepth = 0;
+	m_state.m_parsingVariableSymbolTypeFlag = STF_FUNCLOCALVAR; //for symbol install
 
 	/* like a typical quark toInt cast expression */
 	Node * mselectNode = buildToIntCastingNode(argIdentNode);
@@ -2285,8 +2278,6 @@ namespace MFM {
     m_state.popClassContext(); //= prevBlock;
 
     m_state.m_parsingVariableSymbolTypeFlag = STF_NEEDSATYPE;
-    //m_state.m_currentFunctionBlockDeclSize = 0; //default zero for datamembers
-    //m_state.m_currentFunctionBlockMaxDepth = 0; //reset
 
     //func call symbol to return to NodeCast; fsymptr maybe null
     NodeFunctionCall * funccall = new NodeFunctionCall(funcidentTok, fsymptr, m_state);

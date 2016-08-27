@@ -72,8 +72,6 @@ namespace MFM{
 
     virtual bool isExplicitReferenceCast(); //only NodeCast may return true
 
-    bool getNodePtr(Node *& nodeptrref);
-
     virtual UTI checkAndLabelType();
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);

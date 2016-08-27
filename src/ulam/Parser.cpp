@@ -740,24 +740,17 @@ namespace MFM {
     else if(pTok.m_type == TOK_KW_CONSTDEF)
       {
 	//parse Named Constant starting with keyword first
-	isAlreadyAppended = parseConstdef();
 
 	// simulated "data member" flag for constantdef symbols; to
 	// distinguish between function scope and filescope constants;
 	// not set in Symbol constructor, like Localfilescope flag, since
 	// ClassParameter constant defs (e.g. t3328, t3329, t3330..)
 	// also have the same BlockNoST as its class.
-	if(isAlreadyAppended)
-	  {
-	    NodeStatements * laststmt = m_state.getCurrentBlock()->getLastStatementPtr();
-	    assert(laststmt);
-	    Node * getthisnode = NULL;
-	    AssertBool gotnode = laststmt->getNodePtr(getthisnode);
-	    assert(gotnode);
-	    Symbol * csym = NULL;
-	    if(getthisnode->getSymbolPtr(csym))
-	      csym->setDataMemberClass(m_state.getCompileThisIdx());
-	  }
+	m_state.m_parsingVariableSymbolTypeFlag = STF_DATAMEMBER;
+
+	isAlreadyAppended = parseConstdef();
+
+	m_state.m_parsingVariableSymbolTypeFlag = STF_NEEDSATYPE;
       }
     else if(pTok.m_type == TOK_KW_PARAMETER)
       {
@@ -994,14 +987,7 @@ namespace MFM {
 	m_state.pushCurrentBlock(rtnNode); //very temporary
       }
 
-    //this block's ST is no longer in scope
-    //NodeBlock * currBlock = m_state.getCurrentBlock();
-    //if(currBlock)
-    //  m_state.m_currentFunctionBlockDeclSize -= currBlock->getSizeOfSymbolsInTable();
-
     m_state.popClassContext();
-    //currBlock = NULL; //no longer valid; don't need
-
     //sanity check
     assert(!rtnNode || rtnNode->getPreviousBlockPointer() == prevBlock);
     return rtnNode;
@@ -1205,11 +1191,6 @@ namespace MFM {
 
     rtnNode->appendNextNode(ifNode);
 
-    //this block's ST is no longer in scope
-    //currBlock = m_state.getCurrentBlock(); //reload
-    //if(currBlock)
-    //  m_state.m_currentFunctionBlockDeclSize -= currBlock->getSizeOfSymbolsInTable();
-
     m_state.popClassContext(); //= prevBlock;
     return rtnNode;
   } //parseControlIf
@@ -1283,11 +1264,6 @@ namespace MFM {
 
     rtnNode->appendNextNode(whileNode);
 
-    //this block's ST is no longer in scope
-    //currBlock = m_state.getCurrentBlock(); //reload
-    // if(currBlock)
-    //  m_state.m_currentFunctionBlockDeclSize -= currBlock->getSizeOfSymbolsInTable();
-
     m_state.popClassContext(); //= prevBlock;
     return rtnNode;
   } //parseControlWhile
@@ -1312,12 +1288,16 @@ namespace MFM {
     Token pTok;
     getNextToken(pTok);
 
-    //Node * declNode = NULL; //may be empty
     if(Token::isTokenAType(pTok))
       {
 	unreadToken();
 	AssertBool hasdeclnode = parseDecl(); //updates symbol table
-	assert(hasdeclnode); //error msg?
+	if(!hasdeclnode)
+	  {
+	    std::ostringstream msg;
+	    msg << "Malformed for-control, initial variable decl";
+	    MSG(&pTok, msg.str().c_str(), ERR);
+	  }
 	getNextToken(pTok);
       }
     else if(pTok.m_type == TOK_IDENTIFIER)
@@ -1325,11 +1305,13 @@ namespace MFM {
 	unreadToken();
 	Node * declNode = parseAssignExpr();
 	if(declNode)
+	  rtnNode->appendNextNode(declNode);
+	else
 	  {
-	    rtnNode->appendNextNode(declNode);
+	    std::ostringstream msg;
+	    msg << "Malformed for-control, initial variable assignment";
+	    MSG(&pTok, msg.str().c_str(), ERR);
 	  }
-	else //error msg?
-	  assert(0);
 	getNextToken(pTok);
       }
 
@@ -1451,11 +1433,6 @@ namespace MFM {
 
     //links while to decl or to rtn block (no decl)
     rtnNode->appendNextNode(whileNode);
-
-    //this block's ST is no longer in scope
-    //currBlock = m_state.getCurrentBlock(); //reload
-    //if(currBlock)
-    //  m_state.m_currentFunctionBlockDeclSize -= currBlock->getSizeOfSymbolsInTable();
 
     m_state.popClassContext(); //= prevBlock;
     return rtnNode;
@@ -1583,11 +1560,6 @@ namespace MFM {
 	  blockNode->appendNextNode(sNode);
 	//else error msg? (or a decl alreadyappended)
       }
-
-    //this block's ST is no longer in scope
-    //currBlock = m_state.getCurrentBlock();
-    //if(currBlock)
-    //  m_state.m_currentFunctionBlockDeclSize -= currBlock->getSizeOfSymbolsInTable();
 
     m_state.popClassContext(); //= prevBlock;
     return blockNode;
@@ -1752,7 +1724,6 @@ namespace MFM {
       }
     return brtn;
   } //parseTypedef
-
 
   bool Parser::parseConstdef()
   {
@@ -3866,19 +3837,8 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 
     if(eTok.m_type == TOK_EQUAL) //first check for '='
       {
-	if(!args.m_assignOK)
-	  {
-	    //assignments not permitted
-	    std::ostringstream msg;
-	    msg << "Cannot assign to variable <";
-	    msg << m_state.getTokenDataAsString(identTok).c_str() << ">";
-	    MSG(&eTok, msg.str().c_str(), ERR);
-	    getTokensUntil(TOK_SEMICOLON); //rest of statement is ignored.
-	    unreadToken();
-	    assert(0); //? if not, when
-	    return false; //done
-	  }
-	//else continue..
+	//assignments are always permitted, continue..
+	assert(args.m_assignOK);
       }
     else if(args.m_declRef == ALT_REF)
       {
@@ -4231,14 +4191,8 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
     //use space on funcCallStack for return statement.
     //negative for parameters; allot space at top for the return value
     //currently, only scalar; determines start position of first arg "under".
-    //s32 returnArraySize = m_state.slotsNeeded(fsymptr->getUlamTypeIdx());
 
-    //NO extra one for "hidden" arg, context (uc)
-    //extra one for "hidden" arg, Ptr to its self (ur)
     //maxdepth now re-calculated after parsing due to some still unknown sizes;
-    //blockdeclsize: 0, <1, >1 means: datamember, parameter, local variable, respectively
-    //m_state.m_currentFunctionBlockDeclSize = -(returnArraySize + 1);
-    //m_state.m_currentFunctionBlockMaxDepth = 0;
     m_state.m_parsingVariableSymbolTypeFlag = STF_FUNCPARAMETER;
 
     //create "self" symbol for the class type; btw, it's really a ref.
@@ -4251,12 +4205,8 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
     selfsym->setIsSelf();
     m_state.addSymbolToCurrentScope(selfsym); //ownership goes to the funcdef block
 
-    //create "super" symbol for the Super class type; btw, it's really a ref.
-    //belongs to the function definition scope.
-    //UTI superuti = m_state.isClassASubclass(cuti);
-    //if(m_state.okUTItoContinue(superuti))
-    //  rtnNode->makeSuperSymbol(m_state.m_currentFunctionBlockDeclSize); //ownership goes to the block
-    //else wait until c&l
+    //wait until c&l to create "super" symbol for the Super class type;
+    //btw, it's really a ref. belongs to the function definition scope.
 
     //parse and add parameters to function symbol (not in ST yet!)
     parseRestOfFunctionParameters(fsymptr, rtnNode);
@@ -4283,8 +4233,6 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
       {
 	//starts with positive one for local variables
 	m_state.m_parsingVariableSymbolTypeFlag = STF_FUNCLOCALVAR;
-	//m_state.m_currentFunctionBlockDeclSize = 1;
-	//m_state.m_currentFunctionBlockMaxDepth = 0;
 
 	//parse body definition
 	if(parseFunctionBody(rtnNode))
@@ -4309,8 +4257,6 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 
     //this block's ST is no longer in scope
     m_state.popClassContext(); //= prevBlock;
-    //m_state.m_currentFunctionBlockDeclSize = 0; //default zero for datamembers
-    //m_state.m_currentFunctionBlockMaxDepth = 0; //reset
     m_state.m_parsingVariableSymbolTypeFlag = STF_NEEDSATYPE;
     return rtnNode;
   } //makeFunctionBlock
@@ -4801,6 +4747,9 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	    constNode->setNodeLocation(args.m_typeTok.m_locator);
 	    if(args.m_isStmt)
 	      asymptr->setStructuredComment(); //also clears
+
+	    if(m_state.m_parsingVariableSymbolTypeFlag == STF_DATAMEMBER)
+	      asymptr->setDataMemberClass(m_state.getCompileThisIdx()); //t3862, t3865, t3868
 
 	    rtnNode = parseRestOfConstantDef(constNode, args.m_assignOK, args.m_isStmt);
 

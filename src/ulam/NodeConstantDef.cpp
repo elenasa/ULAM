@@ -792,13 +792,9 @@ namespace MFM {
 	    makeRoomForNodeType(scalaruti); //offset a constant expression
 	    u32 k = j < n ? j : n - 1; //repeat last initializer if fewer
 	    EvalStatus evs = ((NodeList *) m_nodeExpr)->eval(k);
-	    if(evs == NORMAL)
-	      {
-		itemUV = m_state.m_nodeEvalStack.popArg();
-	      }
-	    else
-	      assert(0); //error msg?
+	    assert(evs == NORMAL);
 
+	    itemUV = m_state.m_nodeEvalStack.popArg();
 	    evalNodeEpilog();
 
 	    m_state.m_constantStack.storeUlamValueAtStackIndex(itemUV, baseslot + j);

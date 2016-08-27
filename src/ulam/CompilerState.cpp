@@ -79,7 +79,7 @@ namespace MFM {
   static const char * ULAMLOCALFILESCOPES_MANGLED_CLASSNAME = "Ul_10109219UlamLocalFilescopes10";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), /*m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0)*/ m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalHas(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyUTI(Nouti)
+  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalHas(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyUTI(Nouti)
   {
     m_err.init(this, debugOn, infoOn, warnOn, waitOn, NULL);
     Token::initTokenMap(*this);
@@ -1325,14 +1325,8 @@ namespace MFM {
     UlamType * derefut = getUlamTypeByIndex(derefuti);
     if(derefut->isComplete())
       {
-	if(getUlamTypeByIndex(utiArg)->getUlamTypeEnum() != derefut->getUlamTypeEnum())
-	  {
-	    assert(0); //shouldn't happen now that we don't 'assumeAClassType' (t3668, t3651)
-
-	    UlamKeyTypeSignature dekey = derefut->getUlamKeyTypeSignature();
-	    UlamKeyTypeSignature newkey(dekey.getUlamKeyTypeSignatureNameId(), dekey.getUlamKeyTypeSignatureBitSize(), dekey.getUlamKeyTypeSignatureArraySize(), derefuti, ALT_REF);
-	    makeUlamTypeFromHolder(newkey, derefut->getUlamTypeEnum(), utiArg, derefut->getUlamClassType());
-	  }
+	//shouldn't happen now that we don't 'assumeAClassType' (t3668, t3651)
+	assert(getUlamTypeByIndex(utiArg)->getUlamTypeEnum() == derefut->getUlamTypeEnum());
 	return true;
       }
     return false;
@@ -1344,15 +1338,8 @@ namespace MFM {
     UlamType * scalarut = getUlamTypeByIndex(scalaruti);
     if(scalarut->isComplete())
       {
-	if(getUlamTypeByIndex(utiArg)->getUlamTypeEnum() != scalarut->getUlamTypeEnum())
-	  {
-	    assert(0); //shouldn't happen now that we don't 'assumeAClassType' (t3668, t3651)
-
-	    UlamKeyTypeSignature sckey = scalarut->getUlamKeyTypeSignature();
-	    UlamType * arrut = getUlamTypeByIndex(utiArg);
-	    UlamKeyTypeSignature newkey(sckey.getUlamKeyTypeSignatureNameId(), sckey.getUlamKeyTypeSignatureBitSize(), arrut->getArraySize(), scalaruti, ALT_NOT);
-	    makeUlamTypeFromHolder(newkey, scalarut->getUlamTypeEnum(), utiArg, scalarut->getUlamClassType());
-	  }
+	//shouldn't happen now that we don't 'assumeAClassType' (t3668, t3651)
+	assert(getUlamTypeByIndex(utiArg)->getUlamTypeEnum() == scalarut->getUlamTypeEnum());
 	return true;
       }
     return false;
@@ -2039,15 +2026,7 @@ namespace MFM {
   {
     u32 dataindex = cTok.m_dataindex;
     bool isNotDefined = (symptr == NULL) && !alreadyDefinedSymbolClassName(dataindex, symptr);
-    if(!isNotDefined)
-      {
-	std::ostringstream msg;
-	msg << "Unseen Class '" << m_pool.getDataAsString(dataindex).c_str();
-	msg << "' was already seen";
-	MSG2(&cTok, msg.str().c_str(), ERR);
-	assert(0);
-	return false;
-      }
+    assert(isNotDefined);
 
     UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE); //"-2" and scalar default
     UTI cuti = makeUlamType(key, Class, UC_UNSEEN); //**gets next unknown uti type
@@ -3617,12 +3596,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	std::pair<std::map<u32, NodeBlockLocals*>::iterator, bool> reti;
 	reti = m_localsPerFilePath.insert(std::pair<u32, NodeBlockLocals*>(pathidx,newblocklocals)); //map owns block
 	bool notdupi = reti.second; //false if already existed, i.e. not added
-	if(!notdupi)
-	  {
-	    delete newblocklocals;
-	    newblocklocals = NULL;
-	    assert(0);
-	  }
+	assert(notdupi);
 
 	//set node type based on ulam file name id
 	UlamKeyTypeSignature lkey(pathidx, 0, NONARRAYSIZE, 0, ALT_NOT);
@@ -4032,8 +4006,6 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   bool CompilerState::okUTItoContinue(UTI uti)
   {
-    //if((uti != Hzy) && (getUlamTypeByIndex(uti)->getUlamTypeEnum() == Hzy))
-    //  assert(0); //t3378?
     return ((uti != Nav) && (uti != Hzy) && (uti != Nouti));
   }
 

@@ -358,18 +358,7 @@ namespace MFM {
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
 
     Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
-    if(!parentNode)
-      {
-	std::ostringstream msg;
-	msg << "Variable '" << getName();
-	msg << "' cannot be exchanged at this time while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	msg << " Parent required";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	assert(0); //parent required
-	m_state.popClassContext(); //restore
-	return false;
-      }
+    assert(parentNode);
 
     AssertBool swapOk = parentNode->exchangeKids(this, newnode);
     assert(swapOk);
@@ -1072,11 +1061,9 @@ namespace MFM {
 
   SymbolVariable *  NodeIdent::makeSymbol(UTI auti, ALT reftype, UTI referencedUTI)
   {
-    //if(m_state.m_currentFunctionBlockDeclSize == 0)
     if(m_state.m_parsingVariableSymbolTypeFlag == STF_DATAMEMBER)
       {
 	u32 baseslot = 1;  //unpacked fixed later
-
 	//variable-index, ulamtype, ulamvalue(ownership to symbol); always packed
 	if(reftype != ALT_NOT)
 	  return NULL; //error! dm's not references
@@ -1084,17 +1071,11 @@ namespace MFM {
       }
 
     //Symbol is a parameter; always on the stack
-    //if(m_state.m_currentFunctionBlockDeclSize < 0)
     if(m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCPARAMETER)
       {
-	//1 slot for scalar or packed array
-	//m_state.m_currentFunctionBlockDeclSize -= m_state.slotsNeeded(auti);
-
 	SymbolVariableStack * rtnSym = (new SymbolVariableStack(m_token, auti, m_state)); //slot after adjust
 	assert(rtnSym);
-
 	rtnSym->setAutoLocalType(reftype);
-
 	return rtnSym;
       }
 
@@ -1102,15 +1083,7 @@ namespace MFM {
     //(else) Symbol is a local variable, always on the stack
     SymbolVariableStack * rtnLocalSym = new SymbolVariableStack(m_token, auti, m_state); //slot before adjustment
     assert(rtnLocalSym);
-
     rtnLocalSym->setAutoLocalType(reftype);
-
-    //m_state.m_currentFunctionBlockDeclSize += m_state.slotsNeeded(auti);
-
-    //adjust max depth, excluding parameters and initial start slot (=1)
-    //if(m_state.m_currentFunctionBlockDeclSize - 1 > m_state.m_currentFunctionBlockMaxDepth)
-    //  m_state.m_currentFunctionBlockMaxDepth = m_state.m_currentFunctionBlockDeclSize - 1;
-
     return rtnLocalSym;
   } //makeSymbol
 

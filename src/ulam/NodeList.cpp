@@ -192,8 +192,6 @@ namespace MFM{
 
   EvalStatus NodeList::eval()
   {
-    //assert(0);
-    //return ERROR;
     EvalStatus evs = NORMAL;
     for(u32 i = 0; i < m_nodes.size(); i++)
       {

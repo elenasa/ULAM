@@ -56,15 +56,7 @@ NodeBinaryOpArithDivide::NodeBinaryOpArithDivide(const NodeBinaryOpArithDivide& 
 	    assert(castNode);
 
 	    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
-	    if(!parentNode)
-	      {
-		std::ostringstream msg;
-		msg << "Division cast cannot be exchanged at this time while compiling class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-		msg << " Parent required";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		assert(0); //parent required
-	      }
+	    assert(parentNode);
 
 	    AssertBool swapOk = parentNode->exchangeKids(this, castNode);
 	    assert(swapOk);

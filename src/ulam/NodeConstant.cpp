@@ -123,21 +123,18 @@ namespace MFM {
     setNodeType(it);
     Node::setStoreIntoAble(TBOOL_FALSE);
 
-    if(m_state.isScalar(it)) //t3881 ?
+    assert(m_state.isScalar(it));
+
+    //copy m_constant from Symbol into NodeTerminal parent.
+    if(!isReadyConstant())
+      m_ready = updateConstant(); //sets ready here
+    if(!isReadyConstant())
       {
-	//copy m_constant from Symbol into NodeTerminal parent.
-	if(!isReadyConstant())
-	  m_ready = updateConstant(); //sets ready here
-	if(!isReadyConstant())
-	  {
-	    it = Hzy;
-	    if(!stubcopy)
-	      m_constSymbol = NULL; //lookup again too! (e.g. inherited template instances)
-	    m_state.setGoAgain();
-	  }
+	it = Hzy;
+	if(!stubcopy)
+	  m_constSymbol = NULL; //lookup again too! (e.g. inherited template instances)
+	m_state.setGoAgain();
       }
-    else
-      assert(0); //TODO!! t3881
 
     return it;
   } //checkAndLabelType

@@ -315,16 +315,7 @@ namespace MFM {
 
 	NNO pno = Node::getYourParentNo();
 	Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
-	if(!parentNode)
-	  {
-	    std::ostringstream msg;
-	    msg << "Reference variable '" << getName();
-	    msg << "' cannot be exchanged at this time while compiling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    msg << " Parent required";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    assert(0); //parent required
-	  }
+	assert(parentNode);
 
 	newnode->setNodeLocation(getNodeLocation());
 	newnode->setYourParentNo(pno);
@@ -614,15 +605,7 @@ UTI NodeVarDecl::checkAndLabelType()
   {
     assert(m_varSymbol);
     s32 newslot = depth + base;
-    //s32 oldslot = ((SymbolVariable *) m_varSymbol)->getStackFrameSlotIndex();
-    //if(oldslot != newslot)
-    //{
-    //	std::ostringstream msg;
-    //	msg << "'" << m_state.m_pool.getDataAsString(m_vid).c_str();
-    //	msg << "' was at slot: " << oldslot << ", new slot is " << newslot;
-    //	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
     ((SymbolVariable *) m_varSymbol)->setStackFrameSlotIndex(newslot);
-    // }
     depth += m_state.slotsNeeded(getNodeType());
 
     if(m_nodeInitExpr)
@@ -783,6 +766,7 @@ UTI NodeVarDecl::checkAndLabelType()
 		  }
 		else
 		  assert(0);
+
 		m_state.m_funcCallStack.storeUlamValueInSlot(itemUV, baseslot + j);
 	      }
 	  }

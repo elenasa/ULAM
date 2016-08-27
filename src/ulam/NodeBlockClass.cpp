@@ -1696,11 +1696,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       generateGetPosForQuark(fp, declOnly);
     else if(classtype == UC_TRANSIENT)
       {
-	//assert(0);
+	//nothing to do
       }
     else if(classtype == UC_LOCALFILESCOPES)
       {
-
+	//nothing to do
       }
     else
       assert(0); //sanity

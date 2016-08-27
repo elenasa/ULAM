@@ -694,7 +694,7 @@ namespace MFM {
 	    else
 	      msg << "not found";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    assert(0);
+	    //assert(0);
 	  }
 
 	if(!funcSymbol->isVirtualFunction())

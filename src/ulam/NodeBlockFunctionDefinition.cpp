@@ -285,7 +285,7 @@ namespace MFM {
 		msg << "' was at slot: " << oldslot << ", new slot is " << slot;
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		supersym->setStackFrameSlotIndex(slot);
-		//assert(0); //was this WRONG??!! t3704, t3706, t3707, t3709, t3710
+		//assert(0); //t3704, t3706, t3707, t3709, t3710
 	      }
 	  }
       }
@@ -423,15 +423,7 @@ namespace MFM {
     AssertBool isDefined = m_state.alreadyDefinedSymbol(selfid, selfsym, hazyKin) && !hazyKin;
     assert(isDefined);
     s32 newslot = -2 - m_state.slotsNeeded(getNodeType()); //2nd hidden arg (was -1 - ???)
-    //s32 oldslot = ((SymbolVariable *) selfsym)->getStackFrameSlotIndex();
-    //if(oldslot != newslot)
-    //  {
-    //	std::ostringstream msg;
-    //	msg << "'" << m_state.m_pool.getDataAsString(selfid).c_str();
-    //	msg << "' was at slot: " << oldslot << ", new slot is " << newslot;
-    //	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
     ((SymbolVariable *) selfsym)->setStackFrameSlotIndex(newslot);
-    // }
 
     NodeBlock::calcMaxDepth(depth, maxdepth, 1); // one for the frame ptr offset
     m_state.popClassContext();

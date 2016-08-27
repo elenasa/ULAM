@@ -150,8 +150,7 @@ namespace MFM {
 	return Hzy; //short-circuit
       }
 
-    if(nodeType == Nouti)
-      assert(0);
+    assert(nodeType != Nouti);
 
     if(m_nodeTypeDesc)
       {

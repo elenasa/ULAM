@@ -146,13 +146,6 @@ namespace MFM {
     return false;
   } //isExplicitReferenceCast
 
-  bool NodeStatements::getNodePtr(Node*& nodeptrref)
-  {
-    assert(m_node);
-    nodeptrref = m_node;
-    return true;
-  }
-
   UTI NodeStatements::checkAndLabelType()
   {
     assert(m_node);
