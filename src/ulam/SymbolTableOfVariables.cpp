@@ -234,53 +234,14 @@ namespace MFM {
 	    // support initialized non-class arrays
 	    if(((SymbolVariableDataMember *) sym)->hasInitValue())
 	      {
-		if(len <= MAXBITSPERLONG)
+		assert(len <= MAXSTATEBITS);
+		BV8K dval;
+		if(((SymbolVariableDataMember *) sym)->getInitValue(dval))
 		  {
-		    u64 dval = 0;
-		    if(((SymbolVariableDataMember *) sym)->getInitValue(dval))
-		      {
-			u32 wordsize = sut->getTotalWordSize();
-			if(wordsize <= MAXBITSPERINT)
-			  uvsite.putData(pos + startpos, len, (u32) dval); //absolute pos
-			else if(wordsize <= MAXBITSPERLONG)
-			  uvsite.putDataLong(pos + startpos, len, dval); //absolute pos
-			else
-			  m_state.abortGreaterThanMaxBitsPerLong();
-		      }
-		  }
-		else
-		  {
-		    assert(len <= MAXSTATEBITS);
-		    BV8K dval;
-		    if(((SymbolVariableDataMember *) sym)->getInitValue(dval))
-		      {
-			uvsite.putDataBig(pos + startpos, len, dval); //t3772
-		      }
+		    uvsite.putDataBig(pos + startpos, len, dval); //t3772, t3776
 		  }
 	      }
-	    else if(sut->getUlamTypeEnum() == Class)
-	      {
-		u64 dpkval = 0;
-		if(m_state.getPackedDefaultClass(suti, dpkval))
-		  {
-		    s32 bitsize = sut->getBitSize();
-		    s32 arraysize = sut->getArraySize();
-		    arraysize = (arraysize == NONARRAYSIZE ? 1 : arraysize);
-		    //could be a "packloadable" array of them;
-		    // u64 dpkarr = 0;
-		    //m_state.getDefaultAsPackedArray(len, bitsize, arraysize, 0u, dpkval, dpkarr);
-		    // uvsite.putDataLong(pos + startpos, len, dpkarr);
-		    //more general..
-		    u32 basepos = pos + startpos;
-		    for(s32 j=0; j < arraysize; j++)
-		      {
-			uvsite.putDataLong(basepos + j * bitsize, bitsize, dpkval);
-		      }
-		  }
-		else
-		  assert(0); //for eval, how could an element dm not be a quark? hence u32 per.
-	      }
-	    //else nothing to do?
+	    //else nothing to do
 	  } //countable
 	it++;
       } //while
