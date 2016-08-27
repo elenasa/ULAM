@@ -78,16 +78,14 @@ namespace MFM {
 
   UlamValue NodeBinaryOpLogicalOr::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
-    UlamValue rtnUV;
     assert(0); //overridden by eval
-    return rtnUV;
+    return UlamValue();
   } //makeImmediateBinaryOp
 
   UlamValue NodeBinaryOpLogicalOr::makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len)
   {
-    UlamValue rtnUV;
     assert(0); //overridden by eval
-    return rtnUV;
+    return UlamValue();
   } //makeImmediateLongBinaryOp
 
   void NodeBinaryOpLogicalOr::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)

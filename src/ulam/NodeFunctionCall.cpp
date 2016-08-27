@@ -694,7 +694,6 @@ namespace MFM {
 	    else
 	      msg << "not found";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    //assert(0);
 	  }
 
 	if(!funcSymbol->isVirtualFunction())
@@ -1264,6 +1263,7 @@ namespace MFM {
   void NodeFunctionCall::genCodeAnonymousReferenceArg(File * fp, UVPass & uvpass, u32 n)
   {
     assert(0);
+#if 0
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //such as .atomof; self (t3779)
 
     assert(m_funcSymbol);
@@ -1308,6 +1308,7 @@ namespace MFM {
     fp->write(");"); GCNL;
 
     uvpass = UVPass::makePass(tmpVarArgNum2, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, 0, 0); //POS adjusted for BitVector, justified; self id in Pass;
+#endif
   } //genCodeAnonymousReferenceArg
 
 void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp)

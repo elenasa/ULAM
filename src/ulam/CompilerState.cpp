@@ -4021,4 +4021,9 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return (block->isAClassBlock() && (isClassAStub(buti) || ((isClassASubclass(buti) != Nouti) && !((NodeBlockClass *) block)->isSuperClassLinkReady())));
   }
 
+  void CompilerState::abortGreaterThanMaxBitsPerLong()
+  {
+    assert(0);
+  }
+
 } //end MFM

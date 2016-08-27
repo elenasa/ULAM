@@ -437,7 +437,7 @@ namespace MFM {
 			uv = UlamValue::makeImmediateLong(nuti, datavalue, m_state);
 		      }
 		    else
-		      assert(0);
+		      m_state.abortGreaterThanMaxBitsPerLong();
 		  }
 	      }
 	    else
@@ -471,7 +471,7 @@ namespace MFM {
 			uv = UlamValue::makeImmediateLong(nuti, datavalue, m_state);
 		      }
 		    else
-		      assert(0);
+		      m_state.abortGreaterThanMaxBitsPerLong();
 		  }
 	      }
 	  } // not node type

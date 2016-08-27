@@ -464,7 +464,7 @@ namespace MFM {
 	else if(wordsize == MAXBITSPERLONG)
 	  val = cnstUV.getImmediateDataLong(m_state);
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
 
     evalNodeEpilog();
@@ -588,7 +588,7 @@ namespace MFM {
 	rtnUV = makeImmediateLongBinaryOp(nuti, ldata, rdata, len);
       }
     else
-      assert(0);
+      m_state.abortGreaterThanMaxBitsPerLong();
 
     if(rtnUV.getUlamValueTypeIdx() == Nav)
       return false;

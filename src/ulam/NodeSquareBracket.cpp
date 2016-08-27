@@ -615,7 +615,7 @@ namespace MFM {
 	    else if(wordsize <= MAXBITSPERLONG)
 	      arraysizedata = (u32) arrayUV.getImmediateDataLong(m_state);
 	    else
-	      assert(0);
+	      m_state.abortGreaterThanMaxBitsPerLong();
 
 	    newarraysize = sizeut->getDataAsCs32(arraysizedata);
 	    if(newarraysize < 0 && newarraysize != UNKNOWNSIZE) //NONARRAY or UNKNOWN

@@ -205,7 +205,7 @@ namespace MFM {
 		  }
 	      }
 	    else
-	      assert(0);
+	      m_state.abortGreaterThanMaxBitsPerLong();
 
 	  } //end arrays > 0, and scalar
 	else

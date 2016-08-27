@@ -29,7 +29,7 @@ namespace MFM {
 	m_min = 0;
       }
     else
-      assert(0);
+      m_state.abortGreaterThanMaxBitsPerLong();
   }
 
    ULAMTYPE UlamTypePrimitiveBool::getUlamTypeEnum()
@@ -55,7 +55,7 @@ namespace MFM {
 	else if(valwordsize <= MAXBITSPERLONG)
 	  brtn = castTo64(val, typidx); //downcast
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
     else if(wordsize <= MAXBITSPERLONG)
       brtn = castTo64(val, typidx);
@@ -124,7 +124,7 @@ namespace MFM {
     else if(valwordsize <= MAXBITSPERLONG)
       data = val.getImmediateDataLong(m_state);
     else
-      assert(0);
+      m_state.abortGreaterThanMaxBitsPerLong();
 
     u64 newdata = 0;
     s32 bitsize = getBitSize();
@@ -163,7 +163,7 @@ namespace MFM {
 	else if(wordsize <= MAXBITSPERLONG)
 	  val = UlamValue::makeImmediateLong(typidx, newdata, m_state); //overwrite val
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
     return brtn;
   } //castTo64

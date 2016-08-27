@@ -714,7 +714,7 @@ UTI NodeVarDecl::checkAndLabelType()
 	else if(len <= MAXBITSPERLONG)
 	  immUV = UlamValue::makeImmediateLong(nuti, dval, m_state);
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
 
 	m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
       }
@@ -733,7 +733,7 @@ UTI NodeVarDecl::checkAndLabelType()
 	    else if(itemlen <= MAXBITSPERLONG)
 	      immUV = UlamValue::makeImmediateLong(scalaruti, 0, m_state);
 	    else
-	      assert(0);
+	      m_state.abortGreaterThanMaxBitsPerLong();
 
 	    for(u32 j = 0; j < slots; j++)
 	      {
@@ -765,7 +765,7 @@ UTI NodeVarDecl::checkAndLabelType()
 		    itemUV = UlamValue::makeImmediateLong(scalaruti, ivalong, m_state);
 		  }
 		else
-		  assert(0);
+		  m_state.abortGreaterThanMaxBitsPerLong();
 
 		m_state.m_funcCallStack.storeUlamValueInSlot(itemUV, baseslot + j);
 	      }
@@ -808,7 +808,7 @@ UTI NodeVarDecl::checkAndLabelType()
 		m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
 	      }
 	    else
-	      assert(0); //not write load packable!
+	      m_state.abortGreaterThanMaxBitsPerLong(); //not write load packable!
 	  }
 	else
 	  {

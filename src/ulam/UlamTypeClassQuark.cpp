@@ -63,7 +63,7 @@ namespace MFM {
 		val = UlamValue::makeImmediateLongClass(typidx, qdata, len);
 	      }
 	    else
-	      assert(0);
+	      m_state.abortGreaterThanMaxBitsPerLong();
 	  }
 	else
 	  {

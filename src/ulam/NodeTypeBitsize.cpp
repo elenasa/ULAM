@@ -195,7 +195,7 @@ namespace MFM {
 		else if(wordsize <= MAXBITSPERLONG)
 		  newbitsize = (s32) bitUV.getImmediateDataLong(m_state);
 		else
-		  assert(0);
+		  m_state.abortGreaterThanMaxBitsPerLong();
 	      }
 	    //prepare bitsize into C-format:
 	    newbitsize = bitut->getDataAsCs32(newbitsize);

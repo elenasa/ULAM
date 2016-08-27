@@ -492,7 +492,7 @@ namespace MFM {
 	    rtnUV.putDataLong((BITSPERATOM-len), len, datavalue); //immediate
 	  }
 	else
-	  assert(0);
+	  state.abortGreaterThanMaxBitsPerLong();
       }
     else
       {
@@ -513,7 +513,7 @@ namespace MFM {
 		rtnUV.putDataLong((BITSPERATOM-(bitsize * (arraysize - i))), bitsize, datavalue);
 	      }
 	    else
-	      assert(0);
+	      state.abortGreaterThanMaxBitsPerLong();
 
 	    nextPtr.incrementPtr(state);
 	  }
@@ -746,11 +746,11 @@ namespace MFM {
 		putDataLong(p.getPtrPos(), len, datavalue);
 	      }
 	    else
-	      assert(0);
+	      state.abortGreaterThanMaxBitsPerLong();
 	  }
 	else
 	  // e.g. an element, take wholesale
-	  assert(0);
+	  state.abortGreaterThanMaxBitsPerLong();
       }
     else
       {
@@ -768,7 +768,7 @@ namespace MFM {
 	    putDataLong(p.getPtrPos(), len, datavalue);
 	  }
 	else
-	  assert(0);
+	  state.abortGreaterThanMaxBitsPerLong();
       }
   } //putDataIntoAtom
 

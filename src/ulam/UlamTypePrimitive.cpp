@@ -361,7 +361,7 @@ namespace MFM {
     else if(wordsize <= MAXBITSPERLONG)
       rtnUV = UlamValue::makeImmediateLong(uti, m_max, m_state);
     else
-      assert(0);
+      m_state.abortGreaterThanMaxBitsPerLong();
     return m_max;
   } //getMax (UlamValue)
 
@@ -373,7 +373,7 @@ namespace MFM {
     else if(wordsize <= MAXBITSPERLONG)
       rtnUV = UlamValue::makeImmediateLong(uti, (s64) m_min, m_state);
     else
-      assert(0);
+      m_state.abortGreaterThanMaxBitsPerLong();
     return m_min;
   } //getMin (UlamValue)
 

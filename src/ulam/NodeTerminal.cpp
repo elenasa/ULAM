@@ -249,7 +249,7 @@ namespace MFM {
     else if(wordsize <= MAXBITSPERLONG)
       return makeTerminalValueLong(uvarg, m_constant.uval, nuti);
     else
-      assert(0);
+      m_state.abortGreaterThanMaxBitsPerLong();
     return ERROR;
   } //makeTerminalValue
 
@@ -573,7 +573,7 @@ namespace MFM {
 	      rtnb = true;
 	  }
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
     return rtnb;
   } //isNegativeConstant
@@ -594,7 +594,7 @@ namespace MFM {
 	else if(wordsize <= MAXBITSPERLONG)
 	  rtnb = (m_constant.sval >= MAXBITSPERLONG);
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
     else if(etyp == Unsigned)
       {
@@ -603,7 +603,7 @@ namespace MFM {
 	else if(wordsize <= MAXBITSPERLONG)
 	  rtnb = (m_constant.uval >= (u32) MAXBITSPERLONG);
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
     return rtnb;
   } //isWordSizeConstant
@@ -650,7 +650,7 @@ namespace MFM {
 	else if(wordsize <= MAXBITSPERLONG)
 	  fp->write("(u64) ");
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
 
     fp->write(getName());

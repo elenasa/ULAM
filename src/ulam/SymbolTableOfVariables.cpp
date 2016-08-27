@@ -245,7 +245,7 @@ namespace MFM {
 			else if(wordsize <= MAXBITSPERLONG)
 			  uvsite.putDataLong(pos + startpos, len, dval); //absolute pos
 			else
-			  assert(0);
+			  m_state.abortGreaterThanMaxBitsPerLong();
 		      }
 		  }
 		else

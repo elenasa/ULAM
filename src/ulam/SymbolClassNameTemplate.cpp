@@ -669,7 +669,7 @@ namespace MFM {
 			  else if(awordsize <= MAXBITSPERLONG)
 			    args << ToLeximitedNumber64(_SignExtend64(uval, (u32) abs));
 			  else
-			    assert(0);
+			    m_state.abortGreaterThanMaxBitsPerLong();
 			  isok = true;
 			}
 			break;
@@ -681,7 +681,7 @@ namespace MFM {
 			  else if(awordsize <= MAXBITSPERLONG)
 			    args << ToLeximitedNumber64(uval);
 			  else
-			    assert(0);
+			    m_state.abortGreaterThanMaxBitsPerLong();
 			  isok = true;
 			}
 			break;
@@ -700,7 +700,7 @@ namespace MFM {
 			  else if(awordsize <= MAXBITSPERLONG)
 			    bval = _Bool64ToCbool(uval, m_state.getBitSize(auti));
 			  else
-			    assert(0);
+			    m_state.abortGreaterThanMaxBitsPerLong();
 
 			  args << ToLeximitedNumber((u32) bval);
 			  isok = true;
@@ -803,7 +803,7 @@ namespace MFM {
 			      else if(awordsize <= MAXBITSPERLONG)
 				args << _SignExtend64(uval, abs);
 			      else
-				assert(0);
+				m_state.abortGreaterThanMaxBitsPerLong();
 			      isok = true;
 			    }
 			    break;
@@ -828,7 +828,7 @@ namespace MFM {
 			      else if(awordsize <= MAXBITSPERLONG)
 				bval = _Bool64ToCbool(uval, abs);
 			      else
-				assert(0);
+				m_state.abortGreaterThanMaxBitsPerLong();
 
 			      args << (bval ? "true" : "false");
 			      isok = true;

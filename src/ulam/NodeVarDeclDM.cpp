@@ -440,7 +440,7 @@ namespace MFM {
 	else if(wordsize <= MAXBITSPERLONG)
 	  newconst = cnstUV.getImmediateDataLong(m_state);
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
 
     evalNodeEpilog();
@@ -529,7 +529,7 @@ namespace MFM {
     else if(wordsize <= MAXBITSPERLONG)
       rtnb = updateConstant64(newconst);
     else
-      assert(0);
+      m_state.abortGreaterThanMaxBitsPerLong();
 
     if(!rtnb)
       {

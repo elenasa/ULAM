@@ -280,7 +280,7 @@ namespace MFM {
 	else if(wordsize <= MAXBITSPERLONG)
 	  val = cnstUV.getImmediateDataLong(m_state);
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
 
     evalNodeEpilog();
@@ -405,7 +405,7 @@ namespace MFM {
 	rtnUV = makeImmediateLongUnaryOp(nuti, data, len);
       }
     else
-      assert(0);
+      m_state.abortGreaterThanMaxBitsPerLong();
 
     m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
     return true;

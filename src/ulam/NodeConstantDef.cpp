@@ -616,7 +616,7 @@ namespace MFM {
 	else if(wordsize == MAXBITSPERLONG)
 	  newconst = cnstUV.getImmediateDataLong(m_state);
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
     else
       {
@@ -764,7 +764,7 @@ namespace MFM {
 	else if(len <= MAXBITSPERLONG)
 	  immUV = UlamValue::makeImmediateLong(nuti, dval, m_state);
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
 
 	m_state.m_constantStack.storeUlamValueAtStackIndex(immUV, ((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex());
       }
@@ -781,7 +781,7 @@ namespace MFM {
 	else if(itemlen <= MAXBITSPERLONG)
 	  immUV = UlamValue::makeImmediateLong(scalaruti, 0, m_state);
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
 
 	u32 n = ((NodeList *) m_nodeExpr)->getNumberOfNodes(); //may be fewer
 

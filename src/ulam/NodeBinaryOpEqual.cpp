@@ -386,7 +386,7 @@ namespace MFM {
 	rtnUV = makeImmediateLongBinaryOp(nuti, ldata, rdata, len);
       }
     else
-      assert(0); //e.g. 0
+      m_state.abortGreaterThanMaxBitsPerLong();//e.g. 0
 
     if(rtnUV.getUlamValueTypeIdx() == Nav)
       return false;

@@ -246,7 +246,7 @@ namespace MFM{
     else if(itemlen <= MAXBITSPERLONG)
       foldedconst = ituv.getImmediateDataLong(itemlen, m_state);
     else
-      assert(0);
+      m_state.abortGreaterThanMaxBitsPerLong();
 
     evalNodeEpilog();
 

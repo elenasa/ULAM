@@ -512,6 +512,8 @@ namespace MFM{
     bool okUTItoContinue(UTI uti1, UTI uti2); //false if either is Nav
     bool checkHasHazyKin(NodeBlock * block);
 
+    void abortGreaterThanMaxBitsPerLong();
+
   private:
     ClassContextStack m_classContextStack; // the current subject of this compilation
 

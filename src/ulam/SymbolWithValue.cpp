@@ -269,7 +269,7 @@ namespace MFM {
 		  fp->write_decimal_long(sval);
 		}
 	      else
-		assert(0);
+		m_state.abortGreaterThanMaxBitsPerLong();
 	    }
 	    break;
 	  case Bool:
@@ -291,7 +291,7 @@ namespace MFM {
 	      else if( tbs <= MAXBITSPERLONG)
 		fp->write_decimal_unsignedlong(val);
 	      else
-		assert(0); //TBD > 64
+		m_state.abortGreaterThanMaxBitsPerLong(); //TBD > 64
 	      fp->write("u");
 	    }
 	    break;
@@ -492,7 +492,7 @@ namespace MFM {
 	      vstr = ToLeximitedNumber64(sval);
 	    }
 	  else
-	    assert(0);
+	    m_state.abortGreaterThanMaxBitsPerLong();
 	}
 	break;
       case Bool:
@@ -519,7 +519,7 @@ namespace MFM {
 	  else if( tbs <= MAXBITSPERLONG)
 		vstr = ToLeximitedNumber64(constantval);
 	  else
-	    assert(0);
+	    m_state.abortGreaterThanMaxBitsPerLong();
 	}
 	break;
       default:
