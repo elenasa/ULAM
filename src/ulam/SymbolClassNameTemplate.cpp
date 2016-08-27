@@ -387,10 +387,9 @@ namespace MFM {
 	    continue;
 	  }
 
-	//csym->setUlamClass(classtype);
 	UTI suti = csym->getUlamTypeIdx();
-	UlamType * sut = m_state.getUlamTypeByIndex(suti);
-	AssertBool isReplaced = m_state.replaceUlamTypeForUpdatedClassType(sut->getUlamKeyTypeSignature(), Class, classtype, isCATemplate);
+	UlamKeyTypeSignature skey = m_state.getUlamTypeByIndex(suti)->getUlamKeyTypeSignature();
+	AssertBool isReplaced = m_state.replaceUlamTypeForUpdatedClassType(skey, Class, classtype, isCATemplate);
 	assert(isReplaced);
 
 	NodeBlockClass * cblock = csym->getClassBlockNode();
@@ -477,8 +476,6 @@ namespace MFM {
 			// and make a new symbol that's like the default param
 			SymbolConstantValue * asym2 = new SymbolConstantValue(*psym);
 			assert(asym2);
-			//asym2->setBlockNoOfST(cblock->getNodeNo());
-			//m_state.addSymbolToCurrentScope(asym2);
 			cblock->addIdToScope(pid, asym2);
 
 			// possible pending value for default param
@@ -509,10 +506,6 @@ namespace MFM {
 	// class instance's prev classblock is linked to its template's when stub is made.
 	// later, during c&l if a subclass, the super ptr gets the classblock of superclass
 	cblock->setSuperBlockPointer(NULL); //wait for c&l when no longer a stub
-
-	if(isCATemplate)
-	  ((UlamTypeClass *) sut)->setCustomArray();
-
 	m_state.popClassContext(); //restore
 	it++;
       } //while
@@ -942,8 +935,6 @@ namespace MFM {
 	  {
 	    UTI duti = dupsym->getUlamTypeIdx();
 	    m_state.mergeClassUTI(cuti, duti);
-	    //delete csym;
-	    //csym = NULL;
 	    trashStub(cuti, csym);
 	    it->second = dupsym; //duplicate! except different UTIs
 	    it++;
@@ -989,9 +980,6 @@ namespace MFM {
 	    cloneAnInstancesUTImap(csym, clone);
 
 	    it->second = clone; //replace with the full copy
-	    //HELP!
-	    //delete csym; //done with stub
-	    //csym = NULL;
 	    trashStub(cuti, csym);
 
 	    addClassInstanceByArgString(cuti, clone); //new entry, and owner of symbol class

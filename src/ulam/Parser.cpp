@@ -968,11 +968,6 @@ namespace MFM {
     //        for validating and finding scope of program/block variables
     m_state.pushCurrentBlock(rtnNode);
 
-    //NodeStatements * nextNode = (NodeStatements *) parseStatements();
-
-    //if(nextNode) //could be Null, in case of errors
-    //  rtnNode->setNextNode(nextNode);
-    //else
     if(!parseStatements())
       {
 	//replace NodeBlock with a NodeBlockEmpty
@@ -1341,7 +1336,6 @@ namespace MFM {
 	MSG(&pTok, msg.str().c_str(), ERR);
 	m_state.popClassContext(); //where was it?
 	delete rtnNode;
-	//delete declNode; //stop this maddness
 	return NULL;
       }
 
@@ -1361,7 +1355,6 @@ namespace MFM {
 	    MSG(&qTok, msg.str().c_str(), ERR);
 	    m_state.popClassContext(); //where was it?
 	    delete rtnNode;
-	    //delete declNode;
 	    return NULL; //stop this maddness
 	  }
 
@@ -1369,7 +1362,6 @@ namespace MFM {
 	  {
 	    m_state.popClassContext(); //where was it?
 	    delete rtnNode;
-	    //delete declNode;
 	    delete condNode;
 	    return NULL; //stop this maddness
 	  }
@@ -1399,7 +1391,6 @@ namespace MFM {
 
 	    m_state.popClassContext(); //where was it?
 	    delete rtnNode;
-	    //delete declNode;
 	    delete condNode;
 	    return NULL; //stop this maddness
 	  }
@@ -1408,7 +1399,6 @@ namespace MFM {
 	  {
 	    m_state.popClassContext(); //where was it?
 	    delete rtnNode;
-	    //delete declNode;
 	    delete condNode;
 	    delete assignNode;
 	    return NULL; //stop this maddness
@@ -1433,7 +1423,6 @@ namespace MFM {
 
 	m_state.popClassContext(); //where was it?
 	delete rtnNode;
-	//delete declNode;
 	delete condNode;
 	delete assignNode;
 	return NULL; //stop this maddness
