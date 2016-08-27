@@ -1058,7 +1058,7 @@ namespace MFM {
     else
       {
 	unreadToken();
-	rtnNode = parseSimpleStatement(); //may be null (only ;)
+	parseSimpleStatement(); //may be null (only ;) o.w. already appended
       }
     return rtnNode;
   } //parseStatement
@@ -1087,6 +1087,7 @@ namespace MFM {
 	Node * sNode = parseStatement();
 	if(sNode)  //e.g. due to an invalid token perhaps; decl already appended
 	  m_state.getCurrentBlock()->appendNextNode(sNode);
+	//else already appended
 	assert(m_state.getCurrentBlock() == rtnNode); //sanity?
 	m_state.popClassContext(); //restore
       }
@@ -1600,49 +1601,53 @@ namespace MFM {
     return blockNode;
   } //setupAsConditionalBlockAndParseStatements
 
-  Node * Parser::parseSimpleStatement()
+  bool Parser::parseSimpleStatement()
   {
-    Node * rtnNode = NULL;
+    bool brtn = false;
     Token pTok;
     getNextToken(pTok);
 
     if(pTok.m_type == TOK_SEMICOLON)
       {
 	unreadToken();
-	rtnNode = new NodeStatementEmpty(m_state); //empty statement
-	assert(rtnNode);
-	rtnNode->setNodeLocation(pTok.m_locator);
+	NodeStatementEmpty * emptyNode = new NodeStatementEmpty(m_state); //empty statement
+	assert(emptyNode);
+	emptyNode->setNodeLocation(pTok.m_locator);
+	m_state.getCurrentBlock()->appendNextNode(emptyNode);
+	brtn = true;
       }
     else if(Token::isTokenAType(pTok))
       {
 	unreadToken();
-	parseDecl(); //updates symbol table & parse tree
+	brtn = parseDecl(); //updates symbol table & parse tree
       }
     else if(pTok.m_type == TOK_KW_LOCALDEF)
       {
 	unreadToken();
-	parseDecl(); //updates symbol table & parse tree (t3857)
+	brtn = parseDecl(); //updates symbol table & parse tree (t3857)
       }
     else if(pTok.m_type == TOK_KW_TYPEDEF)
       {
-	parseTypedef();
+	brtn = parseTypedef();
       }
     else if(pTok.m_type == TOK_KW_CONSTDEF)
       {
-	parseConstdef();
+	brtn = parseConstdef();
       }
     else if(pTok.m_type == TOK_KW_RETURN)
       {
 	unreadToken(); //needs location
-	rtnNode = parseReturn();
+	brtn = parseReturn();
       }
     else if(pTok.m_type == TOK_KW_BREAK)
       {
 	if(m_state.m_parsingControlLoop)
 	  {
-	    rtnNode = new NodeBreakStatement(m_state);
-	    assert(rtnNode);
-	    rtnNode->setNodeLocation(pTok.m_locator);
+	    NodeBreakStatement * brkNode = new NodeBreakStatement(m_state);
+	    assert(brkNode);
+	    brkNode->setNodeLocation(pTok.m_locator);
+	    m_state.getCurrentBlock()->appendNextNode(brkNode);
+	    brtn = true;
 	  }
 	else
 	  {
@@ -1653,9 +1658,11 @@ namespace MFM {
       {
 	if(m_state.m_parsingControlLoop)
 	  {
-	    rtnNode = new NodeContinueStatement(m_state.m_parsingControlLoop, m_state);
-	    assert(rtnNode);
-	    rtnNode->setNodeLocation(pTok.m_locator);
+	    NodeContinueStatement * contNode = new NodeContinueStatement(m_state.m_parsingControlLoop, m_state);
+	    assert(contNode);
+	    contNode->setNodeLocation(pTok.m_locator);
+	    m_state.getCurrentBlock()->appendNextNode(contNode);
+	    brtn = true;
 	  }
 	else
 	  {
@@ -1672,9 +1679,11 @@ namespace MFM {
 	Node * expNode = parseAssignExpr();
 	if(expNode)
 	  {
-	    rtnNode = new NodeSimpleStatement(expNode,m_state);
-	    assert(rtnNode);
-	    rtnNode->setNodeLocation(expNode->getNodeLocation());
+	    NodeSimpleStatement * simpleNode = new NodeSimpleStatement(expNode,m_state);
+	    assert(simpleNode);
+	    simpleNode->setNodeLocation(expNode->getNodeLocation());
+	    m_state.getCurrentBlock()->appendNextNode(simpleNode);
+	    brtn = true;
 	  }
       }
 
@@ -1691,11 +1700,9 @@ namespace MFM {
 	  }
 
 	MSG(&pTok, "Invalid Statement (possible missing semicolon)", ERR);
-	delete rtnNode;
-	rtnNode = NULL;
 	getTokensUntil(TOK_SEMICOLON);
       }
-    return rtnNode;
+    return brtn;
   } //parseSimpleStatement
 
   //Typedefs are not transferred to generated code;
@@ -2824,12 +2831,12 @@ namespace MFM {
     return rtnNode;
   } //parseNamedConstantFromAnotherClass
 
-  Node * Parser::parseReturn()
+  bool Parser::parseReturn()
   {
     Token pTok;
     getNextToken(pTok);
 
-    Node * rtnNode = NULL;
+    NodeReturnStatement * returnNode = NULL;
     Node * rtnExprNode = parseAssignExpr(); //may be NULL
     if(!rtnExprNode)
       {
@@ -2837,10 +2844,12 @@ namespace MFM {
 	assert(rtnExprNode);
 	rtnExprNode->setNodeLocation(pTok.m_locator);
       }
-    rtnNode =  new NodeReturnStatement(rtnExprNode, m_state);
-    assert(rtnNode);
-    rtnNode->setNodeLocation(pTok.m_locator);
-    return rtnNode;
+    returnNode =  new NodeReturnStatement(rtnExprNode, m_state);
+    assert(returnNode);
+    returnNode->setNodeLocation(pTok.m_locator);
+
+    m_state.getCurrentBlock()->appendNextNode(returnNode);
+    return true;
   } //parseReturn
 
   Node * Parser::parseAssignExpr()

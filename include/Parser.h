@@ -177,7 +177,7 @@ namespace MFM{
 	<SIMPLE_STATEMENT> := ( 0 | <STATEMENT_DECL> | <TYPE_DEF> | <CONST_DEF> | <ASSIGN_EXPR> |
                                 <RETURN_STATEMENT> ) + ';'
      */
-    Node * parseSimpleStatement();
+    bool parseSimpleStatement();
 
     /**
        <TYPE_NAME> := 'Int' | 'Unsigned' | 'Bool' | 'Unary' | 'Bits | <TYPE_IDENT> | <Type_IdENT> + ( '.' + <TYPE_IDENT>)*
@@ -236,7 +236,7 @@ namespace MFM{
     /**
        <RETURN_STATMENT> := 'return' + (0 | <ASSIGN_EXPR>)
     */
-    Node * parseReturn();
+    bool parseReturn();
 
     /**
        <ASSIGNEXPR> := <EXPRESSION> | <LVAL_EXPRESSION> + <ASSIGN_OP> + <ASSIGNEXPR>
