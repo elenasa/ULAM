@@ -614,15 +614,15 @@ UTI NodeVarDecl::checkAndLabelType()
   {
     assert(m_varSymbol);
     s32 newslot = depth + base;
-    s32 oldslot = ((SymbolVariable *) m_varSymbol)->getStackFrameSlotIndex();
-    if(oldslot != newslot)
-      {
-	std::ostringstream msg;
-	msg << "'" << m_state.m_pool.getDataAsString(m_vid).c_str();
-	msg << "' was at slot: " << oldslot << ", new slot is " << newslot;
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	((SymbolVariable *) m_varSymbol)->setStackFrameSlotIndex(newslot);
-      }
+    //s32 oldslot = ((SymbolVariable *) m_varSymbol)->getStackFrameSlotIndex();
+    //if(oldslot != newslot)
+    //{
+    //	std::ostringstream msg;
+    //	msg << "'" << m_state.m_pool.getDataAsString(m_vid).c_str();
+    //	msg << "' was at slot: " << oldslot << ", new slot is " << newslot;
+    //	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+    ((SymbolVariable *) m_varSymbol)->setStackFrameSlotIndex(newslot);
+    // }
     depth += m_state.slotsNeeded(getNodeType());
 
     if(m_nodeInitExpr)

@@ -43,6 +43,8 @@ namespace MFM{
   class SymbolVariableStack : public SymbolVariable
   {
   public:
+    SymbolVariableStack(const Token& id, UTI utype, CompilerState& state);
+
     SymbolVariableStack(const Token& id, UTI utype, s32 slot, CompilerState& state);
 
     SymbolVariableStack(const SymbolVariableStack& sref);

@@ -1072,7 +1072,8 @@ namespace MFM {
 
   SymbolVariable *  NodeIdent::makeSymbol(UTI auti, ALT reftype, UTI referencedUTI)
   {
-    if(m_state.m_currentFunctionBlockDeclSize == 0)
+    //if(m_state.m_currentFunctionBlockDeclSize == 0)
+    if(m_state.m_parsingVariableSymbolTypeFlag == STF_DATAMEMBER)
       {
 	u32 baseslot = 1;  //unpacked fixed later
 
@@ -1083,12 +1084,13 @@ namespace MFM {
       }
 
     //Symbol is a parameter; always on the stack
-    if(m_state.m_currentFunctionBlockDeclSize < 0)
+    //if(m_state.m_currentFunctionBlockDeclSize < 0)
+    if(m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCPARAMETER)
       {
 	//1 slot for scalar or packed array
-	m_state.m_currentFunctionBlockDeclSize -= m_state.slotsNeeded(auti);
+	//m_state.m_currentFunctionBlockDeclSize -= m_state.slotsNeeded(auti);
 
-	SymbolVariableStack * rtnSym = (new SymbolVariableStack(m_token, auti, m_state.m_currentFunctionBlockDeclSize, m_state)); //slot after adjust
+	SymbolVariableStack * rtnSym = (new SymbolVariableStack(m_token, auti, m_state)); //slot after adjust
 	assert(rtnSym);
 
 	rtnSym->setAutoLocalType(reftype);
@@ -1096,17 +1098,18 @@ namespace MFM {
 	return rtnSym;
       }
 
+    assert(m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCLOCALVAR);
     //(else) Symbol is a local variable, always on the stack
-    SymbolVariableStack * rtnLocalSym = new SymbolVariableStack(m_token, auti, m_state.m_currentFunctionBlockDeclSize, m_state); //slot before adjustment
+    SymbolVariableStack * rtnLocalSym = new SymbolVariableStack(m_token, auti, m_state); //slot before adjustment
     assert(rtnLocalSym);
 
     rtnLocalSym->setAutoLocalType(reftype);
 
-    m_state.m_currentFunctionBlockDeclSize += m_state.slotsNeeded(auti);
+    //m_state.m_currentFunctionBlockDeclSize += m_state.slotsNeeded(auti);
 
     //adjust max depth, excluding parameters and initial start slot (=1)
-    if(m_state.m_currentFunctionBlockDeclSize - 1 > m_state.m_currentFunctionBlockMaxDepth)
-      m_state.m_currentFunctionBlockMaxDepth = m_state.m_currentFunctionBlockDeclSize - 1;
+    //if(m_state.m_currentFunctionBlockDeclSize - 1 > m_state.m_currentFunctionBlockMaxDepth)
+    //  m_state.m_currentFunctionBlockMaxDepth = m_state.m_currentFunctionBlockDeclSize - 1;
 
     return rtnLocalSym;
   } //makeSymbol

@@ -2194,10 +2194,11 @@ namespace MFM {
     Token selfTok(TOK_IDENTIFIER, loc, selfid);
 
     //negative indicates parameter for symbol install
-    m_state.m_currentFunctionBlockDeclSize = -3; //slots for return + 1 hidden arg self(+ uc)
-    m_state.m_currentFunctionBlockMaxDepth = 0;
+    m_state.m_parsingVariableSymbolTypeFlag = STF_FUNCPARAMETER;
+    //    m_state.m_currentFunctionBlockDeclSize = -3; //slots for return + 1 hidden arg self(+ uc)
+    //m_state.m_currentFunctionBlockMaxDepth = 0;
 
-    SymbolVariableStack * selfsym = new SymbolVariableStack(selfTok, UAtom, m_state.m_currentFunctionBlockDeclSize, m_state);
+    SymbolVariableStack * selfsym = new SymbolVariableStack(selfTok, UAtom, m_state);
     selfsym->setIsSelf();
     m_state.addSymbolToCurrentScope(selfsym); //ownership goes to the fblock
 
@@ -2264,8 +2265,9 @@ namespace MFM {
     else
       {
 	//starts with positive one for local variables
-	m_state.m_currentFunctionBlockDeclSize = 1;
-	m_state.m_currentFunctionBlockMaxDepth = 0;
+	m_state.m_parsingVariableSymbolTypeFlag = STF_FUNCLOCALVAR;
+	//m_state.m_currentFunctionBlockDeclSize = 1;
+	//m_state.m_currentFunctionBlockMaxDepth = 0;
 
 	/* like a typical quark toInt cast expression */
 	Node * mselectNode = buildToIntCastingNode(argIdentNode);
@@ -2282,8 +2284,9 @@ namespace MFM {
     //this block's ST is no longer in scope
     m_state.popClassContext(); //= prevBlock;
 
-    m_state.m_currentFunctionBlockDeclSize = 0; //default zero for datamembers
-    m_state.m_currentFunctionBlockMaxDepth = 0; //reset
+    m_state.m_parsingVariableSymbolTypeFlag = STF_NEEDSATYPE;
+    //m_state.m_currentFunctionBlockDeclSize = 0; //default zero for datamembers
+    //m_state.m_currentFunctionBlockMaxDepth = 0; //reset
 
     //func call symbol to return to NodeCast; fsymptr maybe null
     NodeFunctionCall * funccall = new NodeFunctionCall(funcidentTok, fsymptr, m_state);

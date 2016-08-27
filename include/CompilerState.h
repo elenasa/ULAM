@@ -112,9 +112,9 @@ namespace MFM{
     bool m_parsingLocalDef; //used for populating m_localsPerFilePath
     Token m_currentLocalDefToken; //used to identify current file path when m_parsingLocalDef is true
 
-    s32 m_currentFunctionBlockDeclSize; //used to calc framestack size for function def
-    s32 m_currentFunctionBlockMaxDepth; //framestack saved in NodeBlockFunctionDefinition
-
+    //s32 m_currentFunctionBlockDeclSize; //used to calc framestack size for function def
+    //s32 m_currentFunctionBlockMaxDepth; //framestack saved in NodeBlockFunctionDefinition
+    SYMBOLTYPEFLAG m_parsingVariableSymbolTypeFlag;
     s32 m_parsingControlLoop;             // used for break/continue control stmt parsing;
                                           // label num for end of loop, or 0
 

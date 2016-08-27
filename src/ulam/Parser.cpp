@@ -835,6 +835,8 @@ namespace MFM {
 		//continue
 	      }
 
+	    m_state.m_parsingVariableSymbolTypeFlag = STF_DATAMEMBER;
+
 	    //not '(', so token is unread, and we know
 	    //it's a variable, not a function; also handles arrays
 	    UTI passuti = typeNode->givenUTI(); //before it may become an array
@@ -848,6 +850,8 @@ namespace MFM {
 	      }
 	    else
 	      m_state.clearStructuredCommentToken();
+
+	    m_state.m_parsingVariableSymbolTypeFlag = STF_NEEDSATYPE;
 	  }
       } //regular data member
 
@@ -991,12 +995,12 @@ namespace MFM {
       }
 
     //this block's ST is no longer in scope
-    NodeBlock * currBlock = m_state.getCurrentBlock();
-    if(currBlock)
-      m_state.m_currentFunctionBlockDeclSize -= currBlock->getSizeOfSymbolsInTable();
+    //NodeBlock * currBlock = m_state.getCurrentBlock();
+    //if(currBlock)
+    //  m_state.m_currentFunctionBlockDeclSize -= currBlock->getSizeOfSymbolsInTable();
 
     m_state.popClassContext();
-    currBlock = NULL; //no longer valid; don't need
+    //currBlock = NULL; //no longer valid; don't need
 
     //sanity check
     assert(!rtnNode || rtnNode->getPreviousBlockPointer() == prevBlock);
@@ -1202,9 +1206,9 @@ namespace MFM {
     rtnNode->appendNextNode(ifNode);
 
     //this block's ST is no longer in scope
-    currBlock = m_state.getCurrentBlock(); //reload
-    if(currBlock)
-      m_state.m_currentFunctionBlockDeclSize -= currBlock->getSizeOfSymbolsInTable();
+    //currBlock = m_state.getCurrentBlock(); //reload
+    //if(currBlock)
+    //  m_state.m_currentFunctionBlockDeclSize -= currBlock->getSizeOfSymbolsInTable();
 
     m_state.popClassContext(); //= prevBlock;
     return rtnNode;
@@ -1280,9 +1284,9 @@ namespace MFM {
     rtnNode->appendNextNode(whileNode);
 
     //this block's ST is no longer in scope
-    currBlock = m_state.getCurrentBlock(); //reload
-    if(currBlock)
-      m_state.m_currentFunctionBlockDeclSize -= currBlock->getSizeOfSymbolsInTable();
+    //currBlock = m_state.getCurrentBlock(); //reload
+    // if(currBlock)
+    //  m_state.m_currentFunctionBlockDeclSize -= currBlock->getSizeOfSymbolsInTable();
 
     m_state.popClassContext(); //= prevBlock;
     return rtnNode;
@@ -1449,10 +1453,9 @@ namespace MFM {
     rtnNode->appendNextNode(whileNode);
 
     //this block's ST is no longer in scope
-    currBlock = m_state.getCurrentBlock(); //reload
-
-    if(currBlock)
-      m_state.m_currentFunctionBlockDeclSize -= currBlock->getSizeOfSymbolsInTable();
+    //currBlock = m_state.getCurrentBlock(); //reload
+    //if(currBlock)
+    //  m_state.m_currentFunctionBlockDeclSize -= currBlock->getSizeOfSymbolsInTable();
 
     m_state.popClassContext(); //= prevBlock;
     return rtnNode;
@@ -1582,9 +1585,9 @@ namespace MFM {
       }
 
     //this block's ST is no longer in scope
-    currBlock = m_state.getCurrentBlock();
-    if(currBlock)
-      m_state.m_currentFunctionBlockDeclSize -= currBlock->getSizeOfSymbolsInTable();
+    //currBlock = m_state.getCurrentBlock();
+    //if(currBlock)
+    //  m_state.m_currentFunctionBlockDeclSize -= currBlock->getSizeOfSymbolsInTable();
 
     m_state.popClassContext(); //= prevBlock;
     return blockNode;
@@ -4228,30 +4231,31 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
     //use space on funcCallStack for return statement.
     //negative for parameters; allot space at top for the return value
     //currently, only scalar; determines start position of first arg "under".
-    s32 returnArraySize = m_state.slotsNeeded(fsymptr->getUlamTypeIdx());
+    //s32 returnArraySize = m_state.slotsNeeded(fsymptr->getUlamTypeIdx());
 
     //NO extra one for "hidden" arg, context (uc)
     //extra one for "hidden" arg, Ptr to its self (ur)
     //maxdepth now re-calculated after parsing due to some still unknown sizes;
     //blockdeclsize: 0, <1, >1 means: datamember, parameter, local variable, respectively
-    m_state.m_currentFunctionBlockDeclSize = -(returnArraySize + 1);
-    m_state.m_currentFunctionBlockMaxDepth = 0;
+    //m_state.m_currentFunctionBlockDeclSize = -(returnArraySize + 1);
+    //m_state.m_currentFunctionBlockMaxDepth = 0;
+    m_state.m_parsingVariableSymbolTypeFlag = STF_FUNCPARAMETER;
 
     //create "self" symbol for the class type; btw, it's really a ref.
     //belongs to the function definition scope.
     u32 selfid = m_state.m_pool.getIndexForDataString("self");
     UTI cuti = currClassBlock->getNodeType(); //luckily we know this now for each class used
     Token selfTok(TOK_IDENTIFIER, identTok.m_locator, selfid);
-    SymbolVariableStack * selfsym = new SymbolVariableStack(selfTok, m_state.getUlamTypeAsRef(cuti, ALT_REF), m_state.m_currentFunctionBlockDeclSize, m_state);
+    SymbolVariableStack * selfsym = new SymbolVariableStack(selfTok, m_state.getUlamTypeAsRef(cuti, ALT_REF), m_state);
     selfsym->setAutoLocalType(ALT_REF);
     selfsym->setIsSelf();
     m_state.addSymbolToCurrentScope(selfsym); //ownership goes to the funcdef block
 
     //create "super" symbol for the Super class type; btw, it's really a ref.
     //belongs to the function definition scope.
-    UTI superuti = m_state.isClassASubclass(cuti);
-    if(m_state.okUTItoContinue(superuti))
-      rtnNode->makeSuperSymbol(m_state.m_currentFunctionBlockDeclSize); //ownership goes to the block
+    //UTI superuti = m_state.isClassASubclass(cuti);
+    //if(m_state.okUTItoContinue(superuti))
+    //  rtnNode->makeSuperSymbol(m_state.m_currentFunctionBlockDeclSize); //ownership goes to the block
     //else wait until c&l
 
     //parse and add parameters to function symbol (not in ST yet!)
@@ -4278,14 +4282,15 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
     if(rtnNode)
       {
 	//starts with positive one for local variables
-	m_state.m_currentFunctionBlockDeclSize = 1;
-	m_state.m_currentFunctionBlockMaxDepth = 0;
+	m_state.m_parsingVariableSymbolTypeFlag = STF_FUNCLOCALVAR;
+	//m_state.m_currentFunctionBlockDeclSize = 1;
+	//m_state.m_currentFunctionBlockMaxDepth = 0;
 
 	//parse body definition
 	if(parseFunctionBody(rtnNode))
 	  {
 	    rtnNode->setDefinition();
-	    rtnNode->setMaxDepth(m_state.m_currentFunctionBlockMaxDepth);
+	    //rtnNode->setMaxDepth(m_state.m_currentFunctionBlockMaxDepth);
 	    if(fsymptr->takesVariableArgs() && !rtnNode->isNative())
 	      {
 		fsymptr->markForVariableArgs(false);
@@ -4304,8 +4309,9 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 
     //this block's ST is no longer in scope
     m_state.popClassContext(); //= prevBlock;
-    m_state.m_currentFunctionBlockDeclSize = 0; //default zero for datamembers
-    m_state.m_currentFunctionBlockMaxDepth = 0; //reset
+    //m_state.m_currentFunctionBlockDeclSize = 0; //default zero for datamembers
+    //m_state.m_currentFunctionBlockMaxDepth = 0; //reset
+    m_state.m_parsingVariableSymbolTypeFlag = STF_NEEDSATYPE;
     return rtnNode;
   } //makeFunctionBlock
 
