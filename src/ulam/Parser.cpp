@@ -859,8 +859,8 @@ namespace MFM {
 	    if(dmNode)
 	      {
 		parseRestOfAssignment(iTok, dmNode);
-		m_state.getCurrentBlock()->appendNextNode(dmNode);
-		isAlreadyAppended = parseRestOfDataMember(typeargs, passuti); //appends to tree
+		m_state.appendNodeToCurrentBlock(dmNode);
+		isAlreadyAppended = parseRestOfDataMember(typeargs, passuti); //appended
 	      }
 	    else
 	      m_state.clearStructuredCommentToken();
@@ -905,7 +905,7 @@ namespace MFM {
 	if (sNode)
 	  {
 	    parseRestOfAssignment(iTok, sNode);
-	    m_state.getCurrentBlock()->appendNextNode(sNode);
+	    m_state.appendNodeToCurrentBlock(sNode);
 	  }
 	else  //error msg?
 	  brtn = false;
@@ -1014,7 +1014,6 @@ namespace MFM {
     return rtnNode;
   } //parseBlock
 
-  //  Node * Parser::parseStatements()
   bool Parser::parseStatements()
   {
     bool brtn = true;
@@ -1037,7 +1036,7 @@ namespace MFM {
 	  }
       }
     //else continue...
-    m_state.getCurrentBlock()->appendNextNode(sNode);
+    m_state.appendNodeToCurrentBlock(sNode);
 
     if(!getExpectedToken(TOK_CLOSE_CURLY))
       brtn = parseStatements(); //more statements, appended
@@ -1092,7 +1091,7 @@ namespace MFM {
 	m_state.pushCurrentBlock(rtnNode); //without pop first
 	Node * sNode = parseStatement();
 	if(sNode)  //e.g. due to an invalid token perhaps; decl already appended
-	  m_state.getCurrentBlock()->appendNextNode(sNode);
+	  m_state.appendNodeToCurrentBlock(sNode);
 	//else already appended
 	//assert(m_state.getCurrentBlock() == rtnNode); //sanity
 	m_state.popClassContext(); //restore
@@ -1182,13 +1181,9 @@ namespace MFM {
 
     NodeBlock * trueNode = NULL;
     if(m_state.m_parsingConditionalAs)
-      {
-	trueNode = setupAsConditionalBlockAndParseStatements((NodeConditional *) condNode);
-      }
+      trueNode = setupAsConditionalBlockAndParseStatements((NodeConditional *) condNode);
     else
-      {
-	trueNode = parseStatementAsBlock();
-      }
+      trueNode = parseStatementAsBlock();
 
     if(!trueNode)
       {
@@ -1218,9 +1213,7 @@ namespace MFM {
   Node * Parser::parseControlWhile(const Token& wTok)
   {
     if(!getExpectedToken(TOK_OPEN_PAREN))
-      {
-	return NULL;
-      }
+      return NULL;
 
     //before parsing the IF statement, need a new scope
     NodeBlock * currBlock = m_state.getCurrentBlock();
@@ -1412,13 +1405,9 @@ namespace MFM {
 
     NodeBlock * trueNode = NULL;
     if(m_state.m_parsingConditionalAs)
-      {
-	trueNode = setupAsConditionalBlockAndParseStatements((NodeConditional *) condNode);
-      }
+      trueNode = setupAsConditionalBlockAndParseStatements((NodeConditional *) condNode);
     else
-      {
-	trueNode = parseStatementAsBlock(); //even an empty statement has a node!
-      }
+      trueNode = parseStatementAsBlock(); //even an empty statement has a node!
 
     if(!trueNode)
       {
@@ -1606,7 +1595,7 @@ namespace MFM {
 	NodeStatementEmpty * emptyNode = new NodeStatementEmpty(m_state); //empty statement
 	assert(emptyNode);
 	emptyNode->setNodeLocation(pTok.m_locator);
-	m_state.getCurrentBlock()->appendNextNode(emptyNode);
+	m_state.appendNodeToCurrentBlock(emptyNode);
 	brtn = true;
       }
     else if(Token::isTokenAType(pTok))
@@ -1639,13 +1628,11 @@ namespace MFM {
 	    NodeBreakStatement * brkNode = new NodeBreakStatement(m_state);
 	    assert(brkNode);
 	    brkNode->setNodeLocation(pTok.m_locator);
-	    m_state.getCurrentBlock()->appendNextNode(brkNode);
+	    m_state.appendNodeToCurrentBlock(brkNode);
 	    brtn = true;
 	  }
 	else
-	  {
-	    MSG(&pTok,"Break statement not within loop or switch" , ERR);
-	  }
+	  MSG(&pTok,"Break statement not within loop or switch" , ERR);
       }
     else if(pTok.m_type == TOK_KW_CONTINUE)
       {
@@ -1654,13 +1641,11 @@ namespace MFM {
 	    NodeContinueStatement * contNode = new NodeContinueStatement(m_state.m_parsingControlLoop, m_state);
 	    assert(contNode);
 	    contNode->setNodeLocation(pTok.m_locator);
-	    m_state.getCurrentBlock()->appendNextNode(contNode);
+	    m_state.appendNodeToCurrentBlock(contNode);
 	    brtn = true;
 	  }
 	else
-	  {
-	    MSG(&pTok,"Continue statement not within loop" , ERR);
-	  }
+	  MSG(&pTok,"Continue statement not within loop" , ERR);
       }
     else if(pTok.m_type == TOK_ERROR_LOWLEVEL)
       {
@@ -1675,7 +1660,7 @@ namespace MFM {
 	    NodeSimpleStatement * simpleNode = new NodeSimpleStatement(expNode,m_state);
 	    assert(simpleNode);
 	    simpleNode->setNodeLocation(expNode->getNodeLocation());
-	    m_state.getCurrentBlock()->appendNextNode(simpleNode);
+	    m_state.appendNodeToCurrentBlock(simpleNode);
 	    brtn = true;
 	  }
       }
@@ -1701,7 +1686,6 @@ namespace MFM {
   //Typedefs are not transferred to generated code;
   //they are a short-hand for ulamtypes (e.g. arrays)
   //that may be used as function return types; scope-specific.
-  //Node * Parser::parseTypedef()
   bool Parser::parseTypedef()
   {
     bool brtn = false;
@@ -1730,7 +1714,7 @@ namespace MFM {
 	    NodeTypedef * rtnNode = makeTypedefSymbol(typeargs, iTok, typeNode);
 	    if(rtnNode)
 	      {
-		m_state.getCurrentBlock()->appendNextNode(rtnNode);
+		m_state.appendNodeToCurrentBlock(rtnNode);
 		brtn = true;
 	      }
 	  }
@@ -1786,7 +1770,7 @@ namespace MFM {
 	    NodeConstantDef * constNode = makeConstdefSymbol(typeargs, iTok, typeNode);
 	    if(constNode)
 	      {
-		m_state.getCurrentBlock()->appendNextNode(constNode);
+		m_state.appendNodeToCurrentBlock(constNode);
 		brtn = true;
 	      }
 	  }
@@ -1905,7 +1889,7 @@ namespace MFM {
 		NodeModelParameterDef * modelNode = makeModelParameterSymbol(typeargs, iTok, typeNode);
 		if(modelNode)
 		  {
-		    m_state.getCurrentBlock()->appendNextNode(modelNode);
+		    m_state.appendNodeToCurrentBlock(modelNode);
 		    brtn = true;
 		  }
 	      }
@@ -1944,7 +1928,6 @@ namespace MFM {
 
   //used for includingloclocal function variables; or
   //'singledecl' function parameters; no longer for function defs.
-  // default parseSingleDecl is false;
   bool Parser::parseDecl()
   {
     bool brtn = true;
@@ -1970,7 +1953,7 @@ namespace MFM {
 	if(rtnNode)
 	  {
 	    parseRestOfDeclAssignment(typeargs, iTok, rtnNode);
-	    m_state.getCurrentBlock()->appendNextNode(rtnNode);
+	    m_state.appendNodeToCurrentBlock(rtnNode);
 	    //for multi's of same type (rtnType), and/or its assignment
 	    return parseRestOfDecls(typeargs, passuti);
 	  }
@@ -2153,7 +2136,7 @@ namespace MFM {
 	UTI tuti = m_state.getUlamTypeFromToken(typeargs);
 	if(m_state.isScalar(tuti))
 	  typeargs.m_declListOrTypedefScalarType = tuti; //this is what we wanted..
-	//else arraytype???
+	//else arraytype?
 	castUTI = tuti;
 
 	//bitsize is unknown, e.g. based on a Class.sizeof
@@ -2421,8 +2404,6 @@ namespace MFM {
 	assert(argSym);
 	argSym->setClassArgumentFlag();
 	m_state.addSymbolToCurrentScope(argSym); //scope updated to new class instance in parseClassArguments
-
-	//m_state.popClassContext(); //restore before making NodeConstantDef, so current context
 
 	NodeTypeDescriptor * argTypeDesc = NULL;
 	if(!ctUnseen)
@@ -2840,7 +2821,7 @@ namespace MFM {
     assert(returnNode);
     returnNode->setNodeLocation(pTok.m_locator);
 
-    m_state.getCurrentBlock()->appendNextNode(returnNode);
+    m_state.appendNodeToCurrentBlock(returnNode);
     return true;
   } //parseReturn
 
@@ -2882,11 +2863,9 @@ namespace MFM {
     unreadToken(); //put whatever back
 
     Symbol * asymptr = NULL;
-    //bool hazyKin = false; //don't care
-    //may continue when symbol not defined yet (e.g. Decl)
+    // may continue when symbol not defined yet (e.g. Decl)
     // don't return a NodeConstant, instead of NodeIdent, without arrays
     // even if already defined as one. lazy evaluate.
-    //    bool isDefined = m_state.alreadyDefinedSymbol(identTok.m_dataindex, asymptr, hazyKin);
     bool isDefined = m_state.isIdInCurrentScope(identTok.m_dataindex, asymptr); //t3887
     if(!isDefined && (identTok.m_type == TOK_IDENTIFIER))
       {
@@ -3095,14 +3074,7 @@ namespace MFM {
 	}
 	break;
       default:
-	{
-	  //std::ostringstream msg;
-	  //msg << "Undefined request: '" << m_state.getTokenDataAsString(&fTok).c_str();
-	  //msg << "' <" << m_state.getTokenDataAsString(&memberTok).c_str();
-	  //msg << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
-	  //MSG(&fTok, msg.str().c_str(), DEBUG);
-	  unreadToken();
-	}
+	unreadToken();
       };
     return rtnNode; //may be null if not minof, maxof, sizeof, but a member or func selected
   } //parseMinMaxSizeofType
@@ -3836,7 +3808,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	if(sNode)
 	  {
 	    parseRestOfDeclAssignment(args, iTok, sNode);
-	    m_state.getCurrentBlock()->appendNextNode(sNode);
+	    m_state.appendNodeToCurrentBlock(sNode);
 	  }
 	else //error msg?
 	  brtn = false;
@@ -4084,10 +4056,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	    constNode = NULL;
 	    rtnNode = NULL;
 	  }
-	else
-	  {
-	    //unreadToken(); //class param doesn't have equal; wait for the class arg
-	  }
+	//else unreadToken(); //class param doesn't have equal; wait for the class arg
       }
 
     if(isStmt)
@@ -4267,7 +4236,6 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	if(parseFunctionBody(rtnNode))
 	  {
 	    rtnNode->setDefinition();
-	    //rtnNode->setMaxDepth(m_state.m_currentFunctionBlockMaxDepth);
 	    if(fsymptr->takesVariableArgs() && !rtnNode->isNative())
 	      {
 		fsymptr->markForVariableArgs(false);
@@ -4323,11 +4291,9 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	if(argNode)
 	  {
 	    //parameter IS a variable (declaration).
+	    //ownership stays with NodeBlockFunctionDefinition's ST
 	    if(argNode->getSymbolPtr(argSym))
-	      {
-		//ownership stays with NodeBlockFunctionDefinition's ST
-		fsym->addParameterSymbol(argSym);
-	      }
+	      fsym->addParameterSymbol(argSym);
 	    else
 	      MSG(&pTok, "No symbol from parameter declaration", ERR);
 
@@ -4742,8 +4708,8 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	      }
 	    else
 	      {
-		//installSymbol failed for other reasons (e.g. problem with []), error already output.
-		//rtnNode is NULL; (t3446, t3451, t3460)
+		//installSymbol failed for other reasons (e.g. problem with []),
+		//error already output. rtnNode is NULL; (t3446, t3451, t3460)
 		std::ostringstream msg;
 		msg << "Invalid constant definition of type <";
 		msg << m_state.getTokenAsATypeName(args.m_typeTok).c_str();

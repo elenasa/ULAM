@@ -210,6 +210,11 @@ namespace MFM{
 
     void genShortNameParameterTypesExtractedForHeaderFile(File * fp);
 
+    void genCodeBodyElement(File * fp, UVPass& uvpass);  //specific for this class
+    void genCodeBodyQuark(File * fp, UVPass& uvpass);  //specific for this class
+    void genCodeBodyTransient(File * fp, UVPass& uvpass);  //specific for this class
+    void genCodeBodyLocalFilescopes(File * fp, UVPass& uvpass);  //specific for this class
+
     void generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
     void genCodeBuiltInFunctionHas(File * fp, bool declOnly, ULAMCLASSTYPE classtype);

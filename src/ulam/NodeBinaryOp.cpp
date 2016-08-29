@@ -30,7 +30,7 @@ namespace MFM {
     setYourParentNo(pno);
     m_nodeLeft->updateLineage(getNodeNo());
     m_nodeRight->updateLineage(getNodeNo());
-  } //updateLineage
+  }
 
   bool NodeBinaryOp::exchangeKids(Node * oldnptr, Node * newnptr)
   {
@@ -62,7 +62,7 @@ namespace MFM {
   {
       m_nodeLeft->checkAbstractInstanceErrors();
       m_nodeRight->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
+  }
 
   void NodeBinaryOp::print(File * fp)
   {
@@ -111,7 +111,7 @@ namespace MFM {
     char myname[16];
     sprintf(myname," %s", getName());
     fp->write(myname);
-  } //printOp
+  }
 
   bool NodeBinaryOp::isAConstant()
   {
@@ -135,7 +135,7 @@ namespace MFM {
   {
     //ulamtype checks for complete, non array, and type specific rules
     return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
-  } //safeToCastTo
+  }
 
   UTI NodeBinaryOp::checkAndLabelType()
   {

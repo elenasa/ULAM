@@ -436,8 +436,7 @@ namespace MFM {
 
     //not a primitive (class), array
     s32 argarraysize = argut->getArraySize();
-    //if(argut->getArraySize() > 0)
-    if(argarraysize >= 0) //Mon Jul  4 14:30:01 2016
+    if(argarraysize >= 0)
       {
 	if(totbitsize >= 0)
 	  {

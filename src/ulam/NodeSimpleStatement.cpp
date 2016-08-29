@@ -26,7 +26,7 @@ namespace MFM {
   {
     setYourParentNo(pno);
     m_node->updateLineage(getNodeNo());
-  } //updateLineage
+  }
 
   bool NodeSimpleStatement::exchangeKids(Node * oldnptr, Node * newnptr)
   {
@@ -51,7 +51,7 @@ namespace MFM {
   {
     if(m_node)
       m_node->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
+  }
 
   void NodeSimpleStatement::print(File * fp)
   {

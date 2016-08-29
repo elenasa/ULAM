@@ -14,7 +14,6 @@ namespace MFM {
   {
     if(ref.m_node)
       m_node = ref.m_node->instantiate();
-
     if(ref.m_nodeNext)
       m_nodeNext = (NodeStatements *) ref.m_nodeNext->instantiate();
   }
@@ -23,7 +22,6 @@ namespace MFM {
   {
     delete m_nodeNext;
     m_nodeNext = NULL;
-
     delete m_node;
     m_node = NULL;
   }
@@ -69,7 +67,7 @@ namespace MFM {
       m_node->checkAbstractInstanceErrors();
     if(m_nodeNext)
       m_nodeNext->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
+  }
 
   void NodeStatements::print(File * fp)
   {
@@ -126,29 +124,25 @@ namespace MFM {
     if(rtn && m_nodeNext)
       rtn &= m_nodeNext->isAConstant(); //side-effect
     return rtn;
-  } //isAConstant
+  }
 
   bool NodeStatements::isFunctionCall()
   {
-
     if(m_node->isFunctionCall())
       return true;
-
     if(m_nodeNext)
       return m_nodeNext->isFunctionCall(); //side-effect
-
     return false;
-  } //isFunctionCall
+  }
 
   bool NodeStatements::isExplicitReferenceCast()
   {
     if(m_node->isExplicitReferenceCast())
       return true;
-
     if(m_nodeNext)
       return m_nodeNext->isExplicitReferenceCast();
     return false;
-  } //isExplicitReferenceCast
+  }
 
   UTI NodeStatements::checkAndLabelType()
   {
@@ -171,7 +165,7 @@ namespace MFM {
       m_node->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
     if(m_nodeNext)
       m_nodeNext->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
-  } //countNavNodes
+  }
 
   bool NodeStatements::buildDefaultValue(u32 wlen, BV8K& dvref)
   {
@@ -181,16 +175,15 @@ namespace MFM {
     if(m_nodeNext)
       aok |= m_nodeNext->buildDefaultValue(wlen, dvref);
     return aok;
-  } //buildDefaultValue
+  }
 
   void NodeStatements::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
   {
     if(m_node)
       m_node->genCodeElementTypeIntoDataMemberDefaultValue(fp, startpos);
-
     if(m_nodeNext)
       m_nodeNext->genCodeElementTypeIntoDataMemberDefaultValue(fp, startpos);
-  } //genCodeElementTypeIntoDataMemberDefaultValue
+  }
 
   EvalStatus NodeStatements::eval()
   {
@@ -228,27 +221,24 @@ namespace MFM {
   void NodeStatements::packBitsInOrderOfDeclaration(u32& offset)
   {
     m_node->packBitsInOrderOfDeclaration(offset); //updates offset
-
     if(m_nodeNext)
       m_nodeNext->packBitsInOrderOfDeclaration(offset);
-  } //packBitsInOrderOfDeclaration
+  }
 
   void NodeStatements::printUnresolvedVariableDataMembers()
   {
     m_node->printUnresolvedVariableDataMembers(); //updates offset
-
     if(m_nodeNext)
       m_nodeNext->printUnresolvedVariableDataMembers();
-  } //printUnresolvedVariableDataMembers
+  }
 
   void NodeStatements::printUnresolvedLocalVariables(u32 fid)
   {
     if(m_node)
       m_node->printUnresolvedLocalVariables(fid); //updates offset
-
     if(m_nodeNext)
       m_nodeNext->printUnresolvedLocalVariables(fid);
-  } //printUnresolvedLocalVariables
+  }
 
   void NodeStatements::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
@@ -276,25 +266,22 @@ namespace MFM {
   void NodeStatements::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
     m_node->genCodeToStoreInto(fp, uvpass);
-
     if(m_nodeNext)
       m_nodeNext->genCodeToStoreInto(fp, uvpass);
-  } //genCodeToStoreInto
+  }
 
   void NodeStatements::genCodeExtern(File * fp, bool declOnly)
   {
     if(m_node)
       m_node->genCodeExtern(fp, declOnly);
-
     if(m_nodeNext)
       m_nodeNext->genCodeExtern(fp, declOnly);
-  } //genCodeExtern
+  }
 
   void NodeStatements::genCodeConstantArrayInitialization(File * fp)
   {
     if(m_node)
       m_node->genCodeConstantArrayInitialization(fp);
-
     if(m_nodeNext)
       m_nodeNext->genCodeConstantArrayInitialization(fp);
   }
@@ -303,7 +290,6 @@ namespace MFM {
   {
     if(m_node)
       m_node->generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
-
     if(m_nodeNext)
       m_nodeNext->generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
   }
@@ -312,7 +298,6 @@ namespace MFM {
   {
     if(m_node)
       m_node->cloneAndAppendNode(cloneVec);
-
     if(m_nodeNext)
       m_nodeNext->cloneAndAppendNode(cloneVec);
   }
@@ -320,9 +305,8 @@ namespace MFM {
   void NodeStatements::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {
     m_node->generateUlamClassInfo(fp, declOnly, dmcount);
-
     if(m_nodeNext)
       m_nodeNext->generateUlamClassInfo(fp, declOnly, dmcount);
-  } //generateUlamClassInfo
+  }
 
 } //end MFM

@@ -30,7 +30,7 @@ namespace MFM {
     setYourParentNo(pno);
     assert(m_node);
     m_node->updateLineage(getNodeNo());
-  } //updateLineage
+  }
 
   bool NodeReturnStatement::exchangeKids(Node * oldnptr, Node * newnptr)
   {
@@ -56,7 +56,7 @@ namespace MFM {
   {
     assert(m_node);
     m_node->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
+  }
 
   void NodeReturnStatement::print(File * fp)
   {
@@ -84,7 +84,7 @@ namespace MFM {
     m_node->printPostfix(fp);
     fp->write(" ");
     fp->write(getName());
-  } //printPostfix
+  }
 
   const char * NodeReturnStatement::getName()
   {

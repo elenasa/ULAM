@@ -364,7 +364,7 @@ namespace MFM {
   void UlamType::genUlamTypeMangledAutoDefinitionForC(File * fp)
   {
     m_state.abortShouldntGetHere(); //see UlamTypePrimitive
-  } //genUlamTypeMangledAutoDefinitionForC
+  }
 
   void UlamType::genUlamTypeAutoReadDefinitionForC(File * fp)
   {
@@ -629,8 +629,6 @@ namespace MFM {
     if(key1.getUlamKeyTypeSignatureBitSize() != key2.getUlamKeyTypeSignatureBitSize())
       return UTIC_NOTSAME;
 
-    //if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx()) return UTIC_NOTSAME;
-
     ALT alt1 = key1.getUlamKeyTypeSignatureReferenceType();
     ALT alt2 = key2.getUlamKeyTypeSignatureReferenceType();
     if(alt1 != alt2)
@@ -703,13 +701,13 @@ namespace MFM {
   {
     m_state.abortShouldntGetHere();
     return U64_MIN;
-  } //getMax (UlamValue)
+  }
 
   s64 UlamType::getMin(UlamValue& rtnUV, UTI uti)
   {
     m_state.abortShouldntGetHere();
     return S64_MAX;
-  } //getMin (UlamValue)
+  }
 
   PACKFIT UlamType::getPackable()
   {
@@ -817,7 +815,7 @@ namespace MFM {
   void UlamType::genUlamTypeMangledDefinitionForC(File * fp)
   {
     m_state.abortShouldntGetHere();
-  } //genUlamTypeMangledDefinitionForC
+  }
 
   void UlamType::genUlamTypeReadDefinitionForC(File * fp)
   {
@@ -832,17 +830,17 @@ namespace MFM {
   void UlamType::genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp)
   {
     m_state.abortShouldntGetHere();
-  } //genUlamTypeMangledUnpackedArrayAutoDefinitionForC
+  }
 
   void UlamType::genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp)
   {
     m_state.abortShouldntGetHere();
-  } //genUlamTypeMangledUnpackedArrayDefinitionForC
+  }
 
   void UlamType::genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp)
   {
     m_state.abortShouldntGetHere();
-  } //genUlamTypeMangledImmediateModelParameterDefinitionForC
+  }
 
   bool UlamType::genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref)
   {

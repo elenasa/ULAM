@@ -23,7 +23,7 @@ namespace MFM {
   bool UlamTypeClass::isNumericType()
   {
     return false; //quark may have toInt()
-  } //isNumericType
+  }
 
   bool UlamTypeClass::isPrimitiveType()
   {
@@ -34,7 +34,7 @@ namespace MFM {
   {
     m_state.abortShouldntGetHere(); //neither element nor quark
     return false;
-  } //end cast
+  }
 
   FORECAST UlamTypeClass::safeCast(UTI typidx)
   {
@@ -119,7 +119,7 @@ namespace MFM {
   {
     m_state.abortShouldntGetHere(); //UC_UNSEEN
     return UlamType::getUlamTypeEnumCodeChar(getUlamTypeEnum());
-  } //getUlamTypeAsSingleLowercaseLetter()
+  }
 
   const std::string UlamTypeClass::getUlamTypeMangledType()
   {
@@ -252,12 +252,12 @@ namespace MFM {
   const std::string UlamTypeClass::readMethodForCodeGen()
   {
     return "Illiterate";
-  } //readMethodForCodeGen
+  }
 
   const std::string UlamTypeClass::writeMethodForCodeGen()
   {
     return "Illiterate";
-  } //writeMethodForCodeGen
+  }
 
   bool UlamTypeClass::needsImmediateType()
   {
@@ -297,20 +297,19 @@ namespace MFM {
   {
     if(!isScalar())
       return UlamType::getTmpStorageTypeAsString(getItemWordSize()); //return its scalar tmp storage type
-
     return m_state.getUlamTypeByIndex(getCustomArrayType())->getTmpStorageTypeAsString();
-  } //getArrayItemTmpStorageTypeAsString
+  }
 
   const std::string UlamTypeClass::getLocalStorageTypeAsString()
   {
     m_state.abortShouldntGetHere();
     return "Bloco";
-  } //getLocalStorageTypeAsString
+  }
 
   TMPSTORAGE UlamTypeClass::getTmpStorageTypeForTmpVar()
   {
     return UlamType::getTmpStorageTypeForTmpVar();
-  } //getTmpStorageTypeForTmpVar
+  }
 
   const std::string UlamTypeClass::castMethodForCodeGen(UTI nodetype)
   {

@@ -888,7 +888,7 @@ namespace MFM {
     AssertBool isDef = isDefined(m_indexToUlamKey[uti], ut);
     assert(isDef);
     return ut->getUlamTypeNameBrief();
-  } //getUlamTypeNameBriefByIndex
+  }
 
   const std::string CompilerState::getUlamTypeNameByIndex(UTI uti)
   {
@@ -1090,7 +1090,7 @@ namespace MFM {
   UTI CompilerState::getUlamTypeAsRef(UTI utiArg)
   {
     return getUlamTypeAsRef(utiArg, ALT_REF);
-  } //getUlamTypeAsRef
+  }
 
   UTI CompilerState::getUlamTypeAsRef(UTI utiArg, ALT altArg)
   {
@@ -1132,19 +1132,19 @@ namespace MFM {
   {
     //either may be a ref of the other; uses checked both directions.
     return UlamType::compare(getUlamTypeAsDeref(refuti), getUlamTypeAsDeref(ofuti), *this);
-  } //isARefTypeOfUlamType
+  }
 
   UTI CompilerState::getUlamTypeOfConstant(ULAMTYPE etype)
   {
     u32 enumStrIdx = m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(etype));
     UlamKeyTypeSignature ckey(enumStrIdx, getDefaultBitSize((UTI) etype), NONARRAYSIZE); //was ANYBITSIZECONSTANT
     return makeUlamType(ckey, etype, UC_NOTACLASS); //may not exist yet, create
-  } //getUlamTypeOfConstant
+  }
 
   UTI CompilerState::getDefaultUlamTypeOfConstant(UTI ctype)
   {
     return ctype; // use its own type
-  } //getDefaultUlamTypeOfConstant
+  }
 
   bool CompilerState::getDefaultQuark(UTI cuti, u32& dqref)
   {
@@ -1349,7 +1349,7 @@ namespace MFM {
   {
     UlamType * ut = getUlamTypeByIndex(utiArg);
     return ut->isComplete();
-  } //isComplete
+  }
 
   bool CompilerState::completeAReferenceType(UTI utiArg)
   {
@@ -2647,7 +2647,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     std::string nstr = m_pool.getDataAsString(dataindex);
     mangled << ToLeximited(nstr);
     return mangled.str();
-  } //getDataAsStringMangled
+  }
 
   //does it check for existence?
   const std::string CompilerState::getTokenAsATypeName(const Token& tok)
@@ -2784,14 +2784,14 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   {
     outputLineNumberForDebugging(fp, m_locOfNextLineText);
     indent(fp);
-  } //indentUlamCode
+  }
 
   void CompilerState::indent(File * fp)
   {
     // NO outputLineNumberForDebugging
     for(u32 i = 0; i < m_currentIndentLevel; i++)
       fp->write(m_indentedSpaceLevel);
-  } //indent
+  }
 
   const char * CompilerState::getHiddenArgName()
   {
@@ -2860,7 +2860,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   {
     assert(okUTItoContinue(ltype));
     return GETCLASSLENGTH_FUNCNAME;
-  } //getClassLengthFunctionName
+  }
 
   const char * CompilerState::getBuildDefaultAtomFunctionName(UTI ltype)
   {
@@ -2880,7 +2880,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   const char * CompilerState::getDefaultQuarkFunctionName()
   {
     return BUILD_DEFAULT_QUARK_FUNCNAME;
-  } //getDefaultQuarkFunctionName
+  }
 
   std::string CompilerState::getFileNameForAClassHeader(UTI cuti, bool wSubDir)
   {
@@ -2964,18 +2964,18 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   const char * CompilerState::getMangledClassNameForUlamLocalFilescopes()
   {
     return ULAMLOCALFILESCOPES_MANGLED_CLASSNAME;
-  } //getMangledClassNameForUlamLocalFilescopes
+  }
 
   ULAMCLASSTYPE CompilerState::getUlamClassForThisClass()
   {
     UTI cuti = getUlamTypeForThisClass();
     return getUlamTypeByIndex(cuti)->getUlamClassType();
-  } //getUlamClassForThisClass
+  }
 
   UTI CompilerState::getUlamTypeForThisClass()
   {
     return getCompileThisIdx();
-  } //getUlamTypeForThisClass
+  }
 
   //unfortunately, the uti did not reveal a Class symbol;
   //already down to primitive types for casting.
@@ -3385,7 +3385,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     fp->write("\n");
     fp->write("//! ");
     fp->write(getLocationTextAsString(nodeloc).c_str());
-  } //outputTextAsComment
+  }
 
   void CompilerState::outputTextAsCommentWithLocationUpdate(File * fp, Locator nodeloc)
   {
@@ -3469,55 +3469,55 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     std::ostringstream labelname; //into
     labelname << "Uh_3tur" << ToLeximitedNumber(num);
     return labelname.str();
-  } //getUlamRefTmpVarAsString
+  }
 
   const std::string CompilerState::getUlamClassTmpVarAsString(s32 num)
   {
     std::ostringstream labelname; //into
     labelname << "Uh_7tuclass" << ToLeximitedNumber(num);
     return labelname.str();
-  } //getUlamClassTmpVarAsString
+  }
 
   const std::string CompilerState::getAtomBitStorageTmpVarAsString(s32 num)
   {
     std::ostringstream labelname; //into
     labelname << "Uh_4tabs" << ToLeximitedNumber(num);
     return labelname.str();
-  } //getAtomBitStorageTmpVarAsString
+  }
 
   const std::string CompilerState::getLabelNumAsString(s32 num)
   {
     std::ostringstream labelname; //into
     labelname << "Ul_214endcontrolloop" << ToLeximitedNumber(num);
     return labelname.str();
-  } //getLabelNumAsString
+  }
 
   const std::string CompilerState::getVFuncPtrTmpNumAsString(s32 num)
   {
     std::ostringstream labelname; //into
     labelname << "Uf_tvfp" << ToLeximitedNumber(num);
     return labelname.str();
-  } //getVFuncPtrTmpNumAsString
+  }
 
   void CompilerState::saveIdentTokenForConditionalAs(const Token& iTok, const Token& cTok)
   {
     m_identTokenForConditionalAs = iTok;
     m_parsingConditionalToken = cTok;
     m_parsingConditionalAs = true; //cleared manually
-  } //saveIdentTokenForConditionalAs
+  }
 
   void CompilerState::saveStructuredCommentToken(const Token& scTok)
   {
     m_precedingStructuredCommentToken = scTok;
     m_gotStructuredCommentToken = true;
-  } //saveStructuredCommentToken
+  }
 
   void CompilerState::clearStructuredCommentToken()
   {
     Token blankTok; //unitialized
     m_precedingStructuredCommentToken = blankTok;
     m_gotStructuredCommentToken = false;
-  } //clearStructuredCommentToken
+  }
 
   bool CompilerState::getStructuredCommentToken(Token& scTok)
   {
@@ -3561,7 +3561,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   {
     u32 pathidx = loc.getPathIndex();
     return getLocalScopeBlockByPathId(pathidx);
-  } //getLocalScopeBlock
+  }
 
   NodeBlockLocals * CompilerState::getLocalScopeBlockByIndex(UTI luti)
   {
@@ -3704,7 +3704,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   UTI CompilerState::findAClassByNodeNo(NNO n)
   {
     return m_programDefST.findClassNodeNoForTableOfClasses(n); //Nav not found
-  } //findAClassByNodeNo
+  }
 
   NodeBlockLocals * CompilerState::findALocalScopeByNodeNo(NNO n)
   {
@@ -3740,7 +3740,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
     return csym->getClassBlockNode();
-  } //getAClassBlock
+  }
 
   NNO CompilerState::getAClassBlockNo(UTI cuti)
   {
@@ -3749,7 +3749,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
     return csym->getClassBlockNode()->getNodeNo();
-  } //getAClassBlockNo
+  }
 
   u32 CompilerState::getCompileThisId()
   {
@@ -3771,7 +3771,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   SymbolClass * CompilerState::getCurrentSelfSymbolForCodeGen()
   {
     return (SymbolClass *) m_currentSelfSymbolForCodeGen;
-  } //getCurrentSelfSymbolForCodeGen
+  }
 
   void CompilerState::appendNodeToCurrentBlock(Node * node)
   {
@@ -3780,7 +3780,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       cblock = getCurrentMemberClassBlock(); //??
     assert(cblock);
     cblock->appendNextNode(node); //adds a NodeStatements, becomes the new end
-  } //appendNodeToCurrentBlock
+  }
 
   NodeBlock * CompilerState::getCurrentBlock()
   {
@@ -3788,7 +3788,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     AssertBool isDefined = m_classContextStack.getCurrentClassContext(cc);
     assert(isDefined);
     return cc.getCurrentBlock();
-  } //getCurrentBlock
+  }
 
   NNO CompilerState::getCurrentBlockNo()
   {
@@ -3796,7 +3796,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     if(m_classContextStack.getCurrentClassContext(cc) && getCurrentBlock())
       return getCurrentBlock()->getNodeNo();
     return 0; //genesis of class symbol
-  } //getCurrentBlockNo
+  }
 
   NodeBlockContext * CompilerState::getContextBlock()
   {
@@ -3831,7 +3831,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     if(m_classContextStack.getCurrentClassContext(cc))
       return cc.useMemberBlock();
     return false; //genesis of a symbol getting current block no
-  } //useMemberBlock
+  }
 
   NodeBlockClass * CompilerState::getCurrentMemberClassBlock()
   {
@@ -3851,7 +3851,6 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   void CompilerState::popClassContext()
   {
     m_classContextStack.popClassContext();
-    //assert(m_classContextStack.getClassContextStackSize() > 0);
   }
 
   void CompilerState::pushCurrentBlock(NodeBlock * currblock)
@@ -3963,14 +3962,14 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     //includes refs, and arrays!!! elements, quarks, transients, NOT UNSEEN!
     ULAMCLASSTYPE classtype = getUlamTypeByIndex(cuti)->getUlamClassType();
     return ((classtype == UC_ELEMENT) || (classtype == UC_QUARK) || (classtype == UC_TRANSIENT));
-  } //isASeenClass
+  }
 
   bool CompilerState::isAnonymousClass(UTI cuti)
   {
     assert(okUTItoContinue(cuti));
     // anonymous classes have their UTI number as their nameid. (t3808)
     return(!isARootUTI(cuti) || isHolder(cuti));
-  } //isAnonymousClass
+  }
 
   void CompilerState::saveUrSelf(UTI uti)
   {

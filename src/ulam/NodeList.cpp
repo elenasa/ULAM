@@ -100,7 +100,7 @@ namespace MFM{
   {
     for(u32 i = 0; i < m_nodes.size(); i++)
       m_nodes[i]->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
+  }
 
   void NodeList::printPostfix(File * fp)
   {
@@ -206,23 +206,23 @@ namespace MFM{
   {
     assert(n < m_nodes.size());
     return m_nodes[n]->eval();
-  } //eval (overloaded)
+  }
 
   EvalStatus NodeList::evalToStoreInto(u32 n)
   {
     assert(n < m_nodes.size());
     return m_nodes[n]->evalToStoreInto();
-  } //evalToStoreInto (overloaded)
+  }
 
   void NodeList::addNodeToList(Node * argNode)
   {
     m_nodes.push_back(argNode);
-  } //addNodeToList
+  }
 
   u32 NodeList::getNumberOfNodes() const
   {
     return m_nodes.size();
-  } //getNumberOfNodes
+  }
 
   u32 NodeList::getTotalSlotsNeeded()
   {
@@ -232,31 +232,31 @@ namespace MFM{
 	nslots += m_state.slotsNeeded(m_nodes[i]->getNodeType());
       }
     return nslots;
-  } //getTotalSlotsNeeded
+  }
 
   Node * NodeList::getNodePtr(u32 n) const
   {
     assert(n < m_nodes.size());
     return m_nodes[n];
-  } //getNodePtr
+  }
 
   UTI NodeList::getNodeType(u32 n)
   {
     assert(n < m_nodes.size());
     return m_nodes[n]->getNodeType();
-  } //getNodeType
+  }
 
   bool NodeList::isAConstant(u32 n)
   {
     assert(n < m_nodes.size());
     return m_nodes[n]->isAConstant();
-  } //isAConstant
+  }
 
   bool NodeList::isFunctionCall(u32 n)
   {
     assert(n < m_nodes.size());
     return m_nodes[n]->isFunctionCall();
-  } //isAFunctionCall
+  }
 
   bool NodeList::isAList()
   {
@@ -267,19 +267,19 @@ namespace MFM{
   {
     for(u32 i = 0; i < m_nodes.size(); i++)
       m_nodes[i]->genCode(fp, uvpass);
-  } //genCode
+  }
 
   void NodeList::genCode(File * fp, UVPass& uvpass, u32 n)
   {
     assert(n < m_nodes.size());
     m_nodes[n]->genCode(fp, uvpass);
-  } //genCode
+  }
 
   void NodeList::genCodeToStoreInto(File * fp, UVPass& uvpass, u32 n)
   {
     assert(n < m_nodes.size());
     m_nodes[n]->genCodeToStoreInto(fp, uvpass);
-  } //genCode
+  }
 
   void NodeList::genCodeConstantArrayInitialization(File * fp)
   {

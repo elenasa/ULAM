@@ -14,7 +14,7 @@ namespace MFM {
   bool UlamTypeClassTransient::isNumericType()
   {
     return false;
-  } //isNumericType
+  }
 
   ULAMCLASSTYPE UlamTypeClassTransient::getUlamClassType()
   {

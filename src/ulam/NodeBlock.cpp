@@ -58,7 +58,7 @@ namespace MFM {
   {
     if(m_nodeNext)
       m_nodeNext->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
+  }
 
   void NodeBlock::print(File * fp)
   {

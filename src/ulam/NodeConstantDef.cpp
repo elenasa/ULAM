@@ -80,7 +80,7 @@ namespace MFM {
   {
     if(m_nodeExpr)
       m_nodeExpr->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
+  }
 
   void NodeConstantDef::printPostfix(File * fp)
   {
@@ -126,7 +126,7 @@ namespace MFM {
     m_constSymbol = cvsymptr;
     m_currBlockNo = cvsymptr->getBlockNoOfST();
     assert(m_currBlockNo);
-  } //setSymbolPtr
+  }
 
   u32 NodeConstantDef::getSymbolId()
   {
@@ -721,7 +721,7 @@ namespace MFM {
     if(m_constSymbol->isReady())
       return NORMAL;
     return ERROR;
-  } //eval
+  }
 
   void NodeConstantDef::packBitsInOrderOfDeclaration(u32& offset)
   {
@@ -945,7 +945,6 @@ namespace MFM {
     UTI cuti = m_state.getCompileThisIdx();
     //include the mangled class::
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-    //    bool isLocalsFileScope = m_state.isLocalsFileScope();
 
     //unique function to initialize const array "data members" in class no-arg constructor
     m_state.indent(fp);

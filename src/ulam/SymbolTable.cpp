@@ -119,6 +119,6 @@ namespace MFM {
   {
     m_state.abortShouldntGetHere();
     return 0;
-  } //getTotalSymbolSize
+  }
 
 } //end MFM

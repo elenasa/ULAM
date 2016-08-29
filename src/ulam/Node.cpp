@@ -46,7 +46,7 @@ namespace MFM {
   bool Node::exchangeKids(Node * oldnptr, Node * newnptr)
   {
     return false; //default
-  } //exhangeKids
+  }
 
   bool Node::findNodeNo(NNO n, Node *& foundNode)
   {
@@ -56,12 +56,12 @@ namespace MFM {
 	return true;
       }
     return false;
-  } //findNodeNo
+  }
 
   void Node::checkAbstractInstanceErrors()
   {
     return; //default
-  } //checkAbstractInstanceErrors
+  }
 
   void Node::print(File * fp)
   {
@@ -198,7 +198,7 @@ namespace MFM {
     msg << "::safeToCastTo(UTI newType){} is needed!!";
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
     return CAST_HAZY;
-  } //safeToCastTo
+  }
 
   bool Node::checkSafeToCastTo(UTI fromType, UTI& newType)
   {
@@ -451,12 +451,12 @@ namespace MFM {
   void Node::printUnresolvedVariableDataMembers()
   {
     m_state.abortShouldntGetHere();
-  } //printUnresolvedVariableDataMembers
+  }
 
   void Node::printUnresolvedLocalVariables(u32 fid)
   {
     //override
-  } //printUnresolvedLocalVariables
+  }
 
   void Node::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
@@ -479,7 +479,7 @@ namespace MFM {
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
     m_state.abortShouldntGetHere();
     return;
-  } //genCodeToStoreInto
+  }
 
   void Node::genCodeReadIntoATmpVar(File * fp, UVPass & uvpass)
   {
@@ -1420,9 +1420,7 @@ namespace MFM {
       {
 	if(vut->getUlamClassType() == UC_NOTACLASS)
 	  {
-	    //no longer atom-based primitives Thu Jun 23 15:51:15 2016
-	    //pos = BITSPERATOM - vut->getTotalBitSize(); //right-justified atom-based
-	    //pos = 0u;
+	    //no longer atom-based primitives
 	  }
 
 	if(m_state.isReference(vuti))
@@ -1649,14 +1647,11 @@ namespace MFM {
   void Node::genCodeReferenceInitialization(File * fp, UVPass& uvpass, Symbol * vsymptr)
   {
     // lhs is third arg, vsymptr (m_varSymbol for NodeVarRef; tmprefsymbol for NodeFuncCall)
-    // caller gets the right-hand side, stgcos
-    // can be same type (e.g. class or primitive),
-    // or ancestor quark if a class.
+    // caller gets the right-hand side, stgcos; can be same type (e.g. class or primitive),
+    // or ancestor quark if a class. atoms no longer a special case (t3484).
 
     UTI vuti = vsymptr->getUlamTypeIdx(); //i.e. this ref node
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-
-    //Wed Jun 22 15:38:10 2016 atoms no longer a special case (t3484)
 
     Symbol * cos = NULL;
     Symbol * stgcos = NULL;
@@ -1770,9 +1765,8 @@ namespace MFM {
     assert(vsymptr->isAutoLocal());
     assert(vsymptr->getAutoLocalType() != ALT_AS);
 
-    // get the right-hand side, stgcos
-    // can be same type (e.g. element, quark, or primitive),
-    // or ancestor quark if a class.
+    // get the right-hand side, stgcos can be same type
+    // (e.g. element, quark, or primitive), or ancestor quark if a class.
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
     UTI stgcosuti = stgcos->getUlamTypeIdx();
@@ -1791,7 +1785,6 @@ namespace MFM {
     assert(vetyp == cosut->getUlamTypeEnum());
 
     u32 pos = Node::calcPosOfCurrentObjects(); //t3832
-    //u32 pos = uvpass.getPassPos(); //testing bug with Stale TYPE (t3832)
 
     m_state.indentUlamCode(fp);
     fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
@@ -2544,8 +2537,7 @@ namespace MFM {
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
-    // first "hidden" arg is the context, then
-    //"hidden" ref self (ur) arg
+    // first "hidden" arg is the context, then "hidden" ref self (ur) arg
     if(!Node::isCurrentObjectALocalVariableOrArgument())
       {
 	if(m_state.m_currentObjSymbolsForCodeGen.empty())
@@ -2773,12 +2765,12 @@ namespace MFM {
   const std::string Node::localStorageTypeAsString(UTI nuti)
   {
     return m_state.getUlamTypeByIndex(nuti)->getLocalStorageTypeAsString();
-  } //localStorageTypeAsString
+  }
 
   const std::string Node::tmpStorageTypeForRead(UTI nuti, UVPass uvpass)
   {
     return m_state.getUlamTypeByIndex(nuti)->getTmpStorageTypeAsString();
-  } //tmpStorageTypeForRead
+  }
 
   const std::string Node::tmpStorageTypeForReadArrayItem(UTI nuti, UVPass uvpass)
   {

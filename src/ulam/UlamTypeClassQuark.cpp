@@ -114,14 +114,14 @@ namespace MFM {
     if(!isScalar())
       return UlamType::readMethodForCodeGen();
     return "Read"; //quarks only 32 bits
-  } //readMethodForCodeGen
+  }
 
   const std::string UlamTypeClassQuark::writeMethodForCodeGen()
   {
     if(!isScalar())
       return UlamType::writeMethodForCodeGen();
     return "Write"; //quarks only 32 bits
-  } //writeMethodForCodeGen
+  }
 
   bool UlamTypeClassQuark::needsImmediateType()
   {
@@ -152,7 +152,7 @@ namespace MFM {
   TMPSTORAGE UlamTypeClassQuark::getTmpStorageTypeForTmpVar()
   {
     return UlamType::getTmpStorageTypeForTmpVar();
-  } //getTmpStorageTypeForTmpVar
+  }
 
   const std::string UlamTypeClassQuark::castMethodForCodeGen(UTI nodetype)
   {
@@ -360,8 +360,7 @@ namespace MFM {
   {
     if(isScalar() || WritePacked(getPackable()))
       {
-	//ref param to avoid excessive copying
-	//not an array
+	//ref param to avoid excessive copying; not an array
 	m_state.indent(fp);
 	fp->write("void");
 	fp->write(" write(const ");

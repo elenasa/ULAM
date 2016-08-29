@@ -67,7 +67,7 @@ namespace MFM {
       m_nodeParameterList->checkAbstractInstanceErrors();
     if(m_nodeNext)
       m_nodeNext->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
+  }
 
   void NodeBlockFunctionDefinition::setNodeLocation(Locator loc)
   {

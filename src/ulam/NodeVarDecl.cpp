@@ -1071,6 +1071,6 @@ UTI NodeVarDecl::checkAndLabelType()
   void NodeVarDecl::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {
     m_state.abortShouldntGetHere(); //see NodeVarDeclDM data members only
-  } //generateUlamClassInfo
+  }
 
 } //end MFM

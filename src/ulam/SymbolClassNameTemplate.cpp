@@ -80,7 +80,7 @@ namespace MFM {
 	csym->addTargetDescriptionMapEntry(classtargets, scid);
 	it++;
       }
-  } //getTargetDescriptorsForClassInstances()
+  } //getTargetDescriptorsForClassInstances
 
   void SymbolClassNameTemplate::getClassMemberDescriptionsForClassInstances(ClassMemberMap& classmembers)
   {
@@ -350,7 +350,6 @@ namespace MFM {
 	//can't addClassInstanceUTI(newuti, newclassinstance) ITERATION IN PROGRESS!!!
 	m_scalarClassInstanceIdxToSymbolPtrTEMP.insert(std::pair<UTI,SymbolClass*> (newuti,newclassinstance));
 
-	//newclassinstance->cloneResolverForStubClassInstance(csym, context);
 	newclassinstance->cloneArgumentNodesForClassInstance(csym, context, true);
 	csym->cloneResolverUTImap(newclassinstance);
       }
@@ -1241,8 +1240,6 @@ namespace MFM {
 
   void SymbolClassNameTemplate::checkAndLabelClassInstances()
   {
-    //SymbolClassName::checkAndLabelClassFirst(); //redo template for postfix output haha!
-
     // only need to c&l the unique class instances that have been deeply copied
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
@@ -1549,7 +1546,7 @@ namespace MFM {
       }
     lostClasses.clear();
     return aok;
-  } //setBitSizeOfClassInstances()
+  } //setBitSizeOfClassInstances
 
   // separate pass...after labeling all classes is completed;
   void SymbolClassNameTemplate::printBitSizeOfClassInstances()

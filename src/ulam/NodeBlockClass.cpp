@@ -94,7 +94,7 @@ namespace MFM {
     NodeBlock::checkAbstractInstanceErrors();
     if(!isEmpty())
       m_functionST.checkAbstractInstanceErrorsAcrossTableOfFunctions();
-  } //checkAbstractInstanceErrors
+  }
 
   void NodeBlockClass::setNodeLocation(Locator loc)
   {
@@ -239,7 +239,7 @@ namespace MFM {
   const char * NodeBlockClass::getName()
   {
     return m_state.getUlamKeyTypeSignatureByIndex(getNodeType()).getUlamKeyTypeSignatureName(&m_state).c_str();
-  } //getName
+  }
 
   const std::string NodeBlockClass::prettyNodeName()
   {
@@ -467,7 +467,6 @@ namespace MFM {
       {
 	u32 n = m_nodeArgumentList->getNumberOfNodes();
 	assert((n == 0) || !m_state.isClassATemplate(getNodeType()));
-	//return m_nodeArgumentList->checkAndLabelType();
 	u32 navcnt, hzycnt, nocnt;
 	navcnt = hzycnt = nocnt = 0;
 	m_nodeArgumentList->countNavHzyNoutiNodes(navcnt, hzycnt, nocnt);
@@ -811,7 +810,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   bool NodeBlockClass::isIdInScope(u32 id, Symbol * & symptrref)
   {
     return (m_ST.isInTable(id, symptrref) || isFuncIdInScope(id, symptrref));
-  } //isIdInScope
+  }
 
   u32 NodeBlockClass::getNumberOfSymbolsInTable()
   {
@@ -828,9 +827,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   u32 NodeBlockClass::getNumberOfPotentialClassArgumentSymbols()
   {
-    //return m_ST.getNumberOfConstantSymbolsInTable(true);
     return getNumberOfArgumentNodes();
-  } //getNumberOfPotentialClassArgumentSymbols
+  }
 
   u32 NodeBlockClass::getSizeOfSymbolsInTable()
   {
@@ -893,7 +891,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   bool NodeBlockClass::isFuncIdInScope(u32 id, Symbol * & symptrref)
   {
     return m_functionST.isInTable(id, symptrref); //not including any superclass
-  } //isFuncIdInScope
+  }
 
   void NodeBlockClass::addFuncIdToScope(u32 id, Symbol * symptr)
   {
@@ -1022,12 +1020,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       m_nodeNext->printUnresolvedVariableDataMembers();
 
     m_functionST.printUnresolvedLocalVariablesForTableOfFunctions();
-  } //printUnresolvedVariableDataMembers
+  }
 
   void NodeBlockClass::printUnresolvedLocalVariables(u32 fid)
   {
     m_state.abortShouldntGetHere(); //override
-  } //printUnresolvedLocalVariables
+  }
 
   u32 NodeBlockClass::countNativeFuncDecls()
   {
@@ -1421,7 +1419,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("\n");
   } //genShortNameParameterTypesExtractedForHeaderFile
 
-  //Body for This Class only; practically empty if quark (.tcc)
+  //Body for This Class only (.tcc)
   void NodeBlockClass::genCodeBody(File * fp, UVPass& uvpass)
   {
     //use the instance UTI instead of the node's original type
@@ -1450,171 +1448,19 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     if(classtype == UC_ELEMENT)
       {
-	//default constructor
-	m_state.indent(fp);
-	fp->write("template<class EC>\n");
-
-	m_state.indent(fp);
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>");
-	fp->write("::");
-	fp->write(cut->getUlamTypeMangledName().c_str());
-
-	std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
-	std::string namestrlong = removePunct(cut->getUlamTypeMangledName());
-
-	fp->write("() : UlamElement<EC>(MFM_UUID_FOR(\"");
-	fp->write(namestrlong.c_str());
-	fp->write("\", 0))\n");
-
-	genCodeConstantArrayInitialization(fp);
-
-	m_state.indent(fp);
-	fp->write("{\n");
-
-	m_state.m_currentIndentLevel++;
-
-	m_state.indent(fp);
-	fp->write("//XXXX  Element<EC>::SetAtomicSymbol(\"");
-	fp->write(namestr.substr(0,1).c_str());
-	fp->write("\");  // figure this out later\n");
-
-	m_state.indent(fp);
-	fp->write("Element<EC>::SetName(\"");
-	fp->write(namestr.c_str());
-	fp->write("\");"); GCNL;
-
-	m_state.m_currentIndentLevel--;
-	m_state.indent(fp);
-	fp->write("}\n\n");
-
-	//default destructor
-	m_state.indent(fp);
-	fp->write("template<class EC>\n");
-
-	m_state.indent(fp);
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>");
-	fp->write("::~");
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("(){}"); GCNL;
-	fp->write("\n");
-
-	assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
+	genCodeBodyElement(fp, uvpass);
       }
     else if(classtype == UC_QUARK)
       {
-	//default constructor for quark
-	m_state.indent(fp);
-	fp->write("template<class EC>\n");
-
-	m_state.indent(fp);
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>");
-	fp->write("::");
-	fp->write(cut->getUlamTypeMangledName().c_str());
-
-	std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
-	std::string namestrlong = removePunct(cut->getUlamTypeMangledName());
-
-	fp->write("() : UlamQuark<EC>(MFM_UUID_FOR(\"");
-	fp->write(namestrlong.c_str());
-	fp->write("\", 0))\n");
-
-	genCodeConstantArrayInitialization(fp);
-
-	m_state.indent(fp);
-	fp->write("{ }\n\n");
-
-	//default destructor
-	m_state.indent(fp);
-	fp->write("template<class EC>\n");
-
-	m_state.indent(fp);
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>");
-	fp->write("::~");
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("(){}"); GCNL;
-	fp->write("\n");
-
-	assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
+	genCodeBodyQuark(fp, uvpass);
       }
     else if(classtype == UC_TRANSIENT)
       {
-	//default constructor for transient
-	m_state.indent(fp);
-	fp->write("template<class EC>\n");
-
-	m_state.indent(fp);
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>");
-	fp->write("::");
-	fp->write(cut->getUlamTypeMangledName().c_str());
-
-	std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
-	std::string namestrlong = removePunct(cut->getUlamTypeMangledName());
-
-	fp->write("() : UlamTransient<EC");
-	fp->write(">(MFM_UUID_FOR(\"");
-	fp->write(namestrlong.c_str());
-	fp->write("\", 0))\n");
-
-	genCodeConstantArrayInitialization(fp);
-
-	m_state.indent(fp);
-	fp->write("{ }\n\n");
-
-	//default destructor
-	m_state.indent(fp);
-	fp->write("template<class EC>\n");
-
-	m_state.indent(fp);
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>");
-	fp->write("::~");
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("(){}"); GCNL;
-	fp->write("\n");
-
-	assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
+	genCodeBodyTransient(fp, uvpass);
       }
     else if(classtype == UC_LOCALFILESCOPES)
       {
-	//default constructor for LocalFilescopes
-	m_state.indent(fp);
-	fp->write("template<class EC>\n");
-
-	m_state.indent(fp);
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>");
-	fp->write("::");
-	fp->write(cut->getUlamTypeMangledName().c_str());
-
-	std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
-	std::string namestrlong = removePunct(cut->getUlamTypeMangledName());
-
-	fp->write("() : UlamClass<EC");
-	fp->write(">()\n");
-
-	genCodeConstantArrayInitialization(fp);
-
-	m_state.indent(fp);
-	fp->write("{ }\n\n");
-
-	//default destructor
-	m_state.indent(fp);
-	fp->write("template<class EC>\n");
-
-	m_state.indent(fp);
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>");
-	fp->write("::~");
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("(){}"); GCNL;
-	fp->write("\n");
-
-	assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
+	genCodeBodyLocalFilescopes(fp, uvpass);
       }
     else
       m_state.abortUndefinedUlamClassType();
@@ -1628,6 +1474,186 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("} //MFM\n\n");
   } //genCodeBody
+
+  void NodeBlockClass::genCodeBodyElement(File * fp, UVPass& uvpass)
+  {
+    UlamType * cut = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx());
+
+    //default constructor
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>");
+    fp->write("::");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+
+    std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
+    std::string namestrlong = removePunct(cut->getUlamTypeMangledName());
+
+    fp->write("() : UlamElement<EC>(MFM_UUID_FOR(\"");
+    fp->write(namestrlong.c_str());
+    fp->write("\", 0))\n");
+
+    genCodeConstantArrayInitialization(fp);
+
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("//XXXX  Element<EC>::SetAtomicSymbol(\"");
+    fp->write(namestr.substr(0,1).c_str());
+    fp->write("\");  // figure this out later\n");
+
+    m_state.indent(fp);
+    fp->write("Element<EC>::SetName(\"");
+    fp->write(namestr.c_str());
+    fp->write("\");"); GCNL;
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n\n");
+
+    //default destructor
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>");
+    fp->write("::~");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("(){}"); GCNL;
+    fp->write("\n");
+
+    assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
+  } //genCodeBodyElement
+
+  void NodeBlockClass::genCodeBodyQuark(File * fp, UVPass& uvpass)
+  {
+    UlamType * cut = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx());
+
+    //default constructor for quark
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>");
+    fp->write("::");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+
+    std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
+    std::string namestrlong = removePunct(cut->getUlamTypeMangledName());
+
+    fp->write("() : UlamQuark<EC>(MFM_UUID_FOR(\"");
+    fp->write(namestrlong.c_str());
+    fp->write("\", 0))\n");
+
+    genCodeConstantArrayInitialization(fp);
+
+    m_state.indent(fp);
+    fp->write("{ }\n\n");
+
+    //default destructor
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>");
+    fp->write("::~");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("(){}"); GCNL;
+    fp->write("\n");
+
+    assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
+  } //genCodeBodyQuark
+
+  void NodeBlockClass::genCodeBodyTransient(File * fp, UVPass& uvpass)
+  {
+    UlamType * cut = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx());
+
+    //default constructor for transient
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>");
+    fp->write("::");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+
+    std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
+    std::string namestrlong = removePunct(cut->getUlamTypeMangledName());
+
+    fp->write("() : UlamTransient<EC");
+    fp->write(">(MFM_UUID_FOR(\"");
+    fp->write(namestrlong.c_str());
+    fp->write("\", 0))\n");
+
+    genCodeConstantArrayInitialization(fp);
+
+    m_state.indent(fp);
+    fp->write("{ }\n\n");
+
+    //default destructor
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>");
+    fp->write("::~");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("(){}"); GCNL;
+    fp->write("\n");
+
+    assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
+  } //genCodeBodyTransient
+
+  void NodeBlockClass::genCodeBodyLocalFilescopes(File * fp, UVPass& uvpass)
+  {
+    UlamType * cut = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx());
+
+    //default constructor for LocalFilescopes
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>");
+    fp->write("::");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+
+    std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
+    std::string namestrlong = removePunct(cut->getUlamTypeMangledName());
+
+    fp->write("() : UlamClass<EC");
+    fp->write(">()\n");
+
+    genCodeConstantArrayInitialization(fp);
+
+    m_state.indent(fp);
+    fp->write("{ }\n\n");
+
+    //default destructor
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>");
+    fp->write("::~");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("(){}"); GCNL;
+    fp->write("\n");
+
+    assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
+  } //genCodeBodyLocalFilescopes
 
   void NodeBlockClass::generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
@@ -2506,6 +2532,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   {
     NodeBlock::addClassMemberDescriptionsToInfoMap(classmembers); //Table of Classes request
     m_functionST.addClassMemberFunctionDescriptionsToMap(this->getNodeType(), classmembers); //Table of Classes request
-  } //addClassMemberDescriptionsToInfoMap
+  }
 
 } //end MFM

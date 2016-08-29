@@ -90,7 +90,6 @@ namespace MFM {
 	  {
 	    funcSymbol = fsym;
 	    matchingFuncCount++;
-	    //break;
 	  }
 	++it;
       }
@@ -113,7 +112,6 @@ namespace MFM {
 	  {
 	    funcSymbol = fsym;
 	    matchingFuncCount++;
-	    //break;
 	  }
 	++it;
       }
@@ -639,9 +637,7 @@ namespace MFM {
       {
 	SymbolFunction * fsym = it->second;
 	assert(fsym);
-	// now done as part of block's c&l
-	// first check for incomplete parameters
-	//aok &= fsym->checkParameterTypes();
+	// check for incomplete parameters done as part of block's c&l
 
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
 	assert(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
@@ -681,7 +677,6 @@ namespace MFM {
 	u32 fcntnavs = ncnt;
 	u32 fcnthzy = hcnt;
 	u32 fcntunset = nocnt;
-	//func->countNavHzyNoutiNodes(fcntnavs, fcnthzy, fcntunset);
 	func->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
 	if((ncnt - fcntnavs) > 0)
 	  {
@@ -731,7 +726,6 @@ namespace MFM {
 	msg << m_state.m_pool.getDataAsString(getId()) << "> in class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), INFO);
-	//ncnt += countNavs;
       }
 
     if(countHzy > 0)
@@ -746,7 +740,6 @@ namespace MFM {
 	msg << m_state.m_pool.getDataAsString(getId()) << "> in class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), INFO);
-	//hcnt += countHzy;
       }
 
     if(countUnset > 0)
@@ -761,7 +754,6 @@ namespace MFM {
 	msg << m_state.m_pool.getDataAsString(getId()) << "> in class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), INFO);
-	//nocnt += countUnset;
       }
     return;
   } //countNavNodesInFunctionDefs

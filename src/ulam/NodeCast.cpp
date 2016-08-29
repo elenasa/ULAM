@@ -33,7 +33,7 @@ namespace MFM {
     NodeUnaryOp::updateLineage(pno);
     if(m_nodeTypeDesc)
       m_nodeTypeDesc->updateLineage(getNodeNo());
-  } //updateLineage
+  }
 
   bool NodeCast::findNodeNo(NNO n, Node *& foundNode)
   {
@@ -47,7 +47,7 @@ namespace MFM {
   void NodeCast::checkAbstractInstanceErrors()
   {
     m_node->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
+  }
 
   const char * NodeCast::getName()
   {
@@ -120,7 +120,7 @@ namespace MFM {
     //assert(UlamType::compare(newType,getNodeType(), m_state) == UTIC_SAME);
     //ulamtype checks for complete, non array, and type specific rules
     return m_state.getUlamTypeByIndex(newType)->safeCast(getCastType());
-  } //safeToCastTo
+  }
 
   UTI NodeCast::checkAndLabelType()
   {
@@ -558,7 +558,7 @@ namespace MFM {
 	  {
 	    ruvPtr.setPtrTargetType(tobeType);
 	  }
-	else //if(!(m_state.getUlamTypeByIndex(tobeType)->cast(ruvPtr, tobeType)))
+	else
 	  {
 	    UlamValue uvp = ruvPtr;
 	    if(m_state.isReference(uvp.getPtrTargetType()))

@@ -22,7 +22,7 @@ namespace MFM {
   {
     setYourParentNo(pno);
     m_node->updateLineage(getNodeNo());
-  } //updateLineage
+  }
 
   bool NodeUnaryOp::exchangeKids(Node * oldnptr, Node * newnptr)
   {
@@ -47,7 +47,7 @@ namespace MFM {
   {
     if(m_node)
       m_node->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
+  }
 
   void NodeUnaryOp::print(File * fp)
   {
@@ -108,7 +108,7 @@ namespace MFM {
   {
     //ulamtype checks for complete, non array, and type specific rules
     return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
-  } //safeToCastTo
+  }
 
   UTI NodeUnaryOp::checkAndLabelType()
   {

@@ -27,10 +27,7 @@ namespace MFM {
     //now allowing atoms to be cast as quarks, as well as elements;
     // also allowing subclasses to be cast as their superclass (u1.2.2)
     if(!(vetype == UAtom || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME))
-      {
-	//elements inherit from only quarks.
-	brtn = false;
-      }
+      brtn = false; //elements inherit from only quarks.
     else if(vetype == UAtom)
       {
 	UTI dereftypidx = m_state.getUlamTypeAsDeref(typidx);
@@ -86,14 +83,14 @@ namespace MFM {
     if(!isScalar())
       return "ReadBV";
     return "ReadAtom";
-  } //readMethodForCodeGen
+  }
 
   const std::string UlamTypeClassElement::writeMethodForCodeGen()
   {
     if(!isScalar())
       return "WriteBV";
     return "WriteAtom";
-  } //writeMethodForCodeGen
+  }
 
   bool UlamTypeClassElement::needsImmediateType()
   {
@@ -140,7 +137,7 @@ namespace MFM {
   TMPSTORAGE UlamTypeClassElement::getTmpStorageTypeForTmpVar()
   {
     return TMPTATOM; //per array item/per atom-based element
-  } //getTmpStorageTypeForTmpVar
+  }
 
   const std::string UlamTypeClassElement::castMethodForCodeGen(UTI nodetype)
   {
@@ -161,7 +158,7 @@ namespace MFM {
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(),msg.str().c_str(), ERR);
       }
 
-    //e.g. casting an element to an element, redundant and not supported: Element96ToElement96?
+    //e.g. casting element-to-element, redundant and not supported: Element96ToElement96?
     if(!m_state.isAtom(nodetype))
       {
 	std::ostringstream msg;
@@ -565,7 +562,6 @@ namespace MFM {
   void UlamTypeClassElement::genUlamTypeWriteDefinitionForC(File * fp)
   {
     //ref param to avoid excessive copying
-    //if(WritePacked(getPackable()))
     if(isScalar())
       {
 	m_state.indent(fp);

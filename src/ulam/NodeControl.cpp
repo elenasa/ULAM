@@ -26,7 +26,7 @@ namespace MFM {
     setYourParentNo(pno);
     m_nodeCondition->updateLineage(getNodeNo());
     m_nodeBody->updateLineage(getNodeNo());
-  } //updateLineage
+  }
 
   bool NodeControl::exchangeKids(Node * oldnptr, Node * newnptr)
   {
@@ -56,7 +56,7 @@ namespace MFM {
   {
     m_nodeCondition->checkAbstractInstanceErrors();
     m_nodeBody->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
+  }
 
   void NodeControl::print(File * fp)
   {
@@ -168,7 +168,7 @@ namespace MFM {
       m_nodeCondition->calcMaxDepth(depth, maxdepth, base);
 
     m_nodeBody->calcMaxDepth(depth, maxdepth, base);
-  } //calcMaxDepth
+  }
 
   void NodeControl::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
