@@ -655,10 +655,31 @@ namespace MFM {
 	superuti = parseClassArguments(iTok, isaclass);
 	if(superuti != Nav)
 	  {
-	    cnsym->setSuperClassForClassInstance(superuti, cnsym->getUlamTypeIdx()); //set here!!
-	    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(superuti, supercsym);
-	    assert(isDefined);
-	    rtninherits = true;
+	    UlamType * superut = m_state.getUlamTypeByIndex(superuti);
+	    UlamKeyTypeSignature superkey = superut->getUlamKeyTypeSignature();
+	    u32 superid = superkey.getUlamKeyTypeSignatureNameId();
+
+	    UTI instance = cnsym->getUlamTypeIdx();
+	    UlamType * instanceut = m_state.getUlamTypeByIndex(instance);
+	    UlamKeyTypeSignature ikey = instanceut->getUlamKeyTypeSignature();
+	    u32 instanceid = ikey.getUlamKeyTypeSignatureNameId();
+
+	    if(superid == instanceid)
+	      {
+		std::ostringstream msg;
+		msg << "Class Definition '";
+		msg << m_state.getUlamTypeNameBriefByIndex(instance).c_str(); //t3900, t3901
+		msg << "'; Inheritance from invalid Class '";
+		msg << m_state.getTokenDataAsString(iTok).c_str() << "'";
+		MSG(&iTok, msg.str().c_str(), ERR);
+	      }
+	    else
+	      {
+		cnsym->setSuperClassForClassInstance(superuti, instance); //set here!!
+		AssertBool isDefined = m_state.alreadyDefinedSymbolClass(superuti, supercsym);
+		assert(isDefined);
+		rtninherits = true;
+	      }
 	  }
 
 	if(locals)
@@ -1073,7 +1094,7 @@ namespace MFM {
 	if(sNode)  //e.g. due to an invalid token perhaps; decl already appended
 	  m_state.getCurrentBlock()->appendNextNode(sNode);
 	//else already appended
-	assert(m_state.getCurrentBlock() == rtnNode); //sanity?
+	//assert(m_state.getCurrentBlock() == rtnNode); //sanity
 	m_state.popClassContext(); //restore
       }
     return rtnNode;
@@ -1140,7 +1161,6 @@ namespace MFM {
     //        for validating and finding scope of program/block variables
     m_state.pushCurrentBlock(rtnNode); //without pop first
 
-
     Node * condNode = parseConditionalExpr();
     if(!condNode)
       {
@@ -1160,7 +1180,7 @@ namespace MFM {
 	return NULL; //stop this maddness
       }
 
-    Node * trueNode = NULL;
+    NodeBlock * trueNode = NULL;
     if(m_state.m_parsingConditionalAs)
       {
 	trueNode = setupAsConditionalBlockAndParseStatements((NodeConditional *) condNode);
@@ -1181,11 +1201,11 @@ namespace MFM {
 	return NULL; //stop this maddness
       }
 
-    Node * falseNode = NULL;
+    NodeBlock * falseNode = NULL;
     if(getExpectedToken(TOK_KW_ELSE))
       falseNode = parseStatementAsBlock();
 
-    Node * ifNode = new NodeControlIf(condNode, trueNode, falseNode, m_state);
+    NodeControlIf * ifNode = new NodeControlIf(condNode, trueNode, falseNode, m_state);
     assert(ifNode);
     ifNode->setNodeLocation(ifTok.m_locator);
 
@@ -1211,7 +1231,6 @@ namespace MFM {
     //current, this block's symbol table added to parse tree stack
     //        for validating and finding scope of program/block variables
     m_state.pushCurrentBlock(rtnNode); //without pop first
-
 
     s32 controlLoopLabelNum = m_state.m_parsingControlLoop; //save at the top
     Node * condNode = parseConditionalExpr();
@@ -1414,7 +1433,10 @@ namespace MFM {
 	return NULL; //stop this maddness
       }
 
-    //link the pieces together..
+    NodeStatements * truestmt = new NodeStatements(trueNode, m_state);
+    assert(truestmt);
+
+    //link the pieces together..using statements, not blocks (t3902)
     // decl was first in the block
     //loose pieces joined by NodeControlWhile:
     //end of while loop label, linked to end of body, before assign statement
@@ -1422,12 +1444,19 @@ namespace MFM {
     assert(labelNode);
     labelNode->setNodeLocation(rTok.m_locator);
 
-    trueNode->appendNextNode(labelNode);
+    NodeStatements * labelstmt = new NodeStatements(labelNode, m_state);
+    assert(labelstmt);
+    truestmt->setNextNode(labelstmt);
 
+    NodeStatements * assignstmt = NULL;
     if(assignNode)
-      trueNode->appendNextNode(assignNode); //***link assign to label after truestmt
+      {
+	assignstmt = new NodeStatements(assignNode, m_state);
+	assert(assignstmt);
+	labelstmt->setNextNode(assignstmt);
+      }
 
-    Node * whileNode = new NodeControlWhile(condNode, trueNode, m_state);
+    Node * whileNode = new NodeControlWhile(condNode, truestmt, m_state);
     assert(whileNode);
     whileNode->setNodeLocation(fTok.m_locator);
 

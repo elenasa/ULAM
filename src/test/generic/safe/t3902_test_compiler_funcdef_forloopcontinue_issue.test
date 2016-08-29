@@ -1,32 +1,37 @@
 ## -*- mode:ulam -*-
-#=t3265_test_compiler_funcdef_forloop
+#=t3902_test_compiler_funcdef_forloopcontinue_issue
+#!
 ##      /* gen code output:
 ##	 Int Arg: 20
 ##      */
-#!
-Exit status: 20
-Ue_A { Bool(7) b(false);  Int(32) d(20);  System s();  Int(32) test() {  d ( 4 cast 5 cast )times = s ( d )print . d return } }
+Exit status: 5
+Ue_A { Bool(7) b(false);  Int(32) d(5);  Int(32) test() {  System s;  d ( 4 cast 5 cast )times = s ( d )print . d return } }
 Uq_System { <NOMAIN> }
+##
+## informed by UlamExports, QPort4 for Termite.ulam
+##
 #>A.ulam
   ulam 1;
 use System;
 element A {
   Int times(Int m, Int n) {
     Int d;
-    for(;;)
+    for(Int i = m; i > 0; i-=1)
     {
+      if(i > 1)
+      {
+	--i;
+      	continue;
+      }
       d += n;
-      m-=1;
-      if(m==0)
-	break;
     }
     return d;
   }
 
-  System s;
   Bool(7) b;
   Int d;
   Int test(){
+    System s;
     d = times(4,5);
     s.print(d);
     return d;
@@ -34,11 +39,12 @@ element A {
 }
 
 ##      //informed by: t3237_test_compiler_funcdef_whileifnotbreak
-##      // infinite forloop
+##      // using m
+##      // new decl var for the forloop
 ##
 ##      // test system quark with native overloaded print funcs; assert
 #:System.ulam
-ulam 1;
+  ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

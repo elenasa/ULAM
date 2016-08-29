@@ -53,6 +53,7 @@ namespace MFM {
   void SymbolClassName::setSuperClassForClassInstance(UTI superclass, UTI instance)
   {
     assert(instance == getUlamTypeIdx());
+    assert(instance != superclass);
     SymbolClass::setSuperClass(superclass);
   } //setSuperClassForClassInstance
 

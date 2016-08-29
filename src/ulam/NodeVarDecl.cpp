@@ -855,6 +855,8 @@ UTI NodeVarDecl::checkAndLabelType()
 		UlamValue immUV = UlamValue::makeImmediateLongClass(nuti, darrval, len);
 		m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
 	      }
+	    else
+	      m_state.abortGreaterThanMaxBitsPerLong(); //not write load packable!
 	  }
 	else
 	  {
@@ -875,8 +877,9 @@ UTI NodeVarDecl::checkAndLabelType()
     //also called by NodeVarDecDM for data members with initial constant values (t3514);
     // don't call m_nodeInitExpr->eval(), if constant initialized array (e.g.t3768, t3769);
     if(m_varSymbol->hasInitValue() && !m_state.isScalar(getNodeType()))
-      //if(m_varSymbol->hasInitValue() && m_nodeInitExpr->isAList())
       return NORMAL;
+
+    assert(m_nodeInitExpr);
 
     EvalStatus evs = NORMAL; //init
     // quark or non-class data member;

@@ -146,8 +146,6 @@ namespace MFM{
 
     virtual s32 getMaxBitSizeOfVariableSymbolsInTable();
 
-     s32 findUlamTypeInTable(UTI utype, UTI& insidecuti);
-
     virtual bool isFuncIdInScope(u32 id, Symbol * & symptrref);
 
     void addFuncIdToScope(u32 id, Symbol * symptr);

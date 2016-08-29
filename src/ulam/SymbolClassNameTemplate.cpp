@@ -174,6 +174,7 @@ namespace MFM {
 
   void SymbolClassNameTemplate::setSuperClassForClassInstance(UTI superclass, UTI instance)
   {
+    assert(instance != superclass);
     SymbolClass * csym = NULL;
     if(findClassInstanceByUTI(instance, csym))
       csym->setSuperClass(superclass); //Nouti is none, not a subclass.
@@ -1031,6 +1032,9 @@ namespace MFM {
 	  }
 	else
 	  {
+	    //if superuti is a stub of this template, we have a possible un-ending (MAX_ITERATIONS)
+	    // increase in the size of m_scalarClassInstanceIdxToSymbolPtr each time we're called;
+	    // never resolving; should be caught at parse time (t3901)
 	    stubsuperuti = m_state.addStubCopyToAncestorClassTemplate(superuti, stubcsym->getUlamTypeIdx());
 	    stubcsym->setSuperClass(stubsuperuti); //stubcopy's type set here!!
 	    rtnok = false;

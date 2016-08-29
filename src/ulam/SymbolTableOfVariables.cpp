@@ -381,7 +381,7 @@ namespace MFM {
 	else
 	  {
 	    //error not ready perhaps
-	    assert(0); //(functions done separately)
+	    m_state.abortShouldntGetHere(); //(functions done separately)
 	  }
 
 	if(descptr)

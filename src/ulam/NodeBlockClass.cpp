@@ -296,11 +296,6 @@ namespace MFM {
 
     //Argument c&l handled during pending arg step of resolving loop
     //if(!checkArgumentNodeTypes())
-    //  {
-    //	std::ostringstream msg;
-    //	msg << "Arguments not ready yet";
-    //	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-    //  }
 
     // Inheritance checks
     UTI nuti = getNodeType();
@@ -312,9 +307,11 @@ namespace MFM {
 	if(m_state.isHolder(superuti)) //t3874
 	  {
 	    UTI mappedUTI = superuti;
-	    //if(findaUTIAlias(superuti, mappedUTI))
 	    if(m_state.mappedIncompleteUTI(nuti, superuti, mappedUTI))
 	      {
+		//shouldn't happen, caught at parse time (t3900, t3901)
+		assert(UlamType::compare(nuti, superuti, m_state) != UTIC_SAME);
+
 		std::ostringstream msg;
 		msg << "Substituting mapped UTI" << mappedUTI;
 		msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
@@ -892,32 +889,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     return (superbs > mybs ? superbs : mybs); //return max
   } //getMaxBitSizeOfVariableSymbolsInTable
-
-  s32 NodeBlockClass::findUlamTypeInTable(UTI utype, UTI& insidecuti)
-  {
-    s32 rtnpos = m_ST.findPosOfUlamTypeInTable(utype, insidecuti);
-    if(rtnpos < 0)
-      {
-	//check superclass for dm match, next:
-	UTI superuti = m_state.isClassASubclass(getNodeType());
-	assert(superuti != Hzy);
-	if(superuti != Nouti)
-	  {
-	    // quarks can't contain themselves
-	    if(UlamType::compare(utype, superuti, m_state) != UTIC_SAME)
-	      {
-		NodeBlockClass * superClassBlock = getSuperBlockPointer();
-		assert(superClassBlock);
-		m_state.pushClassContext(superuti, superClassBlock, superClassBlock, false, NULL);
-		rtnpos = superClassBlock->findUlamTypeInTable(utype, insidecuti);
-		m_state.popClassContext(); //restore
-	      }
-	    else
-	      assert(0); //error msg?
-	  }
-      }
-    return rtnpos;  //also return DM (sub) class type where utype was found
-  } //findUlamTypeInTable
 
   bool NodeBlockClass::isFuncIdInScope(u32 id, Symbol * & symptrref)
   {

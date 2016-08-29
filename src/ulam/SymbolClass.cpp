@@ -556,7 +556,7 @@ void SymbolClass::setContextForPendingArgs(UTI context)
     else if(!rtnb && (superuti != Nouti) && (superuti != Hzy))
       {
 	SymbolClass * csym = NULL;
-	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(getSuperClass(), csym);
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(superuti, csym);
 	assert(isDefined);
 	rtnb = (csym->hasMappedUTI(auti, mappedUTI));
       }

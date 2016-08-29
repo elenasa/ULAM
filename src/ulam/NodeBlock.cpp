@@ -118,7 +118,6 @@ namespace MFM {
     assert(node);
     NodeStatements * nextNode = new NodeStatements(node, m_state);
     assert(nextNode);
-    nextNode->setNodeLocation(node->getNodeLocation());
     assert(m_nodeEndingStmt);
     m_nodeEndingStmt->setNextNode(nextNode);
     m_nodeEndingStmt = nextNode;

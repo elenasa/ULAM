@@ -4,7 +4,11 @@
 
 namespace MFM {
 
-  NodeStatements::NodeStatements(Node * s, CompilerState & state) : Node(state), m_node(s), m_nodeNext(NULL) {}
+  NodeStatements::NodeStatements(Node * s, CompilerState & state) : Node(state), m_node(s), m_nodeNext(NULL)
+  {
+    if(s)
+      setNodeLocation(s->getNodeLocation());
+  }
 
   NodeStatements::NodeStatements(const NodeStatements& ref) : Node(ref), m_node(NULL), m_nodeNext(NULL)
   {

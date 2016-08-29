@@ -702,7 +702,7 @@ namespace MFM {
   u64 UlamType::getMax(UlamValue& rtnUV, UTI uti)
   {
     m_state.abortShouldntGetHere();
-    return 0L;
+    return U64_MIN;
   } //getMax (UlamValue)
 
   s64 UlamType::getMin(UlamValue& rtnUV, UTI uti)

@@ -651,9 +651,8 @@ namespace MFM {
 	      }
 	  }
 
-	//fold packloadable class (e.g. quark) here for node eval, printpostfix..
 	if(aok)
-	  foldDefaultClass(); //try if packedloadable
+	  foldDefaultClass(); //init value for m_varSymbol
       }
     else if(m_nodeInitExpr)
       {
@@ -778,6 +777,9 @@ namespace MFM {
 
   void NodeVarDeclDM::foldDefaultClass()
   {
+    if(m_varSymbol->isInitValueReady())
+      return;
+
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     assert(m_state.okUTItoContinue(nuti));
@@ -847,50 +849,28 @@ namespace MFM {
     if(nuti == Hzy)
       return NOTREADY;
 
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMTYPE etyp = nut->getUlamTypeEnum();
-
     assert(m_varSymbol->getAutoLocalType() == ALT_NOT);
 
     if(m_state.isAtom(nuti))
       return NodeVarDecl::eval();
 
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
     if((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() > MAXSTATEBITS))
       return UNEVALUABLE;
-
-    // m_nodeInitExpr exists as result of a previous fold
-    if((etyp == Class) && (m_nodeInitExpr == NULL))
-      {
-	UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
-	PACKFIT packFit = m_state.determinePackable(scalaruti);
-	if(packFit == PACKEDLOADABLE)
-	  {
-	    //element and transient can only be a data member of a transient;
-	    //quarks go anywhere; could be array of them!
-	    u64 dpkval = 0;
-	    if(m_state.getPackedDefaultClass(nuti, dpkval))
-	      foldDefaultClass(); //XXXside-effects m_nodeInitExpr w a terminal
-	    else
-	      return ERROR;
-	  }
-	else
-	  {
-	    //unpacked
-	    return UNEVALUABLE;
-	  }
-      }
 
     // packedloadable class (e.g. quark) or nonclass data member;
     if(m_nodeInitExpr && m_varSymbol->hasInitValue())
       {
 	return NodeVarDecl::evalInitExpr();
       }
+    //else no side-effects needed..overrides NodeVarDecl.
     return NORMAL;
   } //eval
 
   EvalStatus NodeVarDeclDM::evalToStoreInto()
   {
+    //called via NodeVarDecl eval (e.g. t3187)
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
