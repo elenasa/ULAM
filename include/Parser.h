@@ -116,7 +116,7 @@ namespace MFM{
 
     bool parseRestOfDataMember(TypeArgs& args, UTI passuti);
 
-    bool parseRestOfAssignment(const Token& identTok, Node * dNode);
+    bool parseRestOfInitialization(const Token& identTok, Node * dNode);
 
     /**
 	<BLOCK> := '{' + <STATEMENTS> + '}'
@@ -351,8 +351,8 @@ namespace MFM{
     Node * parseRestOfAssignExpr(Node * leftNode);
 
     bool parseRestOfDecls(TypeArgs& args, UTI passuti);
-    bool parseRestOfDeclAssignment(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode);
-    bool parseRestOfRefAssignment(const Token& identTok, NodeVarDecl * dNode);
+    bool parseRestOfDeclInitialization(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode);
+    bool parseRestOfRefInitialization(const Token& identTok, NodeVarDecl * dNode);
 
     Node * parseArrayInitialization(u32 identId);
 

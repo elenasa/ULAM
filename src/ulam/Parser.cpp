@@ -23,6 +23,8 @@
 #include "NodeBinaryOpEqualArithMultiply.h"
 #include "NodeBinaryOpEqualArithRemainder.h"
 #include "NodeBinaryOpEqualArithSubtract.h"
+#include "NodeBinaryOpEqualArithPostIncr.h"
+#include "NodeBinaryOpEqualArithPostDecr.h"
 #include "NodeBinaryOpEqualBitwiseAnd.h"
 #include "NodeBinaryOpEqualBitwiseOr.h"
 #include "NodeBinaryOpEqualBitwiseXor.h"
@@ -858,7 +860,7 @@ namespace MFM {
 
 	    if(dmNode)
 	      {
-		parseRestOfAssignment(iTok, dmNode);
+		parseRestOfInitialization(iTok, dmNode);
 		m_state.appendNodeToCurrentBlock(dmNode);
 		isAlreadyAppended = parseRestOfDataMember(typeargs, passuti); //appended
 	      }
@@ -904,7 +906,7 @@ namespace MFM {
 	NodeVarDecl * sNode = makeVariableSymbol(args, iTok, typeNode); //a decl
 	if (sNode)
 	  {
-	    parseRestOfAssignment(iTok, sNode);
+	    parseRestOfInitialization(iTok, sNode);
 	    m_state.appendNodeToCurrentBlock(sNode);
 	  }
 	else  //error msg?
@@ -924,7 +926,7 @@ namespace MFM {
     return false;
   } //parseRestOfDataMember
 
-  bool Parser::parseRestOfAssignment(const Token& identTok, Node * dNode)
+  bool Parser::parseRestOfInitialization(const Token& identTok, Node * dNode)
   {
     bool brtn = true;
     Token pTok;
@@ -959,7 +961,7 @@ namespace MFM {
     else
       unreadToken();
     return brtn; // true even if no assignment; false on error
-  } //parseRestOfAssignment
+  } //parseRestOfInitialization
 
   NodeBlock * Parser::parseBlock()
   {
@@ -1667,16 +1669,6 @@ namespace MFM {
 
     if(!getExpectedToken(TOK_SEMICOLON, pTok, QUIETLY))
       {
-	//reportedly difficult to catch as an error, so special case error msg
-	if(pTok.m_type == TOK_PLUS_PLUS || pTok.m_type == TOK_MINUS_MINUS)
-	  {
-	    std::ostringstream msg;
-	    msg << "Unexpected input!! Try ";
-	    msg << m_state.getTokenDataAsString(pTok).c_str();
-	    msg << " as a prefix operator";
-	    MSG(&pTok, msg.str().c_str(), ERR); //t3557
-	  }
-
 	MSG(&pTok, "Invalid Statement (possible missing semicolon)", ERR);
 	getTokensUntil(TOK_SEMICOLON);
       }
@@ -1952,7 +1944,7 @@ namespace MFM {
 	NodeVarDecl * rtnNode = makeVariableSymbol(typeargs, iTok, typeNode);
 	if(rtnNode)
 	  {
-	    parseRestOfDeclAssignment(typeargs, iTok, rtnNode);
+	    parseRestOfDeclInitialization(typeargs, iTok, rtnNode);
 	    m_state.appendNodeToCurrentBlock(rtnNode);
 	    //for multi's of same type (rtnType), and/or its assignment
 	    return parseRestOfDecls(typeargs, passuti);
@@ -2932,16 +2924,10 @@ namespace MFM {
     //check for member select expression
     Token qTok;
     getNextToken(qTok);
-
+    unreadToken();
     if(qTok.m_type == TOK_DOT)
-      {
-	unreadToken();
-	rtnNode = parseRestOfMemberSelectExpr(rtnNode);
-      }
-    else
-      {
-	unreadToken(); //not a member select
-      }
+      rtnNode = parseRestOfMemberSelectExpr(rtnNode);
+    //else done here
     return rtnNode;
   } //parseIdentExpr
 
@@ -3429,6 +3415,12 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	  delete leftNode; //ident replaced by rtnNode
 	}
 	break;
+      case TOK_PLUS_PLUS: //t3903
+      case TOK_MINUS_MINUS: //t3903
+	unreadToken();
+	rtnNode = makeAssignExprNode(leftNode);
+	rtnNode = parseRestOfExpression(rtnNode); //any more?
+	break;
       case TOK_ERROR_LOWLEVEL:
 	getNextToken(pTok); //eat token
 	break;
@@ -3726,13 +3718,15 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
       case TOK_PLUS_EQUAL:
       case TOK_MINUS_EQUAL:
       case TOK_STAR_EQUAL:
-      case TOK_SLASH_EQUAL: //3853
+      case TOK_SLASH_EQUAL: //t3853
       case TOK_PERCENTSIGN_EQUAL:
       case TOK_AMP_EQUAL:
       case TOK_PIPE_EQUAL:
       case TOK_HAT_EQUAL:
       case TOK_SHIFT_LEFT_EQUAL:
       case TOK_SHIFT_RIGHT_EQUAL:
+      case TOK_PLUS_PLUS: //t3903
+      case TOK_MINUS_MINUS: //t3903
 	unreadToken();
 	rtnNode = makeAssignExprNode(leftNode);
 	rtnNode = parseRestOfExpression(rtnNode); //any more?
@@ -3742,18 +3736,6 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
       case TOK_COMMA: /* array item init */
 	{
 	  unreadToken();
-	  rtnNode = leftNode;
-	  break;
-	}
-      case TOK_PLUS_PLUS:
-      case TOK_MINUS_MINUS:
-	{
-	  // catch in for-loop (error/t3557)
-	  std::ostringstream msg;
-	  msg << "Unexpected input!! Try ";
-	  msg << m_state.getTokenDataAsString(pTok).c_str();
-	  msg << " as a prefix operator";
-	  MSG(&pTok, msg.str().c_str(), ERR);
 	  rtnNode = leftNode;
 	  break;
 	}
@@ -3807,7 +3789,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	NodeVarDecl * sNode = makeVariableSymbol(args, iTok, typeNode); //a decl !!
 	if(sNode)
 	  {
-	    parseRestOfDeclAssignment(args, iTok, sNode);
+	    parseRestOfDeclInitialization(args, iTok, sNode);
 	    m_state.appendNodeToCurrentBlock(sNode);
 	  }
 	else //error msg?
@@ -3830,7 +3812,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
     return false;
   } //parseRestOfDecls
 
-  bool Parser::parseRestOfDeclAssignment(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode)
+  bool Parser::parseRestOfDeclInitialization(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode)
   {
     assert(dNode);
     Token eTok;
@@ -3858,19 +3840,19 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
     //update dNode with init expression: lval for ref, assign for local car
     if(args.m_declRef == ALT_REF)
       {
-	brtn = parseRestOfRefAssignment(identTok, dNode);
+	brtn = parseRestOfRefInitialization(identTok, dNode);
 	args.m_declRef = ALT_NOT; //clear flag in case of decl list
 	//keep args.m_referenced type???
       } //ref done
     else
       {
 	unreadToken();
-	brtn = parseRestOfAssignment(identTok, dNode);
+	brtn = parseRestOfInitialization(identTok, dNode);
       }
     return brtn;
-  } //parseRestOfDeclAssignment
+  } //parseRestOfDeclInitialization
 
-  bool Parser::parseRestOfRefAssignment(const Token& identTok, NodeVarDecl * dNode)
+  bool Parser::parseRestOfRefInitialization(const Token& identTok, NodeVarDecl * dNode)
   {
     bool brtn = true;
     Token eTok;
@@ -3932,7 +3914,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	brtn = false;
       }
     return brtn;
-  } //parseRestOfRefAssignment
+  } //parseRestOfRefInitialization
 
   Node * Parser::parseArrayInitialization(u32 identId)
   {
@@ -4898,6 +4880,21 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
     NodeBinaryOpEqual * rtnNode = NULL;
     Token pTok;
     getNextToken(pTok); //some flavor of equal token
+
+    //post increment/decrement
+    if(pTok.m_type == TOK_PLUS_PLUS)
+      {
+	rtnNode = new NodeBinaryOpEqualArithPostIncr(leftNode, makeTerminal(pTok, (s64) 1, Int), m_state);
+	rtnNode->setNodeLocation(pTok.m_locator);
+	return rtnNode;
+      }
+
+    if(pTok.m_type == TOK_MINUS_MINUS)
+      {
+	rtnNode = new NodeBinaryOpEqualArithPostDecr(leftNode, makeTerminal(pTok, (s64) 1, Int), m_state);
+	rtnNode->setNodeLocation(pTok.m_locator);
+	return rtnNode;
+      }
 
     Node * rightNode = parseAssignExpr();
     if(!rightNode)
