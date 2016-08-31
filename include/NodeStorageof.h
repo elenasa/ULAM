@@ -50,7 +50,6 @@ namespace MFM{
   {
   public:
 
-    //NodeStorageof(const Token& tokof, NodeTypeDescriptor * nodetype, CompilerState & state);
     NodeStorageof(Node * ofnode, NodeTypeDescriptor * nodetype, CompilerState & state);
 
     NodeStorageof(const NodeStorageof& ref);
@@ -85,8 +84,6 @@ namespace MFM{
 
   protected:
 
-    //Token m_token;
-    //SymbolVariable * m_varSymbol;
     Node * m_nodeOf;
 
     UTI getOfType();

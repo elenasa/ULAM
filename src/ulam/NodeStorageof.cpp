@@ -167,148 +167,72 @@ namespace MFM {
   else
     nuti = getOfType();
 
-#if 0
-    if(m_token.m_type == TOK_TYPE_IDENTIFIER)
-      {
-	assert(m_nodeTypeDesc);
-	nuti = m_nodeTypeDesc->checkAndLabelType(); //sets goagain if hzy
-      } // got type
-    else if(m_token.m_type == TOK_IDENTIFIER)
-      {
-	if(m_varSymbol == NULL)
-	  {
-	    // like NodeIdent, in case of template instantiations
-	    //used before defined, start search with current block
-	    if(m_currBlockNo == 0)
-	      {
-		if(m_state.useMemberBlock())
-		  {
-		    NodeBlockClass * memberclass = m_state.getCurrentMemberClassBlock();
-		    assert(memberclass);
-		    m_currBlockNo = memberclass->getNodeNo();
-		  }
-		else
-		  m_currBlockNo = m_state.getCurrentBlock()->getNodeNo();
-	      }
+  if(m_state.okUTItoContinue(nuti))
+    {
+      if(m_state.isReference(nuti))
+	nuti = m_state.getUlamTypeAsDeref(nuti); //e.g. selftyperef
 
-	    NodeBlock * currBlock = getBlock();
-	    if(m_state.useMemberBlock())
-	      m_state.pushCurrentBlock(currBlock);
-	    else
-	      m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
+      if(!m_state.isComplete(nuti)) //reloads
+	{
+	  std::ostringstream msg;
+	  msg << "Incomplete Type for '";
+	  if(m_nodeOf)
+	    msg << m_nodeOf->getName();
+	  else
+	    msg << m_state.getUlamTypeNameBriefByIndex(getOfType()).c_str();
+	  msg << getName() << "'";
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	  nuti = Hzy;
+	  m_state.setGoAgain(); //since not error
+	}
+      else
+	{
+	  UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+	  if(!((nut->getUlamTypeEnum() == Class) || m_state.isAtom(nuti)))
+	    {
+	      std::ostringstream msg;
+	      msg << "Invalid non-class type provided: '";
+	      if(m_nodeOf)
+		msg << m_nodeOf->getName();
+	      else
+		msg << m_state.getUlamTypeNameBriefByIndex(getOfType()).c_str();
+	      msg << getName() << "'";
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      nuti = Nav;
+	    }
 
-	    Symbol * asymptr = NULL;
-	    bool hazyKin = false; //useful?
+	  if(!nut->isScalar())
+	    {
+	      std::ostringstream msg;
+	      msg << "Invalid non-scalar type provided: '";
+	      if(m_nodeOf)
+		msg << m_nodeOf->getName();
+	      else
+		msg << m_state.getUlamTypeNameBriefByIndex(getOfType()).c_str();
+	      msg << getName() << "'";
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      nuti = Nav;
+	    }
+	} //complete
+    } //ok
 
-	    //searched back through all block's ST for idx
-	    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
-	      {
-		if(hazyKin)
-		  nuti = Hzy;
-		else
-		  {
-		    if(!asymptr->isFunction() && !asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter())
-		      {
-			nuti = asymptr->getUlamTypeIdx();
-			m_varSymbol = (SymbolVariable *) asymptr;
-			m_currBlockNo = asymptr->getBlockNoOfST(); //refined
-		      }
-		    else
-		      {
-			std::ostringstream msg;
-			msg << "(1) <" << m_state.getTokenDataAsString(m_token).c_str();
-			msg << "> is not a variable, and cannot be used as one with ";
-			msg << getName();
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			nuti = Nav;
-		      }
-		  }
-	      }
-	    else
-	      {
-		std::ostringstream msg;
-		msg << "Unfound symbol variable for " << getName() << " '";
-		msg << m_state.getTokenDataAsString(m_token).c_str();
-		msg << "'";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		nuti = Nav;
-	      }
-	    m_state.popClassContext(); //restore
-	  }
-	else
-	    nuti = m_varSymbol->getUlamTypeIdx();
-      }
-    else
-      m_state.abortShouldntGetHere(); //shouldn't happen
-#endif
+  if(m_state.okUTItoContinue(nuti))
+    {
+      setOfType(nuti); //set here!!
+      if(m_nodeOf) //m_token.m_type == TOK_IDENTIFIER)
+	{
+	  Node::setStoreIntoAble(TBOOL_TRUE);
+	  nuti = UAtomRef;
+	}
+      else
+	{
+	  Node::setStoreIntoAble(TBOOL_FALSE);
+	  nuti = UAtom;
+	}
+    }
 
-
-    if(m_state.okUTItoContinue(nuti))
-      {
-	if(m_state.isReference(nuti))
-	  nuti = m_state.getUlamTypeAsDeref(nuti); //e.g. selftyperef
-
-	if(!m_state.isComplete(nuti)) //reloads
-	  {
-	    std::ostringstream msg;
-	    msg << "Incomplete Type for '";
-	    if(m_nodeOf)
-	      msg << m_nodeOf->getName();
-	    else
-	      msg << m_state.getUlamTypeNameBriefByIndex(getOfType()).c_str();
-	    msg << getName() << "'";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    nuti = Hzy;
-	    m_state.setGoAgain(); //since not error
-	  }
-	else
-	  {
-	    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-	    if(!((nut->getUlamTypeEnum() == Class) || m_state.isAtom(nuti)))
-	      {
-		std::ostringstream msg;
-		msg << "Invalid non-class type provided: '";
-		if(m_nodeOf)
-		  msg << m_nodeOf->getName();
-		else
-		  msg << m_state.getUlamTypeNameBriefByIndex(getOfType()).c_str();
-		msg << getName() << "'";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		nuti = Nav;
-	      }
-
-	    if(!nut->isScalar())
-	      {
-		std::ostringstream msg;
-		msg << "Invalid non-scalar type provided: '";
-		if(m_nodeOf)
-		  msg << m_nodeOf->getName();
-		else
-		  msg << m_state.getUlamTypeNameBriefByIndex(getOfType()).c_str();
-		msg << getName() << "'";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		nuti = Nav;
-	      }
-	  } //complete
-      } //ok
-
-    if(m_state.okUTItoContinue(nuti))
-      {
-	setOfType(nuti); //set here!!
-	if(m_nodeOf) //m_token.m_type == TOK_IDENTIFIER)
-	  {
-	    Node::setStoreIntoAble(TBOOL_TRUE);
-	    nuti = UAtomRef;
-	  }
-	else
-	  {
-	    Node::setStoreIntoAble(TBOOL_FALSE);
-	    nuti = UAtom;
-	  }
-      }
-
-    setNodeType(nuti);
-    return nuti;
+  setNodeType(nuti);
+  return nuti;
   } //checkAndLabelType
 
   NNO NodeStorageof::getBlockNo() const

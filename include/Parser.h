@@ -262,10 +262,6 @@ namespace MFM{
 
     Node * parseRestOfMemberSelectExpr(Node * classInstanceNode);
 
-    //Node * parseMinMaxSizeofType(const Token& memberTok, UTI utype, NodeTypeDescriptor * nodetype);
-
-    //Node * parseMinMaxSizeofType(const Token& memberTok); //member selected type unavailable at parse
-
     Node * parseMinMaxSizeofType(Node * memberNode, UTI utype, NodeTypeDescriptor * nodetype);
     /**
        <FUNC_CALL> := <IDENT> + '(' + <ARGS> + ')'

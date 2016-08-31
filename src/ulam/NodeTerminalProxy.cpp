@@ -4,20 +4,11 @@
 
 namespace MFM {
 
-#if 0
-  NodeTerminalProxy::NodeTerminalProxy(const Token& memberTok, UTI memberType, const Token& funcTok, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeTerminal( (u64) UNKNOWNSIZE, memberType, state), m_ofTok(memberTok), m_uti(memberType), m_funcTok(funcTok), m_ready(false), m_nodeTypeDesc(nodetype)
-  {
-    Node::setNodeLocation(funcTok.m_locator);
-    // is memberType is corrected for sizeof during c&l
-  }
-#endif
-
   NodeTerminalProxy::NodeTerminalProxy(Node * membernode, UTI memberType, const Token& funcTok, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeTerminal( (u64) UNKNOWNSIZE, memberType, state), m_nodeOf(membernode), m_uti(memberType), m_funcTok(funcTok), m_ready(false), m_nodeTypeDesc(nodetype)
   {
     Node::setNodeLocation(funcTok.m_locator);
-    // is memberType is corrected for sizeof during c&l
+    // memberType is corrected for sizeof during c&l
   }
-
 
   NodeTerminalProxy::NodeTerminalProxy(const NodeTerminalProxy& ref) : NodeTerminal(ref), m_nodeOf(NULL), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti)), m_funcTok(ref.m_funcTok), m_ready(ref.m_ready), m_nodeTypeDesc(NULL)
   {
@@ -116,11 +107,8 @@ namespace MFM {
   UTI NodeTerminalProxy::checkAndLabelType()
   {
     //when minmaxsizeof a selected member
-    //Symbol * asymptr = NULL;
-    //if(m_uti == Nouti)
     if(!m_state.okUTItoContinue(m_uti) && m_nodeOf)
       {
-	//assert(m_nodeOf);
 	UTI ofuti = m_nodeOf->checkAndLabelType();
 	if(m_state.okUTItoContinue(ofuti))
 	  {
@@ -163,43 +151,6 @@ namespace MFM {
 	      return Nav;
 	    }
       }
-
-#if 0
-    bool hazyKin = false;
-    if(m_state.alreadyDefinedSymbol(m_ofTok.m_dataindex, asymptr, hazyKin) && !hazyKin)
-      {
-	m_uti = asymptr->getUlamTypeIdx();
-	std::ostringstream msg;
-	msg << "Determined type for member '";
-	msg << m_state.getTokenDataAsString(m_ofTok).c_str();
-	msg << "' Proxy, as type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-      }
-    else
-      {
-	if(m_ofTok.m_type == TOK_IDENTIFIER)
-	  {
-	    std::ostringstream msg;
-	    msg << "Undetermined type for missing member '";
-	    msg << m_state.getTokenDataAsString(m_ofTok).c_str();
-	    msg << "' Proxy";
-	    if(!hazyKin)
-	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		setNodeType(Nav); //missing
-		return Nav;
-	      }
-	    else
-	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		setNodeType(Hzy); //missing
-		m_state.setGoAgain(); //too
-		return Hzy;
-	      }
-	  }
-      }
-#endif
 
     //attempt to map UTI; may not have a node type descriptor
     if(m_state.okUTItoContinue(m_uti) && !m_state.isComplete(m_uti))
