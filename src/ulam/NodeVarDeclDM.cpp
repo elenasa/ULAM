@@ -122,6 +122,11 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  bool NodeVarDeclDM::hasASymbolDataMember()
+  {
+    return true;
+  }
+
   FORECAST NodeVarDeclDM::safeToCastTo(UTI newType)
   {
     UTI nuti = getNodeType();

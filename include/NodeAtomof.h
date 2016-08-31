@@ -45,7 +45,8 @@ namespace MFM{
   {
   public:
 
-    NodeAtomof(const Token& tokof, NodeTypeDescriptor * nodetype, CompilerState & state);
+    //NodeAtomof(const Token& tokof, NodeTypeDescriptor * nodetype, CompilerState & state);
+    NodeAtomof(Node * ofnode, NodeTypeDescriptor * nodetype, CompilerState & state);
 
     NodeAtomof(const NodeAtomof& ref);
 

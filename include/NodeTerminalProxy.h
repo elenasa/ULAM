@@ -40,6 +40,7 @@
 #include "NodeTerminal.h"
 #include "Token.h"
 #include "NodeTypeDescriptor.h"
+#include "NodeIdent.h"
 
 namespace MFM{
 
@@ -47,7 +48,8 @@ class NodeTerminalProxy : public NodeTerminal
 {
 public:
 
-    NodeTerminalProxy(const Token& memberTok, UTI memberType, const Token& funcTok, NodeTypeDescriptor * nodetype, CompilerState & state);
+  //NodeTerminalProxy(const Token& memberTok, UTI memberType, const Token& funcTok, NodeTypeDescriptor * nodetype, CompilerState & state);
+  NodeTerminalProxy(Node * memberNode, UTI memberType, const Token& funcTok, NodeTypeDescriptor * nodetype, CompilerState & state);
 
     NodeTerminalProxy(const NodeTerminalProxy& ref);
 
@@ -56,6 +58,8 @@ public:
     virtual Node * instantiate();
 
     virtual void updateLineage(NNO pno);
+
+    virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
 
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
@@ -80,7 +84,8 @@ public:
     virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
 
   private:
-    Token m_ofTok; //useful when type is not available at parse
+  //Token m_ofTok; //useful when type is not available at parse
+  Node * m_nodeOf; //useful when type is not available at parse
     UTI m_uti; //lhs type of func
     Token m_funcTok; //minof, maxof or sizeof
     bool m_ready;

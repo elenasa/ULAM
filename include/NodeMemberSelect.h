@@ -58,6 +58,14 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual bool getSymbolPtr(Symbol *& symptrref);
+
+    virtual bool hasASymbolDataMember();
+
+    virtual bool hasASymbolSuper();
+
+    virtual bool hasASymbolSelf();
+
     virtual const std::string methodNameForCodeGen();
 
     virtual FORECAST safeToCastTo(UTI newType);
@@ -71,8 +79,6 @@ namespace MFM{
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();
-
-    virtual bool getSymbolPtr(Symbol *& symptrref);
 
     virtual void genCode(File * fp, UVPass& uvpass);
 

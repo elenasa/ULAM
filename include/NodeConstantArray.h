@@ -64,6 +64,8 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
+    virtual bool hasASymbolDataMember();
+
     virtual void constantFoldAToken(const Token& tok);
 
     virtual bool isReadyConstant();

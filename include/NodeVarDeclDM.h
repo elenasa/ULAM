@@ -63,6 +63,8 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual bool hasASymbolDataMember();
+
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual bool checkReferenceCompatibility(UTI uti);

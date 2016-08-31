@@ -45,6 +45,12 @@ namespace MFM {
     return (m_constSymbol != NULL); //true;
   }
 
+  bool NodeConstantArray::hasASymbolDataMember()
+  {
+    assert(m_constSymbol);
+    return m_constSymbol->isDataMember();
+  }
+
   void NodeConstantArray::constantFoldAToken(const Token& tok)
   {
     //not same meaning as NodeTerminal; bypass.

@@ -1,21 +1,23 @@
 ## -*- mode:ulam -*-
 #=t3431_test_compiler_missingmember_error
 #!
-./A.ulam:5:15: ERROR: Undetermined type for missing member 'long' Proxy.
-./A.ulam:5:4: ERROR: Assignment is invalid; LHS: Int(64); RHS: erroneous.
+./A.ulam:6:13: ERROR: Variable <long> is not defined, or was used before declared in a function.
+./A.ulam:6:18: ERROR: Undetermined type for missing member 'long' Proxy.
+./A.ulam:6:7: ERROR: Assignment is invalid; LHS: Int(64); RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //infomed by t3428
 ##      // typo long.maxof..
 ##
 #>A.ulam
- element A {
- Int test(){
-typedef Int(64) Long;
- Long k,m;
- m = k + long.maxof;
- return m.sizeof;
- }
- }
+  ulam 1;
+element A {
+  Int test(){
+    typedef Int(64) Long;
+    Long k,m;
+    m = k + long.maxof; //typo!
+    return m.sizeof;
+  }
+}
 
 #.

@@ -5,22 +5,25 @@
 
 namespace MFM {
 
-  NodeStorageof::NodeStorageof(const Token& tokof, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_token(tokof), m_varSymbol(NULL), m_oftype(Nouti), m_nodeTypeDesc(nodetype), m_currBlockNo(0)
+  NodeStorageof::NodeStorageof(Node * ofnode, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_nodeOf(ofnode), m_oftype(Nouti), m_nodeTypeDesc(nodetype), m_currBlockNo(0)
   {
-    Node::setNodeLocation(tokof.m_locator);
     Node::setStoreIntoAble(TBOOL_HAZY);
   }
 
-  NodeStorageof::NodeStorageof(const NodeStorageof& ref) : Node(ref), m_token(ref.m_token), m_varSymbol(NULL), m_oftype(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_oftype)), m_nodeTypeDesc(NULL), m_currBlockNo(ref.m_currBlockNo)
+  NodeStorageof::NodeStorageof(const NodeStorageof& ref) : Node(ref), m_nodeOf(NULL), m_oftype(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_oftype)), m_nodeTypeDesc(NULL), m_currBlockNo(ref.m_currBlockNo)
   {
     if(ref.m_nodeTypeDesc)
       m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
+    if(ref.m_nodeOf)
+      m_nodeOf = ref.m_nodeOf->instantiate();
   }
 
   NodeStorageof::~NodeStorageof()
   {
     delete m_nodeTypeDesc;
     m_nodeTypeDesc = NULL;
+    delete m_nodeOf;
+    m_nodeOf = NULL;
   }
 
   void NodeStorageof::updateLineage(NNO pno)
@@ -28,13 +31,27 @@ namespace MFM {
     Node::updateLineage(pno);
     if(m_nodeTypeDesc)
       m_nodeTypeDesc->updateLineage(getNodeNo());
+    if(m_nodeOf)
+      m_nodeOf->updateLineage(getNodeNo());
   } //updateLineage
+
+  bool NodeStorageof::exchangeKids(Node * oldnptr, Node * newnptr)
+  {
+    if(m_nodeOf == oldnptr)
+      {
+	m_nodeOf = newnptr;
+	return true;
+      }
+    return false;
+  } //exhangeKids
 
   bool NodeStorageof::findNodeNo(NNO n, Node *& foundNode)
   {
     if(Node::findNodeNo(n, foundNode))
       return true;
     if(m_nodeTypeDesc && m_nodeTypeDesc->findNodeNo(n, foundNode))
+      return true;
+    if(m_nodeOf && m_nodeOf->findNodeNo(n, foundNode))
       return true;
     return false;
   } //findNodeNo
@@ -56,7 +73,10 @@ namespace MFM {
   void NodeStorageof::printPostfix(File * fp)
   {
     fp->write(" ");
-    fp->write(m_state.getTokenDataAsString(m_token).c_str());
+    if(m_nodeOf)
+      fp->write(m_nodeOf->getName());
+    else
+      fp->write(m_state.getUlamTypeNameBriefByIndex(getOfType()).c_str());
     fp->write(getName());
   }
 
@@ -87,7 +107,67 @@ namespace MFM {
 
   UTI NodeStorageof::checkAndLabelType()
   {
-    UTI nuti = Nouti;
+  UTI nuti = Nouti;
+
+  if(!m_state.okUTItoContinue(getOfType()))
+    {
+      //m_nodeOf if variable subject; o.w. nodeTypeDescriptor if Type subject
+      if(m_nodeOf)
+	{
+	  UTI ofuti = m_nodeOf->checkAndLabelType();
+	  if(m_state.okUTItoContinue(ofuti))
+	    {
+	      std::ostringstream msg;
+	      msg << "Determined type for member '";
+	      msg << m_nodeOf->getName();
+	      msg << getName() << "', as type: ";
+	      msg << m_state.getUlamTypeNameBriefByIndex(ofuti).c_str();
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	      nuti = ofuti;
+	    }
+	  else
+	    {
+	      std::ostringstream msg;
+	      msg << "Undetermined type for missing member '";
+	      msg << m_nodeOf->getName();
+	      msg << getName() << "'";
+	      if(ofuti == Nav)
+		{
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		  setNodeType(Nav); //missing
+		  return Nav;
+		}
+	      else
+		{
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		  setNodeType(Hzy); //missing
+		  m_state.setGoAgain(); //too
+		  return Hzy;
+		}
+	    }
+	  //for now, illegal, though it works (t3450)
+	  if(m_nodeOf->isFunctionCall())
+	    {
+	      std::ostringstream msg;
+	      msg << "Function call '"<< m_nodeOf->getName();
+	      msg << "' preceeds " << getName();
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      setNodeType(Nav);
+	      return Nav;
+	    }
+	}
+      else if(m_nodeTypeDesc)
+	{
+	  //Of a Type (lhs)
+	  nuti = m_nodeTypeDesc->checkAndLabelType(); //sets goagain if hzy
+	}
+      else
+	m_state.abortShouldntGetHere();
+    }
+  else
+    nuti = getOfType();
+
+#if 0
     if(m_token.m_type == TOK_TYPE_IDENTIFIER)
       {
 	assert(m_nodeTypeDesc);
@@ -160,6 +240,8 @@ namespace MFM {
       }
     else
       m_state.abortShouldntGetHere(); //shouldn't happen
+#endif
+
 
     if(m_state.okUTItoContinue(nuti))
       {
@@ -170,9 +252,11 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete Type for '";
-	    msg << m_state.getTokenDataAsString(m_token).c_str();
-	    msg << getName();
-	    msg << "'";
+	    if(m_nodeOf)
+	      msg << m_nodeOf->getName();
+	    else
+	      msg << m_state.getUlamTypeNameBriefByIndex(getOfType()).c_str();
+	    msg << getName() << "'";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    nuti = Hzy;
 	    m_state.setGoAgain(); //since not error
@@ -184,9 +268,11 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Invalid non-class type provided: '";
-		msg << m_state.getTokenDataAsString(m_token).c_str();
-		msg << getName();
-		msg << "'";
+		if(m_nodeOf)
+		  msg << m_nodeOf->getName();
+		else
+		  msg << m_state.getUlamTypeNameBriefByIndex(getOfType()).c_str();
+		msg << getName() << "'";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		nuti = Nav;
 	      }
@@ -195,9 +281,11 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Invalid non-scalar type provided: '";
-		msg << m_state.getTokenDataAsString(m_token).c_str();
-		msg << getName();
-		msg << "'";
+		if(m_nodeOf)
+		  msg << m_nodeOf->getName();
+		else
+		  msg << m_state.getUlamTypeNameBriefByIndex(getOfType()).c_str();
+		msg << getName() << "'";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		nuti = Nav;
 	      }
@@ -207,7 +295,7 @@ namespace MFM {
     if(m_state.okUTItoContinue(nuti))
       {
 	setOfType(nuti); //set here!!
-	if(m_token.m_type == TOK_IDENTIFIER)
+	if(m_nodeOf) //m_token.m_type == TOK_IDENTIFIER)
 	  {
 	    Node::setStoreIntoAble(TBOOL_TRUE);
 	    nuti = UAtomRef;

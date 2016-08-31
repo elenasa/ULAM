@@ -27,7 +27,9 @@ namespace MFM {
   const char * NodeModelParameter::getName()
   {
     //unlike NodeConstant, model parameter name is used
-    return m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
+    if(m_constSymbol)
+      return m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
+    return m_state.getTokenDataAsString(m_token).c_str();
   }
 
   const std::string NodeModelParameter::prettyNodeName()

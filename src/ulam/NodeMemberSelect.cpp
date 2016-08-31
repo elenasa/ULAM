@@ -37,6 +37,32 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  bool NodeMemberSelect::getSymbolPtr(Symbol *& symptrref)
+  {
+    if(m_nodeLeft)
+      return m_nodeLeft->getSymbolPtr(symptrref);
+
+    MSG(getNodeLocationAsString().c_str(), "No symbol", ERR);
+    return false;
+  }
+
+  bool NodeMemberSelect::hasASymbolDataMember()
+  {
+    return true;
+  }
+
+  bool NodeMemberSelect::hasASymbolSuper()
+  {
+    assert(m_nodeLeft);
+    return m_nodeLeft->hasASymbolSuper();
+  }
+
+  bool NodeMemberSelect::hasASymbolSelf()
+  {
+    assert(m_nodeLeft);
+    return m_nodeLeft->hasASymbolSelf();
+  }
+
   const std::string NodeMemberSelect::methodNameForCodeGen()
   {
     return "_MemberSelect_Stub";
@@ -300,15 +326,6 @@ namespace MFM {
   {
     m_state.abortShouldntGetHere(); //unused
   }
-
-  bool NodeMemberSelect::getSymbolPtr(Symbol *& symptrref)
-  {
-    if(m_nodeLeft)
-      return m_nodeLeft->getSymbolPtr(symptrref);
-
-    MSG(getNodeLocationAsString().c_str(), "No symbol", ERR);
-    return false;
-  } //getSymbolPtr
 
   void NodeMemberSelect::genCode(File * fp, UVPass& uvpass)
   {

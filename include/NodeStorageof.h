@@ -50,15 +50,16 @@ namespace MFM{
   {
   public:
 
-    NodeStorageof(const Token& tokof, NodeTypeDescriptor * nodetype, CompilerState & state);
+    //NodeStorageof(const Token& tokof, NodeTypeDescriptor * nodetype, CompilerState & state);
+    NodeStorageof(Node * ofnode, NodeTypeDescriptor * nodetype, CompilerState & state);
 
     NodeStorageof(const NodeStorageof& ref);
 
     virtual ~NodeStorageof();
 
-    //    virtual Node * instantiate();
-
     virtual void updateLineage(NNO pno);
+
+    virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
 
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
@@ -84,8 +85,9 @@ namespace MFM{
 
   protected:
 
-    Token m_token;
-    SymbolVariable * m_varSymbol;
+    //Token m_token;
+    //SymbolVariable * m_varSymbol;
+    Node * m_nodeOf;
 
     UTI getOfType();
     void setOfType(UTI oftyp);

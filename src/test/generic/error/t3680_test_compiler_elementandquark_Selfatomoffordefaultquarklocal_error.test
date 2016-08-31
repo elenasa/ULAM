@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3680_test_compiler_elementandquark_Selfatomoffordefaultquarklocal_error
 #!
-./QW.ulam:6:25: ERROR: Unsupported request: 'atomof' <QW>, a Type.
+./QW.ulam:6:25: ERROR: Unsupported request: 'atomof' of Type <QW>.
 ./QW.ulam:6:10: ERROR: Initial value of me is missing.
 ./QW.ulam:10:5: ERROR: Invalid Statement (possible missing semicolon).
 Unrecoverable Program Parse FAILURE: <A.ulam>

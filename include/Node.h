@@ -121,6 +121,12 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
+    virtual bool hasASymbolDataMember();
+
+    virtual bool hasASymbolSuper();
+
+    virtual bool hasASymbolSelf();
+
     virtual bool isAConstant();
 
     virtual bool isReadyConstant();

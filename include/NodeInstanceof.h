@@ -45,7 +45,8 @@ namespace MFM{
   {
   public:
 
-    NodeInstanceof(const Token& tokof, NodeTypeDescriptor * nodetype, CompilerState & state);
+    //NodeInstanceof(const Token& tokof, NodeTypeDescriptor * nodetype, CompilerState & state);
+    NodeInstanceof(Node * ofnode, NodeTypeDescriptor * nodetype, CompilerState & state);
 
     NodeInstanceof(const NodeInstanceof& ref);
 

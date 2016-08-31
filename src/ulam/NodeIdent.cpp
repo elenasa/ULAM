@@ -46,18 +46,36 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  bool NodeIdent::getSymbolPtr(Symbol *& symptrref)
-  {
-    symptrref = m_varSymbol;
-    return (m_varSymbol != NULL); //true not-null
-  }
-
   void NodeIdent::setSymbolPtr(SymbolVariable * vsymptr)
   {
     assert(vsymptr);
     m_varSymbol = vsymptr;
     setBlockNo(vsymptr->getBlockNoOfST());
     assert(m_currBlockNo);
+  }
+
+  bool NodeIdent::getSymbolPtr(Symbol *& symptrref)
+  {
+    symptrref = m_varSymbol;
+    return (m_varSymbol != NULL); //true not-null
+  }
+
+  bool NodeIdent::hasASymbolDataMember()
+  {
+    assert(m_varSymbol);
+    return m_varSymbol->isDataMember();
+  }
+
+  bool NodeIdent::hasASymbolSuper()
+  {
+    assert(m_varSymbol);
+    return m_varSymbol->isSuper();
+  }
+
+  bool NodeIdent::hasASymbolSelf()
+  {
+    assert(m_varSymbol);
+    return m_varSymbol->isSelf();
   }
 
   void NodeIdent::setupBlockNo()

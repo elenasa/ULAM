@@ -60,9 +60,15 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    void setSymbolPtr(SymbolVariable * vsymptr);
+
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
-    void setSymbolPtr(SymbolVariable * vsymptr);
+    virtual bool hasASymbolDataMember();
+
+    virtual bool hasASymbolSuper();
+
+    virtual bool hasASymbolSelf();
 
     const Token& getToken() const;
 
@@ -87,8 +93,9 @@ namespace MFM{
 
     virtual void genCodeReadIntoATmpVar(File * fp, UVPass & uvpass);
 
-  protected:
     virtual UlamValue makeUlamValuePtr();
+
+  protected:
 
   private:
     Token m_token;
