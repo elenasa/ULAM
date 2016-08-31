@@ -2921,13 +2921,14 @@ namespace MFM {
     if(!rtnNode)
       return NULL;
 
-    //check for member select expression
+    //check for member select expression; after funccall error at c&l (t3189, t3450)
     Token qTok;
     getNextToken(qTok);
     unreadToken();
     if(qTok.m_type == TOK_DOT)
       rtnNode = parseRestOfMemberSelectExpr(rtnNode);
     //else done here
+
     return rtnNode;
   } //parseIdentExpr
 
@@ -2956,7 +2957,6 @@ namespace MFM {
 
     Token iTok;
     getNextToken(iTok);
-    //if(getExpectedToken(TOK_IDENTIFIER, iTok))
     if(iTok.m_type == TOK_IDENTIFIER)
       {
 	//set up compiler state to NOT use the current class block
@@ -2973,10 +2973,8 @@ namespace MFM {
     else
       {
 	unreadToken();
-      //return rtnNode; //ate dot, possible min/max/sizeof
-	return parseMinMaxSizeofType(classInstanceNode, Nouti, NULL);
+	return parseMinMaxSizeofType(classInstanceNode, Nouti, NULL); //ate dot, possible min/max/sizeof
       }
-
     return parseRestOfMemberSelectExpr(rtnNode); //recurse
   } //parseRestOfMemberSelectExpr
 
@@ -3008,11 +3006,9 @@ namespace MFM {
 	break;
       case TOK_KW_ATOMOF:
 	{
-	  //if(memberTok.m_type == TOK_TYPE_IDENTIFIER)
 	  if(memberNode == NULL)
 	    {
-	      rtnNode = NULL; //caller will clean up nodetype
-
+	      //caller will clean up nodetype
 	      std::ostringstream msg;
 	      msg << "Unsupported request: '" << m_state.getTokenDataAsString(fTok).c_str();
 	      msg << "' of Type <" << m_state.getUlamTypeNameBriefByIndex(utype).c_str() << ">";
@@ -3293,7 +3289,6 @@ Node * Parser::parseFactorStartingWithAType(const Token& tTok)
   UTI uti = typeNode->givenUTI();
 
   //returns either a terminal or proxy
-  //Node * rtnNode = parseMinMaxSizeofType(tTok, uti, typeNode); //optionally, gets next dot token
   Node * rtnNode = parseMinMaxSizeofType(NULL, uti, typeNode); //optionally, gets next dot token
   if(!rtnNode)
     {
@@ -3330,16 +3325,8 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	rtnNode = makeConditionalExprNode(leftNode);
 	break;
       case TOK_DOT:
-	{
-	  assert(leftNode);
-	  //Symbol * asymptr = NULL;
-	  //((NodeIdent*) leftNode)->getSymbolPtr(asymptr); //could be NodeSqBkt?
-	  //assert(asymptr);
-	  //Token iTok(*asymptr->getTokPtr());
-	  //rtnNode = parseMinMaxSizeofType(iTok, asymptr->getUlamTypeIdx(), NULL);
-	  //delete leftNode; //ident replaced by rtnNode
-	  rtnNode = parseMinMaxSizeofType(leftNode, Nouti, NULL);
-	}
+	assert(leftNode);
+	rtnNode = parseMinMaxSizeofType(leftNode, Nouti, NULL);
 	break;
       case TOK_PLUS_PLUS: //t3903
       case TOK_MINUS_MINUS: //t3903
@@ -5251,7 +5238,6 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	UTI uti = typeNode->givenUTI();
 	//as in parseFactor, returns either a terminal or proxy
 	//optionally, gets next dot token
-	//rtnNode = parseMinMaxSizeofType(typeTok, uti, typeNode);
 	rtnNode = parseMinMaxSizeofType(NULL, uti, typeNode);
 	if(rtnNode)
 	  rtnNode = parseRestOfExpression(rtnNode);
