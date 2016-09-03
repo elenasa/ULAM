@@ -29,7 +29,6 @@ namespace MFM {
 
   UTI NodeAtomof::checkAndLabelType()
   {
-    //assert(m_token.m_type == TOK_IDENTIFIER); //caught at parse time (right?)
     assert(m_nodeOf); //Identifier, not a Type; caught at parse time (right?)
     UTI nuti = NodeStorageof::checkAndLabelType();
     if(m_state.okUTItoContinue(nuti))

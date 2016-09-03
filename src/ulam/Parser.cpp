@@ -2908,7 +2908,10 @@ namespace MFM {
     else if(pTok.m_type == TOK_DOT)
       {
 	unreadToken();
-	rtnNode = parseMemberSelectExpr(identTok);
+	//don't recurse..(t3189, t3450)
+	rtnNode = new NodeIdent(identTok, NULL, m_state);
+	assert(rtnNode);
+	rtnNode->setNodeLocation(identTok.m_locator);
       }
     else
       {
@@ -2916,18 +2919,6 @@ namespace MFM {
 	unreadToken();
 	rtnNode = parseLvalExpr(identTok);
       }
-
-    //bail if no node
-    if(!rtnNode)
-      return NULL;
-
-    //check for member select expression; after funccall error at c&l (t3189, t3450)
-    Token qTok;
-    getNextToken(qTok);
-    unreadToken();
-    if(qTok.m_type == TOK_DOT)
-      rtnNode = parseRestOfMemberSelectExpr(rtnNode);
-    //else done here
 
     return rtnNode;
   } //parseIdentExpr
@@ -2937,45 +2928,50 @@ namespace MFM {
     //arg is an instance of a class, it will be/was
     //declared as a variable, either as a data member or locally,
     //WAIT To  search back through the block symbol tables during type labeling
-    Node * classInstanceNode = new NodeIdent(memberTok, NULL, m_state);
-    assert(classInstanceNode);
-    classInstanceNode->setNodeLocation(memberTok.m_locator);
+    m_state.pushClassContextUsingMemberClassBlock(NULL); //oddly =true
+
+    Node * classInstanceNode = parseIdentExpr(memberTok); //includes array item, func call, etc.
+
+    m_state.popClassContext();
 
     return parseRestOfMemberSelectExpr(classInstanceNode);
   }
 
   Node * Parser::parseRestOfMemberSelectExpr(Node * classInstanceNode)
   {
-    Node * rtnNode = classInstanceNode;
+    Node * rtnNode = classInstanceNode; //first one
     Token pTok;
-    getNextToken(pTok);
-    if(pTok.m_type != TOK_DOT)
-      {
-	unreadToken();
-	return rtnNode;
-      }
 
-    Token iTok;
-    getNextToken(iTok);
-    if(iTok.m_type == TOK_IDENTIFIER)
+    //use loop rather than recursion to get a left-justified tree;
+    // needed to support, for example: a.b.c.atomof (t3905)
+    while(getExpectedToken(TOK_DOT, pTok, QUIETLY)) //if not, quietly unreads
       {
-	//set up compiler state to NOT use the current class block
-	//for symbol searches; may be unknown until type label
-	m_state.pushClassContextUsingMemberClassBlock(NULL); //oddly =true
+	Token iTok;
+	getNextToken(iTok);
+	if(iTok.m_type == TOK_IDENTIFIER)
+	  {
+	    //set up compiler state to NOT use the current class block
+	    //for symbol searches; may be unknown until type label
+	    m_state.pushClassContextUsingMemberClassBlock(NULL); //oddly =true
+	    Node * nextmember = parseIdentExpr(iTok); //includes array item, func call, etc.
+	    assert(nextmember);
 
-	rtnNode = new NodeMemberSelect(classInstanceNode, parseIdentExpr(iTok), m_state);
-	assert(rtnNode);
-	rtnNode->setNodeLocation(iTok.m_locator);
+	    NodeMemberSelect * ms = new NodeMemberSelect(rtnNode, nextmember, m_state);
+	    assert(ms);
+	    ms->setNodeLocation(iTok.m_locator);
+	    rtnNode = ms;
 
-	//clear up compiler state to no longer use the member class block for symbol searches
-	m_state.popClassContext(); //restore
-      }
-    else
-      {
-	unreadToken();
-	return parseMinMaxSizeofType(classInstanceNode, Nouti, NULL); //ate dot, possible min/max/sizeof
-      }
-    return parseRestOfMemberSelectExpr(rtnNode); //recurse
+	    //clear up compiler state to no longer use the member class block
+	    // for symbol searches (e.g. t3262)
+	    m_state.popClassContext(); //restore
+	  }
+	else
+	  {
+	    unreadToken(); //pTok
+	    rtnNode = parseMinMaxSizeofType(rtnNode, Nouti, NULL); //ate dot, possible min/max/sizeof
+	  }
+      } //while
+    return rtnNode;
   } //parseRestOfMemberSelectExpr
 
   Node * Parser::parseMinMaxSizeofType(Node * memberNode, UTI utype, NodeTypeDescriptor * nodetype)
@@ -3326,7 +3322,8 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	break;
       case TOK_DOT:
 	assert(leftNode);
-	rtnNode = parseMinMaxSizeofType(leftNode, Nouti, NULL);
+	//rtnNode = parseMinMaxSizeofType(leftNode, Nouti, NULL);
+	rtnNode = parseRestOfMemberSelectExpr(leftNode); //t3905
 	break;
       case TOK_PLUS_PLUS: //t3903
       case TOK_MINUS_MINUS: //t3903
@@ -3585,6 +3582,10 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	rtnNode = parseRestOfFactor(leftNode);
 	rtnNode = parseRestOfExpression(rtnNode); //any more?
 	break;
+      case TOK_DOT:
+	unreadToken();
+	rtnNode = parseRestOfMemberSelectExpr(leftNode);
+	break;
       case TOK_ERROR_LOWLEVEL:
 	rtnNode = parseRestOfExpression(leftNode); //redo
 	break;
@@ -3650,6 +3651,13 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	{
 	  unreadToken();
 	  rtnNode = leftNode;
+	  break;
+	}
+      case TOK_DOT:
+	{
+	  unreadToken(); //t3905
+	  rtnNode = parseRestOfMemberSelectExpr(leftNode);
+	  rtnNode = parseRestOfAssignExpr(rtnNode);
 	  break;
 	}
       default:
@@ -3772,7 +3780,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
     getNextToken(eTok);
     if(eTok.m_type == TOK_IDENTIFIER)
       {
-	Node * rightNode = parseIdentExpr(eTok); //parseLvalExpr(eTok);
+	Node * rightNode = parseMemberSelectExpr(eTok); //t3832
 	if(!rightNode)
 	  {
 	    std::ostringstream msg;

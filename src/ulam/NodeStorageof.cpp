@@ -72,11 +72,13 @@ namespace MFM {
 
   void NodeStorageof::printPostfix(File * fp)
   {
-    fp->write(" ");
     if(m_nodeOf)
-      fp->write(m_nodeOf->getName());
+      m_nodeOf->printPostfix(fp);
     else
-      fp->write(m_state.getUlamTypeNameBriefByIndex(getOfType()).c_str());
+      {
+	fp->write(" ");
+	fp->write(m_state.getUlamTypeNameBriefByIndex(getOfType()).c_str());
+      }
     fp->write(getName());
   }
 
