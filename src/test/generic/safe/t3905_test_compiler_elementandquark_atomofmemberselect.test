@@ -1,15 +1,14 @@
 ## -*- mode:ulam -*-
-#=t3675_test_compiler_elementandquark_Selfatomoffordefaultelement
+#=t3905_test_compiler_elementandquark_atomofmemberselect
 #!
 ##      gen code output: 2 asserts
 ##
 Exit status: -11
-Ue_A : QW { :<> Bool(1) b(true);  Int(32) test() {  System s;  b true = Atom(96) me = A.instanceof cast;  Atom(96) defaultself = A.instanceof cast;  Atom(96) myself = self.atomof cast;  Atom(96) a = ( )func;  { a A as cond { A& a;  s ( a b . ! )assert . } if s ( false )assert . else } { a QW is cond s ( true )assert . if s ( false )assert . else } 0 cast return } }
+Ue_A : QW { :<> Bool(1) b(true);  QW m_q();  Int(32) test() {  System s;  b true = Atom(96) metoo = self.atomof cast;  { metoo A as cond { A& metoo;  s ( metoo b . )assert . } if } A a;  a b . true = Atom(96) me = a.atomof cast;  { me A as cond { A& me;  s ( me b . )assert . } if } 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }
 ##
-## Dave requested a way to get default values for Self (within a quark);
-## Self.instanceof (default) vs self.atomof (current stg)
+## informed by t3675
 ##
 #>A.ulam
   ulam 2;
@@ -20,16 +19,21 @@ element A : QW {
   QW m_q;
   Int test(){
     System s;
+
+    //works with self
+    b = true;
+    Atom metoo = self.m_q.atomof;
+    if(metoo as A)
+      s.assert(metoo.b);
+
+    //immediate element
     A a;
     a.b = true;
     Atom me = a.m_q.atomof;
 
-    //works with self
-    //b = true;
-    //Atom me = m_q.atomof;
-
     if(me as A)
       s.assert(me.b);
+
     return 0;
   }
 }

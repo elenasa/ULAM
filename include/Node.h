@@ -145,6 +145,8 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
+    virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
+
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
     virtual void constantFoldAToken(const Token& tok);
@@ -238,9 +240,13 @@ namespace MFM{
     //index of last named constant (array) object; o.w.-1
     s32 isCurrentObjectsContainingAConstant();
 
+    //index of first element or ele ref object; o.w. -1
+    s32 isCurrentObjectsContainingAnElement();
+
     std::string calcPosOfCurrentObjectClassesAsString(UVPass uvpass);
     s32 calcPosOfCurrentObjectClasses();
-    s32 calcPosOfCurrentObjects(bool onlyClasses = false);
+    s32 calcPosOfCurrentObjects();
+    s32 calcPosOfCurrentObjects(bool onlyClasses, s32 endingCosIdx);
 
     //false means its the entire array or not an array at all
     bool isCurrentObjectAnArrayItem(UTI cosuti, UVPass uvpass);

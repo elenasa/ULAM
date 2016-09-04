@@ -78,6 +78,8 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
+    virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
+
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();

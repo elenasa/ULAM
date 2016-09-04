@@ -258,6 +258,15 @@ namespace MFM {
     return m_utype;
   }
 
+  bool Node::trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr)
+  {
+    std::ostringstream msg;
+    msg << "virtual bool " << prettyNodeName().c_str();
+    msg << "::trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+    return false;
+  }
+
   void Node::checkForSymbol()
   {
     //for Nodes with Symbols
@@ -2918,6 +2927,25 @@ namespace MFM {
     return indexOfLast;
   } //isCurrentObjectsContainingAConstant
 
+  // returns the index to the first object that's an element or ele ref; o.w. -1 none found;
+  // e.g. element data member of transient (t3905)
+  s32 Node::isCurrentObjectsContainingAnElement()
+  {
+    s32 indexOfFirst = -1;
+    s32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+    for(s32 i = 0; i < cosSize; i++)
+      {
+	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
+	UTI suti = sym->getUlamTypeIdx();
+	if(m_state.getUlamTypeByIndex(suti)->getUlamClassType() == UC_ELEMENT)
+	  {
+	    indexOfFirst = i;
+	    break;
+	  }
+      }
+    return indexOfFirst;
+  } //isCurrentObjectsContainingAnElement
+
   // used by genHiddenArg2 for function calls; uvpass may contain the index
   // of an array item, o.w. the current arg's tmp var (unneeded here).
   std::string Node::calcPosOfCurrentObjectClassesAsString(UVPass uvpass)
@@ -2948,17 +2976,22 @@ namespace MFM {
   // returns accumulated relative positions of data members
   s32 Node::calcPosOfCurrentObjectClasses()
   {
-    return calcPosOfCurrentObjects(true);
+    return calcPosOfCurrentObjects(true, -1);
   } //calcPosOfCurrentObjectClasses
 
   // returns accumulated relative positions of data members
-  s32 Node::calcPosOfCurrentObjects(bool onlyClasses)
+  s32 Node::calcPosOfCurrentObjects()
+  {
+    return calcPosOfCurrentObjects(false, -1);
+  } //calcPosOfCurrentObjects
+
+  // returns accumulated relative positions of data members
+  s32 Node::calcPosOfCurrentObjects(bool onlyClasses, s32 endingCosIdx)
   {
     // default for onlyClasses is false;
     // self must be subclass, i.e. inherited quark always at pos 0
     if(m_state.m_currentObjSymbolsForCodeGen.empty()) return 0;
-    s32 cosSize = (s32) m_state.m_currentObjSymbolsForCodeGen.size();
-
+    s32 cosSize = endingCosIdx == -1 ? (s32) m_state.m_currentObjSymbolsForCodeGen.size() : endingCosIdx + 1;
     u32 pos = 0;
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
     UTI stgcosuti = stgcos->getUlamTypeIdx();

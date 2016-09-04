@@ -59,6 +59,8 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
+    virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
+
     virtual void genCode(File * fp, UVPass& uvpass);
 
     virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);

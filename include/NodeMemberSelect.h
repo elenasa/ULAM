@@ -72,6 +72,8 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
+    virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
+
     virtual bool assignClassArgValueInStubCopy();
 
     virtual bool isFunctionCall();

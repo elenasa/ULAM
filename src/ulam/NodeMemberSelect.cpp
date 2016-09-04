@@ -163,6 +163,27 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
+  bool NodeMemberSelect::trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr)
+  {
+    Node * tmpnptr = NULL;
+    //right is a leaf (NodeIdent)
+    if(m_nodeRight->trimToTheElement(NULL, tmpnptr))
+      {
+	rtnnodeptr = this; //keep ms node;
+	if(fromleftnode)
+	  *fromleftnode = NULL; //clear for future deletion
+	return true;
+      }
+
+    //left-assoc tree..
+    if(m_nodeLeft->trimToTheElement(&m_nodeLeft, tmpnptr))
+      {
+	rtnnodeptr = tmpnptr;
+	return true;
+      }
+    return false;
+  } //trimToTheElement
+
   bool NodeMemberSelect::assignClassArgValueInStubCopy()
   {
     return true; //nothing to do

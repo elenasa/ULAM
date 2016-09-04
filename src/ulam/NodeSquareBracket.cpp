@@ -288,6 +288,20 @@ namespace MFM {
     return newType;
   } //checkAndLabelType
 
+  bool NodeSquareBracket::trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr)
+  {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    if(nut->getUlamClassType() == UC_ELEMENT)
+      {
+	if(fromleftnode)
+	  *fromleftnode = NULL; //clear for future deletion
+	rtnnodeptr = this;
+	return true;
+      }
+    return false;
+  } //trimToTheElement
+
   UTI NodeSquareBracket::calcNodeType(UTI lt, UTI rt)
   {
     m_state.abortShouldntGetHere();

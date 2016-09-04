@@ -398,6 +398,21 @@ namespace MFM {
     return true;
   } //exchangeNodeWithParent
 
+  bool NodeIdent::trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr)
+  {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    //self as good as element until runtime t3905
+    if((nut->getUlamClassType() == UC_ELEMENT) || m_varSymbol->isSelf())
+      {
+	if(fromleftnode)
+	  *fromleftnode = NULL; //clear for future deletion
+	rtnnodeptr = this;
+	return true;
+      }
+    return false;
+  } //trimToTheElement
+
   EvalStatus NodeIdent::eval()
   {
     assert(m_varSymbol);
