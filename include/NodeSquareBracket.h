@@ -78,6 +78,8 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
+    virtual bool getStorageSymbolPtr(Symbol *& symptrref);
+
     virtual bool installSymbolTypedef(TypeArgs& args, Symbol *& asymptr);
     virtual bool installSymbolConstantValue(TypeArgs& args, Symbol *& asymptr);
     virtual bool installSymbolModelParameterValue(TypeArgs& args, Symbol*& asymptr);

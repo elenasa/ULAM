@@ -148,6 +148,11 @@ namespace MFM {
     return false;
   }
 
+  bool Node::getStorageSymbolPtr(Symbol *& symptrref)
+  {
+    return false;
+  }
+
   bool Node::hasASymbolDataMember()
   {
     return false;
@@ -159,6 +164,11 @@ namespace MFM {
   }
 
   bool Node::hasASymbolSelf()
+  {
+    return false;
+  }
+
+  bool Node::hasASymbolReference()
   {
     return false;
   }
@@ -1690,6 +1700,7 @@ namespace MFM {
       }
 
     UTI stgcosuti = stgcos->getUlamTypeIdx();
+    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
@@ -1772,9 +1783,12 @@ namespace MFM {
 	  }
 	else if(vetyp == UAtom)
 	  {
+	    ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClassType();
 	    fp->write(", ");
 	    fp->write_decimal_unsigned(pos); //rel offset
 	    fp->write("u"); //t3820
+	    if((stgclasstype == UC_ELEMENT) || (stgclasstype == UC_QUARK))
+	      fp->write(" - T::ATOM_FIRST_STATE_BIT"); //t3684, 3735, 3756, 3789
 	  }
 	// else non-class has no effective self
 	fp->write(");"); GCNL;
@@ -1863,7 +1877,14 @@ namespace MFM {
 	      }
 	    else if((vetyp == UAtom))
 	      {
-		fp->write(", 0u");
+		if(stgcosut->isReference())
+		  {
+		    ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClassType();
+		    if((stgclasstype == UC_ELEMENT) || (stgclasstype == UC_QUARK))
+		      fp->write(", - T::ATOM_FIRST_STATE_BIT"); //needs a test!!
+		  }
+		else
+		  fp->write(", 0u");
 	      }
 	    else if(vetyp == Class)
 	      {
@@ -1929,6 +1950,15 @@ namespace MFM {
     fp->write(", ");
     if(needAdjustToStateBits(cosuti))
       fp->write("T::ATOM_FIRST_STATE_BIT + "); //t3816
+    else if(vetyp == UAtom)
+      {
+	if(stgcosut->isReference())
+	  {
+	    ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClassType();
+	    if((stgclasstype == UC_ELEMENT) || (stgclasstype == UC_QUARK))
+	      fp->write("- T::ATOM_FIRST_STATE_BIT + "); //needs a test!!
+	  }
+      }
     fp->write_decimal_unsigned(pos); //rel offset array base
     fp->write("u + (");
     fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //INDEX

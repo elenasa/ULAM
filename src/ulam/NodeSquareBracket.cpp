@@ -510,6 +510,12 @@ namespace MFM {
     return false;
   }
 
+  bool NodeSquareBracket::getStorageSymbolPtr(Symbol *& symptrref)
+  {
+    assert(m_nodeLeft);
+    return m_nodeLeft->getStorageSymbolPtr(symptrref);
+  }
+
   //see also NodeIdent
   bool NodeSquareBracket::installSymbolTypedef(TypeArgs& args, Symbol *& asymptr)
   {

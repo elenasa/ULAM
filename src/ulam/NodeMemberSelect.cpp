@@ -39,10 +39,19 @@ namespace MFM {
 
   bool NodeMemberSelect::getSymbolPtr(Symbol *& symptrref)
   {
-    if(m_nodeLeft)
-      return m_nodeLeft->getSymbolPtr(symptrref);
+    if(m_nodeRight)
+      return m_nodeRight->getSymbolPtr(symptrref);
 
     MSG(getNodeLocationAsString().c_str(), "No symbol", ERR);
+    return false;
+  }
+
+  bool NodeMemberSelect::getStorageSymbolPtr(Symbol *& symptrref)
+  {
+    if(m_nodeLeft)
+      return m_nodeLeft->getSymbolPtr(symptrref); //includes quarks, transients
+
+    MSG(getNodeLocationAsString().c_str(), "No storage symbol", ERR);
     return false;
   }
 
@@ -61,6 +70,12 @@ namespace MFM {
   {
     assert(m_nodeLeft);
     return m_nodeLeft->hasASymbolSelf();
+  }
+
+  bool NodeMemberSelect::hasASymbolReference()
+  {
+    assert(m_nodeLeft);
+    return m_nodeLeft->hasASymbolReference();
   }
 
   const std::string NodeMemberSelect::methodNameForCodeGen()

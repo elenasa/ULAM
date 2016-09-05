@@ -60,6 +60,21 @@ namespace MFM {
     return (m_varSymbol != NULL); //true not-null
   }
 
+  bool NodeIdent::getStorageSymbolPtr(Symbol *& symptrref)
+  {
+    UTI nuti = getNodeType();
+    assert(m_state.okUTItoContinue(nuti));
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    ULAMCLASSTYPE classtype = nut->getUlamClassType();
+    //only atom, and elements, and quark refs, are considered 'storage'
+    if((classtype == UC_ELEMENT) || ((classtype == UC_QUARK) && nut->isReference()) || m_state.isAtom(nuti))
+      {
+	symptrref = m_varSymbol;
+	return true;
+      }
+    return false;
+  }
+
   bool NodeIdent::hasASymbolDataMember()
   {
     assert(m_varSymbol);
@@ -76,6 +91,13 @@ namespace MFM {
   {
     assert(m_varSymbol);
     return m_varSymbol->isSelf();
+  }
+
+  bool NodeIdent::hasASymbolReference()
+  {
+    UTI nuti = getNodeType();
+    assert(m_state.okUTItoContinue(nuti));
+    return m_state.isReference(nuti);
   }
 
   void NodeIdent::setupBlockNo()

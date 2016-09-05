@@ -60,11 +60,15 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
+    virtual bool getStorageSymbolPtr(Symbol *& symptrref);
+
     virtual bool hasASymbolDataMember();
 
     virtual bool hasASymbolSuper();
 
     virtual bool hasASymbolSelf();
+
+    virtual bool hasASymbolReference();
 
     virtual const std::string methodNameForCodeGen();
 
