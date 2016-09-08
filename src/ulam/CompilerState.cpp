@@ -3427,7 +3427,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     PACKFIT packed = determinePackable(uti);
     bool isLoadableRegister = (packed == PACKEDLOADABLE);
 
-    if(stg == TMPREGISTER)
+    if((stg == TMPREGISTER) || (stg == TMPARRAYIDX))
       {
 	if(isLoadableRegister)
 	  tmpVar << "Uh_5tlreg" ; //tmp loadable register

@@ -5,7 +5,6 @@
 
 namespace MFM {
 
-  //NodeAtomof::NodeAtomof(const Token& tokof, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeStorageof(tokof, nodetype, state) { }
   NodeAtomof::NodeAtomof(Node * ofnode, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeStorageof(ofnode, nodetype, state) { }
 
   NodeAtomof::NodeAtomof(const NodeAtomof& ref) : NodeStorageof(ref) { }
@@ -194,7 +193,6 @@ namespace MFM {
 
     UTI nuti = getNodeType(); //UAtomRef
 
-    //if(m_nodeOf->hasASymbolSelf() || (m_nodeOf->hasASymbolReference() && (m_state.getUlamTypeByIndex(getOfType())->getUlamClassType() == UC_QUARK)))
     if(m_nodeOf->hasASymbolReference() && (m_state.getUlamTypeByIndex(getOfType())->getUlamClassType() == UC_QUARK))
       {
 	Symbol * stgcos = NULL;
@@ -246,7 +244,7 @@ namespace MFM {
 	assert(m_state.m_currentObjSymbolsForCodeGen.empty());
 
 	//e.g. 'return self.atomof;' (e.g. t3408, t3410, t3585, t3631, t3663)
-	uvpass = UVPass::makePass(uvpass.getPassVarNum(), TMPTATOM, nuti, UNPACKED, m_state, 0, uvpass.getPassNameId());
+	uvpass = UVPass::makePass(uvpass.getPassVarNum(), TMPTATOM, nuti, UNPACKED, m_state, uvpass.getPassPos(), uvpass.getPassNameId());
       }
   } //genCode
 
@@ -257,7 +255,6 @@ namespace MFM {
 
     UTI nuti = getNodeType(); //UAtomRef
 
-    //if(m_nodeOf->hasASymbolSelf() || (m_nodeOf->hasASymbolReference() && (m_state.getUlamTypeByIndex(getOfType())->getUlamClassType() == UC_QUARK)))
     if(m_nodeOf->hasASymbolReference() && (m_state.getUlamTypeByIndex(getOfType())->getUlamClassType() == UC_QUARK))
       {
 	Symbol * stgcos = NULL;
@@ -289,7 +286,7 @@ namespace MFM {
 	fp->write(" - T::ATOM_FIRST_STATE_BIT"); //must be an effective element ref (e.g.t3684, t3663)
 	fp->write("); //atomof"); GCNL;
 
-	uvpass = UVPass::makePass(tmpVarNum, TMPBITVAL, nuti, UNPACKED, m_state, 0, uvpass.getPassNameId());
+	uvpass = UVPass::makePass(tmpVarNum, TMPBITVAL, nuti, UNPACKED, m_state, uvpass.getPassPos(), uvpass.getPassNameId());
       }
     else
       {
@@ -299,77 +296,8 @@ namespace MFM {
 	m_nodeOf->genCodeToStoreInto(fp, uvpass); //does it handle array item members selected?
 	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
 
-	uvpass = UVPass::makePass(uvpass.getPassVarNum(), TMPTATOM, getNodeType(), UNPACKED, m_state, 0, uvpass.getPassNameId());
+	uvpass = UVPass::makePass(uvpass.getPassVarNum(), TMPTATOM, getNodeType(), UNPACKED, m_state, uvpass.getPassPos(), uvpass.getPassNameId());
       }
-
-
-#if 0
-    //UTI nuti = getNodeType(); //UAtomRef
-    //UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    //s32 tmpVarNum = m_state.getNextTmpVarNumber(); //tmp for atomref
-
-    //assert(m_varSymbol);
-    //UTI vuti = m_varSymbol->getUlamTypeIdx();
-    //bool isself = m_varSymbol->isSelf();
-    //bool issuper = m_varSymbol->isSuper();
-    //bool isaref = (m_state.isReference(vuti) || isself || issuper);
-    //if var is a data member quark, then also isself (or issuper)
-
-    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
-    UTI cosuti = cos->getUlamTypeIdx();
-    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-    bool isself = stgcos->isSelf();
-    bool issuper = stgcos->isSuper();
-    bool isaref = m_state.isReference(cosuti) || isself || issuper;
-
-    if(isaref)
-      {
-	m_state.indentUlamCode(fp);
-	fp->write("if(");
-	fp->write(cos->getMangledName().c_str());
-	fp->write(".GetType() == T::ATOM_UNDEFINED_TYPE)"); GCNL;
-
-	m_state.m_currentIndentLevel++;
-	m_state.indentUlamCode(fp);
-	fp->write("FAIL(NOT_AN_ELEMENT);"); GCNL;
-	m_state.m_currentIndentLevel--;
-      }
-
-    m_state.indentUlamCode(fp); //non-const
-    fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
-    fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPBITVAL).c_str());
-    fp->write("(");
-
-    //data member's storage is self (not a ref)
-    if(cos->isDataMember())
-      {
-	assert(0); //see genCode above
-	fp->write("ur");
-      }
-    else
-      fp->write(cos->getMangledName().c_str()); //element or atom (ur for self/super)
-
-    fp->write(", "); //is storage! can't be const (error/t3659)
-
-    if(isaref)
-      fp->write(" - T::ATOM_FIRST_STATE_BIT"); //must be an effective element ref (e.g.t3684, t3663)
-    else
-      fp->write("0u");
-
-    if(!isaref)
-      {
-	fp->write(", uc); //atomof"); GCNL;
-      }
-    else
-      {
-	fp->write("); //atomof"); GCNL; //t3684
-      }
-
-    uvpass = UVPass::makePass(tmpVarNum, TMPBITVAL, nuti, UNPACKED, m_state, 0, cos ? cos->getId() : 0);
-
-    m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
-#endif
   } //genCodeToStoreInto
 
 } //end MFM

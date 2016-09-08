@@ -235,6 +235,11 @@ namespace MFM{
 
     virtual void genLocalMemberNameOfMethod(File * fp);
 
+    void genLocalMemberNameOfMethodForAtomof(File * fp);
+
+    //return index of stgcos in stack of symbols, -1 if stack is empty and currentSelf.
+    s32 loadStorageAndCurrentObjectSymbols(Symbol *& stgcosref, Symbol *&cosref);
+
     //i.e. an immediate (right-justified); not a data member or self;
     bool isCurrentObjectALocalVariableOrArgument();
 
@@ -265,7 +270,7 @@ namespace MFM{
 
     bool needAdjustToStateBits(UTI cuti);
 
-    SymbolTmpRef * makeTmpRefSymbolForCodeGen(UVPass uvpass);
+    SymbolTmpRef * makeTmpRefSymbolForCodeGen(UVPass uvpass, Symbol * sym);
 
     std::string genUlamRefUsageAsString(UTI uti);
 

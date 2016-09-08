@@ -228,7 +228,7 @@ namespace MFM {
 	if(sym->isDataMember() && variableSymbolWithCountableSize(sym) && !m_state.isClassAQuarkUnion(suti))
 	  {
 	    s32 len = sut->getTotalBitSize(); //include arrays (e.g. t3512)
-	    u32 pos = ((SymbolVariableDataMember *) sym)->getPosOffset();
+	    u32 pos = sym->getPosOffset();
 
 	    //updates the UV at offset with the default of sym;
 	    // support initialized non-class arrays
@@ -260,7 +260,7 @@ namespace MFM {
 	    UTI suti = sym->getUlamTypeIdx();
 	    if(UlamType::compare(suti, utype, m_state) == UTIC_SAME)
 	      {
-		posfound = ((SymbolVariableDataMember *) sym)->getPosOffset();
+		posfound = sym->getPosOffset();
 		insidecuti = suti;
 		break;
 	      }
@@ -271,7 +271,7 @@ namespace MFM {
 		assert(superuti != Hzy);
 		if((superuti != Nouti) && (UlamType::compare(superuti, utype, m_state) == UTIC_SAME))
 		  {
-		    posfound = ((SymbolVariableDataMember *) sym)->getPosOffset(); //starts at beginning
+		    posfound = sym->getPosOffset(); //starts at beginning
 		    insidecuti = suti;
 		    break;
 		  }
@@ -328,7 +328,7 @@ namespace MFM {
 		fp->write("if(!strcmp(namearg,\"");
 		fp->write(sut->getUlamTypeMangledName().c_str()); //mangled, including class args!
 		fp->write("\")) return (");
-		fp->write_decimal(((SymbolVariableDataMember *) sym)->getPosOffset());
+		fp->write_decimal(sym->getPosOffset());
 		fp->write("); //pos offset"); GCNL;
 
 		UTI superuti = m_state.isClassASubclass(suti);
@@ -340,7 +340,7 @@ namespace MFM {
 		    fp->write("if(!strcmp(namearg,\"");
 		    fp->write(superut->getUlamTypeMangledName().c_str()); //mangled, including class args!
 		    fp->write("\")) return (");
-		    fp->write_decimal(((SymbolVariableDataMember *) sym)->getPosOffset()); //same offset starts at 0
+		    fp->write_decimal(sym->getPosOffset()); //same offset starts at 0
 		    fp->write("); //inherited pos offset"); GCNL;
 
 		    superuti = m_state.isClassASubclass(superuti); //any more

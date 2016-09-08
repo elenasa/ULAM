@@ -812,7 +812,7 @@ namespace MFM {
 	      {
 		// e.g. 'self' is not a dm, nor local var or arg (t3274, t3275, t3405)
 		if(cos->isDataMember())
-		  pos = ((SymbolVariableDataMember *) cos)->getPosOffset(); //data member position overrides
+		  pos = cos->getPosOffset(); //data member position overrides
 		//else 0
 	      }
 	    //else local var or arg, including references and model parameter
@@ -1077,6 +1077,7 @@ namespace MFM {
 
     UTI vuti = uvpass.getPassTargetType();
     //vuti may not be a ref (e.g. t3668, a QW that was deref'd by [].)
+    bool isaref = m_state.isReference(vuti);
 
     //use possible dereference type for mangled name
     UTI derefuti = m_state.getUlamTypeAsDeref(vuti);
@@ -1089,7 +1090,11 @@ namespace MFM {
     //new ur to reflect "effective" self and the ref storage, for this funccall
     hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvarur).c_str() << "(";
     hiddenarg2 << m_state.getTmpVarAsString(derefuti, tmpvarnum, TMPAUTOREF).c_str();
-    hiddenarg2 << ", " << uvpass.getPassPos() << "u"; //element refs already +25
+    if(isaref)
+      hiddenarg2 << ", 0u"; //references already offset t3811
+    else
+      hiddenarg2 << ", " << uvpass.getPassPos() << "u"; //element refs already +25
+
     hiddenarg2 << ", " << derefut->getTotalBitSize() << "u, "; //len t3370
 
     hiddenarg2 << "&";
@@ -1122,14 +1127,9 @@ namespace MFM {
 	else //local var
 	  {
 	    Symbol * stgcos = NULL;
-	    if(m_state.m_currentObjSymbolsForCodeGen.empty())
-	      {
-		stgcos = m_state.getCurrentSelfSymbolForCodeGen();
-	      }
-	    else
-	      {
-		stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-	      }
+	    Symbol * costmp = NULL;
+	    Node::loadStorageAndCurrentObjectSymbols(stgcos, costmp);
+	    assert(costmp && stgcos);
 
 	    stype << stgcos->getMangledName().c_str();
 	    stype << ".GetType()";
@@ -1245,11 +1245,15 @@ namespace MFM {
     UTI vuti = m_funcSymbol->getParameterType(n);
 
     u32 id = 0;
+    Symbol * cossym = NULL;
     if(!m_state.m_currentObjSymbolsForCodeGen.empty())
-      id = m_state.m_currentObjSymbolsForCodeGen[0]->getId();
+      {
+	cossym = m_state.m_currentObjSymbolsForCodeGen[0];
+	id = cossym->getId();
+      }
 
     UVPass luvpass = UVPass::makePass(tmpVarArgNum, TMPAUTOREF, vuti, m_state.determinePackable(vuti), m_state, 0, id);
-    SymbolTmpRef * tmprefsym = Node::makeTmpRefSymbolForCodeGen(luvpass);
+    SymbolTmpRef * tmprefsym = Node::makeTmpRefSymbolForCodeGen(luvpass, cossym); //cossym could be null
 
     Node::genCodeReferenceInitialization(fp, uvpass, tmprefsym);
 

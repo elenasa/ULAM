@@ -92,7 +92,8 @@ namespace MFM{
 
   protected:
 
-    SymbolTmpRef * m_tmprefSymbol;
+    SymbolTmpRef * m_tmprefSymbolLeft;
+    SymbolTmpRef * m_tmprefSymbolRight;
 
     virtual bool doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
     virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len);

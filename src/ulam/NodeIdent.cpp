@@ -623,7 +623,7 @@ namespace MFM {
       {
 	// return ptr to this data member within the m_currentObjPtr
 	// 'pos' modified by this data member symbol's packed bit position
-	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset(), m_varSymbol->getId());
+	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 
 	ptr.checkForAbsolutePtr(m_state.m_currentObjPtr); //t3810
       }
@@ -649,7 +649,7 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
-    u32 pos = uvpass.getPassPos(); //Thu Jun 23 16:01:08 2016
+    u32 pos = uvpass.getPassPos();
     if(m_varSymbol->isDataMember())
       {
 	if(!m_state.m_currentObjSymbolsForCodeGen.empty())
@@ -662,9 +662,16 @@ namespace MFM {
 	    UTI suti = sym->getUlamTypeIdx();
 	    if(!sym->isSelf() && Node::needAdjustToStateBits(suti))
 	      pos += ATOMFIRSTSTATEBITPOS;
+	    //array items seem like a reference (t3820)
+	    if(sym->isDataMember() && !m_state.isReference(suti))
+	      pos += sym->getPosOffset();
 	  }
-	// 'pos' modified by this data member symbol's packed bit position
-	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos + ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset(), m_varSymbol->getId());
+	// 'pos' modified by this data member symbol's packed bit position;
+	// except for array items, i.e. tmprefsymbols (t3910)
+	if(!m_varSymbol->isTmpRefSymbol())
+	  pos += m_varSymbol->getPosOffset();
+
+	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos, m_varSymbol->getId());
       }
     else
       //local variable on the stack; could be array ptr!

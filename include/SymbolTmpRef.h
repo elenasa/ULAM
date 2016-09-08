@@ -43,11 +43,12 @@ namespace MFM{
 
   class CompilerState;  //forward
 
-  //distinguish between Symbols
+  //used to hold the tmpvar name for a genCodeToStoreInto of an array item
+  // e.g. member select, function call.
   class SymbolTmpRef : public Symbol
   {
   public:
-    SymbolTmpRef(const Token& id, UTI utype, CompilerState& state);
+    SymbolTmpRef(const Token& id, UTI utype, u32 offset, CompilerState& state);
     ~SymbolTmpRef();
 
     virtual Symbol * clone();
@@ -63,6 +64,7 @@ namespace MFM{
   protected:
 
   private:
+    u32 m_posOffsetCopy; //array item of data member
   };
 
 }

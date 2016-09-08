@@ -3,7 +3,7 @@
 
 namespace MFM {
 
-  SymbolTmpRef::SymbolTmpRef(const Token& id, UTI utype, CompilerState & state) : Symbol(id, utype, state){}
+  SymbolTmpRef::SymbolTmpRef(const Token& id, UTI utype, u32 offset, CompilerState & state) : Symbol(id, utype, state), m_posOffsetCopy(offset) {}
 
   SymbolTmpRef::~SymbolTmpRef() {}
 
@@ -30,7 +30,8 @@ namespace MFM {
 
   u32 SymbolTmpRef::getPosOffset()
   {
-    return 0; //included in its variable
+    return m_posOffsetCopy; //included in its variable
   }
+
 
 } //end MFM

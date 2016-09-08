@@ -627,7 +627,7 @@ namespace MFM {
     UTI cuti = m_state.getCompileThisIdx();
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
-    u32 pos = ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset();
+    u32 pos = m_varSymbol->getPosOffset();
     s32 bitsize = nut->getBitSize();
 
     if(cut->getUlamClassType() == UC_ELEMENT)
@@ -721,7 +721,7 @@ namespace MFM {
 	  {
 	    m_state.indent(fp);
 	    fp->write("initBV.Write(");
-	    fp->write_decimal_unsigned(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset() + startpos);
+	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset() + startpos);
 	    fp->write("u + ");
 	    fp->write_decimal_unsigned(i * BITSPERATOM);
 	    fp->write("u, T::ATOM_FIRST_STATE_BIT, typefield);"); GCNL;
@@ -746,7 +746,7 @@ namespace MFM {
 	assert(cblock);
 
 	for(s32 i = 0; i < arraysize; i++)
-	  cblock->genCodeElementTypeIntoDataMemberDefaultValue(fp, ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset() + startpos + i * len); //e.g. t3715
+	  cblock->genCodeElementTypeIntoDataMemberDefaultValue(fp, m_varSymbol->getPosOffset() + startpos + i * len); //e.g. t3715
       }
     else if(m_state.isAtom(nuti))
       {
@@ -768,7 +768,7 @@ namespace MFM {
 	  {
 	    m_state.indent(fp);
 	    fp->write("initBV.Write(");
-	    fp->write_decimal_unsigned(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset() + startpos);
+	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset() + startpos);
 	    fp->write("u + ");
 	    fp->write_decimal_unsigned(i * BITSPERATOM);
 	    fp->write("u, T::ATOM_FIRST_STATE_BIT, typefield);"); GCNL;
@@ -898,7 +898,7 @@ namespace MFM {
 
   UlamValue NodeVarDeclDM::makeUlamValuePtr()
   {
-    UlamValue ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset(), m_varSymbol->getId());
+    UlamValue ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 
     ptr.checkForAbsolutePtr(m_state.m_currentObjPtr);
     return ptr;
@@ -934,7 +934,7 @@ namespace MFM {
 	fp->write("<EC> ");
 	fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
 	fp->write("; //offset ");
-	fp->write_decimal_unsigned(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset());
+	fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
 	fp->write("u"); GCNL; //func call parameters aren't NodeVarDecl's
       }
     else
@@ -950,7 +950,7 @@ namespace MFM {
 	    s32 arraysize = nut->getArraySize();
 	    //arraysize = (arraysize <= 0 ? 1 : arraysize);
 	    arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //Mon Jul  4 14:11:41 2016
-	    fp->write_decimal_unsigned(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset());
+	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
 	    if(nut->getBitSize() > 0)
 	      fp->write("u, BPA * "); //atom-based
 	    else
@@ -960,7 +960,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    fp->write_decimal_unsigned(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset());
+	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
 	    fp->write("u, ");
 	    fp->write_decimal(nut->getTotalBitSize()); //include arraysize
 	    fp->write("u> ");
@@ -989,7 +989,7 @@ namespace MFM {
     fp->write("\", \"");
     fp->write(m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str());
     fp->write("\", ");
-    fp->write_decimal(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset());
+    fp->write_decimal(m_varSymbol->getPosOffset());
     fp->write("u); return i; }"); GCNL;
 
     dmcount++; //increment data member count

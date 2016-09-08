@@ -679,6 +679,7 @@ namespace MFM {
 
     UVPass offset;
     m_nodeRight->genCode(fp, offset); //read into tmp var
+    offset.setPassStorage(TMPARRAYIDX);
 
     m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore
 
@@ -719,11 +720,33 @@ namespace MFM {
 
     UVPass offset;
     m_nodeRight->genCode(fp, offset);
+    offset.setPassStorage(TMPARRAYIDX);
 
     m_state.m_currentObjSymbolsForCodeGen = saveCOSVector;  //restore
 
     UVPass luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
+
+    //special case index for non-custom array: numeric unary conversion to cu32
+    UTI luti = luvpass.getPassTargetType();
+    if(!m_state.isClassACustomArray(luti))
+      {
+	//runtime check to avoid accessing beyond array (Sun Jul  3 17:49:47 2016 )
+	UlamType * lut = m_state.getUlamTypeByIndex(luti);
+	s32 arraysize = lut->getArraySize();
+	assert(!lut->isScalar());
+	m_state.indentUlamCode(fp);
+	fp->write("if(");
+	fp->write(offset.getTmpVarAsString(m_state).c_str());
+	fp->write(" >= ");
+	fp->write_decimal(arraysize);
+	fp->write(")"); GCNL;
+
+	m_state.m_currentIndentLevel++;
+	m_state.indentUlamCode(fp);
+	fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
+	m_state.m_currentIndentLevel--;
+      } //for non custom arrays only!
 
     uvpass = offset; //return
     // NO RESTORE -- up to caller for lhs.
