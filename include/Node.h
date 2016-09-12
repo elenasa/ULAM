@@ -230,12 +230,12 @@ namespace MFM{
 
     void assignReturnValuePtrToStack(UlamValue rtnUVptr);
 
-    virtual void genMemberNameOfMethod(File * fp, bool endingdot = true); //helper method to read/write into/from tmpvar
+    virtual void genMemberNameOfMethod(File * fp, UVPass& uvpass, bool endingdot = true); //helper method to read/write into/from tmpvar
     virtual void genModelParameterMemberNameOfMethod(File * fp, s32 epi);
 
-    virtual void genLocalMemberNameOfMethod(File * fp);
+    virtual void genLocalMemberNameOfMethod(File * fp, UVPass& uvpass);
 
-    void genLocalMemberNameOfMethodForAtomof(File * fp);
+    void genLocalMemberNameOfMethodForAtomof(File * fp, UVPass& uvpass);
 
     //return index of stgcos in stack of symbols, -1 if stack is empty and currentSelf.
     s32 loadStorageAndCurrentObjectSymbols(Symbol *& stgcosref, Symbol *&cosref);
@@ -268,7 +268,12 @@ namespace MFM{
 
     u32 adjustedImmediateArrayItemPassPos(UTI cosuti, UVPass uvpass);
 
+    //true if a non-ref, scalar element
     bool needAdjustToStateBits(UTI cuti);
+
+    //true if an element ref, or element array?
+    // i.e. adjustment to state bits already included in the pos
+    bool dupAdjustmentToStateBits();
 
     SymbolTmpRef * makeTmpRefSymbolForCodeGen(UVPass uvpass, Symbol * sym);
 
@@ -279,8 +284,13 @@ namespace MFM{
     void genCodeConvertABitVectorIntoATmpVar(File * fp, UVPass & uvpass);
 
     //e.g. when lhs of member select is an array item of class type
-    void genCodeConvertATmpVarIntoAutoRef(File * fp, UVPass & uvpass);
+    void genCodeConvertATmpVarAutoRefIntoAutoRef(File * fp, UVPass & uvpass);
 
+    //e.g. when a variable array item, may be of class type
+    void genCodeConvertATmpVarIntoAutoRef(File * fp, UVPass & luvpass, UVPass ruvpass);
+
+    //e.g. when constant array item, primitive
+    void genCodeConvertATmpVarIntoConstantAutoRef(File * fp, UVPass & luvpass, UVPass ruvpass);
     //e.g. when lhs of member select is an array item of class type, rhs data member
     void genCodeARefFromARefStorage(File * fp, UVPass stguvpass, UVPass uvpass);
 
@@ -332,7 +342,7 @@ namespace MFM{
     void genCustomArrayMemberNameOfMethod(File * fp);
     void genCustomArrayHiddenArgs(File * fp, u32 urtmpnum);
 
-    void genLocalMemberNameOfMethodByUsTypedef(File * fp);
+    void genLocalMemberNameOfMethodByUsTypedef(File * fp, UVPass& uvpass);
     void genCustomArrayLocalMemberNameOfMethod(File * fp);
 
     const std::string localStorageTypeAsString(UTI nuti);

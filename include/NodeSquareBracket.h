@@ -96,6 +96,7 @@ namespace MFM{
 
   private:
     bool m_isCustomArray;
+    SymbolTmpRef * m_tmprefSymbol;
 
     EvalStatus evalACustomArray(); //requires call to aref
     EvalStatus evalToStoreIntoACustomArray(); //requires call to aset

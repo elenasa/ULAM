@@ -790,7 +790,8 @@ namespace MFM {
 	m_node->genCodeToStoreInto(fp, ruvpass); //No need to load lhs into tmp (T); symbol's in COS vector
 
 	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
-	stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+	//stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+	stgcos = m_state.m_currentObjSymbolsForCodeGen.back();
       }
 
     // "downcast" might not be true; compare to be sure the atom is an element "Foo"
@@ -819,6 +820,7 @@ namespace MFM {
 	if(tobe->isReference()) //t3754
 	  {
 	    assert(stgcos);
+	    UTI stgcosuti = stgcos->getUlamTypeIdx();
  	    s32 tmpeleref = m_state.getNextTmpVarNumber(); //tmp since no variable name
 	    m_state.indentUlamCode(fp);
 	    fp->write(tobe->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
@@ -829,7 +831,8 @@ namespace MFM {
 	    fp->write(", ");
 	    //must displace the Typefield for element ref
 	    fp->write("+ T::ATOM_FIRST_STATE_BIT, ");
-	    if(m_state.isAtomRef(vuti))
+	    //if(m_state.isAtomRef(vuti))
+	    if(m_state.isAtomRef(stgcosuti)) //t3754
 	      {
 		fp->write(stgcos->getMangledName().c_str()); //assumes only one!!!
 		fp->write(".GetEffectiveSelf()"); //maintains eff self
@@ -854,6 +857,7 @@ namespace MFM {
 	if(m_state.isAtomRef(tobeType))
 	  {
 	    assert(stgcos);
+	    UTI stgcosuti = stgcos->getUlamTypeIdx();
 	    UlamType * atomut = m_state.getUlamTypeByIndex(UAtom);
 	    s32 tmpatomref = m_state.getNextTmpVarNumber(); //tmp since no variable name
 	    m_state.indentUlamCode(fp);
@@ -864,7 +868,8 @@ namespace MFM {
 	    fp->write(stgcos->getMangledName().c_str()); //assumes only one!!!
 	    fp->write(", ");
 	    //must displace the Typefield if a ref
-	    if(vut->isReference())
+	    //if(vut->isReference())
+	    if(m_state.isReference(stgcosuti))
 	      {
 		fp->write("- T::ATOM_FIRST_STATE_BIT);"); GCNL; //t3753
 	      }
@@ -907,6 +912,9 @@ namespace MFM {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * stgcos = NULL;
     stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+
+    UTI stguti = stgcos->getUlamTypeIdx();
+    UlamType * stgut = m_state.getUlamTypeByIndex(stguti);
 
     s32 tmpVarIs = m_state.getNextTmpVarNumber();
     // "downcast" might not be true; compare to be sure the atom is-a quark "Foo"
@@ -961,8 +969,9 @@ namespace MFM {
       {
 	//From a quark, cast to atom..
 	//e.g. a quark here would fail, if not a superclass && ref
-	UlamType* vut = m_state.getUlamTypeByIndex(vuti);
-	assert(vut->isReference());
+	//UlamType* vut = m_state.getUlamTypeByIndex(vuti);
+	//assert(vut->isReference());
+	assert(stgut->isReference()); //t3697, t3834
 
 	//insure the qref has a (MFM) type that's not UNDEFINED
 	// hopefully, uvpass is TMPBITVAL
@@ -987,9 +996,6 @@ namespace MFM {
     fp->write("\n");
     m_state.m_currentIndentLevel--;
 
-
-    UTI stguti = stgcos->getUlamTypeIdx();
-    UlamType * stgut = m_state.getUlamTypeByIndex(stguti);
     bool isCustomArray = m_state.isClassACustomArray(stguti);
     if(isCustomArray)
       {
@@ -1090,7 +1096,8 @@ namespace MFM {
 	else
 	  {
 	    //from quarkref to atomref; maintains everything but length (2nd arg)
-	    assert(m_state.isReference(vuti));
+	    //assert(m_state.isReference(vuti));
+	    assert(stgut->isReference()); //t3697, t3834
 	    fp->write(", - T::ATOM_FIRST_STATE_BIT"); //'is' t3834
 	  }
 	fp->write(");"); GCNL; //like, shadow lhs of as
@@ -1217,11 +1224,12 @@ namespace MFM {
 
     UTI vuti = uvpass.getPassTargetType(); //replace
 
-    assert(m_state.isReference(vuti)); //important!
+    //assert(m_state.isReference(vuti)); //important!
 
     // CHANGES uvpass..and vuti, derefuti, etc.
     UVPass ruvpass;
     m_node->genCodeToStoreInto(fp, ruvpass); //No need to load lhs into tmp (u32); symbol's in COS vector
+    assert(m_state.isReference(ruvpass.getPassTargetType())); //t3789, t3790
 
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * stgcos = NULL;
@@ -1366,8 +1374,9 @@ namespace MFM {
 	if(!stgcosut->isReference())
 	  {
 	    fp->write(", "); //offset of decendent is always 0 +25
-	    fp->write_decimal_unsigned(uvpass.getPassPos());
+	    fp->write_decimal_unsigned(ruvpass.getPassPos()); //t3735
 	    fp->write("u + T::ATOM_FIRST_STATE_BIT, &"); //elements stg at 0 , state of quark at 25
+	    //fp->write("u, &"); //elements stg at 0 , state of quark at 25
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
 	    fp->write(", UlamRef<EC>::ELEMENTAL"); //stays elemental
 	    fp->write(", uc"); //t3617
@@ -1391,12 +1400,12 @@ namespace MFM {
     UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
 
     UTI vuti = uvpass.getPassTargetType(); //replace
-
-    assert(m_state.isReference(vuti)); //important!
+    //assert(m_state.isReference(vuti)); //important!
 
     // CHANGES uvpass..and vuti, derefuti, etc.
     UVPass ruvpass;
     m_node->genCodeToStoreInto(fp, ruvpass); //No need to load lhs into tmp (T); symbol's in COS vector
+    assert(m_state.isReference(ruvpass.getPassTargetType()));
 
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * stgcos = NULL;

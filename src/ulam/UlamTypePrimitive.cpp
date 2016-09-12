@@ -83,6 +83,7 @@ namespace MFM {
     s32 arraysize = getArraySize();
 
     if(isReference())
+    //if(getReferenceType() == ALT_REF) //excludes ALT_ARRAYITEM (t3147)
       mangled << "r";
 
     if(arraysize > 0)

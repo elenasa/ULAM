@@ -6,16 +6,20 @@
 
 namespace MFM {
 
-  NodeSquareBracket::NodeSquareBracket(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state), m_isCustomArray(false)
+  NodeSquareBracket::NodeSquareBracket(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state), m_isCustomArray(false), m_tmprefSymbol(NULL)
   {
     if(m_nodeRight)
       m_nodeRight->updateLineage(getNodeNo()); //for unknown subtrees
     Node::setStoreIntoAble(TBOOL_HAZY);
   }
 
-  NodeSquareBracket::NodeSquareBracket(const NodeSquareBracket& ref) : NodeBinaryOp(ref), m_isCustomArray(ref.m_isCustomArray) {}
+  NodeSquareBracket::NodeSquareBracket(const NodeSquareBracket& ref) : NodeBinaryOp(ref), m_isCustomArray(ref.m_isCustomArray), m_tmprefSymbol(NULL) {}
 
-  NodeSquareBracket::~NodeSquareBracket(){}
+  NodeSquareBracket::~NodeSquareBracket()
+  {
+    delete m_tmprefSymbol;
+    m_tmprefSymbol = NULL;
+  }
 
   Node * NodeSquareBracket::instantiate()
   {
@@ -683,7 +687,7 @@ namespace MFM {
 
     m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore
 
-    UVPass luvpass;
+    UVPass luvpass = uvpass; //pass along pos t3584
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
     //special case index for non-custom array: numeric unary conversion to cu32
@@ -705,9 +709,23 @@ namespace MFM {
 	m_state.indentUlamCode(fp);
 	fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
 	m_state.m_currentIndentLevel--;
-      } //for non custom arrays only!
 
-    uvpass = offset;
+	//save autoref into a tmpref symbol
+	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+	Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
+	assert(!m_state.isScalar(cossym->getUlamTypeIdx()));
+	if(cossym->isConstant())
+	  Node::genCodeConvertATmpVarIntoConstantAutoRef(fp, luvpass, offset); //luvpass becomes the autoref, and clears stack
+	else
+	  Node::genCodeConvertATmpVarIntoAutoRef(fp, luvpass, offset); //uvpass becomes the autoref, and clears stack
+	uvpass = luvpass;
+	m_tmprefSymbol = Node::makeTmpRefSymbolForCodeGen(uvpass, cossym); //dm to avoid leaks
+	m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore the prior stack
+	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmprefSymbol);
+      } //for non custom arrays only!
+    else
+      uvpass = offset; //customarray
+
     Node::genCodeReadIntoATmpVar(fp, uvpass); //splits on array item
   } //genCode
 
@@ -724,14 +742,14 @@ namespace MFM {
 
     m_state.m_currentObjSymbolsForCodeGen = saveCOSVector;  //restore
 
-    UVPass luvpass;
+    UVPass luvpass = uvpass; //t3615 passes along if rhs of memberselect
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
-    //special case index for non-custom array: numeric unary conversion to cu32
+    //non-custom array only
     UTI luti = luvpass.getPassTargetType();
     if(!m_state.isClassACustomArray(luti))
       {
-	//runtime check to avoid accessing beyond array (Sun Jul  3 17:49:47 2016 )
+	//runtime check to avoid accessing beyond array
 	UlamType * lut = m_state.getUlamTypeByIndex(luti);
 	s32 arraysize = lut->getArraySize();
 	assert(!lut->isScalar());
@@ -746,9 +764,22 @@ namespace MFM {
 	m_state.indentUlamCode(fp);
 	fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
 	m_state.m_currentIndentLevel--;
-      } //for non custom arrays only!
 
-    uvpass = offset; //return
+	//save autoref into a tmpref symbol
+	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+	Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
+	assert(!m_state.isScalar(cossym->getUlamTypeIdx()));
+	if(cossym->isConstant())
+	  Node::genCodeConvertATmpVarIntoConstantAutoRef(fp, luvpass, offset); //luvpass becomes the autoref, and clears stack
+	else
+	  Node::genCodeConvertATmpVarIntoAutoRef(fp, luvpass, offset); //luvpass becomes the autoref, and clears stack
+	uvpass = luvpass;
+	m_tmprefSymbol = Node::makeTmpRefSymbolForCodeGen(uvpass, cossym); //dm to avoid leaks
+	m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore the prior stack
+	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmprefSymbol);
+      } //for non custom arrays only!
+    else
+      uvpass = offset; //return custom array
     // NO RESTORE -- up to caller for lhs.
   } //genCodeToStoreInto
 

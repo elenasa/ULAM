@@ -1239,11 +1239,6 @@ namespace MFM {
     // or ancestor quark if a class.
     m_argumentNodes->genCodeToStoreInto(fp, uvpass, n);
 
-    //tmp var for lhs
-    s32 tmpVarArgNum = m_state.getNextTmpVarNumber();
-    assert(m_funcSymbol);
-    UTI vuti = m_funcSymbol->getParameterType(n);
-
     u32 id = 0;
     Symbol * cossym = NULL;
     if(!m_state.m_currentObjSymbolsForCodeGen.empty())
@@ -1252,10 +1247,18 @@ namespace MFM {
 	id = cossym->getId();
       }
 
+    //if(cossym && cossym->isTmpRefSymbol())
+    //  return; //t3814?
+
+    //tmp var for lhs
+    s32 tmpVarArgNum = m_state.getNextTmpVarNumber();
+    assert(m_funcSymbol);
+    UTI vuti = m_funcSymbol->getParameterType(n);
+
     UVPass luvpass = UVPass::makePass(tmpVarArgNum, TMPAUTOREF, vuti, m_state.determinePackable(vuti), m_state, 0, id);
     SymbolTmpRef * tmprefsym = Node::makeTmpRefSymbolForCodeGen(luvpass, cossym); //cossym could be null
 
-    Node::genCodeReferenceInitialization(fp, uvpass, tmprefsym);
+    Node::genCodeReferenceInitialization(fp, uvpass, tmprefsym); //luvpass, not uvpass t3812
 
     delete tmprefsym;
     uvpass = luvpass;

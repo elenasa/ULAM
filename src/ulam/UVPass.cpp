@@ -66,6 +66,14 @@ namespace MFM {
     return;
   } //setPassPos
 
+  void UVPass::setPassPosForElementType(u32 pos, CompilerState& state)
+  {
+    assert((pos < BITSPERATOM) && pos >= 0);
+    assert(state.getUlamTypeByIndex(this->getPassTargetType())->getUlamClassType() == UC_ELEMENT); //sanity
+    m_posInStorage = pos;
+    return;
+  } //setPassPosForElementType
+
   u32 UVPass::getPassPos()
   {
     u32 pos = m_posInStorage;

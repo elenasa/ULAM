@@ -42,7 +42,7 @@ namespace MFM {
     if(m_state.isScalar(getUlamTypeIdx()))
       return Symbol::getMangledName();
 
-    //local filescope constant arrays end with filescope name (e.g. _8Foo.ulam)
+    //local filescope constant arrays end with filescope name (e.g. _3Foo4ulam)
     std::ostringstream mangled;
     std::string nstr = m_state.getDataAsStringMangled(getId());
     mangled << getMangledPrefix() << nstr.c_str();
@@ -58,6 +58,34 @@ namespace MFM {
       }
     return mangled.str();
   } //getMangledName
+
+  const std::string SymbolConstantValue::getCompleteConstantMangledName()
+  {
+    if(m_state.isScalar(getUlamTypeIdx()))
+      return getMangledName();
+
+    //local filescope constant arrays end with filescope name (e.g. _3Foo4ulam)
+    std::ostringstream mangledfullname;
+    if(isDataMember())
+      {
+	UTI dmclassuti = getDataMemberClass(); //t3881
+	mangledfullname << m_state.getEffectiveSelfMangledNameByIndex(dmclassuti).c_str();
+	mangledfullname << "." << getMangledName().c_str();
+      }
+    else if(isLocalFilescopeDef())
+      {
+	mangledfullname << m_state.getMangledClassNameForUlamLocalFilescopes();
+	mangledfullname << "<EC>::THE_INSTANCE." << getMangledName().c_str();
+      }
+    else if(isClassArgument())
+      {
+	mangledfullname << m_state.getEffectiveSelfMangledNameByIndex(m_state.getCompileThisIdx()).c_str();
+	mangledfullname << "." << getMangledName().c_str(); //t3894
+      }
+    else
+      mangledfullname << getMangledName().c_str();
+    return mangledfullname.str();
+  } //getCompleteConstantMangledName
 
   // replaces NodeConstantValue:printPostfix to learn the values of Class' storage in center site
   void SymbolConstantValue::printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)

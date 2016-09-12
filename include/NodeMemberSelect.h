@@ -99,6 +99,8 @@ namespace MFM{
     virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len);
     virtual UlamValue makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len);
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len);
+
+    void adjustUVPassForElements(UVPass & uvpass);
   };
 
 } //MFM

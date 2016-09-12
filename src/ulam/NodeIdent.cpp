@@ -648,12 +648,18 @@ namespace MFM {
 
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    assert(UlamType::compare(nuti, m_varSymbol->getUlamTypeIdx(), m_state) == UTIC_SAME);
 
-    u32 pos = uvpass.getPassPos();
+    u32 pos = 0;
     if(m_varSymbol->isDataMember())
       {
+	pos = uvpass.getPassPos();
+
+#if 0
 	if(!m_state.m_currentObjSymbolsForCodeGen.empty())
 	  {
+
+
 	    Symbol * sym = m_state.m_currentObjSymbolsForCodeGen.back();
 	    //here, we haven't taken into account any array indexes, So autoref instead
 	    // e.g. m_bar[0].cb, and this NI is for the rhs of member select, 'cb'
@@ -666,16 +672,33 @@ namespace MFM {
 	    if(sym->isDataMember() && !m_state.isReference(suti))
 	      pos += sym->getPosOffset();
 	  }
+	else
+	  {
+	    //self; is self an element?
+	    UTI dmclassuti = m_varSymbol->getDataMemberClass();
+	    if(Node::needAdjustToStateBits(dmclassuti))
+	      pos += ATOMFIRSTSTATEBITPOS;
+	  }
+#endif
+
 	// 'pos' modified by this data member symbol's packed bit position;
 	// except for array items, i.e. tmprefsymbols (t3910)
 	if(!m_varSymbol->isTmpRefSymbol())
 	  pos += m_varSymbol->getPosOffset();
 
+	//if(Node::needAdjustToStateBits(nuti))
+	//  pos += ATOMFIRSTSTATEBITPOS; //ident is an element
+
 	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos, m_varSymbol->getId());
       }
     else
-      //local variable on the stack; could be array ptr!
-      uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
+      {
+	//if(Node::needAdjustToStateBits(nuti))
+	// pos = ATOMFIRSTSTATEBITPOS;
+
+	//local variable on the stack; could be array ptr!
+	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos, m_varSymbol->getId());
+      }
   } //makeUVPassForCodeGen
 
   bool NodeIdent::installSymbolTypedef(TypeArgs& args, Symbol *& asymptr)
@@ -1276,14 +1299,14 @@ namespace MFM {
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol);
 
     if(uvpass.getPassStorage() == TMPAUTOREF)
-      Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
+      Node::genCodeConvertATmpVarAutoRefIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
   } //genCodeToStoreInto
 
   // overrides NodeTerminal that reads into a tmp var BitVector
   void NodeIdent::genCodeReadIntoATmpVar(File * fp, UVPass & uvpass)
   {
     if(uvpass.getPassStorage() == TMPAUTOREF)
-      Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
+      Node::genCodeConvertATmpVarAutoRefIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
 
     Node::genCodeReadIntoATmpVar(fp, uvpass);
   }

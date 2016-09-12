@@ -242,17 +242,17 @@ namespace MFM {
   void NodeReturnStatement::genCode(File * fp, UVPass& uvpass)
   {
     assert(m_node); // return for Void type has a NodeStatementEmpty m_node
-
-    m_node->genCode(fp, uvpass); //C allows the side-effect for explicit Void casts (t3779)
+    UVPass rtnuvpass; //fresh uvpass, why not!
+    m_node->genCode(fp, rtnuvpass); //C allows the side-effect for explicit Void casts (t3779)
 
     if(getNodeType() != Void)
       {
-	Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass);
+	Node::genCodeConvertATmpVarIntoBitVector(fp, rtnuvpass);
 
 	m_state.indentUlamCode(fp);
 	fp->write("return ");
 	fp->write("(");
-	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(rtnuvpass.getTmpVarAsString(m_state).c_str());
 
 	fp->write(");"); GCNL;
       }
@@ -261,6 +261,7 @@ namespace MFM {
 	m_state.indentUlamCode(fp);
 	fp->write("return;"); GCNL; //void
       }
+    uvpass = rtnuvpass;
   } //genCode
 
 } //end MFM
