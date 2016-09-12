@@ -372,6 +372,8 @@ namespace MFM {
 
     UVPass luvpass;
 
+    // if parent is another MS, we might need to adjust pos first
+    // elements can be data members of transients, etc.
     if(!m_state.m_currentObjSymbolsForCodeGen.empty())
       {
 	Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
@@ -382,15 +384,10 @@ namespace MFM {
 	  }
       }
 
-    // if parent is another MS, we might need to adjust pos first
-    // elements can be data members of transients, etc.
-    //adjustUVPassForElements(luvpass);
-
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
     //NodeIdent can't do it, because it doesn't know it's not a stand-alone element.
     // here, we know there's rhs of member select, which needs to adjust to state bits.
-    //adjustUVPassForElements(luvpass);
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
     if(!m_state.isReference(cossym->getUlamTypeIdx()) || !cossym->isTmpRefSymbol())
@@ -400,18 +397,6 @@ namespace MFM {
       }
 
     //check the back (not front) to process multiple member selections (e.g. t3818)
-#if 0
-    if(uvpass.getPassStorage() == TMPARRAYIDX)
-      {
-	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
-	Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
-	assert(!m_state.isScalar(cossym->getUlamTypeIdx()));
-	Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
-	m_tmprefSymbolLeft = Node::makeTmpRefSymbolForCodeGen(uvpass, cossym); //dm to avoid leaks
-	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmprefSymbolLeft);
-      }
-#endif
-
     m_nodeRight->genCode(fp, uvpass);  //leave any array item as-is for gencode.
 
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
@@ -437,32 +422,12 @@ namespace MFM {
 
     // if parent is another MS, we might need to adjust pos first
     // elements can be data members of transients, etc.
-    //adjustUVPassForElements(luvpass);
 
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
     //NodeIdent can't do it, because it doesn't know it's not a stand-alone element.
     // here, we know there's rhs of member select, which needs to adjust to state bits.
-    //adjustUVPassForElements(luvpass);
-
     //process multiple member selections (e.g. t3817)
-#if 0
-    if(luvpass.getPassStorage() == TMPARRAYIDX)
-      {
-	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
-	Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
-	assert(!m_state.isScalar(cossym->getUlamTypeIdx()));
-	Node::genCodeConvertATmpVarIntoAutoRef(fp, luvpass); //uvpass becomes the autoref, and clears stack
-	m_tmprefSymbolLeft = Node::makeTmpRefSymbolForCodeGen(luvpass, cossym);
-	m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore the prior stack
-	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmprefSymbolLeft);
-      }
-
-    //save the stack before the right node
-    saveCOSVector.clear();
-    saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
-#endif
-
     UVPass ruvpass;
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
@@ -473,23 +438,6 @@ namespace MFM {
       }
 
     m_nodeRight->genCodeToStoreInto(fp, ruvpass); //uvpass contains the member selected, or cos obj symbol?
-
-#if 0
-    //only classes (not atoms nor primitives) stuck in the middle of dots
-    //might has a data member to its right
-    UTI ruti = m_nodeRight->getNodeType();
-    if(m_state.isAClass(ruti) && ruvpass.getPassStorage() == TMPARRAYIDX)
-      //if(ruvpass.getPassStorage() == TMPARRAYIDX)
-      {
-	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
-	Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
-	assert(!m_state.isScalar(cossym->getUlamTypeIdx()));
-	Node::genCodeConvertATmpVarIntoAutoRef(fp, ruvpass); //uvpass becomes the autoref, and clears stack
-	m_tmprefSymbolRight = Node::makeTmpRefSymbolForCodeGen(ruvpass, cossym);
-	m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore the left
-	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmprefSymbolRight);
-      }
-#endif
 
     uvpass = ruvpass;
   } //genCodeToStoreInto

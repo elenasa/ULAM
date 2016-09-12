@@ -1247,9 +1247,6 @@ namespace MFM {
 	id = cossym->getId();
       }
 
-    //if(cossym && cossym->isTmpRefSymbol())
-    //  return; //t3814?
-
     //tmp var for lhs
     s32 tmpVarArgNum = m_state.getNextTmpVarNumber();
     assert(m_funcSymbol);
@@ -1264,59 +1261,6 @@ namespace MFM {
     uvpass = luvpass;
     return;
   } //genCodeReferenceArg
-
-  // is this still used/needed???
-  // uses uvpass rather than stgcos, cos for classes or atoms (not primitives)
-  void NodeFunctionCall::genCodeAnonymousReferenceArg(File * fp, UVPass & uvpass, u32 n)
-  {
-    m_state.abortShouldntGetHere();
-#if 0
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //such as .atomof; self (t3779)
-
-    assert(m_funcSymbol);
-    UTI vuti = m_funcSymbol->getParameterType(n);
-    UTI puti = uvpass.getPassTargetType();
-
-    if(UlamType::compare(vuti, puti, m_state) == UTIC_SAME) return; //unneeded, uvpass as-is
-
-    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMTYPE vetyp = vut->getUlamTypeEnum();
-
-    UlamType * put = m_state.getUlamTypeByIndex(puti);
-    TMPSTORAGE rstor = uvpass.getPassStorage(); //t3779
-
-    assert(vetyp == put->getUlamTypeEnum());
-
-    s32 tmpVarArgNum = uvpass.getPassVarNum();
-    s32 tmpVarArgNum2 = m_state.getNextTmpVarNumber();
-
-    m_state.indentUlamCode(fp);
-    fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
-    fp->write(" ");
-
-    fp->write(m_state.getTmpVarAsString(vuti, tmpVarArgNum2, TMPBITVAL).c_str());
-    fp->write("("); //pass ref in constructor (ref's not assigned with =)
-    fp->write(m_state.getTmpVarAsString(puti, tmpVarArgNum, rstor).c_str());
-
-    if(vetyp == Class)
-      {
-	fp->write(", 0u, "); //left-justified
-	if(m_state.isReference(puti))
-	  {
-	    fp->write(m_state.getTmpVarAsString(puti, tmpVarArgNum, rstor).c_str());
-	    fp->write(".GetEffectiveSelf()");
-	  }
-	else
-	  {
-	    fp->write("&");
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(puti).c_str());
-	  }
-      }
-    fp->write(");"); GCNL;
-
-    uvpass = UVPass::makePass(tmpVarArgNum2, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, 0, 0); //POS adjusted for BitVector, justified; self id in Pass;
-#endif
-  } //genCodeAnonymousReferenceArg
 
 void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp)
   {

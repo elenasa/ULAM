@@ -654,48 +654,15 @@ namespace MFM {
     if(m_varSymbol->isDataMember())
       {
 	pos = uvpass.getPassPos();
-
-#if 0
-	if(!m_state.m_currentObjSymbolsForCodeGen.empty())
-	  {
-
-
-	    Symbol * sym = m_state.m_currentObjSymbolsForCodeGen.back();
-	    //here, we haven't taken into account any array indexes, So autoref instead
-	    // e.g. m_bar[0].cb, and this NI is for the rhs of member select, 'cb'
-
-	    //if sym is an element, and not isSelf, and not a ref, pos += 25 (t3637)
-	    UTI suti = sym->getUlamTypeIdx();
-	    if(!sym->isSelf() && Node::needAdjustToStateBits(suti))
-	      pos += ATOMFIRSTSTATEBITPOS;
-	    //array items seem like a reference (t3820)
-	    if(sym->isDataMember() && !m_state.isReference(suti))
-	      pos += sym->getPosOffset();
-	  }
-	else
-	  {
-	    //self; is self an element?
-	    UTI dmclassuti = m_varSymbol->getDataMemberClass();
-	    if(Node::needAdjustToStateBits(dmclassuti))
-	      pos += ATOMFIRSTSTATEBITPOS;
-	  }
-#endif
-
 	// 'pos' modified by this data member symbol's packed bit position;
 	// except for array items, i.e. tmprefsymbols (t3910)
 	if(!m_varSymbol->isTmpRefSymbol())
 	  pos += m_varSymbol->getPosOffset();
 
-	//if(Node::needAdjustToStateBits(nuti))
-	//  pos += ATOMFIRSTSTATEBITPOS; //ident is an element
-
 	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos, m_varSymbol->getId());
       }
     else
       {
-	//if(Node::needAdjustToStateBits(nuti))
-	// pos = ATOMFIRSTSTATEBITPOS;
-
 	//local variable on the stack; could be array ptr!
 	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos, m_varSymbol->getId());
       }

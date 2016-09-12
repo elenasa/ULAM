@@ -253,9 +253,6 @@ namespace MFM{
     s32 isCurrentObjectsContainingAnElement();
 
     std::string calcPosOfCurrentObjectClassesAsString(UVPass uvpass);
-    s32 calcPosOfCurrentObjectClasses();
-    s32 calcPosOfCurrentObjects();
-    s32 calcPosOfCurrentObjects(bool onlyClasses, s32 endingCosIdx);
 
     //false means its the entire array or not an array at all
     bool isCurrentObjectAnArrayItem(UTI cosuti, UVPass uvpass);
@@ -270,10 +267,6 @@ namespace MFM{
 
     //true if a non-ref, scalar element
     bool needAdjustToStateBits(UTI cuti);
-
-    //true if an element ref, or element array?
-    // i.e. adjustment to state bits already included in the pos
-    bool dupAdjustmentToStateBits();
 
     SymbolTmpRef * makeTmpRefSymbolForCodeGen(UVPass uvpass, Symbol * sym);
 
