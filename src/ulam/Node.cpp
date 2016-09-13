@@ -531,10 +531,6 @@ namespace MFM {
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     TMPSTORAGE cstor = cosut->getTmpStorageTypeForTmpVar();
 
-    // split off reading array items
-    if(isCurrentObjectAnArrayItem(cosuti, uvpass))
-      return genCodeReadArrayItemIntoATmpVar(fp, uvpass);
-
     // split if custom array, that requires an 'aref' function call
     // immediate types no longer have an array method to call for CA's.
     if(isCurrentObjectACustomArrayItem(cosuti, uvpass))
@@ -553,7 +549,6 @@ namespace MFM {
     fp->write("const ");
     fp->write(tmpStorageTypeForRead(cosuti, uvpass).c_str());
     fp->write(" ");
-    //fp->write(uvpass.getTmpVarAsString(m_state).c_str())
     fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str());
     fp->write(" = ");
 
@@ -722,50 +717,6 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeReadAutorefIntoATmpVar
 
-  void Node::genCodeReadArrayItemIntoATmpVar(File * fp, UVPass & uvpass)
-  {
-    s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp for data
-    UTI vuti = uvpass.getPassTargetType(); //replaces vuti w target type
-    assert(vuti != Void);
-    assert(m_state.getUlamTypeByIndex(vuti)->isNumericType());
-
-    // here, cos is symbol used to determine read method: either self or last of cos.
-    // stgcos is symbol used to determine first "hidden" arg
-    Symbol * cos = NULL;
-    Symbol * stgcos = NULL;
-    loadStorageAndCurrentObjectSymbols(stgcos, cos);
-    assert(cos && stgcos);
-
-    UTI cosuti = cos->getUlamTypeIdx();
-    UTI	scalarcosuti = m_state.getUlamTypeAsScalar(cosuti); //ALT_ARRAYITEM
-    scalarcosuti = m_state.getUlamTypeAsDeref(scalarcosuti);
-    UlamType * scalarcosut = m_state.getUlamTypeByIndex(scalarcosuti);
-    TMPSTORAGE cstor = scalarcosut->getTmpStorageTypeForTmpVar();
-
-    assert(isCurrentObjectsContainingAModelParameter() == -1); //MP invalid
-
-    // all the cases where '=' is used; else BitVector constructor for converting a tmpvar
-    m_state.indentUlamCode(fp);
-    fp->write("const ");
-    fp->write(tmpStorageTypeForReadArrayItem(cosuti, uvpass).c_str());
-    fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(scalarcosuti, tmpVarNum2, cstor).c_str());
-    fp->write(" = ");
-
-    genLocalMemberNameOfMethod(fp, uvpass);
-
-    //read method based on last cos
-    fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
-
-    // local quark or primitive (i.e. 'notaclass'); has an immediate type:
-    // uses local variable name, and immediate read method
-    fp->write("();"); GCNL;
-
-    //update uvpass
-    uvpass = UVPass::makePass(tmpVarNum2, cstor, scalarcosuti, m_state.determinePackable(scalarcosuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
-    m_state.clearCurrentObjSymbolsForCodeGen();
-  } //genCodeReadArrayItemIntoTmp
-
   void Node::genCodeReadCustomArrayItemIntoATmpVar(File * fp, UVPass & uvpass)
   {
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp for data
@@ -853,10 +804,6 @@ namespace MFM {
     assert(cos && stgcos);
 
     UTI cosuti = cos->getUlamTypeIdx();
-
-    // split if writing an array item or custom array item, here
-    if(isCurrentObjectAnArrayItem(cosuti, luvpass))
-      return genCodeWriteArrayItemFromATmpVar(fp, luvpass, ruvpass);
 
     if(isCurrentObjectACustomArrayItem(cosuti, luvpass))
       return genCodeWriteCustomArrayItemFromATmpVar(fp, luvpass, ruvpass); //like a func call
@@ -1094,127 +1041,6 @@ namespace MFM {
 
   // two arg's luvpass fine-tunes the current symbol in case of member selection;
   // ruvpass is the ptr to value to write
-  void Node::genCodeWriteArrayItemFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass)
-  {
-    UTI ruti = ruvpass.getPassTargetType();
-    UlamType * rut = m_state.getUlamTypeByIndex(ruti);
-    TMPSTORAGE rstor = ruvpass.getPassStorage();
-
-    // here, cos is symbol used to determine read method: either self or last of cos.
-    // stgcos is symbol used to determine first "hidden" arg
-    Symbol * cos = NULL;
-    Symbol * stgcos = NULL;
-    loadStorageAndCurrentObjectSymbols(stgcos, cos);
-    assert(cos && stgcos);
-
-    UTI stgcosuti = stgcos->getUlamTypeIdx();
-    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-    UTI cosuti = cos->getUlamTypeIdx();
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    ULAMCLASSTYPE cosclasstype = cosut->getUlamClassType();
-    UTI	scalarcosuti = m_state.getUlamTypeAsScalar(cosuti); //ALT_ARRAYITEM
-    scalarcosuti = m_state.getUlamTypeAsDeref(scalarcosuti);
-
-    bool isLocal = isCurrentObjectALocalVariableOrArgument();
-    assert(isCurrentObjectsContainingAModelParameter() == -1); //MP invalid
-
-    u32 itemlen = cosut->getBitSize();
-    u32 pos = luvpass.getPassPos();
-
-    //drive by UlamRef..
-    m_state.indentUlamCode(fp);
-    fp->write("UlamRef<EC>("); //wrapper for array item
-
-    if(!isLocal)
-      {
-	//i.e. data member
-	fp->write(m_state.getHiddenArgName()); //ur first arg
-	fp->write(", ");
-      }
-    else if(stgcosut->isReference())
-      {
-	fp->write(stgcos->getMangledName().c_str()); //reference first
-	fp->write(", ");
-      }
-    fp->write("("); //start index calc
-
-    //still adding ATOM_FIRST_STATE_BIT to write the entire element, when cos is an element; uses ELEMENTAL //t3436, t3706, t3710
-    if(needAdjustToStateBits(cosuti))
-      fp->write("T::ATOM_FIRST_STATE_BIT + ");
-
-    //if here, regardless stgcos is a ref, cos isn't a tmprefsymbol,
-    // so use pos, not 0u (t3818, t3812)
-    fp->write_decimal_unsigned(pos); //rel offset
-    fp->write("u + ");
-    fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //INDEX
-    fp->write(" * ");
-    if((cosclasstype == UC_ELEMENT))
-      fp->write("BPA), "); //t3670, t3841
-    else
-      {
-	fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
-	fp->write("u), ");
-      }
-    fp->write_decimal_unsigned(itemlen); //BITS_PER_ITEM
-    fp->write("u, ");
-
-    if(!stgcosut->isReference() && isLocal)
-      {
-	fp->write(stgcos->getMangledName().c_str()); //storage
-	fp->write(", ");
-      }
-
-    if(cosut->isPrimitiveType())
-      fp->write("NULL"); //eff self, not needed for classes since write isn't virtual
-    else if(m_state.isAtom(cosuti))
-      {
-	fp->write("NULL"); //3435
-      }
-    else if(!stgcosut->isReference())
-      {
-	fp->write("&");
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
-      }
-    else if(cosclasstype == UC_ELEMENT)
-      {
-	fp->write("NULL"); //element ref may rely on uc.Lookup
-      }
-    else
-      {
-	//CLASSIC ref cannot rely on uc.Lookup
-	//array's effective self is NULL. can't get it this way. (e.g. t3844)
-	fp->write("&");
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
-      }
-
-    fp->write(", ");
-    fp->write(genUlamRefUsageAsString(scalarcosuti).c_str()); //t3230,1
-    if(!stgcosut->isReference() && isLocal)
-      fp->write(", uc");
-
-    fp->write(")."); //close wrapper
-
-    fp->write(writeArrayItemMethodForCodeGen(cosuti, luvpass).c_str());
-    fp->write("(");
-    // with immediate quarks, they are read into a tmpreg as other immediates
-    // with immediate elements, too! value not a terminal
-    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-    if(rstor == TMPBITVAL)
-      {
-	fp->write(".read()"); //e.g. t3172
-      }
-    else if(rstor == TMPATOMBS)
-      {
-	fp->write(".");
-	fp->write(rut->readMethodForCodeGen().c_str()); //ReadAtom
-	fp->write("()");
-      }
-    fp->write(");"); GCNL;
-    m_state.clearCurrentObjSymbolsForCodeGen();
-  } //genCodeWriteArrayItemFromATmpVar
-
-  // two arg's luvpass fine-tunes the current symbol in case of member selection;
-  // ruvpass is the ptr to value to write
   void Node::genCodeWriteCustomArrayItemFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass)
   {
     //rhs could be a constant; or previously cast from Int to Unary variables.
@@ -1368,18 +1194,10 @@ namespace MFM {
     fp->write(" = ");
 
     fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(".read(");
+    fp->write(".read();"); GCNL;
 
     // use immediate read for entire array; doesn't make sense for custom arrays
-    assert(!isCurrentObjectAnArrayItem(vuti, uvpass));
-    if(isCurrentObjectAnArrayItem(vuti, uvpass))
-      {
-	fp->write_decimal(uvpass.getPassLen()); //BITS_PER_ITEM
-	fp->write("u, ");
-	fp->write_decimal(adjustedImmediateArrayItemPassPos(vuti, uvpass)); //item POS (last like others) ?
-	fp->write("u");
-      }
-    fp->write(");"); GCNL;
+    assert(!isCurrentObjectAnArrayItem(vuti, uvpass)); //sanity
 
     uvpass = UVPass::makePass(tmpVarNum2, tmp2stor, vuti, m_state.determinePackable(vuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
     uvpass.setPassPos(0); //entire register
