@@ -230,6 +230,8 @@ namespace MFM{
 
     void assignReturnValuePtrToStack(UlamValue rtnUVptr);
 
+    UlamValue assignAnonymousClassReturnValueToStack(UlamValue rtnUV);
+
     virtual void genMemberNameOfMethod(File * fp, UVPass& uvpass, bool endingdot = true); //helper method to read/write into/from tmpvar
     virtual void genModelParameterMemberNameOfMethod(File * fp, s32 epi);
 

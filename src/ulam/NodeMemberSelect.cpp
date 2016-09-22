@@ -238,7 +238,14 @@ namespace MFM {
     //UPDATE selected member (i.e. element or quark) before eval of rhs
     //(i.e. data member or func call); e.g. Ptr to atom
     UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1);
-    assert(m_state.isPtr(newCurrentObjectPtr.getUlamValueTypeIdx()));
+    UTI newobjtype = newCurrentObjectPtr.getUlamValueTypeIdx();
+    if(!m_state.isPtr(newobjtype))
+      {
+	// must be the result of a function call;
+	// copy anonymous class to "uc" hidden slot in STACK, then replace with a pointer to it.
+	assert(m_state.isAClass(newobjtype));
+	newCurrentObjectPtr = assignAnonymousClassReturnValueToStack(newCurrentObjectPtr); //t3912
+      }
 
     u32 superid = m_state.m_pool.getIndexForDataString("super");
     if(newCurrentObjectPtr.getPtrNameId() == superid)
@@ -328,7 +335,15 @@ namespace MFM {
     //UPDATE selected member (i.e. element or quark) before eval of rhs
     // (i.e. data member or func call)
     UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1); //e.g. Ptr to atom
-    assert(m_state.isPtr(newCurrentObjectPtr.getUlamValueTypeIdx()));
+    UTI newobjtype = newCurrentObjectPtr.getUlamValueTypeIdx();
+    if(!m_state.isPtr(newobjtype))
+      {
+	// must be the result of a function call;
+	// copy anonymous class to "uc" hidden slot in STACK, then replace with a pointer to it.
+	assert(m_state.isAClass(newobjtype));
+	newCurrentObjectPtr = assignAnonymousClassReturnValueToStack(newCurrentObjectPtr); //t3913
+      }
+
     m_state.m_currentObjPtr = newCurrentObjectPtr;
 
     makeRoomForSlots(1); //always 1 slot for ptr
@@ -340,6 +355,15 @@ namespace MFM {
       }
 
     UlamValue ruvPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(2);
+
+    UTI robjtype = ruvPtr.getUlamValueTypeIdx(); //t3913
+    if(!m_state.isPtr(robjtype))
+      {
+	// must be the result of a function call;
+	// copy anonymous class to "uc" hidden slot in STACK, then replace with a pointer to it.
+	assert(m_state.isAClass(robjtype));
+	ruvPtr = assignAnonymousClassReturnValueToStack(ruvPtr);
+      }
 
     Node::assignReturnValuePtrToStack(ruvPtr);
 
@@ -388,14 +412,16 @@ namespace MFM {
 
     //NodeIdent can't do it, because it doesn't know it's not a stand-alone element.
     // here, we know there's rhs of member select, which needs to adjust to state bits.
-    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
-    Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
-    if(!m_state.isReference(cossym->getUlamTypeIdx()) || !cossym->isTmpRefSymbol())
+    //assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    if(!m_state.m_currentObjSymbolsForCodeGen.empty())
       {
-	uvpass = luvpass;
-	adjustUVPassForElements(uvpass); //t3803?
+	Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
+	if(!m_state.isReference(cossym->getUlamTypeIdx()) || !cossym->isTmpRefSymbol())
+	  {
+	    uvpass = luvpass;
+	    adjustUVPassForElements(uvpass); //t3803?
+	  }
       }
-
     //check the back (not front) to process multiple member selections (e.g. t3818)
     m_nodeRight->genCode(fp, uvpass);  //leave any array item as-is for gencode.
 
@@ -448,7 +474,7 @@ namespace MFM {
     if(Node::needAdjustToStateBits(puti))
       {
 	u32 lpos = uvpass.getPassPos();
-	uvpass.setPassPosForElementType(lpos + ATOMFIRSTSTATEBITPOS, m_state);
+	uvpass.setPassPosForElementType(lpos, m_state);
       }
   }
 

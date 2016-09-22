@@ -422,7 +422,7 @@ namespace MFM {
     bool hazyKin = false; //return is always false?
     AssertBool isDefined = m_state.alreadyDefinedSymbol(selfid, selfsym, hazyKin) && !hazyKin;
     assert(isDefined);
-    s32 newslot = -2 - m_state.slotsNeeded(getNodeType()); //2nd hidden arg (was -1 - ???)
+    s32 newslot = -2 - m_state.slotsNeeded(getNodeType()); //2nd hidden arg
     ((SymbolVariable *) selfsym)->setStackFrameSlotIndex(newslot);
 
     NodeBlock::calcMaxDepth(depth, maxdepth, 1); // one for the frame ptr offset

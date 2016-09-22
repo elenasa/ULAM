@@ -9,14 +9,14 @@
 
 namespace MFM {
 
-  NodeFunctionCall::NodeFunctionCall(const Token& tok, SymbolFunction * fsym, CompilerState & state) : Node(state), m_functionNameTok(tok), m_funcSymbol(fsym), m_argumentNodes(NULL)
+  NodeFunctionCall::NodeFunctionCall(const Token& tok, SymbolFunction * fsym, CompilerState & state) : Node(state), m_functionNameTok(tok), m_funcSymbol(fsym), m_argumentNodes(NULL), m_tmprefSymbol(NULL)
   {
     m_argumentNodes = new NodeList(state);
     assert(m_argumentNodes);
     m_argumentNodes->setNodeLocation(tok.m_locator); //same as func call
   }
 
-  NodeFunctionCall::NodeFunctionCall(const NodeFunctionCall& ref) : Node(ref), m_functionNameTok(ref.m_functionNameTok), m_funcSymbol(NULL), m_argumentNodes(NULL){
+  NodeFunctionCall::NodeFunctionCall(const NodeFunctionCall& ref) : Node(ref), m_functionNameTok(ref.m_functionNameTok), m_funcSymbol(NULL), m_argumentNodes(NULL), m_tmprefSymbol(NULL){
     m_argumentNodes = (NodeList *) ref.m_argumentNodes->instantiate();
   }
 
@@ -24,6 +24,8 @@ namespace MFM {
   {
     delete m_argumentNodes;
     m_argumentNodes = NULL;
+    delete m_tmprefSymbol;
+    m_tmprefSymbol = NULL;
   }
 
   Node * NodeFunctionCall::instantiate()
@@ -361,7 +363,10 @@ namespace MFM {
       }
 
     argNodes.clear();
+    assert(it == getNodeType());
     assert(m_funcSymbol || (getNodeType() == Nav) || (getNodeType() == Hzy));
+    if(m_state.okUTItoContinue(it) && (m_state.isAClass(it) || m_state.isAtom(it)))
+      setStoreIntoAble(TBOOL_TRUE); //t3912 (class), need atom case!!!
     return it;
   } //checkAndLabelType
 
@@ -388,7 +393,8 @@ namespace MFM {
       }
 
     argbase += m_state.slotsNeeded(getNodeType()); //return
-    argbase += 1; //hidden
+    argbase += 1; //hidden ur
+    argbase += 1; //hidden uc Wed Sep 21 10:44:37 2016
     depth += argbase;
   } //calcMaxDepth
 
@@ -557,7 +563,6 @@ namespace MFM {
     // ANY return value placed on the STACK by a Return Statement,
     // was copied to EVALRETURN by the NodeBlockFunctionDefinition
     // before arriving here! And may be ignored at this point.
-    //if(m_state.isAtom(rtnType))
     if(m_state.isAtom(rtnType) && (m_state.isScalar(rtnType) || m_state.isReference(rtnType)))
       {
 	UlamValue rtnUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
@@ -586,8 +591,21 @@ namespace MFM {
     msg << m_state.getTokenDataAsString(m_functionNameTok).c_str();
     msg << "> to a variable, type: ";
     msg << m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str();
+    if(getStoreIntoAble() == TBOOL_TRUE)
+      {
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	//return UNEVALUABLE; //t3912
+	EvalStatus evs = eval();
+	if(evs == NORMAL)
+	  {
+	    return evs; //t3912
+	    //need a Ptr to the auto temporary variable, the result of func call
+	    // that belongs in m_currentObjPtr, but where to store the ans?
+
+	  }
+      }
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-    assert(Node::getStoreIntoAble() == TBOOL_FALSE);
+    //assert(Node::getStoreIntoAble() == TBOOL_FALSE); //t3912
     return ERROR;
   } //evalToStoreInto
 
@@ -759,6 +777,12 @@ namespace MFM {
   void NodeFunctionCall::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
     genCodeIntoABitValue(fp,uvpass);
+
+    if(m_state.isAClass(uvpass.getPassTargetType()))
+      {
+	m_tmprefSymbol = Node::makeTmpRefSymbolForCodeGen(uvpass, NULL);
+	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmprefSymbol);
+      }
   } //codeGenToStoreInto
 
   void NodeFunctionCall::genCodeIntoABitValue(File * fp, UVPass& uvpass)
@@ -822,7 +846,8 @@ namespace MFM {
 
 	// put result of function call into a variable;
 	// (C turns it into the copy constructor)
-	fp->write("const ");
+	if(getStoreIntoAble() == TBOOL_FALSE)
+	  fp->write("const ");
 	fp->write(nut->getLocalStorageTypeAsString().c_str()); //e.g. BitVector<32>
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(nuti, rtnSlot, TMPBITVAL).c_str());

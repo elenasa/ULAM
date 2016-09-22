@@ -475,7 +475,25 @@ namespace MFM {
 
     UlamValue rtnPtr = UlamValue::makePtr(-1, EVALRETURN, rtnUVtype, rtnUVptr.isTargetPacked(), m_state);
     m_state.m_nodeEvalStack.assignUlamValuePtr(rtnPtr, rtnUVptr);
-  }
+  } //assignReturnValuePtrToStack
+
+  //in case of func call returning a class, lhs of dot; default STORAGE is STACK
+  UlamValue Node::assignAnonymousClassReturnValueToStack(UlamValue rtnUV)
+  {
+    UTI rtnUVtype = rtnUV.getUlamValueTypeIdx(); //==node type
+
+    assert(!m_state.isPtr(rtnUVtype));
+
+    assert(m_state.isAClass(rtnUVtype) || m_state.isAtom(rtnUVtype));
+
+    // save in "uc" slot, below returning answer (if Void??? - 0?)
+    s32 slots = m_state.slotsNeeded(getNodeType());
+
+    //where to put the return value..'return' statement uses STACK
+    UlamValue rtnPtr = UlamValue::makePtr(-slots - 1, STACK, rtnUVtype, m_state.determinePackable(rtnUVtype), m_state);
+    m_state.assignValue(rtnPtr, rtnUV);
+    return rtnPtr;
+  } //assignAnonymousClassReturnValueToStack
 
   void Node::packBitsInOrderOfDeclaration(u32& offset)
   {
@@ -2950,7 +2968,8 @@ namespace MFM {
   SymbolTmpRef * Node::makeTmpRefSymbolForCodeGen(UVPass uvpass, Symbol * sym)
   {
     UTI tuti = uvpass.getPassTargetType(); //possibly not a ref, e.g. array item.
-    std::string tmpvarname = m_state.getTmpVarAsString(tuti, uvpass.getPassVarNum(), TMPAUTOREF);
+    //std::string tmpvarname = m_state.getTmpVarAsString(tuti, uvpass.getPassVarNum(), TMPAUTOREF); //t3912
+    std::string tmpvarname = m_state.getTmpVarAsString(tuti, uvpass.getPassVarNum(), uvpass.getPassStorage());
     Token tidTok(TOK_IDENTIFIER, Node::getNodeLocation(), m_state.m_pool.getIndexForDataString(tmpvarname));
 
     u32 pos = uvpass.getPassPos();

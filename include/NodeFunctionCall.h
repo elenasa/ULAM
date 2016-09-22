@@ -108,6 +108,7 @@ namespace MFM{
     Token m_functionNameTok;
     SymbolFunction * m_funcSymbol;
     NodeList * m_argumentNodes;
+    SymbolTmpRef * m_tmprefSymbol;
 
     bool getVirtualFunctionForEval(UlamValue & atomPtr, NodeBlockFunctionDefinition *& rtnfunc);
 
