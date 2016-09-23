@@ -1,49 +1,49 @@
 ## -*- mode:ulam -*-
-#=t3188_test_compiler_elementandquark_memberselectedfunc
+#=t3189_test_compiler_elementandquark_memberselectedfunc
+##
+## gen output: (+ assert)
+## Int 40;
+##
 #!
-##      //note: 148 decimal == 0x94 hex
-##      /* gen code output:
-##	 Int Arg: 40
-##       */
 Exit status: 40
-Ue_Foo { System s();  Bool(7) m_b(false);  Int(32) m_idx(40);  C2D m_coord( Int(6) m_width(9);  Int(6) m_height(4); );  Int(32) test() {  m_coord ( 9 cast 4 cast )func = m_idx m_coord ( 0 cast 0 cast )getIndex . = s ( m_idx )print . m_idx return } }
+Ue_Foo { Int(32) m_idx(40);  Int(32) test() {  System s;  m_idx ( 9 cast 4 cast )func ( 0 cast 0 cast )getIndex . = s ( m_idx )print . s ( m_idx 40 cast == )assert . m_idx return } }
+Uq_C2D { typedef Int(6) IF;  Int(6) m_width(0);  Int(6) m_height(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
-Uq_C2D { Int(6) m_width(0);  Int(6) m_height(0);  <NOMAIN> }
+##
+##      //member selection with a function call must be first saved to a
+##      //variable since we results are returned-by-value (see t3188)
+##
 #>Foo.ulam
   ulam 1;
-use System;
 use C2D;
 element Foo {
-  System s;
-  Bool(7) m_b;
   Int m_idx;
-  C2D m_coord;
   C2D func(Int i, Int j) {
     C2D c;
     c.init(i,j);
     return c;
   }
   Int test() {
-    m_coord = func(9,4);
-    m_idx = m_coord.getIndex(0,0);
+    System s;
+    m_idx = func(9,4).getIndex(0,0);
     s.print(m_idx);
+    s.assert(m_idx == 40);
     return m_idx;
   }
 }
-##
-##      // increase bitsize of width and height to accomodate 9.
+
 #:C2D.ulam
   ulam 1;
 quark C2D {
-  Int(6) m_width;
-  Int(6) m_height;
+  typedef Int(6) IF;
+  IF m_width, m_height;
   Void init(Int x, Int y) {
-    m_width = (Int(6)) x;
-    m_height = (Int(6)) y;
+    m_width = (IF) x;
+    m_height = (IF) y;
     return;
   }
   Void init() {
-    m_width = 9;
+    m_width = IF.maxof;
     m_height = 4;
     return;
     /* event window overload */ }

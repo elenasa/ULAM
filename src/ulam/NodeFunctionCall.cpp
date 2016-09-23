@@ -365,8 +365,11 @@ namespace MFM {
     argNodes.clear();
     assert(it == getNodeType());
     assert(m_funcSymbol || (getNodeType() == Nav) || (getNodeType() == Hzy));
-    if(m_state.okUTItoContinue(it) && (m_state.isAClass(it) || m_state.isAtom(it)))
-      setStoreIntoAble(TBOOL_TRUE); //t3912 (class), need atom case!!!
+    if(m_state.okUTItoContinue(it) && (m_state.isAClass(it))) // || m_state.isAtom(it)))
+      {
+	setStoreIntoAble(TBOOL_TRUE); //t3912 (class), need atom case!!!
+	setReferenceAble(TBOOL_FALSE); //set after storeintoable t3661
+      }
     return it;
   } //checkAndLabelType
 
@@ -393,8 +396,8 @@ namespace MFM {
       }
 
     argbase += m_state.slotsNeeded(getNodeType()); //return
-    argbase += 1; //hidden ur
     argbase += 1; //hidden uc Wed Sep 21 10:44:37 2016
+    argbase += 1; //hidden ur
     depth += argbase;
   } //calcMaxDepth
 

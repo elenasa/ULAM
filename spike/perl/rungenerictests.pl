@@ -41,9 +41,9 @@ my $TOPLEVEL = "$ULAM_ROOT";
 my $TESTDIR =  "$ULAM_ROOT/src/test/generic";
 my $TESTBIN =  "$ULAM_ROOT/src/test/bin";
 my $EXEC_TEST_VALGRIND = 0;  #=1 produces uncomparable log files (grep for "leaked" in them).
-#my $SRC_DIR = "safe";
-my $SRC_DIR = "error"; # comment out Node::countNavNodes second line of message for comparison.
-my $TESTGENCODE = 0; # 0 is faster; 1 is thorough
+my $SRC_DIR = "safe";
+#my $SRC_DIR = "error"; # comment out Node::countNavNodes second line of message for comparison.
+my $TESTGENCODE = 1; # 0 is faster; 1 is thorough
 
 sub usage_abort
 {

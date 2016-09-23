@@ -1,36 +1,35 @@
 ## -*- mode:ulam -*-
 #=t3413_test_compiler_elementandquark_caarray_funcreturn_error
 #!
-./EventWindowTest.ulam:15:9: ERROR: Invalid lefthand side of equals <func>, type: Atom(96).
+./EventWindowTest.ulam:15:12: ERROR: Invalid lefthand side of equals <func>, type: Atom(96).
 Unrecoverable Program Type Label FAILURE.
-##
 #>EventWindowTest.ulam
-ulam 1;
+  ulam 1;
 use EventWindow;
 element EventWindowTest {
-EventWindow ew;
- /*EventWindow func() {
- return ew;
- }
- */
- Atom func() {
-   return ew[0];
- }
- Int test() {
- Atom a;
- EventWindowTest ewt;
- func() = ewt;
- /*ew[0] = ewt; */
- a = func(); /*a = ew[0]; */ // This is me!
- if (a is EventWindowTest)
-   return 0;
- return 1;
- }
+  EventWindow ew;
+  /*EventWindow func() {
+    return ew;
+    }
+  */
+  Atom func() {
+    return ew[0];
+  }
+  Int test() {
+    Atom a;
+    EventWindowTest ewt;
+    func() = ewt;
+    /*ew[0] = ewt; */
+    a = func(); /*a = ew[0]; */ // This is me!
+    if (a is EventWindowTest)
+      return 0;
+    return 1;
+  }
 }
 
 ##
 #:EventWindow.ulam
-ulam 1;
+  ulam 1;
 quark EventWindow {
   Atom aref(Int index) native;
   Void aset(Int index, Atom val) native;

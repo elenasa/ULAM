@@ -3281,7 +3281,8 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     m_currentSelfPtr = m_currentObjPtr = m_eventWindow.makePtrToCenter();
 
     //set up STACK since func call not called
-    m_funcCallStack.pushArg(m_currentObjPtr); //hidden arg on STACK
+    m_funcCallStack.pushArg(m_currentObjPtr); //hidden self arg on STACK
+    m_funcCallStack.pushArg(UlamValue::makeImmediate(Int, -1)); //uc,t3189
     m_funcCallStack.pushArg(UlamValue::makeImmediate(Int, -1)); //return slot on STACK
   } //setupCenterSiteForTesting
 
