@@ -241,10 +241,11 @@ namespace MFM {
     UTI newobjtype = newCurrentObjectPtr.getUlamValueTypeIdx();
     if(!m_state.isPtr(newobjtype))
       {
-	// must be the result of a function call;
+	assert(m_nodeLeft->isFunctionCall()); //must be the result of a function call
 	// copy anonymous class to "uc" hidden slot in STACK, then replace with a pointer to it.
 	assert(m_state.isAClass(newobjtype));
 	newCurrentObjectPtr = assignAnonymousClassReturnValueToStack(newCurrentObjectPtr); //t3912
+	//m_state.m_currentSelfPtr = newCurrentObjectPtr; //changes self ********* (t3914, t3915)
       }
 
     u32 superid = m_state.m_pool.getIndexForDataString("super");
@@ -255,6 +256,9 @@ namespace MFM {
 	else
 	  m_state.m_currentSelfPtr = newCurrentObjectPtr; //changes self ********* (t3743, t3745)
       }
+
+    //if(m_nodeRight->isFunctionCall())
+    //  m_state.m_currentSelfPtr = newCurrentObjectPtr; //changes self ********* (t3914, t3915)
 
     m_state.m_currentObjPtr = newCurrentObjectPtr;
 
@@ -338,13 +342,17 @@ namespace MFM {
     UTI newobjtype = newCurrentObjectPtr.getUlamValueTypeIdx();
     if(!m_state.isPtr(newobjtype))
       {
-	// must be the result of a function call;
+	assert(m_nodeLeft->isFunctionCall());// must be the result of a function call;
 	// copy anonymous class to "uc" hidden slot in STACK, then replace with a pointer to it.
 	assert(m_state.isAClass(newobjtype));
 	newCurrentObjectPtr = assignAnonymousClassReturnValueToStack(newCurrentObjectPtr); //t3913
+	//m_state.m_currentSelfPtr = newCurrentObjectPtr; //changes self ********* (t3914, t3915)
       }
 
     m_state.m_currentObjPtr = newCurrentObjectPtr;
+
+    //if(m_nodeRight->isFunctionCall())
+    //  m_state.m_currentSelfPtr = newCurrentObjectPtr; //changes self ********* (t3914, t3915)
 
     makeRoomForSlots(1); //always 1 slot for ptr
     evs = m_nodeRight->evalToStoreInto();
@@ -363,6 +371,7 @@ namespace MFM {
 	// copy anonymous class to "uc" hidden slot in STACK, then replace with a pointer to it.
 	assert(m_state.isAClass(robjtype));
 	ruvPtr = assignAnonymousClassReturnValueToStack(ruvPtr);
+	//m_state.m_currentSelfPtr = ruvPtr; //changes self ********* (t3914, t3915)
       }
 
     Node::assignReturnValuePtrToStack(ruvPtr);
@@ -394,34 +403,25 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
 
-    UVPass luvpass;
-
     // if parent is another MS, we might need to adjust pos first
     // elements can be data members of transients, etc.
-    if(!m_state.m_currentObjSymbolsForCodeGen.empty())
+    UVPass luvpass;
+    if(passalongUVPass())
       {
-	Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
-	if(!m_state.isReference(cossym->getUlamTypeIdx()) || !cossym->isTmpRefSymbol())
-	  {
-	    luvpass = uvpass;
-	    adjustUVPassForElements(luvpass); //t3803?
-	  }
+	luvpass = uvpass;
+	adjustUVPassForElements(luvpass); //t3803?
       }
 
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
     //NodeIdent can't do it, because it doesn't know it's not a stand-alone element.
     // here, we know there's rhs of member select, which needs to adjust to state bits.
-    //assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
-    if(!m_state.m_currentObjSymbolsForCodeGen.empty())
+    if(passalongUVPass())
       {
-	Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
-	if(!m_state.isReference(cossym->getUlamTypeIdx()) || !cossym->isTmpRefSymbol())
-	  {
-	    uvpass = luvpass;
-	    adjustUVPassForElements(uvpass); //t3803?
-	  }
+	uvpass = luvpass;
+	adjustUVPassForElements(uvpass); //t3803?
       }
+
     //check the back (not front) to process multiple member selections (e.g. t3818)
     m_nodeRight->genCode(fp, uvpass);  //leave any array item as-is for gencode.
 
@@ -435,15 +435,10 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
 
     UVPass luvpass;
-
-    if(!m_state.m_currentObjSymbolsForCodeGen.empty())
+    if(passalongUVPass())
       {
-	Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
-	if(!m_state.isReference(cossym->getUlamTypeIdx()) || !cossym->isTmpRefSymbol())
-	  {
-	    luvpass = uvpass; //t3584
-	    adjustUVPassForElements(luvpass); //t3803 ?
-	  }
+	luvpass = uvpass; //t3584
+	adjustUVPassForElements(luvpass); //t3803 ?
       }
 
     // if parent is another MS, we might need to adjust pos first
@@ -455,9 +450,7 @@ namespace MFM {
     // here, we know there's rhs of member select, which needs to adjust to state bits.
     //process multiple member selections (e.g. t3817)
     UVPass ruvpass;
-    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
-    Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
-    if(!m_state.isReference(cossym->getUlamTypeIdx()) || !cossym->isTmpRefSymbol())
+    if(passalongUVPass())
       {
 	ruvpass = luvpass;  //t3615 ?
 	adjustUVPassForElements(ruvpass); //t3803
@@ -467,6 +460,18 @@ namespace MFM {
 
     uvpass = ruvpass;
   } //genCodeToStoreInto
+
+  bool NodeMemberSelect::passalongUVPass()
+  {
+    bool rtnb = false; //don't pass along
+    if(!m_state.m_currentObjSymbolsForCodeGen.empty())
+      {
+	Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
+	//if(!m_state.isReference(cossym->getUlamTypeIdx()) || !cossym->isTmpRefSymbol())
+	rtnb = (!m_state.isReference(cossym->getUlamTypeIdx()) && !cossym->isTmpRefSymbol());
+      }
+    return rtnb;
+  }
 
   void NodeMemberSelect::adjustUVPassForElements(UVPass & uvpass)
   {

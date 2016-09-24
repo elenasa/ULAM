@@ -605,8 +605,11 @@ namespace MFM {
 	assert(m_state.okUTItoContinue(ttype));
 	if((m_state.getUlamTypeByIndex(ttype)->getUlamClassType() == UC_QUARK))
 	  {
+#if 0
+	    //WHY OH WHY? for atomof? t3915, t3914
 	    if(m_varSymbol->isSelf())
 	      selfuvp = m_state.getAtomPtrFromSelfPtr();
+#endif
 	    //else
 	  }
 	return selfuvp;
@@ -621,6 +624,7 @@ namespace MFM {
     UlamValue ptr;
     if(m_varSymbol->isDataMember())
       {
+	assert((UlamType::compareForUlamValueAssignment(m_varSymbol->getDataMemberClass(), m_state.m_currentObjPtr.getPtrTargetType(), m_state) == UTIC_SAME) || m_state.isClassASubclassOf(m_state.m_currentObjPtr.getPtrTargetType(), m_varSymbol->getDataMemberClass())); //sanity, right? t3915
 	// return ptr to this data member within the m_currentObjPtr
 	// 'pos' modified by this data member symbol's packed bit position
 	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());

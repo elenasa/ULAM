@@ -484,7 +484,7 @@ namespace MFM {
 
     assert(!m_state.isPtr(rtnUVtype));
 
-    assert(m_state.isAClass(rtnUVtype) || m_state.isAtom(rtnUVtype));
+    assert(m_state.isAClass(rtnUVtype)); // || m_state.isAtom(rtnUVtype));
 
     // save in "uc" slot, below returning answer (if Void??? - 0?)
     s32 slots = m_state.slotsNeeded(getNodeType());

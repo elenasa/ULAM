@@ -365,10 +365,10 @@ namespace MFM {
     argNodes.clear();
     assert(it == getNodeType());
     assert(m_funcSymbol || (getNodeType() == Nav) || (getNodeType() == Hzy));
-    if(m_state.okUTItoContinue(it) && (m_state.isAClass(it))) // || m_state.isAtom(it)))
+    if(m_state.okUTItoContinue(it) && (m_state.isAClass(it)))
       {
-	setStoreIntoAble(TBOOL_TRUE); //t3912 (class), need atom case!!!
-	setReferenceAble(TBOOL_FALSE); //set after storeintoable t3661
+	setStoreIntoAble(TBOOL_TRUE); //t3912 (class)
+	setReferenceAble(TBOOL_FALSE); //set after storeintoable t3661,2
       }
     return it;
   } //checkAndLabelType
@@ -391,10 +391,8 @@ namespace MFM {
 	u32 nobase = 0;
 	m_argumentNodes->getNodePtr(i)->calcMaxDepth(depthi, nomaxdepth, nobase); //possible func call as arg
 	u32 sloti = m_state.slotsNeeded(m_argumentNodes->getNodeType(i)); //just a variable or constant
-	//take the greater
-	argbase += depthi > sloti ? depthi : sloti;
+	argbase += depthi > sloti ? depthi : sloti; //take the greater
       }
-
     argbase += m_state.slotsNeeded(getNodeType()); //return
     argbase += 1; //hidden uc Wed Sep 21 10:44:37 2016
     argbase += 1; //hidden ur
@@ -596,15 +594,18 @@ namespace MFM {
     msg << m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str();
     if(getStoreIntoAble() == TBOOL_TRUE)
       {
+	//UlamValue saveSelfPtr = m_state.m_currentSelfPtr; // restore upon return from func *****
+	//m_state.m_currentSelfPtr = m_state.m_currentObjPtr; // set for subsequent func calls ****
+
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	//return UNEVALUABLE; //t3912
 	EvalStatus evs = eval();
 	if(evs == NORMAL)
 	  {
+	    //m_state.m_currentSelfPtr = saveSelfPtr; //restore previous self *****
 	    return evs; //t3912
 	    //need a Ptr to the auto temporary variable, the result of func call
 	    // that belongs in m_currentObjPtr, but where to store the ans?
-
+	    // use the hidden 'uc' slot (under the return value)
 	  }
       }
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
