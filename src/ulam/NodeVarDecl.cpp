@@ -976,14 +976,6 @@ UTI NodeVarDecl::checkAndLabelType()
 	UlamValue selfuvp = m_state.m_currentSelfPtr;
 	UTI ttype = selfuvp.getPtrTargetType();
 	assert(m_state.okUTItoContinue(ttype));
-	if((m_state.getUlamTypeByIndex(ttype)->getUlamClassType() == UC_QUARK))
-	  {
-#if 0
-	    if(m_varSymbol->isSelf())
-	      selfuvp = m_state.getAtomPtrFromSelfPtr();
-	    //else
-#endif
-	  }
 	return selfuvp;
       } //done
 

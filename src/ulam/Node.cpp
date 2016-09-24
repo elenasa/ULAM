@@ -2892,13 +2892,10 @@ namespace MFM {
 	UTI cosuti = cos->getUlamTypeIdx();
 	UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 	ULAMCLASSTYPE classtype = cosut->getUlamClassType();
-	//last one is element and not a ref, add offset to state bits;
-	// unlike for read/write element.
-	// already adjusted by NodeMemberSelect. t3147, t3408
+	//last one is element array item;
+	// o.w. already adjusted by NodeMemberSelect. t3147, t3408, t3913, t3915
 	if((classtype == UC_ELEMENT) && !cosut->isScalar())
-	  {
-	    posStr << " + T::BPA * " << uvpass.getTmpVarAsString(m_state);
-	  }
+	  posStr << " + T::BPA * " << uvpass.getTmpVarAsString(m_state);
       }
     return posStr.str();
   } //calcPosOfCurrentObjectClassesAsString

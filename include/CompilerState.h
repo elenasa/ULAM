@@ -368,9 +368,6 @@ namespace MFM{
 
     const std::string getBitVectorLengthAsStringForCodeGen(UTI uti);
 
-    /** returns ulamvalue ptr to entire atom/element from m_currentSelfPtr */
-    UlamValue getAtomPtrFromSelfPtr();
-
     /** returns immediate target value: extracts data from packed targets;
 	unpacked array targets are invalid */
     UlamValue getPtrTarget(UlamValue ptr);

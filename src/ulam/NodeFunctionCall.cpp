@@ -594,14 +594,10 @@ namespace MFM {
     msg << m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str();
     if(getStoreIntoAble() == TBOOL_TRUE)
       {
-	//UlamValue saveSelfPtr = m_state.m_currentSelfPtr; // restore upon return from func *****
-	//m_state.m_currentSelfPtr = m_state.m_currentObjPtr; // set for subsequent func calls ****
-
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	EvalStatus evs = eval();
 	if(evs == NORMAL)
 	  {
-	    //m_state.m_currentSelfPtr = saveSelfPtr; //restore previous self *****
 	    return evs; //t3912
 	    //need a Ptr to the auto temporary variable, the result of func call
 	    // that belongs in m_currentObjPtr, but where to store the ans?
@@ -609,7 +605,6 @@ namespace MFM {
 	  }
       }
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-    //assert(Node::getStoreIntoAble() == TBOOL_FALSE); //t3912
     return ERROR;
   } //evalToStoreInto
 

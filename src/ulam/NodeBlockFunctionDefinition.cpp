@@ -427,14 +427,6 @@ namespace MFM {
 
     NodeBlock::calcMaxDepth(depth, maxdepth, 1); // one for the frame ptr offset
     m_state.popClassContext();
-
-#if 1
-    // not sure this is the case??? Sat Apr 23 10:44:39 2016
-    // special case test function:
-    u32 testid = m_state.m_pool.getIndexForDataString("test");
-    if(m_funcSymbol->getId() == testid)
-      maxdepth += 2; //add spot for return since no caller does (was +=1)
-#endif
   } //calcMaxDepth
 
   void NodeBlockFunctionDefinition::setNative()

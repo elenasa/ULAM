@@ -603,15 +603,6 @@ namespace MFM {
 	UlamValue selfuvp = m_state.m_currentSelfPtr;
 	UTI ttype = selfuvp.getPtrTargetType();
 	assert(m_state.okUTItoContinue(ttype));
-	if((m_state.getUlamTypeByIndex(ttype)->getUlamClassType() == UC_QUARK))
-	  {
-#if 0
-	    //WHY OH WHY? for atomof? t3915, t3914
-	    if(m_varSymbol->isSelf())
-	      selfuvp = m_state.getAtomPtrFromSelfPtr();
-#endif
-	    //else
-	  }
 	return selfuvp;
       } //done
 

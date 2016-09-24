@@ -245,7 +245,6 @@ namespace MFM {
 	// copy anonymous class to "uc" hidden slot in STACK, then replace with a pointer to it.
 	assert(m_state.isAClass(newobjtype));
 	newCurrentObjectPtr = assignAnonymousClassReturnValueToStack(newCurrentObjectPtr); //t3912
-	//m_state.m_currentSelfPtr = newCurrentObjectPtr; //changes self ********* (t3914, t3915)
       }
 
     u32 superid = m_state.m_pool.getIndexForDataString("super");
@@ -256,9 +255,6 @@ namespace MFM {
 	else
 	  m_state.m_currentSelfPtr = newCurrentObjectPtr; //changes self ********* (t3743, t3745)
       }
-
-    //if(m_nodeRight->isFunctionCall())
-    //  m_state.m_currentSelfPtr = newCurrentObjectPtr; //changes self ********* (t3914, t3915)
 
     m_state.m_currentObjPtr = newCurrentObjectPtr;
 
@@ -346,13 +342,9 @@ namespace MFM {
 	// copy anonymous class to "uc" hidden slot in STACK, then replace with a pointer to it.
 	assert(m_state.isAClass(newobjtype));
 	newCurrentObjectPtr = assignAnonymousClassReturnValueToStack(newCurrentObjectPtr); //t3913
-	//m_state.m_currentSelfPtr = newCurrentObjectPtr; //changes self ********* (t3914, t3915)
       }
 
     m_state.m_currentObjPtr = newCurrentObjectPtr;
-
-    //if(m_nodeRight->isFunctionCall())
-    //  m_state.m_currentSelfPtr = newCurrentObjectPtr; //changes self ********* (t3914, t3915)
 
     makeRoomForSlots(1); //always 1 slot for ptr
     evs = m_nodeRight->evalToStoreInto();
@@ -371,7 +363,6 @@ namespace MFM {
 	// copy anonymous class to "uc" hidden slot in STACK, then replace with a pointer to it.
 	assert(m_state.isAClass(robjtype));
 	ruvPtr = assignAnonymousClassReturnValueToStack(ruvPtr);
-	//m_state.m_currentSelfPtr = ruvPtr; //changes self ********* (t3914, t3915)
       }
 
     Node::assignReturnValuePtrToStack(ruvPtr);
@@ -467,8 +458,10 @@ namespace MFM {
     if(!m_state.m_currentObjSymbolsForCodeGen.empty())
       {
 	Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
-	//if(!m_state.isReference(cossym->getUlamTypeIdx()) || !cossym->isTmpRefSymbol())
-	rtnb = (!m_state.isReference(cossym->getUlamTypeIdx()) && !cossym->isTmpRefSymbol());
+	UTI cosuti = cossym->getUlamTypeIdx();
+	UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+	//t3913, t3915 tmpref may not be a ref, but may need adjusting (i.e. anonymous element returned)
+	rtnb = (!cosut->isReference() && (!cossym->isTmpRefSymbol() || Node::needAdjustToStateBits(cosuti)));
       }
     return rtnb;
   }
