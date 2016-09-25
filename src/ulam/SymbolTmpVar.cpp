@@ -26,12 +26,11 @@ namespace MFM {
   const std::string SymbolTmpVar::getMangledName()
   {
     return m_state.m_pool.getDataAsString(getId());
-  } //getMangledName
+  }
 
   u32 SymbolTmpVar::getPosOffset()
   {
     return m_posOffsetCopy; //included in its variable
   }
-
 
 } //end MFM

@@ -37,34 +37,34 @@ namespace MFM {
   PACKFIT UVPass::isTargetPacked()
   {
     return (PACKFIT) m_packed;
-  } //isTargetPacked
+  }
 
   void UVPass::setPassStorage(TMPSTORAGE s)
   {
     m_storagetype = s;
-  } //setPassStorage
+  }
 
   TMPSTORAGE UVPass::getPassStorage()
   {
     return (TMPSTORAGE) m_storagetype;
-  } //getPassStorage
+  }
 
   void UVPass::setPassVarNum(s32 s)
   {
     m_varNum = s;
-  } //setPassSlotIndex
+  }
 
   s32 UVPass::getPassVarNum()
   {
     return m_varNum;
-  } //getPassSlotIndex
+  }
 
   void UVPass::setPassPos(u32 pos)
   {
     assert((pos <= getPassLen()) && pos >= 0);
     m_posInStorage = pos;
     return;
-  } //setPassPos
+  }
 
   void UVPass::setPassPosForElementType(u32 pos, CompilerState& state)
   {
@@ -72,7 +72,7 @@ namespace MFM {
     assert(state.getUlamTypeByIndex(this->getPassTargetType())->getUlamClassType() == UC_ELEMENT); //sanity
     m_posInStorage = pos + ATOMFIRSTSTATEBITPOS;
     return;
-  } //setPassPosForElementType
+  }
 
   u32 UVPass::getPassPos()
   {
@@ -80,34 +80,34 @@ namespace MFM {
     //assert(pos <= getPassLen() && pos >= 0);
     assert(pos >= 0); //data member pos may go beyonds its own length
     return pos;
-  } //getPassPos
+  }
 
   u32 UVPass::getPassLen()
   {
     u32 len = m_bitlenInStorage;
     assert(len >= 0);
     return len;
-  } //getPassLen
+  }
 
   UTI UVPass::getPassTargetType()
   {
     return m_targetType;
-  } //getPassTargetType
+  }
 
   void UVPass::setPassTargetType(UTI type)
   {
     m_targetType = type;
-  } //setPassTargetType
+  }
 
   u32 UVPass::getPassNameId()
   {
     return m_nameid;
-  } //getPassNameId
+  }
 
   void UVPass::setPassNameId(u32 id)
   {
     m_nameid = id;
-  } //setPassNameId
+  }
 
   const std::string UVPass::getTmpVarAsString(CompilerState & state)
   {

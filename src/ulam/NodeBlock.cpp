@@ -126,12 +126,9 @@ namespace MFM {
   UTI NodeBlock::checkAndLabelType()
   {
     assert(m_nodeNext);
-
     //especially important for template instances (prev ptr nullified on instantiation)
     if(getPreviousBlockPointer() == NULL)
-      {
-	setPreviousBlockPointer(m_state.getCurrentBlock());
-      }
+      setPreviousBlockPointer(m_state.getCurrentBlock());
     else
       assert(getPreviousBlockPointer() == m_state.getCurrentBlock());
 
@@ -141,8 +138,7 @@ namespace MFM {
 
     m_state.popClassContext(); //restores m_prevBlockNode
 
-    //blocks don't have types
-    setNodeType(Void);
+    setNodeType(Void); //blocks don't have types
     return getNodeType();
   } //checkAndLabelType
 

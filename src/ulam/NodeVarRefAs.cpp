@@ -245,7 +245,6 @@ namespace MFM {
 
     fp->write("); //shadows lhs of 'as'"); GCNL;
 
-    m_state.m_genCodingConditionalHas = false; // done
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs ?
   } //genCode
 
@@ -276,7 +275,6 @@ namespace MFM {
 
     m_varSymbol->setIsSelf(); //nope
 
-    m_state.m_genCodingConditionalHas = false; // done
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
   } //genCodeRefAsSelf
 

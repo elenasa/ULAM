@@ -72,7 +72,6 @@ namespace MFM {
 	  fp->write(m_nodeOf->getName());
 	else
 	  fp->write(m_state.getUlamTypeNameBriefByIndex(m_uti).c_str());
-	//fp->write(m_state.getTokenDataAsString(m_ofTok).c_str());
 	fp->write(" ");
 	fp->write(m_funcTok.getTokenString());
 	fp->write(" .");

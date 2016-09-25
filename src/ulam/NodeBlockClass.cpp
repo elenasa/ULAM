@@ -1677,9 +1677,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     genCodeBuiltInVirtualTable(fp, declOnly, classtype);
 
-    // 'has' is for both class types
-    //genCodeBuiltInFunctionHas(fp, declOnly, classtype);
-
     // 'is' quark related for both class types; overloads is-Method with THE_INSTANCE arg
     genCodeBuiltInFunctionIsMethodRelatedInstance(fp, declOnly, classtype);
 
@@ -1702,68 +1699,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     else
       m_state.abortUndefinedUlamClassType(); //sanity
   } //generateCodeForBuiltInClassFunctions
-
-  void NodeBlockClass::genCodeBuiltInFunctionHas(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
-  {
-    //'has' applies to both quarks and elements
-    UTI cuti = m_state.getCompileThisIdx();
-
-    if(declOnly)
-      {
-	m_state.indent(fp);
-	fp->write("//helper method not called directly\n");
-
-	m_state.indent(fp);
-	fp->write("s32 ");
-	fp->write(m_state.getHasMangledFunctionName(cuti));
-	fp->write("(const char * namearg) const;"); GCNL;
-	fp->write("\n");
-	return;
-      }
-
-    m_state.indent(fp);
-    fp->write("template<class EC>\n"); //same for elements and quarks
-
-    m_state.indent(fp);
-    fp->write("s32 "); //return pos offset, or -1 if not found
-
-    //include the mangled class::
-    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
-    fp->write("<EC>::");
-    fp->write(m_state.getHasMangledFunctionName(cuti));
-    fp->write("(const char * namearg) const\n");
-    m_state.indent(fp);
-    fp->write("{\n");
-
-    m_state.m_currentIndentLevel++;
-
-    genCodeBuiltInFunctionHasDataMembers(fp);
-
-    fp->write("\n");
-    m_state.indent(fp);
-    fp->write("return ");
-    fp->write("(-1); //not found"); GCNL;
-
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("}  //has\n\n");
-  } //genCodeBuiltInFunctionHas
-
-  void NodeBlockClass::genCodeBuiltInFunctionHasDataMembers(File * fp)
-  {
-    //first, ours (any that may shadow)
-    m_ST.genCodeBuiltInFunctionHasOverTableOfVariableDataMember(fp);
-
-    UTI superuti = m_state.isClassASubclass(getNodeType());
-    assert(superuti != Hzy);
-    if(superuti != Nouti)
-      {
-	//include any of its quark data members:
-	NodeBlockClass * superClassBlock = getSuperBlockPointer();
-	assert(superClassBlock);
-	superClassBlock->genCodeBuiltInFunctionHasDataMembers(fp);
-      }
-  } //genCodeBuiltInFunctionHasDataMembers
 
   void NodeBlockClass::genCodeBuiltInFunctionIsMethodRelatedInstance(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {

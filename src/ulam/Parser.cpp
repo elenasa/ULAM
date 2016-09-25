@@ -3322,7 +3322,6 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	break;
       case TOK_DOT:
 	assert(leftNode);
-	//rtnNode = parseMinMaxSizeofType(leftNode, Nouti, NULL);
 	rtnNode = parseRestOfMemberSelectExpr(leftNode); //t3905
 	break;
       case TOK_PLUS_PLUS: //t3903

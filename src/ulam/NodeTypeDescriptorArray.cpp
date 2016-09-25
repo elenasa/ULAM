@@ -109,7 +109,7 @@ namespace MFM {
     if(resolveType(it))
       {
 	m_ready = true; // set here
-	m_uti = it; //new given reset here!!! Mon Aug  1 12:02:52 2016
+	m_uti = it; //given reset here
 	setNodeType(it);
       }
     else
@@ -201,16 +201,12 @@ namespace MFM {
 	return false; //error, e.g. possible divide by zero
       }
 
-    //do it anyway, progress for the bitsize (t3773)
-    //if(as != UNKNOWNSIZE)
+    // do it anyway, progress for the bitsize (t3773)
+    // keep m_unknownArraysizeSubtree in case a template
+    if(!m_state.setUTISizes(rtnuti, m_state.getBitSize(scuti), as)) //update UlamType
       {
-	// keep in case a template
-	//delete m_unknownArraysizeSubtree;
-	if(!m_state.setUTISizes(rtnuti, m_state.getBitSize(scuti), as)) //update UlamType
-	  {
-	    rtnuti = Nav;
-	    return false;
-	  }
+	rtnuti = Nav;
+	return false;
       }
 
     attemptToResolveHolderArrayType(rtnuti, scuti);
@@ -282,8 +278,7 @@ namespace MFM {
   void NodeTypeDescriptorArray::checkAndMatchBaseUlamTypes(UTI auti, UTI scuti)
   {
     // of course, their keys' nameids should be the same (~ enum)!!
-    // unless one is a "holder"
-    // e.g. t3595 (typedef Unseen wasn't a class at all)
+    // unless one is a "holder" e.g. t3595 (typedef Unseen wasn't a class at all)
     UlamType * aut = m_state.getUlamTypeByIndex(auti);
     UlamType * scut = m_state.getUlamTypeByIndex(scuti);
     if((aut->getUlamTypeEnum() != scut->getUlamTypeEnum()) && !m_state.isHolder(auti))
@@ -311,9 +306,7 @@ namespace MFM {
     if(m_nodeScalar)
       m_nodeScalar->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
 
-    // doesn't go through c&l, so no nodetype set
-    //if(m_unknownArraysizeSubtree)
-    //  m_unknownArraysizeSubtree->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+    // m_unknownArraysizeSubtree doesn't go through c&l, so no nodetype set
   } //countNavHzyNoutiNodes
 
 } //end MFM

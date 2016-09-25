@@ -75,8 +75,8 @@ namespace MFM {
 
     if(resolveType(it))
       {
-	m_ready = true; // set here
-	m_uti = it; //new given reset here!!! Mon Aug  1 12:02:52 2016
+	m_ready = true; //set here
+	m_uti = it; //given reset here
       }
     else
 	m_state.setGoAgain();
@@ -122,7 +122,7 @@ namespace MFM {
 			rtnuti = auti; //should be mapped already, if necessary
 			rtnb = true;
 		      }
-		    else //t3862 //if(m_state.isHolder(auti))
+		    else //t3862
 		      {
 			UTI mappedUTI;
 			if(m_state.mappedIncompleteUTI(seluti, auti, mappedUTI))

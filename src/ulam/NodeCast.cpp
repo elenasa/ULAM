@@ -866,7 +866,6 @@ namespace MFM {
 	    fp->write(stgcos->getMangledName().c_str()); //assumes only one!!!
 	    fp->write(", ");
 	    //must displace the Typefield if a ref
-	    //if(vut->isReference())
 	    if(m_state.isReference(stgcosuti))
 	      {
 		fp->write("- T::ATOM_FIRST_STATE_BIT);"); GCNL; //t3753

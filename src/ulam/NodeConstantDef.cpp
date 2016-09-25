@@ -540,7 +540,7 @@ namespace MFM {
 		return Hzy;
 	      }
 	  }
-	else //if(!(m_constSymbol->isClassParameter() || m_constSymbol->isClassArgument()))
+	else
 	  {
 	    if(!(m_constSymbol->isClassParameter()))
 	      {

@@ -271,7 +271,6 @@ namespace MFM{
     AssertBool gotSymbol = parentNode->getSymbolPtr((Symbol *&) vsym);
     assert(gotSymbol);
 
-    //assert(vsym->hasInitValue());
     bool aok = true;
     BV8K dval;
     if(vsym->isReady())
@@ -300,7 +299,6 @@ namespace MFM{
     //similar to CS::genCodeClassDefaultConstantArray,
     // except indentUlamCode, to a tmpvar, and no BitVector.
     m_state.indentUlamCode(fp);
-    //fp->write("static "); //??
     fp->write("const ");
 
     if(nut->getPackable() != PACKEDLOADABLE)

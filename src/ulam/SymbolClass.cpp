@@ -105,12 +105,12 @@ namespace MFM {
   void SymbolClass::setSuperClass(UTI superclass)
   {
     m_superClass = superclass;
-  } //setSuperClass
+  }
 
   UTI SymbolClass::getSuperClass()
   {
     return m_superClass; //Nouti is none, not a subclass.
-  } //getSuperClass
+  }
 
   const std::string SymbolClass::getMangledPrefix()
   {
@@ -147,7 +147,7 @@ namespace MFM {
     NodeBlockClass * classNode = getClassBlockNode(); //instance
     assert(classNode);
     return classNode->hasCustomArray(); //checks any super classes
-  } //isCustomArray
+  }
 
   UTI SymbolClass::getCustomArrayType()
   {
@@ -749,7 +749,6 @@ void SymbolClass::setContextForPendingArgs(UTI context)
 	    fp->write(", UlamRef<EC>::ELEMENTAL, uc);"); GCNL;
 
 	    m_state.indent(fp);
-	    //fp->write("rtn = "); //MFM::Ui_Ut_102323Int
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
 
 	    // pass uc with effective self setup

@@ -217,8 +217,6 @@ namespace MFM{
 
     void generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
-    void genCodeBuiltInFunctionHas(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
-    void genCodeBuiltInFunctionHasDataMembers(File * fp);
     void genCodeBuiltInFunctionIsMethodRelatedInstance(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInFunctionIsRelatedInstance(File * fp);
 

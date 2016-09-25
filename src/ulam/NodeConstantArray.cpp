@@ -210,7 +210,6 @@ namespace MFM {
   NodeBlock * NodeConstantArray::getBlock()
   {
     assert(m_currBlockNo);
-    //NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClassStubFirst(m_currBlockNo);
     NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
     if(!currBlock)
       {

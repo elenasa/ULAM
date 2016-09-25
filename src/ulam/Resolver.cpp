@@ -16,7 +16,7 @@ namespace MFM {
     clearLeftoverNonreadyClassArgSubtrees();
     clearLeftoverUnknownTypeTokens();
     m_mapUTItoUTI.clear();
-  } //clearLeftoverSubtrees()
+  } //clearLeftoverSubtrees
 
   void Resolver::clearLeftoverNonreadyClassArgSubtrees()
   {
@@ -31,9 +31,7 @@ namespace MFM {
 	std::vector<NodeConstantDef *>::iterator vit = m_nonreadyClassArgSubtrees.begin();
 	while(vit != m_nonreadyClassArgSubtrees.end())
 	  {
-	    //NodeConstantDef * ceNode = *vit; NodeBlockClass is new owner!
-	    //delete ceNode;
-	    *vit = NULL;
+	    *vit = NULL; //NodeBlockClass is new owner!
 	    vit++;
 	  }
       }
@@ -129,7 +127,6 @@ namespace MFM {
 		    aok = m_state.isHolder(cnsym->getUlamTypeIdx()) ? false : true;
 		  }
 		//else
-		//m_state.abortShouldntGetHere();
 	      }
 	    else
 	      {
@@ -336,10 +333,7 @@ namespace MFM {
 
 	    UTI uti = ceNode->checkAndLabelType();
 	    if(m_state.okUTItoContinue(uti)) //i.e. ready
-	      {
-		//delete ceNode; NodeBlockClass is the owner now.
-		*vit = NULL;
-	      }
+	      *vit = NULL; //NodeBlockClass is the owner now.
 	    else
 	      leftCArgs.push_back(ceNode);
 	  }

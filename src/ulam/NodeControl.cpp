@@ -201,27 +201,14 @@ namespace MFM {
       }
     else
       {
-	if(m_state.m_genCodingConditionalHas)
-	  {
-	    assert(cut->getUlamTypeEnum() == Bool);
-	    fp->write(((UlamTypePrimitiveBool *) cut)->getConvertToCboolMethod().c_str());
-	    fp->write("((");
-	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	    fp->write(" >= 0 ? 1 : 0), "); //test for 'has' pos
-	    fp->write_decimal(cut->getBitSize());
-	    fp->write(")");
-	  }
-	else
-	  {
-	    //regular condition
-	    assert(cut->getUlamTypeEnum() == Bool);
-	    fp->write(((UlamTypePrimitiveBool *) cut)->getConvertToCboolMethod().c_str());
-	    fp->write("(");
-	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	    fp->write(", ");
-	    fp->write_decimal(cut->getBitSize());
-	    fp->write(")");
-	  }
+	//regular condition
+	assert(cut->getUlamTypeEnum() == Bool);
+	fp->write(((UlamTypePrimitiveBool *) cut)->getConvertToCboolMethod().c_str());
+	fp->write("(");
+	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(", ");
+	fp->write_decimal(cut->getBitSize());
+	fp->write(")");
       }
     fp->write(")"); GCNL;
 
@@ -231,10 +218,6 @@ namespace MFM {
 
     //note: in case of has-conditional, uvpass still has the tmpvariable containing the pos!
     m_nodeBody->genCode(fp, uvpass);
-
-    //probably should have been done within the body, to avoid any
-    //subsequent if/whiles from misinterpretting it as theirs; if so, again, moot.
-    assert(!m_state.m_genCodingConditionalHas);
 
     m_state.m_currentIndentLevel--;
     m_state.indentUlamCode(fp);

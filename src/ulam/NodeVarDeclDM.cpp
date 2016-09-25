@@ -702,8 +702,7 @@ namespace MFM {
     if(nclasstype == UC_ELEMENT)
       {
 	s32 arraysize = nut->getArraySize();
-	//arraysize = (arraysize <= 0 ? 1 : arraysize);
-	arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //allow zero Mon Jul  4 14:08:47 2016
+	arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //allow zero
 
 	m_state.indent(fp);
 	fp->write("{\n"); //limit scope of 'dam'
@@ -948,7 +947,6 @@ namespace MFM {
 	    //elements only data members in transients
 	    assert(m_state.getUlamClassForThisClass() == UC_TRANSIENT);
 	    s32 arraysize = nut->getArraySize();
-	    //arraysize = (arraysize <= 0 ? 1 : arraysize);
 	    arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //Mon Jul  4 14:11:41 2016
 	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
 	    if(nut->getBitSize() > 0)

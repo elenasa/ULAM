@@ -112,8 +112,6 @@ namespace MFM{
     bool m_parsingLocalDef; //used for populating m_localsPerFilePath
     Token m_currentLocalDefToken; //used to identify current file path when m_parsingLocalDef is true
 
-    //s32 m_currentFunctionBlockDeclSize; //used to calc framestack size for function def
-    //s32 m_currentFunctionBlockMaxDepth; //framestack saved in NodeBlockFunctionDefinition
     SYMBOLTYPEFLAG m_parsingVariableSymbolTypeFlag;
     s32 m_parsingControlLoop;             // used for break/continue control stmt parsing;
                                           // label num for end of loop, or 0
@@ -121,10 +119,9 @@ namespace MFM{
     bool m_gotStructuredCommentToken; // avoid testing uninitialized value
     Token m_precedingStructuredCommentToken; //for next class or parameter
 
-    bool m_parsingConditionalAs;          // used for Conditional-As/Has parsing
-    Token m_identTokenForConditionalAs;   // used for Conditional-As/Has parsing
-    Token m_parsingConditionalToken;       // used for Conditional-As/Has parsing
-    bool m_genCodingConditionalHas; // used for Conditional-Has code gen
+    bool m_parsingConditionalAs;          // used for Conditional-As parsing
+    Token m_identTokenForConditionalAs;   // used for Conditional-As parsing
+    Token m_parsingConditionalToken;       // used for Conditional-As parsing
 
     CallStack m_funcCallStack;    //local variables and arguments
     UEventWindow  m_eventWindow;  //storage for 41 atoms (elements)
@@ -150,8 +147,8 @@ namespace MFM{
     UlamValue m_currentObjPtr; //used in eval of members: data or funcs; updated at each '.'
     UlamValue m_currentSelfPtr; //used in eval of func calls: updated after args,
                                 // becomes currentObjPtr for args
-    UlamValue m_currentAutoObjPtr; //used in eval, uses rhs type of conditional as/has:
-    UTI m_currentAutoStorageType; //used in eval, uses lhs type of conditional as/has:
+    UlamValue m_currentAutoObjPtr; //used in eval, uses rhs type of conditional as:
+    UTI m_currentAutoStorageType; //used in eval, uses lhs type of conditional as:
 
     std::vector<Symbol *> m_currentObjSymbolsForCodeGen;  //used in code generation;
     Symbol * m_currentSelfSymbolForCodeGen; //used in code gen; parallels m_currentSelf
@@ -348,7 +345,6 @@ namespace MFM{
     const char * getCustomArrayGetMangledFunctionName();
     const char * getCustomArraySetMangledFunctionName();
     const char * getIsMangledFunctionName(UTI ltype);
-    const char * getHasMangledFunctionName(UTI ltype);
     const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
     const char * getClassLengthFunctionName(UTI ltype);
     const char * getBuildDefaultAtomFunctionName(UTI ltype);

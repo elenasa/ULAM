@@ -67,9 +67,6 @@ namespace MFM {
   static const char * IS_MANGLED_FUNC_NAME = "internalCMethodImplementingIs"; //Uf_2is
   static const char * IS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamClass<EC>::IsMethod"; //Uf_2is
 
-  static const char * HAS_MANGLED_FUNC_NAME = "PositionOfDataMemberType"; //Uf_3has
-  static const char * HAS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamClass<EC>::PositionOfDataMember";
-
   static const char * GETCLASSLENGTH_FUNCNAME = "GetClassLength";
   static const char * BUILD_DEFAULT_ATOM_FUNCNAME = "BuildDefaultAtom";
   static const char * BUILD_DEFAULT_QUARK_FUNCNAME = "getDefaultQuark";
@@ -79,7 +76,7 @@ namespace MFM {
   static const char * ULAMLOCALFILESCOPES_MANGLED_CLASSNAME = "Ul_10109219UlamLocalFilescopes10";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalHas(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyUTI(Nouti)
+  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyUTI(Nouti)
   {
     m_err.init(this, debugOn, infoOn, warnOn, waitOn, NULL);
     Token::initTokenMap(*this);
@@ -2831,13 +2828,6 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       return IS_MANGLED_FUNC_NAME_FOR_ATOM;
 
     return IS_MANGLED_FUNC_NAME;
-  }
-
-  const char * CompilerState::getHasMangledFunctionName(UTI ltype)
-  {
-    if(isAtom(ltype))
-      return HAS_MANGLED_FUNC_NAME_FOR_ATOM;
-    return HAS_MANGLED_FUNC_NAME;
   }
 
   const char * CompilerState::getAsMangledFunctionName(UTI ltype, UTI rtype)
