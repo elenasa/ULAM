@@ -83,7 +83,7 @@ namespace MFM {
     return false;
   }
 
-  bool Symbol::isTmpRefSymbol()
+  bool Symbol::isTmpVarSymbol()
   {
     return false;
   }

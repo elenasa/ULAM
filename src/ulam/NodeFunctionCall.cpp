@@ -9,14 +9,14 @@
 
 namespace MFM {
 
-  NodeFunctionCall::NodeFunctionCall(const Token& tok, SymbolFunction * fsym, CompilerState & state) : Node(state), m_functionNameTok(tok), m_funcSymbol(fsym), m_argumentNodes(NULL), m_tmprefSymbol(NULL)
+  NodeFunctionCall::NodeFunctionCall(const Token& tok, SymbolFunction * fsym, CompilerState & state) : Node(state), m_functionNameTok(tok), m_funcSymbol(fsym), m_argumentNodes(NULL), m_tmpvarSymbol(NULL)
   {
     m_argumentNodes = new NodeList(state);
     assert(m_argumentNodes);
     m_argumentNodes->setNodeLocation(tok.m_locator); //same as func call
   }
 
-  NodeFunctionCall::NodeFunctionCall(const NodeFunctionCall& ref) : Node(ref), m_functionNameTok(ref.m_functionNameTok), m_funcSymbol(NULL), m_argumentNodes(NULL), m_tmprefSymbol(NULL){
+  NodeFunctionCall::NodeFunctionCall(const NodeFunctionCall& ref) : Node(ref), m_functionNameTok(ref.m_functionNameTok), m_funcSymbol(NULL), m_argumentNodes(NULL), m_tmpvarSymbol(NULL){
     m_argumentNodes = (NodeList *) ref.m_argumentNodes->instantiate();
   }
 
@@ -24,8 +24,8 @@ namespace MFM {
   {
     delete m_argumentNodes;
     m_argumentNodes = NULL;
-    delete m_tmprefSymbol;
-    m_tmprefSymbol = NULL;
+    delete m_tmpvarSymbol;
+    m_tmpvarSymbol = NULL;
   }
 
   Node * NodeFunctionCall::instantiate()
@@ -779,8 +779,8 @@ namespace MFM {
 
     if(m_state.isAClass(uvpass.getPassTargetType()))
       {
-	m_tmprefSymbol = Node::makeTmpRefSymbolForCodeGen(uvpass, NULL);
-	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmprefSymbol);
+	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL);
+	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
       }
   } //codeGenToStoreInto
 
@@ -1277,11 +1277,11 @@ namespace MFM {
     UTI vuti = m_funcSymbol->getParameterType(n);
 
     UVPass luvpass = UVPass::makePass(tmpVarArgNum, TMPAUTOREF, vuti, m_state.determinePackable(vuti), m_state, 0, id);
-    SymbolTmpRef * tmprefsym = Node::makeTmpRefSymbolForCodeGen(luvpass, cossym); //cossym could be null
+    SymbolTmpVar * tmpvarsym = Node::makeTmpVarSymbolForCodeGen(luvpass, cossym); //cossym could be null
 
-    Node::genCodeReferenceInitialization(fp, uvpass, tmprefsym); //luvpass, not uvpass t3812
+    Node::genCodeReferenceInitialization(fp, uvpass, tmpvarsym); //luvpass, not uvpass t3812
 
-    delete tmprefsym;
+    delete tmpvarsym;
     uvpass = luvpass;
     return;
   } //genCodeReferenceArg

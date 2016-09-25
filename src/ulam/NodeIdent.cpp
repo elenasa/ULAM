@@ -651,7 +651,7 @@ namespace MFM {
 	pos = uvpass.getPassPos();
 	// 'pos' modified by this data member symbol's packed bit position;
 	// except for array items, i.e. tmprefsymbols (t3910)
-	if(!m_varSymbol->isTmpRefSymbol())
+	if(!m_varSymbol->isTmpVarSymbol())
 	  pos += m_varSymbol->getPosOffset();
 
 	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos, m_varSymbol->getId());

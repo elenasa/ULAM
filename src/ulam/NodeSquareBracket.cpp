@@ -6,19 +6,19 @@
 
 namespace MFM {
 
-  NodeSquareBracket::NodeSquareBracket(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state), m_isCustomArray(false), m_tmprefSymbol(NULL)
+  NodeSquareBracket::NodeSquareBracket(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state), m_isCustomArray(false), m_tmpvarSymbol(NULL)
   {
     if(m_nodeRight)
       m_nodeRight->updateLineage(getNodeNo()); //for unknown subtrees
     Node::setStoreIntoAble(TBOOL_HAZY);
   }
 
-  NodeSquareBracket::NodeSquareBracket(const NodeSquareBracket& ref) : NodeBinaryOp(ref), m_isCustomArray(ref.m_isCustomArray), m_tmprefSymbol(NULL) {}
+  NodeSquareBracket::NodeSquareBracket(const NodeSquareBracket& ref) : NodeBinaryOp(ref), m_isCustomArray(ref.m_isCustomArray), m_tmpvarSymbol(NULL) {}
 
   NodeSquareBracket::~NodeSquareBracket()
   {
-    delete m_tmprefSymbol;
-    m_tmprefSymbol = NULL;
+    delete m_tmpvarSymbol;
+    m_tmpvarSymbol = NULL;
   }
 
   Node * NodeSquareBracket::instantiate()
@@ -676,56 +676,7 @@ namespace MFM {
 
   void NodeSquareBracket::genCode(File * fp, UVPass& uvpass)
   {
-    assert(m_nodeLeft && m_nodeRight);
-    //wipe out before getting item within sq brackets
-    std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
-    m_state.clearCurrentObjSymbolsForCodeGen();
-
-    UVPass offset;
-    m_nodeRight->genCode(fp, offset); //read into tmp var
-    offset.setPassStorage(TMPARRAYIDX);
-
-    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore
-
-    UVPass luvpass = uvpass; //pass along pos t3584
-    m_nodeLeft->genCodeToStoreInto(fp, luvpass);
-
-    //special case index for non-custom array: numeric unary conversion to cu32
-    UTI luti = luvpass.getPassTargetType();
-    if(!m_state.isClassACustomArray(luti))
-      {
-	//runtime check to avoid accessing beyond array (Sun Jul  3 17:49:47 2016 )
-	UlamType * lut = m_state.getUlamTypeByIndex(luti);
-	s32 arraysize = lut->getArraySize();
-	assert(!lut->isScalar());
-	m_state.indentUlamCode(fp);
-	fp->write("if(");
-	fp->write(offset.getTmpVarAsString(m_state).c_str());
-	fp->write(" >= ");
-	fp->write_decimal(arraysize);
-	fp->write(")"); GCNL;
-
-	m_state.m_currentIndentLevel++;
-	m_state.indentUlamCode(fp);
-	fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
-	m_state.m_currentIndentLevel--;
-
-	//save autoref into a tmpref symbol
-	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
-	Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
-	assert(!m_state.isScalar(cossym->getUlamTypeIdx()));
-	if(cossym->isConstant())
-	  Node::genCodeConvertATmpVarIntoConstantAutoRef(fp, luvpass, offset); //luvpass becomes the autoref, and clears stack
-	else
-	  Node::genCodeConvertATmpVarIntoAutoRef(fp, luvpass, offset); //uvpass becomes the autoref, and clears stack
-	uvpass = luvpass;
-	m_tmprefSymbol = Node::makeTmpRefSymbolForCodeGen(uvpass, cossym); //dm to avoid leaks
-	m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore the prior stack
-	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmprefSymbol);
-      } //for non custom arrays only!
-    else
-      uvpass = offset; //customarray
-
+    genCodeToStoreInto(fp, uvpass);
     Node::genCodeReadIntoATmpVar(fp, uvpass); //splits on array item
   } //genCode
 
@@ -765,7 +716,7 @@ namespace MFM {
 	fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
 	m_state.m_currentIndentLevel--;
 
-	//save autoref into a tmpref symbol
+	//save autoref into a tmpvar symbol
 	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
 	Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
 	assert(!m_state.isScalar(cossym->getUlamTypeIdx()));
@@ -774,9 +725,9 @@ namespace MFM {
 	else
 	  Node::genCodeConvertATmpVarIntoAutoRef(fp, luvpass, offset); //luvpass becomes the autoref, and clears stack
 	uvpass = luvpass;
-	m_tmprefSymbol = Node::makeTmpRefSymbolForCodeGen(uvpass, cossym); //dm to avoid leaks
+	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, cossym); //dm to avoid leaks
 	m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore the prior stack
-	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmprefSymbol);
+	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
       } //for non custom arrays only!
     else
       uvpass = offset; //return custom array

@@ -46,7 +46,7 @@
 #include "File.h"
 #include "Locator.h"
 #include "Symbol.h"
-#include "SymbolTmpRef.h"
+#include "SymbolTmpVar.h"
 #include "UlamType.h"
 #include "UlamValue.h"
 #include "UVPass.h"
@@ -270,7 +270,7 @@ namespace MFM{
     //true if a non-ref, scalar element
     bool needAdjustToStateBits(UTI cuti);
 
-    SymbolTmpRef * makeTmpRefSymbolForCodeGen(UVPass uvpass, Symbol * sym);
+    SymbolTmpVar * makeTmpVarSymbolForCodeGen(UVPass uvpass, Symbol * sym);
 
     std::string genUlamRefUsageAsString(UTI uti);
 

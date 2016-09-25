@@ -3,20 +3,14 @@
 
 namespace MFM {
 
-  NodeMemberSelect::NodeMemberSelect(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqual(left,right,state), m_tmprefSymbolLeft(NULL), m_tmprefSymbolRight(NULL)
+  NodeMemberSelect::NodeMemberSelect(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqual(left,right,state)
   {
     Node::setStoreIntoAble(TBOOL_HAZY);
   }
 
-  NodeMemberSelect::NodeMemberSelect(const NodeMemberSelect& ref) : NodeBinaryOpEqual(ref), m_tmprefSymbolLeft(NULL), m_tmprefSymbolRight(NULL) {}
+  NodeMemberSelect::NodeMemberSelect(const NodeMemberSelect& ref) : NodeBinaryOpEqual(ref) {}
 
-  NodeMemberSelect::~NodeMemberSelect()
-  {
-    delete m_tmprefSymbolLeft;
-    m_tmprefSymbolLeft = NULL;
-    delete m_tmprefSymbolRight;
-    m_tmprefSymbolRight = NULL;
-  }
+  NodeMemberSelect::~NodeMemberSelect(){ }
 
   Node * NodeMemberSelect::instantiate()
   {
@@ -461,7 +455,7 @@ namespace MFM {
 	UTI cosuti = cossym->getUlamTypeIdx();
 	UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 	//t3913, t3915 tmpref may not be a ref, but may need adjusting (i.e. anonymous element returned)
-	rtnb = (!cosut->isReference() && (!cossym->isTmpRefSymbol() || Node::needAdjustToStateBits(cosuti)));
+	rtnb = (!cosut->isReference() && (!cossym->isTmpVarSymbol() || Node::needAdjustToStateBits(cosuti)));
       }
     return rtnb;
   }

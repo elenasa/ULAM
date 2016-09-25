@@ -73,7 +73,7 @@ namespace MFM{
     virtual bool isTypedef();
     virtual bool isConstant();
     virtual bool isClass();
-    virtual bool isTmpRefSymbol();
+    virtual bool isTmpVarSymbol();
 
     void setDataMemberClass(UTI cuti);
     UTI getDataMemberClass();

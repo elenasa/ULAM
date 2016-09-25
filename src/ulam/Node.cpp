@@ -1301,7 +1301,7 @@ namespace MFM {
 
     if(cos->isDataMember())
       {
-	if(stgcos->isDataMember() && !stgcos->isTmpRefSymbol()) //t3149, t3147
+	if(stgcos->isDataMember() && !stgcos->isTmpVarSymbol()) //t3149, t3147
 	  {
 	    fp->write(m_state.getHiddenArgName()); //t3543
 	    stgisaref = true;
@@ -1510,8 +1510,8 @@ namespace MFM {
       }
     else
       {
-	//a reference, that's not a tmpref calcs position (t3820, t3908, t3910)
-	if(!cos->isTmpRefSymbol())
+	//a reference, that's not a tmpref calcs its position (t3820, t3908, t3910)
+	if(!cos->isTmpVarSymbol())
 	  {
 	    pos = uvpass.getPassPos();
 	    fp->write(stgcos->getMangledName().c_str()); //t3819, t3908
@@ -2151,7 +2151,7 @@ namespace MFM {
     loadStorageAndCurrentObjectSymbols(stgcos, cos);
     assert(stgcos && cos);
 
-    if(cos->isTmpRefSymbol())
+    if(cos->isTmpVarSymbol())
       {
 	fp->write(cos->getMangledName().c_str());
 	fp->write(".");
@@ -2172,7 +2172,7 @@ namespace MFM {
     u32 pos = uvpass.getPassPos();
 
     fp->write("UlamRef<EC>("); //wrapper for dm
-    if(cosSize > 1 && stgcos->isTmpRefSymbol())
+    if(cosSize > 1 && stgcos->isTmpVarSymbol())
       fp->write(stgcos->getMangledName().c_str()); //first arg t3543, not t3512
     else
       fp->write(m_state.getHiddenArgName()); //ur first arg
@@ -2490,7 +2490,7 @@ namespace MFM {
     loadStorageAndCurrentObjectSymbols(stgcos, cos);
     assert(cos && stgcos);
 
-    if(cos->isTmpRefSymbol())
+    if(cos->isTmpVarSymbol())
       {
 	fp->write(cos->getMangledName().c_str());
 	fp->write(".");
@@ -2694,7 +2694,7 @@ namespace MFM {
     if(!m_state.m_currentObjSymbolsForCodeGen.empty())
       cos = m_state.m_currentObjSymbolsForCodeGen.back();
 
-    if(cos && cos->isTmpRefSymbol())
+    if(cos && cos->isTmpVarSymbol())
       method = "read";
     else if(isCurrentObjectsContainingAModelParameter() >= 0)
       method = "read"; //an exception
@@ -2734,7 +2734,7 @@ namespace MFM {
     if(!m_state.m_currentObjSymbolsForCodeGen.empty())
       cos = m_state.m_currentObjSymbolsForCodeGen.back();
 
-    if(cos && cos->isTmpRefSymbol())
+    if(cos && cos->isTmpVarSymbol())
       method = "write";
     else if(!isCurrentObjectALocalVariableOrArgument())
       method =  nut->writeMethodForCodeGen(); //UlamRef
@@ -2786,9 +2786,9 @@ namespace MFM {
 	    stgcosref = m_state.m_currentObjSymbolsForCodeGen[i];
 	    rtnstgidx = i;
 	    //two tmprefsymbols, already UlamRef gencoded, in a row; use the second one.
-	    if(stgcosref->isTmpRefSymbol())
+	    if(stgcosref->isTmpVarSymbol())
 	      {
-		if((cosSize - i <= 1) || !m_state.m_currentObjSymbolsForCodeGen[i + 1]->isTmpRefSymbol())
+		if((cosSize - i <= 1) || !m_state.m_currentObjSymbolsForCodeGen[i + 1]->isTmpVarSymbol())
 		  break;
 	      }
 	    else
@@ -2962,22 +2962,21 @@ namespace MFM {
     return true;
   } //needAdjustToStateBits
 
-  SymbolTmpRef * Node::makeTmpRefSymbolForCodeGen(UVPass uvpass, Symbol * sym)
+  SymbolTmpVar * Node::makeTmpVarSymbolForCodeGen(UVPass uvpass, Symbol * sym)
   {
     UTI tuti = uvpass.getPassTargetType(); //possibly not a ref, e.g. array item.
-    //std::string tmpvarname = m_state.getTmpVarAsString(tuti, uvpass.getPassVarNum(), TMPAUTOREF); //t3912
     std::string tmpvarname = m_state.getTmpVarAsString(tuti, uvpass.getPassVarNum(), uvpass.getPassStorage());
     Token tidTok(TOK_IDENTIFIER, Node::getNodeLocation(), m_state.m_pool.getIndexForDataString(tmpvarname));
 
     u32 pos = uvpass.getPassPos();
 
-    SymbolTmpRef * rtnsym = new SymbolTmpRef(tidTok, tuti, pos, m_state);
+    SymbolTmpVar * rtnsym = new SymbolTmpVar(tidTok, tuti, pos, m_state);
     assert(rtnsym);
     rtnsym->setAutoLocalType(m_state.getReferenceType(tuti));
     if(sym)
       rtnsym->setDataMemberClass(sym->getDataMemberClass());
     return rtnsym;
-  } //makeTmpRefSymbolForCodeGen
+  } //makeTmpVarSymbolForCodeGen
 
   std::string Node::genUlamRefUsageAsString(UTI uti)
   {

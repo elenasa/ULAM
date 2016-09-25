@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * SymbolTmpRef.h -  Basic handling of TmpRef Symbols for ULAM Code Gen
+ * SymbolTmpVar.h -  Basic handling of TmpVar Symbols for ULAM Code Gen
  *
  * Copyright (C) 2016 The Regents of the University of New Mexico.
  * Copyright (C) 2016 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file SymbolTmpRef.h -  Basic handling of TmpRef Symbols for ULAM Code Gen
+  \file SymbolTmpVar.h -  Basic handling of TmpVar Symbols for ULAM Code Gen
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2016 All rights reserved.
@@ -45,15 +45,15 @@ namespace MFM{
 
   //used to hold the tmpvar name for a genCodeToStoreInto of an array item
   // e.g. member select, function call.
-  class SymbolTmpRef : public Symbol
+  class SymbolTmpVar : public Symbol
   {
   public:
-    SymbolTmpRef(const Token& id, UTI utype, u32 offset, CompilerState& state);
-    ~SymbolTmpRef();
+    SymbolTmpVar(const Token& id, UTI utype, u32 offset, CompilerState& state);
+    ~SymbolTmpVar();
 
     virtual Symbol * clone();
 
-    virtual bool isTmpRefSymbol();
+    virtual bool isTmpVarSymbol();
 
     virtual const std::string getMangledPrefix();
 
