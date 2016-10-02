@@ -797,20 +797,6 @@ namespace MFM {
 	    return false; //expecting a type, not sizeof, probably an error! (t3856)
 	  }
 
-#if 0
-	//moved to allow function return type
-	if(typeargs.m_declRef != ALT_NOT)
-	  {
-	    std::ostringstream msg;
-	    msg << "Reference as data member or function return type; Not supported";
-	    MSG(&pTok, msg.str().c_str(), ERR);
-	    m_state.clearStructuredCommentToken();
-	    delete typeNode;
-	    typeNode = NULL;
-	    return false; //done!
-	  }
-#endif
-
 	Token iTok;
 	getNextToken(iTok);
 	if(iTok.m_type != TOK_IDENTIFIER)
