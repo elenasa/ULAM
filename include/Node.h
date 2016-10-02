@@ -228,9 +228,11 @@ namespace MFM{
 
     void assignReturnValueToStack(UlamValue rtnUV, STORAGE where = EVALRETURN);
 
-    void assignReturnValuePtrToStack(UlamValue rtnUVptr);
+    void assignReturnValuePtrToStack(UlamValue rtnUVptr, STORAGE where = EVALRETURN);
 
     UlamValue assignAnonymousClassReturnValueToStack(UlamValue rtnUV);
+
+    bool returnValueOnStackNeededForEval(UTI rtnType);
 
     virtual void genMemberNameOfMethod(File * fp, UVPass& uvpass, bool endingdot = true); //helper method to read/write into/from tmpvar
     virtual void genModelParameterMemberNameOfMethod(File * fp, s32 epi);
@@ -269,6 +271,8 @@ namespace MFM{
 
     //true if a non-ref, scalar element
     bool needAdjustToStateBits(UTI cuti);
+
+    void adjustUVPassForElements(UVPass & uvpass);
 
     SymbolTmpVar * makeTmpVarSymbolForCodeGen(UVPass uvpass, Symbol * sym);
 

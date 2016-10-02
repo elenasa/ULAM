@@ -755,7 +755,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   EvalStatus NodeBlockClass::eval()
   {
-    //    #define _DEBUG_SKIP_EVAL
+    //#define _DEBUG_SKIP_EVAL
 #ifndef _DEBUG_SKIP_EVAL
     if(isEmpty())
 #endif

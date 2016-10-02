@@ -110,7 +110,7 @@ namespace MFM {
   void Node::setStoreIntoAble(TBOOL s)
   {
     m_storeIntoAble = s;
-    setReferenceAble(s); //usually the case, except custom arrays
+    setReferenceAble(s); //usually the case, except custom arrays and func calls
   }
 
   TBOOL Node::getReferenceAble()
@@ -465,16 +465,16 @@ namespace MFM {
     m_state.assignValue(rtnPtr, rtnUV);
   } //assignReturnValueToStack
 
-  //in case of arrays, rtnUV is a ptr.
-  void Node::assignReturnValuePtrToStack(UlamValue rtnUVptr)
+  //in case of arrays, rtnUV is a ptr; default storage is EVALRETURN
+  void Node::assignReturnValuePtrToStack(UlamValue rtnUVptr, STORAGE where)
   {
     UTI rtnUVtype = rtnUVptr.getPtrTargetType(); //target ptr type
 
     if(rtnUVtype == Void)
       return;
 
-    UlamValue rtnPtr = UlamValue::makePtr(-1, EVALRETURN, rtnUVtype, rtnUVptr.isTargetPacked(), m_state);
-    m_state.m_nodeEvalStack.assignUlamValuePtr(rtnPtr, rtnUVptr);
+    UlamValue rtnPtr = UlamValue::makePtr(-1, where, rtnUVtype, rtnUVptr.isTargetPacked(), m_state);
+    m_state.assignValuePtr(rtnPtr, rtnUVptr);
   } //assignReturnValuePtrToStack
 
   //in case of func call returning a class, lhs of dot; default STORAGE is STACK
@@ -494,6 +494,19 @@ namespace MFM {
     m_state.assignValue(rtnPtr, rtnUV);
     return rtnPtr;
   } //assignAnonymousClassReturnValueToStack
+
+  //called by NodeFuncCall, NodeReturnStmt, NodeBlockFuncDef eval
+  bool Node::returnValueOnStackNeededForEval(UTI rtnType)
+  {
+    bool rtnb = false;
+    if((m_state.isAtom(rtnType) && (m_state.isScalar(rtnType) || m_state.isReference(rtnType ))))
+      rtnb = true;
+    else if(m_state.isAClass(rtnType) && (m_state.isScalar(rtnType) || m_state.isReference(rtnType)))
+      rtnb = true;
+    else if(m_state.isReference(rtnType))
+      rtnb = true;
+    return rtnb;
+  } //returnValueOnStackNeededForEval
 
   void Node::packBitsInOrderOfDeclaration(u32& offset)
   {
@@ -786,6 +799,9 @@ namespace MFM {
 	fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
 	genCustomArrayHiddenArgs(fp, urtmpnum);
 	fp->write(", "); //rest of arg's
+	//index is immediate Index arg of targettype in uvpass
+	fp->write(auvpass.getTmpVarAsString(m_state).c_str()); //INDEX
+	fp->write(");"); GCNL;
       }
     else  //local var
       {
@@ -795,11 +811,10 @@ namespace MFM {
 	fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
 	genCustomArrayHiddenArgs(fp, urtmpnum);
 	fp->write(", "); //rest of args
+	//index is immediate Index arg of targettype in uvpass
+	fp->write(auvpass.getTmpVarAsString(m_state).c_str()); //INDEX
+	fp->write(");"); GCNL;
       }
-    //index is immediate Index arg of targettype in uvpass
-    fp->write(auvpass.getTmpVarAsString(m_state).c_str()); //INDEX
-    fp->write(");"); GCNL;
-
     //update uvpass
     uvpass = UVPass::makePass(tmpVarNum2, TMPBITVAL, itemuti, m_state.determinePackable(itemuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
     genCodeConvertABitVectorIntoATmpVar(fp, uvpass); //updates uvpass again (e.g. t3505 'is')
@@ -1441,10 +1456,11 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeARefFromARefStorage
 
-  //used both by NodeVarRef and NodeFunctionCall for reference args
+  //used both by NodeVarRef and NodeFunctionCall for reference args, and NodeReturn for ref return value (t3630)
   void Node::genCodeReferenceInitialization(File * fp, UVPass& uvpass, Symbol * vsymptr)
   {
-    // lhs is third arg, vsymptr (m_varSymbol for NodeVarRef; tmprefsymbol for NodeFuncCall)
+    assert(vsymptr);
+    // lhs is third arg, vsymptr (m_varSymbol for NodeVarRef; tmpvarsymbol for NodeFuncCall)
     // caller gets the right-hand side, stgcos; can be same type (e.g. class or primitive),
     // or ancestor quark if a class. atoms no longer a special case (t3484).
     UTI vuti = vsymptr->getUlamTypeIdx(); //i.e. this ref node
@@ -2961,6 +2977,16 @@ namespace MFM {
       return false;
     return true;
   } //needAdjustToStateBits
+
+  void Node::adjustUVPassForElements(UVPass & uvpass)
+  {
+    UTI puti = uvpass.getPassTargetType();
+    if(Node::needAdjustToStateBits(puti))
+      {
+	u32 lpos = uvpass.getPassPos();
+	uvpass.setPassPosForElementType(lpos, m_state);
+      }
+  }
 
   SymbolTmpVar * Node::makeTmpVarSymbolForCodeGen(UVPass uvpass, Symbol * sym)
   {

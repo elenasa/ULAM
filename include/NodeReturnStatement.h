@@ -70,11 +70,15 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
+    virtual EvalStatus evalToStoreInto();
+
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
 
     virtual void genCode(File * fp, UVPass& uvpass);
+
+    virtual void genCodeToStoreInto(File * fp, UVPass& uvpass); //returning a reference
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 

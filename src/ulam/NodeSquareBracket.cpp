@@ -107,7 +107,7 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Incomplete Type: " << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
 		msg << " used with " << getName();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		hazyCount++;
 	      }
 	    else if(!m_isCustomArray)
@@ -137,7 +137,8 @@ namespace MFM {
 		    msg << " used with class: ";
 		    msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
 		    msg << getName();
-		    if(lut->isComplete() || (caType == Nav))
+		    //if(lut->isComplete() || (caType == Nav))
+		    if(caType == Nav)
 		      {
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 			newType = Nav; //error!
@@ -677,6 +678,7 @@ namespace MFM {
   void NodeSquareBracket::genCode(File * fp, UVPass& uvpass)
   {
     genCodeToStoreInto(fp, uvpass);
+    //if(!m_isCustomArray)
     Node::genCodeReadIntoATmpVar(fp, uvpass); //splits on array item
   } //genCode
 
@@ -730,7 +732,19 @@ namespace MFM {
 	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
       } //for non custom arrays only!
     else
-      uvpass = offset; //return custom array
+      {
+	uvpass = offset; //return custom array
+#if 0
+	//wait for functions to return references..so we don't have to decide
+	//between aset and aref, always aref!!
+	//member select lhs ? t3916
+	Node::genCodeReadIntoATmpVar(fp, uvpass); //splits on array item
+	Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass); //non-const
+	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL);
+	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
+	uvpass = offset; //in case a lhs (aset)
+#endif
+      }
     // NO RESTORE -- up to caller for lhs.
   } //genCodeToStoreInto
 

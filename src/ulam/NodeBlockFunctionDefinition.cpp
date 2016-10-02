@@ -211,6 +211,18 @@ namespace MFM {
     if(it == Hzy)
       return Hzy; //bail for this iteration
 
+    if(m_state.okUTItoContinue(it))
+      {
+	bool isref = m_state.isReference(it);
+	if(m_state.isAClass(it) || isref)
+	  setStoreIntoAble(TBOOL_TRUE); //t3912 (class)
+
+	if(isref)
+	  setReferenceAble(TBOOL_TRUE); //set after storeintoable t3661,2; t3630
+	else
+	  setReferenceAble(TBOOL_FALSE);
+      }
+
     m_state.pushCurrentBlock(this);
 
     m_state.m_currentFunctionReturnNodes.clear(); //vector of return nodes
@@ -332,7 +344,6 @@ namespace MFM {
     makeRoomForNodeType(nuti); //place for return vals node eval stack
 
     m_state.m_funcCallStack.addFrameSlots(getMaxDepth()); //local variables on callstack!
-    //makeRoomForSlots(getMaxDepth(), STACK); //local variables on callstack!
 
     EvalStatus evs = m_nodeNext->eval();
 
@@ -343,9 +354,10 @@ namespace MFM {
 
     if(evs == RETURN)
       {
-	if(m_state.isAtom(nuti) && (m_state.isScalar(nuti) || m_state.isReference(nuti)))
+	if(Node::returnValueOnStackNeededForEval(nuti))
 	  {
-	    //avoid pointer to atom situation
+	    //t3189 returns a class (non-ref);
+	    //t3630 return a reference to a primitive;
 	    rtnUV = m_state.m_funcCallStack.loadUlamValueFromSlot(-1); //popArg();
 	  }
 	else
@@ -371,15 +383,28 @@ namespace MFM {
 	return evs;
       }
 
-    //save results in the node eval stackframe for function caller
-    //return each element of the array by value,
-    //in reverse order ([0] is last at bottom)
-    Node::assignReturnValueToStack(rtnUV);
+    // save results in the node eval stackframe for function caller, returning
+    // each element of array by value, in reverse order ([0] is last at bottom);
+    // Could be a reference if called from evalToStoreInto (e.g. t3630)
+    if(m_state.getReferenceType(nuti) == ALT_REF)
+      Node::assignReturnValuePtrToStack(rtnUV);
+    else
+      Node::assignReturnValueToStack(rtnUV);
 
     m_state.m_funcCallStack.returnFrame(m_state);
     evalNodeEpilog();
     return NORMAL;
   } //eval
+
+  EvalStatus NodeBlockFunctionDefinition::evalToStoreInto()
+  {
+    UTI nuti = getNodeType();
+    // m_currentObjPtr set up by caller
+    assert(m_state.okUTItoContinue(m_state.m_currentObjPtr.getPtrTargetType()));
+    assert(m_state.isAClass(nuti) || m_state.isReference(nuti)); //sanity?
+
+    return eval();
+  } //evalToStoreInto
 
   void NodeBlockFunctionDefinition::setDefinition()
   {

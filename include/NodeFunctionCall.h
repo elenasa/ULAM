@@ -110,6 +110,8 @@ namespace MFM{
     NodeList * m_argumentNodes;
     SymbolTmpVar * m_tmpvarSymbol;
 
+    EvalStatus evalArgumentsInReverseOrder(u32& argsPushed);
+    EvalStatus evalHiddenArguments(u32& argsPushed, NodeBlockFunctionDefinition *& func);
     bool getVirtualFunctionForEval(UlamValue & atomPtr, NodeBlockFunctionDefinition *& rtnfunc);
 
     void genCodeIntoABitValue(File * fp, UVPass& uvpass);

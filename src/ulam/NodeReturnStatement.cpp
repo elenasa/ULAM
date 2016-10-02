@@ -195,6 +195,10 @@ namespace MFM {
   EvalStatus NodeReturnStatement::eval()
   {
     UTI nuti = getNodeType();
+
+    if(m_state.getReferenceType(nuti) == ALT_REF)
+      return evalToStoreInto();
+
     if(nuti == Nav)
       return ERROR;
 
@@ -206,7 +210,9 @@ namespace MFM {
 
     evalNodeProlog(0);
     makeRoomForNodeType(nuti);
+
     EvalStatus evs = m_node->eval();
+
     if(evs != NORMAL)
       {
 	assert((evs != CONTINUE) && (evs != BREAK));
@@ -214,9 +220,11 @@ namespace MFM {
 	return evs;
       }
 
-    if(m_state.isAtom(nuti) && (m_state.isScalar(nuti) || m_state.isReference(nuti)))
+    if(Node::returnValueOnStackNeededForEval(nuti))
       {
 	//avoid pointer to atom situation
+	//avoid pointer to class situation, t3189
+	//return ref to primitive, t3630
 	UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
 	Node::assignReturnValueToStack(rtnUV, STACK);
       }
@@ -224,13 +232,47 @@ namespace MFM {
       {
 	//end, so copy to -1
 	UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, nuti, m_state.determinePackable(nuti), m_state);  //positive to current frame pointer
-
 	Node::assignReturnValueToStack(rtnPtr, STACK); //uses STACK, unlike all the other nodes
       }
 
     evalNodeEpilog();
     return RETURN;
   } //eval
+
+  EvalStatus NodeReturnStatement::evalToStoreInto()
+  {
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
+    if(nuti == Hzy)
+      return NOTREADY;
+
+    if(!m_node)
+      return RETURN;
+
+    assert(m_state.getReferenceType(nuti) == ALT_REF);
+
+    evalNodeProlog(0);
+    makeRoomForNodeType(nuti);
+
+    EvalStatus evs = m_node->evalToStoreInto(); //t3630
+
+    if(evs != NORMAL)
+      {
+	assert((evs != CONTINUE) && (evs != BREAK));
+	evalNodeEpilog();
+	return evs;
+      }
+
+    //should always return value as ptr to stack.
+    UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
+    assert(rtnUV.isPtr());
+    Node::assignReturnValuePtrToStack(rtnUV, STACK);
+
+    evalNodeEpilog();
+    return RETURN;
+  } //evalToStoreInto
 
   void NodeReturnStatement::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
@@ -241,8 +283,12 @@ namespace MFM {
 
   void NodeReturnStatement::genCode(File * fp, UVPass& uvpass)
   {
+    if(m_state.getReferenceType(getNodeType()) == ALT_REF)
+      return genCodeToStoreInto(fp, uvpass); //t3630
+
     assert(m_node); // return for Void type has a NodeStatementEmpty m_node
     UVPass rtnuvpass; //fresh uvpass, why not!
+
     m_node->genCode(fp, rtnuvpass); //C allows the side-effect for explicit Void casts (t3779)
 
     if(getNodeType() != Void)
@@ -263,5 +309,37 @@ namespace MFM {
       }
     uvpass = rtnuvpass;
   } //genCode
+
+  void NodeReturnStatement::genCodeToStoreInto(File * fp, UVPass& uvpass)
+  {
+    assert(m_node); // return for Void type has a NodeStatementEmpty m_node
+    UTI nuti = getNodeType();
+    UVPass rtnuvpass; //fresh uvpass, why not!
+
+    assert(m_state.getReferenceType(nuti) == ALT_REF);
+    m_node->genCodeToStoreInto(fp, rtnuvpass); //t3630
+
+    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+
+    Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back(); //or [0]?
+    u32 id = cossym->getId();
+    s32 tmprefnum = m_state.getNextTmpVarNumber();
+
+    UVPass luvpass = UVPass::makePass(tmprefnum, TMPAUTOREF, nuti, m_state.determinePackable(nuti), m_state, 0, id);
+    SymbolTmpVar * tmpvarsym = Node::makeTmpVarSymbolForCodeGen(luvpass, cossym);
+    assert(tmpvarsym);
+
+    Node::genCodeReferenceInitialization(fp, rtnuvpass, tmpvarsym);
+
+    delete tmpvarsym;
+
+    m_state.indentUlamCode(fp);
+    fp->write("return ");
+    fp->write("(");
+    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+
+    fp->write(");"); GCNL;
+    uvpass = luvpass;
+  } //genCodeToStoreInto
 
 } //end MFM

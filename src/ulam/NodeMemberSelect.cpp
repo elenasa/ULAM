@@ -394,7 +394,7 @@ namespace MFM {
     if(passalongUVPass())
       {
 	luvpass = uvpass;
-	adjustUVPassForElements(luvpass); //t3803?
+	Node::adjustUVPassForElements(luvpass); //t3803?
       }
 
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
@@ -404,7 +404,7 @@ namespace MFM {
     if(passalongUVPass())
       {
 	uvpass = luvpass;
-	adjustUVPassForElements(uvpass); //t3803?
+	Node::adjustUVPassForElements(uvpass); //t3803?
       }
 
     //check the back (not front) to process multiple member selections (e.g. t3818)
@@ -423,7 +423,7 @@ namespace MFM {
     if(passalongUVPass())
       {
 	luvpass = uvpass; //t3584
-	adjustUVPassForElements(luvpass); //t3803 ?
+	Node::adjustUVPassForElements(luvpass); //t3803 ?
       }
 
     // if parent is another MS, we might need to adjust pos first
@@ -438,7 +438,7 @@ namespace MFM {
     if(passalongUVPass())
       {
 	ruvpass = luvpass;  //t3615 ?
-	adjustUVPassForElements(ruvpass); //t3803
+	Node::adjustUVPassForElements(ruvpass); //t3803
       }
 
     m_nodeRight->genCodeToStoreInto(fp, ruvpass); //uvpass contains the member selected, or cos obj symbol?
@@ -458,16 +458,6 @@ namespace MFM {
 	rtnb = (!cosut->isReference() && (!cossym->isTmpVarSymbol() || Node::needAdjustToStateBits(cosuti)));
       }
     return rtnb;
-  }
-
-  void NodeMemberSelect::adjustUVPassForElements(UVPass & uvpass)
-  {
-    UTI puti = uvpass.getPassTargetType();
-    if(Node::needAdjustToStateBits(puti))
-      {
-	u32 lpos = uvpass.getPassPos();
-	uvpass.setPassPosForElementType(lpos, m_state);
-      }
   }
 
 } //end MFM

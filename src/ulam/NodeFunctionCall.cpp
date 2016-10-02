@@ -365,10 +365,18 @@ namespace MFM {
     argNodes.clear();
     assert(it == getNodeType());
     assert(m_funcSymbol || (getNodeType() == Nav) || (getNodeType() == Hzy));
-    if(m_state.okUTItoContinue(it) && (m_state.isAClass(it)))
+    //if(m_state.okUTItoContinue(it) && (m_state.isAClass(it)))
+    if(m_state.okUTItoContinue(it))
       {
-	setStoreIntoAble(TBOOL_TRUE); //t3912 (class)
-	setReferenceAble(TBOOL_FALSE); //set after storeintoable t3661,2
+	bool isref = m_state.isReference(it);
+	if(m_state.isAClass(it) || isref)
+	  setStoreIntoAble(TBOOL_TRUE); //t3912 (class)
+
+	//setReferenceAble(TBOOL_FALSE); //set after storeintoable t3661,2
+	if(isref)
+	  setReferenceAble(TBOOL_TRUE); //set after storeintoable t3661,2; t3630
+	else
+	  setReferenceAble(TBOOL_FALSE);
       }
     return it;
   } //checkAndLabelType
@@ -421,15 +429,179 @@ namespace MFM {
     NodeBlockFunctionDefinition * func = m_funcSymbol->getFunctionNode();
     assert(func);
 
+    UTI rtnType = m_funcSymbol->getUlamTypeIdx();
+    s32 rtnslots = m_state.slotsNeeded(rtnType);
+    u32 argsPushed = 0;
+
+    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*********
+    UlamValue saveSelfPtr = m_state.m_currentSelfPtr; // restore upon return from func *****
+
+    evalNodeProlog(0); //new current frame pointer on node eval stack
+
+    EvalStatus argevs = evalArgumentsInReverseOrder(argsPushed);
+    if(argevs != NORMAL)
+      {
+	evalNodeEpilog();
+	return argevs;
+      }
+
+    EvalStatus hiddenevs = evalHiddenArguments(argsPushed, func);
+    if(hiddenevs != NORMAL)
+      {
+	evalNodeEpilog();
+	return hiddenevs;
+      }
+
+    m_state.m_currentSelfPtr = m_state.m_currentObjPtr; // set for subsequent func calls ****
+    //********************************************
+    //*  FUNC CALL HERE!!
+    //*
+    EvalStatus evs = func->eval(); //NodeBlockFunctionDefinition..
+    if(evs != NORMAL)
+      {
+	assert(evs != RETURN);
+	//drops all the args and return slots on callstack
+	m_state.m_funcCallStack.popArgs(argsPushed+rtnslots);
+	m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr *******
+	m_state.m_currentSelfPtr = saveSelfPtr; //restore previous self *****
+	evalNodeEpilog();
+	return evs;
+      }
+    //*
+    //**********************************************
+
+    // ANY return value placed on the STACK by a Return Statement,
+    // was copied to EVALRETURN by the NodeBlockFunctionDefinition
+    // before arriving here! And may be ignored at this point.
+    if(Node::returnValueOnStackNeededForEval(rtnType))
+      {
+	UlamValue rtnUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
+	Node::assignReturnValueToStack(rtnUV); //into return space on eval stack;
+      }
+    else
+      {
+	//positive to current frame pointer; pos is (BITSPERATOM - rtnbitsize * rtnarraysize)
+	UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, rtnType, m_state.determinePackable(rtnType), m_state);
+	Node::assignReturnValueToStack(rtnPtr); //into return space on eval stack;
+      }
+
+    m_state.m_funcCallStack.popArgs(argsPushed+rtnslots); //drops all the args and return slots on callstack
+
+    m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr *****
+    m_state.m_currentSelfPtr = saveSelfPtr; //restore previous self      *************
+    evalNodeEpilog(); //clears out the node eval stack
+    return NORMAL;
+  } //eval
+
+  EvalStatus NodeFunctionCall::evalToStoreInto()
+  {
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
+    if(nuti == Hzy)
+      return NOTREADY;
+
+    std::ostringstream msg;
+    msg << "Eval of function calls as lefthand values is not currently supported.";
+    msg << " Save the results of <";
+    msg << m_state.getTokenDataAsString(m_functionNameTok).c_str();
+    msg << "> to a variable, type: ";
+    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+    if(getStoreIntoAble() != TBOOL_TRUE)
+      {
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return ERROR;
+      }
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+    //need a Ptr to the auto temporary variable, the result of func call
+    // that belongs in m_currentObjPtr, but where to store the ans?
+    // use the hidden 'uc' slot (under the return value) (e.g. t3912)
+
+    assert(m_state.isAClass(nuti) || m_state.isReference(nuti)); //sanity?
+
+    assert(m_funcSymbol);
+    NodeBlockFunctionDefinition * func = m_funcSymbol->getFunctionNode();
+    assert(func);
+
+    UTI rtnType = m_funcSymbol->getUlamTypeIdx();
+    s32 rtnslots = m_state.slotsNeeded(rtnType);
+    u32 argsPushed = 0;
+
+    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*********
+    UlamValue saveSelfPtr = m_state.m_currentSelfPtr; // restore upon return from func *****
+
+    evalNodeProlog(0); //new current frame pointer on node eval stack
+
+    EvalStatus argevs = evalArgumentsInReverseOrder(argsPushed);
+    if(argevs != NORMAL)
+      {
+	evalNodeEpilog();
+	return argevs;
+      }
+
+    EvalStatus hiddenevs = evalHiddenArguments(argsPushed, func);
+    if(hiddenevs != NORMAL)
+      {
+	evalNodeEpilog();
+	return hiddenevs;
+      }
+
+    m_state.m_currentSelfPtr = m_state.m_currentObjPtr; // set for subsequent func calls ****
+    //********************************************
+    //*  FUNC CALL HERE!!
+    //*
+    EvalStatus evs = func->evalToStoreInto(); //NodeBlockFunctionDefinition..
+    if(evs != NORMAL)
+      {
+	assert(evs != RETURN);
+	//drops all the args and return slots on callstack
+	m_state.m_funcCallStack.popArgs(argsPushed+rtnslots);
+	m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr *******
+	m_state.m_currentSelfPtr = saveSelfPtr; //restore previous self *****
+	evalNodeEpilog();
+	return evs;
+      }
+    //*
+    //**********************************************
+
+    // ANY return value placed on the STACK by a Return Statement,
+    // was copied to EVALRETURN by the NodeBlockFunctionDefinition
+    // before arriving here! And may be ignored at this point.
+    if(Node::returnValueOnStackNeededForEval(rtnType))
+      {
+	//t3189 returns a class (non-ref);
+	//t3630 return a reference to a primitive;
+	UlamValue rtnUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
+	if(rtnUV.isPtr())
+	  Node::assignReturnValuePtrToStack(rtnUV); //into return space on eval stack;
+	else
+	  Node::assignReturnValueToStack(rtnUV); //into return space on eval stack; t3189
+      }
+    else
+      {
+	//positive to current frame pointer; pos is (BITSPERATOM - rtnbitsize * rtnarraysize)
+	UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, rtnType, m_state.determinePackable(rtnType), m_state);
+	Node::assignReturnValuePtrToStack(rtnPtr); //into return space on eval stack;
+      }
+
+    m_state.m_funcCallStack.popArgs(argsPushed+rtnslots); //drops all the args and return slots on callstack
+
+    m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr *****
+    m_state.m_currentSelfPtr = saveSelfPtr; //restore previous self      *************
+    evalNodeEpilog(); //clears out the node eval stack
+    return NORMAL;
+  } //evalToStoreInto
+
+  EvalStatus NodeFunctionCall::evalArgumentsInReverseOrder(u32& argsPushed)
+  {
     // before processing arguments, get the "self" atom ptr,
     // so that arguments will be relative to it, and not the possible
     // selected member instance this function body could effect.
     UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*********
     m_state.m_currentObjPtr = m_state.m_currentSelfPtr;
 
-    evalNodeProlog(0); //new current frame pointer on node eval stack
-    u32 argsPushed = 0;
-    EvalStatus evs;
+    EvalStatus evs = NORMAL;
 
     // for now we're going to bypass variable arguments for eval purposes
     // since our NodeFunctionDef has no way to know how many extra args to expect!
@@ -455,16 +627,13 @@ namespace MFM {
 	  evs = m_argumentNodes->eval(i);
 
 	if(evs != NORMAL)
-	  {
-	    evalNodeEpilog();
-	    return evs;
-	  }
+	  return evs; //quit!
 
 	// transfer to call stack
 	if(slots==1)
 	  {
 	    UlamValue auv = m_state.m_nodeEvalStack.popArg();
-	    if(paramreftype == ALT_REF && (auv.getPtrStorage() == STACK))
+	    if((paramreftype == ALT_REF) && (auv.getPtrStorage() == STACK))
 	      {
 		assert(m_state.isPtr(auv.getUlamValueTypeIdx()));
 		assert(!auv.isPtrAbs()); //doing that conversion here!
@@ -479,7 +648,6 @@ namespace MFM {
 	  {
 	    //array
 	    PACKFIT packed = m_state.determinePackable(argType);
-	    //assert(WritePacked(packed));
 
 	    //array to transfer without reversing order again
 	    u32 baseSlot = m_state.m_funcCallStack.getRelativeTopOfStackNextSlot();
@@ -487,7 +655,6 @@ namespace MFM {
 
 	    //both either unpacked or packed
 	    UlamValue basePtr = UlamValue::makePtr(baseSlot, STACK, argType, packed, m_state);
-
 	    //positive to current frame pointer
 	    UlamValue auvPtr = UlamValue::makePtr(1, EVALRETURN, argType, packed, m_state);
 
@@ -496,6 +663,12 @@ namespace MFM {
 	  }
       } //done with args
 
+    m_state.m_currentObjPtr = saveCurrentObjectPtr; // RESTORE *********
+    return NORMAL;
+  } //evalArgumentsInReverseOrder
+
+  EvalStatus NodeFunctionCall::evalHiddenArguments(u32& argsPushed, NodeBlockFunctionDefinition *& func)
+  {
     //before pushing return slot(s) last (on both STACKS for now)
     UTI rtnType = m_funcSymbol->getUlamTypeIdx();
     s32 rtnslots = makeRoomForNodeType(rtnType);
@@ -503,7 +676,6 @@ namespace MFM {
     // insert "first" hidden arg (adjusted index pointing to atom);
     // atom index (negative) relative new frame, includes ALL the pushed args,
     // and upcoming rtnslots: current_atom_index - relative_top_index (+ returns)
-    m_state.m_currentObjPtr = saveCurrentObjectPtr; // RESTORE *********
     UlamValue atomPtr = m_state.m_currentObjPtr; //*********
 
     //update func def (at eval time) based on class in virtual table
@@ -513,7 +685,6 @@ namespace MFM {
       {
 	if(!getVirtualFunctionForEval(atomPtr, func))
 	  {
-	    evalNodeEpilog();
 	    return ERROR;
 	  }
       } //end virtual function
@@ -528,6 +699,7 @@ namespace MFM {
 	if(atomPtr.isPtrAbs())
 	  atomPtr.setUlamValueTypeIdx(Ptr); //let's see..t3114 and 160+ more tests
       }
+
     // push the "hidden" first arg, and update the current object ptr (restore later)
     m_state.m_funcCallStack.pushArg(atomPtr); //*********
     argsPushed++;
@@ -536,77 +708,12 @@ namespace MFM {
     makeRoomForSlots(1, STACK); // uc placeholder
     argsPushed++;
 
-    UlamValue saveSelfPtr = m_state.m_currentSelfPtr; // restore upon return from func *****
-    m_state.m_currentSelfPtr = m_state.m_currentObjPtr; // set for subsequent func calls ****
-
     //(continue) push return slot(s) last (on both STACKS for now)
     makeRoomForNodeType(rtnType, STACK);
 
     assert(rtnslots == m_state.slotsNeeded(rtnType));
-
-    //********************************************
-    //*  FUNC CALL HERE!!
-    //*
-    evs = func->eval(); //NodeBlockFunctionDefinition..
-    if(evs != NORMAL)
-      {
-	assert(evs != RETURN);
-	//drops all the args and return slots on callstack
-	m_state.m_funcCallStack.popArgs(argsPushed+rtnslots);
-	m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr *******
-	m_state.m_currentSelfPtr = saveSelfPtr; //restore previous self *****
-	evalNodeEpilog();
-	return evs;
-      }
-    //*
-    //**********************************************
-
-    // ANY return value placed on the STACK by a Return Statement,
-    // was copied to EVALRETURN by the NodeBlockFunctionDefinition
-    // before arriving here! And may be ignored at this point.
-    if(m_state.isAtom(rtnType) && (m_state.isScalar(rtnType) || m_state.isReference(rtnType)))
-      {
-	UlamValue rtnUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
-	Node::assignReturnValueToStack(rtnUV); //into return space on eval stack;
-      }
-    else
-      {
-	//positive to current frame pointer; pos is (BITSPERATOM - rtnbitsize * rtnarraysize)
-	UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, rtnType, m_state.determinePackable(rtnType), m_state);
-	Node::assignReturnValueToStack(rtnPtr); //into return space on eval stack;
-      }
-
-    m_state.m_funcCallStack.popArgs(argsPushed+rtnslots); //drops all the args and return slots on callstack
-
-    m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr *****
-    m_state.m_currentSelfPtr = saveSelfPtr; //restore previous self      *************
-    evalNodeEpilog(); //clears out the node eval stack
     return NORMAL;
-  } //eval
-
-  EvalStatus NodeFunctionCall::evalToStoreInto()
-  {
-    std::ostringstream msg;
-    msg << "Eval of function calls as lefthand values is not currently supported.";
-    msg << " Save the results of <";
-    msg << m_state.getTokenDataAsString(m_functionNameTok).c_str();
-    msg << "> to a variable, type: ";
-    msg << m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str();
-    if(getStoreIntoAble() == TBOOL_TRUE)
-      {
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	EvalStatus evs = eval();
-	if(evs == NORMAL)
-	  {
-	    return evs; //t3912
-	    //need a Ptr to the auto temporary variable, the result of func call
-	    // that belongs in m_currentObjPtr, but where to store the ans?
-	    // use the hidden 'uc' slot (under the return value)
-	  }
-      }
-    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-    return ERROR;
-  } //evalToStoreInto
+  } //evalHiddenArguments
 
   void NodeFunctionCall::addArgument(Node * n)
   {

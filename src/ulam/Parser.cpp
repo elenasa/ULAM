@@ -797,6 +797,8 @@ namespace MFM {
 	    return false; //expecting a type, not sizeof, probably an error! (t3856)
 	  }
 
+#if 0
+	//moved to allow function return type
 	if(typeargs.m_declRef != ALT_NOT)
 	  {
 	    std::ostringstream msg;
@@ -807,6 +809,7 @@ namespace MFM {
 	    typeNode = NULL;
 	    return false; //done!
 	  }
+#endif
 
 	Token iTok;
 	getNextToken(iTok);
@@ -849,6 +852,17 @@ namespace MFM {
 		msg << " applies to functions";
 		MSG(&pTok, msg.str().c_str(), ERR);
 		//continue
+	      }
+
+	    if(typeargs.m_declRef != ALT_NOT)
+	      {
+		std::ostringstream msg;
+		msg << "Reference as data member; Not supported";
+		MSG(&pTok, msg.str().c_str(), ERR);
+		m_state.clearStructuredCommentToken();
+		delete typeNode;
+		typeNode = NULL;
+		return false; //done!
 	      }
 
 	    m_state.m_parsingVariableSymbolTypeFlag = STF_DATAMEMBER;
