@@ -151,7 +151,7 @@ namespace MFM {
 
   TMPSTORAGE UlamTypeClassQuark::getTmpStorageTypeForTmpVar()
   {
-    return UlamType::getTmpStorageTypeForTmpVar();
+    return UlamTypeClass::getTmpStorageTypeForTmpVar();
   }
 
   const std::string UlamTypeClassQuark::castMethodForCodeGen(UTI nodetype)
@@ -401,6 +401,7 @@ namespace MFM {
     UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
     const std::string scalarmangledName = m_state.getUlamTypeByIndex(scalaruti)->getUlamTypeMangledName();
     const std::string mangledName = getUlamTypeImmediateMangledName();
+    const std::string automangledName = getUlamTypeImmediateAutoMangledName();
 
     std::ostringstream  ud;
     ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
@@ -539,6 +540,16 @@ namespace MFM {
     fp->write("<EC> & arg) { ");
     fp->write("write(arg.");
     fp->write("read()); }"); GCNL;
+
+    //constructor from ref of same type
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("(const ");
+    fp->write(automangledName.c_str());
+    fp->write("<EC>& d) { ");
+    fp->write("write(d.read()); }"); GCNL;
+
+    //default destructor (intentionally left out)
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);

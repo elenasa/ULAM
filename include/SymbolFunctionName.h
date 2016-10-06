@@ -90,8 +90,6 @@ namespace MFM{
 
     u32 checkCustomArrayGetFunctions(UTI& rtnType);
 
-    u32 checkCustomArraySetFunctions(UTI caType);
-
     UTI getCustomArrayReturnType();
 
     u32 getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs);

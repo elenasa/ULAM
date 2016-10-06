@@ -1011,9 +1011,12 @@ UTI NodeVarDecl::checkAndLabelType()
 	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str()); //VALUE
 	if(m_state.isAtomRef(vuti))
 	  fp->write(", uc");
-	fp->write(")");
+	//else if(m_state.isAtom(vuti)) //already cast to atom if uvpass was atomref
+	  // { //if(m_state.isAtomRef(uvpass.getPassTargetType()))
+	  //  fp->write(".read()"); //t3248
+	  //}
 
-	fp->write(";"); GCNL; //func call args aren't NodeVarDecl's
+	fp->write(");"); GCNL; //func call args aren't NodeVarDecl's
 	m_state.clearCurrentObjSymbolsForCodeGen();
 	return; //done
       }

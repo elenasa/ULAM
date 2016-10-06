@@ -125,6 +125,8 @@ namespace MFM {
   void NodeSimpleStatement::genCode(File * fp, UVPass& uvpass)
   {
     assert(m_node);
+    UVPass suvpass;
+    uvpass = suvpass; //nothing to pass along, simple statement
     m_node->genCode(fp, uvpass);
   }
 

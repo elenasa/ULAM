@@ -568,8 +568,13 @@ namespace MFM {
     ALT alt2 = key2.getUlamKeyTypeSignatureReferenceType();
     if(alt1 != alt2)
       {
-	if(alt1 == ALT_ARRAYITEM || alt2 == ALT_ARRAYITEM)
-	  return UTIC_SAME;
+	if((alt1 == ALT_ARRAYITEM) || (alt2 == ALT_ARRAYITEM))
+	{
+	  if((alt1 == ALT_REF) || (alt2 == ALT_REF))
+	    return UTIC_NOTSAME; //t3653
+	  else
+	    return UTIC_SAME;
+	}
 	else
 	  return UTIC_NOTSAME;
       }

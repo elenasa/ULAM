@@ -2,7 +2,7 @@
 #=t3233_test_compiler_elementandquarkarray_ew
 #!
 Exit status: -11
-Ue_EWE { Int(32) test() {  EventWindow ew;  Atom(96) a;  a ew 0 cast [] = 0 cast return } }
+Ue_EWE { Int(32) test() {  EventWindow ew;  Atom(96) a;  a ew 0 cast [] cast = 0 cast return } }
 Uq_EventWindow { <NOMAIN> }
 ##      /*
 ##     quark EventWindow {
@@ -32,8 +32,9 @@ element EWE{
 #:EventWindow.ulam
   ulam 1;
 quark EventWindow{
-  Atom aref(Int index) native;
-  Void aset(Int index, Atom v) native;
+  Atom& aref(Int index) native;
+  //Atom aref(Int index) native;
+  //Void aset(Int index, Atom v) native;
 }
 ##    //EventWindow.ulam:3:1: ERROR: Only elements may have element parameters: <EventWindow> is a quark.
 #.

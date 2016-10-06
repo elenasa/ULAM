@@ -343,7 +343,6 @@ namespace MFM{
     u32 getCustomArrayGetFunctionNameId();
     u32 getCustomArraySetFunctionNameId();
     const char * getCustomArrayGetMangledFunctionName();
-    const char * getCustomArraySetMangledFunctionName();
     const char * getIsMangledFunctionName(UTI ltype);
     const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
     const char * getClassLengthFunctionName(UTI ltype);
@@ -388,7 +387,7 @@ namespace MFM{
 
     bool quarkHasAToIntMethod(UTI quti);
 
-    bool classHasACustomArraySetMethod(UTI cuti);
+    bool classCustomArraySetable(UTI cuti);
 
     void setupCenterSiteForTesting();
     void setupCenterSiteForGenCode();

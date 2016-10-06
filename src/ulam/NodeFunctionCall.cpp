@@ -1207,11 +1207,14 @@ namespace MFM {
     assert(uvpass.getPassStorage() == TMPAUTOREF);
 
     UTI vuti = uvpass.getPassTargetType();
+
     //vuti may not be a ref (e.g. t3668, a QW that was deref'd by [].)
     bool isaref = m_state.isReference(vuti);
 
     //use possible dereference type for mangled name
     UTI derefuti = m_state.getUlamTypeAsDeref(vuti);
+    assert(m_state.isAClass(derefuti));
+
     UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
 
    u32 tmpvarnum = uvpass.getPassVarNum();
@@ -1230,7 +1233,6 @@ namespace MFM {
 
     hiddenarg2 << "&";
     hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(derefuti).c_str();
-
     hiddenarg2 << ", " << genUlamRefUsageAsString(derefuti).c_str();
     hiddenarg2 << ");";
 
@@ -1330,7 +1332,9 @@ namespace MFM {
 	    m_argumentNodes->genCode(fp, auvpass, i);
 	    Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
 	  }
-	arglist << ", " << auvpass.getTmpVarAsString(m_state).c_str();
+
+	//if(auvpass.getPassNameId() == 0)
+	  arglist << ", " << auvpass.getTmpVarAsString(m_state).c_str();
       } //next arg..
 
     if(m_funcSymbol->takesVariableArgs())
@@ -1374,19 +1378,19 @@ namespace MFM {
     Symbol * cossym = NULL;
     if(!m_state.m_currentObjSymbolsForCodeGen.empty())
       {
-	cossym = m_state.m_currentObjSymbolsForCodeGen[0];
+	cossym = m_state.m_currentObjSymbolsForCodeGen.back();
 	id = cossym->getId();
       }
 
     //tmp var for lhs
-    s32 tmpVarArgNum = m_state.getNextTmpVarNumber();
     assert(m_funcSymbol);
     UTI vuti = m_funcSymbol->getParameterType(n);
+    s32 tmpVarArgNum = m_state.getNextTmpVarNumber();
 
     UVPass luvpass = UVPass::makePass(tmpVarArgNum, TMPAUTOREF, vuti, m_state.determinePackable(vuti), m_state, 0, id);
     SymbolTmpVar * tmpvarsym = Node::makeTmpVarSymbolForCodeGen(luvpass, cossym); //cossym could be null
 
-    Node::genCodeReferenceInitialization(fp, uvpass, tmpvarsym); //luvpass, not uvpass t3812
+    Node::genCodeReferenceInitialization(fp, uvpass, tmpvarsym); //uvpass, not luvpass t3812, t3819
 
     delete tmpvarsym;
     uvpass = luvpass;

@@ -137,7 +137,6 @@ namespace MFM {
 		    msg << " used with class: ";
 		    msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
 		    msg << getName();
-		    //if(lut->isComplete() || (caType == Nav))
 		    if(caType == Nav)
 		      {
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -267,11 +266,11 @@ namespace MFM {
 
 	if(m_isCustomArray)
 	  {
-	    if(m_state.classHasACustomArraySetMethod(leftType))
+	    if(m_state.classCustomArraySetable(leftType))
 	      	Node::setStoreIntoAble(TBOOL_TRUE);
 	    else
 	      Node::setStoreIntoAble(TBOOL_FALSE);
-	    Node::setReferenceAble(TBOOL_FALSE); //custom arrays are not reference-able
+	    //Node::setReferenceAble(TBOOL_FALSE); //custom arrays are not reference-able
 	  }
 	else
 	  // multi-dimensional possible; MP not ok lhs.
@@ -678,8 +677,10 @@ namespace MFM {
   void NodeSquareBracket::genCode(File * fp, UVPass& uvpass)
   {
     genCodeToStoreInto(fp, uvpass);
-    //if(!m_isCustomArray)
-    Node::genCodeReadIntoATmpVar(fp, uvpass); //splits on array item
+    if(!m_isCustomArray || !m_state.classCustomArraySetable(m_nodeLeft->getNodeType()))
+      Node::genCodeReadIntoATmpVar(fp, uvpass); //splits on array item
+    else
+      m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCode
 
   void NodeSquareBracket::genCodeToStoreInto(File * fp, UVPass& uvpass)
@@ -721,6 +722,7 @@ namespace MFM {
 	//save autoref into a tmpvar symbol
 	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
 	Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
+
 	assert(!m_state.isScalar(cossym->getUlamTypeIdx()));
 	if(cossym->isConstant())
 	  Node::genCodeConvertATmpVarIntoConstantAutoRef(fp, luvpass, offset); //luvpass becomes the autoref, and clears stack
@@ -733,18 +735,23 @@ namespace MFM {
       } //for non custom arrays only!
     else
       {
-	uvpass = offset; //return custom array
-#if 0
-	//wait for functions to return references..so we don't have to decide
-	//between aset and aref, always aref!!
-	//member select lhs ? t3916
-	Node::genCodeReadIntoATmpVar(fp, uvpass); //splits on array item
-	Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass); //non-const
-	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL);
+	//a custom array
+	//save autoref into a tmpvar symbol
+	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+	Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
+
+	assert(m_state.isScalar(cossym->getUlamTypeIdx()));
+
+	Node::genCodeConvertATmpVarIntoCustomArrayAutoRef(fp, luvpass, offset); //luvpass becomes the autoref, and clears stack
+	uvpass = luvpass;
+
+	//when setable, already a ref; o.w. need autoref to read/write
+	//if(!classCustomArraySetable(luti))
+	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, cossym); //dm to avoid leaks
+	m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore the prior stack
 	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
-	uvpass = offset; //in case a lhs (aset)
-#endif
       }
+
     // NO RESTORE -- up to caller for lhs.
   } //genCodeToStoreInto
 

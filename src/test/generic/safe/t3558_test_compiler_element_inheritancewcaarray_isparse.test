@@ -1,11 +1,15 @@
 ## -*- mode:ulam -*-
 #=t3558_test_compiler_element_inheritancewcaarray_isparse
+##
+##  gen output: (1 assert)
+##
 #!
 Exit status: -11
-Ue_EventWindowTest : EvtWinEl { :< Int(32) m_idx(40); > constant Int(32) v = -2;  Int(32) test() {  Atom(96) a;  EventWindowTest ewt;  ewt 0 cast [] a = a ewt 0 cast [] = { a EventWindowTest is cond -2 return if } 1 cast return } }
+Ue_EventWindowTest : EvtWinEl { :< Int(32) m_idx(40); > constant Int(32) v = -2;  Int(32) test() {  System s;  Atom(96) a;  EventWindowTest ewt;  a ewt 0 cast [] cast = s ( a EventWindowTest is )assert . 0 cast return } }
 Uq_EvtWinEl { Int(32) m_idx( 40);  <NOMAIN> }
+Uq_System { <NOMAIN> }
 ##
-##      // element may be a custom array! inherited no less!! Fri Oct  2 09:27:27 2015
+##      // element may be a custom array! inherited no less!!
 ##      // informed by t3338
 ##
 #>EventWindowTest.ulam
@@ -14,13 +18,13 @@ use EvtWinEl;
 element EventWindowTest : EvtWinEl {
   constant Int v = -2;
   Int test() {
+    System s;
     Atom a;
     EventWindowTest ewt;
-    ewt[0] = a;
+    //ewt[0] = a; STALE_ATOM
     a = ewt[0];  // This is me!
-    if (a is EventWindowTest)
-      return v;
-    return 1;
+    s.assert(a is EventWindowTest);
+    return 0;
  }
 }
 
@@ -28,16 +32,24 @@ element EventWindowTest : EvtWinEl {
   ulam 2;
 quark EvtWinEl {
   Int m_idx = 40;
-  Atom aref(Int index)
+  Atom& aref(Int index)
   {
-    Atom a;
-    return a;
+    //Atom a; //on the stack
+    return self.atomof;
   }
-
-  Void aset(Int index, Atom val)
-  {
-  }
+  //Void aset(Int index, Atom val){}
 }
 
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
 
 #.

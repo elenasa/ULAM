@@ -250,17 +250,6 @@ namespace MFM {
 	  {
 	    UTI caType = Nouti;
 	    probcount = ((SymbolFunctionName *) fnsymget)->checkCustomArrayGetFunctions(caType); //sets caType
-
-	    if(!probcount)
-	      {
-		// for each aset that exists: it has two params, the 2nd is
-		// the same as the get return type, and the set return type is Void.
-		Symbol * fnsymset = NULL;
-		if(isInTable(m_state.getCustomArraySetFunctionNameId(), fnsymset))
-		  {
-		    probcount = ((SymbolFunctionName *) fnsymset)->checkCustomArraySetFunctions(caType);
-		  }
-	      }
 	  }
 	rtnBool = (probcount == 0);
       } //get found
@@ -276,6 +265,23 @@ namespace MFM {
 	    msg << "' NOT FOUND in class: " << cut->getUlamTypeNameOnly().c_str();
 	    MSG(cblock->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
+      }
+
+    Symbol * fnsymset = NULL;
+    if(isInTable(m_state.getCustomArraySetFunctionNameId(), fnsymset))
+      {
+	UTI cuti = m_state.getCompileThisIdx();
+	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+
+	std::ostringstream msg;
+	msg << "Deprecated custom array set method '";
+	msg << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str();
+	msg << "' FOUND in class: " << cut->getUlamTypeNameOnly().c_str();
+	msg << "; let '";
+	msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
+	msg << "' return a reference";
+	MSG(cblock->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	rtnBool = false; //t3919
       }
     return rtnBool;
   } //checkCustomArrayTypeFuncs

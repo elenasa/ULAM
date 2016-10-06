@@ -6,6 +6,19 @@
 namespace MFM{
 
   template<class EC>
+  Ui_Ut_r102961a<EC> Uq_10109211EventWindow11102321in12<EC>::Uf_4aref(const UlamContext<EC> & uc,
+								      UlamRef<EC>& ur,
+								      Ui_Ut_102321i<EC>& Uv_5index) const //native
+  {
+    u32 siteNumber = Uv_5index.read();
+    const EventWindow<EC> & ew = uc.GetEventWindow();
+    static T a = ew.GetAtomSym(siteNumber);
+    static Ui_Ut_102961a<EC> tmpatom(a);
+    return Ui_Ut_r102961a<EC>(tmpatom, 0u, uc);
+  }
+
+#if 0
+  template<class EC>
   Ui_Ut_102961a<EC> Uq_10109211EventWindow11102321in12<EC>::Uf_4aref(const UlamContext<EC> & uc,
 									 UlamRef<EC>& ur, Ui_Ut_102321i<EC>& Uv_5index) const //native
   {
@@ -24,5 +37,6 @@ namespace MFM{
     EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
     ew.SetAtomSym(siteNumber, Uv_1v.ReadAtom());
   }
+#endif
 
 } //MFM

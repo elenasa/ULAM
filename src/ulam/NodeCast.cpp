@@ -1535,13 +1535,20 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
   } //genCodeCastFromAReference
 
+  //SAME TYPES, to a reference, from either a reference or not, or different ref type
   void NodeCast::genCodeToStoreIntoCastAsReference(File * fp, UVPass & uvpass)
   {
+    UTI tobeType = getCastType();
+    uvpass.setPassTargetType(tobeType); //minimal casting, t3812?
     return;
   } //genCodeToStoreIntoCastAsReference
 
   void NodeCast::genCodeToStoreIntoCastFromAReference(File * fp, UVPass & uvpass)
   {
+    UTI tobeType = getCastType();
+    UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
+    assert(!tobe->isReference());
+    uvpass.setPassTargetType(tobeType); //minimal casting; including atomref to atom(non-ref)
     return;
   } //genCodeToStoreIntoCastFromAReference
 

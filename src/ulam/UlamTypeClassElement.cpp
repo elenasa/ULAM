@@ -403,6 +403,7 @@ namespace MFM {
     UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
     const std::string scalarmangledName = scalarut->getUlamTypeMangledName();
     const std::string mangledName = getUlamTypeImmediateMangledName();
+    const std::string automangledName = getUlamTypeImmediateAutoMangledName();
 
     std::ostringstream  ud;
     ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
@@ -501,6 +502,15 @@ namespace MFM {
     fp->write("(arg.ReadAtom()) { ");
     fp->write("if(arg.GetType() != Us::THE_INSTANCE.GetType()) FAIL(ILLEGAL_ARGUMENT);");
     fp->write(" }"); GCNL;
+
+    //constructor from ref of same type
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("(const ");
+    fp->write(automangledName.c_str());
+    fp->write("<EC>& d) : ");
+    fp->write("AtomBitStorage<EC>");
+    fp->write("(d.read()) { }"); GCNL;
 
     //default destructor (intentionally left out)
 

@@ -311,6 +311,7 @@ namespace MFM {
     m_state.m_currentIndentLevel = 0;
     const std::string mangledName = getUlamTypeImmediateMangledName();
     const std::string automangledName = getUlamTypeImmediateAutoMangledName();
+
     std::ostringstream  ud;
     ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
     std::string udstr = ud.str();
@@ -382,6 +383,15 @@ namespace MFM {
     fp->write("(const ");
     fp->write(mangledName.c_str());
     fp->write("& d) : "); //uc consistent with atomref
+    fp->write("AtomBitStorage<EC>");
+    fp->write("(d.read()) { }"); GCNL;
+
+    //constructor from ref of same type
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("(const ");
+    fp->write(automangledName.c_str());
+    fp->write("<EC>& d) : "); //uc consistent with atomref
     fp->write("AtomBitStorage<EC>");
     fp->write("(d.read()) { }"); GCNL;
 

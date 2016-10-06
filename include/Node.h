@@ -274,7 +274,7 @@ namespace MFM{
 
     void adjustUVPassForElements(UVPass & uvpass);
 
-    SymbolTmpVar * makeTmpVarSymbolForCodeGen(UVPass uvpass, Symbol * sym);
+    SymbolTmpVar * makeTmpVarSymbolForCodeGen(UVPass& uvpass, Symbol * sym);
 
     std::string genUlamRefUsageAsString(UTI uti);
 
@@ -290,6 +290,10 @@ namespace MFM{
 
     //e.g. when constant array item, primitive
     void genCodeConvertATmpVarIntoConstantAutoRef(File * fp, UVPass & luvpass, UVPass ruvpass);
+
+    //e.g. when a custom array item
+    void genCodeConvertATmpVarIntoCustomArrayAutoRef(File * fp, UVPass & luvpass, UVPass ruvpass);
+
     //e.g. when lhs of member select is an array item of class type, rhs data member
     void genCodeARefFromARefStorage(File * fp, UVPass stguvpass, UVPass uvpass);
 
@@ -331,6 +335,7 @@ namespace MFM{
     void genCodeWriteToAutorefFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
 
     void genCodeReadCustomArrayItemIntoATmpVar(File * fp, UVPass & uvpass);
+    void genCodeGetCustomArrayItemBitVal(File * fp, UVPass & uvpass); //shared by read/write
     void genCodeWriteCustomArrayItemFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
 
     virtual void genModelParameterHiddenArgs(File * fp, s32 epi);

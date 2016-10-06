@@ -318,28 +318,30 @@ namespace MFM {
 
     assert(m_state.getReferenceType(nuti) == ALT_REF);
     m_node->genCodeToStoreInto(fp, rtnuvpass); //t3630
+    uvpass = rtnuvpass;
 
-    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    if(!m_state.m_currentObjSymbolsForCodeGen.empty())
+      {
+	Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back(); //or [0]?
+	u32 id = cossym->getId();
+	s32 tmprefnum = m_state.getNextTmpVarNumber();
 
-    Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back(); //or [0]?
-    u32 id = cossym->getId();
-    s32 tmprefnum = m_state.getNextTmpVarNumber();
+	UVPass luvpass = UVPass::makePass(tmprefnum, TMPAUTOREF, nuti, m_state.determinePackable(nuti), m_state, 0, id);
+	SymbolTmpVar * tmpvarsym = Node::makeTmpVarSymbolForCodeGen(luvpass, cossym);
+	assert(tmpvarsym);
 
-    UVPass luvpass = UVPass::makePass(tmprefnum, TMPAUTOREF, nuti, m_state.determinePackable(nuti), m_state, 0, id);
-    SymbolTmpVar * tmpvarsym = Node::makeTmpVarSymbolForCodeGen(luvpass, cossym);
-    assert(tmpvarsym);
-
-    Node::genCodeReferenceInitialization(fp, rtnuvpass, tmpvarsym);
-
-    delete tmpvarsym;
+	Node::genCodeReferenceInitialization(fp, rtnuvpass, tmpvarsym);
+	delete tmpvarsym;
+	uvpass = luvpass;
+      }
+    //else //t3653
 
     m_state.indentUlamCode(fp);
     fp->write("return ");
     fp->write("(");
-    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 
     fp->write(");"); GCNL;
-    uvpass = luvpass;
   } //genCodeToStoreInto
 
 } //end MFM

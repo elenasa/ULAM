@@ -93,8 +93,8 @@ quark WindowScanner {
   ulam 1;
 quark EventWindow{
   typedef Unsigned(6) SiteNum;
-  Atom aref(Int index) native;
-  Void aset(Int index, Atom v) native;
+  Atom& aref(Int index) native;
+  //Void aset(Int index, Atom v) native;
 }
 
 #:System.ulam

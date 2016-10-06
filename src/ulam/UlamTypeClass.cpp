@@ -308,6 +308,8 @@ namespace MFM {
 
   TMPSTORAGE UlamTypeClass::getTmpStorageTypeForTmpVar()
   {
+    if(isCustomArray())
+      return m_state.getUlamTypeByIndex(getCustomArrayType())->getTmpStorageTypeForTmpVar();
     return UlamType::getTmpStorageTypeForTmpVar();
   }
 
@@ -342,7 +344,7 @@ namespace MFM {
   const std::string UlamTypeClass::writeArrayItemMethodForCodeGen()
   {
     if(isCustomArray())
-      return m_state.getCustomArraySetMangledFunctionName();
+      return m_state.getCustomArrayGetMangledFunctionName(); //return a ref
     return UlamType::writeArrayItemMethodForCodeGen();
   }
 
