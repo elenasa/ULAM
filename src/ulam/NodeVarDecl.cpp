@@ -1009,12 +1009,11 @@ UTI NodeVarDecl::checkAndLabelType()
 	fp->write(m_varSymbol->getMangledName().c_str());
 	fp->write("("); // use constructor (not equals)
 	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str()); //VALUE
-	if(m_state.isAtomRef(vuti))
+
+	if((uvpass.getPassStorage() == TMPBITVAL))
+	    fp->write(".read()"); //ulamexports: WallPort->QPort4->Cell (e.g. t3922)
+	else if(m_state.isAtomRef(vuti))
 	  fp->write(", uc");
-	//else if(m_state.isAtom(vuti)) //already cast to atom if uvpass was atomref
-	  // { //if(m_state.isAtomRef(uvpass.getPassTargetType()))
-	  //  fp->write(".read()"); //t3248
-	  //}
 
 	fp->write(");"); GCNL; //func call args aren't NodeVarDecl's
 	m_state.clearCurrentObjSymbolsForCodeGen();

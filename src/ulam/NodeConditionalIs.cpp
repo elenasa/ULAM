@@ -259,6 +259,8 @@ namespace MFM {
 	fp->write(m_state.getIsMangledFunctionName(ruti)); //UlamElement IsMethod
 	fp->write("(");
 	fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //from tmpvar T or ABS
+	if(m_state.isAtomRef(luti) && (luvpass.getPassStorage() == TMPBITVAL))
+	  fp->write(".read()"); //t3920, not for t3921
 	fp->write(");"); GCNL;
       }
     else
