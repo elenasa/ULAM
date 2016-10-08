@@ -569,10 +569,7 @@ namespace MFM {
 
     // No split if custom array, that requires an 'aref' function call;
     // handled as genCodeConvertATmpVarIntoCustomArrayAutoRef
-    // immediate types no longer have an array method to call for CA's.
-    if(isCurrentObjectACustomArrayItem(cosuti, uvpass))
-      //return genCodeReadCustomArrayItemIntoATmpVar(fp, uvpass);
-      m_state.abortShouldntGetHere();
+    assert(!isCurrentObjectACustomArrayItem(cosuti, uvpass));
 
     // write out intermediate tmpVar (i.e. terminal) as temp BitVector arg
     // e.g. when func call is rhs of secondary member select
@@ -755,83 +752,6 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeReadAutorefIntoATmpVar
 
-  void Node::genCodeReadCustomArrayItemIntoATmpVar(File * fp, UVPass & uvpass)
-  {
-    genCodeGetCustomArrayItemBitVal(fp, uvpass);
-    genCodeConvertABitVectorIntoATmpVar(fp, uvpass); //updates uvpass again (e.g. t3505 'is')
-  } //genCodeReadCustomArrayItemIntoATmpVar
-
-  void Node::genCodeGetCustomArrayItemBitVal(File * fp, UVPass & uvpass)
-  {
-    s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp for data
-    UTI vuti = uvpass.getPassTargetType(); //replaces vuti w target type
-    assert(vuti != Void);
-
-    //vut (index) may not be numeric when custom array
-    //here, cos is symbol used to determine read method: either self or last of cos.
-    //stgcos is symbol used to determine first "hidden" arg
-    Symbol * cos = NULL;
-    if(m_state.m_currentObjSymbolsForCodeGen.empty())
-      cos = m_state.getCurrentSelfSymbolForCodeGen();
-    else
-      cos = m_state.m_currentObjSymbolsForCodeGen.back();
-
-    UTI cosuti = cos->getUlamTypeIdx();
-
-    assert(isCurrentObjectACustomArrayItem(cosuti, uvpass));
-
-    UTI itemuti = m_state.getAClassCustomArrayType(cosuti);
-
-    std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
-    UVPass auvpass = uvpass;
-    genCodeConvertATmpVarIntoBitVector(fp, auvpass); //clears stack
-    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore vector after args******
-
-    u32 urtmpnum = 0;
-    std::string hiddenarg2str = genHiddenArg2(uvpass, urtmpnum);
-    if(urtmpnum > 0)
-      {
-	m_state.indentUlamCode(fp);
-	fp->write(hiddenarg2str.c_str());
-	fp->write("\n");
-      }
-
-    //non-const tmp ur for this function call
-    m_state.indentUlamCode(fp);
-    //fp->write("const ");
-    fp->write(localStorageTypeAsString(itemuti).c_str()); //e.g. BitVector<32> exception
-    fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(itemuti, tmpVarNum2, TMPBITVAL).c_str());
-    fp->write(" = ");
-
-    // all the cases where = is used; else BitVector constructor for converting a tmpvar
-    if(!isCurrentObjectALocalVariableOrArgument())
-      {
-	genCustomArrayMemberNameOfMethod(fp);
-	// the READ method
-	fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
-	genCustomArrayHiddenArgs(fp, urtmpnum);
-	fp->write(", "); //rest of arg's
-	//index is immediate Index arg of targettype in uvpass
-	fp->write(auvpass.getTmpVarAsString(m_state).c_str()); //INDEX
-	fp->write(");"); GCNL;
-      }
-    else  //local var
-      {
-	assert(isCurrentObjectsContainingAModelParameter() == -1); //MP invalid
-	//read method based on last cos
-	genCustomArrayLocalMemberNameOfMethod(fp);
-	fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
-	genCustomArrayHiddenArgs(fp, urtmpnum);
-	fp->write(", "); //rest of args
-	//index is immediate Index arg of targettype in uvpass
-	fp->write(auvpass.getTmpVarAsString(m_state).c_str()); //INDEX
-	fp->write(");"); GCNL;
-      }
-    //update uvpass
-    uvpass = UVPass::makePass(tmpVarNum2, TMPBITVAL, itemuti, m_state.determinePackable(itemuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
-  } //genCodeGetCustomArrayItemBitVal
-
   // two arg's luvpass fine-tunes the current symbol in case of member selection;
   // ruvpass is the ptr to value to write
   void Node::genCodeWriteFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass)
@@ -850,9 +770,9 @@ namespace MFM {
 
     UTI cosuti = cos->getUlamTypeIdx();
 
-    if(isCurrentObjectACustomArrayItem(cosuti, luvpass))
-      //return genCodeWriteCustomArrayItemFromATmpVar(fp, luvpass, ruvpass); //like a func call
-      m_state.abortShouldntGetHere();
+    // No split if custom array, that requires an 'aref' function call;
+    // handled as genCodeConvertATmpVarIntoCustomArrayAutoRef
+    assert(!isCurrentObjectACustomArrayItem(cosuti, luvpass));
 
     // split off autoref stg/member selected
     if(luvpass.getPassStorage() == TMPAUTOREF)
@@ -1084,41 +1004,6 @@ namespace MFM {
     fp->write("); //restore type"); GCNL;
     fp->write("\n");
   } //restoreElementTypeForAncestorCasting
-
-  // two arg's luvpass fine-tunes the current symbol in case of member selection;
-  // ruvpass is the ptr to value to write
-  void Node::genCodeWriteCustomArrayItemFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass)
-  {
-    Symbol * cos = NULL;
-    if(m_state.m_currentObjSymbolsForCodeGen.empty())
-      cos = m_state.getCurrentSelfSymbolForCodeGen();
-    else
-      cos = m_state.m_currentObjSymbolsForCodeGen.back();
-
-    UTI cosuti = cos->getUlamTypeIdx();
-    assert(isCurrentObjectACustomArrayItem(cosuti, luvpass));
-    assert(m_state.getUlamTypeByIndex(cosuti)->getUlamTypeEnum() == Class);
-
-    //rhs could be a constant; or previously cast from Int to Unary variables.
-    std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
-    //UTI catype = m_state.getAClassCustomArrayType(cosuti);
-    UVPass valuvpass = ruvpass;
-    //valuvpass.setPassTargetType(catype);
-    genCodeConvertATmpVarIntoBitVector(fp, valuvpass); //clears stack
-    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore vector after args******
-
-
-    genCodeGetCustomArrayItemBitVal(fp, luvpass);
-
-    //VALUE TO BE WRITTEN:
-    m_state.indentUlamCode(fp);
-    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(".write(");
-    fp->write(valuvpass.getTmpVarAsString(m_state).c_str()); //VALUE
-    fp->write(");"); GCNL;
-
-    m_state.clearCurrentObjSymbolsForCodeGen();
-  } //genCodeWriteCustomArrayItemFromATmpVar
 
   // write out intermediate tmpVar as temp BitVector, func args
   void Node::genCodeConvertATmpVarIntoBitVector(File * fp, UVPass & uvpass)
@@ -1413,7 +1298,6 @@ namespace MFM {
 
     // write out auto ref constuctor
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
-    //s32 pos = luvpass.getPassPos(); should be part of hidden arg...???
 
     //first array item, with item in uvpass (e.g. t3147)
     assert(ruvpass.getPassStorage() == TMPARRAYIDX);
@@ -1426,7 +1310,6 @@ namespace MFM {
     assert(!cos->isConstant());
 
     UTI itemuti = m_state.getAClassCustomArrayType(cosuti);
-    //UlamType * itemut = m_state.getUlamTypeByIndex(itemuti);
 
     std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
     UVPass auvpass = ruvpass;
@@ -1445,11 +1328,10 @@ namespace MFM {
 	fp->write("\n");
       }
 
-    TMPSTORAGE tstor = TMPBITVAL; //or TMPAUTOREF???
+    TMPSTORAGE tstor = TMPBITVAL;
 
     //non-const tmp ur for this function call
     m_state.indentUlamCode(fp);
-    //fp->write("const ");
     fp->write(localStorageTypeAsString(itemuti).c_str()); //e.g. BitVector<32> exception
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(itemuti, tmpVarNum2, tstor).c_str());

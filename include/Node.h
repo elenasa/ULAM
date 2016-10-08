@@ -336,10 +336,6 @@ namespace MFM{
     void genCodeReadAutorefIntoATmpVar(File * fp, UVPass& uvpass);
     void genCodeWriteToAutorefFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
 
-    void genCodeReadCustomArrayItemIntoATmpVar(File * fp, UVPass & uvpass);
-    void genCodeGetCustomArrayItemBitVal(File * fp, UVPass & uvpass); //shared by read/write
-    void genCodeWriteCustomArrayItemFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
-
     virtual void genModelParameterHiddenArgs(File * fp, s32 epi);
 
     void genCustomArrayMemberNameOfMethod(File * fp);

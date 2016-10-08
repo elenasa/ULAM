@@ -365,14 +365,12 @@ namespace MFM {
     argNodes.clear();
     assert(it == getNodeType());
     assert(m_funcSymbol || (getNodeType() == Nav) || (getNodeType() == Hzy));
-    //if(m_state.okUTItoContinue(it) && (m_state.isAClass(it)))
+
     if(m_state.okUTItoContinue(it))
       {
 	bool isref = m_state.isReference(it);
 	if(m_state.isAClass(it) || isref)
 	  setStoreIntoAble(TBOOL_TRUE); //t3912 (class)
-
-	//setReferenceAble(TBOOL_FALSE); //set after storeintoable t3661,2
 	if(isref)
 	  setReferenceAble(TBOOL_TRUE); //set after storeintoable t3661,2; t3630
 	else
@@ -1332,9 +1330,7 @@ namespace MFM {
 	    m_argumentNodes->genCode(fp, auvpass, i);
 	    Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
 	  }
-
-	//if(auvpass.getPassNameId() == 0)
-	  arglist << ", " << auvpass.getTmpVarAsString(m_state).c_str();
+	arglist << ", " << auvpass.getTmpVarAsString(m_state).c_str();
       } //next arg..
 
     if(m_funcSymbol->takesVariableArgs())

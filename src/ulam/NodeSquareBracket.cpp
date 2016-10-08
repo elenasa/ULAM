@@ -125,8 +125,7 @@ namespace MFM {
 	      }
 	    else
 	      {
-		// either an array of custom array classes or
-		// a custom array; t.f. lhs is a quark!
+		// either an array of custom array classes or a custom array;
 		assert(lut->getUlamTypeEnum() == Class);
 
 		// can't substitute a function call node for square brackets to leverage
@@ -159,7 +158,7 @@ namespace MFM {
 	      }
 	  }
 	//else
-	// arraysize is zero! not accessible. runtime check?
+	// arraysize is zero! not accessible. runtime check
 
 	//set up idxuti..RHS
 	//cant proceed with custom array subscript if lhs is incomplete
@@ -346,11 +345,6 @@ namespace MFM {
     UlamValue pluv = m_state.m_nodeEvalStack.popArg();
     UTI ltype = pluv.getPtrTargetType();
 
-    //could be a custom array which is a scalar quark. already checked.
-    bool isCustomArray = m_state.isClassACustomArray(ltype);
-    //array of caarray quarks is not a customarray.
-    assert(m_isCustomArray == isCustomArray); //already checked, must be array
-
     makeRoomForNodeType(m_nodeRight->getNodeType()); //offset a constant expression
     evs = m_nodeRight->eval();
     if(evs != NORMAL)
@@ -369,7 +363,7 @@ namespace MFM {
 	u32 offsetdata = offset.getImmediateData(m_state);
 	offsetInt = offut->getDataAsCs32(offsetdata);
 
-	if((offsetInt >= arraysize)) // && !isCustomArray)
+	if((offsetInt >= arraysize))
 	  {
 	    Symbol * lsymptr;
 	    u32 lid = 0;
@@ -407,7 +401,7 @@ namespace MFM {
 
   EvalStatus NodeSquareBracket::evalACustomArray()
   {
-    //custom array should call aref? eval MUST NOT be used to get arraysize in bracket.
+    //eval MUST NOT be used to get arraysize in bracket.
     std::ostringstream msg;
     msg << "Custom Array subscript";
     msg << " requires aref function call; Unsupported for eval";
@@ -484,10 +478,10 @@ namespace MFM {
 
   EvalStatus NodeSquareBracket::evalToStoreIntoACustomArray()
   {
-    //custom array should call aset? eval MUST NOT be used to get arraysize in bracket.
+    //eval MUST NOT be used to get arraysize in bracket.
     std::ostringstream msg;
     msg << "Custom Array subscript";
-    msg << " requires aset function call; Unsupported for evalToStoreInto";
+    msg << " requires aref function call returning a reference; Unsupported for evalToStoreInto";
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
     return UNEVALUABLE;
   } //evalToStoreIntoACustomArray
@@ -575,7 +569,6 @@ namespace MFM {
   //see also NodeIdent
   bool NodeSquareBracket::installSymbolVariable(TypeArgs& args,  Symbol *& asymptr)
   {
-    //assert(m_nodeLeft && m_nodeRight);
     if(!m_nodeLeft)
       {
 	MSG(getNodeLocationAsString().c_str(), "No Identifier to build array symbol", ERR);

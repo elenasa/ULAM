@@ -45,7 +45,28 @@ namespace MFM {
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
     ULAMTYPE letyp = lut->getUlamTypeEnum();
-    if(!((m_state.isAtom(luti) || (letyp == Class)) && lut->isScalar()))
+    if(!lut->isScalar())
+      {
+	std::ostringstream msg;
+	msg << "Invalid lefthand type of conditional operator '" << getName();
+	msg << "'; must be a scalar, not ";
+	msg << lut->getUlamTypeNameBrief().c_str() << " array";
+	if(lclasstype == UC_UNSEEN || luti == Hzy)
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    newType = Hzy;
+	    m_state.setGoAgain();
+	  }
+	else
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    newType = Nav;
+	    setNodeType(Nav);
+	    return Nav;
+	  }
+      }
+
+    if(!((m_state.isAtom(luti) || (letyp == Class))))// && lut->isScalar()))
       {
 	std::ostringstream msg;
 	msg << "Invalid lefthand type of conditional operator '" << getName();
@@ -308,7 +329,7 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarIs, TMPREGISTER).c_str());
     fp->write(" = ");
 
-    //what if array?
+    //if array, error in c&l
     fp->write(stgcos->getMangledName().c_str());
     fp->write(".GetEffectiveSelf()->");
     fp->write(m_state.getIsMangledFunctionName(luti)); //UlamClass IsMethod
