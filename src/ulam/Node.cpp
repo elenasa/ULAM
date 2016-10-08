@@ -206,6 +206,11 @@ namespace MFM {
     return false;
   }
 
+  bool Node::isArrayItem()
+  {
+    return false;
+  }
+
   bool Node::isAList()
   {
     return false;
@@ -562,7 +567,8 @@ namespace MFM {
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     TMPSTORAGE cstor = cosut->getTmpStorageTypeForTmpVar();
 
-    // split if custom array, that requires an 'aref' function call
+    // No split if custom array, that requires an 'aref' function call;
+    // handled as genCodeConvertATmpVarIntoCustomArrayAutoRef
     // immediate types no longer have an array method to call for CA's.
     if(isCurrentObjectACustomArrayItem(cosuti, uvpass))
       //return genCodeReadCustomArrayItemIntoATmpVar(fp, uvpass);

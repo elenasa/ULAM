@@ -103,6 +103,17 @@ namespace MFM {
 	  }
       }
 
+    if(m_nodeLeft->isArrayItem() || m_nodeLeft->isFunctionCall())
+      {
+	std::ostringstream msg;
+	msg << "Invalid lefthand type of conditional operator '" << getName();
+	msg << "'; suggest a reference variable";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+	setNodeType(Nav);
+	return Nav;
+      }
+
     assert(m_nodeTypeDesc);
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
     if(m_state.okUTItoContinue(ruti))

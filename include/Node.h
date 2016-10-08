@@ -141,6 +141,8 @@ namespace MFM{
 
     virtual bool isFunctionCall();
 
+    virtual bool isArrayItem();
+
     virtual bool isAList();
 
     virtual bool isExplicitReferenceCast(); //only NodeCast may return true

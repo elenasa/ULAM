@@ -65,6 +65,11 @@ namespace MFM {
     return "_SquareBracket_Stub";
   }
 
+  bool NodeSquareBracket::isArrayItem()
+  {
+    return true; //not for array declaration; includes custom array items
+  }
+
   // used to select an array item; not for declaration
   UTI NodeSquareBracket::checkAndLabelType()
   {
@@ -154,7 +159,7 @@ namespace MFM {
 	      }
 	  }
 	//else
-	// arraysize is zero! not accessible. runtime check? Sun Jul  3 17:38:42 2016
+	// arraysize is zero! not accessible. runtime check?
 
 	//set up idxuti..RHS
 	//cant proceed with custom array subscript if lhs is incomplete
@@ -206,7 +211,7 @@ namespace MFM {
 			errorCount++;
 		      }
 		  }
-		//else a match! but which? aref or aset?
+		//else a match!
 	      }
 	    else
 	      {
@@ -267,10 +272,9 @@ namespace MFM {
 	if(m_isCustomArray)
 	  {
 	    if(m_state.classCustomArraySetable(leftType))
-	      	Node::setStoreIntoAble(TBOOL_TRUE);
+	      Node::setStoreIntoAble(TBOOL_TRUE); //also reference-able
 	    else
 	      Node::setStoreIntoAble(TBOOL_FALSE);
-	    //Node::setReferenceAble(TBOOL_FALSE); //custom arrays are not reference-able
 	  }
 	else
 	  // multi-dimensional possible; MP not ok lhs.
@@ -591,7 +595,6 @@ namespace MFM {
 
   bool NodeSquareBracket::assignClassArgValueInStubCopy()
   {
-    //return m_nodeRight->assignClassArgValueInStubCopy();
     return true;
   }
 
@@ -745,13 +748,10 @@ namespace MFM {
 	Node::genCodeConvertATmpVarIntoCustomArrayAutoRef(fp, luvpass, offset); //luvpass becomes the autoref, and clears stack
 	uvpass = luvpass;
 
-	//when setable, already a ref; o.w. need autoref to read/write
-	//if(!classCustomArraySetable(luti))
 	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, cossym); //dm to avoid leaks
 	m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore the prior stack
 	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
       }
-
     // NO RESTORE -- up to caller for lhs.
   } //genCodeToStoreInto
 

@@ -135,6 +135,15 @@ namespace MFM {
     return false;
   }
 
+  bool NodeStatements::isArrayItem()
+  {
+    if(m_node->isArrayItem())
+      return true;
+    if(m_nodeNext)
+      return m_nodeNext->isArrayItem(); //side-effect
+    return false;
+  }
+
   bool NodeStatements::isExplicitReferenceCast()
   {
     if(m_node->isExplicitReferenceCast())

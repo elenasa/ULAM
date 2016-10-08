@@ -66,6 +66,8 @@ namespace MFM{
 
     virtual const std::string methodNameForCodeGen();
 
+    virtual bool isArrayItem();
+
     virtual UTI checkAndLabelType();
 
     virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);

@@ -109,6 +109,11 @@ namespace MFM {
     return m_node->isFunctionCall();
   }
 
+  bool NodeCast::isArrayItem()
+  {
+    return m_node->isArrayItem();
+  }
+
   bool NodeCast::isExplicitReferenceCast()
   {
     return isExplicitCast() && m_state.isReference(getCastType());

@@ -206,6 +206,11 @@ namespace MFM {
     return m_nodeRight->isFunctionCall(); //based like storeintoable, on right
   }
 
+  bool NodeMemberSelect::isArrayItem()
+  {
+    return m_nodeRight->isArrayItem(); //based like storeintoable, on right
+  }
+
   EvalStatus NodeMemberSelect::eval()
   {
     assert(m_nodeLeft && m_nodeRight);
