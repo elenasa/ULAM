@@ -1400,7 +1400,8 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeARefFromARefStorage
 
-  //used both by NodeVarRef and NodeFunctionCall for reference args, and NodeReturn for ref return value (t3630)
+  //used both by NodeVarRef and NodeFunctionCall for reference args;
+  //and NodeReturn for ref return value (t3630)
   void Node::genCodeReferenceInitialization(File * fp, UVPass& uvpass, Symbol * vsymptr)
   {
     assert(vsymptr);
@@ -2892,20 +2893,6 @@ namespace MFM {
     // a local var that's not refining (i.e. cos[0]), or a var that's an MP
     return (isCurrentObjectALocalVariableOrArgument() && ( (m_state.m_currentObjSymbolsForCodeGen.size() == 1) || (m_state.m_currentObjSymbolsForCodeGen.back()->isModelParameter())));
   } //isHandlingImmediateType
-
-  //seems to be unused (convertABitVectorIntoATmpVar for custom array)
-  u32 Node::adjustedImmediateArrayItemPassPos(UTI cosuti, UVPass uvpass)
-  {
-    u32 pos = uvpass.getPassPos();
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    if(cosut->getUlamClassType() == UC_NOTACLASS)
-      {
-	assert(!m_state.isAtom(cosuti)); //atom too? let's find out..
-	u32 wordsize = cosut->getTotalWordSize();
-	pos = wordsize - (BITSPERATOM - pos); //cosut->getTotalBitSize();
-      }
-    return pos;
-  } //adjustedImmediateArrayItemPassPos
 
   bool Node::needAdjustToStateBits(UTI cuti)
   {

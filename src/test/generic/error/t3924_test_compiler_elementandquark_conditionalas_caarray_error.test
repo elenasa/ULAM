@@ -1,17 +1,11 @@
 ## -*- mode:ulam -*-
-#=t3923_test_compiler_elementandquark_conditionalas_carray
-##
-## gen output: (+ assert)
-##   Bool(3) Arg: 0x7 (true)
-##
+#=t3924_test_compiler_elementandquark_conditionalas_caarray_error
 #!
-Exit status: -11
-Ue_Res { EventWindow ew();  Bool(1) b(false);  Int(32) test() {  System s;  Cell cell;  ew 1 cast [] cell cast cast = Atom(96)& aref = ew 1 cast [];  { aref Cell as cond { Cell& aref;  self b . aref sp . cast = s ( b cast )print . s ( b )assert . } if s ( false )assert . else } 0 cast return } }
-Uq_EventWindow { <NOMAIN> }
-Uq_System { <NOMAIN> }
-Ue_Cell { Bool(3) sp( true);  <NOMAIN> }
+./Res.ulam:10:14: ERROR: Invalid lefthand type of conditional operator 'as'; suggest a reference variable.
+./Res.ulam:12:18: ERROR: Invalid Type: Cell& used with [].
+Unrecoverable Program Type Label FAILURE.
 ##
-##      //informed by t3920
+##      //informed by t3923
 ##
 #>Res.ulam
   ulam 2;
@@ -22,10 +16,10 @@ element Res {
     System s;
     Cell cell;
     ew[1] = cell;
-    Atom& aref = ew[1];
-    if(aref as Cell)
+    //Atom& aref = ew[1]; //as in t3923
+    if(ew[1] as Cell)
     {
-      self.b = aref.sp;
+      self.b = ew[1].sp;
       s.print(b);
       s.assert(b);
     }

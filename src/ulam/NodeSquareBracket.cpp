@@ -128,10 +128,7 @@ namespace MFM {
 		// either an array of custom array classes or a custom array;
 		assert(lut->getUlamTypeEnum() == Class);
 
-		// can't substitute a function call node for square brackets to leverage
-		// all the overload matching in func call node's c&l, because
-		// we ([]) can't tell which side of = we are on, and whether we should
-		// be a aref or aset.
+		// Note: A diff approach, substitute a func call node for sq bkt, not used.
 		UTI caType = m_state.getAClassCustomArrayType(leftType);
 		if(!m_state.isComplete(caType))
 		  {
@@ -330,8 +327,6 @@ namespace MFM {
 	return evalACustomArray();
       }
 
-    assert(!m_isCustomArray);
-
     evalNodeProlog(0); //new current frame pointer
 
     makeRoomForSlots(1); //always 1 slot for ptr
@@ -423,8 +418,6 @@ namespace MFM {
       {
 	return evalToStoreIntoACustomArray();
       }
-
-    assert(!m_isCustomArray);
 
     evalNodeProlog(0); //new current frame pointer
 
@@ -714,37 +707,29 @@ namespace MFM {
 	m_state.indentUlamCode(fp);
 	fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
 	m_state.m_currentIndentLevel--;
+      } //for non custom arrays only!
 
-	//save autoref into a tmpvar symbol
-	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
-	Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
+    //save autoref into a tmpvar symbol
+    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
 
+    if(m_state.isClassACustomArray(luti))
+      {
+	assert(m_state.isScalar(cossym->getUlamTypeIdx()));
+	Node::genCodeConvertATmpVarIntoCustomArrayAutoRef(fp, luvpass, offset); //luvpass becomes the autoref, and clears stack
+      }
+    else
+      {
 	assert(!m_state.isScalar(cossym->getUlamTypeIdx()));
 	if(cossym->isConstant())
 	  Node::genCodeConvertATmpVarIntoConstantAutoRef(fp, luvpass, offset); //luvpass becomes the autoref, and clears stack
 	else
 	  Node::genCodeConvertATmpVarIntoAutoRef(fp, luvpass, offset); //luvpass becomes the autoref, and clears stack
-	uvpass = luvpass;
-	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, cossym); //dm to avoid leaks
-	m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore the prior stack
-	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
-      } //for non custom arrays only!
-    else
-      {
-	//a custom array
-	//save autoref into a tmpvar symbol
-	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
-	Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
-
-	assert(m_state.isScalar(cossym->getUlamTypeIdx()));
-
-	Node::genCodeConvertATmpVarIntoCustomArrayAutoRef(fp, luvpass, offset); //luvpass becomes the autoref, and clears stack
-	uvpass = luvpass;
-
-	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, cossym); //dm to avoid leaks
-	m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore the prior stack
-	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
       }
+    uvpass = luvpass;
+    m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, cossym); //dm to avoid leaks
+    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore the prior stack
+    m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
     // NO RESTORE -- up to caller for lhs.
   } //genCodeToStoreInto
 
