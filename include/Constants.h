@@ -62,11 +62,11 @@ namespace MFM {
 #undef XY
 
 #ifndef PtrAbs
-#define PtrAbs (Ptr + 3)
+#define PtrAbs (Ptr + 4)
 #endif //PtrAbs
 
 #ifndef UAtomRef
-#define UAtomRef (Ptr + 4)
+#define UAtomRef (Ptr + 5)
 #endif //UAtomRef
 
   enum ULAMCLASSTYPE { UC_UNSEEN, UC_QUARK, UC_ELEMENT, UC_TRANSIENT, UC_NOTACLASS, UC_LOCALFILESCOPES, UC_ATOM, UC_ERROR};

@@ -8,7 +8,13 @@ namespace MFM {
   StringPool::StringPool()
   {
     std::string dummy = "dummy data";
-    m_dataAsString.push_back(dummy); //one is taken.
+    //m_dataAsString.push_back(dummy); //one is taken.
+    m_dataAsString.insert(std::pair<u32, std::string> (0, dummy)); //one is taken.
+  }
+
+  StringPool::StringPool(std::string str)
+  {
+    m_dataAsString.insert(std::pair<u32, std::string> (0, str)); //one is taken.
   }
 
   StringPool::~StringPool()
@@ -30,8 +36,9 @@ namespace MFM {
       {
 	idx = m_stringToDataIndex.size() + 1;
 	assert(idx == m_dataAsString.size());
-	m_stringToDataIndex.insert(std::pair<std::string,u32> (str,idx));
-	m_dataAsString.push_back(str);
+	m_stringToDataIndex.insert(std::pair<std::string,u32> (str, idx));
+	//m_dataAsString.push_back(str);
+	m_dataAsString.insert(std::pair<u32, std::string> (idx, str));
       }
     return idx;
   } //getIndexForDataString
@@ -46,7 +53,11 @@ namespace MFM {
   const std::string & StringPool::getDataAsString(u32 dataindex)
   {
     assert(m_dataAsString.size() > dataindex && dataindex > 0);
-    return m_dataAsString[dataindex];
+    //return m_dataAsString[dataindex];
+    std::map<u32,std::string>::iterator it = m_dataAsString.find(dataindex);
+
+    assert(it != m_dataAsString.end());
+    return it->second;
   }
 
 

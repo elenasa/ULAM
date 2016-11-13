@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
- * StringPool.h -  Basic String Pool management for ULAM
+ * StringPoolUser.h -  Basic String Pool management for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2016 The Regents of the University of New Mexico.
+ * Copyright (C) 2016 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -26,51 +26,39 @@
  */
 
 /**
-  \file StringPool.h -  Basic String Pool management for ULAM
+  \file StringPoolUser.h -  Basic String Pool management for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2016 All rights reserved.
   \gpl
 */
 
 
-#ifndef STRINGPOOL_H
-#define STRINGPOOL_H
+#ifndef STRINGPOOLUSER_H
+#define STRINGPOOLUSER_H
 
-#include <stdio.h>
-#include <string>
-#include <string.h>
-#include <map>
-#include "itype.h"
-
+#include "StringPool.h"
 
 namespace MFM
 {
 
-  class StringPool
+  class StringPoolUser : public StringPool
   {
   public:
 
-    StringPool();
+    StringPoolUser();
 
-    StringPool(std::string str); //for StringPoolUser's default constructor
+    ~StringPoolUser();
 
-    ~StringPool();
-
-    virtual u32 getIndexForDataString(std::string str);    //< makes a new entry in map, vector if nonexistent
-
-    u32 getIndexForNumberAsString(u32 num);
+    virtual u32 getIndexForDataString(std::string str);    //< makes a new entry in maps if nonexistent
 
     virtual const std::string & getDataAsString(u32 dataindex);
 
-  protected:
-
-    //std::vector<std::string> m_dataAsString;
-    std::map<u32, std::string> m_dataAsString; //<string indexed by dataindex (may be sequential or not)
-    std::map<std::string,u32> m_stringToDataIndex; //< value indexes into m_dataAsString; avoid duplicates
   private:
+
+    u32 m_runningIndex;
 
   };
 }
 
-#endif  /* STRINGPOOL_H */
+#endif  /* STRINGPOOLUSER_H */

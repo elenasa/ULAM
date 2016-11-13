@@ -58,6 +58,7 @@
 #include "NodeTypeBitsize.h"
 #include "NodeSquareBracket.h"
 #include "StringPool.h"
+#include "StringPoolUser.h"
 #include "SymbolClass.h"
 #include "SymbolClassName.h"
 #include "SymbolClassNameTemplate.h"
@@ -97,6 +98,8 @@ namespace MFM{
     // tokenizer ptr replace by StringPool, service for deferencing strings
     // e.g., Token identifiers that are variables, path names read by SS, etc.)
     StringPool m_pool;
+
+    StringPoolUser m_upool; //for double quoted strings only
 
     // map key is the prefix id in the Locator; value is a vector of
     // stringpool id's indexed by line into the original ulam source

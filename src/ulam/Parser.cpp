@@ -5457,12 +5457,19 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
     AssertBool isLocalsFileScope = (m_state.makeUlamType(lkey, LocalsFileScope, UC_NOTACLASS) == LocalsFileScope);
     assert(isLocalsFileScope);
 
-    //a Ptr for absolute indexing (i.e. reference class params) in eval; comes after Holder. (ALT_PTR not really used)
+    //String, index into UserStringPool
+    UlamKeyTypeSignature strkey(m_state.m_pool.getIndexForDataString("String"), ULAMTYPE_DEFAULTBITSIZE[String]);
+    AssertBool isString = (m_state.makeUlamType(strkey, String, UC_NOTACLASS) == String);
+    assert(isString);
+
+    /*----end of UlamType.inc here----------------*/
+
+    //a Ptr for absolute indexing (i.e. reference class params) in eval; first after end of UlamType.inc. (ALT_PTR not really used; update PtrAbs in Constants.h)
     UlamKeyTypeSignature apkey(m_state.m_pool.getIndexForDataString("0Ptr"), ULAMTYPE_DEFAULTBITSIZE[Ptr], NONARRAYSIZE, ALT_PTR);
     AssertBool isPtrAbs = (m_state.makeUlamType(apkey, Ptr, UC_NOTACLASS) == PtrAbs);
     assert(isPtrAbs);
 
-    //a Ref for .atomof; comes after PtrAbs.
+    //a Ref for .atomof; comes after PtrAbs; update UAtomRef in Constants.h
     UlamKeyTypeSignature arefkey(m_state.m_pool.getIndexForDataString("Atom"), ULAMTYPE_DEFAULTBITSIZE[UAtom], NONARRAYSIZE, ALT_REF);
     AssertBool isAtomRef = (m_state.makeUlamType(arefkey, UAtom, UC_NOTACLASS) == UAtomRef);
     assert(isAtomRef);

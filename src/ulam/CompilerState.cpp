@@ -20,6 +20,7 @@
 #include "UlamTypePrimitiveBits.h"
 #include "UlamTypePrimitiveBool.h"
 #include "UlamTypePrimitiveInt.h"
+#include "UlamTypePrimitiveString.h"
 #include "UlamTypePrimitiveUnary.h"
 #include "UlamTypePrimitiveUnsigned.h"
 #include "UlamTypePrimitiveVoid.h"
@@ -571,6 +572,9 @@ namespace MFM {
 	break;
       case LocalsFileScope:
 	ut = new UlamTypeInternalLocalsFileScope(key, *this);
+	break;
+      case String:
+	ut = new UlamTypePrimitiveString(key, *this);
 	break;
       default:
 	{

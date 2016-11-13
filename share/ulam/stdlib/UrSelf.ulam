@@ -7,6 +7,7 @@ ulam 2;
  */
 quark UrSelf
 {
+  typedef Unsigned(8) ASCII;
   typedef Unsigned(8) ARGB[4];
 
   /* ordering of these virtual functions tied to enum in UlamElement.h;
