@@ -355,6 +355,9 @@ namespace MFM {
     return bok;
   } //checkShiftEqualToken
 
+#if 0
+  //redo using nextByte; don't include open/close double quotes;
+  //prepend length and append null byte before inserting in StringPoolUser
   u32 Lexer::makeDoubleQuoteToken(std::string& astring, Token & tok)
   {
     Locator firstloc = m_SS.getLocator();
@@ -386,7 +389,64 @@ namespace MFM {
     tok.init(TOK_DQUOTED_STRING,firstloc,idx);
     return 0;
   } //makeDoubleQuoteToken
+#endif
 
+  //redo using nextByte; don't include open/close double quotes;
+  //prepend length and append null byte before inserting in StringPoolUser
+  u32 Lexer::makeDoubleQuoteToken(std::string& astring, Token & tok)
+  {
+    Locator firstloc = m_SS.getLocator();
+    s32 c;
+
+    c = m_SS.read();
+    assert(c == '"'); //open quote
+
+    //keep reading until end of quote or (EOF or error)
+    //return last byte after comment
+    //bypass a blackslash and nextcharacter
+    while((c = m_SS.read()) >= 0)
+      {
+	if(c == '"') //close quote, not included
+	  break;
+	else
+	  {
+	    unread();
+	    u8 abyte;
+	    u32 cu = nextByte(abyte);
+	    if(cu == 0)
+	      astring.push_back(abyte);
+	    else //error
+	      return cu;
+	  }
+      } //end while
+
+    if(c < 0)
+      {
+	if( c == -1) unread();
+	std::ostringstream errmsg;
+	errmsg << "Lexer could not complete double quoted string <" << astring << ">";
+	return m_state.m_pool.getIndexForDataString(errmsg.str());
+      }
+
+    //format user string; length must be less than 256
+    u32 slen = astring.length();
+    if(slen >= 256)
+      {
+	std::ostringstream errmsg;
+	errmsg << "Lexer could not complete double quoted string <" << astring << ">; Must be less than 256 length";
+	return m_state.m_pool.getIndexForDataString(errmsg.str());
+      }
+
+    std::ostringstream newstr;
+    if(slen == 0)
+      newstr << 0;
+    else
+      newstr << slen << astring << 0; //slen doesn't include itself or terminaing byte; see StringPoolUser.
+
+    u32 idx = m_state.m_upool.getIndexForDataString(newstr.str());
+    tok.init(TOK_DQUOTED_STRING,firstloc,idx);
+    return 0;
+  } //makeDoubleQuoteToken
 
   u32 Lexer::makeSingleQuoteToken(std::string& astring, Token & tok)
   {
@@ -405,87 +465,16 @@ namespace MFM {
 	    errmsg << "Lexer prevents empty single quoted constant";
 	    return m_state.m_pool.getIndexForDataString(errmsg.str());
 	  }
-
-	if(c == '\\')
-	  {
-	    s32 d = m_SS.read();
-	    switch((char) d)
-	      {
-	      case 'a':
-		astring.push_back('\a'); //bell/alert 7
-		break;
-	      case 'b':
-		astring.push_back('\b'); //backspace 8
-		break;
-	      case 't':
-		astring.push_back('\t'); //horizontal tab 9
-		break;
-	      case 'n':
-		astring.push_back('\n'); //newline 10
-		break;
-	      case 'v':
-		astring.push_back('\v'); //vertical tab 11
-		break;
-	      case 'f':
-		astring.push_back('\f'); //formfeed 12
-		break;
-	      case 'r':
-		astring.push_back('\r'); //carriage return 13
-		break;
-	      case '"':
-		astring.push_back('\"'); //double quote 34
-		break;
-	      case '\'':
-		astring.push_back('\''); //single quote 39
-		break;
-	      case '?':
-		astring.push_back('\?'); //questionmark 63
-		break;
-	      case '\\':
-		astring.push_back('\\'); //backslash escape 92
-		break;
-	      case '0':
-	      case '1':
-	      case '2':
-	      case '3':
-	      case '4':
-	      case '5':
-	      case '6':
-	      case '7':
-		{
-		  unread();
-		  u8 ooo;
-		  u32 crtn = formatOctalConstant(ooo);
-		  if(crtn == 0)
-		    astring.push_back(ooo); //octal number
-		  else
-		    return crtn; //error
-		}
-		break;
-	      case 'x':
-	      case 'X':
-		{
-		  u8 hh;
-		  u32 crtn = formatHexConstant(hh);
-		  if(crtn == 0)
-		    astring.push_back(hh);
-		  else
-		    return crtn; //error
-		}
-		break;
-	      default:
-		astring.push_back(d - '\0'); //save it
-	      };
-	  }
 	else
-	  astring.push_back(c - '\0'); //as a number
-      }
-    else //c < 0
-      {
-	if( c == -1) unread();
-	std::ostringstream errmsg;
-	errmsg << "Lexer could not complete single quoted string";
-	return m_state.m_pool.getIndexForDataString(errmsg.str());
+	  {
+	    unread();
+	    u8 abyte;
+	    u32 cu = nextByte(abyte);
+	    if(cu == 0)
+	      astring.push_back(abyte);
+	    else //error
+	      return cu;
+	  }
       }
 
     //next byte must be a tic
@@ -501,6 +490,98 @@ namespace MFM {
     tok.init(TOK_SQUOTED_STRING,firstloc,idx);
     return 0;
   } //makeSingleQuoteToken
+
+  u32 Lexer::nextByte(u8& abyte)
+  {
+    s32 c ;
+
+    //get next byte; save as its ascii numeric value
+    //bypass a blackslash for nextcharacter
+    if((c = m_SS.read()) >= 0)
+      {
+	if(c == '\\')
+	  {
+	    s32 d = m_SS.read();
+	    switch((char) d)
+	      {
+	      case 'a':
+		abyte = '\a'; //bell/alert 7
+		break;
+	      case 'b':
+		abyte = '\b'; //backspace 8
+		break;
+	      case 't':
+		abyte = '\t'; //horizontal tab 9
+		break;
+	      case 'n':
+		abyte = '\n'; //newline 10
+		break;
+	      case 'v':
+		abyte = '\v'; //vertical tab 11
+		break;
+	      case 'f':
+		abyte = '\f'; //formfeed 12
+		break;
+	      case 'r':
+		abyte = '\r'; //carriage return 13
+		break;
+	      case '"':
+		abyte = '\"'; //double quote 34
+		break;
+	      case '\'':
+		abyte = '\''; //single quote 39
+		break;
+	      case '?':
+		abyte = '\?'; //questionmark 63
+		break;
+	      case '\\':
+		abyte = '\\'; //backslash escape 92
+		break;
+	      case '0':
+	      case '1':
+	      case '2':
+	      case '3':
+	      case '4':
+	      case '5':
+	      case '6':
+	      case '7':
+		{
+		  unread();
+		  u8 ooo;
+		  u32 crtn = formatOctalConstant(ooo);
+		  if(crtn == 0)
+		    abyte = ooo; //octal number
+		  else
+		    return crtn; //error
+		}
+		break;
+	      case 'x':
+	      case 'X':
+		{
+		  u8 hh;
+		  u32 crtn = formatHexConstant(hh);
+		  if(crtn == 0)
+		    abyte = hh;
+		  else
+		    return crtn; //error
+		}
+		break;
+	      default:
+		abyte = (d - '\0'); //save it
+	      };
+	  }
+	else
+	  abyte = (c - '\0'); //as a number
+      }
+    else //c < 0
+      {
+	if( c == -1) unread();
+	std::ostringstream errmsg;
+	errmsg << "Lexer could not complete next byte in quoted string";
+	return m_state.m_pool.getIndexForDataString(errmsg.str());
+      }
+    return 0;
+  } //nextByte
 
   u32 Lexer::formatOctalConstant(u8& rtn)
   {

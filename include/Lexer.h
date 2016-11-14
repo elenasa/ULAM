@@ -79,6 +79,7 @@ namespace MFM{
 
     u32 makeDoubleQuoteToken(std::string& astring, Token & tok);
     u32 makeSingleQuoteToken(std::string& astring, Token & tok);
+    u32 nextByte(u8& abyte);
     u32 formatOctalConstant(u8& rtn);
     u32 formatHexConstant(u8& rtn);
 

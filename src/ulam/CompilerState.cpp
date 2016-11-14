@@ -2632,9 +2632,10 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   const std::string CompilerState::getTokenDataAsString(const Token & tok)
   {
-    //assert(tok);
     if(tok.m_dataindex > 0)
       {
+	if(tok.m_type == TOK_DQUOTED_STRING)
+	  return m_upool.getDataAsString(tok.m_dataindex);
 	return m_pool.getDataAsString(tok.m_dataindex);
       }
     //return std::string(tok->getTokenString()); //VG: Invalid Read

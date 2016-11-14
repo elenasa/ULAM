@@ -20,24 +20,16 @@ namespace MFM {
       }
     else
       {
-	u32 slen = str.length();
-	assert(slen < 256); //or return 0?
+	u32 slen = str[0]; //len in first byte set by lexer
 	idx = m_runningIndex;
 
-	std::ostringstream newstr;
 	if(slen == 0)
-	  {
-	    m_runningIndex += 1; //null string, len only
-	    newstr << 0; //for null string
-	  }
+	  m_runningIndex += 1; //null string, len only
 	else
-	  {
-	    m_runningIndex += (slen + 2); //add byte for len at start; end with null byte;
-	    newstr << slen << str << 0; //for new string
-	  }
+	  m_runningIndex += slen + 2; //add byte for len at start; end with null byte;
 
-	m_stringToDataIndex.insert(std::pair<std::string,u32> (newstr.str(), idx));
-	m_dataAsString.insert(std::pair<u32, std::string> (idx, newstr.str()));
+	m_stringToDataIndex.insert(std::pair<std::string,u32> (str, idx));
+	m_dataAsString.insert(std::pair<u32, std::string> (idx, str));
       }
     return idx;
   } //getIndexForDataString
@@ -46,7 +38,7 @@ namespace MFM {
   {
     std::map<u32,std::string>::iterator it = m_dataAsString.find(dataindex);
     assert(it != m_dataAsString.end());
-    return it->second;
+    return it->second; //includes length at beginning..
   }
 
 
