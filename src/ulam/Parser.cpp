@@ -2466,14 +2466,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    if(args.m_typeTok.m_type != TOK_KW_TYPE_VOID)
-	      {
-		rtnNode = new NodeTypeBitsize(bitsizeNode, m_state);
-		assert(rtnNode);
-		rtnNode->setNodeLocation(args.m_typeTok.m_locator);
-		args.m_bitsize = UNKNOWNSIZE; //no eval yet
-	      }
-	    else
+	    if(args.m_typeTok.m_type == TOK_KW_TYPE_VOID)
 	      {
 		std::ostringstream msg;
 		msg << "Void bitsize expression disregarded; size is zero";
@@ -2482,6 +2475,23 @@ namespace MFM {
 		args.m_bitsize = 0;
 		delete bitsizeNode;
 		bitsizeNode = NULL;
+	      }
+	    else if(args.m_typeTok.m_type == TOK_KW_TYPE_STRING)
+	      {
+		std::ostringstream msg;
+		msg << "String bitsize expression disregarded; size is " << MAXBITSPERINT;
+		MSG(&bTok, msg.str().c_str(), WARN);
+
+		args.m_bitsize = MAXBITSPERINT;
+		delete bitsizeNode;
+		bitsizeNode = NULL;
+	      }
+	    else
+	      {
+		rtnNode = new NodeTypeBitsize(bitsizeNode, m_state);
+		assert(rtnNode);
+		rtnNode->setNodeLocation(args.m_typeTok.m_locator);
+		args.m_bitsize = UNKNOWNSIZE; //no eval yet
 	      }
 	  }
 
@@ -3183,6 +3193,7 @@ namespace MFM {
       case TOK_KW_TRUE:
       case TOK_KW_FALSE:
       case TOK_SQUOTED_STRING:
+      case TOK_DQUOTED_STRING:
 	rtnNode = new NodeTerminal(pTok, m_state);
 	assert(rtnNode);
 	break;

@@ -127,6 +127,10 @@ namespace MFM {
 #define BITSPERBOOL (1)
 #endif //BITSPERBOOL
 
+#ifndef MAXBITSPERSTRING
+#define MAXBITSPERSTRING (255)
+#endif //MAXBITSPERSTRING
+
 #ifndef UNKNOWNSIZE
 #define UNKNOWNSIZE (-2)
 #endif //UNKNOWNSIZE

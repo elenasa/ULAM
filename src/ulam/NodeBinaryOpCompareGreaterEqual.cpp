@@ -54,6 +54,9 @@ namespace MFM {
       case Unary:
 	rtnUV = UlamValue::makeImmediate(nuti, _BinOpCompareGreaterEqualUnary32(ldata, rdata, len), nodelen);
 	break;
+      case String:
+	m_state.abortNotImplementedYet(); //not implemented yet!
+	break;
       case Bits:
       default:
 	m_state.abortUndefinedUlamPrimitiveType();
@@ -82,6 +85,9 @@ namespace MFM {
 	break;
       case Unary:
 	rtnUV = UlamValue::makeImmediateLong(nuti, _BinOpCompareGreaterEqualUnary64(ldata, rdata, len), nodelen);
+	break;
+      case String:
+	m_state.abortNotImplementedYet(); //not implemented yet!
 	break;
       case Bits:
       default:

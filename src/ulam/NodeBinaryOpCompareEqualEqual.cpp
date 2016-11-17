@@ -71,6 +71,17 @@ namespace MFM {
 	return newType; //done
       }
 
+    //if both are String, no casting
+    if(ltypEnum == String && rtypEnum == String)
+      {
+	if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
+	  {
+	    newType = String;
+	    checkSafeToCastTo(getNodeType(), newType); //Nav, Hzy or no change; outputs error msg
+	  }
+	return newType; //done
+      }
+
     //o.w. revert to ordered comparison rules
     return NodeBinaryOpCompare::calcNodeType(lt,rt);
   } //calcNodeType
@@ -98,6 +109,9 @@ namespace MFM {
 	break;
       case Bits:
 	rtnUV = UlamValue::makeImmediate(nuti, _BinOpCompareEqEqBits32(ldata, rdata, len), nodelen);
+	break;
+      case String:
+	rtnUV = UlamValue::makeImmediate(nuti, _BinOpCompareEqEqString32(ldata, rdata, len), nodelen);
 	break;
       default:
 	m_state.abortUndefinedUlamPrimitiveType();
@@ -129,6 +143,9 @@ namespace MFM {
 	break;
       case Bits:
 	rtnUV = UlamValue::makeImmediateLong(nuti, _BinOpCompareEqEqBits64(ldata, rdata, len), nodelen);
+	break;
+      case String:
+	rtnUV = UlamValue::makeImmediateLong(nuti, _BinOpCompareEqEqString64(ldata, rdata, len), nodelen);
 	break;
       default:
 	m_state.abortUndefinedUlamPrimitiveType();

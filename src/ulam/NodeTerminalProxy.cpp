@@ -216,12 +216,30 @@ namespace MFM {
       evs = NOTREADY;
     else
       {
-	UlamValue rtnUV;
-	evs = NodeTerminal::makeTerminalValue(rtnUV);
+	if(m_nodeOf && m_nodeOf->getNodeType() == String)
+	  {
+	    evalNodeProlog(0); //new current frame pointer
+	    makeRoomForSlots(1); //upool index is a constant expression
+	    EvalStatus evs = m_nodeOf->eval();
+	    if(evs == NORMAL)
+	      {
+		UlamValue stringUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
+		u32 ustringidx = stringUV.getImmediateData(m_state);
+		m_constant.uval = m_state.m_upool.getStringLength(ustringidx); //reset here!!
+	      }
+	    //else
+	    evalNodeEpilog();
+	  }
 
-	//copy result UV to stack, -1 relative to current frame pointer
 	if(evs == NORMAL)
-	  Node::assignReturnValueToStack(rtnUV);
+	  {
+	    UlamValue rtnUV;
+	    evs = NodeTerminal::makeTerminalValue(rtnUV);
+
+	    //copy result UV to stack, -1 relative to current frame pointer
+	    if(evs == NORMAL)
+	      Node::assignReturnValueToStack(rtnUV);
+	  }
       }
     evalNodeEpilog();
     return evs;
@@ -247,6 +265,7 @@ namespace MFM {
       {
       case TOK_KW_SIZEOF:
 	{
+	  //User String length must wait until after c&l (t3929)
 	  //consistent with C; (not array size if non-scalar)
 	  m_constant.uval =  cut->getSizeofUlamType(); //unsigned
 	  rtnB = true;

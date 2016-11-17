@@ -191,17 +191,13 @@ namespace MFM {
 
     bool brtn = true;
     UlamType * vut = m_state.getUlamTypeByIndex(typidx);
-    s32 valbitsize = vut->getBitSize();
-    s32 bitsize = getBitSize();
     ULAMTYPE valtypEnum = vut->getUlamTypeEnum();
     switch(valtypEnum)
       {
+      case String:
+	break;
       case Unsigned:
-	brtn = (bitsize >= valbitsize);
-	break;
       case Unary:
-	brtn = (bitsize >= (s32) _getLogBase2(valbitsize) + 1);
-	break;
       case Int:
       case Bool:
       case Bits:
@@ -221,17 +217,14 @@ namespace MFM {
   void UlamTypePrimitiveString::getDataAsString(const u32 data, char * valstr, char prefix)
   {
     if(prefix == 'z')
-      sprintf(valstr,"%u", data);
+      sprintf(valstr,"%s", m_state.m_upool.getDataAsFormattedString(data, &m_state).c_str());
     else
-      sprintf(valstr,"%c%u", prefix, data);
+      sprintf(valstr,"%c%s", prefix, m_state.m_upool.getDataAsFormattedString(data, &m_state).c_str());
   }
 
   void UlamTypePrimitiveString::getDataLongAsString(const u64 data, char * valstr, char prefix)
   {
-    if(prefix == 'z')
-      sprintf(valstr,"%s", ToUnsignedDecimal(data).c_str());
-    else
-      sprintf(valstr,"%c%s", prefix, ToUnsignedDecimal(data).c_str());
+    return getDataAsString((u32) data, valstr, prefix);
   }
 
   s32 UlamTypePrimitiveString::getDataAsCs32(const u32 data)

@@ -146,7 +146,7 @@ namespace MFM {
 	PACKFIT packFit = m_state.determinePackable(vuti);
 	assert(WritePacked(packFit)); //has to be to fit in an atom/site;
 
-	char * valstr = new char[size * 8 + MAXBITSPERLONG]; //was 32
+	char * valstr = new char[size * 8 + MAXBITSPERSTRING + 2 + 1]; //was 64
 
 	if(size > 0)
 	  {
@@ -173,7 +173,7 @@ namespace MFM {
 
 		for(s32 i = 1; i < size; i++)
 		  {
-		    char tmpstr[8];
+		    char tmpstr[MAXBITSPERSTRING + 2 + 1]; //was 8
 		    AssertBool isNext = nextPtr.incrementPtr(m_state);
 		    assert(isNext);
 		    atval = m_state.getPtrTarget(nextPtr);
@@ -193,7 +193,7 @@ namespace MFM {
 
 		for(s32 i = 1; i < size; i++)
 		  {
-		    char tmpstr[8];
+		    char tmpstr[MAXBITSPERSTRING + 2 + 1]; //was 8
 		    AssertBool isNext = nextPtr.incrementPtr(m_state);
 		    assert(isNext);
 		    atval = m_state.getPtrTarget(nextPtr);

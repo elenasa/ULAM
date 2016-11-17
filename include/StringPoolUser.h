@@ -41,6 +41,7 @@
 
 namespace MFM
 {
+  class CompilerState; //forward
 
   class StringPoolUser : public StringPool
   {
@@ -50,13 +51,27 @@ namespace MFM
 
     ~StringPoolUser();
 
-    virtual u32 getIndexForDataString(std::string str);    //< makes a new entry in maps if nonexistent
+    //format of input string: 1 byte for len, 1 null terminating byte,
+    //8-bit clean data (that is, escaped characters use one stored
+    //byte; backslash added back upon printing).
+    virtual u32 getIndexForDataString(std::string str); //< makes a new entry in maps if nonexistent
+
+    virtual u32 getIndexForNumberAsString(u32 num);
+
+    //converts user string pool index to (formatted) compiler string pool index
+    u32 getIndexForDataAsFormattedString(u32 dataindex, CompilerState * state);
 
     virtual const std::string & getDataAsString(u32 dataindex);
+
+    const std::string & getDataAsFormattedString(u32 dataindex, CompilerState * state);
+
+    u32 getStringLength(u32 dataindex);
 
   private:
 
     u32 m_runningIndex;
+
+    u32 formatDoubleQuotedString(const std::string& str, CompilerState * state);
 
   };
 }

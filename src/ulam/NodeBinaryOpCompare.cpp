@@ -120,6 +120,9 @@ namespace MFM {
       case Bool:
 	methodname << "Bool";
 	break;
+      case String:
+	methodname << "String";
+	break;
       default:
 	m_state.abortUndefinedUlamPrimitiveType();
 	methodname << "NAV";

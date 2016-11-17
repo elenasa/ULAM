@@ -355,51 +355,14 @@ namespace MFM {
     return bok;
   } //checkShiftEqualToken
 
-#if 0
   //redo using nextByte; don't include open/close double quotes;
-  //prepend length and append null byte before inserting in StringPoolUser
-  u32 Lexer::makeDoubleQuoteToken(std::string& astring, Token & tok)
-  {
-    Locator firstloc = m_SS.getLocator();
-    s32 c;
-    //keep reading until end of quote or (EOF or error)
-    //return last byte after comment
-    //bypass a blackslash and nextcharacter
-    while((c = m_SS.read()) >= 0)
-      {
-	astring.push_back(c);
-	if( c == '"')
-	  break;
-	else if(c == '\\')
-	  {
-	    s32 d = m_SS.read();
-	    astring.push_back(d);
-	  }
-      } //end while
-
-    if(c < 0)
-      {
-	if( c == -1) unread();
-	std::ostringstream errmsg;
-	errmsg << "Lexer could not complete double quoted string <" << astring << ">";
-	return m_state.m_pool.getIndexForDataString(errmsg.str());
-      }
-
-    u32 idx = m_state.m_pool.getIndexForDataString(astring);
-    tok.init(TOK_DQUOTED_STRING,firstloc,idx);
-    return 0;
-  } //makeDoubleQuoteToken
-#endif
-
-  //redo using nextByte; don't include open/close double quotes;
-  //prepend length and append null byte before inserting in StringPoolUser
+  //prepend length, append null byte before inserting in StringPoolUser
   u32 Lexer::makeDoubleQuoteToken(std::string& astring, Token & tok)
   {
     Locator firstloc = m_SS.getLocator();
     s32 c;
 
-    c = m_SS.read();
-    assert(c == '"'); //open quote
+    astring = ""; //clear open quote
 
     //keep reading until end of quote or (EOF or error)
     //return last byte after comment

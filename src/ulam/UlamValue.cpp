@@ -72,7 +72,8 @@ namespace MFM {
     s32 len = state.getTotalBitSize(utype); //possible packed array (e.g. default qks)
     assert(len != UNKNOWNSIZE);
     UlamType * ut = state.getUlamTypeByIndex(utype);
-    if(ut->getUlamTypeEnum() == Class)
+    ULAMTYPE etyp = ut->getUlamTypeEnum();
+    if(etyp == Class)
       {
 	return UlamValue::makeImmediateClass(utype, v, len); //left-justified
       }

@@ -574,6 +574,8 @@ namespace MFM {
       case Bits:
 	newconst = _Unsigned32ToBits32((u32) val, srcbitsize, nbitsize);
 	break;
+      case String:
+	break;
       default:
 	rtnb = false;
       };
@@ -606,6 +608,8 @@ namespace MFM {
 	break;
       case Bits:
 	newconst = _Unsigned64ToBits64(val, srcbitsize, nbitsize);
+	break;
+      case String:
 	break;
       default:
 	  rtnb = false;

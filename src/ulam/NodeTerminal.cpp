@@ -95,6 +95,9 @@ namespace MFM {
 	else
 	  num << ToUnsignedDecimal(m_constant.uval);
 	break;
+      case String:
+	num << m_state.m_upool.getDataAsFormattedString(m_constant.uval, &m_state);
+	break;
       default:
 	{
 	  std::ostringstream msg;
@@ -277,6 +280,9 @@ namespace MFM {
       case Class:
 	rtnUV = UlamValue::makeImmediate(uti, data, m_state);
 	break;
+      case String:
+	rtnUV = UlamValue::makeImmediate(uti, data, m_state);
+	break;
       default:
 	{
 	  std::ostringstream msg;
@@ -314,6 +320,7 @@ namespace MFM {
       case Class:
 	rtnUV = UlamValue::makeImmediateLongClass(uti, data, ut->getTotalBitSize());
 	break;
+      case String:
       default:
 	{
 	  std::ostringstream msg;
@@ -448,6 +455,9 @@ namespace MFM {
 	  rtnc = _BinOpCompareEqEqBool32(jdata, cdata, nbitsize);
 	}
 	break;
+      case String:
+	rtnc = 1; //true since 32-bit index
+	break;
       default:
 	{
 	  std::ostringstream msg;
@@ -509,6 +519,9 @@ namespace MFM {
 	  u64 cdata = convertForthAndBackLong(jdata, fituti);
 	  rtnc = _BinOpCompareEqEqBool64(jdata, cdata, nbitsize);
 	}
+	break;
+      case String:
+	rtnc = 1; //true since 32-bit index
 	break;
       default:
 	{
@@ -720,6 +733,12 @@ namespace MFM {
 	  rtnok = true;
 	}
 	break;
+      case TOK_DQUOTED_STRING:
+	{
+	  m_constant.uval = tok.m_dataindex;
+	  rtnok = true;
+	}
+	break;
       default:
 	{
 	    std::ostringstream msg;
@@ -756,6 +775,10 @@ namespace MFM {
 	  newType = m_state.makeUlamType(key, Unsigned, UC_NOTACLASS);
 	}
 	m_etyp = Unsigned;
+	break;
+      case TOK_DQUOTED_STRING:
+	newType = String;
+	m_etyp = String;
 	break;
       default:
 	{
