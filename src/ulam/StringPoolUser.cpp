@@ -77,6 +77,50 @@ namespace MFM {
     return strref[0] - '0';
   }
 
+  void StringPoolUser::generateUserStringPoolEntries(File * fp, CompilerState * state)
+  {
+    assert(state);
+
+    //note: not using C++ String because that uses malloc;
+    // double quoted strings next to each other get merged
+    state->indent(fp);
+    fp->write("const u8 ");
+    fp->write(state->getMangledNameForUserStringPool());
+    fp->write("[] = "); GCNL;
+
+    state->m_currentIndentLevel++;
+
+    //state->indent(fp);
+    //uninitialized zeroth entry
+    //writeOpenCloseDblQuote(fp);
+    //writeNullByte(fp);
+    //writeOpenCloseDblQuote(fp);
+
+    std::map<u32,std::string>::iterator it = m_dataAsString.begin(); //ascending order by default
+    while(it != m_dataAsString.end())
+      {
+	state->indent(fp);
+
+	writeDoubleQuotedString(fp, it->second);
+	fp->write("\n");
+	it++;
+      }
+    fp->write(";"); GCNL;
+
+    state->m_currentIndentLevel--;
+
+    fp->write("\n");
+
+    state->indent(fp);
+    fp->write("#define ");
+    fp->write(state->getDefineNameForUserStringPoolCount());
+    fp->write(" ");
+    fp->write_decimal(m_dataAsString.size() - 1); GCNL;
+    fp->write("\n");
+
+    return;
+  } //generateUserStringPoolEntries
+
   u32 StringPoolUser::formatDoubleQuotedString(const std::string& str, CompilerState * state)
   {
     if(str.length() == 0)
@@ -98,6 +142,78 @@ namespace MFM {
     newstr << "\""; //close quote (no escape)
     assert(state);
     return state->m_pool.getIndexForDataString(newstr.str());
+  }
+
+  void StringPoolUser::writeDoubleQuotedString(File * fp, const std::string& str)
+  {
+    if(str.length() == 0)
+      {
+	writeOpenCloseDblQuote(fp);
+	writeNullByte(fp);
+	writeOpenCloseDblQuote(fp);
+	return;
+      }
+
+    u32 slen = str[0] - '0';
+
+    if(slen == 0)
+      {
+	writeOpenCloseDblQuote(fp);
+	writeNullByte(fp);
+	writeOpenCloseDblQuote(fp);
+	return;
+      }
+
+    writeOpenCloseDblQuote(fp);
+    writeDblQuotedChar(fp, slen);
+    for(u32 i = 1; i <= slen; i++)
+      {
+	u8 c = str[i];
+	writeDblQuotedChar(fp, c);
+      }
+    writeNullByte(fp);
+    writeOpenCloseDblQuote(fp);
+  }
+
+  void StringPoolUser::writeDblQuotedChar(File * fp, u8 c)
+  {
+    if(c == '"' || c == '\\')
+      {
+	char tmp[8*2+1];
+	sprintf(tmp,"\\%c",c);
+	fp->write(tmp);
+      }
+    else
+      writeEscaped(fp, c);
+  }
+
+  void StringPoolUser::writeRawChar(File * fp, u8 c)
+  {
+    char tmp[8+1];
+    sprintf(tmp, "%c", c);
+    fp->write(tmp);
+  }
+
+  void StringPoolUser::writeEscaped(File * fp, u8 c)
+  {
+    if(!isgraph(c))
+      {
+	char tmp[8*3+1];
+	sprintf(tmp,"\\%03o",c);
+	fp->write(tmp);
+      }
+    else
+      writeRawChar(fp, c);
+  }
+
+  void StringPoolUser::writeOpenCloseDblQuote(File * fp)
+  {
+    fp->write("\""); //no printed escape
+  }
+
+  void StringPoolUser::writeNullByte(File * fp)
+  {
+    writeEscaped(fp, '\0');
   }
 
 } //MFM

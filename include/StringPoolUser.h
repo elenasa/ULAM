@@ -38,6 +38,7 @@
 #define STRINGPOOLUSER_H
 
 #include "StringPool.h"
+#include "File.h"
 
 namespace MFM
 {
@@ -67,12 +68,20 @@ namespace MFM
 
     u32 getStringLength(u32 dataindex);
 
+    void generateUserStringPoolEntries(File * fp, CompilerState * state);
+
   private:
 
     u32 m_runningIndex;
 
     u32 formatDoubleQuotedString(const std::string& str, CompilerState * state);
 
+    void writeDoubleQuotedString(File * fp, const std::string& str);
+    void writeDblQuotedChar(File * fp, u8 c);
+    void writeRawChar(File * fp, u8 c);
+    void writeEscaped(File * fp, u8 c);
+    void writeOpenCloseDblQuote(File * fp);
+    void writeNullByte(File * fp);
   };
 }
 

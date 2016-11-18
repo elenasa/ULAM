@@ -75,6 +75,9 @@ namespace MFM {
   static const char * ULAMLOCALFILESCOPES_CLASSNAME = "UlamLocalFilescopes";
   static const char * ULAMLOCALFILESCOPES_MANGLED_CLASSNAME = "Ul_10109219UlamLocalFilescopes10";
 
+  static const char * GLOBALUSERSTRINGPOOL_MANGLEDNAME = "Ug_214UserStringPool";
+  static const char * GLOBALUSERSTRINGPOOL_COUNTDEFINENAME = "USERSTRINGCOUNT";
+
   //use of this in the initialization list seems to be okay;
   CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyUTI(Nouti)
   {
@@ -2227,6 +2230,31 @@ namespace MFM {
     return (!goAgain() && (m_err.getErrorCount() + m_err.getWarningCount() == 0));
   } //checkAndLabelPassForLocals
 
+  void CompilerState::generateCodeForGlobalUserStringPool(FileManager * fm)
+  {
+    //generate user string pool include file
+    File * fp = fm->open(getFileNameForUserStringPool(WSUBDIR).c_str(), WRITE);
+    assert(fp);
+
+    indent(fp);
+    fp->write("#ifndef ");
+    fp->write(Node::allCAPS(getMangledNameForUserStringPool()).c_str());
+    fp->write("_H\n");
+
+    indent(fp);
+    fp->write("#define ");
+    fp->write(Node::allCAPS(getMangledNameForUserStringPool()).c_str());
+    fp->write("_H\n\n");
+
+    m_upool.generateUserStringPoolEntries(fp, this);
+
+    fp->write("#endif //");
+    fp->write(Node::allCAPS(getMangledNameForUserStringPool()).c_str());
+    fp->write("_H\n");
+
+    delete fp; //close
+  } //generateCodeForGlobalUserStringPool
+
   void CompilerState::generateCodeForUlamClasses(FileManager * fm)
   {
     m_programDefST.genCodeForTableOfClasses(fm);
@@ -2955,6 +2983,25 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   {
     return ULAMLOCALFILESCOPES_MANGLED_CLASSNAME;
   }
+
+  const char * CompilerState::getMangledNameForUserStringPool()
+  {
+    return GLOBALUSERSTRINGPOOL_MANGLEDNAME;
+  } //getMangledNameForUserStringPool
+
+  const char * CompilerState::getDefineNameForUserStringPoolCount()
+  {
+    return GLOBALUSERSTRINGPOOL_COUNTDEFINENAME;
+  } //getDefineNameForUserStringPoolCount
+
+  std::string CompilerState::getFileNameForUserStringPool(bool wSubDir)
+  {
+    std::ostringstream f;
+    if(wSubDir)
+      f << "include/";
+    f << getMangledNameForUserStringPool() << ".h";
+    return f.str();
+  } //getFileNameForUserStringPool
 
   ULAMCLASSTYPE CompilerState::getUlamClassForThisClass()
   {

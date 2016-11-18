@@ -107,6 +107,7 @@ namespace MFM {
 	perrs = checkAndTypeLabelProgram(errput);
 	if(perrs == 0)
 	  {
+	    m_state.generateCodeForGlobalUserStringPool(outfm);
 	    m_state.generateCodeForUlamClasses(outfm);
 	    perrs = m_state.m_err.getErrorCount();
 	  }

@@ -319,6 +319,7 @@ namespace MFM{
     void updateLineageAndFirstCheckAndLabelPass();
     void updateLineageAndFirstCheckAndLabelPassForLocals();
     bool checkAndLabelPassForLocals();
+    void generateCodeForGlobalUserStringPool(FileManager * fm);
     void generateCodeForUlamClasses(FileManager * fm);
     void generateUlamClassForLocals(FileManager * fm);
 
@@ -360,6 +361,10 @@ namespace MFM{
     std::string getFileNameForThisTypesHeader(bool wSubDir = false);
     std::string getFileNameForThisClassMain(bool wSubDir = false);
     const char * getMangledClassNameForUlamLocalFilescopes();
+
+    const char * getMangledNameForUserStringPool();
+    const char * getDefineNameForUserStringPoolCount();
+    std::string getFileNameForUserStringPool(bool wSubDir = false);
 
     ULAMCLASSTYPE getUlamClassForThisClass();
     UTI getUlamTypeForThisClass();
