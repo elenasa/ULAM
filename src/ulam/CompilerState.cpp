@@ -114,7 +114,7 @@ namespace MFM {
     m_unionRootUTI.clear(); //aliasUTIs
 
     m_unseenClasses.clear();
-  } //clearAllDefinedUlamTypes()
+  } //clearAllDefinedUlamTypes
 
   void CompilerState::clearAllLinesOfText()
   {

@@ -20,7 +20,7 @@ namespace MFM {
       }
     else
       {
-	u32 slen = str[0]; //len in first byte set by lexer
+	u32 slen = str[0] - '0'; //len in first byte set by lexer
 	idx = m_runningIndex;
 
 	if(slen == 0)

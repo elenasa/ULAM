@@ -97,6 +97,7 @@ namespace MFM {
 	break;
       case String:
 	num << m_state.m_upool.getDataAsFormattedString(m_constant.uval, &m_state);
+	//num << " (" << (u32) m_constant.uval << "u)"; //index into global user string pool
 	break;
       default:
 	{
@@ -666,6 +667,11 @@ namespace MFM {
 	  m_state.abortGreaterThanMaxBitsPerLong();
       }
 
+    if(nuti == String)
+      {
+	fp->write_decimal_unsigned(m_constant.uval);
+	fp->write("u; //user string pool index for ");
+      }
     fp->write(getName());
     fp->write(";"); GCNL;
 

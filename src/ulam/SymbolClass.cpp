@@ -821,6 +821,12 @@ void SymbolClass::setContextForPendingArgs(UTI context)
     fp->write("#include \"UlamDefs.h\"");
     fp->write("\n");
 
+    //global user string pool (8-bit clean)
+    m_state.indent(fp);
+    fp->write("#include \"");
+    fp->write(m_state.getMangledNameForUserStringPool());
+    fp->write(".h\"\n");
+
     //using the _Types.h file
     m_state.indent(fp);
     fp->write("#include \"");
