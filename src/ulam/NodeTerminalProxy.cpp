@@ -220,12 +220,15 @@ namespace MFM {
 	  {
 	    evalNodeProlog(0); //new current frame pointer
 	    makeRoomForSlots(1); //upool index is a constant expression
-	    EvalStatus evs = m_nodeOf->eval();
+	    evs = m_nodeOf->eval();
 	    if(evs == NORMAL)
 	      {
 		UlamValue stringUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
 		u32 ustringidx = stringUV.getImmediateData(m_state);
-		m_constant.uval = m_state.m_upool.getStringLength(ustringidx); //reset here!!
+		if((ustringidx == 0) || ((s32) ustringidx > m_state.m_upool.getUserStringPoolCount()))
+		  evs = ERROR;
+		else
+		  m_constant.uval = m_state.m_upool.getStringLength(ustringidx); //reset here!!
 	      }
 	    //else
 	    evalNodeEpilog();
@@ -275,7 +278,7 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
     m_state.indentUlamCode(fp);
-    fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
+    fp->write("FAIL(UNINITIALIZED_VALUE);"); GCNL;
     m_state.m_currentIndentLevel--;
 
     //runtime checks to avoid accessing beyond global string pool
@@ -283,7 +286,7 @@ namespace MFM {
     fp->write("if(");
     fp->write(ofpass.getTmpVarAsString(m_state).c_str());
     fp->write(" > ");
-    fp->write(m_state.getDefineNameForUserStringPoolCount());
+    fp->write(m_state.getDefineNameForUserStringPoolCount()); //one-based
     fp->write(")\n");
 
     m_state.m_currentIndentLevel++;

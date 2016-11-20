@@ -70,6 +70,8 @@ namespace MFM
 
     u8 getByteOf(u32 dataindex, u32 offset);
 
+    s32 getUserStringPoolCount();
+
     void generateUserStringPoolEntries(File * fp, CompilerState * state);
 
   private:

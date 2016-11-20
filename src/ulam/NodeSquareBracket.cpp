@@ -433,6 +433,13 @@ namespace MFM {
     u32 usrStr = 0;
     usrStr = luv.getImmediateData(m_state);
 
+    if((usrStr == 0) || ((s32) usrStr > m_state.m_upool.getUserStringPoolCount()))
+      {
+	//uninitialized or out-of-bounds
+	evalNodeEpilog();
+	return ERROR;
+      }
+
     makeRoomForNodeType(m_nodeRight->getNodeType()); //offset a constant expression
     evs = m_nodeRight->eval();
     if(evs != NORMAL)
@@ -834,7 +841,7 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
     m_state.indentUlamCode(fp);
-    fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
+    fp->write("FAIL(UNINITIALIZED_VALUE);"); GCNL;
     m_state.m_currentIndentLevel--;
 
     //runtime checks to avoid accessing beyond global string pool
@@ -842,7 +849,7 @@ namespace MFM {
     fp->write("if(");
     fp->write(luvpass.getTmpVarAsString(m_state).c_str());
     fp->write(" > ");
-    fp->write(m_state.getDefineNameForUserStringPoolCount());
+    fp->write(m_state.getDefineNameForUserStringPoolCount()); //one-based
     fp->write(")\n");
 
     m_state.m_currentIndentLevel++;

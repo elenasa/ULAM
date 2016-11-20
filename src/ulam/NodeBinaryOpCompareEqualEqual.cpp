@@ -113,7 +113,7 @@ namespace MFM {
 	rtnUV = UlamValue::makeImmediate(nuti, _BinOpCompareEqEqBits32(ldata, rdata, len), nodelen);
 	break;
       case String:
-	rtnUV = UlamValue::makeImmediate(nuti, _BinOpCompareEqEqString32(ldata, rdata, len), nodelen);
+	m_state.abortNotSupported();
 	break;
       default:
 	m_state.abortUndefinedUlamPrimitiveType();
@@ -147,7 +147,7 @@ namespace MFM {
 	rtnUV = UlamValue::makeImmediateLong(nuti, _BinOpCompareEqEqBits64(ldata, rdata, len), nodelen);
 	break;
       case String:
-	rtnUV = UlamValue::makeImmediateLong(nuti, _BinOpCompareEqEqString64(ldata, rdata, len), nodelen);
+	m_state.abortNotSupported();
 	break;
       default:
 	m_state.abortUndefinedUlamPrimitiveType();

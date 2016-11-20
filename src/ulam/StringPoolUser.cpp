@@ -85,6 +85,11 @@ namespace MFM {
     return strref[offset+1]; //skip len
   }
 
+  s32 StringPoolUser::getUserStringPoolCount()
+  {
+    return m_dataAsString.size() - 1;
+  }
+
   void StringPoolUser::generateUserStringPoolEntries(File * fp, CompilerState * state)
   {
     assert(state);
@@ -117,7 +122,7 @@ namespace MFM {
     fp->write("#define ");
     fp->write(state->getDefineNameForUserStringPoolCount());
     fp->write(" ");
-    fp->write_decimal(m_dataAsString.size() - 1); GCNL;
+    fp->write_decimal(getUserStringPoolCount()); GCNL;
     fp->write("\n");
 
     return;
