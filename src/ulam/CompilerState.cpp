@@ -3240,6 +3240,12 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       };
   } //assignValuePtr
 
+  UlamValue CompilerState::getByteOfUserString(u32 usrStr, u32 offsetInt)
+  {
+    u8 c = m_upool.getByteOf(usrStr, offsetInt);
+    return UlamValue::makeImmediate(ASCII, c, *this);
+  }
+
   PACKFIT CompilerState::determinePackable(UTI aut)
   {
     return getUlamTypeByIndex(aut)->getPackable();

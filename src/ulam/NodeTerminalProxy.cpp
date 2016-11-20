@@ -247,6 +247,10 @@ namespace MFM {
 
   void NodeTerminalProxy::genCode(File * fp, UVPass& uvpass)
   {
+    if((m_uti == String) && m_nodeOf)
+      {
+	return genCodeForUserStringLength(fp, uvpass); //t3929
+      }
     return NodeTerminal::genCode(fp, uvpass);
   }
 
@@ -254,6 +258,55 @@ namespace MFM {
   {
     return NodeTerminal::genCodeToStoreInto(fp, uvpass);
   }
+
+  void NodeTerminalProxy::genCodeForUserStringLength(File * fp, UVPass& uvpass)
+  {
+    assert(m_uti == String);
+    assert(m_nodeOf);
+    UTI nuti = getNodeType();
+    UVPass ofpass;
+    m_nodeOf->genCode(fp, ofpass);
+
+    //runtime checks for unitialized string
+    m_state.indentUlamCode(fp);
+    fp->write("if(");
+    fp->write(ofpass.getTmpVarAsString(m_state).c_str());
+    fp->write(" == 0)\n");
+
+    m_state.m_currentIndentLevel++;
+    m_state.indentUlamCode(fp);
+    fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
+    m_state.m_currentIndentLevel--;
+
+    //runtime checks to avoid accessing beyond global string pool
+    m_state.indentUlamCode(fp);
+    fp->write("if(");
+    fp->write(ofpass.getTmpVarAsString(m_state).c_str());
+    fp->write(" > ");
+    fp->write(m_state.getDefineNameForUserStringPoolCount());
+    fp->write(")\n");
+
+    m_state.m_currentIndentLevel++;
+    m_state.indentUlamCode(fp);
+    fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
+    m_state.m_currentIndentLevel--;
+
+    s32 tmpVarNum = m_state.getNextTmpVarNumber();
+    m_state.indentUlamCode(fp);
+    fp->write("const ");
+    fp->write(m_state.getUlamTypeByIndex(nuti)->getTmpStorageTypeAsString().c_str()); //u32
+    fp->write(" ");
+    fp->write(m_state.getTmpVarAsString(ASCII, tmpVarNum, TMPREGISTER).c_str());
+    fp->write(" = (u32) ");
+    fp->write(m_state.getMangledNameForUserStringPool());
+    fp->write("[");
+    fp->write(ofpass.getTmpVarAsString(m_state).c_str()); //INDEX of user string
+    fp->write("];"); GCNL;
+
+    uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
+
+    m_state.clearCurrentObjSymbolsForCodeGen();
+  } //genCodeForUserStringLength
 
   bool NodeTerminalProxy::setConstantValue(const Token& tok)
   {
@@ -265,7 +318,7 @@ namespace MFM {
       {
       case TOK_KW_SIZEOF:
 	{
-	  //User String length must wait until after c&l (t3929)
+	  //User String length must wait until after c&l; o.w. 32 (t3929)
 	  //consistent with C; (not array size if non-scalar)
 	  m_constant.uval =  cut->getSizeofUlamType(); //unsigned
 	  rtnB = true;

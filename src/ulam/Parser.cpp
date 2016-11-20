@@ -5411,79 +5411,120 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
     //initialize "primitive" UlamTypes, in order!!
     // unfortunately, Nav, Atom, Class (except quarks with toInt), Ptr (PtrAbs) and Holder
     // are not considered PRIMITIVE during type processing (use ut->isPrimitiveType());
-    UlamKeyTypeSignature nokey(m_state.m_pool.getIndexForDataString("0Nouti"), ULAMTYPE_DEFAULTBITSIZE[Nouti]);
-    AssertBool isNouti = (m_state.makeUlamType(nokey, Nouti, UC_NOTACLASS) == Nouti);
-    assert(isNouti); //true for primitives
+    {
+      UlamKeyTypeSignature nokey(m_state.m_pool.getIndexForDataString("0Nouti"), ULAMTYPE_DEFAULTBITSIZE[Nouti]);
+      AssertBool isNouti = (m_state.makeUlamType(nokey, Nouti, UC_NOTACLASS) == Nouti);
+      assert(isNouti); //true for primitives
+    }
 
-    UlamKeyTypeSignature nkey(m_state.m_pool.getIndexForDataString("0Nav"), ULAMTYPE_DEFAULTBITSIZE[Nav]);
-    AssertBool isNav = (m_state.makeUlamType(nkey, Nav, UC_NOTACLASS) == Nav);
-    assert(isNav); //true for primitives
+    {
+      UlamKeyTypeSignature nkey(m_state.m_pool.getIndexForDataString("0Nav"), ULAMTYPE_DEFAULTBITSIZE[Nav]);
+      AssertBool isNav = (m_state.makeUlamType(nkey, Nav, UC_NOTACLASS) == Nav);
+      assert(isNav); //true for primitives
+    }
 
-    UlamKeyTypeSignature zkey(m_state.m_pool.getIndexForDataString("0Hzy"), ULAMTYPE_DEFAULTBITSIZE[Hzy]);
-    AssertBool isHzy = (m_state.makeUlamType(zkey, Hzy, UC_NOTACLASS) == Hzy);
-    assert(isHzy); //true for primitives
+    {
+      UlamKeyTypeSignature zkey(m_state.m_pool.getIndexForDataString("0Hzy"), ULAMTYPE_DEFAULTBITSIZE[Hzy]);
+      AssertBool isHzy = (m_state.makeUlamType(zkey, Hzy, UC_NOTACLASS) == Hzy);
+      assert(isHzy); //true for primitives
+    }
 
-    UlamKeyTypeSignature vkey(m_state.m_pool.getIndexForDataString("Void"), ULAMTYPE_DEFAULTBITSIZE[Void]);
-    AssertBool isVoid = (m_state.makeUlamType(vkey, Void, UC_NOTACLASS) == Void);
-    assert(isVoid); //true for primitives
+    {
+      UlamKeyTypeSignature vkey(m_state.m_pool.getIndexForDataString("Void"), ULAMTYPE_DEFAULTBITSIZE[Void]);
+      AssertBool isVoid = (m_state.makeUlamType(vkey, Void, UC_NOTACLASS) == Void);
+      assert(isVoid); //true for primitives
+    }
 
-    UlamKeyTypeSignature ikey(m_state.m_pool.getIndexForDataString("Int"), ULAMTYPE_DEFAULTBITSIZE[Int]);
-    AssertBool isInt = (m_state.makeUlamType(ikey, Int, UC_NOTACLASS) == Int);
-    assert(isInt);
+    {
+      UlamKeyTypeSignature ikey(m_state.m_pool.getIndexForDataString("Int"), ULAMTYPE_DEFAULTBITSIZE[Int]);
+      AssertBool isInt = (m_state.makeUlamType(ikey, Int, UC_NOTACLASS) == Int);
+      assert(isInt);
+    }
 
-    UlamKeyTypeSignature uikey(m_state.m_pool.getIndexForDataString("Unsigned"), ULAMTYPE_DEFAULTBITSIZE[Unsigned]);
-    AssertBool isUnsigned = (m_state.makeUlamType(uikey, Unsigned, UC_NOTACLASS) == Unsigned);
-    assert(isUnsigned);
+    {
+      UlamKeyTypeSignature uikey(m_state.m_pool.getIndexForDataString("Unsigned"), ULAMTYPE_DEFAULTBITSIZE[Unsigned]);
+      AssertBool isUnsigned = (m_state.makeUlamType(uikey, Unsigned, UC_NOTACLASS) == Unsigned);
+      assert(isUnsigned);
+    }
 
-    UlamKeyTypeSignature bkey(m_state.m_pool.getIndexForDataString("Bool"), ULAMTYPE_DEFAULTBITSIZE[Bool]);
-    AssertBool isBool = (m_state.makeUlamType(bkey, Bool, UC_NOTACLASS) == Bool);
-    assert(isBool);
+    {
+      UlamKeyTypeSignature bkey(m_state.m_pool.getIndexForDataString("Bool"), ULAMTYPE_DEFAULTBITSIZE[Bool]);
+      AssertBool isBool = (m_state.makeUlamType(bkey, Bool, UC_NOTACLASS) == Bool);
+      assert(isBool);
+    }
 
-    UlamKeyTypeSignature ukey(m_state.m_pool.getIndexForDataString("Unary"), ULAMTYPE_DEFAULTBITSIZE[Unary]);
-    AssertBool isUnary = (m_state.makeUlamType(ukey, Unary, UC_NOTACLASS) == Unary);
-    assert(isUnary);
+    {
+      UlamKeyTypeSignature ukey(m_state.m_pool.getIndexForDataString("Unary"), ULAMTYPE_DEFAULTBITSIZE[Unary]);
+      AssertBool isUnary = (m_state.makeUlamType(ukey, Unary, UC_NOTACLASS) == Unary);
+      assert(isUnary);
+    }
 
-    UlamKeyTypeSignature bitskey(m_state.m_pool.getIndexForDataString("Bits"), ULAMTYPE_DEFAULTBITSIZE[Bits]);
-    AssertBool isBits = (m_state.makeUlamType(bitskey, Bits, UC_NOTACLASS) == Bits);
-    assert(isBits);
+    {
+      UlamKeyTypeSignature bitskey(m_state.m_pool.getIndexForDataString("Bits"), ULAMTYPE_DEFAULTBITSIZE[Bits]);
+      AssertBool isBits = (m_state.makeUlamType(bitskey, Bits, UC_NOTACLASS) == Bits);
+      assert(isBits);
+    }
 
-    UlamKeyTypeSignature ckey(m_state.m_pool.getIndexForDataString("0Class"), ULAMTYPE_DEFAULTBITSIZE[Class]); //bits tbd
-    AssertBool isClass = (m_state.makeUlamType(ckey, Class, UC_UNSEEN) == Class);
-    assert(isClass);
+    {
+      UlamKeyTypeSignature ckey(m_state.m_pool.getIndexForDataString("0Class"), ULAMTYPE_DEFAULTBITSIZE[Class]); //bits tbd
+      AssertBool isClass = (m_state.makeUlamType(ckey, Class, UC_UNSEEN) == Class);
+      assert(isClass);
+    }
 
-    UlamKeyTypeSignature akey(m_state.m_pool.getIndexForDataString("Atom"), ULAMTYPE_DEFAULTBITSIZE[UAtom]);
-    AssertBool isUAtom = (m_state.makeUlamType(akey, UAtom, UC_NOTACLASS) == UAtom);
-    assert(isUAtom);
+    {
+      UlamKeyTypeSignature akey(m_state.m_pool.getIndexForDataString("Atom"), ULAMTYPE_DEFAULTBITSIZE[UAtom]);
+      AssertBool isUAtom = (m_state.makeUlamType(akey, UAtom, UC_NOTACLASS) == UAtom);
+      assert(isUAtom);
+    }
 
-    UlamKeyTypeSignature pkey(m_state.m_pool.getIndexForDataString("0Ptr"), ULAMTYPE_DEFAULTBITSIZE[Ptr]);
-    AssertBool isPtrRel = (m_state.makeUlamType(pkey, Ptr, UC_NOTACLASS) == Ptr);
-    assert(isPtrRel);
+    {
+      UlamKeyTypeSignature pkey(m_state.m_pool.getIndexForDataString("0Ptr"), ULAMTYPE_DEFAULTBITSIZE[Ptr]);
+      AssertBool isPtrRel = (m_state.makeUlamType(pkey, Ptr, UC_NOTACLASS) == Ptr);
+      assert(isPtrRel);
+    }
 
-    UlamKeyTypeSignature hkey(m_state.m_pool.getIndexForDataString("0Holder"), UNKNOWNSIZE);
-    AssertBool isHolder = (m_state.makeUlamType(hkey, Holder, UC_NOTACLASS) == Holder);
-    assert(isHolder);
+    {
+      UlamKeyTypeSignature hkey(m_state.m_pool.getIndexForDataString("0Holder"), UNKNOWNSIZE);
+      AssertBool isHolder = (m_state.makeUlamType(hkey, Holder, UC_NOTACLASS) == Holder);
+      assert(isHolder);
+    }
 
-    //UTI for local defs within the scope of an ulam file; first one is UrSelf.ulam
-    UlamKeyTypeSignature lkey(m_state.m_pool.getIndexForDataString("UrSelf.ulam"), ULAMTYPE_DEFAULTBITSIZE[LocalsFileScope]); //bits 0
-    AssertBool isLocalsFileScope = (m_state.makeUlamType(lkey, LocalsFileScope, UC_NOTACLASS) == LocalsFileScope);
-    assert(isLocalsFileScope);
+    {
+      //UTI for local defs within the scope of an ulam file; first one is UrSelf.ulam
+      UlamKeyTypeSignature lkey(m_state.m_pool.getIndexForDataString("UrSelf.ulam"), ULAMTYPE_DEFAULTBITSIZE[LocalsFileScope]); //bits 0
+      AssertBool isLocalsFileScope = (m_state.makeUlamType(lkey, LocalsFileScope, UC_NOTACLASS) == LocalsFileScope);
+      assert(isLocalsFileScope);
+    }
 
-    //String, index into UserStringPool
-    UlamKeyTypeSignature strkey(m_state.m_pool.getIndexForDataString("String"), ULAMTYPE_DEFAULTBITSIZE[String]);
-    AssertBool isString = (m_state.makeUlamType(strkey, String, UC_NOTACLASS) == String);
-    assert(isString);
+    {
+      //String, index into UserStringPool
+      UlamKeyTypeSignature strkey(m_state.m_pool.getIndexForDataString("String"), ULAMTYPE_DEFAULTBITSIZE[String]);
+      AssertBool isString = (m_state.makeUlamType(strkey, String, UC_NOTACLASS) == String);
+      assert(isString);
+    }
 
     /*----end of UlamType.inc here----------------*/
 
-    //a Ptr for absolute indexing (i.e. reference class params) in eval; first after end of UlamType.inc. (ALT_PTR not really used; update PtrAbs in Constants.h)
-    UlamKeyTypeSignature apkey(m_state.m_pool.getIndexForDataString("0Ptr"), ULAMTYPE_DEFAULTBITSIZE[Ptr], NONARRAYSIZE, ALT_PTR);
-    AssertBool isPtrAbs = (m_state.makeUlamType(apkey, Ptr, UC_NOTACLASS) == PtrAbs);
-    assert(isPtrAbs);
+    {
+      //a Ptr for absolute indexing (i.e. reference class params) in eval; first after end of UlamType.inc. (ALT_PTR not really used; update PtrAbs in Constants.h)
+      UlamKeyTypeSignature apkey(m_state.m_pool.getIndexForDataString("0Ptr"), ULAMTYPE_DEFAULTBITSIZE[Ptr], NONARRAYSIZE, ALT_PTR);
+      AssertBool isPtrAbs = (m_state.makeUlamType(apkey, Ptr, UC_NOTACLASS) == PtrAbs);
+      assert(isPtrAbs);
+    }
 
-    //a Ref for .atomof; comes after PtrAbs; update UAtomRef in Constants.h
-    UlamKeyTypeSignature arefkey(m_state.m_pool.getIndexForDataString("Atom"), ULAMTYPE_DEFAULTBITSIZE[UAtom], NONARRAYSIZE, ALT_REF);
-    AssertBool isAtomRef = (m_state.makeUlamType(arefkey, UAtom, UC_NOTACLASS) == UAtomRef);
-    assert(isAtomRef);
+    {
+      //a Ref for .atomof; comes after PtrAbs; update UAtomRef in Constants.h
+      UlamKeyTypeSignature arefkey(m_state.m_pool.getIndexForDataString("Atom"), ULAMTYPE_DEFAULTBITSIZE[UAtom], NONARRAYSIZE, ALT_REF);
+      AssertBool isAtomRef = (m_state.makeUlamType(arefkey, UAtom, UC_NOTACLASS) == UAtomRef);
+      assert(isAtomRef);
+    }
+
+    {
+      //Unsigned(8) shorthand for ASCII in Constants.h
+      UlamKeyTypeSignature asckey(m_state.m_pool.getIndexForDataString("Unsigned"), MAXBITSPERASCIIBYTE);
+      AssertBool isAscii = (m_state.makeUlamType(asckey, Unsigned, UC_NOTACLASS) == ASCII);
+      assert(isAscii);
+    }
 
     // next in line, the 64 basics:
     m_state.getLongUTI();

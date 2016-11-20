@@ -115,6 +115,10 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		hazyCount++;
 	      }
+	    else if(leftType == String)
+	      {
+		//ok!
+	      }
 	    else if(!m_isCustomArray)
 	      {
 		std::ostringstream msg;
@@ -213,6 +217,7 @@ namespace MFM {
 	      {
 		//not custom array
 		//must be some kind of numeric type: Int, Unsigned, or Unary..of any bit size
+		//or a String
 		UlamType * rut = m_state.getUlamTypeByIndex(rightType);
 		ULAMTYPE retyp = rut->getUlamTypeEnum();
 		if(m_state.okUTItoContinue(rightType) && !rut->isNumericType())
@@ -259,9 +264,12 @@ namespace MFM {
 
     if((errorCount == 0) && (hazyCount == 0))
       {
+	bool isScalar = m_state.isScalar(leftType);
 	// sq bracket purpose in life is to account for array elements;
-	if(m_isCustomArray && m_state.isScalar(leftType))
+	if(m_isCustomArray && isScalar)
 	  newType = m_state.getAClassCustomArrayType(leftType);
+	else if((leftType == String) && isScalar)
+	  newType = ASCII;
 	else
 	  newType = m_state.getUlamTypeAsScalar(leftType);
 
@@ -325,6 +333,11 @@ namespace MFM {
     if(m_isCustomArray)
       {
 	return evalACustomArray();
+      }
+
+    if((m_nodeLeft->getNodeType() == String) && (nuti == ASCII))
+      {
+	return evalAUserStringByte();
       }
 
     evalNodeProlog(0); //new current frame pointer
@@ -403,6 +416,65 @@ namespace MFM {
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
     return UNEVALUABLE;
   } //evalACustomArray
+
+  EvalStatus NodeSquareBracket::evalAUserStringByte()
+  {
+    evalNodeProlog(0); //new current frame pointer
+
+    makeRoomForSlots(1); //always 1 slot for index into user string pool
+    EvalStatus evs = m_nodeLeft->eval();
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
+
+    UlamValue luv = m_state.m_nodeEvalStack.popArg();
+    u32 usrStr = 0;
+    usrStr = luv.getImmediateData(m_state);
+
+    makeRoomForNodeType(m_nodeRight->getNodeType()); //offset a constant expression
+    evs = m_nodeRight->eval();
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
+
+    UlamValue offset = m_state.m_nodeEvalStack.popArg();
+    UlamType * offut = m_state.getUlamTypeByIndex(offset.getUlamValueTypeIdx());
+    u32 offsetdata = 0;
+    if(offut->isNumericType())
+      {
+	// constant expression only required for array declaration
+	u32 strlen = m_state.m_upool.getStringLength(usrStr);
+	offsetdata = offset.getImmediateData(m_state);
+
+	if((offsetdata >= strlen))
+	  {
+	    std::ostringstream msg;
+	    msg << "String subscript [" << offsetdata << "] exceeds the length (" << strlen;
+	    msg << ") of '" << m_state.m_upool.getDataAsFormattedString(usrStr, &m_state).c_str() << "'";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    evalNodeEpilog();
+	    return ERROR;
+	  }
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << "String subscript of '";
+	msg << m_state.m_upool.getDataAsFormattedString(usrStr, &m_state).c_str();
+	msg << "' requires a numeric type";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	evalNodeEpilog();
+	return ERROR;
+      }
+
+    Node::assignReturnValueToStack(m_state.getByteOfUserString(usrStr, offsetdata));
+    evalNodeEpilog();
+    return NORMAL;
+  } //evalAUserStringByte
 
   EvalStatus NodeSquareBracket::evalToStoreInto()
   {
@@ -665,6 +737,11 @@ namespace MFM {
 
   void NodeSquareBracket::genCode(File * fp, UVPass& uvpass)
   {
+    if(m_nodeLeft->getNodeType() == String)
+      {
+	return genCodeAUserStringByte(fp, uvpass);
+      }
+
     genCodeToStoreInto(fp, uvpass);
     if(!m_isCustomArray || !m_state.classCustomArraySetable(m_nodeLeft->getNodeType()))
       Node::genCodeReadIntoATmpVar(fp, uvpass); //splits on array item
@@ -732,5 +809,84 @@ namespace MFM {
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
     // NO RESTORE -- up to caller for lhs.
   } //genCodeToStoreInto
+
+  void NodeSquareBracket::genCodeAUserStringByte(File * fp, UVPass& uvpass)
+  {
+    assert(m_nodeLeft && m_nodeRight);
+    //wipe out before getting item within sq brackets
+    std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
+    m_state.clearCurrentObjSymbolsForCodeGen();
+
+    UVPass offset;
+    m_nodeRight->genCode(fp, offset);
+    offset.setPassStorage(TMPARRAYIDX);
+
+    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector;  //restore
+
+    UVPass luvpass = uvpass; //passes along if rhs of memberselect
+    m_nodeLeft->genCode(fp, luvpass);
+
+    //runtime checks for unitialized string
+    m_state.indentUlamCode(fp);
+    fp->write("if(");
+    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+    fp->write(" == 0)\n");
+
+    m_state.m_currentIndentLevel++;
+    m_state.indentUlamCode(fp);
+    fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
+    m_state.m_currentIndentLevel--;
+
+    //runtime checks to avoid accessing beyond global string pool
+    m_state.indentUlamCode(fp);
+    fp->write("if(");
+    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+    fp->write(" > ");
+    fp->write(m_state.getDefineNameForUserStringPoolCount());
+    fp->write(")\n");
+
+    m_state.m_currentIndentLevel++;
+    m_state.indentUlamCode(fp);
+    fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
+    m_state.m_currentIndentLevel--;
+
+    //runtime checks to avoid accessing beyond user string
+    m_state.indentUlamCode(fp);
+    fp->write("if(");
+    fp->write(offset.getTmpVarAsString(m_state).c_str());
+    fp->write(" >= ");
+    fp->write(m_state.getMangledNameForUserStringPool());
+    fp->write("[");
+    fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //INDEX of user string
+    fp->write("]"); //length
+    fp->write(")\n");
+
+    m_state.m_currentIndentLevel++;
+    m_state.indentUlamCode(fp);
+    fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
+    m_state.m_currentIndentLevel--;
+
+    //get the ascii byte in a tmp var
+    s32 tmpVarNum = m_state.getNextTmpVarNumber();
+    m_state.indentUlamCode(fp);
+    fp->write("const unsigned char ");
+    fp->write(m_state.getTmpVarAsString(ASCII, tmpVarNum, TMPREGISTER).c_str());
+    fp->write(" = ");
+    fp->write(m_state.getMangledNameForUserStringPool());
+    fp->write("[");
+    fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //INDEX OF User String
+    fp->write(" + ");
+    fp->write(offset.getTmpVarAsString(m_state).c_str()); //INDEX of byte
+    fp->write(" + 1];"); GCNL; //skipping the length
+
+    uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, ASCII, m_state.determinePackable(ASCII), m_state, 0, 0); //POS 0 rightjustified (atom-based).
+
+    m_state.clearCurrentObjSymbolsForCodeGen();
+
+    //m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks
+    //m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore the prior stack
+    //m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
+    // NO RESTORE -- up to caller for lhs.
+  } //genCodeAUserStringByte
 
 } //end MFM

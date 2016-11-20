@@ -77,6 +77,14 @@ namespace MFM {
     return strref[0] - '0';
   }
 
+  u8 StringPoolUser::getByteOf(u32 dataindex, u32 offset)
+  {
+    const std::string & strref = getDataAsString(dataindex);
+    u32 slen = strref.length();
+    assert(slen > offset);
+    return strref[offset+1]; //skip len
+  }
+
   void StringPoolUser::generateUserStringPoolEntries(File * fp, CompilerState * state)
   {
     assert(state);
@@ -84,17 +92,11 @@ namespace MFM {
     //note: not using C++ String because that uses malloc;
     // double quoted strings next to each other get merged
     state->indent(fp);
-    fp->write("const u8 ");
+    fp->write("const unsigned char ");
     fp->write(state->getMangledNameForUserStringPool());
     fp->write("[] = "); GCNL;
 
     state->m_currentIndentLevel++;
-
-    //state->indent(fp);
-    //uninitialized zeroth entry
-    //writeOpenCloseDblQuote(fp);
-    //writeNullByte(fp);
-    //writeOpenCloseDblQuote(fp);
 
     std::map<u32,std::string>::iterator it = m_dataAsString.begin(); //ascending order by default
     while(it != m_dataAsString.end())

@@ -101,6 +101,8 @@ namespace MFM{
     SymbolTmpVar * m_tmpvarSymbol;
 
     EvalStatus evalACustomArray(); //requires call to aref
+    EvalStatus evalAUserStringByte();
+
     EvalStatus evalToStoreIntoACustomArray(); //requires call to aset
 
     virtual bool doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
@@ -109,6 +111,8 @@ namespace MFM{
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len){}
 
     virtual UTI calcNodeType(UTI lt, UTI rt); //stub
+
+    void genCodeAUserStringByte(File * fp, UVPass& uvpass);
   };
 
 }

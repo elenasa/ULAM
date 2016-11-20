@@ -92,6 +92,8 @@ namespace MFM{
     virtual bool setConstantValue(const Token& tok);
     virtual UTI setConstantTypeForNode(const Token& tok);
     bool updateProxy();
+
+    void genCodeForUserStringLength(File * fp, UVPass& uvpass);
   };
 
 } //MFM

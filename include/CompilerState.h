@@ -386,6 +386,8 @@ namespace MFM{
     /** assign pointer as value */
     void assignValuePtr(UlamValue lptr, UlamValue rptr);
 
+    UlamValue getByteOfUserString(u32 usrStr, u32 offsetInt);
+
     /** PACKEDLOADABLE fits in u32/u64, PACKED into an atom, o.w. UNPACKED */
     PACKFIT determinePackable(UTI aut);
 
