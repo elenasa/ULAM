@@ -3028,6 +3028,9 @@ namespace MFM {
 	    }
 	}
 	break;
+      case TOK_KW_LENGTHOF:
+	rtnNode = new NodeTerminalProxy(memberNode, utype, fTok, nodetype, m_state);
+	break;
       default:
 	unreadToken();
       };

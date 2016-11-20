@@ -216,7 +216,7 @@ namespace MFM {
       evs = NOTREADY;
     else
       {
-	if(m_nodeOf && m_nodeOf->getNodeType() == String)
+	if((m_funcTok.m_type == TOK_KW_LENGTHOF) && m_nodeOf && m_nodeOf->getNodeType() == String)
 	  {
 	    evalNodeProlog(0); //new current frame pointer
 	    makeRoomForSlots(1); //upool index is a constant expression
@@ -250,7 +250,7 @@ namespace MFM {
 
   void NodeTerminalProxy::genCode(File * fp, UVPass& uvpass)
   {
-    if((m_uti == String) && m_nodeOf)
+    if((m_funcTok.m_type == TOK_KW_LENGTHOF) && (m_uti == String) && m_nodeOf)
       {
 	return genCodeForUserStringLength(fp, uvpass); //t3929
       }
@@ -321,10 +321,33 @@ namespace MFM {
       {
       case TOK_KW_SIZEOF:
 	{
-	  //User String length must wait until after c&l; o.w. 32 (t3929)
+	  //User String length must wait until after c&l; sizeof string == 32 (t3929)
 	  //consistent with C; (not array size if non-scalar)
 	  m_constant.uval =  cut->getSizeofUlamType(); //unsigned
 	  rtnB = true;
+	}
+	break;
+      case TOK_KW_LENGTHOF:
+	{
+	  //User String length must wait until after c&l; sizeof string == 32 (t3929)
+	  //consistent with C; (not array size if non-scalar)
+	  rtnB = true;
+	  if(!cut->isScalar())
+	    m_constant.uval =  cut->getArraySize(); //number of items, not custom arrays
+	  else if(m_uti == String)
+	    m_constant.uval =  cut->getSizeofUlamType(); //tmp for proxy
+	  else
+	    {
+	      std::ostringstream msg;
+	      msg << "Proxy Type '" << m_funcTok.getTokenString() << "' is not supported ";
+	      if(m_state.isClassACustomArray(m_uti))
+		msg << "for custom array: ";
+	      else
+		msg << "for scalar: ";
+	      msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      rtnB = false; //not allowed (e.g. custom arrays, scalars)
+	    }
 	}
 	break;
       case TOK_KW_MAXOF:
@@ -358,17 +381,14 @@ namespace MFM {
     UTI newType = Nav; //init
     switch(tok.m_type)
       {
+      case TOK_KW_LENGTHOF:
       case TOK_KW_SIZEOF:
-	{
-	  newType = Unsigned;
-	}
+	newType = Unsigned;
 	break;
       case TOK_KW_MAXOF:
       case TOK_KW_MINOF:
-      {
 	newType = m_uti; // use type of the lhs
 	break;
-      }
       default:
 	m_state.abortShouldntGetHere();
 	break;

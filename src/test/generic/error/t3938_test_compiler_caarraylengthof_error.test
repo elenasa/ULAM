@@ -1,0 +1,33 @@
+## -*- mode:ulam -*-
+#=t3938_test_compiler_caarraylengthof_error
+#!
+./Eltypo.ulam:5:23: ERROR: Proxy Type 'lengthof' is not supported for custom array: EventWindow.
+./Eltypo.ulam:5:5: ERROR: Initial value expression for: len, initialization is invalid.
+./Eltypo.ulam:6:14: ERROR: Proxy Type 'lengthof' is not supported for custom array: EventWindow.
+./Eltypo.ulam:6:9: ERROR: Assignment is invalid; LHS: Unsigned(32); RHS: erroneous.
+./Eltypo.ulam:7:15: ERROR: Proxy Type 'lengthof' is not supported for custom array: EventWindow.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t3937
+##      //arraysize zero ok, but not bitsize zero for nonClass primitive types!
+##
+#>Eltypo.ulam
+  ulam 1;
+element Eltypo {
+  Int test(){
+    EventWindow ew;
+    Unsigned len = ew.lengthof;
+    len = ew.lengthof;
+    return ew.lengthof;
+  }
+}
+
+##
+#:EventWindow.ulam
+  ulam 1;
+quark EventWindow {
+  Atom aref(Int index) native;
+  Void aset(Int index, Atom val) native;
+}
+
+#.

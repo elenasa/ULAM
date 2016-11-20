@@ -16,7 +16,7 @@ element A {
    System s;
 
    String str = "bar";
-   Int slen = str.sizeof; // =3
+   Int slen = str.lengthof; // =3
    asc1 = str[0];
    b1 = (asc1 == 'b');
    s.assert(b1);
