@@ -2236,6 +2236,8 @@ namespace MFM {
     File * fp = fm->open(getFileNameForUserStringPool(WSUBDIR).c_str(), WRITE);
     assert(fp);
 
+    m_currentIndentLevel = 0;
+
     indent(fp);
     fp->write("#ifndef ");
     fp->write(Node::allCAPS(getMangledNameForUserStringPool()).c_str());
