@@ -99,7 +99,7 @@ namespace MFM {
     state->indent(fp);
     fp->write("const unsigned char ");
     fp->write(state->getMangledNameForUserStringPool());
-    fp->write("[] = "); GCNL;
+    fp->write("[] = \n");
 
     state->m_currentIndentLevel++;
 

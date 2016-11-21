@@ -355,6 +355,8 @@ namespace MFM{
 
     std::string getFileNameForAClassHeader(UTI cuti, bool wSubDir = false);
     std::string getFileNameForThisClassHeader(bool wSubDir = false);
+    void genCModeForHeaderFile(File * fp);
+    void genCopyrightAndLicenseForUlamHeader(File * fp);
     std::string getFileNameForThisClassBody(bool wSubDir = false);
     std::string getFileNameForThisClassBodyNative(bool wSubDir = false);
     std::string getFileNameForThisClassCPP(bool wSubDir = false);
