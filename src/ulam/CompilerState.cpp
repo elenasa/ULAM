@@ -1862,7 +1862,7 @@ namespace MFM {
     return csym->getCustomArrayType(); //checks via classblock in case of inheritance
   } //getAClassCustomArrayType
 
-  UTI CompilerState::getAClassCustomArrayIndexType(UTI cuti, Node * rnode, UTI& idxuti, bool& hasHazyArgs)
+  u32 CompilerState::getAClassCustomArrayIndexType(UTI cuti, Node * rnode, UTI& idxuti, bool& hasHazyArgs)
   {
     assert(isScalar(cuti));
     SymbolClass * csym = NULL;

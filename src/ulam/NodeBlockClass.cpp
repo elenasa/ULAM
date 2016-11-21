@@ -699,8 +699,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   u32 NodeBlockClass::getCustomArrayIndexTypeFromGetFunction(Node * rnode, UTI& idxuti, bool& hasHazyArgs)
   {
-    UTI catype = m_functionST.getCustomArrayIndexTypeGetFunction(rnode, idxuti, hasHazyArgs);
-    if(catype == Nouti)
+    u32 camatches = m_functionST.getCustomArrayIndexTypeGetFunction(rnode, idxuti, hasHazyArgs);
+    if(camatches == 0)
       {
 	UTI cuti = getNodeType();
 	if(m_state.isClassAStub(cuti))
@@ -708,19 +708,19 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	    //search template
 	    NodeBlockClass * prevblock = (NodeBlockClass *) getPreviousBlockPointer();
 	    assert(prevblock);
-	    catype = prevblock->getCustomArrayIndexTypeFromGetFunction(rnode, idxuti, hasHazyArgs);
+	    camatches = prevblock->getCustomArrayIndexTypeFromGetFunction(rnode, idxuti, hasHazyArgs);
 	  }
 
-	if((catype == Nouti) && (m_state.isClassASubclass(cuti) != Nouti))
+	if((camatches == 0) && (m_state.isClassASubclass(cuti) != Nouti))
 	  {
 	    NodeBlockClass * superblock = getSuperBlockPointer();
 	    assert(superblock);
-	    catype = superblock->getCustomArrayIndexTypeFromGetFunction(rnode, idxuti, hasHazyArgs);
+	    camatches = superblock->getCustomArrayIndexTypeFromGetFunction(rnode, idxuti, hasHazyArgs);
 	  }
       }
-    else if(catype == Hzy)
-      hasHazyArgs = true;
-    return catype;
+    //else if(catype == Hzy)
+    //  hasHazyArgs = true;
+    return camatches;
   } //getCustomArrayIndexTypeFromGetFunction
 
   //starts here, called by SymbolClass

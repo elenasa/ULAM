@@ -8,7 +8,7 @@
 ./Eltypo.ulam:7:15: ERROR: Proxy Type 'lengthof' is not supported for custom array: EventWindow.
 Unrecoverable Program Type Label FAILURE.
 ##
-## informed by t3937
+## informed by t3937, t3233
 ##      //arraysize zero ok, but not bitsize zero for nonClass primitive types!
 ##
 #>Eltypo.ulam

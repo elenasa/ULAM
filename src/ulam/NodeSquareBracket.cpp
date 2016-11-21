@@ -411,8 +411,9 @@ namespace MFM {
   {
     //eval MUST NOT be used to get arraysize in bracket.
     std::ostringstream msg;
-    msg << "Custom Array subscript";
-    msg << " requires aref function call; Unsupported for eval";
+    msg << "Custom Array subscript requires"; //aref
+    msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
+    msg << " function; Unsupported for eval";
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
     return UNEVALUABLE;
   } //evalACustomArray
@@ -552,8 +553,9 @@ namespace MFM {
   {
     //eval MUST NOT be used to get arraysize in bracket.
     std::ostringstream msg;
-    msg << "Custom Array subscript";
-    msg << " requires aref function call returning a reference; Unsupported for evalToStoreInto";
+    msg << "Custom Array subscript requires "; //aref
+    msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
+    msg << " function returning a reference; Unsupported for evalToStoreInto";
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
     return UNEVALUABLE;
   } //evalToStoreIntoACustomArray
