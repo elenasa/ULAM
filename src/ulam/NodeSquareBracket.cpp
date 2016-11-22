@@ -115,7 +115,7 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		hazyCount++;
 	      }
-	    else if(leftType == String)
+	    else if(lut->getUlamTypeEnum() == String)
 	      {
 		//ok!
 	      }
@@ -211,7 +211,7 @@ namespace MFM {
 			errorCount++;
 		      }
 		  }
-		//else a match!
+		//else a match! (surgery to func call node? what if, lhs of assignment?)
 	      }
 	    else
 	      {
@@ -264,11 +264,12 @@ namespace MFM {
 
     if((errorCount == 0) && (hazyCount == 0))
       {
-	bool isScalar = m_state.isScalar(leftType);
+	UlamType * lut = m_state.getUlamTypeByIndex(leftType);
+	bool isScalar = lut->isScalar();
 	// sq bracket purpose in life is to account for array elements;
 	if(m_isCustomArray && isScalar)
 	  newType = m_state.getAClassCustomArrayType(leftType);
-	else if((leftType == String) && isScalar)
+	else if((lut->getUlamTypeEnum() == String) && isScalar)
 	  newType = ASCII;
 	else
 	  newType = m_state.getUlamTypeAsScalar(leftType);
@@ -335,7 +336,9 @@ namespace MFM {
 	return evalACustomArray();
       }
 
-    if((m_nodeLeft->getNodeType() == String) && (nuti == ASCII))
+    UTI leftType = m_nodeLeft->getNodeType();
+    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
+    if((lut->getUlamTypeEnum() == String) && (nuti == ASCII))
       {
 	return evalAUserStringByte();
       }
@@ -746,7 +749,10 @@ namespace MFM {
 
   void NodeSquareBracket::genCode(File * fp, UVPass& uvpass)
   {
-    if(m_nodeLeft->getNodeType() == String)
+    UTI leftType = m_nodeLeft->getNodeType();
+    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
+
+    if((lut->getUlamTypeEnum() == String) && lut->isScalar())
       {
 	return genCodeAUserStringByte(fp, uvpass);
       }

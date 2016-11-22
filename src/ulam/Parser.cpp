@@ -3629,8 +3629,10 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
       {
 	delete rtnNode;
 	rtnNode = NULL;
+	return rtnNode;
       }
-    return rtnNode;
+    //for custom array of (custom) arrays
+    return parseRestOfLvalExpr(rtnNode); //t3942,3,4 (was return rtnNode)
   } //parseRestOfLValExpr
 
   Node * Parser::parseRestOfAssignExpr(Node * leftNode)

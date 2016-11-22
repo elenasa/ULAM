@@ -286,7 +286,7 @@ namespace MFM {
       {
 	if((m_funcTok.m_type == TOK_KW_LENGTHOF))
 	  {
-	    if(m_nodeOf && (m_nodeOf->getNodeType() == String))
+	    if(m_nodeOf && (UlamType::compare(m_nodeOf->getNodeType(), String, m_state) == UTIC_SAME))
 	      {
 		evalNodeProlog(0); //new current frame pointer
 		makeRoomForSlots(1); //upool index is a constant expression
@@ -333,7 +333,7 @@ namespace MFM {
   {
     if(m_funcTok.m_type == TOK_KW_LENGTHOF)
       {
-	if((m_uti == String) && m_nodeOf)
+	if((UlamType::compare(m_uti, String, m_state) == UTIC_SAME) && m_nodeOf)
 	  {
 	    return genCodeForUserStringLength(fp, uvpass); //t3929
 	  }
@@ -357,7 +357,7 @@ namespace MFM {
 
   void NodeTerminalProxy::genCodeForUserStringLength(File * fp, UVPass& uvpass)
   {
-    assert(m_uti == String);
+    assert(UlamType::compare(m_uti, String, m_state) == UTIC_SAME);
     assert(m_nodeOf);
     UTI nuti = getNodeType();
     UVPass ofpass;
@@ -426,8 +426,8 @@ namespace MFM {
 	  //consistent with C; (not array size if non-scalar)
 	  rtnB = true;
 	  if(!cut->isScalar())
-	    m_constant.uval =  cut->getArraySize(); //number of items, not custom arrays
-	  else if(m_uti == String)
+	    m_constant.uval = cut->getArraySize(); //number of items, not custom arrays
+	  else if(cut->getUlamTypeEnum() == String)
 	    m_constant.uval =  cut->getSizeofUlamType(); //tmp for proxy
 	  else if(m_state.isClassACustomArray(m_uti))
 	    {

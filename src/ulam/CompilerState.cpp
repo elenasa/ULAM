@@ -2303,7 +2303,7 @@ namespace MFM {
       fp->write("\n");
 
 #ifndef _DEFINE_USERSTRINGPOOL_IN_CPP
-#define _DEFINE_USERSTRINGPOOL_IN_CPP
+      //#define _DEFINE_USERSTRINGPOOL_IN_CPP
 #endif
 
 #ifdef _DEFINE_USERSTRINGPOOL_IN_CPP

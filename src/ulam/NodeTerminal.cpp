@@ -667,7 +667,7 @@ namespace MFM {
 	  m_state.abortGreaterThanMaxBitsPerLong();
       }
 
-    if(nuti == String)
+    if(nut->getUlamTypeEnum() == String)
       {
 	fp->write_decimal_unsigned(m_constant.uval);
 	fp->write("u; //user string pool index for ");
