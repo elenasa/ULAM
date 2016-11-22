@@ -2268,37 +2268,89 @@ namespace MFM {
 
   void CompilerState::generateCodeForGlobalUserStringPool(FileManager * fm)
   {
-    //generate user string pool include file
-    File * fp = fm->open(getFileNameForUserStringPool(WSUBDIR).c_str(), WRITE);
-    assert(fp);
+    //since the UserStringPool is not a class; code gen done here, not by SymbolClass.
+    {
+      //generate user string pool header file
+      File * fp = fm->open(getFileNameForUserStringPoolHeader(WSUBDIR).c_str(), WRITE);
+      assert(fp);
 
-    m_currentIndentLevel = 0;
-    genCModeForHeaderFile(fp);
+      m_currentIndentLevel = 0;
+      genCModeForHeaderFile(fp);
 
-    fp->write("/***********************         DO NOT EDIT        ******************************\n");
-    fp->write("*\n");
-    fp->write("* ");
-    fp->write(" Global User String Pool header for ULAM"); GCNL;
+      fp->write("/***********************         DO NOT EDIT        ******************************\n");
+      fp->write("*\n");
+      fp->write("* ");
+      fp->write(" Global User String Pool header for ULAM"); GCNL;
 
-    genCopyrightAndLicenseForUlamHeader(fp);
+      genCopyrightAndLicenseForUlamHeader(fp);
 
-    indent(fp);
-    fp->write("#ifndef ");
-    fp->write(Node::allCAPS(getMangledNameForUserStringPool()).c_str());
-    fp->write("_H\n");
+      indent(fp);
+      fp->write("#ifndef ");
+      fp->write(Node::allCAPS(getMangledNameForUserStringPool()).c_str());
+      fp->write("_H\n");
 
-    indent(fp);
-    fp->write("#define ");
-    fp->write(Node::allCAPS(getMangledNameForUserStringPool()).c_str());
-    fp->write("_H\n\n");
+      indent(fp);
+      fp->write("#define ");
+      fp->write(Node::allCAPS(getMangledNameForUserStringPool()).c_str());
+      fp->write("_H\n\n");
 
-    m_upool.generateUserStringPoolEntries(fp, this);
+      fp->write("\n");
+      indent(fp);
+      fp->write("#define ");
+      fp->write(getDefineNameForUserStringPoolCount());
+      fp->write(" ");
+      fp->write_decimal(m_upool.getUserStringPoolCount()); GCNL;
+      fp->write("\n");
 
-    fp->write("#endif //");
-    fp->write(Node::allCAPS(getMangledNameForUserStringPool()).c_str());
-    fp->write("_H\n");
+#ifndef _DEFINE_USERSTRINGPOOL_IN_CPP
+#define _DEFINE_USERSTRINGPOOL_IN_CPP
+#endif
 
-    delete fp; //close
+#ifdef _DEFINE_USERSTRINGPOOL_IN_CPP
+      indent(fp);
+      fp->write("extern const ");
+      fp->write("unsigned char ");
+      fp->write(getMangledNameForUserStringPool());
+      fp->write("[];"); GCNL;
+      fp->write("\n");
+#else
+      m_upool.generateUserStringPoolEntries(fp, this);
+#endif
+
+      fp->write("#endif //");
+      fp->write(Node::allCAPS(getMangledNameForUserStringPool()).c_str());
+      fp->write("_H\n");
+
+      delete fp; //close
+    }
+
+    //  .cpp includes .h (unlike the .tcc body); this .cpp defines the pool table
+    {
+      File * fp = fm->open(getFileNameForUserStringPoolCPP(WSUBDIR).c_str(), WRITE);
+      assert(fp);
+
+      m_currentIndentLevel = 0;
+
+      // include .h in the .cpp
+      indent(fp);
+      fp->write("#include \"");
+      fp->write(getFileNameForUserStringPoolHeader().c_str());
+      fp->write("\"");
+      fp->write("\n\n");
+
+      indent(fp);
+      fp->write("namespace MFM{\n\n");
+
+#ifdef _DEFINE_USERSTRINGPOOL_IN_CPP
+      //the pool table definition
+      m_upool.generateUserStringPoolEntries(fp, this);
+#endif
+
+      fp->write("} //MFM"); GCNL;
+      fp->write("\n");
+
+      delete fp; //close
+    }
   } //generateCodeForGlobalUserStringPool
 
   void CompilerState::generateCodeForUlamClasses(FileManager * fm)
@@ -3063,14 +3115,23 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return GLOBALUSERSTRINGPOOL_COUNTDEFINENAME;
   } //getDefineNameForUserStringPoolCount
 
-  std::string CompilerState::getFileNameForUserStringPool(bool wSubDir)
+  std::string CompilerState::getFileNameForUserStringPoolHeader(bool wSubDir)
   {
     std::ostringstream f;
     if(wSubDir)
       f << "include/";
     f << getMangledNameForUserStringPool() << ".h";
     return f.str();
-  } //getFileNameForUserStringPool
+  } //getFileNameForUserStringPoolHeader
+
+  std::string CompilerState::getFileNameForUserStringPoolCPP(bool wSubDir)
+  {
+    std::ostringstream f;
+    if(wSubDir)
+      f << "src/";
+    f << getMangledNameForUserStringPool() << ".cpp";
+    return f.str();
+  } //getFileNameForUserStringPoolCPP
 
   ULAMCLASSTYPE CompilerState::getUlamClassForThisClass()
   {

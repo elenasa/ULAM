@@ -186,6 +186,8 @@ namespace MFM{
 
     NodeBlockFunctionDefinition * findTestFunctionNode();
 
+    NodeBlockFunctionDefinition * findCustomArrayLengthofFunctionNode();
+
     NodeBlockFunctionDefinition * findToIntFunctionNode();
 
     virtual void addClassMemberDescriptionsToInfoMap(ClassMemberMap& classmembers);
@@ -202,6 +204,9 @@ namespace MFM{
     UTI m_templateClassParentUTI;
     NodeList * m_nodeParameterList; //constants
     NodeList * m_nodeArgumentList;  //template instance
+
+    void checkTestFunctionReturnType();
+    void checkCustomArrayLengthofFunctionReturnType();
 
     void genCodeHeaderQuark(File * fp);
     void genCodeHeaderElement(File * fp);

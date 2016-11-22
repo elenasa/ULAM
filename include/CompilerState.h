@@ -373,7 +373,8 @@ namespace MFM{
 
     const char * getMangledNameForUserStringPool();
     const char * getDefineNameForUserStringPoolCount();
-    std::string getFileNameForUserStringPool(bool wSubDir = false);
+    std::string getFileNameForUserStringPoolHeader(bool wSubDir = false);
+    std::string getFileNameForUserStringPoolCPP(bool wSubDir = false);
 
     ULAMCLASSTYPE getUlamClassForThisClass();
     UTI getUlamTypeForThisClass();

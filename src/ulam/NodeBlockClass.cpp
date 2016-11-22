@@ -410,6 +410,17 @@ namespace MFM {
     m_functionST.labelTableOfFunctions();
 
     // check that a 'test' function returns Int (ulam convention)
+    checkTestFunctionReturnType();
+
+    // check that a 'alengthof' function returns Unsigned (ulam convention)
+    checkCustomArrayLengthofFunctionReturnType();
+
+    // type already set during parsing
+    return getNodeType();
+  } //checkAndLabelType
+
+  void NodeBlockClass::checkTestFunctionReturnType()
+  {
     NodeBlockFunctionDefinition * funcNode = findTestFunctionNode();
     if(funcNode)
       {
@@ -424,9 +435,25 @@ namespace MFM {
 	    funcNode->setNodeType(Nav); //missing
 	  }
       }
-    // type already set during parsing
-    return getNodeType();
-  } //checkAndLabelType
+  } //checkTestFunctionReturnType
+
+  void NodeBlockClass::checkCustomArrayLengthofFunctionReturnType()
+  {
+    NodeBlockFunctionDefinition * funcNode = findCustomArrayLengthofFunctionNode();
+    if(funcNode)
+      {
+	UTI funcType = funcNode->getNodeType();
+	if(UlamType::compareForArgumentMatching(funcType, Unsigned, m_state) == UTIC_NOTSAME)
+	  {
+	    std::ostringstream msg;
+	    msg << "By convention, Function '" << funcNode->getName();
+	    msg << "''s Return type must be 'Unsigned', not ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(funcType).c_str();
+	    MSG(funcNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    funcNode->setNodeType(Nav); //missing
+	  }
+      }
+  } //checkCustomArrayLengthofFunctionReturnType
 
   bool NodeBlockClass::checkParameterNodeTypes()
   {
@@ -986,6 +1013,22 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       }
     return func;
   } //findTestFunctionNode
+
+  //don't set nextNode since it'll get deleted with program.
+  NodeBlockFunctionDefinition * NodeBlockClass::findCustomArrayLengthofFunctionNode()
+  {
+    Symbol * fnSym = NULL;
+    NodeBlockFunctionDefinition * func = NULL;
+    u32 lenid = m_state.getCustomArrayLengthofFunctionNameId();
+    if(isFuncIdInScope(lenid, fnSym))
+      {
+	SymbolFunction * funcSymbol = NULL;
+	std::vector<UTI> voidVector; //keep empty
+	if(((SymbolFunctionName *) fnSym)->findMatchingFunctionStrictlyByTypes(voidVector, funcSymbol) == 1)
+	  func = funcSymbol->getFunctionNode();
+      }
+    return func;
+  } //findCustomArrayLengthofFunctionNode
 
   //don't set nextNode since it'll get deleted with program.
   NodeBlockFunctionDefinition * NodeBlockClass::findToIntFunctionNode()
