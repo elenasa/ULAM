@@ -311,6 +311,13 @@ namespace MFM {
     return camatches;
   } //getCustomArrayIndexTypeGetFunction
 
+  //called by current Class block on its function ST;
+  bool SymbolTableOfFunctions::hasCustomArrayLengthofFunction()
+  {
+    Symbol * fnsym = NULL;
+    return isInTable(m_state.getCustomArrayLengthofFunctionNameId(), fnsym);
+  } //hasCustomArrayLengthofFunction
+
   u32 SymbolTableOfFunctions::countNativeFuncDeclsForTableOfFunctions()
   {
     u32 nativeCount = 0;

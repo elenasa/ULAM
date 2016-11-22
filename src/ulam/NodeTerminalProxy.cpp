@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include "NodeTerminalProxy.h"
+#include "NodeFunctionCall.h"
+#include "NodeMemberSelect.h"
 #include "CompilerState.h"
 
 namespace MFM {
@@ -185,13 +187,79 @@ namespace MFM {
 	  }
       }
 
+    UTI nodeType = Nav;
     if(!updateProxy()) //sets m_uti
       setNodeType(Nav); //invalid func
     else
-      setConstantTypeForNode(m_funcTok); //enough info to set this constant node's type
+      {
+	nodeType = setConstantTypeForNode(m_funcTok); //enough info to set this constant node's type
+	if(m_state.isAClass(m_uti) && m_state.isClassACustomArray(m_uti) && m_state.hasAClassCustomArrayLengthof(m_uti))
+	  {
+	    //replace node with func call to 'alengthof'
+	    Node * newnode = buildAlengthofFuncCallNode();
+	    AssertBool swapOk = exchangeNodeWithParent(newnode);
+	    assert(swapOk);
 
-    return getNodeType(); //updated to Unsigned, hopefully
+	    m_nodeOf = NULL; //recycled
+
+	    delete this; //suicide is painless..
+
+	    return newnode->checkAndLabelType();
+	  }
+      }
+
+    return nodeType; //getNodeType(); //updated to Unsigned, hopefully
   } //checkandLabelType
+
+  Node * NodeTerminalProxy::buildAlengthofFuncCallNode()
+  {
+    Token identTok;
+    u32 alenofId = m_state.getCustomArrayLengthofFunctionNameId();
+    identTok.init(TOK_IDENTIFIER, getNodeLocation(), alenofId);
+
+    //fill in func symbol during type labeling;
+    Node * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
+    assert(fcallNode);
+    fcallNode->setNodeLocation(identTok.m_locator);
+    Node * mselectNode = new NodeMemberSelect(m_nodeOf, fcallNode, m_state);
+    assert(mselectNode);
+    mselectNode->setNodeLocation(identTok.m_locator);
+
+    //redo check and type labeling done by caller!!
+    return mselectNode; //replace right node with new branch
+  } //buildAlengthofFuncCallNode
+
+  bool NodeTerminalProxy::exchangeNodeWithParent(Node * newnode)
+  {
+    UTI cuti = m_state.getCompileThisIdx(); //for error messages
+    NodeBlock * currBlock = m_state.getCurrentBlock(); //in NodeIdent, getBlock();
+
+    NNO pno = Node::getYourParentNo();
+
+    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
+
+    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
+    assert(parentNode);
+
+    AssertBool swapOk = parentNode->exchangeKids(this, newnode);
+    assert(swapOk);
+
+    std::ostringstream msg;
+    msg << "Exchanged kids! <" << m_state.getTokenDataAsString(m_funcTok).c_str();
+    msg << "> func call (" << prettyNodeName().c_str();
+    msg << "), instead of a terminal proxy within class: ";
+    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+
+    m_state.popClassContext(); //restore
+
+    //common to all new nodes:
+    newnode->setNodeLocation(getNodeLocation());
+    newnode->setYourParentNo(pno);
+    newnode->resetNodeNo(getNodeNo());
+
+    return true;
+  } //exchangeNodeWithParent
 
   void NodeTerminalProxy::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
@@ -216,22 +284,35 @@ namespace MFM {
       evs = NOTREADY;
     else
       {
-	if((m_funcTok.m_type == TOK_KW_LENGTHOF) && m_nodeOf && m_nodeOf->getNodeType() == String)
+	if((m_funcTok.m_type == TOK_KW_LENGTHOF))
 	  {
-	    evalNodeProlog(0); //new current frame pointer
-	    makeRoomForSlots(1); //upool index is a constant expression
-	    evs = m_nodeOf->eval();
-	    if(evs == NORMAL)
+	    if(m_nodeOf && (m_nodeOf->getNodeType() == String))
 	      {
-		UlamValue stringUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
-		u32 ustringidx = stringUV.getImmediateData(m_state);
-		if((ustringidx == 0) || ((s32) ustringidx > m_state.m_upool.getUserStringPoolCount()))
-		  evs = ERROR;
-		else
-		  m_constant.uval = m_state.m_upool.getStringLength(ustringidx); //reset here!!
+		evalNodeProlog(0); //new current frame pointer
+		makeRoomForSlots(1); //upool index is a constant expression
+		evs = m_nodeOf->eval();
+		if(evs == NORMAL)
+		  {
+		    UlamValue stringUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
+		    u32 ustringidx = stringUV.getImmediateData(m_state);
+		    if((ustringidx == 0) || ((s32) ustringidx > m_state.m_upool.getUserStringPoolCount()))
+		      evs = ERROR;
+		    else
+		      m_constant.uval = m_state.m_upool.getStringLength(ustringidx); //reset here!!
+		  }
+		//else
+		evalNodeEpilog();
 	      }
-	    //else
-	    evalNodeEpilog();
+	    else if(m_state.isClassACustomArray(m_uti))
+	      {
+		std::ostringstream msg;
+		msg << "Custom Array '" << m_funcTok.getTokenString() << "' proxy requires "; //lengthof
+		msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayLengthofFunctionNameId()).c_str();
+		msg << " function; Unsupported for eval";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		evs = UNEVALUABLE;
+		m_state.abortShouldntGetHere(); //replaced with func call when provided, o.w. parse err
+	      }
 	  }
 
 	if(evs == NORMAL)
@@ -250,9 +331,21 @@ namespace MFM {
 
   void NodeTerminalProxy::genCode(File * fp, UVPass& uvpass)
   {
-    if((m_funcTok.m_type == TOK_KW_LENGTHOF) && (m_uti == String) && m_nodeOf)
+    if(m_funcTok.m_type == TOK_KW_LENGTHOF)
       {
-	return genCodeForUserStringLength(fp, uvpass); //t3929
+	if((m_uti == String) && m_nodeOf)
+	  {
+	    return genCodeForUserStringLength(fp, uvpass); //t3929
+	  }
+	else if(m_state.isClassACustomArray(m_uti))
+	  {
+	    std::ostringstream msg;
+	    msg << "Custom Array '" << m_funcTok.getTokenString() << "' proxy requires "; //lengthof
+	    msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayLengthofFunctionNameId()).c_str();
+	    msg << " function; Unsupported for genCode";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    m_state.abortShouldntGetHere(); //replaced with func call when provided, o.w. parse err
+	  }
       }
     return NodeTerminal::genCode(fp, uvpass);
   }
@@ -336,14 +429,27 @@ namespace MFM {
 	    m_constant.uval =  cut->getArraySize(); //number of items, not custom arrays
 	  else if(m_uti == String)
 	    m_constant.uval =  cut->getSizeofUlamType(); //tmp for proxy
+	  else if(m_state.isClassACustomArray(m_uti))
+	    {
+	      if(!m_state.hasAClassCustomArrayLengthof(m_uti))
+		{
+		  std::ostringstream msg;
+		  msg << "Proxy Type '" << m_funcTok.getTokenString() << "' is not supported ";
+		  msg << "for custom array: ";
+		  msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
+		  msg << "; Function '";
+		  msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayLengthofFunctionNameId()).c_str();
+		  msg << "()' is not defined";
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		  rtnB = false; //not provided
+		}
+	      //else a runtime request..
+	    }
 	  else
 	    {
 	      std::ostringstream msg;
 	      msg << "Proxy Type '" << m_funcTok.getTokenString() << "' is not supported ";
-	      if(m_state.isClassACustomArray(m_uti))
-		msg << "for custom array: ";
-	      else
-		msg << "for scalar: ";
+	      msg << "for scalar: ";
 	      msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      rtnB = false; //not allowed (e.g. custom arrays, scalars)

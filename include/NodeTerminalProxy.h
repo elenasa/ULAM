@@ -93,6 +93,9 @@ namespace MFM{
     virtual UTI setConstantTypeForNode(const Token& tok);
     bool updateProxy();
 
+    Node * buildAlengthofFuncCallNode(); //like toInt cast in Node
+    bool exchangeNodeWithParent(Node * newnode); //like NodeIdent
+
     void genCodeForUserStringLength(File * fp, UVPass& uvpass);
   };
 

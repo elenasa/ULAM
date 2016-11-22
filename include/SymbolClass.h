@@ -93,6 +93,8 @@ namespace MFM{
 
     u32 getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
 
+    bool hasCustomArrayLengthof();
+
     bool trySetBitsizeWithUTIValues(s32& totalbits);
 
     void printBitSizeOfClass();

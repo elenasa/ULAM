@@ -61,8 +61,10 @@ namespace MFM {
   static const char * HIDDEN_ARG_NAME = "ur"; //was Uv_4self, then Uv_4atom
   static const char * HIDDEN_CONTEXT_ARG_NAME = "uc"; //unmangled
   static const char * CUSTOMARRAY_GET_FUNC_NAME = "aref"; //unmangled
-  static const char * CUSTOMARRAY_SET_FUNC_NAME = "aset"; //unmangled
+  static const char * CUSTOMARRAY_SET_FUNC_NAME = "aset"; //unmangled (deprecated)
   static const char * CUSTOMARRAY_GET_MANGLEDNAME = "Uf_4aref";
+  static const char * CUSTOMARRAY_LENGTHOF_FUNC_NAME = "alengthof"; //unmangled
+  static const char * CUSTOMARRAY_LENGTHOF_MANGLEDNAME = "Uf_919alengthof";
 
   static const char * IS_MANGLED_FUNC_NAME = "internalCMethodImplementingIs"; //Uf_2is
   static const char * IS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamClass<EC>::IsMethod"; //Uf_2is
@@ -75,7 +77,7 @@ namespace MFM {
   static const char * ULAMLOCALFILESCOPES_CLASSNAME = "UlamLocalFilescopes";
   static const char * ULAMLOCALFILESCOPES_MANGLED_CLASSNAME = "Ul_10109219UlamLocalFilescopes10";
 
-  static const char * GLOBALUSERSTRINGPOOL_MANGLEDNAME = "Ug_214UserStringPool";
+  static const char * GLOBALUSERSTRINGPOOL_MANGLEDNAME = "Ug_9214UserStringPool";
   static const char * GLOBALUSERSTRINGPOOL_COUNTDEFINENAME = "USERSTRINGCOUNT";
 
   static const char * CModeForHeaderFiles = "/**                                      -*- mode:C++ -*- */\n\n";
@@ -1843,7 +1845,6 @@ namespace MFM {
   bool CompilerState::isClassACustomArray(UTI cuti)
   {
     if(!isScalar(cuti)) return false;
-    //assert(isScalar(cuti));
 
     SymbolClass * csym = NULL;
     if(alreadyDefinedSymbolClass(cuti, csym))
@@ -1870,6 +1871,15 @@ namespace MFM {
     assert(isDefined);
     return csym->getCustomArrayIndexTypeFor(rnode, idxuti, hasHazyArgs); //checks via classblock in case of inheritance
   } //getAClassCustomArrayIndexType
+
+  bool CompilerState::hasAClassCustomArrayLengthof(UTI cuti)
+  {
+    assert(isScalar(cuti));
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
+    return csym->hasCustomArrayLengthof(); //checks via classblock in case of inheritance
+  } //hasAClassCustomArrayLengthof
 
   bool CompilerState::alreadyDefinedSymbolClassName(u32 dataindex, SymbolClassName * & symptr)
   {
@@ -2884,6 +2894,17 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   const char * CompilerState::getCustomArrayGetMangledFunctionName()
   {
     return CUSTOMARRAY_GET_MANGLEDNAME;
+  }
+
+  u32 CompilerState::getCustomArrayLengthofFunctionNameId()
+  {
+    std::string str(CUSTOMARRAY_LENGTHOF_FUNC_NAME);
+    return m_pool.getIndexForDataString(str);
+  }
+
+  const char * CompilerState::getCustomArrayLengthofMangledFunctionName()
+  {
+    return CUSTOMARRAY_LENGTHOF_MANGLEDNAME;
   }
 
   const char * CompilerState::getIsMangledFunctionName(UTI ltype)

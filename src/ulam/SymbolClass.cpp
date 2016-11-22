@@ -140,6 +140,14 @@ namespace MFM {
     return classNode->getCustomArrayIndexTypeFromGetFunction(rnode, idxuti, hasHazyArgs);
   }
 
+  bool SymbolClass::hasCustomArrayLengthof()
+  {
+    assert(isCustomArray());
+    NodeBlockClass * classNode = getClassBlockNode(); //instance
+    assert(classNode);
+    return classNode->hasCustomArrayLengthofFunction();
+  }
+
   bool SymbolClass::trySetBitsizeWithUTIValues(s32& totalbits)
   {
     NodeBlockClass * classNode = getClassBlockNode(); //instance

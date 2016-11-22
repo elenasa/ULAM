@@ -74,6 +74,8 @@ namespace MFM{
 
     u32 getCustomArrayIndexTypeGetFunction(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
 
+    bool hasCustomArrayLengthofFunction();
+
     u32 countNativeFuncDeclsForTableOfFunctions();
 
     void printUnresolvedLocalVariablesForTableOfFunctions();

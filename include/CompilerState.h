@@ -264,6 +264,8 @@ namespace MFM{
     //returns number of matches (aref); updates last 2 args)
     u32 getAClassCustomArrayIndexType(UTI cuti, Node * rnode, UTI& idxuti, bool& hasHazyArgs);
 
+    bool hasAClassCustomArrayLengthof(UTI cuti);
+
     /** return true and the Symbol pointer in 2nd arg if found;
 	search SymbolTables LIFO order; o.w. return false
     */
@@ -349,6 +351,9 @@ namespace MFM{
     u32 getCustomArrayGetFunctionNameId();
     u32 getCustomArraySetFunctionNameId();
     const char * getCustomArrayGetMangledFunctionName();
+    u32 getCustomArrayLengthofFunctionNameId();
+    const char * getCustomArrayLengthofMangledFunctionName();
+
     const char * getIsMangledFunctionName(UTI ltype);
     const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
     const char * getClassLengthFunctionName(UTI ltype);

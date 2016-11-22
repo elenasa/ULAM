@@ -723,6 +723,30 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     return camatches;
   } //getCustomArrayIndexTypeFromGetFunction
 
+  bool NodeBlockClass::hasCustomArrayLengthofFunction()
+  {
+    bool camatch = m_functionST.hasCustomArrayLengthofFunction();
+    if(!camatch)
+      {
+	UTI cuti = getNodeType();
+	if(m_state.isClassAStub(cuti))
+	  {
+	    //search template
+	    NodeBlockClass * prevblock = (NodeBlockClass *) getPreviousBlockPointer();
+	    assert(prevblock);
+	    camatch = prevblock->hasCustomArrayLengthofFunction();
+	  }
+
+	if((!camatch) && (m_state.isClassASubclass(cuti) != Nouti))
+	  {
+	    NodeBlockClass * superblock = getSuperBlockPointer();
+	    assert(superblock);
+	    camatch = superblock->hasCustomArrayLengthofFunction();
+	  }
+      }
+    return camatch;
+  } //hasCustomArrayLengthofFunction
+
   //starts here, called by SymbolClass
   bool NodeBlockClass::buildDefaultValue(u32 wlen, BV8K& dvref)
   {
