@@ -97,7 +97,6 @@ namespace MFM {
 	break;
       case String:
 	num << m_state.m_upool.getDataAsFormattedString(m_constant.uval, &m_state);
-	//num << " (" << (u32) m_constant.uval << "u)"; //index into global user string pool
 	break;
       default:
 	{
@@ -667,8 +666,9 @@ namespace MFM {
 	  m_state.abortGreaterThanMaxBitsPerLong();
       }
 
-    if(nut->getUlamTypeEnum() == String)
+    if(UlamType::compareForString(nuti, m_state) == UTIC_SAME)
       {
+	//String, String array or array item (t3929, t3950)
 	fp->write_decimal_unsigned(m_constant.uval);
 	fp->write("u; //user string pool index for ");
       }

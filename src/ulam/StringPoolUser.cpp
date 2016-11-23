@@ -23,9 +23,6 @@ namespace MFM {
 	u32 slen = str[0] - '0'; //len in first byte set by lexer
 	idx = m_runningIndex;
 
-	//if(slen == 0)
-	//  m_runningIndex += 1; //null string, len only
-	//else
 	m_runningIndex += slen + 2; //add byte for len at start; end with null byte;
 
 	m_stringToDataIndex.insert(std::pair<std::string,u32> (str, idx));
@@ -126,7 +123,7 @@ namespace MFM {
   u32 StringPoolUser::formatDoubleQuotedString(const std::string& str, CompilerState * state)
   {
     if(str.length() == 0)
-      return state->m_pool.getIndexForDataString("");
+      return state->m_pool.getIndexForDataString(""); //the uninitialized string
 
     std::ostringstream newstr;
     u32 slen = str[0] - '0';
@@ -153,18 +150,10 @@ namespace MFM {
 	writeOpenCloseDblQuote(fp);
 	writeNullByte(fp);
 	writeOpenCloseDblQuote(fp);
-	return;
+	return; //the uninitialized string
       }
 
     u32 slen = str[0] - '0';
-
-    //if(slen == 0)
-    //  {
-    //	writeOpenCloseDblQuote(fp);
-    //	writeNullByte(fp);
-    //	writeOpenCloseDblQuote(fp);
-    //	return;
-    //}
 
     writeOpenCloseDblQuote(fp);
     writeDblQuotedChar(fp, slen);

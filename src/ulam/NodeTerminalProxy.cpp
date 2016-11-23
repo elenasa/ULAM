@@ -286,8 +286,9 @@ namespace MFM {
       {
 	if((m_funcTok.m_type == TOK_KW_LENGTHOF))
 	  {
-	    if(m_nodeOf && (UlamType::compare(m_nodeOf->getNodeType(), String, m_state) == UTIC_SAME))
+	    if(m_nodeOf && (UlamType::compareForString(m_nodeOf->getNodeType(), m_state) == UTIC_SAME))
 	      {
+		//String or String array item (t3933, t3949)
 		evalNodeProlog(0); //new current frame pointer
 		makeRoomForSlots(1); //upool index is a constant expression
 		evs = m_nodeOf->eval();
@@ -333,8 +334,10 @@ namespace MFM {
   {
     if(m_funcTok.m_type == TOK_KW_LENGTHOF)
       {
-	if((UlamType::compare(m_uti, String, m_state) == UTIC_SAME) && m_nodeOf)
+
+	if(m_nodeOf && (UlamType::compareForString(m_uti, m_state) == UTIC_SAME))
 	  {
+	    //String or String array item (t3933, t3949)
 	    return genCodeForUserStringLength(fp, uvpass); //t3929
 	  }
 	else if(m_state.isClassACustomArray(m_uti))
@@ -357,7 +360,7 @@ namespace MFM {
 
   void NodeTerminalProxy::genCodeForUserStringLength(File * fp, UVPass& uvpass)
   {
-    assert(UlamType::compare(m_uti, String, m_state) == UTIC_SAME);
+    assert(UlamType::compareForString(m_uti, m_state) == UTIC_SAME);
     assert(m_nodeOf);
     UTI nuti = getNodeType();
     UVPass ofpass;
