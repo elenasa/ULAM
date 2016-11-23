@@ -23,10 +23,10 @@ namespace MFM {
 	u32 slen = str[0] - '0'; //len in first byte set by lexer
 	idx = m_runningIndex;
 
-	if(slen == 0)
-	  m_runningIndex += 1; //null string, len only
-	else
-	  m_runningIndex += slen + 2; //add byte for len at start; end with null byte;
+	//if(slen == 0)
+	//  m_runningIndex += 1; //null string, len only
+	//else
+	m_runningIndex += slen + 2; //add byte for len at start; end with null byte;
 
 	m_stringToDataIndex.insert(std::pair<std::string,u32> (str, idx));
 	m_dataAsString.insert(std::pair<u32, std::string> (idx, str));
@@ -85,9 +85,9 @@ namespace MFM {
     return strref[offset+1]; //skip len
   }
 
-  s32 StringPoolUser::getUserStringPoolCount()
+  u32 StringPoolUser::getUserStringPoolSize()
   {
-    return m_dataAsString.size() - 1;
+    return m_runningIndex;
   }
 
   void StringPoolUser::generateUserStringPoolEntries(File * fp, CompilerState * state)
@@ -99,7 +99,9 @@ namespace MFM {
     state->indent(fp);
     fp->write("const unsigned char ");
     fp->write(state->getMangledNameForUserStringPool());
-    fp->write("[] = \n");
+    fp->write("[");
+    fp->write(state->getDefineNameForUserStringPoolSize());
+    fp->write(" + 1] = \n");
 
     state->m_currentIndentLevel++;
 
@@ -156,13 +158,13 @@ namespace MFM {
 
     u32 slen = str[0] - '0';
 
-    if(slen == 0)
-      {
-	writeOpenCloseDblQuote(fp);
-	writeNullByte(fp);
-	writeOpenCloseDblQuote(fp);
-	return;
-      }
+    //if(slen == 0)
+    //  {
+    //	writeOpenCloseDblQuote(fp);
+    //	writeNullByte(fp);
+    //	writeOpenCloseDblQuote(fp);
+    //	return;
+    //}
 
     writeOpenCloseDblQuote(fp);
     writeDblQuotedChar(fp, slen);

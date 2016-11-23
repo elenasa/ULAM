@@ -372,7 +372,7 @@ namespace MFM{
     const char * getMangledClassNameForUlamLocalFilescopes();
 
     const char * getMangledNameForUserStringPool();
-    const char * getDefineNameForUserStringPoolCount();
+    const char * getDefineNameForUserStringPoolSize();
     std::string getFileNameForUserStringPoolHeader(bool wSubDir = false);
     std::string getFileNameForUserStringPoolCPP(bool wSubDir = false);
 

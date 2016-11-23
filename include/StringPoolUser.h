@@ -70,13 +70,13 @@ namespace MFM
 
     u8 getByteOf(u32 dataindex, u32 offset);
 
-    s32 getUserStringPoolCount();
+    u32 getUserStringPoolSize();
 
     void generateUserStringPoolEntries(File * fp, CompilerState * state);
 
   private:
 
-    u32 m_runningIndex;
+    u32 m_runningIndex; //used during parsing to assign indexes
 
     u32 formatDoubleQuotedString(const std::string& str, CompilerState * state);
 

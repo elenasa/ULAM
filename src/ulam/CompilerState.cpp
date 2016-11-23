@@ -78,7 +78,7 @@ namespace MFM {
   static const char * ULAMLOCALFILESCOPES_MANGLED_CLASSNAME = "Ul_10109219UlamLocalFilescopes10";
 
   static const char * GLOBALUSERSTRINGPOOL_MANGLEDNAME = "Ug_9214UserStringPool";
-  static const char * GLOBALUSERSTRINGPOOL_COUNTDEFINENAME = "USERSTRINGCOUNT";
+  static const char * GLOBALUSERSTRINGPOOL_SIZEDEFINENAME = "USERSTRINGPOOLSIZE";
 
   static const char * CModeForHeaderFiles = "/**                                      -*- mode:C++ -*- */\n\n";
 
@@ -2301,9 +2301,9 @@ namespace MFM {
 
       indent(fp);
       fp->write("#define ");
-      fp->write(getDefineNameForUserStringPoolCount());
+      fp->write(getDefineNameForUserStringPoolSize());
       fp->write(" ");
-      fp->write_decimal(m_upool.getUserStringPoolCount()); GCNL;
+      fp->write_decimal(m_upool.getUserStringPoolSize()); GCNL;
       fp->write("\n");
 
 #ifndef _DEFINE_USERSTRINGPOOL_IN_CPP
@@ -2315,7 +2315,9 @@ namespace MFM {
       fp->write("extern const ");
       fp->write("unsigned char ");
       fp->write(getMangledNameForUserStringPool());
-      fp->write("[];"); GCNL;
+      fp->write("[");
+      fp->write(getDefineNameForUserStringPoolSize());
+      fp->write(" + 1];"); GCNL;
       fp->write("\n");
 #else
       m_upool.generateUserStringPoolEntries(fp, this);
@@ -3122,10 +3124,10 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return GLOBALUSERSTRINGPOOL_MANGLEDNAME;
   } //getMangledNameForUserStringPool
 
-  const char * CompilerState::getDefineNameForUserStringPoolCount()
+  const char * CompilerState::getDefineNameForUserStringPoolSize()
   {
-    return GLOBALUSERSTRINGPOOL_COUNTDEFINENAME;
-  } //getDefineNameForUserStringPoolCount
+    return GLOBALUSERSTRINGPOOL_SIZEDEFINENAME;
+  } //getDefineNameForUserStringPoolSize
 
   std::string CompilerState::getFileNameForUserStringPoolHeader(bool wSubDir)
   {

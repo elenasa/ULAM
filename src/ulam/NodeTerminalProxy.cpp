@@ -295,7 +295,7 @@ namespace MFM {
 		  {
 		    UlamValue stringUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
 		    u32 ustringidx = stringUV.getImmediateData(m_state);
-		    if((ustringidx == 0) || ((s32) ustringidx > m_state.m_upool.getUserStringPoolCount()))
+		    if((ustringidx == 0) || (ustringidx >= m_state.m_upool.getUserStringPoolSize()))
 		      evs = ERROR;
 		    else
 		      m_constant.uval = m_state.m_upool.getStringLength(ustringidx); //reset here!!
@@ -378,8 +378,8 @@ namespace MFM {
     m_state.indentUlamCode(fp);
     fp->write("if(");
     fp->write(ofpass.getTmpVarAsString(m_state).c_str());
-    fp->write(" > ");
-    fp->write(m_state.getDefineNameForUserStringPoolCount()); //one-based
+    fp->write(" >= ");
+    fp->write(m_state.getDefineNameForUserStringPoolSize());
     fp->write(")\n");
 
     m_state.m_currentIndentLevel++;

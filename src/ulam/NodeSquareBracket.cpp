@@ -437,7 +437,7 @@ namespace MFM {
     u32 usrStr = 0;
     usrStr = luv.getImmediateData(m_state);
 
-    if((usrStr == 0) || ((s32) usrStr > m_state.m_upool.getUserStringPoolCount()))
+    if((usrStr == 0) || (usrStr >= m_state.m_upool.getUserStringPoolSize()))
       {
 	//uninitialized or out-of-bounds
 	evalNodeEpilog();
@@ -856,8 +856,8 @@ namespace MFM {
     m_state.indentUlamCode(fp);
     fp->write("if(");
     fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(" > ");
-    fp->write(m_state.getDefineNameForUserStringPoolCount()); //one-based
+    fp->write(" >= ");
+    fp->write(m_state.getDefineNameForUserStringPoolSize());
     fp->write(")\n");
 
     m_state.m_currentIndentLevel++;

@@ -65,7 +65,6 @@ namespace MFM
 
   protected:
 
-    //std::vector<std::string> m_dataAsString;
     std::map<u32, std::string> m_dataAsString; //<string indexed by dataindex (may be sequential or not)
     std::map<std::string,u32> m_stringToDataIndex; //< value indexes into m_dataAsString; avoid duplicates
   private:
