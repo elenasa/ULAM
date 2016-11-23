@@ -112,10 +112,12 @@ namespace MFM {
 	fp->write("\n");
 	it++;
       }
-    fp->write(";"); GCNL;
-    fp->write("\n");
 
     state->m_currentIndentLevel--;
+
+    state->indent(fp);
+    fp->write(";"); GCNL;
+    fp->write("\n");
     return;
   } //generateUserStringPoolEntries
 

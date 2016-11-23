@@ -2294,7 +2294,11 @@ namespace MFM {
       fp->write(Node::allCAPS(getMangledNameForUserStringPool()).c_str());
       fp->write("_H\n\n");
 
-      fp->write("\n");
+      indent(fp);
+      fp->write("namespace MFM{\n\n");
+
+      m_currentIndentLevel++;
+
       indent(fp);
       fp->write("#define ");
       fp->write(getDefineNameForUserStringPoolCount());
@@ -2303,7 +2307,7 @@ namespace MFM {
       fp->write("\n");
 
 #ifndef _DEFINE_USERSTRINGPOOL_IN_CPP
-      //#define _DEFINE_USERSTRINGPOOL_IN_CPP
+#define _DEFINE_USERSTRINGPOOL_IN_CPP
 #endif
 
 #ifdef _DEFINE_USERSTRINGPOOL_IN_CPP
@@ -2316,6 +2320,11 @@ namespace MFM {
 #else
       m_upool.generateUserStringPoolEntries(fp, this);
 #endif
+
+      m_currentIndentLevel--;
+
+      fp->write("} //MFM"); GCNL;
+      fp->write("\n");
 
       fp->write("#endif //");
       fp->write(Node::allCAPS(getMangledNameForUserStringPool()).c_str());
@@ -2341,11 +2350,14 @@ namespace MFM {
       indent(fp);
       fp->write("namespace MFM{\n\n");
 
+      m_currentIndentLevel++;
+
 #ifdef _DEFINE_USERSTRINGPOOL_IN_CPP
       //the pool table definition
       m_upool.generateUserStringPoolEntries(fp, this);
 #endif
 
+      m_currentIndentLevel--;
       fp->write("} //MFM"); GCNL;
       fp->write("\n");
 
