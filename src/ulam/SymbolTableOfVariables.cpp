@@ -106,10 +106,8 @@ namespace MFM {
 	if((cclasstype == UC_TRANSIENT) && (sut->getUlamClassType() == UC_ELEMENT))
 	  {
 	    s32 arraysize = sut->getArraySize();
-	    //arraysize = arraysize <= 0 ? 1 : arraysize;
 	    arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //Mon Jul  4 14:14:44 2016
-	    if(sut->getBitSize() > 0)
-	      totalsizes += (BITSPERATOM * arraysize);
+	    totalsizes += (BITSPERATOM * arraysize); //atom-based element regardless of its bitsize(t3879)
 	  }
 	else
 	  totalsizes += sut->getTotalBitSize(); //covers up any unknown sizes; includes arrays

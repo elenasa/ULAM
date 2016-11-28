@@ -1,0 +1,35 @@
+## -*- mode:ulam -*-
+#=t3879_test_compiler_triansientwelementdm_issue
+#!
+Exit status: -11
+Ue_R { Int(32) test() {  Isht t;  0 cast return } }
+Un_Isht { Ish mIsh();  <NOMAIN> }
+Ue_Ish { /* empty class block */ }
+##
+## informed by Dave ish 8/6/2016: calculated size of transient did not take into account zero-sized element (atom-based)
+##
+#>R.ulam
+  ulam 2;
+element R {
+  Int test()
+  {
+    Isht t;
+    return 0;
+  }
+}
+
+
+#:Isht.ulam
+  ulam 2;
+transient Isht {
+  Ish mIsh;
+}
+
+
+#:Ish.ulam
+  ulam 2;
+element Ish {
+  //Bool mBool; //fails without dm
+}
+
+#.
