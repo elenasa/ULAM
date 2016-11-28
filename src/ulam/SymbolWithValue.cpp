@@ -295,6 +295,10 @@ namespace MFM {
 	      fp->write("u");
 	    }
 	    break;
+	  case String:
+	    // scalar strings generate comments (output value rather than index) e.g. t3951,2
+	    fp->write(m_state.m_upool.getDataAsFormattedString(val, &m_state).c_str());
+	    break;
 	  default:
 	    m_state.abortUndefinedUlamPrimitiveType();
 	  };
@@ -334,6 +338,7 @@ namespace MFM {
     dval.ToArray(uvals);
 
     u32 nwords = tut->getTotalNumberOfWords();
+    bool isString = (tut->getUlamTypeEnum() == String); //t3953
 
     //short-circuit if all zeros
     bool isZero = true;
@@ -348,6 +353,9 @@ namespace MFM {
 
     if(isZero)
       {
+	if(isString)
+	  m_state.abortShouldntGetHere();
+
 	fp->write("{ 0..0 }");
 	return; //nothing else to do
       }
@@ -355,16 +363,74 @@ namespace MFM {
     fp->write("{ ");
     for(u32 w = 0; w < nwords; w++)
       {
-	std::ostringstream dhex;
-	dhex << "0x" << std::hex << uvals[w];
-
 	if(w > 0)
 	  fp->write(", ");
 
-	fp->write(dhex.str().c_str());
+	  {
+	    std::ostringstream dhex;
+	    dhex << "0x" << std::hex << uvals[w];
+
+	    fp->write(dhex.str().c_str());
+	  }
+
+#if 0
+	  //pretty, but precludes string array of comments;
+	  //output string item as embedded comment for human readable generated code
+	  if(isString)
+	    {
+	      fp->write(" /*");
+	      fp->write(m_state.m_upool.getDataAsFormattedString(uvals[w], &m_state).c_str()); //t3953,4
+	      fp->write("*/");
+	    }
+#endif
       }
     fp->write(" }");
   } //printPostfixValueArray
+
+  void SymbolWithValue::printPostfixValueArrayStringAsComment(File * fp)
+  {
+    bool oktoprint = true;
+    BV8K dval;
+    if(isReady())
+      getValue(dval);
+    else if(hasInitValue() && isInitValueReady())
+      getInitValue(dval);
+    else
+      oktoprint = false;
+
+
+    UTI tuti = getUlamTypeIdx();
+    UlamType * tut = m_state.getUlamTypeByIndex(tuti);
+    bool isString = (tut->getUlamTypeEnum() == String); //t3953
+    assert(isString);
+
+    if(!oktoprint)
+      {
+	fp->write("// ");
+	fp->write(getMangledName().c_str());
+	fp->write(": NONREADYCONSTARRAY OF STRINGS"); GCNL;
+	return;
+      }
+
+    //like the code generated in CS::genCodeClassDefaultConstantArray
+    u32 uvals[ARRAY_LEN8K];
+    dval.ToArray(uvals);
+
+    u32 nwords = tut->getTotalNumberOfWords();
+
+    //indented comments of string value items (one per line); e.g. t3953,4
+    for(u32 w = 0; w < nwords; w++)
+      {
+	m_state.indent(fp);
+	fp->write("// ");
+	fp->write("[");
+	fp->write_decimal_unsigned(w);
+	fp->write("] = ");
+	fp->write(m_state.m_upool.getDataAsFormattedString(uvals[w], &m_state).c_str());
+	fp->write("\n");
+      }
+    GCNL;
+  } //printPostfixValueArrayStringAsComment
 
 #if 0
   bool SymbolWithValue::getArrayValueAsString(std::string& vstr)

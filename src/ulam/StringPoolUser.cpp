@@ -20,7 +20,7 @@ namespace MFM {
       }
     else
       {
-	u32 slen = str[0] - '0'; //len in first byte set by lexer
+	u32 slen = str[0]; //len in first byte set by lexer
 	idx = m_runningIndex;
 
 	m_runningIndex += slen + 2; //add byte for len at start; end with null byte;
@@ -71,7 +71,7 @@ namespace MFM {
     const std::string & strref = getDataAsString(dataindex);
     if(strref.length() == 0)
       return 0;
-    return strref[0] - '0';
+    return strref[0];
   }
 
   u8 StringPoolUser::getByteOf(u32 dataindex, u32 offset)
@@ -126,17 +126,51 @@ namespace MFM {
       return state->m_pool.getIndexForDataString(""); //the uninitialized string
 
     std::ostringstream newstr;
-    u32 slen = str[0] - '0';
-    newstr << "\""; //open quote (no escape)
+    u32 slen = str[0];
+    newstr << "\""; //open double quote (no escape)
     for(u32 i = 1; i <= slen; i++)
       {
 	u8 c = str[i];
-	if((c == '"') || (c == '\\')) //embedded dbl quote, or backslash
-	  newstr << "\\" << c; //requires escape
-	else if(isgraph(c)) //any printable char except space
-	  newstr << c; //raw
-	else
-	  newstr << "\\" << c; //e.g. bell '\a', requires escape
+	switch(c)
+	  {
+	  case '\a':
+	    newstr << "\\a"; //bell/alert 7
+	    break;
+	  case '\b':
+	    newstr << "\\b"; //backspace 8
+	    break;
+	  case '\t':
+	    newstr << "\\t"; //horizontal tab 9
+	    break;
+	  case '\n':
+	    newstr << "\\n"; //newline 10
+	    break;
+	  case '\v':
+	    newstr << "\\v"; //vertical tab 11
+	    break;
+	  case '\f':
+	    newstr << "\\f"; //formfeed 12
+	    break;
+	  case '\r':
+	    newstr << "\\r"; //carriage return 13
+	    break;
+	  case '"':
+	    newstr << "\""; //double quote 34
+	    break;
+	  case '\'':
+	    newstr << "'"; //single quote 39
+	    break;
+	  case '\\':
+	    newstr << "\\\\"; //backslash escape 92
+	    break;
+	  default:
+	    {
+	      if(isprint(c)) //any printable char including space
+		newstr << c; //raw
+	      else
+		newstr << '\\' << std::oct << (u32) c; //requires escape
+	    }
+	  }
       }
     newstr << "\""; //close quote (no escape)
     assert(state);
@@ -153,7 +187,7 @@ namespace MFM {
 	return; //the uninitialized string
       }
 
-    u32 slen = str[0] - '0';
+    u32 slen = str[0];
 
     writeOpenCloseDblQuote(fp);
     writeDblQuotedChar(fp, slen);

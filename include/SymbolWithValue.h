@@ -88,6 +88,8 @@ namespace MFM{
 
     void printPostfixValue(File * fp);
 
+    void printPostfixValueArrayStringAsComment(File * fp);
+
     virtual const std::string getMangledPrefix() = 0;
 
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype) = 0;

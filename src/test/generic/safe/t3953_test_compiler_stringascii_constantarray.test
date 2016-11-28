@@ -1,0 +1,46 @@
+## -*- mode:ulam -*-
+#=t3953_test_compiler_stringascii_constantarray
+##
+## gen output: 2 asserts
+##
+#!
+Exit status: 0
+Ue_A { constant String(32)[5] strarr = { 0x1, 0x6, 0xb, 0x15, 0x1e };  Bool(1) b1(true);  Bool(1) b2(true);  Unsigned(8) asc1(98u);  Unsigned(8) asc2(114u);  Int(32) test() {  System s;  String(32) str = strarr 0 [];  Int(32) slen = 3u cast;  asc1 str 0 [] = b1 asc1 98u == = s ( b1 )assert . asc2 str slen 1 cast -b [] = b2 asc2 114u == = s ( b2 )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by t3951, t3930
+##
+#>A.ulam
+  ulam 2;
+element A {
+  constant String strarr[] = {"bar", "foo", "blew it\n", "??x0f??", "/*embedded comment*/" };
+  Bool b1, b2;
+  ASCII asc1, asc2;
+  Int test() {
+    System s;
+    String str = strarr[0]; //not ref
+    Int slen = str.lengthof; // =3
+    asc1 = str[0];
+    b1 = (asc1 == 'b');
+    s.assert(b1);
+
+    asc2 = str[slen-1];
+    b2 = (asc2 == 'r');
+    s.assert(b2);
+
+    return 0;
+ }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

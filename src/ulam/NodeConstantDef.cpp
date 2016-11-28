@@ -968,6 +968,9 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
 
+    if(nut->getUlamTypeEnum() == String)
+      m_constSymbol->printPostfixValueArrayStringAsComment(fp); //t3953,4
+
     m_state.indent(fp);
     fp->write("static ");
     fp->write("u32 ");

@@ -402,9 +402,9 @@ namespace MFM {
 
     std::ostringstream newstr;
     if(slen == 0)
-      newstr << 0;
+      newstr << (char) 0;
     else
-      newstr << slen << astring << 0; //slen doesn't include itself or terminaing byte; see StringPoolUser.
+      newstr << (char) slen << astring << (char) 0; //slen doesn't include itself or terminating byte; see StringPoolUser.
 
     u32 idx = m_state.m_upool.getIndexForDataString(newstr.str());
     tok.init(TOK_DQUOTED_STRING,firstloc,idx);
@@ -465,76 +465,86 @@ namespace MFM {
 	if(c == '\\')
 	  {
 	    s32 d = m_SS.read();
-	    switch((char) d)
+	    if(d >= 0)
 	      {
-	      case 'a':
-		abyte = '\a'; //bell/alert 7
-		break;
-	      case 'b':
-		abyte = '\b'; //backspace 8
-		break;
-	      case 't':
-		abyte = '\t'; //horizontal tab 9
-		break;
-	      case 'n':
-		abyte = '\n'; //newline 10
-		break;
-	      case 'v':
-		abyte = '\v'; //vertical tab 11
-		break;
-	      case 'f':
-		abyte = '\f'; //formfeed 12
-		break;
-	      case 'r':
-		abyte = '\r'; //carriage return 13
-		break;
-	      case '"':
-		abyte = '\"'; //double quote 34
-		break;
-	      case '\'':
-		abyte = '\''; //single quote 39
-		break;
-	      case '?':
-		abyte = '\?'; //questionmark 63
-		break;
-	      case '\\':
-		abyte = '\\'; //backslash escape 92
-		break;
-	      case '0':
-	      case '1':
-	      case '2':
-	      case '3':
-	      case '4':
-	      case '5':
-	      case '6':
-	      case '7':
-		{
-		  unread();
-		  u8 ooo;
-		  u32 crtn = formatOctalConstant(ooo);
-		  if(crtn == 0)
-		    abyte = ooo; //octal number
-		  else
-		    return crtn; //error
-		}
-		break;
-	      case 'x':
-	      case 'X':
-		{
-		  u8 hh;
-		  u32 crtn = formatHexConstant(hh);
-		  if(crtn == 0)
-		    abyte = hh;
-		  else
-		    return crtn; //error
-		}
-		break;
-	      default:
-		abyte = (d - '\0'); //save it
-	      };
+		switch(d)
+		  {
+		  case 'a':
+		    abyte = '\a'; //bell/alert 7
+		    break;
+		  case 'b':
+		    abyte = '\b'; //backspace 8
+		    break;
+		  case 't':
+		    abyte = '\t'; //horizontal tab 9
+		    break;
+		  case 'n':
+		    abyte = '\n'; //newline 10
+		    break;
+		  case 'v':
+		    abyte = '\v'; //vertical tab 11
+		    break;
+		  case 'f':
+		    abyte = '\f'; //formfeed 12
+		    break;
+		  case 'r':
+		    abyte = '\r'; //carriage return 13
+		    break;
+		  case '"':
+		    abyte = '"'; //double quote 34
+		    break;
+		  case '\'':
+		    abyte = '\''; //single quote 39
+		    break;
+		  case '\\':
+		    abyte = '\\'; //backslash escape 92
+		    break;
+		  case '0':
+		  case '1':
+		  case '2':
+		  case '3':
+		  case '4':
+		  case '5':
+		  case '6':
+		  case '7':
+		    {
+		      unread();
+		      u8 ooo;
+		      u32 crtn = formatOctalConstant(ooo);
+		      if(crtn == 0)
+			abyte = ooo; //octal number
+		      else
+			return crtn; //error
+		    }
+		    break;
+		  case 'x':
+		  case 'X':
+		    {
+		      u8 hh;
+		      u32 crtn = formatHexConstant(hh);
+		      if(crtn == 0)
+			abyte = hh;
+		      else
+			return crtn; //error
+		    }
+		    break;
+		  case -1:
+		    m_state.abortShouldntGetHere(); //EOF
+		    break;
+		  default:
+		    abyte = (u8) d; //save it
+		  };
+	      }
+	    else
+	      {
+		if( d == -1) unread();
+		std::ostringstream errmsg;
+		errmsg << "Lexer could not complete last byte in quoted string";
+		return m_state.m_pool.getIndexForDataString(errmsg.str());
+	      }
 	  }
 	else
-	  abyte = (c - '\0'); //as a number
+	  abyte = (u8) c; //save literally
       }
     else //c < 0
       {

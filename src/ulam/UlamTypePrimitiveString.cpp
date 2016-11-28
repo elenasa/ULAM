@@ -116,6 +116,8 @@ namespace MFM {
       case Unary:
 	  data = _Unary32ToUnsigned32(data, valbitsize, bitsize);
 	break;
+      case String:
+	break; //data is index, no cast req'd (t3951)
       case Void:
       default:
 	//std::cerr << "UlamTypePrimitiveString (cast) error! Value Type was: " << valtypidx << std::endl;
@@ -163,6 +165,10 @@ namespace MFM {
 	break;
       case Unary:
 	data = _Unary64ToUnsigned64(data, valbitsize, bitsize);
+	break;
+      case String:
+	// casting UnsignedInt to UnsignedInt to change bits size, test?
+	data = _Unsigned64ToUnsigned64(data, valbitsize, bitsize);
 	break;
       case Void:
       default:
