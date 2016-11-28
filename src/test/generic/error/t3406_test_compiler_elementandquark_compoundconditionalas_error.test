@@ -4,7 +4,7 @@
 ./Foo.ulam:10:3: ERROR: Invalid if-condition.
 ./Foo.ulam:10:10: ERROR: Invalid Statement (possible missing semicolon).
 ./Foo.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Foo'; Possible missing ending curly brace.
-./Foo.ulam:15:3: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
+./Foo.ulam:15:3: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./Foo.ulam:2:9: ERROR: Invalid Type: Foo.
  ERROR: No parse tree for This Class: Foo.
 Unrecoverable Program Parse FAILURE: <Foo.ulam>

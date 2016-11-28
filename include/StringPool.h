@@ -41,7 +41,6 @@
 #include <string>
 #include <string.h>
 #include <map>
-#include <vector>
 #include "itype.h"
 
 
@@ -54,19 +53,21 @@ namespace MFM
 
     StringPool();
 
+    StringPool(std::string str); //for StringPoolUser's default constructor
+
     ~StringPool();
 
-    u32 getIndexForDataString(std::string str);    //< makes a new entry in map, vector if nonexistent
+    virtual u32 getIndexForDataString(std::string str);    //< makes a new entry in map, vector if nonexistent
 
     u32 getIndexForNumberAsString(u32 num);
 
-    const std::string & getDataAsString(u32 dataindex);
+    virtual const std::string & getDataAsString(u32 dataindex);
 
-  private:
+  protected:
 
-    std::vector<std::string> m_dataAsString;       //< string indexed by dataindex
+    std::map<u32, std::string> m_dataAsString; //<string indexed by dataindex (may be sequential or not)
     std::map<std::string,u32> m_stringToDataIndex; //< value indexes into m_dataAsString; avoid duplicates
-
+  private:
 
   };
 }

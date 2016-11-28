@@ -1,0 +1,31 @@
+#=t3918_test_compiler_elementandquark_caarrayemptyquark_error
+#!
+./Foo.ulam:7:21: ERROR: Incomplete Custom Array Type: erroneous used with class: EventWindow[].
+./Foo.ulam:7:35: ERROR: Invalid lefthand type of conditional operator 'is'.
+./Foo.ulam:7:13: ERROR: Cannot cast erroneous type.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t3505: mixed up aref return types.
+##
+#>Foo.ulam
+ulam 1;
+use EventWindow;
+element Foo {
+  typedef EventWindow.Sitenum Sitenum;
+  Int test() {
+    EventWindow ew;
+    return (Int) (ew[(Sitenum) 1] is Empty);
+  }
+}
+
+#:EventWindow.ulam
+ulam 1;
+quark EventWindow {
+  typedef Unsigned(6) Sitenum;
+  Atom& aref(Int index) native;
+  Atom aref(Sitenum index) {
+    return aref((Int) index);
+  }
+  //Void aset(Sitenum index, Atom val) {}
+}
+#.

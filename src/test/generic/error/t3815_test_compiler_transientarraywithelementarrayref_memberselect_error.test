@@ -4,7 +4,6 @@
 ./R.ulam:13:19: ERROR: Member selected must be a Class, not type: A[3].
 ./R.ulam:13:5: ERROR: Initial value expression for: fa3, initialization is invalid.
 ./R.ulam:13:5: ERROR: Storage expression for: fa3, is invalid.
-./Foo.ulam:2:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## similar to 3814, except array ref of element array data member is not specified completely

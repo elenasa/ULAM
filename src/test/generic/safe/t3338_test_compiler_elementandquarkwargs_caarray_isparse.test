@@ -6,10 +6,10 @@
 ## assert: arg is 1
 ## after asserts abort: arg is 1
 ##
-#!
 ##       //Constants have explicit types; a cast changed
+#!
 Exit status: -11
-Ue_EventWindowTest { constant Int(32) v = -2;  EventWindow(-2) ew( constant Int(32) w = -2; );  Int(32) test() {  System s;  Int(32) rtn = -1 cast;  EventWindowTest ewt;  ew 0 cast [] ewt cast = Atom(96) a = ew 0 cast [];  Atom(96) aw = ewt cast;  { aw EventWindowTest is cond rtn -2 = if rtn 1 cast = else } s ( rtn )print . s ( rtn -2 == )assert . rtn return } }
+Ue_EventWindowTest { constant Int(32) v = -2;  EventWindow(-2) ew( constant Int(32) w = -2; );  Int(32) test() {  System s;  Int(32) rtn = -1 cast;  EventWindowTest ewt;  ew 0 cast [] ewt cast cast = Atom(96) a = ew 0 cast [] cast;  Atom(96) aw = ewt cast;  { aw EventWindowTest is cond rtn -2 = if rtn 1 cast = else } s ( rtn )print . s ( rtn -2 == )assert . rtn return } }
 Uq_EventWindow(Int(32) w) { <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##      //informed by t3248
@@ -45,8 +45,8 @@ element EventWindowTest {
 #:EventWindow.ulam
   ulam 1;
 quark EventWindow(Int w) {
-  Atom aref(Int index) native;
-  Void aset(Int index, Atom val) native;
+  Atom& aref(Int index) native;
+  //Void aset(Int index, Atom val) native;
 }
 
 #:System.ulam

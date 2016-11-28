@@ -1,0 +1,89 @@
+## -*- mode:ulam -*-
+#=t3910_test_compiler_elementandquark_atomofmemberselectarrayitemlval_clobberingType_staleatomref
+#!
+##      gen code output: 1 assert only, abort
+## /home/elenas/WORK/ulam/repo/MFM-fork/MFM/src/core/include/UlamRef.tcc:81: FAILED: STALE_ATOM_REF
+##
+Exit status: -11
+Ue_R { Int(32) ans(0);  Int(32) test() {  System s;  T tr[2];  tr 1 [] m_earr 2 [] . b . true = Atom(96)& me = tr 1 [] m_earr 2 [] ..atomof;  { me A as cond { A& me;  s ( me b . )assert . } if s ( false )assert . else } B be;  tr 1 [] m_earr 2 [] ..atomof be cast cast = { me B as cond { B& me;  ans me m_i . = s ( ans )print . s ( ans 96 cast == )assert . s ( me bb . ! )assert . } if s ( false )assert . else } 0 cast return } }
+Uq_System { <NOMAIN> }
+Un_T { Bool(1) b(false);  A m_earr[3]( Bool(1) b(false);  QW m_q[4]( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ); ), ( Bool(1) b(false);  QW m_q[4]( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ); ), ( Bool(1) b(false);  QW m_q[4]( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ); );  <NOMAIN> }
+Ue_A { Bool(1) b(false);  QW m_q[4]( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); );  <NOMAIN> }
+Ue_B { Bool(1) bb(false);  Int(32) m_i( 96);  <NOMAIN> }
+Uq_QW { Unary(3) m_y(0);  <NOMAIN> }
+##
+## informed by t3909, except with same atomref 'me' gets stale when overwritten with different element Type
+##
+#>R.ulam
+  ulam 2;
+element R {
+  Int ans;
+  Int test(){
+    System s;
+    T tr[2];
+
+    tr[1].m_earr[2].b = true;
+    Atom& me = tr[1].m_earr[2].m_q[3].atomof;
+
+    if(me as A)
+      s.assert(me.b);
+    else
+      s.assert(false);
+
+    B be; //bb is false by default
+    tr[1].m_earr[2].m_q[3].atomof = be; //clobber 'me' with a different element B
+
+    //me is stale!! as it should be.
+    if(me as B)
+    {
+      ans = me.m_i; //33, atom-based is 96!
+      s.print(ans);
+      s.assert(ans == 96);
+      s.assert(!me.bb);
+    }
+    else
+      s.assert(false);
+
+    return 0;
+  }
+}
+
+#:T.ulam
+  ulam 2;
+transient T {
+  Bool b;
+  A m_earr[3];
+}
+
+#:A.ulam
+  ulam 2;
+element A {
+  Bool b;
+  QW m_q[4];
+}
+
+#:QW.ulam
+  ulam 2;
+quark QW {
+  Unary(3) m_y;
+}
+
+#:B.ulam
+  ulam 2;
+element B {
+  Bool bb;
+  Int m_i = B.sizeof;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

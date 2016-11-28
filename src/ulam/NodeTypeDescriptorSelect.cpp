@@ -75,7 +75,8 @@ namespace MFM {
 
     if(resolveType(it))
       {
-	m_ready = true; // set here
+	m_ready = true; //set here
+	m_uti = it; //given reset here
       }
     else
 	m_state.setGoAgain();
@@ -121,7 +122,7 @@ namespace MFM {
 			rtnuti = auti; //should be mapped already, if necessary
 			rtnb = true;
 		      }
-		    else if(m_state.isHolder(auti))
+		    else //t3862
 		      {
 			UTI mappedUTI;
 			if(m_state.mappedIncompleteUTI(seluti, auti, mappedUTI))
@@ -174,10 +175,10 @@ namespace MFM {
 			      }
 			  }
 		      }
-		    else
-		      {
-			//incomplete, but not a holder!! yippee (alittle progress)
-		      }
+		    //else
+		    //  {
+		    //	//incomplete, but not a holder!! yippee (alittle progress)
+		    //  }
 		  }
 		else
 		  {

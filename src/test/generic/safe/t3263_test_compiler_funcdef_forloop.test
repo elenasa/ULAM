@@ -5,26 +5,28 @@
 ##	 Int Arg: 20
 ##      */
 Exit status: 20
-Ue_A { Bool(7) b(false);  Int(32) d(20);  System s();  Int(32) test() {  d ( 4 cast 5 cast )times = s ( d )print . d return } }
+Ue_A { Bool(7) b(false);  Int(32) d(20);  Int(32) test() {  System s;  d ( 4 cast 5 cast )times = s ( d )print . d return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
+  ulam 1;
 use System;
 element A {
-Int times(Int m, Int n) {
-Int d;
-for(Int i = m; i > 0; i-=1)
-d += n;
- return d;
-}
+  Int times(Int m, Int n) {
+    Int d;
+    for(Int i = m; i > 0; i-=1)
+      d += n;
+    return d;
+  }
 
-System s;
-Bool(7) b;
-Int d;
-Int test(){ d = times(4,5);
-s.print(d);
-return d;
- }
- }
+  Bool(7) b;
+  Int d;
+  Int test(){
+    System s;
+    d = times(4,5);
+    s.print(d);
+    return d;
+  }
+}
 
 ##      //informed by: t3237_test_compiler_funcdef_whileifnotbreak
 ##      // using m
@@ -32,7 +34,7 @@ return d;
 ##
 ##      // test system quark with native overloaded print funcs; assert
 #:System.ulam
-ulam 1;
+  ulam 1;
 quark System {
 Void print(Unsigned arg) native;
 Void print(Int arg) native;

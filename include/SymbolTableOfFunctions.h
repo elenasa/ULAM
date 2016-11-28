@@ -48,7 +48,7 @@ namespace MFM{
 
     SymbolTableOfFunctions(CompilerState& state);
     SymbolTableOfFunctions(const SymbolTableOfFunctions& ref);
-    ~SymbolTableOfFunctions();
+    virtual ~SymbolTableOfFunctions();
 
     virtual u32 getTotalSymbolSize();
 
@@ -73,6 +73,8 @@ namespace MFM{
     UTI getCustomArrayReturnTypeGetFunction();
 
     u32 getCustomArrayIndexTypeGetFunction(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
+
+    bool hasCustomArrayLengthofFunction();
 
     u32 countNativeFuncDeclsForTableOfFunctions();
 

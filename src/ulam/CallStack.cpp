@@ -154,7 +154,7 @@ namespace MFM {
 	    storeUlamValueInSlot(lvalAtIdx, leftbaseslot);
 	  }
 	else
-	  assert(0);
+	  state.abortGreaterThanMaxBitsPerLong();
       }
   } //assignUlamValue
 
@@ -201,7 +201,7 @@ namespace MFM {
 	    storeUlamValueAtStackIndex(lvalAtIdx, leftbaseindex);
 	  }
 	else
-	  assert(0);
+	  state.abortGreaterThanMaxBitsPerLong();
       }
   } //assignUlamValueAtAbsoluteIndex
 

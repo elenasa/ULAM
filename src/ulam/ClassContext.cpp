@@ -2,9 +2,9 @@
 
 namespace MFM {
 
-  ClassContext::ClassContext() : m_compileThisId(0), m_compileThisIdx(Nouti), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL) {}
+  ClassContext::ClassContext() : m_compileThisId(0), m_compileThisIdx(Nouti), m_currentBlock(NULL), m_contextBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL) {}
 
-  ClassContext::ClassContext(u32 id, UTI idx, NodeBlock * nb, NodeBlockClass * nbc, bool usememberblock, NodeBlockClass * mbc): m_compileThisId(id), m_compileThisIdx(idx), m_currentBlock(nb), m_classBlock(nbc), m_useMemberBlock(usememberblock), m_currentMemberClassBlock(mbc) {}
+  ClassContext::ClassContext(u32 id, UTI idx, NodeBlock * nb, NodeBlockContext * nbc, bool usememberblock, NodeBlockClass * mbc): m_compileThisId(id), m_compileThisIdx(idx), m_currentBlock(nb), m_contextBlock(nbc), m_useMemberBlock(usememberblock), m_currentMemberClassBlock(mbc) {}
 
   ClassContext::~ClassContext() {}
 
@@ -18,13 +18,6 @@ namespace MFM {
     return m_compileThisIdx;
   }
 
-  void ClassContext::setCompileThisIdx(u32 id, UTI idx)
-  {
-    // keep in sync
-    m_compileThisId = id;
-    m_compileThisIdx = idx;
-  }
-
   NodeBlock * ClassContext::getCurrentBlock()
   {
     return m_currentBlock;
@@ -36,15 +29,15 @@ namespace MFM {
     m_currentBlock = nb;
   }
 
-  NodeBlockClass * ClassContext::getClassBlock()
+  NodeBlockContext * ClassContext::getContextBlock()
   {
-    return m_classBlock;
+    return m_contextBlock;
   }
 
-  void ClassContext::setClassBlock(NodeBlockClass * nbc)
+  void ClassContext::setContextBlock(NodeBlockContext * nbc)
   {
     assert(nbc);
-    m_classBlock = nbc;
+    m_contextBlock = nbc;
   }
 
   bool ClassContext::useMemberBlock()
@@ -70,7 +63,7 @@ namespace MFM {
   std::string ClassContext::getClassContextAsString()
   {
     std::ostringstream str;
-    str << m_compileThisId << ", " << m_compileThisIdx << ", <" << m_currentBlock << "> , <" << m_classBlock << ">, " << (m_useMemberBlock ? "true" : "false") << ", <" << m_currentMemberClassBlock << ">";
+    str << m_compileThisId << ", " << m_compileThisIdx << ", <" << m_currentBlock << "> , <" << m_contextBlock << ">, " << (m_useMemberBlock ? "true" : "false") << ", <" << m_currentMemberClassBlock << ">";
     return str.str();
   }
 

@@ -39,6 +39,27 @@ namespace MFM {
     return cntOfConstants;
   } //getNumberOfConstantSymbolsInTable
 
+  u32 SymbolTableOfVariables::findTypedefSymbolNameIdByTypeInTable(UTI type)
+  {
+    u32 rtnId = 0;
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym);
+	if(sym->isTypedef())
+	  {
+	    if(sym->getUlamTypeIdx() == type) //compare?
+	      {
+		rtnId = sym->getId();
+		break;
+	      }
+	  }
+	it++;
+      }
+    return rtnId;
+  } //findTypedefSymbolNameIdByTypeInTable
+
   //called by NodeBlock.
   u32 SymbolTableOfVariables::getTotalSymbolSize()
   {
@@ -207,59 +228,20 @@ namespace MFM {
 	if(sym->isDataMember() && variableSymbolWithCountableSize(sym) && !m_state.isClassAQuarkUnion(suti))
 	  {
 	    s32 len = sut->getTotalBitSize(); //include arrays (e.g. t3512)
-	    u32 pos = ((SymbolVariableDataMember *) sym)->getPosOffset();
+	    u32 pos = sym->getPosOffset();
 
 	    //updates the UV at offset with the default of sym;
 	    // support initialized non-class arrays
 	    if(((SymbolVariableDataMember *) sym)->hasInitValue())
 	      {
-		if(len <= MAXBITSPERLONG)
+		assert(len <= MAXSTATEBITS);
+		BV8K dval;
+		if(((SymbolVariableDataMember *) sym)->getInitValue(dval))
 		  {
-		    u64 dval = 0;
-		    if(((SymbolVariableDataMember *) sym)->getInitValue(dval))
-		      {
-			u32 wordsize = sut->getTotalWordSize();
-			if(wordsize <= MAXBITSPERINT)
-			  uvsite.putData(pos + startpos, len, (u32) dval); //absolute pos
-			else if(wordsize <= MAXBITSPERLONG)
-			  uvsite.putDataLong(pos + startpos, len, dval); //absolute pos
-			else
-			  assert(0);
-		      }
-		  }
-		else
-		  {
-		    assert(len <= MAXSTATEBITS);
-		    BV8K dval;
-		    if(((SymbolVariableDataMember *) sym)->getInitValue(dval))
-		      {
-			uvsite.putDataBig(pos + startpos, len, dval); //t3772
-		      }
+		    uvsite.putDataBig(pos + startpos, len, dval); //t3772, t3776
 		  }
 	      }
-	    else if(sut->getUlamTypeEnum() == Class)
-	      {
-		u64 dpkval = 0;
-		if(m_state.getPackedDefaultClass(suti, dpkval))
-		  {
-		    s32 bitsize = sut->getBitSize();
-		    s32 arraysize = sut->getArraySize();
-		    arraysize = (arraysize == NONARRAYSIZE ? 1 : arraysize);
-		    //could be a "packloadable" array of them;
-		    // u64 dpkarr = 0;
-		    //m_state.getDefaultAsPackedArray(len, bitsize, arraysize, 0u, dpkval, dpkarr);
-		    // uvsite.putDataLong(pos + startpos, len, dpkarr);
-		    //more general..
-		    u32 basepos = pos + startpos;
-		    for(s32 j=0; j < arraysize; j++)
-		      {
-			uvsite.putDataLong(basepos + j * bitsize, bitsize, dpkval);
-		      }
-		  }
-		else
-		  assert(0); //for eval, how could an element dm not be a quark? hence u32 per.
-	      }
-	    //else nothing to do?
+	    //else nothing to do
 	  } //countable
 	it++;
       } //while
@@ -278,7 +260,7 @@ namespace MFM {
 	    UTI suti = sym->getUlamTypeIdx();
 	    if(UlamType::compare(suti, utype, m_state) == UTIC_SAME)
 	      {
-		posfound = ((SymbolVariableDataMember *) sym)->getPosOffset();
+		posfound = sym->getPosOffset();
 		insidecuti = suti;
 		break;
 	      }
@@ -289,7 +271,7 @@ namespace MFM {
 		assert(superuti != Hzy);
 		if((superuti != Nouti) && (UlamType::compare(superuti, utype, m_state) == UTIC_SAME))
 		  {
-		    posfound = ((SymbolVariableDataMember *) sym)->getPosOffset(); //starts at beginning
+		    posfound = sym->getPosOffset(); //starts at beginning
 		    insidecuti = suti;
 		    break;
 		  }
@@ -307,7 +289,7 @@ namespace MFM {
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
-	if(!sym->isTypedef() && sym->isDataMember()) //including model parameters
+	if(!sym->isTypedef() && !sym->isConstant() && sym->isDataMember()) //including model parameters
 	  {
 	    ((SymbolVariable *) sym)->generateCodedVariableDeclarations(fp, classtype);
 	  }
@@ -330,45 +312,6 @@ namespace MFM {
       }
   } //genModelParameterImmediateDefinitionsForTableOfVariableDataMembers
 
-  void SymbolTableOfVariables::genCodeBuiltInFunctionHasOverTableOfVariableDataMember(File * fp)
-  {
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-    while(it != m_idToSymbolPtr.end())
-      {
-	Symbol * sym = it->second;
-	if(sym->isDataMember() && variableSymbolWithCountableSize(sym))
-	  {
-	    UTI suti = sym->getUlamTypeIdx();
-	    UlamType * sut = m_state.getUlamTypeByIndex(suti);
-	    if(sut->getUlamClassType() == UC_QUARK)
-	      {
-		m_state.indentUlamCode(fp);
-		fp->write("if(!strcmp(namearg,\"");
-		fp->write(sut->getUlamTypeMangledName().c_str()); //mangled, including class args!
-		fp->write("\")) return (");
-		fp->write_decimal(((SymbolVariableDataMember *) sym)->getPosOffset());
-		fp->write("); //pos offset"); GCNL;
-
-		UTI superuti = m_state.isClassASubclass(suti);
-		assert(superuti != Hzy);
-		while(superuti != Nouti) //none
-		  {
-		    UlamType * superut = m_state.getUlamTypeByIndex(superuti);
-		    m_state.indentUlamCode(fp);
-		    fp->write("if(!strcmp(namearg,\"");
-		    fp->write(superut->getUlamTypeMangledName().c_str()); //mangled, including class args!
-		    fp->write("\")) return (");
-		    fp->write_decimal(((SymbolVariableDataMember *) sym)->getPosOffset()); //same offset starts at 0
-		    fp->write("); //inherited pos offset"); GCNL;
-
-		    superuti = m_state.isClassASubclass(superuti); //any more
-		  } //while
-	      }
-	  }
-	it++;
-      }
-  } //genCodeBuiltInFunctionHasOverTableOfVariableDataMember
-
   void SymbolTableOfVariables::addClassMemberDescriptionsToMap(UTI classType, ClassMemberMap& classmembers)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
@@ -381,11 +324,6 @@ namespace MFM {
 	    descptr = new ParameterDesc((SymbolModelParameterValue *) sym, classType, m_state);
 	    assert(descptr);
 	  }
-	else if(sym->isDataMember())
-	  {
-	    descptr = new DataMemberDesc((SymbolVariableDataMember *) sym, classType, m_state);
-	    assert(descptr);
-	  }
 	else if(sym->isTypedef())
 	  {
 	    descptr = new TypedefDesc((SymbolTypedef *) sym, classType, m_state);
@@ -396,10 +334,15 @@ namespace MFM {
 	    descptr = new ConstantDesc((SymbolConstantValue *) sym, classType, m_state);
 	    assert(descptr);
 	  }
+	else if(sym->isDataMember()) //comes after isConstant
+	  {
+	    descptr = new DataMemberDesc((SymbolVariableDataMember *) sym, classType, m_state);
+	    assert(descptr);
+	  }
 	else
 	  {
 	    //error not ready perhaps
-	    assert(0); //(functions done separately)
+	    m_state.abortShouldntGetHere(); //(functions done separately)
 	  }
 
 	if(descptr)
@@ -454,8 +397,7 @@ namespace MFM {
 
     //not a primitive (class), array
     s32 argarraysize = argut->getArraySize();
-    //if(argut->getArraySize() > 0)
-    if(argarraysize >= 0) //Mon Jul  4 14:30:01 2016
+    if(argarraysize >= 0)
       {
 	if(totbitsize >= 0)
 	  {
@@ -463,7 +405,7 @@ namespace MFM {
 	  }
 	if(totbitsize == CYCLEFLAG) //was < 0
 	  {
-	    assert(0);
+	    m_state.abortShouldntGetHere();
 	    return CYCLEFLAG;
 	  }
 	if(totbitsize == EMPTYSYMBOLTABLE)
@@ -536,7 +478,7 @@ namespace MFM {
 		    assert(classblock);
 
 		    //a class cannot contain a copy of itself!
-		    if(classblock == m_state.getClassBlock())
+		    if(classblock == m_state.getContextBlock())
 		      {
 			UTI suti = csym->getUlamTypeIdx();
 			std::ostringstream msg;

@@ -66,6 +66,8 @@ namespace MFM{
 
     void setPassPos(u32 pos);
 
+    void setPassPosForElementType(u32 pos, CompilerState& state);
+
     u32 getPassPos();
 
     u32 getPassLen();

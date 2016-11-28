@@ -30,7 +30,7 @@ namespace MFM {
 	m_min = 0;
       }
     else
-      assert(0);
+      m_state.abortGreaterThanMaxBitsPerLong();
   }
 
    ULAMTYPE UlamTypePrimitiveUnary::getUlamTypeEnum()
@@ -61,7 +61,7 @@ namespace MFM {
 	else if(valwordsize <= MAXBITSPERLONG)
 	  brtn = castTo64(val, typidx); //downcast
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
     else if(wordsize <= MAXBITSPERLONG)
       brtn = castTo64(val, typidx);
@@ -129,7 +129,7 @@ namespace MFM {
     else if(valwordsize <= MAXBITSPERLONG)
       data = val.getImmediateDataLong(m_state);
     else
-      assert(0);
+      m_state.abortGreaterThanMaxBitsPerLong();
 
     s32 bitsize = getBitSize();
     s32 valbitsize = m_state.getBitSize(valtypidx);
@@ -167,7 +167,7 @@ namespace MFM {
 	else if(wordsize <= MAXBITSPERLONG)
 	  val = UlamValue::makeImmediateLong(typidx, data, m_state); //overwrite val
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
     return brtn;
   } //castTo64
@@ -206,7 +206,7 @@ namespace MFM {
 	brtn = false;
 	break;
       default:
-	assert(0);
+	m_state.abortUndefinedUlamType();
 	//std::cerr << "UlamTypePrimitiveUnary (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };
@@ -276,7 +276,7 @@ namespace MFM {
       case Class:
 	break;
       default:
-	assert(0);
+	m_state.abortUndefinedUlamType();
 	//std::cerr << "UlamTypePrimitiveUnary convertTypeTo error! " << tobUT << std::endl;
       };
     return (tobitsize > wordsize ? wordsize : tobitsize);

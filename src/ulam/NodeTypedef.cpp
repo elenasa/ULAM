@@ -130,7 +130,7 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	      }
 	  }
-	else if(tdut->isHolder())
+	else if(tdut->isHolder() && !m_state.isThisLocalsFileScope())
 	  {
 	    m_state.statusUnknownTypeInThisClassResolver(it);
 	  }
@@ -309,6 +309,15 @@ namespace MFM {
     fp->write(";"); GCNL;
 #endif
   } //genCode
+
+  void NodeTypedef::genCodeConstantArrayInitialization(File * fp)
+  {}
+
+  void NodeTypedef::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  {}
+
+  void NodeTypedef::cloneAndAppendNode(std::vector<Node *> & cloneVec)
+  {}
 
   void NodeTypedef::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {}

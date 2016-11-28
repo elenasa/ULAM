@@ -9,8 +9,12 @@ namespace MFM {
 
   NodeBinaryOp::NodeBinaryOp(const NodeBinaryOp& ref) : Node(ref)
   {
+    assert(ref.m_nodeLeft);
     m_nodeLeft = ref.m_nodeLeft->instantiate();
-    m_nodeRight = ref.m_nodeRight->instantiate();
+    if(ref.m_nodeRight)
+      m_nodeRight = ref.m_nodeRight->instantiate();
+    else
+      m_nodeRight = NULL; //t3890
   }
 
   NodeBinaryOp::~NodeBinaryOp()
@@ -26,7 +30,7 @@ namespace MFM {
     setYourParentNo(pno);
     m_nodeLeft->updateLineage(getNodeNo());
     m_nodeRight->updateLineage(getNodeNo());
-  } //updateLineage
+  }
 
   bool NodeBinaryOp::exchangeKids(Node * oldnptr, Node * newnptr)
   {
@@ -58,7 +62,7 @@ namespace MFM {
   {
       m_nodeLeft->checkAbstractInstanceErrors();
       m_nodeRight->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
+  }
 
   void NodeBinaryOp::print(File * fp)
   {
@@ -107,7 +111,7 @@ namespace MFM {
     char myname[16];
     sprintf(myname," %s", getName());
     fp->write(myname);
-  } //printOp
+  }
 
   bool NodeBinaryOp::isAConstant()
   {
@@ -131,7 +135,7 @@ namespace MFM {
   {
     //ulamtype checks for complete, non array, and type specific rules
     return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
-  } //safeToCastTo
+  }
 
   UTI NodeBinaryOp::checkAndLabelType()
   {
@@ -444,17 +448,9 @@ namespace MFM {
 
     NNO pno = Node::getYourParentNo();
     assert(pno);
-    Node * parentNode = m_state.findNodeNoInThisClass(pno);
-    if(!parentNode)
-      {
-	std::ostringstream msg;
-	msg << "Constant value expression for binary op" << getName();
-	msg << " cannot be constant-folded at this time while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	msg << " Parent required";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	assert(0); //parent required
-      }
+
+    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
+    assert(parentNode);
 
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(nuti); //offset a constant expression
@@ -468,7 +464,7 @@ namespace MFM {
 	else if(wordsize == MAXBITSPERLONG)
 	  val = cnstUV.getImmediateDataLong(m_state);
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
 
     evalNodeEpilog();
@@ -592,7 +588,7 @@ namespace MFM {
 	rtnUV = makeImmediateLongBinaryOp(nuti, ldata, rdata, len);
       }
     else
-      assert(0);
+      m_state.abortGreaterThanMaxBitsPerLong();
 
     if(rtnUV.getUlamValueTypeIdx() == Nav)
       return false;

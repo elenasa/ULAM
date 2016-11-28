@@ -120,8 +120,11 @@ namespace MFM {
       case Bool:
 	methodname << "Bool";
 	break;
+      case String:
+	methodname << "String";
+	break;
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	methodname << "NAV";
 	break;
       };
@@ -141,7 +144,7 @@ namespace MFM {
 #ifdef SUPPORT_ARITHMETIC_ARRAY_OPS
 	return doBinaryOperationArray(lslot, rslot, slots);
 #else
-	assert(0);
+	m_state.abortNotImplementedYet();
 #endif //defined below...
       }
     return false;
@@ -178,7 +181,7 @@ namespace MFM {
 	rtnUV = makeImmediateLongBinaryOp(luti, ldata, rdata, len);
       }
     else
-      assert(0); //e.g. 0
+      m_state.abortGreaterThanMaxBitsPerLong(); //e.g. 0
 
     if(rtnUV.getUlamValueTypeIdx() == Nav)
       return false;
@@ -194,7 +197,8 @@ namespace MFM {
   // its nodes, where left and right nodes are casted to be the same.
   bool NodeBinaryOpCompare::doBinaryOperationArray(s32 lslot, s32 rslot, u32 slots)
   {
-    assert(0); //not implemented yet..TODO return bool.
+    m_state.abortNotImplementedYet(); //not implemented yet..TODO return bool.
+#if 0
     UlamValue rtnUV;
     UTI nuti = getNodeType(); //Bool, same array size as lhs/rhs
 
@@ -262,7 +266,7 @@ namespace MFM {
 
     if(WritePacked(packRtn))
       m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1); //store accumulated packed result
-
+#endif
     return false; //NOT IMPLEMENTED YET!
   } //end dobinaryOperaationarray
 

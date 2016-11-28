@@ -9,14 +9,14 @@
 
 namespace MFM {
 
-  NodeFunctionCall::NodeFunctionCall(const Token& tok, SymbolFunction * fsym, CompilerState & state) : Node(state), m_functionNameTok(tok), m_funcSymbol(fsym), m_argumentNodes(NULL)
+  NodeFunctionCall::NodeFunctionCall(const Token& tok, SymbolFunction * fsym, CompilerState & state) : Node(state), m_functionNameTok(tok), m_funcSymbol(fsym), m_argumentNodes(NULL), m_tmpvarSymbol(NULL)
   {
     m_argumentNodes = new NodeList(state);
     assert(m_argumentNodes);
     m_argumentNodes->setNodeLocation(tok.m_locator); //same as func call
   }
 
-  NodeFunctionCall::NodeFunctionCall(const NodeFunctionCall& ref) : Node(ref), m_functionNameTok(ref.m_functionNameTok), m_funcSymbol(NULL), m_argumentNodes(NULL){
+  NodeFunctionCall::NodeFunctionCall(const NodeFunctionCall& ref) : Node(ref), m_functionNameTok(ref.m_functionNameTok), m_funcSymbol(NULL), m_argumentNodes(NULL), m_tmpvarSymbol(NULL){
     m_argumentNodes = (NodeList *) ref.m_argumentNodes->instantiate();
   }
 
@@ -24,6 +24,8 @@ namespace MFM {
   {
     delete m_argumentNodes;
     m_argumentNodes = NULL;
+    delete m_tmpvarSymbol;
+    m_tmpvarSymbol = NULL;
   }
 
   Node * NodeFunctionCall::instantiate()
@@ -361,7 +363,19 @@ namespace MFM {
       }
 
     argNodes.clear();
+    assert(it == getNodeType());
     assert(m_funcSymbol || (getNodeType() == Nav) || (getNodeType() == Hzy));
+
+    if(m_state.okUTItoContinue(it))
+      {
+	bool isref = m_state.isReference(it);
+	if(m_state.isAClass(it) || isref)
+	  setStoreIntoAble(TBOOL_TRUE); //t3912 (class)
+	if(isref)
+	  setReferenceAble(TBOOL_TRUE); //set after storeintoable t3661,2; t3630
+	else
+	  setReferenceAble(TBOOL_FALSE);
+      }
     return it;
   } //checkAndLabelType
 
@@ -383,12 +397,11 @@ namespace MFM {
 	u32 nobase = 0;
 	m_argumentNodes->getNodePtr(i)->calcMaxDepth(depthi, nomaxdepth, nobase); //possible func call as arg
 	u32 sloti = m_state.slotsNeeded(m_argumentNodes->getNodeType(i)); //just a variable or constant
-	//take the greater
-	argbase += depthi > sloti ? depthi : sloti;
+	argbase += depthi > sloti ? depthi : sloti; //take the greater
       }
-
     argbase += m_state.slotsNeeded(getNodeType()); //return
-    argbase += 1; //hidden
+    argbase += 1; //hidden uc Wed Sep 21 10:44:37 2016
+    argbase += 1; //hidden ur
     depth += argbase;
   } //calcMaxDepth
 
@@ -414,15 +427,179 @@ namespace MFM {
     NodeBlockFunctionDefinition * func = m_funcSymbol->getFunctionNode();
     assert(func);
 
+    UTI rtnType = m_funcSymbol->getUlamTypeIdx();
+    s32 rtnslots = m_state.slotsNeeded(rtnType);
+    u32 argsPushed = 0;
+
+    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*********
+    UlamValue saveSelfPtr = m_state.m_currentSelfPtr; // restore upon return from func *****
+
+    evalNodeProlog(0); //new current frame pointer on node eval stack
+
+    EvalStatus argevs = evalArgumentsInReverseOrder(argsPushed);
+    if(argevs != NORMAL)
+      {
+	evalNodeEpilog();
+	return argevs;
+      }
+
+    EvalStatus hiddenevs = evalHiddenArguments(argsPushed, func);
+    if(hiddenevs != NORMAL)
+      {
+	evalNodeEpilog();
+	return hiddenevs;
+      }
+
+    m_state.m_currentSelfPtr = m_state.m_currentObjPtr; // set for subsequent func calls ****
+    //********************************************
+    //*  FUNC CALL HERE!!
+    //*
+    EvalStatus evs = func->eval(); //NodeBlockFunctionDefinition..
+    if(evs != NORMAL)
+      {
+	assert(evs != RETURN);
+	//drops all the args and return slots on callstack
+	m_state.m_funcCallStack.popArgs(argsPushed+rtnslots);
+	m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr *******
+	m_state.m_currentSelfPtr = saveSelfPtr; //restore previous self *****
+	evalNodeEpilog();
+	return evs;
+      }
+    //*
+    //**********************************************
+
+    // ANY return value placed on the STACK by a Return Statement,
+    // was copied to EVALRETURN by the NodeBlockFunctionDefinition
+    // before arriving here! And may be ignored at this point.
+    if(Node::returnValueOnStackNeededForEval(rtnType))
+      {
+	UlamValue rtnUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
+	Node::assignReturnValueToStack(rtnUV); //into return space on eval stack;
+      }
+    else
+      {
+	//positive to current frame pointer; pos is (BITSPERATOM - rtnbitsize * rtnarraysize)
+	UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, rtnType, m_state.determinePackable(rtnType), m_state);
+	Node::assignReturnValueToStack(rtnPtr); //into return space on eval stack;
+      }
+
+    m_state.m_funcCallStack.popArgs(argsPushed+rtnslots); //drops all the args and return slots on callstack
+
+    m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr *****
+    m_state.m_currentSelfPtr = saveSelfPtr; //restore previous self      *************
+    evalNodeEpilog(); //clears out the node eval stack
+    return NORMAL;
+  } //eval
+
+  EvalStatus NodeFunctionCall::evalToStoreInto()
+  {
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
+    if(nuti == Hzy)
+      return NOTREADY;
+
+    std::ostringstream msg;
+    msg << "Eval of function calls as lefthand values is not currently supported.";
+    msg << " Save the results of <";
+    msg << m_state.getTokenDataAsString(m_functionNameTok).c_str();
+    msg << "> to a variable, type: ";
+    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+    if(getStoreIntoAble() != TBOOL_TRUE)
+      {
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return ERROR;
+      }
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+    //need a Ptr to the auto temporary variable, the result of func call
+    // that belongs in m_currentObjPtr, but where to store the ans?
+    // use the hidden 'uc' slot (under the return value) (e.g. t3912)
+
+    assert(m_state.isAClass(nuti) || m_state.isReference(nuti)); //sanity?
+
+    assert(m_funcSymbol);
+    NodeBlockFunctionDefinition * func = m_funcSymbol->getFunctionNode();
+    assert(func);
+
+    UTI rtnType = m_funcSymbol->getUlamTypeIdx();
+    s32 rtnslots = m_state.slotsNeeded(rtnType);
+    u32 argsPushed = 0;
+
+    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*********
+    UlamValue saveSelfPtr = m_state.m_currentSelfPtr; // restore upon return from func *****
+
+    evalNodeProlog(0); //new current frame pointer on node eval stack
+
+    EvalStatus argevs = evalArgumentsInReverseOrder(argsPushed);
+    if(argevs != NORMAL)
+      {
+	evalNodeEpilog();
+	return argevs;
+      }
+
+    EvalStatus hiddenevs = evalHiddenArguments(argsPushed, func);
+    if(hiddenevs != NORMAL)
+      {
+	evalNodeEpilog();
+	return hiddenevs;
+      }
+
+    m_state.m_currentSelfPtr = m_state.m_currentObjPtr; // set for subsequent func calls ****
+    //********************************************
+    //*  FUNC CALL HERE!!
+    //*
+    EvalStatus evs = func->evalToStoreInto(); //NodeBlockFunctionDefinition..
+    if(evs != NORMAL)
+      {
+	assert(evs != RETURN);
+	//drops all the args and return slots on callstack
+	m_state.m_funcCallStack.popArgs(argsPushed+rtnslots);
+	m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr *******
+	m_state.m_currentSelfPtr = saveSelfPtr; //restore previous self *****
+	evalNodeEpilog();
+	return evs;
+      }
+    //*
+    //**********************************************
+
+    // ANY return value placed on the STACK by a Return Statement,
+    // was copied to EVALRETURN by the NodeBlockFunctionDefinition
+    // before arriving here! And may be ignored at this point.
+    if(Node::returnValueOnStackNeededForEval(rtnType))
+      {
+	//t3189 returns a class (non-ref);
+	//t3630 return a reference to a primitive;
+	UlamValue rtnUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
+	if(rtnUV.isPtr())
+	  Node::assignReturnValuePtrToStack(rtnUV); //into return space on eval stack;
+	else
+	  Node::assignReturnValueToStack(rtnUV); //into return space on eval stack; t3189
+      }
+    else
+      {
+	//positive to current frame pointer; pos is (BITSPERATOM - rtnbitsize * rtnarraysize)
+	UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, rtnType, m_state.determinePackable(rtnType), m_state);
+	Node::assignReturnValuePtrToStack(rtnPtr); //into return space on eval stack;
+      }
+
+    m_state.m_funcCallStack.popArgs(argsPushed+rtnslots); //drops all the args and return slots on callstack
+
+    m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr *****
+    m_state.m_currentSelfPtr = saveSelfPtr; //restore previous self      *************
+    evalNodeEpilog(); //clears out the node eval stack
+    return NORMAL;
+  } //evalToStoreInto
+
+  EvalStatus NodeFunctionCall::evalArgumentsInReverseOrder(u32& argsPushed)
+  {
     // before processing arguments, get the "self" atom ptr,
     // so that arguments will be relative to it, and not the possible
     // selected member instance this function body could effect.
     UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*********
     m_state.m_currentObjPtr = m_state.m_currentSelfPtr;
 
-    evalNodeProlog(0); //new current frame pointer on node eval stack
-    u32 argsPushed = 0;
-    EvalStatus evs;
+    EvalStatus evs = NORMAL;
 
     // for now we're going to bypass variable arguments for eval purposes
     // since our NodeFunctionDef has no way to know how many extra args to expect!
@@ -448,16 +625,13 @@ namespace MFM {
 	  evs = m_argumentNodes->eval(i);
 
 	if(evs != NORMAL)
-	  {
-	    evalNodeEpilog();
-	    return evs;
-	  }
+	  return evs; //quit!
 
 	// transfer to call stack
 	if(slots==1)
 	  {
 	    UlamValue auv = m_state.m_nodeEvalStack.popArg();
-	    if(paramreftype == ALT_REF && (auv.getPtrStorage() == STACK))
+	    if((paramreftype == ALT_REF) && (auv.getPtrStorage() == STACK))
 	      {
 		assert(m_state.isPtr(auv.getUlamValueTypeIdx()));
 		assert(!auv.isPtrAbs()); //doing that conversion here!
@@ -472,7 +646,6 @@ namespace MFM {
 	  {
 	    //array
 	    PACKFIT packed = m_state.determinePackable(argType);
-	    //assert(WritePacked(packed));
 
 	    //array to transfer without reversing order again
 	    u32 baseSlot = m_state.m_funcCallStack.getRelativeTopOfStackNextSlot();
@@ -480,7 +653,6 @@ namespace MFM {
 
 	    //both either unpacked or packed
 	    UlamValue basePtr = UlamValue::makePtr(baseSlot, STACK, argType, packed, m_state);
-
 	    //positive to current frame pointer
 	    UlamValue auvPtr = UlamValue::makePtr(1, EVALRETURN, argType, packed, m_state);
 
@@ -489,6 +661,12 @@ namespace MFM {
 	  }
       } //done with args
 
+    m_state.m_currentObjPtr = saveCurrentObjectPtr; // RESTORE *********
+    return NORMAL;
+  } //evalArgumentsInReverseOrder
+
+  EvalStatus NodeFunctionCall::evalHiddenArguments(u32& argsPushed, NodeBlockFunctionDefinition *& func)
+  {
     //before pushing return slot(s) last (on both STACKS for now)
     UTI rtnType = m_funcSymbol->getUlamTypeIdx();
     s32 rtnslots = makeRoomForNodeType(rtnType);
@@ -496,7 +674,6 @@ namespace MFM {
     // insert "first" hidden arg (adjusted index pointing to atom);
     // atom index (negative) relative new frame, includes ALL the pushed args,
     // and upcoming rtnslots: current_atom_index - relative_top_index (+ returns)
-    m_state.m_currentObjPtr = saveCurrentObjectPtr; // RESTORE *********
     UlamValue atomPtr = m_state.m_currentObjPtr; //*********
 
     //update func def (at eval time) based on class in virtual table
@@ -506,7 +683,6 @@ namespace MFM {
       {
 	if(!getVirtualFunctionForEval(atomPtr, func))
 	  {
-	    evalNodeEpilog();
 	    return ERROR;
 	  }
       } //end virtual function
@@ -521,6 +697,7 @@ namespace MFM {
 	if(atomPtr.isPtrAbs())
 	  atomPtr.setUlamValueTypeIdx(Ptr); //let's see..t3114 and 160+ more tests
       }
+
     // push the "hidden" first arg, and update the current object ptr (restore later)
     m_state.m_funcCallStack.pushArg(atomPtr); //*********
     argsPushed++;
@@ -529,67 +706,12 @@ namespace MFM {
     makeRoomForSlots(1, STACK); // uc placeholder
     argsPushed++;
 
-    UlamValue saveSelfPtr = m_state.m_currentSelfPtr; // restore upon return from func *****
-    m_state.m_currentSelfPtr = m_state.m_currentObjPtr; // set for subsequent func calls ****
-
     //(continue) push return slot(s) last (on both STACKS for now)
     makeRoomForNodeType(rtnType, STACK);
 
     assert(rtnslots == m_state.slotsNeeded(rtnType));
-
-    //********************************************
-    //*  FUNC CALL HERE!!
-    //*
-    evs = func->eval(); //NodeBlockFunctionDefinition..
-    if(evs != NORMAL)
-      {
-	assert(evs != RETURN);
-	//drops all the args and return slots on callstack
-	m_state.m_funcCallStack.popArgs(argsPushed+rtnslots);
-	m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr *******
-	m_state.m_currentSelfPtr = saveSelfPtr; //restore previous self *****
-	evalNodeEpilog();
-	return evs;
-      }
-    //*
-    //**********************************************
-
-    // ANY return value placed on the STACK by a Return Statement,
-    // was copied to EVALRETURN by the NodeBlockFunctionDefinition
-    // before arriving here! And may be ignored at this point.
-    //if(m_state.isAtom(rtnType))
-    if(m_state.isAtom(rtnType) && (m_state.isScalar(rtnType) || m_state.isReference(rtnType)))
-      {
-	UlamValue rtnUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
-	Node::assignReturnValueToStack(rtnUV); //into return space on eval stack;
-      }
-    else
-      {
-	//positive to current frame pointer; pos is (BITSPERATOM - rtnbitsize * rtnarraysize)
-	UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, rtnType, m_state.determinePackable(rtnType), m_state);
-	Node::assignReturnValueToStack(rtnPtr); //into return space on eval stack;
-      }
-
-    m_state.m_funcCallStack.popArgs(argsPushed+rtnslots); //drops all the args and return slots on callstack
-
-    m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr *****
-    m_state.m_currentSelfPtr = saveSelfPtr; //restore previous self      *************
-    evalNodeEpilog(); //clears out the node eval stack
     return NORMAL;
-  } //eval
-
-  EvalStatus NodeFunctionCall::evalToStoreInto()
-  {
-    std::ostringstream msg;
-    msg << "Eval of function calls as lefthand values is not currently supported.";
-    msg << " Save the results of <";
-    msg << m_state.getTokenDataAsString(m_functionNameTok).c_str();
-    msg << "> to a variable, type: ";
-    msg << m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str();
-    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-    assert(Node::getStoreIntoAble() == TBOOL_FALSE);
-    return ERROR;
-  } //evalToStoreInto
+  } //evalHiddenArguments
 
   void NodeFunctionCall::addArgument(Node * n)
   {
@@ -629,7 +751,7 @@ namespace MFM {
 	      }
 	    else if(autolocaltype == ALT_HAS)
 	      {
-		assert(0); //deprecated
+		m_state.abortNotSupported(); //deprecated
 		// auto type is the type of the data member,
 		// rather than the base (rhs)
 	      }
@@ -694,7 +816,6 @@ namespace MFM {
 	    else
 	      msg << "not found";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    assert(0);
 	  }
 
 	if(!funcSymbol->isVirtualFunction())
@@ -760,6 +881,12 @@ namespace MFM {
   void NodeFunctionCall::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
     genCodeIntoABitValue(fp,uvpass);
+
+    if(m_state.isAClass(uvpass.getPassTargetType()))
+      {
+	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL);
+	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
+      }
   } //codeGenToStoreInto
 
   void NodeFunctionCall::genCodeIntoABitValue(File * fp, UVPass& uvpass)
@@ -813,7 +940,7 @@ namespace MFM {
 	      {
 		// e.g. 'self' is not a dm, nor local var or arg (t3274, t3275, t3405)
 		if(cos->isDataMember())
-		  pos = ((SymbolVariableDataMember *) cos)->getPosOffset(); //data member position overrides
+		  pos = cos->getPosOffset(); //data member position overrides
 		//else 0
 	      }
 	    //else local var or arg, including references and model parameter
@@ -823,7 +950,8 @@ namespace MFM {
 
 	// put result of function call into a variable;
 	// (C turns it into the copy constructor)
-	fp->write("const ");
+	if(getStoreIntoAble() == TBOOL_FALSE)
+	  fp->write("const ");
 	fp->write(nut->getLocalStorageTypeAsString().c_str()); //e.g. BitVector<32>
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(nuti, rtnSlot, TMPBITVAL).c_str());
@@ -978,7 +1106,7 @@ namespace MFM {
       }
     else if(cos->getAutoLocalType() == ALT_AS)
       {
-	assert(0);
+	m_state.abortShouldntGetHere();
 	fp->write(m_state.getHiddenArgName()); //ur, should use urtmpnum!!
 	fp->write(".GetEffectiveSelf()->getVTableEntry(");
       }
@@ -1056,7 +1184,7 @@ namespace MFM {
 
   void NodeFunctionCall::genModelParameterMemberNameOfMethod(File * fp, s32 epi)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   } //genModelParamenterMemberNameOfMethod
 
   std::string NodeFunctionCall::genHiddenArgs(u32 urtmpnum)
@@ -1077,10 +1205,14 @@ namespace MFM {
     assert(uvpass.getPassStorage() == TMPAUTOREF);
 
     UTI vuti = uvpass.getPassTargetType();
+
     //vuti may not be a ref (e.g. t3668, a QW that was deref'd by [].)
+    bool isaref = m_state.isReference(vuti);
 
     //use possible dereference type for mangled name
     UTI derefuti = m_state.getUlamTypeAsDeref(vuti);
+    assert(m_state.isAClass(derefuti));
+
     UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
 
    u32 tmpvarnum = uvpass.getPassVarNum();
@@ -1090,12 +1222,15 @@ namespace MFM {
     //new ur to reflect "effective" self and the ref storage, for this funccall
     hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvarur).c_str() << "(";
     hiddenarg2 << m_state.getTmpVarAsString(derefuti, tmpvarnum, TMPAUTOREF).c_str();
-    hiddenarg2 << ", " << uvpass.getPassPos() << "u"; //element refs already +25
+    if(isaref)
+      hiddenarg2 << ", 0u"; //references already offset t3811
+    else
+      hiddenarg2 << ", " << uvpass.getPassPos() << "u"; //element refs already +25
+
     hiddenarg2 << ", " << derefut->getTotalBitSize() << "u, "; //len t3370
 
     hiddenarg2 << "&";
     hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(derefuti).c_str();
-
     hiddenarg2 << ", " << genUlamRefUsageAsString(derefuti).c_str();
     hiddenarg2 << ");";
 
@@ -1123,14 +1258,9 @@ namespace MFM {
 	else //local var
 	  {
 	    Symbol * stgcos = NULL;
-	    if(m_state.m_currentObjSymbolsForCodeGen.empty())
-	      {
-		stgcos = m_state.getCurrentSelfSymbolForCodeGen();
-	      }
-	    else
-	      {
-		stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-	      }
+	    Symbol * costmp = NULL;
+	    Node::loadStorageAndCurrentObjectSymbols(stgcos, costmp);
+	    assert(costmp && stgcos);
 
 	    stype << stgcos->getMangledName().c_str();
 	    stype << ".GetType()";
@@ -1168,7 +1298,7 @@ namespace MFM {
 
     if(epcosclasstype != UC_NOTACLASS)
       {
-	assert(0);
+	m_state.abortShouldntGetHere();
 	hiddenlist << ".getRef()";
       }
     return hiddenlist.str();
@@ -1240,75 +1370,28 @@ namespace MFM {
     // or ancestor quark if a class.
     m_argumentNodes->genCodeToStoreInto(fp, uvpass, n);
 
+    u32 id = 0;
+    Symbol * cossym = NULL;
+    if(!m_state.m_currentObjSymbolsForCodeGen.empty())
+      {
+	cossym = m_state.m_currentObjSymbolsForCodeGen.back();
+	id = cossym->getId();
+      }
+
     //tmp var for lhs
-    s32 tmpVarArgNum = m_state.getNextTmpVarNumber();
     assert(m_funcSymbol);
     UTI vuti = m_funcSymbol->getParameterType(n);
-
-    u32 id = 0;
-    if(!m_state.m_currentObjSymbolsForCodeGen.empty())
-      id = m_state.m_currentObjSymbolsForCodeGen[0]->getId();
+    s32 tmpVarArgNum = m_state.getNextTmpVarNumber();
 
     UVPass luvpass = UVPass::makePass(tmpVarArgNum, TMPAUTOREF, vuti, m_state.determinePackable(vuti), m_state, 0, id);
-    SymbolTmpRef * tmprefsym = Node::makeTmpRefSymbolForCodeGen(luvpass);
+    SymbolTmpVar * tmpvarsym = Node::makeTmpVarSymbolForCodeGen(luvpass, cossym); //cossym could be null
 
-    Node::genCodeReferenceInitialization(fp, uvpass, tmprefsym);
+    Node::genCodeReferenceInitialization(fp, uvpass, tmpvarsym); //uvpass, not luvpass t3812, t3819
 
-    delete tmprefsym;
+    delete tmpvarsym;
     uvpass = luvpass;
     return;
   } //genCodeReferenceArg
-
-  // is this still used/needed???
-  // uses uvpass rather than stgcos, cos for classes or atoms (not primitives)
-  void NodeFunctionCall::genCodeAnonymousReferenceArg(File * fp, UVPass & uvpass, u32 n)
-  {
-    assert(0);
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //such as .atomof; self (t3779)
-
-    assert(m_funcSymbol);
-    UTI vuti = m_funcSymbol->getParameterType(n);
-    UTI puti = uvpass.getPassTargetType();
-
-    if(UlamType::compare(vuti, puti, m_state) == UTIC_SAME) return; //unneeded, uvpass as-is
-
-    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMTYPE vetyp = vut->getUlamTypeEnum();
-
-    UlamType * put = m_state.getUlamTypeByIndex(puti);
-    TMPSTORAGE rstor = uvpass.getPassStorage(); //t3779
-
-    assert(vetyp == put->getUlamTypeEnum());
-
-    s32 tmpVarArgNum = uvpass.getPassVarNum();
-    s32 tmpVarArgNum2 = m_state.getNextTmpVarNumber();
-
-    m_state.indentUlamCode(fp);
-    fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
-    fp->write(" ");
-
-    fp->write(m_state.getTmpVarAsString(vuti, tmpVarArgNum2, TMPBITVAL).c_str());
-    fp->write("("); //pass ref in constructor (ref's not assigned with =)
-    fp->write(m_state.getTmpVarAsString(puti, tmpVarArgNum, rstor).c_str());
-
-    if(vetyp == Class)
-      {
-	fp->write(", 0u, "); //left-justified
-	if(m_state.isReference(puti))
-	  {
-	    fp->write(m_state.getTmpVarAsString(puti, tmpVarArgNum, rstor).c_str());
-	    fp->write(".GetEffectiveSelf()");
-	  }
-	else
-	  {
-	    fp->write("&");
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(puti).c_str());
-	  }
-      }
-    fp->write(");"); GCNL;
-
-    uvpass = UVPass::makePass(tmpVarArgNum2, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, 0, 0); //POS adjusted for BitVector, justified; self id in Pass;
-  } //genCodeAnonymousReferenceArg
 
 void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp)
   {

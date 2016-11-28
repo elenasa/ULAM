@@ -1,0 +1,46 @@
+## -*- mode:ulam -*-
+#=t3920_test_compiler_elementandquark_conditionalis_resbehave_issue
+##
+## gen output: (+ assert)
+##   Bool(3) Arg: 0x7 (true)
+##
+#!
+Exit status: -11
+Ue_Res { EventWindow ew();  Bool(1) b(false);  Int(32) test() {  System s;  b ew 1 cast [] Empty is = s ( b cast )print . s ( b )assert . 0 cast return } }
+Uq_EventWindow { <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+##      //informed by ulamexports Res
+##
+#>Res.ulam
+  ulam 2;
+element Res {
+  EventWindow ew;
+  Bool b;
+  Int test() {
+    System s;
+    b = (ew[1] is Empty);
+    s.print(b);
+    s.assert(b);
+    return 0;
+  }
+}
+
+#:EventWindow.ulam
+  ulam 2;
+quark EventWindow{
+  Atom& aref(Int index) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

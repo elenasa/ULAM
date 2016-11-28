@@ -2,8 +2,15 @@
 #=t3524_test_compiler_elementandquarkswclassargs_wdefaultparamsmissing_error
 #!
 ./Q.ulam:2:25: ERROR: Missing '=' after named constant definition 't'.
-./P.ulam:6:7: ERROR: NO Class Arguments for an instance stub of class template 'Q' with 3 parameters.
+./Q.ulam:2:20: ERROR: Problem with parameter definition 2 for template class: Q.
+./Q.ulam:2:25: ERROR: Unexpected token <TOK_COMMA>; Expected {.
+./Q.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Q'; Possible missing ending curly brace.
+./Q.ulam:2:25: ERROR: Invalid Class Type <,>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+ ERROR: No parse tree for This Class: P.
 Unrecoverable Program Parse FAILURE: <P.ulam>
+./Q.ulam:1:7: ERROR: No class 'Q' in <Q.ulam>.
+##
+##
 #>P.ulam
 ulam 1;
 use Q;

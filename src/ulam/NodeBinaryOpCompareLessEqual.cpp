@@ -52,9 +52,12 @@ namespace MFM {
       case Unary:
 	rtnUV = UlamValue::makeImmediate(nuti, _BinOpCompareLessEqualUnary32(ldata, rdata, len), nodelen);
 	break;
+      case String:
+	m_state.abortNotImplementedYet(); //not implemented yet!
+	break;
       case Bits:
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	break;
       };
     return rtnUV;
@@ -81,9 +84,12 @@ namespace MFM {
       case Unary:
 	rtnUV = UlamValue::makeImmediateLong(nuti, _BinOpCompareLessEqualUnary64(ldata, rdata, len), nodelen);
 	break;
+      case String:
+	m_state.abortNotImplementedYet(); //not implemented yet!
+	break;
       case Bits:
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	break;
       };
     return rtnUV;
@@ -91,7 +97,7 @@ namespace MFM {
 
   void NodeBinaryOpCompareLessEqual::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
-    assert(0); //not implemented yet!
+    m_state.abortNotImplementedYet(); //not implemented yet!
   }
 
 } //end MFM

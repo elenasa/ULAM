@@ -60,7 +60,7 @@ namespace MFM {
 	break;
       case Bits:
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	methodname << "NAV";
 	break;
       };

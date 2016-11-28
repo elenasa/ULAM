@@ -6,6 +6,18 @@
 namespace MFM{
 
   template<class EC>
+  Ui_Ut_r102961a<EC> Uq_10109211EventWindow10<EC>::Uf_4aref(const UlamContext<EC> & uc, UlamRef<EC>& ur,
+							       Ui_Ut_10161u<EC>& Uv_5index) const //native
+  {
+    u32 siteNumber = Uv_5index.read();
+    EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
+    T & a = ew.GetAtomSym(siteNumber);
+    static AtomRefBitStorage<EC> arf(a);
+    return Ui_Ut_r102961a<EC>(arf, 0u, uc);
+  }
+
+#if 0
+  template<class EC>
   Ui_Ut_102961a<EC> Uq_10109211EventWindow10<EC>::Uf_4aref(const UlamContext<EC> & uc, UlamRef<EC>& ur,
 							       Ui_Ut_10161u<EC>& Uv_5index) const //native
   {
@@ -24,6 +36,7 @@ namespace MFM{
     EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
     ew.SetAtomSym(siteNumber, Uv_1v.ReadAtom());
   }
+#endif
 
   template<class EC>
   Ui_Ut_10111b<EC> Uq_10109211EventWindow10<EC>::Uf_6isLive(const UlamContext<EC> & uc,
@@ -57,9 +70,7 @@ namespace MFM{
     u32 idx = Uv_7siteNum.read();
     SPoint loc = ew.MapToPointSymValid(idx);
 
-    //typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x(Uv_3ret, NULL).Write(loc.GetX());
     UlamRef<EC>(0u, 16u, Uv_3ret, NULL, UlamRef<EC>::PRIMITIVE, uc).Write(loc.GetX());
-    //typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y(Uv_3ret, NULL).Write(loc.GetY());
     UlamRef<EC>(16u, 16u, Uv_3ret, NULL, UlamRef<EC>::PRIMITIVE, uc).Write(loc.GetY());
 
     //! EventWindow.ulam:24:     return ret;
@@ -74,9 +85,7 @@ namespace MFM{
     enum { R = EC::EVENT_WINDOW_RADIUS };
     const EventWindow<EC> & ew = uc.GetEventWindow();
 
-    //const s32 x = _SignExtend32(typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x(Uv_5coord, NULL).read(), 16);
     const s32 x = _SignExtend32(UlamRef<EC>(0u, 16u, Uv_5coord, NULL, UlamRef<EC>::PRIMITIVE, uc).Read(), 16);
-    //const s32 y = _SignExtend32(typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y(Uv_5coord, NULL).read(), 16);
     const s32 y = _SignExtend32(UlamRef<EC>(16u, 16u, Uv_5coord, NULL, UlamRef<EC>::PRIMITIVE, uc).Read(), 16);
     const SPoint loc(x,y);
     u32 ret;
@@ -93,9 +102,7 @@ namespace MFM{
     enum { R = EC::EVENT_WINDOW_RADIUS };
     const EventWindow<EC> & ew = uc.GetEventWindow();
 
-    //const s32 x = _SignExtend32(typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x(Uv_5coord, NULL).read(), 16);
     const s32 x = _SignExtend32(UlamRef<EC>(0u, 16u, Uv_5coord, NULL, UlamRef<EC>::PRIMITIVE, uc).Read(), 16);
-    //const s32 y = _SignExtend32(typename Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y(Uv_5coord, NULL).read(), 16);
     const s32 y = _SignExtend32(UlamRef<EC>(16u, 16u, Uv_5coord, NULL, UlamRef<EC>::PRIMITIVE, uc).Read(), 16);
     const SPoint loc(x,y);
     u32 ret;
@@ -145,9 +152,7 @@ namespace MFM{
   {
     const EventWindow<EC> & ew = uc.GetEventWindow();
 
-    //const s32 x = _SignExtend32(Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x(Uv_9211directCoord, NULL).read(), 16);
     const s32 x = _SignExtend32(UlamRef<EC>(0u, 16u, Uv_9211directCoord, NULL, UlamRef<EC>::PRIMITIVE, uc).Read(), 16);
-    //const s32 y = _SignExtend32(Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y(Uv_9211directCoord, NULL).read(), 16);
     const s32 y = _SignExtend32(UlamRef<EC>(16u, 16u, Uv_9211directCoord, NULL, UlamRef<EC>::PRIMITIVE, uc).Read(), 16);
 
     const SPoint direct(x,y);
@@ -156,12 +161,9 @@ namespace MFM{
 
     Ui_Uq_102323C2D10<EC> Uv_3ret;
 
-    //Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x(Uv_3ret, NULL).Write(mapped.GetX());
     UlamRef<EC>(0u, 16u, Uv_3ret, NULL, UlamRef<EC>::PRIMITIVE, uc).Write(mapped.GetX());
 
-    //Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y(Uv_3ret, NULL).Write(mapped.GetY());
     UlamRef<EC>(16u, 16u, Uv_3ret, NULL, UlamRef<EC>::PRIMITIVE, uc).Write(mapped.GetX());
-
 
     //! EventWindow.ulam:38:     return ret;
     return Ui_Uq_102323C2D10<EC>(Uv_3ret.read());

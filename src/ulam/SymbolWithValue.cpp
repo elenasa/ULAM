@@ -3,20 +3,18 @@
 
 namespace MFM {
 
-  SymbolWithValue::SymbolWithValue(const Token& id, UTI utype, CompilerState & state) : Symbol(id, utype, state), m_isReady(false), m_hasInitVal(false), m_isReadyInitVal(false), m_classParameter(false), m_classArgument(false)
-  {
-    //m_constantValue.sval = 0;
-    //m_initial.sval = 0;
-  }
+  SymbolWithValue::SymbolWithValue(const Token& id, UTI utype, CompilerState & state) : Symbol(id, utype, state), m_isReady(false), m_hasInitVal(false), m_isReadyInitVal(false), m_classParameter(false), m_classArgument(false), m_declnno(0) { }
 
-  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref) : Symbol(sref), m_isReady(sref.m_isReady), m_hasInitVal(sref.m_hasInitVal), m_isReadyInitVal(false), m_classParameter(false), m_classArgument(sref.m_classArgument)
+  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref) : Symbol(sref), m_isReady(sref.m_isReady), m_hasInitVal(sref.m_hasInitVal), m_isReadyInitVal(false), m_classParameter(false), m_classArgument(sref.m_classArgument || sref.m_classParameter), m_declnno(sref.m_declnno)
   {
+    //classArg is copying from a classParameter
     m_constantValue = sref.m_constantValue;
     m_initialValue = sref.m_initialValue;
   }
 
-  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref, bool keepType) : Symbol(sref, keepType), m_isReady(sref.m_isReady), m_hasInitVal(sref.m_hasInitVal), m_isReadyInitVal(false), m_classParameter(false), m_classArgument(sref.m_classArgument)
+  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref, bool keepType) : Symbol(sref, keepType), m_isReady(sref.m_isReady), m_hasInitVal(sref.m_hasInitVal), m_isReadyInitVal(false), m_classParameter(false), m_classArgument(sref.m_classArgument || sref.m_classParameter), m_declnno(sref.m_declnno)
   {
+    //classArg is copying from a classParameter
     m_constantValue = sref.m_constantValue;
     m_initialValue = sref.m_initialValue;
   }
@@ -89,10 +87,43 @@ namespace MFM {
 
   void SymbolWithValue::setValue(const BV8K& val)
   {
-    //m_constantValue = val;
     u32 tbs = m_state.getTotalBitSize(getUlamTypeIdx());
     val.CopyBV(0u, 0u, tbs, m_constantValue); //frompos, topos, len, destBV
     m_isReady = true;
+  }
+
+  bool SymbolWithValue::getArrayItemValue(u32 item, u32& rtnitem)
+  {
+    if(isReady())
+      {
+	UTI suti = getUlamTypeIdx();
+	UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	u32 bs = sut->getBitSize();
+	s32 arrsize = sut->getArraySize();
+	assert(bs <= MAXBITSPERINT);
+	assert((arrsize >= 0) && (item < (u32) arrsize));
+	//no casting!
+	rtnitem = m_constantValue.Read(item * bs, bs);
+	return true;
+      }
+    return false;
+  }
+
+  bool SymbolWithValue::getArrayItemValue(u32 item, u64& rtnitem)
+  {
+    if(isReady())
+      {
+	UTI suti = getUlamTypeIdx();
+	UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	u32 bs = sut->getBitSize();
+	s32 arrsize = sut->getArraySize();
+	assert(bs <= MAXBITSPERLONG);
+	assert((arrsize >= 0) && (item < (u32) arrsize));
+	//no casting!
+	rtnitem = m_constantValue.ReadLong(item * bs, bs);
+	return true;
+      }
+    return false;
   }
 
   bool SymbolWithValue::hasInitValue()
@@ -129,7 +160,6 @@ namespace MFM {
     assert(hasInitValue());
     if(isInitValueReady())
       {
-	//val = m_initialValue; //return value
 	u32 tbs = m_state.getTotalBitSize(getUlamTypeIdx());
 	m_initialValue.CopyBV(0u, 0u, tbs, val);
 	return true;
@@ -139,7 +169,6 @@ namespace MFM {
 
   void SymbolWithValue::setInitValue(const BV8K& val)
   {
-    //m_initialValue = val;
     u32 tbs = m_state.getTotalBitSize(getUlamTypeIdx());
     val.CopyBV(0u, 0u, tbs, this->m_initialValue); //frompos, topos, len, destBV
     m_hasInitVal = true;
@@ -155,6 +184,42 @@ namespace MFM {
   {
     m_hasInitVal = true;
     m_isReadyInitVal = false;
+  }
+
+  bool SymbolWithValue::getArrayItemInitValue(u32 item, u32& rtnitem)
+  {
+    assert(hasInitValue());
+    if(isInitValueReady())
+      {
+	UTI suti = getUlamTypeIdx();
+	UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	u32 bs = sut->getBitSize();
+	s32 arrsize = sut->getArraySize();
+	assert(bs <= MAXBITSPERINT);
+	assert((arrsize >= 0) && (item < (u32) arrsize));
+	//no casting!
+	rtnitem = m_initialValue.Read(item * bs, bs);
+	return true;
+      }
+    return false;
+  }
+
+  bool SymbolWithValue::getArrayItemInitValue(u32 item, u64& rtnitem)
+  {
+    assert(hasInitValue());
+    if(isInitValueReady())
+      {
+	UTI suti = getUlamTypeIdx();
+	UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	u32 bs = sut->getBitSize();
+	s32 arrsize = sut->getArraySize();
+	assert(bs <= MAXBITSPERLONG);
+	assert((arrsize >= 0) && (item < (u32) arrsize));
+	//no casting!
+	rtnitem = m_initialValue.ReadLong(item * bs, bs);
+	return true;
+      }
+    return false;
   }
 
   bool SymbolWithValue::foldConstantExpression()
@@ -204,7 +269,7 @@ namespace MFM {
 		  fp->write_decimal_long(sval);
 		}
 	      else
-		assert(0);
+		m_state.abortGreaterThanMaxBitsPerLong();
 	    }
 	    break;
 	  case Bool:
@@ -226,12 +291,16 @@ namespace MFM {
 	      else if( tbs <= MAXBITSPERLONG)
 		fp->write_decimal_unsignedlong(val);
 	      else
-		assert(0); //TBD > 64
+		m_state.abortGreaterThanMaxBitsPerLong(); //TBD > 64
 	      fp->write("u");
 	    }
 	    break;
+	  case String:
+	    // scalar strings generate comments (output value rather than index) e.g. t3951,2
+	    fp->write(m_state.m_upool.getDataAsFormattedString(val, &m_state).c_str());
+	    break;
 	  default:
-	    assert(0);
+	    m_state.abortUndefinedUlamPrimitiveType();
 	  };
       }
     else
@@ -269,6 +338,7 @@ namespace MFM {
     dval.ToArray(uvals);
 
     u32 nwords = tut->getTotalNumberOfWords();
+    bool isString = (tut->getUlamTypeEnum() == String); //t3953
 
     //short-circuit if all zeros
     bool isZero = true;
@@ -283,6 +353,9 @@ namespace MFM {
 
     if(isZero)
       {
+	if(isString)
+	  m_state.abortShouldntGetHere();
+
 	fp->write("{ 0..0 }");
 	return; //nothing else to do
       }
@@ -290,16 +363,171 @@ namespace MFM {
     fp->write("{ ");
     for(u32 w = 0; w < nwords; w++)
       {
-	std::ostringstream dhex;
-	dhex << "0x" << std::hex << uvals[w];
-
 	if(w > 0)
 	  fp->write(", ");
 
-	fp->write(dhex.str().c_str());
+	  {
+	    std::ostringstream dhex;
+	    dhex << "0x" << std::hex << uvals[w];
+
+	    fp->write(dhex.str().c_str());
+	  }
+
+#if 0
+	  //pretty, but precludes string array of comments;
+	  //output string item as embedded comment for human readable generated code
+	  if(isString)
+	    {
+	      fp->write(" /*");
+	      fp->write(m_state.m_upool.getDataAsFormattedString(uvals[w], &m_state).c_str()); //t3953,4
+	      fp->write("*/");
+	    }
+#endif
       }
     fp->write(" }");
   } //printPostfixValueArray
+
+  void SymbolWithValue::printPostfixValueArrayStringAsComment(File * fp)
+  {
+    bool oktoprint = true;
+    BV8K dval;
+    if(isReady())
+      getValue(dval);
+    else if(hasInitValue() && isInitValueReady())
+      getInitValue(dval);
+    else
+      oktoprint = false;
+
+
+    UTI tuti = getUlamTypeIdx();
+    UlamType * tut = m_state.getUlamTypeByIndex(tuti);
+    bool isString = (tut->getUlamTypeEnum() == String); //t3953
+    assert(isString);
+
+    if(!oktoprint)
+      {
+	fp->write("// ");
+	fp->write(getMangledName().c_str());
+	fp->write(": NONREADYCONSTARRAY OF STRINGS"); GCNL;
+	return;
+      }
+
+    //like the code generated in CS::genCodeClassDefaultConstantArray
+    u32 uvals[ARRAY_LEN8K];
+    dval.ToArray(uvals);
+
+    u32 nwords = tut->getTotalNumberOfWords();
+
+    //indented comments of string value items (one per line); e.g. t3953,4
+    for(u32 w = 0; w < nwords; w++)
+      {
+	m_state.indent(fp);
+	fp->write("// ");
+	fp->write("[");
+	fp->write_decimal_unsigned(w);
+	fp->write("] = ");
+	fp->write(m_state.m_upool.getDataAsFormattedString(uvals[w], &m_state).c_str());
+	fp->write("\n");
+      }
+    GCNL;
+  } //printPostfixValueArrayStringAsComment
+
+#if 0
+  bool SymbolWithValue::getArrayValueAsString(std::string& vstr)
+  {
+    bool oktoprint = true;
+    BV8K dval;
+    if(isReady())
+      getValue(dval);
+    else if(hasInitValue() && isInitValueReady())
+      getInitValue(dval);
+    else
+      oktoprint = false;
+
+    if(!oktoprint)
+      {
+	return false;
+      }
+
+    UTI tuti = getUlamTypeIdx();
+    UlamType * tut = m_state.getUlamTypeByIndex(tuti);
+    s32 tbs = tut->getTotalBitSize();
+
+    if(tbs == 0)
+      {
+	vstr = "0"; //no "0x" hex indicates empty array
+	return true;
+      }
+
+    std::ostringstream ostream;
+    ostream << "0x";
+
+    for(s32 i = 0; i < tbs; i++)
+      {
+	ostream << std::hex << dval.Read(i, 1); //per bit?
+      }
+    vstr = ostream.str();
+    return true;
+  } //getArrayValueAsString
+#endif
+
+  bool SymbolWithValue::getArrayValueAsString(std::string& vstr)
+  {
+    bool oktoprint = true;
+    BV8K dval;
+    if(isReady())
+      getValue(dval);
+    else if(hasInitValue() && isInitValueReady())
+      getInitValue(dval);
+    else
+      oktoprint = false;
+
+    if(!oktoprint)
+      {
+	return false;
+      }
+
+    UTI tuti = getUlamTypeIdx();
+    UlamType * tut = m_state.getUlamTypeByIndex(tuti);
+    s32 tbs = tut->getTotalBitSize();
+
+    if(tbs == 0)
+      {
+	vstr = "10"; //empty array
+	return true;
+      }
+
+    //like the code generated in CS::genCodeClassDefaultConstantArray
+    u32 uvals[ARRAY_LEN8K];
+    dval.ToArray(uvals);
+
+    u32 nwords = tut->getTotalNumberOfWords();
+
+    //short-circuit if all zeros
+    bool isZero = true;
+    for(u32 x = 0; x < nwords; x++)
+      {
+	if(uvals[x] != 0)
+	  {
+	    isZero = false;
+	    break;
+	  }
+      }
+
+    if(isZero)
+      {
+	vstr = "10"; //all zeros
+	return true;
+      }
+
+    std::ostringstream ostream;
+    for(u32 i = 0; i < nwords; i++)
+      {
+	ostream << ToLeximitedNumber(uvals[i]);
+      }
+    vstr = ostream.str();
+    return true;
+  } //getArrayValueAsString
 
   bool SymbolWithValue::getLexValue(std::string& vstr)
   {
@@ -330,7 +558,7 @@ namespace MFM {
 	      vstr = ToLeximitedNumber64(sval);
 	    }
 	  else
-	    assert(0);
+	    m_state.abortGreaterThanMaxBitsPerLong();
 	}
 	break;
       case Bool:
@@ -357,11 +585,11 @@ namespace MFM {
 	  else if( tbs <= MAXBITSPERLONG)
 		vstr = ToLeximitedNumber64(constantval);
 	  else
-	    assert(0);
+	    m_state.abortGreaterThanMaxBitsPerLong();
 	}
 	break;
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
       };
     return true;
   } //getLexValue
@@ -372,5 +600,17 @@ namespace MFM {
     assert(getId() == fmid);
     setId(toid);
   }
+
+  NNO SymbolWithValue::getDeclNodeNo()
+  {
+    assert(!isDataMember());
+    return m_declnno;
+  }
+
+  void SymbolWithValue::setDeclNodeNo(NNO nno)
+  {
+    m_declnno = nno;
+  }
+
 
 } //end MFM

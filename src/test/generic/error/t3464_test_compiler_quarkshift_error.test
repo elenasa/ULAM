@@ -5,7 +5,6 @@
 ./A.ulam:6:3: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
 ./A.ulam:7:8: ERROR: Non-primitive type <Bar> is not supported as left operand type for binary operator<<.
 ./A.ulam:7:4: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
-./A.ulam:2:10: ERROR: 4 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //quark has no toInt method:

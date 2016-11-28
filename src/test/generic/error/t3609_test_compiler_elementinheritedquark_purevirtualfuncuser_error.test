@@ -3,7 +3,6 @@
 ##
 #!
 ./Test.ulam:22:5: ERROR: Instance of Abstract Class Base used with variable symbol name 'b'.
-./Test.ulam:7:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Test.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3608

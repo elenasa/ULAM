@@ -45,7 +45,7 @@ namespace MFM{
   {
   public:
 
-    NodeAtomof(const Token& tokof, NodeTypeDescriptor * nodetype, CompilerState & state);
+    NodeAtomof(Node * ofnode, NodeTypeDescriptor * nodetype, CompilerState & state);
 
     NodeAtomof(const NodeAtomof& ref);
 
@@ -58,6 +58,8 @@ namespace MFM{
     virtual const std::string prettyNodeName();
 
     virtual UTI checkAndLabelType();
+
+    virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
 
     virtual void genCode(File * fp, UVPass& uvpass);
 

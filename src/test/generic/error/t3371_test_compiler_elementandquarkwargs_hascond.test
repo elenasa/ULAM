@@ -14,7 +14,7 @@
 ./Eltypo.ulam:9:23: ERROR: Name of variable <)>: Identifier must begin with a lower-case letter.
 ./Eltypo.ulam:9:23: ERROR: Invalid Statement (possible missing semicolon).
 ./Eltypo.ulam:4:1: ERROR: Empty/Incomplete Class Definition 'Eltypo'; Possible missing ending curly brace.
-./Eltypo.ulam:13:5: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
+./Eltypo.ulam:13:5: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./Eltypo.ulam:4:9: ERROR: Invalid Type: Eltypo.
  ERROR: No parse tree for This Class: Eltypo.
 Unrecoverable Program Parse FAILURE: <Eltypo.ulam>

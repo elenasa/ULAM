@@ -77,6 +77,8 @@ namespace MFM{
 
     bool getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref);
 
+    bool hasDefaultSymbolValue();
+
     virtual UTI checkAndLabelType();
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
@@ -92,6 +94,8 @@ namespace MFM{
     bool hasConstantExpr();
 
     UTI foldConstantExpression();
+
+    bool foldArrayInitExpression();
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
@@ -111,6 +115,12 @@ namespace MFM{
 
     virtual void genCode(File * fp, UVPass& uvpass);
 
+    virtual void genCodeConstantArrayInitialization(File * fp);
+
+    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
+
+    virtual void cloneAndAppendNode(std::vector<Node *> & cloneVec);
+
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
   protected:
@@ -123,6 +133,10 @@ namespace MFM{
   private:
     NNO m_currBlockNo;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
+
+    void setupStackWithPrimitiveForEval(u32 slots);
+    void assignConstantSlotIndex(u32& cslotidx);
+
   };
 
 } //MFM

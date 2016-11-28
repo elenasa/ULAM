@@ -87,7 +87,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Invalid lefthand type of conditional operator '" << getName();
 	msg << "'; must be a scalar, not ";
-	msg << lut->getUlamTypeNameBrief().c_str();
+	msg << lut->getUlamTypeNameBrief().c_str() << " array";
 	if(lclasstype == UC_UNSEEN || luti == Hzy)
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
@@ -101,6 +101,17 @@ namespace MFM {
 	    setNodeType(Nav);
 	    return Nav;
 	  }
+      }
+
+    if(m_nodeLeft->isArrayItem() || m_nodeLeft->isFunctionCall())
+      {
+	std::ostringstream msg;
+	msg << "Invalid lefthand type of conditional operator '" << getName();
+	msg << "'; suggest a reference variable";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+	setNodeType(Nav);
+	return Nav;
       }
 
     assert(m_nodeTypeDesc);
@@ -187,7 +198,7 @@ namespace MFM {
 		  }
 	      }
 	    else
-	      assert(0);
+	      m_state.abortUndefinedUlamClassType();
 	  }
       }
 
@@ -317,7 +328,7 @@ namespace MFM {
 	  }
       }
     else
-      assert(0); //honorable death
+      m_state.abortUndefinedUlamClassType(); //honorable death
 
     if(asit)
       {
@@ -449,7 +460,7 @@ namespace MFM {
 	fp->write(");"); GCNL;
       }
     else
-      assert(0); // error/t3827
+      m_state.abortUndefinedUlamClassType(); // error/t3827
 
     //update uvpass, include lhs name id
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());

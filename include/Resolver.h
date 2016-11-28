@@ -66,17 +66,15 @@ namespace MFM
 
     //these exist in a stubs only!
     bool assignClassArgValuesInStubCopy();
-    bool statusNonreadyClassArguments();
-    bool constantFoldNonreadyClassArgs();
+    u32 countNonreadyClassArgs();
+    bool statusNonreadyClassArguments(SymbolClass * stubcsym);
     void linkConstantExpressionForPendingArg(NodeConstantDef * ceNode);
     bool pendingClassArgumentsForClassInstance();
-    void clonePendingClassArgumentsForStubClassInstance(const Resolver& rslvr, UTI context, SymbolClass * mycsym);
+    void setContextForPendingArgs(UTI context);
     UTI getContextForPendingArgs();
 
     bool mapUTItoUTI(UTI fmuti, UTI touti);
     bool findMappedUTI(UTI auti, UTI& mappedUTI);
-    bool findNodeNo(NNO n, Node *& foundNode);
-    void countNavNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
     void cloneUTImap(SymbolClass * csym);
     void cloneUnknownTypesTokenMap(SymbolClass * csym);
@@ -92,8 +90,7 @@ namespace MFM
     UTI m_classUTI;
     UTI m_classContextUTIForPendingArgs; //used to evaluate pending class args in context
 
-    bool findNodeNoInNonreadyClassArgs(NNO n, Node *& foundNode);
-    void countNavNodesInPendingArgs(u32& ncnt, u32& hcnt, u32& nocnt);
+    bool constantFoldNonreadyClassArgs(SymbolClass * stubcsym);
 
     void clearLeftoverSubtrees();
     void clearLeftoverNonreadyClassArgSubtrees();

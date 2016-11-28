@@ -2,8 +2,6 @@
 #=t3799_test_compiler_modelparameter_toobig_error
 #!
 ./A.ulam:3:13: ERROR: Type Bitsize specifier for base type: Unsigned, has a constant value of 65 that exceeds the maximum bitsize 64.
-./A.ulam:2:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
-./A.ulam:2:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //informed by 3798, except model parameter > 64 bits

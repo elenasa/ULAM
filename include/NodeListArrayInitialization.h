@@ -65,9 +65,11 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    bool foldInitExpression();
+    bool foldArrayInitExpression();
 
     virtual FORECAST safeToCastTo(UTI newType);
+
+    virtual EvalStatus eval();
 
     bool buildArrayValueInitialization(BV8K& bvtmp);
 

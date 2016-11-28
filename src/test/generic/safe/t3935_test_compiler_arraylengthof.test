@@ -1,0 +1,38 @@
+## -*- mode:ulam -*-
+#=t3935_test_compiler_arraylengthof
+##
+## gen output: 1 assert
+##
+#!
+Exit status: 0
+Ue_Eltypo { typedef Int(3) IArr[0];  Int(32) test() {  System s;  Int(3) arr[0];  s ( true )assert . 0u cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by t3399
+##      //arraysize zero ok, but not bitsize zero for nonClass primitive types!
+##
+#>Eltypo.ulam
+  ulam 1;
+element Eltypo {
+  typedef Int(3) IArr[0];
+  Int test(){
+    System s;
+    IArr arr;
+    s.assert(arr.lengthof == 0);
+    return arr.lengthof;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
+#.

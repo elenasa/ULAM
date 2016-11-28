@@ -5,8 +5,6 @@
 ./Eltypo.ulam:13:19: ERROR: UNSEEN Class and incomplete descriptor for type: 'ElTypo'.
 ./Eltypo.ulam:13:16: ERROR: Righthand type of conditional operator 'is': unresolved, is still incomplete.
 ./Eltypo.ulam:13:19: ERROR: UNSEEN class type <ElTypo> was never defined in <ElTypo.ulam>.
-./Eltypo.ulam:4:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Eltypo.
-./Eltypo.ulam:4:9: ERROR: 4 Nodes with unresolved types detected after type labeling class: Eltypo.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by safe/t3741, (see t3370)

@@ -1,0 +1,83 @@
+## -*- mode:ulam -*-
+#=t3916_test_compiler_elementandquark_memberselectoncustomarray
+#!
+##      gen code output: 3 asserts
+##          Bool(3) Arg: 0x7 (true)
+##          Bool(3) Arg: 0x7 (true)
+##
+Exit status: -11
+Ue_A : QW { :<> Bool(1) b(false);  System s();  QW m_q();  Int(32) test() {  Tfoo asme;  b asme 0 cast [] ( )setb . = s ( b cast )print . s ( b )assert . asme 1 cast [] b . b = s ( asme 1 cast [] b . cast )print . s ( asme 1 cast [] b . )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Uq_QW { <NOMAIN> }
+Un_Tfoo { A m_a[4]( :<> System s();  Bool(1) b(false);  QW m_q(); ), ( :<> System s();  Bool(1) b(false);  QW m_q(); ), ( :<> System s();  Bool(1) b(false);  QW m_q(); ), ( :<> System s();  Bool(1) b(false);  QW m_q(); );  <NOMAIN> }
+##
+## informed by t3913
+##
+#>A.ulam
+  ulam 2;
+use System;
+use QW;
+element A : QW {
+  System s;
+
+  Bool b;
+  QW m_q;
+
+  Int test(){
+    Tfoo asme; //custom array
+
+    //carray rhs, but lhs of memberselect on a func call
+    b = asme[0].setb();
+    s.print(b);
+    s.assert(b);
+
+    //carray on lhs
+    asme[1].b = b;
+    s.print(asme[1].b);
+    s.assert(asme[1].b);
+
+    return 0;
+  }
+
+  Bool setb()
+  {
+    s.assert(self is A);
+    self.b = true;
+    return self.b;
+  }
+}
+
+#:QW.ulam
+  ulam 2;
+quark QW {
+  Atom func()
+  {
+    Atom a = self.atomof;
+    return a;
+  }
+}
+
+#:Tfoo.ulam
+  ulam 2;
+use A;
+transient Tfoo {
+  A m_a[4];
+  A& aref(Int idx)
+  {
+    return m_a[idx];
+  }
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

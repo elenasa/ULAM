@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
- * SymbolTmpRef.h -  Basic handling of TmpRef Symbols for ULAM Code Gen
+ * NodeBlockLocals.h - Node for handling Local Defs for ULAM
  *
- * Copyright (C) 2016 The Regents of the University of New Mexico.
- * Copyright (C) 2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2016 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -26,45 +26,57 @@
  */
 
 /**
-  \file SymbolTmpRef.h -  Basic handling of TmpRef Symbols for ULAM Code Gen
+  \file NodeBlockLocals.h - Node for handling Local Defs for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2016 All rights reserved.
+  \date (C) 2014-2016 All rights reserved.
   \gpl
 */
 
 
-#ifndef SYMBOLTMPREF_H
-#define SYMBOLTMPREF_H
+#ifndef NODEBLOCKLOCALS_H
+#define NODEBLOCKLOCALS_H
 
-#include "Symbol.h"
+#include "NodeBlockContext.h"
+
 
 namespace MFM{
 
-  class CompilerState;  //forward
-
-  //distinguish between Symbols
-  class SymbolTmpRef : public Symbol
+  class NodeBlockLocals : public NodeBlockContext
   {
   public:
-    SymbolTmpRef(const Token& id, UTI utype, CompilerState& state);
-    ~SymbolTmpRef();
 
-    virtual Symbol * clone();
+    NodeBlockLocals(NodeBlock * prevBlockNode, CompilerState & state);
 
-    virtual bool isTmpRefSymbol();
+    NodeBlockLocals(const NodeBlockLocals& ref);
 
-    virtual const std::string getMangledPrefix();
+    virtual ~NodeBlockLocals();
 
-    virtual const std::string getMangledName();
+    virtual Node * instantiate();
 
-    virtual u32 getPosOffset();
+    virtual void printPostfix(File * fp);
+
+    virtual const char * getName();
+
+    virtual const std::string prettyNodeName();
+
+    virtual bool isAClassBlock();
+
+    virtual UTI checkAndLabelType();
+
+    virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
+
+    virtual void genCode(File * fp, UVPass& uvpass);
+
+    virtual void cloneAndAppendNode(std::vector<Node *> & cloneVec);
 
   protected:
 
+
   private:
+
   };
 
 }
 
-#endif //end SYMBOLTMPREF_H
+#endif //end NODEBLOCKLOCALS_H

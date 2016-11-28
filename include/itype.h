@@ -96,7 +96,7 @@ typedef volatile const uintptr_t uvcptr; /**< Unsigned volatile const type the s
 #define U32_MIN    ((u32)0)            /**< Minimum value of unsigned 32 bit */
 #define U64_MAX    ((((u64)0xffffffff)<<32)|0xffffffff) /**< Maximum value of unsigned 64 bit */
                                        /* U64_MAX hacked with an expression to avoid C99ish syntax.. */
-#define U64_MIN    ((u64)0LL)          /**< Minimum value of unsigned 64 bit */
+#define U64_MIN    ((u64)0L)          /**< Minimum value of unsigned 64 bit */
 } /* namespace MFM */
 
 #endif  /* ITYPE_H */

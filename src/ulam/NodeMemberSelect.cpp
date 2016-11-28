@@ -3,17 +3,14 @@
 
 namespace MFM {
 
-  NodeMemberSelect::NodeMemberSelect(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqual(left,right,state), m_tmprefSymbol(NULL)
+  NodeMemberSelect::NodeMemberSelect(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqual(left,right,state)
   {
     Node::setStoreIntoAble(TBOOL_HAZY);
   }
 
-  NodeMemberSelect::NodeMemberSelect(const NodeMemberSelect& ref) : NodeBinaryOpEqual(ref), m_tmprefSymbol(NULL) {}
+  NodeMemberSelect::NodeMemberSelect(const NodeMemberSelect& ref) : NodeBinaryOpEqual(ref) {}
 
-  NodeMemberSelect::~NodeMemberSelect()
-  {
-    delete m_tmprefSymbol;
-  }
+  NodeMemberSelect::~NodeMemberSelect(){ }
 
   Node * NodeMemberSelect::instantiate()
   {
@@ -35,6 +32,47 @@ namespace MFM {
   const std::string NodeMemberSelect::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
+  }
+
+  bool NodeMemberSelect::getSymbolPtr(Symbol *& symptrref)
+  {
+    if(m_nodeRight)
+      return m_nodeRight->getSymbolPtr(symptrref);
+
+    MSG(getNodeLocationAsString().c_str(), "No symbol", ERR);
+    return false;
+  }
+
+  bool NodeMemberSelect::getStorageSymbolPtr(Symbol *& symptrref)
+  {
+    if(m_nodeLeft)
+      return m_nodeLeft->getSymbolPtr(symptrref); //includes quarks, transients
+
+    MSG(getNodeLocationAsString().c_str(), "No storage symbol", ERR);
+    return false;
+  }
+
+  bool NodeMemberSelect::hasASymbolDataMember()
+  {
+    return true;
+  }
+
+  bool NodeMemberSelect::hasASymbolSuper()
+  {
+    assert(m_nodeLeft);
+    return m_nodeLeft->hasASymbolSuper();
+  }
+
+  bool NodeMemberSelect::hasASymbolSelf()
+  {
+    assert(m_nodeLeft);
+    return m_nodeLeft->hasASymbolSelf();
+  }
+
+  bool NodeMemberSelect::hasASymbolReference()
+  {
+    assert(m_nodeLeft);
+    return m_nodeLeft->hasASymbolReference();
   }
 
   const std::string NodeMemberSelect::methodNameForCodeGen()
@@ -137,6 +175,27 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
+  bool NodeMemberSelect::trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr)
+  {
+    Node * tmpnptr = NULL;
+    //right is a leaf (NodeIdent)
+    if(m_nodeRight->trimToTheElement(NULL, tmpnptr))
+      {
+	rtnnodeptr = this; //keep ms node;
+	if(fromleftnode)
+	  *fromleftnode = NULL; //clear for future deletion
+	return true;
+      }
+
+    //left-assoc tree..
+    if(m_nodeLeft->trimToTheElement(&m_nodeLeft, tmpnptr))
+      {
+	rtnnodeptr = tmpnptr;
+	return true;
+      }
+    return false;
+  } //trimToTheElement
+
   bool NodeMemberSelect::assignClassArgValueInStubCopy()
   {
     return true; //nothing to do
@@ -145,6 +204,11 @@ namespace MFM {
   bool NodeMemberSelect::isFunctionCall()
   {
     return m_nodeRight->isFunctionCall(); //based like storeintoable, on right
+  }
+
+  bool NodeMemberSelect::isArrayItem()
+  {
+    return m_nodeRight->isArrayItem(); //based like storeintoable, on right
   }
 
   EvalStatus NodeMemberSelect::eval()
@@ -173,7 +237,14 @@ namespace MFM {
     //UPDATE selected member (i.e. element or quark) before eval of rhs
     //(i.e. data member or func call); e.g. Ptr to atom
     UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1);
-    assert(m_state.isPtr(newCurrentObjectPtr.getUlamValueTypeIdx()));
+    UTI newobjtype = newCurrentObjectPtr.getUlamValueTypeIdx();
+    if(!m_state.isPtr(newobjtype))
+      {
+	assert(m_nodeLeft->isFunctionCall()); //must be the result of a function call
+	// copy anonymous class to "uc" hidden slot in STACK, then replace with a pointer to it.
+	assert(m_state.isAClass(newobjtype));
+	newCurrentObjectPtr = assignAnonymousClassReturnValueToStack(newCurrentObjectPtr); //t3912
+      }
 
     u32 superid = m_state.m_pool.getIndexForDataString("super");
     if(newCurrentObjectPtr.getPtrNameId() == superid)
@@ -263,7 +334,15 @@ namespace MFM {
     //UPDATE selected member (i.e. element or quark) before eval of rhs
     // (i.e. data member or func call)
     UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1); //e.g. Ptr to atom
-    assert(m_state.isPtr(newCurrentObjectPtr.getUlamValueTypeIdx()));
+    UTI newobjtype = newCurrentObjectPtr.getUlamValueTypeIdx();
+    if(!m_state.isPtr(newobjtype))
+      {
+	assert(m_nodeLeft->isFunctionCall());// must be the result of a function call;
+	// copy anonymous class to "uc" hidden slot in STACK, then replace with a pointer to it.
+	assert(m_state.isAClass(newobjtype));
+	newCurrentObjectPtr = assignAnonymousClassReturnValueToStack(newCurrentObjectPtr); //t3913
+      }
+
     m_state.m_currentObjPtr = newCurrentObjectPtr;
 
     makeRoomForSlots(1); //always 1 slot for ptr
@@ -276,6 +355,15 @@ namespace MFM {
 
     UlamValue ruvPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(2);
 
+    UTI robjtype = ruvPtr.getUlamValueTypeIdx(); //t3913
+    if(!m_state.isPtr(robjtype))
+      {
+	// must be the result of a function call;
+	// copy anonymous class to "uc" hidden slot in STACK, then replace with a pointer to it.
+	assert(m_state.isAClass(robjtype));
+	ruvPtr = assignAnonymousClassReturnValueToStack(ruvPtr);
+      }
+
     Node::assignReturnValuePtrToStack(ruvPtr);
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr **********
@@ -286,46 +374,46 @@ namespace MFM {
 
   UlamValue NodeMemberSelect::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
-    assert(0); //unused
+    m_state.abortShouldntGetHere(); //unused
     return UlamValue();
   }
 
   UlamValue NodeMemberSelect::makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len)
   {
-    assert(0); //unused
+    m_state.abortShouldntGetHere(); //unused
     return UlamValue();
   }
 
   void NodeMemberSelect::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
-    assert(0); //unused
+    m_state.abortShouldntGetHere(); //unused
   }
-
-  bool NodeMemberSelect::getSymbolPtr(Symbol *& symptrref)
-  {
-    if(m_nodeLeft)
-      return m_nodeLeft->getSymbolPtr(symptrref);
-
-    MSG(getNodeLocationAsString().c_str(), "No symbol", ERR);
-    return false;
-  } //getSymbolPtr
 
   void NodeMemberSelect::genCode(File * fp, UVPass& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
-    //apparently not so: assert(m_state.m_currentObjSymbolsForCodeGen.empty());
 
-    m_nodeLeft->genCodeToStoreInto(fp, uvpass);
-
-    //check the back (not front) to process multiple member selections (e.g. t3818)
-    if(!m_state.m_currentObjSymbolsForCodeGen.empty() && !m_state.isScalar(m_state.m_currentObjSymbolsForCodeGen.back()->getUlamTypeIdx()))
+    // if parent is another MS, we might need to adjust pos first
+    // elements can be data members of transients, etc.
+    UVPass luvpass;
+    if(passalongUVPass())
       {
-	Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
-	m_tmprefSymbol = Node::makeTmpRefSymbolForCodeGen(uvpass); //dm to avoid leaks
-	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmprefSymbol);
+	luvpass = uvpass;
+	Node::adjustUVPassForElements(luvpass); //t3803?
       }
 
-    m_nodeRight->genCode(fp, uvpass);  // is this ok?
+    m_nodeLeft->genCodeToStoreInto(fp, luvpass);
+
+    //NodeIdent can't do it, because it doesn't know it's not a stand-alone element.
+    // here, we know there's rhs of member select, which needs to adjust to state bits.
+    if(passalongUVPass())
+      {
+	uvpass = luvpass;
+	Node::adjustUVPassForElements(uvpass); //t3803?
+      }
+
+    //check the back (not front) to process multiple member selections (e.g. t3818)
+    m_nodeRight->genCode(fp, uvpass);  //leave any array item as-is for gencode.
 
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
   } //genCode
@@ -335,18 +423,46 @@ namespace MFM {
   void NodeMemberSelect::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
+
     UVPass luvpass;
+    if(passalongUVPass())
+      {
+	luvpass = uvpass; //t3584
+	Node::adjustUVPassForElements(luvpass); //t3803 ?
+      }
+
+    // if parent is another MS, we might need to adjust pos first
+    // elements can be data members of transients, etc.
+
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
-    //check the back (not front) to process multiple member selections (e.g. t3817)
-    if(!m_state.m_currentObjSymbolsForCodeGen.empty() && !m_state.isScalar(m_state.m_currentObjSymbolsForCodeGen.back()->getUlamTypeIdx()))
+    //NodeIdent can't do it, because it doesn't know it's not a stand-alone element.
+    // here, we know there's rhs of member select, which needs to adjust to state bits.
+    //process multiple member selections (e.g. t3817)
+    UVPass ruvpass;
+    if(passalongUVPass())
       {
-	Node::genCodeConvertATmpVarIntoAutoRef(fp, luvpass); //uvpass becomes the autoref, and clears stack
-	m_tmprefSymbol = Node::makeTmpRefSymbolForCodeGen(luvpass);
-	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmprefSymbol);
+	ruvpass = luvpass;  //t3615 ?
+	Node::adjustUVPassForElements(ruvpass); //t3803
       }
-    //uvpass = luvpass;
-    m_nodeRight->genCodeToStoreInto(fp, uvpass); //uvpass contains the member selected, or cos obj symbol?
+
+    m_nodeRight->genCodeToStoreInto(fp, ruvpass); //uvpass contains the member selected, or cos obj symbol?
+
+    uvpass = ruvpass;
   } //genCodeToStoreInto
+
+  bool NodeMemberSelect::passalongUVPass()
+  {
+    bool rtnb = false; //don't pass along
+    if(!m_state.m_currentObjSymbolsForCodeGen.empty())
+      {
+	Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
+	UTI cosuti = cossym->getUlamTypeIdx();
+	UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+	//t3913, t3915 tmpref may not be a ref, but may need adjusting (i.e. anonymous element returned)
+	rtnb = (!cosut->isReference() && (!cossym->isTmpVarSymbol() || Node::needAdjustToStateBits(cosuti)));
+      }
+    return rtnb;
+  }
 
 } //end MFM

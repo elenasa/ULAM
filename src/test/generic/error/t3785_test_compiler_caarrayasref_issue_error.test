@@ -2,7 +2,6 @@
 #=t3785_test_compiler_caarrayasref_issue_error
 #!
 ./D.ulam:4:5: ERROR: Initialization for: ar, must be referenceable.
-./EventWindow.ulam:2:7: ERROR: 1 Nodes with erroneous types detected after type labeling class: EventWindow.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3784, issue 6/14/2016

@@ -30,7 +30,7 @@ namespace MFM {
     NodeControl::updateLineage(pno);
     if(m_nodeElse)
       m_nodeElse->updateLineage(getNodeNo());
-  } //updateLineage
+  }
 
   bool NodeControlIf::exchangeKids(Node * oldnptr, Node * newnptr)
   {
@@ -56,7 +56,7 @@ namespace MFM {
     NodeControl::checkAbstractInstanceErrors();
     if(m_nodeElse)
       m_nodeElse->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
+  }
 
   void NodeControlIf::print(File * fp)
   {
@@ -126,7 +126,7 @@ namespace MFM {
     NodeControl::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
     if(m_nodeElse)
       m_nodeElse->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
-  } //countNavHzyNoutiNodes
+  }
 
   EvalStatus  NodeControlIf::eval()
   {

@@ -1,0 +1,64 @@
+## -*- mode:ulam -*-
+#=t3899_test_compiler_constantarrayinit_datamember_dmandlocalvarinitvals
+##
+## gen output: (interleaved asserts)
+##   Unsigned Arg: 254
+##   Unsigned Arg: 0
+##   Unsigned Arg: 65518
+##   Unsigned Arg: 0
+##   Unsigned Arg: 4294967295
+##   Unsigned Arg: 0
+##
+#!
+Exit status: 0
+Ue_A { Bool(1) b1(true);  Bool(1) b2(true);  Bool(1) b3(true);  constant Unsigned(8)[4] crtn1 = { 0xfe000000 };  constant Unsigned(16)[4] crtn2 = { 0xffee0000, 0x0 };  constant Unsigned(33)[5] crtn3 = { 0x91a2b3c4, 0x80000000, 0x0, 0x0, 0x0, 0x0 };  Unsigned(8) rtn1[4](254u,0u,0u,0u);  Int(32) test() {  System s;  Unsigned(16) rtn2[4] = crtn2;  Unsigned(33) rtn3[5] = crtn3;  s ( rtn1 0 [] cast )print . s ( rtn1 3 [] cast )print . b1 rtn1 0 [] rtn1 3 [] > = s ( b1 )assert . s ( rtn2 0 [] cast )print . s ( rtn2 3 [] cast )print . b2 rtn2 0 [] rtn2 3 [] > = s ( b2 )assert . s ( rtn3 0 [] cast )print . s ( rtn3 4 [] cast )print . b3 rtn3 0 [] rtn3 4 [] > = s ( b3 )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by t3881, here data member has init value of named constant array.
+##
+#>A.ulam
+  ulam 2;
+local typedef Unsigned(16) BIGARGB[4];
+local typedef Unsigned(33) WEIRDOG[5];
+element A {
+  Bool b1, b2, b3;
+  constant UrSelf.ARGB crtn1 = {0xfe, 0 }; //typedf in UrSelf as Unsigned(8) ARGB[4]
+  constant BIGARGB crtn2 = {0xffee, 0 }; //u64 try as DataMEMBER
+  constant WEIRDOG crtn3 = {0x123456789u, 0}; //try as DataMEMBER
+  UrSelf.ARGB rtn1 = crtn1;
+  Int test() {
+    System s;
+    BIGARGB rtn2 = crtn2;
+    WEIRDOG rtn3 = crtn3;
+
+    s.print(rtn1[0]);
+    s.print(rtn1[3]);
+    b1 = (rtn1[0] > rtn1[3]);
+    s.assert(b1);
+
+    s.print(rtn2[0]);
+    s.print(rtn2[3]);
+    b2 = (rtn2[0] > rtn2[3]);
+    s.assert(b2);
+
+    s.print((Unsigned) rtn3[0]); //cast; see error/t3884
+    s.print((Unsigned) rtn3[4]); //cast; see error/t3884
+    b3 = (rtn3[0] > rtn3[4]);
+    s.assert(b3);
+    return 0;
+  }
+}
+
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

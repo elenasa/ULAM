@@ -53,7 +53,7 @@ namespace MFM {
 	rtnUV = UlamValue::makeImmediate(type, _BitwiseXorBits32(ldata, rdata, len), len);
 	break;
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	break;
       };
     return rtnUV;
@@ -81,7 +81,7 @@ namespace MFM {
 	rtnUV = UlamValue::makeImmediateLong(type, _BitwiseXorBits64(ldata, rdata, len), len);
 	break;
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	break;
       };
     return rtnUV;
@@ -109,7 +109,7 @@ namespace MFM {
 	refUV.putData(pos, len, _BitwiseXorBits32(ldata, rdata, len));
 	break;
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	break;
       };
     return;

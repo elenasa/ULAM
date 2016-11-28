@@ -6,7 +6,6 @@
 ##        unevaluable: expected exit status 1
 ##
 ./QW.ulam:8:5: ERROR: Reference atom variable aref's type Atom(96)&, and its initial value type QW&, are incompatible; .atomof may help.
-./A.ulam:4:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## Dave requested a way to get default values for Self (within a quark);

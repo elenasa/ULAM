@@ -16,7 +16,7 @@ namespace MFM {
     clearLeftoverNonreadyClassArgSubtrees();
     clearLeftoverUnknownTypeTokens();
     m_mapUTItoUTI.clear();
-  } //clearLeftoverSubtrees()
+  } //clearLeftoverSubtrees
 
   void Resolver::clearLeftoverNonreadyClassArgSubtrees()
   {
@@ -31,9 +31,7 @@ namespace MFM {
 	std::vector<NodeConstantDef *>::iterator vit = m_nonreadyClassArgSubtrees.begin();
 	while(vit != m_nonreadyClassArgSubtrees.end())
 	  {
-	    NodeConstantDef * ceNode = *vit;
-	    delete ceNode;
-	    *vit = NULL;
+	    *vit = NULL; //NodeBlockClass is new owner!
 	    vit++;
 	  }
       }
@@ -129,7 +127,6 @@ namespace MFM {
 		    aok = m_state.isHolder(cnsym->getUlamTypeIdx()) ? false : true;
 		  }
 		//else
-		//assert(0);
 	      }
 	    else
 	      {
@@ -255,7 +252,12 @@ namespace MFM {
     return aok;
   } //assignClassArgValuesInStubCopy
 
-  bool Resolver::statusNonreadyClassArguments()
+  u32 Resolver::countNonreadyClassArgs()
+  {
+    return m_nonreadyClassArgSubtrees.size();
+  }
+
+  bool Resolver::statusNonreadyClassArguments(SymbolClass * stubcsym)
   {
     bool rtnstat = true; //ok, empty
     if(!m_nonreadyClassArgSubtrees.empty())
@@ -271,21 +273,38 @@ namespace MFM {
 	msg << " trying to update now";
 	MSG("", msg.str().c_str(), DEBUG);
 
-	rtnstat = constantFoldNonreadyClassArgs(); //forgot to update rtnstat?
+	rtnstat = constantFoldNonreadyClassArgs(stubcsym); //forgot to update rtnstat?
       }
     return rtnstat;
   } //statusNonreadyClassArguments
 
-  bool Resolver::constantFoldNonreadyClassArgs()
+  bool Resolver::constantFoldNonreadyClassArgs(SymbolClass * stubcsym)
   {
     bool rtnb = true;
     UTI context = getContextForPendingArgs();
-    SymbolClass * contextSym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(context, contextSym);
-    assert(isDefined);
-    m_state.pushClassContext(context, contextSym->getClassBlockNode(), contextSym->getClassBlockNode(), false, NULL);
+    if(m_state.isAClass(context))
+      {
+	SymbolClass * contextSym = NULL;
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(context, contextSym);
+	assert(isDefined);
+	NodeBlockClass * contextclassblock = contextSym->getClassBlockNode();
+	m_state.pushClassContext(context, contextclassblock, contextclassblock, false, NULL);
+      }
+    else
+      {
+	NodeBlockLocals * locals = m_state.getLocalScopeBlockByIndex(context);
+	assert(locals);
+	m_state.pushClassContext(context, locals, locals, false, NULL);
+      }
 
     m_state.m_pendingArgStubContext = m_classUTI; //set for folding surgery
+
+    bool defaultval = false;
+    bool pushedtemplate = false;
+    assert(stubcsym);
+    NodeBlockClass * stubclassblock = stubcsym->getClassBlockNode();
+    assert(stubclassblock);
+    Locator saveStubLoc = stubclassblock->getNodeLocation();
 
     std::vector<NodeConstantDef *> leftCArgs;
     std::vector<NodeConstantDef *>::iterator vit = m_nonreadyClassArgSubtrees.begin();
@@ -294,17 +313,38 @@ namespace MFM {
 	NodeConstantDef * ceNode = *vit;
 	if(ceNode)
 	  {
+	    ceNode->fixPendingArgumentNode(); //possibly renames if arg unseen tmp name.
+	    defaultval = ceNode->hasDefaultSymbolValue();
+
+	    //OMG! if this was a default value for class arg, t3891,
+	    // we want to use the class stub/template as the 'context' rather than where the
+	    // stub was declared.
+	    if(defaultval && !pushedtemplate)
+	      {
+		assert(stubcsym);
+		SymbolClassNameTemplate * templateparent = stubcsym->getParentClassTemplate();
+		assert(templateparent);
+		NodeBlockClass * templateclassblock = templateparent->getClassBlockNode();
+		stubclassblock->setNodeLocation(templateclassblock->getNodeLocation()); //temporarily change stub loc, in case of local filescope
+		m_state.pushClassContext(m_classUTI, stubclassblock, stubclassblock, false, NULL);
+		pushedtemplate = true;
+	      }
+	    assert(defaultval == pushedtemplate); //once a default, always a default
+
 	    UTI uti = ceNode->checkAndLabelType();
 	    if(m_state.okUTItoContinue(uti)) //i.e. ready
-	      {
-		delete ceNode;
-		*vit = NULL;
-	      }
+	      *vit = NULL; //NodeBlockClass is the owner now.
 	    else
 	      leftCArgs.push_back(ceNode);
 	  }
 	vit++;
       } //while thru vector of incomplete args only
+
+    if(pushedtemplate)
+      {
+	m_state.popClassContext(); //no longer need stub context
+	stubclassblock->setNodeLocation(saveStubLoc);
+      }
 
     m_state.m_pendingArgStubContext = Nouti; //clear flag
     m_state.popClassContext(); //restore previous context
@@ -331,41 +371,10 @@ namespace MFM {
     return !m_nonreadyClassArgSubtrees.empty();
   } //pendingClassArgumentsForClassInstance
 
-  void Resolver::clonePendingClassArgumentsForStubClassInstance(const Resolver& rslvr, UTI context, SymbolClass * mycsym)
+  void Resolver::setContextForPendingArgs(UTI context)
   {
-    NodeBlockClass * classblock = mycsym->getClassBlockNode();
-    SymbolClass * contextSym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(context, contextSym);
-    assert(isDefined);
-
-    std::vector<NodeConstantDef *>::const_iterator vit = rslvr.m_nonreadyClassArgSubtrees.begin();
-    while(vit != rslvr.m_nonreadyClassArgSubtrees.end())
-      {
-	NodeConstantDef * ceNode = *vit;
-	ceNode->fixPendingArgumentNode();
-	NodeConstantDef * cloneNode = new NodeConstantDef(*ceNode);
-
-	Symbol * cvsym = NULL;
-	AssertBool isDefined = classblock->isIdInScope(cloneNode->getSymbolId(), cvsym);
-	assert(isDefined);
-	cloneNode->setSymbolPtr((SymbolConstantValue *) cvsym);
-
-	linkConstantExpressionForPendingArg(cloneNode); //resolve later
-	vit++;
-      }
-
-    m_classContextUTIForPendingArgs = context; //update (might not be needed anymore?)
-
-    //Cannot MIX the current block (context) to find symbols while
-    //using this stub copy to find parent NNOs for constant folding;
-    //therefore we separate them so that all we do now is update the
-    //constant values in the stub copy's Resolver map.
-    //Resolution of all context-dependent arg expressions will occur
-    //during the resolving loop..
-    m_state.pushClassContext(context, contextSym->getClassBlockNode(), contextSym->getClassBlockNode(), false, NULL);
-    assignClassArgValuesInStubCopy();
-    m_state.popClassContext(); //restore previous context
-  } //clonePendingClassArgumentsForStubClassInstance
+    m_classContextUTIForPendingArgs = context;
+  }
 
   UTI Resolver::getContextForPendingArgs()
   {
@@ -415,50 +424,6 @@ namespace MFM {
       }
     return brtn;
   } //findMappedUTI
-
-  bool Resolver::findNodeNo(NNO n, Node *& foundNode)
-  {
-    if(findNodeNoInNonreadyClassArgs(n, foundNode))
-      return true;
-
-    return false;
-  } //findNodeNo
-
-  bool Resolver::findNodeNoInNonreadyClassArgs(NNO n, Node *& foundNode)
-  {
-    bool rtnB = false;
-
-    std::vector<NodeConstantDef *>::const_iterator vit = m_nonreadyClassArgSubtrees.begin();
-    while(vit != m_nonreadyClassArgSubtrees.end())
-      {
-	NodeConstantDef * ceNode = *vit;
-	assert(ceNode);
-	if(ceNode->findNodeNo(n, foundNode))
-	  {
-	    rtnB = true;
-	    break;
-	  }
-	vit++;
-      }
-    return rtnB;
-  } //findNodeNoInNonreadyClassArgs
-
-  void Resolver::countNavNodes(u32& ncnt, u32& hcnt, u32& nocnt)
-  {
-    countNavNodesInPendingArgs(ncnt, hcnt, nocnt);
-  }
-
-  void Resolver::countNavNodesInPendingArgs(u32& ncnt, u32& hcnt, u32& nocnt)
-  {
-    std::vector<NodeConstantDef *>::const_iterator vit = m_nonreadyClassArgSubtrees.begin();
-    while(vit != m_nonreadyClassArgSubtrees.end())
-      {
-	NodeConstantDef * ceNode = *vit;
-	assert(ceNode);
-	ceNode->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
-	vit++;
-      }
-  } //countNavNodesInPendingArgs
 
   void Resolver::cloneUTImap(SymbolClass * csym)
   {

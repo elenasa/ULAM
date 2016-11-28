@@ -36,7 +36,6 @@ namespace MFM {
 	msg << "Undefined function block <";
 	msg << m_state.m_pool.getDataAsString(getId()).c_str() << ">";
 	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
-	//assert(0);
       }
   }
 
@@ -76,7 +75,7 @@ namespace MFM {
 	totalsizes += m_state.slotsNeeded(sym->getUlamTypeIdx());
       }
     return totalsizes;
-  } //getTotalParameterSlots
+  }
 
   Symbol * SymbolFunction::getParameterSymbolPtr(u32 n)
   {
@@ -106,8 +105,8 @@ namespace MFM {
       delete m_functionNode; //clean up any previous declarations
 
     m_functionNode = func; //could be null if error occurs while parsing func body
-    Symbol::setBlockNoOfST(m_state.getClassBlockNo()); //SF not in the func def ST
-  } //setFunctionNode
+    Symbol::setBlockNoOfST(m_state.getContextBlockNo()); //SF not in the func def ST
+  }
 
   NodeBlockFunctionDefinition *  SymbolFunction::getFunctionNode()
   {
@@ -295,7 +294,7 @@ namespace MFM {
     NodeBlockFunctionDefinition * func = getFunctionNode();
     assert(func);
     return (func->isNative() ? 1 : 0);
-  } //isNativeFunctionDeclaration
+  }
 
   bool SymbolFunction::isVirtualFunction()
   {

@@ -83,6 +83,8 @@ class NodeBlockFunctionDefinition : public NodeBlock
 
     virtual EvalStatus eval();
 
+    virtual EvalStatus evalToStoreInto();
+
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();

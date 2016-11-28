@@ -73,11 +73,15 @@ namespace MFM{
     virtual bool isTypedef();
     virtual bool isConstant();
     virtual bool isClass();
-    virtual bool isTmpRefSymbol();
+    virtual bool isTmpVarSymbol();
 
     void setDataMemberClass(UTI cuti);
     UTI getDataMemberClass();
     bool isDataMember();
+
+    void setLocalFilescopeDef(UTI locuti);
+    UTI getLocalFilescopeType();
+    bool isLocalFilescopeDef();
 
     virtual bool isModelParameter();
 
@@ -121,6 +125,8 @@ namespace MFM{
     UTI m_uti; // may seem redundant, but not; from NodeVarDecl, before m_value known.
                // base type, not array type, used here (e.g. NodeBinaryOp::calcNodeType)
     UTI m_dataMemberClass;
+    UTI m_localfilescopeType;
+
     ALT m_autoLocalType;
     bool m_isSelf; // hidden arg symbol
     bool m_isSuper; // to modify effective self

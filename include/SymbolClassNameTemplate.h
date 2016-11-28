@@ -74,16 +74,15 @@ namespace MFM{
     bool pendingClassArgumentsForStubClassInstance(UTI instance);
 
     SymbolClass * makeAStubClassInstance(const Token& typeTok, UTI cuti); //to hold class args, and cUTI
-    SymbolClass * makeAStubClassInstanceHolder(const Token& typeTok, UTI suti);
     void copyAStubClassInstance(UTI instance, UTI newuti, UTI context);
 
     void mergeClassInstancesFromTEMP();
 
     /** replaces temporary class argument names, updates the ST, and the class type */
     void fixAnyClassInstances();
+    void fixAClassStubsDefaultArgs(SymbolClass * stubcsym, u32 defaultstartidx);
 
     bool statusNonreadyClassArgumentsInStubClassInstances();
-    bool constantFoldClassArgumentsInAStubClassInstance(UTI instance);
 
     virtual std::string formatAnInstancesArgValuesAsAString(UTI instance);
     std::string formatAnInstancesArgValuesAsCommaDelimitedString(UTI instance);
@@ -110,6 +109,7 @@ namespace MFM{
     virtual bool setBitSizeOfClassInstances();
     virtual void printBitSizeOfClassInstances();
     virtual void packBitsForClassInstances();
+
     virtual void printUnresolvedVariablesForClassInstances();
 
     virtual void buildDefaultValueForClassInstances();
@@ -142,6 +142,9 @@ namespace MFM{
     void cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to);
 
     bool checkSFINAE(SymbolClass * sym);
+
+    std::map<UTI, SymbolClass* > m_stubsToDelete;
+    void trashStub(UTI uti, SymbolClass * symptr);
   };
 
 }

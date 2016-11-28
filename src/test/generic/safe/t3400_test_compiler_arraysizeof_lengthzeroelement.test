@@ -1,0 +1,37 @@
+## -*- mode:ulam -*-
+#=t3400_test_compiler_arraysizeof_lengthzeroelement
+##
+## gen output (1 assert)
+#!
+Exit status: 384
+Ue_Eltypo { typedef Empty EArr[4];  Int(32) test() {  System s;  Empty arr[4];  s ( true )assert . 384u cast return } }
+Uq_System { <NOMAIN> }
+##
+##      //arraysize zero ok, but not bitsize zero!
+##      // gcc balks at BitVector for immediate (Dave fixed it)
+#>Eltypo.ulam
+  ulam 1;
+use Empty;
+element Eltypo {
+  typedef Empty EArr[4];
+  Int test(){
+    System s;
+    EArr arr;
+    s.assert(arr.sizeof == 4 * 96);
+    return arr.sizeof;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
+#.

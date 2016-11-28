@@ -1,29 +1,31 @@
 ## -*- mode:ulam -*-
 #=t3450_test_compiler_minmaxsizeoffunccallreturns_error
 #!
-./T.ulam:12:14: ERROR: Unexpected token <TOK_KW_MINOF>; Expected _IDENTIFIER.
-./T.ulam:12:14: ERROR: Invalid Statement (possible missing semicolon).
-./T.ulam:13:14: ERROR: Unexpected token <TOK_KW_MAXOF>; Expected _IDENTIFIER.
-./T.ulam:13:14: ERROR: Invalid Statement (possible missing semicolon).
-./T.ulam:14:17: ERROR: Unexpected token <TOK_KW_SIZEOF>; Expected _IDENTIFIER.
-./T.ulam:14:17: ERROR: Invalid Statement (possible missing semicolon).
-Unrecoverable Program Parse FAILURE: <T.ulam>
+./T.ulam:12:17: ERROR: Function call 'func1' preceeds minof.
+./T.ulam:12:7: ERROR: Assignment is invalid; LHS: Int(7); RHS: erroneous.
+./T.ulam:13:17: ERROR: Function call 'func2' preceeds maxof.
+./T.ulam:13:7: ERROR: Assignment is invalid; LHS: Int(7); RHS: erroneous.
+./T.ulam:14:20: ERROR: Function call 'func1' preceeds sizeof.
+Unrecoverable Program Type Label FAILURE.
+##
+## opens door to expecting to put 'dot' after function call
+##
 #>T.ulam
- ulam 1;
- element T{
-typedef Int(7) B;
- B m,n;
- B func1() {
- return 5;
+  ulam 1;
+element T{
+  typedef Int(7) B;
+  B m,n;
+  B func1() {
+    return 5;
+  }
+  B func2() {
+    return 7;
+  }
+  Int test(){
+    m = func1().minof;
+    n = func2().maxof;
+    return func1().sizeof;
+  }
 }
- B func2() {
- return 7;
-}
- Int test(){
- m = func1().minof;
- n = func2().maxof;
- return func1().sizeof;
-}
- }
 
 #.

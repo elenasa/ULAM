@@ -44,7 +44,7 @@ quark EventWindow {
      Access the maximum possible number of sites in the event window.
      Note this function returns a fixed value (41, given the manhattan
      distance 4 event window radius), and does not the number of \e
-     accessible sites given an event window.  
+     accessible sites given an event window.
 
      \sa getRadius()
      \sa getAccessibleSize()
@@ -69,11 +69,11 @@ quark EventWindow {
     return md.getFirstIndex((Radius) (rad + 1u));
   }
 
-  Atom aref(SiteNum index) native;
-  Atom aref(C2D coord) { return aref(getSiteNumberRaw(coord)); }
+  Atom& aref(SiteNum index) native;
+  Atom& aref(C2D coord) { return aref(getSiteNumberRaw(coord)); }
 
-  Void aset(SiteNum index, Atom val) native;
-  Void aset(C2D coord, Atom val) { aset(getSiteNumberRaw(coord), val); }
+  //Void aset(SiteNum index, Atom val) native;
+  //Void aset(C2D coord, Atom val) { aset(getSiteNumberRaw(coord), val); }
 
   Bool isLegal(SiteNum index) { return index < size(); }
   Bool isLegal(C2D coord) { return isLegal(getSiteNumberRaw(coord)); }

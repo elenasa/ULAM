@@ -66,7 +66,7 @@ namespace MFM {
 	break;
       case Bits:
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	break;
       };
     return rtnUV;
@@ -92,7 +92,7 @@ namespace MFM {
 	break;
       case Bits:
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	break;
       };
     return rtnUV;
@@ -118,7 +118,7 @@ namespace MFM {
 	break;
       case Bits:
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	break;
       };
     return;

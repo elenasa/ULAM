@@ -236,7 +236,7 @@ namespace MFM {
 
   UTI NodeBinaryOpEqual::calcNodeType(UTI lt, UTI rt)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return Nav;
   }
 
@@ -386,7 +386,7 @@ namespace MFM {
 	rtnUV = makeImmediateLongBinaryOp(nuti, ldata, rdata, len);
       }
     else
-      assert(0); //e.g. 0
+      m_state.abortGreaterThanMaxBitsPerLong();//e.g. 0
 
     if(rtnUV.getUlamValueTypeIdx() == Nav)
       return false;
@@ -481,19 +481,19 @@ namespace MFM {
 
   UlamValue NodeBinaryOpEqual::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
-    assert(0); //unused
+    m_state.abortShouldntGetHere(); //unused
     return UlamValue();
   }
 
   UlamValue NodeBinaryOpEqual::makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len)
   {
-    assert(0); //unused
+    m_state.abortShouldntGetHere(); //unused
     return UlamValue();
   }
 
   void NodeBinaryOpEqual::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
-    assert(0); //unused
+    m_state.abortShouldntGetHere(); //unused
   }
 
   void NodeBinaryOpEqual::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)

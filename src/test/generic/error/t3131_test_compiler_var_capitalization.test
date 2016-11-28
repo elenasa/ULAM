@@ -3,7 +3,7 @@
 #!
 ./D.ulam:2:5: ERROR: Name of variable/function <T>: Identifier must begin with a lower-case letter.
 ./D.ulam:1:1: ERROR: Empty/Incomplete Class Definition 'D'; Possible missing ending curly brace.
-./D.ulam:2:5: ERROR: Invalid Class Type <T>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
+./D.ulam:2:5: ERROR: Invalid Class Type <T>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./D.ulam:1:9: ERROR: Invalid Type: D.
  ERROR: No parse tree for This Class: D.
 Unrecoverable Program Parse FAILURE: <D.ulam>

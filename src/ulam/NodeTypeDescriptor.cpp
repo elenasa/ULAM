@@ -112,6 +112,7 @@ namespace MFM {
     if(resolveType(it)) //ref
       {
 	setNodeType(it);
+	m_uti = it; //new given reset here!!! Mon Aug  1 12:02:52 2016
 	m_ready = true; //set here!!!
       }
     else if(it == Hzy)
@@ -152,7 +153,6 @@ namespace MFM {
 	// if Nav, use token
 	UTI mappedUTI = nuti;
 	UTI cuti = m_state.getCompileThisIdx();
-
 	// the symbol associated with this type, was mapped during instantiation
 	// since we're call AFTER that (not during), we can look up our
 	// new UTI and pass that on up the line of NodeType Selects, if any.
@@ -184,12 +184,12 @@ namespace MFM {
       {
 	rtnb = resolveClassType(nuti);
       }
-    else if(etyp == Holder)
+    else if((etyp == Holder) && !m_state.isThisLocalsFileScope())
       {
 	//non-class reference, handled in resolveReferenceType
 	if(getReferenceType() == ALT_NOT)
 	  {
-	    // non-class, non-ref
+	    // non-class, non-ref, non-localdef scope
 	    if(!(rtnb = m_state.statusUnknownTypeInThisClassResolver(nuti)))
 	      nuti = Hzy;
 	  }
@@ -366,7 +366,7 @@ namespace MFM {
 
 		if(nut->isHolder())
 		  {
-		    if(!m_state.statusUnknownTypeInThisClassResolver(nuti))
+		    if(m_state.isThisLocalsFileScope() || !m_state.statusUnknownTypeInThisClassResolver(nuti))
 		      auti = Hzy;
 		  }
 		else if(!m_state.isARootUTI(nuti))
@@ -407,7 +407,9 @@ namespace MFM {
       {
 	if(!m_state.okUTItoContinue(nuti))
 	  {
-	    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+	    //use given UTI, not the not-ok nuti here..
+	    assert(m_state.okUTItoContinue(givenUTI()));
+	    UlamType * nut = m_state.getUlamTypeByIndex(givenUTI());
 	    ULAMTYPE etyp = nut->getUlamTypeEnum();
 	    s32 arraysize = nut->getArraySize(); //NONARRAYSIZE for scalars
 	    //use default primitive bitsize; (assumes scalar)
@@ -424,6 +426,21 @@ namespace MFM {
       {
 	//primitive with possible unknown bit size
 	rtnb = resolveTypeBitsize(nuti);
+      }
+
+    if(!m_state.okUTItoContinue(nuti))
+      {
+	UTI tduti = Nouti;
+	UTI tmpforscalaruti = Nouti;
+	bool isTypedef = m_state.getUlamTypeByTypedefName(m_typeTok.m_dataindex, tduti, tmpforscalaruti);
+
+	if(isTypedef)
+	  {
+	    m_state.updateUTIAliasForced(givenUTI(), tduti); //t3898
+	    nuti = tduti;
+	    if(!(rtnb = m_state.isComplete(nuti)))
+	      nuti = Hzy;
+	  }
       }
     rtnuti = nuti;
     return rtnb;
@@ -486,7 +503,7 @@ namespace MFM {
 
   EvalStatus NodeTypeDescriptor::eval()
   {
-    assert(0);  //not in parse tree; part of Node's type
+    m_state.abortShouldntGetHere();  //not in parse tree; part of Node's type
     return NORMAL;
   } //eval
 

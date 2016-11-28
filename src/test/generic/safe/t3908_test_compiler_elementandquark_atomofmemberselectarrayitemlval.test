@@ -1,0 +1,74 @@
+## -*- mode:ulam -*-
+#=t3908_test_compiler_elementandquark_atomofmemberselectarrayitemlval
+#!
+##      gen code output: 2 asserts
+##
+Exit status: -11
+Ue_R { Int(32) ans(0);  Int(32) test() {  System s;  T tr[2];  tr 1 [] m_earr 2 [] . b . true = Atom(96)& me = tr 1 [] m_earr 2 [] ..atomof;  { me A as cond { A& me;  s ( me b . )assert . } if s ( false )assert . else } A a;  tr 1 [] m_earr 2 [] ..atomof a cast cast = { me A as cond { A& me;  s ( me b . ! )assert . } if s ( false )assert . else } 0 cast return } }
+Uq_System { <NOMAIN> }
+Un_T { Bool(1) b(false);  A m_earr[3]( Bool(1) b(false);  QW m_q[4]( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ); ), ( Bool(1) b(false);  QW m_q[4]( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ); ), ( Bool(1) b(false);  QW m_q[4]( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ); );  <NOMAIN> }
+Ue_A { Bool(1) b(false);  QW m_q[4]( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); ), ( Unary(3) m_y(0); );  <NOMAIN> }
+Uq_QW { Unary(3) m_y(0);  <NOMAIN> }
+##
+## informed by t3906, except with lots of array items, lval and atom ref (same element type)
+##
+#>R.ulam
+  ulam 2;
+element R {
+  Int ans;
+  Int test(){
+    System s;
+    T tr[2];
+
+    tr[1].m_earr[2].b = true;
+    Atom& me = tr[1].m_earr[2].m_q[3].atomof;
+
+    if(me as A)
+      s.assert(me.b);
+    else
+      s.assert(false);
+
+    A a; //b is false by default
+    tr[1].m_earr[2].m_q[3].atomof = a; //clobber 'me' with same element
+
+    if(me as A)
+      s.assert(!me.b);
+    else
+      s.assert(false);
+
+    return 0;
+  }
+}
+
+#:T.ulam
+  ulam 2;
+transient T {
+  Bool b;
+  A m_earr[3];
+}
+
+#:A.ulam
+  ulam 2;
+element A {
+  Bool b;
+  QW m_q[4];
+}
+
+#:QW.ulam
+  ulam 2;
+quark QW {
+  Unary(3) m_y;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

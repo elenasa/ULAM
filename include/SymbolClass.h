@@ -93,6 +93,8 @@ namespace MFM{
 
     u32 getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
 
+    bool hasCustomArrayLengthof();
+
     bool trySetBitsizeWithUTIValues(s32& totalbits);
 
     void printBitSizeOfClass();
@@ -112,20 +114,19 @@ namespace MFM{
 
     bool statusNonreadyClassArguments();
 
-    bool constantFoldNonreadyClassArguments();
+    u32 countNonreadyClassArguments();
 
     void linkConstantExpressionForPendingArg(NodeConstantDef * constNode);
     bool pendingClassArgumentsForClassInstance();
-    void cloneResolverForStubClassInstance(const SymbolClass* csym, UTI context);
+    void cloneArgumentNodesForClassInstance(SymbolClass * fmcsym, UTI context, bool toStub);
     void cloneResolverUTImap(SymbolClass * csym);
     void cloneUnknownTypesMapInClass(SymbolClass * to);
 
+    void setContextForPendingArgs(UTI context);
     UTI getContextForPendingArgs();
 
     bool mapUTItoUTI(UTI auti, UTI mappedUTI);
     bool hasMappedUTI(UTI auti, UTI& mappedUTI);
-    bool findNodeNoInResolver(NNO n, Node *& foundNode);
-    void countNavNodesInClassResolver(u32& ncnt, u32& hcnt, u32& nocnt);
 
     virtual void generateCode(FileManager * fm);
 
@@ -164,6 +165,7 @@ namespace MFM{
     bool m_isreadyDefaultValue;
     UTI m_superClass; //single inheritance
 
+    void assignClassArgValuesInStubCopy();
 
     void generateHeaderPreamble(File * fp);
     void genAllCapsIfndefForHeaderFile(File * fp);

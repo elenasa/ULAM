@@ -72,7 +72,8 @@ namespace MFM {
     s32 len = state.getTotalBitSize(utype); //possible packed array (e.g. default qks)
     assert(len != UNKNOWNSIZE);
     UlamType * ut = state.getUlamTypeByIndex(utype);
-    if(ut->getUlamTypeEnum() == Class)
+    ULAMTYPE etyp = ut->getUlamTypeEnum();
+    if(etyp == Class)
       {
 	return UlamValue::makeImmediateClass(utype, v, len); //left-justified
       }
@@ -286,7 +287,7 @@ namespace MFM {
 	      atval = makeDefaultAtom(suti, state); //element
 	  }
 	else
-	  assert(0);
+	  state.abortNotSupported();
       }
     return atval;
   } //getValAt
@@ -427,7 +428,7 @@ namespace MFM {
 		}
 		break;
 	      default:
-		assert(0);
+		state.abortUndefinedCallStack();
 	      };
 	  }
 	else if(getUlamValueTypeIdx() == PtrAbs)
@@ -447,12 +448,15 @@ namespace MFM {
 		  rtnb = state.m_eventWindow.isValidSite(m_uv.m_ptrValue.m_slotIndex, c);
 		}
 		break;
+	      case CNSTSTACK:
+		rtnb = (m_uv.m_ptrValue.m_slotIndex > 0) && ((u32) m_uv.m_ptrValue.m_slotIndex < state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot());
+		break;
 	      default:
-		assert(0);
+		state.abortUndefinedCallStack();
 	      };
 	  }
 	else
-	  assert(0);
+	  state.abortShouldntGetHere();
       }
     return rtnb;
   } //incrementPtr
@@ -489,7 +493,7 @@ namespace MFM {
 	    rtnUV.putDataLong((BITSPERATOM-len), len, datavalue); //immediate
 	  }
 	else
-	  assert(0);
+	  state.abortGreaterThanMaxBitsPerLong();
       }
     else
       {
@@ -510,7 +514,7 @@ namespace MFM {
 		rtnUV.putDataLong((BITSPERATOM-(bitsize * (arraysize - i))), bitsize, datavalue);
 	      }
 	    else
-	      assert(0);
+	      state.abortGreaterThanMaxBitsPerLong();
 
 	    nextPtr.incrementPtr(state);
 	  }
@@ -529,7 +533,7 @@ namespace MFM {
       {
 	//must get data piecemeal, too big to fit into one int
 	//use getPackedArrayDataIntoAtom(p, data, state);
-	assert(0);
+	state.abortShouldntGetHere();
       }
 
     assert(p.getPtrLen() <= MAXBITSPERINT);
@@ -570,7 +574,7 @@ namespace MFM {
       {
 	//must get data piecemeal, too big to fit into one int
 	//use getPackedArrayDataIntoAtom(p, data, state);
-	assert(0);
+	state.abortShouldntGetHere();
       }
 
     assert(p.getPtrLen() <= MAXBITSPERLONG);
@@ -743,11 +747,11 @@ namespace MFM {
 		putDataLong(p.getPtrPos(), len, datavalue);
 	      }
 	    else
-	      assert(0);
+	      state.abortGreaterThanMaxBitsPerLong();
 	  }
 	else
 	  // e.g. an element, take wholesale
-	  assert(0);
+	  state.abortGreaterThanMaxBitsPerLong();
       }
     else
       {
@@ -765,7 +769,7 @@ namespace MFM {
 	    putDataLong(p.getPtrPos(), len, datavalue);
 	  }
 	else
-	  assert(0);
+	  state.abortGreaterThanMaxBitsPerLong();
       }
   } //putDataIntoAtom
 

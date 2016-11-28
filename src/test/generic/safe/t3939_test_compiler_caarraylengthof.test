@@ -1,0 +1,48 @@
+## -*- mode:ulam -*-
+#=t3939_test_compiler_caarraylengthof
+##
+## gen output: (followed by an assert)
+##  Unsigned Arg: 8
+##
+#!
+Exit status: 8
+Ue_Eltypo { Int(32) test() {  System s;  EventWindow ew;  Unsigned(32) len = ew ( )alengthof .;  len ew ( )alengthof . = s ( len )print . s ( len 8u cast == )assert . ew ( )alengthof . cast return } }
+Uq_System { <NOMAIN> }
+Uq_EventWindow { <NOMAIN> }
+##
+## informed by t3937, t3233, t3938
+##      //arraysize zero ok, but not bitsize zero for nonClass primitive types!
+##
+#>Eltypo.ulam
+  ulam 1;
+element Eltypo {
+  Int test(){
+    System s;
+    EventWindow ew;
+    Unsigned len = ew.lengthof;
+    len = ew.lengthof;
+    s.print(len);
+    s.assert(len == 8u);
+    return (Int) ew.lengthof;
+  }
+}
+
+#:EventWindow.ulam
+  ulam 1;
+quark EventWindow {
+  Atom& aref(Int index) native;
+  Unsigned alengthof() { return 8u; }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

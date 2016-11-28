@@ -49,7 +49,7 @@ namespace MFM{
 
     SymbolTableOfClasses(CompilerState& state);
     SymbolTableOfClasses(const SymbolTableOfClasses& ref);
-    ~SymbolTableOfClasses();
+    virtual ~SymbolTableOfClasses();
 
     // TableOfClasses:
     void getTargets(TargetMap& classtargets);

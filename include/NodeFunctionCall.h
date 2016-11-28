@@ -108,7 +108,10 @@ namespace MFM{
     Token m_functionNameTok;
     SymbolFunction * m_funcSymbol;
     NodeList * m_argumentNodes;
+    SymbolTmpVar * m_tmpvarSymbol;
 
+    EvalStatus evalArgumentsInReverseOrder(u32& argsPushed);
+    EvalStatus evalHiddenArguments(u32& argsPushed, NodeBlockFunctionDefinition *& func);
     bool getVirtualFunctionForEval(UlamValue & atomPtr, NodeBlockFunctionDefinition *& rtnfunc);
 
     void genCodeIntoABitValue(File * fp, UVPass& uvpass);
@@ -119,7 +122,6 @@ namespace MFM{
     std::string genHiddenArgs(u32 urtmpnum);
     std::string genRestOfFunctionArgs(File * fp, UVPass & uvpass);
     void genCodeReferenceArg(File * fp, UVPass & uvpass, u32 n);
-    void genCodeAnonymousReferenceArg(File * fp, UVPass & uvpass, u32 n);
     std::string genStorageType(); //for VTable entry
   };
 

@@ -35,7 +35,6 @@ namespace MFM {
 
   NodeTerminal::NodeTerminal(const NodeTerminal& ref) : Node(ref), m_etyp(ref.m_etyp), m_constant(ref.m_constant) {}
 
-  NodeTerminal::NodeTerminal(const NodeIdent& iref) : Node(iref), m_etyp(Hzy) {}
 
   NodeTerminal::~NodeTerminal(){}
 
@@ -96,6 +95,9 @@ namespace MFM {
 	else
 	  num << ToUnsignedDecimal(m_constant.uval);
 	break;
+      case String:
+	num << m_state.m_upool.getDataAsFormattedString(m_constant.uval, &m_state);
+	break;
       default:
 	{
 	  std::ostringstream msg;
@@ -137,7 +139,7 @@ namespace MFM {
 	msg << "Constant Folding Token <" << m_state.getTokenDataAsString(tok).c_str();
 	msg << "> currently unsupported";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	assert(0);
+	m_state.abortShouldntGetHere();
       }
   } //constantFoldAToken
 
@@ -200,7 +202,7 @@ namespace MFM {
 	    newbs = BITS_PER_BOOL;
 	    break;
 	  default:
-	    assert(0);
+	    m_state.abortUndefinedUlamPrimitiveType();
 	  };
 
 	//use UTI with same base type and new bitsize:
@@ -250,7 +252,7 @@ namespace MFM {
     else if(wordsize <= MAXBITSPERLONG)
       return makeTerminalValueLong(uvarg, m_constant.uval, nuti);
     else
-      assert(0);
+      m_state.abortGreaterThanMaxBitsPerLong();
     return ERROR;
   } //makeTerminalValue
 
@@ -276,6 +278,9 @@ namespace MFM {
 	rtnUV = UlamValue::makeImmediate(uti, data, m_state);
 	break;
       case Class:
+	rtnUV = UlamValue::makeImmediate(uti, data, m_state);
+	break;
+      case String:
 	rtnUV = UlamValue::makeImmediate(uti, data, m_state);
 	break;
       default:
@@ -315,6 +320,7 @@ namespace MFM {
       case Class:
 	rtnUV = UlamValue::makeImmediateLongClass(uti, data, ut->getTotalBitSize());
 	break;
+      case String:
       default:
 	{
 	  std::ostringstream msg;
@@ -449,6 +455,9 @@ namespace MFM {
 	  rtnc = _BinOpCompareEqEqBool32(jdata, cdata, nbitsize);
 	}
 	break;
+      case String:
+	rtnc = 1; //true since 32-bit index
+	break;
       default:
 	{
 	  std::ostringstream msg;
@@ -510,6 +519,9 @@ namespace MFM {
 	  u64 cdata = convertForthAndBackLong(jdata, fituti);
 	  rtnc = _BinOpCompareEqEqBool64(jdata, cdata, nbitsize);
 	}
+	break;
+      case String:
+	rtnc = 1; //true since 32-bit index
 	break;
       default:
 	{
@@ -574,7 +586,7 @@ namespace MFM {
 	      rtnb = true;
 	  }
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
     return rtnb;
   } //isNegativeConstant
@@ -595,7 +607,7 @@ namespace MFM {
 	else if(wordsize <= MAXBITSPERLONG)
 	  rtnb = (m_constant.sval >= MAXBITSPERLONG);
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
     else if(etyp == Unsigned)
       {
@@ -604,7 +616,7 @@ namespace MFM {
 	else if(wordsize <= MAXBITSPERLONG)
 	  rtnb = (m_constant.uval >= (u32) MAXBITSPERLONG);
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
     return rtnb;
   } //isWordSizeConstant
@@ -651,9 +663,15 @@ namespace MFM {
 	else if(wordsize <= MAXBITSPERLONG)
 	  fp->write("(u64) ");
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
 
+    if(UlamType::compareForString(nuti, m_state) == UTIC_SAME)
+      {
+	//String, String array or array item (t3929, t3950)
+	fp->write_decimal_unsigned(m_constant.uval);
+	fp->write("u; //user string pool index for ");
+      }
     fp->write(getName());
     fp->write(";"); GCNL;
 
@@ -721,6 +739,12 @@ namespace MFM {
 	  rtnok = true;
 	}
 	break;
+      case TOK_DQUOTED_STRING:
+	{
+	  m_constant.uval = tok.m_dataindex;
+	  rtnok = true;
+	}
+	break;
       default:
 	{
 	    std::ostringstream msg;
@@ -757,6 +781,10 @@ namespace MFM {
 	  newType = m_state.makeUlamType(key, Unsigned, UC_NOTACLASS);
 	}
 	m_etyp = Unsigned;
+	break;
+      case TOK_DQUOTED_STRING:
+	newType = String;
+	m_etyp = String;
 	break;
       default:
 	{

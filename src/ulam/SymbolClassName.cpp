@@ -43,23 +43,24 @@ namespace MFM {
   void SymbolClassName::getClassMemberDescriptionsForClassInstances(ClassMemberMap& classmembers)
   {
     SymbolClass::addClassMemberDescriptionsMapEntry(classmembers);
-  } //getClassMemberDescriptionsForClassInstances
+  }
 
   bool SymbolClassName::isClassTemplate()
   {
     return false;
-  } //isClassTemplate
+  }
 
   void SymbolClassName::setSuperClassForClassInstance(UTI superclass, UTI instance)
   {
     assert(instance == getUlamTypeIdx());
+    assert(instance != superclass);
     SymbolClass::setSuperClass(superclass);
-  } //setSuperClassForClassInstance
+  }
 
   UTI SymbolClassName::getSuperClassForClassInstance(UTI instance)
   {
     return SymbolClass::getSuperClass(); //Nouti is none, not a subclass.
-  } //getSuperClassForClassInstance
+  }
 
   Node * SymbolClassName::findNodeNoInAClassInstance(UTI instance, NNO n)
   {
@@ -71,13 +72,6 @@ namespace MFM {
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
     classNode->findNodeNo(n, foundNode);
-
-    //if not in the tree, ask the resolver
-    if(!foundNode)
-      {
-	SymbolClass::findNodeNoInResolver(n, foundNode);
-      }
-
     m_state.popClassContext(); //restore
     return foundNode;
   } //findNodeNoInAClassInstance
@@ -95,13 +89,13 @@ namespace MFM {
   {
     assert(instance == getUlamTypeIdx());
     return SymbolClass::hasMappedUTI(auti, mappedUTI);
-  } //hasInstanceMappedUTI
+  }
 
   bool SymbolClassName::mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti)
   {
     assert(instance == getUlamTypeIdx());
     return SymbolClass::mapUTItoUTI(auti, mappeduti);
-  } //mapInstanceUTI
+  }
 
   void SymbolClassName::updateLineageOfClass()
   {
@@ -192,12 +186,12 @@ namespace MFM {
 
     classNode->checkAndLabelType();
     m_state.popClassContext(); //restore
-  } //checkAndLabelClassFirst()
+  } //checkAndLabelClassFirst
 
   void SymbolClassName::checkAndLabelClassInstances()
   {
     checkAndLabelClassFirst();
-  } //checkAndLabelClassInstances
+  }
 
   void SymbolClassName::countNavNodesInClassInstances(u32& ncnt, u32& hcnt, u32& nocnt)
   {
@@ -237,11 +231,7 @@ namespace MFM {
 	msg << "'";
 	MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
       }
-
-    SymbolClass::countNavNodesInClassResolver(ncnt, hcnt, nocnt);
-
     m_state.popClassContext(); //restore
-
     return;
   } //countNavNodesInClassInstances
 
@@ -274,7 +264,7 @@ namespace MFM {
   u32 SymbolClassName::reportUnknownTypeNamesInClassInstances()
   {
     return SymbolClass::reportUnknownTypeNamesInClass();
-  } //reportUnknownTypeNamesInClassInstances
+  }
 
   bool SymbolClassName::setBitSizeOfClassInstances()
   {
@@ -316,7 +306,7 @@ namespace MFM {
   void SymbolClassName::printBitSizeOfClassInstances()
   {
     SymbolClass::printBitSizeOfClass();
-  } //printBitSizeOfClassInstances
+  }
 
   void SymbolClassName::packBitsForClassInstances()
   {
@@ -372,16 +362,16 @@ namespace MFM {
   void SymbolClassName::generateIncludesForClassInstances(File * fp)
   {
     return SymbolClass::generateAsOtherInclude(fp);
-  } //generateIncludesForClassInstances
+  }
 
   void SymbolClassName::generateForwardDefsForClassInstances(File * fp)
   {
     return SymbolClass::generateAsOtherForwardDef(fp);
-  } //generateForwardDefsForClassInstances
+  }
 
   void SymbolClassName::generateTestInstanceForClassInstances(File * fp, bool runtest)
   {
     SymbolClass::generateTestInstance(fp, runtest);
-  } //generateTestInstanceForClassInstances
+  }
 
 } //end MFM
