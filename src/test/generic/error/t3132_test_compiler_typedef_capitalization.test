@@ -3,7 +3,7 @@
 #!
 ./D.ulam:2:16: ERROR: Invalid typedef Alias <too>, Type Identifier (2nd arg) requires capitalization.
 ./D.ulam:1:1: ERROR: Empty/Incomplete Class Definition 'D'; Possible missing ending curly brace.
-./D.ulam:2:19: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
+./D.ulam:2:19: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./D.ulam:1:7: ERROR: Invalid Type: D.
  ERROR: No parse tree for This Class: D.
 Unrecoverable Program Parse FAILURE: <D.ulam>

@@ -63,6 +63,8 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual bool hasASymbolDataMember();
+
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual bool checkReferenceCompatibility(UTI uti);
@@ -77,7 +79,7 @@ namespace MFM{
 
     virtual void setInitExpr(Node * node); //was setConstantExpr
 
-    virtual bool foldInitExpression(); //was foldConstantExpression
+    virtual bool foldArrayInitExpression(); //was foldConstantExpression
 
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 
@@ -90,6 +92,10 @@ namespace MFM{
     virtual EvalStatus evalToStoreInto();
 
     virtual void genCode(File * fp, UVPass& uvpass);
+
+    virtual void genCodeConstantArrayInitialization(File * fp);
+
+    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 

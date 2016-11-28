@@ -49,9 +49,11 @@ namespace MFM{
 
     SymbolTableOfVariables(CompilerState& state);
     SymbolTableOfVariables(const SymbolTableOfVariables& ref);
-    ~SymbolTableOfVariables();
+    virtual ~SymbolTableOfVariables();
 
     u32 getNumberOfConstantSymbolsInTable(bool argsOnly);
+
+    u32 findTypedefSymbolNameIdByTypeInTable(UTI type);
 
     //Table of Variable Data Members:
 
@@ -70,12 +72,6 @@ namespace MFM{
     void genCodeForTableOfVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);  //(unused)
 
     void genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(File *fp);
-
-    void genCodeBuiltInFunctionHasOverTableOfVariableDataMember(File * fp);
-
-    //void genCodeBuiltInFunctionHasPosOverTableOfVariableDataMember(File * fp); (unused)
-
-    //void genCodeBuiltInFunctionBuildDefaultsOverTableOfVariableDataMember(File * fp, UTI cuti);
 
     void addClassMemberDescriptionsToMap(UTI classType, ClassMemberMap& classmembers);
 

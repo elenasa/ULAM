@@ -1,0 +1,71 @@
+## -*- mode:ulam -*-
+#=t3865_test_compiler_elementinheritance_withlocaldefs_anotherfilescopeunseen
+##
+## gen output: (+ 3 asserts)
+## Unsigned Arg: 4
+## Unsigned Arg: 3
+##
+#!
+Exit status: 3
+Uq_Soo(Unsigned(3) v) { Unsigned(UNKNOWN) us(notready);  <NOMAIN> }
+Ue_Foo : Soo(3u) { :< constant Unsigned(3) v = 3u;  Unsigned(3) us(4u); > typedef Soo(3u) Soo3;  constant Unsigned(3) soosize = 3u;  Bool(7) sp(true);  Unsigned(32) a(3u);  Int(32) test() {  System s;  Foo f;  a f us . cast = s ( a )print . s ( a 4u cast == )assert . a 3u = s ( a )print . s ( a 3u cast == )assert . sp ( )func cast = s ( sp cast )assert . a cast return } }
+Uq_System { <NOMAIN> }
+##
+## test of local defs: different file scopes, uses locals from another class, informed by t3862
+## difference: Soo typedef is local, still based on another classes typedef
+##
+#>Soo.ulam
+  ulam 2;
+local typedef Foo.Soo3 Soo3; //ok too!
+quark Soo(Unsigned(3) v) {
+  Unsigned(v) us = 4u;
+  Bool check()
+  {
+    return us.sizeof == Foo.soosize; //uses another's exported local constant
+  }
+  Bool func()
+  {
+    if(self is Soo3) //uses its typedef from another class' exported local
+      return check();
+    return false;
+  }
+}
+
+#:Foo.ulam
+  ulam 2;
+local constant Unsigned(3) soosize = 3u;
+local typedef Soo(soosize) Soo3;
+element Foo : Soo3 {
+  constant Unsigned(3) soosize = local.soosize;
+  typedef local.Soo3 Soo3;
+  Bool(7) sp;
+  Unsigned a = 73;
+  Int test() {
+    System s;
+    Foo f;
+    a = f.us;
+    s.print(a);
+    s.assert(a == 4u);
+    a = Soo3.sizeof;
+    s.print(a);
+    s.assert(a == 3u);
+
+    sp = func();
+    s.assert(sp);
+    return (Int) a; //=3
+  }
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

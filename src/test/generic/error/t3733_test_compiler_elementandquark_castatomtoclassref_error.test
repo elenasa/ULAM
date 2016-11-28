@@ -4,8 +4,6 @@
 ./QW.ulam:8:18: ERROR: Cannot explicitly cast Atom(96) to type: QW.
 ./QW.ulam:8:5: ERROR: Initial value expression for: sra, initialization is invalid.
 ./QW.ulam:8:5: ERROR: Storage expression for: sra, is invalid.
-./A.ulam:4:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: A.
-./A.ulam:4:9: ERROR: 10 Nodes with unresolved types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3692

@@ -25,7 +25,6 @@ use Q;
 quark Q(Bits b)
 {
   Atom aref(Int i) { Atom a; return a; }
-  Void aset(Int i, Atom a) { }
 }
 
 /* Generates:

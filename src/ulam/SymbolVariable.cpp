@@ -18,25 +18,25 @@ namespace MFM {
 
   s32 SymbolVariable::getStackFrameSlotIndex()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return 0; //not on stack
   }
 
   void SymbolVariable::setStackFrameSlotIndex(s32 slot)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return; //not on stack
   }
 
   u32 SymbolVariable::getDataMemberSlotIndex()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return 0; //not a data member
   }
 
   u32 SymbolVariable::getPosOffset()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return 0; //only data members
   }
 

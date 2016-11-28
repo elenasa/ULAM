@@ -59,8 +59,8 @@ quark Bar {
   Void reset(Bool b) {
     b = false; //noop
   }
-  Atom aref(Int index) native;
-  Void aset(Int index, Atom v) native;
+  Atom& aref(Int index) native;
+  //Void aset(Int index, Atom v) native;
 }
 
 #:System.ulam

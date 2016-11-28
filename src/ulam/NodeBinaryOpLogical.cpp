@@ -13,7 +13,7 @@ namespace MFM {
   // not used for logical op
   bool NodeBinaryOpLogical::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return false;
   } //dobinaryoperation
 
@@ -73,7 +73,7 @@ namespace MFM {
 
   const std::string NodeBinaryOpLogical::methodNameForCodeGen()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return "notapplicable_logicalops";
   } // methodNameForCodeGen
 

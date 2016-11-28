@@ -70,6 +70,12 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    void setLastStatementPtr(NodeStatements * laststmt);
+
+    NodeStatements * getLastStatementPtr();
+
+    void appendNextNode(Node * node);
+
     virtual UTI checkAndLabelType();
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
@@ -88,8 +94,6 @@ namespace MFM{
 
     bool removeIdFromScope(u32 id, Symbol *& rtnsymptr);
 
-    void removeAllSymbolsFromScope();
-
     NodeBlock * getPreviousBlockPointer();
 
     void setPreviousBlockPointer(NodeBlock *);
@@ -104,6 +108,8 @@ namespace MFM{
 
     virtual s32 getMaxBitSizeOfVariableSymbolsInTable();
 
+    u32 findTypedefNameIdByType(UTI uti);
+
     virtual void genCode(File * fp, UVPass& uvpass);
 
     void genModelParameterImmediateDefinitions(File * fp);
@@ -117,6 +123,7 @@ namespace MFM{
 
   private:
     NodeBlock * m_prevBlockNode;
+    NodeStatements * m_nodeEndingStmt; //ptr to last statement node while parsing.
 
     SymbolTable * getSymbolTablePtr(); //use with caution, esp. with inheritance
 

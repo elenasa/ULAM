@@ -1,0 +1,38 @@
+## -*- mode:ulam -*-
+#=t3884_test_compiler_longunsigned33max_error
+#!
+./A.ulam:8:7: ERROR: (1) <print> has no defined function with 1 matching argument type: Unsigned(33), and cannot be called.
+./A.ulam:9:7: ERROR: (1) <print> has no defined function with 1 matching argument type: Unsigned(33), and cannot be called.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t3881: uncovered error in calcBitSizeUnsignedMaxLong in Constants.h
+## exhibited by casting Unsigned(33) to Unary(3) arg in System print (m_max == 1)
+##
+#>A.ulam
+  ulam 2;
+local typedef Unsigned(33) WEIRDOG[5];
+element A {
+  Bool b1, b2, b3;
+  constant WEIRDOG rtn3 = {0x123456789u, 0}; //try as DataMEMBER
+  Int test() {
+    System s;
+    s.print(rtn3[0]);
+    s.print(rtn3[4]);
+    b3 = (rtn3[0] > rtn3[4]);
+    s.assert(b3);
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

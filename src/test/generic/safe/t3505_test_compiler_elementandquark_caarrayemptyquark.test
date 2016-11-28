@@ -23,8 +23,8 @@ quark EventWindow {
     Atom a;
     return a;
   }
-  Void aset(Sitenum index, Atom val) {
-    return;
-  }
+  //Void aset(Sitenum index, Atom val) {
+  //  return;
+ // }
 }
 #.

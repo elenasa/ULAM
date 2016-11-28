@@ -50,12 +50,15 @@
 #include "UEventWindow.h"
 #include "File.h"
 #include "NodeBlock.h"
+#include "NodeBlockContext.h"
+#include "NodeBlockLocals.h"
 #include "NodeCast.h"
 #include "NodeConstantDef.h"
 #include "NodeReturnStatement.h"
 #include "NodeTypeBitsize.h"
 #include "NodeSquareBracket.h"
 #include "StringPool.h"
+#include "StringPoolUser.h"
 #include "SymbolClass.h"
 #include "SymbolClassName.h"
 #include "SymbolClassNameTemplate.h"
@@ -96,6 +99,8 @@ namespace MFM{
     // e.g., Token identifiers that are variables, path names read by SS, etc.)
     StringPool m_pool;
 
+    StringPoolUser m_upool; //for double quoted strings only
+
     // map key is the prefix id in the Locator; value is a vector of
     // stringpool id's indexed by line into the original ulam source
     // code; built by SourceStream during parsing; used for
@@ -106,24 +111,26 @@ namespace MFM{
 
     SymbolTableOfClasses m_programDefST; // holds SymbolClassName and SymbolClassNameTemplate
 
-    s32 m_currentFunctionBlockDeclSize; //used to calc framestack size for function def
-    s32 m_currentFunctionBlockMaxDepth; //framestack saved in NodeBlockFunctionDefinition
+    std::map<u32, NodeBlockLocals *> m_localsPerFilePath; //holds block of local constants and typedefs
+    bool m_parsingLocalDef; //used for populating m_localsPerFilePath
+    Token m_currentLocalDefToken; //used to identify current file path when m_parsingLocalDef is true
 
+    SYMBOLTYPEFLAG m_parsingVariableSymbolTypeFlag;
     s32 m_parsingControlLoop;             // used for break/continue control stmt parsing;
                                           // label num for end of loop, or 0
 
     bool m_gotStructuredCommentToken; // avoid testing uninitialized value
     Token m_precedingStructuredCommentToken; //for next class or parameter
 
-    bool m_parsingConditionalAs;          // used for Conditional-As/Has parsing
-    Token m_identTokenForConditionalAs;   // used for Conditional-As/Has parsing
-    Token m_parsingConditionalToken;       // used for Conditional-As/Has parsing
-    bool m_genCodingConditionalHas; // used for Conditional-Has code gen
+    bool m_parsingConditionalAs;          // used for Conditional-As parsing
+    Token m_identTokenForConditionalAs;   // used for Conditional-As parsing
+    Token m_parsingConditionalToken;       // used for Conditional-As parsing
 
     CallStack m_funcCallStack;    //local variables and arguments
     UEventWindow  m_eventWindow;  //storage for 41 atoms (elements)
     CallStack m_nodeEvalStack;    //for node eval return values,
                                   //uses evalNodeProlog/Epilog; EVALRETURN storage
+    CallStack m_constantStack;    //for constant arrays (non-function variables); CNSTSTACK
 
     bool m_goAgainResolveLoop; //true means a node has a type that's not ready
     UTI m_pendingArgStubContext; //non-Nav helps find parentNode in case of surgery
@@ -143,8 +150,8 @@ namespace MFM{
     UlamValue m_currentObjPtr; //used in eval of members: data or funcs; updated at each '.'
     UlamValue m_currentSelfPtr; //used in eval of func calls: updated after args,
                                 // becomes currentObjPtr for args
-    UlamValue m_currentAutoObjPtr; //used in eval, uses rhs type of conditional as/has:
-    UTI m_currentAutoStorageType; //used in eval, uses lhs type of conditional as/has:
+    UlamValue m_currentAutoObjPtr; //used in eval, uses rhs type of conditional as:
+    UTI m_currentAutoStorageType; //used in eval, uses lhs type of conditional as:
 
     std::vector<Symbol *> m_currentObjSymbolsForCodeGen;  //used in code generation;
     Symbol * m_currentSelfSymbolForCodeGen; //used in code gen; parallels m_currentSelf
@@ -162,6 +169,7 @@ namespace MFM{
 
     void clearAllDefinedUlamTypes();
     void clearAllLinesOfText();
+    void clearAllLocalsPerFilePath();
     void clearCurrentObjSymbolsForCodeGen();
 
     bool getClassNameFromFileName(std::string startstr, u32& compileThisId);
@@ -252,7 +260,11 @@ namespace MFM{
     bool isClassAQuarkUnion(UTI cuti);
     bool isClassACustomArray(UTI cuti);
     UTI getAClassCustomArrayType(UTI cuti);
-    UTI getAClassCustomArrayIndexType(UTI cuti, Node * rnode, UTI& idxuti, bool& hasHazyArgs);
+
+    //returns number of matches (aref); updates last 2 args)
+    u32 getAClassCustomArrayIndexType(UTI cuti, Node * rnode, UTI& idxuti, bool& hasHazyArgs);
+
+    bool hasAClassCustomArrayLengthof(UTI cuti);
 
     /** return true and the Symbol pointer in 2nd arg if found;
 	search SymbolTables LIFO order; o.w. return false
@@ -260,12 +272,16 @@ namespace MFM{
     bool alreadyDefinedSymbolByAncestor(u32 dataindex, Symbol *& symptr, bool& hasHazyKin);
     bool alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isDataMemberIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
+    bool isIdInLocalFileScope(u32 id, Symbol *& symptr);
+
     bool isFuncIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isFuncIdInClassScopeNNO(NNO cnno, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool findMatchingFunctionInAncestor(UTI cuti, u32 fid, std::vector<UTI> typeVec, SymbolFunction*& fsymref, UTI& foundInAncestor);
 
+    bool isIdInCurrentScope(u32 id, Symbol *& asymptr);
     void addSymbolToCurrentScope(Symbol * symptr); //ownership goes to the block
+    void addSymbolToLocalScope(Symbol * symptr, Locator loc); //ownership goes to the m_localsPerFilePath ST
     void addSymbolToCurrentMemberClassScope(Symbol * symptr); //making stuff up for member
     void replaceSymbolInCurrentScope(u32 oldid, Symbol * symptr); //same symbol, new id
     void replaceSymbolInCurrentScope(Symbol * oldsym, Symbol * newsym); //same id, new symbol
@@ -304,6 +320,16 @@ namespace MFM{
 	involved incomplete Class types */
     bool completeIncompleteClassSymbolForTypedef(UTI incomplete) ;
 
+    void updateLineageAndFirstCheckAndLabelPass();
+    void updateLineageAndFirstCheckAndLabelPassForLocals();
+    bool checkAndLabelPassForLocals();
+    void generateCodeForGlobalUserStringPool(FileManager * fm);
+    void generateCodeForUlamClasses(FileManager * fm);
+    void generateUlamClassForLocals(FileManager * fm);
+
+    bool countNavHzyNoutiNodesPass();
+    void countNavNodesForLocals(u32& navcount, u32& hzycount, u32& unsetcount);
+
     /** helper methods for error messaging, uses string pool */
     const std::string getTokenLocationAsString(const Token * tok);
     const std::string getFullLocationAsString(const Locator& loc);
@@ -325,9 +351,10 @@ namespace MFM{
     u32 getCustomArrayGetFunctionNameId();
     u32 getCustomArraySetFunctionNameId();
     const char * getCustomArrayGetMangledFunctionName();
-    const char * getCustomArraySetMangledFunctionName();
+    u32 getCustomArrayLengthofFunctionNameId();
+    const char * getCustomArrayLengthofMangledFunctionName();
+
     const char * getIsMangledFunctionName(UTI ltype);
-    const char * getHasMangledFunctionName(UTI ltype);
     const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
     const char * getClassLengthFunctionName(UTI ltype);
     const char * getBuildDefaultAtomFunctionName(UTI ltype);
@@ -335,19 +362,24 @@ namespace MFM{
 
     std::string getFileNameForAClassHeader(UTI cuti, bool wSubDir = false);
     std::string getFileNameForThisClassHeader(bool wSubDir = false);
+    void genCModeForHeaderFile(File * fp);
+    void genCopyrightAndLicenseForUlamHeader(File * fp);
     std::string getFileNameForThisClassBody(bool wSubDir = false);
     std::string getFileNameForThisClassBodyNative(bool wSubDir = false);
     std::string getFileNameForThisClassCPP(bool wSubDir = false);
     std::string getFileNameForThisTypesHeader(bool wSubDir = false);
     std::string getFileNameForThisClassMain(bool wSubDir = false);
+    const char * getMangledClassNameForUlamLocalFilescopes();
+
+    const char * getMangledNameForUserStringPool();
+    const char * getDefineNameForUserStringPoolSize();
+    std::string getFileNameForUserStringPoolHeader(bool wSubDir = false);
+    std::string getFileNameForUserStringPoolCPP(bool wSubDir = false);
 
     ULAMCLASSTYPE getUlamClassForThisClass();
     UTI getUlamTypeForThisClass();
 
     const std::string getBitVectorLengthAsStringForCodeGen(UTI uti);
-
-    /** returns ulamvalue ptr to entire atom/element from m_currentSelfPtr */
-    UlamValue getAtomPtrFromSelfPtr();
 
     /** returns immediate target value: extracts data from packed targets;
 	unpacked array targets are invalid */
@@ -364,6 +396,8 @@ namespace MFM{
     /** assign pointer as value */
     void assignValuePtr(UlamValue lptr, UlamValue rptr);
 
+    UlamValue getByteOfUserString(u32 usrStr, u32 offsetInt);
+
     /** PACKEDLOADABLE fits in u32/u64, PACKED into an atom, o.w. UNPACKED */
     PACKFIT determinePackable(UTI aut);
 
@@ -373,7 +407,7 @@ namespace MFM{
 
     bool quarkHasAToIntMethod(UTI quti);
 
-    bool classHasACustomArraySetMethod(UTI cuti);
+    bool classCustomArraySetable(UTI cuti);
 
     void setupCenterSiteForTesting();
     void setupCenterSiteForGenCode();
@@ -404,12 +438,29 @@ namespace MFM{
     void clearStructuredCommentToken();
     bool getStructuredCommentToken(Token& scTok);
 
+    /** helpers: local def location and flag for parsing*/
+    void setLocalScopeForParsing(const Token& localTok);
+    void clearLocalScopeForParsing();
+    bool isParsingLocalDef();
+    Locator getLocalScopeLocator();
+    NodeBlockLocals * getLocalScopeBlock(Locator loc);
+    NodeBlockLocals * getLocalScopeBlockByIndex(UTI luti);
+    NodeBlockLocals * getLocalScopeBlockByPathId(u32 pathid);
+    NodeBlockLocals * makeLocalScopeBlock(Locator loc);
+
+    u32 findTypedefNameIdInLocalScopeByIndex(UTI uti);
+
     /** to identify each node */
     NNO getNextNodeNo();
 
     Node * findNodeNoInThisClass(NNO n);
+    Node * findNodeNoInThisClassForParent(NNO n);
+    Node * findNodeNoInThisClassStubFirst(NNO n);
     Node * findNodeNoInAClass(NNO n, UTI cuti);
     UTI findAClassByNodeNo(NNO n);
+    NodeBlockLocals * findALocalScopeByNodeNo(NNO n);
+    Node * findNodeNoInALocalScope(Locator loc, NNO n);
+
     NodeBlockClass * getAClassBlock(UTI cuti);
     NNO getAClassBlockNo(UTI cuti);
 
@@ -420,19 +471,23 @@ namespace MFM{
 
     SymbolClass * getCurrentSelfSymbolForCodeGen();
 
+    void appendNodeToCurrentBlock(Node * node);
+
     NodeBlock * getCurrentBlock();
 
     NNO getCurrentBlockNo();
 
-    NodeBlockClass * getClassBlock();
+    NodeBlockContext * getContextBlock();
 
-    NNO getClassBlockNo();
+    NNO getContextBlockNo();
+
+    Locator getContextBlockLoc();
 
     bool useMemberBlock();
 
     NodeBlockClass * getCurrentMemberClassBlock();
 
-    void pushClassContext(UTI idx, NodeBlock * currblock, NodeBlockClass * classblock, bool usemember, NodeBlockClass * memberblock);
+    void pushClassContext(UTI idx, NodeBlock * currblock, NodeBlockContext * contextblock, bool usemember, NodeBlockClass * memberblock);
 
     void popClassContext();
 
@@ -456,6 +511,9 @@ namespace MFM{
     bool isPtr(UTI puti);
     bool isAtom(UTI auti);
     bool isAtomRef(UTI auti);
+    bool isThisLocalsFileScope();
+    bool isALocalsFileScope(UTI uti);
+    bool isAClass(UTI uti);
     bool isASeenClass(UTI cuti);
     bool isAnonymousClass(UTI cuti);
     void saveUrSelf(UTI uti);
@@ -465,6 +523,15 @@ namespace MFM{
     bool okUTItoContinue(UTI uti);
     bool okUTItoContinue(UTI uti1, UTI uti2); //false if either is Nav
     bool checkHasHazyKin(NodeBlock * block);
+
+    inline void abortGreaterThanMaxBitsPerLong() { assert(0); }
+    inline void abortUndefinedUlamType() { assert(0); }
+    inline void abortUndefinedUlamClassType() { assert(0); }
+    inline void abortUndefinedUlamPrimitiveType() { assert(0); }
+    inline void abortUndefinedCallStack() { assert(0); }
+    inline void abortNotImplementedYet() { assert(0); }
+    inline void abortNotSupported() { assert(0); }
+    inline void abortShouldntGetHere() { assert(0); }
 
   private:
     ClassContextStack m_classContextStack; // the current subject of this compilation

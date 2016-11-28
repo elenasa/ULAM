@@ -68,7 +68,7 @@ namespace MFM {
 
   void NodeVarRefAs::packBitsInOrderOfDeclaration(u32& offset)
   {
-    assert(0); //refs can't be data members
+    m_state.abortShouldntGetHere(); //refs can't be data members
   } //packBitsInOrderOfDeclaration
 
   void NodeVarRefAs::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
@@ -238,14 +238,13 @@ namespace MFM {
 	fp->write(", UlamRef<EC>::CLASSIC"); //stays classic
       }
     else
-      assert(0); //WHAT THEN???
+      m_state.abortUndefinedUlamClassType(); //WHAT THEN???
 
     if(!stgcosut->isReference())
       fp->write(", uc"); //t3249
 
     fp->write("); //shadows lhs of 'as'"); GCNL;
 
-    m_state.m_genCodingConditionalHas = false; // done
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs ?
   } //genCode
 
@@ -276,7 +275,6 @@ namespace MFM {
 
     m_varSymbol->setIsSelf(); //nope
 
-    m_state.m_genCodingConditionalHas = false; // done
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
   } //genCodeRefAsSelf
 

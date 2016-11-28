@@ -2,8 +2,6 @@
 #=t3725_test_compiler_transientinheritelement_error
 #!
 ./Soo.ulam:3:11: ERROR: Subclass 'Soo' inherits from 'Coo', a class that's neither a transient nor a quark.
-./Foo.ulam:3:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: Foo.
-./Foo.ulam:3:9: ERROR: 5 Nodes with unresolved types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## transient inheritance, regular (non-template)

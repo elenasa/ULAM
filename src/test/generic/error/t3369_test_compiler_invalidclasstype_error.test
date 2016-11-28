@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3369_test_compiler_invalidclasstype_error
 #!
-./Typo.ulam:2:1: ERROR: Invalid Class Type <quaak>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
+./Typo.ulam:2:1: ERROR: Invalid Class Type <quaak>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
  ERROR: No parse tree for This Class: Typo.
 Unrecoverable Program Parse FAILURE: <Typo.ulam>
 ##

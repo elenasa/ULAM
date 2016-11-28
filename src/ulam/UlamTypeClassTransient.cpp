@@ -14,7 +14,7 @@ namespace MFM {
   bool UlamTypeClassTransient::isNumericType()
   {
     return false;
-  } //isNumericType
+  }
 
   ULAMCLASSTYPE UlamTypeClassTransient::getUlamClassType()
   {
@@ -82,7 +82,7 @@ namespace MFM {
   const std::string UlamTypeClassTransient::writeArrayItemMethodForCodeGen()
   {
     if(isCustomArray())
-      return m_state.getCustomArraySetMangledFunctionName();
+      return m_state.getCustomArrayGetMangledFunctionName(); //returns a ref
     return "WriteBV";
   }
 
@@ -135,6 +135,9 @@ namespace MFM {
 
   TMPSTORAGE UlamTypeClassTransient::getTmpStorageTypeForTmpVar()
   {
+    if(isCustomArray())
+      return UlamTypeClass::getTmpStorageTypeForTmpVar();
+
     TMPSTORAGE rtnStgType = TMPTBV;
     u32 sizebyints = getTotalWordSize();
     std::string ctype;
@@ -395,6 +398,7 @@ namespace MFM {
     UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
     const std::string scalarmangledName = m_state.getUlamTypeByIndex(scalaruti)->getUlamTypeMangledName();
     const std::string mangledName = getUlamTypeImmediateMangledName();
+    const std::string automangledName = getUlamTypeImmediateAutoMangledName();
 
     std::ostringstream  ud;
     ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
@@ -505,6 +509,16 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write("<EC> & arg) { ");
     fp->write("write(arg.read()); }"); GCNL;
+
+    //constructor from ref of same type
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("(const ");
+    fp->write(automangledName.c_str());
+    fp->write("<EC>& d) { ");
+    fp->write("write(d.read()); }"); GCNL;
+
+    //default destructor (intentionally left out)
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);

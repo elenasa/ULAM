@@ -60,6 +60,8 @@ namespace MFM{
 
     virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
 
+    virtual void resetNodeNo(NNO no); //for constant folding
+
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual void checkAbstractInstanceErrors();
@@ -76,7 +78,7 @@ namespace MFM{
 
     bool hasInitExpr();
 
-    virtual bool foldInitExpression();
+    virtual bool foldArrayInitExpression();
 
     virtual FORECAST safeToCastTo(UTI newType);
 
@@ -99,6 +101,10 @@ namespace MFM{
     virtual EvalStatus evalToStoreInto();
 
     virtual void genCode(File * fp, UVPass& uvpass);
+
+    virtual void genCodeConstantArrayInitialization(File * fp);
+
+    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 

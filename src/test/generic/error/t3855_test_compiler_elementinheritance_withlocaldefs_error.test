@@ -1,0 +1,34 @@
+## -*- mode:ulam -*-
+#=t3855_test_compiler_elementinheritance_withlocaldefs_error
+#!
+./Foo.ulam:4:1: ERROR: Invalid Class Type <constant>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+ ERROR: No parse tree for This Class: Foo.
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
+./Foo.ulam:4:10: ERROR: Invalid Class Type <Unsigned>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <Soo.ulam>
+##
+## test of local defs errors: missing local keyword
+##
+#>Foo.ulam
+  ulam 2;
+local constant Unsigned(3) soosize = 3u;
+local typedef Soo(soosize) Soo3;
+constant Unsigned(3) nolocalsoosize = 3u; //missing local
+element Foo : Soo3 {
+  Bool(7) sp;
+  Unsigned a = 73;
+  Int test() {
+    Foo f;
+    a = f.us;
+    a = Soo3.sizeof;
+    sp = (a == 3u);
+    return (Int) a; //=3
+  }
+}
+
+#:Soo.ulam
+  ulam 2;
+quark Soo(Unsigned(3) v) {
+  Unsigned(v) us = 4u;
+}
+#.

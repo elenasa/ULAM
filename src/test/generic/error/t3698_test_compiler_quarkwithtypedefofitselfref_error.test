@@ -5,7 +5,7 @@
 #!
 ./Typo.ulam:3:11: ERROR: Self has a previous declaration as 'Typo' and cannot be used as a typedef.
 ./Typo.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Typo'; Possible missing ending curly brace.
-./Typo.ulam:3:21: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
+./Typo.ulam:3:21: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
  ERROR: No parse tree for This Class: ElTypo.
 Unrecoverable Program Parse FAILURE: <ElTypo.ulam>
 ./Typo.ulam:2:12: ERROR: No class 'Typo' in <Typo.ulam>.

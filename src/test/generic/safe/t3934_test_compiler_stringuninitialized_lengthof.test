@@ -1,0 +1,51 @@
+## -*- mode:ulam -*-
+#=t3934_test_compiler_stringuninitialized_lengthof
+##
+## gen output: (1 assert only)
+## Int Arg: 0
+##
+## gen error log:
+## include/Ue_102641A10.tcc:65: FAILED: UNINITIALIZED_VALUE
+##
+#!
+Exit status: -1
+Ue_A { Int(32) m_s1(0);  Int(32) m_s2(0);  Int(32) test() {  System s;  String(32) mt = "";  m_s1 0u cast = s ( m_s1 )print . s ( m_s1 0 cast == )assert . String(32) str;  m_s2 32u cast = s ( m_s2 )print . s ( m_s2 32 cast == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by t3931
+##
+#>A.ulam
+  ulam 2;
+element A {
+  Int m_s1;
+  Int m_s2;
+ Int test() {
+   System s;
+
+   //empty string, ok
+   String mt = "";
+   m_s1 = mt.lengthof; // =0
+   s.print(m_s1);
+   s.assert(m_s1 == 0);
+
+   //uninitialized string
+   String str;
+   m_s2 = str.lengthof; // runtime ERROR!!
+   s.print(m_s2);
+   s.assert(m_s2 == 32);
+   return 0;
+ }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

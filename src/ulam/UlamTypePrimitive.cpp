@@ -34,39 +34,39 @@ namespace MFM {
 
   bool UlamTypePrimitive::castTo32(UlamValue & val, UTI typidx)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     //std::cerr << "UlamType (cast) error! " << std::endl;
     return false;
   }
 
   bool UlamTypePrimitive::castTo64(UlamValue & val, UTI typidx)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     //std::cerr << "UlamType (cast) error! " << std::endl;
     return false;
   }
 
   s32 UlamTypePrimitive::getDataAsCs32(const u32 data)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return (s32) data;
   }
 
   u32 UlamTypePrimitive::getDataAsCu32(const u32 data)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return data;
   }
 
   s64 UlamTypePrimitive::getDataAsCs64(const u64 data)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return (s64) data;
   }
 
   u64 UlamTypePrimitive::getDataAsCu64(const u64 data)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return data;
   }
 
@@ -82,7 +82,7 @@ namespace MFM {
     s32 bitsize = getBitSize();
     s32 arraysize = getArraySize();
 
-    if(isReference())
+    if(isReference()) //includes ALT_ARRAYITEM (t3147)
       mangled << "r";
 
     if(arraysize > 0)
@@ -361,7 +361,7 @@ namespace MFM {
     else if(wordsize <= MAXBITSPERLONG)
       rtnUV = UlamValue::makeImmediateLong(uti, m_max, m_state);
     else
-      assert(0);
+      m_state.abortGreaterThanMaxBitsPerLong();
     return m_max;
   } //getMax (UlamValue)
 
@@ -373,7 +373,7 @@ namespace MFM {
     else if(wordsize <= MAXBITSPERLONG)
       rtnUV = UlamValue::makeImmediateLong(uti, (s64) m_min, m_state);
     else
-      assert(0);
+      m_state.abortGreaterThanMaxBitsPerLong();
     return m_min;
   } //getMin (UlamValue)
 
@@ -404,8 +404,9 @@ namespace MFM {
     UTI scalaruti = m_state.getUlamTypeAsScalar(anyuti);
     UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
     const std::string scalarmangledName = scalarut->getUlamTypeMangledName();
-
     const std::string mangledName = getUlamTypeImmediateMangledName();
+    const std::string automangledName = getUlamTypeImmediateAutoMangledName();
+
     std::ostringstream  ud;
     ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
     std::string udstr = ud.str();
@@ -497,6 +498,15 @@ namespace MFM {
     fp->write("(other.");
     fp->write("read");
     fp->write("()); }"); GCNL;
+
+    //constructor from ref of same type
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("(const ");
+    fp->write(automangledName.c_str());
+    fp->write("<EC>& d) { "); //uc consistent with atomref
+    fp->write("this->write(");
+    fp->write("d.read()); }"); GCNL;
 
     //default destructor (intentionally left out)
 

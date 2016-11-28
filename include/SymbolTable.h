@@ -43,9 +43,6 @@
 #include "itype.h"
 #include "File.h"
 #include "FileManager.h"
-//#include "MapClassMemberDesc.h"
-//#include "TargetMap.h"
-//#include "UlamTypeClass.h"
 
 namespace MFM{
 
@@ -60,9 +57,8 @@ namespace MFM{
 
     SymbolTable(CompilerState& state);
     SymbolTable(const SymbolTable& ref);
-    ~SymbolTable();
+    virtual ~SymbolTable();
 
-    virtual void clearTheTable();
     virtual bool isInTable(u32 id, Symbol * & symptrref);
     virtual void addToTable(u32 id, Symbol * s);
     virtual void replaceInTable(u32 oldid, u32 newid, Symbol * s);
@@ -80,6 +76,7 @@ namespace MFM{
     CompilerState & m_state;
 
   private:
+    void clearTheTable();
 
   };
 

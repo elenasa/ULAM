@@ -3,7 +3,7 @@
 #!
 ./Tu.ulam:5:18: ERROR: Missing model parameter definition after '=' for 'aep'.
 ./Tu.ulam:5:18: ERROR: Missing ';' after model parameter definition 'aep'; Lists not supported.
-./Tu.ulam:9:1: ERROR: Invalid Class Type <}>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
+./Tu.ulam:9:1: ERROR: Invalid Class Type <}>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 Unrecoverable Program Parse FAILURE: <Tu.ulam>
 #>Tu.ulam
 ulam 1;

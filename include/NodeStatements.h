@@ -70,6 +70,8 @@ namespace MFM{
 
     virtual bool isFunctionCall();
 
+    virtual bool isArrayItem();
+
     virtual bool isExplicitReferenceCast(); //only NodeCast may return true
 
     virtual UTI checkAndLabelType();
@@ -101,6 +103,12 @@ namespace MFM{
     virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
 
     virtual void genCodeExtern(File * fp, bool declOnly);
+
+    virtual void genCodeConstantArrayInitialization(File * fp);
+
+    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
+
+    virtual void cloneAndAppendNode(std::vector<Node *> & cloneVec);
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 

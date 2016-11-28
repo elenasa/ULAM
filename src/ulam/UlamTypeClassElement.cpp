@@ -27,10 +27,7 @@ namespace MFM {
     //now allowing atoms to be cast as quarks, as well as elements;
     // also allowing subclasses to be cast as their superclass (u1.2.2)
     if(!(vetype == UAtom || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME))
-      {
-	//elements inherit from only quarks.
-	brtn = false;
-      }
+      brtn = false; //elements inherit from only quarks.
     else if(vetype == UAtom)
       {
 	UTI dereftypidx = m_state.getUlamTypeAsDeref(typidx);
@@ -86,14 +83,14 @@ namespace MFM {
     if(!isScalar())
       return "ReadBV";
     return "ReadAtom";
-  } //readMethodForCodeGen
+  }
 
   const std::string UlamTypeClassElement::writeMethodForCodeGen()
   {
     if(!isScalar())
       return "WriteBV";
     return "WriteAtom";
-  } //writeMethodForCodeGen
+  }
 
   bool UlamTypeClassElement::needsImmediateType()
   {
@@ -140,7 +137,7 @@ namespace MFM {
   TMPSTORAGE UlamTypeClassElement::getTmpStorageTypeForTmpVar()
   {
     return TMPTATOM; //per array item/per atom-based element
-  } //getTmpStorageTypeForTmpVar
+  }
 
   const std::string UlamTypeClassElement::castMethodForCodeGen(UTI nodetype)
   {
@@ -161,7 +158,7 @@ namespace MFM {
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(),msg.str().c_str(), ERR);
       }
 
-    //e.g. casting an element to an element, redundant and not supported: Element96ToElement96?
+    //e.g. casting element-to-element, redundant and not supported: Element96ToElement96?
     if(!m_state.isAtom(nodetype))
       {
 	std::ostringstream msg;
@@ -406,6 +403,7 @@ namespace MFM {
     UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
     const std::string scalarmangledName = scalarut->getUlamTypeMangledName();
     const std::string mangledName = getUlamTypeImmediateMangledName();
+    const std::string automangledName = getUlamTypeImmediateAutoMangledName();
 
     std::ostringstream  ud;
     ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
@@ -505,6 +503,15 @@ namespace MFM {
     fp->write("if(arg.GetType() != Us::THE_INSTANCE.GetType()) FAIL(ILLEGAL_ARGUMENT);");
     fp->write(" }"); GCNL;
 
+    //constructor from ref of same type
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("(const ");
+    fp->write(automangledName.c_str());
+    fp->write("<EC>& d) : ");
+    fp->write("AtomBitStorage<EC>");
+    fp->write("(d.read()) { }"); GCNL;
+
     //default destructor (intentionally left out)
 
     m_state.m_currentIndentLevel--;
@@ -565,7 +572,6 @@ namespace MFM {
   void UlamTypeClassElement::genUlamTypeWriteDefinitionForC(File * fp)
   {
     //ref param to avoid excessive copying
-    //if(WritePacked(getPackable()))
     if(isScalar())
       {
 	m_state.indent(fp);

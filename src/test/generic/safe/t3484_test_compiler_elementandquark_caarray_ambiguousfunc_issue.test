@@ -2,7 +2,7 @@
 #=t3484_test_compiler_elementandquark_caarray_ambiguousfunc_issue
 #!
 Exit status: -11
-Ue_EventWindowTest { typedef Unsigned(6) SiteNum;  EventWindow ew( typedef Unsigned(6) SiteNum; );  Int(32) test() {  Unsigned(6) s = 6 cast;  Atom(96) a = ew s [];  1 cast return } }
+Ue_EventWindowTest { typedef Unsigned(6) SiteNum;  EventWindow ew( typedef Unsigned(6) SiteNum; );  Int(32) test() {  Unsigned(6) s = 6 cast;  Atom(96) a = ew s [] cast;  1 cast return } }
 Uq_EventWindow { typedef Unsigned(6) SiteNum;  <NOMAIN> }
 Uq_C2D { Int(6) m_width(0);  Int(6) m_height(0);  <NOMAIN> }
 ##
@@ -26,14 +26,14 @@ use EventWindow;
 use C2D;
 quark EventWindow {
   typedef Unsigned(6) SiteNum;
-  Atom aref(Int index) native;
-  Atom aref(SiteNum index){
+  Atom& aref(Int index) native;
+  Atom& aref(SiteNum index){
     return aref((Int) index);
   }
-  Atom aref(C2D coord){
+  Atom& aref(C2D coord){
     C2D c;
     return aref(c.getIndex(coord));}
-  Void aset(Int index, Atom v) native;
+  //Void aset(Int index, Atom v) native;
 }
 #:C2D.ulam
   ulam 1;

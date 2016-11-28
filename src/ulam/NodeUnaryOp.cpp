@@ -22,7 +22,7 @@ namespace MFM {
   {
     setYourParentNo(pno);
     m_node->updateLineage(getNodeNo());
-  } //updateLineage
+  }
 
   bool NodeUnaryOp::exchangeKids(Node * oldnptr, Node * newnptr)
   {
@@ -47,7 +47,7 @@ namespace MFM {
   {
     if(m_node)
       m_node->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
+  }
 
   void NodeUnaryOp::print(File * fp)
   {
@@ -89,7 +89,7 @@ namespace MFM {
 
   const std::string NodeUnaryOp::methodNameForCodeGen()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return "_UNARY_NOOP";
   }
 
@@ -108,7 +108,7 @@ namespace MFM {
   {
     //ulamtype checks for complete, non array, and type specific rules
     return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
-  } //safeToCastTo
+  }
 
   UTI NodeUnaryOp::checkAndLabelType()
   {
@@ -266,16 +266,7 @@ namespace MFM {
     NNO pno = Node::getYourParentNo();
     assert(pno);
     Node * parentNode = m_state.findNodeNoInThisClass(pno);
-    if(!parentNode)
-      {
-	std::ostringstream msg;
-	msg << "Constant value expression for unary op" << getName();
-	msg << " cannot be constant-folded at this time while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	msg << " Parent required";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	assert(0); //parent required
-      }
+    assert(parentNode);
 
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(nuti); //offset a constant expression
@@ -289,7 +280,7 @@ namespace MFM {
 	else if(wordsize <= MAXBITSPERLONG)
 	  val = cnstUV.getImmediateDataLong(m_state);
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
 
     evalNodeEpilog();
@@ -414,7 +405,7 @@ namespace MFM {
 	rtnUV = makeImmediateLongUnaryOp(nuti, data, len);
       }
     else
-      assert(0);
+      m_state.abortGreaterThanMaxBitsPerLong();
 
     m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
     return true;

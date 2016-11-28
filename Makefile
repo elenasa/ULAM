@@ -180,7 +180,8 @@ donothavedemokey:	FORCE
 	$(MFZMAKEPATH) cansign $(ULAMDEMOKEY) 2>/dev/null || exit 0
 
 $(MFM_ROOT_DIR)/res/elements/libue%.so:	$(ULAMDIR)/%/*.ulam
-	./bin/ulam -lo --sd $(ULAMDIR)/core --sd $(ULAMDIR)/$* $(^:$(ULAMDIR)/$*/%=%)
+##	./bin/ulam -lo --sd $(ULAMDIR)/core --sd $(ULAMDIR)/$* $(^:$(ULAMDIR)/$*/%=%)
+	./bin/ulam -lo --sa --sd $(ULAMDIR)/core --sd $(ULAMDIR)/$* $(^:$(ULAMDIR)/$*/%=%)
 	mv -f $(ULAMWORKDIR)/bin/libcue.so "$@"
 	rm -rf $(ULAMWORKDIR)
 
@@ -194,7 +195,8 @@ ULAM_DEMO_LIST_FILE:=$(MFM_ROOT_DIR)/res/elements/demos.dat
 
 $(MFM_ROOT_DIR)/res/elements/demos/%.mfz:	$(ULAMDIR)/demos/%/*.ulam
 	mkdir -p $(MFM_ROOT_DIR)/res/elements/demos
-	./bin/ulam -z $(ULAMDEMOKEY) -o --sc --sd $(ULAMDIR)/core --sd $(ULAMDIR)/demos/$* $(^:$(ULAMDIR)/demos/$*/%.ulam=%.ulam) $@ $(wildcard $(ULAMDIR)/demos/$*/*.mfs) $(wildcard $(ULAMDIR)/demos/$*/args.txt)
+##	./bin/ulam -z $(ULAMDEMOKEY) -o --sc --sd $(ULAMDIR)/core --sd $(ULAMDIR)/demos/$* $(^:$(ULAMDIR)/demos/$*/%.ulam=%.ulam) $@ $(wildcard $(ULAMDIR)/demos/$*/*.mfs) $(wildcard $(ULAMDIR)/demos/$*/args.txt)
+	./bin/ulam -z $(ULAMDEMOKEY) -o --sa --sc --sd $(ULAMDIR)/core --sd $(ULAMDIR)/demos/$* $(^:$(ULAMDIR)/demos/$*/%.ulam=%.ulam) $@ $(wildcard $(ULAMDIR)/demos/$*/*.mfs) $(wildcard $(ULAMDIR)/demos/$*/args.txt)
 	mv -f $(ULAMWORKDIR)/bin/libcue.so "$(MFM_ROOT_DIR)/res/elements/demos/libue$*.so"
 	printf "$*\0elements/demos/$*.mfz\0elements/demos/libue$*.so\0$(^:$(ULAMDIR)/demos/$*/%.ulam=%)\0\0\n" >> $(ULAM_DEMO_LIST_FILE)
 	rm -rf $(ULAMWORKDIR)
@@ -207,7 +209,7 @@ ULAM_DEMO_LIBS:=$(patsubst %,$(MFM_ROOT_DIR)/res/elements/demos/libue%.so,$(ULAM
 #ULAM_MFM_TARGETS+=$(ULAM_DEMO_LIBS)
 ULAM_DEMO_MFZS:=$(patsubst %,$(MFM_ROOT_DIR)/res/elements/demos/%.mfz,$(ULAM_DEMO_NAMES))
 
-ulamexports:	$(ULAM_MFM_TARGETS) | makedemokey $(ULAM_DEMO_MFZS) burndemokey 
+ulamexports:	$(ULAM_MFM_TARGETS) | makedemokey $(ULAM_DEMO_MFZS) burndemokey
 
 cleanulamexports:	FORCE
 	rm -f $(ULAM_DEMO_LIST_FILE)

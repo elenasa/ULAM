@@ -43,6 +43,8 @@ namespace MFM{
   class SymbolVariableStack : public SymbolVariable
   {
   public:
+    SymbolVariableStack(const Token& id, UTI utype, CompilerState& state);
+
     SymbolVariableStack(const Token& id, UTI utype, s32 slot, CompilerState& state);
 
     SymbolVariableStack(const SymbolVariableStack& sref);
@@ -58,10 +60,6 @@ namespace MFM{
     virtual s32 getStackFrameSlotIndex();
 
     virtual void setStackFrameSlotIndex(s32 slot);
-
-    NNO getDeclNodeNo();
-
-    void setDeclNodeNo(NNO nno);
 
     virtual s32 getBaseArrayIndex();
 
@@ -85,7 +83,7 @@ namespace MFM{
     s32 m_stackFrameSlotIndex;
     UlamValue m_autoPtrForEval;
     UTI m_autoStgTypeForEval;
-    NNO m_declnno;
+
   };
 
 }

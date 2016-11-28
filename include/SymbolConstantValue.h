@@ -58,13 +58,21 @@ namespace MFM{
 
     virtual const std::string getMangledPrefix();
 
+    virtual const std::string getMangledName();
+
+    const std::string getCompleteConstantMangledName();
+
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
     virtual void setStructuredComment();
 
+    void setConstantStackFrameAbsoluteSlotIndex(u32 slot);
+    u32 getConstantStackFrameAbsoluteSlotIndex();
+
   protected:
 
   private:
+    u32 m_constantStackFrameAbsoluteSlotIndex;
 
   };
 } //MFM

@@ -2,6 +2,10 @@
 #=t3457_test_compiler_namedconstant_missingexpr_error
 #!
 ./A.ulam:2:34: ERROR: Missing named constant definition after '=' for 'cPRINT_NAME'.
+./A.ulam:1:1: ERROR: Empty/Incomplete Class Definition 'A'; Possible missing ending curly brace.
+./A.ulam:2:36: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./A.ulam:1:9: ERROR: Invalid Type: A.
+ ERROR: No parse tree for This Class: A.
 Unrecoverable Program Parse FAILURE: <A.ulam>
 ##
 ##      //informed by 3418, except constant type is missing

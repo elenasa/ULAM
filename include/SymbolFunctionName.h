@@ -80,6 +80,8 @@ namespace MFM{
 
     void calcMaxIndexOfVirtualFunctions(s32& maxidx);
 
+    void setupConstantSlotIndexesInFunctions(u32& cslotidx);
+
     void checkAbstractInstanceErrorsInFunctions();
 
     void checkFunctionNames(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount);
@@ -87,8 +89,6 @@ namespace MFM{
     void checkFunctionNamesInAncestor(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount);
 
     u32 checkCustomArrayGetFunctions(UTI& rtnType);
-
-    u32 checkCustomArraySetFunctions(UTI caType);
 
     UTI getCustomArrayReturnType();
 

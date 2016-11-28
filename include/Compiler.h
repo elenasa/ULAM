@@ -94,6 +94,10 @@ namespace MFM{
     CompilerState m_state;  //owner
 
     u32 compileFile(std::string startstr, File * errput, SourceStream& ssref, Parser * p);
+
+    void testTargetMap();
+
+    void testClassMemberMap();
   };
 
 } //MFM namespace

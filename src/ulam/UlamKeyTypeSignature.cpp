@@ -22,6 +22,7 @@ namespace MFM {
 
   const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureName(CompilerState * state)
   {
+    assert(state);
     return state->m_pool.getDataAsString(m_typeNameId);
   }
 

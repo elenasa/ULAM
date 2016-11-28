@@ -96,7 +96,7 @@ namespace MFM{
     return rtnuti;
   } //checkAndLabelType
 
-  bool NodeListArrayInitialization::foldInitExpression()
+  bool NodeListArrayInitialization::foldArrayInitExpression()
   {
     bool rtnok = true;
     for(u32 i = 0; i < m_nodes.size(); i++)
@@ -110,6 +110,8 @@ namespace MFM{
 
   bool NodeListArrayInitialization::foldInitExpression(u32 n)
   {
+    assert(n < m_nodes.size()); //error/t3446
+
     UTI foldeduti = m_nodes[n]->constantFold(); //c&l possibly redone
 
     //insure constant value fits in its array's bitsize
@@ -173,6 +175,18 @@ namespace MFM{
     return scr;
   } //safeToCastTo
 
+  EvalStatus NodeListArrayInitialization::eval()
+  {
+    EvalStatus evs = NORMAL;
+    for(u32 i = 0; i < m_nodes.size(); i++)
+      {
+	evs = NodeList::eval(i);
+	if(evs != NORMAL)
+	  break;
+      }
+    return evs;
+  } //eval
+
   bool NodeListArrayInitialization::buildArrayValueInitialization(BV8K& bvtmp)
   {
     UTI nuti = Node::getNodeType();
@@ -215,7 +229,7 @@ namespace MFM{
 
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(luti); //a constant expression
-    EvalStatus evs = eval(n);
+    EvalStatus evs = NodeList::eval(n);
     if(evs != NORMAL)
       {
 	evalNodeEpilog();
@@ -232,7 +246,7 @@ namespace MFM{
     else if(itemlen <= MAXBITSPERLONG)
       foldedconst = ituv.getImmediateDataLong(itemlen, m_state);
     else
-      assert(0);
+      m_state.abortGreaterThanMaxBitsPerLong();
 
     evalNodeEpilog();
 
@@ -248,31 +262,31 @@ namespace MFM{
 
     // returns a u32 array of the proper length built with BV8K
     // as tmpvar in uvpass
-    // need parent (NodeVarDecl) to get initialized value (BV8K)
+    // need parent (NodeVarDecl/NodeConstantDef) to get initialized value (BV8K)
     NNO pno = Node::getYourParentNo();
-    //m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
-    Node * parentNode = m_state.findNodeNoInThisClass(pno);
-    //m_state.popClassContext(); //restore
-    if(!parentNode)
-      {
-	std::ostringstream msg;
-	msg << "Array value '" << getName();
-	msg << "' cannot be initialized at this time while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	msg << " Parent required";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	assert(0); //parent required
-	return;
-      }
+    Node * parentNode = m_state.findNodeNoInThisClass(pno); //also checks localsfilescope
+    assert(parentNode);
 
-    SymbolVariable * varsym = NULL;
-    AssertBool gotSymbol = parentNode->getSymbolPtr((Symbol *&) varsym);
+    SymbolWithValue * vsym = NULL;
+    AssertBool gotSymbol = parentNode->getSymbolPtr((Symbol *&) vsym);
     assert(gotSymbol);
-    assert(varsym->hasInitValue());
 
+    bool aok = true;
     BV8K dval;
-    AssertBool gotInitVal = varsym->getInitValue(dval);
-    assert(gotInitVal);
+    if(vsym->isReady())
+      {
+	AssertBool gotValue = vsym->getValue(dval);
+	assert(gotValue);
+      }
+    else if(vsym->hasInitValue())
+      {
+	AssertBool gotInitVal = vsym->getInitValue(dval);
+	assert(gotInitVal);
+      }
+    else
+      aok = false;
+
+    assert(aok);
 
     u32 uvals[ARRAY_LEN8K];
     dval.ToArray(uvals); //the magic! (32-bit ints)
@@ -326,13 +340,13 @@ namespace MFM{
 	    dhex << "HexU64(" << "0x" << std::hex << uvals[0] << ", 0x" << std::hex << uvals[1] << ")";
 	  }
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
 
 	fp->write(dhex.str().c_str());
 	fp->write(";"); GCNL;
       }
 
-    uvpass = UVPass::makePass(tmpvarnum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, varsym->getId());
+    uvpass = UVPass::makePass(tmpvarnum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, vsym->getId());
   } //genCode
 
 } //MFM

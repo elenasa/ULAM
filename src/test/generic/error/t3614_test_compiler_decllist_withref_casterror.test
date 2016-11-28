@@ -2,7 +2,6 @@
 #=t3614_test_compiler_decllist_withref_casterror
 #!
 ./A.ulam:6:5: ERROR: Reference variable d's type Int(32)&, and its initial value type Int(3), are incompatible sizes.
-./A.ulam:2:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 #>A.ulam
   ulam 2;

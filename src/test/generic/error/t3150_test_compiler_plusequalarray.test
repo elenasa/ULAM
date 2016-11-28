@@ -2,7 +2,6 @@
 #=t3150_test_compiler_plusequalarray
 #!
 ./A.ulam:9:7: ERROR: Non-scalars require a loop for operator+=.
-./A.ulam:2:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>A.ulam

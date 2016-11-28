@@ -4,7 +4,7 @@
 ./Foo.ulam:4:24: ERROR: Array type specified for model parameter.
 ./Foo.ulam:4:18: ERROR: Invalid Model Parameter: Int chance.
 ./Foo.ulam:2:2: ERROR: Empty/Incomplete Class Definition 'Foo'; Possible missing ending curly brace.
-./Foo.ulam:4:27: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
+./Foo.ulam:4:27: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./Foo.ulam:2:10: ERROR: Invalid Type: Foo.
  ERROR: No parse tree for This Class: Foo.
 Unrecoverable Program Parse FAILURE: <Foo.ulam>

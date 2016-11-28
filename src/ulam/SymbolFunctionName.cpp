@@ -90,7 +90,6 @@ namespace MFM {
 	  {
 	    funcSymbol = fsym;
 	    matchingFuncCount++;
-	    //break;
 	  }
 	++it;
       }
@@ -113,7 +112,6 @@ namespace MFM {
 	  {
 	    funcSymbol = fsym;
 	    matchingFuncCount++;
-	    //break;
 	  }
 	++it;
       }
@@ -475,73 +473,6 @@ namespace MFM {
     return probcount;
   } //checkCustomArrayGetFunctions
 
-  u32 SymbolFunctionName::checkCustomArraySetFunctions(UTI caType)
-  {
-    if(m_mangledFunctionNames.empty())
-      {
-	std::ostringstream msg;
-	msg << "Custom array set method '";
-	msg << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str();
-	msg << "' NOT FOUND in class: ";
-	msg << m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamTypeNameOnly().c_str();
-	MSG(getTokPtr(), msg.str().c_str(), INFO);
-	return 0;
-      }
-
-    u32 probcount = 0;
-    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
-    while(it != m_mangledFunctionNames.end())
-      {
-	SymbolFunction * fsym = it->second;
-	UTI futi = fsym->getUlamTypeIdx();
-	if(futi != Void)
-	  {
-	    std::ostringstream msg;
-	    msg << "Custom array set method '";
-	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
-	    msg << "' must return Void ";
-	    probcount++;
-	  }
-
-	u32 numparams = fsym->getNumberOfParameters();
-	if(numparams != 2)
-	  {
-	    std::ostringstream msg;
-	    msg << "Custom array set method '";
-	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
-	    msg << "' requires exactly two parameters, not ";
-	    msg << numparams;
-	    probcount++;
-	  }
-	else
-	  {
-	    //verify 2nd parameter matches caType
-	    // compare UTI as they may change during full instantiations
-	    Symbol * asym = fsym->getParameterSymbolPtr(1);
-	    assert(asym);
-	    UTI auti = asym->getUlamTypeIdx();
-	    if(UlamType::compare(auti, caType, m_state) == UTIC_NOTSAME)
-	      {
-		std::ostringstream msg;
-		msg << "Custom array set method '";
-		msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
-		msg << "' second parameter type '";
-		msg << m_state.getUlamTypeNameByIndex(auti).c_str();
-		msg << "' does not match '";
-		msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
-		msg << "' return type '";
-		msg << m_state.getUlamTypeNameByIndex(caType).c_str();
-		msg << "'; Cannot be called in class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-		MSG(fsym->getTokPtr(), msg.str().c_str(), ERR);
-		probcount++;
-	      }
-	  }
-	it++;
-      } //while aset found
-    return probcount;
-  } //checkCustomArraySetFunctions
-
   UTI SymbolFunctionName::getCustomArrayReturnType()
   {
     UTI rtnType = Nav;
@@ -552,7 +483,12 @@ namespace MFM {
 	SymbolFunction * fsym = it->second;
 	UTI futi = fsym->getUlamTypeIdx();
 	assert(futi != Void);
-	assert((rtnType == Nav) || (UlamType::compare(rtnType, futi, m_state) == UTIC_SAME));
+
+	if(!((rtnType == Nav) || (UlamType::compare(rtnType, futi, m_state) == UTIC_SAME)))
+	  {
+	    rtnType = Nav; //error msg given by caller!! e.g. t3918
+	    break;
+	  }
 	rtnType = futi;
 	++it;
       }
@@ -639,9 +575,7 @@ namespace MFM {
       {
 	SymbolFunction * fsym = it->second;
 	assert(fsym);
-	// now done as part of block's c&l
-	// first check for incomplete parameters
-	//aok &= fsym->checkParameterTypes();
+	// check for incomplete parameters done as part of block's c&l
 
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
 	assert(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
@@ -681,7 +615,6 @@ namespace MFM {
 	u32 fcntnavs = ncnt;
 	u32 fcnthzy = hcnt;
 	u32 fcntunset = nocnt;
-	//func->countNavHzyNoutiNodes(fcntnavs, fcnthzy, fcntunset);
 	func->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
 	if((ncnt - fcntnavs) > 0)
 	  {
@@ -731,7 +664,6 @@ namespace MFM {
 	msg << m_state.m_pool.getDataAsString(getId()) << "> in class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), INFO);
-	//ncnt += countNavs;
       }
 
     if(countHzy > 0)
@@ -746,7 +678,6 @@ namespace MFM {
 	msg << m_state.m_pool.getDataAsString(getId()) << "> in class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), INFO);
-	//hcnt += countHzy;
       }
 
     if(countUnset > 0)
@@ -761,7 +692,6 @@ namespace MFM {
 	msg << m_state.m_pool.getDataAsString(getId()) << "> in class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), INFO);
-	//nocnt += countUnset;
       }
     return;
   } //countNavNodesInFunctionDefs

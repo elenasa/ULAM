@@ -21,7 +21,7 @@
 ./Test.ulam:17:20: ERROR: Invalid Statement (possible missing semicolon).
 ./Test.ulam:20:14: ERROR: DEPRECATED keyword <has>.
 ./Test.ulam:7:1: ERROR: Empty/Incomplete Class Definition 'Test'; Possible missing ending curly brace.
-./Test.ulam:52:5: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
+./Test.ulam:52:5: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./Test.ulam:7:9: ERROR: Invalid Type: Test.
  ERROR: No parse tree for This Class: Test.
 Unrecoverable Program Parse FAILURE: <Test.ulam>

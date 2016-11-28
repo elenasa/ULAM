@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  NodeInstanceof::NodeInstanceof(const Token& tokof, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeStorageof(tokof, nodetype, state) { }
+  NodeInstanceof::NodeInstanceof(Node * ofnode, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeStorageof(ofnode, nodetype, state) { }
 
   NodeInstanceof::NodeInstanceof(const NodeInstanceof& ref) : NodeStorageof(ref) { }
 
@@ -40,13 +40,12 @@ namespace MFM {
     UTI oftype = NodeStorageof::getOfType(); //deref'd
     if(m_state.okUTItoContinue(oftype))
       {
-	//a virtual function (instanceof), behaves differently on ref's vs object
-	UTI vuti = m_varSymbol ? m_varSymbol->getUlamTypeIdx() : oftype;
-	bool isself = m_varSymbol ? (m_varSymbol->isSelf()) : false;
-	bool issuper = m_varSymbol ? (m_varSymbol->isSuper()) : false;
-	bool isaref = (m_state.isReference(vuti) || isself || issuper);
+	//a virtual function (instanceof), behaves differently on refs vs object
+	bool isself = m_nodeOf ? (m_nodeOf->hasASymbolSelf()) : false;
+	bool issuper = m_nodeOf ? (m_nodeOf->hasASymbolSuper()) : false;
+	bool isaref = m_state.isReference(oftype) || isself || issuper;
 
-	if(isaref) //all ref's
+	if(isaref) //all refs
 	  setNodeType(UAtom); //effective type known only at runtime
 	else
 	  setNodeType(oftype); //object: Type or variable
@@ -81,7 +80,7 @@ namespace MFM {
     else if(aclasstype == UC_TRANSIENT)
       atomuv = UlamValue::makeDefaultAtom(auti, m_state); //size limited to atom for eval
     else
-      assert(0);
+      m_state.abortUndefinedUlamClassType();
 
     m_state.m_funcCallStack.storeUlamValueAtStackIndex(atomuv, atop); //stackframeslotindex ?
 
@@ -96,7 +95,8 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 tmpVarNum = m_state.getNextTmpVarNumber(); //tmp for atomref
-
+    Symbol * cos = NULL;
+    Symbol * stgcos = NULL;
     //starts out as its default type; references (UAtom) are updated:
     m_state.indentUlamCode(fp); //non-const
     fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
@@ -106,13 +106,17 @@ namespace MFM {
 
     // a reference (including 'self'), returns a UAtom of effective type;
     // SINCE effective self type is known only at runtime.
-    if((m_token.m_type == TOK_IDENTIFIER))
+    if(m_nodeOf)
       {
-	assert(m_varSymbol);
-	UTI vuti = m_varSymbol->getUlamTypeIdx();
-	bool isself = m_varSymbol->isSelf();
-	bool issuper = m_varSymbol->isSuper();
-	bool isaref = (m_state.isReference(vuti) || isself || issuper);
+	m_nodeOf->genCodeToStoreInto(fp, uvpass);
+	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+	cos = m_state.m_currentObjSymbolsForCodeGen.back();
+	UTI cosuti = cos->getUlamTypeIdx();
+	stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+
+	bool isself = stgcos->isSelf();
+	bool issuper = stgcos->isSuper();
+	bool isaref = m_state.isReference(cosuti) || isself || issuper;
 
 	if(isaref)
 	  {
@@ -121,7 +125,7 @@ namespace MFM {
 	    fp->write("const UlamClass<EC> * ");
 	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
 	    fp->write(" = ");
-	    fp->write(m_varSymbol->getMangledName().c_str());
+	    fp->write(cos->getMangledName().c_str());
 	    fp->write(".GetEffectiveSelf();"); GCNL;
 
 	    //primitive FAILS
@@ -152,7 +156,7 @@ namespace MFM {
 	    fp->write(m_state.getUlamClassTmpVarAsString(tmpuclass).c_str());
 	    fp->write(" = ");
 	    fp->write("uc.LookupUlamElementTypeFromContext(");
-	    fp->write(m_varSymbol->getMangledName().c_str());
+	    fp->write(cos->getMangledName().c_str());
 	    fp->write(".GetType()");
 	    fp->write(");"); GCNL;
 
@@ -186,10 +190,10 @@ namespace MFM {
 	fp->write(".");
 	fp->write("read();"); GCNL;
 
-	uvpass = UVPass::makePass(tmpVarNum2, rstor, nuti, nut->getPackable(), m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0);
+	uvpass = UVPass::makePass(tmpVarNum2, rstor, nuti, nut->getPackable(), m_state, 0, cos ? cos->getId() : 0);
       }
     else //element and uvpass stays the same (a default immediate element).
-      uvpass = UVPass::makePass(tmpVarNum, TMPBITVAL, nuti, nut->getPackable(), m_state, 0, m_varSymbol ? m_varSymbol->getId() : 0); //t3657
+      uvpass = UVPass::makePass(tmpVarNum, TMPBITVAL, nuti, nut->getPackable(), m_state, 0, cos ? cos->getId() : 0); //t3657
 
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs ?
   } //genCode

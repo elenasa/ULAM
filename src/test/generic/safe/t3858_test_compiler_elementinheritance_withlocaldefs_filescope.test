@@ -1,0 +1,64 @@
+## -*- mode:ulam -*-
+#=t3858_test_compiler_elementinheritance_withlocaldefs_filescope
+##
+## gen output: (+ 3 asserts)
+## Unsigned Arg: 4
+## Unsigned Arg: 3
+##
+#!
+Exit status: 3
+Ue_Foo : Soo(3u) { :< Unsigned(3) us(4u);  constant Unsigned(3) v = 3u; > Bool(7) sp(true);  Unsigned(32) a(3u);  Int(32) test() {  System s;  Foo f;  a f us . cast = s ( a )print . s ( a 4u cast == )assert . a 3u = s ( a )print . s ( a 3u cast == )assert . sp ( )func cast = s ( sp cast )assert . a cast return } }
+Uq_Soo(Unsigned(3) v) { Unsigned(UNKNOWN) us(notready);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## test of local defs: 2 related classes same file scope
+##
+#>Foo.ulam
+  ulam 2;
+local constant Unsigned(3) soosize = 3u;
+local typedef Soo(soosize) Soo3;
+element Foo : Soo3 {
+  Bool(7) sp;
+  Unsigned a = 73;
+  Int test() {
+    System s;
+    Foo f;
+    a = f.us;
+    s.print(a);
+    s.assert(a == 4u);
+    a = Soo3.sizeof;
+    s.print(a);
+    s.assert(a == 3u);
+
+    sp = func();
+    s.assert(sp);
+    return (Int) a; //=3
+  }
+}
+
+quark Soo(Unsigned(3) v) {
+  Unsigned(v) us = 4u;
+  Bool check()
+  {
+    return us.sizeof == soosize; //uses local constant
+  }
+  Bool func()
+  {
+    if(self is Soo3) //uses local typedef
+      return check();
+    return false;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

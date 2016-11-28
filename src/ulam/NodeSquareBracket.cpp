@@ -6,16 +6,20 @@
 
 namespace MFM {
 
-  NodeSquareBracket::NodeSquareBracket(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state), m_isCustomArray(false)
+  NodeSquareBracket::NodeSquareBracket(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state), m_isCustomArray(false), m_tmpvarSymbol(NULL)
   {
     if(m_nodeRight)
       m_nodeRight->updateLineage(getNodeNo()); //for unknown subtrees
     Node::setStoreIntoAble(TBOOL_HAZY);
   }
 
-  NodeSquareBracket::NodeSquareBracket(const NodeSquareBracket& ref) : NodeBinaryOp(ref), m_isCustomArray(ref.m_isCustomArray) {}
+  NodeSquareBracket::NodeSquareBracket(const NodeSquareBracket& ref) : NodeBinaryOp(ref), m_isCustomArray(ref.m_isCustomArray), m_tmpvarSymbol(NULL) {}
 
-  NodeSquareBracket::~NodeSquareBracket(){}
+  NodeSquareBracket::~NodeSquareBracket()
+  {
+    delete m_tmpvarSymbol;
+    m_tmpvarSymbol = NULL;
+  }
 
   Node * NodeSquareBracket::instantiate()
   {
@@ -61,10 +65,14 @@ namespace MFM {
     return "_SquareBracket_Stub";
   }
 
+  bool NodeSquareBracket::isArrayItem()
+  {
+    return true; //not for array declaration; includes custom array items
+  }
+
   // used to select an array item; not for declaration
   UTI NodeSquareBracket::checkAndLabelType()
   {
-    //    assert(m_nodeLeft && m_nodeRight);
     assert(m_nodeLeft);
     u32 errorCount = 0;
     u32 hazyCount = 0;
@@ -104,8 +112,12 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Incomplete Type: " << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
 		msg << " used with " << getName();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		hazyCount++;
+	      }
+	    else if(lut->getUlamTypeEnum() == String)
+	      {
+		//ok!
 	      }
 	    else if(!m_isCustomArray)
 	      {
@@ -117,14 +129,10 @@ namespace MFM {
 	      }
 	    else
 	      {
-		// either an array of custom array classes or
-		// a custom array; t.f. lhs is a quark!
+		// either an array of custom array classes or a custom array;
 		assert(lut->getUlamTypeEnum() == Class);
 
-		// can't substitute a function call node for square brackets to leverage
-		// all the overload matching in func call node's c&l, because
-		// we ([]) can't tell which side of = we are on, and whether we should
-		// be a aref or aset.
+		// Note: A diff approach, substitute a func call node for sq bkt, not used.
 		UTI caType = m_state.getAClassCustomArrayType(leftType);
 		if(!m_state.isComplete(caType))
 		  {
@@ -134,7 +142,7 @@ namespace MFM {
 		    msg << " used with class: ";
 		    msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
 		    msg << getName();
-		    if(lut->isComplete() || (caType == Nav))
+		    if(caType == Nav)
 		      {
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 			newType = Nav; //error!
@@ -151,7 +159,7 @@ namespace MFM {
 	      }
 	  }
 	//else
-	// arraysize is zero! not accessible. runtime check? Sun Jul  3 17:38:42 2016
+	// arraysize is zero! not accessible. runtime check
 
 	//set up idxuti..RHS
 	//cant proceed with custom array subscript if lhs is incomplete
@@ -203,12 +211,13 @@ namespace MFM {
 			errorCount++;
 		      }
 		  }
-		//else a match! but which? aref or aset?
+		//else a match! (surgery to func call node? what if, lhs of assignment?)
 	      }
 	    else
 	      {
 		//not custom array
 		//must be some kind of numeric type: Int, Unsigned, or Unary..of any bit size
+		//or a String
 		UlamType * rut = m_state.getUlamTypeByIndex(rightType);
 		ULAMTYPE retyp = rut->getUlamTypeEnum();
 		if(m_state.okUTItoContinue(rightType) && !rut->isNumericType())
@@ -255,19 +264,22 @@ namespace MFM {
 
     if((errorCount == 0) && (hazyCount == 0))
       {
+	UlamType * lut = m_state.getUlamTypeByIndex(leftType);
+	bool isScalar = lut->isScalar();
 	// sq bracket purpose in life is to account for array elements;
-	if(m_isCustomArray && m_state.isScalar(leftType))
+	if(m_isCustomArray && isScalar)
 	  newType = m_state.getAClassCustomArrayType(leftType);
+	else if((lut->getUlamTypeEnum() == String) && isScalar)
+	  newType = ASCII;
 	else
 	  newType = m_state.getUlamTypeAsScalar(leftType);
 
 	if(m_isCustomArray)
 	  {
-	    if(m_state.classHasACustomArraySetMethod(leftType))
-	      	Node::setStoreIntoAble(TBOOL_TRUE);
+	    if(m_state.classCustomArraySetable(leftType))
+	      Node::setStoreIntoAble(TBOOL_TRUE); //also reference-able
 	    else
 	      Node::setStoreIntoAble(TBOOL_FALSE);
-	    Node::setReferenceAble(TBOOL_FALSE); //custom arrays are not reference-able
 	  }
 	else
 	  // multi-dimensional possible; MP not ok lhs.
@@ -283,15 +295,29 @@ namespace MFM {
 	    m_state.setGoAgain(); //covers non-error(debug) messages for incompletes
 	  }
 	else
-	  assert(0);
+	  m_state.abortShouldntGetHere();
       }
     setNodeType(newType);
     return newType;
   } //checkAndLabelType
 
+  bool NodeSquareBracket::trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr)
+  {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    if(nut->getUlamClassType() == UC_ELEMENT)
+      {
+	if(fromleftnode)
+	  *fromleftnode = NULL; //clear for future deletion
+	rtnnodeptr = this;
+	return true;
+      }
+    return false;
+  } //trimToTheElement
+
   UTI NodeSquareBracket::calcNodeType(UTI lt, UTI rt)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return Int;
   }
 
@@ -310,7 +336,12 @@ namespace MFM {
 	return evalACustomArray();
       }
 
-    assert(!m_isCustomArray);
+    UTI leftType = m_nodeLeft->getNodeType();
+    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
+    if((lut->getUlamTypeEnum() == String) && (nuti == ASCII))
+      {
+	return evalAUserStringByte();
+      }
 
     evalNodeProlog(0); //new current frame pointer
 
@@ -324,11 +355,6 @@ namespace MFM {
 
     UlamValue pluv = m_state.m_nodeEvalStack.popArg();
     UTI ltype = pluv.getPtrTargetType();
-
-    //could be a custom array which is a scalar quark. already checked.
-    bool isCustomArray = m_state.isClassACustomArray(ltype);
-    //array of caarray quarks is not a customarray.
-    assert(m_isCustomArray == isCustomArray); //already checked, must be array
 
     makeRoomForNodeType(m_nodeRight->getNodeType()); //offset a constant expression
     evs = m_nodeRight->eval();
@@ -348,7 +374,7 @@ namespace MFM {
 	u32 offsetdata = offset.getImmediateData(m_state);
 	offsetInt = offut->getDataAsCs32(offsetdata);
 
-	if((offsetInt >= arraysize)) // && !isCustomArray)
+	if((offsetInt >= arraysize))
 	  {
 	    Symbol * lsymptr;
 	    u32 lid = 0;
@@ -386,13 +412,80 @@ namespace MFM {
 
   EvalStatus NodeSquareBracket::evalACustomArray()
   {
-    //custom array should call aref? eval MUST NOT be used to get arraysize in bracket.
+    //eval MUST NOT be used to get arraysize in bracket.
     std::ostringstream msg;
-    msg << "Custom Array subscript";
-    msg << " requires aref function call; Unsupported for eval";
+    msg << "Custom Array subscript requires "; //aref
+    msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
+    msg << " function; Unsupported for eval";
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
     return UNEVALUABLE;
   } //evalACustomArray
+
+  EvalStatus NodeSquareBracket::evalAUserStringByte()
+  {
+    evalNodeProlog(0); //new current frame pointer
+
+    makeRoomForSlots(1); //always 1 slot for index into user string pool
+    EvalStatus evs = m_nodeLeft->eval();
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
+
+    UlamValue luv = m_state.m_nodeEvalStack.popArg();
+    u32 usrStr = 0;
+    usrStr = luv.getImmediateData(m_state);
+
+    if((usrStr == 0) || (usrStr >= m_state.m_upool.getUserStringPoolSize()))
+      {
+	//uninitialized or out-of-bounds
+	evalNodeEpilog();
+	return ERROR;
+      }
+
+    makeRoomForNodeType(m_nodeRight->getNodeType()); //offset a constant expression
+    evs = m_nodeRight->eval();
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
+
+    UlamValue offset = m_state.m_nodeEvalStack.popArg();
+    UlamType * offut = m_state.getUlamTypeByIndex(offset.getUlamValueTypeIdx());
+    u32 offsetdata = 0;
+    if(offut->isNumericType())
+      {
+	// constant expression only required for array declaration
+	u32 strlen = m_state.m_upool.getStringLength(usrStr);
+	offsetdata = offset.getImmediateData(m_state);
+
+	if((offsetdata >= strlen))
+	  {
+	    std::ostringstream msg;
+	    msg << "String subscript [" << offsetdata << "] exceeds the length (" << strlen;
+	    msg << ") of '" << m_state.m_upool.getDataAsFormattedString(usrStr, &m_state).c_str() << "'";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    evalNodeEpilog();
+	    return ERROR;
+	  }
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << "String subscript of '";
+	msg << m_state.m_upool.getDataAsFormattedString(usrStr, &m_state).c_str();
+	msg << "' requires a numeric type";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	evalNodeEpilog();
+	return ERROR;
+      }
+
+    Node::assignReturnValueToStack(m_state.getByteOfUserString(usrStr, offsetdata));
+    evalNodeEpilog();
+    return NORMAL;
+  } //evalAUserStringByte
 
   EvalStatus NodeSquareBracket::evalToStoreInto()
   {
@@ -408,8 +501,6 @@ namespace MFM {
       {
 	return evalToStoreIntoACustomArray();
       }
-
-    assert(!m_isCustomArray);
 
     evalNodeProlog(0); //new current frame pointer
 
@@ -463,10 +554,11 @@ namespace MFM {
 
   EvalStatus NodeSquareBracket::evalToStoreIntoACustomArray()
   {
-    //custom array should call aset? eval MUST NOT be used to get arraysize in bracket.
+    //eval MUST NOT be used to get arraysize in bracket.
     std::ostringstream msg;
-    msg << "Custom Array subscript";
-    msg << " requires aset function call; Unsupported for evalToStoreInto";
+    msg << "Custom Array subscript requires "; //aref
+    msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
+    msg << " function returning a reference; Unsupported for evalToStoreInto";
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
     return UNEVALUABLE;
   } //evalToStoreIntoACustomArray
@@ -478,13 +570,13 @@ namespace MFM {
 
   UlamValue NodeSquareBracket::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
-    assert(0); //unused
+    m_state.abortShouldntGetHere(); //unused
     return UlamValue();
   }
 
   UlamValue NodeSquareBracket::makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len)
   {
-    assert(0); //unused
+    m_state.abortShouldntGetHere(); //unused
     return UlamValue();
   }
 
@@ -495,6 +587,12 @@ namespace MFM {
 
     MSG(getNodeLocationAsString().c_str(), "No symbol", ERR);
     return false;
+  }
+
+  bool NodeSquareBracket::getStorageSymbolPtr(Symbol *& symptrref)
+  {
+    assert(m_nodeLeft);
+    return m_nodeLeft->getStorageSymbolPtr(symptrref);
   }
 
   //see also NodeIdent
@@ -518,11 +616,24 @@ namespace MFM {
     return m_nodeLeft->installSymbolTypedef(args, asymptr);
   } //installSymbolTypedef
 
-  //see also NodeIdent
+  //see also NodeIdent (t3890)
   bool NodeSquareBracket::installSymbolConstantValue(TypeArgs& args, Symbol *& asymptr)
   {
-    MSG(getNodeLocationAsString().c_str(), "Array type specified for named constant", ERR);
-    return false;
+    if(!m_nodeLeft)
+      {
+	MSG(getNodeLocationAsString().c_str(), "No Identifier to build array symbol", ERR);
+	return false;
+      }
+
+    if(args.m_arraysize > NONARRAYSIZE)
+      {
+	MSG(getNodeLocationAsString().c_str(), "Array size specified twice", ERR);
+	return false;
+      }
+
+    args.m_arraysize = UNKNOWNSIZE; // no eval yet
+    assert(m_nodeLeft);
+    return m_nodeLeft->installSymbolConstantValue(args, asymptr);
   } //installSymbolConstantValue
 
   //see also NodeIdent
@@ -535,7 +646,6 @@ namespace MFM {
   //see also NodeIdent
   bool NodeSquareBracket::installSymbolVariable(TypeArgs& args,  Symbol *& asymptr)
   {
-    //assert(m_nodeLeft && m_nodeRight);
     if(!m_nodeLeft)
       {
 	MSG(getNodeLocationAsString().c_str(), "No Identifier to build array symbol", ERR);
@@ -555,7 +665,6 @@ namespace MFM {
 
   bool NodeSquareBracket::assignClassArgValueInStubCopy()
   {
-    //return m_nodeRight->assignClassArgValueInStubCopy();
     return true;
   }
 
@@ -603,7 +712,7 @@ namespace MFM {
 	    else if(wordsize <= MAXBITSPERLONG)
 	      arraysizedata = (u32) arrayUV.getImmediateDataLong(m_state);
 	    else
-	      assert(0);
+	      m_state.abortGreaterThanMaxBitsPerLong();
 
 	    newarraysize = sizeut->getDataAsCs32(arraysizedata);
 	    if(newarraysize < 0 && newarraysize != UNKNOWNSIZE) //NONARRAY or UNKNOWN
@@ -640,24 +749,42 @@ namespace MFM {
 
   void NodeSquareBracket::genCode(File * fp, UVPass& uvpass)
   {
+    UTI leftType = m_nodeLeft->getNodeType();
+    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
+
+    if((lut->getUlamTypeEnum() == String) && lut->isScalar())
+      {
+	return genCodeAUserStringByte(fp, uvpass);
+      }
+
+    genCodeToStoreInto(fp, uvpass);
+    if(!m_isCustomArray || !m_state.classCustomArraySetable(m_nodeLeft->getNodeType()))
+      Node::genCodeReadIntoATmpVar(fp, uvpass); //splits on array item
+    else
+      m_state.clearCurrentObjSymbolsForCodeGen();
+  } //genCode
+
+  void NodeSquareBracket::genCodeToStoreInto(File * fp, UVPass& uvpass)
+  {
     assert(m_nodeLeft && m_nodeRight);
     //wipe out before getting item within sq brackets
     std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
     m_state.clearCurrentObjSymbolsForCodeGen();
 
     UVPass offset;
-    m_nodeRight->genCode(fp, offset); //read into tmp var
+    m_nodeRight->genCode(fp, offset);
+    offset.setPassStorage(TMPARRAYIDX);
 
-    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore
+    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector;  //restore
 
-    UVPass luvpass;
+    UVPass luvpass = uvpass; //t3615 passes along if rhs of memberselect
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
-    //special case index for non-custom array: numeric unary conversion to cu32
+    //non-custom array only
     UTI luti = luvpass.getPassTargetType();
     if(!m_state.isClassACustomArray(luti))
       {
-	//runtime check to avoid accessing beyond array (Sun Jul  3 17:49:47 2016 )
+	//runtime check to avoid accessing beyond array
 	UlamType * lut = m_state.getUlamTypeByIndex(luti);
 	s32 arraysize = lut->getArraySize();
 	assert(!lut->isScalar());
@@ -674,11 +801,31 @@ namespace MFM {
 	m_state.m_currentIndentLevel--;
       } //for non custom arrays only!
 
-    uvpass = offset;
-    Node::genCodeReadIntoATmpVar(fp, uvpass); //splits on array item
-  } //genCode
+    //save autoref into a tmpvar symbol
+    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
 
-  void NodeSquareBracket::genCodeToStoreInto(File * fp, UVPass& uvpass)
+    if(m_state.isClassACustomArray(luti))
+      {
+	assert(m_state.isScalar(cossym->getUlamTypeIdx()));
+	Node::genCodeConvertATmpVarIntoCustomArrayAutoRef(fp, luvpass, offset); //luvpass becomes the autoref, and clears stack
+      }
+    else
+      {
+	assert(!m_state.isScalar(cossym->getUlamTypeIdx()));
+	if(cossym->isConstant())
+	  Node::genCodeConvertATmpVarIntoConstantAutoRef(fp, luvpass, offset); //luvpass becomes the autoref, and clears stack
+	else
+	  Node::genCodeConvertATmpVarIntoAutoRef(fp, luvpass, offset); //luvpass becomes the autoref, and clears stack
+      }
+    uvpass = luvpass;
+    m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, cossym); //dm to avoid leaks
+    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore the prior stack
+    m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
+    // NO RESTORE -- up to caller for lhs.
+  } //genCodeToStoreInto
+
+  void NodeSquareBracket::genCodeAUserStringByte(File * fp, UVPass& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
     //wipe out before getting item within sq brackets
@@ -687,14 +834,74 @@ namespace MFM {
 
     UVPass offset;
     m_nodeRight->genCode(fp, offset);
+    offset.setPassStorage(TMPARRAYIDX);
 
     m_state.m_currentObjSymbolsForCodeGen = saveCOSVector;  //restore
 
-    UVPass luvpass;
-    m_nodeLeft->genCodeToStoreInto(fp, luvpass);
+    UVPass luvpass = uvpass; //passes along if rhs of memberselect
+    m_nodeLeft->genCode(fp, luvpass);
 
-    uvpass = offset; //return
+    //runtime checks for unitialized string
+    m_state.indentUlamCode(fp);
+    fp->write("if(");
+    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+    fp->write(" == 0)\n");
+
+    m_state.m_currentIndentLevel++;
+    m_state.indentUlamCode(fp);
+    fp->write("FAIL(UNINITIALIZED_VALUE);"); GCNL;
+    m_state.m_currentIndentLevel--;
+
+    //runtime checks to avoid accessing beyond global string pool
+    m_state.indentUlamCode(fp);
+    fp->write("if(");
+    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+    fp->write(" >= ");
+    fp->write(m_state.getDefineNameForUserStringPoolSize());
+    fp->write(")\n");
+
+    m_state.m_currentIndentLevel++;
+    m_state.indentUlamCode(fp);
+    fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
+    m_state.m_currentIndentLevel--;
+
+    //runtime checks to avoid accessing beyond user string
+    m_state.indentUlamCode(fp);
+    fp->write("if(");
+    fp->write(offset.getTmpVarAsString(m_state).c_str());
+    fp->write(" >= ");
+    fp->write(m_state.getMangledNameForUserStringPool());
+    fp->write("[");
+    fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //INDEX of user string
+    fp->write("]"); //length
+    fp->write(")\n");
+
+    m_state.m_currentIndentLevel++;
+    m_state.indentUlamCode(fp);
+    fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
+    m_state.m_currentIndentLevel--;
+
+    //get the ascii byte in a tmp var
+    s32 tmpVarNum = m_state.getNextTmpVarNumber();
+    m_state.indentUlamCode(fp);
+    fp->write("const unsigned char ");
+    fp->write(m_state.getTmpVarAsString(ASCII, tmpVarNum, TMPREGISTER).c_str());
+    fp->write(" = ");
+    fp->write(m_state.getMangledNameForUserStringPool());
+    fp->write("[");
+    fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //INDEX OF User String
+    fp->write(" + ");
+    fp->write(offset.getTmpVarAsString(m_state).c_str()); //INDEX of byte
+    fp->write(" + 1];"); GCNL; //skipping the length
+
+    uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, ASCII, m_state.determinePackable(ASCII), m_state, 0, 0); //POS 0 rightjustified (atom-based).
+
+    m_state.clearCurrentObjSymbolsForCodeGen();
+
+    //m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks
+    //m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore the prior stack
+    //m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
     // NO RESTORE -- up to caller for lhs.
-  } //genCodeToStoreInto
+  } //genCodeAUserStringByte
 
 } //end MFM

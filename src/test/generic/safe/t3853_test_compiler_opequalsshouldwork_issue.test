@@ -5,7 +5,7 @@
 ##
 #!
 Exit status: 1
-Ue_Foo { Int(32) a(1);  Int(32) test() {  System s;  a 2 cast *= a 2 cast /= s ( a 1 cast == )assert . Int(32) arr[4] = { 4 cast };  arr a 1 += [] 2 cast /= s ( a 2 cast == )assert . s ( arr 2 [] 2 cast == )assert . a 2 cast %= s ( a 0 cast == )assert . Int(32) arr2[4] = { 4 cast, 3 cast, 2 cast, 1 cast };  arr2 a 1 += [] 2 cast %= s ( a 1 cast == )assert . s ( arr2 1 [] 1 cast == )assert . a return } }
+Ue_Foo { Int(32) a(1);  Int(32) test() {  System s;  a 2 cast *= a 2 cast /= s ( a 1 cast == )assert . Int(32) arr[4] = { 4 };  arr a 1 += [] 2 cast /= s ( a 2 cast == )assert . s ( arr 2 [] 2 cast == )assert . a 2 cast %= s ( a 0 cast == )assert . Int(32) arr2[4] = { 4, 3, 2, 1 };  arr2 a 1 += [] 2 cast %= s ( a 1 cast == )assert . s ( arr2 1 [] 1 cast == )assert . a return } }
 Uq_System { <NOMAIN> }
 ##
 ## dave ish 7/23/2016, '/=' is not in the grammar, either. Plus the tricky case.
