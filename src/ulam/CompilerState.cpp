@@ -3347,8 +3347,6 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   //store pointer (rptr) as value to where lptr is pointing
   void CompilerState::assignValuePtr(UlamValue lptr, UlamValue rptr)
   {
-    //assert(lptr.getUlamValueTypeIdx() == Ptr);
-    //assert(rptr.getUlamValueTypeIdx() == Ptr);
     assert(lptr.isPtr());
     assert(rptr.isPtr());
 

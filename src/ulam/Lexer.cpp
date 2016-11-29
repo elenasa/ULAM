@@ -7,12 +7,7 @@
 namespace MFM {
 
 
-  Lexer::Lexer(SourceStream & ss, CompilerState & state) : m_state(state), m_SS(ss)
-  {
-    //    std::string dummy = "dummy data";
-    //m_dataAsString.push_back(dummy);
-  }
-
+  Lexer::Lexer(SourceStream & ss, CompilerState & state) : m_state(state), m_SS(ss) { }
 
   Lexer::~Lexer()
   {
@@ -170,7 +165,6 @@ namespace MFM {
     TokenType ttype = getTokenTypeFromString(aname);
     if(ttype != TOK_LAST_ONE)
       {
-	//SpecialTokenWork sptok = m_specialTokens[ttype];
 	SpecialTokenWork sptok = Token::getSpecialTokenWork(ttype);
 
 	if(sptok == TOKSP_KEYWORD || sptok == TOKSP_TYPEKEYWORD || sptok == TOKSP_CTLKEYWORD)
@@ -560,26 +554,23 @@ namespace MFM {
   {
     //where \ooo is one to three octal digits (0..7)
     u32 runningtotal = 0;
+    u32 runningcount = 0;
     s32 c;
-    while((c = m_SS.read()) >= 0)
+    while((runningcount < 3) && (c = m_SS.read()) >= 0)
       {
-	if(c == '\'')
-	  {
-	    unread();
-	    break;
-	  }
 	if(c >= '0' && c < '8')
-	  runningtotal = runningtotal * 8 + (c - '0');
+	  {
+	    runningtotal = runningtotal * 8 + (c - '0');
+	    runningcount++;
+	  }
 	else
 	  {
-	    std::ostringstream errmsg;
-	    errmsg << "Lexer found invalid digit '" << c << "'";
-	    errmsg << " while formatting an octal constant";
-	    return m_state.m_pool.getIndexForDataString(errmsg.str());
+	    unread(); //t3955
+	    break;
 	  }
       }
 
-    if(c < 0)
+    if((c < 0) || (runningcount == 0))
       {
 	std::ostringstream errmsg;
 	errmsg << "Lexer could not complete formatting an octal constant";
@@ -600,43 +591,44 @@ namespace MFM {
 
   u32 Lexer::formatHexConstant(u8& rtn)
   {
-    // where \xhh is one or more hexadecimal digits (0...9, a...f, A...F).
+    // where \xhh is one or two hexadecimal digits (0...9, a...f, A...F).
     u32 runningtotal = 0;
+    u32 runningcount = 0;
     s32 c;
-    while((c = m_SS.read()) >= 0)
+    while((runningcount < 2u) && (c = m_SS.read()) >= 0)
       {
-	u32 cnum;
-	if(c == '\'')
-	  {
-	    unread();
-	    break;
-	  }
-
+	s32 cnum = -1;
 	switch(c)
 	  {
 	  case 'a':
 	  case 'A':
 	    cnum = 10;
+	    runningcount++;
 	    break;
 	  case 'b':
 	  case 'B':
 	    cnum = 11;
+	    runningcount++;
 	    break;
 	  case 'c':
 	  case 'C':
 	    cnum = 12;
+	    runningcount++;
 	    break;
 	  case 'd':
 	  case 'D':
 	    cnum = 13;
+	    runningcount++;
 	    break;
 	  case 'e':
 	  case 'E':
 	    cnum = 14;
+	    runningcount++;
 	    break;
 	  case 'f':
 	  case 'F':
 	    cnum = 15;
+	    runningcount++;
 	    break;
 	  case '0':
 	  case '1':
@@ -649,19 +641,20 @@ namespace MFM {
 	  case '8':
 	  case '9':
 	    cnum = c - '0';
+	    runningcount++;
 	    break;
 	  default:
 	    {
-	    std::ostringstream errmsg;
-	    errmsg << "Lexer found invalid digit '" << c << "'";
-	    errmsg << " while formatting a hex constant";
-	    return m_state.m_pool.getIndexForDataString(errmsg.str());
+	      unread();
+	      break; //from switch
 	    }
 	  };
+	if(cnum == -1)
+	  break; //out of whileloop, cnum unset (t3424)
 	runningtotal = runningtotal * 16 + cnum;
       } //while
 
-    if(c < 0)
+    if((c < 0) || (runningcount == 0))
       {
 	std::ostringstream errmsg;
 	errmsg << "Lexer could not complete";

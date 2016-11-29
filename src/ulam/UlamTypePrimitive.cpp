@@ -28,6 +28,12 @@ namespace MFM {
 	// primitives must be the same sizes when casting to a reference type
 	if(isReference() && !UlamType::checkReferenceCast(typidx))
 	  scr = CAST_BAD;
+
+	// strings cannot be cast explicitly to other primitive types.
+	UlamType * vut = m_state.getUlamTypeByIndex(typidx);
+	ULAMTYPE valtypEnum = vut->getUlamTypeEnum();
+	if((valtypEnum == String) ^ (getUlamTypeEnum() == String))
+	  scr = CAST_BAD;
       }
     return scr;
   } //explicitlyCastable

@@ -660,7 +660,7 @@ namespace MFM {
 
   ULAMTYPECOMPARERESULTS UlamType::compareForString(UTI u1, CompilerState& state)  //static
   {
-    return UlamType::compareWithWildArrayItemReferenceType(u1, String, state);
+    return UlamType::compareWithWildReferenceType(u1, String, state);
   }
 
   u32 UlamType::getTotalWordSize()
