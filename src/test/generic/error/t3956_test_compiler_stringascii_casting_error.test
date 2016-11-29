@@ -1,0 +1,30 @@
+## -*- mode:ulam -*-
+#=t3956_test_compiler_stringascii_casting_error
+#!
+./A.ulam:6:22: ERROR: Cannot explicitly cast String(32) to type: Unsigned(32).
+./A.ulam:6:5: ERROR: Initial value expression for: sidx, initialization is invalid.
+Unrecoverable Program Type Label FAILURE.
+#>A.ulam
+  ulam 2;
+local constant String str = "hello world";
+element A {
+  Int test() {
+    System s;
+    Unsigned sidx = (Unsigned) str;
+    s.print(sidx);
+    return 0;
+ }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.
