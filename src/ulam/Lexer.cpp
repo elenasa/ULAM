@@ -7,12 +7,7 @@
 namespace MFM {
 
 
-  Lexer::Lexer(SourceStream & ss, CompilerState & state) : m_state(state), m_SS(ss)
-  {
-    //    std::string dummy = "dummy data";
-    //m_dataAsString.push_back(dummy);
-  }
-
+  Lexer::Lexer(SourceStream & ss, CompilerState & state) : m_state(state), m_SS(ss) { }
 
   Lexer::~Lexer()
   {
@@ -170,7 +165,6 @@ namespace MFM {
     TokenType ttype = getTokenTypeFromString(aname);
     if(ttype != TOK_LAST_ONE)
       {
-	//SpecialTokenWork sptok = m_specialTokens[ttype];
 	SpecialTokenWork sptok = Token::getSpecialTokenWork(ttype);
 
 	if(sptok == TOKSP_KEYWORD || sptok == TOKSP_TYPEKEYWORD || sptok == TOKSP_CTLKEYWORD)
@@ -563,19 +557,12 @@ namespace MFM {
     s32 c;
     while((c = m_SS.read()) >= 0)
       {
-	if(c == '\'')
-	  {
-	    unread();
-	    break;
-	  }
 	if(c >= '0' && c < '8')
 	  runningtotal = runningtotal * 8 + (c - '0');
 	else
 	  {
-	    std::ostringstream errmsg;
-	    errmsg << "Lexer found invalid digit '" << c << "'";
-	    errmsg << " while formatting an octal constant";
-	    return m_state.m_pool.getIndexForDataString(errmsg.str());
+	    unread(); //t3955
+	    break;
 	  }
       }
 
@@ -605,13 +592,7 @@ namespace MFM {
     s32 c;
     while((c = m_SS.read()) >= 0)
       {
-	u32 cnum;
-	if(c == '\'')
-	  {
-	    unread();
-	    break;
-	  }
-
+	s32 cnum = -1;
 	switch(c)
 	  {
 	  case 'a':
@@ -652,12 +633,12 @@ namespace MFM {
 	    break;
 	  default:
 	    {
-	    std::ostringstream errmsg;
-	    errmsg << "Lexer found invalid digit '" << c << "'";
-	    errmsg << " while formatting a hex constant";
-	    return m_state.m_pool.getIndexForDataString(errmsg.str());
+	      unread();
+	      break; //from switch
 	    }
 	  };
+	if(cnum == -1)
+	  break; //out of whileloop, cnum unset (t3424)
 	runningtotal = runningtotal * 16 + cnum;
       } //while
 
