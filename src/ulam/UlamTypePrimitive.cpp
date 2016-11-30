@@ -29,10 +29,10 @@ namespace MFM {
 	if(isReference() && !UlamType::checkReferenceCast(typidx))
 	  scr = CAST_BAD;
 
-	// strings cannot be cast explicitly to other primitive types.
+	// strings cannot be cast explicitly to other primitive types, except Void (t3961)
 	UlamType * vut = m_state.getUlamTypeByIndex(typidx);
 	ULAMTYPE valtypEnum = vut->getUlamTypeEnum();
-	if((valtypEnum == String) ^ (getUlamTypeEnum() == String))
+	if((getUlamTypeEnum() != Void) && ((valtypEnum == String) ^ (getUlamTypeEnum() == String)))
 	  scr = CAST_BAD;
       }
     return scr;

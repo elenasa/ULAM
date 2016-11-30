@@ -666,7 +666,8 @@ namespace MFM {
     TMPSTORAGE vstor = uvpass.getPassStorage();
     bool isTerminal = (vstor == TERMINAL);
 
-   if(tobeType == vuti)
+    //if(tobeType == vuti)
+    if((tobeType == vuti) || (tobeType == Void)) //t3961
      return; //nothing to do!
 
    UlamType * vut = m_state.getUlamTypeByIndex(vuti); //after vuti replacement

@@ -48,14 +48,12 @@ quark FString(String msg) {
   }
   Void getFoo(String& stref)
   {
-    stref = "foo";
-    return;
+    return (Void) (stref = "foo");
   }
   //when overloaded as getFoo, we call it, not the ref arg?
   Void getGoo(String str)
   {
-    str = "gabbagoo";
-    return;
+    return (Void) (str = "gabbagoo");
   }
 }
 
