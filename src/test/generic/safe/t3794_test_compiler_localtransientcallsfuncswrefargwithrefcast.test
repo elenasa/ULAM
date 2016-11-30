@@ -1,15 +1,23 @@
 ## -*- mode:ulam -*-
-#=t3794_test_compiler_localtransientcallsfuncswrefargwithrefcast_error
-#!
-./Mob.ulam:10:23: ERROR: Explicit Reference casts (Type&) are valid for reference variable initialization, and not in this context.
-./Mob.ulam:10:29: ERROR: Invalid Statement (possible missing semicolon).
-Unrecoverable Program Parse FAILURE: <Mob.ulam>
-Unrecoverable Program Parse FAILURE: <XMob.ulam>
-Unrecoverable Program Parse FAILURE: <WindowServices.ulam>
-Unrecoverable Program Parse FAILURE: <WindowScanner.ulam>
-Unrecoverable Program Parse FAILURE: <System.ulam>
+#=t3794_test_compiler_localtransientcallsfuncswrefargwithrefcast
 ##
-## informed by t3788, ref casts only valid in refvar init
+## gen output: (+ asserts)
+## Unsigned Arg: 2 (transition->scan->visit->categorize)
+## Unsigned Arg: 3 (transition->scan->visit->categorize)
+## Unsigned Arg: 2 (transition)
+## Unsigned Arg: 1 (test)
+##
+## 3 unused variables
+#!
+Exit status: -11
+Ue_Mob { Unsigned(10) age(0u);  typedef Unsigned(6) SiteNum;  Int(32) test() {  System s;  Mob meob;  XMob state;  state ( meob cast )transition . s ( meob age . cast )print . s ( meob age . cast 1 cast == )assert . 0 cast return } }
+Uq_EventWindowT { typedef Unsigned(6) SiteNum;  <NOMAIN> }
+Uq_System { <NOMAIN> }
+Un_XMob : WindowScanner { :< typedef Unsigned(6) SiteNum; > typedef Unsigned(6) SiteNum;  Bool(1) sp(false);  <NOMAIN> }
+Uq_WindowScanner { typedef Unsigned(6) SiteNum;  <NOMAIN> }
+Un_WindowServices { typedef Unary(4) Radius;  typedef Unsigned(6) SiteNum;  typedef Unsigned(4) Category;  constant Unsigned(32) cCATEGORY_COUNT = 16u;  Bool(1) status(false);  Unary(4) m_inner(0);  Unary(4) m_outer(0);  Unsigned(6) m_sn( 2u);  Unsigned(6) mSites[16](0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);  EventWindowT ew( typedef Unsigned(6) SiteNum; );  <NOMAIN> }
+##
+## informed by t3788, ref casts 'used to be' only valid in refvar init, now also func call args
 ##
 #>Mob.ulam
   ulam 2;
@@ -21,7 +29,7 @@ element Mob {
     System s;
     Mob meob;
     XMob state;
-    state.transition((Mob&) meob); //<--cast parse error
+    state.transition((Mob&) meob); //okay now
 
     s.print((Unsigned) meob.age);
     s.assert(meob.age == 1); //incr by transition

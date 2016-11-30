@@ -261,6 +261,17 @@ namespace MFM {
 		    errorsFound++;
 		  }
 	      }
+
+	    if(m_state.isReference(tobeType) && m_node->isAConstant())
+	      {
+		std::ostringstream msg;
+		msg << "Cannot explicitly cast a constant, " << m_node->getName() << ", type ";
+		msg << nut->getUlamTypeNameBrief().c_str();
+		msg << ", to a reference type, ";
+		msg << tobe->getUlamTypeNameBrief().c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		errorsFound++; //t3962
+	      }
 	  }
       }
 

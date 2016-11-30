@@ -3062,13 +3062,18 @@ namespace MFM {
     //member selection doesn't apply to arguments (during parsing too)
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
+    SYMBOLTYPEFLAG saveTheFlag = m_state.m_parsingVariableSymbolTypeFlag;
+    m_state.m_parsingVariableSymbolTypeFlag = STF_FUNCARGUMENT;
+
     if(!parseRestOfFunctionCallArguments(rtnNode))
       {
+	m_state.m_parsingVariableSymbolTypeFlag = saveTheFlag;
 	m_state.popClassContext();
 	delete rtnNode;
 	return NULL; //stop this maddness
       }
 
+    m_state.m_parsingVariableSymbolTypeFlag = saveTheFlag;
     m_state.popClassContext();
 
     //can't do any checking since function may not have been seen yet
@@ -3208,8 +3213,11 @@ namespace MFM {
 	}
 	break;
       case TOK_OPEN_PAREN:
-	rtnNode = parseRestOfCastOrExpression(false);
-	break;
+	{
+	  bool allowrefcast = (m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCARGUMENT ? true : false); //t3962
+	  rtnNode = parseRestOfCastOrExpression(allowrefcast);
+	}
+	  break;
       case TOK_MINUS:
       case TOK_PLUS:
       case TOK_BANG:
@@ -5229,7 +5237,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	std::ostringstream msg;
 	msg << "Explicit Reference casts (Type&) ";
 	msg << "are valid for reference variable initialization";
-	msg << ", and not in this context";
+	msg << " (including function call arguments); not in this context";
 	MSG(&typeTok, msg.str().c_str(), ERR);
 	delete typeNode;
 	return NULL;

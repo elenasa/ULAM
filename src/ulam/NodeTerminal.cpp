@@ -169,6 +169,9 @@ namespace MFM {
     if(scr != CAST_CLEAR)
       return scr;
 
+    if(newut->getReferenceType() == ALT_REF)
+      return CAST_BAD; //t3965
+
     return fitsInBits(newType) ? CAST_CLEAR : CAST_BAD;
   } //safeToCastTo
 

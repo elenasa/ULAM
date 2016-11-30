@@ -2,10 +2,10 @@
 #=t3788_test_compiler_localtransientcallsfuncswrefargwithself_issue
 ##
 ## gen output: (+ asserts)
-## Unsigned Arg: 2
-## Unsigned Arg: 3
-## Unsigned Arg: 2
-## Unsigned Arg: 1
+## Unsigned Arg: 2 (transition->scan->visit->categorize)
+## Unsigned Arg: 3 (transition->scan->visit->categorize)
+## Unsigned Arg: 2 (transition)
+## Unsigned Arg: 1 (test)
 ##
 #!
 Exit status: -11
