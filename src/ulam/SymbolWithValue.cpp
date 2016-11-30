@@ -596,10 +596,10 @@ namespace MFM {
 	  vstr = ToLeximitedNumber(pval);
 	}
 	break;
+      case String:
       case Unsigned:
       case Bits:
 	{
-	  //oddly write_decimal wants a signed int..
 	  if( tbs <= MAXBITSPERINT)
 	    vstr = ToLeximitedNumber((u32) constantval);
 	  else if( tbs <= MAXBITSPERLONG)
