@@ -96,6 +96,11 @@ namespace MFM{
 
     bool getArrayValueAsString(std::string& vstr);
 
+    //static: return false if all zeros, o.w. true; rtnstr updated
+    static bool getLexValueAsString(u32 ntotbits, const BV8K& bval, std::string& rtnstr);
+    //static: return false if all zeros, o.w. true; rtnstr updated
+    static bool getHexValueAsString(u32 ntotbits, const BV8K& bval, std::string& rtnstr);
+
     void changeConstantId(u32 fmid, u32 toid); //for premature class instances
 
     virtual NNO getDeclNodeNo();

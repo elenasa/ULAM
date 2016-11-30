@@ -5,6 +5,7 @@
 #include "NodeBlockClass.h"
 #include "SymbolFunctionName.h"
 #include "SymbolTypedef.h"
+#include "SymbolWithValue.h"
 #include "UlamTypeAtom.h"
 #include "UlamTypeClass.h"
 #include "UlamTypeClassElement.h"
@@ -1274,23 +1275,9 @@ namespace MFM {
     if(len == 0)
       return false;
 
-    u32 uvals[ARRAY_LEN8K];
-    dval.ToArray(uvals);
-
-    u32 nwords = (len + 31)/MAXBITSPERINT;
-
-    //short-circuit if all zeros
-    bool isZero = true;
-    for(u32 x = 0; x < nwords; x++)
-      {
-	if(uvals[x] != 0)
-	  {
-	    isZero = false;
-	    break;
-	  }
-      }
-
-    if(isZero && (getUlamTypeByIndex(getCompileThisIdx())->getUlamClassType() != UC_TRANSIENT))
+    std::string dhex;
+    bool notZero = SymbolWithValue::getHexValueAsString(len, dval, dhex);
+    if(!notZero && (getUlamTypeByIndex(getCompileThisIdx())->getUlamClassType() != UC_TRANSIENT))
       return false; //nothing to do
 
 
@@ -1299,17 +1286,7 @@ namespace MFM {
     fp->write("static const u32 vales[(");
     fp->write_decimal_unsigned(len); // == [nwords]
     fp->write(" + 31)/32] = { ");
-
-    for(u32 w = 0; w < nwords; w++)
-      {
-	std::ostringstream dhex;
-	dhex << "0x" << std::hex << uvals[w];
-
-	if(w > 0)
-	  fp->write(", ");
-
-	fp->write(dhex.str().c_str());
-      }
+    fp->write(dhex.c_str());
     fp->write(" };"); GCNL;
 
     // declare perfect size BV with constant array of defaults BV8K u32's

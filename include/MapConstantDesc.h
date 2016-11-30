@@ -52,13 +52,14 @@ namespace MFM
     virtual ClassMemberDesc * clone() const;
 
     virtual std::string getMemberKind() const;
-    virtual bool getValue(u64& vref) const;
+    //virtual bool getValue(u64& vref) const;
     virtual bool hasValue() const;
     virtual std::string getValueAsString() const;
 
   private:
-    u64 m_val; //as Bits
-
+    //u64 m_val; //as Bits
+    u32 m_len;
+    BV8K m_val; //as Bits
   };
 
 } //MFM
