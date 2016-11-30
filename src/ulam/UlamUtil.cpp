@@ -44,12 +44,7 @@ namespace MFM
     if(useneg)
       os << "n";
 
-    if (digits < 9)
-      os << digits;
-    else
-      os << 9 << ToLeximited(digits);
-
-    os << num;
+    os << ToLeximitedHeader(digits) << num;
     return os.str();
   } //ToLeximitedNumber (signed)
 
@@ -60,24 +55,19 @@ namespace MFM
     u32 digits = (num == 0 ? 1 : DigitCount(num, 10));
 
     std::ostringstream os;
-    if (digits < 9)
-      os << digits << num;
-    else
-      os << 9 << ToLeximited(digits) << num;
+    os << ToLeximitedHeader(digits) << num;
 
     return os.str();
   } //ToLeximitedNumber (unsigned)
 
 
-  std::string ToLeximited(u32 len)
+  std::string ToLeximitedHeader(u32 len)
   {
-    u32 digits = DigitCount(len,10);
-
     std::ostringstream os;
     if (len < 9)
       os << len;
     else
-      os << 9 << ToLeximited(digits) << len;
+      os << 9 << ToLeximitedHeader(DigitCount(len,10)) << len;
     return os.str();
   }
 
@@ -117,12 +107,7 @@ namespace MFM
     if(useneg)
       os << "n";
 
-    if (digits < 9)
-      os << digits;
-    else
-      os << 9 << ToLeximited(digits);
-
-    os << num;
+    os << ToLeximitedHeader(digits) << num;
     return os.str();
   } //ToLeximitedNumber64 (signed)
 
@@ -132,10 +117,7 @@ namespace MFM
     u32 digits = (num == 0 ? 1 : DigitCount64(num, 10));
 
     std::ostringstream os;
-    if (digits < 9)
-      os << digits << num;
-    else
-      os << 9 << ToLeximited(digits) << num;
+    os << ToLeximitedHeader(digits) << num;
 
     return os.str();
   } //ToLeximitedNumber64 (unsigned)
@@ -143,7 +125,7 @@ namespace MFM
   std::string ToLeximited(const std::string & source)
   {
     std::ostringstream os;
-    os << ToLeximited(source.length()) << source;
+    os << ToLeximitedHeader(source.length()) << source;
     return os.str();
   }
 

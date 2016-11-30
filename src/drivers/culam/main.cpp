@@ -318,7 +318,7 @@ int main(int argc, char ** argv)
 	      << " " << cmd->m_mangledMemberName;
 
 	    if(cmd->hasValue())
-	      std::cerr << cmd->getValueAsString();
+	      std::cerr << " " << cmd->getValueAsString();
 
 	    std::cerr << " " << MFM::HexEscape(cmd->m_structuredComment)
 		      << std::endl;

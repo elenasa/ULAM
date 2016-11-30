@@ -58,6 +58,7 @@ namespace MFM {
     if(isReady())
       {
 	u32 len = m_state.getTotalBitSize(getUlamTypeIdx());
+	assert(len <= MAXBITSPERINT);
 	val = m_constantValue.Read(0u, len); //return value
 	return true;
       }
@@ -69,6 +70,8 @@ namespace MFM {
     if(isReady())
       {
 	u32 len = m_state.getTotalBitSize(getUlamTypeIdx());
+	if(len > MAXBITSPERLONG)
+	  m_state.abortGreaterThanMaxBitsPerLong();
 	val = m_constantValue.ReadLong(0u, len); //return value
 	return true;
       }
@@ -334,26 +337,13 @@ namespace MFM {
       }
 
     //like the code generated in CS::genCodeClassDefaultConstantArray
-    u32 uvals[ARRAY_LEN8K];
-    dval.ToArray(uvals);
-
-    u32 nwords = tut->getTotalNumberOfWords();
-    bool isString = (tut->getUlamTypeEnum() == String); //t3953
+    std::string dhex;
+    bool nonZero = SymbolWithValue::getHexValueAsString(tbs, dval, dhex);
 
     //short-circuit if all zeros
-    bool isZero = true;
-    for(u32 x = 0; x < nwords; x++)
+    if(!nonZero)
       {
-	if(uvals[x] != 0)
-	  {
-	    isZero = false;
-	    break;
-	  }
-      }
-
-    if(isZero)
-      {
-	if(isString)
+	if(tut->getUlamTypeEnum() == String) //t3953
 	  m_state.abortShouldntGetHere();
 
 	fp->write("{ 0..0 }");
@@ -361,29 +351,7 @@ namespace MFM {
       }
 
     fp->write("{ ");
-    for(u32 w = 0; w < nwords; w++)
-      {
-	if(w > 0)
-	  fp->write(", ");
-
-	  {
-	    std::ostringstream dhex;
-	    dhex << "0x" << std::hex << uvals[w];
-
-	    fp->write(dhex.str().c_str());
-	  }
-
-#if 0
-	  //pretty, but precludes string array of comments;
-	  //output string item as embedded comment for human readable generated code
-	  if(isString)
-	    {
-	      fp->write(" /*");
-	      fp->write(m_state.m_upool.getDataAsFormattedString(uvals[w], &m_state).c_str()); //t3953,4
-	      fp->write("*/");
-	    }
-#endif
-      }
+    fp->write(dhex.c_str());
     fp->write(" }");
   } //printPostfixValueArray
 
@@ -497,11 +465,60 @@ namespace MFM {
 	return true;
       }
 
+    return SymbolWithValue::getLexValueAsString(tbs, dval, vstr);
+  } //getArrayValueAsString
+
+  //static: return false if all zeros, o.w. true; rtnstr updated
+  bool SymbolWithValue::getLexValueAsString(u32 ntotbits, const BV8K& bval, std::string& rtnstr)
+  {
     //like the code generated in CS::genCodeClassDefaultConstantArray
     u32 uvals[ARRAY_LEN8K];
-    dval.ToArray(uvals);
+    bval.ToArray(uvals);
 
-    u32 nwords = tut->getTotalNumberOfWords();
+    u32 nwords = (ntotbits + 31)/MAXBITSPERINT;
+
+    //short-circuit if all zeros
+    bool isZero = true;
+    s32 x = nwords - 1;
+    for(; x >= 0; x--)
+      //for(u32 x = 0; x < nwords; x++)
+      {
+	if(uvals[x] != 0)
+	  {
+	    isZero = false;
+	    break;
+	  }
+      }
+
+    if(isZero)
+      {
+	rtnstr = "10"; //all zeros
+	return false;
+      }
+
+    //compress to output only non-zero uval items (left-justified)
+    nwords = (u32) x + 1;
+
+    std::ostringstream ostream;
+    //output number of non-zero words first
+    ostream << ToLeximitedNumber(nwords);
+
+    for(u32 i = 0; i < nwords; i++)
+      {
+	ostream << ToLeximitedNumber(uvals[i]); //no spaces
+      }
+    rtnstr = ostream.str();
+    return true;
+  } //getLexValueAsString
+
+  //static: return false if all zeros, o.w. true; rtnstr updated
+  bool SymbolWithValue::getHexValueAsString(u32 ntotbits, const BV8K& bval, std::string& rtnstr)
+  {
+    //used for code generated in CS::genCodeClassDefaultConstantArray
+    u32 uvals[ARRAY_LEN8K];
+    bval.ToArray(uvals);
+
+    u32 nwords = (ntotbits + 31)/MAXBITSPERINT;
 
     //short-circuit if all zeros
     bool isZero = true;
@@ -516,18 +533,21 @@ namespace MFM {
 
     if(isZero)
       {
-	vstr = "10"; //all zeros
-	return true;
+	rtnstr = "0x0"; //nothing to do
+	return false;
       }
 
     std::ostringstream ostream;
     for(u32 i = 0; i < nwords; i++)
       {
-	ostream << ToLeximitedNumber(uvals[i]);
+	if(i > 0)
+	  ostream << ", ";
+
+	ostream << "0x" << std::hex << uvals[i];
       }
-    vstr = ostream.str();
+    rtnstr = ostream.str();
     return true;
-  } //getArrayValueAsString
+  } //getHexValueAsString
 
   bool SymbolWithValue::getLexValue(std::string& vstr)
   {
@@ -611,6 +631,5 @@ namespace MFM {
   {
     m_declnno = nno;
   }
-
 
 } //end MFM

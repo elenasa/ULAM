@@ -51,9 +51,9 @@ namespace MFM
 
     virtual std::string getMemberKind() const;
 
-    bool hasValue() const;
+    virtual bool hasValue() const;
 
-    std::string getValueAsString() const;
+    virtual std::string getValueAsString() const;
 
   private:
     bool m_hasVal;

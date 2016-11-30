@@ -6,7 +6,7 @@
 ##
 #!
 Exit status: 3
-Ue_T { Int(32) r(3);  Int(32) test() {  System s;  constant Int(32)[10] site = { 1 cast, 2 cast, 3 cast, 4 cast };  S(11121314141414141414,3) n;  r n ( )func . = s ( r )print . s ( r 3 cast == )assert . r return } }
+Ue_T { Int(32) r(3);  Int(32) test() {  System s;  constant Int(32)[10] site = { 1 cast, 2 cast, 3 cast, 4 cast };  S(21011121314141414141414,3) n;  r n ( )func . = s ( r )print . s ( r 3 cast == )assert . r return } }
 Uq_System { <NOMAIN> }
 Uq_S(Int(32)[10] y, Int(32) x) { <NOMAIN> }
 ##

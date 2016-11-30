@@ -6,9 +6,10 @@ namespace MFM {
   ConstantDesc::ConstantDesc(SymbolConstantValue * csym, UTI classtype, CompilerState & state) : ClassMemberDesc(csym, classtype, state)
   {
     csym->getValue(m_val); //must be ready!
+    m_len = state.getTotalBitSize(csym->getUlamTypeIdx());
   }
 
-  ConstantDesc::ConstantDesc(const ConstantDesc& cref) : ClassMemberDesc(cref), m_val(cref.m_val) {}
+  ConstantDesc::ConstantDesc(const ConstantDesc& cref) : ClassMemberDesc(cref), m_len(cref.m_len), m_val(cref.m_val) {}
 
   ConstantDesc::~ConstantDesc(){}
 
@@ -22,12 +23,6 @@ namespace MFM {
     return "CONSTANT";
   }
 
-  bool ConstantDesc::getValue(u64& vref) const
-  {
-    vref = m_val;
-    return true;
-  }
-
   bool ConstantDesc::hasValue() const
   {
     return true;
@@ -35,9 +30,9 @@ namespace MFM {
 
   std::string ConstantDesc::getValueAsString() const
   {
-    std::ostringstream dhex;
-    dhex << " 0x" << std::hex << m_val;
-    return dhex.str();
+    std::string rtnstr;
+    SymbolWithValue::getLexValueAsString(m_len, m_val, rtnstr);
+    return rtnstr;
   }
 
 

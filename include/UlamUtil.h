@@ -41,7 +41,7 @@ namespace MFM {
    *
    * @return a string containing the leximited encoding of len.
    */
-  extern std::string ToLeximited(u32 len);
+  extern std::string ToLeximitedHeader(u32 len);
 
   /**
    * Encodes an signed integer in leximited.
