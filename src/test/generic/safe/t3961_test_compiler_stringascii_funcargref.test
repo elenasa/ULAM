@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
-#=t3960_test_compiler_stringascii_funcarg
+#=t3961_test_compiler_stringascii_funcargref
 ##
 ## gen output: 1 asserts
-##  Int Arg: 11
+##  Int Arg: 3
 ##
 #!
 Exit status: 0
-Ue_HelloWorldString : FString(1u) { :< constant String(32) msg = "Hello world";  typedef Unsigned(8) StringIndex;  typedef Unsigned(5) CharDim;  Unsigned(8) mIndex(0u);  Unsigned(5) mCol(0u);  Unsigned(5) mRow(0u); > Bool(1) b1(true);  Int(32) slen(11);  Int(32) test() {  System s;  String(32) foo = "Hello world";  slen ( foo cast )getLength = s ( slen )print . b1 slen 11 cast == = s ( b1 )assert . 0 cast return } }
+Ue_HelloWorldString : FString(1u) { :< constant String(32) msg = "Hello world";  typedef Unsigned(8) StringIndex;  typedef Unsigned(5) CharDim;  Unsigned(8) mIndex(0u);  Unsigned(5) mCol(0u);  Unsigned(5) mRow(0u); > Bool(1) b1(true);  Int(32) slen(3);  Int(32) test() {  System s;  String(32) foo = "Hello world";  ( foo cast )getFoo ( foo )getGoo slen ( foo cast )getLength = s ( slen )print . b1 slen 3 cast == = s ( b1 )assert . 0 cast return } }
 Uq_FString(String(32) msg) { typedef Unsigned(8) StringIndex;  typedef Unsigned(5) CharDim;  Unsigned(8) mIndex(0);  Unsigned(5) mCol(0);  Unsigned(5) mRow(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
@@ -21,9 +21,11 @@ element HelloWorldString : FString("Hello world")
   Int test() {
     System s;
     String foo = msg;
-    slen = getLength(foo); // =11
+    getFoo(foo); //changes var
+    getGoo(foo); //no change
+    slen = getLength(foo); // =3
     s.print(slen);
-    b1 = (slen == 11);
+    b1 = (slen == 3);
     s.assert(b1);
     return 0;
  }
@@ -43,6 +45,17 @@ quark FString(String msg) {
   Int getLength(String& stref)
   {
     return (Int) stref.lengthof;
+  }
+  Void getFoo(String& stref)
+  {
+    stref = "foo";
+    return;
+  }
+  //when overloaded as getFoo, we call it, not the ref arg?
+  Void getGoo(String str)
+  {
+    str = "gabbagoo";
+    return;
   }
 }
 
