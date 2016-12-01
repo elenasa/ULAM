@@ -110,6 +110,7 @@ namespace MFM {
       case Bits:
       case UAtom:
       case Class:
+      case String:
 	val = UlamValue::makeImmediate(typidx, 0, m_state); //overwrite val, no data
 	break;
       default:
@@ -139,6 +140,7 @@ namespace MFM {
       case Bits:
       case UAtom:
       case Class:
+      case String:
 	brtn = true; //anything casts to void ok
 	break;
       default:
@@ -159,6 +161,7 @@ namespace MFM {
       case Unary:
       case Int:
       case Bits:
+      case String:
 	break;
       case Void:
 	tobitsize = 0;

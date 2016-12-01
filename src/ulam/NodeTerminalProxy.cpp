@@ -107,8 +107,10 @@ namespace MFM {
 
   UTI NodeTerminalProxy::checkAndLabelType()
   {
-    //when minmaxsizeof a selected member
-    if(!m_state.okUTItoContinue(m_uti) && m_nodeOf)
+    //when minmaxsizeof a selected member; and for clones,
+    //when m_uti is a String, we must c&l m_nodeOf to find its symbol (t3960)
+    //if(!m_state.okUTItoContinue(m_uti) && m_nodeOf)
+    if((!m_state.okUTItoContinue(m_uti) || (UlamType::compareForString(m_uti, m_state) == UTIC_SAME)) && m_nodeOf)
       {
 	UTI ofuti = m_nodeOf->checkAndLabelType();
 	if(m_state.okUTItoContinue(ofuti))

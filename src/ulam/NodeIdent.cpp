@@ -1126,6 +1126,15 @@ namespace MFM {
 	return rtnSym;
       }
 
+    //Symbol is an argument; always on the stack (t3962)
+    if(m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCARGUMENT)
+      {
+	SymbolVariableStack * rtnSym = (new SymbolVariableStack(m_token, auti, m_state)); //slot after adjust
+	assert(rtnSym);
+	rtnSym->setAutoLocalType(reftype);
+	return rtnSym;
+      }
+
     assert(m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCLOCALVAR);
     //(else) Symbol is a local variable, always on the stack
     SymbolVariableStack * rtnLocalSym = new SymbolVariableStack(m_token, auti, m_state); //slot before adjustment

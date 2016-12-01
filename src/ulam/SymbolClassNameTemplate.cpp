@@ -673,6 +673,7 @@ namespace MFM {
 			  isok = true;
 			}
 			break;
+		      case String:
 		      case Unsigned:
 		      case Bits:
 			{
@@ -807,6 +808,7 @@ namespace MFM {
 			      isok = true;
 			    }
 			    break;
+			  case String:
 			  case Unsigned:
 			    {
 			      args << uval << "u";

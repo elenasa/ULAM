@@ -1,0 +1,19 @@
+## -*- mode:ulam -*-
+#=t3964_test_compiler_returnrefcast_error
+#!
+./Ish.ulam:5:13: ERROR: Explicit Reference casts (Type&) are valid for reference variable initialization (including function call arguments); not in this context.
+./Ish.ulam:5:17: ERROR: Invalid Statement (possible missing semicolon).
+Unrecoverable Program Parse FAILURE: <Ish.ulam>
+##
+#>Ish.ulam
+  ulam 2;
+element Ish {
+  Int& update() {
+    constant Int cI = 1024;
+    return (Int&) cI;
+  }
+  Int test() {
+    return update();
+  }
+}
+#.
