@@ -650,7 +650,7 @@ namespace MFM {
     m_node->genCodeToStoreInto(fp, uvpass);
     if(needsACast())
       {
-	m_node->genCodeReadIntoATmpVar(fp, uvpass); //?????Sat May 28 09:40:02 2016
+	m_node->genCodeReadIntoATmpVar(fp, uvpass); //e.g. cast atom and quark
 	genCodeReadIntoATmpVar(fp, uvpass); // cast.
       }
     else if(m_state.isReference(getCastType())) //to ref type
@@ -677,7 +677,6 @@ namespace MFM {
     TMPSTORAGE vstor = uvpass.getPassStorage();
     bool isTerminal = (vstor == TERMINAL);
 
-    //if(tobeType == vuti)
     if((tobeType == vuti) || (tobeType == Void)) //t3961
      return; //nothing to do!
 
@@ -758,6 +757,9 @@ namespace MFM {
     if((tclasstype == UC_QUARK) && (vclasstype == UC_TRANSIENT))
       return genCodeCastDecendentTransient(fp, uvpass);
 
+    if((tclasstype == UC_TRANSIENT) && (vclasstype == UC_TRANSIENT))
+      return genCodeCastDecendentTransient(fp, uvpass); //t3967
+
     // c&l insures quark is a ref. ???
     if((tclasstype == UC_TRANSIENT) && (vclasstype == UC_QUARK))
       return genCodeCastAncestorQuarkAsSubTransient(fp, uvpass);
@@ -782,7 +784,7 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
       return;
     }
-} //genCodeReadNonPrimitiveIntoATmpVar
+  } //genCodeReadNonPrimitiveIntoATmpVar
 
   void NodeCast::genCodeWriteFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass)
   {
@@ -1022,6 +1024,7 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
 
+    //t3631, t3692, t3693, t3697, t3701, t3756, t3757, t3789, t3834, t3837
     // might be ancestor quark
     // can't let Node::genCodeReadIntoTmpVar do this for us (we need a ref!):
     assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
@@ -1175,7 +1178,10 @@ namespace MFM {
 
 	if(!stgcosut->isReference())
 	  {
-	    fp->write(stgcos->getMangledName().c_str()); //storage
+	    if(stgcos->isDataMember())
+	      fp->write(m_state.getHiddenArgName());
+	    else
+	      fp->write(stgcos->getMangledName().c_str()); //storage
 	    fp->write(", &");
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
 	  }
@@ -1204,14 +1210,21 @@ namespace MFM {
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpref, TMPBITVAL).c_str());
 	fp->write("(");
-	fp->write(stgcos->getMangledName().c_str());
+
+	//if(!isCurrentObjectALocalVariableOrArgument())
+	if(stgcos->isDataMember())
+	  fp->write(m_state.getHiddenArgName()); //ur first arg (t3967)
+	else
+	  fp->write(stgcos->getMangledName().c_str());
+
 	fp->write(", "); //offset of decendent is always 0
 	fp->write_decimal_unsigned(uvpass.getPassPos());
 	if(!stgcosut->isReference())
 	  {
 	    fp->write("u, &"); //transients stg at pos , state of super quark at 0 //t3789, case 1: Qbase& qref = tw;
 	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
-	    fp->write(", uc");
+	    if(!stgcos->isDataMember()) //t3967
+	      fp->write(", uc");
 	  }
 	else
 	  {

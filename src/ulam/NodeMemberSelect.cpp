@@ -393,8 +393,8 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
 
-    // if parent is another MS, we might need to adjust pos first
-    // elements can be data members of transients, etc.
+    // if parent is another MS, we might need to adjust pos first;
+    // elements can be data members of transients, etc. (t3968)
     UVPass luvpass;
     if(passalongUVPass())
       {
