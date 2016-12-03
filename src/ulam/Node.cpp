@@ -712,6 +712,8 @@ namespace MFM {
     m_state.indentUlamCode(fp); //not const
     if(stgcos->isSelf() && (stgcos == cos))
       genSelfNameOfMethod(fp);
+    else if(!Node::isCurrentObjectALocalVariableOrArgument())
+      genMemberNameOfMethod(fp, uvpass); //transient dm (t3967)
     else
       genLocalMemberNameOfMethod(fp, uvpass);
 

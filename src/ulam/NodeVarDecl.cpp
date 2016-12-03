@@ -1010,8 +1010,9 @@ UTI NodeVarDecl::checkAndLabelType()
 	fp->write("("); // use constructor (not equals)
 	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str()); //VALUE
 
-	if((uvpass.getPassStorage() == TMPBITVAL))
-	    fp->write(".read()"); //ulamexports: WallPort->QPort4->Cell (e.g. t3922)
+	//if((uvpass.getPassStorage() == TMPBITVAL))
+	if((uvpass.getPassStorage() == TMPBITVAL) && (vclasstype != UC_TRANSIENT))
+	    fp->write(".read()"); //ulamexports: WallPort->QPort4->Cell (e.g. t3922, t3715)
 	else if(m_state.isAtomRef(vuti))
 	  fp->write(", uc");
 

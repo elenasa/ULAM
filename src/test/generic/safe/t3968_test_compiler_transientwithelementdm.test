@@ -1,23 +1,23 @@
 ## -*- mode:ulam -*-
-#=t3715_test_compiler_transientwithtransientdm
+#=t3968_test_compiler_transientwithelementdm
 ##
 ## gen output: (+ interleaved assert)
 ##  Int Arg: 881
-##  Unsigned Arg: 9
-##  Unsigned Arg: 8
-##  Unsigned Arg: 8
+##  Int Arg: 43
+##  Int Arg: 34
+##  Int Arg: 34
 ##
 ## unevaluable (includes atom-based element sizes)
 ##
 #!
 Exit status: -11
-Ue_Foo { Bool(1) sp(false);  Int(32) ta(9);  QW qarr[4]( Int(3) qi(3);  Bool(1) qb(true);  Int(3) qi(3);  Bool(1) qb(true);  Int(3) qi(3);  Bool(1) qb(true);  Int(3) qi(3);  Bool(1) qb(true); );  Int(32) test() {  System s;  Too t;  t ( 881u cast )set . ta t ( )get . = s ( ta )print . t sp . ta 881u cast == cast = s ( t sp . cast )assert . Tumi& tumiref = t mis . cast;  tumiref u2 . 9u cast = s ( t mis . u2 . cast )print . s ( t mis . u2 . 9u cast == )assert . Tumi newtumi;  newtumi u2 . 8u cast = s ( newtumi u2 . cast )print . s ( newtumi u2 . 8u cast == )assert . t mis . newtumi = s ( t mis . u2 . cast )print . s ( t mis . u2 . 8u cast == )assert . ta return } }
+Ue_Foo { Bool(1) sp(false);  Int(32) ta(9);  QW qarr[4]( Int(3) qi(3);  Bool(1) qb(true);  Int(3) qi(3);  Bool(1) qb(true);  Int(3) qi(3);  Bool(1) qb(true);  Int(3) qi(3);  Bool(1) qb(true); );  Int(32) test() {  System s;  Too t;  t ( 881u cast )set . ta t ( )get . = s ( ta )print . t sp . ta 881u cast == cast = s ( t sp . cast )assert . Foo& fooref = t mis . f . cast;  fooref ta . 43 cast = s ( t mis . f . ta . )print . s ( t mis . f . ta . 43 cast == )assert . Foo newfoo;  newfoo ta . 34 cast = s ( newfoo ta . )print . s ( newfoo ta . 34 cast == )assert . t mis . f . newfoo = s ( t mis . f . ta . )print . s ( t mis . f . ta . 34 cast == )assert . ta return } }
 Un_Too { Bool(7) sp(false);  Int(32) a( 87);  Foo f[5]( Bool(1) sp(false);  Int(32) ta( 9);  QW qarr[4]( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ); ), ( Bool(1) sp(false);  Int(32) ta( 9);  QW qarr[4]( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ); ), ( Bool(1) sp(false);  Int(32) ta( 9);  QW qarr[4]( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ); ), ( Bool(1) sp(false);  Int(32) ta( 9);  QW qarr[4]( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ); ), ( Bool(1) sp(false);  Int(32) ta( 9);  QW qarr[4]( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ); );  Bits(32) bits(0);  Tumi mi[2]( Bool(1) b2( true);  Unsigned(9) u2( 7u);  Foo f( Bool(1) sp(false);  Int(32) ta( 9);  QW qarr[4]( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ); );  QW q( Int(3) qi( 3);  Bool(1) qb( true); ); ), ( Bool(1) b2( true);  Unsigned(9) u2( 7u);  Foo f( Bool(1) sp(false);  Int(32) ta( 9);  QW qarr[4]( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ); );  QW q( Int(3) qi( 3);  Bool(1) qb( true); ); );  Tumi mis( Bool(1) b2( true);  Unsigned(9) u2( 7u);  Foo f( Bool(1) sp(false);  Int(32) ta( 9);  QW qarr[4]( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ); );  QW q( Int(3) qi( 3);  Bool(1) qb( true); ); );  <NOMAIN> }
 Un_Tumi { Bool(1) b2( true);  Unsigned(9) u2( 7u);  Foo f( Bool(1) sp(false);  Int(32) ta( 9);  QW qarr[4]( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ), ( Int(3) qi( 3);  Bool(1) qb( true); ); );  QW q( Int(3) qi( 3);  Bool(1) qb( true); );  <NOMAIN> }
 Uq_QW { Int(3) qi( 3);  Bool(1) qb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
-## based on t3711, FIRST TRANSIENT TEST EVER in the history of the universe!!!
+## based on t3715, except acessing the element data member structure instead
 ## with data member structure read/write (informed by ish 12/1/16)
 ##
 #>Foo.ulam
@@ -38,20 +38,20 @@ element Foo {
     t.sp = (ta == 881u);
     s.assert(t.sp);
 
-    //read/write dm transient
-    Tumi& tumiref = t.mis;
-    tumiref.u2 = 9u;
-    s.print(t.mis.u2);
-    s.assert(t.mis.u2 == 9u);
+    //read/write dm element
+    Foo& fooref = t.mis.f;
+    fooref.ta = 43;
+    s.print(t.mis.f.ta);
+    s.assert(t.mis.f.ta == 43);
 
-    Tumi newtumi;
-    newtumi.u2 = 8u;
-    s.print(newtumi.u2);
-    s.assert(newtumi.u2 == 8u); //not default
+    Foo newfoo;
+    newfoo.ta = 34;
+    s.print(newfoo.ta);
+    s.assert(newfoo.ta == 34); //not default
 
-    t.mis = newtumi; //***the change
-    s.print(t.mis.u2);
-    s.assert(t.mis.u2 == 8u);
+    t.mis.f = newfoo; //***the change
+    s.print(t.mis.f.ta);
+    s.assert(t.mis.f.ta == 34);
 
     return ta;
   }
