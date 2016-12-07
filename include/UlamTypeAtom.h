@@ -102,6 +102,9 @@ namespace MFM{
 
   private:
 
+    void genUlamTypeAutoReadArrayDefinitionForC(File * fp);
+
+    void genUlamTypeAutoWriteArrayDefinitionForC(File * fp);
   };
 
 }

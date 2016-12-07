@@ -917,6 +917,8 @@ namespace MFM {
       {
 	UTI luti = luvpass.getPassTargetType();
 	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	if(m_state.isAtomRef(luti))
+	  fp->write(".getUlamRef()"); //e.g. t3663
 	fp->write(".");
 	fp->write(writeMethodForCodeGen(luti, luvpass).c_str());
       }
@@ -1503,11 +1505,14 @@ namespace MFM {
 	else if(vetyp == UAtom)
 	  {
 	    ULAMCLASSTYPE cosclasstype = cosut->getUlamClassType(); //t3908
-	    fp->write(", ");
-	    fp->write_decimal_unsigned(pos); //rel offset
-	    fp->write("u"); //t3820
-	    if((cosclasstype == UC_ELEMENT) || (cosclasstype == UC_QUARK))
-	      fp->write(" - T::ATOM_FIRST_STATE_BIT"); //t3684, 3735, 3756, 3789
+	    if(!m_state.isAtom(stgcosuti)) //skip pos for atomref t3709, t3820
+	      {
+		fp->write(", ");
+		fp->write_decimal_unsigned(pos); //rel offset
+		fp->write("u"); //t3820
+		if((cosclasstype == UC_ELEMENT) || (cosclasstype == UC_QUARK))
+		  fp->write(" - T::ATOM_FIRST_STATE_BIT"); //t3684, 3735, 3756, 3789
+	      }
 	  }
 	// else non-class has no effective self
 	fp->write(");"); GCNL;
@@ -2575,6 +2580,8 @@ namespace MFM {
     if(cosut->isReference())
       {
 	fp->write(cos->getMangledName().c_str()); //ref (t3908)
+	if(m_state.isAtomRef(cosuti))
+	  fp->write(".getUlamRef()"); //DReg ulamexports, t3908
 	fp->write(", ");
       }
 

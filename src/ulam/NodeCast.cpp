@@ -824,9 +824,11 @@ namespace MFM {
 	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	if(uvpass.getPassStorage() == TMPBITVAL)
 	  {
-	  fp->write(".");
-	  fp->write(vut->readMethodForCodeGen().c_str());
-	  fp->write("()");
+	    if(m_state.isAtomRef(vuti))
+	      fp->write(".getUlamRef()");
+	    fp->write(".");
+	    fp->write(vut->readMethodForCodeGen().c_str());
+	    fp->write("()");
 	  }
 	fp->write("))"); GCNL;
 
@@ -846,12 +848,15 @@ namespace MFM {
 	    fp->write(m_state.getTmpVarAsString(tobeType, tmpeleref, TMPBITVAL).c_str());
 	    fp->write("(");
 	    fp->write(stgcos->getMangledName().c_str()); //assumes only one!!!
+	    if(m_state.isAtomRef(stgcosuti))
+	      fp->write(".getUlamRef()");
 	    fp->write(", ");
 	    //must displace the Typefield for element ref
 	    fp->write("+ T::ATOM_FIRST_STATE_BIT, ");
 	    if(m_state.isAtomRef(stgcosuti)) //t3754
 	      {
 		fp->write(stgcos->getMangledName().c_str()); //assumes only one!!!
+		fp->write(".getUlamRef()");
 		fp->write(".GetEffectiveSelf()"); //maintains eff self
 	      }
 	    else
@@ -1211,7 +1216,6 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpref, TMPBITVAL).c_str());
 	fp->write("(");
 
-	//if(!isCurrentObjectALocalVariableOrArgument())
 	if(stgcos->isDataMember())
 	  fp->write(m_state.getHiddenArgName()); //ur first arg (t3967)
 	else
