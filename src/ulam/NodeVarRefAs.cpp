@@ -176,6 +176,8 @@ namespace MFM {
 
     if(stgetyp == UAtom)
       {
+	if(m_state.isAtomRef(stgcosuti))
+	  fp->write(".getUlamRef()"); //t3908
 	fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, "); //position as super quark (e.g. t3639, t3709, t3675, t3408, t3336); as element t3249, t3255, t3637
 
 	//note: needs effective self of the atom, not simply the RHS type.
