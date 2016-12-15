@@ -1,0 +1,61 @@
+## -*- mode:ulam -*-
+#=t3970_test_compiler_string_assign_print
+##
+## gen output: (2 asserts)
+##  String(1) Arg: ""
+##  Int Arg: 0
+##  String(8) Arg: "bar"
+##  Int Arg: 3
+##
+#!
+Exit status: 3
+Ue_A { String(32) m_s("bar");  Int(32) test() {  SystemU3 su3;  Int(32) total;  String(32) mt = "";  m_s mt = su3 ( m_s )print . total 0u cast += su3 ( total )print . su3 ( total 0 cast == )assert . String(32) s = "foo";  s "bar" = m_s s = su3 ( m_s )print . total 3u cast += su3 ( total )print . su3 ( total 3 cast == )assert . total return } }
+Uq_SystemU3 : System { :<> <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## SystemU3 subclasses System for backward compatibility (all tests that use System.ulam)
+##
+#>A.ulam
+  ulam 2;
+element A {
+  String m_s;
+ Int test() {
+   SystemU3 su3;
+   Int total;
+   String mt = "";
+   m_s = mt;
+   su3.print(m_s);
+   total += m_s.lengthof;
+   su3.print(total);
+   su3.assert(total == 0);
+
+   String s = "foo";
+   s = "bar";
+   m_s = s;
+   su3.print(m_s);
+   total += m_s.lengthof;
+
+   su3.print(total);
+   su3.assert(total == 3);
+   return total;
+ }
+}
+
+#:SystemU3.ulam
+  ulam 2;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.
