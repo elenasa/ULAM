@@ -1,0 +1,47 @@
+## -*- mode:ulam -*-
+#=t3970_test_compiler_stringuninit_printerror
+##
+## gen error log:
+##  include/Uq_10108SystemU310_native.tcc:14: FAILED: UNINITIALIZED_VALUE
+##
+#!
+Exit status: 0
+Ue_A { String(32) m_s();  Int(32) m_total(0);  Int(32) test() {  SystemU3 su3;  String(32) s;  m_s s = su3 ( m_s )print . 0 cast return } }
+Uq_SystemU3 : System { :<> <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## SystemU3 subclasses System for backward compatibility (all tests that use System.ulam)
+##  okay to assign uninitialized string, not access it (e.g. print)
+##
+#>A.ulam
+  ulam 2;
+element A {
+  String m_s;
+  Int m_total;
+ Int test() {
+   SystemU3 su3;
+   String s; //uninitialized value
+   m_s = s;  //ok to assign
+   su3.print(m_s); //error caught in native code (not eval)
+   return 0;
+ }
+}
+
+#:SystemU3.ulam
+  ulam 2;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

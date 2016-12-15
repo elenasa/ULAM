@@ -4,12 +4,12 @@
 ## gen output: (2 asserts)
 ##  String(1) Arg: ""
 ##  Int Arg: 0
-##  String(8) Arg: "bar"
-##  Int Arg: 3
+##  String(3) Arg: "hello world"
+##  Int Arg: 11
 ##
 #!
-Exit status: 3
-Ue_A { String(32) m_s("bar");  Int(32) test() {  SystemU3 su3;  Int(32) total;  String(32) mt = "";  m_s mt = su3 ( m_s )print . total 0u cast += su3 ( total )print . su3 ( total 0 cast == )assert . String(32) s = "foo";  s "bar" = m_s s = su3 ( m_s )print . total 3u cast += su3 ( total )print . su3 ( total 3 cast == )assert . total return } }
+Exit status: 11
+Ue_A { String(32) m_s("hello world");  Int(32) m_total(11);  Int(32) test() {  SystemU3 su3;  String(32) mt = "";  m_s mt = su3 ( m_s )print . m_total 0u cast += su3 ( m_total )print . su3 ( m_total 0 cast == )assert . String(32) s;  s "hello world" = m_s s = su3 ( m_s )print . m_total 11u cast += su3 ( m_total )print . su3 ( m_total 11 cast == )assert . m_total return } }
 Uq_SystemU3 : System { :<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
@@ -19,25 +19,25 @@ Uq_System { <NOMAIN> }
   ulam 2;
 element A {
   String m_s;
+  Int m_total;
  Int test() {
    SystemU3 su3;
-   Int total;
    String mt = "";
    m_s = mt;
    su3.print(m_s);
-   total += m_s.lengthof;
-   su3.print(total);
-   su3.assert(total == 0);
+   m_total += m_s.lengthof;
+   su3.print(m_total);
+   su3.assert(m_total == 0);
 
-   String s = "foo";
-   s = "bar";
+   String s; //uninitialized value, s
+   s = "hello world";
    m_s = s;
    su3.print(m_s);
-   total += m_s.lengthof;
+   m_total += m_s.lengthof;
 
-   su3.print(total);
-   su3.assert(total == 3);
-   return total;
+   su3.print(m_total);
+   su3.assert(m_total == 11);
+   return m_total;
  }
 }
 
