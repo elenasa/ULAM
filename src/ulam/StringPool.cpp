@@ -14,8 +14,10 @@ namespace MFM {
   StringPool::StringPool(std::string str)
   {
     //index 0 is unitialized; not in m_stringToDataIndex
-    m_dataAsString.insert(std::pair<u32, std::string> (0, str)); //one is taken.
+    m_dataAsString.insert(std::pair<u32, std::string> (0, str)); //first one is now taken.
   }
+
+  StringPool::StringPool(const StringPool& spref) : m_dataAsString(spref.m_dataAsString), m_stringToDataIndex(spref.m_stringToDataIndex) {}
 
   StringPool::~StringPool()
   {

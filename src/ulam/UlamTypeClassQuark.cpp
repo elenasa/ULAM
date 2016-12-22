@@ -456,7 +456,7 @@ namespace MFM {
     fp->write("};"); GCNL;
 
     u32 dqval = 0;
-    bool hasDQ = genUlamTypeDefaultQuarkConstant(fp, dqval);
+    bool hasDQ = m_state.getDefaultQuark(m_key.getUlamKeyTypeSignatureClassInstanceIdx(), dqval);
 
     m_state.indent(fp);
     fp->write("typedef BitVector<");
@@ -466,6 +466,18 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("typedef BitVectorBitStorage<EC, BV> BVS;"); GCNL;
     fp->write("\n");
+
+    if(!isScalar())
+      {
+	m_state.indent(fp);
+	fp->write("typedef ");
+	fp->write(getArrayItemTmpStorageTypeAsString().c_str());
+	fp->write(" BVI;"); GCNL;
+
+	m_state.indent(fp);
+	fp->write("typedef BitVectorBitStorage<EC, BVI > BVIS;"); GCNL;
+	fp->write("\n");
+      }
 
     //quark typedef
     m_state.indent(fp);
@@ -487,41 +499,25 @@ namespace MFM {
       {
 	if(isScalar())
 	  {
-	    fp->write("write(DEFAULT_QUARK);");
+	    fp->write("write(Us::THE_INSTANCE.getDefaultQuark()); }");//t3776
+	    GCNL;
 	  }
 	else
 	  {
-	    //very packed array
-	    if(len <= MAXBITSPERLONG)
-	      {
-		u64 dqarrval = 0;
-		m_state.getDefaultAsPackedArray(getTotalBitSize(), getBitSize(), getArraySize(), 0, dqval, dqarrval);
-
-		std::ostringstream qdhex;
-		qdhex << "0x" << std::hex << dqarrval;
-		fp->write("write(");
-		fp->write(qdhex.str().c_str());
-		fp->write(");");
-	      }
-	    else
-	      {
-		BV8K dval, darrval;
-		AssertBool isDefault = m_state.getDefaultClassValue(scalaruti, dval);
-		m_state.getDefaultAsArray(bitsize, getArraySize(), 0u, dval, darrval);
-		fp->write("\n");
-		m_state.m_currentIndentLevel++;
-		if(m_state.genCodeClassDefaultConstantArray(fp, len, darrval))
-		  {
-		    m_state.indent(fp);
-		    fp->write("BVS::WriteBV(0u, "); //first arg
-		    fp->write("initBV);"); GCNL;
-		  }
-		m_state.m_currentIndentLevel--;
-		m_state.indent(fp);
-	      }
+	    u32 arraysize = getArraySize();
+	    fp->write("u32 tmpdq = Us::THE_INSTANCE.getDefaultQuark(); ");
+	    fp->write("for(u32 j = 0; j < ");
+	    fp->write_decimal_unsigned(arraysize);
+	    fp->write("u; j++) ");
+	    fp->write("writeArrayItem(tmpdq, j, ");
+	    fp->write_decimal_unsigned(bitsize);
+	    fp->write("); }"); GCNL;
 	  }
       } //hasDQ
-    fp->write(" }\n");
+    else
+      {
+	fp->write(" }"); GCNL;
+      }
 
     //constructor here (used by const tmpVars)
     m_state.indent(fp);
@@ -671,28 +667,5 @@ namespace MFM {
 	fp->write("itemlen, v); }"); GCNL; //itemlen, val
       }
   } //genUlamTypeQuarkWriteDefinitionForC
-
-  bool UlamTypeClassQuark::genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref)
-  {
-    bool rtnb = false;
-    dqref = 0;
-    //always the scalar.
-    if(m_state.getDefaultQuark(m_key.getUlamKeyTypeSignatureClassInstanceIdx(), dqref))
-      {
-	std::ostringstream qdhex;
-	qdhex << "0x" << std::hex << dqref;
-
-	m_state.indent(fp);
-	fp->write("enum { DEFAULT_QUARK = ");
-	fp->write(qdhex.str().c_str());
-	fp->write(" }; //=");
-	fp->write_decimal_unsigned(dqref);
-	fp->write("u"); GCNL;
-	fp->write("\n");
-
-	rtnb = true;
-      }
-    return rtnb;
-  } //genUlamTypeDefaultQuarkConstant
 
 } //end MFM

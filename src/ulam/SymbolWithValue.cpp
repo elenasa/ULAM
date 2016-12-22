@@ -300,7 +300,7 @@ namespace MFM {
 	    break;
 	  case String:
 	    // scalar strings generate comments (output value rather than index) e.g. t3951,2
-	    fp->write(m_state.m_upool.getDataAsFormattedString(val, &m_state).c_str());
+	    fp->write(m_state.getDataAsFormattedUserString(val).c_str());
 	    break;
 	  default:
 	    m_state.abortUndefinedUlamPrimitiveType();
@@ -394,7 +394,7 @@ namespace MFM {
 	fp->write("[");
 	fp->write_decimal_unsigned(w);
 	fp->write("] = ");
-	fp->write(m_state.m_upool.getDataAsFormattedString(uvals[w], &m_state).c_str());
+	fp->write(m_state.getDataAsFormattedUserString(uvals[w]).c_str());
 	fp->write("\n");
       }
     GCNL;
@@ -533,7 +533,7 @@ namespace MFM {
 
     if(isZero)
       {
-	rtnstr = "0x0"; //nothing to do
+	rtnstr = "0x0"; //nothing to xodo
 	return false;
       }
 

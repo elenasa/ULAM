@@ -7,6 +7,8 @@ namespace MFM {
 
   StringPoolUser::StringPoolUser() : StringPool(""), m_runningIndex(1) {}
 
+  StringPoolUser::StringPoolUser(const StringPoolUser& spref) : StringPool(spref), m_runningIndex(spref.m_runningIndex) {}
+
   StringPoolUser::~StringPoolUser() {}
 
   u32 StringPoolUser::getIndexForDataString(std::string str)
@@ -94,7 +96,7 @@ namespace MFM {
     //note: not using C++ String because that uses malloc;
     // double quoted strings next to each other get merged;
     state->indent(fp);
-    fp->write("const unsigned char ");
+    fp->write("static unsigned char ");
     fp->write(state->getMangledNameForUserStringPool());
     fp->write("[");
     fp->write(state->getDefineNameForUserStringPoolSize());

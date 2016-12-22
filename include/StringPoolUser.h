@@ -50,7 +50,10 @@ namespace MFM
 
     StringPoolUser();
 
+    StringPoolUser(const StringPoolUser& spref);
+
     ~StringPoolUser();
+
 
     //format of input string: 1 byte for len, 1 null terminating byte,
     //8-bit clean data (that is, escaped characters use one stored

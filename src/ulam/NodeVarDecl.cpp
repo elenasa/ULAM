@@ -1008,15 +1008,36 @@ UTI NodeVarDecl::checkAndLabelType()
 	fp->write(" ");
 	fp->write(m_varSymbol->getMangledName().c_str());
 	fp->write("("); // use constructor (not equals)
-	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str()); //VALUE
 
-	//if((uvpass.getPassStorage() == TMPBITVAL))
-	if((uvpass.getPassStorage() == TMPBITVAL) && (vclasstype != UC_TRANSIENT))
-	    fp->write(".read()"); //ulamexports: WallPort->QPort4->Cell (e.g. t3922, t3715)
-	else if(m_state.isAtomRef(vuti))
-	  fp->write(", uc");
+	if(UlamType::compareForString(vuti, m_state) == UTIC_SAME)
+	  {
+	    TMPSTORAGE vstor = uvpass.getPassStorage();
+	    if((vstor == TMPBITVAL) || (vstor == TMPAUTOREF))
+	      {
+		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+		fp->write(".getRegistrationNumber(), ");
+		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+		fp->write(".getStringIndex());"); GCNL; //t3948
+	      }
+	    else
+	      {
+		fp->write("((");
+		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+		fp->write(" >> 16u) & U16_MAX), ("); //getRegistrationNumber
+		fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //getStringIndex
+		fp->write(" & U16_MAX));"); GCNL;
+	      }
+	  }
+	else
+	  {
+	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 
-	fp->write(");"); GCNL; //func call args aren't NodeVarDecl's
+	    if((uvpass.getPassStorage() == TMPBITVAL) && (vclasstype != UC_TRANSIENT))
+	      fp->write(".read()"); //ulamexports: WallPort->QPort4->Cell (e.g. t3922, t3715)
+	    else if(m_state.isAtomRef(vuti))
+	      fp->write(", uc");
+	    fp->write(");"); GCNL; //func call args aren't NodeVarDecl's
+	  }
 	m_state.clearCurrentObjSymbolsForCodeGen();
 	return; //done
       }

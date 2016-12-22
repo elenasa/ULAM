@@ -437,7 +437,7 @@ namespace MFM {
     u32 usrStr = 0;
     usrStr = luv.getImmediateData(m_state);
 
-    if((usrStr == 0) || (usrStr >= m_state.m_upool.getUserStringPoolSize()))
+    if(!m_state.isValidUserStringIndex(usrStr))
       {
 	//uninitialized or out-of-bounds
 	evalNodeEpilog();
@@ -458,14 +458,14 @@ namespace MFM {
     if(offut->isNumericType())
       {
 	// constant expression only required for array declaration
-	u32 strlen = m_state.m_upool.getStringLength(usrStr);
+	u32 strlen = m_state.getUserStringLength(usrStr);
 	offsetdata = offset.getImmediateData(m_state);
 
 	if((offsetdata >= strlen))
 	  {
 	    std::ostringstream msg;
 	    msg << "String subscript [" << offsetdata << "] exceeds the length (" << strlen;
-	    msg << ") of '" << m_state.m_upool.getDataAsFormattedString(usrStr, &m_state).c_str() << "'";
+	    msg << ") of '" << m_state.getDataAsFormattedUserString(usrStr).c_str() << "'";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    evalNodeEpilog();
 	    return ERROR;
@@ -475,14 +475,14 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "String subscript of '";
-	msg << m_state.m_upool.getDataAsFormattedString(usrStr, &m_state).c_str();
+	msg << m_state.getDataAsFormattedUserString(usrStr).c_str();
 	msg << "' requires a numeric type";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	evalNodeEpilog();
 	return ERROR;
       }
 
-    Node::assignReturnValueToStack(m_state.getByteOfUserString(usrStr, offsetdata));
+    Node::assignReturnValueToStack(m_state.getByteOfUserStringForEval(usrStr, offsetdata));
     evalNodeEpilog();
     return NORMAL;
   } //evalAUserStringByte
@@ -751,14 +751,14 @@ namespace MFM {
   {
     UTI leftType = m_nodeLeft->getNodeType();
     UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-
-    if((lut->getUlamTypeEnum() == String) && lut->isScalar())
+    bool isString = (lut->getUlamTypeEnum() == String);
+    if(isString && lut->isScalar())
       {
 	return genCodeAUserStringByte(fp, uvpass);
       }
 
     genCodeToStoreInto(fp, uvpass);
-    if(!m_isCustomArray || !m_state.classCustomArraySetable(m_nodeLeft->getNodeType()))
+    if((!m_isCustomArray || !m_state.classCustomArraySetable(leftType)) && !isString)
       Node::genCodeReadIntoATmpVar(fp, uvpass); //splits on array item
     else
       m_state.clearCurrentObjSymbolsForCodeGen();
@@ -814,7 +814,41 @@ namespace MFM {
       {
 	assert(!m_state.isScalar(cossym->getUlamTypeIdx()));
 	if(cossym->isConstant())
-	  Node::genCodeConvertATmpVarIntoConstantAutoRef(fp, luvpass, offset); //luvpass becomes the autoref, and clears stack
+	  {
+	    Node::genCodeConvertATmpVarIntoConstantAutoRef(fp, luvpass, offset); //luvpass becomes the autoref, and clears stack
+
+	    UTI leftType = m_nodeLeft->getNodeType();
+	    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
+	    if((lut->getUlamTypeEnum() == String))
+	      {
+		//a constant array of strings is treated like a NodeTerminal DBLQUOTED token.
+		// in order to "fix" the registration number of the index, at use, rather
+		// than at constructor time when the registration number is not yet available. (t3953)
+		s32 tmpVarNum = m_state.getNextTmpVarNumber();
+
+		BV8K tmpbv8k;
+		AssertBool gotValue = ((SymbolWithValue *) cossym)->getValue(tmpbv8k);
+		assert(gotValue);
+
+		UTI cuti = tmpbv8k.Read(0, 16u);
+		assert(cuti > 0);
+
+		//get string 2-part index in a tmp var
+		m_state.indentUlamCode(fp);
+		fp->write("const ");
+		fp->write(lut->getArrayItemTmpStorageTypeAsString().c_str()); //u32
+		fp->write(" ");
+		fp->write(m_state.getTmpVarAsString(String, tmpVarNum, TMPREGISTER).c_str());
+		fp->write(" = (");
+		fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+		fp->write(".read() & U16_MAX) | ((");
+		fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
+		fp->write(".GetRegistrationNumber() & U16_MAX) << 16u);");
+		GCNL;
+
+		luvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, String, m_state.determinePackable(String), m_state, 0, cossym->getId()); //replace luvpass
+	      }
+	  }
 	else
 	  Node::genCodeConvertATmpVarIntoAutoRef(fp, luvpass, offset); //luvpass becomes the autoref, and clears stack
       }
@@ -840,59 +874,39 @@ namespace MFM {
 
     UVPass luvpass = uvpass; //passes along if rhs of memberselect
     m_nodeLeft->genCode(fp, luvpass);
-
-    //runtime checks for unitialized string
-    m_state.indentUlamCode(fp);
-    fp->write("if(");
-    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(" == 0)\n");
-
-    m_state.m_currentIndentLevel++;
-    m_state.indentUlamCode(fp);
-    fp->write("FAIL(UNINITIALIZED_VALUE);"); GCNL;
-    m_state.m_currentIndentLevel--;
-
-    //runtime checks to avoid accessing beyond global string pool
-    m_state.indentUlamCode(fp);
-    fp->write("if(");
-    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(" >= ");
-    fp->write(m_state.getDefineNameForUserStringPoolSize());
-    fp->write(")\n");
-
-    m_state.m_currentIndentLevel++;
-    m_state.indentUlamCode(fp);
-    fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
-    m_state.m_currentIndentLevel--;
-
-    //runtime checks to avoid accessing beyond user string
-    m_state.indentUlamCode(fp);
-    fp->write("if(");
-    fp->write(offset.getTmpVarAsString(m_state).c_str());
-    fp->write(" >= ");
-    fp->write(m_state.getMangledNameForUserStringPool());
-    fp->write("[");
-    fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //INDEX of user string
-    fp->write("]"); //length
-    fp->write(")\n");
-
-    m_state.m_currentIndentLevel++;
-    m_state.indentUlamCode(fp);
-    fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
-    m_state.m_currentIndentLevel--;
+    TMPSTORAGE lstor = luvpass.getPassStorage();
 
     //get the ascii byte in a tmp var
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
     m_state.indentUlamCode(fp);
     fp->write("const unsigned char ");
     fp->write(m_state.getTmpVarAsString(ASCII, tmpVarNum, TMPREGISTER).c_str());
-    fp->write(" = ");
-    fp->write(m_state.getMangledNameForUserStringPool());
-    fp->write("[");
-    fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //INDEX OF User String
-    fp->write(" + ");
-    fp->write(offset.getTmpVarAsString(m_state).c_str()); //INDEX of byte
-    fp->write(" + 1];"); GCNL; //skipping the length
+
+    if((lstor == TMPBITVAL) || (lstor == TMPAUTOREF))
+      {
+	fp->write(" = *(uc.GetUlamClassRegistry().GetUlamClassByIndex(");
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(".getRegistrationNumber())->");
+	fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
+	fp->write("(");
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(".getStringIndex() + ");
+	fp->write(offset.getTmpVarAsString(m_state).c_str()); //INDEX of byte
+	fp->write("));"); GCNL; //t3945
+      }
+    else
+      {
+	fp->write(" = *(uc.GetUlamClassRegistry().GetUlamClassByIndex(");
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(" >> 16u)->"); // .getRegistrationNumber()
+	fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
+	fp->write("((");
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(" & U16_MAX))"); // .getStringIndex()
+	fp->write(" + ");
+	fp->write(offset.getTmpVarAsString(m_state).c_str()); //INDEX of byte
+	fp->write(");"); GCNL;
+      }
 
     uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, ASCII, m_state.determinePackable(ASCII), m_state, 0, 0); //POS 0 rightjustified (atom-based).
 

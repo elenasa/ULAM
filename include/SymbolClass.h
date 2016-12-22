@@ -42,6 +42,7 @@
 #include "NodeTypeBitsize.h"
 #include "NodeSquareBracket.h"
 #include "NodeConstantDef.h"
+#include "StringPoolUser.h"
 #include "TargetMap.h"
 #include "MapClassMemberDesc.h"
 #include "VirtualTable.h"
@@ -151,6 +152,10 @@ namespace MFM{
 
     bool isAbstract();
 
+    StringPoolUser& getUserStringPoolRef();
+    const StringPoolUser& getUserStringPoolRef() const;
+    void setUserStringPoolRef(const StringPoolUser& spref);
+
   protected:
     Resolver * m_resolver;
 
@@ -179,6 +184,8 @@ namespace MFM{
     static std::string firstletterTolowercase(const std::string s);
 
     VT m_vtable;
+
+    StringPoolUser m_upool; //for double quoted strings only
   };
 
 }

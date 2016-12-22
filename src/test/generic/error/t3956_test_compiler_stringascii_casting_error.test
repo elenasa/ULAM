@@ -6,8 +6,8 @@
 Unrecoverable Program Type Label FAILURE.
 #>A.ulam
   ulam 2;
-local constant String str = "hello world";
 element A {
+  constant String str = "hello world";
   Int test() {
     System s;
     Unsigned sidx = (Unsigned) str;

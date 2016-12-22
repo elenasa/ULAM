@@ -352,6 +352,12 @@ namespace MFM {
     return false;
   }
 
+  void Node::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
+  {
+    m_state.abortShouldntGetHere();
+    return;
+  }
+
   void Node::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
   {
     m_state.abortShouldntGetHere();
@@ -1045,16 +1051,25 @@ namespace MFM {
       }
     else
       {
-	if(vut->getUlamClassType() == UC_NOTACLASS)
+	if(vut->getUlamTypeEnum() == String)
 	  {
-	    //no longer atom-based primitives
+	    fp->write(" >> 16u, "); //e.g. t3961
+	    fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //VALUE
+	    fp->write(" & U16_MAX");
 	  }
-
-	if(m_state.isReference(vuti))
+	else
 	  {
-	    fp->write(", ");
-	    fp->write_decimal_unsigned(pos); //position for constructor
-	    fp->write("u");
+	    if(vut->getUlamClassType() == UC_NOTACLASS)
+	      {
+		//no longer atom-based primitives
+	      }
+
+	    if(m_state.isReference(vuti))
+	      {
+		fp->write(", ");
+		fp->write_decimal_unsigned(pos); //position for constructor
+		fp->write("u");
+	      }
 	  }
       }
     fp->write("); //func arg&"); GCNL;

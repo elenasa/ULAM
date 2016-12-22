@@ -400,7 +400,7 @@ namespace MFM {
     else
       newstr << (char) slen << astring << (char) 0; //slen doesn't include itself or terminating byte; see StringPoolUser.
 
-    u32 idx = m_state.m_upool.getIndexForDataString(newstr.str());
+    u32 idx = m_state.m_tokenupool.getIndexForDataString(newstr.str());
     tok.init(TOK_DQUOTED_STRING,firstloc,idx);
     return 0;
   } //makeDoubleQuoteToken

@@ -99,6 +99,8 @@ namespace MFM{
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
+    virtual void genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos);
+
     virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
 
     void fixPendingArgumentNode();
