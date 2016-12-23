@@ -751,14 +751,14 @@ namespace MFM {
   {
     UTI leftType = m_nodeLeft->getNodeType();
     UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-    bool isString = (lut->getUlamTypeEnum() == String);
+    bool isString = (lut->getUlamTypeEnum() == String); //t3973, t3953
     if(isString && lut->isScalar())
       {
 	return genCodeAUserStringByte(fp, uvpass);
       }
 
     genCodeToStoreInto(fp, uvpass);
-    if((!m_isCustomArray || !m_state.classCustomArraySetable(leftType)) && !isString)
+    if((!m_isCustomArray || !m_state.classCustomArraySetable(leftType)) && (!isString || m_state.isReference(uvpass.getPassTargetType()))) //t3953, t3973
       Node::genCodeReadIntoATmpVar(fp, uvpass); //splits on array item
     else
       m_state.clearCurrentObjSymbolsForCodeGen();
@@ -877,6 +877,7 @@ namespace MFM {
 
     UVPass luvpass = uvpass; //passes along if rhs of memberselect
     m_nodeLeft->genCode(fp, luvpass);
+
     TMPSTORAGE lstor = luvpass.getPassStorage();
 
     //runtime check to avoid accessing beyond array (t3932)
@@ -897,18 +898,42 @@ namespace MFM {
     else
       {
 	const std::string stringmangledName = m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
+	if(!Node::isCurrentObjectALocalVariableOrArgument())
+	  {
+	    fp->write(" = uc.GetUlamClassRegistry().GetUlamClassByIndex(");
+	    fp->write(stringmangledName.c_str());
+	    fp->write("::getRegNum(");
+	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	    fp->write("))->");
+	    fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
+	    fp->write("Length(");
+	    fp->write(stringmangledName.c_str());
+	    fp->write("::getStrIdx(");
+	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	    fp->write("));"); GCNL;
+	  }
+	else
+	  {
+	    //local variable string (e.g. t3974)
+	    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+	    Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
 
-	fp->write(" = uc.GetUlamClassRegistry().GetUlamClassByIndex(");
-	fp->write(stringmangledName.c_str());
-	fp->write("::getRegNum(");
-	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	fp->write("))->");
-	fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
-	fp->write("Length(");
-	fp->write(stringmangledName.c_str());
-	fp->write("::getStrIdx(");
-	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	fp->write("));"); GCNL;
+	    BV8K tmpbv8k;
+	    AssertBool gotValue = ((SymbolWithValue *) cossym)->getValue(tmpbv8k);
+	    assert(gotValue);
+
+	    UTI cuti = tmpbv8k.Read(0, 16u);
+	    assert(cuti > 0);
+
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
+	    fp->write("))->");
+	    fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
+	    fp->write("Length(");
+	    fp->write(stringmangledName.c_str());
+	    fp->write("::getStrIdx(");
+	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	    fp->write("));"); GCNL;
+	  }
       }
 
     m_state.indentUlamCode(fp);
@@ -946,19 +971,47 @@ namespace MFM {
       {
 	const std::string stringmangledName = m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
 
-	fp->write(" = *(uc.GetUlamClassRegistry().GetUlamClassByIndex(");
-	fp->write(stringmangledName.c_str());
-	fp->write("::getRegNum(");
-	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	fp->write("))->");
-	fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
-	fp->write("(");
-	fp->write(stringmangledName.c_str());
-	fp->write("::getStrIdx(");
-	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	fp->write(")) + ");
-	fp->write(offset.getTmpVarAsString(m_state).c_str()); //INDEX of byte
-	fp->write(");"); GCNL;
+	if(!Node::isCurrentObjectALocalVariableOrArgument())
+	  {
+	    fp->write(" = *(uc.GetUlamClassRegistry().GetUlamClassByIndex(");
+	    fp->write(stringmangledName.c_str());
+	    fp->write("::getRegNum(");
+	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	    fp->write("))->");
+	    fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
+	    fp->write("(");
+	    fp->write(stringmangledName.c_str());
+	    fp->write("::getStrIdx(");
+	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	    fp->write(")) + ");
+	    fp->write(offset.getTmpVarAsString(m_state).c_str()); //INDEX of byte
+	    fp->write(");"); GCNL;
+	  }
+	else
+	  {
+	    //local variable string (e.g. t3974)
+	    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+	    Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
+
+	    BV8K tmpbv8k;
+	    AssertBool gotValue = ((SymbolWithValue *) cossym)->getValue(tmpbv8k);
+	    assert(gotValue);
+
+	    UTI cuti = tmpbv8k.Read(0, 16u);
+	    assert(cuti > 0);
+
+	    fp->write(" = *(");
+	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
+	    fp->write("))->");
+	    fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
+	    fp->write("(");
+	    fp->write(stringmangledName.c_str());
+	    fp->write("::getStrIdx(");
+	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	    fp->write(")) + ");
+	    fp->write(offset.getTmpVarAsString(m_state).c_str()); //INDEX of byte
+	    fp->write(");"); GCNL;
+	  }
       }
 
     uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, ASCII, m_state.determinePackable(ASCII), m_state, 0, 0); //POS 0 rightjustified (atom-based).

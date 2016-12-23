@@ -403,25 +403,28 @@ namespace MFM {
     fp->write("typedef BitVectorBitStorage<EC, BV> BVS;"); GCNL;
     fp->write("\n");
 
-    m_state.indent(fp);
-    fp->write("enum { REG_NUM_BITS = ");
-    fp->write_decimal_unsigned(REGNUMBITS);
-    fp->write(", STR_IDX_BITS = ");
-    fp->write_decimal_unsigned(STRINGIDXBITS);
-    fp->write(", STR_IDX_MASK = ");
-    fp->write_decimal_unsigned(STRINGIDXMASK);
-    fp->write("};"); GCNL;
+    if(isScalar())
+      {
+	m_state.indent(fp);
+	fp->write("enum { REG_NUM_BITS = ");
+	fp->write_decimal_unsigned(REGNUMBITS);
+	fp->write(", STR_IDX_BITS = ");
+	fp->write_decimal_unsigned(STRINGIDXBITS);
+	fp->write(", STR_IDX_MASK = ");
+	fp->write_decimal_unsigned(STRINGIDXMASK);
+	fp->write("};"); GCNL;
 
-    //helper methods
-    m_state.indent(fp);
-    fp->write("static u32 getRegNum(u32 combinedidx) { return combinedidx >> REG_NUM_BITS; }");
-    GCNL;
-    m_state.indent(fp);
-    fp->write("static u32 getStrIdx(u32 combinedidx) { return combinedidx & STR_IDX_MASK; }");
-    GCNL;
-    m_state.indent(fp);
-    fp->write("static u32 makeCombinedIdx(u32 regnum, u32 stridx) { return regnum << REG_NUM_BITS | stridx & STR_IDX_MASK; }");
-    GCNL;
+	//helper methods
+	m_state.indent(fp);
+	fp->write("static u32 getRegNum(u32 combinedidx) { return combinedidx >> REG_NUM_BITS; }");
+	GCNL;
+	m_state.indent(fp);
+	fp->write("static u32 getStrIdx(u32 combinedidx) { return combinedidx & STR_IDX_MASK; }");
+	GCNL;
+	m_state.indent(fp);
+	fp->write("static u32 makeCombinedIdx(u32 regnum, u32 stridx) { return regnum << REG_NUM_BITS | stridx & STR_IDX_MASK; }");
+	GCNL;
+      }
 
     //put read/write methods before constructrtors that may use them.
     //read BV method

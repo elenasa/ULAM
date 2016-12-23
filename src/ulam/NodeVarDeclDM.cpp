@@ -714,7 +714,6 @@ namespace MFM {
     u32 pos = m_varSymbol->getPosOffset();
     u32 arraysize = nut->isScalar() ? 1 : nut->getArraySize();
 
-    //if(UlamType::compareForString(nuti, m_state) == UTIC_SAME)
     if(etyp == String)
       {
 	//generate code to replace uti in string index with runtime registration number
@@ -725,7 +724,9 @@ namespace MFM {
 	    fp->write_decimal_unsigned(pos + startpos);
 	    fp->write("u + ");
 	    fp->write_decimal_unsigned(i * MAXBITSPERINT);
-	    fp->write("u, 16u, myRegNum); //");
+	    fp->write("u, ");
+	    fp->write_decimal_unsigned(REGNUMBITS);
+	    fp->write("u, myRegNum); //");
 	    fp->write(m_varSymbol->getMangledName().c_str()); //comment
 	    GCNL;
 	  }

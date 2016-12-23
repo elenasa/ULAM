@@ -793,6 +793,10 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   void NodeBlockClass::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
   {
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClassType();
+    if(classtype == UC_ELEMENT)
+      startpos += ATOMFIRSTSTATEBITPOS; //t3972
+
     if((m_state.isClassASubclass(getNodeType()) != Nouti))
       {
 	NodeBlockClass * superblock = getSuperBlockPointer();
