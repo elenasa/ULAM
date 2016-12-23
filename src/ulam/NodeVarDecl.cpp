@@ -1021,11 +1021,16 @@ UTI NodeVarDecl::checkAndLabelType()
 	      }
 	    else
 	      {
-		fp->write("((");
+		const std::string stringmangledName = m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
+
+		fp->write(stringmangledName.c_str());
+		fp->write("::getRegNum(");
 		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-		fp->write(" >> 16u) & U16_MAX), ("); //getRegistrationNumber
-		fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //getStringIndex
-		fp->write(" & U16_MAX));"); GCNL;
+		fp->write("), ");
+		fp->write(stringmangledName.c_str());
+		fp->write("::getStrIdx(");
+		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+		fp->write("));"); GCNL;
 	      }
 	  }
 	else

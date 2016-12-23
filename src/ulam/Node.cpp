@@ -1053,9 +1053,12 @@ namespace MFM {
       {
 	if(vut->getUlamTypeEnum() == String)
 	  {
-	    fp->write(" >> 16u, "); //e.g. t3961
+	    fp->write(" >> ");
+	    fp->write_decimal_unsigned(REGNUMBITS);
+	    fp->write("u, "); //e.g. t3961
 	    fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //VALUE
-	    fp->write(" & U16_MAX");
+	    fp->write(" & ");
+	    fp->write_decimal(STRINGIDXMASK);
 	  }
 	else
 	  {

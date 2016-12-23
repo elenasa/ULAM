@@ -2705,18 +2705,17 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   const std::string & CompilerState::getDataAsFormattedUserString(u32 combinedidx)
   {
-    UTI cuti = (combinedidx >> 16u) & U16_MAX;
-    assert(cuti > 0);
+    UTI cuti = (combinedidx >> REGNUMBITS);
+    u32 sidx = (combinedidx & STRINGIDXMASK);
+    assert(cuti > 0 && sidx > 0);
     StringPoolUser& classupool = getUPoolRefForClass(cuti);
-    u32 sidx = combinedidx & U16_MAX;
-    assert(sidx > 0);
     return classupool.getDataAsFormattedString(sidx, this);
   }
 
   bool CompilerState::isValidUserStringIndex(u32 combinedidx)
   {
-    UTI cuti = (combinedidx >> 16u) & U16_MAX;
-    u32 sidx = combinedidx & U16_MAX;
+    UTI cuti = (combinedidx >> REGNUMBITS);
+    u32 sidx = (combinedidx & STRINGIDXMASK);
     if(cuti == 0 || sidx == 0)
       return false;
     StringPoolUser& classupool = getUPoolRefForClass(cuti);
@@ -2725,8 +2724,8 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   u32 CompilerState::getUserStringLength(u32 combinedidx)
   {
-    UTI cuti = (combinedidx >> 16u) & U16_MAX;
-    u32 sidx = combinedidx & U16_MAX;
+    UTI cuti = (combinedidx >> REGNUMBITS);
+    u32 sidx = (combinedidx & STRINGIDXMASK);
     assert(cuti > 0 && sidx > 0);
     StringPoolUser& classupool = getUPoolRefForClass(cuti);
     return classupool.getStringLength(sidx);
@@ -3322,12 +3321,10 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   UlamValue CompilerState::getByteOfUserStringForEval(u32 usrStr, u32 offsetInt)
   {
-    UTI cuti = (usrStr >> 16u) & U16_MAX;
-    assert(cuti > 0);
+    UTI cuti = (usrStr >> REGNUMBITS);
+    u32 sidx = (usrStr & STRINGIDXMASK);
+    assert((cuti > 0) && (sidx > 0));
     StringPoolUser& classupool = getUPoolRefForClass(cuti);
-    u32 sidx = (usrStr & U16_MAX);
-    assert(sidx > 0);
-
     u8 c = classupool.getByteOf(sidx, offsetInt);
     return UlamValue::makeImmediate(ASCII, c, *this);
   }

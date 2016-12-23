@@ -40,8 +40,8 @@ namespace MFM {
       {
 	UTI cuti = m_state.getCompileThisIdx();
 	StringPoolUser& classupool = m_state.getUPoolRefForClass(cuti);
-	u32 classstringidx = classupool.getIndexForDataString(m_state.m_tokenupool.getDataAsString(m_constant.uval & U16_MAX));
-	m_constant.uval = (cuti << 16u) | (classstringidx & U16_MAX); //combined index
+	u32 classstringidx = classupool.getIndexForDataString(m_state.m_tokenupool.getDataAsString(m_constant.uval & STRINGIDXMASK));
+	m_constant.uval = (cuti << REGNUMBITS) | (classstringidx & STRINGIDXMASK); //combined index
       }
   }
 
@@ -680,16 +680,16 @@ namespace MFM {
 
     if(UlamType::compareForString(nuti, m_state) == UTIC_SAME)
       {
-	UTI cuti = (m_constant.uval >> 16u) & U16_MAX;
-	assert(cuti > 0);
-	u32 sidx = m_constant.uval & U16_MAX;
-	assert(sidx > 0);
+	UTI cuti = (m_constant.uval >> REGNUMBITS);
+	u32 sidx = (m_constant.uval & STRINGIDXMASK);
+	assert((cuti > 0) && (sidx > 0));
 	//String, String array or array item (t3929, t3950)
-	fp->write("((");
+	fp->write(m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString().c_str());
+	fp->write("::makeCombinedIdx(");
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
-	fp->write(".GetRegistrationNumber() & U16_MAX) << 16u)  | (");
+	fp->write(".GetRegistrationNumber(), ");
 	fp->write_decimal_unsigned(sidx);
-	fp->write("u & U16_MAX); //user string pool index for ");
+	fp->write("u); //user string pool index for ");
       }
     fp->write(getName());
     fp->write(";"); GCNL;
@@ -769,7 +769,7 @@ namespace MFM {
 	    {
 	      StringPoolUser& classupool = m_state.getUPoolRefForClass(cuti);
 	      u32 classstringidx = classupool.getIndexForDataString(m_state.m_tokenupool.getDataAsString(tok.m_dataindex));
-	      m_constant.uval = (cuti << 16u) | (classstringidx & U16_MAX); //combined index
+	      m_constant.uval = (cuti << REGNUMBITS) | (classstringidx & STRINGIDXMASK); //combined index
 	      rtnok = true;
 	    }
 	}

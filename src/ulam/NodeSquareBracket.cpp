@@ -833,18 +833,21 @@ namespace MFM {
 		UTI cuti = tmpbv8k.Read(0, 16u);
 		assert(cuti > 0);
 
-		//get string 2-part index in a tmp var
+		const std::string stringmangledName = m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
+		//get string 2-part index in a tmp var; TODO as TMPAUTOREF???
+		// update constant's reg num from UTI (t3953)
 		m_state.indentUlamCode(fp);
 		fp->write("const ");
 		fp->write(lut->getArrayItemTmpStorageTypeAsString().c_str()); //u32
 		fp->write(" ");
 		fp->write(m_state.getTmpVarAsString(String, tmpVarNum, TMPREGISTER).c_str());
-		fp->write(" = (");
-		fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-		fp->write(".read() & U16_MAX) | ((");
+		fp->write(" = ");
+		fp->write(stringmangledName.c_str());
+		fp->write("::makeCombinedIdx(");
 		fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
-		fp->write(".GetRegistrationNumber() & U16_MAX) << 16u);");
-		GCNL;
+		fp->write(".GetRegistrationNumber(), ");
+		fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+		fp->write(".getStringIndex());"); GCNL;
 
 		luvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, String, m_state.determinePackable(String), m_state, 0, cossym->getId()); //replace luvpass
 	      }
@@ -876,6 +879,51 @@ namespace MFM {
     m_nodeLeft->genCode(fp, luvpass);
     TMPSTORAGE lstor = luvpass.getPassStorage();
 
+    //runtime check to avoid accessing beyond array (t3932)
+    s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
+    m_state.indentUlamCode(fp);
+    fp->write("const u32 ");
+    fp->write(m_state.getTmpVarAsString(Unsigned, tmpVarNum2, TMPREGISTER).c_str());
+    if((lstor == TMPBITVAL) || (lstor == TMPAUTOREF))
+      {
+	fp->write(" = uc.GetUlamClassRegistry().GetUlamClassByIndex(");
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(".getRegistrationNumber())->");
+	fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
+	fp->write("Length(");
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(".getStringIndex());"); GCNL;
+      }
+    else
+      {
+	const std::string stringmangledName = m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
+
+	fp->write(" = uc.GetUlamClassRegistry().GetUlamClassByIndex(");
+	fp->write(stringmangledName.c_str());
+	fp->write("::getRegNum(");
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	fp->write("))->");
+	fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
+	fp->write("Length(");
+	fp->write(stringmangledName.c_str());
+	fp->write("::getStrIdx(");
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	fp->write("));"); GCNL;
+      }
+
+    m_state.indentUlamCode(fp);
+    fp->write("if(");
+    fp->write(offset.getTmpVarAsString(m_state).c_str());
+    fp->write(" >= ");
+    fp->write(m_state.getTmpVarAsString(Unsigned, tmpVarNum2, TMPREGISTER).c_str());
+    fp->write(")"); GCNL;
+
+    m_state.m_currentIndentLevel++;
+    m_state.indentUlamCode(fp);
+    fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
+    m_state.m_currentIndentLevel--;
+
+
     //get the ascii byte in a tmp var
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
     m_state.indentUlamCode(fp);
@@ -890,20 +938,25 @@ namespace MFM {
 	fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
 	fp->write("(");
 	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	fp->write(".getStringIndex() + ");
+	fp->write(".getStringIndex()) + ");
 	fp->write(offset.getTmpVarAsString(m_state).c_str()); //INDEX of byte
-	fp->write("));"); GCNL; //t3945
+	fp->write(");"); GCNL; //t3945
       }
     else
       {
+	const std::string stringmangledName = m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
+
 	fp->write(" = *(uc.GetUlamClassRegistry().GetUlamClassByIndex(");
+	fp->write(stringmangledName.c_str());
+	fp->write("::getRegNum(");
 	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	fp->write(" >> 16u)->"); // .getRegistrationNumber()
+	fp->write("))->");
 	fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
-	fp->write("((");
+	fp->write("(");
+	fp->write(stringmangledName.c_str());
+	fp->write("::getStrIdx(");
 	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	fp->write(" & U16_MAX))"); // .getStringIndex()
-	fp->write(" + ");
+	fp->write(")) + ");
 	fp->write(offset.getTmpVarAsString(m_state).c_str()); //INDEX of byte
 	fp->write(");"); GCNL;
       }

@@ -381,22 +381,28 @@ namespace MFM {
       {
 	fp->write(" = uc.GetUlamClassRegistry().GetUlamClassByIndex(");
 	fp->write(ofpass.getTmpVarAsString(m_state).c_str());
-	fp->write(".getRegistrationNumber())->"); // .getRegistrationNumber()
+	fp->write(".getRegistrationNumber())->");
 	fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
 	fp->write("Length(");
 	fp->write(ofpass.getTmpVarAsString(m_state).c_str());
-	fp->write(".getStringIndex());"); // .getStringIndex()
+	fp->write(".getStringIndex());");
 	GCNL; //t3949
       }
     else
       {
+	const std::string stringmangledName = m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
+
 	fp->write(" = uc.GetUlamClassRegistry().GetUlamClassByIndex(");
+	fp->write(stringmangledName.c_str());
+	fp->write("::getRegNum(");
 	fp->write(ofpass.getTmpVarAsString(m_state).c_str());
-	fp->write(" >> 16u)->"); // .getRegistrationNumber()
+	fp->write("))->");
 	fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
 	fp->write("Length(");
+	fp->write(stringmangledName.c_str());
+	fp->write("::getStrIdx(");
 	fp->write(ofpass.getTmpVarAsString(m_state).c_str());
-	fp->write(" & U16_MAX);"); // .getStringIndex()
+	fp->write("));");
 	GCNL;
       }
     uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).

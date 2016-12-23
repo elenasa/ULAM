@@ -297,13 +297,19 @@ namespace MFM {
 	fp->write("const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32 or u64
 	fp->write(" getRegistrationNumber");
-	fp->write("() const { return UlamRef<EC>(*this, 0u, 16u, NULL, UlamRef<EC>::PRIMITIVE).Read(); }"); GCNL; //done
+	fp->write("() const { return UlamRef<EC>(*this, 0u, ");
+	fp->write_decimal_unsigned(REGNUMBITS);
+	fp->write("u, NULL, UlamRef<EC>::PRIMITIVE).Read(); }"); GCNL; //done
 
 	m_state.indent(fp);
 	fp->write("const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32 or u64
 	fp->write(" getStringIndex");
-	fp->write("() const { return UlamRef<EC>(*this, 16u, 16u, NULL, UlamRef<EC>::PRIMITIVE).Read(); }"); GCNL; //done
+	fp->write("() const { return UlamRef<EC>(*this, ");
+	fp->write_decimal_unsigned(REGNUMBITS);
+	fp->write("u, ");
+	fp->write_decimal_unsigned(STRINGIDXBITS);
+	fp->write("u, NULL, UlamRef<EC>::PRIMITIVE).Read(); }"); GCNL; //done
 	fp->write("\n");
       }
   }
@@ -317,11 +323,17 @@ namespace MFM {
       {
 	m_state.indent(fp);
 	fp->write("void setRegistrationNumber");
-	fp->write("(u32 regnum) { UlamRef<EC>(*this, 0u, 16u, NULL, UlamRef<EC>::PRIMITIVE).Write(regnum); }"); GCNL; //done
+	fp->write("(u32 regnum) { UlamRef<EC>(*this, 0u, ");
+	fp->write_decimal_unsigned(REGNUMBITS);
+	fp->write("u, NULL, UlamRef<EC>::PRIMITIVE).Write(regnum); }"); GCNL; //done
 
 	m_state.indent(fp);
 	fp->write("void setStringIndex");
-	fp->write("(u32 sidx) { UlamRef<EC>(*this, 16u, 16u, NULL, UlamRef<EC>::PRIMITIVE).Write(sidx); }"); GCNL; //done
+	fp->write("(u32 sidx) { UlamRef<EC>(*this, ");
+	fp->write_decimal_unsigned(REGNUMBITS);
+	fp->write("u, ");
+	fp->write_decimal_unsigned(STRINGIDXBITS);
+	fp->write("u, NULL, UlamRef<EC>::PRIMITIVE).Write(sidx); }"); GCNL; //done
 	fp->write("\n");
       }
   }
@@ -390,6 +402,26 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("typedef BitVectorBitStorage<EC, BV> BVS;"); GCNL;
     fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("enum { REG_NUM_BITS = ");
+    fp->write_decimal_unsigned(REGNUMBITS);
+    fp->write(", STR_IDX_BITS = ");
+    fp->write_decimal_unsigned(STRINGIDXBITS);
+    fp->write(", STR_IDX_MASK = ");
+    fp->write_decimal_unsigned(STRINGIDXMASK);
+    fp->write("};"); GCNL;
+
+    //helper methods
+    m_state.indent(fp);
+    fp->write("static u32 getRegNum(u32 combinedidx) { return combinedidx >> REG_NUM_BITS; }");
+    GCNL;
+    m_state.indent(fp);
+    fp->write("static u32 getStrIdx(u32 combinedidx) { return combinedidx & STR_IDX_MASK; }");
+    GCNL;
+    m_state.indent(fp);
+    fp->write("static u32 makeCombinedIdx(u32 regnum, u32 stridx) { return regnum << REG_NUM_BITS | stridx & STR_IDX_MASK; }");
+    GCNL;
 
     //put read/write methods before constructrtors that may use them.
     //read BV method
@@ -474,13 +506,19 @@ namespace MFM {
 	fp->write("const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32 or u64
 	fp->write(" getRegistrationNumber");
-	fp->write("() const { return BVS::Read(0u, 16u); }"); GCNL; //done
+	fp->write("() const { return BVS::Read(0u, ");
+	fp->write_decimal_unsigned(REGNUMBITS);
+	fp->write("u); }"); GCNL; //done
 
 	m_state.indent(fp);
 	fp->write("const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32 or u64
 	fp->write(" getStringIndex");
-	fp->write("() const { return BVS::Read(16u, 16u); }"); GCNL; //done
+	fp->write("() const { return BVS::Read(");
+	fp->write_decimal_unsigned(REGNUMBITS);
+	fp->write("u, ");
+	fp->write_decimal_unsigned(STRINGIDXBITS);
+	fp->write("u); }"); GCNL; //done
 	fp->write("\n");
       }
   }
@@ -494,11 +532,17 @@ namespace MFM {
       {
 	m_state.indent(fp);
 	fp->write("void setRegistrationNumber");
-	fp->write("(u32 regnum) { BVS::Write(0u, 16u, regnum); }"); GCNL; //done
+	fp->write("(u32 regnum) { BVS::Write(0u, ");
+	fp->write_decimal_unsigned(REGNUMBITS);
+	fp->write("u, regnum); }"); GCNL; //done
 
 	m_state.indent(fp);
 	fp->write("void setStringIndex");
-	fp->write("(u32 sidx) { BVS::Write(16u, 16u, sidx); }"); GCNL; //done
+	fp->write("(u32 sidx) { BVS::Write(");
+	fp->write_decimal_unsigned(REGNUMBITS);
+	fp->write("u, ");
+	fp->write_decimal_unsigned(STRINGIDXBITS);
+	fp->write("u, sidx); }"); GCNL; //done
 	fp->write("\n");
       }
   }
