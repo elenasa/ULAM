@@ -123,6 +123,8 @@ namespace MFM{
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref); //starts here, called by SymbolClass
 
+    virtual void genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos);
+
     virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
 
     u32 checkDuplicateFunctions();
@@ -181,6 +183,10 @@ namespace MFM{
     virtual void genCodeConstantArrayInitialization(File * fp);
 
     virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
+
+    void genCodeBuiltInFunctionGetString(File * fp, bool declOnly);
+
+    void genCodeBuiltInFunctionGetStringLength(File * fp, bool declOnly);
 
     void initElementDefaultsForEval(UlamValue& uv, UTI cuti);
 

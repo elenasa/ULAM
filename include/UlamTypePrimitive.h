@@ -121,8 +121,6 @@ namespace MFM{
 
     virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
 
-    virtual bool genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref);
-
   protected:
     u64 m_max;
     s64 m_min;

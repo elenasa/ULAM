@@ -667,6 +667,7 @@ namespace MFM {
       {
 	//primitive (not a class!)
 	//arrays may be initialized now
+	//isn't this redundant??? Mon Dec 19 11:33:26 2016
 	if(m_state.isScalar(nuti))
 	  {
 	    u64 val = 0;
@@ -696,6 +697,91 @@ namespace MFM {
 
     return aok;
   } //buildDefaultValue
+
+  void NodeVarDeclDM::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
+  {
+    assert(m_varSymbol);
+    assert(m_varSymbol->isDataMember());
+
+    UTI nuti = getNodeType(); //same as symbol uti, unless prior error
+    assert(nuti == m_varSymbol->getUlamTypeIdx());
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    u32 bits = nut->getBitSize();
+    if(bits == 0)
+      return;
+
+    ULAMTYPE etyp = nut->getUlamTypeEnum();
+    u32 pos = m_varSymbol->getPosOffset();
+    u32 arraysize = nut->isScalar() ? 1 : nut->getArraySize();
+
+    if(etyp == String)
+      {
+	//generate code to replace uti in string index with runtime registration number
+	for(u32 i = 0; i < arraysize; i++)
+	  {
+	    m_state.indent(fp);
+	    fp->write("initBV.Write(");
+	    fp->write_decimal_unsigned(pos + startpos);
+	    fp->write("u + ");
+	    fp->write_decimal_unsigned(i * MAXBITSPERINT);
+	    fp->write("u, ");
+	    fp->write_decimal_unsigned(REGNUMBITS);
+	    fp->write("u, myRegNum); //");
+	    fp->write(m_varSymbol->getMangledName().c_str()); //comment
+	    GCNL;
+	  }
+      }
+    else if(etyp == Class)
+      {
+	ULAMCLASSTYPE classtype = nut->getUlamClassType();
+
+	if(classtype == UC_ELEMENT)
+	  bits = BITSPERATOM;
+
+	u32 totbitsize = bits * arraysize;
+
+	s32 tmpVarNum = m_state.getNextTmpVarNumber();
+	TMPSTORAGE cstor = nut->getTmpStorageTypeForTmpVar();
+
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(nut->getLocalStorageTypeAsString().c_str());
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, cstor).c_str());
+	fp->write(";"); GCNL;
+
+	s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(nut->getTmpStorageTypeAsString().c_str());
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum2, cstor).c_str());
+	fp->write("(");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, cstor).c_str());
+	fp->write(".read());"); GCNL;
+
+	m_state.indent(fp);
+	fp->write("initBV.");
+	if((classtype == UC_ELEMENT) && nut->isScalar())
+	  fp->write("WriteBV"); //t3968 don't want WriteAtom
+	else
+	  fp->write(nut->writeMethodForCodeGen().c_str());//Write(");
+	fp->write("(");
+	fp->write_decimal_unsigned(pos + startpos);
+	fp->write("u, ");
+	if(classtype == UC_QUARK)
+	  {
+	   fp->write_decimal_unsigned(totbitsize); //entire array (t3776)
+	   fp->write(", ");
+	  }
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum2, cstor).c_str());
+	if((classtype == UC_ELEMENT) && nut->isScalar())
+	  fp->write(".GetBits()"); //T into BV
+	fp->write("); //");
+	fp->write(m_varSymbol->getMangledName().c_str()); //comment
+	GCNL;
+      } //a class
+  } //genCodeDefaultValueStringRegistrationNumber
 
   void NodeVarDeclDM::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
   {

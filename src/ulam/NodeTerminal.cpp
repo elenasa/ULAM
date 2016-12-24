@@ -33,8 +33,17 @@ namespace MFM {
     //uptocaller to set node location.
   }
 
-  NodeTerminal::NodeTerminal(const NodeTerminal& ref) : Node(ref), m_etyp(ref.m_etyp), m_constant(ref.m_constant) {}
-
+  NodeTerminal::NodeTerminal(const NodeTerminal& ref) : Node(ref), m_etyp(ref.m_etyp), m_constant(ref.m_constant)
+  {
+    //clone of template if here (e.g. t3962)
+    if(m_etyp == String)
+      {
+	UTI cuti = m_state.getCompileThisIdx();
+	StringPoolUser& classupool = m_state.getUPoolRefForClass(cuti);
+	u32 classstringidx = classupool.getIndexForDataString(m_state.m_tokenupool.getDataAsString(m_constant.uval & STRINGIDXMASK));
+	m_constant.uval = (cuti << REGNUMBITS) | (classstringidx & STRINGIDXMASK); //combined index
+      }
+  }
 
   NodeTerminal::~NodeTerminal(){}
 
@@ -96,7 +105,7 @@ namespace MFM {
 	  num << ToUnsignedDecimal(m_constant.uval);
 	break;
       case String:
-	num << m_state.m_upool.getDataAsFormattedString(m_constant.uval, &m_state);
+	num << m_state.getDataAsFormattedUserString(m_constant.uval);
 	break;
       default:
 	{
@@ -671,9 +680,16 @@ namespace MFM {
 
     if(UlamType::compareForString(nuti, m_state) == UTIC_SAME)
       {
+	UTI cuti = (m_constant.uval >> REGNUMBITS);
+	u32 sidx = (m_constant.uval & STRINGIDXMASK);
+	assert((cuti > 0) && (sidx > 0));
 	//String, String array or array item (t3929, t3950)
-	fp->write_decimal_unsigned(m_constant.uval);
-	fp->write("u; //user string pool index for ");
+	fp->write(m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString().c_str());
+	fp->write("::makeCombinedIdx(");
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
+	fp->write(".GetRegistrationNumber(), ");
+	fp->write_decimal_unsigned(sidx);
+	fp->write("u); //user string pool index for ");
       }
     fp->write(getName());
     fp->write(";"); GCNL;
@@ -744,8 +760,18 @@ namespace MFM {
 	break;
       case TOK_DQUOTED_STRING:
 	{
-	  m_constant.uval = tok.m_dataindex;
-	  rtnok = true;
+	  UTI cuti = m_state.getCompileThisIdx();
+	  if(m_state.isClassATemplate(cuti))
+	    {
+	      m_constant.uval = tok.m_dataindex; //not done
+	    }
+	  else
+	    {
+	      StringPoolUser& classupool = m_state.getUPoolRefForClass(cuti);
+	      u32 classstringidx = classupool.getIndexForDataString(m_state.m_tokenupool.getDataAsString(tok.m_dataindex));
+	      m_constant.uval = (cuti << REGNUMBITS) | (classstringidx & STRINGIDXMASK); //combined index
+	      rtnok = true;
+	    }
 	}
 	break;
       default:

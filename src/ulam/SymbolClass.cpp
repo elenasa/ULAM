@@ -676,6 +676,28 @@ void SymbolClass::setContextForPendingArgs(UTI context)
     UTI suti = getUlamTypeIdx();
     UlamType * sut = m_state.getUlamTypeByIndex(suti);
     if(!sut->isComplete()) return;
+    if(sut->getUlamClassType() != UC_ELEMENT)
+      {
+	fp->write("\n");
+	m_state.indent(fp);
+	fp->write("{\n");
+
+	m_state.m_currentIndentLevel++;
+
+	m_state.indent(fp);
+	fp->write("UlamClass<EC> & clt = ");
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
+	fp->write(";"); GCNL;
+
+	m_state.indent(fp);
+	fp->write("tile.GetUlamClassRegistry().RegisterUlamClass(clt);"); GCNL;
+
+	m_state.m_currentIndentLevel--;
+
+	m_state.indent(fp);
+	fp->write("}\n");
+	return;
+      }
 
     // output for each element before testing; a test may include
     // one or more of them!
@@ -688,10 +710,13 @@ void SymbolClass::setContextForPendingArgs(UTI context)
 	m_state.m_currentIndentLevel++;
 
 	m_state.indent(fp);
-	fp->write("Element<EC> & elt = ");
+	fp->write("UlamElement<EC> & elt = ");
 	fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
 	fp->write(";"); GCNL;
 
+	//register before allocate type to avoid ILLEGAL_STATE (t3968)
+	m_state.indent(fp);
+	fp->write("tile.GetUlamClassRegistry().RegisterUlamClass(elt);"); GCNL;
 	m_state.indent(fp);
 	fp->write("elt.AllocateType(etnm); //Force element type allocation now"); GCNL;
 	m_state.indent(fp);
@@ -802,12 +827,6 @@ void SymbolClass::setContextForPendingArgs(UTI context)
     m_state.indent(fp);
     fp->write("#include \"UlamDefs.h\"");
     fp->write("\n");
-
-    //global user string pool (8-bit clean)
-    m_state.indent(fp);
-    fp->write("#include \"");
-    fp->write(m_state.getMangledNameForUserStringPool());
-    fp->write(".h\"\n");
 
     //using the _Types.h file
     m_state.indent(fp);
@@ -1151,4 +1170,20 @@ void SymbolClass::setContextForPendingArgs(UTI context)
       }
     return false;
   }
+
+  StringPoolUser& SymbolClass::getUserStringPoolRef()
+  {
+    return m_upool;
+  }
+
+  const StringPoolUser& SymbolClass::getUserStringPoolRef() const
+  {
+    return m_upool;
+  }
+
+  void SymbolClass::setUserStringPoolRef(const StringPoolUser& spref)
+  {
+    m_upool = spref;
+  }
+
 } //end MFM

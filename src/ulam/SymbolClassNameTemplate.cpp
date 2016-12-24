@@ -971,6 +971,9 @@ namespace MFM {
 	//set super block pointer to this class block during c&l
 	classNode->setSuperBlockPointer(NULL); //clear in case of stubs
 
+	//copy any constant strings from the stub
+	clone->setUserStringPoolRef(csym->getUserStringPoolRef()); //t3962
+
 	if(!takeAnInstancesArgValues(csym, clone)) //instead of keeping template's unknown values
 	  {
 	    aok &= false;

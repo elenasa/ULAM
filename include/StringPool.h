@@ -55,6 +55,8 @@ namespace MFM
 
     StringPool(std::string str); //for StringPoolUser's default constructor
 
+    StringPool(const StringPool& spref);
+
     ~StringPool();
 
     virtual u32 getIndexForDataString(std::string str);    //< makes a new entry in map, vector if nonexistent

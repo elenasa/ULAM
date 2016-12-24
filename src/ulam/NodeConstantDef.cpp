@@ -693,6 +693,11 @@ namespace MFM {
     return true; //pass on
   }
 
+  void NodeConstantDef::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
+  {
+    return; //pass on
+  }
+
   void NodeConstantDef::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
   {
     return;
@@ -921,6 +926,8 @@ namespace MFM {
     if(nut->isScalar())
       return;
 
+    u32 len = nut->getTotalNumberOfWords();
+
     if(declOnly)
       {
 	//unique typedef for this constant array (number of u32's)
@@ -928,7 +935,7 @@ namespace MFM {
 	fp->write("typedef u32 TypeForInit");
 	fp->write(m_constSymbol->getMangledName().c_str());
 	fp->write("[");
-	fp->write_decimal_unsigned(nut->getTotalNumberOfWords());
+	fp->write_decimal_unsigned(len);
 	fp->write("];\n");
 
 	//unique function to initialize const array "data members" in class no-arg constructor
@@ -968,20 +975,25 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
 
-    if(nut->getUlamTypeEnum() == String)
+    bool isString = (nut->getUlamTypeEnum() == String);
+    if(isString)
       m_constSymbol->printPostfixValueArrayStringAsComment(fp); //t3953,4
 
     m_state.indent(fp);
     fp->write("static ");
     fp->write("u32 ");
     fp->write("initVal[");
-    fp->write_decimal_unsigned(nut->getTotalNumberOfWords());
+    fp->write_decimal_unsigned(len);
     fp->write("] = ");
     m_constSymbol->printPostfixValue(fp);
-    fp->write(";\n");
+    fp->write(";"); GCNL;
+
+    // Note: Cannot initialize constants like data members in default class
+    // (see CS::genCodeClassDefaultConstantArray);
+    // Registration Number not yet available. (t3953)
 
     m_state.indent(fp);
-    fp->write("return initVal;\n");
+    fp->write("return initVal;"); GCNL;
 
     m_state.m_currentIndentLevel--;
 

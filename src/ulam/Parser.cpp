@@ -1736,6 +1736,17 @@ namespace MFM {
     Token pTok;
     getNextToken(pTok);
 
+    //filescope locals t3952, t3954; not constants t3951, t3953, t3958
+    if((pTok.m_type == TOK_KW_TYPE_STRING) && m_state.isThisLocalsFileScope())
+      {
+	std::ostringstream msg;
+	msg << "Invalid local filescope constant definition Type '";
+	msg << m_state.getTokenDataAsString(pTok).c_str() << "'";
+	MSG(&pTok, msg.str().c_str(), ERR);
+	getTokensUntil(TOK_SEMICOLON);
+	return false;
+      }
+
     if( (Token::isTokenAType(pTok) || (pTok.m_type == TOK_KW_LOCALDEF)) && (pTok.m_type != TOK_KW_TYPE_VOID) && (pTok.m_type != TOK_KW_TYPE_ATOM))
       {
 	unreadToken();

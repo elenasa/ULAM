@@ -352,6 +352,12 @@ namespace MFM {
     return false;
   }
 
+  void Node::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
+  {
+    m_state.abortShouldntGetHere();
+    return;
+  }
+
   void Node::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
   {
     m_state.abortShouldntGetHere();
@@ -1027,12 +1033,13 @@ namespace MFM {
 
     fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2, TMPBITVAL).c_str());
     fp->write("("); // use constructor (not equals)
-    fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //VALUE
 
     u32 pos = uvpass.getPassPos(); //pos adjusted for Element stg in NodeIdent
 
     if(m_state.isAtom(vuti))
       {
+	fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //VALUE
+
 	//for ANY immediate atom arg from a T
 	//needs effective self from T's type
 	if(m_state.isAtomRef(vuti))
@@ -1045,16 +1052,35 @@ namespace MFM {
       }
     else
       {
-	if(vut->getUlamClassType() == UC_NOTACLASS)
+	if(vut->getUlamTypeEnum() == String)
 	  {
-	    //no longer atom-based primitives
+	    //TMPSTORAGE vstor = uvpass.getPassStorage();
+	    //assert(!((vstor == TMPBITVAL) || (vstor == TMPAUTOREF))); tis true!
+	    const std::string stringmangledName = m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
+	    fp->write(stringmangledName.c_str());
+	    fp->write("::getRegNum(");
+	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	    fp->write("), "); //e.g. t3961, t3973
+	    fp->write(stringmangledName.c_str());
+	    fp->write("::getStrIdx(");
+	    fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //VALUE
+	    fp->write(")");
 	  }
-
-	if(m_state.isReference(vuti))
+	else
 	  {
-	    fp->write(", ");
-	    fp->write_decimal_unsigned(pos); //position for constructor
-	    fp->write("u");
+	    fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //VALUE
+
+	    if(vut->getUlamClassType() == UC_NOTACLASS)
+	      {
+		//no longer atom-based primitives
+	      }
+
+	    if(m_state.isReference(vuti))
+	      {
+		fp->write(", ");
+		fp->write_decimal_unsigned(pos); //position for constructor
+		fp->write("u");
+	      }
 	  }
       }
     fp->write("); //func arg&"); GCNL;

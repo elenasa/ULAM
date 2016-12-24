@@ -113,6 +113,7 @@ namespace MFM{
     virtual UTI calcNodeType(UTI lt, UTI rt); //stub
 
     void genCodeAUserStringByte(File * fp, UVPass& uvpass);
+
   };
 
 }

@@ -690,9 +690,4 @@ namespace MFM {
     fp->write(" */\n\n");
   } //genUlamTypeMangledImmediateModelParameterDefinitionForC
 
-  bool UlamTypePrimitive::genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref)
-  {
-    return false; //only true for quarks in UlamTypeClass
-  }
-
 } //end MFM

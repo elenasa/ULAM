@@ -298,10 +298,10 @@ namespace MFM {
 		  {
 		    UlamValue stringUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
 		    u32 ustringidx = stringUV.getImmediateData(m_state);
-		    if((ustringidx == 0) || (ustringidx >= m_state.m_upool.getUserStringPoolSize()))
+		    if(!m_state.isValidUserStringIndex(ustringidx))
 		      evs = ERROR;
 		    else
-		      m_constant.uval = m_state.m_upool.getStringLength(ustringidx); //reset here!!
+		      m_constant.uval = m_state.getUserStringLength(ustringidx); //reset here!!
 		  }
 		//else
 		evalNodeEpilog();
@@ -368,29 +368,7 @@ namespace MFM {
     UVPass ofpass;
     m_nodeOf->genCode(fp, ofpass);
 
-    //runtime checks for unitialized string
-    m_state.indentUlamCode(fp);
-    fp->write("if(");
-    fp->write(ofpass.getTmpVarAsString(m_state).c_str());
-    fp->write(" == 0)\n");
-
-    m_state.m_currentIndentLevel++;
-    m_state.indentUlamCode(fp);
-    fp->write("FAIL(UNINITIALIZED_VALUE);"); GCNL;
-    m_state.m_currentIndentLevel--;
-
-    //runtime checks to avoid accessing beyond global string pool
-    m_state.indentUlamCode(fp);
-    fp->write("if(");
-    fp->write(ofpass.getTmpVarAsString(m_state).c_str());
-    fp->write(" >= ");
-    fp->write(m_state.getDefineNameForUserStringPoolSize());
-    fp->write(")\n");
-
-    m_state.m_currentIndentLevel++;
-    m_state.indentUlamCode(fp);
-    fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
-    m_state.m_currentIndentLevel--;
+    TMPSTORAGE ofstor = ofpass.getPassStorage();
 
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
     m_state.indentUlamCode(fp);
@@ -398,12 +376,35 @@ namespace MFM {
     fp->write(m_state.getUlamTypeByIndex(nuti)->getTmpStorageTypeAsString().c_str()); //u32
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(ASCII, tmpVarNum, TMPREGISTER).c_str());
-    fp->write(" = (u32) ");
-    fp->write(m_state.getMangledNameForUserStringPool());
-    fp->write("[");
-    fp->write(ofpass.getTmpVarAsString(m_state).c_str()); //INDEX of user string
-    fp->write("];"); GCNL;
 
+    if((ofstor == TMPBITVAL) || (ofstor == TMPAUTOREF))
+      {
+	fp->write(" = uc.GetUlamClassRegistry().GetUlamClassByIndex(");
+	fp->write(ofpass.getTmpVarAsString(m_state).c_str());
+	fp->write(".getRegistrationNumber())->");
+	fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
+	fp->write("Length(");
+	fp->write(ofpass.getTmpVarAsString(m_state).c_str());
+	fp->write(".getStringIndex());");
+	GCNL; //t3949
+      }
+    else
+      {
+	const std::string stringmangledName = m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
+
+	fp->write(" = uc.GetUlamClassRegistry().GetUlamClassByIndex(");
+	fp->write(stringmangledName.c_str());
+	fp->write("::getRegNum(");
+	fp->write(ofpass.getTmpVarAsString(m_state).c_str());
+	fp->write("))->");
+	fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
+	fp->write("Length(");
+	fp->write(stringmangledName.c_str());
+	fp->write("::getStrIdx(");
+	fp->write(ofpass.getTmpVarAsString(m_state).c_str());
+	fp->write("));");
+	GCNL;
+      }
     uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
 
     m_state.clearCurrentObjSymbolsForCodeGen();

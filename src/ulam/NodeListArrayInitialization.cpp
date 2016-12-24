@@ -288,12 +288,66 @@ namespace MFM{
 
     assert(aok);
 
-    u32 uvals[ARRAY_LEN8K];
-    dval.ToArray(uvals); //the magic! (32-bit ints)
-
+    bool isString = (nut->getUlamTypeEnum() == String);
     u32 tmpvarnum = m_state.getNextTmpVarNumber();
     TMPSTORAGE nstor = nut->getTmpStorageTypeForTmpVar();
     u32 nwords = nut->getTotalNumberOfWords();
+
+    //generate code to replace uti in string index with runtime registration number (t3974)
+    if(isString && !vsym->isDataMember())
+      {
+	u32 uvals[ARRAY_LEN8K];
+	dval.ToArray(uvals); //the magic! (32-bit ints)
+
+	UTI cuti = m_state.getCompileThisIdx();
+	const std::string stringmangledName = m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
+
+	m_state.indentUlamCode(fp);
+	fp->write("static const u32 Uh_6regnum = ");
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
+	fp->write(".GetRegistrationNumber();"); GCNL;
+
+	m_state.indentUlamCode(fp); //non-const
+	fp->write("static bool Uh_8initdone;\n");
+
+	m_state.indentUlamCode(fp); //non-const
+	fp->write("static u32 ");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpvarnum, nstor).c_str());
+	fp->write("[");
+	fp->write_decimal_unsigned(nwords); // proper length == [nwords]
+	fp->write("];\n");
+
+	m_state.indentUlamCode(fp); //non-const
+	fp->write("if(!Uh_8initdone)\n");
+	m_state.indentUlamCode(fp); //non-const
+	fp->write("{\n");
+
+	m_state.m_currentIndentLevel++;
+
+	m_state.indentUlamCode(fp);
+	fp->write("Uh_8initdone = true;\n");
+	//exact size bitvector as 32-bit array, regardless of itemwordsize (e.g. String test t3973 )
+	for(u32 w = 0; w < nwords; w++)
+	  {
+	    m_state.indentUlamCode(fp); //non-const
+	    fp->write(m_state.getTmpVarAsString(nuti, tmpvarnum, nstor).c_str());
+	    fp->write("[");
+	    fp->write_decimal_unsigned(w); // proper length == [nwords]
+	    fp->write("] = ");
+
+	    fp->write(stringmangledName.c_str());
+	    fp->write("::makeCombinedIdx(Uh_6regnum, ");
+	    fp->write_decimal_unsigned(uvals[w] & STRINGIDXMASK);
+	    fp->write(");\n");
+	  }
+
+	m_state.m_currentIndentLevel--;
+	m_state.indentUlamCode(fp); //non-const
+	fp->write("}"); GCNL;
+
+	uvpass = UVPass::makePass(tmpvarnum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, vsym->getId());
+	return;
+      } //done
 
     //static constant array of u32's from BV8K, of proper length:
     //similar to CS::genCodeClassDefaultConstantArray,
@@ -301,9 +355,13 @@ namespace MFM{
     m_state.indentUlamCode(fp);
     fp->write("const ");
 
-    if(nut->getPackable() != PACKEDLOADABLE)
+    if((nut->getPackable() != PACKEDLOADABLE) || isString)
       {
+	u32 uvals[ARRAY_LEN8K];
+	dval.ToArray(uvals); //the magic! (32-bit ints)
+
 	//exact size bitvector as 32-bit array, regardless of itemwordsize
+	//(e.g. data member String test t3973 )
 	fp->write("u32 ");
 	fp->write(m_state.getTmpVarAsString(nuti, tmpvarnum, nstor).c_str());
 	fp->write("[");
@@ -324,6 +382,8 @@ namespace MFM{
       }
     else
       {
+	u32 len = nut->getTotalBitSize();
+
 	//entire array packedloadable (t3863)
 	fp->write(nut->getTmpStorageTypeAsString().c_str()); //entire array, u32 or u64
 	fp->write(" ");
@@ -333,11 +393,14 @@ namespace MFM{
 	std::ostringstream dhex;
 	if(nwords <= 1) //32
 	  {
-	    dhex << "0x" << std::hex << uvals[0];
+	    //right justify single u32 (t3974)
+	    dhex << "0x" << std::hex << dval.Read(0u, len); //uvals[0]
 	  }
 	else if(nwords == 2) //64
 	  {
-	    dhex << "HexU64(" << "0x" << std::hex << uvals[0] << ", 0x" << std::hex << uvals[1] << ")";
+	    //right justify single u64
+	    //dhex << "HexU64(" << "0x" << std::hex << uvals[0] << ", 0x" << std::hex << uvals[1] << ")";
+	    dhex << "0x" << std::hex << dval.ReadLong(0u, len); //uvals[0] & uvals[1]
 	  }
 	else
 	  m_state.abortGreaterThanMaxBitsPerLong();

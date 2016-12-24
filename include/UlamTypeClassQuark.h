@@ -87,8 +87,6 @@ namespace MFM{
 
     virtual void genUlamTypeWriteDefinitionForC(File * fp);
 
-    virtual bool genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref);
-
    private:
 
   };

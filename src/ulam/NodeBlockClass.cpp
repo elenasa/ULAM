@@ -791,6 +791,23 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     return aok;
   } //buildDefaultValue
 
+  void NodeBlockClass::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
+  {
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClassType();
+    if(classtype == UC_ELEMENT)
+      startpos += ATOMFIRSTSTATEBITPOS; //t3972
+
+    if((m_state.isClassASubclass(getNodeType()) != Nouti))
+      {
+	NodeBlockClass * superblock = getSuperBlockPointer();
+	assert(superblock);
+	superblock->genCodeDefaultValueStringRegistrationNumber(fp, startpos);
+      }
+
+    if(m_nodeNext)
+      m_nodeNext->genCodeDefaultValueStringRegistrationNumber(fp, startpos); //side-effect for dm vardecls
+  }
+
   void NodeBlockClass::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
   {
     if((m_state.isClassASubclass(getNodeType()) != Nouti))
@@ -1223,9 +1240,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("};"); GCNL;
     fp->write("\n");
-
-    u32 dqval;
-    cut->genUlamTypeDefaultQuarkConstant(fp, dqval); //missing?
 
     m_state.indent(fp);
     fp->write("typedef UlamRefFixed<EC, 0u, QUARK_SIZE> Up_Us; //entire quark"); GCNL; //left-just
@@ -1740,6 +1754,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     genCodeBuiltInFunctionGetClassLength(fp, declOnly, classtype);
 
+    genCodeBuiltInFunctionGetString(fp, declOnly);
+    genCodeBuiltInFunctionGetStringLength(fp, declOnly);
+
     genCodeBuiltInFunctionBuildDefaultAtom(fp, declOnly, classtype);
 
     genCodeBuiltInVirtualTable(fp, declOnly, classtype);
@@ -1765,6 +1782,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       }
     else
       m_state.abortUndefinedUlamClassType(); //sanity
+
   } //generateCodeForBuiltInClassFunctions
 
   void NodeBlockClass::genCodeBuiltInFunctionIsMethodRelatedInstance(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
@@ -2343,6 +2361,118 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(m_nodeNext)
       m_nodeNext->generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
   }
+
+  void NodeBlockClass::genCodeBuiltInFunctionGetString(File * fp, bool declOnly)
+  {
+    UTI cuti = m_state.getCompileThisIdx();
+
+    //class specific UserStringPool
+    if(declOnly)
+      {
+	m_state.indent(fp);
+	fp->write("virtual const ");
+	fp->write("unsigned char * ");
+	fp->write(m_state.getClassGetStringFunctionName(cuti));
+	fp->write("(u32 sidx) const;"); GCNL;
+	fp->write("\n");
+	return;
+      }
+
+    StringPoolUser& classupool = m_state.getUPoolRefForClass(cuti);
+
+    m_state.indent(fp);
+    fp->write("template<class EC>\n"); //same for elements and quarks
+
+    m_state.indent(fp);
+    fp->write("const ");
+    fp->write("unsigned char * ");
+
+    //include the mangled class::
+    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
+    fp->write("<EC>::");
+    fp->write(m_state.getClassGetStringFunctionName(cuti));
+    fp->write("(u32 sidx)  const\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("const u32 ");
+    fp->write(m_state.getDefineNameForUserStringPoolSize());
+    fp->write(" = ");
+    fp->write_decimal_unsigned(classupool.getUserStringPoolSize());
+    fp->write(";"); GCNL;
+
+    //the pool table definition
+    classupool.generateUserStringPoolEntries(fp, &m_state);
+
+    m_state.indent(fp);
+    fp->write("if(sidx == 0)\n");
+    m_state.m_currentIndentLevel++;
+    m_state.indent(fp);
+    fp->write("FAIL(UNINITIALIZED_VALUE);"); GCNL;
+    m_state.m_currentIndentLevel--;
+
+    m_state.indent(fp);
+    fp->write("if(sidx >= ");
+    fp->write(m_state.getDefineNameForUserStringPoolSize());
+    fp->write(")\n");
+    m_state.m_currentIndentLevel++;
+    m_state.indent(fp);
+    fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
+    m_state.m_currentIndentLevel--;
+
+    m_state.indent(fp);
+    fp->write("return ");
+    fp->write(m_state.getMangledNameForUserStringPool());
+    fp->write(" + sidx + 1;"); GCNL;
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //GetString\n\n");
+  } //genCodeBuiltInFunctionGetString
+
+  void NodeBlockClass::genCodeBuiltInFunctionGetStringLength(File * fp, bool declOnly)
+  {
+    UTI cuti = m_state.getCompileThisIdx();
+
+    //class specific UserStringPool
+    if(declOnly)
+      {
+	m_state.indent(fp);
+	fp->write("virtual u32 ");
+	fp->write(m_state.getClassGetStringFunctionName(cuti));
+	fp->write("Length(u32 sidx) const;"); GCNL;
+	fp->write("\n");
+	return;
+      }
+
+    m_state.indent(fp);
+    fp->write("template<class EC>\n"); //same for elements and quarks
+
+    m_state.indent(fp);
+    fp->write("u32 ");
+
+    //include the mangled class::
+    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
+    fp->write("<EC>::");
+    fp->write(m_state.getClassGetStringFunctionName(cuti));
+    fp->write("Length(u32 sidx)  const\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("return *(");
+    fp->write(m_state.getClassGetStringFunctionName(cuti));
+    fp->write("(sidx) - 1);"); GCNL;
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //GetStringLength\n\n");
+  } //genCodeBuiltInFunctionGetStringLength
 
   void NodeBlockClass::generateUlamClassInfoFunction(File * fp, bool declOnly, u32& dmcount)
   {

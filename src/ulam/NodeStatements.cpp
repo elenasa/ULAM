@@ -186,6 +186,15 @@ namespace MFM {
     return aok;
   }
 
+  void NodeStatements::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
+  {
+    if(m_node)
+      m_node->genCodeDefaultValueStringRegistrationNumber(fp, startpos);
+    if(m_nodeNext)
+      m_nodeNext->genCodeDefaultValueStringRegistrationNumber(fp, startpos);
+    return;
+  }
+
   void NodeStatements::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
   {
     if(m_node)

@@ -852,12 +852,6 @@ namespace MFM {
     m_state.abortShouldntGetHere();
   }
 
-  bool UlamType::genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref)
-  {
-    m_state.abortShouldntGetHere();
-    return false; //only true for quarks in UlamTypeClass
-  }
-
   void UlamType::genStandardConfigTypedefTypenames(File * fp, CompilerState& state)
   {
     state.indent(fp);

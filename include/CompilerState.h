@@ -99,7 +99,7 @@ namespace MFM{
     // e.g., Token identifiers that are variables, path names read by SS, etc.)
     StringPool m_pool;
 
-    StringPoolUser m_upool; //for double quoted strings only
+    StringPoolUser m_tokenupool; //for double quoted strings Tokens only
 
     // map key is the prefix id in the Locator; value is a vector of
     // stringpool id's indexed by line into the original ulam source
@@ -323,9 +323,12 @@ namespace MFM{
     void updateLineageAndFirstCheckAndLabelPass();
     void updateLineageAndFirstCheckAndLabelPassForLocals();
     bool checkAndLabelPassForLocals();
-    void generateCodeForGlobalUserStringPool(FileManager * fm);
     void generateCodeForUlamClasses(FileManager * fm);
     void generateUlamClassForLocals(FileManager * fm);
+    StringPoolUser & getUPoolRefForClass(UTI cuti);
+    const std::string & getDataAsFormattedUserString(u32 combinedidx);
+    bool isValidUserStringIndex(u32 combinedidx);
+    u32 getUserStringLength(u32 combinedidx);
 
     bool countNavHzyNoutiNodesPass();
     void countNavNodesForLocals(u32& navcount, u32& hzycount, u32& unsetcount);
@@ -357,6 +360,7 @@ namespace MFM{
     const char * getIsMangledFunctionName(UTI ltype);
     const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
     const char * getClassLengthFunctionName(UTI ltype);
+    const char * getClassGetStringFunctionName(UTI ltype);
     const char * getBuildDefaultAtomFunctionName(UTI ltype);
     const char * getDefaultQuarkFunctionName();
 
@@ -373,8 +377,6 @@ namespace MFM{
 
     const char * getMangledNameForUserStringPool();
     const char * getDefineNameForUserStringPoolSize();
-    std::string getFileNameForUserStringPoolHeader(bool wSubDir = false);
-    std::string getFileNameForUserStringPoolCPP(bool wSubDir = false);
 
     ULAMCLASSTYPE getUlamClassForThisClass();
     UTI getUlamTypeForThisClass();
@@ -396,7 +398,7 @@ namespace MFM{
     /** assign pointer as value */
     void assignValuePtr(UlamValue lptr, UlamValue rptr);
 
-    UlamValue getByteOfUserString(u32 usrStr, u32 offsetInt);
+    UlamValue getByteOfUserStringForEval(u32 usrStr, u32 offsetInt);
 
     /** PACKEDLOADABLE fits in u32/u64, PACKED into an atom, o.w. UNPACKED */
     PACKFIT determinePackable(UTI aut);

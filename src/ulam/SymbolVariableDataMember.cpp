@@ -167,7 +167,10 @@ namespace MFM {
 	    else if(len <= MAXBITSPERINT)
 	      {
 		u32 data = atval.getDataFromAtom(nextPtr, m_state);
-		vut->getDataAsString(data, valstr, 'z'); //'z' -> no preceeding ','
+		if((vetyp == String) && (data == 0))
+		  sprintf(valstr," ");
+		else
+		  vut->getDataAsString(data, valstr, 'z'); //'z' -> no preceeding ','
 		if(vetyp == Unsigned || vetyp == Unary)
 		  strcat(valstr, "u");
 
@@ -178,7 +181,10 @@ namespace MFM {
 		    assert(isNext);
 		    atval = m_state.getPtrTarget(nextPtr);
 		    data = atval.getDataFromAtom(nextPtr, m_state);
-		    vut->getDataAsString(data, tmpstr, ',');
+		    if((vetyp == String) && (data == 0))
+		      strcat(valstr, ",");
+		    else
+		      vut->getDataAsString(data, tmpstr, ',');
 		    if(vetyp == Unsigned || vetyp == Unary)
 		      strcat(tmpstr, "u");
 		    strcat(valstr,tmpstr);

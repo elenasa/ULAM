@@ -10,8 +10,8 @@ Unrecoverable Program Parse FAILURE: <A.ulam>
 ##
 #>A.ulam
   ulam 2;
-local constant String cstring = "bar"; //ok
 element A {
+  constant String cstring = "bar"; //ok
   Bool b1, b2, b3;
   Int test() {
     ASCII asc = "bar"[1]; //ERROR
