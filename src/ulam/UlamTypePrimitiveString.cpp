@@ -416,13 +416,13 @@ namespace MFM {
 
 	//helper methods
 	m_state.indent(fp);
-	fp->write("static u32 getRegNum(u32 combinedidx) { return combinedidx >> REG_NUM_BITS; }");
+	fp->write("static u32 getRegNum(u32 combinedidx) { return (combinedidx >> REG_NUM_BITS); }");
 	GCNL;
 	m_state.indent(fp);
-	fp->write("static u32 getStrIdx(u32 combinedidx) { return combinedidx & STR_IDX_MASK; }");
+	fp->write("static u32 getStrIdx(u32 combinedidx) { return (combinedidx & STR_IDX_MASK); }");
 	GCNL;
 	m_state.indent(fp);
-	fp->write("static u32 makeCombinedIdx(u32 regnum, u32 stridx) { return regnum << REG_NUM_BITS | stridx & STR_IDX_MASK; }");
+	fp->write("static u32 makeCombinedIdx(u32 regnum, u32 stridx) { return ((regnum << REG_NUM_BITS) | (stridx & STR_IDX_MASK)); }");
 	GCNL;
       }
 
