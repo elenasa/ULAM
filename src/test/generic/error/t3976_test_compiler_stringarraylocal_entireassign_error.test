@@ -1,0 +1,21 @@
+## -*- mode:ulam -*-
+#=t3976_test_compiler_stringarraylocal_entireassign_error
+#!
+./A.ulam:10:1: ERROR: Casting different Array sizes: String(32)[2] TO String(32)[3].
+./A.ulam:7:9: ERROR: Use explicit cast to convert String(32)[2] to String(32)[3] for operator=.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t3975 with 2 function local variable string arrays, but of different sizes;
+##
+#>A.ulam
+  ulam 2;
+element A {
+ Int test() {
+   String sarr[3] = { "fool", "bar", "foobar"};
+   String sarr2[] = { "oh", "my"}; //bool Uh_8initdone previously declared
+
+   sarr = sarr2; //must be the same size!
+   return 0;
+ }
+}
+#.

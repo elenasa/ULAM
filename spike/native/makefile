@@ -9,7 +9,7 @@ MFM_BUILD_CORE:=$(MFM_ROOT_DIR)/build/core
 MFM_BUILD_PLATFORM:=$(MFM_ROOT_DIR)/build/platform-linux
 
 CFLAGS:= -g -pthread -ansi -pedantic
-#CFLAGS+= -Wall
+CFLAGS+= -Wall
 #CFLAGS+= -Werror
 #CFLAGS+= -Wunused-variable
 default: all

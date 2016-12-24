@@ -863,13 +863,13 @@ namespace MFM {
   void NodeConstantDef::genCode(File * fp, UVPass& uvpass)
   {
     UTI nuti = getNodeType();
-    if(!m_state.isScalar(nuti))
-      {
-	assert(m_constSymbol);
-	assert(m_state.isComplete(nuti));
-	assert(m_constSymbol->getUlamTypeIdx() == nuti); //sanity check
-	UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    assert(m_constSymbol);
+    assert(m_state.isComplete(nuti));
+    assert(m_constSymbol->getUlamTypeIdx() == nuti); //sanity check
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
+    if(!nut->isScalar())
+      {
 	if(m_constSymbol->isLocalFilescopeDef() ||  m_constSymbol->isDataMember() || m_constSymbol->isClassArgument())
 	  {
 	    //as a "data member", locals filescope, or class arguement: initialized in no-arg constructor (non-const)
@@ -893,6 +893,23 @@ namespace MFM {
 	    fp->write(m_state.getTmpVarAsString(nuti, uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str()); //VALUE
 	    fp->write(");"); GCNL;
 	    m_state.clearCurrentObjSymbolsForCodeGen();
+	  }
+      }
+    else
+      {
+	if(nut->getUlamTypeEnum() == String)
+	  {
+	    u32 sval;
+	    m_constSymbol->getValue(sval);
+	    //output comment for scalar constant value
+	    m_state.indentUlamCode(fp);
+	    fp->write("//");
+	    std::ostringstream ostream;
+	    ostream << " 0x" << std::hex << sval;
+	    fp->write(ostream.str().c_str());
+	    fp->write(" -> ");
+	    m_constSymbol->printPostfixValue(fp);
+	    GCNL;
 	  }
       }
     return; //done
