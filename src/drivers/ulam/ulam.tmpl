@@ -871,6 +871,7 @@ my @cppFilesFromUlam;
 my @objectFilesFromUlamCpps;
 my @elementCNamesFromUlam;
 my @quarkCNamesFromUlam;
+my @transientCNamesFromUlam;
 my %ulamFileTargets;
 
 sub compilationDriver {
@@ -1096,7 +1097,9 @@ sub runUlamCompilations
 #                print "INFO($path,$name,$size,$testflag,$classtype)='$elementCNameToUlamFile{$cname}'\n";
                 } elsif ($classtype eq "quark") {
                     push @quarkCNamesFromUlam, $cname;
-                }
+                } elsif ($classtype eq "transient") {
+                    push @transientCNamesFromUlam, $cname;
+                } 
                 next;
             }
 
@@ -1150,7 +1153,7 @@ sub writeElementAllocatorStub {
 EOF
     {
         my %seen;
-        for my $en (@elementCNamesFromUlam, @quarkCNamesFromUlam) {
+        for my $en (@elementCNamesFromUlam, @quarkCNamesFromUlam, @transientCNamesFromUlam) {
             next if $seen{$en};
             $seen{$en} = 1;
             print $hdrhdl <<EOF;
@@ -1220,18 +1223,14 @@ EOF
         }
     }
 
-    # PROCESS THE QUARKS
+    # PROCESS THE QUARKS AND TRANSIENTS
     {
         my %seen;
-        for my $en (@quarkCNamesFromUlam) {
+        for my $en (@quarkCNamesFromUlam, @transientCNamesFromUlam) {
             next if $seen{$en};
             $seen{$en} = 1;
 
-            my $stubname = lexEncode("_uqinstance",$quarkPtrArrayCount);
-            $quarkPtrArrayStatics .= <<EOF;
-
-  static MFM::$en<MFM::StdEventConfig> $stubname;
-EOF
+            my $stubname = "MFM::$en<MFM::StdEventConfig>::THE_INSTANCE";
             $quarkPtrArrayInits .= "," if $quarkPtrArrayInits ne "";
             $quarkPtrArrayInits .= "\n    &$stubname";
             ++$quarkPtrArrayCount;
