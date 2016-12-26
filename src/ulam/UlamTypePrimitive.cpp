@@ -553,7 +553,7 @@ namespace MFM {
       }
     else
       {
-	//UNPACKED
+	//UNPACKED (e.g. t3975)
 	m_state.indent(fp);
 	fp->write("const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //BV
@@ -561,8 +561,7 @@ namespace MFM {
 	fp->write("() const { ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //BV
 	fp->write(" rtnunpbv; this->BVS::");
-	fp->write(readMethodForCodeGen().c_str());
-	fp->write("(0u, rtnunpbv); return rtnunpbv; ");
+	fp->write("ReadBV(0u, rtnunpbv); return rtnunpbv; ");
 	fp->write("} //reads entire BV"); GCNL;
       }
   } //genUlamTypeReadDefinitionForC
@@ -597,8 +596,7 @@ namespace MFM {
 	fp->write(" write(const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //BV
 	fp->write("& bv) { BVS::");
-	fp->write(writeMethodForCodeGen().c_str());
-	fp->write("(0u, bv); ");
+	fp->write("WriteBV(0u, bv); ");
 	fp->write("} //writes entire BV"); GCNL;
       }
   } //genUlamTypeWriteDefinitionForC

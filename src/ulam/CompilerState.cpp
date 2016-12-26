@@ -3612,6 +3612,13 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return labelname.str();
   }
 
+  const std::string CompilerState::getInitDoneVarAsString(s32 num)
+  {
+    std::ostringstream labelname; //into
+    labelname << "Uh_8initdone" << ToLeximitedNumber(num);
+    return labelname.str();
+  }
+
   const std::string CompilerState::getVFuncPtrTmpNumAsString(s32 num)
   {
     std::ostringstream labelname; //into

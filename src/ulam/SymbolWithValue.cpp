@@ -336,6 +336,7 @@ namespace MFM {
 	return; //nothing to do
       }
 
+    //required as hex for String arrays too (needed for initialization) (t3974)
     //like the code generated in CS::genCodeClassDefaultConstantArray
     std::string dhex;
     bool nonZero = SymbolWithValue::getHexValueAsString(tbs, dval, dhex);
@@ -397,6 +398,12 @@ namespace MFM {
 	fp->write(m_state.getDataAsFormattedUserString(uvals[w]).c_str());
 	fp->write("\n");
       }
+    m_state.indent(fp);
+    fp->write("// = ");
+    fp->write(getMangledName().c_str());
+    fp->write("[");
+    fp->write_decimal_unsigned(nwords);
+    fp->write("]");
     GCNL;
   } //printPostfixValueArrayStringAsComment
 

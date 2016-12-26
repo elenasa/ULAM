@@ -289,7 +289,7 @@ namespace MFM{
     assert(aok);
 
     bool isString = (nut->getUlamTypeEnum() == String);
-    u32 tmpvarnum = m_state.getNextTmpVarNumber();
+    s32 tmpvarnum = m_state.getNextTmpVarNumber();
     TMPSTORAGE nstor = nut->getTmpStorageTypeForTmpVar();
     u32 nwords = nut->getTotalNumberOfWords();
 
@@ -302,13 +302,10 @@ namespace MFM{
 	UTI cuti = m_state.getCompileThisIdx();
 	const std::string stringmangledName = m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
 
-	m_state.indentUlamCode(fp);
-	fp->write("static const u32 Uh_6regnum = ");
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
-	fp->write(".GetRegistrationNumber();"); GCNL;
-
 	m_state.indentUlamCode(fp); //non-const
-	fp->write("static bool Uh_8initdone;\n");
+	fp->write("static bool ");
+	fp->write(m_state.getInitDoneVarAsString(tmpvarnum).c_str());
+	fp->write(";\n");
 
 	m_state.indentUlamCode(fp); //non-const
 	fp->write("static u32 ");
@@ -318,14 +315,23 @@ namespace MFM{
 	fp->write("];\n");
 
 	m_state.indentUlamCode(fp); //non-const
-	fp->write("if(!Uh_8initdone)\n");
+	fp->write("if(!");
+	fp->write(m_state.getInitDoneVarAsString(tmpvarnum).c_str());
+	fp->write(")\n");
 	m_state.indentUlamCode(fp); //non-const
 	fp->write("{\n");
 
 	m_state.m_currentIndentLevel++;
 
 	m_state.indentUlamCode(fp);
-	fp->write("Uh_8initdone = true;\n");
+	fp->write(m_state.getInitDoneVarAsString(tmpvarnum).c_str());
+	fp->write(" = true;\n");
+
+	m_state.indentUlamCode(fp);
+	fp->write("static const u32 Uh_6regnum = ");
+	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
+	fp->write(".GetRegistrationNumber();"); GCNL;
+
 	//exact size bitvector as 32-bit array, regardless of itemwordsize (e.g. String test t3973 )
 	for(u32 w = 0; w < nwords; w++)
 	  {
@@ -338,7 +344,9 @@ namespace MFM{
 	    fp->write(stringmangledName.c_str());
 	    fp->write("::makeCombinedIdx(Uh_6regnum, ");
 	    fp->write_decimal_unsigned(uvals[w] & STRINGIDXMASK);
-	    fp->write(");\n");
+	    fp->write("); //");
+	    fp->write(m_state.getDataAsFormattedUserString(uvals[w]).c_str()); //as comment
+	    fp->write("\n");
 	  }
 
 	m_state.m_currentIndentLevel--;

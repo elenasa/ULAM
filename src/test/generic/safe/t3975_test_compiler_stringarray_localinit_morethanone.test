@@ -1,0 +1,62 @@
+## -*- mode:ulam -*-
+#=t3975_test_compiler_stringarray_localinit_morethanone
+##
+## gen output: (+ interleaved asserts)
+## String(46) Arg: "oh"
+## Unsigned Arg: 2
+## Unsigned Arg: 32
+## Unsigned Arg: 3
+## String(61) Arg: " array items"
+##
+#!
+Exit status: 0
+Ue_A { Int(32) test() {  SystemU3 su3;  String(32) sarr[3] = { "fool", "bar", "foobar" };  String(32) sarr2[3] = { "oh", "my", "three" };  sarr sarr2 = su3 ( sarr 0 [] )print . Unsigned(32) slen = 2u;  su3 ( slen )print . su3 ( slen 2u cast == )assert . Unsigned(32) ssize = 32u;  su3 ( ssize )print . su3 ( ssize 32u cast == )assert . Unsigned(32) ssz = 3u;  su3 ( ssz )print . su3 ( " array items" )print . su3 ( true )assert . 0 cast return } }
+Uq_SystemU3 : System { :<> <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by t3974 with 2 function local variable string arrays (gen code issues);
+## also tests unpacked string array (BV96)
+##
+#>A.ulam
+  ulam 2;
+element A {
+ Int test() {
+   SystemU3 su3;
+   String sarr[3] = { "fool", "bar", "foobar"};
+   String sarr2[] = { "oh", "my", "three"}; //bool Uh_8initdone previously declared
+
+   sarr = sarr2; //must be the same size!
+   su3.print(sarr[0]);
+   Unsigned slen = sarr[0].lengthof;
+   su3.print(slen);
+   su3.assert(slen == 2u); //=2
+   Unsigned ssize = sarr[0].sizeof;
+   su3.print(ssize); //=32
+   su3.assert(ssize == 32u);
+   Unsigned ssz = sarr.lengthof; //three array items
+   su3.print(ssz);
+   su3.print(" array items");
+   su3.assert(sarr.lengthof == 3u); //=2
+
+   return 0;
+ }
+}
+
+#:SystemU3.ulam
+  ulam 2;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.
