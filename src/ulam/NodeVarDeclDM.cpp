@@ -769,9 +769,10 @@ namespace MFM {
 	fp->write("(");
 	fp->write_decimal_unsigned(pos + startpos);
 	fp->write("u, ");
-	if(classtype == UC_QUARK)
+	//if(classtype == UC_QUARK)
+	if((classtype == UC_QUARK) && (totbitsize <= BITSPERATOM))
 	  {
-	   fp->write_decimal_unsigned(totbitsize); //entire array (t3776)
+	   fp->write_decimal_unsigned(totbitsize); //entire array (t3776, t3969)
 	   fp->write(", ");
 	  }
 	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum2, cstor).c_str());
