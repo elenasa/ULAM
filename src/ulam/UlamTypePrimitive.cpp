@@ -532,7 +532,9 @@ namespace MFM {
 
   void UlamTypePrimitive::genUlamTypeReadDefinitionForC(File * fp)
   {
-    if(WritePacked(getPackable()))
+    u32 totbitsize = getTotalBitSize();
+    //if(WritePacked(getPackable()))
+    if(totbitsize <= BITSPERATOM) //t3969
       {
 	m_state.indent(fp);
 	fp->write("const ");
@@ -541,7 +543,7 @@ namespace MFM {
 	fp->write("() const { return BVS::"); //or read()? ReadLong
 	fp->write(readMethodForCodeGen().c_str());
 	fp->write("(0u, ");
-	fp->write_decimal_unsigned(getTotalBitSize());
+	fp->write_decimal_unsigned(totbitsize);
 	if(isScalar())
 	  {
 	    fp->write("u); }"); GCNL; //done
@@ -568,7 +570,10 @@ namespace MFM {
 
   void UlamTypePrimitive::genUlamTypeWriteDefinitionForC(File * fp)
   {
-    if(WritePacked(getPackable()))
+    u32 totbitsize = getTotalBitSize();
+    //if(WritePacked(getPackable()))
+    if(totbitsize <= BITSPERATOM) //t3969
+      //if(WritePacked(getPackable()))
       {
 	m_state.indent(fp);
 	fp->write("void write");
@@ -577,7 +582,7 @@ namespace MFM {
 	fp->write("& v) { BVS::");
 	fp->write(writeMethodForCodeGen().c_str());
 	fp->write("(0u, ");
-	fp->write_decimal_unsigned(getTotalBitSize());
+	fp->write_decimal_unsigned(totbitsize);
 
 	if(isScalar())
 	  {

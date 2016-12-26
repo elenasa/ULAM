@@ -563,7 +563,9 @@ namespace MFM {
 
   void UlamTypeClassQuark::genUlamTypeReadDefinitionForC(File * fp)
   {
-    if(WritePacked(getPackable()))
+    u32 totbitsize = getTotalBitSize();
+    //if(WritePacked(getPackable()))
+    if(totbitsize <= BITSPERATOM) //t3969
       {
 	m_state.indent(fp);
 	fp->write("const ");
@@ -577,7 +579,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    fp->write_decimal_unsigned(getTotalBitSize());
+	    fp->write_decimal_unsigned(totbitsize);
 	    fp->write("u); } //reads entire array"); GCNL;
 	  }
       }
@@ -591,7 +593,7 @@ namespace MFM {
 	fp->write("() const { ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //BV
 	fp->write(" rtnunpbv; this->BVS::");
-	fp->write(readMethodForCodeGen().c_str());
+	fp->write(readMethodForCodeGen().c_str()); //t3969?
 	fp->write("(0u, rtnunpbv); return rtnunpbv; ");
 	fp->write("} //reads entire BV"); GCNL;
       }
@@ -617,7 +619,9 @@ namespace MFM {
 
   void UlamTypeClassQuark::genUlamTypeWriteDefinitionForC(File * fp)
   {
-    if(WritePacked(getPackable()))
+    u32 totbitsize = getTotalBitSize();
+    //if(WritePacked(getPackable()))
+    if(totbitsize <= BITSPERATOM) //t3969
       {
 	m_state.indent(fp);
 	fp->write("void ");
@@ -633,7 +637,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    fp->write_decimal_unsigned(getTotalBitSize());
+	    fp->write_decimal_unsigned(totbitsize);
 	    fp->write("u, v); } //writes entire array"); GCNL;
 	  }
       }
