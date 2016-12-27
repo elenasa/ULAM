@@ -173,6 +173,10 @@ namespace MFM {
     if((typEnum == Bool) || (ntypEnum == Bool) || (typEnum == UAtom) || (typEnum == Class) || (typEnum == Void))
       return m_state.getUlamTypeByIndex(newType)->safeCast(nuti);
 
+    //special case: FROM Bits, not just a matter of fitting, e.g. logical shifts (t3850)
+    if((ntypEnum == Bits) && (typEnum != Bits))
+      return m_state.getUlamTypeByIndex(newType)->safeCast(nuti);
+
     //for non-bool terminal check for complete types and arrays before fits.
     FORECAST scr = m_state.getUlamTypeByIndex(newType)->UlamType::safeCast(nuti);
     if(scr != CAST_CLEAR)

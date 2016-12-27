@@ -406,7 +406,7 @@ namespace MFM{
 	  }
 	else if(nwords == 2) //64
 	  {
-	    //right justify single u64
+	    //right justify single u64 (t3979)
 	    //dhex << "HexU64(" << "0x" << std::hex << uvals[0] << ", 0x" << std::hex << uvals[1] << ")";
 	    dhex << "0x" << std::hex << dval.ReadLong(0u, len); //uvals[0] & uvals[1]
 	  }
