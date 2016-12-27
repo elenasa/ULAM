@@ -355,7 +355,7 @@ namespace MFM{
 
 	uvpass = UVPass::makePass(tmpvarnum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, vsym->getId());
 	return;
-      } //done
+      } //done local string
 
     //static constant array of u32's from BV8K, of proper length:
     //similar to CS::genCodeClassDefaultConstantArray,

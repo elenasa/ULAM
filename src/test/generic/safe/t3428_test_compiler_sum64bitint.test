@@ -1,17 +1,39 @@
 ## -*- mode:ulam -*-
 #=t3428_test_compiler_sum64bitint
+##
+## gen output: 2 asserts
+##
 #!
 Exit status: 64
-Ue_A { Int(32) test() {  typedef Int(64) Long;  Int(64) k;  Int(64) m;  m k HexU64(0x7fffffff, 0xffffffff) +b = 64u cast return } }
+Ue_A { Int(32) test() {  System s;  typedef Int(64) Long;  Int(64) k = 1 cast;  Int(64) m;  m k HexU64(0x7fffffff, 0xffffffff) +b = s ( k 1 cast == )assert . s ( m HexU64(0x7fffffff, 0xffffffff) == )assert . 64u cast return } }
+Uq_System { <NOMAIN> }
+##
+## see t3977 for more thorough testing of saturation
+##
 #>A.ulam
   ulam 1;
 element A {
   Int test(){
+    System s;
     typedef Int(64) Long;
-    Long k,m;
+    Long k = 1, m;
     m = k + Long.maxof;
+    s.assert(k == 1);
+    s.assert(m == Long.maxof); //saturates? (see 3977 for more)
     return m.sizeof;
   }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
 }
 
 #.
