@@ -9,7 +9,7 @@ Ue_Foo { Int(32) ta(39);  Int(32) test() {  System s;  Too t;  t a . 39u cast = 
 Un_Too { Bool(7) sp(false);  Int(32) a( 87);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
-## informed by t3712, the FIRST TRANSIENT TEST EVER in the history of the universe!!!
+## informed by t3711, the FIRST TRANSIENT TEST EVER in the history of the universe!!!
 ##
 #>Foo.ulam
   ulam 2;

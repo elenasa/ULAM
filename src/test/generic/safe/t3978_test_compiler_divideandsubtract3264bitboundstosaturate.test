@@ -1,0 +1,104 @@
+## -*- mode:ulam -*-
+#=t3978_test_compiler_divideandsubtract3264bitboundstosaturate
+##
+## gen output: (with asserts)
+## Unsigned Arg: 0
+## Int Arg: -1073741824
+## Int Arg: -1
+## Int Arg: -2147483648
+## Int Arg: -2147483648
+## Int Arg: -1
+## Int Arg: -2147483648
+## Int Arg: -1
+##
+#!
+Exit status: 64
+Ue_A { typedef Int(64) Long;  typedef Int(31) Jint;  Int(32) m_iarr[2](2147483647,0);  Int(32) test() {  System s;  Unary(32) v = 4294967295u;  Unary(32) w = 0u;  w v -= s ( w cast 0u cast == )assert . w v /= s ( w cast 0u cast == )assert . Unsigned(32) x = 4294967295u;  Unsigned(32) y = 0u;  y x -= s ( y )print . s ( y 0u == )assert . y x /= s ( y 0u == )assert . Int(31) d = 1073741823;  Int(31) e = -1073741824;  e d -= s ( e cast )print . s ( e -1073741824 == )assert . e d /= s ( e cast )print . s ( e -1 cast == )assert . Int(32) a = 2147483647;  Int(32) b = -2147483648;  b a -= s ( b )print . s ( b -2147483648 == )assert . b a /= s ( b -1 cast == )assert . Int(64) k = HexU64(0x7fffffff, 0xffffffff);  Int(64) m = HexU64(0x80000000, 0x0);  m k -= s ( m HexU64(0x80000000, 0x0) == )assert . m k /= s ( m -1 cast == )assert . Int(32) iarr[2] = { 2147483647, -2147483648 };  iarr 1 [] iarr 0 [] -= s ( iarr 1 [] )print . s ( iarr 1 [] -2147483648 == )assert . iarr 1 [] iarr 0 [] /= s ( iarr 1 [] )print . s ( iarr 1 [] -1 cast == )assert . Int(64) larr[2] = { HexU64(0x7fffffff, 0xffffffff), HexU64(0x80000000, 0x0) };  larr 1 [] larr 0 [] -= s ( larr 1 [] HexU64(0x80000000, 0x0) == )assert . larr 1 [] larr 0 [] /= s ( larr 1 [] -1 cast == )assert . m_iarr 1 [] m_iarr 0 [] -= s ( m_iarr 1 [] )print . s ( m_iarr 1 [] -2147483648 == )assert . m_iarr 1 [] m_iarr 0 [] /= s ( m_iarr 1 [] )print . s ( m_iarr 1 [] -1 cast == )assert . 64u cast return } }
+Uq_System { <NOMAIN> }
+##
+## 32-bit and 64-bit arith ops have special processing (CastOps.h) to detect over/under-flows
+## (informed by t3977) here, subtraction and division
+##
+#>A.ulam
+  ulam 1;
+element A {
+  typedef Int(64) Long;
+  typedef Int(31) Jint;
+  Int m_iarr[2] = { Int.maxof, Int.minof };
+
+  Int test(){
+    System s;
+
+    Unary v = Unary.maxof, w = Unary.minof;
+    w -= v;
+    s.assert(w == Unary.minof); //saturates, no problem
+    w /= v;
+    s.assert(w == Unary.minof); //saturates, no problem
+
+    Unsigned x = Unsigned.maxof, y = Unsigned.minof;
+    y -= x;
+    s.print(y);
+    s.assert(y == Unsigned.minof); //saturates
+    y /= x;
+    s.assert(y == Unsigned.minof); //saturates
+
+    Jint d = Jint.maxof, e = Jint.minof;
+    e -= d;
+    s.print(e);
+    s.assert(e == Jint.minof); //saturates, no problem
+    e /= d;
+    s.print(e);
+    s.assert(e == -1); //saturates, no problem
+
+    Int a = Int.maxof, b = Int.minof;
+    b -= a;
+    s.print(b);
+    s.assert(b == Int.minof); //saturates
+    b /= a;
+    s.assert(b == -1); //saturates
+
+    Long k = Long.maxof, m = Long.minof;
+    m -= k;
+    s.assert(m == Long.minof); //saturates
+    m /= k;
+    s.assert(m == -1); //saturates
+
+    //as local arrays
+    Int iarr[2] = {Int.maxof, Int.minof};
+    iarr[1] -= iarr[0];
+    s.print(iarr[1]);
+    s.assert(iarr[1] == Int.minof); //saturates
+    iarr[1] /= iarr[0];
+    s.print(iarr[1]);
+    s.assert(iarr[1] == -1); //saturates
+
+    Long larr[2] = { Long.maxof, Long.minof };
+    larr[1] -= larr[0];
+    s.assert(larr[1] == Long.minof); //saturates
+    larr[1] /= larr[0];
+    s.assert(larr[1] == -1); //saturates
+
+    //even if data member (long entire array)
+    m_iarr[1] -= m_iarr[0];
+    s.print(m_iarr[1]);
+    s.assert(m_iarr[1] == Int.minof); //saturates
+    m_iarr[1] /= m_iarr[0];
+    s.print(m_iarr[1]);
+    s.assert(m_iarr[1] == -1); //saturates
+
+    return m.sizeof;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

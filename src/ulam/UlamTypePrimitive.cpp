@@ -533,17 +533,16 @@ namespace MFM {
   void UlamTypePrimitive::genUlamTypeReadDefinitionForC(File * fp)
   {
     u32 totbitsize = getTotalBitSize();
-    //if(WritePacked(getPackable()))
-    if(totbitsize <= BITSPERATOM) //t3969
+    if(totbitsize <= BITSPERATOM) //Big 96bit array is unpacked, but.. (t3969)
       {
 	m_state.indent(fp);
 	fp->write("const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32 or u64
 	fp->write(" read");
-	fp->write("() const { return BVS::"); //or read()? ReadLong
+	fp->write("() const { return BVS::");
 	fp->write(readMethodForCodeGen().c_str());
 	fp->write("(0u, ");
-	fp->write_decimal_unsigned(totbitsize);
+	fp->write_decimal_unsigned(totbitsize); //incl ReadBig
 	if(isScalar())
 	  {
 	    fp->write("u); }"); GCNL; //done
@@ -571,9 +570,7 @@ namespace MFM {
   void UlamTypePrimitive::genUlamTypeWriteDefinitionForC(File * fp)
   {
     u32 totbitsize = getTotalBitSize();
-    //if(WritePacked(getPackable()))
-    if(totbitsize <= BITSPERATOM) //t3969
-      //if(WritePacked(getPackable()))
+    if(totbitsize <= BITSPERATOM) //Big 96bit array is unpacked, but.. (t3969)
       {
 	m_state.indent(fp);
 	fp->write("void write");
@@ -582,8 +579,7 @@ namespace MFM {
 	fp->write("& v) { BVS::");
 	fp->write(writeMethodForCodeGen().c_str());
 	fp->write("(0u, ");
-	fp->write_decimal_unsigned(totbitsize);
-
+	fp->write_decimal_unsigned(totbitsize); //incl WriteBig
 	if(isScalar())
 	  {
 	    fp->write("u, v); }"); GCNL;
