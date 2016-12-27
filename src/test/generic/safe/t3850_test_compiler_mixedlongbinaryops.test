@@ -17,16 +17,9 @@
 ## after assert's abort: arg is 1
 ## assert: arg is 1
 ## after assert's abort: arg is 1
-## assert: arg is 1
-## after assert's abort: arg is 1
-## assert: arg is 1
-## after assert's abort: arg is 1
-## assert: arg is 1
-## after assert's abort: arg is 1
-## Int Arg: -28399
-## assert: arg is 1
-## after assert's abort: arg is 1
-## Int Arg: 4
+## Int Arg: -113596 (= mixdiff32)
+## Int Arg: 2147483647 (= 2 * i)
+## Int Arg: 56798 (= n)
 ## assert: arg is 1
 ## after assert's abort: arg is 1
 ## assert: arg is 1
@@ -35,56 +28,73 @@
 ## after assert's abort: arg is 1
 ## assert: arg is 1
 ## after assert's abort: arg is 1
-## Int Arg: -113596
+## Int Arg: -28399 (= mixdiv32)
+## assert: arg is 1
+## after assert's abort: arg is 1
+## Int Arg: 4 (= mixprod32/mixdiv32)
 ## assert: arg is 1
 ## after assert's abort: arg is 1
 ## assert: arg is 1
 ## after assert's abort: arg is 1
-## Int Arg: 2147483647
-## Int Arg: -113596
-## Int Arg: -28399
-## Int Arg: 2147455249
+## assert: arg is 1
+## after assert's abort: arg is 1
+## assert: arg is 1
+## after assert's abort: arg is 1
+## Int Arg: -113596 (= mixlshift32)
+## assert: arg is 1
+## after assert's abort: arg is 1
+## assert: arg is 1
+## after assert's abort: arg is 1
+## Int Arg: 2147483647 (= mixrshift32)
+## Int Arg: -113596 (=mixprod32)
+## Int Arg: -28399 (=mixdiv32)
+## Int Arg: 2147455249 (= (Int) (i >> 1))
 ## assert: arg is 1
 ## after assert's abort: arg is 1
 ##
 #!
 Exit status: 0
-Ue_A { constant Int(64) j = HexU64(0xffffffff, 0xffff2222);  Int(32) i(-56798);  Int(32) n(56798);  Int(32) test() {  System s;  s ( true )assert . Int(64) k = HexU64(0x0, 0xddde);  s ( k 0 cast > )assert . n HexU64(0x0, 0xddde) cast = i HexU64(0xffffffff, 0xffff2222) cast = s ( n )print . s ( i )print . s ( i n +b )print . s ( i n +b 0 cast == )assert . Int(64) mixsum64 = n cast HexU64(0xffffffff, 0xffff2222) +b;  Int(32) mixsum32 = HexU64(0xffffffff, 0xffff2222) n cast +b cast;  s ( mixsum64 0 cast == )assert . s ( mixsum32 0 cast == )assert . Int(64) mixdiff64 = HexU64(0xffffffff, 0xffff2222) n cast -b;  Int(32) mixdiff32 = HexU64(0xffffffff, 0xffff2222) n cast -b cast;  s ( mixdiff64 HexU64(0xffffffff, 0xfffe4444) == )assert . s ( mixdiff32 2 cast i * == )assert . s ( mixdiff64 mixdiff32 cast == )assert . Int(64) mixprod64 = HexU64(0xffffffff, 0xfffe4444);  Int(32) mixprod32 = HexU64(0xffffffff, 0xfffe4444) cast;  s ( mixprod64 mixprod32 cast == )assert . Int(64) mixdiv64 = HexU64(0xffffffff, 0xffff9111);  Int(32) mixdiv32 = HexU64(0xffffffff, 0xffff9111) cast;  s ( mixdiv32 )print . s ( mixdiv64 mixdiv32 cast == )assert . s ( mixprod32 mixdiv32 / )print . s ( mixprod32 cast mixdiv64 / cast 4 cast == )assert . s ( mixprod64 mixdiv32 cast / 4 cast == )assert . s ( mixprod64 mixdiv32 cast / 4 cast == )assert . s ( mixprod32 cast mixdiv64 / cast 4 cast == )assert . Int(64) mixlshift64 = HexU64(0xffffffff, 0xfffe4444) cast;  Int(32) mixlshift32 = HexU64(0xffffffff, 0xfffe4444) cast;  s ( mixlshift32 )print . s ( mixlshift32 mixprod32 == )assert . s ( mixlshift64 mixlshift32 cast == )assert . Int(64) mixrshift64 = HexU64(0x7fffffff, 0xffff9111) cast;  Int(32) mixrshift32 = HexU64(0x7fffffff, 0xffff9111) cast;  s ( mixrshift32 )print . s ( mixprod32 )print . s ( mixdiv32 )print . s ( i cast 1 cast >> cast )print . s ( mixrshift64 mixrshift32 cast != )assert . i n +b return } }
+Ue_A { constant Int(64) j = HexU64(0xffffffff, 0xffff2222);  Int(32) i(-56798);  Int(32) n(56798);  Int(32) test() {  System s;  s ( true )assert . Int(64) k = HexU64(0x0, 0xddde);  s ( k 0 cast > )assert . n HexU64(0x0, 0xddde) cast = i HexU64(0xffffffff, 0xffff2222) cast = s ( n )print . s ( i )print . s ( i n +b )print . s ( i n +b 0 cast == )assert . Int(64) mixsum64 = n cast HexU64(0xffffffff, 0xffff2222) +b;  s ( mixsum64 0 cast == )assert . Int(32) mixsum32 = HexU64(0xffffffff, 0xffff2222) n cast +b cast;  s ( mixsum32 0 cast == )assert . Int(64) mixdiff64 = HexU64(0xffffffff, 0xffff2222) n cast -b;  s ( mixdiff64 HexU64(0xffffffff, 0xfffe4444) == )assert . Int(32) mixdiff32 = HexU64(0xffffffff, 0xffff2222) n cast -b cast;  s ( mixdiff32 )print . s ( 2 cast i * )print . s ( n )print . s ( mixdiff32 2 cast i * == )assert . s ( mixdiff32 cast HexU64(0xffffffff, 0xfffe4444) == )assert . s ( mixdiff64 mixdiff32 cast == )assert . Int(64) mixprod64 = HexU64(0xffffffff, 0xfffe4444);  Int(32) mixprod32 = HexU64(0xffffffff, 0xfffe4444) cast;  s ( mixprod64 mixprod32 cast == )assert . Int(64) mixdiv64 = HexU64(0xffffffff, 0xffff9111);  Int(32) mixdiv32 = HexU64(0xffffffff, 0xffff9111) cast;  s ( mixdiv32 )print . s ( mixdiv64 mixdiv32 cast == )assert . s ( mixprod32 mixdiv32 / )print . s ( mixprod32 cast mixdiv64 / cast 4 cast == )assert . s ( mixprod64 mixdiv32 cast / 4 cast == )assert . s ( mixprod64 mixdiv32 cast / 4 cast == )assert . s ( mixprod32 cast mixdiv64 / cast 4 cast == )assert . Int(64) mixlshift64 = HexU64(0xffffffff, 0xfffe4444) cast;  Int(32) mixlshift32 = HexU64(0xffffffff, 0xfffe4444) cast;  s ( mixlshift32 )print . s ( mixlshift32 mixprod32 == )assert . s ( mixlshift64 mixlshift32 cast == )assert . Int(64) mixrshift64 = HexU64(0x7fffffff, 0xffff9111) cast;  Int(32) mixrshift32 = HexU64(0x7fffffff, 0xffff9111) cast;  s ( mixrshift32 )print . s ( mixprod32 )print . s ( mixdiv32 )print . s ( i cast 1 cast >> cast )print . s ( mixrshift64 mixrshift32 cast != )assert . i n +b return } }
 Uq_System { <NOMAIN> }
 ##
-## informed by error/t3849
+## informed by t3849; (see foo-ulamtest3850.cpp)
 ##
 #>A.ulam
  ulam 2;
 element A {
-  //constant Int(64) j = (Int) 0xffff2222;
   constant Int(64) j = - 0xDDDe; //0xffffffff ffff2222
 
   Int i;
   Int n;
   Int test () {
     System s;
+
     s.assert(j < 0);
     Int(64) k = -j; //0x0, 0xddde
     s.assert(k > 0);
 
     n = (Int) -j; //found assert in NodeUnaryOp
     i = (Int) j;
+
     s.print(n);
     s.print(i);
     s.print(i + n);
     s.assert((i + n) == 0);
 
-    Int(64) mixsum64 = n + j; //j + n;
-    Int mixsum32 = (Int) (j + n); //explicit cast req'd
+    Int(64) mixsum64 = n + j; //j64 + n32;
     s.assert(mixsum64 == 0);
+    Int mixsum32 = (Int) (j + n); //explicit cast reqd
     s.assert(mixsum32 == 0);
 
     Int(64) mixdiff64 = j - n;
-    Int mixdiff32 = (Int) (j - n); //explicit cast req'd
     s.assert(mixdiff64 == 2 * j);
+    Int mixdiff32 = (Int) (j - n); //explicit cast reqd
+    s.print(mixdiff32); //-113596
+    s.print(2 * i); //overflows to saturate at S32_MAX
+    s.print(n); //56798
     s.assert(mixdiff32 == 2 * i);
-    s.assert(mixdiff64 == mixdiff32);
+    s.assert(mixdiff32 == 2 * j);
+    s.assert(mixdiff64 == mixdiff32); //qed
 
     Int(64) mixprod64 = 2 * j;
     Int mixprod32 = (Int) (j * 2); //explicit cast req'd
@@ -101,21 +111,21 @@ element A {
     s.assert(mixprod64 / mixdiv32 == 4);
     s.assert(mixprod32 / mixdiv64 == 4);
 
+    Int(64) mixlshift64 = (Int(64)) (j << 1); //explicit cast req'd from BITS
+    Int mixlshift32 = (Int) (j << 1); //explicit cast req'd from BITS
 
-    Int(64) mixlshift64 = j << 1;
-    Int mixlshift32 = (Int) (j << 1); //explicit cast req'd
     s.print(mixlshift32); //-113596
     s.assert(mixlshift32 == mixprod32);
     s.assert(mixlshift64 == mixlshift32);
 
-    Int(64) mixrshift64 = j >> 1;
-    Int mixrshift32 = (Int) (j >> 1); //explicit cast req'd
-    s.print(mixrshift32); //2147483647
+    Int(64) mixrshift64 = (Int(64)) (j >> 1); //explicit cast req'd from BITS
+    Int mixrshift32 = (Int) (j >> 1); //explicit cast req'd from BITS
+    s.print(mixrshift32); //2147483647 == Int.maxof
     s.print(mixprod32); // -113596
     s.print(mixdiv32); // -28399
     s.print((Int) (i >> 1)); //2147455249
 
-    s.assert(mixrshift64 != mixrshift32);
+    s.assert(mixrshift64 != mixrshift32); // okay since logical
 
     return (i + n);
   }
