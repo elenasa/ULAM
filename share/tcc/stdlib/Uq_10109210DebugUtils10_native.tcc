@@ -9,10 +9,10 @@ namespace MFM{
   template<class EC>
   void Uq_10109210DebugUtils10<EC>::Uf_9212printContext(const UlamContext<EC>& uc,
                                                              UlamRef<EC>& ur,
-                                                             Ui_Ut_102321u<EC>& Uv_5flags) const
+                                                             Ui_Ut_102321t<EC>& Uv_5flags) const
   {
-    const Tile<EC> & tile = uc.GetTile();
     const EventWindow<EC> & ew = uc.GetEventWindow();
+    const Tile<EC> & tile = ew.GetTile();
     SPoint ctr = ew.GetCenterInTile();
 
     OString512 buff;
@@ -93,7 +93,7 @@ namespace MFM{
 
     AtomSerializer<AC> as(atom);
     u32 type = atom.GetType();
-    const Tile<EC> & tile = uc.GetTile();
+    const Tile<EC> & tile = uc.GetEventWindow().GetTile();
     const UlamClassRegistry<EC> & ucr = tile.GetUlamClassRegistry();
     const Element<EC> * ep = tile.GetElement(type);
 
@@ -105,7 +105,7 @@ namespace MFM{
       const UlamElement<EC> * uep = ep->AsUlamElement();
       if (uep)
       {
-        uep->Print(ucr, buff, atom, flags);
+        uep->Print(ucr, buff, atom, flags, 25);
       }
       else
       {
@@ -128,7 +128,7 @@ namespace MFM{
 
   //! DebugUtils.ulam:10:   Void print(Atom a, Unsigned flags)
   template<class EC>
-  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102961a<EC>& Uv_1a, Ui_Ut_102321u<EC>& Uv_5flags) const
+  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102961a<EC>& Uv_1a, Ui_Ut_102321t<EC>& Uv_5flags) const
   {
     OString512 buff;
     T atom = Uv_1a.ReadAtom();
