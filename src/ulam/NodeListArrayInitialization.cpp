@@ -403,18 +403,20 @@ namespace MFM{
 	  {
 	    //right justify single u32 (t3974)
 	    dhex << "0x" << std::hex << dval.Read(0u, len); //uvals[0]
+	    fp->write(dhex.str().c_str());
+	    fp->write(";"); GCNL;
+
 	  }
 	else if(nwords == 2) //64
 	  {
 	    //right justify single u64 (t3979)
 	    //dhex << "HexU64(" << "0x" << std::hex << uvals[0] << ", 0x" << std::hex << uvals[1] << ")";
-	    dhex << "0x" << std::hex << dval.ReadLong(0u, len); //uvals[0] & uvals[1]
+	    //dhex << "0x" << std::hex << dval.ReadLong(0u, len); //uvals[0] & uvals[1]
+	    fp->write_decimal_unsignedlong(dval.ReadLong(0u, len));
+	    fp->write(";"); GCNL;
 	  }
 	else
 	  m_state.abortGreaterThanMaxBitsPerLong();
-
-	fp->write(dhex.str().c_str());
-	fp->write(";"); GCNL;
       }
 
     uvpass = UVPass::makePass(tmpvarnum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, vsym->getId());
