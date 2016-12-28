@@ -293,7 +293,7 @@ namespace MFM {
   {
 #if 0
     m_state.indentUlamCode(fp);
-    fp->write("typedef ");
+    fp->write("//typedef ");
 
     fp->write(m_state.getUlamTypeByIndex(m_typedefSymbol->getUlamTypeIdx())->getUlamTypeMangledName().c_str()); //for C++
     fp->write(" ");
@@ -322,7 +322,12 @@ namespace MFM {
   {}
 
   void NodeTypedef::cloneAndAppendNode(std::vector<Node *> & cloneVec)
-  {}
+  {
+    //for comment purposes (e.g. t3883)
+    NodeTypedef * cloneofme = (NodeTypedef *) this->instantiate();
+    assert(cloneofme);
+    cloneVec.push_back(cloneofme);
+  }
 
   void NodeTypedef::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {}

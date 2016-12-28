@@ -2299,7 +2299,8 @@ namespace MFM {
     AssertBool isReplaced = replaceUlamTypeForUpdatedClassType(cut->getUlamKeyTypeSignature(), Class, UC_LOCALFILESCOPES, false);
     assert(isReplaced);
 
-    //populate with NodeConstantDefs clones for gencode purposes; same symbol.
+    //populate with NodeConstantDefs clones (arrays) for gencode purposes;
+    //ptr to same symbol.
     std::vector<Node*> fmLocals;
 
     std::map<u32, NodeBlockLocals *>::iterator it;
@@ -2307,7 +2308,6 @@ namespace MFM {
       {
 	NodeBlockLocals * locals = it->second;
 	assert(locals);
-
 	locals->cloneAndAppendNode(fmLocals);
       }
 

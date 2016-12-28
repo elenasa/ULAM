@@ -1173,17 +1173,18 @@ void SymbolClass::setContextForPendingArgs(UTI context)
 
   StringPoolUser& SymbolClass::getUserStringPoolRef()
   {
-    return m_upool;
-  }
-
-  const StringPoolUser& SymbolClass::getUserStringPoolRef() const
-  {
-    return m_upool;
+    NodeBlockClass * classblock = getClassBlockNode();
+    assert(classblock);
+    return classblock->getUserStringPoolRef();
+    //return m_upool;
   }
 
   void SymbolClass::setUserStringPoolRef(const StringPoolUser& spref)
   {
-    m_upool = spref;
+    //m_upool = spref;
+    NodeBlockClass * classblock = getClassBlockNode();
+    assert(classblock);
+    return classblock->setUserStringPoolRef(spref);
   }
 
 } //end MFM

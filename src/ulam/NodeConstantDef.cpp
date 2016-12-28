@@ -1022,7 +1022,8 @@ namespace MFM {
 
   void NodeConstantDef::cloneAndAppendNode(std::vector<Node *> & cloneVec)
   {
-    if(!m_state.isScalar(getNodeType()))
+    //include scalars for generated comments; arrays for constructor initialization
+    //if(!m_state.isScalar(getNodeType()))
       {
 	NodeConstantDef * cloneofme = (NodeConstantDef *) this->instantiate();
 	assert(cloneofme);

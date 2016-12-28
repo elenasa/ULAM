@@ -38,7 +38,7 @@
 #define NODEBLOCKCONTEXT_H
 
 #include "NodeBlock.h"
-
+#include "StringPoolUser.h"
 
 namespace MFM{
 
@@ -58,8 +58,11 @@ namespace MFM{
 
     virtual bool isAClassBlock() = 0;
 
-  protected:
+    virtual StringPoolUser& getUserStringPoolRef();
+    virtual void setUserStringPoolRef(const StringPoolUser& spref); //for instantiated templates
 
+  protected:
+    StringPoolUser m_upool; //for double quoted strings only
 
   private:
 

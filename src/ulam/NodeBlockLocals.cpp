@@ -63,7 +63,7 @@ namespace MFM {
   void NodeBlockLocals::cloneAndAppendNode(std::vector<Node *> & cloneVec)
   {
     if(m_nodeNext)
-      m_nodeNext->cloneAndAppendNode(cloneVec);
+      m_nodeNext->cloneAndAppendNode(cloneVec); //work done by NodeConstantDef, NodeTypedef
   }
 
 } //end MFM
