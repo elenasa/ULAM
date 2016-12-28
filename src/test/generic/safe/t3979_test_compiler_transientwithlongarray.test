@@ -54,7 +54,6 @@ transient Tumi {
   Bool(7) barrlong[6] = { true, false, true, false, false, true };
 }
 
-
 #:System.ulam
 ulam 1;
 quark System {Void print(Unsigned arg) native;
