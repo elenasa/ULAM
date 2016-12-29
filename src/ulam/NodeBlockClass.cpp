@@ -641,6 +641,18 @@ namespace MFM {
     m_virtualmethodMaxIdx = maxidx;
   }
 
+  u32 NodeBlockClass::getLocalsFilescopeType()
+  {
+    UTI locuti = Nouti;
+    NodeBlockLocals * localblock = m_state.getLocalScopeBlock(getNodeLocation());
+    if(localblock)
+      {
+	locuti = localblock->getNodeType();
+	assert(m_state.okUTItoContinue(locuti));
+      }
+    return locuti;
+  }
+
   bool NodeBlockClass::hasCustomArray()
   {
     bool hasCA = false;
@@ -1515,10 +1527,17 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     if(classtype != UC_LOCALFILESCOPES)
       {
-	m_state.indent(fp);
-	fp->write("#include \"");
-	fp->write(m_state.getMangledClassNameForUlamLocalFilescopes());
-	fp->write(".h\""); GCNL;
+	//include the locals filescope for this class' locator, if one exists
+	UTI locuti = getLocalsFilescopeType();
+	if(locuti != Nouti)
+	  {
+	    assert(m_state.okUTItoContinue(locuti));
+	    u32 mangledclassid = m_state.getMangledClassNameIdForUlamLocalsFilescope(locuti);
+	    m_state.indent(fp);
+	    fp->write("#include \"");
+	    fp->write(m_state.m_pool.getDataAsString(mangledclassid).c_str());
+	    fp->write(".h\""); GCNL;
+	  }
       }
     fp->write("\n");
 

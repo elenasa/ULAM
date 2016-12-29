@@ -111,6 +111,8 @@ namespace MFM{
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
+    u32 getLocalsFilescopeType();
+
     bool hasCustomArray();
 
     void checkCustomArrayTypeFunctions();

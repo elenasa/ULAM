@@ -74,7 +74,9 @@ namespace MFM {
       }
     else if(isLocalFilescopeDef())
       {
-	mangledfullname << m_state.getMangledClassNameForUlamLocalFilescopes();
+	UTI locuti = getLocalFilescopeType();
+	u32 mangledclassid = m_state.getMangledClassNameIdForUlamLocalsFilescope(locuti);
+	mangledfullname << m_state.m_pool.getDataAsString(mangledclassid).c_str();
 	mangledfullname << "<EC>::THE_INSTANCE." << getMangledName().c_str();
       }
     else if(isClassArgument())

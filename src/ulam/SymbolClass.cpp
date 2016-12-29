@@ -841,13 +841,21 @@ void SymbolClass::setContextForPendingArgs(UTI context)
     //generate includes for all the other classes that have appeared
     m_state.m_programDefST.generateForwardDefsForTableOfClasses(fp);
 
-    m_state.indent(fp);
-    fp->write("namespace MFM { template ");
-    fp->write("<class EC> "); //same for elements and quarks
+    NodeBlockClass * classblock = getClassBlockNode();
+    assert(classblock);
+    UTI locuti = classblock->getLocalsFilescopeType();
+    if(locuti != Nouti)
+      {
+	assert(m_state.okUTItoContinue(locuti));
+	u32 mangledclassid = m_state.getMangledClassNameIdForUlamLocalsFilescope(locuti);
 
-    fp->write("struct ");
-    fp->write(m_state.getMangledClassNameForUlamLocalFilescopes());
-    fp->write("; }  //FORWARD"); GCNL;
+	m_state.indent(fp);
+	fp->write("namespace MFM { template ");
+	fp->write("<class EC> ");
+	fp->write("struct ");
+	fp->write(m_state.m_pool.getDataAsString(mangledclassid).c_str());
+	fp->write("; }  //FORWARD"); GCNL;
+      }
   } //generateHeaderIncludes
 
   // create structs with BV, as storage, and typedef
@@ -939,10 +947,17 @@ void SymbolClass::setContextForPendingArgs(UTI context)
 
     m_state.m_programDefST.generateIncludesForTableOfClasses(fp); //the other classes
 
-    m_state.indent(fp);
-    fp->write("#include \"");
-    fp->write(m_state.getMangledClassNameForUlamLocalFilescopes());
-    fp->write(".h\""); GCNL;
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    UTI locuti = classNode->getLocalsFilescopeType();
+    if(locuti != Nouti)
+      {
+	u32 mangledclassid = m_state.getMangledClassNameIdForUlamLocalsFilescope(locuti);
+	m_state.indent(fp);
+	fp->write("#include \"");
+	fp->write(m_state.m_pool.getDataAsString(mangledclassid).c_str());
+	fp->write(".h\""); GCNL;
+      }
 
     //namespace MFM
     fp->write("\n");

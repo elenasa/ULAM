@@ -326,6 +326,7 @@ namespace MFM{
     void generateCodeForUlamClasses(FileManager * fm);
     void generateUlamClassForLocals(FileManager * fm);
     StringPoolUser & getUPoolRefForClass(UTI cuti);
+    StringPoolUser& getUPoolRefForLocalsFilescope(UTI luti);
     const std::string & getDataAsFormattedUserString(u32 combinedidx);
     bool isValidUserStringIndex(u32 combinedidx);
     u32 getUserStringLength(u32 combinedidx);
@@ -373,7 +374,9 @@ namespace MFM{
     std::string getFileNameForThisClassCPP(bool wSubDir = false);
     std::string getFileNameForThisTypesHeader(bool wSubDir = false);
     std::string getFileNameForThisClassMain(bool wSubDir = false);
-    const char * getMangledClassNameForUlamLocalFilescopes();
+    //const char * getMangledClassNameForUlamLocalFilescopes();
+    u32 getMangledClassNameIdForUlamLocalsFilescope(UTI locuti);
+    u32 getClassNameIdForUlamLocalsFilescope(UTI locuti);
 
     const char * getMangledNameForUserStringPool();
     const char * getDefineNameForUserStringPoolSize();

@@ -76,8 +76,8 @@ namespace MFM {
   static const char * BUILD_DEFAULT_QUARK_FUNCNAME = "getDefaultQuark";
   static const char * BUILD_DEFAULT_TRANSIENT_FUNCNAME = "getDefaultTransient";
 
-  static const char * ULAMLOCALFILESCOPES_CLASSNAME = "UlamLocalFilescopes";
-  static const char * ULAMLOCALFILESCOPES_MANGLED_CLASSNAME = "Ul_10109219UlamLocalFilescopes10";
+  //static const char * ULAMLOCALSFILESCOPE_CLASSNAME = "UlamLocalsFilescope"; //append filename
+  //static const char * ULAMLOCALSFILESCOPE_MANGLED_CLASSNAME = "Ul_10109219UlamLocalsFilescope";
 
   static const char * USERSTRINGPOOL_MANGLEDNAME = "UserStringPool";
   static const char * USERSTRINGPOOL_SIZEDEFINENAME = "USERSTRINGPOOLSIZE";
@@ -2285,6 +2285,7 @@ namespace MFM {
     generateUlamClassForLocals(fm);
   }
 
+#if 0
   void CompilerState::generateUlamClassForLocals(FileManager * fm)
   {
     //create a temporary "class" !!!
@@ -2329,6 +2330,55 @@ namespace MFM {
 
     AssertBool isGone = removeIncompleteClassSymbolFromProgramTable(cTok);
     assert(isGone);
+  } //generateUlamClassForLocals
+#endif
+
+  void CompilerState::generateUlamClassForLocals(FileManager * fm)
+  {
+    std::map<u32, NodeBlockLocals *>::iterator it;
+    for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
+      {
+	NodeBlockLocals * locals = it->second;
+	assert(locals);
+	UTI locuti = locals->getNodeType();
+
+	//create a temporary "class" !!!
+	u32 cid = getClassNameIdForUlamLocalsFilescope(locuti);
+	Token cTok(TOK_IDENTIFIER, locals->getNodeLocation(), cid);
+	SymbolClassName * cnsym = NULL;
+	AssertBool isDefined = addIncompleteClassSymbolToProgramTable(cTok, cnsym);
+	assert(isDefined);
+
+	UTI cuti = cnsym->getUlamTypeIdx();
+	UlamType * cut = getUlamTypeByIndex(cuti);
+	AssertBool isReplaced = replaceUlamTypeForUpdatedClassType(cut->getUlamKeyTypeSignature(), Class, UC_LOCALFILESCOPES, false);
+	assert(isReplaced);
+
+	//populate with NodeConstantDefs clones (ptr to same symbol),
+	// and NodeTypedef clones for gencode purposes;
+	std::vector<Node*> fmLocals;
+	locals->cloneAndAppendNode(fmLocals);
+
+
+	NodeBlockClass * classblock = cnsym->getClassBlockNode();
+	assert(classblock);
+	assert(classblock->getLastStatementPtr() == classblock); //check this.
+
+	std::vector<Node *>::iterator vit;
+	for(vit = fmLocals.begin(); vit != fmLocals.end(); vit++)
+	  {
+	    Node * cenode = *vit;
+	    assert(cenode);
+	    classblock->appendNextNode(cenode); //tfr node ownership
+	  }
+	fmLocals.clear(); //done with vector of clones
+
+	//generate a single class, .h, _Types.h, .tcc and .cpp
+	cnsym->generateCodeForClassInstances(fm);
+
+	AssertBool isGone = removeIncompleteClassSymbolFromProgramTable(cTok);
+	assert(isGone);
+      } //next filescope locals
   } //generateUlamClassForLocals
 
   bool CompilerState::countNavHzyNoutiNodesPass()
@@ -2697,10 +2747,23 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   StringPoolUser& CompilerState::getUPoolRefForClass(UTI cuti)
   {
     assert(isScalar(cuti));
+    //assert(!isALocalsFileScope(cuti));
+    if(isALocalsFileScope(cuti) && !isAClass(cuti))
+      return getUPoolRefForLocalsFilescope(cuti); //not the temporary class (t3883, t3858)
+
     SymbolClass * csym = NULL;
     AssertBool isDefClass = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefClass);
     return csym->getUserStringPoolRef();
+  }
+
+  StringPoolUser& CompilerState::getUPoolRefForLocalsFilescope(UTI luti)
+  {
+    assert(isScalar(luti));
+    assert(isALocalsFileScope(luti));
+    NodeBlockLocals * localsblock = getLocalScopeBlockByIndex(luti);
+    assert(localsblock);
+    return localsblock->getUserStringPoolRef();
   }
 
   const std::string & CompilerState::getDataAsFormattedUserString(u32 combinedidx)
@@ -3069,9 +3132,33 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return f.str();
   } //getFileNameForThisClassMain
 
-  const char * CompilerState::getMangledClassNameForUlamLocalFilescopes()
+  u32 CompilerState::getMangledClassNameIdForUlamLocalsFilescope(UTI locuti)
   {
-    return ULAMLOCALFILESCOPES_MANGLED_CLASSNAME;
+    assert(isALocalsFileScope(locuti));
+    UlamType * locut = getUlamTypeByIndex(locuti);
+    u32 classid = 0;
+    AssertBool foundClassName = getClassNameFromFileName(locut->getUlamTypeNameOnly(), classid); //without trailing .ulam (no dots allowed)
+    assert(foundClassName);
+
+    std::ostringstream localclassname;
+    localclassname << "_l" << m_pool.getDataAsString(classid);// << "ulam";
+
+    std::ostringstream mangled;
+    mangled << "Ul_1010" << ToLeximited(localclassname.str()).c_str() << "10"; //leximited
+    return m_pool.getIndexForDataString(mangled.str());
+  }
+
+  u32 CompilerState::getClassNameIdForUlamLocalsFilescope(UTI locuti)
+  {
+    assert(isALocalsFileScope(locuti));
+    UlamType * locut = getUlamTypeByIndex(locuti);
+    u32 classid = 0;
+    AssertBool foundClassName = getClassNameFromFileName(locut->getUlamTypeNameOnly(), classid); //without trailing .ulam (no dots allowed)
+    assert(foundClassName);
+
+    std::ostringstream f;
+    f << "_l" << m_pool.getDataAsString(classid).c_str();// << "ulam"; //4ulam included, not separated to be distinct "temporary" class name.
+    return m_pool.getIndexForDataString(f.str());
   }
 
   const char * CompilerState::getMangledNameForUserStringPool()
