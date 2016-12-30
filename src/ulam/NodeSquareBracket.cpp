@@ -844,7 +844,7 @@ namespace MFM {
 		fp->write(" = ");
 		fp->write(stringmangledName.c_str());
 		fp->write("::makeCombinedIdx(");
-		fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
+		fp->write(m_state.getTheInstanceMangledNameByIndex(cuti).c_str());
 		fp->write(".GetRegistrationNumber(), ");
 		fp->write(luvpass.getTmpVarAsString(m_state).c_str());
 		fp->write(".getStringIndex());"); GCNL;
@@ -925,7 +925,7 @@ namespace MFM {
 	    UTI cuti = tmpbv8k.Read(0, 16u);
 	    assert(cuti > 0);
 
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(cuti).c_str());
 	    fp->write("))->");
 	    fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
 	    fp->write("Length(");
@@ -1001,7 +1001,7 @@ namespace MFM {
 	    assert(cuti > 0);
 
 	    fp->write(" = *(");
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(cuti).c_str());
 	    fp->write("))->");
 	    fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
 	    fp->write("(");

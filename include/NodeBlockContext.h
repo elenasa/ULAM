@@ -39,6 +39,8 @@
 
 #include "NodeBlock.h"
 #include "StringPoolUser.h"
+#include "TargetMap.h"
+#include "MapClassMemberDesc.h"
 
 namespace MFM{
 
@@ -60,6 +62,11 @@ namespace MFM{
 
     virtual StringPoolUser& getUserStringPoolRef();
     virtual void setUserStringPoolRef(const StringPoolUser& spref); //for instantiated templates
+
+    virtual void addTargetDescriptionToInfoMap(TargetMap& classtargets, u32 scid) = 0;
+    virtual void addMemberDescriptionsToInfoMap(ClassMemberMap& classmembers) = 0;
+
+    virtual void generateTestInstance(File * fp, bool runtest) = 0;
 
   protected:
     StringPoolUser m_upool; //for double quoted strings only

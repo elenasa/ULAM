@@ -174,7 +174,7 @@ namespace MFM {
       }
     m_state.popClassContext(); //restore
 
-    if(m_constSymbol && !m_constSymbol->isDataMember() && !m_constSymbol->isLocalFilescopeDef() && !m_constSymbol->isClassArgument() && (m_constSymbol->getDeclNodeNo() > getNodeNo()))
+    if(m_constSymbol && !m_constSymbol->isDataMember() && !m_constSymbol->isLocalsFilescopeDef() && !m_constSymbol->isClassArgument() && (m_constSymbol->getDeclNodeNo() > getNodeNo()))
       {
 	NodeBlock * currBlock = getBlock();
 	currBlock = currBlock->getPreviousBlockPointer();
@@ -223,7 +223,7 @@ namespace MFM {
 	  }
 	//try local scope
 	if(!currBlock)
-	  currBlock = m_state.findALocalScopeByNodeNo(m_currBlockNo);
+	  currBlock = m_state.findALocalsScopeByNodeNo(m_currBlockNo);
       }
     assert(currBlock);
     return currBlock;

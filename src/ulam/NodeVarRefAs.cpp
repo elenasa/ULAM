@@ -200,7 +200,7 @@ namespace MFM {
 	  {
 	    fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, &"); //t3586, t3589, t3637
 	    //must be same as look up for elements only Sat Jun 18 17:30:17 2016
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
 	  }
 	if(vclasstype == UC_QUARK)
 	  fp->write(", UlamRef<EC>::ELEMENTAL"); //stays elemental
@@ -217,7 +217,7 @@ namespace MFM {
 	else
 	  {
 	    fp->write("&"); //t3822
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
 	  }
 	if(vclasstype == UC_QUARK)
 	  fp->write(", UlamRef<EC>::CLASSIC"); //stays classic
@@ -234,7 +234,7 @@ namespace MFM {
 	else
 	  {
 	    fp->write("&"); //t3830
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
 	  }
 	assert(vclasstype == UC_QUARK);
 	fp->write(", UlamRef<EC>::CLASSIC"); //stays classic

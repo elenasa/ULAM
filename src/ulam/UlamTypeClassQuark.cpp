@@ -349,7 +349,7 @@ namespace MFM {
 	fp->write("UlamRef<EC>(");
 	fp->write("*this, index * itemlen, "); //const ref, rel offset
 	fp->write("itemlen, &");  //itemlen,
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalaruti).c_str());
+	fp->write(m_state.getTheInstanceMangledNameByIndex(scalaruti).c_str());
 	fp->write(", UlamRef<EC>::CLASSIC).");
 	fp->write(readArrayItemMethodForCodeGen().c_str());
 	fp->write("(); }"); GCNL;
@@ -384,7 +384,7 @@ namespace MFM {
 	fp->write("UlamRef<EC>(");
 	fp->write("*this, index * itemlen, "); //rel offset
 	fp->write("itemlen, &");  //itemlen,
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalaruti).c_str());
+	fp->write(m_state.getTheInstanceMangledNameByIndex(scalaruti).c_str());
 	fp->write(", UlamRef<EC>::CLASSIC).");
 	fp->write(writeArrayItemMethodForCodeGen().c_str());
 	fp->write("(v); }"); GCNL;

@@ -817,7 +817,7 @@ namespace MFM {
       {
 	m_state.indentUlamCode(fp);
 	fp->write("if(!");
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
+	fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
 	fp->write(".");
 	fp->write(m_state.getIsMangledFunctionName(tobeType));
 	fp->write("(");
@@ -862,7 +862,7 @@ namespace MFM {
 	    else
 	      {
 		fp->write("&");
-		fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
+		fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
 		fp->write(", uc"); //t3754
 	      }
 	    fp->write(");"); GCNL;
@@ -983,7 +983,7 @@ namespace MFM {
 	fp->write("uc, ");
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str());;
 	fp->write(", &");
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
+	fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
 	fp->write("));"); GCNL;
       }
     else
@@ -1060,7 +1060,7 @@ namespace MFM {
 	      {
 		fp->write(stgcos->getMangledName().c_str());
 		fp->write(", &"); //'is' storage
-		fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
+		fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
 	      }
 	    else
 	      {
@@ -1148,11 +1148,11 @@ namespace MFM {
     // "downcast" might not be true; compare to be sure the element is-related to quark "Foo"
     m_state.indentUlamCode(fp);
     fp->write("if(! ");
-    fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
+    fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
     fp->write(".");
     fp->write(m_state.getIsMangledFunctionName(vuti)); //UlamElement IsMethod
     fp->write("(&"); //one arg
-    fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
+    fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
     fp->write("))\n");
 
     m_state.m_currentIndentLevel++;
@@ -1188,7 +1188,7 @@ namespace MFM {
 	    else
 	      fp->write(stgcos->getMangledName().c_str()); //storage
 	    fp->write(", &");
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
 	  }
 	else
 	  {
@@ -1226,7 +1226,7 @@ namespace MFM {
 	if(!stgcosut->isReference())
 	  {
 	    fp->write("u, &"); //transients stg at pos , state of super quark at 0 //t3789, case 1: Qbase& qref = tw;
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
 	    if(!stgcos->isDataMember()) //t3967
 	      fp->write(", uc");
 	  }
@@ -1267,11 +1267,11 @@ namespace MFM {
     // "downcast" might not be true; compare to be sure the element is-related to quark "Foo"
     m_state.indentUlamCode(fp);
     fp->write("if(! ");
-    fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
+    fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
     fp->write(".");
     fp->write(m_state.getIsMangledFunctionName(tobeType)); //UlamElement IsMethod
     fp->write("(&"); //one arg
-    fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
+    fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
     fp->write("))\n");
 
     m_state.m_currentIndentLevel++;
@@ -1325,11 +1325,11 @@ namespace MFM {
     // "downcast" might not be true; compare to be sure the element is-related to quark "Foo"
     m_state.indentUlamCode(fp);
     fp->write("if(! ");
-    fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
+    fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
     fp->write(".");
     fp->write(m_state.getIsMangledFunctionName(vuti)); //UlamElement IsMethod
     fp->write("(&"); //one arg
-    fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
+    fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
     fp->write("))\n");
 
     m_state.m_currentIndentLevel++;
@@ -1367,7 +1367,7 @@ namespace MFM {
 	  {
 	    fp->write(stgcos->getMangledName().c_str()); //storage
 	    fp->write(", &");
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
 	  }
 	else
 	  {
@@ -1402,7 +1402,7 @@ namespace MFM {
 	    fp->write(", "); //offset of decendent is always 0 +25
 	    fp->write_decimal_unsigned(ruvpass.getPassPos()); //t3735
 	    fp->write("u + T::ATOM_FIRST_STATE_BIT, &"); //elements stg at 0 , state of quark at 25
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
 	    fp->write(", UlamRef<EC>::ELEMENTAL"); //stays elemental
 	    fp->write(", uc"); //t3617
 	    fp->write(");"); GCNL;
@@ -1441,11 +1441,11 @@ namespace MFM {
     // "downcast" might not be true; compare to be sure the element is-related to quark "Foo"
     m_state.indentUlamCode(fp);
     fp->write("if(! ");
-    fp->write(m_state.getEffectiveSelfMangledNameByIndex(tobeType).c_str());
+    fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
     fp->write(".");
     fp->write(m_state.getIsMangledFunctionName(tobeType)); //UlamElement IsMethod
     fp->write("(&"); //one arg
-    fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
+    fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
     fp->write("))\n");
 
     m_state.m_currentIndentLevel++;
@@ -1514,7 +1514,7 @@ namespace MFM {
 	  {
 	    fp->write(", 0u, ");
 	    fp->write("&"); //e.g. quark-sub to quark-super-ref (t3758)
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
 	    fp->write(", uc");
 	  }
 	fp->write(");"); GCNL;

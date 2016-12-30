@@ -11,7 +11,7 @@
 #include "UlamTypeClassElement.h"
 #include "UlamTypeClassQuark.h"
 #include "UlamTypeClassTransient.h"
-#include "UlamTypeClassLocalFilescopes.h"
+#include "UlamTypeClassLocalsFilescope.h"
 #include "UlamTypeInternalHolder.h"
 #include "UlamTypeInternalHzy.h"
 #include "UlamTypeInternalLocalsFileScope.h"
@@ -75,9 +75,6 @@ namespace MFM {
   static const char * BUILD_DEFAULT_ATOM_FUNCNAME = "BuildDefaultAtom";
   static const char * BUILD_DEFAULT_QUARK_FUNCNAME = "getDefaultQuark";
   static const char * BUILD_DEFAULT_TRANSIENT_FUNCNAME = "getDefaultTransient";
-
-  //static const char * ULAMLOCALSFILESCOPE_CLASSNAME = "UlamLocalsFilescope"; //append filename
-  //static const char * ULAMLOCALSFILESCOPE_MANGLED_CLASSNAME = "Ul_10109219UlamLocalsFilescope";
 
   static const char * USERSTRINGPOOL_MANGLEDNAME = "UserStringPool";
   static const char * USERSTRINGPOOL_SIZEDEFINENAME = "USERSTRINGPOOLSIZE";
@@ -165,8 +162,8 @@ namespace MFM {
 
     for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
       {
-	NodeBlockLocals * locals = it->second;
-	delete locals;
+	NodeBlockLocals * localsblock = it->second;
+	delete localsblock;
       }
     m_localsPerFilePath.clear();
   } //clearAllLocalsPerFilePath
@@ -204,6 +201,28 @@ namespace MFM {
     compileThisId = m_pool.getIndexForDataString(compileThis);
     return true;
   } //getClassNameFromFileName
+
+  void CompilerState::getTargetDescriptorsForLocalsFilescopes(TargetMap & localstargets)
+  {
+    std::map<u32, NodeBlockLocals *>::iterator it;
+    for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
+      {
+	NodeBlockLocals * localsblock = it->second;
+	assert(localsblock);
+	localsblock->addTargetDescriptionToInfoMap(localstargets, 0);
+      }
+  }
+
+  void CompilerState::getMembersDescriptionsForLocalsFilescopes(ClassMemberMap & localsmembers)
+  {
+    std::map<u32, NodeBlockLocals *>::iterator it;
+    for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
+      {
+	NodeBlockLocals * localsblock = it->second;
+	assert(localsblock);
+	localsblock->addMemberDescriptionsToInfoMap(localsmembers);
+      }
+  }
 
   UTI CompilerState::makeUlamTypeHolder()
   {
@@ -586,8 +605,8 @@ namespace MFM {
 	    case UC_UNSEEN:
 	      ut = new UlamTypeClass(key, *this);
 	      break;
-	    case UC_LOCALFILESCOPES:
-	      ut = new UlamTypeClassLocalFilescopes(key, *this);
+	    case UC_LOCALSFILESCOPE:
+	      ut = new UlamTypeClassLocalsFilescope(key, *this);
 	      break;
 	    default:
 	      abortUndefinedUlamClassType();
@@ -932,7 +951,7 @@ namespace MFM {
   }
 
   // returns effective self name of the scalar dereferenced uti arg.
-  const std::string CompilerState::getEffectiveSelfMangledNameByIndex(UTI uti)
+  const std::string CompilerState::getTheInstanceMangledNameByIndex(UTI uti)
   {
     UTI esuti = uti;
     if(!isScalar(uti))
@@ -945,12 +964,26 @@ namespace MFM {
     AssertBool isDef = isDefined(m_indexToUlamKey[esuti], esut);
     assert(isDef);
 
+    if(isALocalsFileScope(esuti) && !isAClass(esuti))
+      return getLocalsFilescopeTheInstanceMangledNameByIndex(esuti);
+
     assert(esut->getUlamTypeEnum() == Class);
     std::ostringstream esmangled;
     esmangled << esut->getUlamTypeMangledName().c_str();
     esmangled << "<EC>::THE_INSTANCE";
     return esmangled.str();
-  } //getEffectiveSelfMangledNameByIndex
+  } //getTheInstanceMangledNameByIndex
+
+  const std::string CompilerState::getLocalsFilescopeTheInstanceMangledNameByIndex(UTI uti)
+  {
+    //e.g. t3952, t3954
+    assert(isALocalsFileScope(uti));
+    u32 mangledclassid = getMangledClassNameIdForUlamLocalsFilescope(uti);
+    std::ostringstream esmangled;
+    esmangled << m_pool.getDataAsString(mangledclassid).c_str();
+    esmangled << "<EC>::THE_INSTANCE";
+    return esmangled.str();
+  }
 
   ULAMTYPE CompilerState::getBaseTypeFromToken(const Token& tok)
   {
@@ -1316,7 +1349,7 @@ namespace MFM {
       {
 	indent(fp);
 	fp->write("static u32 myRegNum = ");
-	fp->write(getEffectiveSelfMangledNameByIndex(cuti).c_str());
+	fp->write(getTheInstanceMangledNameByIndex(cuti).c_str());
 	fp->write(".GetRegistrationNumber();"); GCNL;
 
 	indent(fp);
@@ -2054,7 +2087,7 @@ namespace MFM {
       {
 	UTI cuti = cnsym->getUlamTypeIdx();
 	UlamType * cut = getUlamTypeByIndex(cuti);
-	assert((cut->getUlamClassType() == UC_UNSEEN) || (cut->getUlamClassType() == UC_LOCALFILESCOPES));
+	assert((cut->getUlamClassType() == UC_UNSEEN) || (cut->getUlamClassType() == UC_LOCALSFILESCOPE));
 
 	UlamKeyTypeSignature ckey = cut->getUlamKeyTypeSignature();
 
@@ -2246,14 +2279,14 @@ namespace MFM {
     std::map<u32, NodeBlockLocals *>::iterator it;
     for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
       {
-	NodeBlockLocals * locals = it->second;
-	assert(locals);
+	NodeBlockLocals * localsblock = it->second;
+	assert(localsblock);
 
-	UTI luti = locals->getNodeType();
-	pushClassContext(luti, locals, locals, false, NULL);
+	UTI luti = localsblock->getNodeType();
+	pushClassContext(luti, localsblock, localsblock, false, NULL);
 
-	locals->updateLineage(0);
-	locals->checkAndLabelType();
+	localsblock->updateLineage(0);
+	localsblock->checkAndLabelType();
 
 	popClassContext(); //restore
       }
@@ -2266,13 +2299,13 @@ namespace MFM {
     std::map<u32, NodeBlockLocals *>::iterator it;
     for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
       {
-	NodeBlockLocals * locals = it->second;
-	assert(locals);
+	NodeBlockLocals * localsblock = it->second;
+	assert(localsblock);
 
-	UTI luti = locals->getNodeType();
-	pushClassContext(luti, locals, locals, false, NULL);
+	UTI luti = localsblock->getNodeType();
+	pushClassContext(luti, localsblock, localsblock, false, NULL);
 
-	locals->checkAndLabelType();
+	localsblock->checkAndLabelType();
 
 	popClassContext(); //restore
       }
@@ -2285,79 +2318,31 @@ namespace MFM {
     generateUlamClassForLocals(fm);
   }
 
-#if 0
-  void CompilerState::generateUlamClassForLocals(FileManager * fm)
-  {
-    //create a temporary "class" !!!
-    u32 cid = m_pool.getIndexForDataString(ULAMLOCALFILESCOPES_CLASSNAME);
-    Token cTok(TOK_IDENTIFIER, m_currentLocalDefToken.m_locator, cid); //use last localdef location?
-    SymbolClassName * cnsym = NULL;
-    AssertBool isDefined = addIncompleteClassSymbolToProgramTable(cTok, cnsym);
-    assert(isDefined);
-
-    UTI cuti = cnsym->getUlamTypeIdx();
-    UlamType * cut = getUlamTypeByIndex(cuti);
-    AssertBool isReplaced = replaceUlamTypeForUpdatedClassType(cut->getUlamKeyTypeSignature(), Class, UC_LOCALFILESCOPES, false);
-    assert(isReplaced);
-
-    //populate with NodeConstantDefs clones (arrays) for gencode purposes;
-    //ptr to same symbol.
-    std::vector<Node*> fmLocals;
-
-    std::map<u32, NodeBlockLocals *>::iterator it;
-    for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
-      {
-	NodeBlockLocals * locals = it->second;
-	assert(locals);
-	locals->cloneAndAppendNode(fmLocals);
-      }
-
-    NodeBlockClass * classblock = cnsym->getClassBlockNode();
-    assert(classblock);
-    assert(classblock->getLastStatementPtr() == classblock); //check this.
-
-    std::vector<Node *>::iterator vit;
-    for(vit = fmLocals.begin(); vit != fmLocals.end(); vit++)
-      {
-	Node * cenode = *vit;
-	assert(cenode);
-	classblock->appendNextNode(cenode); //tfr node ownership
-      }
-    fmLocals.clear(); //done with vector of clones
-
-    //generate a single class, .h, _Types.h, .tcc and .cpp
-    cnsym->generateCodeForClassInstances(fm);
-
-    AssertBool isGone = removeIncompleteClassSymbolFromProgramTable(cTok);
-    assert(isGone);
-  } //generateUlamClassForLocals
-#endif
-
   void CompilerState::generateUlamClassForLocals(FileManager * fm)
   {
     std::map<u32, NodeBlockLocals *>::iterator it;
     for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
       {
-	NodeBlockLocals * locals = it->second;
-	assert(locals);
-	UTI locuti = locals->getNodeType();
+	NodeBlockLocals * localsblock = it->second;
+	assert(localsblock);
+	UTI locuti = localsblock->getNodeType();
 
 	//create a temporary "class" !!!
 	u32 cid = getClassNameIdForUlamLocalsFilescope(locuti);
-	Token cTok(TOK_IDENTIFIER, locals->getNodeLocation(), cid);
+	Token cTok(TOK_IDENTIFIER, localsblock->getNodeLocation(), cid);
 	SymbolClassName * cnsym = NULL;
 	AssertBool isDefined = addIncompleteClassSymbolToProgramTable(cTok, cnsym);
 	assert(isDefined);
 
 	UTI cuti = cnsym->getUlamTypeIdx();
 	UlamType * cut = getUlamTypeByIndex(cuti);
-	AssertBool isReplaced = replaceUlamTypeForUpdatedClassType(cut->getUlamKeyTypeSignature(), Class, UC_LOCALFILESCOPES, false);
+	AssertBool isReplaced = replaceUlamTypeForUpdatedClassType(cut->getUlamKeyTypeSignature(), Class, UC_LOCALSFILESCOPE, false);
 	assert(isReplaced);
 
 	//populate with NodeConstantDefs clones (ptr to same symbol),
 	// and NodeTypedef clones for gencode purposes;
 	std::vector<Node*> fmLocals;
-	locals->cloneAndAppendNode(fmLocals);
+	localsblock->cloneAndAppendNode(fmLocals);
 
 
 	NodeBlockClass * classblock = cnsym->getClassBlockNode();
@@ -2372,6 +2357,8 @@ namespace MFM {
 	    classblock->appendNextNode(cenode); //tfr node ownership
 	  }
 	fmLocals.clear(); //done with vector of clones
+
+	classblock->setUserStringPoolRef(localsblock->getUserStringPoolRef()); //?
 
 	//generate a single class, .h, _Types.h, .tcc and .cpp
 	cnsym->generateCodeForClassInstances(fm);
@@ -2437,13 +2424,13 @@ namespace MFM {
     std::map<u32, NodeBlockLocals *>::iterator it;
     for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
       {
-	NodeBlockLocals * locals = it->second;
-	assert(locals);
+	NodeBlockLocals * localsblock = it->second;
+	assert(localsblock);
 
-	UTI luti = locals->getNodeType();
-	pushClassContext(luti, locals, locals, false, NULL);
+	UTI luti = localsblock->getNodeType();
+	pushClassContext(luti, localsblock, localsblock, false, NULL);
 
-	locals->countNavHzyNoutiNodes(navcount, hzycount, unsetcount);
+	localsblock->countNavHzyNoutiNodes(navcount, hzycount, unsetcount);
 
 	popClassContext(); //restore
       }
@@ -2557,9 +2544,9 @@ namespace MFM {
     if(cblock)
       cloc = cblock->getNodeLocation(); //to check local scope
 
-    NodeBlockLocals * locals = getLocalScopeBlock(cloc);
-    if(locals)
-      brtn = locals->isIdInScope(id, symptr);
+    NodeBlockLocals * localsblock = getLocalsScopeBlock(cloc);
+    if(localsblock)
+      brtn = localsblock->isIdInScope(id, symptr);
     return brtn;
   } //isIdInLocalFileScope
 
@@ -2664,14 +2651,14 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     getCurrentBlock()->addIdToScope(symptr->getId(), symptr);
   }
 
-  void CompilerState::addSymbolToLocalScope(Symbol * symptr, Locator loc)
+  void CompilerState::addSymbolToLocalsScope(Symbol * symptr, Locator loc)
   {
     assert(symptr);
-    NodeBlockLocals * locals = makeLocalScopeBlock(loc); //getLocalScopeLocator
-    assert(locals);
+    NodeBlockLocals * localsblock = makeLocalsScopeBlock(loc); //getLocalsScopeLocator
+    assert(localsblock);
 
-    locals->addIdToScope(symptr->getId(), symptr);
-  } //addSymbolToLocalScope
+    localsblock->addIdToScope(symptr->getId(), symptr);
+  } //addSymbolToLocalsScope
 
   //symbol ownership goes to the member block (end of vector)
   // making stuff up!
@@ -2747,7 +2734,6 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   StringPoolUser& CompilerState::getUPoolRefForClass(UTI cuti)
   {
     assert(isScalar(cuti));
-    //assert(!isALocalsFileScope(cuti));
     if(isALocalsFileScope(cuti) && !isAClass(cuti))
       return getUPoolRefForLocalsFilescope(cuti); //not the temporary class (t3883, t3858)
 
@@ -2761,7 +2747,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   {
     assert(isScalar(luti));
     assert(isALocalsFileScope(luti));
-    NodeBlockLocals * localsblock = getLocalScopeBlockByIndex(luti);
+    NodeBlockLocals * localsblock = getLocalsScopeBlockByIndex(luti);
     assert(localsblock);
     return localsblock->getUserStringPoolRef();
   }
@@ -3157,7 +3143,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     assert(foundClassName);
 
     std::ostringstream f;
-    f << "_l" << m_pool.getDataAsString(classid).c_str();// << "ulam"; //4ulam included, not separated to be distinct "temporary" class name.
+    f << "_l" << m_pool.getDataAsString(classid).c_str();// "_l" prepended to be distinct "temporary" class name.
     return m_pool.getIndexForDataString(f.str());
   }
 
@@ -3501,6 +3487,17 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     m_eventWindow.setSiteElementType(c0, cuti); //includes default values
   } //setupCenterSiteForGenCode
 
+  void CompilerState::generateTestInstancesForLocalsFilescopes(File * fp)
+  {
+    std::map<u32, NodeBlockLocals *>::iterator it;
+    for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
+      {
+	NodeBlockLocals * localsblock = it->second;
+	assert(localsblock);
+	localsblock->generateTestInstance(fp, false);
+      }
+  }
+
   //used by SourceStream to build m_textByLinePerFilePath during parsing
   void CompilerState::appendNextLineOfText(Locator loc, std::string textstr)
   {
@@ -3745,16 +3742,16 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return false;
   } //getStructuredCommentToken
 
-  void CompilerState::setLocalScopeForParsing(const Token& localTok)
+  void CompilerState::setLocalsScopeForParsing(const Token& localTok)
   {
     m_parsingLocalDef = true;
     m_currentLocalDefToken = localTok;
-    NodeBlockLocals * locals = makeLocalScopeBlock(localTok.m_locator);
-    assert(locals);
-    pushClassContext(locals->getNodeType(), locals, locals, false, NULL);
+    NodeBlockLocals * localsblock = makeLocalsScopeBlock(localTok.m_locator);
+    assert(localsblock);
+    pushClassContext(localsblock->getNodeType(), localsblock, localsblock, false, NULL);
   }
 
-  void CompilerState::clearLocalScopeForParsing()
+  void CompilerState::clearLocalsScopeForParsing()
   {
     m_parsingLocalDef = false;
     popClassContext(); //restore
@@ -3765,26 +3762,26 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return m_parsingLocalDef;
   }
 
-  Locator CompilerState::getLocalScopeLocator()
+  Locator CompilerState::getLocalsScopeLocator()
   {
     assert(isParsingLocalDef());
     return m_currentLocalDefToken.m_locator;
   }
 
-  NodeBlockLocals * CompilerState::getLocalScopeBlock(Locator loc)
+  NodeBlockLocals * CompilerState::getLocalsScopeBlock(Locator loc)
   {
     u32 pathidx = loc.getPathIndex();
-    return getLocalScopeBlockByPathId(pathidx);
+    return getLocalsScopeBlockByPathId(pathidx);
   }
 
-  NodeBlockLocals * CompilerState::getLocalScopeBlockByIndex(UTI luti)
+  NodeBlockLocals * CompilerState::getLocalsScopeBlockByIndex(UTI luti)
   {
     UlamType * lut = getUlamTypeByIndex(luti);
     u32 pathid = lut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
-    return getLocalScopeBlockByPathId(pathid);
-  } //getLocalScopeBlockByIndex
+    return getLocalsScopeBlockByPathId(pathid);
+  } //getLocalsScopeBlockByIndex
 
-  NodeBlockLocals * CompilerState::getLocalScopeBlockByPathId(u32 pathid)
+  NodeBlockLocals * CompilerState::getLocalsScopeBlockByPathId(u32 pathid)
   {
     NodeBlockLocals * rtnLocals = NULL;
 
@@ -3797,11 +3794,11 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	assert(getUlamTypeByIndex(rtnLocals->getNodeType())->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId() == pathid); //sanity check
       }
     return rtnLocals;
-  } //getLocalScopeBlockByPathId
+  } //getLocalsScopeBlockByPathId
 
-  NodeBlockLocals * CompilerState::makeLocalScopeBlock(Locator loc)
+  NodeBlockLocals * CompilerState::makeLocalsScopeBlock(Locator loc)
   {
-    NodeBlockLocals * rtnLocals = getLocalScopeBlock(loc);
+    NodeBlockLocals * rtnLocals = getLocalsScopeBlock(loc);
     if(!rtnLocals)
       {
       	//add new entry for this loc
@@ -3823,15 +3820,15 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	rtnLocals = newblocklocals;
       }
     return rtnLocals;
-  } //makeLocalScopeBlock
+  } //makeLocalsScopeBlock
 
-  u32 CompilerState::findTypedefNameIdInLocalScopeByIndex(UTI uti)
+  u32 CompilerState::findTypedefNameIdInLocalsScopeByIndex(UTI uti)
   {
-    NodeBlockLocals * rtnLocals = getLocalScopeBlock(getContextBlockLoc());
+    NodeBlockLocals * rtnLocals = getLocalsScopeBlock(getContextBlockLoc());
     if(rtnLocals)
       return rtnLocals->findTypedefNameIdByType(uti);
     return 0; //not found
-  } //findTypedefNameIdInLocalScopeByIndex
+  } //findTypedefNameIdInLocalsScopeByIndex
 
   NNO CompilerState::getNextNodeNo()
   {
@@ -3857,14 +3854,14 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       {
 	//check in local scope
         if(isALocalsFileScope(cuti))
-	  rtnNode = findNodeNoInALocalScope(getContextBlockLoc(), n); //t3873
+	  rtnNode = findNodeNoInALocalsScope(getContextBlockLoc(), n); //t3873
 	else
 	  {
 	    u32 cid = getUlamKeyTypeSignatureByIndex(cuti).getUlamKeyTypeSignatureNameId();
 	    SymbolClassName * cnsym = NULL;
 	    AssertBool isDefined = alreadyDefinedSymbolClassName(cid, cnsym);
 	    assert(isDefined);
-	    rtnNode = findNodeNoInALocalScope(cnsym->getLoc(), n);
+	    rtnNode = findNodeNoInALocalsScope(cnsym->getLoc(), n);
 	  }
       }
     return rtnNode;
@@ -3891,7 +3888,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	rtnNode = cntsym->findNodeNoInAClassInstance(stubuti, n);
 	//local def, using template's local scope
 	if(!rtnNode)
-	  rtnNode = findNodeNoInALocalScope(cntsym->getLoc(), n);
+	  rtnNode = findNodeNoInALocalsScope(cntsym->getLoc(), n);
       }
 
     if(!rtnNode)
@@ -3920,30 +3917,30 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return m_programDefST.findClassNodeNoForTableOfClasses(n); //Nav not found
   }
 
-  NodeBlockLocals * CompilerState::findALocalScopeByNodeNo(NNO n)
+  NodeBlockLocals * CompilerState::findALocalsScopeByNodeNo(NNO n)
   {
     NodeBlockLocals * rtnlocals = NULL;
     std::map<u32, NodeBlockLocals *>::iterator it;
 
     for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
       {
-	NodeBlockLocals * locals = it->second;
-	assert(locals);
-	if(locals->getNodeNo() == n)
+	NodeBlockLocals * localsblock = it->second;
+	assert(localsblock);
+	if(localsblock->getNodeNo() == n)
 	  {
-	    rtnlocals = locals;
+	    rtnlocals = localsblock;
 	    break;
 	  }
       }
     return rtnlocals;
-  } //findALocalScopeByNodeNo
+  } //findALocalsScopeByNodeNo
 
-  Node * CompilerState::findNodeNoInALocalScope(Locator loc, NNO n)
+  Node * CompilerState::findNodeNoInALocalsScope(Locator loc, NNO n)
   {
     Node * rtnNode = NULL;
-    NodeBlockLocals * locals = getLocalScopeBlock(loc);
-    if(locals)
-      locals->findNodeNo(n, rtnNode);
+    NodeBlockLocals * localsblock = getLocalsScopeBlock(loc);
+    if(localsblock)
+      localsblock->findNodeNo(n, rtnNode);
     return rtnNode;
   }
 
@@ -4163,7 +4160,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   bool CompilerState::isALocalsFileScope(UTI uti)
   {
     UlamType * ut = getUlamTypeByIndex(uti);
-    return ((ut->getUlamTypeEnum() == LocalsFileScope) || (ut->getUlamClassType() == UC_LOCALFILESCOPES));
+    return ((ut->getUlamTypeEnum() == LocalsFileScope) || (ut->getUlamClassType() == UC_LOCALSFILESCOPE));
   }
 
   bool CompilerState::isAClass(UTI uti)

@@ -872,6 +872,7 @@ my @objectFilesFromUlamCpps;
 my @elementCNamesFromUlam;
 my @quarkCNamesFromUlam;
 my @transientCNamesFromUlam;
+my @localsfilescopeCNamesFromUlam;
 my %ulamFileTargets;
 
 sub compilationDriver {
@@ -1099,7 +1100,10 @@ sub runUlamCompilations
                     push @quarkCNamesFromUlam, $cname;
                 } elsif ($classtype eq "transient") {
                     push @transientCNamesFromUlam, $cname;
-                } 
+                } elsif ($classtype eq "localsfilescope") {
+                    push @localsfilescopeCNamesFromUlam, $cname;
+                }
+
                 next;
             }
 
@@ -1153,7 +1157,7 @@ sub writeElementAllocatorStub {
 EOF
     {
         my %seen;
-        for my $en (@elementCNamesFromUlam, @quarkCNamesFromUlam, @transientCNamesFromUlam) {
+        for my $en (@elementCNamesFromUlam, @quarkCNamesFromUlam, @transientCNamesFromUlam, @localsfilescopeCNamesFromUlam) {
             next if $seen{$en};
             $seen{$en} = 1;
             print $hdrhdl <<EOF;
@@ -1223,10 +1227,10 @@ EOF
         }
     }
 
-    # PROCESS THE QUARKS AND TRANSIENTS
+    # PROCESS THE QUARKS AND TRANSIENTS AND LOCALSFILESCOPE
     {
         my %seen;
-        for my $en (@quarkCNamesFromUlam, @transientCNamesFromUlam) {
+        for my $en (@quarkCNamesFromUlam, @transientCNamesFromUlam, @localsfilescopeCNamesFromUlam) {
             next if $seen{$en};
             $seen{$en} = 1;
 

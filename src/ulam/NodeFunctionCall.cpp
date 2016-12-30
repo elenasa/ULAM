@@ -1052,7 +1052,7 @@ namespace MFM {
       }
     else
       {
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
+	fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
         fp->write(".");
 	fp->write(m_funcSymbol->getMangledName().c_str());
       }
@@ -1096,7 +1096,7 @@ namespace MFM {
       }
     else if(cos->isSuper())
       {
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
+	fp->write(m_state.getTheInstanceMangledNameByIndex(cosuti).c_str());
 	fp->write(".getVTableEntry(");
       }
     else if(urtmpnum > 0)
@@ -1113,7 +1113,7 @@ namespace MFM {
     else
       {
 	//unless local or dm, known at compile time!
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
+	fp->write(m_state.getTheInstanceMangledNameByIndex(cosuti).c_str());
 	fp->write(".getVTableEntry(");
       }
 
@@ -1175,7 +1175,7 @@ namespace MFM {
     UTI futi = m_funcSymbol->getDataMemberClass();
     if((cosSize > 0) || (UlamType::compare(cosuti, futi, m_state) != UTIC_SAME))
       {
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(futi).c_str());
+	fp->write(m_state.getTheInstanceMangledNameByIndex(futi).c_str());
 	fp->write(".");
       }
     else
@@ -1230,7 +1230,7 @@ namespace MFM {
     hiddenarg2 << ", " << derefut->getTotalBitSize() << "u, "; //len t3370
 
     hiddenarg2 << "&";
-    hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(derefuti).c_str();
+    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(derefuti).c_str();
     hiddenarg2 << ", " << genUlamRefUsageAsString(derefuti).c_str();
     hiddenarg2 << ");";
 
@@ -1290,7 +1290,7 @@ namespace MFM {
     UlamType * epcosut = m_state.getUlamTypeByIndex(epcosuti);
     ULAMCLASSTYPE epcosclasstype = epcosut->getUlamClassType();
 
-    hiddenlist << m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str();
+    hiddenlist << m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str();
     hiddenlist << ".";
 
     // the MP (only primitive, no longer an element, or quark):

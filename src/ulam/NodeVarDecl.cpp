@@ -1057,7 +1057,7 @@ UTI NodeVarDecl::checkAndLabelType()
 	if(vut->isScalar() && m_nodeInitExpr) //default constructor includes a GetDefaultAtom
 	  {
 	    fp->write("(");
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
 	    fp->write(".GetDefaultAtom())"); //returns object of type T
 	  }
 	//else

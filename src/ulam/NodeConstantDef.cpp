@@ -870,7 +870,7 @@ namespace MFM {
 
     if(!nut->isScalar())
       {
-	if(m_constSymbol->isLocalFilescopeDef() ||  m_constSymbol->isDataMember() || m_constSymbol->isClassArgument())
+	if(m_constSymbol->isLocalsFilescopeDef() ||  m_constSymbol->isDataMember() || m_constSymbol->isClassArgument())
 	  {
 	    //as a "data member", locals filescope, or class arguement: initialized in no-arg constructor (non-const)
 	    m_state.indentUlamCode(fp);

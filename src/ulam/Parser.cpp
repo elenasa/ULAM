@@ -172,9 +172,9 @@ namespace MFM {
       {
 	if(pTok.m_type == TOK_KW_LOCALDEF)
 	  {
-	    m_state.setLocalScopeForParsing(pTok);
+	    m_state.setLocalsScopeForParsing(pTok);
 	    parseLocalDef(); //returns bool
-	    m_state.clearLocalScopeForParsing();
+	    m_state.clearLocalsScopeForParsing();
 	    return parseThisClass();
 	  }
 	else
@@ -601,10 +601,10 @@ namespace MFM {
 	  {
 	    return false;
 	  }
-	NodeBlockLocals * locals = m_state.makeLocalScopeBlock(m_state.getContextBlockLoc());
-	assert(locals);
+	NodeBlockLocals * localsblock = m_state.makeLocalsScopeBlock(m_state.getContextBlockLoc());
+	assert(localsblock);
 
-	m_state.pushClassContext(locals->getNodeType(), locals, locals, false, NULL);
+	m_state.pushClassContext(localsblock->getNodeType(), localsblock, localsblock, false, NULL);
 
 	getNextToken(iTok);
 	if(iTok.m_type == TOK_TYPE_IDENTIFIER)
@@ -649,9 +649,9 @@ namespace MFM {
     if(iTok.m_type == TOK_TYPE_IDENTIFIER)
       {
 	//only search for typedefs, and class arguments for ancestors in local scope
-	NodeBlockLocals * locals = m_state.getLocalScopeBlock(m_state.getContextBlockLoc());
-	if(locals)
-	  m_state.pushClassContext(locals->getNodeType(), locals, locals, false, NULL);
+	NodeBlockLocals * localsblock = m_state.getLocalsScopeBlock(m_state.getContextBlockLoc());
+	if(localsblock)
+	  m_state.pushClassContext(localsblock->getNodeType(), localsblock, localsblock, false, NULL);
 
 	bool isaclass = true;
 	superuti = parseClassArguments(iTok, isaclass);
@@ -684,7 +684,7 @@ namespace MFM {
 	      }
 	  }
 
-	if(locals)
+	if(localsblock)
 	  m_state.popClassContext();
       }
     else
@@ -702,10 +702,10 @@ namespace MFM {
   bool Parser::parseLocalDef()
   {
     bool brtn = false;
-    NodeBlockLocals * locals = m_state.makeLocalScopeBlock(m_state.getLocalScopeLocator());
-    assert(locals);
+    NodeBlockLocals * localsblock = m_state.makeLocalsScopeBlock(m_state.getLocalsScopeLocator());
+    assert(localsblock);
 
-    m_state.pushCurrentBlock(locals); //so Symbol get's correct ST NodeNo.
+    m_state.pushCurrentBlock(localsblock); //so Symbol get's correct ST NodeNo.
 
     Token pTok;
     getNextToken(pTok);
@@ -789,7 +789,7 @@ namespace MFM {
 	  unreadToken(); //put back for parsing type descriptor
 
 	TypeArgs typeargs;
-	NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalScope(typeargs, false, true);
+	NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalsScope(typeargs, false, true);
 
 	if(typeNode == NULL)
 	  {
@@ -1688,7 +1688,7 @@ namespace MFM {
       {
 	unreadToken();
 	TypeArgs typeargs;
-	NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalScope(typeargs, false, false);
+	NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalsScope(typeargs, false, false);
 
 	if(!typeNode)
 	  {
@@ -1736,22 +1736,11 @@ namespace MFM {
     Token pTok;
     getNextToken(pTok);
 
-    //filescope locals t3952, t3954; not constants t3951, t3953, t3958
-    if((pTok.m_type == TOK_KW_TYPE_STRING) && m_state.isThisLocalsFileScope())
-      {
-	std::ostringstream msg;
-	msg << "Invalid local filescope constant definition Type '";
-	msg << m_state.getTokenDataAsString(pTok).c_str() << "'";
-	MSG(&pTok, msg.str().c_str(), ERR);
-	getTokensUntil(TOK_SEMICOLON);
-	return false;
-      }
-
     if( (Token::isTokenAType(pTok) || (pTok.m_type == TOK_KW_LOCALDEF)) && (pTok.m_type != TOK_KW_TYPE_VOID) && (pTok.m_type != TOK_KW_TYPE_ATOM))
       {
 	unreadToken();
 	TypeArgs typeargs;
-	NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalScope(typeargs, false, false);
+	NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalsScope(typeargs, false, false);
 	if(!typeNode)
 	  {
 	    std::ostringstream msg;
@@ -1813,7 +1802,7 @@ namespace MFM {
       {
 	unreadToken();
 	TypeArgs typeargs;
-	NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalScope(typeargs, false, false);
+	NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalsScope(typeargs, false, false);
 	if(!typeNode)
 	  {
 	    std::ostringstream msg;
@@ -1880,7 +1869,7 @@ namespace MFM {
       {
 	unreadToken();
 	TypeArgs typeargs;
-	NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalScope(typeargs, false, true);
+	NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalsScope(typeargs, false, true);
 	if(typeNode)
 	  {
 	    typeargs.m_assignOK = true;
@@ -1935,7 +1924,7 @@ namespace MFM {
   {
     bool brtn = true;
     TypeArgs typeargs;
-    NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalScope(typeargs, false, false);
+    NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalsScope(typeargs, false, false);
 
     Token iTok;
     getNextToken(iTok);
@@ -1981,13 +1970,13 @@ namespace MFM {
     return brtn;
   } //parseDecl
 
-  NodeTypeDescriptor * Parser::parseTypeDescriptorIncludingLocalScope(TypeArgs& typeargs, bool isaclass, bool delAfterDotFails)
+  NodeTypeDescriptor * Parser::parseTypeDescriptorIncludingLocalsScope(TypeArgs& typeargs, bool isaclass, bool delAfterDotFails)
   {
     UTI dropCastUTI = Nouti;
-    return parseTypeDescriptorIncludingLocalScope(typeargs, dropCastUTI, isaclass, delAfterDotFails);
+    return parseTypeDescriptorIncludingLocalsScope(typeargs, dropCastUTI, isaclass, delAfterDotFails);
   }
 
-  NodeTypeDescriptor * Parser::parseTypeDescriptorIncludingLocalScope(TypeArgs& typeargs, UTI& castUTI, bool isaclass, bool delAfterDotFails)
+  NodeTypeDescriptor * Parser::parseTypeDescriptorIncludingLocalsScope(TypeArgs& typeargs, UTI& castUTI, bool isaclass, bool delAfterDotFails)
   {
     //typeargs initialized later, first token re-read here
     Token pTok;
@@ -1998,8 +1987,8 @@ namespace MFM {
     if(pTok.m_type == TOK_KW_LOCALDEF)
       {
 	//assuming locals defined before they are referred to
-	NodeBlockLocals * locals = m_state.makeLocalScopeBlock(pTok.m_locator);
-	if(!locals)
+	NodeBlockLocals * localsblock = m_state.makeLocalsScopeBlock(pTok.m_locator);
+	if(!localsblock)
 	  {
 	    std::ostringstream msg;
 	    msg << "Keyword 'local' for filescope: ";
@@ -2018,7 +2007,7 @@ namespace MFM {
 		if(Token::isTokenAType(nTok))
 		  {
 		    typeargs.init(nTok);
-		    m_state.pushClassContext(locals->getNodeType(), locals, locals, false, NULL);
+		    m_state.pushClassContext(localsblock->getNodeType(), localsblock, localsblock, false, NULL);
 
 		    typeNode = parseTypeDescriptor(typeargs, castUTI, isaclass, delAfterDotFails);
 
@@ -2055,9 +2044,9 @@ namespace MFM {
       unreadToken();
 
     return typeNode; //can be NULL
-  } //parseTypeDescriptorIncludingLocalScope (new helper)
+  } //parseTypeDescriptorIncludingLocalsScope (new helper)
 
-  //original helper, excluding local scope
+  //original helper, excluding locals scope
   NodeTypeDescriptor * Parser::parseTypeDescriptor(TypeArgs& typeargs, bool isaclass, bool delAfterDotFails)
   {
     Token pTok;
@@ -2236,7 +2225,7 @@ namespace MFM {
 			SymbolTypedef * symtypedef = new SymbolTypedef(typeTok, huti, Nav, m_state);
 			assert(symtypedef);
 			symtypedef->setBlockNoOfST(m_state.getContextBlockNo());
-			m_state.addSymbolToCurrentScope(symtypedef); //local scope
+			m_state.addSymbolToCurrentScope(symtypedef); //locals scope
 		      }
 		    return huti;
 		  }
@@ -2683,7 +2672,7 @@ namespace MFM {
 		SymbolTypedef * symtypedef = new SymbolTypedef(pTok, huti, Nav, m_state);
 		assert(symtypedef);
 		symtypedef->setBlockNoOfST(memberClassNode->getNodeNo());
-		m_state.addSymbolToCurrentMemberClassScope(symtypedef); //not local scope
+		m_state.addSymbolToCurrentMemberClassScope(symtypedef); //not locals scope
 		m_state.addUnknownTypeTokenToAClassResolver(mcuti, pTok, huti);
 		//these will fail: t3373-8, t3380-1,5, t3764, and t3379
 		//m_state.addUnknownTypeTokenToThisClassResolver(pTok, huti); //also, compiling this one
@@ -2795,7 +2784,7 @@ namespace MFM {
 		assert(holderconstsym);
 
 		holderconstsym->setBlockNoOfST(memberClassNode->getNodeNo());
-		m_state.addSymbolToCurrentMemberClassScope(holderconstsym); //not local scope
+		m_state.addSymbolToCurrentMemberClassScope(holderconstsym); //not locals scope
 		sym = holderconstsym;
 	      }
 	  }
@@ -3255,8 +3244,8 @@ namespace MFM {
 	  else
 	    {
 	      //makes 'locals' scope if used before defined
-	      NodeBlockLocals * locals = m_state.makeLocalScopeBlock(pTok.m_locator);
-	      if(!locals)
+	      NodeBlockLocals * localsblock = m_state.makeLocalsScopeBlock(pTok.m_locator);
+	      if(!localsblock)
 		{
 		  std::ostringstream msg;
 		  msg << "Keyword 'local' for filescope: ";
@@ -3270,7 +3259,7 @@ namespace MFM {
 		  getNextToken(dTok);
 		  if(dTok.m_type == TOK_DOT)
 		    {
-		      m_state.pushClassContext(locals->getNodeType(), locals, locals, false, NULL);
+		      m_state.pushClassContext(localsblock->getNodeType(), localsblock, localsblock, false, NULL);
 
 		      rtnNode = parseFactor(true); //recurse (t3861, t3862)
 
@@ -4270,7 +4259,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
   {
     NodeVarDecl * rtnNode = NULL;
     TypeArgs typeargs;
-    NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalScope(typeargs, false, false);
+    NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalsScope(typeargs, false, false);
 
     Token iTok;
     getNextToken(iTok);
@@ -4783,7 +4772,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 
     //allow types with preceeding dots (e.g. from another class)
     //t3407, 3826,27,30; t3868,61,62
-    NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalScope(typeargs, true, false);
+    NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalsScope(typeargs, true, false);
 
     if(!typeNode)
       {
@@ -5234,7 +5223,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 
     //we want the casting UTI, without deleting any failed dots because, why?
     // because it might be a minof,maxof,sizeof..which wouldn't be a cast at all!
-    NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalScope(typeargs, typeToBe, false, false);
+    NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalsScope(typeargs, typeToBe, false, false);
     if(!typeNode)
       {
 	std::ostringstream msg;

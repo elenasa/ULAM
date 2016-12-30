@@ -184,7 +184,6 @@ namespace MFM{
 
     VT m_vtable;
 
-    //    StringPoolUser m_upool; //for double quoted strings only
   };
 
 }

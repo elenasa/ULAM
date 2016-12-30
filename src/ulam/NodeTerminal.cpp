@@ -690,7 +690,7 @@ namespace MFM {
 	//String, String array or array item (t3929, t3950)
 	fp->write(m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString().c_str());
 	fp->write("::makeCombinedIdx(");
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
+	fp->write(m_state.getTheInstanceMangledNameByIndex(cuti).c_str());
 	fp->write(".GetRegistrationNumber(), ");
 	fp->write_decimal_unsigned(sidx);
 	fp->write("u); //user string pool index for ");

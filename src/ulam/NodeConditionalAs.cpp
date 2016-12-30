@@ -392,7 +392,7 @@ namespace MFM {
 	// lhs either atom or element, or super quark (self)
 	if(m_state.isAtom(luti))
 	  {
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
 	    fp->write(".");
 	    fp->write(m_state.getAsMangledFunctionName(luti, ruti));
 	    fp->write("(");
@@ -403,11 +403,11 @@ namespace MFM {
 	  {
 	    //can't be nested since elements are not inheritable from;
 	    // lhs could be SUPER quark ref (runtime)
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
 	    fp->write(".");  //t3831
 	    fp->write(m_state.getAsMangledFunctionName(luti, ruti));
 	    fp->write("(&");
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(luti).c_str());
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(luti).c_str());
 	    fp->write(");"); GCNL;
 	  }
       }
@@ -422,7 +422,7 @@ namespace MFM {
 	      }
 	    else
 	      {
-		fp->write(m_state.getEffectiveSelfMangledNameByIndex(luti).c_str());
+		fp->write(m_state.getTheInstanceMangledNameByIndex(luti).c_str());
 		fp->write(".");
 	      }
 	    fp->write(m_state.getAsMangledFunctionName(luti, ruti));
@@ -438,7 +438,7 @@ namespace MFM {
 	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
 	    fp->write(".GetType(), &"); //from tmpvar T
 	  }
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
+	fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
 	fp->write(");"); GCNL;
       }
     else if(rclasstype == UC_TRANSIENT)
@@ -451,12 +451,12 @@ namespace MFM {
 	  }
 	else
 	  {
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(luti).c_str());
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(luti).c_str());
 	    fp->write(".");  //t3822
 	  }
 	fp->write(m_state.getAsMangledFunctionName(luti, ruti));
 	fp->write("(&");
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
+	fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
 	fp->write(");"); GCNL;
       }
     else

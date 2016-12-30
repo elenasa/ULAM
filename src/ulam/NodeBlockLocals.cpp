@@ -66,4 +66,55 @@ namespace MFM {
       m_nodeNext->cloneAndAppendNode(cloneVec); //work done by NodeConstantDef, NodeTypedef
   }
 
+  void NodeBlockLocals::addTargetDescriptionToInfoMap(TargetMap& classtargets, u32 scid)
+  {
+    UTI cuti = getNodeType();
+    u32 classNameId = m_state.getClassNameIdForUlamLocalsFilescope(cuti); //cut->getUlamTypeNameOnly();
+    std::string className = m_state.m_pool.getDataAsString(classNameId);
+    u32 mangledNameId = m_state.getMangledClassNameIdForUlamLocalsFilescope(cuti); //cut->getUlamTypeMangledName();
+    std::string mangledName = m_state.m_pool.getDataAsString(mangledNameId);
+
+    struct TargetDesc desc;
+
+    desc.m_hasTest = false;
+    desc.m_classType = UC_LOCALSFILESCOPE;
+
+    desc.m_bitsize = 0;
+    desc.m_loc = getNodeLocation();
+    desc.m_className = className;
+    desc.m_structuredComment = "NONE";
+
+    classtargets.insert(std::pair<std::string, struct TargetDesc>(mangledName, desc));
+  } //addTargetDescriptionToInfoMap
+
+  void NodeBlockLocals::addMemberDescriptionsToInfoMap(ClassMemberMap& classmembers)
+  {
+    NodeBlock::addMemberDescriptionsToInfoMap(classmembers); //Table of Variables request
+  }
+
+  void NodeBlockLocals::generateTestInstance(File * fp, bool runtest)
+  {
+    UTI suti = getNodeType();
+
+    fp->write("\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("UlamClass<EC> & clt = ");
+    fp->write(m_state.getLocalsFilescopeTheInstanceMangledNameByIndex(suti).c_str());
+    fp->write(";"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("tile.GetUlamClassRegistry().RegisterUlamClass(clt);"); GCNL;
+
+    m_state.m_currentIndentLevel--;
+
+    m_state.indent(fp);
+    fp->write("}\n");
+    return;
+  } //generateTestInstance
+
 } //end MFM

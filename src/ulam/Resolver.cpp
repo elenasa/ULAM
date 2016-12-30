@@ -292,7 +292,7 @@ namespace MFM {
       }
     else
       {
-	NodeBlockLocals * locals = m_state.getLocalScopeBlockByIndex(context);
+	NodeBlockLocals * locals = m_state.getLocalsScopeBlockByIndex(context);
 	assert(locals);
 	m_state.pushClassContext(context, locals, locals, false, NULL);
       }

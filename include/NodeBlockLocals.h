@@ -70,6 +70,11 @@ namespace MFM{
 
     virtual void cloneAndAppendNode(std::vector<Node *> & cloneVec);
 
+    virtual void addTargetDescriptionToInfoMap(TargetMap& classtargets, u32 scid);
+    virtual void addMemberDescriptionsToInfoMap(ClassMemberMap& classmembers);
+
+    virtual void generateTestInstance(File * fp, bool runtest);
+
   protected:
 
 

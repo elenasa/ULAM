@@ -800,7 +800,7 @@ namespace MFM {
 
 	m_state.indent(fp);
 	fp->write("AtomBitStorage<EC> gda(");
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(nuti).c_str());
+	fp->write(m_state.getTheInstanceMangledNameByIndex(nuti).c_str());
 	fp->write(".GetDefaultAtom());"); GCNL;
 
 	m_state.indent(fp);

@@ -262,7 +262,7 @@ namespace MFM {
     m_ST.genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(fp);
   }
 
-  void NodeBlock::addClassMemberDescriptionsToInfoMap(ClassMemberMap& classmembers)
+  void NodeBlock::addMemberDescriptionsToInfoMap(ClassMemberMap& classmembers)
   {
     m_ST.addClassMemberDescriptionsToMap(this->getNodeType(), classmembers); //Table of Classes request
   }
