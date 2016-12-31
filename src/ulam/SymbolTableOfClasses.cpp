@@ -584,8 +584,6 @@ namespace MFM {
 	//skip anonymous classes
 	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti))
 	  {
-	    //first output all the element typedefs, skipping quarks
-	    //if(((SymbolClass * ) sym)->getUlamClass() == UC_ELEMENT)
 	    ((SymbolClassName *) sym)->generateTestInstanceForClassInstances(fp, NORUNTEST);
 	  }
 	it++;

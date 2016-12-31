@@ -672,106 +672,9 @@ void SymbolClass::setContextForPendingArgs(UTI context)
 
   void SymbolClass::generateTestInstance(File * fp, bool runtest)
   {
-    std::ostringstream runThisTest;
-    UTI suti = getUlamTypeIdx();
-    UlamType * sut = m_state.getUlamTypeByIndex(suti);
-    if(!sut->isComplete()) return;
-    if(sut->getUlamClassType() != UC_ELEMENT)
-      {
-	fp->write("\n");
-	m_state.indent(fp);
-	fp->write("{\n");
-
-	m_state.m_currentIndentLevel++;
-
-	m_state.indent(fp);
-	fp->write("UlamClass<EC> & clt = ");
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
-	fp->write(";"); GCNL;
-
-	m_state.indent(fp);
-	fp->write("tile.GetUlamClassRegistry().RegisterUlamClass(clt);"); GCNL;
-
-	m_state.m_currentIndentLevel--;
-
-	m_state.indent(fp);
-	fp->write("}\n");
-	return;
-      }
-
-    // output for each element before testing; a test may include
-    // one or more of them!
-    if(!runtest)
-      {
-	fp->write("\n");
-	m_state.indent(fp);
-	fp->write("{\n");
-
-	m_state.m_currentIndentLevel++;
-
-	m_state.indent(fp);
-	fp->write("UlamElement<EC> & elt = ");
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
-	fp->write(";"); GCNL;
-
-	//register before allocate type to avoid ILLEGAL_STATE (t3968)
-	m_state.indent(fp);
-	fp->write("tile.GetUlamClassRegistry().RegisterUlamClass(elt);"); GCNL;
-	m_state.indent(fp);
-	fp->write("elt.AllocateType(etnm); //Force element type allocation now"); GCNL;
-	m_state.indent(fp);
-	fp->write("tile.RegisterElement(elt);"); GCNL;
-
-	m_state.m_currentIndentLevel--;
-
-	m_state.indent(fp);
-	fp->write("}\n");
-      }
-    else
-      {
-	if(getId() == m_state.getCompileThisId())
-	  {
-	    fp->write("\n");
-
-	    m_state.indent(fp);
-	    fp->write("{\n");
-
-	    m_state.m_currentIndentLevel++;
-
-	    m_state.indent(fp);
-	    fp->write("OurAtomAll atom = "); //OurAtomAll
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
-	    fp->write(".GetDefaultAtom();"); GCNL;
-	    m_state.indent(fp);
-	    fp->write("tile.PlaceAtom(atom, center);"); GCNL;
-
-	    m_state.indent(fp);
-	    fp->write("AtomRefBitStorage<EC> atbs(atom);"); GCNL;
-
-	    m_state.indent(fp);
-	    fp->write("UlamRef<EC> ur(EC::ATOM_CONFIG::ATOM_TYPE::ATOM_FIRST_STATE_BIT, "); //e.g. t3255
-	    fp->write_decimal_unsigned(sut->getTotalBitSize()); //t3655
-	    fp->write("u, atbs, &");
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
-	    fp->write(", UlamRef<EC>::ELEMENTAL, uc);"); GCNL;
-
-	    m_state.indent(fp);
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(suti).c_str());
-
-	    // pass uc with effective self setup
-	    fp->write(".Uf_4test(");
-	    fp->write("uc, ur);"); GCNL;
-
-	    m_state.indent(fp);
-	    fp->write("//std::cerr << rtn.read() << std::endl;\n");//useful to return result of test?
-	    m_state.indent(fp);
-	    fp->write("//return rtn.read();\n"); //was useful to return result of test
-
-	    m_state.m_currentIndentLevel--;
-	    m_state.indent(fp);
-	    fp->write("}\n");
-	  }
-      }
+    NodeBlockClass * classblock = getClassBlockNode();
+    assert(classblock);
+    classblock->generateTestInstance(fp, runtest);
   } //generateTestInstance
 
   void SymbolClass::generateHeaderPreamble(File * fp)
@@ -790,8 +693,8 @@ void SymbolClass::setContextForPendingArgs(UTI context)
       fp->write("Quark");
     else if(classtype == UC_TRANSIENT)
       fp->write("Transient");
-    else if(classtype == UC_LOCALFILESCOPES)
-      fp->write("LocalFilescopes");
+    else if(classtype == UC_LOCALSFILESCOPE)
+      fp->write("LocalsFilescope");
     else
       m_state.abortUndefinedUlamClassType();
 
@@ -835,19 +738,27 @@ void SymbolClass::setContextForPendingArgs(UTI context)
     fp->write("\"");
     fp->write("\n");
 
-    if(getUlamClass() == UC_LOCALFILESCOPES)
+    if(getUlamClass() == UC_LOCALSFILESCOPE)
       return;
 
     //generate includes for all the other classes that have appeared
     m_state.m_programDefST.generateForwardDefsForTableOfClasses(fp);
 
-    m_state.indent(fp);
-    fp->write("namespace MFM { template ");
-    fp->write("<class EC> "); //same for elements and quarks
+    NodeBlockClass * classblock = getClassBlockNode();
+    assert(classblock);
+    UTI locuti = classblock->getLocalsFilescopeType();
+    if(locuti != Nouti)
+      {
+	assert(m_state.okUTItoContinue(locuti));
+	u32 mangledclassid = m_state.getMangledClassNameIdForUlamLocalsFilescope(locuti);
 
-    fp->write("struct ");
-    fp->write(m_state.getMangledClassNameForUlamLocalFilescopes());
-    fp->write("; }  //FORWARD"); GCNL;
+	m_state.indent(fp);
+	fp->write("namespace MFM { template ");
+	fp->write("<class EC> ");
+	fp->write("struct ");
+	fp->write(m_state.m_pool.getDataAsString(mangledclassid).c_str());
+	fp->write("; }  //FORWARD"); GCNL;
+      }
   } //generateHeaderIncludes
 
   // create structs with BV, as storage, and typedef
@@ -939,10 +850,17 @@ void SymbolClass::setContextForPendingArgs(UTI context)
 
     m_state.m_programDefST.generateIncludesForTableOfClasses(fp); //the other classes
 
-    m_state.indent(fp);
-    fp->write("#include \"");
-    fp->write(m_state.getMangledClassNameForUlamLocalFilescopes());
-    fp->write(".h\""); GCNL;
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    UTI locuti = classNode->getLocalsFilescopeType();
+    if(locuti != Nouti)
+      {
+	u32 mangledclassid = m_state.getMangledClassNameIdForUlamLocalsFilescope(locuti);
+	m_state.indent(fp);
+	fp->write("#include \"");
+	fp->write(m_state.m_pool.getDataAsString(mangledclassid).c_str());
+	fp->write(".h\""); GCNL;
+      }
 
     //namespace MFM
     fp->write("\n");
@@ -1003,6 +921,9 @@ void SymbolClass::setContextForPendingArgs(UTI context)
     m_state.indent(fp);
     fp->write("uc.SetTile(tile);"); GCNL;
 
+    //registers localsfilescope "classes" for string index corrections (e.g. t3952)
+    m_state.generateTestInstancesForLocalsFilescopes(fp);
+
     //eventually ends up at SC::generateTestInstance()
     m_state.m_programDefST.generateTestInstancesForTableOfClasses(fp);
 
@@ -1015,7 +936,7 @@ void SymbolClass::setContextForPendingArgs(UTI context)
     fp->write("} //MFM\n");
 
     //MAIN STARTS HERE !!!
-    GCNL; //fp->write("\n");
+    GCNL;
     m_state.indent(fp);
     fp->write("int main(int argc, const char** argv)\n");
 
@@ -1046,42 +967,16 @@ void SymbolClass::setContextForPendingArgs(UTI context)
 
   void SymbolClass::addTargetDescriptionMapEntry(TargetMap& classtargets, u32 scid)
   {
-    UlamType * cut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
-    std::string className = cut->getUlamTypeNameOnly();
-    std::string mangledName = cut->getUlamTypeMangledName();
-    struct TargetDesc desc;
-
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
-    NodeBlockFunctionDefinition * func = classNode->findTestFunctionNode();
-    desc.m_hasTest = (func != NULL);
-
-    ULAMCLASSTYPE classtype = cut->getUlamClassType();
-    desc.m_classType = classtype;
-
-    desc.m_bitsize = cut->getTotalBitSize();
-    desc.m_loc = classNode->getNodeLocation();
-    desc.m_className = className;
-
-    if(scid > 0)
-      {
-	std::ostringstream sc;
-	sc << "/**";
-	sc << m_state.m_pool.getDataAsString(scid).c_str();
-	sc << "*/";
-	desc.m_structuredComment = sc.str();
-      }
-    else
-      desc.m_structuredComment = "NONE";
-
-    classtargets.insert(std::pair<std::string, struct TargetDesc>(mangledName, desc));
+    classNode->addTargetDescriptionToInfoMap(classtargets, scid);
   } //addTargetDesciptionMapEntry
 
   void SymbolClass::addClassMemberDescriptionsMapEntry(ClassMemberMap& classmembers)
   {
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
-    classNode->addClassMemberDescriptionsToInfoMap(classmembers);
+    classNode->addMemberDescriptionsToInfoMap(classmembers);
   } //addClassMemberDesciptionsMapEntry
 
   void SymbolClass::initVTable(s32 initialmax)
@@ -1173,17 +1068,16 @@ void SymbolClass::setContextForPendingArgs(UTI context)
 
   StringPoolUser& SymbolClass::getUserStringPoolRef()
   {
-    return m_upool;
-  }
-
-  const StringPoolUser& SymbolClass::getUserStringPoolRef() const
-  {
-    return m_upool;
+    NodeBlockClass * classblock = getClassBlockNode();
+    assert(classblock);
+    return classblock->getUserStringPoolRef();
   }
 
   void SymbolClass::setUserStringPoolRef(const StringPoolUser& spref)
   {
-    m_upool = spref;
+    NodeBlockClass * classblock = getClassBlockNode();
+    assert(classblock);
+    return classblock->setUserStringPoolRef(spref);
   }
 
 } //end MFM

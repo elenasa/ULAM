@@ -5,9 +5,9 @@ namespace MFM {
 
   SymbolConstantValue::SymbolConstantValue(const Token& id, UTI utype, CompilerState & state) : SymbolWithValue(id, utype, state), m_constantStackFrameAbsoluteSlotIndex(0)
   {
-    NodeBlockLocals * locals = m_state.findALocalScopeByNodeNo(this->getBlockNoOfST());
-    if(locals != NULL)
-      setLocalFilescopeDef(locals->getNodeType());
+    NodeBlockLocals * localsblock = m_state.findALocalsScopeByNodeNo(this->getBlockNoOfST());
+    if(localsblock != NULL)
+      setLocalsFilescopeDef(localsblock->getNodeType());
   }
 
   SymbolConstantValue::SymbolConstantValue(const SymbolConstantValue & sref) : SymbolWithValue(sref), m_constantStackFrameAbsoluteSlotIndex(sref.m_constantStackFrameAbsoluteSlotIndex) {}
@@ -42,20 +42,22 @@ namespace MFM {
     if(m_state.isScalar(getUlamTypeIdx()))
       return Symbol::getMangledName();
 
-    //local filescope constant arrays end with filescope name (e.g. _3Foo4ulam)
     std::ostringstream mangled;
     std::string nstr = m_state.getDataAsStringMangled(getId());
     mangled << getMangledPrefix() << nstr.c_str();
 
-    if(isLocalFilescopeDef())
+#if 0
+    //local filescope constant arrays end with filescope name (e.g. _3Foo4ulam)
+    if(isLocalsFilescopeDef())
       {
-	UTI locuti = getLocalFilescopeType();
+	UTI locuti = getLocalsFilescopeType();
 	UlamType * locut = m_state.getUlamTypeByIndex(locuti);
 	u32 classid = 0;
 	AssertBool foundClassName = m_state.getClassNameFromFileName(locut->getUlamTypeNameOnly(), classid); //without trailing .ulam (no dots allowed)
 	assert(foundClassName);
 	mangled << "_" << m_state.getDataAsStringMangled(classid).c_str() << "4ulam"; //leximited
       }
+#endif
     return mangled.str();
   } //getMangledName
 
@@ -64,22 +66,24 @@ namespace MFM {
     if(m_state.isScalar(getUlamTypeIdx()))
       return getMangledName();
 
-    //local filescope constant arrays end with filescope name (e.g. _3Foo4ulam)
     std::ostringstream mangledfullname;
     if(isDataMember())
       {
 	UTI dmclassuti = getDataMemberClass(); //t3881
-	mangledfullname << m_state.getEffectiveSelfMangledNameByIndex(dmclassuti).c_str();
+	mangledfullname << m_state.getTheInstanceMangledNameByIndex(dmclassuti).c_str();
 	mangledfullname << "." << getMangledName().c_str();
       }
-    else if(isLocalFilescopeDef())
+    else if(isLocalsFilescopeDef())
       {
-	mangledfullname << m_state.getMangledClassNameForUlamLocalFilescopes();
+	//local filescope constant arrays end with filescope name (e.g. _3Foo4ulam)
+	UTI locuti = getLocalsFilescopeType();
+	u32 mangledclassid = m_state.getMangledClassNameIdForUlamLocalsFilescope(locuti);
+	mangledfullname << m_state.m_pool.getDataAsString(mangledclassid).c_str();
 	mangledfullname << "<EC>::THE_INSTANCE." << getMangledName().c_str();
       }
     else if(isClassArgument())
       {
-	mangledfullname << m_state.getEffectiveSelfMangledNameByIndex(m_state.getCompileThisIdx()).c_str();
+	mangledfullname << m_state.getTheInstanceMangledNameByIndex(m_state.getCompileThisIdx()).c_str();
 	mangledfullname << "." << getMangledName().c_str(); //t3894
       }
     else

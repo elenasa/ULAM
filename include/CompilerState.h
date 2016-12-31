@@ -174,6 +174,9 @@ namespace MFM{
 
     bool getClassNameFromFileName(std::string startstr, u32& compileThisId);
 
+    void getTargetDescriptorsForLocalsFilescopes(TargetMap & localstargets);
+    void getMembersDescriptionsForLocalsFilescopes(ClassMemberMap & localsmembers);
+
     UTI makeUlamTypeHolder();
     UTI makeUlamTypeFromHolder(UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti, ULAMCLASSTYPE classtype);
     UTI makeUlamTypeFromHolder(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti, ULAMCLASSTYPE classtype);
@@ -198,7 +201,8 @@ namespace MFM{
     UlamType * getUlamTypeByIndex(UTI uti);
     const std::string getUlamTypeNameBriefByIndex(UTI uti);
     const std::string getUlamTypeNameByIndex(UTI uti);
-    const std::string getEffectiveSelfMangledNameByIndex(UTI uti);
+    const std::string getTheInstanceMangledNameByIndex(UTI uti); //formerly EffectiveSelf
+    const std::string getLocalsFilescopeTheInstanceMangledNameByIndex(UTI uti);
 
     ULAMTYPE getBaseTypeFromToken(const Token& tok);
     UTI getUlamTypeFromToken(const Token& tok, s32 typebitsize, s32 arraysize);
@@ -281,7 +285,7 @@ namespace MFM{
 
     bool isIdInCurrentScope(u32 id, Symbol *& asymptr);
     void addSymbolToCurrentScope(Symbol * symptr); //ownership goes to the block
-    void addSymbolToLocalScope(Symbol * symptr, Locator loc); //ownership goes to the m_localsPerFilePath ST
+    void addSymbolToLocalsScope(Symbol * symptr, Locator loc); //ownership goes to the m_localsPerFilePath ST
     void addSymbolToCurrentMemberClassScope(Symbol * symptr); //making stuff up for member
     void replaceSymbolInCurrentScope(u32 oldid, Symbol * symptr); //same symbol, new id
     void replaceSymbolInCurrentScope(Symbol * oldsym, Symbol * newsym); //same id, new symbol
@@ -326,6 +330,7 @@ namespace MFM{
     void generateCodeForUlamClasses(FileManager * fm);
     void generateUlamClassForLocals(FileManager * fm);
     StringPoolUser & getUPoolRefForClass(UTI cuti);
+    StringPoolUser& getUPoolRefForLocalsFilescope(UTI luti);
     const std::string & getDataAsFormattedUserString(u32 combinedidx);
     bool isValidUserStringIndex(u32 combinedidx);
     u32 getUserStringLength(u32 combinedidx);
@@ -373,7 +378,8 @@ namespace MFM{
     std::string getFileNameForThisClassCPP(bool wSubDir = false);
     std::string getFileNameForThisTypesHeader(bool wSubDir = false);
     std::string getFileNameForThisClassMain(bool wSubDir = false);
-    const char * getMangledClassNameForUlamLocalFilescopes();
+    u32 getMangledClassNameIdForUlamLocalsFilescope(UTI locuti);
+    u32 getClassNameIdForUlamLocalsFilescope(UTI locuti);
 
     const char * getMangledNameForUserStringPool();
     const char * getDefineNameForUserStringPoolSize();
@@ -413,6 +419,7 @@ namespace MFM{
 
     void setupCenterSiteForTesting();
     void setupCenterSiteForGenCode();
+    void generateTestInstancesForLocalsFilescopes(File * fp);
 
     /** used by SourceStream to build m_textByLinePerFilePath during parsing */
     void appendNextLineOfText(Locator loc, std::string textstr);
@@ -442,16 +449,16 @@ namespace MFM{
     bool getStructuredCommentToken(Token& scTok);
 
     /** helpers: local def location and flag for parsing*/
-    void setLocalScopeForParsing(const Token& localTok);
-    void clearLocalScopeForParsing();
+    void setLocalsScopeForParsing(const Token& localTok);
+    void clearLocalsScopeForParsing();
     bool isParsingLocalDef();
-    Locator getLocalScopeLocator();
-    NodeBlockLocals * getLocalScopeBlock(Locator loc);
-    NodeBlockLocals * getLocalScopeBlockByIndex(UTI luti);
-    NodeBlockLocals * getLocalScopeBlockByPathId(u32 pathid);
-    NodeBlockLocals * makeLocalScopeBlock(Locator loc);
+    Locator getLocalsScopeLocator();
+    NodeBlockLocals * getLocalsScopeBlock(Locator loc);
+    NodeBlockLocals * getLocalsScopeBlockByIndex(UTI luti);
+    NodeBlockLocals * getLocalsScopeBlockByPathId(u32 pathid);
+    NodeBlockLocals * makeLocalsScopeBlock(Locator loc);
 
-    u32 findTypedefNameIdInLocalScopeByIndex(UTI uti);
+    u32 findTypedefNameIdInLocalsScopeByIndex(UTI uti);
 
     /** to identify each node */
     NNO getNextNodeNo();
@@ -461,8 +468,8 @@ namespace MFM{
     Node * findNodeNoInThisClassStubFirst(NNO n);
     Node * findNodeNoInAClass(NNO n, UTI cuti);
     UTI findAClassByNodeNo(NNO n);
-    NodeBlockLocals * findALocalScopeByNodeNo(NNO n);
-    Node * findNodeNoInALocalScope(Locator loc, NNO n);
+    NodeBlockLocals * findALocalsScopeByNodeNo(NNO n);
+    Node * findNodeNoInALocalsScope(Locator loc, NNO n);
 
     NodeBlockClass * getAClassBlock(UTI cuti);
     NNO getAClassBlockNo(UTI cuti);

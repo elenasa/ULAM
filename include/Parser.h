@@ -214,8 +214,8 @@ namespace MFM{
     */
     bool parseDecl();
 
-    NodeTypeDescriptor * parseTypeDescriptorIncludingLocalScope(TypeArgs& typeargs, bool isaclass, bool delAfterDotFails); //helper
-    NodeTypeDescriptor * parseTypeDescriptorIncludingLocalScope(TypeArgs& typeargs, UTI& castUTI, bool isaclass, bool delAfterDotFails); //helper
+    NodeTypeDescriptor * parseTypeDescriptorIncludingLocalsScope(TypeArgs& typeargs, bool isaclass, bool delAfterDotFails); //helper
+    NodeTypeDescriptor * parseTypeDescriptorIncludingLocalsScope(TypeArgs& typeargs, UTI& castUTI, bool isaclass, bool delAfterDotFails); //helper
     NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs, bool isaclass = false, bool delAfterDotFails = false); //helper
     NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs, UTI& castUTI, bool isaclassarg, bool delAfterDotFails);
 

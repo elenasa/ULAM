@@ -114,7 +114,7 @@ namespace MFM{
 
     void genModelParameterImmediateDefinitions(File * fp);
 
-    virtual void addClassMemberDescriptionsToInfoMap(ClassMemberMap& classmembers);
+    virtual void addMemberDescriptionsToInfoMap(ClassMemberMap& classmembers);
 
   protected:
     SymbolTableOfVariables m_ST;

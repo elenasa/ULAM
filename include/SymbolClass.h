@@ -153,7 +153,6 @@ namespace MFM{
     bool isAbstract();
 
     StringPoolUser& getUserStringPoolRef();
-    const StringPoolUser& getUserStringPoolRef() const;
     void setUserStringPoolRef(const StringPoolUser& spref);
 
   protected:
@@ -185,7 +184,6 @@ namespace MFM{
 
     VT m_vtable;
 
-    StringPoolUser m_upool; //for double quoted strings only
   };
 
 }

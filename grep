@@ -1,0 +1,169 @@
+
+elenas@e56:~/WORK/ulam/repo/ULAM$ valgrind bin/culamtest src/test/generic/error/t3952_test_compiler_stringascii_filescope_error.test
+==23458== Memcheck, a memory error detector
+==23458== Copyright (C) 2002-2013, and GNU GPL'd, by Julian Seward et al.
+==23458== Using Valgrind-3.10.1 and LibVEX; rerun with -h for copyright info
+==23458== Command: bin/culamtest src/test/generic/error/t3952_test_compiler_stringascii_filescope_error.test
+==23458==
+INVALID: GOT[
+Exit status: 0
+Ue_A { Bool(1) b1(true);  Bool(1) b2(true);  Unsigned(8) asc1(98u);  Unsigned(8) asc2(114u);  Int(32) test() {  System s;  Int(32) slen = 3u cast;  asc1 "bar" 0 [] = b1 asc1 98u == = s ( b1 )assert . asc2 "bar" slen 1 cast -b [] = b2 asc2 114u == = s ( b2 )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+]
+BUT EXPECTED[
+./A.ulam:2:16: ERROR: Invalid local filescope constant definition Type 'String'.
+Unrecoverable Program Parse FAILURE: <A.ulam>
+Unrecoverable Program Parse FAILURE: <System.ulam>
+]
+==23458==
+==23458== HEAP SUMMARY:
+==23458==     in use at exit: 0 bytes in 0 blocks
+==23458==   total heap usage: 19,392 allocs, 19,392 frees, 4,071,761 bytes allocated
+==23458==
+==23458== All heap blocks were freed -- no leaks are possible
+==23458==
+==23458== For counts of detected and suppressed errors, rerun with: -v
+==23458== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+elenas@e56:~/WORK/ulam/repo/ULAM$ valgrind bin/culamtest src/test/generic/error/t3954_test_compiler_stringascii_constantarray_filescope_error.test
+==23459== Memcheck, a memory error detector
+==23459== Copyright (C) 2002-2013, and GNU GPL'd, by Julian Seward et al.
+==23459== Using Valgrind-3.10.1 and LibVEX; rerun with -h for copyright info
+==23459== Command: bin/culamtest src/test/generic/error/t3954_test_compiler_stringascii_constantarray_filescope_error.test
+==23459==
+INVALID: GOT[
+Exit status: 0
+Ue_A { Bool(1) b1(true);  Bool(1) b2(true);  Unsigned(8) asc1(98u);  Unsigned(8) asc2(114u);  Int(32) test() {  System s;  String(32) str = strarr 0 [];  Int(32) slen = 3u cast;  asc1 str 0 [] = b1 asc1 98u == = s ( b1 )assert . asc2 str slen 1 cast -b [] = b2 asc2 114u == = s ( b2 )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+]
+BUT EXPECTED[
+./A.ulam:2:16: ERROR: Invalid local filescope constant definition Type 'String'.
+Unrecoverable Program Parse FAILURE: <A.ulam>
+Unrecoverable Program Parse FAILURE: <System.ulam>
+]
+==23459==
+==23459== HEAP SUMMARY:
+==23459==     in use at exit: 0 bytes in 0 blocks
+==23459==   total heap usage: 20,361 allocs, 20,361 frees, 4,278,687 bytes allocated
+==23459==
+==23459== All heap blocks were freed -- no leaks are possible
+==23459==
+==23459== For counts of detected and suppressed errors, rerun with: -v
+==23459== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+elenas@e56:~/WORK/ulam/repo/ULAM$ valgrind bin/culamtest src/test/generic/error/t3954_test_compiler_stringascii_constantarray_filescope_error.test
+==23961== Memcheck, a memory error detector
+==23961== Copyright (C) 2002-2013, and GNU GPL'd, by Julian Seward et al.
+==23961== Using Valgrind-3.10.1 and LibVEX; rerun with -h for copyright info
+==23961== Command: bin/culamtest src/test/generic/error/t3954_test_compiler_stringascii_constantarray_filescope_error.test
+==23961==
+Size of target map is 4
+ULAM INFO: TARGET ./Empty.ulam:9:9: Empty Ue_10105Empty10 0 notest element /**%0a%20%20%20This%20stub%20is%20linked%20to%20the%20actual%20Element_Empty%20by%20special-case%0a%20%20%20setup%20code.%0a%20%20%20\symbol%20E%0a%20%20%20\color%200x000%0a%20*/
+ULAM INFO: TARGET ./A.ulam:3:9: A Ue_102181A10 18 test element NONE
+ULAM INFO: TARGET ./System.ulam:2:7: System Uq_10106System10 0 notest quark NONE
+ULAM INFO: TARGET ./UrSelf.ulam:8:7: UrSelf Uq_10106UrSelf10 0 notest quark /**%0a%20%20%20Ur-%20Earliest%20ancestor%20of%20all%20classes.%0a%20%20%20\author%20Dave%20Ackley%0a%20%20%20\license%20lgpl%0a%20*/
+Size of class members map is 20
+ULAM INFO: TYPEDEF ./Empty.ulam:9:9: Ue_10105Empty10 Ue_10105Empty10 Self Ut_4Self NONE
+ULAM INFO: FUNCTION ./A.ulam:6:7: Ue_102181A10 Ut_102321i test Uf_4test10 NONE
+ULAM INFO: DATAMEMBER ./A.ulam:4:8: Ue_102181A10 Ut_10111b b1 Um_2b110 NONE
+ULAM INFO: DATAMEMBER ./A.ulam:4:12: Ue_102181A10 Ut_10111b b2 Um_2b210 NONE
+ULAM INFO: DATAMEMBER ./A.ulam:5:9: Ue_102181A10 Ut_10181u asc1 Um_4asc110 NONE
+ULAM INFO: DATAMEMBER ./A.ulam:5:15: Ue_102181A10 Ut_10181u asc2 Um_4asc210 NONE
+ULAM INFO: TYPEDEF ./A.ulam:3:9: Ue_102181A10 Ue_102181A10 Self Ut_4Self NONE
+ULAM INFO: FUNCTION ./System.ulam:8:8: Uq_10106System10 void print Uf_5print1110131b NONE
+ULAM INFO: FUNCTION ./System.ulam:6:8: Uq_10106System10 void print Uf_5print1110131i NONE
+ULAM INFO: FUNCTION ./System.ulam:7:8: Uq_10106System10 void print Uf_5print1110131y NONE
+ULAM INFO: FUNCTION ./System.ulam:5:8: Uq_10106System10 void print Uf_5print1110141i NONE
+ULAM INFO: FUNCTION ./System.ulam:4:8: Uq_10106System10 void print Uf_5print11102321i NONE
+ULAM INFO: FUNCTION ./System.ulam:3:8: Uq_10106System10 void print Uf_5print11102321u NONE
+ULAM INFO: FUNCTION ./System.ulam:9:8: Uq_10106System10 void assert Uf_6assert1110111b NONE
+ULAM INFO: TYPEDEF ./System.ulam:2:7: Uq_10106System10 Uq_10106System10 Self Ut_4Self NONE
+ULAM INFO: FUNCTION ./UrSelf.ulam:16:16: Uq_10106UrSelf10 void behave Uf_6behave10 NONE
+ULAM INFO: FUNCTION ./UrSelf.ulam:17:16: Uq_10106UrSelf10 Ut_14181u getColor Uf_8getColor11102321u NONE
+ULAM INFO: TYPEDEF ./UrSelf.ulam:11:23: Uq_10106UrSelf10 Ut_14181u ARGB Ut_4ARGB NONE
+ULAM INFO: TYPEDEF ./UrSelf.ulam:8:7: Uq_10106UrSelf10 Uq_10106UrSelf10 Self Ut_4Self NONE
+ULAM INFO: TYPEDEF ./UrSelf.ulam:10:23: Uq_10106UrSelf10 Ut_10181u ASCII Ut_5ASCII NONE
+==23961==
+==23961== HEAP SUMMARY:
+==23961==     in use at exit: 0 bytes in 0 blocks
+==23961==   total heap usage: 21,714 allocs, 21,714 frees, 4,605,227 bytes allocated
+==23961==
+==23961== All heap blocks were freed -- no leaks are possible
+==23961==
+==23961== For counts of detected and suppressed errors, rerun with: -v
+==23961== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+elenas@e56:~/WORK/ulam/repo/ULAM$ valgrind bin/culamtest src/test/generic/error/t3954_test_compiler_stringascii_constantarray_filescope_error.test
+==26798== Memcheck, a memory error detector
+==26798== Copyright (C) 2002-2013, and GNU GPL'd, by Julian Seward et al.
+==26798== Using Valgrind-3.10.1 and LibVEX; rerun with -h for copyright info
+==26798== Command: bin/culamtest src/test/generic/error/t3954_test_compiler_stringascii_constantarray_filescope_error.test
+==26798==
+Size of target map is 5
+ULAM INFO: TARGET ./Empty.ulam:9:9: Empty Ue_10105Empty10 0 notest element /**%0a%20%20%20This%20stub%20is%20linked%20to%20the%20actual%20Element_Empty%20by%20special-case%0a%20%20%20setup%20code.%0a%20%20%20\symbol%20E%0a%20%20%20\color%200x000%0a%20*/
+ULAM INFO: TARGET ./A.ulam:3:9: A Ue_102181A10 18 test element NONE
+ULAM INFO: TARGET ./A.ulam:2:1: _lA Ul_10103_lA10 0 notest transient NONE
+ULAM INFO: TARGET ./System.ulam:2:7: System Uq_10106System10 0 notest quark NONE
+ULAM INFO: TARGET ./UrSelf.ulam:8:7: UrSelf Uq_10106UrSelf10 0 notest quark /**%0a%20%20%20Ur-%20Earliest%20ancestor%20of%20all%20classes.%0a%20%20%20\author%20Dave%20Ackley%0a%20%20%20\license%20lgpl%0a%20*/
+Size of class members map is 21
+ULAM INFO: TYPEDEF ./Empty.ulam:9:9: Ue_10105Empty10 Ue_10105Empty10 Self Ut_4Self NONE
+ULAM INFO: FUNCTION ./A.ulam:6:7: Ue_102181A10 Ut_102321i test Uf_4test10 NONE
+ULAM INFO: DATAMEMBER ./A.ulam:4:8: Ue_102181A10 Ut_10111b b1 Um_2b110 NONE
+ULAM INFO: DATAMEMBER ./A.ulam:4:12: Ue_102181A10 Ut_10111b b2 Um_2b210 NONE
+ULAM INFO: DATAMEMBER ./A.ulam:5:9: Ue_102181A10 Ut_10181u asc1 Um_4asc110 NONE
+ULAM INFO: DATAMEMBER ./A.ulam:5:15: Ue_102181A10 Ut_10181u asc2 Um_4asc210 NONE
+ULAM INFO: TYPEDEF ./A.ulam:3:9: Ue_102181A10 Ue_102181A10 Self Ut_4Self NONE
+ULAM INFO: FUNCTION ./System.ulam:8:8: Uq_10106System10 void print Uf_5print1110131b NONE
+ULAM INFO: FUNCTION ./System.ulam:6:8: Uq_10106System10 void print Uf_5print1110131i NONE
+ULAM INFO: FUNCTION ./System.ulam:7:8: Uq_10106System10 void print Uf_5print1110131y NONE
+ULAM INFO: FUNCTION ./System.ulam:5:8: Uq_10106System10 void print Uf_5print1110141i NONE
+ULAM INFO: FUNCTION ./System.ulam:4:8: Uq_10106System10 void print Uf_5print11102321i NONE
+ULAM INFO: FUNCTION ./System.ulam:3:8: Uq_10106System10 void print Uf_5print11102321u NONE
+ULAM INFO: FUNCTION ./System.ulam:9:8: Uq_10106System10 void assert Uf_6assert1110111b NONE
+ULAM INFO: TYPEDEF ./System.ulam:2:7: Uq_10106System10 Uq_10106System10 Self Ut_4Self NONE
+ULAM INFO: FUNCTION ./UrSelf.ulam:16:16: Uq_10106UrSelf10 void behave Uf_6behave10 NONE
+ULAM INFO: FUNCTION ./UrSelf.ulam:17:16: Uq_10106UrSelf10 Ut_14181u getColor Uf_8getColor11102321u NONE
+ULAM INFO: TYPEDEF ./UrSelf.ulam:11:23: Uq_10106UrSelf10 Ut_14181u ARGB Ut_4ARGB NONE
+ULAM INFO: TYPEDEF ./UrSelf.ulam:8:7: Uq_10106UrSelf10 Uq_10106UrSelf10 Self Ut_4Self NONE
+ULAM INFO: TYPEDEF ./UrSelf.ulam:10:23: Uq_10106UrSelf10 Ut_10181u ASCII Ut_5ASCII NONE
+ULAM INFO: CONSTANT ./A.ulam:2:23: Ut_10101l Ut_152321s strarr Uc_6strarr_1A4ulam157183500971835014718350197183502971835038 NONE
+==26798==
+==26798== HEAP SUMMARY:
+==26798==     in use at exit: 0 bytes in 0 blocks
+==26798==   total heap usage: 21,824 allocs, 21,824 frees, 4,635,216 bytes allocated
+==26798==
+==26798== All heap blocks were freed -- no leaks are possible
+==26798==
+==26798== For counts of detected and suppressed errors, rerun with: -v
+==26798== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+elenas@e56:~/WORK/ulam/repo/ULAM$ ls
+bin  build  debian  doc  grep  include	Makefile  Makefile.local.mk  Makefile-toplevel.mk  README.md  share  spike  src  ULAM_TREEVERSION.mk  VERSION.mk
+elenas@e56:~/WORK/ulam/repo/ULAM$ rm grep
+elenas@e56:~/WORK/ulam/repo/ULAM$ ls
+bin  build  debian  doc  include  Makefile  Makefile.local.mk  Makefile-toplevel.mk  README.md	share  spike  src  ULAM_TREEVERSION.mk	VERSION.mk
+elenas@e56:~/WORK/ulam/repo/ULAM$ ls
+bin  build  debian  doc  grep  include	Makefile  Makefile.local.mk  Makefile-toplevel.mk  README.md  share  spike  src  ULAM_TREEVERSION.mk  VERSION.mk
+elenas@e56:~/WORK/ulam/repo/ULAM$ rm grep
+elenas@e56:~/WORK/ulam/repo/ULAM$ ls -la
+total 96
+drwx------ 11 elenas elenas  4096 Dec 30 08:24 .
+drwx------  5 elenas elenas  4096 Nov 27  2015 ..
+drwxrwxr-x  2 elenas elenas  4096 Dec 30 08:24 bin
+drwxrwxr-x  5 elenas elenas  4096 Dec 29 15:13 build
+drwxrwxr-x  3 elenas elenas  4096 Jul 31 11:33 debian
+drwxrwxr-x  5 elenas elenas  4096 Dec 29 15:10 doc
+drwx------  8 elenas elenas  4096 Dec 30 08:20 .git
+-rw-rw-r--  1 elenas elenas   483 Jul 10 14:12 .gitignore
+lrwxrwxrwx  1 elenas elenas    26 Dec 30 08:24 .#grep -> elenas@e56.9343:1481128959
+-rw-rw-r--  1 elenas elenas 10243 Dec 30 08:24 #grep#
+drwxrwxr-x  2 elenas elenas 12288 Dec 30 08:03 include
+-rw-rw-r--  1 elenas elenas  7488 Nov 28 16:09 Makefile
+-rw-rw-r--  1 elenas elenas    57 Jul 11 13:20 Makefile.local.mk
+-rw-rw-r--  1 elenas elenas   204 Jul 30 19:21 Makefile-toplevel.mk
+-rw-rw-r--  1 elenas elenas   690 Jul 27  2015 README.md
+drwxrwxr-x  6 elenas elenas  4096 Jul 11 13:18 share
+drwxrwxr-x  8 elenas elenas  4096 Jul 11 13:18 spike
+drwxrwxr-x  5 elenas elenas  4096 Jul 11 13:18 src
+-rw-rw-r--  1 elenas elenas    40 Dec 30 08:25 ULAM_TREEVERSION.mk
+-rw-rw-r--  1 elenas elenas  1380 Nov 28 16:01 VERSION.mk
+elenas@e56:~/WORK/ulam/repo/ULAM$ rm #grep\#
+rm: missing operand
+Try 'rm --help' for more information.
+elenas@e56:~/WORK/ulam/repo/ULAM$ 

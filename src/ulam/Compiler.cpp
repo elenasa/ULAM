@@ -29,6 +29,9 @@ namespace MFM {
   {
     TargetMap rtnTargets;
     m_state.m_programDefST.getTargets(rtnTargets);
+
+    //include locals filescopes for strings
+    m_state.getTargetDescriptorsForLocalsFilescopes(rtnTargets);
     return rtnTargets;
   }
 
@@ -36,6 +39,9 @@ namespace MFM {
   {
     ClassMemberMap rtnMembers;
     m_state.m_programDefST.getClassMembers(rtnMembers);
+
+    //include locals filescopes for strings
+    m_state.getMembersDescriptionsForLocalsFilescopes(rtnMembers);
     return rtnMembers;
   }
 
@@ -399,7 +405,7 @@ namespace MFM {
 	  << " " << i->first
 	  << " " << i->second.m_bitsize
 	  << " " << (i->second.m_hasTest ? "test" : "notest")
-	  << " " << (i->second.m_classType == UC_QUARK ? "quark": (i->second.m_classType == UC_ELEMENT ? "element" : "transient"))
+	  << " " << (i->second.m_classType == UC_QUARK ? "quark": (i->second.m_classType == UC_ELEMENT ? "element" : (i->second.m_classType == UC_TRANSIENT ? "transient" : (i->second.m_classType == UC_LOCALSFILESCOPE ? "localsfilescope" : "fudge"))))
 	  << " " << MFM::HexEscape(i->second.m_structuredComment)
 	  << std::endl;
       }

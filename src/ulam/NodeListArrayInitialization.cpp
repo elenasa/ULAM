@@ -329,7 +329,7 @@ namespace MFM{
 
 	m_state.indentUlamCode(fp);
 	fp->write("static const u32 Uh_6regnum = ");
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
+	fp->write(m_state.getTheInstanceMangledNameByIndex(cuti).c_str());
 	fp->write(".GetRegistrationNumber();"); GCNL;
 
 	//exact size bitvector as 32-bit array, regardless of itemwordsize (e.g. String test t3973 )

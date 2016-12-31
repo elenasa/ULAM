@@ -234,11 +234,11 @@ namespace MFM {
     fp->write(" = ");
 
     //is a class
-    fp->write(m_state.getEffectiveSelfMangledNameByIndex(luti).c_str());
+    fp->write(m_state.getTheInstanceMangledNameByIndex(luti).c_str());
     fp->write(".");
     fp->write(m_state.getIsMangledFunctionName(luti)); //UlamElement IsMethod
     fp->write("(&"); //one arg
-    fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
+    fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
     fp->write(");"); GCNL;
 
     //update uvpass
@@ -275,7 +275,7 @@ namespace MFM {
       {
 	//reversed call to rhs' overloaded c-implemented 'Is' method;
 	// using lhs' T as argument; required for EMPTY-ELEMENT special case
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
+	fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
 	fp->write(".");
 	fp->write(m_state.getIsMangledFunctionName(ruti)); //UlamElement IsMethod
 	fp->write("(");
@@ -290,7 +290,7 @@ namespace MFM {
 	fp->write("(uc, ");
 	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
 	fp->write(".GetType(), &"); //from tmpvar T or ABS
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
+	fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
 	fp->write(");"); GCNL;
       }
 
@@ -334,7 +334,7 @@ namespace MFM {
     fp->write(".GetEffectiveSelf()->");
     fp->write(m_state.getIsMangledFunctionName(luti)); //UlamClass IsMethod
     fp->write("(&");
-    fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
+    fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
     fp->write(");"); GCNL;
 
     //update uvpass

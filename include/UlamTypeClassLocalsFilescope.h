@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * UlamTypeClassLocalFilescopes.h -  Handling of the LocalFilescopes Class UlamType for ULAM
+ * UlamTypeClassLocalsFilescope.h -  Handling of the LocalsFilescope Class UlamType for ULAM
  *
  * Copyright (C) 2016 The Regents of the University of New Mexico.
  * Copyright (C) 2016 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file UlamTypeClassLocalFilescopes.h - Handling of the LocalFilescopes Class UlamType for ULAM
+  \file UlamTypeClassLocalsFilescope.h - Handling of the LocalsFilescope Class UlamType for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2016 All rights reserved.
@@ -34,8 +34,8 @@
 */
 
 
-#ifndef ULAMTYPECLASSLOCALFILESCOPES_H
-#define ULAMTYPECLASSLOCALFILESCOPES_H
+#ifndef ULAMTYPECLASSLOCALSFILESCOPE_H
+#define ULAMTYPECLASSLOCALSFILESCOPE_H
 
 #include "UlamTypeClass.h"
 
@@ -43,13 +43,13 @@ namespace MFM{
 
   class CompilerState; //forward
 
-  class UlamTypeClassLocalFilescopes : public UlamTypeClass
+  class UlamTypeClassLocalsFilescope : public UlamTypeClass
   {
   public:
 
-    UlamTypeClassLocalFilescopes(const UlamKeyTypeSignature key, CompilerState& state);
+    UlamTypeClassLocalsFilescope(const UlamKeyTypeSignature key, CompilerState& state);
 
-    virtual ~UlamTypeClassLocalFilescopes(){}
+    virtual ~UlamTypeClassLocalsFilescope(){}
 
     virtual ULAMCLASSTYPE getUlamClassType();
 
@@ -63,4 +63,4 @@ namespace MFM{
 
 }
 
-#endif //end ULAMTYPECLASSLOCALFILESCOPES_H
+#endif //end ULAMTYPECLASSLOCALSFILESCOPE_H

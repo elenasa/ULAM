@@ -691,7 +691,7 @@ namespace MFM {
     fp->write(", 0u, "); // (already + 25) e.g. t3407
     fp->write_decimal_unsigned(stgcosut->getTotalBitSize());
     fp->write("u, &");
-    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
+    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
     fp->write(", ");
     fp->write(genUlamRefUsageAsString(stgcosuti).c_str());
     if(!stgcosut->isReference())
@@ -1251,7 +1251,7 @@ namespace MFM {
     if(cosclasstype != UC_NOTACLASS)
       {
 	fp->write(", &");
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(scalarcosuti).c_str()); //t3495, t3512, t3543, t3648, t3702, t3776, t3668, t3811
+	fp->write(m_state.getTheInstanceMangledNameByIndex(scalarcosuti).c_str()); //t3495, t3512, t3543, t3648, t3702, t3776, t3668, t3811
       }
     //else skip (t3114)
 
@@ -1492,7 +1492,7 @@ namespace MFM {
 	if(vetyp == Class)
 	  {
 	    fp->write(", &"); //left just
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
 	  }
 
 	if(!stgcos->isDataMember()) //technically stg is self (ur) if dm, so no uc (t3695)
@@ -1520,7 +1520,7 @@ namespace MFM {
 	    if(cos->isDataMember())
 	      {
 		fp->write("&");
-		fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
+		fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
 	      }
 	    else
 	      {
@@ -1733,7 +1733,7 @@ namespace MFM {
 	if(!stgcosut->isReference())
 	  {
 	    fp->write(", &"); //left just
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(vuti).c_str());
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
 	  }
 	else if(vclasstype == UC_ELEMENT)
 	  {
@@ -1744,7 +1744,7 @@ namespace MFM {
 	    //CLASSIC ref cannot rely on uc.Lookup
 	    //array's effective self is NULL. can't get it this way
 	    fp->write("&");
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str());
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(cosuti).c_str());
 	  }
       }
 
@@ -2211,7 +2211,7 @@ namespace MFM {
     if(cosut->getUlamTypeEnum() == Class)
       {
 	fp->write("&");
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str()); //t3175
+	fp->write(m_state.getTheInstanceMangledNameByIndex(cosuti).c_str()); //t3175
       }
     else if(m_state.isAtom(cosuti))
       fp->write("NULL"); //t3833
@@ -2249,7 +2249,7 @@ namespace MFM {
 
     if(stgclasstype == UC_ELEMENT)
       {
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
+	fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
 	fp->write(".");
       }
     else
@@ -2291,7 +2291,7 @@ namespace MFM {
     if(m_state.isClassACustomArray(cosuti))
       fp->write("uc, "); //not for regular READs and WRITEs
 
-    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
+    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
     fp->write(".");
 
     // the MP (only primitive!, no longer quark or element):
@@ -2327,7 +2327,7 @@ namespace MFM {
 
     UlamType * caclassut = m_state.getUlamTypeByIndex(caclassuti);
     assert(!caclassut->isReference());
-    fp->write(m_state.getEffectiveSelfMangledNameByIndex(caclassuti).c_str());
+    fp->write(m_state.getTheInstanceMangledNameByIndex(caclassuti).c_str());
     fp->write(".");
   } //genCustomArrayMemberNameOfMethod
 
@@ -2382,7 +2382,7 @@ namespace MFM {
 	    hiddenarg2 << ", " << calcPosOfCurrentObjectClassesAsString(uvpass); //relative off;
 	    hiddenarg2 << ", " << cosut->getTotalBitSize() << "u, &"; //len
 
-	    hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str(); //cos->isSuper rolls as cosuti
+	    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(cosuti).c_str(); //cos->isSuper rolls as cosuti
 	    hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str();
 	    hiddenarg2 << ");";
 	  }
@@ -2415,7 +2415,7 @@ namespace MFM {
 		    hiddenarg2 << ", " << cosut->getTotalBitSize() << "u, "; //len
 
 		    hiddenarg2 << "&"; //effective self of dm (t3804 check -10)
-		    hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str();
+		    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(cosuti).c_str();
 		    hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str();
 		    hiddenarg2 << ");";
 		  }
@@ -2436,7 +2436,7 @@ namespace MFM {
 		hiddenarg2 << ", " << cosut->getTotalBitSize() << "u, "; //len
 
 		hiddenarg2 << stgcos->getMangledName().c_str() << ", &"; //storage
-		hiddenarg2 << m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str();
+		hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(cosuti).c_str();
 
 		hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str();
 		hiddenarg2 << ", uc";
@@ -2561,7 +2561,7 @@ namespace MFM {
       {
 	//cos is a data member (cosclass could be transient)
 	fp->write("&");
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(cosuti).c_str()); //t3735
+	fp->write(m_state.getTheInstanceMangledNameByIndex(cosuti).c_str()); //t3735
       }
     else if(m_state.isAtom(cosuti))
       {
@@ -2663,7 +2663,7 @@ namespace MFM {
     assert(!hazyKin);
 
     UTI futi = fnsymptr->getDataMemberClass();
-    fp->write(m_state.getEffectiveSelfMangledNameByIndex(futi).c_str());
+    fp->write(m_state.getTheInstanceMangledNameByIndex(futi).c_str());
     fp->write(".");
   } //genCustomArrayLocalMemberNameOfMethod
 

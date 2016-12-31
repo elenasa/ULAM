@@ -111,6 +111,8 @@ namespace MFM{
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
+    u32 getLocalsFilescopeType();
+
     bool hasCustomArray();
 
     void checkCustomArrayTypeFunctions();
@@ -196,7 +198,10 @@ namespace MFM{
 
     NodeBlockFunctionDefinition * findToIntFunctionNode();
 
-    virtual void addClassMemberDescriptionsToInfoMap(ClassMemberMap& classmembers);
+    virtual void addTargetDescriptionToInfoMap(TargetMap& classtargets, u32 scid);
+    virtual void addMemberDescriptionsToInfoMap(ClassMemberMap& classmembers);
+
+    virtual void generateTestInstance(File * fp, bool runtest);
 
   protected:
     SymbolTableOfFunctions m_functionST;
@@ -217,7 +222,7 @@ namespace MFM{
     void genCodeHeaderQuark(File * fp);
     void genCodeHeaderElement(File * fp);
     void genCodeHeaderTransient(File * fp);
-    void genCodeHeaderLocalFilescopes(File * fp);
+    void genCodeHeaderLocalsFilescope(File * fp);
 
     void genThisUlamSuperClassAsAHeaderComment(File * fp);
 
@@ -226,7 +231,7 @@ namespace MFM{
     void genCodeBodyElement(File * fp, UVPass& uvpass);  //specific for this class
     void genCodeBodyQuark(File * fp, UVPass& uvpass);  //specific for this class
     void genCodeBodyTransient(File * fp, UVPass& uvpass);  //specific for this class
-    void genCodeBodyLocalFilescopes(File * fp, UVPass& uvpass);  //specific for this class
+    void genCodeBodyLocalsFilescope(File * fp, UVPass& uvpass);  //specific for this class
 
     void generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
