@@ -35,13 +35,31 @@ namespace MFM {
 
   NodeTerminal::NodeTerminal(const NodeTerminal& ref) : Node(ref), m_etyp(ref.m_etyp), m_constant(ref.m_constant)
   {
-    //clone of template if here (e.g. t3962)
+    //clone of template if here (e.g. t3962, t3981, t3982)
     if(m_etyp == String)
       {
 	UTI cuti = m_state.getCompileThisIdx();
 	StringPoolUser& classupool = m_state.getUPoolRefForClass(cuti);
-	u32 classstringidx = classupool.getIndexForDataString(m_state.m_tokenupool.getDataAsString(m_constant.uval & STRINGIDXMASK));
-	m_constant.uval = (cuti << REGNUMBITS) | (classstringidx & STRINGIDXMASK); //combined index
+	u32 regid = m_constant.uval >> REGNUMBITS;
+	if((regid != 0) && m_state.isALocalsFileScope(regid))
+	  {
+	    return; //t3981
+	  }
+	std::string str;
+	if(regid == 0)
+	  {
+	    str = m_state.m_tokenupool.getDataAsString(m_constant.uval & STRINGIDXMASK);
+	  }
+	else if(m_state.isAClass(regid))
+	  {
+	    StringPoolUser& stringupool = m_state.getUPoolRefForClass(regid);
+	    str = stringupool.getDataAsString(m_constant.uval & STRINGIDXMASK); //t3982
+	  }
+	else //e.g. locals filescope short-circuited, no change
+	  m_state.abortShouldntGetHere();
+
+	u32 newclassstringidx = classupool.getIndexForDataString(str);
+	m_constant.uval = (cuti << REGNUMBITS) | (newclassstringidx & STRINGIDXMASK); //combined index
       }
   }
 

@@ -45,19 +45,6 @@ namespace MFM {
     std::ostringstream mangled;
     std::string nstr = m_state.getDataAsStringMangled(getId());
     mangled << getMangledPrefix() << nstr.c_str();
-
-#if 0
-    //local filescope constant arrays end with filescope name (e.g. _3Foo4ulam)
-    if(isLocalsFilescopeDef())
-      {
-	UTI locuti = getLocalsFilescopeType();
-	UlamType * locut = m_state.getUlamTypeByIndex(locuti);
-	u32 classid = 0;
-	AssertBool foundClassName = m_state.getClassNameFromFileName(locut->getUlamTypeNameOnly(), classid); //without trailing .ulam (no dots allowed)
-	assert(foundClassName);
-	mangled << "_" << m_state.getDataAsStringMangled(classid).c_str() << "4ulam"; //leximited
-      }
-#endif
     return mangled.str();
   } //getMangledName
 
