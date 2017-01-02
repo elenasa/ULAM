@@ -85,12 +85,16 @@ namespace MFM {
   const std::string Token::getTokenStringFromPool(CompilerState * state) const
   {
     assert(state);
+    if(m_type == TOK_EOF)
+      return "EOF";
     return state->m_pool.getDataAsString(tok_stringid[m_type]);
   }
 
   const std::string Token::getTokenAsStringFromPool(TokenType ttype, CompilerState * state)
   {
     assert(state);
+    if(ttype == TOK_EOF)
+      return "EOF";
     return state->m_pool.getDataAsString(tok_stringid[ttype]);
   } //static
 

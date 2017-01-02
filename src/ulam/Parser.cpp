@@ -4243,7 +4243,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 	msg << m_state.getTokenDataAsString(pTok).c_str();
 	msg << "> instead";
 	MSG(&pTok, msg.str().c_str(), ERR);
-	//continue or short-circuit?
+	return; //e.g. TOK_EOF caused infinite loop (t3983)
       }
 
     if(getExpectedToken(TOK_COMMA)) //if so, get next parameter; o.w. unread
