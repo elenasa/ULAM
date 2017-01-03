@@ -96,6 +96,7 @@ namespace MFM{
     bool updateProxy();
 
     Node * buildAlengthofFuncCallNode(); //like toInt cast in Node
+    Node* constantFoldLengthofConstantString();
     bool exchangeNodeWithParent(Node * newnode); //like NodeIdent
 
     void genCodeForUserStringLength(File * fp, UVPass& uvpass);

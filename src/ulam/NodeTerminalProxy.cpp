@@ -95,12 +95,15 @@ namespace MFM {
 
   bool NodeTerminalProxy::isAConstant()
   {
-    if((m_funcTok.m_type == TOK_KW_LENGTHOF))
+    if((m_funcTok.m_type == TOK_KW_LENGTHOF) && m_nodeOf)
       {
-	assert(m_nodeOf);
-	if(UlamType::compareForString(m_nodeOf->getNodeType(), m_state) == UTIC_SAME)
-	  return m_nodeOf->isAConstant(); //length of a variable String not constant, t3984
+	//lengthof a scalar String variable is not constant, t3984; but,
+	//lengthof a String array is, t3985;
+	UTI ofnodeType = m_nodeOf->getNodeType();
+	if((UlamType::compareForString(ofnodeType, m_state) == UTIC_SAME) && m_state.isScalar(ofnodeType))
+	  return m_nodeOf->isAConstant();
       }
+    //else, e.g. length of String type has null m_nodeOf, and is constant 32u (t3933).
     return true;
   }
 
@@ -206,21 +209,36 @@ namespace MFM {
     else
       {
 	nodeType = setConstantTypeForNode(m_funcTok); //enough info to set this constant node's type
-	if(m_state.isAClass(m_uti) && m_state.isClassACustomArray(m_uti) && m_state.hasAClassCustomArrayLengthof(m_uti))
+	if((m_funcTok.m_type == TOK_KW_LENGTHOF))
 	  {
-	    //replace node with func call to 'alengthof'
-	    Node * newnode = buildAlengthofFuncCallNode();
-	    AssertBool swapOk = exchangeNodeWithParent(newnode);
-	    assert(swapOk);
+	    if(m_state.isAClass(m_uti) && m_state.isClassACustomArray(m_uti) && m_state.hasAClassCustomArrayLengthof(m_uti))
+	      {
+		//replace node with func call to 'alengthof'
+		Node * newnode = buildAlengthofFuncCallNode();
+		AssertBool swapOk = exchangeNodeWithParent(newnode);
+		assert(swapOk);
 
-	    m_nodeOf = NULL; //recycled
+		m_nodeOf = NULL; //recycled
 
-	    delete this; //suicide is painless..
+		delete this; //suicide is painless..
 
-	    return newnode->checkAndLabelType();
+		return newnode->checkAndLabelType();
+	      }
+	    else if(isAConstant())
+	      {
+		//constantFold, like NodeBinaryOp (e.g. t3985)
+		//replace with a NodeTerminal
+		Node * newnode = constantFoldLengthofConstantString();
+		assert(newnode);
+		AssertBool swapOk = exchangeNodeWithParent(newnode);
+		assert(swapOk);
+
+		delete this; //suicide is painless..
+
+		return newnode->checkAndLabelType();
+	      }
 	  }
       }
-
     return nodeType; //getNodeType(); //updated to Unsigned, hopefully
   } //checkandLabelType
 
@@ -241,6 +259,67 @@ namespace MFM {
     //redo check and type labeling done by caller!!
     return mselectNode; //replace right node with new branch
   } //buildAlengthofFuncCallNode
+
+  Node * NodeTerminalProxy::constantFoldLengthofConstantString()
+  {
+    u64 val = 0;
+    UTI nuti = getNodeType();
+    assert(m_state.okUTItoContinue(nuti)); //nothing to do yet
+
+    // if here, must be a constant..
+    assert(isAConstant());
+
+    evalNodeProlog(0); //new current frame pointer
+    makeRoomForNodeType(nuti); //offset a constant expression
+    EvalStatus evs = eval();
+    if( evs == NORMAL)
+      {
+	UlamValue cnstUV = m_state.m_nodeEvalStack.popArg();
+	u32 wordsize = m_state.getTotalWordSize(nuti);
+	if(wordsize == MAXBITSPERINT)
+	  val = cnstUV.getImmediateData(m_state);
+	else if(wordsize == MAXBITSPERLONG)
+	  val = cnstUV.getImmediateDataLong(m_state);
+	else
+	  m_state.abortGreaterThanMaxBitsPerLong();
+      }
+
+    evalNodeEpilog();
+
+    if(evs == ERROR)
+      {
+	std::ostringstream msg;
+	msg << "Constant value expression for ";
+	msg << "proxy Type '" << m_funcTok.getTokenString() << "' for scalar constant: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
+	msg << " is erroneous while compiling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav);
+	return NULL;
+      }
+
+    if(evs == NOTREADY)
+      {
+	std::ostringstream msg;
+	msg << "Constant value expression for ";
+	msg << "proxy Type '" << m_funcTok.getTokenString() << "' for scalar constant: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
+	msg << " is not yet ready while compiling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	setNodeType(Hzy);
+	m_state.setGoAgain(); //for compiler counts
+	return NULL;
+      }
+
+    //replace ourselves (and kids) with a node terminal; new NNO unlike template's
+    NodeTerminal * newnode = new NodeTerminal(val, nuti, m_state);
+    assert(newnode);
+    newnode->setNodeLocation(getNodeLocation());
+
+    return newnode;
+  } //constantFoldLengthofConstantString
 
   bool NodeTerminalProxy::exchangeNodeWithParent(Node * newnode)
   {
@@ -443,9 +522,13 @@ namespace MFM {
 	  //consistent with C; (not array size if non-scalar)
 	  rtnB = true;
 	  if(!cut->isScalar())
-	    m_constant.uval = cut->getArraySize(); //number of items, not custom arrays
+	    {
+	      m_constant.uval = cut->getArraySize(); //number of items, not custom arrays
+	    }
 	  else if(cut->getUlamTypeEnum() == String)
-	    m_constant.uval =  cut->getSizeofUlamType(); //tmp for proxy
+	    {
+	      m_constant.uval =  cut->getSizeofUlamType(); //tmp for proxy, t3985
+	    }
 	  else if(m_state.isClassACustomArray(m_uti))
 	    {
 	      if(!m_state.hasAClassCustomArrayLengthof(m_uti))
