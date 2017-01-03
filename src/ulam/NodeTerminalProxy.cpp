@@ -93,6 +93,17 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  bool NodeTerminalProxy::isAConstant()
+  {
+    if((m_funcTok.m_type == TOK_KW_LENGTHOF))
+      {
+	assert(m_nodeOf);
+	if(UlamType::compareForString(m_nodeOf->getNodeType(), m_state) == UTIC_SAME)
+	  return m_nodeOf->isAConstant(); //length of a variable String not constant, t3984
+      }
+    return true;
+  }
+
   bool NodeTerminalProxy::isReadyConstant()
   {
     return m_ready;
@@ -290,7 +301,7 @@ namespace MFM {
 	  {
 	    if(m_nodeOf && (UlamType::compareForString(m_nodeOf->getNodeType(), m_state) == UTIC_SAME))
 	      {
-		//String or String array item (t3933, t3949)
+		//String or String array item (t3933, t3949, t3984)
 		evalNodeProlog(0); //new current frame pointer
 		makeRoomForSlots(1); //upool index is a constant expression
 		evs = m_nodeOf->eval();
