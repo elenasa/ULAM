@@ -1036,6 +1036,7 @@ namespace MFM {
 
     if(!tobe->isReference())
       {
+	//t3697, error t3691
 	// uses stgcos since there's no m_varSymbol in this situation.
 	// don't forget the read!
 	s32 tmpread = m_state.getNextTmpVarNumber(); //tmp since no variable name
@@ -1048,37 +1049,38 @@ namespace MFM {
 	if(m_state.isAtom(vuti)) //from atom/ref->quark
 	  {
 	    fp->write(" = UlamRef<EC>(");
-	    if(m_state.isAtomRef(vuti))
+	    if(m_state.isAtomRef(stguti))
 	      {
 		fp->write(stgcos->getMangledName().c_str()); //ref
-		fp->write(", ");
+		fp->write(".getUlamRef(),");
 	      }
 	    fp->write("0u + T::ATOM_FIRST_STATE_BIT, ");
 	    fp->write_decimal_unsigned(tobe->getTotalBitSize());
 	    fp->write("u, ");
-	    if(!m_state.isAtomRef(vuti))
+	    if(!m_state.isAtomRef(stguti))
 	      {
 		fp->write(stgcos->getMangledName().c_str());
 		fp->write(", &"); //'is' storage
 		fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
+		fp->write(", UlamRef<EC>::ELEMENTAL, uc).");
 	      }
 	    else
 	      {
 		fp->write(stgcos->getMangledName().c_str());
 		fp->write(".GetEffectiveSelf()"); //maintains eff self
+		fp->write(", UlamRef<EC>::ELEMENTAL).");
 	      }
-	    fp->write(", UlamRef<EC>::ELEMENTAL, uc"); //Wed Jun 29 07:06:09 2016
-	    fp->write(").");
+	    fp->write(tobe->readMethodForCodeGen().c_str());
+	    fp->write("();"); GCNL;
 	  }
 	else
 	  {
 	    fp->write(" = ");
 	    fp->write(stgcos->getMangledName().c_str());
 	    fp->write("."); //entire storage
+	    fp->write(tobe->readMethodForCodeGen().c_str());
+	    fp->write("();"); GCNL;
 	  }
-
-	fp->write(tobe->readMethodForCodeGen().c_str());
-	fp->write("();"); GCNL;
 
 	s32 tmpbv = m_state.getNextTmpVarNumber(); //tmp since no variable name
 	m_state.indentUlamCode(fp);
@@ -1106,12 +1108,14 @@ namespace MFM {
 
 	if(m_state.isAtom(vuti))
 	  {
+	    if(m_state.isAtomRef(stguti))
+	      fp->write(".getUlamRef()"); //t3986
 	    //from atom/ref, for known quark ref: t3631, t3632, t3633
 	    fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, "); //'is' &
 	    fp->write("NULL"); //look up effself t3837
 	    fp->write(", UlamRef<EC>::ELEMENTAL"); //becomes elemental t3837
-	    if(!m_state.isAtomRef(vuti))
-	      fp->write(", uc");
+	    if(!m_state.isAtomRef(stguti))
+	      fp->write(", uc"); //t3986
 	  }
 	else
 	  {
