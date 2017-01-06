@@ -413,37 +413,10 @@ namespace MFM {
 	inherits = parseRestOfClassInheritance(cnsym, supercsym, superuti);
 	if(inherits)
 	  {
-	    assert(supercsym);
-	    NodeBlockClass * superclassblock = supercsym->getClassBlockNode();
-	    assert(superclassblock);
-
-	    //set super class' block after any parameters parsed;
-	    // (separate from previous block which might be pointing to template
-	    //  in case of a stub)
-	    rtnNode->setSuperBlockPointer(NULL); //wait for c&l
-
-	    //rearrange order of class context so that super class is traversed after subclass
-	    m_state.popClassContext(); //m_currentBlock = prevBlock;
-	    m_state.pushClassContext(superuti, superclassblock, superclassblock, false, NULL);
-	    m_state.pushClassContext(cnsym->getUlamTypeIdx(), rtnNode, rtnNode, false, NULL); //redo
-
-	    //automatically create a Super typedef symbol for this class' super type
-	    u32 superid = m_state.m_pool.getIndexForDataString("Super");
-	    Symbol * symtypedef = NULL;
-	    if(!rtnNode->isIdInScope(superid, symtypedef))
-	      {
-		Token superTok(TOK_TYPE_IDENTIFIER, qTok.m_locator, superid);
-		symtypedef = new SymbolTypedef(superTok, superuti, superuti, m_state);
-		assert(symtypedef);
-		m_state.addSymbolToCurrentScope(symtypedef);
-	      }
-	    else //holder may have been made prior
-	      {
-		assert(symtypedef->getId() == superid);
-		UTI stuti = symtypedef->getUlamTypeIdx();
-		if(stuti != superuti)
-		  m_state.updateUTIAliasForced(stuti, superuti); //t3808, t3806, t3807
-	      }
+	    setupSuperClassHelper(supercsym, cnsym);
+	    //reset super block pointer since it will change if temporary (e.g. t3874)
+	    if(supercsym->isStub() || m_state.isHolder(superuti) || (supercsym->getUlamClass() == UC_UNSEEN))
+	      rtnNode->setSuperBlockPointer(NULL); //wait for c&l
 	  }
       }
     else
@@ -463,7 +436,7 @@ namespace MFM {
 		m_state.addIncompleteClassSymbolToProgramTable(urTok, ursym);
 		m_state.saveUrSelf(ursym->getUlamTypeIdx());
 	      }
-	    cnsym->setSuperClass(ursym->getUlamTypeIdx()); //reset super here!!!
+	    setupSuperClassHelper(ursym, cnsym);
 	  }
       }
 
@@ -504,6 +477,48 @@ namespace MFM {
 
     return rtnNode;
   } //parseClassBlock
+
+  void Parser::setupSuperClassHelper(SymbolClass * supercsym, SymbolClassName * cnsym)
+  {
+    assert(supercsym);
+    UTI superuti = supercsym->getUlamTypeIdx();
+    cnsym->setSuperClass(superuti);
+
+    NodeBlockClass * superclassblock = supercsym->getClassBlockNode();
+    assert(superclassblock);
+
+    NodeBlockClass * classblock = cnsym->getClassBlockNode();
+    assert(classblock); //rtnNode in caller
+
+    //set super class' block after any parameters parsed;
+    // (separate from previous block which might be pointing to template
+    //  in case of a stub)
+    //classblock->setSuperBlockPointer(NULL); //wait for c&l
+    classblock->setSuperBlockPointer(superclassblock);
+
+    //rearrange order of class context so that super class is traversed after subclass
+    m_state.popClassContext(); //m_currentBlock = prevBlock;
+    m_state.pushClassContext(superuti, superclassblock, superclassblock, false, NULL);
+    m_state.pushClassContext(cnsym->getUlamTypeIdx(), classblock, classblock, false, NULL); //redo
+
+    //automatically create a Super typedef symbol for this class' super type
+    u32 superid = m_state.m_pool.getIndexForDataString("Super");
+    Symbol * symtypedef = NULL;
+    if(!classblock->isIdInScope(superid, symtypedef))
+      {
+	Token superTok(TOK_TYPE_IDENTIFIER, superclassblock->getNodeLocation(), superid);
+	symtypedef = new SymbolTypedef(superTok, superuti, superuti, m_state);
+	assert(symtypedef);
+	m_state.addSymbolToCurrentScope(symtypedef);
+      }
+    else //holder may have been made prior
+      {
+	assert(symtypedef->getId() == superid);
+	UTI stuti = symtypedef->getUlamTypeIdx();
+	if(stuti != superuti)
+	  m_state.updateUTIAliasForced(stuti, superuti); //t3808, t3806, t3807
+      }
+  } //setupSuperClassHelper
 
   void Parser::parseRestOfClassParameters(SymbolClassNameTemplate * cntsym, NodeBlockClass * cblock)
   {

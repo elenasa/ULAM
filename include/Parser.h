@@ -104,7 +104,9 @@ namespace MFM{
 
     bool parseRestOfClassInheritance(SymbolClassName * cnsym, SymbolClass *& supercsym, UTI& superuti);
 
-    /**
+    void setupSuperClassHelper(SymbolClass * supercsym, SymbolClassName * cnsym);
+
+   /**
 	<LOCAL_DEF> := 'local' + ( <TYPE_DEF> | <CONST_DEF> ) + ';'
      */
     bool parseLocalDef();
