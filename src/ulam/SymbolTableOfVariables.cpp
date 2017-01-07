@@ -39,6 +39,30 @@ namespace MFM {
     return cntOfConstants;
   } //getNumberOfConstantSymbolsInTable
 
+  //called by NodeBlockClass (e.g. String (scalar or array))
+  bool SymbolTableOfVariables::hasUlamTypeSymbolsInTable(ULAMTYPE etyparg)
+  {
+    bool rtnb = false;
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym);
+	if(!sym->isTypedef()) //t3948
+	  {
+	    UTI suti = sym->getUlamTypeIdx();
+	    ULAMTYPE etyp = m_state.getUlamTypeByIndex(suti)->getUlamTypeEnum();
+	    if(etyp == etyparg)
+	      {
+		rtnb = true;
+		break;
+	      }
+	  }
+	it++;
+      }
+    return rtnb;
+  } //hasUlamTypeSymbolsInTable
+
   u32 SymbolTableOfVariables::findTypedefSymbolNameIdByTypeInTable(UTI type)
   {
     u32 rtnId = 0;

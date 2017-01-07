@@ -2,16 +2,17 @@
 #=t3555_test_compiler_elementinheritance_unseen
 #!
 Exit status: 77
-Ue_Foo : Soo { :< Unsigned(3) us(4u); > Bool(7) sp(false);  Int(32) a(73);  Int(32) test() {  Foo f;  f us . cast f a . +b return } }
-Uq_Soo { Unsigned(3) us( 4u);  <NOMAIN> }
+Ue_Foo : Soo { :< typedef Bool(7) B7;  Unsigned(3) us(4u); > Bool(7) sp(false);  Int(32) a(73);  Int(32) test() {  Foo f;  f us . cast f a . +b return } }
+Uq_Soo { typedef Bool(7) B7;  Unsigned(3) us( 4u);  <NOMAIN> }
 ##
 ## informed by t3528, the first test of class inheritance, regular (non-template)
-## here, Soo isn't seen until after Foo is parse.
+## here, Soo isnt seen until after Foo is parse;
+## Soo has a typedef used by Foo (see t3565 for templated inheritance w typedef)
 ##
 #>Foo.ulam
   ulam 2;
 element Foo : Soo {
-  Bool(7) sp;
+  B7 sp;
   Int a = 73;
   Int test() {
     Foo f;
@@ -23,6 +24,7 @@ element Foo : Soo {
 #:Soo.ulam
   ulam 2;
 quark Soo {
+  typedef Bool(7) B7;
   Unsigned(3) us = 4u;
 }
 

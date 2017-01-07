@@ -1,21 +1,20 @@
 ## -*- mode:ulam -*-
-#=t3565_test_compiler_quarkinheritancewclassargs
+#=t3565_test_compiler_quarkinheritancewclassargs_typedef
 #!
 ## gencode output (+assert):
 ## Bool(3) Arg: 0x7 (true)
 ##
 Exit status: 96
-Ue_Foo { System s();  Bool(1) first(false);  Soo(1,2u) su( :< constant Int(32) a = 1;  Bool(1) cb(true); > constant Int(32) a = 1;  constant Unsigned(32) b = 2u;  Unsigned(3) us(4u); );  Int(32) test() {  Foo f;  { f su . cb . cond { s ( f su . cb . cast )print . s ( f su . cb . )assert . 96u cast return } if } 0 cast return } }
-Uq_Soo(Int(32) a, Unsigned(32) b) : Coo(a) { :< Bool(UNKNOWN) cb(notready); > Unsigned(UNKNOWN) us(unknown);  <NOMAIN> }
-Uq_Coo(Int(32) a) { Bool(UNKNOWN) cb(notready);  <NOMAIN> }
+Ue_Foo { System s();  Bool(1) first(false);  Soo(1,2u) su( :< Bool(1) cb(true);  constant Int(32) a = 1;  typedef Unsigned(3) U3; > constant Int(32) a = 1;  constant Unsigned(32) b = 2u;  Unsigned(3) us(4u); );  Int(32) test() {  Foo f;  { f su . cb . cond { s ( f su . cb . cast )print . s ( f su . cb . )assert . 96u cast return } if } 0 cast return } }
 Uq_System { <NOMAIN> }
+Uq_Soo(Int(32) a, Unsigned(32) b) : Coo(a) { :< typedef Unsigned(3) U3;  Bool(UNKNOWN) cb(notready); > 0Holder(UNKNOWN) us(unknown);  <NOMAIN> }
+Uq_Coo(Int(32) a) { typedef Unsigned(3) U3;  Bool(UNKNOWN) cb(notready);  <NOMAIN> }
 ##
-## quark inheritance, regular (non-template)
+## quark inheritance, templated with typedef
+## Coo has a typedef used by Soo (see t3555 for non-templated inheritance w typedef)
 ##
 #>Foo.ulam
   ulam 2;
-use Soo;
-use System;
 element Foo {
   System s;
   Bool first;
@@ -42,14 +41,14 @@ element Foo {
 
 #:Soo.ulam
   ulam 2;
-use Coo;
 quark Soo(Int a, Unsigned b) : Coo(a) {
-  Unsigned(3) us = 4u;
+  U3 us = 4u;
 }
 
 #:Coo.ulam
   ulam 2;
 quark Coo(Int a) {
+  typedef Unsigned(3) U3;
   Bool(a) cb = true; //use to be Bool(3)
 }
 

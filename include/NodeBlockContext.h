@@ -63,6 +63,8 @@ namespace MFM{
     virtual StringPoolUser& getUserStringPoolRef();
     virtual void setUserStringPoolRef(const StringPoolUser& spref); //for instantiated templates
 
+    bool hasStringDataMembers();
+
     virtual void addTargetDescriptionToInfoMap(TargetMap& classtargets, u32 scid) = 0;
     virtual void addMemberDescriptionsToInfoMap(ClassMemberMap& classmembers) = 0;
 

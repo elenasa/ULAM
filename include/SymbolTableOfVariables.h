@@ -53,6 +53,8 @@ namespace MFM{
 
     u32 getNumberOfConstantSymbolsInTable(bool argsOnly);
 
+    bool hasUlamTypeSymbolsInTable(ULAMTYPE etyparg);
+
     u32 findTypedefSymbolNameIdByTypeInTable(UTI type);
 
     //Table of Variable Data Members:
