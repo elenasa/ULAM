@@ -417,6 +417,8 @@ namespace MFM{
 
     bool classCustomArraySetable(UTI cuti);
 
+    bool hasThisClassStringDataMembers();
+
     void setupCenterSiteForTesting();
     void setupCenterSiteForGenCode();
     void generateTestInstancesForLocalsFilescopes(File * fp);

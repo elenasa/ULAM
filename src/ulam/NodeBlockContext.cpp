@@ -30,4 +30,9 @@ namespace MFM {
     m_upool = spref;
   }
 
+  bool NodeBlockContext::hasStringDataMembers()
+  {
+    return m_ST.hasUlamTypeSymbolsInTable(String);
+  }
+
 } //end MFM

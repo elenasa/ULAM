@@ -1343,18 +1343,22 @@ namespace MFM {
     fp->write("initdone = true;\n");
 
     indent(fp);
-    fp->write("initBV.FromArray(vales);"); GCNL;
+    fp->write("initBV.FromArray(vales);"); GCNL; //t3776
 
-    if(!isThisLocalsFileScope()) //t3776
+    if(!isThisLocalsFileScope()) //t3972,73
       {
-	indent(fp);
-	fp->write("static u32 myRegNum = ");
-	fp->write(getTheInstanceMangledNameByIndex(cuti).c_str());
-	fp->write(".GetRegistrationNumber();"); GCNL;
+	if(hasThisClassStringDataMembers()) //t3972,73
+	  {
+	    //unused variable if no string data members
+	    indent(fp);
+	    fp->write("static u32 myRegNum = ");
+	    fp->write(getTheInstanceMangledNameByIndex(cuti).c_str());
+	    fp->write(".GetRegistrationNumber();"); GCNL;
+	  }
 
+	//class data members may have strings (t3948)
 	indent(fp);
 	fp->write("//correct runtime regnum for strings\n");
-
 	getCurrentBlock()->genCodeDefaultValueStringRegistrationNumber(fp, 0);
       }
 
@@ -3460,6 +3464,14 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       }
     return rtnb;
   } //classCustomArraySetable
+
+  bool CompilerState::hasThisClassStringDataMembers()
+  {
+    NodeBlockContext * cxblock = getContextBlock();
+    assert(cxblock);
+    assert(cxblock->getNodeType() == getCompileThisIdx());
+    return cxblock->hasStringDataMembers();
+  }
 
   void CompilerState::setupCenterSiteForTesting()
   {
