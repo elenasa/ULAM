@@ -457,6 +457,16 @@ namespace MFM {
     u32 offsetdata = 0;
     if(offut->isNumericType())
       {
+	if(!m_state.isValidUserStringIndex(usrStr))
+	  {
+	    std::ostringstream msg;
+	    msg << "Uninitialized String cannot access subscript of '";
+	    msg << m_state.getDataAsFormattedUserString(usrStr).c_str() << "'";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    evalNodeEpilog();
+	    return ERROR;
+	  }
+
 	// constant expression only required for array declaration
 	u32 strlen = m_state.getUserStringLength(usrStr);
 	offsetdata = offset.getImmediateData(m_state);

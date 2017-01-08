@@ -266,6 +266,13 @@ namespace MFM {
     return SymbolClass::reportUnknownTypeNamesInClass();
   }
 
+  u32 SymbolClassName::reportClassInstanceNamesThatAreTooLong()
+  {
+    if(SymbolClass::reportLongClassName())
+      return 1;
+    return 0;
+  } //reportClassInstanceNamesThatAreTooLong
+
   bool SymbolClassName::setBitSizeOfClassInstances()
   {
     bool aok = true;

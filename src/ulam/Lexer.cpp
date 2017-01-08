@@ -396,9 +396,9 @@ namespace MFM {
 
     std::ostringstream newstr;
     if(slen == 0)
-      newstr << (char) 0;
+      newstr << (u8) 0;
     else
-      newstr << (char) slen << astring << (char) 0; //slen doesn't include itself or terminating byte; see StringPoolUser.
+      newstr << (u8) slen << astring << (u8) 0; //slen doesn't include itself or terminating byte; see StringPoolUser.
 
     u32 idx = m_state.m_tokenupool.getIndexForDataString(newstr.str());
     tok.init(TOK_DQUOTED_STRING,firstloc,idx);

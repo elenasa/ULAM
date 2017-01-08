@@ -4148,6 +4148,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
     //btw, it's really a ref. belongs to the function definition scope.
 
     //parse and add parameters to function symbol (not in ST yet!)
+    //intentionally keeps going regardless of errors for better messages.
     parseRestOfFunctionParameters(fsymptr, rtnNode);
 
     if(rtnNode)
@@ -4224,6 +4225,7 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
       }
     else if(Token::isTokenAType(pTok) || (pTok.m_type == TOK_KW_LOCALDEF))
       {
+	//local.Type allowed (t3870,71)
 	unreadToken();
 	NodeVarDecl * argNode = parseFunctionParameterDecl();
 	Symbol * argSym = NULL;
@@ -4250,6 +4252,11 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
 		MSG(&pTok, msg.str().c_str(), ERR);
 	      }
 	  }
+      }
+    else if(pTok.m_type == TOK_EQUAL)
+      {
+	//special reminder (t3990)
+	MSG(&pTok, "Default values for function parameters is currently not supported", ERR);
       }
     else
       {

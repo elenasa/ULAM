@@ -1,3 +1,4 @@
+#include <iomanip>
 #include "SymbolWithValue.h"
 #include "CompilerState.h"
 
@@ -475,6 +476,90 @@ namespace MFM {
     return SymbolWithValue::getLexValueAsString(tbs, dval, vstr);
   } //getArrayValueAsString
 
+  bool SymbolWithValue::getScalarValueAsString(std::string& vstr)
+  {
+    bool oktoprint = true;
+    u64 constantval;
+    if(isReady())
+      getValue(constantval);
+    else if(hasInitValue() && isInitValueReady())
+      getInitValue(constantval);
+    else
+      oktoprint = false;
+
+    if(!oktoprint)
+      {
+	return false;
+      }
+
+    std::ostringstream ostr;
+    UTI tuti = getUlamTypeIdx();
+    u32 twordsize =  m_state.getTotalWordSize(tuti); //must be commplete
+    s32 tbs = m_state.getTotalBitSize(tuti);
+    ULAMTYPE etyp = m_state.getUlamTypeByIndex(tuti)->getUlamTypeEnum();
+    switch(etyp)
+      {
+      case Int:
+	{
+	  if(twordsize <= MAXBITSPERINT)
+	    {
+	      s32 sval = _Int32ToInt32((u32) constantval, tbs, MAXBITSPERINT);
+	      ostr << sval;
+	    }
+	  else if(twordsize <= MAXBITSPERLONG)
+	    {
+	      s64 sval = _Int64ToInt64(constantval, tbs, MAXBITSPERLONG);
+	      ostr << sval;
+	    }
+	  else
+	    m_state.abortGreaterThanMaxBitsPerLong();
+	}
+	break;
+      case Bool:
+	{
+	  bool bval = _Bool64ToCbool(constantval, tbs);
+	  if(bval)
+	    ostr << "true";
+	  else
+	    ostr << "false";
+	}
+	break;
+      case Unary:
+	{
+	  u32 pval = _Unary64ToUnsigned64(constantval, tbs, MAXBITSPERINT);
+	  ostr << pval;
+	}
+	break;
+      case Unsigned:
+	{
+	  if( tbs <= MAXBITSPERINT)
+	    ostr << (u32) constantval << "u";
+	  else if( tbs <= MAXBITSPERLONG)
+	    ostr << constantval << "u";
+	  else
+	    m_state.abortGreaterThanMaxBitsPerLong();
+	}
+	break;
+      case Bits:
+	{
+	  ostr << "0x" << std::hex << constantval;
+	}
+	break;
+      case String:
+	{
+	  std::string fstr = m_state.getDataAsUnFormattedUserString((u32) constantval);
+	  u32 flen = fstr.length() - 1; //exclude null terminator
+	  for(u32 i = 0; i < flen; i++)
+	    ostr << std::hex << std::setfill('0') << std::setw(2) << (u32) fstr[i];
+	}
+	break;
+      default:
+	m_state.abortUndefinedUlamPrimitiveType();
+      };
+    vstr = ostr.str();
+    return true;
+  } //getScalarValueAsString
+
   //static: return false if all zeros, o.w. true; rtnstr updated
   bool SymbolWithValue::getLexValueAsString(u32 ntotbits, const BV8K& bval, std::string& rtnstr)
   {
@@ -603,7 +688,6 @@ namespace MFM {
 	  vstr = ToLeximitedNumber(pval);
 	}
 	break;
-      case String:
       case Unsigned:
       case Bits:
 	{
@@ -613,6 +697,16 @@ namespace MFM {
 		vstr = ToLeximitedNumber64(constantval);
 	  else
 	    m_state.abortGreaterThanMaxBitsPerLong();
+	}
+	break;
+      case String:
+	{
+	  std::ostringstream fhex;
+	  std::string fstr = m_state.getDataAsUnFormattedUserString((u32) constantval);
+	  u32 flen = fstr.length() - 1; //exclude null terminator
+	  for(u32 i = 0; i < flen; i++)
+	    fhex << std::hex << std::setfill('0') << std::setw(2) << (u32) fstr[i];
+	  vstr = fhex.str();
 	}
 	break;
       default:

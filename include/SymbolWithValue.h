@@ -95,6 +95,7 @@ namespace MFM{
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype) = 0;
 
     bool getArrayValueAsString(std::string& vstr);
+    bool getScalarValueAsString(std::string& vstr);
 
     //static: return false if all zeros, o.w. true; rtnstr updated
     static bool getLexValueAsString(u32 ntotbits, const BV8K& bval, std::string& rtnstr);

@@ -332,6 +332,7 @@ namespace MFM{
     StringPoolUser & getUPoolRefForClass(UTI cuti);
     StringPoolUser& getUPoolRefForLocalsFilescope(UTI luti);
     const std::string & getDataAsFormattedUserString(u32 combinedidx);
+    const std::string & getDataAsUnFormattedUserString(u32 combinedidx);
     bool isValidUserStringIndex(u32 combinedidx);
     u32 getUserStringLength(u32 combinedidx);
 

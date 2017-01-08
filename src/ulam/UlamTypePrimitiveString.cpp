@@ -222,6 +222,7 @@ namespace MFM {
 
   void UlamTypePrimitiveString::getDataAsString(const u32 data, char * valstr, char prefix)
   {
+    assert(data != 0);
     if(prefix == 'z')
       sprintf(valstr,"%s", m_state.getDataAsFormattedUserString(data).c_str());
     else

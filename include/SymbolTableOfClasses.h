@@ -90,6 +90,8 @@ namespace MFM{
 
     u32 reportUnknownTypeNamesAcrossTableOfClasses();
 
+    u32 reportTooLongClassNamesAcrossTableOfClasses();
+
     bool setBitSizeOfTableOfClasses();
 
     void printBitSizeOfTableOfClasses();

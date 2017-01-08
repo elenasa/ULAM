@@ -2760,9 +2760,18 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   {
     UTI cuti = (combinedidx >> REGNUMBITS);
     u32 sidx = (combinedidx & STRINGIDXMASK);
-    assert(cuti > 0 && sidx > 0);
+    assert(cuti > 0 && sidx > 0); // error/t3987
     StringPoolUser& classupool = getUPoolRefForClass(cuti);
     return classupool.getDataAsFormattedString(sidx, this);
+  }
+
+  const std::string & CompilerState::getDataAsUnFormattedUserString(u32 combinedidx)
+  {
+    UTI cuti = (combinedidx >> REGNUMBITS);
+    u32 sidx = (combinedidx & STRINGIDXMASK);
+    assert(cuti > 0 && sidx > 0); // t3959
+    StringPoolUser& classupool = getUPoolRefForClass(cuti);
+    return classupool.getDataAsString(sidx);
   }
 
   bool CompilerState::isValidUserStringIndex(u32 combinedidx)

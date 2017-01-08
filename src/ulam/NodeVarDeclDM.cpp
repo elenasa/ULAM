@@ -56,7 +56,8 @@ namespace MFM {
 	return;
       }
 
-    if(nut->getUlamTypeEnum() == Class) //t3717, t3718, t3719, t3739, t3714, t3715, t3735
+    ULAMTYPE etyp = nut->getUlamTypeEnum();
+    if(etyp == Class) //t3717, t3718, t3719, t3739, t3714, t3715, t3735
       {
 	SymbolClass * csym = NULL;
 	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
@@ -88,6 +89,10 @@ namespace MFM {
 	  {
 	    // only for primitive scalars and arrays
 	    m_nodeInitExpr->printPostfix(fp);
+	  }
+	else if(etyp == String)
+	  {
+	    fp->write("UNINITIALIZED_STRING"); //t3987
 	  }
 	else
 	  {

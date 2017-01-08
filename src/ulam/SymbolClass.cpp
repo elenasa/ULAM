@@ -393,6 +393,26 @@ namespace MFM {
     return m_resolver->reportAnyUnknownTypeNames();
   }
 
+  bool SymbolClass::reportLongClassName()
+  {
+    bool istoolong = false;
+    UTI suti = getUlamTypeIdx();
+    UlamType * sut = m_state.getUlamTypeByIndex(suti);
+    std::string classname = sut->getUlamTypeMangledName();
+    u32 cnamelen = classname.length();
+    if(cnamelen > MAX_FILENAME_LENGTH)
+      {
+	std::ostringstream msg;
+	msg << "Mangled Class Instance Name: <";
+	msg << classname.c_str() << ">; ";
+	msg << "exceeds the maximum length (" << MAX_FILENAME_LENGTH;
+	msg << ") before extensions, length is " << cnamelen;
+	MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
+	istoolong = true;
+      }
+    return istoolong;
+  } //reportLongClassName
+
   void SymbolClass::linkConstantExpressionForPendingArg(NodeConstantDef * constNode)
   {
     if(!m_resolver)

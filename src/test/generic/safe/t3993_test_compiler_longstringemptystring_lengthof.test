@@ -1,0 +1,47 @@
+## -*- mode:ulam -*-
+#=t3993_test_compiler_longstringemptystring_lengthof
+##
+## gen output: (+ interleaved asserts)
+##   Unsigned Arg: 0
+##   Unsigned Arg: 255
+##
+#!
+Exit status: 255
+Ue_Foo { Bool(1) sp(false);  Unsigned(32) slen(0u);  Unsigned(32) slen2(255u);  Int(32) test() {  System s;  String(32) lstr = "";  slen 0u = s ( slen )print . s ( slen 0u cast == )assert . slen2 255u = s ( slen2 )print . s ( slen2 255u cast == )assert . 255u cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by t3992
+##
+#>Foo.ulam
+  ulam 2;
+local constant String longstring = "thisisaverylongstringthatexceedsthatlengthallowedbylinuxwhichistwohundredfiftyfivebuttakingthelongestextensionintoaccountwemustsubtracteightallowingustotestthemanglednamewiththisverylongstringthatneedsafewmoreletterstoproperlytestthelimitationdiscussed012"; //255
+element Foo {
+  Bool sp;
+  Unsigned slen;
+  Unsigned slen2;
+  Int test() {
+    System s;
+    String lstr = "";
+    slen = lstr.lengthof;
+    s.print(slen);
+    s.assert(slen == 0u);
+
+    slen2 = longstring.lengthof;
+    s.print(slen2);
+    s.assert(slen2 == 255u);
+    return (Int) longstring.lengthof;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.
