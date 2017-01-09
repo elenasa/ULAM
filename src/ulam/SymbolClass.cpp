@@ -1,5 +1,6 @@
 #include <sstream>
 #include <string.h>
+#include <errno.h>
 #include "CompilerState.h"
 #include "SymbolClass.h"
 #include "SymbolClassName.h"
@@ -588,7 +589,16 @@ void SymbolClass::setContextForPendingArgs(UTI context)
     // this class header
     {
       File * fp = fm->open(m_state.getFileNameForThisClassHeader(WSUBDIR).c_str(), WRITE);
-      assert(fp);
+      //testable by commenting out reportTooLongClassNamesAcrossTableOfClasses in Compiler.cpp
+      // and running error test t3991
+      if(!fp)
+	{
+	  std::ostringstream msg;
+	  msg << "System failure: " << strerror(errno) << " to write <";
+	  msg << m_state.getFileNameForThisClassHeader(WSUBDIR).c_str() << ">";
+	  MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
+	  return;
+	}
 
       generateHeaderPreamble(fp);
       genAllCapsIfndefForHeaderFile(fp);
@@ -621,7 +631,14 @@ void SymbolClass::setContextForPendingArgs(UTI context)
     // this class body
     {
       File * fp = fm->open(m_state.getFileNameForThisClassBody(WSUBDIR).c_str(), WRITE);
-      assert(fp);
+      if(!fp)
+	{
+	  std::ostringstream msg;
+	  msg << "System failure: " << strerror(errno) << " to write <";
+	  msg << m_state.getFileNameForThisClassBody(WSUBDIR).c_str() << ">";
+	  MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
+	  return;
+	}
 
       m_state.m_currentIndentLevel = 0;
       m_state.genCModeForHeaderFile(fp); //needed for .tcc files too
@@ -635,7 +652,14 @@ void SymbolClass::setContextForPendingArgs(UTI context)
     // "stub" .cpp includes .h (unlike the .tcc body)
     {
       File * fp = fm->open(m_state.getFileNameForThisClassCPP(WSUBDIR).c_str(), WRITE);
-      assert(fp);
+      if(!fp)
+	{
+	  std::ostringstream msg;
+	  msg << "System failure: " << strerror(errno) << " to write <";
+	  msg << m_state.getFileNameForThisClassCPP(WSUBDIR).c_str() << ">";
+	  MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
+	  return;
+	}
 
       m_state.m_currentIndentLevel = 0;
 
@@ -787,7 +811,16 @@ void SymbolClass::setContextForPendingArgs(UTI context)
   void SymbolClass::genMangledTypesHeaderFile(FileManager * fm)
   {
     File * fp = fm->open(m_state.getFileNameForThisTypesHeader(WSUBDIR).c_str(), WRITE);
-    assert(fp);
+    //testable by commenting ouat reportTooLongClassNamesAcrossTableOfClasses in Compiler.cpp
+    // and running error test t3991
+    if(!fp)
+      {
+	std::ostringstream msg;
+	msg << "System failure: " << strerror(errno) << " to write <";
+	msg << m_state.getFileNameForThisTypesHeader(WSUBDIR).c_str() << ">";
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
+	return;
+      }
 
     m_state.m_currentIndentLevel = 0;
     m_state.genCModeForHeaderFile(fp);
@@ -843,7 +876,14 @@ void SymbolClass::setContextForPendingArgs(UTI context)
   void SymbolClass::generateMain(FileManager * fm)
   {
     File * fp = fm->open(m_state.getFileNameForThisClassMain(WSUBDIR).c_str(), WRITE);
-    assert(fp);
+    if(!fp)
+      {
+	std::ostringstream msg;
+	msg << "System failure: " << strerror(errno) << " to write <";
+	msg << m_state.getFileNameForThisClassMain(WSUBDIR).c_str() << ">";
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
+	return;
+      }
 
     m_state.m_currentIndentLevel = 0;
 

@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t3970_test_compiler_stringuninit_printerror
+#=t3970_test_compiler_stringuninit_printerror_fail
 ##
 ## gen error log:
 ##  include/Uq_10108SystemU310_native.tcc:14: FAILED: UNINITIALIZED_VALUE

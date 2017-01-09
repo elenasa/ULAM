@@ -43,6 +43,7 @@ my $TESTBIN =  "$ULAM_ROOT/src/test/bin";
 my $EXEC_TEST_VALGRIND = 0;  #=1 produces uncomparable log files (grep for "leaked" in them).
 my $SRC_DIR = "safe";
 #my $SRC_DIR = "error"; # comment out Node::countNavNodes second line of message for comparison.
+#my $SRC_DIR = "fail"; # runtime failures w testgencode
 my $TESTGENCODE = 1; # 0 is faster; 1 is thorough
 
 sub usage_abort

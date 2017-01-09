@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t3259_test_compiler_self_MP
+#=t3259_test_compiler_self_MP_fail
 #!
 ##
 ##include/Ue_10161S10_Types.h:224: FAILED: NULL_POINTER

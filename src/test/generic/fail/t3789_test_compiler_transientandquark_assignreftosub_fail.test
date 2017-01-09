@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t3789_test_compiler_transientandquark_assignreftosub
+#=t3789_test_compiler_transientandquark_assignreftosub_fail
 ##
 ## gen output:
 ##     include/Ue_10101R10.tcc:50: FAILED: NOT_AN_ELEMENT
