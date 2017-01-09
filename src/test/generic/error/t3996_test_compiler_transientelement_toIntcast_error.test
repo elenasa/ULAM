@@ -1,0 +1,50 @@
+## -*- mode:ulam -*-
+#=t3996_test_compiler_transientelement_toIntcast_error
+#!
+./Coo.ulam:9:0: ERROR: Class: Foo is not a numeric type and cannot be safely cast to an Int.
+./Foo.ulam:8:10: ERROR: Use explicit cast to convert Foo to Int(32) for operator=.
+./Foo.ulam:9:13: ERROR: Cannot explicitly cast Foo to type: Int(32).
+./Foo.ulam:9:10: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
+./Coo.ulam:9:0: ERROR: Class: Coo is not a numeric type and cannot be safely cast to an Int.
+./Foo.ulam:13:10: ERROR: Use explicit cast to convert Coo to Int(32) for operator=.
+./Foo.ulam:14:13: ERROR: Cannot explicitly cast Coo to type: Int(32).
+./Foo.ulam:14:10: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
+Unrecoverable Program Type Label FAILURE.
+##
+## toInt called automatically only for quarks; see also safe/t3997
+##
+#>Foo.ulam
+  ulam 2;
+element Foo {
+  Bool first;
+  Int fint;
+  Int cint;
+  Int test() {
+    Foo foo;
+    fint = foo; //not automatic
+    fint = (Int) foo; //not explicit either
+    fint = foo.toInt(); //ok
+
+    Coo coo;
+    cint = coo; //not automatic
+    cint = (Int) coo; //not explicit either
+    cint = coo.toInt(); //ok
+    return cint;
+  }
+  Int toInt()
+  {
+    return 3;
+  }
+}
+
+#:Coo.ulam
+  ulam 2;
+transient Coo {
+  Bool(3) cb = true;
+  Int toInt()
+  {
+    return 44;
+  }
+}
+
+#.

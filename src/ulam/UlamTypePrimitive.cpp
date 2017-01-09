@@ -34,6 +34,14 @@ namespace MFM {
 	ULAMTYPE valtypEnum = vut->getUlamTypeEnum();
 	if((getUlamTypeEnum() != Void) && ((valtypEnum == String) ^ (getUlamTypeEnum() == String)))
 	  scr = CAST_BAD;
+
+	//only quarks may be cast to Ints, explicitly or not; requires toInt method (t3996)
+	if(valtypEnum == Class)
+	  {
+	    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
+	    if(vclasstype != UC_QUARK)
+	      scr = CAST_BAD;
+	  }
       }
     return scr;
   } //explicitlyCastable
