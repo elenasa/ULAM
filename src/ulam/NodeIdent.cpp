@@ -388,38 +388,6 @@ namespace MFM {
     return it;
   } //checkAndLabelType
 
-  bool NodeIdent::exchangeNodeWithParent(Node * newnode)
-  {
-    UTI cuti = m_state.getCompileThisIdx(); //for error messages
-    NodeBlock * currBlock = getBlock();
-
-    NNO pno = Node::getYourParentNo();
-
-    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
-
-    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
-    assert(parentNode);
-
-    AssertBool swapOk = parentNode->exchangeKids(this, newnode);
-    assert(swapOk);
-
-    std::ostringstream msg;
-    msg << "Exchanged kids! <" << m_state.getTokenDataAsString(m_token).c_str();
-    msg << "> " << prettyNodeName().c_str();
-    msg << ", in place of a variable identifier within class: ";
-    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-
-    m_state.popClassContext(); //restore
-
-    //common to all new nodes:
-    newnode->setNodeLocation(getNodeLocation());
-    newnode->setYourParentNo(pno);
-    newnode->resetNodeNo(getNodeNo());
-
-    return true;
-  } //exchangeNodeWithParent
-
   bool NodeIdent::trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr)
   {
     UTI nuti = getNodeType();

@@ -225,6 +225,15 @@ namespace MFM {
 
     m_state.pushCurrentBlock(this);
 
+    //set self slot just below return value
+    u32 selfid = m_state.m_pool.getIndexForDataString("self");
+    Symbol * selfsym = NULL;
+    bool hazyKin = false; //return is always false?
+    AssertBool isDefined = m_state.alreadyDefinedSymbol(selfid, selfsym, hazyKin) && !hazyKin;
+    assert(isDefined);
+    s32 newslot = -2 - m_state.slotsNeeded(getNodeType()); //2nd hidden arg
+    ((SymbolVariable *) selfsym)->setStackFrameSlotIndex(newslot);
+
     m_state.m_currentFunctionReturnNodes.clear(); //vector of return nodes
     m_state.m_currentFunctionReturnType = it;
 
@@ -331,8 +340,8 @@ namespace MFM {
     if(nuti == Hzy)
       return NOTREADY;
 
-    //for eval, native function blocks (NodeBlockEmpty) return Normal.
-    //if(isNative()) return UNEVALUABLE;
+    //for eval, native function blocks (NodeBlockEmpty) return Normal. t3942
+    if(isNative() && getNodeType() != Void) return UNEVALUABLE;
 
     m_state.pushCurrentBlock(this); //push func def
 
@@ -440,15 +449,6 @@ namespace MFM {
     u32 nomaxdepth = 0;
     if(m_nodeParameterList) //slot indices negative to frame
       m_nodeParameterList->calcMaxDepth(max1, nomaxdepth, base);
-
-    //set self slot just below return value
-    u32 selfid = m_state.m_pool.getIndexForDataString("self");
-    Symbol * selfsym = NULL;
-    bool hazyKin = false; //return is always false?
-    AssertBool isDefined = m_state.alreadyDefinedSymbol(selfid, selfsym, hazyKin) && !hazyKin;
-    assert(isDefined);
-    s32 newslot = -2 - m_state.slotsNeeded(getNodeType()); //2nd hidden arg
-    ((SymbolVariable *) selfsym)->setStackFrameSlotIndex(newslot);
 
     NodeBlock::calcMaxDepth(depth, maxdepth, 1); // one for the frame ptr offset
     m_state.popClassContext();

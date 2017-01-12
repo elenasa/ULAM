@@ -100,6 +100,9 @@ namespace MFM{
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len);
 
     bool passalongUVPass();
+
+  private:
+    SymbolTmpVar * m_tmpvarSymbol;
   };
 
 } //MFM

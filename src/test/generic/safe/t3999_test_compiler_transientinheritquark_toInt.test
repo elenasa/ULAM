@@ -1,18 +1,18 @@
 ## -*- mode:ulam -*-
-#=t3998_test_compiler_transientinheritquark_bothwithcaarrays
+#=t3999_test_compiler_transientinheritquark_toInt
 ##
 ## gen output: (+ interleaved asserts)
-## Int arg: 4
+## Int arg: 12
 ## Int arg: 12
 ##
 #!
 Exit status: -11
-Ue_Foo { Bool(1) first(false);  Int(32) sint(4);  Int(32) cint(0);  Int(32) test() {  System s;  Soo su;  sint su ( 0 cast )aref . = s ( sint )print . s ( sint 4 cast == )assert . Coo& cref = su cast;  cint cref ( 1 cast )aref . = s ( cint )print . s ( cint 12 cast == )assert . 0 cast return } }
+Ue_Foo { Bool(1) first(false);  Int(32) sint(12);  Int(32) cint(0);  Int(32) test() {  System s;  Soo su;  sint su ( )toInt . = s ( sint )print . s ( sint 12 cast == )assert . Coo& cref = su cast;  cint cref ( )toInt . = s ( cint )print . s ( cint 12 cast == )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Un_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 ##
-## transient and quark custom arrays (aref, non-virtual)
+## transient and quark: toInt (non-virtual)
 ##
 #>Foo.ulam
   ulam 2;
@@ -23,12 +23,12 @@ element Foo {
   Int test() {
     System s;
     Soo su;
-    sint = su[0];
+    sint = su.toInt();
     s.print(sint);
-    s.assert(sint == 4);
+    s.assert(sint == 12);
 
     Coo& cref = su;
-    cint = cref[1];
+    cint = cref;
     s.print(cint);
     s.assert(cint == 12);
 
@@ -40,19 +40,15 @@ element Foo {
   ulam 2;
 transient Soo : Coo {
   Unsigned(3) us = 4u;
-  Int aref(Int index)
-  {
-    return (Int) us; //index ignored
-  }
 }
 
 #:Coo.ulam
   ulam 2;
 quark Coo {
   Bool(3) cb = true;
-  Int aref(Int index)
+  Int toInt()
   {
-    return 12; //index ignored
+    return 12;
   }
 }
 

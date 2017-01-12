@@ -2,20 +2,20 @@
 #=t3942_test_compiler_caarray2D
 #!
 Exit status: -11
-Ue_Eltypo { Int(32) test() {  TEventWindows tvt;  EventWindow ew = tvt 2 cast [] cast;  Atom(96) atom1 = ew 0 cast [] cast;  Atom(96) atom2 = tvt 2 cast [] 0 cast [] cast;  0 cast return } }
+Ue_R { Int(32) test() {  TEventWindows tvt;  EventWindow ew = tvt ( 2 cast )aref . cast;  Atom(96) atom1 = ew ( 0 cast )aref . cast;  Atom(96) atom2 = tvt ( 2 cast )aref . ( 0 cast )aref . cast;  0 cast return } }
 Un_TEventWindows { EventWindow m_EWarr[7](), (), (), (), (), (), ();  <NOMAIN> }
 Uq_EventWindow { <NOMAIN> }
 ##
-## To answer question posed by Dave 11/22/2016, 2d-custom array?
+## To answer question posed by Dave 11/22/2016, 2d-custom array? YES!
 ##
-#>Eltypo.ulam
+#>R.ulam
   ulam 2;
-element Eltypo {
+element R {
   Int test(){
     TEventWindows tvt;
-    EventWindow ew = tvt[2];
+    EventWindow ew = tvt[2]; //culam callstack overflow
     Atom atom1 = ew[0];
-    Atom atom2 = tvt[2][0]; //ERROR
+    Atom atom2 = tvt[2][0]; //WAS ERROR
     return 0;
   }
 }
@@ -26,7 +26,7 @@ element Eltypo {
 transient TEventWindows {
   EventWindow m_EWarr[7];
   EventWindow& aref(Int index) {
-    return m_EWarr[index];
+    return m_EWarr[index]; //regular array
   }
 }
 

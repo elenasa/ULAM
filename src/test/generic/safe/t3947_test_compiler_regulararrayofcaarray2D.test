@@ -2,15 +2,15 @@
 #=t3947_test_compiler_regulararrayofcaarray2D
 #!
 Exit status: -11
-Ue_Eltypo { Int(32) test() {  EventWindow tvt[7];  EventWindow& ew = tvt 2 [] cast;  Atom(96) atom1 = ew 0 cast [] cast;  Atom(96) atom2 = tvt 2 [] 0 cast [] cast;  0 cast return } }
+Ue_R { Int(32) test() {  EventWindow tvt[7];  EventWindow& ew = tvt 2 [] cast;  Atom(96) atom1 = ew ( 0 cast )aref . cast;  Atom(96) atom2 = tvt 2 [] ( 0 cast )aref . cast;  0 cast return } }
 Uq_EventWindow { <NOMAIN> }
 ##
 ## To answer question posed by Dave 11/22/2016, regular array of custom array?
 ## informed by t3942
 ##
-#>Eltypo.ulam
+#>R.ulam
   ulam 2;
-element Eltypo {
+element R {
   Int test(){
     EventWindow tvt[7]; //regular array of custom arrays
     EventWindow& ew = tvt[2];

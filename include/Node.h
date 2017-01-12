@@ -151,6 +151,8 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
+    virtual bool exchangeNodeWithParent(Node * newnode);
+
     virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);

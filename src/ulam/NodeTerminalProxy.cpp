@@ -321,38 +321,6 @@ namespace MFM {
     return newnode;
   } //constantFoldLengthofConstantString
 
-  bool NodeTerminalProxy::exchangeNodeWithParent(Node * newnode)
-  {
-    UTI cuti = m_state.getCompileThisIdx(); //for error messages
-    NodeBlock * currBlock = m_state.getCurrentBlock(); //in NodeIdent, getBlock();
-
-    NNO pno = Node::getYourParentNo();
-
-    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
-
-    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
-    assert(parentNode);
-
-    AssertBool swapOk = parentNode->exchangeKids(this, newnode);
-    assert(swapOk);
-
-    std::ostringstream msg;
-    msg << "Exchanged kids! <" << m_state.getTokenDataAsString(m_funcTok).c_str();
-    msg << "> func call (" << prettyNodeName().c_str();
-    msg << "), instead of a terminal proxy within class: ";
-    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-
-    m_state.popClassContext(); //restore
-
-    //common to all new nodes:
-    newnode->setNodeLocation(getNodeLocation());
-    newnode->setYourParentNo(pno);
-    newnode->resetNodeNo(getNodeNo());
-
-    return true;
-  } //exchangeNodeWithParent
-
   void NodeTerminalProxy::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
     Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
