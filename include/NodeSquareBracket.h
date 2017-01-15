@@ -100,10 +100,9 @@ namespace MFM{
     bool m_isCustomArray;
     SymbolTmpVar * m_tmpvarSymbol;
 
-    EvalStatus evalACustomArray(); //requires call to aref
-    EvalStatus evalAUserStringByte();
+    Node * buildArefFuncCallNode();
 
-    EvalStatus evalToStoreIntoACustomArray(); //requires call to aset
+    EvalStatus evalAUserStringByte();
 
     virtual bool doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
     virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len);

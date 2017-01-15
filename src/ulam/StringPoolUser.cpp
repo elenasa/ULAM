@@ -22,7 +22,7 @@ namespace MFM {
       }
     else
       {
-	u32 slen = str[0]; //len in first byte set by lexer
+	u32 slen = (u8) str[0]; //len in first byte set by lexer
 	idx = m_runningIndex;
 
 	m_runningIndex += slen + 2; //add byte for len at start; end with null byte;
@@ -71,10 +71,16 @@ namespace MFM {
   u32 StringPoolUser::getStringLength(u32 dataindex)
   {
     const std::string & strref = getDataAsString(dataindex);
-    if(strref.length() == 0)
-      return 0;
-    return strref[0];
-  }
+    u32 slen = strref.length();
+    if(slen == 0)
+      return 0; //runtime error (t3934)
+    if(slen < 2)
+      slen -= 1; //empty string (t3993)
+    else
+      slen -= 2; //compensate for len and null terminator
+    assert(slen == (u8) strref[0]); //sanity check
+    return slen;
+  } //getStringLength
 
   u8 StringPoolUser::getByteOf(u32 dataindex, u32 offset)
   {
@@ -128,7 +134,7 @@ namespace MFM {
       return state->m_pool.getIndexForDataString(""); //the uninitialized string
 
     std::ostringstream newstr;
-    u32 slen = str[0];
+    u32 slen = (u8) str[0];
     newstr << "\""; //open double quote (no escape)
     for(u32 i = 1; i <= slen; i++)
       {
@@ -189,7 +195,7 @@ namespace MFM {
 	return; //the uninitialized string
       }
 
-    u32 slen = str[0];
+    u32 slen = (u8) str[0];
 
     writeOpenCloseDblQuote(fp);
     writeDblQuotedChar(fp, slen);

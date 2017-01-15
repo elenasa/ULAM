@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t3574_test_compiler_elementandquarkinheritancetemplatemix_wMP
+#=t3574_test_compiler_elementandquarkinheritancetemplatemix_wMP_fail
 ##
 ## gen code: FAILED: NULL_POINTER
 ##

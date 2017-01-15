@@ -248,7 +248,6 @@ namespace MFM {
 
     if(funcSymbol && m_funcSymbol != funcSymbol)
       {
-	m_funcSymbol = funcSymbol;
 	//may preceed function parameter c&l, and fail names of args with type
 	//(e.g. Class isn't really a class).
 	std::ostringstream msg;
@@ -256,6 +255,7 @@ namespace MFM {
 	if(m_funcSymbol)
 	  msg << "for <" << m_state.m_pool.getDataAsString(m_funcSymbol->getId()).c_str() << ">";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	m_funcSymbol = funcSymbol;
       }
 
     if(m_funcSymbol && m_funcSymbol != funcSymbol)
@@ -474,7 +474,20 @@ namespace MFM {
     if(Node::returnValueOnStackNeededForEval(rtnType))
       {
 	UlamValue rtnUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
-	Node::assignReturnValueToStack(rtnUV); //into return space on eval stack;
+	UTI rtnuti = rtnUV.getUlamValueTypeIdx();
+	if(m_state.isPtr(rtnuti))
+	  rtnuti = rtnUV.getPtrTargetType();
+	if(UlamType::compareForUlamValueAssignment(rtnuti, rtnType, m_state) == UTIC_SAME)
+	  {
+	    Node::assignReturnValueToStack(rtnUV); //into return space on eval stack;
+	  }
+	else
+	  {
+	    if(m_state.isAtom(rtnuti) || m_state.isAtom(rtnType))
+	      evs = UNEVALUABLE;  //t3558
+	    else
+	      evs = ERROR;
+	  }
       }
     else
       {
@@ -488,7 +501,7 @@ namespace MFM {
     m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr *****
     m_state.m_currentSelfPtr = saveSelfPtr; //restore previous self      *************
     evalNodeEpilog(); //clears out the node eval stack
-    return NORMAL;
+    return evs;
   } //eval
 
   EvalStatus NodeFunctionCall::evalToStoreInto()
@@ -687,7 +700,7 @@ namespace MFM {
 	  }
       } //end virtual function
 
-    if(atomPtr.getPtrStorage() == STACK)
+    if((atomPtr.getPtrStorage() == STACK) && (m_state.getReferenceType(rtnType) != ALT_REF))
       {
 	//adjust index if on the STACK, not for Event Window site
 	s32 nextslot = m_state.m_funcCallStack.getRelativeTopOfStackNextSlot();
@@ -697,6 +710,7 @@ namespace MFM {
 	if(atomPtr.isPtrAbs())
 	  atomPtr.setUlamValueTypeIdx(Ptr); //let's see..t3114 and 160+ more tests
       }
+    //else t3942,6,7,8
 
     // push the "hidden" first arg, and update the current object ptr (restore later)
     m_state.m_funcCallStack.pushArg(atomPtr); //*********
@@ -921,13 +935,14 @@ namespace MFM {
     if(nuti != Void)
       {
 	u32 pos = 0; //POS 0 leftjustified;
-	if(nut->getUlamClassType() == UC_NOTACLASS) //includes atom too
+	bool isref = (nut->getReferenceType() == ALT_REF); //t3946
+	if(!isref && (nut->getUlamClassType() == UC_NOTACLASS)) //includes atom too
 	  {
 	    u32 wordsize = nut->getTotalWordSize();
 	    pos = wordsize - nut->getTotalBitSize();
 	  }
 
-	s32 rtnSlot = m_state.getNextTmpVarNumber();
+	u32 rtntmpnum = m_state.getNextTmpVarNumber();
 
 	u32 selfid = 0;
 	if(m_state.m_currentObjSymbolsForCodeGen.empty())
@@ -936,17 +951,19 @@ namespace MFM {
 	  {
 	    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen[0];
 	    selfid = cos->getId();
-	    if(!Node::isCurrentObjectALocalVariableOrArgument())
+	    UTI cosuti = cos->getUlamTypeIdx();
+	    bool iscustomarray = m_state.isClassACustomArray(cosuti);
+	    if(!iscustomarray && !Node::isCurrentObjectALocalVariableOrArgument())
 	      {
 		// e.g. 'self' is not a dm, nor local var or arg (t3274, t3275, t3405)
 		if(cos->isDataMember())
 		  pos = cos->getPosOffset(); //data member position overrides
 		//else 0
 	      }
-	    //else local var or arg, including references and model parameter
+	    //else local var or arg, including references and model parameter, customarray (t3223)
 	  }
 
-	uvpass = UVPass::makePass(rtnSlot, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, justified; self id in Pass;
+	uvpass = UVPass::makePass(rtntmpnum, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, justified; self id in Pass;
 
 	// put result of function call into a variable;
 	// (C turns it into the copy constructor)
@@ -954,7 +971,7 @@ namespace MFM {
 	  fp->write("const ");
 	fp->write(nut->getLocalStorageTypeAsString().c_str()); //e.g. BitVector<32>
 	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(nuti, rtnSlot, TMPBITVAL).c_str());
+	fp->write(m_state.getTmpVarAsString(nuti, rtntmpnum, TMPBITVAL).c_str());
 	fp->write(" = ");
       } //not void return
 

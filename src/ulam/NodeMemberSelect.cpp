@@ -3,14 +3,18 @@
 
 namespace MFM {
 
-  NodeMemberSelect::NodeMemberSelect(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqual(left,right,state)
+  NodeMemberSelect::NodeMemberSelect(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqual(left,right,state), m_tmpvarSymbol(NULL)
   {
     Node::setStoreIntoAble(TBOOL_HAZY);
   }
 
-  NodeMemberSelect::NodeMemberSelect(const NodeMemberSelect& ref) : NodeBinaryOpEqual(ref) {}
+  NodeMemberSelect::NodeMemberSelect(const NodeMemberSelect& ref) : NodeBinaryOpEqual(ref), m_tmpvarSymbol(NULL) {}
 
-  NodeMemberSelect::~NodeMemberSelect(){ }
+  NodeMemberSelect::~NodeMemberSelect()
+  {
+    delete m_tmpvarSymbol;
+    m_tmpvarSymbol = NULL;
+  }
 
   Node * NodeMemberSelect::instantiate()
   {
@@ -435,6 +439,8 @@ namespace MFM {
     // elements can be data members of transients, etc.
 
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
+    UTI luti = luvpass.getPassTargetType();
+    bool iscustomarray = m_state.isClassACustomArray(luti); //t3653
 
     //NodeIdent can't do it, because it doesn't know it's not a stand-alone element.
     // here, we know there's rhs of member select, which needs to adjust to state bits.
@@ -449,6 +455,12 @@ namespace MFM {
     m_nodeRight->genCodeToStoreInto(fp, ruvpass); //uvpass contains the member selected, or cos obj symbol?
 
     uvpass = ruvpass;
+
+    if(iscustomarray)
+      {
+	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks
+	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
+      }
   } //genCodeToStoreInto
 
   bool NodeMemberSelect::passalongUVPass()

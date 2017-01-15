@@ -113,7 +113,6 @@ namespace MFM {
 	perrs = checkAndTypeLabelProgram(errput);
 	if(perrs == 0)
 	  {
-	    //m_state.generateCodeForGlobalUserStringPool(outfm);
 	    m_state.generateCodeForUlamClasses(outfm);
 	    perrs = m_state.m_err.getErrorCount();
 	  }
@@ -319,6 +318,9 @@ namespace MFM {
 
     errCnt = m_state.m_err.getErrorCount(); //latest count
     if(!errCnt) m_state.m_programDefST.reportUnknownTypeNamesAcrossTableOfClasses();
+
+    // reports as errors classnames that exceed linux limit 255
+    m_state.m_programDefST.reportTooLongClassNamesAcrossTableOfClasses();
 
     // count nodes with illegal Nav types; walk each class' data members and funcdefs.
     // clean up duplicate functions beforehand

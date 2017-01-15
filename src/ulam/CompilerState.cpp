@@ -1896,6 +1896,10 @@ namespace MFM {
   {
     if(!isScalar(cuti)) return false;
 
+    //type is possibly a custom class, but this cuti was an item in reg.array
+    if(getReferenceType(cuti) == ALT_ARRAYITEM)
+      return false; //t3543
+
     SymbolClass * csym = NULL;
     if(alreadyDefinedSymbolClass(cuti, csym))
       {
@@ -2760,9 +2764,18 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   {
     UTI cuti = (combinedidx >> REGNUMBITS);
     u32 sidx = (combinedidx & STRINGIDXMASK);
-    assert(cuti > 0 && sidx > 0);
+    assert(cuti > 0 && sidx > 0); // error/t3987
     StringPoolUser& classupool = getUPoolRefForClass(cuti);
     return classupool.getDataAsFormattedString(sidx, this);
+  }
+
+  const std::string & CompilerState::getDataAsUnFormattedUserString(u32 combinedidx)
+  {
+    UTI cuti = (combinedidx >> REGNUMBITS);
+    u32 sidx = (combinedidx & STRINGIDXMASK);
+    assert(cuti > 0 && sidx > 0); // t3959
+    StringPoolUser& classupool = getUPoolRefForClass(cuti);
+    return classupool.getDataAsString(sidx);
   }
 
   bool CompilerState::isValidUserStringIndex(u32 combinedidx)
@@ -3275,7 +3288,8 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     assert(lptr.isPtr());
 
     //handle UAtom assignment as a singleton (not array values)
-    if(ruv.isPtr() && ((UlamType::compareForUlamValueAssignment(ruv.getPtrTargetType(), UAtom, *this) == UTIC_NOTSAME) || (UlamType::compareForUlamValueAssignment(lptr.getPtrTargetType(), UAtom, *this) == UTIC_NOTSAME)))
+    //if(ruv.isPtr() && ((UlamType::compareForUlamValueAssignment(ruv.getPtrTargetType(), UAtom, *this) == UTIC_NOTSAME) || (UlamType::compareForUlamValueAssignment(lptr.getPtrTargetType(), UAtom, *this) == UTIC_NOTSAME)))
+    if(ruv.isPtr())
       return assignArrayValues(lptr, ruv);
 
     //r is data (includes packed arrays), store it into where lptr is pointing
@@ -3326,6 +3340,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     if(WritePacked(packed))
       {
 	UlamValue atval = getPtrTarget(rptr); //entire array in one slot
+	assert(!atval.isPtr());
 
 	//redo what getPtrTarget use to do, when types didn't match due to
 	//an element/quark or a requested scalar of an arraytype
@@ -3349,6 +3364,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	for(u32 i = 0; i < size; i++)
 	  {
 	    UlamValue atval = getPtrTarget(nextrptr);
+	    assert(!atval.isPtr());
 
 	    //redo what getPtrTarget use to do, when types didn't match due to
 	    //an element/quark or a requested scalar of an arraytype

@@ -112,6 +112,7 @@ namespace MFM{
     bool statusUnknownTypeInClass(UTI huti);
     bool statusUnknownTypeNamesInClass();
     u32 reportUnknownTypeNamesInClass();
+    bool reportLongClassName();
 
     bool statusNonreadyClassArguments();
 

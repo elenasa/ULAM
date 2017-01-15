@@ -34,7 +34,7 @@ namespace MFM {
   {
     assert(!isDataMember());
     assert(slot != 0); //> 0 local var; < 0 func param
-    assert(slot != m_stackFrameSlotIndex);
+    //assert(slot != m_stackFrameSlotIndex);
     m_stackFrameSlotIndex = slot;
   }
 

@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t3932_test_compiler_string_ascii_outofbounds
+#=t3932_test_compiler_string_ascii_outofbounds_fail
 ##
 ## gen output: 1 assert only!
 ##

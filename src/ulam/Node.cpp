@@ -273,6 +273,40 @@ namespace MFM {
     return m_utype;
   }
 
+  //common to NodeIdent, NodeTerminalProxy, NodeSquareBracket
+  bool Node::exchangeNodeWithParent(Node * newnode)
+  {
+    UTI cuti = m_state.getCompileThisIdx(); //for error messages
+    NodeBlock * currBlock = m_state.getCurrentBlock(); //in NodeIdent, getBlock();
+
+    NNO pno = Node::getYourParentNo();
+
+    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
+
+    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
+    assert(parentNode);
+
+    AssertBool swapOk = parentNode->exchangeKids(this, newnode);
+    assert(swapOk);
+
+    std::ostringstream msg;
+    msg << "Exchanged kids! <" << getName();
+    msg << "> func call (" << prettyNodeName().c_str();
+    msg << "), within class: ";
+    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+
+    m_state.popClassContext(); //restore
+
+    //common to all new nodes:
+    newnode->setNodeLocation(getNodeLocation());
+    newnode->resetNodeNo(getNodeNo()); //moved before update lineage
+    //newnode->setYourParentNo(pno);
+    newnode->updateLineage(pno); //t3942
+
+    return true;
+  } //exchangeNodeWithParent
+
   bool Node::trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr)
   {
     std::ostringstream msg;
@@ -510,11 +544,11 @@ namespace MFM {
   bool Node::returnValueOnStackNeededForEval(UTI rtnType)
   {
     bool rtnb = false;
-    if((m_state.isAtom(rtnType) && (m_state.isScalar(rtnType) || m_state.isReference(rtnType ))))
+    if(m_state.isReference(rtnType))
       rtnb = true;
-    else if(m_state.isAClass(rtnType) && (m_state.isScalar(rtnType) || m_state.isReference(rtnType)))
+    else if((m_state.isAtom(rtnType) && (m_state.isScalar(rtnType))))
       rtnb = true;
-    else if(m_state.isReference(rtnType))
+    else if(m_state.isAClass(rtnType) && (m_state.isScalar(rtnType)))
       rtnb = true;
     return rtnb;
   } //returnValueOnStackNeededForEval
@@ -1245,7 +1279,7 @@ namespace MFM {
       }
 
     fp->write(" + ");
-    fp->write_decimal_unsigned(pos); //rel offset (t3512, t3543, t3648, t3702, t3776, t3668, t3811)
+    fp->write_decimal_unsigned(pos); //rel offset (t3512, t3543, t3648, t3702, t3776, t3668, t3811, t3946)
     fp->write("u");
 
     if(cosclasstype != UC_NOTACLASS)
@@ -1850,61 +1884,65 @@ namespace MFM {
 	  }
       }
     else if(nclasstype == UC_QUARK)
-      {
-	if(node->isFunctionCall())
-	  {
-	    if(tobe->isReference())
-	      doErrMsg = newCastingNodeWithCheck(node, tobeType, rtnNode);
-	    else
-	      {
-		// a function call is not a valid lhs !!!
-		// 'node' is a function call that returns a quark (it's not storeintoable);
-		// build a toIntHelper function that takes the return value of 'node'
-		// as its arg and returns toInt
-		doErrMsg = buildCastingFunctionCallNode(node, tobeType, rtnNode);
-	      }
-	  }
-	else if(tclasstype != UC_NOTACLASS)
-	  {
-	    //handle possible inheritance (u.1.2.2) here
-	    if(m_state.isClassASubclassOf(nuti, tobeType))
-	      doErrMsg = newCastingNodeWithCheck(node, tobeType, rtnNode);
-	    else if(m_state.isClassASubclassOf(tobeType, nuti))
-	      {
-		//ok to cast a quark ref to an element, if its superclass
-		if(!m_state.isReference(nuti))
-		  doErrMsg = true;
-		//else if(!isExplicit) //contradicts UlamTypeClass::safeCast
-		//  doErrMsg = true;
-		else
-		  doErrMsg = newCastingNodeWithCheck(node, tobeType, rtnNode);
-	      }
-	    else if(m_state.isARefTypeOfUlamType(nuti, tobeType))
-	      {
-		//cast ref to deref type
-		//cast non-ref to its ref type; constants & funccalls
-		// not legal for initialization; ok for assignment.
-		doErrMsg = newCastingNodeWithCheck(node, tobeType, rtnNode);
-	      }
-	    else
-	      doErrMsg = true;
-	  }
-	else
-	  {
-	    rtnNode = buildToIntCastingNode(node);
+     {
+       if(tclasstype == UC_NOTACLASS)
+	 {
+	   if(node->isFunctionCall())
+	     {
+	       if(tobe->isReference())
+		 {
+		   doErrMsg = newCastingNodeWithCheck(node, tobeType, rtnNode);
+		 }
+	       else
+		 {
+		   // 'node' is a function call that returns a quark;
+		   // build a toIntHelper function that takes the return value of 'node'
+		   // as its arg and returns toInt
+		   doErrMsg = buildCastingFunctionCallNode(node, tobeType, rtnNode);
+		 }
+	     }
+	   else
+	     {
+	       rtnNode = buildToIntCastingNode(node);
 
-	    //redo check and type labeling; error msg if not same
-	    UTI newType = rtnNode->checkAndLabelType();
-	    doErrMsg = (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
-	  }
+	       //redo check and type labeling; error msg if not same
+	       UTI newType = rtnNode->checkAndLabelType();
+	       doErrMsg = (UlamType::compareForMakingCastingNode(newType, tobeType, m_state) == UTIC_NOTSAME);
+	     }
+	 }
+       else //if(tclasstype != UC_NOTACLASS)
+	 {
+	   //handle possible inheritance (u.1.2.2) here
+	   if(m_state.isClassASubclassOf(nuti, tobeType))
+	     doErrMsg = newCastingNodeWithCheck(node, tobeType, rtnNode);
+	   else if(m_state.isClassASubclassOf(tobeType, nuti))
+	     {
+	       //ok to cast a quark ref to an element, if its superclass
+	       if(!m_state.isReference(nuti))
+		 doErrMsg = true;
+	       //else if(!isExplicit) //contradicts UlamTypeClass::safeCast
+	       //  doErrMsg = true;
+	       else
+		 doErrMsg = newCastingNodeWithCheck(node, tobeType, rtnNode);
+	     }
+	   else if(m_state.isARefTypeOfUlamType(nuti, tobeType))
+	     {
+	       //cast ref to deref type
+	       //cast non-ref to its ref type; constants & funccalls
+	       // not legal for initialization; ok for assignment.
+	       doErrMsg = newCastingNodeWithCheck(node, tobeType, rtnNode);
+	     }
+	   else
+	     doErrMsg = true;
+	 }
 
-	// infinite loop t3756 (without explicit cast)
-	//redo check and type labeling; error msg if not same
-	// e.g. t3191 missing function symbol without c&l
-	// e.g. t3463 "Cannot CAST Bar as Bits"
-	if(doErrMsg && tobe->isPrimitiveType())
-	  return makeCastingNode(rtnNode, tobeType, rtnNode, false); //recurse
-      }
+       // infinite loop t3756 (without explicit cast)
+       //redo check and type labeling; error msg if not same
+       // e.g. t3191 missing function symbol without c&l
+       // e.g. t3463 "Cannot CAST Bar as Bits"
+       if(doErrMsg && tobe->isPrimitiveType())
+	 return makeCastingNode(rtnNode, tobeType, rtnNode, false); //recurse
+     }
     else if (nclasstype == UC_ELEMENT)
       {
 	if(!( m_state.isAtom(tobeType) || (tobe->getUlamTypeEnum() == Class)))
@@ -1963,7 +2001,9 @@ namespace MFM {
 
   bool Node::buildCastingFunctionCallNode(Node * node, UTI tobeType, Node*& rtnNode)
   {
+    assert(m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum() == Int); //t3412
     Locator loc = getNodeLocation(); //used throughout
+
     u32 castId = m_state.m_pool.getIndexForDataString("_toIntHelper");
     Token funcidentTok(TOK_IDENTIFIER, loc, castId);
 
@@ -2002,7 +2042,7 @@ namespace MFM {
     selfsym->setIsSelf();
     m_state.addSymbolToCurrentScope(selfsym); //ownership goes to the fblock
 
-    UTI nodeType = node->getNodeType(); //quark type..
+    UTI nodeType = node->getNodeType(); //quark
     UlamType * nut = m_state.getUlamTypeByIndex(nodeType);
     assert(nut->getUlamClassType() == UC_QUARK);
     u32 quid = nut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
@@ -2014,7 +2054,7 @@ namespace MFM {
     typeargs.m_arraysize = nut->getArraySize();
     typeargs.m_classInstanceIdx = nodeType;
 
-    u32 argid = m_state.m_pool.getIndexForDataString("arg"); //t3411, t3412
+    u32 argid = m_state.m_pool.getIndexForDataString("_arg"); //t3411, t3412
     Token argTok(TOK_IDENTIFIER, loc, argid);
     NodeIdent * argIdentNode = new NodeIdent(argTok, NULL, m_state);
     assert(argIdentNode);

@@ -414,6 +414,26 @@ namespace MFM {
     return totalcnt;
   } //reportUnknownTypeNamesAcrossTableOfClasses
 
+  u32 SymbolTableOfClasses::reportTooLongClassNamesAcrossTableOfClasses()
+  {
+    u32 totalcnt = 0;
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym->isClass());
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti))
+	  {
+	    totalcnt += ((SymbolClassName *) sym)->reportClassInstanceNamesThatAreTooLong();
+	  }
+	it++;
+      }
+    return totalcnt;
+  } //reportTooLongClassNamesAcrossTableOfClasses
+
   //separate pass...after labeling all classes is completed;
   //purpose is to set the size of all the classes, by totalling the size
   //of their data members; returns true if all class sizes complete.

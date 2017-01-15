@@ -112,8 +112,6 @@ namespace MFM{
     void setBlockNo(NNO n);
     NNO getBlockNo() const;
     NodeBlock * getBlock();
-    bool exchangeNodeWithParent(Node * newnode);
-
 
     SymbolVariable *  makeSymbol(UTI auti, ALT reftype, UTI referencedUTI);
     bool checkVariableTypedefSizes(TypeArgs& args, UTI auti);

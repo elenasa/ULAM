@@ -235,9 +235,13 @@ namespace MFM {
 	  case Bool:
 	    newbs = BITS_PER_BOOL;
 	    break;
+	  case String: //always ok, 32 bits
 	  default:
 	    m_state.abortUndefinedUlamPrimitiveType();
 	  };
+
+	if(m_etyp == String)
+	  assert(0); //do we get here?
 
 	//use UTI with same base type and new bitsize:
 	u32 enumStrIdx = m_state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(m_etyp));

@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t3910_test_compiler_elementandquark_atomofmemberselectarrayitemlval_clobberingType_staleatomref
+#=t3910_test_compiler_elementandquark_atomofmemberselectarrayitemlval_clobberingType_staleatomref_fail
 #!
 ##      gen code output: 1 assert only, abort
 ## /home/elenas/WORK/ulam/repo/MFM-fork/MFM/src/core/include/UlamRef.tcc:81: FAILED: STALE_ATOM_REF

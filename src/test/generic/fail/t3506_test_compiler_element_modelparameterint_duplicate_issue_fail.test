@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t3506_test_compiler_element_modelparameterint_duplicate_issue
+#=t3506_test_compiler_element_modelparameterint_duplicate_issue_fail
 #!
 ## generate code NULL POINTER (due to model parameter)
 ## include/Ue_102323Foo10_Types.h:351: FAILED: NULL_POINTER

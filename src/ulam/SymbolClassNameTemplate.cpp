@@ -1,6 +1,8 @@
+#include <iomanip>
 #include "SymbolClassNameTemplate.h"
 #include "Resolver.h"
 #include "CompilerState.h"
+
 
 namespace MFM {
 
@@ -643,74 +645,15 @@ namespace MFM {
 	    if(!aut->isScalar())
 	      {
 		std::string arrvalstr;
-		if(((SymbolConstantValue *) asym)->getArrayValueAsString(arrvalstr))
-		  {
-		    isok = true;
-		    //args << ToLeximited(arrvalstr.length()) << arrvalstr; //like UlamUtil.cpp
-		    args << arrvalstr; //lex'd by array of u32's
-		  }
+		if((isok = ((SymbolConstantValue *) asym)->getArrayValueAsString(arrvalstr)))
+		  args << arrvalstr; //lex'd by array of u32's
 	      }
 	    else
 	      {
 		//append 'instance's arg value (scalar)
-		u64 uval;
-		if(((SymbolConstantValue *) asym)->getValue(uval))
-		  {
-		    u32 awordsize = m_state.getTotalWordSize(auti); //must be complete!
-		    s32 abs = m_state.getBitSize(auti);
-		    ULAMTYPE eutype = aut->getUlamTypeEnum();
-
-		    switch(eutype)
-		      {
-		      case Int:
-			{
-			  if(awordsize <= MAXBITSPERINT)
-			    args << ToLeximitedNumber(_SignExtend32((u32)uval, (u32) abs));
-			  else if(awordsize <= MAXBITSPERLONG)
-			    args << ToLeximitedNumber64(_SignExtend64(uval, (u32) abs));
-			  else
-			    m_state.abortGreaterThanMaxBitsPerLong();
-			  isok = true;
-			}
-			break;
-		      case String:
-		      case Unsigned:
-		      case Bits:
-			{
-			  if(awordsize <= MAXBITSPERINT)
-			    args << ToLeximitedNumber((u32) uval);
-			  else if(awordsize <= MAXBITSPERLONG)
-			    args << ToLeximitedNumber64(uval);
-			  else
-			    m_state.abortGreaterThanMaxBitsPerLong();
-			  isok = true;
-			}
-			break;
-		      case Unary:
-			{
-			  u32 pval = _Unary64ToUnsigned64(uval, abs, MAXBITSPERINT);
-			  args << ToLeximitedNumber(pval);
-			  isok = true;
-			}
-			break;
-		      case Bool:
-			{
-			  bool bval;
-			  if(awordsize <= MAXBITSPERINT)
-			    bval = _Bool32ToCbool((u32) uval, m_state.getBitSize(auti));
-			  else if(awordsize <= MAXBITSPERLONG)
-			    bval = _Bool64ToCbool(uval, m_state.getBitSize(auti));
-			  else
-			    m_state.abortGreaterThanMaxBitsPerLong();
-
-			  args << ToLeximitedNumber((u32) bval);
-			  isok = true;
-			}
-			break;
-		      default:
-			m_state.abortUndefinedUlamPrimitiveType();
-		      };
-		  }
+		std::string argstr;
+		if((isok = ((SymbolConstantValue *) asym)->getLexValue(argstr)))
+		  args << argstr.c_str();
 	      }
 
 	    if(!isok)
@@ -779,73 +722,14 @@ namespace MFM {
 		if(!aut->isScalar())
 		  {
 		    std::string arrvalstr;
-		    if(((SymbolConstantValue *) asym)->getArrayValueAsString(arrvalstr))
-		      {
-			isok = true;
-			// args << "0x" << std::hex << arrvalstr;  //as hex
-			args << arrvalstr;  //lex'd array of u32's
-		      }
+		    if((isok = ((SymbolConstantValue *) asym)->getArrayValueAsString(arrvalstr)))
+		      args << arrvalstr;  //lex'd array of u32's
 		  }
 		else
 		  {
-		    u32 awordsize = aut->getTotalWordSize(); //requires completeness
-		    s32 abs = aut->getBitSize();
-		    ULAMTYPE eutype = aut->getUlamTypeEnum();
-
-		    u64 uval;
-		    if(((SymbolConstantValue *) asym)->getValue(uval))
-		      {
-			switch(eutype)
-			  {
-			  case Int:
-			    {
-			      if(awordsize <= MAXBITSPERINT)
-				args << _SignExtend32((u32)uval, abs);
-			      else if(awordsize <= MAXBITSPERLONG)
-				args << _SignExtend64(uval, abs);
-			      else
-				m_state.abortGreaterThanMaxBitsPerLong();
-			      isok = true;
-			    }
-			    break;
-			  case String:
-			  case Unsigned:
-			    {
-			      args << uval << "u";
-			      isok = true;
-			    }
-			    break;
-			  case Unary:
-			    {
-			      u32 pval = _Unary64ToUnsigned64(uval, abs, MAXBITSPERINT);
-			      args << pval;
-			      isok = true;
-			    }
-			    break;
-			  case Bool:
-			    {
-			      bool bval;
-			      if(awordsize <= MAXBITSPERINT)
-				bval = _Bool32ToCbool((u32) uval, abs);
-			      else if(awordsize <= MAXBITSPERLONG)
-				bval = _Bool64ToCbool(uval, abs);
-			      else
-				m_state.abortGreaterThanMaxBitsPerLong();
-
-			      args << (bval ? "true" : "false");
-			      isok = true;
-			    }
-			    break;
-			  case Bits:
-			    {
-			      args << "0x" << std::hex << uval;  //as hex
-			      isok = true;
-			    }
-			    break;
-			  default:
-			    m_state.abortUndefinedUlamPrimitiveType();
-			  };
-		      }
+		    std::string valstr;
+		    if((isok = ((SymbolConstantValue *) asym)->getScalarValueAsString(valstr)))
+		      args << valstr;
 		  } //isscalar
 	      } //iscomplete
 
@@ -1448,6 +1332,28 @@ namespace MFM {
       }
     return totalcnt;
   } //reportUnknownTypeNamesInClassInstances
+
+  u32 SymbolClassNameTemplate::reportClassInstanceNamesThatAreTooLong()
+  {
+    // only full instances need to be reported, unless there are none.
+    if(m_scalarClassArgStringsToSymbolPtr.empty())
+      {
+	return 0;
+      }
+
+    u32 totalcnt = 0;
+    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
+
+    while(it != m_scalarClassArgStringsToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	assert(csym);
+	if(csym->reportLongClassName())
+	  totalcnt++;
+	it++;
+      }
+    return totalcnt;
+  } //reportClassInstanceNamesThatAreTooLong
 
   bool SymbolClassNameTemplate::setBitSizeOfClassInstances()
   {

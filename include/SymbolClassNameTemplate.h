@@ -106,6 +106,7 @@ namespace MFM{
     virtual bool statusUnknownTypeInClassInstances(UTI huti);
     virtual bool statusUnknownTypeNamesInClassInstances();
     virtual u32 reportUnknownTypeNamesInClassInstances();
+    virtual u32 reportClassInstanceNamesThatAreTooLong();
     virtual bool setBitSizeOfClassInstances();
     virtual void printBitSizeOfClassInstances();
     virtual void packBitsForClassInstances();

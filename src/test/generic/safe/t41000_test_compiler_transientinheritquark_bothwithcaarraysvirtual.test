@@ -1,0 +1,90 @@
+## -*- mode:ulam -*-
+#=t41000_test_compiler_transientinheritquark_bothwithcaarraysvirtual
+##
+## gen output: (+ interleaved asserts)
+## Int arg: 4
+## Int arg: 12
+##
+#!
+Exit status: -11
+Ue_Foo { Bool(1) first(false);  Int(32) sint(0);  Int(32) cint(0);  Int(32) test() {  System s;  Soo su;  Int(32) sfoo = su ( 0 cast )foo .;  s ( sfoo )print . s ( sfoo 40 cast == )assert . Coo& cref = su cast;  Int(32) cfoo = cref ( 1 cast )foo .;  s ( cfoo )print . s ( cfoo 40 cast == )assert . sint su ( 0 cast )aref . = s ( sint )print . s ( sint 4 cast == )assert . cint cref ( 1 cast )aref . = s ( cint )print . s ( cint 4 cast == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Un_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
+##
+## transient and quark custom arrays (aref, virtual)
+##
+#>Foo.ulam
+  ulam 2;
+element Foo {
+  Bool first;
+  Int sint;
+  Int cint;
+  Int test() {
+    System s;
+    Soo su;
+
+    Int sfoo = su.foo(0); //see how virtual works
+    s.print(sfoo);
+    s.assert(sfoo == 40);
+
+    Coo& cref = su;
+    Int cfoo = cref.foo(1); //see how virtual works
+    s.print(cfoo);
+    s.assert(cfoo == 40);
+
+    //custom array, aref for reading as virtual..
+    sint = su[0];
+    s.print(sint);
+    s.assert(sint == 4);
+
+    cint = cref[1];
+    s.print(cint);
+    s.assert(cint == 4);
+
+    //custom array, aref for writing as virtual..TBD!!
+
+    return 0;
+  }
+}
+
+#:Soo.ulam
+  ulam 2;
+transient Soo : Coo {
+  Unsigned(3) us = 4u;
+  virtual Int aref(Int index)
+  {
+    return (Int) us; //index ignored
+  }
+  virtual Int foo(Int index)
+  {
+    return 40;
+  }
+}
+
+#:Coo.ulam
+  ulam 2;
+quark Coo {
+  Bool(3) cb = true;
+  virtual Int aref(Int index)
+  {
+    return 12; //index ignored
+  }
+  virtual Int foo(Int index)
+  {
+    return 120;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

@@ -211,7 +211,20 @@ namespace MFM {
 			errorCount++;
 		      }
 		  }
-		//else a match! (surgery to func call node? what if, lhs of assignment?)
+		else //a match! (surgery to func call node? what if, lhs of assignment?)
+		  {
+		    //replace node with func call to 'aref' (t41000, t41001)
+		    Node * newnode = buildArefFuncCallNode();
+		    AssertBool swapOk = exchangeNodeWithParent(newnode);
+		    assert(swapOk);
+
+		    m_nodeRight = NULL; //recycled
+		    m_nodeLeft = NULL; //recycled
+
+		    delete this; //suicide is painless..
+
+		    return newnode->checkAndLabelType();
+		  }
 	      }
 	    else
 	      {
@@ -267,23 +280,13 @@ namespace MFM {
 	UlamType * lut = m_state.getUlamTypeByIndex(leftType);
 	bool isScalar = lut->isScalar();
 	// sq bracket purpose in life is to account for array elements;
-	if(m_isCustomArray && isScalar)
-	  newType = m_state.getAClassCustomArrayType(leftType);
-	else if((lut->getUlamTypeEnum() == String) && isScalar)
+	if((lut->getUlamTypeEnum() == String) && isScalar)
 	  newType = ASCII;
 	else
 	  newType = m_state.getUlamTypeAsScalar(leftType);
 
-	if(m_isCustomArray)
-	  {
-	    if(m_state.classCustomArraySetable(leftType))
-	      Node::setStoreIntoAble(TBOOL_TRUE); //also reference-able
-	    else
-	      Node::setStoreIntoAble(TBOOL_FALSE);
-	  }
-	else
-	  // multi-dimensional possible; MP not ok lhs.
-	  Node::setStoreIntoAble(m_nodeLeft->getStoreIntoAble());
+	// multi-dimensional possible; MP not ok lhs.
+	Node::setStoreIntoAble(m_nodeLeft->getStoreIntoAble());
       }
     else
       {
@@ -300,6 +303,26 @@ namespace MFM {
     setNodeType(newType);
     return newType;
   } //checkAndLabelType
+
+  Node * NodeSquareBracket::buildArefFuncCallNode()
+  {
+    Token identTok;
+    u32 arefId = m_state.getCustomArrayGetFunctionNameId();
+    identTok.init(TOK_IDENTIFIER, getNodeLocation(), arefId);
+
+    //fill in func symbol during type labeling;
+    Node * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
+    assert(fcallNode);
+    fcallNode->setNodeLocation(identTok.m_locator);
+    Node * mselectNode = new NodeMemberSelect(m_nodeLeft, fcallNode, m_state);
+    assert(mselectNode);
+    mselectNode->setNodeLocation(identTok.m_locator);
+
+    ((NodeFunctionCall *) fcallNode)->addArgument(m_nodeRight);
+    //redo check and type labeling done by caller!!
+    return mselectNode; //replace self
+  } //buildArefFuncCallNode
+
 
   bool NodeSquareBracket::trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr)
   {
@@ -330,11 +353,6 @@ namespace MFM {
 
     if(nuti == Hzy)
       return NOTREADY;
-
-    if(m_isCustomArray)
-      {
-	return evalACustomArray();
-      }
 
     UTI leftType = m_nodeLeft->getNodeType();
     UlamType * lut = m_state.getUlamTypeByIndex(leftType);
@@ -410,17 +428,6 @@ namespace MFM {
     return NORMAL;
   } //eval
 
-  EvalStatus NodeSquareBracket::evalACustomArray()
-  {
-    //eval MUST NOT be used to get arraysize in bracket.
-    std::ostringstream msg;
-    msg << "Custom Array subscript requires "; //aref
-    msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
-    msg << " function; Unsupported for eval";
-    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-    return UNEVALUABLE;
-  } //evalACustomArray
-
   EvalStatus NodeSquareBracket::evalAUserStringByte()
   {
     evalNodeProlog(0); //new current frame pointer
@@ -457,6 +464,16 @@ namespace MFM {
     u32 offsetdata = 0;
     if(offut->isNumericType())
       {
+	if(!m_state.isValidUserStringIndex(usrStr))
+	  {
+	    std::ostringstream msg;
+	    msg << "Uninitialized String cannot access subscript of '";
+	    msg << m_state.getDataAsFormattedUserString(usrStr).c_str() << "'";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    evalNodeEpilog();
+	    return ERROR;
+	  }
+
 	// constant expression only required for array declaration
 	u32 strlen = m_state.getUserStringLength(usrStr);
 	offsetdata = offset.getImmediateData(m_state);
@@ -496,11 +513,6 @@ namespace MFM {
 
     if(nuti == Hzy)
       return NOTREADY;
-
-    if(m_isCustomArray)
-      {
-	return evalToStoreIntoACustomArray();
-      }
 
     evalNodeProlog(0); //new current frame pointer
 
@@ -551,17 +563,6 @@ namespace MFM {
     evalNodeEpilog();
     return evs;
   } //evalToStoreInto
-
-  EvalStatus NodeSquareBracket::evalToStoreIntoACustomArray()
-  {
-    //eval MUST NOT be used to get arraysize in bracket.
-    std::ostringstream msg;
-    msg << "Custom Array subscript requires "; //aref
-    msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
-    msg << " function returning a reference; Unsupported for evalToStoreInto";
-    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-    return UNEVALUABLE;
-  } //evalToStoreIntoACustomArray
 
   bool NodeSquareBracket::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
@@ -758,7 +759,7 @@ namespace MFM {
       }
 
     genCodeToStoreInto(fp, uvpass);
-    if((!m_isCustomArray || !m_state.classCustomArraySetable(leftType)) && (!isString || m_state.isReference(uvpass.getPassTargetType()))) //t3953, t3973
+    if(!isString || m_state.isReference(uvpass.getPassTargetType())) //t3953, t3973
       Node::genCodeReadIntoATmpVar(fp, uvpass); //splits on array item
     else
       m_state.clearCurrentObjSymbolsForCodeGen();
@@ -780,81 +781,70 @@ namespace MFM {
     UVPass luvpass = uvpass; //t3615 passes along if rhs of memberselect
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
-    //non-custom array only
+    //runtime check to avoid accessing beyond array (non-custom array only)
     UTI luti = luvpass.getPassTargetType();
-    if(!m_state.isClassACustomArray(luti))
-      {
-	//runtime check to avoid accessing beyond array
-	UlamType * lut = m_state.getUlamTypeByIndex(luti);
-	s32 arraysize = lut->getArraySize();
-	assert(!lut->isScalar());
-	m_state.indentUlamCode(fp);
-	fp->write("if(");
-	fp->write(offset.getTmpVarAsString(m_state).c_str());
-	fp->write(" >= ");
-	fp->write_decimal(arraysize);
-	fp->write(")"); GCNL;
+    UlamType * lut = m_state.getUlamTypeByIndex(luti);
+    s32 arraysize = lut->getArraySize();
+    assert(!lut->isScalar());
+    m_state.indentUlamCode(fp);
+    fp->write("if(");
+    fp->write(offset.getTmpVarAsString(m_state).c_str());
+    fp->write(" >= ");
+    fp->write_decimal(arraysize);
+    fp->write(")"); GCNL;
 
-	m_state.m_currentIndentLevel++;
-	m_state.indentUlamCode(fp);
-	fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
-	m_state.m_currentIndentLevel--;
-      } //for non custom arrays only!
+    m_state.m_currentIndentLevel++;
+    m_state.indentUlamCode(fp);
+    fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
+    m_state.m_currentIndentLevel--;
 
     //save autoref into a tmpvar symbol
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
 
-    if(m_state.isClassACustomArray(luti))
+    assert(!m_state.isScalar(cossym->getUlamTypeIdx()));
+    if(cossym->isConstant())
       {
-	assert(m_state.isScalar(cossym->getUlamTypeIdx()));
-	Node::genCodeConvertATmpVarIntoCustomArrayAutoRef(fp, luvpass, offset); //luvpass becomes the autoref, and clears stack
+	Node::genCodeConvertATmpVarIntoConstantAutoRef(fp, luvpass, offset); //luvpass becomes the autoref, and clears stack
+
+	UTI leftType = m_nodeLeft->getNodeType();
+	UlamType * lut = m_state.getUlamTypeByIndex(leftType);
+	if((lut->getUlamTypeEnum() == String))
+	  {
+	    //a constant array of strings is treated like a NodeTerminal DBLQUOTED token.
+	    // in order to "fix" the registration number of the index, at use, rather
+	    // than at constructor time when the registration number is not yet available. (t3953)
+	    s32 tmpVarNum = m_state.getNextTmpVarNumber();
+
+	    BV8K tmpbv8k;
+	    AssertBool gotValue = ((SymbolWithValue *) cossym)->getValue(tmpbv8k);
+	    assert(gotValue);
+
+	    UTI cuti = tmpbv8k.Read(0, 16u);
+	    assert(cuti > 0);
+
+	    const std::string stringmangledName = m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
+	    //get string 2-part index in a tmp var; TODO as TMPAUTOREF???
+	    // update constant's reg num from UTI (t3953)
+	    m_state.indentUlamCode(fp);
+	    fp->write("const ");
+	    fp->write(lut->getArrayItemTmpStorageTypeAsString().c_str()); //u32
+	    fp->write(" ");
+	    fp->write(m_state.getTmpVarAsString(String, tmpVarNum, TMPREGISTER).c_str());
+	    fp->write(" = ");
+	    fp->write(stringmangledName.c_str());
+	    fp->write("::makeCombinedIdx(");
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(cuti).c_str());
+	    fp->write(".GetRegistrationNumber(), ");
+	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	    fp->write(".getStringIndex());"); GCNL;
+
+	    luvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, String, m_state.determinePackable(String), m_state, 0, cossym->getId()); //replace luvpass
+	  }
       }
     else
-      {
-	assert(!m_state.isScalar(cossym->getUlamTypeIdx()));
-	if(cossym->isConstant())
-	  {
-	    Node::genCodeConvertATmpVarIntoConstantAutoRef(fp, luvpass, offset); //luvpass becomes the autoref, and clears stack
+      Node::genCodeConvertATmpVarIntoAutoRef(fp, luvpass, offset); //luvpass becomes the autoref, and clears stack
 
-	    UTI leftType = m_nodeLeft->getNodeType();
-	    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-	    if((lut->getUlamTypeEnum() == String))
-	      {
-		//a constant array of strings is treated like a NodeTerminal DBLQUOTED token.
-		// in order to "fix" the registration number of the index, at use, rather
-		// than at constructor time when the registration number is not yet available. (t3953)
-		s32 tmpVarNum = m_state.getNextTmpVarNumber();
-
-		BV8K tmpbv8k;
-		AssertBool gotValue = ((SymbolWithValue *) cossym)->getValue(tmpbv8k);
-		assert(gotValue);
-
-		UTI cuti = tmpbv8k.Read(0, 16u);
-		assert(cuti > 0);
-
-		const std::string stringmangledName = m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
-		//get string 2-part index in a tmp var; TODO as TMPAUTOREF???
-		// update constant's reg num from UTI (t3953)
-		m_state.indentUlamCode(fp);
-		fp->write("const ");
-		fp->write(lut->getArrayItemTmpStorageTypeAsString().c_str()); //u32
-		fp->write(" ");
-		fp->write(m_state.getTmpVarAsString(String, tmpVarNum, TMPREGISTER).c_str());
-		fp->write(" = ");
-		fp->write(stringmangledName.c_str());
-		fp->write("::makeCombinedIdx(");
-		fp->write(m_state.getTheInstanceMangledNameByIndex(cuti).c_str());
-		fp->write(".GetRegistrationNumber(), ");
-		fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-		fp->write(".getStringIndex());"); GCNL;
-
-		luvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, String, m_state.determinePackable(String), m_state, 0, cossym->getId()); //replace luvpass
-	      }
-	  }
-	else
-	  Node::genCodeConvertATmpVarIntoAutoRef(fp, luvpass, offset); //luvpass becomes the autoref, and clears stack
-      }
     uvpass = luvpass;
     m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, cossym); //dm to avoid leaks
     m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore the prior stack
