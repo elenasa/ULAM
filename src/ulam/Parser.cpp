@@ -1242,6 +1242,13 @@ namespace MFM {
     //        for validating and finding scope of program/block variables
     m_state.pushCurrentBlock(rtnNode); //without pop first
 
+    //extra block to keep trueNode and labelNode separate
+    NodeBlock * trueblock = new NodeBlock(rtnNode, m_state);
+    assert(trueblock);
+    trueblock->setNodeLocation(wTok.m_locator);
+
+    m_state.pushCurrentBlock(trueblock); //without pop first
+
     s32 controlLoopLabelNum = m_state.m_parsingControlLoop; //save at the top
     Node * condNode = parseConditionalExpr();
     if(!condNode)
@@ -1250,6 +1257,8 @@ namespace MFM {
 	msg << "Invalid while-condition";
 	MSG(&wTok, msg.str().c_str(), ERR);
 	m_state.popClassContext(); //the pop
+	delete trueblock;
+	m_state.popClassContext(); //the pop
 	delete rtnNode;
 	return NULL; //stop this maddness
       }
@@ -1257,6 +1266,8 @@ namespace MFM {
     if(!getExpectedToken(TOK_CLOSE_PAREN))
       {
 	delete condNode;
+	m_state.popClassContext(); //the pop
+	delete trueblock;
 	m_state.popClassContext(); //the pop
 	delete rtnNode;
 	return NULL; //stop this maddness
@@ -1276,23 +1287,31 @@ namespace MFM {
 
 	delete condNode;
 	m_state.popClassContext(); //the pop
+
+	delete trueblock;
+	m_state.popClassContext(); //the pop
+
 	delete rtnNode;
 	return NULL; //stop this maddness
       }
+
+    //separate block to separate body & label
+    trueblock->appendNextNode(trueNode); //t41002
 
     //end of while loop label, linked to end of body (true statement)
     Node * labelNode = new NodeLabel(controlLoopLabelNum, m_state);
     assert(labelNode);
     labelNode->setNodeLocation(wTok.m_locator);
 
-    trueNode->appendNextNode(labelNode);
+    trueblock->appendNextNode(labelNode); //t41002
 
-    Node * whileNode = new NodeControlWhile(condNode, trueNode, m_state);
+    Node * whileNode = new NodeControlWhile(condNode, trueblock, m_state);
     assert(whileNode);
     whileNode->setNodeLocation(wTok.m_locator);
 
     rtnNode->appendNextNode(whileNode);
 
+    m_state.popClassContext(); //the pop of trueblock
     m_state.popClassContext(); //= prevBlock;
     return rtnNode;
   } //parseControlWhile
