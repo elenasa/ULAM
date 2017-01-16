@@ -135,14 +135,14 @@ namespace MFM {
     fp->write("break;"); GCNL;
     m_state.m_currentIndentLevel--;
 
-    //else do the body
+    //else do the body block, within another block for end-of-loop label (t41002)
     m_nodeBody->genCode(fp, uvpass);
 
     m_state.m_currentIndentLevel--;
     m_state.indentUlamCode(fp);
     fp->write("} // end ");
     fp->write(getName()); //end while
-    fp->write("\n");
+    GCNL;
   } //genCode
 
 } //end MFM
