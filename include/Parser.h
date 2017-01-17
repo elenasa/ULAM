@@ -48,6 +48,7 @@
 #include "NodeBlock.h"
 #include "NodeConditional.h"
 #include "NodeConstantDef.h"
+#include "NodeControlWhile.h"
 #include "NodeFunctionCall.h"
 #include "NodeModelParameterDef.h"
 #include "NodeStatements.h"
@@ -163,6 +164,9 @@ namespace MFM{
 			=> equiv to a parse tree shaped like: { <STATEMENT_DECL>  while ( <CONDITIONAL_EXPR> ) { <STATEMENT> <ASSIGN_EXPRESSION> } }
      */
     Node * parseControlFor(const Token& fTok);
+
+    /** helper-method for Control FOR/WHILE loops */
+    NodeControlWhile * makeControlWhileNode(Node * condNode, Node * assignNodeForLoop, u32 loopnum, const Token& fwtok);
 
     /**
        <CONDITIONAL_EXPR> := <SIMPLE_COND_DECL> | <ASSIGN_EXPR>

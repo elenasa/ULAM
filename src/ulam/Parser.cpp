@@ -46,7 +46,6 @@
 #include "NodeConstantArray.h"
 #include "NodeContinueStatement.h"
 #include "NodeControlIf.h"
-#include "NodeControlWhile.h"
 #include "NodeIdent.h"
 #include "NodeInstanceof.h"
 #include "NodeLabel.h"
@@ -1232,7 +1231,9 @@ namespace MFM {
     if(!getExpectedToken(TOK_OPEN_PAREN))
       return NULL;
 
-    //before parsing the IF statement, need a new scope
+    s32 controlLoopLabelNum = m_state.m_parsingControlLoop; //save at the top
+
+    //before parsing the conditional statement, need a new scope
     NodeBlock * currBlock = m_state.getCurrentBlock();
     NodeBlock * rtnNode = new NodeBlock(currBlock, m_state);
     assert(rtnNode);
@@ -1242,22 +1243,12 @@ namespace MFM {
     //        for validating and finding scope of program/block variables
     m_state.pushCurrentBlock(rtnNode); //without pop first
 
-    //extra block to keep trueNode and labelNode separate
-    NodeBlock * trueblock = new NodeBlock(rtnNode, m_state);
-    assert(trueblock);
-    trueblock->setNodeLocation(wTok.m_locator);
-
-    m_state.pushCurrentBlock(trueblock); //without pop first
-
-    s32 controlLoopLabelNum = m_state.m_parsingControlLoop; //save at the top
     Node * condNode = parseConditionalExpr();
     if(!condNode)
       {
 	std::ostringstream msg;
 	msg << "Invalid while-condition";
 	MSG(&wTok, msg.str().c_str(), ERR);
-	m_state.popClassContext(); //the pop
-	delete trueblock;
 	m_state.popClassContext(); //the pop
 	delete rtnNode;
 	return NULL; //stop this maddness
@@ -1267,51 +1258,20 @@ namespace MFM {
       {
 	delete condNode;
 	m_state.popClassContext(); //the pop
-	delete trueblock;
-	m_state.popClassContext(); //the pop
 	delete rtnNode;
 	return NULL; //stop this maddness
       }
 
-    NodeBlock * trueNode = NULL;
-    if(m_state.m_parsingConditionalAs)
-      trueNode = setupAsConditionalBlockAndParseStatements((NodeConditional *) condNode);
-    else
-      trueNode = parseStatementAsBlock();
-
-    if(!trueNode)
+    Node * whileNode = makeControlWhileNode(condNode, NULL, controlLoopLabelNum, wTok);
+    if(!whileNode)
       {
-	std::ostringstream msg;
-	msg << "Incomplete true block; while-control";
-	MSG(&wTok, msg.str().c_str(), ERR);
-
-	delete condNode;
 	m_state.popClassContext(); //the pop
-
-	delete trueblock;
-	m_state.popClassContext(); //the pop
-
 	delete rtnNode;
 	return NULL; //stop this maddness
       }
-
-    //separate block to separate body & label
-    trueblock->appendNextNode(trueNode); //t41002
-
-    //end of while loop label, linked to end of body (true statement)
-    Node * labelNode = new NodeLabel(controlLoopLabelNum, m_state);
-    assert(labelNode);
-    labelNode->setNodeLocation(wTok.m_locator);
-
-    trueblock->appendNextNode(labelNode); //t41002
-
-    Node * whileNode = new NodeControlWhile(condNode, trueblock, m_state);
-    assert(whileNode);
-    whileNode->setNodeLocation(wTok.m_locator);
 
     rtnNode->appendNextNode(whileNode);
 
-    m_state.popClassContext(); //the pop of trueblock
     m_state.popClassContext(); //= prevBlock;
     return rtnNode;
   } //parseControlWhile
@@ -1323,7 +1283,7 @@ namespace MFM {
 
     s32 controlLoopLabelNum = m_state.m_parsingControlLoop; //save at the top
 
-    //before parsing the for statement, need a new scope
+    //before parsing the FOR statement, need a new scope
     NodeBlock * currBlock = m_state.getCurrentBlock();
     NodeBlock * rtnNode = new NodeBlock(currBlock, m_state);
     assert(rtnNode);
@@ -1368,7 +1328,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Malformed for-control";
 	MSG(&pTok, msg.str().c_str(), ERR);
-	m_state.popClassContext(); //where was it?
+	m_state.popClassContext(); //the pop
 	delete rtnNode;
 	return NULL;
       }
@@ -1387,14 +1347,14 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Invalid for-condition";
 	    MSG(&qTok, msg.str().c_str(), ERR);
-	    m_state.popClassContext(); //where was it?
+	    m_state.popClassContext(); //the pop
 	    delete rtnNode;
 	    return NULL; //stop this maddness
 	  }
 
 	if(!getExpectedToken(TOK_SEMICOLON))
 	  {
-	    m_state.popClassContext(); //where was it?
+	    m_state.popClassContext(); //the pop
 	    delete rtnNode;
 	    delete condNode;
 	    return NULL; //stop this maddness
@@ -1423,7 +1383,7 @@ namespace MFM {
 	    msg << "Malformed assignment; for-control";
 	    MSG(&rTok, msg.str().c_str(), ERR);
 
-	    m_state.popClassContext(); //where was it?
+	    m_state.popClassContext(); //the pop
 	    delete rtnNode;
 	    delete condNode;
 	    return NULL; //stop this maddness
@@ -1431,13 +1391,32 @@ namespace MFM {
 
 	if(!getExpectedToken(TOK_CLOSE_PAREN))
 	  {
-	    m_state.popClassContext(); //where was it?
+	    m_state.popClassContext(); //the pop
 	    delete rtnNode;
 	    delete condNode;
 	    delete assignNode;
 	    return NULL; //stop this maddness
 	  }
       } //done with assign expr, could be null
+
+    Node * whileNode = makeControlWhileNode(condNode, assignNode, controlLoopLabelNum, fTok);
+    if(!whileNode)
+      {
+	m_state.popClassContext(); //the pop
+	delete rtnNode;
+	return NULL; //stop this maddness
+      }
+
+    //links while to decl or to rtn block (no decl)
+    rtnNode->appendNextNode(whileNode);
+
+    m_state.popClassContext(); //= prevBlock;
+    return rtnNode;
+  } //parseControlFor
+
+  NodeControlWhile * Parser::makeControlWhileNode(Node * condNode, Node * assignNodeForLoop, u32 loopnum, const Token& fwtok)
+  {
+    assert(condNode);
 
     NodeBlock * trueNode = NULL;
     if(m_state.m_parsingConditionalAs)
@@ -1448,49 +1427,44 @@ namespace MFM {
     if(!trueNode)
       {
 	std::ostringstream msg;
-	msg << "Incomplete true block; for-loop";
-	MSG(&rTok, msg.str().c_str(), ERR);
-
-	m_state.popClassContext(); //where was it?
-	delete rtnNode;
+	msg << "Incomplete true block; ";
+	msg << Token::getTokenAsStringFromPool(fwtok.m_type, &m_state).c_str();
+	msg << "-loop";
+	MSG(&fwtok, msg.str().c_str(), ERR);
 	delete condNode;
-	delete assignNode;
+	delete assignNodeForLoop;
 	return NULL; //stop this maddness
       }
 
     NodeStatements * truestmt = new NodeStatements(trueNode, m_state);
     assert(truestmt);
 
-    //link the pieces together..using statements, not blocks (t3902)
-    // decl was first in the block
+    //link the pieces together..using statements, not blocks (t3902, t41002,3,4)
+    // decl was first in the block for-loop;
     //loose pieces joined by NodeControlWhile:
-    //end of while loop label, linked to end of body, before assign statement
-    Node * labelNode = new NodeLabel(controlLoopLabelNum, m_state);
+    //end of while loop label, linked to end of body; (for-loop) before assign statement
+    Node * labelNode = new NodeLabel(loopnum, m_state);
     assert(labelNode);
-    labelNode->setNodeLocation(rTok.m_locator);
+    labelNode->setNodeLocation(fwtok.m_locator);
 
     NodeStatements * labelstmt = new NodeStatements(labelNode, m_state);
     assert(labelstmt);
     truestmt->setNextNode(labelstmt);
 
-    NodeStatements * assignstmt = NULL;
-    if(assignNode)
+    NodeStatements * assignstmt = NULL; //for-loop
+    if(assignNodeForLoop)
       {
-	assignstmt = new NodeStatements(assignNode, m_state);
+	assignstmt = new NodeStatements(assignNodeForLoop, m_state);
 	assert(assignstmt);
 	labelstmt->setNextNode(assignstmt);
       }
 
-    Node * whileNode = new NodeControlWhile(condNode, truestmt, m_state);
+    NodeControlWhile * whileNode = new NodeControlWhile(condNode, truestmt, m_state);
     assert(whileNode);
-    whileNode->setNodeLocation(fTok.m_locator);
+    whileNode->setNodeLocation(fwtok.m_locator);
 
-    //links while to decl or to rtn block (no decl)
-    rtnNode->appendNextNode(whileNode);
-
-    m_state.popClassContext(); //= prevBlock;
-    return rtnNode;
-  } //parseControlFor
+    return whileNode;
+  } //makeControlWhileNode
 
   Node * Parser::parseConditionalExpr()
   {
