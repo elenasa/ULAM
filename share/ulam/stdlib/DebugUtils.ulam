@@ -29,10 +29,15 @@ quark DebugUtils {
   Void print(Atom arg) { print(arg, cPRINT_MEMBERS); }
   Void print(Atom a, Bits flags) native;
 
+  Bool hasEventWindow() native;
+
   Void printContext() { printContext(cPRINT_QUARK_MEMBERS); }
   Void printContext(Bits flags) native;
 
+  Void printChar(Unsigned(8) arg) native;
+
   Void print(Unsigned arg) native;
+  Void print(String arg) native;
   Void print(Int arg) native;
   Void print(Int(4) arg) native;
   Void print(Int(3) arg) native;
