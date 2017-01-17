@@ -24,4 +24,23 @@ namespace MFM {
     Ui_Ut_10161u<EC> ret(MDist<R>::get().GetFirstIndex(radius));
     return ret;
   }
+
+  template<class EC>
+  Ui_Ut_10161u<EC> Uq_10105MDist10<EC>::Uf_9216getFirstESLIndex(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_10151u<EC>& Uv_919eslRadius) const
+  {
+    enum { R = EC::EVENT_WINDOW_RADIUS };
+    u32 eslRadius = Uv_919eslRadius.read();
+    Ui_Ut_10161u<EC> ret(MDist<R>::get().GetFirstESLIndex(eslRadius));
+    return ret;
+  }
+
+  template<class EC>
+  Ui_Ut_10161u<EC> Uq_10105MDist10<EC>::Uf_9215getLastESLIndex(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_10151u<EC>& Uv_919eslRadius) const
+  {
+    enum { R = EC::EVENT_WINDOW_RADIUS };
+    u32 eslRadius = Uv_919eslRadius.read();
+    Ui_Ut_10161u<EC> ret(MDist<R>::get().GetLastESLIndex(eslRadius));
+    return ret;
+  }
+
 } //MFM
