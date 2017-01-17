@@ -163,6 +163,8 @@ namespace MFM{
 
     static ULAMTYPECOMPARERESULTS compareForString(UTI u1, CompilerState& state);
 
+    static ULAMTYPECOMPARERESULTS compareForCustomArrayItem(UTI u1, UTI u2, CompilerState& state);
+
     /** Number of bits (rounded up to nearest 32 bits) required to
     hold the total bit size  */
     u32 getTotalWordSize();
