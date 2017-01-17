@@ -113,6 +113,32 @@ namespace MFM{
     return Ui_Ut_10161u<EC>(ret);
   }
 
+  template<class EC>
+  Ui_Ut_10161u<EC> Uq_10109211EventWindow10<EC>::Uf_9228getSiteNumberFromRasterIndex(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_10161u<EC>& Uv_5index) const
+  {
+    enum { R = EC::EVENT_WINDOW_RADIUS };
+    const MDist<R> & md = MDist<R>::get();
+    s32 sn = md.GetSiteNumberFromRasterIndex(Uv_5index.read());
+    u32 ret;
+    if (sn < 0) ret = EventWindow<EC>::SITE_COUNT;
+    else ret = (u32) sn;
+    return Ui_Ut_10161u<EC>(ret);
+  } // Uf_9228getSiteNumberFromRasterIndex
+
+  template<class EC>
+  Ui_Ut_10161u<EC> Uq_10109211EventWindow10<EC>::Uf_9228getRasterIndexFromSiteNumber(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_10161u<EC>& Uv_7sitenum) const
+  {
+    enum { R = EC::EVENT_WINDOW_RADIUS };
+    const MDist<R> & md = MDist<R>::get();
+    s32 idx = md.GetRasterIndexFromSiteNumber(Uv_7sitenum.read());
+    u32 ret;
+    if (idx < 0) ret = EventWindow<EC>::SITE_COUNT;
+    else ret = (u32) idx;
+    return Ui_Ut_10161u<EC>(ret);
+
+  } // Uf_9228getRasterIndexFromSiteNumber
+
+
   //! EventWindow.ulam:28:   SiteNum size() native;
   template<class EC>
   Ui_Ut_10161u<EC> Uq_10109211EventWindow10<EC>::Uf_4size(const UlamContext<EC> & uc,

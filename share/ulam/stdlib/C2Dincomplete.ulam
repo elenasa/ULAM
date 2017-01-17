@@ -34,6 +34,22 @@
     return x == other.x && y == other.y;
   }
 
+  /** True if each dimension of \c other is between 0 and our
+      dimension's value - 1. Always false if self.x or self.y
+      is <= 0.  
+
+      \since v2.1
+   */
+  Bool contains(Self other) {
+    Int sx = self.getX();
+    Int sy = self.getY();
+    Int ox = other.getX();
+    Int oy = other.getY();
+    if (ox < 0 || ox >= sx) return false;
+    if (oy < 0 || oy >= sy) return false;
+    return true;
+  }
+
   Int dot(Self other) {
     return x * other.x + y * other.y;
   }
@@ -93,4 +109,21 @@
     if (dy < 0) dy = -dy;
     return (Unsigned) (dx + dy);
   }
+
+  /** 
+    \since v2.1
+  */
+  Unsigned euclideanSquaredDistance(Self other) {
+    Int dx = x - other.x, dy = y - other.y;
+    return (Unsigned) (dx*dx + dy*dy);
+  }
+
+  /** 
+    \since v2.1
+  */
+  Unsigned euclideanSquaredLength() {
+    Self origin;
+    return euclideanSquaredDistance(origin);
+  }
+
 //}

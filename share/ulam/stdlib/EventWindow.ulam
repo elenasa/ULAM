@@ -90,6 +90,20 @@ quark EventWindow {
   Bool swap(SiteNum index1, SiteNum index2)  native;
   Bool swap(C2D coord1, C2D coord2) { return swap(getSiteNumberRaw(coord1), getSiteNumberRaw(coord2)); }
 
+  /** Get the SiteNum corresponding to the given raster \c index, if
+      it is legal, else return EventWindow.size() (which is an illegal
+      SiteNum, and will cause event window array accesses to fail if
+      used).
+  */
+  SiteNum getSiteNumberFromRasterIndex(SiteNum index) native ;
+
+  /** Get the raster index corresponding to the given \c sitenum, if
+      it is legal, else return EventWindow.size() (which is an illegal
+      SiteNum, and will cause event window array accesses to fail if
+      used).
+  */
+  SiteNum getRasterIndexFromSiteNumber(SiteNum sitenum) native ;
+
   C2D getCoord(SiteNum siteNum) native;
 
   C2D getCoordRaw(SiteNum siteNum) {
