@@ -657,15 +657,15 @@ namespace MFM {
 	  }
 	m_state.popClassContext(); //restore
 	return rtninherits;
-      }
+      } //done w explicit local. scope
 
     //o.w. implicit localdef typedefs and constants
     if(iTok.m_type == TOK_TYPE_IDENTIFIER)
       {
-	//only search for typedefs, and class arguments for ancestors in local scope
-	NodeBlockLocals * localsblock = m_state.getLocalsScopeBlock(m_state.getContextBlockLoc());
-	if(localsblock)
-	  m_state.pushClassContext(localsblock->getNodeType(), localsblock, localsblock, false, NULL);
+	//typedefs, and class argument constants for ancestors maybe in local scope;
+	//search class args for constants before local scope (t41007)
+	//search locals scope for typedef before class (t3862, 3865, 3868, 3988, 3989)
+	m_state.m_parsingVariableSymbolTypeFlag = STF_CLASSINHERITANCE;
 
 	bool isaclass = true;
 	superuti = parseClassArguments(iTok, isaclass);
@@ -697,9 +697,7 @@ namespace MFM {
 		rtninherits = true;
 	      }
 	  }
-
-	if(localsblock)
-	  m_state.popClassContext();
+	m_state.m_parsingVariableSymbolTypeFlag = STF_NEEDSATYPE; //reset
       }
     else
       {
@@ -2199,10 +2197,10 @@ namespace MFM {
 	SymbolClassName * cnsym = NULL;
 	if(!m_state.alreadyDefinedSymbolClassName(typeTok.m_dataindex, cnsym))
 	  {
-	    //check if a typedef first..
 	    UTI tduti = Nav;
 	    UTI tdscalaruti = Nouti;
-	    if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, tduti, tdscalaruti))
+	    //check if a typedef first..look localdefs first when parsing class inheritance
+	    if(((m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSINHERITANCE) && m_state.getUlamTypeByTypedefNameinLocalsScope(typeTok.m_dataindex, tduti, tdscalaruti)) || m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, tduti, tdscalaruti))
 	      {
 		ULAMTYPE bUT = m_state.getUlamTypeByIndex(tduti)->getUlamTypeEnum();
 		isaclass |= (bUT == Class); //or Hzy or Holder?
@@ -2214,7 +2212,7 @@ namespace MFM {
 	      }
 	    else
 	      {
-		// not necessarily a class!!
+		// not a typedef, but not necessarily a class either!!
 		if(isaclass)
 		  m_state.addIncompleteClassSymbolToProgramTable(typeTok, cnsym);
 		else
@@ -2224,11 +2222,12 @@ namespace MFM {
 		      {
 			m_state.addUnknownTypeTokenToThisClassResolver(typeTok, huti);
 
-			// set contains possible unseen classes (ulamexports); see if they exist.
-			// without being too liberal about guessing classes(t3668, t3651) 5/2/16.
+			// set contains possible unseen classes (ulamexports);
+			// see if they exist without being too liberal about guessing
+			// classes(t3668, t3651) 5/2/16.
 			m_state.m_unseenClasses.insert(typeTok.m_dataindex); //possible class
 		      }
-		    else //yet defined in local file scope; add a holder (t3873)
+		    else //not yet defined in local file scope; add a holder (t3873)
 		      {
 			SymbolTypedef * symtypedef = new SymbolTypedef(typeTok, huti, Nav, m_state);
 			assert(symtypedef);
@@ -2877,17 +2876,26 @@ namespace MFM {
     // don't return a NodeConstant, instead of NodeIdent, without arrays
     // even if already defined as one. lazy evaluate.
     bool isDefined = m_state.isIdInCurrentScope(identTok.m_dataindex, asymptr); //t3887
-    if(!isDefined && (identTok.m_type == TOK_IDENTIFIER))
+    //if(!isDefined && (identTok.m_type == TOK_IDENTIFIER))
+    if(!isDefined && (identTok.m_type == TOK_IDENTIFIER) && m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSINHERITANCE)
       {
-	if(m_state.isThisLocalsFileScope())
+	bool locDefined = m_state.isIdInLocalFileScope(identTok.m_dataindex, asymptr);
+	NodeBlockLocals * localsblock = m_state.getLocalsScopeBlock(m_state.getContextBlockLoc());
+	if(!locDefined && localsblock )
+	  //if(m_state.isThisLocalsFileScope())
 	  {
+	    m_state.pushClassContext(localsblock->getNodeType(), localsblock, localsblock, false, NULL); //?
+
 	    //make holder for this localdef constant not seen yet! (t3873)
 	    UTI huti = m_state.makeUlamTypeHolder();
 	    SymbolConstantValue * constsym = new SymbolConstantValue(identTok, huti, m_state);
 	    constsym->setBlockNoOfST(m_state.getContextBlockNo());
 	    m_state.addSymbolToCurrentScope(constsym);
 	    asymptr = constsym;
+
+	    m_state.popClassContext(); //?
 	  }
+	//else (t41007)
       }
 
     //o.w. make a variable; symbol could be Null! a constant/array, or a model parameter!

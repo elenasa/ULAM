@@ -209,6 +209,7 @@ namespace MFM{
     UTI getUlamTypeFromToken(TypeArgs & args);
 
     bool getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType);
+    bool getUlamTypeByTypedefNameinLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType);
 
     /** turns array into its single element type */
     UTI getUlamTypeAsScalar(UTI utArg);

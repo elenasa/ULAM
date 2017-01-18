@@ -86,11 +86,12 @@ namespace MFM{
     /** reads into a tmp BitVector */
     virtual void genCodeReadIntoATmpVar(File * fp, UVPass & uvpass);
 
+    virtual UTI setConstantTypeForNode(const Token& tok);
+
   private:
     ULAMTYPE m_etyp;
 
     virtual bool setConstantValue(const Token& tok);
-    virtual UTI setConstantTypeForNode(const Token& tok);
 
     bool fitsInBits(UTI fituti);
     bool fitsInBits32(UTI fituti);
