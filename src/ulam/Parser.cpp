@@ -642,8 +642,13 @@ namespace MFM {
 		    cnsym->setSuperClassForClassInstance(huti, cnsym->getUlamTypeIdx()); //set here!!
 		    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(huti, supercsym);
 		    assert(isDefined);
-		    rtninherits = true;
 		  }
+		else
+		  {
+		    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(tduti, supercsym);
+		    assert(isDefined);
+		  }
+		rtninherits = true; //typedef exists (t41009)
 	      }
 	    else
 	      {

@@ -204,9 +204,8 @@ namespace MFM {
     if(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	symptrref = it->second;
-	//expensive sanity check; isClassTemplate not so critical to check?
-	//UTI suti = symptrref->getUlamTypeIdx();
-	//assert( suti == uti || formatAnInstancesArgValuesAsAString(suti).compare(formatAnInstancesArgValuesAsAString(uti)) == 0);
+	//maybe be duplicates, same symbol, different UTIs (t3327)
+	assert(it->first == basicuti); //cheap sanity check
 	return true;
       }
 
