@@ -439,8 +439,6 @@ namespace MFM {
     // elements can be data members of transients, etc.
 
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
-    UTI luti = luvpass.getPassTargetType();
-    bool iscustomarray = m_state.isClassACustomArray(luti); //t3653
 
     //NodeIdent can't do it, because it doesn't know it's not a stand-alone element.
     // here, we know there's rhs of member select, which needs to adjust to state bits.
@@ -456,7 +454,9 @@ namespace MFM {
 
     uvpass = ruvpass;
 
-    if(iscustomarray)
+    //tmp variable needed for any function call (t41006), including 'aref'(t41005);
+    // uvpass not necessarily returning a reference type (t3913,4,5,7)
+    if(m_nodeRight->isFunctionCall())
       {
 	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks
 	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);

@@ -1,0 +1,95 @@
+## -*- mode:ulam -*-
+#=t41007_test_compiler_addstubcopytoancestorclass_customarray_issue
+##
+## gen output: (1 assert)
+##
+#!
+Exit status: 0
+Ue_R { Int(32) test() {  A ela;  ela ( )behave . 0 cast return } }
+Ue_A : ConstantLabelAndFont(06666f6f626172,33u) { /* empty class block */ }
+Uq_ConstantLabelAndFont(String(32) fstring, Unsigned(32) fn) : ConstantLabel(fstring) { :< :< Unsigned(8) mStringIndex( 0u); >> Unsigned(3) mFont(unknown);  <NOMAIN> }
+Uq_ConstantLabel(String(32) fstring) : Label { :< Unsigned(8) mStringIndex( 0u); > <NOMAIN> }
+Uq_Label { Unsigned(8) mStringIndex( 0u);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by Dave ish-1 1/17/17: several layers of inheritance with string class args
+##
+#>R.ulam
+  ulam 2;
+element R {
+  Int test()
+  {
+    A ela;
+    ela.behave();
+    return 0;
+  }
+}
+
+#:A.ulam
+  ulam 2;
+element A : ConstantLabelAndFont("foobar", 33) {
+}
+
+local  typedef Unsigned(3) FontNumber;
+quark ConstantLabelAndFont(String fstring, Unsigned fn) : ConstantLabel(fstring)
+{
+  FontNumber mFont;
+  Void setFontNumber(FontNumber fn) { mFont = fn; }
+  virtual FontNumber getFontNumber(StringIndex idx)
+  {
+    return mFont;
+  }
+}
+
+quark ConstantLabel(String fstring) : Label
+{
+  ASCII aref(Unsigned idx)
+  {
+    return fstring[idx];  // Fails ARRAY_INDEX_OUT_OF_BOUNDS if necessary
+  }
+
+  virtual Unsigned alengthof()
+  {
+    return fstring.lengthof;
+  }
+}
+
+local typedef Unsigned(8) StringIndex;
+quark Label {
+  StringIndex mStringIndex = 0;  // Glyph within string
+
+  StringIndex& afooref()
+  {
+    return mStringIndex;
+  }
+
+  virtual ASCII aref(Unsigned idx);
+  Void behave()
+  {
+    System s;
+    Unsigned effidx = 17;
+    Atom & a = self.atomof; //you be like me
+    Self & kid = (Self&) a; //refer to the us in the copy
+    //kid.mStringIndex = (StringIndex) effidx; // This is your byte <--ERROR
+    kid.afooref() = (StringIndex) effidx; // This is your byte <--TESTING
+    s.assert(kid.afooref() == 17u);
+  }
+}
+
+##      //informed by: t3237_test_compiler_funcdef_whileifnotbreak
+##      // using m
+##      // new decl var for the forloop
+##
+##      // test system quark with native overloaded print funcs; assert
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

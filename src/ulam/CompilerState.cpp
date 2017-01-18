@@ -1102,6 +1102,26 @@ namespace MFM {
     return rtnBool;
   } //getUlamTypeByTypedefName
 
+  bool CompilerState::getUlamTypeByTypedefNameinLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType)
+  {
+    bool rtnBool = false;
+    Symbol * asymptr = NULL;
+
+    //e.g. KEYWORDS have no m_dataindex (=0); short-circuit
+    if(nameIdx == 0) return false;
+
+    if(isIdInLocalFileScope(nameIdx, asymptr))
+      {
+	if(asymptr->isTypedef())
+	  {
+	    rtnType = asymptr->getUlamTypeIdx();
+	    rtnScalarType = ((SymbolTypedef *) asymptr)->getScalarUTI();
+	    rtnBool = true;
+	  }
+      }
+    return rtnBool;
+  } //getUlamTypeByTypedefNameInLocalsScope
+
   UTI CompilerState::getUlamTypeAsScalar(UTI utiArg)
   {
     UlamType * ut = getUlamTypeByIndex(utiArg);

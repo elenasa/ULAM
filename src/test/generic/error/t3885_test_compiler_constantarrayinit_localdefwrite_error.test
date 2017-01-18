@@ -1,11 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3883_test_compiler_constantarrayinit_localdef
 #!
+./A.ulam:10:13: ERROR: Invalid lefthand side of equals <[]>, type: Unsigned(8).
+./A.ulam:11:13: ERROR: Invalid lefthand side of equals <[]>, type: Unsigned(16).
 ./A.ulam:12:13: ERROR: Invalid lefthand side of equals <[]>, type: Unsigned(33).
 Unrecoverable Program Type Label FAILURE.
 ##
-## first error write test of constant arrays: oddly rtn3 gives the ERROR msg first, rtn1 & rtn2 are Hzy;
-##        but without rtn3, both rtn1 and rtn2 give ERRORS.
+## error write test of constant arrays
+##
 #>A.ulam
   ulam 2;
 local constant UrSelf.ARGB rtn1 = {0xff, 0 }; //typedf in UrSelf as Unsigned(8) ARGB[4]
@@ -16,9 +18,9 @@ local constant WEIRDOG rtn3 = {0x123456789u, 0};
 element A {
   Bool b1, b2, b3;
   Int test() {
-    rtn1[0] = 0xf; //Hzy
-    rtn2[1] = rtn1[0]; //Hzy
-    rtn3[2] = 0; //first ERROR during resolving loop
+    rtn1[0] = 0xf;
+    rtn2[1] = rtn1[0];
+    rtn3[2] = 0;
     return 0;
   }
 }

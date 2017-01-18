@@ -343,7 +343,9 @@ namespace MFM {
     if(isQuarkUnion())
       newclassinstance->setQuarkUnion();
 
-    assert(((UlamTypeClass *) m_state.getUlamTypeByIndex(newuti))->isCustomArray() == isCATemplate);
+    if(isCATemplate)
+      ((UlamTypeClass *) m_state.getUlamTypeByIndex(newuti))->setCustomArray(); //t41007
+
 
     // we are in the middle of fully instantiating (context) or parsing;
     // with known args that we want to use to resolve, if possible, these pending args:

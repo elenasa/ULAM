@@ -663,6 +663,11 @@ namespace MFM {
     return UlamType::compareWithWildReferenceType(u1, String, state);
   }
 
+  ULAMTYPECOMPARERESULTS UlamType::compareForCustomArrayItem(UTI u1, UTI u2, CompilerState& state)  //static
+  {
+    return UlamType::compareWithWildReferenceType(u1, u2, state);
+  }
+
   u32 UlamType::getTotalWordSize()
   {
     assert(isComplete());

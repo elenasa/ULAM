@@ -609,7 +609,7 @@ namespace MFM {
 
     // No split if custom array, that requires an 'aref' function call;
     // handled as genCodeConvertATmpVarIntoCustomArrayAutoRef
-    assert(!isCurrentObjectACustomArrayItem(cosuti, uvpass));
+    //assert(!isCurrentObjectACustomArrayItem(cosuti, uvpass));
 
     // write out intermediate tmpVar (i.e. terminal) as temp BitVector arg
     // e.g. when func call is rhs of secondary member select
@@ -813,8 +813,8 @@ namespace MFM {
     UTI cosuti = cos->getUlamTypeIdx();
 
     // No split if custom array, that requires an 'aref' function call;
-    // handled as genCodeConvertATmpVarIntoCustomArrayAutoRef
-    assert(!isCurrentObjectACustomArrayItem(cosuti, luvpass));
+    // handled as genCodeConvertATmpVarIntoCustomArrayAutoRef t41006
+    //assert(!isCurrentObjectACustomArrayItem(cosuti, luvpass));
 
     // split off autoref stg/member selected
     if(luvpass.getPassStorage() == TMPAUTOREF)
@@ -2950,7 +2950,9 @@ namespace MFM {
     //     but at this point cosuti would be a scalar in either case (sigh);
     // uvpass would be an array index (an int of sorts), not an array;
     // types would not be the same;
-    return(m_state.isScalar(cosuti) && m_state.isClassACustomArray(cosuti) && (uvpass.getPassTargetType() != cosuti));
+    //return(m_state.isScalar(cosuti) && m_state.isClassACustomArray(cosuti) && (uvpass.getPassTargetType() != cosuti));
+    //a custom array item, would be the return type of cossymbols 'aref' (t41006,5)
+    return(m_state.isScalar(cosuti) && m_state.isClassACustomArray(cosuti) && (UlamType::compareForCustomArrayItem(uvpass.getPassTargetType(), m_state.getAClassCustomArrayType(cosuti), m_state) == UTIC_SAME));
   } //isCurrentObjectACustomArrayItem
 
   bool Node::isCurrentObjectAnUnpackedArray(UTI cosuti, UVPass uvpass)

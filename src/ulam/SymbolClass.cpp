@@ -491,7 +491,7 @@ namespace MFM {
   {
     assert(m_resolver);
     AssertBool isAssigned = m_resolver->assignClassArgValuesInStubCopy();
-    assert(isAssigned);
+    assert(isAssigned); //t41007
   }
 
   void SymbolClass::cloneResolverUTImap(SymbolClass * csym)
