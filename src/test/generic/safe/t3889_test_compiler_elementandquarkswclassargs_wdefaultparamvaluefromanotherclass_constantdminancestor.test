@@ -31,7 +31,6 @@ element P {
 
 #:Q.ulam
   ulam 2;
-use V;
 local constant Int b = 4;
 quark Q(Unsigned s = V(b).sizeof, Int b = we) : W {
   constant Int myb = 3;

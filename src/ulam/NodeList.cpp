@@ -102,6 +102,12 @@ namespace MFM{
       m_nodes[i]->checkAbstractInstanceErrors();
   }
 
+  void NodeList::resetNodeLocations(Locator loc)
+  {
+    for(u32 i = 0; i < m_nodes.size(); i++)
+      m_nodes[i]->resetNodeLocations(loc);
+  }
+
   void NodeList::printPostfix(File * fp)
   {
     for(u32 i = 0; i < m_nodes.size(); i++)

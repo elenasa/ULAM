@@ -60,6 +60,8 @@ namespace MFM{
 
     virtual void checkAbstractInstanceErrors();
 
+    virtual void resetNodeLocations(Locator loc);
+
     virtual void print(File * fp);
 
     virtual void printPostfix(File * fp);

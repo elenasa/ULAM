@@ -63,6 +63,8 @@ namespace MFM{
 
     virtual void checkAbstractInstanceErrors();
 
+    virtual void resetNodeLocations(Locator loc);
+
     virtual void printPostfix(File * f);
 
     virtual const char * getName();

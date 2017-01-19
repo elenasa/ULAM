@@ -645,10 +645,18 @@ namespace MFM {
 		  }
 		else
 		  {
+		    //typedef already defined! must be a localdef
+		    UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
+		    if(tdut->isHolder() && (tdut->getUlamClassType() == UC_NOTACLASS))
+		      {
+			//now we know it's a class! iTok "Soo3" for loc  (t41010)
+			m_state.makeClassFromHolder(tduti, iTok); //also returns supercsym
+		      }
+
 		    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(tduti, supercsym);
 		    assert(isDefined);
 		  }
-		rtninherits = true; //typedef exists (t41009)
+		rtninherits = true; //typedef exists (t41009, t41010)
 	      }
 	    else
 	      {
