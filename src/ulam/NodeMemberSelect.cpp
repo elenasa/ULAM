@@ -164,7 +164,10 @@ namespace MFM {
 
     NodeBlockClass * memberClassNode = csym->getClassBlockNode();
     assert(memberClassNode);  //e.g. forgot the closing brace on quark definition
-    //set up compiler state to use the member class block for symbol searches
+
+    assert(m_state.okUTItoContinue(memberClassNode->getNodeType())); //t41010
+
+   //set up compiler state to use the member class block for symbol searches
     m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
 
     UTI rightType = m_nodeRight->checkAndLabelType();

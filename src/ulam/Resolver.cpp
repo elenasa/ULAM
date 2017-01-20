@@ -325,7 +325,8 @@ namespace MFM {
 		SymbolClassNameTemplate * templateparent = stubcsym->getParentClassTemplate();
 		assert(templateparent);
 		NodeBlockClass * templateclassblock = templateparent->getClassBlockNode();
-		stubclassblock->setNodeLocation(templateclassblock->getNodeLocation()); //temporarily change stub loc, in case of local filescope
+		stubclassblock->resetNodeLocations(templateclassblock->getNodeLocation()); //temporarily change stub loc, in case of local filescope, including arg/params
+
 		m_state.pushClassContext(m_classUTI, stubclassblock, stubclassblock, false, NULL);
 		pushedtemplate = true;
 	      }

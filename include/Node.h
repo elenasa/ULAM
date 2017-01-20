@@ -115,6 +115,8 @@ namespace MFM{
 
     virtual void setNodeLocation(Locator loc);
 
+    virtual void resetNodeLocations(Locator loc);
+
     void printNodeLocation(File * fp);
 
     std::string getNodeLocationAsString();

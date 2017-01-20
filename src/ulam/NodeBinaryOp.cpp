@@ -64,6 +64,13 @@ namespace MFM {
       m_nodeRight->checkAbstractInstanceErrors();
   }
 
+  void NodeBinaryOp::resetNodeLocations(Locator loc)
+  {
+    Node::setNodeLocation(loc);
+    if(m_nodeLeft) m_nodeLeft->resetNodeLocations(loc);
+    if(m_nodeRight) m_nodeRight->resetNodeLocations(loc);
+  }
+
   void NodeBinaryOp::print(File * fp)
   {
     printNodeLocation(fp);

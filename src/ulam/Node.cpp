@@ -133,6 +133,11 @@ namespace MFM {
     m_loc = loc;
   }
 
+  void Node::resetNodeLocations(Locator loc)
+  {
+    m_loc = loc;
+  }
+
   void Node::printNodeLocation(File * fp)
   {
     fp->write(getNodeLocationAsString().c_str());

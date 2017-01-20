@@ -105,6 +105,15 @@ namespace MFM {
     Node::setNodeLocation(loc);
   }
 
+  void NodeBlockClass::resetNodeLocations(Locator loc)
+  {
+    if(m_nodeParameterList)
+      m_nodeParameterList->resetNodeLocations(loc);
+    if(m_nodeArgumentList)
+      m_nodeArgumentList->resetNodeLocations(loc);
+    Node::setNodeLocation(loc);
+  }
+
   void NodeBlockClass::print(File * fp)
   {
     printNodeLocation(fp);
@@ -304,7 +313,8 @@ namespace MFM {
     //skip the ancestor of a template
     if(m_state.okUTItoContinue(superuti))
       {
-	if(m_state.isHolder(superuti)) //t3874
+	//if(m_state.isHolder(superuti)) //t3874
+	if(m_state.isHolder(superuti) || !m_state.isComplete(superuti)) //t3874, t41010
 	  {
 	    UTI mappedUTI = superuti;
 	    if(m_state.mappedIncompleteUTI(nuti, superuti, mappedUTI))
@@ -332,19 +342,49 @@ namespace MFM {
 	//this is a subclass.
 	if(!isSuperClassLinkReady())
 	  {
-	    if(m_state.isClassAStub(superuti))
+	    if(!m_state.isComplete(superuti))
 	      {
+		bool brtnhzy = true;
 		std::ostringstream msg;
 		msg << "Subclass '";
 		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 		msg << "' inherits from '";
-		msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
-		msg << "', a class with pending arguments";
+
+		if(m_state.isClassAStub(superuti))
+		  {
+		    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
+
+		    msg << "', a class with pending arguments";
+		  }
+		else if(m_state.isHolder(superuti))
+		  {
+		    //O(n) search of localdefs for nicer error message (t3875, t41010)
+		    u32 lostid = m_state.findTypedefNameIdInLocalsScopeByIndex(superuti);
+		    if(lostid > 0)
+		      {
+			msg << m_state.m_pool.getDataAsString(lostid).c_str();
+			msg << "', an unresolved local filescope typedef";
+		      }
+		    else
+		      {
+			msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
+			msg << "', a holder class";
+		      }
+		  }
+		else
+		  {
+		    msg << "', an incomplete class";
+		    brtnhzy = false; //t3889, t3831
+		  }
+
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		m_state.setGoAgain();
 		//need to break the chain; e.g. don't want template symbol addresses used
 		setSuperBlockPointer(NULL); //force to try again!! avoid inf loop
-		return Hzy; //short-circuit
+
+		if(brtnhzy)
+		  return Hzy; //short-circuit holders and stubs (e.g. t41010, t3831, t3889)
+		//o.w. continue..
 	      }
 
 	    //look up this instance
@@ -374,7 +414,7 @@ namespace MFM {
 	  }
 	else if(superclasstype != UC_QUARK)
 	  {
-	    //O(n) search of localdefs for nicer error message (t3875)
+	    //O(n) search of localdefs for nicer error message (t3875, t41010)
 	    u32 lostid = m_state.findTypedefNameIdInLocalsScopeByIndex(superuti);
 	    if(lostid > 0)
 	      {

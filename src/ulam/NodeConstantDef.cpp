@@ -82,6 +82,12 @@ namespace MFM {
       m_nodeExpr->checkAbstractInstanceErrors();
   }
 
+  void NodeConstantDef::resetNodeLocations(Locator loc)
+  {
+    Node::setNodeLocation(loc);
+    if(m_nodeExpr) m_nodeExpr->resetNodeLocations(loc);
+  }
+
   void NodeConstantDef::printPostfix(File * fp)
   {
     //in case the node belongs to the template, use the symbol uti, o.w. 0Nav.

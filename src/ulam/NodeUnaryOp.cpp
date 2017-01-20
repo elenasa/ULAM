@@ -49,6 +49,12 @@ namespace MFM {
       m_node->checkAbstractInstanceErrors();
   }
 
+  void NodeUnaryOp::resetNodeLocations(Locator loc)
+  {
+    Node::setNodeLocation(loc);
+    if(m_node) m_node->resetNodeLocations(loc);
+  }
+
   void NodeUnaryOp::print(File * fp)
   {
     printNodeLocation(fp);
