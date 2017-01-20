@@ -3895,8 +3895,15 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     if(currBlock && (currBlock->getNodeNo() == n) && (getContextBlock()->getNodeType() == getCompileThisIdx()))
       return currBlock; //avoid chix-n-egg with functiondefs
 
+    Node * rtnNode = NULL;
+
+    //the the short way first..(safe tests timing no faster!)
+    if(currBlock->findNodeNo(n, rtnNode))
+      return rtnNode;
+
+    //go the long way around..
     UTI cuti = getCompileThisIdx();
-    Node * rtnNode = findNodeNoInAClass(n, cuti);
+    rtnNode = findNodeNoInAClass(n, cuti);
 
     if(!rtnNode)
       {

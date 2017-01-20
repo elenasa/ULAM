@@ -68,24 +68,26 @@ namespace MFM {
     if(NodeBlock::findNodeNo(n, foundNode))
       return true;
 
+    if(m_nodeParameterList && m_nodeParameterList->findNodeNo(n, foundNode))
+      return true;
+
+    if(m_nodeArgumentList && m_nodeArgumentList->findNodeNo(n, foundNode))
+      return true;
+
+    if(m_functionST.findNodeNoAcrossTableOfFunctions(n, foundNode)) //all the function defs
+      return true;
+
     UTI cuti = getNodeType();
     UTI superuti = m_state.isClassASubclass(cuti);
     if(m_state.okUTItoContinue(superuti) && !m_state.isUrSelf(superuti))
       {
 	NodeBlockClass * superblock = getSuperBlockPointer();
 	//e.g. not a stub, yet not complete because its superclass is a stub! (ish 06222016)
-	// or is a stub! (t3887)
-	assert(superblock || m_state.hasClassAStub(superuti) || m_state.isClassAStub(cuti));
+	// or is a stub! (t3887), or just incomplete (t41012)
+	//assert(superblock || m_state.hasClassAStub(superuti) || m_state.isClassAStub(cuti));
 	if(superblock && superblock->findNodeNo(n, foundNode))
 	  return true;
       }
-
-    if(m_functionST.findNodeNoAcrossTableOfFunctions(n, foundNode)) //all the function defs
-      return true;
-    if(m_nodeParameterList && m_nodeParameterList->findNodeNo(n, foundNode))
-      return true;
-    if(m_nodeArgumentList && m_nodeArgumentList->findNodeNo(n, foundNode))
-      return true;
     return false;
   } //findNodeNo
 
