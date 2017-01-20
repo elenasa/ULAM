@@ -69,6 +69,8 @@ namespace MFM{
   protected:
 
   private:
+    void genCodeAtomAs(File * fp, UVPass & uvpass);
+    void genCodeReferenceAs(File * fp, UVPass & uvpass);
 
   };
 
