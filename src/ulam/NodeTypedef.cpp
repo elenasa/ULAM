@@ -86,6 +86,11 @@ namespace MFM {
     fp->write("; ");
   } //printPostfix
 
+  void NodeTypedef::noteTypeAndName(s32 totalsize)
+  {
+    return; //bypass
+  }
+
   const char * NodeTypedef::getName()
   {
     //same as m_typedefSymbol->getUlamType()->getUlamTypeNameBrief()); //short type name

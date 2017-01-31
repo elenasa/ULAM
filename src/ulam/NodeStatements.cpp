@@ -108,6 +108,15 @@ namespace MFM {
       m_nodeNext->printPostfix(fp);
   } //printPostfix
 
+  void NodeStatements::noteTypeAndName(s32 totalsize)
+  {
+    assert(m_node);    //e.g. bad decl
+    m_node->noteTypeAndName(totalsize);
+
+    if(m_nodeNext)
+      m_nodeNext->noteTypeAndName(totalsize);
+  }
+
   const char * NodeStatements::getName()
   {
     return "Stmts"; //?

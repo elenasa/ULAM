@@ -240,7 +240,7 @@ namespace MFM {
 
 	msg << "UNKNOWN" << "/" << remaining;
       }
-    MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(),INFO);
+    MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), INFO);
   } //printBitSizeOfClass
 
   bool SymbolClass::getDefaultQuark(u32& dqref)
@@ -340,7 +340,7 @@ namespace MFM {
 	  u32 data = objUV.getData(25,32); //Int f.m_i (t3146)
 	  std::ostringstream msg;
 	  msg << "Output for m_i = <" << data << "> (expecting 4 for t3146)";
-	  MSG(Symbol::getTokPtr(),msg.str().c_str() , INFO);
+	  MSG(Symbol::getTokPtr(),msg.str().c_str(), INFO);
 	}
 #endif
 	m_state.m_nodeEvalStack.returnFrame(m_state); //epilog

@@ -247,6 +247,39 @@ namespace MFM {
     m_ST.printPostfixValuesForTableOfVariableDataMembers(fp, slot, startpos, classtype);
   } //printPostfixDataMembersSymbols
 
+  void NodeBlockClass::noteDataMembersParseTree(s32 totalsize)
+  {
+    UTI cuti = getNodeType();
+    if(m_state.isUrSelf(cuti)) return;
+
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+
+    UTI superuti = m_state.isClassASubclass(cuti);
+    //skip UrSelf to avoid extensive changes to all test answers
+    if(m_state.okUTItoContinue(superuti) && !m_state.isUrSelf(superuti))
+      {
+	NodeBlockClass * superblock = getSuperBlockPointer();
+	if(!isSuperClassLinkReady())
+	  {
+	    //use SCN instead of SC in case of stub (use template's classblock)
+	    SymbolClassName * supercnsym = NULL;
+	    u32 superid = m_state.getUlamTypeByIndex(superuti)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
+	    AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(superid, supercnsym);
+	    assert(isDefined);
+	    superblock = supercnsym->getClassBlockNode();
+	  }
+	assert(superblock);
+	superblock->noteDataMembersParseTree(totalsize);
+      }
+
+    std::ostringstream note;
+    note << "Members of " << cut->getUlamTypeNameBrief().c_str() << " are."; //terminating double dot
+    MSG(getNodeLocationAsString().c_str(), note.str().c_str(), NOTE);
+
+    if(m_nodeNext)
+      m_nodeNext->noteTypeAndName(totalsize); //datamember vardecls
+  } //noteDataMembersParseTree
+
   const char * NodeBlockClass::getName()
   {
     return m_state.getUlamKeyTypeSignatureByIndex(getNodeType()).getUlamKeyTypeSignatureName(&m_state).c_str();

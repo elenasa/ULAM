@@ -80,6 +80,11 @@ namespace MFM {
     fp->write(id);
   } //print
 
+  void Node::noteTypeAndName(s32 totalsize)
+  {
+    m_state.abortShouldntGetHere(); //NodeVarDeclDM does work; NodeConstantDef, NodeTypedef bypass
+  }
+
   const std::string Node::nodeName(const std::string& prettyFunction)
   {
     size_t colons = prettyFunction.find("::");

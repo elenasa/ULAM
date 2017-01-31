@@ -62,6 +62,8 @@ namespace MFM{
 
     virtual void printPostfix(File * f);
 
+    virtual void noteTypeAndName(s32 totalsize);
+
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
