@@ -118,6 +118,32 @@ namespace MFM {
     return "Uf_";
   }
 
+  const std::string SymbolFunction::getFunctionNameWithTypes()
+  {
+    std::ostringstream fname;
+    fname << m_state.getUlamTypeNameBriefByIndex(getUlamTypeIdx()).c_str(); //return type
+    fname << " ";
+    fname << m_state.m_pool.getDataAsString(getId()); //ulam func name
+
+    fname << "(";
+
+    u32 numParams = m_parameterSymbols.size();
+    for(u32 i = 0; i < numParams; i++)
+      {
+	Symbol * sym = m_parameterSymbols[i];
+	UTI suti = sym->getUlamTypeIdx();
+	UlamType * sut = m_state.getUlamTypeByIndex(suti);
+
+	if(i > 0)
+	  fname << ", ";
+	fname << sut->getUlamTypeNameBrief().c_str();
+	fname << " ";
+	fname << m_state.m_pool.getDataAsString(sym->getId());
+      }
+    fname << ")";
+    return fname.str();
+  } //getFunctionNameWithTypes
+
   //supports overloading functions with SymbolFunctionName
   const std::string SymbolFunction::getMangledNameWithTypes()
   {

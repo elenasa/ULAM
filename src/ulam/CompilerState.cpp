@@ -1554,7 +1554,7 @@ namespace MFM {
 	    msg << ut->getUlamTypeNameBrief().c_str() << " with " << total << " bits";
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 
-	    noteClassDataMembersTypeAndName(utiArg, total);
+	    noteClassDataMembersTypeAndName(utiArg, total); //t3155
 	    return false;
 	  }
       }
@@ -1568,7 +1568,7 @@ namespace MFM {
 	    msg << ut->getUlamTypeNameBrief().c_str() << " with " << total << " bits";
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 
-	    noteClassDataMembersTypeAndName(utiArg, total);
+	    noteClassDataMembersTypeAndName(utiArg, total); //t41013
 	    return false;
 	  }
       }

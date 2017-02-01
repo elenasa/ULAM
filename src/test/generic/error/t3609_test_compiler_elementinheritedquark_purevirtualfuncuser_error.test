@@ -3,6 +3,7 @@
 ##
 #!
 ./Test.ulam:22:5: ERROR: Instance of Abstract Class Base used with variable symbol name 'b'.
+./Base.ulam:2:7: NOTE: Pure: Int(32) afunc(Int(32) a).
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3608

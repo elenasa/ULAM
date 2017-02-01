@@ -99,6 +99,8 @@ namespace MFM {
 	    msg << " used with variable symbol name '" << getName() << "'";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
+
+	    csym->notePureFunctionSignatures(); //t3607, t3609
 	  }
       }
   } //checkAbstractInstanceErrors

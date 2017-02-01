@@ -1096,6 +1096,21 @@ void SymbolClass::setContextForPendingArgs(UTI context)
     return m_vtable[idx].m_ofClassUTI;
   }
 
+  void SymbolClass::notePureFunctionSignatures()
+  {
+    u32 vtsize = m_vtable.size();
+    for(u32 i = 0; i < vtsize; i++)
+      {
+	if(m_vtable[i].m_isPure)
+	  {
+	    std::ostringstream note;
+	    note << "Pure: ";
+	    note << m_vtable[i].m_funcPtr->getFunctionNameWithTypes().c_str();
+	    MSG(m_state.getFullLocationAsString(getLoc()).c_str(), note.str().c_str(), NOTE);
+	  }
+      }
+  } //notePureFunctionSignatures
+
   std::string SymbolClass::getMangledFunctionNameForVTableEntry(u32 idx)
   {
     assert(idx < m_vtable.size());

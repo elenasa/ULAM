@@ -147,6 +147,7 @@ namespace MFM{
     VT& getVTableRef();
     bool isPureVTableEntry(u32 idx);
     UTI getClassForVTableEntry(u32 idx);
+    void notePureFunctionSignatures();
     std::string getMangledFunctionNameForVTableEntry(u32 idx);
     std::string getMangledFunctionNameWithTypesForVTableEntry(u32 idx);
     struct VTEntry getVTableEntry(u32 idx);
