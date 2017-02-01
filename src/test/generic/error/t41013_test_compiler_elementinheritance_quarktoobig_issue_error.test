@@ -2,15 +2,10 @@
 #=t41013_test_compiler_elementinheritance_quarktoobig_issue_error
 #!
 ./System.ulam:10:1: ERROR: Trying to exceed allotted bit size (32) for quark ConstantLabelAndFont(06666f6f626172,33u) with 35 bits.
-./A.ulam:32:7: NOTE: Members of Label are..
-./A.ulam:33:3: NOTE: (8 of 35 bits) Unsigned(8) mStringIndex.
-./A.ulam:34:3: NOTE: (6 of 35 bits) Unsigned(6) mCharCoord.
-./A.ulam:35:3: NOTE: (5 of 35 bits) Unsigned(5) mPriority.
-./A.ulam:17:7: NOTE: Members of ConstantLabel(06666f6f626172) are..
-./A.ulam:19:3: NOTE: (6 of 35 bits) Unsigned(6) mBig.
-./A.ulam:6:7: NOTE: Members of ConstantLabelAndFont(06666f6f626172,33u) are..
-./A.ulam:8:3: NOTE: (3 of 35 bits) Unsigned(3) mFont.
-./A.ulam:9:3: NOTE: (7 of 35 bits) Unsigned(7) mFreshness.
+./A.ulam:6:7: NOTE: Components of ConstantLabelAndFont(06666f6f626172,33u) are..
+./A.ulam:17:7: NOTE: (25 of 35 bits, at 0) from superclass: ConstantLabel(06666f6f626172).
+./A.ulam:8:3: NOTE: (3 of 35 bits, at 25) Unsigned(3) mFont.
+./A.ulam:9:3: NOTE: (7 of 35 bits, at 28) Unsigned(7) mFreshness.
 ./A.ulam:6:7: ERROR: CLASS INSTANCE 'ConstantLabelAndFont(UNKNOWN)<33>' SIZED 35 FAILED.
 ./A.ulam:2:9: ERROR: Subclass 'A' inherits from unready 'ConstantLabelAndFont(06666f6f626172,33u).
 Unrecoverable Program Type Label FAILURE.

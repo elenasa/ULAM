@@ -86,7 +86,7 @@ namespace MFM {
     fp->write("; ");
   } //printPostfix
 
-  void NodeTypedef::noteTypeAndName(s32 totalsize)
+  void NodeTypedef::noteTypeAndName(s32 totalsize, u32& accumsize)
   {
     return; //bypass
   }

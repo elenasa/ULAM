@@ -247,12 +247,33 @@ namespace MFM {
     m_ST.printPostfixValuesForTableOfVariableDataMembers(fp, slot, startpos, classtype);
   } //printPostfixDataMembersSymbols
 
+  void NodeBlockClass::noteTypeAndName(s32 totalsize, u32& accumsize)
+  {
+    //called when superclass of an oversized class instance
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    s32 nsize = nut->getTotalBitSize();
+
+    std::ostringstream note;
+    note << "(" << nsize << " of ";
+    note << totalsize << " bits, at " << accumsize << ") ";
+    note << "from superclass: " << nut->getUlamTypeNameBrief().c_str();
+    MSG(getNodeLocationAsString().c_str(), note.str().c_str(), NOTE);
+
+    accumsize += nsize;
+  } //noteTypeAndName
+
   void NodeBlockClass::noteDataMembersParseTree(s32 totalsize)
   {
     UTI cuti = getNodeType();
     if(m_state.isUrSelf(cuti)) return;
 
+    u32 accumsize = 0;
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+
+    std::ostringstream note;
+    note << "Components of " << cut->getUlamTypeNameBrief().c_str() << " are."; //terminating double dot
+    MSG(getNodeLocationAsString().c_str(), note.str().c_str(), NOTE);
 
     UTI superuti = m_state.isClassASubclass(cuti);
     //skip UrSelf to avoid extensive changes to all test answers
@@ -269,15 +290,11 @@ namespace MFM {
 	    superblock = supercnsym->getClassBlockNode();
 	  }
 	assert(superblock);
-	superblock->noteDataMembersParseTree(totalsize);
+	superblock->noteTypeAndName(totalsize, accumsize); //no recursion
       }
 
-    std::ostringstream note;
-    note << "Members of " << cut->getUlamTypeNameBrief().c_str() << " are."; //terminating double dot
-    MSG(getNodeLocationAsString().c_str(), note.str().c_str(), NOTE);
-
     if(m_nodeNext)
-      m_nodeNext->noteTypeAndName(totalsize); //datamember vardecls
+      m_nodeNext->noteTypeAndName(totalsize, accumsize); //datamember vardecls
   } //noteDataMembersParseTree
 
   const char * NodeBlockClass::getName()

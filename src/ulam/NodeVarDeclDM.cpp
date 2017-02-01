@@ -117,15 +117,16 @@ namespace MFM {
     fp->write("; ");
   } //printPostfix
 
-  void NodeVarDeclDM::noteTypeAndName(s32 totalsize)
+  void NodeVarDeclDM::noteTypeAndName(s32 totalsize, u32& accumsize)
   {
     UTI nuti = getNodeType();
     UlamKeyTypeSignature vkey = m_state.getUlamKeyTypeSignatureByIndex(nuti);
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    s32 nsize = nut->getTotalBitSize();
 
     std::ostringstream note;
-    note << "(" << nut->getTotalBitSize() << " of ";
-    note << totalsize << " bits) ";
+    note << "(" << nsize << " of ";
+    note << totalsize << " bits, at " << accumsize << ") ";
 
     //like NodeVarDecl::printNameAndType
     if(nut->getUlamTypeEnum() != Class)
@@ -145,6 +146,8 @@ namespace MFM {
 	note << "[UNKNOWN]";
       }
     MSG(getNodeLocationAsString().c_str(), note.str().c_str(), NOTE);
+    accumsize += nsize;
+
   } //noteTypeAndName
 
   const char * NodeVarDeclDM::getName()

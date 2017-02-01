@@ -80,7 +80,7 @@ namespace MFM {
     fp->write(id);
   } //print
 
-  void Node::noteTypeAndName(s32 totalsize)
+  void Node::noteTypeAndName(s32 totalsize, u32& accumsize)
   {
     m_state.abortShouldntGetHere(); //NodeVarDeclDM does work; NodeConstantDef, NodeTypedef bypass
   }
