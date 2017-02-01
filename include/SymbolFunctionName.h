@@ -74,6 +74,8 @@ namespace MFM{
 
     u32 findMatchingFunctionWithSafeCastsInAncestors(std::vector<Node*> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
 
+    void noteAmbiguousFunctionSignatures(std::vector<Node *> argNodes, u32 numMatchesFound);
+
     u32 getDepthSumOfFunctions();
 
     void calcMaxDepthOfFunctions(); //called after all UTI sizes are known
