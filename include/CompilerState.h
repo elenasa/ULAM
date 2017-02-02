@@ -57,6 +57,7 @@
 #include "NodeReturnStatement.h"
 #include "NodeTypeBitsize.h"
 #include "NodeSquareBracket.h"
+#include "ParsingLoopsSwitchStack.h"
 #include "StringPool.h"
 #include "StringPoolUser.h"
 #include "SymbolClass.h"
@@ -116,8 +117,9 @@ namespace MFM{
     Token m_currentLocalDefToken; //used to identify current file path when m_parsingLocalDef is true
 
     SYMBOLTYPEFLAG m_parsingVariableSymbolTypeFlag;
-    s32 m_parsingControlLoop;             // used for break/continue control stmt parsing;
-                                          // label num for end of loop, or 0
+
+    // used for break/continue stmt parsing; label num for end of loop, or 0
+    ParsingLoopsSwitchStack m_parsingControlLoopsSwitchStack;
 
     bool m_gotStructuredCommentToken; // avoid testing uninitialized value
     Token m_precedingStructuredCommentToken; //for next class or parameter

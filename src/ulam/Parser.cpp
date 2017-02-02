@@ -1142,16 +1142,16 @@ namespace MFM {
 	break;
       case TOK_KW_WHILE:
 	{
-	  m_state.m_parsingControlLoop = m_state.getNextTmpVarNumber(); //true
+	  m_state.m_parsingControlLoopsSwitchStack.push(pTok, m_state.getNextTmpVarNumber());
 	  rtnNode = parseControlWhile(pTok);
-	  m_state.m_parsingControlLoop = 0;
+	  m_state.m_parsingControlLoopsSwitchStack.pop();
 	}
 	break;
       case TOK_KW_FOR:
 	{
-	  m_state.m_parsingControlLoop = m_state.getNextTmpVarNumber(); //true
+	  m_state.m_parsingControlLoopsSwitchStack.push(pTok, m_state.getNextTmpVarNumber());
 	  rtnNode = parseControlFor(pTok);
-	  m_state.m_parsingControlLoop = 0;
+	  m_state.m_parsingControlLoopsSwitchStack.pop();
 	}
 	break;
       case TOK_ERROR_LOWLEVEL:
@@ -1242,7 +1242,7 @@ namespace MFM {
     if(!getExpectedToken(TOK_OPEN_PAREN))
       return NULL;
 
-    s32 controlLoopLabelNum = m_state.m_parsingControlLoop; //save at the top
+    u32 controlLoopLabelNum = m_state.m_parsingControlLoopsSwitchStack.getLastExitNumber(); //save at the top
 
     //before parsing the conditional statement, need a new scope
     NodeBlock * currBlock = m_state.getCurrentBlock();
@@ -1273,6 +1273,8 @@ namespace MFM {
 	return NULL; //stop this maddness
       }
 
+    assert(controlLoopLabelNum == m_state.m_parsingControlLoopsSwitchStack.getNearestContinueExitNumber()); //sanity
+
     Node * whileNode = makeControlWhileNode(condNode, NULL, controlLoopLabelNum, wTok);
     if(!whileNode)
       {
@@ -1292,7 +1294,7 @@ namespace MFM {
     if(!getExpectedToken(TOK_OPEN_PAREN))
       return NULL;
 
-    s32 controlLoopLabelNum = m_state.m_parsingControlLoop; //save at the top
+    u32 controlLoopLabelNum = m_state.m_parsingControlLoopsSwitchStack.getLastExitNumber(); //save at the top
 
     //before parsing the FOR statement, need a new scope
     NodeBlock * currBlock = m_state.getCurrentBlock();
@@ -1409,6 +1411,8 @@ namespace MFM {
 	    return NULL; //stop this maddness
 	  }
       } //done with assign expr, could be null
+
+    assert(controlLoopLabelNum == m_state.m_parsingControlLoopsSwitchStack.getNearestContinueExitNumber()); //sanity
 
     Node * whileNode = makeControlWhileNode(condNode, assignNode, controlLoopLabelNum, fTok);
     if(!whileNode)
@@ -1644,7 +1648,7 @@ namespace MFM {
       }
     else if(pTok.m_type == TOK_KW_BREAK)
       {
-	if(m_state.m_parsingControlLoop)
+	if(m_state.m_parsingControlLoopsSwitchStack.okToParseABreak())
 	  {
 	    NodeBreakStatement * brkNode = new NodeBreakStatement(m_state);
 	    assert(brkNode);
@@ -1657,9 +1661,10 @@ namespace MFM {
       }
     else if(pTok.m_type == TOK_KW_CONTINUE)
       {
-	if(m_state.m_parsingControlLoop)
+	u32 cexitnum = m_state.m_parsingControlLoopsSwitchStack.getNearestContinueExitNumber();
+	if(cexitnum != 0)
 	  {
-	    NodeContinueStatement * contNode = new NodeContinueStatement(m_state.m_parsingControlLoop, m_state);
+	    NodeContinueStatement * contNode = new NodeContinueStatement(cexitnum, m_state);
 	    assert(contNode);
 	    contNode->setNodeLocation(pTok.m_locator);
 	    m_state.appendNodeToCurrentBlock(contNode);
