@@ -36,12 +36,24 @@ namespace MFM {
     if(!m_state.okUTItoContinue(lt, rt))
       return Nav;
 
-    if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
-      return Hzy; //short-circuit
-
     UTI newType = Nav; //init
     ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
     ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
+
+    //if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
+    if((ltypEnum == Hzy) || (rtypEnum == Hzy))
+      return Hzy; //short-circuit
+
+#if 0
+    if((ltypEnum == Nouti) && (rtypEnum != Nouti))
+      {
+	//return rt; //t41019 switchcond variable type
+	ltypEnum = rtypEnum;
+	lt = rt;
+	//keep going..
+	m_nodeLeft->setNodeType(rt); //MAKE SURE ITS SWITCHCOND!!! todo..
+      }
+#endif
 
     //if either is Bits, cast to Bits
     if(ltypEnum == Bits || rtypEnum == Bits)

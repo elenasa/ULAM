@@ -1531,11 +1531,31 @@ namespace MFM {
 	return NULL; //stop this maddness
       }
 
+    //can check for NodeIdent or NodeConstant (no evaluation)..
+    //eval (lhs) of switch condition ONCE; put into a special tmp var
+    std::string tmpvarname = m_state.getSwitchConditionNumAsString(m_state.getNextTmpVarNumber());
+    Token tidTok(TOK_IDENTIFIER, swTok.m_locator, m_state.m_pool.getIndexForDataString(tmpvarname));
+    UTI tuti = Int;
+    SymbolVariableStack * swsym = new SymbolVariableStack(tidTok, tuti, 0, m_state);
+    assert(swsym);
+    m_state.addSymbolToCurrentScope(swsym); //ownership goes to the block
+
+    NodeVarDecl * swcondDecl = new NodeVarDecl(swsym, NULL, m_state);
+    assert(swcondDecl);
+    swcondDecl->setNodeLocation(swTok.m_locator);
+    swcondDecl->setInitExpr(condNode);
+    m_state.appendNodeToCurrentBlock(swcondDecl);
+
+    //pass condition variable around to each case to copy for comparison
+    NodeIdent * swcondIdent = new NodeIdent(tidTok, swsym, m_state);
+    assert(swcondIdent);
+    swcondIdent->setNodeLocation(swTok.m_locator);
+
     NodeControlIf * casesNode = NULL;
-    parseNextCase(condNode, casesNode);
+    parseNextCase(swcondIdent, casesNode);
     if(casesNode == NULL)
       {
-	delete condNode;
+	delete swcondIdent;
 	m_state.popClassContext(); //the pop
 	delete rtnNode;
 	return NULL; //stop this maddness
@@ -1544,7 +1564,7 @@ namespace MFM {
     if(!getExpectedToken(TOK_CLOSE_CURLY))
       {
 	delete casesNode;
-	delete condNode;
+	delete swcondIdent;
 	m_state.popClassContext(); //the pop
 	delete rtnNode;
 	return NULL; //stop this maddness
@@ -1554,17 +1574,24 @@ namespace MFM {
     if(!getExpectedToken(TOK_SEMICOLON, pTok, QUIETLY))
       {
 	MSG(&pTok, "Invalid Switch Statement (possible missing semicolon)", ERR);
-	//getTokensUntil(TOK_SEMICOLON);
 	delete casesNode;
-	delete condNode;
+	delete swcondIdent;
 	m_state.popClassContext(); //the pop
 	delete rtnNode;
 	return NULL; //stop this maddness
       }
 
-    //got it!
+    //got all the cases:
     rtnNode->appendNextNode(casesNode);
-    delete condNode; //copies made, clean up
+
+    //label for end-of "switch"
+    u32 swexitnum = m_state.m_parsingControlLoopsSwitchStack.getNearestBreakExitNumber();
+    Node * labelNode = new NodeLabel(swexitnum, m_state);
+    assert(labelNode);
+    labelNode->setNodeLocation(pTok.m_locator);
+    rtnNode->appendNextNode(labelNode); //?
+
+    delete swcondIdent; //copies made, clean up
     m_state.popClassContext(); //the pop
     return rtnNode;
   } //parseControlSwitch
@@ -1600,7 +1627,7 @@ namespace MFM {
 
     NodeControlIf * ifNode = new NodeControlIf(casecondition, trueNode, NULL, m_state);
     assert(ifNode);
-    ifNode->setNodeLocation(condLeftNode->getNodeLocation());
+    ifNode->setNodeLocation(casecondition->getNodeLocation());
 
     if(switchNode != NULL)
       switchNode->setElseNode(ifNode); //link to previous if-
@@ -1644,6 +1671,7 @@ namespace MFM {
       {
 	casecondition = new NodeTerminal((u64) 1, Bool, m_state);
 	assert(casecondition);
+	casecondition->setNodeLocation(cTok.m_locator);
       }
 
     if(!getExpectedToken(TOK_COLON))
@@ -1834,17 +1862,17 @@ namespace MFM {
       }
     else if(pTok.m_type == TOK_KW_BREAK)
       {
-	if(m_state.m_parsingControlLoopsSwitchStack.okToParseAContinue())
+	if(m_state.m_parsingControlLoopsSwitchStack.okToParseABreak())
 	  {
-	    NodeBreakStatement * brkNode = new NodeBreakStatement(m_state);
+	    u32 bexitnum = m_state.m_parsingControlLoopsSwitchStack.getNearestBreakExitNumber();
+	    NodeBreakStatement * brkNode = new NodeBreakStatement(bexitnum, m_state);
 	    assert(brkNode);
 	    brkNode->setNodeLocation(pTok.m_locator);
 	    m_state.appendNodeToCurrentBlock(brkNode);
 	    brtn = true;
 	  }
-	else if(!m_state.m_parsingControlLoopsSwitchStack.okToParseABreak())
+	else
 	  {
-	    //no error if "silent" break appears in switch (t41016)
 	    MSG(&pTok,"Break statement not within loop or switch" , ERR);
 	  }
       }

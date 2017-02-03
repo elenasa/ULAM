@@ -319,17 +319,22 @@ namespace MFM {
 	m_state.m_nodeEvalStack.addFrameSlots(1); //prolog, 1 for return
 	s32 rtnValue = 0;
 	EvalStatus evs = classNode->eval();
-	if(evs != NORMAL)
+	if(evs == NORMAL)
+	  {
+	    UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
+	    rtnValue = rtnUV.getImmediateData(32, m_state);
+	  }
+	else if(evs == BREAK)
+	  {
+	    UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
+	    rtnValue = rtnUV.getImmediateData(32, m_state); //t41016 (no loop to catch it!)
+	  }
+	else
 	  {
 	    if(evs == UNEVALUABLE)
 	      rtnValue = -11;
 	    else
 	      rtnValue = -1; //error!
-	  }
-	else
-	  {
-	    UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
-	    rtnValue = rtnUV.getImmediateData(32, m_state);
 	  }
 
 	//#define CURIOUS_T3146

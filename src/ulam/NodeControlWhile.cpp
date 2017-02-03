@@ -81,7 +81,7 @@ namespace MFM {
 	  }
 
 	cuv = m_state.m_nodeEvalStack.popArg();
-      }
+      } //end while
 
     //also copy result UV to stack, -1 relative to current frame pointer
     Node::assignReturnValueToStack(cuv); //always false

@@ -16,35 +16,29 @@ Uq_System { <NOMAIN> }
   ulam 2;
 element A {
   System s;
-  Int a, b;
+  Bool(7) b;
+  Unsigned a;
   Int test() {
     a = 2;
-    b = 0;
-    switch((--a))
-      //--a;
-      //switch(a)
+    b = true;
+    switch(!b)
     {
-    case 0:
+    case true:
       {
-	b = 2;
+	a++;
 	break;
       }
-    case -1:
+    case false:
       {
-	b = 3;
+	a--;
 	break;
       }
     default:
-      {
-	b = 1;
-	break;
-      }
+      break;
     };
-    s.print(b);
-    s.assert(b == 1);
     s.print(a);
-    s.assert(a == 1);
-    return a;
+    s.assert(a == 1u);
+    return (Int) a;
   }
 }
 

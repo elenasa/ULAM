@@ -47,6 +47,7 @@ namespace MFM{
   public:
 
     NodeBreakStatement(CompilerState & state);
+    NodeBreakStatement(s32 gotolabelnum, CompilerState & state);
     NodeBreakStatement(const NodeBreakStatement& ref);
     virtual ~NodeBreakStatement();
 
@@ -69,7 +70,7 @@ namespace MFM{
   protected:
 
   private:
-
+    s32 m_gotolabelnum;
   };
 
 }

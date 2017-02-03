@@ -31,8 +31,14 @@ namespace MFM {
 
   u32 ParsingLoopsSwitchStack::getNearestBreakExitNumber()
   {
-    return getLastExitNumber();
-  }
+    assert(okToParseABreak());
+
+    u32 rtn = 0; //zero uses c++ break
+    LoopSwitchDesc desc = m_stack.back();
+    if(desc.m_token.m_type == TOK_KW_SWITCH)
+      rtn = desc.m_tmpvarexitnum;
+    return rtn;
+  } //getNearestBreakExitNumber
 
   u32 ParsingLoopsSwitchStack::getNearestContinueExitNumber()
   {

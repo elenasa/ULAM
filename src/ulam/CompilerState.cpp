@@ -3768,6 +3768,13 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return labelname.str();
   }
 
+  const std::string CompilerState::getSwitchConditionNumAsString(s32 num)
+  {
+    std::ostringstream labelname; //into
+    labelname << "Uh_switchcond" << ToLeximitedNumber(num);
+    return labelname.str();
+  }
+
   const std::string CompilerState::getInitDoneVarAsString(s32 num)
   {
     std::ostringstream labelname; //into
