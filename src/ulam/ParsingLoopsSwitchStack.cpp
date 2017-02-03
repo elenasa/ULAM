@@ -34,7 +34,6 @@ namespace MFM {
     return getLastExitNumber();
   }
 
-
   u32 ParsingLoopsSwitchStack::getNearestContinueExitNumber()
   {
     if(m_stack.size() == 0)

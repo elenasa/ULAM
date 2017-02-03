@@ -57,6 +57,8 @@ namespace MFM{
 
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
+    void setElseNode(Node * elseNode);
+
     virtual void checkAbstractInstanceErrors();
 
     virtual void printPostfix(File * fp);

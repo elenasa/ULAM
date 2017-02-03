@@ -51,6 +51,12 @@ namespace MFM {
     return false;
   } //findNodeNo
 
+  void NodeControlIf::setElseNode(Node * elseNode)
+  {
+    assert(m_nodeElse == NULL);
+    m_nodeElse = elseNode;
+  }
+
   void NodeControlIf::checkAbstractInstanceErrors()
   {
     NodeControl::checkAbstractInstanceErrors();
