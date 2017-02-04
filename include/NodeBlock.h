@@ -100,6 +100,8 @@ namespace MFM{
 
     virtual bool isAClassBlock();
 
+    virtual bool isASwitchBlock();
+
     virtual u32 getNumberOfSymbolsInTable();
 
     virtual u32 getSizeOfSymbolsInTable();

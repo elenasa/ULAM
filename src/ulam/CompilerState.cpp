@@ -3775,6 +3775,13 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return labelname.str();
   }
 
+  const std::string CompilerState::getSwitchTypedefNameAsString(s32 num)
+  {
+    std::ostringstream labelname; //into
+    labelname << "_SWITCHTYPEDEF" << ToLeximitedNumber(num);
+    return labelname.str();
+  }
+
   const std::string CompilerState::getInitDoneVarAsString(s32 num)
   {
     std::ostringstream labelname; //into

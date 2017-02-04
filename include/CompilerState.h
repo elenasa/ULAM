@@ -445,6 +445,7 @@ namespace MFM{
     const std::string getAtomBitStorageTmpVarAsString(s32 num);
     const std::string getLabelNumAsString(s32 num);
     const std::string getSwitchConditionNumAsString(s32 num);
+    const std::string getSwitchTypedefNameAsString(s32 num);
     const std::string getInitDoneVarAsString(s32 num);
     const std::string getVFuncPtrTmpNumAsString(s32 num);
 

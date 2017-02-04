@@ -3,6 +3,7 @@
 #!
 ./A.ulam:2:6: Warning: Void bitsize expression disregarded; size is zero.
 ./A.ulam:7:0: ERROR: Invalid Void type array: Void[UNKNOWN].
+./A.ulam:2:2: ERROR: Invalid use of type Void[UNKNOWN] with variable symbol name 'a'.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //informed by3311

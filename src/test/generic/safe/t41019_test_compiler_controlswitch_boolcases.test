@@ -1,13 +1,12 @@
 ## -*- mode:ulam -*-
 #=t41016_test_compiler_controlswitch
 ##
-## gen output: (+ interleaved asserts)
-##   Int Arg: 2
-##   Int Arg: 0
+## gen output: (+ assert)
+##   Int Arg: 1
 ##
 #!
 Exit status: 0
-Ue_A { System s();  Int(32) a(1);  Int(32) b(1);  Int(32) test() {  a 2 cast = b 0 cast = { Int(32) Uh_switchcond12 = a 1 -=;  Uh_switchcond12 0 cast == cond { b 2 cast = break } if Uh_switchcond12 -1 cast == cond { b 3 cast = break } if true cond { b 1 cast = break } if else else _1: } s ( b )print . s ( b 1 cast == )assert . s ( a )print . s ( a 1 cast == )assert . a return } }
+Ue_A { System s();  Bool(7) b(true);  Unsigned(32) a(1u);  Int(32) test() {  a 2 cast = b true cast = { typedef Bool(7) _SWITCHTYPEDEF12;  Bool(7) Uh_switchcond12 = b !;  Uh_switchcond12 cast true == cond { a 1 cast ++ break } if Uh_switchcond12 cast false == cond { a 1 cast -- break } if true cond break if else else _1: } s ( a )print . s ( a 1u cast == )assert . a cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## first switch test: evaluate switch condition once only!

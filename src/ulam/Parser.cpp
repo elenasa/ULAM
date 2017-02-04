@@ -36,6 +36,7 @@
 #include "NodeBinaryOpShiftRight.h"
 #include "NodeBlock.h"
 #include "NodeBlockEmpty.h"
+#include "NodeBlockSwitch.h"
 #include "NodeBlockFunctionDefinition.h"
 #include "NodeBlockInvisible.h"
 #include "NodeBreakStatement.h"
@@ -1494,9 +1495,11 @@ namespace MFM {
 	return NULL;
       }
 
+    u32 switchnum = m_state.getNextTmpVarNumber();
+
     //before parsing the SWITCH statement, need a new scope
     NodeBlock * currBlock = m_state.getCurrentBlock();
-    NodeBlock * rtnNode = new NodeBlock(currBlock, m_state);
+    NodeBlock * rtnNode = new NodeBlockSwitch(currBlock, switchnum, m_state);
     assert(rtnNode);
     rtnNode->setNodeLocation(swTok.m_locator);
 
@@ -1531,12 +1534,26 @@ namespace MFM {
 	return NULL; //stop this maddness
       }
 
-    //can check for NodeIdent or NodeConstant (no evaluation)..
-    //eval (lhs) of switch condition ONCE; put into a special tmp var
-    std::string tmpvarname = m_state.getSwitchConditionNumAsString(m_state.getNextTmpVarNumber());
+    UTI huti = m_state.makeUlamTypeHolder();
+
+    std::string swtypedefname = m_state.getSwitchTypedefNameAsString(switchnum);
+    Token swtypeTok(TOK_IDENTIFIER, swTok.m_locator, m_state.m_pool.getIndexForDataString(swtypedefname));
+
+    //give a name to this new ulam type
+    SymbolTypedef * symtypedef = new SymbolTypedef(swtypeTok, huti, Nav, m_state);
+    assert(symtypedef);
+    m_state.addSymbolToCurrentScope(symtypedef);
+    m_state.addUnknownTypeTokenToThisClassResolver(swtypeTok, huti);
+
+    NodeTypedef * swtypedefnode = new NodeTypedef(symtypedef, NULL, m_state);
+    assert(swtypedefnode);
+    swtypedefnode->setNodeLocation(swTok.m_locator);
+    m_state.appendNodeToCurrentBlock(swtypedefnode);
+
+    //evaluate (lhs) of switch condition ONCE; put into a tmp switch var
+    std::string tmpvarname = m_state.getSwitchConditionNumAsString(switchnum);
     Token tidTok(TOK_IDENTIFIER, swTok.m_locator, m_state.m_pool.getIndexForDataString(tmpvarname));
-    UTI tuti = Int;
-    SymbolVariableStack * swsym = new SymbolVariableStack(tidTok, tuti, 0, m_state);
+    SymbolVariableStack * swsym = new SymbolVariableStack(tidTok, huti, 0, m_state);
     assert(swsym);
     m_state.addSymbolToCurrentScope(swsym); //ownership goes to the block
 
@@ -1584,12 +1601,12 @@ namespace MFM {
     //got all the cases:
     rtnNode->appendNextNode(casesNode);
 
-    //label for end-of "switch"
+    //label for end-of-switch breaks (t41018)
     u32 swexitnum = m_state.m_parsingControlLoopsSwitchStack.getNearestBreakExitNumber();
     Node * labelNode = new NodeLabel(swexitnum, m_state);
     assert(labelNode);
     labelNode->setNodeLocation(pTok.m_locator);
-    rtnNode->appendNextNode(labelNode); //?
+    rtnNode->appendNextNode(labelNode);
 
     delete swcondIdent; //copies made, clean up
     m_state.popClassContext(); //the pop
