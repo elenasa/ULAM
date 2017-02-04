@@ -1569,7 +1569,9 @@ namespace MFM {
     swcondIdent->setNodeLocation(swTok.m_locator);
 
     NodeControlIf * casesNode = NULL;
-    parseNextCase(swcondIdent, casesNode);
+    Node * defaultcaseNode = NULL;
+    parseNextCase(swcondIdent, casesNode, defaultcaseNode);
+
     if(casesNode == NULL)
       {
 	delete swcondIdent;
@@ -1613,11 +1615,11 @@ namespace MFM {
     return rtnNode;
   } //parseControlSwitch
 
-  Node * Parser::parseNextCase(Node * condLeftNode, NodeControlIf *& switchNode)
+  Node * Parser::parseNextCase(Node * condLeftNode, NodeControlIf *& switchNode, Node *& defaultNode)
   {
     //get as many cases that share the same body
     Node * casecondition = NULL;
-    casecondition = parseRestOfCase(condLeftNode, casecondition);
+    casecondition = parseRestOfCase(condLeftNode, casecondition, defaultNode);
 
     if(!casecondition)
       {
@@ -1650,10 +1652,10 @@ namespace MFM {
       switchNode->setElseNode(ifNode); //link to previous if-
     else
       switchNode = ifNode; //set parent ref
-    return parseNextCase(condLeftNode, ifNode); //recurse
+    return parseNextCase(condLeftNode, ifNode, defaultNode); //recurse
   } //parseNextCase
 
-  Node * Parser::parseRestOfCase(Node * condLeftNode, Node * caseCond)
+  Node * Parser::parseRestOfCase(Node * condLeftNode, Node * caseCond, Node *& defaultcase)
   {
     Token cTok;
     getNextToken(cTok);
@@ -1685,9 +1687,22 @@ namespace MFM {
       }
     else //default:
       {
-	casecondition = new NodeTerminal((u64) 1, Bool, m_state);
-	assert(casecondition);
-	casecondition->setNodeLocation(cTok.m_locator);
+	if(defaultcase == NULL)
+	  {
+	    casecondition = new NodeTerminal((u64) 1, Bool, m_state);
+	    assert(casecondition);
+	    casecondition->setNodeLocation(cTok.m_locator);
+	    defaultcase = casecondition;
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Multiple default labels in one switch; first default label on line ";
+	    msg << defaultcase->getNodeLocation().getLineNo();
+	    MSG(&cTok, msg.str().c_str(), ERR);
+	    delete caseCond;
+	    return NULL; //stop this maddness (e.g. t41022)
+	  }
       }
 
     if(!getExpectedToken(TOK_COLON))
@@ -1705,9 +1720,7 @@ namespace MFM {
 	newcaseCond->setNodeLocation(cTok.m_locator);
 	casecondition = newcaseCond;
       }
-    //else
-    //  caseCond = casecondition; //set parent ref
-    return parseRestOfCase(condLeftNode, casecondition); //recurse
+    return parseRestOfCase(condLeftNode, casecondition, defaultcase); //recurse
   } //parseRestOfCase
 
   Node * Parser::parseConditionalExpr()
