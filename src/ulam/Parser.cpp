@@ -1617,7 +1617,7 @@ namespace MFM {
   {
     //get as many cases that share the same body
     Node * casecondition = NULL;
-    parseRestOfCase(condLeftNode, casecondition);
+    casecondition = parseRestOfCase(condLeftNode, casecondition);
 
     if(!casecondition)
       {
@@ -1653,14 +1653,14 @@ namespace MFM {
     return parseNextCase(condLeftNode, ifNode); //recurse
   } //parseNextCase
 
-  void Parser::parseRestOfCase(Node * condLeftNode, Node *& caseCond)
+  Node * Parser::parseRestOfCase(Node * condLeftNode, Node * caseCond)
   {
     Token cTok;
     getNextToken(cTok);
     if(! ((cTok.m_type == TOK_KW_CASE) || (cTok.m_type == TOK_KW_DEFAULT)))
       {
 	unreadToken();
-	return; //done
+	return caseCond; //done
       }
 
     Node * casecondition = NULL;
@@ -1673,8 +1673,7 @@ namespace MFM {
 	    msg << "Incomplete case expression; switch-control";
 	    MSG(&cTok, msg.str().c_str(), ERR);
 	    delete caseCond;
-	    caseCond = NULL;
-	    return; //stop this maddness
+	    return NULL; //stop this maddness
 	  }
 
 	Node * leftNodeCopy = condLeftNode->instantiate();
@@ -1695,11 +1694,10 @@ namespace MFM {
       {
 	delete casecondition;
 	delete caseCond;
-	caseCond = NULL;
-	return; //stop this maddness
+	return NULL; //stop this maddness
       }
 
-    //multi-cases
+    //multi-cases (t41020)
     if(caseCond != NULL)
       {
 	NodeBinaryOpLogicalOr * newcaseCond = new NodeBinaryOpLogicalOr(caseCond, casecondition, m_state);
@@ -1707,8 +1705,8 @@ namespace MFM {
 	newcaseCond->setNodeLocation(cTok.m_locator);
 	casecondition = newcaseCond;
       }
-    else
-      caseCond = casecondition; //set parent ref
+    //else
+    //  caseCond = casecondition; //set parent ref
     return parseRestOfCase(condLeftNode, casecondition); //recurse
   } //parseRestOfCase
 

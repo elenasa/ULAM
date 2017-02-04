@@ -176,7 +176,7 @@ namespace MFM{
 
     Node * parseNextCase(Node * condLeftNode, NodeControlIf *& switchNode);
 
-    void parseRestOfCase(Node * condLeftNode, Node *& caseCond);
+    Node * parseRestOfCase(Node * condLeftNode, Node * caseCond);
 
     /**
        <CONDITIONAL_EXPR> := <SIMPLE_COND_DECL> | <ASSIGN_EXPR>

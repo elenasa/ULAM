@@ -1,16 +1,16 @@
 ## -*- mode:ulam -*-
-#=t41016_test_compiler_controlswitch
+#=t41020_test_compiler_controlswitch_multicase
 ##
 ## gen output: (+ interleaved asserts)
-##   Int Arg: 1
-##   Int Arg: 1
+##   Int Arg: 2
+##   Int Arg: 0
 ##
 #!
-Exit status: 1
-Ue_A { System s();  Int(32) a(1);  Int(32) b(1);  Int(32) test() {  a 2 cast = b 0 cast = { typedef Int(32) _SWITCHTYPEDEF12;  Int(32) Uh_switchcond12 = a 1 -=;  Uh_switchcond12 0 cast == cond { b 2 cast = break } if Uh_switchcond12 -1 cast == cond { b 3 cast = break } if true cond { b 1 cast = break } if else else _1: } s ( b )print . s ( b 1 cast == )assert . s ( a )print . s ( a 1 cast == )assert . a return } }
+Exit status: 0
+Ue_A { System s();  Int(32) a(0);  Int(32) b(2);  Int(32) test() {  a 1 cast = b 0 cast = { typedef Int(32) _SWITCHTYPEDEF12;  Int(32) Uh_switchcond12 = a 1 -=;  Uh_switchcond12 1 cast == Uh_switchcond12 0 cast == || cond { b 2 cast = break } if Uh_switchcond12 -1 cast == cond { b 3 cast = break } if true cond { b 1 cast = break } if else else _1: } s ( b )print . s ( b 2 cast == )assert . s ( a )print . s ( a 0 cast == )assert . a return } }
 Uq_System { <NOMAIN> }
 ##
-## first switch test: evaluate switch condition once only!
+## informed by 41016
 ##
 #>A.ulam
   ulam 2;
@@ -18,10 +18,11 @@ element A {
   System s;
   Int a, b;
   Int test() {
-    a = 2;
+    a = 1;
     b = 0;
     switch((--a))
     {
+    case 1:
     case 0:
       {
 	b = 2;
@@ -34,14 +35,14 @@ element A {
       }
     default:
       {
-	b = 1; //<- hits
+	b = 1;
 	break;
       }
     };
     s.print(b);
-    s.assert(b == 1);
+    s.assert(b == 2);
     s.print(a);
-    s.assert(a == 1);
+    s.assert(a == 0);
     return a;
   }
 }

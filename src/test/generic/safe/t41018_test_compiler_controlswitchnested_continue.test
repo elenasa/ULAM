@@ -9,10 +9,9 @@
 ## Int Arg: 1
 ## Int Arg: -2
 ##
-## (eval did not break to end of switch second time around the loop)
 #!
-Exit status: 3
-Ue_A { System s();  Int(32) a(-1);  Int(32) b(3);  Int(32) test() {  a 1 cast = b 0 cast = { true cond { { typedef Int(32) _SWITCHTYPEDEF13;  Int(32) Uh_switchcond13 = a 1 -=;  Uh_switchcond13 0 cast == cond { b 2 cast = goto } if Uh_switchcond13 -1 cast == cond { b 3 cast = break } if true cond { b 1 cast = } if else else _2: } s ( b )print . s ( a )print . { b 1 cast == cond break if } } _1: while } s ( b )print . s ( b 1 cast == )assert . s ( a )print . s ( a -2 cast == )assert . b return } }
+Exit status: 1
+Ue_A { System s();  Int(32) a(-2);  Int(32) b(1);  Int(32) test() {  a 1 cast = b 0 cast = { true cond { { typedef Int(32) _SWITCHTYPEDEF13;  Int(32) Uh_switchcond13 = a 1 -=;  Uh_switchcond13 0 cast == cond { b 2 cast = goto } if Uh_switchcond13 -1 cast == cond { b 3 cast = break } if true cond { b 1 cast = } if else else _2: } s ( b )print . s ( a )print . { b 1 cast == cond break if } } _1: while } s ( b )print . s ( b 1 cast == )assert . s ( a )print . s ( a -2 cast == )assert . b return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t41017

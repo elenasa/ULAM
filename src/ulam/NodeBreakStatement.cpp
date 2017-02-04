@@ -56,7 +56,9 @@ namespace MFM {
 
   EvalStatus NodeBreakStatement::eval()
   {
-    return BREAK;
+    if(m_gotolabelnum == 0)
+      return BREAK;
+    return NORMAL; //switch break (t41016)
   }
 
   void NodeBreakStatement::genCode(File * fp, UVPass& uvpass)
