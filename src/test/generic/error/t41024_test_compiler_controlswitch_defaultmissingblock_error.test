@@ -1,16 +1,16 @@
 ## -*- mode:ulam -*-
-#=t41022_test_compiler_controlswitch_twodefaults_error
+#=t41024_test_compiler_controlswitch_defaultmissingblock_error
 #!
-./A.ulam:21:5: ERROR: Multiple default labels in one switch; first default label on line 10.
-./A.ulam:21:12: ERROR: Incomplete condition; switch-control failure.
-./A.ulam:21:12: ERROR: Invalid Statement (possible missing semicolon).
-./A.ulam:24:2: ERROR: Break statement not within loop or switch.
-./A.ulam:26:6: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./A.ulam:21:7: ERROR: Block expected for condition; switch-control failure.
+./A.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'A'; Possible missing ending curly brace.
+./A.ulam:22:6: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./A.ulam:2:9: ERROR: Invalid Type: A.
+ ERROR: No parse tree for This Class: A.
 Unrecoverable Program Parse FAILURE: <A.ulam>
-./A.ulam:27:5: ERROR: Invalid Class Type <s>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./A.ulam:23:5: ERROR: Invalid Class Type <s>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 Unrecoverable Program Parse FAILURE: <System.ulam>
 ##
-## like C++ error message
+## informed by t41023, case and default both require block
 ##
 #>A.ulam
   ulam 2;
@@ -22,7 +22,6 @@ element A {
     b = 0;
     switch((--a))
     {
-    default:
     case 0:
       {
 	b = 2;
@@ -34,10 +33,7 @@ element A {
 	break;
       }
     default:
-      {
-	b = 1; //<- hits
-	break;
-      }
+      b = 1;
     };
     s.print(b);
     s.assert(b == 1);

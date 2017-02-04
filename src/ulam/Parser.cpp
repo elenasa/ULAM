@@ -1623,14 +1623,27 @@ namespace MFM {
 
     if(!casecondition)
       {
-	if(!getExpectedToken(TOK_CLOSE_CURLY))
+	Token eTok;
+	if(!getExpectedToken(TOK_CLOSE_CURLY, eTok, QUIETLY))
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete condition; switch-control";
-	    MSG(condLeftNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    msg << "Incomplete condition; switch-control failure";
+	    MSG(&eTok, msg.str().c_str(), ERR); //e.g. t41027
 	  }
 	unreadToken();
 	return NULL; //done
+      }
+
+    Token pTok;
+    getNextToken(pTok);
+    unreadToken();
+    if(pTok.m_type != TOK_OPEN_CURLY)
+      {
+	std::ostringstream msg;
+	msg << "Block expected for condition; switch-control failure";
+	MSG(&pTok, msg.str().c_str(), ERR); //t41023,41024
+	delete casecondition;
+	return NULL;
       }
 
     NodeBlock * trueNode = NULL;
@@ -1639,7 +1652,7 @@ namespace MFM {
     if(!trueNode)
       {
 	std::ostringstream msg;
-	msg << "Incomplete true block; switch-control";
+	msg << "Incomplete true block; switch-control failure";
 	MSG(casecondition->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return NULL; //stop this maddness
       }
@@ -1672,7 +1685,7 @@ namespace MFM {
 	if(!rightNode)
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete case expression; switch-control";
+	    msg << "Incomplete case expression; switch-control failure";
 	    MSG(&cTok, msg.str().c_str(), ERR);
 	    delete caseCond;
 	    return NULL; //stop this maddness
