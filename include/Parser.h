@@ -48,6 +48,7 @@
 #include "NodeBlock.h"
 #include "NodeConditional.h"
 #include "NodeConstantDef.h"
+#include "NodeControlIf.h"
 #include "NodeControlWhile.h"
 #include "NodeFunctionCall.h"
 #include "NodeModelParameterDef.h"
@@ -167,6 +168,15 @@ namespace MFM{
 
     /** helper-method for Control FOR/WHILE loops */
     NodeControlWhile * makeControlWhileNode(Node * condNode, Node * assignNodeForLoop, u32 loopnum, const Token& fwtok);
+
+
+    /** <SWITCH_STATEMENT>
+     */
+    Node * parseControlSwitch(const Token& swTok);
+
+    Node * parseNextCase(Node * condLeftNode, NodeControlIf *& switchNode, Node *& defaultNode);
+
+    Node * parseRestOfCase(Node * condLeftNode, Node * caseCond, Node *& defaultcase);
 
     /**
        <CONDITIONAL_EXPR> := <SIMPLE_COND_DECL> | <ASSIGN_EXPR>

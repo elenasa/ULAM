@@ -79,6 +79,10 @@ namespace MFM{
 
     void printPostfixDataMembersSymbols(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
+    virtual void noteTypeAndName(s32 totalsize, u32& accumsize);
+
+    void noteDataMembersParseTree(s32 totalsize);
+
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();

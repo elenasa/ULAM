@@ -240,7 +240,7 @@ namespace MFM {
 
 	msg << "UNKNOWN" << "/" << remaining;
       }
-    MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(),INFO);
+    MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), INFO);
   } //printBitSizeOfClass
 
   bool SymbolClass::getDefaultQuark(u32& dqref)
@@ -319,17 +319,22 @@ namespace MFM {
 	m_state.m_nodeEvalStack.addFrameSlots(1); //prolog, 1 for return
 	s32 rtnValue = 0;
 	EvalStatus evs = classNode->eval();
-	if(evs != NORMAL)
+	if(evs == NORMAL)
+	  {
+	    UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
+	    rtnValue = rtnUV.getImmediateData(32, m_state);
+	  }
+	else if(evs == BREAK)
+	  {
+	    UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
+	    rtnValue = rtnUV.getImmediateData(32, m_state); //t41016 (no loop to catch it!)
+	  }
+	else
 	  {
 	    if(evs == UNEVALUABLE)
 	      rtnValue = -11;
 	    else
 	      rtnValue = -1; //error!
-	  }
-	else
-	  {
-	    UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
-	    rtnValue = rtnUV.getImmediateData(32, m_state);
 	  }
 
 	//#define CURIOUS_T3146
@@ -340,7 +345,7 @@ namespace MFM {
 	  u32 data = objUV.getData(25,32); //Int f.m_i (t3146)
 	  std::ostringstream msg;
 	  msg << "Output for m_i = <" << data << "> (expecting 4 for t3146)";
-	  MSG(Symbol::getTokPtr(),msg.str().c_str() , INFO);
+	  MSG(Symbol::getTokPtr(),msg.str().c_str(), INFO);
 	}
 #endif
 	m_state.m_nodeEvalStack.returnFrame(m_state); //epilog
@@ -1095,6 +1100,21 @@ void SymbolClass::setContextForPendingArgs(UTI context)
     assert(idx < m_vtable.size());
     return m_vtable[idx].m_ofClassUTI;
   }
+
+  void SymbolClass::notePureFunctionSignatures()
+  {
+    u32 vtsize = m_vtable.size();
+    for(u32 i = 0; i < vtsize; i++)
+      {
+	if(m_vtable[i].m_isPure)
+	  {
+	    std::ostringstream note;
+	    note << "Pure: ";
+	    note << m_vtable[i].m_funcPtr->getFunctionNameWithTypes().c_str();
+	    MSG(m_state.getFullLocationAsString(getLoc()).c_str(), note.str().c_str(), NOTE);
+	  }
+      }
+  } //notePureFunctionSignatures
 
   std::string SymbolClass::getMangledFunctionNameForVTableEntry(u32 idx)
   {

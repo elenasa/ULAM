@@ -1,0 +1,39 @@
+## -*- mode:ulam -*-
+#=t41027_test_compiler_controlswitch_noncase_error
+#!
+./A.ulam:9:7: ERROR: Incomplete condition; switch-control failure.
+./A.ulam:10:5: ERROR: Invalid Statement (possible missing semicolon).
+./A.ulam:13:2: ERROR: Break statement not within loop or switch.
+./A.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'A'; Possible missing ending curly brace.
+./A.ulam:15:5: ERROR: Invalid Class Type <case>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./A.ulam:2:9: ERROR: Invalid Type: A.
+ ERROR: No parse tree for This Class: A.
+Unrecoverable Program Parse FAILURE: <A.ulam>
+##
+## Dave question; only case and default inside switch block
+##
+#>A.ulam
+  ulam 2;
+element A {
+  Int a, b;
+  Int test() {
+    a = 1;
+    b = 0;
+    switch((--a))
+    {
+      Int goofball; //<--error
+    case 0:
+      {
+	b = 2;
+	break;
+      }
+    case -1:
+      {
+	b = 3;
+	break;
+      }
+    };
+    return a;
+  }
+}
+#.

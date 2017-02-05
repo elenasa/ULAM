@@ -66,6 +66,8 @@ namespace MFM{
 
     virtual void printPostfix(File * fp);
 
+    virtual void noteTypeAndName(s32 totalsize, u32& accumsize);
+
     virtual bool isAConstant();
 
     virtual bool isFunctionCall();

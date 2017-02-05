@@ -215,6 +215,11 @@ namespace MFM {
     return false;
   }
 
+  bool NodeBlock::isASwitchBlock()
+  {
+    return false;
+  }
+
   u32 NodeBlock::getNumberOfSymbolsInTable()
   {
     return m_ST.getTableSize();

@@ -68,24 +68,26 @@ namespace MFM {
     if(NodeBlock::findNodeNo(n, foundNode))
       return true;
 
+    if(m_nodeParameterList && m_nodeParameterList->findNodeNo(n, foundNode))
+      return true;
+
+    if(m_nodeArgumentList && m_nodeArgumentList->findNodeNo(n, foundNode))
+      return true;
+
+    if(m_functionST.findNodeNoAcrossTableOfFunctions(n, foundNode)) //all the function defs
+      return true;
+
     UTI cuti = getNodeType();
     UTI superuti = m_state.isClassASubclass(cuti);
     if(m_state.okUTItoContinue(superuti) && !m_state.isUrSelf(superuti))
       {
 	NodeBlockClass * superblock = getSuperBlockPointer();
 	//e.g. not a stub, yet not complete because its superclass is a stub! (ish 06222016)
-	// or is a stub! (t3887)
-	assert(superblock || m_state.hasClassAStub(superuti) || m_state.isClassAStub(cuti));
+	// or is a stub! (t3887), or just incomplete (t41012)
+	//assert(superblock || m_state.hasClassAStub(superuti) || m_state.isClassAStub(cuti));
 	if(superblock && superblock->findNodeNo(n, foundNode))
 	  return true;
       }
-
-    if(m_functionST.findNodeNoAcrossTableOfFunctions(n, foundNode)) //all the function defs
-      return true;
-    if(m_nodeParameterList && m_nodeParameterList->findNodeNo(n, foundNode))
-      return true;
-    if(m_nodeArgumentList && m_nodeArgumentList->findNodeNo(n, foundNode))
-      return true;
     return false;
   } //findNodeNo
 
@@ -245,6 +247,56 @@ namespace MFM {
     m_ST.printPostfixValuesForTableOfVariableDataMembers(fp, slot, startpos, classtype);
   } //printPostfixDataMembersSymbols
 
+  void NodeBlockClass::noteTypeAndName(s32 totalsize, u32& accumsize)
+  {
+    //called when superclass of an oversized class instance
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    s32 nsize = nut->getTotalBitSize();
+
+    std::ostringstream note;
+    note << "(" << nsize << " of ";
+    note << totalsize << " bits, at " << accumsize << ") ";
+    note << "from superclass: " << nut->getUlamTypeNameBrief().c_str();
+    MSG(getNodeLocationAsString().c_str(), note.str().c_str(), NOTE);
+
+    accumsize += nsize;
+  } //noteTypeAndName
+
+  void NodeBlockClass::noteDataMembersParseTree(s32 totalsize)
+  {
+    UTI cuti = getNodeType();
+    if(m_state.isUrSelf(cuti)) return;
+
+    u32 accumsize = 0;
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+
+    std::ostringstream note;
+    note << "Components of " << cut->getUlamTypeNameBrief().c_str() << " are."; //terminating double dot
+    MSG(getNodeLocationAsString().c_str(), note.str().c_str(), NOTE);
+
+    UTI superuti = m_state.isClassASubclass(cuti);
+    //skip UrSelf to avoid extensive changes to all test answers
+    if(m_state.okUTItoContinue(superuti) && !m_state.isUrSelf(superuti))
+      {
+	NodeBlockClass * superblock = getSuperBlockPointer();
+	if(!isSuperClassLinkReady())
+	  {
+	    //use SCN instead of SC in case of stub (use template's classblock)
+	    SymbolClassName * supercnsym = NULL;
+	    u32 superid = m_state.getUlamTypeByIndex(superuti)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
+	    AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(superid, supercnsym);
+	    assert(isDefined);
+	    superblock = supercnsym->getClassBlockNode();
+	  }
+	assert(superblock);
+	superblock->noteTypeAndName(totalsize, accumsize); //no recursion
+      }
+
+    if(m_nodeNext)
+      m_nodeNext->noteTypeAndName(totalsize, accumsize); //datamember vardecls
+  } //noteDataMembersParseTree
+
   const char * NodeBlockClass::getName()
   {
     return m_state.getUlamKeyTypeSignatureByIndex(getNodeType()).getUlamKeyTypeSignatureName(&m_state).c_str();
@@ -281,21 +333,20 @@ namespace MFM {
   bool NodeBlockClass::isSuperClassLinkReady()
   {
     //call for known subclasses only
-    UTI superuti = m_state.isClassASubclass(getNodeType());
-    assert(superuti != Nouti);
+    UTI cuti = getNodeType();
+    UTI superuti = m_state.isClassASubclass(cuti);
+    assert((superuti != Nouti) || !m_state.okUTItoContinue(cuti)); //t41013
 
-    if(superuti == Hzy)
-      return false;
+    if(!m_state.okUTItoContinue(superuti))
+      return false; //t41013
 
     //this is a subclass.
     NodeBlockClass * superblock = getSuperBlockPointer();
     if(superblock == NULL)
       return false;
 
-    assert(m_state.okUTItoContinue(superuti));
-    assert(m_state.okUTItoContinue(superblock->getNodeType()));
-
-    return !((superblock == NULL) || (superblock->getNodeType() == Nouti) || (UlamType::compare(superblock->getNodeType(), superuti, m_state) != UTIC_SAME));
+    UTI sblockuti = superblock->getNodeType();
+    return !(!m_state.okUTItoContinue(sblockuti) || (UlamType::compare(sblockuti, superuti, m_state) != UTIC_SAME));
   } //isSuperClassLinkReady
 
   UTI NodeBlockClass::checkAndLabelType()
@@ -373,6 +424,7 @@ namespace MFM {
 		  }
 		else
 		  {
+		    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
 		    msg << "', an incomplete class";
 		    brtnhzy = false; //t3889, t3831
 		  }
@@ -391,8 +443,30 @@ namespace MFM {
 	    SymbolClass * csym = NULL;
 	    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(superuti, csym);
 	    assert(isDefined);
-	    setSuperBlockPointer(csym->getClassBlockNode()); //fixed
-	  }
+	    NodeBlockClass * superclassblock = csym->getClassBlockNode();
+	    setSuperBlockPointer(superclassblock); //fixed
+
+	    if(!isSuperClassLinkReady())
+	      {
+		setSuperBlockPointer(NULL); //force to try again!! avoid inf loop
+		std::ostringstream msg;
+		msg << "Subclass '";
+		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		msg << "' inherits from unready '";
+		msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
+		if(!m_state.okUTItoContinue(superclassblock->getNodeType()))
+		  {
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    return Nav; //t41013
+		  }
+		else
+		  {
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		    m_state.setGoAgain();
+		    return Hzy;
+		  }
+	      }
+	  } //super link ready or not
 
 	assert(isSuperClassLinkReady());
 	ULAMCLASSTYPE superclasstype = m_state.getUlamTypeByIndex(superuti)->getUlamClassType();

@@ -79,6 +79,7 @@ namespace MFM {
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
+	assert(m_state.okUTItoContinue(csym->getUlamTypeIdx()));
 	csym->addTargetDescriptionMapEntry(classtargets, scid);
 	it++;
       }
@@ -90,6 +91,7 @@ namespace MFM {
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
+	assert(m_state.okUTItoContinue(csym->getUlamTypeIdx()));
 	csym->addClassMemberDescriptionsMapEntry(classmembers);
 	it++;
       }
@@ -794,6 +796,7 @@ namespace MFM {
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
+	UTI cuti = csym->getUlamTypeIdx();
 
 	if(checkSFINAE(csym))
 	  {
@@ -816,7 +819,6 @@ namespace MFM {
 	  }
 
 	//have we seen these args before?
-	UTI cuti = csym->getUlamTypeIdx();
 	SymbolClass * dupsym = NULL;
 	if(findClassInstanceByArgString(cuti, dupsym))
 	  {

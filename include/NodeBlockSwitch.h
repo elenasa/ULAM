@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
- * NodeBreakStatement.h - Node handling the Break Statement for ULAM
+ * NodeBlockSwitch.h - Node for handling Switch Blocks for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -26,53 +26,49 @@
  */
 
 /**
-  \file NodeBreakStatement.h - Node handling the Break Statement for ULAM
+  \file NodeBlockSwitch.h - Node for handling Switch Blocks for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2017 All rights reserved.
   \gpl
 */
 
 
-#ifndef NODEBREAKSTATEMENT_H
-#define NODEBREAKSTATEMENT_H
+#ifndef NODEBLOCKSWITCH_H
+#define NODEBLOCKSWITCH_H
 
-#include "File.h"
-#include "Node.h"
+#include "NodeBlock.h"
+
 
 namespace MFM{
 
-  class NodeBreakStatement : public Node
+  class NodeBlockSwitch : public NodeBlock
   {
   public:
 
-    NodeBreakStatement(CompilerState & state);
-    NodeBreakStatement(s32 gotolabelnum, CompilerState & state);
-    NodeBreakStatement(const NodeBreakStatement& ref);
-    virtual ~NodeBreakStatement();
+    NodeBlockSwitch(NodeBlock * prevBlockNode, u32 switchnum, CompilerState & state);
+    NodeBlockSwitch(const NodeBlockSwitch& ref);
+    virtual ~NodeBlockSwitch();
 
     virtual Node * instantiate();
 
-    virtual void print(File * fp);
-
-    virtual void printPostfix(File * fp);
+    virtual const std::string prettyNodeName();
 
     virtual UTI checkAndLabelType();
 
-    virtual EvalStatus eval();
+    virtual bool isASwitchBlock();
 
-    virtual const char * getName();
-
-    virtual const std::string prettyNodeName();
-
-    virtual void genCode(File * fp, UVPass& uvpass);
+    u32 getSwitchNumber();
 
   protected:
 
+
   private:
-    s32 m_gotolabelnum;
+
+    u32 m_switchnum; //condition variable
+
   };
 
 }
 
-#endif //end NODEBREAKSTATEMENT_H
+#endif //end NODEBLOCKSWITCH_H

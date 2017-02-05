@@ -30,8 +30,9 @@ namespace MFM {
 
   //#define _DEBUG_OUTPUT
   //#define _INFO_OUTPUT
-  #define _WARN_OUTPUT
-  #define _WAIT_OUTPUT
+#define _NOTE_OUTPUT
+#define _WARN_OUTPUT
+#define _WAIT_OUTPUT
 
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
@@ -43,6 +44,12 @@ namespace MFM {
   static const bool infoOn = true;
 #else
   static const bool infoOn = false;
+#endif
+
+#ifdef _NOTE_OUTPUT
+  static const bool noteOn = true;
+#else
+  static const bool noteOn = false;
 #endif
 
 #ifdef _WARN_OUTPUT
@@ -106,9 +113,9 @@ namespace MFM {
     "*/\n\n";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyUTI(Nouti)
+  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyUTI(Nouti)
   {
-    m_err.init(this, debugOn, infoOn, warnOn, waitOn, NULL);
+    m_err.init(this, debugOn, infoOn, noteOn, warnOn, waitOn, NULL);
     Token::initTokenMap(*this);
     m_constantStack.addFrameSlots(1); //initialize for incremental update
   }
@@ -1546,6 +1553,8 @@ namespace MFM {
 	    msg << "Trying to exceed allotted bit size (" << MAXSTATEBITS << ") for element ";
 	    msg << ut->getUlamTypeNameBrief().c_str() << " with " << total << " bits";
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+
+	    noteClassDataMembersTypeAndName(utiArg, total); //t3155
 	    return false;
 	  }
       }
@@ -1558,6 +1567,8 @@ namespace MFM {
 	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERQUARK << ") for quark ";
 	    msg << ut->getUlamTypeNameBrief().c_str() << " with " << total << " bits";
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+
+	    noteClassDataMembersTypeAndName(utiArg, total); //t41013
 	    return false;
 	  }
       }
@@ -1570,6 +1581,8 @@ namespace MFM {
 	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERTRANSIENT << ") for transient ";
 	    msg << ut->getUlamTypeNameBrief().c_str() << " with " << total << " bits";
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+
+	    noteClassDataMembersTypeAndName(utiArg, total);
 	    return false;
 	  }
       }
@@ -1607,6 +1620,17 @@ namespace MFM {
     }
     return true;
   } //setUTISizes
+
+  void CompilerState::noteClassDataMembersTypeAndName(UTI cuti, s32 totalsize)
+  {
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
+
+    NodeBlockClass * cblock = csym->getClassBlockNode();
+    assert(cblock);
+    cblock->noteDataMembersParseTree(totalsize);
+  }
 
   void CompilerState::mergeClassUTI(UTI olduti, UTI cuti)
   {
@@ -3744,6 +3768,20 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return labelname.str();
   }
 
+  const std::string CompilerState::getSwitchConditionNumAsString(s32 num)
+  {
+    std::ostringstream labelname; //into
+    labelname << "Uh_switchcond" << ToLeximitedNumber(num);
+    return labelname.str();
+  }
+
+  const std::string CompilerState::getSwitchTypedefNameAsString(s32 num)
+  {
+    std::ostringstream labelname; //into
+    labelname << "_SWITCHTYPEDEF" << ToLeximitedNumber(num);
+    return labelname.str();
+  }
+
   const std::string CompilerState::getInitDoneVarAsString(s32 num)
   {
     std::ostringstream labelname; //into
@@ -3895,8 +3933,15 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     if(currBlock && (currBlock->getNodeNo() == n) && (getContextBlock()->getNodeType() == getCompileThisIdx()))
       return currBlock; //avoid chix-n-egg with functiondefs
 
+    Node * rtnNode = NULL;
+
+    //the the short way first..(safe tests timing no faster!)
+    if(currBlock->findNodeNo(n, rtnNode))
+      return rtnNode;
+
+    //go the long way around..
     UTI cuti = getCompileThisIdx();
-    Node * rtnNode = findNodeNoInAClass(n, cuti);
+    rtnNode = findNodeNoInAClass(n, cuti);
 
     if(!rtnNode)
       {

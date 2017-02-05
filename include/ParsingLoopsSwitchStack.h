@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
- * NodeBreakStatement.h - Node handling the Break Statement for ULAM
+ * ParsingLoopsSwitchStack.h - Parsing Control Loops and Switches in ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -26,53 +26,48 @@
  */
 
 /**
-  \file NodeBreakStatement.h - Node handling the Break Statement for ULAM
+  \file ParsingLoopsSwitchStack.h -  Parsing Control Loops and Switches in ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2017 All rights reserved.
   \gpl
 */
 
+#ifndef PARSINGLOOPSSWITCHSTACK_H
+#define PARSINGLOOPSSWITCHSTACK_H
 
-#ifndef NODEBREAKSTATEMENT_H
-#define NODEBREAKSTATEMENT_H
+#include <vector>
+#include "Token.h"
 
-#include "File.h"
-#include "Node.h"
+namespace MFM
+{
 
-namespace MFM{
-
-  class NodeBreakStatement : public Node
+  struct LoopSwitchDesc
   {
-  public:
-
-    NodeBreakStatement(CompilerState & state);
-    NodeBreakStatement(s32 gotolabelnum, CompilerState & state);
-    NodeBreakStatement(const NodeBreakStatement& ref);
-    virtual ~NodeBreakStatement();
-
-    virtual Node * instantiate();
-
-    virtual void print(File * fp);
-
-    virtual void printPostfix(File * fp);
-
-    virtual UTI checkAndLabelType();
-
-    virtual EvalStatus eval();
-
-    virtual const char * getName();
-
-    virtual const std::string prettyNodeName();
-
-    virtual void genCode(File * fp, UVPass& uvpass);
-
-  protected:
-
-  private:
-    s32 m_gotolabelnum;
+    Token m_token;
+    u32 m_tmpvarexitnum;
   };
 
-}
+  class ParsingLoopsSwitchStack
+  {
 
-#endif //end NODEBREAKSTATEMENT_H
+  public:
+
+    ParsingLoopsSwitchStack();
+    ~ParsingLoopsSwitchStack();
+
+    void push(Token & tok, u32 exitnum);
+    bool okToParseABreak();
+    bool okToParseAContinue();
+    u32 getLastExitNumber();
+    u32 getNearestBreakExitNumber();
+    u32 getNearestContinueExitNumber();
+    void pop();
+
+  private:
+    std::vector<struct LoopSwitchDesc> m_stack;
+  };
+
+} //MFM
+
+#endif  /* PARSINGLOOPSSWITCHSTACK_H */

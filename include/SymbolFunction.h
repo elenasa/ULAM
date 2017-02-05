@@ -72,6 +72,7 @@ namespace MFM{
 
     virtual const std::string getMangledPrefix();
 
+    const std::string getFunctionNameWithTypes();
     const std::string getMangledNameWithTypes();
     const std::string getMangledNameWithUTIparameters();
 

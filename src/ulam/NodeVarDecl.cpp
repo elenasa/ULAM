@@ -99,6 +99,8 @@ namespace MFM {
 	    msg << " used with variable symbol name '" << getName() << "'";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
+
+	    csym->notePureFunctionSignatures(); //t3607, t3609
 	  }
       }
   } //checkAbstractInstanceErrors
@@ -347,7 +349,7 @@ namespace MFM {
     return true; //ok
   } //checkReferenceCompatibility
 
-UTI NodeVarDecl::checkAndLabelType()
+  UTI NodeVarDecl::checkAndLabelType()
   {
     // instantiate, look up in current block
     if(m_varSymbol == NULL)
@@ -384,6 +386,19 @@ UTI NodeVarDecl::checkAndLabelType()
 	  }
       }
 
+    ULAMTYPE etyp = m_state.getUlamTypeByIndex(it)->getUlamTypeEnum();
+    if(etyp == Void)
+      {
+	//void only valid use is as a func return type
+	std::ostringstream msg;
+	msg << "Invalid use of type ";
+	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	msg << " with variable symbol name '" << getName() << "'";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav); //could be clobbered by Hazy node expr
+	return Nav;
+      }
+
     if(!m_state.okUTItoContinue(it) || !m_state.isComplete(it))
       {
 	std::ostringstream msg;
@@ -398,19 +413,6 @@ UTI NodeVarDecl::checkAndLabelType()
 	  }
 	else
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-      }
-
-    ULAMTYPE etyp = m_state.getUlamTypeByIndex(it)->getUlamTypeEnum();
-    if(etyp == Void)
-      {
-	//void only valid use is as a func return type
-	std::ostringstream msg;
-	msg << "Invalid use of type ";
-	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	msg << " with variable symbol name '" << getName() << "'";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setNodeType(Nav); //could be clobbered by Hazy node expr
-	return Nav;
       }
 
     if(m_nodeInitExpr)
@@ -437,6 +439,18 @@ UTI NodeVarDecl::checkAndLabelType()
 	    m_state.setGoAgain(); //since not error
 	    setNodeType(Hzy);
 	    return Hzy; //short-circuit
+	  }
+
+	if(m_state.getCurrentBlock()->isASwitchBlock())
+	  {
+	    //e.g. switch condition variable (t41016-19)
+	    UTI vit = m_varSymbol->getUlamTypeIdx(); //base type has arraysize
+	    if(m_state.isHolder(vit) && m_state.isComplete(eit))
+	      {
+		m_state.cleanupExistingHolder(vit, eit);
+		m_state.statusUnknownTypeInThisClassResolver(vit);
+		it = eit;
+	      }
 	  }
 
 	//note: Void is flag that it's a list of constant initializers.
@@ -499,8 +513,10 @@ UTI NodeVarDecl::checkAndLabelType()
 	    eit = it;
 	  } //end array initializers (eit == Void)
 	else
-	  if(!m_state.isScalar(it) && m_nodeInitExpr->isAConstant())
-	    m_varSymbol->setHasInitValue(); //t3896
+	  {
+	    if(!m_state.isScalar(it) && m_nodeInitExpr->isAConstant())
+	      m_varSymbol->setHasInitValue(); //t3896
+	  }
 
 	setNodeType(it); //needed before safeToCast, and folding
 

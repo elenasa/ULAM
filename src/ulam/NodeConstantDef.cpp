@@ -108,6 +108,11 @@ namespace MFM {
     fp->write("; ");
   } //printPostfix
 
+  void NodeConstantDef::noteTypeAndName(s32 totalsize, u32& accumsize)
+  {
+    return; //bypass
+  }
+
   const char * NodeConstantDef::getName()
   {
     if(m_constSymbol)

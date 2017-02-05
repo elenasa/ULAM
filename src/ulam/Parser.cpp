@@ -36,6 +36,7 @@
 #include "NodeBinaryOpShiftRight.h"
 #include "NodeBlock.h"
 #include "NodeBlockEmpty.h"
+#include "NodeBlockSwitch.h"
 #include "NodeBlockFunctionDefinition.h"
 #include "NodeBlockInvisible.h"
 #include "NodeBreakStatement.h"
@@ -45,7 +46,6 @@
 #include "NodeConstant.h"
 #include "NodeConstantArray.h"
 #include "NodeContinueStatement.h"
-#include "NodeControlIf.h"
 #include "NodeIdent.h"
 #include "NodeInstanceof.h"
 #include "NodeLabel.h"
@@ -1142,16 +1142,23 @@ namespace MFM {
 	break;
       case TOK_KW_WHILE:
 	{
-	  m_state.m_parsingControlLoop = m_state.getNextTmpVarNumber(); //true
+	  m_state.m_parsingControlLoopsSwitchStack.push(pTok, m_state.getNextTmpVarNumber());
 	  rtnNode = parseControlWhile(pTok);
-	  m_state.m_parsingControlLoop = 0;
+	  m_state.m_parsingControlLoopsSwitchStack.pop();
 	}
 	break;
       case TOK_KW_FOR:
 	{
-	  m_state.m_parsingControlLoop = m_state.getNextTmpVarNumber(); //true
+	  m_state.m_parsingControlLoopsSwitchStack.push(pTok, m_state.getNextTmpVarNumber());
 	  rtnNode = parseControlFor(pTok);
-	  m_state.m_parsingControlLoop = 0;
+	  m_state.m_parsingControlLoopsSwitchStack.pop();
+	}
+	break;
+      case TOK_KW_SWITCH:
+	{
+	  m_state.m_parsingControlLoopsSwitchStack.push(pTok, m_state.getNextTmpVarNumber());
+	  rtnNode = parseControlSwitch(pTok);
+	  m_state.m_parsingControlLoopsSwitchStack.pop();
 	}
 	break;
       case TOK_ERROR_LOWLEVEL:
@@ -1242,7 +1249,7 @@ namespace MFM {
     if(!getExpectedToken(TOK_OPEN_PAREN))
       return NULL;
 
-    s32 controlLoopLabelNum = m_state.m_parsingControlLoop; //save at the top
+    u32 controlLoopLabelNum = m_state.m_parsingControlLoopsSwitchStack.getLastExitNumber(); //save at the top
 
     //before parsing the conditional statement, need a new scope
     NodeBlock * currBlock = m_state.getCurrentBlock();
@@ -1273,6 +1280,8 @@ namespace MFM {
 	return NULL; //stop this maddness
       }
 
+    assert(controlLoopLabelNum == m_state.m_parsingControlLoopsSwitchStack.getNearestContinueExitNumber()); //sanity
+
     Node * whileNode = makeControlWhileNode(condNode, NULL, controlLoopLabelNum, wTok);
     if(!whileNode)
       {
@@ -1292,7 +1301,7 @@ namespace MFM {
     if(!getExpectedToken(TOK_OPEN_PAREN))
       return NULL;
 
-    s32 controlLoopLabelNum = m_state.m_parsingControlLoop; //save at the top
+    u32 controlLoopLabelNum = m_state.m_parsingControlLoopsSwitchStack.getLastExitNumber(); //save at the top
 
     //before parsing the FOR statement, need a new scope
     NodeBlock * currBlock = m_state.getCurrentBlock();
@@ -1410,6 +1419,8 @@ namespace MFM {
 	  }
       } //done with assign expr, could be null
 
+    assert(controlLoopLabelNum == m_state.m_parsingControlLoopsSwitchStack.getNearestContinueExitNumber()); //sanity
+
     Node * whileNode = makeControlWhileNode(condNode, assignNode, controlLoopLabelNum, fTok);
     if(!whileNode)
       {
@@ -1476,6 +1487,254 @@ namespace MFM {
 
     return whileNode;
   } //makeControlWhileNode
+
+  Node * Parser::parseControlSwitch(const Token& swTok)
+  {
+    if(!getExpectedToken(TOK_OPEN_PAREN))
+      {
+	return NULL;
+      }
+
+    u32 switchnum = m_state.getNextTmpVarNumber();
+
+    //before parsing the SWITCH statement, need a new scope
+    NodeBlock * currBlock = m_state.getCurrentBlock();
+    NodeBlock * rtnNode = new NodeBlockSwitch(currBlock, switchnum, m_state);
+    assert(rtnNode);
+    rtnNode->setNodeLocation(swTok.m_locator);
+
+    //current, this block's symbol table added to parse tree stack
+    //        for validating and finding scope of program/block variables
+    m_state.pushCurrentBlock(rtnNode); //without pop first
+
+    Node * condNode = parseConditionalExpr();
+    if(!condNode)
+      {
+	std::ostringstream msg;
+	msg << "Invalid switch-condition";
+	MSG(&swTok, msg.str().c_str(), ERR);
+	m_state.popClassContext(); //the pop
+	delete rtnNode;
+	return NULL; //stop this maddness
+      }
+
+    if(!getExpectedToken(TOK_CLOSE_PAREN))
+      {
+	delete condNode;
+	m_state.popClassContext(); //the pop
+	delete rtnNode;
+	return NULL; //stop this maddness
+      }
+
+    if(!getExpectedToken(TOK_OPEN_CURLY))
+      {
+	delete condNode;
+	m_state.popClassContext(); //the pop
+	delete rtnNode;
+	return NULL; //stop this maddness
+      }
+
+    UTI huti = m_state.makeUlamTypeHolder();
+
+    std::string swtypedefname = m_state.getSwitchTypedefNameAsString(switchnum);
+    Token swtypeTok(TOK_IDENTIFIER, swTok.m_locator, m_state.m_pool.getIndexForDataString(swtypedefname));
+
+    //give a name to this new ulam type
+    SymbolTypedef * symtypedef = new SymbolTypedef(swtypeTok, huti, Nav, m_state);
+    assert(symtypedef);
+    m_state.addSymbolToCurrentScope(symtypedef);
+    m_state.addUnknownTypeTokenToThisClassResolver(swtypeTok, huti);
+
+    NodeTypedef * swtypedefnode = new NodeTypedef(symtypedef, NULL, m_state);
+    assert(swtypedefnode);
+    swtypedefnode->setNodeLocation(swTok.m_locator);
+    m_state.appendNodeToCurrentBlock(swtypedefnode);
+
+    //evaluate (lhs) of switch condition ONCE; put into a tmp switch var
+    std::string tmpvarname = m_state.getSwitchConditionNumAsString(switchnum);
+    Token tidTok(TOK_IDENTIFIER, swTok.m_locator, m_state.m_pool.getIndexForDataString(tmpvarname));
+    SymbolVariableStack * swsym = new SymbolVariableStack(tidTok, huti, 0, m_state);
+    assert(swsym);
+    m_state.addSymbolToCurrentScope(swsym); //ownership goes to the block
+
+    NodeVarDecl * swcondDecl = new NodeVarDecl(swsym, NULL, m_state);
+    assert(swcondDecl);
+    swcondDecl->setNodeLocation(swTok.m_locator);
+    swcondDecl->setInitExpr(condNode);
+    m_state.appendNodeToCurrentBlock(swcondDecl);
+
+    //pass condition variable around to each case to copy for comparison
+    NodeIdent * swcondIdent = new NodeIdent(tidTok, swsym, m_state);
+    assert(swcondIdent);
+    swcondIdent->setNodeLocation(swTok.m_locator);
+
+    NodeControlIf * casesNode = NULL;
+    Node * defaultcaseNode = NULL;
+    parseNextCase(swcondIdent, casesNode, defaultcaseNode);
+
+    if(casesNode == NULL)
+      {
+	delete swcondIdent;
+	m_state.popClassContext(); //the pop
+	delete rtnNode;
+	return NULL; //stop this maddness
+      }
+
+    if(!getExpectedToken(TOK_CLOSE_CURLY))
+      {
+	delete casesNode;
+	delete swcondIdent;
+	m_state.popClassContext(); //the pop
+	delete rtnNode;
+	return NULL; //stop this maddness
+      }
+
+    Token pTok;
+    if(!getExpectedToken(TOK_SEMICOLON, pTok, QUIETLY))
+      {
+	MSG(&pTok, "Invalid Switch Statement (possible missing semicolon)", ERR);
+	delete casesNode;
+	delete swcondIdent;
+	m_state.popClassContext(); //the pop
+	delete rtnNode;
+	return NULL; //stop this maddness
+      }
+
+    //got all the cases:
+    rtnNode->appendNextNode(casesNode);
+
+    //label for end-of-switch breaks (t41018)
+    u32 swexitnum = m_state.m_parsingControlLoopsSwitchStack.getNearestBreakExitNumber();
+    Node * labelNode = new NodeLabel(swexitnum, m_state);
+    assert(labelNode);
+    labelNode->setNodeLocation(pTok.m_locator);
+    rtnNode->appendNextNode(labelNode);
+
+    delete swcondIdent; //copies made, clean up
+    m_state.popClassContext(); //the pop
+    return rtnNode;
+  } //parseControlSwitch
+
+  Node * Parser::parseNextCase(Node * condLeftNode, NodeControlIf *& switchNode, Node *& defaultNode)
+  {
+    //get as many cases that share the same body
+    Node * casecondition = NULL;
+    casecondition = parseRestOfCase(condLeftNode, casecondition, defaultNode);
+
+    if(!casecondition)
+      {
+	Token eTok;
+	if(!getExpectedToken(TOK_CLOSE_CURLY, eTok, QUIETLY))
+	  {
+	    std::ostringstream msg;
+	    msg << "Incomplete condition; switch-control failure";
+	    MSG(&eTok, msg.str().c_str(), ERR); //e.g. t41027
+	  }
+	unreadToken();
+	return NULL; //done
+      }
+
+    Token pTok;
+    getNextToken(pTok);
+    unreadToken();
+    if(pTok.m_type != TOK_OPEN_CURLY)
+      {
+	std::ostringstream msg;
+	msg << "Block expected for condition; switch-control failure";
+	MSG(&pTok, msg.str().c_str(), ERR); //t41023,41024
+	delete casecondition;
+	return NULL;
+      }
+
+    NodeBlock * trueNode = NULL;
+    trueNode = parseStatementAsBlock();
+
+    if(!trueNode)
+      {
+	std::ostringstream msg;
+	msg << "Incomplete true block; switch-control failure";
+	MSG(casecondition->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return NULL; //stop this maddness
+      }
+
+    NodeControlIf * ifNode = new NodeControlIf(casecondition, trueNode, NULL, m_state);
+    assert(ifNode);
+    ifNode->setNodeLocation(casecondition->getNodeLocation());
+
+    if(switchNode != NULL)
+      switchNode->setElseNode(ifNode); //link to previous if-
+    else
+      switchNode = ifNode; //set parent ref
+    return parseNextCase(condLeftNode, ifNode, defaultNode); //recurse
+  } //parseNextCase
+
+  Node * Parser::parseRestOfCase(Node * condLeftNode, Node * caseCond, Node *& defaultcase)
+  {
+    Token cTok;
+    getNextToken(cTok);
+    if(! ((cTok.m_type == TOK_KW_CASE) || (cTok.m_type == TOK_KW_DEFAULT)))
+      {
+	unreadToken();
+	return caseCond; //done
+      }
+
+    Node * casecondition = NULL;
+    if(cTok.m_type == TOK_KW_CASE)
+      {
+	Node * rightNode = parseEqExpression();
+	if(!rightNode)
+	  {
+	    std::ostringstream msg;
+	    msg << "Incomplete case expression; switch-control failure";
+	    MSG(&cTok, msg.str().c_str(), ERR);
+	    delete caseCond;
+	    return NULL; //stop this maddness
+	  }
+
+	Node * leftNodeCopy = condLeftNode->instantiate();
+	assert(leftNodeCopy);
+
+	casecondition = new NodeBinaryOpCompareEqualEqual(leftNodeCopy, rightNode, m_state);
+	assert(casecondition);
+	casecondition->setNodeLocation(cTok.m_locator);
+      }
+    else //default:
+      {
+	if(defaultcase == NULL)
+	  {
+	    casecondition = new NodeTerminal((u64) 1, Bool, m_state);
+	    assert(casecondition);
+	    casecondition->setNodeLocation(cTok.m_locator);
+	    defaultcase = casecondition;
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Multiple default labels in one switch; first default label on line ";
+	    msg << defaultcase->getNodeLocation().getLineNo();
+	    MSG(&cTok, msg.str().c_str(), ERR);
+	    delete caseCond;
+	    return NULL; //stop this maddness (e.g. t41022)
+	  }
+      }
+
+    if(!getExpectedToken(TOK_COLON))
+      {
+	delete casecondition;
+	delete caseCond;
+	return NULL; //stop this maddness
+      }
+
+    //multi-cases (t41020)
+    if(caseCond != NULL)
+      {
+	NodeBinaryOpLogicalOr * newcaseCond = new NodeBinaryOpLogicalOr(caseCond, casecondition, m_state);
+	assert(newcaseCond);
+	newcaseCond->setNodeLocation(cTok.m_locator);
+	casecondition = newcaseCond;
+      }
+    return parseRestOfCase(condLeftNode, casecondition, defaultcase); //recurse
+  } //parseRestOfCase
 
   Node * Parser::parseConditionalExpr()
   {
@@ -1644,22 +1903,26 @@ namespace MFM {
       }
     else if(pTok.m_type == TOK_KW_BREAK)
       {
-	if(m_state.m_parsingControlLoop)
+	if(m_state.m_parsingControlLoopsSwitchStack.okToParseABreak())
 	  {
-	    NodeBreakStatement * brkNode = new NodeBreakStatement(m_state);
+	    u32 bexitnum = m_state.m_parsingControlLoopsSwitchStack.getNearestBreakExitNumber();
+	    NodeBreakStatement * brkNode = new NodeBreakStatement(bexitnum, m_state);
 	    assert(brkNode);
 	    brkNode->setNodeLocation(pTok.m_locator);
 	    m_state.appendNodeToCurrentBlock(brkNode);
 	    brtn = true;
 	  }
 	else
-	  MSG(&pTok,"Break statement not within loop or switch" , ERR);
+	  {
+	    MSG(&pTok,"Break statement not within loop or switch" , ERR);
+	  }
       }
     else if(pTok.m_type == TOK_KW_CONTINUE)
       {
-	if(m_state.m_parsingControlLoop)
+	u32 cexitnum = m_state.m_parsingControlLoopsSwitchStack.getNearestContinueExitNumber();
+	if(cexitnum != 0)
 	  {
-	    NodeContinueStatement * contNode = new NodeContinueStatement(m_state.m_parsingControlLoop, m_state);
+	    NodeContinueStatement * contNode = new NodeContinueStatement(cexitnum, m_state);
 	    assert(contNode);
 	    contNode->setNodeLocation(pTok.m_locator);
 	    m_state.appendNodeToCurrentBlock(contNode);

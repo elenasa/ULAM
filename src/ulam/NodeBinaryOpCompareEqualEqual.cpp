@@ -36,12 +36,12 @@ namespace MFM {
     if(!m_state.okUTItoContinue(lt, rt))
       return Nav;
 
-    if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
-      return Hzy; //short-circuit
-
     UTI newType = Nav; //init
     ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
     ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
+
+    if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
+      return Hzy; //short-circuit
 
     //if either is Bits, cast to Bits
     if(ltypEnum == Bits || rtypEnum == Bits)

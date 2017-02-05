@@ -191,8 +191,10 @@ namespace MFM {
 	      }
 	    else
 	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //t3479
 		numErrorsFound++;
+
+		((SymbolFunctionName *) fnsymptr)->noteAmbiguousFunctionSignatures(argNodes, numFuncs);
 	      }
 	  }
 	else //==1

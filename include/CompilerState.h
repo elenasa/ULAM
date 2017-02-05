@@ -57,6 +57,7 @@
 #include "NodeReturnStatement.h"
 #include "NodeTypeBitsize.h"
 #include "NodeSquareBracket.h"
+#include "ParsingLoopsSwitchStack.h"
 #include "StringPool.h"
 #include "StringPoolUser.h"
 #include "SymbolClass.h"
@@ -116,8 +117,9 @@ namespace MFM{
     Token m_currentLocalDefToken; //used to identify current file path when m_parsingLocalDef is true
 
     SYMBOLTYPEFLAG m_parsingVariableSymbolTypeFlag;
-    s32 m_parsingControlLoop;             // used for break/continue control stmt parsing;
-                                          // label num for end of loop, or 0
+
+    // used for break/continue stmt parsing; label num for end of loop, or 0
+    ParsingLoopsSwitchStack m_parsingControlLoopsSwitchStack;
 
     bool m_gotStructuredCommentToken; // avoid testing uninitialized value
     Token m_precedingStructuredCommentToken; //for next class or parameter
@@ -243,6 +245,7 @@ namespace MFM{
     bool isHolder(UTI utArg);
     bool setBitSize(UTI utArg, s32 total);
     bool setUTISizes(UTI utArg, s32 bitsize, s32 arraysize);
+    void noteClassDataMembersTypeAndName(UTI cuti, s32 totalsize); //for errors
     void mergeClassUTI(UTI olduti, UTI cuti);
     bool isARootUTI(UTI auti);
     bool findaUTIAlias(UTI auti, UTI& aliasuti);
@@ -441,6 +444,8 @@ namespace MFM{
     const std::string getUlamClassTmpVarAsString(s32 num);
     const std::string getAtomBitStorageTmpVarAsString(s32 num);
     const std::string getLabelNumAsString(s32 num);
+    const std::string getSwitchConditionNumAsString(s32 num);
+    const std::string getSwitchTypedefNameAsString(s32 num);
     const std::string getInitDoneVarAsString(s32 num);
     const std::string getVFuncPtrTmpNumAsString(s32 num);
 

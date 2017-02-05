@@ -4,9 +4,11 @@
 
 namespace MFM {
 
-  NodeBreakStatement::NodeBreakStatement(CompilerState & state) : Node(state) {}
+  NodeBreakStatement::NodeBreakStatement(CompilerState & state) : Node(state), m_gotolabelnum(0) {}
 
-  NodeBreakStatement::NodeBreakStatement(const NodeBreakStatement& ref) : Node(ref) {}
+  NodeBreakStatement::NodeBreakStatement(s32 gotolabelnum, CompilerState & state) : Node(state), m_gotolabelnum(gotolabelnum) {}
+
+  NodeBreakStatement::NodeBreakStatement(const NodeBreakStatement& ref) : Node(ref), m_gotolabelnum(ref.m_gotolabelnum) {}
 
   NodeBreakStatement::~NodeBreakStatement() {}
 
@@ -54,13 +56,26 @@ namespace MFM {
 
   EvalStatus NodeBreakStatement::eval()
   {
-    return BREAK;
+    if(m_gotolabelnum == 0)
+      return BREAK;
+    return NORMAL; //switch break (t41016)
   }
 
   void NodeBreakStatement::genCode(File * fp, UVPass& uvpass)
   {
-    m_state.indentUlamCode(fp);
-    fp->write("break;"); GCNL;
+    if(m_gotolabelnum == 0)
+      {
+	m_state.indentUlamCode(fp);
+	fp->write("break; //out of nearest loop"); GCNL;
+      }
+    else
+      {
+	//goto for switch (t41017)
+	m_state.indentUlamCode(fp);
+	fp->write("goto ");
+	fp->write(m_state.getLabelNumAsString(m_gotolabelnum).c_str());
+	fp->write("; //break out of switch"); GCNL;
+      }
   } //genCode
 
 } //end MFM

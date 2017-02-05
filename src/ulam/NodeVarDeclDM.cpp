@@ -117,6 +117,39 @@ namespace MFM {
     fp->write("; ");
   } //printPostfix
 
+  void NodeVarDeclDM::noteTypeAndName(s32 totalsize, u32& accumsize)
+  {
+    UTI nuti = getNodeType();
+    UlamKeyTypeSignature vkey = m_state.getUlamKeyTypeSignatureByIndex(nuti);
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    s32 nsize = nut->getTotalBitSize();
+
+    std::ostringstream note;
+    note << "(" << nsize << " of ";
+    note << totalsize << " bits, at " << accumsize << ") ";
+
+    //like NodeVarDecl::printNameAndType
+    if(nut->getUlamTypeEnum() != Class)
+      note << vkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str();
+    else
+      note << nut->getUlamTypeNameBrief().c_str();
+
+    note << " " << getName();
+
+    s32 arraysize = nut->getArraySize();
+    if(arraysize > NONARRAYSIZE)
+      {
+	note << "[" << arraysize << "]";
+      }
+    else if(arraysize == UNKNOWNSIZE)
+      {
+	note << "[UNKNOWN]";
+      }
+    MSG(getNodeLocationAsString().c_str(), note.str().c_str(), NOTE);
+    accumsize += nsize;
+
+  } //noteTypeAndName
+
   const char * NodeVarDeclDM::getName()
   {
     return NodeVarDecl::getName();

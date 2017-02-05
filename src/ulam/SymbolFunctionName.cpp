@@ -176,7 +176,7 @@ namespace MFM {
 	return findMatchingFunctionWithSafeCastsInAncestors(argNodes, funcSymbol, hasHazyArgs);
 
     return matchingFuncCount;
-  } //findMatchingFunctionWithConstantsAsArgs
+  } //findMatchingFunctionWithSafeCasts
 
   u32 SymbolFunctionName::findMatchingFunctionWithSafeCastsInAncestors(std::vector<Node *> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs)
   {
@@ -191,6 +191,32 @@ namespace MFM {
       }
     return 0;
   } //findMatchingFunctionWithSafeCastsInAncestors
+
+  void SymbolFunctionName::noteAmbiguousFunctionSignatures(std::vector<Node *> argNodes, u32 numMatchesFound)
+  {
+    assert(!m_mangledFunctionNames.empty());
+    assert(numMatchesFound > 1);
+
+    //called after findMatchingFunctionWithSafeCasts returns more than one match
+    u32 matchingFuncCount = 0;
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	u32 numUTmatch = 0; //unused here
+	bool hasHazyArgs = false; //unused here
+	if(fsym->matchingTypes(argNodes, hasHazyArgs, numUTmatch)) //with safe casting
+	  {
+	    matchingFuncCount++;
+	    std::ostringstream note;
+	    note << "Match (" << matchingFuncCount << " of " << numMatchesFound << ") : ";
+	    note << fsym->getFunctionNameWithTypes().c_str();
+	    MSG(fsym->getTokPtr(), note.str().c_str(), NOTE);
+	  }
+	it++;
+      } //end while
+    assert(numMatchesFound == matchingFuncCount); //sanity
+  } //noteAmbiguousFunctionSignatures
 
   u32 SymbolFunctionName::getDepthSumOfFunctions()
   {

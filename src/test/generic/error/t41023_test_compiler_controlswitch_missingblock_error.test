@@ -1,0 +1,54 @@
+## -*- mode:ulam -*-
+#=t41023_test_compiler_controlswitch_missingblock_error
+#!
+./A.ulam:16:2: ERROR: Block expected for condition; switch-control failure.
+./A.ulam:17:2: ERROR: Break statement not within loop or switch.
+./A.ulam:18:5: ERROR: Invalid Statement (possible missing semicolon).
+./A.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'A'; Possible missing ending curly brace.
+./A.ulam:20:6: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./A.ulam:2:9: ERROR: Invalid Type: A.
+ ERROR: No parse tree for This Class: A.
+Unrecoverable Program Parse FAILURE: <A.ulam>
+./A.ulam:21:5: ERROR: Invalid Class Type <s>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <System.ulam>
+#>A.ulam
+  ulam 2;
+element A {
+  System s;
+  Int a, b;
+  Int test() {
+    a = 2;
+    b = 0;
+    switch((--a))
+    {
+    case 0:
+      {
+	b = 2;
+	break;
+      }
+    case -1:
+	b = 3;
+	break;
+    default:
+      b = 1;
+    };
+    s.print(b);
+    s.assert(b == 1);
+    s.print(a);
+    s.assert(a == 1);
+    return a;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.
