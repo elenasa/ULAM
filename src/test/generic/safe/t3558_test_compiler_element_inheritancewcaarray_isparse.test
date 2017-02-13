@@ -37,7 +37,6 @@ quark EvtWinEl {
     //Atom a; //on the stack
     return self.atomof;
   }
-  //Void aset(Int index, Atom val){}
 }
 
 #:System.ulam
