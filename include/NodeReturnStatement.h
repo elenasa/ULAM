@@ -87,6 +87,7 @@ namespace MFM{
   private:
     Node * m_node;
 
+    bool checkForErrorReturningRefToLocalFuncVarOnStack();
 
   };
 

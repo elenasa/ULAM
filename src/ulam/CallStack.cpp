@@ -68,7 +68,6 @@ namespace MFM {
 
   u32 CallStack::getAbsoluteStackIndexOfSlot(s32 slot)
   {
-    //assert(m_currentFrame + slot < m_frames.size());
     return (m_currentFrame + slot);
   }
 
@@ -211,6 +210,18 @@ namespace MFM {
 
     s32 leftbaseslot = pluv.getPtrSlotIndex(); //even for scalars
     m_frames[m_currentFrame + leftbaseslot] = puv;
+  }
+
+  bool CallStack::isLocalSlot(s32 slot, CompilerState& state)
+  {
+    return isLocalStackIndex(getAbsoluteStackIndexOfSlot(slot), state);
+  }
+
+  bool CallStack::isLocalStackIndex(u32 index, CompilerState& state)
+  {
+    //u32 prevZero = m_frames[m_currentFrame].getImmediateData(MAXBITSPERINT, state);
+    //return (index > prevZero) && (index < m_frames.size());
+    return (index > m_currentFrame) && (index < m_frames.size());
   }
 
   void CallStack::pushArg(UlamValue arg) //doesn't change framepointer

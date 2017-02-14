@@ -649,10 +649,13 @@ namespace MFM {
 	    if((paramreftype == ALT_REF) && (auv.getPtrStorage() == STACK))
 	      {
 		assert(m_state.isPtr(auv.getUlamValueTypeIdx()));
-		assert(!auv.isPtrAbs()); //doing that conversion here!
-		u32 absrefslot = m_state.m_funcCallStack.getAbsoluteStackIndexOfSlot(auv.getPtrSlotIndex());
-		auv.setPtrSlotIndex(absrefslot); //t3810, t3635
-		auv.setUlamValueTypeIdx(PtrAbs);
+		if(!auv.isPtrAbs()) //do that conversion here
+		  {
+		    u32 absrefslot = m_state.m_funcCallStack.getAbsoluteStackIndexOfSlot(auv.getPtrSlotIndex());
+		    auv.setPtrSlotIndex(absrefslot); //t3810, t3635
+		    auv.setUlamValueTypeIdx(PtrAbs);
+		  }
+		//else t41030 already PtrAbs (e.g. passing along a function arg)
 	      }
 	    m_state.m_funcCallStack.pushArg(auv);
 	    argsPushed++;
@@ -702,17 +705,15 @@ namespace MFM {
 	  }
       } //end virtual function
 
-    if((atomPtr.getPtrStorage() == STACK) && (m_state.getReferenceType(rtnType) != ALT_REF))
+    //adjust index if on the STACK, not for Event Window site (t3114, and 160+ more tests);
+    // convert to ABSOLUTE PTR for isLocal check (t3942,6,7,8).
+    if((atomPtr.getPtrStorage() == STACK) && !atomPtr.isPtrAbs())
       {
-	//adjust index if on the STACK, not for Event Window site
-	s32 nextslot = m_state.m_funcCallStack.getRelativeTopOfStackNextSlot();
 	s32 atomslot = atomPtr.getPtrSlotIndex();
-	s32 adjustedatomslot = atomslot - (nextslot + rtnslots + 2); //negative index; 1 more for atomPtr (+uc)
-	atomPtr.setPtrSlotIndex(adjustedatomslot);
-	if(atomPtr.isPtrAbs())
-	  atomPtr.setUlamValueTypeIdx(Ptr); //let's see..t3114 and 160+ more tests
+	u32 absidx = m_state.m_funcCallStack.getAbsoluteStackIndexOfSlot(atomslot);
+       	atomPtr.setPtrSlotIndex(absidx);
+	atomPtr.setUlamValueTypeIdx(PtrAbs);
       }
-    //else t3942,6,7,8
 
     // push the "hidden" first arg, and update the current object ptr (restore later)
     m_state.m_funcCallStack.pushArg(atomPtr); //*********
@@ -898,7 +899,11 @@ namespace MFM {
   {
     genCodeIntoABitValue(fp,uvpass);
 
-    if(m_state.isAClass(uvpass.getPassTargetType()))
+    UTI rtnType = uvpass.getPassTargetType();
+    //return atom ref (t41031)
+    //if(m_state.isAClass(rtnType))
+    //if(m_state.isReference(rtnType) || m_state.isAClass(rtnType))
+    if(m_state.isAtom(rtnType) || m_state.isAClass(rtnType))
       {
 	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL);
 	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);

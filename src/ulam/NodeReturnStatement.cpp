@@ -268,11 +268,51 @@ namespace MFM {
     //should always return value as ptr to stack.
     UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
     assert(rtnUV.isPtr());
+
+    if(m_state.isLocalUnreturnableReferenceForEval(rtnUV))
+      {
+	evalNodeEpilog();
+	return ERROR;
+      }
+
     Node::assignReturnValuePtrToStack(rtnUV, STACK);
 
     evalNodeEpilog();
     return RETURN;
   } //evalToStoreInto
+
+  bool NodeReturnStatement::checkForErrorReturningRefToLocalFuncVarOnStack()
+  {
+    UTI nuti = getNodeType();
+
+    if(m_state.getReferenceType(nuti) != ALT_REF)
+      return true; //no problem
+
+    assert(m_node);
+
+    evalNodeProlog(0);
+    makeRoomForNodeType(nuti);
+
+    EvalStatus evs = evalToStoreInto();
+
+    if(evs != NORMAL)
+      {
+	assert((evs != CONTINUE) && (evs != BREAK));
+	evalNodeEpilog();
+	//error msg!!
+	assert(0); //shouldn't get here!!!
+	return false;
+      }
+
+    //should always return value as ptr to stack.
+    UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
+    assert(rtnUV.isPtr());
+
+    evalNodeEpilog();
+
+    bool aok = (rtnUV.getPtrStorage() != STACK);
+    return aok;
+  }
 
   void NodeReturnStatement::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
@@ -323,6 +363,26 @@ namespace MFM {
     if(!m_state.m_currentObjSymbolsForCodeGen.empty())
       {
 	Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back(); //or [0]?
+	UTI cosuti = cossym->getUlamTypeIdx();
+
+	if(isCurrentObjectALocalVariableOrArgument())
+	  {
+	    //t41029-30
+	    m_state.indentUlamCode(fp);
+	    fp->write("if(_IsLocal((void *) &");
+	    fp->write(cossym->getMangledName().c_str());
+	    if(m_state.isAtomRef(cosuti))
+	      fp->write(".getUlamRef()");
+	    if(m_state.isReference(cosuti))
+	      fp->write(".GetStorage()");
+	    fp->write("))"); GCNL;
+
+	    m_state.m_currentIndentLevel++;
+	    m_state.indentUlamCode(fp);
+	    fp->write("FAIL(UNRETURNABLE_REFERENCE);"); GCNL;
+	    m_state.m_currentIndentLevel--;
+	  }
+
 	u32 id = cossym->getId();
 	s32 tmprefnum = m_state.getNextTmpVarNumber();
 
@@ -334,7 +394,7 @@ namespace MFM {
 	delete tmpvarsym;
 	uvpass = luvpass;
       }
-    //else //t3653
+      //else //t3653, t3223
 
     m_state.indentUlamCode(fp);
     fp->write("return ");

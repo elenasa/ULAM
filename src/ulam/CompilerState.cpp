@@ -3326,6 +3326,65 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return valAtIdx; //return as-is
   } //getPtrTargetFromAbsoluteIndex
 
+  bool CompilerState::isLocalUnreturnableReferenceForEval(UlamValue ptr)
+  {
+    assert(ptr.isPtr());
+
+    if(ptr == m_currentSelfPtr)
+      return false;
+
+    if(ptr.isPtrAbs())
+      return isLocalUnreturnableAbsoluteReferenceForEval(ptr); //short-circuit
+
+    bool brtn = true;
+    switch(ptr.getPtrStorage())
+      {
+      case STACK:
+	brtn = m_funcCallStack.isLocalSlot(ptr.getPtrSlotIndex(), *this);
+	break;
+      case EVALRETURN:
+	brtn = m_nodeEvalStack.isLocalSlot(ptr.getPtrSlotIndex(), *this);
+	break;
+      case CNSTSTACK:
+	brtn = m_constantStack.isLocalStackIndex(ptr.getPtrSlotIndex(), *this);
+	break;
+      case EVENTWINDOW:
+	brtn = false; //data member t3630, t3942, t3946, t41006, t41007
+	break;
+      default:
+	abortUndefinedCallStack(); //error!
+	break;
+      };
+    return brtn;
+  } //isLocalUnreturnableReferenceForEval
+
+  bool CompilerState::isLocalUnreturnableAbsoluteReferenceForEval(UlamValue ptr)
+  {
+    assert(ptr.isPtrAbs());
+
+    bool brtn = true;
+    switch(ptr.getPtrStorage())
+      {
+      case STACK:
+	brtn = m_funcCallStack.isLocalStackIndex(ptr.getPtrSlotIndex(), *this);
+	break;
+      case EVALRETURN:
+	brtn = m_nodeEvalStack.isLocalStackIndex(ptr.getPtrSlotIndex(), *this);
+	break;
+      case CNSTSTACK:
+	brtn = m_constantStack.isLocalStackIndex(ptr.getPtrSlotIndex(), *this);
+	break;
+      case EVENTWINDOW:
+	brtn = false; //data member
+	break;
+      default:
+	abortUndefinedCallStack(); //error!
+	break;
+      };
+    return brtn;
+  } //isLocalUnreturnableAbsoluteReferenceForEval
+
+
   //general purpose store
   void CompilerState::assignValue(UlamValue lptr, UlamValue ruv)
   {

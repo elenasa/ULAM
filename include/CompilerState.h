@@ -400,6 +400,11 @@ namespace MFM{
 
     UlamValue getPtrTargetFromAbsoluteIndex(UlamValue ptr);
 
+    /** returns true if local variable */
+    bool isLocalUnreturnableReferenceForEval(UlamValue ptr);
+
+    bool isLocalUnreturnableAbsoluteReferenceForEval(UlamValue ptr);
+
     /** general purpose store value (except for Ptr as value) */
     void assignValue(UlamValue lptr, UlamValue ruv);
 

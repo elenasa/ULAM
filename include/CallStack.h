@@ -82,6 +82,10 @@ namespace MFM
 
     void assignUlamValuePtr(UlamValue pluv, UlamValue puv);
 
+    bool isLocalSlot(s32 slot, CompilerState& state);
+
+    bool isLocalStackIndex(u32 index, CompilerState& state);
+
     void pushArg(UlamValue arg);  //doesn't change framepointer
 
     void popArgs(u32 num);        //doesn't change framepointer
