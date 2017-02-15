@@ -1,0 +1,64 @@
+## -*- mode:ulam -*-
+#=t41032_test_compiler_element_classreffuncreturnvalue
+##
+## gen output: (+ assert)
+##  Int(3) Arg: 0x1
+##
+#!
+Exit status: 1
+Ue_Foo { Int(3) m_i(3);  Int(32) test() {  System s;  ( )caller1 Foo f3;  f3 m_i . 1 cast = Foo& r = ( f3 cast false )caller2;  s ( r m_i . )print . s ( r m_i . 1 cast == )assert . r m_i . cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by Dave email 2/10/2017 and t41030
+##
+#>Foo.ulam
+  ulam 2;
+element Foo
+{
+  Int(3) m_i = 3;
+
+  Foo & func(Foo& arg1, Foo& arg2, Bool barg)
+  {
+    if(barg)
+      return arg1;
+    return arg2;
+  }
+
+  Void caller1()
+  {
+    Foo f1;
+    caller2(f1, false);
+  }
+
+  Foo & caller2(Foo& a1, Bool barg)
+  {
+    Foo f2;
+    Foo & r2 = f2;
+    return func(r2, a1, barg);  // Safe or not?  Can't know til runtime.
+  }
+
+  Int test() {
+    System s;
+    caller1();
+    Foo f3;
+    f3.m_i = 1;
+    Foo & r = caller2(f3, false);
+    //Foo & t = caller2(f3, true); //see fail/t41030
+    s.print(r.m_i);
+    s.assert(r.m_i == 1);
+    return r.m_i;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

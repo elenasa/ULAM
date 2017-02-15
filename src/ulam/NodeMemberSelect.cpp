@@ -457,9 +457,10 @@ namespace MFM {
 
     uvpass = ruvpass;
 
-    //tmp variable needed for any function call (t41006), including 'aref'(t41005);
-    // uvpass not necessarily returning a reference type (t3913,4,5,7)
-    if(m_nodeRight->isFunctionCall())
+    //tmp variable needed for any function call not returning a ref (t41006), including 'aref'(t41005); func calls returning a ref already made tmpvar.
+    // uvpass not necessarily returning a reference type (t3913,4,5,7);
+    // t41035 returns a primitive ref; t3946, t3948
+    if(m_nodeRight->isFunctionCall() && !m_state.isReference(uvpass.getPassTargetType()))
       {
 	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks
 	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);

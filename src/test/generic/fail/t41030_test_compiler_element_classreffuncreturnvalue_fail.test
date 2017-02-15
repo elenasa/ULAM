@@ -8,7 +8,7 @@
 Exit status: -1
 Ue_Foo { Int(3) m_i(3);  Int(32) test() {  Foo f3;  f3 m_i . 1 cast = Foo& r = ( f3 cast )caller2;  r m_i . cast return } }
 ##
-## informed by Dave email 2/10/2017 and t41029
+## informed by Dave email 2/10/2017 and t41029, see safe/t41032
 ##
 #>Foo.ulam
   ulam 2;
@@ -18,8 +18,6 @@ element Foo
 
   Foo & func(Foo& arg1, Foo& arg2)
   {
-    //Random random;
-    //if (random.oneIn(2))
     if(arg1.m_i == 3)
       return arg1;
     return arg2;

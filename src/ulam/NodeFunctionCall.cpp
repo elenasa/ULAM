@@ -886,7 +886,7 @@ namespace MFM {
     if(getNodeType() != Void)
       {
 	UTI vuti = uvpass.getPassTargetType();
-	// can we skip reading classes???
+	// skip reading classes
 	if(m_state.getUlamTypeByIndex(vuti)->isPrimitiveType())
 	  {
 	    Node::genCodeConvertABitVectorIntoATmpVar(fp, uvpass); //inc uvpass slot
@@ -899,15 +899,10 @@ namespace MFM {
   {
     genCodeIntoABitValue(fp,uvpass);
 
-    UTI rtnType = uvpass.getPassTargetType();
-    //return atom ref (t41031)
-    //if(m_state.isAClass(rtnType))
-    //if(m_state.isReference(rtnType) || m_state.isAClass(rtnType))
-    if(m_state.isAtom(rtnType) || m_state.isAClass(rtnType))
-      {
-	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL);
-	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
-      }
+    //return atom ref (t41031,t41033), class ref(t41030,t41032),
+    // primitive ref (t41034,t41035)
+    m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL);
+    m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
   } //codeGenToStoreInto
 
   void NodeFunctionCall::genCodeIntoABitValue(File * fp, UVPass& uvpass)

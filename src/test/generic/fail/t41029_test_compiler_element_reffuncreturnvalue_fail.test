@@ -1,5 +1,6 @@
 ## -*- mode:ulam -*-
 #=t41029_test_compiler_element_reffuncreturnvalue_fail
+##
 ## gen error:
 ## include/Ue_10173Foo10.tcc:94: FAILED: UNRETURNABLE_REFERENCE
 ##
