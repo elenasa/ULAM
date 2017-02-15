@@ -1,0 +1,62 @@
+## -*- mode:ulam -*-
+#=t41033_test_compiler_element_atomreffuncreturnvalue
+##
+## gen output: assert
+##
+## cannot eval caller2 atom ref return type that is element Foo, too
+##
+#!
+Exit status: -11
+Ue_Foo { Int(32) test() {  System s;  ( )caller1 Atom(96) f3;  Atom(96)& r = ( f3 cast false )caller2;  s ( r Foo is ! )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by Dave email 2/10/2017 and t41031
+##
+#>Foo.ulam
+  ulam 2;
+element Foo
+{
+  Atom & func(Atom& arg1, Atom& arg2, Bool barg)
+  {
+    if(barg)
+      return arg1;
+    return arg2;
+  }
+
+  Void caller1()
+  {
+    Foo f1;
+    caller2(f1.atomof, false);
+  }
+
+  Atom & caller2(Atom& a1, Bool barg)
+  {
+    Foo f2;
+    Atom & r2 = f2.atomof;
+    return func(r2, a1, barg);  // Safe or not?  Can't know til runtime.
+  }
+
+  Int test() {
+    System s;
+    caller1();
+
+    Atom f3;
+    Atom & r = caller2(f3, false);
+    s.assert(!(r is Foo));
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

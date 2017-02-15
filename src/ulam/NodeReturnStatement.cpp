@@ -367,7 +367,7 @@ namespace MFM {
 
 	if(isCurrentObjectALocalVariableOrArgument())
 	  {
-	    //t41029-30
+	    //t41029-35
 	    m_state.indentUlamCode(fp);
 	    fp->write("if(_IsLocal((void *) &");
 	    fp->write(cossym->getMangledName().c_str());
@@ -383,16 +383,21 @@ namespace MFM {
 	    m_state.m_currentIndentLevel--;
 	  }
 
-	u32 id = cossym->getId();
-	s32 tmprefnum = m_state.getNextTmpVarNumber();
+	//no need to make a tmp symbol if the symbol already is one
+	// e.g. func call ref returned (t41030-35)
+	if(!cossym->isTmpVarSymbol())
+	  {
+	    u32 id = cossym->getId();
+	    s32 tmprefnum = m_state.getNextTmpVarNumber();
 
-	UVPass luvpass = UVPass::makePass(tmprefnum, TMPAUTOREF, nuti, m_state.determinePackable(nuti), m_state, 0, id);
-	SymbolTmpVar * tmpvarsym = Node::makeTmpVarSymbolForCodeGen(luvpass, cossym);
-	assert(tmpvarsym);
+	    UVPass luvpass = UVPass::makePass(tmprefnum, TMPAUTOREF, nuti, m_state.determinePackable(nuti), m_state, 0, id);
+	    SymbolTmpVar * tmpvarsym = Node::makeTmpVarSymbolForCodeGen(luvpass, cossym);
+	    assert(tmpvarsym);
 
-	Node::genCodeReferenceInitialization(fp, rtnuvpass, tmpvarsym);
-	delete tmpvarsym;
-	uvpass = luvpass;
+	    Node::genCodeReferenceInitialization(fp, rtnuvpass, tmpvarsym);
+	    delete tmpvarsym;
+	    uvpass = luvpass;
+	  }
       }
       //else //t3653, t3223
 
