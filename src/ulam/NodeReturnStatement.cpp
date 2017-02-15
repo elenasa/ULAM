@@ -385,21 +385,21 @@ namespace MFM {
 
 	//no need to make a tmp symbol if the symbol already is one
 	// e.g. func call ref returned (t41030-35)
-	if(!cossym->isTmpVarSymbol())
-	  {
-	    u32 id = cossym->getId();
-	    s32 tmprefnum = m_state.getNextTmpVarNumber();
+	//if(!cossym->isTmpVarSymbol()) makes ulamexports EVentWindow very unhappy!
+	{
+	  u32 id = cossym->getId();
+	  s32 tmprefnum = m_state.getNextTmpVarNumber();
 
-	    UVPass luvpass = UVPass::makePass(tmprefnum, TMPAUTOREF, nuti, m_state.determinePackable(nuti), m_state, 0, id);
-	    SymbolTmpVar * tmpvarsym = Node::makeTmpVarSymbolForCodeGen(luvpass, cossym);
-	    assert(tmpvarsym);
+	  UVPass luvpass = UVPass::makePass(tmprefnum, TMPAUTOREF, nuti, m_state.determinePackable(nuti), m_state, 0, id);
+	  SymbolTmpVar * tmpvarsym = Node::makeTmpVarSymbolForCodeGen(luvpass, cossym);
+	  assert(tmpvarsym);
 
-	    Node::genCodeReferenceInitialization(fp, rtnuvpass, tmpvarsym);
-	    delete tmpvarsym;
-	    uvpass = luvpass;
-	  }
+	  Node::genCodeReferenceInitialization(fp, rtnuvpass, tmpvarsym);
+	  delete tmpvarsym;
+	  uvpass = luvpass;
+	}
       }
-      //else //t3653, t3223
+    //else //t3653, t3223
 
     m_state.indentUlamCode(fp);
     fp->write("return ");
