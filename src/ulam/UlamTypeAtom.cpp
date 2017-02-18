@@ -204,6 +204,12 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("u32 GetType() { return m_ulamref.GetType(); }"); GCNL;
 
+    m_state.indent(fp);
+    fp->write("bool IsWastingRef() const { return (&m_ref.m_stg == &m_wasted);}"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("void * GetStorageRawPtr() { if(IsWastingRef()) return (void *) &m_ulamref.GetStorage(); return (void *) &m_ref.m_stg; }"); GCNL;
+
     fp->write("\n");
 
     //constructor for EventWindow native, takes a T&
@@ -223,12 +229,20 @@ namespace MFM {
     fp->write(automangledName.c_str());
     fp->write("(const UlamRef<EC>& arg, s32 idx) : m_ref(m_wasted), m_ulamref(arg, idx, BPA, NULL, UlamRef<EC>::ATOMIC) { }"); GCNL;
 
-    //copy constructor, t3701, t3735, t3753,4,5,6,7,8,9
+    //copy constructor (non-const), t3701, t3735, t3753,4,5,6,7,8,9
+    // required by EventWindow aref method (ulamexports)
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("(");
+    fp->write(automangledName.c_str());
+    fp->write("& arg) : m_ref(arg.IsWastingRef() ? m_wasted : arg.m_ref.m_stg), m_ulamref(arg.m_ulamref.GetPos(), BPA, arg.IsWastingRef() ? arg.m_ulamref.GetStorage() : m_ref, NULL, UlamRef<EC>::ATOMIC, arg.m_ulamref.GetContext()) { }"); GCNL; //t3818, t3820, t3910 STALE_ATOM_REF
+
+    //needed? copy constructor (const), t3701, t3735, t3753,4,5,6,7,8,9
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const ");
     fp->write(automangledName.c_str());
-    fp->write("& arg) : m_ref(arg.m_ref), m_ulamref(arg.m_ulamref, 0, BPA, NULL, UlamRef<EC>::ATOMIC) { }"); GCNL; //t3818, t3820, t3910 STALE_ATOM_REF
+    fp->write("& arg) : m_ref(m_wasted), m_ulamref(arg.m_ulamref, 0, BPA, NULL, UlamRef<EC>::ATOMIC) { /*if(!arg.IsWastingRef())*/ FAIL(UNREACHABLE_CODE); }"); GCNL; //t3818, t3820, t3910 STALE_ATOM_REF
 
     //default destructor (intentionally left out)
 
