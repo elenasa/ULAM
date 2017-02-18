@@ -899,10 +899,14 @@ namespace MFM {
   {
     genCodeIntoABitValue(fp,uvpass);
 
+    //UTI rtnType = uvpass.getPassTargetType();
     //return atom ref (t41031,t41033), class ref(t41030,t41032),
     // primitive ref (t41034,t41035)
-    m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL);
-    m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
+    //if(m_state.isAtom(rtnType) || m_state.isAClass(rtnType) || m_state.isReference(rtnType))
+      {
+	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL);
+	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
+      }
   } //codeGenToStoreInto
 
   void NodeFunctionCall::genCodeIntoABitValue(File * fp, UVPass& uvpass)

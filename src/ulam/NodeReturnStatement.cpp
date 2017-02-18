@@ -367,15 +367,25 @@ namespace MFM {
 
 	if(isCurrentObjectALocalVariableOrArgument())
 	  {
-	    //t41029-35
-	    m_state.indentUlamCode(fp);
-	    fp->write("if(_IsLocal((void *) &");
-	    fp->write(cossym->getMangledName().c_str());
 	    if(m_state.isAtomRef(cosuti))
-	      fp->write(".getUlamRef()");
-	    if(m_state.isReference(cosuti))
-	      fp->write(".GetStorage()");
-	    fp->write("))"); GCNL;
+	      {
+		m_state.indentUlamCode(fp);
+		fp->write("if(_IsLocal(");
+		fp->write(cossym->getMangledName().c_str());
+		fp->write(".GetStorageRawPtr()))"); GCNL;
+	      }
+	    else
+	      {
+		//t41029-35
+		m_state.indentUlamCode(fp);
+		fp->write("if(_IsLocal((void *) &");
+		fp->write(cossym->getMangledName().c_str());
+		//if(m_state.isAtomRef(cosuti))
+		//  fp->write(".getUlamRef()");
+		if(m_state.isReference(cosuti))
+		  fp->write(".GetStorage()");
+		fp->write("))"); GCNL;
+	      }
 
 	    m_state.m_currentIndentLevel++;
 	    m_state.indentUlamCode(fp);
