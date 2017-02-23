@@ -367,6 +367,7 @@ namespace MFM {
 
 	if(isCurrentObjectALocalVariableOrArgument())
 	  {
+#if 0
 	    if(m_state.isAtomRef(cosuti))
 	      {
 		m_state.indentUlamCode(fp);
@@ -375,6 +376,7 @@ namespace MFM {
 		fp->write(".GetStorageRawPtr()))"); GCNL;
 	      }
 	    else
+#endif
 	      {
 		//t41029-35
 		m_state.indentUlamCode(fp);

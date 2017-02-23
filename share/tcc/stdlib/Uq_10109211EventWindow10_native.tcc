@@ -11,32 +11,11 @@ namespace MFM{
   {
     u32 siteNumber = Uv_5index.read();
     EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
-    T & a = ew.GetAtomSym(siteNumber);
+    //T & a = ew.GetAtomSym(siteNumber);
     //static AtomRefBitStorage<EC> arf(a);
-    return Ui_Ut_r102961a<EC>(a, uc);
+    AtomBitStorage<EC> & a = ew.GetAtomBitStorage(siteNumber);
+    return Ui_Ut_r102961a<EC>(a, 0, uc);
   }
-
-#if 0
-  template<class EC>
-  Ui_Ut_102961a<EC> Uq_10109211EventWindow10<EC>::Uf_4aref(const UlamContext<EC> & uc, UlamRef<EC>& ur,
-							       Ui_Ut_10161u<EC>& Uv_5index) const //native
-  {
-    u32 siteNumber = Uv_5index.read();
-    const EventWindow<EC> & ew = uc.GetEventWindow();
-    const T & a = ew.GetAtomSym(siteNumber);
-    return Ui_Ut_102961a<EC>(a);
-  }
-
-  template<class EC>
-  void Uq_10109211EventWindow10<EC>::Uf_4aset(const UlamContext<EC> & uc,
-						  UlamRef<EC>& ur, Ui_Ut_10161u<EC>& Uv_5index,
-						  Ui_Ut_102961a<EC>& Uv_1v) const //native
-  {
-    u32 siteNumber = Uv_5index.read();
-    EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
-    ew.SetAtomSym(siteNumber, Uv_1v.ReadAtom());
-  }
-#endif
 
   template<class EC>
   Ui_Ut_10111b<EC> Uq_10109211EventWindow10<EC>::Uf_6isLive(const UlamContext<EC> & uc,
