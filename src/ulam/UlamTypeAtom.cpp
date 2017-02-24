@@ -141,7 +141,7 @@ namespace MFM {
     return rtnMethod.str();
   } //castMethodForCodeGen
 
-  //version of Atom& that provides a non-stack place for the T& (e.g. ulamexports)
+  // version of Atom& based on an EventWindow with an array of AtomBitStorage
   void UlamTypeAtom::genUlamTypeMangledAutoDefinitionForC(File * fp)
   {
     if(!isScalar())
@@ -174,6 +174,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("struct ");
     fp->write(automangledName.c_str());
+    fp->write(" : public UlamRef<EC>\n");
     m_state.indent(fp);
     fp->write("{\n");
 
@@ -182,67 +183,31 @@ namespace MFM {
     //typedef atomic parameter type inside struct
     UlamType::genStandardConfigTypedefTypenames(fp, m_state);
 
-    //data members instead of inheritance
-    m_state.indent(fp);
-    fp->write("T m_wasted;\n");
-    m_state.indent(fp);
-    fp->write("AtomRefBitStorage<EC> m_ref;\n");
-    m_state.indent(fp);
-    fp->write("UlamRef<EC> m_ulamref;"); GCNL;
-    fp->write("\n");
-
     //read 'entire atom' method
     genUlamTypeAutoReadDefinitionForC(fp);
 
     //write 'entire atom' method
     genUlamTypeAutoWriteDefinitionForC(fp);
 
-    //NEEDED since no longer inherits from UlamRef<EC>
-    m_state.indent(fp);
-    fp->write("UlamRef<EC> & getUlamRef() { return m_ulamref; }"); GCNL;
-
-    m_state.indent(fp);
-    fp->write("u32 GetType() { return m_ulamref.GetType(); }"); GCNL;
-
-    m_state.indent(fp);
-    fp->write("bool IsWastingRef() const { return (&m_ref.m_stg == &m_wasted);}"); GCNL;
-
-    m_state.indent(fp);
-    fp->write("void * GetStorageRawPtr() { if(IsWastingRef()) return (void *) &m_ulamref.GetStorage(); return (void *) &m_ref.m_stg; }"); GCNL;
-
-    fp->write("\n");
-
-    //constructor for EventWindow native, takes a T&
-    m_state.indent(fp);
-    fp->write(automangledName.c_str());
-    fp->write("(T& toModify, const UlamContext<EC>& uc) : m_ref(toModify), m_ulamref(0, BPA, m_ref, uc.LookupUlamElementTypeFromContext(toModify.GetType()), UlamRef<EC>::ATOMIC, uc) { }"); GCNL;
-
     //constructor for ref(auto) (e.g. t3407, 3638, 3639, 3655, 3656, 3657, 3663, 3684, 3692)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(BitStorage<EC>& targ, u32 startidx, const UlamContext<EC>& uc) : m_ref(m_wasted), m_ulamref(startidx, BPA, targ, uc.LookupUlamElementTypeFromContext(targ.ReadAtom(startidx).GetType()), UlamRef<EC>::ATOMIC, uc) { }"); GCNL;
+    fp->write("(BitStorage<EC>& targ, u32 startidx, const UlamContext<EC>& uc) : UlamRef<EC>(startidx, BPA, targ, uc.LookupUlamElementTypeFromContext(targ.ReadAtom(startidx).GetType()), UlamRef<EC>::ATOMIC, uc) { }"); GCNL;
 
     //copy constructor for autoref (chain would be unpacked array,
     // e.g. 3812 requires NULL effself)
     // no extra uc, consistent with other types now.
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(const UlamRef<EC>& arg, s32 idx) : m_ref(m_wasted), m_ulamref(arg, idx, BPA, NULL, UlamRef<EC>::ATOMIC) { }"); GCNL;
+    fp->write("(const UlamRef<EC>& arg, s32 idx) : UlamRef<EC>(arg, idx, BPA, NULL, UlamRef<EC>::ATOMIC) { }"); GCNL;
 
     //copy constructor (non-const), t3701, t3735, t3753,4,5,6,7,8,9
     // required by EventWindow aref method (ulamexports)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(");
+    fp->write("(const "); //??
     fp->write(automangledName.c_str());
-    fp->write("& arg) : m_ref(arg.IsWastingRef() ? m_wasted : arg.m_ref.m_stg), m_ulamref(arg.m_ulamref.GetPos(), BPA, arg.IsWastingRef() ? arg.m_ulamref.GetStorage() : m_ref, NULL, UlamRef<EC>::ATOMIC, arg.m_ulamref.GetContext()) { }"); GCNL; //t3818, t3820, t3910 STALE_ATOM_REF
-
-    //needed? copy constructor (const), t3701, t3735, t3753,4,5,6,7,8,9
-    m_state.indent(fp);
-    fp->write(automangledName.c_str());
-    fp->write("(const ");
-    fp->write(automangledName.c_str());
-    fp->write("& arg) : m_ref(m_wasted), m_ulamref(arg.m_ulamref, 0, BPA, NULL, UlamRef<EC>::ATOMIC) { /*if(!arg.IsWastingRef())*/ FAIL(UNREACHABLE_CODE); }"); GCNL; //t3818, t3820, t3910 STALE_ATOM_REF
+    fp->write("& arg) : UlamRef<EC>(arg, 0, arg.GetLen(), arg.GetEffectiveSelf(), UlamRef<EC>::ATOMIC) { }"); GCNL; //t3818, t3820, t3910 STALE_ATOM_REF
 
     //default destructor (intentionally left out)
 
@@ -267,7 +232,7 @@ namespace MFM {
     fp->write("const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //T
     fp->write(" read() const { ");
-    fp->write("return m_ulamref.");
+    fp->write("return UlamRef<EC>::");
     fp->write(readMethodForCodeGen().c_str());
     fp->write("(); /* read entire atom */ }"); GCNL; //done
   } //genUlamTypeAutoReadDefinitionForC
@@ -280,7 +245,7 @@ namespace MFM {
     fp->write("void write(const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //T or BV
     fp->write("& v) { ");
-    fp->write("m_ulamref.");
+    fp->write("UlamRef<EC>::");
     fp->write(writeMethodForCodeGen().c_str());
     fp->write("(v); /* write entire atom */ }"); GCNL; //done
 
@@ -288,7 +253,7 @@ namespace MFM {
     fp->write("void write(const ");
     fp->write("AtomRefBitStorage<EC>");
     fp->write("& v) { ");
-    fp->write("m_ulamref.");
+    fp->write("UlamRef<EC>::");
     fp->write(writeMethodForCodeGen().c_str());
     fp->write("(v.ReadAtom()); /* write entire atom */ }"); GCNL; //done
   } //genUlamTypeAutoWriteDefinitionForC

@@ -967,8 +967,8 @@ namespace MFM {
       {
 	UTI luti = luvpass.getPassTargetType();
 	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	if(m_state.isAtomRef(luti))
-	  fp->write(".getUlamRef()"); //e.g. t3663
+	//if(m_state.isAtomRef(luti))
+	//  fp->write(".getUlamRef()"); //e.g. t3663
 	fp->write(".");
 	fp->write(writeMethodForCodeGen(luti, luvpass).c_str());
       }
@@ -2656,8 +2656,8 @@ namespace MFM {
     if(cosut->isReference())
       {
 	fp->write(cos->getMangledName().c_str()); //ref (t3908)
-	if(m_state.isAtomRef(cosuti))
-	  fp->write(".getUlamRef()"); //DReg ulamexports, t3908
+	//if(m_state.isAtomRef(cosuti))
+	//  fp->write(".getUlamRef()"); //DReg ulamexports, t3908
 	fp->write(", ");
       }
 

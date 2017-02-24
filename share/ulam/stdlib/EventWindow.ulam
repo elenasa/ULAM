@@ -72,9 +72,6 @@ quark EventWindow {
   Atom& aref(SiteNum index) native;
   Atom& aref(C2D coord) { return aref(getSiteNumberRaw(coord)); }
 
-  //Void aset(SiteNum index, Atom val) native;
-  //Void aset(C2D coord, Atom val) { aset(getSiteNumberRaw(coord), val); }
-
   Bool isLegal(SiteNum index) { return index < size(); }
   Bool isLegal(C2D coord) { return isLegal(getSiteNumberRaw(coord)); }
 

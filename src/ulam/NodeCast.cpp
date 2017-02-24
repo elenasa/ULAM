@@ -824,8 +824,8 @@ namespace MFM {
 	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	if(uvpass.getPassStorage() == TMPBITVAL)
 	  {
-	    if(m_state.isAtomRef(vuti))
-	      fp->write(".getUlamRef()");
+	    //if(m_state.isAtomRef(vuti))
+	    //  fp->write(".getUlamRef()");
 	    fp->write(".");
 	    fp->write(vut->readMethodForCodeGen().c_str());
 	    fp->write("()");
@@ -848,15 +848,15 @@ namespace MFM {
 	    fp->write(m_state.getTmpVarAsString(tobeType, tmpeleref, TMPBITVAL).c_str());
 	    fp->write("(");
 	    fp->write(stgcos->getMangledName().c_str()); //assumes only one!!!
-	    if(m_state.isAtomRef(stgcosuti))
-	      fp->write(".getUlamRef()");
+	    //if(m_state.isAtomRef(stgcosuti))
+	    //  fp->write(".getUlamRef()");
 	    fp->write(", ");
 	    //must displace the Typefield for element ref
 	    fp->write("+ T::ATOM_FIRST_STATE_BIT, ");
 	    if(m_state.isAtomRef(stgcosuti)) //t3754
 	      {
 		fp->write(stgcos->getMangledName().c_str()); //assumes only one!!!
-		fp->write(".getUlamRef()");
+		//fp->write(".getUlamRef()");
 		fp->write(".GetEffectiveSelf()"); //maintains eff self
 	      }
 	    else
@@ -1052,7 +1052,7 @@ namespace MFM {
 	    if(m_state.isAtomRef(stguti))
 	      {
 		fp->write(stgcos->getMangledName().c_str()); //ref
-		fp->write(".getUlamRef(),");
+		//fp->write(".getUlamRef(),");
 	      }
 	    fp->write("0u + T::ATOM_FIRST_STATE_BIT, ");
 	    fp->write_decimal_unsigned(tobe->getTotalBitSize());
@@ -1108,8 +1108,8 @@ namespace MFM {
 
 	if(m_state.isAtom(vuti))
 	  {
-	    if(m_state.isAtomRef(stguti))
-	      fp->write(".getUlamRef()"); //t3986
+	    //if(m_state.isAtomRef(stguti))
+	    //  fp->write(".getUlamRef()"); //t3986
 	    //from atom/ref, for known quark ref: t3631, t3632, t3633
 	    fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, "); //'is' &
 	    fp->write("NULL"); //look up effself t3837
