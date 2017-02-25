@@ -12,9 +12,7 @@ namespace MFM{
   {
     u32 siteNumber = Uv_5index.read();
     EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
-    T & a = ew.GetAtomSym(siteNumber);
-    static AtomRefBitStorage<EC> arf(a);
-    return Ui_Ut_r102961a<EC>(arf, 0u, uc);
+    return Ui_Ut_r102961a<EC>(ew.GetAtomBitStorage(siteNumber), 0u, uc);
   }
 
 } //MFM
