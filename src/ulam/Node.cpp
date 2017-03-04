@@ -966,9 +966,7 @@ namespace MFM {
     else
       {
 	UTI luti = luvpass.getPassTargetType();
-	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	//if(m_state.isAtomRef(luti))
-	//  fp->write(".getUlamRef()"); //e.g. t3663
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //e.g. t3663 atomref
 	fp->write(".");
 	fp->write(writeMethodForCodeGen(luti, luvpass).c_str());
       }
@@ -2647,6 +2645,14 @@ namespace MFM {
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     assert(cosut->isScalar()); //cos array
 
+    //atom ref doesn't need another wrapper (t3818, t3820)
+    if(m_state.isAtomRef(cosuti))
+      {
+	fp->write(cos->getMangledName().c_str());
+	fp->write(".");
+	return; //done
+      }
+
     u32 pos = uvpass.getPassPos();
 
     fp->write("UlamRef<EC>("); //wrapper for local storage
@@ -2656,8 +2662,6 @@ namespace MFM {
     if(cosut->isReference())
       {
 	fp->write(cos->getMangledName().c_str()); //ref (t3908)
-	//if(m_state.isAtomRef(cosuti))
-	//  fp->write(".getUlamRef()"); //DReg ulamexports, t3908
 	fp->write(", ");
       }
 
