@@ -57,6 +57,18 @@ namespace MFM {
     m_nodeElse = elseNode;
   }
 
+  void NodeControlIf::chainAnotherElseNode(NodeControlIf * elseNode)
+  {
+    if(m_nodeElse == NULL)
+      return setElseNode(elseNode); //t41038
+
+    //assert m_nodeElse is a NodeControlIf; called by parseControlSwitch
+    // t41037, t41018
+    assert(this->prettyNodeName().compare(m_nodeElse->prettyNodeName()) == 0);
+    NodeControlIf * elseswaptmp = (NodeControlIf *) m_nodeElse;
+    elseswaptmp->setElseNode(elseNode);
+  } //chainAnotherElseNode
+
   void NodeControlIf::checkAbstractInstanceErrors()
   {
     NodeControl::checkAbstractInstanceErrors();

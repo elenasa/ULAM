@@ -1570,18 +1570,13 @@ namespace MFM {
 
     NodeControlIf * casesNode = NULL;
     Node * defaultcaseNode = NULL;
-    parseNextCase(swcondIdent, casesNode, defaultcaseNode);
-
-    if(casesNode == NULL)
-      {
-	delete swcondIdent;
-	m_state.popClassContext(); //the pop
-	delete rtnNode;
-	return NULL; //stop this maddness
-      }
+    bool solodefaultcase = false;
+    parseNextCase(swcondIdent, casesNode, defaultcaseNode, solodefaultcase);
 
     if(!getExpectedToken(TOK_CLOSE_CURLY))
       {
+	if(solodefaultcase)
+	  delete defaultcaseNode;
 	delete casesNode;
 	delete swcondIdent;
 	m_state.popClassContext(); //the pop
@@ -1593,6 +1588,8 @@ namespace MFM {
     if(!getExpectedToken(TOK_SEMICOLON, pTok, QUIETLY))
       {
 	MSG(&pTok, "Invalid Switch Statement (possible missing semicolon)", ERR);
+	if(solodefaultcase)
+	  delete defaultcaseNode;
 	delete casesNode;
 	delete swcondIdent;
 	m_state.popClassContext(); //the pop
@@ -1600,8 +1597,18 @@ namespace MFM {
 	return NULL; //stop this maddness
       }
 
-    //got all the cases:
-    rtnNode->appendNextNode(casesNode);
+    //append a solo default case, if any, last
+    if(defaultcaseNode && solodefaultcase)
+      {
+	if(casesNode)
+	  casesNode->chainAnotherElseNode((NodeControlIf *) defaultcaseNode); //link to last if (t41037)
+	else
+	  casesNode = (NodeControlIf *) defaultcaseNode; //only default case in switch (t41038)
+      }
+
+    //got all the cases: (empty switch ok t41036)
+    if(casesNode)
+      rtnNode->appendNextNode(casesNode);
 
     //label for end-of-switch breaks (t41018)
     u32 swexitnum = m_state.m_parsingControlLoopsSwitchStack.getNearestBreakExitNumber();
@@ -1615,7 +1622,7 @@ namespace MFM {
     return rtnNode;
   } //parseControlSwitch
 
-  Node * Parser::parseNextCase(Node * condLeftNode, NodeControlIf *& switchNode, Node *& defaultNode)
+  Node * Parser::parseNextCase(Node * condLeftNode, NodeControlIf *& switchNode, Node *& defaultNode, bool& solodefaultarg)
   {
     //get as many cases that share the same body
     Node * casecondition = NULL;
@@ -1633,6 +1640,8 @@ namespace MFM {
 	unreadToken();
 	return NULL; //done
       }
+
+    bool issolodefaultcase = (casecondition == defaultNode); //compare addresses
 
     Token pTok;
     getNextToken(pTok);
@@ -1661,11 +1670,17 @@ namespace MFM {
     assert(ifNode);
     ifNode->setNodeLocation(casecondition->getNodeLocation());
 
-    if(switchNode != NULL)
+    if(issolodefaultcase)
+      {
+	defaultNode = ifNode; //t41037 save for last!
+	//ifNode = switchNode; //no change to switch arg yet
+	solodefaultarg = issolodefaultcase || solodefaultarg; //update ref arg
+      }
+    else if(switchNode != NULL)
       switchNode->setElseNode(ifNode); //link to previous if-
     else
       switchNode = ifNode; //set parent ref
-    return parseNextCase(condLeftNode, ifNode, defaultNode); //recurse
+    return parseNextCase(condLeftNode, (issolodefaultcase ? switchNode : ifNode), defaultNode, solodefaultarg); //recurse
   } //parseNextCase
 
   Node * Parser::parseRestOfCase(Node * condLeftNode, Node * caseCond, Node *& defaultcase)
