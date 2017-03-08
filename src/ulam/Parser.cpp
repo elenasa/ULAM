@@ -1684,7 +1684,7 @@ namespace MFM {
 	    return NULL; //stop this maddness (e.g. t41037)
 	  }
 
-	Node * rightNode = parseEqExpression();
+	Node * rightNode = parseAssignExpr(); //t41039
 	if(!rightNode)
 	  {
 	    std::ostringstream msg;
