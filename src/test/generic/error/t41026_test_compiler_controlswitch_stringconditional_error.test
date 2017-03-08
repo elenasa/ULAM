@@ -15,7 +15,7 @@ element A {
   Int test() {
     String str = "hello";
     b = 0;
-    switch(str)
+    which(str)
     {
     case "world":
       {
@@ -27,7 +27,7 @@ element A {
 	b = 3;
 	break;
       }
-    default:
+    otherwise:
       {
 	b = 1;
       }

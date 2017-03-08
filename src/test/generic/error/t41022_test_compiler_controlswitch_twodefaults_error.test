@@ -1,10 +1,10 @@
 ## -*- mode:ulam -*-
 #=t41022_test_compiler_controlswitch_twodefaults_error
 #!
-./A.ulam:21:5: ERROR: Multiple default labels in one switch; first default label on line 10.
-./A.ulam:21:12: ERROR: Incomplete condition; switch-control failure.
-./A.ulam:21:12: ERROR: Invalid Statement (possible missing semicolon).
-./A.ulam:24:2: ERROR: Break statement not within loop or switch.
+./A.ulam:21:5: ERROR: Multiple 'otherwise' labels in one which-control statement; first one on line 16.
+./A.ulam:21:14: ERROR: Incomplete condition; which-control failure.
+./A.ulam:21:14: ERROR: Invalid Statement (possible missing semicolon).
+./A.ulam:24:2: ERROR: Break statement not within loop or which-control.
 ./A.ulam:26:6: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 Unrecoverable Program Parse FAILURE: <A.ulam>
 ./A.ulam:27:5: ERROR: Invalid Class Type <s>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
@@ -20,20 +20,20 @@ element A {
   Int test() {
     a = 2;
     b = 0;
-    switch((--a))
+    which((--a))
     {
-    default:
-    case 0:
-      {
-	b = 2;
-	break;
-      }
     case -1:
       {
 	b = 3;
 	break;
       }
-    default:
+    case 0:
+    otherwise:
+      {
+	b = 2;
+	break;
+      }
+    otherwise:
       {
 	b = 1; //<- hits
 	break;

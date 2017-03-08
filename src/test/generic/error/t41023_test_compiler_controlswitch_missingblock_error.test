@@ -1,8 +1,8 @@
 ## -*- mode:ulam -*-
 #=t41023_test_compiler_controlswitch_missingblock_error
 #!
-./A.ulam:16:2: ERROR: Block expected for condition; switch-control failure.
-./A.ulam:17:2: ERROR: Break statement not within loop or switch.
+./A.ulam:16:2: ERROR: Block expected for condition; which-control failure.
+./A.ulam:17:2: ERROR: Break statement not within loop or which-control.
 ./A.ulam:18:5: ERROR: Invalid Statement (possible missing semicolon).
 ./A.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'A'; Possible missing ending curly brace.
 ./A.ulam:20:6: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
@@ -19,7 +19,7 @@ element A {
   Int test() {
     a = 2;
     b = 0;
-    switch((--a))
+    which((--a))
     {
     case 0:
       {
@@ -29,7 +29,7 @@ element A {
     case -1:
 	b = 3;
 	break;
-    default:
+    otherwise:
       b = 1;
     };
     s.print(b);

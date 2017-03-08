@@ -26,7 +26,7 @@ element A {
     b = 0;
     while(true)
     {
-      switch((--a))
+      which((--a))
       {
       case 0:
 	{
@@ -38,7 +38,7 @@ element A {
 	  b = 3;
 	  break; //to end of switch <--the test.
 	}
-      default:
+      otherwise:
 	{
 	  b = 1;
 	  //break; falls through..

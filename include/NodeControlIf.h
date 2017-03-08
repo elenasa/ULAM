@@ -59,8 +59,6 @@ namespace MFM{
 
     void setElseNode(Node * elseNode);
 
-    void chainAnotherElseNode(NodeControlIf * elseNode);
-
     virtual void checkAbstractInstanceErrors();
 
     virtual void printPostfix(File * fp);
