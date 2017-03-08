@@ -20,7 +20,7 @@ element A {
   Int test() {
     a = 2;
     b = true;
-    switch(!b)
+    which(!b)
     {
     case true:
       {
@@ -32,7 +32,7 @@ element A {
 	a--;
 	break;
       }
-    default:
+    otherwise:
       {
 	break;
       }

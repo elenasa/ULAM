@@ -20,7 +20,7 @@ element A {
   Int test() {
     a = 1;
     b = 0;
-    switch((--a))
+    which((--a))
     {
     case 0:
       {

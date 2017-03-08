@@ -1511,7 +1511,7 @@ namespace MFM {
     if(!condNode)
       {
 	std::ostringstream msg;
-	msg << "Invalid switch-condition";
+	msg << "Invalid which-control condition";
 	MSG(&swTok, msg.str().c_str(), ERR);
 	m_state.popClassContext(); //the pop
 	delete rtnNode;
@@ -1572,14 +1572,6 @@ namespace MFM {
     Node * defaultcaseNode = NULL;
     parseNextCase(swcondIdent, casesNode, defaultcaseNode);
 
-    if(casesNode == NULL)
-      {
-	delete swcondIdent;
-	m_state.popClassContext(); //the pop
-	delete rtnNode;
-	return NULL; //stop this maddness
-      }
-
     if(!getExpectedToken(TOK_CLOSE_CURLY))
       {
 	delete casesNode;
@@ -1592,7 +1584,7 @@ namespace MFM {
     Token pTok;
     if(!getExpectedToken(TOK_SEMICOLON, pTok, QUIETLY))
       {
-	MSG(&pTok, "Invalid Switch Statement (possible missing semicolon)", ERR);
+	MSG(&pTok, "Invalid Which-control Statement (possible missing semicolon)", ERR);
 	delete casesNode;
 	delete swcondIdent;
 	m_state.popClassContext(); //the pop
@@ -1600,8 +1592,9 @@ namespace MFM {
 	return NULL; //stop this maddness
       }
 
-    //got all the cases:
-    rtnNode->appendNextNode(casesNode);
+    //got all the cases: (empty switch ok t41036)
+    if(casesNode)
+      rtnNode->appendNextNode(casesNode);
 
     //label for end-of-switch breaks (t41018)
     u32 swexitnum = m_state.m_parsingControlLoopsSwitchStack.getNearestBreakExitNumber();
@@ -1627,7 +1620,7 @@ namespace MFM {
 	if(!getExpectedToken(TOK_CLOSE_CURLY, eTok, QUIETLY))
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete condition; switch-control failure";
+	    msg << "Incomplete condition; which-control failure";
 	    MSG(&eTok, msg.str().c_str(), ERR); //e.g. t41027
 	  }
 	unreadToken();
@@ -1640,7 +1633,7 @@ namespace MFM {
     if(pTok.m_type != TOK_OPEN_CURLY)
       {
 	std::ostringstream msg;
-	msg << "Block expected for condition; switch-control failure";
+	msg << "Block expected for condition; which-control failure";
 	MSG(&pTok, msg.str().c_str(), ERR); //t41023,41024
 	delete casecondition;
 	return NULL;
@@ -1652,7 +1645,7 @@ namespace MFM {
     if(!trueNode)
       {
 	std::ostringstream msg;
-	msg << "Incomplete true block; switch-control failure";
+	msg << "Incomplete true block; which-control failure";
 	MSG(casecondition->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return NULL; //stop this maddness
       }
@@ -1681,11 +1674,21 @@ namespace MFM {
     Node * casecondition = NULL;
     if(cTok.m_type == TOK_KW_CASE)
       {
+	if(defaultcase != NULL)
+	  {
+	    std::ostringstream msg;
+	    msg << "Case appears after 'otherwise' clause in which-control statement; 'otherwise' label on line ";
+	    msg << defaultcase->getNodeLocation().getLineNo();
+	    MSG(&cTok, msg.str().c_str(), ERR);
+	    delete caseCond;
+	    return NULL; //stop this maddness (e.g. t41037)
+	  }
+
 	Node * rightNode = parseEqExpression();
 	if(!rightNode)
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete case expression; switch-control failure";
+	    msg << "Incomplete case expression; which-control failure";
 	    MSG(&cTok, msg.str().c_str(), ERR);
 	    delete caseCond;
 	    return NULL; //stop this maddness
@@ -1710,7 +1713,7 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Multiple default labels in one switch; first default label on line ";
+	    msg << "Multiple 'otherwise' labels in one which-control statement; first one on line ";
 	    msg << defaultcase->getNodeLocation().getLineNo();
 	    MSG(&cTok, msg.str().c_str(), ERR);
 	    delete caseCond;
@@ -1914,7 +1917,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    MSG(&pTok,"Break statement not within loop or switch" , ERR);
+	    MSG(&pTok,"Break statement not within loop or which-control" , ERR);
 	  }
       }
     else if(pTok.m_type == TOK_KW_CONTINUE)

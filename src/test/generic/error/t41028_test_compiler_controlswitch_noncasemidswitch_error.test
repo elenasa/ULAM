@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41028_test_compiler_controlswitch_noncasemidswitch_error
 #!
-./A.ulam:19:7: ERROR: Incomplete condition; switch-control failure.
+./A.ulam:19:7: ERROR: Incomplete condition; which-control failure.
 ./A.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'A'; Possible missing ending curly brace.
 ./A.ulam:20:6: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./A.ulam:2:9: ERROR: Invalid Type: A.
@@ -17,7 +17,7 @@ element A {
   Int test() {
     a = 1;
     b = 0;
-    switch((--a))
+    which((--a))
     {
     case 0:
       {

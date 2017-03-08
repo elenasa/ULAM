@@ -1,9 +1,9 @@
 ## -*- mode:ulam -*-
 #=t41027_test_compiler_controlswitch_noncase_error
 #!
-./A.ulam:9:7: ERROR: Incomplete condition; switch-control failure.
+./A.ulam:9:7: ERROR: Incomplete condition; which-control failure.
 ./A.ulam:10:5: ERROR: Invalid Statement (possible missing semicolon).
-./A.ulam:13:2: ERROR: Break statement not within loop or switch.
+./A.ulam:13:2: ERROR: Break statement not within loop or which-control.
 ./A.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'A'; Possible missing ending curly brace.
 ./A.ulam:15:5: ERROR: Invalid Class Type <case>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./A.ulam:2:9: ERROR: Invalid Type: A.
@@ -19,7 +19,7 @@ element A {
   Int test() {
     a = 1;
     b = 0;
-    switch((--a))
+    which((--a))
     {
       Int goofball; //<--error
     case 0:
