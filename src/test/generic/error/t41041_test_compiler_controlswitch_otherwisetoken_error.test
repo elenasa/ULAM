@@ -1,0 +1,55 @@
+## -*- mode:ulam -*-
+#=t41041_test_compiler_controlswitch_otherwisetoken_error
+#!
+./A.ulam:18:5: ERROR: Incomplete condition; which-control failure.
+./A.ulam:18:12: ERROR: Invalid Statement (possible missing semicolon).
+./A.ulam:22:6: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <A.ulam>
+./A.ulam:23:5: ERROR: Invalid Class Type <s>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <System.ulam>
+##
+## 'default' is not an ulam keyword
+##
+#>A.ulam
+  ulam 2;
+element A {
+  System s;
+  Int a, b;
+  Int test() {
+    a = 1;
+    b = 0;
+    which((--a)) //now which token
+    {
+    case 0:
+      {
+	b = 2; //hits, no fall through
+      }
+    case -1:
+      {
+	b = 3;
+      }
+    default: //now otherwise token
+      {
+	b = 1;
+      }
+    };
+    s.print(b);
+    s.assert(b == 2);
+    s.print(a);
+    s.assert(a == 0);
+    return a;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

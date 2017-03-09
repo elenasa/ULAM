@@ -654,7 +654,9 @@ namespace MFM {
 		// keep the out-of-band name; other's might refer to its UTI.
 		// if its UTI is a unseen class, we can update the name of the class later
 		// don't want to rush this step since we might have a class w args and diff UTI.
-		if((tclasstype == UC_NOTACLASS))
+		// furthermore, unseen class may not be a class at all (e.g. dot assumption wrong .maxof)
+		//if((tclasstype == UC_NOTACLASS))
+		  if((tclasstype == UC_NOTACLASS) || (tclasstype == UC_UNSEEN))
 		  {
 		    ULAMTYPE bUT = m_state.getBaseTypeFromToken(args.m_typeTok);
 

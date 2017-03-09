@@ -2139,21 +2139,27 @@ namespace MFM {
       {
 	UTI cuti = cnsym->getUlamTypeIdx();
 	UlamType * cut = getUlamTypeByIndex(cuti);
-	assert((cut->getUlamClassType() == UC_UNSEEN) || (cut->getUlamClassType() == UC_LOCALSFILESCOPE));
 
-	UlamKeyTypeSignature ckey = cut->getUlamKeyTypeSignature();
+	if((cut->getUlamClassType() == UC_UNSEEN) || (cut->getUlamClassType() == UC_LOCALSFILESCOPE))
+	  {
+	    UlamKeyTypeSignature ckey = cut->getUlamKeyTypeSignature();
 
-	deleteUlamKeyTypeSignature(ckey, cuti); //decrements counter
+	    deleteUlamKeyTypeSignature(ckey, cuti); //decrements counter
 
-	resetUnseenClass(cnsym, nTok); //before removing it from programDefST
+	    resetUnseenClass(cnsym, nTok); //before removing it from programDefST
 
-	Symbol * rmcnsym  = NULL;
-	AssertBool isGone = m_programDefST.removeFromTable(id, rmcnsym);
-	assert(isGone);
-	assert(rmcnsym == cnsym);
-	delete rmcnsym;
-	rmcnsym = cnsym = NULL;
-	rtnb = true;
+	    Symbol * rmcnsym  = NULL;
+	    AssertBool isGone = m_programDefST.removeFromTable(id, rmcnsym);
+	    assert(isGone);
+	    assert(rmcnsym == cnsym);
+	    delete rmcnsym;
+	    rmcnsym = cnsym = NULL;
+	    rtnb = true;
+	  }
+	else
+	  {
+	    assert(cut->isComplete()); //t3381, t3385
+	  }
       }
     return rtnb;
   } //removeIncompleteClassSymbolFromProgramTable

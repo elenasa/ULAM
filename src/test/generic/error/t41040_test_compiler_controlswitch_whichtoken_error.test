@@ -1,0 +1,57 @@
+## -*- mode:ulam -*-
+#=t41040_test_compiler_controlswitch_whichtoken_error
+#!
+./A.ulam:9:5: ERROR: Invalid Statement (possible missing semicolon).
+./A.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'A'; Possible missing ending curly brace.
+./A.ulam:14:5: ERROR: Invalid Class Type <case>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./A.ulam:2:9: ERROR: Invalid Type: A.
+ ERROR: No parse tree for This Class: A.
+Unrecoverable Program Parse FAILURE: <A.ulam>
+./A.ulam:14:10: ERROR: Invalid Class Type <->; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <System.ulam>
+##
+## 'switch' is not an ulam keyword
+##
+#>A.ulam
+  ulam 2;
+element A {
+  System s;
+  Int a, b;
+  Int test() {
+    a = 1;
+    b = 0;
+    switch((--a)) //now which token
+    {
+    case 0:
+      {
+	b = 2; //hits, no fall through
+      }
+    case -1:
+      {
+	b = 3;
+      }
+    default: //now otherwise token
+      {
+	b = 1;
+      }
+    };
+    s.print(b);
+    s.assert(b == 2);
+    s.print(a);
+    s.assert(a == 0);
+    return a;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

@@ -1,0 +1,57 @@
+## -*- mode:ulam -*-
+#=t41039_test_compiler_controlswitch_nonconstantcaseexpressions
+##
+## gen output: (+ assert)
+##   Int Arg: 4
+##
+#!
+Exit status: 4
+Ue_A { System s();  Int(32) x(4);  Int(32) test() {  Int(32) y = 4 cast;  Int(32) z = -1 cast;  { typedef Int(32) _SWITCHTYPEDEF12;  Int(32) Uh_switchcond12 = y;  Uh_switchcond12 x 3 cast += == cond { z 2 cast = } if Uh_switchcond12 x 1 ++ == cond { z 3 cast = } if Uh_switchcond12 x 0 cast +b == cond { z 4 cast = } if true cond { z 5 cast = } if else else else _1: } s ( z )print . s ( z 4 cast == )assert . z return } }
+Uq_System { <NOMAIN> }
+##
+## informed by Dave: different than C, ulam allows non-constant case expressions
+##
+#>A.ulam
+  ulam 2;
+element A {
+  System s;
+  Int x = 0;
+  Int test() {
+    Int y = 4;
+    Int z = -1;
+    which (y) {
+    case x+=3: //parens not required.
+      {
+	z = 2; // Doesn't happen
+      }
+    case x++:
+      {
+	z = 3; // Also doesn't happen
+      }
+    case x+0:
+      {
+	z = 4; // Does happen
+      }
+    otherwise:
+      {
+	z = 5;
+      }
+    };
+    s.print(z);
+    s.assert(z==4);
+    return z;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.
