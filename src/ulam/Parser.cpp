@@ -1572,19 +1572,9 @@ namespace MFM {
     Node * defaultcaseNode = NULL;
     parseNextCase(swcondIdent, casesNode, defaultcaseNode);
 
-    if(!getExpectedToken(TOK_CLOSE_CURLY))
-      {
-	delete casesNode;
-	delete swcondIdent;
-	m_state.popClassContext(); //the pop
-	delete rtnNode;
-	return NULL; //stop this maddness
-      }
-
     Token pTok;
-    if(!getExpectedToken(TOK_SEMICOLON, pTok, QUIETLY))
+    if(!getExpectedToken(TOK_CLOSE_CURLY, pTok))
       {
-	MSG(&pTok, "Invalid Which-control Statement (possible missing semicolon)", ERR);
 	delete casesNode;
 	delete swcondIdent;
 	m_state.popClassContext(); //the pop

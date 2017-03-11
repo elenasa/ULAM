@@ -38,7 +38,7 @@ element A {
 	b = 1;
 	break;
       }
-    };
+    }
     s.print(b);
     s.assert(b == 2);
     s.print(a);

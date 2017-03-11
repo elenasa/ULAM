@@ -33,7 +33,7 @@ element A {
 	b = 3; //<--hits as default case
 	break;
       }
-    };
+    }
     s.print(b);
     s.assert(b == 3);
     s.print(a);

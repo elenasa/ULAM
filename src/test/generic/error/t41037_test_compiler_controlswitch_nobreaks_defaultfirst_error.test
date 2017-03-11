@@ -3,6 +3,7 @@
 #!
 ./A.ulam:14:5: ERROR: Case appears after 'otherwise' clause in which-control statement; 'otherwise' label on line 10.
 ./A.ulam:14:10: ERROR: Incomplete condition; which-control failure.
+./A.ulam:14:10: ERROR: Unexpected token <TOK_NUMBER_SIGNED>; Expected }.
 ./A.ulam:14:11: ERROR: Invalid Statement (possible missing semicolon).
 ./A.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'A'; Possible missing ending curly brace.
 ./A.ulam:18:5: ERROR: Invalid Class Type <case>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
@@ -36,7 +37,7 @@ element A {
       {
 	b = 3;
       }
-    };
+    }
     s.print(b);
     s.assert(b == 2);
     s.print(a);

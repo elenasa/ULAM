@@ -43,7 +43,7 @@ element A {
 	  b = 1;
 	  //break; falls through..
 	}
-      };
+      }
       //only reaches with breakless default!
       s.print(b);
       s.print(a);

@@ -2,6 +2,7 @@
 #=t41027_test_compiler_controlswitch_noncase_error
 #!
 ./A.ulam:9:7: ERROR: Incomplete condition; which-control failure.
+./A.ulam:9:7: ERROR: Unexpected token <TOK_KW_TYPE_INT>; Expected }.
 ./A.ulam:10:5: ERROR: Invalid Statement (possible missing semicolon).
 ./A.ulam:13:2: ERROR: Break statement not within loop or which-control.
 ./A.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'A'; Possible missing ending curly brace.
@@ -32,7 +33,7 @@ element A {
 	b = 3;
 	break;
       }
-    };
+    }
     return a;
   }
 }

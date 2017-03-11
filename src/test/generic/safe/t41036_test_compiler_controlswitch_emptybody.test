@@ -24,7 +24,7 @@ element A {
     {
       // case: optional
       //default: optional
-    };
+    }
     s.print(b);
     s.assert(b == 0);
     s.print(a);

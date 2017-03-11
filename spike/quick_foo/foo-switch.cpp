@@ -17,7 +17,7 @@ int main()
     case 1:
       b = 4;
       break;
-    };
+    } //optional ;
 
   printf("%d\n",b);
 
