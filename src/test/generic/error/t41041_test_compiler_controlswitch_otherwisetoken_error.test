@@ -2,10 +2,11 @@
 #=t41041_test_compiler_controlswitch_otherwisetoken_error
 #!
 ./A.ulam:18:5: ERROR: Incomplete condition; which-control failure.
+./A.ulam:18:5: ERROR: Unexpected token <TOK_IDENTIFIER>; Expected }.
 ./A.ulam:18:12: ERROR: Invalid Statement (possible missing semicolon).
-./A.ulam:22:6: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
-Unrecoverable Program Parse FAILURE: <A.ulam>
 ./A.ulam:23:5: ERROR: Invalid Class Type <s>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <A.ulam>
+./A.ulam:23:6: ERROR: Invalid Class Type <.>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 Unrecoverable Program Parse FAILURE: <System.ulam>
 ##
 ## 'default' is not an ulam keyword
@@ -32,7 +33,7 @@ element A {
       {
 	b = 1;
       }
-    };
+    }
     s.print(b);
     s.assert(b == 2);
     s.print(a);

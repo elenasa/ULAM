@@ -26,7 +26,7 @@ element A {
       {
 	b = 1;
       }
-    };
+    }
     s.print(b);
     s.assert(b == 1);
     s.print(a);

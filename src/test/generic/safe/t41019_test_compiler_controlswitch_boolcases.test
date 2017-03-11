@@ -36,7 +36,7 @@ element A {
       {
 	break;
       }
-    };
+    }
     s.print(a);
     s.assert(a == 1u);
     return (Int) a;

@@ -31,7 +31,7 @@ element A {
       {
 	b = 1;
       }
-    };
+    }
     s.print(b);
     s.assert(b == 3);
     return b;

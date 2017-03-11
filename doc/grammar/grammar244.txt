@@ -74,7 +74,7 @@
 		   	<ASSIGN_EXPRESSION> } }
 
 <SWITCH_STATEMENT> := 'which + '(' + <CONDITIONAL_EXPRESSION> + ')'
-		   + '{' + <CASE_EXPRESSIONS> + '}' + ';'
+		   + '{' + <CASE_EXPRESSIONS> + '}'
 <CASE_EXPRESSIONS> :=  0 | <CASE_EXPRESSION> + <CASE_EXPRESSIONS> | <DEFAULT_CASE_EXPRESSION>
 <CASE_EXPRESSION> := 'case' + <EQ_EXPRESSION>  + ':' + ( 0 | '{' +
 		     <STATEMENTS> + '}' )

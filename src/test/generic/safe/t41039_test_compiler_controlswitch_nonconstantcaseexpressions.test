@@ -36,7 +36,7 @@ element A {
       {
 	z = 5;
       }
-    };
+    }
     s.print(z);
     s.assert(z==4);
     return z;

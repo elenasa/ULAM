@@ -3,11 +3,12 @@
 #!
 ./A.ulam:21:5: ERROR: Multiple 'otherwise' labels in one which-control statement; first one on line 16.
 ./A.ulam:21:14: ERROR: Incomplete condition; which-control failure.
+./A.ulam:21:14: ERROR: Unexpected token <TOK_COLON>; Expected }.
 ./A.ulam:21:14: ERROR: Invalid Statement (possible missing semicolon).
 ./A.ulam:24:2: ERROR: Break statement not within loop or which-control.
-./A.ulam:26:6: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
-Unrecoverable Program Parse FAILURE: <A.ulam>
 ./A.ulam:27:5: ERROR: Invalid Class Type <s>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <A.ulam>
+./A.ulam:27:6: ERROR: Invalid Class Type <.>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 Unrecoverable Program Parse FAILURE: <System.ulam>
 ##
 ## like C++ error message
@@ -38,7 +39,7 @@ element A {
 	b = 1; //<- hits
 	break;
       }
-    };
+    }
     s.print(b);
     s.assert(b == 1);
     s.print(a);
