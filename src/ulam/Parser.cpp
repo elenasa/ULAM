@@ -46,7 +46,6 @@
 #include "NodeConstant.h"
 #include "NodeConstantArray.h"
 #include "NodeContinueStatement.h"
-#include "NodeIdent.h"
 #include "NodeInstanceof.h"
 #include "NodeLabel.h"
 #include "NodeMemberSelect.h"
@@ -1507,8 +1506,16 @@ namespace MFM {
     //        for validating and finding scope of program/block variables
     m_state.pushCurrentBlock(rtnNode); //without pop first
 
-    Node * condNode = parseConditionalExpr();
-    if(!condNode)
+    //peak ahead for close-paran, implying 'true' which-condition
+    Token qTok;
+    getNextToken(qTok);
+    unreadToken();
+
+    bool whichtrue = (qTok.m_type == TOK_CLOSE_PAREN);
+
+    Node * condNode = parseAssignExpr(); //no 'as' (t41044)
+    //if(!condNode)
+    if(!condNode && !whichtrue)
       {
 	std::ostringstream msg;
 	msg << "Invalid which-control condition";
@@ -1534,7 +1541,7 @@ namespace MFM {
 	return NULL; //stop this maddness
       }
 
-    UTI huti = m_state.makeUlamTypeHolder();
+    UTI huti = whichtrue ? Bool : m_state.makeUlamTypeHolder();
 
     std::string swtypedefname = m_state.getSwitchTypedefNameAsString(switchnum);
     Token swtypeTok(TOK_IDENTIFIER, swTok.m_locator, m_state.m_pool.getIndexForDataString(swtypedefname));
@@ -1543,40 +1550,46 @@ namespace MFM {
     SymbolTypedef * symtypedef = new SymbolTypedef(swtypeTok, huti, Nav, m_state);
     assert(symtypedef);
     m_state.addSymbolToCurrentScope(symtypedef);
-    m_state.addUnknownTypeTokenToThisClassResolver(swtypeTok, huti);
+    if(!whichtrue) //t41046
+      m_state.addUnknownTypeTokenToThisClassResolver(swtypeTok, huti);
 
     NodeTypedef * swtypedefnode = new NodeTypedef(symtypedef, NULL, m_state);
     assert(swtypedefnode);
     swtypedefnode->setNodeLocation(swTok.m_locator);
     m_state.appendNodeToCurrentBlock(swtypedefnode);
 
-    //evaluate (lhs) of switch condition ONCE; put into a tmp switch var
-    std::string tmpvarname = m_state.getSwitchConditionNumAsString(switchnum);
-    Token tidTok(TOK_IDENTIFIER, swTok.m_locator, m_state.m_pool.getIndexForDataString(tmpvarname));
-    SymbolVariableStack * swsym = new SymbolVariableStack(tidTok, huti, 0, m_state);
-    assert(swsym);
-    m_state.addSymbolToCurrentScope(swsym); //ownership goes to the block
+    NodeIdent * swvalueIdent = NULL;
+    if(!whichtrue)
+      {
+	//evaluate switch value ONCE; put into a tmp switch var
+	std::string tmpvarname = m_state.getSwitchConditionNumAsString(switchnum);
+	Token tidTok(TOK_IDENTIFIER, swTok.m_locator, m_state.m_pool.getIndexForDataString(tmpvarname));
+	SymbolVariableStack * swsym = new SymbolVariableStack(tidTok, huti, 0, m_state);
+	assert(swsym);
+	m_state.addSymbolToCurrentScope(swsym); //ownership goes to the block
 
-    NodeVarDecl * swcondDecl = new NodeVarDecl(swsym, NULL, m_state);
-    assert(swcondDecl);
-    swcondDecl->setNodeLocation(swTok.m_locator);
-    swcondDecl->setInitExpr(condNode);
-    m_state.appendNodeToCurrentBlock(swcondDecl);
+	NodeVarDecl * swvalueDecl = new NodeVarDecl(swsym, NULL, m_state);
+	assert(swvalueDecl);
+	swvalueDecl->setNodeLocation(swTok.m_locator);
+	swvalueDecl->setInitExpr(condNode);
+	m_state.appendNodeToCurrentBlock(swvalueDecl);
 
-    //pass condition variable around to each case to copy for comparison
-    NodeIdent * swcondIdent = new NodeIdent(tidTok, swsym, m_state);
-    assert(swcondIdent);
-    swcondIdent->setNodeLocation(swTok.m_locator);
+	//pass condition variable around to each case to copy for comparison
+	swvalueIdent = new NodeIdent(tidTok, swsym, m_state);
+	assert(swvalueIdent);
+	swvalueIdent->setNodeLocation(swTok.m_locator);
+      }
+    //else swvalueIdent is NULL (true)
 
     NodeControlIf * casesNode = NULL;
     Node * defaultcaseNode = NULL;
-    parseNextCase(swcondIdent, casesNode, defaultcaseNode);
+    parseNextCase(swvalueIdent, casesNode, defaultcaseNode);
 
     Token pTok;
     if(!getExpectedToken(TOK_CLOSE_CURLY, pTok))
       {
 	delete casesNode;
-	delete swcondIdent;
+	delete swvalueIdent;
 	m_state.popClassContext(); //the pop
 	delete rtnNode;
 	return NULL; //stop this maddness
@@ -1593,16 +1606,16 @@ namespace MFM {
     labelNode->setNodeLocation(pTok.m_locator);
     rtnNode->appendNextNode(labelNode);
 
-    delete swcondIdent; //copies made, clean up
+    delete swvalueIdent; //copies made, clean up
     m_state.popClassContext(); //the pop
     return rtnNode;
   } //parseControlSwitch
 
-  Node * Parser::parseNextCase(Node * condLeftNode, NodeControlIf *& switchNode, Node *& defaultNode)
+  Node * Parser::parseNextCase(NodeIdent * swvalueNode, NodeControlIf *& switchNode, Node *& defaultNode)
   {
     //get as many cases that share the same body
     Node * casecondition = NULL;
-    casecondition = parseRestOfCase(condLeftNode, casecondition, defaultNode);
+    casecondition = parseRestOfCase(swvalueNode, casecondition, defaultNode);
 
     if(!casecondition)
       {
@@ -1630,7 +1643,11 @@ namespace MFM {
       }
 
     NodeBlock * trueNode = NULL;
-    trueNode = parseStatementAsBlock();
+    // support as-condition as case expression (t41045,46,47,48)
+    if(m_state.m_parsingConditionalAs)
+      trueNode = setupAsConditionalBlockAndParseStatements((NodeConditional *) casecondition); //t41046
+    else
+      trueNode = parseStatementAsBlock(); //even an empty statement has a node!
 
     if(!trueNode)
       {
@@ -1648,10 +1665,10 @@ namespace MFM {
       switchNode->setElseNode(ifNode); //link to previous if-
     else
       switchNode = ifNode; //set parent ref
-    return parseNextCase(condLeftNode, ifNode, defaultNode); //recurse
+    return parseNextCase(swvalueNode, ifNode, defaultNode); //recurse
   } //parseNextCase
 
-  Node * Parser::parseRestOfCase(Node * condLeftNode, Node * caseCond, Node *& defaultcase)
+  Node * Parser::parseRestOfCase(NodeIdent * swvalueNode, Node * caseCond, Node *& defaultcase)
   {
     Token cTok;
     getNextToken(cTok);
@@ -1674,7 +1691,8 @@ namespace MFM {
 	    return NULL; //stop this maddness (e.g. t41037)
 	  }
 
-	Node * rightNode = parseAssignExpr(); //t41039
+	//Node * rightNode = parseAssignExpr(); //t41039
+	Node * rightNode = parseConditionalExpr(); //t41039, t41046
 	if(!rightNode)
 	  {
 	    std::ostringstream msg;
@@ -1684,12 +1702,55 @@ namespace MFM {
 	    return NULL; //stop this maddness
 	  }
 
-	Node * leftNodeCopy = condLeftNode->instantiate();
-	assert(leftNodeCopy);
+	if(m_state.m_parsingConditionalAs)
+	  {
+	    if(!getExpectedToken(TOK_COLON))
+	      {
+		delete rightNode;
+		delete caseCond;
+		return NULL; //stop this maddness
+	      }
 
-	casecondition = new NodeBinaryOpCompareEqualEqual(leftNodeCopy, rightNode, m_state);
-	assert(casecondition);
-	casecondition->setNodeLocation(cTok.m_locator);
+	    //error! can't combine conditions with 'as'
+	    if(caseCond != NULL)
+	      {
+		std::ostringstream msg;
+		msg << "Invalid case expression; which-control failure";
+		msg << ": compound 'as' condition";
+		MSG(&cTok, msg.str().c_str(), ERR);
+		delete rightNode;
+		delete caseCond;
+		return NULL; //stop this maddness
+	      }
+
+	    //which-condition type must be default true
+	    if(swvalueNode)
+	      {
+		std::ostringstream msg;
+		msg << "Invalid case expression; which-control failure";
+		msg << ": 'as' condition requires empty which-value";
+		MSG(&cTok, msg.str().c_str(), ERR);
+		delete rightNode;
+		delete caseCond;
+		return NULL; //stop this maddness
+	      }
+
+	    return rightNode; //t41046
+	  } //done
+
+	if(swvalueNode)
+	  {
+	    Node * leftNodeCopy = swvalueNode->instantiate(); //NodeIdent, symbol ptr set during c&l
+	    assert(leftNodeCopy);
+	    leftNodeCopy->resetNodeNo(m_state.getNextNodeNo()); //unique invarient
+
+	    casecondition = new NodeBinaryOpCompareEqualEqual(leftNodeCopy, rightNode, m_state);
+	    assert(casecondition);
+	    casecondition->setNodeLocation(cTok.m_locator);
+	  }
+	else
+	  casecondition = rightNode; //if true ?
+
       }
     else //default:
       {
@@ -1726,7 +1787,7 @@ namespace MFM {
 	newcaseCond->setNodeLocation(cTok.m_locator);
 	casecondition = newcaseCond;
       }
-    return parseRestOfCase(condLeftNode, casecondition, defaultcase); //recurse
+    return parseRestOfCase(swvalueNode, casecondition, defaultcase); //recurse
   } //parseRestOfCase
 
   Node * Parser::parseConditionalExpr()

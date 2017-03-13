@@ -51,6 +51,7 @@
 #include "NodeControlIf.h"
 #include "NodeControlWhile.h"
 #include "NodeFunctionCall.h"
+#include "NodeIdent.h"
 #include "NodeModelParameterDef.h"
 #include "NodeStatements.h"
 #include "NodeSquareBracket.h"
@@ -174,9 +175,9 @@ namespace MFM{
      */
     Node * parseControlSwitch(const Token& swTok);
 
-    Node * parseNextCase(Node * condLeftNode, NodeControlIf *& switchNode, Node *& defaultNode);
+    Node * parseNextCase(NodeIdent * swvalueNode, NodeControlIf *& switchNode, Node *& defaultNode);
 
-    Node * parseRestOfCase(Node * condLeftNode, Node * caseCond, Node *& defaultcase);
+    Node * parseRestOfCase(NodeIdent * swvalueNode, Node * caseCond, Node *& defaultcase);
 
     /**
        <CONDITIONAL_EXPR> := <SIMPLE_COND_DECL> | <ASSIGN_EXPR>

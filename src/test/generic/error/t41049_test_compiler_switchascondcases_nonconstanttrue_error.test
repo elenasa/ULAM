@@ -1,0 +1,61 @@
+## -*- mode:ulam -*-
+#=t41049_test_compiler_switchascondcases_nonconstanttrue_error
+#!
+./EWE.ulam:10:5: ERROR: Invalid case expression; which-control failure: 'as' condition requires empty which-value.
+./EWE.ulam:11:7: ERROR: Incomplete condition; which-control failure.
+./EWE.ulam:11:7: ERROR: Unexpected token <TOK_OPEN_CURLY>; Expected }.
+./EWE.ulam:15:5: ERROR: Invalid Statement (possible missing semicolon).
+./EWE.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'EWE'; Possible missing ending curly brace.
+./EWE.ulam:20:7: ERROR: Invalid Class Type <otherwise>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./EWE.ulam:2:9: ERROR: Invalid Type: EWE.
+ ERROR: No parse tree for This Class: EWE.
+Unrecoverable Program Parse FAILURE: <EWE.ulam>
+./EWE.ulam:20:16: ERROR: Invalid Class Type <:>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <EventWindow.ulam>
+##
+##  informed by t41044, t41045    //which statements do not support 'as' conditional, cases do!! (no parens) empty which value
+##
+#>EWE.ulam
+  ulam 2;
+element EWE : QFoo{
+  Int test() {
+    EventWindow ew;
+    ew[0] = EWE.instanceof;
+    Atom a = ew[0];
+    Int i = 4;
+    which(i++ < 4) //<-- BUT IT'S FALSE!!
+    {
+    case a as EWE: //WORKS!! (alone)
+      {
+	a.foomethod();
+	a.atomof = ew[i];
+      }
+    case a as QFoo: // requires separate case
+      {
+	a.foomethod(); //super
+	a.atomof = ew[i];
+      }
+      otherwise:
+      {
+	a = ew[i];
+      }
+    } //end which
+    return i;
+  }
+
+  virtual Void foomethod() { }
+}
+
+quark QFoo {
+  virtual Void foomethod() { }
+}
+
+
+#:EventWindow.ulam
+  ulam 1;
+quark EventWindow{
+  Atom& aref(Int index) native;
+}
+
+##    //EventWindow.ulam:3:1: ERROR: Only elements may have element parameters: <EventWindow> is a quark.
+#.

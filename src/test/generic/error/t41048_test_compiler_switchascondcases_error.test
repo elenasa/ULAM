@@ -1,0 +1,53 @@
+## -*- mode:ulam -*-
+#=t41048_test_compiler_switchascondcases_error
+#!
+./EWE.ulam:14:7: ERROR: Block expected for condition; which-control failure.
+./EWE.ulam:14:7: ERROR: Unexpected token <TOK_KW_CASE>; Expected }.
+./EWE.ulam:14:7: ERROR: Invalid Statement (possible missing semicolon).
+./EWE.ulam:19:2: ERROR: Invalid Statement (possible missing semicolon).
+./EWE.ulam:24:5: ERROR: Invalid Class Type <}>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <EWE.ulam>
+./EWE.ulam:25:5: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <EventWindow.ulam>
+##
+##  informed by t41047, just different case ordering
+##
+#>EWE.ulam
+  ulam 2;
+element EWE {
+  Int test() {
+    EventWindow ew;
+    Bool b = true;
+    Int i = 0;
+    ew[0] = EWE.instanceof;
+    Atom a = ew[i];
+    while(i++ < 4)
+    {
+      which()
+      {
+      case a as EWE: //WORKS!! (alone)
+      case b: //<--Error (needs separate case)
+	{
+	  a.foomethod();
+	  a.atomof = ew[i];
+	}
+	otherwise:
+	{
+	  a = ew[i];
+	}
+      } //end which
+    } //end while
+    return i;
+  }
+
+  Void foomethod() { }
+}
+
+#:EventWindow.ulam
+  ulam 1;
+quark EventWindow{
+  Atom& aref(Int index) native;
+}
+
+##    //EventWindow.ulam:3:1: ERROR: Only elements may have element parameters: <EventWindow> is a quark.
+#.
