@@ -175,9 +175,9 @@ namespace MFM{
      */
     Node * parseControlSwitch(const Token& swTok);
 
-    Node * parseNextCase(NodeIdent * swvalueNode, NodeControlIf *& switchNode, Node *& defaultNode);
+    Node * parseNextCase(const NodeIdent * swvalueIdent, NodeControlIf *& switchNode, Node *& defaultNode);
 
-    Node * parseRestOfCase(NodeIdent * swvalueNode, Node * caseCond, Node *& defaultcase);
+    Node * parseRestOfCase(const NodeIdent * swvalueIdent, Node * caseCond, Node *& defaultcase);
 
     /**
        <CONDITIONAL_EXPR> := <SIMPLE_COND_DECL> | <ASSIGN_EXPR>

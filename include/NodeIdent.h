@@ -64,6 +64,8 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
+    bool getSymbolPtr(SymbolVariable *& symptrref) const;
+
     virtual bool getStorageSymbolPtr(Symbol *& symptrref);
 
     virtual bool hasASymbolDataMember();

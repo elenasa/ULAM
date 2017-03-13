@@ -60,6 +60,12 @@ namespace MFM {
     return (m_varSymbol != NULL); //true not-null
   }
 
+  bool NodeIdent::getSymbolPtr(SymbolVariable *& symptrref) const
+  {
+    symptrref = m_varSymbol;
+    return (m_varSymbol != NULL); //true not-null
+  }
+
   bool NodeIdent::getStorageSymbolPtr(Symbol *& symptrref)
   {
     UTI nuti = getNodeType();
