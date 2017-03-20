@@ -73,32 +73,40 @@
   { <STATEMENT_DECL> while ( <CONDITIONAL_EXPRESSION> ) { <STATEMENT>
 		   	<ASSIGN_EXPRESSION> } }
 
-<SWITCH_STATEMENT> := 'which + '(' + <CONDITIONAL_EXPRESSION> + ')'
+<SWITCH_STATEMENT> := 'which + '(' + <SWITCH_VALUE> + ')'
 		   + '{' + <CASE_EXPRESSIONS> + '}'
-<CASE_EXPRESSIONS> :=  0 | <CASE_EXPRESSION> + <CASE_EXPRESSIONS> | <DEFAULT_CASE_EXPRESSION>
-<CASE_EXPRESSION> := 'case' + <EQ_EXPRESSION>  + ':' + ( 0 | '{' +
-		     <STATEMENTS> + '}' )
-<DEFAULT_CASE_EXPRESSION> := 'otherwise' + ':' + '{' + <STATEMENTS> +
-		   '}'
+<SWITCH_VALUE> := 0 | <ASSIGN_EXPRESSION>
+<CASE_EXPRESSIONS> :=  0 | <CASE_EXPRESSION> + <CASE_EXPRESSIONS>
+		   | <CASE_EXPRESSION_AS>
+		   | <DEFAULT_CASE_EXPRESSION>
+<CASE_EXPRESSION> := 'case' + <ASSIGN_EXPRESSION>  + ':'
+		  + ( 0 | '{' + <STATEMENTS> + '}' )
+<CASE_EXPRESSION_AS> := 'case' + <SIMPLE_COND_DECL>  + ':'
+		  + '{' + <STATEMENTS> + '}'
+<DEFAULT_CASE_EXPRESSION> := 'otherwise' + ':'
+			  + '{' + <STATEMENTS> + '}'
 
   => equiv to a parse tree shaped like:
-  { <VAR_DECL> + '=' + <CONDITIONAL_EXPRESSION> + ';' +
+  { ( 0 | <VAR_DECL> + '=' + <SWITCH_VALUE> + ';' ) +
     ( 0 | <IFSW_STATEMENTS> ) + ( 0 | <DEFAULT_SW_STATEMENT> ) }
 
 where,
     <IFSW_STATEMENTS> := <IFSW_STATEMENT> | <ELSE_IFSW_STATEMENTS>
 
-    <IFSW_STATEMENT> := 'if' + '(' + <IFSW_CONDITIONAL>
-  		      	   + <IFSW_MORE_CONDITIONALS> + ')'
+    <IFSW_STATEMENT> := 'if' + '(' + ( <IFSW_CONDITIONAL>
+  		      	   + <IFSW_MORE_CONDITIONALS> |
+  		      	   <IFSW_CONDITIONAL_AS> ) + ')'
 		      	   + '{' + <STATEMENTS> + '}'
+    <IFSW_CONDITIONAL> := <IDENT> + '==' + <ASSIGN_EXPRESSION>
+    <IFSW_CONDITIONAL_AS> := <SIMPLE_COND_DECL>
     <IFSW_MORE_CONDITIONALS> := 0 | '||' + <IFSW_CONDITIONAL> +
-  		      	   <IFSW_MORE_CONDITIONALS> | '||' <DEFAULT_SW_CONDITIONAL>
-    <IFSW_CONDITIONAL> := '(' + <IDENT> + '==' + <EQ_EXPRESSION> + ')'
+    			     <IFSW_MORE_CONDITIONALS> |
+			     '||' + <DEFAULT_SW_CONDITIONAL>
     <ELSE_IFSW_STATEMENTS> := 0 | <ELSE_IFSW_STATEMENT>
     <ELSE_IFSW_STATEMENT> := 'else' + <IFSW_STATEMENT>
+    <DEFAULT_SW_CONDITIONAL> := 'if' + '(' + 'true' + ')'
     <DEFAULT_SW_STATEMENT> := (0 | 'else') + <DEFAULT_SW_CONDITIONAL>
     			      + '{' + <STATEMENTS> + '}'
-    <DEFAULT_SW_CONDITIONAL> := 'if' + '(' + 'true' + ')'
 
 <BREAK_STATEMENT> := 'break' + ';'
 <CONTINUE_STATEMENT> := 'continue' + ';'

@@ -1,0 +1,16 @@
+## -*- mode:ulam -*-
+#=t41050_test_compiler_controlswitch_emptyvalueemptybody
+#!
+Exit status: 0
+Ue_EWE { Int(32) test() {  { typedef Bool(1) _SWITCHTYPEDEF12;  _1: } 0 cast return } }
+#>EWE.ulam
+  ulam 2;
+element EWE {
+  Int test() {
+    which() { /* noop */ }
+    return 0;
+  }
+}
+
+##    //EventWindow.ulam:3:1: ERROR: Only elements may have element parameters: <EventWindow> is a quark.
+#.

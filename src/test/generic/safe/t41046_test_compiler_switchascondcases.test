@@ -1,0 +1,58 @@
+## -*- mode:ulam -*-
+#=t41046_test_compiler_switchascondcases
+#!
+Exit status: -11
+Ue_EWE : QFoo { :<> Int(32) test() {  EventWindow ew;  Int(32) i = 0 cast;  ew ( 0 cast )aref . EWE.instanceof cast cast = Atom(96) a = ew ( i )aref . cast;  { i 1 ++ 4 cast < cond { { typedef Bool(1) _SWITCHTYPEDEF13;  a EWE as cond { EWE& a;  a ( )foomethod . a.atomof ew ( i )aref . = } if a QFoo as cond { QFoo& a;  a ( )foomethod . a.atomof ew ( i )aref . = } if true cond { a ew ( i )aref . cast = } if else else _2: } } _1: while } i return } }
+Uq_QFoo { <NOMAIN> }
+Uq_EventWindow { <NOMAIN> }
+##
+##  informed by t41044, t41045    //which statements do not support 'as' conditional, cases do!! (no parens)
+##
+#>EWE.ulam
+  ulam 2;
+element EWE : QFoo{
+  Int test() {
+    EventWindow ew;
+    Int i = 0;
+    ew[0] = EWE.instanceof;
+    Atom a = ew[i];
+    while(i++ < 4)
+    {
+      which()
+      {
+      case a as EWE: //WORKS!! (alone)
+	//case (a as EWE): //no parens!
+	{
+	  a.foomethod();
+	  a.atomof = ew[i];
+	}
+	case a as QFoo: // requires separate case
+	{
+	  a.foomethod(); //super
+	  a.atomof = ew[i];
+	}
+	otherwise:
+	{
+	  a = ew[i];
+	}
+      } //end which
+    } //end while
+    return i;
+  }
+
+  virtual Void foomethod() { }
+}
+
+quark QFoo {
+  virtual Void foomethod() { }
+}
+
+
+#:EventWindow.ulam
+  ulam 1;
+quark EventWindow{
+  Atom& aref(Int index) native;
+}
+
+##    //EventWindow.ulam:3:1: ERROR: Only elements may have element parameters: <EventWindow> is a quark.
+#.
