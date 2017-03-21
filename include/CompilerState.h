@@ -556,6 +556,7 @@ namespace MFM{
     inline void abortNotImplementedYet() { assert(0); }
     inline void abortNotSupported() { assert(0); }
     inline void abortShouldntGetHere() { assert(0); }
+    inline void abortNeedsATest() { assert(0); }
 
   private:
     ClassContextStack m_classContextStack; // the current subject of this compilation

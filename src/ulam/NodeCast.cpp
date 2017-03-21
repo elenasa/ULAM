@@ -567,6 +567,11 @@ namespace MFM {
 
     //then what? (see NodeMemberSelect)
     UlamValue ruvPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1);
+    if(!ruvPtr.isPtr())
+      {
+	evalNodeEpilog();
+	return UNEVALUABLE; //t41053
+      }
 
     if(UlamType::compare(nodeType, tobeType, m_state) != UTIC_SAME)
       {
@@ -650,7 +655,9 @@ namespace MFM {
     m_node->genCodeToStoreInto(fp, uvpass);
     if(needsACast())
       {
-	m_node->genCodeReadIntoATmpVar(fp, uvpass); //e.g. cast atom and quark
+	// func calls leave a tmpvar on the stack..no need to re-read into a tmp var
+	//if(!m_node->isFunctionCall()) //t41051,3
+	//  m_node->genCodeReadIntoATmpVar(fp, uvpass); //e.g. cast atom and quark
 	genCodeReadIntoATmpVar(fp, uvpass); // cast.
       }
     else if(m_state.isReference(getCastType())) //to ref type
@@ -685,6 +692,10 @@ namespace MFM {
      {
        return genCodeReadNonPrimitiveIntoATmpVar(fp, uvpass);
      }
+
+   //move here, no need for non-primitives??? WHAT!!??xixixodusfodufsofu
+   //if(!m_node->isFunctionCall())
+   //  m_node->genCodeReadIntoATmpVar(fp, uvpass); //e.g. cast atom and quark
 
    //Primitive types:
    s32 tmpVarCastNum = m_state.getNextTmpVarNumber();
@@ -728,7 +739,7 @@ namespace MFM {
      uvpass = UVPass::makePass(tmpVarCastNum, TMPREGISTER, tobeType, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified.
    else
      uvpass = UVPass::makePass(tmpVarCastNum, tobe->getTmpStorageTypeForTmpVar(), tobeType, m_state.determinePackable(tobeType), m_state, 0, uvpass.getPassNameId()); //POS 0 rightjustified; pass along name id
-  } //genCodeReadIntoTmp
+  } //genCodeReadIntoATmpVar
 
   //handle element-atom and atom-element casting differently:
   // handle element->quark, atom->quark, not quark->atom
@@ -801,41 +812,58 @@ namespace MFM {
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
     Symbol * stgcos = NULL;
+
     if(tobe->isReference())
+      //if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
-	//safe to call genCodeToStoreInto since nodeType must be storeintoable;
-	//except when assignment of Foo.instanceof (t3818)
-	UVPass ruvpass;
-	m_node->genCodeToStoreInto(fp, ruvpass); //No need to load lhs into tmp (T); symbol's in COS vector
+	// don't repeat genCodeToStoreInto when m_node is a function call that returns an atomref
+	if(m_state.m_currentObjSymbolsForCodeGen.empty() && !m_node->isFunctionCall())
+	  {
+	    //safe to call genCodeToStoreInto since nodeType must be storeintoable;
+	    //except when assignment of Foo.instanceof (t3818)
+	    UVPass ruvpass;
+	    m_node->genCodeToStoreInto(fp, ruvpass); //No need to load lhs into tmp (T); symbol's in COS vector
+	  }
+	//else (t41051) ILLEGAL_ARGUMENT
 
 	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
 	stgcos = m_state.m_currentObjSymbolsForCodeGen.back();
       }
 
-    // "downcast" might not be true; compare to be sure the atom is an element "Foo"
-    if(m_state.isAtom(vuti)) //from atom-to-element
-      {
-	m_state.indentUlamCode(fp);
-	fp->write("if(!");
-	fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
-	fp->write(".");
-	fp->write(m_state.getIsMangledFunctionName(tobeType));
-	fp->write("(");
-	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	if(uvpass.getPassStorage() == TMPBITVAL)
-	  {
-	    fp->write(".");
-	    fp->write(vut->readMethodForCodeGen().c_str());
-	    fp->write("()");
-	  }
-	fp->write("))"); GCNL;
+      // "downcast" might not be true; compare to be sure the atom is an element "Foo"
+      if(m_state.isAtom(vuti)) //from atom-to-element
+	{
+	  m_state.indentUlamCode(fp);
+	  fp->write("if(!");
+	  fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
+	  fp->write(".");
+	  fp->write(m_state.getIsMangledFunctionName(tobeType));
+	  fp->write("(");
+	  if(stgcos)
+	    {
+	      assert(m_state.isAtom(stgcos->getUlamTypeIdx()));
+	      fp->write(stgcos->getMangledName().c_str()); //t3754, t3408 Tue Mar 21 12:01:17 2017
+	      fp->write(".read()");
+	    }
+	  else
+	    {
+	      fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	      if(uvpass.getPassStorage() == TMPBITVAL)
+		{
+		  fp->write(".");
+		  fp->write(vut->readMethodForCodeGen().c_str());
+		  fp->write("()");
+		}
+	    }
 
-	m_state.m_currentIndentLevel++;
-	m_state.indentUlamCode(fp);
-	fp->write("FAIL(BAD_CAST);"); GCNL;
-	m_state.m_currentIndentLevel--;
+	  fp->write("))"); GCNL;
 
-	if(tobe->isReference()) //t3754
+	  m_state.m_currentIndentLevel++;
+	  m_state.indentUlamCode(fp);
+	  fp->write("FAIL(BAD_CAST);"); GCNL;
+	  m_state.m_currentIndentLevel--;
+
+	  if(tobe->isReference()) //t3754
 	  {
 	    assert(stgcos);
 	    UTI stgcosuti = stgcos->getUlamTypeIdx();
@@ -920,12 +948,22 @@ namespace MFM {
     UTI  vuti = uvpass.getPassTargetType();
     assert(m_state.okUTItoContinue(vuti));
 
-    //when this is a custom array, the symbol is the "ew" for example,
-    //not the atom (e.g. ew[idx]) that has no symbol
-    UVPass ruvpass;
-    m_node->genCodeToStoreInto(fp, ruvpass); //No need to load lhs into tmp (T); symbol's in COS vector
+    if(m_state.m_currentObjSymbolsForCodeGen.empty())
+      //if(tobe->isReference())
+      {
+	// don't repeat genCodeToStoreInto when m_node is a function call that returns an atomref
 
+	//when this is a custom array, the symbol is the "ew" for example,
+	//not the atom (e.g. ew[idx]) that has no symbol
+	if(!m_node->isFunctionCall())
+	  {
+	    UVPass ruvpass;
+	    m_node->genCodeToStoreInto(fp, ruvpass); //No need to load lhs into tmp (T); symbol's in COS vector
+	  }
+	//else (t41051, case 2) ILLEGAL_ARGUMENT
+      }
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+
     Symbol * stgcos = NULL;
     stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 
@@ -943,13 +981,17 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str());;
 	fp->write(" = ");
 
+#if 0
+	//what if..Tue Mar 21 11:41:09 2017
 	if(Node::isCurrentObjectALocalVariableOrArgument())
 	  {
 	    fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //need atom type
 	    fp->write(".");
 	  }
 	else
+#endif
 	  {
+	    //locals t3692,3,7,3701, t3756,7,t3837, t3986, t41005,6,7
 	    //e.g. carray (e.g. error/t3508), a data member
 	    fp->write(stgcos->getMangledName().c_str()); //assumes only one!!!
 	    if(!stgcos->isSelf())
@@ -1027,7 +1069,8 @@ namespace MFM {
     //t3631, t3692, t3693, t3697, t3701, t3756, t3757, t3789, t3834, t3837
     // might be ancestor quark
     // can't let Node::genCodeReadIntoTmpVar do this for us (we need a ref!):
-    assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
+    //assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
+    assert(!m_state.m_currentObjSymbolsForCodeGen.empty()); //Tue Mar 21 10:29:38 2017
 
     if(!tobe->isReference())
       {
@@ -1132,8 +1175,18 @@ namespace MFM {
     UTI vuti = uvpass.getPassTargetType();
 
     //CHANGES uvpass
-    UVPass ruvpass;
-    m_node->genCodeToStoreInto(fp, ruvpass); //No need to load lhs into tmp (T); symbol's in COS vector
+    //if(tobe->isReference())
+    if(m_state.m_currentObjSymbolsForCodeGen.empty())
+      {
+	// don't repeat genCodeToStoreInto when m_node is a function call that returns an atomref
+	if(!m_node->isFunctionCall())
+	  {
+	    UVPass ruvpass;
+	    m_node->genCodeToStoreInto(fp, ruvpass); //No need to load lhs into tmp (T); symbol's in COS vector
+	  }
+	else //(t41053, case 1)
+	  m_state.abortShouldntGetHere();
+      }
 
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * stgcos = NULL;
@@ -1249,9 +1302,20 @@ namespace MFM {
     UTI vuti = uvpass.getPassTargetType(); //replace
 
     // CHANGES uvpass..and vuti, derefuti, etc.
-    UVPass ruvpass;
-    m_node->genCodeToStoreInto(fp, ruvpass); //No need to load lhs into tmp (u32); symbol's in COS vector
-    assert(m_state.isReference(ruvpass.getPassTargetType())); //t3789, t3790
+    if(tobe->isReference())
+      {
+	// don't repeat genCodeToStoreInto when m_node is a function call that returns a ref
+	if(m_state.m_currentObjSymbolsForCodeGen.empty() && !m_node->isFunctionCall())
+	  {
+	    UVPass ruvpass;
+	    m_node->genCodeToStoreInto(fp, ruvpass); //No need to load lhs into tmp (u32); symbol's in COS vector
+	    assert(m_state.isReference(ruvpass.getPassTargetType())); //t3789, t3790
+	  }
+	//else (t41054, case 2, and t3790)
+      }
+    else
+      m_state.abortShouldntGetHere(); //error caught already
+
 
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * stgcos = NULL;
@@ -1308,9 +1372,18 @@ namespace MFM {
 
     UTI vuti = uvpass.getPassTargetType();
 
-    //CHANGES uvpass
-    UVPass ruvpass;
-    m_node->genCodeToStoreInto(fp, ruvpass); //No need to load lhs into tmp (T); symbol's in COS vector
+    //if(tobe->isReference())
+    if(m_state.m_currentObjSymbolsForCodeGen.empty())
+      {
+	// don't repeat genCodeToStoreInto when m_node is a function call that returns an atomref
+	//CHANGES uvpass
+	if(!m_node->isFunctionCall())
+	  {
+	    UVPass ruvpass;
+	    m_node->genCodeToStoreInto(fp, ruvpass); //No need to load lhs into tmp (T); symbol's in COS vector
+	  }
+	//else  (t41052, case 1)
+      }
 
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * stgcos = NULL;
@@ -1396,7 +1469,7 @@ namespace MFM {
 	if(!stgcosut->isReference())
 	  {
 	    fp->write(", "); //offset of decendent is always 0 +25
-	    fp->write_decimal_unsigned(ruvpass.getPassPos()); //t3735
+	    fp->write_decimal_unsigned(uvpass.getPassPos()); //t3735 (was ruvapss)
 	    fp->write("u + T::ATOM_FIRST_STATE_BIT, &"); //elements stg at 0 , state of quark at 25
 	    fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
 	    fp->write(", UlamRef<EC>::ELEMENTAL"); //stays elemental
@@ -1422,10 +1495,19 @@ namespace MFM {
 
     UTI vuti = uvpass.getPassTargetType(); //replace
 
-    // CHANGES uvpass..and vuti, derefuti, etc.
-    UVPass ruvpass;
-    m_node->genCodeToStoreInto(fp, ruvpass); //No need to load lhs into tmp (T); symbol's in COS vector
-    assert(m_state.isReference(ruvpass.getPassTargetType()));
+    //if(tobe->isReference()) //assumed to be
+    if(m_state.m_currentObjSymbolsForCodeGen.empty())
+      {
+	// don't repeat genCodeToStoreInto when m_node is a function call that returns an atomref
+	// CHANGES uvpass..and vuti, derefuti, etc.
+	if(!m_node->isFunctionCall())
+	  {
+	    UVPass ruvpass;
+	    m_node->genCodeToStoreInto(fp, ruvpass); //No need to load lhs into tmp (T); symbol's in COS vector
+	    assert(m_state.isReference(ruvpass.getPassTargetType()));
+	  }
+	//else (t41052, case 2)
+      }
 
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * stgcos = NULL;
@@ -1492,8 +1574,12 @@ namespace MFM {
     if(tobe->isReference()) //t3757
       {
 	// CHANGES uvpass..and vuti, derefuti, etc.
-	UVPass ruvpass;
-	m_node->genCodeToStoreInto(fp, ruvpass); //No need to load lhs into tmp (T); symbol's in COS vector; its value is in uvpass
+	if(m_state.m_currentObjSymbolsForCodeGen.empty() && !m_node->isFunctionCall())
+	  {
+	    UVPass ruvpass;
+	    m_node->genCodeToStoreInto(fp, ruvpass); //No need to load lhs into tmp (T); symbol's in COS vector; its value is in uvpass
+	  }
+	//else (t41052, case 3)
 
 	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
 	Symbol * stgcos = NULL;

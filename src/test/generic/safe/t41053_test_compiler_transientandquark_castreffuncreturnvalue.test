@@ -1,0 +1,76 @@
+## -*- mode:ulam -*-
+#=t41053_test_compiler_transientandquark_castreffuncreturnvalue
+##
+## gen output: 1 asserts
+##
+## cannot eval atom ref return type that is element Foo, too
+##
+#!
+Exit status: -11
+Ue_R { Int(32) test() {  System s;  TFoo tf;  QFoo& fooref = tf ( )func . cast;  s ( fooref QFoo is )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Un_TFoo : QFoo { :< :<>> <NOMAIN> }
+Uq_QFoo : QBar { :<> <NOMAIN> }
+Uq_QBar { /* empty class block */ }
+##
+## informed by Dave email 3/20/2017 and t41033
+##
+## cannot eval casting Self to a ref
+##
+#>R.ulam
+  ulam 2;
+element R
+{
+  Int test() {
+    System s;
+    TFoo tf;
+
+    //case 1: cast decendent transient
+    QFoo & fooref = (QFoo &) tf.func();
+    s.assert(fooref is QFoo);
+
+    return 0;
+  }
+}
+
+#:TFoo.ulam
+  ulam 2;
+transient TFoo : QFoo
+{
+
+  Self func()
+  {
+    return self;
+  }
+
+}
+
+#:QFoo.ulam
+  ulam 2;
+quark QFoo : QBar {
+
+  QFoo & funcq()
+  {
+    return self;
+  }
+}
+
+
+#:QBar.ulam
+  ulam 1;
+quark QBar {
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.
