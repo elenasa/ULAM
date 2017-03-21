@@ -655,9 +655,6 @@ namespace MFM {
     m_node->genCodeToStoreInto(fp, uvpass);
     if(needsACast())
       {
-	// func calls leave a tmpvar on the stack..no need to re-read into a tmp var
-	//if(!m_node->isFunctionCall()) //t41051,3
-	//  m_node->genCodeReadIntoATmpVar(fp, uvpass); //e.g. cast atom and quark
 	genCodeReadIntoATmpVar(fp, uvpass); // cast.
       }
     else if(m_state.isReference(getCastType())) //to ref type
@@ -671,6 +668,7 @@ namespace MFM {
     // e.g. called by NodeFunctionCall on a NodeTerminal..
     if(!needsACast())
       {
+	//needs a test..
 	return m_node->genCodeReadIntoATmpVar(fp, uvpass);
       }
 
@@ -692,10 +690,6 @@ namespace MFM {
      {
        return genCodeReadNonPrimitiveIntoATmpVar(fp, uvpass);
      }
-
-   //move here, no need for non-primitives??? WHAT!!??xixixodusfodufsofu
-   //if(!m_node->isFunctionCall())
-   //  m_node->genCodeReadIntoATmpVar(fp, uvpass); //e.g. cast atom and quark
 
    //Primitive types:
    s32 tmpVarCastNum = m_state.getNextTmpVarNumber();
@@ -814,7 +808,6 @@ namespace MFM {
     Symbol * stgcos = NULL;
 
     if(tobe->isReference())
-      //if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
 	// don't repeat genCodeToStoreInto when m_node is a function call that returns an atomref
 	if(m_state.m_currentObjSymbolsForCodeGen.empty() && !m_node->isFunctionCall())
@@ -949,10 +942,8 @@ namespace MFM {
     assert(m_state.okUTItoContinue(vuti));
 
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
-      //if(tobe->isReference())
       {
 	// don't repeat genCodeToStoreInto when m_node is a function call that returns an atomref
-
 	//when this is a custom array, the symbol is the "ew" for example,
 	//not the atom (e.g. ew[idx]) that has no symbol
 	if(!m_node->isFunctionCall())
@@ -965,7 +956,8 @@ namespace MFM {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
 
     Symbol * stgcos = NULL;
-    stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+    //stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+    stgcos = m_state.m_currentObjSymbolsForCodeGen.back();
 
     UTI stguti = stgcos->getUlamTypeIdx();
     UlamType * stgut = m_state.getUlamTypeByIndex(stguti);
@@ -981,25 +973,14 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(Int, tmpVarType, TMPREGISTER).c_str());;
 	fp->write(" = ");
 
-#if 0
-	//what if..Tue Mar 21 11:41:09 2017
-	if(Node::isCurrentObjectALocalVariableOrArgument())
+	//locals t3692,3,7,3701, t3756,7,t3837, t3986, t41005,6,7
+	//e.g. carray (e.g. error/t3508), a data member
+	fp->write(stgcos->getMangledName().c_str()); //assumes only one!!!
+	if(!stgcos->isSelf())
 	  {
-	    fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //need atom type
-	    fp->write(".");
-	  }
-	else
-#endif
-	  {
-	    //locals t3692,3,7,3701, t3756,7,t3837, t3986, t41005,6,7
-	    //e.g. carray (e.g. error/t3508), a data member
-	    fp->write(stgcos->getMangledName().c_str()); //assumes only one!!!
-	    if(!stgcos->isSelf())
-	      {
-		fp->write("."); //no read for self
-		fp->write("ReadAtom");
-		fp->write("().");
-	      }
+	    fp->write("."); //no read for self
+	    fp->write("ReadAtom");
+	    fp->write("().");
 	  }
 	fp->write("GetType();"); GCNL;
 
@@ -1175,10 +1156,9 @@ namespace MFM {
     UTI vuti = uvpass.getPassTargetType();
 
     //CHANGES uvpass
-    //if(tobe->isReference())
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
-	// don't repeat genCodeToStoreInto when m_node is a function call that returns an atomref
+	// don't repeat genCodeToStoreInto when m_node is a function call that returns a ref
 	if(!m_node->isFunctionCall())
 	  {
 	    UVPass ruvpass;
@@ -1372,7 +1352,6 @@ namespace MFM {
 
     UTI vuti = uvpass.getPassTargetType();
 
-    //if(tobe->isReference())
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
 	// don't repeat genCodeToStoreInto when m_node is a function call that returns an atomref
@@ -1495,7 +1474,6 @@ namespace MFM {
 
     UTI vuti = uvpass.getPassTargetType(); //replace
 
-    //if(tobe->isReference()) //assumed to be
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
 	// don't repeat genCodeToStoreInto when m_node is a function call that returns an atomref
