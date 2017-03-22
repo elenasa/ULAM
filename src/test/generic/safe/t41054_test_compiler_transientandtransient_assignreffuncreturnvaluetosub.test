@@ -1,0 +1,57 @@
+## -*- mode:ulam -*-
+#=t41054_test_compiler_transientandtransient_assignreffuncreturnvaluetosub
+#!
+Exit status: -11
+Ue_R { Int(32) test() {  TW tw;  Base& ref = tw ( )func . cast;  TW& tapple = tw ( )funcself . cast;  0 cast return } }
+Un_TW : W { :< :< Unary(5) m_five(0); > Bool(1) bw(false); > Bool(1) b(false);  Bool(1) c(false);  <NOMAIN> }
+Uq_Base { Unary(5) m_five(0);  <NOMAIN> }
+Un_W : Base { :< Unary(5) m_five(0); > Bool(1) bw(false);  <NOMAIN> }
+##
+## informed by t3790, t41053
+##
+#>R.ulam
+  ulam 2;
+element R {
+  Int test(){
+    TW tw;
+    //case 1: CastDecendentTransient
+    Base& ref = tw.func();
+
+    //case 2:  (init) CastAncestorQuarkAsSubTransient
+    TW& tapple = (TW&) tw.funcself(); //unused var (qref read)
+
+    return 0;
+  }
+}
+
+#:TW.ulam
+  ulam 2;
+transient TW : W {
+  Bool b, c;
+}
+
+#:W.ulam
+  ulam 2;
+transient W : Base{
+  Bool bw;
+  Self func()
+  {
+    Self me;
+    return me;
+  }
+
+}
+
+#:Base.ulam
+  ulam 2;
+quark Base{
+  Unary(5) m_five;
+
+
+  Self& funcself()
+  {
+    return self;
+  }
+
+}
+#.

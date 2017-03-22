@@ -526,6 +526,7 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return ERROR;
       }
+
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
     //need a Ptr to the auto temporary variable, the result of func call
     // that belongs in m_currentObjPtr, but where to store the ans?
@@ -907,7 +908,7 @@ namespace MFM {
 	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL);
 	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
       }
-  } //codeGenToStoreInto
+  } //genCodeToStoreInto
 
   void NodeFunctionCall::genCodeIntoABitValue(File * fp, UVPass& uvpass)
   {
