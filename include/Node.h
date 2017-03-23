@@ -151,6 +151,8 @@ namespace MFM{
 
     virtual bool isExplicitReferenceCast(); //only NodeCast may return true
 
+    virtual bool isExplicitCast(); //only NodeCast may return true
+
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType();

@@ -1,0 +1,54 @@
+## -*- mode:ulam -*-
+#=t41055_test_compiler_castedmaxofexprinfunccall_issue
+#!
+Exit status: 0
+Ue_Foo { typedef Unsigned(8) Channel;  typedef Unsigned(8) Tag;  constant Int(32) cGENERATIONS = 11;  Unsigned(8) m_tag(0u);  Unary(11) m_gen(0u);  Int(32) test() {  Unsigned(8) tmp[4];  tmp ( 2u cast )getColor = tmp 1 [] cast return } }
+Uq_ColorUtils { typedef Unsigned(8) Channel;  typedef Unsigned(8) Byte;  typedef Unsigned(8) ARGB[4];  <NOMAIN> }
+##
+## informed by Dave ish 03222017, and t3232
+## culamtest: Parser.cpp:3318: MFM::Node* MFM::Parser::parseRestOfMemberSelectExpr(MFM::Node*): Assertion nextmember failed.
+##
+#>Foo.ulam
+  ulam 2;
+element Foo {
+  typedef ColorUtils.Channel Channel;
+  typedef ColorUtils.Byte Tag;
+  constant Int cGENERATIONS = 11; // Surge to ~2K content
+
+  Tag m_tag;
+  Unary(cGENERATIONS) m_gen;
+
+  Int test(){
+    ARGB tmp;
+    tmp = getColor(2u);
+    return tmp[1];
+  }
+
+  ARGB getColor(Unsigned selector)
+  {
+    ColorUtils cu;
+    //return cu.color(m_tag, (Tag) (0xffu-m_gen*8u), (Tag) (Tag.maxof - m_tag));
+    return cu.color(m_tag, (Tag) (0xffu-m_gen*8u), (Tag) (Tag.maxof - (Unsigned) m_tag)); //even harder with extra (Unsigned) cast.
+  }
+}
+
+#:ColorUtils.ulam
+  ulam 1;
+quark ColorUtils {
+  typedef Unsigned(8) Channel;
+  //typedef Bits(8) Byte;
+  typedef Unsigned(8) Byte;
+
+  typedef Channel ARGB[4];
+
+  ARGB color(Byte red, Byte green, Byte blue) {
+    ARGB ret;
+    ret[0] = (Channel) 0xff;
+    ret[1] = (Channel) (red & 0xff);
+    ret[2] = (Channel) (green & 0xff);
+    ret[3] = (Channel) (blue & 0xff);
+    return ret;
+  }
+}
+
+#.

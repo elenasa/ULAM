@@ -3,7 +3,7 @@
 #!
 ./R.ulam:10:18: ERROR: Explicit Reference casts (Type&) are valid for reference variable initialization (including function call arguments); not in this context.
 ./R.ulam:10:8: ERROR: Initial value of tapple is missing.
-./R.ulam:10:21: ERROR: Invalid Statement (possible missing semicolon).
+./R.ulam:10:23: ERROR: Invalid Statement (possible missing semicolon).
 Unrecoverable Program Parse FAILURE: <R.ulam>
 Unrecoverable Program Parse FAILURE: <TW.ulam>
 Unrecoverable Program Parse FAILURE: <W.ulam>

@@ -2395,6 +2395,7 @@ namespace MFM {
 
     if(!Token::isTokenAType(pTok))
       {
+	//note: this means it can't be a typedef from another class
 	unreadToken();
 	return NULL;
       }
@@ -3211,7 +3212,6 @@ namespace MFM {
     // don't return a NodeConstant, instead of NodeIdent, without arrays
     // even if already defined as one. lazy evaluate.
     bool isDefined = m_state.isIdInCurrentScope(identTok.m_dataindex, asymptr); //t3887
-    //if(!isDefined && (identTok.m_type == TOK_IDENTIFIER))
     if(!isDefined && (identTok.m_type == TOK_IDENTIFIER) && m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSINHERITANCE)
       {
 	bool locDefined = m_state.isIdInLocalFileScope(identTok.m_dataindex, asymptr);
@@ -3533,7 +3533,8 @@ namespace MFM {
     if(Token::isTokenAType(pTok))
       {
 	unreadToken();
-	return parseFactorStartingWithAType(pTok); //rtnNode could be NULL
+	bool allowrefcast = (m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCARGUMENT ? true : false);
+	return parseFactorStartingWithAType(pTok, allowrefcast); //rtnNode could be NULL
       } //not a Type
 
     //continue as normal..
@@ -3568,7 +3569,7 @@ namespace MFM {
 	  bool allowrefcast = (m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCARGUMENT ? true : false); //t3962
 	  rtnNode = parseRestOfCastOrExpression(allowrefcast);
 	}
-	  break;
+	break;
       case TOK_MINUS:
       case TOK_PLUS:
       case TOK_BANG:
@@ -3648,39 +3649,49 @@ namespace MFM {
     return rtnNode;
   } //parseFactor
 
-Node * Parser::parseFactorStartingWithAType(const Token& tTok)
-{
-  assert(Token::isTokenAType(tTok)); //was unread.
+  Node * Parser::parseFactorStartingWithAType(const Token& tTok, bool allowrefcast)
+  {
+    assert(Token::isTokenAType(tTok)); //was unread.
 
-  TypeArgs typeargs;
-  NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs);
-  assert(typeNode);
-  UTI uti = typeNode->givenUTI();
+    TypeArgs typeargs;
+    NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs);
+    assert(typeNode);
+    UTI uti = typeNode->givenUTI();
 
-  //returns either a terminal or proxy
-  Node * rtnNode = parseMinMaxSizeofType(NULL, uti, typeNode); //optionally, gets next dot token
-  if(!rtnNode)
-    {
-      Token iTok;
-      getNextToken(iTok);
-      if(iTok.m_type == TOK_IDENTIFIER)
-	{
-	  unreadToken();
-	  rtnNode = parseNamedConstantFromAnotherClass(typeargs);
-	  delete typeNode;
-	  typeNode = NULL;
-	}
-      else
-	{
-	  //clean up, some kind of error parsing min/max/sizeof
-	  delete typeNode;
-	  typeNode = NULL;
-	}
-    }
-  return rtnNode; //rtnNode could be NULL!
-} //parseFactorWithType
+    //returns either a terminal or proxy
+    Node * rtnNode = parseMinMaxSizeofType(NULL, uti, typeNode); //optionally, gets next dot token
+    if(!rtnNode)
+      {
+	Token iTok;
+	getNextToken(iTok);
+	if(iTok.m_type == TOK_IDENTIFIER)
+	  {
+	    unreadToken();
+	    rtnNode = parseNamedConstantFromAnotherClass(typeargs);
+	    delete typeNode;
+	    typeNode = NULL;
+	  }
+	else if(iTok.m_type == TOK_CLOSE_PAREN)
+	  {
+	    unreadToken();
+	    bool castok = makeCastNode(tTok, allowrefcast, typeNode, rtnNode);
+	    if(!castok)
+	      {
+		delete typeNode; //owns the dangling type descriptor
+		typeNode = NULL;
+	      }
+	  }
+	else
+	  {
+	    //clean up, some kind of error parsing min/max/sizeof
+	    delete typeNode;
+	    typeNode = NULL;
+	  }
+      }
+    return rtnNode; //rtnNode could be NULL!
+  } //parseFactorStartingWithAType
 
-Node * Parser::parseRestOfFactor(Node * leftNode)
+  Node * Parser::parseRestOfFactor(Node * leftNode)
   {
     Node * rtnNode = NULL;
     Token pTok;
@@ -3712,27 +3723,41 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
     return rtnNode;
   } //parseRestOfFactor
 
-  Node * Parser::parseRestOfCastOrExpression(bool allowRefCasts)
+  Node * Parser::parseRestOfCastOrExpression(bool allowRefCast)
   {
     Node * rtnNode = NULL;
     //just saw an open paren..
-    //if next token is a type this a user cast, o.w. expression
+    //if next token is a type this a user cast, min/max/sizeof, named constant, o.w. expression
+    bool isacast = false;
+
     Token tTok;
     getNextToken(tTok);
+    unreadToken();
+
     if(Token::isTokenAType(tTok) || (tTok.m_type == TOK_KW_LOCALDEF))
       {
-	unreadToken();
-	rtnNode = makeCastNode(tTok, allowRefCasts); //also parses its child Factor
+	rtnNode = parseFactorStartingWithAType(tTok, allowRefCast);
+	isacast = (rtnNode && rtnNode->isExplicitCast());
+      }
+
+    if(isacast)
+      return rtnNode; //no close paren
+
+    if(rtnNode)
+      {
+	//not a cast or min/max/sizeof or named constant
+	rtnNode = parseRestOfAssignExpr(rtnNode);
       }
     else
       {
-	unreadToken();
 	rtnNode = parseAssignExpr(); //grammar says assign_expr
-	if(!getExpectedToken(TOK_CLOSE_PAREN))
-	  {
-	    delete rtnNode;
-	    rtnNode = NULL;
-	  }
+	//will parse rest of assign expr before close paren
+      }
+
+    if(!getExpectedToken(TOK_CLOSE_PAREN))
+      {
+	delete rtnNode;
+	rtnNode = NULL;
       }
     return rtnNode;
   } //parseRestOfCastOrExpression
@@ -5573,77 +5598,40 @@ Node * Parser::parseRestOfFactor(Node * leftNode)
     return rtnNode;
   } //makeFactorNodePreUnaryOp
 
-  Node * Parser::makeCastNode(const Token& typeTok, bool allowRefCasts)
+  bool Parser::makeCastNode(const Token& typeTok, bool allowRefCasts, NodeTypeDescriptor * typeNode, Node *& rtnNodeRef)
   {
+    bool aok = true;
     Node * rtnNode = NULL;
-    UTI typeToBe = Nouti;
-    TypeArgs typeargs;
-
-    //we want the casting UTI, without deleting any failed dots because, why?
-    // because it might be a minof,maxof,sizeof..which wouldn't be a cast at all!
-    NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalsScope(typeargs, typeToBe, false, false);
-    if(!typeNode)
-      {
-	std::ostringstream msg;
-	msg << "Invalid Type for casting ";
-	MSG(&typeTok, msg.str().c_str(), ERR);
-	return NULL;
-      }
-
-    if((typeargs.m_declRef != ALT_NOT) && !allowRefCasts)
+    assert(typeNode);
+    UTI typeToBe = typeNode->givenUTI();
+    if((typeNode->getReferenceType() != ALT_NOT) && !allowRefCasts)
       {
 	std::ostringstream msg;
 	msg << "Explicit Reference casts (Type&) ";
 	msg << "are valid for reference variable initialization";
 	msg << " (including function call arguments); not in this context";
 	MSG(&typeTok, msg.str().c_str(), ERR);
-	delete typeNode;
-	return NULL;
+	return false;
       } //reference cast
 
-    Token eTok;
-    getNextToken(eTok);
-
-    if(eTok.m_type == TOK_CLOSE_PAREN)
+    if(getExpectedToken(TOK_CLOSE_PAREN))
       {
-	//typeNode tfrs to owner to NodeCast
 	Node * nodetocast = parseFactor();
 	if(nodetocast)
 	  {
 	    rtnNode = new NodeCast(nodetocast, typeToBe, typeNode, m_state);
 	    assert(rtnNode);
-	    rtnNode->setNodeLocation(typeargs.m_typeTok.m_locator);
+	    rtnNode->setNodeLocation(typeNode->getNodeLocation());
 	    ((NodeCast *) rtnNode)->setExplicitCast();
 	  }
 	else
-	  {
-	    delete typeNode;
-	    typeNode = NULL;
-	  }
+	  aok = false;
       }
     else
-      {
-	//not a cast anymore..
-	UTI uti = typeNode->givenUTI();
-	//as in parseFactor, returns either a terminal or proxy
-	//optionally, gets next dot token
-	rtnNode = parseMinMaxSizeofType(NULL, uti, typeNode);
-	if(rtnNode)
-	  rtnNode = parseRestOfExpression(rtnNode);
+      aok = false;
 
-	if(!rtnNode)
-	  {
-	    delete typeNode;
-	    typeNode = NULL;
-	  }
-
-	if(!getExpectedToken(TOK_CLOSE_PAREN))
-	  {
-	    delete rtnNode;
-	    rtnNode = NULL;
-	  }
-      }
-    return rtnNode;
+    rtnNodeRef = rtnNode;
+    return aok;
   } //makeCastNode
 
   Node * Parser::makeTerminal(Token& locTok, s64 val, UTI utype)
