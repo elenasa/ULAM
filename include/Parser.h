@@ -208,7 +208,6 @@ namespace MFM{
     /**
        <CONST_DEF> := 'constant' + <TYPE> + <IDENT> + '=' + <EXPRESSION>
     */
-    //Node * parseConstdef(bool assignREQ = true, bool isStmt = true);
     bool parseConstdef();
 
     NodeConstantDef * parseClassParameterConstdef(bool assignREQ);
@@ -340,7 +339,7 @@ namespace MFM{
      */
     Node * parseFactor(bool localbase = false);
 
-    Node * parseFactorStartingWithAType(const Token& tTok);
+    Node * parseFactorStartingWithAType(const Token& tTok, bool allowrefcast);
 
     Node * parseRestOfFactor(Node * leftNode);
 
@@ -443,7 +442,7 @@ namespace MFM{
     Node * makeFactorNodePreUnaryOp();
 
     /** helper for parseRestOfCastOrExpression via parseFactor*/
-    Node * makeCastNode(const Token& typeTok, bool allowRefCasts);
+    bool makeCastNode(const Token& typeTok, bool allowRefCasts, NodeTypeDescriptor * typeNode, Node *& rtnNodeRef);
 
     /**
        helper method to make a terminal node

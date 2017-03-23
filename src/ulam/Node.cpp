@@ -231,6 +231,11 @@ namespace MFM {
     return false;
   }
 
+  bool Node::isExplicitCast()
+  {
+    return false;
+  }
+
   FORECAST Node::safeToCastTo(UTI newType)
   {
     std::ostringstream msg;
