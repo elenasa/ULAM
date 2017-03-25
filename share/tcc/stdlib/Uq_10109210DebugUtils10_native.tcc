@@ -33,6 +33,18 @@ namespace MFM{
   } // Uf_9212printContext
 
   template<class EC>
+  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Uq_102323C2D10<EC>& Uv_5coord) const //native
+  {
+    enum { R = EC::EVENT_WINDOW_RADIUS };
+    const EventWindow<EC> & ew = uc.GetEventWindow();
+
+    const s32 x = _SignExtend32(UlamRef<EC>(0u, 16u, Uv_5coord, NULL, UlamRef<EC>::PRIMITIVE, uc).Read(), 16);
+    const s32 y = _SignExtend32(UlamRef<EC>(16u, 16u, Uv_5coord, NULL, UlamRef<EC>::PRIMITIVE, uc).Read(), 16);
+    const SPoint loc(x,y);
+    LOG.Message("print: (%d,%d)", loc.GetX(), loc.GetY());
+  }
+
+  template<class EC>
   void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_102321s<EC>& Uv_3arg) const //native
   {
     u32 strval = Uv_3arg.read();
@@ -41,7 +53,7 @@ namespace MFM{
       .GetUlamClassRegistry()
       .GetUlamClassByIndex(Ui_Ut_102321s<EC>::getRegNum(strval))
       ->GetString(Ui_Ut_102321s<EC>::getStrIdx(strval));
-    LOG.Message("print: \"%s\"", p);
+    LOG.Message("print: %S", p);
   }
 
   template<class EC>
