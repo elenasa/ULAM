@@ -81,6 +81,7 @@ namespace MFM{
 #define GCNL (fp->write_tagged_end( __FILE__ , __LINE__))
 #endif
 
+
   struct less_than_key
   {
     //see operator< in UlamKeyTypeSignature
@@ -188,6 +189,9 @@ namespace MFM{
 
     UTI makeUlamType(const Token& typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx, ALT reftype = ALT_NOT, ULAMCLASSTYPE classtype = UC_NOTACLASS);
     UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype, ULAMCLASSTYPE classtype);
+    void addCompleteUlamTypeToThisContextSet(UTI uti);
+    void addCompleteUlamTypeToContextBlockSet(UTI uti, NodeBlockContext * contextblock);
+    bool isOtherClassInThisContext(UTI suti);
     bool isDefined(UlamKeyTypeSignature key, UlamType *& foundUT);
     bool anyDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI);
     UlamType * createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype, ULAMCLASSTYPE classtype);

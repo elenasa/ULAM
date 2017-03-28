@@ -23,7 +23,7 @@ namespace MFM {
     m_parentNo = pno;
   }
 
-  NNO Node::getYourParentNo()
+  NNO Node::getYourParentNo() const
   {
     return m_parentNo;
   }
@@ -33,7 +33,7 @@ namespace MFM {
     setYourParentNo(pno); //walk the tree..a leaf.
   }
 
-  NNO Node::getNodeNo()
+  NNO Node::getNodeNo() const
   {
     return m_no;
   }
@@ -97,17 +97,19 @@ namespace MFM {
     return nodename;
   }
 
-  UTI Node::getNodeType()
+  UTI Node::getNodeType() const
   {
     return m_utype;
   }
 
-  void Node::setNodeType(UTI ut)
+  void Node::setNodeType(UTI uti)
   {
-    m_utype = ut;
+    m_utype = uti;
+    if(m_state.okUTItoContinue(uti))
+      m_state.addCompleteUlamTypeToThisContextSet(uti);
   }
 
-  TBOOL Node::getStoreIntoAble()
+  TBOOL Node::getStoreIntoAble() const
   {
     return m_storeIntoAble;
   }
@@ -118,7 +120,7 @@ namespace MFM {
     setReferenceAble(s); //usually the case, except custom arrays and func calls
   }
 
-  TBOOL Node::getReferenceAble()
+  TBOOL Node::getReferenceAble() const
   {
     return m_referenceAble;
   }
@@ -128,7 +130,7 @@ namespace MFM {
     m_referenceAble = s;
   }
 
-  Locator Node::getNodeLocation()
+  Locator Node::getNodeLocation() const
   {
     return m_loc;
   }
@@ -148,7 +150,7 @@ namespace MFM {
     fp->write(getNodeLocationAsString().c_str());
   }
 
-  std::string Node::getNodeLocationAsString()
+  std::string Node::getNodeLocationAsString() const
   {
     return m_state.getFullLocationAsString(m_loc);
   }

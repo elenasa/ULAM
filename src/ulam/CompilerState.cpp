@@ -501,12 +501,18 @@ namespace MFM {
 	  }
 	else //not a class
 	  {
-	    if(key.getUlamKeyTypeSignatureArraySize() != NONARRAYSIZE) //array type
+	    if(key.getUlamKeyTypeSignatureNameId() == m_pool.getIndexForDataString("String"))
+	      {
+		//don't clear the class instance index in string key (t3959)
+	      }
+	    else if(key.getUlamKeyTypeSignatureArraySize() != NONARRAYSIZE) //array type
 	      {
 		//can't save scalar in key; unable to look up from token
 		//saveNonClassScalarUTIForArrayUTI = suti;
+		key.append(Nouti); //clear (t41055)
 	      }
-	    key.append(Nouti); //clear
+	    else
+	      key.append(Nouti); //clear
 	  }
 
 	ut = createUlamType(key, utype, classtype);
@@ -535,6 +541,61 @@ namespace MFM {
       }
     return uti;
   } //makeUlamType
+
+  void CompilerState::addCompleteUlamTypeToThisContextSet(UTI uti)
+  {
+    NodeBlockContext * contextblock = getContextBlock();
+    addCompleteUlamTypeToContextBlockSet(uti, contextblock);
+  } //addCompleteUlamTypeToThisContextSet
+
+  void CompilerState::addCompleteUlamTypeToContextBlockSet(UTI uti, NodeBlockContext * contextblock)
+  {
+    assert(contextblock);
+
+    //for all Nodes' setNodeType(); used to genCode include files.
+    assert(okUTItoContinue(uti));
+    UTI deref = getUlamTypeAsDeref(uti);
+    if(isComplete(deref))
+      {
+	//always add the deref (e.g. t3224)
+	UlamKeyTypeSignature key = getUlamKeyTypeSignatureByIndex(deref);
+	contextblock->addUlamTypeKeyToSet(key);
+      }
+  } //addCompleteUlamTypeToContextBlockSet
+
+  bool CompilerState::isOtherClassInThisContext(UTI suti)
+  {
+    //true only if used by this class, or is its superclass
+    bool rtnb = false;
+    UTI cuti = getCompileThisIdx();
+
+    if((suti != cuti) && isComplete(suti))
+      {
+	NodeBlockContext * contextblock = getContextBlock();
+	if(contextblock->hasUlamType(suti))
+	  rtnb = true;
+	else if(isEmpty(suti))
+	  rtnb = true;
+	else
+	  {
+	    UTI superclass = isClassASubclass(cuti);
+	    if(superclass == Nouti)
+	      {
+		if(isUrSelf(suti))
+		  rtnb = true;
+	      }
+	    else //t3640, t3605
+	      {
+		assert(okUTItoContinue(superclass));
+		if(isClassASubclassOf(cuti, suti))
+		  rtnb = true;
+		//else if(contextblock->searchHasAnyUlamTypeASubclassOf(suti))
+		// rtnb = true; //extended search done last
+	      }
+	  }
+      }
+    return rtnb;
+  } //isOtherClassInThisContext
 
   bool CompilerState::isDefined(UlamKeyTypeSignature key, UlamType *& foundUT)
   {
@@ -2177,10 +2238,12 @@ namespace MFM {
     NodeBlockClass * classblock = new NodeBlockClass(NULL, *this);
     assert(classblock);
     classblock->setNodeLocation(cTok.m_locator); //only where first used, not defined!
-    classblock->setNodeType(cuti);
+    //classblock->setNodeType(cuti);
 
     //avoid Invalid Read whenconstructing class' Symbol
     pushClassContext(cuti, classblock, classblock, false, NULL); //null blocks likely
+
+    classblock->setNodeType(cuti); //t3895
 
     //symbol ownership goes to the programDefST; distinguish btn template & regular classes here:
     symptr = new SymbolClassName(cTok, cuti, classblock, *this);
@@ -2417,6 +2480,8 @@ namespace MFM {
 	fmLocals.clear(); //done with vector of clones
 
 	classblock->setUserStringPoolRef(localsblock->getUserStringPoolRef()); //?
+
+	localsblock->copyUlamTypeKeys(classblock);
 
 	//generate a single class, .h, _Types.h, .tcc and .cpp
 	cnsym->generateCodeForClassInstances(fm);

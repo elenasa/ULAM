@@ -55,6 +55,7 @@ namespace MFM
   {
   public:
     Resolver(UTI instance, CompilerState& state);
+    Resolver(UTI instance, UTI context, CompilerState& state);
     ~Resolver();
 
     void addUnknownTypeToken(const Token& tok, UTI huti);

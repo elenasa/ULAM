@@ -8,9 +8,9 @@
 
 namespace MFM {
 
-  SymbolClass::SymbolClass(const Token& id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false) /* default */, m_superClass(Nouti) {}
+  SymbolClass::SymbolClass(const Token& id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false) /* default */, m_superClass(Nouti), m_classContextUTI(Nouti) {}
 
-  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_superClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_superClass))
+  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_superClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_superClass)), m_classContextUTI(sref.m_classContextUTI)
   {
     if(sref.m_classBlock)
       {
@@ -21,7 +21,7 @@ namespace MFM {
       m_classBlock = NULL; //i.e. UC_UNSEEN
 
     if(sref.m_resolver)
-      m_resolver = new Resolver(getUlamTypeIdx(), m_state); //not a clone, populated later
+      m_resolver = new Resolver(getUlamTypeIdx(), m_classContextUTI, m_state); //not a clone, populated later
   }
 
   SymbolClass::~SymbolClass()
@@ -360,7 +360,7 @@ namespace MFM {
   void SymbolClass::addUnknownTypeTokenToClass(const Token& tok, UTI huti)
   {
     if(!m_resolver)
-      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
+      m_resolver = new Resolver(getUlamTypeIdx(), m_classContextUTI, m_state);
     assert(m_resolver);
     m_resolver->addUnknownTypeToken(tok, huti);
   } //addUnknownTypeNameIdToClass
@@ -422,7 +422,7 @@ namespace MFM {
   void SymbolClass::linkConstantExpressionForPendingArg(NodeConstantDef * constNode)
   {
     if(!m_resolver)
-      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
+      m_resolver = new Resolver(getUlamTypeIdx(), m_classContextUTI, m_state);
     assert(m_stub); //stubs only have pending args
     m_resolver->linkConstantExpressionForPendingArg(constNode);
 
@@ -513,11 +513,12 @@ namespace MFM {
     return m_resolver->cloneUnknownTypesTokenMap(to);
   }
 
-void SymbolClass::setContextForPendingArgs(UTI context)
+  void SymbolClass::setContextForPendingArgs(UTI context)
   {
     //assert(m_resolver); //dangerous! when template has default parameters
     if(m_resolver)
       return m_resolver->setContextForPendingArgs(context);
+    m_classContextUTI = context;
   } //setContextForPendingArgs
 
   UTI SymbolClass::getContextForPendingArgs()
@@ -526,8 +527,9 @@ void SymbolClass::setContextForPendingArgs(UTI context)
     if(m_resolver)
       return m_resolver->getContextForPendingArgs();
 
-    assert(getParentClassTemplate() && getParentClassTemplate()->getTotalParametersWithDefaultValues() > 0);
-    return getUlamTypeIdx(); //return self UTI
+    assert(!isStub() || (getParentClassTemplate() && getParentClassTemplate()->getTotalParametersWithDefaultValues() > 0));
+    //return getUlamTypeIdx(); //return self UTI
+    return m_classContextUTI; //t3981
   } //getContextForPendingArgs
 
   bool SymbolClass::statusNonreadyClassArguments()
@@ -547,7 +549,7 @@ void SymbolClass::setContextForPendingArgs(UTI context)
   bool SymbolClass::mapUTItoUTI(UTI auti, UTI mappedUTI)
   {
     if(!m_resolver)
-      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
+      m_resolver = new Resolver(getUlamTypeIdx(), m_classContextUTI, m_state);
 
     return m_resolver->mapUTItoUTI(auti, mappedUTI);
   } //mapUTItoUTI
@@ -648,6 +650,35 @@ void SymbolClass::setContextForPendingArgs(UTI context)
       m_state.m_currentIndentLevel = 0;
       m_state.genCModeForHeaderFile(fp); //needed for .tcc files too
 
+
+#if 0
+    //could need locals file scope of context where used (e.g. t3981)
+    //e.g. a String class argument to superclass is defined in locals file scope of subclass.
+    UTI context = getContextForPendingArgs();
+    if((context != Nouti) && (context != getUlamTypeIdx()))
+      {
+	SymbolClass * contextcsym = NULL;
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(context, contextcsym);
+	assert(isDefined);
+	NodeBlockClass * contextclassblock = contextcsym->getClassBlockNode();
+	assert(contextclassblock);
+	UTI contextlocuti = contextclassblock->getLocalsFilescopeType();
+	if(contextlocuti != Nouti)
+	  {
+	    if(m_state.isOtherClassInThisContext(contextlocuti))
+	      {
+		assert(m_state.okUTItoContinue(contextlocuti));
+		u32 mangledclassid = m_state.getMangledClassNameIdForUlamLocalsFilescope(contextlocuti);
+
+		m_state.indent(fp);
+		fp->write("#include \"");
+		fp->write(m_state.m_pool.getDataAsString(mangledclassid).c_str());
+		fp->write(".h\""); GCNL;
+	      }
+	  }
+      }
+#endif
+
       UVPass uvpass;
       m_classBlock->genCodeBody(fp, uvpass); //compileThisId only, MFM namespace
 
@@ -693,7 +724,8 @@ void SymbolClass::setContextForPendingArgs(UTI context)
   void SymbolClass::generateAsOtherInclude(File * fp)
   {
     UTI suti = getUlamTypeIdx();
-    if(suti != m_state.getCompileThisIdx() && m_state.getUlamTypeByIndex(suti)->isComplete())
+    //only if used by this class, or its superclass
+    if(m_state.isOtherClassInThisContext(suti))
       {
 	m_state.indent(fp);
 	fp->write("#include \"");
@@ -705,10 +737,10 @@ void SymbolClass::setContextForPendingArgs(UTI context)
   void SymbolClass::generateAsOtherForwardDef(File * fp)
   {
     UTI suti = getUlamTypeIdx();
-    if(suti != m_state.getCompileThisIdx() && m_state.getUlamTypeByIndex(suti)->isComplete())
+    //only if used by This class, or its superclass
+    if(m_state.isOtherClassInThisContext(suti))
       {
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
-
 	m_state.indent(fp);
 	fp->write("namespace MFM { template ");
 	fp->write("<class EC> "); //same for elements and quarks
@@ -718,6 +750,42 @@ void SymbolClass::setContextForPendingArgs(UTI context)
 	fp->write("; }  //FORWARD\n");
       }
   } //generateAsOtherForwardDef
+
+#if 0
+  bool SymbolClass::isOtherClass(UTI suti)
+  {
+    //true only if used by this class, or is its superclass
+    bool rtnb = false;
+    UTI cuti = m_state.getCompileThisIdx();
+
+    if((suti != cuti) && m_state.isComplete(suti))
+      {
+	NodeBlockContext * contextblock = m_state.getContextBlock();
+	if(contextblock->hasUlamType(suti))
+	  rtnb = true;
+	else if(m_state.isEmpty(suti))
+	  rtnb = true;
+	else
+	  {
+	    UTI superclass = m_state.isClassASubclass(cuti);
+	    if(superclass == Nouti)
+	      {
+		if(m_state.isUrSelf(suti))
+		  rtnb = true;
+	      }
+	    else //t3640, t3605
+	      {
+		assert(m_state.okUTItoContinue(superclass));
+		if(m_state.isClassASubclassOf(cuti, suti))
+		  rtnb = true;
+		else if(contextblock->searchHasAnyUlamTypeASubclassOf(suti))
+		  rtnb = true; //extended search done last
+	      }
+	  }
+      }
+    return rtnb;
+  } //isOtherClass (helper)
+#endif
 
   void SymbolClass::generateTestInstance(File * fp, bool runtest)
   {
@@ -808,6 +876,36 @@ void SymbolClass::setContextForPendingArgs(UTI context)
 	fp->write(m_state.m_pool.getDataAsString(mangledclassid).c_str());
 	fp->write("; }  //FORWARD"); GCNL;
       }
+
+#if 0
+    //could need locals file scope of context where used (e.g. t3981)
+    //e.g. a String class argument to superclass is defined in locals file scope of subclass.
+    UTI context = getContextForPendingArgs();
+    if((context != Nouti) && (context != getUlamTypeIdx()))
+      {
+	SymbolClass * contextcsym = NULL;
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(context, contextcsym);
+	assert(isDefined);
+	NodeBlockClass * contextclassblock = contextcsym->getClassBlockNode();
+	assert(contextclassblock);
+	UTI contextlocuti = contextclassblock->getLocalsFilescopeType();
+	if(contextlocuti != Nouti)
+	  {
+	    if(m_state.isOtherClassInThisContext(contextlocuti))
+	      {
+		assert(m_state.okUTItoContinue(contextlocuti));
+		u32 mangledclassid = m_state.getMangledClassNameIdForUlamLocalsFilescope(contextlocuti);
+
+		m_state.indent(fp);
+		fp->write("namespace MFM { template ");
+		fp->write("<class EC> ");
+		fp->write("struct ");
+		fp->write(m_state.m_pool.getDataAsString(mangledclassid).c_str());
+		fp->write("; }  //FORWARD"); GCNL;
+	      }
+	  }
+      }
+#endif
   } //generateHeaderIncludes
 
   // create structs with BV, as storage, and typedef
@@ -840,6 +938,16 @@ void SymbolClass::setContextForPendingArgs(UTI context)
     m_state.indent(fp);
     fp->write("#include \"UlamDefs.h\"\n\n");
 
+    NodeBlockClass * classblock = getClassBlockNode();
+    assert(classblock);
+
+    // define any immediate types needed for this class
+    classblock->genUlamTypeImmediateDefinitions(fp);
+
+#if 0
+    //IN CASE WE NEED TO CHECK FOR UrSelf, Empty, and Strings in defined in other classes - use
+    // m_state.isOtherClassInThisContext() instead of iterating m_hasUlamTypes.???
+
     // do primitive types before classes so that immediate
     // Quarks/Elements can use them (e.g. immediate index for aref)
     std::map<UlamKeyTypeSignature, UlamType *, less_than_key>::iterator it = m_state.m_definedUlamTypes.begin();
@@ -867,10 +975,9 @@ void SymbolClass::setContextForPendingArgs(UTI context)
 	  }
 	it++;
       }
+#endif
 
     // define any model parameter immediate types needed for this class
-    NodeBlockClass * classblock = getClassBlockNode();
-    assert(classblock);
     classblock->genModelParameterImmediateDefinitions(fp);
 
     delete fp; //close

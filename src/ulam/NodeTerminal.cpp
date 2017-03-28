@@ -240,9 +240,6 @@ namespace MFM {
 	    m_state.abortUndefinedUlamPrimitiveType();
 	  };
 
-	if(m_etyp == String)
-	  assert(0); //do we get here?
-
 	//use UTI with same base type and new bitsize:
 	u32 enumStrIdx = m_state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(m_etyp));
 	UlamKeyTypeSignature newkey(enumStrIdx, newbs);
@@ -838,8 +835,15 @@ namespace MFM {
 	m_etyp = Unsigned;
 	break;
       case TOK_DQUOTED_STRING:
-	newType = String;
-	m_etyp = String;
+	{
+	  // let the classInstanceIdx of key be the upool uti
+	  newType = String;
+	  //u32 uid = m_state.m_pool.getIndexForDataString("String");
+	  //UTI reguti = m_state.getCompileThisIdx();
+	  //UlamKeyTypeSignature key(uid, ULAMTYPE_DEFAULTBITSIZE[String], NONARRAYSIZE, reguti, ALT_NOT);
+	  //newType = m_state.makeUlamType(key, String, UC_NOTACLASS);
+	  m_etyp = String;
+	}
 	break;
       default:
 	{

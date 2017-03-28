@@ -330,6 +330,10 @@ namespace MFM {
     NodeBlockClass * newblockclass = new NodeBlockClass(templateclassblock, m_state);
     assert(newblockclass);
     newblockclass->setNodeLocation(blockclass->getNodeLocation());
+
+    //provides proper context for setting type (e.g. t3640)
+    m_state.pushClassContext(newuti, newblockclass, newblockclass, false, NULL);
+
     newblockclass->setNodeType(newuti);
     newblockclass->resetNodeNo(templateclassblock->getNodeNo()); //keep NNO consistent (new)
     newblockclass->setSuperBlockPointer(NULL); //wait for c&l when no longer a stub
@@ -357,12 +361,15 @@ namespace MFM {
 
 	newclassinstance->cloneArgumentNodesForClassInstance(csym, context, true);
 	csym->cloneResolverUTImap(newclassinstance);
+	blockclass->copyUlamTypeKeys(newblockclass); //t3895, maybe
       }
     else
       {
 	delete newclassinstance; //failed e.g. wrong number of args
 	newclassinstance = NULL;
       }
+
+    m_state.popClassContext(); //restore
   } //copyAStubClassInstance
 
   //called by parseThisClass, if wasIncomplete is parsed; temporary class arg names
@@ -555,7 +562,8 @@ namespace MFM {
 	stubcsym->linkConstantExpressionForPendingArg(argConstDef);
       }
     m_state.popClassContext(); //restore
-    stubcsym->setContextForPendingArgs(m_state.getCompileThisIdx()); //reset
+    if(stubcsym->getContextForPendingArgs() == Nouti)
+      stubcsym->setContextForPendingArgs(m_state.getCompileThisIdx()); //reset
   } //fixAClassStubsDefaultsArgs
 
   bool SymbolClassNameTemplate::statusNonreadyClassArgumentsInStubClassInstances()
@@ -861,6 +869,9 @@ namespace MFM {
 	//copy any constant strings from the stub
 	clone->setUserStringPoolRef(csym->getUserStringPoolRef()); //t3962
 
+	//copy any context, where stub used
+	clone->setContextForPendingArgs(csym->getContextForPendingArgs()); //t3981
+
 	if(!takeAnInstancesArgValues(csym, clone)) //instead of keeping template's unknown values
 	  {
 	    aok &= false;
@@ -870,6 +881,7 @@ namespace MFM {
 	  {
 	    clone->cloneArgumentNodesForClassInstance(csym, csym->getContextForPendingArgs(), false);
 	    cloneAnInstancesUTImap(csym, clone);
+	    csym->getClassBlockNode()->copyUlamTypeKeys(classNode); //t3895
 
 	    it->second = clone; //replace with the full copy
 	    trashStub(cuti, csym);

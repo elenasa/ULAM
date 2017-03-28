@@ -139,8 +139,9 @@ namespace MFM {
       return false;
     if(key1.getUlamKeyTypeSignatureArraySize() != key2.getUlamKeyTypeSignatureArraySize())
       return false;
-    if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
-      return false;
+
+    if((UlamType::compareForString(typidx, m_state) == UTIC_NOTSAME) && (key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx()))
+      return false; //t3963
 
     //skip rest in the case of array item, continue with usual size fit
     if(alt1 == ALT_ARRAYITEM || alt2 == ALT_ARRAYITEM)
@@ -502,6 +503,9 @@ namespace MFM {
 	  return UTIC_DONTKNOW;
       }
 
+    if((UlamType::compareForString(u1, state) == UTIC_SAME) && (UlamType::compareForString(u2, state) == UTIC_SAME))
+      return UTIC_SAME;
+
     //both complete!
     //assert both key and ptr are either both equal or not equal; not different ('!^' eq '==')
     assert((key1 == key2) == (ut1 == ut2));
@@ -561,8 +565,8 @@ namespace MFM {
     if(key1.getUlamKeyTypeSignatureBitSize() != key2.getUlamKeyTypeSignatureBitSize())
       return UTIC_NOTSAME;
 
-    if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
-      return UTIC_NOTSAME; //?
+    if((UlamType::compareForString(u1, state) == UTIC_NOTSAME) && (key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx()))
+      return UTIC_NOTSAME; //t3412
 
     ALT alt1 = key1.getUlamKeyTypeSignatureReferenceType();
     ALT alt2 = key2.getUlamKeyTypeSignatureReferenceType();
@@ -660,8 +664,17 @@ namespace MFM {
 
   ULAMTYPECOMPARERESULTS UlamType::compareForString(UTI u1, CompilerState& state)  //static
   {
-    return UlamType::compareWithWildReferenceType(u1, String, state);
-  }
+    //return UlamType::compareWithWildReferenceType(u1, String, state);
+    //bitsize always 32; wild reference type
+    //ignoring classInstanceIdx (t3959)
+    //arrays not treated as a String, per se (t3949, t3975, t3985, t3995)
+    UlamType * ut1 = state.getUlamTypeByIndex(u1);
+    u32 id1 = ut1->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
+    s32 arraysize1 = ut1->getUlamKeyTypeSignature().getUlamKeyTypeSignatureArraySize();
+    if(id1 == state.m_pool.getIndexForDataString("String") && (arraysize1 == NONARRAYSIZE))
+      return UTIC_SAME;
+    return UTIC_NOTSAME;
+  } //compareForString
 
   ULAMTYPECOMPARERESULTS UlamType::compareForCustomArrayItem(UTI u1, UTI u2, CompilerState& state)  //static
   {

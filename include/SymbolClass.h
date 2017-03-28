@@ -170,6 +170,7 @@ namespace MFM{
     BV8K m_defaultValue; //BitVector
     bool m_isreadyDefaultValue;
     UTI m_superClass; //single inheritance
+    UTI m_classContextUTI; //where declared; used to evaluate pending class args
 
     void assignClassArgValuesInStubCopy();
 

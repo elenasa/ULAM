@@ -1424,8 +1424,10 @@ void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp)
 
     UTI futi = m_funcSymbol->getDataMemberClass();
     UlamType * fut = m_state.getUlamTypeByIndex(futi);
-    fp->write(fut->getLocalStorageTypeAsString().c_str());
-    fp->write("::Us::THE_INSTANCE.");
+    //fp->write(fut->getLocalStorageTypeAsString().c_str());
+    //fp->write("::Us::THE_INSTANCE.");
+    fp->write(fut->getUlamTypeMangledName().c_str()); //e.g. t3605
+    fp->write("<EC>::THE_INSTANCE.");
   } //genLocalMemberNameOfMethod
 
 } //end MFM

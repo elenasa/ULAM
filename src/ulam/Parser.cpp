@@ -2652,6 +2652,7 @@ namespace MFM {
       }
 
     SymbolClass * stubcsym = ctsym->makeAStubClassInstance(typeTok, stubuti);
+    stubcsym->setContextForPendingArgs(m_state.getCompileThisIdx());
 
     u32 parmidx = 0;
     parseRestOfClassArguments(stubcsym, ctsym, parmidx);
