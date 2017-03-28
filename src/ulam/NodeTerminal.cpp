@@ -835,15 +835,8 @@ namespace MFM {
 	m_etyp = Unsigned;
 	break;
       case TOK_DQUOTED_STRING:
-	{
-	  // let the classInstanceIdx of key be the upool uti
-	  newType = String;
-	  //u32 uid = m_state.m_pool.getIndexForDataString("String");
-	  //UTI reguti = m_state.getCompileThisIdx();
-	  //UlamKeyTypeSignature key(uid, ULAMTYPE_DEFAULTBITSIZE[String], NONARRAYSIZE, reguti, ALT_NOT);
-	  //newType = m_state.makeUlamType(key, String, UC_NOTACLASS);
-	  m_etyp = String;
-	}
+	newType = String;
+	m_etyp = String;
 	break;
       default:
 	{

@@ -54,14 +54,6 @@ namespace MFM {
       {
 	UlamKeyTypeSignature key = *it;
 	toblock->addUlamTypeKeyToSet(key);
-#if 0
-	if(key.getUlamKeyTypeSignatureNameId() == m_state.m_pool.getIndexForDataString("String"))
-	  {
-	    UTI reguti = key.getUlamKeyTypeSignatureClassInstanceIdx();
-	    if(m_state.okUTItoContinue(reguti))
-	      m_state.addCompleteUlamTypeToContextBlockSet(reguti, toblock); //t3959
-	  }
-#endif
 	it++; //t3852
       }
   }

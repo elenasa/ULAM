@@ -501,18 +501,12 @@ namespace MFM {
 	  }
 	else //not a class
 	  {
-	    if(key.getUlamKeyTypeSignatureNameId() == m_pool.getIndexForDataString("String"))
+	    if(key.getUlamKeyTypeSignatureArraySize() != NONARRAYSIZE) //array type
 	      {
-		//don't clear the class instance index in string key (t3959)
-	      }
-	    else if(key.getUlamKeyTypeSignatureArraySize() != NONARRAYSIZE) //array type
-	      {
-		//can't save scalar in key; unable to look up from token
+		//can't save scalar in key; unable to look up from token (t41055)
 		//saveNonClassScalarUTIForArrayUTI = suti;
-		key.append(Nouti); //clear (t41055)
 	      }
-	    else
-	      key.append(Nouti); //clear
+	    key.append(Nouti); //clear
 	  }
 
 	ut = createUlamType(key, utype, classtype);
