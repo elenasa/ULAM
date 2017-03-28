@@ -3983,6 +3983,7 @@ namespace MFM {
       case TOK_DOT:
 	unreadToken();
 	rtnNode = parseRestOfMemberSelectExpr(leftNode);
+	rtnNode = parseRestOfExpression(rtnNode); //any more? t41057
 	break;
       case TOK_ERROR_LOWLEVEL:
 	rtnNode = parseRestOfExpression(leftNode); //redo
