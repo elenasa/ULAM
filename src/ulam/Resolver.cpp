@@ -6,8 +6,6 @@ namespace MFM {
 
   Resolver::Resolver(UTI instance, CompilerState& state) : m_state(state), m_classUTI(instance), m_classContextUTIForPendingArgs(m_state.getCompileThisIdx()) /*default*/ {}
 
-  Resolver::Resolver(UTI instance, UTI context, CompilerState& state) : m_state(state), m_classUTI(instance), m_classContextUTIForPendingArgs(context) /*default*/ {}
-
   Resolver::~Resolver()
   {
     clearLeftoverSubtrees();

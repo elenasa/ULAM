@@ -94,25 +94,15 @@ namespace MFM {
 		break;
 	      }
 	  }
-	else if(ut->getUlamTypeEnum() == String)
-	  {
-	    u32 cuti = key.getUlamKeyTypeSignatureClassInstanceIdx();
-	    if((cuti != Nouti) && UlamType::compare(cuti, suti, m_state) == UTIC_SAME)
-	      {
-		rtnb = true; //t3959
-		break;
-	      }
-	  }
 	it++;
       } //end while
     return rtnb;
-  } //searchHasAnyUlamTypeASubclassOf
+  } //searchHasAnyUlamTypeASubclassOf (unused)
 
   void NodeBlockContext::genUlamTypeImmediateDefinitions(File * fp)
   {
     //formerly in SymbolClass::genMangledTypesHeaderFile (Tue Mar 28 08:53:34 2017)
-    // do we need UrSelf, Empty, or Classes that hold Strings we have seen as immediates??
-
+    // do we need UrSelf, Empty, or Classes that hold Strings we have seen as immediates?
 
     // do primitive types before classes so that immediate
     // Quarks/Elements can use them (e.g. immediate index for aref)
