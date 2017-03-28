@@ -2840,7 +2840,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     UTI suti = getNodeType();
     UlamType * sut = m_state.getUlamTypeByIndex(suti);
     if(!sut->isComplete()) return;
-    if(!m_state.isOtherClassInThisContext(suti)) return; //e.g. t3373,5,6,7, t3923
+    if((suti != m_state.getCompileThisIdx()) && !m_state.isOtherClassInThisContext(suti)) return; //e.g. t3373,5,6,7, t3923
 
     if(sut->getUlamClassType() != UC_ELEMENT)
       {
