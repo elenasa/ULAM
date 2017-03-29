@@ -253,6 +253,10 @@ namespace MFM {
 
   UTI CompilerState::makeUlamTypeFromHolder(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti, ULAMCLASSTYPE classtype)
   {
+    //pesky 'type already seen as undefined class' type problems: Dave ish 03262017
+    if(oldkey == newkey)
+      return uti;
+
     if((getUlamTypeByIndex(uti)->getUlamTypeEnum() == Class) && isScalar(uti) && !isReference(uti))
       {
 	if((utype != Class))
