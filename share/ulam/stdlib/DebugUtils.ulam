@@ -36,6 +36,7 @@ quark DebugUtils {
 
   Void printChar(Unsigned(8) arg) native;
 
+  Void print(C2D arg) native;
   Void print(Unsigned arg) native;
   Void print(String arg) native;
   Void print(Int arg) native;

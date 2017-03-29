@@ -123,6 +123,16 @@ namespace MFM{
     return Ui_Ut_10161u<EC>(EventWindow<EC>::SITE_COUNT);
   }
 
+  template<class EC>
+  Ui_Ut_10131u<EC> Uq_10109211EventWindow10<EC>::Uf_9211getSymmetry(const UlamContext<EC> & uc,
+                                                                    UlamRef<EC>& ur) const
+  {
+    EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
+
+    const u32 sym = (u32) ew.GetSymmetry();
+    return Ui_Ut_10131u<EC>(sym);
+  }
+
   //! EventWindow.ulam:45:   Unsigned getRadius() native;
   template<class EC>
   Ui_Ut_102321u<EC> Uq_10109211EventWindow10<EC>::Uf_919getRadius(const UlamContext<EC> & uc,
@@ -165,7 +175,7 @@ namespace MFM{
 
     UlamRef<EC>(0u, 16u, Uv_3ret, NULL, UlamRef<EC>::PRIMITIVE, uc).Write(mapped.GetX());
 
-    UlamRef<EC>(16u, 16u, Uv_3ret, NULL, UlamRef<EC>::PRIMITIVE, uc).Write(mapped.GetX());
+    UlamRef<EC>(16u, 16u, Uv_3ret, NULL, UlamRef<EC>::PRIMITIVE, uc).Write(mapped.GetY());
 
     //! EventWindow.ulam:38:     return ret;
     return Ui_Uq_102323C2D10<EC>(Uv_3ret.read());
