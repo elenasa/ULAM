@@ -703,6 +703,15 @@ namespace MFM {
       }
   } //generateAsOtherInclude
 
+  void SymbolClass::generateAllIncludesForTestMain(File * fp)
+  {
+    UTI suti = getUlamTypeIdx();
+    m_state.indent(fp);
+    fp->write("#include \"");
+    fp->write(m_state.getFileNameForAClassHeader(suti).c_str());
+    fp->write("\"\n");
+  } //generateAllIncludesForTestMain
+
   void SymbolClass::generateAsOtherForwardDef(File * fp)
   {
     UTI suti = getUlamTypeIdx();
@@ -884,13 +893,9 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("#include \"UlamDefs.h\"\n\n");
 
-    m_state.indent(fp);
-    fp->write("#include \"");
-    fp->write(m_state.getFileNameForThisClassHeader().c_str());
-    fp->write("\"");
-    fp->write("\n");
-
-    m_state.m_programDefST.generateIncludesForTableOfClasses(fp); //the other classes
+    //include ALL the classes, including this class being compiled
+    //t3373,4,5,6,7 t3380,82, t3394, 95, t3622, t3749, t3755, t3804,7, t3958, t41005, t41032,4
+    m_state.m_programDefST.generateAllIncludesTestMainForTableOfClasses(fp);
 
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);

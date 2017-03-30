@@ -97,6 +97,7 @@ namespace MFM{
     virtual void generateCodeForClassInstances(FileManager * fm);
 
     virtual void generateIncludesForClassInstances(File * fp);
+    virtual void generateAllIncludesForTestMainForClassInstances(File * fp);
 
     virtual void generateForwardDefsForClassInstances(File * fp);
 

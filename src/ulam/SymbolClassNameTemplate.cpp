@@ -1600,6 +1600,17 @@ namespace MFM {
       }
   } //generateIncludesForClassInstances
 
+  void SymbolClassNameTemplate::generateAllIncludesForTestMainForClassInstances(File * fp)
+  {
+    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
+    while(it != m_scalarClassArgStringsToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	csym->generateAllIncludesForTestMain(fp);
+	it++;
+      }
+  } //generateAllIncludesForTestMainForClassInstances
+
   void SymbolClassNameTemplate::generateForwardDefsForClassInstances(File * fp)
   {
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();

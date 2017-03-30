@@ -671,9 +671,11 @@ namespace MFM {
 		      {
 			if(args.m_bitsize == 0)
 			  args.m_bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
+
 			// update the type of holder key
 			UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, Nouti, args.m_declRef);
 			m_state.makeUlamTypeFromHolder(newkey, bUT, tduti, UC_NOTACLASS); //update key, same uti
+
 			if(m_state.hasUnknownTypeInThisClassResolver(tduti))
 			  m_state.removeKnownTypeTokenFromThisClassResolver(tduti);
 		      }

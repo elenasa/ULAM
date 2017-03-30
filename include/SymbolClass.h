@@ -133,6 +133,7 @@ namespace MFM{
     virtual void generateCode(FileManager * fm);
 
     void generateAsOtherInclude(File * fp);
+    void generateAllIncludesForTestMain(File * fp);
 
     void generateAsOtherForwardDef(File * fp);
 

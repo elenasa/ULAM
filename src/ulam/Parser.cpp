@@ -2540,7 +2540,9 @@ namespace MFM {
 	      {
 		ULAMTYPE bUT = m_state.getUlamTypeByIndex(tduti)->getUlamTypeEnum();
 		isaclass |= (bUT == Class); //or Hzy or Holder?
-		if(isaclass && m_state.isHolder(tduti)) //(bUT == Holder))
+
+		//pesky 'type already seen as undefined class' type problems: Dave ish 03262017
+		if(isaclass && (bUT == Holder)) //not isHolder(tduti)
 		  {
 		    m_state.makeClassFromHolder(tduti, typeTok); //t3862
 		  }

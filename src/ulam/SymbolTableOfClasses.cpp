@@ -570,6 +570,25 @@ namespace MFM {
       }
   } //generateIncludesForTableOfClasses
 
+  void SymbolTableOfClasses::generateAllIncludesTestMainForTableOfClasses(File * fp)
+  {
+    fp->write("//Include all classes:"); GCNL; //including THIS class being compiled
+
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym->isClass());
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti))
+	  {
+	    ((SymbolClassName *) sym)->generateAllIncludesForTestMainForClassInstances(fp);
+	  }
+	it++;
+      }
+  } //generateAllIncludesForTestMainForTableOfClasses
+
   //bypasses THIS class being compiled
   void SymbolTableOfClasses::generateForwardDefsForTableOfClasses(File * fp)
   {

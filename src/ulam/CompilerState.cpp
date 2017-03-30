@@ -248,14 +248,21 @@ namespace MFM {
   {
     //we need to keep the uti, but change the key; utype to be.
     UlamKeyTypeSignature hkey = getUlamKeyTypeSignatureByIndex(uti);
+    if(hkey == newkey)
+      {
+	UlamType * ut = NULL;
+	AssertBool isDef = isDefined(newkey, ut);
+	assert(isDef);
+	assert(ut->getUlamTypeEnum() == utype);
+	assert(ut->getUlamClassType() == classtype);
+	return uti; //t3373,5,6,7, t3374, t3379, 41009, 41010
+      }
     return makeUlamTypeFromHolder(hkey, newkey, utype, uti, classtype);
   } //makeUlamTypeFromHolder
 
   UTI CompilerState::makeUlamTypeFromHolder(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti, ULAMCLASSTYPE classtype)
   {
-    //pesky 'type already seen as undefined class' type problems: Dave ish 03262017
-    if(oldkey == newkey)
-      return uti;
+    assert(!(oldkey == newkey));
 
     if((getUlamTypeByIndex(uti)->getUlamTypeEnum() == Class) && isScalar(uti) && !isReference(uti))
       {
@@ -2220,6 +2227,7 @@ namespace MFM {
 	    assert(cut->isComplete()); //t3381, t3385
 	  }
       }
+    //else don't call remove!
     return rtnb;
   } //removeIncompleteClassSymbolFromProgramTable
 
