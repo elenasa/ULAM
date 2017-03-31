@@ -255,7 +255,7 @@ namespace MFM {
 	assert(isDef);
 	assert(ut->getUlamTypeEnum() == utype);
 	assert(ut->getUlamClassType() == classtype);
-	return uti; //t3373,5,6,7, t3374, t3379, 41009, 41010
+	return uti; //t3373,5,6,7, t3374, t3379, 41009, 41010 short-circuit..
       }
     return makeUlamTypeFromHolder(hkey, newkey, utype, uti, classtype);
   } //makeUlamTypeFromHolder

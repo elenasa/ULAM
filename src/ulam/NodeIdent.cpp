@@ -684,14 +684,19 @@ namespace MFM {
 			//update holder key with name_id and possible array (UNKNOWNSIZE)
 			//possibly a class (t3379)
 			UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, args.m_classInstanceIdx, args.m_declRef);
-			m_state.makeUlamTypeFromHolder(newkey, bUT, tduti, bUT == Class ? UC_UNSEEN : UC_NOTACLASS); //update holder key, same uti
 
-			if(bUT == Class) //now same as UNSEEN in next clause (t41009)
+			if(bUT == Class) //now same as UNSEEN in next clause (t41009, t41058)
 			  {
+			    if(m_state.isHolder(tduti))
+			      m_state.makeAnonymousClassFromHolder(tduti, args.m_typeTok.m_locator); //t41058
+			    else
+			      m_state.makeClassFromHolder(tduti, args.m_typeTok); //update holder key, same uti and make SymbolClassName t41009
 			    //if(m_state.isThisLocalsFileScope() && args.m_classInstanceIdx != Nouti)
 			    if(args.m_classInstanceIdx != Nouti)
 			      m_state.updateUTIAliasForced(tduti, args.m_classInstanceIdx);
 			  }
+			else
+			  m_state.makeUlamTypeFromHolder(newkey, bUT, tduti, UC_NOTACLASS); //update holder key, same uti (no SymbolClassName needed)
 		      }
 		  }
 		else if(tclasstype == UC_UNSEEN)
