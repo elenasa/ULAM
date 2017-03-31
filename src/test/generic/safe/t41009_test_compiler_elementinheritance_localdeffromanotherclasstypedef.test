@@ -31,7 +31,7 @@ element R {
 
 #:Foo.ulam
   ulam 2;
-use Constants;
+//use Constants;
 local typedef Constants.Soo3 Soo3;
 element Foo : local.Soo3 {
     Bool(7) sp;

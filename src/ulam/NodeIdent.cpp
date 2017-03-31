@@ -661,8 +661,7 @@ namespace MFM {
 		// if its UTI is a unseen class, we can update the name of the class later
 		// don't want to rush this step since we might have a class w args and diff UTI.
 		// furthermore, unseen class may not be a class at all (e.g. dot assumption wrong .maxof)
-		//if((tclasstype == UC_NOTACLASS))
-		  if((tclasstype == UC_NOTACLASS) || (tclasstype == UC_UNSEEN))
+		if((tclasstype == UC_NOTACLASS) || (tclasstype == UC_UNSEEN))
 		  {
 		    ULAMTYPE bUT = m_state.getBaseTypeFromToken(args.m_typeTok);
 
@@ -685,13 +684,14 @@ namespace MFM {
 			//possibly a class (t3379)
 			UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, args.m_classInstanceIdx, args.m_declRef);
 
-			if(bUT == Class) //now same as UNSEEN in next clause (t41009, t41058)
+			if(bUT == Class)
 			  {
 			    if(m_state.isHolder(tduti))
-			      m_state.makeAnonymousClassFromHolder(tduti, args.m_typeTok.m_locator); //t41058
+			      m_state.makeAnonymousClassFromHolder(tduti, args.m_typeTok.m_locator); //t41058, t3862, t3865
 			    else
-			      m_state.makeClassFromHolder(tduti, args.m_typeTok); //update holder key, same uti and make SymbolClassName t41009
-			    //if(m_state.isThisLocalsFileScope() && args.m_classInstanceIdx != Nouti)
+			      m_state.makeClassFromHolder(tduti, args.m_typeTok); //update holder key, same uti and make SymbolClassName t41009, t3385
+
+			    //calls updateUTIAlias like UNSEEN in next clause
 			    if(args.m_classInstanceIdx != Nouti)
 			      m_state.updateUTIAliasForced(tduti, args.m_classInstanceIdx);
 			  }

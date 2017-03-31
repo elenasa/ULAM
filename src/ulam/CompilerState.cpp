@@ -380,6 +380,7 @@ namespace MFM {
 	Token holdTok = removeKnownTypeTokenFromThisClassResolver(huti);
 	if(!alreadyDefinedSymbolClassName(holdTok.m_dataindex, cnsym))
 	  {
+	    //t3385: 'typedef X H;', where holdTok is 'X' and arg tok is 'H' (we want X)
 	    AssertBool isDefined = addIncompleteClassSymbolToProgramTable(holdTok, cnsym);
 	    assert(isDefined);
 	  }

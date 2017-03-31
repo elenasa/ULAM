@@ -10,9 +10,9 @@ Ue_B { typedef Int(3) Z;  <NOMAIN> }
 ##       // B before X too..(informed by t3380)
 #>F.ulam
   ulam 1;
-use A;
-use B;
-use X;
+//use A;
+//use B;
+//use X;
 element F{ Int test() {
     return A.ZZ.minof;
   }
