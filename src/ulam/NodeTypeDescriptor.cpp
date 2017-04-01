@@ -274,23 +274,13 @@ namespace MFM {
 	      setReferenceType(altd, derefuti);
 
 	    // we might have set the size of a holder ref. still a holder. darn.
-	    if(!m_state.completeAReferenceTypeWith(nuti, derefuti) && m_state.isHolder(nuti))
-	      {
-		ULAMTYPE bUT = derefut->getUlamTypeEnum();
-		if(bUT == Class)
-		  m_state.makeClassFromHolder(nuti, m_typeTok); //token for locator
-
-		UlamKeyTypeSignature derefkey = derefut->getUlamKeyTypeSignature();
-		UlamKeyTypeSignature newkey(derefkey.getUlamKeyTypeSignatureNameId(), derefkey.getUlamKeyTypeSignatureBitSize(), derefkey.getUlamKeyTypeSignatureArraySize(), derefkey.getUlamKeyTypeSignatureClassInstanceIdx(), getReferenceType());
-		m_state.makeUlamTypeFromHolder(newkey, bUT, nuti, UC_NOTACLASS); //keeps nuti
-	      }
-	    rtnb = true;
+	    rtnb = m_state.completeAReferenceTypeWith(nuti, derefuti);
 	  } //complete deref
 	//else deref not complete, t.f. nuti isn't changed
       } //else not ok to continue
 
-    //if(rtnb)
-    rtnuti = nuti;
+    if(rtnb)
+      rtnuti = nuti;
     return rtnb;
   } //resolveReferenceType
 

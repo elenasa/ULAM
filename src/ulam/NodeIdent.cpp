@@ -686,10 +686,7 @@ namespace MFM {
 
 			if(bUT == Class)
 			  {
-			    if(m_state.isHolder(tduti))
-			      m_state.makeAnonymousClassFromHolder(tduti, args.m_typeTok.m_locator); //t41058, t3862, t3865
-			    else
-			      m_state.makeClassFromHolder(tduti, args.m_typeTok); //update holder key, same uti and make SymbolClassName t41009, t3385
+			    m_state.makeAnonymousClassFromHolder(tduti, args.m_typeTok.m_locator); //t41058, t3862, t3865, t41009, t3385
 
 			    //calls updateUTIAlias like UNSEEN in next clause
 			    if(args.m_classInstanceIdx != Nouti)

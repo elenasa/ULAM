@@ -369,30 +369,6 @@ namespace MFM {
     return  uti; //return same uti (third arg)
   } //makeUlamTypeFromHolder
 
-  //extends use of addIncompleteClassSymbolToProgramTable, if seen before, but
-  // didn't know it was a class; before resorting to AnonymousClass that may
-  // never get resolved.
-  SymbolClassName * CompilerState::makeClassFromHolder(UTI huti, const Token& tok)
-  {
-    SymbolClassName * cnsym = NULL;
-    if(hasUnknownTypeInThisClassResolver(huti))
-      {
-	Token holdTok = removeKnownTypeTokenFromThisClassResolver(huti);
-	if(!alreadyDefinedSymbolClassName(holdTok.m_dataindex, cnsym))
-	  {
-	    //t3385: 'typedef X H;', where holdTok is 'X' and arg tok is 'H' (we want X)
-	    AssertBool isDefined = addIncompleteClassSymbolToProgramTable(holdTok, cnsym);
-	    assert(isDefined);
-	  }
-	//clean up existing holder
-	UTI cuti = cnsym->getUlamTypeIdx();
-	cleanupExistingHolder(huti, cuti);
-      }
-    else
-      cnsym = makeAnonymousClassFromHolder(huti, tok.m_locator);
-    return cnsym;
-  } //makeClassFromHolder
-
   void CompilerState::cleanupExistingHolder(UTI huti, UTI newuti)
   {
     if(huti == newuti) return; //short-circuit (e.g. t3378) don't use compare; maybe Hzy etyp
@@ -422,7 +398,7 @@ namespace MFM {
 	NodeBlockClass * classblock = new NodeBlockClass(NULL, *this);
 	assert(classblock);
 	classblock->setNodeLocation(cloc);
-	classblock->setNodeType(cuti);
+	classblock->setNodeType(cuti); //incomplete
 
 	Token cTok(TOK_IDENTIFIER, cloc, id);
 	//symbol ownership goes to the programDefST;
@@ -1554,7 +1530,18 @@ namespace MFM {
       {
 	UlamKeyTypeSignature dekey = derefut->getUlamKeyTypeSignature();
 	UlamKeyTypeSignature newkey(dekey.getUlamKeyTypeSignatureNameId(), dekey.getUlamKeyTypeSignatureBitSize(), dekey.getUlamKeyTypeSignatureArraySize(), dekey.getUlamKeyTypeSignatureClassInstanceIdx(), ALT_REF);
-	makeUlamTypeFromHolder(newkey, derefut->getUlamTypeEnum(), utiArg, derefut->getUlamClassType());
+	ULAMTYPE detyp = derefut->getUlamTypeEnum();
+	makeUlamTypeFromHolder(newkey, detyp, utiArg, derefut->getUlamClassType());
+
+#if 1
+	//sanity check, informed by pesky ish 03/26/2017
+	if(detyp == Class)
+	  {
+	    SymbolClassName * cnsym = NULL;
+	    AssertBool isDefined = alreadyDefinedSymbolClassName(dekey.getUlamKeyTypeSignatureNameId(), cnsym);
+	    assert(isDefined);
+	  }
+#endif
 	return true;
       }
 
@@ -2148,7 +2135,7 @@ namespace MFM {
   Token CompilerState::removeKnownTypeTokenFromThisClassResolver(UTI huti)
   {
     assert(!isThisLocalsFileScope());
-    UTI cuti = getCompileThisIdx();
+    UTI cuti = getCompileThisIdx(); //not memberclass
     SymbolClass * csym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
@@ -2162,7 +2149,7 @@ namespace MFM {
     if(isThisLocalsFileScope())
       return false;
 
-    UTI cuti = getCompileThisIdx();
+    UTI cuti = getCompileThisIdx(); //not memberclass
     SymbolClass * csym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
@@ -2245,12 +2232,11 @@ namespace MFM {
     NodeBlockClass * classblock = new NodeBlockClass(NULL, *this);
     assert(classblock);
     classblock->setNodeLocation(cTok.m_locator); //only where first used, not defined!
-    //classblock->setNodeType(cuti);
 
     //avoid Invalid Read whenconstructing class' Symbol
     pushClassContext(cuti, classblock, classblock, false, NULL); //null blocks likely
 
-    classblock->setNodeType(cuti); //t3895
+    classblock->setNodeType(cuti); //t3895, after classblock pushed
 
     //symbol ownership goes to the programDefST; distinguish btn template & regular classes here:
     symptr = new SymbolClassName(cTok, cuti, classblock, *this);
@@ -2274,7 +2260,7 @@ namespace MFM {
     NodeBlockClass * classblock = new NodeBlockClass(NULL, *this);
     assert(classblock);
     classblock->setNodeLocation(cTok.m_locator); //only where first used, not defined!
-    classblock->setNodeType(cuti);
+    classblock->setNodeType(cuti); //incomplete
 
     //avoid Invalid Read whenconstructing class' Symbol
     pushClassContext(cuti, classblock, classblock, false, NULL); //null blocks likely

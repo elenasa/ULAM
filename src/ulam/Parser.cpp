@@ -632,7 +632,7 @@ namespace MFM {
 		  {
 		    //make a typedef holder for a class
 		    UTI huti = m_state.makeUlamTypeHolder();
-		    m_state.makeClassFromHolder(huti, iTok); //anonymous class
+		    m_state.makeAnonymousClassFromHolder(huti, iTok.m_locator); //anonymous class
 		    SymbolTypedef * symtypedef = new SymbolTypedef(iTok, huti, huti, m_state);
 		    assert(symtypedef);
 		    symtypedef->setBlockNoOfST(m_state.getContextBlockNo());
@@ -649,7 +649,7 @@ namespace MFM {
 		    if(tdut->isHolder() && (tdut->getUlamClassType() == UC_NOTACLASS))
 		      {
 			//now we know it's a class! iTok "Soo3" for loc  (t41010)
-			m_state.makeClassFromHolder(tduti, iTok); //also returns supercsym
+			m_state.makeAnonymousClassFromHolder(tduti, iTok.m_locator); //also returns supercsym
 		      }
 
 		    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(tduti, supercsym);
@@ -2430,7 +2430,7 @@ namespace MFM {
 	    UTI tmpscalar= Nav;
 	    AssertBool isTDDefined = m_state.getUlamTypeByTypedefName(pTok.m_dataindex, huti, tmpscalar);
 	    assert(isTDDefined);
-	    m_state.makeClassFromHolder(huti, pTok); //don't need cnsym here
+	    m_state.makeAnonymousClassFromHolder(huti, pTok.m_locator); //don't need cnsym here
 	  }
 
 	//not sure what to do with the UTI? could be a declref type; both args are refs!
@@ -2543,7 +2543,7 @@ namespace MFM {
 
 		if(isaclass && (bUT == Holder)) //not isHolder(tduti)
 		  {
-		    m_state.makeClassFromHolder(tduti, typeTok); //t3862
+		    m_state.makeAnonymousClassFromHolder(tduti, typeTok.m_locator); //t3862
 		  }
 		return tduti; //done. (could be an array; or refselftype)
 	      }
@@ -2561,7 +2561,6 @@ namespace MFM {
 
 			// set contains possible unseen classes (ulamexports);
 			// see if they exist without being too liberal about guessing
-			// classes(t3668, t3651) 5/2/16.
 			m_state.m_unseenClasses.insert(typeTok.m_dataindex); //possible class
 		      }
 		    else //not yet defined in local file scope; add a holder (t3873)
@@ -2905,7 +2904,7 @@ namespace MFM {
 	    //make an 'anonymous class'
 	    UTI aclassuti = args.m_anothertduti;
 	    Token atok = args.m_typeTok;
-	    cnsym = m_state.makeClassFromHolder(aclassuti, atok);
+	    cnsym = m_state.makeAnonymousClassFromHolder(aclassuti, atok.m_locator); //t3385
 	    args.m_classInstanceIdx = aclassuti; //since we didn't know last time
 	  }
 	else

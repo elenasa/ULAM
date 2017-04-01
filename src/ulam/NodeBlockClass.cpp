@@ -19,7 +19,7 @@ namespace MFM {
   {
     UTI cuti = m_state.getCompileThisIdx();
     m_state.pushClassContext(cuti, this, this, false, NULL); //t3895
-    setNodeType(cuti); //t3895
+    setNodeType(cuti); //t3895, after push
     m_nodeParameterList = new NodeList(m_state);
     assert(m_nodeParameterList);
     m_nodeArgumentList = new NodeList(m_state);
