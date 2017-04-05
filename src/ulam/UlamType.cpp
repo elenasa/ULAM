@@ -139,8 +139,9 @@ namespace MFM {
       return false;
     if(key1.getUlamKeyTypeSignatureArraySize() != key2.getUlamKeyTypeSignatureArraySize())
       return false;
+
     if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
-      return false;
+      return false; //t3963
 
     //skip rest in the case of array item, continue with usual size fit
     if(alt1 == ALT_ARRAYITEM || alt2 == ALT_ARRAYITEM)
@@ -562,7 +563,7 @@ namespace MFM {
       return UTIC_NOTSAME;
 
     if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
-      return UTIC_NOTSAME; //?
+      return UTIC_NOTSAME; //t3412
 
     ALT alt1 = key1.getUlamKeyTypeSignatureReferenceType();
     ALT alt2 = key2.getUlamKeyTypeSignatureReferenceType();
@@ -660,6 +661,8 @@ namespace MFM {
 
   ULAMTYPECOMPARERESULTS UlamType::compareForString(UTI u1, CompilerState& state)  //static
   {
+    //bitsize always 32; wild reference type
+    //arrays not treated as a String, per se (t3949, t3975, t3985, t3995)
     return UlamType::compareWithWildReferenceType(u1, String, state);
   }
 

@@ -643,14 +643,35 @@ namespace MFM {
     // there's a default value before c&l (see SCNT::getTotalParametersWithDefaultValues) (t3526)
     //then do the surgery
     NodeTerminal * newnode;
-    if(m_state.getUlamTypeByIndex(uti)->getUlamTypeEnum() == Int)
+    ULAMTYPE etyp = m_state.getUlamTypeByIndex(uti)->getUlamTypeEnum();
+    if(etyp == Int)
       newnode = new NodeTerminal((s64) newconst, uti, m_state);
+    else if(etyp == String)
+      {
+	UTI reguti = newconst >> REGNUMBITS;
+	UTI cuti = m_state.getCompileThisIdx();
+	UTI stubuti = m_state.m_pendingArgStubContext;
+	UTI newreguti = reguti;
+	if(reguti != cuti)
+	  newreguti = cuti;
+	if((stubuti != Nouti) && (stubuti != reguti))
+	  newreguti = stubuti;
+	if(newreguti != reguti)
+	  {
+	    //copy the constant string into this class' user string pool (from its context)
+	    // (e.g. t3959, t3960,1,2,7, t3981, t3986, t41005, t41006))
+	    std::string formattedstring = m_state.getDataAsUnFormattedUserString(newconst);
+	    StringPoolUser& classupool = m_state.getUPoolRefForClass(newreguti);
+	    u32 classstringidx = classupool.getIndexForDataString(formattedstring);
+	    newconst = (newreguti << REGNUMBITS) | (classstringidx & STRINGIDXMASK); //combined index
+	  }
+	newnode = new NodeTerminal(newconst, uti, m_state);
+      }
     else
       newnode = new NodeTerminal(newconst, uti, m_state);
     newnode->setNodeLocation(getNodeLocation());
     delete m_nodeExpr;
     m_nodeExpr = newnode;
-
 
     BV8K bvtmp;
     u32 len = m_state.getTotalBitSize(uti);
@@ -876,7 +897,8 @@ namespace MFM {
     UTI nuti = getNodeType();
     assert(m_constSymbol);
     assert(m_state.isComplete(nuti));
-    assert(m_constSymbol->getUlamTypeIdx() == nuti); //sanity check
+    //assert(m_constSymbol->getUlamTypeIdx() == nuti); //sanity check
+    assert(UlamType::compare(m_constSymbol->getUlamTypeIdx(), nuti, m_state) == UTIC_SAME); //sanity check
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
     if(!nut->isScalar())

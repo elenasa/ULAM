@@ -81,6 +81,7 @@ namespace MFM{
 #define GCNL (fp->write_tagged_end( __FILE__ , __LINE__))
 #endif
 
+
   struct less_than_key
   {
     //see operator< in UlamKeyTypeSignature
@@ -182,12 +183,14 @@ namespace MFM{
     UTI makeUlamTypeHolder();
     UTI makeUlamTypeFromHolder(UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti, ULAMCLASSTYPE classtype);
     UTI makeUlamTypeFromHolder(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti, ULAMCLASSTYPE classtype);
-    SymbolClassName * makeClassFromHolder(UTI huti, const Token& tok);
     void cleanupExistingHolder(UTI huti, UTI newuti);
     SymbolClassName * makeAnonymousClassFromHolder(UTI cuti, Locator cloc);
 
     UTI makeUlamType(const Token& typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx, ALT reftype = ALT_NOT, ULAMCLASSTYPE classtype = UC_NOTACLASS);
     UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype, ULAMCLASSTYPE classtype);
+    void addCompleteUlamTypeToThisContextSet(UTI uti);
+    void addCompleteUlamTypeToContextBlockSet(UTI uti, NodeBlockContext * contextblock);
+    bool isOtherClassInThisContext(UTI suti);
     bool isDefined(UlamKeyTypeSignature key, UlamType *& foundUT);
     bool anyDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI);
     UlamType * createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype, ULAMCLASSTYPE classtype);

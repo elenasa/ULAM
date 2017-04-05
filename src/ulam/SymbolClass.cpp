@@ -513,11 +513,11 @@ namespace MFM {
     return m_resolver->cloneUnknownTypesTokenMap(to);
   }
 
-void SymbolClass::setContextForPendingArgs(UTI context)
+  void SymbolClass::setContextForPendingArgs(UTI context)
   {
     //assert(m_resolver); //dangerous! when template has default parameters
     if(m_resolver)
-      return m_resolver->setContextForPendingArgs(context);
+      m_resolver->setContextForPendingArgs(context);
   } //setContextForPendingArgs
 
   UTI SymbolClass::getContextForPendingArgs()
@@ -526,8 +526,8 @@ void SymbolClass::setContextForPendingArgs(UTI context)
     if(m_resolver)
       return m_resolver->getContextForPendingArgs();
 
-    assert(getParentClassTemplate() && getParentClassTemplate()->getTotalParametersWithDefaultValues() > 0);
-    return getUlamTypeIdx(); //return self UTI
+    assert(!isStub() || (getParentClassTemplate() && getParentClassTemplate()->getTotalParametersWithDefaultValues() > 0));
+    return getUlamTypeIdx(); //return self UTI, t3981
   } //getContextForPendingArgs
 
   bool SymbolClass::statusNonreadyClassArguments()
@@ -693,7 +693,8 @@ void SymbolClass::setContextForPendingArgs(UTI context)
   void SymbolClass::generateAsOtherInclude(File * fp)
   {
     UTI suti = getUlamTypeIdx();
-    if(suti != m_state.getCompileThisIdx() && m_state.getUlamTypeByIndex(suti)->isComplete())
+    //only if used by this class, or its superclass
+    if(m_state.isOtherClassInThisContext(suti))
       {
 	m_state.indent(fp);
 	fp->write("#include \"");
@@ -702,13 +703,22 @@ void SymbolClass::setContextForPendingArgs(UTI context)
       }
   } //generateAsOtherInclude
 
+  void SymbolClass::generateAllIncludesForTestMain(File * fp)
+  {
+    UTI suti = getUlamTypeIdx();
+    m_state.indent(fp);
+    fp->write("#include \"");
+    fp->write(m_state.getFileNameForAClassHeader(suti).c_str());
+    fp->write("\"\n");
+  } //generateAllIncludesForTestMain
+
   void SymbolClass::generateAsOtherForwardDef(File * fp)
   {
     UTI suti = getUlamTypeIdx();
-    if(suti != m_state.getCompileThisIdx() && m_state.getUlamTypeByIndex(suti)->isComplete())
+    //only if used by This class, or its superclass
+    if(m_state.isOtherClassInThisContext(suti))
       {
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
-
 	m_state.indent(fp);
 	fp->write("namespace MFM { template ");
 	fp->write("<class EC> "); //same for elements and quarks
@@ -840,37 +850,13 @@ void SymbolClass::setContextForPendingArgs(UTI context)
     m_state.indent(fp);
     fp->write("#include \"UlamDefs.h\"\n\n");
 
-    // do primitive types before classes so that immediate
-    // Quarks/Elements can use them (e.g. immediate index for aref)
-    std::map<UlamKeyTypeSignature, UlamType *, less_than_key>::iterator it = m_state.m_definedUlamTypes.begin();
-    while(it != m_state.m_definedUlamTypes.end())
-      {
-	UlamType * ut = it->second;
-	//e.g. skip constants, include atom, references done automatically
-	if(ut->needsImmediateType() && (ut->getUlamClassType() == UC_NOTACLASS) && !ut->isReference())
-	  {
-	    ut->genUlamTypeMangledAutoDefinitionForC(fp); //references
-	    ut->genUlamTypeMangledDefinitionForC(fp);
-	  }
-	it++;
-      }
-
-    //same except now for user defined Class types:
-    it = m_state.m_definedUlamTypes.begin();
-    while(it != m_state.m_definedUlamTypes.end())
-      {
-	UlamType * ut = it->second;
-	if(ut->needsImmediateType() && (ut->getUlamClassType() != UC_NOTACLASS) && !ut->isReference())
-	  {
-	    ut->genUlamTypeMangledAutoDefinitionForC(fp); //references
-	    ut->genUlamTypeMangledDefinitionForC(fp);
-	  }
-	it++;
-      }
-
-    // define any model parameter immediate types needed for this class
     NodeBlockClass * classblock = getClassBlockNode();
     assert(classblock);
+
+    // define any immediate types needed for this class
+    classblock->genUlamTypeImmediateDefinitions(fp);
+
+    // define any model parameter immediate types needed for this class
     classblock->genModelParameterImmediateDefinitions(fp);
 
     delete fp; //close
@@ -907,13 +893,9 @@ void SymbolClass::setContextForPendingArgs(UTI context)
     m_state.indent(fp);
     fp->write("#include \"UlamDefs.h\"\n\n");
 
-    m_state.indent(fp);
-    fp->write("#include \"");
-    fp->write(m_state.getFileNameForThisClassHeader().c_str());
-    fp->write("\"");
-    fp->write("\n");
-
-    m_state.m_programDefST.generateIncludesForTableOfClasses(fp); //the other classes
+    //include ALL the classes, including this class being compiled
+    //t3373,4,5,6,7 t3380,82, t3394, 95, t3622, t3749, t3755, t3804,7, t3958, t41005, t41032,4
+    m_state.m_programDefST.generateAllIncludesTestMainForTableOfClasses(fp);
 
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);

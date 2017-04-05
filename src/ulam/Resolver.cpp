@@ -334,7 +334,10 @@ namespace MFM {
 
 	    UTI uti = ceNode->checkAndLabelType();
 	    if(m_state.okUTItoContinue(uti)) //i.e. ready
-	      *vit = NULL; //NodeBlockClass is the owner now.
+	      {
+		m_state.addCompleteUlamTypeToContextBlockSet(uti, stubclassblock); //t3895
+		*vit = NULL; //NodeBlockClass is the owner now.
+	      }
 	    else
 	      leftCArgs.push_back(ceNode);
 	  }

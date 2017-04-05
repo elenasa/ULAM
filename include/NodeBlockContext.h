@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeBlockContext.h - Basic handling of Contexts for ULAM
  *
- * Copyright (C) 2016 The Regents of the University of New Mexico.
- * Copyright (C) 2016 Ackleyshack LLC.
+ * Copyright (C) 2016-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2016-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeBlockContext.h - Basic handling of Contexts for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2016 All rights reserved.
+  \date (C) 2016-2017 All rights reserved.
   \gpl
 */
 
@@ -41,6 +41,7 @@
 #include "StringPoolUser.h"
 #include "TargetMap.h"
 #include "MapClassMemberDesc.h"
+#include <set>
 
 namespace MFM{
 
@@ -70,12 +71,29 @@ namespace MFM{
 
     virtual void generateTestInstance(File * fp, bool runtest) = 0;
 
+    void addUlamTypeKeyToSet(UlamKeyTypeSignature key);
+    void copyUlamTypeKeys(NodeBlockContext * toblock) const;
+    bool hasUlamTypeKey(UlamKeyTypeSignature key);
+    bool hasUlamType(UTI uti);
+    bool searchHasAnyUlamTypeASubclassOf(UTI suti);
+    void genUlamTypeImmediateDefinitions(File * fp);
+
   protected:
     StringPoolUser m_upool; //for double quoted strings only
 
   private:
 
+  struct less_than_key
+  {
+    //see operator< in UlamKeyTypeSignature
+    inline bool operator() (const UlamKeyTypeSignature key1, const UlamKeyTypeSignature key2)
+    {
+      return (key1 < key2);
+    }
+  };
 
+
+    std::set<UlamKeyTypeSignature, less_than_key> m_hasUlamTypes; //deref complete keys; used to genCode include files
 
   };
 

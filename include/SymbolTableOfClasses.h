@@ -102,6 +102,8 @@ namespace MFM{
 
     void generateIncludesForTableOfClasses(File * fp);
 
+    void generateAllIncludesTestMainForTableOfClasses(File * fp);
+
     void generateForwardDefsForTableOfClasses(File * fp);
 
     void generateTestInstancesForTableOfClasses(File * fp);

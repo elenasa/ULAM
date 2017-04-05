@@ -371,6 +371,11 @@ namespace MFM {
     return SymbolClass::generateAsOtherInclude(fp);
   }
 
+  void SymbolClassName::generateAllIncludesForTestMainForClassInstances(File * fp)
+  {
+    return SymbolClass::generateAllIncludesForTestMain(fp);
+  }
+
   void SymbolClassName::generateForwardDefsForClassInstances(File * fp)
   {
     return SymbolClass::generateAsOtherForwardDef(fp);

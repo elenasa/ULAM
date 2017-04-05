@@ -248,11 +248,22 @@ namespace MFM {
   {
     //we need to keep the uti, but change the key; utype to be.
     UlamKeyTypeSignature hkey = getUlamKeyTypeSignatureByIndex(uti);
+    if(hkey == newkey)
+      {
+	UlamType * ut = NULL;
+	AssertBool isDef = isDefined(newkey, ut);
+	assert(isDef);
+	assert(ut->getUlamTypeEnum() == utype);
+	assert(ut->getUlamClassType() == classtype);
+	return uti; //t3373,5,6,7, t3374, t3379, 41009, 41010 short-circuit..
+      }
     return makeUlamTypeFromHolder(hkey, newkey, utype, uti, classtype);
   } //makeUlamTypeFromHolder
 
   UTI CompilerState::makeUlamTypeFromHolder(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti, ULAMCLASSTYPE classtype)
   {
+    assert(!(oldkey == newkey));
+
     if((getUlamTypeByIndex(uti)->getUlamTypeEnum() == Class) && isScalar(uti) && !isReference(uti))
       {
 	if((utype != Class))
@@ -358,29 +369,6 @@ namespace MFM {
     return  uti; //return same uti (third arg)
   } //makeUlamTypeFromHolder
 
-  //extends use of addIncompleteClassSymbolToProgramTable, if seen before, but
-  // didn't know it was a class; before resorting to AnonymousClass that may
-  // never get resolved.
-  SymbolClassName * CompilerState::makeClassFromHolder(UTI huti, const Token& tok)
-  {
-    SymbolClassName * cnsym = NULL;
-    if(hasUnknownTypeInThisClassResolver(huti))
-      {
-	Token holdTok = removeKnownTypeTokenFromThisClassResolver(huti);
-	if(!alreadyDefinedSymbolClassName(holdTok.m_dataindex, cnsym))
-	  {
-	    AssertBool isDefined = addIncompleteClassSymbolToProgramTable(holdTok, cnsym);
-	    assert(isDefined);
-	  }
-	//clean up existing holder
-	UTI cuti = cnsym->getUlamTypeIdx();
-	cleanupExistingHolder(huti, cuti);
-      }
-    else
-      cnsym = makeAnonymousClassFromHolder(huti, tok.m_locator);
-    return cnsym;
-  } //makeClassFromHolder
-
   void CompilerState::cleanupExistingHolder(UTI huti, UTI newuti)
   {
     if(huti == newuti) return; //short-circuit (e.g. t3378) don't use compare; maybe Hzy etyp
@@ -410,7 +398,7 @@ namespace MFM {
 	NodeBlockClass * classblock = new NodeBlockClass(NULL, *this);
 	assert(classblock);
 	classblock->setNodeLocation(cloc);
-	classblock->setNodeType(cuti);
+	classblock->setNodeType(cuti); //incomplete
 
 	Token cTok(TOK_IDENTIFIER, cloc, id);
 	//symbol ownership goes to the programDefST;
@@ -503,7 +491,7 @@ namespace MFM {
 	  {
 	    if(key.getUlamKeyTypeSignatureArraySize() != NONARRAYSIZE) //array type
 	      {
-		//can't save scalar in key; unable to look up from token
+		//can't save scalar in key; unable to look up from token (t41055)
 		//saveNonClassScalarUTIForArrayUTI = suti;
 	      }
 	    key.append(Nouti); //clear
@@ -535,6 +523,61 @@ namespace MFM {
       }
     return uti;
   } //makeUlamType
+
+  void CompilerState::addCompleteUlamTypeToThisContextSet(UTI uti)
+  {
+    NodeBlockContext * contextblock = getContextBlock();
+    addCompleteUlamTypeToContextBlockSet(uti, contextblock);
+  } //addCompleteUlamTypeToThisContextSet
+
+  void CompilerState::addCompleteUlamTypeToContextBlockSet(UTI uti, NodeBlockContext * contextblock)
+  {
+    assert(contextblock);
+
+    //for all Nodes' setNodeType(); used to genCode include files.
+    assert(okUTItoContinue(uti));
+    UTI deref = getUlamTypeAsDeref(uti);
+    if(isComplete(deref))
+      {
+	//always add the deref (e.g. t3224)
+	UlamKeyTypeSignature key = getUlamKeyTypeSignatureByIndex(deref);
+	contextblock->addUlamTypeKeyToSet(key);
+      }
+  } //addCompleteUlamTypeToContextBlockSet
+
+  bool CompilerState::isOtherClassInThisContext(UTI suti)
+  {
+    //true only if used by this class, or is its superclass
+    bool rtnb = false;
+    UTI cuti = getCompileThisIdx();
+
+    if((suti != cuti) && isComplete(suti))
+      {
+	NodeBlockContext * contextblock = getContextBlock();
+	if(contextblock->hasUlamType(suti))
+	  rtnb = true;
+	else if(isEmpty(suti))
+	  rtnb = true;
+	else
+	  {
+	    UTI superclass = isClassASubclass(cuti);
+	    if(superclass == Nouti)
+	      {
+		if(isUrSelf(suti))
+		  rtnb = true;
+	      }
+	    else //t3640, t3605
+	      {
+		assert(okUTItoContinue(superclass));
+		if(isClassASubclassOf(cuti, suti))
+		  rtnb = true;
+		//else if(contextblock->searchHasAnyUlamTypeASubclassOf(suti))
+		// rtnb = true; //extended search done last
+	      }
+	  }
+      }
+    return rtnb;
+  } //isOtherClassInThisContext
 
   bool CompilerState::isDefined(UlamKeyTypeSignature key, UlamType *& foundUT)
   {
@@ -1487,7 +1530,18 @@ namespace MFM {
       {
 	UlamKeyTypeSignature dekey = derefut->getUlamKeyTypeSignature();
 	UlamKeyTypeSignature newkey(dekey.getUlamKeyTypeSignatureNameId(), dekey.getUlamKeyTypeSignatureBitSize(), dekey.getUlamKeyTypeSignatureArraySize(), dekey.getUlamKeyTypeSignatureClassInstanceIdx(), ALT_REF);
-	makeUlamTypeFromHolder(newkey, derefut->getUlamTypeEnum(), utiArg, derefut->getUlamClassType());
+	ULAMTYPE detyp = derefut->getUlamTypeEnum();
+	makeUlamTypeFromHolder(newkey, detyp, utiArg, derefut->getUlamClassType());
+
+#if 1
+	//sanity check, informed by pesky ish 03/26/2017
+	if(detyp == Class)
+	  {
+	    SymbolClassName * cnsym = NULL;
+	    AssertBool isDefined = alreadyDefinedSymbolClassName(dekey.getUlamKeyTypeSignatureNameId(), cnsym);
+	    assert(isDefined);
+	  }
+#endif
 	return true;
       }
 
@@ -2081,7 +2135,7 @@ namespace MFM {
   Token CompilerState::removeKnownTypeTokenFromThisClassResolver(UTI huti)
   {
     assert(!isThisLocalsFileScope());
-    UTI cuti = getCompileThisIdx();
+    UTI cuti = getCompileThisIdx(); //not memberclass
     SymbolClass * csym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
@@ -2095,7 +2149,7 @@ namespace MFM {
     if(isThisLocalsFileScope())
       return false;
 
-    UTI cuti = getCompileThisIdx();
+    UTI cuti = getCompileThisIdx(); //not memberclass
     SymbolClass * csym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
@@ -2161,6 +2215,7 @@ namespace MFM {
 	    assert(cut->isComplete()); //t3381, t3385
 	  }
       }
+    //else don't call remove!
     return rtnb;
   } //removeIncompleteClassSymbolFromProgramTable
 
@@ -2177,10 +2232,11 @@ namespace MFM {
     NodeBlockClass * classblock = new NodeBlockClass(NULL, *this);
     assert(classblock);
     classblock->setNodeLocation(cTok.m_locator); //only where first used, not defined!
-    classblock->setNodeType(cuti);
 
     //avoid Invalid Read whenconstructing class' Symbol
     pushClassContext(cuti, classblock, classblock, false, NULL); //null blocks likely
+
+    classblock->setNodeType(cuti); //t3895, after classblock pushed
 
     //symbol ownership goes to the programDefST; distinguish btn template & regular classes here:
     symptr = new SymbolClassName(cTok, cuti, classblock, *this);
@@ -2204,7 +2260,7 @@ namespace MFM {
     NodeBlockClass * classblock = new NodeBlockClass(NULL, *this);
     assert(classblock);
     classblock->setNodeLocation(cTok.m_locator); //only where first used, not defined!
-    classblock->setNodeType(cuti);
+    classblock->setNodeType(cuti); //incomplete
 
     //avoid Invalid Read whenconstructing class' Symbol
     pushClassContext(cuti, classblock, classblock, false, NULL); //null blocks likely
@@ -2417,6 +2473,8 @@ namespace MFM {
 	fmLocals.clear(); //done with vector of clones
 
 	classblock->setUserStringPoolRef(localsblock->getUserStringPoolRef()); //?
+
+	localsblock->copyUlamTypeKeys(classblock);
 
 	//generate a single class, .h, _Types.h, .tcc and .cpp
 	cnsym->generateCodeForClassInstances(fm);

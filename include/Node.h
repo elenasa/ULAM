@@ -75,13 +75,13 @@ namespace MFM{
 
     virtual void setYourParentNo(NNO pno);
 
-    NNO getYourParentNo();
+    NNO getYourParentNo() const;
 
     virtual void updateLineage(NNO pno);
 
     virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
 
-    NNO getNodeNo();
+    NNO getNodeNo() const;
 
     virtual void resetNodeNo(NNO no); //for constant folding
 
@@ -101,19 +101,19 @@ namespace MFM{
 
     const std::string nodeName(const std::string& prettyFunction);
 
-    UTI getNodeType();
+    UTI getNodeType() const;
 
     void setNodeType(UTI ut);
 
-    virtual TBOOL getStoreIntoAble();
+    virtual TBOOL getStoreIntoAble() const;
 
     void setStoreIntoAble(TBOOL s);
 
-    virtual TBOOL getReferenceAble();
+    virtual TBOOL getReferenceAble() const;
 
     void setReferenceAble(TBOOL s);
 
-    Locator getNodeLocation();
+    Locator getNodeLocation() const;
 
     virtual void setNodeLocation(Locator loc);
 
@@ -121,7 +121,7 @@ namespace MFM{
 
     void printNodeLocation(File * fp);
 
-    std::string getNodeLocationAsString();
+    std::string getNodeLocationAsString() const;
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 

@@ -17,11 +17,14 @@ namespace MFM {
 
   NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlockContext(ref), m_functionST(ref.m_functionST) /* deep copy */, m_virtualmethodMaxIdx(ref.m_virtualmethodMaxIdx), m_superBlockNode(NULL), m_isEmpty(ref.m_isEmpty), m_nodeParameterList(NULL), m_nodeArgumentList(NULL)
   {
-    setNodeType(m_state.getCompileThisIdx());
+    UTI cuti = m_state.getCompileThisIdx();
+    m_state.pushClassContext(cuti, this, this, false, NULL); //t3895
+    setNodeType(cuti); //t3895, after push
     m_nodeParameterList = new NodeList(m_state);
     assert(m_nodeParameterList);
     m_nodeArgumentList = new NodeList(m_state);
     assert(m_nodeArgumentList);
+    m_state.popClassContext();
     //m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate(); //instances don't need this; its got symbols
     //m_nodeArgumentList = (NodeList *) ref.m_nodeArgumentList->instantiate(); //instances only need this for constant array arguments; templates don't need this.
   }
@@ -2837,6 +2840,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     UTI suti = getNodeType();
     UlamType * sut = m_state.getUlamTypeByIndex(suti);
     if(!sut->isComplete()) return;
+    // register all classes, for testing only, o.w. ILLEGAL_STATE t3879. t3922, t3948, t3967, t3982
+    //if((suti != m_state.getCompileThisIdx()) && !m_state.isOtherClassInThisContext(suti)) return; //e.g. t3373,5,6,7, t3923
+
     if(sut->getUlamClassType() != UC_ELEMENT)
       {
 	fp->write("\n");
