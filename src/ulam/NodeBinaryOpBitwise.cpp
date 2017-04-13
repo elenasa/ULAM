@@ -47,7 +47,7 @@ namespace MFM {
 	return Hzy;
 
     //no atoms, elements, nor void as either operand
-    if(!NodeBinaryOp::checkForPrimitiveTypes(lt, rt))
+    if(!NodeBinaryOp::checkForPrimitiveNotVoidTypes(lt, rt))
 	return Nav;
 
     UTI newType = Nav;  //init

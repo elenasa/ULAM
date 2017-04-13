@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "Parser.h"
+#include "NodeAtomof.h"
 #include "NodeBinaryOpArithAdd.h"
 #include "NodeBinaryOpArithDivide.h"
 #include "NodeBinaryOpArithMultiply.h"
@@ -50,8 +51,8 @@
 #include "NodeLabel.h"
 #include "NodeMemberSelect.h"
 #include "NodeModelParameter.h"
+#include "NodeQuestionColon.h"
 #include "NodeReturnStatement.h"
-#include "NodeAtomof.h"
 #include "NodeSquareBracket.h"
 #include "NodeSimpleStatement.h"
 #include "NodeStatementEmpty.h"
@@ -3336,6 +3337,52 @@ namespace MFM {
     return rtnNode;
   } //parseRestOfMemberSelectExpr
 
+  Node * Parser::parseRestOfQuestionColonExpr(Node * condNode)
+  {
+    Token pTok;
+    if(!getExpectedToken(TOK_QUESTION, pTok, QUIETLY))
+      {
+	m_state.abortShouldntGetHere();
+	delete condNode;
+	return NULL;
+      }
+
+    Node * trueNode = parseExpression();
+    if(!trueNode)
+      {
+	std::ostringstream msg;
+	msg << "Incomplete true expression; question-colon-control";
+	MSG(&pTok, msg.str().c_str(), ERR);
+	delete condNode;
+	return NULL; //stop this maddness
+      }
+
+    if(!getExpectedToken(TOK_COLON))
+      {
+	delete condNode;
+	delete trueNode;
+	return NULL;
+      }
+
+    Node * falseNode = parseExpression();
+    if(!falseNode)
+      {
+	std::ostringstream msg;
+	msg << "Incomplete false expression; question-colon-control";
+	MSG(&pTok, msg.str().c_str(), ERR);
+	delete condNode;
+	delete trueNode;
+	return NULL; //stop this maddness
+      }
+
+
+    NodeQuestionColon * rtnNode = new NodeQuestionColon(condNode, trueNode, falseNode, m_state);
+    assert(rtnNode);
+    rtnNode->setNodeLocation(pTok.m_locator);
+
+    return rtnNode;
+  } //parseRestOfQuestionColonExpr
+
   Node * Parser::parseMinMaxSizeofType(Node * memberNode, UTI utype, NodeTypeDescriptor * nodetype)
   {
     Node * rtnNode = NULL;
@@ -3984,6 +4031,10 @@ namespace MFM {
 	unreadToken();
 	rtnNode = parseRestOfMemberSelectExpr(leftNode);
 	rtnNode = parseRestOfExpression(rtnNode); //any more? t41057
+	break;
+      case TOK_QUESTION:
+	unreadToken();
+	rtnNode = parseRestOfQuestionColonExpr(leftNode);
 	break;
       case TOK_ERROR_LOWLEVEL:
 	rtnNode = parseRestOfExpression(leftNode); //redo

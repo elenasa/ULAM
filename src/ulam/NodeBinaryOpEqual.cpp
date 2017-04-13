@@ -112,7 +112,7 @@ namespace MFM {
 	m_state.setGoAgain();
       }
 
-    if(!NodeBinaryOp::checkNotVoidTypes(leftType, rightType))
+    if(!NodeBinaryOp::checkNotVoidTypes(leftType, rightType, false))
       {
     	setNodeType(Nav);
     	return Nav;

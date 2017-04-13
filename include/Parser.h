@@ -278,6 +278,8 @@ namespace MFM{
 
     Node * parseRestOfMemberSelectExpr(Node * classInstanceNode);
 
+    Node * parseRestOfQuestionColonExpr(Node * condNode);
+
     Node * parseMinMaxSizeofType(Node * memberNode, UTI utype, NodeTypeDescriptor * nodetype);
     /**
        <FUNC_CALL> := <IDENT> + '(' + <ARGS> + ')'

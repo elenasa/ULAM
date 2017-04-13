@@ -119,10 +119,12 @@ namespace MFM{
     virtual UTI castThyselfToResultType(UTI rt, UTI lt, UTI newType);
     //common helpers for calcNodeType:
     virtual bool checkSafeToCastTo(UTI fromType, UTI& newType);
-    bool checkForPrimitiveTypes(UTI lt, UTI rt);
-    bool checkNotVoidTypes(UTI lt, UTI rt);
+
+    bool checkForPrimitiveNotVoidTypes(UTI lt, UTI rt);
+    bool checkForPrimitiveTypes(UTI lt, UTI rt, bool quietly);
+    bool checkNotVoidTypes(UTI lt, UTI rt, bool quietly);
     bool checkForNumericTypes(UTI lt, UTI rt);
-    bool checkScalarTypesOnly(UTI lt, UTI rt);
+    bool checkScalarTypesOnly(UTI lt, UTI rt, bool quietly=false);
   };
 
 }
