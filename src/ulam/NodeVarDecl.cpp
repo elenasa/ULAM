@@ -1052,15 +1052,8 @@ namespace MFM {
 	else
 	  {
 	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	    //two tests with transients: t3727, t3738
-	    //if((uvpass.getPassStorage() == TMPBITVAL) && (vclasstype != UC_TRANSIENT))
-	    //if((uvpass.getPassStorage() == TMPBITVAL))
-	    //if(m_state.isAtom(uvpass.getPassTargetType()) ^ m_state.isAtom(getNodeType()))
 	    if((uvpass.getPassStorage() == TMPBITVAL) && m_nodeInitExpr->isExplicitCast())
-	      {
-		//		m_state.abortShouldntGetHere();
-		fp->write(".read()"); //ulamexports: WallPort->QPort4->Cell (e.g. t3922, t3715)
-	      }
+	      fp->write(".read()"); //ulamexports: WallPort->QPort4->Cell (e.g. t3922, t3715)
 	    else if(m_state.isAtomRef(vuti))
 	      fp->write(", uc");
 	    fp->write(");"); GCNL; //func call args aren't NodeVarDecl's
