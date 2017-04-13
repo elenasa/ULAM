@@ -360,6 +360,8 @@ namespace MFM {
 
     //default destructor (intentionally left out)
 
+    //note: no operator= since base class has a T&
+
     genUlamTypeReadDefinitionForC(fp);
 
     genUlamTypeWriteDefinitionForC(fp);

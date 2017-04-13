@@ -521,6 +521,8 @@ namespace MFM {
 
     //default destructor (intentionally left out)
 
+    //note: no operator= since base class has a T&
+
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("};\n");
