@@ -224,10 +224,11 @@ namespace MFM {
 
 		return newnode->checkAndLabelType();
 	      }
-	    else if(isAConstant())
+	    //else if(isAConstant())
+	    else if(isAConstant() && isReadyConstant())
 	      {
 		//constantFold, like NodeBinaryOp (e.g. t3985)
-		//replace with a NodeTerminal
+		//replace with a NodeTerminal; might not be ready (t41065)
 		Node * newnode = constantFoldLengthofConstantString();
 		assert(newnode);
 		AssertBool swapOk = exchangeNodeWithParent(newnode);
