@@ -953,11 +953,13 @@ namespace MFM {
 	  }
 	//else (t41051, case 2) ILLEGAL_ARGUMENT
       }
-    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
 
+    //still empty when func call returns self (t41065, case foofunc())
+    //assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * stgcos = NULL;
-    //stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-    stgcos = m_state.m_currentObjSymbolsForCodeGen.back();
+    Symbol * cos = NULL;
+    Node::loadStorageAndCurrentObjectSymbols(stgcos, cos);
+    stgcos = cos; //use from back
 
     UTI stguti = stgcos->getUlamTypeIdx();
     UlamType * stgut = m_state.getUlamTypeByIndex(stguti);
@@ -1051,7 +1053,7 @@ namespace MFM {
     // might be ancestor quark
     // can't let Node::genCodeReadIntoTmpVar do this for us (we need a ref!):
     //assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
-    assert(!m_state.m_currentObjSymbolsForCodeGen.empty()); //Tue Mar 21 10:29:38 2017
+    //assert(!m_state.m_currentObjSymbolsForCodeGen.empty()); //Tue Mar 21 10:29:38 2017, Thu Apr 13 12:17:30 2017
 
     if(!tobe->isReference())
       {
@@ -1364,11 +1366,14 @@ namespace MFM {
 	//else  (t41052, case 1)
       }
 
-    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    //still empty when func call returns self (t41065, case foofunc())
+    //assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * stgcos = NULL;
-    stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+    Symbol * cos = NULL;
+    Node::loadStorageAndCurrentObjectSymbols(stgcos, cos);
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+    bool useSelf = (stgcos->isSelf() && (uvpass.getPassStorage() != TMPBITVAL)); //t41065
 
     // "downcast" might not be true; compare to be sure the element is-related to quark "Foo"
     m_state.indentUlamCode(fp);
@@ -1398,7 +1403,11 @@ namespace MFM {
 
 	//make a temporary reference to a super-quark in an element for reading
 	fp->write("UlamRef<EC>(");
-	if(stgcosut->isReference())
+	if(stgcos->isSelf() && !useSelf)
+	  {
+	    fp->write("T::ATOM_FIRST_STATE_BIT + "); //elements stg at 0 , state of quark at 25
+	  }
+	else if(stgcosut->isReference())
 	  {
 	    fp->write(stgcos->getMangledName().c_str()); //reference
 	    fp->write(", ");
@@ -1411,7 +1420,13 @@ namespace MFM {
 	fp->write_decimal_unsigned(tobe->getTotalBitSize()); //len
 	fp->write("u, ");
 
-	if(!stgcosut->isReference())
+	if(stgcos->isSelf() && !useSelf)
+	  {
+	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	    fp->write(", &");
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
+	  }
+	else if(!stgcosut->isReference())
 	  {
 	    fp->write(stgcos->getMangledName().c_str()); //storage
 	    fp->write(", &");
@@ -1424,8 +1439,11 @@ namespace MFM {
 	  }
 
 	fp->write(", UlamRef<EC>::ELEMENTAL");
-	if(!stgcosut->isReference())
+	if(!stgcosut->isReference()) //self is a reference
 	  fp->write(", uc");
+	else if(stgcos->isSelf() && !useSelf)
+	  fp->write(", uc"); //t41065, m-case;
+	//else t41065 j-case;
 
 	fp->write(").");
 	fp->write(tobe->readMethodForCodeGen().c_str());
@@ -1443,9 +1461,13 @@ namespace MFM {
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpref, TMPBITVAL).c_str());
 	fp->write("(");
-	fp->write(stgcos->getMangledName().c_str());
+	if(stgcos->isSelf() && !useSelf)
+	  fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //?
+	else
+	  fp->write(stgcos->getMangledName().c_str());
 
-	if(!stgcosut->isReference())
+	//if(!stgcosut->isReference())
+	if(!stgcosut->isReference() || (stgcos->isSelf() && !useSelf))
 	  {
 	    fp->write(", "); //offset of decendent is always 0 +25
 	    fp->write_decimal_unsigned(uvpass.getPassPos()); //t3735 (was ruvapss)

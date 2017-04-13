@@ -2829,7 +2829,15 @@ namespace MFM {
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
-	stgcosref = cosref = m_state.getCurrentSelfSymbolForCodeGen();
+	//"self" belongs to func def block that we're currently gencoding
+	u32 selfid = m_state.m_pool.getIndexForDataString("self");
+	Symbol * selfsym = NULL;
+	bool hazykin = false; //unused
+	AssertBool gotSelf = m_state.alreadyDefinedSymbol(selfid, selfsym, hazykin);
+	assert(gotSelf);
+
+	//stgcosref = cosref = m_state.getCurrentSelfSymbolForCodeGen();
+	stgcosref = cosref = selfsym; //t41065, foofunc();
       }
     else if(cosSize == 1)
       {
