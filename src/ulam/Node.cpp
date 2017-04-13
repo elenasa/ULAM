@@ -1064,11 +1064,19 @@ namespace MFM {
     fp->write("\n");
   } //restoreElementTypeForAncestorCasting
 
-  // write out intermediate tmpVar as temp BitVector, func args
+  // write out intermediate tmpVar as temp BitVector, e.g. func args, question-colon
   void Node::genCodeConvertATmpVarIntoBitVector(File * fp, UVPass & uvpass)
   {
     UTI vuti = uvpass.getPassTargetType(); //terminals handled in NodeTerminal
     assert(m_state.okUTItoContinue(vuti));
+
+#if 0
+    //for func args, the nodetype of the funccall isn't the type of the argument;
+    //casts can mask whether the node is the same type as uvpass tmp var.
+    if((uvpass.getPassStorage() == TMPBITVAL) && UlamType::compare(vuti, getNodeType(), m_state) == UTIC_SAME)
+      return; //done
+#endif
+
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
     // write out intermediate tmpVar, or immediate terminal, as temp BitVector arg
@@ -1132,7 +1140,7 @@ namespace MFM {
 	      }
 	  }
       }
-    fp->write("); //func arg&"); GCNL;
+    fp->write(");"); GCNL; //func arg& ?
 
     uvpass = UVPass::makePass(tmpVarNum2, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, pos, 0); //POS left-justified for quarks; right for primitives.
     m_state.clearCurrentObjSymbolsForCodeGen();
