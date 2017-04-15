@@ -1259,7 +1259,7 @@ namespace MFM {
 	else
 	  {
 	    fp->write(stgcos->getMangledName().c_str()); //t3702, t3818
-	    stgisaref = stgcosut->isReference();
+	    stgisaref = stgcosut->isReference(); //t3114
 	  }
       }
     else
@@ -1995,7 +1995,7 @@ namespace MFM {
 	  }
       }
     return !doErrMsg; //true is ok
-  } //makecastingnode
+  } //makeCastingNode
 
   Node * Node::newCastingNode(Node * node, UTI tobeType)
   {

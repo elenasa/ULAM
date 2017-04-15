@@ -767,12 +767,6 @@ namespace MFM {
 	      {
 		atomPtr.setPtrTargetType(((SymbolVariableStack *) asym)->getAutoStorageTypeForEval());
 	      }
-	    else if(autolocaltype == ALT_HAS)
-	      {
-		m_state.abortNotSupported(); //deprecated
-		// auto type is the type of the data member,
-		// rather than the base (rhs)
-	      }
 	    else if(autolocaltype == ALT_REF)
 	      {
 		if(!asym->isSuper())

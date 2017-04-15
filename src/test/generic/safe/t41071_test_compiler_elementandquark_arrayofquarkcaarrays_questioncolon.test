@@ -1,0 +1,70 @@
+## -*- mode:ulam -*-
+#=t41071_test_compiler_elementandquark_arrayofquarkcaarrays_questioncolon
+##
+## gen output:
+## Int Arg: 4
+## assert: arg is 1
+## after asserts abort: arg is 1
+## Int Arg: 3
+## assert: arg is 1
+## after asserts abort: arg is 1
+## assert: arg is 1
+## after asserts abort: arg is 1
+##
+#!
+Exit status: 0
+Uq_QW { Int(7) m[3](0,0,0);  <NOMAIN> }
+Ue_IshE { Bool(1) sp(false);  QW mA[2]( Int(7) m[3](3,0,0);  Int(7) m[3](4,0,0); );  QW mB( Int(7) m[3](0,0,0); );  Int(32) test() {  System s;  ( 1 cast 0 cast 4 cast )set s ( ( 1 cast 0 cast )get )print . s ( ( 1 cast 0 cast )get 4 cast -b 0 cast == )assert . ( 0 cast 0 cast 3 cast )set s ( ( 0 cast 0 cast )get )print . s ( ( 0 cast 0 cast )get 3 cast -b 0 cast == )assert . s ( ( 1 cast 0 cast )get 4 cast -b 0 cast == )assert . ( 1 cast 0 cast )get 4 cast -b return } }
+Uq_System { <NOMAIN> }
+##
+## informed by t3653, also uses a data member in questioncolon.
+##
+#:QW.ulam
+  ulam 2;
+quark QW {
+  Int(7) m[3];
+  Int(7)& aref(Int i) { return m[i]; }
+}
+
+#>IshE.ulam
+  ulam 2;
+use System;
+element IshE {
+  Bool sp;
+  QW mA[2];
+  QW mB;
+  Int get(Int x, Int y) {
+    //QW & r = mB; to see gencode for data member case
+    QW & r = x < mA.lengthof ? mA[x] : mB;
+    return r[y];
+  }
+  Void set(Int x, Int y, Int v) {
+    QW & r = x < mA.lengthof ? mA[x] : mB;
+    r[y] = (Int(7)) v;
+  }
+  Int test() {
+    System s;
+    set(1,0,4);
+    s.print(get(1,0));
+    s.assert((get(1,0) - 4) == 0);
+    set(0,0,3); //clobbers previous 'set'
+    s.print(get(0,0));
+    s.assert((get(0,0) - 3) == 0);
+    s.assert((get(1,0) - 4) == 0);
+    return (get(1,0) - 4); // should be 0
+  }
+}
+use QW;
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

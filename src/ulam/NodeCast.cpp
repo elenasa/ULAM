@@ -888,12 +888,10 @@ namespace MFM {
 	  //no need to read atom-based element (e.g. t3410, 3277)
 	  uvpass.setPassTargetType(tobeType); //same variable
       }
-    else
-      {
-	//from element-to-atom
-	//element-ref to atom-ref is why we couldn't have packed elements!!! t3753
-	if(m_state.isAtomRef(tobeType))
-	  {
+      else if(m_state.isAtomRef(tobeType))
+	{
+	  //from element-to-atom
+	  //element-ref to atom-ref is why we couldn't have packed elements!!! t3753
 	    assert(stgcos);
 	    UTI stgcosuti = stgcos->getUlamTypeIdx();
 	    UlamType * atomut = m_state.getUlamTypeByIndex(UAtom);
@@ -916,17 +914,61 @@ namespace MFM {
 	      }
 	    uvpass = UVPass::makePass(tmpatomref, TMPBITVAL, tobeType, UNPACKED, m_state, 0, stgcos->getId()); //POS moved left for type; pass along name id);
 	  }
-	else
-	  {
-	    // to atom, from T (read from element or element ref)
-	    //No longer, convert T to AtomBitStorage (e.g. t3697, t3637)
-	    uvpass.setPassTargetType(tobeType); //same variable
-	  }
-      }
-    //don't read like ref's do!
-    //update the uvpass to have the casted type
-    m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs
-    return;
+      else if(m_state.isAtom(tobeType))
+	{
+	  // to atom, from T (read from element or element ref)
+	  //No longer, convert T to AtomBitStorage (e.g. t3697, t3637)
+	  uvpass.setPassTargetType(tobeType); //same variable
+	}
+      else //no atoms, explicit like-kind elements
+	{
+	  //explicit cast from element-ref, to element or element-ref; or
+	  //explicit cast from element storage, to element or element-ref
+	  assert(stgcos);
+	  UTI stgcosuti = stgcos->getUlamTypeIdx();
+	  s32 tmpeleref = m_state.getNextTmpVarNumber();
+	  if(m_state.isReference(stgcosuti))
+	    {
+	      //explicit cast from element-ref, to element or element-ref (t41052)
+	      m_state.indentUlamCode(fp);
+	      fp->write(tobe->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+	      fp->write(" ");
+	      fp->write(m_state.getTmpVarAsString(tobeType, tmpeleref, TMPBITVAL).c_str());
+	      fp->write("(");
+	      fp->write(stgcos->getMangledName().c_str()); //assumes only one!!!
+	      if(m_state.isReference(tobeType))
+		{
+		  fp->write(", 0u, &");
+		  fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
+		}
+	      fp->write(");"); GCNL;
+	      uvpass = UVPass::makePass(tmpeleref, TMPBITVAL, tobeType, UNPACKED, m_state, 0, stgcos->getId()); //POS moved left for type; pass along name id);
+	    }
+	  else
+	    {
+	      //from element (storage), to element or element-ref
+	      //explicit cast element to element ref (e.g. question colon, t41067)
+	      m_state.indentUlamCode(fp);
+	      fp->write(tobe->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+	      fp->write(" ");
+	      fp->write(m_state.getTmpVarAsString(tobeType, tmpeleref, TMPBITVAL).c_str());
+	      fp->write("(");
+	      fp->write(stgcos->getMangledName().c_str()); //assumes only one!!!
+	      if(m_state.isReference(tobeType))
+		{
+		  fp->write(", ");
+		  fp->write("+ T::ATOM_FIRST_STATE_BIT, &"); //displace Typefield of element
+		  fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
+		  fp->write(", uc"); //non-ref to ref
+		}
+	      fp->write(");"); GCNL;
+	      uvpass = UVPass::makePass(tmpeleref, TMPBITVAL, tobeType, UNPACKED, m_state, 0, stgcos->getId()); //POS moved left for type; pass along name id);
+	    }
+	}
+      //don't read like ref's do!
+      //update the uvpass to have the casted type
+      m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of rhs
+      return;
   } //genCodeCastAtomAndElement
 
   void NodeCast::genCodeCastAtomAndQuark(File * fp, UVPass & uvpass)
@@ -1567,7 +1609,8 @@ namespace MFM {
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     s32 tmpVarNum = uvpass.getPassVarNum();
 
-    assert(m_state.isClassASubclassOf(vuti, tobeType) || m_state.isClassASubclassOf(tobeType, vuti)); //vuti is subclass of tobeType (or ref tobe), or visa versa (t3757)
+    //assert(m_state.isClassASubclassOf(vuti, tobeType) || m_state.isClassASubclassOf(tobeType, vuti)); //vuti is subclass of tobeType (or ref tobe), or visa versa (t3757)
+    assert(m_state.isClassASubclassOf(vuti, tobeType) || m_state.isClassASubclassOf(tobeType, vuti) || (m_state.isARefTypeOfUlamType(tobeType, vuti) == UTIC_SAME)); //vuti is subclass of tobeType (or ref tobe), or visa versa (t3757); reftypeof same ?: (t41069)
 
     s32 tmpVarSuper = m_state.getNextTmpVarNumber();
 
@@ -1691,7 +1734,8 @@ namespace MFM {
 
     // references are same sizes so no casting needed except to change the uti;
     // NOT including (?) mixing types (e.g. quark ref to atom, or quark ref to sub class)
-    if((m_state.isARefTypeOfUlamType(tobeType, nodeType) == UTIC_SAME))
+    // NOT including explicit casts (e.g. t41067), or Strings (t3962)
+    if((m_state.isARefTypeOfUlamType(tobeType, nodeType) == UTIC_SAME) && (!isExplicitCast() || UlamType::compareForString(tobeType, m_state) == UTIC_SAME))
       return false; //special case of casting
 
     UlamType * nodeut = m_state.getUlamTypeByIndex(nodeType);

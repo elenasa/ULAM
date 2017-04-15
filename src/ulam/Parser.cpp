@@ -3581,7 +3581,7 @@ namespace MFM {
     if(Token::isTokenAType(pTok))
       {
 	unreadToken();
-	bool allowrefcast = (m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCARGUMENT ? true : false);
+	bool allowrefcast = (m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCARGUMENT) || (m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCLOCALREF);
 	return parseFactorStartingWithAType(pTok, allowrefcast); //rtnNode could be NULL
       } //not a Type
 
@@ -3614,7 +3614,7 @@ namespace MFM {
 	break;
       case TOK_OPEN_PAREN:
 	{
-	  bool allowrefcast = (m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCARGUMENT ? true : false); //t3962
+	  bool allowrefcast = (m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCARGUMENT) || (m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCLOCALREF); //t3862, t41067
 	  rtnNode = parseRestOfCastOrExpression(allowrefcast);
 	}
 	break;
@@ -4228,64 +4228,25 @@ namespace MFM {
   bool Parser::parseRestOfRefInitialization(const Token& identTok, NodeVarDecl * dNode)
   {
     bool brtn = true;
-    Token eTok;
-    getNextToken(eTok);
-    if(eTok.m_type == TOK_IDENTIFIER)
+    SYMBOLTYPEFLAG saveTheFlag = m_state.m_parsingVariableSymbolTypeFlag;
+    if(m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCLOCALVAR)
       {
-	Node * rightNode = parseMemberSelectExpr(eTok); //t3832
-	if(!rightNode)
-	  {
-	    std::ostringstream msg;
-	    msg << "Value of reference " << identTok.getTokenStringFromPool(&m_state).c_str();
-	    msg << " is missing";
-	    MSG(&identTok, msg.str().c_str(), ERR);
-	    brtn = false;
-	  }
-	else
-	  ((NodeVarRef *) dNode)->setInitExpr(rightNode);
+	m_state.m_parsingVariableSymbolTypeFlag = STF_FUNCLOCALREF;
       }
-    else if(eTok.m_type == TOK_TYPE_IDENTIFIER)
-      {
-	unreadToken();
-	//can only be .instanceof
-	Node * rightNode = parseFactor(); //parseMinMaxSizeofType(eTok);
-	if(!rightNode)
-	  {
-	    std::ostringstream msg;
-	    msg << "Value of instanceof reference type ";
-	    msg << eTok.getTokenStringFromPool(&m_state).c_str();
-	    msg << " is missing for '";
-	    msg << m_state.getTokenDataAsString(identTok).c_str() << "'";
-	    MSG(&eTok, msg.str().c_str(), ERR);
-	    brtn = false;
-	  }
-	else
-	  ((NodeVarRef *) dNode)->setInitExpr(rightNode);
-      }
-    else if(eTok.m_type == TOK_OPEN_PAREN)
-      {
-	//allows casting of reference initialization
-	Node * rightNode = parseRestOfCastOrExpression(true);
-	if(!rightNode)
-	  {
-	    std::ostringstream msg;
-	    msg << "Value of casted reference type ";
-	    msg << " is missing for '";
-	    msg << m_state.getTokenDataAsString(identTok).c_str() << "'";
-	    MSG(&eTok, msg.str().c_str(), ERR);
-	    brtn = false;
-	  }
-	else
-	  ((NodeVarRef *) dNode)->setInitExpr(rightNode);
-      }
-    else //error
+
+    Node * initnode = parseExpression();
+    if(!initnode)
       {
 	std::ostringstream msg;
-	msg << "Unexpected token <" << eTok.getTokenStringFromPool(&m_state).c_str();
-	msg << "> for initial value of reference";
-	MSG(&eTok, msg.str().c_str(), ERR);
+	msg << "Initial value of reference " << m_state.getTokenDataAsString(identTok).c_str();
+	msg << " is missing";
+	MSG(&identTok, msg.str().c_str(), ERR);
 	brtn = false;
       }
+    else
+      ((NodeVarRef *) dNode)->setInitExpr(initnode);
+
+    m_state.m_parsingVariableSymbolTypeFlag = saveTheFlag; //restore flag
     return brtn;
   } //parseRestOfRefInitialization
 
@@ -5919,7 +5880,7 @@ namespace MFM {
 
     {
       //a Ptr for absolute indexing (i.e. reference class params) in eval; first after end of UlamType.inc. (ALT_PTR not really used; update PtrAbs in Constants.h)
-      UlamKeyTypeSignature apkey(m_state.m_pool.getIndexForDataString("0Ptr"), ULAMTYPE_DEFAULTBITSIZE[Ptr], NONARRAYSIZE, ALT_PTR);
+      UlamKeyTypeSignature apkey(m_state.m_pool.getIndexForDataString("0Ptr"), ULAMTYPE_DEFAULTBITSIZE[Ptr], NONARRAYSIZE, ALT_REF);
       AssertBool isPtrAbs = (m_state.makeUlamType(apkey, Ptr, UC_NOTACLASS) == PtrAbs);
       assert(isPtrAbs);
     }

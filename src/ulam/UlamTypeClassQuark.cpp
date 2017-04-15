@@ -36,8 +36,6 @@ namespace MFM {
     // also allowing subclasses to be cast as their superclass (u1.2.2)
     if(vetyp == UAtom)
       brtn = false; //cast atom to a quark ref (in eval)?
-    else if(vclasstype == UC_TRANSIENT)
-      brtn = false; //cast transient to a quark?
     else if(UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME)
       {
 	//if same type nothing to do; if atom, shows as element in eval-land.
@@ -45,10 +43,29 @@ namespace MFM {
       }
     else if(m_state.isClassASubclassOf(valtypidx, typidx))
       {
-	//2 quarks, or element (val) inherits from this quark
+	//2 quarks, or element (val), or transient, inherits from this quark
 	if(vclasstype == UC_ELEMENT)
 	  {
 	    s32 pos = ATOMFIRSTSTATEBITPOS; //ancestors start at first state bit pos
+	    s32 len = getTotalBitSize();
+	    assert(len != UNKNOWNSIZE);
+	    if(len <= MAXBITSPERINT)
+	      {
+		u32 qdata = val.getDataFromAtom(pos, len);
+		val = UlamValue::makeImmediateClass(typidx, qdata, len);
+	      }
+	    else if(len <= MAXBITSPERLONG)
+	      {
+		m_state.abortNotSupported(); //quarks are max 32 bits
+		u64 qdata = val.getDataLongFromAtom(pos, len);
+		val = UlamValue::makeImmediateLongClass(typidx, qdata, len);
+	      }
+	    else
+	      m_state.abortGreaterThanMaxBitsPerLong();
+	  }
+	else if(vclasstype == UC_TRANSIENT) //t3998, t3999, t41000, t41001, t41069
+	  {
+	    s32 pos = 0; //ancestors start at first bit pos
 	    s32 len = getTotalBitSize();
 	    assert(len != UNKNOWNSIZE);
 	    if(len <= MAXBITSPERINT)

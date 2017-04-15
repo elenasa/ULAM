@@ -1234,9 +1234,9 @@ namespace MFM {
     ALT utalt = ut->getReferenceType();
 
     if(utalt == altArg)
-      return utiArg; //same ref type
+      return utiArg; //same alt ref type
 
-    //e.g. a ref typedef
+    //e.g. an alt ref typedef
     if((utalt != ALT_NOT) && (altArg == ALT_NOT))
       return utiArg; //deref used to remove alt type
 
@@ -1246,8 +1246,7 @@ namespace MFM {
 	msg << "Attempting to ref (" << altArg << ") a reference type <" ;
 	msg <<  getUlamTypeNameByIndex(utiArg) << ">";
 	MSG2("", msg.str().c_str(), DEBUG);
-	//abortShouldntGetHere(); //didn't hit during testing
-	//continue..
+	// error/t3729 trying to change ALT_REF to ALT_AS. continue..
       }
 
     ULAMTYPE bUT = ut->getUlamTypeEnum();
@@ -1264,10 +1263,14 @@ namespace MFM {
     return buti;
   } //getUlamTypeAsRef
 
-  ULAMTYPECOMPARERESULTS CompilerState::isARefTypeOfUlamType(UTI refuti, UTI ofuti)
+  ULAMTYPECOMPARERESULTS CompilerState::isARefTypeOfUlamType(UTI uti1, UTI uti2)
   {
-    //either may be a ref of the other; uses checked both directions.
-    return UlamType::compare(getUlamTypeAsDeref(refuti), getUlamTypeAsDeref(ofuti), *this);
+    //either may be a ref of the other; because uses checked both directions.
+    // may both be references, for example, arrayitem and its reference; or,
+    // may be arrayitem and its base type (i.e. no ALT_REF). (t3651, t3653)
+    if(isReference(uti1) || isReference(uti2))
+      return UlamType::compareForMakingCastingNode(getUlamTypeAsDeref(uti1), getUlamTypeAsDeref(uti2), *this);
+    return UTIC_NOTSAME; //neither a ref
   }
 
   UTI CompilerState::getUlamTypeOfConstant(ULAMTYPE etype)

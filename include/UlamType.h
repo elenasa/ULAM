@@ -219,8 +219,8 @@ namespace MFM{
 
   private:
 
-    static ULAMTYPECOMPARERESULTS compareWithWildArrayItemReferenceType(UTI u1, UTI u2, CompilerState& state);
-    static ULAMTYPECOMPARERESULTS compareWithWildReferenceType(UTI u1, UTI u2, CompilerState& state);
+    static ULAMTYPECOMPARERESULTS compareWithWildArrayItemALTKey(UTI u1, UTI u2, CompilerState& state);
+    static ULAMTYPECOMPARERESULTS compareWithWildALTKey(UTI u1, UTI u2, CompilerState& state);
 
     bool checkArrayCast(UTI typidx);
   };

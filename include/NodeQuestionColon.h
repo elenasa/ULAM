@@ -105,7 +105,7 @@ namespace MFM{
     Node * m_nodeCondition;
 
     void genCodeConditionalExpression(File * fp, UVPass& uvpass);
-
+    void genCodeToStoreIntoExpression(File * fp, UVPass& uvpass, s32 tmpVarNum);
   };
 
 }

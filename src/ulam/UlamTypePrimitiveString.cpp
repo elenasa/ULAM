@@ -51,6 +51,13 @@ namespace MFM {
     return UlamType::getUlamTypeImmediateMangledName(); //? for constants
   }
 
+  const std::string UlamTypePrimitiveString::castMethodForCodeGen(UTI nodetype)
+  {
+    //_String32ToString32 undefined in CastOps.h
+    m_state.abortShouldntGetHere();
+    return "invalidStringCastMethodForCodeGen";
+  }
+
   bool UlamTypePrimitiveString::cast(UlamValue & val, UTI typidx)
   {
     bool brtn = true;
@@ -92,32 +99,17 @@ namespace MFM {
     bool brtn = true;
     UTI valtypidx = val.getUlamValueTypeIdx();
     u32 data = val.getImmediateData(m_state);
-
-    s32 bitsize = getBitSize();
-    s32 valbitsize = m_state.getBitSize(valtypidx);
     //base types e.g. Int, Bool, Unary, Foo, Bar..
     ULAMTYPE valtypEnum = m_state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
     switch(valtypEnum)
       {
-      case Int:
-	// casting Int to Unsigned to change type
-	data = _Int32ToUnsigned32(data, valbitsize, bitsize);
-	break;
-      case Unsigned:
-	// casting UnsignedInt to UnsignedInt to change bits size
-	data = _Unsigned32ToUnsigned32(data, valbitsize, bitsize);
-	break;
-      case Bits:
-	// casting to Bits Unsigned to change type
-	break;
-      case Bool:
-	  data = _Bool32ToUnsigned32(data, valbitsize, bitsize);
-	break;
-      case Unary:
-	  data = _Unary32ToUnsigned32(data, valbitsize, bitsize);
-	break;
       case String:
 	break; //data is index, no cast req'd (t3951)
+      case Int:
+      case Unsigned:
+      case Bits:
+      case Bool:
+      case Unary:
       case Void:
       default:
 	//std::cerr << "UlamTypePrimitiveString (cast) error! Value Type was: " << valtypidx << std::endl;
@@ -131,62 +123,8 @@ namespace MFM {
 
   bool UlamTypePrimitiveString::castTo64(UlamValue & val, UTI typidx)
   {
-    bool brtn = true;
-    UTI valtypidx = val.getUlamValueTypeIdx();
-    u32 valwordsize = m_state.getTotalWordSize(valtypidx);
-    u64 data;
-
-    if(valwordsize <= MAXBITSPERINT)
-      data = (u64) val.getImmediateData(m_state);
-    else if(valwordsize <= MAXBITSPERLONG)
-      data = val.getImmediateDataLong(m_state);
-    else
-      m_state.abortGreaterThanMaxBitsPerLong();
-
-    s32 bitsize = getBitSize();
-    s32 valbitsize = m_state.getBitSize(valtypidx);
-    //base types e.g. Int, Bool, Unary, Foo, Bar..
-    ULAMTYPE valtypEnum = m_state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
-    switch(valtypEnum)
-      {
-      case Int:
-	// casting Int to Unsigned to change type
-	data = _Int64ToUnsigned64(data, valbitsize, bitsize);
-	break;
-      case Unsigned:
-	// casting UnsignedInt to UnsignedInt to change bits size
-	data = _Unsigned64ToUnsigned64(data, valbitsize, bitsize);
-	break;
-      case Bits:
-	// casting to Bits Unsigned to change type
-	break;
-      case Bool:
-	data = _Bool64ToUnsigned64(data, valbitsize, bitsize);
-	break;
-      case Unary:
-	data = _Unary64ToUnsigned64(data, valbitsize, bitsize);
-	break;
-      case String:
-	// casting UnsignedInt to UnsignedInt to change bits size, test?
-	data = _Unsigned64ToUnsigned64(data, valbitsize, bitsize);
-	break;
-      case Void:
-      default:
-	//std::cerr << "UlamTypePrimitiveString (cast) error! Value Type was: " << valtypidx << std::endl;
-	brtn = false;
-      };
-
-    if(brtn)
-      {
-	u32 wordsize = getTotalWordSize(); //tobe
-	if(wordsize <= MAXBITSPERINT) //downcast
-	  val = UlamValue::makeImmediate(typidx, data, m_state); //overwrite val
-	else if(wordsize <= MAXBITSPERLONG)
-	  val = UlamValue::makeImmediateLong(typidx, data, m_state); //overwrite val
-	else
-	  m_state.abortGreaterThanMaxBitsPerLong();
-      }
-    return brtn;
+    m_state.abortShouldntGetHere();
+    return false;
   } //castTo64
 
   FORECAST UlamTypePrimitiveString::safeCast(UTI typidx)
@@ -201,7 +139,7 @@ namespace MFM {
     switch(valtypEnum)
       {
       case String:
-	break;
+	break; //only safe cast!
       case Unsigned:
       case Unary:
       case Int:
