@@ -3186,7 +3186,15 @@ namespace MFM {
 	  return parseExpression();
       }
     else
-      return parseExpression(); //perhaps a number, true or false, cast..
+      rtnNode = parseExpression(); //perhaps a number, true or false, cast..
+
+    Token qTok;
+    getNextToken(qTok);
+    unreadToken();
+    if(qTok.m_type == TOK_QUESTION)
+      {
+	rtnNode = parseRestOfQuestionColonExpr(rtnNode); //t41072
+      }
 
     //if nothing else follows, parseRestOfAssignExpr returns its argument
     return parseRestOfAssignExpr(rtnNode);
