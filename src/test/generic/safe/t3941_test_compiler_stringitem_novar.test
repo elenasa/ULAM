@@ -1,0 +1,22 @@
+## -*- mode:ulam -*-
+#=t3941_test_compiler_stringitem_novar
+#!
+Exit status: 0
+Ue_A { constant String(32) cstring = "bar";  Bool(1) b1(true);  Bool(1) b2(true);  Bool(1) b3(true);  Int(32) test() {  Unsigned(8) asc = "bar" 1 [];  b1 asc 97u == = b2 "bar" 1 [] 97u == = b3 "bar" 1 [] 97u == = 0 cast return } }
+##
+## To answer a question posed by Dave 11/22/2016; no longer invalid 4/29/17
+##
+#>A.ulam
+  ulam 2;
+element A {
+  constant String cstring = "bar"; //ok
+  Bool b1, b2, b3;
+  Int test() {
+    ASCII asc = "bar"[1]; //ERROR
+    b1 = (asc == 'a');
+    b2 = ("bar"[1] == 'a'); //ERROR
+    b3 = (cstring[1] == 'a');
+    return 0;
+  }
+}
+#.

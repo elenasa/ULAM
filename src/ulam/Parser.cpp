@@ -3290,7 +3290,6 @@ namespace MFM {
 	unreadToken();
 	rtnNode = parseLvalExpr(identTok);
       }
-
     return rtnNode;
   } //parseIdentExpr
 
@@ -4035,14 +4034,19 @@ namespace MFM {
 	rtnNode = parseRestOfFactor(leftNode);
 	rtnNode = parseRestOfExpression(rtnNode); //any more?
 	break;
+      case TOK_QUESTION:
+	unreadToken();
+	rtnNode = parseRestOfQuestionColonExpr(leftNode);
+	break;
       case TOK_DOT:
 	unreadToken();
 	rtnNode = parseRestOfMemberSelectExpr(leftNode);
 	rtnNode = parseRestOfExpression(rtnNode); //any more? t41057
 	break;
-      case TOK_QUESTION:
+      case TOK_OPEN_SQUARE:
 	unreadToken();
-	rtnNode = parseRestOfQuestionColonExpr(leftNode);
+	rtnNode = parseRestOfLvalExpr(leftNode); //t41074, t3941
+	rtnNode = parseRestOfExpression(rtnNode); //any more?
 	break;
       case TOK_ERROR_LOWLEVEL:
 	rtnNode = parseRestOfExpression(leftNode); //redo
@@ -4118,6 +4122,13 @@ namespace MFM {
 	  unreadToken(); //t3905
 	  rtnNode = parseRestOfMemberSelectExpr(leftNode);
 	  rtnNode = parseRestOfAssignExpr(rtnNode);
+	  break;
+	}
+      case TOK_OPEN_SQUARE:
+	{
+	  unreadToken();
+	  rtnNode = parseRestOfLvalExpr(leftNode); //t41074, lhs
+	  rtnNode = parseRestOfAssignExpr(rtnNode); //any more?
 	  break;
 	}
       default:
