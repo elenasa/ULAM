@@ -153,7 +153,7 @@ where,
 <ADDOP> := '+' | '-'
 <TERM> := <FACTOR> | <TERM> <MULOP> <FACTOR>
 <MULOP> := '*' | '/' | '%'
-<FACTOR> := <IDENT_EXPRESSION> | <NUMBER> | '(' + <ASSIGN_EXPRESSION> + ')' | <UNOP_EXPRESSION>
+<FACTOR> := <IDENT_EXPRESSION> | <NUMBER_OR_BOOLEAN> | '(' + <ASSIGN_EXPRESSION> + ')' | <UNOP_EXPRESSION>
             |  <OF_EXPRESSION>  | <STRING_LITERAL> | <BYTE_LITERAL>
 <UNOP_EXPRESSION> := <UNOP> + <FACTOR> | <IDENT_EXPRESSION> + 'is' + <TYPE_IDENT_DESC> |
 		     <LVAL_UNOP> + <LVAL_EXPRESSION>
@@ -173,9 +173,11 @@ where,
 <NOT_SINGLE_QUOTE> := /[^']/
 <DOUBLE_QUOTE> := /["]/
 <NOT_DOUBLE_QUOTE> := /[^"]/
+<NUMBER_OR_BOOLEAN> := <NUMBER> | <BOOLEAN>
 <NUMBER> := (<HEX_NUMBER> | <OCT_NUMBER> | <DEC_NUMBER>) + <UNSIGNED_SUFFIX>
 <HEX_NUMBER> := /0[xX][0-9a-fA-F]+/
 <OCT_NUMBER> := /0[0-7]*/
 <DEC_NUMBER> := /[1-9][0-9]*/
 <UNSIGNED_SUFFIX> := 0 | 'u' | 'U'
+<BOOLEAN> := 'true' | 'false'
 [use newlines per line for genCode comments]

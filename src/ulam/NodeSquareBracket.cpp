@@ -281,12 +281,14 @@ namespace MFM {
 	bool isScalar = lut->isScalar();
 	// sq bracket purpose in life is to account for array elements;
 	if((lut->getUlamTypeEnum() == String) && isScalar)
-	  newType = ASCII;
+	  newType = ASCII; //not storeintoable default (t41076)
 	else
-	  newType = m_state.getUlamTypeAsScalar(leftType);
+	  {
+	    newType = m_state.getUlamTypeAsScalar(leftType);
 
-	// multi-dimensional possible; MP not ok lhs.
-	Node::setStoreIntoAble(m_nodeLeft->getStoreIntoAble());
+	    // multi-dimensional possible; MP not ok lhs.
+	    Node::setStoreIntoAble(m_nodeLeft->getStoreIntoAble());
+	  }
       }
     else
       {
