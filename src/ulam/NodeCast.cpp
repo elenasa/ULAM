@@ -109,6 +109,11 @@ namespace MFM {
     return m_node->isFunctionCall();
   }
 
+  bool NodeCast::isAConstructorFunctionCall()
+  {
+    return m_node->isAConstructorFunctionCall();
+  }
+
   bool NodeCast::isArrayItem()
   {
     return m_node->isArrayItem();
@@ -197,7 +202,19 @@ namespace MFM {
 
 	if((tclasstype != UC_NOTACLASS) && (nclasstype == UC_NOTACLASS))
 	  {
-	    if(!m_state.isAtom(nodeType))
+	    if(nodeType == Void)
+	      {
+		if(!m_node->isAConstructorFunctionCall())
+		  {
+		    std::ostringstream msg;
+		    msg << "Cannot cast non-constructor ";
+		    msg << nut->getUlamTypeNameBrief().c_str(); //non-constructor void
+		    msg << " to " << tobe->getUlamTypeNameBrief().c_str(); //to a class
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    errorsFound++;
+		  }
+	      }
+	    else if(!m_state.isAtom(nodeType))
 	      {
 		std::ostringstream msg;
 		msg << "Cannot cast ";
@@ -451,6 +468,12 @@ namespace MFM {
       {
 	evalNodeEpilog();
 	return evs;
+      }
+
+    if(nodeType == Void)
+      {
+	evalNodeEpilog();
+	return UNEVALUABLE; //t41077, nothing to load
       }
 
     //do we believe these to be scalars, only?

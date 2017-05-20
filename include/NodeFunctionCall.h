@@ -77,6 +77,8 @@ namespace MFM{
 
     virtual bool isFunctionCall();
 
+    virtual bool isAConstructorFunctionCall();
+
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();

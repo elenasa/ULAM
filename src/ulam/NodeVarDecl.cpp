@@ -453,8 +453,9 @@ namespace MFM {
 	      }
 	  }
 
-	//note: Void is flag that it's a list of constant initializers.
-	if((eit == Void))
+	//note: Void is flag that it's a list of constant initializers (unknown type).
+	// t3768,69,70,77, t3853, t3863, t3946, t3974,77,79
+	if(m_nodeInitExpr->isAList() && (eit == Void))
 	  {
 	    //only possible if array type with initializers
 	    m_varSymbol->setHasInitValue(); //might not be ready yet
@@ -485,13 +486,13 @@ namespace MFM {
 			msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 			m_varSymbol->resetUlamType(duti); //consistent!
-			m_state.mapTypesInCurrentClass(it, duti);
-			m_state.updateUTIAliasForced(it, duti); //help?
+			//'it' is not OK, that's Hzy; don't map Hzy!!!
+			//m_state.mapTypesInCurrentClass(it, duti);
+			//m_state.updateUTIAliasForced(it, duti); //help?
 			m_nodeInitExpr->setNodeType(duti); //replace Void too!
 			it = duti;
 		      }
 		  }
-		//else
 	      }
 	    else if(m_state.isComplete(it))
 	      {
@@ -511,7 +512,7 @@ namespace MFM {
 		m_nodeInitExpr->setNodeType(it); //replace Void
 	      }
 	    eit = it;
-	  } //end array initializers (eit == Void)
+	  } //end array initializers list && (eit == Void)
 	else
 	  {
 	    if(!m_state.isScalar(it) && m_nodeInitExpr->isAConstant())
@@ -1017,50 +1018,64 @@ namespace MFM {
 
     if(m_nodeInitExpr)
       {
+	if(m_nodeInitExpr->isAConstructorFunctionCall())
+	  {
+	    //provide default variable first (t41077)
+	    //left-justified. no initialization
+	    m_state.indentUlamCode(fp);
+	    fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
+	    fp->write(" ");
+	    fp->write(m_varSymbol->getMangledName().c_str());
+	    fp->write(";"); GCNL; //func call args aren't NodeVarDecl's
+	  }
+
 	m_nodeInitExpr->genCode(fp, uvpass);
 
-	m_state.indentUlamCode(fp);
-	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
-	fp->write(" ");
-	fp->write(m_varSymbol->getMangledName().c_str());
-	fp->write("("); // use constructor (not equals)
-
-	if(UlamType::compareForString(vuti, m_state) == UTIC_SAME)
+	if(!m_nodeInitExpr->isAConstructorFunctionCall())
 	  {
-	    TMPSTORAGE vstor = uvpass.getPassStorage();
-	    if((vstor == TMPBITVAL) || (vstor == TMPAUTOREF))
+	    m_state.indentUlamCode(fp);
+	    fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
+	    fp->write(" ");
+	    fp->write(m_varSymbol->getMangledName().c_str());
+	    fp->write("("); // use constructor (not equals)
+
+	    if(UlamType::compareForString(vuti, m_state) == UTIC_SAME)
 	      {
-		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-		fp->write(".getRegistrationNumber(), ");
-		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-		fp->write(".getStringIndex());"); GCNL; //t3948
+		TMPSTORAGE vstor = uvpass.getPassStorage();
+		if((vstor == TMPBITVAL) || (vstor == TMPAUTOREF))
+		  {
+		    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+		    fp->write(".getRegistrationNumber(), ");
+		    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+		    fp->write(".getStringIndex());"); GCNL; //t3948
+		  }
+		else
+		  {
+		    const std::string stringmangledName = m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
+
+		    fp->write(stringmangledName.c_str());
+		    fp->write("::getRegNum(");
+		    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+		    fp->write("), ");
+		    fp->write(stringmangledName.c_str());
+		    fp->write("::getStrIdx(");
+		    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+		    fp->write("));"); GCNL;
+		  }
 	      }
 	    else
 	      {
-		const std::string stringmangledName = m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
-
-		fp->write(stringmangledName.c_str());
-		fp->write("::getRegNum(");
 		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-		fp->write("), ");
-		fp->write(stringmangledName.c_str());
-		fp->write("::getStrIdx(");
-		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-		fp->write("));"); GCNL;
+		if((uvpass.getPassStorage() == TMPBITVAL) && m_nodeInitExpr->isExplicitCast())
+		  fp->write(".read()"); //ulamexports: WallPort->QPort4->Cell (e.g. t3922, t3715)
+		else if(m_state.isAtomRef(vuti))
+		  fp->write(", uc");
+		fp->write(");"); GCNL; //func call args aren't NodeVarDecl's
 	      }
-	  }
-	else
-	  {
-	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	    if((uvpass.getPassStorage() == TMPBITVAL) && m_nodeInitExpr->isExplicitCast())
-	      fp->write(".read()"); //ulamexports: WallPort->QPort4->Cell (e.g. t3922, t3715)
-	    else if(m_state.isAtomRef(vuti))
-	      fp->write(", uc");
-	    fp->write(");"); GCNL; //func call args aren't NodeVarDecl's
 	  }
 	m_state.clearCurrentObjSymbolsForCodeGen();
 	return; //done
-      }
+      } //has a nodeInitExpr
 
     //initialize T to default atom (might need "OurAtom" if data member ?)
     if(vclasstype == UC_ELEMENT)

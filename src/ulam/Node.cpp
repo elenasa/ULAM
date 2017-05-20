@@ -218,6 +218,11 @@ namespace MFM {
     return false;
   }
 
+  bool Node::isAConstructorFunctionCall()
+  {
+    return false;
+  }
+
   bool Node::isArrayItem()
   {
     return false;
@@ -1891,8 +1896,9 @@ namespace MFM {
 	if(m_state.isAtom(nuti) && !((tclasstype == UC_ELEMENT) || m_state.isAtom(tobeType) || ((tclasstype == UC_QUARK) && tobe->isReference())))
 	  doErrMsg = true;
 
-	else if(nuti == Void)
-	  doErrMsg = true; //cannot cast a void into anything else (reverse is fine)
+	//else if(nuti == Void)
+	else if((nuti == Void) && !node->isAConstructorFunctionCall())
+	  doErrMsg = true; //cannot cast a void into anything else (reverse is fine), except cnstr(t41077)
 	//else if reference to non-ref of same type?
 	else
 	  {

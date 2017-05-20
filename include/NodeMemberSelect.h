@@ -82,6 +82,8 @@ namespace MFM{
 
     virtual bool isFunctionCall();
 
+    virtual bool isAConstructorFunctionCall();
+
     virtual bool isArrayItem();
 
     virtual EvalStatus eval();

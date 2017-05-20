@@ -1,0 +1,117 @@
+## -*- mode:ulam -*-
+#=t41077_test_compiler_elementandquark_withdatamembersinitandconstructors
+##
+## gen output: (interleaved asserts)
+## Int Arg: 9
+## Bool(3) Arg: 0x7 (true)
+## Bool(3) Arg: 0x0 (false)
+## Bool(3) Arg: 0x0 (false)
+## Int Arg: 9
+## Int Arg: 7
+## Int Arg: 7
+##
+## constructors are unevaluable, currently
+#!
+Exit status: -11
+Ue_A { Bar bar( Bool(1) b(true); );  Int(4) a(4);  Int(4) b(5);  Bool(7) d(true);  Int(32) test() {  System s;  Bar localbar = localbar ( false )Self . cast;  A locala = locala ( 2 cast 9 cast )Self . cast;  s ( a cast b cast +b cast )print . s ( a cast b cast +b 9 == )assert . s ( bar b . cast )print . s ( bar b . )assert . s ( localbar b . cast )print . s ( localbar b . ! )assert . s ( locala d . cast )print . s ( locala d . ! cast )assert . s ( locala a . cast locala b . cast +b cast )print . s ( locala a . cast locala b . cast +b 9 == )assert . A localaa = localaa ( false )Self . cast;  s ( localaa a . cast localaa b . cast +b cast )print . s ( localaa a . cast localaa b . cast +b 7 cast == )assert . s ( a 1 cast -= cast b 1 cast -= cast +b cast )print . s ( a cast b cast +b 7 cast == )assert . a cast b cast +b cast return } }
+Uq_Bar { Bool(1) b( true);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## first parsing test of constructors!!
+## informed by t3511: answer is saturated
+##
+#>A.ulam
+  ulam 2;
+element A {
+  Bar bar;
+  Int test(){
+    System s;
+    Bar localbar(false); //first time a constructor used!!
+    A locala(2, 9); //second time a constructor is used!!
+
+    //self, default
+    s.print(a+b); // =9
+    s.assert(a+b == 9);
+    s.print(bar.b); // true
+    s.assert(bar.b);
+
+    //local variables
+    s.print(localbar.b); //false
+    s.assert(!localbar.b); //default reset by constructor
+
+    s.print(locala.d); //reset to false
+    s.assert(!locala.d);
+
+    s.print(locala.a + locala.b); //2 + 7 (maxof)
+    s.assert(locala.a + locala.b == 9);
+
+    A localaa(false);
+    s.print(localaa.a + localaa.b); //=7
+    s.assert(localaa.a + localaa.b == 7);
+
+    //self again..
+    s.print(--a + --b); //=7
+    s.assert(a + b == 7);
+    return (a + b); //7
+  }
+
+  Bool(7) d = true;
+  Int(4) a = 4;
+  Int(4) b = 5;
+
+  Self(Int a1, Int b1)
+  {
+    a = (Int(4)) a1;
+    b = (Int(4)) b1;
+    d = false;
+  }
+
+  //note: called after the default values are set!
+  Self(Bool b1)
+  {
+    if(b1)
+    {
+      a++;
+      b++;
+    }
+    else
+    {
+      a--;
+      b--;
+    }
+    d = b1;
+  }
+}
+
+#:Bar.ulam
+  ulam 2;
+quark Bar
+{
+  Self(Bool barg)
+  {
+    b = barg; //first constructor in the history of ulam!!
+  }
+
+  Self(Unsigned sarg)
+  {
+    //empty?
+  }
+
+  Bool b = true;
+}
+
+##
+## test system quark with native overloaded print funcs; assert
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

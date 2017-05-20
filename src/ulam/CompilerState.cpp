@@ -2957,7 +2957,8 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
     if(m_currentFunctionReturnNodes.empty())
       {
-	if((it != Void) && !fsym->isNativeFunctionDeclaration() && (!fsym->isVirtualFunction() || !fsym->isPureVirtualFunction()))
+	//if((it != Void) && !fsym->isNativeFunctionDeclaration() && (!fsym->isVirtualFunction() || !fsym->isPureVirtualFunction()))
+	if((it != Void) && !fsym->isNativeFunctionDeclaration() && (!fsym->isVirtualFunction() || !fsym->isPureVirtualFunction()) && !fsym->isConstructorFunction())
 	  {
 	    std::ostringstream msg;
 	    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();

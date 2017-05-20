@@ -412,6 +412,12 @@ namespace MFM {
     return true;
   }
 
+  bool NodeFunctionCall::isAConstructorFunctionCall()
+  {
+    assert(m_funcSymbol);
+    return m_funcSymbol->isConstructorFunction();
+  }
+
   // since functions are defined at the class-level; a function call
   // must be PRECEDED by a member selection (element or quark) --- a
   // local variable instance that provides the storage (i.e. atom) for

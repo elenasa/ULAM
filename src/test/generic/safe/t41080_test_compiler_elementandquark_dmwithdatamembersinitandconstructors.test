@@ -1,0 +1,61 @@
+## -*- mode:ulam -*-
+#=t41080_test_compiler_elementandquark_dmwithdatamembersinitandconstructors
+##
+## gen output: (interleaved asserts)
+## Bool(3) Arg: 0x7 (true)
+##
+## constructors are unevaluable, currently
+#!
+Exit status: -11
+Ue_A { Bar bar( Bool(1) b(true); );  Int(4) a(4);  Int(4) b(5);  Bool(7) d(true);  Int(32) test() {  System s;  Bar localbar = localbar ( false )Self . cast;  A locala = locala ( 2 cast 9 cast )Self . cast;  s ( a cast b cast +b cast )print . s ( a cast b cast +b 9 == )assert . s ( bar b . cast )print . s ( bar b . )assert . s ( localbar b . cast )print . s ( localbar b . ! )assert . s ( locala d . cast )print . s ( locala d . ! cast )assert . s ( locala a . cast locala b . cast +b cast )print . s ( locala a . cast locala b . cast +b 9 == )assert . A localaa = localaa ( false )Self . cast;  s ( localaa a . cast localaa b . cast +b cast )print . s ( localaa a . cast localaa b . cast +b 7 cast == )assert . s ( a 1 cast -= cast b 1 cast -= cast +b cast )print . s ( a cast b cast +b 7 cast == )assert . a cast b cast +b cast return } }
+Uq_Bar { Bool(1) b( true);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## first parsing test of constructors and data members!!
+## informed by t41077
+##
+#>A.ulam
+  ulam 2;
+element A {
+  Bar bar(Bar.sizeof); //hard to parse: func def or dm constructor?
+  Int test(){
+    System s;
+
+    s.print(bar.b); // true
+    s.assert(bar.b);
+
+    return 0;
+  }
+
+  Bool(7) d = true;
+  Int(4) a = 4;
+  Int(4) b = 5;
+}
+
+#:Bar.ulam
+  ulam 2;
+quark Bar
+{
+  Self(Unsigned sarg)
+  {
+    //empty?
+  }
+
+  Bool b = true;
+}
+
+##
+## test system quark with native overloaded print funcs; assert
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.
