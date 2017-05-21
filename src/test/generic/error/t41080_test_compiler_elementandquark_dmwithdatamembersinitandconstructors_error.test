@@ -1,0 +1,66 @@
+## -*- mode:ulam -*-
+#=t41080_test_compiler_elementandquark_dmwithdatamembersinitandconstructors_error
+#!
+./A.ulam:3:15: ERROR: Function parameter <sizeof>: Name must not be a reserved keyword.
+./A.ulam:3:15: ERROR: Expected 'A Type' Token!! got Token <sizeof> instead.
+./A.ulam:3:21: ERROR: Unexpected input!! Token <)> after function declaration.
+./A.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'A'; Possible missing ending curly brace.
+./A.ulam:3:22: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./A.ulam:2:9: ERROR: Invalid Type: A.
+ ERROR: No parse tree for This Class: A.
+Unrecoverable Program Parse FAILURE: <A.ulam>
+./A.ulam:4:3: ERROR: Invalid Class Type <Int>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <Bar.ulam>
+./A.ulam:4:7: ERROR: Invalid Class Type <test>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <System.ulam>
+##
+## first parsing test of constructors and data members!! will not support. sorry.
+## data members are suppose to be initialized to constants; function calls cannot know.
+## (even with putting sizeof in front of Type to parse the constructor call, not func def).
+## informed by t41077
+##
+#>A.ulam
+  ulam 2;
+element A {
+  Bar bar(Bar.sizeof); //hard to parse: func def or dm constructor?
+  Int test(){
+    System s;
+
+    s.print(bar.b); // true
+    s.assert(bar.b);
+
+    return 0;
+  }
+
+  Bool(7) d = true;
+  Int(4) a = 4;
+  Int(4) b = 5;
+}
+
+#:Bar.ulam
+  ulam 2;
+quark Bar
+{
+  Self(Unsigned sarg)
+  {
+    //empty?
+  }
+
+  Bool b = true;
+}
+
+##
+## test system quark with native overloaded print funcs; assert
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

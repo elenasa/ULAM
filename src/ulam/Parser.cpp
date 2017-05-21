@@ -998,63 +998,73 @@ namespace MFM {
       }
     else if(pTok.m_type == TOK_OPEN_PAREN)
       {
-	u32 selfid = m_state.m_pool.getIndexForDataString("Self");
-	Token SelfTok(TOK_TYPE_IDENTIFIER, identTok.m_locator, selfid);
-	//if here, must be constructor used to initialize class-type variable!! (t41077)
-	NodeFunctionCall * constrNode = (NodeFunctionCall *) parseFunctionCall(SelfTok); //type of variable known later
-
-	if(!constrNode)
-	  {
-	    std::ostringstream msg;
-	    msg << "Initial value of '" << m_state.getTokenDataAsString(identTok).c_str();
-	    msg << "' is missing its constructor arguments";
-	    MSG(&identTok, msg.str().c_str(), ERR);
-	    brtn = false; //t3135
-	  }
-	else if(constrNode->getNumberOfArguments() == 0)
-	  {
-	    std::ostringstream msg;
-	    msg << "Initial value of '" << m_state.getTokenDataAsString(identTok).c_str();
-	    msg << "' has no constructor arguments";
-	    MSG(&identTok, msg.str().c_str(), ERR);
-	    brtn = false; //t3135
-	    delete constrNode;
-	    constrNode = NULL;
-	  }
-	else
-	  {
-	    if(!getExpectedToken(TOK_SEMICOLON))
-	      {
-		//statement required.
-		std::ostringstream msg;
-		msg << "Declaration of '" << m_state.getTokenDataAsString(identTok).c_str();
-		msg << "' is an invalid statement";
-		MSG(&identTok, msg.str().c_str(), ERR);
-
-		brtn = false;
-		delete constrNode;
-		constrNode = NULL;
-	      }
-	    else
-	      {
-		unreadToken(); //semicolon
-
-		NodeIdent * classNode = new NodeIdent(identTok, NULL, m_state);
-		assert(classNode);
-		classNode->setNodeLocation(identTok.m_locator);
-
-		NodeMemberSelect * memberSelectNode = new NodeMemberSelect(classNode, constrNode, m_state);
-		assert(memberSelectNode);
-		memberSelectNode->setNodeLocation(identTok.m_locator);
-
-		((NodeVarDecl *) dNode)->setInitExpr(memberSelectNode);
-	      }
-	  }
+	brtn = makeConstructorCall(identTok, (NodeVarDecl *) dNode);
       }
     else
       unreadToken();
     return brtn; // true even if no assignment; false on error
   } //parseRestOfInitialization
+
+  //refactor, open paren seen already, for data member initialization
+  bool Parser::makeConstructorCall(const Token& identTok, NodeVarDecl * dNode)
+  {
+    bool brtn = true;
+    //open paren already eaten
+
+    u32 selfid = m_state.m_pool.getIndexForDataString("Self");
+    Token SelfTok(TOK_TYPE_IDENTIFIER, identTok.m_locator, selfid);
+    //if here, must be constructor used to initialize class-type variable!! (t41077)
+    NodeFunctionCall * constrNode = (NodeFunctionCall *) parseFunctionCall(SelfTok); //type of variable known later
+
+    if(!constrNode)
+      {
+	std::ostringstream msg;
+	msg << "Initial value of '" << m_state.getTokenDataAsString(identTok).c_str();
+	msg << "' is missing its constructor arguments";
+	MSG(&identTok, msg.str().c_str(), ERR);
+	brtn = false; //t3135
+      }
+    else if(constrNode->getNumberOfArguments() == 0)
+      {
+	std::ostringstream msg;
+	msg << "Initial value of '" << m_state.getTokenDataAsString(identTok).c_str();
+	msg << "' has no constructor arguments";
+	MSG(&identTok, msg.str().c_str(), ERR);
+	brtn = false; //t3135
+	delete constrNode;
+	constrNode = NULL;
+      }
+    else
+      {
+	if(!getExpectedToken(TOK_SEMICOLON))
+	  {
+	    //statement required.
+	    std::ostringstream msg;
+	    msg << "Declaration of '" << m_state.getTokenDataAsString(identTok).c_str();
+	    msg << "' is an invalid statement";
+	    MSG(&identTok, msg.str().c_str(), ERR);
+
+	    brtn = false;
+	    delete constrNode;
+	    constrNode = NULL;
+	  }
+	else
+	  {
+	    unreadToken(); //semicolon
+
+	    NodeIdent * classNode = new NodeIdent(identTok, NULL, m_state);
+	    assert(classNode);
+	    classNode->setNodeLocation(identTok.m_locator);
+
+	    NodeMemberSelect * memberSelectNode = new NodeMemberSelect(classNode, constrNode, m_state);
+	    assert(memberSelectNode);
+	    memberSelectNode->setNodeLocation(identTok.m_locator);
+
+	    ((NodeVarDecl *) dNode)->setInitExpr(memberSelectNode);
+	  }
+      }
+    return brtn; // true even if no assignment; false on error
+  } //makeConstructorCall
 
   NodeBlock * Parser::parseBlock()
   {
@@ -3277,21 +3287,8 @@ namespace MFM {
 
   Node * Parser::parseLvalExpr(const Token& identTok)
   {
-    Token pTok;
-    getNextToken(pTok);
-    //function calls or func defs are not valid; until constructors came along
-    if(pTok.m_type == TOK_OPEN_PAREN)
-      {
-	std::ostringstream msg;
-	msg << "Unexpected token <" << m_state.getTokenDataAsString(pTok).c_str();
-	msg << "> indicates a function call or definition; neither are valid here";
-	MSG(&pTok, msg.str().c_str(), DEBUG);
-	//MSG(&pTok, msg.str().c_str(), ERR);
-	//unreadToken();
-	//return NULL;
-      }
-
-    unreadToken(); //put whatever back
+    //function calls and func defs are not valid; until constructor calls came along
+    //if(pTok.m_type == TOK_OPEN_PAREN) no longer necessarily an error
 
     Symbol * asymptr = NULL;
     // may continue when symbol not defined yet (e.g. Decl)
