@@ -618,6 +618,13 @@ namespace MFM {
     return currBlock;
   }
 
+  UTI NodeVarDecl::getTypeDescriptorGivenUTI()
+  {
+    //used at parse time, to learn its constructor call class type
+    assert(m_nodeTypeDesc);
+    return m_nodeTypeDesc->givenUTI();
+  }
+
   void NodeVarDecl::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
     assert(m_varSymbol);

@@ -407,6 +407,15 @@ namespace MFM {
     depth += argbase;
   } //calcMaxDepth
 
+  bool NodeFunctionCall::isAConstant()
+  {
+    if(isAConstructorFunctionCall())
+      {
+	return m_argumentNodes->isAConstant(); //t41080
+      }
+    return false;
+  }
+
   bool NodeFunctionCall::isFunctionCall()
   {
     return true;

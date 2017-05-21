@@ -823,6 +823,7 @@ namespace MFM {
 	  }
 
 	bool isConstr = false;
+	bool varWithConstr = false;
 
 	Token iTok;
 	getNextToken(iTok);
@@ -830,6 +831,7 @@ namespace MFM {
 	  {
 	    if((iTok.m_type == TOK_OPEN_PAREN) && (pTok.m_dataindex == m_state.m_pool.getIndexForDataString("Self")))
 	      {
+		//defining a constructor, starts with 'Self'
 		unreadToken();
 		isConstr = true;
 		iTok = pTok;
@@ -858,55 +860,70 @@ namespace MFM {
 	//need next token to distinguish a function from a variable declaration (quietly)
 	if(getExpectedToken(TOK_OPEN_PAREN))
 	  {
-	    //eats the '(' when found; NULL if error occurred
-	    NodeBlockFunctionDefinition * funcdefNode = makeFunctionSymbol(typeargs, iTok, typeNode, isVirtual, isConstr); //with params
-	    if(funcdefNode)
-	      brtn = true; //funcdefNode belongs to the symbolFunction; not appended to tree
+	    //eats the '(' when found;
+	    Token eTok;
+	    getNextToken(eTok);
+	    unreadToken();
+	    //Type or ')' implies a func def (eliminates possible variable with constructor)
+	    if(Token::isTokenAType(eTok) || (eTok.m_type == TOK_CLOSE_PAREN))
+	      {
+		//NULL if error occurred
+		NodeBlockFunctionDefinition * funcdefNode = makeFunctionSymbol(typeargs, iTok, typeNode, isVirtual, isConstr); //with params
+		if(funcdefNode)
+		  brtn = true; //funcdefNode belongs to the symbolFunction; not appended to tree
+		else
+		  //MSG(&pTok, "INCOMPLETE Function Definition", ERR);
+		  m_state.clearStructuredCommentToken();
+		return brtn; //done
+	      }
+
+	    //else not a func def; var with constructor, open paren gone
+	    varWithConstr = true;
+	  }
+
+	//variable declaration
+	if(isVirtual)
+	  {
+	    std::ostringstream msg;
+	    msg << "Unexpected input!! Token <";
+	    msg << m_state.getTokenDataAsString(pTok).c_str() << ">";
+	    msg << " applies to functions";
+	    MSG(&pTok, msg.str().c_str(), ERR);
+	    //continue
+	  }
+
+	if(typeargs.m_declRef != ALT_NOT)
+	  {
+	    std::ostringstream msg;
+	    msg << "Reference as data member; Not supported";
+	    MSG(&pTok, msg.str().c_str(), ERR);
+	    m_state.clearStructuredCommentToken();
+	    delete typeNode;
+	    typeNode = NULL;
+	    return false; //done!
+	  }
+
+	m_state.m_parsingVariableSymbolTypeFlag = STF_DATAMEMBER;
+
+	//not '(', so token is unread, and we know
+	//it's a variable, not a function; also handles arrays
+	UTI passuti = typeNode->givenUTI(); //before it may become an array
+	NodeVarDecl * dmNode = makeVariableSymbol(typeargs, iTok, typeNode);
+
+	if(dmNode)
+	  {
+	    if(varWithConstr)
+	      parseConstructorCall(iTok, dmNode);
 	    else
-	      //MSG(&pTok, "INCOMPLETE Function Definition", ERR);
-	      m_state.clearStructuredCommentToken();
+	      parseRestOfInitialization(iTok, dmNode);
+
+	    m_state.appendNodeToCurrentBlock(dmNode);
+	    isAlreadyAppended = parseRestOfDataMember(typeargs, passuti); //appended
 	  }
 	else
-	  {
-	    if(isVirtual)
-	      {
-		std::ostringstream msg;
-		msg << "Unexpected input!! Token <";
-		msg << m_state.getTokenDataAsString(pTok).c_str() << ">";
-		msg << " applies to functions";
-		MSG(&pTok, msg.str().c_str(), ERR);
-		//continue
-	      }
+	  m_state.clearStructuredCommentToken();
 
-	    if(typeargs.m_declRef != ALT_NOT)
-	      {
-		std::ostringstream msg;
-		msg << "Reference as data member; Not supported";
-		MSG(&pTok, msg.str().c_str(), ERR);
-		m_state.clearStructuredCommentToken();
-		delete typeNode;
-		typeNode = NULL;
-		return false; //done!
-	      }
-
-	    m_state.m_parsingVariableSymbolTypeFlag = STF_DATAMEMBER;
-
-	    //not '(', so token is unread, and we know
-	    //it's a variable, not a function; also handles arrays
-	    UTI passuti = typeNode->givenUTI(); //before it may become an array
-	    NodeVarDecl * dmNode = makeVariableSymbol(typeargs, iTok, typeNode);
-
-	    if(dmNode)
-	      {
-		parseRestOfInitialization(iTok, dmNode);
-		m_state.appendNodeToCurrentBlock(dmNode);
-		isAlreadyAppended = parseRestOfDataMember(typeargs, passuti); //appended
-	      }
-	    else
-	      m_state.clearStructuredCommentToken();
-
-	    m_state.m_parsingVariableSymbolTypeFlag = STF_NEEDSATYPE;
-	  }
+	m_state.m_parsingVariableSymbolTypeFlag = STF_NEEDSATYPE;
       } //regular data member
 
     //common end processing, except for function defs
@@ -998,63 +1015,92 @@ namespace MFM {
       }
     else if(pTok.m_type == TOK_OPEN_PAREN)
       {
-	u32 selfid = m_state.m_pool.getIndexForDataString("Self");
-	Token SelfTok(TOK_TYPE_IDENTIFIER, identTok.m_locator, selfid);
-	//if here, must be constructor used to initialize class-type variable!! (t41077)
-	NodeFunctionCall * constrNode = (NodeFunctionCall *) parseFunctionCall(SelfTok); //type of variable known later
-
-	if(!constrNode)
-	  {
-	    std::ostringstream msg;
-	    msg << "Initial value of '" << m_state.getTokenDataAsString(identTok).c_str();
-	    msg << "' is missing its constructor arguments";
-	    MSG(&identTok, msg.str().c_str(), ERR);
-	    brtn = false; //t3135
-	  }
-	else if(constrNode->getNumberOfArguments() == 0)
-	  {
-	    std::ostringstream msg;
-	    msg << "Initial value of '" << m_state.getTokenDataAsString(identTok).c_str();
-	    msg << "' has no constructor arguments";
-	    MSG(&identTok, msg.str().c_str(), ERR);
-	    brtn = false; //t3135
-	    delete constrNode;
-	    constrNode = NULL;
-	  }
-	else
-	  {
-	    if(!getExpectedToken(TOK_SEMICOLON))
-	      {
-		//statement required.
-		std::ostringstream msg;
-		msg << "Declaration of '" << m_state.getTokenDataAsString(identTok).c_str();
-		msg << "' is an invalid statement";
-		MSG(&identTok, msg.str().c_str(), ERR);
-
-		brtn = false;
-		delete constrNode;
-		constrNode = NULL;
-	      }
-	    else
-	      {
-		unreadToken(); //semicolon
-
-		NodeIdent * classNode = new NodeIdent(identTok, NULL, m_state);
-		assert(classNode);
-		classNode->setNodeLocation(identTok.m_locator);
-
-		NodeMemberSelect * memberSelectNode = new NodeMemberSelect(classNode, constrNode, m_state);
-		assert(memberSelectNode);
-		memberSelectNode->setNodeLocation(identTok.m_locator);
-
-		((NodeVarDecl *) dNode)->setInitExpr(memberSelectNode);
-	      }
-	  }
+	brtn = parseConstructorCall(identTok, (NodeVarDecl *) dNode);
       }
     else
       unreadToken();
     return brtn; // true even if no assignment; false on error
   } //parseRestOfInitialization
+
+  //refactor, open paren seen already, for data member initialization
+  bool Parser::parseConstructorCall(const Token& identTok, NodeVarDecl * dNode)
+  {
+    bool brtn = true;
+    //open paren already eaten
+
+    UTI classuti = dNode->getTypeDescriptorGivenUTI();
+    ULAMTYPE cetyp = m_state.getUlamTypeByIndex(classuti)->getUlamTypeEnum();
+    if(cetyp != Class)
+      {
+	if(cetyp == Holder)
+	  {
+	    m_state.makeAnonymousClassFromHolder(classuti, identTok.m_locator);
+	  }
+	else
+	  {
+	    //error! only classes have constructors
+	    m_state.abortNotImplementedYet();
+	  }
+      }
+
+    //m_state.pushClassContextUsingMemberClassBlock(NULL); //oddly =true
+
+    u32 selfid = m_state.m_pool.getIndexForDataString("Self");
+    Token SelfTok(TOK_TYPE_IDENTIFIER, identTok.m_locator, selfid);
+    //if here, must be constructor used to initialize class-type variable!! (t41077)
+    NodeFunctionCall * constrNode = (NodeFunctionCall *) parseFunctionCall(SelfTok); //type of variable known later
+
+    //m_state.popClassContext();
+
+    if(!constrNode)
+      {
+	std::ostringstream msg;
+	msg << "Initial value of '" << m_state.getTokenDataAsString(identTok).c_str();
+	msg << "' is missing its constructor arguments";
+	MSG(&identTok, msg.str().c_str(), ERR);
+	brtn = false; //t3135
+      }
+    else if(constrNode->getNumberOfArguments() == 0)
+      {
+	std::ostringstream msg;
+	msg << "Initial value of '" << m_state.getTokenDataAsString(identTok).c_str();
+	msg << "' has no constructor arguments";
+	MSG(&identTok, msg.str().c_str(), ERR);
+	brtn = false; //t3135
+	delete constrNode;
+	constrNode = NULL;
+      }
+    else
+      {
+	if(!getExpectedToken(TOK_SEMICOLON))
+	  {
+	    //statement required.
+	    std::ostringstream msg;
+	    msg << "Declaration of '" << m_state.getTokenDataAsString(identTok).c_str();
+	    msg << "' is an invalid statement";
+	    MSG(&identTok, msg.str().c_str(), ERR);
+
+	    brtn = false;
+	    delete constrNode;
+	    constrNode = NULL;
+	  }
+	else
+	  {
+	    unreadToken(); //semicolon
+
+	    NodeIdent * classNode = new NodeIdent(identTok, NULL, m_state);
+	    assert(classNode);
+	    classNode->setNodeLocation(identTok.m_locator);
+
+	    NodeMemberSelect * memberSelectNode = new NodeMemberSelect(classNode, constrNode, m_state);
+	    assert(memberSelectNode);
+	    memberSelectNode->setNodeLocation(identTok.m_locator);
+
+	    ((NodeVarDecl *) dNode)->setInitExpr(memberSelectNode);
+	  }
+      }
+    return brtn; // true even if no assignment; false on error
+  } //parseConstructorCall
 
   NodeBlock * Parser::parseBlock()
   {
@@ -3532,13 +3578,17 @@ namespace MFM {
     //cannot call a function if a local variable name shadows it
     if(currBlock && currBlock->isIdInScope(identTok.m_dataindex,asymptr))
       {
-	std::ostringstream msg;
-	msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
-	msg << "' cannot be used as a function, already declared as a variable '";
-	msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
-	msg << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
-	MSG(&identTok, msg.str().c_str(), ERR);
-	return NULL;
+	//unless constructor call of data member (t41080)
+	if(!(asymptr->isTypedef() && (m_state.m_parsingVariableSymbolTypeFlag == STF_DATAMEMBER)))
+	  {
+	    std::ostringstream msg;
+	    msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
+	    msg << "' cannot be used as a function, already declared as a variable '";
+	    msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
+	    msg << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
+	    MSG(&identTok, msg.str().c_str(), ERR);
+	    return NULL;
+	  }
       }
 
     //fill in func symbol during type labeling; supports function overloading
@@ -3762,6 +3812,46 @@ namespace MFM {
 		      MSG(&pTok, msg.str().c_str(), ERR);
 		    }
 		}
+	    }
+	}
+	break;
+      case TOK_KW_SIZEOF:
+      case TOK_KW_MAXOF:
+      case TOK_KW_MINOF:
+      case TOK_KW_LENGTHOF:
+      case TOK_KW_INSTANCEOF:
+	{
+	  Token dTok;
+	  getNextToken(dTok);
+	  if(dTok.m_type == TOK_DOT)
+	    {
+	      TypeArgs typeargs;
+	      NodeTypeDescriptor * nodetype = parseTypeDescriptor(typeargs);
+	      if(!nodetype)
+		{
+		  std::ostringstream msg;
+		  msg << "Expecting a valid Type after <" << m_state.getTokenDataAsString(pTok).c_str();
+		  msg << "> here";
+		  MSG(&pTok, msg.str().c_str(), ERR);
+		}
+	      else
+		{
+		  UTI uti = nodetype->givenUTI();
+		  if(pTok.m_type == TOK_KW_INSTANCEOF)
+		    {
+		      	rtnNode = new NodeInstanceof(NULL, nodetype, m_state);
+			rtnNode->setNodeLocation(pTok.m_locator);
+		    }
+		  else
+		    rtnNode = new NodeTerminalProxy(NULL, uti, pTok, nodetype, m_state); //t41080
+		}
+	    }
+	  else
+	    {
+	      std::ostringstream msg;
+	      msg << "Expecting a dot after <" << m_state.getTokenDataAsString(pTok).c_str();
+	      msg << "> here";
+	      MSG(&pTok, msg.str().c_str(), ERR);
 	    }
 	}
 	break;

@@ -75,6 +75,8 @@ namespace MFM{
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
+    virtual bool isAConstant();
+
     virtual bool isFunctionCall();
 
     virtual bool isAConstructorFunctionCall();

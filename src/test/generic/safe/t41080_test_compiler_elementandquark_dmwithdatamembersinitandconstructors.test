@@ -17,7 +17,7 @@ Uq_System { <NOMAIN> }
 #>A.ulam
   ulam 2;
 element A {
-  Bar bar(Bar.sizeof); //hard to parse: func def or dm constructor?
+  Bar bar(sizeof.Bar); //hard to parse: func def or dm constructor?
   Int test(){
     System s;
 

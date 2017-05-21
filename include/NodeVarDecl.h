@@ -90,6 +90,8 @@ namespace MFM{
 
     virtual NodeBlock * getBlock();
 
+    UTI getTypeDescriptorGivenUTI();
+
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
     virtual void printUnresolvedLocalVariables(u32 fid);

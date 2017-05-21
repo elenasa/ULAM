@@ -100,6 +100,8 @@ namespace MFM{
 
     UTI getNodeType(u32 n); //overloads Node.h
 
+    virtual bool isAConstant(); //all or none
+
     bool isAConstant(u32 n);
 
     bool isFunctionCall(u32 n);

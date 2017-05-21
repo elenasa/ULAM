@@ -252,6 +252,14 @@ namespace MFM{
     return m_nodes[n]->getNodeType();
   }
 
+  bool NodeList::isAConstant()
+  {
+    bool allConstants = true;
+    for(u32 i = 0; i < m_nodes.size(); i++)
+      allConstants &= m_nodes[i]->isAConstant();
+    return allConstants;
+  }
+
   bool NodeList::isAConstant(u32 n)
   {
     assert(n < m_nodes.size());

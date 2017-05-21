@@ -123,6 +123,8 @@ namespace MFM{
 
     bool parseRestOfInitialization(const Token& identTok, Node * dNode);
 
+    bool parseConstructorCall(const Token& identTok, NodeVarDecl * dNode);
+
     /**
 	<BLOCK> := '{' + <STATEMENTS> + '}'
     */

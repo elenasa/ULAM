@@ -1061,8 +1061,8 @@ namespace MFM {
 	fp->write("<EC> ");
 	fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
 	fp->write("; //offset ");
-	fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
-	fp->write("u"); GCNL; //func call parameters aren't NodeVarDecl's
+	fp->write_decimal_unsigned(m_varSymbol->getPosOffset()); //in comment
+	fp->write("u"); GCNL; //func call arguments aren't NodeVarDecl's
       }
     else
       {
