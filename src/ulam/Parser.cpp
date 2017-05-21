@@ -424,19 +424,8 @@ namespace MFM {
 	cnsym->setSuperClass(Nouti); //clear
 
 	//earliest ancestor when none designated; for all classes except UrSelf,
-	u32 urid = m_state.m_pool.getIndexForDataString("UrSelf");
-	if(cnsym->getId() != urid)
-	  {
-	    SymbolClassName * ursym = NULL;
-	    if(!m_state.alreadyDefinedSymbolClassName(urid, ursym))
-	      {
-		//required only once!
-		Token urTok(TOK_TYPE_IDENTIFIER, qTok.m_locator, urid);
-		m_state.addIncompleteClassSymbolToProgramTable(urTok, ursym);
-		m_state.saveUrSelf(ursym->getUlamTypeIdx());
-	      }
-	    setupSuperClassHelper(ursym, cnsym);
-	  }
+	if(!m_state.isUrSelf(cnsym->getUlamTypeIdx()))
+	  setupSuperClassHelper(cnsym);
       }
 
     if(!getExpectedToken(TOK_OPEN_CURLY, pTok))
@@ -476,6 +465,17 @@ namespace MFM {
 
     return rtnNode;
   } //parseClassBlock
+
+  void Parser::setupSuperClassHelper(SymbolClassName * cnsym)
+  {
+    u32 urid = m_state.m_pool.getIndexForDataString("UrSelf");
+    assert(cnsym->getId() != urid);
+
+    SymbolClassName * ursym = NULL;
+    AssertBool isDef = m_state.alreadyDefinedSymbolClassName(urid, ursym);
+    assert(isDef);
+    setupSuperClassHelper(ursym, cnsym);
+  }
 
   void Parser::setupSuperClassHelper(SymbolClass * supercsym, SymbolClassName * cnsym)
   {

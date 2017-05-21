@@ -7,6 +7,8 @@ ulam 2;
  */
 quark UrSelf
 {
+  /* assumed to be zero bit size */
+
   typedef Unsigned(8) ASCII;
   typedef Unsigned(8) ARGB[4];
 

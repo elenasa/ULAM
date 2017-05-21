@@ -107,6 +107,7 @@ namespace MFM{
 
     bool parseRestOfClassInheritance(SymbolClassName * cnsym, SymbolClass *& supercsym, UTI& superuti);
 
+    void setupSuperClassHelper(SymbolClassName * cnsym);
     void setupSuperClassHelper(SymbolClass * supercsym, SymbolClassName * cnsym);
 
    /**

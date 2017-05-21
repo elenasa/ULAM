@@ -26,8 +26,8 @@ element A {
   Bar(true) bar;
   Int test(){
     System s;
-    Bar(true) localbar(false); //first time a constructor used!!
-    A locala(2, 9); //second time a constructor is used!!
+    Bar(true) localbar(false); //first time template class constructor used!!
+    Self locala(2, 9); //no confusion Self var with constructor call
 
     //self, default
     s.print(a+b); // =9
@@ -64,6 +64,7 @@ element A {
     a = (Int(4)) a1;
     b = (Int(4)) b1;
     d = false;
+    return; //optional
   }
 
   //note: called after the default values are set!
@@ -80,6 +81,7 @@ element A {
       b--;
     }
     d = b1;
+    return; //optional
   }
 }
 

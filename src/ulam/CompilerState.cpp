@@ -1689,6 +1689,19 @@ namespace MFM {
     cblock->noteDataMembersParseTree(totalsize);
   }
 
+  void CompilerState::verifyZeroSizeUrSelf()
+  {
+    assert(okUTItoContinue(m_urSelfUTI));
+    UlamType * urselfut = getUlamTypeByIndex(m_urSelfUTI);
+    if(urselfut->getTotalBitSize() != 0)
+      {
+	std::ostringstream msg;
+        msg << getUlamTypeNameBriefByIndex(m_urSelfUTI).c_str();
+	msg << " has a NON-ZERO size";
+	MSG2("", msg.str().c_str() , ERR);
+      }
+  }
+
   void CompilerState::mergeClassUTI(UTI olduti, UTI cuti)
   {
     UlamKeyTypeSignature key1 = getUlamKeyTypeSignatureByIndex(olduti);
@@ -4411,11 +4424,22 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   {
     if(m_urSelfUTI == Nouti)
       {
+	u32 urid = m_pool.getIndexForDataString("UrSelf");
 	UlamKeyTypeSignature ckey = getUlamTypeByIndex(cuti)->getUlamKeyTypeSignature();
-	if(ckey.getUlamKeyTypeSignatureNameId() == m_pool.getIndexForDataString("UrSelf"))
+	if(ckey.getUlamKeyTypeSignatureNameId() == urid)
 	  saveUrSelf(cuti); //error/t3318
 	else
-	  return false; //t3336
+	  {
+	    SymbolClassName * ursym = NULL;
+	    if(!alreadyDefinedSymbolClassName(urid, ursym))
+	      {
+		//required only once!
+		Token urTok(TOK_TYPE_IDENTIFIER, m_locOfNextLineText, urid);
+		addIncompleteClassSymbolToProgramTable(urTok, ursym);
+		saveUrSelf(ursym->getUlamTypeIdx());
+		//return false; //t3336
+	      }
+	  }
       }
     return (cuti == m_urSelfUTI); //no compare
   } //isUrSelf
