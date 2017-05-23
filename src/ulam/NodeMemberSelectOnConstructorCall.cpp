@@ -80,65 +80,6 @@ namespace MFM {
       return NOTREADY;
 
     return UNEVALUABLE;
-
-#if 0
-    //maybe some day
-    evalNodeProlog(0); //new current frame pointer on node eval stack
-
-    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
-    UlamValue saveCurrentSelfPtr = m_state.m_currentSelfPtr; //*************
-
-    makeRoomForSlots(1); //always 1 slot for ptr
-    EvalStatus evs = m_nodeLeft->evalToStoreInto();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
-
-    //UPDATE selected member (i.e. element or quark) before eval of rhs
-    //(i.e. data member or func call); e.g. Ptr to atom
-    UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1);
-    UTI newobjtype = newCurrentObjectPtr.getUlamValueTypeIdx();
-    if(!m_state.isPtr(newobjtype))
-      {
-	assert(m_nodeLeft->isFunctionCall()); //must be the result of a function call
-	// copy anonymous class to "uc" hidden slot in STACK, then replace with a pointer to it.
-	assert(m_state.isAClass(newobjtype));
-	newCurrentObjectPtr = assignAnonymousClassReturnValueToStack(newCurrentObjectPtr); //t3912
-      }
-
-    u32 superid = m_state.m_pool.getIndexForDataString("super");
-    if(newCurrentObjectPtr.getPtrNameId() == superid)
-      {
-	if(!m_nodeRight->isFunctionCall())
-	  newCurrentObjectPtr = m_state.m_currentSelfPtr; //(t3749)
-	else
-	  m_state.m_currentSelfPtr = newCurrentObjectPtr; //changes self ********* (t3743, t3745)
-      }
-
-    m_state.m_currentObjPtr = newCurrentObjectPtr;
-
-    u32 slot = makeRoomForNodeType(nuti);
-    evs = m_nodeRight->eval(); //a Node Function Call here, or data member eval
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
-
-    //assigns rhs to lhs UV pointer (handles arrays);
-    //also copy result UV to stack, -1 relative to current frame pointer
-    if(slot) //avoid Void's
-      if(!doBinaryOperation(1, 1+slot, slot))
-	evs = ERROR;
-
-    m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr
-    m_state.m_currentSelfPtr = saveCurrentSelfPtr; //restore current self ptr
-
-    evalNodeEpilog();
-    return evs;
-#endif
   } //eval
 
   //for eval, want the value of the rhs
@@ -157,73 +98,19 @@ namespace MFM {
       return NOTREADY;
 
     return UNEVALUABLE;
-#if 0
-    evalNodeProlog(0);
-
-    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
-
-    makeRoomForSlots(1); //always 1 slot for ptr
-    EvalStatus evs = m_nodeLeft->evalToStoreInto();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
-
-    //UPDATE selected member (i.e. element or quark) before eval of rhs
-    // (i.e. data member or func call)
-    UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1); //e.g. Ptr to atom
-    UTI newobjtype = newCurrentObjectPtr.getUlamValueTypeIdx();
-    if(!m_state.isPtr(newobjtype))
-      {
-	assert(m_nodeLeft->isFunctionCall());// must be the result of a function call;
-	// copy anonymous class to "uc" hidden slot in STACK, then replace with a pointer to it.
-	assert(m_state.isAClass(newobjtype));
-	newCurrentObjectPtr = assignAnonymousClassReturnValueToStack(newCurrentObjectPtr); //t3913
-      }
-
-    m_state.m_currentObjPtr = newCurrentObjectPtr;
-
-    makeRoomForSlots(1); //always 1 slot for ptr
-    evs = m_nodeRight->evalToStoreInto();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
-
-    UlamValue ruvPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(2);
-
-    UTI robjtype = ruvPtr.getUlamValueTypeIdx(); //t3913
-    if(!m_state.isPtr(robjtype))
-      {
-	// must be the result of a function call;
-	// copy anonymous class to "uc" hidden slot in STACK, then replace with a pointer to it.
-	assert(m_state.isAClass(robjtype));
-	ruvPtr = assignAnonymousClassReturnValueToStack(ruvPtr);
-      }
-
-    Node::assignReturnValuePtrToStack(ruvPtr);
-
-    m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr **********
-
-    evalNodeEpilog();
-    return NORMAL;
-#endif
   } //evalToStoreInto
-
 
   void NodeMemberSelectOnConstructorCall::genCode(File * fp, UVPass& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
 
     // if parent is another MS, we might need to adjust pos first;
-    // elements can be data members of transients, etc. (t3968)
+    // elements can be data members of transients, etc.
     UVPass luvpass;
     if(NodeMemberSelect::passalongUVPass())
       {
 	luvpass = uvpass;
-	Node::adjustUVPassForElements(luvpass); //t3803?
+	Node::adjustUVPassForElements(luvpass);
       }
 
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
@@ -233,10 +120,10 @@ namespace MFM {
     if(passalongUVPass()) //true
       {
 	uvpass = luvpass;
-	Node::adjustUVPassForElements(uvpass); //t3803?
+	Node::adjustUVPassForElements(uvpass);
       }
 
-    //check the back (not front) to process multiple member selections (e.g. t3818)
+    //check the back (not front) to process multiple member selections
     m_nodeRight->genCode(fp, uvpass);  //leave any array item as-is for gencode.
 
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
@@ -251,8 +138,8 @@ namespace MFM {
     UVPass luvpass;
     if(NodeMemberSelect::passalongUVPass())
       {
-	luvpass = uvpass; //t3584
-	Node::adjustUVPassForElements(luvpass); //t3803 ?
+	luvpass = uvpass;
+	Node::adjustUVPassForElements(luvpass);
       }
 
     // if parent is another MS, we might need to adjust pos first
@@ -264,19 +151,17 @@ namespace MFM {
     // here, we know there's rhs of member select, which needs to adjust to state bits.
     //process multiple member selections (e.g. t3817)
     UVPass ruvpass;
-    if(passalongUVPass())
+    if(passalongUVPass()) //true
       {
-	ruvpass = luvpass;  //t3615 ?
-	Node::adjustUVPassForElements(ruvpass); //t3803
+	ruvpass = luvpass;
+	Node::adjustUVPassForElements(ruvpass);
       }
 
     m_nodeRight->genCodeToStoreInto(fp, ruvpass); //uvpass contains the member selected, or cos obj symbol?
 
     uvpass = ruvpass;
 
-    //tmp variable needed for any function call not returning a ref (t41006), including 'aref'(t41005); func calls returning a ref already made tmpvar.
-    // uvpass not necessarily returning a reference type (t3913,4,5,7);
-    // t41035 returns a primitive ref; t3946, t3948
+    //tmp variable needed for any function call not returning a ref
     if(!m_state.isReference(uvpass.getPassTargetType()))
       {
 	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks

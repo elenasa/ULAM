@@ -62,14 +62,11 @@ namespace MFM{
 
     virtual u32 getPosOffset();
 
-    void setUVPass(const UVPass& uvpass);
-    UVPass & getUVPass();
-
   protected:
 
   private:
     u32 m_posOffsetCopy; //array item of data member
-    UVPass m_uvpass;
+
   };
 
 }

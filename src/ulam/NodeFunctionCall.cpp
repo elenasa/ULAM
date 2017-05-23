@@ -1007,20 +1007,6 @@ namespace MFM {
     fp->write(arglist.str().c_str());
     fp->write(");"); GCNL;
 
-#if 0
-    if(isAConstructorFunctionCall())
-      {
-	if(!m_state.m_currentObjSymbolsForCodeGen.empty())
-	  {
-	    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen[0];
-	    if(cos->isTmpVarSymbol())
-	      {
-		//reset uvpass for .instanceof constructor call (t41085,t41088)
-		uvpass = ((SymbolTmpVar *) cos)->getUVPass();
-	      }
-	  }
-      }
-#endif
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeIntoABitValue
 

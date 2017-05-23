@@ -34,14 +34,4 @@ namespace MFM {
     return m_posOffsetCopy; //included in its variable
   }
 
-  void SymbolTmpVar::setUVPass(const UVPass& uvpass)
-  {
-    m_uvpass = uvpass;
-  }
-
-  UVPass & SymbolTmpVar::getUVPass()
-  {
-    return m_uvpass;
-  }
-
 } //end MFM
