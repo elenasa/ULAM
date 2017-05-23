@@ -86,9 +86,6 @@ namespace MFM {
 
   FORECAST NodeMemberSelect::safeToCastTo(UTI newType)
   {
-    //constructed such that the function call returns void; while the member selected is its class
-    if(m_nodeRight->isAConstructorFunctionCall())
-      return m_nodeLeft->safeToCastTo(newType);
     //ulamtype checks for complete, non array, and type specific rules
     return m_nodeRight->safeToCastTo(newType);
   } //safeToCastTo
@@ -178,10 +175,16 @@ namespace MFM {
     //clear up compiler state to no longer use the member class block for symbol searches
     m_state.popClassContext();
 
-    setNodeType(rightType);
+    if(m_state.okUTItoContinue(rightType))
+      {
+	setNodeType(rightType);
 
-    //based on righthand side
-    Node::setStoreIntoAble(m_nodeRight->getStoreIntoAble());
+	//based on righthand side
+	Node::setStoreIntoAble(m_nodeRight->getStoreIntoAble());
+
+	//base reference-ability on righthand side (t41085)
+	Node::setReferenceAble(m_nodeRight->getReferenceAble());
+      }
     return getNodeType();
   } //checkAndLabelType
 
@@ -218,7 +221,8 @@ namespace MFM {
 
   bool NodeMemberSelect::isAConstructorFunctionCall()
   {
-    return m_nodeRight->isAConstructorFunctionCall(); //based like storeintoable, on right
+    //see NodeMemberSelectOnConstructorCall
+    return false; //based like storeintoable, on right
   }
 
   bool NodeMemberSelect::isArrayItem()

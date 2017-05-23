@@ -217,10 +217,8 @@ namespace MFM {
 	if(m_state.isAClass(it) || isref)
 	  setStoreIntoAble(TBOOL_TRUE); //t3912 (class)
 
-	if(isref)
-	  setReferenceAble(TBOOL_TRUE); //set after storeintoable t3661,2; t3630
-	else
-	  setReferenceAble(TBOOL_FALSE);
+	if(!isref)
+	  setReferenceAble(TBOOL_FALSE); //set after storeintoable t3661,2; t3630
       }
 
     m_state.pushCurrentBlock(this);

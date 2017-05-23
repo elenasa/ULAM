@@ -26,6 +26,6 @@ ulam 1;
 quark EventWindow {
   typedef Unsigned(6) SiteNum;
   Atom aref(Int index) native;
-  Void aset(Int index, Atom val) native;
+  //Void aset(Int index, Atom val) native;
 }
 #.

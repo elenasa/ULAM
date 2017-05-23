@@ -314,6 +314,9 @@ namespace MFM {
     UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(lslot);
     UlamValue ruv;
 
+    if(!pluv.isPtr())
+      return false; //e.g. t41089 func call used on lhs (gen code ok)
+
     if(m_state.isScalar(nuti))
       {
 	ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot); //immediate scalar

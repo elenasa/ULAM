@@ -47,9 +47,9 @@
 #include "NodeConstant.h"
 #include "NodeConstantArray.h"
 #include "NodeContinueStatement.h"
-#include "NodeInstanceof.h"
 #include "NodeLabel.h"
 #include "NodeMemberSelect.h"
+#include "NodeMemberSelectOnConstructorCall.h"
 #include "NodeModelParameter.h"
 #include "NodeQuestionColon.h"
 #include "NodeReturnStatement.h"
@@ -998,7 +998,7 @@ namespace MFM {
       }
     else if(pTok.m_type == TOK_OPEN_PAREN)
       {
-	brtn = makeConstructorCall(identTok, (NodeVarDecl *) dNode);
+	brtn = makeDeclConstructorCall(identTok, (NodeVarDecl *) dNode);
       }
     else
       unreadToken();
@@ -1006,11 +1006,49 @@ namespace MFM {
   } //parseRestOfInitialization
 
   //refactor, open paren seen already, for data member initialization
-  bool Parser::makeConstructorCall(const Token& identTok, NodeVarDecl * dNode)
+  bool Parser::makeDeclConstructorCall(const Token& identTok, NodeVarDecl * dNode)
   {
     bool brtn = true;
     //open paren already eaten
 
+    NodeFunctionCall * constrNode = parseConstructorCall(identTok);
+
+    if(!constrNode)
+      {
+	return false; //t3135
+      }
+
+    NodeIdent * classNode = new NodeIdent(identTok, NULL, m_state);
+    assert(classNode);
+    classNode->setNodeLocation(identTok.m_locator);
+
+    NodeMemberSelectOnConstructorCall * memberSelectNode = new NodeMemberSelectOnConstructorCall(classNode, constrNode, m_state);
+    assert(memberSelectNode);
+    memberSelectNode->setNodeLocation(identTok.m_locator);
+
+    ((NodeVarDecl *) dNode)->setInitExpr(memberSelectNode);
+    return brtn; // true even if no assignment; false on error
+  } //makeDeclConstructorCall
+
+  Node * Parser::makeInstanceofConstructorCall(const Token& fTok, NodeInstanceof * instanceofNode)
+  {
+    //open paren already eaten
+    NodeFunctionCall * constrNode = parseConstructorCall(fTok); //tok for loc and errmsgs
+
+    if(!constrNode)
+      {
+	return NULL;
+      }
+
+    NodeMemberSelectOnConstructorCall * memberSelectNode = new NodeMemberSelectOnConstructorCall(instanceofNode, constrNode, m_state);
+    assert(memberSelectNode);
+    memberSelectNode->setNodeLocation(fTok.m_locator);
+
+    return memberSelectNode;
+  } //makeInstanceofConstructorCall
+
+  NodeFunctionCall * Parser::parseConstructorCall(const Token& identTok)
+  {
     u32 selfid = m_state.m_pool.getIndexForDataString("Self");
     Token SelfTok(TOK_TYPE_IDENTIFIER, identTok.m_locator, selfid);
     //if here, must be constructor used to initialize class-type variable!! (t41077)
@@ -1022,7 +1060,6 @@ namespace MFM {
 	msg << "Initial value of '" << m_state.getTokenDataAsString(identTok).c_str();
 	msg << "' is missing its constructor arguments";
 	MSG(&identTok, msg.str().c_str(), ERR);
-	brtn = false; //t3135
       }
     else if(constrNode->getNumberOfArguments() == 0)
       {
@@ -1030,41 +1067,11 @@ namespace MFM {
 	msg << "Initial value of '" << m_state.getTokenDataAsString(identTok).c_str();
 	msg << "' has no constructor arguments";
 	MSG(&identTok, msg.str().c_str(), ERR);
-	brtn = false; //t3135
 	delete constrNode;
 	constrNode = NULL;
       }
-    else
-      {
-	if(!getExpectedToken(TOK_SEMICOLON))
-	  {
-	    //statement required.
-	    std::ostringstream msg;
-	    msg << "Declaration of '" << m_state.getTokenDataAsString(identTok).c_str();
-	    msg << "' is an invalid statement";
-	    MSG(&identTok, msg.str().c_str(), ERR);
-
-	    brtn = false;
-	    delete constrNode;
-	    constrNode = NULL;
-	  }
-	else
-	  {
-	    unreadToken(); //semicolon
-
-	    NodeIdent * classNode = new NodeIdent(identTok, NULL, m_state);
-	    assert(classNode);
-	    classNode->setNodeLocation(identTok.m_locator);
-
-	    NodeMemberSelect * memberSelectNode = new NodeMemberSelect(classNode, constrNode, m_state);
-	    assert(memberSelectNode);
-	    memberSelectNode->setNodeLocation(identTok.m_locator);
-
-	    ((NodeVarDecl *) dNode)->setInitExpr(memberSelectNode);
-	  }
-      }
-    return brtn; // true even if no assignment; false on error
-  } //makeConstructorCall
+    return constrNode;
+  } //parseConstructorCall
 
   NodeBlock * Parser::parseBlock()
   {
@@ -3372,8 +3379,7 @@ namespace MFM {
     //WAIT To  search back through the block symbol tables during type labeling
     m_state.pushClassContextUsingMemberClassBlock(NULL); //oddly =true
 
-    Node * classInstanceNode = parseIdentExpr(memberTok); //includes array item, func call, etc.
-
+    Node * classInstanceNode = parseIdentExpr(memberTok); //incl array item, func call, etc.
     m_state.popClassContext();
 
     return parseRestOfMemberSelectExpr(classInstanceNode);
@@ -3491,8 +3497,28 @@ namespace MFM {
 	rtnNode = new NodeTerminalProxy(memberNode, utype, fTok, nodetype, m_state);
 	break;
       case TOK_KW_INSTANCEOF:
+	{
 	rtnNode = new NodeInstanceof(memberNode, nodetype, m_state);
 	rtnNode->setNodeLocation(fTok.m_locator);
+
+	Token cTok;
+	getNextToken(cTok);
+	if(cTok.m_type == TOK_OPEN_PAREN)
+	  {
+	    Node * cctrNode = makeInstanceofConstructorCall(fTok, (NodeInstanceof *) rtnNode);
+	    if(!cctrNode)
+	      {
+		delete rtnNode;
+		rtnNode = NULL;
+		//error
+	      }
+	    else
+	      rtnNode = cctrNode;
+	  }
+	else
+	  unreadToken();
+
+	}
 	break;
       case TOK_KW_ATOMOF:
 	{

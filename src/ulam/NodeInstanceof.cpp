@@ -4,11 +4,15 @@
 
 namespace MFM {
 
-  NodeInstanceof::NodeInstanceof(Node * ofnode, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeStorageof(ofnode, nodetype, state) { }
+  NodeInstanceof::NodeInstanceof(Node * ofnode, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeStorageof(ofnode, nodetype, state), m_tmpvarSymbol(NULL) { }
 
-  NodeInstanceof::NodeInstanceof(const NodeInstanceof& ref) : NodeStorageof(ref) { }
+  NodeInstanceof::NodeInstanceof(const NodeInstanceof& ref) : NodeStorageof(ref), m_tmpvarSymbol(NULL) { }
 
-  NodeInstanceof::~NodeInstanceof() { }
+  NodeInstanceof::~NodeInstanceof()
+  {
+    delete m_tmpvarSymbol;
+    m_tmpvarSymbol = NULL;
+  }
 
   Node * NodeInstanceof::instantiate()
   {
@@ -49,8 +53,12 @@ namespace MFM {
 	  setNodeType(UAtom); //effective type known only at runtime
 	else
 	  setNodeType(oftype); //object: Type or variable
+
+	Node::setStoreIntoAble(TBOOL_TRUE); //why not? t41085
+
+	if(!isaref)
+	  Node::setReferenceAble(TBOOL_FALSE); //t3660
       }
-    Node::setStoreIntoAble(TBOOL_FALSE);
     return getNodeType();
   } //checkAndLabelType
 
@@ -201,7 +209,12 @@ namespace MFM {
   void NodeInstanceof::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
     //lhs
-    assert(getStoreIntoAble() == TBOOL_TRUE); //not so.
+    assert(getStoreIntoAble() == TBOOL_TRUE); //not so..why not!
+    genCode(fp, uvpass); //t41085
+
+    //tmp variable becomes the object of the constructor call (t41085)
+    m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL);
+    m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
   } //genCodeToStoreInto
 
 } //end MFM

@@ -372,11 +372,10 @@ namespace MFM {
       {
 	bool isref = m_state.isReference(it);
 	if(m_state.isAClass(it) || isref)
-	  setStoreIntoAble(TBOOL_TRUE); //t3912 (class)
-	if(isref)
-	  setReferenceAble(TBOOL_TRUE); //set after storeintoable t3661,2; t3630
-	else
-	  setReferenceAble(TBOOL_FALSE);
+	  setStoreIntoAble(TBOOL_TRUE); //t3912 (class); t41085,t41077 (constructors)
+
+	if(!isref)
+	  setReferenceAble(TBOOL_FALSE); //set after storeintoable t3661,2; t3630
       }
     return it;
   } //checkAndLabelType
@@ -432,6 +431,8 @@ namespace MFM {
       return NOTREADY;
 
     assert(m_funcSymbol);
+    assert(!isAConstructorFunctionCall()); //t41077, t41084, t41085
+
     NodeBlockFunctionDefinition * func = m_funcSymbol->getFunctionNode();
     assert(func);
 
@@ -1006,6 +1007,20 @@ namespace MFM {
     fp->write(arglist.str().c_str());
     fp->write(");"); GCNL;
 
+#if 0
+    if(isAConstructorFunctionCall())
+      {
+	if(!m_state.m_currentObjSymbolsForCodeGen.empty())
+	  {
+	    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen[0];
+	    if(cos->isTmpVarSymbol())
+	      {
+		//reset uvpass for .instanceof constructor call (t41085,t41088)
+		uvpass = ((SymbolTmpVar *) cos)->getUVPass();
+	      }
+	  }
+      }
+#endif
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeIntoABitValue
 

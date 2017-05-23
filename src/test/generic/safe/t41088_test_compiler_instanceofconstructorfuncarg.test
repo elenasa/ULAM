@@ -1,0 +1,51 @@
+## -*- mode:ulam -*-
+#=t41088_test_compiler_instanceofconstructorfuncarg
+##
+## gen output: 1 assert
+##
+## constructors unevaluable currently.
+#!
+Exit status: -11
+Ue_D { Bool(1) mb(false);  Int(32) test() {  System s;  { ( D.instanceof ( true )Self . )isOurBackFill cond s ( true )assert . if s ( false )assert . else } 0 cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by error/t41087
+##
+#>D.ulam
+  ulam 2;
+element D {
+  Bool mb;
+  Bool isOurBackFill(D d)
+  {
+    return d.mb;
+  }
+
+  Int test() {
+    System s;
+    if(isOurBackFill(D.instanceof(true)))
+      s.assert(true);
+    else
+      s.assert(false); //abort
+    return 0;
+  }
+
+  Self(Bool b)
+  {
+    mb = b;
+  }
+}
+
+##
+## test system quark with native overloaded print funcs; assert
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

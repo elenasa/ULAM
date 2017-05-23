@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolTmpVar.h -  Basic handling of TmpVar Symbols for ULAM Code Gen
  *
- * Copyright (C) 2016 The Regents of the University of New Mexico.
- * Copyright (C) 2016 Ackleyshack LLC.
+ * Copyright (C) 2016-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2016-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolTmpVar.h -  Basic handling of TmpVar Symbols for ULAM Code Gen
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2016 All rights reserved.
+  \date (C) 2016-2017 All rights reserved.
   \gpl
 */
 
@@ -38,6 +38,7 @@
 #define SYMBOLTMPREF_H
 
 #include "Symbol.h"
+#include "UVPass.h"
 
 namespace MFM{
 
@@ -61,10 +62,14 @@ namespace MFM{
 
     virtual u32 getPosOffset();
 
+    void setUVPass(const UVPass& uvpass);
+    UVPass & getUVPass();
+
   protected:
 
   private:
     u32 m_posOffsetCopy; //array item of data member
+    UVPass m_uvpass;
   };
 
 }

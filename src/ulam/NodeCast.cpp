@@ -204,6 +204,7 @@ namespace MFM {
 	  {
 	    if(nodeType == Void)
 	      {
+#if 0
 		if(!m_node->isAConstructorFunctionCall())
 		  {
 		    std::ostringstream msg;
@@ -213,6 +214,8 @@ namespace MFM {
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    errorsFound++;
 		  }
+#endif
+
 	      }
 	    else if(!m_state.isAtom(nodeType))
 	      {

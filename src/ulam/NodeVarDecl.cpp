@@ -1018,7 +1018,10 @@ namespace MFM {
 
     if(m_nodeInitExpr)
       {
-	if(m_nodeInitExpr->isAConstructorFunctionCall())
+	//distinction between variable and instanceof
+	bool varcomesfirst = m_nodeInitExpr->isAConstructorFunctionCall() && (m_nodeInitExpr->getReferenceAble() == TBOOL_TRUE); //t41077, t41085
+
+	if(varcomesfirst)
 	  {
 	    //provide default variable first (t41077)
 	    //left-justified. no initialization
@@ -1031,7 +1034,7 @@ namespace MFM {
 
 	m_nodeInitExpr->genCode(fp, uvpass);
 
-	if(!m_nodeInitExpr->isAConstructorFunctionCall())
+	if(!varcomesfirst)
 	  {
 	    m_state.indentUlamCode(fp);
 	    fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars

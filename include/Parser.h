@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * Parser.h -  Basic Parse handling for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file Parser.h -  Basic Parse handling for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016   All rights reserved.
+  \date (C) 2014-2017   All rights reserved.
   \gpl
 */
 
@@ -52,6 +52,7 @@
 #include "NodeControlWhile.h"
 #include "NodeFunctionCall.h"
 #include "NodeIdent.h"
+#include "NodeInstanceof.h"
 #include "NodeModelParameterDef.h"
 #include "NodeStatements.h"
 #include "NodeSquareBracket.h"
@@ -124,7 +125,9 @@ namespace MFM{
 
     bool parseRestOfInitialization(const Token& identTok, Node * dNode);
 
-    bool makeConstructorCall(const Token& identTok, NodeVarDecl * dNode);
+    bool makeDeclConstructorCall(const Token& identTok, NodeVarDecl * dNode);
+    Node * makeInstanceofConstructorCall(const Token& fTok, NodeInstanceof * instanceofNode);
+    NodeFunctionCall * parseConstructorCall(const Token& identTok);
 
     /**
 	<BLOCK> := '{' + <STATEMENTS> + '}'

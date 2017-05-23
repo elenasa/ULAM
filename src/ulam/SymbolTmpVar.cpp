@@ -9,6 +9,7 @@ namespace MFM {
 
   Symbol * SymbolTmpVar::clone()
   {
+    m_state.abortShouldntGetHere();
     return new SymbolTmpVar(*this);
   }
 
@@ -31,6 +32,16 @@ namespace MFM {
   u32 SymbolTmpVar::getPosOffset()
   {
     return m_posOffsetCopy; //included in its variable
+  }
+
+  void SymbolTmpVar::setUVPass(const UVPass& uvpass)
+  {
+    m_uvpass = uvpass;
+  }
+
+  UVPass & SymbolTmpVar::getUVPass()
+  {
+    return m_uvpass;
   }
 
 } //end MFM

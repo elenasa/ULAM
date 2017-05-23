@@ -1896,8 +1896,8 @@ namespace MFM {
 	if(m_state.isAtom(nuti) && !((tclasstype == UC_ELEMENT) || m_state.isAtom(tobeType) || ((tclasstype == UC_QUARK) && tobe->isReference())))
 	  doErrMsg = true;
 
-	//else if(nuti == Void)
-	else if((nuti == Void) && !node->isAConstructorFunctionCall())
+	else if(nuti == Void)
+	//else if((nuti == Void) && !node->isAConstructorFunctionCall())
 	  doErrMsg = true; //cannot cast a void into anything else (reverse is fine), except cnstr(t41077)
 	//else if reference to non-ref of same type?
 	else
@@ -3043,6 +3043,7 @@ namespace MFM {
 
     SymbolTmpVar * rtnsym = new SymbolTmpVar(tidTok, tuti, pos, m_state);
     assert(rtnsym);
+    rtnsym->setUVPass(uvpass); //t41085
     rtnsym->setAutoLocalType(m_state.getReferenceType(tuti));
     if(sym && !m_state.isClassACustomArray(sym->getUlamTypeIdx()))
       rtnsym->setDataMemberClass(sym->getDataMemberClass()); //dm doesn't pass to carray item (e.g. t3223)
