@@ -136,7 +136,8 @@ where,
 		  <IDENT_EXPRESSION> + '.atomof' | <QUESTION_COLON_EXPRESSION>
 <QUESTION_COLON_EXPRESSION> := <EXPRESSION> + '?' + <EXPRESSION> + ':' + <EXPRESSION>
 <IDENT_EXPRESSION> := <LVAL_EXPRESSION> | <MEMBER_SELECT_EXPRESSION> | <FUNC_CALL>
-<MEMBER_SELECT_EXPRESSION> := <IDENT_EXPRESSION> + '.' + ( <IDENT_EXPRESSION> | <OF_CONSTANT> )
+<MEMBER_SELECT_EXPRESSION> := <IDENT_EXPRESSION> + '.' + (
+		  <IDENT_EXPRESSION> | <OF_CONSTANT> | <INSTANCEOF_CONSTRUCTOR_CALL> )
 <FUNC_CALL> := <IDENT> + '(' + <ARGS_OR_NONE> + ')'
 <ARGS_OR_NONE> := 0 | <ARGS>
 <ARGS> := <ARG> | <ARG> + ',' + <ARGS>
@@ -166,9 +167,10 @@ where,
 <UNOP> := '-' | '+' | '!' | <CAST> | 'local' + '.'
 <CAST> := '(' + <TYPE> + ')'
 <LVAL_UNOP> := '++' | '--'
-<OF_EXPRESSION> := <TYPE> + '.' + <OF_CONSTANT>
+<OF_EXPRESSION> := <TYPE> + '.' + ( <OF_CONSTANT> | <INSTANCEOF_CONSTRUCTOR_CALL> )
 
-<OF_CONSTANT> := 'minof' | 'maxof' | 'sizeof' | 'instanceof' | 'lengthof'
+<OF_CONSTANT> := 'minof' | 'maxof' | 'sizeof' | 'lengthof' | 'instanceof'
+<INSTANCEOF_CONSTRUCTOR_CALL> := 'instanceof' + <CONSTRUCTOR_CALL>
 <TYPE_IDENT_DESC> := ( 'local' + '.' | 0 ) + <TOK_IDENT>
 <TYPE_IDENT> := /[A-Z][A-Za-z0-9\_]*/
 <IDENT> := /[a-z][A-Za-z0-9\_]*/
