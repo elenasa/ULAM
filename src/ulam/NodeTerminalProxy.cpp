@@ -157,6 +157,8 @@ namespace MFM {
 		return Hzy;
 	      }
 	  }
+#if 0
+	  //that ship has already sailed! legal now
 	  //for now, illegal, though it works (t3450)
 	  if(m_nodeOf->isFunctionCall())
 	    {
@@ -167,6 +169,7 @@ namespace MFM {
 	      setNodeType(Nav);
 	      return Nav;
 	    }
+#endif
       }
 
     //attempt to map UTI; may not have a node type descriptor
