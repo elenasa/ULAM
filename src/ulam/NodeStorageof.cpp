@@ -147,7 +147,7 @@ namespace MFM {
 		  return Hzy;
 		}
 	    }
-	  //for now, illegal, though it works (t3450)
+	  //for now, illegal, though it works (t3450, t41092)
 	  if(m_nodeOf->isFunctionCall())
 	    {
 	      std::ostringstream msg;

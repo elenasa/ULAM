@@ -919,7 +919,11 @@ namespace MFM {
 
     if(evs == NORMAL)
       {
-	if(slots == 1)
+	if(m_nodeInitExpr->isAConstructorFunctionCall())
+	  {
+	    //Void to be avoided.
+	  }
+	else if(slots == 1)
 	  {
 	    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slots+1); //immediate scalar + 1 for pluv
 	    if(m_state.isScalar(nuti))

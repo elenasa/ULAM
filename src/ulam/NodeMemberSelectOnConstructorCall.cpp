@@ -60,7 +60,7 @@ namespace MFM {
 
   bool NodeMemberSelectOnConstructorCall::isAConstructorFunctionCall()
   {
-    assert(m_nodeRight->isAConstructorFunctionCall()); //based like storeintoable, on right
+    assert(m_nodeRight->isAConstructorFunctionCall());
     return true;
   }
 
@@ -69,23 +69,31 @@ namespace MFM {
     return false;
   }
 
-  EvalStatus NodeMemberSelectOnConstructorCall::eval()
-  {
-    assert(m_nodeLeft && m_nodeRight);
-    UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
-
-    if(nuti == Hzy)
-      return NOTREADY;
-
-    return UNEVALUABLE;
-  } //eval
-
-  //for eval, want the value of the rhs
+  //for eval, want the value of the m_currentObjPtr
    bool NodeMemberSelectOnConstructorCall::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
-    return false;
+    UlamValue rtnUV;
+    UTI ruti = getNodeType();
+    PACKFIT packFit = m_state.determinePackable(ruti);
+
+    if(m_state.isScalar(ruti) || WritePacked(packFit))
+      {
+	rtnUV = m_state.getPtrTarget(m_state.m_currentObjPtr);
+      }
+    else
+      {
+	rtnUV = m_state.m_currentObjPtr;
+      }
+
+    if((rtnUV.getUlamValueTypeIdx() == Nav) || (ruti == Nav))
+      return false;
+
+    if((rtnUV.getUlamValueTypeIdx() == Hzy) || (ruti == Hzy))
+      return false;
+
+    //copy result UV to stack, -1 relative to current frame pointer
+    Node::assignReturnValueToStack(rtnUV);
+    return true;
   } //doBinaryOperation
 
   EvalStatus NodeMemberSelectOnConstructorCall::evalToStoreInto()
@@ -97,7 +105,46 @@ namespace MFM {
     if(nuti == Hzy)
       return NOTREADY;
 
-    return UNEVALUABLE;
+    evalNodeProlog(0);
+
+    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
+
+    makeRoomForSlots(1); //always 1 slot for ptr
+    EvalStatus evs = m_nodeLeft->evalToStoreInto();
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
+
+    //UPDATE selected member (i.e. element or quark) before eval of rhs
+    // (i.e. data member or func call)
+    UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1); //e.g. Ptr to atom
+    UTI newobjtype = newCurrentObjectPtr.getUlamValueTypeIdx();
+    if(!m_state.isPtr(newobjtype))
+      {
+	assert(m_nodeLeft->isFunctionCall());// must be the result of a function call;
+	// copy anonymous class to "uc" hidden slot in STACK, then replace with a pointer to it.
+	assert(m_state.isAClass(newobjtype));
+	newCurrentObjectPtr = assignAnonymousClassReturnValueToStack(newCurrentObjectPtr); //t3913
+      }
+
+    m_state.m_currentObjPtr = newCurrentObjectPtr;
+
+    evs = m_nodeRight->evalToStoreInto();
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
+
+    UlamValue ruvPtr = m_state.m_currentObjPtr;
+    Node::assignReturnValuePtrToStack(ruvPtr);
+
+    m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr **********
+
+    evalNodeEpilog();
+    return NORMAL;
   } //evalToStoreInto
 
   void NodeMemberSelectOnConstructorCall::genCode(File * fp, UVPass& uvpass)
@@ -115,8 +162,6 @@ namespace MFM {
 
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
-    //NodeIdent can't do it, because it doesn't know it's not a stand-alone element.
-    // here, we know there's rhs of member select, which needs to adjust to state bits.
     if(passalongUVPass()) //true
       {
 	uvpass = luvpass;
@@ -144,12 +189,8 @@ namespace MFM {
 
     // if parent is another MS, we might need to adjust pos first
     // elements can be data members of transients, etc.
-
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
-    //NodeIdent can't do it, because it doesn't know it's not a stand-alone element.
-    // here, we know there's rhs of member select, which needs to adjust to state bits.
-    //process multiple member selections (e.g. t3817)
     UVPass ruvpass;
     if(passalongUVPass()) //true
       {
@@ -161,12 +202,16 @@ namespace MFM {
 
     uvpass = ruvpass;
 
-    //tmp variable needed for any function call not returning a ref
-    if(!m_state.isReference(uvpass.getPassTargetType()))
+    //undo any element adjustment now that we are returning an object, not a ref
+    if(Node::needAdjustToStateBits(ruvpass.getPassTargetType()))
       {
-	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks
-	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
+	u32 rpos = ruvpass.getPassPos();
+	uvpass.setPassPos(rpos - ATOMFIRSTSTATEBITPOS); //t41091
       }
+
+    //tmp variable needed for any function call not returning a ref (constructors return Void).
+    m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks
+    m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
   } //genCodeToStoreInto
 
   bool NodeMemberSelectOnConstructorCall::passalongUVPass()

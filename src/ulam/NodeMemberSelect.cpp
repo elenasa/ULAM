@@ -276,6 +276,8 @@ namespace MFM {
 
     m_state.m_currentObjPtr = newCurrentObjectPtr;
 
+    //UTI ruti = m_nodeRight->getNodeType();
+    //u32 slot = makeRoomForNodeType(ruti);
     u32 slot = makeRoomForNodeType(nuti);
     evs = m_nodeRight->eval(); //a Node Function Call here, or data member eval
     if(evs != NORMAL)

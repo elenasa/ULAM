@@ -431,7 +431,6 @@ namespace MFM {
       return NOTREADY;
 
     assert(m_funcSymbol);
-    assert(!isAConstructorFunctionCall()); //t41077, t41084, t41085
 
     NodeBlockFunctionDefinition * func = m_funcSymbol->getFunctionNode();
     assert(func);
@@ -528,7 +527,8 @@ namespace MFM {
     msg << m_state.getTokenDataAsString(m_functionNameTok).c_str();
     msg << "> to a variable, type: ";
     msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-    if(getStoreIntoAble() != TBOOL_TRUE)
+
+    if((getStoreIntoAble() != TBOOL_TRUE) && !isAConstructorFunctionCall())
       {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return ERROR;
@@ -537,9 +537,9 @@ namespace MFM {
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
     //need a Ptr to the auto temporary variable, the result of func call
     // that belongs in m_currentObjPtr, but where to store the ans?
-    // use the hidden 'uc' slot (under the return value) (e.g. t3912)
+    // use the hidden 'uc' slot (under the return value)
 
-    assert(m_state.isAClass(nuti) || m_state.isReference(nuti)); //sanity?
+    assert(m_state.isAClass(nuti) || m_state.isReference(nuti) || isAConstructorFunctionCall()); //sanity?
 
     assert(m_funcSymbol);
     NodeBlockFunctionDefinition * func = m_funcSymbol->getFunctionNode();
@@ -598,6 +598,10 @@ namespace MFM {
 	  Node::assignReturnValuePtrToStack(rtnUV); //into return space on eval stack;
 	else
 	  Node::assignReturnValueToStack(rtnUV); //into return space on eval stack; t3189
+      }
+    else if(isAConstructorFunctionCall())
+      {
+	//Void. t41091
       }
     else
       {

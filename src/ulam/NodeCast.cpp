@@ -204,15 +204,12 @@ namespace MFM {
 	  {
 	    if(nodeType == Void)
 	      {
-		//if(!m_node->isAConstructorFunctionCall())
-		  {
-		    std::ostringstream msg;
-		    msg << "Cannot cast non-constructor ";
-		    msg << nut->getUlamTypeNameBrief().c_str(); //non-constructor void
-		    msg << " to " << tobe->getUlamTypeNameBrief().c_str(); //to a class
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		    errorsFound++;
-		  }
+		std::ostringstream msg;
+		msg << "Cannot cast non-constructor ";
+		msg << nut->getUlamTypeNameBrief().c_str(); //non-constructor void
+		msg << " to " << tobe->getUlamTypeNameBrief().c_str(); //to a class
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		errorsFound++;
 	      }
 	    else if(!m_state.isAtom(nodeType))
 	      {

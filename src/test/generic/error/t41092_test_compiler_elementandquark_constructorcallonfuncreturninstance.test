@@ -1,0 +1,75 @@
+## -*- mode:ulam -*-
+#=t41092_test_compiler_elementandquark_constructorcallonfuncreturninstance
+#!
+./A.ulam:10:27: ERROR: Function call 'makeAcopy' preceeds .instanceof.
+Unrecoverable Program Type Label FAILURE.
+##      gen code output: 1 asserts
+##
+## cast element as atom unevaluable, element type lost
+##
+##Exit status: -11
+##Ue_A : QW { :<> Bool(1) b(false);  QW m_q();  Int(32) test() {  System s;  A a;  Atom(96) me = ( )makeAcopy.instanceof ( true )Self . ( )func .;  { me A as cond { A& me;  b me b . = s ( me b . )assert . } if s ( false )assert . else } 0 cast return } }
+##Uq_QW { <NOMAIN> }
+##Uq_System { <NOMAIN> }
+##
+## informed by t41091, t3450
+## currently illegal but works!!
+##
+#>A.ulam
+  ulam 2;
+element A : QW {
+  Bool b;
+  QW m_q;
+  Int test(){
+    System s;
+
+    //immediate element
+    A a;
+    Atom me = makeAcopy().instanceof(true).func(); //doesn't work!!
+
+    if(me as A)
+    {
+      b = me.b; //uneval-ed, b still false in postfix output
+      s.assert(me.b);
+    }
+    else
+      s.assert(false);
+
+    return 0;
+  }
+
+  Self(Bool barg)
+  {
+    b = barg;
+  }
+
+  Self makeAcopy()
+  {
+    A a;
+    return a; //copy
+  }
+
+}
+
+#:QW.ulam
+  ulam 2;
+quark QW {
+  Atom func()
+  {
+    Atom a = self.atomof;
+    return a;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

@@ -408,8 +408,7 @@ namespace MFM {
     UTI nuti = getNodeType();
     // m_currentObjPtr set up by caller
     assert(m_state.okUTItoContinue(m_state.m_currentObjPtr.getPtrTargetType()));
-    assert(m_state.isAClass(nuti) || m_state.isReference(nuti)); //sanity?
-
+    assert(m_state.isAClass(nuti) || m_state.isReference(nuti) || m_funcSymbol->isConstructorFunction()); //sanity?
     return eval();
   } //evalToStoreInto
 
