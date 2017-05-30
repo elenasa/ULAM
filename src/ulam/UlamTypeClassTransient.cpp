@@ -298,6 +298,13 @@ namespace MFM {
 
     //default destructor (intentionally left out)
 
+    //declare away operator=
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("& operator=(const ");
+    fp->write(automangledName.c_str());
+    fp->write("& rhs); //declare away"); GCNL;
+
     // aref/aset calls generated inline for immediates.
     if(isCustomArray())
       {

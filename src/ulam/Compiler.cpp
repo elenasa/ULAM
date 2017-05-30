@@ -322,6 +322,9 @@ namespace MFM {
     // reports as errors classnames that exceed linux limit 255
     m_state.m_programDefST.reportTooLongClassNamesAcrossTableOfClasses();
 
+    //check UrSelf is zero size
+    m_state.verifyZeroSizeUrSelf();
+
     // count nodes with illegal Nav types; walk each class' data members and funcdefs.
     // clean up duplicate functions beforehand
     m_state.countNavHzyNoutiNodesPass();

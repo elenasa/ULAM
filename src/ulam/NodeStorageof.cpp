@@ -147,7 +147,9 @@ namespace MFM {
 		  return Hzy;
 		}
 	    }
-	  //for now, illegal, though it works (t3450)
+#if 0
+	  //that ship has already sailed! legal now
+	  //for now, illegal, though it works (t3450, t41092)
 	  if(m_nodeOf->isFunctionCall())
 	    {
 	      std::ostringstream msg;
@@ -157,6 +159,7 @@ namespace MFM {
 	      setNodeType(Nav);
 	      return Nav;
 	    }
+#endif
 	}
       else if(m_nodeTypeDesc)
 	{

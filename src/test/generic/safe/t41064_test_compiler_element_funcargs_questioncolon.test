@@ -1,0 +1,53 @@
+## -*- mode:ulam -*-
+#=t41064_test_compiler_element_funcargs_questioncolon
+##
+## gen output: assert
+##
+#!
+Exit status: 0
+Ue_Foo : Qbar { :< Int(3) m_q(1); > Bool(1) sp(true);  Int(32) test() {  System s;  sp true = m_q 2 = Qbar myqbar = ( sp ?  1 cast :  2 )func;  s ( myqbar m_q . 1 cast == )assert . 0 cast return } }
+Uq_Qbar { Int(3) m_q( 1);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by t41033, Dave email 2/10/2017 and t41031
+##
+#>Foo.ulam
+  ulam 2;
+element Foo : Qbar
+{
+  Bool sp;
+  Int test() {
+    System s;
+    sp = true;
+
+    m_q = 2; //self
+    Qbar myqbar = func(sp ? 1 : 2);
+    s.assert(myqbar.m_q == 1);
+    return 0;
+  }
+}
+
+#:Qbar.ulam
+  ulam 2;
+quark Qbar {
+  Int(3) m_q = 1;
+  Self func(Int(3) arg)
+  {
+    m_q = arg;
+    return (Qbar) self;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

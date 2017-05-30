@@ -217,10 +217,8 @@ namespace MFM {
 	if(m_state.isAClass(it) || isref)
 	  setStoreIntoAble(TBOOL_TRUE); //t3912 (class)
 
-	if(isref)
-	  setReferenceAble(TBOOL_TRUE); //set after storeintoable t3661,2; t3630
-	else
-	  setReferenceAble(TBOOL_FALSE);
+	if(!isref)
+	  setReferenceAble(TBOOL_FALSE); //set after storeintoable t3661,2; t3630
       }
 
     m_state.pushCurrentBlock(this);
@@ -410,8 +408,7 @@ namespace MFM {
     UTI nuti = getNodeType();
     // m_currentObjPtr set up by caller
     assert(m_state.okUTItoContinue(m_state.m_currentObjPtr.getPtrTargetType()));
-    assert(m_state.isAClass(nuti) || m_state.isReference(nuti)); //sanity?
-
+    assert(m_state.isAClass(nuti) || m_state.isReference(nuti) || m_funcSymbol->isConstructorFunction()); //sanity?
     return eval();
   } //evalToStoreInto
 

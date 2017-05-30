@@ -1,0 +1,48 @@
+## -*- mode:ulam -*-
+#=t41075_test_compiler_arrayitemonstringfunccallreturn
+##
+## gen output: (+ assert)
+##  Unsigned Arg: 119
+##
+#!
+Exit status: 0
+Ue_A { Bool(1) b(true);  Unsigned(8) m_asc(119u);  Int(32) test() {  System s;  m_asc ( )getString 6 [] = s ( m_asc cast )print . b m_asc 119u == = s ( b )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+##
+## based on t41074 and t3970
+##
+#>A.ulam
+  ulam 2;
+element A {
+  Bool b;
+  ASCII m_asc;
+  String getString()
+  {
+    return "hello world";
+  }
+
+ Int test() {
+   System s;
+   m_asc = getString()[6];
+   s.print(m_asc);
+   b = (m_asc == 'w'); //119
+   s.assert(b);
+
+   //see t41076 for lhs error test
+   return 0;
+ }
+}
+
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

@@ -1,0 +1,20 @@
+## -*- mode:ulam -*-
+#=t41083_test_compiler_constructorforprimitivevartypedef_error
+#!
+./D.ulam:5:7: ERROR: Member selected must be a Class, not type: Int(32).
+./D.ulam:5:3: ERROR: Initial value expression for: loca, initialization is invalid.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41082, different error since primitive type Slt not known at parse time.
+##
+#>D.ulam
+quark D {
+Int a;
+Int test()
+{
+  Slt loca(0);
+  return 0;
+}
+typedef Int Slt;
+}
+#.

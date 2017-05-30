@@ -227,13 +227,25 @@ namespace MFM {
 
     UTI cuti = m_state.getCompileThisIdx();
 
-    //don't allow unions to initialize its data members
+    //don't allow unions to initialize its data members (t3782)
     if(m_state.isClassAQuarkUnion(cuti) && m_nodeInitExpr)
       {
 	std::ostringstream msg;
 	msg << "Data member '";
 	msg << m_state.m_pool.getDataAsString(m_vid).c_str();
 	msg << "' belongs to a quark-union, and cannot be initialized";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav);
+	return Nav; //short-circuit
+      }
+
+    //don't allow unions to contain string data members (t41093)
+    if(m_state.isClassAQuarkUnion(cuti) && UlamType::compareForString(nuti, m_state) == UTIC_SAME)
+      {
+	std::ostringstream msg;
+	msg << "Data member '";
+	msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+	msg << "' belongs to a quark-union, and cannot be type String";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
 	return Nav; //short-circuit

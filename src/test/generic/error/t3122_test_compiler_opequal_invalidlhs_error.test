@@ -1,8 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3122_test_compiler_opequal_invalidlhs_error
 #!
-./D.ulam:4:7: ERROR: Invalid Statement (possible missing semicolon).
-Unrecoverable Program Parse FAILURE: <D.ulam>
+./D.ulam:4:7: ERROR: Invalid lefthand side of equals <3>, type: Int(3).
+Unrecoverable Program Type Label FAILURE.
 ##
 #>D.ulam
 element D {

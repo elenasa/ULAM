@@ -372,11 +372,10 @@ namespace MFM {
       {
 	bool isref = m_state.isReference(it);
 	if(m_state.isAClass(it) || isref)
-	  setStoreIntoAble(TBOOL_TRUE); //t3912 (class)
-	if(isref)
-	  setReferenceAble(TBOOL_TRUE); //set after storeintoable t3661,2; t3630
-	else
-	  setReferenceAble(TBOOL_FALSE);
+	  setStoreIntoAble(TBOOL_TRUE); //t3912 (class); t41085,t41077 (constructors)
+
+	if(!isref)
+	  setReferenceAble(TBOOL_FALSE); //set after storeintoable t3661,2; t3630
       }
     return it;
   } //checkAndLabelType
@@ -412,6 +411,12 @@ namespace MFM {
     return true;
   }
 
+  bool NodeFunctionCall::isAConstructorFunctionCall()
+  {
+    assert(m_funcSymbol);
+    return m_funcSymbol->isConstructorFunction();
+  }
+
   // since functions are defined at the class-level; a function call
   // must be PRECEDED by a member selection (element or quark) --- a
   // local variable instance that provides the storage (i.e. atom) for
@@ -426,6 +431,7 @@ namespace MFM {
       return NOTREADY;
 
     assert(m_funcSymbol);
+
     NodeBlockFunctionDefinition * func = m_funcSymbol->getFunctionNode();
     assert(func);
 
@@ -521,7 +527,8 @@ namespace MFM {
     msg << m_state.getTokenDataAsString(m_functionNameTok).c_str();
     msg << "> to a variable, type: ";
     msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-    if(getStoreIntoAble() != TBOOL_TRUE)
+
+    if((getStoreIntoAble() != TBOOL_TRUE) && !isAConstructorFunctionCall())
       {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return ERROR;
@@ -530,9 +537,9 @@ namespace MFM {
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
     //need a Ptr to the auto temporary variable, the result of func call
     // that belongs in m_currentObjPtr, but where to store the ans?
-    // use the hidden 'uc' slot (under the return value) (e.g. t3912)
+    // use the hidden 'uc' slot (under the return value)
 
-    assert(m_state.isAClass(nuti) || m_state.isReference(nuti)); //sanity?
+    assert(m_state.isAClass(nuti) || m_state.isReference(nuti) || isAConstructorFunctionCall()); //sanity?
 
     assert(m_funcSymbol);
     NodeBlockFunctionDefinition * func = m_funcSymbol->getFunctionNode();
@@ -591,6 +598,10 @@ namespace MFM {
 	  Node::assignReturnValuePtrToStack(rtnUV); //into return space on eval stack;
 	else
 	  Node::assignReturnValueToStack(rtnUV); //into return space on eval stack; t3189
+      }
+    else if(isAConstructorFunctionCall())
+      {
+	//Void. t41091
       }
     else
       {
@@ -766,12 +777,6 @@ namespace MFM {
 	    if(autolocaltype == ALT_AS) //must be a class
 	      {
 		atomPtr.setPtrTargetType(((SymbolVariableStack *) asym)->getAutoStorageTypeForEval());
-	      }
-	    else if(autolocaltype == ALT_HAS)
-	      {
-		m_state.abortNotSupported(); //deprecated
-		// auto type is the type of the data member,
-		// rather than the base (rhs)
 	      }
 	    else if(autolocaltype == ALT_REF)
 	      {

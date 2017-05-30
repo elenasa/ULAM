@@ -175,10 +175,16 @@ namespace MFM {
     //clear up compiler state to no longer use the member class block for symbol searches
     m_state.popClassContext();
 
-    setNodeType(rightType);
+    if(m_state.okUTItoContinue(rightType))
+      {
+	setNodeType(rightType);
 
-    //based on righthand side
-    Node::setStoreIntoAble(m_nodeRight->getStoreIntoAble());
+	//based on righthand side
+	Node::setStoreIntoAble(m_nodeRight->getStoreIntoAble());
+
+	//base reference-ability on righthand side (t41085)
+	Node::setReferenceAble(m_nodeRight->getReferenceAble());
+      }
     return getNodeType();
   } //checkAndLabelType
 
@@ -211,6 +217,12 @@ namespace MFM {
   bool NodeMemberSelect::isFunctionCall()
   {
     return m_nodeRight->isFunctionCall(); //based like storeintoable, on right
+  }
+
+  bool NodeMemberSelect::isAConstructorFunctionCall()
+  {
+    //see NodeMemberSelectOnConstructorCall
+    return false; //based like storeintoable, on right
   }
 
   bool NodeMemberSelect::isArrayItem()
@@ -264,6 +276,8 @@ namespace MFM {
 
     m_state.m_currentObjPtr = newCurrentObjectPtr;
 
+    //UTI ruti = m_nodeRight->getNodeType();
+    //u32 slot = makeRoomForNodeType(ruti);
     u32 slot = makeRoomForNodeType(nuti);
     evs = m_nodeRight->eval(); //a Node Function Call here, or data member eval
     if(evs != NORMAL)

@@ -9,6 +9,7 @@ namespace MFM {
 
   Symbol * SymbolTmpVar::clone()
   {
+    m_state.abortShouldntGetHere();
     return new SymbolTmpVar(*this);
   }
 

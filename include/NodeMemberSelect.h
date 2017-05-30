@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeMemberSelect.h -  Node for handling Class Instance Member Selection for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeMemberSelect.h -  Node for handling Class Instance Member Selection for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016  All rights reserved.
+  \date (C) 2014-2017  All rights reserved.
   \gpl
 */
 
@@ -82,6 +82,8 @@ namespace MFM{
 
     virtual bool isFunctionCall();
 
+    virtual bool isAConstructorFunctionCall();
+
     virtual bool isArrayItem();
 
     virtual EvalStatus eval();
@@ -99,10 +101,11 @@ namespace MFM{
     virtual UlamValue makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len);
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len);
 
-    bool passalongUVPass();
+    virtual bool passalongUVPass();
 
-  private:
     SymbolTmpVar * m_tmpvarSymbol;
+  private:
+
   };
 
 } //MFM

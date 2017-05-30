@@ -219,7 +219,15 @@ namespace MFM {
   } //checkSafeToCastTo
 
   //no atoms, elements nor voids as either operand
-  bool NodeBinaryOp::checkForPrimitiveTypes(UTI lt, UTI rt)
+  bool NodeBinaryOp::checkForPrimitiveNotVoidTypes(UTI lt, UTI rt)
+  {
+    bool rtnOK = checkForPrimitiveTypes(lt, rt, false);
+    rtnOK &= checkNotVoidTypes(lt, rt, false);
+    return rtnOK;
+  }
+
+  //no atoms, elements nor voids as either operand
+  bool NodeBinaryOp::checkForPrimitiveTypes(UTI lt, UTI rt, bool quietly)
   {
     bool rtnOK = true;
     UlamType * lut = m_state.getUlamTypeByIndex(lt);
@@ -227,12 +235,15 @@ namespace MFM {
     // for binary ops: check for quark with toInt method;
     if(!lut->isPrimitiveType() && !lqint)
       {
-	std::ostringstream msg;
-	msg << "Non-primitive type <";
-	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
-	msg << "> is not supported as left operand type for binary operator";
-	msg << getName();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	if(!quietly)
+	  {
+	    std::ostringstream msg;
+	    msg << "Non-primitive type <";
+	    msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
+	    msg << "> is not supported as left operand type for binary operator";
+	    msg << getName();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
 	rtnOK = false;
       }
 
@@ -240,30 +251,36 @@ namespace MFM {
     bool rqint = (rut->getUlamClassType() == UC_QUARK) && m_state.quarkHasAToIntMethod(rt);
     if(!rut->isPrimitiveType() && !rqint)
       {
-	std::ostringstream msg;
-	msg << "Non-primitive type <";
-	msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
-	msg << "> is not supported as right operand type for binary operator";
-	msg << getName();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	if(!quietly)
+	  {
+	    std::ostringstream msg;
+	    msg << "Non-primitive type <";
+	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
+	    msg << "> is not supported as right operand type for binary operator";
+	    msg << getName();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
 	rtnOK = false;
       }
 
-    rtnOK &= checkNotVoidTypes(lt, rt);
+    //rtnOK &= checkNotVoidTypes(lt, rt, quietly);
     return rtnOK;
   } //checkForPrimitiveTypes
 
-  bool NodeBinaryOp::checkNotVoidTypes(UTI lt, UTI rt)
+  bool NodeBinaryOp::checkNotVoidTypes(UTI lt, UTI rt, bool quietly)
   {
     bool rtnOK = true;
     ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
     ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
     if(ltypEnum == Void || rtypEnum == Void)
       {
-	std::ostringstream msg;
-	msg << "Void is not a supported type for binary operator";
-	msg << getName();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	if(!quietly)
+	  {
+	    std::ostringstream msg;
+	    msg << "Void is not a supported type for binary operator";
+	    msg << getName();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
 	rtnOK = false;
       }
     return rtnOK;
@@ -289,7 +306,7 @@ namespace MFM {
     return rtnOK;
   } //checkForNumericTypes
 
-  bool NodeBinaryOp::checkScalarTypesOnly(UTI lt, UTI rt)
+  bool NodeBinaryOp::checkScalarTypesOnly(UTI lt, UTI rt, bool quietly)
   {
     bool rtnOK = true;
     if( !(m_state.isScalar(lt) && m_state.isScalar(rt)))
@@ -309,14 +326,17 @@ namespace MFM {
 	  }
 #endif //SUPPORT_ARITHMETIC_ARRAY_OPS
 
-	//array op scalar: defer since the question of matrix operations is unclear.
-	std::ostringstream msg;
-	msg << "Incompatible (nonscalar) types ";
-	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
-	msg << " and " << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
-	msg << " for binary operator";
-	msg << getName() << " ; Suggest writing a loop";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	if(!quietly)
+	  {
+	    //array op scalar: defer since the question of matrix operations is unclear.
+	    std::ostringstream msg;
+	    msg << "Incompatible (nonscalar) types ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
+	    msg << " and " << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
+	    msg << " for binary operator";
+	    msg << getName() << " ; Suggest writing a loop";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
       }
     return rtnOK;
   } //checkScalarTypesOnly

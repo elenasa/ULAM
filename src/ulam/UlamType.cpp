@@ -201,7 +201,7 @@ namespace MFM {
     s32 arraysize = getArraySize();
 
     if(isReference())
-      mangled << "r";
+      mangled << "r"; //e.g. t3114
 
     if(arraysize > 0)
       mangled << ToLeximitedNumber(arraysize);
@@ -448,7 +448,10 @@ namespace MFM {
 
   bool UlamType::isReference()
   {
-    return m_key.getUlamKeyTypeSignatureReferenceType() != ALT_NOT;
+    //yes, all of these ALT types are treated as references in gencode.
+    //return m_key.getUlamKeyTypeSignatureReferenceType() != ALT_NOT;
+    ALT alt = m_key.getUlamKeyTypeSignatureReferenceType();
+    return (alt == ALT_AS) || (alt == ALT_REF) || (alt == ALT_ARRAYITEM);
   }
 
   bool UlamType::isHolder()
@@ -509,7 +512,7 @@ namespace MFM {
     return (ut1 == ut2) ? UTIC_SAME : UTIC_NOTSAME;
   } //compare (static)
 
-  ULAMTYPECOMPARERESULTS UlamType::compareWithWildArrayItemReferenceType(UTI u1, UTI u2, CompilerState& state)  //static
+  ULAMTYPECOMPARERESULTS UlamType::compareWithWildArrayItemALTKey(UTI u1, UTI u2, CompilerState& state)  //static
   {
     assert((u1 != Nouti) && (u2 != Nouti));
 
@@ -573,6 +576,8 @@ namespace MFM {
 	{
 	  if((alt1 == ALT_REF) || (alt2 == ALT_REF))
 	    return UTIC_NOTSAME; //t3653
+	  else if ((alt1 == ALT_AS) || (alt2 == ALT_AS))
+	    return UTIC_NOTSAME; //like a ref
 	  else
 	    return UTIC_SAME;
 	}
@@ -580,9 +585,9 @@ namespace MFM {
 	  return UTIC_NOTSAME;
       }
     return UTIC_SAME;
-  } //compareWithWildArrayItemReferenceType (static)
+  } //compareWithWildArrayItemALTKey (static)
 
-  ULAMTYPECOMPARERESULTS UlamType::compareWithWildReferenceType(UTI u1, UTI u2, CompilerState& state)  //static
+  ULAMTYPECOMPARERESULTS UlamType::compareWithWildALTKey(UTI u1, UTI u2, CompilerState& state)  //static
   {
     assert((u1 != Nouti) && (u2 != Nouti));
 
@@ -642,33 +647,33 @@ namespace MFM {
 	return UTIC_SAME; //wild
       }
     return UTIC_SAME;
-  } //compareWithWildReferenceType (static)
+  } //compareWithWildALTKey (static)
 
   ULAMTYPECOMPARERESULTS UlamType::compareForArgumentMatching(UTI u1, UTI u2, CompilerState& state)  //static
   {
-    return UlamType::compareWithWildArrayItemReferenceType(u1, u2, state);
+    return UlamType::compareWithWildArrayItemALTKey(u1, u2, state);
   }
 
   ULAMTYPECOMPARERESULTS UlamType::compareForMakingCastingNode(UTI u1, UTI u2, CompilerState& state)  //static
   {
-    return UlamType::compareWithWildArrayItemReferenceType(u1, u2, state);
+    return UlamType::compareWithWildArrayItemALTKey(u1, u2, state);
   }
 
   ULAMTYPECOMPARERESULTS UlamType::compareForUlamValueAssignment(UTI u1, UTI u2, CompilerState& state)  //static
   {
-    return UlamType::compareWithWildReferenceType(u1, u2, state);
+    return UlamType::compareWithWildALTKey(u1, u2, state);
   }
 
   ULAMTYPECOMPARERESULTS UlamType::compareForString(UTI u1, CompilerState& state)  //static
   {
     //bitsize always 32; wild reference type
     //arrays not treated as a String, per se (t3949, t3975, t3985, t3995)
-    return UlamType::compareWithWildReferenceType(u1, String, state);
+    return UlamType::compareWithWildALTKey(u1, String, state);
   }
 
   ULAMTYPECOMPARERESULTS UlamType::compareForCustomArrayItem(UTI u1, UTI u2, CompilerState& state)  //static
   {
-    return UlamType::compareWithWildReferenceType(u1, u2, state);
+    return UlamType::compareWithWildALTKey(u1, u2, state);
   }
 
   u32 UlamType::getTotalWordSize()

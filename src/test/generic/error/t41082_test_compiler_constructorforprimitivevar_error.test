@@ -1,0 +1,19 @@
+## -*- mode:ulam -*-
+#=t41082_test_compiler_constructorforprimitivevar_error
+#!
+./D.ulam:5:11: ERROR: Unexpected token <(> indicates a constructor function call or function definition; neither are valid here for primitive variable 'loca'.
+./D.ulam:5:11: ERROR: Invalid Statement (possible missing semicolon).
+Unrecoverable Program Parse FAILURE: <D.ulam>
+##
+## informed by t3135
+##
+#>D.ulam
+quark D {
+Int a;
+Int test()
+{
+  Int loca(0);
+  return 0;
+}
+}
+#.

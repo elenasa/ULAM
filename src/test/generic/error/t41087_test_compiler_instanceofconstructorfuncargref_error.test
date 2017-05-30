@@ -1,0 +1,35 @@
+## -*- mode:ulam -*-
+#=t41087_test_compiler_instanceofconstructorfuncargref_error
+#!
+./D.ulam:14:8: ERROR: Invalid argument 1 to function <isOurBackFill>; Cannot be used as a reference parameter.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by error/t3784
+##
+#>D.ulam
+  ulam 2;
+element D {
+  Bool isOurBackFill(D& dref)
+  {
+    return false;
+  }
+
+  Int test() {
+    D d(true);
+    D& dref = d;  //no constructor call for a reference
+    if(isOurBackFill(dref))
+      return 1;
+
+    if(isOurBackFill(D.instanceof(true)))
+    //if(isOurBackFill(D.instanceof))
+      return 1;
+    return 0;
+  }
+
+  Self(Bool b)
+  {
+    //empty
+  }
+}
+
+#.

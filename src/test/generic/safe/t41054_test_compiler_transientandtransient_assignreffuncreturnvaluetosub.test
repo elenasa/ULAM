@@ -34,12 +34,19 @@ transient TW : W {
   ulam 2;
 transient W : Base{
   Bool bw;
+  /*
+    (see error/t41086)
   Self func()
   {
     Self me;
     return me;
   }
+  */
 
+  Self& func()
+  {
+    return self;
+  }
 }
 
 #:Base.ulam

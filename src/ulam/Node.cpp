@@ -218,6 +218,11 @@ namespace MFM {
     return false;
   }
 
+  bool Node::isAConstructorFunctionCall()
+  {
+    return false;
+  }
+
   bool Node::isArrayItem()
   {
     return false;
@@ -1064,7 +1069,9 @@ namespace MFM {
     fp->write("\n");
   } //restoreElementTypeForAncestorCasting
 
-  // write out intermediate tmpVar as temp BitVector, func args
+  // write out intermediate tmpVar as temp BitVector, e.g. func args, question-colon
+  //for func args, the type of the funccall node isn't the type of the argument;
+  //casts can mask whether the node is the same type as uvpass tmp var.
   void Node::genCodeConvertATmpVarIntoBitVector(File * fp, UVPass & uvpass)
   {
     UTI vuti = uvpass.getPassTargetType(); //terminals handled in NodeTerminal
@@ -1132,7 +1139,7 @@ namespace MFM {
 	      }
 	  }
       }
-    fp->write("); //func arg&"); GCNL;
+    fp->write(");"); GCNL; //func arg& ?
 
     uvpass = UVPass::makePass(tmpVarNum2, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, pos, 0); //POS left-justified for quarks; right for primitives.
     m_state.clearCurrentObjSymbolsForCodeGen();
@@ -1257,7 +1264,7 @@ namespace MFM {
 	else
 	  {
 	    fp->write(stgcos->getMangledName().c_str()); //t3702, t3818
-	    stgisaref = stgcosut->isReference();
+	    stgisaref = stgcosut->isReference(); //t3114
 	  }
       }
     else
@@ -1890,7 +1897,7 @@ namespace MFM {
 	  doErrMsg = true;
 
 	else if(nuti == Void)
-	  doErrMsg = true; //cannot cast a void into anything else (reverse is fine)
+	  doErrMsg = true; //cannot cast a void into anything else (reverse is fine), except cnstr(t41077)
 	//else if reference to non-ref of same type?
 	else
 	  {
@@ -1993,7 +2000,7 @@ namespace MFM {
 	  }
       }
     return !doErrMsg; //true is ok
-  } //makecastingnode
+  } //makeCastingNode
 
   Node * Node::newCastingNode(Node * node, UTI tobeType)
   {
@@ -2827,7 +2834,15 @@ namespace MFM {
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
-	stgcosref = cosref = m_state.getCurrentSelfSymbolForCodeGen();
+	//"self" belongs to func def block that we're currently gencoding
+	u32 selfid = m_state.m_pool.getIndexForDataString("self");
+	Symbol * selfsym = NULL;
+	bool hazykin = false; //unused
+	AssertBool gotSelf = m_state.alreadyDefinedSymbol(selfid, selfsym, hazykin);
+	assert(gotSelf);
+
+	//stgcosref = cosref = m_state.getCurrentSelfSymbolForCodeGen();
+	stgcosref = cosref = selfsym; //t41065, foofunc();
       }
     else if(cosSize == 1)
       {

@@ -1,0 +1,44 @@
+## -*- mode:ulam -*-
+#=t41078_test_compiler_funccallargtypowithabang_error
+#!
+./A.ulam:8:14: ERROR: Unexpected input!! Token <!>.
+./A.ulam:8:15: ERROR: Invalid Statement (possible missing semicolon).
+Unrecoverable Program Parse FAILURE: <A.ulam>
+Unrecoverable Program Parse FAILURE: <System.ulam>
+##
+## assert hit in Parser::parseRestOfMemberSelectExpr()
+## informed by t41077: unintentional typo with a bang!
+##
+#>A.ulam
+  ulam 1;
+element A {
+  Int test(){
+    System s;
+    A locala;
+
+    s.print(locala.d);
+    s.asset(l!ocala.d); //TYPO BUG
+    return 0;
+  }
+
+  Bool(7) d = false;
+  Int(4) a = 4;
+  Int(4) b = 5;
+}
+
+
+##
+## test system quark with native overloaded print funcs; assert
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

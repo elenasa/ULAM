@@ -267,6 +267,15 @@ namespace MFM {
     fp->write_decimal_unsigned(len); //includes arraysize
     fp->write("); }"); GCNL; //effself is null for primitives
 
+    //default destructor (intentially left out)
+
+    //declare away operator=
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("& operator=(const ");
+    fp->write(automangledName.c_str());
+    fp->write("& rhs); //declare away"); GCNL;
+
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("};\n");

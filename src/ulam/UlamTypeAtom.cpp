@@ -211,6 +211,13 @@ namespace MFM {
 
     //default destructor (intentionally left out)
 
+    //declare away operator=
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("& operator=(const ");
+    fp->write(automangledName.c_str());
+    fp->write("& rhs); //declare away"); GCNL;
+
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("};\n");
@@ -352,6 +359,8 @@ namespace MFM {
     fp->write("(d.read()) { }"); GCNL;
 
     //default destructor (intentionally left out)
+
+    //note: no operator= since base class has a T&
 
     genUlamTypeReadDefinitionForC(fp);
 

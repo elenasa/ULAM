@@ -1,0 +1,39 @@
+## -*- mode:ulam -*-
+#=t41089_test_compiler_assigntofuncreturnvaluelhs_evalerr
+##
+## eval error; gencode compiles benign.
+#!
+Exit status: -1
+Ue_R { Int(32) test() {  R tw;  ( )func tw = ( )funcme tw = ( )funcref tw cast = 0 cast return } }
+##
+## informed by t3790, t41054
+##
+#>R.ulam
+  ulam 2;
+element R {
+  Int test(){
+    R tw;
+    func() = tw; //to what end..
+    funcme() = tw; //to what end..
+    funcref() = tw; //to what end..
+    return 0;
+  }
+
+  Self func()
+  {
+    return self;
+  }
+
+  Self funcme()
+  {
+    Self me;
+    return me;
+  }
+
+  Self& funcref()
+  {
+    return self;
+  }
+}
+
+#.

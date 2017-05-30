@@ -1,0 +1,69 @@
+## -*- mode:ulam -*-
+#=t41069_test_compiler_castquarkref_questioncolon
+#!
+##   gen code output: (+ interleaved asserts)
+##	 Int(3) Arg: 0x1
+##	 Int(3) Arg: 0x7
+##
+Exit status: 0
+Ue_Tu : Qbar { :< Int(3) mq(1); > System s();  Bool(1) b(false);  Int(32) me(1);  Int(32) test() {  Qbar q1;  mq 1 cast = Qbar& qref = b ?  q1 cast :  self cast;  s ( qref mq . )print . s ( qref mq . 1 cast == )assert . Tbar t1;  t1 mq . -1 cast = Qbar& qtref = t1 Qbar is ?  t1 cast :  qref cast;  s ( qtref mq . )print . s ( qtref mq . -1 cast == )assert . 0 cast return } }
+Uq_Qbar { Int(3) mq( 2);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+Un_Tbar : Qbar { :< Int(3) mq( 2); > Int(32) mt( -1);  <NOMAIN> }
+##
+## informed by t3277
+##
+#>Tu.ulam
+  ulam 2;
+element Tu : Qbar{
+  System s;
+  Bool b;
+  Int me = 1;
+  Int test(){
+    Qbar q1;
+    mq = 1;
+    Qbar & qref = b ? (Qbar&) q1 : (Qbar&) self; //cast quark to ref; cast element decendent
+    s.print(qref.mq);
+    s.assert(qref.mq == 1);
+
+    Tbar t1;
+    t1.mq = -1;
+    Qbar & qtref = (t1 is Qbar) ? (Qbar&) t1 : (Qbar&) qref; //cast transient decendent; cast ref to ref
+    s.print(qtref.mq);
+    s.assert(qtref.mq == -1);
+
+    return 0;
+  }
+}
+
+#:Qbar.ulam
+  ulam 2;
+quark Qbar {
+  Int(3) mq = 2;
+}
+
+#:Tbar.ulam
+  ulam 2;
+transient Tbar : Qbar {
+  Int mt = -1;
+}
+
+
+##      // FAILS BAD_CAST (of course it is! we protect against this sort of thing..)
+##      //bool rtn1 = fms->add("Tu.ulam", "ulam 1;\n element Tu {\nInt test(){\n Tu t;\nAtom a;\n t = (Tu) a;\n return 0;\n}\n}\n");
+##
+##      // OK..using 'is' or 'as'
+##
+##      // test system quark with native overloaded print funcs; assert
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

@@ -112,7 +112,7 @@ namespace MFM {
 	m_state.setGoAgain();
       }
 
-    if(!NodeBinaryOp::checkNotVoidTypes(leftType, rightType))
+    if(!NodeBinaryOp::checkNotVoidTypes(leftType, rightType, false))
       {
     	setNodeType(Nav);
     	return Nav;
@@ -313,6 +313,9 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(lslot);
     UlamValue ruv;
+
+    if(!pluv.isPtr())
+      return false; //e.g. t41089 func call used on lhs (gen code ok)
 
     if(m_state.isScalar(nuti))
       {

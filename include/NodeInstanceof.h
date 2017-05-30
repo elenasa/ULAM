@@ -69,7 +69,7 @@ namespace MFM{
     virtual UlamValue makeUlamValuePtr();
 
   private:
-
+    SymbolTmpVar * m_tmpvarSymbol;
   };
 
 }

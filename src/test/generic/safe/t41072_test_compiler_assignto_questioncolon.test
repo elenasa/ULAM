@@ -1,0 +1,49 @@
+## -*- mode:ulam -*-
+#=t41072_test_compiler_assignto_questioncolon
+##
+## gen code output (+ interleaved asserts):
+## Int Arg: 1
+## Int Arg: 2
+##
+#!
+Exit status: 0
+Ue_A { Bool(1) ok(true);  Int(32) a(2);  Int(32) d(0);  Int(32) test() {  System s;  Int(32) b;  ok ?  a :  b 1 cast = s ( b )print . s ( b 1 cast == )assert . ok true = ok ?  a :  b 2 cast = s ( a )print . s ( a 2 cast == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+##
+## suggested by Dave 4/15/17 for ?: test;
+##
+#>A.ulam
+  ulam 2;
+element A {
+  Bool ok;
+  Int a;
+  Int test() {
+    System s;
+    Int b;
+    (ok ? a : b) = 1; //with parens, local
+    s.print(b);
+    s.assert(b==1);
+
+    ok = true;
+    ok ? a : b = 2; //without parens, data member
+    s.print(a);
+    s.assert(a==2);
+
+    return 0;
+  }
+  Int d;
+}
+## want d == 1.
+## test system quark with native overloaded print funcs; assert
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.
