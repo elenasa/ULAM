@@ -1,0 +1,52 @@
+## -*- mode:ulam -*-
+#=t41096_test_compiler_elementinheritedquark_overridevirtualfunc_error
+##
+#!
+./Sub1.ulam:3:25: ERROR: @Override flag fails virtual function: Int(32) afunc(Int(32) a, Bool(1) b).
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41095, see also safe/t41097
+##
+#:Base.ulam
+  ulam 2;
+quark Base {
+  virtual Int afunc(Int a); //pure
+}
+
+#:Sub1.ulam
+  ulam 2;
+quark Sub1 : Base {
+  @Override virtual Int afunc(Int a, Bool b) { return 2; } // BAD: overload of same name different args
+}
+
+#:E2.ulam
+  ulam 2;
+element E2 : Sub1 {
+  virtual Int afunc(Int a) { return super.afunc(a); } //2
+}
+
+#>Test.ulam
+  ulam 2;
+element Test : System {
+  Bool brtn[4];
+
+  Int test() {
+    E2 e2;
+    brtn[0] = (e2.afunc(7) == 2);
+    assert(brtn[0]);
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

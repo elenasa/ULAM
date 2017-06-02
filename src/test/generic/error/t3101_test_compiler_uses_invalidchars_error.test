@@ -1,0 +1,20 @@
+## -*- mode:ulam -*-
+#=t3101_test_compiler_uses_invalidchars_error
+#!
+./D.ulam:2:3: ERROR: Weird Lex! <@> does not precede a valid flag keyword.
+./D.ulam:4:8: ERROR: Weird Lex! <@> does not precede a valid flag keyword.
+./D.ulam:4:13: ERROR: Weird Lex! <@> does not precede a valid flag keyword.
+./D.ulam:4:5: ERROR: Right operand of binary operator= is missing; Assignment deleted.
+Unrecoverable Program Parse FAILURE: <D.ulam>
+##
+##  //recovers from invalid character
+#>D.ulam
+element D {
+ @ Int a;
+ Int test() {
+  a = @3 + @2;
+ return a;
+ }
+}
+
+#.

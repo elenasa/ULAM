@@ -90,6 +90,9 @@ namespace MFM{
     bool isPureVirtualFunction();
     void setPureVirtualFunction();
 
+    bool getInsureVirtualOverrideFunction();
+    void setInsureVirtualOverrideFunction();
+
     u32 getVirtualMethodIdx();
     void setVirtualMethodIdx(u32 idx);
 
@@ -112,6 +115,7 @@ namespace MFM{
     bool m_hasVariableArgs;
     bool m_isVirtual; //overloaded funcs may have different virtual status
     bool m_pureVirtual; //overloaded funcs may have different pure virtual status
+    bool m_insureVirtualOverride;
     u32 m_virtualIdx;
     bool m_isConstructor;
     bool m_definedinaQuark;

@@ -286,6 +286,7 @@ namespace MFM {
 	//possibly us, or a great-ancestor that has first decl of this func
 	UTI kinuti; // ref to find, Nav if not found
 	s32 vidx = UNKNOWNSIZE; //virtual index
+	bool overriding = false;
 
 	//search for virtual function w exact name/type in superclass
 	// if found, this function must also be virtual
@@ -322,6 +323,7 @@ namespace MFM {
 		      }
 		    vidx = superfsym->getVirtualMethodIdx();
 		    kinuti = cuti; //overriding
+		    overriding = true; //t41096, t41097
 		  }
 		else
 		  {
@@ -353,9 +355,18 @@ namespace MFM {
 		vidx = (maxidx != UNKNOWNSIZE ? maxidx : 0);
 		maxidx = vidx + 1;
 	      }
-	    //else use ancestor index; maxidx stays same
+	    //else use ancestor index; maxidx stays same; is an override
 	    fsym->setVirtualMethodIdx(vidx);
 	    csym->updateVTable(vidx, fsym, kinuti, fsym->isPureVirtualFunction());
+
+	    //check overriding virtual function when flag set by programmer(t41096,97,98)
+	    if(fsym->getInsureVirtualOverrideFunction() && !overriding)
+	      {
+		std::ostringstream msg;
+		msg << "@Override flag fails virtual function: ";
+		msg << fsym->getFunctionNameWithTypes().c_str();
+		MSG(fsym->getTokPtr(), msg.str().c_str(), ERR);
+	      }
 	  }
 	else
 	  maxidx = (maxidx != UNKNOWNSIZE ? maxidx : 0); //stays same, or known 0
