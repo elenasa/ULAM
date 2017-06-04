@@ -7,9 +7,9 @@
 #$ git push
 #$ git push origin v1.0.0
 
-ULAM_VERSION_MAJOR:=2
+ULAM_VERSION_MAJOR:=3
 ULAM_VERSION_MINOR:=0
-ULAM_VERSION_REV:=13
+ULAM_VERSION_REV:=0
 
 ################## NOTHING BELOW HERE SHOULD NEED TO CHANGE ##################
 
