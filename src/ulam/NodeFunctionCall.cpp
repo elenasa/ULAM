@@ -862,7 +862,18 @@ namespace MFM {
 
 	if(rtnok)
 	  rtnfunc = funcSymbol->getFunctionNode(); //replace with virtual function def!!!
-      } //end use virtual function
+      } //end lookup virtual function
+    else
+      {
+	if(m_funcSymbol->isPureVirtualFunction())
+	  {
+	    std::ostringstream msg;
+	    msg << "Virtual function <" << m_funcSymbol->getMangledNameWithTypes().c_str();
+	    msg << "> is pure; cannot be called";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    rtnok = false; //t41094
+	  }
+      }
     //else no change to rtnfunc
     return rtnok;
   } //getVirtualFunctionForEval

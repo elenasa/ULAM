@@ -1,0 +1,23 @@
+## -*- mode:ulam -*-
+#=t41098_test_compiler_invalidvirtualoverrideflagbeforevardecl_error
+#!
+./D.ulam:3:13: ERROR: Unexpected input!! Token <@Override> applies to functions.
+./D.ulam:5:5: ERROR: Statement starts with flag keyword <@Override>.
+./D.ulam:5:15: ERROR: Invalid Statement (possible missing semicolon).
+Unrecoverable Program Parse FAILURE: <D.ulam>
+##
+## informed by t3101, t41096
+##
+#>D.ulam
+  ulam 2;
+element D {
+  @Override Int a;
+  Int test() {
+    @Override Int a;
+    a = 3 + 2;
+    foo();
+    return a;
+  }
+}
+
+#.

@@ -5,12 +5,12 @@
 
 namespace MFM {
 
-  SymbolFunction::SymbolFunction(const Token& id, UTI typetoreturn, CompilerState& state ) : Symbol(id,typetoreturn,state), m_functionNode(NULL), m_hasVariableArgs(false), m_isVirtual(false), m_pureVirtual(false), m_isConstructor(false), m_definedinaQuark(false)
+  SymbolFunction::SymbolFunction(const Token& id, UTI typetoreturn, CompilerState& state ) : Symbol(id,typetoreturn,state), m_functionNode(NULL), m_hasVariableArgs(false), m_isVirtual(false), m_pureVirtual(false), m_insureVirtualOverride(false), m_isConstructor(false), m_definedinaQuark(false)
   {
     setDataMemberClass(m_state.getCompileThisIdx()); // by definition all function definitions are data members
   }
 
-  SymbolFunction::SymbolFunction(const SymbolFunction& sref) : Symbol(sref), m_hasVariableArgs(sref.m_hasVariableArgs), m_isVirtual(sref.m_isVirtual), m_pureVirtual(sref.m_pureVirtual), m_isConstructor(sref.m_isConstructor), m_definedinaQuark(sref.m_definedinaQuark)
+  SymbolFunction::SymbolFunction(const SymbolFunction& sref) : Symbol(sref), m_hasVariableArgs(sref.m_hasVariableArgs), m_isVirtual(sref.m_isVirtual), m_pureVirtual(sref.m_pureVirtual), m_insureVirtualOverride(sref.m_insureVirtualOverride), m_isConstructor(sref.m_isConstructor), m_definedinaQuark(sref.m_definedinaQuark)
   {
     //parameters belong to functiondefinition block's ST; do not clone them again here!
     if(sref.m_functionNode)
@@ -342,6 +342,16 @@ namespace MFM {
   {
     assert(isVirtualFunction());
     m_pureVirtual = true;
+  }
+
+  bool SymbolFunction::getInsureVirtualOverrideFunction()
+  {
+    return m_insureVirtualOverride;
+  }
+
+  void SymbolFunction::setInsureVirtualOverrideFunction()
+  {
+    m_insureVirtualOverride = true;
   }
 
   u32 SymbolFunction::getVirtualMethodIdx()

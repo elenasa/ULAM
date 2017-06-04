@@ -808,6 +808,15 @@ namespace MFM {
     else //regular data member: function or variable
       {
 	bool isVirtual = false;
+	bool insureVirtualOverride = false;
+	if(pTok.m_type == TOK_KW_FLAG_VIRTUALOVERRIDE)
+	  {
+	    //override used to insure this function overrides superclass' func of same desc;
+	    //(virtual keyword optional)
+	    insureVirtualOverride = isVirtual = true; //t41096
+	    getNextToken(pTok);
+	  }
+
 	if(pTok.m_type == TOK_KW_VIRTUAL)
 	  isVirtual = true;
 	else
@@ -859,7 +868,7 @@ namespace MFM {
 	if(getExpectedToken(TOK_OPEN_PAREN))
 	  {
 	    //eats the '(' when found; NULL if error occurred
-	    NodeBlockFunctionDefinition * funcdefNode = makeFunctionSymbol(typeargs, iTok, typeNode, isVirtual, isConstr); //with params
+	    NodeBlockFunctionDefinition * funcdefNode = makeFunctionSymbol(typeargs, iTok, typeNode, isVirtual, insureVirtualOverride, isConstr); //with params
 	    if(funcdefNode)
 	      brtn = true; //funcdefNode belongs to the symbolFunction; not appended to tree
 	    else
@@ -872,7 +881,10 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Unexpected input!! Token <";
-		msg << m_state.getTokenDataAsString(pTok).c_str() << ">";
+		if(insureVirtualOverride)
+		  msg << Token::getTokenAsStringFromPool(TOK_KW_FLAG_VIRTUALOVERRIDE, &m_state).c_str() << ">";
+		else
+		  msg << m_state.getTokenDataAsString(pTok).c_str() << ">";
 		msg << " applies to functions";
 		MSG(&pTok, msg.str().c_str(), ERR);
 		//continue
@@ -2075,6 +2087,14 @@ namespace MFM {
 	  }
 	else
 	  MSG(&pTok,"Continue statement not within loop" , ERR);
+      }
+    else if(pTok.m_type == TOK_KW_FLAG_VIRTUALOVERRIDE)
+      {
+	//eat error token, t41098
+	std::ostringstream msg;
+	msg << "Statement starts with flag keyword <";
+	msg << m_state.getTokenDataAsString(pTok).c_str() << ">";
+	MSG(&pTok, msg.str().c_str(), ERR);
       }
     else if(pTok.m_type == TOK_ERROR_LOWLEVEL)
       {
@@ -4567,7 +4587,7 @@ namespace MFM {
     return rtnNode;
   } //parseRestOfParameterDef
 
-  NodeBlockFunctionDefinition * Parser::makeFunctionBlock(TypeArgs& args, const Token& identTok, NodeTypeDescriptor * nodetype, bool isVirtual, bool isConstr)
+  NodeBlockFunctionDefinition * Parser::makeFunctionBlock(TypeArgs& args, const Token& identTok, NodeTypeDescriptor * nodetype, bool isVirtual, bool insureVirtualOverride, bool isConstr)
   {
     NodeBlockFunctionDefinition * rtnNode = NULL;
 
@@ -4599,6 +4619,9 @@ namespace MFM {
 
     if(isVirtual)
       fsymptr->setVirtualFunction();
+
+    if(insureVirtualOverride)
+      fsymptr->setInsureVirtualOverrideFunction(); //t41096
 
     if(isConstr)
       fsymptr->setConstructorFunction(); //t41077
@@ -4932,7 +4955,7 @@ namespace MFM {
     return brtn;
   } //parseFunctionBody
 
-  NodeBlockFunctionDefinition * Parser::makeFunctionSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor * nodetype, bool isVirtual, bool isConstr)
+  NodeBlockFunctionDefinition * Parser::makeFunctionSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor * nodetype, bool isVirtual, bool insureVirtualOverride, bool isConstr)
   {
     //first check that the function name begins with a lower case letter
     if(!isConstr && Token::isTokenAType(identTok))
@@ -4971,7 +4994,7 @@ namespace MFM {
 
     //not in scope, or not yet defined, or possible overloading
     //o.w. build symbol for function: return type + name + parameter symbols
-    NodeBlockFunctionDefinition * rtnNode = makeFunctionBlock(args, identTok, nodetype, isVirtual, isConstr);
+    NodeBlockFunctionDefinition * rtnNode = makeFunctionBlock(args, identTok, nodetype, isVirtual, insureVirtualOverride, isConstr);
 
     //exclude the declaration & definition from the parse tree
     //(since in SymbolFunction) & return NULL.

@@ -57,7 +57,7 @@ namespace MFM {
   void NodeBlock::checkAbstractInstanceErrors()
   {
     if(m_nodeNext)
-      m_nodeNext->checkAbstractInstanceErrors();
+      m_nodeNext->checkAbstractInstanceErrors(); //work done by NodeVarDecl
   }
 
   void NodeBlock::print(File * fp)

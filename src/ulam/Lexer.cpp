@@ -124,6 +124,10 @@ namespace MFM {
 	    {
 	      brtn = makeNumberToken(cstring, returnTok);
 	    }
+	  else if(c == '@')
+	    {
+	      brtn = makeFlagToken(cstring, returnTok);
+	    }
 	  else
 	    {
 	      brtn = makeOperatorToken(cstring, returnTok);
@@ -243,6 +247,44 @@ namespace MFM {
     return 0;
   } //makeNumberToken
 
+  //called because first byte was @
+  u32 Lexer::makeFlagToken(std::string& aname, Token & tok)
+  {
+    u32 brtn = 0;
+    Locator firstloc = m_SS.getLocator(); //save for token
+
+    s32 c = m_SS.read(); //capital letter follows @ for a valid flag
+
+    if(Token::isUpper(c))
+      {
+	//continue with alpha or numeric or underscore
+	while(c >= 0 && (isalpha(c) || isdigit(c) || c == '_' ))
+	  {
+	    aname.push_back(c);
+	    c = m_SS.read();
+	  }
+
+	unread();
+
+	TokenType ttype = getTokenTypeFromString(aname);
+	if(ttype != TOK_LAST_ONE)
+	  {
+	    SpecialTokenWork sptok = Token::getSpecialTokenWork(ttype);
+	    if(sptok == TOKSP_FLAGKEYWORD)
+	      {
+		tok.init(ttype,firstloc,0);
+		return 0;
+	      }
+	  }
+      }
+    //else not a flag
+
+    std::ostringstream errmsg;
+    errmsg << "Weird Lex! <" << aname;
+    errmsg << "> does not precede a valid flag keyword";
+    brtn = m_state.m_pool.getIndexForDataString(errmsg.str());
+    return brtn;
+  } //makeFlagToken
 
   //starts with a non-alpha or non-digit, so
   //possibly a simple operator (e.g. +, =),
