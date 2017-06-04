@@ -14,7 +14,7 @@ Uq_System { <NOMAIN> }
 ## informed by t3890,  class param 'b' for Q: default is local filescope constant array item of template (inferred), not use context
 ##
 #>P.ulam
-  ulam 1;
+  ulam 3;
 use Q;
 local constant Int by[4] = {1};
 element P {
@@ -30,7 +30,7 @@ element P {
 }
 
 #:Q.ulam
-  ulam 2;
+  ulam 3;
 use V;
 quark Q(Unsigned s = V(b).sizeof, Int b = by[2]) {
   typedef Unsigned(s) Foo;

@@ -13,7 +13,7 @@ Uq_System { <NOMAIN> }
 ## Informed by t3949, t3929, sizeof a String array item, and array of Strings
 ##
 #>Eltypo.ulam
-  ulam 2;
+  ulam 3;
 element Eltypo {
   typedef String SArr[2];
   SArr m_sarr;

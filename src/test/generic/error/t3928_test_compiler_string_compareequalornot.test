@@ -9,7 +9,7 @@
 ./A.ulam:8:7: ERROR: Assignment is invalid; LHS: Bool(1); RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   Bool b1, b2;
  Int test() {

@@ -14,7 +14,7 @@ Uq_System { <NOMAIN> }
 ## also tests locals filescope file name of a template class, no args, shared by all FString instances.
 ##
 #>HelloWorldString.ulam
-  ulam 2;
+  ulam 3;
 local constant String lstr = "Hello world";
 element HelloWorldString : FString(lstr)
 {
@@ -33,7 +33,7 @@ element HelloWorldString : FString(lstr)
 }
 
 #:FString.ulam
-ulam 2;
+ulam 3;
 local constant String localfilenametest = "localfilenametest";
 quark FString(String msg) {
   typedef Unsigned(8) StringIndex;

@@ -10,7 +10,7 @@ Unrecoverable Program Type Label FAILURE.
 ## informed by t41065
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 element Foo : Qbar
 {
   Bool sp = true;

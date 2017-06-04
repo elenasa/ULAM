@@ -8,7 +8,7 @@ Unrecoverable Program Type Label FAILURE.
 ## redeclaring localdefs, cannot mix typedefs and constants thanks to capitalization!
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 local constant Unsigned(3) soosize = 3u;
 local typedef Soo(soosize) Soo3;
 element Foo : Soo(soosize) {

@@ -11,7 +11,7 @@ Uq_QW { <NOMAIN> }
 ## informed by t3905, except to test write, and use of atomrefs
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 use System;
 use QW;
 element A : QW {

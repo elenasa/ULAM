@@ -9,7 +9,7 @@ Uq_EventWindow { <NOMAIN> }
 ##  informed by t41044, t41045    //which statements do not support 'as' conditional, cases do!! (no parens)
 ##
 #>EWE.ulam
-  ulam 2;
+  ulam 3;
 element EWE : QFoo{
   Int test() {
     EventWindow ew;
@@ -49,7 +49,7 @@ quark QFoo {
 
 
 #:EventWindow.ulam
-  ulam 1;
+  ulam 3;
 quark EventWindow{
   Atom& aref(Int index) native;
 }

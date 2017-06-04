@@ -13,7 +13,7 @@ Uq_System { <NOMAIN> }
 ## informed by t41005: custom array function call 'afooref' (not an aref call)
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A : ConstantLabel("foobar") {
   Int test()
   {

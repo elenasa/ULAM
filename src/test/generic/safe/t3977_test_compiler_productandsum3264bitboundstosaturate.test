@@ -17,7 +17,7 @@ Uq_System { <NOMAIN> }
 ## (informed by t3428) here, addition and muliplication
 ##
 #>A.ulam
-  ulam 1;
+  ulam 3;
 element A {
   typedef Int(64) Long;
   typedef Int(31) Jint;

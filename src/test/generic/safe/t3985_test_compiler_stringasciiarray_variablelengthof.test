@@ -15,7 +15,7 @@ Uq_System { <NOMAIN> }
 ## lengthof a String array variable (incl data members) is a constant, can be folded (eval)
 ##
 #:FString.ulam
-  ulam 2;
+  ulam 3;
 /* Glyph representation "cwhdrowspaddedtomultipleof8bits"
    c: char
    w: char width in sites

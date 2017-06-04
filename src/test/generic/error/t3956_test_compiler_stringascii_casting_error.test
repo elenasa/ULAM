@@ -5,7 +5,7 @@
 ./A.ulam:6:5: ERROR: Initial value expression for: sidx, initialization is invalid.
 Unrecoverable Program Type Label FAILURE.
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   constant String str = "hello world";
   Int test() {

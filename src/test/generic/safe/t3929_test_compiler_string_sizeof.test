@@ -14,7 +14,7 @@ Uq_System { <NOMAIN> }
 ## sizeof String is the number of bits occupied in an atom
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   Int(8) m_s1;
   Int(8) m_s2;

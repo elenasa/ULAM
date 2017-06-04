@@ -10,7 +10,7 @@ Uq_System { <NOMAIN> }
 ## informed by Dave issue_2 on 1/17/17: custom array data member assignment (not an aref call)
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A : ConstantLabel("foobar") {
   Int test(){
     behave();

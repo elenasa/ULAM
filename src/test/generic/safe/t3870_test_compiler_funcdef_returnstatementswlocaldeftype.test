@@ -15,7 +15,7 @@ Uq_Qw { typedef Int(3) Woo;  Int(3) w(0);  <NOMAIN> }
 ## here, Foo and Woo alias the same type in different files.
 ##
 #>D.ulam
-  ulam 2;  //3 not allowed yet!
+  ulam 3;  //3 not allowed yet!
 local typedef Int(3) Foo;
 element D {
   local.Foo foo(local.Foo val) {
@@ -42,7 +42,7 @@ element D {
 
 
 #:Qw.ulam
-  ulam 2;
+  ulam 3;
 quark Qw {
   typedef Int(3) Woo;
   Woo w;

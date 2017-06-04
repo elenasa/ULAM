@@ -14,7 +14,7 @@ Uq_V(Int(32) a) { Unsigned(UNKNOWN) vfoo(notready);  <NOMAIN> }
 ##    //informed by t3894: param bitsize based on constant array item
 ##
 #>T.ulam
- ulam 1;
+ ulam 3;
 local typedef Int BigSite[10];
 element T{
   Int r;

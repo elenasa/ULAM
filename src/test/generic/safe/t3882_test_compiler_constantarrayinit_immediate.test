@@ -18,7 +18,7 @@ Uq_System { <NOMAIN> }
 ## 3 cases: data member (t3881), immediates (t3882), local def (t3883)
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 local typedef Unsigned(16) BIGARGB[4];
 local typedef Unsigned(33) WEIRDOG[5];
 element A {

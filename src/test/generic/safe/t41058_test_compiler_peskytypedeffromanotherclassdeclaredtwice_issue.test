@@ -19,7 +19,7 @@ Uq_UMod(Unsigned(32) bits) { typedef Unsigned(UNKNOWN) Dir;  typedef Unsigned(UN
 ##
 ##
 #>R.ulam
-  ulam 2;
+  ulam 3;
 element R {
   Int test(){
   typedef TestEventWindow.Dir Dir;
@@ -32,7 +32,7 @@ element R {
 
 
 #:Content.ulam
-  ulam 2;
+  ulam 3;
 element Content : QContent
 {
   constant Unsigned cCMD_BITS = 7u;     // Allow ~64 cmds in flight before ambiguity
@@ -56,7 +56,7 @@ element Content : QContent
 }
 
 #:QContent.ulam
-  ulam 2;
+  ulam 1;
 quark QContent {
 }
 

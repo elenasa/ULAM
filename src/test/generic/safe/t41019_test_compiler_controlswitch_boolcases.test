@@ -12,7 +12,7 @@ Uq_System { <NOMAIN> }
 ## first switch test: evaluate switch condition once only!
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   System s;
   Bool(7) b;

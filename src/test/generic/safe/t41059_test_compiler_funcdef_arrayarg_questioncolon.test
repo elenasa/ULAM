@@ -12,7 +12,7 @@ Uq_System { <NOMAIN> }
 ## first ?: test; informed by t3114
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   Int m(Int m, Bool b[3]) {
     return b[0] ? 1 : 2;

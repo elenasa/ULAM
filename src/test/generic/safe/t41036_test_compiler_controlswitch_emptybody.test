@@ -13,7 +13,7 @@ Uq_System { <NOMAIN> }
 ## informed by t41025: empty switch allowed by gcc
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   System s;
   Int a, b;

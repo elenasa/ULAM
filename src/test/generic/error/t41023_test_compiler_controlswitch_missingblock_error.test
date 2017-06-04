@@ -13,7 +13,7 @@ Unrecoverable Program Parse FAILURE: <A.ulam>
 ./A.ulam:21:6: ERROR: Invalid Class Type <.>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 Unrecoverable Program Parse FAILURE: <System.ulam>
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   System s;
   Int a, b;

@@ -9,7 +9,7 @@ Ue_R { Int(32) test() {  R tw;  ( )func tw = ( )funcme tw = ( )funcref tw cast =
 ## informed by t3790, t41054
 ##
 #>R.ulam
-  ulam 2;
+  ulam 3;
 element R {
   Int test(){
     R tw;

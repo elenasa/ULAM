@@ -12,7 +12,7 @@ Uq_System { <NOMAIN> }
 ## informed by t3877
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 use System;
 element A {
   System s;

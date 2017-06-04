@@ -8,7 +8,7 @@ Unrecoverable Program Type Label FAILURE.
 ##      //informed by t3923
 ##
 #>Res.ulam
-  ulam 2;
+  ulam 3;
 element Res {
   EventWindow ew;
   Bool b;
@@ -31,7 +31,7 @@ element Res {
 }
 
 #:EventWindow.ulam
-  ulam 2;
+  ulam 3;
 quark EventWindow{
   Atom& aref(Int index) native;
 }

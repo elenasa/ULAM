@@ -15,7 +15,7 @@ Un_Coo { Bool(3) cb( true);  <NOMAIN> }
 ## informed by t3996
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 element Foo {
   Bool first;
   Unsigned fint;
@@ -40,7 +40,7 @@ element Foo {
 }
 
 #:Coo.ulam
-  ulam 2;
+  ulam 3;
 transient Coo {
   Bool(3) cb = true;
   Int toInt()

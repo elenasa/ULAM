@@ -10,7 +10,7 @@ Unrecoverable Program Parse FAILURE: <Foo.ulam>
 ## error caught by Lexer
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 local constant String longstring = "thisisaverylongstringthatexceedsthatlengthallowedbylinuxwhichistwohundredfiftyfivebuttakingthelongestextensionintoaccountwemustsubtracteightallowingustotestthemanglednamewiththisverylongstringthatneedsafewmoreletterstoproperlytestthelimitationdiscussed0123"; //256
 element Foo {
   Bool sp;

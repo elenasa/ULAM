@@ -14,7 +14,7 @@ Ue_ElementWithString(String(32) str) : FString(msg) { /* empty class block */ }
 ## informed by String as class arg issue by Dave 01022017; like t3981, except class arg is a func constant
 ##
 #>HelloWorldString.ulam
-  ulam 2;
+  ulam 3;
 local constant String lstr = "Hello world";
 element HelloWorldString : FString(lstr)
 {
@@ -33,13 +33,13 @@ element HelloWorldString : FString(lstr)
 }
 
 #:ElementWithString.ulam
-  ulam 2;
+  ulam 3;
 element ElementWithString(String str) : FString(str)
 {
 }
 
 #:FString.ulam
-ulam 2;
+  ulam 3;
 quark FString(String msg) {
   typedef Unsigned(8) StringIndex;
   typedef Unsigned(5) CharDim;

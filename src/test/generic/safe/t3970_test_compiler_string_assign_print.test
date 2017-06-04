@@ -16,7 +16,7 @@ Uq_System { <NOMAIN> }
 ## SystemU3 subclasses System for backward compatibility (all tests that use System.ulam)
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   String m_s;
   Int m_total;
@@ -42,7 +42,7 @@ element A {
 }
 
 #:SystemU3.ulam
-  ulam 2;
+  ulam 3;
 quark SystemU3 : System {
   Void print(String s) native;
 }

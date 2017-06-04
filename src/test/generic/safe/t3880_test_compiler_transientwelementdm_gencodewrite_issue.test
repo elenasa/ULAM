@@ -9,7 +9,7 @@ Un_Isht { Ish mIsh( Bool(1) mBool(false); );  <NOMAIN> }
 ## informed by Dave ish2 8/6/2016:
 ##
 #>R.ulam
-  ulam 2;
+  ulam 3;
 element R {
   Int test()
   {
@@ -20,7 +20,7 @@ element R {
 }
 
 #:Isht.ulam
-  ulam 2;
+  ulam 3;
 transient Isht {
   Ish mIsh;
   Void func(Ish& ish) {
@@ -29,7 +29,7 @@ transient Isht {
 }
 
 #:Ish.ulam
-  ulam 2;
+  ulam 3;
 element Ish {
   Bool mBool;
   Void behave() {

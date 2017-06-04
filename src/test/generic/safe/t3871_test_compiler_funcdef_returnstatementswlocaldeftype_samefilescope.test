@@ -14,7 +14,7 @@ Uq_Qw { typedef Int(3) Woo;  Int(3) w(0);  <NOMAIN> }
 ## informed by t3870, same file scope
 ##
 #>D.ulam
-  ulam 2;  //3 not allowed yet!
+  ulam 3;
 local typedef Int(3) Foo;
 element D {
   local.Foo foo(local.Foo val) {

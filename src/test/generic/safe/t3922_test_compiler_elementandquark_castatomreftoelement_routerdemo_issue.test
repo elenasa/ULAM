@@ -14,7 +14,7 @@ Ue_Cell { Bool(1) bell( true);  <NOMAIN> }
 ##      //informed by ulamexports demo Router
 ##
 #>WallPort.ulam
-  ulam 2;
+  ulam 3;
 element WallPort : QPort4(2) {
   typedef QPort4(2) QPort;
   Bool b;
@@ -27,7 +27,7 @@ element WallPort : QPort4(2) {
 }
 
 #:QPort4.ulam
-  ulam 2;
+  ulam 3;
 quark QPort4(Unsigned(2) extraScanDistance)  {
   typedef EventWindow.SiteNum SiteNum;
   EventWindow ew;
@@ -48,7 +48,7 @@ element Cell {
 }
 
 #:EventWindow.ulam
-  ulam 2;
+  ulam 3;
 quark EventWindow{
   typedef Unsigned(6) SiteNum;
   Atom& aref(Int index) native;

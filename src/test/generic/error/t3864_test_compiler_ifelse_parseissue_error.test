@@ -7,7 +7,7 @@ Unrecoverable Program Parse FAILURE: <Ish.ulam>
 ## Daves ish of the evening
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 1;
 element Foo {
   Int test() {
     Ish ish;
@@ -17,7 +17,7 @@ element Foo {
 }
 
 #:Ish.ulam
-  ulam 2;
+  ulam 1;
 element Ish {
   Void behave()
   {

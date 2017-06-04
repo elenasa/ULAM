@@ -10,7 +10,7 @@ Unrecoverable Program Parse FAILURE: <System.ulam>
 ## test of local defs: different file scopes, but load same local defs, informed by t3859
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 load Constants;
 
 element Foo : Soo3 {
@@ -53,6 +53,7 @@ quark Soo(Unsigned(3) v) {
 #:Constants.ulam
 local constant Unsigned(3) soosize = 3u;
 local typedef Soo(soosize) Soo3;
+
 #:System.ulam
 ulam 1;
 quark System {

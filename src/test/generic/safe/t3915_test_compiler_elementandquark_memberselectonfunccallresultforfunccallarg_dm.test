@@ -14,7 +14,7 @@ Uq_Qfoo : QW { :< Bool(1) m_b(false);  Qda da( Int(3) m_dai(0); ); > <NOMAIN> }
 ## informed by Dave 9/22/2016, t3914
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 use System;
 use QW;
 element A {

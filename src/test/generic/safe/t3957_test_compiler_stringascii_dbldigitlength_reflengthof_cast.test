@@ -12,7 +12,7 @@ Uq_System { <NOMAIN> }
 ## tests double-digit length string, lengthof string reference, and casting String to String.
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   constant String str = "hello world";
   Unsigned slen;

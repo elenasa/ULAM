@@ -8,7 +8,7 @@ Unrecoverable Program Parse FAILURE: <Soo.ulam>
 ## first test of local defs errors
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 local Unsigned(3) soosize = 3u; //missing constant
 element Foo : Soo(3u) {
   Bool(7) sp;

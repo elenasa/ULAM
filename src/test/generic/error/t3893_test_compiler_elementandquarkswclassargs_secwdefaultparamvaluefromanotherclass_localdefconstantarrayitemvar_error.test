@@ -7,7 +7,7 @@ Unrecoverable Program Type Label FAILURE.
 ## informed by t3892,  class param 'b' for Q: variable for item as value for first class arg: not a constant!
 ##
 #>P.ulam
-  ulam 1;
+  ulam 3;
 use Q;
 local constant Int by[4] = {1};
 element P {
@@ -24,7 +24,7 @@ element P {
 }
 
 #:Q.ulam
-  ulam 2;
+  ulam 3;
 use V;
 quark Q(Int b = by[2], Unsigned s = V(b).sizeof) {
   typedef Unsigned(s) Foo;

@@ -12,7 +12,7 @@ Unrecoverable Program Parse FAILURE: <A.ulam>
 ## informed by t41027; only case and default inside switch block
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   Int a, b;
   Int test() {

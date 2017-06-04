@@ -20,7 +20,7 @@ element EWE{
 }
 
 #:EventWindow.ulam
-  ulam 1;
+  ulam 3;
 quark EventWindow{
   Atom& aref(Int index) native;
 }

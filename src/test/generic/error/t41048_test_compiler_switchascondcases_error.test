@@ -13,7 +13,7 @@ Unrecoverable Program Parse FAILURE: <EventWindow.ulam>
 ##  informed by t41047, just different case ordering
 ##
 #>EWE.ulam
-  ulam 2;
+  ulam 3;
 element EWE {
   Int test() {
     EventWindow ew;
@@ -44,7 +44,7 @@ element EWE {
 }
 
 #:EventWindow.ulam
-  ulam 1;
+  ulam 3;
 quark EventWindow{
   Atom& aref(Int index) native;
 }

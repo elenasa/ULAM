@@ -14,7 +14,7 @@ Unrecoverable Program Parse FAILURE: <A.ulam>
 ## Dave question; only case and default inside switch block
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   Int a, b;
   Int test() {

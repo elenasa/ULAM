@@ -11,7 +11,7 @@ Ue_Foo { Int(3) m_i(3);  Int(32) test() {  Foo f3;  f3 m_i . 1 cast = Foo& r = (
 ## informed by Dave email 2/10/2017 and t41029, see safe/t41032
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 element Foo
 {
   Int(3) m_i = 3;

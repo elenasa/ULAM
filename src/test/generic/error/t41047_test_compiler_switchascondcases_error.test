@@ -13,7 +13,7 @@ Unrecoverable Program Parse FAILURE: <EventWindow.ulam>
 ##  informed by t41046    //which statements do not support 'as' conditional, cases do!! MUST BE SINGLETON CASE (no parens)
 ##
 #>EWE.ulam
-  ulam 2;
+  ulam 3;
 element EWE {
   Int test() {
     EventWindow ew;
@@ -46,7 +46,7 @@ element EWE {
 
 
 #:EventWindow.ulam
-  ulam 1;
+  ulam 3;
 quark EventWindow{
   Atom& aref(Int index) native;
 }

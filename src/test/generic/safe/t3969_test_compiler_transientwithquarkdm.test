@@ -21,7 +21,7 @@ Uq_System { <NOMAIN> }
 ## with data member structure read/write (informed by ish 12/1/16)
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 use Too;
 use System;
 element Foo {

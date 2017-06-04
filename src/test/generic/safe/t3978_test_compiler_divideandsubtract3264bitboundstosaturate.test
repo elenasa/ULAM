@@ -20,7 +20,7 @@ Uq_System { <NOMAIN> }
 ## (informed by t3977) here, subtraction and division
 ##
 #>A.ulam
-  ulam 1;
+  ulam 3;
 element A {
   typedef Int(64) Long;
   typedef Int(31) Jint;

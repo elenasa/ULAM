@@ -20,7 +20,7 @@ Unrecoverable Program Parse FAILURE: <System.ulam>
 ## informed by t41077
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   Bar m_bar;
   Int test(){
@@ -50,7 +50,7 @@ element A {
 }
 
 #:Bar.ulam
-  ulam 2;
+  ulam 3;
 quark Bar
 {
   Self()

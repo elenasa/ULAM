@@ -16,7 +16,7 @@ Unrecoverable Program Parse FAILURE: <System.ulam>
 ## informed by t41025: gcc permits default case anywhere, but only hit if nothing else does; we do not.
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   System s;
   Int a, b;

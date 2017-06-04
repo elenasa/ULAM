@@ -20,19 +20,19 @@ quark Base {
 }
 
 #:Sub1.ulam
-  ulam 2;
+  ulam 3;
 quark Sub1 : Base {
   @Override virtual Int afunc(Int a) { return 2; }
 }
 
 #:E2.ulam
-  ulam 2;
+  ulam 3;
 element E2 : Sub1 {
   virtual Int afunc(Int a) { return super.afunc(a); } //2
 }
 
 #>Test.ulam
-  ulam 2;
+  ulam 3;
 element Test : System {
   Bool brtn[4];
 

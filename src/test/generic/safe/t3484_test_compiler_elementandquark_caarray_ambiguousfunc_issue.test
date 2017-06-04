@@ -31,7 +31,7 @@ element EventWindowTest {
 use EventWindow;
 
 #:EventWindow.ulam
-  ulam 1;
+  ulam 3;
 use C2D;
 quark EventWindow {
   typedef Unsigned(6) SiteNum;

@@ -14,7 +14,7 @@ Uq_System { <NOMAIN> }
 ## informed by t3934
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 local constant String longstring = "thisisaverylongstringthatexceedsthatlengthallowedbylinuxwhichistwohundredfiftyfivebuttakingthelongestextensionintoaccountwemustsubtracteightallowingustotestthemanglednamewiththisverylongstringthatneedsafewmoreletterstoproperlytestthelimitationdiscussed012"; //255
 element A {
   Int m_s1;

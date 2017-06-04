@@ -13,7 +13,7 @@ Uq_System { <NOMAIN> }
 ## informed by t41016: un-nested switch does not need breaks! no fall through. default optional.
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   System s;
   Int a, b;

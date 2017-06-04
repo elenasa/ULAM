@@ -12,7 +12,7 @@ Uq_System { <NOMAIN> }
 ##      //arraysize zero ok, but not bitsize zero!
 ##      // gcc balks at BitVector for immediate (Dave fixed it)
 #>Eltypo.ulam
-  ulam 1;
+  ulam 3;
 use Empty;
 element Eltypo {
   typedef Empty EArr[4];

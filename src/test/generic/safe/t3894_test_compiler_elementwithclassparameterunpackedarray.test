@@ -13,7 +13,7 @@ Uq_S(Int(32)[10] y, Int(32) x) { <NOMAIN> }
 ##    //informed by t3444,5: local func-scope constant new
 ##
 #>T.ulam
- ulam 2;
+ ulam 3;
 local typedef Int BigSite[10];
 element T{
   Int r;

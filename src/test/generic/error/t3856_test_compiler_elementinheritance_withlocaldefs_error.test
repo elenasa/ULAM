@@ -13,7 +13,7 @@ Unrecoverable Program Parse FAILURE: <Soo.ulam>
 ## test of local defs errors: illegal local keyword
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 local constant Unsigned(3) soosize = 3u;
 local typedef Soo(soosize) Soo3;
 element Foo : Soo3 {

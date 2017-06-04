@@ -10,7 +10,7 @@ Unrecoverable Program Type Label FAILURE.
 ## informed by t3962
 ##
 #>HelloWorldString.ulam
-  ulam 2;
+  ulam 3;
 element HelloWorldString : FString("Hello world")
 {
   Bool b1;
@@ -27,7 +27,7 @@ element HelloWorldString : FString("Hello world")
 }
 
 #:FString.ulam
-  ulam 2;
+  ulam 3;
 quark FString(String msg) {
   typedef Unsigned(8) StringIndex;
   typedef Unsigned(5) CharDim;

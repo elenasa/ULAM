@@ -14,7 +14,7 @@ Unrecoverable Program Parse FAILURE: <A.ulam>
 ## Dave doesnt believe in them.
 ##
 #>A.ulam
-  ulam 1;
+  ulam 2;
 element A {
   Bool(7) b;
   Int a;

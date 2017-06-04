@@ -16,7 +16,7 @@ Uq_Coo { Int(32) m_i( 12);  <NOMAIN> }
 ## informed by t41000
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 element Foo {
   Bool first;
   Int test() {
@@ -38,7 +38,7 @@ element Foo {
 }
 
 #:Soo.ulam
-  ulam 2;
+  ulam 3;
 transient Soo : Coo {
   Int us = 4u;
   virtual Int& aref(Int index)
@@ -48,7 +48,7 @@ transient Soo : Coo {
 }
 
 #:Coo.ulam
-  ulam 2;
+  ulam 3;
 quark Coo {
   Int m_i = 12;
   virtual Int& aref(Int index)

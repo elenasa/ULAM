@@ -13,7 +13,7 @@ Unrecoverable Program Type Label FAILURE.
 ## informed by Dave ish 1/19/17, t41007: inherited quark too big, assert too overkill.
 ##
 #>R.ulam
-  ulam 2;
+  ulam 3;
 element R {
   Int test()
   {
@@ -24,7 +24,7 @@ element R {
 }
 
 #:A.ulam
-  ulam 2;
+  ulam 3;
 element A : ConstantLabelAndFont("foobar", 33) {
 }
 

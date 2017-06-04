@@ -14,7 +14,7 @@ Uq_Qbar { Bool(1) qsp(false);  Int(3) m_q( 1);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 element Foo : Qbar
 {
   Bool sp = Qbar.sizeof > 1 ? true : false; //data member

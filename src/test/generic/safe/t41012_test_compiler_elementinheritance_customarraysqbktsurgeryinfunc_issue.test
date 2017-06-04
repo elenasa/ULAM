@@ -15,7 +15,7 @@ Uq_Base { <NOMAIN> }
 ## Dave issue 1/19/2017, assigns event window custom array, a local function var
 ##
 #>R.ulam
-  ulam 2;
+  ulam 3;
 element R {
   Int test() {
     System s;
@@ -26,7 +26,7 @@ element R {
 }
 
 #:Foo.ulam
-  ulam 2;
+  ulam 3;
 element Foo : Intermediate("woof") {
   Bool(7) sp;
   System s;
@@ -42,7 +42,7 @@ element Foo : Intermediate("woof") {
 }
 
 #:Intermediate.ulam
-  ulam 2;
+  ulam 3;
 quark Intermediate(String string) : Base
 {
   virtual Bool check(Base& base) {
@@ -54,14 +54,14 @@ quark Intermediate(String string) : Base
 }
 
 #:Base.ulam
-  ulam 2;
+  ulam 3;
 quark Base
 {
   virtual Bool check(Base& base) { return false; }
 }
 
 #:EventWindow.ulam
-  ulam 1;
+  ulam 3;
 quark EventWindow{
   Atom& aref(Int index) native;
 }

@@ -16,7 +16,7 @@ element Foo {
 }
 
 #:EventWindow.ulam
- ulam 1;
+ ulam 3;
 quark EventWindow {
   typedef Unsigned(6) Sitenum;
   Atom& aref(Int index) native;

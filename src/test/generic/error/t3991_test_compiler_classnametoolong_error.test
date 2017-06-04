@@ -5,7 +5,7 @@
 Unrecoverable Program Type Label FAILURE.
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 local constant String longstring = "thisisaverylongstringthatexceedsthatlengthallowedbylinuxwhichistwohundredfiftyfivebuttakingthelongestextension0"; //111
 element Foo : FString(longstring) {
   Bool sp;
@@ -15,7 +15,7 @@ element Foo : FString(longstring) {
 }
 
 #:FString.ulam
-  ulam 2;
+  ulam 3;
 quark FString(String fname) {
 }
 #.

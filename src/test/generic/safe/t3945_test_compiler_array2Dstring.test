@@ -12,7 +12,7 @@ Uq_System { <NOMAIN> }
 ## Informed by t3942, t3943, t3944
 ##
 #>Eltypo.ulam
-  ulam 2;
+  ulam 3;
 element Eltypo {
   typedef String SArr[2];
   SArr m_sarr;

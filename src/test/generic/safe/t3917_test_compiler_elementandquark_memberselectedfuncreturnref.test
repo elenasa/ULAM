@@ -13,7 +13,7 @@ Uq_System { <NOMAIN> }
 ##      //member selection with a function call returned by reference (see t3189)
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 element Foo {
   Int m_idx;
   C2D m_coord;

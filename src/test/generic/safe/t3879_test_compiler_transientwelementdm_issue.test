@@ -9,7 +9,7 @@ Ue_Ish { /* empty class block */ }
 ## informed by Dave ish 8/6/2016: calculated size of transient did not take into account zero-sized element (atom-based)
 ##
 #>R.ulam
-  ulam 2;
+  ulam 3;
 element R {
   Int test()
   {

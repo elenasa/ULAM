@@ -15,7 +15,7 @@ Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 ## transient and quark custom arrays (aref, virtual)
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 element Foo {
   Bool first;
   Int sint;
@@ -49,7 +49,7 @@ element Foo {
 }
 
 #:Soo.ulam
-  ulam 2;
+  ulam 3;
 transient Soo : Coo {
   Unsigned(3) us = 4u;
   virtual Int aref(Int index)
@@ -63,7 +63,7 @@ transient Soo : Coo {
 }
 
 #:Coo.ulam
-  ulam 2;
+  ulam 3;
 quark Coo {
   Bool(3) cb = true;
   virtual Int aref(Int index)

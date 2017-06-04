@@ -15,7 +15,7 @@ Uq_QW { Unary(3) m_y(0);  <NOMAIN> }
 ## informed by t3906, except with lots of array items, lval and atom ref
 ##
 #>R.ulam
-  ulam 2;
+  ulam 3;
 element R {
   Int ans;
   Int test(){

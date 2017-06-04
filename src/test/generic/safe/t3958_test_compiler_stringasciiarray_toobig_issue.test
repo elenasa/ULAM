@@ -13,7 +13,7 @@ Uq_System { <NOMAIN> }
 ## informed by Font issue by Dave 11292016, t3956
 ##
 #:Font1.ulam
-  ulam 2;
+  ulam 3;
 /* Glyph representation "cwhdrowspaddedtomultipleof8bits"
    c: char
    w: char width in sites
@@ -200,7 +200,7 @@ transient Font1 {
 }
 
 #>FString.ulam
-  ulam 2;
+  ulam 3;
 element FString {
   String foo;
   Int(3) goofy = 2;

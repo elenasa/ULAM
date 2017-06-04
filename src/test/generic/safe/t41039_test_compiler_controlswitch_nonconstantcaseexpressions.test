@@ -12,7 +12,7 @@ Uq_System { <NOMAIN> }
 ## informed by Dave: different than C, ulam allows non-constant case expressions
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   System s;
   Int x = 0;

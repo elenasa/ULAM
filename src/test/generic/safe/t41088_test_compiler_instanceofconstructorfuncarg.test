@@ -11,7 +11,7 @@ Uq_System { <NOMAIN> }
 ## informed by error/t41087
 ##
 #>D.ulam
-  ulam 2;
+  ulam 3;
 element D {
   Bool mb;
   Bool isOurBackFill(D d)

@@ -9,7 +9,7 @@ Uq_EventWindow { <NOMAIN> }
 ## To answer question posed by Dave 11/22/2016, 2d-custom array? YES!
 ##
 #>R.ulam
-  ulam 2;
+  ulam 3;
 element R {
   Int test(){
     TEventWindows tvt;
@@ -22,7 +22,7 @@ element R {
 
 
 #:TEventWindows.ulam
-  ulam 2;
+  ulam 3;
 transient TEventWindows {
   EventWindow m_EWarr[7];
   EventWindow& aref(Int index) {
@@ -31,7 +31,7 @@ transient TEventWindows {
 }
 
 #:EventWindow.ulam
-  ulam 1;
+  ulam 3;
 quark EventWindow {
   Atom& aref(Int index) native;
 }

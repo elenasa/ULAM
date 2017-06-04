@@ -13,7 +13,7 @@ Uq_System { <NOMAIN> }
 ## suggested by Dave 4/15/17 for ?: test;
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   Bool ok;
   Int a;

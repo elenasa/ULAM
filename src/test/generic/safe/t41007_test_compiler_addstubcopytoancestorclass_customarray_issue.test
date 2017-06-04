@@ -15,7 +15,7 @@ Uq_System { <NOMAIN> }
 ## informed by Dave ish-1 1/17/17: several layers of inheritance with string class args
 ##
 #>R.ulam
-  ulam 2;
+  ulam 3;
 element R {
   Int test()
   {
@@ -26,7 +26,7 @@ element R {
 }
 
 #:A.ulam
-  ulam 2;
+  ulam 3;
 element A : ConstantLabelAndFont("foobar", 33) {
 }
 

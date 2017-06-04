@@ -15,7 +15,7 @@ Un_TWindow { typedef String(32) IArr[3];  String(32) m_arr0[3]( { "zero", "zero"
 ## To answer question posed by Dave 11/22/2016, 2d-custom array of regular array of String?
 ##
 #>Eltypo.ulam
-  ulam 2;
+  ulam 3;
 element Eltypo {
   typedef String IArr[3];
   ASCII m_i, m_j;
@@ -34,7 +34,7 @@ element Eltypo {
 }
 
 #:TEventWindows.ulam
-  ulam 2;
+  ulam 3;
 transient TEventWindows {
   TWindow m_TW;
   typedef String IArr[3];
@@ -44,7 +44,7 @@ transient TEventWindows {
 }
 
 #:TWindow.ulam
-  ulam 2;
+  ulam 3;
 transient TWindow {
   typedef String IArr[3];
   IArr m_arr0 = { "zero", "zero", "zero" };

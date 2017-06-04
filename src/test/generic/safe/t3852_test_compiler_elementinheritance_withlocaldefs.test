@@ -14,7 +14,7 @@ Uq_System { <NOMAIN> }
 ## first test of local defs
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 local constant Unsigned(3) soosize = 3u;
 local typedef Soo(soosize) Soo3;
 element Foo : Soo3 {

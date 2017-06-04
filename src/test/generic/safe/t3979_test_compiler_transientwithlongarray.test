@@ -14,7 +14,7 @@ Un_Tumi { Bool(1) b2( true);  Unsigned(9) u2( 7u);  Bool(7) barrlong[6]( { true,
 ## with data member structure read/write (informed by ish 12/1/16)
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 use System;
 element Foo {
   Bool sp;
@@ -47,7 +47,7 @@ element Foo {
 
 
 #:Tumi.ulam
-  ulam 2;
+  ulam 3;
 transient Tumi {
   Bool b2 = true;
   Unsigned(9) u2 = 7;

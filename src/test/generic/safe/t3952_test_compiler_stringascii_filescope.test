@@ -10,7 +10,7 @@ Uq_System { <NOMAIN> }
 ## informed by t3951, t3930; Strings legal for locals filescope
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 local constant String str = "bar";
 element A {
   Bool b1, b2;

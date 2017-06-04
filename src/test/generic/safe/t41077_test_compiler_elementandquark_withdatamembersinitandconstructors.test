@@ -20,7 +20,7 @@ Uq_System { <NOMAIN> }
 ## informed by t3511: answer is saturated
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   Bar bar;
   Int test(){
@@ -83,7 +83,7 @@ element A {
 }
 
 #:Bar.ulam
-  ulam 2;
+  ulam 3;
 quark Bar
 {
   Self(Bool barg)

@@ -6,7 +6,7 @@
 Unrecoverable Program Parse FAILURE: <Ish.ulam>
 ##
 #>Ish.ulam
-  ulam 2;
+  ulam 3;
 element Ish {
   Int& update() {
     constant Int cI = 1024;

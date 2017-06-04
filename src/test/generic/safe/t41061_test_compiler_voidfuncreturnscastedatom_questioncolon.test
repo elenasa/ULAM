@@ -12,7 +12,7 @@ Uq_System { <NOMAIN> }
 ## informed by t3485
 ##
 #>Tu.ulam
-  ulam 1;
+  ulam 3;
 element Tu {
   Int(3) me;
   Void func(Bool b) {

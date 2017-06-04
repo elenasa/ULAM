@@ -20,14 +20,14 @@ Uq_System { <NOMAIN> }
 ## informed by t3653, also uses a data member in questioncolon.
 ##
 #:QW.ulam
-  ulam 2;
+  ulam 3;
 quark QW {
   Int(7) m[3];
   Int(7)& aref(Int i) { return m[i]; }
 }
 
 #>IshE.ulam
-  ulam 2;
+  ulam 3;
 use System;
 element IshE {
   Bool sp;

@@ -15,7 +15,7 @@ Uq_Qbar { Int(3) c[4](0,0,0,0);  <NOMAIN> }
 ## suggested by Dave 4/15/17 for ?: test;
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   Bool ok;
   Int(3) a[4];
@@ -46,7 +46,7 @@ element A {
 }
 
 #:Qbar.ulam
-  ulam 2;
+  ulam 3;
 quark Qbar {
   Int(3) c[4];
   Int(3)& aref(Int index)

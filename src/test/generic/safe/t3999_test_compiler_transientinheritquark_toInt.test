@@ -15,7 +15,7 @@ Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 ## transient and quark: toInt (non-virtual)
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 element Foo {
   Bool first;
   Int sint;
