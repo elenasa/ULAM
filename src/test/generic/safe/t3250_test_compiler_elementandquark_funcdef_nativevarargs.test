@@ -1,0 +1,46 @@
+## -*- mode:ulam -*-
+#=t3250_test_compiler_elementandquark_funcdef_nativevarargs
+##      gen code: (+ assert)
+##       arg 1 type name: <Ut_10121i>
+##       arg 2 type name: <Ut_10141i>
+##       arg 3 type name: <Ut_10121u>
+##	 Int Arg: 2
+##
+##	 unevaluable because eval is unable to return a non-void native function in an empty block
+#!
+Exit status: -11
+Ue_A { Math math();  Int(32) test() {  System s;  Int(32) m = math ( 1 -4 2u )max .;  s ( m )print . s ( m 2 cast == )assert . m return } }
+Uq_Math { <NOMAIN> }
+Uq_System { <NOMAIN> }
+#>A.ulam
+  ulam 3;
+element A {
+  Math math;
+  Int test(){
+    System s;
+    Int m = math.max(1, -4, 2u);
+    s.print(m);
+    s.assert(m == 2);
+    return m;
+  }
+}
+
+##      // max with variable number of args...
+##      //with final void * 0 instead of nargs as first arg.
+#:Math.ulam
+  ulam 1;
+quark Math {
+  Int max(...) native;
+}
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.
