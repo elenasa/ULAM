@@ -521,6 +521,9 @@ namespace MFM {
 
     //default destructor (intentionally left out)
 
+    //for var args native funcs, non-refs, required of a BitStorage
+    UlamType::genGetUlamTypeMangledNameDefinitionForC(fp);
+
     //note: no operator= since base class has a T&
 
     m_state.m_currentIndentLevel--;
