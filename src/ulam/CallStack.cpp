@@ -206,8 +206,6 @@ namespace MFM {
 
   void CallStack::assignUlamValuePtr(UlamValue pluv, UlamValue puv)
   {
-    assert(pluv.getPtrTargetType() == puv.getPtrTargetType());
-
     s32 leftbaseslot = pluv.getPtrSlotIndex(); //even for scalars
     m_frames[m_currentFrame + leftbaseslot] = puv;
   }

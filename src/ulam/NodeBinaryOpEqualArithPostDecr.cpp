@@ -38,7 +38,7 @@ namespace MFM {
     if(m_state.isScalar(getNodeType())) //not an array
       {
 	UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(lslot); //a Ptr
-	assert(m_state.isPtr(pluv.getUlamValueTypeIdx()) && (pluv.getPtrTargetType() == getNodeType()));
+	assert(m_state.isPtr(pluv.getUlamValueTypeIdx()) && (UlamType::compare(pluv.getPtrTargetType(),getNodeType(), m_state) == UTIC_SAME));
 
 	assert(slots == 1);
 	UlamValue luv = m_state.getPtrTarget(pluv);  //no eval!!

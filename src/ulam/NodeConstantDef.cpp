@@ -849,7 +849,7 @@ namespace MFM {
 	assert(evs == NORMAL);
 
 	UlamValue pluv = m_state.m_nodeEvalStack.popArg();
-	assert(pluv.getPtrTargetType() == nuti);
+	assert(m_state.isPtr(pluv.getUlamValueTypeIdx()) && (UlamType::compare(pluv.getPtrTargetType(), nuti, m_state) == UTIC_SAME));
 
 	for(u32 j = 0; j < slots; j++)
 	  {
