@@ -1,0 +1,68 @@
+## -*- mode:ulam -*-
+#=t41100_test_compiler_arrayitemfuncarg_unchangednonref_changedref
+##
+## gen output (3 interleaved asserts)
+##  Unsigned Arg: 2
+##  Unsigned Arg: 2
+##  Unsigned Arg: 2
+##
+#!
+Exit status: 0
+Ue_Foo { typedef Unsigned(8) ARGB[4];  Unsigned(8) a[4](2u,2u,3u,4u);  Int(32) test() {  System s;  ( a 1 [] )func s ( a 1 [] cast )print . s ( a 1 [] 2u cast == )assert . ( a 0 [] cast )func2 s ( a 0 [] cast )print . s ( a 0 [] 2u cast == )assert . constant Unsigned(8)[4] ca = { 1u cast, 2u cast, 3u cast, 4u cast };  ( ca 1 [] )func s ( ca 1 [] cast )print . s ( ca 1 [] 2u cast == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by t3250, t41099
+## since ALT_ARRAYITEM is a kind of ref, is it changeable as a non-ref func arg? No.
+## changes only as a ref parameter when arg is not a constant.
+##
+#>Foo.ulam
+  ulam 3;
+element Foo {
+  typedef Unsigned(8) ARGB[4];
+  ARGB a = {1u,2u,3u,4u};
+
+  Void func(Unsigned(8) arg)
+  {
+    arg++;
+  }
+
+  Void func2(Unsigned(8)& arg)
+  {
+    arg++;
+  }
+
+
+  Int test() {
+    System s;
+    func(a[1]);
+    s.print((Unsigned) a[1]);
+    s.assert(a[1] == 2u);
+
+    func2(a[0]);
+    s.print((Unsigned) a[0]);
+    s.assert(a[0] == 2u);
+
+    constant ARGB ca = {1u,2u,3u,4u};
+    func(ca[1]);
+    s.print((Unsigned) ca[1]);
+    s.assert(ca[1] == 2u);
+
+    //func2(ca[0]); not matching function, constant doesn't match reference
+    //./Foo.ulam:32:5: ERROR: (1) <func2> has no defined function with 1 matching argument type: Unsigned(8), and cannot be called.
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

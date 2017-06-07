@@ -1901,7 +1901,8 @@ namespace MFM {
 	//else if reference to non-ref of same type?
 	else
 	  {
-	    assert(!isExplicit);
+	    assert(!isExplicit); //why? (t3250)
+	    //because we wouldn't be here making a casting node if the cast were explicit!
 	    doErrMsg = newCastingNodeWithCheck(node, tobeType, rtnNode);
 	  }
       }
