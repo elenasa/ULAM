@@ -12,6 +12,10 @@ Exit status: -11
 Ue_A { Math math();  Int(32) test() {  System s;  Unsigned(3) uarr[3] = { 2u };  Int(32) m = math ( 1 -4 uarr 1 [] cast )max .;  s ( m )print . s ( m 2 cast == )assert . m return } }
 Uq_Math { <NOMAIN> }
 Uq_System { <NOMAIN> }
+##
+## 2 var arg cases: negative number requiring sign extension, array item of Unsigned type
+## updated native method that uses UlamTypeInfo methods; see t41101 for more.
+##
 #>A.ulam
   ulam 3;
 element A {
@@ -29,10 +33,11 @@ element A {
 ##      // max with variable number of args...
 ##      //with final void * 0 instead of nargs as first arg.
 #:Math.ulam
-  ulam 1;
+  ulam 3;
 quark Math {
   Int max(...) native;
 }
+
 #:System.ulam
   ulam 1;
 quark System {
