@@ -176,6 +176,30 @@ namespace MFM {
 	    tok.init(ttype,firstloc,0);
 	    return 0;
 	  }
+	else if(sptok == TOKSP_OPERATORKEYWORD)
+	  {
+	    std::string opstr;
+	    Token optok;
+	    u32 rtn = makeOperatorToken(opstr, optok);
+	    if(rtn == 0) //overloaded operator
+	      {
+		//make operator overload string identifier: append string name in hex (like C);
+		//(can't use C++ name for function --- too many arguments, or 'op' ignored);
+		// eliminate invalid 'op's by testing OPOL flag;
+		if(Token::getTokenOperatorOverloadableFlag(optok.m_type) == OPOL_IS)
+		  aname += Token::getOperatorOverloadName(optok, &m_state);
+		else
+		  {
+		    std::ostringstream errmsg;
+		    errmsg << "Weird Lex! <" << opstr;
+		    errmsg << "> isn't an overloadable operation";
+		    rtn = m_state.m_pool.getIndexForDataString(errmsg.str());
+		    return rtn; //short-circuit
+		  }
+	      }
+	    else
+	      return rtn; //short-circuit
+	  }
 	else if(sptok == TOKSP_DEPRECATED)
 	  {
 	    std::ostringstream errmsg;
@@ -187,7 +211,7 @@ namespace MFM {
 	  {
 	    std::ostringstream errmsg;
 	    errmsg << "Weird Lex! <" << aname;
-	    errmsg << "> isn't a special keyword type..becomes identifier instead.";
+	    errmsg << "> isn't a special keyword type..becomes identifier instead";
 	    brtn = m_state.m_pool.getIndexForDataString(errmsg.str());
 	  }
       }

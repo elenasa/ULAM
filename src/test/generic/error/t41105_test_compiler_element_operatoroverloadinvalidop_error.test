@@ -1,0 +1,59 @@
+## -*- mode:ulam -*-
+#=t41105_test_compiler_element_operatoroverloadinvalidop_error
+#!
+./Foo.ulam:23:16: ERROR: Weird Lex! <,> isn't an overloadable operation.
+./Foo.ulam:23:17: ERROR: Bit size after Open Paren is missing, type: Void.
+./Foo.ulam:24:3: ERROR: Name of variable/function <{>: Identifier must begin with a lower-case letter.
+./Foo.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Foo'; Possible missing ending curly brace.
+./Foo.ulam:24:3: ERROR: Invalid Class Type <{>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./Foo.ulam:2:9: ERROR: Invalid Type: Foo.
+ ERROR: No parse tree for This Class: Foo.
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
+./Foo.ulam:25:5: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <System.ulam>
+##
+## informed by t41104
+##
+#>Foo.ulam
+  ulam 2;
+element Foo {
+  Bool first;
+  Int fint, opfint;
+  Int test() {
+    System s;
+    Foo foo;
+    foo.fint = 2;
+    //opfint = foo + 3;
+    opfint = foo.operator+(3);
+    s.print(opfint);
+    s.assert(opfint == 5);
+
+    return opfint;
+  }
+
+  Int operator+(Int iarg)
+  {
+    return fint + iarg;
+  }
+
+  // ERROR
+  Void operator,(Bool barg)
+  {
+    return;
+  }
+
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.
