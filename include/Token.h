@@ -104,9 +104,11 @@ namespace MFM{
     bool operator<(const Token & tok2) const;
 
     static u32 getOperatorOverloadFullNameId(const Token & tok, CompilerState * state);
-    static const std::string getOperatorOverloadName(const Token & tok, CompilerState * state);
 
   private:
+
+    static const std::string getOperatorHexName(const Token & tok, CompilerState * state);
+    static const std::string getOperatorHexNameFromString(const std::string opname);
 
   };
 }

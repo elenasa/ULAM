@@ -1,12 +1,13 @@
 ## -*- mode:ulam -*-
 #=t41104_test_compiler_element_operatoroverloadarith
 ##
-## gen output: (+ assert)
+## gen output: (+ interleaved asserts)
+##   Int Arg: 5
 ##   Int Arg: 5
 ##
 #!
 Exit status: 5
-Ue_Foo { Bool(1) first(false);  Int(32) fint(0);  Int(32) opfint(5);  Int(32) test() {  System s;  Foo foo;  foo fint . 2 cast = opfint foo ( 3 cast )operator2b . = s ( opfint )print . s ( opfint 5 cast == )assert . opfint return } }
+Ue_Foo { Bool(1) first(false);  Int(32) fint(0);  Int(32) opfint(5);  Int(32) test() {  System s;  Foo foo;  foo fint . 2 cast = opfint foo ( 3 cast )_operator2b . = s ( opfint )print . s ( opfint 5 cast == )assert . opfint foo ( 3 cast )_operator2b . = s ( opfint )print . s ( opfint 5 cast == )assert . opfint return } }
 Uq_System { <NOMAIN> }
 ##
 ## first test to parse operator+ for an element
@@ -20,7 +21,13 @@ element Foo {
     System s;
     Foo foo;
     foo.fint = 2;
-    //opfint = foo + 3;
+
+    //overloaded operator +
+    opfint = foo + 3;
+    s.print(opfint);
+    s.assert(opfint == 5);
+
+    //call explcitly ok
     opfint = foo.operator+(3);
     s.print(opfint);
     s.assert(opfint == 5);

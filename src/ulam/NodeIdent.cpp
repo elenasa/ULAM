@@ -227,7 +227,7 @@ namespace MFM {
 		  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) asymptr, m_state);
 		assert(newnode);
 
-		AssertBool swapOk = exchangeNodeWithParent(newnode);
+		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
 		assert(swapOk);
 
 		m_state.popClassContext(); //restore
@@ -243,7 +243,7 @@ namespace MFM {
 		NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) asymptr, m_state);
 		assert(newnode);
 
-		AssertBool swapOk = exchangeNodeWithParent(newnode);
+		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
 		assert(swapOk);
 
 		m_state.popClassContext(); //restore
@@ -298,7 +298,7 @@ namespace MFM {
 	  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) m_varSymbol, m_state);
 	assert(newnode);
 
-	AssertBool swapOk = exchangeNodeWithParent(newnode);
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
 	assert(swapOk);
 
 	delete this; //suicide is painless..
@@ -312,7 +312,7 @@ namespace MFM {
 	NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) m_varSymbol, m_state);
 	assert(newnode);
 
-	AssertBool swapOk = exchangeNodeWithParent(newnode);
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
 	assert(swapOk);
 
 	delete this; //suicide is painless..

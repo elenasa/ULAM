@@ -183,22 +183,22 @@ namespace MFM {
 	    u32 rtn = makeOperatorToken(opstr, optok);
 	    if(rtn == 0) //overloaded operator
 	      {
-		//make operator overload string identifier: append string name in hex (like C);
-		//(can't use C++ name for function --- too many arguments, or 'op' ignored);
-		// eliminate invalid 'op's by testing OPOL flag;
-		if(Token::getTokenOperatorOverloadableFlag(optok.m_type) == OPOL_IS)
-		  aname += Token::getOperatorOverloadName(optok, &m_state);
+		//make operator overload string identifier: appends 'op' in hex (like C);
+		//(can't use 'op' in func name, gcc complains: too many arguments, or 'op' ignored);
+		// and out-of-band; invalid 'op's eliminated by testing OPOL flag;
+		u32 opnameid = Token::getOperatorOverloadFullNameId(optok, &m_state);
+		if(opnameid != 0)
+		  tok.init(TOK_IDENTIFIER,firstloc,opnameid);
 		else
 		  {
 		    std::ostringstream errmsg;
 		    errmsg << "Weird Lex! <" << opstr;
 		    errmsg << "> isn't an overloadable operation";
 		    rtn = m_state.m_pool.getIndexForDataString(errmsg.str());
-		    return rtn; //short-circuit
 		  }
 	      }
-	    else
-	      return rtn; //short-circuit
+	    //else
+	    return rtn; //short-circuit
 	  }
 	else if(sptok == TOKSP_DEPRECATED)
 	  {

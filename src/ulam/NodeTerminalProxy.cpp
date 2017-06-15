@@ -218,7 +218,7 @@ namespace MFM {
 	      {
 		//replace node with func call to 'alengthof'
 		Node * newnode = buildAlengthofFuncCallNode();
-		AssertBool swapOk = exchangeNodeWithParent(newnode);
+		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
 		assert(swapOk);
 
 		m_nodeOf = NULL; //recycled
@@ -234,7 +234,7 @@ namespace MFM {
 		//replace with a NodeTerminal; might not be ready (t41065)
 		Node * newnode = constantFoldLengthofConstantString();
 		assert(newnode);
-		AssertBool swapOk = exchangeNodeWithParent(newnode);
+		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
 		assert(swapOk);
 
 		delete this; //suicide is painless..

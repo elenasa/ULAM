@@ -187,19 +187,25 @@ OperatorOverloadableFlag Token::getTokenOperatorOverloadableFlag(TokenType ttype
     if(Token::getTokenOperatorOverloadableFlag(tok.m_type) == OPOL_NOT)
       return 0; //eliminates invalid 'op's
 
-    std::string strname = Token::getTokenAsStringFromPool(TOK_KW_OPERATOR, state);
-    strname += Token::getOperatorOverloadName(tok, state);
-    return state->m_pool.getIndexForDataString(strname);
+    std::ostringstream opname; //out-of-band leading underscore
+    opname << "_" << Token::getTokenAsStringFromPool(TOK_KW_OPERATOR, state);
+    opname << Token::getOperatorHexName(tok, state); //hex
+
+    return state->m_pool.getIndexForDataString(opname.str());
   } //static
 
-  const std::string Token::getOperatorOverloadName(const Token & tok, CompilerState * state)
-  {
-    assert(Token::getTokenOperatorOverloadableFlag(tok.m_type) == OPOL_IS);
-    std::string opname = Token::getTokenAsStringFromPool(tok.m_type, state);
-    std::ostringstream ophex;
-    for(u32 i = 0; i < opname.length(); i++)
-      ophex << std::hex << (u32) opname.at(i);
-    return ophex.str(); //in hex
-  } //static
+const std::string Token::getOperatorHexName(const Token & tok, CompilerState * state)
+{
+  assert(Token::getTokenOperatorOverloadableFlag(tok.m_type) == OPOL_IS);
+  return Token::getOperatorHexNameFromString(Token::getTokenAsStringFromPool(tok.m_type, state));
+} //static
+
+const std::string Token::getOperatorHexNameFromString(const std::string opname)
+{
+  std::ostringstream ophex;
+  for(u32 i = 0; i < opname.length(); i++)
+    ophex << std::hex << (u32) opname.at(i);
+  return ophex.str();
+} //static
 
 } //MFM
