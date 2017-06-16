@@ -183,19 +183,25 @@ namespace MFM {
 	    u32 rtn = makeOperatorToken(opstr, optok);
 	    if(rtn == 0) //overloaded operator
 	      {
-		//make operator overload string identifier: appends 'op' in hex (like C);
-		//(can't use 'op' in func name, gcc complains: too many arguments, or 'op' ignored);
-		// and out-of-band; invalid 'op's eliminated by testing OPOL flag;
-		u32 opnameid = Token::getOperatorOverloadFullNameId(optok, &m_state);
-		if(opnameid != 0)
-		  tok.init(TOK_IDENTIFIER,firstloc,opnameid);
-		else
+		//do again in case of dual operator
+		rtn = makeOperatorToken(opstr, optok);
+		if(rtn == 0)
 		  {
-		    std::ostringstream errmsg;
-		    errmsg << "Weird Lex! <" << opstr;
-		    errmsg << "> isn't an overloadable operation";
-		    rtn = m_state.m_pool.getIndexForDataString(errmsg.str());
+		    //make operator overload string identifier: appends 'op' in hex (like C);
+		    //(can't use 'op' in func name, gcc complains: too many arguments, or 'op' ignored);
+		    // and out-of-band; invalid 'op's eliminated by testing OPOL flag;
+		    u32 opnameid = Token::getOperatorOverloadFullNameId(optok, &m_state);
+		    if(opnameid != 0)
+		      tok.init(TOK_IDENTIFIER,firstloc,opnameid);
+		    else
+		      {
+			std::ostringstream errmsg;
+			errmsg << "Weird Lex! <" << opstr;
+			errmsg << "> isn't an overloadable operation";
+			rtn = m_state.m_pool.getIndexForDataString(errmsg.str());
+		      }
 		  }
+		//else
 	      }
 	    //else
 	    return rtn; //short-circuit

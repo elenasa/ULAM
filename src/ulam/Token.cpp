@@ -208,4 +208,29 @@ const std::string Token::getOperatorHexNameFromString(const std::string opname)
   return ophex.str();
 } //static
 
+bool Token::isOperatorOverloadIdentToken(CompilerState * state) const
+{
+  bool brtn = false;
+  if(m_dataindex > 0)
+    {
+      std::string idname = state->m_pool.getDataAsString(m_dataindex);
+      brtn = (idname.compare(0,9, "_operator") == 0);
+    }
+  return brtn;
+}
+
+u32 Token::getUlamNameIdForOperatorOverloadToken(CompilerState * state) const
+{
+  assert(isOperatorOverloadIdentToken(state));
+  std::string ophexname = state->m_pool.getDataAsString(m_dataindex);
+  std::ostringstream ulamname;
+  ulamname << Token::getTokenAsStringFromPool(TOK_KW_OPERATOR, state);
+  for(u32 i = 9; i < ophexname.length(); i+=2)
+    {
+      std::string byte = ophexname.substr(i,2);
+      ulamname << (char) (u32) strtol(byte.c_str(), NULL, 16);
+    }
+  return state->m_pool.getIndexForDataString(ulamname.str());
+}
+
 } //MFM

@@ -64,6 +64,9 @@ namespace MFM{
 
     virtual const std::string getMangledPrefix();
 
+    bool isOperatorOverloadFunctionName();
+    void setOperatorOverloadFunctionName();
+
     bool overloadFunction(SymbolFunction * fsym);
 
     u32 findMatchingFunctionStrictlyByTypes(std::vector<UTI> argTypes, SymbolFunction *& funcSymbol);
@@ -117,9 +120,10 @@ namespace MFM{
   protected:
 
   private:
+    bool m_isOperatorOverload;
     std::map<std::string, SymbolFunction *> m_mangledFunctionNames; //mangled func name -> symbol function ptr
-    bool isDefined(std::string mangledFName, SymbolFunction * & foundSym);
 
+    bool isDefined(std::string mangledFName, SymbolFunction * & foundSym);
     bool checkForDuplicateFunctionSignature(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount, SymbolFunction * fsym);
   };
 

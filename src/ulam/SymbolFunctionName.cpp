@@ -10,12 +10,12 @@
 
 namespace MFM {
 
-  SymbolFunctionName::SymbolFunctionName(const Token& id, UTI typetoreturn, CompilerState& state) : Symbol(id, typetoreturn, state)
+  SymbolFunctionName::SymbolFunctionName(const Token& id, UTI typetoreturn, CompilerState& state) : Symbol(id, typetoreturn, state), m_isOperatorOverload(false)
   {
     setDataMemberClass(m_state.getCompileThisIdx()); //by definition all function definitions are data members
   }
 
-  SymbolFunctionName::SymbolFunctionName(const SymbolFunctionName& sref) : Symbol(sref)
+  SymbolFunctionName::SymbolFunctionName(const SymbolFunctionName& sref) : Symbol(sref), m_isOperatorOverload(sref.m_isOperatorOverload)
   {
     std::map<std::string, SymbolFunction *>::const_iterator it = sref.m_mangledFunctionNames.begin();
     while(it != sref.m_mangledFunctionNames.end())
@@ -53,6 +53,16 @@ namespace MFM {
   const std::string SymbolFunctionName::getMangledPrefix()
   {
     return "Uz_"; //?
+  }
+
+  bool SymbolFunctionName::isOperatorOverloadFunctionName()
+  {
+    return m_isOperatorOverload;
+  }
+
+  void SymbolFunctionName::setOperatorOverloadFunctionName()
+  {
+    m_isOperatorOverload = true;
   }
 
   bool SymbolFunctionName::overloadFunction(SymbolFunction * fsym)

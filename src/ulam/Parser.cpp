@@ -4659,6 +4659,13 @@ namespace MFM {
 	currClassBlock->addFuncIdToScope(fnSym->getId(), fnSym);
       }
 
+    bool isOperatorOverload = false;
+    if(identTok.isOperatorOverloadIdentToken(&m_state))
+      {
+	((SymbolFunctionName *) fnSym)->setOperatorOverloadFunctionName();
+	isOperatorOverload = true;
+      }
+
     m_state.pushCurrentBlock(rtnNode); //before parsing the args
 
     //use space on funcCallStack for return statement.
@@ -4687,11 +4694,23 @@ namespace MFM {
 
     if(rtnNode)
       {
-	if(isConstr && fsymptr->getNumberOfParameters() == 0)
+	u32 numParams = fsymptr->getNumberOfParameters();
+	if(isConstr && (numParams == 0))
 	  {
 	    std::ostringstream msg;
 	    msg << "Default Constructor not allowed";
 	    MSG(&args.m_typeTok, msg.str().c_str(), ERR);
+	    delete fsymptr; //also deletes the NodeBlockFunctionDefinition
+	    rtnNode = NULL;
+	  }
+	else if(isOperatorOverload && (numParams != 1))
+	  {
+	    u32 ulamnameid = identTok.getUlamNameIdForOperatorOverloadToken(&m_state);
+	    std::ostringstream msg;
+	    msg << "Operator overload function definition: ";
+	    msg << m_state.m_pool.getDataAsString(ulamnameid).c_str();
+	    msg << " must take 1 argument, not " << numParams; //C says "zero or.."
+	    MSG(&identTok, msg.str().c_str(), ERR); //t41107
 	    delete fsymptr; //also deletes the NodeBlockFunctionDefinition
 	    rtnNode = NULL;
 	  }
@@ -4702,7 +4721,7 @@ namespace MFM {
 	    if(!isAdded)
 	      {
 		//this is a duplicate function definition with same parameters and given name!!
-	    //return types may differ
+		//return types may differ
 		std::ostringstream msg;
 		msg << "Duplicate defined function '";
 		msg << m_state.m_pool.getDataAsString(fsymptr->getId());
