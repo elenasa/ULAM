@@ -165,11 +165,10 @@ namespace MFM {
     if(m_state.isComplete(getNodeType()))
       return getNodeType();
 
-    //replace node with func call to matching function operator for class
-    // of left with argument of right (t41104)
+    //replace node with func call to matching function overload operator for class
+    // of left, with argument of right (t41104);
+    // quark toInt must be used on rhs of operators (t3191, t3200, t3513, t3648,9)
     UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-    //bool lqint = (lut->getUlamClassType() == UC_QUARK) && m_state.quarkHasAToIntMethod(leftType);
-    //if((lut->getUlamTypeEnum() == Class) && !lqint)
     if((lut->getUlamTypeEnum() == Class))
       {
 	Node * newnode = buildOperatorOverloadFuncCallNode();
@@ -185,7 +184,7 @@ namespace MFM {
 
 	    return newnode->checkAndLabelType();
 	  }
-	//else should fail again as non-primitive; or quark with toInt (t3191);
+	//else should fail again as non-primitive;
       } //done
 
     UTI newType = calcNodeType(leftType, rightType); //does safety check

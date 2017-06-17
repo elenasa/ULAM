@@ -19,6 +19,11 @@ namespace MFM {
     return ">";
   }
 
+  const char * NodeBinaryOpCompareGreaterThan::getInverseOpName()
+  {
+    return "<=";
+  }
+
   const std::string NodeBinaryOpCompareGreaterThan::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);

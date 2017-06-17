@@ -118,7 +118,8 @@ namespace MFM {
       {
 	//try inverse!
 	const char * invopname = getInverseOpName();
-	assert(invopname);
+	if(!invopname)
+	  return NULL; //built-in error msg
 	opTokType = Token::getTokenTypeFromString(invopname);
 	assert(opTokType != TOK_LAST_ONE);
 	opTok.init(opTokType, getNodeLocation(), 0);
