@@ -54,6 +54,8 @@ namespace MFM{
 
     virtual const char * getName();
 
+    virtual const char * getInverseOpName();
+
     virtual const std::string prettyNodeName();
 
     virtual const std::string methodNameForCodeGen();

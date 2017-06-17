@@ -8,7 +8,7 @@
 ##
 #!
 Exit status: 41
-Ue_Foo { System s();  Unsigned(1) m_array[64](0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,1u,1u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u);  Int(32) test() {  C2D c;  c ( 0u cast 0 cast )func = m_array c ( )toInt . 1 cast +b [] 1 cast = m_array c ( )toInt . [] 1 cast = s ( c m_width . cast )print . s ( c m_height . cast )print . s ( c ( )toInt . 1 cast +b cast )print . s ( m_array c ( )toInt . [] cast )print . s ( c m_width . 9 cast == )assert . s ( c m_height . 4 cast == )assert . s ( c ( )toInt . 1 cast +b 41 cast == )assert . s ( m_array c ( )toInt . [] cast 1 == )assert . c ( )toInt . 1 cast +b cast return } }
+Ue_Foo { System s();  Unsigned(1) m_array[64](0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,1u,1u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u);  Int(32) test() {  C2D c;  c ( 0u cast 0 cast )func = m_array 1 cast c ( )toInt . +b [] 1 cast = m_array c ( )toInt . [] 1 cast = s ( c m_width . cast )print . s ( c m_height . cast )print . s ( 1 cast c ( )toInt . +b cast )print . s ( m_array c ( )toInt . [] cast )print . s ( c m_width . 9 cast == )assert . s ( c m_height . 4 cast == )assert . s ( 1 cast c ( )toInt . +b 41 cast == )assert . s ( m_array c ( )toInt . [] cast 1 == )assert . 1 cast c ( )toInt . +b cast return } }
 Uq_C2D { typedef Int(8) IE;  Int(8) m_width( 9);  Int(8) m_height( 4);  Int(8) m_x(0);  Int(8) m_y(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
@@ -29,17 +29,17 @@ element Foo {
   Int test() {
     C2D c;
     c = func(0u,0);
-    m_array[c + 1] = 1; //[41]
+    m_array[1 + c] = 1; //[41] //class second to avoid operator+ overload
     m_array[c] = 1;
     s.print(c.m_width);
     s.print(c.m_height);
-    s.print((Int) (c + 1));
+    s.print((Int) (1 + c)); //class second to avoid operator+ overload
     s.print( (Int) m_array[c]);
     s.assert(c.m_width == 9);
     s.assert(c.m_height == 4);
-    s.assert(c + 1 == 41);
+    s.assert(1 + c == 41); //class second to avoid operator+ overload
     s.assert(m_array[c] == 1);
-    return (Int) (c + 1);
+    return (Int) (1 + c); //class second to avoid operator+ overload
   }
 }
 

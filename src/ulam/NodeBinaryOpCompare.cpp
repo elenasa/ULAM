@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include "NodeBinaryOpCompare.h"
+#include "NodeFunctionCall.h"
+#include "NodeMemberSelect.h"
+#include "NodeUnaryOpBang.h"
 #include "CompilerState.h"
 
 namespace MFM {
@@ -10,11 +13,39 @@ namespace MFM {
 
   NodeBinaryOpCompare::~NodeBinaryOpCompare() {}
 
+  const char * NodeBinaryOpCompare::getInverseOpName()
+  {
+    std::ostringstream msg;
+    msg << "virtual const char * " << prettyNodeName().c_str();
+    msg << "::getInverseOpName(){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+    return NULL;
+  }
+
   UTI NodeBinaryOpCompare::checkAndLabelType()
   {
     assert(m_nodeLeft && m_nodeRight);
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
+
+    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
+    if((lut->getUlamTypeEnum() == Class))
+      {
+	Node * newnode = buildOperatorOverloadFuncCallNode();
+	if(newnode)
+	  {
+	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	    assert(swapOk);
+
+	    m_nodeLeft = NULL; //recycle as memberselect
+	    m_nodeRight = NULL; //recycle as func call arg
+
+	    delete this; //suicide is painless..
+
+	    return newnode->checkAndLabelType(); //t41109
+	  }
+	//else should fail again as non-primitive;
+      } //done
 
     UTI newType = calcNodeType(leftType, rightType); //for casting
     if(m_state.isComplete(newType))
@@ -46,6 +77,102 @@ namespace MFM {
 
     return newType;
   } //checkAndLabelType
+
+  Node * NodeBinaryOpCompare::buildOperatorOverloadFuncCallNode()
+  {
+    Token identTok;
+    TokenType opTokType = Token::getTokenTypeFromString(getName());
+    assert(opTokType != TOK_LAST_ONE);
+    Token opTok(opTokType, getNodeLocation(), 0);
+    u32 opolId = Token::getOperatorOverloadFullNameId(opTok, &m_state);
+    if(opolId == 0)
+      {
+	std::ostringstream msg;
+	msg << "Overload for operator <" << getName();
+	msg << "> is not supported as operand for class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_nodeLeft->getNodeType()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return NULL;
+      }
+
+    identTok.init(TOK_IDENTIFIER, getNodeLocation(), opolId);
+
+    //may need to negate the opposite comparison, if this one isn't defined (t41109)
+    UTI luti = m_nodeLeft->getNodeType();
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(luti, csym);
+    assert(isDefined);
+
+    NodeBlockClass * memberClassNode = csym->getClassBlockNode();
+    assert(memberClassNode);  //e.g. forgot the closing brace on quark definition
+
+    assert(m_state.okUTItoContinue(memberClassNode->getNodeType()));
+
+   //set up compiler state to use the member class block for symbol searches
+    m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
+
+    Symbol * fnsymptr = NULL;
+    bool hazyKin = false; //unused
+    bool useInverseOp = false;
+    if(!m_state.isFuncIdInClassScope(opolId, fnsymptr, hazyKin))
+      {
+	//try inverse!
+	const char * invopname = getInverseOpName();
+	assert(invopname);
+	opTokType = Token::getTokenTypeFromString(invopname);
+	assert(opTokType != TOK_LAST_ONE);
+	opTok.init(opTokType, getNodeLocation(), 0);
+	opolId = Token::getOperatorOverloadFullNameId(opTok, &m_state);
+	assert(opolId != 0);
+	if(!m_state.isFuncIdInClassScope(opolId, fnsymptr, hazyKin))
+	  {
+	    std::ostringstream msg;
+	    msg << "Overload for operator <" << getName();
+	    msg << "> and its inverse <" << invopname;
+	    msg << "> are not supported as operand for class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    return NULL;
+	  }
+	else //continue with a bang
+	  {
+	    std::ostringstream msg;
+	    msg << "Using overload operator <" << getName();
+	    msg << ">'s negated inverse <" << invopname;
+	    msg << "> operator for class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    useInverseOp = true;
+	  }
+      }
+    //else continue without a bang
+
+    //clear up compiler state to no longer use the member class block for symbol searches
+    m_state.popClassContext();
+
+    identTok.init(TOK_IDENTIFIER, getNodeLocation(), opolId);
+
+    //fill in func symbol during type labeling;
+    NodeFunctionCall * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
+    assert(fcallNode);
+    fcallNode->setNodeLocation(identTok.m_locator);
+
+    fcallNode->addArgument(m_nodeRight);
+
+    Node * rnode = fcallNode;
+    if(useInverseOp)
+      {
+	rnode = new NodeUnaryOpBang(fcallNode, m_state);
+	rnode->setNodeLocation(identTok.m_locator);
+      }
+
+    NodeMemberSelect * mselectNode = new NodeMemberSelect(m_nodeLeft, rnode, m_state);
+    assert(mselectNode);
+    mselectNode->setNodeLocation(identTok.m_locator);
+
+    //redo check and type labeling done by caller!!
+    return mselectNode; //replace right node with new branch
+  } //buildOperatorOverloadFuncCallNode
 
   //same as arith rules for relative comparisons.
   UTI NodeBinaryOpCompare::calcNodeType(UTI lt, UTI rt)

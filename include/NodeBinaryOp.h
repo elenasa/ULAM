@@ -106,7 +106,7 @@ namespace MFM{
     virtual UlamValue makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len) = 0;
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len) = 0;
 
-    Node * buildOperatorOverloadFuncCallNode();
+    virtual Node * buildOperatorOverloadFuncCallNode();
 
     virtual UTI calcNodeType(UTI lt, UTI rt) = 0;
     virtual s32 resultBitsize(UTI lt, UTI rt); //op specific

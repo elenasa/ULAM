@@ -168,8 +168,9 @@ namespace MFM {
     //replace node with func call to matching function operator for class
     // of left with argument of right (t41104)
     UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-    bool lqint = (lut->getUlamClassType() == UC_QUARK) && m_state.quarkHasAToIntMethod(leftType);
-    if((lut->getUlamTypeEnum() == Class) && !lqint)
+    //bool lqint = (lut->getUlamClassType() == UC_QUARK) && m_state.quarkHasAToIntMethod(leftType);
+    //if((lut->getUlamTypeEnum() == Class) && !lqint)
+    if((lut->getUlamTypeEnum() == Class))
       {
 	Node * newnode = buildOperatorOverloadFuncCallNode();
 	if(newnode)
@@ -248,7 +249,7 @@ namespace MFM {
 
     //redo check and type labeling done by caller!!
     return mselectNode; //replace right node with new branch
-  } //buildAlengthofFuncCallNode
+  } //buildOperatorOverloadFuncCallNode
 
   UTI NodeBinaryOp::castThyselfToResultType(UTI rt, UTI lt, UTI newType)
   {

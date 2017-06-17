@@ -1,18 +1,17 @@
 ## -*- mode:ulam -*-
-#=t41106_test_compiler_elementandtrasient_inheritedoperatoroverloadarith
+#=t41108_test_compiler_elementandtrasient_inheritedoperatoroverloadarithoverloadclassarg
 ##
 ## gen output: (+ interleaved asserts)
 ##   Int Arg: 5
-##   Int Arg: 7
 ##
 #!
 Exit status: 5
-Ue_Foo : QW { :< Int(32) qint(0); > Bool(1) first(false);  Int(32) opfint(5);  Int(32) test() {  System s;  Foo foo;  foo qint . 2 cast = opfint foo ( 3 cast )_operator2b . = s ( opfint )print . s ( opfint 5 cast == )assert . Too too;  too qint . 3 cast = too topint . too ( 4 cast )_operator2b . = s ( too topint . )print . s ( too topint . 7 cast == )assert . opfint return } }
+Ue_Foo : QW { :< Int(32) qint(0); > Bool(1) first(false);  Int(32) opfint(5);  Int(32) test() {  System s;  Foo foo;  foo qint . 2 cast = Too too;  too qint . 3 cast = opfint too ( foo cast )_operator2b . = s ( opfint )print . s ( opfint 5 cast == )assert . opfint return } }
 Uq_QW { Int(32) qint(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 Un_Too : QW { :< Int(32) qint(0); > Int(32) topint(0);  <NOMAIN> }
 ##
-## informed by t41104; test of inherited operator+ for an element and transient
+## informed by t41106; test of overloaded inherited operator+ with class ref as arg
 ##
 #>Foo.ulam
   ulam 3;
@@ -23,18 +22,13 @@ element Foo : QW {
     System s;
     Foo foo;
     foo.qint = 2;
-
-    //inherited overloaded operator +
-    opfint = foo + 3;
-    s.print(opfint);
-    s.assert(opfint == 5);
-
     Too too;
     too.qint = 3;
-    //inherited overloaded operator +
-    too.topint = too + 4;
-    s.print(too.topint);
-    s.assert(too.topint == 7);
+
+    //inherited overloaded operator +, two classes as arguments
+    opfint = too + foo;
+    s.print(opfint);
+    s.assert(opfint == 5);
 
     return opfint;
   }
@@ -45,6 +39,10 @@ element Foo : QW {
 transient Too : QW
 {
   Int topint;
+  Int operator+(Foo& farg)
+  {
+    return qint + farg.qint;
+  }
 }
 
 #:QW.ulam

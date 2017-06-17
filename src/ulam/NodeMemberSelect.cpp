@@ -175,10 +175,10 @@ namespace MFM {
     //clear up compiler state to no longer use the member class block for symbol searches
     m_state.popClassContext();
 
+    setNodeType(rightType); //set Nav if error (t3513)
+
     if(m_state.okUTItoContinue(rightType))
       {
-	setNodeType(rightType);
-
 	//based on righthand side
 	Node::setStoreIntoAble(m_nodeRight->getStoreIntoAble());
 

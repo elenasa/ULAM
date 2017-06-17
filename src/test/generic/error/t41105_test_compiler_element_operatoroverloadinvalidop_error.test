@@ -12,10 +12,10 @@ Unrecoverable Program Parse FAILURE: <Foo.ulam>
 ./Foo.ulam:25:5: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 Unrecoverable Program Parse FAILURE: <System.ulam>
 ##
-## informed by t41104
+## informed by t41104 and t41109
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 element Foo {
   Bool first;
   Int fint, opfint;
@@ -42,6 +42,11 @@ element Foo {
     return;
   }
 
+  //ERROR, dual op
+  Bool operator&&(Atom& atref)
+  {
+    return true;
+  }
 }
 
 #:System.ulam
