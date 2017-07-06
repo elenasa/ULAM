@@ -1,0 +1,79 @@
+## -*- mode:ulam -*-
+#=t41113_test_compiler_element_operatoroverloadunaryops
+##
+## gen output: (+ interleaved asserts)
+##   Int Arg: 5
+##   Int Arg: -1
+##   Bool(3) Arg: 0x7 (true)
+##   Int Arg: 5
+##
+#!
+Exit status: 5
+Ue_Foo { Bool(1) first(true);  Int(32) fint(0);  Int(32) opfint(5);  Int(32) test() {  System s;  Foo foo;  foo fint . 2 cast = opfint foo ( )_operator2b . = s ( opfint )print . s ( opfint 5 cast == )assert . opfint foo ( )_operator2d . = s ( opfint )print . s ( opfint -1 cast == )assert . first foo ( )_operator21 . = s ( first cast )print . s ( first )assert . opfint foo ( )_operator2b . = s ( opfint )print . s ( opfint 5 cast == )assert . opfint return } }
+Uq_System { <NOMAIN> }
+##
+## first test to parse unary operator+,-,! for an element
+## informed by t41104.
+##
+#>Foo.ulam
+  ulam 3;
+element Foo {
+  Bool first;
+  Int fint, opfint;
+  Int test() {
+    System s;
+    Foo foo;
+    foo.fint = 2;
+
+    //overloaded unary operator+ (2b)
+    opfint = +foo;
+    s.print(opfint);
+    s.assert(opfint == 5);
+
+    //overloaded unary operator- (2d)
+    opfint = -foo;
+    s.print(opfint);
+    s.assert(opfint == -1);
+
+    //overloaded unary operator! (21)
+    first = !foo;
+    s.print(first);
+    s.assert(first);
+
+    //explicit call to unary operator+
+    opfint = foo.operator+();
+    s.print(opfint);
+    s.assert(opfint == 5);
+    return opfint;
+  }
+
+  Int operator+()
+  {
+    return 5;
+  }
+
+  Int operator-()
+  {
+    return -1;
+  }
+
+  Bool operator!()
+  {
+    return !first;
+  }
+
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

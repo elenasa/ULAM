@@ -20,13 +20,16 @@ element Foo : Qbar {
     Foo foo;
     fint = foo; //not automatic
     fint = (Int) foo; //not explicit either
-    fint = foo.toInt(); //not inheritable func, either
+    fint = foo.toInt(); //inheritable func, explicitly callable
+
+    Qbar& qwref = foo;
+    fint = qwref; //also works automatically
 
     /* same errors for transient
     Coo coo;
     cint = coo; //not automatic
     cint = (Int) coo; //not explicit either
-    cint = coo.toInt(); //not inheritable func, either
+    cint = coo.toInt(); //inheritable func, explicitly callable
     */
     return cint;
   }

@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t41107_test_compiler_element_operatoroverloadtoomanyargs_error
 #!
-./QW.ulam:4:7: ERROR: Operator overload function definition: operator+ must take 1 argument, not 2.
+./QW.ulam:4:7: ERROR: Operator overload function definition: operator+ must take none or 1 argument, not 2.
 ./QW.ulam:2:2: ERROR: Empty/Incomplete Class Definition 'QW'; Possible missing ending curly brace.
 ./QW.ulam:6:5: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./QW.ulam:2:8: ERROR: Invalid Type: QW.

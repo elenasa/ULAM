@@ -95,6 +95,8 @@ namespace MFM{
 
     Node * m_node;
 
+    virtual Node * buildOperatorOverloadFuncCallNode();
+
     virtual UTI calcNodeType(UTI uti) = 0;
 
     virtual bool checkSafeToCastTo(UTI fromType, UTI& newType);
