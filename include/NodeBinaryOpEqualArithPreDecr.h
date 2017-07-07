@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
- * NodeBinaryOpEqualArithAdd.h - Node for handling Plus Equal for ULAM
+ * NodeBinaryOpEqualArithPreDecr.h - Node for handling Plus Equal for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -26,28 +26,28 @@
  */
 
 /**
-  \file NodeBinaryOpEqualArithAdd.h - Node for handling Plus Equal for ULAM
+  \file NodeBinaryOpEqualArithPreDecr.h - Node for handling Plus Equal for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2017 All rights reserved.
   \gpl
 */
 
 
-#ifndef NODEBINARYOPEQUALARITHADD_H
-#define NODEBINARYOPEQUALARITHADD_H
+#ifndef NODEBINARYOPEQUALARITHPREDECR_H
+#define NODEBINARYOPEQUALARITHPREDECR_H
 
 #include "NodeBinaryOpEqualArith.h"
 
 namespace MFM{
 
-  class NodeBinaryOpEqualArithAdd : public NodeBinaryOpEqualArith
+  class NodeBinaryOpEqualArithPreDecr : public NodeBinaryOpEqualArith
   {
   public:
 
-    NodeBinaryOpEqualArithAdd(Node * left, Node * right, CompilerState & state);
-    NodeBinaryOpEqualArithAdd(const NodeBinaryOpEqualArithAdd& ref);
-    virtual ~NodeBinaryOpEqualArithAdd();
+    NodeBinaryOpEqualArithPreDecr(Node * left, Node * right, CompilerState & state);
+    NodeBinaryOpEqualArithPreDecr(const NodeBinaryOpEqualArithPreDecr& ref);
+    virtual ~NodeBinaryOpEqualArithPreDecr();
 
     virtual Node * instantiate();
 
@@ -56,6 +56,8 @@ namespace MFM{
     virtual const std::string prettyNodeName();
 
     virtual const std::string methodNameForCodeGen();
+
+    virtual Node * buildOperatorOverloadFuncCallNode();
 
   protected:
     virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len);
@@ -66,4 +68,4 @@ namespace MFM{
 
 }
 
-#endif //end NODEBINARYOPEQUALARITHADD_H
+#endif //end NODEBINARYOPEQUALARITHPREDECR_H

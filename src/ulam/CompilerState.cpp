@@ -2857,6 +2857,9 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       {
 	if(tok.m_type == TOK_DQUOTED_STRING)
 	  return m_tokenupool.getDataAsFormattedString(tok.m_dataindex, this);
+	else if(tok.isOperatorOverloadIdentToken(this))
+	  return m_pool.getDataAsString(tok.getUlamNameIdForOperatorOverloadToken(this));
+
 	return m_pool.getDataAsString(tok.m_dataindex);
       }
     //return std::string(tok->getTokenString()); //VG: Invalid Read
@@ -4467,7 +4470,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return ((uti != Nav) && (uti != Hzy) && (uti != Nouti));
   }
 
-  bool CompilerState::okUTItoContinue(UTI uti1, UTI uti2)
+  bool CompilerState::neitherNAVokUTItoContinue(UTI uti1, UTI uti2)
   {
     return ((uti1 != Nav) && (uti2 != Nav));
   }

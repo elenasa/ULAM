@@ -79,7 +79,7 @@ namespace MFM {
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
 
-    if(!m_state.okUTItoContinue(leftType, rightType))
+    if(!m_state.neitherNAVokUTItoContinue(leftType, rightType))
       {
 	std::ostringstream msg;
 	msg << "Assignment is invalid";
@@ -144,17 +144,35 @@ namespace MFM {
     //cast RHS if necessary and safe
     if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME)
       {
+	UlamType * lut = m_state.getUlamTypeByIndex(leftType);
 	//different msg if try to assign non-class to a class type
-	if((m_state.getUlamTypeByIndex(leftType)->getUlamTypeEnum() == Class) && (m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum() != Class) && !m_state.isAtom(rightType))
+	if((lut->getUlamTypeEnum() == Class) && (m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum() != Class) && !m_state.isAtom(rightType))
 	  {
-	    std::ostringstream msg;
-	    msg << "Incompatible class type ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
-	    msg << " and ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
-	    msg << " used with binary operator" << getName();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    newType = Nav; //error
+	    //try for operator overload first (e.g. (pre) +=,-=, (post) ++,-- )
+	    Node * newnode = buildOperatorOverloadFuncCallNode(); //virtual or NodeBinaryOp
+	    if(newnode)
+	      {
+		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+		assert(swapOk);
+
+		m_nodeLeft = NULL; //recycle as memberselect
+		m_nodeRight = NULL; //recycle as func call arg
+
+		delete this; //suicide is painless..
+
+		return newnode->checkAndLabelType();
+	      }
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "Incompatible class type ";
+		msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
+		msg << " and ";
+		msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
+		msg << " used with binary operator" << getName();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		newType = Nav; //error
+	      }
 	  }
 	else
 	  {

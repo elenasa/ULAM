@@ -549,7 +549,7 @@ namespace MFM{
     void saveEmptyUTI(UTI uti);
     bool isEmpty(UTI cuti);
     bool okUTItoContinue(UTI uti);
-    bool okUTItoContinue(UTI uti1, UTI uti2); //false if either is Nav
+    bool neitherNAVokUTItoContinue(UTI uti1, UTI uti2); //false if either is Nav
     bool checkHasHazyKin(NodeBlock * block);
 
     inline void abortGreaterThanMaxBitsPerLong() { assert(0); }

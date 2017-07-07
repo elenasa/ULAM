@@ -1,6 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3465_test_compiler_quarkshift_error
 #!
+./A.ulam:5:4: ERROR: Overload for operator <=> is not supported as operand for class: Bar.
 ./A.ulam:5:4: ERROR: Incompatible class type Bar and Bits(32) used with binary operator=.
 ./A.ulam:6:8: ERROR: Unsigned is the supported type for shift distance, operator<<; Suggest casting Bar to Unsigned.
 ./A.ulam:6:4: ERROR: Assignment is invalid; LHS: Bar; RHS: erroneous.

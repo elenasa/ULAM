@@ -11,31 +11,164 @@ namespace MFM {
 
   UTI NodeBinaryOpEqualArith::checkAndLabelType()
   {
-    UTI nodeType = NodeBinaryOpEqual::checkAndLabelType();
-    UlamType * nut = m_state.getUlamTypeByIndex(nodeType);
+    //UTI nodeType = NodeBinaryOpEqual::checkAndLabelType();
+    //copied from NodeBinaryOpEqual::checkandlabeltype..
 
-    // common part of name
-    ULAMTYPE enodetyp = nut->getUlamTypeEnum();
-    if(enodetyp == Bits)
-      {
-	// can happen with op-equal operations when both sides are the same type
-	MSG(getNodeLocationAsString().c_str(), "Arithmetic Operations are invalid on 'Bits' type", ERR);
-	nodeType = Nav;
-      }
+    assert(m_nodeLeft && m_nodeRight);
 
-    if(enodetyp == Bool)
-      {
-	// can happen with op-equal operations when both sides are the same type
-	MSG(getNodeLocationAsString().c_str(), "Arithmetic Operations are invalid on 'Bool' type", ERR);
-	nodeType = Nav;
-      }
+    UTI leftType = m_nodeLeft->checkAndLabelType();
+    UTI rightType = m_nodeRight->checkAndLabelType();
 
-    if((nodeType != Nav) && !nut->isScalar())
+    if(!m_state.neitherNAVokUTItoContinue(leftType, rightType))
       {
 	std::ostringstream msg;
-	msg << "Non-scalars require a loop for operator" << getName();
+	msg << "Assignment is invalid";
+	msg << "; LHS: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(leftType);
+	msg << "; RHS: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(rightType);
+
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	nodeType = Nav;
+	setNodeType(Nav);
+	return Nav;
+      }
+
+    if(!m_state.isComplete(leftType) || !m_state.isComplete(rightType))
+      {
+    	setNodeType(Hzy);
+	m_state.setGoAgain(); //for compiler counts
+    	return Hzy; //not quietly
+      }
+
+    TBOOL stor = checkStoreIntoAble();
+    if(stor == TBOOL_FALSE)
+      {
+	setNodeType(Nav);
+	return Nav;
+      }
+    else if(stor == TBOOL_HAZY)
+      {
+	setNodeType(Hzy);
+	m_state.setGoAgain();
+      }
+
+    if(!NodeBinaryOp::checkNotVoidTypes(leftType, rightType, false))
+      {
+    	setNodeType(Nav);
+    	return Nav;
+      }
+
+    if(m_nodeRight->isExplicitReferenceCast())
+      {
+	std::ostringstream msg;
+	msg << "Explicit Reference cast of assignment is invalid";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav);
+	return Nav;
+      }
+
+    if(m_state.isScalar(leftType) ^ m_state.isScalar(rightType))
+      {
+	std::ostringstream msg;
+	msg << "Incompatible (nonscalar) types: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
+	msg << " and ";
+	msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
+	msg << " used with binary operator" << getName();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav);
+	return Nav;
+      }
+
+    UTI newType = leftType;
+    //cast RHS if necessary and safe
+    if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME)
+      {
+	UlamType * lut = m_state.getUlamTypeByIndex(leftType);
+	//different msg if try to assign non-class to a class type
+	if((lut->getUlamTypeEnum() == Class) && (m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum() != Class) && !m_state.isAtom(rightType))
+	  {
+	    //try for operator overload first (e.g. (pre) +=,-=, (post) ++,-- )
+	    Node * newnode = buildOperatorOverloadFuncCallNode(); //virtual or NodeBinaryOp
+	    if(newnode)
+	      {
+		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+		assert(swapOk);
+
+		m_nodeLeft = NULL; //recycle as memberselect
+		m_nodeRight = NULL; //recycle as func call arg
+
+		delete this; //suicide is painless..
+
+		return newnode->checkAndLabelType();
+	      }
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "Incompatible class type ";
+		msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
+		msg << " and ";
+		msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
+		msg << " used with binary operator" << getName();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		newType = Nav; //error
+	      }
+	  }
+	else
+	  {
+	    //for assignment to reference, cast to underlying type Sat Jun 25 09:01:07 2016
+	    newType = m_state.getUlamTypeAsDeref(leftType); //init
+	    if(checkSafeToCastTo(rightType, newType))
+	      {
+		if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
+		  newType = Nav; //error
+		else
+		  {
+		    //for ulam compiler, cast to reference if necessary Sat Jun 25 09:08:37 2016
+		    if(UlamType::compare(leftType, newType, m_state) != UTIC_SAME)
+		      {
+			newType = leftType;
+			if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
+			  newType = Nav; //error
+			//else not safe, newType changed
+		      }
+		  }
+	      }
+	    //else not safe, newType changed
+	  }
+      }
+
+    //specifically for equal arith's
+    UTI nodeType = newType;
+
+    if(m_state.okUTItoContinue(nodeType))
+      {
+
+	UlamType * nut = m_state.getUlamTypeByIndex(nodeType);
+
+	// common part of name
+	ULAMTYPE enodetyp = nut->getUlamTypeEnum();
+	if(enodetyp == Bits)
+	  {
+	    // can happen with op-equal operations when both sides are the same type
+	    MSG(getNodeLocationAsString().c_str(), "Arithmetic Operations are invalid on 'Bits' type", ERR);
+	    nodeType = Nav;
+	  }
+
+	if(enodetyp == Bool)
+	  {
+	    // can happen with op-equal operations when both sides are the same type
+	    MSG(getNodeLocationAsString().c_str(), "Arithmetic Operations are invalid on 'Bool' type", ERR);
+	    nodeType = Nav;
+	  }
+
+	if((nodeType != Nav) && !nut->isScalar())
+	  {
+	    std::ostringstream msg;
+	    msg << "Non-scalars require a loop for operator" << getName();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    nodeType = Nav;
+	  }
       }
 
     setNodeType(nodeType);

@@ -1,38 +1,69 @@
-#include "NodeBinaryOpEqualArithAdd.h"
+#include "NodeBinaryOpEqualArithPreIncr.h"
 #include "NodeBinaryOpArithAdd.h"
+#include "NodeFunctionCall.h"
+#include "NodeMemberSelect.h"
 #include "CompilerState.h"
 
 namespace MFM {
 
-  NodeBinaryOpEqualArithAdd::NodeBinaryOpEqualArithAdd(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqualArith(left,right,state) {}
+  NodeBinaryOpEqualArithPreIncr::NodeBinaryOpEqualArithPreIncr(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqualArith(left,right,state) {}
 
-  NodeBinaryOpEqualArithAdd::NodeBinaryOpEqualArithAdd(const NodeBinaryOpEqualArithAdd& ref) : NodeBinaryOpEqualArith(ref) {}
+  NodeBinaryOpEqualArithPreIncr::NodeBinaryOpEqualArithPreIncr(const NodeBinaryOpEqualArithPreIncr& ref) : NodeBinaryOpEqualArith(ref) {}
 
-  NodeBinaryOpEqualArithAdd::~NodeBinaryOpEqualArithAdd(){}
+  NodeBinaryOpEqualArithPreIncr::~NodeBinaryOpEqualArithPreIncr(){}
 
-  Node * NodeBinaryOpEqualArithAdd::instantiate()
+  Node * NodeBinaryOpEqualArithPreIncr::instantiate()
   {
-    return new NodeBinaryOpEqualArithAdd(*this);
+    return new NodeBinaryOpEqualArithPreIncr(*this);
   }
 
-  const char * NodeBinaryOpEqualArithAdd::getName()
+  const char * NodeBinaryOpEqualArithPreIncr::getName()
   {
     return "+=";
   }
 
-  const std::string NodeBinaryOpEqualArithAdd::prettyNodeName()
+  const std::string NodeBinaryOpEqualArithPreIncr::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  const std::string NodeBinaryOpEqualArithAdd::methodNameForCodeGen()
+  const std::string NodeBinaryOpEqualArithPreIncr::methodNameForCodeGen()
   {
     std::ostringstream methodname;
     methodname << "_BinOpAdd" << NodeBinaryOpEqualArith::methodNameForCodeGen();
     return methodname.str();
   } //methodNameForCodeGen
 
-  UlamValue NodeBinaryOpEqualArithAdd::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
+  Node * NodeBinaryOpEqualArithPreIncr::buildOperatorOverloadFuncCallNode()
+  {
+    Token identTok;
+    TokenType opTokType = Token::getTokenTypeFromString("++");
+    assert(opTokType != TOK_LAST_ONE);
+    Token opTok(opTokType, getNodeLocation(), 0);
+    u32 opolId = Token::getOperatorOverloadFullNameId(opTok, &m_state);
+    assert(opolId != 0);
+
+    identTok.init(TOK_IDENTIFIER, getNodeLocation(), opolId);
+
+    //fill in func symbol during type labeling;
+    NodeFunctionCall * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
+    assert(fcallNode);
+    fcallNode->setNodeLocation(identTok.m_locator);
+
+    //pre incr/decr has no argument
+    //    fcallNode->addArgument(m_nodeRight);
+    delete m_nodeRight;
+    m_nodeRight = NULL;
+
+    NodeMemberSelect * mselectNode = new NodeMemberSelect(m_nodeLeft, fcallNode, m_state);
+    assert(mselectNode);
+    mselectNode->setNodeLocation(identTok.m_locator);
+
+    //redo check and type labeling done by caller!!
+    return mselectNode; //replace right node with new branch
+  } //buildOperatorOverloadFuncCallNode
+
+  UlamValue NodeBinaryOpEqualArithPreIncr::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
     UlamValue rtnUV;
     ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
@@ -58,7 +89,7 @@ namespace MFM {
     return rtnUV;
   } //makeImmediateBinaryOp
 
-  UlamValue NodeBinaryOpEqualArithAdd::makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len)
+  UlamValue NodeBinaryOpEqualArithPreIncr::makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len)
   {
     UlamValue rtnUV;
     ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
@@ -84,7 +115,7 @@ namespace MFM {
     return rtnUV;
   } //makeImmediateLongBinaryOp
 
-  void NodeBinaryOpEqualArithAdd::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
+  void NodeBinaryOpEqualArithPreIncr::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
     UTI type = refUV.getUlamValueTypeIdx();
     ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();

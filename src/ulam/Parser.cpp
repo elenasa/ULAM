@@ -24,6 +24,8 @@
 #include "NodeBinaryOpEqualArithMultiply.h"
 #include "NodeBinaryOpEqualArithRemainder.h"
 #include "NodeBinaryOpEqualArithSubtract.h"
+#include "NodeBinaryOpEqualArithPreIncr.h"
+#include "NodeBinaryOpEqualArithPreDecr.h"
 #include "NodeBinaryOpEqualArithPostIncr.h"
 #include "NodeBinaryOpEqualArithPostDecr.h"
 #include "NodeBinaryOpEqualBitwiseAnd.h"
@@ -5797,12 +5799,12 @@ namespace MFM {
 	rtnNode->setNodeLocation(pTok.m_locator);
 	break;
       case TOK_PLUS_PLUS:
-	rtnNode = new NodeBinaryOpEqualArithAdd(factorNode, makeTerminal(pTok, (s64) 1, Int), m_state);
+	rtnNode = new NodeBinaryOpEqualArithPreIncr(factorNode, makeTerminal(pTok, (s64) 1, Int), m_state);
 	assert(rtnNode);
 	rtnNode->setNodeLocation(pTok.m_locator);
 	break;
       case TOK_MINUS_MINUS:
-	rtnNode = new NodeBinaryOpEqualArithSubtract(factorNode, makeTerminal(pTok, (s64) 1, Int), m_state);
+	rtnNode = new NodeBinaryOpEqualArithPreDecr(factorNode, makeTerminal(pTok, (s64) 1, Int), m_state);
 	assert(rtnNode);
 	rtnNode->setNodeLocation(pTok.m_locator);
 	break;
