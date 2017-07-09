@@ -234,8 +234,9 @@ namespace MFM {
 	      }
 	    else
 	      {
+		ULAMTYPE etyp = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
 		std::ostringstream msg;
-		if(m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum() == Bool)
+		if(etyp == Bool)
 		  msg << "Use a comparison operator";
 		else
 		  msg << "Use explicit cast";
@@ -248,8 +249,8 @@ namespace MFM {
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		else
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	      }
-	  }
+	      } //not atom
+	  } //not safe
 	else
 	  {
 	    //safe to cast, but can't be reference

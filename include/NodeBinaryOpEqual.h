@@ -61,6 +61,8 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
+    virtual Node * buildOperatorOverloadFuncCallNode();
+
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();

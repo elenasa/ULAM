@@ -1276,7 +1276,7 @@ namespace MFM {
     UTI derefuti = m_state.getUlamTypeAsDeref(vuti);
     assert(m_state.isAClass(derefuti));
 
-    UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
+    //UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
 
    u32 tmpvarnum = uvpass.getPassVarNum();
    u32 tmpvarur = m_state.getNextTmpVarNumber();
@@ -1290,8 +1290,7 @@ namespace MFM {
     else
       hiddenarg2 << ", " << uvpass.getPassPos() << "u"; //element refs already +25
 
-    hiddenarg2 << ", " << derefut->getTotalBitSize() << "u, "; //len t3370
-
+    hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(derefuti) << "u, "; //len t3370
     hiddenarg2 << "&";
     hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(derefuti).c_str();
     hiddenarg2 << ", " << genUlamRefUsageAsString(derefuti).c_str();
@@ -1478,5 +1477,17 @@ void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp)
     fp->write(fut->getUlamTypeMangledName().c_str()); //e.g. t3605
     fp->write("<EC>::THE_INSTANCE.");
   } //genLocalMemberNameOfMethod
+
+  u32 NodeFunctionCall::getLengthOfMemberClassForHiddenArg(UTI cosuti)
+  {
+    //both virtuals and non- (original)
+    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+    return cosut->getTotalBitSize();
+
+    //change len.. (new, unused)
+    UTI futi = m_funcSymbol->getDataMemberClass();
+    UlamType * fut = m_state.getUlamTypeByIndex(futi);
+    return fut->getTotalBitSize();
+  }
 
 } //end MFM

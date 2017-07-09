@@ -122,7 +122,7 @@ namespace MFM {
 		  {
 		    m_node->constantFold();
 		  }
-
+		ULAMTYPE etyp = m_state.getUlamTypeByIndex(rtnType)->getUlamTypeEnum();
 		FORECAST scr = m_node->safeToCastTo(rtnType);
 		if(scr == CAST_CLEAR)
 		  {
@@ -134,7 +134,7 @@ namespace MFM {
 		else
 		  {
 		    std::ostringstream msg;
-		    if(m_state.getUlamTypeByIndex(rtnType)->getUlamTypeEnum() == Bool)
+		    if(etyp == Bool)
 		      msg << "Use a comparison operator";
 		    else
 		      msg << "Use explicit cast";

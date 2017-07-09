@@ -95,6 +95,8 @@ namespace MFM{
 
     virtual void genCodeReadIntoATmpVar(File * fp, UVPass & uvpass);
 
+    virtual u32 getLengthOfMemberClassForHiddenArg(UTI cosuti);
+
   protected:
     //helper methods override Node read/write
     virtual void genMemberNameOfMethod(File * fp);
@@ -125,6 +127,7 @@ namespace MFM{
     std::string genRestOfFunctionArgs(File * fp, UVPass & uvpass);
     void genCodeReferenceArg(File * fp, UVPass & uvpass, u32 n);
     std::string genStorageType(); //for VTable entry
+
   };
 
 }
