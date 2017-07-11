@@ -181,9 +181,9 @@ namespace MFM {
 	else
 	  {
 	    //RHS is class or atom;
-	    //first look for "exact" (or non-ref) arg match overload operator=
+	    //first look for (safe cast) arg match overload operator=
 	    bool hazyArg = false;
-	    Node * newnode = buildOperatorOverloadFuncCallNodeForMatchingArg(hazyArg); //virtual
+	    Node * newnode = buildOperatorOverloadFuncCallNodeForMatchingArg(hazyArg);
 	    if(hazyArg)
 	      {
 		newType = Hzy;
@@ -204,28 +204,14 @@ namespace MFM {
 	    else
 	      {
 		//default struct assign
-		//for assignment to reference, cast to underlying type Sat Jun 25 09:01:07 2016
 		if(UlamType::compareForAssignment(newType, rightType, m_state) != UTIC_SAME)
 		  {
-		    newType = m_state.getUlamTypeAsDeref(leftType); //init
+		    UTI derefLeft = m_state.getUlamTypeAsDeref(leftType); //tmp deref type
 		    if(checkSafeToCastTo(rightType, newType))
 		      {
-			if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
+			if(!Node::makeCastingNode(m_nodeRight, derefLeft, m_nodeRight))
 			  newType = Nav; //error
-#if 0
-			else
-			  {
-			    //for ulam compiler, cast to reference if necessary Sat Jun 25 09:08:37 2016
-			    if(UlamType::compare(leftType, newType, m_state) != UTIC_SAME)
-			      {
-				newType = leftType;
-				if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
-				  newType = Nav; //error
-				//else casted to ref, newType changed (to ref)
-			      } //else not a ref, nothing else to do
-			  }
-#endif
-		      }//else not safe, newType changed (to deref)
+		      }//else not safe, error msg, newType changed
 		  } //else same enough
 	      }
 	  }
@@ -233,139 +219,26 @@ namespace MFM {
     else
       {
 	//LHS not class; cast RHS if necessary and safe
-	//if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME)
 	if(UlamType::compareForAssignment(newType, rightType, m_state) != UTIC_SAME)
 	  {
-	    //for assignment to reference, cast to underlying type Sat Jun 25 09:01:07 2016
-	    newType = m_state.getUlamTypeAsDeref(leftType); //init
-	    if(checkSafeToCastTo(rightType, newType))
+	    UTI derefLeft = m_state.getUlamTypeAsDeref(leftType); //tmp deref type
+	    if(checkSafeToCastTo(rightType, derefLeft))
 	      {
-		if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
+		if(!Node::makeCastingNode(m_nodeRight, derefLeft, m_nodeRight))
 		  newType = Nav; //error
-#if 0
-		else
-		  {
-		    //for ulam compiler, cast to reference if necessary Sat Jun 25 09:08:37 2016
-		    if(UlamType::compare(leftType, newType, m_state) != UTIC_SAME)
-		      {
-			newType = leftType;
-			if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
-			  newType = Nav; //error
-			//else not safe, newType changed
-		      }
-		  }
-#endif
-	      } //else not safe, newType changed
+	      } //else not safe, error msg, newType changed
 	  } //else the same
       }
-
-#if 0
-    UTI newType = leftType;
-    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-    //cast RHS if necessary and safe
-    if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME)
-      {
-	//different msg if try to assign non-class to a class type
-	if((lut->getUlamTypeEnum() == Class) && (m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum() != Class) && !m_state.isAtom(rightType))
-	  {
-	    //try for operator overload first (e.g. (pre) +=,-=, (post) ++,-- )
-	    Node * newnode = buildOperatorOverloadFuncCallNode(); //virtual
-	    if(newnode)
-	      {
-		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-		assert(swapOk);
-
-		m_nodeLeft = NULL; //recycle as memberselect
-		m_nodeRight = NULL; //recycle as func call arg
-
-		delete this; //suicide is painless..
-
-		return newnode->checkAndLabelType();
-	      }
-	    else
-	      {
-		std::ostringstream msg;
-		msg << "Incompatible class type ";
-		msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
-		msg << " and ";
-		msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
-		msg << " used with binary operator" << getName();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		newType = Nav; //error
-	      }
-	  }
-	else
-	  {
-	    //for assignment to reference, cast to underlying type Sat Jun 25 09:01:07 2016
-	    newType = m_state.getUlamTypeAsDeref(leftType); //init
-	    if(checkSafeToCastTo(rightType, newType))
-	      {
-		if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
-		  newType = Nav; //error
-		else
-		  {
-		    //for ulam compiler, cast to reference if necessary Sat Jun 25 09:08:37 2016
-		    if(UlamType::compare(leftType, newType, m_state) != UTIC_SAME)
-		      {
-			newType = leftType;
-			if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
-			  newType = Nav; //error
-			//else not safe, newType changed
-		      }
-		  }
-	      }
-	    //else not safe, newType changed
-	  }
-      }
-    else
-      {
-	if(lut->getUlamTypeEnum() == Class)
-	  {
-	    //try for operator overload first
-	    Node * newnode = buildOperatorOverloadFuncCallNode(); //virtual
-	    if(newnode)
-	      {
-		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
-		assert(swapOk);
-
-		m_nodeLeft = NULL; //recycle as memberselect
-		m_nodeRight = NULL; //recycle as func call arg
-
-		delete this; //suicide is painless..
-
-		return newnode->checkAndLabelType();
-	      }
-	    //else not overloaded, use default
-	  }
-      }
-#endif
 
     setNodeType(newType);
     return newType;
   } //checkAndLabelType
 
-#if 0
-  Node * NodeBinaryOpEqual::buildOperatorOverloadFuncCallNode()
-  {
-    UTI leftType = m_nodeLeft->getNodeType();
-    UTI rightType = m_nodeRight->getNodeType();
-    UlamType * rut = m_state.getUlamTypeByIndex(rightType);
-
-    assert((UlamType::compare(leftType, rightType, m_state) != UTIC_SAME) && (rut->getUlamClassType() == UC_NOTACLASS));
-    return NodeBinaryOp::buildOperatorOverloadFuncCallNode(); //t41117,18,20,21
-
-    //    bool tmphazyargs = false; //ignored???
-    //return buildOperatorOverloadFuncCallNodeForMatchingArg(tmphazyargs);
-  } //buildOperatorOverloadFuncCallNode
-#endif
-
-  //here, we check for func with matching argument when both sides the same Class type
-  //so we can use the default struct equal if no overload defined.
+  //here, we check for func with matching argument when both sides the same Class type,
+  // or rhs is an atom, so we can use the default struct equal if no overload defined.
   Node * NodeBinaryOpEqual::buildOperatorOverloadFuncCallNodeForMatchingArg(bool& hazyArg)
   {
     UTI leftType = m_nodeLeft->getNodeType();
-    UTI rightType = m_nodeRight->getNodeType();
-
     Token identTok;
     TokenType opTokType = Token::getTokenTypeFromString(getName());
     assert(opTokType != TOK_LAST_ONE);
@@ -383,9 +256,7 @@ namespace MFM {
 
     identTok.init(TOK_IDENTIFIER, getNodeLocation(), opolId);
 
-    //may need to fall back to default struct equal when the same class (t41119)
-    // when matching function not found; ref on rhs should also match non-ref arg if
-    // ref arg not found (t41120)
+    //may need to fall back to default struct equal when the same class (t41119), or ref (t41120)
     SymbolClass * csym = NULL;
     AssertBool isDefined = m_state.alreadyDefinedSymbolClass(leftType, csym);
     assert(isDefined);
@@ -404,31 +275,15 @@ namespace MFM {
 
     if(m_state.isFuncIdInClassScope(opolId, fnsymptr, hazyKin) && !hazyKin)
       {
-	// still need to pinpoint the SymbolFunction; match by Types rather than looking for safe casts.
-	std::vector<UTI> pTypes;
-	pTypes.push_back(rightType);
+	// still need to pinpoint the SymbolFunction; ok to look for safe casts (t41120).
+	std::vector<Node *> argNodes;
+	argNodes.push_back(m_nodeRight); //(destructor not called)
 
 	SymbolFunction * funcSymbol = NULL;
 	bool tmphazyargs = false;
-	u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionStrictlyByTypes(pTypes, funcSymbol, tmphazyargs);
+	u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionWithSafeCasts(argNodes, funcSymbol, tmphazyargs);
 	if(tmphazyargs)
 	  hazyArg = true;
-	else
-	  {
-	    if(numFuncs == 0 && m_state.isReference(rightType))
-	      {
-		//try again with non-ref type (t41120)
-		UTI deref = m_state.getUlamTypeAsDeref(rightType);
-
-		std::vector<UTI> dTypes;
-		dTypes.push_back(deref);
-		bool tmphazyargs2 = false;
-		numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionStrictlyByTypes(dTypes, funcSymbol, tmphazyargs2);
-		if(tmphazyargs2)
-		  hazyArg = true;
-	      }
-	  }
-
 	if(!hazyArg && numFuncs >= 1)
 	  {
 	    // ambiguous (>1) overload will produce an error later
