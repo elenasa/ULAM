@@ -61,7 +61,7 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    virtual Node * buildOperatorOverloadFuncCallNode();
+    //virtual Node * buildOperatorOverloadFuncCallNode();
 
     virtual EvalStatus eval();
 
@@ -87,6 +87,7 @@ namespace MFM{
 
   private:
 
+    Node * buildOperatorOverloadFuncCallNodeForMatchingArg(bool& hazyArg);
   };
 
 }

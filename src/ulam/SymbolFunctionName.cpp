@@ -84,7 +84,15 @@ namespace MFM {
     return overloaded;
   } //overloadFunction
 
-  u32 SymbolFunctionName::findMatchingFunctionStrictlyByTypes(std::vector<UTI> argTypes, SymbolFunction *& funcSymbol)
+  u32 SymbolFunctionName::findMatchingFunctionStrictlyVoid(SymbolFunction *& funcSymbol)
+  {
+    std::vector<UTI> voidVector;
+    bool tmphazyargs = false;
+    u32 numfound = findMatchingFunctionStrictlyByTypes(voidVector, funcSymbol, tmphazyargs);
+    return numfound;
+  }
+
+  u32 SymbolFunctionName::findMatchingFunctionStrictlyByTypes(std::vector<UTI> argTypes, SymbolFunction *& funcSymbol, bool& hasHazyArgs)
   {
     if(m_mangledFunctionNames.empty())
       return 0;
@@ -96,17 +104,20 @@ namespace MFM {
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;
-	if(fsym->matchingTypesStrictly(argTypes))
+	bool tmphazyargs = false;
+	if(fsym->matchingTypesStrictly(argTypes, tmphazyargs))
 	  {
 	    funcSymbol = fsym;
 	    matchingFuncCount++;
 	  }
+	if(tmphazyargs)
+	  hasHazyArgs = true;
 	++it;
       }
     return matchingFuncCount;
   } //findMatchingFunctionStrictlyByTypes
 
-  u32 SymbolFunctionName::findMatchingFunction(std::vector<Node *> argNodes, SymbolFunction *& funcSymbol)
+  u32 SymbolFunctionName::findMatchingFunction(std::vector<Node *> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs)
   {
     if(m_mangledFunctionNames.empty())
       return 0;
@@ -118,11 +129,14 @@ namespace MFM {
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;
-	if(fsym->matchingTypesStrictly(argNodes))
+	bool tmphazyargs = false;
+	if(fsym->matchingTypesStrictly(argNodes, tmphazyargs))
 	  {
 	    funcSymbol = fsym;
 	    matchingFuncCount++;
 	  }
+	if(tmphazyargs)
+	  hasHazyArgs = true;
 	++it;
       }
     return matchingFuncCount;
@@ -136,11 +150,11 @@ namespace MFM {
     if(m_mangledFunctionNames.empty())
       return 0;
 
-    u32 matchingFuncCount = findMatchingFunction(argNodes, funcSymbol); //strictly first
+    u32 matchingFuncCount = findMatchingFunction(argNodes, funcSymbol, hasHazyArgs); //strictly first
 
     //try again with less strict constraints, allow safe casting;
     //track matches with hazy casting for error message output
-    if(!funcSymbol)
+    if(!hasHazyArgs && !funcSymbol)
       {
 	// give priority to safe matches that have same ULAMTYPEs too
 	// e.g. Unsigned(3) arg would safely cast to Int(4), Int(5), and Unsigned param;
@@ -182,7 +196,8 @@ namespace MFM {
       } //2nd try
 
     //3rd try: check any super class, unless hazyargs (causes inf loop)
-    if(matchingFuncCount == 0)
+    //if(matchingFuncCount == 0)
+    if(!hasHazyArgs && matchingFuncCount == 0)
 	return findMatchingFunctionWithSafeCastsInAncestors(argNodes, funcSymbol, hasHazyArgs);
 
     return matchingFuncCount;

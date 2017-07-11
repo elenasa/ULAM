@@ -850,7 +850,9 @@ namespace MFM {
 	  }
 
 	SymbolFunction * funcSymbol = NULL;
-	u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionStrictlyByTypes(pTypes, funcSymbol);
+	bool tmphazyargs = false;
+	u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionStrictlyByTypes(pTypes, funcSymbol, tmphazyargs);
+	assert(!tmphazyargs);
 
 	if(numFuncs != 1)
 	  {

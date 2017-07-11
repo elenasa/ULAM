@@ -145,6 +145,121 @@ namespace MFM {
 	return Nav;
       }
 
+
+    UTI newType = leftType;
+    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
+    if(lut->getUlamTypeEnum() == Class)
+      {
+	if((m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum() != Class) && !m_state.isAtom(rightType))
+	  {
+	    //try for operator overload first (e.g. (pre) +=,-=, (post) ++,-- )
+	    Node * newnode = buildOperatorOverloadFuncCallNode(); //virtual
+	    if(newnode)
+	      {
+		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+		assert(swapOk);
+
+		m_nodeLeft = NULL; //recycle as memberselect
+		m_nodeRight = NULL; //recycle as func call arg
+
+		delete this; //suicide is painless..
+
+		return newnode->checkAndLabelType();
+	      }
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "Incompatible class type ";
+		msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
+		msg << " and ";
+		msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
+		msg << " used with binary operator" << getName();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		newType = Nav; //error
+	      }
+	  }
+	else
+	  {
+	    //RHS is class or atom;
+	    //first look for "exact" (or non-ref) arg match overload operator=
+	    bool hazyArg = false;
+	    Node * newnode = buildOperatorOverloadFuncCallNodeForMatchingArg(hazyArg); //virtual
+	    if(hazyArg)
+	      {
+		newType = Hzy;
+		m_state.setGoAgain();
+	      }
+	    else if(newnode)
+	      {
+		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+		assert(swapOk);
+
+		m_nodeLeft = NULL; //recycle as memberselect
+		m_nodeRight = NULL; //recycle as func call arg
+
+		delete this; //suicide is painless..
+
+		return newnode->checkAndLabelType();
+	      }
+	    else
+	      {
+		//default struct assign
+		//for assignment to reference, cast to underlying type Sat Jun 25 09:01:07 2016
+		if(UlamType::compareForAssignment(newType, rightType, m_state) != UTIC_SAME)
+		  {
+		    newType = m_state.getUlamTypeAsDeref(leftType); //init
+		    if(checkSafeToCastTo(rightType, newType))
+		      {
+			if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
+			  newType = Nav; //error
+#if 0
+			else
+			  {
+			    //for ulam compiler, cast to reference if necessary Sat Jun 25 09:08:37 2016
+			    if(UlamType::compare(leftType, newType, m_state) != UTIC_SAME)
+			      {
+				newType = leftType;
+				if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
+				  newType = Nav; //error
+				//else casted to ref, newType changed (to ref)
+			      } //else not a ref, nothing else to do
+			  }
+#endif
+		      }//else not safe, newType changed (to deref)
+		  } //else same enough
+	      }
+	  }
+      }
+    else
+      {
+	//LHS not class; cast RHS if necessary and safe
+	//if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME)
+	if(UlamType::compareForAssignment(newType, rightType, m_state) != UTIC_SAME)
+	  {
+	    //for assignment to reference, cast to underlying type Sat Jun 25 09:01:07 2016
+	    newType = m_state.getUlamTypeAsDeref(leftType); //init
+	    if(checkSafeToCastTo(rightType, newType))
+	      {
+		if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
+		  newType = Nav; //error
+#if 0
+		else
+		  {
+		    //for ulam compiler, cast to reference if necessary Sat Jun 25 09:08:37 2016
+		    if(UlamType::compare(leftType, newType, m_state) != UTIC_SAME)
+		      {
+			newType = leftType;
+			if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
+			  newType = Nav; //error
+			//else not safe, newType changed
+		      }
+		  }
+#endif
+	      } //else not safe, newType changed
+	  } //else the same
+      }
+
+#if 0
     UTI newType = leftType;
     UlamType * lut = m_state.getUlamTypeByIndex(leftType);
     //cast RHS if necessary and safe
@@ -223,20 +338,33 @@ namespace MFM {
 	    //else not overloaded, use default
 	  }
       }
+#endif
+
     setNodeType(newType);
     return newType;
   } //checkAndLabelType
 
-  //here, we check for func with matching argument when both sides the same Class type
-  //so we can use the default struct equal if no overload defined.
+#if 0
   Node * NodeBinaryOpEqual::buildOperatorOverloadFuncCallNode()
   {
     UTI leftType = m_nodeLeft->getNodeType();
     UTI rightType = m_nodeRight->getNodeType();
     UlamType * rut = m_state.getUlamTypeByIndex(rightType);
 
-    if((UlamType::compare(leftType, rightType, m_state) != UTIC_SAME) && (rut->getUlamClassType() == UC_NOTACLASS))
-      return NodeBinaryOp::buildOperatorOverloadFuncCallNode(); //t41117,18,20,21
+    assert((UlamType::compare(leftType, rightType, m_state) != UTIC_SAME) && (rut->getUlamClassType() == UC_NOTACLASS));
+    return NodeBinaryOp::buildOperatorOverloadFuncCallNode(); //t41117,18,20,21
+
+    //    bool tmphazyargs = false; //ignored???
+    //return buildOperatorOverloadFuncCallNodeForMatchingArg(tmphazyargs);
+  } //buildOperatorOverloadFuncCallNode
+#endif
+
+  //here, we check for func with matching argument when both sides the same Class type
+  //so we can use the default struct equal if no overload defined.
+  Node * NodeBinaryOpEqual::buildOperatorOverloadFuncCallNodeForMatchingArg(bool& hazyArg)
+  {
+    UTI leftType = m_nodeLeft->getNodeType();
+    UTI rightType = m_nodeRight->getNodeType();
 
     Token identTok;
     TokenType opTokType = Token::getTokenTypeFromString(getName());
@@ -267,33 +395,41 @@ namespace MFM {
 
     assert(m_state.okUTItoContinue(memberClassNode->getNodeType()));
 
-   //set up compiler state to use the member class block for symbol searches
+    //set up compiler state to use the member class block for symbol searches
     m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
 
     Node * rtnNode = NULL;
     Symbol * fnsymptr = NULL;
-    bool hazyKin = false; //unused
+    bool hazyKin = false;
 
-    if(m_state.isFuncIdInClassScope(opolId, fnsymptr, hazyKin))
+    if(m_state.isFuncIdInClassScope(opolId, fnsymptr, hazyKin) && !hazyKin)
       {
 	// still need to pinpoint the SymbolFunction; match by Types rather than looking for safe casts.
 	std::vector<UTI> pTypes;
 	pTypes.push_back(rightType);
 
 	SymbolFunction * funcSymbol = NULL;
-	u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionStrictlyByTypes(pTypes, funcSymbol);
-	if(numFuncs == 0 && m_state.isReference(rightType))
+	bool tmphazyargs = false;
+	u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionStrictlyByTypes(pTypes, funcSymbol, tmphazyargs);
+	if(tmphazyargs)
+	  hazyArg = true;
+	else
 	  {
-	    //try again with non-ref type (t41120)
-	    UTI deref = m_state.getUlamTypeAsDeref(rightType);
+	    if(numFuncs == 0 && m_state.isReference(rightType))
+	      {
+		//try again with non-ref type (t41120)
+		UTI deref = m_state.getUlamTypeAsDeref(rightType);
 
-	    std::vector<UTI> dTypes;
-	    dTypes.push_back(deref);
-
-	    numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionStrictlyByTypes(dTypes, funcSymbol);
+		std::vector<UTI> dTypes;
+		dTypes.push_back(deref);
+		bool tmphazyargs2 = false;
+		numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionStrictlyByTypes(dTypes, funcSymbol, tmphazyargs2);
+		if(tmphazyargs2)
+		  hazyArg = true;
+	      }
 	  }
 
-	if(numFuncs >= 1)
+	if(!hazyArg && numFuncs >= 1)
 	  {
 	    // ambiguous (>1) overload will produce an error later
 	    //fill in func symbol during type labeling;
@@ -307,16 +443,17 @@ namespace MFM {
 	    assert(mselectNode);
 	    mselectNode->setNodeLocation(identTok.m_locator);
 	    rtnNode = mselectNode;
-	  }
-	//else use default struct equal
+	  }//else use default struct equal, or wait for hazy arg
       }
+    else if(hazyKin)
+      hazyArg = hazyKin;
 
     //clear up compiler state to no longer use the member class block for symbol searches
     m_state.popClassContext();
 
     //redo check and type labeling done by caller!!
     return rtnNode; //replace right node with new branch
-  } //buildOperatorOverloadFuncCallNode
+  } //buildOperatorOverloadFuncCallNodeForMatchingArg
 
   TBOOL NodeBinaryOpEqual::checkStoreIntoAble()
   {

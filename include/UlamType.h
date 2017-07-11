@@ -160,6 +160,7 @@ namespace MFM{
     static ULAMTYPECOMPARERESULTS compareForMakingCastingNode(UTI u1, UTI u2, CompilerState& state);
 
     static ULAMTYPECOMPARERESULTS compareForUlamValueAssignment(UTI u1, UTI u2, CompilerState& state);
+    static ULAMTYPECOMPARERESULTS compareForAssignment(UTI u1, UTI u2, CompilerState& state);
 
     static ULAMTYPECOMPARERESULTS compareForString(UTI u1, CompilerState& state);
 

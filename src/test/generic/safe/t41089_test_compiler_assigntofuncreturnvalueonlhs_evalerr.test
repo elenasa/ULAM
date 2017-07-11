@@ -1,21 +1,30 @@
 ## -*- mode:ulam -*-
 #=t41089_test_compiler_assigntofuncreturnvaluelhs_evalerr
 ##
+## gen output: (1 assert)
+##
 ## eval error; gencode compiles benign.
+## Ue_R { Int(32) test() {  R tw;  ( )func tw = ( )funcme tw = ( )funcref tw CAST?needed = 0 cast return } }
+##
 #!
 Exit status: -1
-Ue_R { Int(32) test() {  R tw;  ( )func tw = ( )funcme tw = ( )funcref tw cast = 0 cast return } }
+Ue_R { Bool(3) first(false);  Int(32) test() {  System s;  R tw;  tw first . true cast = ( )func tw = ( )funcme tw = ( )funcref tw = s ( first cast )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
 ##
 ## informed by t3790, t41054
 ##
 #>R.ulam
   ulam 3;
 element R {
+  Bool(3) first;
   Int test(){
+    System s;
     R tw;
+    tw.first = true;
     func() = tw; //to what end..
     funcme() = tw; //to what end..
-    funcref() = tw; //to what end..
+    funcref() = tw;
+    s.assert(first);
     return 0;
   }
 
@@ -34,6 +43,18 @@ element R {
   {
     return self;
   }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
 }
 
 #.

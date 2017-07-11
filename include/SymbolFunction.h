@@ -78,8 +78,8 @@ namespace MFM{
 
     bool checkParameterTypes();
 
-    bool matchingTypesStrictly(std::vector<UTI> argTypes);
-    bool matchingTypesStrictly(std::vector<Node *> argNodes);
+    bool matchingTypesStrictly(std::vector<Node *> argNodes, bool& hasHazyArgs);
+    bool matchingTypesStrictly(std::vector<UTI> argTypes, bool& hasHazyArgs);
     bool matchingTypes(std::vector<Node *> argNodes, bool& hasHazyArgs, u32& numUTmatch);
 
     u32 isNativeFunctionDeclaration();

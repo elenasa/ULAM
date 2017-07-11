@@ -664,6 +664,11 @@ namespace MFM {
     return UlamType::compareWithWildALTKey(u1, u2, state);
   }
 
+  ULAMTYPECOMPARERESULTS UlamType::compareForAssignment(UTI u1, UTI u2, CompilerState& state)  //static
+  {
+    return UlamType::compareWithWildALTKey(u1, u2, state);
+  }
+
   ULAMTYPECOMPARERESULTS UlamType::compareForString(UTI u1, CompilerState& state)  //static
   {
     //bitsize always 32; wild reference type
