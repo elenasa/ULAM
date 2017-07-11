@@ -207,7 +207,6 @@ namespace MFM {
     fcallNode->setNodeLocation(identTok.m_locator);
 
     //similar to Binary Op's except no argument
-    //fcallNode->addArgument(m_nodeRight);
 
     NodeMemberSelect * mselectNode = new NodeMemberSelect(m_node, fcallNode, m_state);
     assert(mselectNode);

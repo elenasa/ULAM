@@ -51,7 +51,6 @@ namespace MFM {
     fcallNode->setNodeLocation(identTok.m_locator);
 
     //pre incr/decr has no argument
-    //    fcallNode->addArgument(m_nodeRight);
     delete m_nodeRight;
     m_nodeRight = NULL;
 
