@@ -21,7 +21,7 @@ Uq_System { <NOMAIN> }
 ## with data member structure read/write (informed by ish 12/1/16)
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 use Too;
 use System;
 element Foo {
@@ -90,7 +90,7 @@ transient Tumi {
 }
 
 #:QW.ulam
-  ulam 2;
+  ulam 1;
 quark QW {
   Int(3) qi = 3;
   Bool qb = true;

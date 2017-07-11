@@ -13,7 +13,7 @@ Uq_System { <NOMAIN> }
 ## lengthof a scalar String variable (e.g. data member) is not a constant, cannot be folded (eval)
 ##
 #:FString.ulam
-  ulam 2;
+  ulam 3;
 /* Glyph representation "cwhdrowspaddedtomultipleof8bits"
    c: char
    w: char width in sites

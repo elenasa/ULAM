@@ -13,7 +13,7 @@ Uq_System { <NOMAIN> }
 ## informed by t3992
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 local constant String longstring = "thisisaverylongstringthatexceedsthatlengthallowedbylinuxwhichistwohundredfiftyfivebuttakingthelongestextensionintoaccountwemustsubtracteightallowingustotestthemanglednamewiththisverylongstringthatneedsafewmoreletterstoproperlytestthelimitationdiscussed012"; //255
 element Foo {
   Bool sp;

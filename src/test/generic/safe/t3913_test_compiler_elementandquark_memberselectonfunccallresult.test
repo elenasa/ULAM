@@ -11,7 +11,7 @@ Uq_QW { <NOMAIN> }
 ## informed by t3912
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 use System;
 use QW;
 element A : QW {

@@ -12,7 +12,7 @@ Uq_System { <NOMAIN> }
 ## informed by t41033, Dave email 2/10/2017 and t41031; also data member case for questioncolon non-ref
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 element Foo : Qbar
 {
   Qbar m_qbar;
@@ -30,7 +30,7 @@ element Foo : Qbar
 }
 
 #:Qbar.ulam
-  ulam 2;
+  ulam 3;
 quark Qbar {
   Int(3) m_q = 1;
   Self func(Bool barg)

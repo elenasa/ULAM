@@ -13,7 +13,7 @@ Uq_System { <NOMAIN> }
 ## informed by Dave email 2/10/2017 and t41031
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 element Foo
 {
   Atom & func(Atom& arg1, Atom& arg2, Bool barg)

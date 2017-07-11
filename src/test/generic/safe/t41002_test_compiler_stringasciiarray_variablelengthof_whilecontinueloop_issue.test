@@ -13,7 +13,7 @@ Uq_System { <NOMAIN> }
 ## need a block for end-of-while-loop label, to avoid g++ compiler jump error, and "crosses initialization of"
 ##
 #:FString.ulam
-  ulam 2;
+  ulam 3;
 /* Glyph representation "cwhdrowspaddedtomultipleof8bits"
    c: char
    w: char width in sites

@@ -12,7 +12,7 @@ Uq_System { <NOMAIN> }
 ## informed by Dave email 2/10/2017 and t41034
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 element Foo
 {
   Unsigned & func(Unsigned& arg1, Unsigned& arg2, Bool barg)

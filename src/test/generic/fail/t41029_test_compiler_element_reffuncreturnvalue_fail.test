@@ -12,7 +12,7 @@ Uq_System { <NOMAIN> }
 ## informed by t3630
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 element Foo {
   Int(4) m_i;
   Bool(3) m_b;

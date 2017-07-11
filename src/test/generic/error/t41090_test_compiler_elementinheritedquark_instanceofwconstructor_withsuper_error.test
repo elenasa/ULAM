@@ -10,7 +10,7 @@ Unrecoverable Program Type Label FAILURE.
 ## informed by t3747
 ##
 #:Base.ulam
-  ulam 2;
+  ulam 3;
 quark Base {
   Bits(4) bits = 0xc;
 
@@ -21,7 +21,7 @@ quark Base {
 }
 
 #:Sub1.ulam
-  ulam 2;
+  ulam 3;
 use Base;
 quark Sub1 : Base {
   Int(3) sint = -1;

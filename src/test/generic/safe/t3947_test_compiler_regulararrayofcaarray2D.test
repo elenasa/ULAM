@@ -9,7 +9,7 @@ Uq_EventWindow { <NOMAIN> }
 ## informed by t3942
 ##
 #>R.ulam
-  ulam 2;
+  ulam 3;
 element R {
   Int test(){
     EventWindow tvt[7]; //regular array of custom arrays
@@ -21,7 +21,7 @@ element R {
 }
 
 #:EventWindow.ulam
-  ulam 1;
+  ulam 3;
 quark EventWindow {
   Atom& aref(Int index) native;
 }

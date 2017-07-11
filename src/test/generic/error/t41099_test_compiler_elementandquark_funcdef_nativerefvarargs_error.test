@@ -1,0 +1,42 @@
+## -*- mode:ulam -*-
+#=t41099_test_compiler_elementandquark_funcdef_nativerefvarargs_error
+#!
+./A.ulam:8:18: ERROR: Reference Vararg: arg_1 to function <max>; type Int(32)& is currently unsupported.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t3250
+##
+#>A.ulam
+  ulam 3;
+element A {
+  Math math;
+  Int test(){
+    System s;
+    Int i = 1;
+    Int& iref = i;
+    Int m = math.max(iref, -4, 2u);
+    s.print(m);
+    s.assert(m == 2);
+    return m;
+  }
+}
+
+##      // max with variable number of args...
+##      //with final void * 0 instead of nargs as first arg.
+#:Math.ulam
+  ulam 1;
+quark Math {
+  Int max(...) native;
+}
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

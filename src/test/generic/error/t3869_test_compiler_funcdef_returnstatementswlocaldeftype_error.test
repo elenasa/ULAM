@@ -7,7 +7,7 @@ Unrecoverable Program Type Label FAILURE.
 ## informed by t3137
 ##
 #>D.ulam
-  ulam 2;  //3 not allowed yet!
+  ulam 3;  //3 not allowed yet!
 local typedef Int(3) Foo [8];
 element D {
   local.Foo foo() {

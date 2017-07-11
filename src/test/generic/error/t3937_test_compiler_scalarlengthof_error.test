@@ -12,7 +12,7 @@ Unrecoverable Program Type Label FAILURE.
 ##      //arraysize zero ok, but not bitsize zero for nonClass primitive types!
 ##
 #>Eltypo.ulam
-  ulam 1;
+  ulam 3;
 element Eltypo {
   typedef Int(3) It;
   Int test(){

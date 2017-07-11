@@ -314,10 +314,10 @@ namespace MFM {
 	      u32 numargs = getNumberOfArguments();
 	      for(u32 i = numParams; i < numargs; i++)
 		  {
+		    UTI auti = argNodes[i]->getNodeType();
 		    if(argNodes[i]->isAConstant())
 		      {
 			Node * argCast = NULL;
-			UTI auti = argNodes[i]->getNodeType();
 			if(!Node::makeCastingNode(argNodes[i], m_state.getDefaultUlamTypeOfConstant(auti), argCast))
 			  {
 			    argsWithCastErr.push_back(i); //error!
@@ -325,25 +325,48 @@ namespace MFM {
 			m_argumentNodes->exchangeKids(argNodes[i], argCast, i);
 			argsWithCast++;
 		      }
+		    else if(m_state.getReferenceType(auti) == ALT_ARRAYITEM)
+		      {
+			//array item (ALT_ARRAYITEM) is okay, with a cast to its scalar (t3250)
+			//don't use makeCastingNode, since UTIC_SAME short-circuits; req'd cast
+			Node * argCast = Node::newCastingNode(argNodes[i], m_state.getUlamTypeAsDeref(auti));
+			assert(argCast != NULL); //cannot fail
+			m_argumentNodes->exchangeKids(argNodes[i], argCast, i);
+			argsWithCast++;
+		      }
+		    else if(m_state.getReferenceType(auti) == ALT_REF)
+		      {
+			//ref not allowed since doesn't share base class w non-refs (t41099)
+			std::ostringstream msg;
+			msg << "Reference Vararg: " ;
+			msg << "arg_" << i + 1;
+			msg << " to function <";
+			msg << m_state.getTokenDataAsString(m_functionNameTok).c_str();
+			msg <<">; type ";
+			msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
+			msg << " is currently unsupported";
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		      }
+		    //else nothing to do
 		  }
 	    } //var args
 
 	  if(!argsWithCastErr.empty())
-	      {
-		std::ostringstream msg;
-		msg << "Casting errors for args with constants: " ;
-		for(u32 i = 0; i < argsWithCastErr.size(); i++)
-		  {
-		    if(i > 0)
-		      msg << ", ";
-		    msg << "arg_" << i + 1;
-		  }
+	    {
+	      std::ostringstream msg;
+	      msg << "Casting errors for args with constants: " ;
+	      for(u32 i = 0; i < argsWithCastErr.size(); i++)
+		{
+		  if(i > 0)
+		    msg << ", ";
+		  msg << "arg_" << i + 1;
+		}
 
-		msg << " to function <";
-		msg << m_state.getTokenDataAsString(m_functionNameTok).c_str() <<">";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		argsWithCastErr.clear();
-	      }
+	      msg << " to function <";
+	      msg << m_state.getTokenDataAsString(m_functionNameTok).c_str() <<">";
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      argsWithCastErr.clear();
+	    }
 	} //constants
 
 	m_state.popClassContext(); //restore here
@@ -1253,7 +1276,7 @@ namespace MFM {
     UTI derefuti = m_state.getUlamTypeAsDeref(vuti);
     assert(m_state.isAClass(derefuti));
 
-    UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
+    //UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
 
    u32 tmpvarnum = uvpass.getPassVarNum();
    u32 tmpvarur = m_state.getNextTmpVarNumber();
@@ -1267,8 +1290,7 @@ namespace MFM {
     else
       hiddenarg2 << ", " << uvpass.getPassPos() << "u"; //element refs already +25
 
-    hiddenarg2 << ", " << derefut->getTotalBitSize() << "u, "; //len t3370
-
+    hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(derefuti) << "u, "; //len t3370
     hiddenarg2 << "&";
     hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(derefuti).c_str();
     hiddenarg2 << ", " << genUlamRefUsageAsString(derefuti).c_str();
@@ -1360,10 +1382,9 @@ namespace MFM {
 	UVPass auvpass;
 	m_state.clearCurrentObjSymbolsForCodeGen(); //*************
 
-	// what if ALT_ARRAYITEM?
 	if(m_state.getReferenceType(m_funcSymbol->getParameterType(i)) != ALT_NOT)
 	  {
-	    genCodeReferenceArg(fp, auvpass, i);
+	    genCodeReferenceArg(fp, auvpass, i); //t41100
 	  }
 	else
 	  {
@@ -1380,10 +1401,14 @@ namespace MFM {
 	  {
 	    UVPass auvpass;
 	    m_state.clearCurrentObjSymbolsForCodeGen(); //*************
-
-	    if(m_state.getReferenceType(m_argumentNodes->getNodeType(i)) != ALT_NOT)
+	    UTI auti = m_argumentNodes->getNodeType(i);
+	    ALT aalt = m_state.getReferenceType(auti);
+	    if( aalt != ALT_NOT)
 	      {
-		genCodeReferenceArg(fp, auvpass, i);
+		//variable args cannot be references, but casted arrayitem okay;
+		// c&l makes sure (t3250, t41099)
+		//genCodeReferenceArg(fp, auvpass, i);
+		m_state.abortShouldntGetHere();
 	      }
 	    else
 	      {
@@ -1420,7 +1445,16 @@ namespace MFM {
 
     //tmp var for lhs
     assert(m_funcSymbol);
-    UTI vuti = m_funcSymbol->getParameterType(n);
+    u32 numParams = m_funcSymbol->getNumberOfParameters();
+    UTI vuti = Nav;
+    if(n < numParams)
+      vuti = m_funcSymbol->getParameterType(n);
+    else
+      {
+	assert(m_funcSymbol->takesVariableArgs()); //must also be native
+	vuti = m_argumentNodes->getNodeType(n); //pass type we got
+      }
+
     s32 tmpVarArgNum = m_state.getNextTmpVarNumber();
 
     UVPass luvpass = UVPass::makePass(tmpVarArgNum, TMPAUTOREF, vuti, m_state.determinePackable(vuti), m_state, 0, id);
@@ -1440,10 +1474,20 @@ void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp)
 
     UTI futi = m_funcSymbol->getDataMemberClass();
     UlamType * fut = m_state.getUlamTypeByIndex(futi);
-    //fp->write(fut->getLocalStorageTypeAsString().c_str());
-    //fp->write("::Us::THE_INSTANCE.");
     fp->write(fut->getUlamTypeMangledName().c_str()); //e.g. t3605
     fp->write("<EC>::THE_INSTANCE.");
   } //genLocalMemberNameOfMethod
+
+  u32 NodeFunctionCall::getLengthOfMemberClassForHiddenArg(UTI cosuti)
+  {
+    //both virtuals and non- (original)
+    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+    return cosut->getTotalBitSize();
+
+    //change len.. (new, unused)
+    UTI futi = m_funcSymbol->getDataMemberClass();
+    UlamType * fut = m_state.getUlamTypeByIndex(futi);
+    return fut->getTotalBitSize();
+  }
 
 } //end MFM

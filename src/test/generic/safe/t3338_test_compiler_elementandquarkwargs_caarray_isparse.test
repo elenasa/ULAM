@@ -43,10 +43,9 @@ element EventWindowTest {
 }
 
 #:EventWindow.ulam
-  ulam 1;
+  ulam 3;
 quark EventWindow(Int w) {
   Atom& aref(Int index) native;
-  //Void aset(Int index, Atom val) native;
 }
 
 #:System.ulam

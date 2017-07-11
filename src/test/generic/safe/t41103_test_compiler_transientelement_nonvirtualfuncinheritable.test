@@ -1,0 +1,72 @@
+## -*- mode:ulam -*-
+#=t41103_test_compiler_transientelement_nonvirtualfuncinheritable
+##
+## gen output: (+ interleaved asserts)
+##   Int Arg: 3
+##   Int Arg: 3
+##
+#!
+Exit status: 3
+Ue_Foo : Qbar { :<> Bool(1) first(false);  Int(32) fint(3);  Int(32) cint(3);  Int(32) test() {  System s;  Foo foo;  fint foo ( )func . = s ( fint )print . s ( fint 3 cast == )assert . Coo coo;  cint coo ( )func . = s ( cint )print . s ( cint 3 cast == )assert . cint return } }
+Uq_Qbar { <NOMAIN> }
+Uq_System { <NOMAIN> }
+Un_Coo : Qbar { :<> Bool(3) cb( true);  <NOMAIN> }
+##
+## informed by t41102 (toInt special func; not the same)
+##
+#>Foo.ulam
+  ulam 2;
+element Foo : Qbar {
+  Bool first;
+  Int fint;
+  Int cint;
+  Int test() {
+    System s;
+    Foo foo;
+    fint = foo.func();
+    s.print(fint);
+    s.assert(fint == 3);
+
+    Coo coo;
+    cint = coo.func();
+    s.print(cint);
+    s.assert(cint == 3);
+
+    return cint;
+  }
+}
+
+#:Coo.ulam
+  ulam 2;
+transient Coo : Qbar {
+  Bool(3) cb = true;
+}
+
+#:Qbar.ulam
+  ulam 2;
+quark Qbar {
+  //NOT inheritable!
+  Int toInt()
+  {
+    return 44;
+  }
+  //yes, inheritable!!
+  Int func()
+  {
+    return 3;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

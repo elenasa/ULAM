@@ -745,7 +745,7 @@ namespace MFM {
     fp->write("UlamRef<EC>(");
     fp->write(m_state.getHiddenArgName()); //ur
     fp->write(", 0u, "); // (already + 25) e.g. t3407
-    fp->write_decimal_unsigned(stgcosut->getTotalBitSize());
+    fp->write_decimal_unsigned(getLengthOfMemberClassForHiddenArg(stgcosuti));
     fp->write("u, &");
     fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
     fp->write(", ");
@@ -906,8 +906,13 @@ namespace MFM {
   void Node::genCodeWriteToSelfFromATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass)
   {
     UTI luti = luvpass.getPassTargetType();
-    UlamType * lut = m_state.getUlamTypeByIndex(luti);
 
+    if(m_state.isAtomRef(luti))
+      {
+    	return genCodeWriteToAtomofRefFromATmpVar(fp, luvpass, ruvpass); //t3663, t3907
+      }
+
+    UlamType * lut = m_state.getUlamTypeByIndex(luti);
     UTI ruti = ruvpass.getPassTargetType();
 
     bool isElementAncestorCast = (lut->getUlamClassType() == UC_ELEMENT) && m_state.isClassASubclassOf(ruti, luti);
@@ -922,8 +927,7 @@ namespace MFM {
       }
 
     m_state.indentUlamCode(fp);
-    fp->write(m_state.getHiddenArgName()); //ur
-    fp->write(".");
+    genSelfNameOfMethod(fp); // NOT just ur.Write(tmpvar) e.g. t41120
     fp->write(writeMethodForCodeGen(luti, luvpass).c_str());
     fp->write("(");
     fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
@@ -968,16 +972,17 @@ namespace MFM {
 
   void Node::genCodeWriteToAtomofRefFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass)
   {
+    UTI luti = luvpass.getPassTargetType();
+
     m_state.indentUlamCode(fp);
     if(!m_state.m_currentObjSymbolsForCodeGen.empty())
       {
 	//localvar for atoms
-	genLocalMemberNameOfMethodForAtomof(fp, luvpass); //includes the dot
-	fp->write("WriteAtom");
+	genLocalMemberNameOfMethodForAtomof(fp, luvpass); //local or self; includes the dot
+	fp->write("WriteAtom"); //t3907
       }
     else
       {
-	UTI luti = luvpass.getPassTargetType();
 	fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //e.g. t3663 atomref
 	fp->write(".");
 	fp->write(writeMethodForCodeGen(luti, luvpass).c_str());
@@ -1367,6 +1372,8 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeConvertATmpVarIntoConstantAutoRef
 
+#if 0
+  // appears to be unused!!! Sat Jul  8 09:02:51 2017
   // write out array item tmpVar as temp BitVector; luvpass has variable w posOffset,
   // ruvpass has array item index; uses stack for symbol; default is hidden arg.
   void Node::genCodeConvertATmpVarIntoCustomArrayAutoRef(File * fp, UVPass & luvpass, UVPass ruvpass)
@@ -1456,6 +1463,7 @@ namespace MFM {
 
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeConvertATmpVarIntoCustomArrayAutoRef
+#endif
 
   void Node::genCodeARefFromARefStorage(File * fp, UVPass stguvpass, UVPass uvpass)
   {
@@ -1901,7 +1909,8 @@ namespace MFM {
 	//else if reference to non-ref of same type?
 	else
 	  {
-	    assert(!isExplicit);
+	    assert(!isExplicit); //why? (t3250)
+	    //because we wouldn't be here making a casting node if the cast were explicit!
 	    doErrMsg = newCastingNodeWithCheck(node, tobeType, rtnNode);
 	  }
       }
@@ -2426,7 +2435,7 @@ namespace MFM {
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
     UTI cosuti = cos->getUlamTypeIdx();
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+    //UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
     // first "hidden" arg is the context, then "hidden" ref self (ur) arg
     if(!Node::isCurrentObjectALocalVariableOrArgument())
@@ -2442,7 +2451,7 @@ namespace MFM {
 	    //update ur to reflect "effective" self for this funccall
 	    hiddenarg2 << m_state.getHiddenArgName(); //ur
 	    hiddenarg2 << ", " << calcPosOfCurrentObjectClassesAsString(uvpass); //relative off;
-	    hiddenarg2 << ", " << cosut->getTotalBitSize() << "u, &"; //len
+	    hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(cosuti) << "u, &"; //len, t41120
 
 	    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(cosuti).c_str(); //cos->isSuper rolls as cosuti
 	    hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str();
@@ -2474,8 +2483,7 @@ namespace MFM {
 		if(cos->isDataMember()) //dm of local stgcos
 		  {
 		    hiddenarg2 << calcPosOfCurrentObjectClassesAsString(uvpass); //relative off;
-		    hiddenarg2 << ", " << cosut->getTotalBitSize() << "u, "; //len
-
+		    hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(cosuti) << "u, "; //len, t41120
 		    hiddenarg2 << "&"; //effective self of dm (t3804 check -10)
 		    hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(cosuti).c_str();
 		    hiddenarg2 << ", " << genUlamRefUsageAsString(cosuti).c_str();
@@ -2485,7 +2493,7 @@ namespace MFM {
 		  {
 		    //ancestor takes on effective self of sub
 		    //uses UlamRef 2 arg copy constructor to maintain EffSelf and UsageType of ref
-		    hiddenarg2 << cosut->getTotalBitSize() << "u);" ; //len t3637, t3746
+		    hiddenarg2 << getLengthOfMemberClassForHiddenArg(cosuti) << "u);" ; //len t3637, t3746
 		  }
 	      }
 	    else
@@ -2495,7 +2503,7 @@ namespace MFM {
 		hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
 
 		hiddenarg2 << calcPosOfCurrentObjectClassesAsString(uvpass); //relative off;
-		hiddenarg2 << ", " << cosut->getTotalBitSize() << "u, "; //len
+		hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(cosuti) << "u, "; //len
 
 		hiddenarg2 << stgcos->getMangledName().c_str() << ", &"; //storage
 		hiddenarg2 << m_state.getTheInstanceMangledNameByIndex(cosuti).c_str();
@@ -2643,9 +2651,9 @@ namespace MFM {
 
   void Node::genLocalMemberNameOfMethodForAtomof(File * fp, UVPass& uvpass)
   {
-    assert(isCurrentObjectALocalVariableOrArgument());
-    assert(isCurrentObjectsContainingAModelParameter() == -1);
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    //assert(isCurrentObjectALocalVariableOrArgument()); //might be self t3907
+    assert(isCurrentObjectsContainingAModelParameter() == -1);
 
     //therefore cos, an element, must be a data member(hence stg is transient)!!
     Symbol * stgcos = NULL;
@@ -3074,5 +3082,10 @@ namespace MFM {
       }
     return usageStr.str();
   } //genUlamRefUsageAsString
+
+  u32 Node::getLengthOfMemberClassForHiddenArg(UTI cosuti)
+  {
+    return m_state.getUlamTypeByIndex(cosuti)->getTotalBitSize();
+  }
 
 } //end MFM

@@ -11,7 +11,7 @@ Uq_Soo(Unsigned(3) v) { Unsigned(UNKNOWN) us(notready);  <NOMAIN> }
 ## test of inheritance: uses localdef typedef from another class, informed by t3862, t41008
 ##
 #:R.ulam
-  ulam 2;
+  ulam 3;
 element R {
   Int test() {
     System s;
@@ -30,8 +30,7 @@ element R {
 }
 
 #:Foo.ulam
-  ulam 2;
-//use Constants;
+  ulam 3;
 local typedef Constants.Soo3 Soo3;
 element Foo : local.Soo3 {
     Bool(7) sp;
@@ -46,7 +45,7 @@ quark Constants {
 }
 
 #:Soo.ulam
-  ulam 2;
+  ulam 3;
 quark Soo(Unsigned(3) v) {
   Unsigned(v) us = 4u;
   Bool check()

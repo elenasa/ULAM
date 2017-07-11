@@ -9,7 +9,7 @@ Unrecoverable Program Type Label FAILURE.
 ## error write test of constant arrays
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 local constant UrSelf.ARGB rtn1 = {0xff, 0 }; //typedf in UrSelf as Unsigned(8) ARGB[4]
 local typedef Unsigned(16) BIGARGB[4];
 local constant BIGARGB rtn2 = {0xffee, 0 }; //u64

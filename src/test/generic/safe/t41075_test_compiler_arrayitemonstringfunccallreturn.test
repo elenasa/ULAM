@@ -12,7 +12,7 @@ Uq_System { <NOMAIN> }
 ## based on t41074 and t3970
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   Bool b;
   ASCII m_asc;

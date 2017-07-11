@@ -7,7 +7,7 @@ Unrecoverable Program Type Label FAILURE.
 ## informed by t3782
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 element Foo {
   Gah m_gah;
   Int test(){
@@ -21,7 +21,7 @@ element Foo {
 }
 
 #:Gah.ulam
-  ulam 2;
+  ulam 3;
 union Gah{
   Bits(32) its;
   String str;

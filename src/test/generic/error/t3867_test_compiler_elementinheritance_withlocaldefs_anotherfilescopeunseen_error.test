@@ -17,7 +17,7 @@ Unrecoverable Program Parse FAILURE: <System.ulam>
 ## local.local parsing error in Foo.ulam
 ##
 #>Soo.ulam
-  ulam 2;
+  ulam 3;
 local typedef Foo.Soo3 Soo3; //ok
 quark Soo(Unsigned(3) v) {
   Unsigned(v) us = 4u;
@@ -34,7 +34,7 @@ quark Soo(Unsigned(3) v) {
 }
 
 #:Foo.ulam
-  ulam 2;
+  ulam 3;
 local constant Unsigned(3) soosize = 3u;
 local typedef Soo(soosize) Soo3;
 element Foo : Soo3 {

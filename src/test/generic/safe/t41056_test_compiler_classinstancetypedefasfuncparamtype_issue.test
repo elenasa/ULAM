@@ -11,7 +11,7 @@ Uq_UMod(Unsigned(32) bits) { typedef Unsigned(UNKNOWN) Value;  constant Unsigned
 ## ./.splatgen/Content.ulam:288:36: ERROR: Trying to use typedef from another class template 'UMod', but instance cannot be found.
 ##
 #>R.ulam
-  ulam 2;
+  ulam 3;
 element R {
   Int test(){
     Content content;
@@ -22,7 +22,7 @@ element R {
 
 
 #:Content.ulam
-  ulam 2;
+  ulam 3;
 element Content : QContent
 {
   constant Unsigned cCMD_BITS = 7u;     // Allow ~64 cmds in flight before ambiguity
@@ -45,7 +45,7 @@ element Content : QContent
 }
 
 #:QContent.ulam
-  ulam 2;
+  ulam 1;
 quark QContent {
 }
 

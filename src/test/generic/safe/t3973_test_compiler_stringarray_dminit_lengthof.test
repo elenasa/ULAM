@@ -17,7 +17,7 @@ Uq_System { <NOMAIN> }
 ## informed by t3972 except data member is an initialized string array, see also t3953 for constant array
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   Bool b;
   String m_sarr[2] = { "fool", "bar"};
@@ -55,7 +55,7 @@ element A {
 }
 
 #:SystemU3.ulam
-  ulam 2;
+  ulam 3;
 quark SystemU3 : System {
   Void print(String s) native;
 }

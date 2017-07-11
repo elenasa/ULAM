@@ -14,7 +14,7 @@ Uq_EventWindow { <NOMAIN> }
 ##      //arraysize zero ok, but not bitsize zero for nonClass primitive types!
 ##
 #>Eltypo.ulam
-  ulam 1;
+  ulam 3;
 element Eltypo {
   Int test(){
     System s;
@@ -28,7 +28,7 @@ element Eltypo {
 }
 
 #:EventWindow.ulam
-  ulam 1;
+  ulam 3;
 quark EventWindow {
   Atom& aref(Int index) native;
   Unsigned alengthof() { return 8u; }

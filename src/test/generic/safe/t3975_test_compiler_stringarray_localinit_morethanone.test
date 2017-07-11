@@ -18,7 +18,7 @@ Uq_System { <NOMAIN> }
 ## also tests unpacked string array (BV96)
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
  Int test() {
    SystemU3 su3;
@@ -43,7 +43,7 @@ element A {
 }
 
 #:SystemU3.ulam
-  ulam 2;
+  ulam 3;
 quark SystemU3 : System {
   Void print(String s) native;
 }

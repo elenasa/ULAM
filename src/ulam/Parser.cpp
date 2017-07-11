@@ -24,6 +24,8 @@
 #include "NodeBinaryOpEqualArithMultiply.h"
 #include "NodeBinaryOpEqualArithRemainder.h"
 #include "NodeBinaryOpEqualArithSubtract.h"
+#include "NodeBinaryOpEqualArithPreIncr.h"
+#include "NodeBinaryOpEqualArithPreDecr.h"
 #include "NodeBinaryOpEqualArithPostIncr.h"
 #include "NodeBinaryOpEqualArithPostDecr.h"
 #include "NodeBinaryOpEqualBitwiseAnd.h"
@@ -469,7 +471,7 @@ namespace MFM {
   void Parser::setupSuperClassHelper(SymbolClassName * cnsym)
   {
     u32 urid = m_state.m_pool.getIndexForDataString("UrSelf");
-    assert(cnsym->getId() != urid);
+    assert(cnsym && cnsym->getId() != urid);
 
     SymbolClassName * ursym = NULL;
     AssertBool isDef = m_state.alreadyDefinedSymbolClassName(urid, ursym);
@@ -481,6 +483,7 @@ namespace MFM {
   {
     assert(supercsym);
     UTI superuti = supercsym->getUlamTypeIdx();
+    assert(cnsym);
     cnsym->setSuperClass(superuti);
 
     NodeBlockClass * superclassblock = supercsym->getClassBlockNode();
@@ -2805,6 +2808,8 @@ namespace MFM {
     unreadToken();
 
     Node * exprNode = parseExpression(); //constant expression req'd
+
+    assert(csym);
     if(!exprNode)
       {
 	std::ostringstream msg;
@@ -2815,6 +2820,7 @@ namespace MFM {
 	return;
       }
 
+    assert(ctsym);
     //this is possible if cnsym is UC_UNSEEN, must check args later..
     bool ctUnseen = (ctsym->getUlamClass() == UC_UNSEEN);
     if(!ctUnseen && parmIdx >= ctsym->getNumberOfParameters())
@@ -3244,10 +3250,18 @@ namespace MFM {
 		m_state.addSymbolToCurrentMemberClassScope(holderconstsym); //not locals scope
 		sym = holderconstsym;
 	      }
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "Inconsistent state: Named Constant <";
+		msg << m_state.getTokenDataAsString(iTok).c_str();
+		msg << "> has not been defined in another class ";
+		msg << m_state.getUlamTypeNameBriefByIndex(args.m_classInstanceIdx);
+		MSG(&iTok, msg.str().c_str(), ERR); //possibly no dot, ignored LOW_ERR (t41110)
+	      }
 	  }
-	//else defined
-
-	if(sym->isConstant()) // || sym->isModelParameter())
+	//else defined or not
+	if(sym && sym->isConstant()) // || sym->isModelParameter())
 	  {
 	    UTI suti = sym->getUlamTypeIdx();
 	    if(m_state.isScalar(suti))
@@ -3845,6 +3859,7 @@ namespace MFM {
 	getNextToken(iTok);
 	if(iTok.m_type == TOK_IDENTIFIER)
 	  {
+	    //assumes we saw a 'dot' prior, be careful
 	    unreadToken();
 	    rtnNode = parseNamedConstantFromAnotherClass(typeargs);
 	    delete typeNode;
@@ -4659,6 +4674,13 @@ namespace MFM {
 	currClassBlock->addFuncIdToScope(fnSym->getId(), fnSym);
       }
 
+    bool isOperatorOverload = false;
+    if(identTok.isOperatorOverloadIdentToken(&m_state))
+      {
+	((SymbolFunctionName *) fnSym)->setOperatorOverloadFunctionName();
+	isOperatorOverload = true;
+      }
+
     m_state.pushCurrentBlock(rtnNode); //before parsing the args
 
     //use space on funcCallStack for return statement.
@@ -4687,11 +4709,23 @@ namespace MFM {
 
     if(rtnNode)
       {
-	if(isConstr && fsymptr->getNumberOfParameters() == 0)
+	u32 numParams = fsymptr->getNumberOfParameters();
+	if(isConstr && (numParams == 0))
 	  {
 	    std::ostringstream msg;
 	    msg << "Default Constructor not allowed";
 	    MSG(&args.m_typeTok, msg.str().c_str(), ERR);
+	    delete fsymptr; //also deletes the NodeBlockFunctionDefinition
+	    rtnNode = NULL;
+	  }
+	else if(isOperatorOverload && (numParams > 1))
+	  {
+	    u32 ulamnameid = identTok.getUlamNameIdForOperatorOverloadToken(&m_state);
+	    std::ostringstream msg;
+	    msg << "Operator overload function definition: ";
+	    msg << m_state.m_pool.getDataAsString(ulamnameid).c_str();
+	    msg << " must take none or 1 argument, not " << numParams; //C says "zero or.."
+	    MSG(&identTok, msg.str().c_str(), ERR); //t41107, t41113
 	    delete fsymptr; //also deletes the NodeBlockFunctionDefinition
 	    rtnNode = NULL;
 	  }
@@ -4702,7 +4736,7 @@ namespace MFM {
 	    if(!isAdded)
 	      {
 		//this is a duplicate function definition with same parameters and given name!!
-	    //return types may differ
+		//return types may differ
 		std::ostringstream msg;
 		msg << "Duplicate defined function '";
 		msg << m_state.m_pool.getDataAsString(fsymptr->getId());
@@ -5765,12 +5799,12 @@ namespace MFM {
 	rtnNode->setNodeLocation(pTok.m_locator);
 	break;
       case TOK_PLUS_PLUS:
-	rtnNode = new NodeBinaryOpEqualArithAdd(factorNode, makeTerminal(pTok, (s64) 1, Int), m_state);
+	rtnNode = new NodeBinaryOpEqualArithPreIncr(factorNode, makeTerminal(pTok, (s64) 1, Int), m_state);
 	assert(rtnNode);
 	rtnNode->setNodeLocation(pTok.m_locator);
 	break;
       case TOK_MINUS_MINUS:
-	rtnNode = new NodeBinaryOpEqualArithSubtract(factorNode, makeTerminal(pTok, (s64) 1, Int), m_state);
+	rtnNode = new NodeBinaryOpEqualArithPreDecr(factorNode, makeTerminal(pTok, (s64) 1, Int), m_state);
 	assert(rtnNode);
 	rtnNode->setNodeLocation(pTok.m_locator);
 	break;
@@ -5907,7 +5941,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << m_state.getTokenDataAsString(tok).c_str();
 	MSG(&tok, msg.str().c_str(), ERR);
-	brtn = m_tokenizer->getNextToken(tok);
+	brtn = m_tokenizer->getNextToken(tok); //and yet, we go on..
       }
     else if(tok.m_type == TOK_STRUCTURED_COMMENT)
       {

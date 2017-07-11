@@ -44,10 +44,11 @@
 
 namespace MFM{
 
-  enum SpecialTokenWork { TOKSP_UNCLEAR=0, TOKSP_KEYWORD, TOKSP_TYPEKEYWORD, TOKSP_CTLKEYWORD, TOKSP_FLAGKEYWORD, TOKSP_SINGLE, TOKSP_COMMENT, TOKSP_DQUOTE, TOKSP_SQUOTE, TOKSP_HASDATA, TOKSP_DEPRECATED, TOKSP_ERROR};
+  enum SpecialTokenWork { TOKSP_UNCLEAR=0, TOKSP_KEYWORD, TOKSP_TYPEKEYWORD, TOKSP_CTLKEYWORD, TOKSP_FLAGKEYWORD, TOKSP_OPERATORKEYWORD, TOKSP_SINGLE, TOKSP_COMMENT, TOKSP_DQUOTE, TOKSP_SQUOTE, TOKSP_HASDATA, TOKSP_DEPRECATED, TOKSP_ERROR};
 
+  enum OperatorOverloadableFlag { OPOL_NOT, OPOL_IS };
 
-#define XX(a,b,c) TOK_##a,
+#define XX(a,b,c,d) TOK_##a,
 
   enum TokenType
   {
@@ -88,6 +89,7 @@ namespace MFM{
     const std::string getTokenEnumNameFromPool(CompilerState * state) const;
 
     static SpecialTokenWork getSpecialTokenWork(TokenType ttype);
+    static OperatorOverloadableFlag getTokenOperatorOverloadableFlag(TokenType ttype);
     static TokenType getTokenTypeFromString(const char * aname);
 
     /**
@@ -97,11 +99,20 @@ namespace MFM{
     static bool isTokenAType(const Token& tok);
     static bool isUpper(char c);
 
-    bool operator<(const Token & tok2) const;
-
     void print(File * fp, CompilerState * state);
 
+    bool operator<(const Token & tok2) const;
+
+    static u32 getOperatorOverloadFullNameId(const Token & tok, CompilerState * state);
+
+    bool isOperatorOverloadIdentToken(CompilerState * state) const;
+    u32 getUlamNameIdForOperatorOverloadToken(CompilerState * state) const;
+
   private:
+
+    static const std::string getOperatorHexName(const Token & tok, CompilerState * state);
+    static const std::string getOperatorHexNameFromString(const std::string opname);
+
   };
 }
 

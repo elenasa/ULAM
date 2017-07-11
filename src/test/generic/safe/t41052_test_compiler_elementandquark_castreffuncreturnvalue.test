@@ -15,7 +15,7 @@ Uq_QBar { /* empty class block */ }
 ## informed by Dave email 3/20/2017 and t41033
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 element Foo : QFoo
 {
   Self func()
@@ -45,7 +45,7 @@ element Foo : QFoo
 }
 
 #:QFoo.ulam
-  ulam 2;
+  ulam 3;
 quark QFoo : QBar {
 
   QFoo & funcq()

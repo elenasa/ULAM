@@ -13,7 +13,7 @@ Uq_System { <NOMAIN> }
 ## informed by t3927 except data member
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   Bool b;
   String m_s = "bar";
@@ -29,7 +29,7 @@ element A {
 }
 
 #:SystemU3.ulam
-  ulam 2;
+  ulam 3;
 quark SystemU3 : System {
   Void print(String s) native;
 }

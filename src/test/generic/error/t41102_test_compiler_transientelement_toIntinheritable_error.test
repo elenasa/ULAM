@@ -1,0 +1,53 @@
+## -*- mode:ulam -*-
+#=t41102_test_compiler_transientelement_toIntinheritable_error
+#!
+./Qbar.ulam:8:0: ERROR: Class: Foo is not a numeric type and cannot be safely cast to an Int.
+./Foo.ulam:8:10: ERROR: Use explicit cast to convert Foo to Int(32) for operator=.
+./Foo.ulam:9:13: ERROR: Cannot explicitly cast Foo to type: Int(32).
+./Foo.ulam:9:10: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t3996
+## toInt called automatically only for quarks; see also safe/t3997 and safe/t41103
+##
+#>Foo.ulam
+  ulam 2;
+element Foo : Qbar {
+  Bool first;
+  Int fint;
+  Int cint;
+  Int test() {
+    Foo foo;
+    fint = foo; //not automatic
+    fint = (Int) foo; //not explicit either
+    fint = foo.toInt(); //inheritable func, explicitly callable
+
+    Qbar& qwref = foo;
+    fint = qwref; //also works automatically
+
+    /* same errors for transient
+    Coo coo;
+    cint = coo; //not automatic
+    cint = (Int) coo; //not explicit either
+    cint = coo.toInt(); //inheritable func, explicitly callable
+    */
+    return cint;
+  }
+}
+
+#:Coo.ulam
+  ulam 2;
+transient Coo : Qbar {
+  Bool(3) cb = true;
+}
+
+#:Qbar.ulam
+  ulam 2;
+quark Qbar {
+  Int toInt()
+  {
+    return 44;
+  }
+}
+
+#.

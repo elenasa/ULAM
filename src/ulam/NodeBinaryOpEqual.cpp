@@ -1,4 +1,8 @@
 #include "NodeBinaryOpEqual.h"
+#include "NodeFunctionCall.h"
+#include "NodeMemberSelect.h"
+#include "SymbolFunctionName.h"
+#include "SymbolFunction.h"
 #include "CompilerState.h"
 
 namespace MFM {
@@ -38,8 +42,9 @@ namespace MFM {
     FORECAST scr = m_nodeRight->safeToCastTo(newType);
     if(scr != CAST_CLEAR)
       {
+	ULAMTYPE etyp = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
 	std::ostringstream msg;
-	if(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Bool)
+	if(etyp == Bool)
 	  msg << "Use a comparison operator";
 	else
 	  msg << "Use explicit cast";
@@ -79,7 +84,7 @@ namespace MFM {
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
 
-    if(!m_state.okUTItoContinue(leftType, rightType))
+    if(!m_state.neitherNAVokUTItoContinue(leftType, rightType))
       {
 	std::ostringstream msg;
 	msg << "Assignment is invalid";
@@ -141,20 +146,38 @@ namespace MFM {
       }
 
     UTI newType = leftType;
+    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
     //cast RHS if necessary and safe
     if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME)
       {
 	//different msg if try to assign non-class to a class type
-	if((m_state.getUlamTypeByIndex(leftType)->getUlamTypeEnum() == Class) && (m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum() != Class) && !m_state.isAtom(rightType))
+	if((lut->getUlamTypeEnum() == Class) && (m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum() != Class) && !m_state.isAtom(rightType))
 	  {
-	    std::ostringstream msg;
-	    msg << "Incompatible class type ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
-	    msg << " and ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
-	    msg << " used with binary operator" << getName();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    newType = Nav; //error
+	    //try for operator overload first (e.g. (pre) +=,-=, (post) ++,-- )
+	    Node * newnode = buildOperatorOverloadFuncCallNode(); //virtual
+	    if(newnode)
+	      {
+		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+		assert(swapOk);
+
+		m_nodeLeft = NULL; //recycle as memberselect
+		m_nodeRight = NULL; //recycle as func call arg
+
+		delete this; //suicide is painless..
+
+		return newnode->checkAndLabelType();
+	      }
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "Incompatible class type ";
+		msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
+		msg << " and ";
+		msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
+		msg << " used with binary operator" << getName();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		newType = Nav; //error
+	      }
 	  }
 	else
 	  {
@@ -179,9 +202,121 @@ namespace MFM {
 	    //else not safe, newType changed
 	  }
       }
+    else
+      {
+	if(lut->getUlamTypeEnum() == Class)
+	  {
+	    //try for operator overload first
+	    Node * newnode = buildOperatorOverloadFuncCallNode(); //virtual
+	    if(newnode)
+	      {
+		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+		assert(swapOk);
+
+		m_nodeLeft = NULL; //recycle as memberselect
+		m_nodeRight = NULL; //recycle as func call arg
+
+		delete this; //suicide is painless..
+
+		return newnode->checkAndLabelType();
+	      }
+	    //else not overloaded, use default
+	  }
+      }
     setNodeType(newType);
     return newType;
   } //checkAndLabelType
+
+  //here, we check for func with matching argument when both sides the same Class type
+  //so we can use the default struct equal if no overload defined.
+  Node * NodeBinaryOpEqual::buildOperatorOverloadFuncCallNode()
+  {
+    UTI leftType = m_nodeLeft->getNodeType();
+    UTI rightType = m_nodeRight->getNodeType();
+    UlamType * rut = m_state.getUlamTypeByIndex(rightType);
+
+    if((UlamType::compare(leftType, rightType, m_state) != UTIC_SAME) && (rut->getUlamClassType() == UC_NOTACLASS))
+      return NodeBinaryOp::buildOperatorOverloadFuncCallNode(); //t41117,18,20,21
+
+    Token identTok;
+    TokenType opTokType = Token::getTokenTypeFromString(getName());
+    assert(opTokType != TOK_LAST_ONE);
+    Token opTok(opTokType, getNodeLocation(), 0);
+    u32 opolId = Token::getOperatorOverloadFullNameId(opTok, &m_state);
+    if(opolId == 0)
+      {
+	std::ostringstream msg;
+	msg << "Overload for operator <" << getName();
+	msg << "> is not supported as operand for class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return NULL;
+      }
+
+    identTok.init(TOK_IDENTIFIER, getNodeLocation(), opolId);
+
+    //may need to fall back to default struct equal when the same class (t41119)
+    // when matching function not found; ref on rhs should also match non-ref arg if
+    // ref arg not found (t41120)
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(leftType, csym);
+    assert(isDefined);
+
+    NodeBlockClass * memberClassNode = csym->getClassBlockNode();
+    assert(memberClassNode);  //e.g. forgot the closing brace on quark definition
+
+    assert(m_state.okUTItoContinue(memberClassNode->getNodeType()));
+
+   //set up compiler state to use the member class block for symbol searches
+    m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
+
+    Node * rtnNode = NULL;
+    Symbol * fnsymptr = NULL;
+    bool hazyKin = false; //unused
+
+    if(m_state.isFuncIdInClassScope(opolId, fnsymptr, hazyKin))
+      {
+	// still need to pinpoint the SymbolFunction; match by Types rather than looking for safe casts.
+	std::vector<UTI> pTypes;
+	pTypes.push_back(rightType);
+
+	SymbolFunction * funcSymbol = NULL;
+	u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionStrictlyByTypes(pTypes, funcSymbol);
+	if(numFuncs == 0 && m_state.isReference(rightType))
+	  {
+	    //try again with non-ref type (t41120)
+	    UTI deref = m_state.getUlamTypeAsDeref(rightType);
+
+	    std::vector<UTI> dTypes;
+	    dTypes.push_back(deref);
+
+	    numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionStrictlyByTypes(dTypes, funcSymbol);
+	  }
+
+	if(numFuncs >= 1)
+	  {
+	    // ambiguous (>1) overload will produce an error later
+	    //fill in func symbol during type labeling;
+	    NodeFunctionCall * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
+	    assert(fcallNode);
+	    fcallNode->setNodeLocation(identTok.m_locator);
+
+	    fcallNode->addArgument(m_nodeRight);
+
+	    NodeMemberSelect * mselectNode = new NodeMemberSelect(m_nodeLeft, fcallNode, m_state);
+	    assert(mselectNode);
+	    mselectNode->setNodeLocation(identTok.m_locator);
+	    rtnNode = mselectNode;
+	  }
+	//else use default struct equal
+      }
+
+    //clear up compiler state to no longer use the member class block for symbol searches
+    m_state.popClassContext();
+
+    //redo check and type labeling done by caller!!
+    return rtnNode; //replace right node with new branch
+  } //buildOperatorOverloadFuncCallNode
 
   TBOOL NodeBinaryOpEqual::checkStoreIntoAble()
   {
@@ -362,7 +497,7 @@ namespace MFM {
 
     // 'pluv' is where the resulting sum needs to be stored
     UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(lslot); //a Ptr
-    assert(m_state.isPtr(pluv.getUlamValueTypeIdx()) && (pluv.getPtrTargetType() == nuti));
+    assert(m_state.isPtr(pluv.getUlamValueTypeIdx()) && (UlamType::compare(pluv.getPtrTargetType(),nuti, m_state) == UTIC_SAME));
 
     assert(slots == 1);
     UlamValue luv = m_state.getPtrTarget(pluv);  //no eval!!
@@ -421,7 +556,7 @@ namespace MFM {
 
     // 'pluv' is where the resulting sum needs to be stored
     UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(lslot); //a Ptr
-    assert(m_state.isPtr(pluv.getUlamValueTypeIdx()) && (pluv.getPtrTargetType() == nuti));
+    assert(m_state.isPtr(pluv.getUlamValueTypeIdx()) && (UlamType::compare(pluv.getPtrTargetType(), nuti, m_state) == UTIC_SAME));
 
     // point to base array slots, packedness determines its 'pos'
     UlamValue lArrayPtr = pluv;

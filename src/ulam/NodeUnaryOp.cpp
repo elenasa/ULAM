@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include "NodeUnaryOp.h"
+#include "NodeFunctionCall.h"
+#include "NodeMemberSelect.h"
 #include "NodeTerminal.h"
 #include "CompilerState.h"
 
@@ -132,6 +134,27 @@ namespace MFM {
 	return Nav;
       }
 
+    //replace node with func call to matching function overload operator for class
+    // of left, with no arguments for unary (t41???);
+    // quark toInt must be used on rhs of operators (t3191, t3200, t3513, t3648,9)
+    UlamType * ut = m_state.getUlamTypeByIndex(uti);
+    if((ut->getUlamTypeEnum() == Class))
+      {
+	Node * newnode = buildOperatorOverloadFuncCallNode();
+	if(newnode)
+	  {
+	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	    assert(swapOk);
+
+	    m_node = NULL; //recycle as memberselect
+
+	    delete this; //suicide is painless..
+
+	    return newnode->checkAndLabelType();
+	  }
+	//else should fail again as non-primitive;
+      } //done
+
     UTI newType = Nav;
     if(uti != Nav)
       newType = calcNodeType(uti); //does safety check
@@ -159,14 +182,50 @@ namespace MFM {
     return newType;
   } //checkAndLabelType
 
+  Node * NodeUnaryOp::buildOperatorOverloadFuncCallNode()
+  {
+    Token identTok;
+    TokenType opTokType = Token::getTokenTypeFromString(getName());
+    assert(opTokType != TOK_LAST_ONE);
+    Token opTok(opTokType, getNodeLocation(), 0);
+    u32 opolId = Token::getOperatorOverloadFullNameId(opTok, &m_state);
+    if(opolId == 0)
+      {
+	std::ostringstream msg;
+	msg << "Overload for operator <" << getName();
+	msg << "> is not supported as operand for class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_node->getNodeType()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return NULL;
+      }
+
+    identTok.init(TOK_IDENTIFIER, getNodeLocation(), opolId);
+
+    //fill in func symbol during type labeling;
+    NodeFunctionCall * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
+    assert(fcallNode);
+    fcallNode->setNodeLocation(identTok.m_locator);
+
+    //similar to Binary Op's except no argument
+    //fcallNode->addArgument(m_nodeRight);
+
+    NodeMemberSelect * mselectNode = new NodeMemberSelect(m_node, fcallNode, m_state);
+    assert(mselectNode);
+    mselectNode->setNodeLocation(identTok.m_locator);
+
+    //redo check and type labeling done by caller!!
+    return mselectNode; //replace right node with new branch
+  } //buildOperatorOverloadFuncCallNode
+
   bool NodeUnaryOp::checkSafeToCastTo(UTI unused, UTI& newType)
   {
     bool rtnOK = true;
     FORECAST scr = m_node->safeToCastTo(newType);
     if(scr != CAST_CLEAR)
       {
+	ULAMTYPE etyp = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
 	std::ostringstream msg;
-	if(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Bool)
+	if(etyp == Bool)
 	  msg << "Use a comparison operator";
 	else
 	  msg << "Use explicit cast";

@@ -14,7 +14,7 @@ Uq_System { <NOMAIN> }
 ##  okay to assign uninitialized string, not access it (e.g. print)
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   String m_s;
   Int m_total;

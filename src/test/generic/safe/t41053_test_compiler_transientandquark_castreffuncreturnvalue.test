@@ -18,7 +18,7 @@ Uq_QBar { /* empty class block */ }
 ## cannot eval casting Self to a ref
 ##
 #>R.ulam
-  ulam 2;
+  ulam 3;
 element R
 {
   Int test() {
@@ -34,7 +34,7 @@ element R
 }
 
 #:TFoo.ulam
-  ulam 2;
+  ulam 3;
 transient TFoo : QFoo
 {
 
@@ -46,7 +46,7 @@ transient TFoo : QFoo
 }
 
 #:QFoo.ulam
-  ulam 2;
+  ulam 3;
 quark QFoo : QBar {
 
   QFoo & funcq()

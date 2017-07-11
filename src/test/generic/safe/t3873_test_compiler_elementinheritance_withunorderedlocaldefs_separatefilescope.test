@@ -15,7 +15,7 @@ Uq_System { <NOMAIN> }
 ## dis-order of locals in Foo; used before seen, even after class def too.
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 local typedef Soo(soosize) Soo3;
 local constant U3 soosize = 3u;
 element Foo : Soo3 {
@@ -39,7 +39,7 @@ element Foo : Soo3 {
 local typedef Unsigned(3) U3; //even this late (:
 
 #:Soo.ulam
-  ulam 2;
+  ulam 3;
 local constant Unsigned(3) soosize = 7u;
 local typedef Soo(soosize) Soo3;
 quark Soo(Unsigned(3) v) {

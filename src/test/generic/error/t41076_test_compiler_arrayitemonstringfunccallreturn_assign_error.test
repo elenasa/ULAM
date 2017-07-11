@@ -7,7 +7,7 @@ Unrecoverable Program Type Label FAILURE.
 ## based on t41075
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   Bool b;
   ASCII m_asc;

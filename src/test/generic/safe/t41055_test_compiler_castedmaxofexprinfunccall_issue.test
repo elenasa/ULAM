@@ -9,7 +9,7 @@ Uq_ColorUtils { typedef Unsigned(8) Channel;  typedef Unsigned(8) Byte;  typedef
 ## culamtest: Parser.cpp:3318: MFM::Node* MFM::Parser::parseRestOfMemberSelectExpr(MFM::Node*): Assertion nextmember failed.
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 element Foo {
   typedef ColorUtils.Channel Channel;
   typedef ColorUtils.Byte Tag;

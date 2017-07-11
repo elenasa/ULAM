@@ -14,7 +14,7 @@ Uq_System { <NOMAIN> }
 ## test of local defs: different file scopes, uses locals from another class, informed by t3861
 ##
 #>Soo.ulam
-  ulam 2;
+  ulam 3;
 quark Soo(Unsigned(3) v) {
   typedef Foo.Soo3 Soo3; //ok too!
   Unsigned(v) us = 4u;
@@ -32,7 +32,7 @@ quark Soo(Unsigned(3) v) {
 }
 
 #:Foo.ulam
-  ulam 2;
+  ulam 3;
 local constant Unsigned(3) soosize = 3u;
 local typedef Soo(soosize) Soo3;
 element Foo : Soo3 {

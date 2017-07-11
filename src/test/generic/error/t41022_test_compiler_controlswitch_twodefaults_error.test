@@ -14,7 +14,7 @@ Unrecoverable Program Parse FAILURE: <System.ulam>
 ## like C++ error message
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   System s;
   Int a, b;

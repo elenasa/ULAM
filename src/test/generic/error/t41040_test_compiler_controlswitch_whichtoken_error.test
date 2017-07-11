@@ -13,7 +13,7 @@ Unrecoverable Program Parse FAILURE: <System.ulam>
 ## 'switch' is not an ulam keyword
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   System s;
   Int a, b;

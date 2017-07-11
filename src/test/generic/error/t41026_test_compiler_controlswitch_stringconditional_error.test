@@ -8,7 +8,7 @@ Unrecoverable Program Type Label FAILURE.
 ## Ulam strings cannot be compared; invalid for switch condition
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   System s;
   Int b;

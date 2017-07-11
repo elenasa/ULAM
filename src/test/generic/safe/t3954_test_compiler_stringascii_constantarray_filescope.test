@@ -11,7 +11,7 @@ Uq_System { <NOMAIN> }
 ## informed by t3953, locals filescope
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 local constant String strarr[] = {"bar", "foo", "blew it\n", "??x0f??", "/*embedded comment*/" };
 element A {
   Bool b1, b2;

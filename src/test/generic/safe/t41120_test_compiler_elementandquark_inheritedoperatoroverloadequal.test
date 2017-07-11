@@ -1,0 +1,78 @@
+## -*- mode:ulam -*-
+#=t41120_test_compiler_elementandquark_inheritedoperatoroverloadequal
+##
+##  gen code output: (+ 6 asserts)
+##	 Int(4) Arg: 0x4
+##	 Int(4) Arg: 0x4
+##
+#!
+Exit status: 4
+Ue_Foo : QW { :< Int(4) m_i(0);  Bool(1) first(true); > Int(32) fint(0);  Int(32) opfint(0);  Int(32) test() {  System s;  Foo f;  Foo g;  Foo h;  f m_i . 4 = QW qw;  QW qw2;  qw2 ( qw )operator= . s ( qw2 first . ! )assert . qw ( f cast )operator= . s ( qw first . ! )assert . g f = s ( g first . )assert . s ( g m_i . )print . s ( f m_i . g m_i . == )assert . h ( f cast )func . s ( h first . ! )assert . s ( h m_i . )print . s ( f m_i . h m_i . == )assert . f m_i . cast return } }
+Uq_QW { Bool(1) first( true);  Int(4) m_i(0);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## test inherited overload operator equal for an element
+## informed by t41118.
+##
+#>Foo.ulam
+  ulam 3;
+element Foo : QW {
+  Int fint, opfint;
+  Int test() {
+    System s;
+    Foo f,g,h;
+    f.m_i = 4;
+
+    QW qw, qw2;
+    qw2 = qw;
+    s.assert(!qw2.first);
+
+    qw = (QW) f; //cast needed to use overload
+    s.assert(!qw.first); //uses overload!!
+
+    g = f; //can't use overload; diff types
+    s.assert(g.first);
+    s.print(g.m_i); //prints 4
+    s.assert(f.m_i == g.m_i);
+
+    h.func((QW) f); //ok to cast arg here
+    s.assert(!h.first);
+    s.print(h.m_i); //prints 4
+    s.assert(f.m_i == h.m_i);
+
+    return f.m_i;
+  }
+}
+
+#:QW.ulam
+  ulam 3;
+quark QW {
+  Bool first = true;
+  Int(4) m_i;
+
+  Void operator=(Self arg)
+  {
+    //self = arg; //recursive!! BEWARE.
+    m_i = arg.m_i;
+    first = false; //changes dm
+  }
+
+  Void func(Self arg)
+  {
+    self = arg; //overload
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

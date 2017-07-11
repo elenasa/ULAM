@@ -11,7 +11,7 @@
 Exit status: -1
 Unrecoverable Program Test FAILURE.
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   Bool b1, b2;
   ASCII asc1, asc2;

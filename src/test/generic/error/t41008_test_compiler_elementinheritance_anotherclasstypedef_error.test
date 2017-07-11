@@ -36,7 +36,7 @@ quark Soo(Unsigned(3) v) {
 }
 
 #:Foo.ulam
-  ulam 2;
+  ulam 3;
 element Foo : Constants.Soo3 {
     Bool(7) sp;
     Unsigned a = 73;

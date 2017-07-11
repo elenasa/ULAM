@@ -19,7 +19,7 @@ Uq_System { <NOMAIN> }
 ## informed by t3246, except with shift equals. Exposed issue with unary index greater than 2 (see t3591)
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 use System;
 element A {
   System s;

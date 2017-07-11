@@ -13,7 +13,7 @@ Uq_System { <NOMAIN> }
 ## informed by 3704, initialize local variable with a constant array
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 use System;
 
 element A {

@@ -13,7 +13,7 @@ Uq_S(Int(32)[10] y = NONREADYCONSTARRAY, Int(32) x = 3) { <NOMAIN> }
 ##    //informed by t3894: devault values for class params, including constant array
 ##
 #>T.ulam
- ulam 2;
+ ulam 3;
 local typedef Int BigSite[10];
 local constant BigSite cSite = { 1, 2, 3, 4 };
 element T{

@@ -17,7 +17,7 @@ Uq_System { <NOMAIN> }
 ## informed by t41017
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   System s;
   Int a, b;

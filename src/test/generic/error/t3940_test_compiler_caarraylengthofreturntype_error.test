@@ -8,7 +8,7 @@ Unrecoverable Program Type Label FAILURE.
 ##      //arraysize zero ok, but not bitsize zero for nonClass primitive types!
 ##
 #>Eltypo.ulam
-  ulam 1;
+  ulam 3;
 element Eltypo {
   Int test(){
     EventWindow ew;
@@ -20,7 +20,7 @@ element Eltypo {
 
 ##
 #:EventWindow.ulam
-  ulam 1;
+  ulam 3;
 quark EventWindow {
   Atom& aref(Int index) native;
   Int alengthof() { return 8; }

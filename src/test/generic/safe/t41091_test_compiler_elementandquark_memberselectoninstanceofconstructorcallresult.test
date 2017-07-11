@@ -13,7 +13,7 @@ Uq_System { <NOMAIN> }
 ## informed by t3913, t41089
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A : QW {
   Bool b;
   QW m_q;

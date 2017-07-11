@@ -8,7 +8,7 @@ Unrecoverable Program Type Label FAILURE.
 ## informed by t3505: mixed up aref return types.
 ##
 #>Foo.ulam
-ulam 1;
+ulam 3;
 use EventWindow;
 element Foo {
   typedef EventWindow.Sitenum Sitenum;
@@ -19,7 +19,7 @@ element Foo {
 }
 
 #:EventWindow.ulam
-ulam 1;
+ulam 3;
 quark EventWindow {
   typedef Unsigned(6) Sitenum;
   Atom& aref(Int index) native;

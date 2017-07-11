@@ -7,7 +7,7 @@ Ue_A { constant String(32) cstring = "bar";  Bool(1) b1(true);  Bool(1) b2(true)
 ## To answer a question posed by Dave 11/22/2016; no longer invalid 4/29/17
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   constant String cstring = "bar"; //ok
   Bool b1, b2, b3;

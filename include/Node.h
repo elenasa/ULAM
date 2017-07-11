@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * Node.h - Basic Node of Nodes for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file Node.h - Basic Node of Nodes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2017 All rights reserved.
   \gpl
 */
 
@@ -303,7 +303,7 @@ namespace MFM{
     //e.g. when constant array item, primitive
     void genCodeConvertATmpVarIntoConstantAutoRef(File * fp, UVPass & luvpass, UVPass ruvpass);
     //e.g. when a custom array item
-    void genCodeConvertATmpVarIntoCustomArrayAutoRef(File * fp, UVPass & luvpass, UVPass ruvpass);
+    //void genCodeConvertATmpVarIntoCustomArrayAutoRef(File * fp, UVPass & luvpass, UVPass ruvpass);
     //e.g. when lhs of member select is an array item of class type, rhs data member
     void genCodeARefFromARefStorage(File * fp, UVPass stguvpass, UVPass uvpass);
 
@@ -323,6 +323,7 @@ namespace MFM{
 
     //used for function calls second arg, including custom array accessors
     std::string genHiddenArg2(UVPass uvpass, u32& urtmpnumref);
+    virtual u32 getLengthOfMemberClassForHiddenArg(UTI cosuti);
 
   private:
     UTI m_utype;
@@ -365,7 +366,6 @@ namespace MFM{
 
     void genCodeArrayRefInit(File * fp, UVPass & uvpass, Symbol * vsymptr);
     void genCodeArrayItemRefInit(File * fp, UVPass & uvpass, Symbol * vsymptr);
-
   };
 
 }

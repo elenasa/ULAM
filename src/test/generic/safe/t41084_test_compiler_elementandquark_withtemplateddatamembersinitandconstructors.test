@@ -20,7 +20,7 @@ Uq_System { <NOMAIN> }
 ## informed by t41077, except Bar has class parameter instead of dm initialization.
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   Bar(true) bar;
   Int test(){
@@ -85,7 +85,7 @@ element A {
 }
 
 #:Bar.ulam
-  ulam 2;
+  ulam 3;
 quark Bar(Bool bp)
 {
   Self(Bool barg)

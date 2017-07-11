@@ -13,7 +13,7 @@ Uq_System { <NOMAIN> }
 ## informed by Router demo QPort4.ulam, line 85
 ##
 #>Tu.ulam
-  ulam 2;
+  ulam 3;
 element Tu : Qbar{
   Bool b;
   Int me = 1;

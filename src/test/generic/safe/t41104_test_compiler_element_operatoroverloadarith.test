@@ -1,0 +1,88 @@
+## -*- mode:ulam -*-
+#=t41104_test_compiler_element_operatoroverloadarith
+##
+## gen output: (+ interleaved asserts)
+##   Int Arg: 5
+##   Int Arg: -1
+##   Int Arg: 8
+##   Int Arg: 1
+##   Int Arg: 5
+##
+#!
+Exit status: 5
+Ue_Foo { Bool(1) first(false);  Int(32) fint(0);  Int(32) opfint(5);  Int(32) test() {  System s;  Foo foo;  foo fint . 2 cast = opfint foo ( 3 cast )operator+ . = s ( opfint )print . s ( opfint 5 cast == )assert . opfint foo ( 3 cast )operator- . = s ( opfint )print . s ( opfint -1 cast == )assert . opfint foo ( 4 cast )operator* . = s ( opfint )print . s ( opfint 8 cast == )assert . opfint foo ( 2 cast )operator/ . = s ( opfint )print . s ( opfint 1 cast == )assert . opfint foo ( 3 cast )operator+ . = s ( opfint )print . s ( opfint 5 cast == )assert . opfint return } }
+Uq_System { <NOMAIN> }
+##
+## first test to parse operator+,-.*,/ for an element
+##
+#>Foo.ulam
+  ulam 3;
+element Foo {
+  Bool first;
+  Int fint, opfint;
+  Int test() {
+    System s;
+    Foo foo;
+    foo.fint = 2;
+
+    //overloaded operator+ (2b)
+    opfint = foo + 3;
+    s.print(opfint);
+    s.assert(opfint == 5);
+
+    //overloaded operator- (2d)
+    opfint = foo - 3;
+    s.print(opfint);
+    s.assert(opfint == -1);
+
+    //overloaded operator* (2a)
+    opfint = foo * 4;
+    s.print(opfint);
+    s.assert(opfint == 8);
+
+    //overloaded operator/ (2f)
+    opfint = foo / 2;
+    s.print(opfint);
+    s.assert(opfint == 1);
+
+    //explicit call operator+
+    opfint = foo.operator+(3);
+    s.print(opfint);
+    s.assert(opfint == 5);
+    return opfint;
+  }
+
+  Int operator+(Int iarg)
+  {
+    return fint + iarg;
+  }
+
+  Int operator-(Int iarg)
+  {
+    return fint - iarg;
+  }
+
+  Int operator*(Int iarg)
+  {
+    return fint * iarg;
+  }
+
+  Int operator/(Int iarg)
+  {
+    return fint / iarg;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

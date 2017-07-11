@@ -876,4 +876,13 @@ namespace MFM {
     fp->write("\n");
   } //(static)
 
+  void UlamType::genGetUlamTypeMangledNameDefinitionForC(File * fp)
+  {
+    //for var args native funcs, non-refs, required of a BitStorage
+    m_state.indent(fp);
+    fp->write("virtual const char * GetUlamTypeMangledName() const { return \"");
+    fp->write(getUlamTypeMangledName().c_str());
+    fp->write("\"; }"); GCNL;
+  }
+
 } //end MFM

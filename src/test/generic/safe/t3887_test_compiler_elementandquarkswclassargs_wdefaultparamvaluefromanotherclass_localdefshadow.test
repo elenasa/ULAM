@@ -29,7 +29,7 @@ element P {
 }
 
 #:Q.ulam
-  ulam 2;
+  ulam 3;
 use V;
 local constant Int b = 4;
 quark Q(Unsigned s = V(b).sizeof, Int b = 3) {

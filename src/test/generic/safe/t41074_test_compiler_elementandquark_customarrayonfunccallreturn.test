@@ -13,7 +13,7 @@ Un_Tfoo { A m_a[4]( :<> System s();  Bool(1) b(false);  QW m_q(); ), ( :<> Syste
 ## informed by t3916
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 use System;
 use QW;
 element A : QW {
@@ -62,7 +62,7 @@ quark QW {
 }
 
 #:Tfoo.ulam
-  ulam 2;
+  ulam 3;
 use A;
 transient Tfoo {
   A m_a[4];

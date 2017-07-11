@@ -9,7 +9,7 @@ Uq_FontString { <NOMAIN> }
 ## informed by ish 1/5/2017: atomref no longer inherits from UlamRef, cast needs getUlamRef() call generated.
 ##
 #>HelloWorldString.ulam
-  ulam 2;
+  ulam 3;
 element HelloWorldString : FString("Hello World") {
   Int test() {
     self.behave();

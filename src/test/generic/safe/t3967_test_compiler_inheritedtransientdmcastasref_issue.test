@@ -17,7 +17,7 @@ Un_FontRadonX : Font1 { :< typedef Unsigned(8) Byte; > constant String(32)[173] 
 ## informed by Dave ish 12012016
 ##
 #>HelloWorldString.ulam
-  ulam 2;
+  ulam 3;
 element HelloWorldString : FString("Hello world")
 {
   Bool b1;
@@ -40,7 +40,7 @@ element HelloWorldString : FString("Hello world")
 }
 
 #:FString.ulam
-  ulam 2;
+  ulam 3;
 quark FString(String msg) {
   typedef Unsigned(8) StringIndex;
   typedef Unsigned(5) CharDim;
@@ -53,7 +53,7 @@ quark FString(String msg) {
 }
 
 #:Font1Set.ulam
-  ulam 2;
+  ulam 3;
 transient Font1Set {
   typedef Unsigned(3) FontIndex;
   FontRadonX mFont0;
@@ -66,7 +66,7 @@ transient Font1Set {
 }
 
 #:Font1.ulam
-  ulam 2;
+  ulam 3;
 transient FontRadonX : Font1 {
 /* Glyph representation "cwhdrowspaddedtomultipleof8bits"
    c: char

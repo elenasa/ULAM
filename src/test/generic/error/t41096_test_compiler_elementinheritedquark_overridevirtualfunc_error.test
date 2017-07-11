@@ -14,7 +14,7 @@ quark Base {
 }
 
 #:Sub1.ulam
-  ulam 2;
+  ulam 3;
 quark Sub1 : Base {
   @Override virtual Int afunc(Int a, Bool b) { return 2; } // BAD: overload of same name different args
 }

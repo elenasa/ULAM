@@ -13,7 +13,7 @@ Un_TWindows { typedef Int(5) IArr[3];  Int(5) m_arr0[3]( { 0, 0, 0 });  Int(5) m
 ## To answer question posed by Dave 11/22/2016, 2d-custom array of regular arrays?
 ##
 #>R.ulam
-  ulam 2;
+  ulam 3;
 element R {
   typedef Int(5) IArr[3];
   Int(5) m_i, m_j;
@@ -31,7 +31,7 @@ element R {
 }
 
 #:TWindows.ulam
-  ulam 2;
+  ulam 3;
 transient TWindows {
   typedef Int(5) IArr[3];
   IArr m_arr0 = { 0, 0, 0 };

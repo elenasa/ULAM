@@ -157,19 +157,6 @@ namespace MFM {
 		return Hzy;
 	      }
 	  }
-#if 0
-	  //that ship has already sailed! legal now
-	  //for now, illegal, though it works (t3450)
-	  if(m_nodeOf->isFunctionCall())
-	    {
-	      std::ostringstream msg;
-	      msg << "Function call '"<< m_nodeOf->getName();
-	      msg << "' preceeds " << getName();
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	      setNodeType(Nav);
-	      return Nav;
-	    }
-#endif
       }
 
     //attempt to map UTI; may not have a node type descriptor
@@ -218,7 +205,7 @@ namespace MFM {
 	      {
 		//replace node with func call to 'alengthof'
 		Node * newnode = buildAlengthofFuncCallNode();
-		AssertBool swapOk = exchangeNodeWithParent(newnode);
+		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
 		assert(swapOk);
 
 		m_nodeOf = NULL; //recycled
@@ -234,7 +221,7 @@ namespace MFM {
 		//replace with a NodeTerminal; might not be ready (t41065)
 		Node * newnode = constantFoldLengthofConstantString();
 		assert(newnode);
-		AssertBool swapOk = exchangeNodeWithParent(newnode);
+		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
 		assert(swapOk);
 
 		delete this; //suicide is painless..

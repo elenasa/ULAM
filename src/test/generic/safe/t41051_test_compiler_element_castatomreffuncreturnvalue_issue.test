@@ -14,7 +14,7 @@ Uq_System { <NOMAIN> }
 ## informed by Dave email 3/20/2017 and t41033
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 element Foo : QFoo
 {
   Atom & func()

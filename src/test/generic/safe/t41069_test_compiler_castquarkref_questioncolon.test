@@ -14,7 +14,7 @@ Un_Tbar : Qbar { :< Int(3) mq( 2); > Int(32) mt( -1);  <NOMAIN> }
 ## informed by t3277
 ##
 #>Tu.ulam
-  ulam 2;
+  ulam 3;
 element Tu : Qbar{
   System s;
   Bool b;
@@ -37,7 +37,7 @@ element Tu : Qbar{
 }
 
 #:Qbar.ulam
-  ulam 2;
+  ulam 1;
 quark Qbar {
   Int(3) mq = 2;
 }

@@ -1,0 +1,71 @@
+## -*- mode:ulam -*-
+#=t41108_test_compiler_elementandtrasient_inheritedoperatoroverloadarithoverloadclassarg
+##
+## gen output: (+ interleaved asserts)
+##   Int Arg: 5
+##
+#!
+Exit status: 5
+Ue_Foo : QW { :< Int(32) qint(0); > Bool(1) first(false);  Int(32) opfint(5);  Int(32) test() {  System s;  Foo foo;  foo qint . 2 cast = Too too;  too qint . 3 cast = opfint too ( foo cast )operator+ . = s ( opfint )print . s ( opfint 5 cast == )assert . opfint return } }
+Uq_QW { Int(32) qint(0);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+Un_Too : QW { :< Int(32) qint(0); > Int(32) topint(0);  <NOMAIN> }
+##
+## informed by t41106; test of overloaded inherited operator+ with class ref as arg
+##
+#>Foo.ulam
+  ulam 3;
+element Foo : QW {
+  Bool first;
+  Int opfint;
+  Int test() {
+    System s;
+    Foo foo;
+    foo.qint = 2;
+    Too too;
+    too.qint = 3;
+
+    //inherited overloaded operator +, two classes as arguments
+    opfint = too + foo;
+    s.print(opfint);
+    s.assert(opfint == 5);
+
+    return opfint;
+  }
+}
+
+#:Too.ulam
+  ulam 2;
+transient Too : QW
+{
+  Int topint;
+  Int operator+(Foo& farg)
+  {
+    return qint + farg.qint;
+  }
+}
+
+#:QW.ulam
+  ulam 3;
+quark QW {
+  Int qint;
+  Int operator+(Int iarg)
+  {
+    return qint + iarg;
+  }
+}
+
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

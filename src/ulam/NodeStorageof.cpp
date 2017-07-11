@@ -147,19 +147,6 @@ namespace MFM {
 		  return Hzy;
 		}
 	    }
-#if 0
-	  //that ship has already sailed! legal now
-	  //for now, illegal, though it works (t3450, t41092)
-	  if(m_nodeOf->isFunctionCall())
-	    {
-	      std::ostringstream msg;
-	      msg << "Function call '"<< m_nodeOf->getName();
-	      msg << "' preceeds " << getName();
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	      setNodeType(Nav);
-	      return Nav;
-	    }
-#endif
 	}
       else if(m_nodeTypeDesc)
 	{

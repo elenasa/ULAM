@@ -113,6 +113,7 @@ namespace MFM{
     assert(n < m_nodes.size()); //error/t3446
 
     UTI foldeduti = m_nodes[n]->constantFold(); //c&l possibly redone
+    ULAMTYPE etyp = m_state.getUlamTypeByIndex(foldeduti)->getUlamTypeEnum();
 
     //insure constant value fits in its array's bitsize
     UTI scalaruti = m_state.getUlamTypeAsScalar(Node::getNodeType());
@@ -135,7 +136,7 @@ namespace MFM{
 	else
 	  {
 	    std::ostringstream msg;
-	    if(m_state.getUlamTypeByIndex(foldeduti)->getUlamTypeEnum() == Bool)
+	    if(etyp == Bool)
 	      msg << "Use a comparison operator";
 	    else
 	      msg << "Use explicit cast";
@@ -155,6 +156,7 @@ namespace MFM{
 	      }
 	  }
       }
+    //else same
     return m_state.okUTItoContinue(foldeduti);
   } //foldInitExpression
 

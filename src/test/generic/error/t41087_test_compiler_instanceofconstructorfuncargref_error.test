@@ -7,7 +7,7 @@ Unrecoverable Program Type Label FAILURE.
 ## informed by error/t3784
 ##
 #>D.ulam
-  ulam 2;
+  ulam 3;
 element D {
   Bool isOurBackFill(D& dref)
   {

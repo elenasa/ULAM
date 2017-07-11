@@ -20,7 +20,7 @@ Uq_System { <NOMAIN> }
 ## also tests packloadable string array (not u64, array of 2 ints instead)
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   Bool b;
   constant String cstrarr[] = {"constant", "string"};
@@ -73,7 +73,7 @@ element A {
 }
 
 #:SystemU3.ulam
-  ulam 2;
+  ulam 3;
 quark SystemU3 : System {
   Void print(String s) native;
 }

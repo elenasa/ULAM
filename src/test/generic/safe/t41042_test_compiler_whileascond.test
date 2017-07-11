@@ -8,7 +8,7 @@ Uq_EventWindow { <NOMAIN> }
 ##  while-loop 'as' conditional, no parens, not part of a compound condition
 ##
 #>EWE.ulam
-  ulam 2;
+  ulam 3;
 element EWE{
   Int test() {
     EventWindow ew;
@@ -33,7 +33,7 @@ element EWE{
 }
 
 #:EventWindow.ulam
-  ulam 1;
+  ulam 3;
 quark EventWindow{
   Atom& aref(Int index) native;
 }

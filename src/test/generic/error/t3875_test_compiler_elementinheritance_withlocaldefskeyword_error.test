@@ -7,7 +7,7 @@ Unrecoverable Program Type Label FAILURE.
 ## test of local defs errors, mis-using local keyword as forward decl
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 element Foo : local.Moo {
   Bool(7) sp;
   Unsigned a = 73;
@@ -21,7 +21,7 @@ element Foo : local.Moo {
 }
 
 #:Moo.ulam
-  ulam 2;
+  ulam 1;
 quark Moo {
   Unsigned(3) us = 4u;
 }

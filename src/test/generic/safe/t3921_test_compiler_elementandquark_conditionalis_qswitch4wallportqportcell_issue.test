@@ -13,7 +13,7 @@ Uq_System { <NOMAIN> }
 ##      //informed by ulamexports demo Router
 ##
 #>WallPort.ulam
-  ulam 2;
+  ulam 3;
 element WallPort : QPort4(2) {
   typedef QPort4(2) QPort;
   Bool b;
@@ -26,7 +26,7 @@ element WallPort : QPort4(2) {
 }
 
 #:QPort4.ulam
-  ulam 2;
+  ulam 3;
 quark QPort4(Unsigned(2) extraScanDistance)  {
 
   Bool update()

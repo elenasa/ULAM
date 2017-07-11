@@ -19,7 +19,7 @@ Unrecoverable Program Parse FAILURE: <System.ulam>
 ## informed by t41079
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   Bar m_bar(); //ERROR!! constructor needs args!
   Int test(){
@@ -37,7 +37,7 @@ element A {
 }
 
 #:Bar.ulam
-  ulam 2;
+  ulam 3;
 quark Bar
 {
   Self() //NOT DEFAULT CONSTRUCTORS

@@ -9,7 +9,7 @@ Unrecoverable Program Parse FAILURE: <D.ulam>
 ## informed by t3101, t41096
 ##
 #>D.ulam
-  ulam 2;
+  ulam 3;
 element D {
   @Override Int a;
   Int test() {

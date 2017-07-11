@@ -8,7 +8,7 @@ Unrecoverable Program Type Label FAILURE.
 ## informed by t3975 with 2 function local variable string arrays, but of different sizes;
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
  Int test() {
    String sarr[3] = { "fool", "bar", "foobar"};

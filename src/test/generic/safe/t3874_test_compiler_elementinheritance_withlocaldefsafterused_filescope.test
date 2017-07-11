@@ -14,7 +14,7 @@ Uq_Soo(Unsigned(3) v) { Unsigned(UNKNOWN) us(notready);  <NOMAIN> }
 ## test of local defs: 2 related classes same file scope -- localdefs appear after uses
 ##
 #>Foo.ulam
-  ulam 2;
+  ulam 3;
 element Foo : local.Soo3 {
   Bool(7) sp;
   Unsigned a = 73;

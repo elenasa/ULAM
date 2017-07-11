@@ -176,6 +176,36 @@ namespace MFM {
 	    tok.init(ttype,firstloc,0);
 	    return 0;
 	  }
+	else if(sptok == TOKSP_OPERATORKEYWORD)
+	  {
+	    std::string opstr;
+	    Token optok;
+	    u32 rtn = makeOperatorToken(opstr, optok);
+	    if(rtn == 0) //overloaded operator
+	      {
+		//do again in case of dual operator
+		rtn = makeOperatorToken(opstr, optok);
+		if(rtn == 0)
+		  {
+		    //make operator overload string identifier: appends 'op' in hex (like C);
+		    //(can't use 'op' in func name, gcc complains: too many arguments, or 'op' ignored);
+		    // and out-of-band; invalid 'op's eliminated by testing OPOL flag;
+		    u32 opnameid = Token::getOperatorOverloadFullNameId(optok, &m_state);
+		    if(opnameid != 0)
+		      tok.init(TOK_IDENTIFIER,firstloc,opnameid);
+		    else
+		      {
+			std::ostringstream errmsg;
+			errmsg << "Weird Lex! <" << opstr;
+			errmsg << "> isn't an overloadable operation";
+			rtn = m_state.m_pool.getIndexForDataString(errmsg.str());
+		      }
+		  }
+		//else
+	      }
+	    //else
+	    return rtn; //short-circuit
+	  }
 	else if(sptok == TOKSP_DEPRECATED)
 	  {
 	    std::ostringstream errmsg;
@@ -187,7 +217,7 @@ namespace MFM {
 	  {
 	    std::ostringstream errmsg;
 	    errmsg << "Weird Lex! <" << aname;
-	    errmsg << "> isn't a special keyword type..becomes identifier instead.";
+	    errmsg << "> isn't a special keyword type..becomes identifier instead";
 	    brtn = m_state.m_pool.getIndexForDataString(errmsg.str());
 	  }
       }

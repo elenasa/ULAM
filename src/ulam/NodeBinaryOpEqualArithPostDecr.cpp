@@ -35,17 +35,36 @@ namespace MFM {
   bool NodeBinaryOpEqualArithPostDecr::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
     assert(slots);
-    if(m_state.isScalar(getNodeType())) //not an array
+    UTI nuti = getNodeType();
+    if(m_state.isScalar(nuti)) //not an array
       {
 	UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(lslot); //a Ptr
-	assert(m_state.isPtr(pluv.getUlamValueTypeIdx()) && (pluv.getPtrTargetType() == getNodeType()));
+	assert(m_state.isPtr(pluv.getUlamValueTypeIdx()) && (UlamType::compare(pluv.getPtrTargetType(),nuti, m_state) == UTIC_SAME));
 
 	assert(slots == 1);
 	UlamValue luv = m_state.getPtrTarget(pluv);  //no eval!!
 	if(doBinaryOperationImmediate(lslot, rslot, slots))
 	  {
 	    //re-save untouched result UV to stack, -1 relative to current frame pointer
-	    m_state.m_nodeEvalStack.storeUlamValueInSlot(luv, -1);
+	    // t41115
+	    UlamValue rtnUV;
+	    u32 wordsize = m_state.getTotalWordSize(nuti);
+	    u32 len = m_state.getTotalBitSize(nuti);
+
+	    if(wordsize == MAXBITSPERINT)
+	      {
+		u32 ldata = luv.getDataFromAtom(pluv, m_state);
+		rtnUV = UlamValue::makeImmediate(nuti, ldata, len);
+	      }
+	    else if(wordsize == MAXBITSPERLONG)
+	      {
+		u64 ldata = luv.getDataLongFromAtom(pluv, m_state);
+		rtnUV = UlamValue::makeImmediateLong(nuti, ldata, len);
+	      }
+	    else
+	      m_state.abortGreaterThanMaxBitsPerLong();//e.g. 0
+
+	    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
 	    return true;
 	  }
       }

@@ -14,7 +14,7 @@ Uq_Base { <NOMAIN> }
 ## Dave issue 1/19/2017, test of is/as semantics with inheritance:
 ##
 #>R.ulam
-  ulam 2;
+  ulam 3;
 element R {
   Int test() {
     System s;
@@ -25,7 +25,7 @@ element R {
 }
 
 #:Foo.ulam
-  ulam 2;
+  ulam 3;
 element Foo : Intermediate {
   Bool(7) sp;
   System s;
@@ -41,7 +41,7 @@ element Foo : Intermediate {
 }
 
 #:Intermediate.ulam
-  ulam 2;
+  ulam 3;
 quark Intermediate : Base
 {
   virtual Bool checkis(Base& base) {
@@ -60,7 +60,7 @@ quark Intermediate : Base
 }
 
 #:Base.ulam
-  ulam 2;
+  ulam 3;
 quark Base
 {
   virtual Bool checkis(Base& base) { return false; }

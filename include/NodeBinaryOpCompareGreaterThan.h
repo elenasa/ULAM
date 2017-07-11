@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeBinaryOpCompareGreaterThan.h - Node for handling Greater Than Comparison for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeBinaryOpCompareGreaterThan.h - Node for handling Greater Than Comparison for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2017 All rights reserved.
   \gpl
 */
 
@@ -51,6 +51,8 @@ namespace MFM{
     virtual Node * instantiate();
 
     virtual const char * getName();
+
+    virtual const char * getInverseOpName();
 
     virtual const std::string prettyNodeName();
 

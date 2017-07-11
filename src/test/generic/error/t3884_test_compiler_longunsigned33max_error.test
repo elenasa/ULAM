@@ -9,7 +9,7 @@ Unrecoverable Program Type Label FAILURE.
 ## exhibited by casting Unsigned(33) to Unary(3) arg in System print (m_max == 1)
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 local typedef Unsigned(33) WEIRDOG[5];
 element A {
   Bool b1, b2, b3;

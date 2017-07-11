@@ -14,7 +14,7 @@ Unrecoverable Program Parse FAILURE: <System.ulam>
 ## informed by t41023, case and default both require block
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 element A {
   System s;
   Int a, b;

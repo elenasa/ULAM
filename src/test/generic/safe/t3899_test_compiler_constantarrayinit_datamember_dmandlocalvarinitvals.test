@@ -17,7 +17,7 @@ Uq_System { <NOMAIN> }
 ## informed by t3881, here data member has init value of named constant array.
 ##
 #>A.ulam
-  ulam 2;
+  ulam 3;
 local typedef Unsigned(16) BIGARGB[4];
 local typedef Unsigned(33) WEIRDOG[5];
 element A {
