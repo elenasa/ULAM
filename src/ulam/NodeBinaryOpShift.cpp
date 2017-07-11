@@ -15,6 +15,26 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
+
+    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
+    if((lut->getUlamTypeEnum() == Class))
+      {
+	Node * newnode = buildOperatorOverloadFuncCallNode(); //virtual
+	if(newnode)
+	  {
+	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	    assert(swapOk);
+
+	    m_nodeLeft = NULL; //recycle as memberselect
+	    m_nodeRight = NULL; //recycle as func call arg
+
+	    delete this; //suicide is painless..
+
+	    return newnode->checkAndLabelType();
+	  }
+	//else should fail again as non-primitive;
+      } //done
+
     UTI newType = calcNodeType(leftType, rightType); //Bits, or Nav error
     setNodeType(newType);
     Node::setStoreIntoAble(TBOOL_FALSE);

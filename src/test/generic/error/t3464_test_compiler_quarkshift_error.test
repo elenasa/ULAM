@@ -3,11 +3,11 @@
 #!
 ./A.ulam:6:7: ERROR: Non-primitive type <Bar> is not supported as right operand type for binary operator<<.
 ./A.ulam:6:3: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
-./A.ulam:7:8: ERROR: Non-primitive type <Bar> is not supported as left operand type for binary operator<<.
+./A.ulam:7:8: ERROR: (2) <operator<<> is not a defined function, or cannot be safely called in this context.
 ./A.ulam:7:4: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.
 ##
-##      //quark has no toInt method:
+##      //quark has no toInt method: ulam-3 looks for overload operator when class on lhs
 ##
 #>A.ulam
 use Bar;

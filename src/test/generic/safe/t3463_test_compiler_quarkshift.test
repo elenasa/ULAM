@@ -1,18 +1,37 @@
 ## -*- mode:ulam -*-
 #=t3463_test_compiler_quarkshift
+##
+## gen output:
+##    Int Arg: 2
+##    Int Arg: 4
+##    Int Arg: 8
+##
 #!
 Exit status: 4
-Ue_A { Int(32) b(2);  Int(32) c(4);  Int(32) test() {  Bar a;  b 1 cast a ( )toInt . cast << cast = c a ( )toInt . cast 2 cast << cast = c return } }
+Ue_A { Int(32) b(2);  Int(32) c(4);  Int(32) test() {  System s;  Bar a;  b 1 cast a ( )toInt . cast << cast = s ( b )print . s ( b 2 cast == )assert . c a ( )toInt . cast cast 2 cast << cast = s ( c )print . s ( c 4 cast == )assert . Bits(32) bits = c cast a ( )toInt . cast <<;  s ( bits cast )print . s ( bits 8u cast == )assert . c return } }
+Uq_System { <NOMAIN> }
 Uq_Bar { <NOMAIN> }
 #>A.ulam
-  ulam 1;
-use Bar;
+  ulam 3;
 element A {
   Int b, c;
   Int test() {
+    System s;
     Bar a;
     b = (Int) (1 << (Unsigned) a);
-    c = (Int) (a << 2);
+    s.print(b);
+    s.assert(b==2);
+
+    //c = (Int) (a << 2); //quark on lhs looks for overload operator<< (ulam 3)
+    c = (Int) (((Int) a) << 2); //=4 cast a to get toInt.
+    s.print(c);
+    s.assert(c==4);
+
+    Bits bits = c << (Unsigned) a; //=8
+    s.print((Unsigned) bits);
+    s.assert(bits == 8u);
+    //s.assert(bits == 0x1000); //oddly this fails???
+
     return c;
   }
 }
@@ -24,4 +43,17 @@ quark Bar {
     return 1;
   }
 }
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
 #.
