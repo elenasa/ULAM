@@ -7,13 +7,14 @@
 ##   Int Arg: 8
 ##   Int Arg: 1
 ##   Int Arg: 5
+##   Int Arg: 2
 ##
 #!
-Exit status: 5
-Ue_Foo { Bool(1) first(false);  Int(32) fint(0);  Int(32) opfint(5);  Int(32) test() {  System s;  Foo foo;  foo fint . 2 cast = opfint foo ( 3 cast )operator+ . = s ( opfint )print . s ( opfint 5 cast == )assert . opfint foo ( 3 cast )operator- . = s ( opfint )print . s ( opfint -1 cast == )assert . opfint foo ( 4 cast )operator* . = s ( opfint )print . s ( opfint 8 cast == )assert . opfint foo ( 2 cast )operator/ . = s ( opfint )print . s ( opfint 1 cast == )assert . opfint foo ( 3 cast )operator+ . = s ( opfint )print . s ( opfint 5 cast == )assert . opfint return } }
+Exit status: 2
+Ue_Foo { Bool(1) first(false);  Int(32) fint(0);  Int(32) opfint(2);  Int(32) test() {  System s;  Foo foo;  foo fint . 2 cast = opfint foo ( 3 cast )operator+ . = s ( opfint )print . s ( opfint 5 cast == )assert . opfint foo ( 3 cast )operator- . = s ( opfint )print . s ( opfint -1 cast == )assert . opfint foo ( 4 cast )operator* . = s ( opfint )print . s ( opfint 8 cast == )assert . opfint foo ( 2 cast )operator/ . = s ( opfint )print . s ( opfint 1 cast == )assert . opfint foo ( 3 cast )operator+ . = s ( opfint )print . s ( opfint 5 cast == )assert . opfint foo ( 3 cast )operator% . = s ( opfint )print . s ( opfint 2 cast == )assert . opfint return } }
 Uq_System { <NOMAIN> }
 ##
-## first test to parse operator+,-.*,/ for an element
+## first test to parse operator+,-.*,/,% for an element
 ##
 #>Foo.ulam
   ulam 3;
@@ -49,6 +50,12 @@ element Foo {
     opfint = foo.operator+(3);
     s.print(opfint);
     s.assert(opfint == 5);
+
+    //overloaded operator% (?)
+    opfint = foo % 3;
+    s.print(opfint);
+    s.assert(opfint == 2);
+
     return opfint;
   }
 
@@ -70,6 +77,11 @@ element Foo {
   Int operator/(Int iarg)
   {
     return fint / iarg;
+  }
+
+  Int operator%(Int iarg)
+  {
+    return fint % iarg;
   }
 }
 
