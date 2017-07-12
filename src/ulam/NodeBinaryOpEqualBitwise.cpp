@@ -125,7 +125,7 @@ namespace MFM {
 	if(ltypEnum != Bits)
 	  {
 	    std::ostringstream msg;
-	    msg << "Bits is the supported type for bitwise operator"; //equal
+	    msg << "Bits is the supported type for bitwise operation "; //equal
 	    msg << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    bOK = false;
@@ -141,7 +141,7 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
 	    msg << " is not representable as ";
 	    msg<< m_state.getUlamTypeNameBriefByIndex(newType).c_str();
-	    msg << ". Bits is the supported type for bitwise operator";
+	    msg << ". Bits is the supported type for bitwise operation ";
 	    msg << getName();
 	    if(rscr == CAST_BAD)
 	      {

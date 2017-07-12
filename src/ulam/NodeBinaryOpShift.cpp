@@ -132,7 +132,7 @@ namespace MFM {
 	if(lscr != CAST_CLEAR)
 	  {
 	    std::ostringstream msg;
-	    msg << "Bits is the supported type for shift operator";
+	    msg << "Bits is the supported type for shift operation ";
 	    msg << getName() << "; Suggest casting ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
 	    msg << " to Bits";
@@ -158,7 +158,7 @@ namespace MFM {
 	if(rscr != CAST_CLEAR)
 	  {
 	    std::ostringstream msg;
-	    msg << "Unsigned is the supported type for shift distance, operator";
+	    msg << "Unsigned is the supported type for shift distance, operation ";
 	    msg << getName() << "; Suggest casting ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
 	    msg << " to Unsigned";
@@ -182,7 +182,7 @@ namespace MFM {
 	    if(m_nodeRight->isWordSizeConstant())
 	      {
 		std::ostringstream msg;
-		msg << "Shift distance greater than data width, operator";
+		msg << "Shift distance greater than data width, operation ";
 		msg << getName();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	      }

@@ -5448,7 +5448,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
+	msg << "Right operand of binary " << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Assignment deleted";
 	MSG(&pTok, msg.str().c_str(), ERR);
 	delete leftNode;
@@ -5510,7 +5510,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
+	msg << "Right operand of binary " << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -5545,7 +5545,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
+	msg << "Right operand of binary " << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -5583,7 +5583,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
+	msg << "Right operand of binary " << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -5618,7 +5618,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
+	msg << "Right operand of binary " << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -5659,7 +5659,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
+	msg << "Right operand of binary " << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -5694,7 +5694,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
+	msg << "Right operand of binary " << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -5729,7 +5729,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
+	msg << "Right operand of binary " << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;

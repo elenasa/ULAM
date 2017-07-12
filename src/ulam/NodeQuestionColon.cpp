@@ -146,7 +146,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
 	msg << " and ";
 	msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
-	msg << " to be same type for binary operator" << getName();
+	msg << " to be same type for binary " << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return Nav;
       }

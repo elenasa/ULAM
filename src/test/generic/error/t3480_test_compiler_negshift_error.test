@@ -1,11 +1,11 @@
 ## -*- mode:ulam -*-
 #=t3480_test_compiler_negshift_error
 #!
-./A.ulam:9:5: ERROR: Use a comparison operator to convert Int(32) to Bool(1) for 'while'.
-./A.ulam:10:25: ERROR: Unsigned is the supported type for shift distance, operator<<; Suggest casting Int(2) to Unsigned.
+./A.ulam:9:5: ERROR: Use a comparison operation to convert Int(32) to Bool(1) for 'while'.
+./A.ulam:10:25: ERROR: Unsigned is the supported type for shift distance, operation <<; Suggest casting Int(2) to Unsigned.
 ./A.ulam:10:12: ERROR: Cannot cast erroneous type.
 ./A.ulam:10:9: ERROR: Assignment is invalid; LHS: Unsigned(32); RHS: erroneous.
-./A.ulam:11:20: ERROR: Unsigned is the supported type for shift distance, operator>>; Suggest casting Int(2) to Unsigned.
+./A.ulam:11:20: ERROR: Unsigned is the supported type for shift distance, operation >>; Suggest casting Int(2) to Unsigned.
 ./A.ulam:11:12: ERROR: Cannot cast erroneous type.
 ./A.ulam:11:9: ERROR: Assignment is invalid; LHS: Int(32); RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.

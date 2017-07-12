@@ -62,7 +62,7 @@ NodeBinaryOpArithDivide::NodeBinaryOpArithDivide(const NodeBinaryOpArithDivide& 
 	    assert(swapOk);
 
 	    std::ostringstream msg;
-	    msg << "Exchanged kids! of parent of binary operator" << getName();
+	    msg << "Exchanged kids! of parent of binary" << getName();
 	    msg << ", with a cast to type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	    msg << " while compiling class: ";

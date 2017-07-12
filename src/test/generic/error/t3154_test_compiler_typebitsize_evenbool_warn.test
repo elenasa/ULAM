@@ -2,10 +2,10 @@
 #=t3154_test_compiler_typebitsize_evenbool_warn
 #!
 ./C.ulam:6:2: Warning: Bool Type with EVEN number of bits is internally inconsistent;  Reduced by one to 3 bits.
-./C.ulam:10:9: ERROR: Use explicit cast to convert Int(6) to Int(3) for operator=.
-./C.ulam:11:4: ERROR: Use a comparison operator to convert Int(3) to Bool(3) for operator=.
-./C.ulam:12:4: ERROR: Bits is the supported type for bitwise operator&=.
-./C.ulam:12:4: ERROR: Righthand type Int(3) is not representable as Bool(3). Bits is the supported type for bitwise operator&=.
+./C.ulam:10:9: ERROR: Use explicit cast to convert Int(6) to Int(3) for =.
+./C.ulam:11:4: ERROR: Use a comparison operation to convert Int(3) to Bool(3) for =.
+./C.ulam:12:4: ERROR: Bits is the supported type for bitwise operation &=.
+./C.ulam:12:4: ERROR: Righthand type Int(3) is not representable as Bool(3). Bits is the supported type for bitwise operation &=.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>C.ulam

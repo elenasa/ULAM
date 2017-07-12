@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3163_test_compiler_unaryarraybitwiseor
 #!
-./A.ulam:12:11: ERROR: Incompatible (nonscalar) types Unary(3)[2] and Unary(3)[2] for binary operator| ; Suggest writing a loop.
+./A.ulam:12:11: ERROR: Incompatible (nonscalar) types Unary(3)[2] and Unary(3)[2] for binary | ; Suggest writing a loop.
 ./A.ulam:12:7: ERROR: Assignment is invalid; LHS: Unary(3)[2]; RHS: erroneous.
 Unrecoverable Program Type Label FAILURE.
 ##

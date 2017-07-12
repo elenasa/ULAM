@@ -261,7 +261,7 @@ namespace MFM {
 		msg << nut->getUlamTypeNameBrief().c_str();
 		msg << " to type: " << tobe->getUlamTypeNameBrief().c_str();
 		if(tobe->getUlamTypeEnum() == Bool)
-		  msg << "; Consider using a comparison operator";
+		  msg << "; Consider using a comparison operation";
 		else if(m_state.isAtom(tobeType) && (nclasstype == UC_QUARK))
 		  msg << "; Consider using a reference (or self) with .atomof";
 		if(scr == CAST_HAZY)

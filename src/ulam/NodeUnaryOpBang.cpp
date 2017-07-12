@@ -45,7 +45,7 @@ namespace MFM {
     if(typEnum == Bits)
       {
 	std::ostringstream msg;
-	msg << "Incompatible Bits type for unary operator";
+	msg << "Incompatible Bits type for unary ";
 	msg << getName() << ". Suggest casting to a Bool first";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return Nav;
@@ -60,7 +60,7 @@ namespace MFM {
     if(scr != CAST_CLEAR)
       {
 	std::ostringstream msg;
-	msg << "Bool is the supported type for logical unary operator";
+	msg << "Bool is the supported type for logical unary ";
 	msg << getName() << "; Suggest casting ";
 	msg << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
 	msg << " to Bool";

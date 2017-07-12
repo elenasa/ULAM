@@ -45,14 +45,14 @@ namespace MFM {
 	ULAMTYPE etyp = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
 	std::ostringstream msg;
 	if(etyp == Bool)
-	  msg << "Use a comparison operator";
+	  msg << "Use a comparison operation";
 	else
 	  msg << "Use explicit cast";
 	msg << " to convert "; // the real converting-message
 	msg << m_state.getUlamTypeNameBriefByIndex(m_nodeRight->getNodeType()).c_str();
 	msg << " to ";
 	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
-	msg << " for operator" << getName();
+	msg << " for " << getName();
 	if(scr == CAST_HAZY)
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
@@ -139,7 +139,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
 	msg << " and ";
 	msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
-	msg << " used with binary operator" << getName();
+	msg << " used with binary " << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
 	return Nav;
@@ -173,7 +173,7 @@ namespace MFM {
 		msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
 		msg << " and ";
 		msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
-		msg << " used with binary operator" << getName();
+		msg << " used with binary " << getName();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		newType = Nav; //error
 	      }

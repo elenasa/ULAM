@@ -2,7 +2,7 @@
 #=t41110_test_compiler_element_operatoroverloadinvaliddualop_error
 #!
 ./Foo.ulam:9:27: ERROR: Weird Lex! <**> isn't an overloadable operation.
-./Foo.ulam:9:12: ERROR: Right operand of binary operator= is missing; Assignment deleted.
+./Foo.ulam:9:12: ERROR: Right operand of binary = is missing; Assignment deleted.
 ./Foo.ulam:9:28: ERROR: Invalid Statement (possible missing semicolon).
 ./Foo.ulam:19:17: ERROR: Weird Lex! <**> isn't an overloadable operation.
 ./Foo.ulam:19:24: ERROR: Inconsistent state: Named Constant <fref> has not been defined in another class Foo.

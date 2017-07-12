@@ -261,7 +261,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	if(tobe->getUlamTypeEnum() == Bool)
-	  msg << "Use a comparison operator";
+	  msg << "Use a comparison operation";
 	else
 	  msg << "Use explicit cast";
 	msg << " to convert "; // the real converting-message

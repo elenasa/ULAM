@@ -74,7 +74,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
 	msg << " and ";
 	msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
-	msg << " used with binary operator" << getName();
+	msg << " used with binary " << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
 	return Nav;
@@ -105,7 +105,7 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
 	    msg << " and ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
-	    msg << " used with binary operator" << getName();
+	    msg << " used with binary " << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    newType = Nav; //error
 	  }
@@ -148,7 +148,7 @@ namespace MFM {
 	if((newType != Nav) && !nut->isScalar())
 	  {
 	    std::ostringstream msg;
-	    msg << "Non-scalars require a loop for operator" << getName();
+	    msg << "Non-scalars require a loop for operation " << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    newType = Nav;
 	  }

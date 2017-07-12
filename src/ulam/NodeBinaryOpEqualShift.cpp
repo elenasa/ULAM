@@ -115,7 +115,7 @@ namespace MFM {
 	if(ltypEnum != Bits)
 	  {
 	    std::ostringstream msg;
-	    msg << "Bits is the supported type for shift operator"; //equal
+	    msg << "Bits is the supported type for shift operation "; //equal
 	    msg << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    bOK = false;
@@ -130,7 +130,7 @@ namespace MFM {
 	    msg << "Righthand type ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
 	    msg << " is not representable as Unsigned";
-	    msg << "; the supported type for rhs of shift operator";
+	    msg << "; the supported type for rhs of shift operation ";
 	    msg << getName();
 	    if(rscr == CAST_BAD)
 	      {

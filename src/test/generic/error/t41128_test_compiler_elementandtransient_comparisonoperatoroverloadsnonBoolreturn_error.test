@@ -1,15 +1,15 @@
 ## -*- mode:ulam -*-
 #=t41112_test_compiler_elementandtrasient_comparisonoperatoroverloads
 #!
-./Foo.ulam:12:11: ERROR: Use a comparison operator to convert Int(32) to Bool(1) for operator=.
-./Foo.ulam:16:19: ERROR: Bool is the supported type for logical unary operator!; Suggest casting Int(32) to Bool.
-./Foo.ulam:21:11: ERROR: Use a comparison operator to convert Int(32) to Bool(1) for operator=.
-./Foo.ulam:25:19: ERROR: Bool is the supported type for logical unary operator!; Suggest casting Int(32) to Bool.
+./Foo.ulam:12:11: ERROR: Use a comparison operation to convert Int(32) to Bool(1) for =.
+./Foo.ulam:16:19: ERROR: Bool is the supported type for logical unary !; Suggest casting Int(32) to Bool.
+./Foo.ulam:21:11: ERROR: Use a comparison operation to convert Int(32) to Bool(1) for =.
+./Foo.ulam:25:19: ERROR: Bool is the supported type for logical unary !; Suggest casting Int(32) to Bool.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## what happens when Bool is not the return type? must compare result, and automatic compliment fails
 ## informed by t41112; test of overloaded compare operator< and operator> with class ref as arg
-## and negations for its inverse operators >= and <=.
+## and negations for its inverse operations >= and <=.
 ##
 #>Foo.ulam
   ulam 3;
