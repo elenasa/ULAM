@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t41122_test_compiler_element_operatoroverloadshiftsandshiftequals
+#=t41124_test_compiler_element_operatoroverloadshiftsandshiftequals
 ##
 ##  gen code output: (interleaved asserts + 1)
 ##	 Unsigned Arg: 32

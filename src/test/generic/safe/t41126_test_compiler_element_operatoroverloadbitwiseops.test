@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t41122_test_compiler_element_operatoroverloadbitwiseequal
+#=t41126_test_compiler_element_operatoroverloadbitwiseops
 ##
 ##  gen code output: (+ interleaved asserts)
 ##	 Unsigned Arg: 5

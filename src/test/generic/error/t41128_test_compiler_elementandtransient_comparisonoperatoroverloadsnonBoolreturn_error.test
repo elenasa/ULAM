@@ -1,20 +1,14 @@
 ## -*- mode:ulam -*-
 #=t41112_test_compiler_elementandtrasient_comparisonoperatoroverloads
-##
-## gen output: (+ interleaved asserts)
-##   Bool(3) Arg: 0x0 (false)
-##   Bool(3) Arg: 0x7 (true)
-##   Bool(3) Arg: 0x7 (true)
-##   Bool(3) Arg: 0x0 (false)
-##
 #!
-Exit status: 0
-Ue_Foo : QW { :< Int(32) qint(0); > Bool(1) first(true);  Bool(1) second(false);  Int(32) test() {  System s;  Foo foo;  foo qint . 2 cast = Too too;  too qint . 3 cast = first too ( foo cast )operator< . = s ( first cast )print . s ( first ! )assert . second too ( foo cast )operator< ! . = s ( second cast )print . s ( second first != )assert . first too ( foo cast )operator> . = s ( first cast )print . s ( first )assert . second too ( foo cast )operator> ! . = s ( second cast )print . s ( second first != )assert . 0 cast return } }
-Uq_QW { Int(32) qint(0);  <NOMAIN> }
-Uq_System { <NOMAIN> }
-Un_Too : QW { :< Int(32) qint(0); > Int(32) topint(0);  <NOMAIN> }
+./Foo.ulam:12:11: ERROR: Use a comparison operator to convert Int(32) to Bool(1) for operator=.
+./Foo.ulam:16:19: ERROR: Bool is the supported type for logical unary operator!; Suggest casting Int(32) to Bool.
+./Foo.ulam:21:11: ERROR: Use a comparison operator to convert Int(32) to Bool(1) for operator=.
+./Foo.ulam:25:19: ERROR: Bool is the supported type for logical unary operator!; Suggest casting Int(32) to Bool.
+Unrecoverable Program Type Label FAILURE.
 ##
-## informed by t41109; test of overloaded compare operator< and operator> with class ref as arg
+## what happens when Bool is not the return type? must compare result, and automatic compliment fails
+## informed by t41112; test of overloaded compare operator< and operator> with class ref as arg
 ## and negations for its inverse operators >= and <=.
 ##
 #>Foo.ulam
@@ -55,20 +49,20 @@ element Foo : QW {
 transient Too : QW
 {
   Int topint;
-  Bool operator<(Foo& farg)
+  Int operator<(Foo& farg)
   {
-    return qint < farg.qint;
+    return qint < farg.qint ? 0 : 1;
   }
 
-  Bool operator>(Foo& farg)
+  Int operator>(Foo& farg)
   {
-    return qint > farg.qint;
+    return qint > farg.qint ? 1 : 0;
   }
 
 }
 
 #:QW.ulam
-  ulam 2;
+  ulam 3;
 quark QW {
   Int qint;
 }

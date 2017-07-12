@@ -3455,8 +3455,11 @@ namespace MFM {
 	  }
 	else
 	  {
+	    //end of dot chain
 	    unreadToken(); //pTok
 	    rtnNode = parseMinMaxSizeofType(rtnNode, Nouti, NULL); //ate dot, possible min/max/sizeof
+	    if(!rtnNode)
+	      delete classInstanceNode; //t41110 leak
 	  }
       } //while
     return rtnNode;
