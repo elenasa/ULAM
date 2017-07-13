@@ -216,6 +216,7 @@ namespace MFM {
     return newType;
   } //checkAndLabelType
 
+  //no existence checking; error if overload doesn't exist for class and this binary op.
   Node * NodeBinaryOp::buildOperatorOverloadFuncCallNode()
   {
     Token identTok;

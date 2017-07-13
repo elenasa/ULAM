@@ -4201,9 +4201,21 @@ namespace MFM {
 
     Node * rtnNode = NULL;
     Token pTok;
+    getNextToken(pTok);
 
-    if(!getExpectedToken(TOK_OPEN_SQUARE, pTok, QUIETLY))
-      return leftNode;
+    if(pTok.m_type == TOK_SQUARE)
+      {
+	rtnNode = new NodeSquareBracket(leftNode, NULL, m_state);
+	assert(rtnNode);
+	rtnNode->setNodeLocation(pTok.m_locator);
+	return rtnNode; //t3768
+      }
+
+    if(pTok.m_type != TOK_OPEN_SQUARE)
+      {
+	unreadToken();
+	return leftNode;
+      }
 
     Node * rightNode = parseExpression();
     //Array size may be blank if initialized (not array item!!);
@@ -4213,7 +4225,7 @@ namespace MFM {
 
     if(!getExpectedToken(TOK_CLOSE_SQUARE))
       {
-	delete rtnNode;
+	delete rtnNode; //also deletes leftNode
 	rtnNode = NULL;
 	return rtnNode;
       }
@@ -4262,6 +4274,7 @@ namespace MFM {
 	  rtnNode = parseRestOfAssignExpr(rtnNode);
 	  break;
 	}
+      case TOK_SQUARE:
       case TOK_OPEN_SQUARE:
 	{
 	  rtnNode = parseRestOfLvalExpr(leftNode); //t41074, lhs
