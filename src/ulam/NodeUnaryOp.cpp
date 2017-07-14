@@ -329,7 +329,7 @@ namespace MFM {
 
     NNO pno = Node::getYourParentNo();
     assert(pno);
-    Node * parentNode = m_state.findNodeNoInThisClass(pno);
+    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno); //t3767
     assert(parentNode);
 
     evalNodeProlog(0); //new current frame pointer

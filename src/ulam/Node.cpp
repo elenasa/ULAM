@@ -185,11 +185,6 @@ namespace MFM {
     return false;
   }
 
-  void Node::constantFoldAToken(const Token& tok)
-  {
-    m_state.abortShouldntGetHere(); //only NodeTerminal has this defined; NodeConstant bypasses
-  }
-
   bool Node::isAConstant()
   {
     return false;

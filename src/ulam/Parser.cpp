@@ -5789,20 +5789,10 @@ namespace MFM {
     switch(pTok.m_type)
       {
       case TOK_MINUS:
-	{
-	  UTI futi = factorNode->getNodeType();
-	  if((futi != Nouti) && factorNode->isAConstant())
-	    {
-	      factorNode->constantFoldAToken(pTok);
-	      rtnNode = factorNode;
-	    }
-	  else
-	    {
-	      rtnNode = new NodeUnaryOpMinus(factorNode, m_state);
-	      assert(rtnNode);
-	      rtnNode->setNodeLocation(pTok.m_locator);
-	    }
-	}
+	//3849, 3767 constantFoldAToken was premature (e.g. cast involved)
+	rtnNode = new NodeUnaryOpMinus(factorNode, m_state);
+	assert(rtnNode);
+	rtnNode->setNodeLocation(pTok.m_locator);
 	break;
       case TOK_PLUS:
 	rtnNode = new NodeUnaryOpPlus(factorNode, m_state);

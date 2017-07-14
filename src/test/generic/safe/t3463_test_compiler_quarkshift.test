@@ -29,8 +29,8 @@ element A {
 
     Bits bits = c << (Unsigned) a; //=8
     s.print((Unsigned) bits);
-    s.assert(bits == 8u);
-    //s.assert(bits == 0x1000); //oddly this fails???
+    //s.assert(bits == 0x8);
+    s.assert(bits == 0b1000);
 
     return c;
   }
