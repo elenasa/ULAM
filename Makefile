@@ -139,8 +139,9 @@ endif
 #${info Local configuration: MFM_ROOT_DIR=$(MFM_ROOT_DIR)}
 ## This wants to be rethought and refactored!
 COMPONENTNAME:=ulamic
-MFM_TARGET:=linux
 BASEDIR:=$(MFM_ROOT_DIR)
+include $(BASEDIR)/config/Makeplatform.mk
+MFM_TARGET:=$(PLATFORM)
 include $(BASEDIR)/config/Makecommon.mk
 override CFLAGS += -I $(BASEDIR)/src/core/include
 override CFLAGS += -D ULAM_SHARE_DIR=$(ULAM_SHARE_DIR)
