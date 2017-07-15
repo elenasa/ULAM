@@ -128,7 +128,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Incompatible (nonscalar) type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
-	msg << ", for unary operator" << getName();
+	msg << ", for unary " << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
 	return Nav;
@@ -207,7 +207,6 @@ namespace MFM {
     fcallNode->setNodeLocation(identTok.m_locator);
 
     //similar to Binary Op's except no argument
-    //fcallNode->addArgument(m_nodeRight);
 
     NodeMemberSelect * mselectNode = new NodeMemberSelect(m_node, fcallNode, m_state);
     assert(mselectNode);
@@ -226,14 +225,14 @@ namespace MFM {
 	ULAMTYPE etyp = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
 	std::ostringstream msg;
 	if(etyp == Bool)
-	  msg << "Use a comparison operator";
+	  msg << "Use a comparison operation";
 	else
 	  msg << "Use explicit cast";
 	msg << " to convert "; // the real converting-message
 	msg << m_state.getUlamTypeNameBriefByIndex(m_node->getNodeType()).c_str();
 	msg << " to ";
 	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
-	msg << " for unary operator" << getName();
+	msg << " for unary " << getName();
 	if(scr == CAST_HAZY)
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
@@ -270,7 +269,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Non-primitive type <";
 	msg << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
-	msg << "> is not supported for unary operator";
+	msg << "> is not supported for unary ";
 	msg << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return false;
@@ -285,7 +284,7 @@ namespace MFM {
     if(typEnum == Void)
       {
 	std::ostringstream msg;
-	msg << "Void is not a supported type for unary operator";
+	msg << "Void is not a supported type for unary ";
 	msg << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	rtnOK = false;
@@ -300,7 +299,7 @@ namespace MFM {
     if(!isnum)
       {
 	std::ostringstream msg;
-	msg << "Incompatible type for unary operator";
+	msg << "Incompatible type for unary ";
 	msg << getName() << " : ";
 	msg << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
 	msg << "; Suggest casting to a numeric type first";
@@ -330,7 +329,7 @@ namespace MFM {
 
     NNO pno = Node::getYourParentNo();
     assert(pno);
-    Node * parentNode = m_state.findNodeNoInThisClass(pno);
+    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno); //t3767
     assert(parentNode);
 
     evalNodeProlog(0); //new current frame pointer
@@ -382,7 +381,7 @@ namespace MFM {
     assert(swapOk);
 
     std::ostringstream msg;
-    msg << "Exchanged kids! for unary operator" << getName();
+    msg << "Exchanged kids! for unary " << getName();
     msg << ", with a constant == " << newnode->getName();
     msg << " while compiling class: ";
     msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
@@ -435,7 +434,7 @@ namespace MFM {
       {
 	//arrays not supported at this time
 	std::ostringstream msg;
-	msg << "Unsupported unary operator" << getName();
+	msg << "Unsupported unary operation " << getName();
 	msg << ", with an array type <";
 	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str() << ">";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

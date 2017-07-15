@@ -1153,8 +1153,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(isFuncIdInScope(testid, fnSym))
       {
 	SymbolFunction * funcSymbol = NULL;
-	std::vector<UTI> voidVector; //kepp empty
-	if(((SymbolFunctionName *) fnSym)->findMatchingFunctionStrictlyByTypes(voidVector, funcSymbol) == 1)
+	if(((SymbolFunctionName *) fnSym)->findMatchingFunctionStrictlyVoid(funcSymbol) == 1)
 	  func = funcSymbol->getFunctionNode();
       }
     return func;
@@ -1169,8 +1168,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(isFuncIdInScope(lenid, fnSym))
       {
 	SymbolFunction * funcSymbol = NULL;
-	std::vector<UTI> voidVector; //keep empty
-	if(((SymbolFunctionName *) fnSym)->findMatchingFunctionStrictlyByTypes(voidVector, funcSymbol) == 1)
+	if(((SymbolFunctionName *) fnSym)->findMatchingFunctionStrictlyVoid(funcSymbol) == 1)
 	  func = funcSymbol->getFunctionNode();
       }
     return func;
@@ -1185,8 +1183,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(isFuncIdInScope(tointid, fnSym))
       {
 	SymbolFunction * funcSymbol = NULL;
-	std::vector<UTI> voidVector; //keep empty
-	if(((SymbolFunctionName *) fnSym)->findMatchingFunctionStrictlyByTypes(voidVector, funcSymbol) == 1)
+	if(((SymbolFunctionName *) fnSym)->findMatchingFunctionStrictlyVoid(funcSymbol) == 1)
 	  func = funcSymbol->getFunctionNode();
       }
     return func;

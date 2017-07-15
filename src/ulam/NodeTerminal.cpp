@@ -142,34 +142,6 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  // this is the application of unary minus to produce a negative number
-  void NodeTerminal::constantFoldAToken(const Token& tok)
-  {
-    if(tok.m_type == TOK_MINUS)
-      {
-	UTI nuti = getNodeType();
-	if(m_etyp == Int)
-	  {
-	    m_constant.sval = -m_constant.sval;
-	    fitsInBits(nuti); //check self
-	  }
-	else
-	  {
-	    std::ostringstream msg;
-	    msg << "Negating an unsigned constant '" << m_constant.uval <<  "'";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  }
-      }
-    else
-      {
-	std::ostringstream msg;
-	msg << "Constant Folding Token <" << m_state.getTokenDataAsString(tok).c_str();
-	msg << "> currently unsupported";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	m_state.abortShouldntGetHere();
-      }
-  } //constantFoldAToken
-
   bool NodeTerminal::isAConstant()
   {
     return true;

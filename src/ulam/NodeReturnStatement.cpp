@@ -135,7 +135,7 @@ namespace MFM {
 		  {
 		    std::ostringstream msg;
 		    if(etyp == Bool)
-		      msg << "Use a comparison operator";
+		      msg << "Use a comparison operation";
 		    else
 		      msg << "Use explicit cast";
 		    msg << " to return ";

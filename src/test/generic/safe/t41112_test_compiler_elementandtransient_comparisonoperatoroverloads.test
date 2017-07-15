@@ -51,7 +51,7 @@ element Foo : QW {
 }
 
 #:Too.ulam
-  ulam 2;
+  ulam 3;
 transient Too : QW
 {
   Int topint;
@@ -68,7 +68,7 @@ transient Too : QW
 }
 
 #:QW.ulam
-  ulam 3;
+  ulam 2;
 quark QW {
   Int qint;
 }

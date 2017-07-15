@@ -2,7 +2,7 @@
 #=t3224_test_compiler_elementandquarkarray_local
 #!
 Exit status: -11
-Ue_Foo { Bool(3) b(false);  typedef Bar Pop[2];  System s();  Int(4) m_i(0);  Bar m_bar2[2]( Bool(1) val_b[3](false,false,false);  Bool(1) val_b[3](false,false,false); );  Int(32) test() {  Bar sbar;  Atom(96) a;  a sbar ( 0 cast )aref . cast = sbar ( 1 cast )aref . a cast = sbar ( true )reset . 0 cast return } }
+Ue_Foo { Bool(3) b(false);  typedef Bar Pop[2];  System s();  Int(4) m_i(0);  Bar m_bar2[2]( Bool(1) val_b[3](false,false,false);  Bool(1) val_b[3](false,false,false); );  Int(32) test() {  Bar sbar;  Atom(96) a;  a sbar ( 0 cast )aref . = sbar ( 1 cast )aref . a = sbar ( true )reset . 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
 #>Foo.ulam

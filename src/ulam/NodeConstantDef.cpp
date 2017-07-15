@@ -501,6 +501,7 @@ namespace MFM {
   {
     assert(m_currBlockNo);
     NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
+
     assert(currBlock);
     return currBlock;
   }

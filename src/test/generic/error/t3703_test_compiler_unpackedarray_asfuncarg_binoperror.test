@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3703_test_compiler_unpackedarray_asfuncarg_binoperror
 #!
-./A.ulam:15:26: ERROR: Incompatible (nonscalar) types Int(32)[10] and Int(32)[10] for binary operator+ ; Suggest writing a loop.
+./A.ulam:15:26: ERROR: Incompatible (nonscalar) types Int(32)[10] and Int(32)[10] for binary + ; Suggest writing a loop.
 ./A.ulam:15:5: ERROR: Initial value expression for: site2, initialization is invalid.
 Unrecoverable Program Type Label FAILURE.
 ##

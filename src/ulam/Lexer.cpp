@@ -244,13 +244,57 @@ namespace MFM {
   {
     Locator firstloc = m_SS.getLocator();
     bool floatflag = false;
+    bool unsignedflag = false;
+    bool octalflag = false;
+    bool hexflag = false;
+    bool binaryflag = false;
+    bool baddigit = false;
+    u8 a = anumber[0] - '0';
     s32 c = m_SS.read();
 
+    //set flags based on first and second digit
+    if(c >= 0 && (isxdigit(c) || c=='x' || c=='X' || c=='.') )
+      {
+	if(a == 0)
+	  {
+	    unsignedflag = true;
+	    if((c=='x' || c=='X'))
+	      hexflag = true;
+	    else if((c=='b' || c=='B'))
+	      binaryflag = true;
+	    else if(c == '.')
+	      floatflag = true;
+	    else if(c - '0' < 8)
+	      octalflag = true;
+	    else
+	      baddigit = true;
+	  }
+	else if(c == '.')
+	  floatflag = true; //error/t3105
+	else if(!isdigit(c))
+	  baddigit = true; //decimal
+
+	anumber.push_back(c);
+	c = m_SS.read();
+      }
+    //else no read, fall through
+
+    // third digit and beyond..
     //not supporting floats anymore || c=='.' except for error msg
-    while(c >= 0 && (isxdigit(c) || c=='x' || c=='X' || c=='.') )
+    while(c >= 0 && (isxdigit(c) || c=='.') )
       {
 	if(c == '.')
 	  floatflag = true;
+
+	//note: error checking also done in NodeTerminal, strto64.cpp
+	u8 anum = c - '0';
+	if(octalflag && (anum > 7))
+	  baddigit = true;
+	else if(binaryflag && (anum > 1))
+	  baddigit = true;
+	else if(!hexflag && !isdigit(c))
+	  baddigit = true; //t.f. decimal
+
 	anumber.push_back(c);
 	c = m_SS.read();
       }
@@ -258,23 +302,42 @@ namespace MFM {
     if(c == 'u' || c == 'U')
       {
 	anumber.push_back(c);
-	// build a number
-	//data indexed in map, vector
-	u32 idx = m_state.m_pool.getIndexForDataString(anumber);
-	tok.init(TOK_NUMBER_UNSIGNED,firstloc,idx);
+	unsignedflag = true;
+      }
+    else
+      unread();
+
+    // build a number
+    //data indexed in map, vector
+    u32 idx = 0;
+
+    if(baddigit)
+      {
+	std::ostringstream errmsg;
+	errmsg << "Lexer formatted an invalid ";
+	if(octalflag)
+	  errmsg << "octal";
+	else if(hexflag)
+	  errmsg << "hex";
+	else if(binaryflag)
+	  errmsg << "binary";
+	else
+	  errmsg << "decimal";
+	errmsg << " constant '" << anumber << "'";
+	idx = m_state.m_pool.getIndexForDataString(errmsg.str());
       }
     else
       {
-	unread();
-	// build a number
-	//data indexed in map, vector
-	u32 idx = m_state.m_pool.getIndexForDataString(anumber);
+	idx = m_state.m_pool.getIndexForDataString(anumber);
 	if(floatflag)
 	  tok.init(TOK_NUMBER_FLOAT,firstloc,idx);
+	else if(unsignedflag)
+	  tok.init(TOK_NUMBER_UNSIGNED,firstloc,idx);
 	else
 	  tok.init(TOK_NUMBER_SIGNED,firstloc,idx);
+	idx = 0; //ok
       }
-    return 0;
+    return idx;
   } //makeNumberToken
 
   //called because first byte was @

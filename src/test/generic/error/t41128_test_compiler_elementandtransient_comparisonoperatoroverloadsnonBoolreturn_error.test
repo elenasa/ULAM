@@ -1,0 +1,83 @@
+## -*- mode:ulam -*-
+#=t41112_test_compiler_elementandtrasient_comparisonoperatoroverloads
+#!
+./Foo.ulam:12:11: ERROR: Use a comparison operation to convert Int(32) to Bool(1) for =.
+./Foo.ulam:16:19: ERROR: Bool is the supported type for logical unary !; Suggest casting Int(32) to Bool.
+./Foo.ulam:21:11: ERROR: Use a comparison operation to convert Int(32) to Bool(1) for =.
+./Foo.ulam:25:19: ERROR: Bool is the supported type for logical unary !; Suggest casting Int(32) to Bool.
+Unrecoverable Program Type Label FAILURE.
+##
+## what happens when Bool is not the return type? must compare result, and automatic compliment fails
+## informed by t41112; test of overloaded compare operator< and operator> with class ref as arg
+## and negations for its inverse operations >= and <=.
+##
+#>Foo.ulam
+  ulam 3;
+element Foo : QW {
+  Bool first, second;
+  Int test() {
+    System s;
+    Foo foo;
+    foo.qint = 2;
+    Too too;
+    too.qint = 3;
+
+    //overloaded operator<, two classes as arguments
+    first = (too < foo);
+    s.print(first);
+    s.assert(!first);
+
+    second = (too >= foo);
+    s.print(second);
+    s.assert(second != first); //should be opposite of <
+
+    //overloaded operator>, two classes as arguments
+    first = (too > foo);
+    s.print(first);
+    s.assert(first);
+
+    second = (too <= foo);
+    s.print(second);
+    s.assert(second != first); //should be opposite of >
+
+    return 0;
+  }
+}
+
+#:Too.ulam
+  ulam 3;
+transient Too : QW
+{
+  Int topint;
+  Int operator<(Foo& farg)
+  {
+    return qint < farg.qint ? 0 : 1;
+  }
+
+  Int operator>(Foo& farg)
+  {
+    return qint > farg.qint ? 1 : 0;
+  }
+
+}
+
+#:QW.ulam
+  ulam 3;
+quark QW {
+  Int qint;
+}
+
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

@@ -212,7 +212,7 @@ namespace MFM {
     return func->checkParameterNodeTypes();
   } //checkParamterTypes
 
-  bool SymbolFunction::matchingTypesStrictly(std::vector<UTI> argTypes)
+  bool SymbolFunction::matchingTypesStrictly(std::vector<UTI> argTypes, bool& hasHazyArgs)
   {
     u32 numArgs = argTypes.size();
     u32 numParams = m_parameterSymbols.size();
@@ -227,6 +227,8 @@ namespace MFM {
     for(u32 i=0; i < numParams; i++)
       {
 	UTI puti = m_parameterSymbols.at(i)->getUlamTypeIdx();
+	if(!m_state.okUTItoContinue(puti) || !m_state.isComplete(puti))
+	  hasHazyArgs = true;
 	UTI auti = argTypes[i];
 	if(UlamType::compareForArgumentMatching(puti, auti, m_state) != UTIC_SAME)
 	  {
@@ -237,7 +239,7 @@ namespace MFM {
     return rtnBool;
   } //matchingTypesStrictly
 
-  bool SymbolFunction::matchingTypesStrictly(std::vector<Node *> argNodes)
+  bool SymbolFunction::matchingTypesStrictly(std::vector<Node *> argNodes, bool& hasHazyArgs)
   {
     u32 numArgs = argNodes.size();
     std::vector<UTI> argTypes;
@@ -246,7 +248,7 @@ namespace MFM {
 	UTI auti = argNodes[i]->getNodeType();
 	argTypes.push_back(auti);
       } //next arg
-    return matchingTypesStrictly(argTypes);
+    return matchingTypesStrictly(argTypes, hasHazyArgs);
   } //matchingTypesStrictly
 
   bool SymbolFunction::matchingTypes(std::vector<Node *> argNodes, bool& hasHazyArgs, u32& numUTmatch)

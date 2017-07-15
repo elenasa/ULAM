@@ -1,9 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3433_test_compiler_boolshift_error
 #!
-./A.ulam:5:4: ERROR: Use a comparison operator to convert Bits(7) to Bool(3) for operator=.
-./A.ulam:6:4: ERROR: Use a comparison operator to convert Bits(3) to Bool(3) for operator=.
-./A.ulam:7:4: ERROR: Use a comparison operator to convert Bits(11) to Bool(3) for operator=.
+./A.ulam:5:4: ERROR: Use a comparison operation to convert Bits(7) to Bool(3) for =.
+./A.ulam:6:4: ERROR: Use a comparison operation to convert Bits(3) to Bool(3) for =.
+./A.ulam:7:4: ERROR: Use a comparison operation to convert Bits(11) to Bool(3) for =.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## //conversion to Bits then shift then back to Bool. so, 7 << 1 drops to 6 (t); 7 >> 1 = 3 (t); 3 << 2 = 4 (f)

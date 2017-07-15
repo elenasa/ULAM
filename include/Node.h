@@ -165,8 +165,6 @@ namespace MFM{
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
-    virtual void constantFoldAToken(const Token& tok);
-
     virtual UTI constantFold();
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);

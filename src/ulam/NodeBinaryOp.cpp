@@ -216,6 +216,7 @@ namespace MFM {
     return newType;
   } //checkAndLabelType
 
+  //no existence checking; error if overload doesn't exist for class and this binary op.
   Node * NodeBinaryOp::buildOperatorOverloadFuncCallNode()
   {
     Token identTok;
@@ -264,7 +265,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	if(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Bool)
-	  msg << "Use a comparison operator";
+	  msg << "Use a comparison operation";
 	else
 	  msg << "Use explicit cast";
 	msg << " to convert "; // the real converting-message
@@ -273,7 +274,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(m_nodeRight->getNodeType()).c_str();
 	msg << " to ";
 	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
-	msg << " for binary operator" << getName();
+	msg << " for binary " << getName();
 	if(lsafe == CAST_HAZY || rsafe == CAST_HAZY)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	else
@@ -305,7 +306,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Non-primitive type <";
 	    msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
-	    msg << "> is not supported as left operand type for binary operator";
+	    msg << "> is not supported as left operand type for binary ";
 	    msg << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
@@ -321,7 +322,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Non-primitive type <";
 	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
-	    msg << "> is not supported as right operand type for binary operator";
+	    msg << "> is not supported as right operand type for binary ";
 	    msg << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
@@ -342,7 +343,7 @@ namespace MFM {
 	if(!quietly)
 	  {
 	    std::ostringstream msg;
-	    msg << "Void is not a supported type for binary operator";
+	    msg << "Void is not a supported type for binary ";
 	    msg << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
@@ -359,7 +360,7 @@ namespace MFM {
     if(!(lnum && rnum))
       {
 	std::ostringstream msg;
-	msg << "Incompatible types for binary operator";
+	msg << "Incompatible types for binary ";
 	msg << getName() << " : ";
 	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
 	msg << ", ";
@@ -398,7 +399,7 @@ namespace MFM {
 	    msg << "Incompatible (nonscalar) types ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
 	    msg << " and " << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
-	    msg << " for binary operator";
+	    msg << " for binary ";
 	    msg << getName() << " ; Suggest writing a loop";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
@@ -430,7 +431,7 @@ namespace MFM {
 	msg << "Word sizes incompatible for types ";
 	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
 	msg << " and " << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
-	msg << " for binary operator";
+	msg << " for binary ";
 	msg << getName() << " ; Suggest a cast";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	lwordsize = (lwordsize > rwordsize ? lwordsize : rwordsize); //t3849
@@ -494,7 +495,7 @@ namespace MFM {
 	msg << "Word sizes incompatible for types ";
 	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
 	msg << " and " << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
-	msg << " for (bitwise) binary operator";
+	msg << " for (bitwise) binary ";
 	msg << getName() << " ; Suggest a cast";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	lwordsize = (lwordsize > rwordsize ? lwordsize : rwordsize); //t3850 (leftshift)
@@ -593,7 +594,7 @@ namespace MFM {
     assert(swapOk);
 
     std::ostringstream msg;
-    msg << "Exchanged kids! for binary operator" << getName();
+    msg << "Exchanged kids! for binary " << getName();
     msg << ", with a constant == " << newnode->getName();
     msg << " while compiling class: ";
     msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();

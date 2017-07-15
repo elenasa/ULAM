@@ -2,7 +2,7 @@
 #=t41043_test_compiler_forascond
 #!
 Exit status: -11
-Ue_EWE { Int(32) test() {  EventWindow ew;  Int(32) i = 0 cast;  ew ( 0 cast )aref . EWE.instanceof cast cast = Atom(96) a = ew ( i )aref . cast;  { a EWE as cond { EWE& a;  { i 4 cast < cond { a ( )foomethod . a.atomof ew ( i )aref . = } if break else } } _1: i 1 ++ while } i return } }
+Ue_EWE { Int(32) test() {  EventWindow ew;  Int(32) i = 0 cast;  ew ( 0 cast )aref . EWE.instanceof cast = Atom(96) a = ew ( i )aref . cast;  { a EWE as cond { EWE& a;  { i 4 cast < cond { a ( )foomethod . a.atomof ew ( i )aref . = } if break else } } _1: i 1 ++ while } i return } }
 Uq_EventWindow { <NOMAIN> }
 ##
 ##      //for-loop 'as' conditional, no parens, not part of a compound condition

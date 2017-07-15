@@ -2746,7 +2746,11 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
 	    Symbol * fnSym = NULL;
 	    if(cblock->isFuncIdInScope(fid, fnSym)) //dont check ancestor
-	      rtnb = (((SymbolFunctionName *) fnSym)->findMatchingFunctionStrictlyByTypes(typeVec, fsymref) == 1); //exact
+	      {
+		bool tmphazyargs = false;
+		rtnb = (((SymbolFunctionName *) fnSym)->findMatchingFunctionStrictlyByTypes(typeVec, fsymref, tmphazyargs) == 1); //exact
+		assert(!tmphazyargs);
+	      }
 	    if(rtnb)
 	      foundInAncestor = superuti;
 	    else

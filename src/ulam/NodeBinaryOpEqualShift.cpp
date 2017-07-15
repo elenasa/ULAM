@@ -11,23 +11,51 @@ namespace MFM {
 
   UTI NodeBinaryOpEqualShift::checkAndLabelType()
   {
-    UTI nodeType = NodeBinaryOp::checkAndLabelType(); //dup Shift calcNodeType
+    //UTI nodeType = NodeBinaryOp::checkAndLabelType(); //dup Shift calcNodeType
 
     assert(m_nodeLeft && m_nodeRight);
 
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
 
+    if(!m_state.okUTItoContinue(leftType))
+      {
+	//left type possibly a class w overload operator; no need to check right type here;
+	setNodeType(leftType);
+	return getNodeType();
+      }
+
     // efficiency bites! no sooner, need left and right side-effects
     // (e.g. NodeControl condition is Bool at start; stubs need Symbol ptrs)
     if(m_state.isComplete(getNodeType()))
       return getNodeType();
 
+    //replace node with func call to matching function overload operator for class
+    // of left, with argument of right;
+    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
+    if((lut->getUlamTypeEnum() == Class))
+      {
+	Node * newnode = buildOperatorOverloadFuncCallNode(); //virtual
+	if(newnode)
+	  {
+	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	    assert(swapOk);
+
+	    m_nodeLeft = NULL; //recycle as memberselect
+	    m_nodeRight = NULL; //recycle as func call arg
+
+	    delete this; //suicide is painless..
+
+	    return newnode->checkAndLabelType();
+	  }
+	//else should fail again as non-primitive;
+      } //done
+
     UTI newType = calcNodeType(leftType, rightType); //does safety check
 
     setNodeType(newType);
 
-    if(m_state.okUTItoContinue(nodeType))
+    if(m_state.okUTItoContinue(newType))
       {
 	TBOOL stor = NodeBinaryOpEqual::checkStoreIntoAble();
 	if(stor == TBOOL_FALSE)
@@ -87,7 +115,7 @@ namespace MFM {
 	if(ltypEnum != Bits)
 	  {
 	    std::ostringstream msg;
-	    msg << "Bits is the supported type for shift operator"; //equal
+	    msg << "Bits is the supported type for shift operation "; //equal
 	    msg << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    bOK = false;
@@ -102,7 +130,7 @@ namespace MFM {
 	    msg << "Righthand type ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
 	    msg << " is not representable as Unsigned";
-	    msg << "; the supported type for rhs of shift operator";
+	    msg << "; the supported type for rhs of shift operation ";
 	    msg << getName();
 	    if(rscr == CAST_BAD)
 	      {

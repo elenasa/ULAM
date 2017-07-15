@@ -41,7 +41,7 @@ namespace MFM {
 	if(lscr != CAST_CLEAR || rscr != CAST_CLEAR)
 	  {
 	    std::ostringstream msg;
-	    msg << "Bool is the supported type for logical operator";
+	    msg << "Bool is the supported type for logical operation ";
 	    msg << getName() << "; Suggest casting ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str() << " and ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();

@@ -33,7 +33,10 @@ element Foo {
 
   Void operator=(Self arg)
   {
-    self = arg; //default struct equal
+    //self = arg; //recursive BEWARE!
+    fint = arg.fint;
+    opfint = arg.opfint;
+    m_i = arg.m_i;
     first = false; //changes dm
   }
 }

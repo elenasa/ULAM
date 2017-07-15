@@ -4,7 +4,7 @@
 ./D.ulam:2:3: ERROR: Weird Lex! <@> does not precede a valid flag keyword.
 ./D.ulam:4:8: ERROR: Weird Lex! <@> does not precede a valid flag keyword.
 ./D.ulam:4:13: ERROR: Weird Lex! <@> does not precede a valid flag keyword.
-./D.ulam:4:5: ERROR: Right operand of binary operator= is missing; Assignment deleted.
+./D.ulam:4:5: ERROR: Right operand of binary = is missing; Assignment deleted.
 Unrecoverable Program Parse FAILURE: <D.ulam>
 ##
 ##  //recovers from invalid character

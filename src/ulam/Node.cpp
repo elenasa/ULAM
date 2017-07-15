@@ -185,11 +185,6 @@ namespace MFM {
     return false;
   }
 
-  void Node::constantFoldAToken(const Token& tok)
-  {
-    m_state.abortShouldntGetHere(); //only NodeTerminal has this defined; NodeConstant bypasses
-  }
-
   bool Node::isAConstant()
   {
     return false;
@@ -261,7 +256,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	if(tobe->getUlamTypeEnum() == Bool)
-	  msg << "Use a comparison operator";
+	  msg << "Use a comparison operation";
 	else
 	  msg << "Use explicit cast";
 	msg << " to convert "; // the real converting-message

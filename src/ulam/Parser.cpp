@@ -3455,8 +3455,11 @@ namespace MFM {
 	  }
 	else
 	  {
+	    //end of dot chain
 	    unreadToken(); //pTok
 	    rtnNode = parseMinMaxSizeofType(rtnNode, Nouti, NULL); //ate dot, possible min/max/sizeof
+	    if(!rtnNode)
+	      delete classInstanceNode; //t41110 leak
 	  }
       } //while
     return rtnNode;
@@ -4198,9 +4201,21 @@ namespace MFM {
 
     Node * rtnNode = NULL;
     Token pTok;
+    getNextToken(pTok);
 
-    if(!getExpectedToken(TOK_OPEN_SQUARE, pTok, QUIETLY))
-      return leftNode;
+    if(pTok.m_type == TOK_SQUARE)
+      {
+	rtnNode = new NodeSquareBracket(leftNode, NULL, m_state);
+	assert(rtnNode);
+	rtnNode->setNodeLocation(pTok.m_locator);
+	return rtnNode; //t3768
+      }
+
+    if(pTok.m_type != TOK_OPEN_SQUARE)
+      {
+	unreadToken();
+	return leftNode;
+      }
 
     Node * rightNode = parseExpression();
     //Array size may be blank if initialized (not array item!!);
@@ -4210,7 +4225,7 @@ namespace MFM {
 
     if(!getExpectedToken(TOK_CLOSE_SQUARE))
       {
-	delete rtnNode;
+	delete rtnNode; //also deletes leftNode
 	rtnNode = NULL;
 	return rtnNode;
       }
@@ -4259,6 +4274,7 @@ namespace MFM {
 	  rtnNode = parseRestOfAssignExpr(rtnNode);
 	  break;
 	}
+      case TOK_SQUARE:
       case TOK_OPEN_SQUARE:
 	{
 	  rtnNode = parseRestOfLvalExpr(leftNode); //t41074, lhs
@@ -5445,7 +5461,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
+	msg << "Right operand of binary " << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Assignment deleted";
 	MSG(&pTok, msg.str().c_str(), ERR);
 	delete leftNode;
@@ -5507,7 +5523,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
+	msg << "Right operand of binary " << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -5542,7 +5558,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
+	msg << "Right operand of binary " << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -5580,7 +5596,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
+	msg << "Right operand of binary " << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -5615,7 +5631,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
+	msg << "Right operand of binary " << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -5656,7 +5672,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
+	msg << "Right operand of binary " << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -5691,7 +5707,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
+	msg << "Right operand of binary " << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -5726,7 +5742,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
+	msg << "Right operand of binary " << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -5773,20 +5789,10 @@ namespace MFM {
     switch(pTok.m_type)
       {
       case TOK_MINUS:
-	{
-	  UTI futi = factorNode->getNodeType();
-	  if((futi != Nouti) && factorNode->isAConstant())
-	    {
-	      factorNode->constantFoldAToken(pTok);
-	      rtnNode = factorNode;
-	    }
-	  else
-	    {
-	      rtnNode = new NodeUnaryOpMinus(factorNode, m_state);
-	      assert(rtnNode);
-	      rtnNode->setNodeLocation(pTok.m_locator);
-	    }
-	}
+	//3849, 3767 constantFoldAToken was premature (e.g. cast involved)
+	rtnNode = new NodeUnaryOpMinus(factorNode, m_state);
+	assert(rtnNode);
+	rtnNode->setNodeLocation(pTok.m_locator);
 	break;
       case TOK_PLUS:
 	rtnNode = new NodeUnaryOpPlus(factorNode, m_state);

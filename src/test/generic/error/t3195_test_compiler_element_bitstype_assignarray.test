@@ -1,9 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3195_test_compiler_element_bitstype_assignarray
 #!
-./Foo.ulam:11:18: ERROR: Incompatible types for binary operator+ : Bits(3), Bits(3); Suggest casting to a numeric type first.
+./Foo.ulam:11:18: ERROR: Incompatible types for binary + : Bits(3), Bits(3); Suggest casting to a numeric type first.
 ./Foo.ulam:11:9: ERROR: Assignment is invalid; LHS: Bits(3); RHS: erroneous.
-./Foo.ulam:12:6: ERROR: Use a comparison operator to convert Bits(3)[3] to Bool(3)[3] for operator=.
+./Foo.ulam:12:6: ERROR: Use a comparison operation to convert Bits(3)[3] to Bool(3)[3] for =.
 ./Foo.ulam:19:2: ERROR: Use explicit cast to return Bool(3) as Int(32).
 Unrecoverable Program Type Label FAILURE.
 ##

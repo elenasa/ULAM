@@ -177,8 +177,10 @@ where,
 <TYPE_IDENT_DESC> := ( 'local' + '.' | 0 ) + <TOK_IDENT>
 <TYPE_IDENT> := /[A-Z][A-Za-z0-9\_]*/
 <IDENT> := /[a-z][A-Za-z0-9\_]*/
-<IDENT_OPERATOR_OVERLOAD> := 'operator' + (<ADDOP> | <MULOP> | <EQOP>
-			  | <COMPOP> | <UNOP> | <LVAL_UNOP> )
+<IDENT_OPERATOR_OVERLOAD> := 'operator' + <OVERLOAD_OP>
+<OVERLOAD_OP> := <ASSIGN_OP> | <BITOP> | <EQOP> | <COMPOP> | <SHIFTOP>
+	      | <ADDOP> | <MULOP> | <UNOP> | <LVAL_UNOP> | '[]'
+
 <STRING_LITERAL> := <DOUBLE_QUOTE> + (<ESCAPED_BYTE> | <NOT_DOUBLE_QUOTE>)* + <DOUBLE_QUOTE>
 <BYTE_LITERAL> := <SINGLE_QUOTE> + (<ESCAPED_BYTE> | <NOT_SINGLE_QUOTE>)  + <SINGLE_QUOTE>
 <ESCAPED_BYTE> := /\\([abtnvfr"'\\]|[0-7]{1,3}|[xX][0-9a-fA-F]{1,2})/
@@ -187,9 +189,10 @@ where,
 <DOUBLE_QUOTE> := /["]/
 <NOT_DOUBLE_QUOTE> := /[^"]/
 <NUMBER_OR_BOOLEAN> := <NUMBER> | <BOOLEAN>
-<NUMBER> := (<HEX_NUMBER> | <OCT_NUMBER> | <DEC_NUMBER>) + <UNSIGNED_SUFFIX>
-<HEX_NUMBER> := /0[xX][0-9a-fA-F]+/
-<OCT_NUMBER> := /0[0-7]*/
+<NUMBER> := <HEX_UNSIGNED> | <OCT_UNSIGNED> | <BIN_UNSIGNED> | <DEC_NUMBER> + <UNSIGNED_SUFFIX>
+<HEX_UNSIGNED> := /0[xX][0-9a-fA-F]+/
+<OCT_UNSIGNED> := /0[0-7]*/
+<BIN_UNSIGNED> := /0[bB][0-1]+/
 <DEC_NUMBER> := /[1-9][0-9]*/
 <UNSIGNED_SUFFIX> := 0 | 'u' | 'U'
 <BOOLEAN> := 'true' | 'false'

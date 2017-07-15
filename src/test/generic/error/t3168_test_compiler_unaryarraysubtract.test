@@ -1,9 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3168_test_compiler_unaryarraysubtract
 #!
-./A.ulam:10:10: ERROR: Incompatible (nonscalar) types Unary(3)[2] and Unary(3)[2] for binary operator- ; Suggest writing a loop.
+./A.ulam:10:10: ERROR: Incompatible (nonscalar) types Unary(3)[2] and Unary(3)[2] for binary - ; Suggest writing a loop.
 ./A.ulam:10:6: ERROR: Assignment is invalid; LHS: Unary(3)[2]; RHS: erroneous.
-./A.ulam:12:6: ERROR: Use explicit cast to convert Unsigned(3) to Unary(3) for operator=.
+./A.ulam:12:6: ERROR: Use explicit cast to convert Unsigned(3) to Unary(3) for =.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>A.ulam

@@ -15,6 +15,26 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
+
+    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
+    if((lut->getUlamTypeEnum() == Class))
+      {
+	Node * newnode = buildOperatorOverloadFuncCallNode(); //virtual
+	if(newnode)
+	  {
+	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	    assert(swapOk);
+
+	    m_nodeLeft = NULL; //recycle as memberselect
+	    m_nodeRight = NULL; //recycle as func call arg
+
+	    delete this; //suicide is painless..
+
+	    return newnode->checkAndLabelType();
+	  }
+	//else should fail again as non-primitive;
+      } //done
+
     UTI newType = calcNodeType(leftType, rightType); //Bits, or Nav error
     setNodeType(newType);
     Node::setStoreIntoAble(TBOOL_FALSE);
@@ -112,7 +132,7 @@ namespace MFM {
 	if(lscr != CAST_CLEAR)
 	  {
 	    std::ostringstream msg;
-	    msg << "Bits is the supported type for shift operator";
+	    msg << "Bits is the supported type for shift operation ";
 	    msg << getName() << "; Suggest casting ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
 	    msg << " to Bits";
@@ -138,7 +158,7 @@ namespace MFM {
 	if(rscr != CAST_CLEAR)
 	  {
 	    std::ostringstream msg;
-	    msg << "Unsigned is the supported type for shift distance, operator";
+	    msg << "Unsigned is the supported type for shift distance, operation ";
 	    msg << getName() << "; Suggest casting ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
 	    msg << " to Unsigned";
@@ -162,7 +182,7 @@ namespace MFM {
 	    if(m_nodeRight->isWordSizeConstant())
 	      {
 		std::ostringstream msg;
-		msg << "Shift distance greater than data width, operator";
+		msg << "Shift distance greater than data width, operation ";
 		msg << getName();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	      }

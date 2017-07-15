@@ -62,7 +62,7 @@ Uq_System { <NOMAIN> }
 #>A.ulam
  ulam 2;
 element A {
-  constant Int(64) j = - 0xDDDe; //0xffffffff ffff2222
+  constant Int(64) j = - (Int) 0xDDDe; //0xffffffff ffff2222
 
   Int i;
   Int n;

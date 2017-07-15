@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3140_test_compiler_funcdef_overload_plusequalarray_returntype
 #!
-./A.ulam:22:7: ERROR: Non-scalars require a loop for operator+=.
+./A.ulam:22:7: ERROR: Non-scalars require a loop for operation +=.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>A.ulam
