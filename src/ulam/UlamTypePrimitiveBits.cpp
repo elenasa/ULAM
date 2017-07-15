@@ -168,14 +168,7 @@ namespace MFM {
 	  if(vut->isNumericType())
 	    brtn = (bitsize >= MAXBITSPERINT);
 	  else
-	    {
-	      std::ostringstream msg;
-	      msg << "Class: ";
-	      msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
-	      msg << " is not a numeric type and cannot be safely cast to Bits";
-	      MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(),msg.str().c_str(), ERR);
-	      brtn = false;
-	    }
+	    brtn = false; //t41131 called by matching args (no error msg please)
 	}
 	break;
       default:
