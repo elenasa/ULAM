@@ -176,6 +176,7 @@ namespace MFM{
     void clearCurrentObjSymbolsForCodeGen();
 
     bool getClassNameFromFileName(std::string startstr, u32& compileThisId);
+    u32 filenamehasdotulamsuffix(std::string fnstr);
 
     void getTargetDescriptorsForLocalsFilescopes(TargetMap & localstargets);
     void getMembersDescriptionsForLocalsFilescopes(ClassMemberMap & localsmembers);

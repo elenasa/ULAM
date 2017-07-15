@@ -156,7 +156,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    return 1; //err msg output
+	    return 1; //=1 err msg output
 	  }
 	return 0; //already parsed
       } //not yet pushed
@@ -385,6 +385,11 @@ namespace MFM {
   bool Compiler::targetIsAQuark()
   {
     return m_state.thisClassIsAQuark();
+  }
+
+  bool Compiler::ulamfilename(std::string str)
+  {
+    return m_state.filenamehasdotulamsuffix(str) > 0;
   }
 
   // after checkAndTypeLabelProgram
