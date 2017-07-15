@@ -78,23 +78,69 @@ namespace MFM {
 
   bool Preparser::preparseKeywordLoad(Token & tok)
   {
-    std::string pkgname;
+    std::string filename;
     Token loadTok = tok;
 
-    if(preparsePackageName(pkgname))
+    //backward compatible (t3872)
+    if(preparsePackageName(filename) || preparseFileName(filename))
       {
-	u32 pmsg = push(pkgname,false);
-	if(pmsg == 0)
+	u32 fmsg = push(filename,false);
+	if(fmsg == 0)
 	  {
 	    return getNextToken(tok);
 	  }
 	else
 	  {
-	    tok.init(TOK_ERROR_LOWLEVEL, loadTok.m_locator, pmsg);
+	    tok.init(TOK_ERROR_LOWLEVEL, loadTok.m_locator, fmsg);
 	  }
       }
+#if 0
+    else
+      {
+	//error msg from preparseFileName
+	u32 errid = m_state.m_pool.getIndexForDataString(filename);
+	tok.init(TOK_ERROR_LOWLEVEL, loadTok.m_locator, errid);
+      }
+#endif
     return false;
   } //preparseKeywordLoad
+
+  bool Preparser::preparseFileName(std::string & pStr)
+  {
+    bool rtnb = false;
+    Token pTok;
+    m_tokenizer->getNextToken(pTok);
+
+    if(pTok.m_type == TOK_DQUOTED_STRING)
+      {
+	//without double quotes (t41130)
+	u32 fnid = m_state.m_tokenupool.formatDoubleQuotedFileNameUnquoted(pTok.m_dataindex, & m_state);
+	if(fnid > 0)
+	  {
+	    pStr.append(m_state.m_pool.getDataAsString(fnid));
+	    Token qTok;
+	    m_tokenizer->getNextToken(qTok);
+
+	    if(qTok.m_type == TOK_SEMICOLON)
+	      {
+		rtnb = true;
+	      }
+	    else
+	      {
+		m_tokenizer->unreadToken();
+	      }
+	  }
+#if 0
+	else
+	  {
+	    std::ostringstream errmsg;
+	    errmsg << "Bad filename for load: \\" << m_state.getTokenDataAsString(pTok).c_str() << "\\";
+	    pStr.append(errmsg.str());
+	  }
+#endif
+      }
+    return rtnb;
+  } //preparseFileName
 
   bool Preparser::preparsePackageName(std::string & pStr)
   {

@@ -1,18 +1,18 @@
 ## -*- mode:ulam -*-
-#=t3872_test_compiler_elementinheritance_loadlocaldefs_separatefilescope_error
+#=t41130_test_compiler_elementinheritance_loadlocaldefsquotedfilename_separatefilescope_error
 #!
-./Constants.ulam:1:16: ERROR: soosize has a previous declaration as 'Unsigned(UNKNOWN)' and cannot be used as a named constant.
-./Constants.ulam:1:40: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
-./Constants.ulam:2:15: ERROR: Invalid Type: Soo.
+./Constants.txt:1:16: ERROR: soosize has a previous declaration as 'Unsigned(UNKNOWN)' and cannot be used as a named constant.
+./Constants.txt:1:40: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./Constants.txt:2:15: ERROR: Invalid Type: Soo.
 Unrecoverable Program Parse FAILURE: <Soo.ulam>
 Unrecoverable Program Parse FAILURE: <System.ulam>
 ##
-## test of local defs: different file scopes, but load same local defs, informed by t3859
-## (see also t41130)
+## test of local defs: different file scopes, but load same local defs, informed by t3872
+## allow non-ulam suffix for loaded file (ulam 3)
 ##
 #>Foo.ulam
   ulam 3;
-load Constants;
+load "Constants.txt";
 
 element Foo : Soo3 {
   Bool(7) sp;
@@ -35,7 +35,7 @@ element Foo : Soo3 {
 
 #:Soo.ulam
   ulam 2;
-load Constants;
+load "Constants.txt";
 
 quark Soo(Unsigned(3) v) {
   Unsigned(v) us = 4u;
@@ -51,7 +51,7 @@ quark Soo(Unsigned(3) v) {
   }
 }
 
-#:Constants.ulam
+#:Constants.txt
 local constant Unsigned(3) soosize = 3u;
 local typedef Soo(soosize) Soo3;
 

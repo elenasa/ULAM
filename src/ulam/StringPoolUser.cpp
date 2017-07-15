@@ -183,7 +183,40 @@ namespace MFM {
     newstr << "\""; //close quote (no escape)
     assert(state);
     return state->m_pool.getIndexForDataString(newstr.str());
-  }
+  } //formatDoubleQuotedString
+
+  u32 StringPoolUser::formatDoubleQuotedFileNameUnquoted(u32 ustrid, CompilerState * state)
+  {
+    assert(state);
+    std::string str = getDataAsString(ustrid);
+
+    if(str.length() == 0)
+      return state->m_pool.getIndexForDataString(""); //the uninitialized string
+
+    u32 errcnt = 0;
+    std::ostringstream newstr;
+    u32 slen = (u8) str[0];
+    for(u32 i = 1; i <= slen; i++)
+      {
+	u8 c = str[i];
+	switch(c)
+	  {
+	  default:
+	    {
+	      if(isprint(c)) //any printable char including space
+		newstr << c; //raw
+	      else
+		errcnt++;
+	    }
+	  }
+      }
+
+    if(errcnt > 0)
+      {
+	return state->m_pool.getIndexForDataString(""); //the uninitialized string
+      }
+    return state->m_pool.getIndexForDataString(newstr.str());
+  } //formatDoubleQuotedFileNameUnquoted
 
   void StringPoolUser::writeDoubleQuotedString(File * fp, const std::string& str)
   {
