@@ -182,7 +182,7 @@ namespace MFM {
 
   bool CompilerState::getClassNameFromFileName(std::string startstr, u32& compileThisId)
   {
-    u32 foundSuffix = UlamFilenameSuffix(startstr);
+    u32 foundSuffix = FindUlamFilenameSuffix(startstr);
     if(foundSuffix == 0)
       {
 	std::ostringstream msg;

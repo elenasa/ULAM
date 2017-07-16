@@ -127,7 +127,7 @@ namespace MFM {
    *
    * @return position of suffix in string, o.w. zero if not
    */
-  extern u32 UlamFilenameSuffix(std::string fnstr);
+  extern u32 FindUlamFilenameSuffix(std::string fnstr);
 }
 
 #endif /* ULAMUTIL_H */

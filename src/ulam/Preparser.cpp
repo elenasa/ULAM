@@ -73,6 +73,13 @@ namespace MFM {
 	    tok.init(TOK_ERROR_LOWLEVEL, useTok.m_locator, pmsg);
 	  }
       }
+    else
+      {
+	std::ostringstream errmsg;
+	errmsg << "Bad filename to 'use'";
+	u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
+	tok.init(TOK_ERROR_LOWLEVEL, useTok.m_locator, idx);
+      }
     return false;
   } //preparseKeywordUse
 
@@ -81,7 +88,7 @@ namespace MFM {
     std::string filename;
     Token loadTok = tok;
 
-    //backward compatible (t3872)
+    //backward compatible (look for package name first, might add suffix) (t3872)
     if(preparsePackageName(filename) || preparseFileName(filename))
       {
 	u32 fmsg = push(filename,false);
@@ -94,14 +101,13 @@ namespace MFM {
 	    tok.init(TOK_ERROR_LOWLEVEL, loadTok.m_locator, fmsg);
 	  }
       }
-#if 0
     else
       {
-	//error msg from preparseFileName
-	u32 errid = m_state.m_pool.getIndexForDataString(filename);
-	tok.init(TOK_ERROR_LOWLEVEL, loadTok.m_locator, errid);
+	std::ostringstream errmsg;
+	errmsg << "Bad filename to 'load'";
+	u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
+	tok.init(TOK_ERROR_LOWLEVEL, loadTok.m_locator, idx);
       }
-#endif
     return false;
   } //preparseKeywordLoad
 
@@ -113,7 +119,7 @@ namespace MFM {
 
     if(pTok.m_type == TOK_DQUOTED_STRING)
       {
-	//without double quotes (t41130)
+	//without double quotes (t41130,4)
 	u32 fnid = m_state.m_tokenupool.formatDoubleQuotedFileNameUnquoted(pTok.m_dataindex, & m_state);
 	if(fnid > 0)
 	  {
@@ -130,15 +136,10 @@ namespace MFM {
 		m_tokenizer->unreadToken();
 	      }
 	  }
-#if 0
-	else
-	  {
-	    std::ostringstream errmsg;
-	    errmsg << "Bad filename for load: \\" << m_state.getTokenDataAsString(pTok).c_str() << "\\";
-	    pStr.append(errmsg.str());
-	  }
-#endif
+	//else unprintable chars in filename (t41135)
       }
+    else
+	m_tokenizer->unreadToken();
     return rtnb;
   } //preparseFileName
 

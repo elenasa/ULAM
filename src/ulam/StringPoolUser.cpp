@@ -65,6 +65,7 @@ namespace MFM {
   const std::string & StringPoolUser::getDataAsFormattedString(u32 dataindex, CompilerState * state)
   {
     u32 sindex = getIndexForDataAsFormattedString(dataindex, state);
+    assert(state);
     return state->m_pool.getDataAsString(sindex);
   }
 
@@ -130,6 +131,8 @@ namespace MFM {
 
   u32 StringPoolUser::formatDoubleQuotedString(const std::string& str, CompilerState * state)
   {
+    assert(state);
+
     if(str.length() == 0)
       return state->m_pool.getIndexForDataString(""); //the uninitialized string
 
@@ -187,6 +190,7 @@ namespace MFM {
 
   u32 StringPoolUser::formatDoubleQuotedFileNameUnquoted(u32 ustrid, CompilerState * state)
   {
+    //used by preparsing directive 'load' (t41130,5)
     assert(state);
     std::string str = getDataAsString(ustrid);
 
@@ -212,9 +216,8 @@ namespace MFM {
       }
 
     if(errcnt > 0)
-      {
-	return state->m_pool.getIndexForDataString(""); //the uninitialized string
-      }
+      return 0; //invalid id
+
     return state->m_pool.getIndexForDataString(newstr.str());
   } //formatDoubleQuotedFileNameUnquoted
 
