@@ -1,7 +1,7 @@
 /*                                              -*- mode:C++ -*-
   UlamUtil.h Utility methods for ulam
-  Copyright (C) 2014-2016 The Regents of the University of New Mexico.  All rights reserved.
-  Copyright (C) 2014-2016 Ackleyshack LLC.
+  Copyright (C) 2014-2017 The Regents of the University of New Mexico.  All rights reserved.
+  Copyright (C) 2014-2017 Ackleyshack LLC.
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -23,7 +23,7 @@
   \file UlamUtil.h Utility methods for ulam
   \author David H. Ackley.
   \author Elena S. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2017 All rights reserved.
   \lgpl
  */
 #ifndef ULAMUTIL_H
@@ -120,6 +120,14 @@ namespace MFM {
    */
   extern std::string ToUnsignedDecimal(const u64 data);
 
+  /**
+   * Filename suffix is .ulam
+   *
+   * @param data The filename string
+   *
+   * @return position of suffix in string, o.w. zero if not
+   */
+  extern u32 FindUlamFilenameSuffix(std::string fnstr);
 }
 
 #endif /* ULAMUTIL_H */

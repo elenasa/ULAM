@@ -72,8 +72,6 @@ namespace MFM{
 
     bool targetIsAQuark();
 
-    bool ulamfilename(std::string str);
-
     u32 testProgram(File * output);
 
     void printPostFix(File * output);

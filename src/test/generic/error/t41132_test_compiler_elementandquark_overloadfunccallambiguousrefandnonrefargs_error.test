@@ -1,21 +1,12 @@
 ## -*- mode:ulam -*-
-#=t41131_test_compiler_elementandquark_overloadfunccallrefargsubclass_issue
-##
-## gen output: (+ assert)
-##    Int Arg: 1
-##
+#=t41132_test_compiler_elementandquark_overloadfunccallambiguousrefandnonrefargs_error
 #!
-Exit status: 0
-Ue_R { Bool(1) b(false);  Int(32) test() {  Fail f;  f ( 1 cast )fail . 0 cast return } }
-Uq_Fail { System s();  <NOMAIN> }
-Un_StringByteSource : ByteSource { :<> String(32) m_string( "");  Unsigned(32) m_index( 0u);  <NOMAIN> }
-Uq_ByteSource { <NOMAIN> }
-Uq_System { <NOMAIN> }
+./Fail.ulam:11:5: ERROR: Ambiguous matches (2) of function <fail> called with 1 argument type: StringByteSource, explicit casting is required.
+./Fail.ulam:8:8: NOTE: Match (1 of 2) : Void fail(ByteSource bs).
+./Fail.ulam:7:8: NOTE: Match (2 of 2) : Void fail(ByteSource& bs).
+Unrecoverable Program Type Label FAILURE.
 ##
-## Dave ish 7/15/2017 (see also error/t41132,3)
-##./System.ulam:10:1: ERROR: Class: StringByteSource is not a numeric type and cannot be safely cast to an Int.
-##./System.ulam:10:1: ERROR: Class: StringByteSource is not a numeric type and cannot be safely cast to Bits.
-##Unrecoverable Program Type Label FAILURE.
+## informed by t41131
 ##
 #>R.ulam
   ulam 2;
@@ -61,7 +52,7 @@ quark Fail {
   Void fail(Int code) {s.print(code); s.assert(true); /*true for testing purposes only!!!*/ }
   Void fail(Bits bits) { fail((Int) bits); }
   Void fail(ByteSource & bs) { fail(bs.readByte()); }
-  //Void fail(ByteSource bs) { fail(bs.readByte()); } /* can't use abstract class as argument type */
+  Void fail(ByteSource bs) { fail(bs.readByte()); } /* can't use abstract class as argument type */
   Void fail(String string) {
     StringByteSource sbs(string); //ByteSource subclass.
     fail(sbs);
