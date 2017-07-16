@@ -182,7 +182,7 @@ namespace MFM {
 
   bool CompilerState::getClassNameFromFileName(std::string startstr, u32& compileThisId)
   {
-    u32 foundSuffix = filenamehasdotulamsuffix(startstr);
+    u32 foundSuffix = UlamFilenameSuffix(startstr);
     if(foundSuffix == 0)
       {
 	std::ostringstream msg;
@@ -206,18 +206,6 @@ namespace MFM {
     compileThisId = m_pool.getIndexForDataString(compileThis);
     return true;
   } //getClassNameFromFileName
-
-  u32 CompilerState::filenamehasdotulamsuffix(std::string fnstr)
-  {
-    u32 foundSuffix = fnstr.find(".ulam");
-    if((foundSuffix == std::string::npos) //.ulam not found
-       || (foundSuffix != fnstr.length()-5) //ensure it's a suffix
-       || (foundSuffix == 0)) //and not also a prefix
-      {
-	return 0; //suffix not found
-      }
-    return foundSuffix;
-  } //filenamehasdotulamsuffix
 
   void CompilerState::getTargetDescriptorsForLocalsFilescopes(TargetMap & localstargets)
   {

@@ -178,4 +178,16 @@ namespace MFM
     return os.str();
   }
 
+  u32 UlamFilenameSuffix(std::string fnstr)
+  {
+    u32 foundSuffix = fnstr.find(".ulam");
+    if((foundSuffix == std::string::npos) //.ulam not found
+       || (foundSuffix != fnstr.length()-5) //ensure it's a suffix
+       || (foundSuffix == 0)) //and not also a prefix
+      {
+	return 0; //suffix not found
+      }
+    return foundSuffix;
+  } //ulamfilename
+
 }

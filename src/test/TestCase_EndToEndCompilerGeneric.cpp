@@ -211,7 +211,7 @@ namespace MFM {
     for (u32 i = 0; i < m_inputFiles.size(); ++i)
       {
 	InputFile & in = m_inputFiles[i];
-	if(C.ulamfilename(in.m_fileName))
+	if(UlamFilenameSuffix(in.m_fileName))
 	  {
 	    filesToCompile.push_back(in.m_fileName);
 	  }

@@ -387,11 +387,6 @@ namespace MFM {
     return m_state.thisClassIsAQuark();
   }
 
-  bool Compiler::ulamfilename(std::string str)
-  {
-    return m_state.filenamehasdotulamsuffix(str) > 0;
-  }
-
   // after checkAndTypeLabelProgram
   u32 Compiler::testProgram(File * output)
   {
