@@ -423,6 +423,9 @@ namespace MFM {
 
     //default destructor (intentionally left out)
 
+    //for var args native funcs, non-refs, required of a BitStorage
+    UlamType::genGetUlamTypeMangledNameDefinitionForC(fp);
+
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("};\n");
