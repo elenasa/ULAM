@@ -1107,7 +1107,8 @@ namespace MFM {
   std::string SymbolClass::getMangledFunctionNameWithTypesForVTableEntry(u32 idx)
   {
     assert(idx < m_vtable.size());
-    assert(!m_vtable[idx].m_isPure);
+    //assert(!m_vtable[idx].m_isPure); t3606,8,10, t3774,9, t3788, t3794,5, t3767 ..
+    // enum VTABLE_IDX in .h needs func name, even when pure;
     return m_vtable[idx].m_funcPtr->getMangledNameWithTypes();
   }
 
