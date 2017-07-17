@@ -1,0 +1,49 @@
+transient ByteStreamArray(Unsigned len) : ByteStream {
+
+  Unsigned mWrite = 0;
+  Unsigned mRead = 0;
+  ASCII mData[len];
+  
+  Bool stillRoom() { return mWrite < len; }
+
+  @Override
+  Bool canRead() { return true; }
+
+  @Override
+  Bool canWrite() { return true; }
+
+  @Override
+  Int writeByte(ASCII x) 
+  {
+    if (stillRoom()) {
+      mData[mWrite++] = x;
+      return 0;
+    }
+    return -1;
+  }
+  
+  @Override
+  Int readByte() 
+  {
+    if (mRead < mWrite) return mData[mRead++];
+    if (stillRoom()) return -2;
+    return -1;
+  }
+  
+  Void reset() 
+  {
+    reread();
+    rewrite();
+  }
+
+  Void reread() 
+  {
+    mRead = 0;
+  }
+
+  Void rewrite() 
+  {
+    mWrite = 0;
+  }
+
+}

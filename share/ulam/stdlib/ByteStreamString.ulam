@@ -1,0 +1,34 @@
+ulam 3;
+
+transient ByteStreamString : ByteStream {
+  String m_string = "";
+  Unsigned m_index = 0;
+
+  Self(String s) {
+    readFrom(s);
+  }
+
+  Void readFrom(String s)
+  {
+    m_string = s;
+    m_index = 0;
+  }
+
+  Void reset() 
+  {
+    m_index = 0;
+  }
+
+  @Override
+  Bool canRead() { return true; }
+
+  @Override
+  Bool canWrite() { return false; }
+
+  @Override
+  Int readByte() {
+    if (m_index >= m_string.lengthof) return -1;
+    return m_string[m_index++];
+  }
+
+}
