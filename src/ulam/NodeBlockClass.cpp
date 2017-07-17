@@ -2258,27 +2258,25 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     if(declOnly)
       {
-#if 0
 	//enum for method indexes; see UlamElement.h for first two.
 	m_state.indent(fp);
-	fp->write("enum VmethodNumbers {\n");
+	fp->write("enum VTABLE_IDX {\n");
 	m_state.m_currentIndentLevel++;
 	for(s32 i = 0; i < maxidx; i++)
 	  {
 	    m_state.indent(fp);
-	    fp->write("MN_METHOD_IDX_");
-	    fp->write(csym->getMangledFunctionNameForVTableEntry(i).c_str());
+	    fp->write("VTABLE_IDX_");
+	    fp->write(csym->getMangledFunctionNameWithTypesForVTableEntry(i).c_str());
 	    if(i == 0)
 	      fp->write(" = 0");
 	    fp->write(",\n");
 	  }
 	m_state.indent(fp);
-	fp->write("MN_MAX_METHOD_IDX\n");
+	fp->write("VTABLE_IDX_MAX\n");
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
 	fp->write("};"); GCNL;
 	fp->write("\n");
-#endif
 
 	m_state.indent(fp);
 	fp->write("static ");
@@ -2316,6 +2314,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	if(csym->isPureVTableEntry(i))
 	  {
+	    m_state.indent(fp);
 	    fp->write("&UlamClass<EC>::PureVirtualFunctionCalled");
 	    continue;
 	  }

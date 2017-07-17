@@ -1135,7 +1135,7 @@ namespace MFM {
   {
     assert(m_funcSymbol);
     //requires runtime lookup for virtual function pointer
-    u32 vfidx = m_funcSymbol->getVirtualMethodIdx();
+    //u32 vfidx = m_funcSymbol->getVirtualMethodIdx();
 
     //need typedef typename for this vfunc, any vtable of any owner of this vfunc
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
@@ -1182,7 +1182,11 @@ namespace MFM {
 	fp->write(".getVTableEntry(");
       }
 
-    fp->write_decimal_unsigned(vfidx);
+    //VT_IDX enum is the same regardless of effective self
+    //fp->write_decimal_unsigned(vfidx);
+    fp->write(m_state.getTheInstanceMangledNameByIndex(cosuti).c_str());
+    fp->write(".VTABLE_IDX_");
+    fp->write(m_funcSymbol->getMangledNameWithTypes().c_str());
     fp->write(");"); GCNL; //reading into a separate VfuncPtr tmp var
   } //genCodeVirtualFunctionCallVTableEntry
 
