@@ -1,0 +1,122 @@
+ulam 3;
+
+quark ByteStream {
+
+  /**
+     Attempt to read the next byte from the stream.  Return value >= 0
+     is the next byte read.  A return value of -1 means EOF, a return
+     value of -2 means no bytes are immediately available (but some
+     might be later), and a return value <= -3 means some (reasonably)
+     permanent error condition occurred.
+
+     Subclasses of ByteStream that do not support input will FAIL with
+     UNSUPPORTED_OPERATION if this method is invoked.  canRead() can
+     be called to determine if that will happen.
+   */
+  virtual Int readByte() 
+  {
+    Fail f;
+    f.fail("UNSUPPORTED_OPERATION");
+    return -3;
+  }
+
+  virtual Bool canRead() ;
+
+  /**
+     Attempt to write the byte x to the stream.  Return value == 0
+     means the byte was sucessfully written.  A return value of -1
+     means EOF, a return value of -2 means no bytes could be written
+     now (but output might be possible later), and a return value <=
+     -3 means some (reasonably) permanent error condition occurred.
+
+     Subclasses of ByteStream that do not support output will FAIL
+     with UNSUPPORTED_OPERATION if this method is invoked.  canWrite()
+     can be called to determine if that will happen.
+   */
+  virtual Int writeByte(ASCII x) 
+  {
+    Fail f;
+    f.fail("UNSUPPORTED_OPERATION");
+    return -3;
+  }
+
+  virtual Bool canWrite() ;
+
+  /////
+  // OUTPUT ROUTINES
+  //
+
+  Self & print(String s)
+  {
+    for (Unsigned i = 0; i < s.lengthof; ++i) 
+    {
+      ASCII a = s[i];
+      writeByte(a);
+    }
+    return self;
+  }
+
+  Self & print(Bool b)
+  {
+    ASCII ch = '0';
+    if (b) ch = '1';
+    writeByte(ch);
+    return self;
+  }
+
+  Self & print(Unsigned n, Unsigned base)
+  {
+    if (n == 0u) return print("0");
+
+    if (base == 0u) base = 10u;
+
+    if (base < 2u) { Fail f; f.fail(); }
+
+    String c = "0123456789abcdefghijklmnopqrstuvwxyz";
+    while (n != 0u) {
+      Unsigned d = n % base;
+      n = n/base;
+      writeByte(c[d]);
+    }
+
+    return self;
+  }
+
+  Self & print(Int n)
+  {
+    if (n == -2147483648) return print("-2147483648");
+    if (n < 0) { 
+      print("-");
+      n = -n;
+    }
+    return print((Unsigned) n, 10u);
+  }
+
+  virtual Unsigned writeBytes(ByteStream & r)
+  {
+    return writeBytes(r, Unsigned.maxof);
+  }
+
+  virtual Unsigned writeBytes(ByteStream & r, Unsigned max)
+  {
+    if (!r.canRead()) return 0;
+
+    for (Unsigned i = 0; i < max; ++i)
+    {
+      Int ch = r.readByte();
+      if (ch < 0) return i;
+      writeByte((ASCII) ch);
+    }    
+    return max;
+  }
+
+  virtual Self & writeBytes(String s) 
+  {
+    for (Unsigned i = 0; i < s.lengthof; ++i)
+      writeByte(s[i]);
+    return self;
+  }
+
+  Self & printf(String format, ...) native ;
+
+}

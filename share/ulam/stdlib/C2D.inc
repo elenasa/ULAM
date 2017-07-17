@@ -1,20 +1,48 @@
 //{
+
   typedef Unsigned(3) Dir;
 
-  Coord x;
-  Coord y;
+  Coord x = 0;
+  Coord y = 0;
 
-  Void init(Int ax, Int ay) {
-    init((Coord) ax, (Coord) ay);
-  }
-
-  Void init(Self c) {
-    init(c.x, c.y);
-  }
-
-  Void init(Coord ax, Coord ay) {
+  Self(Coord ax, Coord ay) {
     x = ax;
     y = ay;
+  }
+
+  Self(Self s) {
+    x = s.x;
+    y = s.y;
+  }
+
+  Void set(Int ax, Int ay) {
+    x = (Coord) ax;
+    y = (Coord) ay;
+  }
+
+  Void set(Self c) {
+    set(c.x, c.y);
+  }
+
+  Self & operator=(Self other) {
+    set(other);
+    return self;
+  }
+
+  Self & operator+=(Self other) {
+    // This single statement should work..
+    // return self = self + other;  
+    self = self + other;  
+    return self;
+  }
+
+  Self & operator-=(Self other) {
+    self = self - other;
+    return self;
+  }
+
+  Self clamp(Self below, Self above) {
+    return (self | below) & above;
   }
 
   Int getX() { return (Int) x; }
@@ -26,12 +54,50 @@
   Self make(Int x, Int y)
   {
     Self ret;
-    ret.init(x,y);
+    ret.set(x,y);
     return ret;
   }
 
   Bool equals(Self other) {
     return x == other.x && y == other.y;
+  }
+
+  Bool operator==(Self other) {
+    return equals(other);
+  }
+
+  Bool operator!=(Self other) {
+    return !equals(other);
+  }
+
+  Self max(Self other) {
+    if (other.x < self.x) other.x = self.x;
+    if (other.y < self.y) other.y = self.y;
+    return other;
+  } 
+
+  Self operator|(Self other) {
+    return max(other);
+  }
+
+  Self& operator|=(Self other) {
+    self = self | other;
+    return self;
+  }
+
+  Self min(Self other) {
+    if (other.x > self.x) other.x = self.x;
+    if (other.y > self.y) other.y = self.y;
+    return other;
+  } 
+
+  Self operator&(Self other) {
+    return min(other);
+  }
+
+  Self& operator&=(Self other) {
+    self = self & other;
+    return self;
   }
 
   /** True if each dimension of \c other is between 0 and our
@@ -54,16 +120,36 @@
     return x * other.x + y * other.y;
   }
 
+  Int operator*(Self other) {
+    return dot(other);
+  }
+
   Self add(Self other) {
     return make((Coord) (x + other.x), (Coord) (y + other.y));
+  }
+
+  Self operator+(Self other) {
+    return add(other);
   }
 
   Self subtract(Self other) {
     return make((Coord) (x - other.x), (Coord) (y - other.y));
   }
 
+  Self operator-(Self other) {
+    return subtract(other);
+  }
+
   Self negate() {
     return make((Coord) -(Int) x, (Coord) -(Int) y);
+  }
+
+  Self operator-() {
+    return negate();
+  }
+
+  Self operator+() {
+    return self;
   }
 
   /**
@@ -96,34 +182,41 @@
 
   Unsigned length() {
     Self origin;
-    return manhattanDistance(origin);
+    return origin.manhattanDistance(self);
   }
 
   Bool isOrigin() {
     return x == 0 && y == 0;
   }
 
+  Self abs() {
+    return abs(self);
+  }
+
+  Self abs(Self of) {
+    if (of.x < 0) of.x = -of.x;
+    if (of.y < 0) of.y = -of.y;
+    return of;
+  }
+
   Unsigned manhattanDistance(Self other) {
-    Int dx = x - other.x, dy = y - other.y;
-    if (dx < 0) dx = -dx;
-    if (dy < 0) dy = -dy;
-    return (Unsigned) (dx + dy);
+    Self a = abs(self-other);
+    return (Unsigned) (a.x + a.y);
   }
 
   /** 
     \since v2.1
   */
   Unsigned euclideanSquaredDistance(Self other) {
-    Int dx = x - other.x, dy = y - other.y;
-    return (Unsigned) (dx*dx + dy*dy);
+    Self diff = self-other;
+    return diff.euclideanSquaredLength();
   }
 
   /** 
     \since v2.1
   */
   Unsigned euclideanSquaredLength() {
-    Self origin;
-    return euclideanSquaredDistance(origin);
+    return (Unsigned) (self * self);
   }
 
 //}

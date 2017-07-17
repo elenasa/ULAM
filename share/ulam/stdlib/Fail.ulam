@@ -1,7 +1,13 @@
-ulam 1;
+ulam 3;
 
 quark Fail {
+  Void fail(Bits bits) { fail((Int) bits); }
+  Void fail(String string) { 
+    ByteStreamString sbs(string);
+    fail(sbs);
+  }
+
   Void fail() native;
   Void fail(Int code) native;
-  Void fail(Bits bits) { fail((Int) bits); }
+  Void fail(ByteStream & bs) native;
 }
