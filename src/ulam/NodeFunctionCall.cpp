@@ -294,7 +294,7 @@ namespace MFM {
 	    {
 	      Symbol * psym = m_funcSymbol->getParameterSymbolPtr(i);
 	      UTI ptype = psym->getUlamTypeIdx();
-	      Node * argNode = m_argumentNodes->getNodePtr(i); //constArgs[i];
+	      Node * argNode = m_argumentNodes->getNodePtr(i);
 	      UTI atype = argNode->getNodeType();
 	      if(UlamType::compareForArgumentMatching(ptype, atype, m_state) == UTIC_NOTSAME) //o.w. known same
 		{
@@ -940,15 +940,10 @@ namespace MFM {
   void NodeFunctionCall::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
     genCodeIntoABitValue(fp,uvpass);
-
-    //UTI rtnType = uvpass.getPassTargetType();
     //return atom ref (t41031,t41033), class ref(t41030,t41032),
     // primitive ref (t41034,t41035)
-    //if(m_state.isAtom(rtnType) || m_state.isAClass(rtnType) || m_state.isReference(rtnType))
-      {
-	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL);
-	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
-      }
+    m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL);
+    m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
   } //genCodeToStoreInto
 
   void NodeFunctionCall::genCodeIntoABitValue(File * fp, UVPass& uvpass)
@@ -1135,8 +1130,6 @@ namespace MFM {
   {
     assert(m_funcSymbol);
     //requires runtime lookup for virtual function pointer
-    //u32 vfidx = m_funcSymbol->getVirtualMethodIdx();
-
     //need typedef typename for this vfunc, any vtable of any owner of this vfunc
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     Symbol * cos = NULL; //any owner of func
@@ -1182,10 +1175,13 @@ namespace MFM {
 	fp->write(".getVTableEntry(");
       }
 
-    //VT_IDX enum is the same regardless of effective self
-    //fp->write_decimal_unsigned(vfidx);
-    fp->write(m_state.getTheInstanceMangledNameByIndex(cosuti).c_str());
-    fp->write(".VTABLE_IDX_");
+    //VT_IDX enum is the same regardless of effective self (e.g. t3600)
+    UTI decosuti = m_state.getUlamTypeAsDeref(cosuti); // t3758
+    UlamType * decosut = m_state.getUlamTypeByIndex(decosuti);
+
+    fp->write(decosut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>::"); //any class
+    fp->write("VTABLE_IDX_"); //== m_funcSymbol->getVirtualMethodIdx()
     fp->write(m_funcSymbol->getMangledNameWithTypes().c_str());
     fp->write(");"); GCNL; //reading into a separate VfuncPtr tmp var
   } //genCodeVirtualFunctionCallVTableEntry
@@ -1281,8 +1277,6 @@ namespace MFM {
     //use possible dereference type for mangled name
     UTI derefuti = m_state.getUlamTypeAsDeref(vuti);
     assert(m_state.isAClass(derefuti));
-
-    //UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
 
    u32 tmpvarnum = uvpass.getPassVarNum();
    u32 tmpvarur = m_state.getNextTmpVarNumber();
