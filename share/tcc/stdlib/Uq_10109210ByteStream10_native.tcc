@@ -54,7 +54,8 @@ namespace MFM{
   template<class EC>
   Ui_Uq_r10109210ByteStream10<EC> Uq_10109210ByteStream10<EC>::Uf_6printf(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102321s<EC>& Uv_3fmt, ...) const
   {
-    VfuncPtr writeByte = ur.GetEffectiveSelf()->getVTableEntry(4); // for Uf_919writeByte
+    const u32 writeByteFuncIdx = Uq_10109210ByteStream10<EC>::VTABLE_IDX_Uf_919writeByte1110181u;
+    VfuncPtr writeByte = ur.GetEffectiveSelf()->getVTableEntry(writeByteFuncIdx); 
     Uq_10109210ByteStream10<EC>::Uf_919writeByte1110181u writeByteFunc
       = (Uq_10109210ByteStream10<EC>::Uf_919writeByte1110181u) writeByte;
 
