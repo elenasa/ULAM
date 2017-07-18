@@ -1140,7 +1140,6 @@ namespace MFM {
       cos = m_state.getCurrentSelfSymbolForCodeGen(); //'self'
 
     UTI cosuti = cos->getUlamTypeIdx();
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
     m_state.indentUlamCode(fp);
     fp->write("VfuncPtr "); //legitimize this tmp label TODO
@@ -1177,8 +1176,11 @@ namespace MFM {
       }
 
     //VT_IDX enum is the same regardless of effective self (e.g. t3600)
-    fp->write(cosut->getUlamTypeMangledName().c_str());
-    fp->write("<EC>::"); //same for elements and quarks
+    UTI decosuti = m_state.getUlamTypeAsDeref(cosuti); // t3758
+    UlamType * decosut = m_state.getUlamTypeByIndex(decosuti);
+
+    fp->write(decosut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>::"); //any class
     fp->write("VTABLE_IDX_"); //== m_funcSymbol->getVirtualMethodIdx()
     fp->write(m_funcSymbol->getMangledNameWithTypes().c_str());
     fp->write(");"); GCNL; //reading into a separate VfuncPtr tmp var
