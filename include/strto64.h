@@ -1,7 +1,7 @@
 /**                                        -*- mode:C++ -*-
  * strto64.h - 64 bit stro(u)lish basic number conversion
  *
- * Copyright (C) 2016 The Regents of the University of New Mexico.
+ * Copyright (C) 2016-2017 The Regents of the University of New Mexico.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -27,7 +27,7 @@
 /**
   \file Strto64.h - 64 bit stro(u)lish basic number conversion
   \author David H. Ackley.
-  \date (C) 2016 All rights reserved.
+  \date (C) 2016-2017 All rights reserved.
   \gpl
 */
 
@@ -86,7 +86,7 @@ namespace MFM {
 
      \sa strtos64, strto64
    */
-  inline u64 strtou64(const char *& ptr, const char *& errMsg) 
+  inline u64 strtou64(const char *& ptr, const char *& errMsg)
   {
     return strto64(ptr, errMsg, 64);
   }
@@ -95,7 +95,7 @@ namespace MFM {
 
      \sa strtou64, strto64
    */
-  inline s64 strtos64(const char *& ptr, const char *& errMsg) 
+  inline s64 strtos64(const char *& ptr, const char *& errMsg)
   {
     return (s64) strto64(ptr, errMsg, -64);
   }

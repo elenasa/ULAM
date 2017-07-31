@@ -1,6 +1,6 @@
 /*                                              -*- mode:C++ -*-
   itype.h Short names for sized ints, and limits
-  Copyright (C) 2008-2016 The Regents of the University of New Mexico.  All rights reserved.
+  Copyright (C) 2008-2017 The Regents of the University of New Mexico.  All rights reserved.
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,7 @@
 /**
   \file itype.h Short names for sized ints, and limits
   \author David H. Ackley.
-  \date (C) 2008-2016 All rights reserved.
+  \date (C) 2008-2017 All rights reserved.
   \lgpl
  */
 #ifndef ITYPE_H
