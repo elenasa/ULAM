@@ -1,0 +1,58 @@
+## -*- mode:ulam -*-
+#=t3648_test_compiler_elementandquark_unseenclasstypedef_dmquarkarray
+##
+## gen output:
+##  Int Arg: 5 (+ assert)
+##
+#!
+Exit status: 5
+Ue_Foo { constant Int(32) cx = 7;  typedef Bar(4) Tar;  Bool(1) sp(false);  Bar(4) tar[4]( constant Int(32) x = 4;  Bits(4) m_bits(1);  constant Int(32) x = 4;  Bits(4) m_bits(1);  constant Int(32) x = 4;  Bits(4) m_bits(5);  constant Int(32) x = 4;  Bits(4) m_bits(1); );  Int(32) test() {  System s;  tar 2 [] ( 5 cast )set . s ( tar 2 [] ( )toInt . )print . s ( tar 2 [] ( )toInt . 5 cast == )assert . tar 2 [] ( )toInt . return } }
+Uq_System { <NOMAIN> }
+Uq_Bar(Int(32) x) { Bits(UNKNOWN) m_bits(notready);  <NOMAIN> }
+##
+## informed by t3647 (order matters)
+##
+#>Foo.ulam
+  ulam 1;
+use System;
+element Foo {
+  constant Int cx = 7;
+  typedef Bar(cx - 3) Tar;
+  Bool sp;
+  Tar tar[4]; //pos = 1
+  Int test() {
+    System s;
+    tar[2].set(5);
+    s.print(tar[2]);
+    s.assert(tar[2] == 5);
+    return tar[2];
+  }
+}
+use Bar;
+
+#:Bar.ulam
+  ulam 1;
+quark Bar(Int x) {
+  Bits(x) m_bits = 1;
+  Int toInt()
+  {
+    return (Int) m_bits;
+  }
+  Void set(Bits(x) barg)
+  {
+    m_bits = barg;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

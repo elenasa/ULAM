@@ -1,0 +1,19 @@
+## -*- mode:ulam -*-
+#=t3420_test_compiler_typebitsize_localallot_error
+#!
+./C.ulam:5:2: ERROR: Type Bitsize specifier for base type: Int, has a constant value of 65 that exceeds the maximum bitsize 64.
+./C.ulam:2:10: ERROR: 1 Nodes with erroneous types detected after type labeling class: C.
+./C.ulam:2:10: ERROR: 1 Nodes with unresolved types detected after type labeling class: C.
+Unrecoverable Program Type Label FAILURE.
+##
+#>C.ulam
+ulam 1;
+ element C {
+Int test() {
+ Int(34) way;
+ Int(65) noway;
+ return -1;
+}
+ }
+
+#.

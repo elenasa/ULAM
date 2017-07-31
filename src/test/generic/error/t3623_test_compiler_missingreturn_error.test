@@ -1,0 +1,19 @@
+## -*- mode:ulam -*-
+#=t3623_test_compiler_missingreturn_error
+#!
+./Ish.ulam:3:7: ERROR: Function 'update''s Return Statement is missing; Return type: Int(32).
+./Ish.ulam:2:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Ish.
+Unrecoverable Program Type Label FAILURE.
+##
+#>Ish.ulam
+  ulam 1;
+element Ish {
+  Int update() {
+    //missing return statement:
+    //return 0;
+  }
+  Int test() {
+    return update();
+  }
+}
+#.

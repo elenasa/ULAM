@@ -1,0 +1,51 @@
+## -*- mode:ulam -*-
+#=t3688_test_compiler_elementandquark_Selfrefofself_casttosub_error
+#!
+./A.ulam:10:16: ERROR: Cannot explicitly cast QW to type: A.
+./A.ulam:10:5: ERROR: Initial value expression for: apple, initialization is invalid.
+./A.ulam:4:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: A.
+Unrecoverable Program Type Label FAILURE.
+##
+## Dave requested a way to cast a super REF to a sub type; ref is crucial.
+##
+#>A.ulam
+  ulam 2;
+use System;
+use QW;
+element A : QW {
+  Bool b, c;
+  QW m_q;
+  Int test(){
+    System s;
+    bw = true;
+    A apple = (A) func();
+    b = apple.bw;
+    s.assert(apple.bw);
+    return (Int) apple.bw;
+  }
+}
+
+#:QW.ulam
+  ulam 2;
+quark QW {
+  Bool bw;
+  Self func()
+  {
+    Self& sr = self; //compiles
+    Self s = (Self) sr; //requires cast for init
+    return sr; //no cast required
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

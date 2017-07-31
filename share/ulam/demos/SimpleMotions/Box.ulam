@@ -1,0 +1,29 @@
+/**
+  Box modifies the EventWindow symmetry to swap itself 
+  around the four sides of a box.
+
+  \color #666
+  \symbol Bx
+
+  \author Xinyu Chen
+  \author Dave Ackley
+
+  \license lgpl
+*/
+element Box{
+  // Typedefs
+  typedef EventWindow.Symmetry Symmetry;
+
+  // Utilities
+  EventWindow ew;
+
+  // Data members
+  Unsigned(2) ns; // Unsigned(2) for the first four symmetries
+
+  Void behave(){
+    ew.changeSymmetry((Symmetry) ns);
+    if(ns == ns.maxof) ns = ns.minof;
+    else ++ns;
+    ew.swap(0, 1);
+  }
+}

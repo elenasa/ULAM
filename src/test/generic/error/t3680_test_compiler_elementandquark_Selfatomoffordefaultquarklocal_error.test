@@ -1,0 +1,63 @@
+## -*- mode:ulam -*-
+#=t3680_test_compiler_elementandquark_Selfatomoffordefaultquarklocal_error
+#!
+./QW.ulam:6:25: ERROR: Unsupported request: 'atomof' <QW>, a Type.
+./QW.ulam:6:10: ERROR: Initial value of variable _IDENTIFIER is missing.
+./QW.ulam:10:5: ERROR: Invalid Statement (possible missing semicolon).
+Unrecoverable Program Parse FAILURE: <A.ulam>
+##
+## Dave requested a way to get default values for Self (within a quark);
+## Self.instanceof (default) vs self.atomof (current stg)
+##
+#>A.ulam
+  ulam 2;
+use System;
+use QW;
+element A {
+  Bool b;
+  Int test(){
+    System s;
+    QW qw;
+    Atom a = qw.func();
+    if(a as Self)
+      s.assert(false); //wrong
+    else
+      s.assert(true); //correct
+
+    //s.assert(a is QW); fails
+    if(a is QW)
+      s.assert(false); //fails
+    else
+      s.assert(true); //correct
+
+    return 0;
+  }
+}
+
+#:QW.ulam
+  ulam 2;
+quark QW {
+  Atom func()
+  {
+    //Atom i = (Atom) QW.instanceof;
+    Atom me = (Atom) QW.atomof;
+    //Atom myself = self.storageof; //see gencode
+    //Atom b;
+    //b = myself; //see gencode
+    Atom a = self.instanceof;
+    return a;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

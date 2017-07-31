@@ -1,0 +1,34 @@
+## -*- mode:ulam -*-
+#=t3787_test_compiler_maxofbitsizetemplateinheritance_issue
+#!
+Exit status: 0
+Ue_Ish : QBase(3u) { :< constant Unsigned(32) bits = 3u;  typedef QOther(7u) MyQOther;  QOther(7u) mOther( constant Unsigned(32) width = 7u;  Unsigned(7) mData(0u); ); > Int(32) test() {  0 cast return } }
+Uq_QBase(Unsigned(32) bits) { typedef QOther(width) MyQOther;  QOther(width) mOther(notready);  <NOMAIN> }
+Uq_QOther(Unsigned(32) width) { Unsigned(UNKNOWN) mData(notready);  <NOMAIN> }
+##
+## issue 6/15/2016, thought this would work!
+##
+#>Ish.ulam
+  ulam 2;
+element Ish : QBase(3u) {
+  Int test() {
+    return 0;
+  }
+}
+
+#:QBase.ulam
+  ulam 2;
+quark QBase(Unsigned bits) {
+  //typedef QOther(Unsigned(bits).maxof) MyQOther;
+  //constant Unsigned cOther = Unsigned(bits).maxof;
+  //typedef QOther(cOther) MyQOther;
+  typedef QOther(Unsigned(bits).maxof) MyQOther;
+  MyQOther mOther;
+}
+
+#:QOther.ulam
+  ulam 2;
+quark QOther(Unsigned width) {
+  Unsigned(width) mData;
+}
+#.

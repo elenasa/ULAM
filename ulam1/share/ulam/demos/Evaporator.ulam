@@ -1,5 +1,0 @@
-/** The anti-forkbomb. \symmetries all */
-element Evaporator {
-  EventWindow ew;
-  Void behave() { ew[0] = ew[1]; }
-}

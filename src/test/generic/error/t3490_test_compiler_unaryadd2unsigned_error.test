@@ -1,0 +1,35 @@
+## -*- mode:ulam -*-
+#=t3490_test_compiler_unaryadd2unsigned_error
+#!
+##
+##      // try as named constants
+##      // without explicit cast of (a+b) we get error:
+./A.ulam:6:11: ERROR: Constant value expression for 'c' is not representable as Unary(3).
+./A.ulam:2:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
+./A.ulam:2:9: ERROR: 4 Nodes with unresolved types detected after type labeling class: A.
+Unrecoverable Program Type Label FAILURE.
+#>A.ulam
+use System;
+element A {
+System s;
+ constant Unsigned(3) a = 7u;
+ constant Unsigned(3) b = 5u;
+ constant Unary(3) c = (a + b);
+ Int test() {
+  s.print(c);
+  return c;
+ }
+ }
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

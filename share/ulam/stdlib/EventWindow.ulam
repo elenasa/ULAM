@@ -1,0 +1,134 @@
+ulam 2;
+use AtomUtils;
+
+/**
+   Methods to access and manipulate the active event window.  The
+   EventWindow quark is 0 bits long, because it is just an interface
+   to the singleton event window external to ulam processing.  As a
+   result, EventWindow quarks can be created with impunity, and all
+   will access the same event window state, but on the other hand, all
+   (or at least most) of the methods in this class will FAIL if there
+   is actually no event in progress, which is an issue primarily in
+   calls on the getColor method.
+
+   \author Dave Ackley
+   \license lgpl
+ */
+
+quark EventWindow {
+  AtomUtils au;
+
+  typedef Unsigned(6) SiteNum;
+  typedef Unsigned(3) Symmetry;
+
+  constant Symmetry cSYMMETRY_000L = 0u;
+  constant Symmetry cSYMMETRY_090L = 1u;
+  constant Symmetry cSYMMETRY_180L = 2u;
+  constant Symmetry cSYMMETRY_270L = 3u;
+  constant Symmetry cSYMMETRY_000R = 4u;
+  constant Symmetry cSYMMETRY_090R = 5u;
+  constant Symmetry cSYMMETRY_180R = 6u;
+  constant Symmetry cSYMMETRY_270R = 7u;
+
+  typedef Unsigned(3) Dir;
+  constant Dir cDIR_NORTH =     0u;
+  constant Dir cDIR_NORTHEAST = 1u;
+  constant Dir cDIR_EAST =      2u;
+  constant Dir cDIR_SOUTHEAST = 3u;
+  constant Dir cDIR_SOUTH =     4u;
+  constant Dir cDIR_SOUTHWEST = 5u;
+  constant Dir cDIR_WEST =      6u;
+  constant Dir cDIR_NORTHWEST = 7u;
+
+  /**
+     Access the maximum possible number of sites in the event window.
+     Note this function returns a fixed value (41, given the manhattan
+     distance 4 event window radius), and does not the number of \e
+     accessible sites given an event window.  
+
+     \sa getRadius()
+     \sa getAccessibleSize()
+     \sa isAccessible()
+   */
+  SiteNum size() native;
+
+  /**
+     Return the maximum accessible radius in this event window, a
+     value from 0 to 4.  In general this returns whatever was the
+     '\radius' declaration in the element that started the current
+     event; if no \radius declaration was present there, this returns
+     4 and the full event window is accessible.
+   */
+  Unsigned getRadius() native;
+
+  SiteNum getAccessibleSize() {
+    MDist md;
+    typedef MDist.Radius Radius;
+    typedef MDist.Index Index;
+    Unsigned rad = getRadius();
+    return md.getFirstIndex((Radius) (rad + 1u));
+  }
+
+  Atom aref(SiteNum index) native;
+  Atom aref(C2D coord) { return aref(getSiteNumberRaw(coord)); }
+
+  Void aset(SiteNum index, Atom val) native;
+  Void aset(C2D coord, Atom val) { aset(getSiteNumberRaw(coord), val); }
+
+  Bool isLegal(SiteNum index) { return index < size(); }
+  Bool isLegal(C2D coord) { return isLegal(getSiteNumberRaw(coord)); }
+
+  Bool isAccessible(SiteNum index) { return index < getAccessibleSize() && isLive(index); }
+  Bool isAccessible(C2D coord) { return isLegal(coord) && isAccessible(getSiteNumberRaw(coord)); }
+
+  Bool isLive(SiteNum index) native;
+  Bool isLive(C2D coord) { return isLegal(coord) && isLive(getSiteNumberRaw(coord)); }
+
+  Bool isEmpty(SiteNum index) { return isLive(index) && au.isEmpty(aref(index)); }
+  Bool isEmpty(C2D coord) { return isLegal(coord) && isLive(getSiteNumberRaw(coord)); }
+
+  Bool swap(SiteNum index1, SiteNum index2)  native;
+  Bool swap(C2D coord1, C2D coord2) { return swap(getSiteNumberRaw(coord1), getSiteNumberRaw(coord2)); }
+
+  C2D getCoord(SiteNum siteNum) native;
+
+  C2D getCoordRaw(SiteNum siteNum) {
+    Symmetry old = changeSymmetry(cSYMMETRY_000L);
+    C2D raw = getCoord(siteNum);
+    changeSymmetry(old);
+    return raw;
+  }
+
+  /**
+     Map directCoord through the current symmetry and return the
+     corresponding position.
+   */
+  C2D mapSym(C2D directCoord) native;
+
+  /** Get the SiteNum corresponding to \c coord, if it exists, else
+      return EventWindow.size() (which is an illegal SiteNum, and will
+      cause event window array accesses to fail if used).
+  */
+  SiteNum getSiteNumber(C2D coord) native;
+
+  /** Get the SiteNum corresponding to \c coord, if it exists, else
+      return EventWindow.size() (which is an illegal SiteNum, and will
+      cause event window array accesses to fail if used).  Unlike
+      getSiteNumber, getSiteNumberRaw ignores the current EventWindow
+      Symmetry and always uses the 'direct' mapping (as if the
+      symmetry was cSYMMETRY_000L).
+  */
+  SiteNum getSiteNumberRaw(C2D coord) native;
+
+  /** Set the EventWindow symmetry to \c newSym, and return its
+      previous value.  The prevailing EventWindow symmetry affects the
+      interpretation of SiteNum and C2D in most of the EventWindow
+      methods.
+  */
+  Symmetry changeSymmetry(Symmetry newSym) native;
+
+  /**
+     (Deprecated)
+   */
+  Void diffuse() native;
+}

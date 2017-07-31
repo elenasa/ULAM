@@ -1,0 +1,56 @@
+## -*- mode:ulam -*-
+#=t3407_test_compiler_quarkwithselfaselement
+#!
+##  gen code output (+ assert):
+##	 Int Arg: 1
+##	 Int Arg: 2
+##
+Exit status: 2
+Ue_ElT : Typo { :<> Int(32) i(2);  Int(32) test() {  System s;  Atom(96) mar = self cast;  ( mar cast )incr self mar cast cast = s ( i )print . ( mar cast )incr self mar cast cast = s ( i )print . s ( i 2 cast == )assert . i return } }
+Uq_Typo { <NOMAIN> }
+Uq_System { <NOMAIN> }
+#>ElT.ulam
+  ulam 1;
+use Typo;
+use System;
+element ElT : Typo {
+  Int i;
+  Int test() {
+    System s;
+    Atom mar = self;
+    incr(mar);
+    self = (ElT) mar;
+    s.print(i);
+    incr(mar);
+    self = (ElT) mar;
+    s.print(i);
+    s.assert(i == 2);
+    return i;
+  }
+}
+
+#:Typo.ulam
+  ulam 1;
+quark Typo {
+  Void incr(Atom& aref){
+    //Atom a = self.storageof; //atom; //self;
+    if(aref as ElT) {
+      aref.i += 1;
+      //self = a; //can't cast ElT& to Typo&, unless subclasso
+    }
+    //self.storageof = a; //atom = a; //self = a; invalid lhs
+    //self = (Typo) a; //ILLEGAL_ARGUMENT
+  }
+ }
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

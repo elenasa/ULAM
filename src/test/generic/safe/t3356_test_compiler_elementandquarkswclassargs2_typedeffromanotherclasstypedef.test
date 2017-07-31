@@ -1,0 +1,49 @@
+## -*- mode:ulam -*-
+#=t3356_test_compiler_elementandquarkswclassargs2_typedeffromanotherclasstypedef
+#!
+Exit status: 2
+Ue_R { Int(32) test() {  P(1) pel;  pel arr 2 [] . 2 cast = pel arr 2 [] . cast return } }
+Ue_P(Int(32) a) { constant Unsigned(UNKNOWN) nvar = 3u;  Int(4) arr[UNKNOWN](notready);  Bool(1) b(false);  <NOMAIN> }
+Uq_Q(Int(32) s) { typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }
+Uq_V { typedef Q(3) Woof;  <NOMAIN> }
+##
+##      //informed by t3346:  recursive typedefs as named constant type; used for size of array
+#>R.ulam
+  ulam 1;
+element R{
+  Int test() {
+    P(1) pel;
+    pel.arr[2] = 2;
+    return pel.arr[2];
+  }
+}
+
+#:P.ulam
+  ulam 1;
+use Q;
+use V;
+element P(Int a) {
+  constant V.Woof.Foo nvar = 3u;
+  Int(4) arr[nvar];
+  Bool b;
+}
+
+##
+##      // unpack array doesn't work!! define SKIPEVAL in TestCase_EndToEndCompiler to skip eval step.
+##      // o.w. slotsNeeded assumes 1.
+##      //test: CallStack.cpp:82: MFM::UlamValue MFM::CallStack::loadUlamValueFromSlot(MFM::s32): Assertion `(m_currentFrame + slot < m_frames.size()) && (m_currentFrame + slot >= 0)' failed.
+##      //bool rtn1 = fms->add("P.ulam","ulam 1;\nuse Q;\nuse V;\n element P {\nBool b;\nInt test() {\nconstant V.Woof.Foo nvar = 3u;\nInt arr[nvar];\n arr[2] = 2;\n return arr[2];\n}\n}\n");
+##
+
+#:Q.ulam
+  ulam 1;
+quark Q(Int s) {
+  typedef Unsigned(s) Foo;
+}
+#:V.ulam
+  ulam 1;
+use Q;
+quark V {
+  typedef Q(3) Woof;
+}
+#.

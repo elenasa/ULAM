@@ -1,0 +1,26 @@
+## -*- mode:ulam -*-
+#=t3402_test_compiler_twotypedefarrays
+#!
+Exit status: 7
+Ue_B { typedef Unsigned(2) Slot;  typedef Unsigned(8) Index;  typedef Unsigned(8) IndArr[4];  typedef Unsigned(8) IndArrTwo[2];  Unsigned(8) arr[4](0u,7u,0u,0u);  Unsigned(8) arr2[2](0u,7u);  Int(32) test() {  ( 1 cast 7u cast )hit arr2 1 [] arr 1 [] = arr 1 [] cast return } }
+##
+##      // with renames of typedefs, and arrays based on typedef
+#>B.ulam
+  ulam 1;
+element B {
+  typedef Unsigned(2) Slot;
+  typedef Unsigned(8) Index;
+  typedef Index IndArr[4];
+  typedef Index IndArrTwo[2];
+  IndArr arr;
+  IndArrTwo arr2;
+  Void hit(Slot slot, Unsigned weight) {
+    arr[slot] = (Index) (arr[slot] + (Index) weight);
+  }
+  Int test(){hit((Slot) 1, 7u);
+    arr2[1] = arr[1];
+    return arr[1];
+  }
+}
+
+#.

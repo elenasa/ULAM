@@ -1,0 +1,23 @@
+## -*- mode:ulam -*-
+#=t3445_test_compiler_elementwithclassparametervoid_error
+#!
+./S.ulam:2:9: ERROR: Invalid constant definition Type 'Void'.
+Unrecoverable Program Parse FAILURE: <T.ulam>
+##
+##    //informed by t3333
+##
+#>T.ulam
+ ulam 1;
+use S;
+ element T{
+ Int test(){
+ /*S((Void) 2) n;
+*/ return 0;
+}
+ }
+
+#:S.ulam
+ulam 1;
+quark S(Void v, Int i){
+ }
+#.

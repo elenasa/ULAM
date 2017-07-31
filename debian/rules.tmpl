@@ -1,0 +1,16 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+# Please give me everything you've got..
+export DH_VERBOSE=1
+export DH_OPTIONS=-v
+
+%:
+	dh $@
+
+override_dh_install:
+	make install DESTDIR=debian/<XD:PKG_NAME>
+	dh_install
+
+override_dh_links:
+	dh_links
+	make testinstalled DESTDIR=debian/<XD:PKG_NAME>

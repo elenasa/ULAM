@@ -1,0 +1,39 @@
+## -*- mode:ulam -*-
+#=t3695_test_compiler_primitiverefwithcast
+##
+## gen code (1 assert)
+#!
+Exit status: 3
+Ue_A { Bool(1) sp(false);  Int(3) it(3);  Int(32) test() {  System s;  Int(3)& e = it cast;  it 3 = s ( e cast 3 == )assert . e cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by error/t3694
+##
+#>A.ulam
+  ulam 2;
+use System;
+element A {
+  Bool sp;
+  Int(3) it;
+  Int test() {
+    System s;
+    //Int(3) & e = (Int(3)&) it; //may be unnecessary
+    Int(3) & e = it;
+    it = 3;
+    s.assert(e == 3);
+    return e;
+ }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

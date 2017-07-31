@@ -1,0 +1,98 @@
+## -*- mode:ulam -*-
+#=t3841_test_compiler_zerolengtharrayreference_element
+#!
+##   gen code output: 2 asserts + interleaved asserts
+##	 Int Arg: 0
+##	 Int Arg: 1
+##	 Int Arg: 2
+##	 Int Arg: 3
+##	 Int Arg: 4
+##	 Int Arg: 5
+##	 Int Arg: 6
+##	 Int Arg: 7
+##	 Int Arg: 8
+##	 Int Arg: 9
+##       Unsigned Arg: 960
+##
+Exit status: 10
+Ue_A { System s();  typedef EW NoSite[0];  typedef EW& NoRef[0];  typedef EW& NRR[0];  typedef EW BigSite[10];  typedef EW& BSRef[10];  typedef EW& BRR[10];  Int(32) test() {  EW nosite[0];  EW& nositeref[0] = nosite cast;  EW& nrr[0] = nositeref;  s ( true )assert . s ( true )assert . EW site[10];  EW& siteref[10] = site cast;  EW& brr[10] = siteref;  EW ew;  EW ewread;  { Int(32) i = 0 cast;  i 10 cast < cond { siteref i [] ew = siteref i [] ( 1 cast i )set . s ( brr i [] ( 1 cast )get . )print . ewread siteref i [] = s ( ewread EW is )assert . EW ewr2 = siteref i [];  s ( ewr2 EW is )assert . } _1: i 1 += while } s ( 960u )print . s ( true )assert . 10 cast return } }
+Ue_EW { Bool(1) bw(false);  Int(8) iwarr[3](0,0,0);  Bits(9) tw(0);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by t3670 and t3840
+##
+#>A.ulam
+  ulam 2;
+use EW;
+use System;
+element A {
+  System s;
+
+  typedef EW NoSite[0];
+  typedef NoSite & NoRef;
+  typedef NoRef NRR;
+
+  typedef EW BigSite[10];
+  typedef BigSite & BSRef;
+  typedef BSRef BRR;
+
+  Int test(){
+    NoSite nosite;
+    NoRef nositeref = nosite;
+    NRR nrr = nositeref; //ref to ref
+    //EW ewno = nosite[0]; //ARRAY_INDEX_OUT_OF_BOUNDS (t3842)
+
+    s.assert(NoSite.sizeof == 0);
+    s.assert(nosite.sizeof == 0);
+
+    //the rest should gcc compile without ambiguity
+    BigSite site;
+    BSRef siteref = site;
+    BRR brr = siteref; //ref to ref
+    EW ew;
+    EW ewread;
+    for(Int i = 0; i < 10; ++i){
+      siteref[i] = ew;
+      siteref[i].set(1, i);
+      s.print(brr[i].get(1));
+      ewread = siteref[i]; //assign from
+      s.assert(ewread is EW);
+      EW ewr2 = siteref[i]; //init from
+      s.assert(ewr2 is EW);
+    }
+    s.print(brr.sizeof);
+    s.assert(brr.sizeof == 960);
+    return 10;
+  }
+}
+
+#:EW.ulam
+  ulam 2;
+element EW {
+  Bool bw;
+  Int(8) iwarr[3];
+  Bits(9) tw; // total > 32 bits
+  Void set(Int i, Int v)
+  {
+    iwarr[i] = (Int(8)) v;
+  }
+
+  Int get(Int i)
+  {
+    return iwarr[i];
+  }
+
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

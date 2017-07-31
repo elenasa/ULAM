@@ -1,0 +1,15 @@
+/**
+   Diffusion Limited Aggregation demo.  Use with Res.
+   \symbol DL
+   \color #838
+   \symmetries all
+
+   \author Dave Ackley
+   \license public-domain
+*/
+element DLA {
+  EventWindow ew;
+  Void behave() {
+    if (ew[1] is Res) ew[1] = self;
+  }
+}

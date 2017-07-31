@@ -1,0 +1,38 @@
+## -*- mode:ulam -*-
+#=t3622_test_compiler_quarkinheritances_superclassready_ish
+#!
+Exit status: 0
+Ue_TriggerIshSCLR { IshSCLR me( :< constant Unsigned(32) a = 8u; >);  Int(32) test() {  0 cast return } }
+Uq_IshSCLR : ISHY(8u) { /* empty class block */ }
+Uq_ISHY(Unsigned(32) a) { /* empty class block */ }
+Uq_IshSCLR2 : ISHY(8u) { /* empty class block */ }
+##
+##   culamtest: NodeBlockClass.cpp:283: virtual MFM::u16 MFM::NodeBlockClass::checkAndLabelType():
+##   Assertion "isSuperClassLinkReady()" failed.
+##
+#>TriggerIshSCLR.ulam
+  ulam 2;
+use IshSCLR;
+use IshSCLR2;
+element TriggerIshSCLR {
+  IshSCLR me;
+  Int test(){
+    return 0;
+    }
+}
+
+#:ISHY.ulam
+  ulam 2;
+quark ISHY(Unsigned a) { }
+
+#:IshSCLR.ulam
+  ulam 2;
+use ISHY;
+quark IshSCLR : ISHY(8) { }
+
+#:IshSCLR2.ulam
+  ulam 2;
+use ISHY;
+quark IshSCLR2 : ISHY(8) { }
+
+#.

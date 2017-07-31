@@ -1,0 +1,66 @@
+## -*- mode:ulam -*-
+#=t3599_test_compiler_elementinheritedquarkwclassargs_superfuncnotfound_issue
+#!
+Exit status: 0
+Ue_CLife0 : CLife { :< :< constant Unary(5) stateCount = 1u;  typedef Unary(2) Phase;  Unary(2) phase(1u);  constant Unary(2) cBLUE = 0u;  constant Unary(2) cRED = 1u;  constant Unary(2) cGREEN = 3u; >> Int(32) test() {  ( )behave 0 cast return } }
+Uq_CLife : QSync(1) { :< typedef Unary(2) Phase;  Unary(2) phase(0);  constant Unary(2) cBLUE = 0u;  constant Unary(2) cRED = 1u;  constant Unary(2) cGREEN = 3u; > <NOMAIN> }
+Uq_QSync(Unary(5) stateCount) { typedef Unary(2) Phase;  Unary(2) phase(0);  constant Unary(2) cBLUE = 0u;  constant Unary(2) cRED = 1u;  constant Unary(2) cGREEN = 3u;  <NOMAIN> }
+##
+## informed by CLife issue, can we find the superBehave?
+##
+#>CLife0.ulam
+  ulam 2;
+//use CLife;
+element CLife0 : CLife
+{
+  virtual Void behave() {
+    superBehave(); //clifeBehave(); works
+  }
+
+  Int test()
+  {
+    behave();
+    return 0;
+  }
+}
+
+#:CLife.ulam
+  ulam 2;
+//use QSync;
+quark CLife : QSync(1u) {
+  //typedef QSync(1u) Super; //also automatic
+
+  Void clifeBehave()
+  {
+    superBehave();
+  }
+}
+
+#:QSync.ulam
+  ulam 2;
+quark QSync(Unary(5) stateCount) {
+
+  typedef Unary(2) Phase;
+  Phase phase;
+
+  constant Phase cBLUE = 0;
+  constant Phase cRED = 1;
+  constant Phase cGREEN = 2;
+
+  Phase prev(Phase cur) {
+    if (cur == cBLUE) return cGREEN;
+    return (Phase) (cur - 1);
+  }
+  Phase next(Phase cur) {
+    if (cur == cGREEN) return cBLUE;
+    return (Phase) (cur + 1);
+  }
+
+  Void superBehave() {
+    // Check the neighborhood for laggards
+    Phase prevPhase = prev(phase);
+    phase = next(phase);
+  } //superBehave
+}
+
+#.

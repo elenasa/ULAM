@@ -1,0 +1,85 @@
+ulam 2;
+
+/**
+   A second-generation scanning framework to help automate common
+   event window search and selection tasks -- and avoid unintentional
+   spatial anisotropies due to selection bias.  This class
+   (WindowScanner) provides data storage and drivers.  Subclass
+   SiteVisitor to define particular search parameters.
+
+   \author Dave Ackley
+   \license lgpl
+*/
+transient WindowScanner {
+  typedef EventWindow.SiteNum SiteNum;
+
+  // Utilities
+  MDist mdist;
+  Random random;
+  DebugUtils debug;
+  EventWindow ew;
+  Fail fail;
+
+  typedef Unary(4) Radius;
+  typedef Unsigned(5) Category;
+  constant Unsigned cCATEGORY_COUNT = Category.maxof + 1;
+
+  Void die() { Fail f; f.fail(); }
+
+  SiteNum mSites[cCATEGORY_COUNT];
+  Unsigned mWeights[cCATEGORY_COUNT];
+  Unsigned mCategoriesInUse;
+
+  Void resetCategories() { mCategoriesInUse = 0; }
+
+  Category allocateCategory() {
+    if (mCategoriesInUse >= cCATEGORY_COUNT) die();
+    Category ret = (Category) mCategoriesInUse;
+    ++mCategoriesInUse;
+    return ret;
+  }
+
+  Unsigned categoriesAvailable() {
+    return (Unsigned) (cCATEGORY_COUNT - mCategoriesInUse);
+  }
+
+  Void initScan() {
+    for (Unsigned c = 0; c < cCATEGORY_COUNT; ++c) {
+      mSites[c] = SiteNum.maxof;
+      mWeights[c] = 0;
+    }
+  }
+
+  Void scan(SiteVisitor& visitor) {
+    scan(visitor, (Radius) 1, (Radius) ew.getRadius());
+  }
+
+  Void scan(SiteVisitor& visitor, Radius inner, Radius outer) {
+    initScan();
+
+    SiteNum end = mdist.getLastIndex(outer);
+    for (SiteNum sn = mdist.getFirstIndex(inner); sn <= end; ++sn) {
+      Atom a = ew[sn];
+      visitor.visit(self, a, sn);
+    }
+  }
+
+  SiteNum categorize(SiteNum sn, Category categ) {
+    return categorize(sn,categ,1);
+  }
+
+  SiteNum categorize(SiteNum sn, Category categ, Unsigned weight) {
+    if (categ >= mCategoriesInUse) die();
+    mWeights[categ] += weight;
+    if (mWeights[categ] == 0u) return SiteNum.maxof; // Flag value for bogons adding with no weight
+    if (random.create(mWeights[categ]) < weight) {
+      mSites[categ] = sn;
+    }
+    return mSites[categ];
+  }
+
+  Unsigned getHits(Category categ) { return mWeights[categ]; }
+  SiteNum getSiteNum(Category categ) { return mSites[categ]; }
+  C2D getCoord(Category categ) { return ew.getCoord(mSites[categ]); }
+}
+

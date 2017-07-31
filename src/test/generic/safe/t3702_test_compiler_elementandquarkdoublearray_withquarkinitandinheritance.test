@@ -1,0 +1,67 @@
+## -*- mode:ulam -*-
+#=t3702_test_compiler_elementandquarkdoublearray_withquarkinitandinheritance
+#!
+##
+## gencode output (assert after):
+## Bool(3) Arg: 0x7 (true)
+##
+Exit status: 0
+Ue_Foo { Bool(3) b(true);  typedef Car Pop[2];  System s();  Car m_bar2[2]( :< Bool(1) val_b[3](false,false,false); > Bool(1) cb(true);  :< Bool(1) val_b[3](false,true,false); > Bool(1) cb(true); );  Int(32) test() {  Unary(1) i = 1u cast;  m_bar2 i [] val_b i [] . true = b m_bar2 i [] val_b i [] . cast = s ( b )print . s ( b cast )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Uq_Car : Bar { :< Bool(1) val_b[3](false,false,false); > Bool(1) cb( true);  <NOMAIN> }
+Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
+##
+## informed by 3543
+##
+#>Foo.ulam
+  ulam 2;
+use System;
+use Car;
+element Foo {
+  typedef Car Pop[2];
+  System s;
+  Bool(3) b;
+  Pop m_bar2;
+  Int test() {
+    Unary(1) i = 1u;
+
+    m_bar2[i].val_b[i] = true; //write case
+
+    b = m_bar2[i].val_b[i]; //read case
+
+    s.print(b); //true, should be
+    s.assert(b);
+    return 0;
+  }
+}
+
+#:Car.ulam
+  ulam 2;
+use Bar;
+quark Car : Bar {
+  Bool cb = true;
+}
+
+#:Bar.ulam
+  ulam 2;
+quark Bar {
+  Bool val_b[3];
+  Void reset(Bool b) {
+    b = false; //noop
+  }
+  //  Atom aref(Int index) native;
+  //Void aset(Int index, Atom v) native;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

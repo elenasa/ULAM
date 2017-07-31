@@ -1,0 +1,41 @@
+/**
+   Four lines.
+   \symbol Bx
+   \color #f0a
+
+   \author Dave Ackley
+   \license public-domain
+*/
+element Box : QLine(4)
+{
+  typedef EventWindow.Symmetry Sym;
+
+  Sym m_sym;
+
+  Void nextSym() {
+    if (m_sym == ew.cSYMMETRY_270L) m_sym = ew.cSYMMETRY_000L;
+    else ++m_sym;
+  }
+  Void prevSym() {
+    if (m_sym == ew.cSYMMETRY_000L) m_sym = ew.cSYMMETRY_270L;
+    else --m_sym;
+  }
+  Void behave() {
+    ew.changeSymmetry(m_sym);
+
+    updateQLine();
+    if (isMax() && ew[4] is Empty) {
+      Box b = self;
+      b.m_position = m_position.minof;
+      b.nextSym();
+      ew[4] = b;
+    }
+
+    if (isMin() && ew[3] is Empty) {
+      Box b = self;
+      b.m_position = m_position.maxof;
+      b.prevSym();
+      ew[3] = b;
+    }
+  }
+}

@@ -1,0 +1,30 @@
+## -*- mode:ulam -*-
+#=t3282_test_compiler_continue_error
+#!
+##       // must turn off eval testing to avoid infinite loop; only gencode testable
+##
+Exit status: 0
+Ue_Fu { Int(32) test() {  { Int(32) i;  i 0 cast = i 5 cast < cond goto _1: i 1 cast += while } Int(32) j;  j 5 cast = j 1 cast -= 0 cast > cond j 1 cast == cond goto if _2: while 0 cast return } }
+#>Fu.ulam
+ulam 1;
+element Fu {
+Int test(){
+for(Int i = 0; i < 5; ++i)
+ continue;
+ Int j=5;
+while(--j > 0)
+ if(j == 1) continue;
+return 0;
+}
+}
+##
+##      // ends in code generated compile
+##      //bool rtn1 = fms->add("Fu.ulam", "ulam 1;\nelement Fu {\nInt test(){\nfor(Int i = 0; i < 5; ++i){\n if(i==0) continue;\n }\nreturn 0;\n}\n}\n");
+##
+##      // ends in code generated compile
+##      //bool rtn1 = fms->add("Fu.ulam", "ulam 1;\nelement Fu {\nInt test(){\nfor(Int i = 0; i < 5; ++i) continue;\nreturn 0;\n}\n}\n");
+##
+##      // ends in code generated compile
+##      //bool rtn1 = fms->add("Fu.ulam", "ulam 1;\nelement Fu {\nInt test(){\n Int j=5;\nwhile(--j > 0)\n if(j == 1) continue;\nreturn 0;\n}\n}\n");
+##
+#.

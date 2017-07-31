@@ -1,0 +1,36 @@
+## -*- mode:ulam -*-
+#=t3575_test_compiler_elementandquarkinheritancetemplatemix_wfunccall
+#!
+Exit status: 8
+Ue_R { Int(32) test() {  Tu(1) tu;  tu ( )func . tu ( )func . +b return } }
+Ue_Tu(Int(32) x) : Foo { /* empty class block */ }
+Uq_Foo { Int(32) mi( 4);  <NOMAIN> }
+##
+##       //template classes can inherit from a regular class
+##       informed by t3567, error/t3556
+##
+#>R.ulam
+  ulam 2;
+element R{
+  Int test(){
+    Tu(1) tu;
+    return tu.func() + tu.func(); //expect 8
+  }
+}
+
+#:Tu.ulam
+  ulam 2;
+use Foo;
+element Tu (Int x) : Foo {
+}
+
+#:Foo.ulam
+  ulam 2;
+quark Foo {
+  Int mi = 4; //constant, parameter also work!!
+  Int func()
+  {
+    return mi;
+  }
+}
+#.

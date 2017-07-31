@@ -1,0 +1,73 @@
+## -*- mode:ulam -*-
+#=t3727_test_compiler_transientinstanceof
+##
+## gen output: 6 asserts
+## eval: bb is false; should be true
+#!
+Exit status: 3
+Ue_R { Int(32) test() {  System s;  TPerc t;  t bb . true = t ( 7 cast )set . s ( t bb . )assert . s ( t ( )get . 7 cast == )assert . TPerc& tref = t cast;  s ( tref bb . )assert . s ( tref ( )get . 7 cast == )assert . TPerc b = TPerc.instanceof;  s ( b bb . t bb . != )assert . s ( b ( )get . t ( )get . != )assert . b ( )get . return } }
+Un_TPerc : Foo { :< Int(32) m_i( 3); > Bool(1) bb(false);  <NOMAIN> }
+Un_Foo { Int(32) m_i( 3);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by a Dave ish 2/19/2016;
+##
+#>R.ulam
+  ulam 2;
+use TPerc;
+use System;
+element R {
+  Int test() {
+    System s;
+    TPerc t;
+    t.bb = true;
+    t.set(7);
+    s.assert(t.bb);
+    s.assert(t.get() == 7);
+
+    TPerc& tref = t;
+    s.assert(tref.bb);
+    s.assert(tref.get() == 7);
+
+    TPerc b = TPerc.instanceof; //not a lhs ref (see t3659)
+    s.assert(b.bb != t.bb);
+    s.assert(b.get() != t.get());
+    return b.get();
+  }
+}
+
+#:TPerc.ulam
+  ulam 2;
+use Foo;
+transient TPerc : Foo {
+  Bool bb;
+}
+
+#:Foo.ulam
+  ulam 2;
+transient Foo {
+  Int m_i = 3;
+  Int get() {
+    return m_i;
+  }
+
+  Void set(Int x)
+  {
+    m_i = x;
+  }
+}
+
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
+#.

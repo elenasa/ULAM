@@ -1,0 +1,15 @@
+/* just some passive elements to serve as 'wood chips' in the base
+   layer */
+
+quark QC(Unsigned col) { 
+  ColorUtils cu;
+  ARGB getColor(Unsigned selector) { return cu.color(col); }
+  Void behave() { }
+}
+
+element Red :    QC(0xdd3333) { }
+element Green :  QC(0x33dd33) { }
+element Blue :   QC(0x3333dd) { }
+element Yellow : QC(0xdddd33) { }
+element Purple : QC(0xdd33dd) { }
+element Cyan :   QC(0x33dddd) { }

@@ -1,0 +1,151 @@
+ulam 1;
+
+/**
+   Port for a four-port router, lifted to a quark.  Class parameter
+   extraScanDistance determines how far beyond distance 1 the port
+   should scan.
+ */
+quark QPort4(Unsigned(2) extraScanDistance)  {
+  //typedef QPort4(extraScanDistance) Self;
+  typedef EventWindow.SiteNum SiteNum;
+
+  typedef Cell.PortId PortId;
+  typedef Cell.ARGB ARGB;
+
+  typedef Unsigned(2) GossipLevel;
+
+  // Standard utils
+  AtomUtils au;
+  DebugUtils dbg;
+  EventWindow ew;
+  Fail fail;
+  Random r;
+
+  // Custom utils
+  // XXX Skipping CDU in demo to avoid native code
+  // CellDataUtils cdu;
+
+  PortId m_portId;
+  Unsigned(2) m_lastRcvAge;
+  PortId m_lastRcvSrc;
+  GossipLevel m_heardFrom[PortId.maxof + 1];
+  Once m_once;
+
+  ARGB getColorQ(Unsigned selector) {
+    Cell aPkt;
+    ColorUtils cu;
+    if (selector == 0u || selector > 4u)   // Def
+      return cu.color(0xffccccccU);
+    if (selector == 3u)                   // PaRo
+      return cu.color(0xff000000U);
+    /* selector == 1, 2, 4 */
+    if (m_lastRcvAge < m_lastRcvAge.maxof)
+      return aPkt.portColor(m_lastRcvSrc);
+    return aPkt.portColor(m_portId);
+  }
+
+  Bool shouldCreateCell() {
+    Parameters parms;
+    return r.oddsOf(10, parms.pDATA_INJECTION_ODDS);
+  }
+
+  Void init(PortId portid) {
+    if (m_once.new()) {
+      m_portId = portid;
+      m_lastRcvAge = m_lastRcvAge.maxof;
+      for (Unsigned i = 0; i <= PortId.maxof; ++i) {
+        m_heardFrom[i] = GossipLevel.maxof;
+      }
+    }
+  }
+
+  Void update() {
+
+    // stochastic timer by hand (SHOULD USE XTimer!)
+    if (m_lastRcvAge < m_lastRcvAge.maxof
+        && r.oneIn((Unsigned) (2<<m_lastRcvAge)))
+      ++m_lastRcvAge;
+
+    Int selft = au.getType(self.atomof);
+
+    {
+      WindowServices ws;
+      //      ws.reset(1,extraScanDistance + 1);
+      ws.reset(1,2 + 1);
+      Int et = ws.cEMPTY_SITES_HIT;
+      Cell cell;
+      Int ct = au.getType((Atom) cell);
+      if (ws.scan(et, selft, ct)) { // scan for empties, us, and cells
+
+        // If any neighbors, gossip on heardFrom
+        if (ws.getHits(1) > 0) {
+          SiteNum selfIdx = ws.getPick(1);
+          Atom aa = ew[selfIdx];
+          if (aa as Self) {
+            Self s = aa;
+            // Pick a random port to ask about
+            PortId pid = (PortId) r.bits(PortId.sizeof);
+            GossipLevel gl = (GossipLevel) (s.m_heardFrom[pid] + 1u);
+            if (gl < m_heardFrom[pid])
+              m_heardFrom[pid] = gl;
+          } else {
+            fail.fail();
+          }
+        }
+
+        // Check for inbound packets
+        if (ws.getHits(2) > 0) {
+          SiteNum cellIdx = ws.getPick(2);
+          Cell p = (Cell) ew[cellIdx];
+          if (p.dstPort == m_portId) {
+            // Ding ding ding!
+
+            // XXX cdu.finish(p.srcPort, p.dstPort, p.payload, (CellDataUtils.Age) p.age.current(), true);
+
+            m_lastRcvAge = 0;
+            m_lastRcvSrc = p.srcPort;
+            m_heardFrom[m_lastRcvSrc] = 0;
+            Empty e;
+            ew[cellIdx] = (Atom) e;
+          }
+        }
+
+        // If it's time to ship a packet..
+
+        if (shouldCreateCell()) {
+          PortId dest;
+          SelectorServices ss;
+          for (Int i = 0; i <= PortId.maxof; ++i) {
+
+            // Age contacts every so often, in case they've died
+            if (r.oneIn(100)) ++m_heardFrom[i];
+
+            if (i == (Int) m_portId) continue;
+            Int weight = 1;
+            if (m_heardFrom[i] <= 1) weight = 1000;
+            ss.count(i, weight);
+          }
+
+          // We have our destination
+          dest = (PortId) ss.getSelectedKey();
+
+          if (ws.getHits(0) == 0) {
+
+            // Uh-oh, no place to put it :(
+            // XXX cdu.start(m_portId,dest,false); // Make sure somebody knows that
+
+          } else {
+
+            //XXX Cell.Data data = cdu.start(m_portId,dest,true);
+            Cell.Data data = (Cell.Data) r.bits(Cell.Data.sizeof);
+
+            cell.init(m_portId,dest,data);
+            SiteNum empIdx = ws.getPick(0);
+            ew[empIdx] = cell;  // The bird is away!
+
+          }
+        }
+      }
+    }
+  }
+}

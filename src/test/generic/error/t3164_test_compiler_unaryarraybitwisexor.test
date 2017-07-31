@@ -1,0 +1,23 @@
+## -*- mode:ulam -*-
+#=t3164_test_compiler_unaryarraybitwisexor
+#!
+./A.ulam:9:8: ERROR: Incompatible (nonscalar) types Unary(3)[2] and Unary(3)[2] for binary operator^ ; Suggest writing a loop.
+./A.ulam:9:4: ERROR: Assignment is invalid; LHS: Unary(3)[2]; RHS: erroneous.
+./A.ulam:1:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: A.
+Unrecoverable Program Type Label FAILURE.
+##
+#>A.ulam
+element A {
+ typedef Unary(3) Mu[2];
+ Mu a, b, c;
+ Int test(){
+  a[0] = 2;
+ a[1] = 1;
+ b[0] = 0;
+ b[1] = 2;
+ c = a ^ b;
+ return c[0];
+ }
+ }
+##      //bool rtn1 = fms->add("A.ulam","element A { typedef Unary(3) Mu[2]; Mu a, b, c;  use test;  a[0] = 2; a[1] = 1; b[0] = 0; b[1] = 2; c = a ^ b; return c[0]; } }");
+#.

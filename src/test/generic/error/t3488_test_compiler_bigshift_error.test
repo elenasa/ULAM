@@ -1,0 +1,56 @@
+## -*- mode:ulam -*-
+#=t3488_test_compiler_bigshift_error
+#!
+./A.ulam:12:39: ERROR: Model Parameter 'm_p2' must fit in 32 bits.
+./A.ulam:14:23: Warning: Shift distance greater than data width, operator<<.
+./A.ulam:15:18: Warning: Shift distance greater than data width, operator<<.
+./A.ulam:16:23: Warning: Shift distance greater than data width, operator>>.
+./A.ulam:17:18: Warning: Shift distance greater than data width, operator>>.
+./A.ulam:4:10: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
+./A.ulam:4:10: ERROR: 4 Nodes with unresolved types detected after type labeling class: A.
+Unrecoverable Program Type Label FAILURE.
+##
+##      //informed by t3480
+##
+#>A.ulam
+ ulam 1;
+ use B;
+ /** This Is A Structured Comment. */
+ element A {
+ B(1) b;
+ B(2) b2;
+ Unsigned(8) d,f;
+ Int(8) e,g;
+ /**This is a model parameter: */
+ parameter Int(3) m_p = -1;
+ /**fake out */
+ /**2nd model parameter: */ parameter Unsigned(64) m_p2 = 0;
+ Int test(){constant Unsigned shift = 32;
+ d = (Unsigned(8)) (1 << shift);
+ e = (Int(8)) (1 << shift);
+ f = (Unsigned(8)) (1 >> shift);
+ g = (Int(8)) (1 >> shift);
+ return 0;
+ }
+}
+
+#:B.ulam
+/** This is quark B */
+quark B(Int a){
+ }
+##
+##      //debug output for TARGETMAP and PARAMETERMAP:
+##      //Size of target map is 3
+##      //ULAM INFO: TARGET ./A.ulam:4:10: A Ue_102321A10 32 test element /**%20This%20Is%20A%20Structured%20Comment.%20*/
+##      //ULAM INFO: TARGET ./B.ulam:1:30: B Uq_10101B11102321i11 0 notest quark /**%20This%20is%20quark%20B%20*/
+##      //ULAM INFO: TARGET ./B.ulam:1:30: B Uq_10101B11102321i12 0 notest quark /**%20This%20is%20quark%20B%20*/
+##      //Size of model parameter map is 2
+##      //ULAM INFO: PARAMETER ./A.ulam:10:38: Ut_10131i Uc_Ue_102321A10_Up_3m_p 0xffffffffffffffff /**This%20is%20a%20%0amodel%20parameter:%20*/
+##      //ULAM INFO: PARAMETER ./A.ulam:12:51: Ut_10131u Uc_Ue_102321A10_Up_4m_p2 0x0 /**2nd%20model%20parameter:%20*/
+##
+##
+##      // regardless signed or unsigned
+##      //note: g++ shift == 32 produces 1 << 32 = 1, 1 >> 32 = 0; for ulam: 1 << 32 = 0; 1 >> 32 = 0; DIFFERENT!
+##      //note: g++ shift == 33 produces 1 << 33 = 2, 1 >> 33 = 0; for ulam: 1 << 33 = 0; 1 >> 33 = 0; DIFFERENT!
+##
+#.
