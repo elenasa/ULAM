@@ -570,7 +570,7 @@ namespace MFM {
   {
     assert(m_nodeCondition && m_nodeLeft && m_nodeRight);
     UTI nuti = getNodeType();
-    if(!m_state.getReferenceType(nuti) != ALT_REF)
+    if(m_state.getReferenceType(nuti) != ALT_REF)
       nuti = m_state.getUlamTypeAsRef(nuti); //e.g. called by NodeCast t41071
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
@@ -658,7 +658,7 @@ namespace MFM {
   void NodeQuestionColon::genCodeToStoreIntoExpression(File * fp, UVPass& uvpass, s32 tmpVarNum)
   {
     UTI nuti = getNodeType();
-    if(!m_state.getReferenceType(nuti) != ALT_REF)
+    if(m_state.getReferenceType(nuti) != ALT_REF)
       nuti = m_state.getUlamTypeAsRef(nuti); //e.g. called by NodeCast t41071
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
@@ -684,7 +684,7 @@ namespace MFM {
 	    fp->write(m_state.getTmpVarAsString(nuti, tmpvarstr, TMPAUTOREF).c_str());
 	    fp->write(";"); GCNL;
 	  }
-	else if(!m_state.getReferenceType(cosuti) != ALT_REF)
+	else if(m_state.getReferenceType(cosuti) != ALT_REF)
 	  {
 	      //called by NodeCast t41071
 	    {
