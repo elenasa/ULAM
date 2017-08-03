@@ -300,8 +300,6 @@ namespace MFM{
 
     //e.g. when constant array item, primitive
     void genCodeConvertATmpVarIntoConstantAutoRef(File * fp, UVPass & luvpass, UVPass ruvpass);
-    //e.g. when a custom array item
-    //void genCodeConvertATmpVarIntoCustomArrayAutoRef(File * fp, UVPass & luvpass, UVPass ruvpass);
     //e.g. when lhs of member select is an array item of class type, rhs data member
     void genCodeARefFromARefStorage(File * fp, UVPass stguvpass, UVPass uvpass);
 
