@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "NodeConstant.h"
+#include "NodeConstantArray.h"
 #include "NodeIdent.h"
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
@@ -16,7 +17,7 @@ namespace MFM {
   NodeIdent::NodeIdent(const Token& tok, SymbolVariable * symptr, CompilerState & state) : Node(state), m_token(tok), m_varSymbol(symptr), m_currBlockNo(0)
   {
     if(symptr)
-      m_currBlockNo = symptr->getBlockNoOfST();
+      setBlockNo(symptr->getBlockNoOfST());
     Node::setStoreIntoAble(TBOOL_HAZY);
   }
 
@@ -45,18 +46,103 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  bool NodeIdent::getSymbolPtr(Symbol *& symptrref)
-  {
-    symptrref = m_varSymbol;
-    return true;
-  }
-
   void NodeIdent::setSymbolPtr(SymbolVariable * vsymptr)
   {
     assert(vsymptr);
     m_varSymbol = vsymptr;
-    m_currBlockNo = vsymptr->getBlockNoOfST();
+    setBlockNo(vsymptr->getBlockNoOfST());
     assert(m_currBlockNo);
+  }
+
+  bool NodeIdent::getSymbolPtr(Symbol *& symptrref)
+  {
+    symptrref = m_varSymbol;
+    return (m_varSymbol != NULL); //true not-null
+  }
+
+  bool NodeIdent::getSymbolPtr(SymbolVariable *& symptrref) const
+  {
+    symptrref = m_varSymbol;
+    return (m_varSymbol != NULL); //true not-null
+  }
+
+  bool NodeIdent::getStorageSymbolPtr(Symbol *& symptrref)
+  {
+    UTI nuti = getNodeType();
+    assert(m_state.okUTItoContinue(nuti));
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    ULAMCLASSTYPE classtype = nut->getUlamClassType();
+    //only atom, and elements, and quark refs, are considered 'storage'
+    if((classtype == UC_ELEMENT) || ((classtype == UC_QUARK) && nut->isReference()) || m_state.isAtom(nuti))
+      {
+	symptrref = m_varSymbol;
+	return true;
+      }
+    return false;
+  }
+
+  bool NodeIdent::hasASymbolDataMember()
+  {
+    assert(m_varSymbol);
+    return m_varSymbol->isDataMember();
+  }
+
+  bool NodeIdent::hasASymbolSuper()
+  {
+    assert(m_varSymbol);
+    return m_varSymbol->isSuper();
+  }
+
+  bool NodeIdent::hasASymbolSelf()
+  {
+    assert(m_varSymbol);
+    return m_varSymbol->isSelf();
+  }
+
+  bool NodeIdent::hasASymbolReference()
+  {
+    UTI nuti = getNodeType();
+    assert(m_state.okUTItoContinue(nuti));
+    return m_state.isReference(nuti);
+  }
+
+  void NodeIdent::setupBlockNo()
+  {
+    //define before used, start search with current block
+    if(m_currBlockNo == 0)
+      {
+	if(m_state.useMemberBlock())
+	  {
+	    NodeBlockClass * memberclass = m_state.getCurrentMemberClassBlock();
+	    assert(memberclass);
+	    setBlockNo(memberclass->getNodeNo());
+	  }
+	else
+	  setBlockNo(m_state.getCurrentBlock()->getNodeNo());
+      }
+  } //setupBlockNo
+
+  void NodeIdent::setBlockNo(NNO n)
+  {
+    assert(n > 0);
+    m_currBlockNo = n;
+  }
+
+  NNO NodeIdent::getBlockNo() const
+  {
+    return m_currBlockNo;
+  }
+
+  NodeBlock * NodeIdent::getBlock()
+  {
+    assert(m_currBlockNo);
+    //case where the typebitsize is an expression in a stub; trying to resolve pending arg;
+    // context is location of stub useage; use this version of findNodeNo that checks
+    // m_pendingArgStubContext and starts the search there if so (t3626);
+    // note: the template has its NodeIdent surgerized, but after the stub parsing.
+    NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClassStubFirst(m_currBlockNo);
+    assert(currBlock);
+    return currBlock;
   }
 
   const Token& NodeIdent::getToken() const
@@ -67,25 +153,25 @@ namespace MFM {
   bool NodeIdent::isAConstant()
   {
     bool rtn = false;
-    //may not have known at parse time;
+    //may not have known at parse time; no side-effects until c&l
     if(!m_varSymbol)
       {
 	//is it a constant within the member?
-	NodeBlockClass * memberclass = m_state.getClassBlock();
+	NodeBlockContext * memberclass = m_state.getContextBlock();
 	assert(memberclass);
+
 	m_state.pushCurrentBlock(memberclass);
 
 	Symbol * asymptr = NULL;
 	bool hazyKin = false;
 	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
 	  {
-	    if(asymptr->isConstant())
-	      {
-		rtn = true; //no side-effects until c&l
-	      }
+	    rtn = asymptr->isConstant();
 	  }
 	m_state.popClassContext(); //restore
       }
+    else
+      rtn = m_varSymbol->isConstant();
     return rtn;
   } //isAConstant
 
@@ -100,23 +186,12 @@ namespace MFM {
     UTI it = Nouti;  //init (was Nav)
     u32 errCnt = 0;
 
+    setupBlockNo(); //in case zero
+
     //checkForSymbol:
     //2 cases: use was before def, look up in class block; cloned unknown
     if(m_varSymbol == NULL)
       {
-	//used before defined, start search with current block
-	if(m_currBlockNo == 0)
-	  {
-	    if(m_state.useMemberBlock())
-	      {
-		NodeBlockClass * memberclass = m_state.getCurrentMemberClassBlock();
-		assert(memberclass);
-		m_currBlockNo = memberclass->getNodeNo();
-	      }
-	    else
-	      m_currBlockNo = m_state.getCurrentBlock()->getNodeNo();
-	  }
-
 	UTI cuti = m_state.getCompileThisIdx(); //for error messages
 	NodeBlock * currBlock = getBlock();
 	if(m_state.useMemberBlock())
@@ -129,52 +204,32 @@ namespace MFM {
 
 	Symbol * asymptr = NULL;
 	bool hazyKin = false;
-	// don't capture symbol ptr yet if part of incomplete chain.
-	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin) && !hazyKin)
+	// must capture symbol ptr even if part of incomplete chain to do any necessary surgery (e.g. stub class args t3526, t3525)
+	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
 	  {
 	    if(!asymptr->isFunction() && !asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter())
 	      {
 		setSymbolPtr((SymbolVariable *) asymptr);
 		//assert(asymptr->getBlockNoOfST() == m_currBlockNo); not necessarily true
 		// e.g. var used before defined, and then is a data member outside current func block.
-		m_currBlockNo = asymptr->getBlockNoOfST(); //refined
+		setBlockNo(asymptr->getBlockNoOfST()); //refined
 	      }
 	    else if(asymptr->isConstant())
 	      {
+		UTI auti = asymptr->getUlamTypeIdx();
 		// replace ourselves with a constant node instead;
 		// same node no, and loc (e.g. t3573)
-		//NodeConstant * newnode = new NodeConstant(*this);
-		NodeConstant * newnode = new NodeConstant(m_token, (SymbolWithValue *) asymptr, m_state);
+		Node * newnode = NULL;
+
+		if(m_state.isScalar(auti))
+		  newnode = new NodeConstant(m_token, (SymbolWithValue *) asymptr, m_state);
+		else
+		  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) asymptr, m_state);
 		assert(newnode);
 
-		NNO pno = Node::getYourParentNo();
-		m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
-		Node * parentNode = m_state.findNodeNoInThisClass(pno);
-		if(!parentNode)
-		  {
-		    std::ostringstream msg;
-		    msg << "Named Constant variable '" << getName();
-		    msg << "' cannot be exchanged at this time while compiling class: ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		    msg << " Parent required";
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		    assert(0); //parent required
-		  }
-
-		AssertBool swapOk = parentNode->exchangeKids(this, newnode);
+		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
 		assert(swapOk);
 
-		std::ostringstream msg;
-		msg << "Exchanged kids! <" << m_state.getTokenDataAsString(m_token).c_str();
-		msg << "> a named constant, in place of a variable with class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-
-		newnode->setNodeLocation(getNodeLocation());
-		newnode->setYourParentNo(pno); //missing?
-		newnode->resetNodeNo(getNodeNo()); //missing?
-
-		m_state.popClassContext(); //restore
 		m_state.popClassContext(); //restore
 
 		delete this; //suicide is painless..
@@ -185,38 +240,12 @@ namespace MFM {
 	      {
 		// replace ourselves with a parameter node instead;
 		// same node no, and loc
-		//NodeModelParameter * newnode = new NodeModelParameter(*this);
 		NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) asymptr, m_state);
 		assert(newnode);
 
-		NNO pno = Node::getYourParentNo();
-		m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
-		Node * parentNode = m_state.findNodeNoInThisClass(pno);
-		if(!parentNode)
-		  {
-		    std::ostringstream msg;
-		    msg << "Model Parameter variable '" << getName();
-		    msg << "' cannot be exchanged at this time while compiling class: ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		    msg << " Parent required";
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		    assert(0); //parent required
-		  }
-
-		AssertBool swapOk = parentNode->exchangeKids(this, newnode);
+		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
 		assert(swapOk);
 
-		std::ostringstream msg;
-		msg << "Exchanged kids! <" << m_state.getTokenDataAsString(m_token).c_str();
-		msg << "> a model parameter, in place of a variable with class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-
-		newnode->setNodeLocation(getNodeLocation());
-		newnode->setYourParentNo(pno); //missing?
-		newnode->resetNodeNo(getNodeNo()); //missing?
-
-		m_state.popClassContext(); //restore
 		m_state.popClassContext(); //restore
 
 		delete this; //suicide is painless..
@@ -238,9 +267,8 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "(2) <" << m_state.getTokenDataAsString(m_token).c_str();
-	    msg << "> is not defined, and cannot be used with class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    msg << "Variable <" << m_state.getTokenDataAsString(m_token).c_str();
+	    msg << "> is not defined, or was used before declared in a function";
 	    if(!hazyKin)
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -255,12 +283,47 @@ namespace MFM {
 	    errCnt++;
 	    m_state.popClassContext(); //restore
 	  }
-      } //lookup symbol
+      } //lookup symbol done
+    else if(m_varSymbol->isConstant())
+      {
+	// CONSTANT ARRAY? TBD..
+	UTI vuti = m_varSymbol->getUlamTypeIdx();
+
+	// replace ourselves with a constant node instead;
+	// same node no, and loc (e.g. t3573, t3526)
+	Node * newnode = NULL;
+	if(m_state.isScalar(vuti))
+	  newnode = new NodeConstant(m_token, (SymbolWithValue *) m_varSymbol, m_state);
+	else
+	  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) m_varSymbol, m_state);
+	assert(newnode);
+
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	assert(swapOk);
+
+	delete this; //suicide is painless..
+
+	return newnode->checkAndLabelType();
+      }
+    else if(m_varSymbol->isModelParameter())
+      {
+	// replace ourselves with a parameter node instead;
+	// same node no, and loc
+	NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) m_varSymbol, m_state);
+	assert(newnode);
+
+	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	assert(swapOk);
+
+	delete this; //suicide is painless..
+
+	return newnode->checkAndLabelType();
+      }
 
     if(!errCnt && m_varSymbol)
       {
 	it = m_varSymbol->getUlamTypeIdx();
-	Node::setStoreIntoAble(TBOOL_TRUE); //store into an array entotal?
+	Node::setStoreIntoAble(m_varSymbol->isConstant() ? TBOOL_FALSE : TBOOL_TRUE); //store into an array entotal? t3881
 
 	//from NodeTypeDescriptor..e.g. for function call args in NodeList.
 	if(!m_state.isComplete(it))
@@ -304,30 +367,47 @@ namespace MFM {
 	  }
       }
 
+
     if(m_varSymbol && !m_varSymbol->isDataMember() && (((SymbolVariableStack *) m_varSymbol)->getDeclNodeNo() > getNodeNo()))
       {
+	NodeBlock * currBlock = getBlock();
+	currBlock = currBlock->getPreviousBlockPointer();
 	std::ostringstream msg;
 	msg << "Local variable '" << getName();
 	msg << "' was used before declared";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	it = Nav; //error/t3797
+	if(currBlock)
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    setBlockNo(currBlock->getNodeNo());
+	    m_varSymbol = NULL; //t3881, t3306, t3323
+	    it = Hzy;
+	    m_state.setGoAgain();
+	  }
+	else
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    it = Nav; //error/t3797
+	  }
       }
+
     setNodeType(it);
     return it;
   } //checkAndLabelType
 
-  NNO NodeIdent::getBlockNo() const
+  bool NodeIdent::trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr)
   {
-    return m_currBlockNo;
-  }
-
-  NodeBlock * NodeIdent::getBlock()
-  {
-    assert(m_currBlockNo);
-    NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
-    assert(currBlock);
-    return currBlock;
-  }
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    //self as good as element until runtime t3905
+    if((nut->getUlamClassType() == UC_ELEMENT) || m_varSymbol->isSelf())
+      {
+	if(fromleftnode)
+	  *fromleftnode = NULL; //clear for future deletion
+	rtnnodeptr = this;
+	return true;
+      }
+    return false;
+  } //trimToTheElement
 
   EvalStatus NodeIdent::eval()
   {
@@ -386,7 +466,7 @@ namespace MFM {
 			uv = UlamValue::makeImmediateLong(nuti, datavalue, m_state);
 		      }
 		    else
-		      assert(0);
+		      m_state.abortGreaterThanMaxBitsPerLong();
 		  }
 	      }
 	    else
@@ -420,7 +500,7 @@ namespace MFM {
 			uv = UlamValue::makeImmediateLong(nuti, datavalue, m_state);
 		      }
 		    else
-		      assert(0);
+		      m_state.abortGreaterThanMaxBitsPerLong();
 		  }
 	      }
 	  } // not node type
@@ -497,12 +577,6 @@ namespace MFM {
 	UlamValue selfuvp = m_state.m_currentSelfPtr;
 	UTI ttype = selfuvp.getPtrTargetType();
 	assert(m_state.okUTItoContinue(ttype));
-	if((m_state.getUlamTypeByIndex(ttype)->getUlamClassType() == UC_QUARK))
-	  {
-	    if(m_varSymbol->isSelf())
-	      selfuvp = m_state.getAtomPtrFromSelfPtr();
-	    //else
-	  }
 	return selfuvp;
       } //done
 
@@ -515,9 +589,10 @@ namespace MFM {
     UlamValue ptr;
     if(m_varSymbol->isDataMember())
       {
+	assert((UlamType::compareForUlamValueAssignment(m_varSymbol->getDataMemberClass(), m_state.m_currentObjPtr.getPtrTargetType(), m_state) == UTIC_SAME) || m_state.isClassASubclassOf(m_state.m_currentObjPtr.getPtrTargetType(), m_varSymbol->getDataMemberClass())); //sanity, right? t3915
 	// return ptr to this data member within the m_currentObjPtr
 	// 'pos' modified by this data member symbol's packed bit position
-	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset(), m_varSymbol->getId());
+	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 
 	ptr.checkForAbsolutePtr(m_state.m_currentObjPtr); //t3810
       }
@@ -542,27 +617,24 @@ namespace MFM {
 
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    assert(UlamType::compare(nuti, m_varSymbol->getUlamTypeIdx(), m_state) == UTIC_SAME);
 
-    u32 pos = uvpass.getPassPos(); //Thu Jun 23 16:01:08 2016
+    u32 pos = 0;
     if(m_varSymbol->isDataMember())
       {
-	if(!m_state.m_currentObjSymbolsForCodeGen.empty())
-	  {
-	    Symbol * sym = m_state.m_currentObjSymbolsForCodeGen.back();
-	    //here, we haven't taken into account any array indexes, So autoref instead
-	    // e.g. m_bar[0].cb, and this NI is for the rhs of member select, 'cb'
+	pos = uvpass.getPassPos();
+	// 'pos' modified by this data member symbol's packed bit position;
+	// except for array items, i.e. tmprefsymbols (t3910)
+	if(!m_varSymbol->isTmpVarSymbol())
+	  pos += m_varSymbol->getPosOffset();
 
-	    //if sym is an element, and not isSelf, and not a ref, pos += 25 (t3637)
-	    UTI suti = sym->getUlamTypeIdx();
-	    if(!sym->isSelf() && Node::needAdjustToStateBits(suti))
-	      pos += ATOMFIRSTSTATEBITPOS;
-	  }
-	// 'pos' modified by this data member symbol's packed bit position
-	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos + ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset(), m_varSymbol->getId());
+	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos, m_varSymbol->getId());
       }
     else
-      //local variable on the stack; could be array ptr!
-      uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
+      {
+	//local variable on the stack; could be array ptr!
+	uvpass = UVPass::makePass(tmpnum, nut->getTmpStorageTypeForTmpVar(), nuti, m_state.determinePackable(nuti), m_state, pos, m_varSymbol->getId());
+      }
   } //makeUVPassForCodeGen
 
   bool NodeIdent::installSymbolTypedef(TypeArgs& args, Symbol *& asymptr)
@@ -573,10 +645,9 @@ namespace MFM {
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.
-    if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex,asymptr))
+    if(m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr))
       {
 	tduti = asymptr->getUlamTypeIdx();
-	//if(asymptr->isTypedef() && m_state.isHolder(tduti))
 	if(asymptr->isTypedef())
 	  {
 	    if(m_state.isHolder(tduti))
@@ -589,7 +660,8 @@ namespace MFM {
 		// keep the out-of-band name; other's might refer to its UTI.
 		// if its UTI is a unseen class, we can update the name of the class later
 		// don't want to rush this step since we might have a class w args and diff UTI.
-		if((tclasstype == UC_NOTACLASS))
+		// furthermore, unseen class may not be a class at all (e.g. dot assumption wrong .maxof)
+		if((tclasstype == UC_NOTACLASS) || (tclasstype == UC_UNSEEN))
 		  {
 		    ULAMTYPE bUT = m_state.getBaseTypeFromToken(args.m_typeTok);
 
@@ -598,9 +670,11 @@ namespace MFM {
 		      {
 			if(args.m_bitsize == 0)
 			  args.m_bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
+
 			// update the type of holder key
 			UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, Nouti, args.m_declRef);
 			m_state.makeUlamTypeFromHolder(newkey, bUT, tduti, UC_NOTACLASS); //update key, same uti
+
 			if(m_state.hasUnknownTypeInThisClassResolver(tduti))
 			  m_state.removeKnownTypeTokenFromThisClassResolver(tduti);
 		      }
@@ -609,9 +683,24 @@ namespace MFM {
 			//update holder key with name_id and possible array (UNKNOWNSIZE)
 			//possibly a class (t3379)
 			UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, args.m_classInstanceIdx, args.m_declRef);
-			//m_state.makeUlamTypeFromHolder(newkey,Holder,tduti,UC_NOTACLASS);
-			m_state.makeUlamTypeFromHolder(newkey, bUT, tduti, bUT == Class ? UC_UNSEEN : UC_NOTACLASS); //update holder key, same uti
+
+			if(bUT == Class)
+			  {
+			    m_state.makeAnonymousClassFromHolder(tduti, args.m_typeTok.m_locator); //t41058, t3862, t3865, t41009, t3385
+
+			    //calls updateUTIAlias like UNSEEN in next clause
+			    if(args.m_classInstanceIdx != Nouti)
+			      m_state.updateUTIAliasForced(tduti, args.m_classInstanceIdx);
+			  }
+			else
+			  m_state.makeUlamTypeFromHolder(newkey, bUT, tduti, UC_NOTACLASS); //update holder key, same uti (no SymbolClassName needed)
 		      }
+		  }
+		else if(tclasstype == UC_UNSEEN)
+		  {
+		    if(m_state.isThisLocalsFileScope() && args.m_classInstanceIdx != Nouti)
+		      m_state.updateUTIAliasForced(tduti, args.m_classInstanceIdx); //t3874
+		    //else (t3378, t3379)
 		  }
 		brtn = true;
 	      } //holder done
@@ -719,10 +808,9 @@ namespace MFM {
 	symtypedef->setAutoLocalType(m_state.getReferenceType(uti));
 
 	//check if also a holder (not necessary)
-	//if(ut->isHolder())
-	//  m_state.addUnknownTypeTokenToThisClassResolver(m_token, uti);
+	//if(ut->isHolder()) m_state.addUnknownTypeTokenToThisClassResolver(m_token, uti);
 
-	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr)); //true
+	return (m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr)); //true
       }
     return false;
   } //installSymbolTypedef
@@ -732,18 +820,11 @@ namespace MFM {
     // ask current scope block if this constant name is there;
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.
-    if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr))
+    UTI holdUTIForAlias = Nouti;
+    if(m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr))
       {
 	if(m_state.isHolder(asymptr->getUlamTypeIdx()))
-	  {
-	    //remove it! then continue..
-	    Symbol * rmsym = NULL;
-	    if(m_state.getCurrentBlock()->removeIdFromScope(m_token.m_dataindex, rmsym))
-	      {
-		assert(rmsym == asymptr); //sanity check removal
-		asymptr = NULL;
-	      }
-	  }
+	  holdUTIForAlias = asymptr->getUlamTypeIdx(); //t3862
 	else
 	  return false; //already there
       }
@@ -752,6 +833,7 @@ namespace MFM {
     bool brtn = false;
     UTI uti = Nav;
     UTI tdscalaruti = Nav;
+
     if(args.m_anothertduti != Nouti)
       {
 	if(checkConstantTypedefSizes(args, args.m_anothertduti))
@@ -773,14 +855,20 @@ namespace MFM {
 	if(!checkConstantTypedefSizes(args, args.m_declListOrTypedefScalarType))
 	  return false;
 	uti = args.m_declListOrTypedefScalarType;
+	if(args.m_arraysize != NONARRAYSIZE) //t3890
+	  {
+	    UlamType * ut = m_state.getUlamTypeByIndex(uti);
+	    UlamKeyTypeSignature skey = ut->getUlamKeyTypeSignature();
+	    UlamKeyTypeSignature akey(skey.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, Nouti, ALT_NOT);
+	    uti = m_state.makeUlamType(akey, ut->getUlamTypeEnum(), ut->getUlamClassType());
+	  }
 	brtn = true;
       }
     else if(Token::getSpecialTokenWork(args.m_typeTok.m_type) == TOKSP_TYPEKEYWORD)
       {
 	//UlamTypes automatically created for the base types with different array sizes.
 	//but with typedef's "scope" of use, typedef needed to be checked first.
-	// scalar uti
-	uti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, NONARRAYSIZE, Nouti);
+	uti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, args.m_arraysize, Nouti);
 	brtn = true;
       }
     else
@@ -796,22 +884,35 @@ namespace MFM {
 
     if(brtn)
       {
-	//create a symbol for this new named constant, a constant-def, with its value
-	SymbolConstantValue * symconstdef = new SymbolConstantValue(m_token, uti, m_state);
-	m_state.addSymbolToCurrentScope(symconstdef);
+	if(!asymptr)
+	  {
+	    //create a symbol for this new named constant, a constant-def, with its value
+	    SymbolConstantValue * symconstdef = new SymbolConstantValue(m_token, uti, m_state);
+	    m_state.addSymbolToCurrentScope(symconstdef);
+	  }
+	else
+	  {
+	    UlamType * newut = m_state.getUlamTypeByIndex(uti);
+	    UlamKeyTypeSignature newkey = newut->getUlamKeyTypeSignature();
+	    m_state.makeUlamTypeFromHolder(newkey, newut->getUlamTypeEnum(), holdUTIForAlias, newut->getUlamClassType());
+	  }
+
+	if(holdUTIForAlias != Nouti)
+	  m_state.updateUTIAliasForced(holdUTIForAlias, uti); //t3862
 
 	//gets the symbol just created by makeUlamType; true.
-	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr));
+	return (m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr));
       }
     return false;
   } //installSymbolConstantValue
 
   bool NodeIdent::installSymbolModelParameterValue(TypeArgs& args, Symbol*& asymptr)
   {
+    assert(!m_state.useMemberBlock());
     // ask current scope block if this constant name is there;
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.
-    if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr))
+    if(m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr))
       {
 	if(m_state.isHolder(asymptr->getUlamTypeIdx()))
 	  {
@@ -880,7 +981,7 @@ namespace MFM {
 	m_state.addSymbolToCurrentScope(symparam);
 
 	//gets the symbol just created by makeUlamType; true.
-	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr));
+	return (m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr));
       }
     return false;
   } //installSymbolModelParameterValue
@@ -891,7 +992,7 @@ namespace MFM {
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.
-    if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr))
+    if(m_state.isIdInCurrentScope(m_token.m_dataindex, asymptr))
       {
 	if(!(asymptr->isFunction()) && !(asymptr->isTypedef()) && !(asymptr->isConstant()) && !(asymptr->isModelParameter()))
 	  setSymbolPtr((SymbolVariable *) asymptr); //updates Node's symbol, if is variable
@@ -926,6 +1027,13 @@ namespace MFM {
 	if(!checkVariableTypedefSizes(args, args.m_declListOrTypedefScalarType))
 	  return false;
 	auti = args.m_declListOrTypedefScalarType;
+	if(args.m_arraysize != NONARRAYSIZE)
+	  {
+	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
+	    UlamKeyTypeSignature skey = aut->getUlamKeyTypeSignature();
+	    UlamKeyTypeSignature akey(skey.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, Nouti, ALT_NOT);
+	    auti = m_state.makeUlamType(akey, aut->getUlamTypeEnum(), aut->getUlamClassType());
+	  }
 	brtn = true;
       }
     else if(Token::getSpecialTokenWork(args.m_typeTok.m_type) == TOKSP_TYPEKEYWORD)
@@ -987,10 +1095,9 @@ namespace MFM {
 
   SymbolVariable *  NodeIdent::makeSymbol(UTI auti, ALT reftype, UTI referencedUTI)
   {
-    if(m_state.m_currentFunctionBlockDeclSize == 0)
+    if(m_state.m_parsingVariableSymbolTypeFlag == STF_DATAMEMBER)
       {
 	u32 baseslot = 1;  //unpacked fixed later
-
 	//variable-index, ulamtype, ulamvalue(ownership to symbol); always packed
 	if(reftype != ALT_NOT)
 	  return NULL; //error! dm's not references
@@ -998,31 +1105,28 @@ namespace MFM {
       }
 
     //Symbol is a parameter; always on the stack
-    if(m_state.m_currentFunctionBlockDeclSize < 0)
+    if(m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCPARAMETER)
       {
-	//1 slot for scalar or packed array
-	m_state.m_currentFunctionBlockDeclSize -= m_state.slotsNeeded(auti);
-
-	SymbolVariableStack * rtnSym = (new SymbolVariableStack(m_token, auti, m_state.m_currentFunctionBlockDeclSize, m_state)); //slot after adjust
+	SymbolVariableStack * rtnSym = (new SymbolVariableStack(m_token, auti, m_state)); //slot after adjust
 	assert(rtnSym);
-
 	rtnSym->setAutoLocalType(reftype);
-
 	return rtnSym;
       }
 
+    //Symbol is an argument; always on the stack (t3962)
+    if(m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCARGUMENT)
+      {
+	SymbolVariableStack * rtnSym = (new SymbolVariableStack(m_token, auti, m_state)); //slot after adjust
+	assert(rtnSym);
+	rtnSym->setAutoLocalType(reftype);
+	return rtnSym;
+      }
+
+    assert(m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCLOCALVAR);
     //(else) Symbol is a local variable, always on the stack
-    SymbolVariableStack * rtnLocalSym = new SymbolVariableStack(m_token, auti, m_state.m_currentFunctionBlockDeclSize, m_state); //slot before adjustment
+    SymbolVariableStack * rtnLocalSym = new SymbolVariableStack(m_token, auti, m_state); //slot before adjustment
     assert(rtnLocalSym);
-
     rtnLocalSym->setAutoLocalType(reftype);
-
-    m_state.m_currentFunctionBlockDeclSize += m_state.slotsNeeded(auti);
-
-    //adjust max depth, excluding parameters and initial start slot (=1)
-    if(m_state.m_currentFunctionBlockDeclSize - 1 > m_state.m_currentFunctionBlockMaxDepth)
-      m_state.m_currentFunctionBlockMaxDepth = m_state.m_currentFunctionBlockDeclSize - 1;
-
     return rtnLocalSym;
   } //makeSymbol
 
@@ -1105,19 +1209,17 @@ namespace MFM {
     bool rtnb = true;
     UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
     s32 tdarraysize = tdut->getArraySize();
-    if(args.m_arraysize != NONARRAYSIZE || tdarraysize != NONARRAYSIZE)
+    if((args.m_arraysize != NONARRAYSIZE) && (tdarraysize != NONARRAYSIZE))
       {
-	//error can't support named constant arrays
+	//error can't support named constant arrays (error/t3446)
 	std::ostringstream msg;
 	msg << "Array size [] is included in typedef '";
 	msg <<  m_state.getTokenDataAsString(args.m_typeTok).c_str();
 	msg  << "', and cannot be used by a named constant '";
 	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	rtnb = false;
+	return false;
       }
-    assert(args.m_arraysize == NONARRAYSIZE);
-
     args.m_bitsize = tdut->getBitSize(); //ok to use typedef bitsize
 
     // constants can't be classes either
@@ -1126,7 +1228,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Named Constant '";
 	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
-	msg << "' cannot be based on a class type: ";
+	msg << "' cannot be a class type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(tduti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	rtnb = false;
@@ -1149,20 +1251,20 @@ namespace MFM {
   {
     //e.g. return the ptr for an array;
     //square bracket will resolve down to the immediate data
-   makeUVPassForCodeGen(uvpass);
+    makeUVPassForCodeGen(uvpass);
 
     //******UPDATED GLOBAL; no restore!!!**************************
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol);
 
     if(uvpass.getPassStorage() == TMPAUTOREF)
-      Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
+      Node::genCodeConvertATmpVarAutoRefIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
   } //genCodeToStoreInto
 
   // overrides NodeTerminal that reads into a tmp var BitVector
   void NodeIdent::genCodeReadIntoATmpVar(File * fp, UVPass & uvpass)
   {
     if(uvpass.getPassStorage() == TMPAUTOREF)
-      Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
+      Node::genCodeConvertATmpVarAutoRefIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
 
     Node::genCodeReadIntoATmpVar(fp, uvpass);
   }

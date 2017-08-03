@@ -7,12 +7,7 @@
 namespace MFM {
 
 
-  Lexer::Lexer(SourceStream & ss, CompilerState & state) : m_state(state), m_SS(ss)
-  {
-    //    std::string dummy = "dummy data";
-    //m_dataAsString.push_back(dummy);
-  }
-
+  Lexer::Lexer(SourceStream & ss, CompilerState & state) : m_state(state), m_SS(ss) { }
 
   Lexer::~Lexer()
   {
@@ -129,6 +124,10 @@ namespace MFM {
 	    {
 	      brtn = makeNumberToken(cstring, returnTok);
 	    }
+	  else if(c == '@')
+	    {
+	      brtn = makeFlagToken(cstring, returnTok);
+	    }
 	  else
 	    {
 	      brtn = makeOperatorToken(cstring, returnTok);
@@ -170,13 +169,42 @@ namespace MFM {
     TokenType ttype = getTokenTypeFromString(aname);
     if(ttype != TOK_LAST_ONE)
       {
-	//SpecialTokenWork sptok = m_specialTokens[ttype];
 	SpecialTokenWork sptok = Token::getSpecialTokenWork(ttype);
 
 	if(sptok == TOKSP_KEYWORD || sptok == TOKSP_TYPEKEYWORD || sptok == TOKSP_CTLKEYWORD)
 	  {
 	    tok.init(ttype,firstloc,0);
 	    return 0;
+	  }
+	else if(sptok == TOKSP_OPERATORKEYWORD)
+	  {
+	    std::string opstr;
+	    Token optok;
+	    u32 rtn = makeOperatorToken(opstr, optok);
+	    if(rtn == 0) //overloaded operator
+	      {
+		//do again in case of dual operator
+		rtn = makeOperatorToken(opstr, optok);
+		if(rtn == 0)
+		  {
+		    //make operator overload string identifier: appends 'op' in hex (like C);
+		    //(can't use 'op' in func name, gcc complains: too many arguments, or 'op' ignored);
+		    // and out-of-band; invalid 'op's eliminated by testing OPOL flag;
+		    u32 opnameid = Token::getOperatorOverloadFullNameId(optok, &m_state);
+		    if(opnameid != 0)
+		      tok.init(TOK_IDENTIFIER,firstloc,opnameid);
+		    else
+		      {
+			std::ostringstream errmsg;
+			errmsg << "Weird Lex! <" << opstr;
+			errmsg << "> isn't an overloadable operation";
+			rtn = m_state.m_pool.getIndexForDataString(errmsg.str());
+		      }
+		  }
+		//else
+	      }
+	    //else
+	    return rtn; //short-circuit
 	  }
 	else if(sptok == TOKSP_DEPRECATED)
 	  {
@@ -189,7 +217,7 @@ namespace MFM {
 	  {
 	    std::ostringstream errmsg;
 	    errmsg << "Weird Lex! <" << aname;
-	    errmsg << "> isn't a special keyword type..becomes identifier instead.";
+	    errmsg << "> isn't a special keyword type..becomes identifier instead";
 	    brtn = m_state.m_pool.getIndexForDataString(errmsg.str());
 	  }
       }
@@ -216,13 +244,57 @@ namespace MFM {
   {
     Locator firstloc = m_SS.getLocator();
     bool floatflag = false;
+    bool unsignedflag = false;
+    bool octalflag = false;
+    bool hexflag = false;
+    bool binaryflag = false;
+    bool baddigit = false;
+    u8 a = anumber[0] - '0';
     s32 c = m_SS.read();
 
+    //set flags based on first and second digit
+    if(c >= 0 && (isxdigit(c) || c=='x' || c=='X' || c=='.') )
+      {
+	if(a == 0)
+	  {
+	    unsignedflag = true;
+	    if((c=='x' || c=='X'))
+	      hexflag = true;
+	    else if((c=='b' || c=='B'))
+	      binaryflag = true;
+	    else if(c == '.')
+	      floatflag = true;
+	    else if(c - '0' < 8)
+	      octalflag = true;
+	    else
+	      baddigit = true;
+	  }
+	else if(c == '.')
+	  floatflag = true; //error/t3105
+	else if(!isdigit(c))
+	  baddigit = true; //decimal
+
+	anumber.push_back(c);
+	c = m_SS.read();
+      }
+    //else no read, fall through
+
+    // third digit and beyond..
     //not supporting floats anymore || c=='.' except for error msg
-    while(c >= 0 && (isxdigit(c) || c=='x' || c=='X' || c=='.') )
+    while(c >= 0 && (isxdigit(c) || c=='.') )
       {
 	if(c == '.')
 	  floatflag = true;
+
+	//note: error checking also done in NodeTerminal, strto64.cpp
+	u8 anum = c - '0';
+	if(octalflag && (anum > 7))
+	  baddigit = true;
+	else if(binaryflag && (anum > 1))
+	  baddigit = true;
+	else if(!hexflag && !isdigit(c))
+	  baddigit = true; //t.f. decimal
+
 	anumber.push_back(c);
 	c = m_SS.read();
       }
@@ -230,25 +302,82 @@ namespace MFM {
     if(c == 'u' || c == 'U')
       {
 	anumber.push_back(c);
-	// build a number
-	//data indexed in map, vector
-	u32 idx = m_state.m_pool.getIndexForDataString(anumber);
-	tok.init(TOK_NUMBER_UNSIGNED,firstloc,idx);
+	unsignedflag = true;
+      }
+    else
+      unread();
+
+    // build a number
+    //data indexed in map, vector
+    u32 idx = 0;
+
+    if(baddigit)
+      {
+	std::ostringstream errmsg;
+	errmsg << "Lexer formatted an invalid ";
+	if(octalflag)
+	  errmsg << "octal";
+	else if(hexflag)
+	  errmsg << "hex";
+	else if(binaryflag)
+	  errmsg << "binary";
+	else
+	  errmsg << "decimal";
+	errmsg << " constant '" << anumber << "'";
+	idx = m_state.m_pool.getIndexForDataString(errmsg.str());
       }
     else
       {
-	unread();
-	// build a number
-	//data indexed in map, vector
-	u32 idx = m_state.m_pool.getIndexForDataString(anumber);
+	idx = m_state.m_pool.getIndexForDataString(anumber);
 	if(floatflag)
 	  tok.init(TOK_NUMBER_FLOAT,firstloc,idx);
+	else if(unsignedflag)
+	  tok.init(TOK_NUMBER_UNSIGNED,firstloc,idx);
 	else
 	  tok.init(TOK_NUMBER_SIGNED,firstloc,idx);
+	idx = 0; //ok
       }
-    return 0;
+    return idx;
   } //makeNumberToken
 
+  //called because first byte was @
+  u32 Lexer::makeFlagToken(std::string& aname, Token & tok)
+  {
+    u32 brtn = 0;
+    Locator firstloc = m_SS.getLocator(); //save for token
+
+    s32 c = m_SS.read(); //capital letter follows @ for a valid flag
+
+    if(Token::isUpper(c))
+      {
+	//continue with alpha or numeric or underscore
+	while(c >= 0 && (isalpha(c) || isdigit(c) || c == '_' ))
+	  {
+	    aname.push_back(c);
+	    c = m_SS.read();
+	  }
+
+	unread();
+
+	TokenType ttype = getTokenTypeFromString(aname);
+	if(ttype != TOK_LAST_ONE)
+	  {
+	    SpecialTokenWork sptok = Token::getSpecialTokenWork(ttype);
+	    if(sptok == TOKSP_FLAGKEYWORD)
+	      {
+		tok.init(ttype,firstloc,0);
+		return 0;
+	      }
+	  }
+      }
+    //else not a flag
+
+    std::ostringstream errmsg;
+    errmsg << "Weird Lex! <" << aname;
+    errmsg << "> does not precede a valid flag keyword";
+    brtn = m_state.m_pool.getIndexForDataString(errmsg.str());
+    return brtn;
+  } //makeFlagToken
 
   //starts with a non-alpha or non-digit, so
   //possibly a simple operator (e.g. +, =),
@@ -275,6 +404,16 @@ namespace MFM {
 		if(emsg != 0)
 		  return emsg;
 	      }
+	    else if((ttype == TOK_SHIFT_LEFT) || (ttype == TOK_SHIFT_RIGHT))
+	      {
+		u32 smsg = checkShiftEqualToken(astring, firstloc);
+		if(smsg == 1)
+		  ttype = getTokenTypeFromString(astring);
+		else if(smsg > 1)
+		  return smsg;
+		//else no change
+	      }
+
 	    tok.init(ttype, firstloc, 0);
 	    return 0;
 	  }
@@ -322,23 +461,54 @@ namespace MFM {
     return bok;
   } //checkellipsistoken
 
+  u32 Lexer::checkShiftEqualToken(std::string& astring, Locator firstloc)
+  {
+    u32 bok = 0;
+    s32 c3 = m_SS.read();
+    if(c3 >= 0)
+      {
+	if(c3 == '=')
+	  {
+	    astring.push_back(c3);
+	    bok = 1;
+	  }
+	else
+	  unread();
+      }
+    else
+      {
+	std::ostringstream errmsg;
+	errmsg << "Lexer could not find anything after logical shift <" << astring << ">";
+	bok = m_state.m_pool.getIndexForDataString(errmsg.str());
+      }
+    return bok;
+  } //checkShiftEqualToken
 
+  //redo using nextByte; don't include open/close double quotes;
+  //prepend length, append null byte before inserting in StringPoolUser
   u32 Lexer::makeDoubleQuoteToken(std::string& astring, Token & tok)
   {
     Locator firstloc = m_SS.getLocator();
     s32 c;
+
+    astring = ""; //clear open quote
+
     //keep reading until end of quote or (EOF or error)
     //return last byte after comment
     //bypass a blackslash and nextcharacter
     while((c = m_SS.read()) >= 0)
       {
-	astring.push_back(c);
-	if( c == '"')
+	if(c == '"') //close quote, not included
 	  break;
-	else if(c == '\\')
+	else
 	  {
-	    s32 d = m_SS.read();
-	    astring.push_back(d);
+	    unread();
+	    u8 abyte;
+	    u32 cu = nextByte(abyte);
+	    if(cu == 0)
+	      astring.push_back(abyte);
+	    else //error
+	      return cu;
 	  }
       } //end while
 
@@ -350,11 +520,25 @@ namespace MFM {
 	return m_state.m_pool.getIndexForDataString(errmsg.str());
       }
 
-    u32 idx = m_state.m_pool.getIndexForDataString(astring);
+    //format user string; length must be less than 256
+    u32 slen = astring.length();
+    if(slen >= 256)
+      {
+	std::ostringstream errmsg;
+	errmsg << "Lexer could not complete double quoted string <" << astring << ">; Must be less than 256 length";
+	return m_state.m_pool.getIndexForDataString(errmsg.str());
+      }
+
+    std::ostringstream newstr;
+    if(slen == 0)
+      newstr << (u8) 0;
+    else
+      newstr << (u8) slen << astring << (u8) 0; //slen doesn't include itself or terminating byte; see StringPoolUser.
+
+    u32 idx = m_state.m_tokenupool.getIndexForDataString(newstr.str());
     tok.init(TOK_DQUOTED_STRING,firstloc,idx);
     return 0;
   } //makeDoubleQuoteToken
-
 
   u32 Lexer::makeSingleQuoteToken(std::string& astring, Token & tok)
   {
@@ -373,87 +557,16 @@ namespace MFM {
 	    errmsg << "Lexer prevents empty single quoted constant";
 	    return m_state.m_pool.getIndexForDataString(errmsg.str());
 	  }
-
-	if(c == '\\')
-	  {
-	    s32 d = m_SS.read();
-	    switch((char) d)
-	      {
-	      case 'a':
-		astring.push_back('\a'); //bell/alert 7
-		break;
-	      case 'b':
-		astring.push_back('\b'); //backspace 8
-		break;
-	      case 't':
-		astring.push_back('\t'); //horizontal tab 9
-		break;
-	      case 'n':
-		astring.push_back('\n'); //newline 10
-		break;
-	      case 'v':
-		astring.push_back('\v'); //vertical tab 11
-		break;
-	      case 'f':
-		astring.push_back('\f'); //formfeed 12
-		break;
-	      case 'r':
-		astring.push_back('\r'); //carriage return 13
-		break;
-	      case '"':
-		astring.push_back('\"'); //double quote 34
-		break;
-	      case '\'':
-		astring.push_back('\''); //single quote 39
-		break;
-	      case '?':
-		astring.push_back('\?'); //questionmark 63
-		break;
-	      case '\\':
-		astring.push_back('\\'); //backslash escape 92
-		break;
-	      case '0':
-	      case '1':
-	      case '2':
-	      case '3':
-	      case '4':
-	      case '5':
-	      case '6':
-	      case '7':
-		{
-		  unread();
-		  u8 ooo;
-		  u32 crtn = formatOctalConstant(ooo);
-		  if(crtn == 0)
-		    astring.push_back(ooo); //octal number
-		  else
-		    return crtn; //error
-		}
-		break;
-	      case 'x':
-	      case 'X':
-		{
-		  u8 hh;
-		  u32 crtn = formatHexConstant(hh);
-		  if(crtn == 0)
-		    astring.push_back(hh);
-		  else
-		    return crtn; //error
-		}
-		break;
-	      default:
-		astring.push_back(d - '\0'); //save it
-	      };
-	  }
 	else
-	  astring.push_back(c - '\0'); //as a number
-      }
-    else //c < 0
-      {
-	if( c == -1) unread();
-	std::ostringstream errmsg;
-	errmsg << "Lexer could not complete single quoted string";
-	return m_state.m_pool.getIndexForDataString(errmsg.str());
+	  {
+	    unread();
+	    u8 abyte;
+	    u32 cu = nextByte(abyte);
+	    if(cu == 0)
+	      astring.push_back(abyte);
+	    else //error
+	      return cu;
+	  }
       }
 
     //next byte must be a tic
@@ -470,30 +583,129 @@ namespace MFM {
     return 0;
   } //makeSingleQuoteToken
 
+  u32 Lexer::nextByte(u8& abyte)
+  {
+    s32 c ;
+
+    //get next byte; save as its ascii numeric value
+    //bypass a blackslash for nextcharacter
+    if((c = m_SS.read()) >= 0)
+      {
+	if(c == '\\')
+	  {
+	    s32 d = m_SS.read();
+	    if(d >= 0)
+	      {
+		switch(d)
+		  {
+		  case 'a':
+		    abyte = '\a'; //bell/alert 7
+		    break;
+		  case 'b':
+		    abyte = '\b'; //backspace 8
+		    break;
+		  case 't':
+		    abyte = '\t'; //horizontal tab 9
+		    break;
+		  case 'n':
+		    abyte = '\n'; //newline 10
+		    break;
+		  case 'v':
+		    abyte = '\v'; //vertical tab 11
+		    break;
+		  case 'f':
+		    abyte = '\f'; //formfeed 12
+		    break;
+		  case 'r':
+		    abyte = '\r'; //carriage return 13
+		    break;
+		  case '"':
+		    abyte = '"'; //double quote 34
+		    break;
+		  case '\'':
+		    abyte = '\''; //single quote 39
+		    break;
+		  case '\\':
+		    abyte = '\\'; //backslash escape 92
+		    break;
+		  case '0':
+		  case '1':
+		  case '2':
+		  case '3':
+		  case '4':
+		  case '5':
+		  case '6':
+		  case '7':
+		    {
+		      unread();
+		      u8 ooo;
+		      u32 crtn = formatOctalConstant(ooo);
+		      if(crtn == 0)
+			abyte = ooo; //octal number
+		      else
+			return crtn; //error
+		    }
+		    break;
+		  case 'x':
+		  case 'X':
+		    {
+		      u8 hh;
+		      u32 crtn = formatHexConstant(hh);
+		      if(crtn == 0)
+			abyte = hh;
+		      else
+			return crtn; //error
+		    }
+		    break;
+		  case -1:
+		    m_state.abortShouldntGetHere(); //EOF
+		    break;
+		  default:
+		    abyte = (u8) d; //save it
+		  };
+	      }
+	    else
+	      {
+		if( d == -1) unread();
+		std::ostringstream errmsg;
+		errmsg << "Lexer could not complete last byte in quoted string";
+		return m_state.m_pool.getIndexForDataString(errmsg.str());
+	      }
+	  }
+	else
+	  abyte = (u8) c; //save literally
+      }
+    else //c < 0
+      {
+	if( c == -1) unread();
+	std::ostringstream errmsg;
+	errmsg << "Lexer could not complete next byte in quoted string";
+	return m_state.m_pool.getIndexForDataString(errmsg.str());
+      }
+    return 0;
+  } //nextByte
+
   u32 Lexer::formatOctalConstant(u8& rtn)
   {
     //where \ooo is one to three octal digits (0..7)
     u32 runningtotal = 0;
+    u32 runningcount = 0;
     s32 c;
-    while((c = m_SS.read()) >= 0)
+    while((runningcount < 3) && (c = m_SS.read()) >= 0)
       {
-	if(c == '\'')
-	  {
-	    unread();
-	    break;
-	  }
 	if(c >= '0' && c < '8')
-	  runningtotal = runningtotal * 8 + (c - '0');
+	  {
+	    runningtotal = runningtotal * 8 + (c - '0');
+	    runningcount++;
+	  }
 	else
 	  {
-	    std::ostringstream errmsg;
-	    errmsg << "Lexer found invalid digit '" << c << "'";
-	    errmsg << " while formatting an octal constant";
-	    return m_state.m_pool.getIndexForDataString(errmsg.str());
+	    unread(); //t3955
+	    break;
 	  }
       }
 
-    if(c < 0)
+    if((c < 0) || (runningcount == 0))
       {
 	std::ostringstream errmsg;
 	errmsg << "Lexer could not complete formatting an octal constant";
@@ -514,43 +726,44 @@ namespace MFM {
 
   u32 Lexer::formatHexConstant(u8& rtn)
   {
-    // where \xhh is one or more hexadecimal digits (0...9, a...f, A...F).
+    // where \xhh is one or two hexadecimal digits (0...9, a...f, A...F).
     u32 runningtotal = 0;
+    u32 runningcount = 0;
     s32 c;
-    while((c = m_SS.read()) >= 0)
+    while((runningcount < 2u) && (c = m_SS.read()) >= 0)
       {
-	u32 cnum;
-	if(c == '\'')
-	  {
-	    unread();
-	    break;
-	  }
-
+	s32 cnum = -1;
 	switch(c)
 	  {
 	  case 'a':
 	  case 'A':
 	    cnum = 10;
+	    runningcount++;
 	    break;
 	  case 'b':
 	  case 'B':
 	    cnum = 11;
+	    runningcount++;
 	    break;
 	  case 'c':
 	  case 'C':
 	    cnum = 12;
+	    runningcount++;
 	    break;
 	  case 'd':
 	  case 'D':
 	    cnum = 13;
+	    runningcount++;
 	    break;
 	  case 'e':
 	  case 'E':
 	    cnum = 14;
+	    runningcount++;
 	    break;
 	  case 'f':
 	  case 'F':
 	    cnum = 15;
+	    runningcount++;
 	    break;
 	  case '0':
 	  case '1':
@@ -563,19 +776,20 @@ namespace MFM {
 	  case '8':
 	  case '9':
 	    cnum = c - '0';
+	    runningcount++;
 	    break;
 	  default:
 	    {
-	    std::ostringstream errmsg;
-	    errmsg << "Lexer found invalid digit '" << c << "'";
-	    errmsg << " while formatting a hex constant";
-	    return m_state.m_pool.getIndexForDataString(errmsg.str());
+	      unread();
+	      break; //from switch
 	    }
 	  };
+	if(cnum == -1)
+	  break; //out of whileloop, cnum unset (t3424)
 	runningtotal = runningtotal * 16 + cnum;
       } //while
 
-    if(c < 0)
+    if((c < 0) || (runningcount == 0))
       {
 	std::ostringstream errmsg;
 	errmsg << "Lexer could not complete";

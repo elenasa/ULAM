@@ -1,0 +1,29 @@
+## -*- mode:ulam -*-
+#=t3940_test_compiler_caarraylengthofreturntype_error
+#!
+./EventWindow.ulam:4:3: ERROR: By convention, Function 'alengthof''s Return type must be 'Unsigned', not Int(32).
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t3937, t3233, t3938
+##      //arraysize zero ok, but not bitsize zero for nonClass primitive types!
+##
+#>Eltypo.ulam
+  ulam 3;
+element Eltypo {
+  Int test(){
+    EventWindow ew;
+    Int len = ew.lengthof;
+    len = ew.lengthof;
+    return ew.lengthof;
+  }
+}
+
+##
+#:EventWindow.ulam
+  ulam 3;
+quark EventWindow {
+  Atom& aref(Int index) native;
+  Int alengthof() { return 8; }
+}
+
+#.

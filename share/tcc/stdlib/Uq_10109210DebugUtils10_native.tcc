@@ -1,18 +1,24 @@
 /**                                      -*- mode:C++ -*- */
 
-//#include <iostream> //needed locale??? for cout
-//#include <stdio.h>   //for printf
 #include <stdlib.h>  //for abort
 
 namespace MFM{
 
   template<class EC>
+  Ui_Ut_10111b<EC> Uq_10109210DebugUtils10<EC>::Uf_9214hasEventWindow(const UlamContext<EC> & uc, UlamRef<EC>& ur) const //native
+  {
+    Ui_Ut_10111b<EC> ret(uc.HasEventWindow());
+    return ret;
+  }
+
+
+  template<class EC>
   void Uq_10109210DebugUtils10<EC>::Uf_9212printContext(const UlamContext<EC>& uc,
                                                              UlamRef<EC>& ur,
-                                                             Ui_Ut_102321u<EC>& Uv_5flags) const
+                                                             Ui_Ut_102321t<EC>& Uv_5flags) const
   {
-    const Tile<EC> & tile = uc.GetTile();
     const EventWindow<EC> & ew = uc.GetEventWindow();
+    const Tile<EC> & tile = ew.GetTile();
     SPoint ctr = ew.GetCenterInTile();
 
     OString512 buff;
@@ -25,6 +31,40 @@ namespace MFM{
                 tile.GetLabel(),
                 buff.GetZString());
   } // Uf_9212printContext
+
+  template<class EC>
+  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Uq_102323C2D10<EC>& Uv_5coord) const //native
+  {
+    enum { R = EC::EVENT_WINDOW_RADIUS };
+    const EventWindow<EC> & ew = uc.GetEventWindow();
+
+    const s32 x = _SignExtend32(UlamRef<EC>(0u, 16u, Uv_5coord, NULL, UlamRef<EC>::PRIMITIVE, uc).Read(), 16);
+    const s32 y = _SignExtend32(UlamRef<EC>(16u, 16u, Uv_5coord, NULL, UlamRef<EC>::PRIMITIVE, uc).Read(), 16);
+    const SPoint loc(x,y);
+    LOG.Message("print: (%d,%d)", loc.GetX(), loc.GetY());
+  }
+
+  template<class EC>
+  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_102321s<EC>& Uv_3arg) const //native
+  {
+    u32 strval = Uv_3arg.read();
+    const u8 * p = 
+      uc
+      .GetUlamClassRegistry()
+      .GetUlamClassByIndex(Ui_Ut_102321s<EC>::getRegNum(strval))
+      ->GetString(Ui_Ut_102321s<EC>::getStrIdx(strval));
+    LOG.Message("print: %S", p);
+  }
+
+  template<class EC>
+  void Uq_10109210DebugUtils10<EC>::Uf_919printChar(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10181u<EC>& Uv_3arg) const //native
+  {
+    u32 uval = Uv_3arg.read();
+    if (isprint(uval))
+      LOG.Message("print: char \'%c\' (0%03o,%d,0x%02x)", uval,uval,uval,uval);
+    else
+      LOG.Message("print: char \'\\%03o'", uval);
+  }
 
   template<class EC>
   void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC> & uc, UlamRef<EC>& ur, Ui_Ut_10131i<EC>& Uv_3arg) const //native
@@ -93,7 +133,7 @@ namespace MFM{
 
     AtomSerializer<AC> as(atom);
     u32 type = atom.GetType();
-    const Tile<EC> & tile = uc.GetTile();
+    const Tile<EC> & tile = uc.GetEventWindow().GetTile();
     const UlamClassRegistry<EC> & ucr = tile.GetUlamClassRegistry();
     const Element<EC> * ep = tile.GetElement(type);
 
@@ -105,7 +145,7 @@ namespace MFM{
       const UlamElement<EC> * uep = ep->AsUlamElement();
       if (uep)
       {
-        uep->Print(ucr, buff, atom, flags);
+        uep->Print(ucr, buff, atom, flags, 25);
       }
       else
       {
@@ -128,7 +168,7 @@ namespace MFM{
 
   //! DebugUtils.ulam:10:   Void print(Atom a, Unsigned flags)
   template<class EC>
-  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102961a<EC>& Uv_1a, Ui_Ut_102321u<EC>& Uv_5flags) const
+  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Ut_102961a<EC>& Uv_1a, Ui_Ut_102321t<EC>& Uv_5flags) const
   {
     OString512 buff;
     T atom = Uv_1a.ReadAtom();

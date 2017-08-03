@@ -1,0 +1,55 @@
+## -*- mode:ulam -*-
+#=t3888_test_compiler_elementinheritance_withlocaldefs_redeclared
+##
+## gen output: (2 asserts)
+##
+#!
+Exit status: 3
+Ue_Foo : Soo(3u) { :< Unsigned(3) us(1u);  constant Unsigned(3) v = 3u; > constant Unsigned(3) soosize = 1u;  Bool(7) sp(false);  Unsigned(32) a(3u);  Int(32) test() {  System s;  Foo f;  a f us . cast = a 3u = sp a 1u cast == cast = s ( sp ! cast )assert . typedef Soo(1u) Soo3;  s ( true )assert . a cast return } }
+Uq_Soo(Unsigned(3) v) { Unsigned(UNKNOWN) us(notready);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## redeclaring localdefs, cannot mix typedefs and constants thanks to capitalization!
+##
+#>Foo.ulam
+  ulam 3;
+local constant Unsigned(3) soosize = 3u;
+local typedef Soo(soosize) Soo3;
+element Foo : Soo(soosize) {
+  Bool(7) sp;
+  constant Unsigned(3) soosize = 1u; //okay to redeclare
+  Unsigned a = 73;
+  Int test() {
+    System s;
+    Foo f;
+    a = f.us;
+    a = Soo3.sizeof;
+    sp = (a == soosize);
+    s.assert(!sp);
+
+    typedef Soo(soosize) Soo3; //okay to redeclare
+    s.assert(Soo3.sizeof == soosize);
+    return (Int) a; //=3
+  }
+}
+
+#:Soo.ulam
+  ulam 2;
+quark Soo(Unsigned(3) v) {
+  Unsigned(v) us = 1u; //was 4u;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+
+#.

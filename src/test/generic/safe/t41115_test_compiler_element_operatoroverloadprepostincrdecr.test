@@ -1,0 +1,78 @@
+## -*- mode:ulam -*-
+#=t41115_test_compiler_element_operatoroverloadprepostincrdecr
+##
+##  gen code output: (+ interleaved asserts)
+##	 Int Arg: 5
+##	 Int Arg: 7
+##	 Int Arg: 7
+##	 Int Arg: 6
+##	 Int Arg: 6
+##
+#!
+Exit status: 5
+Ue_Foo { Bool(1) first(false);  Int(32) fint(0);  Int(32) opfint(0);  Int(4) m_i(0);  Int(32) test() {  System s;  Foo f;  f m_i . 5 = s ( f ( 1 )operator++ . )print . s ( f m_i . 6 == )assert . s ( f ( )operator++ . )print . s ( f m_i . 7 == )assert . s ( f ( )operator++ . )print . s ( f m_i . 7 == )assert . s ( f ( )operator-- . )print . s ( f m_i . 6 == )assert . s ( f ( 1 )operator-- . )print . s ( f m_i . 5 == )assert . f m_i . cast return } }
+Uq_System { <NOMAIN> }
+##
+## first test to parse pre- post- incr/decr for an element
+## informed by t3388.
+##
+#>Foo.ulam
+  ulam 3;
+element Foo {
+  Bool first;
+  Int fint, opfint;
+  Int(4) m_i;
+  Int test() {
+    System s;
+    Foo f;
+    f.m_i = 5;
+
+    s.print(f++); //prints 5
+    s.assert(f.m_i == 6);
+    s.print(++f); //prints 7
+    s.assert(f.m_i == 7);
+    s.print(++f); //saturates 7
+    s.assert(f.m_i == 7);
+
+    s.print(--f); // 6
+    s.assert(f.m_i == 6);
+    s.print(f--); //still prints 6
+    s.assert(f.m_i == 5); //now 5
+    return f.m_i;
+  }
+
+  Int operator++()
+  {
+    return ++m_i;
+  }
+
+  Int operator--()
+  {
+    return --m_i;
+  }
+
+  Int operator++(Int iarg)
+  {
+    return m_i++; //implicit cast from Int(4) to Int, found eval bug in PostIncr
+  }
+
+  Int operator--(Int iarg)
+  {
+    return m_i--; //implicit cast from Int(4) to Int, found eval bug in PostDecr
+  }
+
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

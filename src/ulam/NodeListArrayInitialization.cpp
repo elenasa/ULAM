@@ -96,7 +96,7 @@ namespace MFM{
     return rtnuti;
   } //checkAndLabelType
 
-  bool NodeListArrayInitialization::foldInitExpression()
+  bool NodeListArrayInitialization::foldArrayInitExpression()
   {
     bool rtnok = true;
     for(u32 i = 0; i < m_nodes.size(); i++)
@@ -110,7 +110,10 @@ namespace MFM{
 
   bool NodeListArrayInitialization::foldInitExpression(u32 n)
   {
+    assert(n < m_nodes.size()); //error/t3446
+
     UTI foldeduti = m_nodes[n]->constantFold(); //c&l possibly redone
+    ULAMTYPE etyp = m_state.getUlamTypeByIndex(foldeduti)->getUlamTypeEnum();
 
     //insure constant value fits in its array's bitsize
     UTI scalaruti = m_state.getUlamTypeAsScalar(Node::getNodeType());
@@ -133,8 +136,8 @@ namespace MFM{
 	else
 	  {
 	    std::ostringstream msg;
-	    if(m_state.getUlamTypeByIndex(foldeduti)->getUlamTypeEnum() == Bool)
-	      msg << "Use a comparison operator";
+	    if(etyp == Bool)
+	      msg << "Use a comparison operation";
 	    else
 	      msg << "Use explicit cast";
 	    msg << " to return ";
@@ -153,6 +156,7 @@ namespace MFM{
 	      }
 	  }
       }
+    //else same
     return m_state.okUTItoContinue(foldeduti);
   } //foldInitExpression
 
@@ -172,6 +176,18 @@ namespace MFM{
       }
     return scr;
   } //safeToCastTo
+
+  EvalStatus NodeListArrayInitialization::eval()
+  {
+    EvalStatus evs = NORMAL;
+    for(u32 i = 0; i < m_nodes.size(); i++)
+      {
+	evs = NodeList::eval(i);
+	if(evs != NORMAL)
+	  break;
+      }
+    return evs;
+  } //eval
 
   bool NodeListArrayInitialization::buildArrayValueInitialization(BV8K& bvtmp)
   {
@@ -215,7 +231,7 @@ namespace MFM{
 
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(luti); //a constant expression
-    EvalStatus evs = eval(n);
+    EvalStatus evs = NodeList::eval(n);
     if(evs != NORMAL)
       {
 	evalNodeEpilog();
@@ -232,7 +248,7 @@ namespace MFM{
     else if(itemlen <= MAXBITSPERLONG)
       foldedconst = ituv.getImmediateDataLong(itemlen, m_state);
     else
-      assert(0);
+      m_state.abortGreaterThanMaxBitsPerLong();
 
     evalNodeEpilog();
 
@@ -248,38 +264,100 @@ namespace MFM{
 
     // returns a u32 array of the proper length built with BV8K
     // as tmpvar in uvpass
-    // need parent (NodeVarDecl) to get initialized value (BV8K)
+    // need parent (NodeVarDecl/NodeConstantDef) to get initialized value (BV8K)
     NNO pno = Node::getYourParentNo();
-    //m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //push again
-    Node * parentNode = m_state.findNodeNoInThisClass(pno);
-    //m_state.popClassContext(); //restore
-    if(!parentNode)
-      {
-	std::ostringstream msg;
-	msg << "Array value '" << getName();
-	msg << "' cannot be initialized at this time while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	msg << " Parent required";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	assert(0); //parent required
-	return;
-      }
+    Node * parentNode = m_state.findNodeNoInThisClass(pno); //also checks localsfilescope
+    assert(parentNode);
 
-    SymbolVariable * varsym = NULL;
-    AssertBool gotSymbol = parentNode->getSymbolPtr((Symbol *&) varsym);
+    SymbolWithValue * vsym = NULL;
+    AssertBool gotSymbol = parentNode->getSymbolPtr((Symbol *&) vsym);
     assert(gotSymbol);
-    assert(varsym->hasInitValue());
 
+    bool aok = true;
     BV8K dval;
-    AssertBool gotInitVal = varsym->getInitValue(dval);
-    assert(gotInitVal);
+    if(vsym->isReady())
+      {
+	AssertBool gotValue = vsym->getValue(dval);
+	assert(gotValue);
+      }
+    else if(vsym->hasInitValue())
+      {
+	AssertBool gotInitVal = vsym->getInitValue(dval);
+	assert(gotInitVal);
+      }
+    else
+      aok = false;
 
-    u32 uvals[ARRAY_LEN8K];
-    dval.ToArray(uvals); //the magic! (32-bit ints)
+    assert(aok);
 
-    u32 tmpvarnum = m_state.getNextTmpVarNumber();
+    bool isString = (nut->getUlamTypeEnum() == String);
+    s32 tmpvarnum = m_state.getNextTmpVarNumber();
     TMPSTORAGE nstor = nut->getTmpStorageTypeForTmpVar();
     u32 nwords = nut->getTotalNumberOfWords();
+
+    //generate code to replace uti in string index with runtime registration number (t3974)
+    if(isString && !vsym->isDataMember())
+      {
+	u32 uvals[ARRAY_LEN8K];
+	dval.ToArray(uvals); //the magic! (32-bit ints)
+
+	UTI cuti = m_state.getCompileThisIdx();
+	const std::string stringmangledName = m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
+
+	m_state.indentUlamCode(fp); //non-const
+	fp->write("static bool ");
+	fp->write(m_state.getInitDoneVarAsString(tmpvarnum).c_str());
+	fp->write(";\n");
+
+	m_state.indentUlamCode(fp); //non-const
+	fp->write("static u32 ");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpvarnum, nstor).c_str());
+	fp->write("[");
+	fp->write_decimal_unsigned(nwords); // proper length == [nwords]
+	fp->write("];\n");
+
+	m_state.indentUlamCode(fp); //non-const
+	fp->write("if(!");
+	fp->write(m_state.getInitDoneVarAsString(tmpvarnum).c_str());
+	fp->write(")\n");
+	m_state.indentUlamCode(fp); //non-const
+	fp->write("{\n");
+
+	m_state.m_currentIndentLevel++;
+
+	m_state.indentUlamCode(fp);
+	fp->write(m_state.getInitDoneVarAsString(tmpvarnum).c_str());
+	fp->write(" = true;\n");
+
+	m_state.indentUlamCode(fp);
+	fp->write("static const u32 Uh_6regnum = ");
+	fp->write(m_state.getTheInstanceMangledNameByIndex(cuti).c_str());
+	fp->write(".GetRegistrationNumber();"); GCNL;
+
+	//exact size bitvector as 32-bit array, regardless of itemwordsize (e.g. String test t3973 )
+	for(u32 w = 0; w < nwords; w++)
+	  {
+	    m_state.indentUlamCode(fp); //non-const
+	    fp->write(m_state.getTmpVarAsString(nuti, tmpvarnum, nstor).c_str());
+	    fp->write("[");
+	    fp->write_decimal_unsigned(w); // proper length == [nwords]
+	    fp->write("] = ");
+
+	    fp->write(stringmangledName.c_str());
+	    fp->write("::makeCombinedIdx(Uh_6regnum, ");
+	    fp->write_decimal_unsigned(uvals[w] & STRINGIDXMASK);
+	    fp->write("); //");
+	    fp->write(m_state.getDataAsFormattedUserString(uvals[w]).c_str()); //as comment
+	    fp->write("\n");
+	  }
+
+	m_state.m_currentIndentLevel--;
+	m_state.indentUlamCode(fp); //non-const
+	fp->write("}"); GCNL;
+
+	uvpass = UVPass::makePass(tmpvarnum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, vsym->getId());
+	return;
+      } //done local string
 
     //static constant array of u32's from BV8K, of proper length:
     //similar to CS::genCodeClassDefaultConstantArray,
@@ -287,9 +365,13 @@ namespace MFM{
     m_state.indentUlamCode(fp);
     fp->write("const ");
 
-    if(nut->getPackable() != PACKEDLOADABLE)
+    if((nut->getPackable() != PACKEDLOADABLE) || isString)
       {
+	u32 uvals[ARRAY_LEN8K];
+	dval.ToArray(uvals); //the magic! (32-bit ints)
+
 	//exact size bitvector as 32-bit array, regardless of itemwordsize
+	//(e.g. data member String test t3973 )
 	fp->write("u32 ");
 	fp->write(m_state.getTmpVarAsString(nuti, tmpvarnum, nstor).c_str());
 	fp->write("[");
@@ -310,6 +392,8 @@ namespace MFM{
       }
     else
       {
+	u32 len = nut->getTotalBitSize();
+
 	//entire array packedloadable (t3863)
 	fp->write(nut->getTmpStorageTypeAsString().c_str()); //entire array, u32 or u64
 	fp->write(" ");
@@ -319,20 +403,25 @@ namespace MFM{
 	std::ostringstream dhex;
 	if(nwords <= 1) //32
 	  {
-	    dhex << "0x" << std::hex << uvals[0];
+	    //right justify single u32 (t3974)
+	    dhex << "0x" << std::hex << dval.Read(0u, len); //uvals[0]
+	    fp->write(dhex.str().c_str());
+	    fp->write(";"); GCNL;
+
 	  }
 	else if(nwords == 2) //64
 	  {
-	    dhex << "HexU64(" << "0x" << std::hex << uvals[0] << ", 0x" << std::hex << uvals[1] << ")";
+	    //right justify single u64 (t3979)
+	    //dhex << "HexU64(" << "0x" << std::hex << uvals[0] << ", 0x" << std::hex << uvals[1] << ")";
+	    //dhex << "0x" << std::hex << dval.ReadLong(0u, len); //uvals[0] & uvals[1]
+	    fp->write_decimal_unsignedlong(dval.ReadLong(0u, len));
+	    fp->write(";"); GCNL;
 	  }
 	else
-	  assert(0);
-
-	fp->write(dhex.str().c_str());
-	fp->write(";"); GCNL;
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
 
-    uvpass = UVPass::makePass(tmpvarnum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, varsym->getId());
+    uvpass = UVPass::makePass(tmpvarnum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, vsym->getId());
   } //genCode
 
 } //MFM

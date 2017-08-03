@@ -1,0 +1,74 @@
+## -*- mode:ulam -*-
+#=t3973_test_compiler_stringarray_dminit_lengthof
+##
+## gen output: (+ interleaved asserts)
+## Bool(3) Arg: 0x7 (true)
+## String(7) Arg: "bar"
+## Unsigned Arg: 4
+## Unsigned Arg: 3
+## Unsigned Arg: 5
+##
+#!
+Exit status: 0
+Ue_A { Bool(1) b(true);  String(32) m_sarr[2]("bling","bar");  Bool(3) m_bun[2](false,true);  Int(32) test() {  SystemU3 su3;  su3 ( m_bun 1 [] )print . su3 ( m_bun 1 [] cast )assert . Unsigned(8) asc = m_sarr 1 [] 2 [];  b asc 114u == = su3 ( m_sarr 1 [] )print . su3 ( b )assert . Unsigned(32) len = 4u;  su3 ( len )print . su3 ( len 4u cast == )assert . m_sarr 0 [] "foo" = len 3u = su3 ( len )print . su3 ( len 3u cast == )assert . String(32) bling = "bling";  m_sarr 0 [] bling = len 5u = su3 ( len )print . su3 ( len 5u cast == )assert . 0 cast return } }
+Uq_SystemU3 : System { :<> <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by t3972 except data member is an initialized string array, see also t3953 for constant array
+##
+#>A.ulam
+  ulam 3;
+element A {
+  Bool b;
+  String m_sarr[2] = { "fool", "bar"};
+  Bool(3) m_bun[2] = { false, true};
+
+ Int test() {
+   SystemU3 su3;
+   su3.print(m_bun[1]);
+   su3.assert(m_bun[1]);
+
+   ASCII asc = m_sarr[1][2];
+   b = (asc == 'r');
+   su3.print(m_sarr[1]);
+   su3.assert(b);
+
+   //lengthof array item
+   Unsigned len = m_sarr[0].lengthof;
+   su3.print(len);
+   su3.assert(len == 4u);
+
+   //assignment string terminal to array item
+   m_sarr[0] = "foo";
+   len = m_sarr[0].lengthof;
+   su3.print(len);
+   su3.assert(len == 3u);
+
+   //assignment string variable to array item
+   String bling = "bling";
+   m_sarr[0] = bling;
+   len = m_sarr[0].lengthof;
+   su3.print(len);
+   su3.assert(len == 5u);
+   return 0;
+ }
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

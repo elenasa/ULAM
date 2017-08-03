@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeBinaryOp.h - Basic Node for handling Binary Operations for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeBinaryOp.h - Basic Node for handling Binary Operations for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2017 All rights reserved.
   \gpl
 */
 
@@ -59,6 +59,8 @@ namespace MFM{
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual void checkAbstractInstanceErrors();
+
+    virtual void resetNodeLocations(Locator loc);
 
     virtual void print(File * fp);
 
@@ -104,6 +106,8 @@ namespace MFM{
     virtual UlamValue makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len) = 0;
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len) = 0;
 
+    virtual Node * buildOperatorOverloadFuncCallNode();
+
     virtual UTI calcNodeType(UTI lt, UTI rt) = 0;
     virtual s32 resultBitsize(UTI lt, UTI rt); //op specific
 
@@ -117,10 +121,12 @@ namespace MFM{
     virtual UTI castThyselfToResultType(UTI rt, UTI lt, UTI newType);
     //common helpers for calcNodeType:
     virtual bool checkSafeToCastTo(UTI fromType, UTI& newType);
-    bool checkForPrimitiveTypes(UTI lt, UTI rt);
-    bool checkNotVoidTypes(UTI lt, UTI rt);
+
+    bool checkForPrimitiveNotVoidTypes(UTI lt, UTI rt);
+    bool checkForPrimitiveTypes(UTI lt, UTI rt, bool quietly);
+    bool checkNotVoidTypes(UTI lt, UTI rt, bool quietly);
     bool checkForNumericTypes(UTI lt, UTI rt);
-    bool checkScalarTypesOnly(UTI lt, UTI rt);
+    bool checkScalarTypesOnly(UTI lt, UTI rt, bool quietly=false);
   };
 
 }

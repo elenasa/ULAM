@@ -1,0 +1,53 @@
+## -*- mode:ulam -*-
+#=t41107_test_compiler_element_operatoroverloadtoomanyargs_error
+#!
+./QW.ulam:4:7: ERROR: Operator overload function definition: operator+ must take none or 1 argument, not 2.
+./QW.ulam:2:2: ERROR: Empty/Incomplete Class Definition 'QW'; Possible missing ending curly brace.
+./QW.ulam:6:5: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./QW.ulam:2:8: ERROR: Invalid Type: QW.
+ ERROR: No parse tree for This Class: QW.
+Unrecoverable Program Parse FAILURE: <QW.ulam>
+./QW.ulam:6:12: ERROR: Invalid Class Type <qint>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <System.ulam>
+##
+## informed by t41106
+##
+#>Foo.ulam
+  ulam 3;
+element Foo : QW {
+  Bool first;
+  Int fint, opfint;
+  Int test() {
+    System s;
+    Foo foo;
+    foo.fint = 2;
+    opfint = foo + 3 + foo.fint;
+    s.print(opfint);
+    s.assert(opfint == 6);
+    return opfint;
+  }
+}
+
+#:QW.ulam
+  ulam 3;
+ quark QW {
+  Int qint = 1;
+  Int operator+(Int iarg, Int valarg)
+  {
+    return qint + valarg + iarg;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

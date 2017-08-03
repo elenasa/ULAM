@@ -1,0 +1,31 @@
+## -*- mode:ulam -*-
+#=t3904_test_compiler_arrayitempostincrpostdecr_error
+#!
+./Foo.ulam:7:6: ERROR: Incompatible (nonscalar) types: Unsigned(8)[4] and Int(32) used with binary ++.
+./Foo.ulam:8:5: ERROR: Incompatible (nonscalar) types: Unsigned(8)[4] and Int(32) used with binary +=.
+./Foo.ulam:9:6: ERROR: Incompatible (nonscalar) types: Unsigned(8)[4] and Int(2) used with binary +=.
+./Foo.ulam:10:6: ERROR: Incompatible (nonscalar) types: Unsigned(8)[4] and Int(32) used with binary --.
+./Foo.ulam:11:5: ERROR: Incompatible (nonscalar) types: Unsigned(8)[4] and Int(32) used with binary -=.
+./Foo.ulam:12:6: ERROR: Incompatible (nonscalar) types: Unsigned(8)[4] and Int(2) used with binary -=.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t3903, t3557
+##
+#>Foo.ulam
+  ulam 3;
+element Foo {
+  typedef Unsigned(8) ARGB[4];
+  ARGB a;
+
+  Int test() {
+    a++;
+    ++a;
+    a+=1;
+    a--;
+    --a;
+    a-=1;
+    return 0;
+  }
+}
+
+#.

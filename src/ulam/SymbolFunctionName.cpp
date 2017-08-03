@@ -10,12 +10,12 @@
 
 namespace MFM {
 
-  SymbolFunctionName::SymbolFunctionName(const Token& id, UTI typetoreturn, CompilerState& state) : Symbol(id, typetoreturn, state)
+  SymbolFunctionName::SymbolFunctionName(const Token& id, UTI typetoreturn, CompilerState& state) : Symbol(id, typetoreturn, state), m_isOperatorOverload(false)
   {
     setDataMemberClass(m_state.getCompileThisIdx()); //by definition all function definitions are data members
   }
 
-  SymbolFunctionName::SymbolFunctionName(const SymbolFunctionName& sref) : Symbol(sref)
+  SymbolFunctionName::SymbolFunctionName(const SymbolFunctionName& sref) : Symbol(sref), m_isOperatorOverload(sref.m_isOperatorOverload)
   {
     std::map<std::string, SymbolFunction *>::const_iterator it = sref.m_mangledFunctionNames.begin();
     while(it != sref.m_mangledFunctionNames.end())
@@ -55,6 +55,16 @@ namespace MFM {
     return "Uz_"; //?
   }
 
+  bool SymbolFunctionName::isOperatorOverloadFunctionName()
+  {
+    return m_isOperatorOverload;
+  }
+
+  void SymbolFunctionName::setOperatorOverloadFunctionName()
+  {
+    m_isOperatorOverload = true;
+  }
+
   bool SymbolFunctionName::overloadFunction(SymbolFunction * fsym)
   {
     bool overloaded = false;
@@ -74,7 +84,15 @@ namespace MFM {
     return overloaded;
   } //overloadFunction
 
-  u32 SymbolFunctionName::findMatchingFunctionStrictlyByTypes(std::vector<UTI> argTypes, SymbolFunction *& funcSymbol)
+  u32 SymbolFunctionName::findMatchingFunctionStrictlyVoid(SymbolFunction *& funcSymbol)
+  {
+    std::vector<UTI> voidVector;
+    bool tmphazyargs = false;
+    u32 numfound = findMatchingFunctionStrictlyByTypes(voidVector, funcSymbol, tmphazyargs);
+    return numfound;
+  }
+
+  u32 SymbolFunctionName::findMatchingFunctionStrictlyByTypes(std::vector<UTI> argTypes, SymbolFunction *& funcSymbol, bool& hasHazyArgs)
   {
     if(m_mangledFunctionNames.empty())
       return 0;
@@ -86,18 +104,20 @@ namespace MFM {
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;
-	if(fsym->matchingTypesStrictly(argTypes))
+	bool tmphazyargs = false;
+	if(fsym->matchingTypesStrictly(argTypes, tmphazyargs))
 	  {
 	    funcSymbol = fsym;
 	    matchingFuncCount++;
-	    //break;
 	  }
+	if(tmphazyargs)
+	  hasHazyArgs = true;
 	++it;
       }
     return matchingFuncCount;
   } //findMatchingFunctionStrictlyByTypes
 
-  u32 SymbolFunctionName::findMatchingFunction(std::vector<Node *> argNodes, SymbolFunction *& funcSymbol)
+  u32 SymbolFunctionName::findMatchingFunction(std::vector<Node *> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs)
   {
     if(m_mangledFunctionNames.empty())
       return 0;
@@ -109,12 +129,14 @@ namespace MFM {
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;
-	if(fsym->matchingTypesStrictly(argNodes))
+	bool tmphazyargs = false;
+	if(fsym->matchingTypesStrictly(argNodes, tmphazyargs))
 	  {
 	    funcSymbol = fsym;
 	    matchingFuncCount++;
-	    //break;
 	  }
+	if(tmphazyargs)
+	  hasHazyArgs = true;
 	++it;
       }
     return matchingFuncCount;
@@ -128,11 +150,11 @@ namespace MFM {
     if(m_mangledFunctionNames.empty())
       return 0;
 
-    u32 matchingFuncCount = findMatchingFunction(argNodes, funcSymbol); //strictly first
+    u32 matchingFuncCount = findMatchingFunction(argNodes, funcSymbol, hasHazyArgs); //strictly first
 
     //try again with less strict constraints, allow safe casting;
     //track matches with hazy casting for error message output
-    if(!funcSymbol)
+    if(!hasHazyArgs && !funcSymbol)
       {
 	// give priority to safe matches that have same ULAMTYPEs too
 	// e.g. Unsigned(3) arg would safely cast to Int(4), Int(5), and Unsigned param;
@@ -174,11 +196,12 @@ namespace MFM {
       } //2nd try
 
     //3rd try: check any super class, unless hazyargs (causes inf loop)
-    if(matchingFuncCount == 0)
+    //if(matchingFuncCount == 0)
+    if(!hasHazyArgs && matchingFuncCount == 0)
 	return findMatchingFunctionWithSafeCastsInAncestors(argNodes, funcSymbol, hasHazyArgs);
 
     return matchingFuncCount;
-  } //findMatchingFunctionWithConstantsAsArgs
+  } //findMatchingFunctionWithSafeCasts
 
   u32 SymbolFunctionName::findMatchingFunctionWithSafeCastsInAncestors(std::vector<Node *> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs)
   {
@@ -193,6 +216,32 @@ namespace MFM {
       }
     return 0;
   } //findMatchingFunctionWithSafeCastsInAncestors
+
+  void SymbolFunctionName::noteAmbiguousFunctionSignatures(std::vector<Node *> argNodes, u32 numMatchesFound)
+  {
+    assert(!m_mangledFunctionNames.empty());
+    assert(numMatchesFound > 1);
+
+    //called after findMatchingFunctionWithSafeCasts returns more than one match
+    u32 matchingFuncCount = 0;
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	u32 numUTmatch = 0; //unused here
+	bool hasHazyArgs = false; //unused here
+	if(fsym->matchingTypes(argNodes, hasHazyArgs, numUTmatch)) //with safe casting
+	  {
+	    matchingFuncCount++;
+	    std::ostringstream note;
+	    note << "Match (" << matchingFuncCount << " of " << numMatchesFound << ") : ";
+	    note << fsym->getFunctionNameWithTypes().c_str();
+	    MSG(fsym->getTokPtr(), note.str().c_str(), NOTE);
+	  }
+	it++;
+      } //end while
+    assert(numMatchesFound == matchingFuncCount); //sanity
+  } //noteAmbiguousFunctionSignatures
 
   u32 SymbolFunctionName::getDepthSumOfFunctions()
   {
@@ -262,6 +311,7 @@ namespace MFM {
 	//possibly us, or a great-ancestor that has first decl of this func
 	UTI kinuti; // ref to find, Nav if not found
 	s32 vidx = UNKNOWNSIZE; //virtual index
+	bool overriding = false;
 
 	//search for virtual function w exact name/type in superclass
 	// if found, this function must also be virtual
@@ -298,6 +348,7 @@ namespace MFM {
 		      }
 		    vidx = superfsym->getVirtualMethodIdx();
 		    kinuti = cuti; //overriding
+		    overriding = true; //t41096, t41097
 		  }
 		else
 		  {
@@ -329,9 +380,18 @@ namespace MFM {
 		vidx = (maxidx != UNKNOWNSIZE ? maxidx : 0);
 		maxidx = vidx + 1;
 	      }
-	    //else use ancestor index; maxidx stays same
+	    //else use ancestor index; maxidx stays same; is an override
 	    fsym->setVirtualMethodIdx(vidx);
 	    csym->updateVTable(vidx, fsym, kinuti, fsym->isPureVirtualFunction());
+
+	    //check overriding virtual function when flag set by programmer(t41096,97,98)
+	    if(fsym->getInsureVirtualOverrideFunction() && !overriding)
+	      {
+		std::ostringstream msg;
+		msg << "@Override flag fails virtual function: ";
+		msg << fsym->getFunctionNameWithTypes().c_str();
+		MSG(fsym->getTokPtr(), msg.str().c_str(), ERR);
+	      }
 	  }
 	else
 	  maxidx = (maxidx != UNKNOWNSIZE ? maxidx : 0); //stays same, or known 0
@@ -475,73 +535,6 @@ namespace MFM {
     return probcount;
   } //checkCustomArrayGetFunctions
 
-  u32 SymbolFunctionName::checkCustomArraySetFunctions(UTI caType)
-  {
-    if(m_mangledFunctionNames.empty())
-      {
-	std::ostringstream msg;
-	msg << "Custom array set method '";
-	msg << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str();
-	msg << "' NOT FOUND in class: ";
-	msg << m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamTypeNameOnly().c_str();
-	MSG(getTokPtr(), msg.str().c_str(), INFO);
-	return 0;
-      }
-
-    u32 probcount = 0;
-    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
-    while(it != m_mangledFunctionNames.end())
-      {
-	SymbolFunction * fsym = it->second;
-	UTI futi = fsym->getUlamTypeIdx();
-	if(futi != Void)
-	  {
-	    std::ostringstream msg;
-	    msg << "Custom array set method '";
-	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
-	    msg << "' must return Void ";
-	    probcount++;
-	  }
-
-	u32 numparams = fsym->getNumberOfParameters();
-	if(numparams != 2)
-	  {
-	    std::ostringstream msg;
-	    msg << "Custom array set method '";
-	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
-	    msg << "' requires exactly two parameters, not ";
-	    msg << numparams;
-	    probcount++;
-	  }
-	else
-	  {
-	    //verify 2nd parameter matches caType
-	    // compare UTI as they may change during full instantiations
-	    Symbol * asym = fsym->getParameterSymbolPtr(1);
-	    assert(asym);
-	    UTI auti = asym->getUlamTypeIdx();
-	    if(UlamType::compare(auti, caType, m_state) == UTIC_NOTSAME)
-	      {
-		std::ostringstream msg;
-		msg << "Custom array set method '";
-		msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
-		msg << "' second parameter type '";
-		msg << m_state.getUlamTypeNameByIndex(auti).c_str();
-		msg << "' does not match '";
-		msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
-		msg << "' return type '";
-		msg << m_state.getUlamTypeNameByIndex(caType).c_str();
-		msg << "'; Cannot be called in class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-		MSG(fsym->getTokPtr(), msg.str().c_str(), ERR);
-		probcount++;
-	      }
-	  }
-	it++;
-      } //while aset found
-    return probcount;
-  } //checkCustomArraySetFunctions
-
   UTI SymbolFunctionName::getCustomArrayReturnType()
   {
     UTI rtnType = Nav;
@@ -552,7 +545,12 @@ namespace MFM {
 	SymbolFunction * fsym = it->second;
 	UTI futi = fsym->getUlamTypeIdx();
 	assert(futi != Void);
-	assert((rtnType == Nav) || (UlamType::compare(rtnType, futi, m_state) == UTIC_SAME));
+
+	if(!((rtnType == Nav) || (UlamType::compare(rtnType, futi, m_state) == UTIC_SAME)))
+	  {
+	    rtnType = Nav; //error msg given by caller!! e.g. t3918
+	    break;
+	  }
 	rtnType = futi;
 	++it;
       }
@@ -639,9 +637,7 @@ namespace MFM {
       {
 	SymbolFunction * fsym = it->second;
 	assert(fsym);
-	// now done as part of block's c&l
-	// first check for incomplete parameters
-	//aok &= fsym->checkParameterTypes();
+	// check for incomplete parameters done as part of block's c&l
 
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
 	assert(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
@@ -681,7 +677,6 @@ namespace MFM {
 	u32 fcntnavs = ncnt;
 	u32 fcnthzy = hcnt;
 	u32 fcntunset = nocnt;
-	//func->countNavHzyNoutiNodes(fcntnavs, fcnthzy, fcntunset);
 	func->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
 	if((ncnt - fcntnavs) > 0)
 	  {
@@ -731,7 +726,6 @@ namespace MFM {
 	msg << m_state.m_pool.getDataAsString(getId()) << "> in class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), INFO);
-	//ncnt += countNavs;
       }
 
     if(countHzy > 0)
@@ -746,7 +740,6 @@ namespace MFM {
 	msg << m_state.m_pool.getDataAsString(getId()) << "> in class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), INFO);
-	//hcnt += countHzy;
       }
 
     if(countUnset > 0)
@@ -761,7 +754,6 @@ namespace MFM {
 	msg << m_state.m_pool.getDataAsString(getId()) << "> in class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), INFO);
-	//nocnt += countUnset;
       }
     return;
   } //countNavNodesInFunctionDefs

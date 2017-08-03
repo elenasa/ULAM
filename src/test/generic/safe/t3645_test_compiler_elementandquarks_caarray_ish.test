@@ -1,8 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3645_test_compiler_elementandquark_caarray_ish
 #!
-Exit status: -11
-Ue_IshC { Int(32) test() {  Q(0x7) q;  Atom(96) a;  a q 1 cast [] = 0 cast return } }
+Exit status: 0
+Ue_IshC { Int(32) test() {  Q(0x7) q;  Atom(96) a;  a q ( 1 cast )aref . = 0 cast return } }
 Uq_Q(Bits(32) b) { <NOMAIN> }
 ##
 ## informed by a Dave ish 1/18/2016; (order matters)
@@ -25,7 +25,6 @@ use Q;
 quark Q(Bits b)
 {
   Atom aref(Int i) { Atom a; return a; }
-  Void aset(Int i, Atom a) { }
 }
 
 /* Generates:

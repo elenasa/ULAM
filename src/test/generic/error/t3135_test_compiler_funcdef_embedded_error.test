@@ -1,18 +1,26 @@
 ## -*- mode:ulam -*-
 #=t3135_test_compiler_funcdef_embedded_error
 #!
-./D.ulam:5:12: ERROR: Unexpected token <(> indicates a function call or definition; neither are valid here.
+./D.ulam:5:12: ERROR: Unexpected token <(> indicates a constructor function call or function definition; neither are valid here for primitive variable 'foo'.
 ./D.ulam:5:12: ERROR: Invalid Statement (possible missing semicolon).
+./D.ulam:1:1: ERROR: Empty/Incomplete Class Definition 'D'; Possible missing ending curly brace.
+./D.ulam:9:4: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./D.ulam:1:7: ERROR: Invalid Type: D.
+ ERROR: No parse tree for This Class: D.
 Unrecoverable Program Parse FAILURE: <D.ulam>
+##
+## formerly,
+## ./D.ulam:5:12: ERROR: Unexpected token <(> indicates a function call or definition; neither are valid here.
 ##
 #>D.ulam
 quark D {
 Int a;
-Int test() {
+Int test()
   {
     Int foo() {
       1;
     }
+
    return foo();
   }
 }

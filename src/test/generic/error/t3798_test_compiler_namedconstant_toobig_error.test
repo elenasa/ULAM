@@ -2,8 +2,6 @@
 #=t3798_test_compiler_namedconstant_toobig_error
 #!
 ./A.ulam:9:14: ERROR: Type Bitsize specifier for base type: Unary, has a constant value of 65 that exceeds the maximum bitsize 64.
-./A.ulam:4:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
-./A.ulam:4:9: ERROR: 10 Nodes with unresolved types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //informed by 3403, except constant type is more than a long >64 bits

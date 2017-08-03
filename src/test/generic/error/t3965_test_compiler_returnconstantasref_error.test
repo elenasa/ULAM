@@ -1,0 +1,18 @@
+## -*- mode:ulam -*-
+#=t3965_test_compiler_returnconstantasref_error
+#!
+./Ish.ulam:5:5: ERROR: Use explicit cast to return Int(32) as Int(32)&.
+Unrecoverable Program Type Label FAILURE.
+##
+#>Ish.ulam
+  ulam 3;
+element Ish {
+  Int& update() {
+    constant Int cI = 1024;
+    return cI;
+  }
+  Int test() {
+    return update();
+  }
+}
+#.

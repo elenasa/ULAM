@@ -1,0 +1,70 @@
+## -*- mode:ulam -*-
+#=t41014_test_compiler_logicalorand_precedence
+#!
+##
+##   gencode output: (2 asserts)
+##
+Exit status: 0
+Uq_Typo(Int(32) a) : Bar { /* empty class block */ }
+Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
+Ue_Eltypo : Typo(1) { :< :< Unsigned(3) bu(7u); > constant Int(32) a = 1; > Bool(1) sp(true);  Bool(1) sp2(true);  Unsigned(3) first(2u);  Int(32) test() {  System s;  Eltypo elt;  Atom(96) other = elt cast;  sp sp other Eltypo is || first cast 3 cast < && = s ( sp )assert . sp2 sp other Empty is first cast 3 cast < && || = s ( sp2 )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by a Dave question 1/20/2017.
+## With no parens (sp):
+##
+##       &&
+##   ||     c
+## a   b
+##
+##
+## with parens (sp2):
+##
+##        ||
+##      a    &&
+##          b  c
+##
+##
+#:Typo.ulam
+  ulam 2;
+quark Typo(Int a) : Bar{
+}
+
+#:Bar.ulam
+  ulam 2;
+quark Bar
+{
+  Unsigned(3) bu = 7u;
+}
+
+#>Eltypo.ulam
+  ulam 2;
+element Eltypo : Typo(1) {
+  Bool sp, sp2;
+  Unsigned(3) first = 2;
+  Int test(){
+    System s;
+    Eltypo elt;
+    Atom other = elt; //Empty.instanceof;
+    sp = sp || other is Eltypo && first < 3;
+    s.assert(sp); //true
+
+    sp2 = sp || (other is Empty && first < 3);
+    s.assert(sp2);
+
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

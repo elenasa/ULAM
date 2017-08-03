@@ -13,7 +13,7 @@ Uq_System { <NOMAIN> }
 #>A.ulam
  ulam 2;
 element A {
-  constant Int(64) j = - 0xddde; //0xffffffff, ffff2222 numeric tokens are implicitly 64-bits.
+  constant Int(64) j = - ((Int(64)) 0xddde); //0xffffffff, ffff2222 numeric tokens are implicitly 64-bits; hex implicitly unsigned
   Int i;
   Int n;
   Int test () {

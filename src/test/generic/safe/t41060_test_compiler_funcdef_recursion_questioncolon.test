@@ -1,0 +1,42 @@
+## -*- mode:ulam -*-
+#=t41060_test_compiler_funcdef_recursion_questioncolon
+##
+## gen output: (+ assert)
+##   Int Arg: 24
+#!
+Exit status: 24
+Ue_A { System s();  Bool(7) d(false);  Int(32) a(24);  Int(32) test() {  a ( 4 cast )fact = s ( a )print . s ( a 24 cast == )assert . a return } }
+Uq_System { <NOMAIN> }
+##
+## informed by t3118
+##
+#>A.ulam
+  ulam 3;
+use System;
+element A {
+  System s;
+  Bool(7) d;
+  Int test() {
+    a = fact(4);
+    s.print(a);
+    s.assert(a == 24);
+    return a;
+  }
+  Int a;
+  Int fact(Int n) {
+    return (n>0) ? (n * fact(n-1)) : 1;
+  }
+}
+## test system quark with native overloaded print funcs; assert
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

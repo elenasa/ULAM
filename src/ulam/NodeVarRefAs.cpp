@@ -68,7 +68,7 @@ namespace MFM {
 
   void NodeVarRefAs::packBitsInOrderOfDeclaration(u32& offset)
   {
-    assert(0); //refs can't be data members
+    m_state.abortShouldntGetHere(); //refs can't be data members
   } //packBitsInOrderOfDeclaration
 
   void NodeVarRefAs::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
@@ -176,7 +176,7 @@ namespace MFM {
 
     if(stgetyp == UAtom)
       {
-	fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, "); //position as super quark (e.g. t3639, t3709, t3675, t3408, t3336); as element t3249, t3255, t3637
+	fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, "); //position as super quark (e.g. t3639, t3709, t3675, t3408, t3336); as element t3249, t3255, t3637; as atom ref t3908
 
 	//note: needs effective self of the atom, not simply the RHS type.
 	fp->write(m_state.getHiddenContextArgName());
@@ -198,7 +198,7 @@ namespace MFM {
 	  {
 	    fp->write(", 0u + T::ATOM_FIRST_STATE_BIT, &"); //t3586, t3589, t3637
 	    //must be same as look up for elements only Sat Jun 18 17:30:17 2016
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
 	  }
 	if(vclasstype == UC_QUARK)
 	  fp->write(", UlamRef<EC>::ELEMENTAL"); //stays elemental
@@ -215,7 +215,7 @@ namespace MFM {
 	else
 	  {
 	    fp->write("&"); //t3822
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
 	  }
 	if(vclasstype == UC_QUARK)
 	  fp->write(", UlamRef<EC>::CLASSIC"); //stays classic
@@ -232,20 +232,19 @@ namespace MFM {
 	else
 	  {
 	    fp->write("&"); //t3830
-	    fp->write(m_state.getEffectiveSelfMangledNameByIndex(stgcosuti).c_str());
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
 	  }
 	assert(vclasstype == UC_QUARK);
 	fp->write(", UlamRef<EC>::CLASSIC"); //stays classic
       }
     else
-      assert(0); //WHAT THEN???
+      m_state.abortUndefinedUlamClassType(); //WHAT THEN???
 
     if(!stgcosut->isReference())
       fp->write(", uc"); //t3249
 
     fp->write("); //shadows lhs of 'as'"); GCNL;
 
-    m_state.m_genCodingConditionalHas = false; // done
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs ?
   } //genCode
 
@@ -276,7 +275,6 @@ namespace MFM {
 
     m_varSymbol->setIsSelf(); //nope
 
-    m_state.m_genCodingConditionalHas = false; // done
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
   } //genCodeRefAsSelf
 

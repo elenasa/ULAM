@@ -27,7 +27,7 @@ namespace MFM {
 	methodname << "Unsigned";
 	break;
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	methodname << "NAV";
 	break;
       };
@@ -47,7 +47,7 @@ namespace MFM {
 #ifdef SUPPORT_ARITHMETIC_ARRAY_OPS
 	return doBinaryOperationArray(lslot, rslot, slots);
 #else
-	assert(0);
+	m_state.abortNotImplementedYet();
 #endif //defined below...
       }
     return false;
@@ -55,14 +55,14 @@ namespace MFM {
 
   UTI NodeBinaryOpArith::calcNodeType(UTI lt, UTI rt)
   {
-    if(!m_state.okUTItoContinue(lt, rt))
+    if(!m_state.neitherNAVokUTItoContinue(lt, rt))
       return Nav;
 
     if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
       return Hzy;
 
     //no atoms, elements nor void as either operand
-    if(!NodeBinaryOp::checkForPrimitiveTypes(lt, rt))
+    if(!NodeBinaryOp::checkForPrimitiveNotVoidTypes(lt, rt))
       return Nav; //err output
 
     // only int, unsigned, unary types; not bool, bits, etc..

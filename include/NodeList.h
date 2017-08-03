@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeList.h - Basic handling a list of nodes for ULAM
  *
- * Copyright (C) 2015-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2016 Ackleyshack LLC.
+ * Copyright (C) 2015-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeList.h - Basic handling a list of nodes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2016 All rights reserved.
+  \date (C) 2015-2017 All rights reserved.
   \gpl
 */
 
@@ -66,6 +66,8 @@ namespace MFM{
 
     virtual void checkAbstractInstanceErrors();
 
+    virtual void resetNodeLocations(Locator loc);
+
     virtual void print(File * fp);
 
     virtual void printPostfix(File * fp);
@@ -84,9 +86,9 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
-    EvalStatus eval(u32 n);
+    virtual EvalStatus eval(u32 n);
 
-    EvalStatus evalToStoreInto(u32 n);
+    virtual EvalStatus evalToStoreInto(u32 n);
 
     void addNodeToList(Node * argNode);
 
@@ -102,9 +104,17 @@ namespace MFM{
 
     bool isFunctionCall(u32 n);
 
+    virtual bool isAList();
+
+    virtual void genCode(File * fp, UVPass& uvpass);
+
     void genCode(File * fp, UVPass& uvpass, u32 n);
 
     void genCodeToStoreInto(File * fp, UVPass& uvpass, u32 n);
+
+    virtual void genCodeConstantArrayInitialization(File * fp);
+
+    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
 
   protected:
     std::vector<Node *> m_nodes;

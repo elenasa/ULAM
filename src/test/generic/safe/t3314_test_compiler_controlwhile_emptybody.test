@@ -4,14 +4,15 @@
 Exit status: 0
 Ue_A { Bool(7) b(false);  Int(32) a(0);  Int(32) test() {  a 5 cast = { a 1 -= 0 cast != cond {} _1: while } a return } }
 #>A.ulam
+  ulam 1;
 element A {
-Bool(7) b;
- Int a;
- Int test() {
-a = 5;
- while( --a != 0 ) { }
- return a;
- }
- }
+  Bool(7) b;
+  Int a;
+  Int test() {
+    a = 5;
+    while( --a != 0 ) { }
+    return a;
+  }
+}
 
 #.

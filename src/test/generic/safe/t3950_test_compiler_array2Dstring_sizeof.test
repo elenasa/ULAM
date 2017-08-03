@@ -1,0 +1,48 @@
+## -*- mode:ulam -*-
+#=t3950_test_compiler_array2Dstring_sizeof
+##
+## gen output: (interleaved asserts)
+## Unsigned Arg: 32
+## Unsigned Arg: 64
+##
+#!
+Exit status: 0
+Ue_Eltypo { typedef String(32) SArr[2];  String(32) m_sarr[2]( ,"bar");  Bool(1) b1(true);  Bool(1) b2(true);  Int(32) test() {  System s;  m_sarr 1 [] "bar" = Unsigned(32) siz1 = 32u;  s ( siz1 )print . b1 siz1 32u cast == = s ( b1 )assert . Unsigned(32) siz2 = 64u;  s ( siz2 )print . b2 siz2 64u cast == = s ( b2 )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+##
+## Informed by t3949, t3929, sizeof a String array item, and array of Strings
+##
+#>Eltypo.ulam
+  ulam 3;
+element Eltypo {
+  typedef String SArr[2];
+  SArr m_sarr;
+  Bool b1, b2;
+  Int test(){
+    System s;
+    m_sarr[1] = "bar";
+    Unsigned siz1 = m_sarr[1].sizeof; //3 letters
+    s.print(siz1);
+    b1 = (siz1 == 32u);
+    s.assert(b1);
+
+    Unsigned siz2 = m_sarr.sizeof; //two items
+    s.print(siz2);
+    b2 = (siz2 == 64u);
+    s.assert(b2);
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

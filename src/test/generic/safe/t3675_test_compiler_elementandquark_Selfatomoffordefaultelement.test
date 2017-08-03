@@ -4,7 +4,7 @@
 ##      gen code output: 2 asserts
 ##
 Exit status: -11
-Ue_A : QW { :<> Bool(1) b(true);  Int(32) test() {  System s;  b true = Atom(96) me = A.instanceof cast;  Atom(96) defaultself = Self.instanceof cast;  Atom(96) myself = self.atomof cast;  Atom(96) a = ( )func;  { a A as cond { A& a;  s ( a b . ! )assert . } if s ( false )assert . else } { a QW is cond s ( true )assert . if s ( false )assert . else } 0 cast return } }
+Ue_A : QW { :<> Bool(1) b(true);  Int(32) test() {  System s;  b true = Atom(96) me = A.instanceof cast;  Atom(96) defaultself = A.instanceof cast;  Atom(96) myself = self.atomof cast;  Atom(96) a = ( )func;  { a A as cond { A& a;  s ( a b . ! )assert . } if s ( false )assert . else } { a QW is cond s ( true )assert . if s ( false )assert . else } 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_QW { <NOMAIN> }
 ##

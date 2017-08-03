@@ -3,7 +3,7 @@
 #!
 ./Tu.ulam:3:10: ERROR: Invalid constant definition Type 'Void'.
 ./Tu.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Tu'; Possible missing ending curly brace.
-./Tu.ulam:4:3: ERROR: Invalid Class Type <Void>; KEYWORD should be 'element', 'quark', 'union', or 'transient'.
+./Tu.ulam:4:3: ERROR: Invalid Class Type <Void>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./Tu.ulam:2:9: ERROR: Invalid Type: Tu.
  ERROR: No parse tree for This Class: Tu.
 Unrecoverable Program Parse FAILURE: <Tu.ulam>

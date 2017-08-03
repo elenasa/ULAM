@@ -56,7 +56,8 @@ namespace MFM {
 	return;
       }
 
-    if(nut->getUlamTypeEnum() == Class) //t3717, t3718, t3719, t3739, t3714, t3715, t3735
+    ULAMTYPE etyp = nut->getUlamTypeEnum();
+    if(etyp == Class) //t3717, t3718, t3719, t3739, t3714, t3715, t3735
       {
 	SymbolClass * csym = NULL;
 	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
@@ -89,6 +90,10 @@ namespace MFM {
 	    // only for primitive scalars and arrays
 	    m_nodeInitExpr->printPostfix(fp);
 	  }
+	else if(etyp == String)
+	  {
+	    fp->write("UNINITIALIZED_STRING"); //t3987
+	  }
 	else
 	  {
 	    //default (uninitialized) values
@@ -112,6 +117,39 @@ namespace MFM {
     fp->write("; ");
   } //printPostfix
 
+  void NodeVarDeclDM::noteTypeAndName(s32 totalsize, u32& accumsize)
+  {
+    UTI nuti = getNodeType();
+    UlamKeyTypeSignature vkey = m_state.getUlamKeyTypeSignatureByIndex(nuti);
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    s32 nsize = nut->getTotalBitSize();
+
+    std::ostringstream note;
+    note << "(" << nsize << " of ";
+    note << totalsize << " bits, at " << accumsize << ") ";
+
+    //like NodeVarDecl::printNameAndType
+    if(nut->getUlamTypeEnum() != Class)
+      note << vkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str();
+    else
+      note << nut->getUlamTypeNameBrief().c_str();
+
+    note << " " << getName();
+
+    s32 arraysize = nut->getArraySize();
+    if(arraysize > NONARRAYSIZE)
+      {
+	note << "[" << arraysize << "]";
+      }
+    else if(arraysize == UNKNOWNSIZE)
+      {
+	note << "[UNKNOWN]";
+      }
+    MSG(getNodeLocationAsString().c_str(), note.str().c_str(), NOTE);
+    accumsize += nsize;
+
+  } //noteTypeAndName
+
   const char * NodeVarDeclDM::getName()
   {
     return NodeVarDecl::getName();
@@ -120,6 +158,11 @@ namespace MFM {
   const std::string NodeVarDeclDM::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
+  }
+
+  bool NodeVarDeclDM::hasASymbolDataMember()
+  {
+    return true;
   }
 
   FORECAST NodeVarDeclDM::safeToCastTo(UTI newType)
@@ -184,13 +227,25 @@ namespace MFM {
 
     UTI cuti = m_state.getCompileThisIdx();
 
-    //don't allow unions to initialize its data members
+    //don't allow unions to initialize its data members (t3782)
     if(m_state.isClassAQuarkUnion(cuti) && m_nodeInitExpr)
       {
 	std::ostringstream msg;
 	msg << "Data member '";
 	msg << m_state.m_pool.getDataAsString(m_vid).c_str();
 	msg << "' belongs to a quark-union, and cannot be initialized";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav);
+	return Nav; //short-circuit
+      }
+
+    //don't allow unions to contain string data members (t41093)
+    if(m_state.isClassAQuarkUnion(cuti) && UlamType::compareForString(nuti, m_state) == UTIC_SAME)
+      {
+	std::ostringstream msg;
+	msg << "Data member '";
+	msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+	msg << "' belongs to a quark-union, and cannot be type String";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
 	return Nav; //short-circuit
@@ -279,7 +334,7 @@ namespace MFM {
 	  {
 	    if(!(m_varSymbol->isInitValueReady()))
 	      {
-		if(!foldInitExpression()) //sets init constant value
+		if(!foldArrayInitExpression()) //sets init constant value
 		  {
 		    if((getNodeType() == Nav) || m_nodeInitExpr->getNodeType() == Nav)
 		      return Nav;
@@ -406,7 +461,7 @@ namespace MFM {
   // called during parsing rhs of named constant;
   // Requires a constant expression, else error;
   // (SCOPE OF EVAL IS BASED ON THE BLOCK OF CONSTDEF.)
-  bool NodeVarDeclDM::foldInitExpression()
+  bool NodeVarDeclDM::foldArrayInitExpression()
   {
     UTI nuti = getNodeType();
 
@@ -418,7 +473,7 @@ namespace MFM {
       return true; //short-circuit
 
     if(!m_state.isScalar(nuti)) //arrays handled by NodeVarDecl (virtual)
-      return NodeVarDecl::foldInitExpression();
+      return NodeVarDecl::foldArrayInitExpression();
 
     assert(m_nodeInitExpr);
     // if here, must be a constant init value..
@@ -440,7 +495,7 @@ namespace MFM {
 	else if(wordsize <= MAXBITSPERLONG)
 	  newconst = cnstUV.getImmediateDataLong(m_state);
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
 
     evalNodeEpilog();
@@ -502,7 +557,7 @@ namespace MFM {
 	return true;
       }
     return false;
-  } //foldInitExpression
+  } //foldArrayInitExpression
 
   bool NodeVarDeclDM::updateConstant(u64 & newconst)
   {
@@ -529,7 +584,7 @@ namespace MFM {
     else if(wordsize <= MAXBITSPERLONG)
       rtnb = updateConstant64(newconst);
     else
-      assert(0);
+      m_state.abortGreaterThanMaxBitsPerLong();
 
     if(!rtnb)
       {
@@ -569,6 +624,8 @@ namespace MFM {
       case Bits:
 	newconst = _Unsigned32ToBits32((u32) val, srcbitsize, nbitsize);
 	break;
+      case String:
+	break;
       default:
 	rtnb = false;
       };
@@ -602,6 +659,8 @@ namespace MFM {
       case Bits:
 	newconst = _Unsigned64ToBits64(val, srcbitsize, nbitsize);
 	break;
+      case String:
+	break;
       default:
 	  rtnb = false;
       };
@@ -622,7 +681,7 @@ namespace MFM {
     UTI cuti = m_state.getCompileThisIdx();
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
-    u32 pos = ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset();
+    u32 pos = m_varSymbol->getPosOffset();
     s32 bitsize = nut->getBitSize();
 
     if(cut->getUlamClassType() == UC_ELEMENT)
@@ -651,14 +710,14 @@ namespace MFM {
 	      }
 	  }
 
-	//fold packloadable class (e.g. quark) here for node eval, printpostfix..
 	if(aok)
-	  foldDefaultClass(); //try if packedloadable
+	  foldDefaultClass(); //init value for m_varSymbol
       }
     else if(m_nodeInitExpr)
       {
 	//primitive (not a class!)
 	//arrays may be initialized now
+	//isn't this redundant??? Mon Dec 19 11:33:26 2016
 	if(m_state.isScalar(nuti))
 	  {
 	    u64 val = 0;
@@ -689,6 +748,91 @@ namespace MFM {
     return aok;
   } //buildDefaultValue
 
+  void NodeVarDeclDM::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
+  {
+    assert(m_varSymbol);
+    assert(m_varSymbol->isDataMember());
+
+    UTI nuti = getNodeType(); //same as symbol uti, unless prior error
+    assert(nuti == m_varSymbol->getUlamTypeIdx());
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    u32 bits = nut->getBitSize();
+    if(bits == 0)
+      return;
+
+    ULAMTYPE etyp = nut->getUlamTypeEnum();
+    u32 pos = m_varSymbol->getPosOffset();
+    u32 arraysize = nut->isScalar() ? 1 : nut->getArraySize();
+
+    if(etyp == String)
+      {
+	//generate code to replace uti in string index with runtime registration number
+	for(u32 i = 0; i < arraysize; i++)
+	  {
+	    m_state.indent(fp);
+	    fp->write("initBV.Write(");
+	    fp->write_decimal_unsigned(pos + startpos);
+	    fp->write("u + ");
+	    fp->write_decimal_unsigned(i * MAXBITSPERINT);
+	    fp->write("u, ");
+	    fp->write_decimal_unsigned(REGNUMBITS);
+	    fp->write("u, myRegNum); //");
+	    fp->write(m_varSymbol->getMangledName().c_str()); //comment
+	    GCNL;
+	  }
+      }
+    else if(etyp == Class)
+      {
+	ULAMCLASSTYPE classtype = nut->getUlamClassType();
+
+	if(classtype == UC_ELEMENT)
+	  bits = BITSPERATOM;
+
+	u32 totbitsize = bits * arraysize;
+
+	s32 tmpVarNum = m_state.getNextTmpVarNumber();
+	TMPSTORAGE cstor = nut->getTmpStorageTypeForTmpVar();
+
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(nut->getLocalStorageTypeAsString().c_str());
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, cstor).c_str());
+	fp->write(";"); GCNL;
+
+	s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(nut->getTmpStorageTypeAsString().c_str());
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum2, cstor).c_str());
+	fp->write("(");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, cstor).c_str());
+	fp->write(".read());"); GCNL;
+
+	m_state.indent(fp);
+	fp->write("initBV.");
+	if((classtype == UC_ELEMENT) && nut->isScalar())
+	  fp->write("WriteBV"); //t3968 don't want WriteAtom
+	else
+	  fp->write(nut->writeMethodForCodeGen().c_str());//Write(");
+	fp->write("(");
+	fp->write_decimal_unsigned(pos + startpos);
+	fp->write("u, ");
+	if((classtype == UC_QUARK) && (totbitsize <= BITSPERATOM))
+	  {
+	   fp->write_decimal_unsigned(totbitsize); //entire array (t3776, t3969)
+	   fp->write(", ");
+	  }
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum2, cstor).c_str());
+	if((classtype == UC_ELEMENT) && nut->isScalar())
+	  fp->write(".GetBits()"); //T into BV
+	fp->write("); //");
+	fp->write(m_varSymbol->getMangledName().c_str()); //comment
+	GCNL;
+      } //a class
+  } //genCodeDefaultValueStringRegistrationNumber
+
   void NodeVarDeclDM::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
   {
     assert(m_varSymbol);
@@ -698,8 +842,7 @@ namespace MFM {
     if(nclasstype == UC_ELEMENT)
       {
 	s32 arraysize = nut->getArraySize();
-	//arraysize = (arraysize <= 0 ? 1 : arraysize);
-	arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //allow zero Mon Jul  4 14:08:47 2016
+	arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //allow zero
 
 	m_state.indent(fp);
 	fp->write("{\n"); //limit scope of 'dam'
@@ -707,7 +850,7 @@ namespace MFM {
 
 	m_state.indent(fp);
 	fp->write("AtomBitStorage<EC> gda(");
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(nuti).c_str());
+	fp->write(m_state.getTheInstanceMangledNameByIndex(nuti).c_str());
 	fp->write(".GetDefaultAtom());"); GCNL;
 
 	m_state.indent(fp);
@@ -717,7 +860,7 @@ namespace MFM {
 	  {
 	    m_state.indent(fp);
 	    fp->write("initBV.Write(");
-	    fp->write_decimal_unsigned(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset() + startpos);
+	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset() + startpos);
 	    fp->write("u + ");
 	    fp->write_decimal_unsigned(i * BITSPERATOM);
 	    fp->write("u, T::ATOM_FIRST_STATE_BIT, typefield);"); GCNL;
@@ -742,7 +885,7 @@ namespace MFM {
 	assert(cblock);
 
 	for(s32 i = 0; i < arraysize; i++)
-	  cblock->genCodeElementTypeIntoDataMemberDefaultValue(fp, ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset() + startpos + i * len); //e.g. t3715
+	  cblock->genCodeElementTypeIntoDataMemberDefaultValue(fp, m_varSymbol->getPosOffset() + startpos + i * len); //e.g. t3715
       }
     else if(m_state.isAtom(nuti))
       {
@@ -764,7 +907,7 @@ namespace MFM {
 	  {
 	    m_state.indent(fp);
 	    fp->write("initBV.Write(");
-	    fp->write_decimal_unsigned(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset() + startpos);
+	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset() + startpos);
 	    fp->write("u + ");
 	    fp->write_decimal_unsigned(i * BITSPERATOM);
 	    fp->write("u, T::ATOM_FIRST_STATE_BIT, typefield);"); GCNL;
@@ -778,6 +921,9 @@ namespace MFM {
 
   void NodeVarDeclDM::foldDefaultClass()
   {
+    if(m_varSymbol->isInitValueReady())
+      return;
+
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     assert(m_state.okUTItoContinue(nuti));
@@ -833,7 +979,7 @@ namespace MFM {
 
   void NodeVarDeclDM::printUnresolvedLocalVariables()
   {
-    assert(0); //override
+    m_state.abortShouldntGetHere(); //override
   }
 
   EvalStatus NodeVarDeclDM::eval()
@@ -847,50 +993,28 @@ namespace MFM {
     if(nuti == Hzy)
       return NOTREADY;
 
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMTYPE etyp = nut->getUlamTypeEnum();
-
     assert(m_varSymbol->getAutoLocalType() == ALT_NOT);
 
     if(m_state.isAtom(nuti))
       return NodeVarDecl::eval();
 
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
     if((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() > MAXSTATEBITS))
       return UNEVALUABLE;
-
-    // m_nodeInitExpr exists as result of a previous fold
-    if((etyp == Class) && (m_nodeInitExpr == NULL))
-      {
-	UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
-	PACKFIT packFit = m_state.determinePackable(scalaruti);
-	if(packFit == PACKEDLOADABLE)
-	  {
-	    //element and transient can only be a data member of a transient;
-	    //quarks go anywhere; could be array of them!
-	    u64 dpkval = 0;
-	    if(m_state.getPackedDefaultClass(nuti, dpkval))
-	      foldDefaultClass(); //XXXside-effects m_nodeInitExpr w a terminal
-	    else
-	      return ERROR;
-	  }
-	else
-	  {
-	    //unpacked
-	    return UNEVALUABLE;
-	  }
-      }
 
     // packedloadable class (e.g. quark) or nonclass data member;
     if(m_nodeInitExpr && m_varSymbol->hasInitValue())
       {
 	return NodeVarDecl::evalInitExpr();
       }
+    //else no side-effects needed..overrides NodeVarDecl.
     return NORMAL;
   } //eval
 
   EvalStatus NodeVarDeclDM::evalToStoreInto()
   {
+    //called via NodeVarDecl eval (e.g. t3187)
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
@@ -913,7 +1037,7 @@ namespace MFM {
 
   UlamValue NodeVarDeclDM::makeUlamValuePtr()
   {
-    UlamValue ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset(), m_varSymbol->getId());
+    UlamValue ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 
     ptr.checkForAbsolutePtr(m_state.m_currentObjPtr);
     return ptr;
@@ -949,7 +1073,7 @@ namespace MFM {
 	fp->write("<EC> ");
 	fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
 	fp->write("; //offset ");
-	fp->write_decimal_unsigned(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset());
+	fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
 	fp->write("u"); GCNL; //func call parameters aren't NodeVarDecl's
       }
     else
@@ -963,9 +1087,8 @@ namespace MFM {
 	    //elements only data members in transients
 	    assert(m_state.getUlamClassForThisClass() == UC_TRANSIENT);
 	    s32 arraysize = nut->getArraySize();
-	    //arraysize = (arraysize <= 0 ? 1 : arraysize);
 	    arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //Mon Jul  4 14:11:41 2016
-	    fp->write_decimal_unsigned(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset());
+	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
 	    if(nut->getBitSize() > 0)
 	      fp->write("u, BPA * "); //atom-based
 	    else
@@ -975,7 +1098,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    fp->write_decimal_unsigned(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset());
+	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
 	    fp->write("u, ");
 	    fp->write_decimal(nut->getTotalBitSize()); //include arraysize
 	    fp->write("u> ");
@@ -984,6 +1107,12 @@ namespace MFM {
 	fp->write(";"); GCNL; //func call parameters aren't NodeVarDecl's
       }
   } //genCodedBitFieldTypedef
+
+  void NodeVarDeclDM::genCodeConstantArrayInitialization(File * fp)
+  { }
+
+  void NodeVarDeclDM::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  { }
 
   void NodeVarDeclDM::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {
@@ -998,7 +1127,7 @@ namespace MFM {
     fp->write("\", \"");
     fp->write(m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str());
     fp->write("\", ");
-    fp->write_decimal(((SymbolVariableDataMember *) m_varSymbol)->getPosOffset());
+    fp->write_decimal(m_varSymbol->getPosOffset());
     fp->write("u); return i; }"); GCNL;
 
     dmcount++; //increment data member count

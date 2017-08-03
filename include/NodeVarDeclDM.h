@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeVarDeclDM.h -  Data Member Variable Declarations for ULAM
  *
- * Copyright (C) 2015-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2016 Ackleyshack LLC.
+ * Copyright (C) 2015-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeVarDeclDM.h -  Data Member Variable Declarations for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2016 All rights reserved.
+  \date (C) 2015-2017 All rights reserved.
   \gpl
 */
 
@@ -59,9 +59,13 @@ namespace MFM{
 
     virtual void printPostfix(File * f);
 
+    virtual void noteTypeAndName(s32 totalsize, u32& accumsize);
+
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
+
+    virtual bool hasASymbolDataMember();
 
     virtual FORECAST safeToCastTo(UTI newType);
 
@@ -73,11 +77,13 @@ namespace MFM{
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
+    virtual void genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos);
+
     virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
 
     virtual void setInitExpr(Node * node); //was setConstantExpr
 
-    virtual bool foldInitExpression(); //was foldConstantExpression
+    virtual bool foldArrayInitExpression(); //was foldConstantExpression
 
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 
@@ -90,6 +96,10 @@ namespace MFM{
     virtual EvalStatus evalToStoreInto();
 
     virtual void genCode(File * fp, UVPass& uvpass);
+
+    virtual void genCodeConstantArrayInitialization(File * fp);
+
+    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 

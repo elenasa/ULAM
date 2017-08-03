@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * Symbol.h -  Basic handling of Symbols for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file Symbol.h -  Basic handling of Symbols for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2017 All rights reserved.
   \gpl
 */
 
@@ -73,11 +73,15 @@ namespace MFM{
     virtual bool isTypedef();
     virtual bool isConstant();
     virtual bool isClass();
-    virtual bool isTmpRefSymbol();
+    virtual bool isTmpVarSymbol();
 
     void setDataMemberClass(UTI cuti);
     UTI getDataMemberClass();
     bool isDataMember();
+
+    void setLocalsFilescopeDef(UTI locuti);
+    UTI getLocalsFilescopeType();
+    bool isLocalsFilescopeDef();
 
     virtual bool isModelParameter();
 
@@ -121,6 +125,8 @@ namespace MFM{
     UTI m_uti; // may seem redundant, but not; from NodeVarDecl, before m_value known.
                // base type, not array type, used here (e.g. NodeBinaryOp::calcNodeType)
     UTI m_dataMemberClass;
+    UTI m_localsfilescopeType;
+
     ALT m_autoLocalType;
     bool m_isSelf; // hidden arg symbol
     bool m_isSuper; // to modify effective self

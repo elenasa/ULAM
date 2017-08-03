@@ -25,14 +25,14 @@ namespace MFM {
   void NodeVarRef::updateLineage(NNO pno)
   {
     NodeVarDecl::updateLineage(pno);
-  } //updateLineage
+  }
 
   bool NodeVarRef::findNodeNo(NNO n, Node *& foundNode)
   {
     if(NodeVarDecl::findNodeNo(n, foundNode))
       return true;
     return false;
-  } //findNodeNo
+  }
 
   void NodeVarRef::checkAbstractInstanceErrors()
   {
@@ -60,7 +60,7 @@ namespace MFM {
   void NodeVarRef::printPostfix(File * fp)
   {
     NodeVarDecl::printPostfix(fp);
-  } //printPostfix
+  }
 
   void NodeVarRef::printTypeAndName(File * fp)
   {
@@ -329,18 +329,18 @@ namespace MFM {
 
   void NodeVarRef::packBitsInOrderOfDeclaration(u32& offset)
   {
-    assert(0); //refs can't be data members
-  } //packBitsInOrderOfDeclaration
+    m_state.abortShouldntGetHere(); //refs can't be data members
+  }
 
   void NodeVarRef::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
     return NodeVarDecl::calcMaxDepth(depth, maxdepth, base);
-  } //calcMaxDepth
+  }
 
   void NodeVarRef::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
     NodeVarDecl::countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
-  } //countNavNodes
+  }
 
   EvalStatus NodeVarRef::eval()
   {
@@ -397,7 +397,7 @@ namespace MFM {
   {
     u32 pos = 0;
     if(m_varSymbol->isDataMember())
-      pos = ((SymbolVariableDataMember *) m_varSymbol)->getPosOffset();
+      pos = m_varSymbol->getPosOffset();
 
     UlamValue ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + pos, m_varSymbol->getId());
 

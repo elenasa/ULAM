@@ -67,7 +67,7 @@ namespace MFM {
       m_nodeParameterList->checkAbstractInstanceErrors();
     if(m_nodeNext)
       m_nodeNext->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
+  }
 
   void NodeBlockFunctionDefinition::setNodeLocation(Locator loc)
   {
@@ -211,7 +211,26 @@ namespace MFM {
     if(it == Hzy)
       return Hzy; //bail for this iteration
 
+    if(m_state.okUTItoContinue(it))
+      {
+	bool isref = m_state.isReference(it);
+	if(m_state.isAClass(it) || isref)
+	  setStoreIntoAble(TBOOL_TRUE); //t3912 (class)
+
+	if(!isref)
+	  setReferenceAble(TBOOL_FALSE); //set after storeintoable t3661,2; t3630
+      }
+
     m_state.pushCurrentBlock(this);
+
+    //set self slot just below return value
+    u32 selfid = m_state.m_pool.getIndexForDataString("self");
+    Symbol * selfsym = NULL;
+    bool hazyKin = false; //return is always false?
+    AssertBool isDefined = m_state.alreadyDefinedSymbol(selfid, selfsym, hazyKin) && !hazyKin;
+    assert(isDefined);
+    s32 newslot = -2 - m_state.slotsNeeded(getNodeType()); //2nd hidden arg
+    ((SymbolVariable *) selfsym)->setStackFrameSlotIndex(newslot);
 
     m_state.m_currentFunctionReturnNodes.clear(); //vector of return nodes
     m_state.m_currentFunctionReturnType = it;
@@ -247,8 +266,6 @@ namespace MFM {
 
   void NodeBlockFunctionDefinition::makeSuperSymbol(s32 slot)
   {
-    //UTI nuti = getNodeType();
-    //assert(m_state.okUTItoContinue(nuti));
     UTI cuti = m_state.getCompileThisIdx();
     UTI superuti = m_state.isClassASubclass(cuti);
     SymbolVariableStack * supersym = NULL;
@@ -277,7 +294,19 @@ namespace MFM {
 	    delete supersym;
 	    supersym = NULL;
 	  }
-	//else ok
+	else //ok
+	  {
+	    s32 oldslot = supersym->getStackFrameSlotIndex();
+	    if(oldslot != slot)
+	      {
+		std::ostringstream msg;
+		msg << "'" << m_state.m_pool.getDataAsString(superid).c_str();
+		msg << "' was at slot: " << oldslot << ", new slot is " << slot;
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		supersym->setStackFrameSlotIndex(slot);
+		//t3704, t3706, t3707, t3709, t3710
+	      }
+	  }
       }
   } //makeSuperSymbol
 
@@ -309,8 +338,8 @@ namespace MFM {
     if(nuti == Hzy)
       return NOTREADY;
 
-    //for eval, native function blocks (NodeBlockEmpty) return Normal.
-    //if(isNative()) return UNEVALUABLE;
+    //for eval, native function blocks (NodeBlockEmpty) return Normal. t3942
+    if(isNative() && getNodeType() != Void) return UNEVALUABLE;
 
     m_state.pushCurrentBlock(this); //push func def
 
@@ -322,7 +351,6 @@ namespace MFM {
     makeRoomForNodeType(nuti); //place for return vals node eval stack
 
     m_state.m_funcCallStack.addFrameSlots(getMaxDepth()); //local variables on callstack!
-    //makeRoomForSlots(getMaxDepth(), STACK); //local variables on callstack!
 
     EvalStatus evs = m_nodeNext->eval();
 
@@ -333,9 +361,10 @@ namespace MFM {
 
     if(evs == RETURN)
       {
-	if(m_state.isAtom(nuti) && (m_state.isScalar(nuti) || m_state.isReference(nuti)))
+	if(Node::returnValueOnStackNeededForEval(nuti))
 	  {
-	    //avoid pointer to atom situation
+	    //t3189 returns a class (non-ref);
+	    //t3630 return a reference to a primitive;
 	    rtnUV = m_state.m_funcCallStack.loadUlamValueFromSlot(-1); //popArg();
 	  }
 	else
@@ -361,15 +390,27 @@ namespace MFM {
 	return evs;
       }
 
-    //save results in the node eval stackframe for function caller
-    //return each element of the array by value,
-    //in reverse order ([0] is last at bottom)
-    Node::assignReturnValueToStack(rtnUV);
+    // save results in the node eval stackframe for function caller, returning
+    // each element of array by value, in reverse order ([0] is last at bottom);
+    // Could be a reference if called from evalToStoreInto (e.g. t3630)
+    if(m_state.getReferenceType(nuti) == ALT_REF)
+      Node::assignReturnValuePtrToStack(rtnUV);
+    else
+      Node::assignReturnValueToStack(rtnUV);
 
     m_state.m_funcCallStack.returnFrame(m_state);
     evalNodeEpilog();
     return NORMAL;
   } //eval
+
+  EvalStatus NodeBlockFunctionDefinition::evalToStoreInto()
+  {
+    UTI nuti = getNodeType();
+    // m_currentObjPtr set up by caller
+    assert(m_state.okUTItoContinue(m_state.m_currentObjPtr.getPtrTargetType()));
+    assert(m_state.isAClass(nuti) || m_state.isReference(nuti) || m_funcSymbol->isConstructorFunction()); //sanity?
+    return eval();
+  } //evalToStoreInto
 
   void NodeBlockFunctionDefinition::setDefinition()
   {
@@ -406,33 +447,8 @@ namespace MFM {
     if(m_nodeParameterList) //slot indices negative to frame
       m_nodeParameterList->calcMaxDepth(max1, nomaxdepth, base);
 
-    //set self slot just below return value
-    u32 selfid = m_state.m_pool.getIndexForDataString("self");
-    Symbol * selfsym = NULL;
-    bool hazyKin = false; //return is always false?
-    AssertBool isDefined = m_state.alreadyDefinedSymbol(selfid, selfsym, hazyKin) && !hazyKin;
-    assert(isDefined);
-    s32 newslot = -2 - m_state.slotsNeeded(getNodeType()); //2nd hidden arg (was -1 - ???)
-    s32 oldslot = ((SymbolVariable *) selfsym)->getStackFrameSlotIndex();
-    if(oldslot != newslot)
-      {
-	std::ostringstream msg;
-	msg << "'" << m_state.m_pool.getDataAsString(selfid).c_str();
-	msg << "' was at slot: " << oldslot << ", new slot is " << newslot;
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	((SymbolVariable *) selfsym)->setStackFrameSlotIndex(newslot);
-      }
-
     NodeBlock::calcMaxDepth(depth, maxdepth, 1); // one for the frame ptr offset
     m_state.popClassContext();
-
-#if 0
-    // not sure this is the case??? Sat Apr 23 10:44:39 2016
-    // special case test function:
-    u32 testid = m_state.m_pool.getIndexForDataString("test");
-    if(m_funcSymbol->getId() == testid)
-      maxdepth += 1; //add spot for return since no caller does
-#endif
   } //calcMaxDepth
 
   void NodeBlockFunctionDefinition::setNative()

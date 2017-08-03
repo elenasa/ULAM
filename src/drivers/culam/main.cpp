@@ -300,7 +300,7 @@ int main(int argc, char ** argv)
               << " " << i->first
               << " " << i->second.m_bitsize
               << " " << (i->second.m_hasTest?"test":"notest")
-	      << " " << (i->second.m_classType == MFM::UC_QUARK ? "quark": (i->second.m_classType == MFM::UC_ELEMENT ? "element" : "transient"))
+	      << " " << (i->second.m_classType == MFM::UC_QUARK ? "quark": (i->second.m_classType == MFM::UC_ELEMENT ? "element" : (i->second.m_classType == MFM::UC_TRANSIENT ? "transient" : (i->second.m_classType == MFM::UC_LOCALSFILESCOPE ? "localsfilescope": "fudge"))))
 	      << " " << MFM::HexEscape(i->second.m_structuredComment)
               << std::endl;
           }
@@ -318,7 +318,7 @@ int main(int argc, char ** argv)
 	      << " " << cmd->m_mangledMemberName;
 
 	    if(cmd->hasValue())
-	      std::cerr << cmd->getValueAsString();
+	      std::cerr << " " << cmd->getValueAsString();
 
 	    std::cerr << " " << MFM::HexEscape(cmd->m_structuredComment)
 		      << std::endl;

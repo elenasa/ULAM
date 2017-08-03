@@ -27,7 +27,7 @@ namespace MFM {
     setYourParentNo(pno);
     m_nodeLeft->updateLineage(getNodeNo());
     m_nodeTypeDesc->updateLineage(getNodeNo());
-  } //updateLineage
+  }
 
   bool NodeConditional::exchangeKids(Node * oldnptr, Node * newnptr)
   {
@@ -37,7 +37,7 @@ namespace MFM {
 	return true;
       }
     return false;
-  } //exhangeKids
+  }
 
   bool NodeConditional::findNodeNo(NNO n, Node *& foundNode)
   {
@@ -48,13 +48,13 @@ namespace MFM {
     if(m_nodeTypeDesc->findNodeNo(n, foundNode))
       return true;
     return false;
-  } //findNodeNo
+  }
 
   void NodeConditional::checkAbstractInstanceErrors()
   {
     if(m_nodeLeft)
       m_nodeLeft->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
+  }
 
   void NodeConditional::print(File * fp)
   {
@@ -105,7 +105,7 @@ namespace MFM {
   {
     //ulamtype checks for complete, non array, and type specific rules
     return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
-  } //safeToCastTo
+  }
 
   void NodeConditional::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {

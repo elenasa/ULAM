@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeVarDecl.h -  Basic Node handling Variable Declarations for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeVarDecl.h -  Basic Node handling Variable Declarations for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2017 All rights reserved.
   \gpl
 */
 
@@ -60,6 +60,8 @@ namespace MFM{
 
     virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
 
+    virtual void resetNodeNo(NNO no); //for constant folding
+
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual void checkAbstractInstanceErrors();
@@ -76,7 +78,7 @@ namespace MFM{
 
     bool hasInitExpr();
 
-    virtual bool foldInitExpression();
+    virtual bool foldArrayInitExpression();
 
     virtual FORECAST safeToCastTo(UTI newType);
 
@@ -99,6 +101,10 @@ namespace MFM{
     virtual EvalStatus evalToStoreInto();
 
     virtual void genCode(File * fp, UVPass& uvpass);
+
+    virtual void genCodeConstantArrayInitialization(File * fp);
+
+    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 

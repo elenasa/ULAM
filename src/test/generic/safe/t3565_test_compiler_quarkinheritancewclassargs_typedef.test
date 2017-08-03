@@ -1,0 +1,67 @@
+## -*- mode:ulam -*-
+#=t3565_test_compiler_quarkinheritancewclassargs_typedef
+#!
+## gencode output (+assert):
+## Bool(3) Arg: 0x7 (true)
+##
+Exit status: 96
+Ue_Foo { System s();  Bool(1) first(false);  Soo(1,2u) su( :< Bool(1) cb(true);  constant Int(32) a = 1;  typedef Unsigned(3) U3; > constant Int(32) a = 1;  constant Unsigned(32) b = 2u;  Unsigned(3) us(4u); );  Int(32) test() {  Foo f;  { f su . cb . cond { s ( f su . cb . cast )print . s ( f su . cb . )assert . 96u cast return } if } 0 cast return } }
+Uq_System { <NOMAIN> }
+Uq_Soo(Int(32) a, Unsigned(32) b) : Coo(a) { :< typedef Unsigned(3) U3;  Bool(UNKNOWN) cb(notready); > 0Holder(UNKNOWN) us(unknown);  <NOMAIN> }
+Uq_Coo(Int(32) a) { typedef Unsigned(3) U3;  Bool(UNKNOWN) cb(notready);  <NOMAIN> }
+##
+## quark inheritance, templated with typedef
+## Coo has a typedef used by Soo (see t3555 for non-templated inheritance w typedef)
+##
+#>Foo.ulam
+  ulam 2;
+element Foo {
+  System s;
+  Bool first;
+  Soo(1,2) su;
+  Int test() {
+    Foo f;
+
+    // tmp var works:
+    //Soo sootmp = f.su;
+    //if(sootmp.cb)
+
+    //if(f.su.us > 0) works
+    //if(f as Soo)
+    // if(f.cb) works
+    if(f.su.cb)
+    {
+      s.print(f.su.cb);
+      s.assert(f.su.cb);
+      return f.sizeof;
+    }
+    return 0;
+  }
+}
+
+#:Soo.ulam
+  ulam 2;
+quark Soo(Int a, Unsigned b) : Coo(a) {
+  U3 us = 4u;
+}
+
+#:Coo.ulam
+  ulam 2;
+quark Coo(Int a) {
+  typedef Unsigned(3) U3;
+  Bool(a) cb = true; //use to be Bool(3)
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

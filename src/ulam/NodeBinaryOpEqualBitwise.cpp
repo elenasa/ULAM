@@ -11,8 +11,76 @@ namespace MFM {
 
   UTI NodeBinaryOpEqualBitwise::checkAndLabelType()
   {
-    UTI nodeType = NodeBinaryOp::checkAndLabelType(); //dup Bitwise calcNodeType
+    //UTI nodeType = NodeBinaryOp::checkAndLabelType(); //dup Bitwise calcNodeType
+    //copied from NodeBinaryOp's c&l
+    assert(m_nodeLeft && m_nodeRight);
 
+    UTI leftType = m_nodeLeft->checkAndLabelType();
+    UTI rightType = m_nodeRight->checkAndLabelType();
+
+    if(!m_state.okUTItoContinue(leftType))
+      {
+	//left type possibly a class w overload operator; no need to check right type here;
+	setNodeType(leftType);
+	return getNodeType(); //t3191, t3513
+      }
+
+    // efficiency bites! no sooner, need left and right side-effects
+    // (e.g. NodeControl condition is Bool at start; stubs need Symbol ptrs)
+    if(m_state.isComplete(getNodeType()))
+      return getNodeType();
+
+    //replace node with func call to matching function overload operator for class
+    // of left, with argument of right (t41104);
+    // quark toInt must be used on rhs of operators (t3191, t3200, t3513, t3648,9)
+    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
+    if((lut->getUlamTypeEnum() == Class))
+      {
+	Node * newnode = buildOperatorOverloadFuncCallNode();
+	if(newnode)
+	  {
+	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	    assert(swapOk);
+
+	    m_nodeLeft = NULL; //recycle as memberselect
+	    m_nodeRight = NULL; //recycle as func call arg
+
+	    delete this; //suicide is painless..
+
+	    return newnode->checkAndLabelType();
+	  }
+	//else should fail again as non-primitive;
+      } //done
+
+    UTI newType = calcNodeType(leftType, rightType); //does safety check
+
+    setNodeType(newType);
+    Node::setStoreIntoAble(TBOOL_FALSE);
+
+    if(m_state.isComplete(newType))
+      {
+	if(UlamType::compareForMakingCastingNode(newType, leftType, m_state) != UTIC_SAME) //not same, or dontknow
+	  {
+	    if(!Node::makeCastingNode(m_nodeLeft, newType, m_nodeLeft))
+	      newType = Nav;
+	  }
+
+	if(UlamType::compareForMakingCastingNode(newType, rightType, m_state) != UTIC_SAME) //not same, or dontknow
+	  {
+	    if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
+	      newType = Nav;
+	  }
+      }
+
+    //before constant folding; if needed (e.g. Remainder, Divide)
+    castThyselfToResultType(rightType, leftType, newType);
+
+    if((newType != Nav) && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+      newType = constantFold();
+
+    UTI nodeType = newType;
+
+    //specific for bitwise equal..
     if(m_state.okUTItoContinue(nodeType))
       {
 	TBOOL stor = NodeBinaryOpEqual::checkStoreIntoAble();
@@ -38,14 +106,14 @@ namespace MFM {
 
   UTI NodeBinaryOpEqualBitwise::calcNodeType(UTI lt, UTI rt)  //bitwise
   {
-    if(!m_state.okUTItoContinue(lt, rt))
+    if(!m_state.neitherNAVokUTItoContinue(lt, rt))
       return Nav;
 
     if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
 	return Hzy;
 
     //no atoms, elements nor voids as either operand
-    if(!NodeBinaryOp::checkForPrimitiveTypes(lt, rt))
+    if(!NodeBinaryOp::checkForPrimitiveNotVoidTypes(lt, rt))
 	return Nav;
 
     UTI newType = Nav;  //init
@@ -57,7 +125,7 @@ namespace MFM {
 	if(ltypEnum != Bits)
 	  {
 	    std::ostringstream msg;
-	    msg << "Bits is the supported type for bitwise operator"; //equal
+	    msg << "Bits is the supported type for bitwise operation "; //equal
 	    msg << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    bOK = false;
@@ -73,7 +141,7 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
 	    msg << " is not representable as ";
 	    msg<< m_state.getUlamTypeNameBriefByIndex(newType).c_str();
-	    msg << ". Bits is the supported type for bitwise operator";
+	    msg << ". Bits is the supported type for bitwise operation ";
 	    msg << getName();
 	    if(rscr == CAST_BAD)
 	      {
@@ -113,7 +181,7 @@ namespace MFM {
 	methodname << UlamType::getUlamTypeEnumAsString(etyp);
 	break;
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	break;
       };
     methodname << nut->getTotalWordSize();

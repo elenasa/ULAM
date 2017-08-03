@@ -1,0 +1,41 @@
+## -*- mode:ulam -*-
+#=t3880_test_compiler_transientwelementdm_gencodewrite_issue
+#!
+Exit status: -11
+Ue_R { Int(32) test() {  Ish e;  e ( )behave . 0 cast return } }
+Ue_Ish { Bool(1) mBool(false);  <NOMAIN> }
+Un_Isht { Ish mIsh( Bool(1) mBool(false); );  <NOMAIN> }
+##
+## informed by Dave ish2 8/6/2016:
+##
+#>R.ulam
+  ulam 3;
+element R {
+  Int test()
+  {
+    Ish e;
+    e.behave();
+    return 0;
+  }
+}
+
+#:Isht.ulam
+  ulam 3;
+transient Isht {
+  Ish mIsh;
+  Void func(Ish& ish) {
+    mIsh = ish;
+  }
+}
+
+#:Ish.ulam
+  ulam 3;
+element Ish {
+  Bool mBool;
+  Void behave() {
+    Isht it;
+    it.func(self);
+  }
+}
+
+#.

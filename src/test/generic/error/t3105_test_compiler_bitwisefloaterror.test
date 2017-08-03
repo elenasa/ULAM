@@ -2,9 +2,9 @@
 #=t3105_test_compiler_bitwisefloaterror
 #!
 ./F.ulam:6:9: ERROR: Unsupported Number Type, Float <3.2>.
-./F.ulam:6:7: ERROR: Right operand of binary operator= is missing; Assignment deleted.
+./F.ulam:6:7: ERROR: Right operand of binary = is missing; Assignment deleted.
 ./F.ulam:7:9: ERROR: Unsupported Number Type, Float <2.1>.
-./F.ulam:7:7: ERROR: Right operand of binary operator= is missing; Assignment deleted.
+./F.ulam:7:7: ERROR: Right operand of binary = is missing; Assignment deleted.
 Unrecoverable Program Parse FAILURE: <F.ulam>
 ##
 #>F.ulam

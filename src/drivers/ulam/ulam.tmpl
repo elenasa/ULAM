@@ -1,6 +1,8 @@
 #!/usr/bin/perl -Tw
 # -*- perl -*-
 
+use warnings;
+
 ####PERL CONFIG
 my $ORIG_PATH = $ENV{'PATH'};
 delete @ENV{'PATH', 'IFS', 'CDPATH', 'ENV', 'BASH_ENV'};
@@ -303,6 +305,12 @@ my %swinfo = (
     "executables" => {
         aliases => "e",
         desc => "Generate executable binaries from .ulam (implies --library)",
+        id => getSectionId("Command"),
+        handler => \&entryCmd
+    },
+    "initialize" => {
+        aliases => "i",
+        desc => "Initialize current directory for ulam files",
         id => getSectionId("Command"),
         handler => \&entryCmd
     },
@@ -744,6 +752,13 @@ if ($confErrs != 0) {
 }
 
 my @files = @ARGV;
+
+if (defined $actionCmd && $actionCmd eq "initialize") {
+    UDie("No files should be specified with -i\n") if scalar(@files);
+    doProjectInitialization();
+    exit(0);
+}
+
 UDie("No input files\n") unless @files;
 my (@ulamFiles, @normalPackableFiles, @includeFiles, @otherSrcFiles, @mfsFiles, @mfzFiles, @txtFiles);
 
@@ -756,6 +771,7 @@ my %extensionDispatch = (
     "cpp" => \@otherSrcFiles,
     "c" => \@otherSrcFiles,
     "S" => \@otherSrcFiles,
+    "splat" => \@txtFiles,  # XXX splat is not source code relative to ulam!
     "txt" => \@txtFiles,
     "md" => \@txtFiles,
     );
@@ -841,8 +857,8 @@ separateFiles(@files);
 # Collect the files we can pack without special concerns
 @normalPackableFiles = sort (@mfsFiles, @includeFiles, @includeFiles, @otherSrcFiles, @txtFiles);
 
-# Add in standard files maybe needed for the build (but which we won't pack)
-separateFiles(@stdTccFiles);
+# Stuff the stdlib tcc files at the front so explicit user tccs, if specified, will get copied over them
+@includeFiles = (@stdTccFiles, @includeFiles);
 
 ####ACTION SELECTION
 if (!defined($actionCmd)) {
@@ -871,6 +887,8 @@ my @cppFilesFromUlam;
 my @objectFilesFromUlamCpps;
 my @elementCNamesFromUlam;
 my @quarkCNamesFromUlam;
+my @transientCNamesFromUlam;
+my @localsfilescopeCNamesFromUlam;
 my %ulamFileTargets;
 
 sub compilationDriver {
@@ -1096,7 +1114,12 @@ sub runUlamCompilations
 #                print "INFO($path,$name,$size,$testflag,$classtype)='$elementCNameToUlamFile{$cname}'\n";
                 } elsif ($classtype eq "quark") {
                     push @quarkCNamesFromUlam, $cname;
+                } elsif ($classtype eq "transient") {
+                    push @transientCNamesFromUlam, $cname;
+                } elsif ($classtype eq "localsfilescope") {
+                    push @localsfilescopeCNamesFromUlam, $cname;
                 }
+
                 next;
             }
 
@@ -1150,7 +1173,7 @@ sub writeElementAllocatorStub {
 EOF
     {
         my %seen;
-        for my $en (@elementCNamesFromUlam, @quarkCNamesFromUlam) {
+        for my $en (@elementCNamesFromUlam, @quarkCNamesFromUlam, @transientCNamesFromUlam, @localsfilescopeCNamesFromUlam) {
             next if $seen{$en};
             $seen{$en} = 1;
             print $hdrhdl <<EOF;
@@ -1220,18 +1243,14 @@ EOF
         }
     }
 
-    # PROCESS THE QUARKS
+    # PROCESS THE QUARKS AND TRANSIENTS AND LOCALSFILESCOPE
     {
         my %seen;
-        for my $en (@quarkCNamesFromUlam) {
+        for my $en (@quarkCNamesFromUlam, @transientCNamesFromUlam, @localsfilescopeCNamesFromUlam) {
             next if $seen{$en};
             $seen{$en} = 1;
 
-            my $stubname = lexEncode("_uqinstance",$quarkPtrArrayCount);
-            $quarkPtrArrayStatics .= <<EOF;
-
-  static MFM::$en<MFM::StdEventConfig> $stubname;
-EOF
+            my $stubname = "MFM::$en<MFM::StdEventConfig>::THE_INSTANCE";
             $quarkPtrArrayInits .= "," if $quarkPtrArrayInits ne "";
             $quarkPtrArrayInits .= "\n    &$stubname";
             ++$quarkPtrArrayCount;
@@ -1823,6 +1842,118 @@ sub runMake {
             if verbose();
     }
     return $status ne "";
+}
+
+use Cwd;
+use File::Basename;
+sub doProjectInitialization {
+    my $DIR = ".";
+    my $realDir = Cwd::realpath $DIR;
+    $realDir =~ /^(.+)$/ or die "Bad path? '$realDir'";  # realpath comes back tainted?
+    $realDir = $1;
+    my $makefile = "$realDir/Makefile";
+    if (-e $makefile) {
+        print STDERR "Directory '$realDir' already has a Makefile -- no changes made\n";
+        exit(1);
+    }
+    open(MAKEFILE,">",$makefile) or die "Can't write '$makefile': $!";
+    print MAKEFILE <<'EOF';
+all:	code
+
+code:	FORCE
+	make -C code
+
+clean:	FORCE
+	make -C code clean
+
+run:	FORCE
+	make -C code run
+
+ishtar:	FORCE
+	make -C code ishtar
+
+.PHONY:	FORCE
+EOF
+    close MAKEFILE or die "Problem writing '$makefile': $!";
+    printf "[Wrote $makefile]\n";
+
+    makeIfNecessary("$realDir/code");
+    makeIfNecessary("$realDir/notes");
+
+    $makefile = "$realDir/code/Makefile";
+
+    open(MAKEFILE,">",$makefile) or die "Can't write '$makefile': $!";
+    print MAKEFILE <<'EOF';
+NAME:=$(notdir $(realpath ..))
+THIS_DIR:=$(strip $(notdir $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))))
+MFZ:=../$(NAME).mfz
+# Customize ULAM_BIN_DIR and MFM_BIN_DIR if necessary
+ULAM_BIN_DIR:=@ULAM_ROOT_DIR@/bin
+MFM_BIN_DIR:=@MFM_ROOT_DIR@/bin
+ULAM:=$(ULAM_BIN_DIR)/ulam
+MFZRUN:=$(MFM_BIN_DIR)/mfzrun
+#UFLAGS:=-g
+#UFLAGS:=--sa
+UFLAGS:=-o
+ULAM_FILES:=$(wildcard *.ulam)
+TIMESTAMP:=$(shell date +%Y%m%d-%H%M%S)
+DEV:=$(shell whoami)
+ISHNAME:=$(TIMESTAMP)-$(DEV)
+
+all:	$(MFZ)
+
+run:	$(MFZ)
+	$(MFZRUN) $(MFZ)
+
+$(MFZ):	$(ULAM_FILES) Makefile
+	$(ULAM) $(UFLAGS) $(ULAM_FILES) $(MFZ)
+
+clean:	
+	rm -f *~
+	rm -rf .gen
+
+realclean: clean
+	rm -f $(MFZ)
+
+ishtar:	
+	@make clean
+	@make >ISH-BUILD-STDOUT.txt 2>ISH-BUILD-STDERR.txt || true
+	@cd ..;tar cvzf $(ISHNAME).tgz $(THIS_DIR) --transform s/^$(THIS_DIR)/$(ISHNAME)/
+	@echo Made ../$(ISHNAME).tgz
+
+.PHONY:	all mfz clean realclean tar ishtar
+
+EOF
+    close MAKEFILE or die "Problem writing '$makefile': $!";
+
+    printf "[Wrote $makefile]\n";
+
+    my $sampleulam = "$realDir/code/MyElement.ulam";
+    open(ULAMFILE,">",$sampleulam) or die "Can't write '$sampleulam': $!";
+    print ULAMFILE <<'EOF';
+element MyElement {
+    Void behave() {
+        Fail f;
+        f.fail();
+    }
+}
+EOF
+    close ULAMFILE or die "Problem writing '$sampleulam': $!";
+
+    printf "[Wrote $sampleulam]\n";
+}
+
+sub makeIfNecessary {
+    my $dir = shift;
+
+    if (-d $dir) {
+        printf "[Directory '$dir' already exists]\n";
+    } elsif (-e $dir) {
+        die "'$dir' exists but is not a directory, can't continue.\n";
+    } else {
+        mkdir $dir or die "Problem making code directory '$dir': $!";
+        printf "[Created $dir/]\n";
+    }
 }
 
 ####POD

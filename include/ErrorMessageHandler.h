@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * ErrorMessageHandler.h - Basic Error Message handling for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file ErrorMessageHandler.h - Basic Error Message handling for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2017 All rights reserved.
   \gpl
 */
 
@@ -52,7 +52,7 @@ namespace MFM
 
   class CompilerState; //forward
 
-  enum MSGTYPE { MSG_ERR=0, MSG_WARN, MSG_INFO, MSG_DEBUG, MSG_WAIT};
+  enum MSGTYPE { MSG_ERR=0, MSG_WARN, MSG_INFO, MSG_NOTE, MSG_DEBUG, MSG_WAIT};
 
 
   class ErrorMessageHandler
@@ -63,7 +63,7 @@ namespace MFM
 
     ~ErrorMessageHandler();
 
-    void init(CompilerState * state, bool debugMode, bool infoMode, bool warnMode, bool waitMode, File * fp);
+    void init(CompilerState * state, bool debugMode, bool infoMode, bool noteMode, bool warnMode, bool waitMode, File * fp);
 
     void changeWaitToErrMode();
 
@@ -87,6 +87,7 @@ namespace MFM
     CompilerState * m_state;
     bool m_debugMode;
     bool m_infoMode;
+    bool m_noteMode;
     bool m_warnMode;
     bool m_waitMode;
     File * m_fOut;

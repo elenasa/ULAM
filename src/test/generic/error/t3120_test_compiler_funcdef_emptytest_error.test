@@ -2,7 +2,6 @@
 #=t3120_test_compiler_funcdef_emptytest_error
 #!
 ./D.ulam:1:30: ERROR: By convention, Function 'test''s Return type must be 'Int', not Void.
-./D.ulam:1:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: D.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>D.ulam

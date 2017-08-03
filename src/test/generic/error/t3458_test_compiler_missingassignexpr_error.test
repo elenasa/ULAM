@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3458_test_compiler_missingassignexpr_error
 #!
-./A.ulam:3:14: ERROR: Initial value of variable _IDENTIFIER is missing.
+./A.ulam:3:14: ERROR: Initial value of 'cprint_name' is missing.
 Unrecoverable Program Parse FAILURE: <A.ulam>
 ##
 ##      //informed by 3457, except local variable type

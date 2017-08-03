@@ -5,7 +5,6 @@
 ./A.ulam:11:5: ERROR: Initial value expression for: apple, initialization is invalid.
 ./A.ulam:15:15: ERROR: Cannot explicitly cast Qbase& to type: A.
 ./A.ulam:15:12: ERROR: Assignment is invalid; LHS: A; RHS: erroneous.
-./System.ulam:2:7: ERROR: 4 Nodes with erroneous types detected after type labeling class: System.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3756

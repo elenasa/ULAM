@@ -19,6 +19,11 @@ namespace MFM {
   }
 
 
+  const char * NodeBinaryOpCompareGreaterEqual::getInverseOpName()
+  {
+    return "<";
+  }
+
   const std::string NodeBinaryOpCompareGreaterEqual::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
@@ -54,9 +59,12 @@ namespace MFM {
       case Unary:
 	rtnUV = UlamValue::makeImmediate(nuti, _BinOpCompareGreaterEqualUnary32(ldata, rdata, len), nodelen);
 	break;
+      case String:
+	m_state.abortNotImplementedYet(); //not implemented yet!
+	break;
       case Bits:
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	break;
       };
     return rtnUV;
@@ -83,9 +91,12 @@ namespace MFM {
       case Unary:
 	rtnUV = UlamValue::makeImmediateLong(nuti, _BinOpCompareGreaterEqualUnary64(ldata, rdata, len), nodelen);
 	break;
+      case String:
+	m_state.abortNotImplementedYet(); //not implemented yet!
+	break;
       case Bits:
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	break;
       };
     return rtnUV;
@@ -93,7 +104,7 @@ namespace MFM {
 
   void NodeBinaryOpCompareGreaterEqual::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
-    assert(0); //not implemented yet!
+    m_state.abortNotImplementedYet(); //not implemented yet!
   }
 
 } //end MFM

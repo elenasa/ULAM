@@ -1,4 +1,5 @@
 #include "MapDataMemberDesc.h"
+#include "SymbolWithValue.h"
 #include "CompilerState.h"
 
 namespace MFM {
@@ -33,37 +34,18 @@ namespace MFM {
 
   bool DataMemberDesc::hasValue() const
   {
-    return m_hasVal;
+    //zero if uninitialized
+    return true; //return m_hasVal;
   }
 
   std::string DataMemberDesc::getValueAsString() const
   {
-    u32 uvals[ARRAY_LEN8K];
-    m_val.ToArray(uvals);
+    if(!m_hasVal)
+      return "10"; //non-initialized -> zero
 
-    u32 nwords = (m_len + 31)/MAXBITSPERINT;
-
-    //short-circuit if all zeros
-    bool isZero = true;
-    for(u32 x = 0; x < nwords; x++)
-      {
-	if(uvals[x] != 0)
-	  {
-	    isZero = false;
-	    break;
-	  }
-      }
-
-    if(isZero)
-      return "0x0"; //nothing to do
-
-    std::ostringstream dhex;
-    dhex << "0x";
-    for(u32 w = 0; w < nwords; w++)
-      {
-	dhex << std::hex << uvals[w];
-      }
-    return dhex.str();
-  } //getValueAsString
+    std::string rtnstr;
+    SymbolWithValue::getLexValueAsString(m_len, m_val, rtnstr);
+    return rtnstr;
+  }
 
 } //MFM

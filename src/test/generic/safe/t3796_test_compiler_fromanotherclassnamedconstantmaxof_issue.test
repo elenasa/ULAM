@@ -1,14 +1,15 @@
 ## -*- mode:ulam -*-
 #=t3796_test_compiler_fromanotherclassnamedconstantmaxof_issue
 ##
-## gen output (+ assert)
+## gen output (+ asserts)
 ## Unsigned Arg: 16
+## Unsigned Arg: 1
 ##
 #!
-Exit status: 16
-Ue_R { Unsigned(32) ans(16u);  Int(32) test() {  System s;  QFoo qfoo;  ans qfoo 16u . = s ( ans )print . s ( ans 16u cast == )assert . ans cast return } }
+Exit status: 1
+Ue_R { Unsigned(32) ans(1u);  Int(32) test() {  System s;  QFoo qfoo;  ans qfoo 16u . = s ( ans )print . s ( ans 16u cast == )assert . ans 1u = s ( ans )print . s ( ans 1u cast == )assert . ans cast return } }
 Uq_System { <NOMAIN> }
-Uq_QFoo { typedef Unsigned(4) Cat;  constant Unsigned(32) cSIZE = 16u;  <NOMAIN> }
+Uq_QFoo { typedef Unsigned(4) Cat;  constant Unsigned(32) cSIZE = 16u;  constant Unsigned(32) csize = 1u;  <NOMAIN> }
 Uq_Q { typedef Unsigned(4) Cat;  <NOMAIN> }
 ##
 ## informed by issue 6/17/2016
@@ -23,6 +24,11 @@ element R {
     ans = qfoo.cSIZE;
     s.print(ans);
     s.assert(ans == 16u);
+
+    //better yet, without an instance of QFoo:
+    ans = QFoo.csize; //notice the capitalization
+    s.print(ans);
+    s.assert(ans == 1u);
     return (Int) ans;
   }
 }
@@ -32,6 +38,7 @@ element R {
 quark QFoo {
   typedef Q.Cat Cat;
   constant Unsigned cSIZE = Cat.maxof + 1;
+  constant Unsigned csize = Cat.minof + 1;
 }
 
 #:Q.ulam

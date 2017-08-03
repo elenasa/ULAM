@@ -1,0 +1,60 @@
+## -*- mode:ulam -*-
+#=t41121_test_compiler_elementandquark_inheritedoperatoroverloadequalwref
+##
+##  gen code output: (+ 2 asserts)
+##	 Int(4) Arg: 0x4
+##
+#!
+Exit status: 4
+Ue_Foo : QW { :< Int(4) m_i(0);  Bool(1) first(true); > Int(32) fint(0);  Int(32) opfint(0);  Int(32) test() {  System s;  Foo f;  Foo g;  f m_i . 4 = QW& gqref = g cast;  QW& fqref = f cast;  gqref ( fqref )operator= . s ( g first . ! )assert . s ( g m_i . )print . s ( f m_i . g m_i . == )assert . f m_i . cast return } }
+Uq_QW { Bool(1) first( true);  Int(4) m_i(0);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## test inherited overload operator equal for an element using refs
+## informed by t41120.
+##
+#>Foo.ulam
+  ulam 3;
+element Foo : QW {
+  Int fint, opfint;
+  Int test() {
+    System s;
+    Foo f,g;
+    f.m_i = 4;
+    QW& gqref = g;
+    QW& fqref = f;
+    gqref = fqref;
+    s.assert(!g.first);
+    s.print(g.m_i); //prints 4
+    s.assert(f.m_i == g.m_i);
+    return f.m_i;
+  }
+}
+
+#:QW.ulam
+  ulam 3;
+quark QW {
+  Bool first = true;
+  Int(4) m_i;
+  Void operator=(Self& arg)
+  {
+    //self = arg; //recursive BEWARE!!
+    m_i = arg.m_i;
+    first = false; //changes dm
+  }
+
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

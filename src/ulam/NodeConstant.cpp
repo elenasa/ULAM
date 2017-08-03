@@ -7,7 +7,7 @@ namespace MFM {
   NodeConstant::NodeConstant(const Token& tok, SymbolWithValue * symptr, CompilerState & state) : NodeTerminal(state), m_token(tok), m_constSymbol(symptr), m_ready(false), m_constType(Nouti), m_currBlockNo(0)
   {
     assert(symptr);
-    m_currBlockNo = symptr->getBlockNoOfST();
+    setBlockNo(symptr->getBlockNoOfST());
     m_ready = updateConstant(); //sets ready here
     m_constType = m_constSymbol->getUlamTypeIdx();
   }
@@ -45,9 +45,10 @@ namespace MFM {
     return (m_constSymbol != NULL); //true;
   }
 
-  void NodeConstant::constantFoldAToken(const Token& tok)
+  bool NodeConstant::hasASymbolDataMember()
   {
-    //not same meaning as NodeTerminal; bypass.
+    assert(m_constSymbol);
+    return m_constSymbol->isDataMember();
   }
 
   bool NodeConstant::isReadyConstant()
@@ -96,17 +97,34 @@ namespace MFM {
     // map incomplete UTI
     if(!m_state.isComplete(it)) //reloads to recheck
       {
-	std::ostringstream msg;
-	msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	msg << ", used with constant symbol name '";
-	msg << m_state.getTokenDataAsString(m_token).c_str() << "'";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	//wait until updateConstant tried.
+	UTI mappedUTI = it;
+	if(m_state.findaUTIAlias(it, mappedUTI))
+	  {
+	    std::ostringstream msg;
+	    msg << "REPLACE " << prettyNodeName().c_str() << " for type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    msg << ", used with alias type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    it = mappedUTI;
+	  }
+
+	if(!m_state.isComplete(it)) //reloads to recheck
+	  {
+	    std::ostringstream msg;
+	    msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    msg << ", used with constant symbol name '";
+	    msg << m_state.getTokenDataAsString(m_token).c_str() << "'";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    //wait until updateConstant tried.
+	  }
       }
 
     setNodeType(it);
     Node::setStoreIntoAble(TBOOL_FALSE);
+
+    assert(m_state.isScalar(it));
 
     //copy m_constant from Symbol into NodeTerminal parent.
     if(!isReadyConstant())
@@ -118,6 +136,7 @@ namespace MFM {
 	  m_constSymbol = NULL; //lookup again too! (e.g. inherited template instances)
 	m_state.setGoAgain();
       }
+
     return it;
   } //checkAndLabelType
 
@@ -147,18 +166,44 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "(2) Named Constant <" << m_state.getTokenDataAsString(m_token).c_str();
-	msg << "> is not defined, and cannot be used with class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << "Named Constant <" << m_state.getTokenDataAsString(m_token).c_str();
+	msg << "> is not defined, or was used before declared in a function";
 	if(!hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
       }
     m_state.popClassContext(); //restore
+
+    if(m_constSymbol && !m_constSymbol->isDataMember() && !m_constSymbol->isLocalsFilescopeDef() && !m_constSymbol->isClassArgument() && (m_constSymbol->getDeclNodeNo() > getNodeNo()))
+      {
+	NodeBlock * currBlock = getBlock();
+	currBlock = currBlock->getPreviousBlockPointer();
+	std::ostringstream msg;
+	msg << "Named constant '" << getName();
+	msg << "' was used before declared in a function scope";
+	if(currBlock)
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    setBlockNo(currBlock->getNodeNo());
+	    m_constSymbol = NULL; //t3323
+	    return checkForSymbol();
+	  }
+	else
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    m_constSymbol = NULL;
+	  }
+      }
   } //checkForSymbol
 
-  NNO NodeConstant::getBlockNo()
+  void NodeConstant::setBlockNo(NNO n)
+  {
+    assert(n > 0);
+    m_currBlockNo = n;
+  }
+
+  NNO NodeConstant::getBlockNo() const
   {
     return m_currBlockNo;
   }
@@ -166,7 +211,21 @@ namespace MFM {
   NodeBlock * NodeConstant::getBlock()
   {
     assert(m_currBlockNo);
-    NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
+    NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo); //t3328, t3329, t3330, t3332 (not using StubFirst version)
+    if(!currBlock)
+      {
+	UTI anotherclassuti = m_state.findAClassByNodeNo(m_currBlockNo);
+	if(anotherclassuti != Nav)
+	  {
+	    currBlock = m_state.getAClassBlock(anotherclassuti);
+	    assert(currBlock);
+	    if(currBlock->getNodeNo() != m_currBlockNo)
+	      currBlock = NULL;
+	  }
+	//try local scope
+	if(!currBlock)
+	  currBlock = m_state.findALocalsScopeByNodeNo(m_currBlockNo);
+      }
     assert(currBlock);
     return currBlock;
   }
@@ -220,6 +279,13 @@ namespace MFM {
       return ERROR;
     return NodeTerminal::eval();
   } //eval
+
+  EvalStatus NodeConstant::evalToStoreInto()
+  {
+    //possible constant array item (t3881)
+    m_state.abortShouldntGetHere();
+    return UNEVALUABLE;
+  }
 
   void NodeConstant::genCode(File * fp, UVPass& uvpass)
   {

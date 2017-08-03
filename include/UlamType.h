@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * UlamType.h -  Basic handling of UlamTypes for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file UlamType.h -  Basic handling of UlamTypes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2017 All rights reserved.
   \gpl
 */
 
@@ -160,6 +160,11 @@ namespace MFM{
     static ULAMTYPECOMPARERESULTS compareForMakingCastingNode(UTI u1, UTI u2, CompilerState& state);
 
     static ULAMTYPECOMPARERESULTS compareForUlamValueAssignment(UTI u1, UTI u2, CompilerState& state);
+    static ULAMTYPECOMPARERESULTS compareForAssignment(UTI u1, UTI u2, CompilerState& state);
+
+    static ULAMTYPECOMPARERESULTS compareForString(UTI u1, CompilerState& state);
+
+    static ULAMTYPECOMPARERESULTS compareForCustomArrayItem(UTI u1, UTI u2, CompilerState& state);
 
     /** Number of bits (rounded up to nearest 32 bits) required to
     hold the total bit size  */
@@ -203,8 +208,6 @@ namespace MFM{
 
     virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
 
-    virtual bool genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref);
-
     static void genStandardConfigTypedefTypenames(File * fp, CompilerState& state);
 
   protected:
@@ -214,11 +217,12 @@ namespace MFM{
     u32 m_wordLengthItem;
 
     bool checkReferenceCast(UTI typidx);
+    void genGetUlamTypeMangledNameDefinitionForC(File * fp);
 
   private:
 
-    static ULAMTYPECOMPARERESULTS compareWithWildArrayItemReferenceType(UTI u1, UTI u2, CompilerState& state);
-    static ULAMTYPECOMPARERESULTS compareWithWildReferenceType(UTI u1, UTI u2, CompilerState& state);
+    static ULAMTYPECOMPARERESULTS compareWithWildArrayItemALTKey(UTI u1, UTI u2, CompilerState& state);
+    static ULAMTYPECOMPARERESULTS compareWithWildALTKey(UTI u1, UTI u2, CompilerState& state);
 
     bool checkArrayCast(UTI typidx);
   };

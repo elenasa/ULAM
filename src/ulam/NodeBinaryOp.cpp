@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include "NodeBinaryOp.h"
+#include "NodeFunctionCall.h"
+#include "NodeMemberSelect.h"
 #include "NodeTerminal.h"
 #include "CompilerState.h"
 
@@ -9,8 +11,12 @@ namespace MFM {
 
   NodeBinaryOp::NodeBinaryOp(const NodeBinaryOp& ref) : Node(ref)
   {
+    assert(ref.m_nodeLeft);
     m_nodeLeft = ref.m_nodeLeft->instantiate();
-    m_nodeRight = ref.m_nodeRight->instantiate();
+    if(ref.m_nodeRight)
+      m_nodeRight = ref.m_nodeRight->instantiate();
+    else
+      m_nodeRight = NULL; //t3890
   }
 
   NodeBinaryOp::~NodeBinaryOp()
@@ -26,7 +32,7 @@ namespace MFM {
     setYourParentNo(pno);
     m_nodeLeft->updateLineage(getNodeNo());
     m_nodeRight->updateLineage(getNodeNo());
-  } //updateLineage
+  }
 
   bool NodeBinaryOp::exchangeKids(Node * oldnptr, Node * newnptr)
   {
@@ -58,7 +64,14 @@ namespace MFM {
   {
       m_nodeLeft->checkAbstractInstanceErrors();
       m_nodeRight->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
+  }
+
+  void NodeBinaryOp::resetNodeLocations(Locator loc)
+  {
+    Node::setNodeLocation(loc);
+    if(m_nodeLeft) m_nodeLeft->resetNodeLocations(loc);
+    if(m_nodeRight) m_nodeRight->resetNodeLocations(loc);
+  }
 
   void NodeBinaryOp::print(File * fp)
   {
@@ -107,7 +120,7 @@ namespace MFM {
     char myname[16];
     sprintf(myname," %s", getName());
     fp->write(myname);
-  } //printOp
+  }
 
   bool NodeBinaryOp::isAConstant()
   {
@@ -131,7 +144,7 @@ namespace MFM {
   {
     //ulamtype checks for complete, non array, and type specific rules
     return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
-  } //safeToCastTo
+  }
 
   UTI NodeBinaryOp::checkAndLabelType()
   {
@@ -140,10 +153,39 @@ namespace MFM {
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
 
+    if(!m_state.okUTItoContinue(leftType))
+      {
+	//left type possibly a class w overload operator; no need to check right type here;
+	setNodeType(leftType);
+	return getNodeType(); //t3191, t3513
+      }
+
     // efficiency bites! no sooner, need left and right side-effects
     // (e.g. NodeControl condition is Bool at start; stubs need Symbol ptrs)
     if(m_state.isComplete(getNodeType()))
       return getNodeType();
+
+    //replace node with func call to matching function overload operator for class
+    // of left, with argument of right (t41104);
+    // quark toInt must be used on rhs of operators (t3191, t3200, t3513, t3648,9)
+    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
+    if((lut->getUlamTypeEnum() == Class))
+      {
+	Node * newnode = buildOperatorOverloadFuncCallNode();
+	if(newnode)
+	  {
+	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	    assert(swapOk);
+
+	    m_nodeLeft = NULL; //recycle as memberselect
+	    m_nodeRight = NULL; //recycle as func call arg
+
+	    delete this; //suicide is painless..
+
+	    return newnode->checkAndLabelType();
+	  }
+	//else should fail again as non-primitive;
+      } //done
 
     UTI newType = calcNodeType(leftType, rightType); //does safety check
 
@@ -174,6 +216,41 @@ namespace MFM {
     return newType;
   } //checkAndLabelType
 
+  //no existence checking; error if overload doesn't exist for class and this binary op.
+  Node * NodeBinaryOp::buildOperatorOverloadFuncCallNode()
+  {
+    Token identTok;
+    TokenType opTokType = Token::getTokenTypeFromString(getName());
+    assert(opTokType != TOK_LAST_ONE);
+    Token opTok(opTokType, getNodeLocation(), 0);
+    u32 opolId = Token::getOperatorOverloadFullNameId(opTok, &m_state);
+    if(opolId == 0)
+      {
+	std::ostringstream msg;
+	msg << "Overload for operator <" << getName();
+	msg << "> is not supported as operand for class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_nodeLeft->getNodeType()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return NULL;
+      }
+
+    identTok.init(TOK_IDENTIFIER, getNodeLocation(), opolId);
+
+    //fill in func symbol during type labeling;
+    NodeFunctionCall * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
+    assert(fcallNode);
+    fcallNode->setNodeLocation(identTok.m_locator);
+
+    fcallNode->addArgument(m_nodeRight);
+
+    NodeMemberSelect * mselectNode = new NodeMemberSelect(m_nodeLeft, fcallNode, m_state);
+    assert(mselectNode);
+    mselectNode->setNodeLocation(identTok.m_locator);
+
+    //redo check and type labeling done by caller!!
+    return mselectNode; //replace right node with new branch
+  } //buildOperatorOverloadFuncCallNode
+
   UTI NodeBinaryOp::castThyselfToResultType(UTI rt, UTI lt, UTI newType)
   {
     return newType; //noop
@@ -188,7 +265,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	if(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Bool)
-	  msg << "Use a comparison operator";
+	  msg << "Use a comparison operation";
 	else
 	  msg << "Use explicit cast";
 	msg << " to convert "; // the real converting-message
@@ -197,7 +274,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(m_nodeRight->getNodeType()).c_str();
 	msg << " to ";
 	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
-	msg << " for binary operator" << getName();
+	msg << " for binary " << getName();
 	if(lsafe == CAST_HAZY || rsafe == CAST_HAZY)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	else
@@ -208,7 +285,15 @@ namespace MFM {
   } //checkSafeToCastTo
 
   //no atoms, elements nor voids as either operand
-  bool NodeBinaryOp::checkForPrimitiveTypes(UTI lt, UTI rt)
+  bool NodeBinaryOp::checkForPrimitiveNotVoidTypes(UTI lt, UTI rt)
+  {
+    bool rtnOK = checkForPrimitiveTypes(lt, rt, false);
+    rtnOK &= checkNotVoidTypes(lt, rt, false);
+    return rtnOK;
+  }
+
+  //no atoms, elements nor voids as either operand
+  bool NodeBinaryOp::checkForPrimitiveTypes(UTI lt, UTI rt, bool quietly)
   {
     bool rtnOK = true;
     UlamType * lut = m_state.getUlamTypeByIndex(lt);
@@ -216,12 +301,15 @@ namespace MFM {
     // for binary ops: check for quark with toInt method;
     if(!lut->isPrimitiveType() && !lqint)
       {
-	std::ostringstream msg;
-	msg << "Non-primitive type <";
-	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
-	msg << "> is not supported as left operand type for binary operator";
-	msg << getName();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	if(!quietly)
+	  {
+	    std::ostringstream msg;
+	    msg << "Non-primitive type <";
+	    msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
+	    msg << "> is not supported as left operand type for binary ";
+	    msg << getName();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
 	rtnOK = false;
       }
 
@@ -229,30 +317,36 @@ namespace MFM {
     bool rqint = (rut->getUlamClassType() == UC_QUARK) && m_state.quarkHasAToIntMethod(rt);
     if(!rut->isPrimitiveType() && !rqint)
       {
-	std::ostringstream msg;
-	msg << "Non-primitive type <";
-	msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
-	msg << "> is not supported as right operand type for binary operator";
-	msg << getName();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	if(!quietly)
+	  {
+	    std::ostringstream msg;
+	    msg << "Non-primitive type <";
+	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
+	    msg << "> is not supported as right operand type for binary ";
+	    msg << getName();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
 	rtnOK = false;
       }
 
-    rtnOK &= checkNotVoidTypes(lt, rt);
+    //rtnOK &= checkNotVoidTypes(lt, rt, quietly);
     return rtnOK;
   } //checkForPrimitiveTypes
 
-  bool NodeBinaryOp::checkNotVoidTypes(UTI lt, UTI rt)
+  bool NodeBinaryOp::checkNotVoidTypes(UTI lt, UTI rt, bool quietly)
   {
     bool rtnOK = true;
     ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
     ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
     if(ltypEnum == Void || rtypEnum == Void)
       {
-	std::ostringstream msg;
-	msg << "Void is not a supported type for binary operator";
-	msg << getName();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	if(!quietly)
+	  {
+	    std::ostringstream msg;
+	    msg << "Void is not a supported type for binary ";
+	    msg << getName();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
 	rtnOK = false;
       }
     return rtnOK;
@@ -266,7 +360,7 @@ namespace MFM {
     if(!(lnum && rnum))
       {
 	std::ostringstream msg;
-	msg << "Incompatible types for binary operator";
+	msg << "Incompatible types for binary ";
 	msg << getName() << " : ";
 	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
 	msg << ", ";
@@ -278,7 +372,7 @@ namespace MFM {
     return rtnOK;
   } //checkForNumericTypes
 
-  bool NodeBinaryOp::checkScalarTypesOnly(UTI lt, UTI rt)
+  bool NodeBinaryOp::checkScalarTypesOnly(UTI lt, UTI rt, bool quietly)
   {
     bool rtnOK = true;
     if( !(m_state.isScalar(lt) && m_state.isScalar(rt)))
@@ -298,14 +392,17 @@ namespace MFM {
 	  }
 #endif //SUPPORT_ARITHMETIC_ARRAY_OPS
 
-	//array op scalar: defer since the question of matrix operations is unclear.
-	std::ostringstream msg;
-	msg << "Incompatible (nonscalar) types ";
-	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
-	msg << " and " << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
-	msg << " for binary operator";
-	msg << getName() << " ; Suggest writing a loop";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	if(!quietly)
+	  {
+	    //array op scalar: defer since the question of matrix operations is unclear.
+	    std::ostringstream msg;
+	    msg << "Incompatible (nonscalar) types ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
+	    msg << " and " << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
+	    msg << " for binary ";
+	    msg << getName() << " ; Suggest writing a loop";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
       }
     return rtnOK;
   } //checkScalarTypesOnly
@@ -334,7 +431,7 @@ namespace MFM {
 	msg << "Word sizes incompatible for types ";
 	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
 	msg << " and " << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
-	msg << " for binary operator";
+	msg << " for binary ";
 	msg << getName() << " ; Suggest a cast";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	lwordsize = (lwordsize > rwordsize ? lwordsize : rwordsize); //t3849
@@ -398,7 +495,7 @@ namespace MFM {
 	msg << "Word sizes incompatible for types ";
 	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
 	msg << " and " << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
-	msg << " for (bitwise) binary operator";
+	msg << " for (bitwise) binary ";
 	msg << getName() << " ; Suggest a cast";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	lwordsize = (lwordsize > rwordsize ? lwordsize : rwordsize); //t3850 (leftshift)
@@ -444,17 +541,9 @@ namespace MFM {
 
     NNO pno = Node::getYourParentNo();
     assert(pno);
-    Node * parentNode = m_state.findNodeNoInThisClass(pno);
-    if(!parentNode)
-      {
-	std::ostringstream msg;
-	msg << "Constant value expression for binary op" << getName();
-	msg << " cannot be constant-folded at this time while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	msg << " Parent required";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	assert(0); //parent required
-      }
+
+    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
+    assert(parentNode);
 
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(nuti); //offset a constant expression
@@ -468,7 +557,7 @@ namespace MFM {
 	else if(wordsize == MAXBITSPERLONG)
 	  val = cnstUV.getImmediateDataLong(m_state);
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
 
     evalNodeEpilog();
@@ -505,7 +594,7 @@ namespace MFM {
     assert(swapOk);
 
     std::ostringstream msg;
-    msg << "Exchanged kids! for binary operator" << getName();
+    msg << "Exchanged kids! for binary " << getName();
     msg << ", with a constant == " << newnode->getName();
     msg << " while compiling class: ";
     msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
@@ -592,7 +681,7 @@ namespace MFM {
 	rtnUV = makeImmediateLongBinaryOp(nuti, ldata, rdata, len);
       }
     else
-      assert(0);
+      m_state.abortGreaterThanMaxBitsPerLong();
 
     if(rtnUV.getUlamValueTypeIdx() == Nav)
       return false;

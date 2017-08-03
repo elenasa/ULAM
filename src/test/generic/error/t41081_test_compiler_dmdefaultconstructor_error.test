@@ -1,0 +1,64 @@
+## -*- mode:ulam -*-
+#=t41081_test_compiler_dmdefaultconstructor_error
+#!
+./A.ulam:3:14: ERROR: Unexpected input!! Token <;> after non-virtual function declaration.
+./A.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'A'; Possible missing ending curly brace.
+./A.ulam:4:3: ERROR: Invalid Class Type <Int>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./A.ulam:2:9: ERROR: Invalid Type: A.
+ ERROR: No parse tree for This Class: A.
+Unrecoverable Program Parse FAILURE: <A.ulam>
+./Bar.ulam:4:3: ERROR: Default Constructor not allowed.
+./Bar.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Bar'; Possible missing ending curly brace.
+./Bar.ulam:6:5: ERROR: Invalid Class Type <b>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./Bar.ulam:2:7: ERROR: Invalid Type: Bar.
+ ERROR: No parse tree for This Class: Bar.
+Unrecoverable Program Parse FAILURE: <Bar.ulam>
+./Bar.ulam:6:7: ERROR: Invalid Class Type <=>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <System.ulam>
+##
+## informed by t41079
+##
+#>A.ulam
+  ulam 3;
+element A {
+  Bar m_bar(); //ERROR!! constructor needs args!
+  Int test(){
+    System s;
+    A locala;
+
+    //local variables
+    s.print(m_bar.b); //reset to false
+    s.assert(m_bar.b);
+    return 0;
+  }
+  Bool(7) d = true;
+  Int(4) a = 4;
+  Int(4) b = 5;
+}
+
+#:Bar.ulam
+  ulam 3;
+quark Bar
+{
+  Self() //NOT DEFAULT CONSTRUCTORS
+  {
+    b = false;
+  }
+  Bool b = true;
+}
+
+##
+## test system quark with native overloaded print funcs; assert
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

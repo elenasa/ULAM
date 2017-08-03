@@ -7,7 +7,6 @@
 #!
 ./QPort4.ulam:18:14: ERROR: Cannot explicitly cast Atom(96) to type: QPort4.
 ./QPort4.ulam:18:4: ERROR: Initial value expression for: s, initialization is invalid.
-./EventWindow.ulam:2:7: ERROR: 2 Nodes with erroneous types detected after type labeling class: EventWindow.
 Unrecoverable Program Type Label FAILURE.
 #>D.ulam
 //use QPort4;

@@ -1,0 +1,40 @@
+## -*- mode:ulam -*-
+#=t3937_test_compiler_scalarlengthof_error
+#!
+./Eltypo.ulam:7:27: ERROR: Proxy Type 'lengthof' is not supported for scalar: Int(3).
+./Eltypo.ulam:7:5: ERROR: Initial value expression for: len, initialization is invalid.
+./Eltypo.ulam:8:18: ERROR: Proxy Type 'lengthof' is not supported for scalar: Int(3).
+./Eltypo.ulam:8:9: ERROR: Assignment is invalid; LHS: Unsigned(32); RHS: erroneous.
+./Eltypo.ulam:10:19: ERROR: Proxy Type 'lengthof' is not supported for scalar: Int(3).
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t3935
+##      //arraysize zero ok, but not bitsize zero for nonClass primitive types!
+##
+#>Eltypo.ulam
+  ulam 3;
+element Eltypo {
+  typedef Int(3) It;
+  Int test(){
+    System s;
+    It nonarr;
+    Unsigned len = nonarr.lengthof;
+    len = nonarr.lengthof;
+    s.assert(nonarr.lengthof == 0);
+    return nonarr.lengthof;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
+#.

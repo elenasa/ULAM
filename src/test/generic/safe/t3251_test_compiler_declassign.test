@@ -14,24 +14,25 @@ Exit status: 16
 Ue_A { Bool(7) b(false);  System s();  Int(32) d(16);  Int(32) e(0);  Int(32) test() {  Int(32) a = 8 cast;  Int(32) f = 7 cast;  Int(32) g = f;  Int(32) h;  s ( a )print . s ( f )print . s ( g )print . d 1 cast = { a 0 cast != cond { d d cast 1 cast << cast = s ( d )print . a a cast 1 cast >> cast = } _1: while } d return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
+  ulam 1;
 use System;
 element A {
-System s;
-Bool(7) b;
-Int d,e;
-Int test(){Int a = 8, f = 7, g = f, h;
-s.print(a);
-s.print(f);
-s.print(g);
-d = 1;
- while(a!=0){
-d = (Int) (d << 1);
-s.print(d);
-a = (Int) (a >> 1);
+  System s;
+  Bool(7) b;
+  Int d,e;
+  Int test(){Int a = 8, f = 7, g = f, h;
+    s.print(a);
+    s.print(f);
+    s.print(g);
+    d = 1;
+    while(a!=0){
+      d = (Int) (d << 1);
+      s.print(d);
+      a = (Int) (a >> 1);
+    }
+    return d;
+  }
 }
-return d;
- }
- }
 
 ##      // shifts require explicit casting
 ##

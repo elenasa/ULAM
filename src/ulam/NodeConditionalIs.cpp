@@ -45,7 +45,28 @@ namespace MFM {
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
     ULAMTYPE letyp = lut->getUlamTypeEnum();
-    if(!((m_state.isAtom(luti) || (letyp == Class)) && lut->isScalar()))
+    if(!lut->isScalar())
+      {
+	std::ostringstream msg;
+	msg << "Invalid lefthand type of conditional operator '" << getName();
+	msg << "'; must be a scalar, not ";
+	msg << lut->getUlamTypeNameBrief().c_str() << " array";
+	if(lclasstype == UC_UNSEEN || luti == Hzy)
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    newType = Hzy;
+	    m_state.setGoAgain();
+	  }
+	else
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    newType = Nav;
+	    setNodeType(Nav);
+	    return Nav;
+	  }
+      }
+
+    if(!((m_state.isAtom(luti) || (letyp == Class))))// && lut->isScalar()))
       {
 	std::ostringstream msg;
 	msg << "Invalid lefthand type of conditional operator '" << getName();
@@ -213,11 +234,11 @@ namespace MFM {
     fp->write(" = ");
 
     //is a class
-    fp->write(m_state.getEffectiveSelfMangledNameByIndex(luti).c_str());
+    fp->write(m_state.getTheInstanceMangledNameByIndex(luti).c_str());
     fp->write(".");
     fp->write(m_state.getIsMangledFunctionName(luti)); //UlamElement IsMethod
     fp->write("(&"); //one arg
-    fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
+    fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
     fp->write(");"); GCNL;
 
     //update uvpass
@@ -254,11 +275,13 @@ namespace MFM {
       {
 	//reversed call to rhs' overloaded c-implemented 'Is' method;
 	// using lhs' T as argument; required for EMPTY-ELEMENT special case
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
+	fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
 	fp->write(".");
 	fp->write(m_state.getIsMangledFunctionName(ruti)); //UlamElement IsMethod
 	fp->write("(");
 	fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //from tmpvar T or ABS
+	if(m_state.isAtomRef(luti) && (luvpass.getPassStorage() == TMPBITVAL))
+	  fp->write(".read()"); //t3920, not for t3921
 	fp->write(");"); GCNL;
       }
     else
@@ -267,7 +290,7 @@ namespace MFM {
 	fp->write("(uc, ");
 	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
 	fp->write(".GetType(), &"); //from tmpvar T or ABS
-	fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
+	fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
 	fp->write(");"); GCNL;
       }
 
@@ -306,12 +329,12 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarIs, TMPREGISTER).c_str());
     fp->write(" = ");
 
-    //what if array?
+    //if array, error in c&l
     fp->write(stgcos->getMangledName().c_str());
     fp->write(".GetEffectiveSelf()->");
     fp->write(m_state.getIsMangledFunctionName(luti)); //UlamClass IsMethod
     fp->write("(&");
-    fp->write(m_state.getEffectiveSelfMangledNameByIndex(ruti).c_str());
+    fp->write(m_state.getTheInstanceMangledNameByIndex(ruti).c_str());
     fp->write(");"); GCNL;
 
     //update uvpass

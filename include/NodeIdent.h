@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeIdent.h - Node handling Identifiers for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeIdent.h - Node handling Identifiers for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2017 All rights reserved.
   \gpl
 */
 
@@ -60,9 +60,21 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    void setSymbolPtr(SymbolVariable * vsymptr);
+
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
-    void setSymbolPtr(SymbolVariable * vsymptr);
+    bool getSymbolPtr(SymbolVariable *& symptrref) const;
+
+    virtual bool getStorageSymbolPtr(Symbol *& symptrref);
+
+    virtual bool hasASymbolDataMember();
+
+    virtual bool hasASymbolSuper();
+
+    virtual bool hasASymbolSelf();
+
+    virtual bool hasASymbolReference();
 
     const Token& getToken() const;
 
@@ -72,9 +84,7 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    NNO getBlockNo() const;
-
-    NodeBlock * getBlock();
+    virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
 
     virtual EvalStatus eval();
 
@@ -91,13 +101,19 @@ namespace MFM{
 
     virtual void genCodeReadIntoATmpVar(File * fp, UVPass & uvpass);
 
-  protected:
     virtual UlamValue makeUlamValuePtr();
+
+  protected:
 
   private:
     Token m_token;
     SymbolVariable * m_varSymbol;
     NNO m_currBlockNo;
+
+    void setupBlockNo();
+    void setBlockNo(NNO n);
+    NNO getBlockNo() const;
+    NodeBlock * getBlock();
 
     SymbolVariable *  makeSymbol(UTI auti, ALT reftype, UTI referencedUTI);
     bool checkVariableTypedefSizes(TypeArgs& args, UTI auti);

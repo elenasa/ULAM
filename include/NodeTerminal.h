@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeTerminal.h - Basic Node handling Terminals for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeTerminal.h - Basic Node handling Terminals for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016  All rights reserved.
+  \date (C) 2014-2017  All rights reserved.
   \gpl
 */
 
@@ -38,7 +38,6 @@
 #define NODETERMINAL_H
 
 #include "Node.h"
-#include "NodeIdent.h"
 #include "Token.h"
 
 
@@ -53,7 +52,6 @@ namespace MFM{
     NodeTerminal(s64 val, UTI utype, CompilerState & state);
     NodeTerminal(u64 val, UTI utype, CompilerState & state);
     NodeTerminal(const NodeTerminal& ref);
-    NodeTerminal(const NodeIdent& ref); //passthru for NodeConstant
 
     virtual ~NodeTerminal();
 
@@ -64,8 +62,6 @@ namespace MFM{
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
-
-    virtual void constantFoldAToken(const Token& tok);
 
     virtual bool isAConstant();
 
@@ -88,11 +84,12 @@ namespace MFM{
     /** reads into a tmp BitVector */
     virtual void genCodeReadIntoATmpVar(File * fp, UVPass & uvpass);
 
+    virtual UTI setConstantTypeForNode(const Token& tok);
+
   private:
     ULAMTYPE m_etyp;
 
     virtual bool setConstantValue(const Token& tok);
-    virtual UTI setConstantTypeForNode(const Token& tok);
 
     bool fitsInBits(UTI fituti);
     bool fitsInBits32(UTI fituti);

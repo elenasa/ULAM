@@ -1,0 +1,20 @@
+ulam 3;
+
+quark Logger {
+  typedef Unsigned(4) Level;
+  Level mLevel = 3u;  
+
+  Void setLevel(Level newlevel) { mLevel = newlevel; }
+  Level getLevel() { return mLevel; }
+
+  Bool mShowSite = true;
+  Void setShowSite(Bool newshow) { mShowSite = newshow; }
+  Bool getShowSite() { return mShowSite; }
+
+  Void log(String string) { 
+    ByteStreamString sbs(string);
+  }
+
+  Void log(ByteStream & bs) native;
+
+}

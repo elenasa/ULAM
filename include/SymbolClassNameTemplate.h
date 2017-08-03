@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolClassNameTemplate.h -  Class Symbol "Template" for ULAM
  *
- * Copyright (C) 2015-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2016 Ackleyshack LLC.
+ * Copyright (C) 2015-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolClassNameTemplate.h -  Class Symbol "Template" for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2016 All rights reserved.
+  \date (C) 2015-2017 All rights reserved.
   \gpl
 */
 
@@ -74,16 +74,15 @@ namespace MFM{
     bool pendingClassArgumentsForStubClassInstance(UTI instance);
 
     SymbolClass * makeAStubClassInstance(const Token& typeTok, UTI cuti); //to hold class args, and cUTI
-    SymbolClass * makeAStubClassInstanceHolder(const Token& typeTok, UTI suti);
     void copyAStubClassInstance(UTI instance, UTI newuti, UTI context);
 
     void mergeClassInstancesFromTEMP();
 
     /** replaces temporary class argument names, updates the ST, and the class type */
     void fixAnyClassInstances();
+    void fixAClassStubsDefaultArgs(SymbolClass * stubcsym, u32 defaultstartidx);
 
     bool statusNonreadyClassArgumentsInStubClassInstances();
-    bool constantFoldClassArgumentsInAStubClassInstance(UTI instance);
 
     virtual std::string formatAnInstancesArgValuesAsAString(UTI instance);
     std::string formatAnInstancesArgValuesAsCommaDelimitedString(UTI instance);
@@ -107,9 +106,11 @@ namespace MFM{
     virtual bool statusUnknownTypeInClassInstances(UTI huti);
     virtual bool statusUnknownTypeNamesInClassInstances();
     virtual u32 reportUnknownTypeNamesInClassInstances();
+    virtual u32 reportClassInstanceNamesThatAreTooLong();
     virtual bool setBitSizeOfClassInstances();
     virtual void printBitSizeOfClassInstances();
     virtual void packBitsForClassInstances();
+
     virtual void printUnresolvedVariablesForClassInstances();
 
     virtual void buildDefaultValueForClassInstances();
@@ -119,6 +120,7 @@ namespace MFM{
     virtual void generateCodeForClassInstances(FileManager * fm);
 
     virtual void generateIncludesForClassInstances(File * fp);
+    virtual void generateAllIncludesForTestMainForClassInstances(File * fp);
 
     virtual void generateForwardDefsForClassInstances(File * fp);
 
@@ -142,6 +144,9 @@ namespace MFM{
     void cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to);
 
     bool checkSFINAE(SymbolClass * sym);
+
+    std::map<UTI, SymbolClass* > m_stubsToDelete;
+    void trashStub(UTI uti, SymbolClass * symptr);
   };
 
 }

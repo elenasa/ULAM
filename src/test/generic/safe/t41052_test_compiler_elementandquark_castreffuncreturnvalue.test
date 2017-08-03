@@ -1,0 +1,75 @@
+## -*- mode:ulam -*-
+#=t41052_test_compiler_elementandquark_castreffuncreturnvalue
+##
+## gen output: 3 asserts
+##
+## cannot eval casting Self to a ref
+##
+#!
+Exit status: -11
+Ue_Foo : QFoo { :< :<>> Int(32) test() {  System s;  Foo& fooref = ( )func cast;  s ( fooref Foo is )assert . Foo& qfooref = ( )funcq cast;  s ( qfooref Foo is )assert . QBar& qbarref = ( )funcq cast;  s ( qbarref QBar is )assert . 0 cast return } }
+Uq_QFoo : QBar { :<> <NOMAIN> }
+Uq_System { <NOMAIN> }
+Uq_QBar { /* empty class block */ }
+##
+## informed by Dave email 3/20/2017 and t41033
+##
+#>Foo.ulam
+  ulam 3;
+element Foo : QFoo
+{
+  Self func()
+  //Foo & func()
+  {
+    return self;
+  }
+
+
+  Int test() {
+    System s;
+
+    //case 1: cast decendent element
+    Foo & fooref = (Foo &) func();
+    s.assert(fooref is Foo);
+
+    //case 2: cast ancestor quark as sub element
+    Foo & qfooref = (Foo &) funcq();
+    s.assert(qfooref is Foo);
+
+    //case 3: cast decendent quark
+    QBar & qbarref = (QBar &) funcq();
+    s.assert(qbarref is QBar);
+
+    return 0;
+  }
+}
+
+#:QFoo.ulam
+  ulam 3;
+quark QFoo : QBar {
+
+  QFoo & funcq()
+  {
+    return self;
+  }
+}
+
+
+#:QBar.ulam
+  ulam 1;
+quark QBar {
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

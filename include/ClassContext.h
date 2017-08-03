@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * ClassContext.h - Data for Class Context changes for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file ClassContext.h - Data for Class Context changes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2017 All rights reserved.
   \gpl
 */
 
@@ -40,6 +40,7 @@
 #include "itype.h"
 #include "NodeBlock.h"
 #include "NodeBlockClass.h"
+#include "NodeBlockContext.h"
 #include "Constants.h"
 #include <string.h>
 namespace MFM{
@@ -48,7 +49,7 @@ class ClassContext
 {
  public:
   ClassContext();
-  ClassContext(u32 id, UTI idx, NodeBlock * nb, NodeBlockClass * nbc, bool usememberblock, NodeBlockClass * mbc);
+  ClassContext(u32 id, UTI idx, NodeBlock * nb, NodeBlockContext * nbc, bool usememberblock, NodeBlockClass * mbc);
   ~ClassContext();
 
   /** for context switching */
@@ -56,14 +57,11 @@ class ClassContext
 
   UTI getCompileThisIdx();
 
-  /** use when changing m_compileThisIdx to keep id and idx in sync */
-  void setCompileThisIdx(u32 id, UTI idx);
-
   NodeBlock * getCurrentBlock();
   void setCurrentBlock(NodeBlock * nb);
 
-  NodeBlockClass * getClassBlock();
-  void setClassBlock(NodeBlockClass * nbc);
+  NodeBlockContext * getContextBlock();
+  void setContextBlock(NodeBlockContext * nbc);
 
   bool useMemberBlock();
   void useMemberBlock(bool use);
@@ -76,8 +74,8 @@ class ClassContext
  private:
     u32 m_compileThisId;                 // the subject of this compilation; id into m_pool
     UTI m_compileThisIdx;                // the subject of this compilation; various class instances
-    NodeBlock *      m_currentBlock;     //replaces m_stackOfBlocks
-    NodeBlockClass * m_classBlock;       //holds current class ST with function defs
+    NodeBlock * m_currentBlock;     // replaces m_stackOfBlocks
+    NodeBlockContext * m_contextBlock;   // holds current class blockST w func defs; or localdef blockST
     bool m_useMemberBlock;               // used during parsing and c&l member select expression
     NodeBlockClass * m_currentMemberClassBlock;
 };

@@ -11,24 +11,24 @@ Uq_S(Int(32) x, Int(32) y) { <NOMAIN> }
 ##    //informed by t3255
 ##    //can't return named constant in another class 'return S(1,2).x;'
 #>T.ulam
- ulam 1;
+  ulam 1;
 use S;
- element T{
-S(1,2) m;
- Int test() {
-m.func();
- return 0;
+element T{
+  S(1,2) m;
+  Int test() {
+    m.func();
+    return 0;
+  }
 }
- }
 
 #:S.ulam
-ulam 1;
+  ulam 1;
 quark S(Int x, Int y){
-Void func(){
-S(x+0, 6) s;
- return;
+  Void func(){
+    S(x+0, 6) s;
+    return;
+  }
 }
- }
 ##      //infinite loop 'S(x+y,n) s;' with x+y as class arg!
 ##      //bool rtn1 = fms->add("S.ulam"," ulam 1;\nquark S(Int x, Int y){\nVoid func(){\nconstant Int n = 6;\nS(x+0, n) s;\n return;\n}\n }\n");
 ##

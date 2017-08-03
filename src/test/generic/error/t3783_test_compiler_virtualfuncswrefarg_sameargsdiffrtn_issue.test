@@ -8,7 +8,6 @@
 ##
 #!
 ./WindowScanner.ulam:4:16: ERROR: Check overloaded function <visit> with different return types (Void, Bool(1)), while compiling class: WindowScanner.
-./System.ulam:2:7: ERROR: 1 Nodes with erroneous types detected after type labeling class: System.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## based on 3 day ish 06/10/2016 - 06/13/2016 caused by virtual func 'visit' with different return types
@@ -91,7 +90,7 @@ quark WindowScanner {
 quark EventWindow{
   typedef Unsigned(6) SiteNum;
   Atom aref(Int index) native;
-  Void aset(Int index, Atom v) native;
+  //  Void aset(Int index, Atom v) native;
 }
 
 #:System.ulam

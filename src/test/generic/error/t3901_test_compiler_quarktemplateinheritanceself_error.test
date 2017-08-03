@@ -1,0 +1,32 @@
+## -*- mode:ulam -*-
+#=t3901_test_compiler_quarktemplateinheritanceself_error
+#!
+./Soo.ulam:2:25: ERROR: Class Definition 'Soo11'; Inheritance from invalid Class 'Soo'.
+Unrecoverable Program Parse FAILURE: <Soo.ulam>
+Unrecoverable Program Parse FAILURE: <Coo.ulam>
+##
+## quark inheritance from self, template
+##
+#>Foo.ulam
+  ulam 2;
+element Foo {
+  Soo(1u) su;
+  Int test() {
+    Foo f;
+    return 0;
+  }
+}
+
+#:Soo.ulam
+  ulam 2;
+quark Soo(Unsigned x) : Soo(1u) {
+  Unsigned(3) us = 4u;
+}
+
+#:Coo.ulam
+  ulam 2;
+quark Coo {
+  Bool(3) cb = true;
+}
+
+#.

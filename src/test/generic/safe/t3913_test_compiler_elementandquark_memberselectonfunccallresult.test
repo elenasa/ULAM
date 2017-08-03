@@ -1,0 +1,65 @@
+## -*- mode:ulam -*-
+#=t3913_test_compiler_elementandquark_memberselectonfunccallresult
+#!
+##      gen code output: 1 asserts
+##
+Exit status: -11
+Ue_A : QW { :<> Bool(1) b(true);  QW m_q();  Int(32) test() {  System s;  b true = A a;  a b . true = Atom(96) me = a ( )asme . ( )func .;  { me A as cond { A& me;  s ( me b . )assert . } if s ( false )assert . else } 0 cast return } }
+Uq_System { <NOMAIN> }
+Uq_QW { <NOMAIN> }
+##
+## informed by t3912
+##
+#>A.ulam
+  ulam 3;
+use System;
+use QW;
+element A : QW {
+  Bool b;
+  QW m_q;
+  Int test(){
+    System s;
+
+    //works with self
+    b = true;
+    //immediate element
+    A a;
+    a.b = true;
+    Atom me = a.asme().func();
+
+    if(me as A)
+      s.assert(me.b);
+    else
+      s.assert(false);
+
+    return 0;
+  }
+
+  Self asme()
+  {
+    return self;
+  }
+}
+
+#:QW.ulam
+  ulam 2;
+quark QW {
+  Atom func()
+  {
+    Atom a = self.atomof;
+    return a;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

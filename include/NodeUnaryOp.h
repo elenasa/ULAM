@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeUnaryOp.h -  Basic Node handling Unary Operations for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeUnaryOp.h -  Basic Node handling Unary Operations for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016   All rights reserved.
+  \date (C) 2014-2017   All rights reserved.
   \gpl
 */
 
@@ -58,6 +58,8 @@ namespace MFM{
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual void checkAbstractInstanceErrors();
+
+    virtual void resetNodeLocations(Locator loc);
 
     virtual void print(File * fp);
 
@@ -92,6 +94,8 @@ namespace MFM{
   protected:
 
     Node * m_node;
+
+    virtual Node * buildOperatorOverloadFuncCallNode();
 
     virtual UTI calcNodeType(UTI uti) = 0;
 

@@ -1,0 +1,47 @@
+## -*- mode:ulam -*-
+#=t41043_test_compiler_forascond
+#!
+Exit status: -11
+Ue_EWE { Int(32) test() {  EventWindow ew;  Int(32) i = 0 cast;  ew ( 0 cast )aref . EWE.instanceof cast = Atom(96) a = ew ( i )aref . cast;  { a EWE as cond { EWE& a;  { i 4 cast < cond { a ( )foomethod . a.atomof ew ( i )aref . = } if break else } } _1: i 1 ++ while } i return } }
+Uq_EventWindow { <NOMAIN> }
+##
+##      //for-loop 'as' conditional, no parens, not part of a compound condition
+##
+#>EWE.ulam
+  ulam 3;
+element EWE{
+  Int test() {
+    EventWindow ew;
+    Int i = 0;
+    ew[0] = EWE.instanceof;
+    Atom a = ew[i];
+    for(; a as EWE; i++) { //WORKS without parens
+    //for(; (a as EWE); i++) { //Invalid for condition. Parser l3661
+    //for(;(i < 4); i++) { //WORKS
+    //for(; (i < 4) && (a as EWE); i++) { //Invalid for condition.
+    //for(; i < 4 && a as EWE; i++) { //Invalid statement (possible missing semi-colon)
+      if(i < 4)
+      {
+	a.foomethod();
+	a.atomof = ew[i];
+      }
+      else
+	break;
+    }
+    return i;
+  }
+
+  Void foomethod()
+  {
+  }
+
+}
+
+#:EventWindow.ulam
+  ulam 3;
+quark EventWindow{
+  Atom& aref(Int index) native;
+}
+
+##    //EventWindow.ulam:3:1: ERROR: Only elements may have element parameters: <EventWindow> is a quark.
+#.

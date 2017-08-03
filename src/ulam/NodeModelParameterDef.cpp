@@ -43,7 +43,7 @@ namespace MFM {
 
   void NodeModelParameterDef::fixPendingArgumentNode()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
   UTI NodeModelParameterDef::checkAndLabelType()
@@ -69,6 +69,11 @@ namespace MFM {
   bool NodeModelParameterDef::buildDefaultValue(u32 wlen, BV8K& dvref)
   {
     return true;
+  }
+
+  void NodeModelParameterDef::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
+  {
+    return;
   }
 
   void NodeModelParameterDef::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
@@ -115,7 +120,7 @@ namespace MFM {
 
   void NodeModelParameterDef::genCode(File * fp, UVPass& uvpass)
   {
-    assert(m_constSymbol->isDataMember());
+    assert(m_constSymbol->isModelParameter());
 
     UTI vuti = m_constSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);

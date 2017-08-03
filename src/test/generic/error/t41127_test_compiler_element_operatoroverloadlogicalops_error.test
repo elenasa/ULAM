@@ -1,0 +1,66 @@
+## -*- mode:ulam -*-
+#=t41127_test_compiler_element_operatoroverloadlogicalops_error
+#!
+./Foo.ulam:22:17: ERROR: Weird Lex! <||> isn't an overloadable operation.
+./Foo.ulam:22:18: ERROR: Bit size after Open Paren is missing, type: Bool.
+./Foo.ulam:23:3: ERROR: Name of variable/function <{>: Identifier must begin with a lower-case letter.
+./Foo.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Foo'; Possible missing ending curly brace.
+./Foo.ulam:23:3: ERROR: Invalid Class Type <{>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./Foo.ulam:2:9: ERROR: Invalid Type: Foo.
+ ERROR: No parse tree for This Class: Foo.
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
+./Foo.ulam:24:5: ERROR: Invalid Class Type <first>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <System.ulam>
+##
+## unsupported, because "stupid idea" even though C++ does it eventhough they don't like it either.
+## informed by t41126.
+##
+#>Foo.ulam
+  ulam 3;
+element Foo {
+  Bool first;
+  Bits m_it;
+  Int(4) m_i;
+  Int test() {
+    System s;
+    Foo f;
+
+    f.first = true;
+
+    first = f || false;
+    s.assert(first);
+
+    first = f && true;
+    s.assert(first);
+
+    return 0;
+  }
+
+  //7c7c
+  Bool operator||(Bool arg)
+  {
+    first = first || arg;
+    return first;
+  }
+
+  //2626
+  Bool operator&&(Bool arg)
+  {
+    first = first && arg;
+    return first;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

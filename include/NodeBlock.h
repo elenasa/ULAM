@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeBlock.h - Basic Node for handling Blocks for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeBlock.h - Basic Node for handling Blocks for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2017 All rights reserved.
   \gpl
 */
 
@@ -70,6 +70,12 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    void setLastStatementPtr(NodeStatements * laststmt);
+
+    NodeStatements * getLastStatementPtr();
+
+    void appendNextNode(Node * node);
+
     virtual UTI checkAndLabelType();
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
@@ -88,13 +94,13 @@ namespace MFM{
 
     bool removeIdFromScope(u32 id, Symbol *& rtnsymptr);
 
-    void removeAllSymbolsFromScope();
-
     NodeBlock * getPreviousBlockPointer();
 
     void setPreviousBlockPointer(NodeBlock *);
 
     virtual bool isAClassBlock();
+
+    virtual bool isASwitchBlock();
 
     virtual u32 getNumberOfSymbolsInTable();
 
@@ -104,11 +110,13 @@ namespace MFM{
 
     virtual s32 getMaxBitSizeOfVariableSymbolsInTable();
 
+    u32 findTypedefNameIdByType(UTI uti);
+
     virtual void genCode(File * fp, UVPass& uvpass);
 
     void genModelParameterImmediateDefinitions(File * fp);
 
-    virtual void addClassMemberDescriptionsToInfoMap(ClassMemberMap& classmembers);
+    virtual void addMemberDescriptionsToInfoMap(ClassMemberMap& classmembers);
 
   protected:
     SymbolTableOfVariables m_ST;
@@ -117,6 +125,7 @@ namespace MFM{
 
   private:
     NodeBlock * m_prevBlockNode;
+    NodeStatements * m_nodeEndingStmt; //ptr to last statement node while parsing.
 
     SymbolTable * getSymbolTablePtr(); //use with caution, esp. with inheritance
 

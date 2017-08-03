@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeStatements.h - Node linking Statements for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeStatements.h - Node linking Statements for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2017 All rights reserved.
   \gpl
 */
 
@@ -66,9 +66,13 @@ namespace MFM{
 
     virtual void printPostfix(File * fp);
 
+    virtual void noteTypeAndName(s32 totalsize, u32& accumsize);
+
     virtual bool isAConstant();
 
     virtual bool isFunctionCall();
+
+    virtual bool isArrayItem();
 
     virtual bool isExplicitReferenceCast(); //only NodeCast may return true
 
@@ -77,6 +81,8 @@ namespace MFM{
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
+
+    virtual void genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos);
 
     virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
 
@@ -101,6 +107,12 @@ namespace MFM{
     virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
 
     virtual void genCodeExtern(File * fp, bool declOnly);
+
+    virtual void genCodeConstantArrayInitialization(File * fp);
+
+    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
+
+    virtual void cloneAndAppendNode(std::vector<Node *> & cloneVec);
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 

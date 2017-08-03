@@ -1,0 +1,38 @@
+## -*- mode:ulam -*-
+#=t3986_test_compiler_atomofvirtualselfquarkSelf_issue
+#!
+Exit status: -11
+Ue_HelloWorldString : FString(0b48656c6c6f20576f726c64) { :< :<> constant String(32) fstring = "Hello World"; > Int(32) test() {  self ( )behave . 0 cast return } }
+Uq_FString(String(32) fstring) : FontString { :<> <NOMAIN> }
+Uq_FontString { <NOMAIN> }
+##
+## informed by ish 1/5/2017: atomref no longer inherits from UlamRef, cast needs getUlamRef() call generated.
+##
+#>HelloWorldString.ulam
+  ulam 3;
+element HelloWorldString : FString("Hello World") {
+  Int test() {
+    self.behave();
+    return 0;
+  }
+}
+
+quark FString(String fstring) : FontString {
+  virtual String getString() { return fstring; }
+}
+
+quark FontString
+{
+  virtual Void behave() {
+    Empty empty;
+    Atom & aref = empty;
+    aref = self.atomof;  // start with ref to me
+    Self & kidref = (Self&) aref; // refer to the us in the ref copy
+
+    Atom a = self.atomof;  // start with me
+    Self & kidref2 = (Self&) a; // refer to the us in the copy
+    return;                 // done
+  }
+}
+
+#.

@@ -40,14 +40,14 @@ namespace MFM {
 
   UTI NodeBinaryOpBitwise::calcNodeType(UTI lt, UTI rt)  //bitwise
   {
-    if(!m_state.okUTItoContinue(lt, rt))
+    if(!m_state.neitherNAVokUTItoContinue(lt, rt))
       return Nav;
 
     if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
 	return Hzy;
 
     //no atoms, elements, nor void as either operand
-    if(!NodeBinaryOp::checkForPrimitiveTypes(lt, rt))
+    if(!NodeBinaryOp::checkForPrimitiveNotVoidTypes(lt, rt))
 	return Nav;
 
     UTI newType = Nav;  //init

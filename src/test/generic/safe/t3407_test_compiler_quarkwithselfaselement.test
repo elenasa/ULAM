@@ -6,13 +6,11 @@
 ##	 Int Arg: 2
 ##
 Exit status: 2
-Ue_ElT : Typo { :<> Int(32) i(2);  Int(32) test() {  System s;  Atom(96) mar = self cast;  ( mar cast )incr self mar cast cast = s ( i )print . ( mar cast )incr self mar cast cast = s ( i )print . s ( i 2 cast == )assert . i return } }
+Ue_ElT : Typo { :<> Int(32) i(2);  Int(32) test() {  System s;  Atom(96) mar = self cast;  ( mar cast )incr self mar cast = s ( i )print . ( mar cast )incr self mar cast = s ( i )print . s ( i 2 cast == )assert . i return } }
 Uq_Typo { <NOMAIN> }
 Uq_System { <NOMAIN> }
 #>ElT.ulam
   ulam 1;
-use Typo;
-use System;
 element ElT : Typo {
   Int i;
   Int test() {
@@ -30,7 +28,6 @@ element ElT : Typo {
 }
 
 #:Typo.ulam
-  ulam 1;
 quark Typo {
   Void incr(Atom& aref){
     //Atom a = self.storageof; //atom; //self;

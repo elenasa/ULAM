@@ -1,0 +1,66 @@
+## -*- mode:ulam -*-
+#=t3999_test_compiler_transientinheritquark_toInt
+##
+## gen output: (+ interleaved asserts)
+## Int arg: 12
+## Int arg: 12
+##
+#!
+Exit status: 0
+Ue_Foo { Bool(1) first(false);  Int(32) sint(12);  Int(32) cint(12);  Int(32) test() {  System s;  Soo su;  sint su ( )toInt . = s ( sint )print . s ( sint 12 cast == )assert . Coo& cref = su cast;  cint cref ( )toInt . = s ( cint )print . s ( cint 12 cast == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Un_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
+##
+## transient and quark: toInt (non-virtual)
+##
+#>Foo.ulam
+  ulam 3;
+element Foo {
+  Bool first;
+  Int sint;
+  Int cint;
+  Int test() {
+    System s;
+    Soo su;
+    sint = su.toInt();
+    s.print(sint);
+    s.assert(sint == 12);
+
+    Coo& cref = su;
+    cint = cref;
+    s.print(cint);
+    s.assert(cint == 12);
+
+    return 0;
+  }
+}
+
+#:Soo.ulam
+  ulam 2;
+transient Soo : Coo {
+  Unsigned(3) us = 4u;
+}
+
+#:Coo.ulam
+  ulam 2;
+quark Coo {
+  Bool(3) cb = true;
+  Int toInt()
+  {
+    return 12;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

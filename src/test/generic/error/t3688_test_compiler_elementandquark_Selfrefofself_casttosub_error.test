@@ -3,7 +3,6 @@
 #!
 ./A.ulam:10:16: ERROR: Cannot explicitly cast QW to type: A.
 ./A.ulam:10:5: ERROR: Initial value expression for: apple, initialization is invalid.
-./A.ulam:4:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## Dave requested a way to cast a super REF to a sub type; ref is crucial.
