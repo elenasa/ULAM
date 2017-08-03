@@ -160,7 +160,7 @@ namespace MFM{
     UlamRef<EC>(0u, 16u, Uv_3ret, NULL, UlamRef<EC>::PRIMITIVE, uc).Write(mapped.GetX());
 
     //Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y(Uv_3ret, NULL).Write(mapped.GetY());
-    UlamRef<EC>(16u, 16u, Uv_3ret, NULL, UlamRef<EC>::PRIMITIVE, uc).Write(mapped.GetX());
+    UlamRef<EC>(16u, 16u, Uv_3ret, NULL, UlamRef<EC>::PRIMITIVE, uc).Write(mapped.GetY());
 
 
     //! EventWindow.ulam:38:     return ret;
