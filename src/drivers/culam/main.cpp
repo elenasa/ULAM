@@ -314,7 +314,7 @@ int main(int argc, char ** argv)
 	      << MFM::HexEscape(c.getFullPathLocationAsString(cmd->m_loc))
 	      << " " << cmd->m_mangledClassName
 	      << " " << cmd->m_mangledType
-	      << " " << cmd->m_memberName
+	      << " " << MFM::HexEscape(cmd->m_memberName)
 	      << " " << cmd->m_mangledMemberName;
 
 	    if(cmd->hasValue())
