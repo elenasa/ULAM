@@ -7,6 +7,8 @@ namespace MFM {
   {
     m_mangledMemberName = ""; //clears base init
     m_mangledMemberName = fsym->getMangledNameWithTypes();
+    m_memberName = ""; //clears base init
+    m_memberName = fsym->generateUlamFunctionSignature();
   }
 
   FunctionDesc::FunctionDesc(const FunctionDesc& fref) : ClassMemberDesc(fref) {}
