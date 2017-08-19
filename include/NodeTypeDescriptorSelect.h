@@ -61,6 +61,8 @@ namespace MFM{
 
     virtual const char * getName();
 
+    virtual u32 getTypeNameId();
+
     virtual const std::string prettyNodeName();
 
     virtual UTI checkAndLabelType();

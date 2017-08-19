@@ -80,6 +80,12 @@ namespace MFM {
     fp->write(id);
   } //print
 
+  u32 Node::getTypeNameId()
+  {
+    m_state.abortShouldntGetHere(); //NodeVarDecl, NodeBlockFuncDef does work
+    return 0;
+  }
+
   void Node::noteTypeAndName(s32 totalsize, u32& accumsize)
   {
     m_state.abortShouldntGetHere(); //NodeVarDeclDM does work; NodeConstantDef, NodeTypedef bypass

@@ -150,6 +150,14 @@ namespace MFM {
     return m_state.m_pool.getDataAsString(m_vid).c_str();
   }
 
+  u32 NodeVarDecl::getTypeNameId()
+  {
+    if(m_nodeTypeDesc)
+      return m_nodeTypeDesc->getTypeNameId();
+    UTI nuti = getNodeType();
+    return m_state.m_pool.getIndexForDataString(m_state.getUlamTypeNameBriefByIndex(nuti));
+  }
+
   const std::string NodeVarDecl::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);

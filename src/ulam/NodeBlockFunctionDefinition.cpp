@@ -155,6 +155,14 @@ namespace MFM {
     return m_state.m_pool.getDataAsString(m_funcSymbol->getId()).c_str();
   }
 
+  u32 NodeBlockFunctionDefinition::getTypeNameId()
+  {
+    if(m_nodeTypeDesc)
+      return m_nodeTypeDesc->getTypeNameId();
+    UTI nuti = getNodeType();
+    return m_state.m_pool.getIndexForDataString(m_state.getUlamTypeNameBriefByIndex(nuti));
+  }
+
   const std::string NodeBlockFunctionDefinition::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
@@ -262,6 +270,12 @@ namespace MFM {
   void NodeBlockFunctionDefinition::addParameterNode(Node * nodeArg)
   {
     m_nodeParameterList->addNodeToList(nodeArg);
+  }
+
+  Node * NodeBlockFunctionDefinition::getParameterNode(u32 pidx)
+  {
+    assert(m_nodeParameterList);
+    return m_nodeParameterList->getNodePtr(pidx);
   }
 
   void NodeBlockFunctionDefinition::makeSuperSymbol(s32 slot)
