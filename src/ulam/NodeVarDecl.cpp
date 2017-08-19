@@ -11,7 +11,7 @@
 
 namespace MFM {
 
-  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_varSymbol(sym), m_vid(0), m_nodeInitExpr(NULL), m_currBlockNo(0), m_nodeTypeDesc(nodetype)
+  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_varSymbol(sym), m_vid(0), m_nodeInitExpr(NULL), m_nodeTypeDesc(nodetype), m_currBlockNo(0)
   {
     if(sym)
       {
@@ -21,7 +21,7 @@ namespace MFM {
       }
   }
 
-  NodeVarDecl::NodeVarDecl(const NodeVarDecl& ref) : Node(ref), m_varSymbol(NULL), m_vid(ref.m_vid), m_nodeInitExpr(NULL), m_currBlockNo(ref.m_currBlockNo), m_nodeTypeDesc(NULL)
+  NodeVarDecl::NodeVarDecl(const NodeVarDecl& ref) : Node(ref), m_varSymbol(NULL), m_vid(ref.m_vid), m_nodeInitExpr(NULL), m_nodeTypeDesc(NULL), m_currBlockNo(ref.m_currBlockNo)
   {
     if(ref.m_nodeTypeDesc)
       m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
@@ -1138,6 +1138,11 @@ namespace MFM {
   }
 
   void NodeVarDecl::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
+  {
+    m_state.abortShouldntGetHere(); //see NodeVarDeclDM data members only
+  }
+
+  void NodeVarDecl::addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers)
   {
     m_state.abortShouldntGetHere(); //see NodeVarDeclDM data members only
   }

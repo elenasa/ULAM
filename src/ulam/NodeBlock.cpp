@@ -269,7 +269,9 @@ namespace MFM {
 
   void NodeBlock::addMemberDescriptionsToInfoMap(ClassMemberMap& classmembers)
   {
-    m_ST.addClassMemberDescriptionsToMap(this->getNodeType(), classmembers); //Table of Classes request
+    //m_ST.addClassMemberDescriptionsToMap(this->getNodeType(), classmembers); //Table of Classes request
+    if(m_nodeNext)
+      m_nodeNext->addMemberDescriptionToInfoMap(this->getNodeType(), classmembers);
   }
 
   void NodeBlock::genCode(File * fp, UVPass& uvpass)

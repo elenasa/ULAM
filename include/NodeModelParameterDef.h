@@ -70,6 +70,8 @@ namespace MFM{
 
     virtual void genCode(File * fp, UVPass& uvpass);
 
+    virtual void addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers);
+
   protected:
     virtual void checkForSymbol();
 

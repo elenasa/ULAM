@@ -7,10 +7,10 @@
 #include "SymbolVariableDataMember.h"
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
-#include "MapDataMemberDesc.h"
-#include "MapParameterDesc.h"
-#include "MapConstantDesc.h"
-#include "MapTypedefDesc.h"
+//#include "MapDataMemberDesc.h"
+//#include "MapParameterDesc.h"
+//#include "MapConstantDesc.h"
+//#include "MapTypedefDesc.h"
 
 namespace MFM {
 
@@ -336,6 +336,8 @@ namespace MFM {
       }
   } //genModelParameterImmediateDefinitionsForTableOfVariableDataMembers
 
+#if 0
+  //replaced with parse-tree version, needed Ulam Type for UlamInfo.
   void SymbolTableOfVariables::addClassMemberDescriptionsToMap(UTI classType, ClassMemberMap& classmembers)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
@@ -379,6 +381,7 @@ namespace MFM {
 	it++;
       }
   } //addClassMemberDescriptionsToMap
+#endif
 
   //storage for class members persists, so we give up preserving
   //order of declaration that the NodeVarDecl in the parseTree

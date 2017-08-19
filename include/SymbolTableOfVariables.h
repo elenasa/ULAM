@@ -38,7 +38,7 @@
 #define SYMBOLTABLEOFVARIABLES_H
 
 #include "SymbolTable.h"
-#include "MapClassMemberDesc.h"
+//#include "MapClassMemberDesc.h"
 #include "UlamValue.h"
 
 namespace MFM{
@@ -75,7 +75,7 @@ namespace MFM{
 
     void genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(File *fp);
 
-    void addClassMemberDescriptionsToMap(UTI classType, ClassMemberMap& classmembers);
+    //void addClassMemberDescriptionsToMap(UTI classType, ClassMemberMap& classmembers);
 
     void printPostfixValuesForTableOfVariableDataMembers(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 

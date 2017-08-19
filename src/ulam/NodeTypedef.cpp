@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "NodeTypedef.h"
 #include "CompilerState.h"
-
+#include "MapTypedefDesc.h"
 
 namespace MFM {
 
@@ -336,5 +336,17 @@ namespace MFM {
 
   void NodeTypedef::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {}
+
+  void NodeTypedef::addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers)
+  {
+    assert(m_typedefSymbol);
+    TypedefDesc * descptr = new TypedefDesc(m_typedefSymbol, classType, m_state);
+    assert(descptr);
+
+    //concat mangled class and parameter names to avoid duplicate keys into map
+    std::ostringstream fullMangledName;
+    fullMangledName << descptr->m_mangledClassName << "_" << descptr->m_mangledMemberName;
+    classmembers.insert(std::pair<std::string, ClassMemberDescHolder>(fullMangledName.str(), ClassMemberDescHolder(descptr)));
+  } //addMemberDescriptionToInfoMap
 
 } //end MFM
