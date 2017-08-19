@@ -550,22 +550,19 @@ namespace MFM {
       }
   } //setStructuredComment
 
-  //for Ulam Info
+  //for Ulam Info, with any Ulam typedefs
   const std::string SymbolFunction::generateUlamFunctionSignature()
   {
     NodeBlockFunctionDefinition * func = getFunctionNode();
     assert(func); //how would a function symbol be without a body?
-
-    UTI suti = getUlamTypeIdx();
-    UlamType * sut = m_state.getUlamTypeByIndex(suti); //return type
 
     std::ostringstream sig;
 
     if(isVirtualFunction())
       sig << "virtual ";
 
-    sig << sut->getUlamTypeNameBrief().c_str() << " "; //return type
-    sig << m_state.m_pool.getDataAsString(getId())  << "("; //func name
+    sig << m_state.m_pool.getDataAsString(func->getTypeNameId()).c_str(); //return type
+    sig << " " << m_state.m_pool.getDataAsString(getId()).c_str()  << "("; //func name
 
     u32 numparams = getNumberOfParameters();
 
@@ -574,12 +571,10 @@ namespace MFM {
 	if(i > 0)
 	  sig << ", ";
 
-	Symbol * asym = getParameterSymbolPtr(i);
-	assert(asym);
-	UTI auti = asym->getUlamTypeIdx();
-	UlamType * aut = m_state.getUlamTypeByIndex(auti); //arg type
-	sig << aut->getUlamTypeNameBrief().c_str() << " ";
-	sig << m_state.m_pool.getDataAsString(asym->getId()); //arg name
+	Node * pnode = func->getParameterNode(i);
+	assert(pnode);
+	sig << m_state.m_pool.getDataAsString(pnode->getTypeNameId()).c_str();
+	sig << " " << pnode->getName(); //arg name
       }
 
     if(takesVariableArgs())

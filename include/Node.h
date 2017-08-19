@@ -97,6 +97,8 @@ namespace MFM{
 
     virtual const char * getName() = 0;
 
+    virtual u32 getTypeNameId();
+
     virtual const std::string prettyNodeName() = 0;
 
     const std::string nodeName(const std::string& prettyFunction);
