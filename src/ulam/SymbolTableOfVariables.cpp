@@ -336,53 +336,6 @@ namespace MFM {
       }
   } //genModelParameterImmediateDefinitionsForTableOfVariableDataMembers
 
-#if 0
-  //replaced with parse-tree version, needed Ulam Type for UlamInfo.
-  void SymbolTableOfVariables::addClassMemberDescriptionsToMap(UTI classType, ClassMemberMap& classmembers)
-  {
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-    while(it != m_idToSymbolPtr.end())
-      {
-	ClassMemberDesc * descptr = NULL;
-	Symbol * sym = it->second;
-	if(sym->isModelParameter() && ((SymbolModelParameterValue *)sym)->isReady())
-	  {
-	    descptr = new ParameterDesc((SymbolModelParameterValue *) sym, classType, m_state);
-	    assert(descptr);
-	  }
-	else if(sym->isTypedef())
-	  {
-	    descptr = new TypedefDesc((SymbolTypedef *) sym, classType, m_state);
-	    assert(descptr);
-	  }
-	else if(sym->isConstant() && ((SymbolConstantValue *)sym)->isReady())
-	  {
-	    descptr = new ConstantDesc((SymbolConstantValue *) sym, classType, m_state);
-	    assert(descptr);
-	  }
-	else if(sym->isDataMember()) //comes after isConstant
-	  {
-	    descptr = new DataMemberDesc((SymbolVariableDataMember *) sym, classType, m_state);
-	    assert(descptr);
-	  }
-	else
-	  {
-	    //error not ready perhaps
-	    m_state.abortShouldntGetHere(); //(functions done separately)
-	  }
-
-	if(descptr)
-	  {
-	    //concat mangled class and parameter names to avoid duplicate keys into map
-	    std::ostringstream fullMangledName;
-	    fullMangledName << descptr->m_mangledClassName << "_" << descptr->m_mangledMemberName;
-	    classmembers.insert(std::pair<std::string, ClassMemberDescHolder>(fullMangledName.str(), ClassMemberDescHolder(descptr)));
-	  }
-	it++;
-      }
-  } //addClassMemberDescriptionsToMap
-#endif
-
   //storage for class members persists, so we give up preserving
   //order of declaration that the NodeVarDecl in the parseTree
   //provides, in order to distinguish between an instance's data

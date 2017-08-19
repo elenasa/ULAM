@@ -37,8 +37,7 @@ namespace MFM {
     m_state.pushCurrentBlock(this);
 
     setYourParentNo(pno);
-    if(m_node)
-      m_node->updateLineage(getNodeNo());
+    //has no m_node
     if(m_nodeNext)
       m_nodeNext->updateLineage(getNodeNo());
 
@@ -269,7 +268,7 @@ namespace MFM {
 
   void NodeBlock::addMemberDescriptionsToInfoMap(ClassMemberMap& classmembers)
   {
-    //m_ST.addClassMemberDescriptionsToMap(this->getNodeType(), classmembers); //Table of Classes request
+    //has no m_node
     if(m_nodeNext)
       m_nodeNext->addMemberDescriptionToInfoMap(this->getNodeType(), classmembers);
   }

@@ -75,8 +75,6 @@ namespace MFM{
 
     void genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(File *fp);
 
-    //void addClassMemberDescriptionsToMap(UTI classType, ClassMemberMap& classmembers);
-
     void printPostfixValuesForTableOfVariableDataMembers(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
 
