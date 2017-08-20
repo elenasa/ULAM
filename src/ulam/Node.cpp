@@ -1752,6 +1752,11 @@ namespace MFM {
     m_state.abortShouldntGetHere(); //fufilled by NodeVarDecl, NodeBlock; bypassed by NodeTypedef and NodeConstDef
   }
 
+  void Node::addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers)
+  {
+    m_state.abortShouldntGetHere(); //fufilled by NodeVarDecl and NodeConstDef; bypassed by NodeTypedef
+  }
+
   std::string Node::allCAPS(const char * s) //static method
   {
     u32 len = strlen(s);

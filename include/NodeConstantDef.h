@@ -129,16 +129,18 @@ namespace MFM{
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
+    virtual void addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers);
+
   protected:
     SymbolWithValue * m_constSymbol;
     Node * m_nodeExpr;
+    NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
     u32 m_cid; //to instantiate
 
     virtual void checkForSymbol();
 
   private:
     NNO m_currBlockNo;
-    NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
     void setupStackWithPrimitiveForEval(u32 slots);
     void assignConstantSlotIndex(u32& cslotidx);

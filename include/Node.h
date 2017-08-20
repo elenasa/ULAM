@@ -50,7 +50,7 @@
 #include "UlamType.h"
 #include "UlamValue.h"
 #include "UVPass.h"
-
+#include "MapClassMemberDesc.h"
 
 namespace MFM{
 
@@ -214,6 +214,8 @@ namespace MFM{
     virtual void cloneAndAppendNode(std::vector<Node *> & cloneVec);
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
+
+    virtual void addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers);
 
     virtual void genCodeExtern(File * fp, bool declOnly);
 

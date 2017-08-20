@@ -11,7 +11,7 @@
 
 namespace MFM {
 
-  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_varSymbol(sym), m_vid(0), m_nodeInitExpr(NULL), m_currBlockNo(0), m_nodeTypeDesc(nodetype)
+  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_varSymbol(sym), m_vid(0), m_nodeInitExpr(NULL), m_nodeTypeDesc(nodetype), m_currBlockNo(0)
   {
     if(sym)
       {
@@ -21,7 +21,7 @@ namespace MFM {
       }
   }
 
-  NodeVarDecl::NodeVarDecl(const NodeVarDecl& ref) : Node(ref), m_varSymbol(NULL), m_vid(ref.m_vid), m_nodeInitExpr(NULL), m_currBlockNo(ref.m_currBlockNo), m_nodeTypeDesc(NULL)
+  NodeVarDecl::NodeVarDecl(const NodeVarDecl& ref) : Node(ref), m_varSymbol(NULL), m_vid(ref.m_vid), m_nodeInitExpr(NULL), m_nodeTypeDesc(NULL), m_currBlockNo(ref.m_currBlockNo)
   {
     if(ref.m_nodeTypeDesc)
       m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
@@ -154,9 +154,15 @@ namespace MFM {
   {
     if(m_nodeTypeDesc)
       return m_nodeTypeDesc->getTypeNameId();
+
     UTI nuti = getNodeType();
-    return m_state.m_pool.getIndexForDataString(m_state.getUlamTypeNameBriefByIndex(nuti));
-  }
+    assert(m_state.okUTItoContinue(nuti));
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    //skip bitsize if default size
+    if(nut->getBitSize() == ULAMTYPE_DEFAULTBITSIZE[nut->getUlamTypeEnum()])
+      return m_state.m_pool.getIndexForDataString(nut->getUlamTypeNameOnly());
+    return m_state.m_pool.getIndexForDataString(nut->getUlamTypeNameBrief());
+  } //getTypeNameId
 
   const std::string NodeVarDecl::prettyNodeName()
   {
@@ -1138,6 +1144,11 @@ namespace MFM {
   }
 
   void NodeVarDecl::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
+  {
+    m_state.abortShouldntGetHere(); //see NodeVarDeclDM data members only
+  }
+
+  void NodeVarDecl::addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers)
   {
     m_state.abortShouldntGetHere(); //see NodeVarDeclDM data members only
   }

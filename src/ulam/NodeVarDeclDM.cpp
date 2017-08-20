@@ -6,6 +6,7 @@
 #include "SymbolVariableStack.h"
 #include "NodeIdent.h"
 #include "NodeTerminal.h"
+#include "MapDataMemberDesc.h"
 
 namespace MFM {
 
@@ -1132,5 +1133,28 @@ namespace MFM {
 
     dmcount++; //increment data member count
   } //generateUlamClassInfo
+
+  void NodeVarDeclDM::addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers)
+  {
+    assert(m_varSymbol);
+    ClassMemberDesc * descptr = new DataMemberDesc((SymbolVariableDataMember *) m_varSymbol, classType, m_state);
+    assert(descptr);
+
+    //replace m_memberName with Ulam Type and Name (t3343, edit)
+    std::ostringstream mnstr;
+    if(m_nodeTypeDesc)
+      mnstr << m_state.m_pool.getDataAsString(m_nodeTypeDesc->getTypeNameId()).c_str();
+    else
+      mnstr << m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str();
+    mnstr << " " << descptr->m_memberName;
+
+    descptr->m_memberName = ""; //clear base init
+    descptr->m_memberName = mnstr.str();
+
+    //concat mangled class and parameter names to avoid duplicate keys into map
+    std::ostringstream fullMangledName;
+    fullMangledName << descptr->m_mangledClassName << "_" << descptr->m_mangledMemberName;
+    classmembers.insert(std::pair<std::string, ClassMemberDescHolder>(fullMangledName.str(), ClassMemberDescHolder(descptr)));
+  } //addMemberDescriptionToInfoMap
 
 } //end MFM

@@ -5,11 +5,11 @@
 #include "NodeListArrayInitialization.h"
 #include "NodeTerminal.h"
 #include "CompilerState.h"
-
+#include "MapConstantDesc.h"
 
 namespace MFM {
 
-  NodeConstantDef::NodeConstantDef(SymbolWithValue * symptr, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_constSymbol(symptr), m_nodeExpr(NULL), m_currBlockNo(m_state.getCurrentBlockNo()), m_nodeTypeDesc(nodetype)
+  NodeConstantDef::NodeConstantDef(SymbolWithValue * symptr, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_constSymbol(symptr), m_nodeExpr(NULL), m_nodeTypeDesc(nodetype), m_cid(0), m_currBlockNo(m_state.getCurrentBlockNo())
   {
     if(symptr)
       {
@@ -18,11 +18,9 @@ namespace MFM {
 	m_cid = symptr->getId();
 	symptr->setDeclNodeNo(getNodeNo());
       }
-    else
-      m_cid = 0; //error
   }
 
-  NodeConstantDef::NodeConstantDef(const NodeConstantDef& ref) : Node(ref), m_constSymbol(NULL), m_nodeExpr(NULL), m_cid(ref.m_cid), m_currBlockNo(ref.m_currBlockNo), m_nodeTypeDesc(NULL)
+  NodeConstantDef::NodeConstantDef(const NodeConstantDef& ref) : Node(ref), m_constSymbol(NULL), m_nodeExpr(NULL), m_nodeTypeDesc(NULL), m_cid(ref.m_cid), m_currBlockNo(ref.m_currBlockNo)
   {
     if(ref.m_nodeExpr)
       m_nodeExpr = ref.m_nodeExpr->instantiate();
@@ -1071,5 +1069,30 @@ namespace MFM {
 
   void NodeConstantDef::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {}
+
+  void NodeConstantDef::addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers)
+  {
+    assert(m_constSymbol);
+    assert(m_constSymbol->isReady());
+
+    ConstantDesc * descptr = new ConstantDesc((SymbolConstantValue *) m_constSymbol, classType, m_state);
+    assert(descptr);
+
+    //replace m_memberName with Ulam Type and Name (t3343, edit)
+    std::ostringstream mnstr;
+    if(m_nodeTypeDesc)
+      mnstr << m_state.m_pool.getDataAsString(m_nodeTypeDesc->getTypeNameId()).c_str();
+    else
+      mnstr << m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str();
+    mnstr << " " << descptr->m_memberName;
+
+    descptr->m_memberName = ""; //clear base init
+    descptr->m_memberName = mnstr.str();
+
+    //concat mangled class and parameter names to avoid duplicate keys into map
+    std::ostringstream fullMangledName;
+    fullMangledName << descptr->m_mangledClassName << "_" << descptr->m_mangledMemberName;
+    classmembers.insert(std::pair<std::string, ClassMemberDescHolder>(fullMangledName.str(), ClassMemberDescHolder(descptr)));
+  } //addMemberDescriptionToInfoMap
 
 } //end MFM
