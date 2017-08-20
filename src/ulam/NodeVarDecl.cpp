@@ -154,9 +154,15 @@ namespace MFM {
   {
     if(m_nodeTypeDesc)
       return m_nodeTypeDesc->getTypeNameId();
+
     UTI nuti = getNodeType();
-    return m_state.m_pool.getIndexForDataString(m_state.getUlamTypeNameBriefByIndex(nuti));
-  }
+    assert(m_state.okUTItoContinue(nuti));
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    //skip bitsize if default size
+    if(nut->getBitSize() == ULAMTYPE_DEFAULTBITSIZE[nut->getUlamTypeEnum()])
+      return m_state.m_pool.getIndexForDataString(nut->getUlamTypeNameOnly());
+    return m_state.m_pool.getIndexForDataString(nut->getUlamTypeNameBrief());
+  } //getTypeNameId
 
   const std::string NodeVarDecl::prettyNodeName()
   {

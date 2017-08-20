@@ -70,7 +70,11 @@ namespace MFM {
 
     UTI nuti = getNodeType();
     assert(m_state.okUTItoContinue(nuti));
-    return m_state.m_pool.getIndexForDataString(m_state.getUlamTypeNameBriefByIndex(nuti));
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    //skip bitsize if default size
+    if(nut->getBitSize() == ULAMTYPE_DEFAULTBITSIZE[bUT])
+      return m_state.m_pool.getIndexForDataString(nut->getUlamTypeNameOnly());
+    return m_state.m_pool.getIndexForDataString(nut->getUlamTypeNameBrief());
   } //getTypeNameId
 
   const std::string NodeTypeDescriptor::prettyNodeName()
