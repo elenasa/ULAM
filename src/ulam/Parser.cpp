@@ -1132,7 +1132,7 @@ namespace MFM {
 	rtnNode = NULL;
 	getTokensUntil(TOK_CLOSE_CURLY);
 	m_state.popClassContext();
-	m_state.pushCurrentBlock(rtnNode); //very temporary
+	m_state.pushCurrentBlock(rtnNode); //very temporary, t41138
       }
 
     m_state.popClassContext();
