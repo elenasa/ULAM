@@ -51,6 +51,8 @@ namespace MFM
     u32 m_bitsize;
     Locator m_loc;
     std::string m_className;
+    std::string m_classSignature;
+    std::string m_baseClassSignature;
     std::string m_structuredComment;
   };
 

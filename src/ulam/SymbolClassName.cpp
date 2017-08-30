@@ -85,6 +85,13 @@ namespace MFM {
     return "10"; //zero args
   } //formatAnInstancesArgValuesAsAString
 
+  std::string SymbolClassName::generateUlamClassSignature()
+  {
+    std::ostringstream sig;
+    sig << m_state.m_pool.getDataAsString(getId()).c_str(); //class name
+    return sig.str();
+  } //generateUlamClassSignature
+
   bool SymbolClassName::hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI)
   {
     assert(instance == getUlamTypeIdx());

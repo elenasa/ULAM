@@ -64,6 +64,7 @@ namespace MFM{
     virtual Node * findNodeNoInAClassInstance(UTI instance, NNO n);
 
     virtual std::string formatAnInstancesArgValuesAsAString(UTI instance);
+    virtual std::string generateUlamClassSignature();
 
     virtual bool hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI);
     virtual bool mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti);

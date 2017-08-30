@@ -86,6 +86,7 @@ namespace MFM{
 
     virtual std::string formatAnInstancesArgValuesAsAString(UTI instance);
     std::string formatAnInstancesArgValuesAsCommaDelimitedString(UTI instance);
+    virtual std::string generateUlamClassSignature();
 
     //helpers while deep instantiation
     virtual bool hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI);
