@@ -1,0 +1,75 @@
+## -*- mode:ulam -*-
+#=t41138_test_compiler_element_missingrhsassignment_insideforloopassert_ish_error
+#!
+./Foo.ulam:16:14: ERROR: Right operand of binary = is missing; Assignment deleted.
+./Foo.ulam:17:2: ERROR: Invalid Statement (possible missing semicolon).
+./UrSelf.ulam:21:0: ERROR: Invalid Statement (possible missing semicolon).
+./Foo.ulam:8:5: ERROR: Incomplete true block; for-loop.
+./Foo.ulam:5:5: ERROR: Not close curly.
+./Foo.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Check2'; Possible missing ending curly brace.
+ ERROR: No parse tree for This Class: Foo.
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
+./C2D.ulam:2:7: ERROR: Conflicting class args previously seen for class with no parameters <C2D>.
+./Foo.ulam:16:23: ERROR: Invalid Type: C2D.
+Unrecoverable Program Parse FAILURE: <C2D.ulam>
+##
+## 8/30/2017 Dave ish making class exercises: anonymous class instance caused RHS of assignment to be null within a for-loop;
+##             assert in pushClassBlock hit; assert inappropriate as block MAY be null.
+##
+#>Foo.ulam
+  ulam 3;
+element Check2 {
+  C2D mOffset;
+  Int test() {
+    typedef Int(16) Coord;
+    System s;
+
+    for (Coord x = -2; x <= 2; ++x) {
+      for (Coord y = -2; y <= 2; ++y) {
+	C2D at(x,y);
+	C2D net = at + mOffset;
+	// Handle corners
+	C2D anet(abs(net));
+	if (anet.x == 2 && anet.y == 2) {
+	  Self f;
+	  f.mOffset = -1*net-C2D(1,1); //anonymous class instance INVALID in ulam
+	}
+      }
+    }
+    return 0;
+  }
+}
+
+#:C2D.ulam
+  ulam 3;
+quark C2D {
+  typedef Int(16) Coord;
+
+  //load "C2D.inc";
+  typedef Unsigned(3) Dir;
+
+  Coord x = 0;
+  Coord y = 0;
+
+  Self(Coord ax, Coord ay) {
+    x = ax;
+    y = ay;
+  }
+
+  Self(Self s) {
+    x = s.x;
+    y = s.y;
+  }
+
+  Self abs() {
+    return abs(self);
+  }
+
+  Self abs(Self of) {
+    if (of.x < 0) of.x = -of.x;
+    if (of.y < 0) of.y = -of.y;
+    return of;
+  }
+}
+
+#.

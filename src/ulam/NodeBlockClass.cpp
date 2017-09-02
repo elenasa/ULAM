@@ -2821,6 +2821,31 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     else
       desc.m_structuredComment = "NONE";
 
+    //format Ulam Class Signature
+    UlamKeyTypeSignature ckey = cut->getUlamKeyTypeSignature();
+    u32 nameid = ckey.getUlamKeyTypeSignatureNameId();
+    SymbolClassName * cnsym = NULL;
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(nameid, cnsym);
+    assert(isDefined);
+    desc.m_classSignature = cnsym->generateUlamClassSignature();
+
+    //format Ulam Class Signature of super class
+    if(!m_state.isUrSelf(cuti))
+      {
+	UTI superuti = m_state.isClassASubclass(cuti);
+	assert(m_state.okUTItoContinue(superuti));
+	UlamType * superut = m_state.getUlamTypeByIndex(superuti);
+	UlamKeyTypeSignature superkey = superut->getUlamKeyTypeSignature();
+	u32 supernameid = superkey.getUlamKeyTypeSignatureNameId();
+	SymbolClassName * supercnsym = NULL;
+	AssertBool isSuperDefined = m_state.alreadyDefinedSymbolClassName(supernameid, supercnsym);
+	assert(isSuperDefined);
+
+	desc.m_baseClassSignature = supercnsym->generateUlamClassSignature();
+      }
+    else
+      desc.m_baseClassSignature = "nobase";
+
     classtargets.insert(std::pair<std::string, struct TargetDesc>(mangledName, desc));
   } //addTargetDescriptionToInfoMap
 

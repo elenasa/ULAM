@@ -118,6 +118,21 @@ namespace MFM {
     return "CONSTDEF?";
   }
 
+  u32 NodeConstantDef::getTypeNameId()
+  {
+    //like NodeVarDecl; used for Ulam Class Signature for Target Map
+    if(m_nodeTypeDesc)
+      return m_nodeTypeDesc->getTypeNameId();
+
+    UTI nuti = getNodeType();
+    assert(m_state.okUTItoContinue(nuti));
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    //skip bitsize if default size
+    if(nut->getBitSize() == ULAMTYPE_DEFAULTBITSIZE[nut->getUlamTypeEnum()])
+      return m_state.m_pool.getIndexForDataString(nut->getUlamTypeNameOnly());
+    return m_state.m_pool.getIndexForDataString(nut->getUlamTypeNameBrief());
+  } //getTypeNameId
+
   const std::string NodeConstantDef::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
@@ -1080,10 +1095,7 @@ namespace MFM {
 
     //replace m_memberName with Ulam Type and Name (t3343, edit)
     std::ostringstream mnstr;
-    if(m_nodeTypeDesc)
-      mnstr << m_state.m_pool.getDataAsString(m_nodeTypeDesc->getTypeNameId()).c_str();
-    else
-      mnstr << m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str();
+    mnstr << m_state.m_pool.getDataAsString(getTypeNameId()).c_str();
     mnstr << " " << descptr->m_memberName;
 
     descptr->m_memberName = ""; //clear base init

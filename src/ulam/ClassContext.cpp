@@ -25,7 +25,7 @@ namespace MFM {
 
   void ClassContext::setCurrentBlock(NodeBlock * nb)
   {
-    assert(nb);
+    //may be null, error/t41138
     m_currentBlock = nb;
   }
 
