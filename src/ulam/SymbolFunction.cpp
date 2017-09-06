@@ -550,4 +550,45 @@ namespace MFM {
       }
   } //setStructuredComment
 
+  //for Ulam Info, with any Ulam typedefs
+  const std::string SymbolFunction::generateUlamFunctionSignature()
+  {
+    NodeBlockFunctionDefinition * func = getFunctionNode();
+    assert(func); //how would a function symbol be without a body?
+
+    std::ostringstream sig;
+
+    if(isVirtualFunction())
+      sig << "virtual ";
+
+    sig << m_state.m_pool.getDataAsString(func->getTypeNameId()).c_str(); //return type
+    sig << " " << m_state.m_pool.getDataAsString(getId()).c_str()  << "("; //func name
+
+    u32 numparams = getNumberOfParameters();
+
+    for(u32 i = 0; i < numparams; i++)
+      {
+	if(i > 0)
+	  sig << ", ";
+
+	Node * pnode = func->getParameterNode(i);
+	assert(pnode);
+	sig << m_state.m_pool.getDataAsString(pnode->getTypeNameId()).c_str();
+	sig << " " << pnode->getName(); //arg name
+      }
+
+    if(takesVariableArgs())
+      {
+	assert(func->isNative());
+	sig << ", ..."; //ellipses must be after at least one param
+      }
+
+    sig << ")"; //end of args
+
+    if(func->isNative())
+      sig << " native";
+
+    return sig.str();
+  } //generateUlamFunctionSignature
+
 } //end MFM

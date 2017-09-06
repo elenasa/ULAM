@@ -70,6 +70,8 @@ namespace MFM{
 
     virtual const char * getName();
 
+    virtual u32 getTypeNameId();
+
     virtual const std::string prettyNodeName();
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
@@ -108,11 +110,14 @@ namespace MFM{
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
+    virtual void addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers);
+
   protected:
     SymbolVariable * m_varSymbol;
     u32 m_vid; // to instantiate
 
     Node * m_nodeInitExpr;
+    NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
     virtual void checkForSymbol();
     virtual void printTypeAndName(File * fp);
@@ -123,7 +128,6 @@ namespace MFM{
 
   private:
     NNO m_currBlockNo;
-    NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
     void setupStackWithPrimitiveForEval(u32 slots);
     void setupStackWithClassForEval(u32 slots);

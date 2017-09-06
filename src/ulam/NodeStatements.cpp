@@ -336,4 +336,11 @@ namespace MFM {
       m_nodeNext->generateUlamClassInfo(fp, declOnly, dmcount);
   }
 
+  void NodeStatements::addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers)
+  {
+    m_node->addMemberDescriptionToInfoMap(classType, classmembers);
+    if(m_nodeNext)
+      m_nodeNext->addMemberDescriptionToInfoMap(classType, classmembers);
+  }
+
 } //end MFM

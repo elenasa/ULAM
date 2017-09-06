@@ -8,7 +8,7 @@ our $VERSION = 1.002;
 
 sub new {
     my ($class, $name, $mangledName, $file) = @_;
-    die unless defined $mangledName;
+    die "Missing arg(s)" unless defined $file and defined $mangledName;
     my $self = { };
     bless $self, $class;
     $self->{'classFile'} = $file;

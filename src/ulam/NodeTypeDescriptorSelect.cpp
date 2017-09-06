@@ -51,16 +51,20 @@ namespace MFM {
 
   const char * NodeTypeDescriptorSelect::getName()
   {
-    if(m_nodeSelect)
-      {
-	//std::ostringstream nstr;
-	//nstr << m_nodeSelect->getName();
-	//nstr << ".";
-	//return nstr.str().c_str();
-	return m_nodeSelect->getName();
-      }
     return NodeTypeDescriptor::getName();
   } //getName
+
+  u32 NodeTypeDescriptorSelect::getTypeNameId()
+  {
+    std::ostringstream nstr;
+    if(m_nodeSelect)
+      {
+	nstr << m_state.m_pool.getDataAsString(m_nodeSelect->getTypeNameId()).c_str();
+	nstr << ".";
+      }
+    nstr << m_state.m_pool.getDataAsString(NodeTypeDescriptor::getTypeNameId()).c_str();
+    return m_state.m_pool.getIndexForDataString(nstr.str());
+  } //getTypeNameId
 
   const std::string NodeTypeDescriptorSelect::prettyNodeName()
   {

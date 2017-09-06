@@ -60,6 +60,23 @@ namespace MFM {
     return m_state.getTokenDataAsString(m_typeTok).c_str();
   } //getName
 
+  u32 NodeTypeDescriptor::getTypeNameId()
+  {
+    bool isTypedefOrClass = (m_typeTok.m_type == TOK_TYPE_IDENTIFIER);
+    ULAMTYPE bUT = m_state.getBaseTypeFromToken(m_typeTok); //could be Hzy?
+    //t3343 Hzy if typedef from another class; not a 'Class', ok to continue..
+    if(isTypedefOrClass && (bUT != Class))
+      return m_typeTok.m_dataindex; //typedef
+
+    UTI nuti = getNodeType();
+    assert(m_state.okUTItoContinue(nuti));
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    //skip bitsize if default size
+    if(nut->getBitSize() == ULAMTYPE_DEFAULTBITSIZE[bUT])
+      return m_state.m_pool.getIndexForDataString(nut->getUlamTypeNameOnly());
+    return m_state.m_pool.getIndexForDataString(nut->getUlamTypeNameBrief());
+  } //getTypeNameId
+
   const std::string NodeTypeDescriptor::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);

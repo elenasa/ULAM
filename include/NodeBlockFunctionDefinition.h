@@ -75,6 +75,8 @@ class NodeBlockFunctionDefinition : public NodeBlock
 
     void addParameterNode(Node * nodeArg);
 
+    Node * getParameterNode(u32 pidx);
+
     void makeSuperSymbol(s32 slot);
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
@@ -86,6 +88,8 @@ class NodeBlockFunctionDefinition : public NodeBlock
     virtual EvalStatus evalToStoreInto();
 
     virtual const char * getName();
+
+    virtual u32 getTypeNameId();
 
     virtual const std::string prettyNodeName();
 

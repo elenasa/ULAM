@@ -106,6 +106,7 @@ namespace MFM{
 
     virtual void setStructuredComment();
 
+    const std::string generateUlamFunctionSignature(); //for UlamInfo
   protected:
 
 

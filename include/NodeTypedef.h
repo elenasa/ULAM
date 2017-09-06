@@ -102,6 +102,8 @@ namespace MFM{
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
+    virtual void addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers);
+
   protected:
     virtual void checkForSymbol();
 

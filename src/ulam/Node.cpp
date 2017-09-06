@@ -80,6 +80,12 @@ namespace MFM {
     fp->write(id);
   } //print
 
+  u32 Node::getTypeNameId()
+  {
+    m_state.abortShouldntGetHere(); //NodeVarDecl, NodeBlockFuncDef does work
+    return 0;
+  }
+
   void Node::noteTypeAndName(s32 totalsize, u32& accumsize)
   {
     m_state.abortShouldntGetHere(); //NodeVarDeclDM does work; NodeConstantDef, NodeTypedef bypass
@@ -1744,6 +1750,11 @@ namespace MFM {
   void Node::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {
     m_state.abortShouldntGetHere(); //fufilled by NodeVarDecl, NodeBlock; bypassed by NodeTypedef and NodeConstDef
+  }
+
+  void Node::addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers)
+  {
+    m_state.abortShouldntGetHere(); //fufilled by NodeVarDecl and NodeConstDef; bypassed by NodeTypedef
   }
 
   std::string Node::allCAPS(const char * s) //static method
