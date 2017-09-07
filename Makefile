@@ -165,20 +165,21 @@ ULAMDEMOVERSION:=$(shell if [ -x ./bin/ulam ] ; then ./bin/ulam -V 2>&1 ; else e
 ULAMDEMOWHO:=$(shell whoami)
 ULAMDEMOKEY:="MFM-DEMOS-$(ULAMDEMODATE)-$(ULAMDEMOVERSION)-$(ULAMDEMOWHO)"
 MFZMAKEPATH:=$(MFM_ROOT_DIR)/bin/mfzmake
+TMP_KEY_DIR:=$(shell mktemp -d)
 makedemokey:	FORCE
-	KEYPATH=`$(MFZMAKEPATH) keygen $(ULAMDEMOKEY) | awk -F ' "[^"]+" | ' '{print $$4}'` && \
+	KEYPATH=`$(MFZMAKEPATH) -kd $(TMP_KEY_DIR) keygen $(ULAMDEMOKEY) | awk -F ' "[^"]+" | ' '{print $$4}'` && \
 	mkdir -p $(MFM_ROOT_DIR)/res/public_keys/ && \
 	cp $$KEYPATH $(MFM_ROOT_DIR)/res/public_keys/
 
 burndemokey:	FORCE
-	$(MFZMAKEPATH) burn $(ULAMDEMOKEY)
+	$(MFZMAKEPATH) -kd $(TMP_KEY_DIR) burn $(ULAMDEMOKEY)
 
 havedemokey:	FORCE
-	$(MFZMAKEPATH) cansign $(ULAMDEMOKEY)
+	$(MFZMAKEPATH) -kd $(TMP_KEY_DIR) cansign $(ULAMDEMOKEY)
 
 donothavedemokey:	FORCE
-	$(MFZMAKEPATH) keygen $(ULAMDEMOKEY)
-	$(MFZMAKEPATH) cansign $(ULAMDEMOKEY) 2>/dev/null || exit 0
+	$(MFZMAKEPATH) -kd $(TMP_KEY_DIR) keygen $(ULAMDEMOKEY)
+	$(MFZMAKEPATH) -kd $(TMP_KEY_DIR) cansign $(ULAMDEMOKEY) 2>/dev/null || exit 0
 
 $(MFM_ROOT_DIR)/res/elements/libue%.so:	$(ULAMDIR)/%/*.ulam
 ##	./bin/ulam -lo --sd $(ULAMDIR)/core --sd $(ULAMDIR)/$* $(^:$(ULAMDIR)/$*/%=%)
@@ -196,8 +197,8 @@ ULAM_DEMO_LIST_FILE:=$(MFM_ROOT_DIR)/res/elements/demos.dat
 
 $(MFM_ROOT_DIR)/res/elements/demos/%.mfz:	$(ULAMDIR)/demos/%/*.ulam
 	mkdir -p $(MFM_ROOT_DIR)/res/elements/demos
-##	./bin/ulam -z $(ULAMDEMOKEY) -o --sc --sd $(ULAMDIR)/core --sd $(ULAMDIR)/demos/$* $(^:$(ULAMDIR)/demos/$*/%.ulam=%.ulam) $@ $(wildcard $(ULAMDIR)/demos/$*/*.mfs) $(wildcard $(ULAMDIR)/demos/$*/args.txt)
-	./bin/ulam -z $(ULAMDEMOKEY) -o --sa --sc --sd $(ULAMDIR)/core --sd $(ULAMDIR)/demos/$* $(^:$(ULAMDIR)/demos/$*/%.ulam=%.ulam) $@ $(wildcard $(ULAMDIR)/demos/$*/*.mfs) $(wildcard $(ULAMDIR)/demos/$*/args.txt)
+##	./bin/ulam -kd $(TMP_KEY_DIR) -z $(ULAMDEMOKEY) -o --sc --sd $(ULAMDIR)/core --sd $(ULAMDIR)/demos/$* $(^:$(ULAMDIR)/demos/$*/%.ulam=%.ulam) $@ $(wildcard $(ULAMDIR)/demos/$*/*.mfs) $(wildcard $(ULAMDIR)/demos/$*/args.txt)
+	./bin/ulam -kd $(TMP_KEY_DIR) -z $(ULAMDEMOKEY) -o --sa --sc --sd $(ULAMDIR)/core --sd $(ULAMDIR)/demos/$* $(^:$(ULAMDIR)/demos/$*/%.ulam=%.ulam) $@ $(wildcard $(ULAMDIR)/demos/$*/*.mfs) $(wildcard $(ULAMDIR)/demos/$*/args.txt)
 	mv -f $(ULAMWORKDIR)/bin/libcue.so "$(MFM_ROOT_DIR)/res/elements/demos/libue$*.so"
 	printf "$*\0elements/demos/$*.mfz\0elements/demos/libue$*.so\0$(^:$(ULAMDIR)/demos/$*/%.ulam=%)\0\0\n" >> $(ULAM_DEMO_LIST_FILE)
 	rm -rf $(ULAMWORKDIR)
