@@ -749,6 +749,11 @@ sub genOpts {
 checkCWD();
 
 ########
+####NOW CHECK FOR ARGGH SPECIAL -kd PROCESSING
+my $tmpverb = KDGetVerb(0);
+unshift @ARGV, $tmpverb if defined $tmpverb; # Reeat arg for GetOptions to see
+
+########
 ####PROCESS COMMAND LINE ARGUMENTS HERE
 
 GetOptions(genOpts())
@@ -1471,9 +1476,10 @@ sub buildSharedLibrary
 sub buildMFZ
 {
     pISC("## Create MFZ package");
+    my $keydir = GetKeyDir();
     my $libfile = "$ULAM_WORK_DIR/bin/libcue.so";
     my $output = $mfzFiles[0];
-    my @mfzmakeargs = ("make", $mfzhandle, $output, keys %ulamFileTargets, @normalPackableFiles, $libfile);
+    my @mfzmakeargs = ("-kd", $keydir, "make", $mfzhandle, $output, keys %ulamFileTargets, @normalPackableFiles, $libfile);
 
     my ($status, $stdout, $stderr);
     print " Create $output package: "
@@ -2153,7 +2159,9 @@ ulam - Top-level ulam compilation driver
 =head1 SYNOPSIS
 
 ulam -h
-ulam [options] [file ...]
+ulam [-kd KEY_DIRECTORY] [options] [file ...]
+
+   KEY_DIRECTORY defaults to ~/.mfm/ if -kd is omitted
 
  Options:
    -h               brief help message
