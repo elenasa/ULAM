@@ -1106,6 +1106,7 @@ namespace MFM {
 	//needs effective self from T's type
 	if(m_state.isAtomRef(vuti))
 	  {
+	    assert(uvpass.getPassStorage() == TMPTATOM); // t41139
 	    fp->write(", ");
 	    fp->write_decimal_unsigned(pos); //Sun Jun 19 08:36:22 2016
 	    fp->write("u, uc");

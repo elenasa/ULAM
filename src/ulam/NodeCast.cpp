@@ -1754,8 +1754,9 @@ namespace MFM {
 
     // references are same sizes so no casting needed except to change the uti;
     // NOT including (?) mixing types (e.g. quark ref to atom, or quark ref to sub class)
-    // NOT including explicit casts (e.g. t41067), or Strings (t3962)
-    if((m_state.isARefTypeOfUlamType(tobeType, nodeType) == UTIC_SAME) && (!isExplicitCast() || UlamType::compareForString(tobeType, m_state) == UTIC_SAME))
+    // NOT including explicit casts (e.g. t41067), or Strings (t3962),
+    // including unnecessary atom/ref to atom/ref (t41139)
+    if((m_state.isARefTypeOfUlamType(tobeType, nodeType) == UTIC_SAME) && (!isExplicitCast() || (UlamType::compareForString(tobeType, m_state) == UTIC_SAME) || m_state.isAtom(tobeType)))
       return false; //special case of casting
 
     UlamType * nodeut = m_state.getUlamTypeByIndex(nodeType);
