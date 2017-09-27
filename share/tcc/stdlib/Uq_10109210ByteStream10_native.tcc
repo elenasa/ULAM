@@ -159,39 +159,6 @@ namespace MFM{
     }
 
     va_end(ap);
-#if 0    
-    const u32 fmtIdx = Uv_3fmt.read();
-    const unsigned char * str = 
-      uc.GetUlamClassRegistry().GetUlamClassByIndex(Ui_Ut_102321s<EC>::getRegNum(Uh_5tlreg3675))->GetString(Ui_Ut_102321s<EC>::getStrIdx(fmtIdx)));
-
-
-
-          const u32 Uh_5tlreg3673 = Uv_1i.read(); //gcnl:Node.cpp:703
-
-#line 32 "ByteSink.ulam"
-          const u32 Uh_5tlreg3675 = ; //gcnl:Node.cpp:703
-
-#line 32 "ByteSink.ulam"
-          const u32 strLen = uc.GetUlamClassRegistry().GetUlamClassByIndex(Ui_Ut_102321s<EC>::getRegNum(Uh_5tlreg3675))->GetStringLength(Ui_Ut_102321s<EC>::getStrIdx(Uh_5tlreg3675)); //gcnl:NodeSquareBracket.cpp:905
-
-#line 32 "ByteSink.ulam"
-          if(Uh_5tlreg3673 >= Uh_5tlreg3676) //gcnl:NodeSquareBracket.cpp:936
-
-#line 32 "ByteSink.ulam"
-            FAIL(ARRAY_INDEX_OUT_OF_BOUNDS); //gcnl:NodeSquareBracket.cpp:940
-
-#line 32 "ByteSink.ulam"
-#line 32 "ByteSink.ulam"
-          const u32 Uh_5tlreg3678 = _Unsigned32ToUnsigned32(Uh_5tlreg3677, 8, 32); //gcnl:NodeCast.cpp:748
-
-#line 32 "ByteSink.ulam"
-          Ui_Ut_102321u<EC> Uh_5tlval3679(Uh_5tlreg3678); //gcnl:Node.cpp:1142
-
-#line 32 "ByteSink.ulam"
-          Uq_10109210DebugUtils10<EC>::THE_INSTANCE.Uf_5print(uc, Uh_3tur3671, Uh_5tlval3679); //gcnl:NodeFunctionCall.cpp:1023
-
-#endif
-
     return self;
   } // Uf_6printf
 

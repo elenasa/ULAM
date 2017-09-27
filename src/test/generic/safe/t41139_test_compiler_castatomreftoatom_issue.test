@@ -1,0 +1,81 @@
+## -*- mode:ulam -*-
+#=t41139_test_compiler_castatomreftoatom_issue
+##
+## gen output (4 asserts)
+##
+## (cant eval atom casts)
+#!
+Exit status: -11
+Ue_Stretch { Bool(1) c(false);  Int(32) test() {  System s;  EventWindow ew;  AUtil au;  Int(32) type = au ( ew ( 0 cast )aref . cast )getTypeFunc .;  s ( type 1 cast == )assert . Int(32) typer = au ( ew ( 0 cast )aref . cast )getTypeFunc .;  s ( typer 1 cast == )assert . Int(32) typestretch = ( self cast )getTypeFunc;  s ( typestretch 2 cast == )assert . Int(32) typestretchr = ( self cast )getTypeFunc;  s ( typestretchr 2 cast == )assert . type return } }
+Uq_System { <NOMAIN> }
+Uq_EventWindow { <NOMAIN> }
+Uq_AUtil { <NOMAIN> }
+##
+## informed by student issue 9/14/2017
+##
+#>Stretch.ulam
+  ulam 2;
+element Stretch {
+  Bool c;
+  Int test(){
+    System s;
+    EventWindow ew;
+    AUtil au;
+
+    //try with atom ref to atom
+    Int type = au.getTypeFunc((Atom) ew[0]); //unnecessary cast
+    s.assert(type == 1);
+
+    Int typer = au.getTypeFunc(ew[0]);
+    s.assert(typer == 1);
+
+    //try with class ref to class
+    Int typestretch = getTypeFunc((Stretch) self); //unnecessary cast
+    s.assert(typestretch == 2);
+
+    Int typestretchr = getTypeFunc(self);
+    s.assert(typestretchr == 2);
+
+    //try case that should fail (see error tests: t3629, t3660, t3661, t3665, t3785, t41086).
+    // "must be referenceable" error message
+    //Atom & bref = ew[0];
+    //Atom & atref = (Atom) bref;
+    return type;
+  }
+
+  Int getTypeFunc(Stretch s)
+  {
+    return 2;
+  }
+
+}
+
+#:AUtil.ulam
+  ulam 2;
+quark AUtil {
+
+  Int getTypeFunc(Atom a)
+  {
+    return 1;
+  }
+
+}
+
+#:EventWindow.ulam
+  ulam 3;
+quark EventWindow{
+  Atom& aref(Int index) native;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.
