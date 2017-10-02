@@ -175,7 +175,7 @@ namespace MFM {
     //return NodeBinaryOpCompare::calcNodeType(lt,rt);
     //what if different bit sizes? take the larger
     if(NodeBinaryOp::checkScalarTypesOnly(lt, rt, true))
-	 {
+      {
 	s32 newbs = NodeBinaryOp::resultBitsize(lt, rt); //default
 	ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
 	ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
@@ -491,7 +491,12 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
     if(nut->isReference())
-      return genCodeToStoreInto(fp, uvpass); //t41062
+      {
+	genCodeToStoreInto(fp, uvpass); //t41062
+	if(nut->isPrimitiveType())
+	  Node::genCodeReadAutorefIntoATmpVar(fp, uvpass); //t41140
+	return;
+      }
 
     TMPSTORAGE stor = nut->getTmpStorageTypeForTmpVar();
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
@@ -560,8 +565,20 @@ namespace MFM {
 
     uvpass = UVPass::makePass(tmpVarNum, stor, nuti, m_state.determinePackable(nuti), m_state, 0, 0);
 
+    //similar to NodeFunctionCall
+    // return classes as bitvectors, primitives as tmpregisters (t41140)
     if(nuti != Void)
-      Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass);
+      {
+	if(!nut->isPrimitiveType() && (uvpass.getPassStorage() != TMPBITVAL))
+	  {
+	    Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass); //t41140
+	  }
+	else if(nut->isPrimitiveType() && (uvpass.getPassStorage() == TMPBITVAL))
+	  {
+	    Node::genCodeConvertABitVectorIntoATmpVar(fp, uvpass); //inc uvpass slot
+	  }
+	//else ok
+      }
 
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //************
   } //genCode
