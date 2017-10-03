@@ -1145,6 +1145,7 @@ sub runUlamCompilations
             }
 	    if ($type eq "PARAMETER") {
                 my ($path,$ename,$type,$uname,$pname,$default,$scmt) = @args;
+                my $pathloc = $path;
 #                print STDERR "KDPM(path=$path,ename=$ename,type=$type,uname=$uname,pname=$pname,default=$default,scmt=$scmt)\n";
 
                 $scmt = "" if $scmt eq "NONE";
@@ -1157,6 +1158,13 @@ sub runUlamCompilations
                 # Make info record
                 #          file   line#  byte#        uname,  parm    type   def     doc
                 my $rec = [$path, $line, $byteinline, $uname, $pname, $type, $default, deHexEscape($scmt)];
+
+                # Flush int parameters.  They're just too broken.
+                if ($type =~ /.*i$/) {
+                    $uname = deHexEscape($uname);
+                    print STDERR "$pathloc WARNING: Int parameters currently unsupported.  '$uname' ignored.\n";
+                    next;
+                } 
 
                 # Stash it for later sorting and merging with possible scmt
                 push @{$modelParmInfoMap{$ename}}, $rec;
