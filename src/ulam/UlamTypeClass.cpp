@@ -163,11 +163,9 @@ namespace MFM {
 
   const std::string UlamTypeClass::getUlamTypeUPrefix()
   {
-    if(getArraySize() > 0)
-      return "Ut_";
-
+    //scalar or array Sat Sep 30 16:05:48 2017
     return "U?_"; //UC_UNSEEN:
-  } //getUlamTypeUPrefix
+  } //getUlamTypeUPrefixx
 
   const std::string UlamTypeClass::getUlamTypeNameBrief()
   {

@@ -82,7 +82,7 @@ quark EventWindow {
   Bool isLive(C2D coord) { return isLegal(coord) && isLive(getSiteNumberRaw(coord)); }
 
   Bool isEmpty(SiteNum index) { return isLive(index) && au.isEmpty(aref(index)); }
-  Bool isEmpty(C2D coord) { return isLegal(coord) && isLive(getSiteNumberRaw(coord)); }
+  Bool isEmpty(C2D coord) { return isLegal(coord) && isEmpty(getSiteNumberRaw(coord)); }
 
   Bool swap(SiteNum index1, SiteNum index2)  native;
   Bool swap(C2D coord1, C2D coord2) { return swap(getSiteNumberRaw(coord1), getSiteNumberRaw(coord2)); }

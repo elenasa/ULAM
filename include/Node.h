@@ -307,6 +307,9 @@ namespace MFM{
     //e.g. when lhs of member select is an array item of class type, rhs data member
     void genCodeARefFromARefStorage(File * fp, UVPass stguvpass, UVPass uvpass);
 
+    //e.g. when a ref to a primitive is used as a lhs binary op, or if condition (t41140)
+    void genCodeReadAutorefIntoATmpVar(File * fp, UVPass& uvpass);
+
     void genCodeReferenceInitialization(File * fp, UVPass& uvpass, Symbol * vsymptr);
 
     virtual void checkForSymbol();
@@ -342,7 +345,6 @@ namespace MFM{
 
     void genCodeWriteToAtomofRefFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
 
-    void genCodeReadAutorefIntoATmpVar(File * fp, UVPass& uvpass);
     void genCodeWriteToAutorefFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
 
     virtual void genModelParameterHiddenArgs(File * fp, s32 epi);

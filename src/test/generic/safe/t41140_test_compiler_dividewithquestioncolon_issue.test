@@ -1,0 +1,133 @@
+## -*- mode:ulam -*-
+#=t41140_test_compiler_dividewithquestioncolon_issue
+##
+## gen code output (6 asserts):
+##
+#!
+Exit status: 0
+Ue_A { System s();  typedef Int(16) Short;  Int(16) dx(2);  Int(16) dy(-3);  Bool(1) db(true);  Int(32) test() {  System s;  Int(16) err = dx dy > ?  dx :  dy - 2 cast /;  s ( err -1 cast == )assert . Int(16)& dref1 = dx cast;  Int(16)& dref2 = dy cast;  dy -3 cast = Int(16) err2 = dref1 cast dref2 cast < ?  dref1 :  dref2 cast 2 cast /;  s ( err2 -1 cast == )assert . QW qw1 = qw1 ( 2 cast )Self .;  QW qw2 = qw2 ( 3 cast )Self .;  Int(16) err3 = qw1 ( qw2 ( )toInt . )operator> . ?  qw1 ( )toInt . :  qw2 ( )operator- . cast 2 cast /;  s ( err3 -1 cast == )assert . QW& qref1 = qw1 cast;  QW& qref2 = qw2 cast;  Int(16) err4 = qref1 ( qref2 ( )toInt . )operator> . ?  qref1 ( )toInt . :  qref2 ( )operator- . cast 2 cast /;  s ( err4 -1 cast == )assert . A a;  A b = b ( 2 cast 4 cast false )Self .;  ; A& ar = a cast;  A& br = b cast;  Int(16) err5 = ar ( br )operator< . ?  ar dx . :  br dy . 2 cast /;  s ( err5 2 cast == )assert . { ar ( br )operator< . ?  ar db . :  br db . cond { s ( false )assert . } if { s ( true )assert . } else } 0 cast return } }
+Uq_System { <NOMAIN> }
+Uq_QW { Int(32) m_i(0);  <NOMAIN> }
+##
+## Ish from a user 10/1/2017; Ternary op ?: gencode returns a bitvector for primitives/prim-refs rather than a 'C' value
+##      for example, binary ops, unary ops, if condition, are impacted when ?: is used as the expression.
+##      Termary op should be more like a function call return value.
+##
+#>A.ulam
+  ulam 3;
+element A {
+  System s;
+  typedef Int(16) Short;
+  Short dx = 2;
+  Short dy = 3;
+  Bool db = true;
+
+  Int test() {
+    System s;
+
+    //original failure case
+    Short err = (dx > dy ? dx : -dy) / 2;
+    s.assert(err == -1);
+
+    //modified to use refs
+    Short& dref1 = dx;
+    Short& dref2 = dy;
+    dy = -3;
+    Short err2 = (dref1 < dref2 ? dref1 : dref2) / 2;
+    s.assert(err2 == -1);
+
+    //modified to use a quark with toInt (and overloaded operators)
+    QW qw1(2);
+    QW qw2(3);
+    Short err3 = (Short) (qw1 > qw2 ? qw1 : -qw2) / 2;
+    s.assert(err3 == -1);
+
+    //modified to use a ref to a quark with toInt (and overloaded operators)
+    QW& qref1 = qw1;
+    QW& qref2 = qw2;
+    Short err4 = (Short) (qref1 > qref2 ? qref1 : -qref2) / 2;
+    s.assert(err4 == -1);
+
+    // use ?: with element refs
+    A a, b(2,4,false);;
+    A& ar = a;
+    A& br = b;
+    Short err5 = (ar < br ? ar.dx : br.dy)/2;
+    s.assert(err5==2);
+
+    // use ?: with element refs in if condition
+    if( ar < br ? ar.db : br.db)
+    {
+      s.assert(false);
+    }
+    else
+    {
+      s.assert(true);
+    }
+
+    return 0; //err;
+  }
+
+  Bool operator<(A aarg)
+  {
+    return dx < aarg.dx;
+  }
+
+  Bool operator<(A& aarg)
+  {
+    return dx < aarg.dx;
+  }
+
+  Self(Short x, Short y, Bool b)
+  {
+    dx = x;
+    dy = y;
+    db = b;
+  }
+}
+
+
+#:QW.ulam
+  ulam 3;
+quark QW {
+  Int m_i;
+  Self(Int i)
+  {
+    m_i = i;
+  }
+
+  Int toInt()
+  {
+    return m_i;
+  }
+
+  Bool operator>(Int i)
+  {
+    return (m_i > i);
+  }
+
+  Int operator/(Int i)
+  {
+    return (m_i/i);
+  }
+
+  Int operator-()
+  {
+    return -m_i;
+  }
+
+}
+
+## test system quark with native overloaded print funcs; assert
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.
