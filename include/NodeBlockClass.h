@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeBlockClass.h - Basic Node for handling Classes for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeBlockClass.h - Basic Node for handling Classes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2017 All rights reserved.
   \gpl
 */
 
@@ -37,7 +37,7 @@
 #ifndef NODEBLOCKCLASS_H
 #define NODEBLOCKCLASS_H
 
-#include "NodeBlock.h"
+#include "NodeBlockContext.h"
 #include "NodeBlockFunctionDefinition.h"
 #include "NodeList.h"
 #include "Symbol.h"
@@ -45,12 +45,14 @@
 
 namespace MFM{
 
-  class NodeBlockClass : public NodeBlock
+  class NodeBlockClass : public NodeBlockContext
   {
   public:
 
-    NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s = NULL);
+    NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state);
+
     NodeBlockClass(const NodeBlockClass& ref);
+
     virtual ~NodeBlockClass();
 
     virtual Node * instantiate();
@@ -67,6 +69,8 @@ namespace MFM{
 
     virtual void setNodeLocation(Locator loc);
 
+    virtual void resetNodeLocations(Locator loc);
+
     virtual void print(File * fp);
 
     virtual void printPostfix(File * fp);
@@ -75,11 +79,15 @@ namespace MFM{
 
     void printPostfixDataMembersSymbols(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
+    virtual void noteTypeAndName(s32 totalsize, u32& accumsize);
+
+    void noteDataMembersParseTree(s32 totalsize);
+
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
 
-    UTI getNodeType();
+    UTI getNodeType(); //not virtual!!
 
     virtual bool isAClassBlock();
 
@@ -95,9 +103,21 @@ namespace MFM{
 
     void addParameterNode(Node * nodeArg);
 
-    Node * getParameterNode(u32 n) const;
+    Node * getParameterNode(u32 n);
+
+    u32 getNumberOfParameterNodes();
+
+    bool checkArgumentNodeTypes();
+
+    void addArgumentNode(Node * nodeArg);
+
+    Node * getArgumentNode(u32 n);
+
+    u32 getNumberOfArgumentNodes();
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
+
+    u32 getLocalsFilescopeType();
 
     bool hasCustomArray();
 
@@ -107,7 +127,11 @@ namespace MFM{
 
     u32 getCustomArrayIndexTypeFromGetFunction(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
 
+    bool hasCustomArrayLengthofFunction();
+
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref); //starts here, called by SymbolClass
+
+    virtual void genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos);
 
     virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
 
@@ -134,9 +158,7 @@ namespace MFM{
 
     virtual s32 getMaxBitSizeOfVariableSymbolsInTable();
 
-     s32 findUlamTypeInTable(UTI utype, UTI& insidecuti);
-
-    bool isFuncIdInScope(u32 id, Symbol * & symptrref);
+    virtual bool isFuncIdInScope(u32 id, Symbol * & symptrref);
 
     void addFuncIdToScope(u32 id, Symbol * symptr);
 
@@ -166,13 +188,26 @@ namespace MFM{
 
     void genCodeBody(File * fp, UVPass& uvpass);  //specific for this class
 
+    virtual void genCodeConstantArrayInitialization(File * fp);
+
+    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
+
+    void genCodeBuiltInFunctionGetString(File * fp, bool declOnly);
+
+    void genCodeBuiltInFunctionGetStringLength(File * fp, bool declOnly);
+
     void initElementDefaultsForEval(UlamValue& uv, UTI cuti);
 
     NodeBlockFunctionDefinition * findTestFunctionNode();
 
+    NodeBlockFunctionDefinition * findCustomArrayLengthofFunctionNode();
+
     NodeBlockFunctionDefinition * findToIntFunctionNode();
 
-    virtual void addClassMemberDescriptionsToInfoMap(ClassMemberMap& classmembers);
+    virtual void addTargetDescriptionToInfoMap(TargetMap& classtargets, u32 scid);
+    virtual void addMemberDescriptionsToInfoMap(ClassMemberMap& classmembers);
+
+    virtual void generateTestInstance(File * fp, bool runtest);
 
   protected:
     SymbolTableOfFunctions m_functionST;
@@ -185,17 +220,27 @@ namespace MFM{
     bool m_isEmpty; //replaces separate node
     UTI m_templateClassParentUTI;
     NodeList * m_nodeParameterList; //constants
+    NodeList * m_nodeArgumentList;  //template instance
+
+    void checkTestFunctionReturnType();
+    void checkCustomArrayLengthofFunctionReturnType();
 
     void genCodeHeaderQuark(File * fp);
     void genCodeHeaderElement(File * fp);
     void genCodeHeaderTransient(File * fp);
+    void genCodeHeaderLocalsFilescope(File * fp);
+
+    void genThisUlamSuperClassAsAHeaderComment(File * fp);
 
     void genShortNameParameterTypesExtractedForHeaderFile(File * fp);
 
+    void genCodeBodyElement(File * fp, UVPass& uvpass);  //specific for this class
+    void genCodeBodyQuark(File * fp, UVPass& uvpass);  //specific for this class
+    void genCodeBodyTransient(File * fp, UVPass& uvpass);  //specific for this class
+    void genCodeBodyLocalsFilescope(File * fp, UVPass& uvpass);  //specific for this class
+
     void generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
-    void genCodeBuiltInFunctionHas(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
-    void genCodeBuiltInFunctionHasDataMembers(File * fp);
     void genCodeBuiltInFunctionIsMethodRelatedInstance(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInFunctionIsRelatedInstance(File * fp);
 

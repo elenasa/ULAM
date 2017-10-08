@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * Preparser.h -  Pre-parses Use/Load Tokens for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file Preparser.h -  Pre-parses Use/Load Tokens for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2017 All rights reserved.
   \gpl
 */
 
@@ -72,6 +72,7 @@ namespace MFM{
     bool preparseKeywordUse(Token & tok);
     bool preparseKeywordLoad(Token & tok);
     bool preparsePackageName(std::string & pStr);
+    bool preparseFileName(std::string & pStr);
     bool preparseKeywordUlam(Token & tok);
 
     /** returns false if file ulam version is greater than current compiler version; o.w. true */

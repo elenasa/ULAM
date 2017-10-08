@@ -26,7 +26,7 @@ namespace MFM {
   {
     setYourParentNo(pno);
     m_node->updateLineage(getNodeNo());
-  } //updateLineage
+  }
 
   bool NodeSimpleStatement::exchangeKids(Node * oldnptr, Node * newnptr)
   {
@@ -51,7 +51,7 @@ namespace MFM {
   {
     if(m_node)
       m_node->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
+  }
 
   void NodeSimpleStatement::print(File * fp)
   {
@@ -125,6 +125,8 @@ namespace MFM {
   void NodeSimpleStatement::genCode(File * fp, UVPass& uvpass)
   {
     assert(m_node);
+    UVPass suvpass;
+    uvpass = suvpass; //nothing to pass along, simple statement
     m_node->genCode(fp, uvpass);
   }
 

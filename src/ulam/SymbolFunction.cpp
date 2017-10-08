@@ -5,12 +5,12 @@
 
 namespace MFM {
 
-  SymbolFunction::SymbolFunction(const Token& id, UTI typetoreturn, CompilerState& state ) : Symbol(id,typetoreturn,state), m_functionNode(NULL), m_hasVariableArgs(false), m_isVirtual(false), m_pureVirtual(false), m_definedinaQuark(false)
+  SymbolFunction::SymbolFunction(const Token& id, UTI typetoreturn, CompilerState& state ) : Symbol(id,typetoreturn,state), m_functionNode(NULL), m_hasVariableArgs(false), m_isVirtual(false), m_pureVirtual(false), m_insureVirtualOverride(false), m_isConstructor(false), m_definedinaQuark(false)
   {
     setDataMemberClass(m_state.getCompileThisIdx()); // by definition all function definitions are data members
   }
 
-  SymbolFunction::SymbolFunction(const SymbolFunction& sref) : Symbol(sref), m_hasVariableArgs(sref.m_hasVariableArgs), m_isVirtual(sref.m_isVirtual), m_pureVirtual(sref.m_pureVirtual), m_definedinaQuark(sref.m_definedinaQuark)
+  SymbolFunction::SymbolFunction(const SymbolFunction& sref) : Symbol(sref), m_hasVariableArgs(sref.m_hasVariableArgs), m_isVirtual(sref.m_isVirtual), m_pureVirtual(sref.m_pureVirtual), m_insureVirtualOverride(sref.m_insureVirtualOverride), m_isConstructor(sref.m_isConstructor), m_definedinaQuark(sref.m_definedinaQuark)
   {
     //parameters belong to functiondefinition block's ST; do not clone them again here!
     if(sref.m_functionNode)
@@ -36,7 +36,6 @@ namespace MFM {
 	msg << "Undefined function block <";
 	msg << m_state.m_pool.getDataAsString(getId()).c_str() << ">";
 	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
-	//assert(0);
       }
   }
 
@@ -76,7 +75,7 @@ namespace MFM {
 	totalsizes += m_state.slotsNeeded(sym->getUlamTypeIdx());
       }
     return totalsizes;
-  } //getTotalParameterSlots
+  }
 
   Symbol * SymbolFunction::getParameterSymbolPtr(u32 n)
   {
@@ -106,8 +105,8 @@ namespace MFM {
       delete m_functionNode; //clean up any previous declarations
 
     m_functionNode = func; //could be null if error occurs while parsing func body
-    Symbol::setBlockNoOfST(m_state.getClassBlockNo()); //SF not in the func def ST
-  } //setFunctionNode
+    Symbol::setBlockNoOfST(m_state.getContextBlockNo()); //SF not in the func def ST
+  }
 
   NodeBlockFunctionDefinition *  SymbolFunction::getFunctionNode()
   {
@@ -118,6 +117,32 @@ namespace MFM {
   {
     return "Uf_";
   }
+
+  const std::string SymbolFunction::getFunctionNameWithTypes()
+  {
+    std::ostringstream fname;
+    fname << m_state.getUlamTypeNameBriefByIndex(getUlamTypeIdx()).c_str(); //return type
+    fname << " ";
+    fname << m_state.m_pool.getDataAsString(getId()); //ulam func name
+
+    fname << "(";
+
+    u32 numParams = m_parameterSymbols.size();
+    for(u32 i = 0; i < numParams; i++)
+      {
+	Symbol * sym = m_parameterSymbols[i];
+	UTI suti = sym->getUlamTypeIdx();
+	UlamType * sut = m_state.getUlamTypeByIndex(suti);
+
+	if(i > 0)
+	  fname << ", ";
+	fname << sut->getUlamTypeNameBrief().c_str();
+	fname << " ";
+	fname << m_state.m_pool.getDataAsString(sym->getId());
+      }
+    fname << ")";
+    return fname.str();
+  } //getFunctionNameWithTypes
 
   //supports overloading functions with SymbolFunctionName
   const std::string SymbolFunction::getMangledNameWithTypes()
@@ -187,7 +212,7 @@ namespace MFM {
     return func->checkParameterNodeTypes();
   } //checkParamterTypes
 
-  bool SymbolFunction::matchingTypesStrictly(std::vector<UTI> argTypes)
+  bool SymbolFunction::matchingTypesStrictly(std::vector<UTI> argTypes, bool& hasHazyArgs)
   {
     u32 numArgs = argTypes.size();
     u32 numParams = m_parameterSymbols.size();
@@ -202,6 +227,8 @@ namespace MFM {
     for(u32 i=0; i < numParams; i++)
       {
 	UTI puti = m_parameterSymbols.at(i)->getUlamTypeIdx();
+	if(!m_state.okUTItoContinue(puti) || !m_state.isComplete(puti))
+	  hasHazyArgs = true;
 	UTI auti = argTypes[i];
 	if(UlamType::compareForArgumentMatching(puti, auti, m_state) != UTIC_SAME)
 	  {
@@ -212,7 +239,7 @@ namespace MFM {
     return rtnBool;
   } //matchingTypesStrictly
 
-  bool SymbolFunction::matchingTypesStrictly(std::vector<Node *> argNodes)
+  bool SymbolFunction::matchingTypesStrictly(std::vector<Node *> argNodes, bool& hasHazyArgs)
   {
     u32 numArgs = argNodes.size();
     std::vector<UTI> argTypes;
@@ -221,7 +248,7 @@ namespace MFM {
 	UTI auti = argNodes[i]->getNodeType();
 	argTypes.push_back(auti);
       } //next arg
-    return matchingTypesStrictly(argTypes);
+    return matchingTypesStrictly(argTypes, hasHazyArgs);
   } //matchingTypesStrictly
 
   bool SymbolFunction::matchingTypes(std::vector<Node *> argNodes, bool& hasHazyArgs, u32& numUTmatch)
@@ -295,7 +322,7 @@ namespace MFM {
     NodeBlockFunctionDefinition * func = getFunctionNode();
     assert(func);
     return (func->isNative() ? 1 : 0);
-  } //isNativeFunctionDeclaration
+  }
 
   bool SymbolFunction::isVirtualFunction()
   {
@@ -319,6 +346,16 @@ namespace MFM {
     m_pureVirtual = true;
   }
 
+  bool SymbolFunction::getInsureVirtualOverrideFunction()
+  {
+    return m_insureVirtualOverride;
+  }
+
+  void SymbolFunction::setInsureVirtualOverrideFunction()
+  {
+    m_insureVirtualOverride = true;
+  }
+
   u32 SymbolFunction::getVirtualMethodIdx()
   {
     assert(isVirtualFunction());
@@ -329,6 +366,16 @@ namespace MFM {
   {
     assert(isVirtualFunction());
     m_virtualIdx = idx;
+  }
+
+  bool SymbolFunction::isConstructorFunction()
+  {
+    return m_isConstructor;
+  }
+
+  void SymbolFunction::setConstructorFunction()
+  {
+    m_isConstructor = true;
   }
 
   bool SymbolFunction::isDefinedInAQuark()
@@ -502,5 +549,46 @@ namespace MFM {
 	m_gotStructuredCommentToken = true;
       }
   } //setStructuredComment
+
+  //for Ulam Info, with any Ulam typedefs
+  const std::string SymbolFunction::generateUlamFunctionSignature()
+  {
+    NodeBlockFunctionDefinition * func = getFunctionNode();
+    assert(func); //how would a function symbol be without a body?
+
+    std::ostringstream sig;
+
+    if(isVirtualFunction())
+      sig << "virtual ";
+
+    sig << m_state.m_pool.getDataAsString(func->getTypeNameId()).c_str(); //return type
+    sig << " " << m_state.m_pool.getDataAsString(getId()).c_str()  << "("; //func name
+
+    u32 numparams = getNumberOfParameters();
+
+    for(u32 i = 0; i < numparams; i++)
+      {
+	if(i > 0)
+	  sig << ", ";
+
+	Node * pnode = func->getParameterNode(i);
+	assert(pnode);
+	sig << m_state.m_pool.getDataAsString(pnode->getTypeNameId()).c_str();
+	sig << " " << pnode->getName(); //arg name
+      }
+
+    if(takesVariableArgs())
+      {
+	assert(func->isNative());
+	sig << ", ..."; //ellipses must be after at least one param
+      }
+
+    sig << ")"; //end of args
+
+    if(func->isNative())
+      sig << " native";
+
+    return sig.str();
+  } //generateUlamFunctionSignature
 
 } //end MFM

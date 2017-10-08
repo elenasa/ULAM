@@ -1,9 +1,8 @@
 #=t3505_test_compiler_elementandquark_caarrayemptyquark
 #!
 Exit status: -11
-Ue_Foo { typedef Unsigned(6) Sitenum;  Int(32) test() {  EventWindow ew;  ew 1 cast [] Empty is cast return } }
+Ue_Foo { typedef Unsigned(6) Sitenum;  Int(32) test() {  EventWindow ew;  Unsigned(6) site = 1 cast;  ew ( site cast )aref . Empty is cast return } }
 Uq_EventWindow { typedef Unsigned(6) Sitenum;  <NOMAIN> }
-##
 #>Foo.ulam
 ulam 1;
 use EventWindow;
@@ -11,20 +10,15 @@ element Foo {
   typedef EventWindow.Sitenum Sitenum;
   Int test() {
     EventWindow ew;
-    return (Int) (ew[(Sitenum) 1] is Empty);
+    Sitenum site = 1;
+    return (Int) (ew[(Int) site] is Empty);
   }
 }
 
 #:EventWindow.ulam
-ulam 1;
+ ulam 3;
 quark EventWindow {
   typedef Unsigned(6) Sitenum;
-  Atom aref(Sitenum index) {
-    Atom a;
-    return a;
-  }
-  Void aset(Sitenum index, Atom val) {
-    return;
-  }
+  Atom& aref(Int index) native;
 }
 #.

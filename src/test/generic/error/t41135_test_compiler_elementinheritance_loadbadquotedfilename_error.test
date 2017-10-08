@@ -1,0 +1,71 @@
+## -*- mode:ulam -*-
+#=t41135_test_compiler_elementinheritance_loadbadquotedfilename_error
+#!
+./Foo.ulam:2:1: ERROR: Couldn't open file <./Constants.txt> errno=2 No such file or directory.
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
+./Soo.ulam:2:1: ERROR: Bad filename to 'load'.
+./Soo.ulam:2:25: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+ ERROR: No parse tree for This Class: Soo.
+Unrecoverable Program Parse FAILURE: <Soo.ulam>
+Unrecoverable Program Parse FAILURE: <System.ulam>
+##
+## unprintable character in filename to load; bad path; informed by t41130
+## allow non-ulam suffix for loaded file (ulam 3)
+##
+#>Foo.ulam
+  ulam 3;
+load "./Constants.txt"; //<-- NO PATH PLEASE!
+
+element Foo : Soo3 {
+  Bool(7) sp;
+  Unsigned a = 73;
+  Int test() {
+    System s;
+    Foo f;
+    a = f.us;
+    s.print(a);
+    s.assert(a == 4u);
+    a = Soo3.sizeof;
+    s.print(a);
+    s.assert(a == 3u);
+
+    sp = func();
+    s.assert(!sp);
+    return (Int) a; //=3
+  }
+}
+
+#:Soo.ulam
+  ulam 2;
+load "Cons\000tants.txt"; //<-- BAD FILENAME
+
+quark Soo(Unsigned(3) v) {
+  Unsigned(v) us = 4u;
+  Bool check()
+  {
+    return us.sizeof <= soosize; //uses its local constant
+  }
+  Bool func()
+  {
+    if(self is Soo3) //uses its local typedef
+      return check();
+    return false;
+  }
+}
+
+#:Constants.txt
+local constant Unsigned(3) soosize = 3u;
+local typedef Soo(soosize) Soo3;
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

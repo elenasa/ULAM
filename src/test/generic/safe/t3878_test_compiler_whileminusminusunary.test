@@ -1,0 +1,42 @@
+## -*- mode:ulam -*-
+#=t3878_test_compiler_whileminusminusunary
+##    gen code output: (+ assert)
+##	 Unary(3) Arg: 0x2
+##       Unary(3) Arg: 0x1
+##
+#!
+Exit status: 0
+Ue_A { System s();  Int(32) test() {  Unary(3) j = 3 cast;  { j 1 cast -= cast 0 cast > cond { s ( j )print . } _1: while } s ( j cast 0 cast == )assert . j cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by t3877
+##
+#>A.ulam
+  ulam 3;
+use System;
+element A {
+  System s;
+
+  Int test(){
+    Unary(3) j = 3;
+    while(--j > 0)
+    {
+      s.print(j);
+    }
+    s.assert(j == 0);
+    return (Int) j;
+  }
+ }
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

@@ -346,7 +346,7 @@ namespace MFM {
 		//with variable name suffices (error/t3370, t3492)
 		MSG(cnsym->getTokPtr(), msg.str().c_str(), DEBUG);
 		cnsym->getClassBlockNode()->setNodeType(Nav); //for compiler counter
-		//assert(0); wasn't a class at all, e.g. out-of-scope typedef/variable
+		//wasn't a class at all, e.g. out-of-scope typedef/variable
 		//break; //do the rest of the classes! Mon Jun 20 13:22:25 2016
 	      }
 	  }
@@ -413,6 +413,26 @@ namespace MFM {
       }
     return totalcnt;
   } //reportUnknownTypeNamesAcrossTableOfClasses
+
+  u32 SymbolTableOfClasses::reportTooLongClassNamesAcrossTableOfClasses()
+  {
+    u32 totalcnt = 0;
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym->isClass());
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti))
+	  {
+	    totalcnt += ((SymbolClassName *) sym)->reportClassInstanceNamesThatAreTooLong();
+	  }
+	it++;
+      }
+    return totalcnt;
+  } //reportTooLongClassNamesAcrossTableOfClasses
 
   //separate pass...after labeling all classes is completed;
   //purpose is to set the size of all the classes, by totalling the size
@@ -550,6 +570,25 @@ namespace MFM {
       }
   } //generateIncludesForTableOfClasses
 
+  void SymbolTableOfClasses::generateAllIncludesTestMainForTableOfClasses(File * fp)
+  {
+    fp->write("//Include all classes:"); GCNL; //including THIS class being compiled
+
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym->isClass());
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti))
+	  {
+	    ((SymbolClassName *) sym)->generateAllIncludesForTestMainForClassInstances(fp);
+	  }
+	it++;
+      }
+  } //generateAllIncludesForTestMainForTableOfClasses
+
   //bypasses THIS class being compiled
   void SymbolTableOfClasses::generateForwardDefsForTableOfClasses(File * fp)
   {
@@ -584,10 +623,7 @@ namespace MFM {
 	//skip anonymous classes
 	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti))
 	  {
-	    //first output all the element typedefs, skipping quarks
-	    //if(((SymbolClass * ) sym)->getUlamClass() != UC_QUARK)
-	    if(((SymbolClass * ) sym)->getUlamClass() == UC_ELEMENT)
-	      ((SymbolClassName *) sym)->generateTestInstanceForClassInstances(fp, NORUNTEST);
+	    ((SymbolClassName *) sym)->generateTestInstanceForClassInstances(fp, NORUNTEST);
 	  }
 	it++;
       } //while for typedefs only

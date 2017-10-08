@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * Parser.h -  Basic Parse handling for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file Parser.h -  Basic Parse handling for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016   All rights reserved.
+  \date (C) 2014-2017   All rights reserved.
   \gpl
 */
 
@@ -48,10 +48,15 @@
 #include "NodeBlock.h"
 #include "NodeConditional.h"
 #include "NodeConstantDef.h"
+#include "NodeControlIf.h"
+#include "NodeControlWhile.h"
 #include "NodeFunctionCall.h"
+#include "NodeIdent.h"
+#include "NodeInstanceof.h"
 #include "NodeModelParameterDef.h"
 #include "NodeStatements.h"
 #include "NodeSquareBracket.h"
+#include "NodeTypedef.h"
 #include "NodeTypeDescriptor.h"
 #include "NodeTypeBitsize.h"
 #include "NodeUnaryOp.h"
@@ -103,29 +108,43 @@ namespace MFM{
 
     bool parseRestOfClassInheritance(SymbolClassName * cnsym, SymbolClass *& supercsym, UTI& superuti);
 
+    void setupSuperClassHelper(SymbolClassName * cnsym);
+    void setupSuperClassHelper(SymbolClass * supercsym, SymbolClassName * cnsym);
+
+   /**
+	<LOCAL_DEF> := 'local' + ( <TYPE_DEF> | <CONST_DEF> ) + ';'
+     */
+    bool parseLocalDef();
+
     /**
        <DATA_MEMBERS> := ( 0 | <FUNC_DEF> | <PARAMETER_DEF> + ';' | <TYPE_DEF> + ';'| <CONST_DEF> + ';' )*
      */
-    bool parseDataMember(NodeStatements *& nextNode);
+    bool parseDataMember();
 
-    Node * parseRestOfDataMember(TypeArgs& args, const Token& identTok, Node * dNode, UTI passuti);
+    bool parseRestOfDataMember(TypeArgs& args, UTI passuti);
 
-    void parseRestOfDataMemberAssignment(TypeArgs& args, const Token& identTok, Node * dNode, UTI passuti);
+    bool parseRestOfInitialization(const Token& identTok, Node * dNode);
+
+    bool makeDeclConstructorCall(const Token& identTok, NodeVarDecl * dNode);
+    Node * makeInstanceofConstructorCall(const Token& fTok, NodeInstanceof * instanceofNode);
+    NodeFunctionCall * parseConstructorCall(const Token& identTok);
 
     /**
 	<BLOCK> := '{' + <STATEMENTS> + '}'
     */
-    Node * parseBlock();
+    NodeBlock * parseBlock();
 
     /**
 	<STATEMENTS> := NULL | <STATEMENT> + <STATEMENTS>
     */
-    Node * parseStatements();
+    bool parseStatements();
 
     /**
 	<STATEMENT> := <SIMPLE_STATEMENT> | <CONTROL_STATEMENT> | <BLOCK>
      */
     Node * parseStatement();
+
+    NodeBlock * parseStatementAsBlock();
 
     /**
 	<CONTROL_STATEMENT> := <IF_STATEMENT> | <WHILE_STATEMENT> | <FOR_STATEMENT> |
@@ -154,6 +173,18 @@ namespace MFM{
      */
     Node * parseControlFor(const Token& fTok);
 
+    /** helper-method for Control FOR/WHILE loops */
+    NodeControlWhile * makeControlWhileNode(Node * condNode, Node * assignNodeForLoop, u32 loopnum, const Token& fwtok);
+
+
+    /** <SWITCH_STATEMENT>
+     */
+    Node * parseControlSwitch(const Token& swTok);
+
+    Node * parseNextCase(const NodeIdent * swvalueIdent, NodeControlIf *& switchNode, Node *& defaultNode);
+
+    Node * parseRestOfCase(const NodeIdent * swvalueIdent, Node * caseCond, Node *& defaultcase);
+
     /**
        <CONDITIONAL_EXPR> := <SIMPLE_COND_DECL> | <ASSIGN_EXPR>
        <SIMPLE_COND_DECL> := <IDENT_EXPR> + 'as' + <TYPE_IDENT>
@@ -163,13 +194,13 @@ namespace MFM{
     /**
        (helper for 'as' condition in if/while)
     */
-    Node * setupAsConditionalBlockAndParseStatements(NodeConditional * asNode);
+    NodeBlock * setupAsConditionalBlockAndParseStatements(NodeConditional * asNode);
 
     /**
 	<SIMPLE_STATEMENT> := ( 0 | <STATEMENT_DECL> | <TYPE_DEF> | <CONST_DEF> | <ASSIGN_EXPR> |
                                 <RETURN_STATEMENT> ) + ';'
      */
-    Node * parseSimpleStatement();
+    bool parseSimpleStatement();
 
     /**
        <TYPE_NAME> := 'Int' | 'Unsigned' | 'Bool' | 'Unary' | 'Bits | <TYPE_IDENT> | <Type_IdENT> + ( '.' + <TYPE_IDENT>)*
@@ -178,17 +209,19 @@ namespace MFM{
        <TYPEDEF> := 'typedef' + <TYPE> + <TYPE_EXPRESSION>
        <TYPE_EXPRESSION> := ( <TYPE_IDENT> | <TYPE_IDENT> + '[' + <EXPRESSION> + ']')
     */
-    Node * parseTypedef();
+    bool parseTypedef();
 
     /**
        <CONST_DEF> := 'constant' + <TYPE> + <IDENT> + '=' + <EXPRESSION>
     */
-    Node * parseConstdef(bool assignREQ = true, bool isStmt = true);
+    bool parseConstdef();
+
+    NodeConstantDef * parseClassParameterConstdef(bool assignREQ);
 
     /**
        <PARAMETER_DEF> := 'parameter' + <TYPE> + <IDENT> + '=' + <EXPRESSION>
     */
-    Node * parseParameter();
+    bool parseModelParameter();
 
     /**
        <DECL> := <TYPE> + <VAR_DECLS>
@@ -201,11 +234,12 @@ namespace MFM{
 
        (when flag is true stops after one decl for function parameters).
     */
-    Node * parseDecl(bool parseSingleDecl = false);
+    bool parseDecl();
 
-
-    NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs, bool delAfterDotFails = false);
-    NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs, UTI& castUTI, bool delAfterDotFails);
+    NodeTypeDescriptor * parseTypeDescriptorIncludingLocalsScope(TypeArgs& typeargs, bool isaclass, bool delAfterDotFails); //helper
+    NodeTypeDescriptor * parseTypeDescriptorIncludingLocalsScope(TypeArgs& typeargs, UTI& castUTI, bool isaclass, bool delAfterDotFails); //helper
+    NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs, bool isaclass = false, bool delAfterDotFails = false); //helper
+    NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs, UTI& castUTI, bool isaclassarg, bool delAfterDotFails);
 
     UTI parseClassArguments(Token& typeTok, bool& isaclass);
     void parseRestOfClassArguments(SymbolClass * csym, SymbolClassNameTemplate * ctsym, u32& parmIdx);
@@ -219,10 +253,12 @@ namespace MFM{
     bool parseTypeFromAnotherClassesTypedef(TypeArgs& args, NodeTypeDescriptor *& rtnTypeDesc);
     void parseTypeFromAnotherClassesTypedef(TypeArgs& args, bool& rtnb, u32& numDots, NodeTypeDescriptor *& rtnTypeDesc);
 
+    Node * parseNamedConstantFromAnotherClass(const TypeArgs& args);
+
     /**
        <RETURN_STATMENT> := 'return' + (0 | <ASSIGN_EXPR>)
     */
-    Node * parseReturn();
+    bool parseReturn();
 
     /**
        <ASSIGNEXPR> := <EXPRESSION> | <LVAL_EXPRESSION> + <ASSIGN_OP> + <ASSIGNEXPR>
@@ -248,10 +284,9 @@ namespace MFM{
 
     Node * parseRestOfMemberSelectExpr(Node * classInstanceNode);
 
-    Node * parseMinMaxSizeofType(const Token& memberTok, UTI utype, NodeTypeDescriptor * nodetype);
+    Node * parseRestOfQuestionColonExpr(Node * condNode);
 
-    Node * parseMinMaxSizeofType(const Token& memberTok); //member selected type unavailable at parse
-
+    Node * parseMinMaxSizeofType(Node * memberNode, UTI utype, NodeTypeDescriptor * nodetype);
     /**
        <FUNC_CALL> := <IDENT> + '(' + <ARGS> + ')'
     */
@@ -310,7 +345,9 @@ namespace MFM{
        <UNOP_EXPRESSION> := <UNOP> + <FACTOR> | <IDENT_EXPRES> + ('is' | 'has') + <TYPE_IDENT>
        <UNOP> := '-' | '+' | '!' | <CAST>
      */
-    Node * parseFactor();
+    Node * parseFactor(bool localbase = false);
+
+    Node * parseFactorStartingWithAType(const Token& tTok, bool allowrefcast);
 
     Node * parseRestOfFactor(Node * leftNode);
 
@@ -334,13 +371,13 @@ namespace MFM{
 
     Node * parseRestOfAssignExpr(Node * leftNode);
 
-    Node * parseRestOfDecls(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti);
+    bool parseRestOfDecls(TypeArgs& args, UTI passuti);
+    bool parseRestOfDeclInitialization(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode);
+    bool parseRestOfRefInitialization(const Token& identTok, NodeVarDecl * dNode);
 
-    Node * parseRestOfDeclAssignment(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti);
+    Node * parseArrayInitialization(u32 identId);
 
-    Node * parseArrayInitialization(const Token& identTok);
-
-    bool parseArrayItemInit(const Token& identTok, NodeListArrayInitialization * rtnList);
+    bool parseArrayItemInit(u32 identId, NodeListArrayInitialization * rtnList);
 
     NodeConstantDef * parseRestOfConstantDef(NodeConstantDef * constNode, bool assignREQ = true, bool isStmt = true);
 
@@ -356,9 +393,11 @@ namespace MFM{
 	<FUNC_PARAMS> := <FUNC_PARAM> | <FUNC_PARAM> + ',' + <FUNC_PARAMS>
 	<FUNC_PARAM>  := <TYPE> + <VAR_DECL>
      */
-    NodeBlockFunctionDefinition * makeFunctionBlock(TypeArgs& args, const Token& identTok, NodeTypeDescriptor * nodetype, bool isVirtual);
+    NodeBlockFunctionDefinition * makeFunctionBlock(TypeArgs& args, const Token& identTok, NodeTypeDescriptor * nodetype, bool isVirtual, bool insureVirtualOverride, bool isConstr);
 
     void parseRestOfFunctionParameters(SymbolFunction * sym, NodeBlockFunctionDefinition * fblock);
+
+    NodeVarDecl * parseFunctionParameterDecl();
 
     /**
 	helper method for function definition, populates funcNode,
@@ -368,19 +407,19 @@ namespace MFM{
 
 
     /** helper for parseDataMember */
-    Node * makeFunctionSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor * nodetype, bool isVirtual);
+    NodeBlockFunctionDefinition * makeFunctionSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor * nodetype, bool isVirtual, bool insureVirtualOverride, bool isConstr);
 
     /** helper for parseDecl and parseRestOfDecls */
-    Node * makeVariableSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef);
+    NodeVarDecl * makeVariableSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef);
 
     /** helper for parseTypedef */
-    Node * makeTypedefSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef);
+    NodeTypedef * makeTypedefSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef);
 
     /** helper for parseConstdef */
-    Node * makeConstdefSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef);
+    NodeConstantDef * makeConstdefSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef);
 
-    /** helper for parseParameter */
-    Node * makeParameterSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef);
+    /** helper for parseModelParameter */
+    NodeModelParameterDef * makeModelParameterSymbol(TypeArgs& args, const Token& identTok, NodeTypeDescriptor *& nodetyperef);
 
     /** helper method for parseConditionalExpr */
     Node * makeConditionalExprNode(Node * leftNode);
@@ -408,10 +447,10 @@ namespace MFM{
     /**
        helper method to make unary factor nodes
     */
-    Node * makeFactorNode();
+    Node * makeFactorNodePreUnaryOp();
 
     /** helper for parseRestOfCastOrExpression via parseFactor*/
-    Node * makeCastNode(const Token& typeTok, bool allowRefCasts);
+    bool makeCastNode(const Token& typeTok, bool allowRefCasts, NodeTypeDescriptor * typeNode, Node *& rtnNodeRef);
 
     /**
        helper method to make a terminal node
@@ -440,6 +479,9 @@ namespace MFM{
 	if EOF reached, it will unread it before returning
      */
     void getTokensUntil(TokenType lastTok);
+
+    /** helper, assert with debug message */
+    void abortUnexpectedToken(Token& tok);
 
     /**
 	initializes primitive UlamTypes into classBlock Symbol Table

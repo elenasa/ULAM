@@ -1,25 +1,30 @@
 ## -*- mode:ulam -*-
 #=t3134_test_compiler_funccall_noargs
+##
+## gen output: (+ assert)
+##  Int Arg: 1
 #!
 Exit status: 1
-Ue_A { Bool(7) b(false);  System s();  Int(32) a(1);  Int(32) test() {  a ( )foo = s ( a )print . a return } }
+Ue_A { Bool(7) b(true);  System s();  Int(32) a(1);  Int(32) test() {  a ( )foo = s ( a )print . b a 1 cast == cast = s ( b cast )assert . a return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
-use System; element A {
-System s;
-Bool(7) b;
-Int a;
-Int foo() {
- return 1;
- }
-Int test() {
-a = foo();
-s.print(a);
-return a;
-}
+use System;
+element A {
+  System s;
+  Bool(7) b;
+  Int a;
+  Int foo() {
+    return 1;
+  }
+  Int test() {
+    a = foo();
+    s.print(a);
+    b = (a == 1);
+    s.assert(b);
+    return a;
+  }
 }
 
-##bool rtn1 = fms->add("A.ulam","element A {\nBool(7) b;\nInt a;\nInt foo() {\n return 1;\n }\nInt test() {\nreturn foo();\n}\n}\n");
 ## test system quark with native overloaded print funcs; assert
 #:System.ulam
 ulam 1;

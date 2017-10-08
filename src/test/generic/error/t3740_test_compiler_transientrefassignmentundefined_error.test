@@ -1,10 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3740_test_compiler_transientrefassignmentundefined_error
 #!
-./R.ulam:6:16: ERROR: (2) <at2> is not defined, and cannot be used with class: R.
+./R.ulam:6:16: ERROR: Variable <at2> is not defined, or was used before declared in a function.
 ./R.ulam:6:5: ERROR: Initial value expression for: atref, initialization is invalid.
 ./R.ulam:6:5: ERROR: Storage expression for: atref, is invalid.
-./R.ulam:3:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: R.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## similar to 3739, except with an undefined assignment

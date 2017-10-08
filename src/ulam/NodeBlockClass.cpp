@@ -7,22 +7,34 @@
 
 namespace MFM {
 
-  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_functionST(state), m_virtualmethodMaxIdx(UNKNOWNSIZE), m_superBlockNode(NULL), m_isEmpty(false)
+  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state) : NodeBlockContext(prevBlockNode, state), m_functionST(state), m_virtualmethodMaxIdx(UNKNOWNSIZE), m_superBlockNode(NULL), m_isEmpty(false)
   {
     m_nodeParameterList = new NodeList(state);
     assert(m_nodeParameterList);
+    m_nodeArgumentList = new NodeList(state);
+    assert(m_nodeArgumentList);
   }
 
-  NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlock(ref), m_functionST(ref.m_functionST) /* deep copy */, m_virtualmethodMaxIdx(ref.m_virtualmethodMaxIdx), m_superBlockNode(NULL), m_isEmpty(ref.m_isEmpty), m_nodeParameterList(NULL)
+  NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlockContext(ref), m_functionST(ref.m_functionST) /* deep copy */, m_virtualmethodMaxIdx(ref.m_virtualmethodMaxIdx), m_superBlockNode(NULL), m_isEmpty(ref.m_isEmpty), m_nodeParameterList(NULL), m_nodeArgumentList(NULL)
   {
-    setNodeType(m_state.getCompileThisIdx());
-    m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate(); //instances don't need this; its got symbols
+    UTI cuti = m_state.getCompileThisIdx();
+    m_state.pushClassContext(cuti, this, this, false, NULL); //t3895
+    setNodeType(cuti); //t3895, after push
+    m_nodeParameterList = new NodeList(m_state);
+    assert(m_nodeParameterList);
+    m_nodeArgumentList = new NodeList(m_state);
+    assert(m_nodeArgumentList);
+    m_state.popClassContext();
+    //m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate(); //instances don't need this; its got symbols
+    //m_nodeArgumentList = (NodeList *) ref.m_nodeArgumentList->instantiate(); //instances only need this for constant array arguments; templates don't need this.
   }
 
   NodeBlockClass::~NodeBlockClass()
   {
     delete m_nodeParameterList;
     m_nodeParameterList = NULL;
+    delete m_nodeArgumentList;
+    m_nodeArgumentList = NULL;
   }
 
   Node * NodeBlockClass::instantiate()
@@ -49,6 +61,8 @@ namespace MFM {
       m_nodeNext->updateLineage(getNodeNo());
     if(m_nodeParameterList)
       m_nodeParameterList->updateLineage(getNodeNo());
+    if(m_nodeArgumentList)
+      m_nodeArgumentList->updateLineage(getNodeNo());
     m_functionST.linkToParentNodesAcrossTableOfFunctions(this); //all the function defs
   } //updateLineage
 
@@ -57,21 +71,26 @@ namespace MFM {
     if(NodeBlock::findNodeNo(n, foundNode))
       return true;
 
+    if(m_nodeParameterList && m_nodeParameterList->findNodeNo(n, foundNode))
+      return true;
+
+    if(m_nodeArgumentList && m_nodeArgumentList->findNodeNo(n, foundNode))
+      return true;
+
+    if(m_functionST.findNodeNoAcrossTableOfFunctions(n, foundNode)) //all the function defs
+      return true;
+
     UTI cuti = getNodeType();
     UTI superuti = m_state.isClassASubclass(cuti);
     if(m_state.okUTItoContinue(superuti) && !m_state.isUrSelf(superuti))
       {
 	NodeBlockClass * superblock = getSuperBlockPointer();
 	//e.g. not a stub, yet not complete because its superclass is a stub! (ish 06222016)
-	assert(superblock || m_state.hasClassAStub(superuti));
+	// or is a stub! (t3887), or just incomplete (t41012)
+	//assert(superblock || m_state.hasClassAStub(superuti) || m_state.isClassAStub(cuti));
 	if(superblock && superblock->findNodeNo(n, foundNode))
 	  return true;
       }
-
-    if(m_functionST.findNodeNoAcrossTableOfFunctions(n, foundNode)) //all the function defs
-      return true;
-    if(m_nodeParameterList && m_nodeParameterList->findNodeNo(n, foundNode))
-      return true;
     return false;
   } //findNodeNo
 
@@ -80,12 +99,23 @@ namespace MFM {
     NodeBlock::checkAbstractInstanceErrors();
     if(!isEmpty())
       m_functionST.checkAbstractInstanceErrorsAcrossTableOfFunctions();
-  } //checkAbstractInstanceErrors
+  }
 
   void NodeBlockClass::setNodeLocation(Locator loc)
   {
     if(m_nodeParameterList)
       m_nodeParameterList->setNodeLocation(loc);
+    if(m_nodeArgumentList)
+      m_nodeArgumentList->setNodeLocation(loc);
+    Node::setNodeLocation(loc);
+  }
+
+  void NodeBlockClass::resetNodeLocations(Locator loc)
+  {
+    if(m_nodeParameterList)
+      m_nodeParameterList->resetNodeLocations(loc);
+    if(m_nodeArgumentList)
+      m_nodeArgumentList->resetNodeLocations(loc);
     Node::setNodeLocation(loc);
   }
 
@@ -122,7 +152,7 @@ namespace MFM {
     fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeUPrefix().c_str());  //e.g. Ue_Foo
     fp->write(getName());  //unmangled
 
-    //output class template arguments type and name
+    //output class template parameter type and name
     if(m_nodeParameterList->getNumberOfNodes() > 0)
       {
 	SymbolClassNameTemplate * cnsym = NULL;
@@ -220,10 +250,60 @@ namespace MFM {
     m_ST.printPostfixValuesForTableOfVariableDataMembers(fp, slot, startpos, classtype);
   } //printPostfixDataMembersSymbols
 
+  void NodeBlockClass::noteTypeAndName(s32 totalsize, u32& accumsize)
+  {
+    //called when superclass of an oversized class instance
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    s32 nsize = nut->getTotalBitSize();
+
+    std::ostringstream note;
+    note << "(" << nsize << " of ";
+    note << totalsize << " bits, at " << accumsize << ") ";
+    note << "from superclass: " << nut->getUlamTypeNameBrief().c_str();
+    MSG(getNodeLocationAsString().c_str(), note.str().c_str(), NOTE);
+
+    accumsize += nsize;
+  } //noteTypeAndName
+
+  void NodeBlockClass::noteDataMembersParseTree(s32 totalsize)
+  {
+    UTI cuti = getNodeType();
+    if(m_state.isUrSelf(cuti)) return;
+
+    u32 accumsize = 0;
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+
+    std::ostringstream note;
+    note << "Components of " << cut->getUlamTypeNameBrief().c_str() << " are."; //terminating double dot
+    MSG(getNodeLocationAsString().c_str(), note.str().c_str(), NOTE);
+
+    UTI superuti = m_state.isClassASubclass(cuti);
+    //skip UrSelf to avoid extensive changes to all test answers
+    if(m_state.okUTItoContinue(superuti) && !m_state.isUrSelf(superuti))
+      {
+	NodeBlockClass * superblock = getSuperBlockPointer();
+	if(!isSuperClassLinkReady())
+	  {
+	    //use SCN instead of SC in case of stub (use template's classblock)
+	    SymbolClassName * supercnsym = NULL;
+	    u32 superid = m_state.getUlamTypeByIndex(superuti)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
+	    AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(superid, supercnsym);
+	    assert(isDefined);
+	    superblock = supercnsym->getClassBlockNode();
+	  }
+	assert(superblock);
+	superblock->noteTypeAndName(totalsize, accumsize); //no recursion
+      }
+
+    if(m_nodeNext)
+      m_nodeNext->noteTypeAndName(totalsize, accumsize); //datamember vardecls
+  } //noteDataMembersParseTree
+
   const char * NodeBlockClass::getName()
   {
     return m_state.getUlamKeyTypeSignatureByIndex(getNodeType()).getUlamKeyTypeSignatureName(&m_state).c_str();
-  } //getName
+  }
 
   const std::string NodeBlockClass::prettyNodeName()
   {
@@ -233,7 +313,7 @@ namespace MFM {
   UTI NodeBlockClass::getNodeType()
   {
     UTI cuti = Node::getNodeType();
-    if(cuti == Int) //kludge nodetype clobbered to test
+    if(cuti == Int) //kludge nodetype clobbered to test eval
       cuti = m_state.getCompileThisIdx();
     return cuti;
   }
@@ -256,27 +336,29 @@ namespace MFM {
   bool NodeBlockClass::isSuperClassLinkReady()
   {
     //call for known subclasses only
-    UTI superuti = m_state.isClassASubclass(getNodeType());
-    assert(superuti != Nouti);
+    UTI cuti = getNodeType();
+    UTI superuti = m_state.isClassASubclass(cuti);
+    assert((superuti != Nouti) || !m_state.okUTItoContinue(cuti)); //t41013
 
-    if(superuti == Hzy)
-      return false;
+    if(!m_state.okUTItoContinue(superuti))
+      return false; //t41013
 
     //this is a subclass.
     NodeBlockClass * superblock = getSuperBlockPointer();
     if(superblock == NULL)
       return false;
 
-    assert(m_state.okUTItoContinue(superuti));
-    assert(m_state.okUTItoContinue(superblock->getNodeType()));
-
-    return !((superblock == NULL) || (superblock->getNodeType() == Nouti) || (UlamType::compare(superblock->getNodeType(), superuti, m_state) != UTIC_SAME));
+    UTI sblockuti = superblock->getNodeType();
+    return !(!m_state.okUTItoContinue(sblockuti) || (UlamType::compare(sblockuti, superuti, m_state) != UTIC_SAME));
   } //isSuperClassLinkReady
 
   UTI NodeBlockClass::checkAndLabelType()
   {
     //do first, might be important!
     checkParameterNodeTypes();
+
+    //Argument c&l handled during pending arg step of resolving loop
+    //if(!checkArgumentNodeTypes())
 
     // Inheritance checks
     UTI nuti = getNodeType();
@@ -285,30 +367,109 @@ namespace MFM {
     //skip the ancestor of a template
     if(m_state.okUTItoContinue(superuti))
       {
-	//this is a subclass.
-	if(!isSuperClassLinkReady())
+	//if(m_state.isHolder(superuti)) //t3874
+	if(m_state.isHolder(superuti) || !m_state.isComplete(superuti)) //t3874, t41010
 	  {
-	    if(m_state.isClassAStub(superuti))
+	    UTI mappedUTI = superuti;
+	    if(m_state.mappedIncompleteUTI(nuti, superuti, mappedUTI))
 	      {
+		//shouldn't happen, caught at parse time (t3900, t3901)
+		assert(UlamType::compare(nuti, superuti, m_state) != UTIC_SAME);
+
 		std::ostringstream msg;
-		msg << "Subclass '";
-		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		msg << "' inherits from '";
+		msg << "Substituting mapped UTI" << mappedUTI;
+		msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
+		msg << " for SUPERCLASS holder type: '";
 		msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
-		msg << "', a class with pending arguments";
+		msg << "' UTI" << superuti << " while labeling class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		m_state.setGoAgain();
 		//need to break the chain; e.g. don't want template symbol addresses used
 		setSuperBlockPointer(NULL); //force to try again!! avoid inf loop
+		superuti = mappedUTI;
+		m_state.resetClassSuperclass(nuti, superuti);
 		return Hzy; //short-circuit
+	      }
+	  }
+
+	//this is a subclass.
+	if(!isSuperClassLinkReady())
+	  {
+	    if(!m_state.isComplete(superuti))
+	      {
+		bool brtnhzy = true;
+		std::ostringstream msg;
+		msg << "Subclass '";
+		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		msg << "' inherits from '";
+
+		if(m_state.isClassAStub(superuti))
+		  {
+		    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
+
+		    msg << "', a class with pending arguments";
+		  }
+		else if(m_state.isHolder(superuti))
+		  {
+		    //O(n) search of localdefs for nicer error message (t3875, t41010)
+		    u32 lostid = m_state.findTypedefNameIdInLocalsScopeByIndex(superuti);
+		    if(lostid > 0)
+		      {
+			msg << m_state.m_pool.getDataAsString(lostid).c_str();
+			msg << "', an unresolved local filescope typedef";
+		      }
+		    else
+		      {
+			msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
+			msg << "', a holder class";
+		      }
+		  }
+		else
+		  {
+		    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
+		    msg << "', an incomplete class";
+		    brtnhzy = false; //t3889, t3831
+		  }
+
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		m_state.setGoAgain();
+		//need to break the chain; e.g. don't want template symbol addresses used
+		setSuperBlockPointer(NULL); //force to try again!! avoid inf loop
+
+		if(brtnhzy)
+		  return Hzy; //short-circuit holders and stubs (e.g. t41010, t3831, t3889)
+		//o.w. continue..
 	      }
 
 	    //look up this instance
 	    SymbolClass * csym = NULL;
 	    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(superuti, csym);
 	    assert(isDefined);
-	    setSuperBlockPointer(csym->getClassBlockNode()); //fixed
-	  }
+	    NodeBlockClass * superclassblock = csym->getClassBlockNode();
+	    setSuperBlockPointer(superclassblock); //fixed
+
+	    if(!isSuperClassLinkReady())
+	      {
+		setSuperBlockPointer(NULL); //force to try again!! avoid inf loop
+		std::ostringstream msg;
+		msg << "Subclass '";
+		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		msg << "' inherits from unready '";
+		msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
+		if(!m_state.okUTItoContinue(superclassblock->getNodeType()))
+		  {
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    return Nav; //t41013
+		  }
+		else
+		  {
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		    m_state.setGoAgain();
+		    return Hzy;
+		  }
+	      }
+	  } //super link ready or not
 
 	assert(isSuperClassLinkReady());
 	ULAMCLASSTYPE superclasstype = m_state.getUlamTypeByIndex(superuti)->getUlamClassType();
@@ -330,15 +491,30 @@ namespace MFM {
 	  }
 	else if(superclasstype != UC_QUARK)
 	  {
-	    //for all others (elements and quarks)
-	    //must be "seen" by c&l; e.g. typedef array of quarks (t3674)
-	    std::ostringstream msg;
-	    msg << "Subclass '";
-	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	    msg << "' inherits from '";
-	    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
-	    msg << "', a class that's not a quark";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    //O(n) search of localdefs for nicer error message (t3875, t41010)
+	    u32 lostid = m_state.findTypedefNameIdInLocalsScopeByIndex(superuti);
+	    if(lostid > 0)
+	      {
+		std::ostringstream msg;
+		msg << "Subclass '";
+		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		msg << "' inherits from '";
+		msg << m_state.m_pool.getDataAsString(lostid).c_str();
+		msg << "', an unresolved local filescope typedef";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      }
+	    else
+	      {
+		//for all others (elements and quarks)
+		//must be "seen" by now; e.g. typedef array of quarks (t3674), t3862
+		std::ostringstream msg;
+		msg << "Subclass '";
+		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		msg << "' inherits from '";
+		msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
+		msg << "', a class that's not a quark";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      }
 	    setNodeType(Nav);
 	  }
       } //done with inheritance checks, continue.
@@ -351,6 +527,17 @@ namespace MFM {
     m_functionST.labelTableOfFunctions();
 
     // check that a 'test' function returns Int (ulam convention)
+    checkTestFunctionReturnType();
+
+    // check that a 'alengthof' function returns Unsigned (ulam convention)
+    checkCustomArrayLengthofFunctionReturnType();
+
+    // type already set during parsing
+    return getNodeType();
+  } //checkAndLabelType
+
+  void NodeBlockClass::checkTestFunctionReturnType()
+  {
     NodeBlockFunctionDefinition * funcNode = findTestFunctionNode();
     if(funcNode)
       {
@@ -365,27 +552,92 @@ namespace MFM {
 	    funcNode->setNodeType(Nav); //missing
 	  }
       }
-    // type already set during parsing
-    return getNodeType();
-  } //checkAndLabelType
+  } //checkTestFunctionReturnType
+
+  void NodeBlockClass::checkCustomArrayLengthofFunctionReturnType()
+  {
+    NodeBlockFunctionDefinition * funcNode = findCustomArrayLengthofFunctionNode();
+    if(funcNode)
+      {
+	UTI funcType = funcNode->getNodeType();
+	if(UlamType::compareForArgumentMatching(funcType, Unsigned, m_state) == UTIC_NOTSAME)
+	  {
+	    std::ostringstream msg;
+	    msg << "By convention, Function '" << funcNode->getName();
+	    msg << "''s Return type must be 'Unsigned', not ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(funcType).c_str();
+	    MSG(funcNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    funcNode->setNodeType(Nav); //missing
+	  }
+      }
+  } //checkCustomArrayLengthofFunctionReturnType
 
   bool NodeBlockClass::checkParameterNodeTypes()
   {
     if(m_nodeParameterList)
-      return m_nodeParameterList->checkAndLabelType();
+      {
+	assert((m_nodeParameterList->getNumberOfNodes() == 0) || m_state.isClassATemplate(getNodeType()));
+	return m_nodeParameterList->checkAndLabelType();
+      }
     return true;
   }
 
   void NodeBlockClass::addParameterNode(Node * nodeArg)
   {
     assert(m_nodeParameterList); //must be a template
+    assert(m_state.isClassATemplate(getNodeType()));
     m_nodeParameterList->addNodeToList(nodeArg);
   }
 
-  Node * NodeBlockClass::getParameterNode(u32 n) const
+  Node * NodeBlockClass::getParameterNode(u32 n)
   {
     assert(m_nodeParameterList); //must be a template
+    assert(m_state.isClassATemplate(getNodeType()));
     return m_nodeParameterList->getNodePtr(n);
+  }
+
+  u32 NodeBlockClass::getNumberOfParameterNodes()
+  {
+    assert(m_nodeParameterList); //must be a template
+    assert(m_state.isClassATemplate(getNodeType()));
+    return m_nodeParameterList->getNumberOfNodes();
+  }
+
+  bool NodeBlockClass::checkArgumentNodeTypes()
+  {
+    //unlike Parameter Nodes, the argument Nodes are c&l during
+    // the resolving loop, pendingArgs step (t3894).
+    if(m_nodeArgumentList)
+      {
+	u32 n = m_nodeArgumentList->getNumberOfNodes();
+	assert((n == 0) || !m_state.isClassATemplate(getNodeType()));
+	u32 navcnt, hzycnt, nocnt;
+	navcnt = hzycnt = nocnt = 0;
+	m_nodeArgumentList->countNavHzyNoutiNodes(navcnt, hzycnt, nocnt);
+	return (navcnt + hzycnt == 0);
+      }
+    return true;
+  }
+
+  void NodeBlockClass::addArgumentNode(Node * nodeArg)
+  {
+    assert(m_nodeArgumentList); //must be a template class instance
+    assert(!m_state.isClassATemplate(getNodeType()));
+    m_nodeArgumentList->addNodeToList(nodeArg);
+  }
+
+  Node * NodeBlockClass::getArgumentNode(u32 n)
+  {
+    assert(m_nodeArgumentList); //must be a template class instance
+    assert(!m_state.isClassATemplate(getNodeType()));
+    return m_nodeArgumentList->getNodePtr(n);
+  }
+
+  u32 NodeBlockClass::getNumberOfArgumentNodes()
+  {
+    assert(m_nodeArgumentList); //must be a template class instance
+    assert(!m_state.isClassATemplate(getNodeType()));
+    return m_nodeArgumentList->getNumberOfNodes();
   }
 
   void NodeBlockClass::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
@@ -399,6 +651,9 @@ namespace MFM {
 
     if(m_nodeParameterList)
       m_nodeParameterList->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+
+    if(m_nodeArgumentList)
+      m_nodeArgumentList->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   } //countNavHzyNoutiNodes
 
   u32 NodeBlockClass::checkDuplicateFunctions()
@@ -503,6 +758,18 @@ namespace MFM {
     m_virtualmethodMaxIdx = maxidx;
   }
 
+  u32 NodeBlockClass::getLocalsFilescopeType()
+  {
+    UTI locuti = Nouti;
+    NodeBlockLocals * localsblock = m_state.getLocalsScopeBlock(getNodeLocation());
+    if(localsblock)
+      {
+	locuti = localsblock->getNodeType();
+	assert(m_state.okUTItoContinue(locuti));
+      }
+    return locuti;
+  }
+
   bool NodeBlockClass::hasCustomArray()
   {
     bool hasCA = false;
@@ -588,8 +855,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   u32 NodeBlockClass::getCustomArrayIndexTypeFromGetFunction(Node * rnode, UTI& idxuti, bool& hasHazyArgs)
   {
-    UTI catype = m_functionST.getCustomArrayIndexTypeGetFunction(rnode, idxuti, hasHazyArgs);
-    if(catype == Nouti)
+    u32 camatches = m_functionST.getCustomArrayIndexTypeGetFunction(rnode, idxuti, hasHazyArgs);
+    if(camatches == 0)
       {
 	UTI cuti = getNodeType();
 	if(m_state.isClassAStub(cuti))
@@ -597,20 +864,44 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	    //search template
 	    NodeBlockClass * prevblock = (NodeBlockClass *) getPreviousBlockPointer();
 	    assert(prevblock);
-	    catype = prevblock->getCustomArrayIndexTypeFromGetFunction(rnode, idxuti, hasHazyArgs);
+	    camatches = prevblock->getCustomArrayIndexTypeFromGetFunction(rnode, idxuti, hasHazyArgs);
 	  }
 
-	if((catype == Nouti) && (m_state.isClassASubclass(cuti) != Nouti))
+	if((camatches == 0) && (m_state.isClassASubclass(cuti) != Nouti))
 	  {
 	    NodeBlockClass * superblock = getSuperBlockPointer();
 	    assert(superblock);
-	    catype = superblock->getCustomArrayIndexTypeFromGetFunction(rnode, idxuti, hasHazyArgs);
+	    camatches = superblock->getCustomArrayIndexTypeFromGetFunction(rnode, idxuti, hasHazyArgs);
 	  }
       }
-    else if(catype == Hzy)
-      hasHazyArgs = true;
-    return catype;
+    //else if(catype == Hzy)
+    //  hasHazyArgs = true;
+    return camatches;
   } //getCustomArrayIndexTypeFromGetFunction
+
+  bool NodeBlockClass::hasCustomArrayLengthofFunction()
+  {
+    bool camatch = m_functionST.hasCustomArrayLengthofFunction();
+    if(!camatch)
+      {
+	UTI cuti = getNodeType();
+	if(m_state.isClassAStub(cuti))
+	  {
+	    //search template
+	    NodeBlockClass * prevblock = (NodeBlockClass *) getPreviousBlockPointer();
+	    assert(prevblock);
+	    camatch = prevblock->hasCustomArrayLengthofFunction();
+	  }
+
+	if((!camatch) && (m_state.isClassASubclass(cuti) != Nouti))
+	  {
+	    NodeBlockClass * superblock = getSuperBlockPointer();
+	    assert(superblock);
+	    camatch = superblock->hasCustomArrayLengthofFunction();
+	  }
+      }
+    return camatch;
+  } //hasCustomArrayLengthofFunction
 
   //starts here, called by SymbolClass
   bool NodeBlockClass::buildDefaultValue(u32 wlen, BV8K& dvref)
@@ -629,6 +920,23 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     return aok;
   } //buildDefaultValue
 
+  void NodeBlockClass::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
+  {
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClassType();
+    if(classtype == UC_ELEMENT)
+      startpos += ATOMFIRSTSTATEBITPOS; //t3972
+
+    if((m_state.isClassASubclass(getNodeType()) != Nouti))
+      {
+	NodeBlockClass * superblock = getSuperBlockPointer();
+	assert(superblock);
+	superblock->genCodeDefaultValueStringRegistrationNumber(fp, startpos);
+      }
+
+    if(m_nodeNext)
+      m_nodeNext->genCodeDefaultValueStringRegistrationNumber(fp, startpos); //side-effect for dm vardecls
+  }
+
   void NodeBlockClass::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
   {
     if((m_state.isClassASubclass(getNodeType()) != Nouti))
@@ -644,7 +952,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   EvalStatus NodeBlockClass::eval()
   {
-    //    #define _DEBUG_SKIP_EVAL
+    //#define _DEBUG_SKIP_EVAL
 #ifndef _DEBUG_SKIP_EVAL
     if(isEmpty())
 #endif
@@ -664,6 +972,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     evalNodeProlog(0); //new current frame pointer for nodeeval stack
 
     EvalStatus evs = ERROR; //init
+
+    m_nodeArgumentList->eval();
 
     // NodeVarDecl's make UlamValue storage now, so don't want their
     // side-effects for the class definition, rather the instance.
@@ -697,7 +1007,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   bool NodeBlockClass::isIdInScope(u32 id, Symbol * & symptrref)
   {
     return (m_ST.isInTable(id, symptrref) || isFuncIdInScope(id, symptrref));
-  } //isIdInScope
+  }
 
   u32 NodeBlockClass::getNumberOfSymbolsInTable()
   {
@@ -714,8 +1024,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   u32 NodeBlockClass::getNumberOfPotentialClassArgumentSymbols()
   {
-    return m_ST.getNumberOfConstantSymbolsInTable(true);
-  } //getNumberOfPotentialClassArgumentSymbols
+    return getNumberOfArgumentNodes();
+  }
 
   u32 NodeBlockClass::getSizeOfSymbolsInTable()
   {
@@ -775,36 +1085,10 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     return (superbs > mybs ? superbs : mybs); //return max
   } //getMaxBitSizeOfVariableSymbolsInTable
 
-  s32 NodeBlockClass::findUlamTypeInTable(UTI utype, UTI& insidecuti)
-  {
-    s32 rtnpos = m_ST.findPosOfUlamTypeInTable(utype, insidecuti);
-    if(rtnpos < 0)
-      {
-	//check superclass for dm match, next:
-	UTI superuti = m_state.isClassASubclass(getNodeType());
-	assert(superuti != Hzy);
-	if(superuti != Nouti)
-	  {
-	    // quarks can't contain themselves
-	    if(UlamType::compare(utype, superuti, m_state) != UTIC_SAME)
-	      {
-		NodeBlockClass * superClassBlock = getSuperBlockPointer();
-		assert(superClassBlock);
-		m_state.pushClassContext(superuti, superClassBlock, superClassBlock, false, NULL);
-		rtnpos = superClassBlock->findUlamTypeInTable(utype, insidecuti);
-		m_state.popClassContext(); //restore
-	      }
-	    else
-	      assert(0); //error msg?
-	  }
-      }
-    return rtnpos;  //also return DM (sub) class type where utype was found
-  } //findUlamTypeInTable
-
   bool NodeBlockClass::isFuncIdInScope(u32 id, Symbol * & symptrref)
   {
     return m_functionST.isInTable(id, symptrref); //not including any superclass
-  } //isFuncIdInScope
+  }
 
   void NodeBlockClass::addFuncIdToScope(u32 id, Symbol * symptr)
   {
@@ -869,12 +1153,26 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(isFuncIdInScope(testid, fnSym))
       {
 	SymbolFunction * funcSymbol = NULL;
-	std::vector<UTI> voidVector; //kepp empty
-	if(((SymbolFunctionName *) fnSym)->findMatchingFunctionStrictlyByTypes(voidVector, funcSymbol) == 1)
+	if(((SymbolFunctionName *) fnSym)->findMatchingFunctionStrictlyVoid(funcSymbol) == 1)
 	  func = funcSymbol->getFunctionNode();
       }
     return func;
   } //findTestFunctionNode
+
+  //don't set nextNode since it'll get deleted with program.
+  NodeBlockFunctionDefinition * NodeBlockClass::findCustomArrayLengthofFunctionNode()
+  {
+    Symbol * fnSym = NULL;
+    NodeBlockFunctionDefinition * func = NULL;
+    u32 lenid = m_state.getCustomArrayLengthofFunctionNameId();
+    if(isFuncIdInScope(lenid, fnSym))
+      {
+	SymbolFunction * funcSymbol = NULL;
+	if(((SymbolFunctionName *) fnSym)->findMatchingFunctionStrictlyVoid(funcSymbol) == 1)
+	  func = funcSymbol->getFunctionNode();
+      }
+    return func;
+  } //findCustomArrayLengthofFunctionNode
 
   //don't set nextNode since it'll get deleted with program.
   NodeBlockFunctionDefinition * NodeBlockClass::findToIntFunctionNode()
@@ -885,8 +1183,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(isFuncIdInScope(tointid, fnSym))
       {
 	SymbolFunction * funcSymbol = NULL;
-	std::vector<UTI> voidVector; //keep empty
-	if(((SymbolFunctionName *) fnSym)->findMatchingFunctionStrictlyByTypes(voidVector, funcSymbol) == 1)
+	if(((SymbolFunctionName *) fnSym)->findMatchingFunctionStrictlyVoid(funcSymbol) == 1)
 	  func = funcSymbol->getFunctionNode();
       }
     return func;
@@ -933,12 +1230,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       m_nodeNext->printUnresolvedVariableDataMembers();
 
     m_functionST.printUnresolvedLocalVariablesForTableOfFunctions();
-  } //printUnresolvedVariableDataMembers
+  }
 
   void NodeBlockClass::printUnresolvedLocalVariables(u32 fid)
   {
-    assert(0); //override
-  } //printUnresolvedLocalVariables
+    m_state.abortShouldntGetHere(); //override
+  }
 
   u32 NodeBlockClass::countNativeFuncDecls()
   {
@@ -985,8 +1282,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       {
 	genCodeHeaderTransient(fp);
       }
+    else if(classtype == UC_LOCALSFILESCOPE)
+      {
+	genCodeHeaderLocalsFilescope(fp);
+      }
     else
-      assert(0);
+      m_state.abortUndefinedUlamClassType();
 
     //gencode declarations only for all the function definitions
     bool declOnly = true;
@@ -1006,7 +1307,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write("<EC> ");
-    fp->write(m_state.getEffectiveSelfMangledNameByIndex(cuti).c_str());
+    fp->write(m_state.getTheInstanceMangledNameByIndex(cuti).c_str());
     fp->write(";\n\n");
 
     //output any externs, outside of class decl
@@ -1030,7 +1331,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   void NodeBlockClass::genCodeHeaderQuark(File * fp)
   {
     //use the instance UTI instead of the node's original type
-    UlamType * cut = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx());
+    UTI cuti = m_state.getCompileThisIdx();
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
     m_state.indent(fp);
     fp->write("template <class EC>"); GCNL;
@@ -1039,6 +1341,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("struct ");
     fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write(" : public UlamQuark<EC>");
+
+    genThisUlamSuperClassAsAHeaderComment(fp);
 
     fp->write("\n");
 
@@ -1063,9 +1367,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("};"); GCNL;
     fp->write("\n");
 
-    u32 dqval;
-    cut->genUlamTypeDefaultQuarkConstant(fp, dqval); //missing?
-
     m_state.indent(fp);
     fp->write("typedef UlamRefFixed<EC, 0u, QUARK_SIZE> Up_Us; //entire quark"); GCNL; //left-just
     fp->write("\n");
@@ -1086,12 +1387,18 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write(" THE_INSTANCE;"); GCNL;
 
+    // any constant array class arguments
+    if(m_nodeArgumentList)
+      {
+	UVPass uvpass;
+	m_nodeArgumentList->genCode(fp, uvpass);
+      }
+
     //DataMember VAR DECLS DMs
     if(m_nodeNext)
       {
 	UVPass uvpass;
 	m_nodeNext->genCode(fp, uvpass); //output the BitField typedefs
-	//NodeBlock::genCodeDeclsForVariableDataMembers(fp, classtype); //not in order declared
 	fp->write("\n");
       }
     //default constructor/destructor
@@ -1110,6 +1417,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("class ");
     fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write(" : public UlamElement<EC>"); //was DefaultElement
+
+    genThisUlamSuperClassAsAHeaderComment(fp);
 
     m_state.indent(fp);
     fp->write("{\n");
@@ -1142,6 +1451,13 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write(" THE_INSTANCE;"); GCNL;
 
+    // any constant array class arguments
+    if(m_nodeArgumentList)
+      {
+	UVPass uvpass;
+	m_nodeArgumentList->genCode(fp, uvpass);
+      }
+
     //DataMember VAR DECLS DM
     if(m_nodeNext)
       {
@@ -1168,6 +1484,75 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("class ");
     fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write(" : public UlamTransient<EC> ");
+
+    genThisUlamSuperClassAsAHeaderComment(fp);
+
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    genShortNameParameterTypesExtractedForHeaderFile(fp);
+
+    fp->write("\n");
+    m_state.m_currentIndentLevel--;
+
+    m_state.indent(fp);
+    fp->write("public:\n\n");
+
+    m_state.m_currentIndentLevel++;
+
+    //default constructor/destructor;
+    m_state.indent(fp);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("();"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("~");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("();"); GCNL;
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("static ");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write(" THE_INSTANCE;"); GCNL;
+
+    // any constant array class arguments
+    if(m_nodeArgumentList)
+      {
+	UVPass uvpass;
+	m_nodeArgumentList->genCode(fp, uvpass);
+      }
+
+    //DataMember VAR DECLS DM
+    if(m_nodeNext)
+      {
+	UVPass uvpass;
+	m_nodeNext->genCode(fp, uvpass);  //output the BitField typedefs
+	fp->write("\n");
+      }
+
+    // if this 'element' contains more than one template (quark) data members,
+    // we need vector of offsets to generate a separate function decl/dfn for each one's POS
+    // in case a function has one as a return value and/or parameter.
+  } //genCodeHeaderTransient
+
+  void NodeBlockClass::genCodeHeaderLocalsFilescope(File * fp)
+  {
+    //use the instance UTI instead of the node's original type
+    UTI cuti = m_state.getCompileThisIdx();
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write("class ");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write(" : public UlamClass<EC> ");
+
+    genThisUlamSuperClassAsAHeaderComment(fp);
 
     m_state.indent(fp);
     fp->write("{\n");
@@ -1211,7 +1596,18 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     // if this 'element' contains more than one template (quark) data members,
     // we need vector of offsets to generate a separate function decl/dfn for each one's POS
     // in case a function has one as a return value and/or parameter.
-  } //genCodeHeaderTransient
+  } //genCodeHeaderLocalsFilescope
+
+  void NodeBlockClass::genThisUlamSuperClassAsAHeaderComment(File * fp)
+  {
+    UTI superuti = m_state.isClassASubclass(m_state.getCompileThisIdx());
+    if(superuti != Nouti)
+      {
+	fp->write(" /*, ");
+	fp->write(m_state.getUlamTypeByIndex(superuti)->getUlamTypeMangledName().c_str());
+	fp->write(" */");
+      }
+  }
 
   void NodeBlockClass::genShortNameParameterTypesExtractedForHeaderFile(File * fp)
   {
@@ -1230,7 +1626,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("\n");
   } //genShortNameParameterTypesExtractedForHeaderFile
 
-  //Body for This Class only; practically empty if quark (.tcc)
+  //Body for This Class only (.tcc)
   void NodeBlockClass::genCodeBody(File * fp, UVPass& uvpass)
   {
     //use the instance UTI instead of the node's original type
@@ -1239,9 +1635,24 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel = 0;
 
-    //don't include own header file, since .tcc is included in the .h
-    //generate include statements for all the other classes that have appeared
-    m_state.m_programDefST.generateIncludesForTableOfClasses(fp);
+    if(classtype != UC_LOCALSFILESCOPE)
+      {
+	//don't include own header file, since .tcc is included in the .h
+	//generate include statements for all the other classes that have appeared
+	m_state.m_programDefST.generateIncludesForTableOfClasses(fp);
+
+	//include the locals filescope for this class' locator, if one exists
+	UTI locuti = getLocalsFilescopeType();
+	if(locuti != Nouti)
+	  {
+	    assert(m_state.okUTItoContinue(locuti));
+	    u32 mangledclassid = m_state.getMangledClassNameIdForUlamLocalsFilescope(locuti);
+	    m_state.indent(fp);
+	    fp->write("#include \"");
+	    fp->write(m_state.m_pool.getDataAsString(mangledclassid).c_str());
+	    fp->write(".h\""); GCNL;
+	  }
+      }
     fp->write("\n");
 
     m_state.indent(fp);
@@ -1251,131 +1662,22 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     if(classtype == UC_ELEMENT)
       {
-	//default constructor
-	m_state.indent(fp);
-	fp->write("template<class EC>\n");
-
-	m_state.indent(fp);
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>");
-	fp->write("::");
-	fp->write(cut->getUlamTypeMangledName().c_str());
-
-	std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
-	std::string namestrlong = removePunct(cut->getUlamTypeMangledName());
-
-	fp->write("() : UlamElement<EC>(MFM_UUID_FOR(\"");
-	fp->write(namestrlong.c_str());
-	fp->write("\", 0))\n");
-
-	m_state.indent(fp);
-	fp->write("{\n");
-
-	m_state.m_currentIndentLevel++;
-
-	m_state.indent(fp);
-	fp->write("//XXXX  Element<EC>::SetAtomicSymbol(\"");
-	fp->write(namestr.substr(0,1).c_str());
-	fp->write("\");  // figure this out later\n");
-
-	m_state.indent(fp);
-	fp->write("Element<EC>::SetName(\"");
-	fp->write(namestr.c_str());
-	fp->write("\");"); GCNL;
-
-	m_state.m_currentIndentLevel--;
-	m_state.indent(fp);
-	fp->write("}\n\n");
-
-	//default destructor
-	m_state.indent(fp);
-	fp->write("template<class EC>\n");
-
-	m_state.indent(fp);
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>");
-	fp->write("::~");
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("(){}"); GCNL;
-	fp->write("\n");
-
-	assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
+	genCodeBodyElement(fp, uvpass);
       }
     else if(classtype == UC_QUARK)
       {
-	//default constructor for quark
-	m_state.indent(fp);
-	fp->write("template<class EC>\n");
-
-	m_state.indent(fp);
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>");
-	fp->write("::");
-	fp->write(cut->getUlamTypeMangledName().c_str());
-
-	std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
-	std::string namestrlong = removePunct(cut->getUlamTypeMangledName());
-
-	fp->write("() : UlamQuark<EC>(MFM_UUID_FOR(\"");
-	fp->write(namestrlong.c_str());
-	fp->write("\", 0))\n");
-
-	m_state.indent(fp);
-	fp->write("{ }\n\n");
-
-	//default destructor
-	m_state.indent(fp);
-	fp->write("template<class EC>\n");
-
-	m_state.indent(fp);
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>");
-	fp->write("::~");
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("(){}"); GCNL;
-	fp->write("\n");
-
-	assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
+	genCodeBodyQuark(fp, uvpass);
       }
     else if(classtype == UC_TRANSIENT)
       {
-	//default constructor for transient
-	m_state.indent(fp);
-	fp->write("template<class EC>\n");
-
-	m_state.indent(fp);
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>");
-	fp->write("::");
-	fp->write(cut->getUlamTypeMangledName().c_str());
-
-	std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
-	std::string namestrlong = removePunct(cut->getUlamTypeMangledName());
-
-	fp->write("() : UlamTransient<EC");
-	fp->write(">(MFM_UUID_FOR(\"");
-	fp->write(namestrlong.c_str());
-	fp->write("\", 0))\n");
-
-	m_state.indent(fp);
-	fp->write("{ }\n\n");
-
-	//default destructor
-	m_state.indent(fp);
-	fp->write("template<class EC>\n");
-
-	m_state.indent(fp);
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>");
-	fp->write("::~");
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("(){}"); GCNL;
-	fp->write("\n");
-
-	assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
+	genCodeBodyTransient(fp, uvpass);
+      }
+    else if(classtype == UC_LOCALSFILESCOPE)
+      {
+	genCodeBodyLocalsFilescope(fp, uvpass);
       }
     else
-      assert(0);
+      m_state.abortUndefinedUlamClassType();
 
     generateCodeForFunctions(fp, false, classtype);
 
@@ -1387,12 +1689,195 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("} //MFM\n\n");
   } //genCodeBody
 
+  void NodeBlockClass::genCodeBodyElement(File * fp, UVPass& uvpass)
+  {
+    UlamType * cut = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx());
+
+    //default constructor
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>");
+    fp->write("::");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+
+    std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
+    std::string namestrlong = removePunct(cut->getUlamTypeMangledName());
+
+    fp->write("() : UlamElement<EC>(MFM_UUID_FOR(\"");
+    fp->write(namestrlong.c_str());
+    fp->write("\", 0))\n");
+
+    genCodeConstantArrayInitialization(fp);
+
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("//XXXX  Element<EC>::SetAtomicSymbol(\"");
+    fp->write(namestr.substr(0,1).c_str());
+    fp->write("\");  // figure this out later\n");
+
+    m_state.indent(fp);
+    fp->write("Element<EC>::SetName(\"");
+    fp->write(namestr.c_str());
+    fp->write("\");"); GCNL;
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n\n");
+
+    //default destructor
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>");
+    fp->write("::~");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("(){}"); GCNL;
+    fp->write("\n");
+
+    assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
+  } //genCodeBodyElement
+
+  void NodeBlockClass::genCodeBodyQuark(File * fp, UVPass& uvpass)
+  {
+    UlamType * cut = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx());
+
+    //default constructor for quark
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>");
+    fp->write("::");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+
+    std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
+    std::string namestrlong = removePunct(cut->getUlamTypeMangledName());
+
+    fp->write("() : UlamQuark<EC>(MFM_UUID_FOR(\"");
+    fp->write(namestrlong.c_str());
+    fp->write("\", 0))\n");
+
+    genCodeConstantArrayInitialization(fp);
+
+    m_state.indent(fp);
+    fp->write("{ }\n\n");
+
+    //default destructor
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>");
+    fp->write("::~");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("(){}"); GCNL;
+    fp->write("\n");
+
+    assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
+  } //genCodeBodyQuark
+
+  void NodeBlockClass::genCodeBodyTransient(File * fp, UVPass& uvpass)
+  {
+    UlamType * cut = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx());
+
+    //default constructor for transient
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>");
+    fp->write("::");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+
+    std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
+    std::string namestrlong = removePunct(cut->getUlamTypeMangledName());
+
+    fp->write("() : UlamTransient<EC");
+    fp->write(">(MFM_UUID_FOR(\"");
+    fp->write(namestrlong.c_str());
+    fp->write("\", 0))\n");
+
+    genCodeConstantArrayInitialization(fp);
+
+    m_state.indent(fp);
+    fp->write("{ }\n\n");
+
+    //default destructor
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>");
+    fp->write("::~");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("(){}"); GCNL;
+    fp->write("\n");
+
+    assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
+  } //genCodeBodyTransient
+
+  void NodeBlockClass::genCodeBodyLocalsFilescope(File * fp, UVPass& uvpass)
+  {
+    UlamType * cut = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx());
+
+    //default constructor for LocalsFilescope
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>");
+    fp->write("::");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+
+    std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
+    std::string namestrlong = removePunct(cut->getUlamTypeMangledName());
+
+    fp->write("() : UlamClass<EC");
+    fp->write(">()\n");
+
+    genCodeConstantArrayInitialization(fp);
+
+    m_state.indent(fp);
+    fp->write("{ }\n\n");
+
+    //default destructor
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>");
+    fp->write("::~");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("(){}"); GCNL;
+    fp->write("\n");
+
+    assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
+  } //genCodeBodyLocalsFilescope
+
   void NodeBlockClass::generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     //ALL builtin should be hident!!!! XXXXXX
     m_state.indent(fp);
     fp->write("//BUILT-IN FUNCTIONS:\n");
     fp->write("\n");
+
+    //define built-in init method for any "data member" constant arrays:
+    generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
 
     //generate 3 UlamClass:: methods for smart ulam debugging
     u32 dmcount = 0; //pass ref
@@ -1402,12 +1887,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     genCodeBuiltInFunctionGetClassLength(fp, declOnly, classtype);
 
+    genCodeBuiltInFunctionGetString(fp, declOnly);
+    genCodeBuiltInFunctionGetStringLength(fp, declOnly);
+
     genCodeBuiltInFunctionBuildDefaultAtom(fp, declOnly, classtype);
 
     genCodeBuiltInVirtualTable(fp, declOnly, classtype);
-
-    // 'has' is for both class types
-    //genCodeBuiltInFunctionHas(fp, declOnly, classtype);
 
     // 'is' quark related for both class types; overloads is-Method with THE_INSTANCE arg
     genCodeBuiltInFunctionIsMethodRelatedInstance(fp, declOnly, classtype);
@@ -1422,73 +1907,16 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       generateGetPosForQuark(fp, declOnly);
     else if(classtype == UC_TRANSIENT)
       {
-	//assert(0);
+	//nothing to do
+      }
+    else if(classtype == UC_LOCALSFILESCOPE)
+      {
+	//nothing to do
       }
     else
-      assert(0); //sanity
+      m_state.abortUndefinedUlamClassType(); //sanity
+
   } //generateCodeForBuiltInClassFunctions
-
-  void NodeBlockClass::genCodeBuiltInFunctionHas(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
-  {
-    //'has' applies to both quarks and elements
-    UTI cuti = m_state.getCompileThisIdx();
-
-    if(declOnly)
-      {
-	m_state.indent(fp);
-	fp->write("//helper method not called directly\n");
-
-	m_state.indent(fp);
-	fp->write("s32 ");
-	fp->write(m_state.getHasMangledFunctionName(cuti));
-	fp->write("(const char * namearg) const;"); GCNL;
-	fp->write("\n");
-	return;
-      }
-
-    m_state.indent(fp);
-    fp->write("template<class EC>\n"); //same for elements and quarks
-
-    m_state.indent(fp);
-    fp->write("s32 "); //return pos offset, or -1 if not found
-
-    //include the mangled class::
-    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
-    fp->write("<EC>::");
-    fp->write(m_state.getHasMangledFunctionName(cuti));
-    fp->write("(const char * namearg) const\n");
-    m_state.indent(fp);
-    fp->write("{\n");
-
-    m_state.m_currentIndentLevel++;
-
-    genCodeBuiltInFunctionHasDataMembers(fp);
-
-    fp->write("\n");
-    m_state.indent(fp);
-    fp->write("return ");
-    fp->write("(-1); //not found"); GCNL;
-
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("}  //has\n\n");
-  } //genCodeBuiltInFunctionHas
-
-  void NodeBlockClass::genCodeBuiltInFunctionHasDataMembers(File * fp)
-  {
-    //first, ours (any that may shadow)
-    m_ST.genCodeBuiltInFunctionHasOverTableOfVariableDataMember(fp);
-
-    UTI superuti = m_state.isClassASubclass(getNodeType());
-    assert(superuti != Hzy);
-    if(superuti != Nouti)
-      {
-	//include any of its quark data members:
-	NodeBlockClass * superClassBlock = getSuperBlockPointer();
-	assert(superClassBlock);
-	superClassBlock->genCodeBuiltInFunctionHasDataMembers(fp);
-      }
-  } //genCodeBuiltInFunctionHasDataMembers
 
   void NodeBlockClass::genCodeBuiltInFunctionIsMethodRelatedInstance(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
@@ -1538,7 +1966,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   void NodeBlockClass::genCodeBuiltInFunctionIsRelatedInstance(File * fp)
   {
     UTI nuti = getNodeType();
-    UTI superuti = m_state.isClassASubclass(getNodeType());
+    UTI superuti = m_state.isClassASubclass(nuti);
     assert(superuti != Hzy);
     if(superuti != Nouti)
       {
@@ -1549,7 +1977,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       }
     m_state.indent(fp);
     fp->write("if(cptrarg == &");
-    fp->write(m_state.getEffectiveSelfMangledNameByIndex(nuti).c_str());
+    fp->write(m_state.getTheInstanceMangledNameByIndex(nuti).c_str());
     fp->write(") return(true); //inherited class, or self (last)"); GCNL;
   } //genCodeBuiltInFunctionIsRelatedInstance
 
@@ -1603,6 +2031,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       return genCodeBuiltInFunctionBuildDefaultQuark(fp, declOnly, classtype);
     else if(classtype == UC_TRANSIENT)
       return genCodeBuiltInFunctionBuildDefaultTransient(fp, declOnly, classtype);
+    else if(classtype == UC_LOCALSFILESCOPE)
+      return;
 
     assert(classtype == UC_ELEMENT);
 
@@ -1795,15 +2225,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	//get all initialized data members packed into 'daref'
 	// unlike element and quarks, data members can be elements, atoms and other transients
 	//e.g. t3811, t3812
-	//if(genCodeBuiltInFunctionBuildingDefaultDataMembers(fp))
-	  {
-	    genCodeBuiltInFunctionBuildingDefaultDataMembers(fp);
-	    genCodeElementTypeIntoDataMemberDefaultValue(fp, 0); //startpos = 0
+	genCodeBuiltInFunctionBuildingDefaultDataMembers(fp);
+	genCodeElementTypeIntoDataMemberDefaultValue(fp, 0); //startpos = 0
 
-	    m_state.indent(fp);
-	    fp->write("bvsref.WriteBV(pos, "); //first arg
-	    fp->write("initBV);"); GCNL;
-	  }
+	m_state.indent(fp);
+	fp->write("bvsref.WriteBV(pos, "); //first arg
+	fp->write("initBV);"); GCNL;
       }
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -1812,6 +2239,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   void NodeBlockClass::genCodeBuiltInVirtualTable(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
+    if(classtype == UC_LOCALSFILESCOPE)
+      return;
+
     //VTable applies to both quarks and elements
     UTI cuti = m_state.getCompileThisIdx();
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
@@ -1828,27 +2258,25 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     if(declOnly)
       {
-#if 0
 	//enum for method indexes; see UlamElement.h for first two.
 	m_state.indent(fp);
-	fp->write("enum VmethodNumbers {\n");
+	fp->write("enum VTABLE_IDX {\n");
 	m_state.m_currentIndentLevel++;
 	for(s32 i = 0; i < maxidx; i++)
 	  {
 	    m_state.indent(fp);
-	    fp->write("MN_METHOD_IDX_");
-	    fp->write(csym->getMangledFunctionNameForVTableEntry(i).c_str());
+	    fp->write("VTABLE_IDX_");
+	    fp->write(csym->getMangledFunctionNameWithTypesForVTableEntry(i).c_str());
 	    if(i == 0)
 	      fp->write(" = 0");
 	    fp->write(",\n");
 	  }
 	m_state.indent(fp);
-	fp->write("MN_MAX_METHOD_IDX\n");
+	fp->write("VTABLE_IDX_MAX\n");
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
 	fp->write("};"); GCNL;
 	fp->write("\n");
-#endif
 
 	m_state.indent(fp);
 	fp->write("static ");
@@ -1886,6 +2314,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	if(csym->isPureVTableEntry(i))
 	  {
+	    m_state.indent(fp);
 	    fp->write("&UlamClass<EC>::PureVirtualFunctionCalled");
 	    continue;
 	  }
@@ -2046,6 +2475,136 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write("__inline__ const u32 GetPos() const { return 0u; }\n"); //?????
       }
   } //generateGetPosForQuark
+
+  void NodeBlockClass::genCodeConstantArrayInitialization(File * fp)
+  {
+    if(m_nodeArgumentList)
+      m_nodeArgumentList->genCodeConstantArrayInitialization(fp);
+
+    if(m_nodeNext)
+      m_nodeNext->genCodeConstantArrayInitialization(fp);
+  }
+
+  void NodeBlockClass::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  {
+    if(m_nodeArgumentList)
+      m_nodeArgumentList->generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
+
+    if(m_nodeNext)
+      m_nodeNext->generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
+  }
+
+  void NodeBlockClass::genCodeBuiltInFunctionGetString(File * fp, bool declOnly)
+  {
+    UTI cuti = m_state.getCompileThisIdx();
+
+    //class specific UserStringPool
+    if(declOnly)
+      {
+	m_state.indent(fp);
+	fp->write("virtual const ");
+	fp->write("unsigned char * ");
+	fp->write(m_state.getClassGetStringFunctionName(cuti));
+	fp->write("(u32 sidx) const;"); GCNL;
+	fp->write("\n");
+	return;
+      }
+
+    StringPoolUser& classupool = m_state.getUPoolRefForClass(cuti);
+
+    m_state.indent(fp);
+    fp->write("template<class EC>\n"); //same for elements and quarks
+
+    m_state.indent(fp);
+    fp->write("const ");
+    fp->write("unsigned char * ");
+
+    //include the mangled class::
+    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
+    fp->write("<EC>::");
+    fp->write(m_state.getClassGetStringFunctionName(cuti));
+    fp->write("(u32 sidx)  const\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("const u32 ");
+    fp->write(m_state.getDefineNameForUserStringPoolSize());
+    fp->write(" = ");
+    fp->write_decimal_unsigned(classupool.getUserStringPoolSize());
+    fp->write(";"); GCNL;
+
+    //the pool table definition
+    classupool.generateUserStringPoolEntries(fp, &m_state);
+
+    m_state.indent(fp);
+    fp->write("if(sidx == 0)\n");
+    m_state.m_currentIndentLevel++;
+    m_state.indent(fp);
+    fp->write("FAIL(UNINITIALIZED_VALUE);"); GCNL;
+    m_state.m_currentIndentLevel--;
+
+    m_state.indent(fp);
+    fp->write("if(sidx >= ");
+    fp->write(m_state.getDefineNameForUserStringPoolSize());
+    fp->write(")\n");
+    m_state.m_currentIndentLevel++;
+    m_state.indent(fp);
+    fp->write("FAIL(ARRAY_INDEX_OUT_OF_BOUNDS);"); GCNL;
+    m_state.m_currentIndentLevel--;
+
+    m_state.indent(fp);
+    fp->write("return ");
+    fp->write(m_state.getMangledNameForUserStringPool());
+    fp->write(" + sidx + 1;"); GCNL;
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //GetString\n\n");
+  } //genCodeBuiltInFunctionGetString
+
+  void NodeBlockClass::genCodeBuiltInFunctionGetStringLength(File * fp, bool declOnly)
+  {
+    UTI cuti = m_state.getCompileThisIdx();
+
+    //class specific UserStringPool
+    if(declOnly)
+      {
+	m_state.indent(fp);
+	fp->write("virtual u32 ");
+	fp->write(m_state.getClassGetStringFunctionName(cuti));
+	fp->write("Length(u32 sidx) const;"); GCNL;
+	fp->write("\n");
+	return;
+      }
+
+    m_state.indent(fp);
+    fp->write("template<class EC>\n"); //same for elements and quarks
+
+    m_state.indent(fp);
+    fp->write("u32 ");
+
+    //include the mangled class::
+    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
+    fp->write("<EC>::");
+    fp->write(m_state.getClassGetStringFunctionName(cuti));
+    fp->write("Length(u32 sidx)  const\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("return *(");
+    fp->write(m_state.getClassGetStringFunctionName(cuti));
+    fp->write("(sidx) - 1);"); GCNL;
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //GetStringLength\n\n");
+  } //genCodeBuiltInFunctionGetStringLength
 
   void NodeBlockClass::generateUlamClassInfoFunction(File * fp, bool declOnly, u32& dmcount)
   {
@@ -2233,10 +2792,174 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     return newstr;
   } //removePunct
 
-  void NodeBlockClass::addClassMemberDescriptionsToInfoMap(ClassMemberMap& classmembers)
+  void NodeBlockClass::addTargetDescriptionToInfoMap(TargetMap& classtargets, u32 scid)
   {
-    NodeBlock::addClassMemberDescriptionsToInfoMap(classmembers); //Table of Classes request
+    UTI cuti = getNodeType();
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+    std::string className = cut->getUlamTypeNameOnly();
+    std::string mangledName = cut->getUlamTypeMangledName();
+    struct TargetDesc desc;
+
+    NodeBlockFunctionDefinition * func = findTestFunctionNode();
+    desc.m_hasTest = (func != NULL);
+
+    ULAMCLASSTYPE classtype = cut->getUlamClassType();
+    desc.m_classType = classtype;
+
+    desc.m_bitsize = cut->getTotalBitSize();
+    desc.m_loc = getNodeLocation();
+    desc.m_className = className;
+
+    if(scid > 0)
+      {
+	std::ostringstream sc;
+	sc << "/**";
+	sc << m_state.m_pool.getDataAsString(scid).c_str();
+	sc << "*/";
+	desc.m_structuredComment = sc.str();
+      }
+    else
+      desc.m_structuredComment = "NONE";
+
+    //format Ulam Class Signature
+    UlamKeyTypeSignature ckey = cut->getUlamKeyTypeSignature();
+    u32 nameid = ckey.getUlamKeyTypeSignatureNameId();
+    SymbolClassName * cnsym = NULL;
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(nameid, cnsym);
+    assert(isDefined);
+    desc.m_classSignature = cnsym->generateUlamClassSignature();
+
+    //format Ulam Class Signature of super class
+    if(!m_state.isUrSelf(cuti))
+      {
+	UTI superuti = m_state.isClassASubclass(cuti);
+	assert(m_state.okUTItoContinue(superuti));
+	UlamType * superut = m_state.getUlamTypeByIndex(superuti);
+	UlamKeyTypeSignature superkey = superut->getUlamKeyTypeSignature();
+	u32 supernameid = superkey.getUlamKeyTypeSignatureNameId();
+	SymbolClassName * supercnsym = NULL;
+	AssertBool isSuperDefined = m_state.alreadyDefinedSymbolClassName(supernameid, supercnsym);
+	assert(isSuperDefined);
+
+	desc.m_baseClassSignature = supercnsym->generateUlamClassSignature();
+      }
+    else
+      desc.m_baseClassSignature = "nobase";
+
+    classtargets.insert(std::pair<std::string, struct TargetDesc>(mangledName, desc));
+  } //addTargetDescriptionToInfoMap
+
+  void NodeBlockClass::addMemberDescriptionsToInfoMap(ClassMemberMap& classmembers)
+  {
+    NodeBlock::addMemberDescriptionsToInfoMap(classmembers); //Table of Variables request
     m_functionST.addClassMemberFunctionDescriptionsToMap(this->getNodeType(), classmembers); //Table of Classes request
-  } //addClassMemberDescriptionsToInfoMap
+  }
+
+  void NodeBlockClass::generateTestInstance(File * fp, bool runtest)
+  {
+    std::ostringstream runThisTest;
+    UTI suti = getNodeType();
+    UlamType * sut = m_state.getUlamTypeByIndex(suti);
+    if(!sut->isComplete()) return;
+    // register all classes, for testing only, o.w. ILLEGAL_STATE t3879. t3922, t3948, t3967, t3982
+    //if((suti != m_state.getCompileThisIdx()) && !m_state.isOtherClassInThisContext(suti)) return; //e.g. t3373,5,6,7, t3923
+
+    if(sut->getUlamClassType() != UC_ELEMENT)
+      {
+	fp->write("\n");
+	m_state.indent(fp);
+	fp->write("{\n");
+
+	m_state.m_currentIndentLevel++;
+
+	m_state.indent(fp);
+	fp->write("UlamClass<EC> & clt = ");
+	fp->write(m_state.getTheInstanceMangledNameByIndex(suti).c_str());
+	fp->write(";"); GCNL;
+
+	m_state.indent(fp);
+	fp->write("tile.GetUlamClassRegistry().RegisterUlamClass(clt);"); GCNL;
+
+	m_state.m_currentIndentLevel--;
+
+	m_state.indent(fp);
+	fp->write("}\n");
+	return;
+      }
+
+    // output for each element before testing; a test may include
+    // one or more of them!
+    if(!runtest)
+      {
+	fp->write("\n");
+	m_state.indent(fp);
+	fp->write("{\n");
+
+	m_state.m_currentIndentLevel++;
+
+	m_state.indent(fp);
+	fp->write("UlamElement<EC> & elt = ");
+	fp->write(m_state.getTheInstanceMangledNameByIndex(suti).c_str());
+	fp->write(";"); GCNL;
+
+	//register before allocate type to avoid ILLEGAL_STATE (t3968)
+	m_state.indent(fp);
+	fp->write("tile.GetUlamClassRegistry().RegisterUlamClass(elt);"); GCNL;
+	m_state.indent(fp);
+	fp->write("elt.AllocateType(etnm); //Force element type allocation now"); GCNL;
+	m_state.indent(fp);
+	fp->write("tile.RegisterElement(elt);"); GCNL;
+
+	m_state.m_currentIndentLevel--;
+
+	m_state.indent(fp);
+	fp->write("}\n");
+      }
+    else
+      {
+	if(suti == m_state.getCompileThisIdx())
+	  {
+	    fp->write("\n");
+
+	    m_state.indent(fp);
+	    fp->write("{\n");
+
+	    m_state.m_currentIndentLevel++;
+
+	    m_state.indent(fp);
+	    fp->write("OurAtomAll atom = "); //OurAtomAll
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(suti).c_str());
+	    fp->write(".GetDefaultAtom();"); GCNL;
+	    m_state.indent(fp);
+	    fp->write("tile.PlaceAtom(atom, center);"); GCNL;
+
+	    m_state.indent(fp);
+	    fp->write("AtomRefBitStorage<EC> atbs(atom);"); GCNL;
+
+	    m_state.indent(fp);
+	    fp->write("UlamRef<EC> ur(EC::ATOM_CONFIG::ATOM_TYPE::ATOM_FIRST_STATE_BIT, "); //e.g. t3255
+	    fp->write_decimal_unsigned(sut->getTotalBitSize()); //t3655
+	    fp->write("u, atbs, &");
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(suti).c_str());
+	    fp->write(", UlamRef<EC>::ELEMENTAL, uc);"); GCNL;
+
+	    m_state.indent(fp);
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(suti).c_str());
+
+	    // pass uc with effective self setup
+	    fp->write(".Uf_4test(");
+	    fp->write("uc, ur);"); GCNL;
+
+	    m_state.indent(fp);
+	    fp->write("//std::cerr << rtn.read() << std::endl;\n");//useful to return result of test?
+	    m_state.indent(fp);
+	    fp->write("//return rtn.read();\n"); //was useful to return result of test
+
+	    m_state.m_currentIndentLevel--;
+	    m_state.indent(fp);
+	    fp->write("}\n");
+	  }
+      }
+  } //generateTestInstance
 
 } //end MFM

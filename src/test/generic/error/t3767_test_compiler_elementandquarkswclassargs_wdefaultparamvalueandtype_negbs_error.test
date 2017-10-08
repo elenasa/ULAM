@@ -1,10 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3767_test_compiler_elementandquarkswclassargs_wdefaultparamvalueandtype_negbs_error
 #!
+./Q.ulam:2:20: ERROR: Type Bitsize specifier for Unsigned type, within (), is a negative numeric constant expression: -3.
 ./Q.ulam:2:20: ERROR: Type Bitsize specifier for Unsigned type, within (), is a negative numeric constant expression: -4.
-./P.ulam:11:0: ERROR: Invalid size (0) to set for primitive type: Unsigned.
-./P.ulam:3:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: P.
-./P.ulam:3:9: ERROR: 4 Nodes with unresolved types detected after type labeling class: P.
+./P.ulam:13:0: ERROR: Invalid size (0) to set for primitive type: Unsigned.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3526
@@ -14,7 +13,9 @@ Unrecoverable Program Type Label FAILURE.
 use Q;
 element P {
   Bool b;
+  constant Unsigned c = 3u;
   Int test() {
+    Q(-(Int)c, 0) x; //fails
     Q(-4, 0) z; //fails
     Q(0, 0) y; //fails
     return (Int) (z.sizeof) + (Int) (y.sizeof);

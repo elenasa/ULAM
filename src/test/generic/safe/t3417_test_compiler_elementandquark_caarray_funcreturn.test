@@ -7,7 +7,7 @@
 ##       after assert's abort: arg is 1
 ##      */
 ##      // correct answer in gen code output, not exit status.
-Exit status: -11
+Exit status: 2
 Ue_IntArrayTest { typedef Int(3) Intn;  constant Int(32) isn = 3;  IAN(3) ia( constant Int(32) n = 3;  typedef Int(3) Intn; );  Int(32) test() {  System s;  Int(3) a;  a ( )func = s ( a )print . s ( a 2 == )assert . a cast return } }
 Uq_IAN(Int(32) n) { typedef Int(UNKNOWN) Intn;  <NOMAIN> }
 Uq_System { <NOMAIN> }

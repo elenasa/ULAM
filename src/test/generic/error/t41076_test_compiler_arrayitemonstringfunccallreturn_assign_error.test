@@ -1,0 +1,25 @@
+## -*- mode:ulam -*-
+#=t41076_test_compiler_arrayitemonstringfunccallreturn_assign_error
+#!
+./A.ulam:12:11: ERROR: Invalid lefthand side of equals <[]>, type: Unsigned(8).
+Unrecoverable Program Type Label FAILURE.
+##
+## based on t41075
+##
+#>A.ulam
+  ulam 3;
+element A {
+  Bool b;
+  ASCII m_asc;
+  String getString()
+  {
+    return "hello world";
+  }
+
+ Int test() {
+   String str = getString();
+   str[6] = 'z';
+   return 0;
+ }
+}
+#.

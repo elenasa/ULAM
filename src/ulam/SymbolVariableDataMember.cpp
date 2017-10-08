@@ -146,7 +146,7 @@ namespace MFM {
 	PACKFIT packFit = m_state.determinePackable(vuti);
 	assert(WritePacked(packFit)); //has to be to fit in an atom/site;
 
-	char * valstr = new char[size * 8 + MAXBITSPERLONG]; //was 32
+	char * valstr = new char[size * 8 + MAXBITSPERSTRING + 2 + 1]; //was 64
 
 	if(size > 0)
 	  {
@@ -167,18 +167,24 @@ namespace MFM {
 	    else if(len <= MAXBITSPERINT)
 	      {
 		u32 data = atval.getDataFromAtom(nextPtr, m_state);
-		vut->getDataAsString(data, valstr, 'z'); //'z' -> no preceeding ','
+		if((vetyp == String) && (data == 0))
+		  sprintf(valstr," ");
+		else
+		  vut->getDataAsString(data, valstr, 'z'); //'z' -> no preceeding ','
 		if(vetyp == Unsigned || vetyp == Unary)
 		  strcat(valstr, "u");
 
 		for(s32 i = 1; i < size; i++)
 		  {
-		    char tmpstr[8];
+		    char tmpstr[MAXBITSPERSTRING + 2 + 1]; //was 8
 		    AssertBool isNext = nextPtr.incrementPtr(m_state);
 		    assert(isNext);
 		    atval = m_state.getPtrTarget(nextPtr);
 		    data = atval.getDataFromAtom(nextPtr, m_state);
-		    vut->getDataAsString(data, tmpstr, ',');
+		    if((vetyp == String) && (data == 0))
+		      strcat(valstr, ",");
+		    else
+		      vut->getDataAsString(data, tmpstr, ',');
 		    if(vetyp == Unsigned || vetyp == Unary)
 		      strcat(tmpstr, "u");
 		    strcat(valstr,tmpstr);
@@ -193,7 +199,7 @@ namespace MFM {
 
 		for(s32 i = 1; i < size; i++)
 		  {
-		    char tmpstr[8];
+		    char tmpstr[MAXBITSPERSTRING + 2 + 1]; //was 8
 		    AssertBool isNext = nextPtr.incrementPtr(m_state);
 		    assert(isNext);
 		    atval = m_state.getPtrTarget(nextPtr);
@@ -205,7 +211,7 @@ namespace MFM {
 		  }
 	      }
 	    else
-	      assert(0);
+	      m_state.abortGreaterThanMaxBitsPerLong();
 
 	  } //end arrays > 0, and scalar
 	else

@@ -1,0 +1,73 @@
+## -*- mode:ulam -*-
+#=t3917_test_compiler_elementandquark_memberselectedfuncreturnref
+##
+## gen output: (+ assert)
+## Int 40;
+##
+#!
+./Foo.ulam:7:18: ERROR: Invalid lefthand type of conditional operator 'as'; suggest a reference variable.
+Unrecoverable Program Type Label FAILURE.
+##
+##      //conditional 'as' on lhs function call returned by reference (see t3917)
+##
+#>Foo.ulam
+  ulam 2;
+element Foo : C2D {
+  Int m_idx;
+
+  Int test() {
+    System s;
+    if(func(9,4) as C2D)
+    {
+      //m_idx = func(9,4).getIndex(); //undefined func already declared as variable
+      s.print(m_idx);
+      s.assert(m_idx == 40);
+    }
+    else
+      s.assert(false);
+
+    return m_idx;
+  }
+}
+
+#:C2D.ulam
+  ulam 1;
+quark C2D {
+  typedef Int(6) IF;
+  IF m_width, m_height;
+
+  Self func(Int i, Int j) {
+    init(i,j);
+    return self;
+  }
+
+  Void init(Int x, Int y) {
+    m_width = (IF) x;
+    m_height = (IF) y;
+    return;
+  }
+
+  Void init() {
+    m_width = IF.maxof;
+    m_height = 4;
+    return;
+    /* event window overload */
+  }
+
+  Int getIndex(Int a, Int b){
+    return ((m_height-b) * m_width + (m_height-a));
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

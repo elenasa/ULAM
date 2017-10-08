@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * Node.h - Basic Node of Nodes for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file Node.h - Basic Node of Nodes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2017 All rights reserved.
   \gpl
 */
 
@@ -40,16 +40,17 @@
 #include <sstream>
 #include <stdio.h>
 #include <assert.h>
+#include <vector>
 #include "BitVector.h"
 #include "CastOps.h"
 #include "File.h"
 #include "Locator.h"
 #include "Symbol.h"
-#include "SymbolTmpRef.h"
+#include "SymbolTmpVar.h"
 #include "UlamType.h"
 #include "UlamValue.h"
 #include "UVPass.h"
-
+#include "MapClassMemberDesc.h"
 
 namespace MFM{
 
@@ -74,15 +75,15 @@ namespace MFM{
 
     virtual void setYourParentNo(NNO pno);
 
-    NNO getYourParentNo();
+    NNO getYourParentNo() const;
 
     virtual void updateLineage(NNO pno);
 
     virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
 
-    NNO getNodeNo();
+    NNO getNodeNo() const;
 
-    void resetNodeNo(NNO no); //for constant folding
+    virtual void resetNodeNo(NNO no); //for constant folding
 
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
@@ -92,33 +93,49 @@ namespace MFM{
 
     virtual void printPostfix(File * fp) = 0;
 
+    virtual void noteTypeAndName(s32 totalsize, u32& accumsize);
+
     virtual const char * getName() = 0;
+
+    virtual u32 getTypeNameId();
 
     virtual const std::string prettyNodeName() = 0;
 
     const std::string nodeName(const std::string& prettyFunction);
 
-    UTI getNodeType();
+    UTI getNodeType() const;
 
     void setNodeType(UTI ut);
 
-    virtual TBOOL getStoreIntoAble();
+    virtual TBOOL getStoreIntoAble() const;
 
     void setStoreIntoAble(TBOOL s);
 
-    virtual TBOOL getReferenceAble();
+    virtual TBOOL getReferenceAble() const;
 
     void setReferenceAble(TBOOL s);
 
-    Locator getNodeLocation();
+    Locator getNodeLocation() const;
 
     virtual void setNodeLocation(Locator loc);
 
+    virtual void resetNodeLocations(Locator loc);
+
     void printNodeLocation(File * fp);
 
-    std::string getNodeLocationAsString();
+    std::string getNodeLocationAsString() const;
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
+
+    virtual bool getStorageSymbolPtr(Symbol *& symptrref);
+
+    virtual bool hasASymbolDataMember();
+
+    virtual bool hasASymbolSuper();
+
+    virtual bool hasASymbolSelf();
+
+    virtual bool hasASymbolReference();
 
     virtual bool isAConstant();
 
@@ -130,19 +147,31 @@ namespace MFM{
 
     virtual bool isFunctionCall();
 
+    virtual bool isAConstructorFunctionCall();
+
+    virtual bool isArrayItem();
+
+    virtual bool isAList();
+
     virtual bool isExplicitReferenceCast(); //only NodeCast may return true
+
+    virtual bool isExplicitCast(); //only NodeCast may return true
 
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType();
 
-    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
+    virtual bool exchangeNodeWithParent(Node * newnode);
 
-    virtual void constantFoldAToken(const Token& tok);
+    virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
+
+    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
     virtual UTI constantFold();
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
+
+    virtual void genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos);
 
     virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
 
@@ -178,7 +207,15 @@ namespace MFM{
 
     virtual void genCodeWriteFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
 
+    virtual void genCodeConstantArrayInitialization(File * fp);
+
+    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
+
+    virtual void cloneAndAppendNode(std::vector<Node *> & cloneVec);
+
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
+
+    virtual void addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers);
 
     virtual void genCodeExtern(File * fp, bool declOnly);
 
@@ -207,12 +244,21 @@ namespace MFM{
 
     void assignReturnValueToStack(UlamValue rtnUV, STORAGE where = EVALRETURN);
 
-    void assignReturnValuePtrToStack(UlamValue rtnUVptr);
+    void assignReturnValuePtrToStack(UlamValue rtnUVptr, STORAGE where = EVALRETURN);
 
-    virtual void genMemberNameOfMethod(File * fp, bool endingdot = true); //helper method to read/write into/from tmpvar
+    UlamValue assignAnonymousClassReturnValueToStack(UlamValue rtnUV);
+
+    bool returnValueOnStackNeededForEval(UTI rtnType);
+
+    virtual void genMemberNameOfMethod(File * fp, UVPass& uvpass, bool endingdot = true); //helper method to read/write into/from tmpvar
     virtual void genModelParameterMemberNameOfMethod(File * fp, s32 epi);
 
-    virtual void genLocalMemberNameOfMethod(File * fp);
+    virtual void genLocalMemberNameOfMethod(File * fp, UVPass& uvpass);
+
+    void genLocalMemberNameOfMethodForAtomof(File * fp, UVPass& uvpass);
+
+    //return index of stgcos in stack of symbols, -1 if stack is empty and currentSelf.
+    s32 loadStorageAndCurrentObjectSymbols(Symbol *& stgcosref, Symbol *&cosref);
 
     //i.e. an immediate (right-justified); not a data member or self;
     bool isCurrentObjectALocalVariableOrArgument();
@@ -220,9 +266,13 @@ namespace MFM{
     //index of last "static" MP object; o.w.-1
     s32 isCurrentObjectsContainingAModelParameter();
 
+    //index of last named constant (array) object; o.w.-1
+    s32 isCurrentObjectsContainingAConstant();
+
+    //index of first element or ele ref object; o.w. -1
+    s32 isCurrentObjectsContainingAnElement();
+
     std::string calcPosOfCurrentObjectClassesAsString(UVPass uvpass);
-    s32 calcPosOfCurrentObjectClasses();
-    s32 calcPosOfCurrentObjects(bool onlyClasses = false);
 
     //false means its the entire array or not an array at all
     bool isCurrentObjectAnArrayItem(UTI cosuti, UVPass uvpass);
@@ -233,11 +283,12 @@ namespace MFM{
 
     bool isHandlingImmediateType();
 
-    u32 adjustedImmediateArrayItemPassPos(UTI cosuti, UVPass uvpass);
-
+    //true if a non-ref, scalar element
     bool needAdjustToStateBits(UTI cuti);
 
-    SymbolTmpRef * makeTmpRefSymbolForCodeGen(UVPass uvpass);
+    void adjustUVPassForElements(UVPass & uvpass);
+
+    SymbolTmpVar * makeTmpVarSymbolForCodeGen(UVPass& uvpass, Symbol * sym);
 
     std::string genUlamRefUsageAsString(UTI uti);
 
@@ -246,10 +297,18 @@ namespace MFM{
     void genCodeConvertABitVectorIntoATmpVar(File * fp, UVPass & uvpass);
 
     //e.g. when lhs of member select is an array item of class type
-    void genCodeConvertATmpVarIntoAutoRef(File * fp, UVPass & uvpass);
+    void genCodeConvertATmpVarAutoRefIntoAutoRef(File * fp, UVPass & uvpass);
 
+    //e.g. when a variable array item, may be of class type
+    void genCodeConvertATmpVarIntoAutoRef(File * fp, UVPass & luvpass, UVPass ruvpass);
+
+    //e.g. when constant array item, primitive
+    void genCodeConvertATmpVarIntoConstantAutoRef(File * fp, UVPass & luvpass, UVPass ruvpass);
     //e.g. when lhs of member select is an array item of class type, rhs data member
     void genCodeARefFromARefStorage(File * fp, UVPass stguvpass, UVPass uvpass);
+
+    //e.g. when a ref to a primitive is used as a lhs binary op, or if condition (t41140)
+    void genCodeReadAutorefIntoATmpVar(File * fp, UVPass& uvpass);
 
     void genCodeReferenceInitialization(File * fp, UVPass& uvpass, Symbol * vsymptr);
 
@@ -267,6 +326,7 @@ namespace MFM{
 
     //used for function calls second arg, including custom array accessors
     std::string genHiddenArg2(UVPass uvpass, u32& urtmpnumref);
+    virtual u32 getLengthOfMemberClassForHiddenArg(UTI cosuti);
 
   private:
     UTI m_utype;
@@ -285,21 +345,14 @@ namespace MFM{
 
     void genCodeWriteToAtomofRefFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
 
-    void genCodeReadAutorefIntoATmpVar(File * fp, UVPass& uvpass);
     void genCodeWriteToAutorefFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
-
-    void genCodeReadArrayItemIntoATmpVar(File * fp, UVPass& uvpass);
-    void genCodeReadCustomArrayItemIntoATmpVar(File * fp, UVPass & uvpass);
-
-    void genCodeWriteArrayItemFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
-    void genCodeWriteCustomArrayItemFromATmpVar(File * fp, UVPass& luvpass, UVPass& ruvpass);
 
     virtual void genModelParameterHiddenArgs(File * fp, s32 epi);
 
     void genCustomArrayMemberNameOfMethod(File * fp);
     void genCustomArrayHiddenArgs(File * fp, u32 urtmpnum);
 
-    void genLocalMemberNameOfMethodByUsTypedef(File * fp);
+    void genLocalMemberNameOfMethodByUsTypedef(File * fp, UVPass& uvpass);
     void genCustomArrayLocalMemberNameOfMethod(File * fp);
 
     const std::string localStorageTypeAsString(UTI nuti);
@@ -315,7 +368,6 @@ namespace MFM{
 
     void genCodeArrayRefInit(File * fp, UVPass & uvpass, Symbol * vsymptr);
     void genCodeArrayItemRefInit(File * fp, UVPass & uvpass, Symbol * vsymptr);
-
   };
 
 }

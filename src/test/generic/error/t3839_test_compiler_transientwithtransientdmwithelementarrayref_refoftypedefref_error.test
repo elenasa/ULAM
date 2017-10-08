@@ -4,8 +4,6 @@
 ##      gen code output: (2 asserts)
 ##
 ./R.ulam:13:5: ERROR: Referencing a reference type: Foo&.
-./Foo.ulam:2:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Foo.
-./Foo.ulam:2:9: ERROR: 16 Nodes with unresolved types detected after type labeling class: Foo.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## similar to 3832, except wondering what happens with ref of ref

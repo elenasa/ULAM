@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolClass.h -  Basic handling of Class Symbols for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolClass.h -  Basic handling of Class Symbols for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2017 All rights reserved.
   \gpl
 */
 
@@ -42,6 +42,7 @@
 #include "NodeTypeBitsize.h"
 #include "NodeSquareBracket.h"
 #include "NodeConstantDef.h"
+#include "StringPoolUser.h"
 #include "TargetMap.h"
 #include "MapClassMemberDesc.h"
 #include "VirtualTable.h"
@@ -93,6 +94,8 @@ namespace MFM{
 
     u32 getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
 
+    bool hasCustomArrayLengthof();
+
     bool trySetBitsizeWithUTIValues(s32& totalbits);
 
     void printBitSizeOfClass();
@@ -109,27 +112,28 @@ namespace MFM{
     bool statusUnknownTypeInClass(UTI huti);
     bool statusUnknownTypeNamesInClass();
     u32 reportUnknownTypeNamesInClass();
+    bool reportLongClassName();
 
     bool statusNonreadyClassArguments();
 
-    bool constantFoldNonreadyClassArguments();
+    u32 countNonreadyClassArguments();
 
     void linkConstantExpressionForPendingArg(NodeConstantDef * constNode);
     bool pendingClassArgumentsForClassInstance();
-    void cloneResolverForStubClassInstance(const SymbolClass* csym, UTI context);
+    void cloneArgumentNodesForClassInstance(SymbolClass * fmcsym, UTI context, bool toStub);
     void cloneResolverUTImap(SymbolClass * csym);
     void cloneUnknownTypesMapInClass(SymbolClass * to);
 
+    void setContextForPendingArgs(UTI context);
     UTI getContextForPendingArgs();
 
     bool mapUTItoUTI(UTI auti, UTI mappedUTI);
     bool hasMappedUTI(UTI auti, UTI& mappedUTI);
-    bool findNodeNoInResolver(NNO n, Node *& foundNode);
-    void countNavNodesInClassResolver(u32& ncnt, u32& hcnt, u32& nocnt);
 
     virtual void generateCode(FileManager * fm);
 
     void generateAsOtherInclude(File * fp);
+    void generateAllIncludesForTestMain(File * fp);
 
     void generateAsOtherForwardDef(File * fp);
 
@@ -144,11 +148,15 @@ namespace MFM{
     VT& getVTableRef();
     bool isPureVTableEntry(u32 idx);
     UTI getClassForVTableEntry(u32 idx);
+    void notePureFunctionSignatures();
     std::string getMangledFunctionNameForVTableEntry(u32 idx);
     std::string getMangledFunctionNameWithTypesForVTableEntry(u32 idx);
     struct VTEntry getVTableEntry(u32 idx);
 
     bool isAbstract();
+
+    StringPoolUser& getUserStringPoolRef();
+    void setUserStringPoolRef(const StringPoolUser& spref);
 
   protected:
     Resolver * m_resolver;
@@ -164,6 +172,7 @@ namespace MFM{
     bool m_isreadyDefaultValue;
     UTI m_superClass; //single inheritance
 
+    void assignClassArgValuesInStubCopy();
 
     void generateHeaderPreamble(File * fp);
     void genAllCapsIfndefForHeaderFile(File * fp);
@@ -177,6 +186,7 @@ namespace MFM{
     static std::string firstletterTolowercase(const std::string s);
 
     VT m_vtable;
+
   };
 
 }

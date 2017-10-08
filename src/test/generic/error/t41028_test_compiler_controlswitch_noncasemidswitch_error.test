@@ -1,0 +1,38 @@
+## -*- mode:ulam -*-
+#=t41028_test_compiler_controlswitch_noncasemidswitch_error
+#!
+./A.ulam:19:7: ERROR: Incomplete condition; which-control failure.
+./A.ulam:19:7: ERROR: Unexpected token <TOK_KW_TYPE_INT>; Expected }.
+./A.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'A'; Possible missing ending curly brace.
+./A.ulam:21:5: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./A.ulam:2:9: ERROR: Invalid Type: A.
+ ERROR: No parse tree for This Class: A.
+Unrecoverable Program Parse FAILURE: <A.ulam>
+##
+## informed by t41027; only case and default inside switch block
+##
+#>A.ulam
+  ulam 3;
+element A {
+  Int a, b;
+  Int test() {
+    a = 1;
+    b = 0;
+    which((--a))
+    {
+    case 0:
+      {
+	b = 2;
+	break;
+      }
+    case -1:
+      {
+	b = 3;
+	break;
+      }
+      Int goofball; //<--error
+    }
+    return a;
+  }
+}
+#.

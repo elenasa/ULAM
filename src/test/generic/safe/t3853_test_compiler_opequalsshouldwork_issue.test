@@ -1,0 +1,59 @@
+## -*- mode:ulam -*-
+#=t3853_test_compiler_opequalsshouldwork_issue
+##
+## gen output: 6 asserts
+##
+#!
+Exit status: 1
+Ue_Foo { Int(32) a(1);  Int(32) test() {  System s;  a 2 cast *= a 2 cast /= s ( a 1 cast == )assert . Int(32) arr[4] = { 4 };  arr a 1 += [] 2 cast /= s ( a 2 cast == )assert . s ( arr 2 [] 2 cast == )assert . a 2 cast %= s ( a 0 cast == )assert . Int(32) arr2[4] = { 4, 3, 2, 1 };  arr2 a 1 += [] 2 cast %= s ( a 1 cast == )assert . s ( arr2 1 [] 1 cast == )assert . a return } }
+Uq_System { <NOMAIN> }
+##
+## dave ish 7/23/2016, '/=' is not in the grammar, either. Plus the tricky case.
+##  neither was '%='
+##
+#>Foo.ulam
+  ulam 3;
+element Foo {
+  Int a = 1;
+
+  Int test() {
+    System s;
+
+    //divide equal tests:
+    a *= 2;
+    a /= 2; //TOK_SLASH_EQUAL
+    s.assert(a == 1);
+
+    //tricky case: lhs read once!
+    Int arr[4] = { 4 };
+    arr[++a] /= 2;
+
+    s.assert(a == 2);
+    s.assert(arr[2] == 2);
+
+    //remainder equal tests:
+    a %= 2; //TOK_PERCENTSIGN_EQUAL
+    s.assert(a == 0);
+
+    //tricky case: lhs read once!
+    Int arr2[] = { 4, 3 , 2,  1 };
+    arr2[++a] %= 2;
+
+    s.assert(a == 1);
+    s.assert(arr2[1] == 1);
+    return a;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

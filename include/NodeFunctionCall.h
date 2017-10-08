@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeFunctionCall.h - Basic Node for handling Function Calls for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeFunctionCall.h - Basic Node for handling Function Calls for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2017 All rights reserved.
   \gpl
 */
 
@@ -77,6 +77,8 @@ namespace MFM{
 
     virtual bool isFunctionCall();
 
+    virtual bool isAConstructorFunctionCall();
+
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();
@@ -93,6 +95,8 @@ namespace MFM{
 
     virtual void genCodeReadIntoATmpVar(File * fp, UVPass & uvpass);
 
+    virtual u32 getLengthOfMemberClassForHiddenArg(UTI cosuti);
+
   protected:
     //helper methods override Node read/write
     virtual void genMemberNameOfMethod(File * fp);
@@ -108,7 +112,10 @@ namespace MFM{
     Token m_functionNameTok;
     SymbolFunction * m_funcSymbol;
     NodeList * m_argumentNodes;
+    SymbolTmpVar * m_tmpvarSymbol;
 
+    EvalStatus evalArgumentsInReverseOrder(u32& argsPushed);
+    EvalStatus evalHiddenArguments(u32& argsPushed, NodeBlockFunctionDefinition *& func);
     bool getVirtualFunctionForEval(UlamValue & atomPtr, NodeBlockFunctionDefinition *& rtnfunc);
 
     void genCodeIntoABitValue(File * fp, UVPass& uvpass);
@@ -119,8 +126,8 @@ namespace MFM{
     std::string genHiddenArgs(u32 urtmpnum);
     std::string genRestOfFunctionArgs(File * fp, UVPass & uvpass);
     void genCodeReferenceArg(File * fp, UVPass & uvpass, u32 n);
-    void genCodeAnonymousReferenceArg(File * fp, UVPass & uvpass, u32 n);
     std::string genStorageType(); //for VTable entry
+
   };
 
 }

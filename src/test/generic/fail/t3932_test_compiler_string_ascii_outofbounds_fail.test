@@ -1,0 +1,46 @@
+## -*- mode:ulam -*-
+#=t3932_test_compiler_string_ascii_outofbounds_fail
+##
+## gen output: 1 assert only!
+##
+## gen error log:
+## include/Ue_102181A10.tcc:76: FAILED: ARRAY_INDEX_OUT_OF_BOUNDS
+##
+#!
+./A.ulam:14:14: ERROR: String subscript [3] exceeds the length (3) of '"bar"'.
+Exit status: -1
+Unrecoverable Program Test FAILURE.
+#>A.ulam
+  ulam 3;
+element A {
+  Bool b1, b2;
+  ASCII asc1, asc2;
+ Int test() {
+   System s;
+
+   String str = "bar";
+   Int slen = str.lengthof; // =3
+   asc1 = str[0];
+   b1 = (asc1 == 'b');
+   s.assert(b1);
+
+   asc2 = str[slen]; //runtime ERROR
+   b2 = (asc2 == 'r');
+   s.assert(b2);
+
+   return 0;
+ }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

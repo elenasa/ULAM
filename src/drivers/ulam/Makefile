@@ -21,6 +21,7 @@ $(BUILD_DIR):
 $(BIN_DIR)/%: ./%.tmpl FORCE | $(BIN_DIR) # just always do this -- depends on ENV vars
 	sed \
 	    -e "s|@DEBIAN_PACKAGE_NAME@|$(DEBIAN_PACKAGE_NAME)|" \
+	    -e "s|@ULAM_ROOT_DIR@|$(ULAM_ROOT_DIR)|" \
 	    -e "s|@CULAM_PATH@|$(ULAM_ROOT_DIR)/bin/culam|" \
 	    -e "s|@ULAM_VERSION_MAJOR@|$(ULAM_VERSION_MAJOR)|" \
 	    -e "s|@ULAM_VERSION_MINOR@|$(ULAM_VERSION_MINOR)|" \
@@ -41,6 +42,7 @@ $(BIN_DIR)/%: ./%.tmpl FORCE | $(BIN_DIR) # just always do this -- depends on EN
 $(TARGET): $(SRC) FORCE | $(BIN_DIR) # just always do this -- depends on ENV vars
 	sed \
 	    -e "s|@CULAM_PATH@|$(ULAM_ROOT_DIR)/bin/culam|" \
+	    -e "s|@ULAM_ROOT_DIR@|$(ULAM_ROOT_DIR)|" \
 	    -e "s|@ULAM_VERSION_MAJOR@|$(ULAM_VERSION_MAJOR)|" \
 	    -e "s|@ULAM_VERSION_MINOR@|$(ULAM_VERSION_MINOR)|" \
 	    -e "s|@ULAM_VERSION_REV@|$(ULAM_VERSION_REV)|" \

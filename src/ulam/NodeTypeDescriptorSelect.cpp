@@ -51,16 +51,20 @@ namespace MFM {
 
   const char * NodeTypeDescriptorSelect::getName()
   {
-    if(m_nodeSelect)
-      {
-	//std::ostringstream nstr;
-	//nstr << m_nodeSelect->getName();
-	//nstr << ".";
-	//return nstr.str().c_str();
-	return m_nodeSelect->getName();
-      }
     return NodeTypeDescriptor::getName();
   } //getName
+
+  u32 NodeTypeDescriptorSelect::getTypeNameId()
+  {
+    std::ostringstream nstr;
+    if(m_nodeSelect)
+      {
+	nstr << m_state.m_pool.getDataAsString(m_nodeSelect->getTypeNameId()).c_str();
+	nstr << ".";
+      }
+    nstr << m_state.m_pool.getDataAsString(NodeTypeDescriptor::getTypeNameId()).c_str();
+    return m_state.m_pool.getIndexForDataString(nstr.str());
+  } //getTypeNameId
 
   const std::string NodeTypeDescriptorSelect::prettyNodeName()
   {
@@ -75,7 +79,8 @@ namespace MFM {
 
     if(resolveType(it))
       {
-	m_ready = true; // set here
+	m_ready = true; //set here
+	m_uti = it; //given reset here
       }
     else
 	m_state.setGoAgain();
@@ -121,7 +126,7 @@ namespace MFM {
 			rtnuti = auti; //should be mapped already, if necessary
 			rtnb = true;
 		      }
-		    else if(m_state.isHolder(auti))
+		    else //t3862
 		      {
 			UTI mappedUTI;
 			if(m_state.mappedIncompleteUTI(seluti, auti, mappedUTI))
@@ -174,10 +179,10 @@ namespace MFM {
 			      }
 			  }
 		      }
-		    else
-		      {
-			//incomplete, but not a holder!! yippee (alittle progress)
-		      }
+		    //else
+		    //  {
+		    //	//incomplete, but not a holder!! yippee (alittle progress)
+		    //  }
 		  }
 		else
 		  {

@@ -3,7 +3,6 @@
 #!
 ./Tu.ulam:3:13: ERROR: Invalid use of type Void with variable symbol name 'arg'.
 ./Tu.ulam:3:3: ERROR: Argument 1 has a problem.
-./Tu.ulam:2:9: ERROR: 2 Nodes with erroneous types detected after type labeling class: Tu.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>Tu.ulam

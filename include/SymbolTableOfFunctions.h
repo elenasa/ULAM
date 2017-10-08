@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolTableOfFunctions.h - Handling of Table of Function Symbols for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolTableOfFunctions.h - Handling of Table of Function Symbols for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2017 All rights reserved.
   \gpl
 */
 
@@ -48,7 +48,7 @@ namespace MFM{
 
     SymbolTableOfFunctions(CompilerState& state);
     SymbolTableOfFunctions(const SymbolTableOfFunctions& ref);
-    ~SymbolTableOfFunctions();
+    virtual ~SymbolTableOfFunctions();
 
     virtual u32 getTotalSymbolSize();
 
@@ -73,6 +73,8 @@ namespace MFM{
     UTI getCustomArrayReturnTypeGetFunction();
 
     u32 getCustomArrayIndexTypeGetFunction(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
+
+    bool hasCustomArrayLengthofFunction();
 
     u32 countNativeFuncDeclsForTableOfFunctions();
 

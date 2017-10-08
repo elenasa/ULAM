@@ -33,9 +33,35 @@ namespace MFM {
     //uptocaller to set node location.
   }
 
-  NodeTerminal::NodeTerminal(const NodeTerminal& ref) : Node(ref), m_etyp(ref.m_etyp), m_constant(ref.m_constant) {}
+  NodeTerminal::NodeTerminal(const NodeTerminal& ref) : Node(ref), m_etyp(ref.m_etyp), m_constant(ref.m_constant)
+  {
+    //clone of template if here (e.g. t3962, t3981, t3982)
+    if(m_etyp == String)
+      {
+	UTI cuti = m_state.getCompileThisIdx();
+	StringPoolUser& classupool = m_state.getUPoolRefForClass(cuti);
+	u32 regid = m_constant.uval >> REGNUMBITS;
+	if((regid != 0) && m_state.isALocalsFileScope(regid))
+	  {
+	    return; //t3981
+	  }
+	std::string str;
+	if(regid == 0)
+	  {
+	    str = m_state.m_tokenupool.getDataAsString(m_constant.uval & STRINGIDXMASK);
+	  }
+	else if(m_state.isAClass(regid))
+	  {
+	    StringPoolUser& stringupool = m_state.getUPoolRefForClass(regid);
+	    str = stringupool.getDataAsString(m_constant.uval & STRINGIDXMASK); //t3982
+	  }
+	else //e.g. locals filescope short-circuited, no change
+	  m_state.abortShouldntGetHere();
 
-  NodeTerminal::NodeTerminal(const NodeIdent& iref) : Node(iref), m_etyp(Hzy) {}
+	u32 newclassstringidx = classupool.getIndexForDataString(str);
+	m_constant.uval = (cuti << REGNUMBITS) | (newclassstringidx & STRINGIDXMASK); //combined index
+      }
+  }
 
   NodeTerminal::~NodeTerminal(){}
 
@@ -96,6 +122,9 @@ namespace MFM {
 	else
 	  num << ToUnsignedDecimal(m_constant.uval);
 	break;
+      case String:
+	num << m_state.getDataAsFormattedUserString(m_constant.uval);
+	break;
       default:
 	{
 	  std::ostringstream msg;
@@ -112,34 +141,6 @@ namespace MFM {
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
-  // this is the application of unary minus to produce a negative number
-  void NodeTerminal::constantFoldAToken(const Token& tok)
-  {
-    if(tok.m_type == TOK_MINUS)
-      {
-	UTI nuti = getNodeType();
-	if(m_etyp == Int)
-	  {
-	    m_constant.sval = -m_constant.sval;
-	    fitsInBits(nuti); //check self
-	  }
-	else
-	  {
-	    std::ostringstream msg;
-	    msg << "Negating an unsigned constant '" << m_constant.uval <<  "'";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  }
-      }
-    else
-      {
-	std::ostringstream msg;
-	msg << "Constant Folding Token <" << m_state.getTokenDataAsString(tok).c_str();
-	msg << "> currently unsupported";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	assert(0);
-      }
-  } //constantFoldAToken
 
   bool NodeTerminal::isAConstant()
   {
@@ -162,10 +163,17 @@ namespace MFM {
     if((typEnum == Bool) || (ntypEnum == Bool) || (typEnum == UAtom) || (typEnum == Class) || (typEnum == Void))
       return m_state.getUlamTypeByIndex(newType)->safeCast(nuti);
 
+    //special case: FROM Bits, not just a matter of fitting, e.g. logical shifts (t3850)
+    if((ntypEnum == Bits) && (typEnum != Bits))
+      return m_state.getUlamTypeByIndex(newType)->safeCast(nuti);
+
     //for non-bool terminal check for complete types and arrays before fits.
     FORECAST scr = m_state.getUlamTypeByIndex(newType)->UlamType::safeCast(nuti);
     if(scr != CAST_CLEAR)
       return scr;
+
+    if(newut->getReferenceType() == ALT_REF)
+      return CAST_BAD; //t3965
 
     return fitsInBits(newType) ? CAST_CLEAR : CAST_BAD;
   } //safeToCastTo
@@ -199,8 +207,9 @@ namespace MFM {
 	  case Bool:
 	    newbs = BITS_PER_BOOL;
 	    break;
+	  case String: //always ok, 32 bits
 	  default:
-	    assert(0);
+	    m_state.abortUndefinedUlamPrimitiveType();
 	  };
 
 	//use UTI with same base type and new bitsize:
@@ -250,7 +259,7 @@ namespace MFM {
     else if(wordsize <= MAXBITSPERLONG)
       return makeTerminalValueLong(uvarg, m_constant.uval, nuti);
     else
-      assert(0);
+      m_state.abortGreaterThanMaxBitsPerLong();
     return ERROR;
   } //makeTerminalValue
 
@@ -276,6 +285,9 @@ namespace MFM {
 	rtnUV = UlamValue::makeImmediate(uti, data, m_state);
 	break;
       case Class:
+	rtnUV = UlamValue::makeImmediate(uti, data, m_state);
+	break;
+      case String:
 	rtnUV = UlamValue::makeImmediate(uti, data, m_state);
 	break;
       default:
@@ -315,6 +327,7 @@ namespace MFM {
       case Class:
 	rtnUV = UlamValue::makeImmediateLongClass(uti, data, ut->getTotalBitSize());
 	break;
+      case String:
       default:
 	{
 	  std::ostringstream msg;
@@ -449,6 +462,9 @@ namespace MFM {
 	  rtnc = _BinOpCompareEqEqBool32(jdata, cdata, nbitsize);
 	}
 	break;
+      case String:
+	rtnc = 1; //true since 32-bit index
+	break;
       default:
 	{
 	  std::ostringstream msg;
@@ -510,6 +526,9 @@ namespace MFM {
 	  u64 cdata = convertForthAndBackLong(jdata, fituti);
 	  rtnc = _BinOpCompareEqEqBool64(jdata, cdata, nbitsize);
 	}
+	break;
+      case String:
+	rtnc = 1; //true since 32-bit index
 	break;
       default:
 	{
@@ -574,7 +593,7 @@ namespace MFM {
 	      rtnb = true;
 	  }
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
     return rtnb;
   } //isNegativeConstant
@@ -595,7 +614,7 @@ namespace MFM {
 	else if(wordsize <= MAXBITSPERLONG)
 	  rtnb = (m_constant.sval >= MAXBITSPERLONG);
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
     else if(etyp == Unsigned)
       {
@@ -604,7 +623,7 @@ namespace MFM {
 	else if(wordsize <= MAXBITSPERLONG)
 	  rtnb = (m_constant.uval >= (u32) MAXBITSPERLONG);
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
     return rtnb;
   } //isWordSizeConstant
@@ -651,9 +670,22 @@ namespace MFM {
 	else if(wordsize <= MAXBITSPERLONG)
 	  fp->write("(u64) ");
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
 
+    if(UlamType::compareForString(nuti, m_state) == UTIC_SAME)
+      {
+	UTI cuti = (m_constant.uval >> REGNUMBITS);
+	u32 sidx = (m_constant.uval & STRINGIDXMASK);
+	assert((cuti > 0) && (sidx > 0));
+	//String, String array or array item (t3929, t3950)
+	fp->write(m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString().c_str());
+	fp->write("::makeCombinedIdx(");
+	fp->write(m_state.getTheInstanceMangledNameByIndex(cuti).c_str());
+	fp->write(".GetRegistrationNumber(), ");
+	fp->write_decimal_unsigned(sidx);
+	fp->write("u); //user string pool index for ");
+      }
     fp->write(getName());
     fp->write(";"); GCNL;
 
@@ -721,6 +753,22 @@ namespace MFM {
 	  rtnok = true;
 	}
 	break;
+      case TOK_DQUOTED_STRING:
+	{
+	  UTI cuti = m_state.getCompileThisIdx();
+	  if(m_state.isClassATemplate(cuti))
+	    {
+	      m_constant.uval = tok.m_dataindex; //not done
+	    }
+	  else
+	    {
+	      StringPoolUser& classupool = m_state.getUPoolRefForClass(cuti);
+	      u32 classstringidx = classupool.getIndexForDataString(m_state.m_tokenupool.getDataAsString(tok.m_dataindex));
+	      m_constant.uval = (cuti << REGNUMBITS) | (classstringidx & STRINGIDXMASK); //combined index
+	      rtnok = true;
+	    }
+	}
+	break;
       default:
 	{
 	    std::ostringstream msg;
@@ -757,6 +805,10 @@ namespace MFM {
 	  newType = m_state.makeUlamType(key, Unsigned, UC_NOTACLASS);
 	}
 	m_etyp = Unsigned;
+	break;
+      case TOK_DQUOTED_STRING:
+	newType = String;
+	m_etyp = String;
 	break;
       default:
 	{

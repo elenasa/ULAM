@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeStorageof.h - Basic Node handling the Storageof Statement for ULAM
  *
- * Copyright (C) 2016 The Regents of the University of New Mexico.
- * Copyright (C) 2016 Ackleyshack LLC.
+ * Copyright (C) 2016-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2016-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeStorageof.h - Basic Node handling the Storageof Statement for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2016 All rights reserved.
+  \date (C) 2016-2017 All rights reserved.
   \gpl
 */
 
@@ -50,15 +50,15 @@ namespace MFM{
   {
   public:
 
-    NodeStorageof(const Token& tokof, NodeTypeDescriptor * nodetype, CompilerState & state);
+    NodeStorageof(Node * ofnode, NodeTypeDescriptor * nodetype, CompilerState & state);
 
     NodeStorageof(const NodeStorageof& ref);
 
     virtual ~NodeStorageof();
 
-    //    virtual Node * instantiate();
-
     virtual void updateLineage(NNO pno);
+
+    virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
 
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
@@ -84,8 +84,7 @@ namespace MFM{
 
   protected:
 
-    Token m_token;
-    SymbolVariable * m_varSymbol;
+    Node * m_nodeOf;
 
     UTI getOfType();
     void setOfType(UTI oftyp);

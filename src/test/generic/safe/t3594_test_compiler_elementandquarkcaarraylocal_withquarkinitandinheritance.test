@@ -7,7 +7,7 @@
 ## Bool(3) Arg: 0x0 (false)
 ##
 Exit status: 0
-Ue_Foo { Bool(3) b(true);  typedef Car Pop[2];  System s();  Bool(3) c(false);  Car sbar( :< Bool(1) val_b[3](false,false,false); > Bool(1) cb(true); );  Int(32) test() {  Car m_bar2[2];  Unary(2) i = 0 cast;  b m_bar2 i [] cb . cast = s ( b )print . s ( b cast )assert . m_bar2 i [] cb . false = c m_bar2 i [] cb . cast = s ( c )print . s ( c ! cast )assert . 0 cast return } }
+Ue_Foo { Bool(3) b(true);  typedef Car Pop[2];  System s();  Bool(3) c(false);  Car sbar( :< Bool(1) val_b[3](false,false,false); > Bool(1) cb(true); );  Int(32) test() {  Car m_bar2[2];  Unary(2) i = 0 cast;  b m_bar2 i cast [] cb . cast = s ( b )print . s ( b cast )assert . m_bar2 i cast [] cb . false = c m_bar2 i cast [] cb . cast = s ( c )print . s ( c ! cast )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_Car : Bar { :< Bool(1) val_b[3](false,false,false); > Bool(1) cb( true);  <NOMAIN> }
 Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
@@ -60,8 +60,8 @@ quark Bar {
   Void reset(Bool b) {
     b = false; //noop
   }
-  Atom aref(Int index) native;
-  Void aset(Int index, Atom v) native;
+  Atom& aref(Int index) native;
+  //Void aset(Int index, Atom v) native;
 }
 
 #:System.ulam

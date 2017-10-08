@@ -1,24 +1,50 @@
 ## -*- mode:ulam -*-
 #=t3343_test_compiler_elementandquarkswclassargs_typedeffromanotherclasstypedef
 #!
-##      //Constants have explicit types
-Exit status: 3
-Ue_P { Bool(1) b(false);  Int(32) test() {  Unsigned(3) var = ( )func;  var cast return } }
-Uq_Q(Int(32) s) { typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }
-Uq_V { typedef Q(3) Woof;  <NOMAIN> }
 ##
-##      //informed by t3339 : recursive typedefs as function return value
+## gen output: (interleaved asserts)
+## Unsigned Arg: 3
+## Unsigned Arg: 6
+##
+##  enable TESTCLASSMEMBERMAP in Compiler.cpp for ULAM INFO output
+##
+##      //Constants have explicit types
+##
+Exit status: 3
+Ue_P { Unsigned(3) m_vwf(3u);  Bool(1) b1(true);  Bool(1) b2(true);  Int(32) test() {  System s;  Unsigned(3) var = ( )func;  s ( var cast )print . b1 var 3u cast == = s ( b1 )assert . Unsigned(3) var2 = ( var var )func;  s ( var2 cast )print . b2 var2 6u == = s ( b2 )assert . var cast return } }
+Uq_V { typedef Q(3) Woof;  <NOMAIN> }
+Uq_System { <NOMAIN> }
+Uq_Q(Int(32) s) { typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }
+##
+##      //informed by t3339 : recursive typedefs as function return type
+##      //informed by t3339 : recursive typedefs as function parameter types
+##      //informed by t3339 : recursive typedefs as data member type
+##
 #>P.ulam
   ulam 1;
-use Q;
-use V;
 element P {
   V.Woof.Foo func() {
-    return 3u;
+    return m_vwf; //3u
   }
-  Bool b;
+
+  V.Woof.Foo func(V.Woof.Foo vwf1, V.Woof.Foo vwf2) {
+    return (V.Woof.Foo) (vwf1 + vwf2);
+  }
+
+  Bool b1,b2;
+  V.Woof.Foo m_vwf = 3u;
+
   Int test() {
+    System s;
     V.Woof.Foo var = func();
+    s.print((Unsigned) var);
+    b1 = (var == 3u);
+    s.assert(b1);
+
+    V.Woof.Foo var2 = func(var, var);
+    s.print((Unsigned) var2);
+    b2 = (var2 == 6u);
+    s.assert(b2);
     return var;
   }
 }
@@ -30,8 +56,19 @@ quark Q(Int s) {
 }
 #:V.ulam
   ulam 1;
-use Q;
 quark V {
   typedef Q(3) Woof;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
 }
 #.

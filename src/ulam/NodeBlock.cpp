@@ -4,12 +4,16 @@
 
 namespace MFM {
 
-  NodeBlock::NodeBlock(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeStatements(NULL, state), m_ST(state), m_prevBlockNode(prevBlockNode)
+  NodeBlock::NodeBlock(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeStatements(NULL, state), m_ST(state), m_prevBlockNode(prevBlockNode), m_nodeEndingStmt(this)
   {
-    setNextNode(s);
+    if(s)
+      {
+	setNextNode(s);
+	setLastStatementPtr(s);
+      }
   }
 
-  NodeBlock::NodeBlock(const NodeBlock& ref) : NodeStatements(ref), m_ST(ref.m_ST) /* deep copy */, m_prevBlockNode(NULL) {}
+  NodeBlock::NodeBlock(const NodeBlock& ref) : NodeStatements(ref), m_ST(ref.m_ST) /* deep copy */, m_prevBlockNode(NULL), m_nodeEndingStmt(ref.m_nodeEndingStmt) {}
 
   NodeBlock::~NodeBlock()
   {
@@ -33,8 +37,7 @@ namespace MFM {
     m_state.pushCurrentBlock(this);
 
     setYourParentNo(pno);
-    if(m_node)
-      m_node->updateLineage(getNodeNo());
+    //has no m_node
     if(m_nodeNext)
       m_nodeNext->updateLineage(getNodeNo());
 
@@ -53,8 +56,8 @@ namespace MFM {
   void NodeBlock::checkAbstractInstanceErrors()
   {
     if(m_nodeNext)
-      m_nodeNext->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
+      m_nodeNext->checkAbstractInstanceErrors(); //work done by NodeVarDecl
+  }
 
   void NodeBlock::print(File * fp)
   {
@@ -69,7 +72,8 @@ namespace MFM {
       sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
 
-    m_nodeNext->print(fp);
+    if(m_nodeNext)
+      m_nodeNext->print(fp);
 
     sprintf(id,"-----------------%s\n", prettyNodeName().c_str());
     fp->write(id);
@@ -97,15 +101,33 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  void NodeBlock::setLastStatementPtr(NodeStatements * laststmt)
+  {
+    m_nodeEndingStmt = laststmt;
+  }
+
+  NodeStatements * NodeBlock::getLastStatementPtr()
+  {
+    assert(m_nodeEndingStmt != NULL);
+    return m_nodeEndingStmt;
+  }
+
+  void NodeBlock::appendNextNode(Node * node)
+  {
+    assert(node);
+    NodeStatements * nextNode = new NodeStatements(node, m_state);
+    assert(nextNode);
+    assert(m_nodeEndingStmt);
+    m_nodeEndingStmt->setNextNode(nextNode);
+    m_nodeEndingStmt = nextNode;
+  } //appendNextNode
+
   UTI NodeBlock::checkAndLabelType()
   {
     assert(m_nodeNext);
-
     //especially important for template instances (prev ptr nullified on instantiation)
     if(getPreviousBlockPointer() == NULL)
-      {
-	setPreviousBlockPointer(m_state.getCurrentBlock());
-      }
+      setPreviousBlockPointer(m_state.getCurrentBlock());
     else
       assert(getPreviousBlockPointer() == m_state.getCurrentBlock());
 
@@ -115,22 +137,24 @@ namespace MFM {
 
     m_state.popClassContext(); //restores m_prevBlockNode
 
-    //blocks don't have types
-    setNodeType(Void);
+    setNodeType(Void); //blocks don't have types
     return getNodeType();
   } //checkAndLabelType
 
   void NodeBlock::countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt)
   {
     Node::countNavHzyNoutiNodes(ncnt, hcnt, nocnt); //missing
-    m_nodeNext->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
+    if(m_nodeNext)
+      m_nodeNext->countNavHzyNoutiNodes(ncnt, hcnt, nocnt);
   }
 
   EvalStatus NodeBlock::eval()
   {
+    if(!m_nodeNext)
+      return ERROR;
+
     // block stack needed for symbol lookup during eval of virtual func call on as-conditional auto
     m_state.pushCurrentBlock(this);
-    assert(m_nodeNext);
     EvalStatus evs = m_nodeNext->eval();
     m_state.popClassContext(); //restore
     return evs;
@@ -175,11 +199,6 @@ namespace MFM {
     return m_ST.removeFromTable(id, rtnsymptr);
   }
 
-  void NodeBlock::removeAllSymbolsFromScope()
-  {
-    m_ST.clearTheTable();
-  }
-
   NodeBlock * NodeBlock::getPreviousBlockPointer()
   {
     return m_prevBlockNode;
@@ -191,6 +210,11 @@ namespace MFM {
   }
 
   bool NodeBlock::isAClassBlock()
+  {
+    return false;
+  }
+
+  bool NodeBlock::isASwitchBlock()
   {
     return false;
   }
@@ -221,6 +245,11 @@ namespace MFM {
     return m_ST.getMaxVariableSymbolsBitSize();
   }
 
+  u32 NodeBlock::findTypedefNameIdByType(UTI uti)
+  {
+    return m_ST.findTypedefSymbolNameIdByTypeInTable(uti); //0 == not found
+  }
+
   SymbolTable * NodeBlock::getSymbolTablePtr()
   {
     return &m_ST;
@@ -228,7 +257,7 @@ namespace MFM {
 
   void NodeBlock::genCodeDeclsForVariableDataMembers(File * fp, ULAMCLASSTYPE classtype)
   {
-    assert(0); //using the NodeVarDecl:genCode approach instead.
+    m_state.abortShouldntGetHere(); //using the NodeVarDecl:genCode approach instead.
     m_ST.genCodeForTableOfVariableDataMembers(fp, classtype);
   }
 
@@ -237,9 +266,11 @@ namespace MFM {
     m_ST.genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(fp);
   }
 
-  void NodeBlock::addClassMemberDescriptionsToInfoMap(ClassMemberMap& classmembers)
+  void NodeBlock::addMemberDescriptionsToInfoMap(ClassMemberMap& classmembers)
   {
-    m_ST.addClassMemberDescriptionsToMap(this->getNodeType(), classmembers); //Table of Classes request
+    //has no m_node
+    if(m_nodeNext)
+      m_nodeNext->addMemberDescriptionToInfoMap(this->getNodeType(), classmembers);
   }
 
   void NodeBlock::genCode(File * fp, UVPass& uvpass)

@@ -13,10 +13,11 @@ Uq_System { <NOMAIN> }
 #>A.ulam
  ulam 2;
 element A {
-  constant Int(64) j = 0x77773333ffff2222;
+  constant Int(64) j = (Int(64)) 0x77773333ffff2222; //cast since Unsigned (hex value) not representable as Int.
+
   Int test () {
     System s;
-    s.assert(j != 0xffff2222); //bug revealed
+    s.assert(j != (Int(64)) 0xffff2222); //bug revealed
 
     Int(64) k = Int(64).maxof;
     s.assert(j < k);

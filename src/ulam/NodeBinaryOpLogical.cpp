@@ -13,20 +13,20 @@ namespace MFM {
   // not used for logical op
   bool NodeBinaryOpLogical::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return false;
   } //dobinaryoperation
 
   UTI NodeBinaryOpLogical::calcNodeType(UTI lt, UTI rt)  //logical
   {
-    if(!m_state.okUTItoContinue(lt, rt))
+    if(!m_state.neitherNAVokUTItoContinue(lt, rt))
       return Nav;
 
     if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
       return Hzy;
 
     //no atoms, elements nor voids as either operand
-    if(!NodeBinaryOp::checkForPrimitiveTypes(lt, rt))
+    if(!NodeBinaryOp::checkForPrimitiveNotVoidTypes(lt, rt))
 	return Nav;
 
     UTI newType = Nav; //init
@@ -41,7 +41,7 @@ namespace MFM {
 	if(lscr != CAST_CLEAR || rscr != CAST_CLEAR)
 	  {
 	    std::ostringstream msg;
-	    msg << "Bool is the supported type for logical operator";
+	    msg << "Bool is the supported type for logical operation ";
 	    msg << getName() << "; Suggest casting ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str() << " and ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
@@ -73,7 +73,7 @@ namespace MFM {
 
   const std::string NodeBinaryOpLogical::methodNameForCodeGen()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return "notapplicable_logicalops";
   } // methodNameForCodeGen
 

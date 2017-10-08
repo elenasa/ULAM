@@ -30,7 +30,7 @@ namespace MFM {
 	m_min = 0;
       }
     else
-      assert(0);
+      m_state.abortGreaterThanMaxBitsPerLong();
   }
 
    ULAMTYPE UlamTypePrimitiveBits::getUlamTypeEnum()
@@ -61,7 +61,7 @@ namespace MFM {
 	else if(valwordsize <= MAXBITSPERLONG)
 	  brtn = castTo64(val, typidx); //downcast
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
     else if(wordsize <= MAXBITSPERLONG)
       brtn = castTo64(val, typidx);
@@ -117,7 +117,7 @@ namespace MFM {
     else if(valwordsize <= MAXBITSPERLONG)
       data = val.getImmediateDataLong(m_state);
     else
-      assert(0);
+      m_state.abortGreaterThanMaxBitsPerLong();
 
     //no changes to data, only type
     ULAMTYPE valtypEnum = m_state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
@@ -168,18 +168,11 @@ namespace MFM {
 	  if(vut->isNumericType())
 	    brtn = (bitsize >= MAXBITSPERINT);
 	  else
-	    {
-	      std::ostringstream msg;
-	      msg << "Class: ";
-	      msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
-	      msg << " is not a numeric type and cannot be safely cast to Bits";
-	      MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(),msg.str().c_str(), ERR);
-	      brtn = false;
-	    }
+	    brtn = false; //t41131 called by matching args (no error msg please)
 	}
 	break;
       default:
-	assert(0);
+	m_state.abortUndefinedUlamType();
 	//std::cerr << "UlamTypePrimitiveBits (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };
@@ -243,7 +236,7 @@ namespace MFM {
       case Class:
 	break;
       default:
-	assert(0);
+	m_state.abortUndefinedUlamType();
 	//std::cerr << "UlamTypePrimitiveBits (convertTo) error! " << tobUT << std::endl;
       };
     return (tobitsize > wordsize ? wordsize : tobitsize);

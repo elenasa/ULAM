@@ -20,29 +20,30 @@ Uq_System { <NOMAIN> }
 ##      // inside block defined outside then redefined inside;
 ##
 #>A.ulam
+  ulam 1;
 use System;
 element A{
-System s;
-Unary(6) sp;
-Bool b;
-Int j;
-Int test () {
- j = 1 + 3;
-s.print(j);
-{
-j = j + 1;
-s.print(j);
-Int j;
-j = 2 * 4;
-s.print(j);
-b = (j == 8);s.assert(b);
-
-}
-i = j;
-s.print(i);
- return j;
-}
- Int i;
+  System s;
+  Unary(6) sp;
+  Bool b;
+  Int j;
+  Int test () {
+    j = 1 + 3;
+    s.print(j);
+    {
+      j = j + 1;
+      s.print(j);
+      Int j;
+      j = 2 * 4;
+      s.print(j);
+      b = (j == 8);
+      s.assert(b);
+    }
+    i = j;
+    s.print(i);
+    return j;
+  }
+  Int i;
 }
 
 ##      // test system quark with native overloaded print funcs; assert

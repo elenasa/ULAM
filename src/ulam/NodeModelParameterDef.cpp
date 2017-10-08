@@ -2,7 +2,7 @@
 #include "NodeModelParameterDef.h"
 #include "NodeTerminal.h"
 #include "CompilerState.h"
-
+#include "MapParameterDesc.h"
 
 namespace MFM {
 
@@ -43,7 +43,7 @@ namespace MFM {
 
   void NodeModelParameterDef::fixPendingArgumentNode()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
   UTI NodeModelParameterDef::checkAndLabelType()
@@ -69,6 +69,11 @@ namespace MFM {
   bool NodeModelParameterDef::buildDefaultValue(u32 wlen, BV8K& dvref)
   {
     return true;
+  }
+
+  void NodeModelParameterDef::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
+  {
+    return;
   }
 
   void NodeModelParameterDef::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
@@ -115,7 +120,7 @@ namespace MFM {
 
   void NodeModelParameterDef::genCode(File * fp, UVPass& uvpass)
   {
-    assert(m_constSymbol->isDataMember());
+    assert(m_constSymbol->isModelParameter());
 
     UTI vuti = m_constSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
@@ -129,5 +134,30 @@ namespace MFM {
 
     fp->write("; //model parameter"); GCNL;
   } //genCode
+
+  void NodeModelParameterDef::addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers)
+  {
+    assert(m_constSymbol);
+    assert(m_constSymbol->isReady());
+
+    ParameterDesc * descptr = new ParameterDesc((SymbolModelParameterValue *) m_constSymbol, classType, m_state);
+    assert(descptr);
+
+    //replace m_memberName with Ulam Type and Name
+    std::ostringstream mnstr;
+    if(m_nodeTypeDesc)
+      mnstr << m_state.m_pool.getDataAsString(m_nodeTypeDesc->getTypeNameId()).c_str();
+    else
+      mnstr << m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str();
+    mnstr << " " << descptr->m_memberName;
+
+    descptr->m_memberName = ""; //clear base init
+    descptr->m_memberName = mnstr.str();
+
+    //concat mangled class and parameter names to avoid duplicate keys into map
+    std::ostringstream fullMangledName;
+    fullMangledName << descptr->m_mangledClassName << "_" << descptr->m_mangledMemberName;
+    classmembers.insert(std::pair<std::string, ClassMemberDescHolder>(fullMangledName.str(), ClassMemberDescHolder(descptr)));
+  } //addMemberDescriptionToInfoMap
 
 } //end MFM

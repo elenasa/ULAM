@@ -2,8 +2,6 @@
 #=t3700_test_compiler_elementandquark_castreftoatomassignment_error
 #!
 ./A.ulam:11:5: ERROR: Atom variable a's type Atom(96), and its initial value type Qbase&, are incompatible; .atomof may help.
-./A.ulam:4:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: A.
-./A.ulam:4:9: ERROR: 22 Nodes with unresolved types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3697

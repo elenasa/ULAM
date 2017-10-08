@@ -1,0 +1,58 @@
+## -*- mode:ulam -*-
+#=t41015_test_compiler_nestedloopsbreak
+##  gen code output: (+ assert)
+##     Int Arg: 20
+##
+#!
+Exit status: 20
+Ue_A { Int(32) d(20);  System s();  Bool(7) b(false);  Int(32) test() {  d ( 4 cast 5 cast )times = s ( d )print . s ( d 20 cast == )assert . d return } }
+Uq_System { <NOMAIN> }
+##
+## see t41002, t3210
+##
+#>A.ulam
+  ulam 1;
+element A {
+  Int times(Int m, Int n) {
+    Int d;
+    while(true){
+      Int i;
+      for(i = 0; i < 7; i++)
+      {
+	d += n;
+	m-=1;
+	if(m==0)
+	  break;
+	else
+	  continue;
+      }
+      if(m==0)
+	break;
+      else
+	continue;
+    }
+    return d;
+  }
+
+  System s;
+  Bool(7) b;
+  Int d;
+  Int test(){ d = times(4,5);
+    s.print(d);
+    s.assert(d == 20);
+    return d;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

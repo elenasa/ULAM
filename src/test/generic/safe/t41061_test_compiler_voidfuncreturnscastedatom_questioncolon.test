@@ -1,0 +1,44 @@
+## -*- mode:ulam -*-
+#=t41061_test_compiler_voidfuncreturnscastedatom_questioncolon
+##
+## gen output: (+ assert)
+##   Int(3) Arg: 0x2
+##
+#!
+Exit status: 0
+Ue_Tu { Int(3) me(2);  Int(32) test() {  System s;  ( false )func s ( me )print . s ( me 2 == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by t3485
+##
+#>Tu.ulam
+  ulam 3;
+element Tu {
+  Int(3) me;
+  Void func(Bool b) {
+    Atom a;
+    me++;
+    return b ? (Void) a : func(true);
+  }
+  Int test(){
+    System s;
+    func(false); //side-effect possible
+    s.print(me);
+    s.assert(me == 2);
+    return 0;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

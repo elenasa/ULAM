@@ -55,22 +55,14 @@ NodeBinaryOpArithDivide::NodeBinaryOpArithDivide(const NodeBinaryOpArithDivide& 
 	    Node * castNode = Node::newCastingNode(this, nuti);
 	    assert(castNode);
 
-	    Node * parentNode = m_state.findNodeNoInThisClass(pno);
-	    if(!parentNode)
-	      {
-		std::ostringstream msg;
-		msg << "Division cast cannot be exchanged at this time while compiling class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-		msg << " Parent required";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		assert(0); //parent required
-	      }
+	    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno);
+	    assert(parentNode);
 
 	    AssertBool swapOk = parentNode->exchangeKids(this, castNode);
 	    assert(swapOk);
 
 	    std::ostringstream msg;
-	    msg << "Exchanged kids! of parent of binary operator" << getName();
+	    msg << "Exchanged kids! of parent of binary" << getName();
 	    msg << ", with a cast to type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	    msg << " while compiling class: ";
@@ -112,7 +104,7 @@ NodeBinaryOpArithDivide::NodeBinaryOpArithDivide(const NodeBinaryOpArithDivide& 
 	break;
       case Bits:
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	break;
       };
     return rtnUV;
@@ -147,7 +139,7 @@ NodeBinaryOpArithDivide::NodeBinaryOpArithDivide(const NodeBinaryOpArithDivide& 
 	break;
       case Bits:
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	break;
       };
     return rtnUV;
@@ -181,7 +173,7 @@ NodeBinaryOpArithDivide::NodeBinaryOpArithDivide(const NodeBinaryOpArithDivide& 
 	break;
       case Bits:
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	break;
       };
     return;

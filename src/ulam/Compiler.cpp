@@ -29,6 +29,9 @@ namespace MFM {
   {
     TargetMap rtnTargets;
     m_state.m_programDefST.getTargets(rtnTargets);
+
+    //include locals filescopes for strings
+    m_state.getTargetDescriptorsForLocalsFilescopes(rtnTargets);
     return rtnTargets;
   }
 
@@ -36,6 +39,9 @@ namespace MFM {
   {
     ClassMemberMap rtnMembers;
     m_state.m_programDefST.getClassMembers(rtnMembers);
+
+    //include locals filescopes for strings
+    m_state.getMembersDescriptionsForLocalsFilescopes(rtnMembers);
     return rtnMembers;
   }
 
@@ -107,7 +113,7 @@ namespace MFM {
 	perrs = checkAndTypeLabelProgram(errput);
 	if(perrs == 0)
 	  {
-	    m_state.m_programDefST.genCodeForTableOfClasses(outfm);
+	    m_state.generateCodeForUlamClasses(outfm);
 	    perrs = m_state.m_err.getErrorCount();
 	  }
 	else
@@ -139,7 +145,6 @@ namespace MFM {
 		    msg << "No class '";
 		    msg << m_state.m_pool.getDataAsString(compileThisId).c_str();
 		    msg << "' in <" << startstr.c_str() << ">";
-		    //errput->write(msg.str().c_str());
 		    NodeBlockClass * cblock = cnsym->getClassBlockNode();
 		    if(cblock)
 		      MSG(cblock->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -151,7 +156,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    return 1; //err msg output
+	    return 1; //=1 err msg output
 	  }
 	return 0; //already parsed
       } //not yet pushed
@@ -210,9 +215,9 @@ namespace MFM {
     m_state.m_err.setFileOutput(output);
     m_state.m_err.clearCounts();
 
-    //for regular classes and templates, only; since NNOs used
-    //followed by the first c&l in case of re-orgs
-    m_state.m_programDefST.updateLineageForTableOfClasses();
+    //for regular classes and templates, plus locals filescope
+    //(NNOs used); followed by the first c&l in case of re-orgs
+    m_state.updateLineageAndFirstCheckAndLabelPass();
 
     u32 errCnt = m_state.m_err.getErrorCount();
     bool sumbrtn = (errCnt != 0);
@@ -229,7 +234,7 @@ namespace MFM {
 	    msg << errCnt << " Errors found during resolving loop --- ";
 	    msg << "possible INCOMPLETE (or Template) class detected --- ";
 	    msg << "after " << infcounter << " iterations";
-	    MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    MSG("", msg.str().c_str(), DEBUG);
 	    //note: not an error because template uses with deferred args remain unresolved; however,
 	    // context reveals if stub was needed by a template and not included.
 	    break;
@@ -282,7 +287,7 @@ namespace MFM {
 		msg << "Incomplete calc of max index for virtual functions --- ";
 		msg << "possible INCOMPLETE Super class detected ---";
 		msg << " after " << infcounter2 << " iterations";
-		MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		MSG("", msg.str().c_str(), ERR);
 		break;
 	      }
 	    else if(infcounter2 == MAX_ITERATIONS) //last time
@@ -314,59 +319,23 @@ namespace MFM {
     errCnt = m_state.m_err.getErrorCount(); //latest count
     if(!errCnt) m_state.m_programDefST.reportUnknownTypeNamesAcrossTableOfClasses();
 
-    // count Nodes with illegal Nav types; walk each class' data members and funcdefs.
+    // reports as errors classnames that exceed linux limit 255
+    m_state.m_programDefST.reportTooLongClassNamesAcrossTableOfClasses();
+
+    //check UrSelf is zero size
+    m_state.verifyZeroSizeUrSelf();
+
+    // count nodes with illegal Nav types; walk each class' data members and funcdefs.
     // clean up duplicate functions beforehand
-    u32 navcount = 0;
-    u32 hzycount = 0;
-    u32 unsetcount = 0;
+    m_state.countNavHzyNoutiNodesPass();
 
-    m_state.m_programDefST.countNavNodesAcrossTableOfClasses(navcount, hzycount, unsetcount);
-    errCnt = m_state.m_err.getErrorCount(); //latest count?
-    if(navcount > 0)
-      {
-	// not necessarily goAgain, e.g. atom is Empty, where Empty is a quark instead of an element
-	// the NodeTypeDescriptor is perfectly fine with a complete quark type, so no need to go again;
-	// however, in the context of "is", this is an error and t.f. a Nav node.
-
-	assert(errCnt > 0); //sanity check; ran out of iterations
-
-	std::ostringstream msg;
-	msg << navcount << " Nodes with erroneous types detected after type labeling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-      }
-    //else
-    //assert(errCnt == 0); //e.g. error/t3644 (not sure what to do about it, error discovery too deep)
-
-    if(hzycount > 0)
-      {
-	//doesn't include incomplete stubs: if(a is S(x,y))
-	//assert(m_state.goAgain()); //sanity check; ran out of iterations
-
-	std::ostringstream msg;
-	msg << hzycount << " Nodes with unresolved types detected after type labeling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	// if we had such a thing:
-	//msg << ". Supplying --info on command line will provide additional internal details";
-	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-      }
-    else
-      assert(!m_state.goAgain()); //t3740 (resets Hzy to Nav);
-
-    if(unsetcount > 0)
-      {
-	std::ostringstream msg;
-	msg << unsetcount << " Nodes with unset types detected after type labeling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
-      }
-
+    //Summarize: warning/error counts
     u32 warns = m_state.m_err.getWarningCount();
     if(warns > 0)
       {
 	std::ostringstream msg;
 	msg << warns << " warning" << (warns > 1 ? "s " : " ") << "during type labeling";
-	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+	MSG("", msg.str().c_str(), INFO);
       }
 
     errCnt = m_state.m_err.getErrorCount();
@@ -374,54 +343,19 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << errCnt << " TOO MANY TYPELABEL ERRORS";
-	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+	MSG("", msg.str().c_str(), INFO);
       }
 
-    // testing targetmap only (matches code in main.cpp)
     //#define TESTTARGETMAP
 #ifdef TESTTARGETMAP
-    TargetMap tm = getMangledTargetsMap();
-    std::cerr << "Size of target map is " << tm.size() << std::endl;
-    for(TargetMap::const_iterator i = tm.begin(); i != tm.end(); ++i)
-      {
-	std::cerr
-	  << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
-	  << "TARGET "
-	  << MFM::HexEscape(getFullPathLocationAsString(i->second.m_loc))
-	  << " " << i->second.m_className
-	  << " " << i->first
-	  << " " << i->second.m_bitsize
-	  << " " << (i->second.m_hasTest ? "test" : "notest")
-	  << " " << (i->second.m_classType == UC_QUARK ? "quark": (i->second.m_classType == UC_ELEMENT ? "element" : "transient"))
-	  << " " << MFM::HexEscape(i->second.m_structuredComment)
-	  << std::endl;
-      }
+    testTargetMap(); // testing targetmap only
+
 #endif
 
-    // testing class member map only (matches code in main.cpp)
     //#define TESTCLASSMEMBERMAP
 #ifdef TESTCLASSMEMBERMAP
-    ClassMemberMap cmm = getMangledClassMembersMap();
-    std::cerr << "Size of class members map is " << cmm.size() << std::endl;
-    for(ClassMemberMap::const_iterator i = cmm.begin(); i != cmm.end(); ++i)
-      {
-	//u64 val;
-	const MFM::ClassMemberDesc * cmd = i->second.getClassMemberDesc();
-	std::cerr
-	  << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
-	  << cmd->getMemberKind() << " "
-	  << MFM::HexEscape(getFullPathLocationAsString(cmd->m_loc))
-	  << " " << cmd->m_mangledClassName
-	  << " " << cmd->m_mangledType
-	  << " " << cmd->m_memberName
-	  << " " << cmd->m_mangledMemberName;
+    testClassMemberMap(); // testing class member map only
 
-	if(cmd->hasValue())
-	  std::cerr << cmd->getValueAsString();
-
-	std::cerr << " " << MFM::HexEscape(cmd->m_structuredComment)
-		  << std::endl;
-      }
 #endif
 
     return m_state.m_err.getErrorCount();
@@ -439,6 +373,7 @@ namespace MFM {
 
     //checkAndLabelTypes: lineage updated incrementally
     sumbrtn &= m_state.m_programDefST.labelTableOfClasses(); //labelok, stubs not labeled, checks goagain flag!
+    sumbrtn &= m_state.checkAndLabelPassForLocals();
     return sumbrtn;
   } //resolvingLoop
 
@@ -459,6 +394,57 @@ namespace MFM {
     m_state.m_programDefST.testForTableOfClasses(output);
     return m_state.m_err.getErrorCount();
   } //testProgram
+
+  void Compiler::testTargetMap()
+  {
+    //matches code in main.cpp
+    TargetMap tm = getMangledTargetsMap();
+    std::cerr << "Size of target map is " << tm.size() << std::endl;
+    for(TargetMap::const_iterator i = tm.begin(); i != tm.end(); ++i)
+      {
+	std::cerr
+	  << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
+	  << "TARGET "
+	  << MFM::HexEscape(getFullPathLocationAsString(i->second.m_loc))
+	  << " " << i->second.m_className
+	  << " " << i->first
+	  << " " << i->second.m_bitsize
+	  << " " << (i->second.m_hasTest ? "test" : "notest")
+	  << " " << (i->second.m_classType == UC_QUARK ? "quark": (i->second.m_classType == UC_ELEMENT ? "element" : (i->second.m_classType == UC_TRANSIENT ? "transient" : (i->second.m_classType == UC_LOCALSFILESCOPE ? "localsfilescope" : "fudge"))))
+	  << " " << MFM::HexEscape(i->second.m_classSignature)
+	  << " " << MFM::HexEscape(i->second.m_baseClassSignature)
+	  << " " << MFM::HexEscape(i->second.m_structuredComment)
+	  << std::endl;
+      }
+    return;
+  } //testTargetMap
+
+  void Compiler::testClassMemberMap()
+  {
+    //matches code in main.cpp
+    ClassMemberMap cmm = getMangledClassMembersMap();
+    std::cerr << "Size of class members map is " << cmm.size() << std::endl;
+    for(ClassMemberMap::const_iterator i = cmm.begin(); i != cmm.end(); ++i)
+      {
+	//u64 val;
+	const MFM::ClassMemberDesc * cmd = i->second.getClassMemberDesc();
+	std::cerr
+	  << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
+	  << cmd->getMemberKind() << " "
+	  << MFM::HexEscape(getFullPathLocationAsString(cmd->m_loc))
+	  << " " << cmd->m_mangledClassName
+	  << " " << cmd->m_mangledType
+	  << " " << MFM::HexEscape(cmd->m_memberName)
+	  << " " << cmd->m_mangledMemberName;
+
+	if(cmd->hasValue())
+	  std::cerr << cmd->getValueAsString();
+
+	std::cerr << " " << MFM::HexEscape(cmd->m_structuredComment)
+		  << std::endl;
+      }
+    return;
+  } //testClassMemberMap
 
   void Compiler::printPostFix(File * output)
   {
@@ -482,7 +468,7 @@ namespace MFM {
 	errorOutput->write("Error in making new file manager for test code generation...aborting");
 	return;
       }
-    m_state.m_programDefST.genCodeForTableOfClasses(fm);
+    m_state.generateCodeForUlamClasses(fm);
     delete fm;
   } //generateCodedProgram (tests)
 

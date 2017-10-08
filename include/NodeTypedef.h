@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeTypedef.h - Basic Node handling Typedefs for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeTypedef.h - Basic Node handling Typedefs for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2017 All rights reserved.
   \gpl
 */
 
@@ -62,6 +62,8 @@ namespace MFM{
 
     virtual void printPostfix(File * f);
 
+    virtual void noteTypeAndName(s32 totalsize, u32& accumsize);
+
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
@@ -84,13 +86,23 @@ namespace MFM{
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
+    virtual void genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos);
+
     virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
 
     virtual EvalStatus eval();
 
     virtual void genCode(File * fp, UVPass& uvpass);
 
+    virtual void genCodeConstantArrayInitialization(File * fp);
+
+    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
+
+    virtual void cloneAndAppendNode(std::vector<Node *> & cloneVec);
+
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
+
+    virtual void addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers);
 
   protected:
     virtual void checkForSymbol();

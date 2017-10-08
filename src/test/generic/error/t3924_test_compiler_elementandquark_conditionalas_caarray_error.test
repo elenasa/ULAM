@@ -1,0 +1,56 @@
+## -*- mode:ulam -*-
+#=t3924_test_compiler_elementandquark_conditionalas_caarray_error
+#!
+./Res.ulam:10:14: ERROR: Invalid lefthand type of conditional operator 'as'; suggest a reference variable.
+./Res.ulam:12:18: ERROR: Invalid Type: Cell& used with [].
+Unrecoverable Program Type Label FAILURE.
+##
+##      //informed by t3923
+##
+#>Res.ulam
+  ulam 3;
+element Res {
+  EventWindow ew;
+  Bool b;
+  Int test() {
+    System s;
+    Cell cell;
+    ew[1] = cell;
+    //Atom& aref = ew[1]; //as in t3923
+    if(ew[1] as Cell)
+    {
+      self.b = ew[1].sp;
+      s.print(b);
+      s.assert(b);
+    }
+    else
+      s.assert(false); //failed
+
+    return 0;
+  }
+}
+
+#:EventWindow.ulam
+  ulam 3;
+quark EventWindow{
+  Atom& aref(Int index) native;
+}
+
+#:Cell.ulam
+  ulam 2;
+element Cell{
+  Bool(3) sp = true;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

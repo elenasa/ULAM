@@ -25,7 +25,7 @@ namespace MFM {
 	u32 depth = ((SymbolFunctionName *) sym)->getDepthSumOfFunctions();
 	totalsizes += depth;
 	//was used for debugging (see NodeBlockClass eval)
-	assert(0); //function symbols are not in same table as variables
+	m_state.abortShouldntGetHere(); //function symbols are not in same table as variables
       }
     it++;
     return totalsizes;
@@ -199,7 +199,7 @@ namespace MFM {
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
-	assert(sym->isFunction());
+	assert(sym && sym->isFunction());
 	((SymbolFunctionName *) sym)->calcMaxIndexOfVirtualFunctions(maxidx);
 	it++;
       }
@@ -223,7 +223,9 @@ namespace MFM {
   bool SymbolTableOfFunctions::checkCustomArrayTypeFuncs()
   {
     bool rtnBool = false;
-    NodeBlockClass * cblock = m_state.getClassBlock();
+    NodeBlockContext * cblock = m_state.getContextBlock();
+    assert(cblock && cblock->isAClassBlock());
+    NodeBlockClass * currClassBlock = (NodeBlockClass *) cblock;
 
     Symbol * fnsymget = NULL;
     if(isInTable(m_state.getCustomArrayGetFunctionNameId(), fnsymget))
@@ -234,7 +236,7 @@ namespace MFM {
 	// as they may change.
 
 	//class type should already be flagged as a custom array
-	UTI cuti = cblock->getNodeType();
+	UTI cuti = currClassBlock->getNodeType();
 	if(!m_state.isClassACustomArray(cuti))
 	  {
 	    std::ostringstream msg;
@@ -248,17 +250,6 @@ namespace MFM {
 	  {
 	    UTI caType = Nouti;
 	    probcount = ((SymbolFunctionName *) fnsymget)->checkCustomArrayGetFunctions(caType); //sets caType
-
-	    if(!probcount)
-	      {
-		// for each aset that exists: it has two params, the 2nd is
-		// the same as the get return type, and the set return type is Void.
-		Symbol * fnsymset = NULL;
-		if(isInTable(m_state.getCustomArraySetFunctionNameId(), fnsymset))
-		  {
-		    probcount = ((SymbolFunctionName *) fnsymset)->checkCustomArraySetFunctions(caType);
-		  }
-	      }
 	  }
 	rtnBool = (probcount == 0);
       } //get found
@@ -274,6 +265,23 @@ namespace MFM {
 	    msg << "' NOT FOUND in class: " << cut->getUlamTypeNameOnly().c_str();
 	    MSG(cblock->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
+      }
+
+    Symbol * fnsymset = NULL;
+    if(isInTable(m_state.getCustomArraySetFunctionNameId(), fnsymset))
+      {
+	UTI cuti = m_state.getCompileThisIdx();
+	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+
+	std::ostringstream msg;
+	msg << "Deprecated custom array set method '";
+	msg << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str();
+	msg << "' FOUND in class: " << cut->getUlamTypeNameOnly().c_str();
+	msg << "; let '";
+	msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
+	msg << "' return a reference";
+	MSG(cblock->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	rtnBool = false; //t3919
       }
     return rtnBool;
   } //checkCustomArrayTypeFuncs
@@ -302,6 +310,13 @@ namespace MFM {
       }
     return camatches;
   } //getCustomArrayIndexTypeGetFunction
+
+  //called by current Class block on its function ST;
+  bool SymbolTableOfFunctions::hasCustomArrayLengthofFunction()
+  {
+    Symbol * fnsym = NULL;
+    return isInTable(m_state.getCustomArrayLengthofFunctionNameId(), fnsym);
+  } //hasCustomArrayLengthofFunction
 
   u32 SymbolTableOfFunctions::countNativeFuncDeclsForTableOfFunctions()
   {

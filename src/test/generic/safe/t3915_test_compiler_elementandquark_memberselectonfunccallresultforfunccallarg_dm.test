@@ -1,0 +1,90 @@
+## -*- mode:ulam -*-
+#=t3914_test_compiler_elementandquark_memberselectonfunccallresultforfunccallarg
+##      gen code output: (+1 assert)
+##            Int Arg: 2
+##
+#!
+Exit status: 2
+Ue_A { Int(32) m_i(2);  Qfoo car( :< Bool(1) m_b(true);  Qda da( Int(3) m_dai(0); ); >);  Qfoo pop( :< Bool(1) m_b(false);  Qda da( Int(3) m_dai(2); ); >);  Int(32) test() {  System s;  m_i pop ( 3 car ( )func . ( )b . )p . da . ( )gu . = s ( m_i )print . s ( m_i 2 cast == )assert . m_i return } }
+Uq_System { <NOMAIN> }
+Uq_QW { Bool(1) m_b(false);  Qda da( Int(3) m_dai(0); );  <NOMAIN> }
+Uq_Qda { Int(3) m_dai(0);  <NOMAIN> }
+Uq_Qfoo : QW { :< Bool(1) m_b(false);  Qda da( Int(3) m_dai(0); ); > <NOMAIN> }
+##
+## informed by Dave 9/22/2016, t3914
+##
+#>A.ulam
+  ulam 3;
+use System;
+use QW;
+element A {
+  Int m_i;
+  Qfoo car, pop;
+  Int test(){
+    System s;
+
+    m_i = pop.p(3,car.func().b()).da.gu();
+    s.print(m_i);
+    s.assert(m_i == 2);
+    return m_i;
+  }
+
+}
+
+#:Qfoo.ulam
+  ulam 2;
+quark Qfoo : QW {
+  Self func()
+  {
+    self.m_b = true; //self not necessary, but ok
+    return self;
+  }
+
+  Self p(Int(3) xarg, Bool barg)
+  {
+    if(barg)
+    {
+      self.da.setdai(xarg); //self not necessary, but ok
+    }
+    return self;
+  }
+}
+
+#:QW.ulam
+  ulam 2;
+quark QW {
+  Bool m_b;
+  Qda da;
+  Bool b()
+  {
+    return self.m_b; //self not necessary, but ok
+  }
+}
+
+#:Qda.ulam
+  ulam 2;
+quark Qda {
+  Int(3) m_dai;
+  Int gu()
+  {
+    return self.m_dai; //self not ok when Qda is a dm (eval)
+  }
+
+  Void setdai(Int(3) iarg)
+  {
+    self.m_dai = --iarg; //self not ok when Qda is a dm (eval)
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

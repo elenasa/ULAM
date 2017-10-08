@@ -1,0 +1,26 @@
+## -*- mode:ulam -*-
+#=t3869_test_compiler_funcdef_returnstatementswlocaldeftype_error
+#!
+./D.ulam:7:5: ERROR: Returning incompatible (nonscalar) types: Int(3) as Int(3)[8].
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t3137
+##
+#>D.ulam
+  ulam 3;  //3 not allowed yet!
+local typedef Int(3) Foo [8];
+element D {
+  local.Foo foo() {
+    local.Foo m;
+    m[0] = 1;
+    return m[0];
+  }
+
+  Int test() {
+    d = foo();
+    return d[0]; /* match return type */
+  }
+  local.Foo d;
+}
+##// want d[0] == 1. simplified from original; needs 1 return, 1 differ in arraysize
+#.

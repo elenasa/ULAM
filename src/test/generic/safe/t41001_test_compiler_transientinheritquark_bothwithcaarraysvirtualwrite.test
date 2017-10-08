@@ -1,0 +1,71 @@
+## -*- mode:ulam -*-
+#=t41001_test_compiler_transientinheritquark_bothwithcaarraysvirtualwrite
+##
+## gen output: (+ interleaved asserts)
+## Int arg: 8
+## Int arg: 12
+##
+#!
+Exit status: 0
+Ue_Foo { Bool(1) first(false);  Int(32) test() {  System s;  Soo su;  Coo& cref = su cast;  su ( 0 cast )aref . 8 cast = s ( su ( 0 cast )aref . cast )print . s ( su ( 0 cast )aref . cast 8 cast == )assert . cref ( 1 cast )aref . 12 cast = s ( cref ( 1 cast )aref . cast )print . s ( cref ( 1 cast )aref . cast 12 cast == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Un_Soo : Coo { :< Int(32) m_i( 12); > Int(32) us( 4);  <NOMAIN> }
+Uq_Coo { Int(32) m_i( 12);  <NOMAIN> }
+##
+## transient and quark custom arrays (aref, virtual) for writing
+## informed by t41000
+##
+#>Foo.ulam
+  ulam 3;
+element Foo {
+  Bool first;
+  Int test() {
+    System s;
+    Soo su;
+    Coo& cref = su;
+
+    //custom array, aref for writing as virtual
+    su[0] = 8;
+    s.print(su[0]);
+    s.assert(su[0] == 8);
+
+    cref[1] = 12;
+    s.print(cref[1]);
+    s.assert(cref[1] == 12);
+
+    return 0;
+  }
+}
+
+#:Soo.ulam
+  ulam 3;
+transient Soo : Coo {
+  Int us = 4u;
+  virtual Int& aref(Int index)
+  {
+    return us; //index ignored
+  }
+}
+
+#:Coo.ulam
+  ulam 3;
+quark Coo {
+  Int m_i = 12;
+  virtual Int& aref(Int index)
+  {
+    return m_i; //index ignored
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeVarRefAs.h - Node handling of Conditional-As for ULAM
  *
- * Copyright (C) 2015-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2016 Ackleyshack LLC.
+ * Copyright (C) 2015-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeVarRefAs.h - Node handling of Conditional-As for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2016 All rights reserved.
+  \date (C) 2015-2017 All rights reserved.
   \gpl
 */
 

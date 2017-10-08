@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "NodeTypedef.h"
 #include "CompilerState.h"
-
+#include "MapTypedefDesc.h"
 
 namespace MFM {
 
@@ -86,6 +86,11 @@ namespace MFM {
     fp->write("; ");
   } //printPostfix
 
+  void NodeTypedef::noteTypeAndName(s32 totalsize, u32& accumsize)
+  {
+    return; //bypass
+  }
+
   const char * NodeTypedef::getName()
   {
     //same as m_typedefSymbol->getUlamType()->getUlamTypeNameBrief()); //short type name
@@ -130,7 +135,7 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	      }
 	  }
-	else if(tdut->isHolder())
+	else if(tdut->isHolder() && !m_state.isThisLocalsFileScope())
 	  {
 	    m_state.statusUnknownTypeInThisClassResolver(it);
 	  }
@@ -273,6 +278,11 @@ namespace MFM {
     return true; //pass on
   }
 
+  void NodeTypedef::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
+  {
+    return; //pass on
+  }
+
   void NodeTypedef::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
   {
     return;
@@ -288,7 +298,7 @@ namespace MFM {
   {
 #if 0
     m_state.indentUlamCode(fp);
-    fp->write("typedef ");
+    fp->write("//typedef ");
 
     fp->write(m_state.getUlamTypeByIndex(m_typedefSymbol->getUlamTypeIdx())->getUlamTypeMangledName().c_str()); //for C++
     fp->write(" ");
@@ -310,7 +320,33 @@ namespace MFM {
 #endif
   } //genCode
 
+  void NodeTypedef::genCodeConstantArrayInitialization(File * fp)
+  {}
+
+  void NodeTypedef::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  {}
+
+  void NodeTypedef::cloneAndAppendNode(std::vector<Node *> & cloneVec)
+  {
+    //for comment purposes (e.g. t3883)
+    NodeTypedef * cloneofme = (NodeTypedef *) this->instantiate();
+    assert(cloneofme);
+    cloneVec.push_back(cloneofme);
+  }
+
   void NodeTypedef::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {}
+
+  void NodeTypedef::addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers)
+  {
+    assert(m_typedefSymbol);
+    TypedefDesc * descptr = new TypedefDesc(m_typedefSymbol, classType, m_state);
+    assert(descptr);
+
+    //concat mangled class and parameter names to avoid duplicate keys into map
+    std::ostringstream fullMangledName;
+    fullMangledName << descptr->m_mangledClassName << "_" << descptr->m_mangledMemberName;
+    classmembers.insert(std::pair<std::string, ClassMemberDescHolder>(fullMangledName.str(), ClassMemberDescHolder(descptr)));
+  } //addMemberDescriptionToInfoMap
 
 } //end MFM

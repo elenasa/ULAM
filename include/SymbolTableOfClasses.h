@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolTableOfClasses.h -  Handling of Table of Class Symbols for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolTableOfClasses.h - Handling of Table of Class Symbols for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2017 All rights reserved.
   \gpl
 */
 
@@ -49,7 +49,7 @@ namespace MFM{
 
     SymbolTableOfClasses(CompilerState& state);
     SymbolTableOfClasses(const SymbolTableOfClasses& ref);
-    ~SymbolTableOfClasses();
+    virtual ~SymbolTableOfClasses();
 
     // TableOfClasses:
     void getTargets(TargetMap& classtargets);
@@ -90,6 +90,8 @@ namespace MFM{
 
     u32 reportUnknownTypeNamesAcrossTableOfClasses();
 
+    u32 reportTooLongClassNamesAcrossTableOfClasses();
+
     bool setBitSizeOfTableOfClasses();
 
     void printBitSizeOfTableOfClasses();
@@ -99,6 +101,8 @@ namespace MFM{
     void printUnresolvedVariablesForTableOfClasses();
 
     void generateIncludesForTableOfClasses(File * fp);
+
+    void generateAllIncludesTestMainForTableOfClasses(File * fp);
 
     void generateForwardDefsForTableOfClasses(File * fp);
 

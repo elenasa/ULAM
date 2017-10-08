@@ -4,7 +4,7 @@
 ##
 #!
 ./Foo.ulam:5:3: ERROR: Instance of Abstract Class QSubBase1 used with variable symbol name 'm1'.
-./Test.ulam:4:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: Test.
+./QSubBase1.ulam:3:7: NOTE: Pure: Int(32) vfunc().
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3606

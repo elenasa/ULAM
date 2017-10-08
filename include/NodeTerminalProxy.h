@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeTerminalProxy.h - Node handling of Unknown Type Sizes for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2016-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2016-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeTerminalProxy.h - Node handling Unknown Type Sizes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2016  All rights reserved.
+  \date (C) 2016-2017  All rights reserved.
   \gpl
 */
 
@@ -40,14 +40,15 @@
 #include "NodeTerminal.h"
 #include "Token.h"
 #include "NodeTypeDescriptor.h"
+#include "NodeIdent.h"
 
 namespace MFM{
 
-class NodeTerminalProxy : public NodeTerminal
-{
-public:
+  class NodeTerminalProxy : public NodeTerminal
+  {
+  public:
 
-    NodeTerminalProxy(const Token& memberTok, UTI memberType, const Token& funcTok, NodeTypeDescriptor * nodetype, CompilerState & state);
+    NodeTerminalProxy(Node * memberNode, UTI memberType, const Token& funcTok, NodeTypeDescriptor * nodetype, CompilerState & state);
 
     NodeTerminalProxy(const NodeTerminalProxy& ref);
 
@@ -57,6 +58,8 @@ public:
 
     virtual void updateLineage(NNO pno);
 
+    virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
+
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual void printPostfix(File * fp);
@@ -64,6 +67,8 @@ public:
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
+
+    virtual bool isAConstant();
 
     virtual bool isReadyConstant();
 
@@ -80,7 +85,7 @@ public:
     virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
 
   private:
-    Token m_ofTok; //useful when type is not available at parse
+    Node * m_nodeOf; //useful when type is not available at parse
     UTI m_uti; //lhs type of func
     Token m_funcTok; //minof, maxof or sizeof
     bool m_ready;
@@ -89,6 +94,11 @@ public:
     virtual bool setConstantValue(const Token& tok);
     virtual UTI setConstantTypeForNode(const Token& tok);
     bool updateProxy();
+
+    Node * buildAlengthofFuncCallNode(); //like toInt cast in Node
+    Node* constantFoldLengthofConstantString();
+
+    void genCodeForUserStringLength(File * fp, UVPass& uvpass);
   };
 
 } //MFM

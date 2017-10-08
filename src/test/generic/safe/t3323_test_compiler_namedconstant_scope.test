@@ -19,27 +19,28 @@ Uq_System { <NOMAIN> }
 ##      // inside block defined outside then redefined inside;
 ##
 #>A.ulam
+  ulam 1;
 use System;
 element A{
-System s;
-Int j;
- Int test () {
-constant Int cOW = 3;
- j = 1 + cOW;
- s.print(j);
- {
-j = j + cOW;
- s.print(j);
- Int j;
- constant Int cOW = 4;
- j = 2 * cOW;
-s.print(j);
-}
- i = j;
-s.print(i);
- return j;
-}
- Int i;
+  System s;
+  Int j;
+  Int test () {
+    constant Int cOW = 3;
+    j = 1 + cOW;
+    s.print(j);
+    {
+      j = j + cOW;
+      s.print(j);
+      Int j;
+      constant Int cOW = 4;
+      j = 2 * cOW;
+      s.print(j);
+    }
+    i = j;
+    s.print(i);
+    return j;
+  }
+  Int i;
 }
 ##      //basic:
 ##      //bool rtn1 = fms->add("A.ulam","use System;\nelement A{\nSystem s;\nInt j;\nInt test () {\nconstant Int cOW = 3;\n j = 1 + cOW;\ns.print(j);\n return j;\n}\n}\n");

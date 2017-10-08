@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolWithValue.h - Basic handling of symbols with values for ULAM
  *
- * Copyright (C) 2015-2106 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2016 Ackleyshack LLC.
+ * Copyright (C) 2015-2107 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolWithValue.h - Basic handling of symbols with values for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2016 All rights reserved.
+  \date (C) 2015-2017 All rights reserved.
   \gpl
 */
 
@@ -71,6 +71,8 @@ namespace MFM{
     bool getValue(u64& val);
     bool getValue(BV8K& val);
     void setValue(const BV8K& val);
+    bool getArrayItemValue(u32 item, u32& rtnitem);
+    bool getArrayItemValue(u32 item, u64& rtnitem);
 
     bool hasInitValue();
     bool getInitValue(u32& val);
@@ -79,16 +81,32 @@ namespace MFM{
     void setInitValue(const BV8K& val);
     bool isInitValueReady(); //new
     void setHasInitValue(); //new
+    bool getArrayItemInitValue(u32 item, u32& rtnitem);
+    bool getArrayItemInitValue(u32 item, u64& rtnitem);
 
     bool foldConstantExpression();
 
     void printPostfixValue(File * fp);
 
+    void printPostfixValueArrayStringAsComment(File * fp);
+
     virtual const std::string getMangledPrefix() = 0;
 
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype) = 0;
 
+    bool getArrayValueAsString(std::string& vstr);
+    bool getScalarValueAsString(std::string& vstr);
+
+    //static: return false if all zeros, o.w. true; rtnstr updated
+    static bool getLexValueAsString(u32 ntotbits, const BV8K& bval, std::string& rtnstr);
+    //static: return false if all zeros, o.w. true; rtnstr updated
+    static bool getHexValueAsString(u32 ntotbits, const BV8K& bval, std::string& rtnstr);
+
     void changeConstantId(u32 fmid, u32 toid); //for premature class instances
+
+    virtual NNO getDeclNodeNo();
+
+    virtual void setDeclNodeNo(NNO nno);
 
   protected:
 
@@ -101,6 +119,8 @@ namespace MFM{
 
     BV8K m_constantValue;
     BV8K m_initialValue;
+
+    NNO m_declnno;
 
     void printPostfixValueScalar(File * fp);
     void printPostfixValueArray(File * fp);

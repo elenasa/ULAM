@@ -6,7 +6,7 @@
 namespace MFM {
 
 
-  ErrorMessageHandler::ErrorMessageHandler(): m_state(NULL), m_debugMode(true), m_infoMode(true), m_warnMode(true), m_waitMode(true), m_fOut(NULL), m_errorCount(0), m_warningCount(0)
+  ErrorMessageHandler::ErrorMessageHandler(): m_state(NULL), m_debugMode(true), m_infoMode(true), m_noteMode(true), m_warnMode(true), m_waitMode(true), m_fOut(NULL), m_errorCount(0), m_warningCount(0)
   {
     //awaits init() call by owner
   }
@@ -14,12 +14,13 @@ namespace MFM {
   ErrorMessageHandler::~ErrorMessageHandler(){}
 
 
-  void  ErrorMessageHandler::init(CompilerState * state, bool debugMode, bool infoMode, bool warnMode, bool waitMode, File * fp)
+  void  ErrorMessageHandler::init(CompilerState * state, bool debugMode, bool infoMode, bool noteMode, bool warnMode, bool waitMode, File * fp)
   {
     assert(state);
     m_state = state;
     m_debugMode = debugMode;
     m_infoMode = infoMode;
+    m_noteMode = noteMode;
     m_warnMode = warnMode;
     m_waitMode = waitMode;
     m_fOut = fp;
@@ -60,6 +61,10 @@ namespace MFM {
       case MSG_INFO:
 	if(m_infoMode)
 	  outputMsg(loc,message,srcDebug.str().c_str(), "Info");
+	break;
+      case MSG_NOTE:
+	if(m_noteMode)
+	  outputMsg(loc,message,srcDebug.str().c_str(), "NOTE");
 	break;
       case MSG_DEBUG:
 	if(m_debugMode)

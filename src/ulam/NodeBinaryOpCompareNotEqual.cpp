@@ -19,6 +19,11 @@ namespace MFM {
     return "!=";
   }
 
+  const char * NodeBinaryOpCompareNotEqual::getInverseOpName()
+  {
+    return "==";
+  }
+
   const std::string NodeBinaryOpCompareNotEqual::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
@@ -33,7 +38,7 @@ namespace MFM {
 
   UTI NodeBinaryOpCompareNotEqual::calcNodeType(UTI lt, UTI rt)
   {
-    if(!m_state.okUTItoContinue(lt, rt))
+    if(!m_state.neitherNAVokUTItoContinue(lt, rt))
       return Nav;
 
     if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
@@ -71,6 +76,19 @@ namespace MFM {
 	return newType; //done
       }
 
+#if 0
+    //if both are String, no casting
+    if(ltypEnum == String && rtypEnum == String)
+      {
+	if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
+	  {
+	    newType = String;
+	    checkSafeToCastTo(getNodeType(), newType); //Nav, Hzy or no change; outputs error msg
+	  }
+	return newType; //done
+      }
+#endif
+
     //o.w. revert to ordered comparison rules
     return NodeBinaryOpCompare::calcNodeType(lt,rt);
   } //calcNodeType
@@ -99,8 +117,11 @@ namespace MFM {
       case Bits:
 	rtnUV = UlamValue::makeImmediate(nuti, _BinOpCompareNotEqBits32(ldata, rdata, len), nodelen);
 	break;
+      case String:
+	m_state.abortNotSupported();
+	break;
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	break;
       };
     return rtnUV;
@@ -130,8 +151,11 @@ namespace MFM {
       case Bits:
 	rtnUV = UlamValue::makeImmediateLong(nuti, _BinOpCompareNotEqBits64(ldata, rdata, len), nodelen);
 	break;
+      case String:
+	m_state.abortNotSupported();
+	break;
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	break;
       };
     return rtnUV;
@@ -139,7 +163,7 @@ namespace MFM {
 
   void NodeBinaryOpCompareNotEqual::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
-    assert(0); //not implemented yet!
+    m_state.abortNotImplementedYet(); //not implemented yet!
   }
 
 } //end MFM

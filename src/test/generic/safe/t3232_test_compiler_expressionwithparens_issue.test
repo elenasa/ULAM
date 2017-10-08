@@ -7,7 +7,8 @@ Ue_Foo { typedef Unsigned(8) ARGB[4];  typedef Unsigned(8) Channel;  Unsigned(3)
   ulam 1;
 element Foo {
   typedef Unsigned(8) Channel;
-  typedef Channel ARGB[4]; Unsigned(3) m_lastTouch;
+  typedef Channel ARGB[4];
+  Unsigned(3) m_lastTouch;
   Int test(){
     ARGB tmp;
     m_lastTouch = 2;

@@ -67,7 +67,7 @@ namespace MFM {
 
   bool UlamType::cast(UlamValue & val, UTI typidx)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     //std::cerr << "UlamType (cast) error! " << std::endl;
     return false;
   }
@@ -93,7 +93,8 @@ namespace MFM {
 
   FORECAST UlamType::explicitlyCastable(UTI typidx)
   {
-    assert(0); //must be overridden (pure virtual unhappy)
+    m_state.abortShouldntGetHere(); //must be overridden (pure virtual unhappy)
+    return CAST_BAD;
   }
 
   bool UlamType::checkArrayCast(UTI typidx)
@@ -138,8 +139,9 @@ namespace MFM {
       return false;
     if(key1.getUlamKeyTypeSignatureArraySize() != key2.getUlamKeyTypeSignatureArraySize())
       return false;
+
     if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
-      return false;
+      return false; //t3963
 
     //skip rest in the case of array item, continue with usual size fit
     if(alt1 == ALT_ARRAYITEM || alt2 == ALT_ARRAYITEM)
@@ -164,25 +166,25 @@ namespace MFM {
 
   s32 UlamType::getDataAsCs32(const u32 data)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return (s32) data;
   }
 
   u32 UlamType::getDataAsCu32(const u32 data)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return data;
   }
 
   s64 UlamType::getDataAsCs64(const u64 data)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return (s64) data;
   }
 
   u64 UlamType::getDataAsCu64(const u64 data)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return data;
   }
 
@@ -199,7 +201,7 @@ namespace MFM {
     s32 arraysize = getArraySize();
 
     if(isReference())
-      mangled << "r";
+      mangled << "r"; //e.g. t3114
 
     if(arraysize > 0)
       mangled << ToLeximitedNumber(arraysize);
@@ -252,7 +254,7 @@ namespace MFM {
 
     if(isReference())
       {
-	assert(0);
+	m_state.abortShouldntGetHere();
 	return getUlamTypeImmediateMangledName();
       }
 
@@ -275,7 +277,7 @@ namespace MFM {
 
   const std::string UlamType::getImmediateModelParameterStorageTypeAsString()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     std::ostringstream mpimangled;
     //substitutes Up_ for Ut_ for model parameter immediate
     mpimangled << "Ui_Up_" << getUlamTypeMangledType();
@@ -362,17 +364,17 @@ namespace MFM {
 
   void UlamType::genUlamTypeMangledAutoDefinitionForC(File * fp)
   {
-    assert(0); //see UlamTypePrimitive
-  } //genUlamTypeMangledAutoDefinitionForC
+    m_state.abortShouldntGetHere(); //see UlamTypePrimitive
+  }
 
   void UlamType::genUlamTypeAutoReadDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
   void UlamType::genUlamTypeAutoWriteDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
   const char * UlamType::getUlamTypeEnumCodeChar(ULAMTYPE etype)
@@ -446,7 +448,10 @@ namespace MFM {
 
   bool UlamType::isReference()
   {
-    return m_key.getUlamKeyTypeSignatureReferenceType() != ALT_NOT;
+    //yes, all of these ALT types are treated as references in gencode.
+    //return m_key.getUlamKeyTypeSignatureReferenceType() != ALT_NOT;
+    ALT alt = m_key.getUlamKeyTypeSignatureReferenceType();
+    return (alt == ALT_AS) || (alt == ALT_REF) || (alt == ALT_ARRAYITEM);
   }
 
   bool UlamType::isHolder()
@@ -507,7 +512,7 @@ namespace MFM {
     return (ut1 == ut2) ? UTIC_SAME : UTIC_NOTSAME;
   } //compare (static)
 
-  ULAMTYPECOMPARERESULTS UlamType::compareWithWildArrayItemReferenceType(UTI u1, UTI u2, CompilerState& state)  //static
+  ULAMTYPECOMPARERESULTS UlamType::compareWithWildArrayItemALTKey(UTI u1, UTI u2, CompilerState& state)  //static
   {
     assert((u1 != Nouti) && (u2 != Nouti));
 
@@ -561,21 +566,28 @@ namespace MFM {
       return UTIC_NOTSAME;
 
     if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
-      return UTIC_NOTSAME; //?
+      return UTIC_NOTSAME; //t3412
 
     ALT alt1 = key1.getUlamKeyTypeSignatureReferenceType();
     ALT alt2 = key2.getUlamKeyTypeSignatureReferenceType();
     if(alt1 != alt2)
       {
-	if(alt1 == ALT_ARRAYITEM || alt2 == ALT_ARRAYITEM)
-	  return UTIC_SAME;
+	if((alt1 == ALT_ARRAYITEM) || (alt2 == ALT_ARRAYITEM))
+	{
+	  if((alt1 == ALT_REF) || (alt2 == ALT_REF))
+	    return UTIC_NOTSAME; //t3653
+	  else if ((alt1 == ALT_AS) || (alt2 == ALT_AS))
+	    return UTIC_NOTSAME; //like a ref
+	  else
+	    return UTIC_SAME;
+	}
 	else
 	  return UTIC_NOTSAME;
       }
     return UTIC_SAME;
-  } //compareWithWildArrayItemReferenceType (static)
+  } //compareWithWildArrayItemALTKey (static)
 
-  ULAMTYPECOMPARERESULTS UlamType::compareWithWildReferenceType(UTI u1, UTI u2, CompilerState& state)  //static
+  ULAMTYPECOMPARERESULTS UlamType::compareWithWildALTKey(UTI u1, UTI u2, CompilerState& state)  //static
   {
     assert((u1 != Nouti) && (u2 != Nouti));
 
@@ -628,8 +640,6 @@ namespace MFM {
     if(key1.getUlamKeyTypeSignatureBitSize() != key2.getUlamKeyTypeSignatureBitSize())
       return UTIC_NOTSAME;
 
-    //if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx()) return UTIC_NOTSAME;
-
     ALT alt1 = key1.getUlamKeyTypeSignatureReferenceType();
     ALT alt2 = key2.getUlamKeyTypeSignatureReferenceType();
     if(alt1 != alt2)
@@ -637,21 +647,38 @@ namespace MFM {
 	return UTIC_SAME; //wild
       }
     return UTIC_SAME;
-  } //compareWithWildReferenceType (static)
+  } //compareWithWildALTKey (static)
 
   ULAMTYPECOMPARERESULTS UlamType::compareForArgumentMatching(UTI u1, UTI u2, CompilerState& state)  //static
   {
-    return UlamType::compareWithWildArrayItemReferenceType(u1, u2, state);
+    return UlamType::compareWithWildArrayItemALTKey(u1, u2, state);
   }
 
   ULAMTYPECOMPARERESULTS UlamType::compareForMakingCastingNode(UTI u1, UTI u2, CompilerState& state)  //static
   {
-    return UlamType::compareWithWildArrayItemReferenceType(u1, u2, state);
+    return UlamType::compareWithWildArrayItemALTKey(u1, u2, state);
   }
 
   ULAMTYPECOMPARERESULTS UlamType::compareForUlamValueAssignment(UTI u1, UTI u2, CompilerState& state)  //static
   {
-    return UlamType::compareWithWildReferenceType(u1, u2, state);
+    return UlamType::compareWithWildALTKey(u1, u2, state);
+  }
+
+  ULAMTYPECOMPARERESULTS UlamType::compareForAssignment(UTI u1, UTI u2, CompilerState& state)  //static
+  {
+    return UlamType::compareWithWildALTKey(u1, u2, state);
+  }
+
+  ULAMTYPECOMPARERESULTS UlamType::compareForString(UTI u1, CompilerState& state)  //static
+  {
+    //bitsize always 32; wild reference type
+    //arrays not treated as a String, per se (t3949, t3975, t3985, t3995)
+    return UlamType::compareWithWildALTKey(u1, String, state);
+  }
+
+  ULAMTYPECOMPARERESULTS UlamType::compareForCustomArrayItem(UTI u1, UTI u2, CompilerState& state)  //static
+  {
+    return UlamType::compareWithWildALTKey(u1, u2, state);
   }
 
   u32 UlamType::getTotalWordSize()
@@ -688,23 +715,27 @@ namespace MFM {
 
   u64 UlamType::getMax()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
+    return S64_MIN;
   }
 
   s64 UlamType::getMin()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
+    return S64_MAX;
   }
 
   u64 UlamType::getMax(UlamValue& rtnUV, UTI uti)
   {
-    assert(0);
-  } //getMax (UlamValue)
+    m_state.abortShouldntGetHere();
+    return U64_MIN;
+  }
 
   s64 UlamType::getMin(UlamValue& rtnUV, UTI uti)
   {
-    assert(0);
-  } //getMin (UlamValue)
+    m_state.abortShouldntGetHere();
+    return S64_MAX;
+  }
 
   PACKFIT UlamType::getPackable()
   {
@@ -811,38 +842,32 @@ namespace MFM {
   //generates immediates with local storage
   void UlamType::genUlamTypeMangledDefinitionForC(File * fp)
   {
-    assert(0);
-  } //genUlamTypeMangledDefinitionForC
+    m_state.abortShouldntGetHere();
+  }
 
   void UlamType::genUlamTypeReadDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
   void UlamType::genUlamTypeWriteDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
   void UlamType::genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp)
   {
-    assert(0);
-  } //genUlamTypeMangledUnpackedArrayAutoDefinitionForC
+    m_state.abortShouldntGetHere();
+  }
 
   void UlamType::genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp)
   {
-    assert(0);
-  } //genUlamTypeMangledUnpackedArrayDefinitionForC
+    m_state.abortShouldntGetHere();
+  }
 
   void UlamType::genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp)
   {
-    assert(0);
-  } //genUlamTypeMangledImmediateModelParameterDefinitionForC
-
-  bool UlamType::genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref)
-  {
-    assert(0);
-    return false; //only true for quarks in UlamTypeClass
+    m_state.abortShouldntGetHere();
   }
 
   void UlamType::genStandardConfigTypedefTypenames(File * fp, CompilerState& state)
@@ -855,5 +880,14 @@ namespace MFM {
     fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
     fp->write("\n");
   } //(static)
+
+  void UlamType::genGetUlamTypeMangledNameDefinitionForC(File * fp)
+  {
+    //for var args native funcs, non-refs, required of a BitStorage
+    m_state.indent(fp);
+    fp->write("virtual const char * GetUlamTypeMangledName() const { return \"");
+    fp->write(getUlamTypeMangledName().c_str());
+    fp->write("\"; }"); GCNL;
+  }
 
 } //end MFM

@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * UlamTypeClassQuark.h -  Basic handling of the Quark Class UlamType for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file UlamTypeClassQuark.h -  Basic handling of the Quark Class UlamType for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2017 All rights reserved.
   \gpl
 */
 
@@ -86,8 +86,6 @@ namespace MFM{
     virtual void genUlamTypeReadDefinitionForC(File * fp);
 
     virtual void genUlamTypeWriteDefinitionForC(File * fp);
-
-    virtual bool genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref);
 
    private:
 

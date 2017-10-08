@@ -1,0 +1,137 @@
+## -*- mode:ulam -*-
+#=t3794_test_compiler_localtransientcallsfuncswrefargwithrefcast
+##
+## gen output: (+ asserts)
+## Unsigned Arg: 2 (transition->scan->visit->categorize)
+## Unsigned Arg: 3 (transition->scan->visit->categorize)
+## Unsigned Arg: 2 (transition)
+## Unsigned Arg: 1 (test)
+##
+## 3 unused variables
+#!
+Exit status: -11
+Ue_Mob { Unsigned(10) age(0u);  typedef Unsigned(6) SiteNum;  Int(32) test() {  System s;  Mob meob;  XMob state;  state ( meob cast )transition . s ( meob age . cast )print . s ( meob age . cast 1 cast == )assert . 0 cast return } }
+Uq_EventWindowT { typedef Unsigned(6) SiteNum;  <NOMAIN> }
+Uq_System { <NOMAIN> }
+Un_XMob : WindowScanner { :< typedef Unsigned(6) SiteNum; > typedef Unsigned(6) SiteNum;  Bool(1) sp(false);  <NOMAIN> }
+Uq_WindowScanner { typedef Unsigned(6) SiteNum;  <NOMAIN> }
+Un_WindowServices { typedef Unary(4) Radius;  typedef Unsigned(6) SiteNum;  typedef Unsigned(4) Category;  constant Unsigned(32) cCATEGORY_COUNT = 16u;  Bool(1) status(false);  Unary(4) m_inner(0);  Unary(4) m_outer(0);  Unsigned(6) m_sn( 2u);  Unsigned(6) mSites[16](0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);  EventWindowT ew( typedef Unsigned(6) SiteNum; );  <NOMAIN> }
+##
+## informed by t3788, ref casts 'used to be' only valid in refvar init, now also func call args
+##
+#>Mob.ulam
+  ulam 2;
+element Mob {
+  Unsigned(10) age;
+  typedef EventWindowT.SiteNum SiteNum;
+
+  Int test() {
+    System s;
+    Mob meob;
+    XMob state;
+    state.transition((Mob&) meob); //okay now
+
+    s.print((Unsigned) meob.age);
+    s.assert(meob.age == 1); //incr by transition
+    return 0;
+  }
+}
+
+#:XMob.ulam
+  ulam 2;
+transient XMob : WindowScanner {
+  typedef EventWindowT.SiteNum SiteNum;
+  Bool sp; //change the size of subclass (reveals bug in needsACast)
+
+  virtual Void visit(WindowServices &wsrv, UrSelf& arg, Atom & a, SiteNum sn) {
+    Mob& unusedButToShowThisIdea = (Mob&) arg;
+    if (a is Self) wsrv.categorize(sn, 1);       // #1 is us
+    //    else if (a is Empty) ws.categorize(sn, 2); // #2 is empty
+    else wsrv.categorize(sn, 3);                  // #3 is everything else
+    return;
+  }
+
+  Void transition(Mob & mob) {
+    ++mob.age;
+    WindowServices wsrv;
+    wsrv.scan(self, mob); //<--ISHs: undefined quarkref (general) copy cnstr; cast Trans->super Quark
+
+    //insure categorize was called;
+    System s;
+    s.print((Unsigned) wsrv.mSites[3]); //categ == 3
+    s.assert(wsrv.mSites[3] == 2);
+    return;
+  }
+}
+
+#:WindowServices.ulam
+  ulam 2;
+use EventWindowT;
+transient WindowServices {
+  typedef Unary(4) Radius;
+  typedef EventWindowT.SiteNum SiteNum;
+  typedef Unsigned(4) Category;
+  constant Unsigned cCATEGORY_COUNT = Category.maxof + 1;
+
+  Bool status;
+  Radius m_inner, m_outer;
+  SiteNum m_sn = 2;
+  SiteNum mSites[cCATEGORY_COUNT];
+  EventWindowT ew;
+
+  Void scan(WindowScanner& scanner, UrSelf& arg)
+  {
+    return scan(scanner, arg, (Radius) 1, (Radius) 3);
+  }
+
+  Void scan(WindowScanner& scanner, UrSelf& arg, Radius inner, Radius outer) {
+    m_inner = inner;
+    m_outer = outer;
+    Atom a = ew[m_sn];
+    scanner.visit(self, arg, a, m_sn);
+  }
+
+  SiteNum categorize(SiteNum sn, Category categ)
+  {
+    System s;
+    mSites[categ] = sn;
+    m_sn = sn;
+    s.print((Unsigned) sn);
+    s.assert(sn == 2);
+    s.print((Unsigned) categ);
+    s.assert(categ == 3);
+    return sn;
+  }
+}
+
+#:WindowScanner.ulam
+  ulam 2;
+quark WindowScanner {
+  typedef EventWindowT.SiteNum SiteNum;
+  virtual Void visit(WindowServices& ws, UrSelf& arg, Atom & a, SiteNum sn) ;
+}
+
+#:EventWindowT.ulam
+  ulam 1;
+quark EventWindowT{
+  typedef Unsigned(6) SiteNum;
+  Atom aref(Int index) {
+    Atom a;
+    return a;
+  }
+  //  Void aset(Int index, Atom v) native;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

@@ -1,0 +1,30 @@
+## -*- mode:ulam -*-
+#=t3875_test_compiler_elementinheritance_withlocaldefskeyword_error
+#!
+./Foo.ulam:2:9: ERROR: Subclass 'Foo' inherits from 'Moo', an unresolved local filescope typedef.
+Unrecoverable Program Type Label FAILURE.
+##
+## test of local defs errors, mis-using local keyword as forward decl
+##
+#>Foo.ulam
+  ulam 3;
+element Foo : local.Moo {
+  Bool(7) sp;
+  Unsigned a = 73;
+  Int test() {
+    Foo f;
+    a = f.us;
+    a = Moo.sizeof;
+    sp = (a == 42u);
+    return (Int) a; //=42
+  }
+}
+
+#:Moo.ulam
+  ulam 1;
+quark Moo {
+  Unsigned(3) us = 4u;
+}
+
+
+#.

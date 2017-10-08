@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * Constants.h Useful common constants for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file Constants.h Useful common constants for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2017 All rights reserved.
   \gpl
 */
 
@@ -62,24 +62,35 @@ namespace MFM {
 #undef XY
 
 #ifndef PtrAbs
-#define PtrAbs (Ptr + 2)
+#define PtrAbs (Ptr + 4)
 #endif //PtrAbs
 
 #ifndef UAtomRef
-#define UAtomRef (Ptr + 3)
+#define UAtomRef (Ptr + 5)
 #endif //UAtomRef
 
-  enum ULAMCLASSTYPE { UC_UNSEEN, UC_QUARK, UC_ELEMENT, UC_TRANSIENT, UC_NOTACLASS, UC_ATOM, UC_ERROR};
+#ifndef ASCII
+#define ASCII (Ptr + 6)
+#endif //ASCII
+
+  //Linux FILENAME_MAX is 255; Eight (_Types.h) is our longest extension.
+#ifndef MAX_FILENAME_LENGTH
+#define MAX_FILENAME_LENGTH (255 - 8)
+#endif //MAX_FILENAME_LENGTH
+
+  enum ULAMCLASSTYPE { UC_UNSEEN, UC_QUARK, UC_ELEMENT, UC_TRANSIENT, UC_NOTACLASS, UC_LOCALSFILESCOPE, UC_ATOM, UC_ERROR};
+
+  enum SYMBOLTYPEFLAG { STF_NEEDSATYPE = -2, STF_FUNCPARAMETER = -1, STF_DATAMEMBER = 0,  STF_FUNCLOCALVAR = 1, STF_FUNCARGUMENT = 2, STF_CLASSINHERITANCE = 3, STF_FUNCLOCALREF = 4 };
 
   enum ULAMTYPECOMPARERESULTS { UTIC_DONTKNOW = -1, UTIC_NOTSAME = 0, UTIC_SAME = 1, UTIC_MUSTBESAME = 2};
 
   enum FORECAST { CAST_BAD = 0, CAST_CLEAR, CAST_HAZY};
 
-  enum ALT { ALT_NOT = 0, ALT_AS, ALT_HAS, ALT_REF, ALT_ARRAYITEM, ALT_CAST, ALT_PTR}; //autolocaltype
+  enum ALT { ALT_NOT = 0, ALT_AS, ALT_REF, ALT_ARRAYITEM}; //autolocaltype
 
-  enum STORAGE { IMMEDIATE = 0, EVENTWINDOW, STACK, EVALRETURN, UNPACKEDSTRUCT};
+  enum STORAGE { IMMEDIATE = 0, EVENTWINDOW, STACK, EVALRETURN, UNPACKEDSTRUCT, CNSTSTACK};
 
-  enum TMPSTORAGE { TERMINAL = 0, TMPREGISTER, TMPBITVAL, TMPAUTOREF, TMPTATOM, TMPATOMBS, TMPTBV};
+  enum TMPSTORAGE { TERMINAL = 0, TMPREGISTER, TMPBITVAL, TMPAUTOREF, TMPTATOM, TMPATOMBS, TMPTBV, TMPARRAYIDX };
 
   enum PACKFIT { UNPACKED = 0, PACKED, PACKEDLOADABLE};
 
@@ -125,6 +136,26 @@ namespace MFM {
 #define BITSPERBOOL (1)
 #endif //BITSPERBOOL
 
+#ifndef MAXBITSPERSTRING
+#define MAXBITSPERSTRING (255)
+#endif //MAXBITSPERSTRING
+
+#ifndef MAXBITSPERASCIIBYTE
+#define MAXBITSPERASCIIBYTE (8)
+#endif //MAXBITSPERASCIIBYTE
+
+#ifndef REGNUMBITS
+#define REGNUMBITS (16)
+#endif //REGNUMBITS
+
+#ifndef STRINGIDXBITS
+#define STRINGIDXBITS (16)
+#endif //STRINGIDXBITS
+
+#ifndef STRINGIDXMASK
+#define STRINGIDXMASK ((1 << STRINGIDXBITS) - 1)
+#endif //STRINGIDXMASK
+
 #ifndef UNKNOWNSIZE
 #define UNKNOWNSIZE (-2)
 #endif //UNKNOWNSIZE
@@ -169,16 +200,16 @@ namespace MFM {
       hold the bit size argument l (no longer required since exact BitVector uses number of u32's) */
 #define calcWordSizeLong(l) ((l / MAXBITSPERLONG) * MAXBITSPERLONG + ( (l % MAXBITSPERLONG) > 0 ? MAXBITSPERLONG : 0))
 
-#define calcBitsizeSignedMax(l) (l == MAXBITSPERINT ? S32_MAX : ((1 << (l - 1)) - 1))
-#define calcBitsizeSignedMin(l) (l == MAXBITSPERINT ? S32_MIN : _SignExtend32((1 << (l - 1)), l))
+#define calcBitsizeSignedMax(l) (l == MAXBITSPERINT ? S32_MAX : _GetNOnes31(l - 1))
+#define calcBitsizeSignedMin(l) (l == MAXBITSPERINT ? S32_MIN : _SignExtend32(_GetNOnes31(l - 1) + 1, l))
 
-#define calcBitsizeUnsignedMax(l) (l == MAXBITSPERINT ? U32_MAX : (1u << l) - 1)
+#define calcBitsizeUnsignedMax(l) (l == MAXBITSPERINT ? U32_MAX : _GetNOnes31(l))
 #define calcBitsizeUnsignedMin(l) (0)
 
-#define calcBitsizeSignedMaxLong(l) (l == MAXBITSPERLONG ? S64_MAX : ((1 << (l - 1)) - 1))
-#define calcBitsizeSignedMinLong(l) (l == MAXBITSPERLONG ? S64_MIN : _SignExtend64((1 << (l - 1)), l))
+#define calcBitsizeSignedMaxLong(l) (l == MAXBITSPERLONG ? S64_MAX : _GetNOnes63(l - 1))
+#define calcBitsizeSignedMinLong(l) (l == MAXBITSPERLONG ? S64_MIN : _SignExtend64(_GetNOnes63(l - 1) + 1, l))
 
-#define calcBitsizeUnsignedMaxLong(l) (l == MAXBITSPERLONG ? U64_MAX : (1u << l) - 1)
+#define calcBitsizeUnsignedMaxLong(l) (l == MAXBITSPERLONG ? U64_MAX : _GetNOnes63(l))
 #define calcBitsizeUnsignedMinLong(l) (0)
 
 #define WSUBDIR true

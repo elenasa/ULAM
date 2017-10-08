@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolFunctionName.h -  Function Symbol Name handling for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolFunctionName.h -  Function Symbol Name handling for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016   All rights reserved.
+  \date (C) 2014-2017   All rights reserved.
   \gpl
 */
 
@@ -64,21 +64,30 @@ namespace MFM{
 
     virtual const std::string getMangledPrefix();
 
+    bool isOperatorOverloadFunctionName();
+    void setOperatorOverloadFunctionName();
+
     bool overloadFunction(SymbolFunction * fsym);
 
-    u32 findMatchingFunctionStrictlyByTypes(std::vector<UTI> argTypes, SymbolFunction *& funcSymbol);
+    u32 findMatchingFunctionStrictlyByTypes(std::vector<UTI> argTypes, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
 
-    u32 findMatchingFunction(std::vector<Node*> argNodes, SymbolFunction *& funcSymbol);
+    u32 findMatchingFunctionStrictlyVoid(SymbolFunction *& funcSymbol);
+
+    u32 findMatchingFunction(std::vector<Node*> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
 
     u32 findMatchingFunctionWithSafeCasts(std::vector<Node*> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
 
     u32 findMatchingFunctionWithSafeCastsInAncestors(std::vector<Node*> argNodes, SymbolFunction *& funcSymbol, bool& hasHazyArgs);
+
+    void noteAmbiguousFunctionSignatures(std::vector<Node *> argNodes, u32 numMatchesFound);
 
     u32 getDepthSumOfFunctions();
 
     void calcMaxDepthOfFunctions(); //called after all UTI sizes are known
 
     void calcMaxIndexOfVirtualFunctions(s32& maxidx);
+
+    void setupConstantSlotIndexesInFunctions(u32& cslotidx);
 
     void checkAbstractInstanceErrorsInFunctions();
 
@@ -87,8 +96,6 @@ namespace MFM{
     void checkFunctionNamesInAncestor(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount);
 
     u32 checkCustomArrayGetFunctions(UTI& rtnType);
-
-    u32 checkCustomArraySetFunctions(UTI caType);
 
     UTI getCustomArrayReturnType();
 
@@ -115,9 +122,10 @@ namespace MFM{
   protected:
 
   private:
+    bool m_isOperatorOverload;
     std::map<std::string, SymbolFunction *> m_mangledFunctionNames; //mangled func name -> symbol function ptr
-    bool isDefined(std::string mangledFName, SymbolFunction * & foundSym);
 
+    bool isDefined(std::string mangledFName, SymbolFunction * & foundSym);
     bool checkForDuplicateFunctionSignature(std::map<std::string, UTI>& mangledFunctionMap, u32& probcount, SymbolFunction * fsym);
   };
 

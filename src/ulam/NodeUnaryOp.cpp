@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include "NodeUnaryOp.h"
+#include "NodeFunctionCall.h"
+#include "NodeMemberSelect.h"
 #include "NodeTerminal.h"
 #include "CompilerState.h"
 
@@ -22,7 +24,7 @@ namespace MFM {
   {
     setYourParentNo(pno);
     m_node->updateLineage(getNodeNo());
-  } //updateLineage
+  }
 
   bool NodeUnaryOp::exchangeKids(Node * oldnptr, Node * newnptr)
   {
@@ -47,7 +49,13 @@ namespace MFM {
   {
     if(m_node)
       m_node->checkAbstractInstanceErrors();
-  } //checkAbstractInstanceErrors
+  }
+
+  void NodeUnaryOp::resetNodeLocations(Locator loc)
+  {
+    Node::setNodeLocation(loc);
+    if(m_node) m_node->resetNodeLocations(loc);
+  }
 
   void NodeUnaryOp::print(File * fp)
   {
@@ -89,7 +97,7 @@ namespace MFM {
 
   const std::string NodeUnaryOp::methodNameForCodeGen()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return "_UNARY_NOOP";
   }
 
@@ -108,7 +116,7 @@ namespace MFM {
   {
     //ulamtype checks for complete, non array, and type specific rules
     return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
-  } //safeToCastTo
+  }
 
   UTI NodeUnaryOp::checkAndLabelType()
   {
@@ -120,11 +128,32 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Incompatible (nonscalar) type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
-	msg << ", for unary operator" << getName();
+	msg << ", for unary " << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
 	return Nav;
       }
+
+    //replace node with func call to matching function overload operator for class
+    // of left, with no arguments for unary (t41???);
+    // quark toInt must be used on rhs of operators (t3191, t3200, t3513, t3648,9)
+    UlamType * ut = m_state.getUlamTypeByIndex(uti);
+    if((ut->getUlamTypeEnum() == Class))
+      {
+	Node * newnode = buildOperatorOverloadFuncCallNode();
+	if(newnode)
+	  {
+	    AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+	    assert(swapOk);
+
+	    m_node = NULL; //recycle as memberselect
+
+	    delete this; //suicide is painless..
+
+	    return newnode->checkAndLabelType();
+	  }
+	//else should fail again as non-primitive;
+      } //done
 
     UTI newType = Nav;
     if(uti != Nav)
@@ -153,22 +182,57 @@ namespace MFM {
     return newType;
   } //checkAndLabelType
 
+  Node * NodeUnaryOp::buildOperatorOverloadFuncCallNode()
+  {
+    Token identTok;
+    TokenType opTokType = Token::getTokenTypeFromString(getName());
+    assert(opTokType != TOK_LAST_ONE);
+    Token opTok(opTokType, getNodeLocation(), 0);
+    u32 opolId = Token::getOperatorOverloadFullNameId(opTok, &m_state);
+    if(opolId == 0)
+      {
+	std::ostringstream msg;
+	msg << "Overload for operator <" << getName();
+	msg << "> is not supported as operand for class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_node->getNodeType()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return NULL;
+      }
+
+    identTok.init(TOK_IDENTIFIER, getNodeLocation(), opolId);
+
+    //fill in func symbol during type labeling;
+    NodeFunctionCall * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
+    assert(fcallNode);
+    fcallNode->setNodeLocation(identTok.m_locator);
+
+    //similar to Binary Op's except no argument
+
+    NodeMemberSelect * mselectNode = new NodeMemberSelect(m_node, fcallNode, m_state);
+    assert(mselectNode);
+    mselectNode->setNodeLocation(identTok.m_locator);
+
+    //redo check and type labeling done by caller!!
+    return mselectNode; //replace right node with new branch
+  } //buildOperatorOverloadFuncCallNode
+
   bool NodeUnaryOp::checkSafeToCastTo(UTI unused, UTI& newType)
   {
     bool rtnOK = true;
     FORECAST scr = m_node->safeToCastTo(newType);
     if(scr != CAST_CLEAR)
       {
+	ULAMTYPE etyp = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
 	std::ostringstream msg;
-	if(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Bool)
-	  msg << "Use a comparison operator";
+	if(etyp == Bool)
+	  msg << "Use a comparison operation";
 	else
 	  msg << "Use explicit cast";
 	msg << " to convert "; // the real converting-message
 	msg << m_state.getUlamTypeNameBriefByIndex(m_node->getNodeType()).c_str();
 	msg << " to ";
 	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
-	msg << " for unary operator" << getName();
+	msg << " for unary " << getName();
 	if(scr == CAST_HAZY)
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
@@ -205,7 +269,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Non-primitive type <";
 	msg << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
-	msg << "> is not supported for unary operator";
+	msg << "> is not supported for unary ";
 	msg << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return false;
@@ -220,7 +284,7 @@ namespace MFM {
     if(typEnum == Void)
       {
 	std::ostringstream msg;
-	msg << "Void is not a supported type for unary operator";
+	msg << "Void is not a supported type for unary ";
 	msg << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	rtnOK = false;
@@ -235,7 +299,7 @@ namespace MFM {
     if(!isnum)
       {
 	std::ostringstream msg;
-	msg << "Incompatible type for unary operator";
+	msg << "Incompatible type for unary ";
 	msg << getName() << " : ";
 	msg << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
 	msg << "; Suggest casting to a numeric type first";
@@ -265,17 +329,8 @@ namespace MFM {
 
     NNO pno = Node::getYourParentNo();
     assert(pno);
-    Node * parentNode = m_state.findNodeNoInThisClass(pno);
-    if(!parentNode)
-      {
-	std::ostringstream msg;
-	msg << "Constant value expression for unary op" << getName();
-	msg << " cannot be constant-folded at this time while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	msg << " Parent required";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	assert(0); //parent required
-      }
+    Node * parentNode = m_state.findNodeNoInThisClassForParent(pno); //t3767
+    assert(parentNode);
 
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(nuti); //offset a constant expression
@@ -289,7 +344,7 @@ namespace MFM {
 	else if(wordsize <= MAXBITSPERLONG)
 	  val = cnstUV.getImmediateDataLong(m_state);
 	else
-	  assert(0);
+	  m_state.abortGreaterThanMaxBitsPerLong();
       }
 
     evalNodeEpilog();
@@ -326,7 +381,7 @@ namespace MFM {
     assert(swapOk);
 
     std::ostringstream msg;
-    msg << "Exchanged kids! for unary operator" << getName();
+    msg << "Exchanged kids! for unary " << getName();
     msg << ", with a constant == " << newnode->getName();
     msg << " while compiling class: ";
     msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
@@ -379,7 +434,7 @@ namespace MFM {
       {
 	//arrays not supported at this time
 	std::ostringstream msg;
-	msg << "Unsupported unary operator" << getName();
+	msg << "Unsupported unary operation " << getName();
 	msg << ", with an array type <";
 	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str() << ">";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -414,7 +469,7 @@ namespace MFM {
 	rtnUV = makeImmediateLongUnaryOp(nuti, data, len);
       }
     else
-      assert(0);
+      m_state.abortGreaterThanMaxBitsPerLong();
 
     m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
     return true;

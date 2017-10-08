@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * Lexer.h - Basic Lexical handling for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file Lexer.h - Basic Lexical handling for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016 All rights reserved.
+  \date (C) 2014-2017 All rights reserved.
   \gpl
 */
 
@@ -73,11 +73,14 @@ namespace MFM{
 
     u32 makeWordToken(std::string& aname, Token & tok);
     u32 makeNumberToken(std::string& anumber, Token & tok);
+    u32 makeFlagToken(std::string& anumber, Token & tok);
     u32 makeOperatorToken(std::string& astring, Token & tok);
     u32 checkEllipsisToken(std::string& astring, Locator firstloc);
+    u32 checkShiftEqualToken(std::string& astring, Locator firstloc);
 
     u32 makeDoubleQuoteToken(std::string& astring, Token & tok);
     u32 makeSingleQuoteToken(std::string& astring, Token & tok);
+    u32 nextByte(u8& abyte);
     u32 formatOctalConstant(u8& rtn);
     u32 formatHexConstant(u8& rtn);
 

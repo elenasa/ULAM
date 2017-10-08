@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolFunction.h -  Function Symbol handling for ULAM
  *
- * Copyright (C) 2014-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2016 Ackleyshack LLC.
+ * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolFunction.h -  Function Symbol handling for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2016   All rights reserved.
+  \date (C) 2014-2017   All rights reserved.
   \gpl
 */
 
@@ -72,13 +72,14 @@ namespace MFM{
 
     virtual const std::string getMangledPrefix();
 
+    const std::string getFunctionNameWithTypes();
     const std::string getMangledNameWithTypes();
     const std::string getMangledNameWithUTIparameters();
 
     bool checkParameterTypes();
 
-    bool matchingTypesStrictly(std::vector<UTI> argTypes);
-    bool matchingTypesStrictly(std::vector<Node *> argNodes);
+    bool matchingTypesStrictly(std::vector<Node *> argNodes, bool& hasHazyArgs);
+    bool matchingTypesStrictly(std::vector<UTI> argTypes, bool& hasHazyArgs);
     bool matchingTypes(std::vector<Node *> argNodes, bool& hasHazyArgs, u32& numUTmatch);
 
     u32 isNativeFunctionDeclaration();
@@ -89,8 +90,14 @@ namespace MFM{
     bool isPureVirtualFunction();
     void setPureVirtualFunction();
 
+    bool getInsureVirtualOverrideFunction();
+    void setInsureVirtualOverrideFunction();
+
     u32 getVirtualMethodIdx();
     void setVirtualMethodIdx(u32 idx);
+
+    bool isConstructorFunction();
+    void setConstructorFunction();
 
     bool isDefinedInAQuark();
     void setDefinedInAQuark();
@@ -99,6 +106,7 @@ namespace MFM{
 
     virtual void setStructuredComment();
 
+    const std::string generateUlamFunctionSignature(); //for UlamInfo
   protected:
 
 
@@ -108,7 +116,9 @@ namespace MFM{
     bool m_hasVariableArgs;
     bool m_isVirtual; //overloaded funcs may have different virtual status
     bool m_pureVirtual; //overloaded funcs may have different pure virtual status
+    bool m_insureVirtualOverride;
     u32 m_virtualIdx;
+    bool m_isConstructor;
     bool m_definedinaQuark;
     void generateFunctionDeclarationVirtualTypedef(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 

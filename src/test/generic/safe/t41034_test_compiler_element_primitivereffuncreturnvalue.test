@@ -1,0 +1,62 @@
+## -*- mode:ulam -*-
+#=t41034_test_compiler_element_primitivereffuncreturnvalue
+##
+## gen output: + assert
+##   Unsigned Arg: 4
+##
+#!
+Exit status: 4
+Ue_Foo { Int(32) test() {  System s;  ( )caller1 Unsigned(32) f3 = 4 cast;  Unsigned(32)& r = ( f3 cast false )caller2;  s ( r cast )print . s ( r cast 4u cast == )assert . r cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by Dave email 2/10/2017 and t41035
+##
+#>Foo.ulam
+  ulam 3;
+element Foo
+{
+  Unsigned & func(Unsigned& arg1, Unsigned& arg2, Bool barg)
+  {
+    if(barg)
+      return arg1;
+    return arg2;
+  }
+
+  Void caller1()
+  {
+    Unsigned f1 = 2;
+    caller2(f1, false);
+  }
+
+  Unsigned & caller2(Unsigned& a1, Bool barg)
+  {
+    Unsigned f2 = 3;
+    Unsigned & r2 = f2;
+    return func(r2, a1, barg);  // Safe or not?  Can't know til runtime.
+  }
+
+  Int test() {
+    System s;
+    caller1();
+
+    Unsigned f3 = 4;
+    Unsigned & r = caller2(f3, false);
+    s.print(r);
+    s.assert(r == 4u);
+    return (Int) r;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

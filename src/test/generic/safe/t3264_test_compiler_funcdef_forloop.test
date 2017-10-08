@@ -5,23 +5,24 @@ Exit status: 20
 Ue_A { Bool(7) b(false);  Int(32) d(20);  System s();  Int(32) test() {  d ( 4 cast 5 cast )times = s ( d )print . d return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
+  ulam 1;
 use System;
 element A {
-Int times(Int m, Int n) {
-Int d;
-for(; m > 0; m-=1)
-d += n;
- return d;
-}
+  Int times(Int m, Int n) {
+    Int d;
+    for(; m > 0; m-=1)
+      d += n;
+    return d;
+  }
 
-System s;
-Bool(7) b;
-Int d;
-Int test(){ d = times(4,5);
-s.print(d);
-return d;
- }
- }
+  System s;
+  Bool(7) b;
+  Int d;
+  Int test(){ d = times(4,5);
+    s.print(d);
+    return d;
+  }
+}
 
 ##      //informed by: t3237_test_compiler_funcdef_whileifnotbreak
 ##      // using m

@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeAtomof.h - Node handling the Atomof Statement for ULAM
  *
- * Copyright (C) 2016 The Regents of the University of New Mexico.
- * Copyright (C) 2016 Ackleyshack LLC.
+ * Copyright (C) 2016-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2016-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeAtomof.h - Node handling the Atomof Statement for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2016 All rights reserved.
+  \date (C) 2016-2017 All rights reserved.
   \gpl
 */
 
@@ -45,7 +45,7 @@ namespace MFM{
   {
   public:
 
-    NodeAtomof(const Token& tokof, NodeTypeDescriptor * nodetype, CompilerState & state);
+    NodeAtomof(Node * ofnode, NodeTypeDescriptor * nodetype, CompilerState & state);
 
     NodeAtomof(const NodeAtomof& ref);
 
@@ -58,6 +58,8 @@ namespace MFM{
     virtual const std::string prettyNodeName();
 
     virtual UTI checkAndLabelType();
+
+    virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
 
     virtual void genCode(File * fp, UVPass& uvpass);
 

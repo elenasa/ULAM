@@ -23,7 +23,7 @@ namespace MFM {
   bool UlamTypeClass::isNumericType()
   {
     return false; //quark may have toInt()
-  } //isNumericType
+  }
 
   bool UlamTypeClass::isPrimitiveType()
   {
@@ -32,9 +32,9 @@ namespace MFM {
 
   bool UlamTypeClass::cast(UlamValue & val, UTI typidx)
   {
-    assert(0); //neither element nor quark
+    m_state.abortShouldntGetHere(); //neither element nor quark
     return false;
-  } //end cast
+  }
 
   FORECAST UlamTypeClass::safeCast(UTI typidx)
   {
@@ -46,7 +46,7 @@ namespace MFM {
       return CAST_CLEAR; //same class, quark or element
     else
       {
-	UTI fmderef = m_state.getUlamTypeAsDeref(typidx); //e.g. ALT_AS, ALT_ARRAYITEM
+	UTI fmderef = m_state.getUlamTypeAsDeref(typidx); //e.g. ALT_ARRAYITEM
 	u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx(); //our scalar "new"
 	if(m_state.isClassASubclassOf(fmderef, cuti))
 	  return CAST_CLEAR; //(up) casting to a super class
@@ -117,9 +117,9 @@ namespace MFM {
 
   const char * UlamTypeClass::getUlamTypeAsSingleLowercaseLetter()
   {
-    assert(0); //UC_UNSEEN
+    m_state.abortShouldntGetHere(); //UC_UNSEEN
     return UlamType::getUlamTypeEnumCodeChar(getUlamTypeEnum());
-  } //getUlamTypeAsSingleLowercaseLetter()
+  }
 
   const std::string UlamTypeClass::getUlamTypeMangledType()
   {
@@ -163,11 +163,9 @@ namespace MFM {
 
   const std::string UlamTypeClass::getUlamTypeUPrefix()
   {
-    if(getArraySize() > 0)
-      return "Ut_";
-
+    //scalar or array Sat Sep 30 16:05:48 2017
     return "U?_"; //UC_UNSEEN:
-  } //getUlamTypeUPrefix
+  } //getUlamTypeUPrefixx
 
   const std::string UlamTypeClass::getUlamTypeNameBrief()
   {
@@ -252,12 +250,12 @@ namespace MFM {
   const std::string UlamTypeClass::readMethodForCodeGen()
   {
     return "Illiterate";
-  } //readMethodForCodeGen
+  }
 
   const std::string UlamTypeClass::writeMethodForCodeGen()
   {
     return "Illiterate";
-  } //writeMethodForCodeGen
+  }
 
   bool UlamTypeClass::needsImmediateType()
   {
@@ -279,7 +277,7 @@ namespace MFM {
 
     if(isReference())
       {
-	assert(0); //use ImmediateMangledName
+	m_state.abortShouldntGetHere(); //use ImmediateMangledName
 	return getUlamTypeImmediateMangledName();
       }
 
@@ -297,40 +295,41 @@ namespace MFM {
   {
     if(!isScalar())
       return UlamType::getTmpStorageTypeAsString(getItemWordSize()); //return its scalar tmp storage type
-
     return m_state.getUlamTypeByIndex(getCustomArrayType())->getTmpStorageTypeAsString();
-  } //getArrayItemTmpStorageTypeAsString
+  }
 
   const std::string UlamTypeClass::getLocalStorageTypeAsString()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return "Bloco";
-  } //getLocalStorageTypeAsString
+  }
 
   TMPSTORAGE UlamTypeClass::getTmpStorageTypeForTmpVar()
   {
+    if(isCustomArray())
+      return m_state.getUlamTypeByIndex(getCustomArrayType())->getTmpStorageTypeForTmpVar();
     return UlamType::getTmpStorageTypeForTmpVar();
-  } //getTmpStorageTypeForTmpVar
+  }
 
   const std::string UlamTypeClass::castMethodForCodeGen(UTI nodetype)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return "_NoCast";
   } //castMethodForCodeGen
 
   void UlamTypeClass::genUlamTypeMangledAutoDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
   void UlamTypeClass::genUlamTypeReadDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
   void UlamTypeClass::genUlamTypeWriteDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
   const std::string UlamTypeClass::readArrayItemMethodForCodeGen()
@@ -343,23 +342,23 @@ namespace MFM {
   const std::string UlamTypeClass::writeArrayItemMethodForCodeGen()
   {
     if(isCustomArray())
-      return m_state.getCustomArraySetMangledFunctionName();
+      return m_state.getCustomArrayGetMangledFunctionName(); //return a ref
     return UlamType::writeArrayItemMethodForCodeGen();
   }
 
   void UlamTypeClass::genUlamTypeMangledDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
   void UlamTypeClass::genUlamTypeMangledUnpackedArrayAutoDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
   void UlamTypeClass::genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp)
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
   }
 
 } //end MFM

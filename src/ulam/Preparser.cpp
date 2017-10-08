@@ -73,28 +73,75 @@ namespace MFM {
 	    tok.init(TOK_ERROR_LOWLEVEL, useTok.m_locator, pmsg);
 	  }
       }
+    else
+      {
+	std::ostringstream errmsg;
+	errmsg << "Bad filename to 'use'";
+	u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
+	tok.init(TOK_ERROR_LOWLEVEL, useTok.m_locator, idx);
+      }
     return false;
   } //preparseKeywordUse
 
   bool Preparser::preparseKeywordLoad(Token & tok)
   {
-    std::string pkgname;
+    std::string filename;
     Token loadTok = tok;
 
-    if(preparsePackageName(pkgname))
+    //backward compatible (look for package name first, might add suffix) (t3872)
+    if(preparsePackageName(filename) || preparseFileName(filename))
       {
-	u32 pmsg = push(pkgname,false);
-	if(pmsg == 0)
+	u32 fmsg = push(filename,false);
+	if(fmsg == 0)
 	  {
 	    return getNextToken(tok);
 	  }
 	else
 	  {
-	    tok.init(TOK_ERROR_LOWLEVEL, loadTok.m_locator, pmsg);
+	    tok.init(TOK_ERROR_LOWLEVEL, loadTok.m_locator, fmsg);
 	  }
+      }
+    else
+      {
+	std::ostringstream errmsg;
+	errmsg << "Bad filename to 'load'";
+	u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
+	tok.init(TOK_ERROR_LOWLEVEL, loadTok.m_locator, idx);
       }
     return false;
   } //preparseKeywordLoad
+
+  bool Preparser::preparseFileName(std::string & pStr)
+  {
+    bool rtnb = false;
+    Token pTok;
+    m_tokenizer->getNextToken(pTok);
+
+    if(pTok.m_type == TOK_DQUOTED_STRING)
+      {
+	//without double quotes (t41130,4)
+	u32 fnid = m_state.m_tokenupool.formatDoubleQuotedFileNameUnquoted(pTok.m_dataindex, & m_state);
+	if(fnid > 0)
+	  {
+	    pStr.append(m_state.m_pool.getDataAsString(fnid));
+	    Token qTok;
+	    m_tokenizer->getNextToken(qTok);
+
+	    if(qTok.m_type == TOK_SEMICOLON)
+	      {
+		rtnb = true;
+	      }
+	    else
+	      {
+		m_tokenizer->unreadToken();
+	      }
+	  }
+	//else unprintable chars in filename (t41135)
+      }
+    else
+	m_tokenizer->unreadToken();
+    return rtnb;
+  } //preparseFileName
 
   bool Preparser::preparsePackageName(std::string & pStr)
   {

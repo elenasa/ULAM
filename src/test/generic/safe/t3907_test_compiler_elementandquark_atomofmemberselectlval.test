@@ -1,0 +1,72 @@
+## -*- mode:ulam -*-
+#=t3907_test_compiler_elementandquark_atomofmemberselectlval
+#!
+##      gen code output: 4 asserts
+##
+Exit status: 0
+Ue_A : QW { :<> Bool(1) b(false);  QW m_q();  Int(32) test() {  System s;  A a2;  b true = Atom(96)& metoo = self.atomof;  { metoo A as cond { A& metoo;  s ( metoo b . )assert . } if } self.atomof a2 cast = { metoo A as cond { A& metoo;  s ( metoo b . ! )assert . } if } A a;  a b . true = Atom(96)& me = a.atomof;  { me A as cond { A& me;  s ( me b . )assert . } if } a.atomof a2 cast = { me A as cond { A& me;  s ( me b . ! )assert . } if } 0 cast return } }
+Uq_System { <NOMAIN> }
+Uq_QW { <NOMAIN> }
+##
+## informed by t3905, except to test write, and use of atomrefs
+##
+#>A.ulam
+  ulam 3;
+use System;
+use QW;
+element A : QW {
+  Bool b;
+  QW m_q;
+  Int test(){
+    System s;
+    A a2;
+
+    //works with self
+    b = true;
+    Atom& metoo = self.m_q.atomof; //ref
+    if(metoo as A)
+      s.assert(metoo.b);
+
+    self.m_q.atomof = a2;
+    if(metoo as A)
+      s.assert(!metoo.b);
+
+    //immediate element
+    A a;
+    a.b = true;
+
+    Atom& me = a.m_q.atomof; //ref
+
+    if(me as A)
+      s.assert(me.b);
+    a.m_q.atomof = a2;
+
+    if(me as A)
+      s.assert(!me.b);
+
+    return 0;
+  }
+}
+
+#:QW.ulam
+  ulam 2;
+quark QW {
+  Atom func()
+  {
+    Atom a = self.instanceof;
+    return a;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

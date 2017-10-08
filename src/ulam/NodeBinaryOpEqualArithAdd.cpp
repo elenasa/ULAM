@@ -32,20 +32,6 @@ namespace MFM {
     return methodname.str();
   } //methodNameForCodeGen
 
-  bool NodeBinaryOpEqualArithAdd::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
-  {
-    assert(slots);
-    if(m_state.isScalar(getNodeType())) //not an array
-      {
-	return doBinaryOperationImmediate(lslot, rslot, slots);
-      }
-    else
-      { //array
-	return doBinaryOperationArray(lslot, rslot, slots);
-      }
-    return false;
-  } //end dobinaryop
-
   UlamValue NodeBinaryOpEqualArithAdd::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
     UlamValue rtnUV;
@@ -66,7 +52,7 @@ namespace MFM {
 	break;
       case Bits:
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	break;
       };
     return rtnUV;
@@ -92,7 +78,7 @@ namespace MFM {
 	break;
       case Bits:
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	break;
       };
     return rtnUV;
@@ -118,7 +104,7 @@ namespace MFM {
 	break;
       case Bits:
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	break;
       };
     return;

@@ -44,7 +44,7 @@ quark EventWindow {
      Access the maximum possible number of sites in the event window.
      Note this function returns a fixed value (41, given the manhattan
      distance 4 event window radius), and does not the number of \e
-     accessible sites given an event window.  
+     accessible sites given an event window.
 
      \sa getRadius()
      \sa getAccessibleSize()
@@ -69,11 +69,8 @@ quark EventWindow {
     return md.getFirstIndex((Radius) (rad + 1u));
   }
 
-  Atom aref(SiteNum index) native;
-  Atom aref(C2D coord) { return aref(getSiteNumberRaw(coord)); }
-
-  Void aset(SiteNum index, Atom val) native;
-  Void aset(C2D coord, Atom val) { aset(getSiteNumberRaw(coord), val); }
+  Atom& aref(SiteNum index) native;
+  Atom& aref(C2D coord) { return aref(getSiteNumberRaw(coord)); }
 
   Bool isLegal(SiteNum index) { return index < size(); }
   Bool isLegal(C2D coord) { return isLegal(getSiteNumberRaw(coord)); }
@@ -85,10 +82,24 @@ quark EventWindow {
   Bool isLive(C2D coord) { return isLegal(coord) && isLive(getSiteNumberRaw(coord)); }
 
   Bool isEmpty(SiteNum index) { return isLive(index) && au.isEmpty(aref(index)); }
-  Bool isEmpty(C2D coord) { return isLegal(coord) && isLive(getSiteNumberRaw(coord)); }
+  Bool isEmpty(C2D coord) { return isLegal(coord) && isEmpty(getSiteNumberRaw(coord)); }
 
   Bool swap(SiteNum index1, SiteNum index2)  native;
   Bool swap(C2D coord1, C2D coord2) { return swap(getSiteNumberRaw(coord1), getSiteNumberRaw(coord2)); }
+
+  /** Get the SiteNum corresponding to the given raster \c index, if
+      it is legal, else return EventWindow.size() (which is an illegal
+      SiteNum, and will cause event window array accesses to fail if
+      used).
+  */
+  SiteNum getSiteNumberFromRasterIndex(SiteNum index) native ;
+
+  /** Get the raster index corresponding to the given \c sitenum, if
+      it is legal, else return EventWindow.size() (which is an illegal
+      SiteNum, and will cause event window array accesses to fail if
+      used).
+  */
+  SiteNum getRasterIndexFromSiteNumber(SiteNum sitenum) native ;
 
   C2D getCoord(SiteNum siteNum) native;
 
@@ -126,6 +137,12 @@ quark EventWindow {
       methods.
   */
   Symmetry changeSymmetry(Symmetry newSym) native;
+
+  /** Get the current EventWindow symmetry.  The prevailing
+      EventWindow symmetry affects the interpretation of SiteNum and
+      C2D in most of the EventWindow methods.
+  */
+  Symmetry getSymmetry() native;
 
   /**
      (Deprecated)

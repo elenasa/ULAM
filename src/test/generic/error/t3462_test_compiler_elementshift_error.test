@@ -1,11 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3462_test_compiler_elementshift_error
 #!
-./A.ulam:4:8: ERROR: Non-primitive type <A> is not supported as left operand type for binary operator<<.
+./A.ulam:4:8: ERROR: (2) <operator<<> is not a defined function, or cannot be safely called in this context.
 ./A.ulam:4:4: ERROR: Assignment is invalid; LHS: A; RHS: erroneous.
-./A.ulam:5:8: ERROR: Non-primitive type <A> is not supported as right operand type for binary operator<<.
+./A.ulam:5:8: ERROR: Non-primitive type <A> is not supported as right operand type for binary <<.
 ./A.ulam:5:4: ERROR: Assignment is invalid; LHS: A; RHS: erroneous.
-./A.ulam:1:9: ERROR: 4 Nodes with erroneous types detected after type labeling class: A.
 Unrecoverable Program Type Label FAILURE.
 #>A.ulam
 element A {

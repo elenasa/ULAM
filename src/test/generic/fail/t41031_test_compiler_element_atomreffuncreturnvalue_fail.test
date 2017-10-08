@@ -1,0 +1,46 @@
+## -*- mode:ulam -*-
+#=t41031_test_compiler_element_atomreffuncreturnvalue_fail
+##
+## gen error:
+## include/Ue_10173Foo10.tcc:94: FAILED: UNRETURNABLE_REFERENCE
+##
+#!
+Exit status: -1
+Ue_Foo { Int(32) test() {  Atom(96) f3;  Atom(96)& r = ( f3 cast )caller2;  0 cast return } }
+##
+## informed by Dave email 2/10/2017 and t41029, see safe/t41033
+##
+#>Foo.ulam
+  ulam 3;
+element Foo
+{
+
+  Atom & func(Atom& arg1, Atom& arg2)
+  {
+    if(arg1 is Foo)
+      return arg1;
+    return arg2;
+  }
+
+  Void caller1()
+  {
+    Foo f1;
+    caller2(f1.atomof);
+  }
+
+  Atom & caller2(Atom& a1)
+  {
+    Foo f2;
+    Atom & r2 = f2.atomof;
+    return func(r2, a1);  // Safe or not?  Can't know til runtime.
+  }
+
+  Int test() {
+    Atom f3;
+    Atom & r = caller2(f3);
+    return 0;
+  }
+}
+
+
+#.

@@ -1,0 +1,62 @@
+## -*- mode:ulam -*-
+#=t3450_test_compiler_minmaxsizeoffunccallreturns
+##
+## gen output: (+ interleaved asserts)
+##  Int Arg: -64
+##  Int Arg: 63
+##  Int Arg: 7
+##  Int Arg: 11
+##
+#!
+Exit status: 7
+Ue_T { typedef Int(7) B;  Int(7) m(-64);  Int(7) n(63);  Int(7) p(7);  Int(7) q(11);  Int(32) test() {  System s;  m -64 = s ( m cast )print . s ( m cast -64 == )assert . n 63 = s ( n cast )print . s ( n 63 == )assert . p 7u cast = s ( p cast )print . s ( p 7 cast == )assert . q 11u cast = s ( q cast )print . s ( q 11 cast == )assert . 7u cast return } }
+Uq_System { <NOMAIN> }
+##
+## opens door to expecting to put 'dot' after function call; that ship has already sailed!
+##
+#>T.ulam
+  ulam 2;
+element T{
+  typedef Int(7) B;
+  B m,n,p,q;
+  B func1() {
+    return 5;
+  }
+  B func2() {
+    return 7;
+  }
+  String func3()
+  {
+    return "hello world";
+  }
+
+  Int test(){
+    System s;
+    m = func1().minof;
+    s.print((Int) m);
+    s.assert(m == -64);
+    n = func2().maxof;
+    s.print((Int) n);
+    s.assert(n == 63);
+    p = func1().sizeof;
+    s.print((Int) p);
+    s.assert(p == 7);
+    q = func3().lengthof;
+    s.print((Int) q);
+    s.assert(q == 11);
+    return func1().sizeof;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

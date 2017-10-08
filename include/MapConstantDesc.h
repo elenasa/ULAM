@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * MapConstantDesc.h - Map of Named Constants for ULAM
  *
- * Copyright (C) 2015-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2016 Ackleyshack LLC.
+ * Copyright (C) 2015-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file MapConstantDesc.h -  Map of Named Constants for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2016 All rights reserved.
+  \date (C) 2015-2017 All rights reserved.
   \gpl
 */
 
@@ -52,13 +52,14 @@ namespace MFM
     virtual ClassMemberDesc * clone() const;
 
     virtual std::string getMemberKind() const;
-    virtual bool getValue(u64& vref) const;
+    //virtual bool getValue(u64& vref) const;
     virtual bool hasValue() const;
     virtual std::string getValueAsString() const;
 
   private:
-    u64 m_val; //as Bits
-
+    //u64 m_val; //as Bits
+    u32 m_len;
+    BV8K m_val; //as Bits
   };
 
 } //MFM

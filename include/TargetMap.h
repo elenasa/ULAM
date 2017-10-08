@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * TargetMap.h - Map of class targets for ULAM
  *
- * Copyright (C) 2015-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2016 Ackleyshack LLC.
+ * Copyright (C) 2015-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file TargetMap.h -  Map of class targets for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2016 All rights reserved.
+  \date (C) 2015-2017 All rights reserved.
   \gpl
 */
 
@@ -51,6 +51,8 @@ namespace MFM
     u32 m_bitsize;
     Locator m_loc;
     std::string m_className;
+    std::string m_classSignature;
+    std::string m_baseClassSignature;
     std::string m_structuredComment;
   };
 

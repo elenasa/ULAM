@@ -2,7 +2,6 @@
 #=t3137_test_compiler_funcdef_returnstatements_error
 #!
 ./D.ulam:6:3: ERROR: Returning incompatible (nonscalar) types: Int(3) as Int(3)[8].
-./D.ulam:1:9: ERROR: 1 Nodes with erroneous types detected after type labeling class: D.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>D.ulam

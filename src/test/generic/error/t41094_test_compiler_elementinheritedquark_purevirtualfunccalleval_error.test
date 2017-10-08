@@ -1,0 +1,53 @@
+## -*- mode:ulam -*-
+#=t41094_test_compiler_elementinheritedquark_purevirtualfunccalleval_error
+##
+#!
+./E2.ulam:3:43: ERROR: Virtual function <Uf_5afunc11102321i> is pure; cannot be called.
+Exit status: -1
+Unrecoverable Program Test FAILURE.
+##
+## informed by t3609
+##
+#:Base.ulam
+  ulam 2;
+quark Base {
+  virtual Int afunc(Int a); //pure
+}
+
+#:Sub1.ulam
+  ulam 2;
+quark Sub1 : Base {
+  virtual Int afunc(Int a, Bool b) { return 2; } // BAD: overload of same name different args
+}
+
+#:E2.ulam
+  ulam 2;
+element E2 : Sub1 {
+  virtual Int afunc(Int a) { return super.afunc(a); } //2?
+}
+
+#>Test.ulam
+  ulam 2;
+element Test : System {
+  Bool brtn[4];
+
+  Int test() {
+    E2 e2;
+    brtn[0] = (e2.afunc(7) == 2);
+    assert(brtn[0]);
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

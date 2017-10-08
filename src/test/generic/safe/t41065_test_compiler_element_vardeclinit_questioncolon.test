@@ -1,0 +1,79 @@
+## -*- mode:ulam -*-
+#=t41065_test_compiler_element_vardeclinit_questioncolon
+##
+## gen output: 2 asserts + 4 interleaved asserts
+## Int Arg: 4
+## Int(3) Arg: 0x3
+## Int(3) Arg: 0x3
+## Int(3) Arg: 0x3
+##
+#!
+Exit status: 0
+Ue_Foo : Qbar { :< Int(3) m_q(3);  Bool(1) qsp(false); > Bool(1) sp(true);  Int(32) test() {  System s;  s ( sp )assert . Bool(1) notsp = sp ?  false :  true;  s ( notsp ! )assert . Int(32) i = sp ?  4u cast :  m_q cast;  s ( i )print . s ( i 4 cast == )assert . Qbar j = sp ?  ( i )func :  self cast;  s ( j m_q . )print . s ( j m_q . 3 == )assert . Int(6) k = j ( )getq . cast;  s ( k cast )print . s ( k 3 cast == )assert . Foo dq;  Qbar m = sp ?  ( )foofunc :  dq cast;  s ( m m_q . )print . s ( m m_q . 3 == )assert . 0 cast return } }
+Uq_Qbar { Bool(1) qsp(false);  Int(3) m_q( 1);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+#>Foo.ulam
+  ulam 3;
+element Foo : Qbar
+{
+  Bool sp = Qbar.sizeof > 1 ? true : false; //data member
+  Int test() {
+    System s;
+    s.assert(sp);
+    Bool notsp = sp ? false : true; //local
+    s.assert(!notsp);
+    Int i = sp ? Qbar.sizeof : m_q;
+    s.print(i);
+    s.assert(i == 4);
+
+    Qbar j = sp ? func(i) : (Qbar) self;
+    s.print(j.m_q);
+    s.assert(j.m_q == 3); //satursates = 3
+
+    Int(6) k = j.getq(); //tmpbitval w safe cast - funccall does convert to tmpvar with read()
+    s.print((Int(3)) k);
+    s.assert(k == 3);
+
+    Foo dq;
+    Qbar m = sp ? foofunc() : dq; //safe cast after ?:
+    s.print(m.m_q);
+    s.assert(m.m_q == 3);
+    return 0;
+  }
+
+  Self foofunc()
+  {
+    return self;
+  }
+}
+
+#:Qbar.ulam
+  ulam 2;
+quark Qbar {
+  Bool qsp; //test saturation
+  Int(3) m_q = 1;
+  Self func(Int arg)
+  {
+    m_q = (Int(3)) arg; //explicit required, saturates
+    return (Qbar) self;
+  }
+  Int(3) getq()
+  {
+    return m_q;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

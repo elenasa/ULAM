@@ -63,7 +63,7 @@ namespace MFM {
 	rtnUV = UlamValue::makeImmediate(type, _ShiftOpLeftBits32(ldata, rdata, len), len);
 	break;
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	break;
       };
     return rtnUV;
@@ -91,7 +91,7 @@ namespace MFM {
 	rtnUV = UlamValue::makeImmediateLong(type, _ShiftOpLeftBits64(ldata, rdata, len), len);
 	break;
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	break;
       };
     return rtnUV;
@@ -99,7 +99,7 @@ namespace MFM {
 
   void NodeBinaryOpShiftLeft::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
-    assert(0); //not implemented yet!
+    m_state.abortNotImplementedYet(); //not implemented yet!
 #if 0
     UTI type = refUV.getUlamValueTypeIdx();
     ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
@@ -122,7 +122,7 @@ namespace MFM {
 	refUV.putData(pos, len, _ShiftOpLeftBits32(ldata, rdata, len));
 	break;
       default:
-	assert(0);
+	m_state.abortUndefinedUlamPrimitiveType();
 	break;
       };
 #endif

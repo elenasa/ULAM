@@ -4,7 +4,7 @@
 ##      gen code output: (2 asserts)
 ##
 Exit status: -11
-Ue_R { Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  QW qw;  Foo foo;  A ar[3];  ar 1 [] mAtoo 2 [] . foo cast = ( ar 1 [] mAtoo 2 [] . 1u cast )setATre b qw ( ar 1 [] mAtoo 2 [] . )aunc . = s ( b )assert . Atom(96)& arref = ar 2 [] mAtoo 1 [] .;  arref foo cast cast = ( arref 2u cast )setATre c qw ( arref )aunc . = s ( c )assert . 0 cast return } }
+Ue_R { Bool(1) b(false);  Bool(1) c(false);  Int(32) test() {  System s;  QW qw;  Foo foo;  A ar[3];  ar 1 [] mAtoo 2 [] . foo cast = ( ar 1 [] mAtoo 2 [] . cast 1u cast )setATre b qw ( ar 1 [] mAtoo 2 [] . cast )aunc . = s ( b )assert . ar 2 [] mAtoo 1 [] . foo cast = Atom(96)& arref = ar 2 [] mAtoo 1 [] . cast;  arref foo cast = ( arref 2u cast )setATre c qw ( arref )aunc . = s ( c )assert . 0 cast return } }
 Uq_System { <NOMAIN> }
 Un_A : QW { :<> Bool(7) sp(false);  Atom(96) mAtoo[3](Atom(96)[3]Atom(96)[3]Atom(96)[3]);  <NOMAIN> }
 Uq_QW { <NOMAIN> }
@@ -29,8 +29,9 @@ element R {
     b = qw.aunc(ar[1].mAtoo[2]);
     s.assert(b);
 
+    ar[2].mAtoo[1] = foo; //avoid stale atom ref
     Atom& arref = ar[2].mAtoo[1]; //mFoo[3] should have been caught~!!!
-    arref = foo;
+    arref = foo; //speriment, was (STALE_ATOM_REF)
     setATre(arref, 2u);
     c = qw.aunc(arref);
     s.assert(c);

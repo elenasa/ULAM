@@ -36,7 +36,7 @@ namespace MFM {
   std::string ParameterDesc::getValueAsString() const
   {
     std::ostringstream dhex;
-    dhex << " 0x" << std::hex << m_val;
+    dhex << "0x" << std::hex << m_val;
     return dhex.str();
   }
 

@@ -1,0 +1,55 @@
+## -*- mode:ulam -*-
+#=t3994_test_compiler_stringsuninitializedemptylong_sizeof
+##
+## gen output: (+ asserts)
+## Int Arg: 32
+## Int Arg: 32
+## Int Arg: 32
+##
+#!
+Exit status: 0
+Ue_A { Int(32) m_s1(32);  Int(32) m_s2(32);  Int(32) test() {  System s;  String(32) mt = "";  m_s1 32u cast = s ( m_s1 )print . s ( m_s1 32 cast == )assert . String(32) str;  m_s2 32u cast = s ( m_s2 )print . s ( m_s2 32 cast == )assert . Int(32) s3 = 32u cast;  s ( s3 )print . s ( s3 32 cast == )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by t3934
+##
+#>A.ulam
+  ulam 3;
+local constant String longstring = "thisisaverylongstringthatexceedsthatlengthallowedbylinuxwhichistwohundredfiftyfivebuttakingthelongestextensionintoaccountwemustsubtracteightallowingustotestthemanglednamewiththisverylongstringthatneedsafewmoreletterstoproperlytestthelimitationdiscussed012"; //255
+element A {
+  Int m_s1;
+  Int m_s2;
+ Int test() {
+   System s;
+
+   //empty string, ok
+   String mt = "";
+   m_s1 = mt.sizeof; // =32
+   s.print(m_s1);
+   s.assert(m_s1 == 32);
+
+   //uninitialized string
+   String str;
+   m_s2 = str.sizeof;
+   s.print(m_s2);
+   s.assert(m_s2 == 32);
+
+   Int s3 = longstring.sizeof;
+   s.print(s3);
+   s.assert(s3 == 32);
+   return 0;
+ }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

@@ -1,0 +1,68 @@
+## -*- mode:ulam -*-
+#=t3922_test_compiler_elementandquark_castatomreftoelement_routerdemo_issue
+##
+## gen output: (+ assert)
+##
+#!
+Exit status: -11
+Ue_WallPort : QPort4(2u) { :< constant Unsigned(2) extraScanDistance = 2u;  typedef Unsigned(6) SiteNum;  EventWindow ew( typedef Unsigned(6) SiteNum; ); > typedef QPort4(2u) QPort;  Bool(1) b(false);  Int(32) test() {  System s;  b ( )update = s ( b )assert . 0 cast return } }
+Uq_QPort4(Unsigned(2) extraScanDistance) { typedef Unsigned(UNKNOWN) SiteNum;  EventWindow ew(notready);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+Uq_EventWindow { typedef Unsigned(6) SiteNum;  <NOMAIN> }
+Ue_Cell { Bool(1) bell( true);  <NOMAIN> }
+##
+##      //informed by ulamexports demo Router
+##
+#>WallPort.ulam
+  ulam 3;
+element WallPort : QPort4(2) {
+  typedef QPort4(2) QPort;
+  Bool b;
+  Int test() {
+    System s;
+    b = update();
+    s.assert(b);
+    return 0;
+  }
+}
+
+#:QPort4.ulam
+  ulam 3;
+quark QPort4(Unsigned(2) extraScanDistance)  {
+  typedef EventWindow.SiteNum SiteNum;
+  EventWindow ew;
+  Bool update()
+  {
+    SiteNum cellIdx = 2;
+    Cell q;
+    ew[cellIdx] = q; //avoid BAD_CAST
+    Cell p = (Cell) ew[cellIdx];
+    return p.bell;
+  }
+}
+
+#:Cell.ulam
+  ulam 2;
+element Cell {
+  Bool bell = true;
+}
+
+#:EventWindow.ulam
+  ulam 3;
+quark EventWindow{
+  typedef Unsigned(6) SiteNum;
+  Atom& aref(Int index) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

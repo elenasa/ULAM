@@ -24,22 +24,25 @@ namespace MFM {
   SymbolTable::~SymbolTable()
   {
     //need to delete contents; ownership transferred here!!
-    clearTheTable();
+    this->clearTheTable();
   }
 
   void SymbolTable::clearTheTable()
   {
-    for(std::size_t i = 0; i < m_idToSymbolPtr.size(); i++)
+    std::map<u32, Symbol* >::iterator it = this->m_idToSymbolPtr.begin();
+    while(it != this->m_idToSymbolPtr.end())
       {
-	delete m_idToSymbolPtr[i];
+	Symbol * symptr = it->second;
+	delete symptr;
+	it->second = NULL;
+	it++;
       }
-    m_idToSymbolPtr.clear();
+    this->m_idToSymbolPtr.clear();
   } //clearTheTable
 
   bool SymbolTable::isInTable(u32 id, Symbol * & symptrref)
   {
     if(m_idToSymbolPtr.empty()) return false;
-#if 1
     std::map<u32, Symbol* >::iterator it = m_idToSymbolPtr.find(id);
     if(it != m_idToSymbolPtr.end())
       {
@@ -47,20 +50,6 @@ namespace MFM {
 	assert( symptrref->getId() == id);
 	return true;
       }
-#else
-    //for debugging
-    std::map<u32, Symbol* >::iterator it = m_idToSymbolPtr.begin();
-    while(it != m_idToSymbolPtr.end())
-      {
-	if(it->first == id)
-	  {
-	    symptrref = it->second;
-	    assert( symptrref->getId() == id);
-	    return true;
-	  }
-	it++;
-      }
-#endif
     return false;
   } //isInTable
 
@@ -128,8 +117,8 @@ namespace MFM {
 
   u32 SymbolTable::getTotalSymbolSize()
   {
-    assert(0);
+    m_state.abortShouldntGetHere();
     return 0;
-  } //getTotalSymbolSize
+  }
 
 } //end MFM

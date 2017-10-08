@@ -211,9 +211,12 @@ namespace MFM {
     for (u32 i = 0; i < m_inputFiles.size(); ++i)
       {
 	InputFile & in = m_inputFiles[i];
-	filesToCompile.push_back(in.m_fileName);
+	if(FindUlamFilenameSuffix(in.m_fileName)>0)
+	  {
+	    filesToCompile.push_back(in.m_fileName);
+	  }
+	//else no .ulam suffix, do nothing
       }
-    //filesToCompile.push_back(startstr);
 
     // error messages appended to output are compared to answer
     if(C.compileFiles(fm, filesToCompile, outfm, output) == 0)
@@ -229,10 +232,6 @@ namespace MFM {
 	  output->write("Unrecoverable Program Test FAILURE.\n");
 #endif
       }
-    //else
-    //  {
-    //	output->write("Unrecoverable Program Parse FAILURE.\n");
-    // }
 
     delete outfm;
     return true;

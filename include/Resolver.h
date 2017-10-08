@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * Resolver.h -  Managing of Class UNKNOWN Subtrees for ULAM
  *
- * Copyright (C) 2015-2016 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2016 Ackleyshack LLC.
+ * Copyright (C) 2015-2017 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2017 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file Resolver.h - Managing of Class UNKNOWN Subtrees for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2016 All rights reserved.
+  \date (C) 2015-2017 All rights reserved.
   \gpl
 */
 
@@ -66,17 +66,15 @@ namespace MFM
 
     //these exist in a stubs only!
     bool assignClassArgValuesInStubCopy();
-    bool statusNonreadyClassArguments();
-    bool constantFoldNonreadyClassArgs();
+    u32 countNonreadyClassArgs();
+    bool statusNonreadyClassArguments(SymbolClass * stubcsym);
     void linkConstantExpressionForPendingArg(NodeConstantDef * ceNode);
     bool pendingClassArgumentsForClassInstance();
-    void clonePendingClassArgumentsForStubClassInstance(const Resolver& rslvr, UTI context, SymbolClass * mycsym);
+    void setContextForPendingArgs(UTI context);
     UTI getContextForPendingArgs();
 
     bool mapUTItoUTI(UTI fmuti, UTI touti);
     bool findMappedUTI(UTI auti, UTI& mappedUTI);
-    bool findNodeNo(NNO n, Node *& foundNode);
-    void countNavNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
     void cloneUTImap(SymbolClass * csym);
     void cloneUnknownTypesTokenMap(SymbolClass * csym);
@@ -92,8 +90,7 @@ namespace MFM
     UTI m_classUTI;
     UTI m_classContextUTIForPendingArgs; //used to evaluate pending class args in context
 
-    bool findNodeNoInNonreadyClassArgs(NNO n, Node *& foundNode);
-    void countNavNodesInPendingArgs(u32& ncnt, u32& hcnt, u32& nocnt);
+    bool constantFoldNonreadyClassArgs(SymbolClass * stubcsym);
 
     void clearLeftoverSubtrees();
     void clearLeftoverNonreadyClassArgSubtrees();
