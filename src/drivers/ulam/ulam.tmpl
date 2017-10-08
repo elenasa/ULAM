@@ -37,7 +37,6 @@ use Carp;
       if $ULAM_VERSION_MAJOR =~ /@/ or $ULAM_TREE_VERSION =~ /@/;
 
 use File::Spec;
-use Cwd 'abs_path';
 
 my $SCRIPT_PATH;
 my $ULAM_ROOT;
@@ -346,6 +345,12 @@ my %swinfo = (
         id => getSectionId("Command"),
         handler => \&entryCmd
     },
+#    "doxygen" => {
+#        aliases => "dox",
+#        desc => "Generate 'pseudo-C++' output from .ulam files",
+#        id => getSectionId("Command"),
+#        handler => \&entryCmd
+#    },
     "debug" => {
         aliases => "g",
         desc => "Include debugging symbols in compiled binaries",
@@ -645,6 +650,7 @@ sub configureMSD {
 my @sourceDirsConfigured;
 sub configureSD {
     my $path = shift;
+    $path =~ s!/$!!;  # chew off trailing '/' if provided
     push @sourceDirsConfigured, $path;
 #    print "CSD:".join(",",@sourceDirsConfigured)."\n";
 }
@@ -736,6 +742,16 @@ sub genOpts {
 #    print join(" ",@list);
     return @list;
 }
+
+########
+####CHECK FOR SANE CWD FIRST
+
+checkCWD();
+
+########
+####NOW CHECK FOR ARGGH SPECIAL -kd PROCESSING
+my $tmpverb = KDGetVerb(0);
+unshift @ARGV, $tmpverb if defined $tmpverb; # Reeat arg for GetOptions to see
 
 ########
 ####PROCESS COMMAND LINE ARGUMENTS HERE
@@ -890,6 +906,34 @@ my @quarkCNamesFromUlam;
 my @transientCNamesFromUlam;
 my @localsfilescopeCNamesFromUlam;
 my %ulamFileTargets;
+my %ulamFilePaths;    # { ulamfilebasename.ulam => "path/to/that/file", .. }
+
+#  %ulamFileToDoxInfo is:
+# { ulamfilepath1 =>
+#    { classcname1 => {
+#       "CLASS" => clsinfo, 
+#       "FUNCTION" => { ulamsig1 => scmt, ulamgsig2 => scmt, .. }
+#       "DATA" -> { .. }
+#       .. }
+#    { classcname2 => {
+#      "CLASS" => clsinfo,
+#      .. }
+#    .. }
+#   ulamfilepath2 => ..
+# }
+my %ulamFileToDoxInfo; 
+
+my %testableClasses;
+my %ulamFileToClassCNames;
+my %classCNameToUlamFile;
+my %classCNameToUlamName;
+my %classCNameToFunctionStructuredComments;
+my %classCNameToDataMemberStructuredComments;
+my %classCNameToStructuredComment;
+my %infoStructName;
+my %infoStructCode;
+
+my %modelParmInfoMap;
 
 sub compilationDriver {
     prepareWorkDir();
@@ -898,6 +942,16 @@ sub compilationDriver {
     my $buildResults = runUlamCompilations();
     UDie("$buildResults ulam build problem(s) detected\n")
         if $buildResults;
+
+    if ($actionCmd eq "doxygen" ) {
+#        print "yoinky ".join(";; ",keys %ulamFileTargets)."\n";
+#        print "yoinkier ".join(";; ",keys %ulamFilePaths)."\n";
+        for my $uf (@ulamFiles) {
+            printPseudocodeForDoxygen($uf);
+        }
+        exit 0;
+    }
+
 
     $buildResults = runUlamInfoGeneration();
     UDie("$buildResults ulam info generation problem(s) detected\n")
@@ -1008,15 +1062,6 @@ sub prepareWorkDir
     checkOrMakeDir("$wd/bin");
 }
 
-my %testableClasses;
-my %elementCNameToUlamFile;
-my %elementCNameToUlamName;
-my %elementCNameToStructuredComment;
-my %infoStructName;
-my %infoStructCode;
-
-my %modelParmInfoMap;
-
 sub runGccMakeForTests
 {
     my @testables = map { s/[.]cpp$//; $_} sort values %testableClasses;
@@ -1036,6 +1081,32 @@ sub deHexEscape
     my $str = shift;
     $str =~ s/%([A-Fa-f\d]{2})/chr hex $1/eg;
     return $str;
+}
+
+sub storeUlamTarget {
+    my $path = shift;
+    die unless defined $path;
+
+    $path =~ s/:\d+:\d+:$//;     # Strip location info if any
+    $path = deHexEscape($path);  # Unpack it
+    $path =~ s!^[.]/!!;          # chew off leading ./ if present
+    $ulamFileTargets{$path} = 1;
+
+    my ($dir,$base);
+    if ($path =~ m!^(.+?)/([^/]+)$!) {
+        $dir = $1;
+        $base = $2;
+    } else {
+        $dir = "";
+        $base = $path;
+    }
+
+    if (defined($ulamFilePaths{$base}) && $ulamFilePaths{$base} ne $dir) {
+        print STDERR "WARNING: Found multiple sources for ulam file '$base': '$dir' vs '$ulamFilePaths{$base}'";
+    }
+    $ulamFilePaths{$base} = $dir;
+
+    return $path;
 }
 
 sub runUlamCompilations
@@ -1066,6 +1137,7 @@ sub runUlamCompilations
         my @rows = split(/\n/, $info);
         for my $row (@rows) {
             my ($ulam,$info,$type,@args) = split(/ /,$row);
+#            print "GOTS:".join(", ",$ulam,$info,$type,@args)."\n";
             if ($ulam ne "ULAM" || $info ne "INFO:") {
                 # Not our business..  Leave in case it's important to somebody else..
                 $stderr .= "$row\n";
@@ -1073,6 +1145,7 @@ sub runUlamCompilations
             }
 	    if ($type eq "PARAMETER") {
                 my ($path,$ename,$type,$uname,$pname,$default,$scmt) = @args;
+                my $pathloc = $path;
 #                print STDERR "KDPM(path=$path,ename=$ename,type=$type,uname=$uname,pname=$pname,default=$default,scmt=$scmt)\n";
 
                 $scmt = "" if $scmt eq "NONE";
@@ -1086,6 +1159,13 @@ sub runUlamCompilations
                 #          file   line#  byte#        uname,  parm    type   def     doc
                 my $rec = [$path, $line, $byteinline, $uname, $pname, $type, $default, deHexEscape($scmt)];
 
+                # Flush int parameters.  They're just too broken.
+                if ($type =~ /.*i$/) {
+                    $uname = deHexEscape($uname);
+                    print STDERR "$pathloc WARNING: Int parameters currently unsupported.  '$uname' ignored.\n";
+                    next;
+                } 
+
                 # Stash it for later sorting and merging with possible scmt
                 push @{$modelParmInfoMap{$ename}}, $rec;
 #                print STDERR "KDPM($rec, ".join(",",@{$rec}).")\n";
@@ -1093,12 +1173,11 @@ sub runUlamCompilations
                 next;
             }
 	    if ($type eq "TARGET") {
-                my ($path,$name,$cname,$size,$testflag,$classtype,$scmt) = @args;
+                my ($path,$name,$cname,$size,$testflag,$classtype,$fullulamname,$fullulamparent,$scmt) = @args;
+#                print "yoinktarget(".join(";; ",@args).")\n";
                 defined $scmt or die "Successful exit but not enough fields in '$row'";
-                # For now, strip location info.. :(
-                $path =~ s/:\d+:\d+:$// or die "No loc in '$path'?";
-                $path = deHexEscape($path);
-                $ulamFileTargets{$path} = 1;
+                $path = storeUlamTarget($path);
+
                 my $cfile = "$cname.cpp";
                 push @cppFilesFromUlam, $cfile;
                 push @objectFilesFromUlamCpps, "$ULAM_WORK_DIR/build/$cname.o";
@@ -1106,19 +1185,76 @@ sub runUlamCompilations
                 if ($testflag eq "test") {
                     $testableClasses{$cname} = $cfile;
                 }
+                my $isClass = 0;
                 if ($classtype eq "element") {
                     push @elementCNamesFromUlam, $cname;
-                    $elementCNameToUlamFile{$cname} = $path;
-                    $elementCNameToUlamName{$cname} = $name;
-                    $elementCNameToStructuredComment{$cname} = deHexEscape($scmt);
-#                print "INFO($path,$name,$size,$testflag,$classtype)='$elementCNameToUlamFile{$cname}'\n";
+                    $isClass = 1;
                 } elsif ($classtype eq "quark") {
                     push @quarkCNamesFromUlam, $cname;
+                    $isClass = 1;
                 } elsif ($classtype eq "transient") {
                     push @transientCNamesFromUlam, $cname;
+                    $isClass = 1;
                 } elsif ($classtype eq "localsfilescope") {
                     push @localsfilescopeCNamesFromUlam, $cname;
                 }
+                if ($isClass) {
+                    if (!defined($ulamFileToClassCNames{$path})) {
+                        $ulamFileToClassCNames{$path} = [];
+#                        print "yoinker($path)\n";
+                    }
+                    push @{$ulamFileToClassCNames{$path}}, $cname;
+#                    print "yoinks [$path]".join(", ",@{$ulamFileToClassCNames{$path}})."\n";
+                    $classCNameToUlamFile{$cname} = $path;
+                    $classCNameToUlamName{$cname} = $name;
+                    $classCNameToStructuredComment{$cname} = deHexEscape($scmt);
+
+                    if (!defined($ulamFileToDoxInfo{$path})) {
+                        $ulamFileToDoxInfo{$path} = {};
+                    }
+                    if (!defined($ulamFileToDoxInfo{$path}->{$cname})) {
+                        $ulamFileToDoxInfo{$path}->{$cname} = {};
+                    }
+                    $ulamFileToDoxInfo{$path}->{$cname}->{"CLASS"} = 
+                        {size=>$size,
+                         test=>$testflag,
+                         classtype=>$classtype,
+                         fullulamname=>$fullulamname,
+                         fullulamparent=>$fullulamparent,
+                         scmt=>$classCNameToStructuredComment{$cname}};
+
+#                print "INFO($path,$name,$size,$testflag,$classtype)='$classCNameToUlamFile{$cname}'\n";
+                }
+
+                next;
+            }
+
+	    if ($type eq "FUNCTION") {
+#                print "yoinkerfunc(".join(";; ",@args).")\n";
+                my ($path,$classcname,$returntype,$ulamfunctionsig,$cfunctionname,$scmt) = @args;
+                defined $scmt or die "Successful exit but not enough fields in '$row'";
+
+                $path = storeUlamTarget($path);
+
+                if (!defined($ulamFileTargets{$path})) {
+#                    print "YOINKOW: FUNCTION wo ulamFileTarget? ($path,$classcname,$returntype,$ulamfunctionsig,$cfunctionname,$scmt)";
+                }
+
+                if (!defined($ulamFileToDoxInfo{$path})) {
+                    $ulamFileToDoxInfo{$path} = {};
+                }
+                if (!defined($ulamFileToDoxInfo{$path}->{$classcname})) {
+                    $ulamFileToDoxInfo{$path}->{$classcname} = {};
+                }
+                if (!defined($ulamFileToDoxInfo{$path}->{$classcname}->{"FUNCTION"})) {
+                    $ulamFileToDoxInfo{$path}->{$classcname}->{"FUNCTION"} = {};
+                }
+                $ulamFileToDoxInfo{$path}->{$classcname}->{"FUNCTION"}->{$ulamfunctionsig} = deHexEscape($scmt);
+#                print "yoinkout($path, "
+#                    .deHexEscape($ulamfunctionsig)
+#                    ." :: [".$classcname."//"
+#                    .join(", ", @{$ulamFileToDoxInfo{$path}->{$classcname}->{"FUNCTION"}->{$ulamfunctionsig}})
+#                    ."])\n";
 
                 next;
             }
@@ -1141,10 +1277,11 @@ sub runUlamCompilations
 
 sub runUlamInfoGeneration
 {
+#    $SHOW_ALL = 1;
     pISC("## Extract ulam element information");
     for my $eltCName (@elementCNamesFromUlam) {
-        my $ufile = $elementCNameToUlamFile{$eltCName};
-        my $uname = $elementCNameToUlamName{$eltCName};
+        my $ufile = $classCNameToUlamFile{$eltCName};
+        my $uname = $classCNameToUlamName{$eltCName};
         IDie unless defined $ufile;
         pISC(" # Processing '$ufile' metadata");
         my ($name, $code) = generateUlamElementInfo($ufile,$uname,$eltCName);
@@ -1347,9 +1484,10 @@ sub buildSharedLibrary
 sub buildMFZ
 {
     pISC("## Create MFZ package");
+    my $keydir = GetKeyDir();
     my $libfile = "$ULAM_WORK_DIR/bin/libcue.so";
     my $output = $mfzFiles[0];
-    my @mfzmakeargs = ("make", $mfzhandle, $output, keys %ulamFileTargets, @normalPackableFiles, $libfile);
+    my @mfzmakeargs = ("-kd", $keydir, "make", $mfzhandle, $output, keys %ulamFileTargets, @normalPackableFiles, $libfile);
 
     my ($status, $stdout, $stderr);
     print " Create $output package: "
@@ -1690,10 +1828,34 @@ sub generateUlamElementInfo {
     my $ug = UlamGen->new($className, $mangledName, $file);
     print " Element metadating $className from $file: "
         if verbose();
-    my $doc = $elementCNameToStructuredComment{$mangledName};
+    my $doc = $classCNameToStructuredComment{$mangledName};
     die unless defined $doc;
     $ug->addClassDoc($doc);
 #    $ug->dump();
+    my $mparmref = $modelParmInfoMap{$mangledName};
+    if (defined $mparmref) {
+        for my $parm (@{$mparmref}) {
+            my ($path, $line, $col, $uname, $valStg, $mangledType, $def, $scmt) = @{$parm};
+#            print "NORG'".join(", ",@{$parm})."'\n";
+            $ug->addModelParameter($uname,$mangledType,$mangledName,$valStg,$def,$scmt);
+        }
+    }
+    my ($structName, $ulamElementInfoCode) = $ug->generateUlamElementInfo();
+    print "OK\n"
+        if verbose();
+    return ($structName, $ulamElementInfoCode);
+}
+
+sub generateUlamClassDoxygenInput {
+    my ($file,$className,$mangledName) = @_;
+    my $ug = UlamGen->new($className, $mangledName, $file);
+    print " Generating doxygen input for $className from $file: "
+        if verbose();
+    my $doc = $classCNameToStructuredComment{$mangledName};
+    die unless defined $doc;
+    $ug->addClassDoc($doc);
+    $ug->dump();
+    die "FINISH ME";
     my $mparmref = $modelParmInfoMap{$mangledName};
     if (defined $mparmref) {
         for my $parm (@{$mparmref}) {
@@ -1846,6 +2008,15 @@ sub runMake {
 
 use Cwd;
 use File::Basename;
+sub checkCWD {
+    my $DIR = ".";
+    my $realDir = Cwd::realpath $DIR;
+    if ($realDir =~ /\s/) {
+        print STDERR "Current directory path '$realDir' contains whitespace byte(s) -- I cannot work here\n";
+        exit(1);
+    }
+}
+
 sub doProjectInitialization {
     my $DIR = ".";
     my $realDir = Cwd::realpath $DIR;
@@ -1888,13 +2059,14 @@ NAME:=$(notdir $(realpath ..))
 THIS_DIR:=$(strip $(notdir $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))))
 MFZ:=../$(NAME).mfz
 # Customize ULAM_BIN_DIR and MFM_BIN_DIR if necessary
-ULAM_BIN_DIR:=@ULAM_ROOT_DIR@/bin
-MFM_BIN_DIR:=@MFM_ROOT_DIR@/bin
+ULAM_BIN_DIR:=/usr/bin
+MFM_BIN_DIR:=/usr/bin
 ULAM:=$(ULAM_BIN_DIR)/ulam
 MFZRUN:=$(MFM_BIN_DIR)/mfzrun
 #UFLAGS:=-g
 #UFLAGS:=--sa
 UFLAGS:=-o
+ARGS_TXT_FILES:=$(wildcard args.txt)
 ULAM_FILES:=$(wildcard *.ulam)
 TIMESTAMP:=$(shell date +%Y%m%d-%H%M%S)
 DEV:=$(shell whoami)
@@ -1905,8 +2077,8 @@ all:	$(MFZ)
 run:	$(MFZ)
 	$(MFZRUN) $(MFZ)
 
-$(MFZ):	$(ULAM_FILES) Makefile
-	$(ULAM) $(UFLAGS) $(ULAM_FILES) $(MFZ)
+$(MFZ):	$(ULAM_FILES) $(ARGS_TXT_FILES) Makefile
+	$(ULAM) $(UFLAGS) $(ULAM_FILES) $(ARGS_TXT_FILES) $(MFZ)
 
 clean:	
 	rm -f *~
@@ -1956,6 +2128,34 @@ sub makeIfNecessary {
     }
 }
 
+sub printPseudocodeForDoxygen {
+    my $uf = shift;
+    my $ufpath = $ulamFilePaths{$uf};
+    return unless defined $ufpath;
+
+#    print "yoinkl($uf::$ufpath)\n";
+#    print "yoinkis(".join(";; ",keys %ulamFileToDoxInfo).")\n";
+    my $dref = $ulamFileToDoxInfo{"$ufpath/$uf"};
+    die unless defined $dref;
+
+    for my $dkey (keys %{$dref}) {
+        my $href = $dref->{$dkey};
+        for my $tkey (keys(%{$href})) {
+            my $href2 = $href->{$tkey};
+            for my $akey (keys(%{$href2})) {
+#                print "YOINKEY $dkey($tkey=$akey:$href2->{$akey})\n";
+            }
+        }
+    }
+    
+    for my $cn (@{$ulamFileToClassCNames{$uf}}) {
+        my $ufile = $classCNameToUlamFile{$cn};
+        my $uname = $classCNameToUlamName{$cn};
+        print "<<      generateUlamClassDoxygenInput($uf,$uname,$cn);\n";
+        generateUlamClassDoxygenInput($uf,$uname,$cn);
+    }
+}
+
 ####POD
 #pod2usage(1) if $help;
 #pod2usage(-exitstatus => 0, -verbose => 2) if $man;
@@ -1967,7 +2167,9 @@ ulam - Top-level ulam compilation driver
 =head1 SYNOPSIS
 
 ulam -h
-ulam [options] [file ...]
+ulam [-kd KEY_DIRECTORY] [options] [file ...]
+
+   KEY_DIRECTORY defaults to ~/.mfm/ if -kd is omitted
 
  Options:
    -h               brief help message

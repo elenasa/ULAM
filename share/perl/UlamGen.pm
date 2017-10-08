@@ -8,7 +8,7 @@ our $VERSION = 1.002;
 
 sub new {
     my ($class, $name, $mangledName, $file) = @_;
-    die unless defined $mangledName;
+    die "Missing arg(s)" unless defined $file and defined $mangledName;
     my $self = { };
     bless $self, $class;
     $self->{'classFile'} = $file;
@@ -508,10 +508,12 @@ sub GenParmSimple {
     my ($self, $href, $sink, $type) = @_;
     my $mangledename = $self->{'classMangledName'};
     my $suf;
+    my $ctype = "u32";
     if ($type eq "u") {
         $suf = "U32";
     } elsif ($type eq "i") {
         $suf = "S32";
+        $ctype = "s32";
     } elsif ($type eq "y") {
         $suf = "Unary";
     } else {
@@ -535,8 +537,8 @@ sub GenParmSimple {
         if ($type eq "y") {
             $decldef = "u32 _def = (u32) _Unary32ToUnsigned32($def,32,32);";
         } else {
-            $decldef = "u32 _def = (u32) $def;";
-        }
+            $decldef = "$ctype _def = ($ctype) $def;";
+        } 
         $pdecldef = "&_def";
     }
 
@@ -544,7 +546,7 @@ sub GenParmSimple {
     my $declmax = "//no max";
     my $pdeclmax = "0";
     if (defined $max) {
-        $declmax = "u32 _max = (u32) $max;";
+        $declmax = "$ctype _max = ($ctype) $max;";
         $pdeclmax = "&_max";
     }
 
@@ -552,7 +554,7 @@ sub GenParmSimple {
     my $declmin = "//no min";
     my $pdeclmin = "0";
     if (defined $min) {
-        $declmin = "u32 _min = (u32) $min;";
+        $declmin = "$ctype _min = ($ctype) $min;";
         $pdeclmin = "&_min";
     }
 

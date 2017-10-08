@@ -13,6 +13,7 @@ quark Logger {
 
   Void log(String string) { 
     ByteStreamString sbs(string);
+    log(sbs);
   }
 
   Void log(ByteStream & bs) native;
