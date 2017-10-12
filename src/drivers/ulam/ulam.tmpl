@@ -787,6 +787,7 @@ my %extensionDispatch = (
     "cpp" => \@otherSrcFiles,
     "c" => \@otherSrcFiles,
     "S" => \@otherSrcFiles,
+    "inc" => \@otherSrcFiles,
     "splat" => \@txtFiles,  # XXX splat is not source code relative to ulam!
     "txt" => \@txtFiles,
     "md" => \@txtFiles,
@@ -2068,6 +2069,7 @@ MFZRUN:=$(MFM_BIN_DIR)/mfzrun
 UFLAGS:=-o
 ARGS_TXT_FILES:=$(wildcard args.txt)
 ULAM_FILES:=$(wildcard *.ulam)
+INC_FILES:=$(wildcard *.inc)
 TIMESTAMP:=$(shell date +%Y%m%d-%H%M%S)
 DEV:=$(shell whoami)
 ISHNAME:=$(TIMESTAMP)-$(DEV)
@@ -2078,7 +2080,7 @@ run:	$(MFZ)
 	$(MFZRUN) $(MFZ)
 
 $(MFZ):	$(ULAM_FILES) $(ARGS_TXT_FILES) Makefile
-	$(ULAM) $(UFLAGS) $(ULAM_FILES) $(ARGS_TXT_FILES) $(MFZ)
+	$(ULAM) $(UFLAGS) $(ULAM_FILES) $(INC_FILES) $(ARGS_TXT_FILES) $(MFZ)
 
 clean:	
 	rm -f *~
