@@ -576,8 +576,11 @@ namespace MFM {
   {
     if(m_nodeParameterList)
       {
-	assert((m_nodeParameterList->getNumberOfNodes() == 0) || m_state.isClassATemplate(getNodeType()));
-	return m_nodeParameterList->checkAndLabelType();
+	u32 nparms = m_nodeParameterList->getNumberOfNodes();
+	assert((nparms == 0) || m_state.isClassATemplate(getNodeType()));
+	m_nodeParameterList->checkAndLabelType();
+	//delay template parameter type check for instance argument type check
+	//since potential problems may still be Hazy. (t3894,5,8)
       }
     return true;
   }
@@ -605,12 +608,59 @@ namespace MFM {
 
   bool NodeBlockClass::checkArgumentNodeTypes()
   {
+    const s32 MAX_CLASS_PARAMETER_ARRAY_LENGTH = 16;
     //unlike Parameter Nodes, the argument Nodes are c&l during
-    // the resolving loop, pendingArgs step (t3894).
+    // the resolving loop (t3894, t3895, t3898).
     if(m_nodeArgumentList)
       {
+	UTI nuti = getNodeType();
 	u32 n = m_nodeArgumentList->getNumberOfNodes();
-	assert((n == 0) || !m_state.isClassATemplate(getNodeType()));
+	assert((n == 0) || !m_state.isClassATemplate(nuti));
+
+	for(u32 i = 0; i < n; i++)
+	  {
+	    UTI auti = m_nodeArgumentList->getNodeType(i);
+	    if(m_state.okUTItoContinue(auti))
+	      {
+		UlamType * aut = m_state.getUlamTypeByIndex(auti);
+		if(aut->getBitSize() > MAXBITSPERINT)
+		  {
+		    std::ostringstream msg;
+		    msg << "Class argument types are limited to ";
+		    msg << MAXBITSPERINT << " bits by MFM::UlamTypeInfo: ";
+		    msg << aut->getUlamTypeName().c_str() << " (arg " << i+1 << ") in class ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    m_nodeArgumentList->setNodeType(Nav);
+		  }
+		if(!aut->isScalar())
+		  {
+		    if(UlamType::compareForString(auti, m_state) == UTIC_SAME)
+		      {
+			std::ostringstream msg;
+			msg << "Class arguments of type String are limited to scalars ";
+			msg << "by MFM::UlamTypeInfo: ";
+			msg << aut->getUlamTypeName().c_str() << " (arg " << i+1 << ") in class ";
+			msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			m_nodeArgumentList->setNodeType(Nav);
+		      }
+
+		    if(aut->getArraySize() > MAX_CLASS_PARAMETER_ARRAY_LENGTH)
+		      {
+			std::ostringstream msg;
+			msg << "Class argument array types are limited to ";
+			msg << MAX_CLASS_PARAMETER_ARRAY_LENGTH;
+			msg << " items by MFM::UlamTypeInfo: ";
+			msg << aut->getUlamTypeName().c_str() << " (arg " << i+1 << ") in class ";
+			msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			m_nodeArgumentList->setNodeType(Nav);
+		      }
+		  }
+	      }
+	  }
+
 	u32 navcnt, hzycnt, nocnt;
 	navcnt = hzycnt = nocnt = 0;
 	m_nodeArgumentList->countNavHzyNoutiNodes(navcnt, hzycnt, nocnt);

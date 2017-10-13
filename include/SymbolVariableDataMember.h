@@ -62,6 +62,8 @@ namespace MFM{
 
     virtual const std::string getMangledPrefix();
 
+    virtual const std::string getMangledName();
+
     virtual u32 getPosOffset();
 
     void setPosOffset(u32 offsetIntoAtom);

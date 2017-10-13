@@ -1072,7 +1072,8 @@ namespace MFM {
 	fp->write("typedef ");
 	fp->write(nut->getUlamTypeMangledName().c_str()); //for C++
 	fp->write("<EC> ");
-	fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
+	//fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
+	fp->write(m_varSymbol->getMangledName().c_str()); //t41141
 	fp->write("; //offset ");
 	fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
 	fp->write("u"); GCNL; //func call parameters aren't NodeVarDecl's
@@ -1104,7 +1105,8 @@ namespace MFM {
 	    fp->write_decimal(nut->getTotalBitSize()); //include arraysize
 	    fp->write("u> ");
 	  }
-	fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
+	//fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
+	fp->write(m_varSymbol->getMangledName().c_str());
 	fp->write(";"); GCNL; //func call parameters aren't NodeVarDecl's
       }
   } //genCodedBitFieldTypedef

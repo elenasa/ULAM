@@ -1,0 +1,31 @@
+## -*- mode:ulam -*-
+#=t41141_test_compiler_element_dmquarkancestorfuncreturnvalue_issue
+#!
+Exit status: 0
+Ue_MyElement { MySub mSub( :<>);  Int(32) test() {  0 cast return } }
+Uq_MySub : MyQuark { /* empty class block */ }
+Uq_MyQuark { /* empty class block */ }
+##
+## Dave ish 10/12/2017; informed by t41063; data member case gencode issue
+##
+#>MyElement.ulam
+  ulam 3;
+element MyElement
+{
+  MySub mSub;
+  Int test() {
+    return 0;
+  }
+
+  MyQuark & func() { return mSub; }
+}
+
+#:MyQuark.ulam
+  ulam 3;
+quark MyQuark { }
+
+#:MySub.ulam
+  ulam 3;
+quark MySub : MyQuark { }
+
+#.
