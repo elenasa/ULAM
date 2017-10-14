@@ -1,0 +1,73 @@
+ulam 3;
+
+/**
+   A wrap-around counter with specifiable range consuming 2..31 bits,
+   supporting increment, decrement, and comparison operations.
+
+   Includes an optional dead band to allow users to detect when values
+   being compared are dangerously far apart.  If a.isComparable(b)
+   returns false, then the distance between a and b falls in the dead
+   band, and caller should if possible seek other means to achieve
+   whatever purpose this comparison was to serve.
+
+   The default is no deadband, meaning that all pairs of values will
+   compare as either less, equal, or greater, and isComparable() will
+   always return true.
+
+   \author Dave Ackley
+   \license lgpl
+   \since v3.0.10
+ */
+quark UMod(Unary(31) bits, Unary(16) deadbits = 0) {
+  typedef Unsigned(bits) Value;
+  constant Value cDEAD_SPREAD = (Value) ((Unsigned) (1u<<deadbits) - 1u);
+  constant Value cVALUE_MIDPOINT = (Value) ((Value.maxof - Value.minof) / 2);
+  constant Value cVALUE_LOWER_CUT = (Value) (cVALUE_MIDPOINT - cDEAD_SPREAD);
+  constant Value cVALUE_UPPER_CUT = (Value) (cVALUE_MIDPOINT + cDEAD_SPREAD);
+
+  Value mVal;
+
+  Void set(Value v) { mVal = v; }
+  Value get() { return mVal; }
+  Value getMaxof() { return mVal.maxof; }
+  Value getMinof() { return mVal.minof; }
+
+  Bool isComparable(Self u2) { return self < u2 || self >= u2; }
+
+  Bool isLess(Self u2) {
+    if (mVal < u2.mVal) return (u2.mVal - mVal) < cVALUE_LOWER_CUT;
+    /* if (mVal >= u2.mVal) */ return (mVal - u2.mVal) >= cVALUE_UPPER_CUT;
+  }
+  Bool isEqual(Self u2) { return mVal == u2.mVal; }
+  Bool isGreater(Self u2) { return !isEqual(u2) && !isLess(u2); }
+  Bool isLessEqual(Self u2) { return !isGreater(u2); }
+  Bool isGreaterEqual(Self u2) { return !isLess(u2); }
+  Bool isNotEqual(Self u2) { return !isEqual(u2); }
+  Bool isOneLessThan(Self u2) { u2.decrement(); return isEqual(u2); }
+  Bool isOneMoreThan(Self u2) { u2.increment(); return isEqual(u2); }
+
+  Void increment() { increment(1); }
+  Void increment(Value incr) {
+    mVal = (Value) (((Unsigned) mVal + incr) % Value.maxof);
+  }
+
+  Void decrement() { decrement(1); }
+  Void decrement(Value decr) {
+    increment((Value) (Value.maxof - decr));
+  }
+
+  Bool operator==(Self & rhs) { return isEqual(rhs); }
+  Bool operator!=(Self & rhs) { return isNotEqual(rhs); }
+  Bool operator<(Self & rhs) { return isLess(rhs); }
+  Bool operator>(Self & rhs) { return isGreater(rhs); }
+  Bool operator<=(Self & rhs) { return isLessEqual(rhs); }
+  Bool operator>=(Self & rhs) { return isGreaterEqual(rhs); }
+
+  Self & operator++() { increment(); return self; }
+  Self operator++(Int x) { increment(); return self; }
+  Self & operator--() { decrement(); return self; }
+  Self operator--(Int x) { decrement(); return self; }
+
+  Self & operator=(Self rhs) { set(rhs.get()); return self; }
+  Self & operator=(Value val) { set(val); return self; }
+}
