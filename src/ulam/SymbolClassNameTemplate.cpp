@@ -1188,6 +1188,9 @@ namespace MFM {
 	    m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
 	    classNode->checkAndLabelType(); //do each instance
+
+	    classNode->checkArgumentNodeTypes(); //unsupported types (t3894,t3895,t3898)
+
 	    m_state.popClassContext(); //restore
 	  }
 	else

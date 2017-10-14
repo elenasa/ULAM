@@ -467,10 +467,21 @@ namespace MFM {
     s32 offsetInt = 0;
     if(offut->isNumericType())
       {
-	// constant expression only required for array declaration
+	// constant expression only required for array declaration //t3321,t3503,t3895
 	s32 arraysize = m_state.getArraySize(ltype);
-	u32 offsetdata = offset.getImmediateData(m_state);
-	offsetInt = offut->getDataAsCs32(offsetdata);
+	u64 offsetdata = 0;
+	if(offut->getBitSize() <= MAXBITSPERINT)
+	  {
+	    offsetdata = offset.getImmediateData(m_state);
+	    offsetInt = offut->getDataAsCs32(offsetdata);
+	  }
+	else if(offut->getBitSize() <= MAXBITSPERLONG)
+	  {
+	    offsetdata = offset.getImmediateDataLong(m_state); //t3895
+	    offsetInt = (s32) offut->getDataAsCs64(offsetdata);
+	  }
+	else
+	  m_state.abortGreaterThanMaxBitsPerLong();
 
 	if((offsetInt >= arraysize))
 	  {

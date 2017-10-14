@@ -122,6 +122,9 @@ namespace MFM{
 
     NNO m_declnno;
 
+    bool convertValueToAPrettyString(u64 varg, std::string& vstr);
+    bool convertValueToALexString(u64 varg, std::string& vstr);
+
     void printPostfixValueScalar(File * fp);
     void printPostfixValueArray(File * fp);
   };
