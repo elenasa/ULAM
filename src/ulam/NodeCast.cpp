@@ -770,24 +770,24 @@ namespace MFM {
     ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
 
     if((tclasstype == UC_QUARK) && (vclasstype == UC_QUARK))
-      return genCodeCastDecendentQuark(fp, uvpass);
+      return genCodeCastDescendantQuark(fp, uvpass); //rt check for super->sub
 
     if((tclasstype == UC_QUARK) && (vclasstype == UC_ELEMENT))
-      return genCodeCastDecendentElement(fp, uvpass);
+      return genCodeCastDescendantElement(fp, uvpass); //no rt check: sub->super
 
     // c&l insures quark is a ref.
     if((tclasstype == UC_ELEMENT) && (vclasstype == UC_QUARK))
-      return genCodeCastAncestorQuarkAsSubElement(fp, uvpass);
+      return genCodeCastAncestorQuarkAsSubElement(fp, uvpass); //rt check: super->sub
 
     if((tclasstype == UC_QUARK) && (vclasstype == UC_TRANSIENT))
-      return genCodeCastDecendentTransient(fp, uvpass);
+      return genCodeCastDescendantTransient(fp, uvpass); //no rt check: sub->super
 
     if((tclasstype == UC_TRANSIENT) && (vclasstype == UC_TRANSIENT))
-      return genCodeCastDecendentTransient(fp, uvpass); //t3967
+      return genCodeCastDescendantTransient(fp, uvpass); //t3967 //rt check for super->sub
 
     // c&l insures quark is a ref. ???
     if((tclasstype == UC_TRANSIENT) && (vclasstype == UC_QUARK))
-      return genCodeCastAncestorQuarkAsSubTransient(fp, uvpass);
+      return genCodeCastAncestorQuarkAsSubTransient(fp, uvpass); //rt check: super->sub
 
     //only to be quark makes sense!!! check first, one might be element.
     //UNLESS quark ref -> atom, handled separately.
@@ -1211,9 +1211,9 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
   } //genCodeCastAtomAndQuark
 
-  void NodeCast::genCodeCastDecendentTransient(File * fp, UVPass & uvpass)
+  void NodeCast::genCodeCastDescendantTransient(File * fp, UVPass & uvpass)
   {
-    //similar to genCodeCastDecendentElement, except for +25
+    //similar to genCodeCastDescendantElement, except for +25
     UTI tobeType = getCastType(); //related quark tobe
     UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
 
@@ -1238,20 +1238,23 @@ namespace MFM {
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
-    // "downcast" might not be true; compare to be sure the element is-related to quark "Foo"
-    m_state.indentUlamCode(fp);
-    fp->write("if(! ");
-    fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
-    fp->write(".");
-    fp->write(m_state.getIsMangledFunctionName(vuti)); //UlamElement IsMethod
-    fp->write("(&"); //one arg
-    fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
-    fp->write("))\n");
+    // "downcast" might not be true; compare to be sure the transient is-related to quark
+    if(m_state.isClassASubclassOf(tobeType, vuti)) //super (vuti) -> sub (tobe)
+      {
+	m_state.indentUlamCode(fp);
+	fp->write("if(! ");
+	fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
+	fp->write(".");
+	fp->write(m_state.getIsMangledFunctionName(tobeType)); //IsMethod
+	fp->write("(&"); //one arg
+	fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
+	fp->write("))\n");
 
-    m_state.m_currentIndentLevel++;
-    m_state.indentUlamCode(fp);
-    fp->write("FAIL(BAD_CAST);"); GCNL;
-    m_state.m_currentIndentLevel--;
+	m_state.m_currentIndentLevel++;
+	m_state.indentUlamCode(fp);
+	fp->write("FAIL(BAD_CAST);"); GCNL;
+	m_state.m_currentIndentLevel--;
+      }
 
     if(!tobe->isReference())
       {
@@ -1335,11 +1338,11 @@ namespace MFM {
 	uvpass = UVPass::makePass(tmpref, TMPBITVAL, tobeType, m_state.determinePackable(tobeType), m_state, uvpass.getPassPos(), 0); //POS 0 is justified; will name id help?
       }
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
-  } //genCodeCastDecendentTransient
+  } //genCodeCastDescendantTransient
 
   void NodeCast::genCodeCastAncestorQuarkAsSubTransient(File * fp, UVPass & uvpass)
   {
-    // quark to sub-quark covered by CastDecendentQuark
+    // quark to sub-quark covered by CastDescendantQuark
     UTI tobeType = getCastType(); //related subclass tobe
     UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
 
@@ -1368,20 +1371,23 @@ namespace MFM {
 
     assert(m_state.isReference(stgcosuti));
 
-    // "downcast" might not be true; compare to be sure the element is-related to quark "Foo"
-    m_state.indentUlamCode(fp);
-    fp->write("if(! ");
-    fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
-    fp->write(".");
-    fp->write(m_state.getIsMangledFunctionName(tobeType)); //UlamElement IsMethod
-    fp->write("(&"); //one arg
-    fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
-    fp->write("))\n");
+    // "downcast" might not be true; compare to be sure the transient is-related to quark
+    if(m_state.isClassASubclassOf(tobeType, vuti)) //super (vuti) -> sub (tobe)
+      {
+	m_state.indentUlamCode(fp);
+	fp->write("if(! ");
+	fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
+	fp->write(".");
+	fp->write(m_state.getIsMangledFunctionName(tobeType)); //UlamElement IsMethod
+	fp->write("(&"); //one arg
+	fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
+	fp->write("))\n");
 
-    m_state.m_currentIndentLevel++;
-    m_state.indentUlamCode(fp);
-    fp->write("FAIL(BAD_CAST);"); GCNL;
-    m_state.m_currentIndentLevel--;
+	m_state.m_currentIndentLevel++;
+	m_state.indentUlamCode(fp);
+	fp->write("FAIL(BAD_CAST);"); GCNL;
+	m_state.m_currentIndentLevel--;
+      }
 
     //read from pos 0, for length of quark
     s32 tmpVarVal = m_state.getNextTmpVarNumber();
@@ -1409,7 +1415,7 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
   } //genCodeCastAncestorQuarkAsSubTransient
 
-  void NodeCast::genCodeCastDecendentElement(File * fp, UVPass & uvpass)
+  void NodeCast::genCodeCastDescendantElement(File * fp, UVPass & uvpass)
   {
     UTI tobeType = getCastType(); //related quark tobe
     UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
@@ -1437,20 +1443,7 @@ namespace MFM {
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
     bool useSelf = (stgcos->isSelf() && (uvpass.getPassStorage() != TMPBITVAL)); //t41065
 
-    // "downcast" might not be true; compare to be sure the element is-related to quark "Foo"
-    m_state.indentUlamCode(fp);
-    fp->write("if(! ");
-    fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
-    fp->write(".");
-    fp->write(m_state.getIsMangledFunctionName(vuti)); //UlamElement IsMethod
-    fp->write("(&"); //one arg
-    fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
-    fp->write("))\n");
-
-    m_state.m_currentIndentLevel++;
-    m_state.indentUlamCode(fp);
-    fp->write("FAIL(BAD_CAST);"); GCNL;
-    m_state.m_currentIndentLevel--;
+    assert(m_state.isClassASubclassOf(vuti, tobeType) || (m_state.isARefTypeOfUlamType(tobeType, vuti) == UTIC_SAME)); //not a downcast; going sub->super
 
     if(!tobe->isReference())
       {
@@ -1516,7 +1509,7 @@ namespace MFM {
       }
     else
       {
-	// to be ref, don't read! //t3756 case 1: CastAsDecendentElement
+	// to be ref, don't read! //t3756 case 1: CastAsDescendantElement
 	s32 tmpref = m_state.getNextTmpVarNumber(); //tmp since no variable name
 	m_state.indentUlamCode(fp);
 	fp->write(tobe->getLocalStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
@@ -1525,6 +1518,11 @@ namespace MFM {
 	fp->write("(");
 	if(stgcos->isSelf() && !useSelf)
 	  fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //?
+	else if(stgcos->isDataMember())
+	  {
+	    fp->write_decimal(stgcos->getPosOffset()); //like t41141, test?
+	    fp->write("u");
+	  }
 	else
 	  fp->write(stgcos->getMangledName().c_str());
 
@@ -1548,11 +1546,11 @@ namespace MFM {
 	uvpass = UVPass::makePass(tmpref, TMPBITVAL, tobeType, m_state.determinePackable(tobeType), m_state, uvpass.getPassPos(), 0); //POS 0 is justified; will name id help?
       }
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
-  } //genCodeCastDecendentElement
+  } //genCodeCastDescendantElement
 
   void NodeCast::genCodeCastAncestorQuarkAsSubElement(File * fp, UVPass & uvpass)
   {
-    // quark to sub-quark covered by CastDecendentQuark
+    // quark to sub-quark covered by CastDescendantQuark
     UTI tobeType = getCastType(); //related subclass tobe
     UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
 
@@ -1578,7 +1576,7 @@ namespace MFM {
 
     assert(m_state.isReference(stgcosuti));
 
-    // "downcast" might not be true; compare to be sure the element is-related to quark "Foo"
+    // "downcast" might not be true; compare to be sure the element is-related to quark
     m_state.indentUlamCode(fp);
     fp->write("if(! ");
     fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
@@ -1603,7 +1601,13 @@ namespace MFM {
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpVarVal, TMPBITVAL).c_str());
 	fp->write("(");
-	fp->write(stgcos->getMangledName().c_str()); //a ref
+	if(stgcos->isDataMember())
+	  {
+	    fp->write_decimal(stgcos->getPosOffset()); //like t41141, test?
+	    fp->write("u");
+	  }
+	else
+	  fp->write(stgcos->getMangledName().c_str()); //a ref
 	fp->write(", 0u, ");
 	fp->write(stgcos->getMangledName().c_str()); //a ref
 	fp->write(".GetEffectiveSelf()"); //maintains eff self
@@ -1620,7 +1624,7 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
   } //genCodeCastAncestorQuarkAsSubElement
 
-  void NodeCast::genCodeCastDecendentQuark(File * fp, UVPass & uvpass)
+  void NodeCast::genCodeCastDescendantQuark(File * fp, UVPass & uvpass)
   {
     UTI tobeType = getCastType(); //quark tobe
     UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
@@ -1629,8 +1633,25 @@ namespace MFM {
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     s32 tmpVarNum = uvpass.getPassVarNum();
 
-    //assert(m_state.isClassASubclassOf(vuti, tobeType) || m_state.isClassASubclassOf(tobeType, vuti)); //vuti is subclass of tobeType (or ref tobe), or visa versa (t3757)
     assert(m_state.isClassASubclassOf(vuti, tobeType) || m_state.isClassASubclassOf(tobeType, vuti) || (m_state.isARefTypeOfUlamType(tobeType, vuti) == UTIC_SAME)); //vuti is subclass of tobeType (or ref tobe), or visa versa (t3757); reftypeof same ?: (t41069)
+
+    // "downcast" might not be true; compare to be sure the quark is-related to quark
+    if(m_state.isClassASubclassOf(tobeType, vuti)) //super (vuti) -> sub (tobe)
+      {
+	m_state.indentUlamCode(fp);
+	fp->write("if(! ");
+	fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
+	fp->write(".");
+	fp->write(m_state.getIsMangledFunctionName(tobeType)); //IsMethod
+	fp->write("(&"); //one arg
+	fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
+	fp->write("))\n");
+
+	m_state.m_currentIndentLevel++;
+	m_state.indentUlamCode(fp);
+	fp->write("FAIL(BAD_CAST);"); GCNL;
+	m_state.m_currentIndentLevel--;
+      }
 
     s32 tmpVarSuper = m_state.getNextTmpVarNumber();
 
@@ -1654,7 +1675,13 @@ namespace MFM {
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(tobeType, tmpVarSuper, TMPBITVAL).c_str());
 	fp->write("(");
-	fp->write(stgcos->getMangledName().c_str()); //a ref or stg
+	if(stgcos->isDataMember())
+	  {
+	    fp->write_decimal(stgcos->getPosOffset()); //t41141
+	    fp->write("u");
+	  }
+	else
+	  fp->write(stgcos->getMangledName().c_str()); //a ref or stg
 	if(!m_state.isReference(stgcosuti))
 	  {
 	    fp->write(", 0u, ");
@@ -1689,7 +1716,7 @@ namespace MFM {
 	uvpass = UVPass::makePass(tmpVarSuper, tobe->getTmpStorageTypeForTmpVar(), tobeType, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified.
       }
     m_state.clearCurrentObjSymbolsForCodeGen(); //clear remnant of lhs
-  } //genCodeCastDecendentQuark
+  } //genCodeCastDescendantQuark
 
   //SAME TYPES, to a reference, from either a reference or not
   void NodeCast::genCodeCastAsReference(File * fp, UVPass & uvpass)

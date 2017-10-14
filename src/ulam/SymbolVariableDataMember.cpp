@@ -42,6 +42,20 @@ namespace MFM {
     return "Um_";
   }
 
+  const std::string SymbolVariableDataMember::getMangledName()
+  {
+    // to distinguish btn an atomic parameter typedef and quark typedef;
+    // use atomic parameter with array of classes
+    UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
+    bool isaclass = ((sut->getUlamTypeEnum() == Class) && sut->isScalar());
+
+    std::ostringstream mangled;
+    std::string nstr = m_state.getDataAsStringMangled(getId());
+    mangled << Symbol::getParameterTypePrefix(isaclass) << getMangledPrefix() << nstr.c_str();
+
+    return mangled.str();
+  } //getMangledName
+
   //packed bit position of data members; relative to ATOMFIRSTSTATEBITPOS (or 0u).
   u32 SymbolVariableDataMember::getPosOffset()
   {

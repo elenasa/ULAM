@@ -3332,7 +3332,8 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	SymbolClass * csym = NULL;
 	if(alreadyDefinedSymbolClass(uti, csym))
 	  {
-	    lenstr << csym->getMangledNameForParameterType();
+	    //lenstr << csym->getMangledNameForParameterType();
+	    lenstr << csym->getMangledName(); //t41141
 
 	    if(classtype == UC_QUARK)
 	      {
