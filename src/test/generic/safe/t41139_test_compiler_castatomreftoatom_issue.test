@@ -11,7 +11,7 @@ Uq_System { <NOMAIN> }
 Uq_EventWindow { <NOMAIN> }
 Uq_AUtil { <NOMAIN> }
 ##
-## informed by student issue 9/14/2017
+## informed by user issue 9/14/2017
 ##
 #>Stretch.ulam
   ulam 2;

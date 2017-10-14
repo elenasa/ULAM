@@ -13,7 +13,7 @@ use warnings;
 #
 # Author: E.S. Ackley
 # Created: 09/19/2017
-# Updated: 09/19/2017
+# Updated: 10/10/2017
 #
 # The purpose of this script is test brick arithmetic for MFM
 #
@@ -28,7 +28,9 @@ use warnings;
 # or foreach neighbor
 #    Direction : S(mappedX, mappedY)
 #
-# SLOGAN: our visible is neighbors cache; our cache is neighbors visible;
+# SLOGAN: our share is neighbors cache; our cache is neighbors share;
+#
+#  hidden, visible, share, cache (last 3 are each EventWindowRadius wide)
 #
 #############################################################################
 
@@ -47,7 +49,7 @@ sub BEGIN {
     @INC=($dir, @INC) unless $INC[0] eq $dir;
 }
 
-my $version = "0.02";
+my $version = "0.03";
 my $debug = 0;
 
 ##################
@@ -58,6 +60,10 @@ my $debug = 0;
 my $WIDTH = 64;
 my $HEIGHT = 32;
 my $EW_RADIUS = 4;
+my $CACHE = $EW_RADIUS;
+my $SHARED = $EW_RADIUS * 2;
+my $VISIBLE = $EW_RADIUS * 3;
+
 my $cN = 0; #unused in bricks
 my $cNE = 1;
 my $cE = 2;
@@ -73,22 +79,25 @@ my @DIRSTR = ( "N", "NE", "E", "SE", "S", "SW", "W", "NW" );
 ## Lookup Tables for mapping x and y, indexed by direction
 ##
 ###########################################################
-my @DirMapX = ( 0, -$WIDTH/2, -$WIDTH, -$WIDTH/2, 0, $WIDTH/2, $WIDTH, $WIDTH/2 );
-my @DirMapY = ( 0, $HEIGHT, 0, -$HEIGHT, 0, -$HEIGHT, 0, $HEIGHT );
+#my @DirMapX = ( 0, -$WIDTH/2, -$WIDTH, -$WIDTH/2, 0, $WIDTH/2, $WIDTH, $WIDTH/2 );
+#my @DirMapY = ( 0, $HEIGHT, 0, -$HEIGHT, 0, -$HEIGHT, 0, $HEIGHT );
+my @DirMapX = ( 0, -1, -2, -1, 0, 1, 2, 1 ); # = * Width / 2
+my @DirMapY = ( 0, 2, 0, -2, 0, -2, 0, 2 );  # = * Height / 2
 
 &main(@ARGV);
 
 sub isLegalEventCoord
 {
+# cache is not legal event center coord.
     my $siteX = shift;
     my $siteY = shift;
-    if($siteX < 0 || $siteX >= $WIDTH)
+    if($siteX < $CACHED || $siteX >= $WIDTH - $CACHED)
     {
-	return 0;
+	return 0; # illegal in cache
     }
-    if($siteY < 0 || $siteY >= $HEIGHT)
+    if($siteY < $CACHED || $siteY >= $HEIGHT - $CACHED)
     {
-	return 0;
+	return 0; #illegal in cache
     }
     return 1; #ok!
 } #isLegalEventCoord
@@ -96,63 +105,62 @@ sub isLegalEventCoord
 
 sub findNeighbors
 {
-    my $siteX = shift;
-    my $siteY = shift;
+    my $siteX = shift; #event center
+    my $siteY = shift; #event center
     my $rtnarr = shift;
 
     #print "findNeighbors: $siteX, $siteY\n";
-
     &isLegalEventCoord($siteX, $siteY) || die;
-    if( ($siteX < $EW_RADIUS) && ($siteY < $EW_RADIUS))
+    if( ($siteX < $VISIBLE) && ($siteY < $VISIBLE))
     {
-	#top left corner
+	#top left corner - shared
 	push(@$rtnarr, $cNW);
 	push(@$rtnarr, $cW);
     }
-    elsif( ($siteX < $EW_RADIUS) && ($siteY >= $HEIGHT - $EW_RADIUS))
+    elsif( ($siteX < $VISIBLE) && ($siteY >= $HEIGHT - $VISIBLE ))
     {
-	#bottom left corner
+	#bottom left corner - shared
 	push(@$rtnarr, $cSW);
 	push(@$rtnarr, $cW);
     }
-    elsif(($siteX < $EW_RADIUS) && ($siteY >= $EW_RADIUS) && ($siteY < $HEIGHT - $EW_RADIUS))
+    elsif(($siteX < $VISIBLE) && ($siteY >= $VISIBLE) && ($siteY < $HEIGHT - $VISIBLE))
     {
-	# left horizontal
+	# left horizontal - shared
 	push(@$rtnarr, $cW);
     }
 
-    if( ($siteX >= $WIDTH - $EW_RADIUS) && ($siteY < $EW_RADIUS))
+    if( ($siteX >= $WIDTH - $VISIBLE) && ($siteY < $VISIBLE))
     {
-	#top right corner
+	#top right corner - shared
 	push(@$rtnarr, $cNE);
 	push(@$rtnarr, $cE);
     }
-    elsif( ($siteX >= $WIDTH - $EW_RADIUS) && ($siteY >= $HEIGHT - $EW_RADIUS))
+    elsif( ($siteX >= $WIDTH - $VISIBLE) && ($siteY >= $HEIGHT - $VISIBLE))
     {
-	#bottom right corner
+	#bottom right corner - shared
 	push(@$rtnarr, $cSE);
 	push(@$rtnarr, $cE);
     }
-    elsif(($siteX >= $WIDTH - $EW_RADIUS) && ($siteY >= $EW_RADIUS) && ($siteY < $HEIGHT - $EW_RADIUS))
+    elsif(($siteX >= $WIDTH - $VISIBLE) && ($siteY >= $VISIBLE) && ($siteY < $HEIGHT - $VISIBLE))
     {
-	# right horizontal
+	# right horizontal - shared
 	push(@$rtnarr, $cE);
     }
 
-    elsif( ($siteX >= $WIDTH/2 - $EW_RADIUS) && ($siteX < $WIDTH/2 + $EW_RADIUS) && ($siteY < $EW_RADIUS) )
+    elsif( ($siteX >= $WIDTH/2 - $VISIBLE) && ($siteX < $WIDTH/2 + $VISIBLE) && ($siteY < $VISIBLE) )
     {
 	# top "T" middle
 	push(@$rtnarr, $cNW);
 	push(@$rtnarr, $cNE);
     }
-    elsif( ($siteX >= $WIDTH/2 - $EW_RADIUS) && ($siteX < $WIDTH/2 + $EW_RADIUS) && ($siteY >= $HEIGHT - $EW_RADIUS) )
+    elsif( ($siteX >= $WIDTH/2 - $VISIBLE) && ($siteX < $WIDTH/2 + $VISIBLE) && ($siteY >= $HEIGHT - $VISIBLE) )
     {
 	# bottom "T" middle
 	push(@$rtnarr, $cSW);
 	push(@$rtnarr, $cSE);
     }
 
-    elsif(($siteX >= $EW_RADIUS) && ($siteX < $WIDTH/2 - $EW_RADIUS) && ($siteY < $EW_RADIUS))
+    elsif(($siteX >= $VISIBLE) && ($siteX < $WIDTH/2 - $VISIBLE) && ($siteY < $VISIBLE))
     {
 	#top left vertical
 	push(@$rtnarr, $cNW);
@@ -163,12 +171,12 @@ sub findNeighbors
 	push(@$rtnarr, $cSW);
     }
 
-    elsif(($siteX < $WIDTH - $EW_RADIUS) && ($siteX >= $WIDTH/2 + $EW_RADIUS) && ($siteY < $EW_RADIUS))
+    elsif(($siteX < $WIDTH - $VISIBLE) && ($siteX >= $WIDTH/2 + $VISIBLE) && ($siteY < $VISIBLE))
     {
 	#top right vertical
 	push(@$rtnarr, $cNE);
     }
-    elsif(($siteX < $WIDTH - $EW_RADIUS) && ($siteX >= $WIDTH/2 + $EW_RADIUS) && ($siteY >= $HEIGHT - $EW_RADIUS))
+    elsif(($siteX < $WIDTH - $VISIBLE) && ($siteX >= $WIDTH/2 + $VISIBLE) && ($siteY >= $HEIGHT - $VISIBLE))
     {
 	#bottom right vertical
 	push(@$rtnarr, $cSE);
@@ -187,21 +195,21 @@ sub findNeighbors2
 
     &isLegalEventCoord($siteX, $siteY) || return 0;
 
-    if( ($siteX < $EW_RADIUS))
+    if( ($siteX < $VISIBLE))
     {
-	if($siteY < $EW_RADIUS)
+	if($siteY < $VISIBLE)
 	{
 	    #top left corner
 	    push(@$rtnarr, $cNW);
 	    push(@$rtnarr, $cW);
 	}
-	elsif($siteY >= $HEIGHT - $EW_RADIUS)
+	elsif($siteY >= $HEIGHT - $VISIBLE)
 	{
 	    #bottom left corner
 	    push(@$rtnarr, $cSW);
 	    push(@$rtnarr, $cW);
 	}
-	elsif(($siteY >= $EW_RADIUS) && ($siteY < $HEIGHT - $EW_RADIUS))
+	elsif(($siteY >= $VISIBLE) && ($siteY < $HEIGHT - $VISIBLE))
 	{
 	    # left horizontal
 	    push(@$rtnarr, $cW);
@@ -212,21 +220,21 @@ sub findNeighbors2
 	}
     }
 
-    elsif( ($siteX >= $WIDTH - $EW_RADIUS))
+    elsif( ($siteX >= $WIDTH - $VISIBLE))
     {
-	if($siteY < $EW_RADIUS)
+	if($siteY < $VISIBLE)
 	{
 	    #top right corner
 	    push(@$rtnarr, $cNE);
 	    push(@$rtnarr, $cE);
 	}
-	elsif(($siteY >= $HEIGHT - $EW_RADIUS))
+	elsif(($siteY >= $HEIGHT - $VISIBLE))
 	{
 	    #bottom right corner
 	    push(@$rtnarr, $cSE);
 	    push(@$rtnarr, $cE);
 	}
-	elsif(($siteY >= $EW_RADIUS) && ($siteY < $HEIGHT - $EW_RADIUS))
+	elsif(($siteY >= $VISIBLE) && ($siteY < $HEIGHT - $VISIBLE))
 	{
 	    # right horizontal
 	    push(@$rtnarr, $cE);
@@ -237,15 +245,15 @@ sub findNeighbors2
 	}
     }
 
-    elsif( ($siteX >= $WIDTH/2 - $EW_RADIUS) && ($siteX < $WIDTH/2 + $EW_RADIUS))
+    elsif( ($siteX >= $WIDTH/2 - $VISIBLE) && ($siteX < $WIDTH/2 + $VISIBLE))
     {
-	if($siteY < $EW_RADIUS)
+	if($siteY < $VISIBLE)
 	{
 	    # top "T" middle
 	    push(@$rtnarr, $cNW);
 	    push(@$rtnarr, $cNE);
 	}
-	elsif($siteY >= $HEIGHT - $EW_RADIUS)
+	elsif($siteY >= $HEIGHT - $VISIBLE)
 	{
 	    # bottom "T" middle
 	    push(@$rtnarr, $cSW);
@@ -254,14 +262,14 @@ sub findNeighbors2
 	#else hidden 0 neighbors share the event
     }
 
-    elsif(($siteX >= $EW_RADIUS) && ($siteX < $WIDTH/2 - $EW_RADIUS))
+    elsif(($siteX >= $VISIBLE) && ($siteX < $WIDTH/2 - $VISIBLE))
     {
-	if($siteY < $EW_RADIUS)
+	if($siteY < $VISIBLE)
 	{
 	    #top left vertical
 	    push(@$rtnarr, $cNW);
 	}
-	elsif($siteY >= $HEIGHT - $EW_RADIUS)
+	elsif($siteY >= $HEIGHT - $VISIBLE)
 	{
 	    #bottom left vertical
 	    push(@$rtnarr, $cSW);
@@ -269,14 +277,14 @@ sub findNeighbors2
 	#else hidden 0 neighbors share the event
     }
 
-    elsif(($siteX < $WIDTH - $EW_RADIUS) && ($siteX >= $WIDTH/2 + $EW_RADIUS))
+    elsif(($siteX < $WIDTH - $VISIBLE) && ($siteX >= $WIDTH/2 + $VISIBLE))
     {
-	if ($siteY < $EW_RADIUS)
+	if ($siteY < $VISIBLE)
 	{
 	    #top right vertical
 	    push(@$rtnarr, $cNE);
 	}
-	elsif($siteY >= $HEIGHT - $EW_RADIUS)
+	elsif($siteY >= $HEIGHT - $VISIBLE)
 	{
 	    #bottom right vertical
 	    push(@$rtnarr, $cSE);
@@ -352,8 +360,8 @@ sub mapSiteCoord2
     }
 
     #Table lookup for offset based on direction
-    my $mappedX = $siteX + $DirMapX[$dir];
-    my $mappedY = $siteY + $DirMapY[$dir];
+    my $mappedX = $siteX + $DirMapX[$dir] * $WIDTH / 2;
+    my $mappedY = $siteY + $DirMapY[$dir] * $HEIGHT / 2;
 
     my @mappedSite = ();
 

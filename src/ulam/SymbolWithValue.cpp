@@ -465,15 +465,28 @@ namespace MFM {
 
     UTI tuti = getUlamTypeIdx();
     UlamType * tut = m_state.getUlamTypeByIndex(tuti);
-    s32 tbs = tut->getTotalBitSize();
 
-    if(tbs == 0)
+    if(tut->getTotalBitSize() == 0)
       {
 	vstr = "10"; //empty array
 	return true;
       }
 
-    return SymbolWithValue::getLexValueAsString(tbs, dval, vstr);
+    //get the number of bits for this type into u64
+    // convert to a lex-number as a string, applying type specifics
+    // return the completed string of all the array values in arg vstr.
+    std::ostringstream tovstr;
+    s32 bs = tut->getBitSize();
+    s32 arraysize = tut->getArraySize();
+    for(s32 i=0; i < arraysize; i++)
+      {
+	u64 thisval = dval.ReadLong(i * bs, bs); //pos and len
+	std::string str;
+	convertValueToALexString(thisval, str);
+	tovstr << str;
+      }
+    vstr = tovstr.str();
+    return true;
   } //getArrayValueAsString
 
   bool SymbolWithValue::getScalarValueAsString(std::string& vstr)
@@ -492,23 +505,30 @@ namespace MFM {
 	return false;
       }
 
+    return convertValueToAPrettyString(constantval, vstr);
+  } //getScalarValueAsString
+
+  bool SymbolWithValue::convertValueToAPrettyString(u64 varg, std::string& vstr)
+  {
     std::ostringstream ostr;
     UTI tuti = getUlamTypeIdx();
-    u32 twordsize =  m_state.getTotalWordSize(tuti); //must be commplete
-    s32 tbs = m_state.getTotalBitSize(tuti);
-    ULAMTYPE etyp = m_state.getUlamTypeByIndex(tuti)->getUlamTypeEnum();
+    UlamType * tut = m_state.getUlamTypeByIndex(tuti);
+    //u32 twordsize =  m_state.getTotalWordSize(tuti); //must be commplete
+    //s32 tbs = m_state.getTotalBitSize(tuti);
+    s32 bs = tut->getBitSize();
+    ULAMTYPE etyp = tut->getUlamTypeEnum();
     switch(etyp)
       {
       case Int:
 	{
-	  if(twordsize <= MAXBITSPERINT)
+	  if(bs <= MAXBITSPERINT)
 	    {
-	      s32 sval = _Int32ToInt32((u32) constantval, tbs, MAXBITSPERINT);
+	      s32 sval = _Int32ToInt32((u32) varg, bs, MAXBITSPERINT);
 	      ostr << sval;
 	    }
-	  else if(twordsize <= MAXBITSPERLONG)
+	  else if(bs <= MAXBITSPERLONG)
 	    {
-	      s64 sval = _Int64ToInt64(constantval, tbs, MAXBITSPERLONG);
+	      s64 sval = _Int64ToInt64(varg, bs, MAXBITSPERLONG);
 	      ostr << sval;
 	    }
 	  else
@@ -517,7 +537,7 @@ namespace MFM {
 	break;
       case Bool:
 	{
-	  bool bval = _Bool64ToCbool(constantval, tbs);
+	  bool bval = _Bool64ToCbool(varg, bs);
 	  if(bval)
 	    ostr << "true";
 	  else
@@ -526,28 +546,28 @@ namespace MFM {
 	break;
       case Unary:
 	{
-	  u32 pval = _Unary64ToUnsigned64(constantval, tbs, MAXBITSPERINT);
+	  u32 pval = _Unary64ToUnsigned64(varg, bs, MAXBITSPERINT);
 	  ostr << pval;
 	}
 	break;
       case Unsigned:
 	{
-	  if( tbs <= MAXBITSPERINT)
-	    ostr << (u32) constantval << "u";
-	  else if( tbs <= MAXBITSPERLONG)
-	    ostr << constantval << "u";
+	  if( bs <= MAXBITSPERINT)
+	    ostr << (u32) varg << "u";
+	  else if( bs <= MAXBITSPERLONG)
+	    ostr << varg << "u";
 	  else
 	    m_state.abortGreaterThanMaxBitsPerLong();
 	}
 	break;
       case Bits:
 	{
-	  ostr << "0x" << std::hex << constantval;
+	  ostr << "0x" << std::hex << varg;
 	}
 	break;
       case String:
 	{
-	  std::string fstr = m_state.getDataAsUnFormattedUserString((u32) constantval);
+	  std::string fstr = m_state.getDataAsUnFormattedUserString((u32) varg);
 	  u32 flen = fstr.length() - 1; //exclude null terminator
 	  for(u32 i = 0; i < flen; i++)
 	    ostr << std::hex << std::setfill('0') << std::setw(2) << (u32) fstr[i];
@@ -558,7 +578,7 @@ namespace MFM {
       };
     vstr = ostr.str();
     return true;
-  } //getScalarValueAsString
+  } //convertValueToAPrettyString (helper)
 
   //static: return false if all zeros, o.w. true; rtnstr updated
   bool SymbolWithValue::getLexValueAsString(u32 ntotbits, const BV8K& bval, std::string& rtnstr)
@@ -643,8 +663,6 @@ namespace MFM {
 
   bool SymbolWithValue::getLexValue(std::string& vstr)
   {
-    UTI tuti = getUlamTypeIdx();
-
     if(!isReady())
       return false;
 
@@ -652,21 +670,29 @@ namespace MFM {
     AssertBool gotVal = getValue(constantval);
     assert(gotVal);
 
-    u32 twordsize =  m_state.getTotalWordSize(tuti); //must be commplete
-    s32 tbs = m_state.getTotalBitSize(tuti);
-    ULAMTYPE etyp = m_state.getUlamTypeByIndex(tuti)->getUlamTypeEnum();
+    return convertValueToALexString(constantval, vstr);
+  } //getLexValue
+
+  bool SymbolWithValue::convertValueToALexString(u64 varg, std::string& vstr)
+  {
+    UTI tuti = getUlamTypeIdx();
+    UlamType * tut = m_state.getUlamTypeByIndex(tuti);
+    s32 bs = tut->getBitSize();
+    //u32 twordsize =  m_state.getTotalWordSize(tuti); //must be commplete
+    //s32 tbs = m_state.getTotalBitSize(tuti);
+    ULAMTYPE etyp = tut->getUlamTypeEnum();
     switch(etyp)
       {
       case Int:
 	{
-	  if(twordsize <= MAXBITSPERINT)
+	  if(bs <= MAXBITSPERINT)
 	    {
-	      s32 sval = _Int32ToInt32((u32) constantval, tbs, MAXBITSPERINT);
+	      s32 sval = _Int32ToInt32((u32) varg, bs, MAXBITSPERINT);
 	      vstr = ToLeximitedNumber(sval);
 	    }
-	  else if(twordsize <= MAXBITSPERLONG)
+	  else if(bs <= MAXBITSPERLONG)
 	    {
-	      s64 sval = _Int64ToInt64(constantval, tbs, MAXBITSPERLONG);
+	      s64 sval = _Int64ToInt64(varg, bs, MAXBITSPERLONG);
 	      vstr = ToLeximitedNumber64(sval);
 	    }
 	  else
@@ -675,7 +701,7 @@ namespace MFM {
 	break;
       case Bool:
 	{
-	  bool bval = _Bool64ToCbool(constantval, tbs);
+	  bool bval = _Bool64ToCbool(varg, bs);
 	  if(bval)
 	    vstr = ToLeximitedNumber(1); //true
 	  else
@@ -684,17 +710,17 @@ namespace MFM {
 	break;
       case Unary:
 	{
-	  s32 pval = _Unary64ToInt64(constantval, tbs, MAXBITSPERINT);
+	  s32 pval = _Unary64ToInt64(varg, bs, MAXBITSPERINT);
 	  vstr = ToLeximitedNumber(pval);
 	}
 	break;
       case Unsigned:
       case Bits:
 	{
-	  if( tbs <= MAXBITSPERINT)
-	    vstr = ToLeximitedNumber((u32) constantval);
-	  else if( tbs <= MAXBITSPERLONG)
-		vstr = ToLeximitedNumber64(constantval);
+	  if( bs <= MAXBITSPERINT)
+	    vstr = ToLeximitedNumber((u32) varg);
+	  else if( bs <= MAXBITSPERLONG)
+	    vstr = ToLeximitedNumber64(varg);
 	  else
 	    m_state.abortGreaterThanMaxBitsPerLong();
 	}
@@ -702,7 +728,7 @@ namespace MFM {
       case String:
 	{
 	  std::ostringstream fhex;
-	  std::string fstr = m_state.getDataAsUnFormattedUserString((u32) constantval);
+	  std::string fstr = m_state.getDataAsUnFormattedUserString((u32) varg);
 	  u32 flen = fstr.length() - 1; //exclude null terminator
 	  for(u32 i = 0; i < flen; i++)
 	    fhex << std::hex << std::setfill('0') << std::setw(2) << (u32) fstr[i];
@@ -713,7 +739,7 @@ namespace MFM {
 	m_state.abortUndefinedUlamPrimitiveType();
       };
     return true;
-  } //getLexValue
+  } //convertValueToLexString (helper)
 
   //warning: this change also requires an update to the ST's key.
   void SymbolWithValue::changeConstantId(u32 fmid, u32 toid)

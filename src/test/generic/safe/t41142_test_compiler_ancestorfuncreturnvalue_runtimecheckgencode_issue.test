@@ -1,0 +1,48 @@
+## -*- mode:ulam -*-
+#=t41142_test_compiler_ancestorfuncreturnvalue_runtimecheckgencode_issue
+#!
+Exit status: 0
+Ue_MyElement { Int(32) test() {  0 cast return } }
+Uq_MyQ { /* empty class block */ }
+Uq_MySubQ : MyQ { /* empty class block */ }
+Un_MyT { /* empty class block */ }
+Un_MySubT : MyT { /* empty class block */ }
+Ue_MySubEQ : MyQ { /* empty class block */ }
+##
+## Dave ish 10/12/2017; informed by t41063; decendent cases, when to generate runtime check issue
+##
+#>MyElement.ulam
+  ulam 3;
+element MyElement
+{
+  Int test() {
+    return 0;
+  }
+
+  //gen code doesn't require runtime type check since not explicit cast
+  MyQ & qfunc(MySubQ & m) { return m; }
+  MyT & tfunc(MySubT & m) { return m; }
+  MyQ & eqfunc(MySubEQ & m) { return m; }
+}
+
+#:MyQ.ulam
+  ulam 3;
+quark MyQ { }
+
+#:MySubQ.ulam
+  ulam 3;
+quark MySubQ : MyQ { }
+
+#:MyT.ulam
+  ulam 3;
+transient MyT { }
+
+#:MySubT.ulam
+  ulam 3;
+transient MySubT : MyT { }
+
+#:MySubEQ.ulam
+  ulam 3;
+element MySubEQ : MyQ { }
+
+#.
