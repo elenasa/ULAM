@@ -1,5 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3571_test_compiler_elementandquarkinheritancetemplatemix_wMP_fail
+##
+## gen error:
+## include/Ue_10102Tu10_Types.h:159: FAILED: NULL_POINTER
+##
 #!
 Exit status: 1
 Ue_Tu : Foo(1,true) { :< constant Int(32) a = 1;  constant Bool(1) b = true; > parameter Int(32) mp = 1;  Int(32) test() {  mp(1) return } }

@@ -1,7 +1,6 @@
 ## -*- mode:ulam -*-
-#=t3679_test_compiler_elementandquark_Selfatomoffordefaultquarklocal
+#=t3679_test_compiler_elementandquark_Selfatomoffordefaultquarklocal_fail
 #!
-##      gen code output: (2 asserts)
 ##        include/Uq_10102QW10.tcc:30: FAILED: NOT_AN_ELEMENT
 ##        unevaluable without assuming atoms as elements
 ##
@@ -12,6 +11,7 @@ Uq_QW { <NOMAIN> }
 ##
 ## Dave requested a way to get default values for Self (within a quark);
 ## a loophole, since a quark would be an undefined atom, but as a ref, its done.
+## As of ulam-3, loophole no longer needed; now it is a runtime check, rather than compile time restriction.
 ##
 #>A.ulam
   ulam 2;
