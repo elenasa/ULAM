@@ -1195,6 +1195,32 @@ namespace MFM {
     return buti;
   } //getUlamTypeAsScalar
 
+  UTI CompilerState::getUlamTypeAsArrayOfScalar(UTI utiArg)
+  {
+    UlamType * ut = getUlamTypeByIndex(utiArg);
+    if(!ut->isScalar())
+      return utiArg;
+
+    //for typedef array, the scalar is the primitive type
+    // maintained in the symbol!! can't get to it from utarg.
+    ULAMTYPE bUT = ut->getUlamTypeEnum();
+    UlamKeyTypeSignature keyOfArg = ut->getUlamKeyTypeSignature();
+    UTI cuti = keyOfArg.getUlamKeyTypeSignatureClassInstanceIdx(); // what-if a ref?
+
+    //if(bUT == Class)
+    //  return cuti; //try this Mon May  2 10:36:56 2016
+    //does cuti == utiArg if bUT is a Class?
+
+    s32 bitsize = keyOfArg.getUlamKeyTypeSignatureBitSize();
+    u32 nameid = keyOfArg.getUlamKeyTypeSignatureNameId();
+    UlamKeyTypeSignature baseKey(nameid, bitsize, UNKNOWNSIZE, cuti, ALT_NOT);
+    ULAMCLASSTYPE classtype = ut->getUlamClassType();
+    UTI buti = makeUlamType(baseKey, bUT, classtype); //could be a new one, oops.
+
+    //note: array of CA's is not a CA too
+    return buti;
+  } //getUlamTypeAsArrayOfScalar
+
   UTI CompilerState::getUlamTypeAsDeref(UTI utiArg)
   {
     UlamType * ut = getUlamTypeByIndex(utiArg);

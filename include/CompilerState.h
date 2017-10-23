@@ -216,8 +216,10 @@ namespace MFM{
     bool getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType);
     bool getUlamTypeByTypedefNameinLocalsScope(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType);
 
-    /** turns array into its single element type */
+    /** turns array into its scalar type */
     UTI getUlamTypeAsScalar(UTI utArg);
+    /** turns scalar type into its UNKNOWNSIZE array type */
+    UTI getUlamTypeAsArrayOfScalar(UTI utiArg);
     /** turns a reference into its dereferenced type */
     UTI getUlamTypeAsDeref(UTI utArg);
     /** turns a regular type into its referenced type */
