@@ -928,11 +928,12 @@ namespace MFM {
     if(getNodeType() != Void)
       {
 	UTI vuti = uvpass.getPassTargetType();
-	// skip reading classes
+	// skip reading classes and atoms
 	if(m_state.getUlamTypeByIndex(vuti)->isPrimitiveType())
 	  {
 	    Node::genCodeConvertABitVectorIntoATmpVar(fp, uvpass); //inc uvpass slot
 	  }
+	//else class or atom stays as a tmpbitval (e.g. t41143)
       }
   } //genCode
 

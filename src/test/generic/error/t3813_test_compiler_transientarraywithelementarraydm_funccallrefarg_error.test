@@ -20,6 +20,7 @@ Ue_Foo { Unary(3) mTre(0);  <NOMAIN> }
 ##
 ## Dave requested a way to get default values for Self (within a quark);
 ## a loophole, since a quark would be an undefined atom, but as a ref, its done (t3679)
+## As of ulam-3, loophole no longer needed; now it is a runtime check, rather than compile time restriction.
 ##
 ## similar to 3811, except accessing array item beyond its size
 ## this is a realtime error, not compile time.

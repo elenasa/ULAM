@@ -838,8 +838,13 @@ namespace MFM {
       {
 	if(checkConstantTypedefSizes(args, args.m_anothertduti))
 	  {
-	    brtn = true;
 	    uti = args.m_anothertduti;
+
+	    if(args.m_arraysize != NONARRAYSIZE)
+	      {
+		uti = m_state.getUlamTypeAsArrayOfScalar(uti);
+	      }
+	    brtn = true;
 	  }
       }
     else if(m_state.getUlamTypeByTypedefName(args.m_typeTok.m_dataindex, uti, tdscalaruti))
@@ -847,6 +852,10 @@ namespace MFM {
 	args.m_declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 	if(checkConstantTypedefSizes(args, uti))
 	  {
+	    if(args.m_arraysize != NONARRAYSIZE) //t41144
+	      {
+		uti = m_state.getUlamTypeAsArrayOfScalar(uti);
+	      }
 	    brtn = true;
 	  }
       }
@@ -857,10 +866,7 @@ namespace MFM {
 	uti = args.m_declListOrTypedefScalarType;
 	if(args.m_arraysize != NONARRAYSIZE) //t3890
 	  {
-	    UlamType * ut = m_state.getUlamTypeByIndex(uti);
-	    UlamKeyTypeSignature skey = ut->getUlamKeyTypeSignature();
-	    UlamKeyTypeSignature akey(skey.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, Nouti, ALT_NOT);
-	    uti = m_state.makeUlamType(akey, ut->getUlamTypeEnum(), ut->getUlamClassType());
+	    uti = m_state.getUlamTypeAsArrayOfScalar(uti);
 	  }
 	brtn = true;
       }
@@ -1012,6 +1018,10 @@ namespace MFM {
 	  return false;
 	//use another classes' typedef uti; (is classInstanceIdx relevant?)
 	auti = args.m_anothertduti;
+	if(args.m_arraysize != NONARRAYSIZE)
+	  {
+	    auti = m_state.getUlamTypeAsArrayOfScalar(auti);
+	  }
 	brtn = true;
       }
     else if(m_state.getUlamTypeByTypedefName(args.m_typeTok.m_dataindex, auti, tdscalaruti))
@@ -1020,6 +1030,10 @@ namespace MFM {
 	// check typedef types here..
 	if(!checkVariableTypedefSizes(args, auti))
 	  return false;
+	if(args.m_arraysize != NONARRAYSIZE)
+	  {
+	    auti = m_state.getUlamTypeAsArrayOfScalar(auti);
+	  }
 	brtn = true;
       }
     else if(args.m_declListOrTypedefScalarType != Nouti)
@@ -1029,10 +1043,7 @@ namespace MFM {
 	auti = args.m_declListOrTypedefScalarType;
 	if(args.m_arraysize != NONARRAYSIZE)
 	  {
-	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
-	    UlamKeyTypeSignature skey = aut->getUlamKeyTypeSignature();
-	    UlamKeyTypeSignature akey(skey.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, Nouti, ALT_NOT);
-	    auti = m_state.makeUlamType(akey, aut->getUlamTypeEnum(), aut->getUlamClassType());
+	    auti = m_state.getUlamTypeAsArrayOfScalar(auti);
 	  }
 	brtn = true;
       }
@@ -1046,32 +1057,16 @@ namespace MFM {
     else
       {
 	auti = args.m_classInstanceIdx;
+	if(args.m_arraysize != NONARRAYSIZE)
+	  {
+	    auti = m_state.getUlamTypeAsArrayOfScalar(auti); //t3813, t3815, t3839
+	  }
 	brtn = true;
       }
 
     if(brtn)
       {
-	UTI uti = auti;
-	UTI scalarUTI = args.m_declListOrTypedefScalarType;
-	if(m_state.isScalar(uti) && args.m_arraysize != NONARRAYSIZE)
-	  {
-	    args.m_declListOrTypedefScalarType = scalarUTI = uti;
-	    // o.w. build symbol (with bit and array sizes);
-	    // array's can't have their scalar as classInstance;
-	    // o.w., no longer findable by token.
-	    UlamType * ut = m_state.getUlamTypeByIndex(uti);
-	    ULAMTYPE bUT = ut->getUlamTypeEnum();
-	    UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
-	    ULAMCLASSTYPE classtype = ut->getUlamClassType();
-
-	    if(args.m_bitsize == 0)
-	      args.m_bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
-
-	    UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, scalarUTI, key.getUlamKeyTypeSignatureReferenceType()); //same reftype as key
-	    auti = m_state.makeUlamType(newarraykey, bUT, classtype);
-	  }
-
-	uti = m_state.getUlamTypeAsRef(auti, args.m_declRef); //ut not current; no deref.
+	UTI uti = m_state.getUlamTypeAsRef(auti, args.m_declRef); //ut not current; no deref.
 
 	SymbolVariable * sym = makeSymbol(uti, m_state.getReferenceType(uti), args.m_referencedUTI);
 	if(sym)

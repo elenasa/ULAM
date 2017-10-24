@@ -1002,6 +1002,7 @@ namespace MFM {
 
     UTI  vuti = uvpass.getPassTargetType();
     assert(m_state.okUTItoContinue(vuti));
+    TMPSTORAGE vstor = uvpass.getPassStorage();
 
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
@@ -1013,11 +1014,15 @@ namespace MFM {
 	    UVPass ruvpass;
 	    m_node->genCodeToStoreInto(fp, ruvpass); //No need to load lhs into tmp (T); symbol's in COS vector
 	  }
-	//else (t41051, case 2) ILLEGAL_ARGUMENT
+	else
+	  {
+	    //(t41051, case 2) ILLEGAL_ARGUMENT
+	    //stgcos,cos will be loaded as self (ur).
+	    assert(vstor == TMPBITVAL); //t41143 same as isSelf(stguti), when stack is empty
+	  }
       }
 
-    //still empty when func call returns self (t41065, case foofunc())
-    //assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    //stack still empty when func call returns self (t41065, case foofunc())
     Symbol * stgcos = NULL;
     Symbol * cos = NULL;
     Node::loadStorageAndCurrentObjectSymbols(stgcos, cos);
@@ -1031,6 +1036,7 @@ namespace MFM {
     // by inheritance (see t3631)
     if(m_state.isAtom(vuti))
       {
+	//Type used twice, put in a tmp var
 	s32 tmpVarType = m_state.getNextTmpVarNumber();
 	m_state.indentUlamCode(fp);
 	fp->write("const s32 ");
@@ -1039,14 +1045,21 @@ namespace MFM {
 
 	//locals t3692,3,7,3701, t3756,7,t3837, t3986, t41005,6,7
 	//e.g. carray (e.g. error/t3508), a data member
-	fp->write(stgcos->getMangledName().c_str()); //assumes only one!!!
 	if(!stgcos->isSelf())
+	  fp->write(stgcos->getMangledName().c_str()); //assumes only one!!!
+	else
+	  fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //t41143
+	if(vstor == TMPBITVAL) //stgcos->isSelf())
 	  {
 	    fp->write("."); //no read for self
 	    fp->write("ReadAtom");
-	    fp->write("().");
+	    fp->write("()");
 	  }
-	fp->write("GetType();"); GCNL;
+	else
+	  {
+	    assert(vstor == TMPTATOM); //t3692
+	  }
+	fp->write(".GetType();"); GCNL;
 
 	m_state.indentUlamCode(fp);
 	fp->write("const bool ");
@@ -1072,15 +1085,21 @@ namespace MFM {
       {
 	//From a quark, cast to atom..
 	//e.g. a quark here would fail, if not a superclass && ref
-	assert(stgut->isReference()); //t3697, t3834
+	assert(stgut->isReference()); //t3697, t3834 (self is a ref, too!)
 
 	//insure the qref has a (MFM) type that's not UNDEFINED
-	// hopefully, uvpass is TMPBITVAL
+	// hopefully, uvpass is TMPBITVAL or TMPTATOM
 	m_state.indentUlamCode(fp);
 	fp->write("const bool ");
 	fp->write(m_state.getTmpVarAsString(Bool, tmpVarIs, TMPREGISTER).c_str());;
 	fp->write(" = (");
-	fp->write(stgcos->getMangledName().c_str());
+	if(stgcos->isSelf())
+	  {
+	    assert(m_state.m_currentObjSymbolsForCodeGen.empty() && ((vstor == TMPBITVAL) || (vstor == TMPTATOM)));
+	    fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //t41143
+	  }
+	else
+	  fp->write(stgcos->getMangledName().c_str());
 	fp->write(".");
 	fp->write("GetType()");
 	fp->write(" != T::ATOM_UNDEFINED_TYPE);"); GCNL; //subatomic type
@@ -1097,29 +1116,12 @@ namespace MFM {
     fp->write("\n");
     m_state.m_currentIndentLevel--;
 
-    bool isCustomArray = m_state.isClassACustomArray(stguti);
-    if(isCustomArray)
-      {
-	stguti = m_state.getAClassCustomArrayType(stguti);
-    	stgut = m_state.getUlamTypeByIndex(stguti);
-
-	std::ostringstream msg;
-	msg << "Cannot explicitly cast custom array type ";
-	msg << stgut->getUlamTypeNameBrief().c_str();
-	msg << " to type: " << tobe->getUlamTypeNameBrief().c_str();
-	msg << "; Consider using a temporary variable";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-      }
-
     //t3631, t3692, t3693, t3697, t3701, t3756, t3757, t3789, t3834, t3837
     // might be ancestor quark
     // can't let Node::genCodeReadIntoTmpVar do this for us (we need a ref!):
-    //assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
-    //assert(!m_state.m_currentObjSymbolsForCodeGen.empty()); //Tue Mar 21 10:29:38 2017, Thu Apr 13 12:17:30 2017
-
     if(!tobe->isReference())
       {
-	//t3697, error t3691
+	//t3697, error t3691, t41143 atomref->quark (can this be legal?)
 	// uses stgcos since there's no m_varSymbol in this situation.
 	// don't forget the read!
 	s32 tmpread = m_state.getNextTmpVarNumber(); //tmp since no variable name
@@ -1132,23 +1134,33 @@ namespace MFM {
 	if(m_state.isAtom(vuti)) //from atom/ref->quark
 	  {
 	    fp->write(" = UlamRef<EC>(");
-	    if(m_state.isAtomRef(stguti))
+	    if(m_state.isAtomRef(vuti))
 	      {
-		fp->write(stgcos->getMangledName().c_str()); //ref
+		if(vstor == TMPBITVAL) //stgcos->isSelf())
+		  fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //t41143
+		else
+		  fp->write(stgcos->getMangledName().c_str()); //ref ??
+		fp->write(", ");
 	      }
 	    fp->write("0u + T::ATOM_FIRST_STATE_BIT, ");
 	    fp->write_decimal_unsigned(tobe->getTotalBitSize());
 	    fp->write("u, ");
-	    if(!m_state.isAtomRef(stguti))
+	    if(!m_state.isAtomRef(vuti))
 	      {
-		fp->write(stgcos->getMangledName().c_str());
+		if(vstor == TMPBITVAL) //stgcos->isSelf())
+		  fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //t41143
+		else
+		  fp->write(stgcos->getMangledName().c_str());
 		fp->write(", &"); //'is' storage
 		fp->write(m_state.getTheInstanceMangledNameByIndex(tobeType).c_str());
 		fp->write(", UlamRef<EC>::ELEMENTAL, uc).");
 	      }
 	    else
 	      {
-		fp->write(stgcos->getMangledName().c_str());
+		if(vstor == TMPBITVAL) //stgcos->isSelf())
+		  fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //t41143
+		else
+		  fp->write(stgcos->getMangledName().c_str());
 		fp->write(".GetEffectiveSelf()"); //maintains eff self
 		fp->write(", UlamRef<EC>::ELEMENTAL).");
 	      }
@@ -1157,8 +1169,12 @@ namespace MFM {
 	  }
 	else
 	  {
+	    //from quark to atom/ref
 	    fp->write(" = ");
-	    fp->write(stgcos->getMangledName().c_str());
+	    if(vstor == TMPBITVAL)
+	      fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //?
+	    else
+	      fp->write(stgcos->getMangledName().c_str()); //?
 	    fp->write("."); //entire storage
 	    fp->write(tobe->readMethodForCodeGen().c_str());
 	    fp->write("();"); GCNL;
