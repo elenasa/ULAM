@@ -195,13 +195,23 @@ namespace MFM {
 	    symsize = 0;
 	    m_state.setBitSize(suti, symsize); //total bits NOT including arrays
 	  }
+	else if(symsize <= UNKNOWNSIZE)
+	  {
+	    std::ostringstream msg;
+	    msg << "UNKNOWN !!! " << m_state.getUlamTypeNameByIndex(suti).c_str();
+	    msg << " UTI" << suti << " while compiling quark union: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(sym->getTokPtr(), msg.str().c_str(), DEBUG);
+	    maxsize = UNKNOWNSIZE; //t41145
+	    break;
+	  }
 	else
 	  {
 	    m_state.setBitSize(suti, symsize); //symsize does not include arrays
 	  }
 
 	UlamType * sut = m_state.getUlamTypeByIndex(suti); //no sooner!
-	s32 x = (s32) sut->getTotalBitSize();
+	s32 x = (s32) sut->getTotalBitSize(); //covers up any unknown sizes
 	if(x > maxsize)
 	  maxsize = x; //includes arrays
 
