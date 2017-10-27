@@ -103,13 +103,10 @@ namespace MFM {
   FORECAST UlamTypeClassQuark::explicitlyCastable(UTI typidx)
   {
     FORECAST scr = UlamTypeClass::explicitlyCastable(typidx);
-    if(scr == CAST_CLEAR)
-      {
-	//check from atom or atomref, possibly ok for quark ref only (runtime)
-	// e.g. error/t3733
-	if(m_state.isAtom(typidx) && !isReference())
-	  scr = CAST_BAD;
-      }
+    // as of updated ulam-3: atom or atomref, possibly ok when inherited (runtime)
+    //if(scr == CAST_CLEAR)
+    //check from atom or atomref, possibly ok for quark ref only (runtime)
+    //if(m_state.isAtom(typidx) && !isReference()) scr = CAST_BAD;
     return scr;
   } //explicitlyCastable
 

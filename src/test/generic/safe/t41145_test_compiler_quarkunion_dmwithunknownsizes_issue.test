@@ -1,0 +1,140 @@
+## -*- mode:ulam -*-
+#=t41145_test_compiler_quarkunion_dmwithunknownsizes_issue
+##
+## gen output: (1 assert)
+##
+#!
+Exit status: 0
+Ue_A { typedef Unary(2) Phase;  constant Unary(2) cELECTION_PHASE = 0u;  constant Unary(2) cNORMAL_PHASE = 1u;  PhaseData mPhaseData( MyElectionData mElec( constant Unsigned(32) cRankBits = 24u;  typedef Unsigned(24) MyRank;  typedef Unsigned(8) Ties;  Bool(1) mBestEverSeen(true);  Unsigned(24) mRank(0u);  Once mInitted( :< constant Unary(15) bitpairs = 0u;  constant Unsigned(32) oddw = 1u;  typedef Bool(1) WBool;  Bool(1) done(false); >); );  MyNormalData mNorm( typedef Unsigned(8) This;  typedef Unary(4) That[3];  Unsigned(8) mThis(0u);  Unary(4) mThat[3](0u,0u,0u); ); );  Unary(2) mPhase(0u);  Int(32) test() {  System s;  ( 0u )changeTo 0 cast return } }
+Uq_MyElectionData { constant Unsigned(32) cRankBits = 24u;  typedef Unsigned(24) MyRank;  typedef Unsigned(8) Ties;  Unsigned(24) mRank(0);  Bool(1) mBestEverSeen(false);  Once mInitted( :< constant Unsigned(32) oddw = 1u;  typedef Bool(1) WBool;  Bool(1) done(false); >);  <NOMAIN> }
+Uq_Once : OnceT(0) { /* empty class block */ }
+Uq_MyNormalData { typedef Unsigned(8) This;  typedef Unary(4) That[3];  Unsigned(8) mThis(0);  Unary(4) mThat[3](0,0,0);  <NOMAIN> }
+Uq_PhaseData { MyElectionData mElec( constant Unsigned(32) cRankBits = 24u;  typedef Unsigned(24) MyRank;  typedef Unsigned(8) Ties;  Unsigned(24) mRank(0);  Bool(1) mBestEverSeen(false);  Once mInitted( :< constant Unsigned(32) oddw = 1u;  typedef Bool(1) WBool;  Bool(1) done(false); >); );  MyNormalData mNorm( typedef Unsigned(8) This;  typedef Unary(4) That[3];  Unsigned(8) mThis(0);  Unary(4) mThat[3](0,0,0); );  <NOMAIN> }
+Uq_System { <NOMAIN> }
+Uq_OnceT(Unary(15) bitpairs) { constant Unsigned(32) oddw = 2 bitpairs * 1 +b;  typedef Bool(UNKNOWN) WBool;  Bool(UNKNOWN) done(notready);  <NOMAIN> }
+##
+## ish 10/23/2017 maxsize of union was covered up; compiler assert hit in NodeMemberSelect.
+##  (Once was copied from stdlib to help the test fail).
+##
+#>A.ulam
+  ulam 3;
+
+quark MyElectionData {
+  constant Unsigned cRankBits = 24;
+  typedef Unsigned(cRankBits) MyRank;
+  typedef Unsigned(32-cRankBits) Ties;
+
+  Void init() {
+  //  Random r;
+  //  mRank = (MyRank) r.bits(cRankBits);
+    mBestEverSeen = true;
+  }
+  Void update() {
+  }
+
+  MyRank mRank;
+  Bool mBestEverSeen;
+  Once mInitted; //important for test to fail without bug fix!!
+}
+
+quark MyNormalData {
+  typedef Unsigned(8) This;
+  typedef Unary(4) That[3];
+  This mThis;
+  That mThat;
+  Void init() {
+    mThis = 42;
+    mThat[0] = 2;
+    mThat[1] = 1;
+    mThat[2] = 2;
+  }
+}
+
+union PhaseData {
+  MyElectionData mElec;
+  MyNormalData mNorm;
+}
+
+element A {
+  typedef Unary(2) Phase;
+  constant Phase cELECTION_PHASE = 0u;
+  constant Phase cNORMAL_PHASE = 1u;
+
+  PhaseData mPhaseData;
+  Phase mPhase = cELECTION_PHASE;
+
+  Void changeTo(Phase phase) {
+    which(phase) {
+    case cELECTION_PHASE: { mPhaseData.mElec.init(); }
+    case cNORMAL_PHASE: { mPhaseData.mNorm.init(); }
+    }
+  }
+
+  Int test(){
+    System s;
+    changeTo(cELECTION_PHASE);
+    return 0;
+  }
+}
+
+#:Once.ulam
+ulam 2;
+
+/** A resettable single-shot latch with templated width.  Space cost
+    is 2*bitpairs + 1.
+
+    \author Dave Ackley
+    \version 2
+    \license public-domain
+*/
+quark OnceT(Unary(15) bitpairs)
+{
+  constant Unsigned oddw = 2*bitpairs + 1;
+  typedef Bool(oddw) WBool;
+  WBool done;
+
+  /**
+    Test and set the latch.  Returns true if this is the first time
+    new() has been called (ever, or since the most recent call to
+    reset() ).
+
+    \sa reset
+   */
+  Bool new() {
+    if (done) return false;
+    return done = true;
+  }
+
+  /**
+     set the latch to 'unfired' again, so that the next call to new()
+     will return true.
+
+     \sa new
+   */
+  Bool reset() {
+    Bool was = done;
+    done = false;
+    return was;
+  }
+}
+
+/** A resettable single-shot latch.  Space cost: 1 bit
+    \sa OnceT
+ */
+quark Once : OnceT(0) { }
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.
+
+#.
