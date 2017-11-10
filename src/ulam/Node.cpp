@@ -2448,7 +2448,11 @@ namespace MFM {
 
     assert(cosSize == 1);
     Symbol * cos = m_state.m_currentObjSymbolsForCodeGen[0];
-    fp->write(cos->getMangledName().c_str());
+
+    if(cos->isConstant()) //t41152 from another class
+      fp->write(((SymbolConstantValue *) cos)->getCompleteConstantMangledName().c_str()); //constant
+    else
+      fp->write(cos->getMangledName().c_str());
     fp->write(".");
     return;
   } //genLocalMemberNameOfMethod
@@ -2534,8 +2538,8 @@ namespace MFM {
 
     if(!stgcosut->isReference())
       {
-	if(stgcos->isConstant())
-	  fp->write(((SymbolConstantValue *) stgcos)->getCompleteConstantMangledName().c_str()); //constant
+	if(cos->isConstant()) //t41152 from another class
+	  fp->write(((SymbolConstantValue *) cos)->getCompleteConstantMangledName().c_str()); //constant
 	else
 	  fp->write(stgcos->getMangledName().c_str()); //local storage (not ref)
 	fp->write(", ");
