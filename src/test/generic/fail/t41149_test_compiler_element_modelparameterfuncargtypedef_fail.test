@@ -1,0 +1,41 @@
+## -*- mode:ulam -*-
+#=t41149_test_compiler_element_modelparameterfuncargtypedef_fail
+##
+## gen error: include/Ue_10107MyParms10_Types.h:169: FAILED: NULL_POINTER
+##
+#!
+Exit status: 0
+Ue_MyElement { typedef MyParms B;  typedef MyElement A;  Int(32) test() {  ( pFOO(3u) 12u cast )func 0 cast return } }
+Ue_MyParms {parameter Unsigned(32) pFOO = 3u;  <NOMAIN> }
+##
+## informed by t41146 and t41147, user ish 11/5/2017:
+## //when seen usage comes first, the error was caught by NodeConstant, not Parser;
+## // now fixed by NodeConstant. But typedef of unseen class is too much to handle, until now!
+## // that we use a NodeTypeDescriptor in NodeConstant.
+##
+#>MyElement.ulam
+  ulam 3;
+element MyElement {
+  typedef MyParms B;
+  typedef MyElement A;
+  Void func(Unsigned d, Unsigned e) { }
+  Int test() {
+
+    func(A.B.pFOO, 12u);
+
+    //3 other alternatives that (also) work!
+    //func(MyParms.pFOO, 12u);
+    //B foo;
+    //func(foo.pFOO, 12u);
+    //MyParms foo;
+    //func(foo.pFOO, 12u);
+
+    return 0;
+  }
+}
+
+#:MyParms.ulam
+  ulam 1;
+element MyParms {
+  parameter Unsigned pFOO = 3;
+}

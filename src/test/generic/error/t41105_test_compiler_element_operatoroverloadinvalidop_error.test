@@ -2,7 +2,7 @@
 #=t41105_test_compiler_element_operatoroverloadinvalidop_error
 #!
 ./Foo.ulam:23:16: ERROR: Weird Lex! <,> isn't an overloadable operation.
-./Foo.ulam:23:17: ERROR: Bit size after Open Paren is missing, type: Void.
+./Foo.ulam:23:17: Warning: Void bitsize expression disregarded; size is zero.
 ./Foo.ulam:24:3: ERROR: Name of variable/function <{>: Identifier must begin with a lower-case letter.
 ./Foo.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Foo'; Possible missing ending curly brace.
 ./Foo.ulam:24:3: ERROR: Invalid Class Type <{>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
