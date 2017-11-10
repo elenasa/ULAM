@@ -222,9 +222,9 @@ namespace MFM {
 		Node * newnode = NULL;
 
 		if(m_state.isScalar(auti))
-		  newnode = new NodeConstant(m_token, (SymbolWithValue *) asymptr, m_state);
+		  newnode = new NodeConstant(m_token, (SymbolWithValue *) asymptr, NULL, m_state);
 		else
-		  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) asymptr, m_state);
+		  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) asymptr, NULL, m_state);
 		assert(newnode);
 
 		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
@@ -240,7 +240,7 @@ namespace MFM {
 	      {
 		// replace ourselves with a parameter node instead;
 		// same node no, and loc
-		NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) asymptr, m_state);
+		NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) asymptr, NULL, m_state);
 		assert(newnode);
 
 		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
@@ -293,9 +293,9 @@ namespace MFM {
 	// same node no, and loc (e.g. t3573, t3526)
 	Node * newnode = NULL;
 	if(m_state.isScalar(vuti))
-	  newnode = new NodeConstant(m_token, (SymbolWithValue *) m_varSymbol, m_state);
+	  newnode = new NodeConstant(m_token, (SymbolWithValue *) m_varSymbol, NULL, m_state);
 	else
-	  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) m_varSymbol, m_state);
+	  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) m_varSymbol, NULL, m_state);
 	assert(newnode);
 
 	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
@@ -309,7 +309,7 @@ namespace MFM {
       {
 	// replace ourselves with a parameter node instead;
 	// same node no, and loc
-	NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) m_varSymbol, m_state);
+	NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) m_varSymbol, NULL, m_state);
 	assert(newnode);
 
 	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);

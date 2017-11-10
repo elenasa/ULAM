@@ -7,7 +7,7 @@
 ./A.ulam:8:3: NOTE: (3 of 35 bits, at 25) Unsigned(3) mFont.
 ./A.ulam:9:3: NOTE: (7 of 35 bits, at 28) Unsigned(7) mFreshness.
 ./A.ulam:6:7: ERROR: CLASS INSTANCE 'ConstantLabelAndFont(UNKNOWN)<33>' SIZED 35 FAILED.
-./A.ulam:2:9: ERROR: Subclass 'A' inherits from unready 'ConstantLabelAndFont(06666f6f626172,33u).
+./A.ulam:2:9: ERROR: Subclass 'A' inherits from illegal 'ConstantLabelAndFont(06666f6f626172,33u)'.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by Dave ish 1/19/17, t41007: inherited quark too big, assert too overkill.

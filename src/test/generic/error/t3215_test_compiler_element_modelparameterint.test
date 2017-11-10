@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3215_test_compiler_element_modelparameterint
 #!
-./Foo.ulam:12:9: ERROR: Invalid lefthand side of equals <chance>, type: Int(32).
+./Foo.ulam:12:12: ERROR: Invalid lefthand side of equals <chance>, type: Int(32).
 Unrecoverable Program Type Label FAILURE.
 ##
 ## generate code for test:
@@ -10,32 +10,32 @@ Unrecoverable Program Type Label FAILURE.
 ##
 ##      // MP not storeintoable/
 #>Foo.ulam
-ulam 1;
+    ulam 1;
 use System;
- element Foo {
- System s;
- parameter Int chance = 1;
- Int a;
- Int test() {
- Foo f;
- s.print(chance);
- s.print(f.chance);
- a = f.chance;
- chance = 4;
- return a;
- }
- }
+element Foo {
+  System s;
+  parameter Int chance = 1;
+  Int a;
+  Int test() {
+    Foo f;
+    s.print(chance);
+    s.print(f.chance);
+    a = f.chance;
+    chance = 4;
+    return a;
+  }
+}
 
 #:System.ulam
-ulam 1;
+  ulam 1;
 quark System {
-Void print(Unsigned arg) native;
-Void print(Int arg) native;
-Void print(Int(4) arg) native;
-Void print(Int(3) arg) native;
-Void print(Unary(3) arg) native;
-Void print(Bool(3) arg) native;
-Void assert(Bool b) native;
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
 }
 ##
 ##      //simplify for debugging

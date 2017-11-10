@@ -46,7 +46,7 @@ namespace MFM{
   {
   public:
 
-    NodeModelParameter(const Token& tok, SymbolModelParameterValue * symptr, CompilerState & state);
+    NodeModelParameter(const Token& tok, SymbolModelParameterValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state);
 
     NodeModelParameter(const NodeModelParameter& ref);
 

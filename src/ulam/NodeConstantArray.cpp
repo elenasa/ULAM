@@ -4,24 +4,46 @@
 
 namespace MFM {
 
-  NodeConstantArray::NodeConstantArray(const Token& tok, SymbolWithValue * symptr, CompilerState & state) : Node(state), m_token(tok), m_constSymbol(symptr), m_constType(Nouti), m_currBlockNo(0)
+  NodeConstantArray::NodeConstantArray(const Token& tok, SymbolWithValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state) : Node(state), m_token(tok), m_nodeTypeDesc(typedesc), m_constSymbol(symptr), m_constType(Nouti), m_currBlockNo(0)
   {
     assert(symptr);
     setBlockNo(symptr->getBlockNoOfST());
     m_constType = m_constSymbol->getUlamTypeIdx();
   }
 
-  NodeConstantArray::NodeConstantArray(const NodeConstantArray& ref) : Node(ref), m_token(ref.m_token), m_constSymbol(NULL), m_constType(ref.m_constType), m_currBlockNo(ref.m_currBlockNo)
+  NodeConstantArray::NodeConstantArray(const NodeConstantArray& ref) : Node(ref), m_token(ref.m_token), m_nodeTypeDesc(NULL), m_constSymbol(NULL), m_constType(ref.m_constType), m_currBlockNo(ref.m_currBlockNo)
   {
     //can we use the same address for a constant symbol?
+    if(ref.m_nodeTypeDesc)
+      m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
   }
 
-  NodeConstantArray::~NodeConstantArray(){}
+  NodeConstantArray::~NodeConstantArray()
+  {
+    delete m_nodeTypeDesc;
+    m_nodeTypeDesc = NULL;
+  }
 
   Node * NodeConstantArray::instantiate()
   {
     return new NodeConstantArray(*this);
   }
+
+  void NodeConstantArray::updateLineage(NNO pno)
+  {
+    setYourParentNo(pno);
+    if(m_nodeTypeDesc)
+      m_nodeTypeDesc->updateLineage(getNodeNo());
+  } //updateLineage
+
+  bool NodeConstantArray::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+    if(m_nodeTypeDesc && m_nodeTypeDesc->findNodeNo(n, foundNode))
+      return true;
+    return false;
+  } //findNodeNo
 
   void NodeConstantArray::printPostfix(File * fp)
   {

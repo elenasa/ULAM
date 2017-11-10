@@ -253,7 +253,7 @@ namespace MFM{
     bool parseTypeFromAnotherClassesTypedef(TypeArgs& args, NodeTypeDescriptor *& rtnTypeDesc);
     void parseTypeFromAnotherClassesTypedef(TypeArgs& args, bool& rtnb, u32& numDots, NodeTypeDescriptor *& rtnTypeDesc);
 
-    Node * parseNamedConstantFromAnotherClass(const TypeArgs& args);
+    Node * parseNamedConstantFromAnotherClass(const TypeArgs& args, NodeTypeDescriptor * typedescNode);
 
     /**
        <RETURN_STATMENT> := 'return' + (0 | <ASSIGN_EXPR>)
