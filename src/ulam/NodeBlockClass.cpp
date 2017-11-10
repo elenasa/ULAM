@@ -147,7 +147,9 @@ namespace MFM {
 
   void NodeBlockClass::printPostfix(File * fp)
   {
-    UTI cuti = getNodeType();
+    //UTI cuti = getNodeType();
+    UTI cuti = m_state.getCompileThisIdx(); //maybe be hzy template, getNodeType(); (t3565)
+    assert(m_state.okUTItoContinue(cuti));
 
     fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeUPrefix().c_str());  //e.g. Ue_Foo
     fp->write(getName());  //unmangled
@@ -192,22 +194,22 @@ namespace MFM {
 	s32 slot = c0.convertCoordToIndex();
 
 	//has (most) current values impacted by test()
-	printPostfixDataMembersSymbols(fp, slot, ATOMFIRSTSTATEBITPOS, m_state.getUlamTypeByIndex(cuti)->getUlamClassType()); //may not need classtype
+	printPostfixDataMembersSymbols(fp, slot, ATOMFIRSTSTATEBITPOS, cuti); //may not need classtype
 	func->printPostfix(fp);
       }
     else
       {
 	//has only initialized DM values, not current values
-	printPostfixDataMembersParseTree(fp);
+	printPostfixDataMembersParseTree(fp, cuti);
 	fp->write(" <NOMAIN>"); //not an error
       }
     fp->write(" }");
     fp->write("\n");
   } //printPostfix
 
-  void NodeBlockClass::printPostfixDataMembersParseTree(File * fp)
+  void NodeBlockClass::printPostfixDataMembersParseTree(File * fp, UTI cuti)
   {
-    UTI cuti = getNodeType();
+    //UTI cuti = getNodeType(); maybe Hzy, use arg instead
     if(m_state.isUrSelf(cuti)) return;
 
     UTI superuti = m_state.isClassASubclass(cuti);
@@ -215,7 +217,7 @@ namespace MFM {
     if(m_state.okUTItoContinue(superuti) && !m_state.isUrSelf(superuti))
       {
 	NodeBlockClass * superblock = getSuperBlockPointer();
-	if(!isSuperClassLinkReady())
+	if(!isSuperClassLinkReady(cuti))
 	  {
 	    //use SCN instead of SC in case of stub (use template's classblock)
 	    SymbolClassName * supercnsym = NULL;
@@ -223,10 +225,11 @@ namespace MFM {
 	    AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(superid, supercnsym);
 	    assert(isDefined);
 	    superblock = supercnsym->getClassBlockNode();
+	    superuti = supercnsym->getUlamTypeIdx(); //in case of stub (t41007)
 	  }
 	assert(superblock);
 	fp->write(" :<");
-	superblock->printPostfixDataMembersParseTree(fp);
+	superblock->printPostfixDataMembersParseTree(fp, superuti);
 	fp->write(">");
       }
 
@@ -234,9 +237,9 @@ namespace MFM {
       m_nodeNext->printPostfix(fp); //datamember vardecls
   } //printPostfixDataMembersParseTree
 
-  void NodeBlockClass::printPostfixDataMembersSymbols(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
+  void NodeBlockClass::printPostfixDataMembersSymbols(File * fp, s32 slot, u32 startpos, UTI cuti)
   {
-    UTI cuti = getNodeType();
+    //UTI cuti = getNodeType(); //maybe Hzy use arg instead
     UTI superuti = m_state.isClassASubclass(cuti);
     //skip UrSelf to avoid extensive changes to all test answers
     if(m_state.okUTItoContinue(superuti) && !m_state.isUrSelf(superuti))
@@ -244,16 +247,17 @@ namespace MFM {
 	NodeBlockClass * superblock = getSuperBlockPointer();
 	assert(superblock && UlamType::compare(superblock->getNodeType(), superuti, m_state) == UTIC_SAME);
 	fp->write(" :<");
-	superblock->printPostfixDataMembersSymbols(fp, slot, startpos, classtype);
+	superblock->printPostfixDataMembersSymbols(fp, slot, startpos, superuti);
 	fp->write(">");
       }
-    m_ST.printPostfixValuesForTableOfVariableDataMembers(fp, slot, startpos, classtype);
+    m_ST.printPostfixValuesForTableOfVariableDataMembers(fp, slot, startpos, m_state.getUlamTypeByIndex(cuti)->getUlamClassType());
   } //printPostfixDataMembersSymbols
 
-  void NodeBlockClass::noteTypeAndName(s32 totalsize, u32& accumsize)
+  void NodeBlockClass::noteClassTypeAndName(UTI nuti, s32 totalsize, u32& accumsize)
   {
     //called when superclass of an oversized class instance
-    UTI nuti = getNodeType();
+    //UTI nuti = getNodeType(); //maybe Hzy, use arg instead
+
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 nsize = nut->getTotalBitSize();
 
@@ -266,9 +270,9 @@ namespace MFM {
     accumsize += nsize;
   } //noteTypeAndName
 
-  void NodeBlockClass::noteDataMembersParseTree(s32 totalsize)
+  void NodeBlockClass::noteDataMembersParseTree(UTI cuti, s32 totalsize)
   {
-    UTI cuti = getNodeType();
+    //UTI cuti = getNodeType(); maybe be Hzy, use callers arg
     if(m_state.isUrSelf(cuti)) return;
 
     u32 accumsize = 0;
@@ -283,7 +287,7 @@ namespace MFM {
     if(m_state.okUTItoContinue(superuti) && !m_state.isUrSelf(superuti))
       {
 	NodeBlockClass * superblock = getSuperBlockPointer();
-	if(!isSuperClassLinkReady())
+	if(!isSuperClassLinkReady(cuti))
 	  {
 	    //use SCN instead of SC in case of stub (use template's classblock)
 	    SymbolClassName * supercnsym = NULL;
@@ -293,7 +297,7 @@ namespace MFM {
 	    superblock = supercnsym->getClassBlockNode();
 	  }
 	assert(superblock);
-	superblock->noteTypeAndName(totalsize, accumsize); //no recursion
+	superblock->noteClassTypeAndName(superuti, totalsize, accumsize); //no recursion
       }
 
     if(m_nodeNext)
@@ -302,7 +306,10 @@ namespace MFM {
 
   const char * NodeBlockClass::getName()
   {
-    return m_state.getUlamKeyTypeSignatureByIndex(getNodeType()).getUlamKeyTypeSignatureName(&m_state).c_str();
+    UTI cuti = getNodeType();
+    if(!m_state.okUTItoContinue(cuti))
+      cuti = m_state.getCompileThisIdx(); //maybe be hzy template, getNodeType(); (t3565)
+    return m_state.getUlamKeyTypeSignatureByIndex(cuti).getUlamKeyTypeSignatureName(&m_state).c_str();
   }
 
   const std::string NodeBlockClass::prettyNodeName()
@@ -333,10 +340,9 @@ namespace MFM {
     m_superBlockNode = superblock;
   }
 
-  bool NodeBlockClass::isSuperClassLinkReady()
+  bool NodeBlockClass::isSuperClassLinkReady(UTI cuti)
   {
     //call for known subclasses only
-    UTI cuti = getNodeType();
     UTI superuti = m_state.isClassASubclass(cuti);
     assert((superuti != Nouti) || !m_state.okUTItoContinue(cuti)); //t41013
 
@@ -361,7 +367,8 @@ namespace MFM {
     //if(!checkArgumentNodeTypes())
 
     // Inheritance checks
-    UTI nuti = getNodeType();
+    //UTI nuti = getNodeType();
+    UTI nuti = m_state.getCompileThisIdx(); //may be Hzy getNodeType();
     UTI superuti = m_state.isClassASubclass(nuti);
 
     //skip the ancestor of a template
@@ -389,12 +396,13 @@ namespace MFM {
 		setSuperBlockPointer(NULL); //force to try again!! avoid inf loop
 		superuti = mappedUTI;
 		m_state.resetClassSuperclass(nuti, superuti);
+		setNodeType(Hzy); //t41150
 		return Hzy; //short-circuit
 	      }
 	  }
 
 	//this is a subclass.
-	if(!isSuperClassLinkReady())
+	if(!isSuperClassLinkReady(nuti))
 	  {
 	    if(!m_state.isComplete(superuti))
 	      {
@@ -436,6 +444,7 @@ namespace MFM {
 		m_state.setGoAgain();
 		//need to break the chain; e.g. don't want template symbol addresses used
 		setSuperBlockPointer(NULL); //force to try again!! avoid inf loop
+		setNodeType(Hzy); //t41150
 
 		if(brtnhzy)
 		  return Hzy; //short-circuit holders and stubs (e.g. t41010, t3831, t3889)
@@ -449,29 +458,36 @@ namespace MFM {
 	    NodeBlockClass * superclassblock = csym->getClassBlockNode();
 	    setSuperBlockPointer(superclassblock); //fixed
 
-	    if(!isSuperClassLinkReady())
+	    if(!isSuperClassLinkReady(nuti))
 	      {
 		setSuperBlockPointer(NULL); //force to try again!! avoid inf loop
 		std::ostringstream msg;
 		msg << "Subclass '";
 		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		msg << "' inherits from unready '";
-		msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
-		if(!m_state.okUTItoContinue(superclassblock->getNodeType()))
+		if(superclassblock->getNodeType() == Nav)
 		  {
+		    msg << "' inherits from illegal '";
+		    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str() << "'";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		    return Nav; //t41013
+		    setNodeType(Nav);
+		    return Nav; //t41013, t3599
 		  }
 		else
 		  {
+		    msg << "' inherits from unready '";
+		    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str() << "'";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		    m_state.setGoAgain();
+		    setNodeType(Hzy);
 		    return Hzy;
 		  }
 	      }
 	  } //super link ready or not
 
-	assert(isSuperClassLinkReady());
+
+	setNodeType(nuti); //t41150
+
+	assert(isSuperClassLinkReady(nuti));
 	ULAMCLASSTYPE superclasstype = m_state.getUlamTypeByIndex(superuti)->getUlamClassType();
 	ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClassType();
 	if(classtype == UC_TRANSIENT)
@@ -506,7 +522,7 @@ namespace MFM {
 	    else
 	      {
 		//for all others (elements and quarks)
-		//must be "seen" by now; e.g. typedef array of quarks (t3674), t3862
+		//must be "seen" by now; e.g. typedef array of quarks (t3674), t3862, t41150
 		std::ostringstream msg;
 		msg << "Subclass '";
 		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
@@ -576,8 +592,9 @@ namespace MFM {
   {
     if(m_nodeParameterList)
       {
+	UTI cuti = m_state.getCompileThisIdx(); //getNodeType() maybe Hzy
 	u32 nparms = m_nodeParameterList->getNumberOfNodes();
-	assert((nparms == 0) || m_state.isClassATemplate(getNodeType()));
+	assert((nparms == 0) || m_state.isClassATemplate(cuti));
 	m_nodeParameterList->checkAndLabelType();
 	//delay template parameter type check for instance argument type check
 	//since potential problems may still be Hazy. (t3894,5,8)
@@ -595,14 +612,14 @@ namespace MFM {
   Node * NodeBlockClass::getParameterNode(u32 n)
   {
     assert(m_nodeParameterList); //must be a template
-    assert(m_state.isClassATemplate(getNodeType()));
+    //assert(m_state.isClassATemplate(getNodeType()));
     return m_nodeParameterList->getNodePtr(n);
   }
 
   u32 NodeBlockClass::getNumberOfParameterNodes()
   {
     assert(m_nodeParameterList); //must be a template
-    assert(m_state.isClassATemplate(getNodeType()));
+    //assert(m_state.isClassATemplate(getNodeType()));
     return m_nodeParameterList->getNumberOfNodes();
   }
 
@@ -1090,8 +1107,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   s32 NodeBlockClass::getBitSizesOfVariableSymbolsInTable()
   {
+    UTI cuti = m_state.getCompileThisIdx(); //getNodeType() maybe Hzy
     s32 superbs = 0;
-    UTI superuti = m_state.isClassASubclass(getNodeType());
+    UTI superuti = m_state.isClassASubclass(cuti);
     assert(superuti != Hzy);
     if(superuti != Nouti)
       superbs = m_state.getBitSize(superuti);
@@ -1111,8 +1129,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   s32 NodeBlockClass::getMaxBitSizeOfVariableSymbolsInTable()
   {
+    UTI cuti = m_state.getCompileThisIdx(); //getNodeType() maybe Hzy
     s32 superbs = 0;
-    UTI superuti = m_state.isClassASubclass(getNodeType());
+    UTI superuti = m_state.isClassASubclass(cuti);
     assert(superuti != Hzy);
     if(superuti != Nouti)
       {

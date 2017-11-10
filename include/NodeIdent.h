@@ -66,6 +66,8 @@ namespace MFM{
 
     bool getSymbolPtr(SymbolVariable *& symptrref) const;
 
+    void setupBlockNo();
+
     virtual bool getStorageSymbolPtr(Symbol *& symptrref);
 
     virtual bool hasASymbolDataMember();
@@ -103,6 +105,7 @@ namespace MFM{
 
     virtual UlamValue makeUlamValuePtr();
 
+
   protected:
 
   private:
@@ -110,7 +113,6 @@ namespace MFM{
     SymbolVariable * m_varSymbol;
     NNO m_currBlockNo;
 
-    void setupBlockNo();
     void setBlockNo(NNO n);
     NNO getBlockNo() const;
     NodeBlock * getBlock();

@@ -1,21 +1,21 @@
 ## -*- mode:ulam -*-
 #=t3219_test_compiler_element_modelparameterasconstantexpression_error
 #!
-./Foo.ulam:4:2: ERROR: Type Bitsize specifier: Int(32), within (), is not a numeric constant expression.
+./Foo.ulam:4:3: ERROR: Type Bitsize specifier: Int(32), within (), is not a numeric constant expression.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      // fix bitsize, then get:
 ##      //./Foo.ulam:6:9: ERROR: Array size specifier in [] is not a constant integer.
 ##
 #>Foo.ulam
-ulam 1;
- element Foo {
- parameter Int chance = 2;
- Int(chance) arr[chance];
-Bool(1) last;
-Int test() {
-return chance;
- }
- }
+  ulam 1;
+element Foo {
+  parameter Int chance = 2;
+  Int(chance) arr[chance];
+  Bool(1) last;
+  Int test() {
+    return chance;
+  }
+}
 
 #.

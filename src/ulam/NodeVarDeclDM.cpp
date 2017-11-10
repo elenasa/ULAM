@@ -78,7 +78,7 @@ namespace MFM {
 	      fp->write("), (");
 	    else
 	      fp->write("(");
-	    classblock->printPostfixDataMembersParseTree(fp); //same default values
+	    classblock->printPostfixDataMembersParseTree(fp, csym->getUlamTypeIdx()); //same default values
 	  }
 	m_state.popClassContext();
       }

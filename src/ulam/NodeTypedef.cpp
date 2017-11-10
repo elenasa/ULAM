@@ -134,6 +134,8 @@ namespace MFM {
 		msg << ", used with variable symbol name <" << getName() << ">";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	      }
+	    else
+	      m_state.addCompleteUlamTypeToThisContextSet(it); //t41147
 	  }
 	else if(tdut->isHolder() && !m_state.isThisLocalsFileScope())
 	  {

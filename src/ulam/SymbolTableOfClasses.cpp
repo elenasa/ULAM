@@ -683,7 +683,7 @@ namespace MFM {
 	  }
 	it++;
       } //while
-    return Nav;
+    return Nouti;
   } //findClassNodeNoForTableOfClasses
 
 } //end MFM

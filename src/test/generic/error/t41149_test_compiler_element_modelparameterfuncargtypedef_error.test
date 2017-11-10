@@ -1,0 +1,41 @@
+## -*- mode:ulam -*-
+#=t41149_test_compiler_element_modelparameterfuncargtypedef_error
+#!
+./MyElement.ulam:9:12: ERROR: Insufficient state: Named Constant <pFOO> in typedef of another class that has not been seen yet; Suggest using the class name, or an instance.
+Unrecoverable Program Parse FAILURE: <MyElement.ulam>
+Unrecoverable Program Parse FAILURE: <MyParms.ulam>
+##
+## informed by t41146 and t41147, user ish 11/5/2017:
+## //when seen usage comes first, the error was caught by NodeConstant, not Parser;
+## // now fixed by NodeConstant. But typedef of unseen class is too much to handle.
+##
+#>MyElement.ulam
+  ulam 3;
+//use MyParms; //different case than when seen first (t41146);
+element MyElement {
+  typedef MyParms B;
+
+  Void func(Unsigned d, Unsigned e) { }
+  Int test() {
+
+    func(B.pFOO, 12u); //Insufficient info..
+
+    //3 other alternatives that work!
+
+    //func(MyParms.pFOO, 12u);
+
+    //B foo;
+    //func(foo.pFOO, 12u);
+
+    //MyParms foo;
+    //func(foo.pFOO, 12u);
+
+    return 0;
+  }
+}
+
+#:MyParms.ulam
+  ulam 1;
+element MyParms {
+  parameter Unsigned pFOO = 3;
+}

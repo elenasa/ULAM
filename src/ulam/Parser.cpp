@@ -3214,7 +3214,7 @@ namespace MFM {
 
   Node * Parser::parseNamedConstantFromAnotherClass(const TypeArgs& args)
   {
-    //when a lower case ident comes after a Type ident, it must be a constant!
+    //when a lower case ident comes after a Type ident, it must be a constant (or model parameter)!
     Node * rtnNode = NULL;
     Token iTok;
     getNextToken(iTok);
@@ -3240,17 +3240,7 @@ namespace MFM {
 	if(!m_state.alreadyDefinedSymbol(iTok.m_dataindex, sym, hazyKin))
 	  {
 	    UlamType * acut = m_state.getUlamTypeByIndex(args.m_classInstanceIdx);
-	    if(acut->getUlamClassType() == UC_UNSEEN)
-	      {
-		UTI huti = m_state.makeUlamTypeHolder();
-		SymbolConstantValue * holderconstsym = new SymbolConstantValue(iTok, huti, m_state);
-		assert(holderconstsym);
-
-		holderconstsym->setBlockNoOfST(memberClassNode->getNodeNo());
-		m_state.addSymbolToCurrentMemberClassScope(holderconstsym); //not locals scope
-		sym = holderconstsym;
-	      }
-	    else
+	    if(acut->getUlamClassType() != UC_UNSEEN)
 	      {
 		std::ostringstream msg;
 		msg << "Inconsistent state: Named Constant <";
@@ -3259,20 +3249,80 @@ namespace MFM {
 		msg << m_state.getUlamTypeNameBriefByIndex(args.m_classInstanceIdx);
 		MSG(&iTok, msg.str().c_str(), ERR); //possibly no dot, ignored LOW_ERR (t41110)
 	      }
+	    else //we'll use a NodeConstant that will fix itself later, if possible
+	      {
+		if(m_state.isAnonymousClass(args.m_classInstanceIdx))
+		  {
+		    std::ostringstream msg;
+		    msg << "Insufficient state: Named Constant <";
+		    msg << m_state.getTokenDataAsString(iTok).c_str();
+		    msg << "> in typedef of another class that has not been seen yet; ";
+		    msg << "Suggest using the class name, or an instance";
+		    MSG(&iTok, msg.str().c_str(), ERR); //(t41149)
+
+		    m_state.popClassContext(); //restore
+		    return NULL;
+		  }
+	      }
 	  }
 	//else defined or not
-	if(sym && sym->isConstant()) // || sym->isModelParameter())
+
+	if(sym)
 	  {
-	    UTI suti = sym->getUlamTypeIdx();
-	    if(m_state.isScalar(suti))
-	      rtnNode = new NodeConstant(iTok, (SymbolConstantValue *) sym, m_state); //t3862
-	    else
-	      rtnNode = new NodeConstantArray(iTok, (SymbolConstantValue *) sym, m_state);
+	     if(sym->isConstant())
+	      {
+		UTI suti = sym->getUlamTypeIdx();
+		if(m_state.isScalar(suti))
+		  rtnNode = new NodeConstant(iTok, (SymbolConstantValue *) sym, m_state); //t3862
+		else
+		  rtnNode = new NodeConstantArray(iTok, (SymbolConstantValue *) sym, m_state);
+		assert(rtnNode);
+		rtnNode->setNodeLocation(iTok.m_locator);
+	      }
+	     else if(sym->isModelParameter()) //t41146
+	      {
+		rtnNode = new NodeModelParameter(iTok, (SymbolModelParameterValue*) sym, m_state);
+		assert(rtnNode);
+		rtnNode->setNodeLocation(iTok.m_locator);
+	      }
+	     else
+	       m_state.abortShouldntGetHere();
+	  }
+	else
+	  {
+	    //fix during NodeConstant c&l
+	    rtnNode = new NodeConstant(iTok, NULL, m_state); //t41147
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(iTok.m_locator);
+	    //search later in right class for symbol named by iTok
+	    ((NodeConstant *) rtnNode)->setupBlockNo();
 	  }
-
 	m_state.popClassContext(); //restore
+
+	assert(! m_state.isAnonymousClass(args.m_classInstanceIdx));
+
+	//manufacture a typedef symbol/node for args.m-classInstanceIdx for This class' current scope
+	// to ensure the class is included during gencode; avoid duplicates. //t41146,7
+	UlamType * acut = m_state.getUlamTypeByIndex(args.m_classInstanceIdx);
+	std::ostringstream atdname;
+	atdname << "_" << acut->getUlamTypeNameOnly(); //out-of-band
+	std::string atdstr = atdname.str();
+	u32 atdid = m_state.m_pool.getIndexForDataString(atdstr);
+
+	Symbol * asymptr = NULL;
+	if(!m_state.isIdInCurrentScope(atdid, asymptr))
+	  {
+	    Token classTok(TOK_IDENTIFIER, iTok.m_locator, atdid);
+	    SymbolTypedef * symtypedef = new SymbolTypedef(classTok, args.m_classInstanceIdx, args.m_classInstanceIdx, m_state);
+	    m_state.addSymbolToCurrentScope(symtypedef);
+
+	    NodeTypedef * mytdnode = new NodeTypedef(symtypedef, NULL, m_state);
+	    assert(mytdnode);
+	    mytdnode->setNodeLocation(iTok.m_locator);
+	    m_state.appendNodeToCurrentBlock(mytdnode);
+	  }
+	else
+	  assert(asymptr->isTypedef()); //out-of-band name, has to be ours
       }
     return rtnNode;
   } //parseNamedConstantFromAnotherClass
