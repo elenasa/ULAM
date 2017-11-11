@@ -1,0 +1,22 @@
+## -*- mode:ulam -*-
+#=t41156_test_compiler_addingatoms_error
+#!
+./MyElement.ulam:8:7: ERROR: Arithmetic Operation += is invalid on 'Atom' types.
+Unrecoverable Program Type Label FAILURE.
+##
+## user ish 11/5/2017: This code is a crime against nature, but it does throw an assertion:
+##
+#>MyElement.ulam
+  ulam 3;
+element MyElement
+{
+  Int test()
+  {
+    Atom a = self;
+    Atom b;
+    a += b;
+    return 0;
+  }
+}
+
+#.

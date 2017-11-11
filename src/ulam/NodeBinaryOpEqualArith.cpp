@@ -11,9 +11,7 @@ namespace MFM {
 
   UTI NodeBinaryOpEqualArith::checkAndLabelType()
   {
-    //UTI nodeType = NodeBinaryOpEqual::checkAndLabelType();
     //copied from NodeBinaryOpEqual::checkandlabeltype..
-
     assert(m_nodeLeft && m_nodeRight);
 
     UTI leftType = m_nodeLeft->checkAndLabelType();
@@ -124,24 +122,18 @@ namespace MFM {
 	  } //else the same
       }
 
-    //specifically for equal arith's
+    //specifically for equal arith's, no classes left at this point..
     if(m_state.okUTItoContinue(newType))
       {
 	UlamType * nut = m_state.getUlamTypeByIndex(newType);
-
-	// common part of name
-	ULAMTYPE enodetyp = nut->getUlamTypeEnum();
-	if(enodetyp == Bits)
+	if(!nut->isNumericType())
 	  {
-	    // can happen with op-equal operations when both sides are the same type
-	    MSG(getNodeLocationAsString().c_str(), "Arithmetic Operations are invalid on 'Bits' type", ERR);
-	    newType = Nav;
-	  }
-
-	if(enodetyp == Bool)
-	  {
-	    // can happen with op-equal operations when both sides are the same type
-	    MSG(getNodeLocationAsString().c_str(), "Arithmetic Operations are invalid on 'Bool' type", ERR);
+	    //no bool, bits, or atoms..(t3211, t3212, t3213, t41156)
+	    std::ostringstream msg;
+	    msg << "Arithmetic Operation " << getName();
+	    msg << " is invalid on '";
+	    msg << nut->getUlamTypeNameOnly().c_str() << "' types";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    newType = Nav;
 	  }
 
@@ -150,7 +142,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Non-scalars require a loop for operation " << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    newType = Nav;
+	    newType = Nav; //t3140, t3150
 	  }
       }
 
