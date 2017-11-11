@@ -1086,7 +1086,7 @@ namespace MFM {
 	//From a quark, cast to atom..
 	//e.g. a quark here would fail, if not a superclass && ref
 	assert(stgut->isReference()); //t3697, t3834 (self is a ref, too!)
-	assert(((vstor == TMPBITVAL) || (vstor == TMPTATOM))); //t41153,4,5
+	//assert (((vstor == TMPBITVAL) || (vstor == TMPTATOM))); //t41153,4,5 WAIT ULAM-4
 
 	//insure the qref has a (MFM) type that's not UNDEFINED
 	// hopefully, uvpass is TMPBITVAL or TMPTATOM
@@ -1096,7 +1096,19 @@ namespace MFM {
 	fp->write(" = (");
 
 	if(stgcos->isSelf())
-	  fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //t41143
+	  {
+	    if(!((vstor == TMPBITVAL) || (vstor == TMPTATOM))) //t41153,4,5
+	      {
+		std::ostringstream msg;
+		msg << "Cannot explicitly cast a quark 'self'";
+		msg << " to type: " << tobe->getUlamTypeNameBrief().c_str();
+		msg << "; Consider using a reference (or self) with .atomof";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		return; //was an assert
+	      }
+	    //else
+	    fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //t41143
+	  }
 	else
 	  fp->write(stgcos->getMangledName().c_str());
 
