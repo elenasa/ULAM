@@ -773,6 +773,9 @@ namespace MFM {
 	brtn = true;
       }
 
+    if(!m_state.okUTItoContinue(tduti))
+      brtn = false;
+
     if(brtn)
       {
 	UTI uti = tduti;
@@ -888,6 +891,9 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
 
+    if(!m_state.okUTItoContinue(uti))
+      brtn = false;
+
     if(brtn)
       {
 	if(!asymptr)
@@ -980,6 +986,9 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
 
+    if(!m_state.okUTItoContinue(uti))
+      brtn = false;
+
     if(brtn)
       {
 	//create a symbol for this new model parameter, a parameter-def, with its value
@@ -1063,6 +1072,9 @@ namespace MFM {
 	  }
 	brtn = true;
       }
+
+    if(!m_state.okUTItoContinue(auti))
+      brtn = false; //t41153
 
     if(brtn)
       {

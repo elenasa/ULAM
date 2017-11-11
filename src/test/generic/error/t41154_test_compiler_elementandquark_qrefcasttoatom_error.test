@@ -1,0 +1,44 @@
+## -*- mode:ulam -*-
+#=t41154_test_compiler_elementandquark_qrefcasttoatom_error
+#!
+./MyElement.ulam:22:15: ERROR: Cannot explicitly cast QOne(10u)& to type: Atom(96); Consider using a reference (or self) with .atomof.
+./MyElement.ulam:22:5: ERROR: Initial value expression for: b, initialization is invalid.
+./MyElement.ulam:23:20: ERROR: Cannot explicitly cast QOne(10u)& to type: Atom(96)&; Consider using a reference (or self) with .atomof.
+./MyElement.ulam:23:5: ERROR: Initial value expression for: atref, initialization is invalid.
+./MyElement.ulam:23:5: ERROR: Storage expression for: atref, is invalid.
+./MyElement.ulam:26:20: ERROR: <q> is a quark and cannot be used with .atomof; try a reference or self.
+./MyElement.ulam:26:5: ERROR: Initial value expression for: bref, initialization is invalid.
+./MyElement.ulam:26:5: ERROR: Storage expression for: bref, is invalid.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41153, user ish 11/5/2017:
+##
+#>MyElement.ulam
+  ulam 3;
+element MyElement : QOne(10)
+{
+  Int test()
+  {
+    Atom abc = self;
+    behave();
+    return 0;
+  }
+}
+
+quark QOne(Unsigned num)
+{
+  Void behave(){
+    Atom atom = self.atomof; //ok
+    Atom aok = self.instanceof; //ok
+
+    //Atom a = (Atom) self; //NO GOOD. supercedes all other WAIT messages!
+
+    //WAIT messages squashed by ERR message for line above. comment out to see these..
+    QOne(num) & qref = self;
+    Atom b = (Atom) qref; //NO GOOD.
+    Atom& atref = (Atom &) qref; //NO GOOD;
+
+    QOne(num) q;
+    Atom& bref = q.atomof; //NO GOOD.
+  }
+}

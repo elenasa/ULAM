@@ -1086,6 +1086,7 @@ namespace MFM {
 	//From a quark, cast to atom..
 	//e.g. a quark here would fail, if not a superclass && ref
 	assert(stgut->isReference()); //t3697, t3834 (self is a ref, too!)
+	assert(((vstor == TMPBITVAL) || (vstor == TMPTATOM))); //t41153,4,5
 
 	//insure the qref has a (MFM) type that's not UNDEFINED
 	// hopefully, uvpass is TMPBITVAL or TMPTATOM
@@ -1093,13 +1094,12 @@ namespace MFM {
 	fp->write("const bool ");
 	fp->write(m_state.getTmpVarAsString(Bool, tmpVarIs, TMPREGISTER).c_str());;
 	fp->write(" = (");
+
 	if(stgcos->isSelf())
-	  {
-	    assert(m_state.m_currentObjSymbolsForCodeGen.empty() && ((vstor == TMPBITVAL) || (vstor == TMPTATOM)));
-	    fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //t41143
-	  }
+	  fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //t41143
 	else
 	  fp->write(stgcos->getMangledName().c_str());
+
 	fp->write(".");
 	fp->write("GetType()");
 	fp->write(" != T::ATOM_UNDEFINED_TYPE);"); GCNL; //subatomic type

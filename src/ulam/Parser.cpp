@@ -1968,6 +1968,7 @@ namespace MFM {
     assert(tmpni);
 
     UTI ruti = asNode->getRightType(); //what if Self?
+    assert(m_state.okUTItoContinue(ruti));
     UTI tuti = m_state.getUlamTypeAsRef(ruti, ALT_AS);
 
     UlamType * tut = m_state.getUlamTypeByIndex(tuti);
@@ -2620,7 +2621,9 @@ namespace MFM {
 	typeargs.m_assignOK = true; //required
 	typeargs.m_isStmt = true; //unless a func param
 	// change uti to reference key
-	UTI refuti = m_state.getUlamTypeAsRef(castUTI); //t3692
+	UTI refuti = castUTI;
+	if(m_state.okUTItoContinue(castUTI)) //t41153
+	  refuti = m_state.getUlamTypeAsRef(castUTI); //t3692
 	assert(typeNode);
 	typeNode->setReferenceType(ALT_REF, castUTI, refuti);
       }
@@ -4660,6 +4663,7 @@ namespace MFM {
     //belongs to the function definition scope.
     u32 selfid = m_state.m_pool.getIndexForDataString("self");
     UTI cuti = currClassBlock->getNodeType(); //luckily we know this now for each class used
+    assert(m_state.okUTItoContinue(cuti));
     Token selfTok(TOK_IDENTIFIER, identTok.m_locator, selfid);
     SymbolVariableStack * selfsym = new SymbolVariableStack(selfTok, m_state.getUlamTypeAsRef(cuti, ALT_REF), m_state);
     selfsym->setAutoLocalType(ALT_REF);

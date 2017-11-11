@@ -1230,9 +1230,11 @@ namespace MFM {
     assert(cos && stgcos);
 
     UTI stgcosuti = stgcos->getUlamTypeIdx();
+    assert(m_state.okUTItoContinue(stgcosuti));
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
     UTI cosuti = cos->getUlamTypeIdx();
+    assert(m_state.okUTItoContinue(cosuti));
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
     // write out auto ref constuctor
