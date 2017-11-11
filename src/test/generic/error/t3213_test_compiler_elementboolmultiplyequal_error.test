@@ -3,7 +3,7 @@
 #!
 ./Foo.ulam:7:7: ERROR: Incompatible types for binary * : Bool(3), Bool(3); Suggest casting to a numeric type first.
 ./Foo.ulam:7:3: ERROR: Assignment is invalid; LHS: Bool(3); RHS: erroneous.
-./Foo.ulam:8:3: ERROR: Arithmetic Operations are invalid on 'Bool' type.
+./Foo.ulam:8:3: ERROR: Arithmetic Operation *= is invalid on 'Bool' types.
 ./Foo.ulam:9:1: ERROR: Use explicit cast to return Bool(3) as Int(32).
 Unrecoverable Program Type Label FAILURE.
 ##

@@ -1,0 +1,29 @@
+## -*- mode:ulam -*-
+#=t41155_test_compiler_elementandquark_qrefmissingclassargs_error
+#!
+./MyElement.ulam:15:10: ERROR: Missing Class Arguments for an instance stub of class template 'QOne'.
+./MyElement.ulam:15:5: ERROR: Invalid variable declaration of base type <QOne> and name <badref> (missing symbol).
+./MyElement.ulam:15:19: ERROR: Invalid Statement (possible missing semicolon).
+Unrecoverable Program Parse FAILURE: <MyElement.ulam>
+##
+## informed by t41153, user ish 11/5/2017:
+##
+#>MyElement.ulam
+  ulam 3;
+element MyElement : QOne(10)
+{
+  Int test()
+  {
+    Atom abc = self;
+    behave();
+    return 0;
+  }
+}
+
+quark QOne(Unsigned num)
+{
+  Void behave(){
+    QOne & badref = self; //missing class arg, caused assert (another test!)
+
+  }
+}
