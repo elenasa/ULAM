@@ -1444,7 +1444,6 @@ namespace MFM {
 
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
-	//WHY is this different than NodeFunctionCall::genCodeAnonymousReferenceArg??
 	//local var (no currentObjSymbols, 1 arg since same type) e.g. t3617, t3779
 	assert(UlamType::compare(uvpass.getPassTargetType(), vuti, m_state) == UTIC_SAME);
 	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
@@ -1485,34 +1484,38 @@ namespace MFM {
 	else
 	  fp->write(cos->getMangledName().c_str()); //t3832
 
+	ULAMCLASSTYPE cosclasstype = cosut->getUlamClassType(); //t3908
 	if(vetyp == Class) //also not an atom
 	  {
-	    fp->write(", ");
-	    if(needAdjustToStateBits(cosuti))
-	      fp->write("T::ATOM_FIRST_STATE_BIT + "); //t3819, t3814?
-	    fp->write_decimal_unsigned(pos); //rel offset t3819
-	    fp->write("u, ");
-	    if(cos->isDataMember())
+	    if(!(cos->isSelf() && cosclasstype == UC_QUARK))
 	      {
-		fp->write("&");
-		fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
+		fp->write(", ");
+		if(needAdjustToStateBits(cosuti))
+		  fp->write("T::ATOM_FIRST_STATE_BIT + "); //t3819, t3814?
+		fp->write_decimal_unsigned(pos); //rel offset t3819
+		fp->write("u, ");
+		if(cos->isDataMember())
+		  {
+		    fp->write("&");
+		    fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
+		  }
+		else
+		  {
+		    fp->write(stgcos->getMangledName().c_str());
+		    fp->write(".GetEffectiveSelf()");
+		  }
 	      }
-	    else
-	      {
-		fp->write(stgcos->getMangledName().c_str());
-		fp->write(".GetEffectiveSelf()");
-	      }
+	    //else quarkref init to self, use copy constructor for same usage (t41153)
 	  }
 	else if(vetyp == UAtom)
 	  {
-	    ULAMCLASSTYPE cosclasstype = cosut->getUlamClassType(); //t3908
 	    if(!m_state.isAtom(stgcosuti)) //skip pos for atomref t3709, t3820
 	      {
 		fp->write(", ");
 		fp->write_decimal_unsigned(pos); //rel offset
 		fp->write("u"); //t3820
 		if((cosclasstype == UC_ELEMENT) || (cosclasstype == UC_QUARK))
-		  fp->write(" - T::ATOM_FIRST_STATE_BIT"); //t3684, 3735, 3756, 3789
+		  fp->write(" - T::ATOM_FIRST_STATE_BIT"); //t3684, 3735, 3756, 3789, t3907, t41051
 	      }
 	  }
 	// else non-class has no effective self

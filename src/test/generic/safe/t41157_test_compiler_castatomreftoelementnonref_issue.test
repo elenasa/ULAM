@@ -1,0 +1,72 @@
+## -*- mode:ulam -*-
+#=t41157_test_compiler_castatomreftoelementnonref_issue
+##
+## gen output (2 asserts)
+##
+#!
+Exit status: -11
+Ue_MyElement { Bool(1) sp(true);  Int(32) test() {  System s;  Node n;  MyElement mel;  mel sp . false = s ( mel sp . ! )assert . mel n ( )func . = s ( mel sp . )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Uq_Node { EventWindow ew();  <NOMAIN> }
+Uq_EventWindow { <NOMAIN> }
+##
+## user ish 11/5/2017
+##
+#>MyElement.ulam
+  ulam 3;
+element MyElement
+{
+  Bool sp = true;
+  Int test()
+  {
+    System s;
+    Node n;
+    MyElement mel;
+    mel.sp = false;
+    s.assert(!mel.sp);
+    mel = n.func();
+    s.assert(mel.sp);
+    return 0;
+  }
+
+
+}
+
+#:Node.ulam
+  ulam 3;
+quark Node {
+  EventWindow ew;
+  MyElement func()
+  {
+    ew[0] = MyElement.instanceof;
+    return (MyElement) ew[0]; //FIXED!!
+  }
+
+  //compare gen code to that of func()
+  MyElement func2()
+  {
+    ew[0] = MyElement.instanceof;
+    Atom& atref = ew[0];
+    return (MyElement) atref; //ok
+  }
+
+}
+
+#:EventWindow.ulam
+  ulam 3;
+quark EventWindow{
+  Atom& aref(Int index) native;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

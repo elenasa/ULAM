@@ -1,0 +1,38 @@
+## -*- mode:ulam -*-
+#=t41153_test_compiler_elementandquark_selfcasttoatom_issue_error
+#!
+Exit status: -11
+Ue_MyElement : QOne(10u) { :< constant Unsigned(32) num = 10u; > Bool(1) sp(false);  Int(32) test() {  Atom(96) abc = self cast;  ( )behave 0 cast return } }
+Uq_QOne(Unsigned(32) num) { <NOMAIN> }
+##
+## informed by user ish 11/5/2017:
+## (see also t3905) 2 unused variables generated due to casts to Atom.
+##
+#>MyElement.ulam
+  ulam 3;
+element MyElement : QOne(10)
+{
+  Bool sp; //checking the size of 'a' below matches quark, not element
+  Int test()
+  {
+    Atom abc = self;
+    behave();
+    return 0;
+  }
+}
+
+quark QOne(Unsigned num)
+{
+  Void behave(){
+    // ALL GOOD!!
+
+    Atom atom = self.atomof;
+    Atom aok = self.instanceof;
+
+    Atom a = (Atom) self;
+
+    QOne(num) & qref = self;
+    Atom b = (Atom) qref;
+    Atom& atref = (Atom &) qref;
+  }
+}

@@ -291,7 +291,7 @@ namespace MFM {
     fp->write("usage"); //controlled by caller
     fp->write(") { }"); GCNL;
 
-    //(general) copy constructor here; pos relative to exisiting (i.e. same). t3788
+    //(general) copy constructor here; pos relative to exisiting (i.e. same). t3788, t41153
     m_state.indent(fp);
     fp->write(automangledName.c_str());
     fp->write("(const UlamRef");
