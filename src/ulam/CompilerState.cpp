@@ -1710,7 +1710,7 @@ namespace MFM {
 
     NodeBlockClass * cblock = csym->getClassBlockNode();
     assert(cblock);
-    cblock->noteDataMembersParseTree(totalsize);
+    cblock->noteDataMembersParseTree(cuti, totalsize);
   }
 
   void CompilerState::verifyZeroSizeUrSelf()
@@ -4158,6 +4158,13 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
     if(!rtnNode)
       rtnNode = findNodeNoInThisClass(n);
+    if(!rtnNode)
+      {
+	//exhaustive search as last resort
+	UTI acuti = findAClassByNodeNo(n);
+	if(acuti != Nouti)
+	  rtnNode = findNodeNoInAClass(n, acuti);
+      }
     return rtnNode;
   } //findNodeNoInThisClassStubFirst
 
@@ -4508,7 +4515,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   {
     assert(block);
     UTI buti = block->getNodeType();
-    return (block->isAClassBlock() && (isClassAStub(buti) || ((isClassASubclass(buti) != Nouti) && !((NodeBlockClass *) block)->isSuperClassLinkReady())));
+    return (block->isAClassBlock() && (isClassAStub(buti) || ((isClassASubclass(buti) != Nouti) && !((NodeBlockClass *) block)->isSuperClassLinkReady(buti))));
   }
 
 } //end MFM

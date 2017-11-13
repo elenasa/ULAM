@@ -5,8 +5,6 @@
 ./Foo.ulam:9:12: ERROR: Right operand of binary = is missing; Assignment deleted.
 ./Foo.ulam:9:28: ERROR: Invalid Statement (possible missing semicolon).
 ./Foo.ulam:19:17: ERROR: Weird Lex! <**> isn't an overloadable operation.
-./Foo.ulam:19:24: ERROR: Inconsistent state: Named Constant <fref> has not been defined in another class Foo.
-./Foo.ulam:19:18: ERROR: Bit size after Open Paren is missing, type: Bool.
 ./Foo.ulam:20:3: ERROR: Name of variable/function <{>: Identifier must begin with a lower-case letter.
 ./Foo.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Foo'; Possible missing ending curly brace.
 ./Foo.ulam:20:3: ERROR: Invalid Class Type <{>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.

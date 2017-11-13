@@ -11,7 +11,6 @@ Uq_Qbase { Unary(5) m_five(0);  <NOMAIN> }
 ##
 ## Dave requested a way to get default values for Self (within a quark);
 ## a loophole, since a quark would be an undefined atom, but as a ref, its done (t3679)
-## As of ulam-3, loophole no longer needed; now it is a runtime check, rather than compile time restriction.
 ##
 #>A.ulam
   ulam 2;

@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  NodeModelParameter::NodeModelParameter(const Token& tok, SymbolModelParameterValue * symptr, CompilerState & state) : NodeConstant(tok, symptr, state) { }
+  NodeModelParameter::NodeModelParameter(const Token& tok, SymbolModelParameterValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state) : NodeConstant(tok, symptr, typedesc, state) { }
 
   NodeModelParameter::NodeModelParameter(const NodeModelParameter& ref) : NodeConstant(ref) {}
 
@@ -82,7 +82,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "(2) Model Parameter <" << m_state.getTokenDataAsString(m_token).c_str();
-	msg << "> is not defined, and cannot be used with class: o";
+	msg << "> is not defined, and cannot be used with class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	if(!hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

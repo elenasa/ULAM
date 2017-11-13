@@ -1968,6 +1968,7 @@ namespace MFM {
     assert(tmpni);
 
     UTI ruti = asNode->getRightType(); //what if Self?
+    assert(m_state.okUTItoContinue(ruti));
     UTI tuti = m_state.getUlamTypeAsRef(ruti, ALT_AS);
 
     UlamType * tut = m_state.getUlamTypeByIndex(tuti);
@@ -2496,7 +2497,7 @@ namespace MFM {
     return typeNode; //can be NULL
   } //parseTypeDescriptorIncludingLocalsScope (new helper)
 
-  //original helper, excluding locals scope
+  //original helper, excluding locals scope; defaults isaclass false, delafterdot false.
   NodeTypeDescriptor * Parser::parseTypeDescriptor(TypeArgs& typeargs, bool isaclass, bool delAfterDotFails)
   {
     Token pTok;
@@ -2620,7 +2621,9 @@ namespace MFM {
 	typeargs.m_assignOK = true; //required
 	typeargs.m_isStmt = true; //unless a func param
 	// change uti to reference key
-	UTI refuti = m_state.getUlamTypeAsRef(castUTI); //t3692
+	UTI refuti = castUTI;
+	if(m_state.okUTItoContinue(castUTI)) //t41153
+	  refuti = m_state.getUlamTypeAsRef(castUTI); //t3692
 	assert(typeNode);
 	typeNode->setReferenceType(ALT_REF, castUTI, refuti);
       }
@@ -3212,68 +3215,20 @@ namespace MFM {
     return;
   } //parseTypeFromAnotherClassesTypedef
 
-  Node * Parser::parseNamedConstantFromAnotherClass(const TypeArgs& args)
+  Node * Parser::parseNamedConstantFromAnotherClass(const TypeArgs& args, NodeTypeDescriptor * typedescNode)
   {
-    //when a lower case ident comes after a Type ident, it must be a constant!
+    //when a lower case ident comes after a Type ident, it must be a
+    //constant, constant array, or model parameter; could be from
+    //another class; (t41146,47,48,49,50,51)
     Node * rtnNode = NULL;
     Token iTok;
     getNextToken(iTok);
     assert(iTok.m_type == TOK_IDENTIFIER);
 
-    // args.m_classInstanceIdx set up by parseTypeDescriptor and parseTypeFromAnotherClassesTypedef
-    if(args.m_classInstanceIdx != Nouti)
-      {
-	assert(!m_state.isALocalsFileScope(args.m_classInstanceIdx));
-
-	SymbolClass * acsym = NULL;
-	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(args.m_classInstanceIdx, acsym);
-	assert(isDefined);
-
-	NodeBlockClass * memberClassNode = acsym->getClassBlockNode();
-	assert(memberClassNode); //e.g. forgot the closing brace on quark def once; or UNSEEN
-
-	//set up compiler state to use the member class block for symbol searches
-	m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
-
-	Symbol * sym = NULL;
-	bool hazyKin = false; //don't care
-	if(!m_state.alreadyDefinedSymbol(iTok.m_dataindex, sym, hazyKin))
-	  {
-	    UlamType * acut = m_state.getUlamTypeByIndex(args.m_classInstanceIdx);
-	    if(acut->getUlamClassType() == UC_UNSEEN)
-	      {
-		UTI huti = m_state.makeUlamTypeHolder();
-		SymbolConstantValue * holderconstsym = new SymbolConstantValue(iTok, huti, m_state);
-		assert(holderconstsym);
-
-		holderconstsym->setBlockNoOfST(memberClassNode->getNodeNo());
-		m_state.addSymbolToCurrentMemberClassScope(holderconstsym); //not locals scope
-		sym = holderconstsym;
-	      }
-	    else
-	      {
-		std::ostringstream msg;
-		msg << "Inconsistent state: Named Constant <";
-		msg << m_state.getTokenDataAsString(iTok).c_str();
-		msg << "> has not been defined in another class ";
-		msg << m_state.getUlamTypeNameBriefByIndex(args.m_classInstanceIdx);
-		MSG(&iTok, msg.str().c_str(), ERR); //possibly no dot, ignored LOW_ERR (t41110)
-	      }
-	  }
-	//else defined or not
-	if(sym && sym->isConstant()) // || sym->isModelParameter())
-	  {
-	    UTI suti = sym->getUlamTypeIdx();
-	    if(m_state.isScalar(suti))
-	      rtnNode = new NodeConstant(iTok, (SymbolConstantValue *) sym, m_state); //t3862
-	    else
-	      rtnNode = new NodeConstantArray(iTok, (SymbolConstantValue *) sym, m_state);
-	    assert(rtnNode);
-	    rtnNode->setNodeLocation(iTok.m_locator);
-	  }
-
-	m_state.popClassContext(); //restore
-      }
+    //fix during NodeConstant c&l
+    rtnNode = new NodeConstant(iTok, NULL, typedescNode, m_state);
+    assert(rtnNode);
+    rtnNode->setNodeLocation(iTok.m_locator);
     return rtnNode;
   } //parseNamedConstantFromAnotherClass
 
@@ -3864,9 +3819,7 @@ namespace MFM {
 	  {
 	    //assumes we saw a 'dot' prior, be careful
 	    unreadToken();
-	    rtnNode = parseNamedConstantFromAnotherClass(typeargs);
-	    delete typeNode;
-	    typeNode = NULL;
+	    rtnNode = parseNamedConstantFromAnotherClass(typeargs, typeNode);
 	  }
 	else if(iTok.m_type == TOK_CLOSE_PAREN)
 	  {
@@ -4710,6 +4663,7 @@ namespace MFM {
     //belongs to the function definition scope.
     u32 selfid = m_state.m_pool.getIndexForDataString("self");
     UTI cuti = currClassBlock->getNodeType(); //luckily we know this now for each class used
+    assert(m_state.okUTItoContinue(cuti));
     Token selfTok(TOK_IDENTIFIER, identTok.m_locator, selfid);
     SymbolVariableStack * selfsym = new SymbolVariableStack(selfTok, m_state.getUlamTypeAsRef(cuti, ALT_REF), m_state);
     selfsym->setAutoLocalType(ALT_REF);

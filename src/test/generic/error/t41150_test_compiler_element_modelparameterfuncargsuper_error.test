@@ -1,0 +1,25 @@
+## -*- mode:ulam -*-
+#=t41150_test_compiler_element_modelparameterfuncargsuper_error
+#!
+./MyElement.ulam:2:9: ERROR: Subclass 'MyElement' inherits from 'MyParms', a class that's not a quark.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41146,7,8,9, user ish 11/5/2017:
+## this related question exposed other problems with NodeBlockClass node type.
+##
+#>MyElement.ulam
+  ulam 3;
+element MyElement : MyParms {
+  parameter Unsigned pFOO = 4;
+  Void func(Unsigned d, Unsigned e) { }
+  Int test() {
+    func(Super.pFOO, 12u);
+    return 0;
+  }
+}
+
+#:MyParms.ulam
+  ulam 1;
+element MyParms {
+  parameter Unsigned pFOO = 3;
+}

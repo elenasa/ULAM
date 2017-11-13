@@ -1,0 +1,46 @@
+## -*- mode:ulam -*-
+#=t41151_test_compiler_element_namedconstantfuncargsuper
+##
+## gen output: 1 assert
+##
+#!
+Exit status: 0
+Ue_MyElement : MyParms { :< constant Unsigned(32) cFOO = 3u; > constant Unsigned(32) cFOO = 4u;  Int(32) test() {  System s;  ( 3u 12u cast )func s ( true )assert . 0 cast return } }
+Uq_MyParms { constant Unsigned(32) cFOO = 3u;  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by t41150, user ish 11/5/2017:
+## MyParms, as a quark, seen after use
+##
+#>MyElement.ulam
+  ulam 3;
+element MyElement : MyParms {
+  constant Unsigned cFOO = 4;
+  Void func(Unsigned d, Unsigned e) { }
+  Int test() {
+    System s;
+    func(Super.cFOO, 12u);
+    s.assert(Super.cFOO == 3u);
+    return 0;
+  }
+}
+
+#:MyParms.ulam
+  ulam 1;
+quark MyParms {
+  constant Unsigned cFOO = 3;
+}
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

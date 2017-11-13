@@ -585,9 +585,11 @@ namespace MFM {
 	assert(classNode);
 	UTI cuti = csym->getUlamTypeIdx();
 
+	m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
+
 	//pending args could depend on constants in ancestors (t3887)
 	UTI superuti = csym->getSuperClass();
-	if(m_state.okUTItoContinue(superuti) && !classNode->isSuperClassLinkReady())
+	if(m_state.okUTItoContinue(superuti) && !classNode->isSuperClassLinkReady(cuti))
 	  {
 	    SymbolClass * supercsym = NULL;
 	    if(m_state.alreadyDefinedSymbolClass(superuti, supercsym) && !supercsym->isStub())
@@ -595,8 +597,6 @@ namespace MFM {
 		classNode->setSuperBlockPointer(supercsym->getClassBlockNode());
 	      }
 	  }
-
-	m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
 	aok &= csym->statusNonreadyClassArguments(); //could bypass if fully instantiated
 

@@ -1,0 +1,32 @@
+## -*- mode:ulam -*-
+#=t41146_test_compiler_element_modelparameterfuncarg_issue_fail
+##
+## gen err:
+## include/Ue_10107MyParms10_Types.h:114: FAILED: NULL_POINTER
+#!
+Exit status: 0
+Ue_MyElement { Int(32) test() {  ( pFOO(3u) 12u cast )func ( 4u cast pFOO(3u) )func 0 cast return } }
+Ue_MyParms {parameter Unsigned(32) pFOO = 3u;  <NOMAIN> }
+##
+## user ish 11/5/2017:
+## // when come before usage, the error was:
+## //./MyElement.ulam:6:5: ERROR: (1) <func> has no defined function with 1 matching argument type: Unsigned(4), and cannot be called.
+## //when comes after usage, see t41147
+##
+#>MyElement.ulam
+  ulam 3;
+use MyParms; //different error when seen after (see t41147);
+element MyElement {
+  Void func(Unsigned d, Unsigned e) { }
+  Int test() {
+    func(MyParms.pFOO, 12u);
+    func(4u, MyParms.pFOO); //what if used twice in same scope?
+    return 0;
+  }
+}
+
+#:MyParms.ulam
+  ulam 1;
+element MyParms {
+  parameter Unsigned pFOO = 3;
+}

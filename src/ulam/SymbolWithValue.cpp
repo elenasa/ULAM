@@ -348,7 +348,7 @@ namespace MFM {
 	if(tut->getUlamTypeEnum() == String) //t3953
 	  m_state.abortShouldntGetHere();
 
-	fp->write("{ 0..0 }");
+	fp->write("{ 0 }");
 	return; //nothing else to do
       }
 

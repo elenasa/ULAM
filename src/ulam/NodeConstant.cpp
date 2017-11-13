@@ -1,25 +1,55 @@
 #include <stdlib.h>
 #include "NodeConstant.h"
+#include "NodeModelParameter.h"
+#include "NodeConstantArray.h"
 #include "CompilerState.h"
 
 namespace MFM {
 
-  NodeConstant::NodeConstant(const Token& tok, SymbolWithValue * symptr, CompilerState & state) : NodeTerminal(state), m_token(tok), m_constSymbol(symptr), m_ready(false), m_constType(Nouti), m_currBlockNo(0)
+  NodeConstant::NodeConstant(const Token& tok, SymbolWithValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state) : NodeTerminal(state), m_token(tok), m_nodeTypeDesc(typedesc), m_constSymbol(symptr), m_ready(false), m_constType(Nouti), m_currBlockNo(0)
   {
-    assert(symptr);
-    setBlockNo(symptr->getBlockNoOfST());
-    m_ready = updateConstant(); //sets ready here
-    m_constType = m_constSymbol->getUlamTypeIdx();
+    //assert(symptr); //t41148
+    if(symptr)
+      {
+	setBlockNo(symptr->getBlockNoOfST());
+	m_ready = updateConstant(); //sets ready here
+	m_constType = m_constSymbol->getUlamTypeIdx();
+      }
   }
 
-  NodeConstant::NodeConstant(const NodeConstant& ref) : NodeTerminal(ref), m_token(ref.m_token), m_constSymbol(NULL), m_ready(false), m_constType(ref.m_constType), m_currBlockNo(ref.m_currBlockNo) {}
+  NodeConstant::NodeConstant(const NodeConstant& ref) : NodeTerminal(ref), m_token(ref.m_token), m_nodeTypeDesc(NULL), m_constSymbol(NULL), m_ready(false), m_constType(ref.m_constType), m_currBlockNo(ref.m_currBlockNo)
+  {
+    if(ref.m_nodeTypeDesc)
+      m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
+  }
 
-  NodeConstant::~NodeConstant(){}
+  NodeConstant::~NodeConstant()
+  {
+    delete m_nodeTypeDesc;
+    m_nodeTypeDesc = NULL;
+  }
 
   Node * NodeConstant::instantiate()
   {
     return new NodeConstant(*this);
   }
+
+  void NodeConstant::updateLineage(NNO pno)
+  {
+    setYourParentNo(pno);
+    //assert(m_state.getCurrentBlockNo() == m_currBlockNo); //may not be setup yet (t41146)
+    if(m_nodeTypeDesc)
+      m_nodeTypeDesc->updateLineage(getNodeNo());
+  } //updateLineage
+
+  bool NodeConstant::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+    if(m_nodeTypeDesc && m_nodeTypeDesc->findNodeNo(n, foundNode))
+      return true;
+    return false;
+  } //findNodeNo
 
   void NodeConstant::printPostfix(File * fp)
   {
@@ -65,13 +95,61 @@ namespace MFM {
 
   UTI NodeConstant::checkAndLabelType()
   {
-    UTI it = Nav;
+    UTI it = getNodeType(); //was Nav; but could be repeated c&l call.
+
+    if(m_nodeTypeDesc)
+      {
+	UTI duti = m_nodeTypeDesc->checkAndLabelType(); //clobbers any expr it
+	if(!m_state.okUTItoContinue(duti))
+	  {
+	    setNodeType(duti);
+	    return duti;
+	  }
+	assert(m_state.getUlamTypeByIndex(duti)->getUlamTypeEnum() == Class);
+      }
+
+    setupBlockNo(); //in case zero, may use nodetypedesc
 
     bool stubcopy = m_state.isClassAStub(m_state.getCompileThisIdx());
 
     //instantiate, look up in class block; skip if stub copy and already ready.
     if(!stubcopy && m_constSymbol == NULL)
+      {
 	checkForSymbol();
+	if(m_constSymbol)
+	  {
+	    UTI suti = m_constSymbol->getUlamTypeIdx();
+	    if(!m_state.isScalar(suti))
+	      {
+		NodeConstantArray * newnode = new NodeConstantArray(m_token, (SymbolConstantValue *) m_constSymbol, m_nodeTypeDesc, m_state);
+		assert(newnode);
+
+		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+		assert(swapOk);
+
+		m_nodeTypeDesc = NULL; //tfr to new node
+		delete this; //suicide is painless..
+
+		return newnode->checkAndLabelType();
+	      }
+	    else if(m_constSymbol->isModelParameter())
+	      {
+		// replace ourselves with a parameter node instead;
+		// same node no, and loc
+		NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) m_constSymbol, m_nodeTypeDesc, m_state);
+		assert(newnode);
+
+		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+		assert(swapOk);
+
+		m_nodeTypeDesc = NULL; //tfr to new node
+		delete this; //suicide is painless..
+
+		return newnode->checkAndLabelType();
+	      }
+	    //else
+	  }
+      }
     else
       {
 	stubcopy = m_state.hasClassAStub(m_state.getCompileThisIdx()); //includes ancestors
@@ -132,12 +210,13 @@ namespace MFM {
     if(!isReadyConstant())
       {
 	it = Hzy;
+	setNodeType(it); //missing
 	if(!stubcopy)
 	  m_constSymbol = NULL; //lookup again too! (e.g. inherited template instances)
 	m_state.setGoAgain();
       }
 
-    return it;
+    return getNodeType(); //it; just to be sure..
   } //checkAndLabelType
 
   void NodeConstant::checkForSymbol()
@@ -154,12 +233,19 @@ namespace MFM {
 	  {
 	    m_constSymbol = (SymbolConstantValue *) asymptr;
 	  }
+	else if(asymptr->isModelParameter())
+	  {
+	    //temporarily, before surgery
+	    m_constSymbol = (SymbolConstantValue *) asymptr;
+	    return;
+	  }
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "(1) <" << m_state.getTokenDataAsString(m_token).c_str();
-	    msg << "> is not a constant, and cannot be used as one with class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    msg <<"(1) ";
+	    msg << "<" << m_state.getTokenDataAsString(m_token).c_str();
+	    msg << "> is not a constant, and cannot be used as one with a class type: ";
+	    msg << getBlock()->getName(); //t41148
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }
@@ -177,15 +263,15 @@ namespace MFM {
 
     if(m_constSymbol && !m_constSymbol->isDataMember() && !m_constSymbol->isLocalsFilescopeDef() && !m_constSymbol->isClassArgument() && (m_constSymbol->getDeclNodeNo() > getNodeNo()))
       {
-	NodeBlock * currBlock = getBlock();
-	currBlock = currBlock->getPreviousBlockPointer();
+	//NodeBlock * currBlock = getBlock();
+	NodeBlock * pcurrBlock = currBlock->getPreviousBlockPointer();
 	std::ostringstream msg;
 	msg << "Named constant '" << getName();
 	msg << "' was used before declared in a function scope";
-	if(currBlock)
+	if(pcurrBlock)
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    setBlockNo(currBlock->getNodeNo());
+	    setBlockNo(pcurrBlock->getNodeNo());
 	    m_constSymbol = NULL; //t3323
 	    return checkForSymbol();
 	  }
@@ -196,6 +282,41 @@ namespace MFM {
 	  }
       }
   } //checkForSymbol
+
+  //borrowed from NodeIdent
+  void NodeConstant::setupBlockNo()
+  {
+    //define before used, start search with current block
+    if(m_currBlockNo == 0)
+      {
+	if(m_nodeTypeDesc)
+	  {
+	    UTI duti = m_nodeTypeDesc->getNodeType();
+	    assert(m_state.okUTItoContinue(duti));
+	    SymbolClass * acsym = NULL;
+	    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(duti, acsym);
+	    assert(isDefined);
+
+	    NodeBlockClass * memberClassNode = acsym->getClassBlockNode();
+	    assert(memberClassNode); //e.g. forgot the closing brace on quark def once; or UNSEEN
+
+	    //set up compiler state to use the member class block for symbol searches
+	    m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
+	  }
+
+	if(m_state.useMemberBlock())
+	  {
+	    NodeBlockClass * memberclass = m_state.getCurrentMemberClassBlock();
+	    assert(memberclass);
+	    setBlockNo(memberclass->getNodeNo());
+	  }
+	else
+	  setBlockNo(m_state.getCurrentBlock()->getNodeNo());
+
+	if(m_nodeTypeDesc)
+	  m_state.popClassContext(); //restore
+      }
+  } //setupBlockNo
 
   void NodeConstant::setBlockNo(NNO n)
   {
@@ -215,14 +336,14 @@ namespace MFM {
     if(!currBlock)
       {
 	UTI anotherclassuti = m_state.findAClassByNodeNo(m_currBlockNo);
-	if(anotherclassuti != Nav)
+	if(anotherclassuti != Nouti) //could be hzy (t41149)
 	  {
 	    currBlock = m_state.getAClassBlock(anotherclassuti);
 	    assert(currBlock);
 	    if(currBlock->getNodeNo() != m_currBlockNo)
 	      currBlock = NULL;
 	  }
-	//try local scope
+	//try local scope (for constants)
 	if(!currBlock)
 	  currBlock = m_state.findALocalsScopeByNodeNo(m_currBlockNo);
       }

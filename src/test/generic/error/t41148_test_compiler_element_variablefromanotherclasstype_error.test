@@ -1,0 +1,25 @@
+## -*- mode:ulam -*-
+#=t41148_test_compiler_element_variablefromanotherclasstype_error
+#!
+./MyElement.ulam:5:18: ERROR: (1) <mFOO> is not a constant, and cannot be used as one with a class type: MyParms.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41146 and t41147, user ish 11/5/2017:
+## //when seen usage comes first for constants and model parameter, NodeConstant is used,
+## // and c&l will catch non-constants (i.e. modelparameters)
+##
+#>MyElement.ulam
+  ulam 3;
+element MyElement {
+  Void func(Unsigned d, Unsigned e) { }
+  Int test() {
+    func(MyParms.mFOO, 12u);
+    return 0;
+  }
+}
+
+#:MyParms.ulam
+  ulam 1;
+element MyParms {
+  Unsigned mFOO = 3;
+}

@@ -41,6 +41,7 @@
 #include "Node.h"
 #include "SymbolWithValue.h"
 #include "Token.h"
+#include "NodeTypeDescriptor.h"
 
 namespace MFM{
 
@@ -48,13 +49,17 @@ namespace MFM{
   {
   public:
 
-    NodeConstantArray(const Token& tok, SymbolWithValue * symptr, CompilerState & state);
+    NodeConstantArray(const Token& tok, SymbolWithValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state);
 
     NodeConstantArray(const NodeConstantArray& ref);
 
     virtual ~NodeConstantArray();
 
     virtual Node * instantiate();
+
+    virtual void updateLineage(NNO pno);
+
+    virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual void printPostfix(File * fp);
 
@@ -88,6 +93,7 @@ namespace MFM{
 
   protected:
     Token m_token;
+    NodeTypeDescriptor * m_nodeTypeDesc;
     SymbolWithValue * m_constSymbol;
     UTI m_constType;
 

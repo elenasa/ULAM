@@ -1,0 +1,34 @@
+## -*- mode:ulam -*-
+#=t41154_test_compiler_elementandquark_qrefcasttoatom_error
+#!
+./MyElement.ulam:21:20: ERROR: <q> is a quark and cannot be used with .atomof; try a reference or self.
+./MyElement.ulam:21:5: ERROR: Initial value expression for: bref, initialization is invalid.
+./MyElement.ulam:21:5: ERROR: Storage expression for: bref, is invalid.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41153, user ish 11/5/2017:
+##
+#>MyElement.ulam
+  ulam 3;
+element MyElement : QOne(10)
+{
+  Int test()
+  {
+    Atom abc = self;
+    behave();
+    return 0;
+  }
+}
+
+quark QOne(Unsigned num)
+{
+  Void behave(){
+    //WAIT messages squashed by ERR message for line above. comment out to see these..
+    QOne(num) & qref = self;
+    Atom b = (Atom) qref;
+    Atom& atref = (Atom &) qref;
+
+    QOne(num) q;
+    Atom& bref = q.atomof; //NO GOOD.
+  }
+}

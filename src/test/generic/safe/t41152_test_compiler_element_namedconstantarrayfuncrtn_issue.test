@@ -1,0 +1,42 @@
+## -*- mode:ulam -*-
+#=t41152_test_compiler_element_namedconstantarrayfuncrtn_issue
+#!
+Exit status: 0
+Ue_MyElement { Q q( constant Unsigned(8)[4] cCOLOR = { 0xdd0000 }; );  Int(32) test() {  0 cast return } }
+Uq_Q { constant Unsigned(8)[4] cCOLOR = { 0u cast, 221u, 0u cast, 0u cast };  <NOMAIN> }
+##
+## user ish 11/7/2017: gencode errors
+##
+#>MyElement.ulam
+  ulam 3;
+element MyElement {
+  Q q;
+  Int test() {
+    return 0; //C++ compiler errors for generated code.
+  }
+
+  virtual ARGB getColor(Unsigned s) {
+    // This produced compiler errors
+    return q.cCOLOR;
+  }
+
+  ARGB getAnotherColor() {
+    // This is ok
+    Q qq;
+    return qq.cCOLOR;
+  }
+
+  ARGB getColorNew()
+  {
+    return Q.cCOLOR;
+  }
+}
+
+
+#:Q.ulam
+  ulam 2;
+quark Q {
+  constant ARGB cCOLOR = {0x00, 0xDD, 0x00, 0x00};
+}
+
+#.

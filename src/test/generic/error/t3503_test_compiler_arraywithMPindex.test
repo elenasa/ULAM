@@ -9,13 +9,14 @@ Ue_A { Bool(1) a[5](false,false,false,false,true);  parameter Int(6) mpi = 4;  I
 ##      //informed by t3311
 ##
 #>A.ulam
+  ulam 1;
 element A {
- Bool a[5];
- parameter Int(6) mpi = 4;
- Int test() {
- a[mpi] = true;
- return (Int) a[mpi];
+  Bool a[5];
+  parameter Int(6) mpi = 4;
+  Int test() {
+    a[mpi] = true;
+    return (Int) a[mpi];
+  }
 }
- }
 
 #.
