@@ -904,10 +904,28 @@ namespace MFM {
 	    fp->write(");"); GCNL;
 	    uvpass = UVPass::makePass(tmpeleref, TMPBITVAL, tobeType, UNPACKED, m_state, 0, stgcos->getId()); //POS moved left for type; pass along name id);
 	  }
-	else
-	  //no need to read atom-based element (e.g. t3410, 3277)
-	  uvpass.setPassTargetType(tobeType); //same variable
-      }
+	  else
+	    {
+	      TMPSTORAGE vstor = uvpass.getPassStorage();
+	      if(m_state.isAtomRef(vuti) && (vstor != TMPTATOM)) //from atomref-to-element
+		{
+		  //read into a T (t41157), unless already a T from .atomof (t3756)
+		  s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp for atomref
+		  m_state.indentUlamCode(fp);
+		  fp->write("const ");
+		  fp->write(vut->getTmpStorageTypeAsString().c_str()); //for C++ local vars
+		  fp->write(" ");
+		  fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2, TMPTATOM).c_str());
+		  fp->write(" = ");
+		  fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+		  fp->write(".read();"); GCNL;
+
+		  uvpass = UVPass::makePass(tmpVarNum2, TMPTATOM, tobeType, UNPACKED, m_state, 0, uvpass.getPassNameId());
+		}
+	      else //no need to read atom-based element (e.g. t3410, 3277)
+		uvpass.setPassTargetType(tobeType); //same variable
+	    }
+	}
       else if(m_state.isAtomRef(tobeType))
 	{
 	  //from element-to-atom
