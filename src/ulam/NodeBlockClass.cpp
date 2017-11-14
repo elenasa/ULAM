@@ -3,7 +3,7 @@
 #include "NodeBlockFunctionDefinition.h"
 #include "CompilerState.h"
 #include "SymbolFunctionName.h"
-
+#include "SymbolTypedef.h"
 
 namespace MFM {
 
@@ -483,7 +483,6 @@ namespace MFM {
 		  }
 	      }
 	  } //super link ready or not
-
 
 	setNodeType(nuti); //t41150
 

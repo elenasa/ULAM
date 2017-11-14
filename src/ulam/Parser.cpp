@@ -486,39 +486,52 @@ namespace MFM {
     assert(cnsym);
     cnsym->setSuperClass(superuti);
 
-    NodeBlockClass * superclassblock = supercsym->getClassBlockNode();
-    assert(superclassblock);
-
     NodeBlockClass * classblock = cnsym->getClassBlockNode();
     assert(classblock); //rtnNode in caller
 
+    NodeBlockClass * superclassblock = supercsym->getClassBlockNode();
+    //assert(superclassblock); may be NULL if UNSEEN w error (e.g. missing close brace) t41159
+
     //set super class' block after any parameters parsed;
-    // (separate from previous block which might be pointing to template
-    //  in case of a stub)
+    // (separate from previous block which might be pointing to template in case of a stub)
     //classblock->setSuperBlockPointer(NULL); //wait for c&l
     classblock->setSuperBlockPointer(superclassblock);
 
-    //rearrange order of class context so that super class is traversed after subclass
-    m_state.popClassContext(); //m_currentBlock = prevBlock;
-    m_state.pushClassContext(superuti, superclassblock, superclassblock, false, NULL);
-    m_state.pushClassContext(cnsym->getUlamTypeIdx(), classblock, classblock, false, NULL); //redo
+    if(superclassblock)
+      {
+	//rearrange order of class context so that super class is traversed after subclass
+	m_state.popClassContext(); //m_currentBlock = prevBlock;
+	m_state.pushClassContext(superuti, superclassblock, superclassblock, false, NULL);
+	m_state.pushClassContext(cnsym->getUlamTypeIdx(), classblock, classblock, false, NULL); //redo
 
-    //automatically create a Super typedef symbol for this class' super type
-    u32 superid = m_state.m_pool.getIndexForDataString("Super");
-    Symbol * symtypedef = NULL;
-    if(!classblock->isIdInScope(superid, symtypedef))
-      {
-	Token superTok(TOK_TYPE_IDENTIFIER, superclassblock->getNodeLocation(), superid);
-	symtypedef = new SymbolTypedef(superTok, superuti, superuti, m_state);
-	assert(symtypedef);
-	m_state.addSymbolToCurrentScope(symtypedef);
+	//automatically create a Super typedef symbol for this class' super type;
+	// avoids assuming "Super" is a class name (t41150)
+	u32 superid = m_state.m_pool.getIndexForDataString("Super");
+	Symbol * symtypedef = NULL;
+	if(!classblock->isIdInScope(superid, symtypedef))
+	  {
+	    Token superTok(TOK_TYPE_IDENTIFIER, superclassblock->getNodeLocation(), superid);
+	    symtypedef = new SymbolTypedef(superTok, superuti, superuti, m_state);
+	    assert(symtypedef);
+	    m_state.addSymbolToCurrentScope(symtypedef);
+	  }
+	else //holder may have been made prior
+	  {
+	    assert(symtypedef->getId() == superid);
+	    UTI stuti = symtypedef->getUlamTypeIdx();
+	    if(stuti != superuti)
+	      m_state.updateUTIAliasForced(stuti, superuti); //t3808, t3806, t3807
+	  }
       }
-    else //holder may have been made prior
+    else
       {
-	assert(symtypedef->getId() == superid);
-	UTI stuti = symtypedef->getUlamTypeIdx();
-	if(stuti != superuti)
-	  m_state.updateUTIAliasForced(stuti, superuti); //t3808, t3806, t3807
+	//may be NULL if UNSEEN w error (e.g. missing close brace) t41159
+	std::ostringstream msg;
+	msg << "Class '";
+	msg << m_state.m_pool.getDataAsString(cnsym->getId()).c_str();
+	msg << "' has an erroring superclass '";
+	msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str() << "'";
+	MSG(classblock->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
   } //setupSuperClassHelper
 
