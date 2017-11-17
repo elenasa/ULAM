@@ -4683,7 +4683,7 @@ namespace MFM {
     selfsym->setIsSelf();
     m_state.addSymbolToCurrentScope(selfsym); //ownership goes to the funcdef block
 
-    //wait until c&l to create "super" symbol for the Super class type;
+    //wait until c&l to create "super" symbol for the Super class type (t41162);
     //btw, it's really a ref. belongs to the function definition scope.
 
     //parse and add parameters to function symbol (not in ST yet!)

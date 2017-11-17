@@ -1210,6 +1210,22 @@ namespace MFM {
     UTI cvfuti = csym->getClassForVTableEntry(vfidx);
     UlamType * cvfut = m_state.getUlamTypeByIndex(cvfuti);
 
+    // check that we are not trying to call a pure virtual function: t41158, t41160, t41094, safe t41161
+    // limit to 'super' special case: t3606, t3608, t3774, t3779, t3788, t3794, t3795, t3967, t41131
+    if(cos->isSuper())
+      {
+	SymbolClass * cvfsym = NULL;
+	AssertBool iscvfDefined = m_state.alreadyDefinedSymbolClass(cvfuti, cvfsym);
+	assert(iscvfDefined);
+	if(cvfsym->isPureVTableEntry(vfidx))
+	  {
+	    std::ostringstream msg;
+	    msg << "Virtual function <" << m_funcSymbol->getMangledNameWithTypes().c_str();
+	    msg << "> is pure; cannot be called";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+      }
+
     fp->write("((typename ");
     fp->write(cvfut->getUlamTypeMangledName().c_str());
     fp->write("<EC>::"); //same for elements and quarks
