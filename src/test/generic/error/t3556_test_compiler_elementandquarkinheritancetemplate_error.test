@@ -1,22 +1,23 @@
 ## -*- mode:ulam -*-
 #=t3556_test_compiler_elementandquarkinheritancetemplate_error
 #!
-./Tu.ulam:2:8: ERROR: Class without parameters already exists with the same name: Foo.
+./Tu.ulam:2:8: ERROR: Class without parameters already exists with the same name: Foo, and was first noticed at: ..
+./Foo.ulam:2:9: ERROR: .. this location.
 Unrecoverable Program Parse FAILURE: <Tu.ulam>
 ##
 ##       //template classes can inherit from a regular class
 ##
 #>Tu.ulam
-ulam 1;
+  ulam 1;
 use Foo;
 element Tu (Int x) : Foo(x) {
-Int test(){
-  return -1;
-}
+  Int test(){
+    return -1;
+  }
 }
 
 #:Foo.ulam
-ulam 1;
+  ulam 1;
 element Foo {
 }
 #.

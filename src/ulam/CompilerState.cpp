@@ -2086,8 +2086,12 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Class without parameters already exists with the same name: ";
 	msg << m_pool.getDataAsString(symptr->getId()).c_str();
-	msg << ", first seen at: " << getFullLocationAsString(symptr->getLoc()).c_str();
+	msg << ", and was first noticed at: ."; //..
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR); //parsing
+
+	std::ostringstream imsg;
+	imsg << ".. this location"; //(t3556, t3340)
+	MSG2(getFullLocationAsString(symptr->getLoc()).c_str(), imsg.str().c_str(), ERR);
       }
     return (rtnb && symptr->isClassTemplate());
   } //alreadyDefinedSymbolClassNameTemplate

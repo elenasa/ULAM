@@ -3350,9 +3350,13 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Undefined function <" << m_state.getTokenDataAsString(identTok).c_str();
-	    msg << "> that has already been declared as a variable";
-	    msg << " at: " << m_state.getFullLocationAsString(asymptr->getLoc()).c_str();
+	    msg << "> has already been declared as a variable at: ."; //..
 	    MSG(&identTok, msg.str().c_str(), ERR);
+
+	    std::ostringstream imsg;
+	    imsg << ".. this location"; //t3129
+	    MSG(m_state.getFullLocationAsString(asymptr->getLoc()).c_str(), imsg.str().c_str(), ERR);
+
 	    return  NULL; //bail
 	  }
 	//function call, here
@@ -3563,11 +3567,15 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
-	msg << "' cannot be used as a function, already declared as a variable '";
+	msg << "' cannot be a function because it is already declared as a variable of type ";
 	msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
-	msg << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
-	msg << " at: " << m_state.getFullLocationAsString(asymptr->getLoc()).c_str();
+	msg << " at: ."; //..
 	MSG(&identTok, msg.str().c_str(), ERR);
+
+	std::ostringstream imsg;
+	imsg << ".. this location";
+	MSG(m_state.getFullLocationAsString(asymptr->getLoc()).c_str(), imsg.str().c_str(), ERR);
+
 	return NULL;
       }
 
@@ -5145,11 +5153,14 @@ namespace MFM {
 		UTI auti = asymptr->getUlamTypeIdx();
 		std::ostringstream msg;
 		msg << m_state.m_pool.getDataAsString(asymid).c_str();
-		msg << " has a previous declaration as '";
+		msg << " cannot be a typedef because it is already declared as ";
 		msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
-		msg << "' at: " << m_state.getFullLocationAsString(asymptr->getLoc()).c_str();
-		msg << "; and cannot be used as a typedef";
-		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
+		msg << " at: ."; //..
+		MSG(&args.m_typeTok, msg.str().c_str(), ERR); //t3698, t3391
+
+		std::ostringstream imsg;
+		imsg << ".. this location";
+		MSG(m_state.getFullLocationAsString(asymptr->getLoc()).c_str(), imsg.str().c_str(), ERR);
 	      }
 	    else
 	      {
@@ -5214,11 +5225,14 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
-		msg << " has a previous declaration as '";
+		msg << " cannot be a named constant because it is already declared as ";
 		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
-		msg << "' at: " << m_state.getFullLocationAsString(asymptr->getLoc()).c_str();
-		msg << "; and cannot be used as a named constant";
-		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
+		msg << " at: ."; //..
+		MSG(&args.m_typeTok, msg.str().c_str(), ERR); //t41130, t3872
+
+		std::ostringstream imsg;
+		imsg << ".. this location";
+		MSG(m_state.getFullLocationAsString(asymptr->getLoc()).c_str(), imsg.str().c_str(), ERR);
 	      }
 	    else
 	      {
@@ -5292,11 +5306,14 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
-		msg << " has a previous declaration as '";
+		msg << " cannot be a Model Parameter data member because it is already declared as ";
 		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
-		msg << "' at: " << m_state.getFullLocationAsString(asymptr->getLoc()).c_str();
-		msg << "; and cannot be used as a Model Parameter data member";
+		msg << " at: ."; //..
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
+
+		std::ostringstream imsg;
+		imsg << ".. this location";
+		MSG(m_state.getFullLocationAsString(asymptr->getLoc()).c_str(), imsg.str().c_str(), ERR);
 	      }
 	    else
 	      {
