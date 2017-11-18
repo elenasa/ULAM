@@ -2734,7 +2734,7 @@ namespace MFM {
 	  m_state.addIncompleteTemplateClassSymbolToProgramTable(typeTok, ctsym);
 	else
 	  {
-	    //error have a class without parameters already defined
+	    //error have a class without parameters already defined (error output)
 	    getTokensUntil(TOK_CLOSE_PAREN); //rest of statement is ignored.
 	    return Nav; //short-circuit
 	  }
@@ -3351,6 +3351,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Undefined function <" << m_state.getTokenDataAsString(identTok).c_str();
 	    msg << "> that has already been declared as a variable";
+	    msg << " at: " << m_state.getFullLocationAsString(asymptr->getLoc()).c_str();
 	    MSG(&identTok, msg.str().c_str(), ERR);
 	    return  NULL; //bail
 	  }
@@ -3565,6 +3566,7 @@ namespace MFM {
 	msg << "' cannot be used as a function, already declared as a variable '";
 	msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
 	msg << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
+	msg << " at: " << m_state.getFullLocationAsString(asymptr->getLoc()).c_str();
 	MSG(&identTok, msg.str().c_str(), ERR);
 	return NULL;
       }
@@ -5145,7 +5147,8 @@ namespace MFM {
 		msg << m_state.m_pool.getDataAsString(asymid).c_str();
 		msg << " has a previous declaration as '";
 		msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
-		msg << "' and cannot be used as a typedef";
+		msg << "' at: " << m_state.getFullLocationAsString(asymptr->getLoc()).c_str();
+		msg << "; and cannot be used as a typedef";
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
 	      }
 	    else
@@ -5213,7 +5216,8 @@ namespace MFM {
 		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
 		msg << " has a previous declaration as '";
 		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
-		msg << "' and cannot be used as a named constant";
+		msg << "' at: " << m_state.getFullLocationAsString(asymptr->getLoc()).c_str();
+		msg << "; and cannot be used as a named constant";
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
 	      }
 	    else
@@ -5290,7 +5294,8 @@ namespace MFM {
 		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
 		msg << " has a previous declaration as '";
 		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
-		msg << "' and cannot be used as a Model Parameter data member";
+		msg << "' at: " << m_state.getFullLocationAsString(asymptr->getLoc()).c_str();
+		msg << "; and cannot be used as a Model Parameter data member";
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
 	      }
 	    else

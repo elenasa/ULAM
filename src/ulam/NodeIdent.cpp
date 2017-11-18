@@ -731,6 +731,10 @@ namespace MFM {
 	  msg << " UNSEEN ";
 	msg << "class type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(pmcuti).c_str();
+	NodeBlockClass * ucblock = prematureclass->getClassBlockNode();
+	assert(ucblock);
+	msg << ", first seen at: " << ucblock->getNodeLocationAsString().c_str(); //issue 11/16/17
+	msg << "; Another typedef there might clear the ambiguity"; //t41008
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //issue 5/6/16
 	return false; //quit!
       }
