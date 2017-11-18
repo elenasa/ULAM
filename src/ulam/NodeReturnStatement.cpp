@@ -136,6 +136,10 @@ namespace MFM {
 		    std::ostringstream msg;
 		    if(etyp == Bool)
 		      msg << "Use a comparison operation";
+		    else if(etyp == String)
+		      msg << "Invalid";
+		    else if(!m_state.isScalar(rtnType) || !m_state.isScalar(nodeType))
+		      msg << "Not possible";
 		    else
 		      msg << "Use explicit cast";
 		    msg << " to return ";
