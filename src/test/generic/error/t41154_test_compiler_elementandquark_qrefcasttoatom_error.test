@@ -32,3 +32,5 @@ quark QOne(Unsigned num)
     Atom& bref = q.atomof; //NO GOOD.
   }
 }
+
+#.

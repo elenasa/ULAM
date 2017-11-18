@@ -167,6 +167,10 @@ namespace MFM {
     if((ntypEnum == Bits) && (typEnum != Bits))
       return m_state.getUlamTypeByIndex(newType)->safeCast(nuti);
 
+    //special case: FROM/TO String, not just a matter of fitting (t41164)
+    if((ntypEnum == String) ^ (typEnum == String))
+      return m_state.getUlamTypeByIndex(newType)->safeCast(nuti);
+
     //for non-bool terminal check for complete types and arrays before fits.
     FORECAST scr = m_state.getUlamTypeByIndex(newType)->UlamType::safeCast(nuti);
     if(scr != CAST_CLEAR)

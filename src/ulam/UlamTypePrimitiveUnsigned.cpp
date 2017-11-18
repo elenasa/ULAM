@@ -208,6 +208,7 @@ namespace MFM {
       case Void:
       case UAtom:
       case Class:
+      case String:
 	brtn = false;
 	break;
       default:

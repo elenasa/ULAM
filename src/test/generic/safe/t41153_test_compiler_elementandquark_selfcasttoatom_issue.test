@@ -36,3 +36,5 @@ quark QOne(Unsigned num)
     Atom& atref = (Atom &) qref;
   }
 }
+
+#.

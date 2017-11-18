@@ -1,0 +1,21 @@
+## -*- mode:ulam -*-
+#=t41165_test_compiler_primitivearraylocal_entireassign_error
+#!
+./A.ulam:10:1: ERROR: Casting different Array sizes: Unsigned(32)[2] TO Unsigned(32)[3].
+./A.ulam:7:9: ERROR: Not possible to convert Unsigned(32)[2] to Unsigned(32)[3] for =.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t3976 with string arrays of different sizes;
+##
+#>A.ulam
+  ulam 3;
+element A {
+ Int test() {
+   Unsigned sarr[3] = { 1, 2, 3};
+   Unsigned sarr2[] = { 4, 5};
+
+   sarr = sarr2; //must be the same size!
+   return 0;
+ }
+}
+#.

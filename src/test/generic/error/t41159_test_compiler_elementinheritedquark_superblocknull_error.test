@@ -1,0 +1,62 @@
+## -*- mode:ulam -*-
+#=t41159_test_compiler_elementinheritedquark_superblocknull_error
+##
+#!
+./Sub1.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Sub1'; Possible missing ending curly brace.
+./Sub1.ulam:2:7: ERROR: Invalid Type: Sub1.
+ ERROR: No parse tree for This Class: Sub1.
+Unrecoverable Program Parse FAILURE: <Sub1.ulam>
+./E2.ulam:2:9: ERROR: Class 'E2' has an erroring superclass 'Sub1'.
+Unrecoverable Program Parse FAILURE: <E2.ulam>
+Unrecoverable Program Parse FAILURE: <Test.ulam>
+Unrecoverable Program Parse FAILURE: <System.ulam>
+##
+## informed by t41158, typo (missing close brace } in Sub1; should not assert.
+##
+#:Base.ulam
+  ulam 2;
+quark Base {
+  virtual Int afunc(Int a); //pure
+}
+
+#:Sub1.ulam
+  ulam 2;
+quark Sub1 : Base {
+  virtual Int afunc(Int a) { return super.afunc(a); //pure }
+}
+
+#:E2.ulam
+  ulam 2;
+element E2 : Sub1 {
+  virtual Int afunc(Int a) { return 2; } // not called by wish
+  Int wish()
+  {
+    return super.afunc(3);
+  }
+}
+
+#>Test.ulam
+  ulam 2;
+element Test : System {
+  Bool brtn;
+
+  Int test() {
+    E2 e2;
+    brtn = (e2.wish() == 2); //wish for an error
+    assert(brtn);
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

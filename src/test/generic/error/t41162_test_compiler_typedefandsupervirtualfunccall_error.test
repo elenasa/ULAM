@@ -1,0 +1,50 @@
+## -*- mode:ulam -*-
+#=t41162_test_compiler_typedefandsupervirtualfunccall_error
+##
+#!
+./Sub1.ulam:5:12: ERROR: Variable <super> is not defined, or was used before declared in a function.
+./E.ulam:7:12: ERROR: Variable <super> is not defined, or was used before declared in a function.
+Unrecoverable Program Type Label FAILURE.
+##
+## cannot use super after a variable; super defined in scope of function definition at c&l, not at class level.
+## informed by t41160, t41161
+##
+#>Sup.ulam
+ ulam 3;
+quark Sup : SuperDuper
+{
+  virtual Void func(); //pure
+}
+
+#:SuperDuper.ulam
+  ulam 3;
+quark SuperDuper
+{
+  virtual Void func();
+}
+
+#:Sub1.ulam
+  ulam 2;
+quark Sub1 : Sup {
+  Void behave() {
+    Sup supper;
+    supper.super.func(); // should not compile?
+  }
+  @Override
+  virtual Void func() { /* defined in self but not super */ }
+}
+
+#:E.ulam
+  ulam 3;
+element E : Sub1
+{
+  Int test()
+  {
+    Sup supper;
+    supper.super.func(); // should not compile?
+    return 0;
+  }
+}
+
+
+#.
