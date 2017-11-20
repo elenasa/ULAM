@@ -2725,11 +2725,9 @@ namespace MFM {
       }
 
     //must be a template class
-    bool unseenTemplate = false;
     SymbolClassNameTemplate * ctsym = NULL;
     if(!m_state.alreadyDefinedSymbolClassNameTemplate(typeTok.m_dataindex, ctsym))
       {
-	unseenTemplate = true;
 	if(ctsym == NULL) //was undefined, template; will fix instances' argument names later
 	  m_state.addIncompleteTemplateClassSymbolToProgramTable(typeTok, ctsym);
 	else
@@ -2739,10 +2737,13 @@ namespace MFM {
 	    return Nav; //short-circuit
 	  }
       }
-
     assert(ctsym);
 
+    //handle possible 2nd sighting of an unseen template class (t41166)
     UTI ctuti = ctsym->getUlamTypeIdx();
+    UlamType * ctut = m_state.getUlamTypeByIndex(ctuti);
+    bool unseenTemplate = (ctut->getUlamClassType() == UC_UNSEEN);
+
     u32 numParams = ctsym->getNumberOfParameters();
     u32 numParamDefaults = unseenTemplate ? 0 : ctsym->getTotalParametersWithDefaultValues();
 
@@ -2776,7 +2777,6 @@ namespace MFM {
     //has its own uti that will become part of its key; (too soon for a deep copy!)
     UTI stubuti = m_state.makeUlamType(typeTok, UNKNOWNSIZE, NONARRAYSIZE, Nouti, ALT_NOT, ctsym->getUlamClass()); //overwrites the template type here; possibly UC_UNSEEN
 
-    UlamType * ctut = m_state.getUlamTypeByIndex(ctuti);
     if(ctut->isCustomArray())
       {
 	UlamType * stubut = m_state.getUlamTypeByIndex(stubuti);
@@ -2784,6 +2784,20 @@ namespace MFM {
       }
 
     SymbolClass * stubcsym = ctsym->makeAStubClassInstance(typeTok, stubuti);
+    if(stubcsym == NULL)
+      {
+	std::ostringstream msg;
+	msg << "While parsing a ";
+	msg << m_state.getParserSymbolTypeFlagAsString(m_state.m_parsingVariableSymbolTypeFlag).c_str();
+	msg << " for ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str() ;
+	msg << ": due to unrecoverable problems in template: ";
+	msg << m_state.m_pool.getDataAsString(ctsym->getId()).c_str() ;
+	msg << ", additional errors are unlikely to be useful";
+	MSG(&typeTok, msg.str().c_str(), ERR);
+	return Nav; //t41166
+      }
+
     stubcsym->setContextForPendingArgs(m_state.getCompileThisIdx());
 
     u32 parmidx = 0;
