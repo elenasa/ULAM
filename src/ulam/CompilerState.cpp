@@ -3973,6 +3973,38 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return labelname.str();
   }
 
+  const std::string CompilerState::getParserSymbolTypeFlagAsString(SYMBOLTYPEFLAG stf)
+  {
+    std::ostringstream labelname; //into
+
+    switch(stf)
+      {
+      case STF_CLASSINHERITANCE:
+	labelname << "class ancestor";
+	break;
+      case STF_DATAMEMBER:
+	labelname << "data member";
+	break;
+      case STF_FUNCPARAMETER:
+	labelname << "function parameter";
+	break;
+      case STF_FUNCLOCALVAR:
+	labelname << "local function variable";
+	break;
+      case STF_FUNCARGUMENT:
+	labelname << "function argument";
+	break;
+      case STF_FUNCLOCALREF:
+	labelname << "local function reference variable";
+	break;
+      case STF_NEEDSATYPE:
+      default:
+	labelname << "symbol of unflagged useage";
+	break;
+      }
+    return labelname.str();
+  } //getParserSymbolTypeFlagAsString
+
   void CompilerState::saveIdentTokenForConditionalAs(const Token& iTok, const Token& cTok)
   {
     m_identTokenForConditionalAs = iTok;
