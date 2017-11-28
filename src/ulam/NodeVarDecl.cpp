@@ -248,10 +248,16 @@ namespace MFM {
 	      }
 	    else
 	      {
+		//not an atom
 		ULAMTYPE etyp = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
+		ULAMTYPE fmetyp = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
 		std::ostringstream msg;
 		if(etyp == Bool)
 		  msg << "Use a comparison operation";
+		else if(fmetyp == String)
+		  msg << "Invalid";
+		else if(!m_state.isScalar(newType) || !m_state.isScalar(nuti))
+		  msg << "Not possible";
 		else
 		  msg << "Use explicit cast";
 		msg << " to convert "; // the real converting-message

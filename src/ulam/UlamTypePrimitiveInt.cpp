@@ -204,6 +204,7 @@ namespace MFM {
       case Bits:
       case Void:
       case UAtom:
+      case String:
 	brtn = false;
 	break;
       case Class:

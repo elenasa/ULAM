@@ -728,10 +728,20 @@ namespace MFM {
 	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
 	msg << "' already exists as ";
 	if(isUnseenClass)
-	  msg << " UNSEEN ";
+	  msg << "an unseen ";
 	msg << "class type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(pmcuti).c_str();
+	msg << ", first noticed at: .";  //..
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //issue 5/6/16
+
+	NodeBlockClass * ucblock = prematureclass->getClassBlockNode();
+	assert(ucblock);
+	std::ostringstream imsg;
+	imsg << ".. Another typedef for '";
+ 	imsg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
+	imsg << "' visible from here might clear the ambiguity"; //t41008
+	MSG(ucblock->getNodeLocationAsString().c_str(), imsg.str().c_str(), ERR); //ish 5/6/16,11/16/17
+
 	return false; //quit!
       }
 

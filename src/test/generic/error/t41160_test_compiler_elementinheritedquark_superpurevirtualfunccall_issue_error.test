@@ -1,0 +1,49 @@
+## -*- mode:ulam -*-
+#=t41160_test_compiler_elementinheritedquark_superpurevirtualfunccall_issue_error
+##
+#!
+./Sub1.ulam:5:11: ERROR: Virtual function <Uf_4func10> is pure; cannot be called.
+Unrecoverable Program GenCode FAILURE.
+##
+## pure virtual called on a super, should be catchable by ulam compiler,
+## unlike ref to base class that can be any sub with non-pure implementation.
+## informed by t41094, t41158 (see also t41161)
+##
+#>Sup.ulam
+  ulam 3;
+quark Sup : SuperDuper
+{
+  virtual Void func(); //pure
+}
+
+#:SuperDuper.ulam
+  ulam 3;
+quark SuperDuper
+{
+  virtual Void func() { return; /* weird not pure, but still not called in Sub1 */ }
+}
+
+#:Sub1.ulam
+  ulam 2;
+quark Sub1 : Sup {
+  Void behave() {
+    self.func();  // should be fine
+    super.func(); // should not compile?
+  }
+  @Override
+  virtual Void func() { /* defined in self but not super */ }
+}
+
+#:E.ulam
+  ulam 3;
+element E : Sub1
+{
+  Int test()
+  {
+    behave();
+    return 0;
+  }
+}
+
+
+#.

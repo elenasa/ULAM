@@ -267,7 +267,9 @@ namespace MFM {
   SymbolClass * SymbolClassNameTemplate::makeAStubClassInstance(const Token& typeTok, UTI stubcuti)
   {
     NodeBlockClass * templateclassblock = getClassBlockNode();
-    assert(templateclassblock);
+    if(templateclassblock == NULL)
+      return NULL; //probably previous error caused this to happen (t41166).
+
     bool isCATemplate = ((UlamTypeClass *) m_state.getUlamTypeByIndex(getUlamTypeIdx()))->isCustomArray();
 
     //previous block is template's class block, and new NNO here!

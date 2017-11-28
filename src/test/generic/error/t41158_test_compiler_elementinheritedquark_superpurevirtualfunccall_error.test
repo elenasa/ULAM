@@ -1,11 +1,11 @@
 ## -*- mode:ulam -*-
-#=t41094_test_compiler_elementinheritedquark_purevirtualfunccalleval_error
+#=t41158_test_compiler_elementinheritedquark_superpurevirtualfunccall_error
 ##
 #!
-./E2.ulam:3:43: ERROR: Virtual function <Uf_5afunc11102321i> is pure; cannot be called.
+./Sub1.ulam:3:43: ERROR: Virtual function <Uf_5afunc11102321i> is pure; cannot be called.
 Unrecoverable Program GenCode FAILURE.
 ##
-## informed by t3609
+## informed by t41094
 ##
 #:Base.ulam
   ulam 2;
@@ -16,24 +16,28 @@ quark Base {
 #:Sub1.ulam
   ulam 2;
 quark Sub1 : Base {
-  virtual Int afunc(Int a, Bool b) { return 2; } // BAD: overload of same name different args
+  virtual Int afunc(Int a) { return super.afunc(a); } //pure
 }
 
 #:E2.ulam
   ulam 2;
 element E2 : Sub1 {
-  virtual Int afunc(Int a) { return super.afunc(a); } //2?
+  virtual Int afunc(Int a) { return 2; } // not called by wish
+  Int wish()
+  {
+    return super.afunc(3);
+  }
 }
 
 #>Test.ulam
   ulam 2;
 element Test : System {
-  Bool brtn[4];
+  Bool brtn;
 
   Int test() {
     E2 e2;
-    brtn[0] = (e2.afunc(7) == 2);
-    assert(brtn[0]);
+    brtn = (e2.wish() == 2); //wish for an error
+    assert(brtn);
     return 0;
   }
 }

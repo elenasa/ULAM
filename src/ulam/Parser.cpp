@@ -486,39 +486,52 @@ namespace MFM {
     assert(cnsym);
     cnsym->setSuperClass(superuti);
 
-    NodeBlockClass * superclassblock = supercsym->getClassBlockNode();
-    assert(superclassblock);
-
     NodeBlockClass * classblock = cnsym->getClassBlockNode();
     assert(classblock); //rtnNode in caller
 
+    NodeBlockClass * superclassblock = supercsym->getClassBlockNode();
+    //assert(superclassblock); may be NULL if UNSEEN w error (e.g. missing close brace) t41159
+
     //set super class' block after any parameters parsed;
-    // (separate from previous block which might be pointing to template
-    //  in case of a stub)
+    // (separate from previous block which might be pointing to template in case of a stub)
     //classblock->setSuperBlockPointer(NULL); //wait for c&l
     classblock->setSuperBlockPointer(superclassblock);
 
-    //rearrange order of class context so that super class is traversed after subclass
-    m_state.popClassContext(); //m_currentBlock = prevBlock;
-    m_state.pushClassContext(superuti, superclassblock, superclassblock, false, NULL);
-    m_state.pushClassContext(cnsym->getUlamTypeIdx(), classblock, classblock, false, NULL); //redo
+    if(superclassblock)
+      {
+	//rearrange order of class context so that super class is traversed after subclass
+	m_state.popClassContext(); //m_currentBlock = prevBlock;
+	m_state.pushClassContext(superuti, superclassblock, superclassblock, false, NULL);
+	m_state.pushClassContext(cnsym->getUlamTypeIdx(), classblock, classblock, false, NULL); //redo
 
-    //automatically create a Super typedef symbol for this class' super type
-    u32 superid = m_state.m_pool.getIndexForDataString("Super");
-    Symbol * symtypedef = NULL;
-    if(!classblock->isIdInScope(superid, symtypedef))
-      {
-	Token superTok(TOK_TYPE_IDENTIFIER, superclassblock->getNodeLocation(), superid);
-	symtypedef = new SymbolTypedef(superTok, superuti, superuti, m_state);
-	assert(symtypedef);
-	m_state.addSymbolToCurrentScope(symtypedef);
+	//automatically create a Super typedef symbol for this class' super type;
+	// avoids assuming "Super" is a class name (t41150)
+	u32 superid = m_state.m_pool.getIndexForDataString("Super");
+	Symbol * symtypedef = NULL;
+	if(!classblock->isIdInScope(superid, symtypedef))
+	  {
+	    Token superTok(TOK_TYPE_IDENTIFIER, superclassblock->getNodeLocation(), superid);
+	    symtypedef = new SymbolTypedef(superTok, superuti, superuti, m_state);
+	    assert(symtypedef);
+	    m_state.addSymbolToCurrentScope(symtypedef);
+	  }
+	else //holder may have been made prior
+	  {
+	    assert(symtypedef->getId() == superid);
+	    UTI stuti = symtypedef->getUlamTypeIdx();
+	    if(stuti != superuti)
+	      m_state.updateUTIAliasForced(stuti, superuti); //t3808, t3806, t3807
+	  }
       }
-    else //holder may have been made prior
+    else
       {
-	assert(symtypedef->getId() == superid);
-	UTI stuti = symtypedef->getUlamTypeIdx();
-	if(stuti != superuti)
-	  m_state.updateUTIAliasForced(stuti, superuti); //t3808, t3806, t3807
+	//may be NULL if UNSEEN w error (e.g. missing close brace) t41159
+	std::ostringstream msg;
+	msg << "Class '";
+	msg << m_state.m_pool.getDataAsString(cnsym->getId()).c_str();
+	msg << "' has an erroring superclass '";
+	msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str() << "'";
+	MSG(classblock->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
   } //setupSuperClassHelper
 
@@ -2712,24 +2725,25 @@ namespace MFM {
       }
 
     //must be a template class
-    bool unseenTemplate = false;
     SymbolClassNameTemplate * ctsym = NULL;
     if(!m_state.alreadyDefinedSymbolClassNameTemplate(typeTok.m_dataindex, ctsym))
       {
-	unseenTemplate = true;
 	if(ctsym == NULL) //was undefined, template; will fix instances' argument names later
 	  m_state.addIncompleteTemplateClassSymbolToProgramTable(typeTok, ctsym);
 	else
 	  {
-	    //error have a class without parameters already defined
+	    //error have a class without parameters already defined (error output)
 	    getTokensUntil(TOK_CLOSE_PAREN); //rest of statement is ignored.
 	    return Nav; //short-circuit
 	  }
       }
-
     assert(ctsym);
 
+    //handle possible 2nd sighting of an unseen template class (t41166)
     UTI ctuti = ctsym->getUlamTypeIdx();
+    UlamType * ctut = m_state.getUlamTypeByIndex(ctuti);
+    bool unseenTemplate = (ctut->getUlamClassType() == UC_UNSEEN);
+
     u32 numParams = ctsym->getNumberOfParameters();
     u32 numParamDefaults = unseenTemplate ? 0 : ctsym->getTotalParametersWithDefaultValues();
 
@@ -2763,7 +2777,6 @@ namespace MFM {
     //has its own uti that will become part of its key; (too soon for a deep copy!)
     UTI stubuti = m_state.makeUlamType(typeTok, UNKNOWNSIZE, NONARRAYSIZE, Nouti, ALT_NOT, ctsym->getUlamClass()); //overwrites the template type here; possibly UC_UNSEEN
 
-    UlamType * ctut = m_state.getUlamTypeByIndex(ctuti);
     if(ctut->isCustomArray())
       {
 	UlamType * stubut = m_state.getUlamTypeByIndex(stubuti);
@@ -2771,6 +2784,20 @@ namespace MFM {
       }
 
     SymbolClass * stubcsym = ctsym->makeAStubClassInstance(typeTok, stubuti);
+    if(stubcsym == NULL)
+      {
+	std::ostringstream msg;
+	msg << "While parsing a ";
+	msg << m_state.getParserSymbolTypeFlagAsString(m_state.m_parsingVariableSymbolTypeFlag).c_str();
+	msg << " for ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str() ;
+	msg << ": due to unrecoverable problems in template: ";
+	msg << m_state.m_pool.getDataAsString(ctsym->getId()).c_str() ;
+	msg << ", additional errors are unlikely to be useful";
+	MSG(&typeTok, msg.str().c_str(), ERR);
+	return Nav; //t41166
+      }
+
     stubcsym->setContextForPendingArgs(m_state.getCompileThisIdx());
 
     u32 parmidx = 0;
@@ -3337,8 +3364,13 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Undefined function <" << m_state.getTokenDataAsString(identTok).c_str();
-	    msg << "> that has already been declared as a variable";
+	    msg << "> has already been declared as a variable at: ."; //..
 	    MSG(&identTok, msg.str().c_str(), ERR);
+
+	    std::ostringstream imsg;
+	    imsg << ".. this location"; //t3129
+	    MSG(m_state.getFullLocationAsString(asymptr->getLoc()).c_str(), imsg.str().c_str(), ERR);
+
 	    return  NULL; //bail
 	  }
 	//function call, here
@@ -3549,10 +3581,15 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
-	msg << "' cannot be used as a function, already declared as a variable '";
+	msg << "' cannot be a function because it is already declared as a variable of type ";
 	msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
-	msg << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
+	msg << " at: ."; //..
 	MSG(&identTok, msg.str().c_str(), ERR);
+
+	std::ostringstream imsg;
+	imsg << ".. this location";
+	MSG(m_state.getFullLocationAsString(asymptr->getLoc()).c_str(), imsg.str().c_str(), ERR);
+
 	return NULL;
       }
 
@@ -4670,7 +4707,7 @@ namespace MFM {
     selfsym->setIsSelf();
     m_state.addSymbolToCurrentScope(selfsym); //ownership goes to the funcdef block
 
-    //wait until c&l to create "super" symbol for the Super class type;
+    //wait until c&l to create "super" symbol for the Super class type (t41162);
     //btw, it's really a ref. belongs to the function definition scope.
 
     //parse and add parameters to function symbol (not in ST yet!)
@@ -5130,10 +5167,14 @@ namespace MFM {
 		UTI auti = asymptr->getUlamTypeIdx();
 		std::ostringstream msg;
 		msg << m_state.m_pool.getDataAsString(asymid).c_str();
-		msg << " has a previous declaration as '";
+		msg << " cannot be a typedef because it is already declared as ";
 		msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
-		msg << "' and cannot be used as a typedef";
-		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
+		msg << " at: ."; //..
+		MSG(&args.m_typeTok, msg.str().c_str(), ERR); //t3698, t3391
+
+		std::ostringstream imsg;
+		imsg << ".. this location";
+		MSG(m_state.getFullLocationAsString(asymptr->getLoc()).c_str(), imsg.str().c_str(), ERR);
 	      }
 	    else
 	      {
@@ -5198,10 +5239,14 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
-		msg << " has a previous declaration as '";
+		msg << " cannot be a named constant because it is already declared as ";
 		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
-		msg << "' and cannot be used as a named constant";
-		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
+		msg << " at: ."; //..
+		MSG(&args.m_typeTok, msg.str().c_str(), ERR); //t41130, t3872
+
+		std::ostringstream imsg;
+		imsg << ".. this location";
+		MSG(m_state.getFullLocationAsString(asymptr->getLoc()).c_str(), imsg.str().c_str(), ERR);
 	      }
 	    else
 	      {
@@ -5275,10 +5320,14 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
-		msg << " has a previous declaration as '";
+		msg << " cannot be a Model Parameter data member because it is already declared as ";
 		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
-		msg << "' and cannot be used as a Model Parameter data member";
+		msg << " at: ."; //..
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
+
+		std::ostringstream imsg;
+		imsg << ".. this location";
+		MSG(m_state.getFullLocationAsString(asymptr->getLoc()).c_str(), imsg.str().c_str(), ERR);
 	      }
 	    else
 	      {

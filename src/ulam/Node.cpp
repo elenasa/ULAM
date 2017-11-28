@@ -260,9 +260,14 @@ namespace MFM {
     FORECAST scr = tobe->safeCast(fromType);
     if(scr != CAST_CLEAR)
       {
+	ULAMTYPE etyp = tobe->getUlamTypeEnum();
 	std::ostringstream msg;
-	if(tobe->getUlamTypeEnum() == Bool)
+	if(etyp == Bool)
 	  msg << "Use a comparison operation";
+	else if(etyp == String)
+	  msg << "Invalid";
+	else if(!m_state.isScalar(newType) || !m_state.isScalar(fromType))
+	  msg << "Not possible";
 	else
 	  msg << "Use explicit cast";
 	msg << " to convert "; // the real converting-message

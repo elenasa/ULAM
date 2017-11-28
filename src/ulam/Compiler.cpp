@@ -115,6 +115,12 @@ namespace MFM {
 	  {
 	    m_state.generateCodeForUlamClasses(outfm);
 	    perrs = m_state.m_err.getErrorCount();
+
+	    if(perrs > 0)
+	      {
+		std::ostringstream msg;
+		errput->write("Unrecoverable Program GenCode FAILURE.\n");
+	      }
 	  }
 	else
 	  {
