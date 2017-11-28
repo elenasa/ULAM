@@ -41,6 +41,7 @@
 #include "NodeTerminal.h"
 #include "SymbolWithValue.h"
 #include "Token.h"
+#include "NodeTypeDescriptor.h"
 
 namespace MFM{
 
@@ -48,13 +49,17 @@ namespace MFM{
   {
   public:
 
-    NodeConstant(const Token& tok, SymbolWithValue * symptr, CompilerState & state);
+    NodeConstant(const Token& tok, SymbolWithValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state);
 
     NodeConstant(const NodeConstant& ref);
 
     virtual ~NodeConstant();
 
     virtual Node * instantiate();
+
+    virtual void updateLineage(NNO pno);
+
+    virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual void printPostfix(File * fp);
 
@@ -63,6 +68,8 @@ namespace MFM{
     virtual const std::string prettyNodeName();
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
+
+    void setupBlockNo();
 
     virtual bool hasASymbolDataMember();
 
@@ -82,6 +89,7 @@ namespace MFM{
 
   protected:
     Token m_token;
+    NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
     SymbolWithValue * m_constSymbol;
     bool m_ready;
     UTI m_constType;

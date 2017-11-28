@@ -3,7 +3,6 @@
 #!
 ./QW.ulam:6:25: ERROR: Unsupported request: 'atomof' of Type <QW>.
 ./QW.ulam:6:10: ERROR: Initial value of 'me' is missing.
-./QW.ulam:10:12: ERROR: Invalid Statement (possible missing semicolon).
 Unrecoverable Program Parse FAILURE: <A.ulam>
 ##
 ## Dave requested a way to get default values for Self (within a quark);

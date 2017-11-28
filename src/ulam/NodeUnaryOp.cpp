@@ -226,6 +226,8 @@ namespace MFM {
 	std::ostringstream msg;
 	if(etyp == Bool)
 	  msg << "Use a comparison operation";
+	else if(etyp == String)
+	  msg << "Invalid";
 	else
 	  msg << "Use explicit cast";
 	msg << " to convert "; // the real converting-message

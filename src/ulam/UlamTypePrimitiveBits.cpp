@@ -97,6 +97,7 @@ namespace MFM {
       case Bits:
 	val = UlamValue::makeImmediate(typidx, data, m_state); //overwrite val
 	break;
+      case String:
       default:
 	//std::cerr << "UlamTypeInt (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
@@ -158,6 +159,7 @@ namespace MFM {
       case Bits:
 	brtn = (bitsize >= valbitsize); //downhill
 	break;
+      case String:
       case Void:
       case UAtom:
 	brtn = false;

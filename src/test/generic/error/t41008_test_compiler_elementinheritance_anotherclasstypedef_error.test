@@ -7,7 +7,8 @@
 ./Foo.ulam:2:9: ERROR: Invalid Type: Foo.
  ERROR: No parse tree for This Class: Foo.
 Unrecoverable Program Parse FAILURE: <Foo.ulam>
-./Constants.ulam:4:24: ERROR: Typedef alias 'Soo3' already exists as  UNSEEN class type: Soo3.
+./Constants.ulam:4:24: ERROR: Typedef alias 'Soo3' already exists as an unseen class type: Soo3, first noticed at: ..
+./Soo.ulam:10:16: ERROR: .. Another typedef for 'Soo3' visible from here might clear the ambiguity.
 ./Constants.ulam:4:24: ERROR: Invalid typedef of base type <Soo> and name <Soo3> (missing symbol).
 ./Constants.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Constants'; Possible missing ending curly brace.
 ./Constants.ulam:4:28: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.

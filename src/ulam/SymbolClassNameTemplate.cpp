@@ -267,7 +267,9 @@ namespace MFM {
   SymbolClass * SymbolClassNameTemplate::makeAStubClassInstance(const Token& typeTok, UTI stubcuti)
   {
     NodeBlockClass * templateclassblock = getClassBlockNode();
-    assert(templateclassblock);
+    if(templateclassblock == NULL)
+      return NULL; //probably previous error caused this to happen (t41166).
+
     bool isCATemplate = ((UlamTypeClass *) m_state.getUlamTypeByIndex(getUlamTypeIdx()))->isCustomArray();
 
     //previous block is template's class block, and new NNO here!
@@ -585,9 +587,11 @@ namespace MFM {
 	assert(classNode);
 	UTI cuti = csym->getUlamTypeIdx();
 
+	m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
+
 	//pending args could depend on constants in ancestors (t3887)
 	UTI superuti = csym->getSuperClass();
-	if(m_state.okUTItoContinue(superuti) && !classNode->isSuperClassLinkReady())
+	if(m_state.okUTItoContinue(superuti) && !classNode->isSuperClassLinkReady(cuti))
 	  {
 	    SymbolClass * supercsym = NULL;
 	    if(m_state.alreadyDefinedSymbolClass(superuti, supercsym) && !supercsym->isStub())
@@ -595,8 +599,6 @@ namespace MFM {
 		classNode->setSuperBlockPointer(supercsym->getClassBlockNode());
 	      }
 	  }
-
-	m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
 	aok &= csym->statusNonreadyClassArguments(); //could bypass if fully instantiated
 

@@ -12,7 +12,7 @@ Ue_Eltypo : Typo(1) { :< :< Unsigned(3) bu( 7u); >> Unsigned(3) first(0);  Unsig
 Uq_Typo(Int(32) a) : Bar { /* empty class block */ }
 Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
 ##
-## informed by 3735, uses cast rather than atomof
+## informed by 3735
 ##
 #>R.ulam
   ulam 2;
@@ -24,6 +24,7 @@ element R {
     Typo(1)& poref = elt;
     poref.func(2u);
     Atom & a = (Atom &) poref; //with cast, not atomof
+    //Atom & a = poref.atomof; //no cast with atomof
     Eltypo ell = (Eltypo) a; //use explicit case
     s.print(ell.bu);
     s.assert(ell.bu == 2u);

@@ -1,0 +1,32 @@
+## -*- mode:ulam -*-
+#=t3691_test_compiler_quark_casttoatom_fail
+##
+##      gen err:
+## include/Ue_102393Foo10.tcc:39: FAILED: BAD_CAST
+##
+#!
+Exit status: -11
+Ue_Foo { Bool(1) sp(false);  Bool(3) bi(false);  Bool(3) bh(false);  Int(32) d(0);  Int(32) test() {  Atom(96) a;  QBar qb;  QBar& qbr = qb cast;  a qbr cast = 0 cast return } }
+Uq_QBar { /* empty class block */ }
+#>Foo.ulam
+  ulam 2;
+element Foo {
+  Bool sp;
+  Bool(3) bi, bh;
+  Int d;
+  Int test(){
+    Atom a;
+    QBar qb;
+    QBar & qbr = qb;
+    a = (Atom) qbr; //illegal UNDEFINED_TYPE
+    //a = (Atom) qbr.atomof; //illegal UNDEFINED_TYPE
+    return 0;
+  }
+}
+
+#:QBar.ulam
+  ulam 1;
+quark QBar {
+}
+
+#.

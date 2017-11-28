@@ -1710,7 +1710,7 @@ namespace MFM {
 
     NodeBlockClass * cblock = csym->getClassBlockNode();
     assert(cblock);
-    cblock->noteDataMembersParseTree(totalsize);
+    cblock->noteDataMembersParseTree(cuti, totalsize);
   }
 
   void CompilerState::verifyZeroSizeUrSelf()
@@ -2086,7 +2086,12 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Class without parameters already exists with the same name: ";
 	msg << m_pool.getDataAsString(symptr->getId()).c_str();
+	msg << ", and was first noticed at: ."; //..
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR); //parsing
+
+	std::ostringstream imsg;
+	imsg << ".. this location"; //(t3556, t3340)
+	MSG2(getFullLocationAsString(symptr->getLoc()).c_str(), imsg.str().c_str(), ERR);
       }
     return (rtnb && symptr->isClassTemplate());
   } //alreadyDefinedSymbolClassNameTemplate
@@ -3968,6 +3973,38 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return labelname.str();
   }
 
+  const std::string CompilerState::getParserSymbolTypeFlagAsString(SYMBOLTYPEFLAG stf)
+  {
+    std::ostringstream labelname; //into
+
+    switch(stf)
+      {
+      case STF_CLASSINHERITANCE:
+	labelname << "class ancestor";
+	break;
+      case STF_DATAMEMBER:
+	labelname << "data member";
+	break;
+      case STF_FUNCPARAMETER:
+	labelname << "function parameter";
+	break;
+      case STF_FUNCLOCALVAR:
+	labelname << "local function variable";
+	break;
+      case STF_FUNCARGUMENT:
+	labelname << "function argument";
+	break;
+      case STF_FUNCLOCALREF:
+	labelname << "local function reference variable";
+	break;
+      case STF_NEEDSATYPE:
+      default:
+	labelname << "symbol of unflagged useage";
+	break;
+      }
+    return labelname.str();
+  } //getParserSymbolTypeFlagAsString
+
   void CompilerState::saveIdentTokenForConditionalAs(const Token& iTok, const Token& cTok)
   {
     m_identTokenForConditionalAs = iTok;
@@ -4158,6 +4195,13 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
     if(!rtnNode)
       rtnNode = findNodeNoInThisClass(n);
+    if(!rtnNode)
+      {
+	//exhaustive search as last resort
+	UTI acuti = findAClassByNodeNo(n);
+	if(acuti != Nouti)
+	  rtnNode = findNodeNoInAClass(n, acuti);
+      }
     return rtnNode;
   } //findNodeNoInThisClassStubFirst
 
@@ -4508,7 +4552,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   {
     assert(block);
     UTI buti = block->getNodeType();
-    return (block->isAClassBlock() && (isClassAStub(buti) || ((isClassASubclass(buti) != Nouti) && !((NodeBlockClass *) block)->isSuperClassLinkReady())));
+    return (block->isAClassBlock() && (isClassAStub(buti) || ((isClassASubclass(buti) != Nouti) && !((NodeBlockClass *) block)->isSuperClassLinkReady(buti))));
   }
 
 } //end MFM

@@ -263,9 +263,12 @@ namespace MFM {
     FORECAST rsafe = m_nodeRight->safeToCastTo(newType);
     if(lsafe != CAST_CLEAR || rsafe != CAST_CLEAR )
       {
+	ULAMTYPE etyp = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
 	std::ostringstream msg;
-	if(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Bool)
+	if( etyp == Bool)
 	  msg << "Use a comparison operation";
+	else if (etyp == String)
+	  msg << "Invalid";
 	else
 	  msg << "Use explicit cast";
 	msg << " to convert "; // the real converting-message

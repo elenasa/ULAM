@@ -222,9 +222,9 @@ namespace MFM {
 		Node * newnode = NULL;
 
 		if(m_state.isScalar(auti))
-		  newnode = new NodeConstant(m_token, (SymbolWithValue *) asymptr, m_state);
+		  newnode = new NodeConstant(m_token, (SymbolWithValue *) asymptr, NULL, m_state);
 		else
-		  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) asymptr, m_state);
+		  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) asymptr, NULL, m_state);
 		assert(newnode);
 
 		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
@@ -240,7 +240,7 @@ namespace MFM {
 	      {
 		// replace ourselves with a parameter node instead;
 		// same node no, and loc
-		NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) asymptr, m_state);
+		NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) asymptr, NULL, m_state);
 		assert(newnode);
 
 		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
@@ -293,9 +293,9 @@ namespace MFM {
 	// same node no, and loc (e.g. t3573, t3526)
 	Node * newnode = NULL;
 	if(m_state.isScalar(vuti))
-	  newnode = new NodeConstant(m_token, (SymbolWithValue *) m_varSymbol, m_state);
+	  newnode = new NodeConstant(m_token, (SymbolWithValue *) m_varSymbol, NULL, m_state);
 	else
-	  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) m_varSymbol, m_state);
+	  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) m_varSymbol, NULL, m_state);
 	assert(newnode);
 
 	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
@@ -309,7 +309,7 @@ namespace MFM {
       {
 	// replace ourselves with a parameter node instead;
 	// same node no, and loc
-	NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) m_varSymbol, m_state);
+	NodeModelParameter * newnode = new NodeModelParameter(m_token, (SymbolModelParameterValue*) m_varSymbol, NULL, m_state);
 	assert(newnode);
 
 	AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
@@ -728,10 +728,20 @@ namespace MFM {
 	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
 	msg << "' already exists as ";
 	if(isUnseenClass)
-	  msg << " UNSEEN ";
+	  msg << "an unseen ";
 	msg << "class type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(pmcuti).c_str();
+	msg << ", first noticed at: .";  //..
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //issue 5/6/16
+
+	NodeBlockClass * ucblock = prematureclass->getClassBlockNode();
+	assert(ucblock);
+	std::ostringstream imsg;
+	imsg << ".. Another typedef for '";
+ 	imsg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
+	imsg << "' visible from here might clear the ambiguity"; //t41008
+	MSG(ucblock->getNodeLocationAsString().c_str(), imsg.str().c_str(), ERR); //ish 5/6/16,11/16/17
+
 	return false; //quit!
       }
 
@@ -772,6 +782,9 @@ namespace MFM {
 	tduti = args.m_classInstanceIdx;
 	brtn = true;
       }
+
+    if(!m_state.okUTItoContinue(tduti))
+      brtn = false;
 
     if(brtn)
       {
@@ -888,6 +901,9 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
 
+    if(!m_state.okUTItoContinue(uti))
+      brtn = false;
+
     if(brtn)
       {
 	if(!asymptr)
@@ -980,6 +996,9 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
 
+    if(!m_state.okUTItoContinue(uti))
+      brtn = false;
+
     if(brtn)
       {
 	//create a symbol for this new model parameter, a parameter-def, with its value
@@ -1063,6 +1082,9 @@ namespace MFM {
 	  }
 	brtn = true;
       }
+
+    if(!m_state.okUTItoContinue(auti))
+      brtn = false; //t41153
 
     if(brtn)
       {

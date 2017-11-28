@@ -1,7 +1,8 @@
 ## -*- mode:ulam -*-
 #=t41130_test_compiler_elementinheritance_loadlocaldefsquotedfilename_separatefilescope_error
 #!
-./Constants.txt:1:16: ERROR: soosize has a previous declaration as 'Unsigned(UNKNOWN)' and cannot be used as a named constant.
+./Constants.txt:1:16: ERROR: soosize cannot be a named constant because it is already declared as Unsigned(UNKNOWN) at: ..
+./Constants.txt:1:28: ERROR: .. this location.
 ./Constants.txt:1:40: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
 ./Constants.txt:2:15: ERROR: Invalid Type: Soo.
 Unrecoverable Program Parse FAILURE: <Soo.ulam>

@@ -75,13 +75,13 @@ namespace MFM{
 
     virtual void printPostfix(File * fp);
 
-    void printPostfixDataMembersParseTree(File * fp); //helper for recursion NodeVarDecDM
+    void printPostfixDataMembersParseTree(File * fp, UTI cuti); //helper for recursion NodeVarDecDM
 
-    void printPostfixDataMembersSymbols(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
+    void printPostfixDataMembersSymbols(File * fp, s32 slot, u32 startpos, UTI cuti);
 
-    virtual void noteTypeAndName(s32 totalsize, u32& accumsize);
+    void noteClassTypeAndName(UTI nuti, s32 totalsize, u32& accumsize);
 
-    void noteDataMembersParseTree(s32 totalsize);
+    void noteDataMembersParseTree(UTI cuti, s32 totalsize);
 
     virtual const char * getName();
 
@@ -95,7 +95,7 @@ namespace MFM{
 
     void setSuperBlockPointer(NodeBlockClass *);
 
-    bool isSuperClassLinkReady();
+    bool isSuperClassLinkReady(UTI cuti);
 
     virtual UTI checkAndLabelType();
 

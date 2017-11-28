@@ -36,5 +36,3 @@ Void print(Bool(3) arg) native;
 Void assert(Bool b) native;
 }
 #.
-
-#.
