@@ -38,7 +38,9 @@ namespace MFM {
 
   bool NodeBlockContext::hasStringDataMembers()
   {
-    return m_ST.hasUlamTypeSymbolsInTable(String);
+    //unused
+    //return m_ST.hasUlamTypeSymbolsInTable(String);
+    return m_ST.hasADataMemberStringInitValueInClass(getNodeType());
   }
 
   void NodeBlockContext::addUlamTypeKeyToSet(UlamKeyTypeSignature key)

@@ -103,7 +103,7 @@ namespace MFM{
 
     const std::string nodeName(const std::string& prettyFunction);
 
-    UTI getNodeType() const;
+    virtual UTI getNodeType() const;
 
     void setNodeType(UTI ut);
 

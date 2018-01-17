@@ -178,7 +178,7 @@ namespace MFM {
   FORECAST NodeIdent::safeToCastTo(UTI newType)
   {
     //ulamtype checks for complete, non array, and type specific rules
-    return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
+    return m_state.getUlamTypeByIndex(newType)->safeCast(Node::getNodeType());
   } //safeToCastTo
 
   UTI NodeIdent::checkAndLabelType()

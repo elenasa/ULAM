@@ -723,7 +723,8 @@ namespace MFM {
     else
       setupStackWithQuarkForEval(slots);
 
-    if(m_nodeInitExpr)
+    if(m_nodeInitExpr) //t3706, t3587, t41167
+      //if(m_nodeInitExpr && (classtype == UC_NOTACLASS)) //skip class inits
       return evalInitExpr();
 
     return NORMAL;

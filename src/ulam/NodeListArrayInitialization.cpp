@@ -184,7 +184,7 @@ namespace MFM{
     EvalStatus evs = NORMAL;
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
-	evs = NodeList::eval(i);
+	evs = m_nodes[i]->eval();
 	if(evs != NORMAL)
 	  break;
       }

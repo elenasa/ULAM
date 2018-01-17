@@ -55,6 +55,8 @@ namespace MFM{
 
     bool hasUlamTypeSymbolsInTable(ULAMTYPE etyparg);
 
+    bool hasADataMemberStringInitValueInClass(UTI cuti);
+
     u32 findTypedefSymbolNameIdByTypeInTable(UTI type);
 
     //Table of Variable Data Members:

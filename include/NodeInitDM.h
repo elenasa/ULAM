@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
- * NodeVarDeclDM.h -  Data Member Variable Declarations for ULAM
+ * NodeInitDM.h - Node handling Class Data Member Init for ULAM
  *
- * Copyright (C) 2015-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2018 Ackleyshack LLC.
+ * Copyright (C) 2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2018 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -26,54 +26,43 @@
  */
 
 /**
-  \file NodeVarDeclDM.h -  Data Member Variable Declarations for ULAM
+  \file NodeInitDM.h - Node handling Class Data Member Init for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2018 All rights reserved.
+  \date (C) 2018 All rights reserved.
   \gpl
 */
 
 
-#ifndef NODEVARDECLDM_H
-#define NODEVARDECLDM_H
+#ifndef NODEINITDM_H
+#define NODEINITDM_H
 
-#include "NodeVarDecl.h"
+#include "NodeConstantDef.h"
 
 namespace MFM{
 
-  class NodeVarDeclDM : public NodeVarDecl
+  class NodeInitDM : public NodeConstantDef
   {
   public:
 
-    NodeVarDeclDM(SymbolVariable * sym, NodeTypeDescriptor * nodetype, CompilerState & state);
+    NodeInitDM(u32 dmid, Node * assignNode, UTI ofclass, CompilerState & state);
+    NodeInitDM(const NodeInitDM& ref);
 
-    NodeVarDeclDM(const NodeVarDeclDM& ref);
-
-    virtual ~NodeVarDeclDM();
+    virtual ~NodeInitDM();
 
     virtual Node * instantiate();
 
-    virtual void updateLineage(NNO pno);
-
-    virtual bool findNodeNo(NNO n, Node *& foundNode);
-
     virtual void printPostfix(File * f);
-
-    virtual void noteTypeAndName(s32 totalsize, u32& accumsize);
 
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
 
-    virtual bool hasASymbolDataMember();
+    virtual void setSymbolPtr(SymbolWithValue * cvsymptr);
 
-    virtual FORECAST safeToCastTo(UTI newType);
-
-    virtual bool checkReferenceCompatibility(UTI uti);
+    void resetOfClassType(UTI cuti);
 
     virtual UTI checkAndLabelType();
-
-    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
@@ -81,19 +70,17 @@ namespace MFM{
 
     virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
 
-    virtual void setInitExpr(Node * node); //was setConstantExpr
+    virtual void fixPendingArgumentNode();
 
-    virtual bool foldArrayInitExpression(); //was foldConstantExpression
+    virtual bool assignClassArgValueInStubCopy();
 
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 
     virtual void printUnresolvedVariableDataMembers();
 
-    virtual void printUnresolvedLocalVariables();
+    virtual void printUnresolvedLocalVariables(u32 fid);
 
-    virtual EvalStatus eval();
-
-    virtual EvalStatus evalToStoreInto();
+    virtual bool isAConstant();
 
     virtual void genCode(File * fp, UVPass& uvpass);
 
@@ -101,25 +88,17 @@ namespace MFM{
 
     virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
 
-    virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
-
-    virtual void addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers);
+    virtual void cloneAndAppendNode(std::vector<Node *> & cloneVec);
 
   protected:
 
-    virtual UlamValue makeUlamValuePtr(); //for dm
+    virtual void checkForSymbol();
 
   private:
+    UTI m_ofClassUTI;
 
-    bool updateConstant(u64 & newconst);
-    bool updateConstant32(u64 & newconst);
-    bool updateConstant64(u64 & newconst);
-
-    void foldDefaultClass();
-    void genCodedBitFieldTypedef(File * fp, UVPass& uvpass);
-
-    bool checkDataMemberSizeConstraints(); //during c&l
   };
+
 } //MFM
 
-#endif //end NODEVARDECLDM_H
+#endif //NODEINITDM_H

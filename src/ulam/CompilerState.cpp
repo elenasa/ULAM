@@ -1444,6 +1444,8 @@ namespace MFM {
 
     if(!isThisLocalsFileScope()) //t3972,73
       {
+#if 0
+	//efficiency not worth it. Tue Jan 16 17:47:22 2018
 	if(hasThisClassStringDataMembers()) //t3972,73
 	  {
 	    //unused variable if no string data members
@@ -1452,6 +1454,7 @@ namespace MFM {
 	    fp->write(getTheInstanceMangledNameByIndex(cuti).c_str());
 	    fp->write(".GetRegistrationNumber();"); GCNL;
 	  }
+#endif
 
 	//class data members may have strings (t3948)
 	indent(fp);
@@ -2853,6 +2856,26 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     assert(!useMemberBlock());
     return getCurrentBlock()->removeIdFromScope(id, rtnsymptr);
   }
+
+  bool CompilerState::findSymbolInAClass(u32 id, UTI inClassUTI, Symbol *& rtnsymptr, bool& isHazy)
+  {
+    assert(!isAnonymousClass(inClassUTI) && isASeenClass(inClassUTI));
+    bool rtnOK = false;
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClass(inClassUTI, csym);
+    assert(isDefined);
+
+    NodeBlockClass * cblock = csym->getClassBlockNode();
+    assert(cblock);
+
+    pushClassContextUsingMemberClassBlock(cblock);
+
+    rtnOK = alreadyDefinedSymbol(id, rtnsymptr, isHazy);
+
+    popClassContext(); //restore
+
+    return rtnOK;
+  } //findSymbolInAClass
 
   //Token to location as string:
   const std::string CompilerState::getTokenLocationAsString(const Token * tok)

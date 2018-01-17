@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeConstantDef.h - Node handling Constant Definition for ULAM
  *
- * Copyright (C) 2015-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2017 Ackleyshack LLC.
+ * Copyright (C) 2015-2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2018 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeConstantDef.h - Node handling Constant Definition for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2017 All rights reserved.
+  \date (C) 2015-2018 All rights reserved.
   \gpl
 */
 
@@ -77,31 +77,31 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
-    void setSymbolPtr(SymbolWithValue * cvsymptr);
+    virtual void setSymbolPtr(SymbolWithValue * cvsymptr);
 
-    u32 getSymbolId();
+    virtual u32 getSymbolId();
 
-    bool getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref);
+    virtual bool getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref);
 
-    bool hasDefaultSymbolValue();
+    virtual bool hasDefaultSymbolValue();
 
     virtual UTI checkAndLabelType();
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
-    NNO getBlockNo();
+    virtual NNO getBlockNo();
 
-    void setBlockNo(NNO n);
+    virtual void setBlockNo(NNO n);
 
-    NodeBlock * getBlock();
+    virtual NodeBlock * getBlock();
 
-    void setConstantExpr(Node * node);
+    virtual void setConstantExpr(Node * node);
 
-    bool hasConstantExpr();
+    virtual bool hasConstantExpr();
 
-    UTI foldConstantExpression();
+    virtual UTI foldConstantExpression();
 
-    bool foldArrayInitExpression();
+    virtual bool foldArrayInitExpression();
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
@@ -109,7 +109,7 @@ namespace MFM{
 
     virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
 
-    void fixPendingArgumentNode();
+    virtual void fixPendingArgumentNode();
 
     virtual bool assignClassArgValueInStubCopy();
 

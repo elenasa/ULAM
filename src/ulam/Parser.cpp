@@ -49,6 +49,7 @@
 #include "NodeConstant.h"
 #include "NodeConstantArray.h"
 #include "NodeContinueStatement.h"
+#include "NodeInitDM.h"
 #include "NodeLabel.h"
 #include "NodeMemberSelect.h"
 #include "NodeMemberSelectOnConstructorCall.h"
@@ -1007,11 +1008,13 @@ namespace MFM {
 	Node * initnode = NULL;
 	if(eTok.m_type == TOK_OPEN_CURLY)
 	  {
-	    //returns a NodeListArrayInitialization
-	    initnode = parseArrayInitialization(identTok.m_dataindex);
+	    //returns a NodeList
+	    initnode = parseArrayOrClassInitialization(identTok.m_dataindex);
 	  }
 	else
-	  initnode = parseExpression();
+	  {
+	    initnode = parseExpression();
+	  }
 
 	if(!initnode)
 	  {
@@ -4422,17 +4425,29 @@ namespace MFM {
     return brtn;
   } //parseRestOfRefInitialization
 
-  Node * Parser::parseArrayInitialization(u32 identId)
+  Node * Parser::parseArrayOrClassInitialization(u32 identId)
   {
     Token aTok;
-    getNextToken(aTok);
-
+    getNextToken(aTok); //eat the curly, pass along its loc
     assert(aTok.m_type == TOK_OPEN_CURLY);
+
+    Token bTok;
+    getNextToken(bTok);
     unreadToken();
 
+    if(bTok.m_type == TOK_DOT)
+      {
+	return parseClassInstanceInitialization(identId, aTok.m_locator);
+      }
+
+    return parseArrayInitialization(identId, aTok.m_locator);
+  } //parseArrayOrClassInitialization
+
+  Node * Parser::parseArrayInitialization(u32 identId, Locator loc)
+  {
     NodeListArrayInitialization * rtnList = new NodeListArrayInitialization(m_state); //delete if error
-    rtnList->setNodeLocation(aTok.m_locator);
     assert(rtnList);
+    rtnList->setNodeLocation(loc);
 
     if(!parseArrayItemInit(identId, rtnList))
       {
@@ -4454,10 +4469,12 @@ namespace MFM {
     else if((aTok.m_type != TOK_COMMA))
       {
 	u32 n = rtnList->getNumberOfNodes();
-	if(!(n == 0 && (aTok.m_type == TOK_OPEN_CURLY)))
+	unreadToken();
+	//if(!(n == 0 && (aTok.m_type == TOK_OPEN_CURLY)))
+	// dot indicates a class initialization, not a primitive array
+	// what if an array of classes???
+	if((n != 0) || (aTok.m_type == TOK_DOT))
 	  {
-	    unreadToken();
-
 	    std::ostringstream msg;
 	    msg << "Unexpected input!! Token <" << m_state.getTokenDataAsString(aTok).c_str();
 	    msg << "> while parsing array variable " << m_state.m_pool.getDataAsString(identId).c_str();
@@ -4490,6 +4507,123 @@ namespace MFM {
     return parseArrayItemInit(identId, rtnList); //recurse
   } //parseArrayItemInit
 
+  Node * Parser::parseClassInstanceInitialization(u32 classvarId, Locator loc)
+  {
+    Symbol * tmpcsym = NULL;
+    if(!m_state.isIdInCurrentScope(classvarId, tmpcsym))
+      {
+	//cannot proceed!
+	m_state.abortShouldntGetHere();
+	return NULL;
+      }
+
+    UTI cuti = tmpcsym->getUlamTypeIdx();
+
+    NodeListClassInit * rtnList = new NodeListClassInit(cuti, classvarId, m_state); //delete if error
+    assert(rtnList);
+    rtnList->setNodeLocation(loc);
+
+    if(!parseClassItemInit(classvarId, cuti, rtnList))
+      {
+	delete rtnList;
+	rtnList = NULL; //quit? read until close_curly? semi-colon, or comma?
+      }
+    return rtnList;
+  } //parseClassInstanceInitialization
+
+  bool Parser::parseClassItemInit(u32 classvarId, UTI classUTI, NodeListClassInit * rtnList)
+  {
+    Token aTok;
+    getNextToken(aTok);
+
+    assert(rtnList);
+    u32 n = rtnList->getNumberOfNodes();
+
+    if(aTok.m_type == TOK_CLOSE_CURLY)
+      {
+	return true; //done
+      }
+    else if((aTok.m_type != TOK_COMMA))
+      {
+	//if(!(n == 0 && (aTok.m_type == TOK_OPEN_CURLY)))
+	// dot indicates a class initialization, not a primitive array
+	// what if an array of classes???
+	if(!((n == 0) && (aTok.m_type == TOK_DOT)))
+	  {
+	    unreadToken();
+
+	    std::ostringstream msg;
+	    msg << "Unexpected input!! Token <" << m_state.getTokenDataAsString(aTok).c_str();
+	    msg << "> while parsing class variable " << m_state.m_pool.getDataAsString(classvarId).c_str();
+	    msg << ", init item " << (n + 1);
+	    MSG(&aTok, msg.str().c_str(), ERR);
+	    return false; //original caller owns rtnList, should delete if empty!
+	  }
+	//else n is 0 and a dot
+      }
+    else //is a comma
+      {
+	getNextToken(aTok);
+	if(!((aTok.m_type == TOK_DOT) || (aTok.m_type == TOK_CLOSE_CURLY)))
+	  {
+	    unreadToken();
+
+	    std::ostringstream msg;
+	    msg << "Unexpected input!! Token <" << m_state.getTokenDataAsString(aTok).c_str();
+	    msg << "> while parsing class variable " << m_state.m_pool.getDataAsString(classvarId).c_str();
+	    msg << ", init item " << (n + 1);
+	    MSG(&aTok, msg.str().c_str(), ERR);
+	    return false; //original caller owns rtnList, should delete if empty!
+	  }
+	else if(aTok.m_type == TOK_CLOSE_CURLY)
+	  return true;
+      }
+
+    //pls continue..get data member name
+    Token iTok;
+    if(!getExpectedToken(TOK_IDENTIFIER, iTok, QUIETLY))
+      {
+	std::ostringstream msg;
+	msg << "Unexpected input!! Token <" << m_state.getTokenDataAsString(iTok).c_str();
+	msg << "> while parsing class variable " << m_state.m_pool.getDataAsString(classvarId).c_str();
+	msg << ", init item " << (n + 1) << ", expected a data member identifier";
+	MSG(&iTok, msg.str().c_str(), ERR);
+	return false; //original caller owns rtnList, should delete if empty!
+      }
+
+    // get =
+    Token pTok;
+    if(!getExpectedToken(TOK_EQUAL, pTok, QUIETLY))
+      {
+	std::ostringstream msg;
+	msg << "Unexpected input!! Token <" << m_state.getTokenDataAsString(pTok).c_str();
+	msg << "> while parsing class variable " << m_state.m_pool.getDataAsString(classvarId).c_str();
+	msg << ", init item " << (n + 1) << ", expected '='";
+	MSG(&pTok, msg.str().c_str(), ERR);
+	return false; //original caller owns rtnList, should delete if empty!
+      }
+
+    Node * assignNode = parseAssignExpr();
+    if(!assignNode)
+      {
+	std::ostringstream msg;
+	msg << "Initial value of class variable '" << m_state.m_pool.getDataAsString(classvarId).c_str();
+	msg << "', item " << (n + 1) << " '" << m_state.m_pool.getDataAsString(iTok.m_dataindex).c_str();
+	msg << "' is missing";
+	MSG(&pTok, msg.str().c_str(), ERR);
+	return false; //original caller owns rtnList, should delete if empty!
+      }
+    else
+      {
+	NodeInitDM * dmInitNode = new NodeInitDM(iTok.m_dataindex, assignNode, classUTI, m_state);
+	assert(dmInitNode);
+	dmInitNode->setNodeLocation(iTok.m_locator);
+
+	rtnList->addNodeToList(dmInitNode);
+      }
+    return parseClassItemInit(classvarId, classUTI, rtnList); //recurse
+  } //parseClassItemInit
+
   NodeConstantDef * Parser::parseRestOfConstantDef(NodeConstantDef * constNode, bool assignREQ, bool isStmt)
   {
     assert(constNode);
@@ -4506,10 +4640,12 @@ namespace MFM {
 	Node * exprNode = NULL;
 	if(eTok.m_type == TOK_OPEN_CURLY)
 	  {
-	    exprNode = parseArrayInitialization(constId); //returns a NodeListArrayInitialization
+	    exprNode = parseArrayOrClassInitialization(constId); //returns a NodeList
 	  }
 	else
-	  exprNode = parseExpression(); //makeAssignExprNode(leftNode);
+	  {
+	    exprNode = parseExpression(); //makeAssignExprNode(leftNode);
+	  }
 
 	if(exprNode)
 	  constNode->setConstantExpr(exprNode);

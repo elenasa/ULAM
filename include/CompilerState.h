@@ -301,6 +301,9 @@ namespace MFM{
     void replaceSymbolInCurrentScope(Symbol * oldsym, Symbol * newsym); //same id, new symbol
     bool takeSymbolFromCurrentScope(u32 id, Symbol *& rtnsymptr); //ownership to the caller
 
+    /** does a member class search for id */
+    bool findSymbolInAClass(u32 id, UTI inClassUTI, Symbol *& rtnsymptr, bool& isHazy);
+
     /** return true and the SymbolClassName pointer in 2nd arg if found; */
     bool alreadyDefinedSymbolClassName(u32 dataindex, SymbolClassName * & symptr);
 

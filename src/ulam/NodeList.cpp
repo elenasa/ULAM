@@ -201,7 +201,7 @@ namespace MFM{
     EvalStatus evs = NORMAL;
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
-	evs = m_nodes[i]->eval(); //for side-effects
+	evs = eval(i); //for side-effects
 	if(evs != NORMAL)
 	  break;
       }
@@ -303,4 +303,9 @@ namespace MFM{
       }
   }
 
+  bool NodeList::initDataMembersConstantValue(BV8K& bvref)
+  {
+    m_state.abortShouldntGetHere(); //only for NodeListClassInit
+    return false; //for compiler
+  }
 } //MFM
