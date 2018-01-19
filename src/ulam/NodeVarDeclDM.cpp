@@ -339,6 +339,8 @@ namespace MFM {
 		bool foldok = false;
 		if(m_state.isAClass(it))
 		  {
+#if 0
+		    //pos still not updated; after c&l
 		    BV8K bvtmp;
 		    u32 wlen = m_state.getUlamTypeByIndex(it)->getTotalWordSize();
 		    foldok = buildDefaultValue(wlen, bvtmp);
@@ -346,7 +348,8 @@ namespace MFM {
 		      {
 			m_varSymbol->setInitValue(bvtmp);
 		      }
-		    //foldok = true; //t41167 noop here, folding part of c&l for each dm
+#endif
+		    foldok = true; //t41167 noop here, folding part of c&l for each dm
 		  }
 		else
 		  foldok = foldArrayInitExpression(); //sets init constant value
@@ -717,17 +720,25 @@ namespace MFM {
 	    assert(dmwlen <= wlen);
 	    BV8K dmdv; //copies default BV
 
-	    if(m_state.getDefaultClassValue(nuti, dmdv))
+	    s32 arraysize = nut->getArraySize();
+	    arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //could be 0
+
+	    if(m_state.getDefaultClassValue(nuti, dmdv)) //uses scalar uti
 	      {
 		if(m_nodeInitExpr)
 		  {
 		    AssertBool initok = ((NodeListClassInit *) m_nodeInitExpr)->initDataMembersConstantValue(dmdv);
 		    assert(initok);
-		    m_varSymbol->setInitValue(dmdv); //t41167?
+		    if(arraysize > 1)
+		      {
+			BV8K bvarr;
+			m_state.getDefaultAsArray(bitsize, arraysize, 0, dmdv, bvarr); //pos 0
+			m_varSymbol->setInitValue(bvarr);
+		      }
+		    else
+		      m_varSymbol->setInitValue(dmdv); //t41167,8
 		  }
 
-		s32 arraysize = nut->getArraySize();
-		arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //could be 0
 		//updates dvref in place at position 'pos' in dvref
 		//from position 0 in dmdv (a copy)
 		m_state.getDefaultAsArray(bitsize, arraysize, pos, dmdv, dvref); //both scalar and arrays
@@ -736,7 +747,7 @@ namespace MFM {
 	  }
 
 	if(aok)
-	  foldDefaultClass(); //init value for m_varSymbol
+	  foldDefaultClass(); //init value for m_varSymbol t3512
       }
     else if(m_nodeInitExpr)
       {
@@ -898,6 +909,7 @@ namespace MFM {
 	fp->write("); //");
 	fp->write(m_varSymbol->getMangledName().c_str()); //comment
 	GCNL;
+	fp->write("\n");
       } //a class
   } //genCodeDefaultValueStringRegistrationNumber
 

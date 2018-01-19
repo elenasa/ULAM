@@ -213,14 +213,19 @@ namespace MFM{
 
     if(rtnok)
       {
-	s32 arraysize = m_state.getArraySize(nuti);
+	UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+	s32 arraysize = nut->getArraySize();
 	assert(arraysize >= 0); //t3847
+
+	u32 itemlen = nut->getBitSize();
+	u64 lastvalue = bvtmp.ReadLong((n - 1) *  itemlen, itemlen);
 	//propagate last value for any remaining items not initialized
 	for(s32 i = n; i < arraysize; i++)
 	  {
-	    rtnok |= buildArrayItemInitialValue(n - 1, i, bvtmp);
-	    if(!rtnok)
-	      break;
+	    bvtmp.WriteLong(i * itemlen, itemlen, lastvalue);
+	    //rtnok |= buildArrayItemInitialValue(n - 1, i, bvtmp);
+	    //if(!rtnok)
+	    //  break;
 	  }
       }
     return rtnok;

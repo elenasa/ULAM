@@ -141,6 +141,8 @@ namespace MFM{
 
     virtual void checkForSymbol();
 
+    virtual bool isDataMemberInit();
+
   private:
     NNO m_currBlockNo;
 

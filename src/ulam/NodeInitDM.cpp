@@ -62,6 +62,11 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
     m_ofClassUTI = cuti;
   }
 
+  bool NodeInitDM::isDataMemberInit()
+  {
+    return true;
+  }
+
   UTI NodeInitDM::checkAndLabelType()
   {
     UTI it = Nouti; //expression type
@@ -244,7 +249,7 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 
     setNodeType(suti);
 
-    if(!m_constSymbol->isReady() && m_nodeExpr)
+    if(!m_constSymbol->isInitValueReady() && m_nodeExpr)
       {
 	UTI foldrtn = foldConstantExpression();
 	if(foldrtn == Nav)
@@ -262,7 +267,7 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	  }
 	else
 	  {
-	    if(!(m_constSymbol->isReady() || m_constSymbol->isInitValueReady()))
+	    if(!(m_constSymbol->isInitValueReady()))
 	      {
 		std::ostringstream msg;
 		msg << "Constant symbol '" << getName() << "' is not ready";
@@ -324,7 +329,7 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
   {
     assert(m_constSymbol);
 
-    //need updated POS for genCode
+    //need updated POS for genCode after c&l
     Symbol * symptr = NULL;
     bool hazyKin = false;
     AssertBool gotIt = m_state.findSymbolInAClass(m_cid, m_ofClassUTI, symptr, hazyKin);
@@ -336,32 +341,32 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
     assert(UlamType::compare(nuti, getNodeType(), m_state) == UTIC_SAME);
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    u32 bitsize = nut->getBitSize();
+    u32 bitsize = nut->getTotalBitSize(); //t41168
 
     if(bitsize <= MAXBITSPERINT)
       {
 	u32 value = 0;
-	AssertBool gotVal = m_constSymbol->getValue(value);
+	AssertBool gotVal = m_constSymbol->getInitValue(value);
 	assert(gotVal);
 	bvref.Write(pos, bitsize, value);
       }
     else if(bitsize <= MAXBITSPERLONG)
       {
 	u64 value = 0;
-	AssertBool gotVal = m_constSymbol->getValue(value);
+	AssertBool gotVal = m_constSymbol->getInitValue(value);
 	assert(gotVal);
 	bvref.WriteLong(pos, bitsize, value);
       }
     else
       {
 	BV8K val8k;
-	AssertBool gotVal = m_constSymbol->getValue(val8k);
+	AssertBool gotVal = m_constSymbol->getInitValue(val8k);
 	assert(gotVal);
 	val8k.CopyBV<8192>(0, pos, bitsize, bvref);
       }
 
     return true; //pass on
-  }
+  } //buildDefaultValue
 
   void NodeInitDM::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
   {
@@ -440,37 +445,10 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 
     ULAMTYPE etyp = nut->getUlamTypeEnum();
     u32 pos = m_constSymbol->getPosOffset();
-    u32 bitsize = nut->getBitSize();
+    u32 bitsize = nut->getTotalBitSize();
     TMPSTORAGE cstor = nut->getTmpStorageTypeForTmpVar();
 
-    if(!nut->isScalar())
-      {
-	if(m_constSymbol->isLocalsFilescopeDef() ||  m_constSymbol->isDataMember() || m_constSymbol->isClassArgument())
-	  {
-	    //as a "data member", locals filescope, or class arguement: initialized in no-arg constructor (non-const)
-	    m_state.indent(fp);
-	    fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
-	    fp->write(" ");
-	    fp->write(m_constSymbol->getMangledName().c_str());
-	    fp->write(";"); GCNL;
-	  }
-	else
-	  {
-	    //immediate use (also, non-const)
-	    assert(m_nodeExpr);
-	    m_nodeExpr->genCode(fp, uvpass);
-
-	    m_state.indent(fp);
-	    fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
-	    fp->write(" ");
-	    fp->write(m_constSymbol->getMangledName().c_str());
-	    fp->write("("); // use constructor (not equals)
-	    fp->write(m_state.getTmpVarAsString(nuti, uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str()); //VALUE
-	    fp->write(");"); GCNL;
-	    m_state.clearCurrentObjSymbolsForCodeGen();
-	  }
-      }
-    else if(etyp == Class)
+    if(etyp == Class)
       {
 	ULAMCLASSTYPE classtype = nut->getUlamClassType();
 
@@ -500,7 +478,8 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	  fp->write(".GetBits()"); //T into BV
 	else
 	  fp->write(".read()");
-	fp->write(");");
+	fp->write("); // ");
+	fp->write(m_constSymbol->getMangledName().c_str()); //comment
 	GCNL;
       }
     else if(etyp == UAtom)
@@ -511,7 +490,7 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
       }
     else
       {
-	//scalar, constant terminal, non-class primitive (32 or 64 bits), including String
+	//scalar, constant terminal, non-class primitive (32 or 64 bits), including String and arrays
 	UVPass uvpass3;
 	m_nodeExpr->genCode(fp, uvpass3);
 
@@ -525,8 +504,9 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	fp->write_decimal_unsigned(bitsize);
 	fp->write("u, ");
 	fp->write(m_state.getTmpVarAsString(nuti, uvpass3.getPassVarNum(), uvpass3.getPassStorage()).c_str());
-	//fp->write(m_nodeExpr->getName()); //only works for non-strings (without uvpass3)
-	fp->write(");");
+	fp->write("); // init for ");
+	//fp->write(getName());
+	fp->write(m_constSymbol->getMangledName().c_str()); //comment
 	GCNL;
       }
     return; //done

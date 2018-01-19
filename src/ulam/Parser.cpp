@@ -4603,7 +4603,18 @@ namespace MFM {
 	return false; //original caller owns rtnList, should delete if empty!
       }
 
-    Node * assignNode = parseAssignExpr();
+    Token rTok;
+    getNextToken(rTok);
+
+    Node * assignNode = NULL;
+    if(rTok.m_type == TOK_OPEN_CURLY)
+      assignNode = parseArrayInitialization(iTok.m_dataindex, rTok.m_locator); //eat curly, t41168
+    else
+      {
+	unreadToken();
+	assignNode = parseAssignExpr();
+      }
+
     if(!assignNode)
       {
 	std::ostringstream msg;

@@ -173,6 +173,11 @@ namespace MFM {
     return m_constSymbol->hasInitValue();
   }
 
+  bool NodeConstantDef::isDataMemberInit()
+  {
+    return false;
+  }
+
   UTI NodeConstantDef::checkAndLabelType()
   {
     UTI it = Nouti; //expression type
@@ -567,7 +572,8 @@ namespace MFM {
 	  }
 	else
 	  {
-	    if(!(m_constSymbol->isClassParameter()))
+	    //	    if(!(m_constSymbol->isClassParameter()))
+	    if(!(m_constSymbol->isClassParameter()) && !isDataMemberInit())
 	      {
 		// class args/param values do not belong on the CNSTSTACK (t3894)
 		u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
@@ -692,6 +698,8 @@ namespace MFM {
     bvtmp.WriteLong(0u, len, newconst); //is newconst packed?
     if(m_constSymbol->isClassParameter())
       m_constSymbol->setInitValue(bvtmp); //(isInitValueReady now)!
+    else if(isDataMemberInit())
+      m_constSymbol->setInitValue(bvtmp); //(isInitValueReady now)!
     else
       m_constSymbol->setValue(bvtmp); //isReady now! (e.g. ClassArgument, ModelParameter)
     return uti; //ok
@@ -727,6 +735,8 @@ namespace MFM {
       {
 	if(m_constSymbol->isClassParameter())
 	  m_constSymbol->setInitValue(bvtmp);
+	else if(isDataMemberInit())
+	  m_constSymbol->setInitValue(bvtmp); //t41168
 	else
 	  m_constSymbol->setValue(bvtmp); //isReady now! (e.g. ClassArgument, ModelParameter)
       }
@@ -805,7 +815,11 @@ namespace MFM {
     if(packFit == PACKEDLOADABLE)
       {
 	u64 dval = 0;
-	AssertBool gotVal = m_constSymbol->getValue(dval);
+	AssertBool gotVal = false;
+	if(m_constSymbol->isReady())
+	  gotVal = m_constSymbol->getValue(dval);
+	else if(m_constSymbol->hasInitValue() && m_constSymbol->isInitValueReady())
+	  gotVal = m_constSymbol->getInitValue(dval);
 	assert(gotVal);
 
 	UlamValue immUV;
@@ -947,7 +961,14 @@ namespace MFM {
 	if(nut->getUlamTypeEnum() == String)
 	  {
 	    u32 sval;
-	    m_constSymbol->getValue(sval);
+	    //m_constSymbol->getValue(sval);
+	    AssertBool gotVal = false;
+	    if(m_constSymbol->isReady())
+	      gotVal = m_constSymbol->getValue(sval);
+	    else if(m_constSymbol->hasInitValue() && m_constSymbol->isInitValueReady())
+	      gotVal = m_constSymbol->getInitValue(sval);
+	    assert(gotVal);
+
 	    //output comment for scalar constant value
 	    m_state.indentUlamCode(fp);
 	    fp->write("//");

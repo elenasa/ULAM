@@ -94,6 +94,8 @@ namespace MFM{
 
     virtual void checkForSymbol();
 
+    virtual bool isDataMemberInit();
+
   private:
     UTI m_ofClassUTI;
 
