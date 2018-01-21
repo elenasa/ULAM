@@ -4510,14 +4510,9 @@ namespace MFM {
   Node * Parser::parseClassInstanceInitialization(u32 classvarId, Locator loc)
   {
     Symbol * tmpcsym = NULL;
-    if(!m_state.isIdInCurrentScope(classvarId, tmpcsym))
-      {
-	//cannot proceed!
-	m_state.abortShouldntGetHere();
-	return NULL;
-      }
-
-    UTI cuti = tmpcsym->getUlamTypeIdx();
+    UTI cuti = Hzy; //default, wait until c&l if unseen
+    if(m_state.isIdInCurrentScope(classvarId, tmpcsym))
+      cuti = tmpcsym->getUlamTypeIdx();
 
     NodeListClassInit * rtnList = new NodeListClassInit(cuti, classvarId, m_state); //delete if error
     assert(rtnList);
@@ -4528,6 +4523,7 @@ namespace MFM {
 	delete rtnList;
 	rtnList = NULL; //quit? read until close_curly? semi-colon, or comma?
       }
+
     return rtnList;
   } //parseClassInstanceInitialization
 
@@ -4605,15 +4601,13 @@ namespace MFM {
 
     Token rTok;
     getNextToken(rTok);
+    unreadToken();
 
     Node * assignNode = NULL;
     if(rTok.m_type == TOK_OPEN_CURLY)
-      assignNode = parseArrayInitialization(iTok.m_dataindex, rTok.m_locator); //eat curly, t41168
+      assignNode = parseArrayOrClassInitialization(iTok.m_dataindex); //t41168, t41169
     else
-      {
-	unreadToken();
-	assignNode = parseAssignExpr();
-      }
+      assignNode = parseAssignExpr();
 
     if(!assignNode)
       {

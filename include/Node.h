@@ -105,7 +105,11 @@ namespace MFM{
 
     virtual UTI getNodeType() const;
 
-    void setNodeType(UTI ut);
+    virtual void setNodeType(UTI ut);
+
+    virtual void resetOfClassType(UTI cuti);
+
+    virtual void setClassType(UTI cuti);
 
     virtual TBOOL getStoreIntoAble() const;
 

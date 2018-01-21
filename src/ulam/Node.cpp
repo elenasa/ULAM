@@ -115,6 +115,17 @@ namespace MFM {
       m_state.addCompleteUlamTypeToThisContextSet(uti);
   }
 
+  void Node::resetOfClassType(UTI cuti)
+  {
+    return; //noop for all except NodeListClassInit, and NodeInitDM
+  }
+
+  void Node::setClassType(UTI cuti)
+  {
+    m_state.abortShouldntGetHere();
+    return; //noop for all except NodeListClassInit
+  }
+
   TBOOL Node::getStoreIntoAble() const
   {
     return m_storeIntoAble;

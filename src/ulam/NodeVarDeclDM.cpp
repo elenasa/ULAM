@@ -162,6 +162,14 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  void NodeVarDeclDM::setNodeType(UTI uti)
+  {
+    Node::setNodeType(uti); //cLEAN UP!! not necessary to override here!!
+    if(m_state.okUTItoContinue(uti) && m_state.isAClass(uti))
+      if(m_nodeInitExpr)
+    	m_nodeInitExpr->setClassType(uti);
+  }
+
   bool NodeVarDeclDM::hasASymbolDataMember()
   {
     return true;
@@ -339,21 +347,11 @@ namespace MFM {
 		bool foldok = false;
 		if(m_state.isAClass(it))
 		  {
-#if 0
-		    //pos still not updated; after c&l
-		    BV8K bvtmp;
-		    u32 wlen = m_state.getUlamTypeByIndex(it)->getTotalWordSize();
-		    foldok = buildDefaultValue(wlen, bvtmp);
-		    if(foldok)
-		      {
-			m_varSymbol->setInitValue(bvtmp);
-		      }
-#endif
+		    //pos still not updated; wait for after c&l
 		    foldok = true; //t41167 noop here, folding part of c&l for each dm
 		  }
 		else
 		  foldok = foldArrayInitExpression(); //sets init constant value
-
 
 		if(!foldok)
 		  {
@@ -812,44 +810,27 @@ namespace MFM {
 	  }
 
 	//generate code to replace uti in string index with runtime registration number
+	// remove myRegNum static variable for more general way (Sun Jan 21 10:11:24 2018)
 	for(u32 i = 0; i < arraysize; i++)
 	  {
-
 	    if(m_nodeInitExpr)
 	      {
 		regid = (UTI) tmpbv8k.Read(0 + i * (REGNUMBITS + STRINGIDXBITS), REGNUMBITS);
 		assert(regid > 0);
 	      }
-#if 0
-	    if(regid == cuti)
-	      {
-		m_state.indent(fp);
-		fp->write("initBV.Write(");
-		fp->write_decimal_unsigned(pos + startpos);
-		fp->write("u + ");
-		fp->write_decimal_unsigned(i * MAXBITSPERINT);
-		fp->write("u, ");
-		fp->write_decimal_unsigned(REGNUMBITS);
-		fp->write("u, myRegNum); //");
-		fp->write(m_varSymbol->getMangledName().c_str()); //comment
-		GCNL;
-	      }
-	    else
-#endif
-	      {
-		m_state.indent(fp);
-		fp->write("initBV.Write(");
-		fp->write_decimal_unsigned(pos + startpos);
-		fp->write("u + ");
-		fp->write_decimal_unsigned(i * MAXBITSPERINT);
-		fp->write("u, ");
-		fp->write_decimal_unsigned(REGNUMBITS);
-		fp->write("u, ");
-		fp->write(m_state.getTheInstanceMangledNameByIndex(regid).c_str());
-		fp->write(".GetRegistrationNumber()); //");
-     		fp->write(m_varSymbol->getMangledName().c_str()); //comment
-		GCNL;
-	      }
+
+	    m_state.indent(fp);
+	    fp->write("initBV.Write(");
+	    fp->write_decimal_unsigned(pos + startpos);
+	    fp->write("u + ");
+	    fp->write_decimal_unsigned(i * MAXBITSPERINT);
+	    fp->write("u, ");
+	    fp->write_decimal_unsigned(REGNUMBITS);
+	    fp->write("u, ");
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(regid).c_str());
+	    fp->write(".GetRegistrationNumber()); //");
+	    fp->write(m_varSymbol->getMangledName().c_str()); //comment
+	    GCNL;
 	  } //for loop
       }
     else if(etyp == Class)

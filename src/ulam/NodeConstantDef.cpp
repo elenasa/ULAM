@@ -779,6 +779,7 @@ namespace MFM {
 
   EvalStatus NodeConstantDef::eval()
   {
+    assert(m_constSymbol);
     if(m_constSymbol->isReady())
       return NORMAL;
     return ERROR;

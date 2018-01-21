@@ -67,6 +67,8 @@ namespace MFM{
 
     virtual bool hasASymbolDataMember();
 
+    virtual void setNodeType(UTI uti);
+
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual bool checkReferenceCompatibility(UTI uti);

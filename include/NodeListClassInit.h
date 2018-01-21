@@ -63,6 +63,10 @@ namespace MFM{
 
     virtual FORECAST safeToCastTo(UTI newType);
 
+    virtual void resetOfClassType(UTI cuti);
+
+    virtual void setClassType(UTI cuti);
+
     virtual UTI checkAndLabelType();
 
     virtual EvalStatus evalToStoreInto(u32 n);
@@ -72,6 +76,8 @@ namespace MFM{
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
     virtual bool isAConstant();
+
+    virtual UTI foldConstantExpression();
 
     virtual void genCode(File * fp, UVPass& uvpass);
 

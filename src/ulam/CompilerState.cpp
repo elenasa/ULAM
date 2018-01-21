@@ -2859,7 +2859,8 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   bool CompilerState::findSymbolInAClass(u32 id, UTI inClassUTI, Symbol *& rtnsymptr, bool& isHazy)
   {
-    assert(!isAnonymousClass(inClassUTI) && isASeenClass(inClassUTI));
+    //    assert(!isAnonymousClass(inClassUTI) && isASeenClass(inClassUTI));
+    assert(isASeenClass(inClassUTI));
     bool rtnOK = false;
     SymbolClass * csym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClass(inClassUTI, csym);

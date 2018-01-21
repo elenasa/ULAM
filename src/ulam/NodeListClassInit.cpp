@@ -59,16 +59,34 @@ namespace MFM{
     return m_state.getUlamTypeByIndex(newType)->safeCast(Node::getNodeType());
   }
 
+  void NodeListClassInit::resetOfClassType(UTI cuti)
+  {
+    m_state.abortShouldntGetHere(); //override Node's noop
+  }
+
+  void NodeListClassInit::setClassType(UTI cuti) //from parent
+  {
+    assert(m_state.okUTItoContinue(cuti));
+    if(!m_state.okUTItoContinue(m_classUTI) || !m_state.isComplete(m_classUTI))
+      {
+	m_classUTI = cuti; //reset
+      }
+    for(u32 i = 0; i < m_nodes.size(); i++)
+      {
+	m_nodes[i]->resetOfClassType(cuti);
+      }
+  }
+
   UTI NodeListClassInit::checkAndLabelType()
   {
     UTI rtnuti = Node::getNodeType();
 
-    if(m_state.okUTItoContinue(rtnuti))
-      return rtnuti; //t41167
+    if(m_state.okUTItoContinue(rtnuti) && m_state.isComplete(rtnuti))
+      return rtnuti; //t41167,t41169
 
-    UTI nuti = m_classUTI;
+    UTI nuti = m_classUTI; //initially of-class-uti
 
-    if(!m_state.okUTItoContinue(rtnuti) || !m_state.isComplete(nuti))
+    if(!m_state.isComplete(nuti) || m_state.isAnonymousClass(nuti))
       {
 	//incomplete, see if mapped; if so, update list
 	UTI mappedUTI = nuti;
@@ -83,7 +101,7 @@ namespace MFM{
 	    msg << "' UTI" << nuti << " while labeling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    nuti = mappedUTI;
+	    m_classUTI = nuti = mappedUTI;
 	  }
 
 	if(!m_state.isComplete(nuti)) //reloads to recheck for debug message
@@ -96,11 +114,16 @@ namespace MFM{
 	    return Hzy;
 	  }
 
-	m_classUTI = rtnuti = nuti; //reset here and list
-	for(u32 i = 0; i < m_nodes.size(); i++)
-	  ((NodeInitDM *) m_nodes[i])->resetOfClassType(nuti);
+	//m_classUTI = nuti; //reset here and list
+	//	for(u32 i = 0; i < m_nodes.size(); i++)
+	//  ((NodeInitDM *) m_nodes[i])->resetOfClassType(nuti);
       }
 
+    assert(m_state.okUTItoContinue(nuti) && m_state.isComplete(nuti));
+    for(u32 i = 0; i < m_nodes.size(); i++)
+      ((NodeInitDM *) m_nodes[i])->resetOfClassType(nuti); //?????
+
+    rtnuti = nuti; //if all goes well..
 
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
@@ -110,6 +133,7 @@ namespace MFM{
 	    std::ostringstream msg;
 	    msg << "Class Init Argument " << i + 1 << " has a problem";
 	    msg << " for variable " << m_state.m_pool.getDataAsString(m_classvarId).c_str();
+	    msg << " in class " << m_state.getUlamTypeNameBriefByIndex(m_classUTI).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    rtnuti = Nav;
 	  }
@@ -147,6 +171,13 @@ namespace MFM{
     for(u32 i = 0; i < m_nodes.size(); i++)
       isconstant &= m_nodes[i]->isAConstant();
     return isconstant;
+  }
+
+  UTI NodeListClassInit::foldConstantExpression()
+  {
+    for(u32 i = 0; i < m_nodes.size(); i++)
+      ((NodeInitDM *) m_nodes[i])->foldConstantExpression();
+    return Node::getNodeType();
   }
 
   void NodeListClassInit::genCode(File * fp, UVPass& uvpass)

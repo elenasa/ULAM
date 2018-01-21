@@ -436,6 +436,8 @@ namespace MFM {
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
 
+    setNodeType(it); //t41169 pass along to class init expression nodes
+
     if(m_nodeInitExpr)
       {
 	UTI eit = m_nodeInitExpr->checkAndLabelType();

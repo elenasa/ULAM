@@ -52,6 +52,8 @@ namespace MFM{
 
     virtual Node * instantiate();
 
+    virtual void updateLineage(NNO pno);
+
     virtual void printPostfix(File * f);
 
     virtual const char * getName();
@@ -60,9 +62,13 @@ namespace MFM{
 
     virtual void setSymbolPtr(SymbolWithValue * cvsymptr);
 
-    void resetOfClassType(UTI cuti);
+    virtual void resetOfClassType(UTI cuti);
+
+    virtual void setNodeType(UTI uti);
 
     virtual UTI checkAndLabelType();
+
+    virtual UTI foldConstantExpression();
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
@@ -73,6 +79,8 @@ namespace MFM{
     virtual void fixPendingArgumentNode();
 
     virtual bool assignClassArgValueInStubCopy();
+
+    virtual EvalStatus eval();
 
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 
