@@ -126,6 +126,11 @@ namespace MFM {
     return; //noop for all except NodeListClassInit
   }
 
+  bool Node::isClassInit()
+  {
+    return false; //default, except NodeListClassInit
+  }
+
   TBOOL Node::getStoreIntoAble() const
   {
     return m_storeIntoAble;
@@ -2384,7 +2389,10 @@ namespace MFM {
 	    sameur = false;
 	    hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
 	    //update ur to reflect "effective" self for this funccall
-	    hiddenarg2 << m_state.getHiddenArgName(); //ur
+	    if(stgcos->isTmpVarSymbol())
+	      hiddenarg2 << stgcos->getMangledName().c_str(); //t3811
+	    else
+	      hiddenarg2 << m_state.getHiddenArgName(); //ur t3102,3,4,6,7,8,9,10,11
 	    hiddenarg2 << ", " << calcPosOfCurrentObjectClassesAsString(uvpass); //relative off;
 	    hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(cosuti) << "u, &"; //len, t41120
 

@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "NodeInitDM.h"
+#include "NodeListArrayInitialization.h"
 #include "NodeListClassInit.h"
 #include "SymbolVariableDataMember.h"
 #include "CompilerState.h"
@@ -30,7 +31,6 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
   void NodeInitDM::updateLineage(NNO pno)
   {
     setYourParentNo(pno);
-    //    assert(m_state.getCurrentBlockNo() == m_currBlockNo);
     if(m_nodeExpr)
       m_nodeExpr->updateLineage(getNodeNo());
     if(m_nodeTypeDesc)
@@ -178,7 +178,7 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	return Hzy; //short-circuit
       }
 
-    assert(it != Nouti); //??
+    assert(it != Nouti); //?
 
     if(!m_nodeExpr->isAConstant())
       {
@@ -257,9 +257,6 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	    msg << " UTI" << cuti;
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
-
-	//Moved: esuti == Void 	    //void only valid use is as a func return type
-	// (to be more like NodeVarDecl)
 
 	//note: Void is flag that it's a list of constant initializers.
 	if((eit == Void))
@@ -350,6 +347,7 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	//make a clone for this dm initialization
 	m_constSymbol = (SymbolVariableDataMember *) new SymbolVariableDataMember(* ((SymbolVariableDataMember *) asymptr), true); //keep type (best guess)!
 	assert(m_constSymbol);
+	m_constSymbol->setHasInitValue();
       }
     else
       {
@@ -384,12 +382,28 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
     if(!m_state.isAClass(uti))
       return NodeConstantDef::foldConstantExpression();
 
-    //classes wait until after c&l to build default value; but pieces can be folded in advance
+    if(!m_state.isScalar(uti)) //array of classes (t41170)
+      {
+	if(((NodeListArrayInitialization *) m_nodeExpr)->foldArrayInitExpression()) //returns bool
+	  return uti;
+	else
+	  return Nav;
+      }
+
+    //scalar classes wait until after c&l to build default value; but pieces can be folded in advance
     return ((NodeListClassInit *) m_nodeExpr)->foldConstantExpression();
+  } //foldConstantExpression
+
+  UTI NodeInitDM::constantFold()
+  {
+    m_state.abortShouldntGetHere();
+    return foldConstantExpression(); //t41170
   }
 
   bool NodeInitDM::buildDefaultValue(u32 wlen, BV8K& bvref)
   {
+    bool rtnok = false;
+
     assert(m_constSymbol);
 
     //need updated POS for genCode after c&l
@@ -408,21 +422,25 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 
     if(m_state.isAClass(nuti) && !m_constSymbol->isInitValueReady())
       {
+	BV8K bvclass;
 	//like NodeVarDeclDM buildDefaultValue for a class
 	if(!m_state.isScalar(nuti))
-	  m_state.abortNotImplementedYet();
-
-	BV8K bvclass;
-	if(m_state.getDefaultClassValue(nuti, bvclass)) //uses scalar uti
 	  {
-
-	    AssertBool gotVal = ((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvclass); //at pos 0
-	    assert(gotVal);
-	    m_constSymbol->setInitValue(bvclass); //for consistency
+	    rtnok = (((NodeListArrayInitialization *) m_nodeExpr)->buildClassArrayValueInitialization(bvclass)); //at pos 0 (t41170)
 	  }
 	else
+	  {
+	    if(m_state.getDefaultClassValue(nuti, bvclass)) //uses scalar uti
+	      {
+		rtnok = ((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvclass); //at pos 0
+	      }
+	  }
+
+	if(!rtnok)
 	  return false;
-      }
+
+	m_constSymbol->setInitValue(bvclass); //for consistency
+      } //class, fall thru..
 
     if(bitsize <= MAXBITSPERINT)
       {
@@ -518,11 +536,8 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 
   bool NodeInitDM::isAConstant()
   {
-    //assert(m_constSymbol);
-    //return m_constSymbol->isReady();
-    //return true;
     assert(m_nodeExpr);
-    return m_nodeExpr->isAConstant(); //t41169
+    return m_nodeExpr->isAConstant(); //t41169 (not m_constSymbol check)
   }
 
   void NodeInitDM::genCode(File * fp, UVPass& uvpass)
@@ -538,12 +553,12 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
     u32 bitsize = nut->getTotalBitSize();
     TMPSTORAGE cstor = nut->getTmpStorageTypeForTmpVar();
 
-    if(etyp == Class)
+    if( (etyp == Class))
       {
 	ULAMCLASSTYPE classtype = nut->getUlamClassType();
 
-	//recurse to its NodeListClassInit with an immediate tmp var w default value
-	// (like NodeVarDeclDM)
+	//recurse to its NodeListClassInit with an immediate tmp var w default value(s)
+	// (like NodeVarDeclDM) -- in case of Strings.
 	s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
 	m_state.indent(fp);
 	fp->write(nut->getLocalStorageTypeAsString().c_str());
@@ -551,11 +566,21 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum2, cstor).c_str());
 	fp->write(";"); GCNL;
 
-	UVPass uvpass2 = UVPass::makePass(tmpVarNum2, cstor, nuti, m_state.determinePackable(nuti), m_state, pos, 0); //default class data member as immediate
-	m_nodeExpr->genCode(fp, uvpass2);  //update initialized values before read (t41167)
+	UVPass uvpass2 = UVPass::makePass(tmpVarNum2, cstor, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //default class data member as immediate
+
+	if(nut->isScalar())
+	  {
+	    m_nodeExpr->genCode(fp, uvpass2);  //updates initialized values before read (t41167)
+	  }
+	else
+	  {
+	    // we use a special genCode, here, that can handle case of String data members
+	    // inefficent, each array item in turn.. (t41170)
+	    ((NodeListArrayInitialization *) m_nodeExpr)->genCodeClassInitArray(fp, uvpass2);
+	  }
 
 	m_state.indent(fp);
-	fp->write(m_state.getTmpVarAsString(nuti, uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str()); //immediate class storage
+	fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //immediate class storage
 	fp->write(".");
 	fp->write(nut->writeMethodForCodeGen().c_str()); //e.g. Write, WriteLong, etc
 	fp->write("(");
@@ -563,7 +588,7 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	fp->write("u, ");
 	fp->write_decimal_unsigned(bitsize);
 	fp->write("u, ");
-	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum2, cstor).c_str());
+	fp->write(uvpass2.getTmpVarAsString(m_state).c_str());
 	if((classtype == UC_ELEMENT))// && nut->isScalar()) yep.
 	  fp->write(".GetBits()"); //T into BV
 	else
@@ -595,7 +620,6 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	fp->write("u, ");
 	fp->write(m_state.getTmpVarAsString(nuti, uvpass3.getPassVarNum(), uvpass3.getPassStorage()).c_str());
 	fp->write("); // init for ");
-	//fp->write(getName());
 	fp->write(m_constSymbol->getMangledName().c_str()); //comment
 	GCNL;
       }
@@ -604,122 +628,27 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 
   void NodeInitDM::genCodeConstantArrayInitialization(File * fp)
   {
-    UTI nuti = getNodeType();
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-
-    if(nut->isScalar())
-      return;
-
-    //no-arg constructor to initialize const arrays using special method
-    // (based on: 'Init' + constants's mangled name)
-    m_state.m_currentIndentLevel+=2;
-    m_state.indent(fp);
-    fp->write(",");
-    fp->write(m_constSymbol->getMangledName().c_str());
-    fp->write("(Init");
-    fp->write(m_constSymbol->getMangledName().c_str());
-    fp->write("())\n");
-    m_state.m_currentIndentLevel-=2;
+    m_state.abortShouldntGetHere(); //the question!?
   } //genCodeConstantArrayInitialization
 
   void NodeInitDM::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
   {
-    UTI nuti = getNodeType();
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-
-    if(nut->isScalar())
-      return;
-
-    u32 len = nut->getTotalNumberOfWords();
-
-    if(declOnly)
-      {
-	//unique typedef for this constant array (number of u32's)
-	m_state.indent(fp);
-	fp->write("typedef u32 TypeForInit");
-	fp->write(m_constSymbol->getMangledName().c_str());
-	fp->write("[");
-	fp->write_decimal_unsigned(len);
-	fp->write("];\n");
-
-	//unique function to initialize const array "data members" in class no-arg constructor
-	m_state.indent(fp);
-	fp->write("TypeForInit");
-	fp->write(m_constSymbol->getMangledName().c_str());
-	fp->write("& Init");
-	fp->write(m_constSymbol->getMangledName().c_str());
-	fp->write("();"); GCNL;
-	fp->write("\n");
-	return;
-      }
-
-    UTI cuti = m_state.getCompileThisIdx();
-    //include the mangled class::
-    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-
-    //unique function to initialize const array "data members" in class no-arg constructor
-    m_state.indent(fp);
-    fp->write("template<class EC>\n");
-
-    m_state.indent(fp);
-    fp->write("typename ");
-    fp->write(cut->getUlamTypeMangledName().c_str());
-    fp->write("<EC>::");
-    fp->write("TypeForInit");
-    fp->write(m_constSymbol->getMangledName().c_str());
-    fp->write("& ");
-
-    fp->write(cut->getUlamTypeMangledName().c_str());
-    fp->write("<EC>::");
-    fp->write("Init");
-    fp->write(m_constSymbol->getMangledName().c_str());
-    fp->write("()\n");
-    m_state.indent(fp);
-    fp->write("{\n");
-
-    m_state.m_currentIndentLevel++;
-
-    bool isString = (nut->getUlamTypeEnum() == String);
-    if(isString)
-      m_constSymbol->printPostfixValueArrayStringAsComment(fp); //t3953,4
-
-    m_state.indent(fp);
-    fp->write("static ");
-    fp->write("u32 ");
-    fp->write("initVal[");
-    fp->write_decimal_unsigned(len);
-    fp->write("] = ");
-    m_constSymbol->printPostfixValue(fp);
-    fp->write(";"); GCNL;
-
-    // Note: Cannot initialize constants like data members in default class
-    // (see CS::genCodeClassDefaultConstantArray);
-    // Registration Number not yet available. (t3953)
-
-    m_state.indent(fp);
-    fp->write("return initVal;"); GCNL;
-
-    m_state.m_currentIndentLevel--;
-
-    m_state.indent(fp);
-    fp->write("} //Init");
-    fp->write(m_constSymbol->getMangledName().c_str()); GCNL;
-    fp->write("\n");
+    m_state.abortShouldntGetHere(); //the question!?
   } //generateBuiltinConstantArrayInitializationFunction
 
   void NodeInitDM::cloneAndAppendNode(std::vector<Node *> & cloneVec)
   {
     //include scalars for generated comments; arrays for constructor initialization
     //if(!m_state.isScalar(getNodeType()))
-      {
-	NodeInitDM * cloneofme = (NodeInitDM *) this->instantiate();
-	assert(cloneofme);
-	SymbolConstantValue * csymptr = NULL;
-	AssertBool isSym = this->getSymbolPtr((Symbol *&) csymptr);
-	assert(isSym);
-	((NodeInitDM *) cloneofme)->setSymbolPtr(csymptr); //another ptr to same symbol
-	cloneVec.push_back(cloneofme);
-      }
+    {
+      NodeInitDM * cloneofme = (NodeInitDM *) this->instantiate();
+      assert(cloneofme);
+      SymbolConstantValue * csymptr = NULL;
+      AssertBool isSym = this->getSymbolPtr((Symbol *&) csymptr);
+      assert(isSym);
+      ((NodeInitDM *) cloneofme)->setSymbolPtr(csymptr); //another ptr to same symbol
+      cloneVec.push_back(cloneofme);
+    }
   }
 
 } //end MFM

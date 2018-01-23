@@ -111,6 +111,8 @@ namespace MFM{
 
     virtual void setClassType(UTI cuti);
 
+    virtual bool isClassInit();
+
     virtual TBOOL getStoreIntoAble() const;
 
     void setStoreIntoAble(TBOOL s);

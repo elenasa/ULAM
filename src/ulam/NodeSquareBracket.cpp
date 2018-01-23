@@ -938,7 +938,7 @@ namespace MFM {
 
     uvpass = luvpass;
     m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, cossym); //dm to avoid leaks
-    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore the prior stack
+    ///////m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore the prior stack(t41170)
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
     // NO RESTORE -- up to caller for lhs.
   } //genCodeToStoreInto

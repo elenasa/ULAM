@@ -70,6 +70,8 @@ namespace MFM{
 
     virtual UTI foldConstantExpression();
 
+    virtual UTI constantFold();
+
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
     virtual void genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos);

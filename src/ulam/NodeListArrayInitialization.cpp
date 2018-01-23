@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include "NodeListArrayInitialization.h"
+#include "NodeListClassInit.h"
 #include "NodeTerminal.h"
 #include "CompilerState.h"
 #include "SymbolVariable.h"
@@ -51,6 +52,34 @@ namespace MFM{
 	rtnc |= m_nodes[i]->isAConstant();
       }
     return rtnc;
+  }
+
+  void NodeListArrayInitialization::setNodeType(UTI uti)
+  {
+    //normally changes from Void to array type by NodeVarDecl c&l.
+    Node::setNodeType(uti);
+    if(m_state.okUTItoContinue(uti) && m_state.isAClass(uti))
+      {
+	UTI scalaruti = m_state.getUlamTypeAsScalar(uti);
+	for(u32 i = 0; i < m_nodes.size(); i++)
+	  {
+	    m_nodes[i]->setClassType(scalaruti);
+	  }
+      }
+  }
+
+  void NodeListArrayInitialization::setClassType(UTI cuti) //from parent
+  {
+    assert(m_state.okUTItoContinue(cuti));
+    //    UTI nuti = Node::getNodeType(); Void initially as flag
+    if(m_state.okUTItoContinue(cuti) && m_state.isAClass(cuti))
+      {
+	UTI scalaruti = m_state.getUlamTypeAsScalar(cuti);
+	for(u32 i = 0; i < m_nodes.size(); i++)
+	  {
+	    m_nodes[i]->setClassType(scalaruti);
+	  }
+      }
   }
 
   UTI NodeListArrayInitialization::checkAndLabelType()
@@ -223,9 +252,6 @@ namespace MFM{
 	for(s32 i = n; i < arraysize; i++)
 	  {
 	    bvtmp.WriteLong(i * itemlen, itemlen, lastvalue);
-	    //rtnok |= buildArrayItemInitialValue(n - 1, i, bvtmp);
-	    //if(!rtnok)
-	    //  break;
 	  }
       }
     return rtnok;
@@ -263,10 +289,71 @@ namespace MFM{
     return true;
   } //buildArrayItemInitialValue
 
+  bool NodeListArrayInitialization::buildClassArrayValueInitialization(BV8K& bvtmp)
+  {
+    UTI nuti = Node::getNodeType();
+    assert(m_state.okUTItoContinue(nuti));
+    if(nuti == Void)
+      {
+	setNodeType(Hzy);
+	m_state.setGoAgain();
+	return false;
+      }
+
+    bool rtnok = true;
+    u32 n = m_nodes.size();
+    for(u32 i = 0; i < n; i++)
+      {
+	rtnok |= buildClassArrayItemInitialValue(i, i, bvtmp);
+	if(!rtnok)
+	  break;
+      }
+
+    if(rtnok)
+      {
+	UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+	s32 arraysize = nut->getArraySize();
+	assert(arraysize >= 0); //t3847
+
+	u32 itemlen = nut->getBitSize();
+	BV8K lastbv;
+	bvtmp.CopyBV((n - 1) *  itemlen, 0, itemlen, lastbv); //frompos, topos, len, destBV
+	//propagate last value for any remaining items not initialized
+	for(s32 i = n; i < arraysize; i++)
+	  {
+	    lastbv.CopyBV(0, i * itemlen, itemlen, bvtmp);
+	  }
+      }
+    return rtnok;
+  } //buildClassArrayValueInitialization
+
+  bool NodeListArrayInitialization::buildClassArrayItemInitialValue(u32 n, u32 pos, BV8K& bvtmp)
+  {
+    UTI nuti = Node::getNodeType();
+    u32 itemlen = m_state.getBitSize(nuti);
+
+    BV8K bvclass;
+    //note: starts with default in case of String data members; (pos arg unused)
+    if(m_state.getDefaultClassValue(nuti, bvclass)) //uses scalar uti
+      {
+	AssertBool gotVal = ((NodeListClassInit *) m_nodes[n])->initDataMembersConstantValue(bvclass); //at pos 0
+	assert(gotVal);
+	bvclass.CopyBV(0, n * itemlen, itemlen, bvtmp);	//frompos, topos, len, destBV
+      }
+    else
+      return false;
+
+    return true;
+  } //buildClassArrayItemInitialValue
+
   void NodeListArrayInitialization::genCode(File * fp, UVPass& uvpass)
   {
     UTI nuti = Node::getNodeType();
     assert(!m_state.isScalar(nuti));
+    assert(m_nodes.size() > 0 && (m_nodes[0] != NULL));
+
+    assert(!(m_nodes[0]->isClassInit())); //genCodeClassInitArray called instead (t41170)
+
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
     // returns a u32 array of the proper length built with BV8K
@@ -430,5 +517,75 @@ namespace MFM{
 
     uvpass = UVPass::makePass(tmpvarnum, nstor, nuti, m_state.determinePackable(nuti), m_state, 0, vsym->getId());
   } //genCode
+
+  void NodeListArrayInitialization::genCodeClassInitArray(File * fp, UVPass& uvpass)
+  {
+    UVPass uvpass2;
+    UTI nuti = Node::getNodeType();
+    UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
+    UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
+    TMPSTORAGE scalarcstor = scalarut->getTmpStorageTypeForTmpVar();
+
+    //inefficiently, each item must be done separately, in case of Strings.
+    u32 n = m_nodes.size();
+    for(u32 i = 0; i < n; i++)
+      {
+	s32 tmpVarNum = m_state.getNextTmpVarNumber();
+	m_state.indent(fp);
+	fp->write(scalarut->getLocalStorageTypeAsString().c_str());
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(scalaruti, tmpVarNum, scalarcstor).c_str());
+	fp->write(";"); GCNL;
+
+	uvpass2 = UVPass::makePass(tmpVarNum, scalarcstor, scalaruti, m_state.determinePackable(scalaruti), m_state, 0, 0); //default class data member as immediate
+
+	genCodeClassInitArrayItem(fp, uvpass, i, i, uvpass2);
+      }
+
+    s32 sarraysize = m_state.getArraySize(nuti);
+    assert(sarraysize >= 0); //t3847
+    u32 arraysize = (u32) sarraysize;
+    if(n < arraysize)
+      {
+	//repeat last one..
+	for(u32 j=n; j < arraysize; j++)
+	  genCodeClassInitArrayItem(fp, uvpass, j, n - 1, uvpass2);
+      }
+  } //genCodeClassInitArray
+
+  void NodeListArrayInitialization::genCodeClassInitArrayItem(File * fp, UVPass& uvpass, u32 n, u32 useitem, UVPass& uvpass2)
+  {
+    //inefficiently, each item must be done separately, in case of Strings.
+    //if fewer nodes than arraysize, last one is repeated
+    assert(useitem < m_nodes.size());
+    assert(m_nodes[useitem]->isClassInit());
+
+    UTI nuti = Node::getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    assert(!nut->isScalar());
+    u32 itemlen = nut->getBitSize();
+    ULAMCLASSTYPE classtype = nut->getUlamClassType();
+
+    if(useitem == n)
+      m_nodes[useitem]->genCode(fp, uvpass2);
+
+    //uvpass has the tmp var of the default immediate class array
+    m_state.indent(fp);
+    fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //immediate class storage
+    fp->write(".writeArrayItem("); //e.g. writeArrayItem
+    fp->write(uvpass2.getTmpVarAsString(m_state).c_str()); //tmp storage, read?
+    if((classtype == UC_ELEMENT))// && nut->isScalar()) yep.
+      fp->write(".GetBits()"); //T into BV
+    else
+      fp->write(".read()");
+    fp->write(", ");
+    fp->write_decimal_unsigned(n); //index (zero-based)
+    fp->write("u, ");
+    fp->write_decimal_unsigned(itemlen);
+    fp->write("u); // item [");
+    fp->write_decimal_unsigned(n); //index (zero-based)
+    fp->write("]");
+    GCNL;
+  }
 
 } //MFM

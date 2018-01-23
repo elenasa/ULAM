@@ -164,7 +164,7 @@ namespace MFM {
 
   void NodeVarDeclDM::setNodeType(UTI uti)
   {
-    Node::setNodeType(uti); //cLEAN UP!! not necessary to override here!!
+    Node::setNodeType(uti);
     if(m_state.okUTItoContinue(uti) && m_state.isAClass(uti))
       if(m_nodeInitExpr)
     	m_nodeInitExpr->setClassType(uti);

@@ -67,6 +67,8 @@ namespace MFM{
 
     virtual void setClassType(UTI cuti);
 
+    virtual bool isClassInit();
+
     virtual UTI checkAndLabelType();
 
     virtual EvalStatus evalToStoreInto(u32 n);
@@ -78,6 +80,8 @@ namespace MFM{
     virtual bool isAConstant();
 
     virtual UTI foldConstantExpression();
+
+    virtual UTI constantFold();
 
     virtual void genCode(File * fp, UVPass& uvpass);
 

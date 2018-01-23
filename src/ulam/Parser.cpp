@@ -4469,23 +4469,41 @@ namespace MFM {
     else if((aTok.m_type != TOK_COMMA))
       {
 	u32 n = rtnList->getNumberOfNodes();
-	unreadToken();
+	//unreadToken();
 	//if(!(n == 0 && (aTok.m_type == TOK_OPEN_CURLY)))
 	// dot indicates a class initialization, not a primitive array
-	// what if an array of classes???
-	if((n != 0) || (aTok.m_type == TOK_DOT))
+	// open curly indicates this or another array, e.g. an array of classes (t41170)
+	if(aTok.m_type == TOK_OPEN_CURLY)
 	  {
-	    std::ostringstream msg;
-	    msg << "Unexpected input!! Token <" << m_state.getTokenDataAsString(aTok).c_str();
-	    msg << "> while parsing array variable " << m_state.m_pool.getDataAsString(identId).c_str();
-	    msg << ", item " << (n + 1);
-	    MSG(&aTok, msg.str().c_str(), ERR);
-	    return false; //original caller owns rtnList, should delete if empty!
+	    //this first item, or another array, or class initialization
+	    // eat it!?
+	  }
+	else
+	  {
+	    unreadToken();
+	    if((n != 0) || (aTok.m_type == TOK_DOT))
+	      {
+		std::ostringstream msg;
+		msg << "Unexpected input!! Token <" << m_state.getTokenDataAsString(aTok).c_str();
+		msg << "> while parsing array variable " << m_state.m_pool.getDataAsString(identId).c_str();
+		msg << ", item " << (n + 1);
+		MSG(&aTok, msg.str().c_str(), ERR);
+		return false; //original caller owns rtnList, should delete if empty!
+	      }
 	  }
       }
-    //else continue..
+    //else is a comma, eat and continue..
 
-    Node * assignNode = parseAssignExpr();
+    Token rTok;
+    getNextToken(rTok);
+    unreadToken();
+
+    Node * assignNode = NULL;
+    if(rTok.m_type == TOK_DOT)
+      assignNode = parseClassInstanceInitialization(identId, aTok.m_locator); //t41170
+    else
+      assignNode = parseAssignExpr();
+
     if(!assignNode)
       {
 	u32 n = rtnList->getNumberOfNodes();
