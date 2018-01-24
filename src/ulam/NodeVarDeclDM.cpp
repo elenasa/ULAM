@@ -1065,8 +1065,7 @@ namespace MFM {
       return UNEVALUABLE;
 
     // packedloadable class (e.g. quark) or nonclass data member; t41167
-    //if(m_nodeInitExpr && m_varSymbol->hasInitValue())
-    if(m_nodeInitExpr && m_varSymbol->hasInitValue() && (classtype == UC_NOTACLASS))
+    if(m_nodeInitExpr)
       {
 	return NodeVarDecl::evalInitExpr();
       }

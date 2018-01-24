@@ -163,7 +163,7 @@ namespace MFM{
 
   void NodeListClassInit::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
-    m_state.abortShouldntGetHere();
+    return; //override NodeList
   } //calcMaxDepth
 
   bool NodeListClassInit::isAConstant()
@@ -188,6 +188,9 @@ namespace MFM{
 
   void NodeListClassInit::genCode(File * fp, UVPass& uvpass)
   {
+    //save before wipe out with each init dm; for local vars (o.w. empty)
+    std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
+
     m_state.indent(fp);
     fp->write("{\n");
 
@@ -196,6 +199,7 @@ namespace MFM{
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
 	m_nodes[i]->genCode(fp, uvpass); //NodeInitDMs..
+	m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //cleared by NodeVarDecl
       }
 
     m_state.m_currentIndentLevel--;

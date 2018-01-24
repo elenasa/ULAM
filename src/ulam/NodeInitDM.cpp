@@ -348,6 +348,7 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	m_constSymbol = (SymbolVariableDataMember *) new SymbolVariableDataMember(* ((SymbolVariableDataMember *) asymptr), true); //keep type (best guess)!
 	assert(m_constSymbol);
 	m_constSymbol->setHasInitValue();
+	assert(!hazyKin);
       }
     else
       {
@@ -549,9 +550,35 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
     ULAMTYPE etyp = nut->getUlamTypeEnum();
-    u32 pos = m_constSymbol->getPosOffset();
     u32 bitsize = nut->getTotalBitSize();
     TMPSTORAGE cstor = nut->getTmpStorageTypeForTmpVar();
+    u32 pos = m_constSymbol->getPosOffset();
+
+    const bool useLocalVar = (uvpass.getPassVarNum() == 0); //use variable name on stack t41171
+    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+    assert(!useLocalVar || cosSize==1);
+
+    if(cosSize > 0)
+      {
+	//refresh 'pos' when a local variable (t41172)
+	Symbol * asymptr = NULL;
+	bool hazyKin = false;
+	AssertBool isDef = m_state.findSymbolInAClass(m_cid, m_ofClassUTI, asymptr, hazyKin);
+	assert(isDef);
+	pos = asymptr->getPosOffset();
+	((SymbolVariableDataMember *) m_constSymbol)->setPosOffset(pos); //sanity
+      }
+
+    Symbol * stgcos = NULL;
+    Symbol * cos = NULL;
+    s32 rtnstgidx = -1;
+    if(cosSize > 0)
+      {
+	//avoid when empty since no "self" defined within initialization scope. t41170
+	rtnstgidx = loadStorageAndCurrentObjectSymbols(stgcos, cos);
+	assert(stgcos && cos);
+      }
+    assert(rtnstgidx <= 0 || useLocalVar);
 
     if( (etyp == Class))
       {
@@ -580,7 +607,10 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	  }
 
 	m_state.indent(fp);
-	fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //immediate class storage
+	if(useLocalVar)
+	  fp->write(cos->getMangledName().c_str()); //t41171
+	else
+	  fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //tmp class storage
 	fp->write(".");
 	fp->write(nut->writeMethodForCodeGen().c_str()); //e.g. Write, WriteLong, etc
 	fp->write("(");
@@ -610,7 +640,10 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	m_nodeExpr->genCode(fp, uvpass3);
 
 	m_state.indent(fp);
-	fp->write(m_state.getTmpVarAsString(nuti, uvpass.getPassVarNum(), uvpass.getPassStorage()).c_str()); //immediate class storage
+	if(useLocalVar)
+	  fp->write(cos->getMangledName().c_str()); //t41171
+	else
+	  fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //tmp class storage
 	fp->write(".");
 	fp->write(nut->writeMethodForCodeGen().c_str()); //e.g. Write, WriteLong, etc
 	fp->write("(");
@@ -618,7 +651,7 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	fp->write("u, ");
 	fp->write_decimal_unsigned(bitsize);
 	fp->write("u, ");
-	fp->write(m_state.getTmpVarAsString(nuti, uvpass3.getPassVarNum(), uvpass3.getPassStorage()).c_str());
+	fp->write(uvpass3.getTmpVarAsString(m_state).c_str());
 	fp->write("); // init for ");
 	fp->write(m_constSymbol->getMangledName().c_str()); //comment
 	GCNL;
