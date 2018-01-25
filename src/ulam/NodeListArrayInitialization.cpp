@@ -57,16 +57,43 @@ namespace MFM{
   void NodeListArrayInitialization::setNodeType(UTI uti)
   {
     //normally changes from Void to array type by NodeVarDecl c&l.
+    if(m_state.okUTItoContinue(uti) && m_state.isScalar(uti) && (uti != Void))
+      {
+	std::ostringstream msg;
+	msg << "Array of initializers for scalar type ";
+	msg << m_state.getUlamTypeNameBriefByIndex(uti);
+	msg << " is inconsistent";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	Node::setNodeType(Nav);
+	return;
+      }
+
     Node::setNodeType(uti);
     if(m_state.okUTItoContinue(uti) && m_state.isAClass(uti))
       {
+	bool aok = true;
 	UTI scalaruti = m_state.getUlamTypeAsScalar(uti);
 	for(u32 i = 0; i < m_nodes.size(); i++)
 	  {
-	    m_nodes[i]->setClassType(scalaruti);
+	    if(m_nodes[i]->isClassInit())
+	      m_nodes[i]->setClassType(scalaruti);
+	    else
+	      {
+		aok = false;
+		break;
+	      }
+	  }
+	if(!aok)
+	  {
+	    std::ostringstream msg;
+	    msg << "Array of class initializers for type ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(uti);
+	    msg << " has a problem";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    Node::setNodeType(Nav);
 	  }
       }
-  }
+  } //setNodeType
 
   void NodeListArrayInitialization::setClassType(UTI cuti) //from parent
   {
@@ -77,7 +104,9 @@ namespace MFM{
 	UTI scalaruti = m_state.getUlamTypeAsScalar(cuti);
 	for(u32 i = 0; i < m_nodes.size(); i++)
 	  {
-	    m_nodes[i]->setClassType(scalaruti);
+	    if(m_nodes[i]->isClassInit())
+	      m_nodes[i]->setClassType(scalaruti);
+	    //else quietly fail?
 	  }
       }
   }
@@ -88,6 +117,10 @@ namespace MFM{
     UTI rtnuti = Node::getNodeType(); //init to Void; //ok
     if(rtnuti == Hzy)
       rtnuti = Void; //resets
+
+    if(!m_state.okUTItoContinue(rtnuti))
+      return rtnuti; //short-circuit if Nav (or Nouti)
+
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
 	UTI puti = m_nodes[i]->checkAndLabelType();

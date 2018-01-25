@@ -81,12 +81,14 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
   {
     Node::setNodeType(uti);
     if(m_state.okUTItoContinue(uti) && m_state.isAClass(uti))
-      if(m_nodeExpr)
+      if(m_nodeExpr) //t41180
 	m_nodeExpr->setClassType(uti); //when another class
   }
 
   UTI NodeInitDM::checkAndLabelType()
   {
+    assert(m_nodeExpr); // REQUIRED (e.g. for class dm init)
+
     UTI it = Nouti; //expression type
 
     // instantiate, look up in its class block
@@ -147,15 +149,27 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	return Nav;
       }
 
-    setNodeType(suti); //t41169 pass along to class init expression node (scalar?)
+    if(m_state.isAClass(suti) && m_state.isScalar(suti))
+      {
+	if(!m_nodeExpr->isClassInit())
+	  {
+	    std::ostringstream msg;
+	    msg << "Invalid initialization of class type ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	    msg << " with symbol name '" << getName() << "'";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav); //t41180
+	    return Nav;
+	  }
+      }
 
-    assert(m_nodeExpr); // REQUIRED (e.g. for class dm init)
+    setNodeType(suti); //t41169 pass along to class init expression node (scalar)
 
     it = m_nodeExpr->checkAndLabelType();
     if(it == Nav)
       {
 	std::ostringstream msg;
-	msg << "Constant value expression for";
+	msg << "Initialization value expression for";
 	msg << " class data member: ";
 	msg << m_state.m_pool.getDataAsString(m_cid).c_str();
 	msg << ", is invalid";
@@ -168,7 +182,7 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
       {
 	UTI cuti = m_state.getCompileThisIdx();
 	std::ostringstream msg;
-	msg << "Constant value expression for: ";
+	msg << "Initialization value expression for: ";
 	msg << m_state.m_pool.getDataAsString(m_cid).c_str();
 	msg << ", is not ready, still hazy while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
@@ -183,7 +197,7 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
     if(!m_nodeExpr->isAConstant())
       {
 	std::ostringstream msg;
-	msg << "Constant value expression for";
+	msg << "Initialization value expression for";
 	msg << " class data member: ";
 	msg << m_state.m_pool.getDataAsString(m_cid).c_str();
 	msg << ", is not a constant";
@@ -197,7 +211,17 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
     if(it == Void)
       {
 	//only possible if array type with initializers;
-	assert(!m_state.okUTItoContinue(suti) || !m_state.isScalar(suti));
+	//assert(!m_state.okUTItoContinue(suti) || !m_state.isScalar(suti));
+        if(m_state.isScalar(suti))
+	  {
+	    std::ostringstream msg;
+	    msg << "Invalid initialization of scalar type ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	    msg << " with symbol name '" << getName() << "'";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
+	    return Nav;
+	  }
 
 	if(m_state.okUTItoContinue(suti) && m_state.isComplete(suti))
 	  {
@@ -231,9 +255,8 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
     if(m_state.okUTItoContinue(it) && m_state.okUTItoContinue(suti) && (m_state.isScalar(it) ^ m_state.isScalar(suti)))
       {
 	std::ostringstream msg;
-	msg << "Constant value expression for";
-	msg << " class data member: ";
-	msg << m_state.m_pool.getDataAsString(m_cid).c_str();
+	msg << "Initialization value expression for";
+	msg << " class data member: " << getName();
 	msg << ", array/scalar mismatch";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
