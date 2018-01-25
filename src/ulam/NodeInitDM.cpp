@@ -580,9 +580,54 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
       }
     assert(rtnstgidx <= 0 || useLocalVar);
 
+    //when writing into an element, compensate for ATOMFIRSTSTATEBITS
+    bool isVarElement = false;
+    if(useLocalVar)
+      {
+	UTI stgcosuti = stgcos->getUlamTypeIdx();
+	UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+	ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClassType();
+	if(stgclasstype == UC_ELEMENT)
+	  isVarElement = true;
+      }
+    else
+      {
+	UTI vuti = uvpass.getPassTargetType();
+	UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+	ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
+	if(vclasstype == UC_ELEMENT)
+	  isVarElement = true;
+      }
+
     if( (etyp == Class))
       {
 	ULAMCLASSTYPE classtype = nut->getUlamClassType();
+
+	//if we're building a class dm that might also have been initialized
+	// read its value within its uvpass or useLocalVar (t41176)
+	s32 tmpVarNum4 = m_state.getNextTmpVarNumber();
+
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(nut->getTmpStorageTypeAsString().c_str());
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum4, cstor).c_str());
+	fp->write(" = ");
+	if(useLocalVar)
+	  fp->write(cos->getMangledName().c_str()); //t41171
+	else
+	  fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //tmp class storage
+	fp->write(".");
+	fp->write(nut->readMethodForCodeGen().c_str()); //e.g. Read, ReadLong, etc
+	fp->write("(");
+	if(isVarElement)
+	  fp->write("T::ATOM_FIRST_STATE_BIT + "); //t41175
+	fp->write_decimal_unsigned(pos);
+	fp->write("u, ");
+	fp->write_decimal_unsigned(bitsize);
+	fp->write("u); // ");
+	fp->write(m_constSymbol->getMangledName().c_str()); //comment
+	GCNL;
 
 	//recurse to its NodeListClassInit with an immediate tmp var w default value(s)
 	// (like NodeVarDeclDM) -- in case of Strings.
@@ -591,7 +636,9 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	fp->write(nut->getLocalStorageTypeAsString().c_str());
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum2, cstor).c_str());
-	fp->write(";"); GCNL;
+	fp->write("(");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum4, cstor).c_str());
+	fp->write(");"); GCNL;
 
 	UVPass uvpass2 = UVPass::makePass(tmpVarNum2, cstor, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //default class data member as immediate
 
@@ -614,6 +661,8 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	fp->write(".");
 	fp->write(nut->writeMethodForCodeGen().c_str()); //e.g. Write, WriteLong, etc
 	fp->write("(");
+	if(isVarElement)
+	  fp->write("T::ATOM_FIRST_STATE_BIT + "); //t41175
 	fp->write_decimal_unsigned(pos);
 	fp->write("u, ");
 	fp->write_decimal_unsigned(bitsize);
@@ -647,6 +696,8 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	fp->write(".");
 	fp->write(nut->writeMethodForCodeGen().c_str()); //e.g. Write, WriteLong, etc
 	fp->write("(");
+	if(isVarElement)
+	  fp->write("T::ATOM_FIRST_STATE_BIT + "); //t41175
 	fp->write_decimal_unsigned(pos);
 	fp->write("u, ");
 	fp->write_decimal_unsigned(bitsize);

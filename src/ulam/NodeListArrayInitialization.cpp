@@ -522,20 +522,45 @@ namespace MFM{
   {
     UVPass uvpass2;
     UTI nuti = Node::getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
     UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
     TMPSTORAGE scalarcstor = scalarut->getTmpStorageTypeForTmpVar();
+    u32 itemlen = scalarut->getBitSize();
 
     //inefficiently, each item must be done separately, in case of Strings.
     u32 n = m_nodes.size();
     for(u32 i = 0; i < n; i++)
       {
+	//if we're building a class dm that might also have been initialized
+	// read each item value from within its uvpass (t41170)
+	s32 tmpVarNum4 = m_state.getNextTmpVarNumber();
+
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(nut->getArrayItemTmpStorageTypeAsString().c_str());
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(scalaruti, tmpVarNum4, scalarcstor).c_str());
+	fp->write(" = ");
+	fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //tmp class storage
+	fp->write(".readArrayItem(");
+	fp->write_decimal_unsigned(i); //index
+	fp->write("u, ");
+	fp->write_decimal_unsigned(itemlen); //len
+	fp->write("u); // item [");
+	fp->write_decimal_unsigned(i); //comment
+	fp->write("]");
+	GCNL;
+
+
 	s32 tmpVarNum = m_state.getNextTmpVarNumber();
 	m_state.indent(fp);
 	fp->write(scalarut->getLocalStorageTypeAsString().c_str());
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(scalaruti, tmpVarNum, scalarcstor).c_str());
-	fp->write(";"); GCNL;
+	fp->write("(");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum4, scalarcstor).c_str());
+	fp->write(");"); GCNL;
 
 	uvpass2 = UVPass::makePass(tmpVarNum, scalarcstor, scalaruti, m_state.determinePackable(scalaruti), m_state, 0, 0); //default class data member as immediate
 
