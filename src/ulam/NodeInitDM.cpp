@@ -211,7 +211,6 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
     if(it == Void)
       {
 	//only possible if array type with initializers;
-	//assert(!m_state.okUTItoContinue(suti) || !m_state.isScalar(suti));
         if(m_state.isScalar(suti))
 	  {
 	    std::ostringstream msg;
@@ -746,16 +745,13 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
   void NodeInitDM::cloneAndAppendNode(std::vector<Node *> & cloneVec)
   {
     //include scalars for generated comments; arrays for constructor initialization
-    //if(!m_state.isScalar(getNodeType()))
-    {
-      NodeInitDM * cloneofme = (NodeInitDM *) this->instantiate();
-      assert(cloneofme);
-      SymbolConstantValue * csymptr = NULL;
-      AssertBool isSym = this->getSymbolPtr((Symbol *&) csymptr);
-      assert(isSym);
-      ((NodeInitDM *) cloneofme)->setSymbolPtr(csymptr); //another ptr to same symbol
-      cloneVec.push_back(cloneofme);
-    }
+    NodeInitDM * cloneofme = (NodeInitDM *) this->instantiate();
+    assert(cloneofme);
+    SymbolConstantValue * csymptr = NULL;
+    AssertBool isSym = this->getSymbolPtr((Symbol *&) csymptr);
+    assert(isSym);
+    ((NodeInitDM *) cloneofme)->setSymbolPtr(csymptr); //another ptr to same symbol
+    cloneVec.push_back(cloneofme);
   }
 
 } //end MFM

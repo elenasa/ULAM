@@ -1165,7 +1165,6 @@ namespace MFM {
 	    fp->write_decimal(nut->getTotalBitSize()); //include arraysize
 	    fp->write("u> ");
 	  }
-	//fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
 	fp->write(m_varSymbol->getMangledName().c_str());
 	fp->write(";"); GCNL; //func call parameters aren't NodeVarDecl's
       }

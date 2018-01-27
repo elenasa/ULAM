@@ -98,7 +98,6 @@ namespace MFM{
   void NodeListArrayInitialization::setClassType(UTI cuti) //from parent
   {
     assert(m_state.okUTItoContinue(cuti));
-    //    UTI nuti = Node::getNodeType(); Void initially as flag
     if(m_state.okUTItoContinue(cuti) && m_state.isAClass(cuti))
       {
 	UTI scalaruti = m_state.getUlamTypeAsScalar(cuti);
@@ -539,8 +538,6 @@ namespace MFM{
 	else if(nwords == 2) //64
 	  {
 	    //right justify single u64 (t3979)
-	    //dhex << "HexU64(" << "0x" << std::hex << uvals[0] << ", 0x" << std::hex << uvals[1] << ")";
-	    //dhex << "0x" << std::hex << dval.ReadLong(0u, len); //uvals[0] & uvals[1]
 	    fp->write_decimal_unsignedlong(dval.ReadLong(0u, len));
 	    fp->write(";"); GCNL;
 	  }

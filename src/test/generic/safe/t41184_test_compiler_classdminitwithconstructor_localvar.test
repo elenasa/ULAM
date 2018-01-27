@@ -58,7 +58,8 @@ element A {
 
 
    //alternatively
-   A a = { .m_s = { .m_str = "foo" }, .m_bar = { .r = 7, .sp = true } };
+   //A a = { .m_s = { .m_str = "foo" }, .m_bar = { .r = 7, .sp = true } };
+   A a = { .m_s = { .m_str = c_str }, .m_bar = { .r = 7, .sp = true } };
 
    ASCII fasc2 = a.m_s.m_str[0];
    b2 = (fasc2 == 'f');

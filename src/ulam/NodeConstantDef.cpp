@@ -572,7 +572,6 @@ namespace MFM {
 	  }
 	else
 	  {
-	    //	    if(!(m_constSymbol->isClassParameter()))
 	    if(!(m_constSymbol->isClassParameter()) && !isDataMemberInit())
 	      {
 		// class args/param values do not belong on the CNSTSTACK (t3894)
@@ -581,7 +580,7 @@ namespace MFM {
 	      }
 	  }
 	return uti;
-      }
+      } //not scalar
 
     // if here, must be a constant..
     u64 newconst = 0; //UlamType format (not sign extended)

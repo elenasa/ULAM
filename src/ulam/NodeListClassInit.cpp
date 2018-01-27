@@ -73,7 +73,7 @@ namespace MFM{
       }
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
-	m_nodes[i]->resetOfClassType(cuti);
+	m_nodes[i]->resetOfClassType(cuti); //each a NodeInitDM
       }
   }
 

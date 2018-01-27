@@ -4469,8 +4469,6 @@ namespace MFM {
     else if((aTok.m_type != TOK_COMMA))
       {
 	u32 n = rtnList->getNumberOfNodes();
-	//unreadToken();
-	//if(!(n == 0 && (aTok.m_type == TOK_OPEN_CURLY)))
 	// dot indicates a class initialization, not a primitive array
 	// open curly indicates this or another array, e.g. an array of classes (t41170)
 	if(aTok.m_type == TOK_OPEN_CURLY)
@@ -4559,9 +4557,8 @@ namespace MFM {
       }
     else if((aTok.m_type != TOK_COMMA))
       {
-	//if(!(n == 0 && (aTok.m_type == TOK_OPEN_CURLY)))
 	// dot indicates a class initialization, not a primitive array
-	// what if an array of classes???
+	// what if an array of classes?
 	if(!((n == 0) && (aTok.m_type == TOK_DOT)))
 	  {
 	    unreadToken();
