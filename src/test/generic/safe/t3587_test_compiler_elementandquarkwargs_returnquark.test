@@ -5,6 +5,7 @@
 ##   gencode output: (unused variable Uh_5tlreg12) (interleaved asserts)
 ##	 Unsigned Arg: 2
 ##	 Unsigned Arg: 2
+##	 Unsigned Arg: 2
 ##
 Exit status: 2
 Ue_E : Qfoo { :< Unsigned(3) data(2u); > Bool(1) b(false);  System s();  Qfoo m_foo( Unsigned(3) data(2u); );  Int(32) test() {  ( )func s ( data cast )print . s ( data cast 2 cast == )assert . Qfoo f;  m_foo f ( )func . = s ( m_foo data . cast )print . s ( m_foo data . cast 2 cast == )assert . Qfoo g = m_foo ( )func .;  s ( g data . cast )print . s ( g data . cast 2 cast == )assert . g data . cast return } }

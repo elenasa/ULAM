@@ -436,6 +436,8 @@ namespace MFM {
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
 
+    setNodeType(it); //t41169 pass along to class init expression nodes
+
     if(m_nodeInitExpr)
       {
 	UTI eit = m_nodeInitExpr->checkAndLabelType();
@@ -723,7 +725,7 @@ namespace MFM {
     else
       setupStackWithQuarkForEval(slots);
 
-    if(m_nodeInitExpr)
+    if(m_nodeInitExpr) //t3706, t3587, t41167, t41171
       return evalInitExpr();
 
     return NORMAL;
@@ -917,7 +919,13 @@ namespace MFM {
     if(m_varSymbol->hasInitValue() && !m_state.isScalar(getNodeType()))
       return NORMAL;
 
+    UTI nuti = getNodeType();
+
     assert(m_nodeInitExpr);
+    if(m_nodeInitExpr->isClassInit())
+      return NORMAL; //t41171, t3706
+
+    //note: continue with classes for their default values, varSymbol may not have an init value!
 
     EvalStatus evs = NORMAL; //init
     // quark or non-class data member;
@@ -933,7 +941,6 @@ namespace MFM {
       }
 
     UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1);
-    UTI nuti = getNodeType();
     u32 slots = makeRoomForNodeType(nuti);
 
     evs = m_nodeInitExpr->eval();
@@ -1044,7 +1051,7 @@ namespace MFM {
     if(m_nodeInitExpr)
       {
 	//distinction between variable and instanceof
-	bool varcomesfirst = m_nodeInitExpr->isAConstructorFunctionCall() && (m_nodeInitExpr->getReferenceAble() == TBOOL_TRUE); //t41077, t41085
+	bool varcomesfirst = (m_nodeInitExpr->isAConstructorFunctionCall() && (m_nodeInitExpr->getReferenceAble() == TBOOL_TRUE)) || m_nodeInitExpr->isClassInit(); //t41077, t41085, t41171
 
 	if(varcomesfirst)
 	  {
@@ -1057,7 +1064,15 @@ namespace MFM {
 	    fp->write(";"); GCNL; //func call args aren't NodeVarDecl's
 	  }
 
+	if(m_nodeInitExpr->isClassInit()) //t41171-4
+	  m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol); //*********UPDATED GLOBAL;
+
+	UVPass uvpass2clear;
+	uvpass = uvpass2clear; //refresh
+
 	m_nodeInitExpr->genCode(fp, uvpass);
+
+	m_state.clearCurrentObjSymbolsForCodeGen(); //************CLEAR
 
 	if(!varcomesfirst)
 	  {

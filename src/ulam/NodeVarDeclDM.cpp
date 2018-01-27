@@ -5,6 +5,7 @@
 #include "SymbolVariableDataMember.h"
 #include "SymbolVariableStack.h"
 #include "NodeIdent.h"
+#include "NodeListClassInit.h"
 #include "NodeTerminal.h"
 #include "MapDataMemberDesc.h"
 
@@ -159,6 +160,14 @@ namespace MFM {
   const std::string NodeVarDeclDM::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
+  }
+
+  void NodeVarDeclDM::setNodeType(UTI uti)
+  {
+    Node::setNodeType(uti);
+    if(m_state.okUTItoContinue(uti) && m_state.isAClass(uti))
+      if(m_nodeInitExpr)
+    	m_nodeInitExpr->setClassType(uti);
   }
 
   bool NodeVarDeclDM::hasASymbolDataMember()
@@ -335,7 +344,16 @@ namespace MFM {
 	  {
 	    if(!(m_varSymbol->isInitValueReady()))
 	      {
-		if(!foldArrayInitExpression()) //sets init constant value
+		bool foldok = false;
+		if(m_state.isAClass(it))
+		  {
+		    //pos still not updated; wait for after c&l
+		    foldok = true; //t41167 noop here, folding part of c&l for each dm
+		  }
+		else
+		  foldok = foldArrayInitExpression(); //sets init constant value
+
+		if(!foldok)
 		  {
 		    if((getNodeType() == Nav) || m_nodeInitExpr->getNodeType() == Nav)
 		      return Nav;
@@ -700,10 +718,25 @@ namespace MFM {
 	    assert(dmwlen <= wlen);
 	    BV8K dmdv; //copies default BV
 
-	    if(m_state.getDefaultClassValue(nuti, dmdv))
+	    s32 arraysize = nut->getArraySize();
+	    arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //could be 0
+
+	    if(m_state.getDefaultClassValue(nuti, dmdv)) //uses scalar uti
 	      {
-		s32 arraysize = nut->getArraySize();
-		arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //could be 0
+		if(m_nodeInitExpr)
+		  {
+		    AssertBool initok = ((NodeListClassInit *) m_nodeInitExpr)->initDataMembersConstantValue(dmdv);
+		    assert(initok);
+		    if(arraysize > 1)
+		      {
+			BV8K bvarr;
+			m_state.getDefaultAsArray(bitsize, arraysize, 0, dmdv, bvarr); //pos 0
+			m_varSymbol->setInitValue(bvarr);
+		      }
+		    else
+		      m_varSymbol->setInitValue(dmdv); //t41167,8
+		  }
+
 		//updates dvref in place at position 'pos' in dvref
 		//from position 0 in dmdv (a copy)
 		m_state.getDefaultAsArray(bitsize, arraysize, pos, dmdv, dvref); //both scalar and arrays
@@ -712,7 +745,7 @@ namespace MFM {
 	  }
 
 	if(aok)
-	  foldDefaultClass(); //init value for m_varSymbol
+	  foldDefaultClass(); //init value for m_varSymbol t3512
       }
     else if(m_nodeInitExpr)
       {
@@ -767,9 +800,25 @@ namespace MFM {
 
     if(etyp == String)
       {
+	UTI regid = m_state.getCompileThisIdx();
+	BV8K tmpbv8k;
+
+	if(m_nodeInitExpr)
+	  {
+	    AssertBool gotValue = ((SymbolWithValue *) m_varSymbol)->getInitValue(tmpbv8k);
+	    assert(gotValue);
+	  }
+
 	//generate code to replace uti in string index with runtime registration number
+	// remove myRegNum static variable for more general way (Sun Jan 21 10:11:24 2018)
 	for(u32 i = 0; i < arraysize; i++)
 	  {
+	    if(m_nodeInitExpr)
+	      {
+		regid = (UTI) tmpbv8k.Read(0 + i * (REGNUMBITS + STRINGIDXBITS), REGNUMBITS);
+		assert(regid > 0);
+	      }
+
 	    m_state.indent(fp);
 	    fp->write("initBV.Write(");
 	    fp->write_decimal_unsigned(pos + startpos);
@@ -777,10 +826,12 @@ namespace MFM {
 	    fp->write_decimal_unsigned(i * MAXBITSPERINT);
 	    fp->write("u, ");
 	    fp->write_decimal_unsigned(REGNUMBITS);
-	    fp->write("u, myRegNum); //");
+	    fp->write("u, ");
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(regid).c_str());
+	    fp->write(".GetRegistrationNumber()); //");
 	    fp->write(m_varSymbol->getMangledName().c_str()); //comment
 	    GCNL;
-	  }
+	  } //for loop
       }
     else if(etyp == Class)
       {
@@ -793,15 +844,23 @@ namespace MFM {
 
 	s32 tmpVarNum = m_state.getNextTmpVarNumber();
 	TMPSTORAGE cstor = nut->getTmpStorageTypeForTmpVar();
+	s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
 
 	m_state.indent(fp);
-	fp->write("const ");
+	if(!m_nodeInitExpr)
+	  fp->write("const ");
 	fp->write(nut->getLocalStorageTypeAsString().c_str());
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, cstor).c_str());
 	fp->write(";"); GCNL;
 
-	s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
+
+	if(m_nodeInitExpr)
+	  {
+	    UVPass uvpass = UVPass::makePass(tmpVarNum, cstor, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //default class data member as immediate
+	    m_nodeInitExpr->genCode(fp, uvpass);  //update initialized values before read (t41167)
+	  }
+
 	m_state.indent(fp);
 	fp->write("const ");
 	fp->write(nut->getTmpStorageTypeAsString().c_str());
@@ -831,6 +890,7 @@ namespace MFM {
 	fp->write("); //");
 	fp->write(m_varSymbol->getMangledName().c_str()); //comment
 	GCNL;
+	fp->write("\n");
       } //a class
   } //genCodeDefaultValueStringRegistrationNumber
 
@@ -1004,8 +1064,8 @@ namespace MFM {
     if((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() > MAXSTATEBITS))
       return UNEVALUABLE;
 
-    // packedloadable class (e.g. quark) or nonclass data member;
-    if(m_nodeInitExpr && m_varSymbol->hasInitValue())
+    // packedloadable class (e.g. quark) or nonclass data member; t41167
+    if(m_nodeInitExpr)
       {
 	return NodeVarDecl::evalInitExpr();
       }
@@ -1105,7 +1165,6 @@ namespace MFM {
 	    fp->write_decimal(nut->getTotalBitSize()); //include arraysize
 	    fp->write("u> ");
 	  }
-	//fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
 	fp->write(m_varSymbol->getMangledName().c_str());
 	fp->write(";"); GCNL; //func call parameters aren't NodeVarDecl's
       }

@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
- * NodeList.h - Basic handling a list of nodes for ULAM
+ * NodeListClassInit.h - List of class initnodes for ULAM
  *
- * Copyright (C) 2015-2018 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2018 Ackleyshack LLC.
+ * Copyright (C) 2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2018 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -26,47 +26,32 @@
  */
 
 /**
-  \file NodeList.h - Basic handling a list of nodes for ULAM
+  \file NodeListClassInit.h - List of class init nodes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2018 All rights reserved.
+  \date (C) 2018 All rights reserved.
   \gpl
 */
 
 
-#ifndef NODELIST_H
-#define NODELIST_H
+#ifndef NODELISTCLASSINIT_H
+#define NODELISTCLASSINIT_H
 
-#include "Node.h"
-#include <vector>
+#include "NodeList.h"
 
 namespace MFM{
 
-  struct CompilerState; //forward
-
-  class NodeList : public Node
+  class NodeListClassInit : public NodeList
   {
   public:
 
-    NodeList(CompilerState & state);
+    NodeListClassInit(UTI cuti, u32 classvarid, CompilerState & state);
 
-    NodeList(const NodeList& ref);
+    NodeListClassInit(const NodeListClassInit& ref);
 
-    virtual ~NodeList();
+    virtual ~NodeListClassInit();
 
     virtual Node * instantiate();
-
-    virtual void updateLineage(NNO pno);
-
-    virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
-
-    bool exchangeKids(Node * oldnptr, Node * newnptr, u32 n);
-
-    virtual bool findNodeNo(NNO n, Node *& foundNode);
-
-    virtual void checkAbstractInstanceErrors();
-
-    virtual void resetNodeLocations(Locator loc);
 
     virtual void print(File * fp);
 
@@ -76,35 +61,27 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual FORECAST safeToCastTo(UTI newType);
+
+    virtual void resetOfClassType(UTI cuti);
+
+    virtual void setClassType(UTI cuti);
+
+    virtual bool isClassInit();
+
     virtual UTI checkAndLabelType();
-
-    virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
-
-    virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
-
-    virtual void printUnresolvedLocalVariables(u32 fid);
-
-    virtual EvalStatus eval();
-
-    virtual EvalStatus eval(u32 n);
 
     virtual EvalStatus evalToStoreInto(u32 n);
 
-    void addNodeToList(Node * argNode);
+    virtual void printUnresolvedLocalVariables(u32 fid);
 
-    u32 getNumberOfNodes() const;
+    virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
-    u32 getTotalSlotsNeeded();
+    virtual bool isAConstant();
 
-    Node * getNodePtr (u32 n) const;
+    virtual UTI foldConstantExpression();
 
-    UTI getNodeType(u32 n); //overloads Node.h
-
-    bool isAConstant(u32 n);
-
-    bool isFunctionCall(u32 n);
-
-    virtual bool isAList();
+    virtual UTI constantFold();
 
     virtual void genCode(File * fp, UVPass& uvpass);
 
@@ -119,13 +96,13 @@ namespace MFM{
     virtual bool initDataMembersConstantValue(BV8K& bvref);
 
   protected:
-    std::vector<Node *> m_nodes;
 
   private:
-    void clearNodeList();
+    UTI m_classUTI;
+    u32 m_classvarId;
 
   };
 
 } //MFM
 
-#endif //NODELIST_H
+#endif //NODELISTCLASSINIT_H

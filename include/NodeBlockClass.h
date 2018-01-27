@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeBlockClass.h - Basic Node for handling Classes for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2018 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeBlockClass.h - Basic Node for handling Classes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2018 All rights reserved.
   \gpl
 */
 
@@ -218,6 +218,8 @@ namespace MFM{
     NodeBlockClass * m_superBlockNode;
 
     bool m_isEmpty; //replaces separate node
+    bool m_registeredForTestInstance;
+
     UTI m_templateClassParentUTI;
     NodeList * m_nodeParameterList; //constants
     NodeList * m_nodeArgumentList;  //template instance
@@ -262,6 +264,8 @@ namespace MFM{
     void generateUlamClassGetMangledName(File * fp, bool declOnly);
 
     std::string removePunct(std::string str);
+
+    void generateTestInstanceRun(File * fp);
   };
 
 }

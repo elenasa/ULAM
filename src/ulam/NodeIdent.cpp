@@ -178,7 +178,7 @@ namespace MFM {
   FORECAST NodeIdent::safeToCastTo(UTI newType)
   {
     //ulamtype checks for complete, non array, and type specific rules
-    return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
+    return m_state.getUlamTypeByIndex(newType)->safeCast(Node::getNodeType());
   } //safeToCastTo
 
   UTI NodeIdent::checkAndLabelType()
@@ -1255,6 +1255,9 @@ namespace MFM {
 
   void NodeIdent::genCode(File * fp, UVPass & uvpass)
   {
+    //if(uvpass.getPassStorage() == TMPAUTOREF)
+    //  Node::genCodeConvertATmpVarAutoRefIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack ??t3832
+
     //return the ptr for an array; square bracket will resolve down to the immediate data
     makeUVPassForCodeGen(uvpass);
 
@@ -1266,6 +1269,9 @@ namespace MFM {
 
   void NodeIdent::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
+    if(uvpass.getPassStorage() == TMPAUTOREF)
+      Node::genCodeConvertATmpVarAutoRefIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
+
     //e.g. return the ptr for an array;
     //square bracket will resolve down to the immediate data
     makeUVPassForCodeGen(uvpass);
@@ -1273,15 +1279,15 @@ namespace MFM {
     //******UPDATED GLOBAL; no restore!!!**************************
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol);
 
-    if(uvpass.getPassStorage() == TMPAUTOREF)
-      Node::genCodeConvertATmpVarAutoRefIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
+    //    if(uvpass.getPassStorage() == TMPAUTOREF)
+    //  Node::genCodeConvertATmpVarAutoRefIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
   } //genCodeToStoreInto
 
   // overrides NodeTerminal that reads into a tmp var BitVector
   void NodeIdent::genCodeReadIntoATmpVar(File * fp, UVPass & uvpass)
   {
-    if(uvpass.getPassStorage() == TMPAUTOREF)
-      Node::genCodeConvertATmpVarAutoRefIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
+    //    if(uvpass.getPassStorage() == TMPAUTOREF)
+    //  Node::genCodeConvertATmpVarAutoRefIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
 
     Node::genCodeReadIntoATmpVar(fp, uvpass);
   }

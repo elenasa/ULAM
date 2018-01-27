@@ -63,6 +63,10 @@ namespace MFM{
 
     virtual bool isAConstant();
 
+    virtual void setNodeType(UTI uti);
+
+    virtual void setClassType(UTI cuti);
+
     virtual UTI checkAndLabelType();
 
     bool foldArrayInitExpression();
@@ -73,14 +77,23 @@ namespace MFM{
 
     bool buildArrayValueInitialization(BV8K& bvtmp);
 
+    bool buildClassArrayValueInitialization(BV8K& bvtmp);
+
     virtual void genCode(File * fp, UVPass& uvpass);
+
+    void genCodeClassInitArray(File * fp, UVPass& uvpass);
 
   protected:
 
   private:
     bool buildArrayItemInitialValue(u32 n, u32 pos, BV8K& bvtmp);
 
+    bool buildClassArrayItemInitialValue(u32 n, u32 pos, BV8K& bvtmp);
+
     bool foldInitExpression(u32 n);
+
+
+    void genCodeClassInitArrayItem(File * fp, UVPass& uvpass, u32 n, u32 useitem, UVPass& uvpass2);
   };
 
 } //MFM

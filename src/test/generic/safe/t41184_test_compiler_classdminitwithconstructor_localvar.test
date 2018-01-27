@@ -1,0 +1,111 @@
+## -*- mode:ulam -*-
+#=t41184_test_compiler_classdminitwithconstructor_localvar
+##
+## gen output: (+ interleaved asserts)
+## String(1) Arg: "bar"
+## Unsigned Arg: 3
+## Unsigned Arg: 3
+## Bool(3) Arg: 0x7 (true)
+## String(1) Arg: "foo"
+## Unsigned Arg: 7
+## Unsigned Arg: 7
+## Bool(3) Arg: 0x7 (true)
+##
+#!
+Exit status: 0
+Ue_A { Bool(1) b(true);  Bool(1) b2(false);  QBar m_bar( Unsigned(3) r(1u);  Bool(1) sp(false); );  QStr m_s( String(32) m_str("hello world"); );  Int(32) test() {  SystemU3 su3;  A mya = mya ( "bar" 3 cast )Self .;  Unsigned(8) fasc = mya m_s . m_str 0 [] .;  b fasc 98u == = su3 ( mya m_s . m_str . )print . su3 ( b )assert . Unsigned(3) chkr = mya m_bar . r .;  su3 ( chkr cast )print . su3 ( mya m_bar . r . cast )print . su3 ( mya m_bar . r . cast 3 cast == )assert . su3 ( mya m_bar . sp . cast )print . su3 ( mya m_bar . sp . )assert . A a ={.m_s ={.m_str = "foo", }, , .m_bar ={.r = 7u, , .sp = true, }, };  Unsigned(8) fasc2 = a m_s . m_str 0 [] .;  b2 fasc2 102u == = su3 ( a m_s . m_str . )print . su3 ( b2 )assert . Unsigned(3) chkr2 = a m_bar . r .;  su3 ( chkr2 cast )print . su3 ( a m_bar . r . cast )print . su3 ( a m_bar . r . cast 7 == )assert . su3 ( a m_bar . sp . cast )print . su3 ( a m_bar . sp . )assert . 0 cast return } }
+Uq_QBar { Bool(1) sp(false);  Unsigned(3) r( 1u);  <NOMAIN> }
+Uq_QStr { String(32) m_str( "hello world");  <NOMAIN> }
+Uq_SystemU3 : System { :<> <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by t41183, except without inheritance
+##
+#>A.ulam
+  ulam 3;
+local constant String c_str = "foo";
+element A {
+  Bool b, b2;
+  QBar m_bar;
+  QStr m_s;
+
+  Self(String astr, Unsigned(3) aidx)
+  {
+    //m_str init value is not a constant. can't do this!
+    //A a = { .m_s = { .m_str = astr }, .m_bar = { .r = aidx, .sp = true } };
+    m_s.m_str = astr;
+    m_bar.r = aidx;
+    m_bar.sp = true;
+  }
+
+ Int test() {
+   SystemU3 su3;
+
+   A mya("bar", 3);
+
+   ASCII fasc = mya.m_s.m_str[0];
+   b = (fasc == 'b');
+   su3.print(mya.m_s.m_str);
+   su3.assert(b);
+
+   Unsigned(3) chkr = mya.m_bar.r;
+   su3.print(chkr);
+   su3.print(mya.m_bar.r);
+   su3.assert(mya.m_bar.r == 3);
+
+   su3.print(mya.m_bar.sp);
+   su3.assert(mya.m_bar.sp);
+
+
+   //alternatively
+   //A a = { .m_s = { .m_str = "foo" }, .m_bar = { .r = 7, .sp = true } };
+   A a = { .m_s = { .m_str = c_str }, .m_bar = { .r = 7, .sp = true } };
+
+   ASCII fasc2 = a.m_s.m_str[0];
+   b2 = (fasc2 == 'f');
+   su3.print(a.m_s.m_str);
+   su3.assert(b2);
+
+   Unsigned(3) chkr2 = a.m_bar.r;
+   su3.print(chkr2);
+   su3.print(a.m_bar.r);
+   su3.assert(a.m_bar.r == 7);
+
+   su3.print(a.m_bar.sp);
+   su3.assert(a.m_bar.sp);
+
+   return 0;
+ }
+}
+
+#:QBar.ulam
+  ulam 3;
+quark QBar {
+  Bool sp;
+  Unsigned(3) r = 1;
+}
+
+#:QStr.ulam
+  ulam 3;
+quark QStr {
+  String m_str = "hello world";
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

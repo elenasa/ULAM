@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * Parser.h -  Basic Parse handling for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2018 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file Parser.h -  Basic Parse handling for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017   All rights reserved.
+  \date (C) 2014-2018   All rights reserved.
   \gpl
 */
 
@@ -43,6 +43,7 @@
 #include "CompilerState.h"
 #include "Node.h"
 #include "NodeListArrayInitialization.h"
+#include "NodeListClassInit.h"
 #include "NodeBinaryOpEqual.h"
 #include "NodeBinaryOp.h"
 #include "NodeBlock.h"
@@ -375,9 +376,12 @@ namespace MFM{
     bool parseRestOfDeclInitialization(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode);
     bool parseRestOfRefInitialization(const Token& identTok, NodeVarDecl * dNode);
 
-    Node * parseArrayInitialization(u32 identId);
-
+    Node * parseArrayOrClassInitialization(u32 identId);
+    Node * parseArrayInitialization(u32 identId, Locator loc);
     bool parseArrayItemInit(u32 identId, NodeListArrayInitialization * rtnList);
+
+    Node * parseClassInstanceInitialization(u32 classvarId, Locator loc);
+    bool parseClassItemInit(u32 classvarId, UTI classUTI, NodeListClassInit * rtnList);
 
     NodeConstantDef * parseRestOfConstantDef(NodeConstantDef * constNode, bool assignREQ = true, bool isStmt = true);
 
