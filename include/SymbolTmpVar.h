@@ -62,6 +62,8 @@ namespace MFM{
 
     virtual u32 getPosOffset();
 
+    virtual bool isPosOffsetReliable();
+
   protected:
 
   private:

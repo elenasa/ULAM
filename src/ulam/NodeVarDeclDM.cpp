@@ -61,31 +61,40 @@ namespace MFM {
     ULAMTYPE etyp = nut->getUlamTypeEnum();
     if(etyp == Class) //t3717, t3718, t3719, t3739, t3714, t3715, t3735
       {
-	SymbolClass * csym = NULL;
-	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
-	assert(isDefined);
-	NodeBlockClass * classblock = csym->getClassBlockNode();
-	assert(classblock);
 
-	s32 arraysize = nut->getArraySize();
-	//scalar has 'size=1'; empty array [0] is still '0'.
-	s32 size = (arraysize > NONARRAYSIZE ? arraysize : 1);
-
-	m_state.pushClassContext(csym->getUlamTypeIdx(), classblock, classblock, false, NULL);
-
-	for(s32 i = 0; i < size; i++)
+	if(m_nodeInitExpr)
 	  {
-	    if(i > 0)
-	      fp->write("), (");
-	    else
-	      fp->write("(");
-	    classblock->printPostfixDataMembersParseTree(fp, csym->getUlamTypeIdx()); //same default values
+	    fp->write("("); // start open paren
+	    m_nodeInitExpr->printPostfix(fp);
 	  }
-	m_state.popClassContext();
+	else
+	  {
+	    SymbolClass * csym = NULL;
+	    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
+	    assert(isDefined);
+	    NodeBlockClass * classblock = csym->getClassBlockNode();
+	    assert(classblock);
+
+	    s32 arraysize = nut->getArraySize();
+	    //scalar has 'size=1'; empty array [0] is still '0'.
+	    s32 size = (arraysize > NONARRAYSIZE ? arraysize : 1);
+
+	    m_state.pushClassContext(csym->getUlamTypeIdx(), classblock, classblock, false, NULL);
+
+	    for(s32 i = 0; i < size; i++)
+	      {
+		if(i > 0)
+		  fp->write("), (");
+		else
+		  fp->write("("); // start open paren
+		classblock->printPostfixDataMembersParseTree(fp, csym->getUlamTypeIdx()); //same default values
+	      }
+	    m_state.popClassContext();
+	  }
       }
     else
       {
-	fp->write("(");
+	fp->write("("); // start open paren
 
 	if(m_nodeInitExpr)
 	  {
@@ -149,7 +158,6 @@ namespace MFM {
       }
     MSG(getNodeLocationAsString().c_str(), note.str().c_str(), NOTE);
     accumsize += nsize;
-
   } //noteTypeAndName
 
   const char * NodeVarDeclDM::getName()
@@ -691,6 +699,9 @@ namespace MFM {
     assert(m_varSymbol);
     assert(m_varSymbol->isDataMember());
 
+    if(!m_varSymbol->isPosOffsetReliable())
+      return false;
+
     bool aok = false; //init as not ready
     UTI nuti = getNodeType(); //same as symbol uti, unless prior error
     assert(nuti == m_varSymbol->getUlamTypeIdx());
@@ -702,6 +713,9 @@ namespace MFM {
 
     u32 pos = m_varSymbol->getPosOffset();
     s32 bitsize = nut->getBitSize();
+
+    if(bitsize == 0)
+      return true; //no size to initialize (e.g. System)
 
     if(cut->getUlamClassType() == UC_ELEMENT)
       pos += ATOMFIRSTSTATEBITPOS; //atom-based (TypeField determined at runtime)
@@ -725,21 +739,13 @@ namespace MFM {
 	      {
 		if(m_nodeInitExpr)
 		  {
-		    AssertBool initok = ((NodeListClassInit *) m_nodeInitExpr)->initDataMembersConstantValue(dmdv);
+		    AssertBool initok = m_nodeInitExpr->initDataMembersConstantValue(dmdv);
 		    assert(initok);
-		    if(arraysize > 1)
-		      {
-			BV8K bvarr;
-			m_state.getDefaultAsArray(bitsize, arraysize, 0, dmdv, bvarr); //pos 0
-			m_varSymbol->setInitValue(bvarr);
-		      }
-		    else
-		      m_varSymbol->setInitValue(dmdv); //t41167,8
+		    m_varSymbol->setInitValue(dmdv); //t41167,8  t41185
 		  }
 
-		//updates dvref in place at position 'pos' in dvref
-		//from position 0 in dmdv (a copy)
-		m_state.getDefaultAsArray(bitsize, arraysize, pos, dmdv, dvref); //both scalar and arrays
+		//updates dvref in place at position 'pos'
+		dmdv.CopyBV(0, pos, nut->getTotalBitSize(), dvref); //both scalar and arrays (t41185)
 		aok = true;
 	      }
 	  }
@@ -1013,6 +1019,9 @@ namespace MFM {
 
     ((SymbolVariableDataMember *) m_varSymbol)->setPosOffset(offset);
 
+    if(m_state.isClassAQuarkUnion(m_state.getCompileThisIdx()))
+      return; //offset not incremented; all DM at pos 0 (t3209, t41145)
+
     UTI it = m_varSymbol->getUlamTypeIdx();
     assert(m_state.isComplete(it)); //moved error check to separate pass
     assert(it == getNodeType()); //same as symbol, or shouldn't be here!
@@ -1175,6 +1184,19 @@ namespace MFM {
 
   void NodeVarDeclDM::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
   { }
+
+  void NodeVarDeclDM::generateTestInstance(File * fp, bool runtest)
+  {
+    UTI nuti = getNodeType();
+    if(m_state.isAClass(nuti))
+      {
+	UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
+	SymbolClass * csym = NULL;
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(scalaruti, csym);
+	assert(isDefined);
+	csym->generateTestInstance(fp, runtest);
+      }
+  }
 
   void NodeVarDeclDM::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {

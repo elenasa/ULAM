@@ -544,7 +544,8 @@ namespace MFM {
 
 	setNodeType(it); //needed before safeToCast, and folding
 
-	if(!m_state.isScalar(eit))
+	//if(!m_state.isScalar(eit))
+	if(!m_state.isScalar(eit) && !m_state.isAClass(eit)) //t41185 can't fold classes wo reliable pos
 	  {
 	    if(m_state.okUTItoContinue(eit) && m_state.isComplete(eit))
 	      {

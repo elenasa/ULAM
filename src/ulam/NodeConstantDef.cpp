@@ -1103,6 +1103,9 @@ namespace MFM {
       }
   }
 
+  void NodeConstantDef::generateTestInstance(File * fp, bool runtest)
+  {}
+
   void NodeConstantDef::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {}
 

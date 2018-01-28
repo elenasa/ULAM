@@ -42,12 +42,9 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
     fp->write(".");
     fp->write(m_state.m_pool.getDataAsString(m_cid).c_str());
 
-    if(m_nodeExpr)
-      {
-	fp->write(" =");
-	m_nodeExpr->printPostfix(fp);
-      }
-    fp->write(", ");
+    assert(m_nodeExpr);
+    fp->write(" =");
+    m_nodeExpr->printPostfix(fp);
   } //printPostfix
 
   const char * NodeInitDM::getName()
@@ -434,6 +431,10 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
     bool hazyKin = false;
     AssertBool gotIt = m_state.findSymbolInAClass(m_cid, m_ofClassUTI, symptr, hazyKin);
     assert(gotIt);
+
+    if(!symptr->isPosOffsetReliable())
+      return false;
+
     u32 pos = symptr->getPosOffset();
     ((SymbolVariableDataMember *) m_constSymbol)->setPosOffset(pos); //update for consistency
 
@@ -441,7 +442,7 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
     assert(UlamType::compare(nuti, getNodeType(), m_state) == UTIC_SAME);
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    u32 bitsize = nut->getTotalBitSize(); //t41168
+    u32 len = nut->getTotalBitSize(); //t41168
 
     if(m_state.isAClass(nuti) && !m_constSymbol->isInitValueReady())
       {
@@ -465,26 +466,26 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	m_constSymbol->setInitValue(bvclass); //for consistency
       } //class, fall thru..
 
-    if(bitsize <= MAXBITSPERINT)
+    if(len <= MAXBITSPERINT)
       {
 	u32 value = 0;
 	AssertBool gotVal = m_constSymbol->getInitValue(value);
 	assert(gotVal);
-	bvref.Write(pos, bitsize, value);
+	bvref.Write(pos, len, value);
       }
-    else if(bitsize <= MAXBITSPERLONG)
+    else if(len <= MAXBITSPERLONG)
       {
 	u64 value = 0;
 	AssertBool gotVal = m_constSymbol->getInitValue(value);
 	assert(gotVal);
-	bvref.WriteLong(pos, bitsize, value);
+	bvref.WriteLong(pos, len, value);
       }
     else
       {
 	BV8K val8k;
 	AssertBool gotVal = m_constSymbol->getInitValue(val8k);
 	assert(gotVal);
-	val8k.CopyBV<8192>(0, pos, bitsize, bvref);
+	val8k.CopyBV<8192>(0, pos, len, bvref);
       }
     return true; //pass on
   } //buildDefaultValue
@@ -572,9 +573,9 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
     ULAMTYPE etyp = nut->getUlamTypeEnum();
-    u32 bitsize = nut->getTotalBitSize();
+    u32 len = nut->getTotalBitSize();
     TMPSTORAGE cstor = nut->getTmpStorageTypeForTmpVar();
-    u32 pos = m_constSymbol->getPosOffset();
+    u32 pos = 9999; //m_constSymbol->getPosOffset();
 
     const bool useLocalVar = (uvpass.getPassVarNum() == 0); //use variable name on stack t41171
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
@@ -589,6 +590,11 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	assert(isDef);
 	pos = asymptr->getPosOffset();
 	((SymbolVariableDataMember *) m_constSymbol)->setPosOffset(pos); //sanity
+      }
+    else
+      {
+	assert(m_constSymbol->isPosOffsetReliable()); //t41185
+	pos = m_constSymbol->getPosOffset();
       }
 
     Symbol * stgcos = NULL;
@@ -646,7 +652,7 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	  fp->write("T::ATOM_FIRST_STATE_BIT + "); //t41175
 	fp->write_decimal_unsigned(pos);
 	fp->write("u, ");
-	fp->write_decimal_unsigned(bitsize);
+	fp->write_decimal_unsigned(len);
 	fp->write("u); // ");
 	fp->write(m_constSymbol->getMangledName().c_str()); //comment
 	GCNL;
@@ -687,7 +693,7 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	  fp->write("T::ATOM_FIRST_STATE_BIT + "); //t41175
 	fp->write_decimal_unsigned(pos);
 	fp->write("u, ");
-	fp->write_decimal_unsigned(bitsize);
+	fp->write_decimal_unsigned(len);
 	fp->write("u, ");
 	fp->write(uvpass2.getTmpVarAsString(m_state).c_str());
 	if((classtype == UC_ELEMENT))// && nut->isScalar()) yep.
@@ -722,7 +728,7 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	  fp->write("T::ATOM_FIRST_STATE_BIT + "); //t41175
 	fp->write_decimal_unsigned(pos);
 	fp->write("u, ");
-	fp->write_decimal_unsigned(bitsize);
+	fp->write_decimal_unsigned(len);
 	fp->write("u, ");
 	fp->write(uvpass3.getTmpVarAsString(m_state).c_str());
 	fp->write("); // init for ");

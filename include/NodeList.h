@@ -116,8 +116,6 @@ namespace MFM{
 
     virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
 
-    virtual bool initDataMembersConstantValue(BV8K& bvref);
-
   protected:
     std::vector<Node *> m_nodes;
 

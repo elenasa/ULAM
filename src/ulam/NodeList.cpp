@@ -303,9 +303,4 @@ namespace MFM{
       }
   }
 
-  bool NodeList::initDataMembersConstantValue(BV8K& bvref)
-  {
-    m_state.abortShouldntGetHere(); //only for NodeListClassInit
-    return false; //for compiler
-  }
 } //MFM

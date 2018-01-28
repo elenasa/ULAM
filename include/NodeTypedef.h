@@ -100,6 +100,8 @@ namespace MFM{
 
     virtual void cloneAndAppendNode(std::vector<Node *> & cloneVec);
 
+    virtual void generateTestInstance(File * fp, bool runtest);
+
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
     virtual void addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers);

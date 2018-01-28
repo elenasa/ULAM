@@ -66,6 +66,8 @@ namespace MFM{
 
     virtual u32 getPosOffset();
 
+    virtual bool isPosOffsetReliable();
+
     void setPosOffset(u32 offsetIntoAtom);
 
     virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype);

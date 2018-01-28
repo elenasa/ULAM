@@ -177,6 +177,8 @@ namespace MFM{
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
+    virtual bool initDataMembersConstantValue(BV8K& bvref);
+
     virtual void genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos);
 
     virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
@@ -218,6 +220,8 @@ namespace MFM{
     virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
 
     virtual void cloneAndAppendNode(std::vector<Node *> & cloneVec);
+
+    virtual void generateTestInstance(File * fp, bool runtest);
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 

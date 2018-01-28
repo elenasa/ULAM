@@ -522,11 +522,8 @@ namespace MFM {
 	//skip anonymous classes
 	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti))
 	  {
-	    //quark union keep default pos = 0 for each data member, hence skip packing bits.
-	    if(!(m_state.isClassAQuarkUnion(cuti)))
-	      {
-		((SymbolClassName *) sym)->packBitsForClassInstances();
-	      }
+	    //quark union needs default pos = 0 for each data member (t3209, t41145)
+	    ((SymbolClassName *) sym)->packBitsForClassInstances();
 	  }
 	it++;
       }

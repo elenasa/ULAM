@@ -148,7 +148,6 @@ namespace MFM {
 
   void NodeBlockClass::printPostfix(File * fp)
   {
-    //UTI cuti = getNodeType();
     UTI cuti = m_state.getCompileThisIdx(); //maybe be hzy template, getNodeType(); (t3565)
     assert(m_state.okUTItoContinue(cuti));
 
@@ -161,8 +160,7 @@ namespace MFM {
 	SymbolClassNameTemplate * cnsym = NULL;
 	AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameTemplate(m_state.getUlamKeyTypeSignatureByIndex(cuti).getUlamKeyTypeSignatureNameId(), cnsym);
 	assert(isDefined);
-	cnsym->printClassTemplateArgsForPostfix(fp);
-	//m_nodeParameterList->print(fp);
+	cnsym->printClassTemplateArgsForPostfix(fp); //m_nodeParameterList->print(fp);
       }
 
     UTI superuti = m_state.isClassASubclass(cuti);
@@ -2205,6 +2203,15 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	return;
       }
 
+    //get all initialized data members in quark
+    u32 qval = 0;
+    AssertBool isDefaultQuark = m_state.getDefaultQuark(cuti, qval);
+    assert(isDefaultQuark);
+
+    std::ostringstream qdhex;
+    qdhex << "0x" << std::hex << qval;
+
+
     m_state.indent(fp);
     fp->write("template<class EC>\n");
 
@@ -2223,19 +2230,22 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel++;
 
-    //get all initialized data members in quark
-    u32 qval = 0;
-    AssertBool isDefaultQuark = m_state.getDefaultQuark(cuti, qval);
-    assert(isDefaultQuark);
+    if(hasStringDataMembers())
+      {
+	//must by the only data member then (max size Quark == size of String) t41167
+	genCodeBuiltInFunctionBuildingDefaultDataMembers(fp);
 
-    std::ostringstream qdhex;
-    qdhex << "0x" << std::hex << qval;
-
-    m_state.indent(fp);
-    fp->write("return ");
-    fp->write(qdhex.str().c_str());
-    fp->write("; //=");
-    fp->write_decimal_unsigned(qval); GCNL;
+	m_state.indent(fp);
+	fp->write("return initBV.Read(0u, QUARK_SIZE);"); GCNL;
+      }
+    else
+      {
+	m_state.indent(fp);
+	fp->write("return ");
+	fp->write(qdhex.str().c_str());
+	fp->write("; //=");
+	fp->write_decimal_unsigned(qval); GCNL;
+      }
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -2945,6 +2955,10 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     if(m_registeredForTestInstance)
       return; //once only in main (t41183)
+
+    //need to insure all class data members are also registered before us (t41167)
+    if(m_nodeNext)
+      m_nodeNext->generateTestInstance(fp, runtest);
 
     if(sut->getUlamClassType() == UC_ELEMENT)
       {

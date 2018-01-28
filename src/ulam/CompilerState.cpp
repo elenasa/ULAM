@@ -1444,18 +1444,7 @@ namespace MFM {
 
     if(!isThisLocalsFileScope()) //t3972,73
       {
-#if 0
-	//efficiency not worth it. Tue Jan 16 17:47:22 2018
-	if(hasThisClassStringDataMembers()) //t3972,73
-	  {
-	    //unused variable if no string data members
-	    indent(fp);
-	    fp->write("static u32 myRegNum = ");
-	    fp->write(getTheInstanceMangledNameByIndex(cuti).c_str());
-	    fp->write(".GetRegistrationNumber();"); GCNL;
-	  }
-#endif
-
+	//static variable 'myRegNum' efficiency not worth it. Tue Jan 16 17:47:22 2018
 	//class data members may have strings (t3948)
 	indent(fp);
 	fp->write("//correct runtime regnum for strings\n");

@@ -19,14 +19,14 @@ namespace MFM{
 
   void NodeListClassInit::printPostfix(File * fp)
   {
-    fp->write("{");
+    fp->write(" { ");
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
 	if(i > 0)
 	  fp->write(", ");
 	m_nodes[i]->printPostfix(fp);
       }
-    fp->write("}");
+    fp->write(" }");
   } //printPostfix
 
   void NodeListClassInit::print(File * fp)
@@ -71,6 +71,12 @@ namespace MFM{
       {
 	m_classUTI = cuti; //reset
       }
+    else if(!m_state.isScalar(m_classUTI))
+      {
+	UTI scalaruti = m_state.getUlamTypeAsScalar(m_classUTI);
+	assert(UlamType::compare(scalaruti, cuti, m_state) == UTIC_SAME);
+	m_classUTI = cuti; //t41185
+      }
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
 	m_nodes[i]->resetOfClassType(cuti); //each a NodeInitDM
@@ -90,6 +96,8 @@ namespace MFM{
       return rtnuti; //t41167,t41169
 
     UTI nuti = m_classUTI; //initially of-class-uti
+    if(!m_state.isScalar(nuti))
+      nuti = m_state.getUlamTypeAsScalar(nuti); //t41185
 
     if(!m_state.isComplete(nuti) || m_state.isAnonymousClass(nuti))
       {
@@ -121,8 +129,9 @@ namespace MFM{
       }
 
     assert(m_state.okUTItoContinue(nuti) && m_state.isComplete(nuti));
-    for(u32 i = 0; i < m_nodes.size(); i++)
-      ((NodeInitDM *) m_nodes[i])->resetOfClassType(nuti); //t41169
+    //    for(u32 i = 0; i < m_nodes.size(); i++)
+    //  ((NodeInitDM *) m_nodes[i])->resetOfClassType(nuti); //t41169
+    setClassType(nuti);
 
     rtnuti = nuti; //if all goes well..
 

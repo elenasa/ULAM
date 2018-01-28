@@ -430,6 +430,12 @@ namespace MFM {
     return false;
   }
 
+  bool Node::initDataMembersConstantValue(BV8K& bvref)
+  {
+    m_state.abortShouldntGetHere(); //only for NodeListClassInit, NodeListArrayIniti (t41185)
+    return false; //for compiler
+  }
+
   void Node::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
   {
     m_state.abortShouldntGetHere();
@@ -1772,6 +1778,11 @@ namespace MFM {
   void Node::cloneAndAppendNode(std::vector<Node *> & cloneVec)
   {
     m_state.abortShouldntGetHere(); //fufilled by NodeConstantDef
+  }
+
+  void Node::generateTestInstance(File * fp, bool runtest)
+  {
+    m_state.abortShouldntGetHere(); //fufilled by NodeVarDeclDM, NodeBlockClass/Locals; bypassed by NodeTypedef and NodeConstDef, passed thru by NodeStatements
   }
 
   void Node::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)

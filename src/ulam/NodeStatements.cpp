@@ -189,9 +189,9 @@ namespace MFM {
   {
     bool aok = true;
     if(m_node)
-      aok |= m_node->buildDefaultValue(wlen, dvref);
-    if(m_nodeNext)
-      aok |= m_nodeNext->buildDefaultValue(wlen, dvref);
+      aok &= m_node->buildDefaultValue(wlen, dvref); //yikes! (was |=) (t41185)
+    if(aok && m_nodeNext) //why go on? (t41185)
+      aok &= m_nodeNext->buildDefaultValue(wlen, dvref);
     return aok;
   }
 
@@ -327,6 +327,15 @@ namespace MFM {
       m_node->cloneAndAppendNode(cloneVec);
     if(m_nodeNext)
       m_nodeNext->cloneAndAppendNode(cloneVec);
+  }
+
+  void NodeStatements::generateTestInstance(File * fp, bool runtest)
+  {
+    if(m_node)
+      m_node->generateTestInstance(fp, runtest);
+    if(m_nodeNext)
+      m_nodeNext->generateTestInstance(fp, runtest);
+    return;
   }
 
   void NodeStatements::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)

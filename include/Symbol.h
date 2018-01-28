@@ -69,6 +69,8 @@ namespace MFM{
 
     virtual u32 getPosOffset();
 
+    virtual bool isPosOffsetReliable();
+
     virtual bool isFunction();
     virtual bool isTypedef();
     virtual bool isConstant();

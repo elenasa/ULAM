@@ -38,7 +38,7 @@ namespace MFM{
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
 	if(i > 0)
-	  fp->write(",");
+	  fp->write(","); //no space after
 	m_nodes[i]->printPostfix(fp);
       }
     fp->write(" }");
@@ -49,7 +49,7 @@ namespace MFM{
     bool rtnc = true;
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
-	rtnc |= m_nodes[i]->isAConstant();
+	rtnc &= m_nodes[i]->isAConstant(); ////yikes! (was |=) all or none (t41185)
       }
     return rtnc;
   }
@@ -162,7 +162,7 @@ namespace MFM{
     bool rtnok = true;
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
-	rtnok |= foldInitExpression(i);
+	rtnok &= foldInitExpression(i); //yikes! (was |=) (t41185) all or none
 	if(!rtnok)
 	  break;
       }
@@ -265,9 +265,15 @@ namespace MFM{
 
     bool rtnok = true;
     u32 n = m_nodes.size();
+
+    assert(n > 0);
+    if(m_nodes[0]->isClassInit())
+      return buildClassArrayValueInitialization(bvtmp); //t41185
+
+
     for(u32 i = 0; i < n; i++)
       {
-	rtnok |= buildArrayItemInitialValue(i, i, bvtmp);
+	rtnok &= buildArrayItemInitialValue(i, i, bvtmp); //yikes! (was |=) (t41185) all or none
 	if(!rtnok)
 	  break;
       }
@@ -278,12 +284,15 @@ namespace MFM{
 	s32 arraysize = nut->getArraySize();
 	assert(arraysize >= 0); //t3847
 
-	u32 itemlen = nut->getBitSize();
-	u64 lastvalue = bvtmp.ReadLong((n - 1) *  itemlen, itemlen);
-	//propagate last value for any remaining items not initialized
-	for(s32 i = n; i < arraysize; i++)
+	if(n < (u32) arraysize)
 	  {
-	    bvtmp.WriteLong(i * itemlen, itemlen, lastvalue);
+	    u32 itemlen = nut->getBitSize();
+	    u64 lastvalue = bvtmp.ReadLong((n - 1) *  itemlen, itemlen);
+	    //propagate last value for any remaining items not initialized
+	    for(s32 i = n; i < arraysize; i++)
+	      {
+		bvtmp.WriteLong(i * itemlen, itemlen, lastvalue);
+	      }
 	  }
       }
     return rtnok;
@@ -336,7 +345,7 @@ namespace MFM{
     u32 n = m_nodes.size();
     for(u32 i = 0; i < n; i++)
       {
-	rtnok |= buildClassArrayItemInitialValue(i, i, bvtmp);
+	rtnok &= buildClassArrayItemInitialValue(i, i, bvtmp); //yikes! (was |=) (t41185) all or none
 	if(!rtnok)
 	  break;
       }
@@ -347,13 +356,16 @@ namespace MFM{
 	s32 arraysize = nut->getArraySize();
 	assert(arraysize >= 0); //t3847
 
-	u32 itemlen = nut->getBitSize();
-	BV8K lastbv;
-	bvtmp.CopyBV((n - 1) *  itemlen, 0, itemlen, lastbv); //frompos, topos, len, destBV
 	//propagate last value for any remaining items not initialized
-	for(s32 i = n; i < arraysize; i++)
+	if(n < (u32) arraysize)
 	  {
-	    lastbv.CopyBV(0, i * itemlen, itemlen, bvtmp);
+	    u32 itemlen = nut->getBitSize();
+	    BV8K lastbv;
+	    bvtmp.CopyBV((n - 1) *  itemlen, 0, itemlen, lastbv); //frompos, topos, len, destBV
+	    for(s32 i = n; i < arraysize; i++)
+	      {
+		lastbv.CopyBV(0, i * itemlen, itemlen, bvtmp);
+	      }
 	  }
       }
     return rtnok;
@@ -370,7 +382,7 @@ namespace MFM{
       {
 	AssertBool gotVal = ((NodeListClassInit *) m_nodes[n])->initDataMembersConstantValue(bvclass); //at pos 0
 	assert(gotVal);
-	bvclass.CopyBV(0, n * itemlen, itemlen, bvtmp);	//frompos, topos, len, destBV
+	bvclass.CopyBV(0, pos * itemlen, itemlen, bvtmp); //frompos, topos, len, destBV
       }
     else
       return false;
@@ -641,6 +653,45 @@ namespace MFM{
     fp->write_decimal_unsigned(n); //index (zero-based)
     fp->write("]");
     GCNL;
+  }
+
+  bool NodeListArrayInitialization::initDataMembersConstantValue(BV8K& bvref)
+  {
+    //build up if an array of class inits (t41185)
+    UTI nuti = Node::getNodeType();
+
+    u32 n = m_nodes.size();
+    assert(n > 0);
+    assert(m_nodes[0]->isClassInit());
+    u32 itemlen = m_state.getBitSize(nuti);
+    bool rtnok = true;
+    for(u32 i = 0; i < n; i++)
+      {
+	BV8K bvtmp;
+	rtnok &= ((NodeListClassInit *) m_nodes[i])->initDataMembersConstantValue(bvtmp);
+	if(rtnok)
+	  bvtmp.CopyBV<8192>(0, i * itemlen, itemlen, bvref); //fm pos, to pos, len, dest (t41185)
+	else
+	  break;
+      }
+
+    if(rtnok)
+      {
+	s32 sarraysize = m_state.getArraySize(nuti);
+	assert(sarraysize >= 0);
+	u32 arraysize = (u32) sarraysize;
+	if(n < arraysize)
+	  {
+	    BV8K lastbv;
+	    bvref.CopyBV((n - 1) * itemlen, 0, itemlen, lastbv); //get last array item value from bvref
+
+	    //repeat last one..
+	    for(u32 j=n; j < arraysize; j++)
+	      lastbv.CopyBV(0, j * itemlen, itemlen, bvref);
+	  }
+      }
+
+    return rtnok;
   }
 
 } //MFM
