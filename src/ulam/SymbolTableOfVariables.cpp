@@ -48,7 +48,7 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym);
-	//if(!sym->isTypedef()) //t3948
+
 	//skip constantdefs (e.g. class args), typedefs, modelparameters
 	if(variableSymbolWithCountableSize(sym)) //t3948, t3959
 	  {

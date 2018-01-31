@@ -642,7 +642,6 @@ namespace MFM {
 	newconst = _Unsigned32ToUnsigned32((u32) val, srcbitsize, nbitsize);
 	break;
       case Bool:
-	//newconst = _Unsigned32ToBool32(val, MAXBITSPERINT, nbitsize);
 	newconst = _CboolToBool32( (bool) val, nbitsize);
 	break;
       case Unary:
@@ -677,7 +676,6 @@ namespace MFM {
 	newconst = _Unsigned64ToUnsigned64(val, srcbitsize, nbitsize);
 	break;
       case Bool:
-	//newconst = _Unsigned64ToBool64(val, MAXBITSPERLONG, nbitsize);
 	newconst = _CboolToBool64( (bool) val, nbitsize);
 	break;
       case Unary:
@@ -1141,7 +1139,6 @@ namespace MFM {
 	fp->write("typedef ");
 	fp->write(nut->getUlamTypeMangledName().c_str()); //for C++
 	fp->write("<EC> ");
-	//fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
 	fp->write(m_varSymbol->getMangledName().c_str()); //t41141
 	fp->write("; //offset ");
 	fp->write_decimal_unsigned(m_varSymbol->getPosOffset());

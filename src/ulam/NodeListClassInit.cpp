@@ -129,8 +129,6 @@ namespace MFM{
       }
 
     assert(m_state.okUTItoContinue(nuti) && m_state.isComplete(nuti));
-    //    for(u32 i = 0; i < m_nodes.size(); i++)
-    //  ((NodeInitDM *) m_nodes[i])->resetOfClassType(nuti); //t41169
     setClassType(nuti);
 
     rtnuti = nuti; //if all goes well..
