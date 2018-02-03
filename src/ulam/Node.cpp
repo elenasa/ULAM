@@ -152,6 +152,16 @@ namespace MFM {
     m_referenceAble = s;
   }
 
+  TBOOL Node::minTBOOL(TBOOL atb, TBOOL btb)
+  {
+    TBOOL mintb = TBOOL_TRUE;
+    if((atb == TBOOL_FALSE) || (btb == TBOOL_FALSE))
+      mintb = TBOOL_FALSE;
+    else if((atb == TBOOL_HAZY) || (btb == TBOOL_HAZY))
+      mintb = TBOOL_HAZY;
+    return mintb;
+  }
+
   Locator Node::getNodeLocation() const
   {
     return m_loc;
@@ -204,6 +214,12 @@ namespace MFM {
 
   bool Node::hasASymbolReference()
   {
+    return false;
+  }
+
+  bool Node::hasASymbolReferenceConstant()
+  {
+    assert(hasASymbolReference());
     return false;
   }
 
@@ -2952,7 +2968,6 @@ namespace MFM {
     //     but at this point cosuti would be a scalar in either case (sigh);
     // uvpass would be an array index (an int of sorts), not an array;
     // types would not be the same;
-    //return(m_state.isScalar(cosuti) && m_state.isClassACustomArray(cosuti) && (uvpass.getPassTargetType() != cosuti));
     //a custom array item, would be the return type of cossymbols 'aref' (t41006,5)
     return(m_state.isScalar(cosuti) && m_state.isClassACustomArray(cosuti) && (UlamType::compareForCustomArrayItem(uvpass.getPassTargetType(), m_state.getAClassCustomArrayType(cosuti), m_state) == UTIC_SAME));
   } //isCurrentObjectACustomArrayItem

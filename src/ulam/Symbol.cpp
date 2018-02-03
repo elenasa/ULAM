@@ -74,6 +74,11 @@ namespace MFM {
     return false;
   }
 
+  bool Symbol::isFunctionParameter()
+  {
+    return false;
+  }
+
   bool Symbol::isTypedef()
   {
     return false;

@@ -94,11 +94,16 @@ namespace MFM {
     if(scr != CAST_CLEAR)
       return scr;
 
+    UlamType * vut = m_state.getUlamTypeByIndex(typidx);
+
     if(m_state.isAtom(typidx))
-      return CAST_CLEAR; //atom/ref to atom/ref
+      {
+	if((vut->getReferenceType()==ALT_CONSTREF) && (getReferenceType()==ALT_REF))
+	  return CAST_BAD; //bad cast from const ref to non-const ref
+	return CAST_CLEAR; //atom/ref to atom/ref
+      }
 
     //casting from quark or transient to atom or atomref is bad
-    UlamType * vut = m_state.getUlamTypeByIndex(typidx);
     ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
 
     // casting from quark ref needs .atomof (error t3696)

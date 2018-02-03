@@ -72,6 +72,7 @@ namespace MFM{
     virtual bool isPosOffsetReliable();
 
     virtual bool isFunction();
+    virtual bool isFunctionParameter();
     virtual bool isTypedef();
     virtual bool isConstant();
     virtual bool isClass();

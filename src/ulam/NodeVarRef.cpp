@@ -319,6 +319,8 @@ namespace MFM {
 	  Node::setStoreIntoAble(TBOOL_FALSE);
 	else if(it == Hzy)
 	  Node::setStoreIntoAble(TBOOL_HAZY);
+	if(m_varSymbol && m_varSymbol->isFunctionParameter() && ((SymbolVariableStack *) m_varSymbol)->isConstantFunctionParameter())
+	  Node::setStoreIntoAble(TBOOL_FALSE); //t41186
 	else
 	  Node::setStoreIntoAble(TBOOL_TRUE);
       }

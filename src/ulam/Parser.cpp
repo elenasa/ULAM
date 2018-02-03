@@ -2218,6 +2218,16 @@ namespace MFM {
 	    return false; //done
 	  }
 
+	if(typeargs.m_declRef == ALT_REF)
+	  {
+	    std::ostringstream msg;
+	    msg << "Invalid named constant Reference Type '";
+	    msg << m_state.getTokenDataAsString(pTok).c_str() << "'";
+	    MSG(&pTok, msg.str().c_str(), ERR); //t41192
+	    getTokensUntil(TOK_SEMICOLON);
+	    return false; //done
+	  }
+
 	typeargs.m_assignOK = true;
 	typeargs.m_isStmt = true;
 
@@ -2499,6 +2509,29 @@ namespace MFM {
 		msg << "; used incorrectly in this context";
 		MSG(&pTok, msg.str().c_str(), ERR);
 	      }
+	  }
+      }
+    else if(pTok.m_type == TOK_KW_CONSTDEF)
+      {
+	//get next token..
+	getNextToken(pTok);
+	if(Token::isTokenAType(pTok))
+	  {
+	    typeargs.init(pTok);
+	    assert(m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCPARAMETER);
+	    typeargs.m_hasConstantTypeModifier = true;
+	    typeNode = parseTypeDescriptor(typeargs, castUTI, isaclass, delAfterDotFails);
+	  }
+	else
+	  {
+	    unreadToken();
+
+	    std::ostringstream msg;
+	    msg << "Expected a Type after the keyword 'constant'; "; // for function parameter
+	    msg << "got Token <";
+	    msg << m_state.getTokenDataAsString(pTok).c_str();
+	    msg << "> instead";
+	    MSG(&pTok, msg.str().c_str(), ERR);
 	  }
       }
     else if(Token::isTokenAType(pTok))
@@ -4965,7 +4998,7 @@ namespace MFM {
 	    MSG(&pTok, "Variable args (...) indicated multiple times", ERR);
 	  }
       }
-    else if(Token::isTokenAType(pTok) || (pTok.m_type == TOK_KW_LOCALDEF))
+    else if(Token::isTokenAType(pTok) || (pTok.m_type == TOK_KW_LOCALDEF) || (pTok.m_type == TOK_KW_CONSTDEF))
       {
 	//local.Type allowed (t3870,71)
 	unreadToken();

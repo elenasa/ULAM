@@ -151,6 +151,9 @@ namespace MFM {
 	  return false;
     //if(alt1 != ALT_NOT || alt2 == ALT_NOT) return false;
 
+    if((alt2 == ALT_CONSTREF) && (alt1 == ALT_REF))
+      return false;
+
     return true; //keys the same, except for reference type
   } //checkReferenceCast
 
@@ -449,9 +452,8 @@ namespace MFM {
   bool UlamType::isReference()
   {
     //yes, all of these ALT types are treated as references in gencode.
-    //return m_key.getUlamKeyTypeSignatureReferenceType() != ALT_NOT;
     ALT alt = m_key.getUlamKeyTypeSignatureReferenceType();
-    return (alt == ALT_AS) || (alt == ALT_REF) || (alt == ALT_ARRAYITEM);
+    return (alt == ALT_AS) || (alt == ALT_REF) || (alt == ALT_ARRAYITEM) || (alt == ALT_CONSTREF);
   }
 
   bool UlamType::isHolder()
@@ -576,10 +578,12 @@ namespace MFM {
 	{
 	  if((alt1 == ALT_REF) || (alt2 == ALT_REF))
 	    return UTIC_NOTSAME; //t3653
+	  else if ((alt1 == ALT_CONSTREF) || (alt2 == ALT_CONSTREF))
+	    return UTIC_NOTSAME; //like a ref
 	  else if ((alt1 == ALT_AS) || (alt2 == ALT_AS))
 	    return UTIC_NOTSAME; //like a ref
 	  else
-	    return UTIC_SAME;
+	    return UTIC_SAME; //matches ALT_NOT
 	}
 	else
 	  return UTIC_NOTSAME;
@@ -640,6 +644,9 @@ namespace MFM {
     if(key1.getUlamKeyTypeSignatureBitSize() != key2.getUlamKeyTypeSignatureBitSize())
       return UTIC_NOTSAME;
 
+    if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
+      return UTIC_NOTSAME;
+
     ALT alt1 = key1.getUlamKeyTypeSignatureReferenceType();
     ALT alt2 = key2.getUlamKeyTypeSignatureReferenceType();
     if(alt1 != alt2)
@@ -652,12 +659,12 @@ namespace MFM {
   ULAMTYPECOMPARERESULTS UlamType::compareForArgumentMatching(UTI u1, UTI u2, CompilerState& state)  //static
   {
     return UlamType::compareWithWildArrayItemALTKey(u1, u2, state);
-  }
+  } //compareForArgumentMatching
 
   ULAMTYPECOMPARERESULTS UlamType::compareForMakingCastingNode(UTI u1, UTI u2, CompilerState& state)  //static
   {
     return UlamType::compareWithWildArrayItemALTKey(u1, u2, state);
-  }
+  } //compareForMakingCastingNode
 
   ULAMTYPECOMPARERESULTS UlamType::compareForUlamValueAssignment(UTI u1, UTI u2, CompilerState& state)  //static
   {

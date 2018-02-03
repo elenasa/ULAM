@@ -576,6 +576,9 @@ namespace MFM {
 	  checkSafeToCastTo(eit, it); //may side-effect 'it'
       } //end node expression
 
+    if(m_varSymbol && m_varSymbol->isFunctionParameter() && ((SymbolVariableStack *) m_varSymbol)->isConstantFunctionParameter())
+      Node::setStoreIntoAble(TBOOL_FALSE); //t41186
+    else
     Node::setStoreIntoAble(TBOOL_TRUE);
     setNodeType(it);
 

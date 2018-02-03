@@ -206,7 +206,9 @@ namespace MFM {
 	    u32 numParams = funcSymbol->getNumberOfParameters();
 	    for(u32 i = 0; i < numParams; i++)
 	      {
-		if(m_state.isReference(funcSymbol->getParameterType(i)))
+		Symbol * psym = funcSymbol->getParameterSymbolPtr(i);
+		assert(psym && psym->isFunctionParameter()); //sanity
+		if(m_state.isReference(psym->getUlamTypeIdx()))
 		  {
 		    TBOOL argreferable = argNodes[i]->getReferenceAble();
 		    if(argreferable != TBOOL_TRUE)
@@ -220,11 +222,12 @@ namespace MFM {
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 			    numHazyFound++;
 			  }
-			else
+			else if(!((SymbolVariableStack *) psym)->isConstantFunctionParameter())
 			  {
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			    numErrorsFound++;
+			    numErrorsFound++; //t41189
 			  }
+			//else non-referenceable arg with const ref parameter, ok
 		      }
 		  }
 	      }
@@ -315,6 +318,7 @@ namespace MFM {
 	      for(u32 i = numParams; i < numargs; i++)
 		  {
 		    UTI auti = argNodes[i]->getNodeType();
+		    ALT alti = m_state.getReferenceType(auti);
 		    if(argNodes[i]->isAConstant())
 		      {
 			Node * argCast = NULL;
@@ -325,7 +329,7 @@ namespace MFM {
 			m_argumentNodes->exchangeKids(argNodes[i], argCast, i);
 			argsWithCast++;
 		      }
-		    else if(m_state.getReferenceType(auti) == ALT_ARRAYITEM)
+		    else if(alti == ALT_ARRAYITEM)
 		      {
 			//array item (ALT_ARRAYITEM) is okay, with a cast to its scalar (t3250)
 			//don't use makeCastingNode, since UTIC_SAME short-circuits; req'd cast
@@ -334,10 +338,12 @@ namespace MFM {
 			m_argumentNodes->exchangeKids(argNodes[i], argCast, i);
 			argsWithCast++;
 		      }
-		    else if(m_state.getReferenceType(auti) == ALT_REF)
+		    else if((alti == ALT_REF) || (alti == ALT_CONSTREF))
 		      {
 			//ref not allowed since doesn't share base class w non-refs (t41099)
 			std::ostringstream msg;
+			if(alti == ALT_CONSTREF)
+			  msg << "Constant ";
 			msg << "Reference Vararg: " ;
 			msg << "arg_" << i + 1;
 			msg << " to function <";
@@ -667,9 +673,8 @@ namespace MFM {
 	u32 slots = makeRoomForNodeType(argType); //for eval return
 
 	UTI paramType = m_funcSymbol->getParameterType(i);
-	UlamType * put = m_state.getUlamTypeByIndex(paramType);
-	ALT paramreftype = put->getReferenceType();
-	if(paramreftype == ALT_REF)
+	bool useparamreftype = m_state.isAltRefType(paramType);
+	if(useparamreftype)
 	  evs = m_argumentNodes->evalToStoreInto(i);
 	else
 	  evs = m_argumentNodes->eval(i);
@@ -681,7 +686,7 @@ namespace MFM {
 	if(slots==1)
 	  {
 	    UlamValue auv = m_state.m_nodeEvalStack.popArg();
-	    if((paramreftype == ALT_REF) && (auv.getPtrStorage() == STACK))
+	    if((useparamreftype) && (auv.getPtrStorage() == STACK))
 	      {
 		assert(m_state.isPtr(auv.getUlamValueTypeIdx()));
 		if(!auv.isPtrAbs()) //do that conversion here
@@ -801,7 +806,7 @@ namespace MFM {
 	      {
 		atomPtr.setPtrTargetType(((SymbolVariableStack *) asym)->getAutoStorageTypeForEval());
 	      }
-	    else if(autolocaltype == ALT_REF)
+	    else if((autolocaltype == ALT_REF) || (autolocaltype == ALT_CONSTREF))
 	      {
 		if(!asym->isSuper())
 		  //unlike alt_as, alt_ref can be a primitive or a class
@@ -979,7 +984,8 @@ namespace MFM {
     if(nuti != Void)
       {
 	u32 pos = 0; //POS 0 leftjustified;
-	bool isref = (nut->getReferenceType() == ALT_REF); //t3946
+	//bool isref = (nut->getReferenceType() == ALT_REF); //t3946
+	bool isref = m_state.isAltRefType(nuti); //t3946, t41188
 	if(!isref && (nut->getUlamClassType() == UC_NOTACLASS)) //includes atom too
 	  {
 	    u32 wordsize = nut->getTotalWordSize();

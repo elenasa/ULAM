@@ -1,0 +1,29 @@
+## -*- mode:ulam -*-
+#=t41193_test_compiler_element_constantreffuncreturntype_error
+##
+#!
+./Foo.ulam:6:12: ERROR: Invalid named constant Reference Type 'Bool'.
+./Foo.ulam:11:3: ERROR: Invalid Class Type <Int>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <Foo.ulam>
+##
+## informed by t41192, testing new feature, the constant function parameter
+## return type cannot be a constant ref.
+##
+#>Foo.ulam
+  ulam 3;
+element Foo {
+  Int(4) m_i;
+  Bool(3) m_b;
+
+  constant Bool(3) & funcme()
+  {
+    return m_b;
+  }
+
+  Int test() {
+    Bool(3) & bref = m_b;
+    return 0;
+  }
+}
+
+#.

@@ -121,6 +121,8 @@ namespace MFM{
 
     void setReferenceAble(TBOOL s);
 
+    TBOOL minTBOOL(TBOOL atb, TBOOL btb);
+
     Locator getNodeLocation() const;
 
     virtual void setNodeLocation(Locator loc);
@@ -142,6 +144,8 @@ namespace MFM{
     virtual bool hasASymbolSelf();
 
     virtual bool hasASymbolReference();
+
+    virtual bool hasASymbolReferenceConstant();
 
     virtual bool isAConstant();
 

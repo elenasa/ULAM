@@ -464,7 +464,7 @@ namespace MFM {
 	      }
 	    else if(key.getUlamKeyTypeSignatureReferenceType() != ALT_NOT) //array type
 	      {
-		//need a new UTI for reference
+		//need a new UTI for reference, or const ref
 	      }
 	    else
 	      {
@@ -1249,7 +1249,15 @@ namespace MFM {
 
   UTI CompilerState::getUlamTypeAsRef(UTI utiArg)
   {
-    return getUlamTypeAsRef(utiArg, ALT_REF);
+    return getUlamTypeAsRef(utiArg, ALT_REF); //default
+  }
+
+  UTI CompilerState::getUlamTypeAsRef(UTI utiArg, ALT altArg, bool isConstRef)
+  {
+    //constant-type modifier for non-ref uti is dropped here
+    if(isConstRef && (altArg == ALT_REF))
+      return getUlamTypeAsRef(utiArg, ALT_CONSTREF); //t3136
+    return getUlamTypeAsRef(utiArg, altArg);
   }
 
   UTI CompilerState::getUlamTypeAsRef(UTI utiArg, ALT altArg)
@@ -1489,6 +1497,17 @@ namespace MFM {
     return ut->isReference();
   }
 
+  bool CompilerState::isAltRefType(UTI utiArg)
+  {
+    ALT alt = getReferenceType(utiArg);
+    return (alt == ALT_REF) || (alt == ALT_CONSTREF);
+  }
+
+  bool CompilerState::isConstantRefType(UTI utiArg)
+  {
+    return (getReferenceType(utiArg) == ALT_CONSTREF);
+  }
+
   bool CompilerState::correctAReferenceTypeWith(UTI utiArg, UTI derefuti)
   {
     //correcting a reference with a corrected deref'd type
@@ -1548,7 +1567,7 @@ namespace MFM {
     if(isHolder(utiArg))
       {
 	UlamKeyTypeSignature dekey = derefut->getUlamKeyTypeSignature();
-	UlamKeyTypeSignature newkey(dekey.getUlamKeyTypeSignatureNameId(), dekey.getUlamKeyTypeSignatureBitSize(), dekey.getUlamKeyTypeSignatureArraySize(), dekey.getUlamKeyTypeSignatureClassInstanceIdx(), ALT_REF);
+	UlamKeyTypeSignature newkey(dekey.getUlamKeyTypeSignatureNameId(), dekey.getUlamKeyTypeSignatureBitSize(), dekey.getUlamKeyTypeSignatureArraySize(), dekey.getUlamKeyTypeSignatureClassInstanceIdx(), getReferenceType(utiArg)); //use holder's reference type, maybe CONSTREF (t41195)
 	ULAMTYPE detyp = derefut->getUlamTypeEnum();
 	makeUlamTypeFromHolder(newkey, detyp, utiArg, derefut->getUlamClassType());
 
@@ -4471,7 +4490,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   {
     //do not include ALT_AS, ALT_ARRAYITEM, etc as Ref here. Specifically a ref (&).
     UlamType * aut = getUlamTypeByIndex(auti);
-    return ((aut->getUlamTypeEnum() == UAtom) && (aut->getReferenceType() == ALT_REF));
+    return ((aut->getUlamTypeEnum() == UAtom) && isAltRefType(auti));
   }
 
   bool CompilerState::isThisLocalsFileScope()
