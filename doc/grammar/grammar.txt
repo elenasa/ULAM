@@ -33,22 +33,24 @@
 
 <TYPE_DEF> := 'typedef' + <TYPE> + <TYPE_EXPRESSION>
 <TYPE_EXPRESSION> := <TYPE_IDENT> | <TYPE_IDENT> + '[' + <CONSTANT_EXPRESSION> + ']'
-<CONST_DEF> := 'constant' + <TYPE> + <IDENT> + '=' + <CONSTANT_EXPRESSION>
 <PARAMETER_DEF> := 'parameter' + <TYPE> + <IDENT> + '=' + <CONSTANT_EXPRESSION>
+<CONST_DEF> := 'constant' + <TYPE> + ( <IDENT> | <IDENT> + '[' + ( 0 |
+	    <CONSTANT_EXPRESSION> ) + ']' ) + '=' + (
+	    <CONSTANT_EXPRESSION> | '{' ( 0 | <CONSTANT_EXPR_LIST> ) '}'
 
 <DATA_MEMBER_DEF> := <TYPE> + <DM_VAR_STATEMENT_DECLS>
 <DM_VAR_STATEMENT_DECLS> := <DM_VAR_STATEMENT_DECL> | <DM_VAR_STATEMENT_DECL> + ',' + <DM_VAR_STATEMENT_DECLS>
 <DM_VAR_STATEMENT_DECL> := <VAR_DECL> + ( 0 | '=' + <CONSTANT_EXPRESSION>
-		      | '=' + '{' + <CONSTANT_EXPR_LIST> + '}'
+		      | '=' + '{' + ( 0 | <CONSTANT_EXPR_LIST> ) + '}'
 		      | '=' + <CLASS_INIT>
-		      | '=' + '{' + <CLASS_ARRAY_INIT_LIST> + '}' )
+		      | '=' + '{' + ( 0 | <CLASS_ARRAY_INIT_LIST> ) + '}' )
 
 <CLASS_ARRAY_INIT_LIST := <CLASS_INIT> | <CLASS_INIT> + ',' + <CLASS_ARRAY_INIT_LIST>
 <CLASS_INIT> := '{' + <DM_INIT_LIST> + '}'
 <DM_INIT_LIST> := <DM_LIST> | <DM_LIST> + ',' + <DM_INIT_LIST>
 <DM_INIT> := '.' + <IDENT> + '=' + ( <CONSTANT_EXPRESSION>
-	  | '{' + <CONSTANT_EXPR_LIST> + '}' | <CLASS_INIT>
-	  | '{' + <CLASS_ARRAY_INIT_LIST> + '}' )
+	  | '{' + ( 0 | <CONSTANT_EXPR_LIST> ) + '}' | <CLASS_INIT>
+	  | '{' + ( 0 | <CLASS_ARRAY_INIT_LIST> ) + '}' )
 
 <VAR_DECL> := <LVAL_EXPRESSION>
 
@@ -134,7 +136,7 @@ where,
 <STATEMENT_DECL> := <TYPE> + <VAR_STATEMENT_DECLS>
 <VAR_STATEMENT_DECLS> := <VAR_STATEMENT_DECL> | <VAR_STATEMENT_DECL> + ',' + <VAR_STATEMENT_DECLS>
 <VAR_STATEMENT_DECL> := <VAR_DECL> + ( 0 | '=' + <ASSIGN_EXPRESSION>
-		      | '=' + '{' + <CONSTANT_EXPR_LIST> + '}'
+		      | '=' + '{' + ( 0 | <CONSTANT_EXPR_LIST> ) + '}'
 		      | <CONSTRUCTOR_CALL> | '=' <CLASS_INIT>
 		      | '=' + '{' + <CLASS_ARRAY_INIT_LIST> + '}')
 

@@ -135,6 +135,7 @@ namespace MFM{
 
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
+	assert(m_nodes[i]);
 	UTI puti = m_nodes[i]->checkAndLabelType();
 	if(puti == Nav)
 	  {

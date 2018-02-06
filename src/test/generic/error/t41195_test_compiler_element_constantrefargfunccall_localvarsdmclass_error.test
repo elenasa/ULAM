@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t3801_test_compiler_element_refargfunccall_localvarsdmclass
+#=t41195_test_compiler_element_constantrefargfunccall_localvarsdmclass_error
 #!
 ./Foo.ulam:9:15: ERROR: Unmodifiable lefthand side of assignment expression <.>, type: Unary(3); may be a constant function parameter.
 ./Foo.ulam:11:15: ERROR: Unmodifiable lefthand side of assignment expression <.>, type: Unary(3); may be a constant function parameter.

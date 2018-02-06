@@ -61,8 +61,7 @@ namespace MFM {
     ULAMTYPE etyp = nut->getUlamTypeEnum();
     if(etyp == Class) //t3717, t3718, t3719, t3739, t3714, t3715, t3735
       {
-
-	if(m_nodeInitExpr)
+	if(hasInitExpr())
 	  {
 	    fp->write("("); // start open paren
 	    m_nodeInitExpr->printPostfix(fp);
@@ -96,7 +95,7 @@ namespace MFM {
       {
 	fp->write("("); // start open paren
 
-	if(m_nodeInitExpr)
+	if(hasInitExpr())
 	  {
 	    // only for primitive scalars and arrays
 	    m_nodeInitExpr->printPostfix(fp);
@@ -174,7 +173,7 @@ namespace MFM {
   {
     Node::setNodeType(uti);
     if(m_state.okUTItoContinue(uti) && m_state.isAClass(uti))
-      if(m_nodeInitExpr)
+      if(hasInitExpr())
     	m_nodeInitExpr->setClassType(uti);
   }
 
@@ -185,6 +184,8 @@ namespace MFM {
 
   FORECAST NodeVarDeclDM::safeToCastTo(UTI newType)
   {
+    assert(m_nodeInitExpr);
+
     UTI nuti = getNodeType();
     //cast RHS if necessary and safe
     //insure constant value fits in its declared type
@@ -246,7 +247,7 @@ namespace MFM {
     UTI cuti = m_state.getCompileThisIdx();
 
     //don't allow unions to initialize its data members (t3782)
-    if(m_state.isClassAQuarkUnion(cuti) && m_nodeInitExpr)
+    if(m_state.isClassAQuarkUnion(cuti) && hasInitExpr())
       {
 	std::ostringstream msg;
 	msg << "Data member '";
@@ -308,7 +309,7 @@ namespace MFM {
 
     //NodeVarDecl handles array initialization for both locals & dm
     // since initial expressions must be constant for both (unlike local scalars)
-    if(m_nodeInitExpr && m_state.isScalar(getNodeType()))
+    if(hasInitExpr() && m_state.isScalar(getNodeType()))
       {
 	if(!m_nodeInitExpr->isAConstant())
 	  {
@@ -363,6 +364,7 @@ namespace MFM {
 
 		if(!foldok)
 		  {
+		    assert(m_nodeInitExpr);
 		    if((getNodeType() == Nav) || m_nodeInitExpr->getNodeType() == Nav)
 		      return Nav;
 
@@ -502,7 +504,9 @@ namespace MFM {
     if(!m_state.isScalar(nuti)) //arrays handled by NodeVarDecl (virtual)
       return NodeVarDecl::foldArrayInitExpression();
 
-    assert(m_nodeInitExpr);
+    if(!hasInitExpr())
+      return true;
+
     // if here, must be a constant init value..
     UTI foldeduti = m_nodeInitExpr->constantFold(); //c&l redone
     if(!m_state.okUTItoContinue(foldeduti))
@@ -630,7 +634,7 @@ namespace MFM {
     bool rtnb = true;
     UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
     s32 nbitsize = nut->getBitSize();
-    u32 srcbitsize = m_nodeInitExpr ? m_state.getBitSize(m_nodeInitExpr->getNodeType()) : nbitsize; //was MAXBITSPERINT WRONG!
+    u32 srcbitsize = hasInitExpr() ? m_state.getBitSize(m_nodeInitExpr->getNodeType()) : nbitsize; //was MAXBITSPERINT WRONG!
 
     ULAMTYPE etyp = nut->getUlamTypeEnum();
     switch(etyp)
@@ -665,7 +669,7 @@ namespace MFM {
     bool rtnb = true;
     UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
     s32 nbitsize = nut->getBitSize();
-    u32 srcbitsize = m_nodeInitExpr ? m_state.getBitSize(m_nodeInitExpr->getNodeType()) : nbitsize; //was MAXBITSPERINT WRONG!
+    u32 srcbitsize = hasInitExpr() ? m_state.getBitSize(m_nodeInitExpr->getNodeType()) : nbitsize; //was MAXBITSPERINT WRONG!
     ULAMTYPE etyp = nut->getUlamTypeEnum();
     switch(etyp)
       {
@@ -735,7 +739,7 @@ namespace MFM {
 
 	    if(m_state.getDefaultClassValue(nuti, dmdv)) //uses scalar uti
 	      {
-		if(m_nodeInitExpr)
+		if(hasInitExpr())
 		  {
 		    AssertBool initok = m_nodeInitExpr->initDataMembersConstantValue(dmdv);
 		    assert(initok);
@@ -751,7 +755,7 @@ namespace MFM {
 	if(aok)
 	  foldDefaultClass(); //init value for m_varSymbol t3512
       }
-    else if(m_nodeInitExpr)
+    else if(hasInitExpr())
       {
 	//primitive (not a class!)
 	//arrays may be initialized now
@@ -807,7 +811,7 @@ namespace MFM {
 	UTI regid = m_state.getCompileThisIdx();
 	BV8K tmpbv8k;
 
-	if(m_nodeInitExpr)
+	if(hasInitExpr())
 	  {
 	    AssertBool gotValue = ((SymbolWithValue *) m_varSymbol)->getInitValue(tmpbv8k);
 	    assert(gotValue);
@@ -817,7 +821,7 @@ namespace MFM {
 	// remove myRegNum static variable for more general way (Sun Jan 21 10:11:24 2018)
 	for(u32 i = 0; i < arraysize; i++)
 	  {
-	    if(m_nodeInitExpr)
+	    if(hasInitExpr())
 	      {
 		regid = (UTI) tmpbv8k.Read(0 + i * (REGNUMBITS + STRINGIDXBITS), REGNUMBITS);
 		assert(regid > 0);
@@ -851,7 +855,7 @@ namespace MFM {
 	s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
 
 	m_state.indent(fp);
-	if(!m_nodeInitExpr)
+	if(!hasInitExpr())
 	  fp->write("const ");
 	fp->write(nut->getLocalStorageTypeAsString().c_str());
 	fp->write(" ");
@@ -859,7 +863,7 @@ namespace MFM {
 	fp->write(";"); GCNL;
 
 
-	if(m_nodeInitExpr)
+	if(hasInitExpr())
 	  {
 	    UVPass uvpass = UVPass::makePass(tmpVarNum, cstor, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //default class data member as immediate
 	    m_nodeInitExpr->genCode(fp, uvpass);  //update initialized values before read (t41167)
@@ -1072,7 +1076,7 @@ namespace MFM {
       return UNEVALUABLE;
 
     // packedloadable class (e.g. quark) or nonclass data member; t41167
-    if(m_nodeInitExpr)
+    if(hasInitExpr())
       {
 	return NodeVarDecl::evalInitExpr();
       }

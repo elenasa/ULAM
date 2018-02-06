@@ -223,6 +223,10 @@ namespace MFM {
 	    else if(asymptr->isConstant())
 	      {
 		UTI auti = asymptr->getUlamTypeIdx();
+
+		if(m_state.isAClass(auti))
+		  m_state.abortNotImplementedYet(); //t41198 (maybe NodeConstantClass?)
+
 		// replace ourselves with a constant node instead;
 		// same node no, and loc (e.g. t3573)
 		Node * newnode = NULL;
@@ -539,11 +543,13 @@ namespace MFM {
     if((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() > MAXSTATEBITS))
       return UNEVALUABLE;
 
-    ALT alt = nut->getReferenceType(); //t41189
+    //ALT alt = nut->getReferenceType(); //t41189
     TBOOL stor = Node::getStoreIntoAble();
+    //ULAMTYPE etyp = nut->getUlamTypeEnum(); //t41198 allow constant classes
 
     //the first reason for ALT_CONSTREF when called from evalArgumentsInReverseOrder
-    if((stor != TBOOL_TRUE) && (alt != ALT_CONSTREF)) //i.e. an MP
+    //if((stor != TBOOL_TRUE) && (alt != ALT_CONSTREF) && (etyp != Class)) //i.e. an MP
+    if((stor != TBOOL_TRUE) && !m_state.isConstantRefType(nuti)) //i.e. an MP
       {
 	std::ostringstream msg;
 	msg << "Variable '";
@@ -903,6 +909,11 @@ namespace MFM {
       }
     else
       {
+#if 0
+	uti = args.m_classInstanceIdx;
+	brtn = true;
+#else
+	//t41198
 	// no class types for constants
 	std::ostringstream msg;
 	msg << "Named Constant '";
@@ -910,6 +921,7 @@ namespace MFM {
 	msg << "' cannot be based on a class type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(args.m_classInstanceIdx).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+#endif
       }
 
     if(!m_state.okUTItoContinue(uti))

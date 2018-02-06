@@ -105,6 +105,7 @@ namespace MFM {
 
   FORECAST NodeVarRef::safeToCastTo(UTI newType)
   {
+    assert(m_nodeInitExpr);
     UTI nuti = getNodeType();
 
     //cast RHS if necessary and safe
@@ -228,7 +229,7 @@ namespace MFM {
       }
     ////requires non-constant, non-funccall value
     //NOASSIGN REQUIRED (e.g. for function parameters) doesn't have to have this!
-    if(m_nodeInitExpr)
+    if(hasInitExpr())
       {
 	UTI eit = m_nodeInitExpr->getNodeType();
 	if(eit == Nav)
@@ -315,6 +316,7 @@ namespace MFM {
       }
     else
       {
+	//no node init expression
 	if(it == Nav)
 	  Node::setStoreIntoAble(TBOOL_FALSE);
 	else if(it == Hzy)
@@ -413,7 +415,7 @@ namespace MFM {
     assert(m_varSymbol->isAutoLocal());
     assert(m_varSymbol->getAutoLocalType() != ALT_AS);
 
-    if(m_nodeInitExpr)
+    if(hasInitExpr())
       {
 	// get the right-hand side, stgcos
 	// can be same type (e.g. element, quark, or primitive),

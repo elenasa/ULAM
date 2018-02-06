@@ -42,9 +42,11 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
     fp->write(".");
     fp->write(m_state.m_pool.getDataAsString(m_cid).c_str());
 
-    assert(m_nodeExpr);
     fp->write(" =");
-    m_nodeExpr->printPostfix(fp);
+    if(m_nodeExpr)
+      m_nodeExpr->printPostfix(fp);
+    else
+      fp->write(" { }"); //null array init values
   } //printPostfix
 
   const char * NodeInitDM::getName()
@@ -84,8 +86,6 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 
   UTI NodeInitDM::checkAndLabelType()
   {
-    assert(m_nodeExpr); // REQUIRED (e.g. for class dm init)
-
     UTI it = Nouti; //expression type
 
     // instantiate, look up in its class block
@@ -148,7 +148,7 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 
     if(m_state.isAClass(suti) && m_state.isScalar(suti))
       {
-	if(!m_nodeExpr->isClassInit())
+	if((m_nodeExpr == NULL) || !m_nodeExpr->isClassInit())
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid initialization of class type ";
@@ -162,53 +162,135 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 
     setNodeType(suti); //t41169 pass along to class init expression node (scalar)
 
-    it = m_nodeExpr->checkAndLabelType();
-    if(it == Nav)
+    if(m_nodeExpr)
       {
-	std::ostringstream msg;
-	msg << "Initialization value expression for";
-	msg << " class data member: ";
-	msg << m_state.m_pool.getDataAsString(m_cid).c_str();
-	msg << ", is invalid";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setNodeType(Nav);
-	return Nav; //short-circuit
-      }
+	it = m_nodeExpr->checkAndLabelType();
+	if(it == Nav)
+	  {
+	    std::ostringstream msg;
+	    msg << "Initialization value expression for";
+	    msg << " class data member: ";
+	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
+	    msg << ", is invalid";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
+	    return Nav; //short-circuit
+	  }
 
-    if(it == Hzy)
+	if(it == Hzy)
+	  {
+	    UTI cuti = m_state.getCompileThisIdx();
+	    std::ostringstream msg;
+	    msg << "Initialization value expression for: ";
+	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
+	    msg << ", is not ready, still hazy while compiling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    m_state.setGoAgain();
+	    setNodeType(Hzy);
+	    return Hzy; //short-circuit
+	  }
+
+	assert(it != Nouti); //?
+
+	//note: Void is flag that it's a list of constant initializers;
+	// code lifted from NodeVarDecl.cpp c&l.
+	if(it == Void)
+	  {
+	    //only possible if array type with initializers;
+	    if(m_state.isScalar(suti))
+	      {
+		std::ostringstream msg;
+		msg << "Invalid initialization of scalar type ";
+		msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+		msg << " with symbol name '" << getName() << "'";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		setNodeType(Nav);
+		return Nav;
+	      }
+
+	    if(m_state.okUTItoContinue(suti) && m_state.isComplete(suti))
+	      {
+		//arraysize specified, may have fewer initializers
+		s32 arraysize = m_state.getArraySize(suti);
+		assert(arraysize >= 0); //t3847
+		u32 n = ((NodeList *) m_nodeExpr)->getNumberOfNodes();
+		if((n > (u32) arraysize) && (arraysize > 0)) //not an error: t3847
+		  {
+		    std::ostringstream msg;
+		    msg << "Too many initializers (" << n << ") specified for array '";
+		    msg << getName() << "', size " << arraysize;
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    setNodeType(Nav);
+		    it = Nav;
+		  }
+		else if(n == 0)
+		  {
+		    delete m_nodeExpr;
+		    m_nodeExpr = NULL; //t41206
+		    it = suti; //ok to fall thru
+		  }
+		else
+		  {
+		    m_nodeExpr->setNodeType(suti);
+		    it = suti;
+		  }
+	      }
+	    else
+	      {
+		assert(suti != Nav);
+		it = Hzy;
+		m_state.setGoAgain();
+	      }
+
+	    if(m_state.isComplete(suti)) //reloads
+	      {
+		ULAMTYPE eit = m_state.getUlamTypeByIndex(it)->getUlamTypeEnum();
+		ULAMTYPE esuti = m_state.getUlamTypeByIndex(suti)->getUlamTypeEnum();
+		if(m_state.okUTItoContinue(it) && (eit != esuti))
+		  {
+		    std::ostringstream msg;
+		    msg << prettyNodeName().c_str() << " '" << getName();
+		    msg << "' type <" << m_state.getUlamTypeByIndex(suti)->getUlamTypeNameOnly().c_str();
+		    msg << "> does not match its value type <";
+		    msg << m_state.getUlamTypeByIndex(it)->getUlamTypeNameOnly().c_str() << ">";
+		    msg << " while labeling class: ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		    msg << " UTI" << cuti;
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		  }
+	      }
+	  } //end array initializers (eit == Void)
+
+	if(m_nodeExpr && !m_nodeExpr->isAConstant())
+	  {
+	    std::ostringstream msg;
+	    msg << "Initialization value expression for";
+	    msg << " class data member: ";
+	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
+	    msg << ", is not a constant";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
+	    return Nav; //short-circuit (error) after a possible empty array init is deleted t41206
+	  }
+
+	if(m_state.okUTItoContinue(it) && m_state.okUTItoContinue(suti) && (m_state.isScalar(it) ^ m_state.isScalar(suti)))
+	  {
+	    std::ostringstream msg;
+	    msg << "Initialization value expression for";
+	    msg << " class data member: " << getName();
+	    msg << ", array/scalar mismatch";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
+	    return Nav; //short-circuit, outside array initializers (t41181)
+	  }
+      } //end m_nodeExpr
+    else
       {
-	UTI cuti = m_state.getCompileThisIdx();
-	std::ostringstream msg;
-	msg << "Initialization value expression for: ";
-	msg << m_state.m_pool.getDataAsString(m_cid).c_str();
-	msg << ", is not ready, still hazy while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	m_state.setGoAgain();
-	setNodeType(Hzy);
-	return Hzy; //short-circuit
-      }
-
-    assert(it != Nouti); //?
-
-    if(!m_nodeExpr->isAConstant())
-      {
-	std::ostringstream msg;
-	msg << "Initialization value expression for";
-	msg << " class data member: ";
-	msg << m_state.m_pool.getDataAsString(m_cid).c_str();
-	msg << ", is not a constant";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setNodeType(Nav);
-	return Nav; //short-circuit (error)
-      }
-
-    //note: Void is flag that it's a list of constant initializers;
-    // code lifted from NodeVarDecl.cpp c&l.
-    if(it == Void)
-      {
-	//only possible if array type with initializers;
-        if(m_state.isScalar(suti))
+	//only parseable as an empty list (like an array withOUT any initializers)
+	// which will be removed accordingly; subsequent times around c&l should bypass
+	// for arrays and classes.
+	if(m_state.isScalar(suti) && !m_state.isAClass(suti))
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid initialization of scalar type ";
@@ -218,86 +300,7 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	    setNodeType(Nav);
 	    return Nav;
 	  }
-
-	if(m_state.okUTItoContinue(suti) && m_state.isComplete(suti))
-	  {
-	    //arraysize specified, may have fewer initializers
-	    s32 arraysize = m_state.getArraySize(suti);
-	    assert(arraysize >= 0); //t3847
-	    u32 n = ((NodeList *) m_nodeExpr)->getNumberOfNodes();
-	    if((n > (u32) arraysize) && (arraysize > 0)) //not an error: t3847
-	      {
-		std::ostringstream msg;
-		msg << "Too many initializers (" << n << ") specified for array '";
-		msg << getName() << "', size " << arraysize;
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		setNodeType(Nav);
-		it = Nav;
-	      }
-	    else
-	      {
-		m_nodeExpr->setNodeType(suti);
-		it = suti;
-	      }
-	  }
-	else
-	  {
-	    assert(suti != Nav);
-	    it = Hzy;
-	    m_state.setGoAgain();
-	  }
-      } //end array initializers (eit == Void)
-
-    if(m_state.okUTItoContinue(it) && m_state.okUTItoContinue(suti) && (m_state.isScalar(it) ^ m_state.isScalar(suti)))
-      {
-	std::ostringstream msg;
-	msg << "Initialization value expression for";
-	msg << " class data member: " << getName();
-	msg << ", array/scalar mismatch";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setNodeType(Nav);
-	return Nav; //short-circuit
       }
-
-
-    if(m_state.isComplete(suti)) //reloads
-      {
-	ULAMTYPE eit = m_state.getUlamTypeByIndex(it)->getUlamTypeEnum();
-	ULAMTYPE esuti = m_state.getUlamTypeByIndex(suti)->getUlamTypeEnum();
-	if(m_state.okUTItoContinue(it) && (eit != esuti))
-	  {
-	    std::ostringstream msg;
-	    msg << prettyNodeName().c_str() << " '" << getName();
-	    msg << "' type <" << m_state.getUlamTypeByIndex(suti)->getUlamTypeNameOnly().c_str();
-	    msg << "> does not match its value type <";
-	    msg << m_state.getUlamTypeByIndex(it)->getUlamTypeNameOnly().c_str() << ">";
-	    msg << " while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    msg << " UTI" << cuti;
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	  }
-
-	//note: Void is flag that it's a list of constant initializers.
-	if((eit == Void))
-	  {
-	    //only possible if array type with initializers
-	    //arraysize specified, may have fewer initializers
-	    assert(m_state.okUTItoContinue(suti));
-	    s32 arraysize = m_state.getArraySize(suti);
-	    assert(arraysize >= 0); //t3847
-	    u32 n = ((NodeList *) m_nodeExpr)->getNumberOfNodes();
-	    if((n > (u32) arraysize) && (arraysize > 0)) //not an error: t3847
-	      {
-		std::ostringstream msg;
-		msg << "Too many initializers (" << n << ") specified for array '";
-		msg << getName() << "', size " << arraysize;
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		setNodeType(Nav);
-		return Nav;
-	      }
-	    m_nodeExpr->setNodeType(suti);
-	  }
-      } //end array initializers (eit == Void)
 
     setNodeType(suti);
 
@@ -396,21 +399,21 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
     if(m_constSymbol->isInitValueReady())
       return uti;
 
-    if(!m_nodeExpr)
-      return Nav;
-
     if(!m_state.isAClass(uti))
       return NodeConstantDef::foldConstantExpression();
 
     if(!m_state.isScalar(uti)) //array of classes (t41170)
       {
-	if(((NodeListArrayInitialization *) m_nodeExpr)->foldArrayInitExpression()) //returns bool
+	if(!m_nodeExpr)
+	  return uti;
+	else if(((NodeListArrayInitialization *) m_nodeExpr)->foldArrayInitExpression()) //returns bool
 	  return uti;
 	else
 	  return Nav;
       }
 
     //scalar classes wait until after c&l to build default value; but pieces can be folded in advance
+    assert(m_nodeExpr);
     return ((NodeListClassInit *) m_nodeExpr)->foldConstantExpression();
   } //foldConstantExpression
 
@@ -448,7 +451,11 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
       {
 	BV8K bvclass;
 	//like NodeVarDeclDM buildDefaultValue for a class
-	if(!m_state.isScalar(nuti))
+	if(!m_nodeExpr)
+	  {
+	    rtnok = true;
+	  }
+	else if(!m_state.isScalar(nuti))
 	  {
 	    rtnok = (((NodeListArrayInitialization *) m_nodeExpr)->buildClassArrayValueInitialization(bvclass)); //at pos 0 (t41170)
 	  }
@@ -560,8 +567,9 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 
   bool NodeInitDM::isAConstant()
   {
-    assert(m_nodeExpr);
-    return m_nodeExpr->isAConstant(); //t41169 (not m_constSymbol check)
+    if(m_nodeExpr)
+      return m_nodeExpr->isAConstant(); //t41169 (not m_constSymbol check)
+    return true; //i.e. array without initial values
   }
 
   void NodeInitDM::genCode(File * fp, UVPass& uvpass)
@@ -571,6 +579,11 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
     assert(m_state.isComplete(nuti));
     assert(UlamType::compare(m_constSymbol->getUlamTypeIdx(), nuti, m_state) == UTIC_SAME); //sanity check
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+    if(!nut->isScalar() && m_nodeExpr==NULL)
+      return; //t41206 no change to array init values
+
+    assert(m_nodeExpr);
 
     ULAMTYPE etyp = nut->getUlamTypeEnum();
     u32 len = nut->getTotalBitSize();
@@ -670,6 +683,7 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 
 	UVPass uvpass2 = UVPass::makePass(tmpVarNum2, cstor, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //default class data member as immediate
 
+	assert(m_nodeExpr);
 	if(nut->isScalar())
 	  {
 	    m_nodeExpr->genCode(fp, uvpass2);  //updates initialized values before read (t41167)
@@ -714,6 +728,7 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
       {
 	//scalar, constant terminal, non-class primitive (32 or 64 bits), including String and arrays
 	UVPass uvpass3;
+	assert(m_nodeExpr); //t41206
 	m_nodeExpr->genCode(fp, uvpass3);
 
 	m_state.indent(fp);

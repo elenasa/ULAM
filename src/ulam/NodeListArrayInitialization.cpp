@@ -226,12 +226,16 @@ namespace MFM{
   FORECAST NodeListArrayInitialization::safeToCastTo(UTI newType)
   {
     UTI nuti = Node::getNodeType();
+    u32 n = m_nodes.size();
+    if(n==0)
+      return CAST_CLEAR; //t41201, but not Void to non-Void.
+
     if(nuti == Void)
       return CAST_HAZY;
 
     UTI newscalaruti = m_state.getUlamTypeAsScalar(newType);
     FORECAST scr = CAST_CLEAR;
-    for(u32 i = 0; i < m_nodes.size(); i++)
+    for(u32 i = 0; i < n; i++)
       {
 	scr = m_nodes[i]->safeToCastTo(newscalaruti);
 	if(scr != CAST_CLEAR)
@@ -266,7 +270,10 @@ namespace MFM{
     bool rtnok = true;
     u32 n = m_nodes.size();
 
-    assert(n > 0);
+    //assert(n > 0);
+    if(isEmptyList())
+      return true; //noop, t41201
+
     if(m_nodes[0]->isClassInit())
       return buildClassArrayValueInitialization(bvtmp); //t41185
 
@@ -341,6 +348,10 @@ namespace MFM{
 	return false;
       }
 
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    s32 arraysize = nut->getArraySize();
+    assert(arraysize >= 0); //t3847
+
     bool rtnok = true;
     u32 n = m_nodes.size();
     for(u32 i = 0; i < n; i++)
@@ -350,12 +361,15 @@ namespace MFM{
 	  break;
       }
 
+    //fill in default class if nothing provided for a non-empty array
+    if((n == 0) && (arraysize > 0))
+      {
+	rtnok = m_state.getDefaultClassValue(nuti, bvtmp); //uses scalar uti
+	n = 1; //ready to fall thru and propagate as needed
+      }
+
     if(rtnok)
       {
-	UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-	s32 arraysize = nut->getArraySize();
-	assert(arraysize >= 0); //t3847
-
 	//propagate last value for any remaining items not initialized
 	if(n < (u32) arraysize)
 	  {
@@ -373,6 +387,8 @@ namespace MFM{
 
   bool NodeListArrayInitialization::buildClassArrayItemInitialValue(u32 n, u32 pos, BV8K& bvtmp)
   {
+    assert((m_nodes.size() > n) && (m_nodes[n] != NULL));
+
     UTI nuti = Node::getNodeType();
     u32 itemlen = m_state.getBitSize(nuti);
 

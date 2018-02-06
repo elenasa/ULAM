@@ -51,6 +51,7 @@
 #include "NodeContinueStatement.h"
 #include "NodeInitDM.h"
 #include "NodeLabel.h"
+#include "NodeListEmpty.h"
 #include "NodeMemberSelect.h"
 #include "NodeMemberSelectOnConstructorCall.h"
 #include "NodeModelParameter.h"
@@ -4472,7 +4473,16 @@ namespace MFM {
       {
 	return parseClassInstanceInitialization(identId, aTok.m_locator);
       }
-
+    else if(bTok.m_type == TOK_CLOSE_CURLY)
+      {
+	//can't tell whether this is an empty array initializer, or empty class initializer (t41206)
+	NodeListEmpty * rtnList = new NodeListEmpty(m_state);
+	assert(rtnList);
+	rtnList->setNodeLocation(aTok.m_locator);
+	getNextToken(bTok); //eat token
+	return rtnList;
+      }
+    //else
     return parseArrayInitialization(identId, aTok.m_locator);
   } //parseArrayOrClassInitialization
 
