@@ -183,14 +183,14 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Cannot cast to incomplete type: " ;
-	msg << tobe->getUlamTypeNameBrief().c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	hazinessFound++;
       }
     else if(tobeType == Nav)
       {
 	std::ostringstream msg;
-	msg << "Cannot cast " << nut->getUlamTypeNameBrief().c_str();
+	msg << "Cannot cast " << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
 	msg << " to not-a-valid type";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	errorsFound++;
@@ -207,7 +207,7 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Cannot cast non-constructor ";
 		msg << nut->getUlamTypeNameBrief().c_str(); //non-constructor void
-		msg << " to " << tobe->getUlamTypeNameBrief().c_str(); //to a class
+		msg << " to " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str(); //to a class
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		errorsFound++;
 	      }
@@ -215,8 +215,8 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Cannot cast ";
-		msg << nut->getUlamTypeNameBrief().c_str(); //non-atom
-		msg << " to " << tobe->getUlamTypeNameBrief().c_str(); //to a class
+		msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str(); //non-atom
+		msg << " to " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str(); //to a class
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		errorsFound++;
 	      }
@@ -226,7 +226,7 @@ namespace MFM {
 		//it becomes an immediate, unless its a ref (t3631).
 		std::ostringstream msg;
 		msg << "Cannot cast an atom to quark "; //an atom
-		msg << tobe->getUlamTypeNameBrief().c_str(); //to quark, unless an ancestor
+		msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str(); //to quark, unless an ancestor
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		errorsFound++;
 #endif
@@ -235,7 +235,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Cannot cast an atom to transient "; //an atom
-		msg << tobe->getUlamTypeNameBrief().c_str();
+		msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		errorsFound++;
 	      }
@@ -244,7 +244,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Cannot cast a non-reference quark, ";
-	    msg << nut->getUlamTypeNameBrief().c_str(); //to atomref
+	    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str(); //to atomref
 	    msg << ", to an Atom &";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    errorsFound++;
@@ -258,8 +258,8 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Cannot explicitly cast ";
-		msg << nut->getUlamTypeNameBrief().c_str();
-		msg << " to type: " << tobe->getUlamTypeNameBrief().c_str();
+		msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+		msg << " to type: " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
 		if(tobe->getUlamTypeEnum() == Bool)
 		  msg << "; Consider using a comparison operation";
 		else if(m_state.isAtom(tobeType) && (nclasstype == UC_QUARK))
@@ -280,9 +280,9 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Cannot explicitly cast a constant, " << m_node->getName() << ", type ";
-		msg << nut->getUlamTypeNameBrief().c_str();
+		msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
 		msg << ", to a reference type, ";
-		msg << tobe->getUlamTypeNameBrief().c_str();
+		msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		errorsFound++; //t3962
 	      }

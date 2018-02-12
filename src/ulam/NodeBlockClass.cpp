@@ -7,7 +7,7 @@
 
 namespace MFM {
 
-  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state) : NodeBlockContext(prevBlockNode, state), m_functionST(state), m_virtualmethodMaxIdx(UNKNOWNSIZE), m_superBlockNode(NULL), m_isEmpty(false), m_registeredForTestInstance(false)
+  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state) : NodeBlockContext(prevBlockNode, state), m_functionST(state), m_virtualmethodMaxIdx(UNKNOWNSIZE), m_superBlockNode(NULL), m_buildingDefaultValueInProgress(false), m_bitPackingInProgress(false), m_isEmpty(false), m_registeredForTestInstance(false)
 
   {
     m_nodeParameterList = new NodeList(state);
@@ -16,7 +16,7 @@ namespace MFM {
     assert(m_nodeArgumentList);
   }
 
-  NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlockContext(ref), m_functionST(ref.m_functionST) /* deep copy */, m_virtualmethodMaxIdx(ref.m_virtualmethodMaxIdx), m_superBlockNode(NULL), m_isEmpty(ref.m_isEmpty), m_registeredForTestInstance(false), m_nodeParameterList(NULL), m_nodeArgumentList(NULL)
+  NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlockContext(ref), m_functionST(ref.m_functionST) /* deep copy */, m_virtualmethodMaxIdx(ref.m_virtualmethodMaxIdx), m_superBlockNode(NULL), m_buildingDefaultValueInProgress(false), m_bitPackingInProgress(false), m_isEmpty(ref.m_isEmpty), m_registeredForTestInstance(false), m_nodeParameterList(NULL), m_nodeArgumentList(NULL)
   {
     UTI cuti = m_state.getCompileThisIdx();
     m_state.pushClassContext(cuti, this, this, false, NULL); //t3895
@@ -263,7 +263,7 @@ namespace MFM {
     std::ostringstream note;
     note << "(" << nsize << " of ";
     note << totalsize << " bits, at " << accumsize << ") ";
-    note << "from superclass: " << nut->getUlamTypeNameBrief().c_str();
+    note << "from superclass: " << nut->getUlamTypeClassNameBrief(nuti).c_str();
     MSG(getNodeLocationAsString().c_str(), note.str().c_str(), NOTE);
 
     accumsize += nsize;
@@ -278,7 +278,7 @@ namespace MFM {
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
     std::ostringstream note;
-    note << "Components of " << cut->getUlamTypeNameBrief().c_str() << " are."; //terminating double dot
+    note << "Components of " << cut->getUlamTypeClassNameBrief(cuti).c_str() << " are."; //terminating double dot
     MSG(getNodeLocationAsString().c_str(), note.str().c_str(), NOTE);
 
     UTI superuti = m_state.isClassASubclass(cuti);
@@ -366,14 +366,12 @@ namespace MFM {
     //if(!checkArgumentNodeTypes())
 
     // Inheritance checks
-    //UTI nuti = getNodeType();
     UTI nuti = m_state.getCompileThisIdx(); //may be Hzy getNodeType();
     UTI superuti = m_state.isClassASubclass(nuti);
 
     //skip the ancestor of a template
     if(m_state.okUTItoContinue(superuti))
       {
-	//if(m_state.isHolder(superuti)) //t3874
 	if(m_state.isHolder(superuti) || !m_state.isComplete(superuti)) //t3874, t41010
 	  {
 	    UTI mappedUTI = superuti;
@@ -386,7 +384,7 @@ namespace MFM {
 		msg << "Substituting mapped UTI" << mappedUTI;
 		msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
 		msg << " for SUPERCLASS holder type: '";
-		msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
+		msg << m_state.getUlamTypeNameByIndex(superuti).c_str();
 		msg << "' UTI" << superuti << " while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
@@ -971,6 +969,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   //starts here, called by SymbolClass
   bool NodeBlockClass::buildDefaultValue(u32 wlen, BV8K& dvref)
   {
+    if(m_buildingDefaultValueInProgress)
+      return false;
+
+    m_buildingDefaultValueInProgress = true; //set
+
     bool aok = true;
     if((m_state.isClassASubclass(getNodeType()) != Nouti))
       {
@@ -982,8 +985,33 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(aok)
       if(m_nodeNext)
 	aok = m_nodeNext->buildDefaultValue(wlen, dvref); //side-effect for dm vardecls
+
+    m_buildingDefaultValueInProgress = false; //clear
     return aok;
   } //buildDefaultValue
+
+  bool NodeBlockClass::buildDefaultValueForClassConstantDefs()
+  {
+    if(classConstantsReady())
+      return true;
+
+    bool aok = true;
+    if((m_state.isClassASubclass(getNodeType()) != Nouti))
+      {
+	NodeBlockClass * superblock = getSuperBlockPointer();
+	assert(superblock);
+	aok = superblock->buildDefaultValueForClassConstantDefs();
+      }
+
+    if(aok)
+      if(m_nodeNext)
+	aok = m_nodeNext->buildDefaultValueForClassConstantDefs();
+
+    if(aok)
+      m_classConstantsReady = true;
+
+    return aok;
+  } //buildDefaultValueForClassConstantDefs
 
   void NodeBlockClass::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
   {
@@ -1256,15 +1284,23 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     return func;
   } //findToIntFunctionNode
 
-  void NodeBlockClass::packBitsForVariableDataMembers()
+  TBOOL NodeBlockClass::packBitsForVariableDataMembers()
   {
-    if(m_ST.getTableSize() == 0) return;
+    if(m_ST.getTableSize() == 0) return TBOOL_TRUE;
+
+    if(m_bitPackingInProgress)
+      return TBOOL_HAZY; //or false?
 
     u32 reloffset = 0;
 
     UTI nuti = getNodeType();
     UTI superuti = m_state.isClassASubclass(nuti);
-    assert(superuti != Hzy);
+    //assert(superuti != Hzy);
+    if(superuti == Hzy)
+      {
+	return TBOOL_HAZY;
+      }
+
     if(superuti != Nouti)
       {
 	NodeBlockClass * superblock = getSuperBlockPointer();
@@ -1277,18 +1313,34 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
 	    msg << "', an INCOMPLETE Super class; ";
 	    msg << "No bit packing of variable data members";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    return;
+	    //MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    m_state.setGoAgain();
+	    return TBOOL_HAZY;
 	  }
+
 	assert(UlamType::compare(superblock->getNodeType(), superuti, m_state) == UTIC_SAME);
 	u32 superoffset = m_state.getTotalBitSize(superuti);
-	assert(superoffset >= 0);
+	//assert(superoffset >= 0);
+	if(superoffset < 0)
+	  {
+	    return TBOOL_HAZY;
+	  }
 	reloffset += superoffset;
       }
 
+    TBOOL rtntb = TBOOL_TRUE;
+    m_bitPackingInProgress = true;;
+
     //m_ST.packBitsForTableOfVariableDataMembers(); //ST order not as declared
     if(m_nodeNext)
-      m_nodeNext->packBitsInOrderOfDeclaration(reloffset);
+      {
+	TBOOL nodetb = m_nodeNext->packBitsInOrderOfDeclaration(reloffset);
+	rtntb = Node::minTBOOL(rtntb, nodetb);
+      }
+
+    m_bitPackingInProgress = false;
+    return rtntb;
   } //packBitsForVariableDataMembers
 
   void NodeBlockClass::printUnresolvedVariableDataMembers()

@@ -67,7 +67,7 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
   void NodeInitDM::resetOfClassType(UTI cuti)
   {
     assert(m_state.okUTItoContinue(cuti));
-    assert(m_state.isComplete(cuti));
+    //assert(m_state.isComplete(cuti)); t41169
     m_ofClassUTI = cuti;
   }
 
@@ -423,7 +423,7 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
     return foldConstantExpression(); //t41170
   }
 
-  bool NodeInitDM::buildDefaultValue(u32 wlen, BV8K& bvref)
+  bool NodeInitDM::initDataMemberConstantValue(BV8K& bvref, BV8K& bvmask)
   {
     bool rtnok = false;
 
@@ -447,6 +447,16 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     u32 len = nut->getTotalBitSize(); //t41168
 
+    if(!SymbolWithValue::isValueAllZeros(pos, len, bvmask))
+      {
+	std::ostringstream msg;
+	msg << "Data member '" << getName() << "'";
+	msg << " initialization attempt clobbers a previous initialization value";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav); //compiler counts
+	return false; //t3451
+      }
+
     if(m_state.isAClass(nuti) && !m_constSymbol->isInitValueReady())
       {
 	BV8K bvclass;
@@ -463,7 +473,8 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	  {
 	    if(m_state.getDefaultClassValue(nuti, bvclass)) //uses scalar uti
 	      {
-		rtnok = ((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvclass); //at pos 0
+		BV8K bvtmpmask;
+		rtnok = ((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvclass, bvtmpmask); //at pos 0
 	      }
 	  }
 
@@ -494,8 +505,10 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	assert(gotVal);
 	val8k.CopyBV<8192>(0, pos, len, bvref);
       }
+
+    bvmask.SetBits(pos, len); //t3451
     return true; //pass on
-  } //buildDefaultValue
+  } //buildDataMemberConstantValue
 
   void NodeInitDM::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
   {
@@ -528,9 +541,10 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
     return ERROR;
   }
 
-  void NodeInitDM::packBitsInOrderOfDeclaration(u32& offset)
+  TBOOL NodeInitDM::packBitsInOrderOfDeclaration(u32& offset)
   {
     m_state.abortNotImplementedYet();
+    return TBOOL_FALSE;
   }
 
   void NodeInitDM::printUnresolvedVariableDataMembers()

@@ -4,9 +4,9 @@
 
 namespace MFM {
 
-  NodeBlockContext::NodeBlockContext(NodeBlock * prevBlockNode, CompilerState & state): NodeBlock(prevBlockNode, state, NULL){}
+  NodeBlockContext::NodeBlockContext(NodeBlock * prevBlockNode, CompilerState & state): NodeBlock(prevBlockNode, state, NULL), m_classConstantsReady(false) {}
 
-  NodeBlockContext::NodeBlockContext(const NodeBlockContext& ref) : NodeBlock(ref)
+  NodeBlockContext::NodeBlockContext(const NodeBlockContext& ref) : NodeBlock(ref), m_classConstantsReady(false)
   {
     ref.copyUlamTypeKeys((NodeBlockContext *) this); //t3959
   }
@@ -40,6 +40,11 @@ namespace MFM {
   {
     return m_ST.hasUlamTypeSymbolsInTable(String);
     //return m_ST.hasADataMemberStringInitValueInClass(getNodeType());
+  }
+
+  bool NodeBlockContext::classConstantsReady()
+  {
+    return m_classConstantsReady;
   }
 
   void NodeBlockContext::addUlamTypeKeyToSet(UlamKeyTypeSignature key)

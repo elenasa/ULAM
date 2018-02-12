@@ -2,6 +2,7 @@
 #include "NodeConstantDef.h"
 #include "NodeConstant.h"
 #include "NodeConstantArray.h"
+#include "NodeConstantClass.h"
 #include "NodeListArrayInitialization.h"
 #include "NodeListClassInit.h"
 #include "NodeTerminal.h"
@@ -131,7 +132,7 @@ namespace MFM {
     //skip bitsize if default size
     if(nut->getBitSize() == ULAMTYPE_DEFAULTBITSIZE[nut->getUlamTypeEnum()])
       return m_state.m_pool.getIndexForDataString(nut->getUlamTypeNameOnly());
-    return m_state.m_pool.getIndexForDataString(nut->getUlamTypeNameBrief());
+    return m_state.m_pool.getIndexForDataString(m_state.getUlamTypeNameBriefByIndex(nuti));
   } //getTypeNameId
 
   const std::string NodeConstantDef::prettyNodeName()
@@ -181,7 +182,7 @@ namespace MFM {
 
   UTI NodeConstantDef::checkAndLabelType()
   {
-    UTI it = Nouti; //expression type
+    UTI nuti = Nouti; //expression type
 
     // instantiate, look up in current block
     if(m_constSymbol == NULL)
@@ -219,7 +220,8 @@ namespace MFM {
 	  }
       }
 
-    //move before m_nodeExpr "Void" check (t3883)
+    // move before m_nodeExpr "Void" check (t3883, error/t3451);
+    // check completeness in case arraysize depends on number of items in initialization (t3890)
     if(!m_state.okUTItoContinue(suti) || !m_state.isComplete(suti))
       {
 	std::ostringstream msg;
@@ -251,8 +253,8 @@ namespace MFM {
     // NOASSIGN REQUIRED (e.g. for class parameters) doesn't have to have this!
     if(m_nodeExpr)
       {
-	it = m_nodeExpr->checkAndLabelType();
-	if(it == Nav)
+	nuti = m_nodeExpr->checkAndLabelType();
+	if(nuti == Nav)
 	  {
 	    std::ostringstream msg;
 	    msg << "Constant value expression for";
@@ -268,7 +270,7 @@ namespace MFM {
 	    return Nav; //short-circuit
 	  }
 
-	if(it == Hzy)
+	if(nuti == Hzy)
 	  {
 	    UTI cuti = m_state.getCompileThisIdx();
 	    std::ostringstream msg;
@@ -284,12 +286,11 @@ namespace MFM {
 
 	//note: Void is flag that it's a list of constant initializers;
 	// code lifted from NodeVarDecl.cpp c&l.
-	if(it == Void)
+	if(nuti == Void)
 	  {
-	    if(m_nodeExpr && ((NodeList *) m_nodeExpr)->isEmptyList()) //t41202
+	    if(m_nodeExpr && ((NodeList *) m_nodeExpr)->isEmptyList())
 	      {
-		delete m_nodeExpr;
-		m_nodeExpr = NULL;
+		//keep empty list for constant def (t41202)
 	      }
 	    else
 	      {
@@ -313,8 +314,8 @@ namespace MFM {
 			if(m_state.isComplete(duti))
 			  {
 			    std::ostringstream msg;
-			    msg << "REPLACING Symbol UTI" << it;
-			    msg << ", " << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+			    msg << "REPLACING Symbol UTI" << nuti;
+			    msg << ", " << m_state.getUlamTypeNameByIndex(nuti).c_str();
 			    msg << " used with variable symbol name '" << getName();
 			    msg << "' with node type descriptor array type (with initializers): ";
 			    msg << m_state.getUlamTypeNameBriefByIndex(duti).c_str();
@@ -324,7 +325,7 @@ namespace MFM {
 			    m_constSymbol->resetUlamType(duti); //consistent!
 			    suti = m_constSymbol->getUlamTypeIdx(); //reset after alias (t3890, t3891)
 			    m_nodeExpr->setNodeType(duti); //replace Void too!
-			    it = duti;
+			    nuti = duti;
 			  }
 		      }
 		    //else
@@ -335,37 +336,54 @@ namespace MFM {
 	      {
 		if(m_nodeExpr)
 		  {
-		    //arraysize specified, may have fewer initializers
-		    s32 arraysize = m_state.getArraySize(suti);
-		    assert(arraysize >= 0); //t3847
-		    u32 n = ((NodeList *) m_nodeExpr)->getNumberOfNodes();
-		    if((n > (u32) arraysize) && (arraysize > 0)) //not an error: t3847
+		    if(m_state.isScalar(suti))
 		      {
-			std::ostringstream msg;
-			msg << "Too many initializers (" << n << ") specified for array '";
-			msg << getName() << "', size " << arraysize;
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			setNodeType(Nav);
-		    it = Nav;
+			if(m_nodeExpr->isAList() && !m_state.isAClass(suti))
+			  {
+			    //error scalar class var with {} error/t41208
+			    std::ostringstream msg;
+			    msg << "Constant scalar primitive '";
+			    msg << getName() << "' has improper {} initialization";
+			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			    setNodeType(Nav);
+			    nuti = Nav;
+			  }
+			//else
 		      }
 		    else
 		      {
-			m_nodeExpr->setNodeType(suti);
-			it = suti;
+			//arraysize specified, may have fewer initializers
+			s32 arraysize = m_state.getArraySize(suti);
+			assert(arraysize >= 0); //t3847
+			u32 n = ((NodeList *) m_nodeExpr)->getNumberOfNodes();
+			if((n > (u32) arraysize) && (arraysize > 0)) //not an error: t3847
+			  {
+			    std::ostringstream msg;
+			    msg << "Too many initializers (" << n << ") specified for array '";
+			    msg << getName() << "', size " << arraysize;
+			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			    setNodeType(Nav);
+			    nuti = Nav;
+			  }
+			else
+			  {
+			    m_nodeExpr->setNodeType(suti);
+			    nuti = suti;
+			  }
 		      }
-		  }
+		  } //no node expr
 		else
-		  it = suti; //t41202
+		  nuti = suti; //t41202
 	      }
 	    else
 	      {
 		assert(suti != Nav);
-		it = Hzy;
+		nuti = Hzy;
 		m_state.setGoAgain();
 	      }
 	  } //end array initializers (eit == Void)
 
-	if(m_state.okUTItoContinue(it) && m_state.okUTItoContinue(suti) && (m_state.isScalar(it) ^ m_state.isScalar(suti)))
+	if(m_state.okUTItoContinue(nuti) && m_state.okUTItoContinue(suti) && (m_state.isScalar(nuti) ^ m_state.isScalar(suti)))
 	  {
 	    std::ostringstream msg;
 	    msg << "Constant value expression for";
@@ -400,50 +418,31 @@ namespace MFM {
 
     if(m_state.isComplete(suti)) //reloads
       {
-	ULAMTYPE eit = m_state.getUlamTypeByIndex(it)->getUlamTypeEnum();
+	ULAMTYPE eit = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
 	ULAMTYPE esuti = m_state.getUlamTypeByIndex(suti)->getUlamTypeEnum();
-	if(m_state.okUTItoContinue(it) && (eit != esuti))
+	if(m_state.okUTItoContinue(nuti) && (eit != esuti))
 	  {
 	    std::ostringstream msg;
 	    msg << prettyNodeName().c_str() << " '" << getName();
 	    msg << "' type <" << m_state.getUlamTypeByIndex(suti)->getUlamTypeNameOnly().c_str();
 	    msg << "> does not match its value type <";
-	    msg << m_state.getUlamTypeByIndex(it)->getUlamTypeNameOnly().c_str() << ">";
+	    msg << m_state.getUlamTypeByIndex(nuti)->getUlamTypeNameOnly().c_str() << ">";
 	    msg << " while labeling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    msg << " UTI" << cuti;
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
-
-	//Moved: esuti == Void 	    //void only valid use is as a func return type
-	// (to be more like NodeVarDecl)
-
-	//note: Void is flag that it's a list of constant initializers.
-	if(m_nodeExpr && (eit == Void))
-	  {
-	    //only possible if array type with initializers
-	    //arraysize specified, may have fewer initializers
-	    assert(m_state.okUTItoContinue(suti));
-	    s32 arraysize = m_state.getArraySize(suti);
-	    assert(arraysize >= 0); //t3847
-	    u32 n = ((NodeList *) m_nodeExpr)->getNumberOfNodes();
-	    if((n > (u32) arraysize) && (arraysize > 0)) //not an error: t3847
-	      {
-		std::ostringstream msg;
-		msg << "Too many initializers (" << n << ") specified for array '";
-		msg << getName() << "', size " << arraysize;
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		setNodeType(Nav);
-		return Nav;
-	      }
-	    m_nodeExpr->setNodeType(suti);
-	  }
       } //end array initializers (eit == Void)
+
+    if(m_state.isComplete(nuti) && (nuti != suti) && m_state.isAClass(nuti))
+      {
+	m_constSymbol->resetUlamType(nuti);
+	suti = nuti; //t3451
+      }
 
     setNodeType(suti);
 
-    //    if(!m_constSymbol->isReady() && m_nodeExpr)
-    if(!m_constSymbol->isReady())
+    if(!m_constSymbol->isReady() && m_nodeExpr) //error/t3451
       {
 	UTI foldrtn = foldConstantExpression();
 	if(foldrtn == Nav)
@@ -459,7 +458,7 @@ namespace MFM {
 	    setNodeType(Hzy);
 	    m_state.setGoAgain();
 	  }
-	else if(!m_state.isAClass(foldrtn)) //t41198
+	else //if(!m_state.isAClass(foldrtn)) //t41198
 	  {
 	    if(!(m_constSymbol->isReady() || m_constSymbol->isInitValueReady()))
 	      {
@@ -599,31 +598,50 @@ namespace MFM {
     if(!m_nodeExpr)
       return uti; //scalar, wo init expr (e.g. t3326,7,8,9)
 
-    //assert(!m_state.isAClass(uti)); //for debugging
-#if 1
     //scalar classes wait until after c&l to build default value; but pieces can be folded in advance
     // t41198 (might be better to replace node with NodeInitDM???)
     if(m_state.isAClass(uti))
       {
-	UTI rtnuti =  ((NodeListClassInit *) m_nodeExpr)->foldConstantExpression();
-	//if(m_constSymbol->isInitValueReady())
-	//pos is not reliable until after c&l
-#if 0
-	if(m_state.okUTItoContinue(rtnuti) && m_state.isComplete(rtnuti))
+	UTI rtnuti;
+	if(m_nodeExpr->isAList()) //t3451, t41209
 	  {
-	    BV8K bvtmp;
-	    if(m_state.getDefaultClassValue(uti, bvtmp)) //uses scalar uti
+	    //tries to pack bits if complete
+	    rtnuti =  ((NodeListClassInit *) m_nodeExpr)->foldConstantExpression();
+	    if(m_state.okUTItoContinue(rtnuti) && m_state.isComplete(rtnuti))
 	      {
-		((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvtmp);
-		m_constSymbol->setValue(bvtmp);
+		BV8K bvtmp;
+		if(m_state.getDefaultClassValue(uti, bvtmp)) //uses scalar uti
+		  {
+		    BV8K bvmask;
+		    if(((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvtmp, bvmask))
+		      {
+			m_constSymbol->setValue(bvtmp);
+
+			u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
+			assignConstantSlotIndex(tmpslotnum); //t41198
+		      }
+		    else
+		      rtnuti = Nav; //t3451
+		  }
 	      }
 	  }
-#endif
-	return rtnuti;
-      }
-#endif
+	else
+	  {
+	    //not a list, t.f. NodeConstantClass
+	    BV8K bvcctmp;
+	    if(((NodeConstantClass *) m_nodeExpr)->getClassValue(bvcctmp))
+	      {
+		m_constSymbol->setValue(bvcctmp); //t3451
+		rtnuti = m_nodeExpr->getNodeType(); //or uti?
 
-    // if here, must be a constant..
+		u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
+		assignConstantSlotIndex(tmpslotnum); //t3451
+	      }
+	  }
+	return rtnuti;
+      } //end isAClass
+
+    // if here, must be a primitive constant..
     u64 newconst = 0; //UlamType format (not sign extended)
 
     evalNodeProlog(0); //new current frame pointer
@@ -765,9 +783,9 @@ namespace MFM {
       {
 	brtn = true;
       }
-    else if(m_nodeExpr->isAList() && ((NodeListArrayInitialization *) m_nodeExpr)->foldArrayInitExpression())
+    else if(m_nodeExpr->isAList() && ((NodeList *) m_nodeExpr)->foldArrayInitExpression())
       {
-	if(((NodeListArrayInitialization *) m_nodeExpr)->buildArrayValueInitialization(bvtmp))
+	if(((NodeList *) m_nodeExpr)->buildArrayValueInitialization(bvtmp))
 	  brtn = true;
       }
     else
@@ -794,8 +812,44 @@ namespace MFM {
 
   bool NodeConstantDef::buildDefaultValue(u32 wlen, BV8K& bvref)
   {
+    AssertBool rtnok = buildDefaultValueForClassConstantDefs();
+    assert(rtnok);
     return true; //pass on
-  }
+  } //buildDefaultValue
+
+  bool NodeConstantDef::buildDefaultValueForClassConstantDefs()
+  {
+    bool rtnok = true;
+    UTI nuti = getNodeType();
+    assert(m_state.okUTItoContinue(nuti) && m_state.isComplete(nuti));
+
+    if(m_state.isAClass(nuti)) //t41198
+      {
+	if(!(m_constSymbol->isReady() || m_constSymbol->isInitValueReady()))
+	  {
+	    if(m_state.tryToPackAClass(nuti) == TBOOL_TRUE)
+	      {
+		BV8K bvtmp;
+		if(m_state.getDefaultClassValue(nuti, bvtmp)) //uses scalar uti
+		  {
+		    if(m_nodeExpr)
+		      {
+			BV8K bvmask;
+			if(((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvtmp,bvmask))
+			  m_constSymbol->setValue(bvtmp);
+			else
+			  rtnok = false;
+		      }
+		  }
+		else
+		  rtnok = false;
+	      }
+	    else
+	      rtnok = false;
+	  }
+      }
+    return rtnok;
+  } //buildDefaultValueForClassConstantDefs
 
   void NodeConstantDef::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
   {
@@ -833,9 +887,10 @@ namespace MFM {
     return NOTREADY; //was ERROR
   }
 
-  void NodeConstantDef::packBitsInOrderOfDeclaration(u32& offset)
+  TBOOL NodeConstantDef::packBitsInOrderOfDeclaration(u32& offset)
   {
     //do nothing, but override
+    return TBOOL_TRUE;
   }
 
   void NodeConstantDef::assignConstantSlotIndex(u32& cslotidx)
@@ -850,6 +905,15 @@ namespace MFM {
 	assert(nut->isPrimitiveType());
 	Node::makeRoomForSlots(slotsneeded, CNSTSTACK);
 	setupStackWithPrimitiveForEval(slotsneeded);
+	cslotidx += slotsneeded;
+      }
+    else if(m_state.isAClass(nuti)) //t41198
+      {
+	u32 slotsneeded = m_state.slotsNeeded(nuti);
+	assert(m_constSymbol);
+	((SymbolConstantValue *) m_constSymbol)->setConstantStackFrameAbsoluteSlotIndex(cslotidx);
+	Node::makeRoomForSlots(slotsneeded, CNSTSTACK);
+	setupStackWithConstantClassForEval(slotsneeded);
 	cslotidx += slotsneeded;
       }
   } //assignConstantSlotIndex
@@ -918,20 +982,27 @@ namespace MFM {
 	  m_state.abortGreaterThanMaxBitsPerLong();
 
 	u32 n = ((NodeList *) m_nodeExpr)->getNumberOfNodes(); //may be fewer
-
-	for(u32 j = 0; j < slots; j++)
+	if(n == 0)
 	  {
-	    UlamValue itemUV;
-	    evalNodeProlog(0); //new current frame pointer
-	    makeRoomForNodeType(scalaruti); //offset a constant expression
-	    u32 k = j < n ? j : n - 1; //repeat last initializer if fewer
-	    EvalStatus evs = ((NodeList *) m_nodeExpr)->eval(k);
-	    assert(evs == NORMAL);
+	    for(u32 j = 0; j < slots; j++)
+	      m_state.m_constantStack.storeUlamValueAtStackIndex(immUV, baseslot + j);
+	  }
+	else
+	  {
+	    for(u32 j = 0; j < slots; j++)
+	      {
+		UlamValue itemUV;
+		evalNodeProlog(0); //new current frame pointer
+		makeRoomForNodeType(scalaruti); //offset a constant expression
+		u32 k = j < n ? j : n - 1; //repeat last initializer if fewer
+		EvalStatus evs = ((NodeList *) m_nodeExpr)->eval(k);
+		assert(evs == NORMAL);
 
-	    itemUV = m_state.m_nodeEvalStack.popArg();
-	    evalNodeEpilog();
+		itemUV = m_state.m_nodeEvalStack.popArg();
+		evalNodeEpilog();
 
-	    m_state.m_constantStack.storeUlamValueAtStackIndex(itemUV, baseslot + j);
+		m_state.m_constantStack.storeUlamValueAtStackIndex(itemUV, baseslot + j);
+	      }
 	  }
       }
     else //not a list, not packedloadable
@@ -956,6 +1027,67 @@ namespace MFM {
 	evalNodeEpilog();
       }
   } //setupStackWithPrimitiveForEval
+
+  void NodeConstantDef::setupStackWithConstantClassForEval(u32 slots)
+  {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    assert(m_constSymbol->getUlamTypeIdx() == nuti);
+    assert(nut->isScalar());
+
+    assert(slots == 1); //quark or element fit in one slot.
+
+    ULAMCLASSTYPE classtype = nut->getUlamClassType();
+    assert((classtype == UC_QUARK) || (classtype == UC_ELEMENT));
+
+    PACKFIT packFit = nut->getPackable();
+    if(packFit == PACKEDLOADABLE)
+      {
+	u64 dval = 0;
+	AssertBool gotVal = false;
+	if(m_constSymbol->isReady())
+	  gotVal = m_constSymbol->getValue(dval);
+	else if(m_constSymbol->hasInitValue() && m_constSymbol->isInitValueReady())
+	  gotVal = m_constSymbol->getInitValue(dval);
+	assert(gotVal);
+
+	UlamValue immUV;
+	u32 len = nut->getTotalBitSize();
+	if(len <= MAXBITSPERINT)
+	  immUV = UlamValue::makeImmediateClass(nuti, (u32) dval, len);
+	else if(len <= MAXBITSPERLONG)
+	  immUV = UlamValue::makeImmediateLongClass(nuti, dval, len);
+	else
+	  m_state.abortGreaterThanMaxBitsPerLong();
+
+	m_state.m_constantStack.storeUlamValueAtStackIndex(immUV, ((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex());
+      }
+    else if(!m_nodeExpr)
+      {
+	//unpacked, no inits for class, use default
+	UlamValue defaultUV;
+	defaultUV = UlamValue::makeDefaultAtom(nuti, m_state);
+
+	m_state.m_constantStack.storeUlamValueAtStackIndex(defaultUV, ((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex());
+      }
+    else //not packedloadable w inits for class
+      {
+	BV8K bvclass;
+	AssertBool gotVal = false;
+	if(m_constSymbol->isReady())
+	  gotVal = m_constSymbol->getValue(bvclass);
+	else if(m_constSymbol->hasInitValue() && m_constSymbol->isInitValueReady())
+	  gotVal = m_constSymbol->getInitValue(bvclass);
+	assert(gotVal);
+
+	u32 len = nut->getTotalBitSize(); //not 96 for elements
+	UlamValue elementUV;
+	elementUV = UlamValue::makeAtom(nuti);
+	elementUV.putDataBig(ATOMFIRSTSTATEBITPOS, len, bvclass);
+
+	m_state.m_constantStack.storeUlamValueAtStackIndex(elementUV, ((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex());
+      }
+  } //setupStackWithConstantClassForEval
 
   void NodeConstantDef::printUnresolvedVariableDataMembers()
   {

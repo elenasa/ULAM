@@ -922,13 +922,13 @@ namespace MFM {
 	((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, getCompileThisIdx());
 
 	std::ostringstream msg;
-	msg << "MAPPED!! type: " << getUlamTypeNameBriefByIndex(suti).c_str();
+	msg << "MAPPED!! type: " << getUlamTypeNameByIndex(suti).c_str();
 	msg << "(UTI" << suti << ")";
-	msg << " TO newtype: " << getUlamTypeNameBriefByIndex(newuti).c_str();
+	msg << " TO newtype: " << getUlamTypeNameByIndex(newuti).c_str();
 	msg << "(UTI" << newuti << ")";
-	msg << " while compiling class " << getUlamTypeNameBriefByIndex(getCompileThisIdx()).c_str();
+	msg << " while compiling class " << getUlamTypeNameByIndex(getCompileThisIdx()).c_str();
 	msg << "(UTI" << getCompileThisIdx() << ")";
-	msg << ", for incomplete class " << getUlamTypeNameBriefByIndex(cnsymOfIncomplete->getUlamTypeIdx()).c_str();
+	msg << ", for incomplete class " << getUlamTypeNameByIndex(cnsymOfIncomplete->getUlamTypeIdx()).c_str();
 	msg << "(UTI" << cnsymOfIncomplete->getUlamTypeIdx() << ")";
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
 
@@ -987,6 +987,8 @@ namespace MFM {
     UlamType * ut = NULL;
     AssertBool isDef = isDefined(m_indexToUlamKey[uti], ut);
     assert(isDef);
+    if(ut->getUlamTypeEnum() == Class)
+      return ut->getUlamTypeClassNameBrief(uti);
     return ut->getUlamTypeNameBrief();
   }
 
@@ -1384,6 +1386,28 @@ namespace MFM {
       darrval |= (dval << (len - (pos + (j * bitsize))));
   } //getDefaultAsPackedArray
 
+  TBOOL CompilerState::tryToPackAClass(UTI cuti)
+  {
+    //on the fly during c&l to hopefully make some progress with constant class values
+    UlamType * cut = getUlamTypeByIndex(cuti);
+    assert(cut->getUlamTypeEnum() == Class);
+
+    assert(okUTItoContinue(cuti));
+
+    if(!isComplete(cuti)) return TBOOL_HAZY;
+
+    TBOOL rtntb = TBOOL_TRUE;
+    if(cut->getBitSize() > 0)
+      {
+	UTI scalarcuti = getUlamTypeAsScalar(cuti);
+	SymbolClass * csym = NULL;
+	AssertBool isDefined = alreadyDefinedSymbolClass(scalarcuti, csym);
+	assert(isDefined);
+	rtntb = csym->packBitsForClassVariableDataMembers();
+      }
+    return rtntb;
+  } //trytoPackAClass
+
   bool CompilerState::getDefaultClassValue(UTI cuti, BV8K& dvref)
   {
     if(!okUTItoContinue(cuti)) return false; //short-circuit
@@ -1643,7 +1667,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Trying to exceed allotted bit size (" << MAXSTATEBITS << ") for element ";
-	    msg << ut->getUlamTypeNameBrief().c_str() << " with " << total << " bits";
+	    msg << ut->getUlamTypeClassNameBrief(utiArg).c_str() << " with " << total << " bits";
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 
 	    noteClassDataMembersTypeAndName(utiArg, total); //t3155
@@ -1657,7 +1681,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERQUARK << ") for quark ";
-	    msg << ut->getUlamTypeNameBrief().c_str() << " with " << total << " bits";
+	    msg << ut->getUlamTypeClassNameBrief(utiArg).c_str() << " with " << total << " bits";
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 
 	    noteClassDataMembersTypeAndName(utiArg, total); //t41013
@@ -1671,7 +1695,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERTRANSIENT << ") for transient ";
-	    msg << ut->getUlamTypeNameBrief().c_str() << " with " << total << " bits";
+	    msg << ut->getUlamTypeClassNameBrief(utiArg).c_str() << " with " << total << " bits";
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 
 	    noteClassDataMembersTypeAndName(utiArg, total);
@@ -1748,6 +1772,7 @@ namespace MFM {
     if(key1.getUlamKeyTypeSignatureReferenceType() != key2.getUlamKeyTypeSignatureReferenceType())
       return; //don't destory olduti if either is a reference of the other
 
+    updateUTIAliasForced(olduti, cuti); //t3327
     //removes old key and its ulamtype from map, if no longer pointed to
     deleteUlamKeyTypeSignature(key1, olduti);
     m_indexToUlamKey[olduti] = key2;
@@ -1755,7 +1780,7 @@ namespace MFM {
     {
       std::ostringstream msg;
       msg << "MERGED keys for duplicate Class (UTI" << olduti << ") WITH: ";
-      msg << getUlamTypeNameBriefByIndex(cuti).c_str() << " (UTI" << cuti << ")";
+      msg << getUlamTypeNameByIndex(cuti).c_str() << " (UTI" << cuti << ")";
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
   } //mergeClassUTI
@@ -1794,9 +1819,9 @@ namespace MFM {
     {
       std::ostringstream msg;
       msg << "ALIASES for (UTI" << auti << ") ";
-      msg << getUlamTypeNameBriefByIndex(auti).c_str();
+      msg << getUlamTypeNameByIndex(auti).c_str();
       msg << " is update to (UTI" << buti << ") ";
-      msg << getUlamTypeNameBriefByIndex(buti).c_str();
+      msg << getUlamTypeNameByIndex(buti).c_str();
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
     return;
@@ -1809,7 +1834,7 @@ namespace MFM {
     {
       std::ostringstream msg;
       msg << "ALIASES for (UTI" << auti << ") ";
-      msg << getUlamTypeNameBriefByIndex(auti).c_str();
+      msg << getUlamTypeNameByIndex(auti).c_str();
       msg << " is initialized to self";
       MSG2("", msg.str().c_str(), DEBUG);
     }
@@ -3061,7 +3086,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
 	    msg << "''s Return type's: " << getUlamTypeNameByIndex(it).c_str();
 	    msg << " does not match incomplete resulting type";
-	    msg << " " << getUlamTypeNameBriefByIndex(rType).c_str();
+	    msg << " " << getUlamTypeNameByIndex(rType).c_str();
 	    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_DEBUG);
 	    continue;
 	  }

@@ -142,7 +142,7 @@ namespace MFM {
     if(nut->getUlamTypeEnum() != Class)
       note << vkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str();
     else
-      note << nut->getUlamTypeNameBrief().c_str();
+      note << nut->getUlamTypeClassNameBrief(nuti).c_str();
 
     note << " " << getName();
 
@@ -173,7 +173,7 @@ namespace MFM {
   {
     Node::setNodeType(uti);
     if(m_state.okUTItoContinue(uti) && m_state.isAClass(uti))
-      if(hasInitExpr())
+      if(hasInitExpr() && m_nodeInitExpr->isClassInit()) //t41201,6
     	m_nodeInitExpr->setClassType(uti);
   }
 
@@ -247,6 +247,7 @@ namespace MFM {
     UTI cuti = m_state.getCompileThisIdx();
 
     //don't allow unions to initialize its data members (t3782)
+    // but a quark/union data member may as long as they don't clobber.
     if(m_state.isClassAQuarkUnion(cuti) && hasInitExpr())
       {
 	std::ostringstream msg;
@@ -741,16 +742,21 @@ namespace MFM {
 	      {
 		if(hasInitExpr())
 		  {
-		    AssertBool initok = m_nodeInitExpr->initDataMembersConstantValue(dmdv);
-		    assert(initok);
-		    m_varSymbol->setInitValue(dmdv); //t41167,8  t41185
+		    BV8K bvmask;
+		    if((aok = m_nodeInitExpr->initDataMembersConstantValue(dmdv, bvmask)))
+		      m_varSymbol->setInitValue(dmdv); //t41167,8  t41185
 		  }
+		else
+		  aok = true;
 
 		//updates dvref in place at position 'pos'
-		dmdv.CopyBV(0, pos, nut->getTotalBitSize(), dvref); //both scalar and arrays (t41185)
-		aok = true;
+		if(aok)
+		  dmdv.CopyBV(0, pos, nut->getTotalBitSize(), dvref); //both scalar and arrays (t41185)
 	      }
+	    //else not ok
 	  }
+	else
+	  aok = true; //zero len
 
 	if(aok)
 	  foldDefaultClass(); //init value for m_varSymbol t3512
@@ -789,6 +795,11 @@ namespace MFM {
 
     return aok;
   } //buildDefaultValue
+
+  bool NodeVarDeclDM::buildDefaultValueForClassConstantDefs()
+  {
+    return true;
+  }
 
   void NodeVarDeclDM::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
   {
@@ -1014,23 +1025,35 @@ namespace MFM {
     m_varSymbol->setInitValue(bvarr); //t3512
   } //foldDefaultClass
 
-  void NodeVarDeclDM::packBitsInOrderOfDeclaration(u32& offset)
+  TBOOL NodeVarDeclDM::packBitsInOrderOfDeclaration(u32& offset)
   {
+    //can be called any time during c&l resolving loop; may not be ready yet
     assert((s32) offset >= 0); //neg is invalid
-    assert(m_varSymbol);
+
+    UTI nuti = getNodeType();
+    if(!m_state.okUTItoContinue(nuti))
+      {
+	if(nuti == Nav)
+	  return TBOOL_FALSE;
+	return TBOOL_HAZY; //t3875
+      }
+    if(!m_state.isComplete(nuti))
+      return TBOOL_HAZY;
+
+    if(m_varSymbol==NULL)
+      return TBOOL_HAZY;
+
+    assert(nuti == m_varSymbol->getUlamTypeIdx()); //same as symbol, or shouldn't be here!
 
     ((SymbolVariableDataMember *) m_varSymbol)->setPosOffset(offset);
 
     if(m_state.isClassAQuarkUnion(m_state.getCompileThisIdx()))
-      return; //offset not incremented; all DM at pos 0 (t3209, t41145)
+      return TBOOL_TRUE; //offset not incremented; all DM at pos 0 (t3209, t41145)
 
-    UTI it = m_varSymbol->getUlamTypeIdx();
-    assert(m_state.isComplete(it)); //moved error check to separate pass
-    assert(it == getNodeType()); //same as symbol, or shouldn't be here!
-
-    UlamType * ut = m_state.getUlamTypeByIndex(it);
-    u32 len = ut->getSizeofUlamType(); //ut->getTotalBitSize();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    u32 len = nut->getSizeofUlamType();
     offset += len; //uses atom-based size for element, and actual size for quark data members
+    return TBOOL_TRUE;
   } //packBitsInOrderOfDeclaration
 
   void NodeVarDeclDM::printUnresolvedVariableDataMembers()

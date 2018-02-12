@@ -125,7 +125,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Invalid righthand type of conditional operator '" << getName();
 	    msg << "'; must be a class type, not a reference: ";
-	    msg << rut->getUlamTypeNameBrief().c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(ruti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    newType = Nav;
 	  }
@@ -139,7 +139,7 @@ namespace MFM {
 		    std::ostringstream msg;
 		    msg << "Invalid righthand type of conditional operator '" << getName();
 		    msg << "'; must be a quark or element name, not ";
-		    msg << rut->getUlamTypeNameBrief().c_str();
+		    msg << m_state.getUlamTypeNameBriefByIndex(ruti).c_str();
 		    if(rclasstype == UC_UNSEEN)
 		      {
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
@@ -160,7 +160,7 @@ namespace MFM {
 		    std::ostringstream msg;
 		    msg << "Invalid righthand type of conditional operator '" << getName();
 		    msg << "'; must be a quark or transient name, not ";
-		    msg << rut->getUlamTypeNameBrief().c_str();
+		    msg << m_state.getUlamTypeNameBriefByIndex(ruti).c_str();
 		    if(rclasstype == UC_UNSEEN)
 		      {
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
@@ -285,7 +285,7 @@ namespace MFM {
 		    std::ostringstream msg;
 		    msg << "Invalid lefthand type of conditional operator '" << getName();
 		    msg << "'; Class '";
-		    msg << lut->getUlamTypeNameBrief().c_str();
+		    msg << lut->getUlamTypeClassNameBrief(luti).c_str();
 		    msg << "' Not Found during eval";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		  }

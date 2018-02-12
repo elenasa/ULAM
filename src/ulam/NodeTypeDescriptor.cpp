@@ -74,7 +74,7 @@ namespace MFM {
     //skip bitsize if default size
     if(nut->getBitSize() == ULAMTYPE_DEFAULTBITSIZE[bUT])
       return m_state.m_pool.getIndexForDataString(nut->getUlamTypeNameOnly());
-    return m_state.m_pool.getIndexForDataString(nut->getUlamTypeNameBrief());
+    return m_state.m_pool.getIndexForDataString(m_state.getUlamTypeNameBriefByIndex(nuti));
   } //getTypeNameId
 
   const std::string NodeTypeDescriptor::prettyNodeName()
@@ -179,7 +179,7 @@ namespace MFM {
 	    msg << "Substituting Mapped UTI" << mappedUTI;
 	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
 	    msg << " for incomplete descriptor type: '";
-	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	    msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
 	    msg << "' UTI" << nuti << " while labeling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -190,7 +190,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete descriptor for type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str(); //t3125, t3298
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t3787
 	  }
       }
@@ -258,7 +258,7 @@ namespace MFM {
 		msg << "Substituting Mapped UTI" << mappedUTI;
 		msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
 		msg << " for incomplete de-ref descriptor type: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(derefuti).c_str();
+		msg << m_state.getUlamTypeNameByIndex(derefuti).c_str();
 		msg << "' UTI" << derefuti << " while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -312,7 +312,11 @@ namespace MFM {
     ULAMCLASSTYPE nclasstype = nut->getUlamClassType();
     if(nut->isComplete())
       {
-	rtnuti = nuti;
+	UTI aliasuti;
+	if(m_state.findaUTIAlias(nuti, aliasuti))
+	  rtnuti = aliasuti; //t3921
+	else
+	  rtnuti = nuti;
 	rtnb = true;
       } //else we're not ready!!
     else if((nclasstype == UC_UNSEEN))
@@ -361,7 +365,7 @@ namespace MFM {
 		    msg << "Hazy ";
 		  }
 		msg << "Unseen Class (UTI" << nuti << ") was a typedef for: '";
-		msg << m_state.getUlamTypeNameBriefByIndex(tduti).c_str();
+		msg << m_state.getUlamTypeNameByIndex(tduti).c_str();
 		msg << "' (UTI" << tduti << ") while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);

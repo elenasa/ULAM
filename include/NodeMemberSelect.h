@@ -72,6 +72,8 @@ namespace MFM{
 
     virtual bool hasASymbolReferenceConstant();
 
+    virtual bool isAConstant();
+
     virtual const std::string methodNameForCodeGen();
 
     virtual FORECAST safeToCastTo(UTI newType);

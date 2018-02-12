@@ -116,6 +116,8 @@ namespace MFM{
 
     virtual void buildDefaultValueForClassInstances();
 
+    virtual void buildClassConstantDefaultValuesForClassInstances();
+
     virtual void testForClassInstances(File * fp);
 
     virtual void generateCodeForClassInstances(FileManager * fm);

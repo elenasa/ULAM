@@ -66,6 +66,8 @@ namespace MFM{
 
     bool hasStringDataMembers();
 
+    bool classConstantsReady();
+
     virtual void addTargetDescriptionToInfoMap(TargetMap& classtargets, u32 scid) = 0;
     virtual void addMemberDescriptionsToInfoMap(ClassMemberMap& classmembers) = 0;
 
@@ -80,6 +82,7 @@ namespace MFM{
 
   protected:
     StringPoolUser m_upool; //for double quoted strings only
+    bool m_classConstantsReady;
 
   private:
 

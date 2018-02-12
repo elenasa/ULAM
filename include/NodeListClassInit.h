@@ -83,6 +83,8 @@ namespace MFM{
 
     virtual UTI constantFold();
 
+    //    virtual bool foldConstantClassNodes();
+
     virtual void genCode(File * fp, UVPass& uvpass);
 
     void genCode(File * fp, UVPass& uvpass, u32 n);
@@ -93,7 +95,7 @@ namespace MFM{
 
     virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
 
-    virtual bool initDataMembersConstantValue(BV8K& bvref);
+    virtual bool initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask);
 
   protected:
 

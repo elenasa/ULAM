@@ -45,6 +45,12 @@ namespace MFM {
     return m_key.getUlamKeyTypeSignatureNameAndSize(&m_state);
   }
 
+  const std::string UlamType::getUlamTypeClassNameBrief(UTI cuti)
+  {
+    m_state.abortUndefinedUlamClassType(); //only for classes
+    return "iamnotaclass"; //for compiler
+  }
+
   const std::string UlamType::getUlamTypeNameOnly()
   {
     return m_key.getUlamKeyTypeSignatureName(&m_state);
@@ -113,7 +119,7 @@ namespace MFM {
 	msg << " TO " ;
 	msg << getUlamTypeNameBrief().c_str();
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
-	    bOK = false;
+	bOK = false;
       }
     else
       {

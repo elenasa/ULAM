@@ -104,6 +104,10 @@ namespace MFM{
     bool getPackedDefaultValue(u64& dpkref);
     bool getDefaultValue(BV8K& dvref); //return true if ready
 
+    bool buildClassConstantDefaultValues();
+
+    TBOOL packBitsForClassVariableDataMembers();
+
     void testThisClass(File * fp); //eval-land
 
     void addUnknownTypeTokenToClass(const Token& tok, UTI huti);
@@ -171,6 +175,7 @@ namespace MFM{
     BV8K m_defaultValue; //BitVector
     bool m_isreadyDefaultValue;
     UTI m_superClass; //single inheritance
+    bool m_bitsPacked;
 
     void assignClassArgValuesInStubCopy();
 

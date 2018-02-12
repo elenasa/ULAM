@@ -179,6 +179,8 @@ namespace MFM {
 	    rtnb = true;
 	    rtnuti = nuti;
 	  }
+	else if(m_state.okUTItoContinue(rtnuti) && !m_state.isComplete(rtnuti))
+	  rtnuti = Hzy; //t3890
 	else
 	  rtnuti = nuti; //could be Nav or Hzy
       } //else select not ready, so neither are we!!
@@ -200,6 +202,7 @@ namespace MFM {
 	rtnuti = Nav;
 	return false; //error, e.g. possible divide by zero
       }
+    //else as could still be UNKNOWNSIZE;
 
     // do it anyway, progress for the bitsize (t3773)
     // keep m_unknownArraysizeSubtree in case a template

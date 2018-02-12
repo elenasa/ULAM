@@ -96,6 +96,7 @@ namespace MFM{
 
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype) = 0;
 
+    bool getValueAsHexString(std::string& vstr);
     bool getArrayValueAsString(std::string& vstr);
     bool getScalarValueAsString(std::string& vstr);
 
@@ -103,6 +104,14 @@ namespace MFM{
     static bool getLexValueAsString(u32 ntotbits, const BV8K& bval, std::string& rtnstr);
     //static: return false if all zeros, o.w. true; rtnstr updated
     static bool getHexValueAsString(u32 ntotbits, const BV8K& bval, std::string& rtnstr);
+
+    static bool convertValueToAPrettyString(u64 varg, UTI tuti, std::string& vstr, CompilerState & state);
+
+    static bool convertValueToANonPrettyString(u64 varg, UTI tuti, std::string& vstr, CompilerState & state);
+
+    static bool convertValueToALexString(u64 varg, UTI tuti, std::string& vstr, CompilerState & state);
+
+    static bool isValueAllZeros(u32 startbit, u32 ntotbits, const BV8K& bval);
 
     void changeConstantId(u32 fmid, u32 toid); //for premature class instances
 
@@ -123,9 +132,6 @@ namespace MFM{
     BV8K m_initialValue;
 
     NNO m_declnno;
-
-    bool convertValueToAPrettyString(u64 varg, std::string& vstr);
-    bool convertValueToALexString(u64 varg, std::string& vstr);
 
     void printPostfixValueScalar(File * fp);
     void printPostfixValueArray(File * fp);

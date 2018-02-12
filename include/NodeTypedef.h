@@ -76,7 +76,7 @@ namespace MFM{
 
     NodeBlock * getBlock();
 
-    virtual void packBitsInOrderOfDeclaration(u32& offset);
+    virtual TBOOL packBitsInOrderOfDeclaration(u32& offset);
 
     virtual void printUnresolvedVariableDataMembers();
 
@@ -85,6 +85,8 @@ namespace MFM{
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
+
+    virtual bool buildDefaultValueForClassConstantDefs();
 
     virtual void genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos);
 

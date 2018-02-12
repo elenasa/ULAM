@@ -1,38 +1,30 @@
 ## -*- mode:ulam -*-
 #=t3460_test_compiler_elementandquark_namedconstantquark_error
 #!
-./Foo.ulam:6:15: ERROR: Named Constant 'barchance' cannot be based on a class type: Bar.
-./Foo.ulam:6:15: ERROR: Invalid constant definition of type <Bar> and name <barchance>.
-./Foo.ulam:3:1: ERROR: Empty/Incomplete Class Definition 'Foo'; Possible missing ending curly brace.
-./Foo.ulam:6:30: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
-./Foo.ulam:3:9: ERROR: Invalid Type: Foo.
- ERROR: No parse tree for This Class: Foo.
-Unrecoverable Program Parse FAILURE: <Foo.ulam>
+./Foo.ulam:5:12: ERROR: Constant value expression for: barchance, is not a constant.
+Unrecoverable Program Type Label FAILURE.
 ##
 ##      //based on 3217
-##      //constant can't be a quark or union
+##      //constant class can't be initialized to a non-constant (new ulam 3)
 ##
 #>Foo.ulam
-ulam 1;
-use Bar;
+  ulam 3;
 element Foo {
-Bool(3) b;
-Bar bar;
- constant Bar barchance = bar;
-Bool last;
-Int test() {
- b = barchance.valb[1];
-s.print(b);
-return b;
- }
- }
+  Bool(3) b;
+  Bar bar;
+  constant Bar barchance = bar; //error
+  Int test() {
+    b = barchance.valb[1];
+    return 0;
+  }
+}
 
 #:Bar.ulam
-ulam 1;
- quark Bar {
- Bool valb[3];
+  ulam 1;
+quark Bar {
+  Bool valb[3];
   Void reset(Bool b) {
- b = 0;
- }
- }
+    b = false;
+  }
+}
 #.

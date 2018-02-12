@@ -302,12 +302,12 @@ namespace MFM {
 	    msg << "' SIZED " << totalbits << " FAILED";
 	    MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
 	    classNode->setNodeType(Nav); //avoid assert in resolving loop
-	    aok = false; //missing?
+	    aok = false; //t3155
 	  }
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "CLASS (regular) '" << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    msg << "CLASS (regular) '" << m_state.getUlamTypeNameByIndex(cuti).c_str();
 	    msg << "' SIZED: " << totalbits;
 	    MSG(Symbol::getTokPtr(), msg.str().c_str(),DEBUG);
 	  }
@@ -324,12 +324,7 @@ namespace MFM {
 
   void SymbolClassName::packBitsForClassInstances()
   {
-    NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
-
-    classNode->packBitsForVariableDataMembers();
-    m_state.popClassContext(); //restore
+    SymbolClass::packBitsForClassVariableDataMembers(); //return TBOOL, if anybody cares
   } //packBitsForClassInstances
 
   void SymbolClassName::printUnresolvedVariablesForClassInstances()
@@ -344,23 +339,18 @@ namespace MFM {
 
   void SymbolClassName::buildDefaultValueForClassInstances()
   {
-    NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
-
     BV8K dval;
     SymbolClass::getDefaultValue(dval); //this instance
-    m_state.popClassContext(); //restore
   } //buildDefaultValueForClassInstances
+
+  void SymbolClassName::buildClassConstantDefaultValuesForClassInstances()
+  {
+    SymbolClass::buildClassConstantDefaultValues(); //this instance
+  } //buildClassConstantDefaultValuesForClassInstances
 
   void SymbolClassName::testForClassInstances(File * fp)
   {
-    NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
-
     SymbolClass::testThisClass(fp);
-    m_state.popClassContext(); //restore
   } //testForClassInstances
 
   void SymbolClassName::generateCodeForClassInstances(FileManager * fm)

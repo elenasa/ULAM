@@ -151,6 +151,11 @@ namespace MFM{
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  FORECAST NodeList::safeToCastTo(UTI newType)
+  {
+    return CAST_BAD;
+  }
+
   UTI NodeList::checkAndLabelType()
   {
     UTI rtnuti = Void;
@@ -174,6 +179,11 @@ namespace MFM{
     setNodeType(rtnuti);
     return rtnuti;
   } //checkAndLabelType
+
+  bool NodeList::foldArrayInitExpression()
+  {
+    return true;
+  }
 
   void NodeList::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
@@ -346,7 +356,20 @@ namespace MFM{
       }
   }
 
-  bool NodeList::initDataMembersConstantValue(BV8K& bvref)
+  bool NodeList::initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask)
+  {
+    m_state.abortShouldntGetHere();
+    return false;
+  }
+
+
+  bool NodeList::buildArrayValueInitialization(BV8K& bvtmp)
+  {
+    m_state.abortShouldntGetHere();
+    return false;
+  }
+
+  bool NodeList::buildClassArrayValueInitialization(BV8K& bvtmp)
   {
     m_state.abortShouldntGetHere();
     return false;

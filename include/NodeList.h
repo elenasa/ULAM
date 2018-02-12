@@ -76,7 +76,11 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual FORECAST safeToCastTo(UTI newType);
+
     virtual UTI checkAndLabelType();
+
+    virtual bool foldArrayInitExpression();
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
@@ -120,7 +124,11 @@ namespace MFM{
 
     virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
 
-    virtual bool initDataMembersConstantValue(BV8K& bvref);
+    virtual bool initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask);
+
+    virtual bool buildArrayValueInitialization(BV8K& bvtmp);
+
+    virtual bool buildClassArrayValueInitialization(BV8K& bvtmp);
 
   protected:
     std::vector<Node *> m_nodes;

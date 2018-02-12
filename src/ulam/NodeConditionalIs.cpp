@@ -96,7 +96,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Invalid righthand type of conditional operator '" << getName();
 	    msg << "'; must be a class type, not a reference: ";
-	    msg << rut->getUlamTypeNameBrief().c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(ruti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    newType = Nav;
 	  }

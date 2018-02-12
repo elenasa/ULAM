@@ -74,6 +74,8 @@ namespace MFM{
 
     virtual bool isReadyConstant();
 
+    //    virtual bool foldConstantClassNodes();
+
     virtual bool isFunctionCall();
 
     virtual FORECAST safeToCastTo(UTI newType);

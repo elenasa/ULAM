@@ -133,7 +133,7 @@ namespace MFM {
 	    msg << "Determined type for member '";
 	    msg << m_nodeOf->getName();
 	    msg << "' Proxy, as type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(ofuti).c_str();
+	    msg << m_state.getUlamTypeNameByIndex(ofuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    m_uti = ofuti;
 	  }
@@ -172,9 +172,9 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Substituting Mapped UTI" << mappedUTI;
-	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
+	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
 	    msg << " for incomplete Proxy type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
+	    msg << m_state.getUlamTypeNameByIndex(m_uti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    m_uti = mappedUTI;
 	  }
@@ -599,7 +599,7 @@ namespace MFM {
 	if(!setConstantValue(m_funcTok))
 	  {
 	    std::ostringstream msg;
-	    msg << "Proxy Type: " << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
+	    msg << "Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str();
 	    msg << " constant value for its <";
 	    msg << m_funcTok.getTokenString();
 	    msg << "> is still incomplete and unknown while compiling class: ";
@@ -612,7 +612,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Yippee! Proxy Type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
+	    msg << m_state.getUlamTypeNameByIndex(m_uti).c_str();
 	    msg << " (UTI" << getNodeType() << ") is KNOWN (=" << m_constant.uval;
 	    msg << ") while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();

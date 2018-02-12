@@ -8,9 +8,9 @@
 
 namespace MFM {
 
-  SymbolClass::SymbolClass(const Token& id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false) /* default */, m_superClass(Nouti) {}
+  SymbolClass::SymbolClass(const Token& id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false) /* default */, m_superClass(Nouti), m_bitsPacked(false) {}
 
-  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_superClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_superClass))
+  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_superClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_superClass)), m_bitsPacked(false)
   {
     if(sref.m_classBlock)
       {
@@ -281,7 +281,15 @@ namespace MFM {
 
     UTI suti = getUlamTypeIdx();
     UlamType * sut = m_state.getUlamTypeByIndex(suti);
-    assert(sut && sut->isComplete());
+
+    if(!sut->isComplete())
+      {
+	std::ostringstream msg;
+	msg << "Cannot get default value for incomplete class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	MSG(Symbol::getTokPtr(),msg.str().c_str(), WAIT);
+	return false; //t3875
+      }
 
     u32 wordlen = sut->getTotalWordSize();
     if(wordlen == 0)
@@ -303,6 +311,40 @@ namespace MFM {
 
     return m_isreadyDefaultValue;
   } //getDefaultValue
+
+  bool SymbolClass::buildClassConstantDefaultValues()
+  {
+    UTI suti = getUlamTypeIdx();
+    NodeBlockClass * classblock = getClassBlockNode();
+    assert(classblock);
+    m_state.pushClassContext(suti, classblock, classblock, false, NULL);
+
+    AssertBool ccbuilt = classblock->buildDefaultValueForClassConstantDefs(); //side-effect
+    assert(ccbuilt);
+
+    m_state.popClassContext();
+
+    return true;
+  } //buildClassConstantDefaultValues
+
+  TBOOL SymbolClass::packBitsForClassVariableDataMembers()
+  {
+    if(m_bitsPacked)
+      return TBOOL_TRUE;
+
+    UTI suti = getUlamTypeIdx();
+    NodeBlockClass * classblock = getClassBlockNode();
+    assert(classblock);
+    m_state.pushClassContext(suti, classblock, classblock, false, NULL);
+
+    TBOOL rtntb = classblock->packBitsForVariableDataMembers(); //side-effect
+
+    m_state.popClassContext();
+
+    if(rtntb == TBOOL_TRUE)
+      m_bitsPacked = true;
+    return rtntb;
+  } //packBitsForClassVariableDataMembers
 
   void SymbolClass::testThisClass(File * fp)
   {

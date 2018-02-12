@@ -63,6 +63,8 @@ namespace MFM{
 
     virtual bool isEmptyList() const;
 
+    virtual FORECAST safeToCastTo(UTI newType);
+
     virtual UTI checkAndLabelType();
 
     virtual EvalStatus evalToStoreInto(u32 n);
@@ -85,7 +87,11 @@ namespace MFM{
 
     virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
 
-    virtual bool initDataMembersConstantValue(BV8K& bvref);
+    virtual bool initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask);
+
+    virtual bool buildArrayValueInitialization(BV8K& bvtmp);
+
+    virtual bool buildClassArrayValueInitialization(BV8K& bvtmp);
 
   protected:
 

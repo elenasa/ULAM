@@ -171,17 +171,42 @@ namespace MFM {
 
   const std::string UlamTypeClass::getUlamTypeNameBrief()
   {
-    std::ostringstream namestr;
+    u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
+    //except for UlamType::checkArrayCast error message (e.g. t3668, t3814)
+    return getUlamTypeClassNameBrief(cuti); //when we don't know the uti (ok for non templated)
+  } //getUlamTypeNameBrief
 
+  const std::string UlamTypeClass::getUlamTypeClassNameBrief(UTI cuti)
+  {
+    //note: any "[arraysize]" comes with variable name, not class type (like C decl).
+    bool isref = (getReferenceType() != ALT_NOT);
+    UTI kuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
+    UTI uti = isref ? kuti : cuti;
+
+#if 0
+    //for DEBUGG ONLY!!
+    UTI aliasuti;
+    if(m_state.findaUTIAlias(cuti, aliasuti))
+      {
+	//when array or ref, the kuti is the scalar/deref uti, the aliasuti is same as cuti;
+	//stubs get here via printPostfix on template classes;
+	assert(isref || !isScalar() || m_state.isClassAStub(cuti) || (aliasuti == kuti)); //sanity:t3363(stub),t3757,t3806 (stub),3814 (array)
+      }
+    else
+      {
+	assert(isref || !isScalar() || !isComplete() || (cuti == kuti)); //debug:t3862,t41209,t3143,t3327
+      }
+#endif
+
+    std::ostringstream namestr;
     namestr << m_key.getUlamKeyTypeSignatureName(&m_state).c_str();
 
     u32 id = m_key.getUlamKeyTypeSignatureNameId();
-    u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
     SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(id);
     if(cnsym && cnsym->isClassTemplate())
-      namestr << ((SymbolClassNameTemplate *) cnsym)->formatAnInstancesArgValuesAsCommaDelimitedString(cuti).c_str();
+      namestr << ((SymbolClassNameTemplate *) cnsym)->formatAnInstancesArgValuesAsCommaDelimitedString(uti).c_str();
 
-    //note: any "[arraysize]" comes with variable name, not class type (like C decl).
+     //note: any "[arraysize]" comes with variable name, not class type (like C decl).
     if(getReferenceType() != ALT_NOT)
       namestr << "&";
     return namestr.str();

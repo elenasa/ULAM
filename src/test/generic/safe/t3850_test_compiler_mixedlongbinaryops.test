@@ -58,6 +58,8 @@ Ue_A { constant Int(64) j = HexU64(0xffffffff, 0xffff2222);  Int(32) i(-56798); 
 Uq_System { <NOMAIN> }
 ##
 ## informed by t3849; (see foo-ulamtest3850.cpp)
+## Thu Feb  8 16:14:42 2018  changed 'cast 4 cast' to 'cast cast 4 cast' in eval answer for midxprod32/mixdiv64
+##                           (why? because division takes left type, AND first resolving loop WAIT as ERROR turned off)
 ##
 #>A.ulam
  ulam 2;

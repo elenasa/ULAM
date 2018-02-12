@@ -85,6 +85,11 @@ namespace MFM {
     return m_nodeLeft->hasASymbolReferenceConstant();
   }
 
+  bool NodeMemberSelect::isAConstant()
+  {
+    return m_nodeLeft->isAConstant(); //constant classes possible
+  }
+
   const std::string NodeMemberSelect::methodNameForCodeGen()
   {
     return "_MemberSelect_Stub";
@@ -102,15 +107,6 @@ namespace MFM {
     UTI nuti = getNodeType();
     UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
 
-    TBOOL stor = checkStoreIntoAble();
-    if(m_nodeRight->isFunctionCall())
-      {
-	if(stor == TBOOL_FALSE)
-	  nuti = Nav;
-	else if(stor == TBOOL_HAZY)
-	  nuti = Hzy; //t3607
-      }
-
     if(!m_state.isComplete(luti))
       {
 	std::ostringstream msg;
@@ -120,7 +116,7 @@ namespace MFM {
 	if(luti == Nav)
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    nuti = Nav;
+	    nuti = Nav; //error/t3460
 	  }
 	else
 	  {
@@ -133,6 +129,15 @@ namespace MFM {
 	  m_state.setGoAgain();
 	return getNodeType();
       } //done
+
+    TBOOL stor = checkStoreIntoAble();
+    if(m_nodeRight->isFunctionCall())
+      {
+	if(stor == TBOOL_FALSE)
+	  nuti = Nav;
+	else if(stor == TBOOL_HAZY)
+	  nuti = Hzy; //t3607
+      }
 
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMCLASSTYPE classtype = lut->getUlamClassType();

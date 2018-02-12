@@ -69,7 +69,7 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    bool foldArrayInitExpression();
+    virtual bool foldArrayInitExpression();
 
     virtual FORECAST safeToCastTo(UTI newType);
 
@@ -83,7 +83,7 @@ namespace MFM{
 
     void genCodeClassInitArray(File * fp, UVPass& uvpass);
 
-    virtual bool initDataMembersConstantValue(BV8K& bvref);
+    virtual bool initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask);
 
   protected:
 

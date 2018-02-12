@@ -131,6 +131,8 @@ namespace MFM{
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref); //starts here, called by SymbolClass
 
+    virtual bool buildDefaultValueForClassConstantDefs();
+
     virtual void genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos);
 
     virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
@@ -168,7 +170,7 @@ namespace MFM{
 
     void updatePrevBlockPtrOfFuncSymbolsInTable();
 
-    void packBitsForVariableDataMembers();
+    TBOOL packBitsForVariableDataMembers();
 
     virtual void printUnresolvedVariableDataMembers();
 
@@ -217,6 +219,8 @@ namespace MFM{
 
     NodeBlockClass * m_superBlockNode;
 
+    bool m_buildingDefaultValueInProgress;
+    bool m_bitPackingInProgress;
     bool m_isEmpty; //replaces separate node
     bool m_registeredForTestInstance;
 

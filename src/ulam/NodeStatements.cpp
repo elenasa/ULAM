@@ -195,6 +195,16 @@ namespace MFM {
     return aok;
   }
 
+  bool NodeStatements::buildDefaultValueForClassConstantDefs()
+  {
+    bool aok = true;
+    if(m_node)
+      aok &= m_node->buildDefaultValueForClassConstantDefs();
+    if(aok && m_nodeNext) //why go on
+      aok &= m_nodeNext->buildDefaultValueForClassConstantDefs();
+    return aok;
+  }
+
   void NodeStatements::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
   {
     if(m_node)
@@ -245,11 +255,15 @@ namespace MFM {
     m_nodeNext = s;
   }
 
-  void NodeStatements::packBitsInOrderOfDeclaration(u32& offset)
+  TBOOL NodeStatements::packBitsInOrderOfDeclaration(u32& offset)
   {
-    m_node->packBitsInOrderOfDeclaration(offset); //updates offset
+    TBOOL rtntb = m_node->packBitsInOrderOfDeclaration(offset); //updates offset
     if(m_nodeNext)
-      m_nodeNext->packBitsInOrderOfDeclaration(offset);
+      {
+	TBOOL nodetb = m_nodeNext->packBitsInOrderOfDeclaration(offset);
+	rtntb = Node::minTBOOL(rtntb, nodetb);
+      }
+    return rtntb;
   }
 
   void NodeStatements::printUnresolvedVariableDataMembers()

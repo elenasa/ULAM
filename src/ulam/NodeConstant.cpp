@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include "NodeConstant.h"
-#include "NodeModelParameter.h"
 #include "NodeConstantArray.h"
+#include "NodeConstantClass.h"
+#include "NodeModelParameter.h"
 #include "CompilerState.h"
 
 namespace MFM {
@@ -119,7 +120,20 @@ namespace MFM {
 	if(m_constSymbol)
 	  {
 	    UTI suti = m_constSymbol->getUlamTypeIdx();
-	    if(!m_state.isScalar(suti))
+	    if(m_state.isAClass(suti))
+	      {
+		NodeConstantClass * newnode = new NodeConstantClass(m_token, (SymbolConstantValue *) m_constSymbol, m_nodeTypeDesc, m_state);
+		assert(newnode);
+
+		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
+		assert(swapOk);
+
+		m_nodeTypeDesc = NULL; //tfr to new node
+		delete this; //suicide is painless..
+
+		return newnode->checkAndLabelType();
+	      }
+	    else if(!m_state.isScalar(suti))
 	      {
 		NodeConstantArray * newnode = new NodeConstantArray(m_token, (SymbolConstantValue *) m_constSymbol, m_nodeTypeDesc, m_state);
 		assert(newnode);

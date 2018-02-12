@@ -186,6 +186,9 @@ namespace MFM{
   {
     for(u32 i = 0; i < m_nodes.size(); i++)
       ((NodeInitDM *) m_nodes[i])->foldConstantExpression();
+
+    m_state.tryToPackAClass(m_classUTI); //t41198 here?
+
     return Node::getNodeType();
   }
 
@@ -237,13 +240,15 @@ namespace MFM{
     m_state.abortShouldntGetHere();
   }
 
-  bool NodeListClassInit::initDataMembersConstantValue(BV8K& bvref)
+  bool NodeListClassInit::initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask)
   {
     //bvref contains default value at pos 0 of our m_forClassUTI.
     bool rtnok = true;
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
-	rtnok &= ((NodeInitDM *) m_nodes[i])->buildDefaultValue(0, bvref); //first arg dummy
+	rtnok &= ((NodeInitDM *) m_nodes[i])->initDataMemberConstantValue(bvref, bvmask);
+	if(!rtnok)
+	  break;
       }
     return rtnok;
   }

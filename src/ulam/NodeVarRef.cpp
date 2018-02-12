@@ -75,7 +75,7 @@ namespace MFM {
 	fp->write("&"); //<--the only difference!!!
       }
     else
-      fp->write(vut->getUlamTypeNameBrief().c_str()); //includes any &
+      fp->write(vut->getUlamTypeClassNameBrief(vuti).c_str()); //includes any &
 
     fp->write(" ");
     fp->write(getName());
@@ -125,9 +125,9 @@ namespace MFM {
 		//e.g. error/t3792, error/t3616
 		std::ostringstream msg;
 		msg << "Incompatible class types ";
-		msg << nut->getUlamTypeNameBrief().c_str();
+		msg << nut->getUlamTypeClassNameBrief(nuti).c_str();
 		msg << " and ";
-		msg << newt->getUlamTypeNameBrief().c_str();
+		msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
 		msg << " used to initialize reference '" << getName() <<"'";
 		if(rscr == CAST_HAZY)
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -145,7 +145,7 @@ namespace MFM {
 		msg << "Reference atom variable " << getName() << "'s type ";
 		msg << nut->getUlamTypeNameBrief().c_str();
 		msg << ", and its initial value type ";
-		msg << newt->getUlamTypeNameBrief().c_str();
+		msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
 		msg << ", are incompatible";
 		if(newt->isReference() && newt->getUlamClassType() == UC_QUARK)
 		  msg << "; .atomof may help";
@@ -163,9 +163,9 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Reference variable " << getName() << "'s type ";
-		msg << nut->getUlamTypeNameBrief().c_str();
+		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 		msg << ", and its initial value type ";
-		msg << newt->getUlamTypeNameBrief().c_str();
+		msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
 		msg << ", are incompatible";
 		if(rscr == CAST_HAZY)
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -180,9 +180,9 @@ namespace MFM {
 		  {
 		    std::ostringstream msg;
 		    msg << "Reference variable " << getName() << "'s type ";
-		    msg << nut->getUlamTypeNameBrief().c_str();
+		    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 		    msg << ", and its initial value type ";
-		    msg << newt->getUlamTypeNameBrief().c_str();
+		    msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
 		    msg << ", are incompatible sizes";
 		    if(m_state.isAtom(nuti) || m_state.isAtom(newType))
 		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -331,9 +331,10 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-  void NodeVarRef::packBitsInOrderOfDeclaration(u32& offset)
+  TBOOL NodeVarRef::packBitsInOrderOfDeclaration(u32& offset)
   {
     m_state.abortShouldntGetHere(); //refs can't be data members
+    return TBOOL_FALSE;
   }
 
   void NodeVarRef::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)

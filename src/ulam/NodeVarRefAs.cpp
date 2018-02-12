@@ -66,9 +66,10 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-  void NodeVarRefAs::packBitsInOrderOfDeclaration(u32& offset)
+  TBOOL NodeVarRefAs::packBitsInOrderOfDeclaration(u32& offset)
   {
     m_state.abortShouldntGetHere(); //refs can't be data members
+    return TBOOL_FALSE;
   } //packBitsInOrderOfDeclaration
 
   void NodeVarRefAs::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)

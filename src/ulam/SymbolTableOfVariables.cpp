@@ -188,14 +188,18 @@ namespace MFM {
 	  m_state.setBitSize(suti, symsize); //symsize does not include arrays
 
 	UlamType * sut = m_state.getUlamTypeByIndex(suti); //no sooner!
-	if((cclasstype == UC_TRANSIENT) && (sut->getUlamClassType() == UC_ELEMENT))
+	s32 arraysize = sut->getArraySize();
+	arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //Mon Jul  4 14:14:44 2016
+	if(arraysize == UNKNOWNSIZE)
 	  {
-	    s32 arraysize = sut->getArraySize();
-	    arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //Mon Jul  4 14:14:44 2016
+	    totalsizes = UNKNOWNSIZE; //Thu Feb  8 16:06:18 2018 (t3504)
+	  }
+	else if((cclasstype == UC_TRANSIENT) && (sut->getUlamClassType() == UC_ELEMENT))
+	  {
 	    totalsizes += (BITSPERATOM * arraysize); //atom-based element regardless of its bitsize(t3879)
 	  }
 	else
-	  totalsizes += sut->getTotalBitSize(); //covers up any unknown sizes; includes arrays
+	  totalsizes += sut->getTotalBitSize(); //covers up any unknown sizes; includes arrays (t3504)
 
 	it++;
       } //while
@@ -422,14 +426,16 @@ namespace MFM {
     UlamType * argut = m_state.getUlamTypeByIndex(arguti);
     s32 totbitsize = argut->getBitSize(); // why not total bit size? findNodeNoInThisClass fails (e.g. t3144, etc)
     ULAMCLASSTYPE argclasstype = argut->getUlamClassType();
+    s32 argarraysize = argut->getArraySize();
     if(argclasstype == UC_NOTACLASS) //includes Atom type
       {
+	if(argarraysize == UNKNOWNSIZE)
+	  return UNKNOWNSIZE; //Thu Feb  8 16:09:50 2018
 	return totbitsize; //arrays handled by caller, just bits here
       }
     //else element size adjusted for Transents by getTotalVariableSymbolsBitSize, after bitsize is set.
 
     //not a primitive (class), array
-    s32 argarraysize = argut->getArraySize();
     if(argarraysize >= 0)
       {
 	if(totbitsize >= 0)

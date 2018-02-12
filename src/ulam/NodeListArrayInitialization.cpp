@@ -270,11 +270,11 @@ namespace MFM{
     bool rtnok = true;
     u32 n = m_nodes.size();
 
-    //assert(n > 0);
-    if(isEmptyList())
-      return true; //noop, t41201
+    //    if(isEmptyList())
+    //  return true; //noop, t41201
 
-    if(m_nodes[0]->isClassInit())
+    //if(m_nodes[0]->isClassInit())
+    if(m_state.isAClass(nuti))
       return buildClassArrayValueInitialization(bvtmp); //t41185
 
 
@@ -388,7 +388,7 @@ namespace MFM{
   bool NodeListArrayInitialization::buildClassArrayItemInitialValue(u32 n, u32 pos, BV8K& bvtmp)
   {
     assert((m_nodes.size() > n) && (m_nodes[n] != NULL));
-
+    bool rtnb = false;
     UTI nuti = Node::getNodeType();
     u32 itemlen = m_state.getBitSize(nuti);
 
@@ -396,14 +396,14 @@ namespace MFM{
     //note: starts with default in case of String data members; (pos arg unused)
     if(m_state.getDefaultClassValue(nuti, bvclass)) //uses scalar uti
       {
-	AssertBool gotVal = ((NodeListClassInit *) m_nodes[n])->initDataMembersConstantValue(bvclass); //at pos 0
-	assert(gotVal);
-	bvclass.CopyBV(0, pos * itemlen, itemlen, bvtmp); //frompos, topos, len, destBV
+	BV8K bvmask;
+	if(((NodeListClassInit *) m_nodes[n])->initDataMembersConstantValue(bvclass, bvmask)) //at pos 0
+	  {
+	    bvclass.CopyBV(0, pos * itemlen, itemlen, bvtmp); //frompos, topos, len, destBV
+	    rtnb = true;
+	  }
       }
-    else
-      return false;
-
-    return true;
+    return rtnb;
   } //buildClassArrayItemInitialValue
 
   void NodeListArrayInitialization::genCode(File * fp, UVPass& uvpass)
@@ -671,7 +671,7 @@ namespace MFM{
     GCNL;
   }
 
-  bool NodeListArrayInitialization::initDataMembersConstantValue(BV8K& bvref)
+  bool NodeListArrayInitialization::initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask)
   {
     //build up if an array of class inits (t41185)
     UTI nuti = Node::getNodeType();
@@ -684,10 +684,14 @@ namespace MFM{
     for(u32 i = 0; i < n; i++)
       {
 	BV8K bvtmp;
-	rtnok &= ((NodeListClassInit *) m_nodes[i])->initDataMembersConstantValue(bvtmp);
+	BV8K bvmask;
+	rtnok &= ((NodeListClassInit *) m_nodes[i])->initDataMembersConstantValue(bvtmp, bvmask);
 	if(rtnok)
-	  bvtmp.CopyBV<8192>(0, i * itemlen, itemlen, bvref); //fm pos, to pos, len, dest (t41185)
-	else
+	  {
+	    bvtmp.CopyBV<8192>(0, i * itemlen, itemlen, bvref); //fm pos, to pos, len, dest (t41185)
+	    bvmask.SetBits(i * itemlen, itemlen); //startpos, len
+	  }
+	  else
 	  break;
       }
 
@@ -703,7 +707,10 @@ namespace MFM{
 
 	    //repeat last one..
 	    for(u32 j=n; j < arraysize; j++)
-	      lastbv.CopyBV(0, j * itemlen, itemlen, bvref);
+	      {
+		lastbv.CopyBV(0, j * itemlen, itemlen, bvref);
+		bvmask.SetBits(j * itemlen, itemlen); //startpos, len
+	      }
 	  }
       }
 

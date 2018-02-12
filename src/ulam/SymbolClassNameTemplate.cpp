@@ -661,6 +661,22 @@ namespace MFM {
 		if((isok = ((SymbolConstantValue *) asym)->getArrayValueAsString(arrvalstr)))
 		  args << arrvalstr; //lex'd by array of u32's
 	      }
+	    else if(m_state.isAClass(auti))
+	      {
+		//check for this sooner! give error TBD...
+		assert(UlamType::compare(auti, instance, m_state) != UTIC_SAME);
+
+		SymbolClassName * cnsym = NULL;
+		if((isok = m_state.alreadyDefinedSymbolClassName(aut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), cnsym)))
+		  {
+		    std::string constclassargstr = cnsym->formatAnInstancesArgValuesAsAString(auti);
+		    args << constclassargstr;
+		    args << "c"; //constant value follows
+		    std::string ccvalstr;
+		    if((isok = ((SymbolConstantValue *)asym)->getValueAsHexString(ccvalstr)))
+		      args << ToLeximited(ccvalstr);
+		  }
+	      }
 	    else
 	      {
 		//append 'instance's arg value (scalar)
@@ -708,55 +724,90 @@ namespace MFM {
     args << "(";
 
     SymbolClass * csym = NULL;
-    if(findClassInstanceByUTI(instance, csym))
+    if(!findClassInstanceByUTI(instance, csym))
       {
-	NodeBlockClass * classNode = csym->getClassBlockNode();
-	assert(classNode);
-	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
-	u32 n = 0;
-	//format values into stream
-	std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
-	while(pit != m_parameterSymbols.end())
+	//check class instance idx in 'instance' UTI key;
+	//templates don't always have the latest instance UTI as class parameter types;
+	// (e.g. t3862 during printPostfix on Uq_Soo)
+	UlamKeyTypeSignature ikey = m_state.getUlamKeyTypeSignatureByIndex(instance);
+	UTI kuti = ikey.getUlamKeyTypeSignatureClassInstanceIdx();
+	if(instance != kuti)
 	  {
-	    if(n++ > 0)
-	      args << ",";
-
-	    SymbolConstantValue * psym = *pit;
-	    //get 'instance's value
-	    bool isok = false;
-	    Symbol * asym = NULL;
-	    bool hazyKin = false; //don't care
-	    AssertBool isDefined = m_state.alreadyDefinedSymbol(psym->getId(), asym, hazyKin);
-	    assert(isDefined);
-	    UTI auti = asym->getUlamTypeIdx();
-	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
-	    if(aut->isComplete())
+	    if(!findClassInstanceByUTI(kuti, csym))
 	      {
-		if(!aut->isScalar())
-		  {
-		    std::string arrvalstr;
-		    if((isok = ((SymbolConstantValue *) asym)->getArrayValueAsString(arrvalstr)))
-		      args << arrvalstr;  //lex'd array of u32's
-		  }
-		else
-		  {
-		    std::string valstr;
-		    if((isok = ((SymbolConstantValue *) asym)->getScalarValueAsString(valstr)))
-		      args << valstr;
-		  } //isscalar
-	      } //iscomplete
-
-	    if(!isok)
-	      {
-		std::string astr = m_state.m_pool.getDataAsString(asym->getId());
-		args << astr.c_str();
+		args << "failedtofindinstance)";
+		return args.str(); //bail (t3644)
 	      }
-	    pit++;
-	  } //next param
-	args << ")";
-
-	m_state.popClassContext(); //restore
+	    //else continue..
+	  }
       }
+    assert(csym);
+    NodeBlockClass * classNode = csym->getClassBlockNode();
+    assert(classNode);
+    m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
+    u32 n = 0;
+    //format values into stream
+    std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
+    while(pit != m_parameterSymbols.end())
+      {
+	if(n++ > 0)
+	  args << ",";
+
+	SymbolConstantValue * psym = *pit;
+	//get 'instance's value
+	bool isok = false;
+	Symbol * asym = NULL;
+	bool hazyKin = false; //don't care
+	AssertBool isDefined = m_state.alreadyDefinedSymbol(psym->getId(), asym, hazyKin);
+	assert(isDefined);
+	UTI auti = asym->getUlamTypeIdx();
+	UlamType * aut = m_state.getUlamTypeByIndex(auti);
+	if(aut->isComplete())
+	  {
+	    if(!aut->isScalar())
+	      {
+		std::string arrvalstr;
+		if((isok = ((SymbolConstantValue *) asym)->getArrayValueAsString(arrvalstr)))
+		  args << arrvalstr;  //lex'd array of u32's
+	      }
+	    else if(m_state.isAClass(auti))
+	      {
+		SymbolClassName * acnsym = NULL;
+		if((isok = m_state.alreadyDefinedSymbolClassName(aut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), acnsym)))
+		  {
+		    if(!acnsym->isClassTemplate())
+		      {
+			args << aut->getUlamTypeMangledType().c_str();
+			args << "10c"; //no params, constant value follows
+			std::string ccvalstr;
+			if((isok = ((SymbolConstantValue *)asym)->getValueAsHexString(ccvalstr)))
+			  args << ToLeximited(ccvalstr);
+		      }
+		    else
+		      {
+			std::string constclassargstr = acnsym->formatAnInstancesArgValuesAsAString(auti);
+			args << constclassargstr;
+		      }
+		  }
+	      }
+	    else
+	      {
+		std::string valstr;
+		if((isok = ((SymbolConstantValue *) asym)->getScalarValueAsString(valstr)))
+		  args << valstr;    //pretty
+	      } //isscalar
+	  } //iscomplete
+
+	if(!isok)
+	  {
+	    std::string astr = m_state.m_pool.getDataAsString(asym->getId());
+	    args << astr.c_str();
+	  }
+	pit++;
+      } //next param
+    args << ")";
+
+    m_state.popClassContext(); //restore
     return args.str();
   } //formatAnInstancesArgValuesAsCommaDelimitedString
 
@@ -1043,7 +1094,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << " Class instance '";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    msg << m_state.getUlamTypeNameByIndex(cuti).c_str();
 	    msg << "' is still a stub; No check for custom arrays error";
 	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
@@ -1071,7 +1122,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << " Class instance '";
-	    msg << m_state.getUlamTypeNameBriefByIndex(csym->getUlamTypeIdx()).c_str();
+	    msg << m_state.getUlamTypeNameByIndex(csym->getUlamTypeIdx()).c_str();
 	    msg << "' is still a stub; No check for duplication function error";
 	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
@@ -1099,7 +1150,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << " Class instance '";
-	    msg << m_state.getUlamTypeNameBriefByIndex(csym->getUlamTypeIdx()).c_str();
+	    msg << m_state.getUlamTypeNameByIndex(csym->getUlamTypeIdx()).c_str();
 	    msg << "' is still a stub; No calc max depth function error";
 	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
@@ -1137,7 +1188,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << " Class instance '";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    msg << m_state.getUlamTypeNameByIndex(cuti).c_str();
 	    msg << "' is still a stub; No calc max index of virtual functions error";
 	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
@@ -1166,7 +1217,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << " Class instance '";
-	    msg << m_state.getUlamTypeNameBriefByIndex(csym->getUlamTypeIdx()).c_str();
+	    msg << m_state.getUlamTypeNameByIndex(csym->getUlamTypeIdx()).c_str();
 	    msg << "' is still a stub; No checking of abstract instance errors ppossible";
 	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
@@ -1460,7 +1511,7 @@ namespace MFM {
 	    if(m_state.getBitSize(uti) != totalbits)
 	      {
 		std::ostringstream msg;
-		msg << "CLASS INSTANCE '" << m_state.getUlamTypeNameByIndex(uti).c_str();
+		msg << "CLASS INSTANCE '" << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
 		msg << "' SIZED " << totalbits << " FAILED";
 		MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
 		NodeBlockClass * classNode = csym->getClassBlockNode();
@@ -1470,7 +1521,7 @@ namespace MFM {
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "CLASS INSTANCE '" << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
+		msg << "CLASS INSTANCE '" << m_state.getUlamTypeNameByIndex(uti).c_str();
 		msg << "' UTI" << uti << ", SIZED: " << totalbits;
 		MSG(Symbol::getTokPtr(), msg.str().c_str(), DEBUG);
 	      }
@@ -1531,11 +1582,7 @@ namespace MFM {
 	UTI suti = csym->getUlamTypeIdx(); //this instance
 	if(m_state.isComplete(suti))
 	  {
-	    NodeBlockClass * classNode = csym->getClassBlockNode();
-	    assert(classNode);
-	    m_state.pushClassContext(suti, classNode, classNode, false, NULL);
-	    classNode->packBitsForVariableDataMembers(); //this instance
-	    m_state.popClassContext();
+	    csym->packBitsForClassVariableDataMembers(); //returns TBOOL
 	  }
 	it++;
       }
@@ -1570,15 +1617,26 @@ namespace MFM {
 	UTI suti = csym->getUlamTypeIdx(); //this instance
 	if(m_state.isComplete(suti))
 	  {
-	    NodeBlockClass * classNode = csym->getClassBlockNode();
-	    assert(classNode);
-	    m_state.pushClassContext(suti, classNode, classNode, false, NULL);
 	    csym->getDefaultValue(dval); //this instance
-	    m_state.popClassContext();
 	  }
 	it++;
       }
   } //buildDefaultValueForClassInstances
+
+  void SymbolClassNameTemplate::buildClassConstantDefaultValuesForClassInstances()
+  {
+    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
+    while(it != m_scalarClassArgStringsToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	UTI suti = csym->getUlamTypeIdx(); //this instance
+	if(m_state.isComplete(suti))
+	  {
+	    csym->buildClassConstantDefaultValues(); //this instance
+	  }
+	it++;
+      }
+  } //buildClassConstantDefaultValuesForClassInstances
 
   void SymbolClassNameTemplate::testForClassInstances(File * fp)
   {
@@ -1587,12 +1645,7 @@ namespace MFM {
       {
 	SymbolClass * csym = it->second;
 	assert(csym);
-	NodeBlockClass * classNode = csym->getClassBlockNode();
-	assert(classNode);
-	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
-
 	csym->testThisClass(fp); //this instance
-	m_state.popClassContext(); //restore
 	it++;
       }
   } //testForClassInstances
@@ -1617,7 +1670,7 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Class Instance '" << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	    msg << "Class Instance '" << m_state.getUlamTypeNameByIndex(suti).c_str();
 	    msg << "' is incomplete; Code will not be generated";
 	    MSG(Symbol::getTokPtr(), msg.str().c_str(), DEBUG);
 	  }

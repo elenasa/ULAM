@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "NodeConstant.h"
 #include "NodeConstantArray.h"
+#include "NodeConstantClass.h"
 #include "NodeIdent.h"
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
@@ -223,15 +224,12 @@ namespace MFM {
 	    else if(asymptr->isConstant())
 	      {
 		UTI auti = asymptr->getUlamTypeIdx();
-
-		if(m_state.isAClass(auti))
-		  m_state.abortNotImplementedYet(); //t41198 (maybe NodeConstantClass?)
-
 		// replace ourselves with a constant node instead;
 		// same node no, and loc (e.g. t3573)
 		Node * newnode = NULL;
-
-		if(m_state.isScalar(auti))
+		if(m_state.isAClass(auti))
+		  newnode = new NodeConstantClass(m_token, (SymbolWithValue *) asymptr, NULL, m_state);
+		else if(m_state.isScalar(auti))
 		  newnode = new NodeConstant(m_token, (SymbolWithValue *) asymptr, NULL, m_state);
 		else
 		  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) asymptr, NULL, m_state);
@@ -302,7 +300,9 @@ namespace MFM {
 	// replace ourselves with a constant node instead;
 	// same node no, and loc (e.g. t3573, t3526)
 	Node * newnode = NULL;
-	if(m_state.isScalar(vuti))
+	if(m_state.isAClass(vuti))
+	  newnode = new NodeConstantClass(m_token, (SymbolWithValue *) m_varSymbol, NULL, m_state);
+	else if(m_state.isScalar(vuti))
 	  newnode = new NodeConstant(m_token, (SymbolWithValue *) m_varSymbol, NULL, m_state);
 	else
 	  newnode = new NodeConstantArray(m_token, (SymbolWithValue *) m_varSymbol, NULL, m_state);
@@ -909,7 +909,7 @@ namespace MFM {
       }
     else
       {
-#if 0
+#if 1
 	uti = args.m_classInstanceIdx;
 	brtn = true;
 #else
