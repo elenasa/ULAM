@@ -124,6 +124,12 @@ namespace MFM {
 	    assert(memberclass);
 	    setBlockNo(memberclass->getNodeNo());
 	  }
+#if 0
+	else if(m_state.m_pendingArgStubContext != Nouti)
+	  {
+	    setBlockNo(m_state.getAClassBlockNo(m_state.m_pendingArgStubContext)); //t41215? maybe just for nodetypedescriptors????
+	  }
+#endif
 	else
 	  setBlockNo(m_state.getCurrentBlock()->getNodeNo());
       }

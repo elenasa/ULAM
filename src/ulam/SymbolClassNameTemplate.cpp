@@ -375,7 +375,7 @@ namespace MFM {
   } //copyAStubClassInstance
 
   //called by parseThisClass, if wasIncomplete is parsed; temporary class arg names
-  // are fixed to match the params
+  // are fixed to match the params, default arg values, and node type descriptors
   void SymbolClassNameTemplate::fixAnyUnseenClassInstances()
   {
     ULAMCLASSTYPE classtype = getUlamClass();
@@ -384,7 +384,8 @@ namespace MFM {
     //furthermore, this must exist by now, or else this is the wrong time to be fixing
     NodeBlockClass * templateclassblock = getClassBlockNode();
     assert(templateclassblock);
-    bool isCATemplate = ((UlamTypeClass *) m_state.getUlamTypeByIndex(getUlamTypeIdx()))->isCustomArray();
+    UTI cuti = getUlamTypeIdx();
+    bool isCATemplate = ((UlamTypeClass *) m_state.getUlamTypeByIndex(cuti))->isCustomArray();
 
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       return;
@@ -408,6 +409,8 @@ namespace MFM {
 
 	NodeBlockClass * cblock = csym->getClassBlockNode();
 	assert(cblock);
+
+	cblock->resetNodeNo(templateclassblock->getNodeNo()); //keep NNO consistent (new) missing
 
 	//can have 0Holder symbols for possible typedefs seen from another class
 	//which will increase the count of symbols; can only test for at least;
@@ -461,6 +464,17 @@ namespace MFM {
 		argsym->resetUlamType(m_parameterSymbols[i]->getUlamTypeIdx()); //default was Int
 		cblock->replaceIdInScope(sid, m_parameterSymbols[i]->getId(), argsym);
 		foundArgs++;
+
+		//any type descriptors need to be copied (t41209,t41211)
+		NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassblock->getParameterNode(i);
+		assert(paramConstDef);
+		NodeConstantDef * stubConstDef = (NodeConstantDef *) cblock->getArgumentNode(i);
+		assert(stubConstDef);
+
+		m_state.pushClassContext(cuti, templateclassblock, templateclassblock, false, NULL); //came from Parser parseRestOfClassArguments says null blocks likely (t41214)
+		stubConstDef->cloneTypeDescriptorForPendingArgumentNode(paramConstDef); //if any and none (t41211, t41213, error/t41210, error/t41212)
+		m_state.popClassContext();
+
 	      }
 	    else
 	      {
@@ -495,6 +509,7 @@ namespace MFM {
 			// possible pending value for default param
 			NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassblock->getParameterNode(i);
 			assert(paramConstDef);
+			// don't push template context here (t3895)
 			NodeConstantDef * argConstDef = (NodeConstantDef *) paramConstDef->instantiate();
 			assert(argConstDef);
 			//fold later; non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (stub)

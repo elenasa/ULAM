@@ -83,6 +83,8 @@ namespace MFM{
 
     virtual bool getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref);
 
+    bool setNodeTypeDescriptor(NodeTypeDescriptor * nodetypedesc);
+
     virtual bool hasDefaultSymbolValue();
 
     virtual UTI checkAndLabelType();
@@ -114,6 +116,8 @@ namespace MFM{
     virtual void fixPendingArgumentNode();
 
     virtual bool assignClassArgValueInStubCopy();
+
+    bool cloneTypeDescriptorForPendingArgumentNode(NodeConstantDef * templateparamdef);
 
     virtual EvalStatus eval();
 

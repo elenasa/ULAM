@@ -2937,8 +2937,7 @@ namespace MFM {
 	    NodeTypeDescriptor * paramTypeDesc = NULL;
 	    if(paramConstDef->getNodeTypeDescriptorPtr(paramTypeDesc))
 	      {
-		m_state.pushClassContext(ctsym->getUlamTypeIdx(), templateblock, templateblock, false, NULL); //null blocks likely
-
+		m_state.pushClassContext(ctsym->getUlamTypeIdx(), templateblock, templateblock, false, NULL); //null blocks likely (t3862,t3865, t3868, t3874)
 		argTypeDesc = (NodeTypeDescriptor * ) paramTypeDesc->instantiate(); //copy it
 		m_state.popClassContext();
 	      }

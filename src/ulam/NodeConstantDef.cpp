@@ -169,6 +169,17 @@ namespace MFM {
     return false;
   }
 
+  bool NodeConstantDef::setNodeTypeDescriptor(NodeTypeDescriptor * nodetypedesc)
+  {
+    if(m_nodeTypeDesc == NULL)
+      {
+	m_nodeTypeDesc = nodetypedesc; //tfr ownership here
+	//m_nodeTypeDesc->updateLineage(getNodeNo()); //?
+	return true;
+      }
+    return false;
+  }
+
   bool NodeConstantDef::hasDefaultSymbolValue()
   {
     assert(m_constSymbol);
@@ -201,6 +212,14 @@ namespace MFM {
     // type of the constant
     if(m_nodeTypeDesc)
       {
+	//perhaps also check symbol for isClassArgument, or isClassParameter?
+	if(m_state.m_pendingArgStubContext != Nouti)
+	  {
+	    assert(m_constSymbol->isClassArgument() || m_constSymbol->isClassParameter()); //sanity?
+	    NodeBlockClass * cblock = m_state.getAClassBlock(m_state.m_pendingArgStubContext); //t41215? maybe just for nodetypedescriptors????
+	    m_state.pushClassContext(m_state.m_pendingArgStubContext, cblock, cblock, false, NULL);
+	  }
+
 	UTI duti = m_nodeTypeDesc->checkAndLabelType(); //clobbers any expr it
 	if(m_state.okUTItoContinue(duti) && (suti != duti))
 	  {
@@ -218,6 +237,9 @@ namespace MFM {
 	    m_state.mapTypesInCurrentClass(suti, duti);
 	    suti = duti;
 	  }
+
+	if(m_state.m_pendingArgStubContext != Nouti)
+	  m_state.popClassContext(); //restore
       }
 
     // move before m_nodeExpr "Void" check (t3883, error/t3451);
@@ -878,6 +900,29 @@ namespace MFM {
     assert(m_nodeExpr);
     return m_nodeExpr->assignClassArgValueInStubCopy();
   }
+
+  bool NodeConstantDef::cloneTypeDescriptorForPendingArgumentNode(NodeConstantDef * templateparamdef)
+  {
+    bool aok = false;
+    // for unseen classes that needed their args "fixed"
+    // this grabs the Template's type descriptor after the class was seen
+    // (the nodetypedescriptor is to help resolve pending argument types (t41211, t41209)
+    if(m_nodeTypeDesc == NULL)
+      {
+	//clone the template's node type descriptor for this stub's pending argument
+	NodeTypeDescriptor * nodetypedesc = NULL;
+	if(templateparamdef->getNodeTypeDescriptorPtr(nodetypedesc))
+	  {
+	    NodeTypeDescriptor * copynodetypedesc = (NodeTypeDescriptor *) (nodetypedesc->instantiate());
+	    assert(copynodetypedesc);
+	    AssertBool isset = setNodeTypeDescriptor(copynodetypedesc);
+	    assert(isset);
+	    //m_nodeTypeDesc->updateLineage(getNodeNo());
+	    aok = true;
+	  }
+      }
+    return aok;
+  } //cloneTypeDescriptorForPendingArgumentNode
 
   EvalStatus NodeConstantDef::eval()
   {
