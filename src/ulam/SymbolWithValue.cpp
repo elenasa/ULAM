@@ -413,7 +413,7 @@ namespace MFM {
     GCNL;
   } //printPostfixValueArrayStringAsComment
 
-  bool SymbolWithValue::getValueAsHexString(std::string& vstr)
+ bool SymbolWithValue::getValueAsHexString(std::string& vstr)
   {
     bool oktoprint = true;
     BV8K dval;
@@ -442,16 +442,18 @@ namespace MFM {
     s32 tnybbles = int(tbs/4); //4 bits per nybble (one Hex digit)
 
     std::ostringstream ostream;
-    ostream << "0x";
+    //ostream << "0x"; //no "0x"
 
     for(s32 i = 0; i < tnybbles; i++)
       {
 	ostream << std::hex << dval.Read(i, 4); //per bit?
       }
 
-    if(tnybbles == 0)
+    s32 remainder = tbs - tnybbles*4;
+    if(remainder > 0)
       {
-	ostream << std::hex << dval.Read(0, tbs);
+	//shift left for continguous bits
+	ostream << std::hex << ((dval.Read(tnybbles*4, remainder)) << (4 - remainder));
       }
 
     vstr = ostream.str();

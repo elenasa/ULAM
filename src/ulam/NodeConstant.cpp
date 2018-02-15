@@ -409,7 +409,7 @@ namespace MFM {
     if(!isReadyConstant())
       m_ready = updateConstant();
     if(!isReadyConstant())
-      return ERROR;
+      return NOTREADY;
     if(!m_state.isComplete(getNodeType()))
       return ERROR;
     return NodeTerminal::eval();

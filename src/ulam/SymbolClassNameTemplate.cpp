@@ -666,16 +666,9 @@ namespace MFM {
 		//check for this sooner! give error TBD...
 		assert(UlamType::compare(auti, instance, m_state) != UTIC_SAME);
 
-		SymbolClassName * cnsym = NULL;
-		if((isok = m_state.alreadyDefinedSymbolClassName(aut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), cnsym)))
-		  {
-		    std::string constclassargstr = cnsym->formatAnInstancesArgValuesAsAString(auti);
-		    args << constclassargstr;
-		    args << "c"; //constant value follows
-		    std::string ccvalstr;
-		    if((isok = ((SymbolConstantValue *)asym)->getValueAsHexString(ccvalstr)))
-		      args << ToLeximited(ccvalstr);
-		  }
+		std::string ccvalstr;
+		if((isok = ((SymbolConstantValue *)asym)->getValueAsHexString(ccvalstr)))
+		  args << ToLeximited(ccvalstr);
 	      }
 	    else
 	      {
@@ -772,23 +765,9 @@ namespace MFM {
 	      }
 	    else if(m_state.isAClass(auti))
 	      {
-		SymbolClassName * acnsym = NULL;
-		if((isok = m_state.alreadyDefinedSymbolClassName(aut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), acnsym)))
-		  {
-		    if(!acnsym->isClassTemplate())
-		      {
-			args << aut->getUlamTypeMangledType().c_str();
-			args << "10c"; //no params, constant value follows
-			std::string ccvalstr;
-			if((isok = ((SymbolConstantValue *)asym)->getValueAsHexString(ccvalstr)))
-			  args << ToLeximited(ccvalstr);
-		      }
-		    else
-		      {
-			std::string constclassargstr = acnsym->formatAnInstancesArgValuesAsAString(auti);
-			args << constclassargstr;
-		      }
-		  }
+		std::string ccvalstr;
+		if((isok = ((SymbolConstantValue *)asym)->getValueAsHexString(ccvalstr)))
+		  args << "0x" << ccvalstr; //t41209
 	      }
 	    else
 	      {

@@ -75,7 +75,8 @@ namespace MFM {
 
   bool NodeConstantClass::isReadyConstant()
   {
-    return m_constSymbol && m_constSymbol->isReady(); //m_ready;
+    //return m_constSymbol && m_constSymbol->isReady(); //m_ready;
+    return m_constSymbol && (m_constSymbol->isReady() || m_constSymbol->isInitValueReady()); //t41209
   }
 
   bool NodeConstantClass::isAConstant()
@@ -299,6 +300,10 @@ namespace MFM {
 
   bool NodeConstantClass::foldConstantClassNodes()
   {
+    assert(m_constSymbol);
+    if(isReadyConstant())
+      return true; //t41209
+
     //refresh named constant value from constant def built after c&l
     SymbolWithValue * savecsym = m_constSymbol;
     m_constSymbol = NULL;
@@ -322,7 +327,7 @@ namespace MFM {
 	msg << "> class constant symbol ";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
-	m_constSymbol = savecsym; //?
+	m_constSymbol = savecsym; // restore
       }
     return false;
   } //foldConstantClassNodes
@@ -330,7 +335,7 @@ namespace MFM {
   EvalStatus NodeConstantClass::eval()
   {
     if(!isReadyConstant())
-      return ERROR;
+      return NOTREADY;
 
     UTI nuti = getNodeType();
     if(!m_state.isComplete(nuti))

@@ -119,8 +119,11 @@ namespace MFM {
 
   const char * UlamTypeClass::getUlamTypeAsSingleLowercaseLetter()
   {
-    m_state.abortShouldntGetHere(); //UC_UNSEEN
-    return UlamType::getUlamTypeEnumCodeChar(getUlamTypeEnum());
+   if(getUlamClassType() == UC_UNSEEN)
+      {
+	m_state.abortShouldntGetHere(); //UC_UNSEEN
+      }
+   return UlamType::getUlamTypeEnumCodeChar(getUlamTypeEnum());
   }
 
   const std::string UlamTypeClass::getUlamTypeMangledType()

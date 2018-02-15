@@ -294,7 +294,7 @@ namespace MFM {
   EvalStatus NodeConstantArray::eval()
   {
     if(!isReadyConstant())
-      return ERROR;
+      return NOTREADY;
 
     UTI nuti = getNodeType();
     if(!m_state.isComplete(nuti))
