@@ -334,7 +334,7 @@ namespace MFM {
     if(classNode)
       {
 	if(wasIncomplete && isTemplate)
-	  ((SymbolClassNameTemplate *) cnSym)->fixAnyClassInstances();
+	  ((SymbolClassNameTemplate *) cnSym)->fixAnyUnseenClassInstances();
       }
     else
       {

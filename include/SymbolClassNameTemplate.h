@@ -79,7 +79,7 @@ namespace MFM{
     void mergeClassInstancesFromTEMP();
 
     /** replaces temporary class argument names, updates the ST, and the class type */
-    void fixAnyClassInstances();
+    void fixAnyUnseenClassInstances();
     void fixAClassStubsDefaultArgs(SymbolClass * stubcsym, u32 defaultstartidx);
 
     bool statusNonreadyClassArgumentsInStubClassInstances();

@@ -376,7 +376,7 @@ namespace MFM {
 
   //called by parseThisClass, if wasIncomplete is parsed; temporary class arg names
   // are fixed to match the params
-  void SymbolClassNameTemplate::fixAnyClassInstances()
+  void SymbolClassNameTemplate::fixAnyUnseenClassInstances()
   {
     ULAMCLASSTYPE classtype = getUlamClass();
     assert(classtype != UC_UNSEEN);
