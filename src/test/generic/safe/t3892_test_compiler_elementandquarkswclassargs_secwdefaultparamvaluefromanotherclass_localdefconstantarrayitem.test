@@ -21,7 +21,7 @@ element P {
   Bool b;
   Int test() {
     System s;
-    Q(by[2]*3) w; //first arg provided, based on P localdef constant array
+    Q(by[2]*3) w; //first arg provided here, based on P localdef constant array
     s.print(w.sizeof);
     b = (w.sizeof == 3);
     s.assert(b);
@@ -32,7 +32,7 @@ element P {
 #:Q.ulam
   ulam 3;
 use V;
-quark Q(Int b = by[2], Unsigned s = V(b).sizeof) {
+quark Q(Int b = by[1], Unsigned s = V(b).sizeof) {
   typedef Unsigned(s) Foo;
   Foo f;
 }

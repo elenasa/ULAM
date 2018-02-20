@@ -74,6 +74,8 @@ namespace MFM{
 
     UTI givenUTI();
 
+    void resetGivenUTI(UTI guti);
+
     UTI getReferencedUTI();
 
     ALT getReferenceType();

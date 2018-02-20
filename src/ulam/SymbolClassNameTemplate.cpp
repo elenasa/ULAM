@@ -461,10 +461,11 @@ namespace MFM {
 	      {
 		assert(argsym->isConstant());
 		((SymbolConstantValue *) argsym)->changeConstantId(sid, m_parameterSymbols[i]->getId());
-		argsym->resetUlamType(m_parameterSymbols[i]->getUlamTypeIdx()); //default was Int
+		argsym->resetUlamType(m_state.mapIncompleteUTIForCurrentClassInstance(m_parameterSymbols[i]->getUlamTypeIdx())); //default was Hzy
 		cblock->replaceIdInScope(sid, m_parameterSymbols[i]->getId(), argsym);
 		foundArgs++;
 
+#if 1
 		//any type descriptors need to be copied (t41209,t41211)
 		NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassblock->getParameterNode(i);
 		assert(paramConstDef);
@@ -474,6 +475,7 @@ namespace MFM {
 		m_state.pushClassContext(cuti, templateclassblock, templateclassblock, false, NULL); //came from Parser parseRestOfClassArguments says null blocks likely (t41214)
 		stubConstDef->cloneTypeDescriptorForPendingArgumentNode(paramConstDef); //if any and none (t41211, t41213, error/t41210, error/t41212)
 		m_state.popClassContext();
+#endif
 
 	      }
 	    else
@@ -538,7 +540,7 @@ namespace MFM {
 	m_state.popClassContext(); //restore
 	it++;
       } //while
-  } //fixAnyClassInstances
+  } //fixAnyUnseenClassInstances
 
   void SymbolClassNameTemplate::fixAClassStubsDefaultArgs(SymbolClass * stubcsym, u32 defaultstartidx)
   {

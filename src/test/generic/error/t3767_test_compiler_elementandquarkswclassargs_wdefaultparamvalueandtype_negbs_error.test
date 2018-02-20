@@ -1,8 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3767_test_compiler_elementandquarkswclassargs_wdefaultparamvalueandtype_negbs_error
 #!
-./Q.ulam:2:20: ERROR: Type Bitsize specifier for Unsigned type, within (), is a negative numeric constant expression: -3.
-./Q.ulam:2:20: ERROR: Type Bitsize specifier for Unsigned type, within (), is a negative numeric constant expression: -4.
+./P.ulam:7:16: ERROR: Type Bitsize specifier for Unsigned type, within (), is a negative numeric constant expression: -3.
+./P.ulam:8:11: ERROR: Type Bitsize specifier for Unsigned type, within (), is a negative numeric constant expression: -4.
 ./P.ulam:13:0: ERROR: Invalid size (0) to set for primitive type: Unsigned.
 Unrecoverable Program Type Label FAILURE.
 ##

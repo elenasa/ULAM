@@ -567,7 +567,14 @@ namespace MFM {
 	// subsequent parameters must also to avoid ambiguity when instaniated
 	u32 numparams = cntsym->getNumberOfParameters();
 	bool assignrequired = ( (numparams == 0) ? NOASSIGNOK : cntsym->parameterHasDefaultValue(numparams - 1));
+
+	assert(m_state.m_parsingVariableSymbolTypeFlag == STF_NEEDSATYPE); //sanity
+	m_state.m_parsingVariableSymbolTypeFlag = STF_CLASSPARAMETER; //t41213
+
 	Node * argNode = parseClassParameterConstdef(assignrequired);
+
+	m_state.m_parsingVariableSymbolTypeFlag = STF_NEEDSATYPE;
+
 	Symbol * argSym = NULL;
 
 	//could be null symbol already in scope
@@ -1860,7 +1867,7 @@ namespace MFM {
 	  {
 	    NodeIdent * leftNodeCopy = new NodeIdent(*swvalueIdent);
 	    assert(leftNodeCopy);
-	    leftNodeCopy->resetNodeNo(m_state.getNextNodeNo()); //unique invarient
+	    leftNodeCopy->resetNodeNo(m_state.getNextNodeNo()); //unique invariant
 	    //setup symbol now since all alike
 	    SymbolVariable * symptr = NULL;
 	    AssertBool gotSym = swvalueIdent->getSymbolPtr(symptr);
@@ -2911,7 +2918,12 @@ namespace MFM {
 	    SymbolConstantValue * paramSym = ctsym->getParameterSymbolPtr(parmIdx);
 	    assert(paramSym);
 	    Token argTok(TOK_IDENTIFIER, pTok.m_locator, paramSym->getId()); //use current locator
-	    argSym = new SymbolConstantValue(argTok, paramSym->getUlamTypeIdx(), m_state); //like param, not copy
+	    //argSym = new SymbolConstantValue(argTok, paramSym->getUlamTypeIdx(), m_state); //like param, not copy (t3526?)
+	    //argSym = new SymbolConstantValue(*paramSym); //like param, not clone, WHY NOT? t3892
+	    //assert(argSym);
+	    //argSym->resetIdToken(argTok);
+
+	    argSym = new SymbolConstantValue(argTok, m_state.mapIncompleteUTIForCurrentClassInstance(paramSym->getUlamTypeIdx()), m_state); //like param, not clone t3526, t3862, t3615, t3892; error msg loc (error/t3893)
 	  }
 	else
 	  {
@@ -2919,8 +2931,7 @@ namespace MFM {
 	    sname << "_" << parmIdx;
 	    u32 snameid = m_state.m_pool.getIndexForDataString(sname.str());
 	    Token argTok(TOK_IDENTIFIER, pTok.m_locator, snameid); //use current locator
-	    //stub id,  m_state.getUlamTypeOfConstant(Int) stub type, state
-	    argSym = new SymbolConstantValue(argTok, Hzy, m_state);
+	    argSym = new SymbolConstantValue(argTok, Hzy, m_state); //fixed after template is seen
 	  }
 
 	assert(argSym);
@@ -2928,9 +2939,10 @@ namespace MFM {
 	m_state.addSymbolToCurrentScope(argSym); //scope updated to new class instance in parseClassArguments
 
 	NodeTypeDescriptor * argTypeDesc = NULL;
+
 	if(!ctUnseen)
 	  {
-	    //copy the type descriptor from the template for the stub
+	    //copy the type descriptor from the template for the stub;
 	    NodeBlockClass * templateblock = ctsym->getClassBlockNode();
 	    NodeConstantDef * paramConstDef = (NodeConstantDef *) templateblock->getParameterNode(parmIdx);
 	    assert(paramConstDef);
@@ -2938,8 +2950,16 @@ namespace MFM {
 	    if(paramConstDef->getNodeTypeDescriptorPtr(paramTypeDesc))
 	      {
 		m_state.pushClassContext(ctsym->getUlamTypeIdx(), templateblock, templateblock, false, NULL); //null blocks likely (t3862,t3865, t3868, t3874)
-		argTypeDesc = (NodeTypeDescriptor * ) paramTypeDesc->instantiate(); //copy it
+		argTypeDesc = (NodeTypeDescriptor *) paramTypeDesc->instantiate(); //copy it
 		m_state.popClassContext();
+
+		UTI auti = argSym->getUlamTypeIdx();
+		if(m_state.okUTItoContinue(auti))
+		  {
+		    argTypeDesc->resetGivenUTI(auti); //either Hzy or param's type
+		    assert(argTypeDesc->givenUTI() == auti); //invariant?
+		  }
+		argTypeDesc->setNodeLocation(pTok.m_locator); //error/t3893, error/t3767
 	      }
 	  }
 
@@ -3155,8 +3175,8 @@ namespace MFM {
       csym = cnsym; //regular class
 
     assert(csym);
-    NodeBlockClass * memberClassNode = csym->getClassBlockNode();
-    if(!memberClassNode) //e.g. forgot the closing brace on quark def once; or UNSEEN
+    NodeBlockClass * memberClassBlock = csym->getClassBlockNode();
+    if(!memberClassBlock) //e.g. forgot the closing brace on quark def once; or UNSEEN
       {
 	//hail mary pass..possibly a sizeof of unseen class
 	getNextToken(nTok);
@@ -3180,7 +3200,7 @@ namespace MFM {
       }
 
     //set up compiler state to use the member class block for symbol searches
-    m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
+    m_state.pushClassContextUsingMemberClassBlock(memberClassBlock);
 
     Token pTok;
     //after the dot
@@ -3193,14 +3213,14 @@ namespace MFM {
 	if(!m_state.getUlamTypeByTypedefName(pTok.m_dataindex, tduti, tdscalaruti))
 	  {
 	    //make one up!! if UN_SEEN class
-	    UTI mcuti = memberClassNode->getNodeType();
+	    UTI mcuti = memberClassBlock->getNodeType();
 	    ULAMCLASSTYPE mclasstype = m_state.getUlamTypeByIndex(mcuti)->getUlamClassType();
 	    if(mclasstype == UC_UNSEEN)
 	      {
 		UTI huti = m_state.makeUlamTypeHolder();
 		SymbolTypedef * symtypedef = new SymbolTypedef(pTok, huti, Nav, m_state);
 		assert(symtypedef);
-		symtypedef->setBlockNoOfST(memberClassNode->getNodeNo());
+		symtypedef->setBlockNoOfST(memberClassBlock->getNodeNo());
 		m_state.addSymbolToCurrentMemberClassScope(symtypedef); //not locals scope
 		m_state.addUnknownTypeTokenToAClassResolver(mcuti, pTok, huti);
 		//these will fail: t3373-8, t3380-1,5, t3764, and t3379
@@ -5476,6 +5496,12 @@ namespace MFM {
 	    UTI auti = asymptr->getUlamTypeIdx();
 	    //chain to NodeType descriptor if array (i.e. non scalar), o.w. deletes lval
 	    linkOrFreeConstantExpressionArraysize(auti, args, (NodeSquareBracket *)lvalNode, nodetyperef);
+
+	    //if(nodetyperef && !m_state.isAClass(auti)) //limit to primitives? t3526,t41211,41
+	    if(nodetyperef) //limit to primitives? t3526,t41211,41
+	      {
+		nodetyperef->resetGivenUTI(auti); //invariant?
+	      }
 
 	    NodeConstantDef * constNode =  new NodeConstantDef((SymbolConstantValue *) asymptr, nodetyperef, m_state);
 	    assert(constNode);

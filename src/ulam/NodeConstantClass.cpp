@@ -293,8 +293,16 @@ namespace MFM {
   bool NodeConstantClass::getClassValue(BV8K& bvtmp)
   {
     bool brtn = false;
+
+#if 0
     if(isReadyConstant())
       brtn = m_constSymbol->getValue(bvtmp);
+#endif
+
+    if(foldConstantClassNodes())
+      {
+	brtn = m_constSymbol->getValue(bvtmp);
+      }
     return brtn;
   }
 

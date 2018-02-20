@@ -865,6 +865,11 @@ namespace MFM {
     if(!okUTItoContinue(suti))
       return suti; //forgiving; e.g. may be used for unset referencedUTI
 
+    if(isALocalsFileScope(getCompileThisIdx()))
+      {
+	return suti; //t3526, t3892
+      }
+
     SymbolClassName * cnsym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClassName(getCompileThisId(), cnsym);
     assert(isDefined);

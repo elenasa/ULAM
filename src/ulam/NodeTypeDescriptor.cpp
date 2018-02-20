@@ -98,6 +98,13 @@ namespace MFM {
     return m_uti;
   }
 
+  void NodeTypeDescriptor::resetGivenUTI(UTI guti)
+  {
+    if((m_uti != guti) && (getReferenceType() == ALT_NOT)) //t3615
+      m_state.updateUTIAliasForced(m_uti, guti);
+    m_uti = guti;  //invariant?
+  }
+
   UTI NodeTypeDescriptor::getReferencedUTI()
   {
     return m_referencedUTI;
@@ -117,7 +124,7 @@ namespace MFM {
   void NodeTypeDescriptor::setReferenceType(ALT refarg, UTI referencedUTI, UTI refUTI)
   {
     setReferenceType(refarg, referencedUTI);
-    m_uti = refUTI; //new given as ref UTI Sat Jul  2 15:10:29 2016
+    resetGivenUTI(refUTI); //new given as ref UTI Sat Jul  2 15:10:29 2016
   }
 
   UTI NodeTypeDescriptor::checkAndLabelType()
@@ -129,7 +136,7 @@ namespace MFM {
     if(resolveType(it)) //ref
       {
 	setNodeType(it);
-	m_uti = it; //new given reset here!!! Mon Aug  1 12:02:52 2016
+	resetGivenUTI(it); //new given reset here!!! Mon Aug  1 12:02:52 2016
 	m_ready = true; //set here!!!
       }
     else if(it == Hzy)
@@ -403,8 +410,8 @@ namespace MFM {
 		  }
 	      }
 	  }
-	else
-	  rtnuti = Hzy;
+	//else
+	// rtnuti = Hzy;
       }
     return rtnb;
   } //resolveClassType
