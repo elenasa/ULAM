@@ -85,7 +85,7 @@ namespace MFM {
     return rtnb;
   } //hasUnknownTypeToken
 
-  bool Resolver::statusUnknownType(UTI huti)
+  bool Resolver::statusUnknownType(UTI huti, SymbolClass * csym)
   {
     bool aok = false; //not found
     // context already set by caller
@@ -94,10 +94,13 @@ namespace MFM {
       {
 	Token tok = mit->second;
 	UTI huti = mit->first;
+
 	//check if still Hzy; true if resolved
-	aok = checkUnknownTypeToResolve(huti, tok);
-	if(aok)
+	if((aok = checkUnknownTypeToResolve(huti, tok)))
 	  removeKnownTypeToken(huti);
+	else if((aok = checkUnknownTypeAsClassArgument(huti, tok, csym)))
+	  removeKnownTypeToken(huti); //t41216
+	//else
       }
     return aok;
   } //statusUnknownType
@@ -178,6 +181,53 @@ namespace MFM {
       }
     return aok;
   } //checkUnknownTypeToResolve
+
+  bool Resolver::checkUnknownTypeAsClassArgument(UTI huti, const Token& tok, SymbolClass * csym)
+  {
+    bool aok = false;
+    if(csym->isStub() &&(tok.m_type == TOK_IDENTIFIER))
+      {
+	//i.e. not a type tok, so perhaps a class argument (t41216)
+	// let's see if the template has a clue regarding its type "family"
+	SymbolClassNameTemplate * templateparent = csym->getParentClassTemplate();
+	assert(templateparent);
+	UTI tuti = templateparent->getUlamTypeIdx();
+	if(!m_state.isASeenClass(tuti))
+	  return false;
+
+	NodeBlockClass * templateclassblock = templateparent->getClassBlockNode();
+	assert(templateclassblock);
+	m_state.pushClassContext(tuti, templateclassblock, templateclassblock, false, NULL);
+
+	Symbol * argSym = NULL;
+	bool hazykin = false;
+	if(m_state.alreadyDefinedSymbol(tok.m_dataindex, argSym, hazykin))
+	  {
+	    m_state.popClassContext(); //restore before another check call
+
+	    UTI auti = argSym->getUlamTypeIdx();
+	    if(!m_state.isHolder(auti))
+	      {
+		Token argtok;
+		UlamType * aut = m_state.getUlamTypeByIndex(auti);
+		if(m_state.isAClass(auti))
+		  {
+		    u32 aid = aut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
+		    argtok.init(TOK_IDENTIFIER, tok.m_locator, aid);
+		  }
+		else
+		  {
+		    std::string aname = aut->getUlamTypeNameOnly();
+		    argtok.init(Token::getTokenTypeFromString(aname.c_str()), tok.m_locator, 0);
+		  }
+		aok = checkUnknownTypeToResolve(huti, argtok);
+	      }
+	  }
+	else
+	  m_state.popClassContext(); //restore
+      }
+    return aok;
+  } //checkUnknownTypeAsClassArgument
 
   bool Resolver::statusAnyUnknownTypeNames()
   {

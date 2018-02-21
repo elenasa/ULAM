@@ -315,7 +315,7 @@ namespace MFM {
 	// code lifted from NodeVarDecl.cpp c&l.
 	if(nuti == Void)
 	  {
-	    if(m_nodeExpr && ((NodeList *) m_nodeExpr)->isEmptyList())
+	    if((m_nodeExpr != NULL) && ((NodeList *) m_nodeExpr)->isEmptyList())
 	      {
 		//keep empty list for constant def (t41202)
 	      }
@@ -479,7 +479,14 @@ namespace MFM {
       {
 	UTI foldrtn = foldConstantExpression();
 	if(foldrtn == Nav)
-	  setNodeType(Nav);
+	  {
+	    std::ostringstream msg;
+	    msg << "Problem in " << prettyNodeName().c_str() << " for type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	    msg << ", used with symbol name '" << getName() << "', after folding attempt";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
+	  }
 	else if(foldrtn == Hzy)
 	  {
 	    std::ostringstream msg;
@@ -638,9 +645,25 @@ namespace MFM {
     // t41198 (might be better to replace node with NodeInitDM???)
     if(m_state.isAClass(uti))
       {
-	UTI rtnuti;
+	UTI rtnuti = Nav;
 	if(m_nodeExpr->isAList()) //t3451, t41209
 	  {
+	    if(!((NodeList *) m_nodeExpr)->isEmptyList())
+	      {
+		rtnuti =  ((NodeListClassInit *) m_nodeExpr)->foldConstantExpression();
+	      }
+	    else
+	      rtnuti = uti;  //t41216
+
+	    //tries to pack bits if complete
+	    if(buildDefaultValueForClassConstantDefs())
+	      {
+		u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
+		assignConstantSlotIndex(tmpslotnum); //t41198
+	      }
+	    else
+	      rtnuti = Hzy;
+#if 0
 	    if(((NodeList *) m_nodeExpr)->isEmptyList()) //t41216
 	      {
 		BV8K bvdefault;
@@ -648,12 +671,13 @@ namespace MFM {
 		if(m_state.getDefaultClassValue(uti, bvdefault))
 		  {
 		    m_constSymbol->setValue(bvdefault);
+		    rtnuti = uti;
 
 		    u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
 		    assignConstantSlotIndex(tmpslotnum); //t41198
 		  }
 		else
-		  rtnuti = Nav;
+		  rtnuti = Hzy; //pos not reliable, yet (t41216)
 	      }
 	    else
 	      {
@@ -675,8 +699,11 @@ namespace MFM {
 			else
 			  rtnuti = Nav; //t3451
 		      }
+		    else
+		      rtnuti = Hzy;
 		  }
 	      } //non-empty class init
+#endif
 	  }
 	else
 	  {
@@ -885,7 +912,7 @@ namespace MFM {
 		BV8K bvtmp;
 		if(m_state.getDefaultClassValue(nuti, bvtmp)) //uses scalar uti
 		  {
-		    if(m_nodeExpr)
+		    if(m_nodeExpr && !((NodeList *) m_nodeExpr)->isEmptyList())
 		      {
 			BV8K bvmask;
 			if(((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvtmp,bvmask))
@@ -893,6 +920,8 @@ namespace MFM {
 			else
 			  rtnok = false;
 		      }
+		    else
+		      m_constSymbol->setValue(bvtmp);
 		  }
 		else
 		  rtnok = false;

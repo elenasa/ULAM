@@ -461,7 +461,15 @@ namespace MFM {
 	      {
 		assert(argsym->isConstant());
 		((SymbolConstantValue *) argsym)->changeConstantId(sid, m_parameterSymbols[i]->getId());
-		argsym->resetUlamType(m_state.mapIncompleteUTIForCurrentClassInstance(m_parameterSymbols[i]->getUlamTypeIdx())); //default was Hzy
+		UTI auti = m_state.mapIncompleteUTIForCurrentClassInstance(m_parameterSymbols[i]->getUlamTypeIdx());
+		argsym->resetUlamType(auti); //default was Hzy
+		if(m_state.isHolder(auti))
+		  {
+		    Token * argTokPtr = argsym->getTokPtr();
+		    //does auti get added to this class, or its template?
+		    m_state.addUnknownTypeTokenToAClassResolver(suti, *argTokPtr, auti); //t41216
+		  }
+
 		cblock->replaceIdInScope(sid, m_parameterSymbols[i]->getId(), argsym);
 		foundArgs++;
 

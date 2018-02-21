@@ -424,7 +424,7 @@ namespace MFM {
   {
     if(!m_resolver)
       return false;
-    return m_resolver->statusUnknownType(huti);
+    return m_resolver->statusUnknownType(huti, this);
   }
 
   bool SymbolClass::statusUnknownTypeNamesInClass()

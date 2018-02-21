@@ -2,9 +2,13 @@
 #=t3980_test_compiler_bitwiseorwithconstant_issue_error
 #!
 ./DebugUtils.ulam:20:12: ERROR: Constant value expression for 'cPRINT_HEX_ATOM' is not representable as Unsigned(32).
+./DebugUtils.ulam:20:12: ERROR: Problem in NodeConstantDef for type: Unsigned(32), used with symbol name 'cPRINT_HEX_ATOM', after folding attempt.
 ./DebugUtils.ulam:21:12: ERROR: Constant value expression for 'cPRINT_TOP_MEMBERS' is not representable as Unsigned(32).
+./DebugUtils.ulam:21:12: ERROR: Problem in NodeConstantDef for type: Unsigned(32), used with symbol name 'cPRINT_TOP_MEMBERS', after folding attempt.
 ./DebugUtils.ulam:22:12: ERROR: Constant value expression for 'cPRINT_MEMBERS' is not representable as Unsigned(32).
+./DebugUtils.ulam:22:12: ERROR: Problem in NodeConstantDef for type: Unsigned(32), used with symbol name 'cPRINT_MEMBERS', after folding attempt.
 ./DebugUtils.ulam:24:12: ERROR: Constant value expression for 'cPRINT_ALL_MEMBERS' is not representable as Unsigned(32).
+./DebugUtils.ulam:24:12: ERROR: Problem in NodeConstantDef for type: Unsigned(32), used with symbol name 'cPRINT_ALL_MEMBERS', after folding attempt.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## taken from ulamexports, subsequently changed to Bits

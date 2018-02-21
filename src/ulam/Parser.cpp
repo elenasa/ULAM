@@ -2922,8 +2922,16 @@ namespace MFM {
 	    //argSym = new SymbolConstantValue(*paramSym); //like param, not clone, WHY NOT? t3892
 	    //assert(argSym);
 	    //argSym->resetIdToken(argTok);
-
-	    argSym = new SymbolConstantValue(argTok, m_state.mapIncompleteUTIForCurrentClassInstance(paramSym->getUlamTypeIdx()), m_state); //like param, not clone t3526, t3862, t3615, t3892; error msg loc (error/t3893)
+	    UTI auti = m_state.mapIncompleteUTIForCurrentClassInstance(paramSym->getUlamTypeIdx());
+	    argSym = new SymbolConstantValue(argTok, auti, m_state); //like param, not clone t3526, t3862, t3615, t3892; error msg loc (error/t3893)
+	    if(m_state.isHolder(auti))
+	      {
+		if(m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSPARAMETER)
+		  //does auti get added to this class, or its template?
+		  m_state.addUnknownTypeTokenToThisClassResolver(argTok, auti); //t41216, also in fixAnyUnseen for templates seen afterwards;
+		else
+		  m_state.addUnknownTypeTokenToAClassResolver(csym->getUlamTypeIdx(), argTok, auti); //t41216, also in fixAnyUnseen for templates seen afterwards;
+	      }
 	  }
 	else
 	  {

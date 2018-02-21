@@ -2,6 +2,7 @@
 #=t41212_test_compiler_elementandquarkswclassargs_dependentprimitivebitsize_error
 #!
 ./P.ulam:6:10: ERROR: Constant value expression for 's' is not representable as Unsigned(2).
+./P.ulam:6:10: ERROR: Problem in NodeConstantDef for type: Unsigned(2), used with symbol name 's', after folding attempt.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t41211;

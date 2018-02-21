@@ -2,34 +2,41 @@
 #=t41216_test_compiler_elementwithaclassparameterquark
 ##
 ##  gen output: (+ interleaved asserts)
-##   Int(4) : 7
+##      Int(4) Arg: 0x3
+##      Bool(3) Arg: 0x7 (true)
+##      Int(4) Arg: 0x3
+##      Bool(3) Arg: 0x7 (true)
 ##
-## FAILED: ILLEGAL_ARGUMENT
+## ILLEGAL_ARGUMENT
 #!
-Exit status: 7
-Ue_T { Int(32) test() {  System sys;  constant Q cqt = { .i = 7 };  S(0xb8) s;  sys ( s 7 . )print . sys ( s 7 . 7 == )assert . sys ( s v . b . cast )print . sys ( s v . b . )assert . s 7 . cast return } }
+Exit status: 3
+Ue_T { Int(32) test() {  System sys;  constant Q cqt = { };  sys ( cqt i . )print . sys ( cqt i . 3 cast == )assert . sys ( cqt b . cast )print . sys ( cqt b . )assert . S(0x98) s;  sys ( s 3 . )print . sys ( s 3 . 3 cast == )assert . sys ( s v . b . cast )print . sys ( s v . b . )assert . s 3 . cast return } }
 Uq_S(Q v) { constant Int(4) csi = v i .;  <NOMAIN> }
-Uq_Q { Bool(1) b( true);  Int(4) i(0);  <NOMAIN> }
+Uq_Q { Bool(1) b( true);  Int(4) i( 3);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ##    //informed by t41213 (simplified S one parameter, and Q has none); empty cqt initialization.
 ##
 #>T.ulam
  ulam 3;
-use S; //irrelevant
+//use S; //irrelevant
 element T{
   Int test(){
     System sys;
 
     constant Q cqt = { }; //{ .i = 7};
-    S(cqt) s;
+    sys.print(cqt.i);
+    sys.assert(cqt.i == 3);
+    sys.print(cqt.b);
+    sys.assert(cqt.b); //true
 
+    S(cqt) s;
     sys.print(s.csi);
     sys.assert(s.csi == 3);
     sys.print(s.v.b);
     sys.assert(s.v.b); //true
 
-    return s.csi; //0
+    return s.csi; //3
   }
 }
 

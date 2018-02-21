@@ -1820,6 +1820,7 @@ namespace MFM {
   {
     assert(auti < m_unionRootUTI.size());
     assert(buti < m_unionRootUTI.size());
+    assert(!isAClass(buti) || !isClassATemplate(buti) || !isClassAStub(auti)); //don't alias a stub to a template
     m_unionRootUTI[auti] = buti;
     {
       std::ostringstream msg;
@@ -4549,6 +4550,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   bool CompilerState::isAnonymousClass(UTI cuti)
   {
     assert(okUTItoContinue(cuti));
+    assert(isAClass(cuti));
     // anonymous classes have their UTI number as their nameid. (t3808)
     return(!isARootUTI(cuti) || isHolder(cuti));
   }

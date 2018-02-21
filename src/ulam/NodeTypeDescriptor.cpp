@@ -413,6 +413,23 @@ namespace MFM {
 	//else
 	// rtnuti = Hzy;
       }
+    else
+      {
+	//	bool isAnonymousClass = (nut->isHolder() || !m_state.isARootUTI(nuti));
+
+	if(nut->isHolder())
+	  {
+	    if(m_state.isThisLocalsFileScope() || !m_state.statusUnknownTypeInThisClassResolver(nuti))
+	      rtnuti = Hzy;
+	  }
+#if 1
+	else if(!m_state.isARootUTI(nuti))
+	  {
+	    AssertBool isAlias = m_state.findaUTIAlias(nuti, rtnuti);
+	    assert(isAlias);
+	  }
+#endif
+      }
     return rtnb;
   } //resolveClassType
 

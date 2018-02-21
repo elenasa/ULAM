@@ -20,10 +20,12 @@ Uq_System { <NOMAIN> }
 use S; //doesn't fail (with/without use S)
 element T{
   Int test(){
-    System sys;
+    //System sys;
 
     constant Q(true) cqt = { .i = 7};
     S(cqt, true) s;
+
+    /*
     sys.print(s.csi);
     sys.assert(s.csi == 7);
     sys.print(s.v.b);
@@ -36,7 +38,7 @@ element T{
     sys.assert(sf.csi == 3);
     sys.print(sf.v.b);
     sys.assert(!sf.v.b); //false
-
+    */
     return s.csi; //7
   }
 }

@@ -60,7 +60,7 @@ namespace MFM
     void addUnknownTypeToken(const Token& tok, UTI huti);
     Token removeKnownTypeToken(UTI huti);
     bool hasUnknownTypeToken(UTI huti);
-    bool statusUnknownType(UTI huti);
+    bool statusUnknownType(UTI huti, SymbolClass * csym);
     bool statusAnyUnknownTypeNames(); //should be resolved after parsingxb
     u32 reportAnyUnknownTypeNames();
 
@@ -97,6 +97,7 @@ namespace MFM
     void clearLeftoverUnknownTypeTokens();
 
     bool checkUnknownTypeToResolve(UTI huti, const Token& tok);
+    bool checkUnknownTypeAsClassArgument(UTI huti, const Token& tok, SymbolClass * csym);
   };
 
 }
