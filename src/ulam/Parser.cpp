@@ -2918,16 +2918,12 @@ namespace MFM {
 	    SymbolConstantValue * paramSym = ctsym->getParameterSymbolPtr(parmIdx);
 	    assert(paramSym);
 	    Token argTok(TOK_IDENTIFIER, pTok.m_locator, paramSym->getId()); //use current locator
-	    //argSym = new SymbolConstantValue(argTok, paramSym->getUlamTypeIdx(), m_state); //like param, not copy (t3526?)
-	    //argSym = new SymbolConstantValue(*paramSym); //like param, not clone, WHY NOT? t3892
-	    //assert(argSym);
-	    //argSym->resetIdToken(argTok);
 	    UTI auti = m_state.mapIncompleteUTIForCurrentClassInstance(paramSym->getUlamTypeIdx());
 	    argSym = new SymbolConstantValue(argTok, auti, m_state); //like param, not clone t3526, t3862, t3615, t3892; error msg loc (error/t3893)
 	    if(m_state.isHolder(auti))
 	      {
+		//does auti get added to this class, or its template?
 		if(m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSPARAMETER)
-		  //does auti get added to this class, or its template?
 		  m_state.addUnknownTypeTokenToThisClassResolver(argTok, auti); //t41216, also in fixAnyUnseen for templates seen afterwards;
 		else
 		  m_state.addUnknownTypeTokenToAClassResolver(csym->getUlamTypeIdx(), argTok, auti); //t41216, also in fixAnyUnseen for templates seen afterwards;
@@ -2946,38 +2942,25 @@ namespace MFM {
 	argSym->setClassArgumentFlag();
 	m_state.addSymbolToCurrentScope(argSym); //scope updated to new class instance in parseClassArguments
 
-	NodeTypeDescriptor * argTypeDesc = NULL;
-
-	if(!ctUnseen)
-	  {
-	    //copy the type descriptor from the template for the stub;
-	    NodeBlockClass * templateblock = ctsym->getClassBlockNode();
-	    NodeConstantDef * paramConstDef = (NodeConstantDef *) templateblock->getParameterNode(parmIdx);
-	    assert(paramConstDef);
-	    NodeTypeDescriptor * paramTypeDesc = NULL;
-	    if(paramConstDef->getNodeTypeDescriptorPtr(paramTypeDesc))
-	      {
-		m_state.pushClassContext(ctsym->getUlamTypeIdx(), templateblock, templateblock, false, NULL); //null blocks likely (t3862,t3865, t3868, t3874)
-		argTypeDesc = (NodeTypeDescriptor *) paramTypeDesc->instantiate(); //copy it
-		m_state.popClassContext();
-
-		UTI auti = argSym->getUlamTypeIdx();
-		if(m_state.okUTItoContinue(auti))
-		  {
-		    argTypeDesc->resetGivenUTI(auti); //either Hzy or param's type
-		    assert(argTypeDesc->givenUTI() == auti); //invariant?
-		  }
-		argTypeDesc->setNodeLocation(pTok.m_locator); //error/t3893, error/t3767
-	      }
-	  }
-
 	//make Node with argument symbol wo trying to fold const expr;
 	// add to list of unresolved for this uti
 	// NULL node type descriptor, no token, yet known uti
-	NodeConstantDef * constNode = new NodeConstantDef(argSym, argTypeDesc, m_state);
+	NodeConstantDef * constNode = new NodeConstantDef(argSym, NULL, m_state);
 	assert(constNode);
 	constNode->setNodeLocation(pTok.m_locator);
 	constNode->setConstantExpr(exprNode);
+
+	//clone the seen template's node type descriptor for this stub's pending argument
+	if(!ctUnseen)
+	  {
+	    NodeBlockClass * templateblock = ctsym->getClassBlockNode();
+	    NodeConstantDef * paramConstDef = (NodeConstantDef *) templateblock->getParameterNode(parmIdx);
+	    assert(paramConstDef);
+	    m_state.pushClassContext(ctsym->getUlamTypeIdx(), templateblock, templateblock, false, NULL); //came from Parser parseRestOfClassArguments says null blocks likely (t41214)
+	    constNode->cloneTypeDescriptorForPendingArgumentNode(paramConstDef);
+	    m_state.popClassContext();
+	  }
+
 	//fold later; non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (stub)
 	csym->linkConstantExpressionForPendingArg(constNode);
 	m_state.popClassContext(); //restore after making NodeConstantDef, so current context is class

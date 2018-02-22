@@ -17,7 +17,7 @@ Uq_System { <NOMAIN> }
 ##
 #>T.ulam
  ulam 3;
-use S; //doesn't fail (with/without use S)
+use S; //doesn't fail (without use S)
 element T{
   Int test(){
     //System sys;
