@@ -148,17 +148,10 @@ namespace MFM {
     setNodeType(it);
     Node::setStoreIntoAble(TBOOL_FALSE);
 
-#if 1
     if(!isReadyConstant())
       {
-	//	    it = Hzy;
-	//    if(!stubcopy)
-	//      m_constSymbol = NULL; //lookup again too! (e.g. inherited template instances)
-	//    m_state.setGoAgain();
-
-	foldConstantClassNodes();
+	foldConstantClassNodes(); //may reset nodetype
       }
-#endif
 
     return getNodeType(); //it
   } //checkAndLabelType
@@ -325,8 +318,8 @@ namespace MFM {
 	msg << "Cannot update <" << m_state.getTokenDataAsString(m_token).c_str();
 	msg << "> class constant is not ready ";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	m_state.setGoAgain();
 	setNodeType(Hzy);
+	m_state.setGoAgain();
       }
     else
       {

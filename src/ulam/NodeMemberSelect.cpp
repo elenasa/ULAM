@@ -276,8 +276,10 @@ namespace MFM {
       return NOTREADY;
 
     if(m_nodeLeft->isAConstant())
-      m_state.abortNotImplementedYet(); //t41217, probably need evaltostoreinto for rhs, since not DM.
-
+      {
+	//probably need evaltostoreinto for rhs, since not DM.
+	//m_state.abortNotImplementedYet(); //t41198, t41209, t41217
+      }
 
     evalNodeProlog(0); //new current frame pointer on node eval stack
 

@@ -227,16 +227,15 @@ namespace MFM {
 	msg << "Function return type is still unresolved: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	nodeType = Hzy; //needed?
+	nodeType = Hzy;
       }
 
     //check later against defined function return type
     m_state.m_currentFunctionReturnNodes.push_back(this);
 
+    setNodeType(nodeType); //return take type of their node
     if(nodeType == Hzy)
       m_state.setGoAgain();
-
-    setNodeType(nodeType); //return take type of their node
     return nodeType;
   } //checkAndLabelType
 

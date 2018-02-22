@@ -388,12 +388,12 @@ namespace MFM {
 		msg << "' UTI" << superuti << " while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		m_state.setGoAgain();
 		//need to break the chain; e.g. don't want template symbol addresses used
 		setSuperBlockPointer(NULL); //force to try again!! avoid inf loop
 		superuti = mappedUTI;
 		m_state.resetClassSuperclass(nuti, superuti);
 		setNodeType(Hzy); //t41150
+		m_state.setGoAgain();
 		return Hzy; //short-circuit
 	      }
 	  }
@@ -438,11 +438,10 @@ namespace MFM {
 		  }
 
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		m_state.setGoAgain();
 		//need to break the chain; e.g. don't want template symbol addresses used
 		setSuperBlockPointer(NULL); //force to try again!! avoid inf loop
 		setNodeType(Hzy); //t41150
-
+		m_state.setGoAgain();
 		if(brtnhzy)
 		  return Hzy; //short-circuit holders and stubs (e.g. t41010, t3831, t3889)
 		//o.w. continue..
@@ -474,8 +473,8 @@ namespace MFM {
 		    msg << "' inherits from unready '";
 		    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str() << "'";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		    m_state.setGoAgain();
 		    setNodeType(Hzy);
+		    m_state.setGoAgain();
 		    return Hzy;
 		  }
 	      }
@@ -1313,15 +1312,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
 	    msg << "', an INCOMPLETE Super class; ";
 	    msg << "No bit packing of variable data members";
-	    //MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    m_state.setGoAgain();
 	    return TBOOL_HAZY;
 	  }
 
 	assert(UlamType::compare(superblock->getNodeType(), superuti, m_state) == UTIC_SAME);
 	u32 superoffset = m_state.getTotalBitSize(superuti);
-	//assert(superoffset >= 0);
 	if(superoffset < 0)
 	  {
 	    return TBOOL_HAZY;

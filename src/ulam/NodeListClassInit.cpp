@@ -124,6 +124,7 @@ namespace MFM{
 	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t41170
 	    Node::setNodeType(Hzy);
+	    m_state.setGoAgain(); //missing
 	    return Hzy;
 	  }
       }
@@ -149,12 +150,12 @@ namespace MFM{
 	else if((rtnuti != Nav) && !m_state.isComplete(puti))
 	  {
 	    rtnuti = Hzy; // all or none
-	    m_state.setGoAgain(); //since no error msg
 	  }
 	//else rtnuti remains == m_classUTI
       }
-
     setNodeType(rtnuti);
+    if(rtnuti == Hzy)
+      m_state.setGoAgain(); //since no error msg
     return rtnuti;
   } //checkAndLabelType
 

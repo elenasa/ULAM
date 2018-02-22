@@ -2577,6 +2577,7 @@ namespace MFM {
     u32 navcount = 0;
     u32 hzycount = 0;
     u32 unsetcount = 0;
+    clearGoAgain(); //missing
 
     m_programDefST.countNavNodesAcrossTableOfClasses(navcount, hzycount, unsetcount);
     countNavNodesForLocals(navcount, hzycount, unsetcount);
@@ -4480,6 +4481,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   void CompilerState::setGoAgain()
   {
+    //convention: called only after a node type is actually set to Hzy
     m_goAgainResolveLoop = true;
   }
 

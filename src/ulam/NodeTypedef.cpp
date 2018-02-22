@@ -172,7 +172,6 @@ namespace MFM {
 	    if(m_state.okUTItoContinue(it) || (it == Hzy))
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		m_state.setGoAgain(); //since not error; unlike vardecl
 		it = Hzy; //t3862
 	      }
 	    else
@@ -181,6 +180,8 @@ namespace MFM {
       } // got typedef symbol
 
     setNodeType(it);
+    if(it == Hzy)
+      m_state.setGoAgain(); //since not error; unlike vardecl
     return getNodeType();
   } //checkAndLabelType
 

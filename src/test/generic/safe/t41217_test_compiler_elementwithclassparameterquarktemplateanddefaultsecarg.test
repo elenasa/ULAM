@@ -14,11 +14,11 @@ Uq_Q(Bool(1) flag) { Bool(1) b(notready);  Int(4) i(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ##    //informed by t41214 (S is parsed first, new parameter order w a default)
-##  eval fails
+##  eval fails - TODO!
 ##
 #>T.ulam
  ulam 3;
-use S; //doesn't fail (without use S); fails with use S;
+//use S; //asserts in NodeIdent::eval (without use S); o.w. fails with use S;
 element T{
   Int test(){
     //System sys;

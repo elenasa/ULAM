@@ -306,8 +306,8 @@ namespace MFM {
 	    msg << ", is not ready, still hazy while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    m_state.setGoAgain();
 	    setNodeType(Hzy);
+	    m_state.setGoAgain();
 	    return Hzy; //short-circuit
 	  }
 
@@ -406,7 +406,6 @@ namespace MFM {
 	      {
 		assert(suti != Nav);
 		nuti = Hzy;
-		m_state.setGoAgain();
 	      }
 	  } //end array initializers or empty class init (eit == Void)
 
@@ -494,7 +493,6 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
 	    msg << ", used with symbol name '" << getName() << "', after folding";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-
 	    setNodeType(Hzy);
 	    m_state.setGoAgain();
 	  }
@@ -505,12 +503,14 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Constant symbol '" << getName() << "' is not ready";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-
 		setNodeType(Hzy);
 		m_state.setGoAgain();
 	      }
 	  }
       }
+
+    if(getNodeType() == Hzy)
+      m_state.setGoAgain();
     return getNodeType();
   } //checkAndLabelType
 

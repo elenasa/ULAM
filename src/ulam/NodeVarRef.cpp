@@ -270,8 +270,8 @@ namespace MFM {
 
 	if(hazyCount)
 	  {
-	    m_state.setGoAgain();
 	    setNodeType(Hzy);
+	    m_state.setGoAgain();
 	    return Hzy; //short-circuit
 	  }
 
@@ -292,7 +292,6 @@ namespace MFM {
 	    if(istor == TBOOL_HAZY)
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		m_state.setGoAgain();
 		it = Hzy;
 	      }
 	    else
@@ -328,6 +327,8 @@ namespace MFM {
       }
 
     setNodeType(it);
+    if(it == Hzy)
+      m_state.setGoAgain();
     return getNodeType();
   } //checkAndLabelType
 

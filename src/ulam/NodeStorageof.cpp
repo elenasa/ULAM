@@ -175,7 +175,6 @@ namespace MFM {
 	  msg << getName() << "'";
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	  nuti = Hzy;
-	  m_state.setGoAgain(); //since not error
 	}
       else
 	{
@@ -224,6 +223,8 @@ namespace MFM {
     }
 
   setNodeType(nuti);
+  if(nuti == Hzy)
+    m_state.setGoAgain(); //since not error
   return nuti;
   } //checkAndLabelType
 

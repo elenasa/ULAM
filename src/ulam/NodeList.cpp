@@ -171,12 +171,11 @@ namespace MFM{
 	    rtnuti = Nav;
 	  }
 	else if((rtnuti != Nav) && !m_state.isComplete(puti))
-	  {
-	    rtnuti = Hzy; // all or none
-	    m_state.setGoAgain(); //since no error msg
-	  }
+	  rtnuti = Hzy; // all or none
       }
     setNodeType(rtnuti);
+    if(rtnuti == Hzy)
+      m_state.setGoAgain(); //since no error msg
     return rtnuti;
   } //checkAndLabelType
 

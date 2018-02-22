@@ -368,8 +368,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	msg << ", to fit into type: " << m_state.getUlamTypeNameBriefByIndex(fituti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	//m_state.setGoAgain(); //since not an error (t3461)
-	return false;
+	return false; //t3461
       }
     if(nuti == Nav)
       {

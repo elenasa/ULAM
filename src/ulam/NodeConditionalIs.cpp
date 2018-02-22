@@ -55,7 +55,6 @@ namespace MFM {
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    newType = Hzy;
-	    m_state.setGoAgain();
 	  }
 	else
 	  {
@@ -76,7 +75,6 @@ namespace MFM {
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    newType = Hzy;
-	    m_state.setGoAgain();
 	  }
 	else
 	  {
@@ -124,9 +122,10 @@ namespace MFM {
 	msg << ", is still incomplete";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	newType = Hzy; //goagain set by nodetypedesc
-	m_state.setGoAgain();
       }
     setNodeType(newType);
+    if(newType == Hzy)
+      m_state.setGoAgain();
     Node::setStoreIntoAble(TBOOL_FALSE);
     return getNodeType();
   } //checkAndLabelType

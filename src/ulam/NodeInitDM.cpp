@@ -186,8 +186,8 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	    msg << ", is not ready, still hazy while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    m_state.setGoAgain();
 	    setNodeType(Hzy);
+	    m_state.setGoAgain();
 	    return Hzy; //short-circuit
 	  }
 
@@ -239,8 +239,7 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	    else
 	      {
 		assert(suti != Nav);
-		it = Hzy;
-		m_state.setGoAgain();
+		it = Hzy; //flag
 	      }
 
 	    if(m_state.isComplete(suti)) //reloads
@@ -302,6 +301,7 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	  }
       }
 
+    //what happened to it???
     setNodeType(suti);
 
     if(!m_constSymbol->isInitValueReady() && m_nodeExpr)
@@ -316,9 +316,7 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 	    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
 	    msg << ", used with symbol name '" << getName() << "', after folding";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-
 	    setNodeType(Hzy);
-	    m_state.setGoAgain();
 	  }
 	else
 	  {
@@ -327,12 +325,12 @@ NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassU
 		std::ostringstream msg;
 		msg << "Constant symbol '" << getName() << "' is not ready";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-
 		setNodeType(Hzy);
-		m_state.setGoAgain();
 	      }
 	  }
       }
+    if(getNodeType() == Hzy)
+      m_state.setGoAgain();
     return getNodeType();
   } //checkAndLabelType
 

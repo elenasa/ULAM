@@ -168,7 +168,6 @@ namespace MFM {
 			  {
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 			    newType = Hzy;
-			    m_state.setGoAgain();
 			    hazyCount++;
 			  }
 		      }
@@ -242,7 +241,6 @@ namespace MFM {
 		      {
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 			idxuti = Hzy;
-			m_state.setGoAgain();
 			hazyCount++;
 		      }
 		    else
@@ -263,7 +261,6 @@ namespace MFM {
 		      {
 			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 			idxuti = Hzy;
-			m_state.setGoAgain();
 			hazyCount++;
 		      }
 		    else
@@ -357,14 +354,15 @@ namespace MFM {
 	if(errorCount != 0)
 	  newType = Nav;
 	else if(hazyCount != 0)
-	  {
-	    newType = Hzy;
-	    m_state.setGoAgain(); //covers non-error(debug) messages for incompletes
-	  }
+	  newType = Hzy;
 	else
 	  m_state.abortShouldntGetHere();
       }
+
     setNodeType(newType);
+    if(newType == Hzy)
+      m_state.setGoAgain(); //covers non-error(debug) messages for incompletes
+
     return newType;
   } //checkAndLabelType
 

@@ -37,6 +37,9 @@ namespace MFM {
 
     UTI newType = calcNodeType(leftType, rightType); //Bits, or Nav error
     setNodeType(newType);
+    if(newType == Hzy)
+      m_state.setGoAgain();
+
     Node::setStoreIntoAble(TBOOL_FALSE);
 
     if(m_state.isComplete(newType))
@@ -141,7 +144,6 @@ namespace MFM {
 	    if(lscr == CAST_HAZY)
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		m_state.setGoAgain(); //for compiler counts
 		newType = Hzy;
 		bok = false;
 	      }
@@ -165,7 +167,6 @@ namespace MFM {
 	    if(rscr == CAST_HAZY)
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		m_state.setGoAgain(); //for compiler counts
 		newType = Hzy;
 		bok = false;
 	      }

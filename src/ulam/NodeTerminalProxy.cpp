@@ -585,28 +585,20 @@ namespace MFM {
 	msg << "' while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	if(m_state.okUTItoContinue(m_uti) || (m_uti == Hzy))
-	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //error/t3298
-	    m_state.setGoAgain(); //since not error; maybe no nodetypedesc
-	  }
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //error/t3298
 	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	//rtnb = false; don't want to stop after parsing.
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    rtnb = false; //don't want to stop after parsing.???
+	  }
       }
     else
       {
 	//depending on the of-func, update our constant
 	if(!setConstantValue(m_funcTok))
 	  {
-	    std::ostringstream msg;
-	    msg << "Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str();
-	    msg << " constant value for its <";
-	    msg << m_funcTok.getTokenString();
-	    msg << "> is still incomplete and unknown while compiling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	    MSG(&m_funcTok, msg.str().c_str(), WAIT);
-	    m_state.setGoAgain(); //since not error
-	    rtnb = false;
+	    //err msg output already!
+	    rtnb = false; //turns into a nav! error/t3937,t3938,t41066
 	  }
 	else
 	  {

@@ -200,10 +200,7 @@ namespace MFM {
 	if(rscr == CAST_BAD)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
-	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    m_state.setGoAgain(); //since not error
-	  }
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
       }
     else if(m_nodeInitExpr->isExplicitReferenceCast())
       {
@@ -342,8 +339,8 @@ namespace MFM {
 	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
 	    msg << ", initialization is not ready";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    m_state.setGoAgain(); //since not error
 	    setNodeType(Hzy);
+	    m_state.setGoAgain(); //since not error
 	    return Hzy; //short-circuit
 	  }
 
@@ -600,10 +597,7 @@ namespace MFM {
     if(nuti == Nav)
       return false;
     else if(!m_state.isComplete(nuti))
-      {
-	m_state.setGoAgain(); //since not error
-	return false;
-      }
+      return false;
 
     //store in UlamType format
     bool rtnb = true;

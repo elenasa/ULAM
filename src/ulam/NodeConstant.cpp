@@ -227,9 +227,9 @@ namespace MFM {
 	setNodeType(it); //missing
 	if(!stubcopy)
 	  m_constSymbol = NULL; //lookup again too! (e.g. inherited template instances)
-	m_state.setGoAgain();
       }
-
+    if(getNodeType() == Hzy)
+      m_state.setGoAgain();
     return getNodeType(); //it; just to be sure..
   } //checkAndLabelType
 

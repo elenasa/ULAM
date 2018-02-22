@@ -252,7 +252,6 @@ namespace MFM {
     else
       {
 	newcondtype = Hzy;
-	m_state.setGoAgain();
       }
 
     UTI trueType = m_nodeLeft->checkAndLabelType(); //side-effect
@@ -285,6 +284,9 @@ namespace MFM {
       }
 
     setNodeType(newType);  //stays the same
+    if(newType == Hzy)
+      m_state.setGoAgain();
+
     Node::setStoreIntoAble(isAConstant() ? TBOOL_FALSE : TBOOL_TRUE);
 
     if(m_state.okUTItoContinue(newType) && m_nodeCondition->isAConstant())

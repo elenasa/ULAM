@@ -132,7 +132,6 @@ namespace MFM{
 	    else
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		m_state.setGoAgain();
 	      }
 	    rtnuti = puti;
 	  }
@@ -154,6 +153,8 @@ namespace MFM{
 	  }
       }
     setNodeType(rtnuti);
+    if(rtnuti == Hzy)
+      m_state.setGoAgain();
     return rtnuti;
   } //checkAndLabelType
 
@@ -273,10 +274,8 @@ namespace MFM{
     //    if(isEmptyList())
     //  return true; //noop, t41201
 
-    //if(m_nodes[0]->isClassInit())
     if(m_state.isAClass(nuti))
       return buildClassArrayValueInitialization(bvtmp); //t41185
-
 
     for(u32 i = 0; i < n; i++)
       {

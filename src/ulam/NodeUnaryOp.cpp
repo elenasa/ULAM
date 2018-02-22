@@ -168,12 +168,11 @@ namespace MFM {
 	  }
       }
     else
-      {
-	newType = Hzy;
-	m_state.setGoAgain(); //since not error
-      }
+      newType = Hzy;
 
     setNodeType(newType);
+    if(newType == Hzy)
+      m_state.setGoAgain(); //since not error
     Node::setStoreIntoAble(TBOOL_FALSE);
 
     if((newType != Nav) && isAConstant() && m_node->isReadyConstant())
@@ -238,7 +237,6 @@ namespace MFM {
 	if(scr == CAST_HAZY)
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    m_state.setGoAgain();
 	    newType = Hzy;
 	  }
 	else

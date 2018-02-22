@@ -301,7 +301,6 @@ namespace MFM {
   {
     if(!m_state.isComplete(fromType) || !m_state.isComplete(newType)) //e.g. t3753
       {
-	m_state.setGoAgain();
 	newType = Hzy;
 	return false;
       }
@@ -313,7 +312,6 @@ namespace MFM {
     FORECAST scr = safeToCastTo(fromType); //reversed
     if(scr == CAST_HAZY)
       {
-	m_state.setGoAgain();
 	newType = Hzy;
 	rtnOK = false;
       }
@@ -435,8 +433,7 @@ namespace MFM {
 	if(m_state.okUTItoContinue(vit) || (vit == Hzy))
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    vit = Hzy; //t41201
-	    //m_state.setGoAgain(); //since not error; wait until not Nav (error/t41165)
+	    vit = Hzy; //t41201, error/t41165
 	  }
 	else
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -465,8 +462,8 @@ namespace MFM {
 	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
 	    msg << ", initialization is not ready";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    m_state.setGoAgain(); //since not error
 	    setNodeType(Hzy);
+	    m_state.setGoAgain(); //since not error
 	    return Hzy; //short-circuit
 	  }
 
@@ -603,7 +600,7 @@ namespace MFM {
 	  } //array initialization
 
 	if(m_state.okUTItoContinue(eit) && m_state.okUTItoContinue(vit))
-	  checkSafeToCastTo(eit, vit); //may side-effect 'it'
+	  checkSafeToCastTo(eit, vit); //may side-effect 'vit'
       } //end node expression
 
     if(m_varSymbol && m_varSymbol->isFunctionParameter() && ((SymbolVariableStack *) m_varSymbol)->isConstantFunctionParameter())
@@ -612,9 +609,6 @@ namespace MFM {
     Node::setStoreIntoAble(TBOOL_TRUE);
     setNodeType(vit);
 
-    if(vit == Hzy)
-      m_state.setGoAgain(); //since not error
-
     //checkReferenceCompatibilty must be called at the end since
     // NodeVarDecl may do surgery on itself (e.g. t3666)
     if(m_state.okUTItoContinue(vit) && !checkReferenceCompatibility(vit))
@@ -622,6 +616,10 @@ namespace MFM {
 	vit = Nav; //err msg by checkReferenceCompatibility
 	setNodeType(Nav); //failed
       }
+
+    if(vit == Hzy)
+      m_state.setGoAgain(); //since not error
+
     return vit; //in case of surgery don't call getNodeType();
   } //checkAndLabelType
 

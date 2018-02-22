@@ -60,7 +60,6 @@ namespace MFM {
 	if(scr == CAST_HAZY)
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    m_state.setGoAgain();
 	    newType = Hzy;
 	  }
 	else
@@ -191,7 +190,6 @@ namespace MFM {
 	    if(hazyArg)
 	      {
 		newType = Hzy;
-		m_state.setGoAgain();
 	      }
 	    else if(newnode)
 	      {
@@ -235,6 +233,8 @@ namespace MFM {
       }
 
     setNodeType(newType);
+    if(newType == Hzy)
+      m_state.setGoAgain();
     return newType;
   } //checkAndLabelType
 

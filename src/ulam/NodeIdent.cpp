@@ -292,7 +292,6 @@ namespace MFM {
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		it = Hzy;
-		m_state.setGoAgain();
 	      }
 	    errCnt++;
 	    m_state.popClassContext(); //restore
@@ -380,7 +379,6 @@ namespace MFM {
 		msg << ", used with list symbol name '" << getName() << "'";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 		it = Hzy; //missing t3754 case 1
-		m_state.setGoAgain();
 	      }
 	  }
       }
@@ -399,7 +397,6 @@ namespace MFM {
 	    setBlockNo(currBlock->getNodeNo());
 	    m_varSymbol = NULL; //t3881, t3306, t3323
 	    it = Hzy;
-	    m_state.setGoAgain();
 	  }
 	else
 	  {
@@ -409,6 +406,8 @@ namespace MFM {
       }
 
     setNodeType(it);
+    if(it == Hzy)
+      m_state.setGoAgain();
     return it;
   } //checkAndLabelType
 

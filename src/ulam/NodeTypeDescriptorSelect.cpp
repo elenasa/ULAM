@@ -82,10 +82,10 @@ namespace MFM {
 	m_ready = true; //set here
 	m_uti = it; //given reset here
       }
-    else
-	m_state.setGoAgain();
 
     setNodeType(it);
+    if(it == Hzy)
+      m_state.setGoAgain();
     return getNodeType();
   } //checkAndLabelType
 

@@ -39,7 +39,8 @@ element T{
     sys.print(sf.v.b);
     sys.assert(!sf.v.b); //false
     */
-    return s.csi; //7
+    //    return s.csi; //7
+    return 0;
   }
 }
 
