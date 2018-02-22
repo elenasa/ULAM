@@ -100,8 +100,6 @@ namespace MFM {
 
   void NodeTypeDescriptor::resetGivenUTI(UTI guti)
   {
-    if((m_uti != guti) && (getReferenceType() == ALT_NOT)) //t3615
-      m_state.updateUTIAliasForced(m_uti, guti);
     m_uti = guti;  //invariant?
   }
 
