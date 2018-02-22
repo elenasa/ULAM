@@ -483,8 +483,9 @@ namespace MFM {
 		m_state.pushClassContext(cuti, templateclassblock, templateclassblock, false, NULL); //came from Parser parseRestOfClassArguments says null blocks likely (t41214)
 		stubConstDef->cloneTypeDescriptorForPendingArgumentNode(paramConstDef); //if any and none (t41211, t41213, error/t41210, error/t41212)
 		m_state.popClassContext();
-#endif
 
+		stubConstDef->fixPendingArgumentNode(); //name m_cid
+#endif
 	      }
 	    else
 	      {

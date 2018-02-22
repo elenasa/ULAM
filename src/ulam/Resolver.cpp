@@ -363,7 +363,7 @@ namespace MFM {
 	NodeConstantDef * ceNode = *vit;
 	if(ceNode)
 	  {
-	    ceNode->fixPendingArgumentNode(); //possibly renames if arg unseen tmp name.
+	    //ceNode->fixPendingArgumentNode(); //possibly renames if arg unseen tmp name.
 	    defaultval = ceNode->hasDefaultSymbolValue();
 
 	    //OMG! if this was a default value for class arg, t3891,

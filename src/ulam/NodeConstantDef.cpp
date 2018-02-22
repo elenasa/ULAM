@@ -970,17 +970,25 @@ namespace MFM {
     if(m_nodeTypeDesc == NULL)
       {
 	//clone the template's node type descriptor for this stub's pending argument
-	NodeTypeDescriptor * nodetypedesc = NULL;
-	if(templateparamdef->getNodeTypeDescriptorPtr(nodetypedesc))
+	NodeTypeDescriptor * pnodetypedesc = NULL;
+	if(templateparamdef->getNodeTypeDescriptorPtr(pnodetypedesc))
 	  {
-	    NodeTypeDescriptor * copynodetypedesc = (NodeTypeDescriptor *) (nodetypedesc->instantiate());
+	    NodeTypeDescriptor * copynodetypedesc = (NodeTypeDescriptor *) (pnodetypedesc->instantiate());
 	    assert(copynodetypedesc);
 	    copynodetypedesc->setNodeLocation(getNodeLocation()); //same loc as this node
 
+	    UTI copyuti = copynodetypedesc->givenUTI(); //save
 	    AssertBool isset = setNodeTypeDescriptor(copynodetypedesc); //resets givenuti too.
 	    assert(isset);
+
+	    UTI newuti = m_nodeTypeDesc->givenUTI();
+	    assert(m_constSymbol && (m_constSymbol->getUlamTypeIdx() == newuti)); //invariant? (likely null symbol, see checkForSymbol)
+
+	    if((copyuti != pnodetypedesc->givenUTI()) && (newuti != copyuti))
+	      {
+		m_state.updateUTIAliasForced(copyuti, newuti);
+	      }
 	    //m_nodeTypeDesc->updateLineage(getNodeNo());
-	    assert(m_constSymbol && (m_constSymbol->getUlamTypeIdx() == copynodetypedesc->givenUTI())); //invariant? (likely null symbol, see checkForSymbol)
 	    aok = true;
 	  }
       }
