@@ -275,6 +275,10 @@ namespace MFM {
     if(nuti == Hzy)
       return NOTREADY;
 
+    if(m_nodeLeft->isAConstant())
+      m_state.abortNotImplementedYet(); //t41217, probably need evaltostoreinto for rhs, since not DM.
+
+
     evalNodeProlog(0); //new current frame pointer on node eval stack
 
     UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************

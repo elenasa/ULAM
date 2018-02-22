@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t41214_test_compiler_elementwithclassparameterquarktemplate_Sfirstwdefault
+#=t41217_test_compiler_elementwithclassparameterquarktemplateanddefaultsecarg
 ##
 ##  gen output: (+ interleaved asserts)
 ##   Int(4) : 7
@@ -13,7 +13,8 @@ Uq_S(Q(flag) v, Bool(1) bp = false) { constant Int(4) csi = v i .;  <NOMAIN> }
 Uq_Q(Bool(1) flag) { Bool(1) b(notready);  Int(4) i(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
-##    //informed by t41213 (S is parsed first, new parameter order w a default)
+##    //informed by t41214 (S is parsed first, new parameter order w a default)
+##  eval fails
 ##
 #>T.ulam
  ulam 3;
@@ -22,8 +23,9 @@ element T{
   Int test(){
     //System sys;
 
-    constant Q(true) cqt = { .i = 7};
-    S(cqt, true) s;
+    constant Q(true) cqt = { .i = 7}; //mismatch arg types.
+    //  S(cqt, true) s;
+    S(cqt) s;
 
     /*
     sys.print(s.csi);
