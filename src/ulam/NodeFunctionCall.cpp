@@ -828,6 +828,7 @@ namespace MFM {
     //is the virtual class uti the same as what we already have?
     NNO funcstnno = m_funcSymbol->getBlockNoOfST();
     UTI funcclassuti = m_state.findAClassByNodeNo(funcstnno);
+    assert(funcclassuti != Nouti); //sanity
     if(funcclassuti != vtcuti)
       {
 	SymbolClass * vtcsym = NULL;

@@ -378,13 +378,14 @@ namespace MFM {
   // are fixed to match the params, default arg values, and node type descriptors
   void SymbolClassNameTemplate::fixAnyUnseenClassInstances()
   {
+    UTI cuti = getUlamTypeIdx();
+
     ULAMCLASSTYPE classtype = getUlamClass();
     assert(classtype != UC_UNSEEN);
 
     //furthermore, this must exist by now, or else this is the wrong time to be fixing
     NodeBlockClass * templateclassblock = getClassBlockNode();
     assert(templateclassblock);
-    UTI cuti = getUlamTypeIdx();
     bool isCATemplate = ((UlamTypeClass *) m_state.getUlamTypeByIndex(cuti))->isCustomArray();
 
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
@@ -411,6 +412,7 @@ namespace MFM {
 	assert(cblock);
 
 	cblock->resetNodeNo(templateclassblock->getNodeNo()); //keep NNO consistent (new) missing
+	cblock->setPreviousBlockPointer(templateclassblock); //missing?
 
 	//can have 0Holder symbols for possible typedefs seen from another class
 	//which will increase the count of symbols; can only test for at least;
@@ -443,8 +445,10 @@ namespace MFM {
 	    continue;
 	  }
 
-	//provides proper context for any stub copies, e.g. default parameter values (t3895)
-	m_state.pushClassContext(suti, cblock, cblock, false, NULL);
+	UTI context = csym->getContextForPendingArgs();
+	//this is what the Parser does had it seen the template first!
+	m_state.pushClassOrLocalContextAndDontUseMemberBlock(context);
+	m_state.pushCurrentBlock(cblock);
 
 	//replace the temporary id with the official parameter name id;
 	//update the class instance's ST, and argument list.
@@ -473,7 +477,6 @@ namespace MFM {
 		cblock->replaceIdInScope(sid, m_parameterSymbols[i]->getId(), argsym);
 		foundArgs++;
 
-#if 1
 		//any type descriptors need to be copied (t41209,t41211)
 		NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassblock->getParameterNode(i);
 		assert(paramConstDef);
@@ -485,12 +488,15 @@ namespace MFM {
 		m_state.popClassContext();
 
 		stubConstDef->fixPendingArgumentNode(); //name m_cid
-#endif
 	      }
 	    else
 	      {
-		if(firstDefaultParamUsed < 0)
-		  firstDefaultParamUsed = lastDefaultParamUsed = i;
+		if(firstDefaultParamUsed < 0) //first default seen
+		  {
+		    firstDefaultParamUsed = lastDefaultParamUsed = i;
+		    m_state.pushClassContext(suti, cblock, cblock, false, NULL); //error/t41203,4
+		  }
+
 
 		if(i > (lastDefaultParamUsed + 1))
 		  {
@@ -520,7 +526,6 @@ namespace MFM {
 			// possible pending value for default param
 			NodeConstantDef * paramConstDef = (NodeConstantDef *) templateclassblock->getParameterNode(i);
 			assert(paramConstDef);
-			// don't push template context here (t3895)
 			NodeConstantDef * argConstDef = (NodeConstantDef *) paramConstDef->instantiate();
 			assert(argConstDef);
 			//fold later; non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (stub)
@@ -530,7 +535,7 @@ namespace MFM {
 		    foundArgs++;
 		  }
 	      }
-	  }
+	  } //all the parameters
 
 	if(foundArgs != numparams)
 	  {
@@ -543,12 +548,16 @@ namespace MFM {
 	    MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
 	  }
 
+	if(firstDefaultParamUsed >= 0)
+	  m_state.popClassContext(); //restore stub push for defaults
+	m_state.popClassContext(); //restore current block push
+	m_state.popClassContext(); //restore context push
+
 	// class instance's prev classblock is linked to its template's when stub is made.
 	// later, during c&l if a subclass, the super ptr gets the classblock of superclass
 	cblock->setSuperBlockPointer(NULL); //wait for c&l when no longer a stub
-	m_state.popClassContext(); //restore
 	it++;
-      } //while
+      } //while any more stubs
   } //fixAnyUnseenClassInstances
 
   void SymbolClassNameTemplate::fixAClassStubsDefaultArgs(SymbolClass * stubcsym, u32 defaultstartidx)

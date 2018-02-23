@@ -232,7 +232,7 @@ namespace MFM {
     if(!currBlock)
       {
 	UTI anotherclassuti = m_state.findAClassByNodeNo(m_currBlockNo);
-	if(anotherclassuti != Nav)
+	if(anotherclassuti != Nouti)
 	  {
 	    currBlock = m_state.getAClassBlock(anotherclassuti);
 	    assert(currBlock);

@@ -2912,13 +2912,16 @@ namespace MFM {
 	//try to continue..
 	m_state.pushCurrentBlock(csym->getClassBlockNode()); //reset here for new arg's ST
 
+
 	SymbolConstantValue * argSym = NULL;
 	if(!ctUnseen)
 	  {
 	    SymbolConstantValue * paramSym = ctsym->getParameterSymbolPtr(parmIdx);
 	    assert(paramSym);
 	    Token argTok(TOK_IDENTIFIER, pTok.m_locator, paramSym->getId()); //use current locator
+
 	    UTI auti = m_state.mapIncompleteUTIForCurrentClassInstance(paramSym->getUlamTypeIdx());
+
 	    argSym = new SymbolConstantValue(argTok, auti, m_state); //like param, not clone t3526, t3862, t3615, t3892; error msg loc (error/t3893)
 	    if(m_state.isHolder(auti))
 	      {

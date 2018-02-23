@@ -326,7 +326,7 @@ namespace MFM {
 	    setBlockNo(memberclass->getNodeNo());
 	  }
 	else
-	  setBlockNo(m_state.getCurrentBlock()->getNodeNo());
+	  setBlockNo(m_state.getCurrentBlockNo());
 
 	if(m_nodeTypeDesc)
 	  m_state.popClassContext(); //restore

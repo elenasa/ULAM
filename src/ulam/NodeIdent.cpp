@@ -131,7 +131,7 @@ namespace MFM {
 	  }
 #endif
 	else
-	  setBlockNo(m_state.getCurrentBlock()->getNodeNo());
+	  setBlockNo(m_state.getCurrentBlockNo());
       }
   } //setupBlockNo
 

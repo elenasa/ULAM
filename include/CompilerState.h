@@ -535,6 +535,8 @@ namespace MFM{
 
     void pushClassContextUsingMemberClassBlock(NodeBlockClass * memberblock);
 
+    void pushClassOrLocalContextAndDontUseMemberBlock(UTI context);
+
     std::string getClassContextAsStringForDebugging();
 
     /** flag to resolving loop to go again for non-ready types (i.e. Navs) */

@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t41214_test_compiler_elementwithclassparameterquarktemplate_Sfirstwdefault
+#=t41218_test_compiler_elementwithclassparameterquarktemplate_scopeparamnames
 ##
 ##  gen output: (+ interleaved asserts)
 ##   Int(4) : 7
@@ -13,17 +13,16 @@ Uq_S(Q(flag) v, Bool(1) bp = false) { constant Int(4) csi = v i .;  <NOMAIN> }
 Uq_Q(Bool(1) flag) { Bool(1) b(notready);  Int(4) i(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
-##    //informed by t41213 (S is parsed first, new parameter order w a default)
+##    //informed by t41214, and Dave's concern: name of class parameter is out of scope of use, unless specically used, like s.bp
 ##
 #>T.ulam
  ulam 3;
-//use S; //doesn't fail (without use S); fails with use S; IRRELEVANT NOW.
 element T{
   Int test(){
     //System sys;
-
-    constant Q(true) cqt = { .i = 7};
-    S(cqt, true) s;
+    constant Bool bp = true;
+    constant Q(bp) cqt = { .i = 7};
+    S(cqt, bp) s;
 
     /*
     sys.print(s.csi);

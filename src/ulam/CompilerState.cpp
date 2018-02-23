@@ -4287,7 +4287,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   UTI CompilerState::findAClassByNodeNo(NNO n)
   {
-    return m_programDefST.findClassNodeNoForTableOfClasses(n); //Nav not found
+    return m_programDefST.findClassNodeNoForTableOfClasses(n); //Nouti not found
   }
 
   NodeBlockLocals * CompilerState::findALocalsScopeByNodeNo(NNO n)
@@ -4465,6 +4465,22 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     cc.useMemberBlock(true);
     m_classContextStack.pushClassContext(cc);
   }
+
+  void CompilerState::pushClassOrLocalContextAndDontUseMemberBlock(UTI context)
+  {
+    if(isAClass(context))
+      {
+	NodeBlockClass * contextclassblock = getAClassBlock(context);
+	assert(contextclassblock);
+	pushClassContext(context, contextclassblock, contextclassblock, false, NULL);
+      }
+    else
+      {
+	NodeBlockLocals * localsblock = getLocalsScopeBlockByIndex(context);
+	assert(localsblock);
+	pushClassContext(context, localsblock, localsblock, false, NULL);
+      }
+  } //helper
 
   std::string CompilerState::getClassContextAsStringForDebugging()
   {
