@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  Resolver::Resolver(UTI instance, CompilerState& state) : m_state(state), m_classUTI(instance), m_classContextUTIForPendingArgs(m_state.getCompileThisIdx()) /*default*/ {}
+  Resolver::Resolver(UTI instance, CompilerState& state) : m_state(state), m_classUTI(instance), m_classContextUTIForPendingArgValues(m_state.getCompileThisIdx()), m_classContextUTIForPendingArgTypes(instance) /*default*/ {}
 
   Resolver::~Resolver()
   {
@@ -84,6 +84,21 @@ namespace MFM {
       }
     return rtnb;
   } //hasUnknownTypeToken
+
+  bool Resolver::getUnknownTypeToken(UTI huti, Token & tok)
+  {
+    bool rtnb = false;
+    if(m_unknownTypeTokens.empty())
+      return false;
+
+    std::map<UTI, Token>::iterator mit = m_unknownTypeTokens.find(huti);
+    if(mit != m_unknownTypeTokens.end())
+      {
+	tok = mit->second;
+	rtnb = true;
+      }
+    return rtnb;
+  }
 
   bool Resolver::statusUnknownType(UTI huti, SymbolClass * csym)
   {
@@ -331,10 +346,11 @@ namespace MFM {
   bool Resolver::constantFoldNonreadyClassArgs(SymbolClass * stubcsym)
   {
     bool rtnb = true;
-    UTI context = getContextForPendingArgs();
-	m_state.pushClassOrLocalContextAndDontUseMemberBlock(context);
+    UTI context = getContextForPendingArgValues();
+    m_state.pushClassOrLocalContextAndDontUseMemberBlock(context);
 
     m_state.m_pendingArgStubContext = m_classUTI; //set for folding surgery
+    m_state.m_pendingArgTypeStubContext = getContextForPendingArgTypes(); //set for resolving types
 
     bool defaultval = false;
     bool pushedtemplate = false;
@@ -388,6 +404,7 @@ namespace MFM {
       }
 
     m_state.m_pendingArgStubContext = Nouti; //clear flag
+    m_state.m_pendingArgTypeStubContext = Nouti; //clear flag
     m_state.popClassContext(); //restore previous context
 
     //clean up, replace vector with vector of those still unresolved
@@ -412,14 +429,24 @@ namespace MFM {
     return !m_nonreadyClassArgSubtrees.empty();
   } //pendingClassArgumentsForClassInstance
 
-  void Resolver::setContextForPendingArgs(UTI context)
+  void Resolver::setContextForPendingArgValues(UTI context)
   {
-    m_classContextUTIForPendingArgs = context;
+    m_classContextUTIForPendingArgValues = context;
   }
 
-  UTI Resolver::getContextForPendingArgs()
+  UTI Resolver::getContextForPendingArgValues()
   {
-    return m_classContextUTIForPendingArgs;
+    return m_classContextUTIForPendingArgValues;
+  }
+
+  void Resolver::setContextForPendingArgTypes(UTI context)
+  {
+    m_classContextUTIForPendingArgTypes = context;
+  }
+
+  UTI Resolver::getContextForPendingArgTypes()
+  {
+    return m_classContextUTIForPendingArgTypes;
   }
 
   bool Resolver::mapUTItoUTI(UTI fmuti, UTI touti)

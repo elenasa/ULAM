@@ -5,19 +5,19 @@
 
 namespace MFM {
 
-  NodeTypeDescriptor::NodeTypeDescriptor(const Token& tokarg, UTI auti, CompilerState & state) : Node(state), m_typeTok(tokarg), m_uti(auti), m_ready(false), m_unknownBitsizeSubtree(NULL), m_refType(ALT_NOT), m_referencedUTI(Nouti)
+  NodeTypeDescriptor::NodeTypeDescriptor(const Token& tokarg, UTI auti, CompilerState & state) : Node(state), m_typeTok(tokarg), m_uti(auti), m_ready(false), m_contextForPendingArgType(Nouti), m_unknownBitsizeSubtree(NULL), m_refType(ALT_NOT), m_referencedUTI(Nouti)
   {
     setNodeLocation(m_typeTok.m_locator);
   }
 
   // use by ALT_AS.
-  NodeTypeDescriptor::NodeTypeDescriptor(const Token& tokarg, UTI auti, CompilerState & state, ALT refarg, UTI referencedUTIarg) : Node(state), m_typeTok(tokarg), m_uti(auti), m_ready(false), m_unknownBitsizeSubtree(NULL), m_refType(refarg), m_referencedUTI(referencedUTIarg)
+  NodeTypeDescriptor::NodeTypeDescriptor(const Token& tokarg, UTI auti, CompilerState & state, ALT refarg, UTI referencedUTIarg) : Node(state), m_typeTok(tokarg), m_uti(auti), m_ready(false), m_contextForPendingArgType(Nouti), m_unknownBitsizeSubtree(NULL), m_refType(refarg), m_referencedUTI(referencedUTIarg)
   {
     setNodeLocation(m_typeTok.m_locator);
   }
 
   //since there's no assoc symbol, we map the m_uti here (e.g. S(x,y).sizeof nodeterminalproxy)
-  NodeTypeDescriptor::NodeTypeDescriptor(const NodeTypeDescriptor& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti)), m_ready(false), m_unknownBitsizeSubtree(NULL), m_refType(ref.m_refType), m_referencedUTI(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_referencedUTI))
+  NodeTypeDescriptor::NodeTypeDescriptor(const NodeTypeDescriptor& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti)), m_ready(false), m_contextForPendingArgType(Nouti), m_unknownBitsizeSubtree(NULL), m_refType(ref.m_refType), m_referencedUTI(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_referencedUTI))
   {
     if(ref.m_unknownBitsizeSubtree)
       m_unknownBitsizeSubtree = new NodeTypeBitsize(*ref.m_unknownBitsizeSubtree); //mapped UTI?
@@ -125,6 +125,16 @@ namespace MFM {
     resetGivenUTI(refUTI); //new given as ref UTI Sat Jul  2 15:10:29 2016
   }
 
+  UTI NodeTypeDescriptor::getContextForPendingArgType()
+  {
+    return m_contextForPendingArgType;
+  }
+
+  void NodeTypeDescriptor::setContextForPendingArgType(UTI context)
+  {
+    m_contextForPendingArgType = context;
+  }
+
   UTI NodeTypeDescriptor::checkAndLabelType()
   {
     if(isReadyType())
@@ -174,21 +184,44 @@ namespace MFM {
       {
 	// if Nav, use token
 	UTI mappedUTI = nuti;
-	UTI cuti = m_state.getCompileThisIdx();
-	// the symbol associated with this type, was mapped during instantiation
-	// since we're call AFTER that (not during), we can look up our
-	// new UTI and pass that on up the line of NodeType Selects, if any.
-	if(m_state.mappedIncompleteUTI(cuti, nuti, mappedUTI))
+
+	// first search current block, often same as context;
+	UTI cbuti = m_state.getCurrentBlock()->getNodeType();
+	if(m_state.isAClass(cbuti))
 	  {
-	    std::ostringstream msg;
-	    msg << "Substituting Mapped UTI" << mappedUTI;
-	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
-	    msg << " for incomplete descriptor type: '";
-	    msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
-	    msg << "' UTI" << nuti << " while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    nuti = mappedUTI;
+	    if(m_state.mappedIncompleteUTI(cbuti, nuti, mappedUTI))
+	      {
+		std::ostringstream msg;
+		msg << "Substituting Mapped UTI" << mappedUTI;
+		msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
+		msg << " for incomplete descriptor type: '";
+		msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
+		msg << "' UTI" << nuti << " while labeling current block: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(cbuti).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		nuti = mappedUTI;
+	      }
+	  }
+
+	//if no change, try context..
+	if(mappedUTI == nuti)
+	  {
+	    UTI cuti = m_state.getCompileThisIdx();
+	    // the symbol associated with this type, was mapped during instantiation
+	    // since we're call AFTER that (not during), we can look up our
+	    // new UTI and pass that on up the line of NodeType Selects, if any.
+	    if(m_state.mappedIncompleteUTI(cuti, nuti, mappedUTI))
+	      {
+		std::ostringstream msg;
+		msg << "Substituting Mapped UTI" << mappedUTI;
+		msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
+		msg << " for incomplete descriptor type: '";
+		msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
+		msg << "' UTI" << nuti << " while labeling class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		nuti = mappedUTI;
+	      }
 	  }
 
 	if(!m_state.isComplete(nuti)) //reloads to recheck for debug message
@@ -196,6 +229,8 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Incomplete descriptor for type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str(); //t3125, t3298
+	    if(m_state.isHolder(nuti))
+	      msg << " (UTI " << nuti << ")"; //helpful for debugging (e.g. t41209)
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t3787
 	  }
       }

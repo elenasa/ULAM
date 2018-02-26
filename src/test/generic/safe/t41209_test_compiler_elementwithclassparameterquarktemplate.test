@@ -17,7 +17,7 @@ Uq_S(Bool(1) bp, Q(flag) v) { constant Int(4) csi = v i .;  <NOMAIN> }
 ##
 #>T.ulam
  ulam 3;
-//use S; //fails (for some reason with use S)
+//use S; //IRRELEVENT
 element T{
   Int test(){
     System sys;

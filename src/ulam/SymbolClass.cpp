@@ -420,6 +420,13 @@ namespace MFM {
     return m_resolver->hasUnknownTypeToken(huti);
   }
 
+  bool SymbolClass::getUnknownTypeTokenInClass(UTI huti, Token& tok)
+  {
+    if(!m_resolver)
+      return false;
+    return m_resolver->getUnknownTypeToken(huti, tok);
+  }
+
   bool SymbolClass::statusUnknownTypeInClass(UTI huti)
   {
     if(!m_resolver)
@@ -520,7 +527,11 @@ namespace MFM {
 	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(context, contextSym);
 	assert(isDefined);
 
-	setContextForPendingArgs(context); //update (might not be needed anymore?)
+	setContextForPendingArgValues(context);
+	if(fmcsym->getContextForPendingArgTypes() != fmcsym->getUlamTypeIdx())
+	  setContextForPendingArgTypes(fmcsym->getContextForPendingArgTypes()); //(t41213)
+	else
+	  setContextForPendingArgTypes(getUlamTypeIdx()); //same as new self (t3328, t41153)
 
 	//Cannot MIX the current block (context) to find symbols while
 	//using this stub copy to find parent NNOs for constant folding;
@@ -555,22 +566,39 @@ namespace MFM {
     return m_resolver->cloneUnknownTypesTokenMap(to);
   }
 
-  void SymbolClass::setContextForPendingArgs(UTI context)
+  void SymbolClass::setContextForPendingArgValues(UTI context)
   {
     //assert(m_resolver); //dangerous! when template has default parameters
     if(m_resolver)
-      m_resolver->setContextForPendingArgs(context);
-  } //setContextForPendingArgs
+      m_resolver->setContextForPendingArgValues(context);
+  } //setContextForPendingArgValues
 
-  UTI SymbolClass::getContextForPendingArgs()
+  UTI SymbolClass::getContextForPendingArgValues()
   {
     //assert(m_resolver); //dangerous! when template has default parameters
     if(m_resolver)
-      return m_resolver->getContextForPendingArgs();
+      return m_resolver->getContextForPendingArgValues();
 
     assert(!isStub() || (getParentClassTemplate() && getParentClassTemplate()->getTotalParametersWithDefaultValues() > 0));
     return getUlamTypeIdx(); //return self UTI, t3981
-  } //getContextForPendingArgs
+  } //getContextForPendingArgValues
+
+  void SymbolClass::setContextForPendingArgTypes(UTI context)
+  {
+    //assert(m_resolver); //dangerous! when template has default parameters
+    if(m_resolver)
+      m_resolver->setContextForPendingArgTypes(context);
+  } //setContextForPendingArgTypes
+
+  UTI SymbolClass::getContextForPendingArgTypes()
+  {
+    //assert(m_resolver); //dangerous! when template has default parameters
+    if(m_resolver)
+      return m_resolver->getContextForPendingArgTypes();
+
+    assert(!isStub() || (getParentClassTemplate() && getParentClassTemplate()->getTotalParametersWithDefaultValues() > 0));
+    return getUlamTypeIdx(); //return self UTI, t3981
+  } //getContextForPendingArgTypes
 
   bool SymbolClass::statusNonreadyClassArguments()
   {

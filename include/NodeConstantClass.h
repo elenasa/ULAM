@@ -104,6 +104,7 @@ namespace MFM{
   private:
     NNO m_currBlockNo;
 
+    void setupBlockNo();
     void setBlockNo(NNO n);
     NNO getBlockNo() const;
     NodeBlock * getBlock();

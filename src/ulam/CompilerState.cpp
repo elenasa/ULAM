@@ -113,7 +113,7 @@ namespace MFM {
     "*/\n\n";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyUTI(Nouti)
+  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_pendingArgTypeStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyUTI(Nouti)
   {
     m_err.init(this, debugOn, infoOn, noteOn, warnOn, waitOn, NULL);
     Token::initTokenMap(*this);
@@ -785,7 +785,8 @@ namespace MFM {
        return true; //anonymous UTI
 
     //or this? (works for template instances too)
-    if(statusUnknownTypeInThisClassResolver(auti))
+    //if(statusUnknownTypeInThisClassResolver(auti))
+    if(statusUnknownTypeInAClassResolver(cuti, auti))
     {
       mappedUTI = auti; //auti no longer a holder
       return true;
@@ -858,6 +859,11 @@ namespace MFM {
   //please set getCompileThisIdx() to the instance's UTI.
   UTI CompilerState::mapIncompleteUTIForCurrentClassInstance(UTI suti)
   {
+    return mapIncompleteUTIForAClassInstance(getCompileThisIdx(), suti);
+  } //helper
+
+  UTI CompilerState::mapIncompleteUTIForAClassInstance(UTI cuti, UTI suti)
+  {
     UlamType * sut = getUlamTypeByIndex(suti);
     if(sut->isComplete())
       return suti;
@@ -865,17 +871,18 @@ namespace MFM {
     if(!okUTItoContinue(suti))
       return suti; //forgiving; e.g. may be used for unset referencedUTI
 
-    if(isALocalsFileScope(getCompileThisIdx()))
+    if(isALocalsFileScope(cuti))
       {
 	return suti; //t3526, t3892
       }
 
+    UlamKeyTypeSignature ckey = getUlamKeyTypeSignatureByIndex(cuti);
     SymbolClassName * cnsym = NULL;
-    AssertBool isDefined = alreadyDefinedSymbolClassName(getCompileThisId(), cnsym);
+    AssertBool isDefined = alreadyDefinedSymbolClassName(ckey.getUlamKeyTypeSignatureNameId(), cnsym);
     assert(isDefined);
 
     UTI mappedUTI;
-    if(cnsym->hasInstanceMappedUTI(getCompileThisIdx(), suti, mappedUTI))
+    if(cnsym->hasInstanceMappedUTI(cuti, suti, mappedUTI))
       return mappedUTI;  //e.g. decl list
 
     if(findaUTIAlias(suti, mappedUTI))
@@ -915,7 +922,7 @@ namespace MFM {
     ULAMCLASSTYPE sclasstype = sut->getUlamClassType(); //restore from original ut
     UTI newuti = makeUlamType(newkey, bUT, sclasstype);
 
-    cnsym->mapInstanceUTI(getCompileThisIdx(), suti, newuti);
+    cnsym->mapInstanceUTI(cuti, suti, newuti);
 
     if(bUT == Class)
       {
@@ -924,20 +931,20 @@ namespace MFM {
 	  ((UlamTypeClass *) newut)->setCustomArray();
 
 	//potential for unending process..
-	((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, getCompileThisIdx());
+	((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, cuti);
 
 	std::ostringstream msg;
 	msg << "MAPPED!! type: " << getUlamTypeNameByIndex(suti).c_str();
 	msg << "(UTI" << suti << ")";
 	msg << " TO newtype: " << getUlamTypeNameByIndex(newuti).c_str();
 	msg << "(UTI" << newuti << ")";
-	msg << " while compiling class " << getUlamTypeNameByIndex(getCompileThisIdx()).c_str();
-	msg << "(UTI" << getCompileThisIdx() << ")";
+	msg << " while compiling class " << getUlamTypeNameByIndex(cuti).c_str();
+	msg << "(UTI" << cuti << ")";
 	msg << ", for incomplete class " << getUlamTypeNameByIndex(cnsymOfIncomplete->getUlamTypeIdx()).c_str();
 	msg << "(UTI" << cnsymOfIncomplete->getUlamTypeIdx() << ")";
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
 
-	if(getCompileThisId() != skey.getUlamKeyTypeSignatureNameId())
+	if(cuti != skey.getUlamKeyTypeSignatureNameId())
 	  {
 	    //e.g. inheritance
 	    ((SymbolClassNameTemplate *)cnsymOfIncomplete)->mergeClassInstancesFromTEMP(); //not mid-iteration!! makes alreadydefined.
@@ -945,7 +952,7 @@ namespace MFM {
       }
     //updateUTIAlias(suti, newuti); //what if..
     return newuti;
-  } //mapIncompleteUTIForCurrentClassInstance
+  } //mapIncompleteUTIForAClassInstance
 
   void CompilerState::mapTypesInCurrentClass(UTI fm, UTI to)
   {
@@ -2243,6 +2250,17 @@ namespace MFM {
 
     return csym->hasUnknownTypeInClass(huti);
   } //hasUnknownTypeInThisClassResolver
+
+  //false if not there, or still hazy; true if resolved; called during c&l
+  bool CompilerState::statusUnknownTypeInAClassResolver(UTI acuti, UTI huti)
+  {
+    pushClassOrLocalContextAndDontUseMemberBlock(acuti);
+
+    bool rtnb = statusUnknownTypeInThisClassResolver(huti);
+
+    popClassContext(); //restore
+    return rtnb;
+  } //helper
 
   //false if not there, or still hazy; true if resolved; called during c&l
   bool CompilerState::statusUnknownTypeInThisClassResolver(UTI huti)
@@ -4243,7 +4261,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     Node * rtnNode = NULL;
     //if we are in the middle of resolving pending args for a stub
     // and to do constant folding, we need to find the parent node that's in the
-    // stub's argument list (was resolver), NOT the context where the stub appears.
+    // stub's argument list (was resolver), NOT the context where the stub appears. t3362,3,4,6,7,8..
     UTI stubuti = m_pendingArgStubContext;
     if(stubuti != Nouti)
       {
@@ -4256,6 +4274,25 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	if(!rtnNode)
 	  rtnNode = findNodeNoInALocalsScope(cntsym->getLoc(), n);
       }
+
+#if 1
+    //Next, try stub's context for Arg Types..(t41214)
+    if(!rtnNode)
+      {
+	UTI typestubuti = m_pendingArgTypeStubContext;
+	if(typestubuti != stubuti)
+	  {
+	    u32 typestubid = getUlamKeyTypeSignatureByIndex(typestubuti).getUlamKeyTypeSignatureNameId();
+	    SymbolClassNameTemplate * cntsym = NULL;
+	    AssertBool isDefined = alreadyDefinedSymbolClassNameTemplate(typestubid, cntsym);
+	    assert(isDefined);
+	    rtnNode = cntsym->findNodeNoInAClassInstance(typestubuti, n);
+	    //local def, using template's local scope
+	    if(!rtnNode)
+	      rtnNode = findNodeNoInALocalsScope(cntsym->getLoc(), n);
+	  }
+      }
+#endif
 
     if(!rtnNode)
       rtnNode = findNodeNoInThisClass(n);
@@ -4479,6 +4516,22 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	NodeBlockLocals * localsblock = getLocalsScopeBlockByIndex(context);
 	assert(localsblock);
 	pushClassContext(context, localsblock, localsblock, false, NULL);
+      }
+  } //helper
+
+  void CompilerState::pushClassOrLocalCurrentBlock(UTI context)
+  {
+    if(isAClass(context))
+      {
+	NodeBlockClass * contextclassblock = getAClassBlock(context);
+	assert(contextclassblock);
+	pushCurrentBlock(contextclassblock);
+      }
+    else
+      {
+	NodeBlockLocals * localsblock = getLocalsScopeBlockByIndex(context);
+	assert(localsblock);
+	pushCurrentBlock(localsblock);
       }
   } //helper
 

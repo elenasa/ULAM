@@ -158,8 +158,12 @@ namespace MFM {
 
   void NodeConstantClass::checkForSymbol()
   {
+    setupBlockNo(); //in case of 0
     //in case of a cloned unknown
     NodeBlock * currBlock = getBlock();
+    if(currBlock == NULL)
+      return; //no symbol
+
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
     Symbol * asymptr = NULL;
@@ -213,6 +217,22 @@ namespace MFM {
       }
   } //checkForSymbol
 
+  void NodeConstantClass::setupBlockNo()
+  {
+    //define before used, start search with current block (copied from NodeIdent)
+    if(m_currBlockNo == 0)
+      {
+	if(m_state.useMemberBlock())
+	  {
+	    NodeBlockClass * memberclass = m_state.getCurrentMemberClassBlock();
+	    assert(memberclass);
+	    setBlockNo(memberclass->getNodeNo());
+	  }
+	else
+	  setBlockNo(m_state.getCurrentBlockNo());
+      }
+  } //setupBlockNo
+
   void NodeConstantClass::setBlockNo(NNO n)
   {
     assert(n > 0);
@@ -242,8 +262,8 @@ namespace MFM {
 	if(!currBlock)
 	  currBlock = m_state.findALocalsScopeByNodeNo(m_currBlockNo);
       }
-    assert(currBlock);
-    return currBlock;
+    //assert(currBlock);
+    return currBlock; //could be null
   }
 
   //class context set prior to calling us; purpose is to get
@@ -305,10 +325,18 @@ namespace MFM {
     if(isReadyConstant())
       return true; //t41209
 
+#if 1
     //refresh named constant value from constant def built after c&l
     SymbolWithValue * savecsym = m_constSymbol;
     m_constSymbol = NULL;
     checkForSymbol();
+    if(m_constSymbol == NULL)
+      {
+	//try using current block, may be different than original symbol WHY?
+	m_currBlockNo = 0; //cant use setBlockNo
+	checkForSymbol();
+      }
+
     if(m_constSymbol)
       {
 	if(isReadyConstant())
@@ -330,6 +358,7 @@ namespace MFM {
 	setNodeType(Nav);
 	m_constSymbol = savecsym; // restore
       }
+#endif
     return false;
   } //foldConstantClassNodes
 

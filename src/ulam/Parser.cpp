@@ -700,13 +700,17 @@ namespace MFM {
     //o.w. implicit localdef typedefs and constants
     if(iTok.m_type == TOK_TYPE_IDENTIFIER)
       {
+	TypeArgs typeargs;
+	typeargs.init(iTok);
+
 	//typedefs, and class argument constants for ancestors maybe in local scope;
 	//search class args for constants before local scope (t41007)
 	//search locals scope for typedef before class (t3862, 3865, 3868, 3988, 3989)
 	m_state.m_parsingVariableSymbolTypeFlag = STF_CLASSINHERITANCE;
 
 	bool isaclass = true;
-	superuti = parseClassArguments(iTok, isaclass);
+	//	superuti = parseClassArguments(iTok, isaclass);
+	superuti = parseClassArguments(typeargs, isaclass);
 	if(superuti != Nav)
 	  {
 	    UlamType * superut = m_state.getUlamTypeByIndex(superuti);
@@ -2601,7 +2605,8 @@ namespace MFM {
 	  }
 
 	//not sure what to do with the UTI? could be a declref type; both args are refs!
-	UTI cuti = parseClassArguments(pTok, maybeAClassType);
+	//	UTI cuti = parseClassArguments(pTok, maybeAClassType);
+	UTI cuti = parseClassArguments(typeargs, maybeAClassType);
 	if(maybeAClassType)
 	  {
 	    if(m_state.isReference(cuti)) //e.g. refofSelf, ref to array of classes
@@ -2690,7 +2695,8 @@ namespace MFM {
     return typeNode;
   } //parseTypeDescriptor
 
-  UTI Parser::parseClassArguments(Token& typeTok, bool& isaclass)
+  //  UTI Parser::parseClassArguments(Token& typeTok, bool& isaclass)
+  UTI Parser::parseClassArguments(TypeArgs& typeargs, bool& isaclass)
   {
     Token pTok;
     getNextToken(pTok);
@@ -2700,19 +2706,21 @@ namespace MFM {
 	unreadToken();
 
 	SymbolClassName * cnsym = NULL;
-	if(!m_state.alreadyDefinedSymbolClassName(typeTok.m_dataindex, cnsym))
+	if(!m_state.alreadyDefinedSymbolClassName(typeargs.m_typeTok.m_dataindex, cnsym))
 	  {
 	    UTI tduti = Nav;
 	    UTI tdscalaruti = Nouti;
 	    //check if a typedef first..look localdefs first when parsing class inheritance
-	    if(((m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSINHERITANCE) && m_state.getUlamTypeByTypedefNameinLocalsScope(typeTok.m_dataindex, tduti, tdscalaruti)) || m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, tduti, tdscalaruti))
+	    if(((m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSINHERITANCE)
+		&& m_state.getUlamTypeByTypedefNameinLocalsScope(typeargs.m_typeTok.m_dataindex, tduti, tdscalaruti))
+	       || m_state.getUlamTypeByTypedefName(typeargs.m_typeTok.m_dataindex, tduti, tdscalaruti))
 	      {
 		ULAMTYPE bUT = m_state.getUlamTypeByIndex(tduti)->getUlamTypeEnum();
 		isaclass |= (bUT == Class); //or Hzy or Holder?
 
 		if(isaclass && (bUT == Holder)) //not isHolder(tduti)
 		  {
-		    m_state.makeAnonymousClassFromHolder(tduti, typeTok.m_locator); //t3862
+		    m_state.makeAnonymousClassFromHolder(tduti, typeargs.m_typeTok.m_locator); //t3862
 		  }
 		return tduti; //done. (could be an array; or refselftype)
 	      }
@@ -2720,21 +2728,21 @@ namespace MFM {
 	      {
 		// not a typedef, but not necessarily a class either!!
 		if(isaclass)
-		  m_state.addIncompleteClassSymbolToProgramTable(typeTok, cnsym);
+		  m_state.addIncompleteClassSymbolToProgramTable(typeargs.m_typeTok, cnsym);
 		else
 		  {
 		    UTI huti = m_state.makeUlamTypeHolder();
 		    if(!m_state.isThisLocalsFileScope())
 		      {
-			m_state.addUnknownTypeTokenToThisClassResolver(typeTok, huti);
+			m_state.addUnknownTypeTokenToThisClassResolver(typeargs.m_typeTok, huti);
 
 			// set contains possible unseen classes (ulamexports);
 			// see if they exist without being too liberal about guessing
-			m_state.m_unseenClasses.insert(typeTok.m_dataindex); //possible class
+			m_state.m_unseenClasses.insert(typeargs.m_typeTok.m_dataindex); //possible class
 		      }
 		    else //not yet defined in local file scope; add a holder (t3873)
 		      {
-			SymbolTypedef * symtypedef = new SymbolTypedef(typeTok, huti, Nav, m_state);
+			SymbolTypedef * symtypedef = new SymbolTypedef(typeargs.m_typeTok, huti, Nav, m_state);
 			assert(symtypedef);
 			symtypedef->setBlockNoOfST(m_state.getContextBlockNo());
 			m_state.addSymbolToCurrentScope(symtypedef); //locals scope
@@ -2760,7 +2768,7 @@ namespace MFM {
 	assert(cnsym);
 	return cnsym->getUlamTypeIdx();
       } //not open paren
-    else if(typeTok.m_dataindex == m_state.m_pool.getIndexForDataString("Self"))
+    else if(typeargs.m_typeTok.m_dataindex == m_state.m_pool.getIndexForDataString("Self"))
       {
 	//this is a constructor
 	unreadToken();
@@ -2770,10 +2778,10 @@ namespace MFM {
 
     //must be a template class
     SymbolClassNameTemplate * ctsym = NULL;
-    if(!m_state.alreadyDefinedSymbolClassNameTemplate(typeTok.m_dataindex, ctsym))
+    if(!m_state.alreadyDefinedSymbolClassNameTemplate(typeargs.m_typeTok.m_dataindex, ctsym))
       {
 	if(ctsym == NULL) //was undefined, template; will fix instances' argument names later
-	  m_state.addIncompleteTemplateClassSymbolToProgramTable(typeTok, ctsym);
+	  m_state.addIncompleteTemplateClassSymbolToProgramTable(typeargs.m_typeTok, ctsym);
 	else
 	  {
 	    //error have a class without parameters already defined (error output)
@@ -2819,7 +2827,7 @@ namespace MFM {
 
     //make a (shallow) Class Instance Stub to collect class args as SymbolConstantValues;
     //has its own uti that will become part of its key; (too soon for a deep copy!)
-    UTI stubuti = m_state.makeUlamType(typeTok, UNKNOWNSIZE, NONARRAYSIZE, Nouti, ALT_NOT, ctsym->getUlamClass()); //overwrites the template type here; possibly UC_UNSEEN
+    UTI stubuti = m_state.makeUlamType(typeargs.m_typeTok, UNKNOWNSIZE, NONARRAYSIZE, Nouti, ALT_NOT, ctsym->getUlamClass()); //overwrites the template type here; possibly UC_UNSEEN
 
     if(ctut->isCustomArray())
       {
@@ -2827,7 +2835,7 @@ namespace MFM {
 	((UlamTypeClass *) stubut)->setCustomArray();
       }
 
-    SymbolClass * stubcsym = ctsym->makeAStubClassInstance(typeTok, stubuti);
+    SymbolClass * stubcsym = ctsym->makeAStubClassInstance(typeargs.m_typeTok, stubuti);
     if(stubcsym == NULL)
       {
 	std::ostringstream msg;
@@ -2838,11 +2846,27 @@ namespace MFM {
 	msg << ": due to unrecoverable problems in template: ";
 	msg << m_state.m_pool.getDataAsString(ctsym->getId()).c_str() ;
 	msg << ", additional errors are unlikely to be useful";
-	MSG(&typeTok, msg.str().c_str(), ERR);
+	MSG(&typeargs.m_typeTok, msg.str().c_str(), ERR);
 	return Nav; //t41166
       }
 
-    stubcsym->setContextForPendingArgs(m_state.getCompileThisIdx());
+    stubcsym->setContextForPendingArgValues(m_state.getCompileThisIdx());
+    // to support dependent parameter class stubs, use typeargs to pass along
+    // the outermost stub type in case of recursion (e.g. t41214, error/t41210)
+    if(typeargs.m_classInstanceIdx != Nouti)
+      {
+	stubcsym->setContextForPendingArgTypes(typeargs.m_classInstanceIdx);
+      }
+    else if(m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSPARAMETER)
+      {
+	stubcsym->setContextForPendingArgTypes(m_state.getCompileThisIdx());
+	typeargs.m_classInstanceIdx = m_state.getCompileThisIdx();
+      }
+    else
+      {
+	stubcsym->setContextForPendingArgTypes(stubuti);
+	typeargs.m_classInstanceIdx = stubuti;
+      }
 
     u32 parmidx = 0;
     parseRestOfClassArguments(stubcsym, ctsym, parmidx);
@@ -2857,7 +2881,7 @@ namespace MFM {
 	    msg << "(" << parmidx << "), for template: ";
 	    msg << m_state.m_pool.getDataAsString(ctsym->getId()).c_str() ;
 	    msg << ", by " << m_state.getUlamTypeNameBriefByIndex(stubuti).c_str() ;
-	    MSG(&typeTok, msg.str().c_str(), ERR);
+	    MSG(&typeargs.m_typeTok, msg.str().c_str(), ERR);
 	    stubuti = Nav;
 	  }
 	else
@@ -2910,8 +2934,7 @@ namespace MFM {
     else
       {
 	//try to continue..
-	m_state.pushCurrentBlock(csym->getClassBlockNode()); //reset here for new arg's ST
-
+	m_state.pushCurrentBlock(csym->getClassBlockNode()); //reset here for new arg's ST; no change to compilethisidx
 
 	SymbolConstantValue * argSym = NULL;
 	if(!ctUnseen)
@@ -2920,7 +2943,8 @@ namespace MFM {
 	    assert(paramSym);
 	    Token argTok(TOK_IDENTIFIER, pTok.m_locator, paramSym->getId()); //use current locator
 
-	    UTI auti = m_state.mapIncompleteUTIForCurrentClassInstance(paramSym->getUlamTypeIdx());
+	    //	    UTI auti = m_state.mapIncompleteUTIForCurrentClassInstance(paramSym->getUlamTypeIdx());
+	    UTI auti = m_state.mapIncompleteUTIForAClassInstance(csym->getUlamTypeIdx(), paramSym->getUlamTypeIdx());
 
 	    argSym = new SymbolConstantValue(argTok, auti, m_state); //like param, not clone t3526, t3862, t3615, t3892; error msg loc (error/t3893)
 	    if(m_state.isHolder(auti))
@@ -2930,6 +2954,14 @@ namespace MFM {
 		  m_state.addUnknownTypeTokenToThisClassResolver(argTok, auti); //t41216, also in fixAnyUnseen for templates seen afterwards;
 		else
 		  m_state.addUnknownTypeTokenToAClassResolver(csym->getUlamTypeIdx(), argTok, auti); //t41216, also in fixAnyUnseen for templates seen afterwards;
+	      }
+	    if(m_state.isAClass(auti) && m_state.isClassAStub(auti))
+	      {
+		//reset its context for pending arg types to csym uti (t41214, error/t41210)
+		SymbolClass * argcsym = NULL;
+		AssertBool isDef = m_state.alreadyDefinedSymbolClass(auti, argcsym);
+		assert(isDef);
+		argcsym->setContextForPendingArgTypes(csym->getUlamTypeIdx());
 	      }
 	  }
 	else
@@ -2942,9 +2974,12 @@ namespace MFM {
 	  }
 
 	assert(argSym);
-	argSym->setClassArgumentFlag();
-	m_state.addSymbolToCurrentScope(argSym); //scope updated to new class instance in parseClassArguments
 
+	argSym->setClassArgumentFlag();
+	if( m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSPARAMETER)
+	  argSym->setClassParameterFlag(); //as well?
+
+	m_state.addSymbolToCurrentScope(argSym); //scope updated to new class instance in parseClassArguments
 	//make Node with argument symbol wo trying to fold const expr;
 	// add to list of unresolved for this uti
 	// NULL node type descriptor, no token, yet known uti
@@ -2953,7 +2988,8 @@ namespace MFM {
 	constNode->setNodeLocation(pTok.m_locator);
 	constNode->setConstantExpr(exprNode);
 
-	//clone the seen template's node type descriptor for this stub's pending argument
+	//clone the seen template's node type descriptor for this stub's pending argument;
+	// including classes that might be holders (e.g. t41220)
 	if(!ctUnseen)
 	  {
 	    NodeBlockClass * templateblock = ctsym->getClassBlockNode();

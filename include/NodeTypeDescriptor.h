@@ -84,6 +84,10 @@ namespace MFM{
 
     virtual void setReferenceType(ALT refarg, UTI referencedUTI, UTI refUTI);
 
+    UTI getContextForPendingArgType();
+
+    void setContextForPendingArgType(UTI context);
+
     virtual UTI checkAndLabelType();
 
     virtual void countNavHzyNoutiNodes(u32& ncnt, u32& hcnt, u32& nocnt);
@@ -96,6 +100,7 @@ namespace MFM{
     Token m_typeTok;
     UTI m_uti;
     bool m_ready;
+    UTI m_contextForPendingArgType;
 
   private:
     NodeTypeBitsize * m_unknownBitsizeSubtree;

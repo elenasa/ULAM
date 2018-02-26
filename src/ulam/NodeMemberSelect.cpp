@@ -279,6 +279,7 @@ namespace MFM {
       {
 	//probably need evaltostoreinto for rhs, since not DM.
 	//m_state.abortNotImplementedYet(); //t41198, t41209, t41217
+	//return UNEVALUABLE;
       }
 
     evalNodeProlog(0); //new current frame pointer on node eval stack

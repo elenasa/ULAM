@@ -198,7 +198,11 @@ namespace MFM {
 
   UTI NodeConstantDef::checkAndLabelType()
   {
-    UTI nuti = Nouti; //expression type
+    //UTI nuti = Nouti; //expression type
+    UTI nuti = getNodeType(); //expression type
+
+    if(nuti == Nav)
+      return Nav; //short-circuit, already failed.
 
     // instantiate, look up in current block
     if(m_constSymbol == NULL)
@@ -213,16 +217,26 @@ namespace MFM {
 
     UTI suti = m_constSymbol->getUlamTypeIdx();
     UTI cuti = m_state.getCompileThisIdx();
+    bool changeScope = (m_state.m_pendingArgStubContext != m_state.m_pendingArgTypeStubContext) && (m_constSymbol->isClassParameter() || m_constSymbol->isClassArgument()); //t3328, t41153, vs t41214?
+
+    if(changeScope)
+      {
+	UTI contextForArgTypes = m_state.m_pendingArgTypeStubContext;
+	assert(contextForArgTypes != Nouti);
+	//m_state.pushClassOrLocalContextAndDontUseMemberBlock(contextForArgTypes);
+	m_state.pushClassOrLocalCurrentBlock(contextForArgTypes); //doesn't change compileThisIdx
+      }
 
     // type of the constant
     if(m_nodeTypeDesc)
       {
-	//perhaps also check symbol for isClassArgument, or isClassParameter?
-	if(m_state.m_pendingArgStubContext != Nouti)
+	bool changeScopeForTypesOnly = false;
+
+	if(!changeScope && (m_state.m_pendingArgTypeStubContext != Nouti))
 	  {
-	    assert(m_constSymbol->isClassArgument() || m_constSymbol->isClassParameter()); //sanity?
-	    NodeBlockClass * cblock = m_state.getAClassBlock(m_state.m_pendingArgStubContext); //t41215? maybe just for nodetypedescriptors????
-	    m_state.pushClassContext(m_state.m_pendingArgStubContext, cblock, cblock, false, NULL);
+	    assert(m_constSymbol->isClassParameter() || m_constSymbol->isClassArgument());
+	    m_state.pushClassOrLocalContextAndDontUseMemberBlock(m_state.m_pendingArgTypeStubContext);
+	    changeScopeForTypesOnly = true; //t41216, error/t41218
 	  }
 
 	UTI duti = m_nodeTypeDesc->checkAndLabelType(); //clobbers any expr it
@@ -242,8 +256,7 @@ namespace MFM {
 	    m_state.mapTypesInCurrentClass(suti, duti);
 	    suti = duti;
 	  }
-
-	if(m_state.m_pendingArgStubContext != Nouti)
+	if(changeScopeForTypesOnly)
 	  m_state.popClassContext(); //restore
       }
 
@@ -274,6 +287,10 @@ namespace MFM {
 	msg << " with symbol name '" << getName() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav); //could be clobbered by Hazy node expr
+
+	if(changeScope)
+	  m_state.popClassContext(); //restore
+
 	return Nav;
       }
 
@@ -281,6 +298,11 @@ namespace MFM {
     if(m_nodeExpr)
       {
 	nuti = m_nodeExpr->checkAndLabelType();
+
+	if(changeScope)
+	  m_state.popClassContext(); //restore
+
+
 	if(nuti == Nav)
 	  {
 	    std::ostringstream msg;
@@ -441,6 +463,11 @@ namespace MFM {
 	    return Nav; //short-circuit (error/t3453) after possible empty array init is deleted (t41202)
 	  }
       } //end node expression
+    else
+      {
+	if(changeScope)
+	  m_state.popClassContext(); //restore
+      }
 
     if(m_state.isComplete(suti)) //reloads
       {
@@ -458,19 +485,47 @@ namespace MFM {
 	    msg << " UTI" << cuti;
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
-      } //end array initializers (eit == Void)
-
-#if 0
-    //Expression and symbol have different UTI, but a class..So CHANGE symbol type? WHAT??
-    // t41209, t41213, t41214
-    if(m_state.isComplete(nuti) && (nuti != suti) && m_state.isAClass(nuti))
-      {
-	m_constSymbol->resetUlamType(nuti);
-	suti = nuti; //t3451?
-	//alias missing?
-	//any checks, class name??
       }
-#endif
+
+    if(m_state.isComplete(nuti) && m_state.isAClass(nuti) && (UlamType::compare(nuti, suti, m_state) != UTIC_SAME))
+      {
+	if(m_constSymbol->isClassArgument())
+	  {
+	    std::ostringstream msg;
+	    msg << "Class argument '" << getName();
+	    msg << "' not satisfied by expression type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	    if(m_state.isComplete(suti))
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		setNodeType(Nav);
+		return Nav; //t41210
+	      }
+	    else
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		setNodeType(Hzy);
+		m_state.setGoAgain();
+		return Hzy;
+	      }
+	  }
+	else if(!m_constSymbol->isClassParameter())
+	  {
+	    //Expression and symbol have different UTI, but a class..So CHANGE symbol type? WHAT??
+	    // t41209, t41213, t41214
+	    //if(m_state.isComplete(nuti) && (nuti != suti) && m_state.isAClass(nuti))
+
+	    UlamKeyTypeSignature nkey = m_state.getUlamTypeByIndex(nuti)->getUlamKeyTypeSignature();
+	    UlamKeyTypeSignature skey = m_state.getUlamTypeByIndex(suti)->getUlamKeyTypeSignature();
+	    if(nkey.getUlamKeyTypeSignatureNameId() == skey.getUlamKeyTypeSignatureNameId())
+	      {
+		m_constSymbol->resetUlamType(nuti);
+		suti = nuti; //t3451?
+		//alias missing?
+		//any checks, class name??
+	      }
+	  }
+      }
 
     setNodeType(suti);
 

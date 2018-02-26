@@ -136,7 +136,8 @@ namespace MFM{
     CallStack m_constantStack;    //for constant arrays (non-function variables); CNSTSTACK
 
     bool m_goAgainResolveLoop; //true means a node has a type that's not ready
-    UTI m_pendingArgStubContext; //non-Nav helps find parentNode in case of surgery
+    UTI m_pendingArgStubContext; //non-Nouti helps find parentNode in case of surgery
+    UTI m_pendingArgTypeStubContext; //non-Nouti helps find parentNode in case of surgery
 
     ErrorMessageHandler m_err;
 
@@ -200,6 +201,7 @@ namespace MFM{
     bool replaceUlamTypeForUpdatedClassType(UlamKeyTypeSignature key, ULAMTYPE etype, ULAMCLASSTYPE classtype, bool isCArray);
     bool mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI);
     UTI mapIncompleteUTIForCurrentClassInstance(UTI suti);
+    UTI mapIncompleteUTIForAClassInstance(UTI cuti, UTI suti);
     void mapTypesInCurrentClass(UTI fm, UTI to);
 
     UlamKeyTypeSignature getUlamKeyTypeSignatureByIndex(UTI typidx);
@@ -325,6 +327,7 @@ namespace MFM{
     void addUnknownTypeTokenToThisClassResolver(const Token& tok, UTI huti);
     Token removeKnownTypeTokenFromThisClassResolver(UTI huti);
     bool hasUnknownTypeInThisClassResolver(UTI huti);
+    bool statusUnknownTypeInAClassResolver(UTI acuti, UTI huti);
     bool statusUnknownTypeInThisClassResolver(UTI huti);
 
     /** creates temporary class type for dataindex, returns the new Symbol pointer in 2nd arg; */
@@ -536,6 +539,8 @@ namespace MFM{
     void pushClassContextUsingMemberClassBlock(NodeBlockClass * memberblock);
 
     void pushClassOrLocalContextAndDontUseMemberBlock(UTI context);
+
+    void pushClassOrLocalCurrentBlock(UTI context);
 
     std::string getClassContextAsStringForDebugging();
 

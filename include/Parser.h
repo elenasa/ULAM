@@ -242,7 +242,8 @@ namespace MFM{
     NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs, bool isaclass = false, bool delAfterDotFails = false); //helper
     NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs, UTI& castUTI, bool isaclassarg, bool delAfterDotFails);
 
-    UTI parseClassArguments(Token& typeTok, bool& isaclass);
+    //UTI parseClassArguments(Token& typeTok, bool& isaclass);
+    UTI parseClassArguments(TypeArgs& typeargs, bool& isaclass);
     void parseRestOfClassArguments(SymbolClass * csym, SymbolClassNameTemplate * ctsym, u32& parmIdx);
 
     /** helper for parsing type; returns bitsize, or UNKNOWNSIZE and node with constant expression */

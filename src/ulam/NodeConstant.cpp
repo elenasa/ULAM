@@ -308,6 +308,7 @@ namespace MFM {
 	  {
 	    UTI duti = m_nodeTypeDesc->getNodeType();
 	    assert(m_state.okUTItoContinue(duti));
+	    assert(m_state.isAClass(duti)); //t3796, t3861,2,5,8..
 	    SymbolClass * acsym = NULL;
 	    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(duti, acsym);
 	    assert(isDefined);

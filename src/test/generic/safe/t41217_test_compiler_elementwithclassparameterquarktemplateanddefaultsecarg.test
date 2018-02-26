@@ -7,41 +7,29 @@
 ##
 ## FAILED: ILLEGAL_ARGUMENT
 #!
-Exit status: 7
-Ue_T { Int(32) test() {  System sys;  constant Q(true) cqt = { .i = 7 };  S(0xb8,true) s;  sys ( s 7 . )print . sys ( s 7 . 7 == )assert . sys ( s v . b . cast )print . sys ( s v . b . )assert . constant Q(false) cqf = { .i = 3 };  S(0x18,false) sf;  sys ( sf 3 . )print . sys ( sf 3 . 3 cast == )assert . sys ( sf v . b . cast )print . sys ( sf v . b . ! )assert . s 7 . cast return } }
-Uq_S(Q(flag) v, Bool(1) bp = false) { constant Int(4) csi = v i .;  <NOMAIN> }
-Uq_Q(Bool(1) flag) { Bool(1) b(notready);  Int(4) i(0);  <NOMAIN> }
+Exit status: 3
+Ue_T { Int(32) test() {  System sys;  constant Q(false) cqf = { .i = 3 };  S(0x18,false) sf;  sys ( sf 3 . )print . sys ( sf 3 . 3 cast == )assert . sys ( sf v . b . cast )print . sys ( sf v . b . ! )assert . sf 3 . cast return } }
 Uq_System { <NOMAIN> }
+Uq_Q(Bool(1) flag) { Bool(1) b(notready);  Int(4) i(0);  <NOMAIN> }
+Uq_S(Q(flag) v, Bool(1) bp = false) { constant Int(4) csi = v i .;  <NOMAIN> }
 ##
-##    //informed by t41214 (S is parsed first, new parameter order w a default)
-##  eval fails - TODO!
+##    //informed by t41214 (new parameter order w a default)
 ##
 #>T.ulam
  ulam 3;
-//use S; //asserts in NodeIdent::eval (without use S); o.w. fails with use S;
+//use S; //asserts in NodeIdent::eval (without use S); o.w. fails with use S; IRRELEVANT!
 element T{
   Int test(){
-    //System sys;
+    System sys;
 
-    constant Q(true) cqt = { .i = 7}; //mismatch arg types.
-    //  S(cqt, true) s;
-    S(cqt) s;
-
-    /*
-    sys.print(s.csi);
-    sys.assert(s.csi == 7);
-    sys.print(s.v.b);
-    sys.assert(s.v.b); //true
-
-    //second test just to make sure
     constant Q(false) cqf = { .i = 3};
     S(cqf) sf;
     sys.print(sf.csi);
     sys.assert(sf.csi == 3);
     sys.print(sf.v.b);
     sys.assert(!sf.v.b); //false
-    */
-    return s.csi; //7
+
+    return sf.csi; //3
   }
 }
 

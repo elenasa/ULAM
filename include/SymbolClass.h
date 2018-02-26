@@ -113,6 +113,7 @@ namespace MFM{
     void addUnknownTypeTokenToClass(const Token& tok, UTI huti);
     Token removeKnownTypeTokenFromClass(UTI huti);
     bool hasUnknownTypeInClass(UTI huti);
+    bool getUnknownTypeTokenInClass(UTI huti, Token& tok);
     bool statusUnknownTypeInClass(UTI huti);
     bool statusUnknownTypeNamesInClass();
     u32 reportUnknownTypeNamesInClass();
@@ -128,8 +129,10 @@ namespace MFM{
     void cloneResolverUTImap(SymbolClass * csym);
     void cloneUnknownTypesMapInClass(SymbolClass * to);
 
-    void setContextForPendingArgs(UTI context);
-    UTI getContextForPendingArgs();
+    void setContextForPendingArgValues(UTI context);
+    UTI getContextForPendingArgValues();
+    void setContextForPendingArgTypes(UTI context);
+    UTI getContextForPendingArgTypes();
 
     bool mapUTItoUTI(UTI auti, UTI mappedUTI);
     bool hasMappedUTI(UTI auti, UTI& mappedUTI);
