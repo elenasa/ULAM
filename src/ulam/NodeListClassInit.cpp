@@ -8,7 +8,7 @@ namespace MFM{
 
   NodeListClassInit::NodeListClassInit(UTI cuti, u32 classvarid, CompilerState & state) : NodeList(state), m_classUTI(cuti), m_classvarId(classvarid) { }
 
-  NodeListClassInit::NodeListClassInit(const NodeListClassInit & ref) : NodeList(ref), m_classUTI(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_classUTI)), m_classvarId(ref.m_classvarId) { }
+  NodeListClassInit::NodeListClassInit(const NodeListClassInit & ref) : NodeList(ref), m_classUTI(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_classUTI,ref.getNodeLocation())), m_classvarId(ref.m_classvarId) { }
 
   NodeListClassInit::~NodeListClassInit() { }
 

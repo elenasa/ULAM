@@ -166,7 +166,28 @@ namespace MFM {
     NodeBlockClass * memberClassNode = csym->getClassBlockNode();
     assert(memberClassNode);  //e.g. forgot the closing brace on quark definition
 
-    assert(m_state.okUTItoContinue(memberClassNode->getNodeType())); //t41010, t41145
+    UTI leftblockuti = memberClassNode->getNodeType();
+    if(!m_state.okUTItoContinue(leftblockuti))
+      {
+	std::ostringstream msg;
+	msg << "Member selected is not ready: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
+	if(leftblockuti == Nav)
+	  {
+	    m_state.abortShouldntGetHere(); //because luti is complete!
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
+	    return Nav;
+	  }
+	else
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    setNodeType(Hzy);
+	    m_state.setGoAgain();
+	    return Hzy; //t41222, inheritance
+	  }
+      }
+    //else //t41010, t41145
 
    //set up compiler state to use the member class block for symbol searches
     m_state.pushClassContextUsingMemberClassBlock(memberClassNode);

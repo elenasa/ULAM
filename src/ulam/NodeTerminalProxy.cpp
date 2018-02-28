@@ -12,7 +12,7 @@ namespace MFM {
     // memberType is corrected for sizeof during c&l
   }
 
-  NodeTerminalProxy::NodeTerminalProxy(const NodeTerminalProxy& ref) : NodeTerminal(ref), m_nodeOf(NULL), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti)), m_funcTok(ref.m_funcTok), m_ready(ref.m_ready), m_nodeTypeDesc(NULL)
+  NodeTerminalProxy::NodeTerminalProxy(const NodeTerminalProxy& ref) : NodeTerminal(ref), m_nodeOf(NULL), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti,ref.getNodeLocation())), m_funcTok(ref.m_funcTok), m_ready(ref.m_ready), m_nodeTypeDesc(NULL)
   {
     if(ref.m_nodeTypeDesc)
       m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();

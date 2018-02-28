@@ -52,6 +52,8 @@ namespace MFM{
 
     NodeTypeDescriptor(const NodeTypeDescriptor& ref);
 
+    NodeTypeDescriptor(const NodeTypeDescriptor& ref, bool keepType);
+
     virtual ~NodeTypeDescriptor();
 
     virtual Node * instantiate();

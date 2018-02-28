@@ -10,7 +10,7 @@ namespace MFM {
 
   SymbolClass::SymbolClass(const Token& id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false) /* default */, m_superClass(Nouti), m_bitsPacked(false) {}
 
-  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_superClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_superClass)), m_bitsPacked(false)
+  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_superClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_superClass,sref.getLoc())), m_bitsPacked(false)
   {
     if(sref.m_classBlock)
       {
@@ -488,7 +488,7 @@ namespace MFM {
     return m_resolver->pendingClassArgumentsForClassInstance();
   }
 
-  void SymbolClass::cloneArgumentNodesForClassInstance(SymbolClass * fmcsym, UTI context, bool toStub)
+  void SymbolClass::cloneArgumentNodesForClassInstance(SymbolClass * fmcsym, UTI argvaluecontext, UTI argtypecontext, bool toStub)
   {
     assert(fmcsym); //from
     NodeBlockClass * fmclassblock = fmcsym->getClassBlockNode();
@@ -524,14 +524,19 @@ namespace MFM {
     if(toStub)
       {
 	SymbolClass * contextSym = NULL;
-	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(context, contextSym);
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(argvaluecontext, contextSym);
 	assert(isDefined);
 
+#if 0
 	setContextForPendingArgValues(context);
 	if(fmcsym->getContextForPendingArgTypes() != fmcsym->getUlamTypeIdx())
 	  setContextForPendingArgTypes(fmcsym->getContextForPendingArgTypes()); //(t41213)
 	else
 	  setContextForPendingArgTypes(getUlamTypeIdx()); //same as new self (t3328, t41153)
+#endif
+
+	setContextForPendingArgValues(argvaluecontext);
+	setContextForPendingArgTypes(argtypecontext); //(t41213, t41223)
 
 	//Cannot MIX the current block (context) to find symbols while
 	//using this stub copy to find parent NNOs for constant folding;
@@ -539,7 +544,7 @@ namespace MFM {
 	//constant values in the stub copy's Resolver map.
 	//Resolution of all context-dependent arg expressions will occur
 	//during the resolving loop..
-	m_state.pushClassContext(context, contextSym->getClassBlockNode(), contextSym->getClassBlockNode(), false, NULL);
+	m_state.pushClassContext(argvaluecontext, contextSym->getClassBlockNode(), contextSym->getClassBlockNode(), false, NULL);
 	assignClassArgValuesInStubCopy();
 	m_state.popClassContext(); //restore previous context
       }
@@ -548,8 +553,9 @@ namespace MFM {
   void SymbolClass::assignClassArgValuesInStubCopy()
   {
     assert(m_resolver);
-    AssertBool isAssigned = m_resolver->assignClassArgValuesInStubCopy();
-    assert(isAssigned); //t41007
+    m_resolver->assignClassArgValuesInStubCopy();
+    //AssertBool isAssigned = m_resolver->assignClassArgValuesInStubCopy();
+    //assert(isAssigned); //t41007
   }
 
   void SymbolClass::cloneResolverUTImap(SymbolClass * csym)

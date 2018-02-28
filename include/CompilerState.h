@@ -200,8 +200,8 @@ namespace MFM{
     bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key, UTI utarg);
     bool replaceUlamTypeForUpdatedClassType(UlamKeyTypeSignature key, ULAMTYPE etype, ULAMCLASSTYPE classtype, bool isCArray);
     bool mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI);
-    UTI mapIncompleteUTIForCurrentClassInstance(UTI suti);
-    UTI mapIncompleteUTIForAClassInstance(UTI cuti, UTI suti);
+    UTI mapIncompleteUTIForCurrentClassInstance(UTI suti, Locator loc);
+    UTI mapIncompleteUTIForAClassInstance(UTI cuti, UTI suti, Locator loc);
     void mapTypesInCurrentClass(UTI fm, UTI to);
 
     UlamKeyTypeSignature getUlamKeyTypeSignatureByIndex(UTI typidx);
@@ -335,7 +335,7 @@ namespace MFM{
     bool removeIncompleteClassSymbolFromProgramTable(const Token& nTok);
     bool addIncompleteClassSymbolToProgramTable(const Token& cTok, SymbolClassName * & symptr);
     bool addIncompleteTemplateClassSymbolToProgramTable(const Token& cTok, SymbolClassNameTemplate * & symptr);
-    UTI addStubCopyToAncestorClassTemplate(UTI stubTypeToCopy,  UTI context);
+    UTI addStubCopyToAncestorClassTemplate(UTI stubTypeToCopy, UTI argvaluecontext, UTI argtypecontext, Locator stubloc);
 
     void resetUnseenClass(SymbolClassName * cnsym, const Token& identTok);
     bool getUnseenClassFilenames(std::vector<std::string>& unseenFiles);

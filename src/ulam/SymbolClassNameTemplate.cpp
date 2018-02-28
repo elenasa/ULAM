@@ -312,7 +312,7 @@ namespace MFM {
   } //makeAStubClassInstance
 
   //instead of a copy, let's start new
-  void SymbolClassNameTemplate::copyAStubClassInstance(UTI instance, UTI newuti, UTI context)
+  SymbolClass * SymbolClassNameTemplate::copyAStubClassInstance(UTI instance, UTI newuti, UTI argvaluecontext, UTI argtypecontext, Locator newloc)
   {
     assert((getNumberOfParameters() > 0) || (getUlamClass() == UC_UNSEEN));
     assert(instance != newuti);
@@ -331,7 +331,8 @@ namespace MFM {
     //previous block is template's class block, and new NNO here!
     NodeBlockClass * newblockclass = new NodeBlockClass(templateclassblock, m_state);
     assert(newblockclass);
-    newblockclass->setNodeLocation(blockclass->getNodeLocation());
+    //newblockclass->setNodeLocation(blockclass->getNodeLocation()); //questionable LOC???
+    newblockclass->setNodeLocation(newloc); //questionable LOC??? t41221
 
     //provides proper context for setting type (e.g. t3640)
     m_state.pushClassContext(newuti, newblockclass, newblockclass, false, NULL);
@@ -361,7 +362,7 @@ namespace MFM {
 	//can't addClassInstanceUTI(newuti, newclassinstance) ITERATION IN PROGRESS!!!
 	m_scalarClassInstanceIdxToSymbolPtrTEMP.insert(std::pair<UTI,SymbolClass*> (newuti,newclassinstance));
 
-	newclassinstance->cloneArgumentNodesForClassInstance(csym, context, true);
+	newclassinstance->cloneArgumentNodesForClassInstance(csym, argvaluecontext, argtypecontext, true);
 	csym->cloneResolverUTImap(newclassinstance);
 	blockclass->copyUlamTypeKeys(newblockclass); //t3895, maybe
       }
@@ -370,8 +371,9 @@ namespace MFM {
 	delete newclassinstance; //failed e.g. wrong number of args
 	newclassinstance = NULL;
       }
-
     m_state.popClassContext(); //restore
+
+    return newclassinstance; //could be null
   } //copyAStubClassInstance
 
   // called by parseThisClass, if wasIncomplete is parsed; temporary class arg names
@@ -471,7 +473,7 @@ namespace MFM {
 		cblock->replaceIdInScope(sid, m_parameterSymbols[i]->getId(), argsym);
 
 		UTI puti = m_parameterSymbols[i]->getUlamTypeIdx();
-		UTI auti = m_state.mapIncompleteUTIForAClassInstance(typecontext,puti);
+		UTI auti = m_state.mapIncompleteUTIForAClassInstance(typecontext, puti, argsym->getLoc());
 		argsym->resetUlamType(auti); //default was Hzy
 		if(m_state.isHolder(auti))
 		  {
@@ -1000,7 +1002,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    clone->cloneArgumentNodesForClassInstance(csym, csym->getContextForPendingArgValues(), false);
+	    clone->cloneArgumentNodesForClassInstance(csym, csym->getContextForPendingArgValues(), csym->getContextForPendingArgTypes(), false);
 	    cloneAnInstancesUTImap(csym, clone);
 	    csym->getClassBlockNode()->copyUlamTypeKeys(classNode); //t3895
 
@@ -1023,6 +1025,8 @@ namespace MFM {
 
   bool SymbolClassNameTemplate::checkTemplateAncestorBeforeAStubInstantiation(SymbolClass * stubcsym)
   {
+    assert(!stubcsym->pendingClassArgumentsForClassInstance());
+
     bool rtnok = false;
     //if stub's superclass is still a stub..wait on full instantiation
     UTI stubsuperuti = stubcsym->getSuperClass();
@@ -1059,7 +1063,8 @@ namespace MFM {
 	    //if superuti is a stub of this template, we have a possible un-ending (MAX_ITERATIONS)
 	    // increase in the size of m_scalarClassInstanceIdxToSymbolPtr each time we're called;
 	    // never resolving; should be caught at parse time (t3901)
-	    stubsuperuti = m_state.addStubCopyToAncestorClassTemplate(superuti, stubcsym->getUlamTypeIdx());
+	    //stubsuperuti = m_state.addStubCopyToAncestorClassTemplate(superuti, stubcsym->getUlamTypeIdx());
+	    stubsuperuti = m_state.addStubCopyToAncestorClassTemplate(superuti, stubcsym->getContextForPendingArgValues(), stubcsym->getContextForPendingArgTypes(), stubcsym->getLoc());
 	    stubcsym->setSuperClass(stubsuperuti); //stubcopy's type set here!!
 	    rtnok = false;
 	  }
@@ -1891,7 +1896,7 @@ namespace MFM {
     for(u32 i = 0; i < cargs; i++)
       {
 	SymbolConstantValue * asym = instancesArgs[i];
-	SymbolConstantValue * asym2 = new SymbolConstantValue(*asym);
+	SymbolConstantValue * asym2 = new SymbolConstantValue(*asym, true); //keep type!! (t41223)
 	asym2->setBlockNoOfST(toclassblock->getNodeNo());
 	m_state.addSymbolToCurrentScope(asym2);
       } //next arg

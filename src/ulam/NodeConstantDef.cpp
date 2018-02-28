@@ -93,6 +93,7 @@ namespace MFM {
 
   void NodeConstantDef::printPostfix(File * fp)
   {
+    //UTI nuti = getNodeType(); //t41221
     //in case the node belongs to the template, use the symbol uti, o.w. 0Nav.
     UTI suti = m_constSymbol ? m_constSymbol->getUlamTypeIdx() : getNodeType();
     //see also SymbolConstantValue
@@ -106,7 +107,14 @@ namespace MFM {
     if(m_nodeExpr)
       {
 	fp->write(" =");
-	m_nodeExpr->printPostfix(fp);
+#if 0
+	if((nuti == Nav) || (nuti == Nouti))
+	  fp->write("(unknown)");
+	else if(nuti == Hzy)
+	  fp->write("(notready)");
+	else
+#endif
+	  m_nodeExpr->printPostfix(fp);
       }
     fp->write("; ");
   } //printPostfix
@@ -198,11 +206,14 @@ namespace MFM {
 
   UTI NodeConstantDef::checkAndLabelType()
   {
-    //UTI nuti = Nouti; //expression type
-    UTI nuti = getNodeType(); //expression type
+    UTI nuti = Nouti; //expression type
+    //UTI nuti = getNodeType(); //expression type
 
-    if(nuti == Nav)
-      return Nav; //short-circuit, already failed.
+    //if(nuti == Nav)
+    //  return Nav; //short-circuit, already failed.
+
+    //if(m_state.isComplete(nuti))
+    //  return nuti;
 
     // instantiate, look up in current block
     if(m_constSymbol == NULL)
@@ -223,7 +234,6 @@ namespace MFM {
       {
 	UTI contextForArgTypes = m_state.m_pendingArgTypeStubContext;
 	assert(contextForArgTypes != Nouti);
-	//m_state.pushClassOrLocalContextAndDontUseMemberBlock(contextForArgTypes);
 	m_state.pushClassOrLocalCurrentBlock(contextForArgTypes); //doesn't change compileThisIdx
       }
 
@@ -1028,7 +1038,7 @@ namespace MFM {
 	NodeTypeDescriptor * pnodetypedesc = NULL;
 	if(templateparamdef->getNodeTypeDescriptorPtr(pnodetypedesc))
 	  {
-	    NodeTypeDescriptor * copynodetypedesc = (NodeTypeDescriptor *) (pnodetypedesc->instantiate());
+	    NodeTypeDescriptor * copynodetypedesc = new NodeTypeDescriptor(*pnodetypedesc, true);
 	    assert(copynodetypedesc);
 	    copynodetypedesc->setNodeLocation(getNodeLocation()); //same loc as this node
 
@@ -1039,10 +1049,13 @@ namespace MFM {
 	    UTI newuti = m_nodeTypeDesc->givenUTI();
 	    assert(m_constSymbol && (m_constSymbol->getUlamTypeIdx() == newuti)); //invariant? (likely null symbol, see checkForSymbol)
 
+	    assert(copyuti == pnodetypedesc->givenUTI()); //used keep type
+#if 0
 	    if((copyuti != pnodetypedesc->givenUTI()) && (newuti != copyuti))
 	      {
 		m_state.updateUTIAliasForced(copyuti, newuti);
 	      }
+#endif
 	    //m_nodeTypeDesc->updateLineage(getNodeNo());
 	    aok = true;
 	  }

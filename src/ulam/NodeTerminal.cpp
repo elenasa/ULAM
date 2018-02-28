@@ -77,7 +77,7 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMTYPE etyp = nut->getUlamTypeEnum();
-    assert(etyp == m_etyp); //true?
+    //assert(etyp == m_etyp); //true? fails as constant value in hazy template (e.g. t41222)
     if(etyp == Bool)
       fp->write((_Bool64ToCbool(m_constant.uval, nut->getBitSize()) ? "true" : "false"));
     else

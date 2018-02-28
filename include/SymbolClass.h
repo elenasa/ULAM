@@ -125,7 +125,7 @@ namespace MFM{
 
     void linkConstantExpressionForPendingArg(NodeConstantDef * constNode);
     bool pendingClassArgumentsForClassInstance();
-    void cloneArgumentNodesForClassInstance(SymbolClass * fmcsym, UTI context, bool toStub);
+    void cloneArgumentNodesForClassInstance(SymbolClass * fmcsym, UTI argvaluecontext, UTI argtypecontext, bool toStub);
     void cloneResolverUTImap(SymbolClass * csym);
     void cloneUnknownTypesMapInClass(SymbolClass * to);
 

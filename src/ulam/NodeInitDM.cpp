@@ -15,7 +15,7 @@ namespace MFM {
     m_ofClassUTI = ofclass;
   }
 
-NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassUTI(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_ofClassUTI)) { }
+  NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassUTI(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_ofClassUTI, ref.getNodeLocation())) { }
 
   NodeInitDM::~NodeInitDM()
   {

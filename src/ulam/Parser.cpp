@@ -2862,6 +2862,14 @@ namespace MFM {
 	stubcsym->setContextForPendingArgTypes(m_state.getCompileThisIdx());
 	typeargs.m_classInstanceIdx = m_state.getCompileThisIdx();
       }
+    else if(m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSINHERITANCE)
+      {
+	//stubcsym->setContextForPendingArgValues(stubuti);
+	//stubcsym->setContextForPendingArgTypes(m_state.getCompileThisIdx());
+	//typeargs.m_classInstanceIdx = m_state.getCompileThisIdx(); //t41223, t41221?
+	stubcsym->setContextForPendingArgTypes(stubuti);
+	typeargs.m_classInstanceIdx = stubuti;
+      }
     else
       {
 	stubcsym->setContextForPendingArgTypes(stubuti);
@@ -2869,7 +2877,7 @@ namespace MFM {
       }
 
     u32 parmidx = 0;
-    parseRestOfClassArguments(stubcsym, ctsym, parmidx);
+    parseRestOfClassArguments(stubcsym, ctsym, parmidx, typeargs);
 
     bool ctUnseen = (ctsym->getUlamClass() == UC_UNSEEN);
     if(!ctUnseen && (parmidx < ctsym->getNumberOfParameters()))
@@ -2896,7 +2904,7 @@ namespace MFM {
     return stubuti;
   } //parseClassArguments
 
-  void Parser::parseRestOfClassArguments(SymbolClass * csym, SymbolClassNameTemplate * ctsym, u32& parmIdx)
+  void Parser::parseRestOfClassArguments(SymbolClass * csym, SymbolClassNameTemplate * ctsym, u32& parmIdx, TypeArgs & typeargs)
   {
     Token pTok;
     getNextToken(pTok);
@@ -2943,8 +2951,7 @@ namespace MFM {
 	    assert(paramSym);
 	    Token argTok(TOK_IDENTIFIER, pTok.m_locator, paramSym->getId()); //use current locator
 
-	    //	    UTI auti = m_state.mapIncompleteUTIForCurrentClassInstance(paramSym->getUlamTypeIdx());
-	    UTI auti = m_state.mapIncompleteUTIForAClassInstance(csym->getUlamTypeIdx(), paramSym->getUlamTypeIdx());
+	    UTI auti = m_state.mapIncompleteUTIForAClassInstance(csym->getUlamTypeIdx(), paramSym->getUlamTypeIdx(), pTok.m_locator);
 
 	    argSym = new SymbolConstantValue(argTok, auti, m_state); //like param, not clone t3526, t3862, t3615, t3892; error msg loc (error/t3893)
 	    if(m_state.isHolder(auti))
@@ -2961,7 +2968,10 @@ namespace MFM {
 		SymbolClass * argcsym = NULL;
 		AssertBool isDef = m_state.alreadyDefinedSymbolClass(auti, argcsym);
 		assert(isDef);
-		argcsym->setContextForPendingArgTypes(csym->getUlamTypeIdx());
+
+		//CONUNDRUM!! the goal?
+		//argcsym->setContextForPendingArgTypes(csym->getUlamTypeIdx());
+		argcsym->setContextForPendingArgTypes(typeargs.m_classInstanceIdx); //t41223
 	      }
 	  }
 	else
@@ -3022,7 +3032,7 @@ namespace MFM {
 	    MSG(&qTok, msg.str().c_str(), ERR);
 	  }
       }
-    return parseRestOfClassArguments(csym, ctsym, ++parmIdx); //recurse
+    return parseRestOfClassArguments(csym, ctsym, ++parmIdx, typeargs); //recurse
   } //parseRestOfClassArguments
 
   //return NodeTypeBitsize when unsuccessful evaluating its constant expression

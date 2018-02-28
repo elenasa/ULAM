@@ -10,7 +10,7 @@ namespace MFM {
     Node::setStoreIntoAble(TBOOL_HAZY);
   }
 
-  NodeStorageof::NodeStorageof(const NodeStorageof& ref) : Node(ref), m_nodeOf(NULL), m_oftype(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_oftype)), m_nodeTypeDesc(NULL), m_currBlockNo(ref.m_currBlockNo)
+  NodeStorageof::NodeStorageof(const NodeStorageof& ref) : Node(ref), m_nodeOf(NULL), m_oftype(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_oftype,ref.getNodeLocation())), m_nodeTypeDesc(NULL), m_currBlockNo(ref.m_currBlockNo)
   {
     if(ref.m_nodeTypeDesc)
       m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();

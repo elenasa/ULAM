@@ -857,12 +857,12 @@ namespace MFM {
   //called by Symbol's copy constructor with ref's 'incomplete' uti;
   //also called by NodeTypeDescriptor's copy constructor since has no symbol;
   //please set getCompileThisIdx() to the instance's UTI.
-  UTI CompilerState::mapIncompleteUTIForCurrentClassInstance(UTI suti)
+  UTI CompilerState::mapIncompleteUTIForCurrentClassInstance(UTI suti, Locator loc)
   {
-    return mapIncompleteUTIForAClassInstance(getCompileThisIdx(), suti);
+    return mapIncompleteUTIForAClassInstance(getCompileThisIdx(), suti, loc);
   } //helper
 
-  UTI CompilerState::mapIncompleteUTIForAClassInstance(UTI cuti, UTI suti)
+  UTI CompilerState::mapIncompleteUTIForAClassInstance(UTI cuti, UTI suti, Locator loc)
   {
     UlamType * sut = getUlamTypeByIndex(suti);
     if(sut->isComplete())
@@ -903,7 +903,7 @@ namespace MFM {
 	ALT salt = getReferenceType(suti);
 	if(salt != ALT_NOT)
 	  {
-	    UTI asref = mapIncompleteUTIForCurrentClassInstance(getUlamTypeAsDeref(suti));
+	    UTI asref = mapIncompleteUTIForCurrentClassInstance(getUlamTypeAsDeref(suti), loc);
 	    return getUlamTypeAsRef(asref, salt);
 	  }
 
@@ -931,7 +931,7 @@ namespace MFM {
 	  ((UlamTypeClass *) newut)->setCustomArray();
 
 	//potential for unending process..
-	((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, cuti);
+	((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, getCompileThisIdx(), cuti, loc);
 
 	std::ostringstream msg;
 	msg << "MAPPED!! type: " << getUlamTypeNameByIndex(suti).c_str();
@@ -2380,7 +2380,7 @@ namespace MFM {
     return true; //compatible with alreadyDefinedSymbolClassNameTemplate return
   } //addIncompleteTemplateClassSymbolToProgramTable
 
-  UTI CompilerState::addStubCopyToAncestorClassTemplate(UTI stubTypeToCopy,  UTI context)
+  UTI CompilerState::addStubCopyToAncestorClassTemplate(UTI stubTypeToCopy, UTI argvaluecontext, UTI argtypecontext, Locator stubloc)
   {
     //handle inheritance of stub super class, based on its template
     UTI superuti = stubTypeToCopy;
@@ -2394,12 +2394,23 @@ namespace MFM {
     AssertBool isDefined = alreadyDefinedSymbolClassNameTemplate(superid, superctsym);
     assert(isDefined);
 
+    SymbolClass * supercsym = NULL;
+    AssertBool gotSuper = alreadyDefinedSymbolClass(superuti, supercsym);
+    assert(gotSuper);
+
     ULAMCLASSTYPE superclasstype = superut->getUlamClassType();
     assert((superclasstype != UC_UNSEEN) && (superclasstype != UC_ELEMENT)); //quark or transient
     UlamKeyTypeSignature newstubkey(superid, UNKNOWNSIZE); //"-2" and scalar default
     UTI newstubcopyuti = makeUlamType(newstubkey, Class, superclasstype); //**gets next unknown uti type
-    superctsym->copyAStubClassInstance(superuti, newstubcopyuti, context);
+
+    SymbolClass * superstubcopy = superctsym->copyAStubClassInstance(superuti, newstubcopyuti, argvaluecontext, argtypecontext, stubloc); //t3365. t41221
+    //superctsym->copyAStubClassInstance(superuti, newstubcopyuti, supercsym->getContextForPendingArgValues(), supercsym->getContextForPendingArgTypes(), supercsym->getLoc()); //t3365. t41221
     superctsym->mergeClassInstancesFromTEMP(); //not mid-iteration!!
+
+    if(superstubcopy && !superstubcopy->pendingClassArgumentsForClassInstance())
+      {
+	superctsym->checkTemplateAncestorBeforeAStubInstantiation(superstubcopy);//re-CURSE???
+      }
     return newstubcopyuti;
   } //addStubCopyToAncestorClassTemplate
 
@@ -2754,8 +2765,8 @@ namespace MFM {
   {
     bool brtn = false;
 
-    //start with the current class block and look up family tree
-    //until the 'variable id' is found.
+    //start with the current class block; doesn't look up family tree
+    //until the 'variable id' is found. returns false if not found.
     NodeBlockContext * cblock = getContextBlock();
 
     //substitute another selected class block to search for data member
@@ -2768,7 +2779,7 @@ namespace MFM {
 
     NodeBlockLocals * localsblock = getLocalsScopeBlock(cloc);
     if(localsblock)
-      brtn = localsblock->isIdInScope(id, symptr);
+      brtn = localsblock->isIdInScope(id, symptr); //checks one scope only!
     return brtn;
   } //isIdInLocalFileScope
 

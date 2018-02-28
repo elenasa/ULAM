@@ -17,7 +17,14 @@ namespace MFM {
   }
 
   //since there's no assoc symbol, we map the m_uti here (e.g. S(x,y).sizeof nodeterminalproxy)
-  NodeTypeDescriptor::NodeTypeDescriptor(const NodeTypeDescriptor& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti)), m_ready(false), m_contextForPendingArgType(Nouti), m_unknownBitsizeSubtree(NULL), m_refType(ref.m_refType), m_referencedUTI(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_referencedUTI))
+  NodeTypeDescriptor::NodeTypeDescriptor(const NodeTypeDescriptor& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti,ref.getNodeLocation())), m_ready(false), m_contextForPendingArgType(Nouti), m_unknownBitsizeSubtree(NULL), m_refType(ref.m_refType), m_referencedUTI(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_referencedUTI,ref.getNodeLocation()))
+  {
+    if(ref.m_unknownBitsizeSubtree)
+      m_unknownBitsizeSubtree = new NodeTypeBitsize(*ref.m_unknownBitsizeSubtree); //mapped UTI?
+  }
+
+  //clone class parameter for pending class argument; caller (NodeConstDef) corrects type (t41223)
+  NodeTypeDescriptor::NodeTypeDescriptor(const NodeTypeDescriptor& ref, bool keepType) : Node(ref), m_typeTok(ref.m_typeTok), m_uti(ref.m_uti), m_ready(false), m_contextForPendingArgType(Nouti), m_unknownBitsizeSubtree(NULL), m_refType(ref.m_refType), m_referencedUTI(ref.m_referencedUTI)
   {
     if(ref.m_unknownBitsizeSubtree)
       m_unknownBitsizeSubtree = new NodeTypeBitsize(*ref.m_unknownBitsizeSubtree); //mapped UTI?
@@ -229,7 +236,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Incomplete descriptor for type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str(); //t3125, t3298
-	    if(m_state.isHolder(nuti))
+	    //if(m_state.isHolder(nuti))
 	      msg << " (UTI " << nuti << ")"; //helpful for debugging (e.g. t41209)
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t3787
 	  }
