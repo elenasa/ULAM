@@ -56,6 +56,11 @@ namespace MFM {
     return m_key.getUlamKeyTypeSignatureName(&m_state);
   }
 
+  u32 UlamType::getUlamTypeNameId()
+  {
+    return m_key.getUlamKeyTypeSignatureNameId();
+  } //helper
+
    UlamKeyTypeSignature UlamType::getUlamKeyTypeSignature()
   {
     return m_key;

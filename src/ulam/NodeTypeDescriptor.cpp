@@ -399,8 +399,7 @@ namespace MFM {
 		if(m_state.isComplete(tduti))
 		  {
 		    UlamType * tut = m_state.getUlamTypeByIndex(tduti);
-		    UlamKeyTypeSignature tdkey = tut->getUlamKeyTypeSignature();
-		    UlamKeyTypeSignature newkey(tdkey.getUlamKeyTypeSignatureNameId(), tut->getBitSize(), tut->getArraySize(), tduti, tut->getReferenceType());
+		    UlamKeyTypeSignature newkey(tut->getUlamTypeNameId(), tut->getBitSize(), tut->getArraySize(), tduti, tut->getReferenceType());
 		    m_state.makeUlamTypeFromHolder(newkey, tut->getUlamTypeEnum(), nuti, tut->getUlamClassType());
 		    rtnuti = tduti; //reset
 		    rtnb = true;

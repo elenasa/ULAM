@@ -288,8 +288,7 @@ namespace MFM {
       {
 	assert(scut->isScalar());
 	//create corresponding array type, keep givenUTI (=auti) just change the key
-	UlamKeyTypeSignature sckey = scut->getUlamKeyTypeSignature();
-	UlamKeyTypeSignature newkey(sckey.getUlamKeyTypeSignatureNameId(), aut->getBitSize(), aut->getArraySize(), scuti, aut->getReferenceType());
+	UlamKeyTypeSignature newkey(scut->getUlamTypeNameId(), aut->getBitSize(), aut->getArraySize(), scuti, aut->getReferenceType());
 	ULAMCLASSTYPE aclasstype = aut->getUlamClassType();
 	m_state.makeUlamTypeFromHolder(newkey, scut->getUlamTypeEnum(), auti, aclasstype);
 

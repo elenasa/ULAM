@@ -713,14 +713,10 @@ namespace MFM {
 	superuti = parseClassArguments(typeargs, isaclass);
 	if(superuti != Nav)
 	  {
-	    UlamType * superut = m_state.getUlamTypeByIndex(superuti);
-	    UlamKeyTypeSignature superkey = superut->getUlamKeyTypeSignature();
-	    u32 superid = superkey.getUlamKeyTypeSignatureNameId();
+	    u32 superid = m_state.getUlamTypeNameIdByIndex(superuti);
 
 	    UTI instance = cnsym->getUlamTypeIdx();
-	    UlamType * instanceut = m_state.getUlamTypeByIndex(instance);
-	    UlamKeyTypeSignature ikey = instanceut->getUlamKeyTypeSignature();
-	    u32 instanceid = ikey.getUlamKeyTypeSignatureNameId();
+	    u32 instanceid = m_state.getUlamTypeNameIdByIndex(instance);
 
 	    if(superid == instanceid)
 	      {

@@ -158,7 +158,7 @@ namespace MFM {
     if(m_nodeParameterList->getNumberOfNodes() > 0)
       {
 	SymbolClassNameTemplate * cnsym = NULL;
-	AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameTemplate(m_state.getUlamKeyTypeSignatureByIndex(cuti).getUlamKeyTypeSignatureNameId(), cnsym);
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameTemplate(m_state.getUlamTypeNameIdByIndex(cuti), cnsym);
 	assert(isDefined);
 	cnsym->printClassTemplateArgsForPostfix(fp); //m_nodeParameterList->print(fp);
       }
@@ -220,8 +220,7 @@ namespace MFM {
 	  {
 	    //use SCN instead of SC in case of stub (use template's classblock)
 	    SymbolClassName * supercnsym = NULL;
-	    u32 superid = m_state.getUlamTypeByIndex(superuti)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
-	    AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(superid, supercnsym);
+	    AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameByUTI(superuti, supercnsym);
 	    assert(isDefined);
 	    superblock = supercnsym->getClassBlockNode();
 	    superuti = supercnsym->getUlamTypeIdx(); //in case of stub (t41007)
@@ -290,8 +289,7 @@ namespace MFM {
 	  {
 	    //use SCN instead of SC in case of stub (use template's classblock)
 	    SymbolClassName * supercnsym = NULL;
-	    u32 superid = m_state.getUlamTypeByIndex(superuti)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
-	    AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(superid, supercnsym);
+	    AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameByUTI(superuti, supercnsym);
 	    assert(isDefined);
 	    superblock = supercnsym->getClassBlockNode();
 	  }
@@ -1858,7 +1856,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("(){}"); GCNL;
     fp->write("\n");
 
-    assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
+    assert(m_state.getCompileThisId() == cut->getUlamTypeNameId());
   } //genCodeBodyElement
 
   void NodeBlockClass::genCodeBodyQuark(File * fp, UVPass& uvpass)
@@ -1899,7 +1897,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("(){}"); GCNL;
     fp->write("\n");
 
-    assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
+    assert(m_state.getCompileThisId() == cut->getUlamTypeNameId());
   } //genCodeBodyQuark
 
   void NodeBlockClass::genCodeBodyTransient(File * fp, UVPass& uvpass)
@@ -1941,7 +1939,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("(){}"); GCNL;
     fp->write("\n");
 
-    assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
+    assert(m_state.getCompileThisId() == cut->getUlamTypeNameId());
   } //genCodeBodyTransient
 
   void NodeBlockClass::genCodeBodyLocalsFilescope(File * fp, UVPass& uvpass)
@@ -1981,7 +1979,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("(){}"); GCNL;
     fp->write("\n");
 
-    assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
+    assert(m_state.getCompileThisId() == cut->getUlamTypeNameId());
   } //genCodeBodyLocalsFilescope
 
   void NodeBlockClass::generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
@@ -2949,10 +2947,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       desc.m_structuredComment = "NONE";
 
     //format Ulam Class Signature
-    UlamKeyTypeSignature ckey = cut->getUlamKeyTypeSignature();
-    u32 nameid = ckey.getUlamKeyTypeSignatureNameId();
     SymbolClassName * cnsym = NULL;
-    AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(nameid, cnsym);
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameByUTI(cuti, cnsym);
     assert(isDefined);
     desc.m_classSignature = cnsym->generateUlamClassSignature();
 
@@ -2961,11 +2957,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       {
 	UTI superuti = m_state.isClassASubclass(cuti);
 	assert(m_state.okUTItoContinue(superuti));
-	UlamType * superut = m_state.getUlamTypeByIndex(superuti);
-	UlamKeyTypeSignature superkey = superut->getUlamKeyTypeSignature();
-	u32 supernameid = superkey.getUlamKeyTypeSignatureNameId();
 	SymbolClassName * supercnsym = NULL;
-	AssertBool isSuperDefined = m_state.alreadyDefinedSymbolClassName(supernameid, supercnsym);
+	AssertBool isSuperDefined = m_state.alreadyDefinedSymbolClassNameByUTI(superuti, supercnsym);
 	assert(isSuperDefined);
 
 	desc.m_baseClassSignature = supercnsym->generateUlamClassSignature();

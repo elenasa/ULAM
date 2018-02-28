@@ -476,7 +476,7 @@ namespace MFM {
 		    //if this classInstanceIdx (suti) is a template with parameters
 		    //then make a new uti; o.w. no need for a new uti, it's defined.
 		    SymbolClassName * cnsym = NULL;
-		    AssertBool isDefined = alreadyDefinedSymbolClassName(getUlamKeyTypeSignatureByIndex(suti).getUlamKeyTypeSignatureNameId(), cnsym);
+		    AssertBool isDefined = alreadyDefinedSymbolClassNameByUTI(suti, cnsym);
 		    assert(isDefined);
 		    if(cnsym->isClassTemplate())
 		      key.append(uti); //class instance idx
@@ -811,15 +811,12 @@ namespace MFM {
 	    aut = getUlamTypeByIndex(auti);
 	  }
 
-	UlamKeyTypeSignature akey = aut->getUlamKeyTypeSignature();
-	u32 anameid = akey.getUlamKeyTypeSignatureNameId();
-
 	//move this test after looking for the mapped class symbol type in "cuti" (always compileThis?)
 	ULAMTYPE bUT = aut->getUlamTypeEnum();
 	if(bUT == Class)
 	  {
 	    SymbolClassName * cnsymOfIncomplete = NULL; //could be a different class than being compiled
-	    AssertBool isDefined = alreadyDefinedSymbolClassName(anameid, cnsymOfIncomplete);
+	    AssertBool isDefined = alreadyDefinedSymbolClassNameByUTI(auti, cnsymOfIncomplete);
 	    assert(isDefined);
 	    UTI utiofinc = cnsymOfIncomplete->getUlamTypeIdx();
 	    if(utiofinc != cuti)
@@ -836,10 +833,8 @@ namespace MFM {
     UTI superuti = isClassASubclass(cuti);
     if(okUTItoContinue(superuti))
       {
-	UlamKeyTypeSignature supkey = getUlamKeyTypeSignatureByIndex(superuti);
-
 	SymbolClassName * supcsym = NULL;
-	AssertBool isDefined = alreadyDefinedSymbolClassName(supkey.getUlamKeyTypeSignatureNameId(), supcsym);
+	AssertBool isDefined = alreadyDefinedSymbolClassNameByUTI(superuti, supcsym);
 	assert(isDefined);
 
 	pushClassContext(superuti, supcsym->getClassBlockNode(), supcsym->getClassBlockNode(), false, NULL);
@@ -876,9 +871,8 @@ namespace MFM {
 	return suti; //t3526, t3892
       }
 
-    UlamKeyTypeSignature ckey = getUlamKeyTypeSignatureByIndex(cuti);
     SymbolClassName * cnsym = NULL;
-    AssertBool isDefined = alreadyDefinedSymbolClassName(ckey.getUlamKeyTypeSignatureNameId(), cnsym);
+    AssertBool isDefined = alreadyDefinedSymbolClassNameByUTI(cuti, cnsym);
     assert(isDefined);
 
     UTI mappedUTI;
@@ -890,11 +884,10 @@ namespace MFM {
 
     //move this test after looking for the mapped class symbol type
     ULAMTYPE bUT = sut->getUlamTypeEnum();
-    UlamKeyTypeSignature skey = sut->getUlamKeyTypeSignature();
     SymbolClassName * cnsymOfIncomplete = NULL; //could be a different class than being compiled
     if(bUT == Class)
       {
-	AssertBool isDefined = alreadyDefinedSymbolClassName(skey.getUlamKeyTypeSignatureNameId(), cnsymOfIncomplete);
+	AssertBool isDefined = alreadyDefinedSymbolClassNameByUTI(suti, cnsymOfIncomplete);
 	assert(isDefined);
 
 	if(!cnsymOfIncomplete->isClassTemplate())
@@ -918,6 +911,7 @@ namespace MFM {
     //(e.g. dependent on instances arg values which makes it different than others', like "self").
     //Context dependent pending args are resolved before they are added to the resolver's
     //pending args.
+    UlamKeyTypeSignature skey = sut->getUlamKeyTypeSignature();
     UlamKeyTypeSignature newkey(skey); //default constructor makes copy
     ULAMCLASSTYPE sclasstype = sut->getUlamClassType(); //restore from original ut
     UTI newuti = makeUlamType(newkey, bUT, sclasstype);
@@ -975,6 +969,12 @@ namespace MFM {
   {
     assert(typidx < m_indexToUlamKey.size());
     return m_indexToUlamKey[typidx];
+  }
+
+  u32 CompilerState::getUlamTypeNameIdByIndex(UTI typidx)
+  {
+    assert(typidx < m_indexToUlamKey.size());
+    return m_indexToUlamKey[typidx].getUlamKeyTypeSignatureNameId();
   }
 
   UlamType * CompilerState::getUlamTypeByIndex(UTI typidx)
@@ -1607,15 +1607,13 @@ namespace MFM {
 	ULAMTYPE detyp = derefut->getUlamTypeEnum();
 	makeUlamTypeFromHolder(newkey, detyp, utiArg, derefut->getUlamClassType());
 
-#if 1
 	//sanity check, informed by pesky ish 03/26/2017
 	if(detyp == Class)
 	  {
 	    SymbolClassName * cnsym = NULL;
-	    AssertBool isDefined = alreadyDefinedSymbolClassName(dekey.getUlamKeyTypeSignatureNameId(), cnsym);
+	    AssertBool isDefined = alreadyDefinedSymbolClassNameByUTI(derefuti, cnsym);
 	    assert(isDefined);
 	  }
-#endif
 	return true;
       }
 
@@ -2127,6 +2125,12 @@ namespace MFM {
     return m_programDefST.isInTable(dataindex,(Symbol * &) symptr);
   }
 
+  bool CompilerState::alreadyDefinedSymbolClassNameByUTI(UTI suti, SymbolClassName * & symptr)
+  {
+    //gets name id from suti key
+    return alreadyDefinedSymbolClassName(getUlamTypeNameIdByIndex(suti), symptr);
+  } //helper
+
   bool CompilerState::alreadyDefinedSymbolClassNameTemplate(u32 dataindex, SymbolClassNameTemplate * & symptr)
   {
     bool rtnb = alreadyDefinedSymbolClassName(dataindex, (SymbolClassName *&) symptr);
@@ -2145,6 +2149,11 @@ namespace MFM {
     return (rtnb && symptr->isClassTemplate());
   } //alreadyDefinedSymbolClassNameTemplate
 
+  bool CompilerState::alreadyDefinedSymbolClassNameTemplateByUTI(UTI suti, SymbolClassNameTemplate * & symptr)
+  {
+    return alreadyDefinedSymbolClassNameTemplate(getUlamTypeNameIdByIndex(suti), symptr);
+  } //helper
+
   //if necessary, searches for instance of class "template" with matching SCALAR uti;
   // automatically reduces arrays and references to their base class UTI.
   bool CompilerState::alreadyDefinedSymbolClass(UTI uti, SymbolClass * & symptr)
@@ -2159,7 +2168,7 @@ namespace MFM {
     scalarUTI = getUlamTypeAsDeref(scalarUTI); //and deref
 
     SymbolClassName * cnsym = NULL;
-    if(alreadyDefinedSymbolClassName(ut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), cnsym))
+    if(alreadyDefinedSymbolClassNameByUTI(uti, cnsym))
       {
 	//not a regular class, and not the template, so dig deeper for the stub
 	if((cnsym->getUlamTypeIdx() != scalarUTI) && cnsym->isClassTemplate())
@@ -2275,9 +2284,8 @@ namespace MFM {
     return csym->statusUnknownTypeInClass(huti);
 #else
     //all template class instances with same name
-    UlamType * cut = getUlamTypeByIndex(cuti);
     SymbolClassName * cnsym = NULL;
-    AssertBool isDefined = alreadyDefinedSymbolClassName(cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), cnsym);
+    AssertBool isDefined = alreadyDefinedSymbolClassNameByUTI(cuti, cnsym);
     assert(isDefined);
     return cnsym->statusUnknownTypeInClassInstances(huti);
 #endif
@@ -2388,10 +2396,8 @@ namespace MFM {
     assert(isClassAStub(superuti));
     UlamType * superut = getUlamTypeByIndex(superuti);
 
-    UlamKeyTypeSignature superkey = superut->getUlamKeyTypeSignature();
-    u32 superid = superkey.getUlamKeyTypeSignatureNameId();
     SymbolClassNameTemplate * superctsym = NULL;
-    AssertBool isDefined = alreadyDefinedSymbolClassNameTemplate(superid, superctsym);
+    AssertBool isDefined = alreadyDefinedSymbolClassNameTemplateByUTI(superuti, superctsym);
     assert(isDefined);
 
     SymbolClass * supercsym = NULL;
@@ -2400,7 +2406,7 @@ namespace MFM {
 
     ULAMCLASSTYPE superclasstype = superut->getUlamClassType();
     assert((superclasstype != UC_UNSEEN) && (superclasstype != UC_ELEMENT)); //quark or transient
-    UlamKeyTypeSignature newstubkey(superid, UNKNOWNSIZE); //"-2" and scalar default
+    UlamKeyTypeSignature newstubkey(superut->getUlamTypeNameId(), UNKNOWNSIZE); //"-2" and scalar default
     UTI newstubcopyuti = makeUlamType(newstubkey, Class, superclasstype); //**gets next unknown uti type
 
     SymbolClass * superstubcopy = superctsym->copyAStubClassInstance(superuti, newstubcopyuti, argvaluecontext, argtypecontext, stubloc); //t3365. t41221
@@ -2727,7 +2733,7 @@ namespace MFM {
     //data member variables in class block; function symbols are linked to their
     //function def block; check function data members separately.
     if(!brtn)
-      brtn = isDataMemberIdInClassScope(dataindex, symptr, hasHazyKin);
+      brtn = isDataMemberIdInClassScope(dataindex, symptr, hasHazyKin); //also checks local filescope
 
     if(!brtn)
       brtn = isFuncIdInClassScope(dataindex, symptr, hasHazyKin);
@@ -2780,6 +2786,26 @@ namespace MFM {
     NodeBlockLocals * localsblock = getLocalsScopeBlock(cloc);
     if(localsblock)
       brtn = localsblock->isIdInScope(id, symptr); //checks one scope only!
+
+    //try a stub's template's filescope (e.g. for inheritance of template class instances t41221)
+    if(cblock)
+      {
+	UTI cbuti = cblock->getNodeType();
+	if(isClassAStub(cbuti))
+	  {
+	    SymbolClassNameTemplate * cntsym = NULL;
+	    AssertBool isDef = alreadyDefinedSymbolClassNameTemplateByUTI(cbuti, cntsym);
+	    assert(isDef);
+
+	    NodeBlockClass * templateclassblock = cntsym->getClassBlockNode();
+	    assert(templateclassblock);
+
+	    Locator ctloc = templateclassblock->getNodeLocation();
+	    NodeBlockLocals * localsblockfortemplate = getLocalsScopeBlock(ctloc);
+	    if(localsblockfortemplate)
+	      brtn = localsblockfortemplate->isIdInScope(id, symptr);
+	  }
+      }
     return brtn;
   } //isIdInLocalFileScope
 
@@ -4165,7 +4191,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   NodeBlockLocals * CompilerState::getLocalsScopeBlockByIndex(UTI luti)
   {
     UlamType * lut = getUlamTypeByIndex(luti);
-    u32 pathid = lut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
+    u32 pathid = lut->getUlamTypeNameId();
     return getLocalsScopeBlockByPathId(pathid);
   } //getLocalsScopeBlockByIndex
 
@@ -4179,7 +4205,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       {
 	rtnLocals = it->second;
 	assert(rtnLocals);
-	assert(getUlamTypeByIndex(rtnLocals->getNodeType())->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId() == pathid); //sanity check
+	assert(getUlamTypeByIndex(rtnLocals->getNodeType())->getUlamTypeNameId() == pathid); //sanity check
       }
     return rtnLocals;
   } //getLocalsScopeBlockByPathId
@@ -4252,9 +4278,8 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	  rtnNode = findNodeNoInALocalsScope(getContextBlockLoc(), n); //t3873
 	else
 	  {
-	    u32 cid = getUlamKeyTypeSignatureByIndex(cuti).getUlamKeyTypeSignatureNameId();
 	    SymbolClassName * cnsym = NULL;
-	    AssertBool isDefined = alreadyDefinedSymbolClassName(cid, cnsym);
+	    AssertBool isDefined = alreadyDefinedSymbolClassNameByUTI(cuti, cnsym);
 	    assert(isDefined);
 	    rtnNode = findNodeNoInALocalsScope(cnsym->getLoc(), n);
 	  }
@@ -4276,9 +4301,8 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     UTI stubuti = m_pendingArgStubContext;
     if(stubuti != Nouti)
       {
-	u32 stubid = getUlamKeyTypeSignatureByIndex(stubuti).getUlamKeyTypeSignatureNameId();
 	SymbolClassNameTemplate * cntsym = NULL;
-	AssertBool isDefined = alreadyDefinedSymbolClassNameTemplate(stubid, cntsym);
+	AssertBool isDefined = alreadyDefinedSymbolClassNameTemplateByUTI(stubuti, cntsym);
 	assert(isDefined);
 	rtnNode = cntsym->findNodeNoInAClassInstance(stubuti, n);
 	//local def, using template's local scope
@@ -4293,9 +4317,8 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	UTI typestubuti = m_pendingArgTypeStubContext;
 	if(typestubuti != stubuti)
 	  {
-	    u32 typestubid = getUlamKeyTypeSignatureByIndex(typestubuti).getUlamKeyTypeSignatureNameId();
 	    SymbolClassNameTemplate * cntsym = NULL;
-	    AssertBool isDefined = alreadyDefinedSymbolClassNameTemplate(typestubid, cntsym);
+	    AssertBool isDefined = alreadyDefinedSymbolClassNameTemplateByUTI(typestubuti, cntsym);
 	    assert(isDefined);
 	    rtnNode = cntsym->findNodeNoInAClassInstance(typestubuti, n);
 	    //local def, using template's local scope
@@ -4324,9 +4347,8 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     if(isALocalsFileScope(cuti))
       return NULL; //not a class (t3873)
 
-    u32 cid = getUlamKeyTypeSignatureByIndex(cuti).getUlamKeyTypeSignatureNameId();
     SymbolClassName * cnsym = NULL;
-    AssertBool isDefined = alreadyDefinedSymbolClassName(cid, cnsym);
+    AssertBool isDefined = alreadyDefinedSymbolClassNameByUTI(cuti, cnsym);
     assert(isDefined);
     rtnNode = cnsym->findNodeNoInAClassInstance(cuti, n);
     //don't check local scope automatically, e.g. in case of superclass
@@ -4475,7 +4497,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   void CompilerState::pushClassContext(UTI idx, NodeBlock * currblock, NodeBlockContext * contextblock, bool usemember, NodeBlockClass * memberblock)
   {
-    u32 id = getUlamKeyTypeSignatureByIndex(idx).getUlamKeyTypeSignatureNameId();
+    u32 id = getUlamTypeNameIdByIndex(idx);
     ClassContext cc(id, idx, currblock, contextblock, usemember, memberblock); //new
     m_classContextStack.pushClassContext(cc);
   }
@@ -4647,8 +4669,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     if(m_urSelfUTI == Nouti)
       {
 	u32 urid = m_pool.getIndexForDataString("UrSelf");
-	UlamKeyTypeSignature ckey = getUlamTypeByIndex(cuti)->getUlamKeyTypeSignature();
-	if(ckey.getUlamKeyTypeSignatureNameId() == urid)
+	if(getUlamTypeNameIdByIndex(cuti) == urid)
 	  saveUrSelf(cuti); //error/t3318
 	else
 	  {
@@ -4675,8 +4696,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   {
     if(m_emptyUTI == Nouti)
       {
-	UlamKeyTypeSignature ckey = getUlamTypeByIndex(cuti)->getUlamKeyTypeSignature();
-	if(ckey.getUlamKeyTypeSignatureNameId() == m_pool.getIndexForDataString("Empty"))
+	if(getUlamTypeNameIdByIndex(cuti) == m_pool.getIndexForDataString("Empty"))
 	  saveEmptyUTI(cuti);
 	else
 	  return false;

@@ -66,6 +66,8 @@ namespace MFM{
 
     virtual const std::string getUlamTypeNameOnly();
 
+    u32 getUlamTypeNameId();
+
     UlamKeyTypeSignature getUlamKeyTypeSignature();
 
     virtual bool isNumericType();

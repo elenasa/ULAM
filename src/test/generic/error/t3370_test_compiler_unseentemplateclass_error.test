@@ -3,7 +3,7 @@
 #!
 ./Eltypo.ulam:4:8: ERROR: Incomplete NodeConstantDef for type: unresolved, used with symbol name '_0'.
 ./Eltypo.ulam:4:8: ERROR: Incomplete NodeConstantDef for type: unresolved, used with symbol name '_0', after folding.
-./Eltypo.ulam:4:3: ERROR: Incomplete descriptor for type: Typ0.
+./Eltypo.ulam:4:3: ERROR: Incomplete descriptor for type: Typ0 (UTI 31).
 ./Eltypo.ulam:4:3: ERROR: UNSEEN Class and incomplete descriptor for type: 'Typ0'.
 ./Eltypo.ulam:4:3: ERROR: Incomplete Variable Decl for type: Typ0, used with variable symbol name 't'.
 ./Eltypo.ulam:4:3: ERROR: UNSEEN class type <Typ0> was never defined in <Typ0.ulam>.

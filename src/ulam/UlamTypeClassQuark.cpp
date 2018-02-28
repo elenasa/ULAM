@@ -144,7 +144,7 @@ namespace MFM {
     if(!isReference())
       {
 	rtnb = true;
-	u32 id = m_key.getUlamKeyTypeSignatureNameId();
+	u32 id = getUlamTypeNameId();
 	u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
 	SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(id);
 	if(cnsym->isClassTemplate() && ((SymbolClassNameTemplate *) cnsym)->isClassTemplate(cuti))

@@ -148,7 +148,7 @@ namespace MFM {
     else
       mangled << 10;
 
-    mangled << m_state.getDataAsStringMangled(m_key.getUlamKeyTypeSignatureNameId()).c_str();
+    mangled << m_state.getDataAsStringMangled(getUlamTypeNameId()).c_str();
     //without types and values of args!!
     return mangled.str();
   } //getUlamTypeMangledType
@@ -159,7 +159,7 @@ namespace MFM {
     mangledclassname << UlamType::getUlamTypeMangledName(); //includes Uprefix
 
     //or numberOfParameters followed by each digi-encoded: mangled type and value
-    u32 id = m_key.getUlamKeyTypeSignatureNameId();
+    u32 id = getUlamTypeNameId();
     UTI cuti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
     SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(id);
     mangledclassname << cnsym->formatAnInstancesArgValuesAsAString(cuti);
@@ -204,7 +204,7 @@ namespace MFM {
     std::ostringstream namestr;
     namestr << m_key.getUlamKeyTypeSignatureName(&m_state).c_str();
 
-    u32 id = m_key.getUlamKeyTypeSignatureNameId();
+    u32 id = getUlamTypeNameId();
     SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(id);
     if(cnsym && cnsym->isClassTemplate())
       namestr << ((SymbolClassNameTemplate *) cnsym)->formatAnInstancesArgValuesAsCommaDelimitedString(uti).c_str();

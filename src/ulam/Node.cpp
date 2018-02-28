@@ -2336,7 +2336,7 @@ namespace MFM {
     UTI nodeType = node->getNodeType(); //quark
     UlamType * nut = m_state.getUlamTypeByIndex(nodeType);
     assert(nut->getUlamClassType() == UC_QUARK);
-    u32 quid = nut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
+    u32 quid = nut->getUlamTypeNameId();
     Token typeTok(TOK_TYPE_IDENTIFIER, loc, quid);
 
     TypeArgs typeargs;

@@ -227,7 +227,7 @@ namespace MFM {
 		UlamType * aut = m_state.getUlamTypeByIndex(auti);
 		if(m_state.isAClass(auti))
 		  {
-		    u32 aid = aut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
+		    u32 aid = aut->getUlamTypeNameId();
 		    argtok.init(TOK_IDENTIFIER, tok.m_locator, aid);
 		  }
 		else

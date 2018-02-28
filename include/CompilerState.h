@@ -205,6 +205,7 @@ namespace MFM{
     void mapTypesInCurrentClass(UTI fm, UTI to);
 
     UlamKeyTypeSignature getUlamKeyTypeSignatureByIndex(UTI typidx);
+    u32 getUlamTypeNameIdByIndex(UTI typidx);
     UlamType * getUlamTypeByIndex(UTI uti);
     const std::string getUlamTypeNameBriefByIndex(UTI uti);
     const std::string getUlamTypeNameByIndex(UTI uti);
@@ -313,8 +314,14 @@ namespace MFM{
     /** return true and the SymbolClassName pointer in 2nd arg if found; */
     bool alreadyDefinedSymbolClassName(u32 dataindex, SymbolClassName * & symptr);
 
+    /** return true and the SymbolClassName pointer in 2nd arg if found; uses key nameid of first arg */
+    bool alreadyDefinedSymbolClassNameByUTI(UTI suti, SymbolClassName * & symptr); //helper
+
     /** return true and the SymbolClassNameTemplate pointer in 2nd arg if found AND is a template; */
     bool alreadyDefinedSymbolClassNameTemplate(u32 dataindex, SymbolClassNameTemplate * & symptr);
+
+    /** return true and the SymbolClassNameTemplate pointer in 2nd arg for stubuti; uses key nameid of first arg */
+    bool alreadyDefinedSymbolClassNameTemplateByUTI(UTI stubuti, SymbolClassNameTemplate * & symptr); //helper
 
     /** return true and the SymbolClass pointer in 2nd arg if uti found; */
     bool alreadyDefinedSymbolClass(UTI uti, SymbolClass * & symptr);

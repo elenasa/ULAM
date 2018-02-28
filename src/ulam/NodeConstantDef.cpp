@@ -524,15 +524,11 @@ namespace MFM {
 	    //Expression and symbol have different UTI, but a class..So CHANGE symbol type? WHAT??
 	    // t41209, t41213, t41214
 	    //if(m_state.isComplete(nuti) && (nuti != suti) && m_state.isAClass(nuti))
-
-	    UlamKeyTypeSignature nkey = m_state.getUlamTypeByIndex(nuti)->getUlamKeyTypeSignature();
-	    UlamKeyTypeSignature skey = m_state.getUlamTypeByIndex(suti)->getUlamKeyTypeSignature();
-	    if(nkey.getUlamKeyTypeSignatureNameId() == skey.getUlamKeyTypeSignatureNameId())
+	    if(m_state.getUlamTypeNameIdByIndex(nuti) == m_state.getUlamTypeNameIdByIndex(suti))
 	      {
 		m_constSymbol->resetUlamType(nuti);
 		suti = nuti; //t3451?
 		//alias missing?
-		//any checks, class name??
 	      }
 	  }
       }
