@@ -4254,7 +4254,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     if(useMemberBlock())
       {
 	UTI mbuti = getCurrentMemberClassBlock()->getNodeType();
-	return findNodeNoInAClass(n, mbuti);
+	return findNodeNoInAClassOrLocalsScope(n, mbuti);
       }
 
     NodeBlock * currBlock = getCurrentBlock();
@@ -4269,23 +4269,32 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
     //go the long way around..
     UTI cuti = getCompileThisIdx();
-    rtnNode = findNodeNoInAClass(n, cuti);
+    rtnNode = findNodeNoInAClassOrLocalsScope(n, cuti);
+    return rtnNode;
+  } //findNodeNoInThisClass
 
-    if(!rtnNode)
+  Node * CompilerState::findNodeNoInAncestorClassOrLocalsScope(NNO n, UTI cuti)
+  {
+    Node * rtnNode = NULL;
+    UTI superuti = isClassASubclass(cuti);
+    if(okUTItoContinue(superuti))
       {
-	//check in local scope
-        if(isALocalsFileScope(cuti))
-	  rtnNode = findNodeNoInALocalsScope(getContextBlockLoc(), n); //t3873
-	else
+	SymbolClassName * supcnsym = NULL;
+	AssertBool isDefined = alreadyDefinedSymbolClassNameByUTI(superuti, supcnsym);
+	assert(isDefined);
+	rtnNode = supcnsym->findNodeNoInAClassInstance(superuti, n);
+	//local def, using (possible) template's local scope
+	if(!rtnNode)
+	  rtnNode = findNodeNoInALocalsScope(supcnsym->getLoc(), n);
+
+	if(!rtnNode)
 	  {
-	    SymbolClassName * cnsym = NULL;
-	    AssertBool isDefined = alreadyDefinedSymbolClassNameByUTI(cuti, cnsym);
-	    assert(isDefined);
-	    rtnNode = findNodeNoInALocalsScope(cnsym->getLoc(), n);
+	    if(isClassASubclass(superuti))
+	      rtnNode = findNodeNoInAncestorClassOrLocalsScope(n, superuti); //recurse
 	  }
       }
     return rtnNode;
-  } //findNodeNoInThisClass
+  } //findNodeNoInAncestorClass
 
   Node * CompilerState::findNodeNoInThisClassForParent(NNO n)
   {
@@ -4301,32 +4310,22 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     UTI stubuti = m_pendingArgStubContext;
     if(stubuti != Nouti)
       {
-	SymbolClassNameTemplate * cntsym = NULL;
-	AssertBool isDefined = alreadyDefinedSymbolClassNameTemplateByUTI(stubuti, cntsym);
-	assert(isDefined);
-	rtnNode = cntsym->findNodeNoInAClassInstance(stubuti, n);
-	//local def, using template's local scope
+	rtnNode = findNodeNoInAClassOrLocalsScope(n, stubuti);
 	if(!rtnNode)
-	  rtnNode = findNodeNoInALocalsScope(cntsym->getLoc(), n);
+	  rtnNode = findNodeNoInAncestorClassOrLocalsScope(n, stubuti);
       }
 
-#if 1
     //Next, try stub's context for Arg Types..(t41214)
     if(!rtnNode)
       {
 	UTI typestubuti = m_pendingArgTypeStubContext;
 	if(typestubuti != stubuti)
 	  {
-	    SymbolClassNameTemplate * cntsym = NULL;
-	    AssertBool isDefined = alreadyDefinedSymbolClassNameTemplateByUTI(typestubuti, cntsym);
-	    assert(isDefined);
-	    rtnNode = cntsym->findNodeNoInAClassInstance(typestubuti, n);
-	    //local def, using template's local scope
+	    rtnNode = findNodeNoInAClassOrLocalsScope(n, typestubuti);
 	    if(!rtnNode)
-	      rtnNode = findNodeNoInALocalsScope(cntsym->getLoc(), n);
+	      rtnNode = findNodeNoInAncestorClassOrLocalsScope(n, typestubuti);
 	  }
       }
-#endif
 
     if(!rtnNode)
       rtnNode = findNodeNoInThisClass(n);
@@ -4351,9 +4350,27 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     AssertBool isDefined = alreadyDefinedSymbolClassNameByUTI(cuti, cnsym);
     assert(isDefined);
     rtnNode = cnsym->findNodeNoInAClassInstance(cuti, n);
+
     //don't check local scope automatically, e.g. in case of superclass
     return rtnNode;
   } //findNodeNoInAClass
+
+  Node * CompilerState::findNodeNoInAClassOrLocalsScope(NNO n, UTI cuti)
+  {
+    Node * rtnNode = NULL;
+
+    SymbolClassName * cnsym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClassNameByUTI(cuti, cnsym);
+    assert(isDefined);
+    rtnNode = cnsym->findNodeNoInAClassInstance(cuti, n);
+
+    //check local scope automatically, e.g. in case of superclass;
+    //using possible template's local scope
+    if(!rtnNode)
+      rtnNode = findNodeNoInALocalsScope(cnsym->getLoc(), n);
+
+    return rtnNode;
+  } //findNodeNoInAClassOrLocalFilescope
 
   UTI CompilerState::findAClassByNodeNo(NNO n)
   {
