@@ -307,11 +307,6 @@ namespace MFM {
   {
     bool brtn = false;
 
-#if 0
-    if(isReadyConstant())
-      brtn = m_constSymbol->getValue(bvtmp);
-#endif
-
     if(foldConstantClassNodes())
       {
 	brtn = m_constSymbol->getValue(bvtmp);
@@ -325,7 +320,6 @@ namespace MFM {
     if(isReadyConstant())
       return true; //t41209
 
-#if 1
     //refresh named constant value from constant def built after c&l
     SymbolWithValue * savecsym = m_constSymbol;
     m_constSymbol = NULL;
@@ -358,7 +352,6 @@ namespace MFM {
 	setNodeType(Nav);
 	m_constSymbol = savecsym; // restore
       }
-#endif
     return false;
   } //foldConstantClassNodes
 

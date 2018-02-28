@@ -47,7 +47,7 @@ element T{
 
 #:S.ulam
   ulam 3;
-//quark S(Q(bp) v, Bool bp) : Q(bp) { //bug???
+//quark S(Q(bp) v, Bool bp) : Q(bp) { //bug??? see t41228
 quark S(Q(bp) v, Bool bp) {
   constant Int(4) csi = v.i;
 }

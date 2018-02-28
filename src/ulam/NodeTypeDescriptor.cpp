@@ -236,8 +236,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Incomplete descriptor for type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str(); //t3125, t3298
-	    //if(m_state.isHolder(nuti))
-	      msg << " (UTI " << nuti << ")"; //helpful for debugging (e.g. t41209)
+	    msg << " (UTI " << nuti << ")"; //helpful for my debugging (e.g. t41209)
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT); //t3787
 	  }
       }
@@ -393,8 +392,7 @@ namespace MFM {
 	    if(isTypedef)
 	      {
 		//unseen typedef's appear like Class basetype, until seen
-		//wait until complete to re-key..
-		// want arraysize if non-scalar
+		//wait until complete to re-key..want arraysize if non-scalar
 		std::ostringstream msg;
 		if(m_state.isComplete(tduti))
 		  {
@@ -451,23 +449,6 @@ namespace MFM {
 	  }
 	//else
 	// rtnuti = Hzy;
-      }
-    else
-      {
-	//	bool isAnonymousClass = (nut->isHolder() || !m_state.isARootUTI(nuti));
-
-	if(nut->isHolder())
-	  {
-	    if(m_state.isThisLocalsFileScope() || !m_state.statusUnknownTypeInThisClassResolver(nuti))
-	      rtnuti = Hzy;
-	  }
-#if 1
-	else if(!m_state.isARootUTI(nuti))
-	  {
-	    AssertBool isAlias = m_state.findaUTIAlias(nuti, rtnuti);
-	    assert(isAlias);
-	  }
-#endif
       }
     return rtnb;
   } //resolveClassType

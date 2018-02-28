@@ -527,16 +527,8 @@ namespace MFM {
 	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(argvaluecontext, contextSym);
 	assert(isDefined);
 
-#if 0
-	setContextForPendingArgValues(context);
-	if(fmcsym->getContextForPendingArgTypes() != fmcsym->getUlamTypeIdx())
-	  setContextForPendingArgTypes(fmcsym->getContextForPendingArgTypes()); //(t41213)
-	else
-	  setContextForPendingArgTypes(getUlamTypeIdx()); //same as new self (t3328, t41153)
-#endif
-
 	setContextForPendingArgValues(argvaluecontext);
-	setContextForPendingArgTypes(argtypecontext); //(t41213, t41223)
+	setContextForPendingArgTypes(argtypecontext); //(t41213, t41223, t3328, t41153)
 
 	//Cannot MIX the current block (context) to find symbols while
 	//using this stub copy to find parent NNOs for constant folding;

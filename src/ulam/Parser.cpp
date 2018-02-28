@@ -709,7 +709,6 @@ namespace MFM {
 	m_state.m_parsingVariableSymbolTypeFlag = STF_CLASSINHERITANCE;
 
 	bool isaclass = true;
-	//	superuti = parseClassArguments(iTok, isaclass);
 	superuti = parseClassArguments(typeargs, isaclass);
 	if(superuti != Nav)
 	  {
@@ -2860,10 +2859,7 @@ namespace MFM {
       }
     else if(m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSINHERITANCE)
       {
-	//stubcsym->setContextForPendingArgValues(stubuti);
-	//stubcsym->setContextForPendingArgTypes(m_state.getCompileThisIdx());
-	//typeargs.m_classInstanceIdx = m_state.getCompileThisIdx(); //t41223, t41221?
-	stubcsym->setContextForPendingArgTypes(stubuti);
+	stubcsym->setContextForPendingArgTypes(stubuti); //t41223, t41221, t41224, t41226
 	typeargs.m_classInstanceIdx = stubuti;
       }
     else

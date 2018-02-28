@@ -93,8 +93,7 @@ namespace MFM {
 
   void NodeConstantDef::printPostfix(File * fp)
   {
-    //UTI nuti = getNodeType(); //t41221
-    //in case the node belongs to the template, use the symbol uti, o.w. 0Nav.
+    //in case the node belongs to the template, use the symbol uti, o.w. 0Nav. (t41221)
     UTI suti = m_constSymbol ? m_constSymbol->getUlamTypeIdx() : getNodeType();
     //see also SymbolConstantValue
     fp->write(" constant");
@@ -107,14 +106,7 @@ namespace MFM {
     if(m_nodeExpr)
       {
 	fp->write(" =");
-#if 0
-	if((nuti == Nav) || (nuti == Nouti))
-	  fp->write("(unknown)");
-	else if(nuti == Hzy)
-	  fp->write("(notready)");
-	else
-#endif
-	  m_nodeExpr->printPostfix(fp);
+	m_nodeExpr->printPostfix(fp);
       }
     fp->write("; ");
   } //printPostfix
@@ -724,47 +716,6 @@ namespace MFM {
 	      }
 	    else
 	      rtnuti = Hzy;
-#if 0
-	    if(((NodeList *) m_nodeExpr)->isEmptyList()) //t41216
-	      {
-		BV8K bvdefault;
-		//empty class init is essentially the default value
-		if(m_state.getDefaultClassValue(uti, bvdefault))
-		  {
-		    m_constSymbol->setValue(bvdefault);
-		    rtnuti = uti;
-
-		    u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
-		    assignConstantSlotIndex(tmpslotnum); //t41198
-		  }
-		else
-		  rtnuti = Hzy; //pos not reliable, yet (t41216)
-	      }
-	    else
-	      {
-		//tries to pack bits if complete
-		rtnuti =  ((NodeListClassInit *) m_nodeExpr)->foldConstantExpression();
-		if(m_state.okUTItoContinue(rtnuti) && m_state.isComplete(rtnuti))
-		  {
-		    BV8K bvtmp;
-		    if(m_state.getDefaultClassValue(uti, bvtmp)) //uses scalar uti
-		      {
-			BV8K bvmask;
-			if(((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvtmp, bvmask))
-			  {
-			    m_constSymbol->setValue(bvtmp);
-
-			    u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
-			    assignConstantSlotIndex(tmpslotnum); //t41198
-			  }
-			else
-			  rtnuti = Nav; //t3451
-		      }
-		    else
-		      rtnuti = Hzy;
-		  }
-	      } //non-empty class init
-#endif
 	  }
 	else
 	  {
@@ -1046,12 +997,6 @@ namespace MFM {
 	    assert(m_constSymbol && (m_constSymbol->getUlamTypeIdx() == newuti)); //invariant? (likely null symbol, see checkForSymbol)
 
 	    assert(copyuti == pnodetypedesc->givenUTI()); //used keep type
-#if 0
-	    if((copyuti != pnodetypedesc->givenUTI()) && (newuti != copyuti))
-	      {
-		m_state.updateUTIAliasForced(copyuti, newuti);
-	      }
-#endif
 	    //m_nodeTypeDesc->updateLineage(getNodeNo());
 	    aok = true;
 	  }
