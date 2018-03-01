@@ -214,13 +214,13 @@ namespace MFM {
     s32 bitsize = getBitSize();
     s32 arraysize = getArraySize();
 
-    if(isReference())
+    if(isReference()) //includes ALT_ARRAYITEM (t3147)
       mangled << "r"; //e.g. t3114
 
     if(arraysize > 0)
       mangled << ToLeximitedNumber(arraysize);
-    else if(arraysize == 0)
-      mangled << ToLeximitedNumber(-1); //distinct from scalar
+    //    else if(arraysize == 0)
+    //  mangled << ToLeximitedNumber(-1); //distinct from scalar
     else
       mangled << 10; //scalar NONARRAYSIZE
 

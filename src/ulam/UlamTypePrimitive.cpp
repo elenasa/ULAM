@@ -89,32 +89,6 @@ namespace MFM {
     return UNKNOWNSIZE; //atom, class, nav, ptr, holder
   }
 
-  const std::string UlamTypePrimitive::getUlamTypeMangledType()
-  {
-    // e.g. parsing overloaded functions, may not be complete.
-    std::ostringstream mangled;
-    s32 bitsize = getBitSize();
-    s32 arraysize = getArraySize();
-
-    if(isReference()) //includes ALT_ARRAYITEM (t3147)
-      mangled << "r";
-
-    if(arraysize > 0)
-      mangled << ToLeximitedNumber(arraysize);
-    else
-      mangled << 10;
-
-    if(bitsize > 0)
-      mangled << ToLeximitedNumber(bitsize);
-    else
-      mangled << 10;
-
-    std::string ecode(UlamTypePrimitive::getUlamTypeEnumCodeChar(getUlamTypeEnum()));
-    mangled << ToLeximited(ecode).c_str();
-
-    return mangled.str();
-  } //getUlamTypeMangledType
-
   const std::string UlamTypePrimitive::getUlamTypeMangledName()
   {
     // e.g. parsing overloaded functions, may not be complete.

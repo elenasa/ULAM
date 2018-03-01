@@ -703,8 +703,8 @@ namespace MFM {
 	    UTI auti = asym->getUlamTypeIdx();
 	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
 
-	    //append 'instance's arg (mangled) type
-	    args << aut->getUlamTypeMangledType().c_str();
+	    //append 'instance's arg (mangled) type; little 'c' for a class type parameter (t41209)
+	    args << aut->UlamType::getUlamTypeMangledType().c_str();
 	    assert(!aut->isReference());
 	    if(!aut->isScalar())
 	      {

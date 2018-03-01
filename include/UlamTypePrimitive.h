@@ -77,8 +77,6 @@ namespace MFM{
 
     virtual ULAMTYPE getUlamTypeEnum() = 0;
 
-    virtual const std::string getUlamTypeMangledType();
-
     virtual const std::string getUlamTypeMangledName();
 
     virtual const std::string getUlamTypeUPrefix();
