@@ -78,8 +78,6 @@ namespace MFM{
 
     virtual bool isReadyConstant();
 
-    //    virtual bool foldConstantClassNodes();
-
     virtual bool isNegativeConstant();
 
     virtual bool isWordSizeConstant();

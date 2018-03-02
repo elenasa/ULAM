@@ -83,8 +83,6 @@ namespace MFM{
 
     bool getClassValue(BV8K& bvtmp);
 
-    virtual bool foldConstantClassNodes();
-
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();
@@ -103,11 +101,15 @@ namespace MFM{
 
   private:
     NNO m_currBlockNo;
+    NodeBlock * m_currBlockPtr; //could be NULL
 
     void setupBlockNo();
     void setBlockNo(NNO n);
     NNO getBlockNo() const;
     NodeBlock * getBlock();
+    void setBlock(NodeBlock * ptr);
+
+    UTI checkUsedBeforeDeclared();
 
     UlamValue makeUlamValuePtr();
     void makeUVPassForCodeGen(UVPass& uvpass);

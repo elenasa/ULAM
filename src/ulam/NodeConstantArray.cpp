@@ -4,14 +4,14 @@
 
 namespace MFM {
 
-  NodeConstantArray::NodeConstantArray(const Token& tok, SymbolWithValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state) : Node(state), m_token(tok), m_nodeTypeDesc(typedesc), m_constSymbol(symptr), m_constType(Nouti), m_currBlockNo(0)
+  NodeConstantArray::NodeConstantArray(const Token& tok, SymbolWithValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state) : Node(state), m_token(tok), m_nodeTypeDesc(typedesc), m_constSymbol(symptr), m_constType(Nouti), m_currBlockNo(0), m_currBlockPtr(NULL)
   {
     assert(symptr);
     setBlockNo(symptr->getBlockNoOfST());
     m_constType = m_constSymbol->getUlamTypeIdx();
   }
 
-  NodeConstantArray::NodeConstantArray(const NodeConstantArray& ref) : Node(ref), m_token(ref.m_token), m_nodeTypeDesc(NULL), m_constSymbol(NULL), m_constType(ref.m_constType), m_currBlockNo(ref.m_currBlockNo)
+  NodeConstantArray::NodeConstantArray(const NodeConstantArray& ref) : Node(ref), m_token(ref.m_token), m_nodeTypeDesc(NULL), m_constSymbol(NULL), m_constType(ref.m_constType), m_currBlockNo(ref.m_currBlockNo), m_currBlockPtr(NULL)
   {
     //can we use the same address for a constant symbol?
     if(ref.m_nodeTypeDesc)
@@ -106,7 +106,7 @@ namespace MFM {
       stubcopy = m_state.hasClassAStub(m_state.getCompileThisIdx()); //includes ancestors
 
     if(m_constSymbol)
-      it = m_constSymbol->getUlamTypeIdx();
+      it = checkUsedBeforeDeclared(); //m_constSymbol->getUlamTypeIdx();
     else if(stubcopy)
       {
 	assert(m_state.okUTItoContinue(m_constType));
@@ -115,45 +115,50 @@ namespace MFM {
 	it = m_constType;
       }
 
-    // map incomplete UTI
-    if(!m_state.isComplete(it)) //reloads to recheck
+    if(m_state.okUTItoContinue(it))
       {
-	UTI mappedUTI = it;
-	if(m_state.findaUTIAlias(it, mappedUTI))
-	  {
-	    std::ostringstream msg;
-	    msg << "REPLACE " << prettyNodeName().c_str() << " for type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << ", used with alias type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    it = mappedUTI;
-	  }
-
+	// map incomplete UTI
 	if(!m_state.isComplete(it)) //reloads to recheck
 	  {
-	    std::ostringstream msg;
-	    msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << ", used with constant symbol name '";
-	    msg << m_state.getTokenDataAsString(m_token).c_str() << "'";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    //wait until updateConstant tried.
+	    UTI mappedUTI = it;
+	    if(m_state.findaUTIAlias(it, mappedUTI))
+	      {
+		std::ostringstream msg;
+		msg << "REPLACE " << prettyNodeName().c_str() << " for type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		msg << ", used with alias type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		it = mappedUTI;
+	      }
+
+	    if(!m_state.isComplete(it)) //reloads to recheck
+	      {
+		std::ostringstream msg;
+		msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		msg << ", used with constant symbol name '";
+		msg << m_state.getTokenDataAsString(m_token).c_str() << "'";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		//wait until updateConstant tried.
+	      }
 	  }
+      }
+
+    if(!isReadyConstant())
+      {
+	it = Hzy;
+	//setNodeType(Hzy); //missing
+	//m_state.setGoAgain();
+	if(!stubcopy)
+	  m_constSymbol = NULL; //lookup again too! (e.g. inherited template instances)
       }
 
     setNodeType(it);
     Node::setStoreIntoAble(TBOOL_FALSE);
 
-    if(!isReadyConstant())
-      {
-	it = Hzy;
-	setNodeType(Hzy); //missing
-	m_state.setGoAgain();
-	if(!stubcopy)
-	  m_constSymbol = NULL; //lookup again too! (e.g. inherited template instances)
-      }
-
+    if(it == Hzy)
+      m_state.setGoAgain();
     return it;
   } //checkAndLabelType
 
@@ -161,6 +166,8 @@ namespace MFM {
   {
     //in case of a cloned unknown
     NodeBlock * currBlock = getBlock();
+    setBlock(currBlock);
+
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
     Symbol * asymptr = NULL;
@@ -191,8 +198,14 @@ namespace MFM {
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
       }
     m_state.popClassContext(); //restore
+  } //checkForSymbol
 
-    if(m_constSymbol && !m_constSymbol->isDataMember() && !m_constSymbol->isLocalsFilescopeDef() && !m_constSymbol->isClassArgument() && !m_constSymbol->isClassParameter() && (m_constSymbol->getDeclNodeNo() > getNodeNo()))
+  UTI NodeConstantArray::checkUsedBeforeDeclared()
+  {
+    assert(m_constSymbol);
+    UTI rtnuti = m_constSymbol->getUlamTypeIdx();
+
+    if(!m_constSymbol->isDataMember() && !m_constSymbol->isLocalsFilescopeDef() && !m_constSymbol->isClassArgument() && !m_constSymbol->isClassParameter() && (m_constSymbol->getDeclNodeNo() > getNodeNo()))
       {
 	NodeBlock * currBlock = getBlock();
 	currBlock = currBlock->getPreviousBlockPointer();
@@ -204,20 +217,23 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    setBlockNo(currBlock->getNodeNo());
 	    m_constSymbol = NULL;
-	    return checkForSymbol();
+	    rtnuti = Hzy;
 	  }
 	else
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    m_constSymbol = NULL;
+	    rtnuti = Nav;
 	  }
       }
-  } //checkForSymbol
+    return rtnuti;
+  } //checkUsedBeforeDeclared
 
   void NodeConstantArray::setBlockNo(NNO n)
   {
     assert(n > 0);
     m_currBlockNo = n;
+    m_currBlockPtr = NULL; //not owned, just clear
   }
 
   NNO NodeConstantArray::getBlockNo() const
@@ -225,9 +241,18 @@ namespace MFM {
     return m_currBlockNo;
   }
 
+  void NodeConstantArray::setBlock(NodeBlock * ptr)
+  {
+    m_currBlockPtr = ptr;
+  }
+
   NodeBlock * NodeConstantArray::getBlock()
   {
     assert(m_currBlockNo);
+
+    if(m_currBlockPtr)
+      return m_currBlockPtr;
+
     NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClassOrLocalsScope(m_currBlockNo);
     if(!currBlock)
       {

@@ -43,14 +43,16 @@ namespace MFM {
       }
 
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
-    ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
     ULAMTYPE letyp = lut->getUlamTypeEnum();
+    ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
+
     if(!lut->isScalar())
       {
 	std::ostringstream msg;
 	msg << "Invalid lefthand type of conditional operator '" << getName();
-	msg << "'; must be a scalar, not ";
-	msg << lut->getUlamTypeNameBrief().c_str() << " array";
+	msg << "'; must be a scalar";
+	if(!m_state.isHolder(luti))
+	  msg << ", not " << lut->getUlamTypeNameBrief().c_str() << " array";
 	if(lclasstype == UC_UNSEEN || luti == Hzy)
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
@@ -65,12 +67,13 @@ namespace MFM {
 	  }
       }
 
-    if(!((m_state.isAtom(luti) || (letyp == Class))))// && lut->isScalar()))
+    if(!((m_state.isAtom(luti) || (letyp == Class))))
       {
 	std::ostringstream msg;
 	msg << "Invalid lefthand type of conditional operator '" << getName();
-	msg << "'; must be an atom or a class, not type: ";
-	msg << lut->getUlamTypeNameBrief().c_str();
+	msg << "'; must be an atom or a class";
+	if(!m_state.isHolder(luti))
+	  msg << ", not type: " << lut->getUlamTypeNameBrief().c_str();
 	if((lclasstype == UC_UNSEEN) || (luti == Hzy))
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
@@ -123,6 +126,7 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	newType = Hzy; //goagain set by nodetypedesc
       }
+
     setNodeType(newType);
     if(newType == Hzy)
       m_state.setGoAgain();

@@ -11,7 +11,7 @@
 
 namespace MFM {
 
-  NodeConstantDef::NodeConstantDef(SymbolWithValue * symptr, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_constSymbol(symptr), m_nodeExpr(NULL), m_nodeTypeDesc(nodetype), m_cid(0), m_currBlockNo(m_state.getCurrentBlockNo())
+  NodeConstantDef::NodeConstantDef(SymbolWithValue * symptr, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_constSymbol(symptr), m_nodeExpr(NULL), m_nodeTypeDesc(nodetype), m_cid(0), m_currBlockNo(m_state.getCurrentBlockNo()), m_currBlockPtr(NULL)
   {
     if(symptr)
       {
@@ -19,13 +19,11 @@ namespace MFM {
 	// (e.g. pending class args)
 	m_cid = symptr->getId();
 	symptr->setDeclNodeNo(getNodeNo());
-	//	if(nodetype)
-	//  nodetype->resetGivenUTI(symptr->getUlamTypeIdx()); //invariant?
 	assert(!nodetype || nodetype->givenUTI() == symptr->getUlamTypeIdx()); //invariant?
       }
   }
 
-  NodeConstantDef::NodeConstantDef(const NodeConstantDef& ref) : Node(ref), m_constSymbol(NULL), m_nodeExpr(NULL), m_nodeTypeDesc(NULL), m_cid(ref.m_cid), m_currBlockNo(ref.m_currBlockNo)
+  NodeConstantDef::NodeConstantDef(const NodeConstantDef& ref) : Node(ref), m_constSymbol(NULL), m_nodeExpr(NULL), m_nodeTypeDesc(NULL), m_cid(ref.m_cid), m_currBlockNo(ref.m_currBlockNo), m_currBlockPtr(NULL)
   {
     if(ref.m_nodeExpr)
       m_nodeExpr = ref.m_nodeExpr->instantiate();
@@ -198,14 +196,10 @@ namespace MFM {
 
   UTI NodeConstantDef::checkAndLabelType()
   {
-    UTI nuti = Nouti; //expression type
-    //UTI nuti = getNodeType(); //expression type
+    UTI nuti = getNodeType(); //expression type
 
-    //if(nuti == Nav)
-    //  return Nav; //short-circuit, already failed.
-
-    //if(m_state.isComplete(nuti))
-    //  return nuti;
+    if(nuti == Nav)
+      return Nav; //short-circuit, already failed.
 
     // instantiate, look up in current block
     if(m_constSymbol == NULL)
@@ -571,6 +565,8 @@ namespace MFM {
   {
     //in case of a cloned unknown
     NodeBlock * currBlock = getBlock();
+    setBlock(currBlock);
+
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
     Symbol * asymptr = NULL;
@@ -624,11 +620,21 @@ namespace MFM {
   void NodeConstantDef::setBlockNo(NNO n)
   {
     m_currBlockNo = n;
+    m_currBlockPtr = NULL;
+  }
+
+  void NodeConstantDef::setBlock(NodeBlock * ptr)
+  {
+    m_currBlockPtr = ptr;
   }
 
   NodeBlock * NodeConstantDef::getBlock()
   {
     assert(m_currBlockNo);
+
+    if(m_currBlockPtr)
+      return m_currBlockPtr;
+
     NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClassOrLocalsScope(m_currBlockNo);
 
     assert(currBlock);

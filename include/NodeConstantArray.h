@@ -101,10 +101,14 @@ namespace MFM{
 
   private:
     NNO m_currBlockNo;
+    NodeBlock * m_currBlockPtr; //could be NULL
 
     void setBlockNo(NNO n);
     NNO getBlockNo() const;
     NodeBlock * getBlock();
+    void setBlock(NodeBlock * ptr);
+
+    UTI checkUsedBeforeDeclared();
 
     UlamValue makeUlamValuePtr();
     void makeUVPassForCodeGen(UVPass& uvpass);

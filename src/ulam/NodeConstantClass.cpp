@@ -4,14 +4,14 @@
 
 namespace MFM {
 
-  NodeConstantClass::NodeConstantClass(const Token& tok, SymbolWithValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state) : Node(state), m_token(tok), m_nodeTypeDesc(typedesc), m_constSymbol(symptr), m_constType(Nouti), m_currBlockNo(0)
+  NodeConstantClass::NodeConstantClass(const Token& tok, SymbolWithValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state) : Node(state), m_token(tok), m_nodeTypeDesc(typedesc), m_constSymbol(symptr), m_constType(Nouti), m_currBlockNo(0), m_currBlockPtr(NULL)
   {
     assert(symptr);
     setBlockNo(symptr->getBlockNoOfST());
     m_constType = m_constSymbol->getUlamTypeIdx();
   }
 
-  NodeConstantClass::NodeConstantClass(const NodeConstantClass& ref) : Node(ref), m_token(ref.m_token), m_nodeTypeDesc(NULL), m_constSymbol(NULL), m_constType(ref.m_constType), m_currBlockNo(ref.m_currBlockNo)
+  NodeConstantClass::NodeConstantClass(const NodeConstantClass& ref) : Node(ref), m_token(ref.m_token), m_nodeTypeDesc(NULL), m_constSymbol(NULL), m_constType(ref.m_constType), m_currBlockNo(ref.m_currBlockNo), m_currBlockPtr(NULL)
   {
     //can we use the same address for a constant symbol?
     if(ref.m_nodeTypeDesc)
@@ -106,7 +106,9 @@ namespace MFM {
       stubcopy = m_state.hasClassAStub(m_state.getCompileThisIdx()); //includes ancestors
 
     if(m_constSymbol)
-      it = m_constSymbol->getUlamTypeIdx();
+      {
+	it = checkUsedBeforeDeclared(); //m_constSymbol->getUlamTypeIdx();
+      }
     else if(stubcopy)
       {
 	assert(m_state.okUTItoContinue(m_constType));
@@ -115,42 +117,56 @@ namespace MFM {
 	it = m_constType;
       }
 
-    // map incomplete UTI
-    if(!m_state.isComplete(it)) //reloads to recheck
+    if(m_state.okUTItoContinue(it))
       {
-	UTI mappedUTI = it;
-	if(m_state.findaUTIAlias(it, mappedUTI))
-	  {
-	    std::ostringstream msg;
-	    msg << "REPLACE " << prettyNodeName().c_str() << " for type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << ", used with alias type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    it = mappedUTI;
-	    m_constType = it; //consistency
-	    m_constSymbol->resetUlamType(it); //consistency
-	  }
-
+	// map incomplete UTI
 	if(!m_state.isComplete(it)) //reloads to recheck
 	  {
-	    std::ostringstream msg;
-	    msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << ", used with constant symbol name '";
-	    msg << m_state.getTokenDataAsString(m_token).c_str() << "'";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    //wait until updateConstant tried.
+	    UTI mappedUTI = it;
+	    if(m_state.findaUTIAlias(it, mappedUTI))
+	      {
+		std::ostringstream msg;
+		msg << "REPLACE " << prettyNodeName().c_str() << " for type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		msg << ", used with alias type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		it = mappedUTI;
+		m_constType = it; //consistency
+		m_constSymbol->resetUlamType(it); //consistency
+	      }
+
+	    if(!m_state.isComplete(it)) //reloads to recheck
+	      {
+		std::ostringstream msg;
+		msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		msg << ", used with constant symbol name '";
+		msg << m_state.getTokenDataAsString(m_token).c_str() << "'";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		//wait until updateConstant tried.
+	      }
 	  }
+      } //ok
+
+    if(!isReadyConstant())
+      {
+	//foldConstantClassNodes(); //may reset nodetype
+	//wait to refresh named constant value from constant def built after c&l
+	//t41213,4,6 and t41220,4
+	std::ostringstream msg;
+	msg << "Cannot update <" << m_state.getTokenDataAsString(m_token).c_str();
+	msg << "> class constant is not ready ";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	if(it != Nav)
+	  it = Hzy;
       }
 
     setNodeType(it);
     Node::setStoreIntoAble(TBOOL_FALSE);
 
-    if(!isReadyConstant())
-      {
-	foldConstantClassNodes(); //may reset nodetype
-      }
+    if(it==Hzy)
+      m_state.setGoAgain();
 
     return getNodeType(); //it
   } //checkAndLabelType
@@ -163,6 +179,7 @@ namespace MFM {
     if(currBlock == NULL)
       return; //no symbol
 
+    setBlock(currBlock);
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
     Symbol * asymptr = NULL;
@@ -194,7 +211,14 @@ namespace MFM {
       }
     m_state.popClassContext(); //restore
 
-    if(m_constSymbol && !m_constSymbol->isDataMember() && !m_constSymbol->isLocalsFilescopeDef() && !m_constSymbol->isClassArgument() && !m_constSymbol->isClassParameter() && (m_constSymbol->getDeclNodeNo() > getNodeNo()))
+  } //checkForSymbol
+
+  UTI NodeConstantClass::checkUsedBeforeDeclared()
+  {
+    assert(m_constSymbol);
+    UTI rtnuti = m_constSymbol->getUlamTypeIdx();
+
+    if(!m_constSymbol->isDataMember() && !m_constSymbol->isLocalsFilescopeDef() && !m_constSymbol->isClassArgument() && !m_constSymbol->isClassParameter() && (m_constSymbol->getDeclNodeNo() > getNodeNo()))
       {
 	NodeBlock * currBlock = getBlock();
 	currBlock = currBlock->getPreviousBlockPointer();
@@ -206,15 +230,18 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    setBlockNo(currBlock->getNodeNo());
 	    m_constSymbol = NULL;
-	    return checkForSymbol();
+	    rtnuti = Hzy;
 	  }
 	else
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    m_constSymbol = NULL;
+	    setBlock(NULL);
+	    rtnuti = Nav;
 	  }
       }
-  } //checkForSymbol
+    return rtnuti;
+  } //checkUsedBeforeDeclared
 
   void NodeConstantClass::setupBlockNo()
   {
@@ -236,6 +263,7 @@ namespace MFM {
   {
     assert(n > 0);
     m_currBlockNo = n;
+    m_currBlockPtr = NULL; //not owned, just clear
   }
 
   NNO NodeConstantClass::getBlockNo() const
@@ -243,9 +271,18 @@ namespace MFM {
     return m_currBlockNo;
   }
 
+  void NodeConstantClass::setBlock(NodeBlock * ptr)
+  {
+    m_currBlockPtr = ptr;
+  }
+
   NodeBlock * NodeConstantClass::getBlock()
   {
     assert(m_currBlockNo);
+
+    if(m_currBlockPtr)
+      return m_currBlockPtr;
+
     NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClassOrLocalsScope(m_currBlockNo);
     if(!currBlock)
       {
@@ -304,56 +341,8 @@ namespace MFM {
 
   bool NodeConstantClass::getClassValue(BV8K& bvtmp)
   {
-    bool brtn = false;
-
-    if(foldConstantClassNodes())
-      {
-	brtn = m_constSymbol->getValue(bvtmp);
-      }
-    return brtn;
+    return m_constSymbol->getValue(bvtmp);
   }
-
-  bool NodeConstantClass::foldConstantClassNodes()
-  {
-    assert(m_constSymbol);
-    if(isReadyConstant())
-      return true; //t41209
-
-    //refresh named constant value from constant def built after c&l
-    //t41213,4,6 and t41220,4
-    SymbolWithValue * savecsym = m_constSymbol;
-    m_constSymbol = NULL;
-    checkForSymbol();
-    if(m_constSymbol == NULL)
-      {
-	//try using current block, may be different than original symbol WHY?
-	m_currBlockNo = 0; //cant use setBlockNo
-	checkForSymbol();
-      }
-
-    if(m_constSymbol)
-      {
-	if(isReadyConstant())
-	  return true;
-
-	std::ostringstream msg;
-	msg << "Cannot update <" << m_state.getTokenDataAsString(m_token).c_str();
-	msg << "> class constant is not ready ";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	setNodeType(Hzy);
-	m_state.setGoAgain();
-      }
-    else
-      {
-	std::ostringstream msg;
-	msg << "Cannot find <" << m_state.getTokenDataAsString(m_token).c_str();
-	msg << "> class constant symbol ";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setNodeType(Nav);
-	m_constSymbol = savecsym; // restore
-      }
-    return false;
-  } //foldConstantClassNodes
 
   EvalStatus NodeConstantClass::eval()
   {
@@ -416,9 +405,6 @@ namespace MFM {
 
   void NodeConstantClass::genCode(File * fp, UVPass& uvpass)
   {
-    AssertBool folded = foldConstantClassNodes(); //refreshes symbol from updated ConstantDef
-    assert(folded);
-
     //return the ptr for an class; square bracket will resolve down to the immediate data
     makeUVPassForCodeGen(uvpass);
 
@@ -430,9 +416,6 @@ namespace MFM {
 
   void NodeConstantClass::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
-    AssertBool folded = foldConstantClassNodes(); //refreshes symbol from updated ConstantDef
-    assert(folded);
-
     assert(isReadyConstant()); //must be
     makeUVPassForCodeGen(uvpass);
 

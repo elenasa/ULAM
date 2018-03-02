@@ -183,8 +183,6 @@ namespace MFM{
 
     virtual bool buildDefaultValueForClassConstantDefs();
 
-    virtual bool foldConstantClassNodes();
-
     virtual bool initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask);
 
     virtual void genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos);

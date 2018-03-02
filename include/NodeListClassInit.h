@@ -83,8 +83,6 @@ namespace MFM{
 
     virtual UTI constantFold();
 
-    //    virtual bool foldConstantClassNodes();
-
     virtual void genCode(File * fp, UVPass& uvpass);
 
     void genCode(File * fp, UVPass& uvpass, u32 n);

@@ -72,10 +72,6 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    NNO getBlockNo();
-
-    NodeBlock * getBlock();
-
     virtual TBOOL packBitsInOrderOfDeclaration(u32& offset);
 
     virtual void printUnresolvedVariableDataMembers();
@@ -115,7 +111,13 @@ namespace MFM{
     SymbolTypedef * m_typedefSymbol;
     u32 m_tdid; //to instantiate
     NNO m_currBlockNo;
+    NodeBlock * m_currBlockPtr;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
+
+    NNO getBlockNo();
+    void setBlock(NodeBlock * ptr);
+    NodeBlock * getBlock();
+
   };
 
 }

@@ -15,14 +15,14 @@
 
 namespace MFM {
 
-  NodeIdent::NodeIdent(const Token& tok, SymbolVariable * symptr, CompilerState & state) : Node(state), m_token(tok), m_varSymbol(symptr), m_currBlockNo(0)
+  NodeIdent::NodeIdent(const Token& tok, SymbolVariable * symptr, CompilerState & state) : Node(state), m_token(tok), m_varSymbol(symptr), m_currBlockNo(0), m_currBlockPtr(NULL)
   {
     if(symptr)
       setBlockNo(symptr->getBlockNoOfST());
     Node::setStoreIntoAble(TBOOL_HAZY);
   }
 
-  NodeIdent::NodeIdent(const NodeIdent& ref) : Node(ref), m_token(ref.m_token), m_varSymbol(NULL), m_currBlockNo(ref.m_currBlockNo) {}
+  NodeIdent::NodeIdent(const NodeIdent& ref) : Node(ref), m_token(ref.m_token), m_varSymbol(NULL), m_currBlockNo(ref.m_currBlockNo), m_currBlockPtr(NULL) {}
 
   NodeIdent::~NodeIdent(){}
 
@@ -133,6 +133,7 @@ namespace MFM {
   {
     assert(n > 0);
     m_currBlockNo = n;
+    m_currBlockPtr = NULL; //not owned, just clear
   }
 
   NNO NodeIdent::getBlockNo() const
@@ -140,9 +141,18 @@ namespace MFM {
     return m_currBlockNo;
   }
 
+  void NodeIdent::setBlock(NodeBlock * ptr)
+  {
+    m_currBlockPtr = ptr;
+  }
+
   NodeBlock * NodeIdent::getBlock()
   {
     assert(m_currBlockNo);
+
+    if(m_currBlockPtr)
+      return m_currBlockPtr;
+
     //case where the typebitsize is an expression in a stub; trying to resolve pending arg;
     // context is location of stub useage; use this version of findNodeNo that checks
     // m_pendingArgStubContext and starts the search there if so (t3626);
@@ -201,6 +211,8 @@ namespace MFM {
       {
 	UTI cuti = m_state.getCompileThisIdx(); //for error messages
 	NodeBlock * currBlock = getBlock();
+	setBlock(currBlock);
+
 	if(m_state.useMemberBlock())
 	  {
 	    m_state.pushCurrentBlock(currBlock); //e.g. memberselect needed for already defined
@@ -220,6 +232,7 @@ namespace MFM {
 		//assert(asymptr->getBlockNoOfST() == m_currBlockNo); not necessarily true
 		// e.g. var used before defined, and then is a data member outside current func block.
 		setBlockNo(asymptr->getBlockNoOfST()); //refined
+		setBlock(currBlock);
 	      }
 	    else if(asymptr->isConstant())
 	      {
@@ -377,8 +390,21 @@ namespace MFM {
 	  }
       }
 
+    if(m_state.okUTItoContinue(it) && m_varSymbol)
+      it = checkUsedBeforeDeclared();
 
-    if(m_varSymbol && !m_varSymbol->isDataMember() && (((SymbolVariableStack *) m_varSymbol)->getDeclNodeNo() > getNodeNo()))
+    setNodeType(it);
+    if(it == Hzy)
+      m_state.setGoAgain();
+    return it;
+  } //checkAndLabelType
+
+  UTI NodeIdent::checkUsedBeforeDeclared()
+  {
+    assert(m_varSymbol);
+    UTI rtnuti = m_varSymbol->getUlamTypeIdx();
+
+    if(!m_varSymbol->isDataMember() && (((SymbolVariableStack *) m_varSymbol)->getDeclNodeNo() > getNodeNo()))
       {
 	NodeBlock * currBlock = getBlock();
 	currBlock = currBlock->getPreviousBlockPointer();
@@ -390,20 +416,16 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    setBlockNo(currBlock->getNodeNo());
 	    m_varSymbol = NULL; //t3881, t3306, t3323
-	    it = Hzy;
+	    rtnuti = Hzy;
 	  }
 	else
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    it = Nav; //error/t3797
+	    rtnuti = Nav; //error/t3797
 	  }
       }
-
-    setNodeType(it);
-    if(it == Hzy)
-      m_state.setGoAgain();
-    return it;
-  } //checkAndLabelType
+    return rtnuti;
+  } //checkUsedBeforeDeclared
 
   bool NodeIdent::trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr)
   {

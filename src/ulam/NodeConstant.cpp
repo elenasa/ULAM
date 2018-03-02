@@ -7,18 +7,18 @@
 
 namespace MFM {
 
-  NodeConstant::NodeConstant(const Token& tok, SymbolWithValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state) : NodeTerminal(state), m_token(tok), m_nodeTypeDesc(typedesc), m_constSymbol(symptr), m_ready(false), m_constType(Nouti), m_currBlockNo(0)
+  NodeConstant::NodeConstant(const Token& tok, SymbolWithValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state) : NodeTerminal(state), m_token(tok), m_nodeTypeDesc(typedesc), m_constSymbol(symptr), m_ready(false), m_constType(Nouti), m_currBlockNo(0), m_currBlockPtr(NULL)
   {
-    //assert(symptr); //t41148
     if(symptr)
       {
 	setBlockNo(symptr->getBlockNoOfST());
 	m_ready = updateConstant(); //sets ready here
 	m_constType = m_constSymbol->getUlamTypeIdx();
       }
+    //else t41148
   }
 
-  NodeConstant::NodeConstant(const NodeConstant& ref) : NodeTerminal(ref), m_token(ref.m_token), m_nodeTypeDesc(NULL), m_constSymbol(NULL), m_ready(false), m_constType(ref.m_constType), m_currBlockNo(ref.m_currBlockNo)
+  NodeConstant::NodeConstant(const NodeConstant& ref) : NodeTerminal(ref), m_token(ref.m_token), m_nodeTypeDesc(NULL), m_constSymbol(NULL), m_ready(false), m_constType(ref.m_constType), m_currBlockNo(ref.m_currBlockNo), m_currBlockPtr(NULL)
   {
     if(ref.m_nodeTypeDesc)
       m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
@@ -171,7 +171,7 @@ namespace MFM {
 
     if(m_constSymbol)
       {
-	it = m_constSymbol->getUlamTypeIdx();
+	it = checkUsedBeforeDeclared(); //m_constSymbol->getUlamTypeIdx();
       }
     else if(isReadyConstant() && stubcopy)
       {
@@ -186,37 +186,36 @@ namespace MFM {
 	// use the member class (unlike checkForSymbol)
       }
 
-    // map incomplete UTI
-    if(!m_state.isComplete(it)) //reloads to recheck
+    if(m_state.okUTItoContinue(it))
       {
-	UTI mappedUTI = it;
-	if(m_state.findaUTIAlias(it, mappedUTI))
-	  {
-	    std::ostringstream msg;
-	    msg << "REPLACE " << prettyNodeName().c_str() << " for type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << ", used with alias type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    it = mappedUTI;
-	  }
-
+	// map incomplete UTI
 	if(!m_state.isComplete(it)) //reloads to recheck
 	  {
-	    std::ostringstream msg;
-	    msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << ", used with constant symbol name '";
-	    msg << m_state.getTokenDataAsString(m_token).c_str() << "'";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    //wait until updateConstant tried.
+	    UTI mappedUTI = it;
+	    if(m_state.findaUTIAlias(it, mappedUTI))
+	      {
+		std::ostringstream msg;
+		msg << "REPLACE " << prettyNodeName().c_str() << " for type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		msg << ", used with alias type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		it = mappedUTI;
+	      }
+
+	    if(!m_state.isComplete(it)) //reloads to recheck
+	      {
+		std::ostringstream msg;
+		msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		msg << ", used with constant symbol name '";
+		msg << m_state.getTokenDataAsString(m_token).c_str() << "'";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+		//wait until updateConstant tried.
+	      }
 	  }
+	assert(m_state.isScalar(it));
       }
-
-    setNodeType(it);
-    Node::setStoreIntoAble(TBOOL_FALSE);
-
-    assert(m_state.isScalar(it));
 
     //copy m_constant from Symbol into NodeTerminal parent.
     if(!isReadyConstant())
@@ -224,10 +223,17 @@ namespace MFM {
     if(!isReadyConstant())
       {
 	it = Hzy;
-	setNodeType(it); //missing
+	//setNodeType(it); //missing
 	if(!stubcopy)
-	  m_constSymbol = NULL; //lookup again too! (e.g. inherited template instances)
+	  {
+	    m_constSymbol = NULL; //lookup again too! (e.g. inherited template instances)
+	    setBlock(NULL);
+	  }
       }
+
+    setNodeType(it);
+    Node::setStoreIntoAble(TBOOL_FALSE);
+
     if(getNodeType() == Hzy)
       m_state.setGoAgain();
     return getNodeType(); //it; just to be sure..
@@ -237,6 +243,8 @@ namespace MFM {
   {
     //in case of a cloned unknown
     NodeBlock * currBlock = getBlock();
+    setBlock(currBlock);
+
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
     Symbol * asymptr = NULL;
@@ -274,10 +282,16 @@ namespace MFM {
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
       }
     m_state.popClassContext(); //restore
+  } //checkForSymbol
 
-    if(m_constSymbol && !m_constSymbol->isDataMember() && !m_constSymbol->isLocalsFilescopeDef() && !m_constSymbol->isClassArgument() && !m_constSymbol->isClassParameter() && (m_constSymbol->getDeclNodeNo() > getNodeNo()))
+  UTI NodeConstant::checkUsedBeforeDeclared()
+  {
+    assert(m_constSymbol);
+    UTI rtnuti = m_constSymbol->getUlamTypeIdx();
+
+    if(!m_constSymbol->isDataMember() && !m_constSymbol->isLocalsFilescopeDef() && !m_constSymbol->isClassArgument() && !m_constSymbol->isClassParameter() && (m_constSymbol->getDeclNodeNo() > getNodeNo()))
       {
-	//NodeBlock * currBlock = getBlock();
+	NodeBlock * currBlock = getBlock();
 	NodeBlock * pcurrBlock = currBlock->getPreviousBlockPointer();
 	std::ostringstream msg;
 	msg << "Named constant '" << getName();
@@ -287,16 +301,19 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	    setBlockNo(pcurrBlock->getNodeNo());
 	    m_constSymbol = NULL; //t3323
-	    return checkForSymbol();
+	    rtnuti = Hzy;
 	  }
 	else
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    m_constSymbol = NULL;
+	    setBlock(NULL);
+	    rtnuti = Nav;
 	  }
       }
     //else t41215 (e.g. class parameter)
-  } //checkForSymbol
+    return rtnuti;
+  } //checkUsedBeforeDeclared
 
   //borrowed from NodeIdent
   void NodeConstant::setupBlockNo()
@@ -338,6 +355,7 @@ namespace MFM {
   {
     assert(n > 0);
     m_currBlockNo = n;
+    m_currBlockPtr = NULL; //not owned, just clear
   }
 
   NNO NodeConstant::getBlockNo() const
@@ -345,9 +363,17 @@ namespace MFM {
     return m_currBlockNo;
   }
 
+  void NodeConstant::setBlock(NodeBlock * ptr)
+  {
+    m_currBlockPtr = ptr;
+  }
+
   NodeBlock * NodeConstant::getBlock()
   {
     assert(m_currBlockNo);
+    if(m_currBlockPtr)
+      return m_currBlockPtr;
+
     NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClassOrLocalsScope(m_currBlockNo); //t3328, t3329, t3330, t3332 (not using StubFirst version)
     if(!currBlock)
       {

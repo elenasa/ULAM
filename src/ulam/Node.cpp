@@ -451,15 +451,6 @@ namespace MFM {
     return false;
   }
 
-  bool Node::foldConstantClassNodes()
-  {
-    std::ostringstream msg;
-    msg << "virtual bool " << prettyNodeName().c_str();
-    msg << "::foldConstantClassNodes(){} is needed!!";
-    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-    return false;
-  }
-
   bool Node::initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask)
   {
     m_state.abortShouldntGetHere(); //only for NodeListClassInit, NodeListArrayIniti (t41185)

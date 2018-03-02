@@ -99,10 +99,15 @@ namespace MFM{
 
     void setBlockNo(NNO n);
     NNO getBlockNo() const;
+
+    void setBlock(NodeBlock * ptr);
     NodeBlock * getBlock();
 
   private:
     NNO m_currBlockNo;
+    NodeBlock * m_currBlockPtr; //could be NULL
+
+    UTI checkUsedBeforeDeclared();
 
   };
 

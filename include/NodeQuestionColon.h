@@ -76,8 +76,6 @@ namespace MFM{
 
     virtual bool isAConstant();
 
-    //    virtual bool foldConstantClassNodes();
-
     virtual UTI checkAndLabelType();
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);

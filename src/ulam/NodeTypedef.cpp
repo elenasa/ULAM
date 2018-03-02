@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-  NodeTypedef::NodeTypedef(SymbolTypedef * sym, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_typedefSymbol(sym), m_tdid(0), m_currBlockNo(0), m_nodeTypeDesc(nodetype)
+  NodeTypedef::NodeTypedef(SymbolTypedef * sym, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_typedefSymbol(sym), m_tdid(0), m_currBlockNo(0), m_currBlockPtr(NULL), m_nodeTypeDesc(nodetype)
   {
     if(sym)
       {
@@ -14,7 +14,7 @@ namespace MFM {
       }
   }
 
-  NodeTypedef::NodeTypedef(const NodeTypedef& ref) : Node(ref), m_typedefSymbol(NULL), m_tdid(ref.m_tdid), m_currBlockNo(ref.m_currBlockNo), m_nodeTypeDesc(NULL)
+  NodeTypedef::NodeTypedef(const NodeTypedef& ref) : Node(ref), m_typedefSymbol(NULL), m_tdid(ref.m_tdid), m_currBlockNo(ref.m_currBlockNo), m_currBlockPtr(NULL), m_nodeTypeDesc(NULL)
   {
     if(ref.m_nodeTypeDesc)
       m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
@@ -189,6 +189,8 @@ namespace MFM {
   {
     //in case of a cloned unknown
     NodeBlock * currBlock = getBlock();
+    setBlock(currBlock);
+
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
     Symbol * asymptr = NULL;
@@ -225,9 +227,17 @@ namespace MFM {
     return m_currBlockNo;
   }
 
+  void NodeTypedef::setBlock(NodeBlock * ptr)
+  {
+    m_currBlockPtr = ptr;
+  }
+
   NodeBlock * NodeTypedef::getBlock()
   {
     assert(m_currBlockNo);
+    if(m_currBlockPtr)
+      return m_currBlockPtr;
+
     NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClassOrLocalsScope(m_currBlockNo);
     assert(currBlock);
     return currBlock;
