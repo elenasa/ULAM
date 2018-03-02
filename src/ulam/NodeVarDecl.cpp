@@ -668,7 +668,7 @@ namespace MFM {
   NodeBlock * NodeVarDecl::getBlock()
   {
     assert(m_currBlockNo);
-    NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
+    NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClassOrLocalsScope(m_currBlockNo);
     assert(currBlock);
     return currBlock;
   }

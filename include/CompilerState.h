@@ -501,7 +501,7 @@ namespace MFM{
     /** to identify each node */
     NNO getNextNodeNo();
 
-    Node * findNodeNoInThisClass(NNO n);
+    Node * findNodeNoInThisClassOrLocalsScope(NNO n);
     Node * findNodeNoInAncestorClassOrLocalsScope(NNO n, UTI cuti);
     Node * findNodeNoInThisClassForParent(NNO n);
     Node * findNodeNoInThisClassStubFirst(NNO n);

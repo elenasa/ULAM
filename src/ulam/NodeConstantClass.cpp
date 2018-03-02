@@ -75,7 +75,6 @@ namespace MFM {
 
   bool NodeConstantClass::isReadyConstant()
   {
-    //return m_constSymbol && m_constSymbol->isReady(); //m_ready;
     return m_constSymbol && (m_constSymbol->isReady() || m_constSymbol->isInitValueReady()); //t41209
   }
 
@@ -247,7 +246,7 @@ namespace MFM {
   NodeBlock * NodeConstantClass::getBlock()
   {
     assert(m_currBlockNo);
-    NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
+    NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClassOrLocalsScope(m_currBlockNo);
     if(!currBlock)
       {
 	UTI anotherclassuti = m_state.findAClassByNodeNo(m_currBlockNo);
@@ -321,6 +320,7 @@ namespace MFM {
       return true; //t41209
 
     //refresh named constant value from constant def built after c&l
+    //t41213,4,6 and t41220,4
     SymbolWithValue * savecsym = m_constSymbol;
     m_constSymbol = NULL;
     checkForSymbol();

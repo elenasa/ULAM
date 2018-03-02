@@ -419,7 +419,7 @@ namespace MFM{
     // as tmpvar in uvpass
     // need parent (NodeVarDecl/NodeConstantDef) to get initialized value (BV8K)
     NNO pno = Node::getYourParentNo();
-    Node * parentNode = m_state.findNodeNoInThisClass(pno); //also checks localsfilescope
+    Node * parentNode = m_state.findNodeNoInThisClassOrLocalsScope(pno); //also checks localsfilescope
     assert(parentNode);
 
     SymbolWithValue * vsym = NULL;

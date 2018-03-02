@@ -4249,7 +4249,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return ++m_nextNodeNumber; //first one is 1
   }
 
-  Node * CompilerState::findNodeNoInThisClass(NNO n)
+  Node * CompilerState::findNodeNoInThisClassOrLocalsScope(NNO n)
   {
     if(useMemberBlock())
       {
@@ -4328,7 +4328,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       }
 
     if(!rtnNode)
-      rtnNode = findNodeNoInThisClass(n);
+      rtnNode = findNodeNoInThisClassOrLocalsScope(n);
     if(!rtnNode)
       {
 	//exhaustive search as last resort
