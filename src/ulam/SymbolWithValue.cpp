@@ -627,6 +627,7 @@ namespace MFM {
       case Unary:
       case Bool:
       case Bits:
+      case Class:
 	{
 	  ostr << "0x" << std::hex << varg;
 	}
@@ -640,7 +641,7 @@ namespace MFM {
 	}
 	break;
       default:
-	state.abortUndefinedUlamPrimitiveType();
+	state.abortUndefinedUlamType();
       };
     vstr = ostr.str();
     return true;

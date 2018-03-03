@@ -83,6 +83,8 @@ namespace MFM{
 
     bool getClassValue(BV8K& bvtmp);
 
+    virtual bool initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask);
+
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();

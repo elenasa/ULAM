@@ -441,19 +441,29 @@ namespace MFM {
 
   bool Node::buildDefaultValue(u32 wlen, BV8K& dvref)
   {
-    m_state.abortShouldntGetHere();
+    std::ostringstream msg;
+    msg << "virtual bool " << prettyNodeName().c_str();
+    msg << "::buildDefaultValue(u32 wlen, BV8K& dvref){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
     return false;
   }
 
   bool Node::buildDefaultValueForClassConstantDefs()
   {
-    m_state.abortShouldntGetHere();
+    std::ostringstream msg;
+    msg << "virtual bool " << prettyNodeName().c_str();
+    msg << "::buildDefaultValueForClassConstantDefs(){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
     return false;
   }
 
   bool Node::initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask)
   {
-    m_state.abortShouldntGetHere(); //only for NodeListClassInit, NodeListArrayIniti (t41185)
+    std::ostringstream msg;
+    msg << "virtual bool " << prettyNodeName().c_str();
+    msg << "::initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+    //m_state.abortShouldntGetHere(); //only for NodeListClassInit, NodeListArrayIniti (t41185)
     return false; //for compiler
   }
 
@@ -795,7 +805,8 @@ namespace MFM {
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     TMPSTORAGE cstor = cosut->getTmpStorageTypeForTmpVar();
-    u32 coslen = cosut->getTotalBitSize();
+    //u32 coslen = cosut->getTotalBitSize();
+    u32 coslen = cosut->getSizeofUlamType(); //t41230
     //what if coslen is zero?
     u32 cospos = 0;
 
@@ -829,7 +840,7 @@ namespace MFM {
       {
 	BV8K bvtmp;
 	bvclass.CopyBV<8192>(cospos, 0, coslen, bvtmp);
-	notZero = SymbolWithValue::getHexValueAsString(coslen, bvtmp, ccstr);
+	notZero = SymbolWithValue::getHexValueAsString(coslen, bvtmp, ccstr); //t41230
       }
 
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
