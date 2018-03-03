@@ -4273,7 +4273,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return rtnNode;
   } //findNodeNoInThisClass
 
-  Node * CompilerState::findNodeNoInAncestorClassOrLocalsScope(NNO n, UTI cuti)
+  Node * CompilerState::findNodeNoInAncestorsClassOrLocalsScope(NNO n, UTI cuti)
   {
     Node * rtnNode = NULL;
     UTI superuti = isClassASubclass(cuti);
@@ -4282,7 +4282,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	SymbolClassName * supcnsym = NULL;
 	AssertBool isDefined = alreadyDefinedSymbolClassNameByUTI(superuti, supcnsym);
 	assert(isDefined);
-	rtnNode = supcnsym->findNodeNoInAClassInstance(superuti, n);
+	rtnNode = supcnsym->findNodeNoInAClassInstance(superuti, n); //includes complete ancestors
 	//local def, using (possible) template's local scope
 	if(!rtnNode)
 	  rtnNode = findNodeNoInALocalsScope(supcnsym->getLoc(), n);
@@ -4290,11 +4290,11 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	if(!rtnNode)
 	  {
 	    if(isClassASubclass(superuti))
-	      rtnNode = findNodeNoInAncestorClassOrLocalsScope(n, superuti); //recurse
+	      rtnNode = findNodeNoInAncestorsClassOrLocalsScope(n, superuti); //recurse
 	  }
       }
     return rtnNode;
-  } //findNodeNoInAncestorClass
+  } //findNodeNoInAncestorsClassOrLocalsScope
 
   Node * CompilerState::findNodeNoInThisClassForParent(NNO n)
   {
@@ -4310,20 +4310,20 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     UTI stubuti = m_pendingArgStubContext;
     if(stubuti != Nouti)
       {
-	rtnNode = findNodeNoInAClassOrLocalsScope(n, stubuti);
+	rtnNode = findNodeNoInAClassOrLocalsScope(n, stubuti); //may not include ancestors, if not complete (t41225,8)
 	if(!rtnNode)
-	  rtnNode = findNodeNoInAncestorClassOrLocalsScope(n, stubuti);
+	  rtnNode = findNodeNoInAncestorsClassOrLocalsScope(n, stubuti);
       }
 
     //Next, try stub's context for Arg Types..(t41214)
     if(!rtnNode)
       {
 	UTI typestubuti = m_pendingArgTypeStubContext;
-	if(typestubuti != stubuti)
+	if((typestubuti != Nouti) && (typestubuti != stubuti))
 	  {
 	    rtnNode = findNodeNoInAClassOrLocalsScope(n, typestubuti);
 	    if(!rtnNode)
-	      rtnNode = findNodeNoInAncestorClassOrLocalsScope(n, typestubuti);
+	      rtnNode = findNodeNoInAncestorsClassOrLocalsScope(n, typestubuti);
 	  }
       }
 
@@ -4362,12 +4362,12 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     SymbolClassName * cnsym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClassNameByUTI(cuti, cnsym);
     assert(isDefined);
-    rtnNode = cnsym->findNodeNoInAClassInstance(cuti, n);
+    rtnNode = cnsym->findNodeNoInAClassInstance(cuti, n); //includes ancestor when complete
 
     //check local scope automatically, e.g. in case of superclass;
-    //using possible template's local scope
+    //using possible template's local scope, not use-scope
     if(!rtnNode)
-      rtnNode = findNodeNoInALocalsScope(cnsym->getLoc(), n);
+      rtnNode = findNodeNoInALocalsScope(cnsym->getLoc(), n); //not ancestor's locals scopes
 
     return rtnNode;
   } //findNodeNoInAClassOrLocalFilescope
@@ -4403,6 +4403,28 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       localsblock->findNodeNo(n, rtnNode);
     return rtnNode;
   }
+
+  Node * CompilerState::findNodeNoInAncestorsLocalsScope(NNO n, UTI cuti)
+  {
+    Node * rtnNode = NULL;
+    UTI superuti = isClassASubclass(cuti);
+    if(okUTItoContinue(superuti))
+      {
+	SymbolClassName * supcnsym = NULL;
+	AssertBool isDefined = alreadyDefinedSymbolClassNameByUTI(superuti, supcnsym);
+	assert(isDefined);
+	//local def, using (possible) template's local scope
+	if(!rtnNode)
+	  rtnNode = findNodeNoInALocalsScope(supcnsym->getLoc(), n);
+
+	if(!rtnNode)
+	  {
+	    if(isClassASubclass(superuti))
+	      rtnNode = findNodeNoInAncestorsLocalsScope(n, superuti); //recurse
+	  }
+      }
+    return rtnNode;
+  } //findNodeNoInAncestorsLocalsScope
 
   NodeBlockClass * CompilerState::getAClassBlock(UTI cuti)
   {

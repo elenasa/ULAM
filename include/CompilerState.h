@@ -502,7 +502,7 @@ namespace MFM{
     NNO getNextNodeNo();
 
     Node * findNodeNoInThisClassOrLocalsScope(NNO n);
-    Node * findNodeNoInAncestorClassOrLocalsScope(NNO n, UTI cuti);
+    Node * findNodeNoInAncestorsClassOrLocalsScope(NNO n, UTI cuti);
     Node * findNodeNoInThisClassForParent(NNO n);
     Node * findNodeNoInThisClassStubFirst(NNO n);
     Node * findNodeNoInAClass(NNO n, UTI cuti);
@@ -510,6 +510,7 @@ namespace MFM{
     UTI findAClassByNodeNo(NNO n);
     NodeBlockLocals * findALocalsScopeByNodeNo(NNO n);
     Node * findNodeNoInALocalsScope(Locator loc, NNO n);
+    Node * findNodeNoInAncestorsLocalsScope(NNO n, UTI cuti);
 
     NodeBlockClass * getAClassBlock(UTI cuti);
     NNO getAClassBlockNo(UTI cuti);

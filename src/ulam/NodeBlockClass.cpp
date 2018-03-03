@@ -88,7 +88,6 @@ namespace MFM {
 	NodeBlockClass * superblock = getSuperBlockPointer();
 	//e.g. not a stub, yet not complete because its superclass is a stub! (ish 06222016)
 	// or is a stub! (t3887), or just incomplete (t41012)
-	//assert(superblock || m_state.hasClassAStub(superuti) || m_state.isClassAStub(cuti));
 	if(superblock && superblock->findNodeNo(n, foundNode))
 	  return true;
       }
