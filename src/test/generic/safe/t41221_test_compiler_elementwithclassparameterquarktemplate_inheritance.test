@@ -4,13 +4,12 @@
 ##  gen output: (+ interleaved asserts)
 ##   Int(4) : 2
 ##   true
-##   Int(4) : 3
-##   false
+##   Int(4) : 2
+##   true
 ##
-## FAILED: ILLEGAL_ARGUMENT
 #!
 Exit status: 2
-Ue_T { Int(32) test() {  System sys;  E(true) et;  sys ( et 2 . )print . sys ( et 2 . 2 cast == )assert . sys ( et b . cast )print . sys ( et b . )assert . E(false) ef;  sys ( ef 2 . )print . sys ( ef 2 . 3 cast == )assert . sys ( ef b . cast )print . sys ( ef b . ! )assert . et 2 . cast return } }
+Ue_T { Int(32) test() {  System sys;  E(true) et;  sys ( et 2 . )print . sys ( et 2 . 2 cast == )assert . sys ( et b . cast )print . sys ( et b . )assert . E(false) ef;  sys ( ef 2 . )print . sys ( ef 2 . 2 cast == )assert . sys ( ef b . cast )print . sys ( ef b . )assert . et 2 . cast return } }
 Uq_System { <NOMAIN> }
 Ue_E(Bool(1) bp) : S(bp) { /* empty class block */ }
 Uq_S(Bool(1) bp) : Q(flag) { :< Bool(1) b(notready);  Int(4) i(0); > constant Int(UNKNOWN) csi = bp ?  CONSTANT? :  CONSTANT?;  <NOMAIN> }
@@ -37,9 +36,9 @@ element T{
     //second test just to make sure
     E(false) ef;
     sys.print(ef.csi);
-    sys.assert(ef.csi == 3);
+    sys.assert(ef.csi == 2);
     sys.print(ef.b);
-    sys.assert(!ef.b); //false
+    sys.assert(ef.b); //true
 
     return et.csi; //2
   }
