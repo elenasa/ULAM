@@ -1,10 +1,9 @@
 ## -*- mode:ulam -*-
 #=t41230_test_compiler_elementconstant_assignment
 ##
-##  gen output: (+ interleaved asserts)
-##   true
+##  gen output: (+ 2 asserts)
+##   Int Arg: 99
 ##
-## FAILED: ILLEGAL_ARGUMENT
 #!
 Exit status: 96
 Ue_T { Bool(1) m_sp(false);  Int(32) m_i(0);  <NOMAIN> }
