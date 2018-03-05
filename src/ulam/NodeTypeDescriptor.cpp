@@ -247,14 +247,46 @@ namespace MFM {
       {
 	rtnb = resolveClassType(nuti);
       }
-    else if((etyp == Holder) && !m_state.isThisLocalsFileScope())
+    //else if((etyp == Holder) && !m_state.isThisLocalsFileScope())
+    else if((etyp == Holder))
       {
-	//non-class reference, handled in resolveReferenceType
-	if(getReferenceType() == ALT_NOT)
+	if(!m_state.isThisLocalsFileScope())
 	  {
-	    // non-class, non-ref, non-localdef scope
-	    if(!(rtnb = m_state.statusUnknownTypeInThisClassResolver(nuti)))
-	      nuti = Hzy;
+	    //non-class reference, handled in resolveReferenceType
+	    if(getReferenceType() == ALT_NOT)
+	      {
+		// non-class, non-ref, non-localdef scope
+		if(!(rtnb = m_state.statusUnknownTypeInThisClassResolver(nuti)))
+		  nuti = Hzy;
+	      }
+	  }
+	else
+	  {
+	    //islocalsscope t41232
+	    SymbolClassName * cnsym = NULL;
+	    if((rtnb = m_state.alreadyDefinedSymbolClassName(m_typeTok.m_dataindex, cnsym)))
+	      {
+		UTI kuti = Nav;
+		if(cnsym->isClassTemplate())
+		  {
+		    SymbolClass * csym = NULL;
+		    if(m_state.alreadyDefinedSymbolClass(nuti, csym))
+		      kuti = csym->getUlamTypeIdx(); //perhaps an alias
+		    else
+		      {
+			std::ostringstream msg;
+			msg << "Class with parameters seen with the same name: ";
+			msg << m_state.m_pool.getDataAsString(cnsym->getId()).c_str();
+			MSG(&m_typeTok, msg.str().c_str(), ERR); //No corresponding Nav Node for this ERR (e.g. error/t3644)
+			nuti = Nav; //fails cleanup
+			rtnb = false;
+		      }
+		  }
+		else
+		  kuti = cnsym->getUlamTypeIdx();
+		m_state.cleanupExistingHolder(nuti, kuti);
+		nuti = kuti;
+	      }
 	  }
       }
     else

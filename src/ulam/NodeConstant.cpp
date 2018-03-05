@@ -87,6 +87,11 @@ namespace MFM {
     return m_ready;
   }
 
+  void NodeConstant::setClassType(UTI cuti)
+  {
+    //noop - before surgery
+  }
+
   FORECAST NodeConstant::safeToCastTo(UTI newType)
   {
     if(isReadyConstant())

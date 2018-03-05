@@ -122,8 +122,11 @@ namespace MFM {
 
   void Node::setClassType(UTI cuti)
   {
-    m_state.abortShouldntGetHere();
-    return; //noop for all except NodeListClassInit
+    std::ostringstream msg;
+    msg << "virtual void " << prettyNodeName().c_str();
+    msg << "::setClassType(UTI cuti){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+    return; //noop for all except NodeInitDM
   }
 
   bool Node::isClassInit()
@@ -224,6 +227,11 @@ namespace MFM {
   }
 
   bool Node::isAConstant()
+  {
+    return false;
+  }
+
+  bool Node::isAConstantClass()
   {
     return false;
   }
@@ -805,7 +813,6 @@ namespace MFM {
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     TMPSTORAGE cstor = cosut->getTmpStorageTypeForTmpVar();
-    //u32 coslen = cosut->getTotalBitSize();
     u32 coslen = cosut->getSizeofUlamType(); //96 for elements (t41230)
     //what if coslen is zero?
     u32 cospos = 0;

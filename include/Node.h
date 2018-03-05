@@ -149,6 +149,8 @@ namespace MFM{
 
     virtual bool isAConstant();
 
+    virtual bool isAConstantClass();
+
     virtual bool isReadyConstant();
 
     virtual bool isNegativeConstant();

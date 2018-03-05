@@ -1041,12 +1041,17 @@ namespace MFM {
       }
     else if(m_state.isAClass(nuti)) //t41198
       {
-	u32 slotsneeded = m_state.slotsNeeded(nuti);
-	assert(m_constSymbol);
-	((SymbolConstantValue *) m_constSymbol)->setConstantStackFrameAbsoluteSlotIndex(cslotidx);
-	Node::makeRoomForSlots(slotsneeded, CNSTSTACK);
-	setupStackWithConstantClassForEval(slotsneeded);
-	cslotidx += slotsneeded;
+	//eval doesn't support transients (t41231)
+	ULAMCLASSTYPE nclasstype = nut->getUlamClassType();
+	if((nclasstype == UC_ELEMENT) || (nclasstype == UC_QUARK))
+	  {
+	    u32 slotsneeded = m_state.slotsNeeded(nuti);
+	    assert(m_constSymbol);
+	    ((SymbolConstantValue *) m_constSymbol)->setConstantStackFrameAbsoluteSlotIndex(cslotidx);
+	    Node::makeRoomForSlots(slotsneeded, CNSTSTACK);
+	    setupStackWithConstantClassForEval(slotsneeded);
+	    cslotidx += slotsneeded;
+	  }
       }
   } //assignConstantSlotIndex
 

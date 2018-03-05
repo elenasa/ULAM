@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include "NodeConstantClass.h"
 #include "NodeInitDM.h"
 #include "NodeListArrayInitialization.h"
 #include "NodeListClassInit.h"
@@ -146,20 +147,6 @@ namespace MFM {
 	return Nav;
       }
 
-    if(m_state.isAClass(suti) && m_state.isScalar(suti))
-      {
-	if((m_nodeExpr == NULL) || !m_nodeExpr->isClassInit())
-	  {
-	    std::ostringstream msg;
-	    msg << "Invalid initialization of class type ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-	    msg << " with symbol name '" << getName() << "'";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav); //t41180
-	    return Nav;
-	  }
-      }
-
     setNodeType(suti); //t41169 pass along to class init expression node (scalar)
 
     if(m_nodeExpr)
@@ -197,7 +184,7 @@ namespace MFM {
 	// code lifted from NodeVarDecl.cpp c&l.
 	if(it == Void)
 	  {
-	    //only possible if array type with initializers;
+	    //only possible if array type with initializers; (t41180,1)
 	    if(m_state.isScalar(suti))
 	      {
 		std::ostringstream msg;
@@ -301,8 +288,20 @@ namespace MFM {
 	  }
       }
 
-    //what happened to it???
-    setNodeType(suti);
+    if(m_state.isAClass(suti) && m_state.isScalar(suti))
+      {
+	//test after any m_nodeExpr surgery during c&l
+	if((m_nodeExpr == NULL) || !(m_nodeExpr->isClassInit() || m_nodeExpr->isAConstantClass()))
+	  {
+	    std::ostringstream msg;
+	    msg << "Invalid initialization of class type ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	    msg << " with symbol name '" << getName() << "'";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav); //t41180, t41232
+	    return Nav;
+	  }
+      }
 
     if(!m_constSymbol->isInitValueReady() && m_nodeExpr)
       {
@@ -364,8 +363,14 @@ namespace MFM {
     if(m_state.findSymbolInAClass(m_cid, m_ofClassUTI, asymptr, hazyKin))
       {
 	assert(asymptr);
+#if 1
 	//make a clone for this dm initialization
 	m_constSymbol = (SymbolVariableDataMember *) new SymbolVariableDataMember(* ((SymbolVariableDataMember *) asymptr), true); //keep type (best guess)!
+#else
+	UTI auti = asymptr->getUlamTypeIdx();
+	Token cTok(TOK_IDENTIFIER, getNodeLocation(), m_cid);
+	m_constSymbol = new SymbolConstantValue(cTok, auti, m_state); //t41232
+#endif
 	assert(m_constSymbol);
 	m_constSymbol->setHasInitValue();
 	assert(!hazyKin);
@@ -412,7 +417,9 @@ namespace MFM {
 
     //scalar classes wait until after c&l to build default value; but pieces can be folded in advance
     assert(m_nodeExpr);
-    return ((NodeListClassInit *) m_nodeExpr)->foldConstantExpression();
+    if(m_nodeExpr->isClassInit())
+      return ((NodeListClassInit *) m_nodeExpr)->foldConstantExpression();
+    return m_nodeExpr->getNodeType(); //could be a name constant class! (t41232)
   } //foldConstantExpression
 
   UTI NodeInitDM::constantFold()
@@ -443,7 +450,7 @@ namespace MFM {
     assert(UlamType::compare(nuti, getNodeType(), m_state) == UTIC_SAME);
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    u32 len = nut->getTotalBitSize(); //t41168
+    u32 len = nut->getSizeofUlamType(); //t41168, t41232
 
     if(!SymbolWithValue::isValueAllZeros(pos, len, bvmask))
       {
@@ -467,6 +474,10 @@ namespace MFM {
 	  {
 	    rtnok = (((NodeListArrayInitialization *) m_nodeExpr)->buildClassArrayValueInitialization(bvclass)); //at pos 0 (t41170)
 	  }
+	else if(m_nodeExpr->isAConstantClass())
+	  {
+	    rtnok = ((NodeConstantClass *) m_nodeExpr)->getClassValue(bvclass); //t41234
+	  }
 	else
 	  {
 	    if(m_state.getDefaultClassValue(nuti, bvclass)) //uses scalar uti
@@ -482,6 +493,8 @@ namespace MFM {
 	m_constSymbol->setInitValue(bvclass); //for consistency
       } //class, fall thru..
 
+    ULAMCLASSTYPE nclasstype = nut->getUlamClassType();
+
     if(len <= MAXBITSPERINT)
       {
 	u32 value = 0;
@@ -496,6 +509,14 @@ namespace MFM {
 	assert(gotVal);
 	bvref.WriteLong(pos, len, value);
       }
+    else if((nclasstype == UC_ELEMENT) && m_state.isScalar(nuti))
+      {
+	//copy state bits in position for atom-based element (t41232)
+	BV8K bvel;
+	AssertBool gotVal = m_constSymbol->getInitValue(bvel);
+	assert(gotVal);
+	bvel.CopyBV<8192>(0, pos + ATOMFIRSTSTATEBITPOS, MAXSTATEBITS, bvref); //srcpos, dstpos, len, dest
+      }
     else
       {
 	BV8K val8k;
@@ -504,7 +525,8 @@ namespace MFM {
 	val8k.CopyBV<8192>(0, pos, len, bvref);
       }
 
-    bvmask.SetBits(pos, len); //t3451
+    bvmask.SetBits(pos, len); //t3451, t41232
+
     return true; //pass on
   } //buildDataMemberConstantValue
 

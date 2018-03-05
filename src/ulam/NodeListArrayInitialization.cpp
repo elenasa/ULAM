@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <assert.h>
+#include "NodeConstantClass.h"
 #include "NodeListArrayInitialization.h"
 #include "NodeListClassInit.h"
 #include "NodeTerminal.h"
@@ -75,7 +76,7 @@ namespace MFM{
 	UTI scalaruti = m_state.getUlamTypeAsScalar(uti);
 	for(u32 i = 0; i < m_nodes.size(); i++)
 	  {
-	    if(m_nodes[i]->isClassInit())
+	    if(m_nodes[i]->isClassInit() || m_nodes[i]->isAConstantClass())
 	      m_nodes[i]->setClassType(scalaruti);
 	    else
 	      {
@@ -363,7 +364,14 @@ namespace MFM{
     //fill in default class if nothing provided for a non-empty array
     if((n == 0) && (arraysize > 0))
       {
-	rtnok = m_state.getDefaultClassValue(nuti, bvtmp); //uses scalar uti
+	if(nut->getUlamClassType() == UC_ELEMENT)
+	  {
+	    BV8K bvd;
+	    rtnok = m_state.getDefaultClassValue(nuti, bvd); //uses scalar uti
+	    bvd.CopyBV(0, ATOMFIRSTSTATEBITPOS, MAXSTATEBITS, bvtmp);
+	  }
+	else
+	  rtnok = m_state.getDefaultClassValue(nuti, bvtmp); //uses scalar uti
 	n = 1; //ready to fall thru and propagate as needed
       }
 
@@ -372,7 +380,10 @@ namespace MFM{
 	//propagate last value for any remaining items not initialized
 	if(n < (u32) arraysize)
 	  {
-	    u32 itemlen = nut->getBitSize();
+	    //u32 itemlen = nut->getBitSize();
+	    UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
+	    u32 itemlen = m_state.getUlamTypeByIndex(scalaruti)->getSizeofUlamType();
+
 	    BV8K lastbv;
 	    bvtmp.CopyBV((n - 1) *  itemlen, 0, itemlen, lastbv); //frompos, topos, len, destBV
 	    for(s32 i = n; i < arraysize; i++)
@@ -389,19 +400,38 @@ namespace MFM{
     assert((m_nodes.size() > n) && (m_nodes[n] != NULL));
     bool rtnb = false;
     UTI nuti = Node::getNodeType();
-    u32 itemlen = m_state.getBitSize(nuti);
+    UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
+    UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
+    u32 itemlen = scalarut->getSizeofUlamType();
+    ULAMCLASSTYPE classtype = scalarut->getUlamClassType();
+    u32 adjust = (classtype == UC_ELEMENT ? ATOMFIRSTSTATEBITPOS : 0);
 
     BV8K bvclass;
-    //note: starts with default in case of String data members; (pos arg unused)
-    if(m_state.getDefaultClassValue(nuti, bvclass)) //uses scalar uti
+    if(m_nodes[n]->isAConstantClass())
       {
 	BV8K bvmask;
-	if(((NodeListClassInit *) m_nodes[n])->initDataMembersConstantValue(bvclass, bvmask)) //at pos 0
+	if(((NodeConstantClass *) m_nodes[n])->initDataMembersConstantValue(bvclass, bvmask)) //at pos 0
 	  {
-	    bvclass.CopyBV(0, pos * itemlen, itemlen, bvtmp); //frompos, topos, len, destBV
+	    bvclass.CopyBV(0, pos * itemlen + adjust, itemlen - adjust, bvtmp); //frompos, topos, len, destBV
 	    rtnb = true;
 	  }
       }
+    else if(m_nodes[n]->isClassInit())
+      {
+	//note: starts with default in case of String data members; (pos arg unused)
+	if(m_state.getDefaultClassValue(nuti, bvclass)) //uses scalar uti
+	  {
+	    BV8K bvmask;
+	    if(((NodeListClassInit *) m_nodes[n])->initDataMembersConstantValue(bvclass, bvmask)) //at pos 0
+	      {
+		bvclass.CopyBV(0, pos * itemlen + adjust, itemlen - adjust, bvtmp); //frompos, topos, len, destBV
+		rtnb = true;
+	      }
+	  }
+      }
+    else
+      m_state.abortShouldntGetHere();
+
     return rtnb;
   } //buildClassArrayItemInitialValue
 
@@ -674,11 +704,14 @@ namespace MFM{
   {
     //build up if an array of class inits (t41185)
     UTI nuti = Node::getNodeType();
+    UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
 
     u32 n = m_nodes.size();
     assert(n > 0);
-    assert(m_nodes[0]->isClassInit());
-    u32 itemlen = m_state.getBitSize(nuti);
+    assert(m_nodes[0]->isClassInit()); //what if class constant?
+    //u32 itemlen = m_state.getBitSize(nuti);
+    u32 itemlen = m_state.getUlamTypeByIndex(scalaruti)->getSizeofUlamType(); //atom-based for element as data member
+
     bool rtnok = true;
     for(u32 i = 0; i < n; i++)
       {

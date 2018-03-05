@@ -4623,7 +4623,18 @@ namespace MFM {
     UTI cuti = Hzy; //default, wait until c&l if unseen
     if(m_state.isIdInCurrentScope(classvarId, tmpcsym))
       cuti = tmpcsym->getUlamTypeIdx();
-
+#if 0
+    // t41185 unhappy about this step.
+    // already defined! must be a localdef typedef if a holder and not a class
+    UlamType * tdut = m_state.getUlamTypeByIndex(cuti);
+    if(tdut->isHolder() && (tdut->getUlamClassType() == UC_NOTACLASS))
+      {
+	//now we know it's a class! (t41232)
+	m_state.makeAnonymousClassFromHolder(cuti, tmpcsym->getLoc());
+	//	if(m_state.isThisLocalsFileScope())
+	//  if(tmpcsym->isATypedef())
+      }
+#endif
     NodeListClassInit * rtnList = new NodeListClassInit(cuti, classvarId, m_state); //delete if error
     assert(rtnList);
     rtnList->setNodeLocation(loc);

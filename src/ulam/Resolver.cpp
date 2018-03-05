@@ -113,7 +113,7 @@ namespace MFM {
 	//check if still Hzy; true if resolved
 	if((aok = checkUnknownTypeToResolve(huti, tok)))
 	  removeKnownTypeToken(huti);
-	else if((aok = checkUnknownTypeAsClassArgument(huti, tok, csym)))
+	else if(csym && (aok = checkUnknownTypeAsClassArgument(huti, tok, csym)))
 	  removeKnownTypeToken(huti); //t41216
 	//else
       }
@@ -199,6 +199,7 @@ namespace MFM {
 
   bool Resolver::checkUnknownTypeAsClassArgument(UTI huti, const Token& tok, SymbolClass * csym)
   {
+    assert(csym);
     bool aok = false;
     if(csym->isStub() &&(tok.m_type == TOK_IDENTIFIER))
       {

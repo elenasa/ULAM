@@ -75,6 +75,8 @@ namespace MFM{
 
     virtual bool isReadyConstant();
 
+    virtual void setClassType(UTI cuti); //noop
+
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType();

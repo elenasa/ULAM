@@ -83,6 +83,16 @@ namespace MFM {
     return true;
   }
 
+  bool NodeConstantClass::isAConstantClass()
+  {
+    return true;
+  }
+
+  void NodeConstantClass::setClassType(UTI cuti)
+  {
+    //noop
+  }
+
   FORECAST NodeConstantClass::safeToCastTo(UTI newType)
   {
     if(isReadyConstant())
@@ -349,7 +359,7 @@ namespace MFM {
     //bvref contains default value at pos 0 of our m_forClassUTI.
     bool rtnok = getClassValue(bvref); //overwrites
     if(rtnok)
-      bvmask.SetBits(0, m_state.getBitSize(getNodeType())); //t41229
+      bvmask.SetBits(0, m_state.getUlamTypeByIndex(getNodeType())->getSizeofUlamType()); //t41229, t41234
     return rtnok;
   }
 

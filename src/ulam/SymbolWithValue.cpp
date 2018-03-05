@@ -96,8 +96,8 @@ namespace MFM {
 
   void SymbolWithValue::setValue(const BV8K& val)
   {
-    u32 tbs = m_state.getTotalBitSize(getUlamTypeIdx());
-    val.CopyBV(0u, 0u, tbs, m_constantValue); //frompos, topos, len, destBV
+    u32 len = m_state.getUlamTypeByIndex(getUlamTypeIdx())->getSizeofUlamType();
+    val.CopyBV(0u, 0u, len, m_constantValue); //frompos, topos, len, destBV
     m_isReady = true;
   }
 
@@ -169,8 +169,8 @@ namespace MFM {
     assert(hasInitValue());
     if(isInitValueReady())
       {
-	u32 tbs = m_state.getTotalBitSize(getUlamTypeIdx());
-	m_initialValue.CopyBV(0u, 0u, tbs, val);
+	u32 len = m_state.getUlamTypeByIndex(getUlamTypeIdx())->getSizeofUlamType();
+	m_initialValue.CopyBV(0u, 0u, len, val);
 	return true;
       }
     return false;
@@ -178,8 +178,8 @@ namespace MFM {
 
   void SymbolWithValue::setInitValue(const BV8K& val)
   {
-    u32 tbs = m_state.getTotalBitSize(getUlamTypeIdx());
-    val.CopyBV(0u, 0u, tbs, this->m_initialValue); //frompos, topos, len, destBV
+    u32 len = m_state.getUlamTypeByIndex(getUlamTypeIdx())->getSizeofUlamType();
+    val.CopyBV(0u, 0u, len, this->m_initialValue); //frompos, topos, len, destBV
     m_hasInitVal = true;
     m_isReadyInitVal = true;
   }

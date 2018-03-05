@@ -192,6 +192,11 @@ namespace MFM {
     return rtn;
   } //isAConstant
 
+  void NodeIdent::setClassType(UTI cuti)
+  {
+    //noop
+  }
+
   FORECAST NodeIdent::safeToCastTo(UTI newType)
   {
     //ulamtype checks for complete, non array, and type specific rules
