@@ -336,6 +336,7 @@ namespace MFM{
     bool hasUnknownTypeInThisClassResolver(UTI huti);
     bool statusUnknownTypeInAClassResolver(UTI acuti, UTI huti);
     bool statusUnknownTypeInThisClassResolver(UTI huti);
+    bool statusUnknownClassTypeInThisLocalsScope(const Token& tok, UTI huti, UTI& rtnuti);
 
     /** creates temporary class type for dataindex, returns the new Symbol pointer in 2nd arg; */
     bool removeIncompleteClassSymbolFromProgramTable(u32 id); //helper

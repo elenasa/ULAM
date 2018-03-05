@@ -2291,6 +2291,49 @@ namespace MFM {
 #endif
   } //statusUnknownTypeInThisClassResolver
 
+  bool CompilerState::statusUnknownClassTypeInThisLocalsScope(const Token& tok, UTI huti, UTI& rtnuti)
+  {
+    //because localsscope has no resolver, and therefore, no unknown type resolution for class types
+    assert(isHolder(huti));
+    assert(isThisLocalsFileScope());
+    if((tok.m_dataindex == 0) || (tok.m_type != TOK_TYPE_IDENTIFIER))
+      return false;
+
+    bool rtnb = false;
+
+    SymbolClassName * cnsym = NULL;
+    if((rtnb = alreadyDefinedSymbolClassName(tok.m_dataindex, cnsym)))
+      {
+	UTI kuti = huti; //init
+	if(cnsym->isClassTemplate())
+	  {
+	    SymbolClass * csym = NULL;
+	    if(alreadyDefinedSymbolClass(huti, csym))
+	      {
+		kuti = csym->getUlamTypeIdx(); //perhaps an alias
+	      }
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "Class with parameters seen with the same name: ";
+		msg << m_pool.getDataAsString(cnsym->getId()).c_str();
+		MSG2(&tok, msg.str().c_str(), ERR); //No corresponding Nav Node for this ERR
+		kuti = Nav;
+		rtnb = false;
+	      }
+	  }
+	else
+	  kuti = cnsym->getUlamTypeIdx();
+
+	if(rtnb)
+	  assert(!isHolder(kuti));
+
+	cleanupExistingHolder(huti, kuti);
+	rtnuti = kuti;
+      }
+    return rtnb;
+  } //statusUnknownClassTypeInThisLocalsFileScope
+
   bool CompilerState::removeIncompleteClassSymbolFromProgramTable(u32 id)
   {
     Token ntok(TOK_IDENTIFIER, m_locOfNextLineText, id); //junk loc

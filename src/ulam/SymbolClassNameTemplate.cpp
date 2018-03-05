@@ -714,7 +714,7 @@ namespace MFM {
 	      }
 	    else if(m_state.isAClass(auti))
 	      {
-		//check for this sooner! give error TBD...
+		//check for this sooner! can't figure how to make a class chasing its tail.
 		assert(UlamType::compare(auti, instance, m_state) != UTIC_SAME);
 
 		std::string ccvalstr;

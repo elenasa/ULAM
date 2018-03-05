@@ -263,30 +263,9 @@ namespace MFM {
 	else
 	  {
 	    //islocalsscope t41232
-	    SymbolClassName * cnsym = NULL;
-	    if((rtnb = m_state.alreadyDefinedSymbolClassName(m_typeTok.m_dataindex, cnsym)))
-	      {
-		UTI kuti = Nav;
-		if(cnsym->isClassTemplate())
-		  {
-		    SymbolClass * csym = NULL;
-		    if(m_state.alreadyDefinedSymbolClass(nuti, csym))
-		      kuti = csym->getUlamTypeIdx(); //perhaps an alias
-		    else
-		      {
-			std::ostringstream msg;
-			msg << "Class with parameters seen with the same name: ";
-			msg << m_state.m_pool.getDataAsString(cnsym->getId()).c_str();
-			MSG(&m_typeTok, msg.str().c_str(), ERR); //No corresponding Nav Node for this ERR (e.g. error/t3644)
-			nuti = Nav; //fails cleanup
-			rtnb = false;
-		      }
-		  }
-		else
-		  kuti = cnsym->getUlamTypeIdx();
-		m_state.cleanupExistingHolder(nuti, kuti);
-		nuti = kuti;
-	      }
+	    UTI kuti = nuti; //kuti changes
+	    rtnb = m_state.statusUnknownClassTypeInThisLocalsScope(m_typeTok, nuti, kuti);
+	    nuti = kuti;
 	  }
       }
     else
