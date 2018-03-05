@@ -8,7 +8,7 @@
 
 namespace MFM {
 
-  NodeInitDM::NodeInitDM(u32 dmid, Node * assignNode, UTI ofclass, CompilerState & state) : NodeConstantDef(NULL, NULL, state)
+  NodeInitDM::NodeInitDM(u32 dmid, Node * assignNode, UTI ofclass, CompilerState & state) : NodeConstantDef(NULL, NULL, state), m_posOfDM(UNRELIABLEPOS)
   {
     assert(assignNode);
     setConstantExpr(assignNode);
@@ -16,7 +16,7 @@ namespace MFM {
     m_ofClassUTI = ofclass;
   }
 
-  NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassUTI(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_ofClassUTI, ref.getNodeLocation())) { }
+  NodeInitDM::NodeInitDM(const NodeInitDM& ref) : NodeConstantDef(ref), m_ofClassUTI(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_ofClassUTI, ref.getNodeLocation())), m_posOfDM(ref.m_posOfDM) { }
 
   NodeInitDM::~NodeInitDM()
   {
@@ -363,14 +363,9 @@ namespace MFM {
     if(m_state.findSymbolInAClass(m_cid, m_ofClassUTI, asymptr, hazyKin))
       {
 	assert(asymptr);
-#if 1
-	//make a clone for this dm initialization
-	m_constSymbol = (SymbolVariableDataMember *) new SymbolVariableDataMember(* ((SymbolVariableDataMember *) asymptr), true); //keep type (best guess)!
-#else
 	UTI auti = asymptr->getUlamTypeIdx();
 	Token cTok(TOK_IDENTIFIER, getNodeLocation(), m_cid);
 	m_constSymbol = new SymbolConstantValue(cTok, auti, m_state); //t41232
-#endif
 	assert(m_constSymbol);
 	m_constSymbol->setHasInitValue();
 	assert(!hazyKin);
@@ -444,7 +439,7 @@ namespace MFM {
       return false;
 
     u32 pos = symptr->getPosOffset();
-    ((SymbolVariableDataMember *) m_constSymbol)->setPosOffset(pos); //update for consistency
+    m_posOfDM = pos;
 
     UTI nuti = m_constSymbol->getUlamTypeIdx();
     assert(UlamType::compare(nuti, getNodeType(), m_state) == UTIC_SAME);
@@ -622,7 +617,7 @@ namespace MFM {
     ULAMTYPE etyp = nut->getUlamTypeEnum();
     u32 len = nut->getTotalBitSize();
     TMPSTORAGE cstor = nut->getTmpStorageTypeForTmpVar();
-    u32 pos = 9999; //m_constSymbol->getPosOffset();
+    u32 pos = UNRELIABLEPOS; //m_constSymbol->getPosOffset();
 
     const bool useLocalVar = (uvpass.getPassVarNum() == 0); //use variable name on stack t41171
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
@@ -636,12 +631,12 @@ namespace MFM {
 	AssertBool isDef = m_state.findSymbolInAClass(m_cid, m_ofClassUTI, asymptr, hazyKin);
 	assert(isDef);
 	pos = asymptr->getPosOffset();
-	((SymbolVariableDataMember *) m_constSymbol)->setPosOffset(pos); //sanity
+	m_posOfDM = pos;
       }
     else
       {
-	assert(m_constSymbol->isPosOffsetReliable()); //t41185
-	pos = m_constSymbol->getPosOffset();
+	assert(m_posOfDM != UNRELIABLEPOS); //reliable (t41185)
+	pos = m_posOfDM;
       }
 
     Symbol * stgcos = NULL;

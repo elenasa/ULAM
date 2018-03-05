@@ -9,7 +9,7 @@
 ./A.ulam:10:16: ERROR: Constant value expression for 'm_b' is not representable as Bool(1).
 ./A.ulam:10:13: ERROR: Class Init Argument 1 has a problem for variable mytr, type R.
 ./A.ulam:10:4: ERROR: Initial value expression for: mytr, initialization is invalid.
-./R.ulam:4:51: ERROR: Invalid initialization of class type QBar with symbol name 'm_bar'.
+./R.ulam:4:51: ERROR: Invalid initialization of scalar type QBar with symbol name 'm_bar'.
 ./R.ulam:4:48: ERROR: Class Init Argument 1 has a problem for variable m_foo, type QFoo.
 ./R.ulam:4:40: ERROR: Initialization value expression for class data member: m_foo, is invalid.
 ./R.ulam:4:11: ERROR: Class Init Argument 2 has a problem for variable m_a, type A.

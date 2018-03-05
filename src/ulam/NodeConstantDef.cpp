@@ -522,7 +522,7 @@ namespace MFM {
 
     setNodeType(suti);
 
-    if(!m_constSymbol->isReady() && m_nodeExpr) //error/t3451
+    if(!isReadyConstant() && m_nodeExpr) //error/t3451
       {
 	UTI foldrtn = foldConstantExpression();
 	if(foldrtn == Nav)
@@ -546,7 +546,7 @@ namespace MFM {
 	  }
 	else //if(!m_state.isAClass(foldrtn)) //t41198
 	  {
-	    if(!(m_constSymbol->isReady() || m_constSymbol->isInitValueReady()))
+	    if(!isReadyConstant())
 	      {
 		std::ostringstream msg;
 		msg << "Constant symbol '" << getName() << "' is not ready";
@@ -653,6 +653,11 @@ namespace MFM {
     return (m_nodeExpr != NULL);
   }
 
+  bool NodeConstantDef::isReadyConstant()
+  {
+    return m_constSymbol && (m_constSymbol->isReady() || m_constSymbol->isInitValueReady());
+  }
+
   // called during parsing rhs of named constant;
   // Requires a constant expression, else error;
   // (scope of eval is based on the block of const def.)
@@ -667,19 +672,19 @@ namespace MFM {
       return Hzy; //e.g. not a constant; total word size (below) requires completeness
 
     assert(m_constSymbol);
-    if(m_constSymbol->isReady())
+    if(isReadyConstant())
       return uti;
 
     if(!m_state.isScalar(uti))
       {
 	// similar to NodeVarDecl (t3881)
-	if(!(m_constSymbol->isReady() || m_constSymbol->isInitValueReady() || foldArrayInitExpression()))
+	if(!(isReadyConstant() || foldArrayInitExpression()))
 	  {
 	    assert(m_nodeExpr);
 	    if((getNodeType() == Nav) || m_nodeExpr->getNodeType() == Nav)
 	      return Nav;
 
-	    if(!(m_constSymbol->isReady() || m_constSymbol->isInitValueReady()))
+	    if(!isReadyConstant())
 	      {
 		setNodeType(Hzy);
 		m_state.setGoAgain(); //since not error
@@ -724,7 +729,7 @@ namespace MFM {
 	    else
 	      rtnuti = Hzy;
 	  }
-	else
+	else if(m_nodeExpr->isAConstantClass())
 	  {
 	    //not a list, t.f. NodeConstantClass
 	    BV8K bvcctmp;
@@ -737,6 +742,9 @@ namespace MFM {
 		assignConstantSlotIndex(tmpslotnum); //t3451
 	      }
 	  }
+	else
+	  m_state.abortShouldntGetHere();
+
 	return rtnuti;
       } //end isAClass
 
@@ -924,27 +932,47 @@ namespace MFM {
 
     if(m_state.isAClass(nuti)) //t41198
       {
-	if(!(m_constSymbol->isReady() || m_constSymbol->isInitValueReady()))
+	if(!isReadyConstant())
 	  {
 	    if(m_state.tryToPackAClass(nuti) == TBOOL_TRUE)
 	      {
 		BV8K bvtmp;
-		if(m_state.getDefaultClassValue(nuti, bvtmp)) //uses scalar uti
+		if(m_nodeExpr)
 		  {
-		    if(m_nodeExpr && !((NodeList *) m_nodeExpr)->isEmptyList())
+		    if(m_nodeExpr->isAConstantClass())
 		      {
-			BV8K bvmask;
-			if(((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvtmp,bvmask))
-			  m_constSymbol->setValue(bvtmp);
-			else
-			  rtnok = false;
+			rtnok = ((NodeConstantClass *) m_nodeExpr)->getClassValue(bvtmp);
+			m_constSymbol->setValue(bvtmp);
+		      }
+		    else if(m_nodeExpr->isAList())
+		      {
+			if(m_state.getDefaultClassValue(nuti, bvtmp)) //uses scalar uti
+			  {
+			    if(!((NodeList *) m_nodeExpr)->isEmptyList())
+			      {
+				BV8K bvmask;
+				if(((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvtmp,bvmask))
+				  m_constSymbol->setValue(bvtmp);
+				else
+				  rtnok = false;
+			      }
+			    else
+			      m_constSymbol->setValue(bvtmp); //empty list uses default
+			  }
+			else rtnok = false;
 		      }
 		    else
-		      m_constSymbol->setValue(bvtmp);
+		      m_state.abortShouldntGetHere();
 		  }
 		else
-		  rtnok = false;
-	      }
+		  {
+		    //no node expression
+		    if((rtnok = m_state.getDefaultClassValue(nuti, bvtmp))) //uses scalar uti
+		      m_constSymbol->setValue(bvtmp);
+		    else
+		      rtnok = false;
+		  }
+	      } //packed
 	    else
 	      rtnok = false;
 	  }
@@ -1004,7 +1032,6 @@ namespace MFM {
 	    assert(m_constSymbol && (m_constSymbol->getUlamTypeIdx() == newuti)); //invariant? (likely null symbol, see checkForSymbol)
 
 	    assert(copyuti == pnodetypedesc->givenUTI()); //used keep type
-	    //m_nodeTypeDesc->updateLineage(getNodeNo());
 	    aok = true;
 	  }
       }
@@ -1014,7 +1041,7 @@ namespace MFM {
   EvalStatus NodeConstantDef::eval()
   {
     assert(m_constSymbol);
-    if(m_constSymbol->isReady())
+    if(isReadyConstant())
       return NORMAL;
     return NOTREADY; //was ERROR
   }

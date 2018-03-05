@@ -101,6 +101,8 @@ namespace MFM{
 
     virtual bool hasConstantExpr();
 
+    virtual bool isReadyConstant();
+
     virtual UTI foldConstantExpression();
 
     virtual bool foldArrayInitExpression();

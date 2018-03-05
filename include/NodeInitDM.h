@@ -108,6 +108,7 @@ namespace MFM{
 
   private:
     UTI m_ofClassUTI;
+    u32 m_posOfDM; //9999 is unreliable
 
   };
 
