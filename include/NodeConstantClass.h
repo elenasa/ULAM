@@ -108,6 +108,7 @@ namespace MFM{
   private:
     NNO m_currBlockNo;
     NodeBlock * m_currBlockPtr; //could be NULL
+    SymbolTmpVar * m_tmpvarSymbol;
 
     void setupBlockNo();
     void setBlockNo(NNO n);

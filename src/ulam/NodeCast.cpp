@@ -582,12 +582,17 @@ namespace MFM {
 
     if(nuti == Hzy)
       return NOTREADY;
+    bool isConstRefType = m_state.isConstantRefType(tobeType);
 
-    TBOOL stor = m_node->getStoreIntoAble();
-    if(stor == TBOOL_FALSE)
-      return ERROR;
-    else if(stor == TBOOL_HAZY)
-      return NOTREADY;
+    if(!isConstRefType)
+      {
+	TBOOL stor = m_node->getStoreIntoAble();
+	if(stor == TBOOL_FALSE)
+	  return ERROR;
+	else if(stor == TBOOL_HAZY)
+	  return NOTREADY;
+      }
+    //else continue if constant ref type (t41238)
 
     evalNodeProlog(0); //new current frame pointer
 
@@ -1787,7 +1792,35 @@ namespace MFM {
   void NodeCast::genCodeToStoreIntoCastAsReference(File * fp, UVPass & uvpass)
   {
     UTI tobeType = getCastType();
-    uvpass.setPassTargetType(tobeType); //minimal casting, t3812?
+    if(m_node->isAConstantClass())
+      {
+	assert(m_state.isConstantRefType(tobeType));
+#if 0
+	UTI derefuti = m_state.getUlamTypeAsDeref(tobeType);
+	UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
+
+	// make a temporary immediate of class constant type that can be referenced (t41238)
+	Node::genCodeReadIntoATmpVar(fp, uvpass);
+
+	//m_state.clearCurrentObjSymbolsForCodeGen(); //************CLEAR
+	s32 tmpvarc = m_state.getNextTmpVarNumber();
+
+	m_state.indentUlamCode(fp);
+	fp->write(derefut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(derefuti, tmpvarc, TMPBITVAL).c_str());
+	fp->write("("); // use constructor (not equals)
+	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(");"); GCNL;
+
+	uvpass = UVPass::makePass(tmpvarc, TMPBITVAL, derefuti, m_state.determinePackable(derefuti), m_state, 0, 0); //POS 0 rightjustified;
+
+	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL);
+	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
+#endif
+      }
+    //else
+      uvpass.setPassTargetType(tobeType); //minimal casting, t3812?
     return;
   } //genCodeToStoreIntoCastAsReference
 

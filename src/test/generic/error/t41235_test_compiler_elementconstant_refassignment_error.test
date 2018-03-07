@@ -1,0 +1,28 @@
+## -*- mode:ulam -*-
+#=t41235_test_compiler_elementconstant_refassignment_error
+#!
+./R.ulam:5:5: ERROR: Initialization for: est, must be referenceable.
+Unrecoverable Program Type Label FAILURE.
+##
+##    //informed by t41230, except assignment of constant T to ref
+##
+#>T.ulam
+ ulam 3;
+
+element T {
+  Bool m_sp;
+  Int m_i;
+}
+
+
+#:R.ulam
+  ulam 3;
+local constant T cet = { .m_sp = true, .m_i = 99 };
+element R{
+  Int test(){
+    T& est = cet;
+    return -1;
+  }
+}
+
+#.

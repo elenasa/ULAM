@@ -4,14 +4,14 @@
 
 namespace MFM {
 
-  NodeConstantClass::NodeConstantClass(const Token& tok, SymbolWithValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state) : Node(state), m_token(tok), m_nodeTypeDesc(typedesc), m_constSymbol(symptr), m_constType(Nouti), m_currBlockNo(0), m_currBlockPtr(NULL)
+  NodeConstantClass::NodeConstantClass(const Token& tok, SymbolWithValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state) : Node(state), m_token(tok), m_nodeTypeDesc(typedesc), m_constSymbol(symptr), m_constType(Nouti), m_currBlockNo(0), m_currBlockPtr(NULL), m_tmpvarSymbol(NULL)
   {
     assert(symptr);
     setBlockNo(symptr->getBlockNoOfST());
     m_constType = m_constSymbol->getUlamTypeIdx();
   }
 
-  NodeConstantClass::NodeConstantClass(const NodeConstantClass& ref) : Node(ref), m_token(ref.m_token), m_nodeTypeDesc(NULL), m_constSymbol(NULL), m_constType(ref.m_constType), m_currBlockNo(ref.m_currBlockNo), m_currBlockPtr(NULL)
+  NodeConstantClass::NodeConstantClass(const NodeConstantClass& ref) : Node(ref), m_token(ref.m_token), m_nodeTypeDesc(NULL), m_constSymbol(NULL), m_constType(ref.m_constType), m_currBlockNo(ref.m_currBlockNo), m_currBlockPtr(NULL), m_tmpvarSymbol(NULL)
   {
     //can we use the same address for a constant symbol?
     if(ref.m_nodeTypeDesc)
@@ -22,6 +22,9 @@ namespace MFM {
   {
     delete m_nodeTypeDesc;
     m_nodeTypeDesc = NULL;
+
+    delete m_tmpvarSymbol;
+    m_tmpvarSymbol = NULL;
   }
 
   Node * NodeConstantClass::instantiate()
@@ -436,10 +439,36 @@ namespace MFM {
   void NodeConstantClass::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
     assert(isReadyConstant()); //must be
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
     makeUVPassForCodeGen(uvpass);
 
-    //******UPDATED GLOBAL; no restore!!!**************************
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_constSymbol);
+
+    // make a temporary immediate of class constant type that can be
+    // referenced as a constant function parameter (t41238)
+
+    Node::genCodeReadIntoATmpVar(fp, uvpass);
+
+    //m_state.clearCurrentObjSymbolsForCodeGen(); //************CLEAR
+    s32 tmpvarc = m_state.getNextTmpVarNumber();
+
+    m_state.indentUlamCode(fp);
+    fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
+    fp->write(" ");
+    fp->write(m_state.getTmpVarAsString(nuti, tmpvarc, TMPBITVAL).c_str());
+    fp->write("("); // use constructor (not equals)
+    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+    fp->write(");"); GCNL;
+
+    uvpass = UVPass::makePass(tmpvarc, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified;
+
+    m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL);
+    m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
+
+    //******UPDATED GLOBAL; no restore!!!**************************
+    //    m_state.m_currentObjSymbolsForCodeGen.push_back(m_constSymbol);
   } //genCodeToStoreInto
 
   void NodeConstantClass::makeUVPassForCodeGen(UVPass& uvpass)

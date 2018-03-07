@@ -272,7 +272,8 @@ namespace MFM {
 	  {
 	    if(argNodes[i]->isAConstant())
 	      {
-		if(m_state.isReference(puti))
+		//if(m_state.isReference(puti))
+		if(m_state.isReference(puti) && !argNodes[i]->isAConstantClass()) //t41238
 		  {
 		    rtnBool = false;
 		    break;
@@ -449,8 +450,8 @@ namespace MFM {
 	Symbol * asym = getParameterSymbolPtr(i);
 	assert(asym);
 	assert(asym->isFunctionParameter()); //sanity
-	if(((SymbolVariableStack *) asym)->isConstantFunctionParameter())
-	  fp->write("const ");
+	//	if(((SymbolVariableStack *) asym)->isConstantFunctionParameter())
+	//  fp->write("const "); t4123
 	UTI auti = asym->getUlamTypeIdx();
 	UlamType * aut = m_state.getUlamTypeByIndex(auti);
 	fp->write(aut->getLocalStorageTypeAsString().c_str()); //for C++

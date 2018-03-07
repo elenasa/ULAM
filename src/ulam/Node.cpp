@@ -821,19 +821,19 @@ namespace MFM {
     std::string ccstr;
     bool notZero = true; //bv contents
 
-    if(cos->isDataMember()) //namedconstantclassidx < (cosSize - 1))
-      {
-	//that is cos is a data member of our constant class,
-	assert(namedconstantclassidx < (cosSize - 1));
-	assert(((SymbolVariableDataMember *) cos)->isPosOffsetReliable());
-
-	cospos = ((SymbolVariableDataMember *) cos)->getPosOffset();
-      }
-    else //cos is the constant class
+    if(cos == ncsym) //cos is the constant class
       {
 	assert(namedconstantclassidx == (cosSize - 1));
 	assert(m_state.isScalar(cosuti)); //t41198 dm array
 	assert(m_state.isAClass(cosuti));
+      }
+    else
+      {
+	//that is cos is a data member of our constant class,
+	assert(cos->isDataMember()); //namedconstantclassidx < (cosSize - 1))
+	assert(namedconstantclassidx < (cosSize - 1));
+	assert(((SymbolVariableDataMember *) cos)->isPosOffsetReliable());
+	cospos = ((SymbolVariableDataMember *) cos)->getPosOffset();
       }
 
     if(coslen <= MAXBITSPERINT)

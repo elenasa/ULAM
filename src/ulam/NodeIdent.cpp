@@ -569,25 +569,28 @@ namespace MFM {
     if((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() > MAXSTATEBITS))
       return UNEVALUABLE;
 
-    //ALT alt = nut->getReferenceType(); //t41189
     TBOOL stor = Node::getStoreIntoAble();
-    //ULAMTYPE etyp = nut->getUlamTypeEnum(); //t41198 allow constant classes
 
     //the first reason for ALT_CONSTREF when called from evalArgumentsInReverseOrder
+    // allow constant classes (t41198)
     //if((stor != TBOOL_TRUE) && (alt != ALT_CONSTREF) && (etyp != Class)) //i.e. an MP
     if((stor != TBOOL_TRUE) && !m_state.isConstantRefType(nuti)) //i.e. an MP
       {
-	std::ostringstream msg;
-	msg << "Variable '";
-	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
-	msg << "' is not a valid lefthand side. Eval FAILS";
-	if(stor == TBOOL_HAZY)
+	if(m_varSymbol->isDataMember() || !((SymbolVariableStack *) m_varSymbol)->isConstantFunctionParameter())
 	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    return NOTREADY;
+	    std::ostringstream msg;
+	    msg << "Variable '";
+	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
+	    msg << "' is not a valid lefthand side. Eval FAILS";
+	    if(stor == TBOOL_HAZY)
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		return NOTREADY;
+	      }
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    return ERROR;
 	  }
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return ERROR;
+	//else continue if a constant function parameter; how a DM? (t41239)
       }
 
     evalNodeProlog(0); //new current node eval frame pointer
