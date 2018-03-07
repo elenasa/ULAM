@@ -439,30 +439,14 @@ namespace MFM {
   void NodeConstantClass::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
     assert(isReadyConstant()); //must be
-    UTI nuti = getNodeType();
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
     makeUVPassForCodeGen(uvpass);
-
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_constSymbol);
 
     // make a temporary immediate of class constant type that can be
     // referenced as a constant function parameter (t41238)
-
     Node::genCodeReadIntoATmpVar(fp, uvpass);
-
-    //m_state.clearCurrentObjSymbolsForCodeGen(); //************CLEAR
-    s32 tmpvarc = m_state.getNextTmpVarNumber();
-
-    m_state.indentUlamCode(fp);
-    fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
-    fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(nuti, tmpvarc, TMPBITVAL).c_str());
-    fp->write("("); // use constructor (not equals)
-    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(");"); GCNL;
-
-    uvpass = UVPass::makePass(tmpvarc, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified;
+    Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass);
 
     m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL);
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);

@@ -89,6 +89,10 @@ namespace MFM{
 
     virtual void genCode(File * fp, UVPass& uvpass);
 
+    virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
+
+    virtual void genCodeConvertATmpVarIntoBitVector(File * fp, UVPass uvpass);
+
   protected:
     Token m_token;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
@@ -108,8 +112,10 @@ namespace MFM{
   private:
     NNO m_currBlockNo;
     NodeBlock * m_currBlockPtr; //could be NULL
+    SymbolTmpVar * m_tmpvarSymbol;
 
     UTI checkUsedBeforeDeclared();
+    UlamValue makeUlamValuePtr();
 
   };
 

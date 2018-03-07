@@ -867,6 +867,11 @@ namespace MFM {
       m_constSymbol->setInitValue(bvtmp); //(isInitValueReady now)!
     else
       m_constSymbol->setValue(bvtmp); //isReady now! (e.g. ClassArgument, ModelParameter)
+
+    //for primitive constants too; eval support for function constant parameters (t41240)
+    u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
+    assignConstantSlotIndex(tmpslotnum);
+
     return uti; //ok
   } //foldConstantExpression
 
@@ -1056,21 +1061,24 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    if(!nut->isScalar())
+    //    if(!nut->isScalar())
+    if(nut->isPrimitiveType()) //t41240
       {
 	u32 slotsneeded = m_state.slotsNeeded(nuti);
 	assert(m_constSymbol);
 	((SymbolConstantValue *) m_constSymbol)->setConstantStackFrameAbsoluteSlotIndex(cslotidx);
-	assert(nut->isPrimitiveType());
+	//assert(nut->isPrimitiveType());
 	Node::makeRoomForSlots(slotsneeded, CNSTSTACK);
 	setupStackWithPrimitiveForEval(slotsneeded);
 	cslotidx += slotsneeded;
       }
     else if(m_state.isAClass(nuti)) //t41198
       {
-	//eval doesn't support transients (t41231)
+	//array of classes??
+	//eval doesn't support transients (> atom size) (t41231)
 	ULAMCLASSTYPE nclasstype = nut->getUlamClassType();
-	if((nclasstype == UC_ELEMENT) || (nclasstype == UC_QUARK))
+	//if((nclasstype == UC_ELEMENT) || (nclasstype == UC_QUARK))
+	if((nclasstype == UC_ELEMENT) || (nclasstype == UC_QUARK) || ((nclasstype == UC_TRANSIENT) && (nut->getTotalBitSize() <= MAXSTATEBITS)))
 	  {
 	    u32 slotsneeded = m_state.slotsNeeded(nuti);
 	    assert(m_constSymbol);

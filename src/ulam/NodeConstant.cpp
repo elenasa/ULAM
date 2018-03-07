@@ -7,7 +7,7 @@
 
 namespace MFM {
 
-  NodeConstant::NodeConstant(const Token& tok, SymbolWithValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state) : NodeTerminal(state), m_token(tok), m_nodeTypeDesc(typedesc), m_constSymbol(symptr), m_ready(false), m_constType(Nouti), m_currBlockNo(0), m_currBlockPtr(NULL)
+  NodeConstant::NodeConstant(const Token& tok, SymbolWithValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state) : NodeTerminal(state), m_token(tok), m_nodeTypeDesc(typedesc), m_constSymbol(symptr), m_ready(false), m_constType(Nouti), m_currBlockNo(0), m_currBlockPtr(NULL), m_tmpvarSymbol(NULL)
   {
     if(symptr)
       {
@@ -18,7 +18,7 @@ namespace MFM {
     //else t41148
   }
 
-  NodeConstant::NodeConstant(const NodeConstant& ref) : NodeTerminal(ref), m_token(ref.m_token), m_nodeTypeDesc(NULL), m_constSymbol(NULL), m_ready(false), m_constType(ref.m_constType), m_currBlockNo(ref.m_currBlockNo), m_currBlockPtr(NULL)
+  NodeConstant::NodeConstant(const NodeConstant& ref) : NodeTerminal(ref), m_token(ref.m_token), m_nodeTypeDesc(NULL), m_constSymbol(NULL), m_ready(false), m_constType(ref.m_constType), m_currBlockNo(ref.m_currBlockNo), m_currBlockPtr(NULL), m_tmpvarSymbol(NULL)
   {
     if(ref.m_nodeTypeDesc)
       m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
@@ -28,6 +28,9 @@ namespace MFM {
   {
     delete m_nodeTypeDesc;
     m_nodeTypeDesc = NULL;
+
+    delete m_tmpvarSymbol;
+    m_tmpvarSymbol = NULL;
   }
 
   Node * NodeConstant::instantiate()
@@ -450,9 +453,45 @@ namespace MFM {
 
   EvalStatus NodeConstant::evalToStoreInto()
   {
+#if 0
     //possible constant array item (t3881)
     m_state.abortShouldntGetHere();
     return UNEVALUABLE;
+#endif
+
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
+    if(nuti == Hzy)
+      return NOTREADY;
+
+    assert(m_constSymbol);
+
+    if(((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex() == 0)
+      return NOTREADY;
+
+    evalNodeProlog(0); //new current node eval frame pointer
+
+    UlamValue rtnUVPtr = makeUlamValuePtr();
+    Node::assignReturnValuePtrToStack(rtnUVPtr);
+
+    evalNodeEpilog();
+    return NORMAL;
+  }
+
+  UlamValue NodeConstant::makeUlamValuePtr()
+  {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+    assert(m_constSymbol);
+    assert(((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex() > 0);
+
+    UlamValue absptr = UlamValue::makePtr(((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex(), CNSTSTACK, nuti, nut->getPackable(), m_state, 0, m_constSymbol->getId());
+    absptr.setUlamValueTypeIdx(PtrAbs);
+
+    return absptr;
   }
 
   void NodeConstant::genCode(File * fp, UVPass& uvpass)
@@ -462,6 +501,26 @@ namespace MFM {
     assert(isReadyConstant()); //must be
     NodeTerminal::genCode(fp, uvpass);
   } //genCode
+
+  void NodeConstant::genCodeToStoreInto(File * fp, UVPass& uvpass)
+  {
+    assert(isReadyConstant()); //must be
+
+    genCode(fp, uvpass);
+
+    //******UPDATED GLOBAL; no restore!!!**************************
+    //    m_state.m_currentObjSymbolsForCodeGen.push_back(m_constSymbol);
+  } //genCodeToStoreInto
+
+  void NodeConstant::genCodeConvertATmpVarIntoBitVector(File * fp, UVPass uvpass)
+  {
+    //need temporary storage immediate after bitsize cast complete (t41240)
+    // e.g. constant ref function parameter (primitive)
+    Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass);
+
+    m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL);
+    m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
+  }
 
   bool NodeConstant::updateConstant()
   {

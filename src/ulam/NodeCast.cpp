@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "NodeCast.h"
+#include "NodeConstant.h"
 #include "CompilerState.h"
 #include "SymbolVariableStack.h"
 
@@ -696,7 +697,8 @@ namespace MFM {
       {
 	genCodeReadIntoATmpVar(fp, uvpass); // cast.
       }
-    else if(m_state.isReference(getCastType())) //to ref type
+    //    else
+    if(m_state.isReference(getCastType())) //to ref type
       genCodeToStoreIntoCastAsReference(fp, uvpass); //noop
     else if(m_state.isReference(m_node->getNodeType())) //from ref type
       genCodeToStoreIntoCastFromAReference(fp, uvpass); //noop
@@ -766,12 +768,15 @@ namespace MFM {
    fp->write_decimal(tobe->getTotalBitSize()); //tobe length
    fp->write(");"); GCNL;
 
+   //support constant function parameters using constant primitive types (t41240)
+   UTI derefTobe = m_state.getUlamTypeAsDeref(tobeType);
+
    //PROBLEM is that funccall checks for 0 nameid to use the tmp var!
    // but then if we don't pass it along Node::genMemberNameForMethod fails..
    if(isTerminal)
-     uvpass = UVPass::makePass(tmpVarCastNum, TMPREGISTER, tobeType, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified.
+     uvpass = UVPass::makePass(tmpVarCastNum, TMPREGISTER, derefTobe, m_state.determinePackable(tobeType), m_state, 0, 0); //POS 0 rightjustified.
    else
-     uvpass = UVPass::makePass(tmpVarCastNum, tobe->getTmpStorageTypeForTmpVar(), tobeType, m_state.determinePackable(tobeType), m_state, 0, uvpass.getPassNameId()); //POS 0 rightjustified; pass along name id
+     uvpass = UVPass::makePass(tmpVarCastNum, tobe->getTmpStorageTypeForTmpVar(), derefTobe, m_state.determinePackable(tobeType), m_state, 0, uvpass.getPassNameId()); //POS 0 rightjustified; pass along name id
   } //genCodeReadIntoATmpVar
 
   //handle element-atom and atom-element casting differently:
@@ -1792,35 +1797,15 @@ namespace MFM {
   void NodeCast::genCodeToStoreIntoCastAsReference(File * fp, UVPass & uvpass)
   {
     UTI tobeType = getCastType();
-    if(m_node->isAConstantClass())
+    if(m_node->isAConstantClass() || m_node->isAConstant())
       {
-	assert(m_state.isConstantRefType(tobeType));
-#if 0
-	UTI derefuti = m_state.getUlamTypeAsDeref(tobeType);
-	UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
-
-	// make a temporary immediate of class constant type that can be referenced (t41238)
-	Node::genCodeReadIntoATmpVar(fp, uvpass);
-
-	//m_state.clearCurrentObjSymbolsForCodeGen(); //************CLEAR
-	s32 tmpvarc = m_state.getNextTmpVarNumber();
-
-	m_state.indentUlamCode(fp);
-	fp->write(derefut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
-	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(derefuti, tmpvarc, TMPBITVAL).c_str());
-	fp->write("("); // use constructor (not equals)
-	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	fp->write(");"); GCNL;
-
-	uvpass = UVPass::makePass(tmpvarc, TMPBITVAL, derefuti, m_state.determinePackable(derefuti), m_state, 0, 0); //POS 0 rightjustified;
-
-	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL);
-	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
-#endif
+	assert(m_state.isConstantRefType(tobeType)); //t41238,9, t41240
+	if(!m_node->isAConstantClass())
+	  {
+	    ((NodeConstant *) m_node)->genCodeConvertATmpVarIntoBitVector(fp, uvpass);
+	  }
       }
-    //else
-      uvpass.setPassTargetType(tobeType); //minimal casting, t3812?
+    uvpass.setPassTargetType(tobeType); //minimal casting, t3812?
     return;
   } //genCodeToStoreIntoCastAsReference
 

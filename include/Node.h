@@ -237,6 +237,8 @@ namespace MFM{
 
     virtual void genCodeExtern(File * fp, bool declOnly);
 
+    virtual void genCodeConvertATmpVarIntoBitVector(File * fp, UVPass & uvpass);
+
     /**
      * Returns converted const argument to all capital letters as a string
      */
@@ -312,8 +314,6 @@ namespace MFM{
     SymbolTmpVar * makeTmpVarSymbolForCodeGen(UVPass& uvpass, Symbol * sym);
 
     std::string genUlamRefUsageAsString(UTI uti);
-
-    void genCodeConvertATmpVarIntoBitVector(File * fp, UVPass & uvpass);
 
     void genCodeConvertABitVectorIntoATmpVar(File * fp, UVPass & uvpass);
 

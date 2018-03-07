@@ -272,12 +272,13 @@ namespace MFM {
 	  {
 	    if(argNodes[i]->isAConstant())
 	      {
-		//if(m_state.isReference(puti))
-		if(m_state.isReference(puti) && !argNodes[i]->isAConstantClass()) //t41238
+		if(m_state.isReference(puti) && !((SymbolVariableStack *) m_parameterSymbols.at(i))->isConstantFunctionParameter())
 		  {
 		    rtnBool = false;
 		    break;
 		  }
+		//else (t41238, t41240, t3114..)
+
 		//constants can match any bit size, that it fits; not reference types
 		FORECAST scr = argNodes[i]->safeToCastTo(puti);
 		if(scr == CAST_BAD)
