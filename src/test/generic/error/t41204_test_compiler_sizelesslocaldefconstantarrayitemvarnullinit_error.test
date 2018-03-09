@@ -8,6 +8,7 @@
 ./Q.ulam:2:7: ERROR: Proxy Type: V(a) is still incomplete and unknown for its 'sizeof' while compiling class: Q(b,s).
 ./Q.ulam:2:7: ERROR: Constant value expression for 's', is not yet ready while compiling class: Q(b,s).
 ./Q.ulam:2:7: ERROR: Incomplete NodeConstantDef for type: Unsigned(32), used with symbol name 's', after folding.
+./Q.ulam:2:39: ERROR: Not ready constant for type: Int(32), used with constant symbol name 'b'.
 ./Q.ulam:2:39: ERROR: Constant value expression for: a, is not ready, still hazy while compiling class: Q(b,s).
 ./P.ulam:7:5: ERROR: Incomplete descriptor for type: Q(b,s) (UTI 34).
 ./P.ulam:7:5: ERROR: Incomplete Variable Decl for type: Q(b,s), used with variable symbol name 'w'.

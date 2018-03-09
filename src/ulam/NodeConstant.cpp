@@ -230,8 +230,13 @@ namespace MFM {
       m_ready = updateConstant(); //sets ready here
     if(!isReadyConstant())
       {
+	std::ostringstream msg;
+	msg << "Not ready constant for type: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	msg << ", used with constant symbol name '";
+	msg << m_state.getTokenDataAsString(m_token).c_str() << "'";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);  //t41192
 	it = Hzy;
-	//setNodeType(it); //missing
 	if(!stubcopy)
 	  {
 	    m_constSymbol = NULL; //lookup again too! (e.g. inherited template instances)

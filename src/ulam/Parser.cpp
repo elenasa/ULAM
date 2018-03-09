@@ -2214,6 +2214,8 @@ namespace MFM {
       {
 	unreadToken();
 	TypeArgs typeargs;
+	typeargs.m_hasConstantTypeModifier = true;
+
 	NodeTypeDescriptor * typeNode = parseTypeDescriptorIncludingLocalsScope(typeargs, false, false);
 	if(!typeNode)
 	  {
@@ -2225,8 +2227,11 @@ namespace MFM {
 	    return false; //done
 	  }
 
+#if 0
 	if(typeargs.m_declRef == ALT_REF)
 	  {
+	    typeargs.m_declRef = ALT_CONSTREF; //t41242, t41192
+
 	    std::ostringstream msg;
 	    msg << "Invalid named constant Reference Type '";
 	    msg << m_state.getTokenDataAsString(pTok).c_str() << "'";
@@ -2234,6 +2239,7 @@ namespace MFM {
 	    getTokensUntil(TOK_SEMICOLON);
 	    return false; //done
 	  }
+#endif
 
 	typeargs.m_assignOK = true;
 	typeargs.m_isStmt = true;
@@ -2566,7 +2572,7 @@ namespace MFM {
 	return NULL;
       }
 
-    typeargs.init(pTok); //initialize here
+    typeargs.init(pTok); //initialize token (possibly again) here
 
     UTI dropCastUTI = Nouti;
     return parseTypeDescriptor(typeargs, dropCastUTI, isaclass, delAfterDotFails); //isaclassarg unknown
@@ -2607,7 +2613,7 @@ namespace MFM {
 	    if(m_state.isReference(cuti)) //e.g. refofSelf, ref to array of classes
 	      {
 		typeargs.m_classInstanceIdx = m_state.getUlamTypeAsDeref(cuti);
-		typeargs.m_declRef = ALT_REF;
+		typeargs.m_declRef = m_state.getReferenceType(cuti); //was ALT_REF
 		typeargs.m_referencedUTI = typeargs.m_classInstanceIdx;
 	      }
 	    else if(m_state.isScalar(cuti))
@@ -2673,16 +2679,21 @@ namespace MFM {
     //else fall thru
     if(dTok.m_type == TOK_AMP)
       {
-	typeargs.m_declRef = ALT_REF; //a declared reference
+	typeargs.m_declRef = typeargs.m_hasConstantTypeModifier ? ALT_CONSTREF : ALT_REF; //a declared reference (was ALT_REF)
 	typeargs.m_referencedUTI = castUTI; //?
 	typeargs.m_assignOK = true; //required
 	typeargs.m_isStmt = true; //unless a func param
+#if 1
 	// change uti to reference key
 	UTI refuti = castUTI;
 	if(m_state.okUTItoContinue(castUTI)) //t41153
-	  refuti = m_state.getUlamTypeAsRef(castUTI); //t3692
+	  refuti = m_state.getUlamTypeAsRef(castUTI, typeargs.m_declRef); //t3692
 	assert(typeNode);
-	typeNode->setReferenceType(ALT_REF, castUTI, refuti);
+	typeNode->setReferenceType(typeargs.m_declRef, castUTI, refuti);
+#else
+	//	assert(typeNode);
+	//typeNode->setReferenceType(typeargs.m_declRef, castUTI, Hzy); //REDO after symbol is installed???
+#endif
       }
     else
       unreadToken();
@@ -4395,7 +4406,7 @@ namespace MFM {
 
     if(iTok.m_type == TOK_AMP)
       {
-	args.m_declRef = ALT_REF;
+	args.m_declRef = args.m_hasConstantTypeModifier ? ALT_CONSTREF : ALT_REF; //a declared reference (was ALT_REF)
 	args.m_referencedUTI = passuti; //?
 	getNextToken(iTok);
       }
@@ -4442,7 +4453,7 @@ namespace MFM {
 	//assignments are always permitted, continue..
 	assert(args.m_assignOK);
       }
-    else if(args.m_declRef == ALT_REF)
+    else if((args.m_declRef == ALT_REF) || (args.m_declRef == ALT_CONSTREF))
       {
 	//assignments required for references
 	std::ostringstream msg;
@@ -4471,7 +4482,7 @@ namespace MFM {
     //continuing..
     bool brtn = true;
     //update dNode with init expression: lval for ref, assign for local car
-    if(args.m_declRef == ALT_REF)
+    if((args.m_declRef == ALT_REF) || (args.m_declRef == ALT_CONSTREF))
       {
 	brtn = parseRestOfRefInitialization(identTok, dNode);
 	args.m_declRef = ALT_NOT; //clear flag in case of decl list
@@ -5352,12 +5363,9 @@ namespace MFM {
 	    UTI auti = asymptr->getUlamTypeIdx();
 	    //chain to NodeType descriptor if array (i.e. non scalar), o.w. delete lval
 	    linkOrFreeConstantExpressionArraysize(auti, args, (NodeSquareBracket *)lvalNode, nodetyperef);
+	    syncTypeDescriptorWithSymbolType(auti, args, nodetyperef); //t3611, t3613
 
-	    ALT refalt = m_state.getReferenceType(auti);
-	    if(refalt != ALT_NOT)
-	      nodetyperef->setReferenceType(refalt, args.m_referencedUTI, auti); //invariant
-
-	    // tfr owner of nodetyperef to node var decl
+	    // tfr owner of node type descriptor to node var decl
 	    if(asymptr->isDataMember())
 	      {
 		rtnNode =  new NodeVarDeclDM((SymbolVariableDataMember *) asymptr, nodetyperef, m_state);
@@ -5445,11 +5453,9 @@ namespace MFM {
 	    UTI auti = asymptr->getUlamTypeIdx();
 	    //chain to NodeType descriptor if array (i.e. non scalar), o.w. delete lval
 	    linkOrFreeConstantExpressionArraysize(auti, args, (NodeSquareBracket *)lvalNode, nodetyperef);
-	    // tfr owner of nodetyperef to node typedef
-	    ALT refalt = m_state.getReferenceType(auti);
-	    if(refalt != ALT_NOT)
-	      nodetyperef->setReferenceType(refalt, args.m_referencedUTI, auti); //invariant
+	    //syncTypeDescriptorWithSymbolType(auti, args, nodetyperef);//t3378 skips, t3668
 
+	    // tfr owner of nodetyperef to node typedef
 	    rtnNode =  new NodeTypedef((SymbolTypedef *) asymptr, nodetyperef, m_state);
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(args.m_typeTok.m_locator);
@@ -5528,13 +5534,9 @@ namespace MFM {
 	    UTI auti = asymptr->getUlamTypeIdx();
 	    //chain to NodeType descriptor if array (i.e. non scalar), o.w. deletes lval
 	    linkOrFreeConstantExpressionArraysize(auti, args, (NodeSquareBracket *)lvalNode, nodetyperef);
+	    syncTypeDescriptorWithSymbolType(auti, args, nodetyperef);
 
-	    //if(nodetyperef && !m_state.isAClass(auti)) //limit to primitives? t3526,t41211,41
-	    if(nodetyperef) //limit to primitives? t3526,t41211,41
-	      {
-		nodetyperef->resetGivenUTI(auti); //invariant?
-	      }
-
+	    //tfr owner of node type descriptor to nodeconstantdef
 	    NodeConstantDef * constNode =  new NodeConstantDef((SymbolConstantValue *) asymptr, nodetyperef, m_state);
 	    assert(constNode);
 	    constNode->setNodeLocation(args.m_typeTok.m_locator);
@@ -6133,7 +6135,7 @@ namespace MFM {
     return termNode;
   } //makeTerminal
 
-  void Parser::linkOrFreeConstantExpressionArraysize(UTI auti, TypeArgs args, NodeSquareBracket * ceForArraySize, NodeTypeDescriptor *& nodetyperef)
+  void Parser::linkOrFreeConstantExpressionArraysize(UTI auti, const TypeArgs& args, NodeSquareBracket * ceForArraySize, NodeTypeDescriptor *& nodetyperef)
   {
     //auti is incomplete.
 
@@ -6150,11 +6152,15 @@ namespace MFM {
       }
 
     //typedef is an array from another class
-    if((args.m_anothertduti == Nouti) && (args.m_anothertduti == auti))
+    //if((args.m_anothertduti == Nouti) && (args.m_anothertduti == auti))
+    if((args.m_anothertduti != Nouti) && (args.m_anothertduti == auti))
       {
 	delete ceForArraySize;
 	return;
       }
+
+
+    assert(m_state.okUTItoContinue(nodetyperef->givenUTI()));
 
     // could be local array typedef, no square brackets this time (else)
     if(m_state.isScalar(nodetyperef->givenUTI()))
@@ -6167,6 +6173,18 @@ namespace MFM {
     else
       delete ceForArraySize;
   } //linkOrFreeConstantExpressionArraysize
+
+  void Parser::syncTypeDescriptorWithSymbolType(UTI auti, const TypeArgs& args, NodeTypeDescriptor * nodetyperef)
+  {
+    if(m_state.isScalar(auti)) //t3816, t3223,
+      {
+	ALT refalt = m_state.getReferenceType(auti);
+	if((refalt != ALT_NOT))
+	  nodetyperef->setReferenceType(refalt, args.m_referencedUTI, auti); //invariant
+	else
+	  nodetyperef->resetGivenUTI(auti);
+      }
+  }
 
   bool Parser::getExpectedToken(TokenType eTokType)
   {

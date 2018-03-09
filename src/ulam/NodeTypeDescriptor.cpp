@@ -177,7 +177,8 @@ namespace MFM {
     // not node select, we are the leaf Type: a typedef, class or primitive scalar.
     UTI nuti = givenUTI(); //start with given.
 
-    if(getReferenceType() != ALT_NOT)
+    //if(getReferenceType() != ALT_NOT)
+    if((getReferenceType() != ALT_NOT) || m_state.isAltRefType(nuti)) //t3668?
       {
 	rtnb = resolveReferenceType(nuti); //may update nuti
 	if(nuti == Nav)
@@ -285,7 +286,8 @@ namespace MFM {
     UTI nuti = givenUTI();
     UTI cuti = m_state.getCompileThisIdx();
 
-    assert(getReferenceType() != ALT_NOT);
+    //assert(getReferenceType() != ALT_NOT);
+    assert((getReferenceType() != ALT_NOT) || (m_state.isAltRefType(nuti))); //t3668?
 
     //if reference is not complete, but its deref is, use its sizes to complete us.
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
@@ -328,14 +330,16 @@ namespace MFM {
 	if(m_state.isComplete(derefuti))
 	  {
 	    //move to before known
-	    ALT altd = getReferenceType();
-	    if(nut->getReferenceType() != altd)
+#if 0
+	    if(derefut->getReferenceType() != altd)
 	      {
-		nuti = m_state.getUlamTypeAsRef(nuti, altd);
+		nuti = m_state.getUlamTypeAsRef(derefuti, altd);
 		nut =  m_state.getUlamTypeByIndex(nuti);
 		setReferenceType(altd, derefuti, nuti); //updates given too!
 	      }
-	    else if(derefut->getReferenceType() != ALT_NOT)
+	    else
+#endif
+	      if(derefut->getReferenceType() != ALT_NOT)
 	      {
 		std::ostringstream msg;
 		msg << "Referencing a reference type: ";
@@ -344,11 +348,12 @@ namespace MFM {
 		rtnuti = Nav;
 		return false;
 	      }
-	    else
-	      setReferenceType(altd, derefuti);
 
 	    // we might have set the size of a holder ref. still a holder. darn.
 	    rtnb = m_state.completeAReferenceTypeWith(nuti, derefuti);
+
+	    ALT altd = m_state.getReferenceType(nuti);
+	    setReferenceType(altd, derefuti);
 	  } //complete deref
 	//else deref not complete, t.f. nuti isn't changed
       } //else not ok to continue
@@ -474,13 +479,29 @@ namespace MFM {
 	if(!m_state.okUTItoContinue(nuti))
 	  {
 	    //use given UTI, not the not-ok nuti here..
-	    assert(m_state.okUTItoContinue(givenUTI()));
-	    UlamType * nut = m_state.getUlamTypeByIndex(givenUTI());
-	    ULAMTYPE etyp = nut->getUlamTypeEnum();
-	    s32 arraysize = nut->getArraySize(); //NONARRAYSIZE for scalars
-	    //use default primitive bitsize; (assumes scalar)
-	    nuti = m_state.makeUlamType(m_typeTok, ULAMTYPE_DEFAULTBITSIZE[etyp], arraysize, Nouti);
-	    rtnb = true;
+	    assert(m_state.okUTItoContinue(givenUTI()) || (getReferenceType() != ALT_NOT));
+	    if(m_state.okUTItoContinue(givenUTI()))
+	      {
+		UlamType * nut = m_state.getUlamTypeByIndex(givenUTI());
+		ULAMTYPE etyp = nut->getUlamTypeEnum();
+		s32 arraysize = nut->getArraySize(); //NONARRAYSIZE for scalars
+		//use default primitive bitsize; (assumes scalar)
+		nuti = m_state.makeUlamType(m_typeTok, ULAMTYPE_DEFAULTBITSIZE[etyp], arraysize, Nouti);
+		rtnb = true;
+	      }
+	    else
+	      {
+		ALT altd = getReferenceType();
+		//must be a reference type; use type token to make one!
+		assert((altd == ALT_REF) || (altd == ALT_CONSTREF));
+		ULAMTYPE etyp = m_state.getBaseTypeFromToken(m_typeTok);
+		if(etyp != Class)
+		  {
+		    //use default primitive bitsize; (assumes scalar)
+		    nuti = m_state.makeUlamType(m_typeTok, ULAMTYPE_DEFAULTBITSIZE[etyp], NONARRAYSIZE, Nouti, altd, UC_NOTACLASS);
+		    rtnb = true; //t3689, t3696, t3760, t3792. t3793
+		  }
+	      }
 	  }
 	else if(!(rtnb = m_state.isComplete(nuti)))
 	  {

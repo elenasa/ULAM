@@ -444,7 +444,7 @@ namespace MFM {
 	    return Nav; //short-circuit (t3446, t3898)
 	  }
 
-	if(m_nodeExpr && !m_nodeExpr->isAConstant())
+	if(m_nodeExpr && !m_nodeExpr->isAConstant() && !m_state.isConstantRefType(suti))
 	  {
 	    std::ostringstream msg;
 	    msg << "Constant value expression for";
@@ -459,6 +459,7 @@ namespace MFM {
 	    setNodeType(Nav);
 	    return Nav; //short-circuit (error/t3453) after possible empty array init is deleted (t41202)
 	  }
+	//else t41192
       } //end node expression
     else
       {
@@ -546,7 +547,8 @@ namespace MFM {
 	  }
 	else //if(!m_state.isAClass(foldrtn)) //t41198
 	  {
-	    if(!isReadyConstant())
+	    //if(!isReadyConstant())
+	    if(!isReadyConstant() && !m_state.isConstantRefType(suti))
 	      {
 		std::ostringstream msg;
 		msg << "Constant symbol '" << getName() << "' is not ready";
@@ -554,6 +556,7 @@ namespace MFM {
 		setNodeType(Hzy);
 		m_state.setGoAgain();
 	      }
+	    //else t41192
 	  }
       }
 
@@ -674,6 +677,15 @@ namespace MFM {
     assert(m_constSymbol);
     if(isReadyConstant())
       return uti;
+
+    if(m_state.isConstantRefType(uti))
+      {
+	assert(m_nodeExpr);
+	if(!m_nodeExpr->isAConstant())
+	  {
+	    return uti; //no folding when not a constant expression (t41192)
+	  }
+      }
 
     if(!m_state.isScalar(uti))
       {

@@ -240,6 +240,7 @@ namespace MFM {
 		setBlock(currBlock);
 	      }
 	    else if(asymptr->isConstant())
+	      //else if(asymptr->isConstant() && !m_state.isConstantRefType(asymptr->getUlamTypeIdx()))
 	      {
 		UTI auti = asymptr->getUlamTypeIdx();
 		// replace ourselves with a constant node instead;
@@ -309,9 +310,9 @@ namespace MFM {
 	    m_state.popClassContext(); //restore
 	  }
       } //lookup symbol done
-    else if(m_varSymbol->isConstant())
+    //else if(m_varSymbol->isConstant())
+    else if(m_varSymbol->isConstant() && !m_state.isConstantRefType(m_varSymbol->getUlamTypeIdx()))
       {
-	// CONSTANT ARRAY? TBD..
 	UTI vuti = m_varSymbol->getUlamTypeIdx();
 
 	// replace ourselves with a constant node instead;
@@ -592,6 +593,11 @@ namespace MFM {
 	  }
 	//else continue if a constant function parameter; how a DM? (t41239)
       }
+    else if(m_state.isConstantRefType(nuti))
+      {
+	if(((SymbolConstantValue *) m_varSymbol)->getConstantStackFrameAbsoluteSlotIndex() == 0)
+	  return NOTREADY;
+      }
 
     evalNodeProlog(0); //new current node eval frame pointer
 
@@ -641,6 +647,15 @@ namespace MFM {
 	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 
 	ptr.checkForAbsolutePtr(m_state.m_currentObjPtr); //t3810
+      }
+    else if(m_state.isConstantRefType(getNodeType()))
+      {
+	//just like NodeConstant..but it's a constant ref (t41242)
+	UTI nuti = getNodeType();
+	UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+	ptr = UlamValue::makePtr(((SymbolConstantValue *) m_varSymbol)->getConstantStackFrameAbsoluteSlotIndex(), CNSTSTACK, nuti, nut->getPackable(), m_state, 0, m_varSymbol->getId());
+	ptr.setUlamValueTypeIdx(PtrAbs);
       }
     else
       {
@@ -958,6 +973,8 @@ namespace MFM {
 
     if(brtn)
       {
+	uti = m_state.getUlamTypeAsRef(uti, args.m_declRef, args.m_hasConstantTypeModifier); //constant refs allowed t41192
+
 	if(!asymptr)
 	  {
 	    //create a symbol for this new named constant, a constant-def, with its value
@@ -1140,7 +1157,7 @@ namespace MFM {
 
     if(brtn)
       {
-	UTI uti = m_state.getUlamTypeAsRef(auti, args.m_declRef, args.m_hasConstantTypeModifier); //ut not current; no deref. (maybe rename args.m_hasConstantModifier???)
+	UTI uti = m_state.getUlamTypeAsRef(auti, args.m_declRef, args.m_hasConstantTypeModifier); //ut not current; no deref.
 
 	SymbolVariable * sym = makeSymbol(uti, m_state.getReferenceType(uti), args);
 	if(sym)
