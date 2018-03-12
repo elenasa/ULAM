@@ -924,7 +924,7 @@ namespace MFM {
 
     genCodeToStoreInto(fp, uvpass);
 
-    if(!isString || m_state.isReference(uvpass.getPassTargetType())) //t3953, t3973
+    if(!isString || m_state.isReference(uvpass.getPassTargetType())) //t3953,t3973, not isAltRefType t3908
       Node::genCodeReadIntoATmpVar(fp, uvpass); //splits on array item
     else
       m_state.clearCurrentObjSymbolsForCodeGen();

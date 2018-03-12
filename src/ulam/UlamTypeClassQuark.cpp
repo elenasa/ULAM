@@ -27,10 +27,10 @@ namespace MFM {
     bool brtn = true;
     assert(m_state.getUlamTypeByIndex(typidx) == this); //tobe
     UTI valtypidx = val.getUlamValueTypeIdx();
-    UlamType * vut = m_state.getUlamTypeByIndex(valtypidx);
-    assert(vut->isScalar() && isScalar());
-    ULAMTYPE vetyp = vut->getUlamTypeEnum();
-    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
+    UlamType * fmut = m_state.getUlamTypeByIndex(valtypidx);
+    assert(fmut->isScalar() && isScalar());
+    ULAMTYPE vetyp = fmut->getUlamTypeEnum();
+    ULAMCLASSTYPE vclasstype = fmut->getUlamClassType();
 
     //now allowing atoms to be cast as quarks, as well as elements;
     // also allowing subclasses to be cast as their superclass (u1.2.2)
@@ -86,7 +86,7 @@ namespace MFM {
 	  {
 	    // both left-justified immediate quarks
 	    // Coo c = (Coo) f.su; where su is a Soo : Coo
-	    s32 vlen = vut->getTotalBitSize();
+	    s32 vlen = fmut->getTotalBitSize();
 	    s32 len = getTotalBitSize();
 	    u32 vdata = val.getImmediateClassData(vlen); //not from element
 	    assert((vlen - len) >= 0); //sanity check
@@ -141,7 +141,7 @@ namespace MFM {
       return false;
 
     bool rtnb = false;
-    if(!isReference())
+    if(!isAltRefType())
       {
 	rtnb = true;
 	u32 id = getUlamTypeNameId();

@@ -21,9 +21,9 @@ namespace MFM {
     bool brtn = true;
     assert(m_state.getUlamTypeByIndex(typidx) == this); //tobe
     UTI valtypidx = val.getUlamValueTypeIdx();
-    UlamType * vut = m_state.getUlamTypeByIndex(valtypidx);
-    assert(vut->isScalar() && isScalar());
-    ULAMTYPE vetype = vut->getUlamTypeEnum();
+    UlamType * fmut = m_state.getUlamTypeByIndex(valtypidx);
+    assert(fmut->isScalar() && isScalar());
+    ULAMTYPE vetype = fmut->getUlamTypeEnum();
     //now allowing atoms to be cast as quarks, as well as elements;
     // also allowing subclasses to be cast as their superclass (u1.2.2)
     if(!(vetype == UAtom || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME))
@@ -96,7 +96,7 @@ namespace MFM {
       return false;
 
     bool rtnb = false;
-    if(!isReference())
+    if(!isAltRefType())
       {
 	rtnb = true;
 	u32 id = getUlamTypeNameId();

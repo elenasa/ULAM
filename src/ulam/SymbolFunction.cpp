@@ -270,16 +270,18 @@ namespace MFM {
 	UTI auti = argNodes[i]->getNodeType();
 	if(UlamType::compareForArgumentMatching(puti, auti, m_state) != UTIC_SAME) //not same|not ready
 	  {
+	    UlamType * put = m_state.getUlamTypeByIndex(puti);
+	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
 	    if(argNodes[i]->isAConstant())
 	      {
-		if(m_state.isReference(puti) && !((SymbolVariableStack *) m_parameterSymbols.at(i))->isConstantFunctionParameter())
+		if(put->isAltRefType() && !((SymbolVariableStack *) m_parameterSymbols.at(i))->isConstantFunctionParameter())
 		  {
 		    rtnBool = false;
 		    break;
 		  }
 		//else (t41238, t41240, t3114..)
 
-		//constants can match any bit size, that it fits; not reference types
+		//constants can match any bit size, that it fits; not non-constant reference types
 		FORECAST scr = argNodes[i]->safeToCastTo(puti);
 		if(scr == CAST_BAD)
 		  {
@@ -290,16 +292,17 @@ namespace MFM {
 		  hasHazyArgs = true;
 		else //CAST_CLEAR
 		  {
-		    if(m_state.getUlamTypeByIndex(puti)->getUlamTypeEnum() == m_state.getUlamTypeByIndex(auti)->getUlamTypeEnum())
+		    if(put->getUlamTypeEnum() == aut->getUlamTypeEnum())
 		      numUTmatch++;
 		  }
 	      } //constantarg
 	    // catch it later for a better error message!!
-	    //else if(argNodes[i]->isFunctionCall() && m_state.isReference(puti))
+	    //else if(argNodes[i]->isFunctionCall() && m_state.isAltRefType(puti))
 	    else
 	      {
 		//willing to cast arg Type safely TO puti; incomplete types are hazy.
-		FORECAST scr = m_state.getUlamTypeByIndex(puti)->safeCast(auti);
+		//except for references.
+		FORECAST scr = put->safeCast(auti);
 		if(scr == CAST_BAD)
 		  {
 		    rtnBool = false;
@@ -309,7 +312,7 @@ namespace MFM {
 		  hasHazyArgs = true;
 		else //CAST_CLEAR
 		  {
-		    if(m_state.getUlamTypeByIndex(puti)->getUlamTypeEnum() == m_state.getUlamTypeByIndex(auti)->getUlamTypeEnum())
+		    if(put->getUlamTypeEnum() == aut->getUlamTypeEnum())
 		      numUTmatch++;
 		  }
 	      }

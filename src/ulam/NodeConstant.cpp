@@ -458,12 +458,7 @@ namespace MFM {
 
   EvalStatus NodeConstant::evalToStoreInto()
   {
-#if 0
     //possible constant array item (t3881)
-    m_state.abortShouldntGetHere();
-    return UNEVALUABLE;
-#endif
-
     UTI nuti = getNodeType();
     if(nuti == Nav)
       return ERROR;
@@ -513,19 +508,13 @@ namespace MFM {
 
     genCode(fp, uvpass);
 
-    //******UPDATED GLOBAL; no restore!!!**************************
-    //    m_state.m_currentObjSymbolsForCodeGen.push_back(m_constSymbol);
-  } //genCodeToStoreInto
-
-  void NodeConstant::genCodeConvertATmpVarIntoBitVector(File * fp, UVPass uvpass)
-  {
-    //need temporary storage immediate after bitsize cast complete (t41240)
-    // e.g. constant ref function parameter (primitive)
     Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass);
 
     m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL);
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
-  }
+    //******UPDATED GLOBAL; no restore!!!**************************
+    //    m_state.m_currentObjSymbolsForCodeGen.push_back(m_constSymbol);
+  } //genCodeToStoreInto
 
   bool NodeConstant::updateConstant()
   {

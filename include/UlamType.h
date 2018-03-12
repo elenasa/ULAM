@@ -154,6 +154,8 @@ namespace MFM{
 
     bool isReference();
 
+    bool isAltRefType();
+
     virtual bool isHolder();
 
     virtual bool isComplete(); //neither bitsize nor arraysize is "unknown"

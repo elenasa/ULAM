@@ -70,6 +70,10 @@ namespace MFM {
   const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureNameAndSize(CompilerState * state)
   {
     std::ostringstream key;
+
+    if(m_referenceType == ALT_CONSTREF)
+      key << "constant ";
+
     key << getUlamKeyTypeSignatureNameAndBitSize(state);
     //arraysize
     if(m_arraySize >= 0)
@@ -79,8 +83,6 @@ namespace MFM {
     else if(m_arraySize != NONARRAYSIZE)
       key << "[" << m_arraySize << "?]";
 
-    //if(m_referenceType != ALT_NOT)
-    //    if(m_referenceType == ALT_REF)
     if((m_referenceType == ALT_REF) || (m_referenceType == ALT_CONSTREF))
       key << "&"; //only when ulam programmer put in the &
     return key.str();

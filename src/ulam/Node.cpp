@@ -633,7 +633,7 @@ namespace MFM {
   bool Node::returnValueOnStackNeededForEval(UTI rtnType)
   {
     bool rtnb = false;
-    if(m_state.isReference(rtnType))
+    if(m_state.isAltRefType(rtnType))
       rtnb = true;
     else if((m_state.isAtom(rtnType) && (m_state.isScalar(rtnType))))
       rtnb = true;
@@ -1160,7 +1160,7 @@ namespace MFM {
     fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str());
     fp->write(", ");
     fp->write(genUlamRefUsageAsString(stgcosuti).c_str());
-    if(!stgcosut->isReference())
+    if(!stgcosut->isAltRefType())
       fp->write(", uc");
     fp->write(").");
   } //genSelfNameOfMethod
@@ -1189,7 +1189,7 @@ namespace MFM {
     else
       genLocalMemberNameOfMethod(fp, uvpass);
 
-    if(m_state.isReference(stgcosuti))
+    if(m_state.isAltRefType(stgcosuti))
       fp->write("GetStorage()."); //need storage to do ReadBV (e.g. t3737, t3739)
 
     //read method based on last cos
@@ -1547,7 +1547,7 @@ namespace MFM {
 		//no longer atom-based primitives
 	      }
 
-	    if(m_state.isReference(vuti))
+	    if(m_state.isReference(vuti)) //i'm back
 	      {
 		fp->write(", ");
 		fp->write_decimal_unsigned(pos); //position for constructor
@@ -1601,7 +1601,7 @@ namespace MFM {
     assert(uvpass.getPassStorage() == TMPAUTOREF);
 
     UTI vuti = uvpass.getPassTargetType(); //offset or another autoref
-    assert(m_state.isReference(vuti));
+    assert(m_state.isReference(vuti)); //t3706, t370, t3817, t3906,8,9 (not isAltRefType)
 
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
@@ -1681,13 +1681,13 @@ namespace MFM {
 	else
 	  {
 	    fp->write(stgcos->getMangledName().c_str()); //t3702, t3818
-	    stgisaref = stgcosut->isReference(); //t3114
+	    stgisaref = stgcosut->isReference(); //t3114 (not isAltRefType)
 	  }
       }
     else
       {
 	fp->write(cos->getMangledName().c_str()); //local array
-	stgisaref = cosut->isReference();
+	stgisaref = cosut->isReference(); //not isAltRefType
       }
 
     fp->write(", ");
@@ -1791,10 +1791,10 @@ namespace MFM {
 
     UTI vuti = uvpass.getPassTargetType();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    assert(m_state.isReference(vuti));
+    assert(m_state.isAltRefType(vuti));
 
     UTI stgrefuti = stguvpass.getPassTargetType();
-    assert(m_state.isReference(stgrefuti));
+    assert(m_state.isAltRefType(stgrefuti));
 
     assert(uvpass.getPassStorage() == TMPAUTOREF);
 
@@ -1857,7 +1857,7 @@ namespace MFM {
 	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	fp->write(");"); GCNL;
       }
-    else if(!m_state.isReference(stgcosuti))
+    else if(!m_state.isReference(stgcosuti)) //not isAltRefType (t3650)
       {
 	pos = uvpass.getPassPos();
 
@@ -1967,7 +1967,7 @@ namespace MFM {
     fp->write(vsymptr->getMangledName().c_str());
     fp->write("("); //pass ref in constructor (ref's not assigned with =)
 
-    if(stgcos->isDataMember() && !stgcosut->isReference()) //rhs may be an element/atom in a transient; not a reference
+    if(stgcos->isDataMember() && !stgcosut->isReference()) //rhs may be an element/atom in a transient; not a reference (not isAltRefType?)
       {
 	//can be a reference when an array item (t3818)
 	fp->write(m_state.getHiddenArgName());
@@ -1979,7 +1979,7 @@ namespace MFM {
 	  {
 	   if(stgcosut->isScalar() && needAdjustToStateBits(stgcosuti))
 	     fp->write(" + T::ATOM_FIRST_STATE_BIT"); //?
-	   assert(!cosut->isReference());
+	   assert(!cosut->isReference()); //not isAltRefType?
 	   fp->write(", NULL");
 	  }
 	fp->write(");"); GCNL;
@@ -2016,7 +2016,7 @@ namespace MFM {
 	      }
 	    else if((vetyp == UAtom))
 	      {
-		if(stgcosut->isReference())
+		if(stgcosut->isReference()) //not isAltRefType?
 		  {
 		    ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClassType();
 		    if((stgclasstype == UC_ELEMENT) || (stgclasstype == UC_QUARK))
@@ -2027,7 +2027,7 @@ namespace MFM {
 	      }
 	    else if(vetyp == Class)
 	      {
-		if(!stgcosut->isReference())
+		if(!stgcosut->isReference()) //not isAltRefType
 		  {
 		    //effective self for arrays is NULL
 		    fp->write(", 0u, NULL"); //t3670 3668, t3669, t3670
@@ -2036,7 +2036,7 @@ namespace MFM {
 	    else
 	      m_state.abortUndefinedUlamType();
 	  }
-	if(!stgcosut->isReference())
+	if(!stgcosut->isReference()) //not isAltRefType
 	  fp->write(", uc");  //t3635
 	fp->write(");"); GCNL;
       } //storage
@@ -2092,7 +2092,7 @@ namespace MFM {
       fp->write("+ T::ATOM_FIRST_STATE_BIT + "); //t3816
     else if(vetyp == UAtom)
       {
-	if(stgcosut->isReference())
+	if(stgcosut->isReference()) //not isAltRefType
 	  {
 	    ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClassType();
 	    if((stgclasstype == UC_ELEMENT) || (stgclasstype == UC_QUARK))
@@ -2116,7 +2116,7 @@ namespace MFM {
 
     if((vclasstype != UC_NOTACLASS) && (vetyp != UAtom))
       {
-	if(!stgcosut->isReference())
+	if(!stgcosut->isReference()) //not isAltRefType
 	  {
 	    fp->write(", &"); //left just
 	    fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
@@ -2134,7 +2134,7 @@ namespace MFM {
 	  }
       }
 
-    if(!stgcosut->isReference() && isLocal)
+    if(!stgcosut->isReference() && isLocal) //not isAltRefType
       fp->write(", uc"); //t3818, t3653, t3654
 
     fp->write(");"); GCNL;
@@ -2233,7 +2233,7 @@ namespace MFM {
     if(nclasstype == UC_NOTACLASS)
       {
 	//allows atom ref casts; allows atom-to-quarkref casts
-	if(m_state.isAtom(nuti) && !((tclasstype == UC_ELEMENT) || m_state.isAtom(tobeType) || ((tclasstype == UC_QUARK) && tobe->isReference())))
+	if(m_state.isAtom(nuti) && !((tclasstype == UC_ELEMENT) || m_state.isAtom(tobeType) || ((tclasstype == UC_QUARK) && tobe->isAltRefType())))
 	  doErrMsg = true;
 
 	else if(nuti == Void)
@@ -2252,7 +2252,7 @@ namespace MFM {
 	 {
 	   if(node->isFunctionCall())
 	     {
-	       if(tobe->isReference())
+	       if(tobe->isAltRefType())
 		 {
 		   doErrMsg = newCastingNodeWithCheck(node, tobeType, rtnNode);
 		 }
@@ -2281,7 +2281,7 @@ namespace MFM {
 	   else if(m_state.isClassASubclassOf(tobeType, nuti))
 	     {
 	       //ok to cast a quark ref to an element, if its superclass
-	       if(!m_state.isReference(nuti))
+	       if(!m_state.isAltRefType(nuti))
 		 doErrMsg = true;
 	       //else if(!isExplicit) //contradicts UlamTypeClass::safeCast
 	       //  doErrMsg = true;
@@ -2560,7 +2560,7 @@ namespace MFM {
 
     UTI cosclassuti = cos->getDataMemberClass();
     UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
-    assert(!cosclassut->isReference());
+    assert(!cosclassut->isAltRefType());
 
     if((cosSize == 1))
        stgcos = m_state.getCurrentSelfSymbolForCodeGen();
@@ -2728,7 +2728,7 @@ namespace MFM {
     assert(m_state.isComplete(caclassuti) || m_state.isClassATemplate(caclassuti));
 
     UlamType * caclassut = m_state.getUlamTypeByIndex(caclassuti);
-    assert(!caclassut->isReference());
+    assert(!caclassut->isAltRefType());
     fp->write(m_state.getTheInstanceMangledNameByIndex(caclassuti).c_str());
     fp->write(".");
   } //genCustomArrayMemberNameOfMethod
@@ -2807,7 +2807,7 @@ namespace MFM {
 	      {
 		hiddenarg2 << m_state.getHiddenArgName(); //same ur
 	      }
-	    else if(stgcosut->isReference()) //t3751, t3752, (ALT_AS: t3249, t3255)
+	    else if(stgcosut->isReference()) //t3751, t3752, (ALT_AS: t3249, t3255) not isAltRefType
 	      {
 		sameur = false;
 		//update ur to reflect "effective" self for this funccall
@@ -2920,7 +2920,7 @@ namespace MFM {
 
     fp->write("UlamRef<EC>("); //wrapper for local storage
 
-    if(stgcosut->isReference())
+    if(stgcosut->isReference()) //not isAltRefType (t3249)
       {
 	fp->write(stgcos->getMangledName().c_str()); //ref
 	fp->write(", ");
@@ -2956,7 +2956,7 @@ namespace MFM {
 	fp->write("u, "); //len
       }
 
-    if(!stgcosut->isReference())
+    if(!stgcosut->isReference()) //not isAltRefType, includes ALT_AS (t3249)
       {
 	if(cos->isConstant()) //t41152 from another class
 	  fp->write(((SymbolConstantValue *) cos)->getCompleteConstantMangledName().c_str()); //constant
@@ -3019,7 +3019,7 @@ namespace MFM {
 
     //possible both stgcos and cos are references!! (t3908)
     // for atomof we care about the cos; c&l trimmed excess element data members
-    if(cosut->isReference())
+    if(cosut->isReference()) //not AltRefType (t3908)
       {
 	fp->write(cos->getMangledName().c_str()); //ref (t3908)
 	fp->write(", ");
@@ -3067,7 +3067,7 @@ namespace MFM {
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
-    if(cosut->isReference())
+    if(cosut->isReference()) //not isAltRefType?
       cosuti = m_state.getUlamTypeAsDeref(cosuti); //search for funcid
 
     Symbol * fnsymptr = NULL;
@@ -3381,7 +3381,7 @@ namespace MFM {
       return false;
     if(!cut->isScalar())
       return false; //array of elements, wait for item to adjust
-    if(cut->isReference())
+    if(cut->isReference()) //not isAltRefType
       return false;
     return true;
   } //needAdjustToStateBits

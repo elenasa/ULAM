@@ -177,7 +177,7 @@ namespace MFM {
 		if(m_state.isConstantRefType(nodeType))
 		  {
 		    std::ostringstream msg;
-		    msg << "Returning incompatible (reference) types: constant ";
+		    msg << "Returning incompatible (reference) types: ";
 		    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
 		    msg << " as non-constant ";
 		    msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
@@ -425,7 +425,7 @@ namespace MFM {
 	    m_state.indentUlamCode(fp);
 	    fp->write("if(_IsLocal((void *) &");
 	    fp->write(cossym->getMangledName().c_str());
-	    if(m_state.isReference(cosuti))
+	    if(m_state.isAltRefType(cosuti))
 	      fp->write(".GetStorage()");
 	    fp->write("))"); GCNL;
 

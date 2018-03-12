@@ -326,20 +326,10 @@ namespace MFM {
 	  } //incomplete deref
 
 	UlamType * derefut = m_state.getUlamTypeByIndex(derefuti);
-
 	if(m_state.isComplete(derefuti))
 	  {
 	    //move to before known
-#if 0
-	    if(derefut->getReferenceType() != altd)
-	      {
-		nuti = m_state.getUlamTypeAsRef(derefuti, altd);
-		nut =  m_state.getUlamTypeByIndex(nuti);
-		setReferenceType(altd, derefuti, nuti); //updates given too!
-	      }
-	    else
-#endif
-	      if(derefut->getReferenceType() != ALT_NOT)
+	    if(derefut->getReferenceType() != ALT_NOT)
 	      {
 		std::ostringstream msg;
 		msg << "Referencing a reference type: ";

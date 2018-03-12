@@ -73,7 +73,8 @@ namespace MFM {
     assert(m_state.okUTItoContinue(nuti));
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
-    //only atom, and elements, and quark refs, are considered 'storage'
+    //only atom, and elements, and quark refs, are considered 'storage';
+    // not isAltRefType, could be ALT_AS (t3835)
     if((classtype == UC_ELEMENT) || ((classtype == UC_QUARK) && nut->isReference()) || m_state.isAtom(nuti))
       {
 	symptrref = m_varSymbol;
@@ -103,7 +104,7 @@ namespace MFM {
   bool NodeIdent::hasASymbolReference()
   {
     assert(m_varSymbol);
-    return m_state.isReference(m_varSymbol->getUlamTypeIdx());
+    return m_state.isReference(m_varSymbol->getUlamTypeIdx()); //not isAltRefType, could be ALT_AS (t3835)
   }
 
   bool NodeIdent::hasASymbolReferenceConstant()
@@ -355,6 +356,9 @@ namespace MFM {
 	if(m_varSymbol->isFunctionParameter() && ((SymbolVariableStack *) m_varSymbol)->isConstantFunctionParameter())
 	  Node::setStoreIntoAble(TBOOL_FALSE); //as well as its referenceablity (t41186,8,9)
 
+	if(m_state.isConstantRefType(it))
+	  Node::setStoreIntoAble(TBOOL_FALSE); //as well as its referenceablity t41192
+
 	//from NodeTypeDescriptor..e.g. for function call args in NodeList.
 	if(!m_state.isComplete(it))
 	  {
@@ -379,7 +383,7 @@ namespace MFM {
 		m_varSymbol->resetUlamType(mappedUTI); //consistent!
 		it = mappedUTI;
 	      }
-	    else if(m_varSymbol->isSelf() || m_state.isReference(it) || m_varSymbol->isSuper())
+	    else if(m_varSymbol->isSelf() || m_state.isAltRefType(it) || m_varSymbol->isSuper())
 	      {
 		m_state.completeAReferenceType(it);
 	      }
@@ -472,7 +476,7 @@ namespace MFM {
 
     if(m_state.isScalar(nuti))
       {
-	if(m_state.isReference(uvp.getPtrTargetType()))
+	if(m_state.isAltRefType(uvp.getPtrTargetType()))
 	  uvp = m_state.getPtrTarget(uvp);
 
 	uv = m_state.getPtrTarget(uvp);
@@ -511,7 +515,7 @@ namespace MFM {
 	    else
 	      {
 		UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-		if((m_state.isAtom(nuti) || (classtype == UC_ELEMENT)) && (nut->isScalar() || nut->isReference()))
+		if((m_state.isAtom(nuti) || (classtype == UC_ELEMENT)) && (nut->isScalar() || nut->isAltRefType()))
 		  {
 		    uv = m_state.getPtrTarget(uvp); //error/t3676, error/t3677
 		  }
@@ -593,18 +597,13 @@ namespace MFM {
 	  }
 	//else continue if a constant function parameter; how a DM? (t41239)
       }
-    else if(m_state.isConstantRefType(nuti))
-      {
-	if(((SymbolConstantValue *) m_varSymbol)->getConstantStackFrameAbsoluteSlotIndex() == 0)
-	  return NOTREADY;
-      }
 
     evalNodeProlog(0); //new current node eval frame pointer
 
     UlamValue rtnUVPtr = makeUlamValuePtr();
 
     //must remain a ptr!!!
-    if(m_state.isReference(rtnUVPtr.getPtrTargetType()) && (rtnUVPtr.getPtrStorage() == STACK))
+    if(m_state.isAltRefType(rtnUVPtr.getPtrTargetType()) && (rtnUVPtr.getPtrStorage() == STACK))
       {
 	UlamValue tmpref = m_state.getPtrTarget(rtnUVPtr);
 	 if(tmpref.isPtr())
@@ -647,15 +646,6 @@ namespace MFM {
 	ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 
 	ptr.checkForAbsolutePtr(m_state.m_currentObjPtr); //t3810
-      }
-    else if(m_state.isConstantRefType(getNodeType()))
-      {
-	//just like NodeConstant..but it's a constant ref (t41242)
-	UTI nuti = getNodeType();
-	UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-
-	ptr = UlamValue::makePtr(((SymbolConstantValue *) m_varSymbol)->getConstantStackFrameAbsoluteSlotIndex(), CNSTSTACK, nuti, nut->getPackable(), m_state, 0, m_varSymbol->getId());
-	ptr.setUlamValueTypeIdx(PtrAbs);
       }
     else
       {
@@ -953,19 +943,9 @@ namespace MFM {
       }
     else
       {
-#if 1
+	// support class types for constants (t41198)
 	uti = args.m_classInstanceIdx;
 	brtn = true;
-#else
-	//t41198
-	// no class types for constants
-	std::ostringstream msg;
-	msg << "Named Constant '";
-	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
-	msg << "' cannot be based on a class type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(args.m_classInstanceIdx).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-#endif
       }
 
     if(!m_state.okUTItoContinue(uti))

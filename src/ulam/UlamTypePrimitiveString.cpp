@@ -62,9 +62,9 @@ namespace MFM {
   {
     bool brtn = true;
     assert(m_state.getUlamTypeByIndex(typidx) == this);
-    UTI valtypidx = val.getUlamValueTypeIdx();
+    UTI valtypidx = val.getUlamValueTypeIdx(); //from type
 
-    if(UlamType::safeCast(valtypidx) != CAST_CLEAR) //bad|hazy
+    if(UlamTypePrimitive::safeCast(valtypidx) != CAST_CLEAR) //bad|hazy
       return false;
 
     u32 wordsize = getTotalWordSize();
@@ -129,13 +129,13 @@ namespace MFM {
 
   FORECAST UlamTypePrimitiveString::safeCast(UTI typidx)
   {
-    FORECAST scr = UlamType::safeCast(typidx);
+    FORECAST scr = UlamTypePrimitive::safeCast(typidx);
     if(scr != CAST_CLEAR)
       return scr;
 
     bool brtn = true;
-    UlamType * vut = m_state.getUlamTypeByIndex(typidx);
-    ULAMTYPE valtypEnum = vut->getUlamTypeEnum();
+    UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
+    ULAMTYPE valtypEnum = fmut->getUlamTypeEnum();
     switch(valtypEnum)
       {
       case String:

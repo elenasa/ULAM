@@ -664,7 +664,7 @@ namespace MFM {
     std::ostringstream args;
 
     UlamType * cut = m_state.getUlamTypeByIndex(instance);
-    bool isARef = cut->isReference();
+    bool isARef = cut->isAltRefType();
     if(isARef)
       args << "r";
 
@@ -705,7 +705,7 @@ namespace MFM {
 
 	    //append 'instance's arg (mangled) type; little 'c' for a class type parameter (t41209)
 	    args << aut->UlamType::getUlamTypeMangledType().c_str();
-	    assert(!aut->isReference());
+	    assert(!aut->isAltRefType());
 	    if(!aut->isScalar())
 	      {
 		std::string arrvalstr;

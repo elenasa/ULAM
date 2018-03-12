@@ -677,7 +677,7 @@ namespace MFM {
   void NodeQuestionColon::genCodeToStoreIntoExpression(File * fp, UVPass& uvpass, s32 tmpVarNum)
   {
     UTI nuti = getNodeType();
-    if(m_state.getReferenceType(nuti) != ALT_REF)
+    if(!m_state.isAltRefType(nuti))
       nuti = m_state.getUlamTypeAsRef(nuti); //e.g. called by NodeCast t41071
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
@@ -685,7 +685,7 @@ namespace MFM {
       {
 	Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back(); //or [0]?
 	UTI cosuti = cossym->getUlamTypeIdx();
-	if((UlamType::compareForString(cosuti, m_state) == UTIC_SAME) && !m_state.isReference(cosuti))
+	if((UlamType::compareForString(cosuti, m_state) == UTIC_SAME) && !m_state.isAltRefType(cosuti))
 	  {
 	    //special case String ref (t41068)
 	    u32 tmpvarstr = m_state.getNextTmpVarNumber();

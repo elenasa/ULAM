@@ -57,7 +57,7 @@ namespace MFM{
 
     virtual bool cast(UlamValue& val, UTI typidx) = 0;
 
-    virtual FORECAST safeCast(UTI typidx) = 0;
+    virtual FORECAST safeCast(UTI typidx);
 
     virtual FORECAST explicitlyCastable(UTI typidx);
 

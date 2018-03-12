@@ -99,6 +99,9 @@ namespace MFM {
     if(!checkArrayCast(typidx))
       return CAST_BAD;
 
+    if((m_state.getReferenceType(typidx)==ALT_CONSTREF) && (getReferenceType()==ALT_REF))
+      return CAST_BAD; //bad cast from const ref to non-const ref
+
     return CAST_CLEAR;
   } //safeCast
 
@@ -140,6 +143,7 @@ namespace MFM {
 
   bool UlamType::checkReferenceCast(UTI typidx)
   {
+    // applies to ALT_REF or ALT_CONSTREF.
     //both complete; typidx is a reference
     UlamKeyTypeSignature key1 = getUlamKeyTypeSignature();
     UlamKeyTypeSignature key2 = m_state.getUlamKeyTypeSignatureByIndex(typidx);
@@ -154,13 +158,13 @@ namespace MFM {
     if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
       return false; //t3963
 
-    //skip rest in the case of array item, continue with usual size fit
+    //skip rest in the case of array item, continue with usual size fit;
+    //must check (t3884, t3651, t3653, t3817, t41071,3 t41100)
     if(alt1 == ALT_ARRAYITEM || alt2 == ALT_ARRAYITEM)
       return true;
 
     if(key1.getUlamKeyTypeSignatureBitSize() != key2.getUlamKeyTypeSignatureBitSize())
 	  return false;
-    //if(alt1 != ALT_NOT || alt2 == ALT_NOT) return false;
 
     if((alt2 == ALT_CONSTREF) && (alt1 == ALT_REF))
       return false;
@@ -214,7 +218,7 @@ namespace MFM {
     s32 bitsize = getBitSize();
     s32 arraysize = getArraySize();
 
-    if(isReference()) //includes ALT_ARRAYITEM (t3147)
+    if(isReference()) //includes ALT_ARRAYITEM (t3147); not isAltRefType (t3114)
       mangled << "r"; //e.g. t3114
 
     if(arraysize > 0)
@@ -266,7 +270,7 @@ namespace MFM {
   {
     assert(needsImmediateType());
 
-    if(isReference())
+    if(isAltRefType())
       {
 	m_state.abortShouldntGetHere();
 	return getUlamTypeImmediateMangledName();
@@ -465,6 +469,12 @@ namespace MFM {
     //yes, all of these ALT types are treated as references in gencode.
     ALT alt = m_key.getUlamKeyTypeSignatureReferenceType();
     return (alt == ALT_AS) || (alt == ALT_REF) || (alt == ALT_ARRAYITEM) || (alt == ALT_CONSTREF);
+  }
+
+  bool UlamType::isAltRefType()
+  {
+    ALT alt = m_key.getUlamKeyTypeSignatureReferenceType();
+    return (alt == ALT_REF) || (alt == ALT_CONSTREF);
   }
 
   bool UlamType::isHolder()

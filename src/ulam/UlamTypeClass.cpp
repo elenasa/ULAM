@@ -44,10 +44,6 @@ namespace MFM {
     UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
     if( fmut == this)
       return CAST_CLEAR; //same class, quark or element
-
-    if((fmut->getReferenceType()==ALT_CONSTREF) && (getReferenceType()==ALT_REF))
-      return CAST_BAD; //bad cast from const ref to non-const ref
-
     UTI fmderef = m_state.getUlamTypeAsDeref(typidx); //e.g. ALT_ARRAYITEM
     u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx(); //our scalar "new"
     if(m_state.isClassASubclassOf(fmderef, cuti))
@@ -91,19 +87,15 @@ namespace MFM {
 	  return CAST_BAD;
 	else if(m_state.isAtom(typidx))
 	  return CAST_CLEAR;
-
-	if((fmut->getReferenceType()==ALT_CONSTREF) && (getReferenceType()==ALT_REF))
-	  return CAST_BAD; //bad cast from const ref to non-const ref
-
 	//check when casting from class to class
-	bool isfmref = fmut->isReference();
+	bool isfmref = fmut->isAltRefType();
 	UTI fmderef = m_state.getUlamTypeAsDeref(typidx);
 	u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx(); //our scalar as nonref "new"
 	if(m_state.isClassASubclassOf(cuti, fmderef))
 	  {
 	    //even though it may fail at runtime:
 	    //(down)casting fm super to sub..only if fm-ref && to-ref
-	    if(!isfmref || !isReference())
+	    if(!isfmref || !isAltRefType())
 	      scr = CAST_BAD; //t3756, t3757
 	  }
 	else if(m_state.isClassASubclassOf(fmderef, cuti))
@@ -133,7 +125,7 @@ namespace MFM {
     s32 bitsize = getBitSize();
     s32 arraysize = getArraySize();
 
-    if(isReference())
+    if(isReference()) //not isAltRefType
       mangled << "r";
 
     if(arraysize > 0)
@@ -294,7 +286,7 @@ namespace MFM {
 
   const std::string UlamTypeClass::getUlamTypeImmediateMangledName()
   {
-    if(needsImmediateType() || isReference())
+    if(needsImmediateType() || isAltRefType())
       {
 	return UlamType::getUlamTypeImmediateMangledName();
       }
@@ -303,9 +295,9 @@ namespace MFM {
 
   const std::string UlamTypeClass::getUlamTypeImmediateAutoMangledName()
   {
-    assert(needsImmediateType() || isReference());
+    assert(needsImmediateType() || isAltRefType());
 
-    if(isReference())
+    if(isAltRefType())
       {
 	m_state.abortShouldntGetHere(); //use ImmediateMangledName
 	return getUlamTypeImmediateMangledName();

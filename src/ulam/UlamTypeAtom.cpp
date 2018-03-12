@@ -71,8 +71,8 @@ namespace MFM {
     bool brtn = true;
     assert(m_state.getUlamTypeByIndex(typidx) == this);
     UTI valtypidx = val.getUlamValueTypeIdx();
-    UlamType * vut = m_state.getUlamTypeByIndex(valtypidx);
-    AssertBool isScalars = (vut->isScalar() && isScalar());
+    UlamType * fmut = m_state.getUlamTypeByIndex(valtypidx);
+    AssertBool isScalars = (fmut->isScalar() && isScalar());
     assert(isScalars);
 
     // what change is to be made ????
@@ -81,7 +81,7 @@ namespace MFM {
     // what of its contents?
     // val = UlamValue::makeAtom(valtypidx);
 
-    if((vut->getUlamClassType() == UC_ELEMENT) || m_state.isAtom(valtypidx) || ((vut->getUlamTypeEnum() == Class) && vut->isReference()))
+    if((fmut->getUlamClassType() == UC_ELEMENT) || m_state.isAtom(valtypidx) || ((fmut->getUlamTypeEnum() == Class) && fmut->isAltRefType()))
       val.setUlamValueTypeIdx(typidx); //try this
     else
       brtn = false;
@@ -94,21 +94,17 @@ namespace MFM {
     if(scr != CAST_CLEAR)
       return scr;
 
-    UlamType * vut = m_state.getUlamTypeByIndex(typidx);
+    UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
 
     if(m_state.isAtom(typidx))
-      {
-	if((vut->getReferenceType()==ALT_CONSTREF) && (getReferenceType()==ALT_REF))
-	  return CAST_BAD; //bad cast from const ref to non-const ref
-	return CAST_CLEAR; //atom/ref to atom/ref
-      }
+      return CAST_CLEAR; //atom/ref to atom/ref
 
     //casting from quark or transient to atom or atomref is bad
-    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
+    ULAMCLASSTYPE fclasstype = fmut->getUlamClassType();
 
     // casting from quark ref needs .atomof (error t3696)
     // elements no longer packed, ok t3753
-    return (vclasstype == UC_ELEMENT) ? CAST_CLEAR : CAST_BAD;
+    return (fclasstype == UC_ELEMENT) ? CAST_CLEAR : CAST_BAD;
    } //safeCast
 
   FORECAST UlamTypeAtom::explicitlyCastable(UTI typidx)
@@ -116,14 +112,14 @@ namespace MFM {
     FORECAST scr = UlamType::safeCast(typidx); //default, arrays checked
     if(scr == CAST_CLEAR)
       {
-	UlamType * vut = m_state.getUlamTypeByIndex(typidx);
-	ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
-	if(vut->isPrimitiveType())
+	UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
+	ULAMCLASSTYPE fclasstype = fmut->getUlamClassType();
+	if(fmut->isPrimitiveType())
 	  scr = CAST_BAD;
-	else if((vclasstype == UC_QUARK) && !vut->isReference())
+	else if((fclasstype == UC_QUARK) && !fmut->isAltRefType())
 	  //else if((vclasstype == UC_QUARK)) //WAIT UNTIL ULAM-4. to always use .atomof (t41153, 3697, t3834, t3691)
 	  scr = CAST_BAD; //non-ref quark to atom is also bad (t3678, t41154)
-	else if((vclasstype == UC_TRANSIENT))
+	else if((fclasstype == UC_TRANSIENT))
 	  scr = CAST_BAD; //transient to atom is also bad
 	//else atom, element, element ref, quark ref (possibly), are acceptable
       }

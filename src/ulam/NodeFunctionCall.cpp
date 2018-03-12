@@ -208,7 +208,7 @@ namespace MFM {
 	      {
 		Symbol * psym = funcSymbol->getParameterSymbolPtr(i);
 		assert(psym && psym->isFunctionParameter()); //sanity
-		if(m_state.isReference(psym->getUlamTypeIdx()))
+		if(m_state.isAltRefType(psym->getUlamTypeIdx()))
 		  {
 		    TBOOL argreferable = argNodes[i]->getReferenceAble();
 		    if(argreferable != TBOOL_TRUE)
@@ -399,7 +399,7 @@ namespace MFM {
 
     if(m_state.okUTItoContinue(it))
       {
-	bool isref = m_state.isReference(it);
+	bool isref = m_state.isAltRefType(it);
 	if(m_state.isAClass(it) || isref)
 	  setStoreIntoAble(TBOOL_TRUE); //t3912 (class); t41085,t41077 (constructors)
 
@@ -568,7 +568,7 @@ namespace MFM {
     // that belongs in m_currentObjPtr, but where to store the ans?
     // use the hidden 'uc' slot (under the return value)
 
-    assert(m_state.isAClass(nuti) || m_state.isReference(nuti) || isAConstructorFunctionCall()); //sanity?
+    assert(m_state.isAClass(nuti) || m_state.isAltRefType(nuti) || isAConstructorFunctionCall()); //sanity?
 
     assert(m_funcSymbol);
     NodeBlockFunctionDefinition * func = m_funcSymbol->getFunctionNode();
@@ -1296,7 +1296,7 @@ namespace MFM {
     UTI vuti = uvpass.getPassTargetType();
 
     //vuti may not be a ref (e.g. t3668, a QW that was deref'd by [].)
-    bool isaref = m_state.isReference(vuti);
+    bool isaref = m_state.isAltRefType(vuti);
 
     //use possible dereference type for mangled name
     UTI derefuti = m_state.getUlamTypeAsDeref(vuti);

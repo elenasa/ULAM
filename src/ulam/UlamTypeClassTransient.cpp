@@ -26,8 +26,8 @@ namespace MFM {
     bool brtn = true;
     assert(m_state.getUlamTypeByIndex(typidx) == this); //tobe
     UTI valtypidx = val.getUlamValueTypeIdx();
-    UlamType * vut = m_state.getUlamTypeByIndex(valtypidx);
-    assert(vut->isScalar() && isScalar());
+    UlamType * fmut = m_state.getUlamTypeByIndex(valtypidx);
+    assert(fmut->isScalar() && isScalar());
     //now allowing atoms to be cast as transients, as well as elements;
     // also allowing subclasses to be cast as their superclass (u1.2.2)
     if(!(UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME))
@@ -90,7 +90,7 @@ namespace MFM {
       return false;
 
     bool rtnb = false;
-    if(!isReference())
+    if(!isAltRefType())
       {
 	rtnb = true;
 	u32 id = getUlamTypeNameId();

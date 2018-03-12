@@ -20,25 +20,39 @@ namespace MFM {
     return true;
   }
 
+  FORECAST UlamTypePrimitive::safeCast(UTI typidx)
+  {
+    //common to all primitive types:
+    FORECAST scr = UlamType::safeCast(typidx); //default
+    if(scr == CAST_CLEAR)
+      {
+	// primitives must be the same sizes when casting to a reference type
+	if(isAltRefType() && !UlamType::checkReferenceCast(typidx))
+	  scr = CAST_BAD;
+      }
+    //the rest is primitive-specific..
+    return scr;
+  }
+
   FORECAST UlamTypePrimitive::explicitlyCastable(UTI typidx)
   {
     FORECAST scr = UlamType::safeCast(typidx); //default
     if(scr == CAST_CLEAR)
       {
 	// primitives must be the same sizes when casting to a reference type
-	if(isReference() && !UlamType::checkReferenceCast(typidx))
+	if(isAltRefType() && !UlamType::checkReferenceCast(typidx))
 	  scr = CAST_BAD;
 
 	// strings cannot be cast explicitly to other primitive types, except Void (t3961)
-	UlamType * vut = m_state.getUlamTypeByIndex(typidx);
-	ULAMTYPE valtypEnum = vut->getUlamTypeEnum();
+	UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
+	ULAMTYPE valtypEnum = fmut->getUlamTypeEnum();
 	if((getUlamTypeEnum() != Void) && ((valtypEnum == String) ^ (getUlamTypeEnum() == String)))
 	  scr = CAST_BAD;
 
 	//only quarks may be cast to Ints, explicitly or not; requires toInt method (t3996)
 	if(valtypEnum == Class)
 	  {
-	    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
+	    ULAMCLASSTYPE vclasstype = fmut->getUlamClassType();
 	    if(vclasstype != UC_QUARK)
 	      scr = CAST_BAD;
 	  }

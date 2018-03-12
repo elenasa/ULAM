@@ -2227,20 +2227,6 @@ namespace MFM {
 	    return false; //done
 	  }
 
-#if 0
-	if(typeargs.m_declRef == ALT_REF)
-	  {
-	    typeargs.m_declRef = ALT_CONSTREF; //t41242, t41192
-
-	    std::ostringstream msg;
-	    msg << "Invalid named constant Reference Type '";
-	    msg << m_state.getTokenDataAsString(pTok).c_str() << "'";
-	    MSG(&pTok, msg.str().c_str(), ERR); //t41192
-	    getTokensUntil(TOK_SEMICOLON);
-	    return false; //done
-	  }
-#endif
-
 	typeargs.m_assignOK = true;
 	typeargs.m_isStmt = true;
 
@@ -2249,11 +2235,26 @@ namespace MFM {
 	//insure the constant def name starts with a lower case letter
 	if(iTok.m_type == TOK_IDENTIFIER)
 	  {
-	    NodeConstantDef * constNode = makeConstdefSymbol(typeargs, iTok, typeNode);
-	    if(constNode)
+	    //Constant refs are more like Variable refs than constant defs;
+	    // They don't have a constant value; Like Function Parameters (also variables).
+	    if(typeargs.m_declRef == ALT_CONSTREF)
 	      {
-		m_state.appendNodeToCurrentBlock(constNode);
-		brtn = true;
+		NodeVarDecl * rtnNode = makeVariableSymbol(typeargs, iTok, typeNode);
+		if(rtnNode)
+		  {
+		    parseRestOfDeclInitialization(typeargs, iTok, rtnNode);
+		    m_state.appendNodeToCurrentBlock(rtnNode);
+		    brtn = true;
+		  }
+	      }
+	    else
+	      {
+		NodeConstantDef * constNode = makeConstdefSymbol(typeargs, iTok, typeNode);
+		if(constNode)
+		  {
+		    m_state.appendNodeToCurrentBlock(constNode);
+		    brtn = true;
+		  }
 	      }
 	  }
 	else
@@ -2610,7 +2611,7 @@ namespace MFM {
 	UTI cuti = parseClassArguments(typeargs, maybeAClassType);
 	if(maybeAClassType)
 	  {
-	    if(m_state.isReference(cuti)) //e.g. refofSelf, ref to array of classes
+	    if(m_state.isAltRefType(cuti)) //e.g. refofSelf, ref to array of classes
 	      {
 		typeargs.m_classInstanceIdx = m_state.getUlamTypeAsDeref(cuti);
 		typeargs.m_declRef = m_state.getReferenceType(cuti); //was ALT_REF
@@ -2683,17 +2684,13 @@ namespace MFM {
 	typeargs.m_referencedUTI = castUTI; //?
 	typeargs.m_assignOK = true; //required
 	typeargs.m_isStmt = true; //unless a func param
-#if 1
+
 	// change uti to reference key
 	UTI refuti = castUTI;
 	if(m_state.okUTItoContinue(castUTI)) //t41153
 	  refuti = m_state.getUlamTypeAsRef(castUTI, typeargs.m_declRef); //t3692
 	assert(typeNode);
 	typeNode->setReferenceType(typeargs.m_declRef, castUTI, refuti);
-#else
-	//	assert(typeNode);
-	//typeNode->setReferenceType(typeargs.m_declRef, castUTI, Hzy); //REDO after symbol is installed???
-#endif
       }
     else
       unreadToken();
@@ -6176,6 +6173,7 @@ namespace MFM {
 
   void Parser::syncTypeDescriptorWithSymbolType(UTI auti, const TypeArgs& args, NodeTypeDescriptor * nodetyperef)
   {
+    assert(m_state.okUTItoContinue(auti));
     if(m_state.isScalar(auti)) //t3816, t3223,
       {
 	ALT refalt = m_state.getReferenceType(auti);

@@ -245,7 +245,7 @@ namespace MFM {
 		msg << ", and its initial value type ";
 		msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
 		msg << ", are incompatible";
-		if(newt->isReference() && newt->getUlamClassType() == UC_QUARK)
+		if(newt->isAltRefType() && newt->getUlamClassType() == UC_QUARK)
 		  msg << "; .atomof may help";
 		if(rscr == CAST_HAZY)
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -326,7 +326,7 @@ namespace MFM {
   bool NodeVarDecl::checkReferenceCompatibility(UTI uti)
   {
     assert(m_state.okUTItoContinue(uti));
-    if(m_state.getUlamTypeByIndex(uti)->isReference())
+    if(m_state.getUlamTypeByIndex(uti)->isAltRefType())
       {
 	UTI cuti = m_state.getCompileThisIdx();
 	std::ostringstream msg;

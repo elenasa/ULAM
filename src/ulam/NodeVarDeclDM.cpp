@@ -222,7 +222,7 @@ namespace MFM {
   bool NodeVarDeclDM::checkReferenceCompatibility(UTI uti)
   {
     assert(m_state.okUTItoContinue(uti));
-    if(m_state.getUlamTypeByIndex(uti)->isReference())
+    if(m_state.getUlamTypeByIndex(uti)->isAltRefType())
       {
 	std::ostringstream msg;
 	msg << "Data member '";

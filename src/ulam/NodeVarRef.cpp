@@ -67,6 +67,8 @@ namespace MFM {
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamKeyTypeSignature vkey = m_state.getUlamKeyTypeSignatureByIndex(vuti);
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+    if(m_state.isConstantRefType(vuti))
+      fp->write(" constant"); //t41242,3
 
     fp->write(" ");
     if(vut->getUlamTypeEnum() != Class)
@@ -147,7 +149,7 @@ namespace MFM {
 		msg << ", and its initial value type ";
 		msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
 		msg << ", are incompatible";
-		if(newt->isReference() && newt->getUlamClassType() == UC_QUARK)
+		if(newt->isAltRefType() && newt->getUlamClassType() == UC_QUARK)
 		  msg << "; .atomof may help";
 		if(rscr == CAST_HAZY)
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -158,7 +160,7 @@ namespace MFM {
 	else
 	  {
 	    //primitives must be EXACTLY the same size (for initialization);
-	    // "clear" when complete, not the same as "bad".
+	    // "clear" when complete, not the same as "bad". (t3614, t3694)
 	    if(rscr != CAST_CLEAR)
 	      {
 		std::ostringstream msg;
@@ -172,27 +174,6 @@ namespace MFM {
 		else
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
-	    else
-	      {
-		// safecast doesn't test for same size primitives since safe for op equal
-		// atom sizes not related to element sizes internally.
-		if((nut->getBitSize() != newt->getBitSize()) || (nut->getTotalBitSize() != newt->getTotalBitSize()))
-		  {
-		    std::ostringstream msg;
-		    msg << "Reference variable " << getName() << "'s type ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		    msg << ", and its initial value type ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
-		    msg << ", are incompatible sizes";
-		    if(m_state.isAtom(nuti) || m_state.isAtom(newType))
-		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		    else
-		      {
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			rscr = CAST_BAD;
-		      }
-		  }
-	      }
 	  }
       }
     //okay to explicitly cast rhs to reference type, e.g. if(a is Foo) QW& qref = (Foo &) a;
@@ -202,7 +183,7 @@ namespace MFM {
   bool NodeVarRef::checkReferenceCompatibility(UTI uti)
   {
     assert(m_state.okUTItoContinue(uti));
-    if((!m_state.getUlamTypeByIndex(uti)->isReference()))
+    if((!m_state.getUlamTypeByIndex(uti)->isAltRefType()))
       {
 	std::ostringstream msg;
 	msg << "Variable reference '";
@@ -275,14 +256,18 @@ namespace MFM {
 	    return Hzy; //short-circuit
 	  }
 
+	bool constref = m_state.isConstantRefType(it);
+
 	//check isStoreIntoAble, before any casting (i.e. named constants, func calls, NOT).
 	TBOOL istor = m_nodeInitExpr->getStoreIntoAble();
-	Node::setStoreIntoAble(istor); //before setReferenceAble is set
+	if(constref)
+	  istor = TBOOL_FALSE;
+	Node::setStoreIntoAble(istor); //before setReferenceAble is set; //error/t41192
 
 	TBOOL isrefable = m_nodeInitExpr->getReferenceAble();
 	Node::setReferenceAble(isrefable); //custom arrays may have different stor/ref status
 
-	if((isrefable != TBOOL_TRUE) || (istor != TBOOL_TRUE))
+	if(((isrefable != TBOOL_TRUE) || (istor != TBOOL_TRUE)) && !constref)
 	  {
 	    //error tests: t3629, t3660, t3661, t3665, t3785
 	    std::ostringstream msg;

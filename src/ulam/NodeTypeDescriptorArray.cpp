@@ -88,24 +88,7 @@ namespace MFM {
 
   void NodeTypeDescriptorArray::setReferenceType(ALT refarg, UTI referencedUTI, UTI refUTI)
   {
-    NodeTypeDescriptor::setReferenceType(refarg, referencedUTI);
-    m_uti = refUTI; //new given as ref UTI
-
-    m_state.abortNotImplementedYet();
-
-    //reset scalar to non-reference SCALAR?, t3816
-    assert(m_nodeScalar);
-    m_nodeScalar->setReferenceType(ALT_NOT, Nouti, referencedUTI);
-    //m_nodeScalar->setReferenceType(ALT_NOT, Nouti, m_state.getUlamTypeAsScalar(referencedUTI));
-
-    //UTI typeforscalar = refarg == ALT_NOT ?refUTI : referencedUTI;
-    //m_nodeScalar->setReferenceType(ALT_NOT, Nouti, m_state.getUlamTypeAsScalar(typeforscalar));
-    //m_nodeScalar->setReferenceType(refarg, m_state.getUlamTypeAsScalar(referencedUTI), m_state.getUlamTypeAsScalar(refUTI));
-    //m_nodeScalar->setReferenceType(refarg, referencedUTI);
-    //UTI typeforscalar = refarg == ALT_NOT ? m_state.getUlamTypeAsScalar(refUTI) : referencedUTI;
-    //m_nodeScalar->setReferenceType(ALT_NOT, Nouti, typeforscalar);
-
-    //m_nodeScalar->setReferenceType(refarg, referencedUTI, refUTI);
+    m_state.abortShouldntGetHere(); //arrays are linked after reftype is known.
   }
 
   UTI NodeTypeDescriptorArray::checkAndLabelType()

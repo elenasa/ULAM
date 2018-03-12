@@ -1,0 +1,51 @@
+## -*- mode:ulam -*-
+#=t41251_test_compiler_elementandquarkarray_constantreffuncparam
+#!
+Exit status: 0
+Ue_Foo { typedef Bar Pop[2];  System s();  Bool(3) b(true);  Int(4) m_i(0);  Bar m_bar2[2]( Bool(1) val_b[3](false,true,false);  Bool(1) val_b[3](false,true,false); );  Bar sbar( Bool(1) val_b[3](false,true,false); );  Int(32) test() {  b ( m_bar2 cast 1 cast )check cast = s ( b cast )assert . 0 cast return } }
+Uq_Bar { Bool(1) val_b[3]( { false, true, false });  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by t3223, except function parameter is a constant array ref
+##
+#>Foo.ulam
+  ulam 3;
+element Foo {
+  typedef Bar Pop[2];
+  System s;
+  Bool(3) b;
+  Int(4) m_i;
+  Pop m_bar2;
+  Bar sbar;
+  Bool check(constant Pop& brefarg, Int x) {
+    return brefarg[x].val_b[x];
+  }
+  Int test() {
+    b = check(m_bar2,1);
+    s.assert(b);
+    return 0;
+  }
+}
+
+#:Bar.ulam
+  ulam 1;
+quark Bar {
+  Bool val_b[3] = {false, true, false};
+  Void reset(Bool b) {
+    b = false;
+  }
+  Atom& aref(Int index) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

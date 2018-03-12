@@ -91,8 +91,6 @@ namespace MFM{
 
     virtual void genCodeToStoreInto(File * fp, UVPass& uvpass);
 
-    virtual void genCodeConvertATmpVarIntoBitVector(File * fp, UVPass uvpass);
-
   protected:
     Token m_token;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL

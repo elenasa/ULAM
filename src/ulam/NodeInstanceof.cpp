@@ -47,7 +47,7 @@ namespace MFM {
 	//a virtual function (instanceof), behaves differently on refs vs object
 	bool isself = m_nodeOf ? (m_nodeOf->hasASymbolSelf()) : false;
 	bool issuper = m_nodeOf ? (m_nodeOf->hasASymbolSuper()) : false;
-	bool isaref = m_state.isReference(oftype) || isself || issuper;
+	bool isaref = m_state.isAltRefType(oftype) || isself || issuper;
 
 	if(isaref) //all refs
 	  setNodeType(UAtom); //effective type known only at runtime
@@ -124,7 +124,7 @@ namespace MFM {
 
 	bool isself = stgcos->isSelf();
 	bool issuper = stgcos->isSuper();
-	bool isaref = m_state.isReference(cosuti) || isself || issuper;
+	bool isaref = m_state.isAltRefType(cosuti) || isself || issuper;
 
 	if(isaref)
 	  {

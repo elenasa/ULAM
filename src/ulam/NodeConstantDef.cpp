@@ -175,7 +175,6 @@ namespace MFM {
     if(m_nodeTypeDesc == NULL)
       {
 	m_nodeTypeDesc = nodetypedesc; //tfr ownership here
-	//m_nodeTypeDesc->updateLineage(getNodeNo()); //?
 	if(m_constSymbol)
 	  m_nodeTypeDesc->resetGivenUTI(m_constSymbol->getUlamTypeIdx()); //invariant?
 	return true;
@@ -511,7 +510,6 @@ namespace MFM {
 	  {
 	    //Expression and symbol have different UTI, but a class..So CHANGE symbol type? WHAT??
 	    // t41209, t41213, t41214
-	    //if(m_state.isComplete(nuti) && (nuti != suti) && m_state.isAClass(nuti))
 	    if(m_state.getUlamTypeNameIdByIndex(nuti) == m_state.getUlamTypeNameIdByIndex(suti))
 	      {
 		m_constSymbol->resetUlamType(nuti);
@@ -547,7 +545,6 @@ namespace MFM {
 	  }
 	else //if(!m_state.isAClass(foldrtn)) //t41198
 	  {
-	    //if(!isReadyConstant())
 	    if(!isReadyConstant() && !m_state.isConstantRefType(suti))
 	      {
 		std::ostringstream msg;
@@ -1073,13 +1070,11 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    //    if(!nut->isScalar())
     if(nut->isPrimitiveType()) //t41240
       {
 	u32 slotsneeded = m_state.slotsNeeded(nuti);
 	assert(m_constSymbol);
 	((SymbolConstantValue *) m_constSymbol)->setConstantStackFrameAbsoluteSlotIndex(cslotidx);
-	//assert(nut->isPrimitiveType());
 	Node::makeRoomForSlots(slotsneeded, CNSTSTACK);
 	setupStackWithPrimitiveForEval(slotsneeded);
 	cslotidx += slotsneeded;
@@ -1089,7 +1084,6 @@ namespace MFM {
 	//array of classes??
 	//eval doesn't support transients (> atom size) (t41231)
 	ULAMCLASSTYPE nclasstype = nut->getUlamClassType();
-	//if((nclasstype == UC_ELEMENT) || (nclasstype == UC_QUARK))
 	if((nclasstype == UC_ELEMENT) || (nclasstype == UC_QUARK) || ((nclasstype == UC_TRANSIENT) && (nut->getTotalBitSize() <= MAXSTATEBITS)))
 	  {
 	    u32 slotsneeded = m_state.slotsNeeded(nuti);
@@ -1317,7 +1311,8 @@ namespace MFM {
       {
 	if(m_constSymbol->isLocalsFilescopeDef() ||  m_constSymbol->isDataMember() || m_constSymbol->isClassArgument())
 	  {
-	    //as a "data member", locals filescope, or class arguement: initialized in no-arg constructor (non-const)
+	    //as a "data member", locals filescope, or class arguement:
+	    // initialized in no-arg constructor (non-const)
 	    m_state.indentUlamCode(fp);
 	    fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
 	    fp->write(" ");

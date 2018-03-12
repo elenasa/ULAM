@@ -7,15 +7,15 @@
 ##
 #!
 Exit status: 3
-Ue_Foo { System s();  Int(4) m_i(3);  Bool(3) m_b(true);  Int(32) test() {  constant Bool(3) cbref = true;  m_i 3 cast = ( 7u cast )check s ( m_b )print . s ( m_b cast )assert . s ( m_i )print . s ( m_i 3 cast == )assert . m_i cast return } }
+Ue_Foo { System s();  Int(4) m_i(3);  Bool(3) m_b(true);  Int(32) test() {  constant Bool(3)& cbref = 7u cast;  m_i 3 cast = ( cbref )check s ( m_b )print . s ( m_b cast )assert . s ( m_i )print . s ( m_i 3 cast == )assert . m_i cast return } }
 Uq_System { <NOMAIN> }
 ##
 ## informed by t41240, testing the constant ref function variable;
-## passing a named constant primitive
+## passing a named constant primitive, same bit sizes (see t41248)
 ##
 #>Foo.ulam
   ulam 3;
-local constant Bool cbool = true;
+local constant Bool(3) cbool = true;
 
 element Foo {
   System s;

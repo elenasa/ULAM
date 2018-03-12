@@ -227,7 +227,7 @@ namespace MFM {
 
     if(m_state.okUTItoContinue(it))
       {
-	bool isref = m_state.isReference(it);
+	bool isref = m_state.isAltRefType(it) && !m_state.isConstantRefType(it);
 	if(m_state.isAClass(it) || isref)
 	  setStoreIntoAble(TBOOL_TRUE); //t3912 (class)
 
@@ -428,7 +428,7 @@ namespace MFM {
     UTI nuti = getNodeType();
     // m_currentObjPtr set up by caller
     assert(m_state.okUTItoContinue(m_state.m_currentObjPtr.getPtrTargetType()));
-    assert(m_state.isAClass(nuti) || m_state.isReference(nuti) || m_funcSymbol->isConstructorFunction()); //sanity?
+    assert(m_state.isAClass(nuti) || (m_state.isAltRefType(nuti) && !m_state.isConstantRefType(nuti)) || m_funcSymbol->isConstructorFunction()); //sanity?
     return eval();
   } //evalToStoreInto
 

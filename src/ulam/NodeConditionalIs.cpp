@@ -92,7 +92,7 @@ namespace MFM {
       {
 	UlamType * rut = m_state.getUlamTypeByIndex(ruti);
 	//rhs cannot be a ref type
-	if(rut->isReference())
+	if(rut->isAltRefType())
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid righthand type of conditional operator '" << getName();
@@ -212,7 +212,7 @@ namespace MFM {
     UTI lnuti = m_nodeLeft->getNodeType();
     if(m_state.isAtom(lnuti))
       return genCodeAtomIs(fp, uvpass); //reads into tmpvar
-    else if(m_state.isReference(lnuti))
+    else if(m_state.isAltRefType(lnuti))
       return genCodeReferenceIs(fp, uvpass); //doesn't read into tmpvar
     //else ClassIs.. reads into tmp var.
 
@@ -225,7 +225,7 @@ namespace MFM {
 
     UTI ruti = getRightType();
     UlamType * rut = m_state.getUlamTypeByIndex(ruti);
-    assert(!rut->isReference());
+    assert(!rut->isAltRefType());
 
     s32 tmpVarIs = m_state.getNextTmpVarNumber();
 
@@ -263,7 +263,7 @@ namespace MFM {
 
     UTI ruti = getRightType();
     UlamType * rut = m_state.getUlamTypeByIndex(ruti);
-    assert(!rut->isReference());
+    assert(!rut->isAltRefType());
 
     s32 tmpVarIs = m_state.getNextTmpVarNumber();
 
@@ -311,7 +311,7 @@ namespace MFM {
     UVPass luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass); //loads lhs into tmp (T)
     UTI luti = luvpass.getPassTargetType(); //replace
-    assert(m_state.isReference(luti));
+    assert(m_state.isAltRefType(luti));
 
     Symbol * stgcos = NULL;
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
@@ -321,7 +321,7 @@ namespace MFM {
 
     UTI ruti = getRightType();
     UlamType * rut = m_state.getUlamTypeByIndex(ruti);
-    assert(!rut->isReference());
+    assert(!rut->isAltRefType());
 
     s32 tmpVarIs = m_state.getNextTmpVarNumber();
 

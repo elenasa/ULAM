@@ -2,7 +2,7 @@
 #=t41197_test_compiler_element_constantrefargfunccallcast_error
 ##
 #!
-./Foo.ulam:6:23: ERROR: Cannot explicitly cast incompatible (reference) types: constant Bool(3)& as non-constant Bool(3)&.
+./Foo.ulam:6:23: ERROR: Cannot explicitly cast constant Bool(3)& to type: Bool(3)&.
 ./Foo.ulam:6:5: ERROR: Initial value expression for: bref, initialization is invalid.
 ./Foo.ulam:6:5: ERROR: Storage expression for: bref, is invalid.
 Unrecoverable Program Type Label FAILURE.

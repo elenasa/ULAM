@@ -1535,8 +1535,8 @@ namespace MFM {
 
   bool CompilerState::isAltRefType(UTI utiArg)
   {
-    ALT alt = getReferenceType(utiArg);
-    return (alt == ALT_REF) || (alt == ALT_CONSTREF);
+    UlamType * ut = getUlamTypeByIndex(utiArg);
+    return ut->isAltRefType();
   }
 
   bool CompilerState::isConstantRefType(UTI utiArg)
@@ -3671,7 +3671,6 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     assert(lptr.isPtr());
 
     //handle UAtom assignment as a singleton (not array values)
-    //if(ruv.isPtr() && ((UlamType::compareForUlamValueAssignment(ruv.getPtrTargetType(), UAtom, *this) == UTIC_NOTSAME) || (UlamType::compareForUlamValueAssignment(lptr.getPtrTargetType(), UAtom, *this) == UTIC_NOTSAME)))
     if(ruv.isPtr())
       return assignArrayValues(lptr, ruv);
 

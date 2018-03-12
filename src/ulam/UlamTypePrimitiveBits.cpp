@@ -47,9 +47,9 @@ namespace MFM {
   {
     bool brtn = true;
     assert(m_state.getUlamTypeByIndex(typidx) == this);
-    UTI valtypidx = val.getUlamValueTypeIdx();
+    UTI valtypidx = val.getUlamValueTypeIdx(); //from type
 
-    if(UlamType::safeCast(valtypidx) != CAST_CLEAR) //bad|hazy
+    if(UlamTypePrimitive::safeCast(valtypidx) != CAST_CLEAR) //bad|hazy
       return false;
 
     u32 wordsize = getTotalWordSize();
@@ -141,15 +141,15 @@ namespace MFM {
 
   FORECAST UlamTypePrimitiveBits::safeCast(UTI typidx)
   {
-    FORECAST scr = UlamType::safeCast(typidx);
+    FORECAST scr = UlamTypePrimitive::safeCast(typidx);
     if(scr != CAST_CLEAR)
       return scr;
 
     bool brtn = true;
-    UlamType * vut = m_state.getUlamTypeByIndex(typidx);
-    s32 valbitsize = vut->getBitSize();
+    UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
+    s32 valbitsize = fmut->getBitSize();
     s32 bitsize = getBitSize();
-    ULAMTYPE valtypEnum = vut->getUlamTypeEnum();
+    ULAMTYPE valtypEnum = fmut->getUlamTypeEnum();
     switch(valtypEnum)
       {
       case Unsigned:
@@ -167,7 +167,7 @@ namespace MFM {
       case Class:
 	{
 	  //must be Quark! treat as Int if it has a toInt method
-	  if(vut->isNumericType())
+	  if(fmut->isNumericType())
 	    brtn = (bitsize >= MAXBITSPERINT);
 	  else
 	    brtn = false; //t41131 called by matching args (no error msg please)
