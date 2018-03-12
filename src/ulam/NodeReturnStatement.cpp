@@ -186,6 +186,14 @@ namespace MFM {
 		  }
 		//else both must be ALT_REF
 	      }
+	    else if(m_state.isAltRefType(rtnType) && !m_state.isConstantRefType(rtnType) && m_node->isAConstant())
+	      {
+		std::ostringstream msg;
+		msg << "Returning a constant as a non-constant reference type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		nodeType = Nav;  //t3965
+	      }
 	    else if(m_state.isAltRefType(rtnType) || m_state.isAltRefType(nodeType))
 	      {
 		//one is a ref, the other ain't

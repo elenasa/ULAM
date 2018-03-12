@@ -1,0 +1,19 @@
+## -*- mode:ulam -*-
+#=t41255_test_compiler_element_constantrefprimitive_namedconstantdifferentsizecast_error
+#!
+./Foo.ulam:5:14: ERROR: Cannot cast initial value of constant reference variable: ciref.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41254, okay to assign named constant, but not a terminal, to a constant ref of same size
+##
+#>Foo.ulam
+  ulam 3;
+local constant Int(4) ci = 7;
+element Foo {
+  Int test() {
+    constant Int& ciref = (Int) ci; //error, uncastable
+    return ciref;
+  }
+}
+
+#.

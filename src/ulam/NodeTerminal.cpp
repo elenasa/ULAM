@@ -154,6 +154,9 @@ namespace MFM {
 
   FORECAST NodeTerminal::safeToCastTo(UTI newType)
   {
+    if(m_state.isAltRefType(newType))
+      return CAST_BAD; //t3965
+
     UTI nuti = getNodeType();
     ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
     UlamType * newut = m_state.getUlamTypeByIndex(newType);
@@ -175,9 +178,6 @@ namespace MFM {
     FORECAST scr = m_state.getUlamTypeByIndex(newType)->UlamType::safeCast(nuti);
     if(scr != CAST_CLEAR)
       return scr;
-
-    if(m_state.isAltRefType(newType))
-      return CAST_BAD; //t3965
 
     return fitsInBits(newType) ? CAST_CLEAR : CAST_BAD;
   } //safeToCastTo

@@ -274,10 +274,18 @@ namespace MFM {
 	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
 	    if(argNodes[i]->isAConstant())
 	      {
-		if(put->isAltRefType() && !((SymbolVariableStack *) m_parameterSymbols.at(i))->isConstantFunctionParameter())
+		if(put->isAltRefType())
 		  {
-		    rtnBool = false;
-		    break;
+		    if(!((SymbolVariableStack *) m_parameterSymbols.at(i))->isConstantFunctionParameter())
+		      {
+			rtnBool = false;
+			break;
+		      }
+		    else if(argNodes[i]->isExplicitCast())
+		      {
+			rtnBool = false; //t41256
+			break;
+		      }
 		  }
 		//else (t41238, t41240, t3114..)
 

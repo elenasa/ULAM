@@ -1,0 +1,31 @@
+## -*- mode:ulam -*-
+#=t41257_test_compiler_element_constantrefprimitivefuncparam_terminaldifferentsizecast_error
+#!
+./Foo.ulam:15:5: ERROR: (1) <func3> has no defined function with 1 matching argument type: Int(3), and cannot be called.
+./Foo.ulam:16:5: ERROR: (1) <func> has no defined function with 1 matching argument type: Int(32), and cannot be called.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41256, except terminal used as argument to constant ref function parameter
+##
+#>Foo.ulam
+  ulam 3;
+element Foo {
+
+  Void func(constant Int& ciarg)
+  {
+    Int i = ciarg;
+  }
+
+  Void func3(constant Int(3)& ciarg)
+  {
+    Int i = ciarg;
+  }
+
+  Int test() {
+    func3(3);
+    func((Int)3);
+    return 0;
+  }
+}
+
+#.

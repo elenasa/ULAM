@@ -97,9 +97,40 @@ namespace MFM {
 
   FORECAST NodeConstant::safeToCastTo(UTI newType)
   {
-    if(isReadyConstant())
-      return NodeTerminal::safeToCastTo(newType);
-    return CAST_HAZY;
+    if(!isReadyConstant())
+      return CAST_HAZY;
+
+    UTI nuti = getNodeType();
+    ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
+    UlamType * newut = m_state.getUlamTypeByIndex(newType);
+    ULAMTYPE typEnum = newut->getUlamTypeEnum();
+
+    //special cases: not a matter of fitting
+    if((typEnum == Bool) || (ntypEnum == Bool) || (typEnum == UAtom) || (typEnum == Class) || (typEnum == Void))
+      return m_state.getUlamTypeByIndex(newType)->safeCast(nuti);
+
+    //special case: FROM Bits, not just a matter of fitting, e.g. logical shifts (t3850)
+    if((ntypEnum == Bits) && (typEnum != Bits))
+      return m_state.getUlamTypeByIndex(newType)->safeCast(nuti);
+
+    //special case: FROM/TO String, not just a matter of fitting (t41164)
+    if((ntypEnum == String) ^ (typEnum == String))
+      return m_state.getUlamTypeByIndex(newType)->safeCast(nuti);
+
+    //unlike terminals, named constants may be used with constant refs (t41254)
+    if(m_state.isAltRefType(newType))
+      {
+	if(m_state.isConstantRefType(newType))
+	  return m_state.getUlamTypeByIndex(newType)->safeCast(nuti);
+	return CAST_BAD; //constant to non-constant ref is not cast-able.
+      }
+
+    //for non-bool terminal check for complete types and arrays before fits.
+    FORECAST scr = m_state.getUlamTypeByIndex(newType)->UlamType::safeCast(nuti);
+    if(scr != CAST_CLEAR)
+      return scr;
+
+    return fitsInBits(newType) ? CAST_CLEAR : CAST_BAD;
   } //safeToCastTo
 
   UTI NodeConstant::checkAndLabelType()
