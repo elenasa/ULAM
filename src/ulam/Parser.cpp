@@ -3817,8 +3817,9 @@ namespace MFM {
     if(Token::isTokenAType(pTok))
       {
 	unreadToken();
-	bool allowrefcast = (m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCARGUMENT) || (m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCLOCALREF);
-	return parseFactorStartingWithAType(pTok, allowrefcast); //rtnNode could be NULL
+	bool allowrefcast = (m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCARGUMENT) || (m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCLOCALREF); //not STF_FUNCLOCALCONSTREF t41255
+	bool allowanycast = m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCLOCALCONSTREF ? false : true;
+	return parseFactorStartingWithAType(pTok, allowrefcast, allowanycast); //rtnNode could be NULL
       } //not a Type
 
     //continue as normal..
@@ -3851,7 +3852,8 @@ namespace MFM {
       case TOK_OPEN_PAREN:
 	{
 	  bool allowrefcast = (m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCARGUMENT) || (m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCLOCALREF); //t3862, t41067
-	  rtnNode = parseRestOfCastOrExpression(allowrefcast);
+	  bool allowanycast = m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCLOCALCONSTREF ? false : true;
+	  rtnNode = parseRestOfCastOrExpression(allowrefcast, allowanycast);
 	}
 	break;
       case TOK_MINUS:
@@ -3933,7 +3935,7 @@ namespace MFM {
     return rtnNode;
   } //parseFactor
 
-  Node * Parser::parseFactorStartingWithAType(const Token& tTok, bool allowrefcast)
+  Node * Parser::parseFactorStartingWithAType(const Token& tTok, bool allowrefcast, bool allowanycast)
   {
     assert(Token::isTokenAType(tTok)); //was unread.
 
@@ -3957,7 +3959,15 @@ namespace MFM {
 	else if(iTok.m_type == TOK_CLOSE_PAREN)
 	  {
 	    unreadToken();
-	    bool castok = makeCastNode(tTok, allowrefcast, typeNode, rtnNode);
+	    bool castok = false;
+	    if(allowanycast)
+	      castok = makeCastNode(tTok, allowrefcast, typeNode, rtnNode);
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "Casts not allowed in this context";
+		MSG(&iTok, msg.str().c_str(), ERR);
+	      }
 	    if(!castok)
 	      {
 		delete typeNode; //owns the dangling type descriptor
@@ -4007,7 +4017,7 @@ namespace MFM {
     return rtnNode;
   } //parseRestOfFactor
 
-  Node * Parser::parseRestOfCastOrExpression(bool allowRefCast)
+  Node * Parser::parseRestOfCastOrExpression(bool allowRefCast, bool allowAnyCast)
   {
     Node * rtnNode = NULL;
     //just saw an open paren..
@@ -4020,7 +4030,7 @@ namespace MFM {
 
     if(Token::isTokenAType(tTok) || (tTok.m_type == TOK_KW_LOCALDEF))
       {
-	rtnNode = parseFactorStartingWithAType(tTok, allowRefCast);
+	rtnNode = parseFactorStartingWithAType(tTok, allowRefCast, allowAnyCast);
 	isacast = (rtnNode && rtnNode->isExplicitCast());
       }
 
@@ -4481,7 +4491,7 @@ namespace MFM {
     //update dNode with init expression: lval for ref, assign for local car
     if((args.m_declRef == ALT_REF) || (args.m_declRef == ALT_CONSTREF))
       {
-	brtn = parseRestOfRefInitialization(identTok, dNode);
+	brtn = parseRestOfRefInitialization(identTok, args.m_declRef, dNode);
 	args.m_declRef = ALT_NOT; //clear flag in case of decl list
 	//keep args.m_referenced type???
       } //ref done
@@ -4493,13 +4503,18 @@ namespace MFM {
     return brtn;
   } //parseRestOfDeclInitialization
 
-  bool Parser::parseRestOfRefInitialization(const Token& identTok, NodeVarDecl * dNode)
+  bool Parser::parseRestOfRefInitialization(const Token& identTok, ALT reftype, NodeVarDecl * dNode)
   {
     bool brtn = true;
     SYMBOLTYPEFLAG saveTheFlag = m_state.m_parsingVariableSymbolTypeFlag;
     if(m_state.m_parsingVariableSymbolTypeFlag == STF_FUNCLOCALVAR)
       {
-	m_state.m_parsingVariableSymbolTypeFlag = STF_FUNCLOCALREF;
+	if(reftype == ALT_REF)
+	  m_state.m_parsingVariableSymbolTypeFlag = STF_FUNCLOCALREF;
+	else if(reftype == ALT_CONSTREF)
+	  m_state.m_parsingVariableSymbolTypeFlag = STF_FUNCLOCALCONSTREF;
+	else
+	  m_state.abortShouldntGetHere();
       }
 
     Node * initnode = parseExpression();

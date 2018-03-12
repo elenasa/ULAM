@@ -100,6 +100,10 @@ namespace MFM {
     if(!isReadyConstant())
       return CAST_HAZY;
 
+    //constant to non-constant ref is not cast-able.
+    if(m_state.isAltRefType(newType) && !m_state.isConstantRefType(newType))
+      return CAST_BAD;
+
     UTI nuti = getNodeType();
     ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
     UlamType * newut = m_state.getUlamTypeByIndex(newType);
@@ -117,20 +121,16 @@ namespace MFM {
     if((ntypEnum == String) ^ (typEnum == String))
       return m_state.getUlamTypeByIndex(newType)->safeCast(nuti);
 
-    //unlike terminals, named constants may be used with constant refs (t41254)
-    if(m_state.isAltRefType(newType))
-      {
-	if(m_state.isConstantRefType(newType))
-	  return m_state.getUlamTypeByIndex(newType)->safeCast(nuti);
-	return CAST_BAD; //constant to non-constant ref is not cast-able.
-      }
+    //unlike terminals, named constants may be used with constant refs; must be same size (t41254)
+    if(m_state.isConstantRefType(newType))
+      return m_state.getUlamTypeByIndex(newType)->safeCast(nuti);
 
     //for non-bool terminal check for complete types and arrays before fits.
     FORECAST scr = m_state.getUlamTypeByIndex(newType)->UlamType::safeCast(nuti);
     if(scr != CAST_CLEAR)
       return scr;
 
-    return fitsInBits(newType) ? CAST_CLEAR : CAST_BAD;
+    return NodeTerminal::fitsInBits(newType) ? CAST_CLEAR : CAST_BAD;
   } //safeToCastTo
 
   UTI NodeConstant::checkAndLabelType()
@@ -544,7 +544,6 @@ namespace MFM {
     m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL);
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
     //******UPDATED GLOBAL; no restore!!!**************************
-    //    m_state.m_currentObjSymbolsForCodeGen.push_back(m_constSymbol);
   } //genCodeToStoreInto
 
   bool NodeConstant::updateConstant()
@@ -555,7 +554,7 @@ namespace MFM {
 
     if(m_constSymbol->getValue(val))
 	m_constant.uval = val; //value fits type per its constantdef
-      //else don't want default value here
+    //else don't want default value here
 
     return m_constSymbol->isReady();
   } //updateConstant

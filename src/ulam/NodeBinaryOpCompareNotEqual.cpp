@@ -76,19 +76,7 @@ namespace MFM {
 	return newType; //done
       }
 
-#if 0
     //if both are String, no casting
-    if(ltypEnum == String && rtypEnum == String)
-      {
-	if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
-	  {
-	    newType = String;
-	    checkSafeToCastTo(getNodeType(), newType); //Nav, Hzy or no change; outputs error msg
-	  }
-	return newType; //done
-      }
-#endif
-
     //o.w. revert to ordered comparison rules
     return NodeBinaryOpCompare::calcNodeType(lt,rt);
   } //calcNodeType

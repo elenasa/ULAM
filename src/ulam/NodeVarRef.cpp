@@ -182,14 +182,6 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //error/t41255
 		rscr = CAST_BAD;
 	      }
-	    else if(m_nodeInitExpr->isAConstant() && m_nodeInitExpr->isExplicitCast())
-	      {
-		assert(m_state.isConstantRefType(nuti)); //sanity tobe cast_clear
-		std::ostringstream msg;
-		msg << "Cannot cast initial value of constant reference variable: " << getName();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //error/t41255
-		rscr = CAST_BAD;
-	      }
 	  }
       }
     //okay to explicitly cast rhs to reference type, e.g. if(a is Foo) QW& qref = (Foo &) a;

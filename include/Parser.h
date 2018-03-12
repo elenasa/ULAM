@@ -348,11 +348,11 @@ namespace MFM{
      */
     Node * parseFactor(bool localbase = false);
 
-    Node * parseFactorStartingWithAType(const Token& tTok, bool allowrefcast);
+    Node * parseFactorStartingWithAType(const Token& tTok, bool allowrefcast, bool allowanycast);
 
     Node * parseRestOfFactor(Node * leftNode);
 
-    Node * parseRestOfCastOrExpression(bool allowRefCasts);
+    Node * parseRestOfCastOrExpression(bool allowRefCasts, bool allowAnyCast);
 
     Node * parseRestOfTerm(Node * leftNode);
 
@@ -374,7 +374,7 @@ namespace MFM{
 
     bool parseRestOfDecls(TypeArgs& args, UTI passuti);
     bool parseRestOfDeclInitialization(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode);
-    bool parseRestOfRefInitialization(const Token& identTok, NodeVarDecl * dNode);
+    bool parseRestOfRefInitialization(const Token& identTok, ALT reftype, NodeVarDecl * dNode);
 
     Node * parseArrayOrClassInitialization(u32 identId);
     Node * parseArrayInitialization(u32 identId, Locator loc);

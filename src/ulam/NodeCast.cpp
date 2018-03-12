@@ -223,14 +223,8 @@ namespace MFM {
 	      }
 	    else if(tclasstype == UC_QUARK)
 	      {
-#if 0
-		//it becomes an immediate, unless its a ref (t3631).
-		std::ostringstream msg;
-		msg << "Cannot cast an atom to quark "; //an atom
-		msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str(); //to quark, unless an ancestor
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		errorsFound++;
-#endif
+		// cast atom to quark:
+		// it becomes an immediate, unless its a ref (t3631).
 	      }
 	    else if(tclasstype == UC_TRANSIENT)
 	      {

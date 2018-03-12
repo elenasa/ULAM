@@ -320,6 +320,11 @@ namespace MFM {
 		  hasHazyArgs = true;
 		else //CAST_CLEAR
 		  {
+		    if(m_state.isConstantRefType(puti) && argNodes[i]->isExplicitCast())
+		      {
+			rtnBool = false; //t41258
+			break;
+		      }
 		    if(put->getUlamTypeEnum() == aut->getUlamTypeEnum())
 		      numUTmatch++;
 		  }
@@ -462,8 +467,6 @@ namespace MFM {
 	Symbol * asym = getParameterSymbolPtr(i);
 	assert(asym);
 	assert(asym->isFunctionParameter()); //sanity
-	//	if(((SymbolVariableStack *) asym)->isConstantFunctionParameter())
-	//  fp->write("const "); t4123
 	UTI auti = asym->getUlamTypeIdx();
 	UlamType * aut = m_state.getUlamTypeByIndex(auti);
 	fp->write(aut->getLocalStorageTypeAsString().c_str()); //for C++

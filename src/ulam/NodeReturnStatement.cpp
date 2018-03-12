@@ -196,7 +196,7 @@ namespace MFM {
 	      }
 	    else if(m_state.isAltRefType(rtnType) || m_state.isAltRefType(nodeType))
 	      {
-		//one is a ref, the other ain't
+		//one is a ref, the other ain't (already know not both so || okay)
 		FORECAST scr = m_node->safeToCastTo(rtnType);
 		if(scr == CAST_CLEAR)
 		  {

@@ -2163,17 +2163,21 @@ namespace MFM {
 
   void Node::generateTestInstance(File * fp, bool runtest)
   {
-    m_state.abortShouldntGetHere(); //fufilled by NodeVarDeclDM, NodeBlockClass/Locals; bypassed by NodeTypedef and NodeConstDef, passed thru by NodeStatements
+    //fufilled by NodeVarDeclDM, NodeBlockClass/Locals;
+    //bypassed by NodeTypedef and NodeConstDef, passed thru by NodeStatements
+    m_state.abortShouldntGetHere();
   }
 
   void Node::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {
-    m_state.abortShouldntGetHere(); //fufilled by NodeVarDecl, NodeBlock; bypassed by NodeTypedef and NodeConstDef
+    //fufilled by NodeVarDecl, NodeBlock; bypassed by NodeTypedef and NodeConstDef
+    m_state.abortShouldntGetHere();
   }
 
   void Node::addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers)
   {
-    m_state.abortShouldntGetHere(); //fufilled by NodeVarDecl and NodeConstDef; bypassed by NodeTypedef
+    //fufilled by NodeVarDecl and NodeConstDef; bypassed by NodeTypedef
+    m_state.abortShouldntGetHere();
   }
 
   std::string Node::allCAPS(const char * s) //static method
@@ -2764,9 +2768,7 @@ namespace MFM {
 
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-
     UTI cosuti = cos->getUlamTypeIdx();
-    //UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
     // first "hidden" arg is the context, then "hidden" ref self (ur) arg
     if(!Node::isCurrentObjectALocalVariableOrArgument())

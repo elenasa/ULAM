@@ -452,7 +452,6 @@ namespace MFM {
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
 
     //******UPDATED GLOBAL; no restore!!!**************************
-    //    m_state.m_currentObjSymbolsForCodeGen.push_back(m_constSymbol);
   } //genCodeToStoreInto
 
   void NodeConstantClass::makeUVPassForCodeGen(UVPass& uvpass)

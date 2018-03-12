@@ -241,7 +241,6 @@ namespace MFM {
 		setBlock(currBlock);
 	      }
 	    else if(asymptr->isConstant())
-	      //else if(asymptr->isConstant() && !m_state.isConstantRefType(asymptr->getUlamTypeIdx()))
 	      {
 		UTI auti = asymptr->getUlamTypeIdx();
 		// replace ourselves with a constant node instead;
@@ -953,7 +952,8 @@ namespace MFM {
 
     if(brtn)
       {
-	uti = m_state.getUlamTypeAsRef(uti, args.m_declRef, args.m_hasConstantTypeModifier); //constant refs allowed t41192
+	//constant refs allowed (t41192)
+	uti = m_state.getUlamTypeAsRef(uti, args.m_declRef, args.m_hasConstantTypeModifier);
 
 	if(!asymptr)
 	  {
@@ -1137,7 +1137,8 @@ namespace MFM {
 
     if(brtn)
       {
-	UTI uti = m_state.getUlamTypeAsRef(auti, args.m_declRef, args.m_hasConstantTypeModifier); //ut not current; no deref.
+	//ut not current; no deref.
+	UTI uti = m_state.getUlamTypeAsRef(auti, args.m_declRef, args.m_hasConstantTypeModifier);
 
 	SymbolVariable * sym = makeSymbol(uti, m_state.getReferenceType(uti), args);
 	if(sym)

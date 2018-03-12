@@ -675,6 +675,7 @@ namespace MFM {
     s32 offsetInt = m_state.getUlamTypeByIndex(offset.getUlamValueTypeIdx())->getDataAsCs32(offsetdata);
     //adjust pos by offset * len, according to its scalar type
     UlamValue scalarPtr = UlamValue::makeScalarPtr(pluv, m_state);
+
     if(scalarPtr.incrementPtr(m_state, offsetInt))
       //copy result UV to stack, -1 relative to current frame pointer
       Node::assignReturnValuePtrToStack(scalarPtr);
@@ -977,7 +978,8 @@ namespace MFM {
 
     if(cossym->isConstant())
       {
-	Node::genCodeConvertATmpVarIntoConstantAutoRef(fp, luvpass, offset); //luvpass becomes the autoref, and clears stack
+	//luvpass becomes the autoref, and clears stack
+	Node::genCodeConvertATmpVarIntoConstantAutoRef(fp, luvpass, offset);
 
 	UTI leftType = m_nodeLeft->getNodeType();
 	UlamType * lut = m_state.getUlamTypeByIndex(leftType);
@@ -1179,10 +1181,6 @@ namespace MFM {
     uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, ASCII, m_state.determinePackable(ASCII), m_state, 0, 0); //POS 0 rightjustified (atom-based).
 
     m_state.clearCurrentObjSymbolsForCodeGen();
-
-    //m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks
-    //m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore the prior stack
-    //m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
     // NO RESTORE -- up to caller for lhs.
   } //genCodeAUserStringByte
 
