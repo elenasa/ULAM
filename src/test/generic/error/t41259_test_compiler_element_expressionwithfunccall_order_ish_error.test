@@ -1,0 +1,27 @@
+## -*- mode:ulam -*-
+#=t41259_test_compiler_element_expressionwithfunccall_order_ish_error
+#!
+./Foo.ulam:7:23: ERROR: Non-primitive type <Foo> is not supported as right operand type for binary +.
+./Foo.ulam:7:28: ERROR: Member selected is incomplete class: erroneous, check and label fails this time around.
+./Foo.ulam:7:5: ERROR: Initial value expression for: var2, initialization is invalid.
+Unrecoverable Program Type Label FAILURE.
+##
+## ish, informed by Dave 3/14/18 generated SPLAT code; Sorry, grammar says rhs of +/- is a term. Term leads to Factor.
+## Factor allows assign_expression within parens. The extra parens around the f, (f).func(), ends the assign_expression.
+## Without the extra parens, f.func() is fine as rhs (t41260).
+## Changing the grammar screws up the precedence for other tests:
+## parseExpression instead of parseTerm for rhs, breaks: t3305,8 t3418, t3430, t3510,13,19, t3578,9, t3985, t41077, t41084.
+## Or trying for more after the closing paren, breaks: t3200, t3201,2,3,7,8, t3246, t3876, t3877, t41140
+##
+#>Foo.ulam
+  ulam 3;
+element Foo {
+  Unsigned func() { return 0; }
+  Int test() {
+    Foo f;
+    Unsigned var1 = (f).func()+1u; // Why does this succeed,
+    Unsigned var2 = 1u+(f).func(); // But this fail?
+    return 0;
+  }
+}
+#.

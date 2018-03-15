@@ -674,7 +674,7 @@ namespace MFM {
 	}
 
       generateHeaderPreamble(fp);
-      genAllCapsIfndefForHeaderFile(fp);
+      genIfndefForHeaderFile(fp);
       generateHeaderIncludes(fp);
 
       UVPass uvpass;
@@ -696,7 +696,7 @@ namespace MFM {
 	  fp->write("\"");
 	  fp->write("\n");
 	}
-      genAllCapsEndifForHeaderFile(fp);
+      genEndifForHeaderFile(fp);
 
       delete fp; //close
     }
@@ -830,25 +830,25 @@ namespace MFM {
     m_state.genCopyrightAndLicenseForUlamHeader(fp);
   } //generateHeaderPreamble
 
-  void SymbolClass::genAllCapsIfndefForHeaderFile(File * fp)
+  void SymbolClass::genIfndefForHeaderFile(File * fp)
   {
     UlamType * cut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
     m_state.indent(fp);
     fp->write("#ifndef ");
-    fp->write(Node::allCAPS(cut->getUlamTypeMangledName().c_str()).c_str());
+    fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write("_H\n");
 
     m_state.indent(fp);
     fp->write("#define ");
-    fp->write(Node::allCAPS(cut->getUlamTypeMangledName().c_str()).c_str());
+    fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write("_H\n\n");
-  } //genAllCapsIfndefForHeaderFile
+  } //genIfndefForHeaderFile
 
-  void SymbolClass::genAllCapsEndifForHeaderFile(File * fp)
+  void SymbolClass::genEndifForHeaderFile(File * fp)
   {
     UlamType * cut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
     fp->write("#endif //");
-    fp->write(Node::allCAPS(cut->getUlamTypeMangledName().c_str()).c_str());
+    fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write("_H\n");
   }
 

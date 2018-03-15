@@ -183,8 +183,8 @@ namespace MFM{
     void assignClassArgValuesInStubCopy();
 
     void generateHeaderPreamble(File * fp);
-    void genAllCapsIfndefForHeaderFile(File * fp);
-    void genAllCapsEndifForHeaderFile(File * fp);
+    void genIfndefForHeaderFile(File * fp);
+    void genEndifForHeaderFile(File * fp);
     void generateHeaderIncludes(File * fp);
 
     void genMangledTypesHeaderFile(FileManager * fm);  //obsolete
