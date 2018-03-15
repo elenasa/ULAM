@@ -49,6 +49,11 @@ namespace MFM {
     return 0; //always zero
   }
 
+  bool SymbolWithValue::isPosOffsetReliable()
+  {
+    return false; //non-data member.
+  }
+
   bool SymbolWithValue::isReady()
   {
     return m_isReady; //constant value
@@ -513,8 +518,6 @@ namespace MFM {
     std::ostringstream ostr;
     UTI tuti = getUlamTypeIdx();
     UlamType * tut = m_state.getUlamTypeByIndex(tuti);
-    //u32 twordsize =  m_state.getTotalWordSize(tuti); //must be commplete
-    //s32 tbs = m_state.getTotalBitSize(tuti);
     s32 bs = tut->getBitSize();
     ULAMTYPE etyp = tut->getUlamTypeEnum();
     switch(etyp)
@@ -593,7 +596,6 @@ namespace MFM {
     bool isZero = true;
     s32 x = nwords - 1;
     for(; x >= 0; x--)
-      //for(u32 x = 0; x < nwords; x++)
       {
 	if(uvals[x] != 0)
 	  {
@@ -678,8 +680,6 @@ namespace MFM {
     UTI tuti = getUlamTypeIdx();
     UlamType * tut = m_state.getUlamTypeByIndex(tuti);
     s32 bs = tut->getBitSize();
-    //u32 twordsize =  m_state.getTotalWordSize(tuti); //must be commplete
-    //s32 tbs = m_state.getTotalBitSize(tuti);
     ULAMTYPE etyp = tut->getUlamTypeEnum();
     switch(etyp)
       {

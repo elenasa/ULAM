@@ -3,7 +3,7 @@
 
 namespace MFM {
 
-  SymbolVariableDataMember::SymbolVariableDataMember(const Token& id, UTI utype, u32 slot, CompilerState& state) : SymbolVariable(id, utype, state), m_posOffset(0), m_dataMemberUnpackedSlotIndex(slot)
+  SymbolVariableDataMember::SymbolVariableDataMember(const Token& id, UTI utype, u32 slot, CompilerState& state) : SymbolVariable(id, utype, state), m_posOffset(9999), m_dataMemberUnpackedSlotIndex(slot)
   {
     setDataMemberClass(m_state.getCompileThisIdx());
   }
@@ -59,7 +59,14 @@ namespace MFM {
   //packed bit position of data members; relative to ATOMFIRSTSTATEBITPOS (or 0u).
   u32 SymbolVariableDataMember::getPosOffset()
   {
+    if(m_posOffset == 9999)
+      m_state.abortShouldntGetHere(); //not yet set
     return m_posOffset;
+  }
+
+  bool SymbolVariableDataMember::isPosOffsetReliable()
+  {
+    return (m_posOffset != 9999);
   }
 
   void SymbolVariableDataMember::setPosOffset(u32 offsetIntoAtom)

@@ -286,6 +286,20 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		errorsFound++; //t3962
 	      }
+
+	    if(m_state.isAltRefType(tobeType) && m_state.isAltRefType(nodeType))
+	      {
+		if(m_state.isConstantRefType(nodeType))
+		  {
+		    std::ostringstream msg;
+		    msg << "Cannot explicitly cast incompatible (reference) types: constant ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+		    msg << " as non-constant ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    errorsFound++;  //t41197
+		  }
+	      }
 	  }
       }
 

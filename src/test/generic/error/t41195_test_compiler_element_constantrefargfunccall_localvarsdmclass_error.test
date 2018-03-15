@@ -1,0 +1,55 @@
+## -*- mode:ulam -*-
+#=t41195_test_compiler_element_constantrefargfunccall_localvarsdmclass_error
+#!
+./Foo.ulam:9:15: ERROR: Unmodifiable lefthand side of assignment expression <.>, type: Unary(3); may be a constant function parameter.
+./Foo.ulam:11:15: ERROR: Unmodifiable lefthand side of assignment expression <.>, type: Unary(3); may be a constant function parameter.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t3801, except with constant ref function parameter
+##
+#>Foo.ulam
+  ulam 2;
+use System;
+element Foo {
+  System s;
+  Int(4) m_i;
+  QW m_q;
+  Void check(constant QW& qok) {
+    if (m_i < 7)
+      qok.mun = 0x1;
+    else
+      qok.mun = 0x2;
+    return;
+  }
+
+  Int test() {
+    Foo f; //local storage
+    QW & qref = f.m_q; //what does gencode look like?
+    f.m_i = 3;
+    check(f.m_q);
+    s.print(f.m_q.mun); //should be =1
+    s.assert(f.m_q.mun == 0x1);
+    s.print(f.m_i);
+    s.assert(f.m_i == 3);
+    return f.m_i;
+  }
+}
+
+#:QW.ulam
+  ulam 2;
+quark QW {
+  Unary(3) mun = 0x3;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

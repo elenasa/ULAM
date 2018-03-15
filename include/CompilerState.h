@@ -2,8 +2,8 @@
 /**                                        -*- mode:C++ -*-
  * CompilerState.h - Global Compiler State for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2018 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -30,7 +30,7 @@
   \file CompilerState.h - Global Compiler State for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2018 All rights reserved.
   \gpl
 */
 
@@ -224,6 +224,7 @@ namespace MFM{
     UTI getUlamTypeAsDeref(UTI utArg);
     /** turns a regular type into its referenced type */
     UTI getUlamTypeAsRef(UTI utArg);
+    UTI getUlamTypeAsRef(UTI utArg, ALT altArg, bool isConstRef);
     UTI getUlamTypeAsRef(UTI utArg, ALT altArg);
     ULAMTYPECOMPARERESULTS isARefTypeOfUlamType(UTI refuti, UTI ofuti); //true if de-refuti is same as ofuti
 
@@ -242,6 +243,8 @@ namespace MFM{
     s32 getBitSize(UTI utArg);
     ALT getReferenceType(UTI utArg);
     bool isReference(UTI utArg);
+    bool isAltRefType(UTI utiArg);
+    bool isConstantRefType(UTI utiArg);
     bool correctAReferenceTypeWith(UTI utiArg, UTI derefuti);
     bool correctAnArrayTypeWith(UTI utiArg, UTI scalaruti);
     bool isComplete(UTI utArg);
@@ -300,6 +303,9 @@ namespace MFM{
     void replaceSymbolInCurrentScope(u32 oldid, Symbol * symptr); //same symbol, new id
     void replaceSymbolInCurrentScope(Symbol * oldsym, Symbol * newsym); //same id, new symbol
     bool takeSymbolFromCurrentScope(u32 id, Symbol *& rtnsymptr); //ownership to the caller
+
+    /** does a member class search for id */
+    bool findSymbolInAClass(u32 id, UTI inClassUTI, Symbol *& rtnsymptr, bool& isHazy);
 
     /** return true and the SymbolClassName pointer in 2nd arg if found; */
     bool alreadyDefinedSymbolClassName(u32 dataindex, SymbolClassName * & symptr);

@@ -464,7 +464,7 @@ namespace MFM {
 	      }
 	    else if(key.getUlamKeyTypeSignatureReferenceType() != ALT_NOT) //array type
 	      {
-		//need a new UTI for reference
+		//need a new UTI for reference, or const ref
 	      }
 	    else
 	      {
@@ -1249,7 +1249,15 @@ namespace MFM {
 
   UTI CompilerState::getUlamTypeAsRef(UTI utiArg)
   {
-    return getUlamTypeAsRef(utiArg, ALT_REF);
+    return getUlamTypeAsRef(utiArg, ALT_REF); //default
+  }
+
+  UTI CompilerState::getUlamTypeAsRef(UTI utiArg, ALT altArg, bool isConstRef)
+  {
+    //constant-type modifier for non-ref uti is dropped here
+    if(isConstRef && (altArg == ALT_REF))
+      return getUlamTypeAsRef(utiArg, ALT_CONSTREF); //t3136
+    return getUlamTypeAsRef(utiArg, altArg);
   }
 
   UTI CompilerState::getUlamTypeAsRef(UTI utiArg, ALT altArg)
@@ -1444,15 +1452,7 @@ namespace MFM {
 
     if(!isThisLocalsFileScope()) //t3972,73
       {
-	if(hasThisClassStringDataMembers()) //t3972,73
-	  {
-	    //unused variable if no string data members
-	    indent(fp);
-	    fp->write("static u32 myRegNum = ");
-	    fp->write(getTheInstanceMangledNameByIndex(cuti).c_str());
-	    fp->write(".GetRegistrationNumber();"); GCNL;
-	  }
-
+	//static variable 'myRegNum' efficiency not worth it. Tue Jan 16 17:47:22 2018
 	//class data members may have strings (t3948)
 	indent(fp);
 	fp->write("//correct runtime regnum for strings\n");
@@ -1495,6 +1495,17 @@ namespace MFM {
   {
     UlamType * ut = getUlamTypeByIndex(utiArg);
     return ut->isReference();
+  }
+
+  bool CompilerState::isAltRefType(UTI utiArg)
+  {
+    ALT alt = getReferenceType(utiArg);
+    return (alt == ALT_REF) || (alt == ALT_CONSTREF);
+  }
+
+  bool CompilerState::isConstantRefType(UTI utiArg)
+  {
+    return (getReferenceType(utiArg) == ALT_CONSTREF);
   }
 
   bool CompilerState::correctAReferenceTypeWith(UTI utiArg, UTI derefuti)
@@ -1556,7 +1567,7 @@ namespace MFM {
     if(isHolder(utiArg))
       {
 	UlamKeyTypeSignature dekey = derefut->getUlamKeyTypeSignature();
-	UlamKeyTypeSignature newkey(dekey.getUlamKeyTypeSignatureNameId(), dekey.getUlamKeyTypeSignatureBitSize(), dekey.getUlamKeyTypeSignatureArraySize(), dekey.getUlamKeyTypeSignatureClassInstanceIdx(), ALT_REF);
+	UlamKeyTypeSignature newkey(dekey.getUlamKeyTypeSignatureNameId(), dekey.getUlamKeyTypeSignatureBitSize(), dekey.getUlamKeyTypeSignatureArraySize(), dekey.getUlamKeyTypeSignatureClassInstanceIdx(), getReferenceType(utiArg)); //use holder's reference type, maybe CONSTREF (t41195)
 	ULAMTYPE detyp = derefut->getUlamTypeEnum();
 	makeUlamTypeFromHolder(newkey, detyp, utiArg, derefut->getUlamClassType());
 
@@ -2853,6 +2864,27 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     assert(!useMemberBlock());
     return getCurrentBlock()->removeIdFromScope(id, rtnsymptr);
   }
+
+  bool CompilerState::findSymbolInAClass(u32 id, UTI inClassUTI, Symbol *& rtnsymptr, bool& isHazy)
+  {
+    //    assert(!isAnonymousClass(inClassUTI) && isASeenClass(inClassUTI));
+    assert(isASeenClass(inClassUTI));
+    bool rtnOK = false;
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClass(inClassUTI, csym);
+    assert(isDefined);
+
+    NodeBlockClass * cblock = csym->getClassBlockNode();
+    assert(cblock);
+
+    pushClassContextUsingMemberClassBlock(cblock);
+
+    rtnOK = alreadyDefinedSymbol(id, rtnsymptr, isHazy);
+
+    popClassContext(); //restore
+
+    return rtnOK;
+  } //findSymbolInAClass
 
   //Token to location as string:
   const std::string CompilerState::getTokenLocationAsString(const Token * tok)
@@ -4458,7 +4490,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   {
     //do not include ALT_AS, ALT_ARRAYITEM, etc as Ref here. Specifically a ref (&).
     UlamType * aut = getUlamTypeByIndex(auti);
-    return ((aut->getUlamTypeEnum() == UAtom) && (aut->getReferenceType() == ALT_REF));
+    return ((aut->getUlamTypeEnum() == UAtom) && isAltRefType(auti));
   }
 
   bool CompilerState::isThisLocalsFileScope()

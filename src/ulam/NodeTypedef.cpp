@@ -336,6 +336,9 @@ namespace MFM {
     cloneVec.push_back(cloneofme);
   }
 
+  void NodeTypedef::generateTestInstance(File * fp, bool runtest)
+  { /* noop */ }
+
   void NodeTypedef::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {}
 

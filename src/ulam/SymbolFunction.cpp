@@ -1,6 +1,7 @@
 #include "SymbolFunction.h"
 #include "NodeBlockFunctionDefinition.h"
 #include "SymbolVariable.h"
+#include "SymbolVariableStack.h"
 #include "CompilerState.h"
 
 namespace MFM {
@@ -447,6 +448,9 @@ namespace MFM {
 
 	Symbol * asym = getParameterSymbolPtr(i);
 	assert(asym);
+	assert(asym->isFunctionParameter()); //sanity
+	if(((SymbolVariableStack *) asym)->isConstantFunctionParameter())
+	  fp->write("const ");
 	UTI auti = asym->getUlamTypeIdx();
 	UlamType * aut = m_state.getUlamTypeByIndex(auti);
 	fp->write(aut->getLocalStorageTypeAsString().c_str()); //for C++

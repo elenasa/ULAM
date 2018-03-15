@@ -115,6 +115,22 @@ namespace MFM {
       m_state.addCompleteUlamTypeToThisContextSet(uti);
   }
 
+  void Node::resetOfClassType(UTI cuti)
+  {
+    return; //noop for all except NodeListClassInit, and NodeInitDM
+  }
+
+  void Node::setClassType(UTI cuti)
+  {
+    m_state.abortShouldntGetHere();
+    return; //noop for all except NodeListClassInit
+  }
+
+  bool Node::isClassInit()
+  {
+    return false; //default, except NodeListClassInit
+  }
+
   TBOOL Node::getStoreIntoAble() const
   {
     return m_storeIntoAble;
@@ -134,6 +150,16 @@ namespace MFM {
   void Node::setReferenceAble(TBOOL s)
   {
     m_referenceAble = s;
+  }
+
+  TBOOL Node::minTBOOL(TBOOL atb, TBOOL btb)
+  {
+    TBOOL mintb = TBOOL_TRUE;
+    if((atb == TBOOL_FALSE) || (btb == TBOOL_FALSE))
+      mintb = TBOOL_FALSE;
+    else if((atb == TBOOL_HAZY) || (btb == TBOOL_HAZY))
+      mintb = TBOOL_HAZY;
+    return mintb;
   }
 
   Locator Node::getNodeLocation() const
@@ -188,6 +214,12 @@ namespace MFM {
 
   bool Node::hasASymbolReference()
   {
+    return false;
+  }
+
+  bool Node::hasASymbolReferenceConstant()
+  {
+    assert(hasASymbolReference());
     return false;
   }
 
@@ -412,6 +444,12 @@ namespace MFM {
   {
     m_state.abortShouldntGetHere();
     return false;
+  }
+
+  bool Node::initDataMembersConstantValue(BV8K& bvref)
+  {
+    m_state.abortShouldntGetHere(); //only for NodeListClassInit, NodeListArrayIniti (t41185)
+    return false; //for compiler
   }
 
   void Node::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
@@ -1758,6 +1796,11 @@ namespace MFM {
     m_state.abortShouldntGetHere(); //fufilled by NodeConstantDef
   }
 
+  void Node::generateTestInstance(File * fp, bool runtest)
+  {
+    m_state.abortShouldntGetHere(); //fufilled by NodeVarDeclDM, NodeBlockClass/Locals; bypassed by NodeTypedef and NodeConstDef, passed thru by NodeStatements
+  }
+
   void Node::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {
     m_state.abortShouldntGetHere(); //fufilled by NodeVarDecl, NodeBlock; bypassed by NodeTypedef and NodeConstDef
@@ -2373,7 +2416,10 @@ namespace MFM {
 	    sameur = false;
 	    hiddenarg2 << "UlamRef<EC> " << m_state.getUlamRefTmpVarAsString(tmpvar).c_str() << "(";
 	    //update ur to reflect "effective" self for this funccall
-	    hiddenarg2 << m_state.getHiddenArgName(); //ur
+	    if(stgcos->isTmpVarSymbol())
+	      hiddenarg2 << stgcos->getMangledName().c_str(); //t3811
+	    else
+	      hiddenarg2 << m_state.getHiddenArgName(); //ur t3102,3,4,6,7,8,9,10,11
 	    hiddenarg2 << ", " << calcPosOfCurrentObjectClassesAsString(uvpass); //relative off;
 	    hiddenarg2 << ", " << getLengthOfMemberClassForHiddenArg(cosuti) << "u, &"; //len, t41120
 
@@ -2922,7 +2968,6 @@ namespace MFM {
     //     but at this point cosuti would be a scalar in either case (sigh);
     // uvpass would be an array index (an int of sorts), not an array;
     // types would not be the same;
-    //return(m_state.isScalar(cosuti) && m_state.isClassACustomArray(cosuti) && (uvpass.getPassTargetType() != cosuti));
     //a custom array item, would be the return type of cossymbols 'aref' (t41006,5)
     return(m_state.isScalar(cosuti) && m_state.isClassACustomArray(cosuti) && (UlamType::compareForCustomArrayItem(uvpass.getPassTargetType(), m_state.getAClassCustomArrayType(cosuti), m_state) == UTIC_SAME));
   } //isCurrentObjectACustomArrayItem

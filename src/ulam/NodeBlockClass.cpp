@@ -7,7 +7,8 @@
 
 namespace MFM {
 
-  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state) : NodeBlockContext(prevBlockNode, state), m_functionST(state), m_virtualmethodMaxIdx(UNKNOWNSIZE), m_superBlockNode(NULL), m_isEmpty(false)
+  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state) : NodeBlockContext(prevBlockNode, state), m_functionST(state), m_virtualmethodMaxIdx(UNKNOWNSIZE), m_superBlockNode(NULL), m_isEmpty(false), m_registeredForTestInstance(false)
+
   {
     m_nodeParameterList = new NodeList(state);
     assert(m_nodeParameterList);
@@ -15,7 +16,7 @@ namespace MFM {
     assert(m_nodeArgumentList);
   }
 
-  NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlockContext(ref), m_functionST(ref.m_functionST) /* deep copy */, m_virtualmethodMaxIdx(ref.m_virtualmethodMaxIdx), m_superBlockNode(NULL), m_isEmpty(ref.m_isEmpty), m_nodeParameterList(NULL), m_nodeArgumentList(NULL)
+  NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlockContext(ref), m_functionST(ref.m_functionST) /* deep copy */, m_virtualmethodMaxIdx(ref.m_virtualmethodMaxIdx), m_superBlockNode(NULL), m_isEmpty(ref.m_isEmpty), m_registeredForTestInstance(false), m_nodeParameterList(NULL), m_nodeArgumentList(NULL)
   {
     UTI cuti = m_state.getCompileThisIdx();
     m_state.pushClassContext(cuti, this, this, false, NULL); //t3895
@@ -147,7 +148,6 @@ namespace MFM {
 
   void NodeBlockClass::printPostfix(File * fp)
   {
-    //UTI cuti = getNodeType();
     UTI cuti = m_state.getCompileThisIdx(); //maybe be hzy template, getNodeType(); (t3565)
     assert(m_state.okUTItoContinue(cuti));
 
@@ -160,8 +160,7 @@ namespace MFM {
 	SymbolClassNameTemplate * cnsym = NULL;
 	AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameTemplate(m_state.getUlamKeyTypeSignatureByIndex(cuti).getUlamKeyTypeSignatureNameId(), cnsym);
 	assert(isDefined);
-	cnsym->printClassTemplateArgsForPostfix(fp);
-	//m_nodeParameterList->print(fp);
+	cnsym->printClassTemplateArgsForPostfix(fp); //m_nodeParameterList->print(fp);
       }
 
     UTI superuti = m_state.isClassASubclass(cuti);
@@ -2204,6 +2203,15 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	return;
       }
 
+    //get all initialized data members in quark
+    u32 qval = 0;
+    AssertBool isDefaultQuark = m_state.getDefaultQuark(cuti, qval);
+    assert(isDefaultQuark);
+
+    std::ostringstream qdhex;
+    qdhex << "0x" << std::hex << qval;
+
+
     m_state.indent(fp);
     fp->write("template<class EC>\n");
 
@@ -2222,19 +2230,22 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel++;
 
-    //get all initialized data members in quark
-    u32 qval = 0;
-    AssertBool isDefaultQuark = m_state.getDefaultQuark(cuti, qval);
-    assert(isDefaultQuark);
+    if(hasStringDataMembers())
+      {
+	//must by the only data member then (max size Quark == size of String) t41167
+	genCodeBuiltInFunctionBuildingDefaultDataMembers(fp);
 
-    std::ostringstream qdhex;
-    qdhex << "0x" << std::hex << qval;
-
-    m_state.indent(fp);
-    fp->write("return ");
-    fp->write(qdhex.str().c_str());
-    fp->write("; //=");
-    fp->write_decimal_unsigned(qval); GCNL;
+	m_state.indent(fp);
+	fp->write("return initBV.Read(0u, QUARK_SIZE);"); GCNL;
+      }
+    else
+      {
+	m_state.indent(fp);
+	fp->write("return ");
+	fp->write(qdhex.str().c_str());
+	fp->write("; //=");
+	fp->write_decimal_unsigned(qval); GCNL;
+      }
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -2925,15 +2936,61 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   void NodeBlockClass::generateTestInstance(File * fp, bool runtest)
   {
-    std::ostringstream runThisTest;
+    if(runtest)
+      return generateTestInstanceRun(fp); //refactor
+
     UTI suti = getNodeType();
     UlamType * sut = m_state.getUlamTypeByIndex(suti);
     if(!sut->isComplete()) return;
-    // register all classes, for testing only, o.w. ILLEGAL_STATE t3879. t3922, t3948, t3967, t3982
+
+    // recursively register all classes, for testing only, o.w. ILLEGAL_STATE t3879. t3922, t3948, t3967, t3982, t41183
     //if((suti != m_state.getCompileThisIdx()) && !m_state.isOtherClassInThisContext(suti)) return; //e.g. t3373,5,6,7, t3923
 
-    if(sut->getUlamClassType() != UC_ELEMENT)
+    if(m_state.isClassASubclass(suti) != Nouti)
       {
+	NodeBlockClass * superClassBlock = getSuperBlockPointer();
+	assert(superClassBlock);
+	superClassBlock->generateTestInstance(fp, runtest);
+      }
+
+    if(m_registeredForTestInstance)
+      return; //once only in main (t41183)
+
+    //need to insure all class data members are also registered before us (t41167)
+    if(m_nodeNext)
+      m_nodeNext->generateTestInstance(fp, runtest);
+
+    if(sut->getUlamClassType() == UC_ELEMENT)
+      {
+	// output for each element before testing; a test may include
+	// one or more of them!
+	fp->write("\n");
+	m_state.indent(fp);
+	fp->write("{\n");
+
+	m_state.m_currentIndentLevel++;
+
+	m_state.indent(fp);
+	fp->write("UlamElement<EC> & elt = ");
+	fp->write(m_state.getTheInstanceMangledNameByIndex(suti).c_str());
+	fp->write(";"); GCNL;
+
+	//register before allocate type to avoid ILLEGAL_STATE (t3968, t41183)
+	m_state.indent(fp);
+	fp->write("tile.GetUlamClassRegistry().RegisterUlamClass(elt);"); GCNL;
+	m_state.indent(fp);
+	fp->write("elt.AllocateType(etnm); //Force element type allocation now"); GCNL;
+	m_state.indent(fp);
+	fp->write("tile.RegisterElement(elt);"); GCNL;
+
+	m_state.m_currentIndentLevel--;
+
+	m_state.indent(fp);
+	fp->write("}\n");
+      }
+    else
+      {
+	//non-elements:
 	fp->write("\n");
 	m_state.indent(fp);
 	fp->write("{\n");
@@ -2952,82 +3009,61 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	m_state.indent(fp);
 	fp->write("}\n");
-	return;
       }
 
-    // output for each element before testing; a test may include
-    // one or more of them!
-    if(!runtest)
-      {
-	fp->write("\n");
-	m_state.indent(fp);
-	fp->write("{\n");
-
-	m_state.m_currentIndentLevel++;
-
-	m_state.indent(fp);
-	fp->write("UlamElement<EC> & elt = ");
-	fp->write(m_state.getTheInstanceMangledNameByIndex(suti).c_str());
-	fp->write(";"); GCNL;
-
-	//register before allocate type to avoid ILLEGAL_STATE (t3968)
-	m_state.indent(fp);
-	fp->write("tile.GetUlamClassRegistry().RegisterUlamClass(elt);"); GCNL;
-	m_state.indent(fp);
-	fp->write("elt.AllocateType(etnm); //Force element type allocation now"); GCNL;
-	m_state.indent(fp);
-	fp->write("tile.RegisterElement(elt);"); GCNL;
-
-	m_state.m_currentIndentLevel--;
-
-	m_state.indent(fp);
-	fp->write("}\n");
-      }
-    else
-      {
-	if(suti == m_state.getCompileThisIdx())
-	  {
-	    fp->write("\n");
-
-	    m_state.indent(fp);
-	    fp->write("{\n");
-
-	    m_state.m_currentIndentLevel++;
-
-	    m_state.indent(fp);
-	    fp->write("OurAtomAll atom = "); //OurAtomAll
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(suti).c_str());
-	    fp->write(".GetDefaultAtom();"); GCNL;
-	    m_state.indent(fp);
-	    fp->write("tile.PlaceAtom(atom, center);"); GCNL;
-
-	    m_state.indent(fp);
-	    fp->write("AtomRefBitStorage<EC> atbs(atom);"); GCNL;
-
-	    m_state.indent(fp);
-	    fp->write("UlamRef<EC> ur(EC::ATOM_CONFIG::ATOM_TYPE::ATOM_FIRST_STATE_BIT, "); //e.g. t3255
-	    fp->write_decimal_unsigned(sut->getTotalBitSize()); //t3655
-	    fp->write("u, atbs, &");
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(suti).c_str());
-	    fp->write(", UlamRef<EC>::ELEMENTAL, uc);"); GCNL;
-
-	    m_state.indent(fp);
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(suti).c_str());
-
-	    // pass uc with effective self setup
-	    fp->write(".Uf_4test(");
-	    fp->write("uc, ur);"); GCNL;
-
-	    m_state.indent(fp);
-	    fp->write("//std::cerr << rtn.read() << std::endl;\n");//useful to return result of test?
-	    m_state.indent(fp);
-	    fp->write("//return rtn.read();\n"); //was useful to return result of test
-
-	    m_state.m_currentIndentLevel--;
-	    m_state.indent(fp);
-	    fp->write("}\n");
-	  }
-      }
+    m_registeredForTestInstance = true;
+    return;
   } //generateTestInstance
+
+  void NodeBlockClass::generateTestInstanceRun(File * fp)
+  {
+    // called after all the generateTestInstance() are generated.
+    UTI suti = getNodeType();
+    UlamType * sut = m_state.getUlamTypeByIndex(suti);
+    assert(sut->isComplete());
+
+    if(suti != m_state.getCompileThisIdx())
+      return;
+
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("OurAtomAll atom = "); //OurAtomAll
+    fp->write(m_state.getTheInstanceMangledNameByIndex(suti).c_str());
+    fp->write(".GetDefaultAtom();"); GCNL;
+    m_state.indent(fp);
+    fp->write("tile.PlaceAtom(atom, center);"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("AtomRefBitStorage<EC> atbs(atom);"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("UlamRef<EC> ur(EC::ATOM_CONFIG::ATOM_TYPE::ATOM_FIRST_STATE_BIT, "); //e.g. t3255
+    fp->write_decimal_unsigned(sut->getTotalBitSize()); //t3655
+    fp->write("u, atbs, &");
+    fp->write(m_state.getTheInstanceMangledNameByIndex(suti).c_str());
+    fp->write(", UlamRef<EC>::ELEMENTAL, uc);"); GCNL;
+
+    m_state.indent(fp);
+    fp->write(m_state.getTheInstanceMangledNameByIndex(suti).c_str());
+
+    // pass uc with effective self setup
+    fp->write(".Uf_4test(");
+    fp->write("uc, ur);"); GCNL;
+
+    m_state.indent(fp);
+    fp->write("//std::cerr << rtn.read() << std::endl;\n");//useful to return result of test?
+    m_state.indent(fp);
+    fp->write("//return rtn.read();\n"); //was useful to return result of test
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n");
+  } //generateTestInstanceRun
 
 } //end MFM

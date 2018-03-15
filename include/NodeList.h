@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeList.h - Basic handling a list of nodes for ULAM
  *
- * Copyright (C) 2015-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2017 Ackleyshack LLC.
+ * Copyright (C) 2015-2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2018 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeList.h - Basic handling a list of nodes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2017 All rights reserved.
+  \date (C) 2015-2018 All rights reserved.
   \gpl
 */
 
@@ -90,15 +90,19 @@ namespace MFM{
 
     virtual EvalStatus evalToStoreInto(u32 n);
 
-    void addNodeToList(Node * argNode);
+    virtual void addNodeToList(Node * argNode);
 
     u32 getNumberOfNodes() const;
+
+    virtual bool isEmptyList() const;
 
     u32 getTotalSlotsNeeded();
 
     Node * getNodePtr (u32 n) const;
 
     UTI getNodeType(u32 n); //overloads Node.h
+
+    virtual bool isAConstant();
 
     bool isAConstant(u32 n);
 
@@ -115,6 +119,8 @@ namespace MFM{
     virtual void genCodeConstantArrayInitialization(File * fp);
 
     virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
+
+    virtual bool initDataMembersConstantValue(BV8K& bvref);
 
   protected:
     std::vector<Node *> m_nodes;

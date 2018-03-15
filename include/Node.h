@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * Node.h - Basic Node of Nodes for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2018 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file Node.h - Basic Node of Nodes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2018 All rights reserved.
   \gpl
 */
 
@@ -103,9 +103,15 @@ namespace MFM{
 
     const std::string nodeName(const std::string& prettyFunction);
 
-    UTI getNodeType() const;
+    virtual UTI getNodeType() const;
 
-    void setNodeType(UTI ut);
+    virtual void setNodeType(UTI ut);
+
+    virtual void resetOfClassType(UTI cuti);
+
+    virtual void setClassType(UTI cuti);
+
+    virtual bool isClassInit();
 
     virtual TBOOL getStoreIntoAble() const;
 
@@ -114,6 +120,8 @@ namespace MFM{
     virtual TBOOL getReferenceAble() const;
 
     void setReferenceAble(TBOOL s);
+
+    TBOOL minTBOOL(TBOOL atb, TBOOL btb);
 
     Locator getNodeLocation() const;
 
@@ -136,6 +144,8 @@ namespace MFM{
     virtual bool hasASymbolSelf();
 
     virtual bool hasASymbolReference();
+
+    virtual bool hasASymbolReferenceConstant();
 
     virtual bool isAConstant();
 
@@ -170,6 +180,8 @@ namespace MFM{
     virtual UTI constantFold();
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
+
+    virtual bool initDataMembersConstantValue(BV8K& bvref);
 
     virtual void genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos);
 
@@ -212,6 +224,8 @@ namespace MFM{
     virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
 
     virtual void cloneAndAppendNode(std::vector<Node *> & cloneVec);
+
+    virtual void generateTestInstance(File * fp, bool runtest);
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 

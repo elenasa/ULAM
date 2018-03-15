@@ -1,0 +1,32 @@
+## -*- mode:ulam -*-
+#=t41207_test_compiler_classdminitnonarraysnull_localvar
+##
+#!
+./A.ulam:6:18: ERROR: Invalid initialization of scalar type Unsigned(3) with symbol name 'u'.
+./A.ulam:6:15: ERROR: Class Init Argument 1 has a problem for variable bar, type QBar.
+./A.ulam:6:4: ERROR: Initial value expression for: bar, initialization is invalid.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41206, except empty scalar initialization
+##
+#>A.ulam
+  ulam 3;
+element A {
+  Bool b;
+
+ Int test() {
+   QBar bar = { .u = {} };
+
+   return 0;
+ }
+}
+
+#:QBar.ulam
+  ulam 3;
+quark QBar {
+  Bool sp = true;
+  Unsigned(3) u = 3u;
+  Unary(3) r[5] = {1};
+}
+
+#.

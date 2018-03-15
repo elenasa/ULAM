@@ -321,8 +321,12 @@ namespace MFM {
       {
 	UTI lt = m_nodeLeft->getNodeType();
 	std::ostringstream msg;
-	msg << "Invalid lefthand side of equals <" << m_nodeLeft->getName();
+	msg << "Unmodifiable lefthand side of assignment expression <" << m_nodeLeft->getName();
 	msg << ">, type: " << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
+	if(m_nodeLeft->isFunctionCall())
+	  msg << "; may be a function call";
+	else if(m_nodeLeft->hasASymbolReference() && m_nodeLeft->hasASymbolReferenceConstant())
+	  msg << "; may be a constant function parameter";
 	if(lstor == TBOOL_HAZY)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	else

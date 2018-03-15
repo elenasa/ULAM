@@ -79,6 +79,12 @@ namespace MFM {
     return m_nodeLeft->hasASymbolReference();
   }
 
+  bool NodeMemberSelect::hasASymbolReferenceConstant()
+  {
+    assert(hasASymbolReference());
+    return m_nodeLeft->hasASymbolReferenceConstant();
+  }
+
   const std::string NodeMemberSelect::methodNameForCodeGen()
   {
     return "_MemberSelect_Stub";
@@ -93,30 +99,17 @@ namespace MFM {
   UTI NodeMemberSelect::checkAndLabelType()
   {
     assert(m_nodeLeft && m_nodeRight);
-
+    UTI nuti = getNodeType();
     UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
-    TBOOL lstor = m_nodeLeft->getStoreIntoAble();
-    if(lstor != TBOOL_TRUE)
+
+    TBOOL stor = checkStoreIntoAble();
+    if(m_nodeRight->isFunctionCall())
       {
-	//e.g. funcCall is not storeintoable even if its return value is.
-	std::ostringstream msg;
-	msg << "Member selected must be a valid lefthand side: '";
-	msg << m_nodeLeft->getName();
-	msg << "' requires a variable; may be a casted function call";
-	if(lstor == TBOOL_HAZY)
-	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    setNodeType(Hzy);
-	    m_state.setGoAgain();
-	    return Hzy;
-	  }
-	else
-	  {
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav);
-	    return Nav;
-	  }
-      } //done
+	if(stor == TBOOL_FALSE)
+	  nuti = Nav;
+	else if(stor == TBOOL_HAZY)
+	  nuti = Hzy; //t3607
+      }
 
     if(!m_state.isComplete(luti))
       {
@@ -127,14 +120,17 @@ namespace MFM {
 	if(luti == Nav)
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav);
+	    nuti = Nav;
 	  }
 	else
 	  {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-	    setNodeType(Hzy);
-	    m_state.setGoAgain(); //since no error msg
+	    if(nuti != Nav)
+	      nuti = Hzy; //avoid clobbering Nav
 	  }
+	setNodeType(nuti);
+	if(nuti == Hzy)
+	  m_state.setGoAgain();
 	return getNodeType();
       } //done
 
@@ -179,14 +175,48 @@ namespace MFM {
 
     if(m_state.okUTItoContinue(rightType))
       {
-	//based on righthand side
-	Node::setStoreIntoAble(m_nodeRight->getStoreIntoAble());
-
-	//base reference-ability on righthand side (t41085)
-	Node::setReferenceAble(m_nodeRight->getReferenceAble());
+	setStoreIntoAbleAndReferenceAble();
       }
     return getNodeType();
   } //checkAndLabelType
+
+  TBOOL NodeMemberSelect::checkStoreIntoAble()
+  {
+    TBOOL lstor = m_nodeLeft->getStoreIntoAble();
+    if(m_nodeRight->isFunctionCall())
+      {
+	if(lstor != TBOOL_TRUE)
+	  {
+	    //e.g. funcCall is not storeintoable even if its return value is.
+	    std::ostringstream msg;
+	    msg << "Member selected must be a modifiable lefthand side: '";
+	    msg << m_nodeLeft->getName();
+	    msg << "' requires a variable";
+	    if(m_nodeLeft->isFunctionCall())
+	      msg << "; may be a function call";
+	    else if(hasASymbolReference() && hasASymbolReferenceConstant())
+	      msg << "; may be a constant function parameter";
+	    if(lstor == TBOOL_HAZY)
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  } //done
+      }
+    return lstor;
+  } //checkStoreIntoAble
+
+  void NodeMemberSelect::setStoreIntoAbleAndReferenceAble()
+  {
+    TBOOL  lstor = m_nodeLeft->getStoreIntoAble(); //default ok
+    TBOOL  rstor = m_nodeRight->getStoreIntoAble(); //default ok
+    TBOOL stor = Node::minTBOOL(lstor, rstor); //min of lhs and rhs
+    setStoreIntoAble(stor);
+
+    TBOOL  lrefer = m_nodeLeft->getReferenceAble(); //default ok
+    TBOOL  rrefer = m_nodeRight->getReferenceAble(); //default ok
+    TBOOL refer = Node::minTBOOL(lrefer, rrefer); //min of lhs and rhs
+    setReferenceAble(refer);
+  }
 
   bool NodeMemberSelect::trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr)
   {
@@ -276,8 +306,6 @@ namespace MFM {
 
     m_state.m_currentObjPtr = newCurrentObjectPtr;
 
-    //UTI ruti = m_nodeRight->getNodeType();
-    //u32 slot = makeRoomForNodeType(ruti);
     u32 slot = makeRoomForNodeType(nuti);
     evs = m_nodeRight->eval(); //a Node Function Call here, or data member eval
     if(evs != NORMAL)

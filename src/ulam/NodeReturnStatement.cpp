@@ -114,7 +114,8 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    nodeType = Nav;
 	  }
-	else if(UlamType::compareForArgumentMatching(nodeType, rtnType, m_state) != UTIC_SAME)
+	//else if(UlamType::compareForArgumentMatching(nodeType, rtnType, m_state) != UTIC_SAME)
+	else if(UlamType::compareForAssignment(nodeType, rtnType, m_state) != UTIC_SAME)
 	  {
 	    if(UlamType::compare(rtnType, Void, m_state) == UTIC_NOTSAME)
 	      {
@@ -167,7 +168,57 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		nodeType = Nav; //missing?
 	      }
-	  } // not the same
+	  }
+	else
+	  {
+	    //only ALT in key differs (cannot parse a Constant return type)
+	    if(m_state.isAltRefType(rtnType) && m_state.isAltRefType(nodeType))
+	      {
+		if(m_state.isConstantRefType(nodeType))
+		  {
+		    std::ostringstream msg;
+		    msg << "Returning incompatible (reference) types: constant ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+		    msg << " as non-constant ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    nodeType = Nav;  //t41196
+		  }
+		//else both must be ALT_REF
+	      }
+	    else if(m_state.isAltRefType(rtnType) || m_state.isAltRefType(nodeType))
+	      {
+		//one is a ref, the other ain't
+		FORECAST scr = m_node->safeToCastTo(rtnType);
+		if(scr == CAST_CLEAR)
+		  {
+		    if(!Node::makeCastingNode(m_node, rtnType, m_node))
+		      nodeType = Nav; //no casting node
+		    else
+		      nodeType = m_node->getNodeType(); //casted
+		  }
+		else
+		  {
+		    std::ostringstream msg;
+		    msg << "Use explicit cast";
+		    msg << " to return ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+		    msg << " as ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
+		    if(scr == CAST_BAD)
+		      {
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			nodeType = Nav;
+		      }
+		    else
+		      {
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+			nodeType = Hzy;
+		      }
+		  }
+	      }
+	    //else ???
+	  }
       } //both complete
 
     if((nodeType != Nav) && !m_state.isComplete(nodeType))

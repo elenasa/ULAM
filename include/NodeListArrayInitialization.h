@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeListArrayInitialization.h - Handle array initialization list of nodes for ULAM
  *
- * Copyright (C) 2016-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2016-2017 Ackleyshack LLC.
+ * Copyright (C) 2016-2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2016-2018 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeListArrayInitialization.h - Handle array initialization list of nodes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2016-2017 All rights reserved.
+  \date (C) 2016-2018 All rights reserved.
   \gpl
 */
 
@@ -63,6 +63,10 @@ namespace MFM{
 
     virtual bool isAConstant();
 
+    virtual void setNodeType(UTI uti);
+
+    virtual void setClassType(UTI cuti);
+
     virtual UTI checkAndLabelType();
 
     bool foldArrayInitExpression();
@@ -73,14 +77,25 @@ namespace MFM{
 
     bool buildArrayValueInitialization(BV8K& bvtmp);
 
+    bool buildClassArrayValueInitialization(BV8K& bvtmp);
+
     virtual void genCode(File * fp, UVPass& uvpass);
+
+    void genCodeClassInitArray(File * fp, UVPass& uvpass);
+
+    virtual bool initDataMembersConstantValue(BV8K& bvref);
 
   protected:
 
   private:
     bool buildArrayItemInitialValue(u32 n, u32 pos, BV8K& bvtmp);
 
+    bool buildClassArrayItemInitialValue(u32 n, u32 pos, BV8K& bvtmp);
+
     bool foldInitExpression(u32 n);
+
+
+    void genCodeClassInitArrayItem(File * fp, UVPass& uvpass, u32 n, u32 useitem, UVPass& uvpass2);
   };
 
 } //MFM

@@ -44,39 +44,38 @@ namespace MFM {
     UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
     if( fmut == this)
       return CAST_CLEAR; //same class, quark or element
-    else
-      {
-	UTI fmderef = m_state.getUlamTypeAsDeref(typidx); //e.g. ALT_ARRAYITEM
-	u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx(); //our scalar "new"
-	if(m_state.isClassASubclassOf(fmderef, cuti))
-	  return CAST_CLEAR; //(up) casting to a super class
-	else
-	  {
-	    //e.g. array item to a ref of same type (cuti)
-	    ULAMTYPECOMPARERESULTS cmpr1 = UlamType::compare(fmderef, cuti, m_state);
-	    if(cmpr1 == UTIC_SAME)
-	      return CAST_CLEAR;
-	    if(cmpr1 == UTIC_DONTKNOW)
-	      return CAST_HAZY;
 
-	    if(m_state.isClassASubclassOf(fmderef, cuti))
-	      return CAST_CLEAR; //(up) casting ref to a super class (may also be ref)
+    if((fmut->getReferenceType()==ALT_CONSTREF) && (getReferenceType()==ALT_REF))
+      return CAST_BAD; //bad cast from const ref to non-const ref
 
-	    if(m_state.isClassASubclassOf(cuti, fmderef))
-	      return CAST_BAD; //(downcast) requires explicit cast
+    UTI fmderef = m_state.getUlamTypeAsDeref(typidx); //e.g. ALT_ARRAYITEM
+    u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx(); //our scalar "new"
+    if(m_state.isClassASubclassOf(fmderef, cuti))
+      return CAST_CLEAR; //(up) casting to a super class
 
-	    //ref of this class, applies to entire arrays too
-	    UTI anyUTI = Nouti;
-	    AssertBool anyDefined = m_state.anyDefinedUTI(m_key, anyUTI);
-	   assert(anyDefined);
+    //e.g. array item to a ref of same type (cuti)
+    ULAMTYPECOMPARERESULTS cmpr1 = UlamType::compare(fmderef, cuti, m_state);
+    if(cmpr1 == UTIC_SAME)
+      return CAST_CLEAR;
+    if(cmpr1 == UTIC_DONTKNOW)
+      return CAST_HAZY;
 
-	    ULAMTYPECOMPARERESULTS cmpr2 = m_state.isARefTypeOfUlamType(typidx, anyUTI);
-	    if(cmpr2 == UTIC_SAME)
-	      return CAST_CLEAR;
-	    else if(cmpr2 == UTIC_DONTKNOW)
-	      return CAST_HAZY;
-	  }
-      }
+    if(m_state.isClassASubclassOf(fmderef, cuti))
+      return CAST_CLEAR; //(up) casting ref to a super class (may also be ref)
+
+    if(m_state.isClassASubclassOf(cuti, fmderef))
+      return CAST_BAD; //(downcast) requires explicit cast
+
+    //ref of this class, applies to entire arrays too
+    UTI anyUTI = Nouti;
+    AssertBool anyDefined = m_state.anyDefinedUTI(m_key, anyUTI);
+    assert(anyDefined);
+
+    ULAMTYPECOMPARERESULTS cmpr2 = m_state.isARefTypeOfUlamType(typidx, anyUTI);
+    if(cmpr2 == UTIC_SAME)
+      return CAST_CLEAR;
+    else if(cmpr2 == UTIC_DONTKNOW)
+      return CAST_HAZY;
     return CAST_BAD; //e.g. (typidx == UAtom)
   } //safeCast
 
@@ -92,6 +91,9 @@ namespace MFM {
 	  return CAST_BAD;
 	else if(m_state.isAtom(typidx))
 	  return CAST_CLEAR;
+
+	if((fmut->getReferenceType()==ALT_CONSTREF) && (getReferenceType()==ALT_REF))
+	  return CAST_BAD; //bad cast from const ref to non-const ref
 
 	//check when casting from class to class
 	bool isfmref = fmut->isReference();

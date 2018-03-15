@@ -34,4 +34,9 @@ namespace MFM {
     return m_posOffsetCopy; //included in its variable
   }
 
+  bool SymbolTmpVar::isPosOffsetReliable()
+  {
+    return true; //??
+  }
+
 } //end MFM

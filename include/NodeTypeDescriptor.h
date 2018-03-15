@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeTypeDescriptor.h - Basic Node Type descriptor for ULAM
  *
- * Copyright (C) 2015-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2015-2017 Ackleyshack LLC.
+ * Copyright (C) 2015-2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2015-2018 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeTypeDescriptor.h - Basic Node Type descriptor for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2015-2017 All rights reserved.
+  \date (C) 2015-2018 All rights reserved.
   \gpl
 */
 

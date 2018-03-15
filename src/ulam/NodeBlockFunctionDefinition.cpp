@@ -413,7 +413,7 @@ namespace MFM {
     // save results in the node eval stackframe for function caller, returning
     // each element of array by value, in reverse order ([0] is last at bottom);
     // Could be a reference if called from evalToStoreInto (e.g. t3630)
-    if(m_state.getReferenceType(nuti) == ALT_REF)
+    if(m_state.isAltRefType(nuti))
       Node::assignReturnValuePtrToStack(rtnUV);
     else
       Node::assignReturnValueToStack(rtnUV);

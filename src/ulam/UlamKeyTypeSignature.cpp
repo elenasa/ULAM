@@ -80,7 +80,8 @@ namespace MFM {
       key << "[" << m_arraySize << "?]";
 
     //if(m_referenceType != ALT_NOT)
-    if(m_referenceType == ALT_REF)
+    //    if(m_referenceType == ALT_REF)
+    if((m_referenceType == ALT_REF) || (m_referenceType == ALT_CONSTREF))
       key << "&"; //only when ulam programmer put in the &
     return key.str();
   } //getUlamKeyTypeSignatureNameAndSize

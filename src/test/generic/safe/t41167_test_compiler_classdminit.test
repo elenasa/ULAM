@@ -1,0 +1,95 @@
+## -*- mode:ulam -*-
+#=t41167_test_compiler_classdminit
+##
+## gen output: (+ interleaved asserts)
+## String(1) Arg: "hello world"
+## String(1) Arg: "foo"
+## String(1) Arg: "bar"
+## Unary(3) Arg: 0x3
+## Unary(3) Arg: 0x3
+## Bool(3) Arg: 0x7 (true)
+##
+#!
+Exit status: 0
+Ue_A { Bool(1) b0(true);  Bool(1) b1(true);  Bool(1) b2(true);  QBar m_bar( Unary(3) r(3u);  Bool(1) sp(true); );  String(32) m_str("foo");  QStr m_s( String(32) m_str("bar"); );  Int(32) test() {  SystemU3 su3;  QStr solo;  Unsigned(8) sasc = solo m_str 0 [] .;  b0 sasc 104u == = su3 ( solo m_str . )print . su3 ( b0 )assert . Unsigned(8) fasc = m_str 0 [];  b1 fasc 102u == = su3 ( m_str )print . su3 ( b1 )assert . Unsigned(8) qasc = m_s m_str 1 [] .;  b2 qasc 97u == = su3 ( m_s m_str . )print . su3 ( b2 )assert . Unary(3) chkr = m_bar r .;  su3 ( chkr )print . su3 ( m_bar r . )print . su3 ( m_bar r . cast 3 == )assert . su3 ( m_bar sp . cast )print . su3 ( m_bar sp . )assert . 0 cast return } }
+Uq_QBar { Bool(1) sp(false);  Unary(3) r( 1u);  <NOMAIN> }
+Uq_QStr { String(32) m_str( "hello world");  <NOMAIN> }
+Uq_SystemU3 : System { :<> <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## first test of C-99 class instance initialization
+## informed by t3972 plus quark data members
+## also test 'solo' quark with initialized String data member (ILLEGAL_ARGUMENT because RegId not fixed!)
+##
+#>A.ulam
+  ulam 3;
+local constant String c_str = "foo";
+//use QBar; //remove this eventually!
+element A {
+  Bool b0, b1, b2;
+  QBar m_bar = { .r = 3, .sp = true }; //may be in different order than declared in class
+  String m_str = local.c_str;
+  QStr m_s = { .m_str = "bar" };
+
+ Int test() {
+   SystemU3 su3;
+
+   QStr solo;
+   ASCII sasc = solo.m_str[0];
+   b0 = (sasc == 'h');
+   su3.print(solo.m_str);
+   su3.assert(b0);
+
+   ASCII fasc = m_str[0];
+   b1 = (fasc == 'f');
+   su3.print(m_str);
+   su3.assert(b1);
+
+   ASCII qasc = m_s.m_str[1];
+   b2 = (qasc == 'a');
+   su3.print(m_s.m_str);
+   su3.assert(b2);
+
+   Unary(3) chkr = m_bar.r;
+   su3.print(chkr);
+   su3.print(m_bar.r);
+   su3.assert(m_bar.r == 3);
+
+   su3.print(m_bar.sp);
+   su3.assert(m_bar.sp);
+
+   return 0;
+ }
+}
+
+#:QBar.ulam
+  ulam 3;
+quark QBar {
+  Bool sp;
+  Unary(3) r = 1;
+}
+
+#:QStr.ulam
+  ulam 3;
+quark QStr {
+  String m_str = "hello world";
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

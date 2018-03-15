@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * SymbolClass.h -  Basic handling of Class Symbols for ULAM
  *
- * Copyright (C) 2014-2017 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2017 Ackleyshack LLC.
+ * Copyright (C) 2014-2018 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2018 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file SymbolClass.h -  Basic handling of Class Symbols for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2017 All rights reserved.
+  \date (C) 2014-2018 All rights reserved.
   \gpl
 */
 
@@ -175,8 +175,8 @@ namespace MFM{
     void assignClassArgValuesInStubCopy();
 
     void generateHeaderPreamble(File * fp);
-    void genAllCapsIfndefForHeaderFile(File * fp);
-    void genAllCapsEndifForHeaderFile(File * fp);
+    void genIfndefForHeaderFile(File * fp);
+    void genEndifForHeaderFile(File * fp);
     void generateHeaderIncludes(File * fp);
 
     void genMangledTypesHeaderFile(FileManager * fm);  //obsolete

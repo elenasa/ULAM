@@ -39,7 +39,7 @@ namespace MFM {
     return cntOfConstants;
   } //getNumberOfConstantSymbolsInTable
 
-  //called by NodeBlockClass (e.g. String (scalar or array))
+  //called by NodeBlockContext (e.g. String (scalar or array))
   bool SymbolTableOfVariables::hasUlamTypeSymbolsInTable(ULAMTYPE etyparg)
   {
     bool rtnb = false;
@@ -48,7 +48,9 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym);
-	if(!sym->isTypedef()) //t3948
+
+	//skip constantdefs (e.g. class args), typedefs, modelparameters
+	if(variableSymbolWithCountableSize(sym)) //t3948, t3959
 	  {
 	    UTI suti = sym->getUlamTypeIdx();
 	    ULAMTYPE etyp = m_state.getUlamTypeByIndex(suti)->getUlamTypeEnum();
@@ -60,6 +62,44 @@ namespace MFM {
 	  }
 	it++;
       }
+    return rtnb;
+  } //hasUlamTypeSymbolsInTable
+
+  //called by NodeBlockContext (e.g. String (scalar or array))
+  bool SymbolTableOfVariables::hasADataMemberStringInitValueInClass(UTI cuti)
+  {
+    bool rtnb = false;
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym);
+	if(!sym->isTypedef()) //t3948
+	  {
+	    UTI suti = sym->getUlamTypeIdx();
+	    UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	    if(sut->getUlamTypeEnum() == String)
+	      {
+		u32 arraysize = sut->isScalar() ? 1 : sut->getArraySize();
+		BV8K tmpbv8k;
+		AssertBool gotValue = ((SymbolWithValue *) sym)->getInitValue(tmpbv8k);
+		assert(gotValue);
+
+		for(u32 i = 0; i < arraysize; i++)
+		  {
+		    UTI regid = (UTI) tmpbv8k.Read(0 + i * (REGNUMBITS + STRINGIDXBITS), REGNUMBITS);
+		    assert(regid > 0);
+
+		    if(regid == cuti)
+		      {
+			rtnb = true; //got one!
+			break;
+		      }
+		  }
+	      } //string
+	  } //not typedef
+	it++;
+      } //while next data member symbol
     return rtnb;
   } //hasUlamTypeSymbolsInTable
 
@@ -225,20 +265,23 @@ namespace MFM {
   //currently, packing is done by Nodes since the order of declaration is available;
   //but in case we may want to optimize the layout someday,
   //we keep this here since all the symbols are available in one place.
-  void SymbolTableOfVariables::packBitsForTableOfVariableDataMembers()
+  void SymbolTableOfVariables::packBitsForTableOfVariableDataMembers(UTI cuti)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     u32 offsetIntoAtom = 0;
-
+    bool isAQuarkUnion = m_state.isClassAQuarkUnion(cuti); // (t3209, t41145) untested
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
 	UTI suti = sym->getUlamTypeIdx();
-	if(sym->isDataMember() && variableSymbolWithCountableSize(sym) && !m_state.isClassAQuarkUnion(suti))
+	if(sym->isDataMember() && variableSymbolWithCountableSize(sym))
 	  {
 	    //updates the offset with the bit size of sym
 	    ((SymbolVariable *) sym)->setPosOffset(offsetIntoAtom);
-	    offsetIntoAtom += m_state.getTotalBitSize(suti); //times array size
+
+	    //quark union needs default pos = 0 for each data member
+	    if(!isAQuarkUnion)
+	      offsetIntoAtom += m_state.getTotalBitSize(suti); //times array size
 	  }
 	it++;
       }
