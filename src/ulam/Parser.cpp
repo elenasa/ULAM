@@ -1927,57 +1927,7 @@ namespace MFM {
 
   Node * Parser::parseConditionalExpr()
   {
-#if 0
-    Token iTok;
-    if(getExpectedToken(TOK_IDENTIFIER, iTok, QUIETLY)) //could be extra open parens (t3406)
-      {
-	unreadToken();
-	m_state.saveIdentTokenForPendingConditionalAs(iTok);
-      }
-    else
-      return parseExpression(); //perhaps a number, true or false, cast..(error/t3406)
-#endif
-
     return parseAssignExpr();
-#if 0
-    Node * rtnNode = NULL;
-    Token iTok;
-    if(getExpectedToken(TOK_IDENTIFIER, iTok, QUIETLY))
-      {
-	Symbol * asymptr = NULL;
-	bool hazyKin = false; //don't care
-	//may continue when symbol not defined yet (e.g. FuncCall)
-	if(m_state.alreadyDefinedSymbol(iTok.m_dataindex, asymptr, hazyKin))
-	  {
-	    if(asymptr->isConstant()) //check for constant first
-	      {
-		unreadToken();
-		return parseExpression();
-	      }
-	  }
-
-	if(!(rtnNode = parseIdentExpr(iTok)))
-	  return parseExpression(); //continue as parseAssignExpr
-
-	//next check for 'as' ('is' is a Factor)
-	Token cTok;
-	getNextToken(cTok);
-	unreadToken();
-	if(cTok.m_type == TOK_KW_AS)
-	  {
-	    m_state.saveIdentTokenForConditionalAs(iTok, cTok); //SETS other related globals
-	    rtnNode = makeConditionalExprNode(rtnNode); //done, could be NULL
-	  }
-      }
-    else
-      return parseExpression(); //perhaps a number, true or false, cast..
-
-    if(m_state.m_parsingConditionalAs)
-      return rtnNode;
-
-    //if nothing else follows, parseRestOfAssignExpr returns its argument
-    return parseRestOfAssignExpr(rtnNode);
-#endif
   } //parseConditionalExpr
 
   NodeBlock * Parser::setupAsConditionalBlockAndParseStatements(NodeConditional * asNode)
@@ -3409,34 +3359,9 @@ namespace MFM {
   Node * Parser::parseAssignExpr()
   {
     Node * rtnNode = NULL;
-
-#if 0
-    Token iTok;
-    if(getExpectedToken(TOK_IDENTIFIER, iTok, QUIETLY))
-      {
-	//though function calls are not proper lhs values in assign
-	//expression; they are parsed here (due to the two token look
-	//ahead, which drops the Identifier Token before parseExpression) and is
-	//caught during checkAndLabelType as NOT storeIntoAble.
-	if(!(rtnNode = parseIdentExpr(iTok)))
-	  return parseExpression();
-      }
-    else
-#endif
-
     rtnNode = parseExpression(); //perhaps a number, true or false, cast..
 
     if(!rtnNode) return NULL;
-
-#if 0
-    Token qTok;
-    getNextToken(qTok);
-    unreadToken();
-    if(qTok.m_type == TOK_QUESTION)
-      {
-	rtnNode = parseRestOfQuestionColonExpr(rtnNode); //t41072, t41063?
-      }
-#endif
 
     //if nothing else follows, parseRestOfAssignExpr returns its argument
     return parseRestOfAssignExpr(rtnNode);
@@ -4047,16 +3972,10 @@ namespace MFM {
 	rtnNode = parseRestOfLvalExpr(leftNode); //t41074, lhs, t3941
 	rtnNode = parseRestOfFactor(rtnNode); //any more?
 	break;
-#if 0
-      case TOK_QUESTION: //t41072
-	rtnNode = parseRestOfQuestionColonExpr(leftNode); //here? instead of restofassignexpr since lval_expression???
-	break;
-#endif
       case TOK_PLUS_PLUS: //t3903
       case TOK_MINUS_MINUS: //t3903
 	rtnNode = makeAssignExprNode(leftNode);
 	rtnNode = parseRestOfFactor(rtnNode); //any more???
-	//rtnNode = parseRestOfExpression(rtnNode); //any more?
 	break;
       case TOK_ERROR_LOWLEVEL:
 	getNextToken(pTok); //eat token
@@ -4300,83 +4219,6 @@ namespace MFM {
     return rtnNode;
   } //parseRestOfExpression
 
-#if 0
-  Node * Parser::parseRestOfExpression(Node * leftNode)
-  {
-    if(leftNode == NULL) return NULL;
-
-    Node * rtnNode = NULL;
-    Token pTok;
-    getNextToken(pTok);
-    unreadToken();
-
-    switch(pTok.m_type)
-      {
-      case TOK_AMP_AMP:
-      case TOK_PIPE_PIPE:
-	rtnNode = makeExpressionNode(leftNode);
-	rtnNode = parseRestOfExpression(rtnNode); //recursion of left-associativity
-	break;
-      case TOK_AMP:
-      case TOK_PIPE:
-      case TOK_HAT:
-	rtnNode = parseRestOfLogicalExpression(leftNode); //addOp
-	rtnNode = parseRestOfExpression(rtnNode);
-	break;
-      case TOK_EQUAL_EQUAL:
-      case TOK_NOT_EQUAL:
-	rtnNode = parseRestOfBitExpression(leftNode);
-	rtnNode = parseRestOfExpression(rtnNode);
-	break;
-      case TOK_LESS_THAN:
-      case TOK_LESS_EQUAL:
-      case TOK_GREATER_THAN:
-      case TOK_GREATER_EQUAL:
-	rtnNode = parseRestOfEqExpression(leftNode);
-	rtnNode = parseRestOfExpression(rtnNode);
-	break;
-      case TOK_SHIFT_LEFT:
-      case TOK_SHIFT_RIGHT:
-	rtnNode = parseRestOfCompareExpression(leftNode);
-	rtnNode = parseRestOfExpression(rtnNode);
-	break;
-      case TOK_PLUS:
-      case TOK_MINUS:
-	rtnNode = parseRestOfShiftExpression(leftNode);
-	rtnNode = parseRestOfExpression(rtnNode); //any more?
-	break;
-      case TOK_STAR:
-      case TOK_SLASH:
-      case TOK_PERCENTSIGN:
-	rtnNode = parseRestOfTerm(leftNode); //mulOp
-	rtnNode = parseRestOfExpression(rtnNode); //any more?
-	break;
-      case TOK_KW_IS:
-	rtnNode = parseRestOfFactor(leftNode);
-	rtnNode = parseRestOfExpression(rtnNode); //any more?
-	break;
-      case TOK_QUESTION:
-	rtnNode = parseRestOfQuestionColonExpr(leftNode);
-	break;
-      case TOK_DOT:
-	rtnNode = parseRestOfMemberSelectExpr(leftNode);
-	rtnNode = parseRestOfExpression(rtnNode); //any more? t41057
-	break;
-      case TOK_OPEN_SQUARE:
-	rtnNode = parseRestOfLvalExpr(leftNode); //t41074, t3941
-	rtnNode = parseRestOfExpression(rtnNode); //any more?
-	break;
-      case TOK_ERROR_LOWLEVEL:
-	getNextToken(pTok); //reread
-	rtnNode = parseRestOfExpression(leftNode); //redo
-	break;
-      default:
-	rtnNode = leftNode;
-      };
-    return rtnNode;
-  } //parseRestOfExpression
-#endif
-
   Node * Parser::parseRestOfLvalExpr(Node * leftNode)
   {
     if(leftNode == NULL) return NULL;
@@ -4440,42 +4282,9 @@ namespace MFM {
       case TOK_MINUS_MINUS: //t3903
 	unreadToken();
 	rtnNode = makeAssignExprNode(leftNode);
-	//	rtnNode = parseRestOfExpression(rtnNode); //any more?
 	rtnNode = parseRestOfAssignExpr(rtnNode); //any more?
 	break;
-#if 0
-      case TOK_QUESTION: //t41072, t41063?
-	unreadToken();
-	rtnNode = parseRestOfQuestionColonExpr(leftNode);
-	break;
-#endif
-#if 0
-      case TOK_KW_AS:
-	//taken from parseConditionalExpr //t3249
-	unreadToken();
-	m_state.confirmParsingConditionalAs(pTok); //SETS other related globals
-	rtnNode = makeConditionalExprNode(leftNode); //done, could be NULL
-	break;
-#endif
-#if 0
-      case TOK_DOT:
-	{
-	  unreadToken();
-	  rtnNode = parseRestOfMemberSelectExpr(leftNode); //t3905
-	  rtnNode = parseRestOfAssignExpr(rtnNode);
-	  break;
-	}
-      case TOK_SQUARE:
-      case TOK_OPEN_SQUARE:
-	{
-	  unreadToken();
-	  rtnNode = parseRestOfLvalExpr(leftNode); //t41074, lhs
-	  rtnNode = parseRestOfAssignExpr(rtnNode); //any more?
-	  break;
-	}
-#endif
       case TOK_ERROR_LOWLEVEL:
-	//	rtnNode = parseRestOfExpression(leftNode); //try again?
 	rtnNode = parseRestOfAssignExpr(leftNode); //try again?
 	break;
       case TOK_SEMICOLON:
@@ -4512,7 +4321,6 @@ Node * Parser::wrapFactor(Node * leftNode)
       case TOK_ERROR_LOWLEVEL:
 	getNextToken(pTok); //eat token?
 	getNextToken(pTok); //eat token?
-	//rtnNode = leftNode;
 	rtnNode = wrapFactor(leftNode); //redo
 	break;
       case TOK_MINUS: //t41055
@@ -4525,7 +4333,6 @@ Node * Parser::wrapFactor(Node * leftNode)
       case TOK_KW_TRUE:
       case TOK_KW_FALSE:
       case TOK_KW_LOCALDEF:
-	//      case TOK_QUESTION: //?
       default:
 	rtnNode = wrapTerm(leftNode); //ascend
       };
@@ -4545,7 +4352,6 @@ Node * Parser::wrapFactor(Node * leftNode)
 	{
 	  unreadToken();
 	  rtnNode = makeTermNode(leftNode);
-	  //	  rtnNode = parseRestOfTerm(rtnNode);
 	  break;
 	}
       case TOK_ERROR_LOWLEVEL:
@@ -4572,7 +4378,6 @@ Node * Parser::wrapFactor(Node * leftNode)
       case TOK_MINUS:
 	unreadToken();
 	rtnNode = makeShiftExpressionNode(leftNode);
-	//rtnNode = parseRestOfShiftExpression(rtnNode); //recursion of left-associativity
 	break;
       case TOK_ERROR_LOWLEVEL:
 	rtnNode = wrapShiftExpression(leftNode); //redo
@@ -4598,7 +4403,6 @@ Node * Parser::wrapFactor(Node * leftNode)
       case TOK_SHIFT_RIGHT:
 	unreadToken();
 	rtnNode = makeCompareExpressionNode(leftNode);
-	//rtnNode = parseRestOfCompareExpression(rtnNode); //recursion of left-associativity
 	break;
       case TOK_ERROR_LOWLEVEL:
 	rtnNode = wrapCompareExpression(leftNode); //redo
@@ -4626,7 +4430,6 @@ Node * Parser::wrapFactor(Node * leftNode)
       case TOK_GREATER_EQUAL:
 	unreadToken();
 	rtnNode = makeEqExpressionNode(leftNode);
-	//rtnNode = parseRestOfEqExpression(rtnNode); //recursion of left-associativity
 	break;
       case TOK_ERROR_LOWLEVEL:
 	rtnNode = wrapEqExpression(leftNode); //redo
@@ -4652,7 +4455,6 @@ Node * Parser::wrapFactor(Node * leftNode)
       case TOK_NOT_EQUAL:
 	unreadToken();
 	rtnNode = makeBitExpressionNode(leftNode);
-	//rtnNode = parseRestOfBitExpression(rtnNode); //recursion of left-associativity
 	break;
       case TOK_ERROR_LOWLEVEL:
 	rtnNode = wrapBitExpression(leftNode); //redo
@@ -4679,7 +4481,6 @@ Node * Parser::wrapFactor(Node * leftNode)
       case TOK_HAT:
 	unreadToken();
 	rtnNode = makeLogicalExpressionNode(leftNode);
-	//rtnNode = parseRestOfLogicalExpression(rtnNode); //recursion of left-associativity
 	break;
       case TOK_ERROR_LOWLEVEL:
 	rtnNode = wrapLogicalExpression(leftNode); //redo
@@ -4707,7 +4508,10 @@ Node * Parser::wrapFactor(Node * leftNode)
       case TOK_PIPE_PIPE:
 	unreadToken();
 	rtnNode = makeExpressionNode(leftNode);
-	//rtnNode = parseRestOfExpression(rtnNode); //recursion of left-associativity
+	break;
+      case TOK_QUESTION:
+	unreadToken();
+	rtnNode = parseRestOfQuestionColonExpr(leftNode); //?test
 	break;
       case TOK_ERROR_LOWLEVEL:
 	rtnNode = wrapExpression(leftNode); //redo
@@ -4744,7 +4548,6 @@ Node * Parser::wrapFactor(Node * leftNode)
       case TOK_MINUS_MINUS: //t3903
 	unreadToken();
 	rtnNode = makeAssignExprNode(leftNode);
-	//rtnNode = parseRestOfAssignExpr(rtnNode); //any more?
 	break;
       case TOK_ERROR_LOWLEVEL:
 	rtnNode = wrapAssignExpr(leftNode); //redo
@@ -6110,8 +5913,7 @@ Node * Parser::wrapFactor(Node * leftNode)
 	return rtnNode;
       }
 
-    Node * rightNode = parseAssignExpr(); //t3136 y = x = times(4,5);
-    //Node * rightNode = parseExpression();
+    Node * rightNode = parseAssignExpr(); //t3136 y = x = times(4,5); not parseExpression.
     if(!rightNode)
       {
 	std::ostringstream msg;
