@@ -481,6 +481,8 @@ namespace MFM{
 
     /** for conditional h/as-magic */
     void saveIdentTokenForConditionalAs(const Token& iTok, const Token& cTok);
+    void saveIdentTokenForPendingConditionalAs(const Token& iTok);
+    void confirmParsingConditionalAs(const Token& cTok);
 
     /** class or model parameter structured comment for MFM */
     void saveStructuredCommentToken(const Token& scTok);

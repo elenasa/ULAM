@@ -348,11 +348,11 @@ namespace MFM{
      */
     Node * parseFactor(bool localbase = false);
 
-    Node * parseFactorStartingWithAType(const Token& tTok, bool allowrefcast, bool allowanycast);
+    Node * parseFactorStartingWithAType(const Token& tTok, bool allowrefcast, bool allowcasts);
 
     Node * parseRestOfFactor(Node * leftNode);
 
-    Node * parseRestOfCastOrExpression(bool allowRefCasts, bool allowAnyCast);
+    Node * parseRestOfCastOrExpression(bool allowRefCasts, bool allowCasts);
 
     Node * parseRestOfTerm(Node * leftNode);
 
@@ -371,6 +371,18 @@ namespace MFM{
     Node * parseRestOfLvalExpr(Node * leftNode);
 
     Node * parseRestOfAssignExpr(Node * leftNode);
+
+    /** mini recursive ascent parser: for Factor value that starts with a Type yet is not a cast */
+    Node * wrapFactor(Node * leftNode);
+    Node * wrapTerm(Node * leftNode);
+    Node * wrapShiftExpression(Node * leftNode);
+    Node * wrapCompareExpression(Node * leftNode);
+    Node * wrapEqExpression(Node * leftNode);
+    Node * wrapBitExpression(Node * leftNode);
+    Node * wrapLogicalExpression(Node * leftNode);
+    Node * wrapExpression(Node * leftNode);
+    Node * wrapAssignExpr(Node * leftNode);
+
 
     bool parseRestOfDecls(TypeArgs& args, UTI passuti);
     bool parseRestOfDeclInitialization(TypeArgs& args, const Token& identTok, NodeVarDecl * dNode);

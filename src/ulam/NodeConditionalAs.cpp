@@ -30,6 +30,11 @@ namespace MFM {
     return  std::string(m_state.getAsMangledFunctionName(m_nodeLeft->getNodeType(), getRightType()));
   }
 
+  bool NodeConditionalAs::asConditionalNode()
+  {
+    return true;
+  }
+
   UTI NodeConditionalAs::checkAndLabelType()
   {
     assert(m_nodeLeft);

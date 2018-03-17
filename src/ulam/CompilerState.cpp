@@ -4166,6 +4166,17 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return labelname.str();
   } //getParserSymbolTypeFlagAsString
 
+  void CompilerState::saveIdentTokenForPendingConditionalAs(const Token& iTok)
+  {
+    m_identTokenForConditionalAs = iTok;
+  }
+
+  void CompilerState::confirmParsingConditionalAs(const Token& cTok)
+  {
+    m_parsingConditionalToken = cTok;
+    m_parsingConditionalAs = true; //cleared manually
+  }
+
   void CompilerState::saveIdentTokenForConditionalAs(const Token& iTok, const Token& cTok)
   {
     m_identTokenForConditionalAs = iTok;

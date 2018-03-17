@@ -169,6 +169,8 @@ namespace MFM{
 
     virtual bool isExplicitCast(); //only NodeCast may return true
 
+    virtual bool asConditionalNode(); //only NodeConditionalAs returns true
+
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType();
