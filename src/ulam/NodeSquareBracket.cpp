@@ -973,7 +973,11 @@ namespace MFM {
       {
 	Node::genCodeReadArrayItemFromAConstantClassIntoATmpVar(fp, luvpass, offset);
 	uvpass = luvpass;
-	return; //no tmpvarsymbol?
+	Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass);
+	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks
+	///////m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore the prior stack?
+	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
+	return; //no tmpvarsymbol? t41261
       }
 
     if(cossym->isConstant())

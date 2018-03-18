@@ -309,6 +309,7 @@ namespace MFM {
 	if(sym->isDataMember() && variableSymbolWithCountableSize(sym) && !m_state.isClassAQuarkUnion(suti))
 	  {
 	    s32 len = sut->getTotalBitSize(); //include arrays (e.g. t3512)
+	    assert(sym->isPosOffsetReliable());
 	    u32 pos = sym->getPosOffset();
 
 	    //updates the UV at offset with the default of sym;

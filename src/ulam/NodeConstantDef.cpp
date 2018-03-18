@@ -349,7 +349,7 @@ namespace MFM {
 		    if(m_state.okUTItoContinue(duti) && !dut->isComplete())
 		      {
 			assert(!dut->isScalar());
-			assert(dut->isPrimitiveType());
+			//assert(dut->isPrimitiveType()); t41261
 
 			//if here, assume arraysize depends on number of initializers
 			s32 bitsize = dut->getBitSize();
@@ -686,7 +686,7 @@ namespace MFM {
 
     if(!m_state.isScalar(uti))
       {
-	// similar to NodeVarDecl (t3881)
+	// similar to NodeVarDecl (t3881); constant class array (t41261,2)
 	if(!(isReadyConstant() || foldArrayInitExpression()))
 	  {
 	    assert(m_nodeExpr);
@@ -710,6 +710,7 @@ namespace MFM {
 	      }
 	  }
 	return uti;
+	//else scalar classes continue..to set up possible default values
       } //not scalar
 
     if(!m_nodeExpr)
@@ -948,7 +949,7 @@ namespace MFM {
       {
 	if(!isReadyConstant())
 	  {
-	    if(m_state.tryToPackAClass(nuti) == TBOOL_TRUE)
+	    if(m_state.tryToPackAClass(nuti) == TBOOL_TRUE) //uses scalar uti
 	      {
 		BV8K bvtmp;
 		if(m_nodeExpr)
@@ -1211,15 +1212,16 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     assert(m_constSymbol->getUlamTypeIdx() == nuti);
-    assert(nut->isScalar());
 
-    assert(slots == 1); //quark or element fit in one slot.
+    //assert(nut->isScalar()); t41261
+    //assert(slots == 1); //quark or element fit in one slot.
+    assert(m_nodeExpr); //empty init is empty list, not null (t41262); could be a NodeConstantClass
 
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
     assert((classtype == UC_QUARK) || (classtype == UC_ELEMENT));
 
     PACKFIT packFit = nut->getPackable();
-    if(packFit == PACKEDLOADABLE)
+    if((packFit == PACKEDLOADABLE))
       {
 	u64 dval = 0;
 	AssertBool gotVal = false;
@@ -1240,16 +1242,38 @@ namespace MFM {
 
 	m_state.m_constantStack.storeUlamValueAtStackIndex(immUV, ((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex());
       }
-    else if(!m_nodeExpr)
+    //else if(!m_nodeExpr)
+    else if(m_nodeExpr->isAList() && ((NodeList*) m_nodeExpr)->isEmptyList())
       {
-	//unpacked, no inits for class, use default
-	UlamValue defaultUV;
-	defaultUV = UlamValue::makeDefaultAtom(nuti, m_state);
+	//unpacked, no inits for class, use default; support arrays
+	UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
+	u32 baseslot =  ((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex();
 
-	m_state.m_constantStack.storeUlamValueAtStackIndex(defaultUV, ((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex());
+	UlamValue defaultUV;
+	u32 itemlen = nut->getBitSize();
+
+	if(classtype == UC_QUARK) //(t41262)
+	  {
+	    assert(itemlen <= MAXBITSPERINT);
+	    u32 dval = 0;
+	    AssertBool gotDefault = m_state.getDefaultQuark(nuti, dval); //uses scalar uti
+	    //assert(gotDefault); //too dramatic for eval
+	    defaultUV = UlamValue::makeImmediateClass(scalaruti, (u32) dval, itemlen);
+	  }
+	else if(classtype == UC_ELEMENT)
+	  defaultUV = UlamValue::makeDefaultAtom(scalaruti, m_state);
+	else
+	  m_state.abortShouldntGetHere();
+
+	for(u32 j = 0; j < slots; j++)
+	  {
+	    m_state.m_constantStack.storeUlamValueAtStackIndex(defaultUV, baseslot + j);
+	  }
       }
-    else //not packedloadable w inits for class
+    else //not packedloadable w inits for class/classarray
       {
+	UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
+	u32 baseslot =  ((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex();
 	BV8K bvclass;
 	AssertBool gotVal = false;
 	if(m_constSymbol->isReady())
@@ -1258,12 +1282,27 @@ namespace MFM {
 	  gotVal = m_constSymbol->getInitValue(bvclass);
 	assert(gotVal);
 
-	u32 len = nut->getTotalBitSize(); //not 96 for elements
-	UlamValue elementUV;
-	elementUV = UlamValue::makeAtom(nuti);
-	elementUV.putDataBig(ATOMFIRSTSTATEBITPOS, len, bvclass);
+	u32 itemlen = nut->getBitSize();  //not 96 for elements
 
-	m_state.m_constantStack.storeUlamValueAtStackIndex(elementUV, ((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex());
+	for(u32 j = 0; j < slots; j++)
+	  {
+	    UlamValue classUV;
+	    if(classtype == UC_QUARK) //t41261
+	      {
+		u32 qval = bvclass.Read((j * itemlen), itemlen);
+		classUV = UlamValue::makeImmediateClass(scalaruti, qval, itemlen);
+	      }
+	    else if(classtype == UC_ELEMENT) //(t41230,8,9 t41243)
+	      {
+		BV8K elval;
+		//bvclass.CopyBV<8192>(j * BITSPERATOM + ATOMFIRSTSTATEBITPOS, 0u, itemlen, elval);
+		bvclass.CopyBV<8192>(j * itemlen, 0u, itemlen, elval); //fmpos, topos, len, destbv
+		classUV = UlamValue::makeAtom(scalaruti);
+		classUV.putDataBig(ATOMFIRSTSTATEBITPOS, itemlen, elval);
+	      }
+
+	    m_state.m_constantStack.storeUlamValueAtStackIndex(classUV, baseslot + j);
+	  }
       }
   } //setupStackWithConstantClassForEval
 

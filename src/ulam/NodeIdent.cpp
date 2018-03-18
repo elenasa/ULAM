@@ -2,6 +2,7 @@
 #include "NodeConstant.h"
 #include "NodeConstantArray.h"
 #include "NodeConstantClass.h"
+#include "NodeConstantClassArray.h"
 #include "NodeIdent.h"
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
@@ -247,7 +248,12 @@ namespace MFM {
 		// same node no, and loc (e.g. t3573)
 		Node * newnode = NULL;
 		if(m_state.isAClass(auti))
-		  newnode = new NodeConstantClass(m_token, (SymbolWithValue *) asymptr, NULL, m_state);
+		  {
+		    if(m_state.isScalar(auti))
+		      newnode = new NodeConstantClass(m_token, (SymbolWithValue *) asymptr, NULL, m_state);
+		    else
+		      newnode = new NodeConstantClassArray(m_token, (SymbolWithValue *) asymptr, NULL, m_state); //t41261
+		  }
 		else if(m_state.isScalar(auti))
 		  newnode = new NodeConstant(m_token, (SymbolWithValue *) asymptr, NULL, m_state);
 		else
@@ -319,7 +325,12 @@ namespace MFM {
 	// same node no, and loc (e.g. t3573, t3526)
 	Node * newnode = NULL;
 	if(m_state.isAClass(vuti))
-	  newnode = new NodeConstantClass(m_token, (SymbolWithValue *) m_varSymbol, NULL, m_state);
+	  {
+	    if(m_state.isScalar(vuti))
+	      newnode = new NodeConstantClass(m_token, (SymbolWithValue *) m_varSymbol, NULL, m_state);
+	    else
+	      newnode = new NodeConstantClassArray(m_token, (SymbolWithValue *) m_varSymbol, NULL, m_state);
+	  }
 	else if(m_state.isScalar(vuti))
 	  newnode = new NodeConstant(m_token, (SymbolWithValue *) m_varSymbol, NULL, m_state);
 	else
@@ -944,6 +955,10 @@ namespace MFM {
       {
 	// support class types for constants (t41198)
 	uti = args.m_classInstanceIdx;
+	if(args.m_arraysize != NONARRAYSIZE) //t41261 support constant class arrays
+	  {
+	    uti = m_state.getUlamTypeAsArrayOfScalar(uti);
+	  }
 	brtn = true;
       }
 

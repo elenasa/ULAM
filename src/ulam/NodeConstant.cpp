@@ -2,6 +2,7 @@
 #include "NodeConstant.h"
 #include "NodeConstantArray.h"
 #include "NodeConstantClass.h"
+#include "NodeConstantClassArray.h"
 #include "NodeModelParameter.h"
 #include "CompilerState.h"
 
@@ -161,9 +162,13 @@ namespace MFM {
 	    UTI suti = m_constSymbol->getUlamTypeIdx();
 	    if(m_state.isAClass(suti))
 	      {
-		NodeConstantClass * newnode = new NodeConstantClass(m_token, (SymbolConstantValue *) m_constSymbol, m_nodeTypeDesc, m_state);
-		assert(newnode);
+		Node * newnode = NULL;
+		if(!m_state.isScalar(suti))
+		  newnode = new NodeConstantClassArray(m_token, (SymbolConstantValue *) m_constSymbol, m_nodeTypeDesc, m_state);
+		else
+		  newnode = new NodeConstantClass(m_token, (SymbolConstantValue *) m_constSymbol, m_nodeTypeDesc, m_state);
 
+		assert(newnode);
 		AssertBool swapOk = Node::exchangeNodeWithParent(newnode);
 		assert(swapOk);
 
@@ -200,7 +205,7 @@ namespace MFM {
 
 		return newnode->checkAndLabelType();
 	      }
-	    //else
+	    //else keep it!
 	  }
       }
     else

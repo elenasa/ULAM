@@ -127,6 +127,10 @@ namespace MFM{
 	m_state.setGoAgain();
 	return false;
       }
+    if(m_state.isAClass(nuti))
+      {
+	return buildClassArrayValueInitialization(bvtmp); //t41262 (may be too soon)
+      }
     return true; //all zeros for default primitives
   } //buildArrayValueInitialization
 
@@ -143,7 +147,7 @@ namespace MFM{
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 arraysize = nut->getArraySize();
-    assert(arraysize >= 0); //t3847
+    assert(arraysize >= 0);
 
     u32 n = m_nodes.size();
     assert(n==0);
@@ -153,6 +157,11 @@ namespace MFM{
     if((arraysize > 0))
       {
 	rtnok = m_state.getDefaultClassValue(nuti, bvtmp); //uses scalar uti
+	if(!rtnok)
+	  {
+	    if(m_state.tryToPackAClass(nuti) == TBOOL_TRUE) //uses scalar uti
+	      rtnok = m_state.getDefaultClassValue(nuti, bvtmp); //try again, uses scalar uti
+	  }
 	n = 1; //ready to fall thru and propagate as needed
       }
 

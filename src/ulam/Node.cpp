@@ -829,7 +829,7 @@ namespace MFM {
     if(cos == ncsym) //cos is the constant class
       {
 	assert(namedconstantclassidx == (cosSize - 1));
-	assert(m_state.isScalar(cosuti)); //t41198 dm array
+	//	assert(m_state.isScalar(cosuti)); //dm array (t41198), or arrayitem (t41261)
 	assert(m_state.isAClass(cosuti));
       }
     else
@@ -1087,20 +1087,6 @@ namespace MFM {
     //first make a temporary immediate bitvector storage for entire array value
     genCodeConvertATmpVarIntoBitVector(fp, cuvpass);
 
-    //make an immediate ref to our storage
-    UTI refluti = m_state.getUlamTypeAsRef(luti, ALT_REF); //constref?
-    UlamType * reflut = m_state.getUlamTypeByIndex(refluti);
-
-    s32 tmpVarNum3 = m_state.getNextTmpVarNumber();
-    m_state.indentUlamCode(fp);
-    //can't be const and chainable; needs to be a ref! (e.g. t3668)
-    fp->write(reflut->getLocalStorageTypeAsString().c_str());
-    fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(refluti, tmpVarNum3, TMPAUTOREF).c_str());
-    fp->write("("); // use constructor (not equals)
-    fp->write(cuvpass.getTmpVarAsString(m_state).c_str()); //storage
-    fp->write(", 0u, uc);"); GCNL; //index, uc
-
     //now for the array item read at index in ruvpass tmp var
     UTI scalarluti = m_state.getUlamTypeAsScalar(luti);
     UlamType * scalarlut = m_state.getUlamTypeByIndex(scalarluti);
@@ -1114,7 +1100,8 @@ namespace MFM {
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(scalarluti, tmpVarNum, slstor).c_str());
     fp->write(" = ");
-    fp->write(m_state.getTmpVarAsString(refluti, tmpVarNum3, TMPAUTOREF).c_str());
+    //    fp->write(m_state.getTmpVarAsString(refluti, tmpVarNum3, TMPAUTOREF).c_str());
+    fp->write(cuvpass.getTmpVarAsString(m_state).c_str()); //immediate storage
     fp->write(".readArrayItem(");
     fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
     fp->write(", ");
