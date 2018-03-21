@@ -1296,7 +1296,7 @@ namespace MFM {
 	      {
 		BV8K elval;
 		//bvclass.CopyBV<8192>(j * BITSPERATOM + ATOMFIRSTSTATEBITPOS, 0u, itemlen, elval);
-		bvclass.CopyBV<8192>(j * itemlen, 0u, itemlen, elval); //fmpos, topos, len, destbv
+		bvclass.CopyBV(j * itemlen, 0u, itemlen, elval); //fmpos, topos, len, destbv
 		classUV = UlamValue::makeAtom(scalaruti);
 		classUV.putDataBig(ATOMFIRSTSTATEBITPOS, itemlen, elval);
 	      }
@@ -1345,8 +1345,10 @@ namespace MFM {
     assert(m_state.isComplete(nuti));
     assert(UlamType::compare(m_constSymbol->getUlamTypeIdx(), nuti, m_state) == UTIC_SAME); //sanity check
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    ULAMTYPE etyp = nut->getUlamTypeEnum();
 
     if(!nut->isScalar())
+    //if(!nut->isScalar() || (etyp == Class))
       {
 	if(m_constSymbol->isLocalsFilescopeDef() ||  m_constSymbol->isDataMember() || m_constSymbol->isClassArgument())
 	  {
@@ -1385,29 +1387,44 @@ namespace MFM {
 	    m_state.clearCurrentObjSymbolsForCodeGen();
 	  }
       }
-    else
+    else if(etyp == String)
       {
-	if(nut->getUlamTypeEnum() == String)
-	  {
-	    u32 sval;
-	    AssertBool gotVal = false;
-	    if(m_constSymbol->isReady())
-	      gotVal = m_constSymbol->getValue(sval);
-	    else if(m_constSymbol->hasInitValue() && m_constSymbol->isInitValueReady())
-	      gotVal = m_constSymbol->getInitValue(sval);
-	    assert(gotVal);
+	u32 sval;
+	AssertBool gotVal = false;
+	if(m_constSymbol->isReady())
+	  gotVal = m_constSymbol->getValue(sval);
+	else if(m_constSymbol->hasInitValue() && m_constSymbol->isInitValueReady())
+	  gotVal = m_constSymbol->getInitValue(sval);
+	assert(gotVal);
 
-	    //output comment for scalar constant value
-	    m_state.indentUlamCode(fp);
-	    fp->write("//");
-	    std::ostringstream ostream;
-	    ostream << " 0x" << std::hex << sval;
-	    fp->write(ostream.str().c_str());
-	    fp->write(" -> ");
-	    m_constSymbol->printPostfixValue(fp);
-	    GCNL;
-	  }
+	//output comment for scalar constant value
+	m_state.indentUlamCode(fp);
+	fp->write("//");
+	std::ostringstream ostream;
+	ostream << " 0x" << std::hex << sval;
+	fp->write(ostream.str().c_str());
+	fp->write(" -> ");
+	m_constSymbol->printPostfixValue(fp);
+	GCNL;
       }
+    else if(etyp == Class)
+      {
+	m_state.indentUlamCode(fp);
+	fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
+	fp->write(" ");
+	fp->write(m_constSymbol->getMangledName().c_str());
+	fp->write(";");
+
+	std::string estr;
+	AssertBool gotVal = m_constSymbol->getClassValueAsHexString(estr);
+	assert(gotVal);
+
+	//output comment for scalar constant class value (t41209)
+	fp->write("//");
+	fp->write(estr.c_str());
+	GCNL;
+      }
+    //else do nothing
     return; //done
   } //genCode
 
@@ -1416,14 +1433,15 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
-    if(nut->isScalar())
+    //if(nut->isScalar())
+    if(nut->isScalar() && (nut->getUlamTypeEnum() != Class))
       return;
 
     //no-arg constructor to initialize const arrays using special method
     // (based on: 'Init' + constants's mangled name)
     m_state.m_currentIndentLevel+=2;
     m_state.indent(fp);
-    fp->write(",");
+    fp->write(", ");
     fp->write(m_constSymbol->getMangledName().c_str());
     fp->write("(Init");
     fp->write(m_constSymbol->getMangledName().c_str());
@@ -1435,11 +1453,13 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    ULAMCLASSTYPE classtype = nut->getUlamClassType();
 
-    if(nut->isScalar())
+    if(nut->isScalar() && (classtype == UC_NOTACLASS))
       return;
 
-    u32 len = nut->getTotalNumberOfWords();
+    //constant array: Class or Primitive
+    u32 len = nut->getSizeofUlamType();
 
     if(declOnly)
       {
@@ -1447,9 +1467,9 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write("typedef u32 TypeForInit");
 	fp->write(m_constSymbol->getMangledName().c_str());
-	fp->write("[");
+	fp->write("[(");
 	fp->write_decimal_unsigned(len);
-	fp->write("];\n");
+	fp->write(" + 31)/32];\n");
 
 	//unique function to initialize const array "data members" in class no-arg constructor
 	m_state.indent(fp);
@@ -1495,11 +1515,23 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("static ");
     fp->write("u32 ");
-    fp->write("initVal[");
+    fp->write("initVal[(");
     fp->write_decimal_unsigned(len);
-    fp->write("] = ");
-    m_constSymbol->printPostfixValue(fp);
-    fp->write(";"); GCNL;
+    fp->write(" + 31)/32] = ");
+    if(classtype != UC_NOTACLASS)
+      {
+	std::string estr;
+	AssertBool gotVal = m_constSymbol->getClassValueAsHexString(estr);
+	assert(gotVal);
+	fp->write("{ ");
+	fp->write(estr.c_str());
+	fp->write(" };"); GCNL;
+      }
+    else //primitive
+      {
+	m_constSymbol->printPostfixValue(fp);
+	fp->write(";"); GCNL;
+      }
 
     // Note: Cannot initialize constants like data members in default class
     // (see CS::genCodeClassDefaultConstantArray);

@@ -120,7 +120,7 @@ namespace MFM{
 
     UlamValue makeUlamValuePtr();
     void makeUVPassForCodeGen(UVPass& uvpass);
-
+    void setupStackWithClassForEval();
   };
 
 }

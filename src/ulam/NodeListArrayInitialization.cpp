@@ -403,8 +403,8 @@ namespace MFM{
     UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
     UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
     u32 itemlen = scalarut->getSizeofUlamType();
-    ULAMCLASSTYPE classtype = scalarut->getUlamClassType();
-    u32 adjust = (classtype == UC_ELEMENT ? ATOMFIRSTSTATEBITPOS : 0);
+    //ULAMCLASSTYPE classtype = scalarut->getUlamClassType();
+    u32 adjust = 0; //(classtype == UC_ELEMENT ? ATOMFIRSTSTATEBITPOS : 0);
 
     BV8K bvclass;
     if(m_nodes[n]->isAConstantClass())
@@ -720,7 +720,7 @@ namespace MFM{
 	rtnok &= ((NodeListClassInit *) m_nodes[i])->initDataMembersConstantValue(bvtmp, bvmask);
 	if(rtnok)
 	  {
-	    bvtmp.CopyBV<8192>(0, i * itemlen, itemlen, bvref); //fm pos, to pos, len, dest (t41185)
+	    bvtmp.CopyBV(0, i * itemlen, itemlen, bvref); //fm pos, to pos, len, dest (t41185)
 	    bvmask.SetBits(i * itemlen, itemlen); //startpos, len
 	  }
 	  else

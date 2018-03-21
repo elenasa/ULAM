@@ -499,6 +499,13 @@ namespace MFM {
     fp->write("<EC> & arg) { ");
     fp->write("this->m_stg = arg.m_stg; }"); GCNL;
 
+    //constructor for constants (t41230); MFM Element Type not in place yet
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("(const u32 *");
+    fp->write("arg) : AtomBitStorage<EC>() { if(arg==NULL) FAIL(NULL_POINTER); ");
+    fp->write("this->m_stg.GetBits().FromArray(arg); }"); GCNL;
+
     //assignment constructor, atom arg, for convenience
     m_state.indent(fp);
     fp->write(mangledName.c_str());
@@ -699,7 +706,7 @@ namespace MFM {
     //default constructor (used by local vars)
     m_state.indent(fp);
     fp->write(mangledName.c_str());
-    fp->write("() { ");
+    fp->write("() { const ");
     fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //T
     fp->write(" tmpt = Us::THE_INSTANCE.GetDefaultAtom(); ");
     fp->write("for(u32 j = 0; j < ");

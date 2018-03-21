@@ -556,6 +556,12 @@ namespace MFM {
     fp->write("write(arg.");
     fp->write("read()); }"); GCNL;
 
+    //constructor for constants
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("(const u32 *");
+    fp->write(" arg) { if(arg==NULL) FAIL(NULL_POINTER);}"); GCNL;
+
     //constructor from ref of same type
     m_state.indent(fp);
     fp->write(mangledName.c_str());

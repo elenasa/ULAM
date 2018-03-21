@@ -439,6 +439,10 @@ namespace MFM {
       return false;
 
     u32 pos = symptr->getPosOffset();
+
+    if(m_state.getUlamTypeByIndex(m_ofClassUTI)->getUlamClassType() == UC_ELEMENT)
+      pos += ATOMFIRSTSTATEBITPOS; //t41230
+
     m_posOfDM = pos;
 
     UTI nuti = m_constSymbol->getUlamTypeIdx();
@@ -467,7 +471,7 @@ namespace MFM {
 	  }
 	else if(!m_state.isScalar(nuti))
 	  {
-	    rtnok = (((NodeListArrayInitialization *) m_nodeExpr)->buildClassArrayValueInitialization(bvclass)); //at pos 0 (t41170)
+	    rtnok = (((NodeListArrayInitialization *) m_nodeExpr)->buildClassArrayValueInitialization(bvclass)); //at pos 0 (t41170), BUT adjusted for elements (t41263)!!!
 	  }
 	else if(m_nodeExpr->isAConstantClass())
 	  {
@@ -478,7 +482,7 @@ namespace MFM {
 	    if(m_state.getDefaultClassValue(nuti, bvclass)) //uses scalar uti
 	      {
 		BV8K bvtmpmask;
-		rtnok = ((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvclass, bvtmpmask); //at pos 0
+		rtnok = ((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvclass, bvtmpmask); //at pos 0, adjusted for elements!
 	      }
 	  }
 
@@ -510,14 +514,15 @@ namespace MFM {
 	BV8K bvel;
 	AssertBool gotVal = m_constSymbol->getInitValue(bvel);
 	assert(gotVal);
-	bvel.CopyBV<8192>(0, pos + ATOMFIRSTSTATEBITPOS, MAXSTATEBITS, bvref); //srcpos, dstpos, len, dest
+	//bvel.CopyBV<8192>(0, pos + ATOMFIRSTSTATEBITPOS, MAXSTATEBITS, bvref); //srcpos, dstpos, len, dest
+	bvel.CopyBV(0, pos, MAXSTATEBITS, bvref); //srcpos, dstpos, len, dest
       }
     else
       {
 	BV8K val8k;
 	AssertBool gotVal = m_constSymbol->getInitValue(val8k);
 	assert(gotVal);
-	val8k.CopyBV<8192>(0, pos, len, bvref);
+	val8k.CopyBV(0, pos, len, bvref);
       }
 
     bvmask.SetBits(pos, len); //t3451, t41232
@@ -631,6 +636,8 @@ namespace MFM {
 	AssertBool isDef = m_state.findSymbolInAClass(m_cid, m_ofClassUTI, asymptr, hazyKin);
 	assert(isDef);
 	pos = asymptr->getPosOffset();
+	if(m_state.getUlamTypeByIndex(m_ofClassUTI)->getUlamClassType() == UC_ELEMENT)
+	  pos += ATOMFIRSTSTATEBITPOS; //t41230
 	m_posOfDM = pos;
       }
     else

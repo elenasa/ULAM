@@ -378,6 +378,8 @@ namespace MFM {
     if(((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex() == 0)
       return NOTREADY;
 
+    setupStackWithClassForEval(); //t41230
+
     evalNodeProlog(0); //new current node eval frame pointer, t3897
 
     UlamValue rtnUVPtr = makeUlamValuePtr();
@@ -402,6 +404,8 @@ namespace MFM {
     if(((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex() == 0)
       return NOTREADY;
 
+    setupStackWithClassForEval();
+
     evalNodeProlog(0); //new current node eval frame pointer
 
     UlamValue rtnUVPtr = makeUlamValuePtr();
@@ -425,6 +429,31 @@ namespace MFM {
     return absptr;
   }
 
+  void NodeConstantClass::setupStackWithClassForEval()
+  {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+    //for eval purposes, a transient must fit into atom state bits, like an element
+    // any class may be a data member (see NodeVarDeclDM)
+    if(nut->isScalar())
+      {
+	UlamValue atomUV = UlamValue::makeDefaultAtom(m_constSymbol->getUlamTypeIdx(), m_state);
+	BV8K bvclass;
+	AssertBool gotVal = m_constSymbol->getValue(bvclass);
+	u32 len = nut->getBitSize();
+	if(nut->getUlamClassType()==UC_ELEMENT)
+	  {
+	    BV8K bvfix;
+	    bvclass.CopyBV(ATOMFIRSTSTATEBITPOS, 0u, len, bvfix);
+	    atomUV.putDataBig(ATOMFIRSTSTATEBITPOS, len, bvfix);
+	  }
+	else
+	  atomUV.putDataBig(ATOMFIRSTSTATEBITPOS, len, bvclass);
+	m_state.m_constantStack.storeUlamValueInSlot(atomUV, ((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex());
+      }
+  } //setupStackWithClassForEval
+
   void NodeConstantClass::genCode(File * fp, UVPass& uvpass)
   {
     //return the ptr for an class; square bracket will resolve down to the immediate data
@@ -433,7 +462,9 @@ namespace MFM {
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_constSymbol); //*********UPDATED GLOBAL;
 
     // UNCLEAR: should this be consistent with constants?
+#if 1
     Node::genCodeReadIntoATmpVar(fp, uvpass);
+#endif
   } //genCode
 
   void NodeConstantClass::genCodeToStoreInto(File * fp, UVPass& uvpass)
@@ -445,12 +476,13 @@ namespace MFM {
 
     // make a temporary immediate of class constant type that can be
     // referenced as a constant function parameter (t41238)
+#if 0
     Node::genCodeReadIntoATmpVar(fp, uvpass);
     Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass);
 
     m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL);
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
-
+#endif
     //******UPDATED GLOBAL; no restore!!!**************************
   } //genCodeToStoreInto
 

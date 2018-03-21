@@ -243,7 +243,7 @@ namespace MFM{
 
   bool NodeListClassInit::initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask)
   {
-    //bvref contains default value at pos 0 of our m_forClassUTI.
+    //bvref contains default value at pos 0 (adjusted for elements!) of our m_forClassUTI.
     bool rtnok = true;
     for(u32 i = 0; i < m_nodes.size(); i++)
       {

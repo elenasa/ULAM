@@ -54,10 +54,6 @@ namespace MFM{
     virtual Symbol * clone() = 0;
     virtual Symbol * cloneKeepsType() = 0;
 
-    virtual u32 getPosOffset();
-
-    virtual bool isPosOffsetReliable();
-
     virtual bool isConstant() = 0;
 
     bool isClassParameter();
@@ -65,6 +61,9 @@ namespace MFM{
 
     bool isClassArgument();
     void setClassArgumentFlag();
+
+    virtual u32 getPosOffset();
+    virtual bool isPosOffsetReliable();
 
     virtual bool isReady();
 
@@ -99,6 +98,8 @@ namespace MFM{
     bool getValueAsHexString(std::string& vstr);
     bool getArrayValueAsString(std::string& vstr);
     bool getScalarValueAsString(std::string& vstr);
+
+    bool getClassValueAsHexString(std::string& rtnstr); //scalar and array
 
     //static: return false if all zeros, o.w. true; rtnstr updated
     static bool getLexValueAsString(u32 ntotbits, const BV8K& bval, std::string& rtnstr);

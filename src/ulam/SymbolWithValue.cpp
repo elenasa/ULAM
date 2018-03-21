@@ -59,6 +59,18 @@ namespace MFM {
     return m_isReady; //constant value
   }
 
+  bool SymbolWithValue::getLexValue(std::string& vstr)
+  {
+    if(!isReady())
+      return false;
+
+    u64 constantval = 0;
+    AssertBool gotVal = getValue(constantval);
+    assert(gotVal);
+
+    return convertValueToALexString(constantval, getUlamTypeIdx(), vstr, m_state);
+  } //getLexValue
+
   bool SymbolWithValue::getValue(u32& val)
   {
     if(isReady())
@@ -521,6 +533,122 @@ namespace MFM {
     return SymbolWithValue::convertValueToAPrettyString(constantval, getUlamTypeIdx(), vstr, m_state);
   } //getScalarValueAsString
 
+  //return false if not ready, o.w. true; rtnstr updated
+  // NodeListArrayInitialization::buildClassArrayItemInitialValue
+  // expanded data to fill atom-size per element; left space for MFM
+  // Element Type. Handles scalar and array.
+  bool SymbolWithValue::getClassValueAsHexString(std::string& rtnstr)
+  {
+    bool oktoprint = true;
+    BV8K bval;
+    if(isReady())
+      getValue(bval);
+    else if(hasInitValue() && isInitValueReady())
+      getInitValue(bval);
+    else
+      oktoprint = false;
+
+    if(!oktoprint) return false;
+
+
+    UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
+    //assert(sut->getUlamClassType() == UC_ELEMENT);
+    u32 totlen = sut->getSizeofUlamType();
+#if 0
+    s32 arraysize = sut->getArraySize();
+    arraysize = (arraysize == NONARRAYSIZE ? 1 : arraysize);
+    u32 itemlen = sut->getBitSize(); //src
+    BV8K bvtmp;
+    for(u32 i = 0; i < (u32) arraysize; i++)
+      {
+	bval.CopyBV(i * itemlen, i * BITSPERATOM + ATOMFIRSTSTATEBITPOS, itemlen, bvtmp);
+	//leaves space for MFM Element Type, fill in lazily when accessed
+      }
+#endif
+    SymbolWithValue::getHexValueAsString(totlen, bval, rtnstr);
+    return true;
+  } //getClassValueAsHexString
+
+  //static: return false if all zeros, o.w. true; rtnstr updated
+  bool SymbolWithValue::getLexValueAsString(u32 ntotbits, const BV8K& bval, std::string& rtnstr)
+  {
+    //like the code generated in CS::genCodeClassDefaultConstantArray
+    u32 uvals[ARRAY_LEN8K];
+    bval.ToArray(uvals);
+
+    u32 nwords = (ntotbits + 31)/MAXBITSPERINT;
+
+    //short-circuit if all zeros
+    bool isZero = true;
+    s32 x = nwords - 1;
+    for(; x >= 0; x--)
+      {
+	if(uvals[x] != 0)
+	  {
+	    isZero = false;
+	    break;
+	  }
+      }
+
+    if(isZero)
+      {
+	rtnstr = "10"; //all zeros
+	return false;
+      }
+
+    //compress to output only non-zero uval items (left-justified)
+    nwords = (u32) x + 1;
+
+    std::ostringstream ostream;
+    //output number of non-zero words first
+    ostream << ToLeximitedNumber(nwords);
+
+    for(u32 i = 0; i < nwords; i++)
+      {
+	ostream << ToLeximitedNumber(uvals[i]); //no spaces
+      }
+    rtnstr = ostream.str();
+    return true;
+  } //getLexValueAsString
+
+  //static: return false if all zeros, o.w. true; rtnstr updated
+  bool SymbolWithValue::getHexValueAsString(u32 ntotbits, const BV8K& bval, std::string& rtnstr)
+  {
+    //used for code generated in CS::genCodeClassDefaultConstantArray
+    u32 uvals[ARRAY_LEN8K];
+    bval.ToArray(uvals);
+
+    u32 nwords = (ntotbits + 31)/MAXBITSPERINT;
+
+    //short-circuit if all zeros
+    bool isZero = true;
+    for(u32 x = 0; x < nwords; x++)
+      {
+	if(uvals[x] != 0)
+	  {
+	    isZero = false;
+	    break;
+	  }
+      }
+
+    if(isZero)
+      {
+	rtnstr = "0x0"; //nothing to xodo
+	return false;
+      }
+
+    std::ostringstream ostream;
+    for(u32 i = 0; i < nwords; i++)
+      {
+	if(i > 0)
+	  ostream << ", ";
+
+	ostream << "0x" << std::hex << uvals[i];
+      }
+    rtnstr = ostream.str();
+    return true;
+  } //getHexValueAsString
+
   bool SymbolWithValue::convertValueToAPrettyString(u64 varg, UTI tuti, std::string& vstr, CompilerState & state)
   {
     std::ostringstream ostr;
@@ -646,98 +774,6 @@ namespace MFM {
     vstr = ostr.str();
     return true;
   } //convertValueToANonPrettyString (static helper)
-
-  //static: return false if all zeros, o.w. true; rtnstr updated
-  bool SymbolWithValue::getLexValueAsString(u32 ntotbits, const BV8K& bval, std::string& rtnstr)
-  {
-    //like the code generated in CS::genCodeClassDefaultConstantArray
-    u32 uvals[ARRAY_LEN8K];
-    bval.ToArray(uvals);
-
-    u32 nwords = (ntotbits + 31)/MAXBITSPERINT;
-
-    //short-circuit if all zeros
-    bool isZero = true;
-    s32 x = nwords - 1;
-    for(; x >= 0; x--)
-      {
-	if(uvals[x] != 0)
-	  {
-	    isZero = false;
-	    break;
-	  }
-      }
-
-    if(isZero)
-      {
-	rtnstr = "10"; //all zeros
-	return false;
-      }
-
-    //compress to output only non-zero uval items (left-justified)
-    nwords = (u32) x + 1;
-
-    std::ostringstream ostream;
-    //output number of non-zero words first
-    ostream << ToLeximitedNumber(nwords);
-
-    for(u32 i = 0; i < nwords; i++)
-      {
-	ostream << ToLeximitedNumber(uvals[i]); //no spaces
-      }
-    rtnstr = ostream.str();
-    return true;
-  } //getLexValueAsString
-
-  //static: return false if all zeros, o.w. true; rtnstr updated
-  bool SymbolWithValue::getHexValueAsString(u32 ntotbits, const BV8K& bval, std::string& rtnstr)
-  {
-    //used for code generated in CS::genCodeClassDefaultConstantArray
-    u32 uvals[ARRAY_LEN8K];
-    bval.ToArray(uvals);
-
-    u32 nwords = (ntotbits + 31)/MAXBITSPERINT;
-
-    //short-circuit if all zeros
-    bool isZero = true;
-    for(u32 x = 0; x < nwords; x++)
-      {
-	if(uvals[x] != 0)
-	  {
-	    isZero = false;
-	    break;
-	  }
-      }
-
-    if(isZero)
-      {
-	rtnstr = "0x0"; //nothing to xodo
-	return false;
-      }
-
-    std::ostringstream ostream;
-    for(u32 i = 0; i < nwords; i++)
-      {
-	if(i > 0)
-	  ostream << ", ";
-
-	ostream << "0x" << std::hex << uvals[i];
-      }
-    rtnstr = ostream.str();
-    return true;
-  } //getHexValueAsString
-
-  bool SymbolWithValue::getLexValue(std::string& vstr)
-  {
-    if(!isReady())
-      return false;
-
-    u64 constantval = 0;
-    AssertBool gotVal = getValue(constantval);
-    assert(gotVal);
-
-    return convertValueToALexString(constantval, getUlamTypeIdx(), vstr, m_state);
-  } //getLexValue
 
   bool SymbolWithValue::convertValueToALexString(u64 varg, UTI tuti, std::string& vstr, CompilerState & state)
   {

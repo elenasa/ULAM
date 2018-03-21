@@ -1,18 +1,22 @@
 ## -*- mode:ulam -*-
 #=t41263_test_compiler_constantclassarrayofelements
 ##
-## gen output: 2 asserts
+## gen output: (+ interleaved asserts)
+##  Unsigned Arg: 2
+##  Unsigned Arg: 4
 ##
 #!
 Exit status: 0
-Ue_KeyExprRep { KeyExprNode m_key( typedef Unsigned(8) Byte;  Unsigned(8) m_leftIndex(1u);  Unsigned(8) m_rightIndex(2u);  Unsigned(8) m_keyCode(0u);  Unsigned(8) m_op(124u); );  Int(32) test() {  System s;  m_key keyexpr_x13 0 [] = s ( m_key m_rightIndex . 2u cast == )assert . s ( keyexpr_x13 1 [] m_rightIndex . 4u cast == )assert . 0 cast return } }
-Uq_KeyExprNode { typedef Unsigned(8) Byte;  Unsigned(8) m_leftIndex(0);  Unsigned(8) m_rightIndex(0);  Unsigned(8) m_keyCode(0);  Unsigned(8) m_op(0);  <NOMAIN> }
+Ue_KeyExprRep { Int(32) test() {  System s;  KeyExprNode m_key = keyexpr_x13 0 [];  s ( m_key m_rightIndex . cast )print . s ( m_key m_rightIndex . 2u cast == )assert . s ( keyexpr_x13 1 [] m_rightIndex . cast )print . s ( keyexpr_x13 1 [] m_rightIndex . 4u cast == )assert . 0 cast return } }
+Ue_KeyExprNode { typedef Unsigned(8) Byte;  Unsigned(8) m_leftIndex(0);  Unsigned(8) m_rightIndex(0);  Unsigned(8) m_keyCode(0);  Unsigned(8) m_op(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## informed by Dave 3/18/18 ish, and t41261: except array of elements instead of quarks constant class array not implemented yet.
 ##
-#:KeyExprRep.ulam
+##
+#>KeyExprRep.ulam
   ulam 3;
+use KeyExprNode; ////without use ./KeyExprNode.ulam:9:0: ERROR: Invalid size (-2) to set for primitive type: 0Holder.
 local constant KeyExprNode keyexpr_x13[] = {
   { .m_leftIndex = 1, .m_rightIndex = 2, .m_keyCode = 0, .m_op = '|' }, // [0]
   { .m_leftIndex = 3, .m_rightIndex = 4, .m_keyCode = 0, .m_op = '&' }, // [1]
@@ -24,14 +28,16 @@ element KeyExprRep {
   Int test() {
     System s;
     KeyExprNode m_key = keyexpr_x13[0];
+    s.print(m_key.m_rightIndex);
     s.assert(m_key.m_rightIndex==2u);
 
+    s.print(keyexpr_x13[1].m_rightIndex);
     s.assert(keyexpr_x13[1].m_rightIndex==4u); //reads constant class array item
     return 0;
   }
 }
 
-#>KeyExprNode.ulam
+#:KeyExprNode.ulam
   ulam 3;
 element KeyExprNode {
   typedef Unsigned(8) Byte;

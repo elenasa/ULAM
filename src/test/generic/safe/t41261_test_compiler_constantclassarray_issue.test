@@ -3,8 +3,6 @@
 ##
 ## gen output: 2 asserts
 ##
-## /home/elenas/WORK/ulam/repo/MFM-fork/MFM/src/core/include/UlamRef.tcc:20: FAILED: ILLEGAL_ARGUMENT
-##
 #!
 Exit status: 0
 Ue_KeyExprRep { KeyExprNode m_key( typedef Unsigned(8) Byte;  Unsigned(8) m_leftIndex(1u);  Unsigned(8) m_rightIndex(2u);  Unsigned(8) m_keyCode(0u);  Unsigned(8) m_op(124u); );  Int(32) test() {  System s;  m_key keyexpr_x13 0 [] = s ( m_key m_rightIndex . 2u cast == )assert . s ( keyexpr_x13 1 [] m_rightIndex . 4u cast == )assert . 0 cast return } }
@@ -15,7 +13,7 @@ Uq_System { <NOMAIN> }
 ##
 #>KeyExprRep.ulam
   ulam 3;
-use KeyExprNode; //with use, assert hits; ow ./KeyExprNode.ulam:9:0: ERROR: Invalid size (-2) to set for primitive type: 0Holder.
+use KeyExprNode; //without use ./KeyExprNode.ulam:9:0: ERROR: Invalid size (-2) to set for primitive type: 0Holder.
 local constant KeyExprNode keyexpr_x13[] = {
    { .m_leftIndex = 1, .m_rightIndex = 2, .m_keyCode = 0, .m_op = '|' }, // [0]
    { .m_leftIndex = 3, .m_rightIndex = 4, .m_keyCode = 0, .m_op = '&' }, // [1]
