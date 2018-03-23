@@ -4,16 +4,19 @@
 
 namespace MFM {
 
-  SymbolWithValue::SymbolWithValue(const Token& id, UTI utype, CompilerState & state) : Symbol(id, utype, state), m_isReady(false), m_hasInitVal(false), m_isReadyInitVal(false), m_classParameter(false), m_classArgument(false), m_declnno(0) { }
+  SymbolWithValue::SymbolWithValue(const Token& id, UTI utype, CompilerState & state) : Symbol(id, utype, state), m_isReady(false), m_hasInitVal(false), m_isReadyInitVal(false), m_classParameter(false), m_classArgument(Nouti), m_declnno(0) { }
 
-  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref) : Symbol(sref), m_isReady(sref.m_isReady), m_hasInitVal(sref.m_hasInitVal), m_isReadyInitVal(false), m_classParameter(false), m_classArgument(sref.m_classArgument || sref.m_classParameter), m_declnno(sref.m_declnno)
+  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref) : Symbol(sref), m_isReady(sref.m_isReady), m_hasInitVal(sref.m_hasInitVal), m_isReadyInitVal(false), m_classParameter(false), m_classArgument(Nouti), m_declnno(sref.m_declnno)
   {
+    if((sref.m_classArgument != Nouti) || sref.m_classParameter)
+      m_classArgument = m_state.getCompileThisIdx(); //t41229
     //classArg is copying from a classParameter
     m_constantValue = sref.m_constantValue;
     m_initialValue = sref.m_initialValue;
+
   }
 
-  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref, bool keepType) : Symbol(sref, keepType), m_isReady(sref.m_isReady), m_hasInitVal(sref.m_hasInitVal), m_isReadyInitVal(false), m_classParameter(false), m_classArgument(sref.m_classArgument || sref.m_classParameter), m_declnno(sref.m_declnno)
+  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref, bool keepType) : Symbol(sref, keepType), m_isReady(sref.m_isReady), m_hasInitVal(sref.m_hasInitVal), m_isReadyInitVal(false), m_classParameter(false), m_classArgument(sref.m_classArgument), m_declnno(sref.m_declnno)
   {
     //classArg is copying from a classParameter
     m_constantValue = sref.m_constantValue;
@@ -36,12 +39,17 @@ namespace MFM {
 
   bool SymbolWithValue::isClassArgument()
   {
+    return (m_classArgument != Nouti);
+  }
+
+  UTI SymbolWithValue::getClassArgumentOfClassInstance()
+  {
     return m_classArgument;
   }
 
-  void SymbolWithValue::setClassArgumentFlag()
+  void SymbolWithValue::setClassArgumentFlag(UTI cuti)
   {
-    m_classArgument = true;
+    m_classArgument = cuti;
   }
 
   u32 SymbolWithValue::getPosOffset()
@@ -550,22 +558,19 @@ namespace MFM {
 
     if(!oktoprint) return false;
 
-
-    UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
-    //assert(sut->getUlamClassType() == UC_ELEMENT);
-    u32 totlen = sut->getSizeofUlamType();
+    u32 totlen = m_state.getUlamTypeByIndex(getUlamTypeIdx())->getSizeofUlamType();
 #if 0
-    s32 arraysize = sut->getArraySize();
-    arraysize = (arraysize == NONARRAYSIZE ? 1 : arraysize);
-    u32 itemlen = sut->getBitSize(); //src
-    BV8K bvtmp;
-    for(u32 i = 0; i < (u32) arraysize; i++)
+    if(totlen < MAXBITSPERINT)
       {
-	bval.CopyBV(i * itemlen, i * BITSPERATOM + ATOMFIRSTSTATEBITPOS, itemlen, bvtmp);
-	//leaves space for MFM Element Type, fill in lazily when accessed
+	//a quark!
+	u32 uval = bval.Read(0u, totlen);
+	std::ostringstream ostr;
+	ostr << "0x" << std::hex << uval; //like NonPretty for Class case
+	rtnstr = ostr.str();
       }
+    else
 #endif
-    SymbolWithValue::getHexValueAsString(totlen, bval, rtnstr);
+      SymbolWithValue::getHexValueAsString(totlen, bval, rtnstr);
     return true;
   } //getClassValueAsHexString
 

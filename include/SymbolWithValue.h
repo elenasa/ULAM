@@ -60,7 +60,8 @@ namespace MFM{
     void setClassParameterFlag();
 
     bool isClassArgument();
-    void setClassArgumentFlag();
+    UTI getClassArgumentOfClassInstance();
+    void setClassArgumentFlag(UTI cuti);
 
     virtual u32 getPosOffset();
     virtual bool isPosOffsetReliable();
@@ -127,8 +128,8 @@ namespace MFM{
     bool m_hasInitVal;
     bool m_isReadyInitVal;
     bool m_classParameter; //constant has default but no value, look at instance
-    bool m_classArgument; //constant has value but no default, look at template parameter
-
+    UTI m_classArgument; //constant has value but no default, look at template parameter
+                         //UTI of its class instance for its name when a class or arrray type
     BV8K m_constantValue;
     BV8K m_initialValue;
 

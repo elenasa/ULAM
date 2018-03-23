@@ -791,226 +791,19 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeReadIntoATmpVar
 
-  //NEEDS A NEW VERSION..WHO CALLS US?
-#if 0
   void Node::genCodeReadFromAConstantClassIntoATmpVar(File * fp, UVPass & uvpass)
   {
     UTI vuti = uvpass.getPassTargetType(); //replaces vuti w target type
     assert(vuti != Void);
 
+    //named constant class/entire constant class array
     s32 namedconstantclassidx = isCurrentObjectsContainingAConstantClass();
-    assert(namedconstantclassidx >= 0); //right-most (last) named constant class
+    assert(namedconstantclassidx >= 0); //0==right-most (last)
 
-    Symbol * ncsym = m_state.m_currentObjSymbolsForCodeGen[namedconstantclassidx];
-    assert(ncsym);
-    UTI ncuti = ncsym->getUlamTypeIdx();
-    assert(m_state.isAClass(ncuti)); //sanity
-    assert(ncsym->isConstant()); //sanity
-    assert(((SymbolWithValue *) ncsym)->isReady());
-
-    BV8K bvclass;
-    AssertBool gotval = ((SymbolWithValue *) ncsym)->getValue(bvclass);
-    assert(gotval);
-
-    Symbol * cos = NULL;
-    Symbol * stgcos = NULL;
-    loadStorageAndCurrentObjectSymbols(stgcos, cos);
-    assert(cos && stgcos);
-    s32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-
-    UTI cosuti = cos->getUlamTypeIdx();
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    TMPSTORAGE cstor = cosut->getTmpStorageTypeForTmpVar();
-    u32 coslen = cosut->getSizeofUlamType(); //96 for elements (t41230)
-    //what if coslen is zero?
-    u32 cospos = 0;
-    ULAMCLASSTYPE cosclass = cosut->getUlamClassType();
-    //UTI scalarcosuti = m_state.getUlamTypeAsScalar(cosuti); //t41263
-
-    std::string ccstr;
-    bool notZero = true; //bv contents
-
-    if(cos == ncsym) //cos is the constant class
-      {
-	assert(namedconstantclassidx == (cosSize - 1));
-	assert(m_state.isScalar(cosuti)); //dm array (t41198), or arrayitem (t41261)
-	assert(m_state.isAClass(cosuti));
-      }
-    else
-      {
-	//that is cos is a data member of our constant class,
-	assert(cos->isDataMember()); //namedconstantclassidx < (cosSize - 1))
-	assert(namedconstantclassidx < (cosSize - 1));
-	assert(((SymbolVariableDataMember *) cos)->isPosOffsetReliable());
-	cospos = ((SymbolVariableDataMember *) cos)->getPosOffset();
-      }
-
-    if(coslen <= MAXBITSPERINT)
-      {
-	u32 val = bvclass.Read(cospos,coslen);
-	SymbolWithValue::convertValueToANonPrettyString((u64) val, cosuti, ccstr, m_state);
-      }
-    else if(coslen <= MAXBITSPERLONG)
-      {
-	u64 val = bvclass.ReadLong(cospos,coslen);
-	SymbolWithValue::convertValueToANonPrettyString(val, cosuti, ccstr, m_state);
-      }
-    else if((cosclass == UC_ELEMENT) && cosut->isScalar())
-      {
-	//copy state bits in position for atom-based element (not array of elements t41263)
-	BV8K bvel;
-	bvclass.CopyBV(cospos, ATOMFIRSTSTATEBITPOS, MAXSTATEBITS, bvel); //srcpos, dstpos, len, dest
-	notZero = SymbolWithValue::getHexValueAsString(coslen, bvel, ccstr); //t41230
-      }
-    else if((cosclass == UC_ELEMENT) && !cosut->isScalar())
-      {
-	u32 itemlen = cosut->getBitSize();
-	u32 arraysize = cosut->getArraySize();
-	BV8K bvtmp;
-	for(u32 i = 0; i < arraysize; i++)
-	  {
-	    bvclass.CopyBV(cospos + i * itemlen, i* BITSPERATOM + ATOMFIRSTSTATEBITPOS, itemlen, bvtmp);
-	    //fill in the MFM element type below
-	  }
-	notZero = SymbolWithValue::getHexValueAsString(coslen, bvtmp, ccstr);
-      }
-    else
-      {
-	BV8K bvtmp;
-	bvclass.CopyBV(cospos, 0, coslen, bvtmp);
-	notZero = SymbolWithValue::getHexValueAsString(coslen, bvtmp, ccstr);
-      }
-
-    s32 tmpVarNum = m_state.getNextTmpVarNumber();
-    if(coslen > MAXBITSPERLONG)
-      {
-	//oddly enough, our constant class isn't a const!
-	m_state.indentUlamCode(fp);
-	fp->write(cosut->getTmpStorageTypeAsString().c_str()); //T, BV<x>
-	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str());
-
-	//gen comment:
-	fp->write("; // constant value of ");
-	fp->write(m_state.m_pool.getDataAsString(ncsym->getId()).c_str());
-	if(cos->isDataMember())
-	  {
-	    fp->write(".");
-	    fp->write(m_state.m_pool.getDataAsString(cos->getId()).c_str());
-	  }
-	GCNL;
-
-	m_state.indent(fp);
-	fp->write("{\n"); //limit scope of 'dam' and 'vales'
-	m_state.m_currentIndentLevel++;
-
-	m_state.indent(fp);
-	fp->write("const u32 vales");
-	fp->write("[(");
-	fp->write_decimal_unsigned(coslen); //== [nwords]
-	fp->write(" + 31)/32] = { ");
-	if(notZero)
-	  fp->write(ccstr.c_str());
-	else
-	  fp->write_decimal_unsigned(0);
-	fp->write("};"); GCNL;
-
-	if((cosclass == UC_ELEMENT))
-	  {
-	    m_state.indent(fp);
-	    fp->write("AtomBitStorage<EC> gda(");
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(cosuti).c_str());
-	    fp->write(".GetDefaultAtom());"); GCNL;
-
-	    m_state.indent(fp);
-	    fp->write("u32 typefield = gda.Read(0u, T::ATOM_FIRST_STATE_BIT);"); GCNL; //can't use GetType");
-	  }
-
-	m_state.indent(fp);
-	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str());
-	if((cosclass == UC_ELEMENT) && cosut->isScalar())
-	  fp->write(".GetBits()");
-	fp->write(".FromArray(vales);"); GCNL;
-
-	if((cosclass == UC_ELEMENT) && cosut->isScalar())
-	  {
-	    m_state.indent(fp);
-	    fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str());
-	    fp->write(".GetBits().Write(");
-	    fp->write_decimal_unsigned(cospos);
-	    fp->write("u, T::ATOM_FIRST_STATE_BIT, typefield);"); GCNL;
-	  }
-	else if((cosclass == UC_ELEMENT) && !cosut->isScalar())
-	  {
-	    u32 arraysize = cosut->getArraySize();
-	    m_state.indent(fp);
-	    fp->write("for(u32 i = 0; i < ");
-	    fp->write_decimal_unsigned(arraysize);
-	    fp->write("; i++) ");
-	    fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str());
-	    fp->write(".Write(");
-	    fp->write_decimal(cospos);
-	    fp->write("u + i * T::BPA, T::ATOM_FIRST_STATE_BIT, typefield);"); GCNL;
-
-#if 0
-	    for(u32 i = 0; i < arraysize; i++)
-	      {
-		m_state.indent(fp);
-		fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str());
-		fp->write(".Write(");
-		fp->write_decimal_unsigned(cospos + i * BITSPERATOM);
-		fp->write("u, T::ATOM_FIRST_STATE_BIT, typefield);"); GCNL;
-	      }
-#endif
-	  }
-
-	m_state.m_currentIndentLevel--;
-	m_state.indent(fp);
-	fp->write("}\n");
-      }
-    else
-      {
-	m_state.indentUlamCode(fp);
-	fp->write("const ");
-	fp->write(cosut->getTmpStorageTypeAsString().c_str()); //u32
-	fp->write(" ");
-	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str());
-	fp->write(" = ");
-	fp->write(ccstr.c_str());
-
-	//gen comment:
-	fp->write("; // constant value of ");
-	fp->write(m_state.m_pool.getDataAsString(ncsym->getId()).c_str());
-	if(cos->isDataMember())
-	  {
-	    fp->write(".");
-	    fp->write(m_state.m_pool.getDataAsString(cos->getId()).c_str());
-	  }
-	GCNL;
-      }
-
-    uvpass = UVPass::makePass(tmpVarNum, cstor, cosuti, m_state.determinePackable(cosuti), m_state, 0, 0); //POS 0 justified (atom-based).
-
-    // note: Ints not sign extended until used/cast
-    m_state.clearCurrentObjSymbolsForCodeGen();
-  } //genCodeReadFromAConstantClassIntoATmpVar
-#endif
-
-  void Node::genCodeReadFromAConstantClassIntoATmpVar(File * fp, UVPass & uvpass)
-  {
-    UTI vuti = uvpass.getPassTargetType(); //replaces vuti w target type
-    assert(vuti != Void);
-
-    s32 namedconstantclassidx = isCurrentObjectsContainingAConstantClass();
-    assert(namedconstantclassidx >= 0); //right-most (last) named constant class
-
-    Symbol * ncsym = m_state.m_currentObjSymbolsForCodeGen[namedconstantclassidx];
+    SymbolWithValue * ncsym = (SymbolWithValue *) m_state.m_currentObjSymbolsForCodeGen[namedconstantclassidx];
     assert(ncsym);
     UTI ncuti = ncsym->getUlamTypeIdx();
     UlamType * ncut = m_state.getUlamTypeByIndex(ncuti);
-    assert(m_state.isAClass(ncuti)); //sanity
-    assert(ncsym->isConstant()); //sanity
-    assert(((SymbolWithValue *) ncsym)->isReady());
     ULAMCLASSTYPE nclasstype = ncut->getUlamClassType();
 
     Symbol * cos = NULL;
@@ -1019,8 +812,6 @@ namespace MFM {
     assert(cos && stgcos);
     s32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
 
-    UTI stgcosuti = stgcos->getUlamTypeIdx();
-    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     TMPSTORAGE cstor = cosut->getTmpStorageTypeForTmpVar();
@@ -1028,14 +819,12 @@ namespace MFM {
     //what if coslen is zero?
     u32 cospos = 0;
     ULAMCLASSTYPE cosclass = cosut->getUlamClassType();
-    //    UTI scalarcosuti = m_state.getUlamTypeAsScalar(cosuti); //t41263
     bool cosIsTheConstantClass = (cos == ncsym);
-    bool stgIsTheConstantClass = (stgcos == ncsym);
 
-    if(cos == ncsym) //cos is the constant class
+    if(cosIsTheConstantClass) //cos is the constant class
       {
 	assert(namedconstantclassidx == (cosSize - 1));
-	assert(m_state.isScalar(cosuti)); //dm array (t41198), or arrayitem (t41261)
+	//assert(m_state.isScalar(cosuti)); //dm array (t41198), arrayitem (t41261), entire array (t41261,3,6)
 	assert(m_state.isAClass(cosuti));
 	assert(stgcos==cos);
       }
@@ -1072,69 +861,7 @@ namespace MFM {
 	fp->write("u, ");
       }
 
-    if(stgIsTheConstantClass)
-      {
-	if(stgcos->isDataMember()) //named constant dm
-	  {
-	    UTI dmclassuti = stgcos->getDataMemberClass();
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(dmclassuti).c_str());
-	    fp->write(".");
-	  }
-	else if(stgcos->isLocalsFilescopeDef())
-	  {
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcos->getLocalsFilescopeType()).c_str());
-	    fp->write(".");
-	  }
-	//else local
-      }
-    else
-      {
-	if(ncsym->isDataMember()) //named constant dm
-	  {
-	    UTI dmclassuti = ncsym->getDataMemberClass();
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(dmclassuti).c_str());
-	    fp->write(".");
-	  }
-	else if(ncsym->isLocalsFilescopeDef())
-	  {
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(ncsym->getLocalsFilescopeType()).c_str());
-	    fp->write(".");
-	  }
-	else if(((SymbolConstantValue *) ncsym)->isClassArgument())
-	  {
-	    UTI classbynodeno = m_state.findAClassByNodeNo(ncsym->getBlockNoOfST());
-	    u32 classbynodenoID = m_state.getUlamTypeByIndex(classbynodeno)->getUlamTypeNameId();
-	    u32 stgtypenameId = stgcosut->getUlamTypeNameId();
-	    if(stgtypenameId == classbynodenoID)
-	      {
-		fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str()); //t41209
-		fp->write(".");
-	      }
-	    else
-	      {
-		UTI superclass = m_state.isClassASubclass(stgcosuti);
-		if(superclass != Nouti)
-		  {
-		    u32 superclassnameID = m_state.getUlamTypeByIndex(superclass)->getUlamTypeNameId();
-		    if(superclassnameID == classbynodenoID)
-		      {
-			fp->write(m_state.getTheInstanceMangledNameByIndex(superclass).c_str()); //t41223
-			fp->write(".");
-		      }
-		    else
-		      m_state.abortNotImplementedYet(); //super super class? need another approach..
-		  }
-		else
-		  m_state.abortNotImplementedYet(); //what? need another approach..
-	      }
-	  }
-	else
-	  {
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(stgcosuti).c_str()); //t41209
-	    fp->write(".");
-	  }
-      }
-    fp->write(ncsym->getMangledName().c_str()); //constant name
+    genConstantClassMangledName(fp); //refactored
 
     //continue to gen the UlamRef to read the cos dm from its constant class
     if(!cosIsTheConstantClass)
@@ -1154,6 +881,7 @@ namespace MFM {
 
     uvpass = UVPass::makePass(tmpVarNum, cstor, cosuti, m_state.determinePackable(cosuti), m_state, 0, 0); //POS 0 justified (atom-based).
 
+    //WHENEVER the second pass after element registration comes; this won't be needed!!
     if((cosclass == UC_ELEMENT)) //t41230
       {
 	m_state.indent(fp);
@@ -1197,7 +925,7 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeReadFromAConstantClassIntoATmpVar
 
-  //NEEDS A NEW VERSION...WHO CALLS US?
+  //NEEDS A NEW VERSION...WHO CALLS US? NodeSquareBracket (t41198).
   void Node::genCodeReadArrayItemFromAConstantClassIntoATmpVarWithConstantIndex(File * fp, UVPass & luvpass, s32 rindex)
   {
     UTI luti = luvpass.getPassTargetType(); //replaces vuti w target type
@@ -1314,81 +1042,26 @@ namespace MFM {
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeReadArrayItemFromAConstantClassIntoATmpVarWithConstantIndex
 
-#if 0
   void Node::genCodeReadArrayItemFromAConstantClassIntoATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass)
   {
-    //index is a variable, not known at compile time;
-    UTI luti = luvpass.getPassTargetType(); //replaces vuti w target type
-    assert(luti != Void);
-    assert(!m_state.isScalar(luti));
-
-    UVPass cuvpass = luvpass;
-    Node::genCodeReadFromAConstantClassIntoATmpVar(fp, cuvpass); //get entire array into a tmp var
-
-    //stack is now empty!
-
-    //first make a temporary immediate bitvector storage for entire array value
-    genCodeConvertATmpVarIntoBitVector(fp, cuvpass);
-
-    //now for the array item read at index in ruvpass tmp var
-    UTI scalarluti = m_state.getUlamTypeAsScalar(luti);
-    UlamType * scalarlut = m_state.getUlamTypeByIndex(scalarluti);
-    u32 itemlen = scalarlut->getSizeofUlamType(); //atom-based for elements
-    TMPSTORAGE slstor = scalarlut->getTmpStorageTypeForTmpVar();
-
-    s32 tmpVarNum = m_state.getNextTmpVarNumber();
-    m_state.indentUlamCode(fp);
-    fp->write("const ");
-    fp->write(scalarlut->getTmpStorageTypeAsString().c_str()); //u32, u64, T, BV<x>
-    fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(scalarluti, tmpVarNum, slstor).c_str());
-    fp->write(" = ");
-    fp->write(cuvpass.getTmpVarAsString(m_state).c_str()); //immediate storage
-    fp->write(".readArrayItem(");
-    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(", ");
-    fp->write_decimal_unsigned(itemlen);
-    fp->write("u);"); GCNL;
-
-    luvpass = UVPass::makePass(tmpVarNum, slstor, scalarluti, m_state.determinePackable(scalarluti), m_state, 0, 0); //POS 0 justified (atom-based).
-
-   // note: Ints not sign extended until used/cast
-    m_state.clearCurrentObjSymbolsForCodeGen();
-  } //genCodeReadArrayItemFromAConstantClassIntoATmpVar
-#endif
-
-  void Node::genCodeReadArrayItemFromAConstantClassIntoATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass)
-  {
-    //index is a variable, not known at compile time;
-    UTI luti = luvpass.getPassTargetType(); //replaces vuti w target type
-    assert(luti != Void);
-    assert(!m_state.isScalar(luti));
-#if 0
     s32 namedconstantclassidx = isCurrentObjectsContainingAConstantClass();
     assert(namedconstantclassidx >= 0); //right-most (last) named constant class
 
-    Symbol * ncsym = m_state.m_currentObjSymbolsForCodeGen[namedconstantclassidx];
+    SymbolWithValue * ncsym = (SymbolWithValue *) m_state.m_currentObjSymbolsForCodeGen[namedconstantclassidx];
     assert(ncsym);
     UTI ncuti = ncsym->getUlamTypeIdx();
-    assert(m_state.isAClass(ncuti)); //sanity
-    assert(ncsym->isConstant()); //sanity
-    assert(((SymbolWithValue *) ncsym)->isReady());
-#endif
-    //UVPass cuvpass = luvpass;
-    //Node::genCodeReadFromAConstantClassIntoATmpVar(fp, cuvpass); //get entire array into a tmp var
+    UlamType * ncut = m_state.getUlamTypeByIndex(ncuti);
+    ULAMCLASSTYPE nclasstype = ncut->getUlamClassType();
 
-    //stack is now empty!
-
-    //first make a temporary immediate bitvector storage for entire array value
-    //genCodeConvertATmpVarIntoBitVector(fp, cuvpass);
+    //index is a variable, not known at compile time;
+    UTI luti = luvpass.getPassTargetType(); //replaces vuti w target type
+    assert(luti != Void);
+    assert(!m_state.isScalar(luti));
 
     Symbol * stgcos = NULL;
     Symbol * cos = NULL;
     loadStorageAndCurrentObjectSymbols(stgcos, cos);
     assert(stgcos && cos);
-
-    //    UTI stgcosuti = stgcos->getUlamTypeIdx();
-    //UTI cosuti = cos->getUlamTypeIdx();
 
     //now for the array item read at index in ruvpass tmp var
     UTI scalarluti = m_state.getUlamTypeAsScalar(luti);
@@ -1396,6 +1069,29 @@ namespace MFM {
     u32 itemlen = scalarlut->getSizeofUlamType(); //atom-based for elements
     TMPSTORAGE slstor = scalarlut->getTmpStorageTypeForTmpVar();
     ULAMCLASSTYPE sclasstype = scalarlut->getUlamClassType();
+
+    s32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+
+    UTI cosuti = cos->getUlamTypeIdx();
+    u32 cospos = 0;
+    bool cosIsTheConstantClass = (cos == ncsym);
+
+    if(cosIsTheConstantClass) //cos is the constant class
+      {
+	assert(namedconstantclassidx == (cosSize - 1));
+	assert(!m_state.isScalar(cosuti)); //dm array (t41198), or arrayitem (t41261)
+	assert(m_state.isAClass(cosuti));
+	assert(stgcos==cos);
+      }
+    else
+      {
+	//that is cos is a data member of our constant class,
+	assert(cos->isDataMember()); //namedconstantclassidx < (cosSize - 1))
+	assert(namedconstantclassidx < (cosSize - 1));
+	assert(((SymbolVariableDataMember *) cos)->isPosOffsetReliable());
+	cospos = ((SymbolVariableDataMember *) cos)->getPosOffset();
+	//assert(stgcos==ncsym); //s.cc.b
+      }
 
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
     m_state.indentUlamCode(fp);
@@ -1405,26 +1101,52 @@ namespace MFM {
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(scalarluti, tmpVarNum, slstor).c_str());
     fp->write(" = ");
-    if(stgcos->isDataMember())
+
+    if(!cosIsTheConstantClass) //t41198, t41209
       {
-	fp->write(m_state.getTheInstanceMangledNameByIndex(stgcos->getDataMemberClass()).c_str());
-	fp->write(".");
+	fp->write("UlamRef<EC>(");
+	fp->write_decimal_unsigned(cospos);
+	fp->write("u + ");
+	fp->write(ruvpass.getTmpVarAsString(m_state).c_str()); //index
+	fp->write(" * ");
+	fp->write_decimal_unsigned(itemlen);
+	if((nclasstype == UC_ELEMENT) && !cosIsTheConstantClass) //t41263
+	  fp->write("u + T::ATOM_FIRST_STATE_BIT, ");
+	else
+	  fp->write("u, ");
+	fp->write_decimal_unsigned(itemlen);
+	fp->write("u, ");
       }
-    else if(stgcos->isLocalsFilescopeDef())
+
+    genConstantClassMangledName(fp); //t41198
+
+    //continue to gen the UlamRef to read the cos dm from its constant class
+    if(!cosIsTheConstantClass)
       {
-	fp->write(m_state.getTheInstanceMangledNameByIndex(stgcos->getLocalsFilescopeType()).c_str());
-	fp->write(".");
+	fp->write(", NULL, ");
+	fp->write(genUlamRefUsageAsString(scalarluti).c_str()); //eg. CLASSIC, PRIMITIVE, etc.
+ 	fp->write(", uc).");
+	fp->write(scalarlut->readMethodForCodeGen().c_str());
+	fp->write("()");
       }
-    fp->write(stgcos->getMangledName().c_str()); //constant name
-    //fp->write(luvpass.getTmpVarAsString(m_state).c_str()); //immediate storage
-    fp->write(".readArrayItem(");
-    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(", ");
-    fp->write_decimal_unsigned(itemlen);
-    fp->write("u);"); GCNL;
+    else
+      {
+	fp->write(".readArrayItem(");
+	fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(", ");
+	fp->write_decimal_unsigned(itemlen);
+	fp->write("u);"); //t41266,3,1
+      }
+
+    //gen comment:
+    fp->write("; // array value in constant ");
+    fp->write(m_state.m_pool.getDataAsString(ncsym->getId()).c_str());
+    GCNL;
 
     luvpass = UVPass::makePass(tmpVarNum, slstor, scalarluti, m_state.determinePackable(scalarluti), m_state, 0, 0); //POS 0 justified (atom-based).
 
+    //WHENEVER the second pass after element registration comes; this won't be needed!!
+    // HEADS UP!! doesn't fix data member elements (e.g. in a transient)
     if((sclasstype == UC_ELEMENT))
       {
 	m_state.indent(fp);
@@ -1449,10 +1171,91 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write("}\n");
       }
-
    // note: Ints not sign extended until used/cast
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeReadArrayItemFromAConstantClassIntoATmpVar
+
+#if 0
+  void Node::genCodeReadArrayItemFromAConstantClassIntoATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass)
+  {
+    //index is a variable, not known at compile time;
+    UTI luti = luvpass.getPassTargetType(); //replaces vuti w target type
+    assert(luti != Void);
+    assert(!m_state.isScalar(luti));
+
+    Symbol * stgcos = NULL;
+    Symbol * cos = NULL;
+    loadStorageAndCurrentObjectSymbols(stgcos, cos);
+    assert(stgcos && cos);
+
+    //now for the array item read at index in ruvpass tmp var
+    UTI scalarluti = m_state.getUlamTypeAsScalar(luti);
+    UlamType * scalarlut = m_state.getUlamTypeByIndex(scalarluti);
+    u32 itemlen = scalarlut->getSizeofUlamType(); //atom-based for elements
+    TMPSTORAGE slstor = scalarlut->getTmpStorageTypeForTmpVar();
+    ULAMCLASSTYPE sclasstype = scalarlut->getUlamClassType();
+
+    s32 tmpVarNum = m_state.getNextTmpVarNumber();
+    m_state.indentUlamCode(fp);
+    if((sclasstype != UC_ELEMENT))
+      fp->write("const "); //need to fix Element Type field
+    fp->write(scalarlut->getTmpStorageTypeAsString().c_str()); //u32, u64, T, BV<x>
+    fp->write(" ");
+    fp->write(m_state.getTmpVarAsString(scalarluti, tmpVarNum, slstor).c_str());
+    fp->write(" = ");
+
+    genConstantClassMangledName(fp); //t41198
+#if 0
+    if(stgcos->isDataMember())
+      {
+	fp->write(m_state.getTheInstanceMangledNameByIndex(stgcos->getDataMemberClass()).c_str());
+	fp->write(".");
+      }
+    else if(stgcos->isLocalsFilescopeDef())
+      {
+	fp->write(m_state.getTheInstanceMangledNameByIndex(stgcos->getLocalsFilescopeType()).c_str());
+	fp->write(".");
+      }
+    fp->write(stgcos->getMangledName().c_str()); //constant name
+#endif
+
+    fp->write(".readArrayItem(");
+    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+    fp->write(", ");
+    fp->write_decimal_unsigned(itemlen);
+    fp->write("u);"); GCNL;
+
+    luvpass = UVPass::makePass(tmpVarNum, slstor, scalarluti, m_state.determinePackable(scalarluti), m_state, 0, 0); //POS 0 justified (atom-based).
+
+    //WHENEVER the second pass after element registration comes; this won't be needed!!
+    if((sclasstype == UC_ELEMENT))
+      {
+	m_state.indent(fp);
+	fp->write("{\n"); //limit scope of 'typefield' and 'gda'
+	m_state.m_currentIndentLevel++;
+
+	m_state.indent(fp);
+	fp->write("AtomBitStorage<EC> gda(");
+	fp->write(m_state.getTheInstanceMangledNameByIndex(scalarluti).c_str());
+	fp->write(".GetDefaultAtom());"); GCNL;
+
+	m_state.indent(fp);
+	fp->write("u32 typefield = gda.Read(0u, T::ATOM_FIRST_STATE_BIT);"); GCNL; //can't use GetType");
+
+	m_state.indent(fp);
+	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+	fp->write(".GetBits().Write(");
+	fp->write_decimal_unsigned(0);
+	fp->write("u, T::ATOM_FIRST_STATE_BIT, typefield);"); GCNL;
+
+	m_state.m_currentIndentLevel--;
+	m_state.indent(fp);
+	fp->write("}\n");
+      }
+   // note: Ints not sign extended until used/cast
+    m_state.clearCurrentObjSymbolsForCodeGen();
+  } //genCodeReadArrayItemFromAConstantClassIntoATmpVar
+#endif
 
   void Node::genCodeReadSelfIntoATmpVar(File * fp, UVPass & uvpass)
   {
@@ -2195,6 +1998,8 @@ namespace MFM {
 
 	if(stgcos->isDataMember()) //may be an element/atom in a TRANSIENT
 	  fp->write(m_state.getHiddenArgName());
+	else if(stgcos->isConstant())
+	  genConstantClassMangledName(fp); //t41238
 	else
 	  fp->write(stgcos->getMangledName().c_str());
 	fp->write(", ");
@@ -3414,6 +3219,84 @@ namespace MFM {
     fp->write(m_state.getTheInstanceMangledNameByIndex(futi).c_str());
     fp->write(".");
   } //genCustomArrayLocalMemberNameOfMethod
+
+  void Node::genConstantClassMangledName(File * fp)
+  {
+    s32 namedconstantclassidx = isCurrentObjectsContainingAConstantClass();
+    assert(namedconstantclassidx >= 0); //right-most (last) named constant class
+
+    SymbolWithValue * ncsym = (SymbolWithValue *) m_state.m_currentObjSymbolsForCodeGen[namedconstantclassidx];
+    assert(ncsym);
+    UTI ncuti = ncsym->getUlamTypeIdx();
+    //    UlamType * ncut = m_state.getUlamTypeByIndex(ncuti);
+    assert(m_state.isAClass(ncuti)); //sanity
+    assert(ncsym->isConstant()); //sanity
+    assert(ncsym->isReady());
+
+    if(ncsym->isDataMember()) //named constant dm
+      {
+	//fp->write(m_state.getTheInstanceMangledNameByIndex(ncsym->getDataMemberClass()).c_str());
+	//fp->write(".");
+	UlamType * ncutdm = m_state.getUlamTypeByIndex(ncsym->getDataMemberClass());
+	fp->write(ncutdm->getUlamTypeMangledName().c_str());
+	fp->write("<EC>::");
+      }
+    else if(ncsym->isLocalsFilescopeDef())
+      {
+	//fp->write(m_state.getTheInstanceMangledNameByIndex(ncsym->getLocalsFilescopeType()).c_str());
+	//fp->write(".");
+	//UlamType * ncutfs = m_state.getUlamTypeByIndex(ncsym->getLocalsFilescopeType());
+	//fp->write(ncutfs->getUlamTypeMangledName().c_str());
+	u32 mangledclassid = m_state.getMangledClassNameIdForUlamLocalsFilescope(ncsym->getLocalsFilescopeType());
+	fp->write(m_state.m_pool.getDataAsString(mangledclassid).c_str());
+	fp->write("<EC>::");
+      }
+    else if(ncsym->isClassArgument())
+      {
+	UTI whosclassarg = ncsym->getClassArgumentOfClassInstance();
+	if(m_state.isClassAStub(whosclassarg))
+	  {
+	    Symbol * namedconstantstg = NULL;
+	    if(namedconstantclassidx > 0)
+	      namedconstantstg = m_state.m_currentObjSymbolsForCodeGen[namedconstantclassidx - 1]; //left
+	    else
+	      namedconstantstg = ncsym;
+
+	    assert(namedconstantstg);
+	    UTI stgType = namedconstantstg->getUlamTypeIdx();
+	    u32 nameid = m_state.getUlamTypeByIndex(whosclassarg)->getUlamTypeNameId();
+	    UTI stgsuper = Nouti;
+	    if(m_state.findClassAncestorWithMatchingNameid(stgType, nameid, stgsuper))
+	      // fp->write(m_state.getTheInstanceMangledNameByIndex(stgsuper).c_str()); //t41223
+	      fp->write(m_state.getUlamTypeByIndex(stgsuper)->getUlamTypeMangledName().c_str());
+	    else
+	      m_state.abortShouldntGetHere();
+	  }
+	else
+	  //fp->write(m_state.getTheInstanceMangledNameByIndex(whosclassarg).c_str()); //t41209,t41229
+	  fp->write(m_state.getUlamTypeByIndex(whosclassarg)->getUlamTypeMangledName().c_str());
+	//	fp->write(".");
+	fp->write("<EC>::");
+      }
+    else if(namedconstantclassidx == 0)
+      {
+	//local: stg is constant class
+      }
+    else
+      {
+	//use index to left of the namedconstantclassidx; we know it is not 0;
+	// anything else to the left is irrelevent
+	assert(namedconstantclassidx > 0);
+	Symbol * leftofnamedconstant = m_state.m_currentObjSymbolsForCodeGen[namedconstantclassidx - 1];
+	assert(leftofnamedconstant);
+	//fp->write(m_state.getTheInstanceMangledNameByIndex(leftofnamedconstant->getUlamTypeIdx()).c_str());
+	//fp->write(".");
+	UlamType * ncutl = m_state.getUlamTypeByIndex(leftofnamedconstant->getUlamTypeIdx());
+	fp->write(ncutl->getUlamTypeMangledName().c_str());
+	fp->write("<EC>::");
+      }
+    fp->write(ncsym->getMangledName().c_str()); //constant name
+  } //genConstantClassMangledName
 
   const std::string Node::localStorageTypeAsString(UTI nuti)
   {

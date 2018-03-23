@@ -2965,7 +2965,7 @@ namespace MFM {
 
 	assert(argSym);
 
-	argSym->setClassArgumentFlag();
+	argSym->setClassArgumentFlag(csym->getUlamTypeIdx()); //t41229
 	if( m_state.m_parsingVariableSymbolTypeFlag == STF_CLASSPARAMETER)
 	  argSym->setClassParameterFlag(); //as well?
 

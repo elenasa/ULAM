@@ -1350,11 +1350,21 @@ namespace MFM {
     if(!nut->isScalar())
     //if(!nut->isScalar() || (etyp == Class))
       {
-	if(m_constSymbol->isLocalsFilescopeDef() ||  m_constSymbol->isDataMember() || m_constSymbol->isClassArgument())
+	if(m_constSymbol->isLocalsFilescopeDef() ||  m_constSymbol->isDataMember())
 	  {
 	    //as a "data member", locals filescope, or class arguement:
 	    // initialized in no-arg constructor (non-const)
 	    m_state.indentUlamCode(fp);
+	    fp->write("static ");
+	    fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
+	    fp->write(" ");
+	    fp->write(m_constSymbol->getMangledName().c_str());
+	    fp->write(";"); GCNL;
+	  }
+	else if(m_constSymbol->isClassArgument())
+	  {
+	    m_state.indentUlamCode(fp);
+	    fp->write("static "); //? t3894
 	    fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
 	    fp->write(" ");
 	    fp->write(m_constSymbol->getMangledName().c_str());
@@ -1409,7 +1419,9 @@ namespace MFM {
       }
     else if(etyp == Class)
       {
+	//defined in .tcc, only declared in .h as static
 	m_state.indentUlamCode(fp);
+	fp->write("static ");
 	fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
 	fp->write(" ");
 	fp->write(m_constSymbol->getMangledName().c_str());
@@ -1458,7 +1470,10 @@ namespace MFM {
     if(nut->isScalar() && (classtype == UC_NOTACLASS))
       return;
 
-    //constant array: Class or Primitive
+    //    if((classtype == UC_NOTACLASS) && m_constSymbol->isClassArgument())
+    //  return; //t3894
+
+    //constant array: Class or Primitive (not class arg primitive)
     u32 len = nut->getSizeofUlamType();
 
     if(declOnly)
@@ -1471,8 +1486,10 @@ namespace MFM {
 	fp->write_decimal_unsigned(len);
 	fp->write(" + 31)/32];\n");
 
-	//unique function to initialize const array "data members" in class no-arg constructor
+	//unique function to initialize STATIC constant (classes and array) "data members";
+	// not called in class no-arg constructor, but in .tcc (t41198)
 	m_state.indent(fp);
+	fp->write("static ");
 	fp->write("TypeForInit");
 	fp->write(m_constSymbol->getMangledName().c_str());
 	fp->write("& Init");
@@ -1543,8 +1560,29 @@ namespace MFM {
     m_state.m_currentIndentLevel--;
 
     m_state.indent(fp);
-    fp->write("} //Init");
+    fp->write("} // (static) Init");
     fp->write(m_constSymbol->getMangledName().c_str()); GCNL;
+    fp->write("\n");
+
+    //As static constant, output initialization in .tcc, something like this:
+    //template<class EC>
+    //typename MFM::Ui_Uq_102204QBar10<EC> MFM::Uq_10104QFoo10<EC>::Uc_6c_qbar(MFM::Uq_10104QFoo10<EC>::InitUc_6c_qbar());
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write("typename MFM::");
+    fp->write(nut->getLocalStorageTypeAsString().c_str()); //immediate
+    fp->write(" MFM::");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>::");
+    fp->write(m_constSymbol->getMangledName().c_str());
+    fp->write("(MFM::");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>::Init");
+    fp->write(m_constSymbol->getMangledName().c_str());
+    fp->write("()); //Def constant ");
+    fp->write(getName()); GCNL;
     fp->write("\n");
   } //generateBuiltinConstantArrayInitializationFunction
 

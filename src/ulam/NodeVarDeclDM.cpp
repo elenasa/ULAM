@@ -849,11 +849,7 @@ namespace MFM {
     else if(etyp == Class)
       {
 	ULAMCLASSTYPE classtype = nut->getUlamClassType();
-
-	if(classtype == UC_ELEMENT)
-	  bits = BITSPERATOM;
-
-	u32 totbitsize = bits * arraysize;
+	u32 totbitsize = nut->getSizeofUlamType();
 
 	s32 tmpVarNum = m_state.getNextTmpVarNumber();
 	TMPSTORAGE cstor = nut->getTmpStorageTypeForTmpVar();
@@ -872,6 +868,15 @@ namespace MFM {
 	  {
 	    UVPass uvpass = UVPass::makePass(tmpVarNum, cstor, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //default class data member as immediate
 	    m_nodeInitExpr->genCode(fp, uvpass);  //update initialized values before read (t41167)
+	    if(m_nodeInitExpr->isAConstantClass())
+	      {
+		m_state.indent(fp);
+		fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, cstor).c_str());
+		fp->write(".write("); //missing write? t41229
+		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+		fp->write(");"); GCNL;
+	      }
+	    //else redundant (t41199)
 	  }
 
 	m_state.indent(fp);

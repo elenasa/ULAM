@@ -1,11 +1,11 @@
 ## -*- mode:ulam -*-
 #=t41261_test_compiler_constantclassarray_issue
 ##
-## gen output: 2 asserts
-##
+## gen output: 3 asserts
+##     Unsigned Arg: 99
 #!
 Exit status: 0
-Ue_KeyExprRep { KeyExprNode m_key( typedef Unsigned(8) Byte;  Unsigned(8) m_leftIndex(1u);  Unsigned(8) m_rightIndex(2u);  Unsigned(8) m_keyCode(0u);  Unsigned(8) m_op(124u); );  Int(32) test() {  System s;  m_key keyexpr_x13 0 [] = s ( m_key m_rightIndex . 2u cast == )assert . s ( keyexpr_x13 1 [] m_rightIndex . 4u cast == )assert . 0 cast return } }
+Ue_KeyExprRep { KeyExprNode m_key( typedef Unsigned(8) Byte;  Unsigned(8) m_leftIndex(1u);  Unsigned(8) m_rightIndex(2u);  Unsigned(8) m_keyCode(0u);  Unsigned(8) m_op(124u); );  Int(32) test() {  System s;  m_key keyexpr_x13 0 [] = s ( m_key m_rightIndex . 2u cast == )assert . s ( keyexpr_x13 1 [] m_rightIndex . 4u cast == )assert . KeyExprNode mykeyexpr_x13[5] = keyexpr_x13;  s ( mykeyexpr_x13 2 [] m_keyCode . cast )print . s ( mykeyexpr_x13 2 [] m_keyCode . keyexpr_x13 2 [] m_keyCode . == )assert . 0 cast return } }
 Uq_KeyExprNode { typedef Unsigned(8) Byte;  Unsigned(8) m_leftIndex(0);  Unsigned(8) m_rightIndex(0);  Unsigned(8) m_keyCode(0);  Unsigned(8) m_op(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
@@ -29,6 +29,11 @@ element KeyExprRep {
     s.assert(m_key.m_rightIndex==2u);
 
     s.assert(keyexpr_x13[1].m_rightIndex==4u); //reads constant class array item
+
+    //read entire constant class array
+    KeyExprNode mykeyexpr_x13[5] = KeyExprNode keyexpr_x13;
+    s.print(mykeyexpr_x13[2].m_keyCode);
+    s.assert(mykeyexpr_x13[2].m_keyCode==keyexpr_x13[2].m_keyCode); //reads constant class array item
     return 0;
   }
 }

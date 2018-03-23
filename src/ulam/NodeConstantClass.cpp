@@ -460,29 +460,25 @@ namespace MFM {
     makeUVPassForCodeGen(uvpass);
 
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_constSymbol); //*********UPDATED GLOBAL;
-
-    // UNCLEAR: should this be consistent with constants?
-#if 1
-    Node::genCodeReadIntoATmpVar(fp, uvpass);
-#endif
-  } //genCode
+    Node::genCodeReadFromAConstantClassIntoATmpVar(fp, uvpass); //not a BV
+   } //genCode
 
   void NodeConstantClass::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
+    UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
+    if(nut->getUlamClassType()==UC_ELEMENT)
+      {
+	genCode(fp, uvpass); //t41243?
+	Node::genCodeConvertATmpVarIntoBitVector(fp,uvpass);
+	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, m_constSymbol);
+	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
+	return;
+      }
+
     assert(isReadyConstant()); //must be
-
     makeUVPassForCodeGen(uvpass);
+
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_constSymbol);
-
-    // make a temporary immediate of class constant type that can be
-    // referenced as a constant function parameter (t41238)
-#if 0
-    Node::genCodeReadIntoATmpVar(fp, uvpass);
-    Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass);
-
-    m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL);
-    m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
-#endif
     //******UPDATED GLOBAL; no restore!!!**************************
   } //genCodeToStoreInto
 

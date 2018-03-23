@@ -1030,6 +1030,8 @@ namespace MFM {
       return getLocalsFilescopeTheInstanceMangledNameByIndex(esuti);
 
     assert(esut->getUlamTypeEnum() == Class);
+    assert(!isClassAStub(esuti)); //t41223
+
     std::ostringstream esmangled;
     esmangled << esut->getUlamTypeMangledName().c_str();
     esmangled << "<EC>::THE_INSTANCE";
@@ -1491,7 +1493,7 @@ namespace MFM {
 	//static variable 'myRegNum' efficiency not worth it. Tue Jan 16 17:47:22 2018
 	//class data members may have strings (t3948)
 	indent(fp);
-	fp->write("//correct runtime regnum for strings\n");
+	fp->write("//correct runtime regnum for strings; data member inits\n");
 	getCurrentBlock()->genCodeDefaultValueStringRegistrationNumber(fp, 0);
       }
 
@@ -2044,6 +2046,27 @@ namespace MFM {
       } //end while
     return rtnb; //even for non-classes
   } //isClassASubclassOf
+
+  //return true if a superclass of the first arg starts with id.
+  // i.e. cuti is a subclass of superp. recurses the family tree.
+  bool CompilerState::findClassAncestorWithMatchingNameid(UTI cuti, u32 nameid, UTI& superp)
+  {
+    bool rtnb = false;
+    UTI prevuti = getUlamTypeAsDeref(cuti); //init for the loop
+    while(!rtnb && (prevuti != Nouti))
+      {
+	cuti = prevuti;
+	if(getUlamTypeByIndex(cuti)->getUlamTypeNameId() == nameid)
+	  {
+	    superp = cuti;
+	    rtnb = true;
+	    break;
+	  }
+	else
+	  prevuti = isClassASubclass(cuti);// ends w UrSelf who has no superclass
+      } //end while
+    return rtnb;
+  } //findClassAncestorWithMatchingNameid
 
   bool CompilerState::isClassAStub(UTI cuti)
   {

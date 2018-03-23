@@ -4,14 +4,14 @@
 
 namespace MFM {
 
-  NodeConstantClassArray::NodeConstantClassArray(const Token& tok, SymbolWithValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state) : Node(state), m_token(tok), m_nodeTypeDesc(typedesc), m_constSymbol(symptr), m_constType(Nouti), m_currBlockNo(0), m_currBlockPtr(NULL)
+  NodeConstantClassArray::NodeConstantClassArray(const Token& tok, SymbolWithValue * symptr, NodeTypeDescriptor * typedesc, CompilerState & state) : Node(state), m_token(tok), m_nodeTypeDesc(typedesc), m_constSymbol(symptr), m_constType(Nouti), m_currBlockNo(0), m_currBlockPtr(NULL), m_tmpvarSymbol(NULL)
   {
     assert(symptr);
     setBlockNo(symptr->getBlockNoOfST());
     m_constType = m_constSymbol->getUlamTypeIdx();
   }
 
-  NodeConstantClassArray::NodeConstantClassArray(const NodeConstantClassArray& ref) : Node(ref), m_token(ref.m_token), m_nodeTypeDesc(NULL), m_constSymbol(NULL), m_constType(ref.m_constType), m_currBlockNo(ref.m_currBlockNo), m_currBlockPtr(NULL)
+  NodeConstantClassArray::NodeConstantClassArray(const NodeConstantClassArray& ref) : Node(ref), m_token(ref.m_token), m_nodeTypeDesc(NULL), m_constSymbol(NULL), m_constType(ref.m_constType), m_currBlockNo(ref.m_currBlockNo), m_currBlockPtr(NULL), m_tmpvarSymbol(NULL)
   {
     //can we use the same address for a constant symbol?
     if(ref.m_nodeTypeDesc)
@@ -22,6 +22,9 @@ namespace MFM {
   {
     delete m_nodeTypeDesc;
     m_nodeTypeDesc = NULL;
+
+    delete m_tmpvarSymbol;
+    m_tmpvarSymbol = NULL;
   }
 
   Node * NodeConstantClassArray::instantiate()
@@ -385,12 +388,21 @@ namespace MFM {
 
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_constSymbol); //*********UPDATED GLOBAL;
 
-    // UNCLEAR: should this be consistent with constants?
-    Node::genCodeReadIntoATmpVar(fp, uvpass);
+    Node::genCodeReadFromAConstantClassIntoATmpVar(fp, uvpass);
   } //genCode
 
   void NodeConstantClassArray::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
+    UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
+    if(nut->getUlamClassType()==UC_ELEMENT)
+      {
+	genCode(fp, uvpass);
+	Node::genCodeConvertATmpVarIntoBitVector(fp,uvpass);
+	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, m_constSymbol);
+	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
+	return;
+      }
+
     assert(isReadyConstant()); //must be
     makeUVPassForCodeGen(uvpass);
 

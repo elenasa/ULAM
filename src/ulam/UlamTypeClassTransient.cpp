@@ -560,17 +560,20 @@ namespace MFM {
       {
 	//class instance idx is always the scalar uti
 	UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
-	const std::string scalarmangledName = m_state.getUlamTypeByIndex(scalaruti)->getUlamTypeMangledName();
+	UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
+	const std::string scalarmangledName = scalarut->getUlamTypeMangledName();
 	//reads an item of array
 	//2nd argument generated for compatibility with underlying method
 	m_state.indent(fp);
 	fp->write("const ");
 	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
 	fp->write(" readArrayItem(");
-	fp->write("const u32 index, const u32 itemlen) const { return BVS::"); //was const after )
-	fp->write(readArrayItemMethodForCodeGen().c_str());
-	fp->write("(index * itemlen, "); //const ref, rel offset
-	fp->write("itemlen); }"); GCNL;  //itemlen,
+	fp->write("const u32 index, const u32 itemlen) const { "); //return BVS::"); //was const after )
+	fp->write(scalarut->getTmpStorageTypeAsString().c_str()); //BV
+	fp->write(" rtnunpbv; this->BVS::");
+	fp->write(scalarut->readMethodForCodeGen().c_str());
+	fp->write("(index * itemlen, rtnunpbv); return rtnunpbv; ");
+	fp->write("} //reads item of BV"); GCNL;
       }
   } //genUlamTypeReadDefinitionForC
 

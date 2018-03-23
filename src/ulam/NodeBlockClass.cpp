@@ -1822,7 +1822,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write(namestrlong.c_str());
     fp->write("\", 0))\n");
 
-    genCodeConstantArrayInitialization(fp);
+    //genCodeConstantArrayInitialization(fp);
 
     m_state.indent(fp);
     fp->write("{\n");
@@ -1879,7 +1879,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write(namestrlong.c_str());
     fp->write("\", 0))\n");
 
-    genCodeConstantArrayInitialization(fp);
+    //genCodeConstantArrayInitialization(fp); t41198 constants now static
 
     m_state.indent(fp);
     fp->write("{ }\n\n");
@@ -1921,7 +1921,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write(namestrlong.c_str());
     fp->write("\", 0))\n");
 
-    genCodeConstantArrayInitialization(fp);
+    //genCodeConstantArrayInitialization(fp);
 
     m_state.indent(fp);
     fp->write("{ }\n\n");
@@ -1961,7 +1961,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("() : UlamClass<EC");
     fp->write(">()\n");
 
-    genCodeConstantArrayInitialization(fp);
+    //genCodeConstantArrayInitialization(fp); //t41238
 
     m_state.indent(fp);
     fp->write("{ }\n\n");
@@ -2611,7 +2611,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   void NodeBlockClass::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
   {
-    if(m_nodeArgumentList)
+    if(m_nodeArgumentList) //t3894, t41209
       m_nodeArgumentList->generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
 
     if(m_nodeNext)

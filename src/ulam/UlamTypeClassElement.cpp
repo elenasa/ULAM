@@ -502,7 +502,7 @@ namespace MFM {
     //constructor for constants (t41230); MFM Element Type not in place yet
     m_state.indent(fp);
     fp->write(mangledName.c_str());
-    fp->write("(const u32 *");
+    fp->write("(const u32 * const ");
     fp->write("arg) : AtomBitStorage<EC>() { if(arg==NULL) FAIL(NULL_POINTER); ");
     fp->write("this->m_stg.GetBits().FromArray(arg); }"); GCNL;
 

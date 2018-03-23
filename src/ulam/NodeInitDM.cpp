@@ -440,10 +440,12 @@ namespace MFM {
 
     u32 pos = symptr->getPosOffset();
 
+    m_posOfDM = pos; //don't include the element adjustment (t41176)
+
     if(m_state.getUlamTypeByIndex(m_ofClassUTI)->getUlamClassType() == UC_ELEMENT)
       pos += ATOMFIRSTSTATEBITPOS; //t41230
 
-    m_posOfDM = pos;
+    //m_posOfDM = pos; t41176
 
     UTI nuti = m_constSymbol->getUlamTypeIdx();
     assert(UlamType::compare(nuti, getNodeType(), m_state) == UTIC_SAME);
@@ -636,8 +638,8 @@ namespace MFM {
 	AssertBool isDef = m_state.findSymbolInAClass(m_cid, m_ofClassUTI, asymptr, hazyKin);
 	assert(isDef);
 	pos = asymptr->getPosOffset();
-	if(m_state.getUlamTypeByIndex(m_ofClassUTI)->getUlamClassType() == UC_ELEMENT)
-	  pos += ATOMFIRSTSTATEBITPOS; //t41230
+	//if(m_state.getUlamTypeByIndex(m_ofClassUTI)->getUlamClassType() == UC_ELEMENT)
+	//  pos += ATOMFIRSTSTATEBITPOS; //t41230, t41184
 	m_posOfDM = pos;
       }
     else
@@ -675,6 +677,7 @@ namespace MFM {
 	if(vclasstype == UC_ELEMENT)
 	  isVarElement = true;
       }
+    //UlamType * ofcut = m_state.getUlamTypeByIndex(m_ofClassUTI); //t41199
 
     if( (etyp == Class))
       {
@@ -737,7 +740,9 @@ namespace MFM {
 	else
 	  fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //tmp class storage
 	fp->write(".");
-	fp->write(nut->writeMethodForCodeGen().c_str()); //e.g. Write, WriteLong, etc
+	//	fp->write(nut->writeMethodForCodeGen().c_str()); //e.g. Write, WriteLong, etc
+	//fp->write(ofcut->writeMethodForCodeGen().c_str()); //e.g. Write, WriteLong, etc
+	fp->write(nut->writeMethodForCodeGen().c_str()); //e.g. Write, WriteLong, etc (t41176)
 	fp->write("(");
 	if(isVarElement)
 	  fp->write("T::ATOM_FIRST_STATE_BIT + "); //t41175
@@ -773,6 +778,8 @@ namespace MFM {
 	else
 	  fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //tmp class storage
 	fp->write(".");
+	//	fp->write(nut->writeMethodForCodeGen().c_str()); //e.g. Write, WriteLong, etc
+	//fp->write(ofcut->writeMethodForCodeGen().c_str()); //e.g.Write,WriteLong,etc (t41199)
 	fp->write(nut->writeMethodForCodeGen().c_str()); //e.g. Write, WriteLong, etc
 	fp->write("(");
 	if(isVarElement)
