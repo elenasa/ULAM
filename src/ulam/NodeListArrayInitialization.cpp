@@ -380,7 +380,6 @@ namespace MFM{
 	//propagate last value for any remaining items not initialized
 	if(n < (u32) arraysize)
 	  {
-	    //u32 itemlen = nut->getBitSize();
 	    UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
 	    u32 itemlen = m_state.getUlamTypeByIndex(scalaruti)->getSizeofUlamType();
 
@@ -403,7 +402,6 @@ namespace MFM{
     UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
     UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
     u32 itemlen = scalarut->getSizeofUlamType();
-    //ULAMCLASSTYPE classtype = scalarut->getUlamClassType();
     u32 adjust = 0; //(classtype == UC_ELEMENT ? ATOMFIRSTSTATEBITPOS : 0);
 
     BV8K bvclass;
@@ -709,7 +707,6 @@ namespace MFM{
     u32 n = m_nodes.size();
     assert(n > 0);
     assert(m_nodes[0]->isClassInit()); //what if class constant?
-    //u32 itemlen = m_state.getBitSize(nuti);
     u32 itemlen = m_state.getUlamTypeByIndex(scalaruti)->getSizeofUlamType(); //atom-based for element as data member
 
     bool rtnok = true;

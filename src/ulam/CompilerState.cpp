@@ -2476,7 +2476,6 @@ namespace MFM {
     UTI newstubcopyuti = makeUlamType(newstubkey, Class, superclasstype); //**gets next unknown uti type
 
     SymbolClass * superstubcopy = superctsym->copyAStubClassInstance(superuti, newstubcopyuti, argvaluecontext, argtypecontext, stubloc); //t3365. t41221
-    //superctsym->copyAStubClassInstance(superuti, newstubcopyuti, supercsym->getContextForPendingArgValues(), supercsym->getContextForPendingArgTypes(), supercsym->getLoc()); //t3365. t41221
     superctsym->mergeClassInstancesFromTEMP(); //not mid-iteration!!
 
     if(superstubcopy && !superstubcopy->pendingClassArgumentsForClassInstance())
@@ -3191,7 +3190,6 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
     if(m_currentFunctionReturnNodes.empty())
       {
-	//if((it != Void) && !fsym->isNativeFunctionDeclaration() && (!fsym->isVirtualFunction() || !fsym->isPureVirtualFunction()))
 	if((it != Void) && !fsym->isNativeFunctionDeclaration() && (!fsym->isVirtualFunction() || !fsym->isPureVirtualFunction()) && !fsym->isConstructorFunction())
 	  {
 	    std::ostringstream msg;

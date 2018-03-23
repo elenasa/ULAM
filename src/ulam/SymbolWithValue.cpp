@@ -559,18 +559,7 @@ namespace MFM {
     if(!oktoprint) return false;
 
     u32 totlen = m_state.getUlamTypeByIndex(getUlamTypeIdx())->getSizeofUlamType();
-#if 0
-    if(totlen < MAXBITSPERINT)
-      {
-	//a quark!
-	u32 uval = bval.Read(0u, totlen);
-	std::ostringstream ostr;
-	ostr << "0x" << std::hex << uval; //like NonPretty for Class case
-	rtnstr = ostr.str();
-      }
-    else
-#endif
-      SymbolWithValue::getHexValueAsString(totlen, bval, rtnstr);
+    SymbolWithValue::getHexValueAsString(totlen, bval, rtnstr);
     return true;
   } //getClassValueAsHexString
 

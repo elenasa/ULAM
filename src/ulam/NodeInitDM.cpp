@@ -638,9 +638,7 @@ namespace MFM {
 	AssertBool isDef = m_state.findSymbolInAClass(m_cid, m_ofClassUTI, asymptr, hazyKin);
 	assert(isDef);
 	pos = asymptr->getPosOffset();
-	//if(m_state.getUlamTypeByIndex(m_ofClassUTI)->getUlamClassType() == UC_ELEMENT)
-	//  pos += ATOMFIRSTSTATEBITPOS; //t41230, t41184
-	m_posOfDM = pos;
+	m_posOfDM = pos; //no adjust for elements here (t41230, t41184)
       }
     else
       {
@@ -677,7 +675,6 @@ namespace MFM {
 	if(vclasstype == UC_ELEMENT)
 	  isVarElement = true;
       }
-    //UlamType * ofcut = m_state.getUlamTypeByIndex(m_ofClassUTI); //t41199
 
     if( (etyp == Class))
       {
@@ -740,8 +737,6 @@ namespace MFM {
 	else
 	  fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //tmp class storage
 	fp->write(".");
-	//	fp->write(nut->writeMethodForCodeGen().c_str()); //e.g. Write, WriteLong, etc
-	//fp->write(ofcut->writeMethodForCodeGen().c_str()); //e.g. Write, WriteLong, etc
 	fp->write(nut->writeMethodForCodeGen().c_str()); //e.g. Write, WriteLong, etc (t41176)
 	fp->write("(");
 	if(isVarElement)
@@ -778,8 +773,6 @@ namespace MFM {
 	else
 	  fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //tmp class storage
 	fp->write(".");
-	//	fp->write(nut->writeMethodForCodeGen().c_str()); //e.g. Write, WriteLong, etc
-	//fp->write(ofcut->writeMethodForCodeGen().c_str()); //e.g.Write,WriteLong,etc (t41199)
 	fp->write(nut->writeMethodForCodeGen().c_str()); //e.g. Write, WriteLong, etc
 	fp->write("(");
 	if(isVarElement)

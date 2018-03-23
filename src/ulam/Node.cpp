@@ -706,11 +706,12 @@ namespace MFM {
     // handled as genCodeConvertATmpVarIntoCustomArrayAutoRef
     //assert(!isCurrentObjectACustomArrayItem(cosuti, uvpass));
 
-    //no actual storage taken up by constant class, we have its initialized default value
-#if 1
+    //no actual storage taken up by constant class, we have its initialized default value;
+    // may need to read a data member (t41198)
     if(isCurrentObjectsContainingAConstantClass() >= 0)
-      return genCodeReadFromAConstantClassIntoATmpVar(fp, uvpass); //t41198
-#endif
+      {
+	return genCodeReadFromAConstantClassIntoATmpVar(fp, uvpass);
+      }
 
     // write out intermediate tmpVar (i.e. terminal) as temp BitVector arg
     // e.g. when func call is rhs of secondary member select
@@ -1146,7 +1147,7 @@ namespace MFM {
     luvpass = UVPass::makePass(tmpVarNum, slstor, scalarluti, m_state.determinePackable(scalarluti), m_state, 0, 0); //POS 0 justified (atom-based).
 
     //WHENEVER the second pass after element registration comes; this won't be needed!!
-    // HEADS UP!! doesn't fix data member elements (e.g. in a transient)
+    // HEADS UP!! doesn't fix data member elements (e.g. in a transient, t41267)
     if((sclasstype == UC_ELEMENT))
       {
 	m_state.indent(fp);
@@ -1174,88 +1175,6 @@ namespace MFM {
    // note: Ints not sign extended until used/cast
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeReadArrayItemFromAConstantClassIntoATmpVar
-
-#if 0
-  void Node::genCodeReadArrayItemFromAConstantClassIntoATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass)
-  {
-    //index is a variable, not known at compile time;
-    UTI luti = luvpass.getPassTargetType(); //replaces vuti w target type
-    assert(luti != Void);
-    assert(!m_state.isScalar(luti));
-
-    Symbol * stgcos = NULL;
-    Symbol * cos = NULL;
-    loadStorageAndCurrentObjectSymbols(stgcos, cos);
-    assert(stgcos && cos);
-
-    //now for the array item read at index in ruvpass tmp var
-    UTI scalarluti = m_state.getUlamTypeAsScalar(luti);
-    UlamType * scalarlut = m_state.getUlamTypeByIndex(scalarluti);
-    u32 itemlen = scalarlut->getSizeofUlamType(); //atom-based for elements
-    TMPSTORAGE slstor = scalarlut->getTmpStorageTypeForTmpVar();
-    ULAMCLASSTYPE sclasstype = scalarlut->getUlamClassType();
-
-    s32 tmpVarNum = m_state.getNextTmpVarNumber();
-    m_state.indentUlamCode(fp);
-    if((sclasstype != UC_ELEMENT))
-      fp->write("const "); //need to fix Element Type field
-    fp->write(scalarlut->getTmpStorageTypeAsString().c_str()); //u32, u64, T, BV<x>
-    fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(scalarluti, tmpVarNum, slstor).c_str());
-    fp->write(" = ");
-
-    genConstantClassMangledName(fp); //t41198
-#if 0
-    if(stgcos->isDataMember())
-      {
-	fp->write(m_state.getTheInstanceMangledNameByIndex(stgcos->getDataMemberClass()).c_str());
-	fp->write(".");
-      }
-    else if(stgcos->isLocalsFilescopeDef())
-      {
-	fp->write(m_state.getTheInstanceMangledNameByIndex(stgcos->getLocalsFilescopeType()).c_str());
-	fp->write(".");
-      }
-    fp->write(stgcos->getMangledName().c_str()); //constant name
-#endif
-
-    fp->write(".readArrayItem(");
-    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-    fp->write(", ");
-    fp->write_decimal_unsigned(itemlen);
-    fp->write("u);"); GCNL;
-
-    luvpass = UVPass::makePass(tmpVarNum, slstor, scalarluti, m_state.determinePackable(scalarluti), m_state, 0, 0); //POS 0 justified (atom-based).
-
-    //WHENEVER the second pass after element registration comes; this won't be needed!!
-    if((sclasstype == UC_ELEMENT))
-      {
-	m_state.indent(fp);
-	fp->write("{\n"); //limit scope of 'typefield' and 'gda'
-	m_state.m_currentIndentLevel++;
-
-	m_state.indent(fp);
-	fp->write("AtomBitStorage<EC> gda(");
-	fp->write(m_state.getTheInstanceMangledNameByIndex(scalarluti).c_str());
-	fp->write(".GetDefaultAtom());"); GCNL;
-
-	m_state.indent(fp);
-	fp->write("u32 typefield = gda.Read(0u, T::ATOM_FIRST_STATE_BIT);"); GCNL; //can't use GetType");
-
-	m_state.indent(fp);
-	fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	fp->write(".GetBits().Write(");
-	fp->write_decimal_unsigned(0);
-	fp->write("u, T::ATOM_FIRST_STATE_BIT, typefield);"); GCNL;
-
-	m_state.m_currentIndentLevel--;
-	m_state.indent(fp);
-	fp->write("}\n");
-      }
-   // note: Ints not sign extended until used/cast
-    m_state.clearCurrentObjSymbolsForCodeGen();
-  } //genCodeReadArrayItemFromAConstantClassIntoATmpVar
-#endif
 
   void Node::genCodeReadSelfIntoATmpVar(File * fp, UVPass & uvpass)
   {

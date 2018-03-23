@@ -896,7 +896,7 @@ namespace MFM {
       }
     else if(Node::isCurrentObjectsContainingAConstantClass() >= 0)
       {
-#if 1
+	//efficiency, for constant indexes of constant class arrays
 	if(m_nodeRight->isAConstant())
 	  {
 	    s32 rindex;
@@ -916,7 +916,6 @@ namespace MFM {
 	      }
 	  }
 	else
-#endif
 	  {
 	    genCodeToStoreInto(fp, uvpass); //t41198
 	    m_state.clearCurrentObjSymbolsForCodeGen();
@@ -927,7 +926,6 @@ namespace MFM {
 
     genCodeToStoreInto(fp, uvpass);
 
-    //if(!isString || m_state.isReference(uvpass.getPassTargetType())) //t3953,t3973, not isAltRefType t3908
     if(!(isString || m_nodeLeft->isAConstant()) || m_state.isReference(uvpass.getPassTargetType())) //t3953,t3973, not isAltRefType t3908, constant class (t41266)
       Node::genCodeReadIntoATmpVar(fp, uvpass); //splits on array item
     else
