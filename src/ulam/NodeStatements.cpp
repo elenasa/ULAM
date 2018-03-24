@@ -214,6 +214,15 @@ namespace MFM {
     return;
   }
 
+  void NodeStatements::genFixStringRegistrationNumberInConstantClass(File * fp, UVPass & uvpass)
+  {
+    if(m_node)
+      m_node->genFixStringRegistrationNumberInConstantClass(fp, uvpass);
+    if(m_nodeNext)
+      m_nodeNext->genFixStringRegistrationNumberInConstantClass(fp, uvpass);
+    return;
+  }
+
   void NodeStatements::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
   {
     if(m_node)

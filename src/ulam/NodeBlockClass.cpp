@@ -1026,6 +1026,19 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       m_nodeNext->genCodeDefaultValueStringRegistrationNumber(fp, startpos); //side-effect for dm vardecls
   }
 
+  void NodeBlockClass::genFixStringRegistrationNumberInConstantClass(File * fp, UVPass & uvpass)
+  {
+    if((m_state.isClassASubclass(getNodeType()) != Nouti))
+      {
+	NodeBlockClass * superblock = getSuperBlockPointer();
+	assert(superblock);
+	superblock->genFixStringRegistrationNumberInConstantClass(fp, uvpass);
+      }
+
+    if(m_nodeNext)
+      m_nodeNext->genFixStringRegistrationNumberInConstantClass(fp, uvpass); //side-effect for dm vardecls
+  } //genFixStringRegistrationNumberInConstantClass
+
   void NodeBlockClass::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
   {
     if((m_state.isClassASubclass(getNodeType()) != Nouti))

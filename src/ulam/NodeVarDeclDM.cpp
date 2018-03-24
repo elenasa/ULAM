@@ -697,7 +697,18 @@ namespace MFM {
     assert(m_varSymbol->isDataMember());
 
     if(!m_varSymbol->isPosOffsetReliable())
-      return false;
+      {
+	UTI vuti = m_varSymbol->getUlamTypeIdx();
+	if(m_state.isAClass(vuti))
+	  {
+	    m_state.tryToPackAClass(vuti);
+	    if(!m_varSymbol->isPosOffsetReliable())
+	      return false;
+	    //else continue
+	  }
+	else
+	  return false; //not a class
+      }
 
     bool aok = false; //init as not ready
     UTI nuti = getNodeType(); //same as symbol uti, unless prior error
@@ -745,7 +756,7 @@ namespace MFM {
 
 		//updates dvref in place at position 'pos'
 		if(aok)
-		  dmdv.CopyBV(0, pos, nut->getTotalBitSize(), dvref); //both scalar and arrays (t41185)
+		  dmdv.CopyBV(0, pos, nut->getSizeofUlamType(), dvref); //both scalar and arrays (t41185, t41267)
 	      }
 	    //else not ok
 	  }
@@ -836,13 +847,19 @@ namespace MFM {
 	    fp->write("initBV.Write(");
 	    fp->write_decimal_unsigned(pos + startpos);
 	    fp->write("u + ");
-	    fp->write_decimal_unsigned(i * MAXBITSPERINT);
+	    fp->write_decimal_unsigned(i * (REGNUMBITS + STRINGIDXBITS));
 	    fp->write("u, ");
 	    fp->write_decimal_unsigned(REGNUMBITS);
 	    fp->write("u, ");
 	    fp->write(m_state.getTheInstanceMangledNameByIndex(regid).c_str());
 	    fp->write(".GetRegistrationNumber()); //");
 	    fp->write(m_varSymbol->getMangledName().c_str()); //comment
+	    if(!nut->isScalar())
+	      {
+		fp->write("[");
+		fp->write_decimal_unsigned(i);
+		fp->write("]");
+	      }
 	    GCNL;
 	  } //for loop
       }
@@ -911,6 +928,74 @@ namespace MFM {
 	fp->write("\n");
       } //a class
   } //genCodeDefaultValueStringRegistrationNumber
+
+  void NodeVarDeclDM::genFixStringRegistrationNumberInConstantClass(File * fp, UVPass & uvpass)
+  {
+    assert(m_varSymbol);
+    assert(m_varSymbol->isDataMember());
+
+    UTI nuti = getNodeType(); //same as symbol uti, unless prior error
+    assert(nuti == m_varSymbol->getUlamTypeIdx());
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    u32 bits = nut->getBitSize();
+    if(bits == 0)
+      return;
+
+    ULAMTYPE etyp = nut->getUlamTypeEnum();
+    u32 pos = m_varSymbol->getPosOffset(); //must be reliable!!
+    u32 arraysize = nut->isScalar() ? 1 : nut->getArraySize();
+
+    UTI dmclassuti = m_varSymbol->getDataMemberClass();
+    bool elementDM = (m_state.getUlamTypeByIndex(dmclassuti)->getUlamClassType() == UC_ELEMENT);
+
+    if(etyp == String)
+      {
+	UTI regid = m_state.getCompileThisIdx();
+	BV8K tmpbv8k;
+
+	if(hasInitExpr())
+	  {
+	    AssertBool gotValue = ((SymbolWithValue *) m_varSymbol)->getInitValue(tmpbv8k);
+	    assert(gotValue);
+	  }
+
+	//generate code to replace uti in string index with runtime registration number
+	// remove myRegNum static variable for more general way (Sun Jan 21 10:11:24 2018)
+	for(u32 i = 0; i < arraysize; i++)
+	  {
+	    if(hasInitExpr())
+	      {
+		regid = (UTI) tmpbv8k.Read(0 + i * (REGNUMBITS + STRINGIDXBITS), REGNUMBITS);
+		assert(regid > 0);
+	      }
+
+	    m_state.indent(fp);
+	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	    if(elementDM)
+	      fp->write(".GetBits()");
+
+	    fp->write(".Write(");
+	    fp->write_decimal_unsigned(pos);
+	    fp->write("u + ");
+	    if(elementDM)
+	      fp->write("T::ATOM_FIRST_STATE_BIT + ");
+	    fp->write_decimal_unsigned(i * (REGNUMBITS + STRINGIDXBITS));
+	    fp->write("u, ");
+	    fp->write_decimal_unsigned(REGNUMBITS);
+	    fp->write("u, ");
+	    fp->write(m_state.getTheInstanceMangledNameByIndex(regid).c_str());
+	    fp->write(".GetRegistrationNumber()); //");
+	    fp->write(m_varSymbol->getMangledName().c_str()); //comment
+	    if(!nut->isScalar())
+	      {
+		fp->write("[");
+		fp->write_decimal_unsigned(i);
+		fp->write("]");
+	      }
+	    GCNL;
+	  } //for loop
+      }
+  } //genFixStringRegistrationNumberInConstantClass
 
   void NodeVarDeclDM::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
   {

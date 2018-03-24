@@ -392,11 +392,12 @@ namespace MFM {
   void NodeConstantClassArray::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
     UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
-    if(nut->getUlamClassType()==UC_ELEMENT)
+    if(nut->getUlamClassType()==UC_ELEMENT) //not Transients too???
       {
 	genCode(fp, uvpass);
 	Node::genCodeConvertATmpVarIntoBitVector(fp,uvpass);
 	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, m_constSymbol);
+	m_tmpvarSymbol->setDivinedByConstantClass();
 	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
 	return;
       }

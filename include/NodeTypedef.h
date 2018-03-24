@@ -86,6 +86,8 @@ namespace MFM{
 
     virtual void genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos);
 
+    virtual void genFixStringRegistrationNumberInConstantClass(File * fp, UVPass & uvpass);
+
     virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
 
     virtual EvalStatus eval();

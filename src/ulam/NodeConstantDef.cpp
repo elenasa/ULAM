@@ -1000,6 +1000,11 @@ namespace MFM {
     return; //pass on
   }
 
+  void NodeConstantDef::genFixStringRegistrationNumberInConstantClass(File * fp, UVPass & uvpass)
+  {
+    return; //pass on, i think..
+  }
+
   void NodeConstantDef::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
   {
     return;

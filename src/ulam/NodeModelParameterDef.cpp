@@ -81,6 +81,11 @@ namespace MFM {
     return;
   }
 
+  void NodeModelParameterDef::genFixStringRegistrationNumberInConstantClass(File * fp, UVPass & uvpass)
+  {
+    return;
+  }
+
   void NodeModelParameterDef::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
   {
     return;

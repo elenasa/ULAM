@@ -977,6 +977,7 @@ namespace MFM {
 	if(m_state.isAClass(cossuti))
 	  Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass); //not for t41198, for t41263
 	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks
+	m_tmpvarSymbol->setDivinedByConstantClass();
 	//m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore the prior stack?
 	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
 	return; //no tmpvarsymbol? t41261

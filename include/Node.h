@@ -191,6 +191,8 @@ namespace MFM{
 
     virtual void genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos);
 
+    virtual void genFixStringRegistrationNumberInConstantClass(File * fp, UVPass & uvpass);
+
     virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
 
     virtual bool installSymbolTypedef(TypeArgs& args, Symbol *& asymptr);
@@ -344,8 +346,9 @@ namespace MFM{
     virtual void checkForSymbol();
 
     void genCodeReadElementTypeField(File * fp, UVPass & uvpass);
-
     void restoreElementTypeForAncestorCasting(File * fp, UVPass & uvpass);
+    void genFixForElementTypeFieldInConstantClass(File * fp, UVPass & uvpass);
+    void genFixForStringRegNumInConstantClass(File * fp, UVPass & uvpass);
 
     //common helpers for safe casting
     bool buildCastingFunctionCallNode(Node * node, UTI tobeType, Node*& rtnNode);

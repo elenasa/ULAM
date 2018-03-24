@@ -101,7 +101,7 @@ namespace MFM {
 	it++;
       } //while next data member symbol
     return rtnb;
-  } //hasUlamTypeSymbolsInTable
+  } //hasADataMemberStringInitValueInClass (unused)
 
   u32 SymbolTableOfVariables::findTypedefSymbolNameIdByTypeInTable(UTI type)
   {

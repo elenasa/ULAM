@@ -538,6 +538,12 @@ namespace MFM {
     return; //pass on
   }
 
+  void NodeInitDM::genFixStringRegistrationNumberInConstantClass(File * fp, UVPass & uvpass)
+  {
+    m_state.abortNotImplementedYet(); //???
+    return; //pass on
+  }
+
   void NodeInitDM::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
   {
     m_state.abortNotImplementedYet(); //???

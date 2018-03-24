@@ -471,6 +471,7 @@ namespace MFM {
 	genCode(fp, uvpass); //t41243?
 	Node::genCodeConvertATmpVarIntoBitVector(fp,uvpass);
 	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, m_constSymbol);
+	m_tmpvarSymbol->setDivinedByConstantClass();
 	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
 	return;
       }
