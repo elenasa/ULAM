@@ -486,7 +486,7 @@ namespace MFM {
     return;
   }
 
-  void Node::genFixStringRegistrationNumberInConstantClass(File * fp, UVPass & uvpass)
+  void Node::genFixStringRegistrationNumberInConstantClass(File * fp, const UVPass & uvpass)
   {
     m_state.abortShouldntGetHere();
     return;
@@ -816,8 +816,7 @@ namespace MFM {
 	    if(cblock->hasStringDataMembers())
 	      {
 		//want something like NodeVarDeclDM:848
-		//m_state.abortNotImplementedYet(); //t41267
-		cblock->genFixStringRegistrationNumberInConstantClass(fp, uvpass);
+		cblock->genFixStringRegistrationNumberInConstantClass(fp, uvpass); //t41267
 	      }
 	  }
 	else if(cosut->getUlamTypeEnum() == String)
@@ -933,9 +932,8 @@ namespace MFM {
 	assert(cblock);
 	if(cblock->hasStringDataMembers())
 	  {
-	    //want something like NodeVarDeclDM:848
-	    //m_state.abortNotImplementedYet(); //t41267
-	    cblock->genFixStringRegistrationNumberInConstantClass(fp, uvpass);
+	    //something like NodeVarDeclDM:848
+	    cblock->genFixStringRegistrationNumberInConstantClass(fp, uvpass); //t41267
 	  }
       }
     else if(cosut->getUlamTypeEnum() == String)
@@ -1169,7 +1167,7 @@ namespace MFM {
     luvpass = UVPass::makePass(tmpVarNum, slstor, scalarluti, m_state.determinePackable(scalarluti), m_state, 0, 0); //POS 0 justified (atom-based).
 
     //WHENEVER the second pass after element registration comes; this won't be needed!!
-    // HEADS UP!! doesn't fix data member elements (e.g. in a transient, t41267)
+    // fixes data member elements (e.g. in a transient, t41267)
     if((sclasstype == UC_ELEMENT))
       {
 	genFixForElementTypeFieldInConstantClass(fp, luvpass);
@@ -1181,9 +1179,8 @@ namespace MFM {
 	assert(cblock);
 	if(cblock->hasStringDataMembers())
 	  {
-	    //want something like NodeVarDeclDM:848
-	    //m_state.abortNotImplementedYet(); //t41267
-	    cblock->genFixStringRegistrationNumberInConstantClass(fp, luvpass);
+	    //something like NodeVarDeclDM:848
+	    cblock->genFixStringRegistrationNumberInConstantClass(fp, luvpass); //t41267
 	  }
       }
     else if(m_state.getUlamTypeByIndex(cosuti)->getUlamTypeEnum() == String)
@@ -1559,7 +1556,7 @@ namespace MFM {
   } //restoreElementTypeForAncestorCasting
 
   //WHENEVER the second pass after element registration comes; this won't be needed!!
-  void Node::genFixForElementTypeFieldInConstantClass(File * fp, UVPass & uvpass)
+  void Node::genFixForElementTypeFieldInConstantClass(File * fp, const UVPass & uvpass)
   {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     UTI vuti = uvpass.getPassTargetType();
@@ -1567,20 +1564,6 @@ namespace MFM {
     assert(vut->getUlamClassType() == UC_ELEMENT);
 
     u32 pos = uvpass.getPassPos(); //POS 0 justified (atom-based)
-
-#if 0
-    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
-    UTI cosuti = cos->getUlamTypeIdx();
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    assert(cosut->getUlamClassType() == UC_ELEMENT);
-
-    u32 cospos = 0;
-    if(cos->isDataMember())
-      {
-	assert(((SymbolVariableDataMember *) cos)->isPosOffsetReliable());
-	cospos = ((SymbolVariableDataMember *) cos)->getPosOffset();
-      }
-#endif
 
     m_state.indent(fp);
     fp->write("{\n"); //limit scope of 'gda' and 'typefield'
@@ -1620,7 +1603,7 @@ namespace MFM {
   } //genFixForElementTypeFieldInConstantClass
 
   //WHENEVER the second pass after element registration comes; this won't be needed!!
-  void Node::genFixForStringRegNumInConstantClass(File * fp, UVPass & uvpass)
+  void Node::genFixForStringRegNumInConstantClass(File * fp, const UVPass & uvpass)
   {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     UTI vuti = uvpass.getPassTargetType();
@@ -1629,8 +1612,6 @@ namespace MFM {
 
     u32 pos = uvpass.getPassPos(); //POS 0 justified (atom-based)
 
-    //Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-    //UTI stgcosuti = stgcos->getUlamTypeIdx();
     Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
@@ -2752,7 +2733,7 @@ namespace MFM {
     return rtnB;
   } //warnOfNarrowingCast
 
-  void Node::genMemberNameOfMethod(File * fp, UVPass& uvpass, bool endingdot)
+  void Node::genMemberNameOfMethod(File * fp, const UVPass& uvpass, bool endingdot)
   {
     assert(!isCurrentObjectALocalVariableOrArgument());
 
@@ -2968,7 +2949,7 @@ namespace MFM {
   // the second hidden arg, ur/self, may need modification for
   // function calls, including custom array accessors.
   // formerly in NodeFunctionCall; duplicated as genHiddenArg2ForCustomArray
-  std::string Node::genHiddenArg2(UVPass uvpass, u32& urtmpnumref)
+  std::string Node::genHiddenArg2(const UVPass& uvpass, u32& urtmpnumref)
   {
     bool sameur = true;
     u32 tmpvar = m_state.getNextTmpVarNumber();
@@ -3071,7 +3052,7 @@ namespace MFM {
     return hiddenarg2.str();
   } //genHiddenArg2
 
-  void Node::genLocalMemberNameOfMethod(File * fp, UVPass& uvpass)
+  void Node::genLocalMemberNameOfMethod(File * fp, const UVPass& uvpass)
   {
     assert(isCurrentObjectALocalVariableOrArgument());
     // model parameter has its own storage, like a local
@@ -3093,7 +3074,7 @@ namespace MFM {
     return;
   } //genLocalMemberNameOfMethod
 
-  void Node::genLocalMemberNameOfMethodByUsTypedef(File * fp, UVPass& uvpass)
+  void Node::genLocalMemberNameOfMethodByUsTypedef(File * fp, const UVPass& uvpass)
   {
     assert(isCurrentObjectALocalVariableOrArgument());
     // model parameter has its own storage, like a local
@@ -3203,7 +3184,7 @@ namespace MFM {
     return;
   } //genLocalMemberNameOfMethodByUsTypedef
 
-  void Node::genLocalMemberNameOfMethodForAtomof(File * fp, UVPass& uvpass)
+  void Node::genLocalMemberNameOfMethodForAtomof(File * fp, const UVPass& uvpass)
   {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     //assert(isCurrentObjectALocalVariableOrArgument()); //might be self t3907
@@ -3368,17 +3349,17 @@ namespace MFM {
     return m_state.getUlamTypeByIndex(nuti)->getLocalStorageTypeAsString();
   }
 
-  const std::string Node::tmpStorageTypeForRead(UTI nuti, UVPass uvpass)
+  const std::string Node::tmpStorageTypeForRead(UTI nuti, const UVPass& uvpass)
   {
     return m_state.getUlamTypeByIndex(nuti)->getTmpStorageTypeAsString();
   }
 
-  const std::string Node::tmpStorageTypeForReadArrayItem(UTI nuti, UVPass uvpass)
+  const std::string Node::tmpStorageTypeForReadArrayItem(UTI nuti, const UVPass& uvpass)
   {
     return m_state.getUlamTypeByIndex(nuti)->getArrayItemTmpStorageTypeAsString();
   } //tmpStorageTypeForReadArrayItem
 
-  const std::string Node::readMethodForCodeGen(UTI nuti, UVPass uvpass)
+  const std::string Node::readMethodForCodeGen(UTI nuti, const UVPass& uvpass)
   {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     std::string method;
@@ -3401,7 +3382,7 @@ namespace MFM {
     return method;
   } //readMethodForCodeGen
 
-  const std::string Node::readArrayItemMethodForCodeGen(UTI nuti, UVPass uvpass)
+  const std::string Node::readArrayItemMethodForCodeGen(UTI nuti, const UVPass& uvpass)
   {
     std::string method;
     bool isCArray = isCurrentObjectACustomArrayItem(nuti, uvpass);
@@ -3417,7 +3398,7 @@ namespace MFM {
     return method;
   } //readArrayItemMethodForCodeGen
 
-  const std::string Node::writeMethodForCodeGen(UTI nuti, UVPass uvpass)
+  const std::string Node::writeMethodForCodeGen(UTI nuti, const UVPass& uvpass)
   {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     std::string method;
@@ -3439,7 +3420,7 @@ namespace MFM {
     return method;
   } //writeMethodForCodeGen
 
-  const std::string Node::writeArrayItemMethodForCodeGen(UTI nuti, UVPass uvpass)
+  const std::string Node::writeArrayItemMethodForCodeGen(UTI nuti, const UVPass& uvpass)
   {
     std::string method;
     bool isCArray = isCurrentObjectACustomArrayItem(nuti, uvpass);
@@ -3570,7 +3551,6 @@ namespace MFM {
 	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
 	UTI suti = sym->getUlamTypeIdx(); //possibly array of classes
 	if(sym->isConstant() && m_state.isAClass(suti))
-	//if(m_state.isAClass(suti) && (sym->isConstant() || (sym->isTmpVarSymbol() && ((SymbolTmpVar *)sym)->divinedByConstantClass())))
 	  {
 	    indexOfLast = i;
 	    break;
@@ -3600,7 +3580,7 @@ namespace MFM {
 
   // used by genHiddenArg2 for function calls; uvpass may contain the index
   // of an array item, o.w. the current arg's tmp var (unneeded here).
-  std::string Node::calcPosOfCurrentObjectClassesAsString(UVPass uvpass)
+  std::string Node::calcPosOfCurrentObjectClassesAsString(const UVPass& uvpass)
   {
     s32 pos = uvpass.getPassPos();
 
@@ -3621,14 +3601,14 @@ namespace MFM {
   } //calcPosOfCurrentObjectClassesAsString
 
   //false means its the entire array or not an array at all (use read() if PACKEDLOADABLE)
-  bool Node::isCurrentObjectAnArrayItem(UTI cosuti, UVPass uvpass)
+  bool Node::isCurrentObjectAnArrayItem(UTI cosuti, const UVPass& uvpass)
   {
     //uvpass would be an array index (an int of sorts), not an array;
     //types would not be the same;
     return(!m_state.isScalar(cosuti) && m_state.isScalar(uvpass.getPassTargetType()));
   } //isCurrentObjectAnArrayItem
 
-  bool Node::isCurrentObjectACustomArrayItem(UTI cosuti, UVPass uvpass)
+  bool Node::isCurrentObjectACustomArrayItem(UTI cosuti, const UVPass& uvpass)
   {
     // a cosuti as a scalar, customarray, may be used as a regular array,
     //     but at this point cosuti would be a scalar in either case (sigh);
@@ -3638,7 +3618,7 @@ namespace MFM {
     return(m_state.isScalar(cosuti) && m_state.isClassACustomArray(cosuti) && (UlamType::compareForCustomArrayItem(uvpass.getPassTargetType(), m_state.getAClassCustomArrayType(cosuti), m_state) == UTIC_SAME));
   } //isCurrentObjectACustomArrayItem
 
-  bool Node::isCurrentObjectAnUnpackedArray(UTI cosuti, UVPass uvpass)
+  bool Node::isCurrentObjectAnUnpackedArray(UTI cosuti, const UVPass& uvpass)
   {
     if(m_state.isScalar(cosuti))
       return false;

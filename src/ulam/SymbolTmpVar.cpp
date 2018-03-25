@@ -46,7 +46,8 @@ namespace MFM {
 
   bool SymbolTmpVar::divinedByConstantClass()
   {
-    //helps determine if an element data member of a transient TmpVar needs its MFM Typefield fixed (t41267)
+    //helps determine if an element data member of a transient TmpVar
+    //needs its MFM Typefield fixed (t41267)
     return m_divinedByConstantClass;
   }
 

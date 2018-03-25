@@ -1000,7 +1000,7 @@ namespace MFM {
     return; //pass on
   }
 
-  void NodeConstantDef::genFixStringRegistrationNumberInConstantClass(File * fp, UVPass & uvpass)
+  void NodeConstantDef::genFixStringRegistrationNumberInConstantClass(File * fp, const UVPass & uvpass)
   {
     return; //pass on, i think..
   }
@@ -1300,7 +1300,6 @@ namespace MFM {
 	    else if(classtype == UC_ELEMENT) //(t41230,8,9 t41243)
 	      {
 		BV8K elval;
-		//bvclass.CopyBV<8192>(j * BITSPERATOM + ATOMFIRSTSTATEBITPOS, 0u, itemlen, elval);
 		bvclass.CopyBV(j * itemlen, 0u, itemlen, elval); //fmpos, topos, len, destbv
 		classUV = UlamValue::makeAtom(scalaruti);
 		classUV.putDataBig(ATOMFIRSTSTATEBITPOS, itemlen, elval);
@@ -1353,7 +1352,6 @@ namespace MFM {
     ULAMTYPE etyp = nut->getUlamTypeEnum();
 
     if(!nut->isScalar())
-    //if(!nut->isScalar() || (etyp == Class))
       {
 	if(m_constSymbol->isLocalsFilescopeDef() ||  m_constSymbol->isDataMember())
 	  {
@@ -1450,7 +1448,6 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
-    //if(nut->isScalar())
     if(nut->isScalar() && (nut->getUlamTypeEnum() != Class))
       return;
 
@@ -1475,10 +1472,7 @@ namespace MFM {
     if(nut->isScalar() && (classtype == UC_NOTACLASS))
       return;
 
-    //    if((classtype == UC_NOTACLASS) && m_constSymbol->isClassArgument())
-    //  return; //t3894
-
-    //constant array: Class or Primitive (not class arg primitive)
+    //constant array: Class or Primitive (not class arg primitive) //t3894
     u32 len = nut->getSizeofUlamType();
 
     if(declOnly)

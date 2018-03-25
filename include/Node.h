@@ -191,7 +191,7 @@ namespace MFM{
 
     virtual void genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos);
 
-    virtual void genFixStringRegistrationNumberInConstantClass(File * fp, UVPass & uvpass);
+    virtual void genFixStringRegistrationNumberInConstantClass(File * fp, const UVPass & uvpass);
 
     virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
 
@@ -274,12 +274,12 @@ namespace MFM{
 
     bool returnValueOnStackNeededForEval(UTI rtnType);
 
-    virtual void genMemberNameOfMethod(File * fp, UVPass& uvpass, bool endingdot = true); //helper method to read/write into/from tmpvar
+    virtual void genMemberNameOfMethod(File * fp, const UVPass& uvpass, bool endingdot = true); //helper method to read/write into/from tmpvar
     virtual void genModelParameterMemberNameOfMethod(File * fp, s32 epi);
 
-    virtual void genLocalMemberNameOfMethod(File * fp, UVPass& uvpass);
+    virtual void genLocalMemberNameOfMethod(File * fp, const UVPass& uvpass);
 
-    void genLocalMemberNameOfMethodForAtomof(File * fp, UVPass& uvpass);
+    void genLocalMemberNameOfMethodForAtomof(File * fp, const UVPass& uvpass);
 
     //return index of stgcos in stack of symbols, -1 if stack is empty and currentSelf.
     s32 loadStorageAndCurrentObjectSymbols(Symbol *& stgcosref, Symbol *&cosref);
@@ -299,14 +299,14 @@ namespace MFM{
     //index of first element or ele ref object; o.w. -1
     s32 isCurrentObjectsContainingAnElement();
 
-    std::string calcPosOfCurrentObjectClassesAsString(UVPass uvpass);
+    std::string calcPosOfCurrentObjectClassesAsString(const UVPass& uvpass);
 
     //false means its the entire array or not an array at all
-    bool isCurrentObjectAnArrayItem(UTI cosuti, UVPass uvpass);
+    bool isCurrentObjectAnArrayItem(UTI cosuti, const UVPass& uvpass);
 
-    bool isCurrentObjectACustomArrayItem(UTI cosuti, UVPass uvpass);
+    bool isCurrentObjectACustomArrayItem(UTI cosuti, const UVPass& uvpass);
 
-    bool isCurrentObjectAnUnpackedArray(UTI cosuti, UVPass uvpass);
+    bool isCurrentObjectAnUnpackedArray(UTI cosuti, const UVPass& uvpass);
 
     bool isHandlingImmediateType();
 
@@ -347,8 +347,8 @@ namespace MFM{
 
     void genCodeReadElementTypeField(File * fp, UVPass & uvpass);
     void restoreElementTypeForAncestorCasting(File * fp, UVPass & uvpass);
-    void genFixForElementTypeFieldInConstantClass(File * fp, UVPass & uvpass);
-    void genFixForStringRegNumInConstantClass(File * fp, UVPass & uvpass);
+    void genFixForElementTypeFieldInConstantClass(File * fp, const UVPass & uvpass);
+    void genFixForStringRegNumInConstantClass(File * fp, const UVPass & uvpass);
 
     //common helpers for safe casting
     bool buildCastingFunctionCallNode(Node * node, UTI tobeType, Node*& rtnNode);
@@ -357,7 +357,7 @@ namespace MFM{
     bool newCastingNodeWithCheck(Node * node, UTI tobeType, Node*& rtnNode);
 
     //used for function calls second arg, including custom array accessors
-    std::string genHiddenArg2(UVPass uvpass, u32& urtmpnumref);
+    std::string genHiddenArg2(const UVPass& uvpass, u32& urtmpnumref);
     virtual u32 getLengthOfMemberClassForHiddenArg(UTI cosuti);
 
   private:
@@ -384,21 +384,21 @@ namespace MFM{
     void genCustomArrayMemberNameOfMethod(File * fp);
     void genCustomArrayHiddenArgs(File * fp, u32 urtmpnum);
 
-    void genLocalMemberNameOfMethodByUsTypedef(File * fp, UVPass& uvpass);
+    void genLocalMemberNameOfMethodByUsTypedef(File * fp, const UVPass& uvpass);
     void genCustomArrayLocalMemberNameOfMethod(File * fp);
 
     void genConstantClassMangledName(File * fp);
 
     const std::string localStorageTypeAsString(UTI nuti);
 
-    const std::string tmpStorageTypeForRead(UTI nuti, UVPass uvpass);
-    const std::string tmpStorageTypeForReadArrayItem(UTI nuti, UVPass uvpass);
+    const std::string tmpStorageTypeForRead(UTI nuti, const UVPass& uvpass);
+    const std::string tmpStorageTypeForReadArrayItem(UTI nuti, const UVPass& uvpass);
 
-    const std::string readMethodForCodeGen(UTI nuti, UVPass uvpass);
-    const std::string readArrayItemMethodForCodeGen(UTI nuti, UVPass uvpass);
+    const std::string readMethodForCodeGen(UTI nuti, const UVPass& uvpass);
+    const std::string readArrayItemMethodForCodeGen(UTI nuti, const UVPass& uvpass);
 
-    const std::string writeMethodForCodeGen(UTI nuti, UVPass uvpass);
-    const std::string writeArrayItemMethodForCodeGen(UTI nuti, UVPass uvpass);
+    const std::string writeMethodForCodeGen(UTI nuti, const UVPass& uvpass);
+    const std::string writeArrayItemMethodForCodeGen(UTI nuti, const UVPass& uvpass);
 
     void genCodeArrayRefInit(File * fp, UVPass & uvpass, Symbol * vsymptr);
     void genCodeArrayItemRefInit(File * fp, UVPass & uvpass, Symbol * vsymptr);

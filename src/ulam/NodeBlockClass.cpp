@@ -1026,7 +1026,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       m_nodeNext->genCodeDefaultValueStringRegistrationNumber(fp, startpos); //side-effect for dm vardecls
   }
 
-  void NodeBlockClass::genFixStringRegistrationNumberInConstantClass(File * fp, UVPass & uvpass)
+  void NodeBlockClass::genFixStringRegistrationNumberInConstantClass(File * fp, const UVPass & uvpass)
   {
     if((m_state.isClassASubclass(getNodeType()) != Nouti))
       {

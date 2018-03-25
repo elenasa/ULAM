@@ -785,7 +785,6 @@ namespace MFM {
        return true; //anonymous UTI
 
     //or this? (works for template instances too)
-    //if(statusUnknownTypeInThisClassResolver(auti))
     if(statusUnknownTypeInAClassResolver(cuti, auti))
     {
       mappedUTI = auti; //auti no longer a holder
@@ -1223,10 +1222,6 @@ namespace MFM {
     UlamKeyTypeSignature keyOfArg = ut->getUlamKeyTypeSignature();
     UTI cuti = keyOfArg.getUlamKeyTypeSignatureClassInstanceIdx(); // what-if a ref?
 
-    //if(bUT == Class)
-    //  return cuti; //try this Mon May  2 10:36:56 2016
-    //does cuti == utiArg if bUT is a Class?
-
     s32 bitsize = keyOfArg.getUlamKeyTypeSignatureBitSize();
     u32 nameid = keyOfArg.getUlamKeyTypeSignatureNameId();
     UlamKeyTypeSignature baseKey(nameid, bitsize, UNKNOWNSIZE, cuti, ALT_NOT);
@@ -1252,7 +1247,7 @@ namespace MFM {
     if((bUT == Class) && ut->isScalar())
       return classidx; //scalar
 
-    UlamKeyTypeSignature baseKey(keyOfArg.m_typeNameId, bitsize, arraysize, classidx, ALT_NOT);  //default array size is zero
+    UlamKeyTypeSignature baseKey(keyOfArg.m_typeNameId, bitsize, arraysize, classidx, ALT_NOT);    //default array size is zero
     ULAMCLASSTYPE classtype = ut->getUlamClassType();
     UTI buti = makeUlamType(baseKey, bUT, classtype); //could be a new one, oops.
     if(ut->isCustomArray())
@@ -3546,7 +3541,6 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	SymbolClass * csym = NULL;
 	if(alreadyDefinedSymbolClass(uti, csym))
 	  {
-	    //lenstr << csym->getMangledNameForParameterType();
 	    lenstr << csym->getMangledName(); //t41141
 
 	    if(classtype == UC_QUARK)

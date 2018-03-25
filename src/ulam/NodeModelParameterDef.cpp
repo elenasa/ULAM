@@ -81,7 +81,7 @@ namespace MFM {
     return;
   }
 
-  void NodeModelParameterDef::genFixStringRegistrationNumberInConstantClass(File * fp, UVPass & uvpass)
+  void NodeModelParameterDef::genFixStringRegistrationNumberInConstantClass(File * fp, const UVPass & uvpass)
   {
     return;
   }

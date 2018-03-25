@@ -929,7 +929,7 @@ namespace MFM {
       } //a class
   } //genCodeDefaultValueStringRegistrationNumber
 
-  void NodeVarDeclDM::genFixStringRegistrationNumberInConstantClass(File * fp, UVPass & uvpass)
+  void NodeVarDeclDM::genFixStringRegistrationNumberInConstantClass(File * fp, const UVPass & uvpass)
   {
     assert(m_varSymbol);
     assert(m_varSymbol->isDataMember());

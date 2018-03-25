@@ -219,7 +219,7 @@ namespace MFM {
 			return Nav;
 		      }
 		  }
-	      }
+	      } //right index is a constant
 	  }
 
 	//set up idxuti..RHS
@@ -344,7 +344,6 @@ namespace MFM {
 	else
 	  {
 	    newType = m_state.getUlamTypeAsScalar(leftType);
-
 	    // multi-dimensional possible; MP not ok lhs.
 	    Node::setStoreIntoAble(m_nodeLeft->getStoreIntoAble());
 	  }
@@ -817,9 +816,7 @@ namespace MFM {
 	return true;
       }
 
-    //    sizetype = m_nodeRight->getNodeType(); //checkAndLabelType(); was c&l??? t3504
-    //if(!m_state.okUTItoContinue(sizetype))
-      sizetype = m_nodeRight->checkAndLabelType();
+    sizetype = m_nodeRight->checkAndLabelType(); //t3504
     if((sizetype == Nav))
       {
 	rtnArraySize = UNKNOWNSIZE;

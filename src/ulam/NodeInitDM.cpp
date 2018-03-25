@@ -516,7 +516,6 @@ namespace MFM {
 	BV8K bvel;
 	AssertBool gotVal = m_constSymbol->getInitValue(bvel);
 	assert(gotVal);
-	//bvel.CopyBV<8192>(0, pos + ATOMFIRSTSTATEBITPOS, MAXSTATEBITS, bvref); //srcpos, dstpos, len, dest
 	bvel.CopyBV(0, pos, MAXSTATEBITS, bvref); //srcpos, dstpos, len, dest
       }
     else
@@ -538,7 +537,7 @@ namespace MFM {
     return; //pass on
   }
 
-  void NodeInitDM::genFixStringRegistrationNumberInConstantClass(File * fp, UVPass & uvpass)
+  void NodeInitDM::genFixStringRegistrationNumberInConstantClass(File * fp, const UVPass & uvpass)
   {
     m_state.abortNotImplementedYet(); //???
     return; //pass on

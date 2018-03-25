@@ -302,7 +302,7 @@ namespace MFM {
     return; //pass on
   }
 
-  void NodeTypedef::genFixStringRegistrationNumberInConstantClass(File * fp, UVPass & uvpass)
+  void NodeTypedef::genFixStringRegistrationNumberInConstantClass(File * fp, const UVPass & uvpass)
   {
     return; //pass on
   }

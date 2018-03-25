@@ -214,7 +214,7 @@ namespace MFM {
     return;
   }
 
-  void NodeStatements::genFixStringRegistrationNumberInConstantClass(File * fp, UVPass & uvpass)
+  void NodeStatements::genFixStringRegistrationNumberInConstantClass(File * fp, const UVPass & uvpass)
   {
     if(m_node)
       m_node->genFixStringRegistrationNumberInConstantClass(fp, uvpass);
