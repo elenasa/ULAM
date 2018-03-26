@@ -531,19 +531,13 @@ namespace MFM {
     return true; //pass on
   } //buildDataMemberConstantValue
 
-  void NodeInitDM::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
+  void NodeInitDM::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr)
   {
     m_state.abortNotImplementedYet(); //???
     return; //pass on
   }
 
-  void NodeInitDM::genFixStringRegistrationNumberInConstantClass(File * fp, const UVPass & uvpass)
-  {
-    m_state.abortNotImplementedYet(); //???
-    return; //pass on
-  }
-
-  void NodeInitDM::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
+  void NodeInitDM::genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr)
   {
     m_state.abortNotImplementedYet(); //???
     return;

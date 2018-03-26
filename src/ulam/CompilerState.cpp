@@ -1489,7 +1489,7 @@ namespace MFM {
 	//class data members may have strings (t3948)
 	indent(fp);
 	fp->write("//correct runtime regnum for strings; data member inits\n");
-	getCurrentBlock()->genCodeDefaultValueStringRegistrationNumber(fp, 0);
+	getCurrentBlock()->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, 0, NULL);
       }
 
     m_currentIndentLevel--;

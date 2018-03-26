@@ -561,8 +561,6 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write("(const u32 * const ");
     fp->write(" arg) : BVS(arg) { if(arg==NULL) FAIL(NULL_POINTER); }"); GCNL;
-    //    fp->write(" arg) { if(arg==NULL) FAIL(NULL_POINTER); write(arg[0]); }"); GCNL;
-
 
     //constructor from ref of same type
     m_state.indent(fp);

@@ -1009,7 +1009,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     return aok;
   } //buildDefaultValueForClassConstantDefs
 
-  void NodeBlockClass::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
+  void NodeBlockClass::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr)
   {
     ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClassType();
     if(classtype == UC_ELEMENT)
@@ -1019,38 +1019,25 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       {
 	NodeBlockClass * superblock = getSuperBlockPointer();
 	assert(superblock);
-	superblock->genCodeDefaultValueStringRegistrationNumber(fp, startpos);
+	superblock->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, startpos, uvpassptr);
       }
 
     if(m_nodeNext)
-      m_nodeNext->genCodeDefaultValueStringRegistrationNumber(fp, startpos); //side-effect for dm vardecls
+      m_nodeNext->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, startpos, uvpassptr); //side-effect for dm vardecls
   }
 
-  void NodeBlockClass::genFixStringRegistrationNumberInConstantClass(File * fp, const UVPass & uvpass)
+  void NodeBlockClass::genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr)
   {
     if((m_state.isClassASubclass(getNodeType()) != Nouti))
       {
 	NodeBlockClass * superblock = getSuperBlockPointer();
 	assert(superblock);
-	superblock->genFixStringRegistrationNumberInConstantClass(fp, uvpass);
+	superblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, startpos, uvpassptr);
       }
 
     if(m_nodeNext)
-      m_nodeNext->genFixStringRegistrationNumberInConstantClass(fp, uvpass); //side-effect for dm vardecls
-  } //genFixStringRegistrationNumberInConstantClass
-
-  void NodeBlockClass::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
-  {
-    if((m_state.isClassASubclass(getNodeType()) != Nouti))
-      {
-	NodeBlockClass * superblock = getSuperBlockPointer();
-	assert(superblock);
-	superblock->genCodeElementTypeIntoDataMemberDefaultValue(fp, startpos);
-      }
-
-    if(m_nodeNext)
-      m_nodeNext->genCodeElementTypeIntoDataMemberDefaultValue(fp, startpos); //side-effect for dm vardecls
-  } //genCodeElementTypeIntoDataMemberDefaultValue
+      m_nodeNext->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, startpos, uvpassptr); //side-effect for dm vardecls
+  } //genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar
 
   EvalStatus NodeBlockClass::eval()
   {
@@ -2363,7 +2350,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	// unlike element and quarks, data members can be elements, atoms and other transients
 	//e.g. t3811, t3812
 	genCodeBuiltInFunctionBuildingDefaultDataMembers(fp);
-	genCodeElementTypeIntoDataMemberDefaultValue(fp, 0); //startpos = 0
+	genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, 0, NULL); //startpos = 0
 
 	m_state.indent(fp);
 	fp->write("bvsref.WriteBV(pos, "); //first arg

@@ -327,6 +327,13 @@ namespace MFM {
     if(!m_state.isComplete(nuti))
       return ERROR;
 
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    ULAMCLASSTYPE classtype = nut->getUlamClassType();
+    if((classtype == UC_TRANSIENT) && (nut->getBitSize() > MAXSTATEBITS))
+      return UNEVALUABLE;
+
+    assert(m_constSymbol);
+
     if(((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex() == 0)
       return NOTREADY;
 
@@ -348,6 +355,11 @@ namespace MFM {
 
     if(nuti == Hzy)
       return NOTREADY;
+
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    ULAMCLASSTYPE classtype = nut->getUlamClassType();
+    if((classtype == UC_TRANSIENT) && (nut->getBitSize() > MAXSTATEBITS))
+      return UNEVALUABLE;
 
     assert(m_constSymbol);
 

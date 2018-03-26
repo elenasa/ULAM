@@ -480,19 +480,13 @@ namespace MFM {
     return false; //for compiler
   }
 
-  void Node::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
+  void Node::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr)
   {
     m_state.abortShouldntGetHere();
     return;
   }
 
-  void Node::genFixStringRegistrationNumberInConstantClass(File * fp, const UVPass & uvpass)
-  {
-    m_state.abortShouldntGetHere();
-    return;
-  }
-
-  void Node::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
+  void Node::genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr)
   {
     m_state.abortShouldntGetHere();
   }
@@ -711,7 +705,7 @@ namespace MFM {
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     TMPSTORAGE cstor = cosut->getTmpStorageTypeForTmpVar();
     ULAMCLASSTYPE cosclass = cosut->getUlamClassType();
-    ULAMTYPE cosetyp = cosut->getUlamTypeEnum();
+    //ULAMTYPE cosetyp = cosut->getUlamTypeEnum();
 
     // No split if custom array, that requires an 'aref' function call;
     // handled as genCodeConvertATmpVarIntoCustomArrayAutoRef
@@ -734,8 +728,8 @@ namespace MFM {
 
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
     m_state.indentUlamCode(fp);
-    if((cosclass != UC_ELEMENT) && (cosetyp != String))
-      fp->write("const ");
+    //    if((cosclass != UC_ELEMENT) && (cosetyp != String))
+    //  fp->write("const ");
     fp->write(tmpStorageTypeForRead(cosuti, uvpass).c_str());
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str());
@@ -806,22 +800,28 @@ namespace MFM {
       {
 	if((stgcosut->getUlamClassType() == UC_TRANSIENT) && (cosclass == UC_ELEMENT))
 	  {
-	    genFixForElementTypeFieldInConstantClass(fp, uvpass);
+	    genFixForElementTypeFieldInTmpVarOfConstantClass(fp, uvpass);
 
 	    SymbolClass * csym = NULL;
 	    AssertBool isDef = m_state.alreadyDefinedSymbolClass(cosuti, csym);
 	    assert(isDef);
 	    NodeBlockClass * cblock = csym->getClassBlockNode();
 	    assert(cblock);
-	    if(cblock->hasStringDataMembers())
-	      {
-		//want something like NodeVarDeclDM:848
-		cblock->genFixStringRegistrationNumberInConstantClass(fp, uvpass); //t41267
-	      }
+	    cblock->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, 0, &uvpass); //t41267
 	  }
 	else if(cosut->getUlamTypeEnum() == String)
 	  {
-	    genFixForStringRegNumInConstantClass(fp, uvpass);
+	    genFixForStringRegNumInTmpVarOfConstantClass(fp, uvpass);
+	  }
+	else if(cosclass == UC_TRANSIENT)
+	  {
+	    SymbolClass * csym = NULL;
+	    AssertBool isDef = m_state.alreadyDefinedSymbolClass(cosuti, csym);
+	    assert(isDef);
+	    NodeBlockClass * cblock = csym->getClassBlockNode();
+	    assert(cblock);
+	    cblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, 0, &uvpass); //t41263
+	    cblock->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, 0, &uvpass); //t41267
 	  }
 	//else nothing to do
       }
@@ -880,9 +880,8 @@ namespace MFM {
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
 
     m_state.indentUlamCode(fp);
-    //if((nclasstype != UC_ELEMENT)) //t41230
-    if((cosclass != UC_ELEMENT)) //t41230
-      fp->write("const ");
+    //    if((cosclass != UC_ELEMENT)) //t41230
+    //  fp->write("const ");
     fp->write(cosut->getTmpStorageTypeAsString().c_str()); //u32, T, BV non-const
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str());
@@ -906,9 +905,13 @@ namespace MFM {
     if(!cosIsTheConstantClass)
       {
 	fp->write(", NULL, ");
-	fp->write(genUlamRefUsageAsString(cosuti).c_str()); //eg. CLASSIC, PRIMITIVE, etc.
- 	fp->write(", uc)");
-	fp->write(".Read()");
+	if(cosclass == UC_ELEMENT)
+	  fp->write("UlamRef<EC>::ATOMIC"); //entire atom (t41232)
+	else
+	  fp->write(genUlamRefUsageAsString(cosuti).c_str()); //eg. CLASSIC, PRIMITIVE, etc.
+ 	fp->write(", uc).");
+	fp->write(cosut->readMethodForCodeGen().c_str()); //t41232 (e.g. element dm in transient)
+	fp->write("()");
       }
     else
       fp->write(".read()");
@@ -920,27 +923,36 @@ namespace MFM {
 
     uvpass = UVPass::makePass(tmpVarNum, cstor, cosuti, m_state.determinePackable(cosuti), m_state, 0, 0); //POS 0 justified (atom-based).
 
-    //WHENEVER the second pass after element registration comes; this won't be needed!!
-    if((cosclass == UC_ELEMENT)) //t41230
+    if(ncsym->isDataMember() || ncsym->isLocalsFilescopeDef())
       {
-	genFixForElementTypeFieldInConstantClass(fp, uvpass);
-
-	SymbolClass * csym = NULL;
-	AssertBool isDef = m_state.alreadyDefinedSymbolClass(cosuti, csym);
-	assert(isDef);
-	NodeBlockClass * cblock = csym->getClassBlockNode();
-	assert(cblock);
-	if(cblock->hasStringDataMembers())
+	if((nclasstype == UC_ELEMENT)) //t41230, t41232
 	  {
-	    //something like NodeVarDeclDM:848
-	    cblock->genFixStringRegistrationNumberInConstantClass(fp, uvpass); //t41267
+	    genFixForElementTypeFieldInTmpVarOfConstantClass(fp, uvpass);
+
+	    SymbolClass * csym = NULL;
+	    AssertBool isDef = m_state.alreadyDefinedSymbolClass(cosuti, csym);
+	    assert(isDef);
+	    NodeBlockClass * cblock = csym->getClassBlockNode();
+	    assert(cblock);
+	    cblock->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, 0, &uvpass); //t41267
 	  }
+	else if(cosut->getUlamTypeEnum() == String)
+	  {
+	    genFixForStringRegNumInTmpVarOfConstantClass(fp, uvpass);
+	  }
+	else if(cosclass == UC_TRANSIENT)
+	  {
+	    SymbolClass * csym = NULL;
+	    AssertBool isDef = m_state.alreadyDefinedSymbolClass(cosuti, csym);
+	    assert(isDef);
+	    NodeBlockClass * cblock = csym->getClassBlockNode();
+	    assert(cblock);
+	    cblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, 0, &uvpass); //t41263
+	    cblock->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, 0, &uvpass); //t41267
+	  }
+	//else nothing to do
       }
-    else if(cosut->getUlamTypeEnum() == String)
-      {
-	genFixForStringRegNumInConstantClass(fp, uvpass);
-      }
-    //else nothing to do
+    // else not necessary for local func constant (already done) t41232
 
     // note: Ints not sign extended until used/cast
     m_state.clearCurrentObjSymbolsForCodeGen();
@@ -1116,8 +1128,8 @@ namespace MFM {
 
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
     m_state.indentUlamCode(fp);
-    if((sclasstype != UC_ELEMENT))
-      fp->write("const "); //need to fix Element Type field
+    //    if((sclasstype != UC_ELEMENT))
+    //  fp->write("const "); //need to fix Element Type field
     fp->write(scalarlut->getTmpStorageTypeAsString().c_str()); //u32, u64, T, BV<x>
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(scalarluti, tmpVarNum, slstor).c_str());
@@ -1166,28 +1178,37 @@ namespace MFM {
 
     luvpass = UVPass::makePass(tmpVarNum, slstor, scalarluti, m_state.determinePackable(scalarluti), m_state, 0, 0); //POS 0 justified (atom-based).
 
-    //WHENEVER the second pass after element registration comes; this won't be needed!!
     // fixes data member elements (e.g. in a transient, t41267)
-    if((sclasstype == UC_ELEMENT))
+    if(ncsym->isDataMember() || ncsym->isLocalsFilescopeDef())
       {
-	genFixForElementTypeFieldInConstantClass(fp, luvpass);
-
-	SymbolClass * csym = NULL;
-	AssertBool isDef = m_state.alreadyDefinedSymbolClass(cosuti, csym);
-	assert(isDef);
-	NodeBlockClass * cblock = csym->getClassBlockNode();
-	assert(cblock);
-	if(cblock->hasStringDataMembers())
+	if((sclasstype == UC_ELEMENT))
 	  {
-	    //something like NodeVarDeclDM:848
-	    cblock->genFixStringRegistrationNumberInConstantClass(fp, luvpass); //t41267
+	    genFixForElementTypeFieldInTmpVarOfConstantClass(fp, luvpass);
+
+	    SymbolClass * csym = NULL;
+	    AssertBool isDef = m_state.alreadyDefinedSymbolClass(cosuti, csym);
+	    assert(isDef);
+	    NodeBlockClass * cblock = csym->getClassBlockNode();
+	    assert(cblock);
+	    cblock->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, 0, &luvpass); //t41267
 	  }
+	else if(m_state.getUlamTypeByIndex(cosuti)->getUlamTypeEnum() == String)
+	  {
+	    genFixForStringRegNumInTmpVarOfConstantClass(fp, luvpass);
+	  }
+	else if(sclasstype == UC_TRANSIENT)
+	  {
+	    SymbolClass * csym = NULL;
+	    AssertBool isDef = m_state.alreadyDefinedSymbolClass(cosuti, csym);
+	    assert(isDef);
+	    NodeBlockClass * cblock = csym->getClassBlockNode();
+	    assert(cblock);
+	    cblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, 0, &luvpass); //t41263
+	    cblock->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, 0, &luvpass); //t41267
+	  }
+	//else nothing to do
       }
-    else if(m_state.getUlamTypeByIndex(cosuti)->getUlamTypeEnum() == String)
-      {
-	genFixForStringRegNumInConstantClass(fp, luvpass);
-      }
-    //else nothing to do
+    // else not necessary for local func constant (already done)
 
    // note: Ints not sign extended until used/cast
     m_state.clearCurrentObjSymbolsForCodeGen();
@@ -1555,8 +1576,7 @@ namespace MFM {
     fp->write("\n");
   } //restoreElementTypeForAncestorCasting
 
-  //WHENEVER the second pass after element registration comes; this won't be needed!!
-  void Node::genFixForElementTypeFieldInConstantClass(File * fp, const UVPass & uvpass)
+  void Node::genFixForElementTypeFieldInTmpVarOfConstantClass(File * fp, const UVPass & uvpass)
   {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     UTI vuti = uvpass.getPassTargetType();
@@ -1600,10 +1620,9 @@ namespace MFM {
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("}\n");
-  } //genFixForElementTypeFieldInConstantClass
+  } //genFixForElementTypeFieldInTmpVarOfConstantClass
 
-  //WHENEVER the second pass after element registration comes; this won't be needed!!
-  void Node::genFixForStringRegNumInConstantClass(File * fp, const UVPass & uvpass)
+  void Node::genFixForStringRegNumInTmpVarOfConstantClass(File * fp, const UVPass & uvpass)
   {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     UTI vuti = uvpass.getPassTargetType();
@@ -1618,7 +1637,7 @@ namespace MFM {
     assert(cosut->getUlamTypeEnum() == String);
 
     //generate code to replace uti in string index with runtime registration number
-    //borrowed from NodeVarDeclDM::genCodeDefaultValueStringRegistrationNumber
+    //borrowed from NodeVarDeclDM::genCodeDefaultValueOrTmpVarStringRegistrationNumber
     m_state.indent(fp);
     fp->write("{\n"); //limit scope of 'regnum'
     m_state.m_currentIndentLevel++;
@@ -1675,7 +1694,7 @@ namespace MFM {
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("}\n");
-  } //genFixForStringRegNumInConstantClass
+  } //genFixForStringRegNumInTmpVarOfConstantClass
 
   // write out intermediate tmpVar as temp BitVector, e.g. func args, question-colon
   //for func args, the type of the funccall node isn't the type of the argument;

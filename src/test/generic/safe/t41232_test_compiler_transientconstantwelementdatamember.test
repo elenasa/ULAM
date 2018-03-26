@@ -1,28 +1,38 @@
 ## -*- mode:ulam -*-
 #=t41232_test_compiler_transientconstantwelementdatamember
 ##
-##  gen output: (+ 2 asserts)
+##  gen output: (+ interleavedasserts)
+##   Int Arg: 77
+##   Int Arg: 77
+##   + extra assert
 ##   Int Arg: 77
 ##
 ## transients are unevaluable.
 #!
 Exit status: -11
-Ue_Test { Bool(1) m_testb(false);  Int(32) m_testi(0);  Int(32) test() {  System sys;  constant T ctt = { .m_rele = cer };  T est = ctt;  m_testi est m_rele . m_ri . = sys ( m_testi )print . sys ( m_testi 77 cast == )assert . m_testb est m_rele . m_rb . = sys ( m_testb )assert . 225u cast return } }
+Ue_Test { Bool(1) m_testb(false);  Int(32) m_testi(0);  Int(32) test() {  System sys;  constant T ctt = { .m_rele = cer };  R relc = ctt m_rele .;  Int(32) relci = relc m_ri .;  sys ( relci )print . sys ( relci 77 cast == )assert . T est = ctt;  m_testi est m_rele . m_ri . = sys ( m_testi )print . sys ( m_testi 77 cast == )assert . m_testb est m_rele . m_rb . = sys ( m_testb )assert . R rel = est m_rele .;  Int(32) reli = rel m_ri .;  sys ( reli )print . sys ( reli 77 cast == )assert . 225u cast return } }
 Ue_R { Bool(1) m_rb(false);  Int(32) m_ri(0);  <NOMAIN> }
-Uq_System { <NOMAIN> }
 Un_T { Bool(1) m_sp(false);  Int(32) m_i(0);  Atom(96) m_a(Atom(96));  R m_rele( Bool(1) m_rb(false);  Int(32) m_ri(0); );  <NOMAIN> }
+Uq_System { <NOMAIN> }
 ##
 ##    //informed by t41231, except transient has an element data member
 ##
 #>Test.ulam
   ulam 3;
 local constant R cer = { .m_rb = true, .m_ri = 77 };
+local constant T ctn = { .m_rele = cer }; //does init fix element typefield? NOPE.
 element Test {
   Bool m_testb;
   Int m_testi;
   Int test(){
     System sys;
     constant T ctt = { .m_rele = cer };
+
+    R relc = ctt.m_rele; //see code gen
+    Int relci = relc.m_ri; //FAILED: INCONSISTENT_ATOM
+    sys.print(relci);
+    sys.assert(relci == 77);
+
 
     T est = ctt;
 
@@ -32,6 +42,12 @@ element Test {
 
     m_testb = est.m_rele.m_rb;
     sys.assert(m_testb);
+
+    //but est lost its constant classness..
+    R rel = est.m_rele; //see code gen ILLEGAL_ARGUMENT.
+    Int reli = rel.m_ri;
+    sys.print(reli);
+    sys.assert(reli == 77);
 
     return est.sizeof;
   }

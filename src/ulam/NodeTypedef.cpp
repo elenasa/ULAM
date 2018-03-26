@@ -297,17 +297,12 @@ namespace MFM {
     return true; //pass on
   }
 
-  void NodeTypedef::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
+  void NodeTypedef::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr)
   {
     return; //pass on
   }
 
-  void NodeTypedef::genFixStringRegistrationNumberInConstantClass(File * fp, const UVPass & uvpass)
-  {
-    return; //pass on
-  }
-
-  void NodeTypedef::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
+  void NodeTypedef::genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr)
   {
     return;
   }

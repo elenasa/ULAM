@@ -205,30 +205,21 @@ namespace MFM {
     return aok;
   }
 
-  void NodeStatements::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
+  void NodeStatements::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr)
   {
     if(m_node)
-      m_node->genCodeDefaultValueStringRegistrationNumber(fp, startpos);
+      m_node->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, startpos, uvpassptr);
     if(m_nodeNext)
-      m_nodeNext->genCodeDefaultValueStringRegistrationNumber(fp, startpos);
+      m_nodeNext->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, startpos, uvpassptr);
     return;
   }
 
-  void NodeStatements::genFixStringRegistrationNumberInConstantClass(File * fp, const UVPass & uvpass)
+  void NodeStatements::genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr)
   {
     if(m_node)
-      m_node->genFixStringRegistrationNumberInConstantClass(fp, uvpass);
+      m_node->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, startpos, uvpassptr);
     if(m_nodeNext)
-      m_nodeNext->genFixStringRegistrationNumberInConstantClass(fp, uvpass);
-    return;
-  }
-
-  void NodeStatements::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
-  {
-    if(m_node)
-      m_node->genCodeElementTypeIntoDataMemberDefaultValue(fp, startpos);
-    if(m_nodeNext)
-      m_nodeNext->genCodeElementTypeIntoDataMemberDefaultValue(fp, startpos);
+      m_nodeNext->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, startpos, uvpassptr);
   }
 
   EvalStatus NodeStatements::eval()
