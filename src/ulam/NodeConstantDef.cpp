@@ -1306,11 +1306,11 @@ namespace MFM {
     assert(m_constSymbol->getUlamTypeIdx() == nuti);
 
     //assert(nut->isScalar()); t41261
-    //assert(slots == 1); //quark or element fit in one slot.
+    //assert(slots == 1); //quark or element fit in one slot. transient total bitsize < 71.
     assert(m_nodeExpr); //empty init is empty list, not null (t41262); could be a NodeConstantClass
 
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
-    assert((classtype == UC_QUARK) || (classtype == UC_ELEMENT));
+    assert((classtype == UC_QUARK) || (classtype == UC_ELEMENT) || ((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() <= MAXSTATEBITS)));
 
     PACKFIT packFit = nut->getPackable();
     if((packFit == PACKEDLOADABLE))

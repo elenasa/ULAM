@@ -371,13 +371,12 @@ namespace MFM {
 	    UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
 	    rtnValue = rtnUV.getImmediateData(32, m_state); //t41016 (no loop to catch it!)
 	  }
+	else if(evs == UNEVALUABLE)
+	  rtnValue = -11;
+	else if(evs == NOTREADY)
+	  rtnValue = -12;
 	else
-	  {
-	    if(evs == UNEVALUABLE)
-	      rtnValue = -11;
-	    else
-	      rtnValue = -1; //error!
-	  }
+	  rtnValue = -1; //error!
 
 	//#define CURIOUS_T3146
 #ifdef CURIOUS_T3146

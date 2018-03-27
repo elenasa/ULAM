@@ -1,23 +1,29 @@
 ## -*- mode:ulam -*-
-#=t41266_test_compiler_constantclassarrayoftransients
+#=t41270_test_compiler_constantclassarrayoftransients_withtransientdm_asconstreffuncarg
 ##
 ## gen output: (+ interleaved asserts)
+##
 ##  Unsigned Arg: 2
+##  String(1) Arg: "mel"
 ##  Unsigned Arg: 4
-##  Unsigned Arg: 99
+##  String(1) Arg: "mel"
 ##
 ## Big transients unevaluable.
 #!
 Exit status: -11
-Ue_KeyExprRep { Int(32) test() {  System s;  KeyExprNode m_key = keyexpr_x13 0 [];  s ( m_key m_rightIndex . cast )print . s ( m_key m_rightIndex . 2u cast == )assert . s ( keyexpr_x13 1 [] m_rightIndex . cast )print . s ( keyexpr_x13 1 [] m_rightIndex . 4u cast == )assert . KeyExprNode mykeyexpr_x13[5] = keyexpr_x13;  s ( mykeyexpr_x13 2 [] m_keyCode . cast )print . s ( mykeyexpr_x13 2 [] m_keyCode . keyexpr_x13 2 [] m_keyCode . == )assert . 0 cast return } }
-Un_KeyExprNode { typedef Unsigned(8) Byte;  Unsigned(8) m_leftIndex(0);  Unsigned(8) m_rightIndex(0);  Unsigned(8) m_keyCode(0);  Unsigned(8) m_op(0);  <NOMAIN> }
+Ue_KeyExprRep { Int(32) test() {  ( keyexpr_x13 0 [] cast 0 cast )func KeyExprNode nodekey = keyexpr_x13 1 [];  ( nodekey cast 1 cast )func 0 cast return } }
+Ue_Tfoo { Bool(1) esp( true);  String(32) estr( "mel");  <NOMAIN> }
+Un_KeyExprNode { typedef Unsigned(8) Byte;  Unsigned(8) m_leftIndex(0);  Unsigned(8) m_rightIndex(0);  Unsigned(8) m_keyCode(0);  Unsigned(8) m_op(0);  Tfoo m_tfoo( ctfoo);  <NOMAIN> }
+Uq_SystemU3 : System { :<> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## informed by Dave 3/18/18 ish, and t41261: except array of transients instead of quarks constant class array
+## like t41266 except element data member too, with a String.
 ##
 ##
 #>KeyExprRep.ulam
   ulam 3;
+use Tfoo;
 use KeyExprNode; ////without use ./KeyExprNode.ulam:9:0: ERROR: Invalid size (-2) to set for primitive type: 0Holder.
 local constant KeyExprNode keyexpr_x13[] = {
   { .m_leftIndex = 1, .m_rightIndex = 2, .m_keyCode = 0, .m_op = '|' }, // [0]
@@ -27,31 +33,47 @@ local constant KeyExprNode keyexpr_x13[] = {
   { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'b', .m_op = 0 }, // [4] , EXTRA COMMA at the end??? no difference
 };
 element KeyExprRep {
+
+  Void func(constant KeyExprNode& nodearg, Int index)
+  {
+    SystemU3 s;
+    s.print(nodearg.m_rightIndex);
+    s.assert(nodearg.m_rightIndex==keyexpr_x13[index].m_rightIndex); //for the test
+    s.print(nodearg.m_tfoo.estr);
+    s.assert(nodearg.m_tfoo.estr[0] == 'm');
+  }
+
   Int test() {
-    System s;
-    KeyExprNode m_key = keyexpr_x13[0];
-    s.print(m_key.m_rightIndex);
-    s.assert(m_key.m_rightIndex==2u);
-
-    s.print(keyexpr_x13[1].m_rightIndex);
-    s.assert(keyexpr_x13[1].m_rightIndex==4u); //reads constant class array item
-
-    //read entire constant class array
-    KeyExprNode mykeyexpr_x13[5] = KeyExprNode keyexpr_x13;
-    s.print(mykeyexpr_x13[2].m_keyCode);
-    s.assert(mykeyexpr_x13[2].m_keyCode==keyexpr_x13[2].m_keyCode); //reads constant class array item
+    func(keyexpr_x13[0], 0);
+    KeyExprNode nodekey = keyexpr_x13[1];
+    func(nodekey, 1);
     return 0;
   }
 }
 
 #:KeyExprNode.ulam
   ulam 3;
+local constant Tfoo ctfoo = { };
 transient KeyExprNode {
   typedef Unsigned(8) Byte;
   Byte m_leftIndex;  // for [,|&~]
   Byte m_rightIndex; // for [,|&]
   Byte m_keyCode;    // [a-zA-Z.@_?] or 0
   Byte m_op;         // [,|&~] or 0
+  Tfoo m_tfoo = ctfoo;
+}
+
+#:Tfoo.ulam
+  ulam 3;
+element Tfoo {
+  Bool esp = true;
+  String estr = "mel";
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
 }
 
 #:System.ulam
