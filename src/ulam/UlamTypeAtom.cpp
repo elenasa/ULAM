@@ -238,7 +238,6 @@ namespace MFM {
   {
     assert(isScalar());
     m_state.indent(fp);
-    fp->write("const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //T
     fp->write(" read() const { ");
     fp->write("return UlamRef<EC>::");
@@ -588,16 +587,14 @@ namespace MFM {
   void UlamTypeAtom::genUlamTypeAutoReadArrayDefinitionForC(File * fp)
   {
     m_state.indent(fp);
-    fp->write("const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //T
     fp->write(" read() const { ");
     fp->write("return UlamRef<EC>::");
     fp->write(readMethodForCodeGen().c_str());
     fp->write("(); /* read entire atom array */ }"); GCNL; //done
 
-    //Unpacked Read Array Item
+    //Unpacked Read Array Item;
     m_state.indent(fp);
-    fp->write("const ");
     fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //T
     fp->write(" readArrayItem(");
     fp->write("const u32 index, const u32 itemlen, const UlamContext<EC>& uc) const { return ");

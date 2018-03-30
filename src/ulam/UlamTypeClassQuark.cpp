@@ -344,7 +344,6 @@ namespace MFM {
       {
 	// ref param to avoid excessive copying
 	m_state.indent(fp);
-	fp->write("const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
 	fp->write(" read() const { ");
 	fp->write("return ");
@@ -358,10 +357,9 @@ namespace MFM {
       {
 	//class instance idx is always the scalar uti
 	UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
-	//reads an item of array
+	//reads an item of array;
 	//2nd argument generated for compatibility with underlying method
 	m_state.indent(fp);
-	fp->write("const ");
 	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
 	fp->write(" readArrayItem(");
 	fp->write("const u32 index, const u32 itemlen) const { return "); //was const after )

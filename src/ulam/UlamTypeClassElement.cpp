@@ -306,11 +306,10 @@ namespace MFM {
 
   void UlamTypeClassElement::genUlamTypeAutoReadDefinitionForC(File * fp)
   {
-    //ref param to avoid excessive copying
+    //ref param to avoid excessive copying;
     m_state.indent(fp);
-    fp->write("const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //T or BV
-    fp->write(" read() { ");
+    fp->write(" read() const { ");
     fp->write("return ");
     fp->write("UlamRef<EC>::");
     fp->write(readMethodForCodeGen().c_str());
@@ -332,10 +331,9 @@ namespace MFM {
 	//reads an item of array
 	//2nd argument generated for compatibility with underlying method
 	m_state.indent(fp);
-	fp->write("const ");
 	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32 or BV96
 	fp->write(" readArrayItem(");
-	fp->write("const u32 index, const u32 itemlen) const { return "); //was const after )
+	fp->write("const u32 index, const u32 itemlen) const { return ");
 	fp->write("UlamRef<EC>(");
 	fp->write("*this, index * itemlen, "); //const ref, rel offset
 	fp->write("itemlen, &");  //itemlen,

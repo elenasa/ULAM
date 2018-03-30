@@ -327,7 +327,6 @@ namespace MFM {
   void UlamTypeClassTransient::genUlamTypeAutoReadDefinitionForC(File * fp)
   {
     m_state.indent(fp);
-    fp->write("const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
     fp->write(" read() const { ");
     fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
@@ -345,10 +344,9 @@ namespace MFM {
 	//reads an item of array
 	//2nd argument generated for compatibility with underlying method
 	m_state.indent(fp);
-	fp->write("const ");
 	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
 	fp->write(" readArrayItem(");
-	fp->write("const u32 index, const u32 itemlen) const { return "); //was const after )
+	fp->write("const u32 index, const u32 itemlen) const { return ");
 	fp->write("UlamRef<EC>(");
 	fp->write("*this, index * itemlen, "); //const ref, rel offset
 	fp->write("itemlen, &");  //itemlen,
@@ -547,8 +545,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //BV
-    fp->write(" read");
-    fp->write("() const { ");
+    fp->write(" read() const { ");
     fp->write(getTmpStorageTypeAsString().c_str()); //BV
     fp->write(" rtnunpbv; this->BVS::");
     fp->write(readMethodForCodeGen().c_str());

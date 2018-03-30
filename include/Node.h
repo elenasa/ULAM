@@ -386,6 +386,7 @@ namespace MFM{
     void genCustomArrayLocalMemberNameOfMethod(File * fp);
 
     void genConstantClassMangledName(File * fp);
+    void genConstantArrayMangledName(File * fp);
 
     const std::string localStorageTypeAsString(UTI nuti);
 
