@@ -231,11 +231,9 @@ namespace MFM {
   EvalStatus NodeStorageof::eval()
   {
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     // quark or nonclass data member;
     evalNodeProlog(0); //new current node eval frame pointer
@@ -243,11 +241,7 @@ namespace MFM {
     makeRoomForSlots(1); //always 1 slot for ptr
 
     UlamValue uvp = makeUlamValuePtr(); //virtual
-    if(!uvp.isPtr())
-      {
-	evalNodeEpilog();
-	return ERROR;
-      }
+    if(!uvp.isPtr()) return evalStatusReturn(ERROR);
 
     UlamValue uv = m_state.getPtrTarget(uvp);
 
@@ -265,11 +259,7 @@ namespace MFM {
     // return ptr to this local var (from NodeIdent's makeUlamValuePtr)
     UlamValue rtnUVPtr = makeUlamValuePtr(); //virtual
 
-    if(!rtnUVPtr.isPtr())
-      {
-	evalNodeEpilog();
-	return ERROR;
-      }
+    if(!rtnUVPtr.isPtr()) return evalStatusReturn(ERROR);
 
     //copy result UV to stack, -1 relative to current frame pointer
     Node::assignReturnValuePtrToStack(rtnUVPtr);

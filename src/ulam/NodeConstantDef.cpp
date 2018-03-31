@@ -1150,7 +1150,7 @@ namespace MFM {
     assert(m_constSymbol);
     if(isReadyConstant())
       return NORMAL;
-    return NOTREADY; //was ERROR
+    return evalStatusReturnNoEpilog(NOTREADY); //was ERROR
   }
 
   TBOOL NodeConstantDef::packBitsInOrderOfDeclaration(u32& offset)

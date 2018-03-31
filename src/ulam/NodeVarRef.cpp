@@ -348,8 +348,7 @@ namespace MFM {
     assert(m_varSymbol->getAutoLocalType() != ALT_AS); //NodeVarRefAuto
 
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
     assert(m_varSymbol->getUlamTypeIdx() == nuti);
     assert(m_nodeInitExpr);
@@ -359,11 +358,7 @@ namespace MFM {
     makeRoomForSlots(1); //always 1 slot for ptr
 
     EvalStatus evs = m_nodeInitExpr->evalToStoreInto();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     UlamValue pluv = m_state.m_nodeEvalStack.popArg();
     assert(m_state.isPtr(pluv.getUlamValueTypeIdx()));

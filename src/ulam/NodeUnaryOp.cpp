@@ -405,22 +405,20 @@ namespace MFM {
     assert(m_node);
 
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     evalNodeProlog(0); //new current frame pointer
     u32 slots = makeRoomForNodeType(nuti);
     EvalStatus evs = m_node->eval();
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
-    if(evs == NORMAL)
-      if(!doUnaryOperation(1,slots))
-	evs = ERROR;
+    if(!doUnaryOperation(1,slots))
+      return evalStatusReturn(ERROR);
 
     evalNodeEpilog();
-    return evs;
+    return NORMAL;
   } //eval
 
   bool NodeUnaryOp::doUnaryOperation(s32 slot, u32 nslots)

@@ -453,11 +453,9 @@ namespace MFM {
   EvalStatus NodeFunctionCall::eval()
   {
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     assert(m_funcSymbol);
 
@@ -474,18 +472,10 @@ namespace MFM {
     evalNodeProlog(0); //new current frame pointer on node eval stack
 
     EvalStatus argevs = evalArgumentsInReverseOrder(argsPushed);
-    if(argevs != NORMAL)
-      {
-	evalNodeEpilog();
-	return argevs;
-      }
+    if(argevs != NORMAL) return Node::evalStatusReturn(argevs);
 
     EvalStatus hiddenevs = evalHiddenArguments(argsPushed, func);
-    if(hiddenevs != NORMAL)
-      {
-	evalNodeEpilog();
-	return hiddenevs;
-      }
+    if(hiddenevs != NORMAL) return Node::evalStatusReturn(hiddenevs);
 
     m_state.m_currentSelfPtr = m_state.m_currentObjPtr; // set for subsequent func calls ****
     //********************************************
@@ -494,13 +484,12 @@ namespace MFM {
     EvalStatus evs = func->eval(); //NodeBlockFunctionDefinition..
     if(evs != NORMAL)
       {
-	assert(evs != RETURN);
+	assert(evs != RETURN); //t3896
 	//drops all the args and return slots on callstack
 	m_state.m_funcCallStack.popArgs(argsPushed+rtnslots);
 	m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr *******
 	m_state.m_currentSelfPtr = saveSelfPtr; //restore previous self *****
-	evalNodeEpilog();
-	return evs;
+	return Node::evalStatusReturn(evs);
       }
     //*
     //**********************************************
@@ -537,18 +526,19 @@ namespace MFM {
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr *****
     m_state.m_currentSelfPtr = saveSelfPtr; //restore previous self      *************
+
+    if(evs != NORMAL) return evalStatusReturn(evs);
+
     evalNodeEpilog(); //clears out the node eval stack
-    return evs;
+    return NORMAL;
   } //eval
 
   EvalStatus NodeFunctionCall::evalToStoreInto()
   {
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     std::ostringstream msg;
     msg << "Eval of function calls as lefthand values is not currently supported.";
@@ -560,7 +550,7 @@ namespace MFM {
     if((getStoreIntoAble() != TBOOL_TRUE) && !isAConstructorFunctionCall())
       {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return ERROR;
+	return evalErrorReturn();
       }
 
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -584,18 +574,10 @@ namespace MFM {
     evalNodeProlog(0); //new current frame pointer on node eval stack
 
     EvalStatus argevs = evalArgumentsInReverseOrder(argsPushed);
-    if(argevs != NORMAL)
-      {
-	evalNodeEpilog();
-	return argevs;
-      }
+    if(argevs != NORMAL) return Node::evalStatusReturn(argevs);
 
     EvalStatus hiddenevs = evalHiddenArguments(argsPushed, func);
-    if(hiddenevs != NORMAL)
-      {
-	evalNodeEpilog();
-	return hiddenevs;
-      }
+    if(hiddenevs != NORMAL) return Node::evalStatusReturn(hiddenevs);
 
     m_state.m_currentSelfPtr = m_state.m_currentObjPtr; // set for subsequent func calls ****
     //********************************************
@@ -604,13 +586,12 @@ namespace MFM {
     EvalStatus evs = func->evalToStoreInto(); //NodeBlockFunctionDefinition..
     if(evs != NORMAL)
       {
-	assert(evs != RETURN);
+	assert(evs != RETURN); //t3896
 	//drops all the args and return slots on callstack
 	m_state.m_funcCallStack.popArgs(argsPushed+rtnslots);
 	m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr *******
 	m_state.m_currentSelfPtr = saveSelfPtr; //restore previous self *****
-	evalNodeEpilog();
-	return evs;
+	return Node::evalStatusReturn(evs);
       }
     //*
     //**********************************************
@@ -643,6 +624,9 @@ namespace MFM {
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr *****
     m_state.m_currentSelfPtr = saveSelfPtr; //restore previous self      *************
+
+    if(evs != NORMAL) Node::evalStatusReturn(evs);
+
     evalNodeEpilog(); //clears out the node eval stack
     return NORMAL;
   } //evalToStoreInto
@@ -679,8 +663,7 @@ namespace MFM {
 	else
 	  evs = m_argumentNodes->eval(i);
 
-	if(evs != NORMAL)
-	  return evs; //quit!
+	if(evs != NORMAL) return evalStatusReturnNoEpilog(evs); //quit!
 
 	// transfer to call stack
 	if(slots==1)
@@ -741,7 +724,7 @@ namespace MFM {
       {
 	if(!getVirtualFunctionForEval(atomPtr, func))
 	  {
-	    return ERROR;
+	    return evalErrorReturn();
 	  }
       } //end virtual function
 

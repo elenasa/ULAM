@@ -470,11 +470,9 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     UTI leftType = m_nodeLeft->getNodeType();
     UlamType * lut = m_state.getUlamTypeByIndex(leftType);
@@ -487,22 +485,14 @@ namespace MFM {
 
     makeRoomForSlots(1); //always 1 slot for ptr
     EvalStatus evs = m_nodeLeft->evalToStoreInto();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     UlamValue pluv = m_state.m_nodeEvalStack.popArg();
     UTI ltype = pluv.getPtrTargetType();
 
     makeRoomForNodeType(m_nodeRight->getNodeType()); //offset a constant expression
     evs = m_nodeRight->eval();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     UlamValue offset = m_state.m_nodeEvalStack.popArg();
     UlamType * offut = m_state.getUlamTypeByIndex(offset.getUlamValueTypeIdx());
@@ -536,8 +526,7 @@ namespace MFM {
 	    msg << "Array subscript [" << offsetInt << "] exceeds the size (" << arraysize;
 	    msg << ") of array '" << m_state.m_pool.getDataAsString(lid).c_str() << "'";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    evalNodeEpilog();
-	    return ERROR;
+	    return evalStatusReturn(ERROR);
 	  }
       }
     else
@@ -552,11 +541,11 @@ namespace MFM {
 	msg << m_state.m_pool.getDataAsString(lid).c_str();
 	msg << "' requires a numeric type";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	evalNodeEpilog();
-	return ERROR;
+	return evalStatusReturn(ERROR);
       }
 
     Node::assignReturnValueToStack(pluv.getValAt(offsetInt, m_state));
+
     evalNodeEpilog();
     return NORMAL;
   } //eval
@@ -567,30 +556,18 @@ namespace MFM {
 
     makeRoomForSlots(1); //always 1 slot for index into user string pool
     EvalStatus evs = m_nodeLeft->eval();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     UlamValue luv = m_state.m_nodeEvalStack.popArg();
     u32 usrStr = 0;
     usrStr = luv.getImmediateData(m_state);
 
     if(!m_state.isValidUserStringIndex(usrStr))
-      {
-	//uninitialized or out-of-bounds
-	evalNodeEpilog();
-	return ERROR;
-      }
+      return evalStatusReturn(ERROR); //uninitialized or out-of-bounds
 
     makeRoomForNodeType(m_nodeRight->getNodeType()); //offset a constant expression
     evs = m_nodeRight->eval();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     UlamValue offset = m_state.m_nodeEvalStack.popArg();
     UlamType * offut = m_state.getUlamTypeByIndex(offset.getUlamValueTypeIdx());
@@ -603,8 +580,7 @@ namespace MFM {
 	    msg << "Uninitialized String cannot access subscript of '";
 	    msg << m_state.getDataAsFormattedUserString(usrStr).c_str() << "'";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    evalNodeEpilog();
-	    return ERROR;
+	    return evalStatusReturn(ERROR);
 	  }
 
 	// constant expression only required for array declaration
@@ -617,8 +593,7 @@ namespace MFM {
 	    msg << "String subscript [" << offsetdata << "] exceeds the length (" << strlen;
 	    msg << ") of '" << m_state.getDataAsFormattedUserString(usrStr).c_str() << "'";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    evalNodeEpilog();
-	    return ERROR;
+	    return evalStatusReturn(ERROR);
 	  }
       }
     else
@@ -628,11 +603,11 @@ namespace MFM {
 	msg << m_state.getDataAsFormattedUserString(usrStr).c_str();
 	msg << "' requires a numeric type";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	evalNodeEpilog();
-	return ERROR;
+	return evalStatusReturn(ERROR);
       }
 
     Node::assignReturnValueToStack(m_state.getByteOfUserStringForEval(usrStr, offsetdata));
+
     evalNodeEpilog();
     return NORMAL;
   } //evalAUserStringByte
@@ -641,32 +616,22 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     evalNodeProlog(0); //new current frame pointer
 
     makeRoomForSlots(1); //always 1 slot for ptr
     EvalStatus evs = m_nodeLeft->evalToStoreInto();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     UlamValue pluv = m_state.m_nodeEvalStack.popArg();
     UTI auti = pluv.getPtrTargetType();
 
     makeRoomForNodeType(m_nodeRight->getNodeType()); //offset a constant expression
     evs = m_nodeRight->eval();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     UlamValue offset = m_state.m_nodeEvalStack.popArg();
     // constant expression only required for array declaration
@@ -691,11 +656,11 @@ namespace MFM {
 	msg << ") of array '" << m_state.m_pool.getDataAsString(lid).c_str() << "'";
 	msg << " to store into";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	evs = ERROR;
+	return evalStatusReturn(ERROR);
       }
 
     evalNodeEpilog();
-    return evs;
+    return NORMAL;
   } //evalToStoreInto
 
   bool NodeSquareBracket::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)

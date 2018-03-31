@@ -229,11 +229,7 @@ namespace MFM {
     evalNodeProlog(0);
     makeRoomForNodeType(m_node->getNodeType());
     EvalStatus evs = m_node->eval();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     //not the last one, so thrown out results and continue
     if(m_nodeNext)

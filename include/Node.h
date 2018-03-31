@@ -204,9 +204,10 @@ namespace MFM{
     virtual bool assignClassArgValueInStubCopy();
 
     virtual EvalStatus eval() = 0;
-
     virtual EvalStatus evalToStoreInto();
-
+    virtual EvalStatus evalErrorReturn();
+    virtual EvalStatus evalStatusReturnNoEpilog(EvalStatus evs);
+    virtual EvalStatus evalStatusReturn(EvalStatus evs);
     virtual UlamValue makeUlamValuePtr();
 
     virtual TBOOL packBitsInOrderOfDeclaration(u32& offset);

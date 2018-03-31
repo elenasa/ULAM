@@ -728,18 +728,16 @@ namespace MFM {
     assert(m_varSymbol);
 
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
     u32 len = nut->getTotalBitSize();
 
     if((classtype == UC_TRANSIENT) && (len > MAXSTATEBITS))
-      return UNEVALUABLE;
+      return evalStatusReturnNoEpilog(UNEVALUABLE);
 
     assert(m_varSymbol->getUlamTypeIdx() == nuti); //is it so? if so, some cleanup needed
 
@@ -977,56 +975,51 @@ namespace MFM {
     makeRoomForSlots(1); //always 1 slot for ptr
 
     evs = evalToStoreInto();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1);
     u32 slots = makeRoomForNodeType(nuti);
 
     evs = m_nodeInitExpr->eval();
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
-    if(evs == NORMAL)
+
+    if(m_nodeInitExpr->isAConstructorFunctionCall())
       {
-	if(m_nodeInitExpr->isAConstructorFunctionCall())
+	//Void to be avoided.
+      }
+    else if(slots == 1)
+      {
+	UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slots+1); //immediate scalar + 1 for pluv
+	if(m_state.isScalar(nuti))
 	  {
-	    //Void to be avoided.
+	    m_state.assignValue(pluv,ruv);
+	    //also copy result UV to stack, -1 relative to current frame pointer
+	    Node::assignReturnValueToStack(ruv); //not when unpacked? how come?
 	  }
-	else if(slots == 1)
+	else
 	  {
-	    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slots+1); //immediate scalar + 1 for pluv
-	    if(m_state.isScalar(nuti))
-	      {
-		m_state.assignValue(pluv,ruv);
-		//also copy result UV to stack, -1 relative to current frame pointer
-		Node::assignReturnValueToStack(ruv); //not when unpacked? how come?
-	      }
-	    else
-	      {
-		//(do same as scalar) t3419. t3425, t3708
-		m_state.assignValue(pluv,ruv);
-		Node::assignReturnValueToStack(ruv);
-	      }
+	    //(do same as scalar) t3419. t3425, t3708
+	    m_state.assignValue(pluv,ruv);
+	    Node::assignReturnValueToStack(ruv);
 	  }
-	else //unpacked
-	  {
-	    //t3704, t3706, t3707, t3709
-	    UlamValue scalarPtr = UlamValue::makeScalarPtr(pluv, m_state);
+      }
+    else //unpacked
+      {
+	//t3704, t3706, t3707, t3709
+	UlamValue scalarPtr = UlamValue::makeScalarPtr(pluv, m_state);
 
-	    u32 slotoff = 1 + 1;
-	    for(u32 j = 0; j < slots; j++)
-	      {
-		UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slotoff+j); //immediate scalar
-		m_state.assignValue(scalarPtr,ruv);
-		scalarPtr.incrementPtr(m_state); //by one.
-	      }
+	u32 slotoff = 1 + 1;
+	for(u32 j = 0; j < slots; j++)
+	  {
+	    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slotoff+j); //immediate scalar
+	    m_state.assignValue(scalarPtr,ruv);
+	    scalarPtr.incrementPtr(m_state); //by one.
 	  }
-      } //normal
+      }
 
     evalNodeEpilog();
-    return evs;
+    return NORMAL;
   } //evalInitExpr
 
   EvalStatus NodeVarDecl::evalToStoreInto()
@@ -1037,7 +1030,7 @@ namespace MFM {
     u32 len = nut->getTotalBitSize();
 
     if((classtype == UC_TRANSIENT) && (len > MAXSTATEBITS))
-      return UNEVALUABLE;
+      return evalStatusReturnNoEpilog(UNEVALUABLE);
 
     evalNodeProlog(0); //new current node eval frame pointer
 

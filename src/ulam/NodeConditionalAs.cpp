@@ -236,21 +236,15 @@ namespace MFM {
     assert(m_nodeLeft);
 
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     evalNodeProlog(0);   //new current frame pointer
 
     makeRoomForSlots(1); //always 1 slot for ptr
     EvalStatus evs = m_nodeLeft->evalToStoreInto();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1);
 
@@ -285,10 +279,7 @@ namespace MFM {
 	    if(lut->getUlamClassType() == UC_TRANSIENT)
 	      {
 		if(lut->getTotalBitSize() > MAXSTATEBITS)
-		  {
-		    evalNodeEpilog();
-		    return UNEVALUABLE;
-		  }
+		  return evalStatusReturn(UNEVALUABLE);
 	      }
 	    else
 	      {
@@ -311,8 +302,7 @@ namespace MFM {
 		    msg << "; Passing through as UNFOUND for eval";
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		  }
-		evalNodeEpilog();
-		return UNEVALUABLE;
+		return evalStatusReturn(UNEVALUABLE);
 	      }
 	  }
       }
@@ -323,11 +313,7 @@ namespace MFM {
 	// now optional for debugging
 #define _LET_ATOM_AS_ELEMENT
 #ifndef _LET_ATOM_AS_ELEMENT
-	if(m_state.isAtom(luti))
-	  {
-	    evalNodeEpilog();
-	    return UNEVALUABLE;
-	  }
+	if(m_state.isAtom(luti)) return evalStatusReturn(UNEVALUABLE);
 	asit = (UlamType::compare(luti, ruti, m_state) == UTIC_SAME);
 #else
 	asit = m_state.isAtom(luti) || (UlamType::compare(luti, ruti, m_state) == UTIC_SAME);
@@ -363,8 +349,10 @@ namespace MFM {
     //also copy result UV to stack, -1 relative to current frame pointer
     Node::assignReturnValueToStack(rtnuv);
 
+    if(evs != NORMAL) return evalStatusReturn(evs);
+
     evalNodeEpilog();
-    return evs;
+    return NORMAL;
   } //eval
 
   void NodeConditionalAs::genCode(File * fp, UVPass& uvpass)

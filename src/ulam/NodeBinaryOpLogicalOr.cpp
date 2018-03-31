@@ -43,11 +43,7 @@ namespace MFM {
     u32 slot = makeRoomForNodeType(nuti);
 
     EvalStatus evs = m_nodeLeft->eval();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     //short-circuit if lhs is true
     UlamValue luv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slot); //immediate value
@@ -61,11 +57,7 @@ namespace MFM {
       {
 	u32 slot2 = makeRoomForNodeType(getNodeType());
 	evs = m_nodeRight->eval();
-	if(evs != NORMAL)
-	  {
-	    evalNodeEpilog();
-	    return evs;
-	  }
+	if(evs != NORMAL) return evalStatusReturn(evs);
 
 	UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slot+slot2); //immediate value
 	//copies return UV to stack, -1 relative to current frame pointer
@@ -105,8 +97,7 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
 
-    m_state.indentUlamCode(fp);
-    //fp->write("const ");
+    m_state.indentUlamCode(fp); //non-const
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, TMPREGISTER).c_str());
@@ -118,8 +109,6 @@ namespace MFM {
     UTI luti = luvpass.getPassTargetType();
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     assert(lut->getUlamTypeEnum() == Bool);
-
-    //fp->write("\n");
 
     m_state.indentUlamCode(fp);
     fp->write("if(!"); //lhs is false

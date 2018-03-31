@@ -231,14 +231,11 @@ namespace MFM {
   EvalStatus NodeTerminal::eval()
   {
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
-    if(!m_state.isComplete(nuti))
-      return NOTREADY;
+    if(!m_state.isComplete(nuti)) return evalStatusReturnNoEpilog(NOTREADY);
 
     EvalStatus evs = NORMAL; //init ok
     evalNodeProlog(0); //new current frame pointer
@@ -247,11 +244,12 @@ namespace MFM {
     evs = makeTerminalValue(rtnUV);
 
     //copy result UV to stack, -1 relative to current frame pointer
-    if(evs == NORMAL)
-      Node::assignReturnValueToStack(rtnUV);
+    if(evs != NORMAL) return evalStatusReturn(evs);
+
+    Node::assignReturnValueToStack(rtnUV);
 
     evalNodeEpilog();
-    return evs;
+    return NORMAL;
   } //eval
 
   EvalStatus NodeTerminal::makeTerminalValue(UlamValue& uvarg)

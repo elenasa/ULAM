@@ -320,22 +320,20 @@ namespace MFM {
 
   EvalStatus NodeConstantClassArray::eval()
   {
-    if(!isReadyConstant())
-      return NOTREADY;
+    if(!isReadyConstant()) return evalStatusReturnNoEpilog(NOTREADY);
 
     UTI nuti = getNodeType();
-    if(!m_state.isComplete(nuti))
-      return ERROR;
+    if(!m_state.isComplete(nuti)) return evalErrorReturn();
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
     if((classtype == UC_TRANSIENT) && (nut->getBitSize() > MAXSTATEBITS))
-      return UNEVALUABLE;
+      return evalStatusReturnNoEpilog(UNEVALUABLE);
 
     assert(m_constSymbol);
 
     if(((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex() == 0)
-      return NOTREADY;
+      return evalStatusReturnNoEpilog(NOTREADY);
 
     evalNodeProlog(0); //new current node eval frame pointer, t3897
 
@@ -350,21 +348,19 @@ namespace MFM {
   {
     //possible access of constant array item (t3881)
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClassType();
     if((classtype == UC_TRANSIENT) && (nut->getTotalBitSize() > MAXSTATEBITS))
-      return UNEVALUABLE; //t41269
+      return evalStatusReturnNoEpilog(UNEVALUABLE); //t41269
 
     assert(m_constSymbol);
 
     if(((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex() == 0)
-      return NOTREADY;
+      return evalStatusReturnNoEpilog(NOTREADY);;
 
     evalNodeProlog(0); //new current node eval frame pointer
 

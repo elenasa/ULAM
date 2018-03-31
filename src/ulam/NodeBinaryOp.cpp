@@ -628,34 +628,27 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
 
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
     evalNodeProlog(0); //new current frame pointer
 
     u32 slot = makeRoomForNodeType(nuti);
     EvalStatus evs = m_nodeLeft->eval();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     u32 slot2 = makeRoomForNodeType(nuti);
     evs = m_nodeRight->eval();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     //copies return UV to stack, -1 relative to current frame pointer
     if(slot && slot2)
-      if(!doBinaryOperation(1, 1+slot, slot2))
-	evs = ERROR;
+      {
+	if(!doBinaryOperation(1, 1+slot, slot2))
+	  return evalStatusReturn(ERROR);
+      }
 
     evalNodeEpilog();
-    return evs;
+    return NORMAL;
   } //eval
 
   bool NodeBinaryOp::doBinaryOperationImmediate(s32 lslot, s32 rslot, u32 slots)

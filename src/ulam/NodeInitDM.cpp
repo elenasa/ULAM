@@ -559,7 +559,7 @@ namespace MFM {
     assert(m_constSymbol);
     if(m_constSymbol->isInitValueReady())
       return NORMAL;
-    return ERROR;
+    return evalErrorReturn();
   }
 
   TBOOL NodeInitDM::packBitsInOrderOfDeclaration(u32& offset)

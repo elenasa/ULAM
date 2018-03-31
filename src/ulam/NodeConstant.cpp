@@ -486,9 +486,9 @@ namespace MFM {
     if(!isReadyConstant())
       m_ready = updateConstant();
     if(!isReadyConstant())
-      return NOTREADY;
+      return evalStatusReturnNoEpilog(NOTREADY);
     if(!m_state.isComplete(getNodeType()))
-      return ERROR;
+      return evalErrorReturn();
     return NodeTerminal::eval();
   } //eval
 
@@ -496,16 +496,14 @@ namespace MFM {
   {
     //possible constant array item (t3881)
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     assert(m_constSymbol);
 
     if(((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex() == 0)
-      return NOTREADY;
+      return evalStatusReturnNoEpilog(NOTREADY);
 
     evalNodeProlog(0); //new current node eval frame pointer
 

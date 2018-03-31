@@ -1081,15 +1081,14 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	makeRoomForNodeType(funcType); //Int return
 
 	evs = funcNode->eval();
-	if(evs == NORMAL)
-	  {
-	    UlamValue testUV = m_state.m_nodeEvalStack.popArg();
-	    Node::assignReturnValueToStack(testUV);
-	  }
+	if(evs != NORMAL) return evalStatusReturn(evs);
+
+	UlamValue testUV = m_state.m_nodeEvalStack.popArg();
+	Node::assignReturnValueToStack(testUV);
 	setNodeType(saveClassType); //temp, restore
       }
     evalNodeEpilog();
-    return evs;
+    return NORMAL;
   } //eval
 
   //override to check both variables and function names; not any super class.

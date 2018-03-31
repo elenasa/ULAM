@@ -447,27 +447,17 @@ namespace MFM {
     UTI tobeType = getCastType();
     UTI nodeType = m_node->getNodeType(); //uv.getUlamValueType()
 
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     evalNodeProlog(0); //new current frame pointer
 
     makeRoomForNodeType(nodeType);
     EvalStatus evs = m_node->eval();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
-    if(nodeType == Void)
-      {
-	evalNodeEpilog();
-	return UNEVALUABLE; //t41077, nothing to load
-      }
+    if(nodeType == Void) return evalStatusReturn(UNEVALUABLE); //t41077, nothing to load
 
     //do we believe these to be scalars, only?
     //possibly an array that needs to be casted, per elenemt
@@ -504,8 +494,7 @@ namespace MFM {
 	msg << "Cast question: Do not wipe out actual type for atom during eval! Value type ";
 	msg << m_state.getUlamTypeNameBriefByIndex(vuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	evalNodeEpilog();
-	return UNEVALUABLE;
+	return evalStatusReturn(UNEVALUABLE);
       }
     if((m_state.isAtom(tobeType)) && (vclasstype == UC_QUARK))
       {
@@ -514,8 +503,7 @@ namespace MFM {
 	msg << "Cast question: actual type for quark ref during eval! Value type ";
 	msg << m_state.getUlamTypeNameBriefByIndex(vuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	evalNodeEpilog();
-	return UNEVALUABLE;
+	return evalStatusReturn(UNEVALUABLE);
       }
     if((m_state.isAtom(tobeType)) && (vclasstype == UC_ELEMENT) && vut->isAltRefType())
       {
@@ -523,8 +511,7 @@ namespace MFM {
 	msg << "Cast question: actual type for element ref during eval! Value type ";
 	msg << m_state.getUlamTypeNameBriefByIndex(vuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	evalNodeEpilog();
-	return UNEVALUABLE; //e.g. t3753
+	return evalStatusReturn(UNEVALUABLE); //e.g. t3753
       }
     else if(UlamType::compare(nodeType, tobeType, m_state) != UTIC_SAME)
       {
@@ -540,8 +527,7 @@ namespace MFM {
 	    msg << " failed to be cast as ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    evalNodeEpilog();
-	    return UNEVALUABLE;
+	    return evalStatusReturn(UNEVALUABLE);
 	  }
       }
     //also copy result UV to stack, -1 relative to current frame pointer
@@ -559,20 +545,18 @@ namespace MFM {
     UTI tobeType = getCastType();
     UTI nodeType = m_node->getNodeType(); //uv.getUlamValueType()
 
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
+
     bool isConstRefType = m_state.isConstantRefType(tobeType);
 
     if(!isConstRefType)
       {
 	TBOOL stor = m_node->getStoreIntoAble();
-	if(stor == TBOOL_FALSE)
-	  return ERROR;
-	else if(stor == TBOOL_HAZY)
-	  return NOTREADY;
+	if(stor == TBOOL_FALSE) return evalErrorReturn();
+	else if(stor == TBOOL_HAZY) evalStatusReturnNoEpilog(NOTREADY);
+	//else
       }
     //else continue if constant ref type (t41238)
 
@@ -580,19 +564,11 @@ namespace MFM {
 
     makeRoomForSlots(1); //always 1 slot for ptr
     EvalStatus evs = m_node->evalToStoreInto();
-    if(evs != NORMAL)
-      {
-    	evalNodeEpilog();
-    	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     //then what? (see NodeMemberSelect)
     UlamValue ruvPtr = m_state.m_nodeEvalStack.loadUlamValuePtrFromSlot(1);
-    if(!ruvPtr.isPtr())
-      {
-	evalNodeEpilog();
-	return UNEVALUABLE; //t41053
-      }
+    if(!ruvPtr.isPtr()) return evalStatusReturn(UNEVALUABLE); //t41053
 
     if(UlamType::compare(nodeType, tobeType, m_state) != UTIC_SAME)
       {
@@ -622,8 +598,7 @@ namespace MFM {
 		msg << " failed to be cast as ";
 		msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		evalNodeEpilog();
-		return UNEVALUABLE;
+		return evalStatusReturn(UNEVALUABLE);
 	      }
 	    else
 	      {

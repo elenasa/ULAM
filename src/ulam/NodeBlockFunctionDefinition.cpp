@@ -352,14 +352,12 @@ namespace MFM {
     assert(m_nodeNext);
 
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     //for eval, native function blocks (NodeBlockEmpty) return Normal. t3942
-    if(isNative() && getNodeType() != Void) return UNEVALUABLE;
+    if(isNative() && getNodeType() != Void) return evalStatusReturnNoEpilog(UNEVALUABLE);
 
     m_state.pushCurrentBlock(this); //push func def
 
@@ -406,8 +404,7 @@ namespace MFM {
     else
       {
 	m_state.m_funcCallStack.returnFrame(m_state);
-	evalNodeEpilog();
-	return evs;
+	return evalStatusReturn(evs);
       }
 
     // save results in the node eval stackframe for function caller, returning
@@ -420,7 +417,7 @@ namespace MFM {
 
     m_state.m_funcCallStack.returnFrame(m_state);
     evalNodeEpilog();
-    return NORMAL;
+    return NORMAL; //t3896
   } //eval
 
   EvalStatus NodeBlockFunctionDefinition::evalToStoreInto()

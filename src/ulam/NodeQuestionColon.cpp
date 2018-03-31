@@ -387,21 +387,15 @@ namespace MFM {
     assert(m_nodeCondition && m_nodeLeft && m_nodeRight);
 
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     evalNodeProlog(0); //new current frame pointer
 
     makeRoomForNodeType(Bool);
     EvalStatus evs = m_nodeCondition->eval();
-    if(evs != NORMAL) //what if RETURN
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);//what if RETURN
 
     makeRoomForNodeType(nuti);
 
@@ -415,11 +409,7 @@ namespace MFM {
 	evs = m_nodeLeft->eval();
       }
 
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     if(nuti != Void)
       {
@@ -432,29 +422,24 @@ namespace MFM {
 	//also copy result UV to stack, -1 relative to current frame pointer
 	Node::assignReturnValueToStack(auv);
       }
+
     evalNodeEpilog();
-    return evs;
+    return NORMAL;
   } //eval
 
   EvalStatus NodeQuestionColon::evalToStoreInto()
   {
     //t41071, nuti not ALT_REF; comes from cast to ref
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     evalNodeProlog(0);
 
     makeRoomForNodeType(Bool);
     EvalStatus evs = m_nodeCondition->eval();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     makeRoomForNodeType(nuti);
 
@@ -468,11 +453,7 @@ namespace MFM {
 	evs = m_nodeLeft->evalToStoreInto();
       }
 
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     //should always return value as ptr to stack.
     UlamValue rtnUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(2);

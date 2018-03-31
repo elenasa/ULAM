@@ -322,63 +322,61 @@ namespace MFM {
   EvalStatus NodeTerminalProxy::eval()
   {
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
+
+    if(!m_state.isComplete(m_uti)) return evalStatusReturnNoEpilog(NOTREADY);
 
     EvalStatus evs = NORMAL; //init ok
     evalNodeProlog(0); //new current frame pointer
 
-    if(!m_state.isComplete(m_uti))
-      evs = NOTREADY;
-    else
+    if((m_funcTok.m_type == TOK_KW_LENGTHOF))
       {
-	if((m_funcTok.m_type == TOK_KW_LENGTHOF))
+	if(m_nodeOf && (UlamType::compareForString(m_nodeOf->getNodeType(), m_state) == UTIC_SAME))
 	  {
-	    if(m_nodeOf && (UlamType::compareForString(m_nodeOf->getNodeType(), m_state) == UTIC_SAME))
-	      {
-		//String or String array item (t3933, t3949, t3984)
-		evalNodeProlog(0); //new current frame pointer
-		makeRoomForSlots(1); //upool index is a constant expression
-		evs = m_nodeOf->eval();
-		if(evs == NORMAL)
-		  {
-		    UlamValue stringUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
-		    u32 ustringidx = stringUV.getImmediateData(m_state);
-		    if(!m_state.isValidUserStringIndex(ustringidx))
-		      evs = ERROR;
-		    else
-		      m_constant.uval = m_state.getUserStringLength(ustringidx); //reset here!!
-		  }
-		//else
-		evalNodeEpilog();
-	      }
-	    else if(m_state.isClassACustomArray(m_uti))
-	      {
-		std::ostringstream msg;
-		msg << "Custom Array '" << m_funcTok.getTokenString() << "' proxy requires "; //lengthof
-		msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayLengthofFunctionNameId()).c_str();
-		msg << " function; Unsupported for eval";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		evs = UNEVALUABLE;
-		m_state.abortShouldntGetHere(); //replaced with func call when provided, o.w. parse err
-	      }
-	  }
-
-	if(evs == NORMAL)
-	  {
-	    UlamValue rtnUV;
-	    evs = NodeTerminal::makeTerminalValue(rtnUV);
-
-	    //copy result UV to stack, -1 relative to current frame pointer
+	    //String or String array item (t3933, t3949, t3984)
+	    evalNodeProlog(0); //new current frame pointer
+	    makeRoomForSlots(1); //upool index is a constant expression
+	    evs = m_nodeOf->eval();
 	    if(evs == NORMAL)
-	      Node::assignReturnValueToStack(rtnUV);
+	      {
+		UlamValue stringUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
+		u32 ustringidx = stringUV.getImmediateData(m_state);
+		if(m_state.isValidUserStringIndex(ustringidx))
+		  m_constant.uval = m_state.getUserStringLength(ustringidx); //reset here!!
+		else
+		  evs = ERROR;
+	      }
+	    //else
+	    evalNodeEpilog(); //second epilog
+	  }
+	else if(m_state.isClassACustomArray(m_uti))
+	  {
+	    std::ostringstream msg;
+	    msg << "Custom Array '" << m_funcTok.getTokenString() << "' proxy requires "; //lengthof
+	    msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayLengthofFunctionNameId()).c_str();
+	    msg << " function; Unsupported for eval";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    evs = UNEVALUABLE;
+	    m_state.abortShouldntGetHere(); //replaced with func call when provided, o.w. parse err
 	  }
       }
+
+    if(evs == NORMAL)
+      {
+	UlamValue rtnUV;
+	evs = NodeTerminal::makeTerminalValue(rtnUV);
+
+	//copy result UV to stack, -1 relative to current frame pointer
+	if(evs == NORMAL)
+	  Node::assignReturnValueToStack(rtnUV);
+      }
+
+    if(evs != NORMAL) return evalStatusReturn(evs);
+
     evalNodeEpilog();
-    return evs;
+    return NORMAL;
   } //eval
 
   void NodeTerminalProxy::genCode(File * fp, UVPass& uvpass)

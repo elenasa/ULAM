@@ -261,14 +261,11 @@ namespace MFM {
     if(m_state.getReferenceType(nuti) == ALT_REF)
       return evalToStoreInto();
 
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
-    if(!m_node)
-      return RETURN;
+    if(!m_node) return evalStatusReturnNoEpilog(RETURN);
 
     evalNodeProlog(0);
     makeRoomForNodeType(nuti);
@@ -278,8 +275,7 @@ namespace MFM {
     if(evs != NORMAL)
       {
 	assert((evs != CONTINUE) && (evs != BREAK));
-	evalNodeEpilog();
-	return evs;
+	return evalStatusReturn(evs);
       }
 
     if(Node::returnValueOnStackNeededForEval(nuti))
@@ -304,14 +300,11 @@ namespace MFM {
   EvalStatus NodeReturnStatement::evalToStoreInto()
   {
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
-    if(!m_node)
-      return RETURN;
+    if(!m_node) return evalStatusReturnNoEpilog(RETURN);
 
     assert(m_state.getReferenceType(nuti) == ALT_REF);
 
@@ -323,8 +316,7 @@ namespace MFM {
     if(evs != NORMAL)
       {
 	assert((evs != CONTINUE) && (evs != BREAK));
-	evalNodeEpilog();
-	return evs;
+	return evalStatusReturn(evs);
       }
 
     //should always return value as ptr to stack.
@@ -332,10 +324,7 @@ namespace MFM {
     assert(rtnUV.isPtr());
 
     if(m_state.isLocalUnreturnableReferenceForEval(rtnUV))
-      {
-	evalNodeEpilog();
-	return ERROR;
-      }
+      return evalStatusReturn(ERROR);
 
     Node::assignReturnValuePtrToStack(rtnUV, STACK);
 
