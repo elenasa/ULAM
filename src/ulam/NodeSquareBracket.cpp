@@ -2,6 +2,9 @@
 #include "NodeFunctionCall.h"
 #include "NodeMemberSelect.h"
 #include "NodeIdent.h"
+#include "NodeConstantClass.h"
+#include "NodeConstantClassArray.h"
+#include "NodeConstantArray.h"
 #include "CompilerState.h"
 
 namespace MFM {
@@ -63,6 +66,16 @@ namespace MFM {
   const std::string NodeSquareBracket::methodNameForCodeGen()
   {
     return "_SquareBracket_Stub";
+  }
+
+  bool NodeSquareBracket::isAConstantClass()
+  {
+    return m_nodeLeft->isAConstantClassArray(); //t41273
+  }
+
+  bool NodeSquareBracket::isAConstantClassArray()
+  {
+    return isAConstantClass() && m_nodeRight->isAConstantClassArray();
   }
 
   bool NodeSquareBracket::isArrayItem()
@@ -364,6 +377,44 @@ namespace MFM {
 
     return newType;
   } //checkAndLabelType
+
+  bool NodeSquareBracket::getConstantArrayItemValue(BV8K& bvitem)
+  {
+    bool rtnok = false;
+    assert(m_nodeLeft->isAConstant() && m_nodeRight->isAConstant());
+    UTI leftType = m_nodeLeft->getNodeType();
+    s32 rindex;
+    UTI rt;
+    if(getArraysizeInBracket(rindex,rt)) //t41198
+      {
+	assert((rindex >= 0) && (rindex < m_state.getArraySize(leftType))); //catchable during c&l
+
+	//fold into a constant class (t41273); not a list
+	if(m_nodeLeft->isAConstantClassArray())
+	  {
+	    BV8K bvccatmp;
+	    if(((NodeConstantClassArray *) m_nodeLeft)->getClassArrayValue(bvccatmp))
+	      {
+		UTI scalarLeft = m_state.getUlamTypeAsScalar(leftType);
+		u32 itemlen = m_state.getUlamTypeByIndex(scalarLeft)->getSizeofUlamType();
+		bvccatmp.CopyBV(rindex * itemlen, 0u, itemlen, bvitem); //src pos, dest pos, dst bv
+		rtnok = true;
+	      }
+	  }
+	else
+	  {
+	    BV8K bvcatmp;
+	    if(((NodeConstantArray *) m_nodeLeft)->getArrayValue(bvcatmp))
+	      {
+		UTI scalarLeft = m_state.getUlamTypeAsScalar(leftType);
+		u32 itemlen = m_state.getUlamTypeByIndex(scalarLeft)->getSizeofUlamType();
+		bvcatmp.CopyBV(rindex * itemlen, 0u, itemlen, bvitem); //src pos, dest pos, dst bv
+		rtnok = true;
+	      }
+	  }
+      }
+    return rtnok;
+  } //getConstantArrayItemValue
 
   //here, we check for existence, do we can default to custom array, aref.
   Node * NodeSquareBracket::buildOperatorOverloadFuncCallNode()

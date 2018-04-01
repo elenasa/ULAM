@@ -236,6 +236,11 @@ namespace MFM {
     return false;
   }
 
+  bool Node::isAConstantClassArray()
+  {
+    return false;
+  }
+
   bool Node::isReadyConstant()
   {
     return false;
@@ -902,9 +907,7 @@ namespace MFM {
 
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
 
-    m_state.indentUlamCode(fp);
-    //    if((cosclass != UC_ELEMENT)) //t41230
-    //  fp->write("const ");
+    m_state.indentUlamCode(fp); //non-const (e.g. t41230)
     fp->write(cosut->getTmpStorageTypeAsString().c_str()); //u32, T, BV non-const
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum, cstor).c_str());
@@ -946,41 +949,37 @@ namespace MFM {
 
     uvpass = UVPass::makePass(tmpVarNum, cstor, cosuti, m_state.determinePackable(cosuti), m_state, 0, 0); //POS 0 justified (atom-based).
 
-    if(ncsym->isDataMember() || ncsym->isLocalsFilescopeDef())
+    if((nclasstype == UC_ELEMENT)) //t41230, t41232, t41273
       {
-	if((nclasstype == UC_ELEMENT)) //t41230, t41232
-	  {
-	    genFixForElementTypeFieldInTmpVarOfConstantClass(fp, uvpass);
+	genFixForElementTypeFieldInTmpVarOfConstantClass(fp, uvpass);
 
-	    SymbolClass * csym = NULL;
-	    AssertBool isDef = m_state.alreadyDefinedSymbolClass(cosuti, csym);
-	    assert(isDef);
-	    NodeBlockClass * cblock = csym->getClassBlockNode();
-	    assert(cblock);
-	    cblock->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, 0, &uvpass); //t41267
-	  }
-	else if(cosut->getUlamTypeEnum() == String)
-	  {
-	    genFixForStringRegNumInTmpVarOfConstantClass(fp, uvpass);
-	  }
-	else if(cosclass == UC_TRANSIENT)
-	  {
-	    SymbolClass * csym = NULL;
-	    AssertBool isDef = m_state.alreadyDefinedSymbolClass(cosuti, csym); //scalar uti
-	    assert(isDef);
-	    NodeBlockClass * cblock = csym->getClassBlockNode();
-	    assert(cblock);
-	    u32 len = cosut->getBitSize();
-	    u32 arraysize = cosut->isScalar() ? 1 : cosut->getArraySize();
-	    for(u32 i = 0; i < arraysize; i++)
-	      {
-		cblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, cospos + i * len, &uvpass); //t41263
-		cblock->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, cospos + i * len, &uvpass); //t41267, t41271
-	      }
-	  }
-	//else nothing to do
+	SymbolClass * csym = NULL;
+	AssertBool isDef = m_state.alreadyDefinedSymbolClass(cosuti, csym);
+	assert(isDef);
+	NodeBlockClass * cblock = csym->getClassBlockNode();
+	assert(cblock);
+	cblock->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, 0, &uvpass); //t41267
       }
-    // else not necessary for local func constant (already done) t41232
+    else if(cosut->getUlamTypeEnum() == String)
+      {
+	genFixForStringRegNumInTmpVarOfConstantClass(fp, uvpass);
+      }
+    else if(cosclass == UC_TRANSIENT)
+      {
+	SymbolClass * csym = NULL;
+	AssertBool isDef = m_state.alreadyDefinedSymbolClass(cosuti, csym); //scalar uti
+	assert(isDef);
+	NodeBlockClass * cblock = csym->getClassBlockNode();
+	assert(cblock);
+	u32 len = cosut->getBitSize();
+	u32 arraysize = cosut->isScalar() ? 1 : cosut->getArraySize();
+	for(u32 i = 0; i < arraysize; i++)
+	  {
+	    cblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, cospos + i * len, &uvpass); //t41263
+	    cblock->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, cospos + i * len, &uvpass); //t41267, t41271
+	  }
+      }
+    //else nothing to do
 
     // note: Ints not sign extended until used/cast
     m_state.clearCurrentObjSymbolsForCodeGen();
@@ -1626,7 +1625,7 @@ namespace MFM {
 
   void Node::genFixForElementTypeFieldInTmpVarOfConstantClass(File * fp, const UVPass & uvpass)
   {
-    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    //assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     UTI vuti = uvpass.getPassTargetType();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     assert(vut->getUlamClassType() == UC_ELEMENT);

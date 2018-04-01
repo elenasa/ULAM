@@ -1,4 +1,9 @@
 #include "NodeMemberSelect.h"
+#include "NodeConstant.h"
+#include "NodeConstantArray.h"
+#include "NodeConstantClass.h"
+#include "NodeConstantClassArray.h"
+#include "SymbolVariableDataMember.h"
 #include "CompilerState.h"
 
 namespace MFM {
@@ -90,6 +95,18 @@ namespace MFM {
     return m_nodeLeft->isAConstant(); //constant classes possible
   }
 
+  bool NodeMemberSelect::isAConstantClass()
+  {
+    //return m_nodeLeft->isAConstantClass(); //t41273
+    return false;
+  }
+
+  bool NodeMemberSelect::isAConstantClassArray()
+  {
+    //return isAConstantClass() && m_nodeRight->isAConstantClassArray();
+    return false;
+  }
+
   const std::string NodeMemberSelect::methodNameForCodeGen()
   {
     return "_MemberSelect_Stub";
@@ -140,15 +157,15 @@ namespace MFM {
       }
 
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
-    ULAMCLASSTYPE classtype = lut->getUlamClassType();
-    if(((classtype == UC_NOTACLASS) && (lut->getUlamTypeEnum() != Holder)) || !lut->isScalar())
+    ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
+    if(((lclasstype == UC_NOTACLASS) && (lut->getUlamTypeEnum() != Holder)) || !lut->isScalar())
       {
 	// must be a scalar 'Class' type, (e.g. error/t3815)
 	// doesn't complete checkandlabel for rhs (e.g. funccall is NULL, no eval)
 	std::ostringstream msg;
 	msg << "Member selected must be a Class, not type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
-	if(classtype != UC_NOTACLASS)
+	if(lclasstype != UC_NOTACLASS)
 	  msg << "[" << lut->getArraySize() << "]";
 	if(m_state.isAtom(luti))
 	  msg << "; suggest using a Conditional-As";
@@ -205,6 +222,74 @@ namespace MFM {
       }
     return getNodeType();
   } //checkAndLabelType
+
+  bool NodeMemberSelect::getConstantMemberValue(BV8K& bvmsel)
+  {
+    bool rtnok = false;
+    //vs t41232
+    //constant fold righthand member of constant class (t41273); left is complete, we know.
+    assert(m_nodeLeft->isAConstantClass());
+    UTI leftType = m_nodeLeft->getNodeType();
+    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
+    ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
+    UTI rightType = m_nodeRight->getNodeType();
+
+    //rhs could be a class/array, primitive/array; whatever it is a constant!
+    //replace rhs with a constant node version of it, using the value found in lhs.
+    assert(!m_nodeRight->isAList());
+    assert(!m_nodeRight->isFunctionCall());
+    if(!m_nodeRight->isAConstant())
+      {
+	Symbol * sym = NULL;
+	if(m_nodeRight->getSymbolPtr(sym))
+	  {
+	    assert(sym->isDataMember());
+	    SymbolVariableDataMember * dmsym = (SymbolVariableDataMember *) sym;
+	    u32 rpos = 9999;
+	    if(!dmsym->isPosOffsetReliable())
+	      {
+		TBOOL packed = m_state.tryToPackAClass(leftType);
+		if(packed == TBOOL_TRUE)
+		  {
+		    m_nodeRight->getSymbolPtr(sym); //refresh
+		    dmsym = (SymbolVariableDataMember *) sym;
+		    rpos = dmsym->getPosOffset();
+		  }
+		//else cannot pack yet
+	      }
+	    else
+	      rpos = dmsym->getPosOffset();
+
+	    //okay to fold (possible refactor TODO)
+	    if(rpos != 9999)
+	      {
+		if(lclasstype == UC_ELEMENT)
+		  rpos += ATOMFIRSTSTATEBITPOS;
+
+		BV8K bvcctmp;
+		bool gotVal = false;
+		if(m_nodeLeft->isArrayItem())
+		  gotVal = ((NodeSquareBracket *) m_nodeLeft)->getConstantArrayItemValue(bvcctmp);
+		else
+		  gotVal = ((NodeConstantClass *) m_nodeLeft)->getClassValue(bvcctmp);
+
+		if(gotVal)
+		  {
+		    UlamType * rut = m_state.getUlamTypeByIndex(rightType);
+		    u32 rlen = rut->getSizeofUlamType();
+		    bvcctmp.CopyBV(rpos, 0, rlen, bvmsel);
+		    rtnok = true;
+		  } //no left class value
+	      } //rpos not reliable
+	  } //no right symbol ptr
+      }
+    else
+      {
+	//right is a constant
+	m_state.abortNotImplementedYet();
+      }
+    return rtnok;
+  } //getConstantMemberValue
 
   TBOOL NodeMemberSelect::checkStoreIntoAble()
   {

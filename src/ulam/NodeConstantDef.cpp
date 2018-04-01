@@ -3,8 +3,10 @@
 #include "NodeConstant.h"
 #include "NodeConstantArray.h"
 #include "NodeConstantClass.h"
+#include "NodeConstantClassArray.h"
 #include "NodeListArrayInitialization.h"
 #include "NodeListClassInit.h"
+#include "NodeMemberSelect.h"
 #include "NodeTerminal.h"
 #include "CompilerState.h"
 #include "MapConstantDesc.h"
@@ -750,6 +752,40 @@ namespace MFM {
 
 		u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
 		assignConstantSlotIndex(tmpslotnum); //t3451
+	      }
+	  }
+	else if(m_nodeExpr->isAConstantClassArray())
+	  {
+	    //not a list
+	    BV8K bvcctmp;
+	    if(((NodeConstantClassArray *) m_nodeExpr)->getClassArrayValue(bvcctmp))
+	      {
+		m_constSymbol->setValue(bvcctmp); //t41273
+		rtnuti = m_nodeExpr->getNodeType(); //or uti?
+
+		if(m_state.determinePackable(rtnuti) == PACKEDLOADABLE)
+		  {
+		    u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
+		    assignConstantSlotIndex(tmpslotnum);
+		  }
+		//else notready later when it is still 0
+	      }
+	    m_state.abortNeedsATest();
+	  }
+	else if(m_nodeExpr->isAConstant() && m_nodeExpr->hasASymbolDataMember())
+	  {
+	    BV8K bvmsel;
+	    if(((NodeMemberSelect *) m_nodeExpr)->getConstantMemberValue(bvmsel))
+	      {
+		m_constSymbol->setValue(bvmsel); //t41273
+		rtnuti = m_nodeExpr->getNodeType(); //or uti?
+
+		if(m_state.determinePackable(rtnuti) == PACKEDLOADABLE)
+		  {
+		    u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
+		    assignConstantSlotIndex(tmpslotnum);
+		  }
+		//else notready later when it is still 0
 	      }
 	  }
 	else
@@ -1540,8 +1576,8 @@ namespace MFM {
 	  }
 	else
 	  {
-	    u32 len = nut->getSizeofUlamType();
 	    //immediate named constant in a function (t41232)
+	    u32 len = nut->getSizeofUlamType();
 	    m_state.indentUlamCode(fp);
 	    fp->write("const u32 _init");
 	    fp->write(m_constSymbol->getMangledName().c_str());
@@ -1551,56 +1587,27 @@ namespace MFM {
 	    fp->write(estr.c_str());
 	    fp->write(" };\n");
 
+	    m_state.indentUlamCode(fp); //non const
+	    fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
+	    fp->write(" ");
+	    fp->write(m_constSymbol->getMangledName().c_str());
+	    fp->write("(_init");
+	    fp->write(m_constSymbol->getMangledName().c_str());
+	    fp->write("); // tmp for constant ");
+	    fp->write(getName()); //comment
+	    GCNL;
 
-	    ULAMCLASSTYPE classtype = nut->getUlamClassType();
-	    if(classtype == UC_TRANSIENT)
-	      {
-		u32 tmpvar = m_state.getNextTmpVarNumber();
+	    m_state.m_currentObjSymbolsForCodeGen.push_back(m_constSymbol);
+	    UVPass tmpuvpass;
+	    Node::genCodeReadFromAConstantClassIntoATmpVar(fp, tmpuvpass);
 
-		m_state.indentUlamCode(fp); //non const
-		fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
-		fp->write(" ");
-		fp->write(m_state.getTmpVarAsString(nuti, tmpvar, TMPBITVAL).c_str());
-		fp->write("(_init");
-		fp->write(m_constSymbol->getMangledName().c_str());
-		fp->write("); // tmp for constant ");
-		fp->write(getName()); //comment
-		GCNL;
-
-		UVPass tmpuvpass = UVPass::makePass(tmpvar, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 justified (atom-based).
-		SymbolClass * csym = NULL;
-		AssertBool isDef = m_state.alreadyDefinedSymbolClass(nuti, csym);
-		assert(isDef);
-		NodeBlockClass * cblock = csym->getClassBlockNode();
-		assert(cblock);
-		cblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, 0, &tmpuvpass); //t41232
-		cblock->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, 0, &tmpuvpass);
-
-		m_state.indentUlamCode(fp); //non const
-		fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
-		fp->write(" ");
-		fp->write(m_constSymbol->getMangledName().c_str());
-		fp->write("(");
-		fp->write(tmpuvpass.getTmpVarAsString(m_state).c_str());
-		fp->write("); // constant value for ");
-		fp->write(getName()); //comment
-		GCNL;
-	      }
-	    else
-	      {
-		m_state.indentUlamCode(fp); //non const
-		fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
-		fp->write(" ");
-		fp->write(m_constSymbol->getMangledName().c_str());
-		fp->write("(_init");
-		fp->write(m_constSymbol->getMangledName().c_str());
-		fp->write("); // constant value for ");
-		fp->write(getName()); //comment
-		GCNL;
-	      }
+	    m_state.indentUlamCode(fp);
+	    fp->write(m_constSymbol->getMangledName().c_str());
+	    fp->write(".write(");
+	    fp->write(tmpuvpass.getTmpVarAsString(m_state).c_str());
+	    fp->write(");"); GCNL;
 	  }
-      }
-    //else do nothing
+      } //else do nothing
     return; //done
   } //genCode
 
@@ -1709,56 +1716,8 @@ namespace MFM {
 	m_constSymbol->printPostfixValue(fp);
 	fp->write(";"); GCNL;
       }
-#if 0
-    // Note: Cannot initialize constants like data members in default class
-    // (see CS::genCodeClassDefaultConstantArray);
-    // Registration Number not yet available. (t3953)
-    // Element Types not all allocated (t41267)
-    //if(!m_state.isThisLocalsFileScope())
-      {
-	if(classtype == UC_TRANSIENT)
-	  {
-	    // declare perfect size BV with constant array of defaults BV8K u32's
-	    m_state.indent(fp);
-	    fp->write("static BitVector<");
-	    fp->write_decimal_unsigned(len);
-	    fp->write("> initBV;"); GCNL;
-
-	    m_state.indent(fp);
-	    fp->write("static bool initdone;\n");
-
-	    m_state.indent(fp);
-	    fp->write("if(!initdone)\n");
-	    m_state.indent(fp);
-	    fp->write("{\n");
-
-	    m_state.m_currentIndentLevel++;
-
-	    m_state.indent(fp);
-	    fp->write("initdone = true;\n");
-
-	    m_state.indent(fp);
-	    fp->write("initBV.FromArray(initVal);"); GCNL;
-
-	    m_state.indent(fp);
-	    fp->write("//correct runtime regnum for strings; data member inits\n");
-	    genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, 0u, NULL); //t41231,2,3, t41266,7
-	    //getCurrentBlock()->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, 0, NULL);
-
-	    m_state.indent(fp);
-	    fp->write("initBV.ToArray(initVal);"); GCNL; //t3776
-
-	    m_state.m_currentIndentLevel--;
-
-	    m_state.indent(fp);
-	    fp->write("}"); GCNL;
-	  }
-      }
-#endif
-
     m_state.indent(fp);
     fp->write("return initVal;"); GCNL;
-
 
     m_state.m_currentIndentLevel--;
 

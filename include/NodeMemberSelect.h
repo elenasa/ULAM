@@ -74,11 +74,17 @@ namespace MFM{
 
     virtual bool isAConstant();
 
+    virtual bool isAConstantClass();
+
+    virtual bool isAConstantClassArray();
+
     virtual const std::string methodNameForCodeGen();
 
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType();
+
+    bool getConstantMemberValue(BV8K& bvmsel);
 
     virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
 

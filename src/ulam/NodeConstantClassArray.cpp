@@ -86,6 +86,11 @@ namespace MFM {
     return true;
   }
 
+  bool NodeConstantClassArray::isAConstantClassArray()
+  {
+    return true; //t41273
+  }
+
   FORECAST NodeConstantClassArray::safeToCastTo(UTI newType)
   {
     if(isReadyConstant())
@@ -310,7 +315,7 @@ namespace MFM {
     return isready;
   } //assignClassArgValueInStubCopy
 
-  bool NodeConstantClassArray::getArrayValue(BV8K& bvtmp)
+  bool NodeConstantClassArray::getClassArrayValue(BV8K& bvtmp)
   {
     bool brtn = false;
     if(isReadyConstant())

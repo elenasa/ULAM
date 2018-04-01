@@ -75,13 +75,15 @@ namespace MFM{
 
     virtual bool isAConstant();
 
+    virtual bool isAConstantClassArray();
+
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType();
 
     virtual bool assignClassArgValueInStubCopy();
 
-    bool getArrayValue(BV8K& bvtmp);
+    bool getClassArrayValue(BV8K& bvtmp);
 
     virtual EvalStatus eval();
 
