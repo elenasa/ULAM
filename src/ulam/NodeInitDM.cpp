@@ -683,7 +683,7 @@ namespace MFM {
 	// read its value within its uvpass or useLocalVar (t41176)
 	s32 tmpVarNum4 = m_state.getNextTmpVarNumber();
 
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write("const ");
 	fp->write(nut->getTmpStorageTypeAsString().c_str());
 	fp->write(" ");
@@ -708,7 +708,7 @@ namespace MFM {
 	//recurse to its NodeListClassInit with an immediate tmp var w default value(s)
 	// (like NodeVarDeclDM) -- in case of Strings.
 	s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write(nut->getLocalStorageTypeAsString().c_str());
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum2, cstor).c_str());
@@ -730,7 +730,7 @@ namespace MFM {
 	    ((NodeListArrayInitialization *) m_nodeExpr)->genCodeClassInitArray(fp, uvpass2);
 	  }
 
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	if(useLocalVar)
 	  fp->write(cos->getMangledName().c_str()); //t41171
 	else
@@ -766,7 +766,7 @@ namespace MFM {
 	assert(m_nodeExpr); //t41206
 	m_nodeExpr->genCode(fp, uvpass3);
 
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	if(useLocalVar)
 	  fp->write(cos->getMangledName().c_str()); //t41171
 	else

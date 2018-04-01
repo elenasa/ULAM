@@ -621,7 +621,7 @@ namespace MFM{
 	// read each item value from within its uvpass (t41170)
 	s32 tmpVarNum4 = m_state.getNextTmpVarNumber();
 
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write("const ");
 	fp->write(nut->getArrayItemTmpStorageTypeAsString().c_str());
 	fp->write(" ");
@@ -639,7 +639,7 @@ namespace MFM{
 
 
 	s32 tmpVarNum = m_state.getNextTmpVarNumber();
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write(scalarut->getLocalStorageTypeAsString().c_str());
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(scalaruti, tmpVarNum, scalarcstor).c_str());
@@ -680,7 +680,7 @@ namespace MFM{
       m_nodes[useitem]->genCode(fp, uvpass2);
 
     //uvpass has the tmp var of the default immediate class array
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //immediate class storage
     fp->write(".writeArrayItem("); //e.g. writeArrayItem
     fp->write(uvpass2.getTmpVarAsString(m_state).c_str()); //tmp storage, read?

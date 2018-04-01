@@ -1633,21 +1633,21 @@ namespace MFM {
 
     u32 pos = uvpass.getPassPos(); //POS 0 justified (atom-based)
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("{\n"); //limit scope of 'gda' and 'typefield'
     m_state.m_currentIndentLevel++;
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("const AtomBitStorage<EC> gda(");
     fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
     fp->write(".GetDefaultAtom());"); GCNL;
 
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("const u32 typefield = gda.Read(0u, T::ATOM_FIRST_STATE_BIT);"); GCNL; //can't use GetType");
 
     if(vut->isScalar())
       {
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	fp->write(".GetBits().Write(");
 	fp->write_decimal_unsigned(pos);
@@ -1656,7 +1656,7 @@ namespace MFM {
     else
       {
 	u32 arraysize = vut->getArraySize();
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write("for(u32 i = 0; i < ");
 	fp->write_decimal_unsigned(arraysize);
 	fp->write("; i++) ");
@@ -1666,7 +1666,7 @@ namespace MFM {
 	fp->write("u + i * T::BPA, T::ATOM_FIRST_STATE_BIT, typefield);"); GCNL;
       }
     m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("}\n");
   } //genFixForElementTypeFieldInTmpVarOfConstantClass
 
@@ -1686,7 +1686,7 @@ namespace MFM {
 
     //generate code to replace uti in string index with runtime registration number
     //borrowed from NodeVarDeclDM::genCodeDefaultValueOrTmpVarStringRegistrationNumber
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("{\n"); //limit scope of 'regnum'
     m_state.m_currentIndentLevel++;
 
@@ -1697,15 +1697,15 @@ namespace MFM {
 	assert(gotValue);
 	UTI regid = (UTI) (strval >> REGNUMBITS);
 
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write("const u32 regnum = ");
 	fp->write(m_state.getTheInstanceMangledNameByIndex(regid).c_str());
 	fp->write(".GetRegistrationNumber();"); GCNL;
 
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	fp->write(" &= 0x0000FFFF;\n");
-	m_state.indent(fp);
+	m_state.indentUlamCode(fp);
 	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	fp->write(" |= (regnum << ");
 	fp->write_decimal_unsigned(REGNUMBITS);
@@ -1740,7 +1740,7 @@ namespace MFM {
 	  }
       }
     m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("}\n");
   } //genFixForStringRegNumInTmpVarOfConstantClass
 

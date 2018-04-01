@@ -845,11 +845,14 @@ namespace MFM {
 		assert(regid > 0);
 	      }
 
-	    m_state.indent(fp);
 	    if(inDefault)
-	      fp->write("initBV");
+	      {
+		m_state.indent(fp);
+		fp->write("initBV");
+	      }
 	    else
 	      {
+		m_state.indentUlamCode(fp);
 		fp->write(uvpassptr->getTmpVarAsString(m_state).c_str());
 		UTI passuti = uvpassptr->getPassTargetType();
 		if(m_state.getUlamTypeByIndex(passuti)->getUlamClassType() == UC_ELEMENT)
@@ -921,10 +924,7 @@ namespace MFM {
 	    fp->write(".read());"); GCNL;
 
 	    m_state.indent(fp);
-	    if(inDefault)
-	      fp->write("initBV");
-	    else
-	      fp->write(uvpassptr->getTmpVarAsString(m_state).c_str());
+	    fp->write("initBV");
 	    fp->write(".");
 	    if((classtype == UC_ELEMENT) && nut->isScalar())
 	      fp->write("WriteBV"); //t3968 don't want WriteAtom
@@ -987,11 +987,16 @@ namespace MFM {
 
 	for(s32 i = 0; i < arraysize; i++) //e.g. t3714 (array of element dm); t3735
 	  {
-	    m_state.indent(fp);
 	    if(inDefault)
-	      fp->write("initBV");
+	      {
+		m_state.indent(fp);
+		fp->write("initBV");
+	      }
 	    else
-	      fp->write(uvpassptr->getTmpVarAsString(m_state).c_str());
+	      {
+		m_state.indentUlamCode(fp);
+		fp->write(uvpassptr->getTmpVarAsString(m_state).c_str());
+	      }
 	    fp->write(".Write(");
 	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset() + startpos);
 	    fp->write("u + ");
@@ -1038,11 +1043,16 @@ namespace MFM {
 
 	for(s32 i = 0; i < arraysize; i++)
 	  {
-	    m_state.indent(fp);
 	    if(inDefault)
-	      fp->write("initBV");
+	      {
+		m_state.indent(fp);
+		fp->write("initBV");
+	      }
 	    else
-	      fp->write(uvpassptr->getTmpVarAsString(m_state).c_str());
+	      {
+		m_state.indentUlamCode(fp);
+		fp->write(uvpassptr->getTmpVarAsString(m_state).c_str());
+	      }
 	    fp->write(".Write(");
 	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset() + startpos);
 	    fp->write("u + ");
@@ -1214,7 +1224,7 @@ namespace MFM {
     m_state.indent(fp);
     if((netyp == Class) && nut->isScalar())
       {
-	// usse typedef rather than atomic parameter for classes
+	// use typedef rather than atomic parameter for classes
 	// (e.g. quarks within elements, element within transients,
 	//       transients within transients, etc).
 	// except if an array of quarks.

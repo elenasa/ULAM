@@ -92,10 +92,7 @@ namespace MFM{
 
   void NodeListEmpty::genCode(File * fp, UVPass& uvpass)
   {
-    //save before wipe out with each init dm; for local vars (o.w. empty)
-    std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
-
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("{ /* ");
     fp->write(getName());
     fp->write(" */}");

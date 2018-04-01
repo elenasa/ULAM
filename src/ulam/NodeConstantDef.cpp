@@ -1027,11 +1027,16 @@ namespace MFM {
 
 	for(s32 i = 0; i < arraysize; i++) //e.g. t3714 (array of element dm); t3735
 	  {
-	    m_state.indent(fp);
 	    if(inDefault)
-	      fp->write("initBV");
+	      {
+		m_state.indent(fp);
+		fp->write("initBV");
+	      }
 	    else
-	      fp->write(uvpassptr->getTmpVarAsString(m_state).c_str());
+	      {
+		m_state.indentUlamCode(fp);
+		fp->write(uvpassptr->getTmpVarAsString(m_state).c_str());
+	      }
 	    fp->write(".Write(");
 	    fp->write_decimal_unsigned(m_constSymbol->getPosOffset() + startpos);
 	    fp->write("u + ");
@@ -1078,11 +1083,16 @@ namespace MFM {
 
 	for(s32 i = 0; i < arraysize; i++)
 	  {
-	    m_state.indent(fp);
 	    if(inDefault)
-	      fp->write("initBV");
+	      {
+		m_state.indent(fp);
+		fp->write("initBV");
+	      }
 	    else
-	      fp->write(uvpassptr->getTmpVarAsString(m_state).c_str());
+	      {
+		m_state.indentUlamCode(fp);
+		fp->write(uvpassptr->getTmpVarAsString(m_state).c_str());
+	      }
 	    fp->write(".Write(");
 	    fp->write_decimal_unsigned(m_constSymbol->getPosOffset() + startpos);
 	    fp->write("u + ");
@@ -1532,7 +1542,7 @@ namespace MFM {
 	  {
 	    u32 len = nut->getSizeofUlamType();
 	    //immediate named constant in a function (t41232)
-	    m_state.indent(fp);
+	    m_state.indentUlamCode(fp);
 	    fp->write("const u32 _init");
 	    fp->write(m_constSymbol->getMangledName().c_str());
 	    fp->write("[(");
