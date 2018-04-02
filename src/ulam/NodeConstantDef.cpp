@@ -748,29 +748,11 @@ namespace MFM {
 	    if(((NodeConstantClass *) m_nodeExpr)->getClassValue(bvcctmp))
 	      {
 		m_constSymbol->setValue(bvcctmp); //t3451
-		rtnuti = m_nodeExpr->getNodeType(); //or uti?
+		rtnuti = m_nodeExpr->getNodeType();
 
 		u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
 		assignConstantSlotIndex(tmpslotnum); //t3451
 	      }
-	  }
-	else if(m_nodeExpr->isAConstantClassArray())
-	  {
-	    //not a list
-	    BV8K bvcctmp;
-	    if(((NodeConstantClassArray *) m_nodeExpr)->getClassArrayValue(bvcctmp))
-	      {
-		m_constSymbol->setValue(bvcctmp); //t41273
-		rtnuti = m_nodeExpr->getNodeType(); //or uti?
-
-		if(m_state.determinePackable(rtnuti) == PACKEDLOADABLE)
-		  {
-		    u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
-		    assignConstantSlotIndex(tmpslotnum);
-		  }
-		//else notready later when it is still 0
-	      }
-	    m_state.abortNeedsATest();
 	  }
 	else if(m_nodeExpr->isAConstant() && m_nodeExpr->hasASymbolDataMember())
 	  {
@@ -778,14 +760,22 @@ namespace MFM {
 	    if(((NodeMemberSelect *) m_nodeExpr)->getConstantMemberValue(bvmsel))
 	      {
 		m_constSymbol->setValue(bvmsel); //t41273
-		rtnuti = m_nodeExpr->getNodeType(); //or uti?
+		rtnuti = m_nodeExpr->getNodeType();
 
-		if(m_state.determinePackable(rtnuti) == PACKEDLOADABLE)
-		  {
-		    u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
-		    assignConstantSlotIndex(tmpslotnum);
-		  }
-		//else notready later when it is still 0
+		u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
+		assignConstantSlotIndex(tmpslotnum);
+	      }
+	  }
+	else if(m_nodeExpr->isAConstant() && m_nodeExpr->isArrayItem())
+	  {
+	    BV8K bvitem;
+	    if(((NodeSquareBracket *) m_nodeExpr)->getConstantArrayItemValue(bvitem))
+	      {
+		m_constSymbol->setValue(bvitem); //t41263
+		rtnuti = m_nodeExpr->getNodeType();
+
+		u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
+		assignConstantSlotIndex(tmpslotnum);
 	      }
 	  }
 	else

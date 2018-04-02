@@ -68,16 +68,6 @@ namespace MFM {
     return "_SquareBracket_Stub";
   }
 
-  bool NodeSquareBracket::isAConstantClass()
-  {
-    return m_nodeLeft->isAConstantClassArray(); //t41273
-  }
-
-  bool NodeSquareBracket::isAConstantClassArray()
-  {
-    return isAConstantClass() && m_nodeRight->isAConstantClassArray();
-  }
-
   bool NodeSquareBracket::isArrayItem()
   {
     return true; //not for array declaration; includes custom array items

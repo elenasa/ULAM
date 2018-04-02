@@ -68,10 +68,6 @@ namespace MFM{
 
     virtual bool isArrayItem();
 
-    virtual bool isAConstantClass();
-
-    virtual bool isAConstantClassArray();
-
     virtual UTI checkAndLabelType();
 
     bool getConstantArrayItemValue(BV8K& bvitem);

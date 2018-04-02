@@ -5,10 +5,12 @@
 ##  Unsigned Arg: 2
 ##  Unsigned Arg: 4
 ##  Unsigned Arg: 99
+##  Unsigned Arg: 99
+##  Unsigned Arg: 99
 ##
 #!
 Exit status: 0
-Ue_KeyExprRep { Int(32) test() {  System s;  KeyExprNode m_key = keyexpr_x13 0 [];  s ( m_key m_rightIndex . cast )print . s ( m_key m_rightIndex . 2u cast == )assert . s ( keyexpr_x13 1 [] m_rightIndex . cast )print . s ( keyexpr_x13 1 [] m_rightIndex . 4u cast == )assert . KeyExprNode mykeyexpr_x13[5] = keyexpr_x13;  s ( mykeyexpr_x13 2 [] m_keyCode . cast )print . s ( mykeyexpr_x13 2 [] m_keyCode . keyexpr_x13 2 [] m_keyCode . == )assert . 0 cast return } }
+Ue_KeyExprRep { Int(32) test() {  System s;  KeyExprNode m_key = keyexpr_x13 0 [];  s ( m_key m_rightIndex . cast )print . s ( m_key m_rightIndex . 2u cast == )assert . s ( keyexpr_x13 1 [] m_rightIndex . cast )print . s ( keyexpr_x13 1 [] m_rightIndex . 4u cast == )assert . KeyExprNode mykeyexpr_x13[5] = keyexpr_x13;  s ( mykeyexpr_x13 2 [] m_keyCode . cast )print . s ( mykeyexpr_x13 2 [] m_keyCode . keyexpr_x13 2 [] m_keyCode . == )assert . constant KeyExprNode cmykeyexpr_x13 = keyexpr_x13;  s ( cmykeyexpr_x13 2 [] m_keyCode . cast )print . s ( cmykeyexpr_x13 2 [] m_keyCode . keyexpr_x13 2 [] m_keyCode . == )assert . constant KeyExprNode mykeyexpritem = keyexpr_x13 2 [];  s ( cmykeyexpr_x13 2 [] m_keyCode . cast )print . s ( cmykeyexpr_x13 2 [] m_keyCode . keyexpr_x13 2 [] m_keyCode . == )assert . 0 cast return } }
 Ue_KeyExprNode { typedef Unsigned(8) Byte;  Unsigned(8) m_leftIndex(0);  Unsigned(8) m_rightIndex(0);  Unsigned(8) m_keyCode(0);  Unsigned(8) m_op(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
@@ -28,6 +30,7 @@ local constant KeyExprNode keyexpr_x13[] = {
 element KeyExprRep {
   Int test() {
     System s;
+
     KeyExprNode m_key = keyexpr_x13[0];
     s.print(m_key.m_rightIndex);
     s.assert(m_key.m_rightIndex==2u);
@@ -36,9 +39,19 @@ element KeyExprRep {
     s.assert(keyexpr_x13[1].m_rightIndex==4u); //reads constant class array item
 
     //read entire constant class array
-    KeyExprNode mykeyexpr_x13[5] = KeyExprNode keyexpr_x13;
+    KeyExprNode mykeyexpr_x13[5] = keyexpr_x13;
     s.print(mykeyexpr_x13[2].m_keyCode);
     s.assert(mykeyexpr_x13[2].m_keyCode==keyexpr_x13[2].m_keyCode); //reads constant class array item
+
+    //read entire constant class array into another constant
+    constant KeyExprNode cmykeyexpr_x13[5] = keyexpr_x13;
+    s.print(cmykeyexpr_x13[2].m_keyCode);
+    s.assert(cmykeyexpr_x13[2].m_keyCode==keyexpr_x13[2].m_keyCode); //reads constant class array item
+
+    //read a constant class array item into another constant
+    constant KeyExprNode mykeyexpritem = keyexpr_x13[2];
+    s.print(cmykeyexpr_x13[2].m_keyCode);
+    s.assert(cmykeyexpr_x13[2].m_keyCode==keyexpr_x13[2].m_keyCode); //reads constant class array item
     return 0;
   }
 }

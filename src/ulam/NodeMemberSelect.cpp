@@ -95,18 +95,6 @@ namespace MFM {
     return m_nodeLeft->isAConstant(); //constant classes possible
   }
 
-  bool NodeMemberSelect::isAConstantClass()
-  {
-    //return m_nodeLeft->isAConstantClass(); //t41273
-    return false;
-  }
-
-  bool NodeMemberSelect::isAConstantClassArray()
-  {
-    //return isAConstantClass() && m_nodeRight->isAConstantClassArray();
-    return false;
-  }
-
   const std::string NodeMemberSelect::methodNameForCodeGen()
   {
     return "_MemberSelect_Stub";
@@ -226,10 +214,12 @@ namespace MFM {
   bool NodeMemberSelect::getConstantMemberValue(BV8K& bvmsel)
   {
     bool rtnok = false;
-    //vs t41232
-    //constant fold righthand member of constant class (t41273); left is complete, we know.
-    assert(m_nodeLeft->isAConstantClass());
+    //vs t41232, t41263
+    //righthand member of constant class (t41273); left is complete, we know.
+    assert(m_nodeLeft->isAConstant());
     UTI leftType = m_nodeLeft->getNodeType();
+    assert(m_state.isAClass(leftType));
+    assert(m_state.isComplete(leftType));
     UlamType * lut = m_state.getUlamTypeByIndex(leftType);
     ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
     UTI rightType = m_nodeRight->getNodeType();
