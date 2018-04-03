@@ -342,7 +342,7 @@ namespace MFM {
   void NodeTypedef::genCodeConstantArrayInitialization(File * fp)
   {}
 
-  void NodeTypedef::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  void NodeTypedef::generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly)
   {}
 
   void NodeTypedef::cloneAndAppendNode(std::vector<Node *> & cloneVec)

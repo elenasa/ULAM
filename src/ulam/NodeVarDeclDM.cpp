@@ -1278,7 +1278,7 @@ namespace MFM {
   void NodeVarDeclDM::genCodeConstantArrayInitialization(File * fp)
   { }
 
-  void NodeVarDeclDM::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  void NodeVarDeclDM::generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly)
   { }
 
   void NodeVarDeclDM::generateTestInstance(File * fp, bool runtest)

@@ -236,7 +236,7 @@ namespace MFM{
     m_state.abortShouldntGetHere();
   }
 
-  void NodeListClassInit::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  void NodeListClassInit::generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly)
   {
     m_state.abortShouldntGetHere();
   }

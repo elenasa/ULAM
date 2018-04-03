@@ -346,12 +346,12 @@ namespace MFM{
       }
   }
 
-  void NodeList::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  void NodeList::generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly)
   {
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
 	assert(m_nodes[i]);
-	m_nodes[i]->generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
+	m_nodes[i]->generateBuiltinConstantClassOrArrayInitializationFunction(fp, declOnly);
       }
   }
 

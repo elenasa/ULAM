@@ -1195,7 +1195,7 @@ namespace MFM {
     m_state.abortShouldntGetHere(); //see NodeVarDeclDM
   }
 
-  void NodeVarDecl::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  void NodeVarDecl::generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly)
   {
     m_state.abortShouldntGetHere(); //see NodeVarDeclDM
   }

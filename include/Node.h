@@ -230,7 +230,7 @@ namespace MFM{
 
     virtual void genCodeConstantArrayInitialization(File * fp);
 
-    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
+    virtual void generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly);
 
     virtual void cloneAndAppendNode(std::vector<Node *> & cloneVec);
 
@@ -388,7 +388,7 @@ namespace MFM{
     void genLocalMemberNameOfMethodByUsTypedef(File * fp, const UVPass& uvpass);
     void genCustomArrayLocalMemberNameOfMethod(File * fp);
 
-    void genConstantClassMangledName(File * fp);
+    void genConstantClassMangledName(File * fp, const char * const prefix = NULL);
     void genConstantArrayMangledName(File * fp);
 
     const std::string localStorageTypeAsString(UTI nuti);

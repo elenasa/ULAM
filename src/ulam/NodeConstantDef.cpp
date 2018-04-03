@@ -1487,6 +1487,16 @@ namespace MFM {
 	    fp->write(" ");
 	    fp->write(m_constSymbol->getMangledName().c_str());
 	    fp->write(";"); GCNL;
+
+	    //fix once? (if array, one for all?)
+	    if(etyp == Class)
+	      {
+		m_state.indentUlamCode(fp);
+		fp->write("static bool _isFixed");
+		fp->write(m_constSymbol->getMangledName().c_str());
+		//fp->write("= false;"); GCNL;
+		fp->write(";"); GCNL;
+	      }
 	  }
 	else if(m_constSymbol->isClassArgument())
 	  {
@@ -1564,6 +1574,16 @@ namespace MFM {
 	    fp->write("//");
 	    fp->write(estr.c_str());
 	    GCNL;
+
+	    //fix once? (if array, one for all?)
+	    if((etyp == Class) && !m_constSymbol->isClassArgument())
+	      {
+		m_state.indentUlamCode(fp);
+		fp->write("static bool _isFixed");
+		fp->write(m_constSymbol->getMangledName().c_str());
+		//fp->write("= false;"); GCNL;
+		fp->write(";"); GCNL;
+	      }
 	  }
 	else
 	  {
@@ -1622,7 +1642,7 @@ namespace MFM {
     m_state.m_currentIndentLevel-=2;
   } //genCodeConstantArrayInitialization
 
-  void NodeConstantDef::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  void NodeConstantDef::generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly)
   {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
@@ -1683,7 +1703,8 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
 
-    bool isString = (nut->getUlamTypeEnum() == String);
+    ULAMTYPE netyp = nut->getUlamTypeEnum();
+    bool isString = (netyp == String);
     if(isString)
       m_constSymbol->printPostfixValueArrayStringAsComment(fp); //t3953,4
 
@@ -1693,7 +1714,7 @@ namespace MFM {
     fp->write("initVal[(");
     fp->write_decimal_unsigned(len);
     fp->write(" + 31)/32] = ");
-    if(classtype != UC_NOTACLASS)
+    if(netyp == Class)
       {
 	std::string estr;
 	AssertBool gotVal = m_constSymbol->getClassValueAsHexString(estr);
@@ -1722,7 +1743,6 @@ namespace MFM {
     //typename MFM::Ui_Uq_102204QBar10<EC> MFM::Uq_10104QFoo10<EC>::Uc_6c_qbar(MFM::Uq_10104QFoo10<EC>::InitUc_6c_qbar());
     m_state.indent(fp);
     fp->write("template<class EC>\n");
-
     m_state.indent(fp);
     fp->write("typename MFM::");
     fp->write(nut->getLocalStorageTypeAsString().c_str()); //immediate
@@ -1737,7 +1757,22 @@ namespace MFM {
     fp->write("()); //Def constant ");
     fp->write(getName()); GCNL;
     fp->write("\n");
-  } //generateBuiltinConstantArrayInitializationFunction
+
+    //fix once? (if array, one for all?)
+    if((netyp == Class) && (m_constSymbol->isLocalsFilescopeDef() ||  m_constSymbol->isDataMember()))
+      {
+	m_state.indent(fp);
+	fp->write("template<class EC>\n");
+	m_state.indent(fp);
+	fp->write("bool MFM::");
+	fp->write(cut->getUlamTypeMangledName().c_str());
+	fp->write("<EC>::");
+	fp->write("_isFixed");
+	fp->write(m_constSymbol->getMangledName().c_str());
+	fp->write(" = false;"); GCNL;
+	fp->write("\n");
+      }
+  } //generateBuiltinConstantClassOrArrayInitializationFunction
 
   void NodeConstantDef::cloneAndAppendNode(std::vector<Node *> & cloneVec)
   {

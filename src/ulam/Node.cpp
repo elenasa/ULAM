@@ -908,6 +908,20 @@ namespace MFM {
       }
     else if(cosetyp == Class)
       {
+	bool fixconstantclass = (cosIsTheConstantClass && (ncsym->isLocalsFilescopeDef() ||  ncsym->isDataMember()));
+	if(fixconstantclass)
+	  {
+	    m_state.indentUlamCode(fp);
+	    fp->write("if(!");
+	    genConstantClassMangledName(fp, "_isFixed");
+	    fp->write(")\n");
+	    m_state.indentUlamCode(fp);
+	    fp->write("{\n");
+
+	    m_state.m_currentIndentLevel++;
+	    //and continue to fix it..
+	  }
+
 	if(cosclass == UC_ELEMENT)
 	  genFixForElementTypeFieldInTmpVarOfConstantClass(fp, uvpass);
 
@@ -933,6 +947,24 @@ namespace MFM {
 	      cblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, cospos + i * len, &uvpass);
 	    //All class/classarray can have String data member(s)
 	    cblock->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, cospos + i * len, &uvpass, &bvclass);
+	  }
+	if(fixconstantclass)
+	  {
+	    m_state.indentUlamCode(fp);
+	    genConstantClassMangledName(fp);
+	    fp->write(".write(");
+	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+	    fp->write(");"); GCNL;
+
+	    m_state.indentUlamCode(fp);
+	    genConstantClassMangledName(fp, "_isFixed");
+	    fp->write(" = true; //set isFixed flag"); GCNL;
+
+	    m_state.m_currentIndentLevel--;
+	    m_state.indentUlamCode(fp);
+	    fp->write("} //"); //comment
+	    genConstantClassMangledName(fp, "_isFixed"); GCNL;
+	    fp->write("\n");
 	  }
       }
     // note: Ints not sign extended until used/cast
@@ -1183,6 +1215,21 @@ namespace MFM {
 	  }
 	else if(cosetyp == Class)
 	  {
+	    bool fixconstantclass = cosIsTheConstantClass;
+	    if(fixconstantclass)
+	      {
+		m_state.indentUlamCode(fp);
+		fp->write("if(!");
+		genConstantClassMangledName(fp, "_isFixed");
+		fp->write(")\n");
+		m_state.indentUlamCode(fp);
+		fp->write("{\n");
+
+		m_state.m_currentIndentLevel++;
+		//one array item doesn't set all fixed flagg
+		//and continue to fix it..
+	      }
+
 	    if((sclasstype == UC_ELEMENT))
 	      genFixForElementTypeFieldInTmpVarOfConstantClass(fp, luvpass);
 
@@ -1199,6 +1246,14 @@ namespace MFM {
 	    cblock->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, cospos, &luvpass, &bvclass); //t41267
 	    if(sclasstype == UC_TRANSIENT)
 	      cblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, cospos, &luvpass); //t41263
+	    if(fixconstantclass)
+	      {
+		m_state.m_currentIndentLevel--;
+		m_state.indentUlamCode(fp);
+		fp->write("} //"); //comment
+		genConstantClassMangledName(fp, "_isFixed"); GCNL;
+		fp->write("\n");
+	      }
 	  }
       }
     // else not necessary for local func constant (already done)
@@ -2433,7 +2488,7 @@ namespace MFM {
     m_state.abortShouldntGetHere(); //fufilled by NodeConstantDef
   }
 
-  void Node::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  void Node::generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly)
   {
     m_state.abortShouldntGetHere(); //fufilled by NodeConstantDef
   }
@@ -3365,7 +3420,7 @@ namespace MFM {
     fp->write(".");
   } //genCustomArrayLocalMemberNameOfMethod
 
-  void Node::genConstantClassMangledName(File * fp)
+  void Node::genConstantClassMangledName(File * fp, const char * const prefix)
   {
     s32 namedconstantclassidx = isCurrentObjectsContainingAConstantClass();
     assert(namedconstantclassidx >= 0); //right-most (last) named constant class
@@ -3433,6 +3488,9 @@ namespace MFM {
 	fp->write(ncutl->getUlamTypeMangledName().c_str());
 	fp->write("<EC>::");
       }
+
+    if(prefix)
+      fp->write(prefix);
     fp->write(ncsym->getMangledName().c_str()); //constant name
   } //genConstantClassMangledName
 

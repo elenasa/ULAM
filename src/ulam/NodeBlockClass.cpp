@@ -1987,8 +1987,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("//BUILT-IN FUNCTIONS:\n");
     fp->write("\n");
 
-    //define built-in init method for any "data member" constant arrays:
-    generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
+    //define built-in init method for any "data member" constant class or arrays:
+    generateBuiltinConstantClassOrArrayInitializationFunction(fp, declOnly);
 
     //generate 3 UlamClass:: methods for smart ulam debugging
     u32 dmcount = 0; //pass ref
@@ -2608,13 +2608,13 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       m_nodeNext->genCodeConstantArrayInitialization(fp);
   }
 
-  void NodeBlockClass::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  void NodeBlockClass::generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly)
   {
     if(m_nodeArgumentList) //t3894, t41209
-      m_nodeArgumentList->generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
+      m_nodeArgumentList->generateBuiltinConstantClassOrArrayInitializationFunction(fp, declOnly);
 
     if(m_nodeNext)
-      m_nodeNext->generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
+      m_nodeNext->generateBuiltinConstantClassOrArrayInitializationFunction(fp, declOnly);
   }
 
   void NodeBlockClass::genCodeBuiltInFunctionGetString(File * fp, bool declOnly)

@@ -791,10 +791,10 @@ namespace MFM {
     m_state.abortShouldntGetHere(); //the question!?
   } //genCodeConstantArrayInitialization
 
-  void NodeInitDM::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  void NodeInitDM::generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly)
   {
     m_state.abortShouldntGetHere(); //the question!?
-  } //generateBuiltinConstantArrayInitializationFunction
+  } //generateBuiltinConstantClassOrArrayInitializationFunction
 
   void NodeInitDM::cloneAndAppendNode(std::vector<Node *> & cloneVec)
   {

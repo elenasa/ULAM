@@ -323,12 +323,12 @@ namespace MFM {
       m_nodeNext->genCodeConstantArrayInitialization(fp);
   }
 
-  void NodeStatements::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  void NodeStatements::generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly)
   {
     if(m_node)
-      m_node->generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
+      m_node->generateBuiltinConstantClassOrArrayInitializationFunction(fp, declOnly);
     if(m_nodeNext)
-      m_nodeNext->generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
+      m_nodeNext->generateBuiltinConstantClassOrArrayInitializationFunction(fp, declOnly);
   }
 
   void NodeStatements::cloneAndAppendNode(std::vector<Node *> & cloneVec)
