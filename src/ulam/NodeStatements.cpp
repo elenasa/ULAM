@@ -205,12 +205,12 @@ namespace MFM {
     return aok;
   }
 
-  void NodeStatements::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr)
+  void NodeStatements::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
   {
     if(m_node)
-      m_node->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, startpos, uvpassptr);
+      m_node->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, startpos, uvpassptr, bv8kptr);
     if(m_nodeNext)
-      m_nodeNext->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, startpos, uvpassptr);
+      m_nodeNext->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, startpos, uvpassptr, bv8kptr);
     return;
   }
 

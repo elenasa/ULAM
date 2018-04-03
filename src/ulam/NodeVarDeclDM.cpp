@@ -806,7 +806,7 @@ namespace MFM {
     return true;
   }
 
-  void NodeVarDeclDM::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr)
+  void NodeVarDeclDM::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
   {
     assert(m_varSymbol);
     assert(m_varSymbol->isDataMember());
@@ -839,11 +839,18 @@ namespace MFM {
 	// remove myRegNum static variable for more general way (Sun Jan 21 10:11:24 2018)
 	for(u32 i = 0; i < arraysize; i++)
 	  {
-	    if(hasInitExpr())
+	    if(inDefault)
 	      {
-		regid = (UTI) tmpbv8k.Read(0 + i * (REGNUMBITS + STRINGIDXBITS), REGNUMBITS);
-		assert(regid > 0);
+		if(hasInitExpr())
+		  regid = (UTI) tmpbv8k.Read(0 + i * (REGNUMBITS + STRINGIDXBITS), REGNUMBITS);
+		//else use class compiling, the default (t3958, t3984)
 	      }
+	    else
+	      {
+		assert(bv8kptr);
+		regid = (UTI) bv8kptr->Read(startpos + pos + i * (REGNUMBITS + STRINGIDXBITS), REGNUMBITS); //t41274
+	      }
+	    assert(regid > 0);
 
 	    if(inDefault)
 	      {
@@ -955,7 +962,7 @@ namespace MFM {
 	    assert(cblock);
 	    if(classtype == UC_TRANSIENT)
 	      cblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, pos + startpos, uvpassptr); //? test
-	    cblock->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, pos + startpos, uvpassptr); //t41268
+	    cblock->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, pos + startpos, uvpassptr, bv8kptr); //t41268
 	  }
       } //a class
   } //genCodeDefaultValueOrTmpVarStringRegistrationNumber

@@ -1009,7 +1009,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     return aok;
   } //buildDefaultValueForClassConstantDefs
 
-  void NodeBlockClass::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr)
+  void NodeBlockClass::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
   {
     ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClassType();
     if(classtype == UC_ELEMENT)
@@ -1019,11 +1019,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       {
 	NodeBlockClass * superblock = getSuperBlockPointer();
 	assert(superblock);
-	superblock->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, startpos, uvpassptr);
+	superblock->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, startpos, uvpassptr, bv8kptr);
       }
 
     if(m_nodeNext)
-      m_nodeNext->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, startpos, uvpassptr); //side-effect for dm vardecls
+      m_nodeNext->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, startpos, uvpassptr, bv8kptr); //side-effect for dm vardecls
   }
 
   void NodeBlockClass::genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr)

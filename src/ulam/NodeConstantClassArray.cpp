@@ -279,8 +279,7 @@ namespace MFM {
   }
 
   //class context set prior to calling us; purpose is to get
-  // the value of this constant from the context before
-  // constant folding happens.
+  // the value of this constant from the context before constant folding happens.
   bool NodeConstantClassArray::assignClassArgValueInStubCopy()
   {
     // insure current block NNOs match
@@ -404,17 +403,6 @@ namespace MFM {
 
   void NodeConstantClassArray::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
-    UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
-    if(nut->getUlamClassType()==UC_ELEMENT) //not Transients too???
-      {
-	genCode(fp, uvpass);
-	Node::genCodeConvertATmpVarIntoBitVector(fp,uvpass);
-	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, m_constSymbol);
-	m_tmpvarSymbol->setDivinedByConstantClass();
-	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
-	return;
-      }
-
     assert(isReadyConstant()); //must be
     makeUVPassForCodeGen(uvpass);
 

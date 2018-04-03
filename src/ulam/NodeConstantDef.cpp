@@ -718,8 +718,9 @@ namespace MFM {
     if(!m_nodeExpr)
       return uti; //scalar, wo init expr (e.g. t3326,7,8,9)
 
-    //scalar classes wait until after c&l to build default value; but pieces can be folded in advance
-    // t41198 (might be better to replace node with NodeInitDM???)
+    //scalar classes wait until after c&l to build default value;
+    // but pieces can be folded in advance;
+    // t41198 (might be better to replace node with NodeInitDM?)
     if(m_state.isAClass(uti))
       {
 	UTI rtnuti = Nav;
@@ -1021,7 +1022,7 @@ namespace MFM {
     return rtnok;
   } //buildDefaultValueForClassConstantDefs
 
-  void NodeConstantDef::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr)
+  void NodeConstantDef::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
   {
     return; //pass on
   }

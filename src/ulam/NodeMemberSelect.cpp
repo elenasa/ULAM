@@ -223,6 +223,7 @@ namespace MFM {
     UlamType * lut = m_state.getUlamTypeByIndex(leftType);
     ULAMCLASSTYPE lclasstype = lut->getUlamClassType();
     UTI rightType = m_nodeRight->getNodeType();
+    UlamType * rut = m_state.getUlamTypeByIndex(rightType);
 
     //rhs could be a class/array, primitive/array; whatever it is a constant!
     //replace rhs with a constant node version of it, using the value found in lhs.
@@ -250,7 +251,7 @@ namespace MFM {
 	    else
 	      rpos = dmsym->getPosOffset();
 
-	    //okay to fold (possible refactor TODO)
+	    //okay to fold (possible refactor TODO); Element Types and Strings still un-fixed.
 	    if(rpos != 9999)
 	      {
 		if(lclasstype == UC_ELEMENT)
@@ -262,10 +263,8 @@ namespace MFM {
 		  gotVal = ((NodeSquareBracket *) m_nodeLeft)->getConstantArrayItemValue(bvcctmp);
 		else
 		  gotVal = ((NodeConstantClass *) m_nodeLeft)->getClassValue(bvcctmp);
-
 		if(gotVal)
 		  {
-		    UlamType * rut = m_state.getUlamTypeByIndex(rightType);
 		    u32 rlen = rut->getSizeofUlamType();
 		    bvcctmp.CopyBV(rpos, 0, rlen, bvmsel);
 		    rtnok = true;
@@ -276,7 +275,15 @@ namespace MFM {
     else
       {
 	//right is a constant
-	m_state.abortNotImplementedYet();
+	if(m_state.isAClass(rightType))
+	  {
+	    rtnok = ((NodeConstantClass *) m_nodeRight)->getClassValue(bvmsel); //t41274
+	  }
+	else
+	  {
+	    m_state.abortNotImplementedYet();
+	    //rtnok = m_nodeRight->getValue();
+	  }
       }
     return rtnok;
   } //getConstantMemberValue

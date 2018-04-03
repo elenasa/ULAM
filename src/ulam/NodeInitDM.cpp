@@ -67,8 +67,7 @@ namespace MFM {
 
   void NodeInitDM::resetOfClassType(UTI cuti)
   {
-    assert(m_state.okUTItoContinue(cuti));
-    //assert(m_state.isComplete(cuti)); t41169
+    assert(m_state.okUTItoContinue(cuti)); //maybe not complete (t41169)
     m_ofClassUTI = cuti;
   }
 
@@ -410,7 +409,8 @@ namespace MFM {
 	  return Nav;
       }
 
-    //scalar classes wait until after c&l to build default value; but pieces can be folded in advance
+    //scalar classes wait until after c&l to build default value;
+    //but pieces can be folded in advance
     assert(m_nodeExpr);
     if(m_nodeExpr->isClassInit())
       return ((NodeListClassInit *) m_nodeExpr)->foldConstantExpression();
@@ -444,8 +444,6 @@ namespace MFM {
 
     if(m_state.getUlamTypeByIndex(m_ofClassUTI)->getUlamClassType() == UC_ELEMENT)
       pos += ATOMFIRSTSTATEBITPOS; //t41230
-
-    //m_posOfDM = pos; t41176
 
     UTI nuti = m_constSymbol->getUlamTypeIdx();
     assert(UlamType::compare(nuti, getNodeType(), m_state) == UTIC_SAME);
@@ -531,7 +529,7 @@ namespace MFM {
     return true; //pass on
   } //buildDataMemberConstantValue
 
-  void NodeInitDM::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr)
+  void NodeInitDM::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
   {
     m_state.abortNotImplementedYet(); //???
     return; //pass on

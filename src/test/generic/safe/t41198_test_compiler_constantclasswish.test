@@ -24,6 +24,7 @@ element Foo {
 
   Int test() {
     System s;
+
     Unsigned foosz = QFoo.sizeof;
     s.print(foosz);
     s.assert(foosz==0u); //named constants take no space

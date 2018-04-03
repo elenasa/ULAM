@@ -62,6 +62,7 @@ element KeyExprRep {
     constant String c_reunion = celfoo.c_str;
     s.print(c_reunion); //reunion
     s.assert(c_reunion.lengthof == 7u);
+
     return 0;
   }
 }

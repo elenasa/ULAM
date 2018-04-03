@@ -1489,7 +1489,7 @@ namespace MFM {
 	//class data members may have strings (t3948)
 	indent(fp);
 	fp->write("//correct runtime regnum for strings; data member inits\n");
-	getCurrentBlock()->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, 0, NULL);
+	getCurrentBlock()->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, 0, NULL, NULL);
       }
 
     m_currentIndentLevel--;
@@ -3101,7 +3101,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   const std::string & CompilerState::getDataAsFormattedUserString(u32 combinedidx)
   {
-    UTI cuti = (combinedidx >> REGNUMBITS);
+    UTI cuti = (combinedidx >> STRINGIDXBITS);
     u32 sidx = (combinedidx & STRINGIDXMASK);
     assert(cuti > 0 && sidx > 0); // error/t3987
     StringPoolUser& classupool = getUPoolRefForClass(cuti);
@@ -3110,7 +3110,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   const std::string & CompilerState::getDataAsUnFormattedUserString(u32 combinedidx)
   {
-    UTI cuti = (combinedidx >> REGNUMBITS);
+    UTI cuti = (combinedidx >> STRINGIDXBITS);
     u32 sidx = (combinedidx & STRINGIDXMASK);
     assert(cuti > 0 && sidx > 0); // t3959
     StringPoolUser& classupool = getUPoolRefForClass(cuti);
@@ -3119,7 +3119,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   bool CompilerState::isValidUserStringIndex(u32 combinedidx)
   {
-    UTI cuti = (combinedidx >> REGNUMBITS);
+    UTI cuti = (combinedidx >> STRINGIDXBITS);
     u32 sidx = (combinedidx & STRINGIDXMASK);
     if(cuti == 0 || sidx == 0)
       return false;
@@ -3129,7 +3129,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   u32 CompilerState::getUserStringLength(u32 combinedidx)
   {
-    UTI cuti = (combinedidx >> REGNUMBITS);
+    UTI cuti = (combinedidx >> STRINGIDXBITS);
     u32 sidx = (combinedidx & STRINGIDXMASK);
     assert(cuti > 0 && sidx > 0);
     StringPoolUser& classupool = getUPoolRefForClass(cuti);
@@ -3811,7 +3811,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   UlamValue CompilerState::getByteOfUserStringForEval(u32 usrStr, u32 offsetInt)
   {
-    UTI cuti = (usrStr >> REGNUMBITS);
+    UTI cuti = (usrStr >> STRINGIDXBITS);
     u32 sidx = (usrStr & STRINGIDXMASK);
     assert((cuti > 0) && (sidx > 0));
     StringPoolUser& classupool = getUPoolRefForClass(cuti);

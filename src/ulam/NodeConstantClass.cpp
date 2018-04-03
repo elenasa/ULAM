@@ -471,12 +471,15 @@ namespace MFM {
 
   void NodeConstantClass::genCodeToStoreInto(File * fp, UVPass& uvpass)
   {
-    UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
-    if(nut->getUlamClassType()==UC_ELEMENT)
+    //immediate constants do not require fixing (Element Types and String RegNUM),
+    //since it is done at the immediate declaration;
+    //only data member and local filesscope (classarguments?);
+    if(m_constSymbol->isDataMember() || m_constSymbol->isLocalsFilescopeDef())
       {
-	genCode(fp, uvpass); //t41243?
+	//read in and fix; no further need for DM/Filesscope from symbol (t41198)
+	genCode(fp, uvpass); //t41243?, t41273
 	Node::genCodeConvertATmpVarIntoBitVector(fp,uvpass);
-	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, m_constSymbol);
+	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL);
 	m_tmpvarSymbol->setDivinedByConstantClass();
 	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
 	return;

@@ -378,7 +378,6 @@ namespace MFM {
     if(getArraysizeInBracket(rindex,rt)) //t41198
       {
 	assert((rindex >= 0) && (rindex < m_state.getArraySize(leftType))); //catchable during c&l
-
 	//fold into a constant class (t41273); not a list
 	if(m_nodeLeft->isAConstantClassArray())
 	  {
@@ -899,7 +898,9 @@ namespace MFM {
       }
     else if(Node::isCurrentObjectsContainingAConstantClass() >= 0)
       {
-	//efficiency, for constant indexes of constant class arrays
+#if 0
+	//efficiency, for constant indexes of arrays in constant classes
+	// doesn't help much with fixing Element Types or Strings!!
 	if(m_nodeRight->isAConstant())
 	  {
 	    s32 rindex;
@@ -913,24 +914,22 @@ namespace MFM {
 		uvpass = luvpass;
 	      }
 	    else
-	      {
-		//error, msg? UNKNOWN?
-		m_state.abortShouldntGetHere();
-	      }
+	      m_state.abortShouldntGetHere(); //error, msg? UNKNOWN?
 	  }
 	else
+#endif
 	  {
 	    genCodeToStoreInto(fp, uvpass); //t41198
 	    m_state.clearCurrentObjSymbolsForCodeGen();
 	  }
 	return;
       }
-    //else
+    //else continue..
 
     genCodeToStoreInto(fp, uvpass);
 
-    if(!(isString || m_nodeLeft->isAConstant()) || m_state.isReference(uvpass.getPassTargetType())) //t3953,t3973, not isAltRefType t3908, constant class (t41266)
-      Node::genCodeReadIntoATmpVar(fp, uvpass); //splits on array item
+    if(!(isString || m_nodeLeft->isAConstant()) || m_state.isReference(uvpass.getPassTargetType())) //t3953,t3973, not isAltRefType t3908, nor constant class (t41266)
+      Node::genCodeReadIntoATmpVar(fp, uvpass);
     else
       m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCode
@@ -972,18 +971,20 @@ namespace MFM {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * cossym = m_state.m_currentObjSymbolsForCodeGen.back();
     UTI cossuti = cossym->getUlamTypeIdx();
-    assert(!m_state.isScalar(cossuti));
+    UlamType * cossut = m_state.getUlamTypeByIndex(cossuti);
+    assert(!cossut->isScalar());
     if(Node::isCurrentObjectsContainingAConstantClass() >= 0)
       {
 	Node::genCodeReadArrayItemFromAConstantClassIntoATmpVar(fp, luvpass, offset);
 	uvpass = luvpass;
 	if(m_state.isAClass(cossuti))
 	  Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass); //not for t41198, for t41263
+	else if(cossut->getUlamTypeEnum() == String)
+	  uvpass.setPassTargetType(m_state.getUlamTypeAsDeref(luvpass.getPassTargetType())); //t41274, t41267, t41273
 	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks
 	m_tmpvarSymbol->setDivinedByConstantClass();
-	//m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore the prior stack?
 	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
-	return; //no tmpvarsymbol? t41261
+	return; //t41261
       }
 
     if(cossym->isConstant())
@@ -1031,7 +1032,6 @@ namespace MFM {
 
     uvpass = luvpass;
     m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, cossym); //dm to avoid leaks
-    ///////m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore the prior stack(t41170)
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
     // NO RESTORE -- up to caller for lhs.
   } //genCodeToStoreInto
