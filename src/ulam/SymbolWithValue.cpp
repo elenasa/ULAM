@@ -251,6 +251,30 @@ namespace MFM {
     return false;
   }
 
+  bool SymbolWithValue::getValueReadyToPrint(u32 & uv)
+  {
+    bool oktoprint = true;
+    if(isReady())
+      getValue(uv);
+    else if(hasInitValue() && isInitValueReady())
+      getInitValue(uv);
+    else
+      oktoprint = false;
+    return oktoprint;
+  } //getValueReadyToPrint (helper)
+
+  bool SymbolWithValue::getValueReadyToPrint(u64 & dv)
+  {
+    bool oktoprint = true;
+    if(isReady())
+      getValue(dv);
+    else if(hasInitValue() && isInitValueReady())
+      getInitValue(dv);
+    else
+      oktoprint = false;
+    return oktoprint;
+  } //getValueReadyToPrint (helper)
+
   bool SymbolWithValue::getValueReadyToPrint(BV8K & bv)
   {
     bool oktoprint = true;
@@ -278,14 +302,8 @@ namespace MFM {
 
   void SymbolWithValue::printPostfixValueScalar(File * fp)
   {
-    bool oktoprint = true;
     u64 val = 0;
-    if(isReady())
-      getValue(val);
-    else if(hasInitValue() && isInitValueReady())
-      getInitValue(val);
-    else
-      oktoprint = false;
+    bool oktoprint = getValueReadyToPrint(val);
 
     if(oktoprint)
       {
@@ -505,14 +523,8 @@ namespace MFM {
 
   bool SymbolWithValue::getScalarValueAsString(std::string& vstr)
   {
-    bool oktoprint = true;
     u64 constantval;
-    if(isReady())
-      getValue(constantval);
-    else if(hasInitValue() && isInitValueReady())
-      getInitValue(constantval);
-    else
-      oktoprint = false;
+    bool oktoprint = getValueReadyToPrint(constantval);
 
     if(!oktoprint) return false;
 

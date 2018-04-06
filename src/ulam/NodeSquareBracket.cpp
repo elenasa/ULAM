@@ -961,62 +961,32 @@ namespace MFM {
     UTI cossuti = cossym->getUlamTypeIdx();
     UlamType * cossut = m_state.getUlamTypeByIndex(cossuti);
     assert(!cossut->isScalar());
+
     if(Node::isCurrentObjectsContainingAConstantClass() >= 0)
       {
 	Node::genCodeReadArrayItemFromAConstantClassIntoATmpVar(fp, luvpass, offset);
 	uvpass = luvpass;
 	if(m_state.isAClass(cossuti))
 	  Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass); //not for t41198, for t41263
-	else if(cossut->getUlamTypeEnum() == String)
-	  uvpass.setPassTargetType(m_state.getUlamTypeAsDeref(luvpass.getPassTargetType())); //t41274, t41267, t41273
+	else if(cossut->getUlamTypeEnum() == String) //t41274, t41267, t41273
+	  uvpass.setPassTargetType(m_state.getUlamTypeAsDeref(luvpass.getPassTargetType()));
 	m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, NULL); //dm to avoid leaks
 	m_tmpvarSymbol->setDivinedByConstantClass();
 	m_state.m_currentObjSymbolsForCodeGen.push_back(m_tmpvarSymbol);
 	return; //t41261
       }
 
+    //luvpass becomes the (BV) autoref, and clears stack
     if(cossym->isConstant())
       {
-	//luvpass becomes the autoref, and clears stack
+	//a constant array of strings is treated like a NodeTerminal DBLQUOTED token.
+	// in order to "fix" the registration number of the index, at use, rather
+	// than at compiler/constructor time when the registration number is not yet
+	// available. (t3953, t41277,8)
 	Node::genCodeConvertATmpVarIntoConstantAutoRef(fp, luvpass, offset);
-
-	UTI leftType = m_nodeLeft->getNodeType();
-	UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-	if((lut->getUlamTypeEnum() == String))
-	  {
-	    //a constant array of strings is treated like a NodeTerminal DBLQUOTED token.
-	    // in order to "fix" the registration number of the index, at use, rather
-	    // than at constructor time when the registration number is not yet available. (t3953)
-	    s32 tmpVarNum = m_state.getNextTmpVarNumber();
-
-	    BV8K tmpbv8k;
-	    AssertBool gotValue = ((SymbolWithValue *) cossym)->getValue(tmpbv8k);
-	    assert(gotValue);
-
-	    UTI cuti = tmpbv8k.Read(0, 16u);
-	    assert(cuti > 0);
-
-	    const std::string stringmangledName = m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
-	    //get string 2-part index in a tmp var; TODO as TMPAUTOREF???
-	    // update constant's reg num from UTI (t3953)
-	    m_state.indentUlamCode(fp);
-	    fp->write("const ");
-	    fp->write(lut->getArrayItemTmpStorageTypeAsString().c_str()); //u32
-	    fp->write(" ");
-	    fp->write(m_state.getTmpVarAsString(String, tmpVarNum, TMPREGISTER).c_str());
-	    fp->write(" = ");
-	    fp->write(stringmangledName.c_str());
-	    fp->write("::makeCombinedIdx(");
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(cuti).c_str());
-	    fp->write(".GetRegistrationNumber(), ");
-	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	    fp->write(".getStringIndex());"); GCNL;
-
-	    luvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, String, m_state.determinePackable(String), m_state, 0, cossym->getId()); //replace luvpass
-	  }
       }
     else
-      Node::genCodeConvertATmpVarIntoAutoRef(fp, luvpass, offset); //luvpass becomes the autoref, and clears stack
+      Node::genCodeConvertATmpVarIntoAutoRef(fp, luvpass, offset);
 
     uvpass = luvpass;
     m_tmpvarSymbol = Node::makeTmpVarSymbolForCodeGen(uvpass, cossym); //dm to avoid leaks
@@ -1059,17 +1029,16 @@ namespace MFM {
       }
     else
       {
-	const std::string stringmangledName = m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
 	if(!Node::isCurrentObjectALocalVariableOrArgument())
 	  {
 	    fp->write(" = uc.GetUlamClassRegistry().GetUlamClassByIndex(");
-	    fp->write(stringmangledName.c_str());
+	    fp->write(m_state.getStringMangledName().c_str());
 	    fp->write("::getRegNum(");
 	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
 	    fp->write("))->");
 	    fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
 	    fp->write("Length(");
-	    fp->write(stringmangledName.c_str());
+	    fp->write(m_state.getStringMangledName().c_str());
 	    fp->write("::getStrIdx(");
 	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
 	    fp->write("));"); GCNL;
@@ -1091,7 +1060,7 @@ namespace MFM {
 	    fp->write("))->");
 	    fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
 	    fp->write("Length(");
-	    fp->write(stringmangledName.c_str());
+	    fp->write(m_state.getStringMangledName().c_str());
 	    fp->write("::getStrIdx(");
 	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
 	    fp->write("));"); GCNL;
@@ -1131,18 +1100,16 @@ namespace MFM {
       }
     else
       {
-	const std::string stringmangledName = m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
-
 	if(!Node::isCurrentObjectALocalVariableOrArgument())
 	  {
 	    fp->write(" = *(uc.GetUlamClassRegistry().GetUlamClassByIndex(");
-	    fp->write(stringmangledName.c_str());
+	    fp->write(m_state.getStringMangledName().c_str());
 	    fp->write("::getRegNum(");
 	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
 	    fp->write("))->");
 	    fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
 	    fp->write("(");
-	    fp->write(stringmangledName.c_str());
+	    fp->write(m_state.getStringMangledName().c_str());
 	    fp->write("::getStrIdx(");
 	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
 	    fp->write(")) + ");
@@ -1167,7 +1134,7 @@ namespace MFM {
 	    fp->write("))->");
 	    fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
 	    fp->write("(");
-	    fp->write(stringmangledName.c_str());
+	    fp->write(m_state.getStringMangledName().c_str());
 	    fp->write("::getStrIdx(");
 	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
 	    fp->write(")) + ");

@@ -412,6 +412,7 @@ namespace MFM{
     u32 getMangledClassNameIdForUlamLocalsFilescope(UTI locuti);
     u32 getClassNameIdForUlamLocalsFilescope(UTI locuti);
 
+    const std::string getStringMangledName();
     const char * getMangledNameForUserStringPool();
     const char * getDefineNameForUserStringPoolSize();
 

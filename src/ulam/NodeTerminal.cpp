@@ -40,7 +40,7 @@ namespace MFM {
       {
 	UTI cuti = m_state.getCompileThisIdx();
 	StringPoolUser& classupool = m_state.getUPoolRefForClass(cuti);
-	u32 regid = m_constant.uval >> REGNUMBITS;
+	u32 regid = m_constant.uval >> STRINGIDXBITS;
 	if((regid != 0) && m_state.isALocalsFileScope(regid))
 	  {
 	    return; //t3981
@@ -59,7 +59,7 @@ namespace MFM {
 	  m_state.abortShouldntGetHere();
 
 	u32 newclassstringidx = classupool.getIndexForDataString(str);
-	m_constant.uval = (cuti << REGNUMBITS) | (newclassstringidx & STRINGIDXMASK); //combined index
+	m_constant.uval = (cuti << STRINGIDXBITS) | (newclassstringidx & STRINGIDXMASK); //combined index
       }
   }
 
@@ -676,7 +676,7 @@ namespace MFM {
 
     if(UlamType::compareForString(nuti, m_state) == UTIC_SAME)
       {
-	UTI cuti = (m_constant.uval >> REGNUMBITS);
+	UTI cuti = (m_constant.uval >> STRINGIDXBITS);
 	u32 sidx = (m_constant.uval & STRINGIDXMASK);
 	assert((cuti > 0) && (sidx > 0));
 	//String, String array or array item (t3929, t3950)
@@ -765,7 +765,7 @@ namespace MFM {
 	    {
 	      StringPoolUser& classupool = m_state.getUPoolRefForClass(cuti);
 	      u32 classstringidx = classupool.getIndexForDataString(m_state.m_tokenupool.getDataAsString(tok.m_dataindex));
-	      m_constant.uval = (cuti << REGNUMBITS) | (classstringidx & STRINGIDXMASK); //combined index
+	      m_constant.uval = (cuti << STRINGIDXBITS) | (classstringidx & STRINGIDXMASK); //combined index
 	      rtnok = true;
 	    }
 	}

@@ -76,6 +76,8 @@ namespace MFM{
     bool getArrayItemValue(u32 item, u32& rtnitem);
     bool getArrayItemValue(u32 item, u64& rtnitem);
 
+    bool getValueReadyToPrint(u32 & uv); //helper
+    bool getValueReadyToPrint(u64 & dv); //helper
     bool getValueReadyToPrint(BV8K & bv); //helper
 
     bool hasInitValue();

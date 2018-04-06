@@ -470,7 +470,6 @@ namespace MFM{
 	dval.ToArray(uvals); //the magic! (32-bit ints)
 
 	UTI cuti = m_state.getCompileThisIdx();
-	const std::string stringmangledName = m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
 
 	m_state.indentUlamCode(fp); //non-const
 	fp->write("static bool ");
@@ -511,7 +510,7 @@ namespace MFM{
 	    fp->write_decimal_unsigned(w); // proper length == [nwords]
 	    fp->write("] = ");
 
-	    fp->write(stringmangledName.c_str());
+	    fp->write(m_state.getStringMangledName().c_str());
 	    fp->write("::makeCombinedIdx(Uh_6regnum, ");
 	    fp->write_decimal_unsigned(uvals[w] & STRINGIDXMASK);
 	    fp->write("); //");

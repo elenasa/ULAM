@@ -437,16 +437,14 @@ namespace MFM {
       }
     else
       {
-	const std::string stringmangledName = m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
-
 	fp->write(" = uc.GetUlamClassRegistry().GetUlamClassByIndex(");
-	fp->write(stringmangledName.c_str());
+	fp->write(m_state.getStringMangledName().c_str());
 	fp->write("::getRegNum(");
 	fp->write(ofpass.getTmpVarAsString(m_state).c_str());
 	fp->write("))->");
 	fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
 	fp->write("Length(");
-	fp->write(stringmangledName.c_str());
+	fp->write(m_state.getStringMangledName().c_str());
 	fp->write("::getStrIdx(");
 	fp->write(ofpass.getTmpVarAsString(m_state).c_str());
 	fp->write("));");

@@ -841,7 +841,7 @@ namespace MFM {
       newnode = new NodeTerminal((s64) newconst, uti, m_state);
     else if(etyp == String)
       {
-	UTI reguti = newconst >> REGNUMBITS;
+	UTI reguti = newconst >> STRINGIDXBITS;
 	UTI cuti = m_state.getCompileThisIdx();
 	UTI stubuti = m_state.m_pendingArgStubContext;
 	UTI newreguti = reguti;
@@ -856,7 +856,7 @@ namespace MFM {
 	    std::string formattedstring = m_state.getDataAsUnFormattedUserString(newconst);
 	    StringPoolUser& classupool = m_state.getUPoolRefForClass(newreguti);
 	    u32 classstringidx = classupool.getIndexForDataString(formattedstring);
-	    newconst = (newreguti << REGNUMBITS) | (classstringidx & STRINGIDXMASK); //combined index
+	    newconst = (newreguti << STRINGIDXBITS) | (classstringidx & STRINGIDXMASK); //combined index
 	  }
 	newnode = new NodeTerminal(newconst, uti, m_state);
       }
@@ -1199,11 +1199,7 @@ namespace MFM {
     if(packFit == PACKEDLOADABLE)
       {
 	u64 dval = 0;
-	AssertBool gotVal = false;
-	if(m_constSymbol->isReady())
-	  gotVal = m_constSymbol->getValue(dval);
-	else if(m_constSymbol->hasInitValue() && m_constSymbol->isInitValueReady())
-	  gotVal = m_constSymbol->getInitValue(dval);
+	AssertBool gotVal = m_constSymbol->getValueReadyToPrint(dval);
 	assert(gotVal);
 
 	UlamValue immUV;
@@ -1316,12 +1312,7 @@ namespace MFM {
     if((packFit == PACKEDLOADABLE))
       {
 	u64 dval = 0;
-	AssertBool gotVal = false;
-	if(m_constSymbol->isReady())
-	  gotVal = m_constSymbol->getValue(dval);
-	else if(m_constSymbol->hasInitValue() && m_constSymbol->isInitValueReady())
-	  gotVal = m_constSymbol->getInitValue(dval);
-	assert(gotVal);
+	AssertBool gotVal = m_constSymbol->getValueReadyToPrint(dval);
 
 	UlamValue immUV;
 	u32 len = nut->getTotalBitSize();
@@ -1367,11 +1358,7 @@ namespace MFM {
 	UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
 	u32 baseslot =  ((SymbolConstantValue *) m_constSymbol)->getConstantStackFrameAbsoluteSlotIndex();
 	BV8K bvclass;
-	AssertBool gotVal = false;
-	if(m_constSymbol->isReady())
-	  gotVal = m_constSymbol->getValue(bvclass);
-	else if(m_constSymbol->hasInitValue() && m_constSymbol->isInitValueReady())
-	  gotVal = m_constSymbol->getInitValue(bvclass);
+	AssertBool gotVal = m_constSymbol->getValueReadyToPrint(bvclass);
 	assert(gotVal);
 
 	u32 itemlen = nut->getBitSize();  //not 96 for elements
@@ -1500,12 +1487,7 @@ namespace MFM {
     else if(etyp == String)
       {
 	u32 sval;
-	AssertBool gotVal = false;
-	if(m_constSymbol->isReady())
-	  gotVal = m_constSymbol->getValue(sval);
-	else if(m_constSymbol->hasInitValue() && m_constSymbol->isInitValueReady())
-	  gotVal = m_constSymbol->getInitValue(sval);
-	assert(gotVal);
+	AssertBool gotVal = m_constSymbol->getValueReadyToPrint(sval);
 
 	//output comment for scalar constant value
 	m_state.indentUlamCode(fp);

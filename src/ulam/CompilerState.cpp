@@ -3513,6 +3513,11 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return m_pool.getIndexForDataString(f.str());
   }
 
+  const std::string CompilerState::getStringMangledName()
+  {
+    return getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
+  }
+
   const char * CompilerState::getMangledNameForUserStringPool()
   {
     return USERSTRINGPOOL_MANGLEDNAME;

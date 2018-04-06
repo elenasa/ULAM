@@ -1133,13 +1133,11 @@ namespace MFM {
 		  }
 		else
 		  {
-		    const std::string stringmangledName = m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
-
-		    fp->write(stringmangledName.c_str());
+		    fp->write(m_state.getStringMangledName().c_str());
 		    fp->write("::getRegNum(");
 		    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 		    fp->write("), ");
-		    fp->write(stringmangledName.c_str());
+		    fp->write(m_state.getStringMangledName().c_str());
 		    fp->write("::getStrIdx(");
 		    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 		    fp->write("));"); GCNL;

@@ -573,6 +573,19 @@ namespace MFM {
 	fp->write("ReadBV(0u, rtnunpbv); return rtnunpbv; ");
 	fp->write("} //reads entire BV"); GCNL;
       }
+
+    if(!isScalar())
+      {
+	//reads an item of array;
+	//2nd argument generated for compatibility with underlying method
+	m_state.indent(fp);
+	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
+	fp->write(" readArrayItem(");
+	fp->write("const u32 index, const u32 itemlen) const { return ");
+	fp->write("this->BVS::");
+	fp->write(readArrayItemMethodForCodeGen().c_str());
+	fp->write("(index * itemlen, itemlen); } //reads BV array item"); GCNL;
+      }
   } //genUlamTypeReadDefinitionForC
 
   void UlamTypePrimitive::genUlamTypeWriteDefinitionForC(File * fp)
@@ -607,6 +620,19 @@ namespace MFM {
 	fp->write("& bv) { BVS::");
 	fp->write("WriteBV(0u, bv); ");
 	fp->write("} //writes entire BV"); GCNL;
+      }
+
+    if(!isScalar())
+      {
+	//reads an item of array;
+	//2nd argument generated for compatibility with underlying method
+	m_state.indent(fp);
+	fp->write("void writeArrayItem(const ");
+	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
+	fp->write("& v, const u32 index, const u32 itemlen) {");
+	fp->write("this->BVS::");
+	fp->write(writeArrayItemMethodForCodeGen().c_str());
+	fp->write("(index * itemlen, itemlen, v); } //writes BV array item"); GCNL;
       }
   } //genUlamTypeWriteDefinitionForC
 
