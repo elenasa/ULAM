@@ -2,9 +2,6 @@
 #include "NodeFunctionCall.h"
 #include "NodeMemberSelect.h"
 #include "NodeIdent.h"
-//#include "NodeConstantClass.h"
-//#include "NodeConstantClassArray.h"
-//#include "NodeConstantArray.h"
 #include "CompilerState.h"
 
 namespace MFM {
@@ -379,30 +376,6 @@ namespace MFM {
       {
 	assert((rindex >= 0) && (rindex < m_state.getArraySize(leftType))); //catchable during c&l
 	//fold into a constant class (t41273); not a list
-#if 0
-	if(m_nodeLeft->isAConstantClassArray())
-	  {
-	    BV8K bvccatmp;
-	    if(((NodeConstantClassArray *) m_nodeLeft)->getClassArrayValue(bvccatmp))
-	      {
-		UTI scalarLeft = m_state.getUlamTypeAsScalar(leftType);
-		u32 itemlen = m_state.getUlamTypeByIndex(scalarLeft)->getSizeofUlamType();
-		bvccatmp.CopyBV(rindex * itemlen, 0u, itemlen, bvitem); //src pos, dest pos, dst bv
-		rtnok = true;
-	      }
-	  }
-	else
-	  {
-	    BV8K bvcatmp;
-	    if(((NodeConstantArray *) m_nodeLeft)->getArrayValue(bvcatmp))
-	      {
-		UTI scalarLeft = m_state.getUlamTypeAsScalar(leftType);
-		u32 itemlen = m_state.getUlamTypeByIndex(scalarLeft)->getSizeofUlamType();
-		bvcatmp.CopyBV(rindex * itemlen, 0u, itemlen, bvitem); //src pos, dest pos, dst bv
-		rtnok = true;
-	      }
-	  }
-#endif
 	BV8K bvccatmp;
 	if(m_nodeLeft->getConstantValue(bvccatmp))
 	  {

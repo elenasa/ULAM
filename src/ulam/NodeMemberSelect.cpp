@@ -1,8 +1,4 @@
 #include "NodeMemberSelect.h"
-//#include "NodeConstant.h"
-//#include "NodeConstantArray.h"
-//#include "NodeConstantClass.h"
-//#include "NodeConstantClassArray.h"
 #include "SymbolVariableDataMember.h"
 #include "CompilerState.h"
 
@@ -260,13 +256,6 @@ namespace MFM {
 		BV8K bvcctmp;
 		bool gotVal = m_nodeLeft->getConstantValue(bvcctmp);
 
-#if 0
-		if(m_nodeLeft->isArrayItem())
-		  gotVal = ((NodeSquareBracket *) m_nodeLeft)->getConstantArrayItemValue(bvcctmp);
-		else
-		  gotVal = ((NodeConstantClass *) m_nodeLeft)->getClassValue(bvcctmp);
-#endif
-
 		if(gotVal)
 		  {
 		    u32 rlen = rut->getSizeofUlamType();
@@ -280,27 +269,6 @@ namespace MFM {
       {
 	//right is a constant (t41278)
 	rtnok = m_nodeRight->getConstantValue(bvmsel);
-#if 0
-	if(m_state.isAClass(rightType))
-	  {
-	    if(m_state.isScalar(rightType))
-	      rtnok = ((NodeConstantClass *) m_nodeRight)->getClassValue(bvmsel);
-	    else
-	      rtnok = ((NodeConstantClassArray *) m_nodeRight)->getClassArrayValue(bvmsel);
-	  }
-	else if(!m_state.isScalar(rightType))
-	  {
-	    rtnok = ((NodeConstantArray *) m_nodeRight)->getArrayValue(bvmsel);
-	  }
-	else
-	  {
-	    Symbol * symptr = NULL;
-	    if(((NodeConstant *) m_nodeRight)->getSymbolPtr(symptr))
-	      {
-		rtnok = ((SymbolWithValue *)symptr)->getValue(bvmsel);
-	      }
-	  }
-#endif
       }
     return rtnok;
   } //getConstantMemberValue

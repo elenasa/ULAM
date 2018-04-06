@@ -220,54 +220,6 @@ namespace MFM {
     else
       m_state.abortShouldntGetHere(); //what then?
 
-#if 0
-	if(m_state.isAClass(nuti))
-	  {
-	    if(m_nodeInitExpr->isAConstantClassArray())
-	      {
-		brtn = ((NodeConstantClassArray *) m_nodeInitExpr)->getClassArrayValue(bvtmp);
-	      }
-	    else if(m_nodeInitExpr->hasASymbolDataMember())
-	      {
-		if(((NodeMemberSelect *) m_nodeInitExpr)->getConstantMemberValue(bvtmp))
-		  {
-		    brtn = true; //t41277
-		  }
-		else
-		  m_state.abortShouldntGetHere(); //what then?
-	      }
-	    else
-	      {
-		m_state.abortShouldntGetHere(); //not an arrayitem either.
-	      }
-	  }
-	else
-	  {
-	    //not a class (t3896,7,9)
-	    if(m_nodeInitExpr->hasASymbolDataMember())
-	      {
-		if(((NodeMemberSelect *) m_nodeInitExpr)->getConstantMemberValue(bvtmp))
-		  {
-		    brtn = true; //t41277,8 (string[2])
-		  }
-		else
-		  m_state.abortShouldntGetHere(); //what then?
-	      }
-	    else
-	      brtn = ((NodeConstantArray *) m_nodeInitExpr)->getArrayValue(bvtmp); //t41277
-	  }
-      }
-    else
-      {
-	assert(!m_state.isScalar(m_nodeInitExpr->getNodeType())); //like t41181
-	if(((NodeConstantArray *) m_nodeInitExpr)->getArrayValue(bvtmp))
-	  {
-	    brtn = true;
-	  }
-      }
-#endif
-
-
     if(brtn)
       m_varSymbol->setInitValue(bvtmp);
 

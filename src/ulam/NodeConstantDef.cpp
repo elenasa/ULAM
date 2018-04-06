@@ -1,10 +1,6 @@
 #include <stdlib.h>
 #include "NodeConstantDef.h"
 #include "NodeConstant.h"
-//#include "NodeConstantArray.h"
-//#include "NodeConstantClass.h"
-//#include "NodeConstantClassArray.h"
-//#include "NodeListArrayInitialization.h"
 #include "NodeListClassInit.h"
 #include "NodeTerminal.h"
 #include "CompilerState.h"
@@ -752,48 +748,8 @@ namespace MFM {
 		u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
 		assignConstantSlotIndex(tmpslotnum);
 	      }
+	    //else no good
 	  }
-
-#if 0
-	else if(m_nodeExpr->isAConstantClass())
-	  {
-	    //not a list, t.f. NodeConstantClass
-	    BV8K bvcctmp;
-	    if(((NodeConstantClass *) m_nodeExpr)->getClassValue(bvcctmp))
-	      {
-		m_constSymbol->setValue(bvcctmp); //t3451
-		rtnuti = m_nodeExpr->getNodeType();
-
-		u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
-		assignConstantSlotIndex(tmpslotnum); //t3451
-	      }
-	  }
-	else if(m_nodeExpr->isAConstant() && m_nodeExpr->hasASymbolDataMember())
-	  {
-	    BV8K bvmsel;
-	    if(((NodeMemberSelect *) m_nodeExpr)->getConstantMemberValue(bvmsel))
-	      {
-		m_constSymbol->setValue(bvmsel); //t41273
-		rtnuti = m_nodeExpr->getNodeType();
-
-		u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
-		assignConstantSlotIndex(tmpslotnum);
-	      }
-	  }
-	else if(m_nodeExpr->isAConstant() && m_nodeExpr->isArrayItem())
-	  {
-	    BV8K bvitem;
-	    if(((NodeSquareBracket *) m_nodeExpr)->getConstantArrayItemValue(bvitem))
-	      {
-		m_constSymbol->setValue(bvitem); //t41263
-		rtnuti = m_nodeExpr->getNodeType();
-
-		u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
-		assignConstantSlotIndex(tmpslotnum);
-	      }
-	  }
-#endif
-
 	else
 	  m_state.abortShouldntGetHere();
 
@@ -936,17 +892,13 @@ namespace MFM {
 
     assert(!m_state.isScalar(nuti));
     assert(m_constSymbol && !(m_constSymbol->isReady() || m_constSymbol->isInitValueReady()));
-    //assert(m_nodeExpr); //t41202
-
     //build BV8K: a use (i.e. NodeConstantArray) like a class arg,
     //or already folded initialization, to avoid invalid casting to
     //NodeListArrayInitialization (t3894)
     bool brtn = false;
     BV8K bvtmp;
     if(!m_nodeExpr)
-      {
-	brtn = true;
-      }
+      brtn = true; //t41202
     else if(m_nodeExpr->isAList())
       {
 	if(((NodeList *) m_nodeExpr)->foldArrayInitExpression())
@@ -955,22 +907,7 @@ namespace MFM {
 	//else no good (error/t41181)
       }
     else
-      {
-	brtn = m_nodeExpr->getConstantValue(bvtmp); //t41277 memberselect, t41181 array
-      }
-#if 0
-    else if(m_nodeExpr->isAConstant() && m_nodeExpr->hasASymbolDataMember())
-      {
-	if(((NodeMemberSelect *) m_nodeExpr)->getConstantMemberValue(bvtmp))
-	  brtn = true; //t41277
-      }
-    else
-      {
-	assert(!m_state.isScalar(m_nodeExpr->getNodeType())); //t41181
-	if(((NodeConstantArray *) m_nodeExpr)->getArrayValue(bvtmp))
-	  brtn = true;
-      }
-#endif
+      brtn = m_nodeExpr->getConstantValue(bvtmp); //t41277 memberselect, t41181 array
 
     if(brtn)
       {

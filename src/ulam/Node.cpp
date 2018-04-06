@@ -822,7 +822,6 @@ namespace MFM {
 	assert(ncsym);
 
 	//fix element types and string reg nums; including an immediate funcvar constant class
-	//bool fixconstantstringarray = (((cosut->getUlamTypeEnum() == String) && !cosut->isScalar()) && (ncsym->isLocalsFilescopeDef() ||  ncsym->isDataMember()));
 	bool fixconstantstringarray = ((cosut->getUlamTypeEnum() == String) && (ncsym->isLocalsFilescopeDef() ||  ncsym->isDataMember()));
 	s32 tmpVarNumForShortArray = 0;
 	UVPass quvpass;
@@ -1933,23 +1932,8 @@ namespace MFM {
 	AssertBool gotValue = ((SymbolWithValue *) cos)->getInitValue(strval);
 	assert(gotValue);
 	UTI regid = (UTI) (strval >> REGNUMBITS);
-#if 0
-	m_state.indentUlamCode(fp);
-	fp->write("const u32 regnum = ");
-	fp->write(m_state.getTheInstanceMangledNameByIndex(regid).c_str());
-	fp->write(".GetRegistrationNumber();"); GCNL;
 
-	m_state.indentUlamCode(fp);
-	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	fp->write(" &= 0x0000FFFF;\n");
-	m_state.indentUlamCode(fp);
-	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	fp->write(" |= (regnum << ");
-	fp->write_decimal_unsigned(REGNUMBITS);
-	fp->write("u);"); GCNL;
-
-#else
-	//this is like NodeSquareBracket's specialized fixup..will it work for us?
+	//like NodeSquareBracket specialized fixup
 	const std::string stringmangledName = m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString();
 	m_state.indentUlamCode(fp);
 	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
@@ -1960,8 +1944,8 @@ namespace MFM {
 	fp->write(".GetRegistrationNumber(), ");
 	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	fp->write(".getStringIndex());"); GCNL;
+
 	m_state.abortNeedsATest(); //please..
-#endif
       }
     else
       {
