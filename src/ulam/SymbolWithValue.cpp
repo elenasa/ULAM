@@ -251,6 +251,18 @@ namespace MFM {
     return false;
   }
 
+  bool SymbolWithValue::getValueReadyToPrint(BV8K & bv)
+  {
+    bool oktoprint = true;
+    if(isReady())
+      getValue(bv);
+    else if(hasInitValue() && isInitValueReady())
+      getInitValue(bv);
+    else
+      oktoprint = false;
+    return oktoprint;
+  } //getValueReadyToPrint (helper)
+
   bool SymbolWithValue::foldConstantExpression()
   {
     return true; //stub
@@ -338,14 +350,8 @@ namespace MFM {
 
   void SymbolWithValue::printPostfixValueArray(File * fp)
   {
-    bool oktoprint = true;
     BV8K dval;
-    if(isReady())
-      getValue(dval);
-    else if(hasInitValue() && isInitValueReady())
-      getInitValue(dval);
-    else
-      oktoprint = false;
+    bool oktoprint = getValueReadyToPrint(dval);
 
     if(!oktoprint)
       {
@@ -384,15 +390,8 @@ namespace MFM {
 
   void SymbolWithValue::printPostfixValueArrayStringAsComment(File * fp)
   {
-    bool oktoprint = true;
     BV8K dval;
-    if(isReady())
-      getValue(dval);
-    else if(hasInitValue() && isInitValueReady())
-      getInitValue(dval);
-    else
-      oktoprint = false;
-
+    bool oktoprint = getValueReadyToPrint(dval);
 
     UTI tuti = getUlamTypeIdx();
     UlamType * tut = m_state.getUlamTypeByIndex(tuti);
@@ -435,19 +434,10 @@ namespace MFM {
 
  bool SymbolWithValue::getValueAsHexString(std::string& vstr)
   {
-    bool oktoprint = true;
     BV8K dval;
-    if(isReady())
-      getValue(dval);
-    else if(hasInitValue() && isInitValueReady())
-      getInitValue(dval);
-    else
-      oktoprint = false;
+    bool oktoprint = getValueReadyToPrint(dval);
 
-    if(!oktoprint)
-      {
-	return false;
-      }
+    if(!oktoprint) return false;
 
     UTI tuti = getUlamTypeIdx();
     UlamType * tut = m_state.getUlamTypeByIndex(tuti);
@@ -482,19 +472,10 @@ namespace MFM {
 
   bool SymbolWithValue::getArrayValueAsString(std::string& vstr)
   {
-    bool oktoprint = true;
     BV8K dval;
-    if(isReady())
-      getValue(dval);
-    else if(hasInitValue() && isInitValueReady())
-      getInitValue(dval);
-    else
-      oktoprint = false;
+    bool oktoprint = getValueReadyToPrint(dval);
 
-    if(!oktoprint)
-      {
-	return false;
-      }
+    if(!oktoprint) return false;
 
     UTI tuti = getUlamTypeIdx();
     UlamType * tut = m_state.getUlamTypeByIndex(tuti);
@@ -533,10 +514,7 @@ namespace MFM {
     else
       oktoprint = false;
 
-    if(!oktoprint)
-      {
-	return false;
-      }
+    if(!oktoprint) return false;
 
     return SymbolWithValue::convertValueToAPrettyString(constantval, getUlamTypeIdx(), vstr, m_state);
   } //getScalarValueAsString
@@ -547,19 +525,13 @@ namespace MFM {
   // Element Type. Handles scalar and array.
   bool SymbolWithValue::getClassValueAsHexString(std::string& rtnstr)
   {
-    bool oktoprint = true;
-    BV8K bval;
-    if(isReady())
-      getValue(bval);
-    else if(hasInitValue() && isInitValueReady())
-      getInitValue(bval);
-    else
-      oktoprint = false;
+    BV8K dval;
+    bool oktoprint = getValueReadyToPrint(dval);
 
     if(!oktoprint) return false;
 
     u32 totlen = m_state.getUlamTypeByIndex(getUlamTypeIdx())->getSizeofUlamType();
-    SymbolWithValue::getHexValueAsString(totlen, bval, rtnstr);
+    SymbolWithValue::getHexValueAsString(totlen, dval, rtnstr);
     return true;
   } //getClassValueAsHexString
 

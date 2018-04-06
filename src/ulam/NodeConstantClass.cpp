@@ -357,6 +357,11 @@ namespace MFM {
     return m_constSymbol->getValue(bvtmp);
   }
 
+  bool NodeConstantClass::getConstantValue(BV8K& bval)
+  {
+    return getClassValue(bval);
+  }
+
   bool NodeConstantClass::initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask)
   {
     //bvref contains default value at pos 0 of our m_forClassUTI.

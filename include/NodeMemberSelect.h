@@ -80,7 +80,7 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    bool getConstantMemberValue(BV8K& bvmsel);
+    virtual bool getConstantValue(BV8K& bval);
 
     virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
 
@@ -116,6 +116,7 @@ namespace MFM{
 
     void setStoreIntoAbleAndReferenceAble();
 
+    bool getConstantMemberValue(BV8K& bvmsel);
   };
 
 } //MFM

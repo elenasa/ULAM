@@ -322,6 +322,11 @@ namespace MFM {
     return brtn;
   }
 
+  bool NodeConstantClassArray::getConstantValue(BV8K& bval)
+  {
+    return getClassArrayValue(bval);
+  }
+
   EvalStatus NodeConstantClassArray::eval()
   {
     if(!isReadyConstant()) return evalStatusReturnNoEpilog(NOTREADY);

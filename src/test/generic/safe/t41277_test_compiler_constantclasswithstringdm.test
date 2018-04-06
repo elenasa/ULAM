@@ -1,0 +1,95 @@
+## -*- mode:ulam -*-
+#=t41277_test_compiler_constantclasswithstringdm
+##
+## gen output: (+ double interleaved asserts)
+##   String(1) Arg: "onaide"
+##   String(1) Arg: "onaide"
+##   String(14) Arg: "rock" (+ single interleaved assert)
+##   String(20) Arg: "paper"
+##   String(11) Arg: "cool" (+ single interleaved assert)
+##   String(1) Arg: "mel" (+ single interleaved assert)
+##
+#!
+Exit status: 0
+Ue_KeyExprRep { constant Elfoo celfoo = { 0x40, 0x7000040, 0x7000180 };  Int(32) test() {  SystemU3 s;  String(32) mystr[2] = ckeyexpr estr .;  s ( mystr 0 [] )print . s ( mystr 0 [] 2 [] 97u == )assert . s ( mystr 0 [] 3 [] ckeyexpr estr 0 [] 3 [] . == )assert . constant String(32)[2] mycstr = ckeyexpr estr .;  s ( mycstr 0 [] )print . s ( mycstr 0 [] 2 [] 97u == )assert . s ( mycstr 0 [] 3 [] ckeyexpr estr 0 [] 3 [] . == )assert . String(32) mystrarr[3] = cstr;  s ( mystrarr 0 [] )print . s ( 4u 4u cast == )assert . String(32) mystr2 = cstr 1 [];  s ( mystr2 )print . s ( mystr2 0 [] 112u == )assert . s ( mystr2 2 [] cstr 1 [] 2 [] == )assert . String(32) mystr3 = ckeyexpr "cool" .;  s ( mystr3 )print . s ( mystr3 0 [] 99u == )assert . String(32) mystr4 = celfoo estr 0 [] .;  s ( mystr4 )print . s ( mystr4 0 [] 109u == )assert . 0 cast return } }
+Ue_Elfoo { Bool(1) esp( true);  String(32) estr[2]( { "mel", "lem" });  constant String(32) c_str = "cool";  <NOMAIN> }
+Uq_SystemU3 : System { :<> <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## Informed by t41267 except trying to reach gencode to read constant class with String cos; or constant array of strings
+## (see t41278 for quark class)
+##
+##
+#>KeyExprRep.ulam
+  ulam 3;
+use Elfoo;
+local constant Elfoo ckeyexpr = { .estr = { "onaide", "ons"} };
+local constant String cstr[3] = { "rock", "paper", "scissor" };
+element KeyExprRep {
+  constant Elfoo celfoo = { };
+  Int test() {
+    SystemU3 s;
+
+    //constant class with string array dm - local funcvar
+    String mystr[2] = ckeyexpr.estr; //look at gen code
+    s.print(mystr[0]); //onaide
+    s.assert(mystr[0][2] == 'a');
+    s.assert(mystr[0][3] == ckeyexpr.estr[0][3]);
+
+    //constant class with string array dm - constant funcvar
+    constant String mycstr[2] = ckeyexpr.estr; //look at gen code
+    s.print(mycstr[0]); //onaide
+    s.assert(mycstr[0][2] == 'a');
+    s.assert(mycstr[0][3] == ckeyexpr.estr[0][3]);
+
+    //entire constant array of strings into local funcvar
+    String mystrarr[3] = cstr;
+    s.print(mystrarr[0]); //rock
+    s.assert(mystrarr[0].lengthof == 4u);
+
+    //constant array item, string, into local funcvar
+    String mystr2 = cstr[1];
+    s.print(mystr2); //paper
+    s.assert(mystr2[0] == 'p');
+    s.assert(mystr2[2] == cstr[1][2]);
+
+    //constant string of constant class, into local funcvar
+    String mystr3 = ckeyexpr.c_str;
+    s.print(mystr3); //cool
+    s.assert(mystr3[0] == 'c');
+
+    //un-initialized array item dm constant class, string, into local funcvar
+    String mystr4 = celfoo.estr[0];
+    s.print(mystr4); //mel
+    s.assert(mystr4[0] == 'm');
+
+    return 0;
+  }
+}
+
+#:Elfoo.ulam
+  ulam 3;
+element Elfoo {
+  Bool esp = true;
+  String estr[2] = { "mel", "lem" };
+  constant String c_str = "cool";
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

@@ -454,21 +454,8 @@ namespace MFM{
     AssertBool gotSymbol = parentNode->getSymbolPtr((Symbol *&) vsym);
     assert(gotSymbol);
 
-    bool aok = true;
     BV8K dval;
-    if(vsym->isReady())
-      {
-	AssertBool gotValue = vsym->getValue(dval);
-	assert(gotValue);
-      }
-    else if(vsym->hasInitValue())
-      {
-	AssertBool gotInitVal = vsym->getInitValue(dval);
-	assert(gotInitVal);
-      }
-    else
-      aok = false;
-
+    AssertBool aok = vsym->getValueReadyToPrint(dval);
     assert(aok);
 
     bool isString = (nut->getUlamTypeEnum() == String);

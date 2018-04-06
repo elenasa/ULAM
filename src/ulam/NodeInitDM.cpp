@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "NodeConstantClass.h"
+//#include "NodeConstantClass.h"
 #include "NodeInitDM.h"
 #include "NodeListArrayInitialization.h"
 #include "NodeListClassInit.h"
@@ -475,7 +475,7 @@ namespace MFM {
 	  }
 	else if(m_nodeExpr->isAConstantClass())
 	  {
-	    rtnok = ((NodeConstantClass *) m_nodeExpr)->getClassValue(bvclass); //t41234
+	    rtnok = m_nodeExpr->getConstantValue(bvclass); //t41234
 	  }
 	else
 	  {

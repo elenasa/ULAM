@@ -5,8 +5,11 @@
 #include "SymbolVariableDataMember.h"
 #include "SymbolVariableStack.h"
 #include "NodeIdent.h"
-#include "NodeConstantArray.h"
-#include "NodeListArrayInitialization.h"
+//#include "NodeConstantArray.h"
+//#include "NodeConstantClassArray.h"
+//#include "NodeListArrayInitialization.h"
+//#include "NodeMemberSelect.h"
+//#include "NodeSquareBracket.h"
 #include "NodeVarRef.h"
 
 namespace MFM {
@@ -204,9 +207,55 @@ namespace MFM {
       {
 	brtn = true; //t41205
       }
-    else if(m_nodeInitExpr->isAList() && ((NodeList *) m_nodeInitExpr)->foldArrayInitExpression())
+    else if(m_nodeInitExpr->isAList())
       {
-	brtn = ((NodeList *) m_nodeInitExpr)->buildArrayValueInitialization(bvtmp);
+	if(((NodeList *) m_nodeInitExpr)->foldArrayInitExpression())
+	  brtn = ((NodeList *) m_nodeInitExpr)->buildArrayValueInitialization(bvtmp);
+	//else no good
+      }
+    else if(m_nodeInitExpr->isAConstant())
+      {
+	brtn = m_nodeInitExpr->getConstantValue(bvtmp);
+      }
+    else
+      m_state.abortShouldntGetHere(); //what then?
+
+#if 0
+	if(m_state.isAClass(nuti))
+	  {
+	    if(m_nodeInitExpr->isAConstantClassArray())
+	      {
+		brtn = ((NodeConstantClassArray *) m_nodeInitExpr)->getClassArrayValue(bvtmp);
+	      }
+	    else if(m_nodeInitExpr->hasASymbolDataMember())
+	      {
+		if(((NodeMemberSelect *) m_nodeInitExpr)->getConstantMemberValue(bvtmp))
+		  {
+		    brtn = true; //t41277
+		  }
+		else
+		  m_state.abortShouldntGetHere(); //what then?
+	      }
+	    else
+	      {
+		m_state.abortShouldntGetHere(); //not an arrayitem either.
+	      }
+	  }
+	else
+	  {
+	    //not a class (t3896,7,9)
+	    if(m_nodeInitExpr->hasASymbolDataMember())
+	      {
+		if(((NodeMemberSelect *) m_nodeInitExpr)->getConstantMemberValue(bvtmp))
+		  {
+		    brtn = true; //t41277,8 (string[2])
+		  }
+		else
+		  m_state.abortShouldntGetHere(); //what then?
+	      }
+	    else
+	      brtn = ((NodeConstantArray *) m_nodeInitExpr)->getArrayValue(bvtmp); //t41277
+	  }
       }
     else
       {
@@ -216,6 +265,8 @@ namespace MFM {
 	    brtn = true;
 	  }
       }
+#endif
+
 
     if(brtn)
       m_varSymbol->setInitValue(bvtmp);

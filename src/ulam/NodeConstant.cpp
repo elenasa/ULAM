@@ -96,6 +96,13 @@ namespace MFM {
     //noop - before surgery
   }
 
+  bool NodeConstant::getConstantValue(BV8K& bval)
+  {
+    if(!m_constSymbol || !m_constSymbol->isReady())
+      return false;
+    return m_constSymbol->getValue(bval);
+  }
+
   FORECAST NodeConstant::safeToCastTo(UTI newType)
   {
     if(!isReadyConstant())

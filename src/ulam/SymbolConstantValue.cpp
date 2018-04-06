@@ -91,7 +91,16 @@ namespace MFM {
     fp->write(m_state.m_pool.getDataAsString(getId()).c_str());
     fp->write(" = ");
 
-    SymbolWithValue::printPostfixValue(fp);
+    if(m_state.isAClass(tuti))
+      {
+	std::string classhexstr;
+	SymbolWithValue::getClassValueAsHexString(classhexstr); //t41277
+	fp->write("{ ");
+	fp->write(classhexstr.c_str());
+	fp->write(" }");
+      }
+    else
+      SymbolWithValue::printPostfixValue(fp);
     fp->write("; ");
   } //printPostfixValuesOfVariableDeclarations
 

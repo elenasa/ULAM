@@ -1,12 +1,11 @@
 #include <stdlib.h>
 #include "NodeConstantDef.h"
 #include "NodeConstant.h"
-#include "NodeConstantArray.h"
-#include "NodeConstantClass.h"
-#include "NodeConstantClassArray.h"
-#include "NodeListArrayInitialization.h"
+//#include "NodeConstantArray.h"
+//#include "NodeConstantClass.h"
+//#include "NodeConstantClassArray.h"
+//#include "NodeListArrayInitialization.h"
 #include "NodeListClassInit.h"
-#include "NodeMemberSelect.h"
 #include "NodeTerminal.h"
 #include "CompilerState.h"
 #include "MapConstantDesc.h"
@@ -742,6 +741,20 @@ namespace MFM {
 	    else
 	      rtnuti = Hzy;
 	  }
+	else if(m_nodeExpr->isAConstant())
+	  {
+	    //constant class t3451; member select t41273; array item t41263
+	    BV8K bvtmp;
+	    if(m_nodeExpr->getConstantValue(bvtmp))
+	      {
+		m_constSymbol->setValue(bvtmp);
+		rtnuti = m_nodeExpr->getNodeType();
+		u32 tmpslotnum = m_state.m_constantStack.getAbsoluteTopOfStackIndexOfNextSlot();
+		assignConstantSlotIndex(tmpslotnum);
+	      }
+	  }
+
+#if 0
 	else if(m_nodeExpr->isAConstantClass())
 	  {
 	    //not a list, t.f. NodeConstantClass
@@ -779,6 +792,8 @@ namespace MFM {
 		assignConstantSlotIndex(tmpslotnum);
 	      }
 	  }
+#endif
+
 	else
 	  m_state.abortShouldntGetHere();
 
@@ -932,19 +947,30 @@ namespace MFM {
       {
 	brtn = true;
       }
-    else if(m_nodeExpr->isAList() && ((NodeList *) m_nodeExpr)->foldArrayInitExpression())
+    else if(m_nodeExpr->isAList())
       {
-	if(((NodeList *) m_nodeExpr)->buildArrayValueInitialization(bvtmp))
-	  brtn = true;
+	if(((NodeList *) m_nodeExpr)->foldArrayInitExpression())
+	  if(((NodeList *) m_nodeExpr)->buildArrayValueInitialization(bvtmp))
+	    brtn = true;
+	//else no good (error/t41181)
+      }
+    else
+      {
+	brtn = m_nodeExpr->getConstantValue(bvtmp); //t41277 memberselect, t41181 array
+      }
+#if 0
+    else if(m_nodeExpr->isAConstant() && m_nodeExpr->hasASymbolDataMember())
+      {
+	if(((NodeMemberSelect *) m_nodeExpr)->getConstantMemberValue(bvtmp))
+	  brtn = true; //t41277
       }
     else
       {
 	assert(!m_state.isScalar(m_nodeExpr->getNodeType())); //t41181
 	if(((NodeConstantArray *) m_nodeExpr)->getArrayValue(bvtmp))
-	  {
-	    brtn = true;
-	  }
+	  brtn = true;
       }
+#endif
 
     if(brtn)
       {
@@ -983,7 +1009,7 @@ namespace MFM {
 		  {
 		    if(m_nodeExpr->isAConstantClass())
 		      {
-			rtnok = ((NodeConstantClass *) m_nodeExpr)->getClassValue(bvtmp);
+			rtnok = m_nodeExpr->getConstantValue(bvtmp);
 			m_constSymbol->setValue(bvtmp);
 		      }
 		    else if(m_nodeExpr->isAList())

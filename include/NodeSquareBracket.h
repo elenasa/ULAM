@@ -70,7 +70,7 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    bool getConstantArrayItemValue(BV8K& bvitem);
+    virtual bool getConstantValue(BV8K& bval);
 
     virtual bool trimToTheElement(Node ** fromleftnode, Node *& rtnnodeptr);
 
@@ -116,6 +116,8 @@ namespace MFM{
     void genCodeAUserStringByte(File * fp, UVPass& uvpass);
 
     virtual Node * buildOperatorOverloadFuncCallNode();
+
+    bool getConstantArrayItemValue(BV8K& bvitem);
   };
 
 }

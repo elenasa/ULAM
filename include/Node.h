@@ -173,6 +173,8 @@ namespace MFM{
 
     virtual bool asConditionalNode(); //only NodeConditionalAs returns true
 
+    virtual bool getConstantValue(BV8K& bval);
+
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType();
@@ -389,7 +391,7 @@ namespace MFM{
     void genCustomArrayLocalMemberNameOfMethod(File * fp);
 
     void genConstantClassMangledName(File * fp, const char * const prefix = NULL);
-    void genConstantArrayMangledName(File * fp);
+    void genConstantArrayMangledName(File * fp, const char * const prefix = NULL);
 
     const std::string localStorageTypeAsString(UTI nuti);
 

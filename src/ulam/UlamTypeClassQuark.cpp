@@ -590,7 +590,7 @@ namespace MFM {
   void UlamTypeClassQuark::genUlamTypeReadDefinitionForC(File * fp)
   {
     u32 totbitsize = getTotalBitSize();
-    if(totbitsize <= BITSPERATOM) //Big 96bit array is unpacked, but.. (t3969)
+    if(totbitsize <= BITSPERATOM) //Big 96bit array is unpacked, but.. (t3776,t3969)
       {
 	m_state.indent(fp);
 	fp->write("const ");
@@ -645,7 +645,8 @@ namespace MFM {
   void UlamTypeClassQuark::genUlamTypeWriteDefinitionForC(File * fp)
   {
     u32 totbitsize = getTotalBitSize();
-    if(totbitsize <= BITSPERATOM) //Big 96bit array is unpacked, but.. (t3969)
+    //    if(totbitsize <= BITSPERATOM) //Big 96bit array is unpacked, but.. (t3969)
+    if(totbitsize <= MAXBITSPERLONG) //Big 96bit array is unpacked, but.. (t3969)
       {
 	m_state.indent(fp);
 	fp->write("void ");
