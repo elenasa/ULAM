@@ -192,6 +192,7 @@ namespace MFM{
     void addCompleteUlamTypeToThisContextSet(UTI uti);
     void addCompleteUlamTypeToContextBlockSet(UTI uti, NodeBlockContext * contextblock);
     bool isOtherClassInThisContext(UTI suti);
+    bool isAStringDataMemberInClass(UTI cuti);
     bool isDefined(UlamKeyTypeSignature key, UlamType *& foundUT);
     bool anyDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI);
     UlamType * createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype, ULAMCLASSTYPE classtype);

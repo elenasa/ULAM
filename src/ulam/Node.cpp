@@ -1033,23 +1033,23 @@ namespace MFM {
       {
 	if(cosclass == UC_ELEMENT)
 	  genFixForElementTypeFieldInTmpVarOfConstantClass(fp, uvpass);
-	else if(cosclass == UC_QUARK)
+	else if((cosclass == UC_QUARK) && m_state.isAStringDataMemberInClass(cosuti))
 	  {
-	  if(coslen <= MAXBITSPERINT)
-	    {
-	    //if quark has a string dm (MAXBITSPERINT), need bit vector to fix it (not u32)
-	      tmpVarNumForQuark = m_state.getNextTmpVarNumber();
-	      m_state.indentUlamCode(fp);
-	      fp->write("BitVector<");
-	      fp->write_decimal_unsigned(coslen);
-	      fp->write("> ");
-	      fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNumForQuark, TMPBITVAL).c_str());
-	      fp->write("(");
-	      fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	      fp->write(");"); GCNL;
-	    }
-	  else if(coslen <= MAXBITSPERLONG)
-	    {
+	    if(coslen <= MAXBITSPERINT)
+	      {
+		//if quark has a string dm (MAXBITSPERINT), need bit vector to fix it (not u32)
+		tmpVarNumForQuark = m_state.getNextTmpVarNumber();
+		m_state.indentUlamCode(fp);
+		fp->write("BitVector<");
+		fp->write_decimal_unsigned(coslen);
+		fp->write("> ");
+		fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNumForQuark, TMPBITVAL).c_str());
+		fp->write("(");
+		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
+		fp->write(");"); GCNL;
+	      }
+	    else if(coslen <= MAXBITSPERLONG)
+	      {
 	      //if quark has a constant string/array dm (MAXBITSPERINT each), need bit vector to fix it (not u32/u64) t41278
 	      tmpVarNumForQuark = m_state.getNextTmpVarNumber();
 	      m_state.indentUlamCode(fp);
@@ -1401,7 +1401,7 @@ namespace MFM {
 	  {
 	    if((sclasstype == UC_ELEMENT))
 	      genFixForElementTypeFieldInTmpVarOfConstantClass(fp, luvpass);
-	    else if((sclasstype == UC_QUARK) && (itemlen <= MAXBITSPERINT))
+	    else if((sclasstype == UC_QUARK) && (itemlen <= MAXBITSPERINT) && m_state.isAStringDataMemberInClass(scalarluti))
 	      {
 		//when a quark has a string dm (MAXBITSPERINT),
 		// we need bit vector to fix it (not u32)

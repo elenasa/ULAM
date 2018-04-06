@@ -577,6 +577,16 @@ namespace MFM {
     return rtnb;
   } //isOtherClassInThisContext
 
+  bool CompilerState::isAStringDataMemberInClass(UTI cuti)
+  {
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
+    NodeBlockClass * classblock = csym->getClassBlockNode();
+    assert(classblock);
+    return classblock->hasStringDataMembers();
+  } //isAStringDataMemberInClass
+
   bool CompilerState::isDefined(UlamKeyTypeSignature key, UlamType *& foundUT)
   {
     bool rtnBool= false;

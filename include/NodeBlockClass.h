@@ -97,6 +97,8 @@ namespace MFM{
 
     bool isSuperClassLinkReady(UTI cuti);
 
+    virtual bool hasStringDataMembers();
+
     virtual UTI checkAndLabelType();
 
     bool checkParameterNodeTypes();

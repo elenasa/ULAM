@@ -354,6 +354,22 @@ namespace MFM {
     return !(!m_state.okUTItoContinue(sblockuti) || (UlamType::compare(sblockuti, superuti, m_state) != UTIC_SAME));
   } //isSuperClassLinkReady
 
+  bool NodeBlockClass::hasStringDataMembers()
+  {
+    bool hasStrings = NodeBlockContext::hasStringDataMembers(); //btw, does not check superclasses!!!
+    if(!hasStrings)
+      {
+	UTI superuti = m_state.isClassASubclass(getNodeType());
+	if((superuti != Nouti) && !m_state.isUrSelf(superuti))
+	  {
+	    NodeBlockClass * superblock = getSuperBlockPointer();
+	    if(superblock != NULL)
+	      hasStrings |= superblock->hasStringDataMembers();
+	  }
+      }
+    return hasStrings;
+  } //hasStringsDataMembers
+
   UTI NodeBlockClass::checkAndLabelType()
   {
     //do first, might be important!
