@@ -1,6 +1,7 @@
 /**                                      -*- mode:C++ -*- */
 
 #include <stdlib.h>  //for abort
+#include "DebugTools.h"  /* for DebugPrint */
 
 namespace MFM{
 
@@ -174,6 +175,17 @@ namespace MFM{
     T atom = Uv_1a.ReadAtom();
     u32 flags = Uv_5flags.read();
     Uq_10109210DebugUtils10_printAtom(uc, atom, flags, buff);
+    if (buff.GetLength() > 0)
+      LOG.Message("%s",buff.GetZString());
+  } // Uf_5print
+
+  //! DebugUtils.ulam:10:   Void print(UrSelf & a)
+  template<class EC>
+  void Uq_10109210DebugUtils10<EC>::Uf_5print(const UlamContext<EC>& uc, UlamRef<EC>& ur, Ui_Uq_r10106UrSelf10<EC>& Ur_1a) const
+  {
+    OString4096 buff;
+    DebugPrint<EC>(uc, Ur_1a, buff);  
+    buff.Printf("\n");
     if (buff.GetLength() > 0)
       LOG.Message("%s",buff.GetZString());
   } // Uf_5print
