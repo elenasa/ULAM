@@ -5,12 +5,12 @@
 
 namespace MFM {
 
-  NodeStorageof::NodeStorageof(Node * ofnode, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_nodeOf(ofnode), m_oftype(Nouti), m_nodeTypeDesc(nodetype), m_currBlockNo(0)
+  NodeStorageof::NodeStorageof(Node * ofnode, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_nodeOf(ofnode), m_oftype(Nouti), m_nodeTypeDesc(nodetype)
   {
     Node::setStoreIntoAble(TBOOL_HAZY);
   }
 
-  NodeStorageof::NodeStorageof(const NodeStorageof& ref) : Node(ref), m_nodeOf(NULL), m_oftype(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_oftype)), m_nodeTypeDesc(NULL), m_currBlockNo(ref.m_currBlockNo)
+  NodeStorageof::NodeStorageof(const NodeStorageof& ref) : Node(ref), m_nodeOf(NULL), m_oftype(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_oftype,ref.getNodeLocation())), m_nodeTypeDesc(NULL)
   {
     if(ref.m_nodeTypeDesc)
       m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
@@ -175,7 +175,6 @@ namespace MFM {
 	  msg << getName() << "'";
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
 	  nuti = Hzy;
-	  m_state.setGoAgain(); //since not error
 	}
       else
 	{
@@ -224,30 +223,17 @@ namespace MFM {
     }
 
   setNodeType(nuti);
+  if(nuti == Hzy)
+    m_state.setGoAgain(); //since not error
   return nuti;
   } //checkAndLabelType
-
-  NNO NodeStorageof::getBlockNo() const
-  {
-    return m_currBlockNo;
-  }
-
-  NodeBlock * NodeStorageof::getBlock()
-  {
-    assert(m_currBlockNo);
-    NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
-    assert(currBlock);
-    return currBlock;
-  }
 
   EvalStatus NodeStorageof::eval()
   {
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     // quark or nonclass data member;
     evalNodeProlog(0); //new current node eval frame pointer
@@ -255,11 +241,7 @@ namespace MFM {
     makeRoomForSlots(1); //always 1 slot for ptr
 
     UlamValue uvp = makeUlamValuePtr(); //virtual
-    if(!uvp.isPtr())
-      {
-	evalNodeEpilog();
-	return ERROR;
-      }
+    if(!uvp.isPtr()) return evalStatusReturn(ERROR);
 
     UlamValue uv = m_state.getPtrTarget(uvp);
 
@@ -277,11 +259,7 @@ namespace MFM {
     // return ptr to this local var (from NodeIdent's makeUlamValuePtr)
     UlamValue rtnUVPtr = makeUlamValuePtr(); //virtual
 
-    if(!rtnUVPtr.isPtr())
-      {
-	evalNodeEpilog();
-	return ERROR;
-      }
+    if(!rtnUVPtr.isPtr()) return evalStatusReturn(ERROR);
 
     //copy result UV to stack, -1 relative to current frame pointer
     Node::assignReturnValuePtrToStack(rtnUVPtr);

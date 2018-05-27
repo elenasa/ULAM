@@ -2,7 +2,7 @@
 
 namespace MFM {
 
-  TypeArgs::TypeArgs() {}
+  TypeArgs::TypeArgs() : m_bitsize(UNKNOWNSIZE), m_arraysize(NONARRAYSIZE), m_classInstanceIdx(Nouti), m_anothertduti(Nouti), m_declListOrTypedefScalarType(Nouti), m_assignOK(true), m_isStmt(true), m_declRef(ALT_NOT), m_referencedUTI(Nouti), m_hasConstantTypeModifier(false) {}
 
   TypeArgs::TypeArgs(const TypeArgs& tref) :
       m_typeTok(tref.m_typeTok),
@@ -23,16 +23,6 @@ namespace MFM {
   void TypeArgs::init(const Token& typetoken)
   {
     m_typeTok = typetoken;
-    m_bitsize = UNKNOWNSIZE;
-    m_arraysize = NONARRAYSIZE;
-    m_classInstanceIdx = Nouti;
-    m_anothertduti = Nouti;
-    m_declListOrTypedefScalarType = Nouti;
-    m_assignOK = true;
-    m_isStmt = true;
-    m_declRef = ALT_NOT;
-    m_referencedUTI = Nouti;
-    m_hasConstantTypeModifier = false;
   }
 
   TypeArgs& TypeArgs::operator=(const TypeArgs& tref)

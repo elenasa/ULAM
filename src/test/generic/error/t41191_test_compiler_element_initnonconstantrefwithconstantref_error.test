@@ -2,7 +2,7 @@
 #=t41191_test_compiler_element_initnonconstantrefwithconstantref_error
 ##
 #!
-./Foo.ulam:8:5: ERROR: Initialization for: bref, must be referenceable.
+./Foo.ulam:8:5: ERROR: Reference variable bref's type Bool(3)&, and its initial value type constant Bool(3)&, are incompatible.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t41187, testing new feature, the constant function parameter

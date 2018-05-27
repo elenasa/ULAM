@@ -150,8 +150,7 @@ namespace MFM {
 
   EvalStatus NodeBlock::eval()
   {
-    if(!m_nodeNext)
-      return ERROR;
+    if(!m_nodeNext) return evalErrorReturn();
 
     // block stack needed for symbol lookup during eval of virtual func call on as-conditional auto
     m_state.pushCurrentBlock(this);

@@ -20,25 +20,39 @@ namespace MFM {
     return true;
   }
 
+  FORECAST UlamTypePrimitive::safeCast(UTI typidx)
+  {
+    //common to all primitive types:
+    FORECAST scr = UlamType::safeCast(typidx); //default
+    if(scr == CAST_CLEAR)
+      {
+	// primitives must be the same sizes when casting to a reference type
+	if(isAltRefType() && !UlamType::checkReferenceCast(typidx))
+	  scr = CAST_BAD;
+      }
+    //the rest is primitive-specific..
+    return scr;
+  }
+
   FORECAST UlamTypePrimitive::explicitlyCastable(UTI typidx)
   {
     FORECAST scr = UlamType::safeCast(typidx); //default
     if(scr == CAST_CLEAR)
       {
 	// primitives must be the same sizes when casting to a reference type
-	if(isReference() && !UlamType::checkReferenceCast(typidx))
+	if(isAltRefType() && !UlamType::checkReferenceCast(typidx))
 	  scr = CAST_BAD;
 
 	// strings cannot be cast explicitly to other primitive types, except Void (t3961)
-	UlamType * vut = m_state.getUlamTypeByIndex(typidx);
-	ULAMTYPE valtypEnum = vut->getUlamTypeEnum();
+	UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
+	ULAMTYPE valtypEnum = fmut->getUlamTypeEnum();
 	if((getUlamTypeEnum() != Void) && ((valtypEnum == String) ^ (getUlamTypeEnum() == String)))
 	  scr = CAST_BAD;
 
 	//only quarks may be cast to Ints, explicitly or not; requires toInt method (t3996)
 	if(valtypEnum == Class)
 	  {
-	    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
+	    ULAMCLASSTYPE vclasstype = fmut->getUlamClassType();
 	    if(vclasstype != UC_QUARK)
 	      scr = CAST_BAD;
 	  }
@@ -88,32 +102,6 @@ namespace MFM {
   {
     return UNKNOWNSIZE; //atom, class, nav, ptr, holder
   }
-
-  const std::string UlamTypePrimitive::getUlamTypeMangledType()
-  {
-    // e.g. parsing overloaded functions, may not be complete.
-    std::ostringstream mangled;
-    s32 bitsize = getBitSize();
-    s32 arraysize = getArraySize();
-
-    if(isReference()) //includes ALT_ARRAYITEM (t3147)
-      mangled << "r";
-
-    if(arraysize > 0)
-      mangled << ToLeximitedNumber(arraysize);
-    else
-      mangled << 10;
-
-    if(bitsize > 0)
-      mangled << ToLeximitedNumber(bitsize);
-    else
-      mangled << 10;
-
-    std::string ecode(UlamTypePrimitive::getUlamTypeEnumCodeChar(getUlamTypeEnum()));
-    mangled << ToLeximited(ecode).c_str();
-
-    return mangled.str();
-  } //getUlamTypeMangledType
 
   const std::string UlamTypePrimitive::getUlamTypeMangledName()
   {
@@ -585,6 +573,19 @@ namespace MFM {
 	fp->write("ReadBV(0u, rtnunpbv); return rtnunpbv; ");
 	fp->write("} //reads entire BV"); GCNL;
       }
+
+    if(!isScalar())
+      {
+	//reads an item of array;
+	//2nd argument generated for compatibility with underlying method
+	m_state.indent(fp);
+	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
+	fp->write(" readArrayItem(");
+	fp->write("const u32 index, const u32 itemlen) const { return ");
+	fp->write("this->BVS::");
+	fp->write(readArrayItemMethodForCodeGen().c_str());
+	fp->write("(index * itemlen, itemlen); } //reads BV array item"); GCNL;
+      }
   } //genUlamTypeReadDefinitionForC
 
   void UlamTypePrimitive::genUlamTypeWriteDefinitionForC(File * fp)
@@ -619,6 +620,19 @@ namespace MFM {
 	fp->write("& bv) { BVS::");
 	fp->write("WriteBV(0u, bv); ");
 	fp->write("} //writes entire BV"); GCNL;
+      }
+
+    if(!isScalar())
+      {
+	//reads an item of array;
+	//2nd argument generated for compatibility with underlying method
+	m_state.indent(fp);
+	fp->write("void writeArrayItem(const ");
+	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
+	fp->write("& v, const u32 index, const u32 itemlen) {");
+	fp->write("this->BVS::");
+	fp->write(writeArrayItemMethodForCodeGen().c_str());
+	fp->write("(index * itemlen, itemlen, v); } //writes BV array item"); GCNL;
       }
   } //genUlamTypeWriteDefinitionForC
 

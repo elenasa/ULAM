@@ -1,0 +1,67 @@
+## -*- mode:ulam -*-
+#=t41233_test_compiler_transientconstantwelementdatamemberinitialized
+##
+##  gen output: (+ 2 asserts)
+##   Int Arg: 99
+##
+## transients are unevaluable.
+#!
+Exit status: -11
+Ue_Test { Bool(1) m_testb(false);  Int(32) m_testi(0);  Int(32) test() {  System sys;  T est = ctt;  m_testb est m_sp . = sys ( m_testb )assert . m_testi est m_i . = sys ( m_testi )print . sys ( m_testi 99 cast == )assert . 225u cast return } }
+Un_T { Bool(1) m_sp(false);  Int(32) m_i(0);  Atom(96) m_a(Atom(96));  R m_rele( cer);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+Ue_R { Bool(1) m_rb(false);  Int(32) m_ri(0);  <NOMAIN> }
+##
+##    //informed by t41232, except transient  is initialized to a local constant, and an element data member is also initialized to a local constant
+##
+#>Test.ulam
+  ulam 3;
+local constant T ctt = { .m_sp = true, .m_i = 99 };
+element Test {
+  Bool m_testb;
+  Int m_testi;
+  Int test(){
+    System sys;
+
+    T est = ctt;
+
+    m_testb = est.m_sp;
+    sys.assert(m_testb);
+    m_testi = est.m_i;
+    sys.print(m_testi);
+    sys.assert(m_testi == 99);
+
+    return est.sizeof;
+  }
+}
+
+#:T.ulam
+ ulam 3;
+local constant R cer = { .m_rb = true, .m_ri = 77 };
+transient T {
+  Bool m_sp;
+  Int m_i;
+  Atom m_a;
+  R m_rele = cer;
+}
+
+#:R.ulam
+  ulam 3;
+element R {
+  Bool m_rb;
+  Int m_ri;
+}
+
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

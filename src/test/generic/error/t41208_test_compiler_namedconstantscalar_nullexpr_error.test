@@ -1,8 +1,9 @@
 ## -*- mode:ulam -*-
 #=t41208_test_compiler_namedconstantscalar_nullexpr_error
 #!
-./A.ulam:3:12: ERROR: Constant symbol 'cPRINT_NAME' is not ready.
-./A.ulam:5:5: ERROR: Function return type is still unresolved: unresolved.
+./A.ulam:3:12: ERROR: Constant scalar primitive 'cPRINT_NAME' has improper {} initialization.
+./A.ulam:3:12: ERROR: Constant value expression for 'cPRINT_NAME', was not representable as Unsigned(8).
+./A.ulam:3:12: ERROR: Problem in NodeConstantDef for type: Unsigned(8), used with symbol name 'cPRINT_NAME', after folding attempt.
 Unrecoverable Program Type Label FAILURE.
 ##
 ##      //informed by 3457, except constant expression is null for a scalar

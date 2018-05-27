@@ -91,7 +91,16 @@ namespace MFM {
     fp->write(m_state.m_pool.getDataAsString(getId()).c_str());
     fp->write(" = ");
 
-    SymbolWithValue::printPostfixValue(fp);
+    if(m_state.isAClass(tuti))
+      {
+	std::string classhexstr;
+	SymbolWithValue::getClassValueAsHexString(classhexstr); //t41277
+	fp->write("{ ");
+	fp->write(classhexstr.c_str());
+	fp->write(" }");
+      }
+    else
+      SymbolWithValue::printPostfixValue(fp);
     fp->write("; ");
   } //printPostfixValuesOfVariableDeclarations
 
@@ -107,14 +116,14 @@ namespace MFM {
 
   void SymbolConstantValue::setConstantStackFrameAbsoluteSlotIndex(u32 slot)
   {
-    assert(!m_state.isScalar(getUlamTypeIdx()));
+    //    assert(!m_state.isScalar(getUlamTypeIdx()) || m_state.isAClass(getUlamTypeIdx()) );
     assert(slot > 0);
     m_constantStackFrameAbsoluteSlotIndex = slot;
   }
 
   u32 SymbolConstantValue::getConstantStackFrameAbsoluteSlotIndex()
   {
-    assert(!m_state.isScalar(getUlamTypeIdx()));
+    // assert(!m_state.isScalar(getUlamTypeIdx()) || m_state.isAClass(getUlamTypeIdx()) );
     return m_constantStackFrameAbsoluteSlotIndex;
   }
 

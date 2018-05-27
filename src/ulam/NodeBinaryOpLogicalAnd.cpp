@@ -35,11 +35,9 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
     UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
+    if(nuti == Nav) return evalErrorReturn();
 
-    if(nuti == Hzy)
-      return NOTREADY;
+    if(nuti == Hzy) return evalStatusReturnNoEpilog(NOTREADY);
 
     u32 len = m_state.getTotalBitSize(nuti);
 
@@ -48,11 +46,7 @@ namespace MFM {
     u32 slot = makeRoomForNodeType(nuti);
 
     EvalStatus evs = m_nodeLeft->eval();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     //short-circuit if lhs is false
     UlamValue luv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slot); //immediate value
@@ -66,11 +60,7 @@ namespace MFM {
       {
 	u32 slot2 = makeRoomForNodeType(nuti);
 	evs = m_nodeRight->eval();
-	if(evs != NORMAL)
-	  {
-	    evalNodeEpilog();
-	    return evs;
-	  }
+	if(evs != NORMAL) return evalStatusReturn(evs);
 
 	UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slot+slot2); //immediate value
 	//copies return UV to stack, -1 relative to current frame pointer

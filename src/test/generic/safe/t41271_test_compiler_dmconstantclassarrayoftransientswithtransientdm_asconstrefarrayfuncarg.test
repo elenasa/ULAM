@@ -1,0 +1,93 @@
+## -*- mode:ulam -*-
+#=t41271_test_compiler_dmconstantclassarrayoftransients_withtransientdm_asconstrefarrayfuncarg
+##
+## gen output: (+ interleaved asserts)
+##
+##  Unsigned Arg: 2
+##  String(1) Arg: "mel"
+##  Unsigned Arg: 4
+##  String(1) Arg: "mel"
+##
+## Big transients unevaluable.
+#!
+Exit status: -11
+Ue_KeyExprRep { constant KeyExprNode keyexpr_x13 = { 0x102007c, 0x800e0000, 0x81820013, 0x40070000, 0x400018c0, 0x20038000, 0x20000c20, 0x1001c000, 0x10000620, 0x800e000, 0x8000000 };  typedef KeyExprNode KENA[5];  Int(32) test() {  ( keyexpr_x13 cast 0 cast )func ( keyexpr_x13 cast 1 cast )func 0 cast return } }
+Un_Tfoo { Bool(1) esp( true);  String(32) estr( "mel");  <NOMAIN> }
+Un_KeyExprNode { typedef Unsigned(8) Byte;  Unsigned(8) m_leftIndex(0);  Unsigned(8) m_rightIndex(0);  Unsigned(8) m_keyCode(0);  Unsigned(8) m_op(0);  Tfoo m_tfoo( ctfoo);  <NOMAIN> }
+Uq_SystemU3 : System { :<> <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by Dave 3/18/18 ish, and t41261: except array of transients instead of quarks constant class array
+## like t41270 except constant array is a data member; and const func arg is ref to array
+##
+##
+#>KeyExprRep.ulam
+  ulam 3;
+use Tfoo;
+use KeyExprNode; ////without use ./KeyExprNode.ulam:9:0: ERROR: Invalid size (-2) to set for primitive type: 0Holder.
+element KeyExprRep {
+
+  constant KeyExprNode keyexpr_x13[] = {
+    { .m_leftIndex = 1, .m_rightIndex = 2, .m_keyCode = 0, .m_op = '|' }, // [0]
+    { .m_leftIndex = 3, .m_rightIndex = 4, .m_keyCode = 0, .m_op = '&' }, // [1]
+    { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'c', .m_op = 0 }, // [2]
+    { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'a', .m_op = 0 }, // [3]
+    { .m_leftIndex = 0, .m_rightIndex = 0, .m_keyCode = 'b', .m_op = 0 }, // [4] , EXTRA COMMA at the end??? no difference
+  };
+
+  typedef KeyExprNode KENA[5];
+
+  Void func(constant KENA& arrayarg, Int index)
+  {
+    SystemU3 s;
+    KeyExprNode node = arrayarg[index];
+    s.print(node.m_rightIndex);
+    s.assert(node.m_rightIndex==keyexpr_x13[index].m_rightIndex); //for the test
+    s.print(node.m_tfoo.estr);
+    s.assert(node.m_tfoo.estr[0] == 'm');
+  }
+
+  Int test() {
+    func(keyexpr_x13, 0);
+    func(keyexpr_x13, 1);
+    return 0;
+  }
+}
+
+#:KeyExprNode.ulam
+  ulam 3;
+local constant Tfoo ctfoo = { };
+transient KeyExprNode {
+  typedef Unsigned(8) Byte;
+  Byte m_leftIndex;  // for [,|&~]
+  Byte m_rightIndex; // for [,|&]
+  Byte m_keyCode;    // [a-zA-Z.@_?] or 0
+  Byte m_op;         // [,|&~] or 0
+  Tfoo m_tfoo = ctfoo;
+}
+
+#:Tfoo.ulam
+  ulam 3;
+transient Tfoo {
+  Bool esp = true;
+  String estr = "mel";
+}
+
+#:SystemU3.ulam
+  ulam 3;
+quark SystemU3 : System {
+  Void print(String s) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

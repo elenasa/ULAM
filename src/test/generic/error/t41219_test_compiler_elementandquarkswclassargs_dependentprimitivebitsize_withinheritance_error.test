@@ -1,0 +1,29 @@
+## -*- mode:ulam -*-
+#=t41219_test_compiler_elementandquarkswclassargs_dependentprimitivebitsize_withinheritance_error
+#!
+./F2.ulam:2:19: ERROR: Constant value expression for 'width' is not representable as Int(1).
+./F2.ulam:2:19: ERROR: Problem in NodeConstantDef for type: Int(1), used with symbol name 'width', after folding attempt.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by Daves test and t41218; except order of class parameters are reversed
+## //./F2.ulam:16:19: ERROR: Constant value expression for 'width' is not representable as Int(1).
+##
+#>P.ulam
+  ulam 3;
+element P {
+  Int test() {
+    F2 f2;
+    return 0;
+  }
+}
+
+#:F2.ulam
+  ulam 3;
+element F2 : Q2(1,7) { }
+
+#:Q2.ulam
+  ulam 3;
+quark Q2(Int bp, Int(bp) width) {
+  Int(bp) m_width = width;
+}
+#.

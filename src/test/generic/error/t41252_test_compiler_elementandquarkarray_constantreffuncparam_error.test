@@ -1,0 +1,53 @@
+## -*- mode:ulam -*-
+#=t41251_test_compiler_elementandquarkarray_constantreffuncparam
+#!
+./Foo.ulam:10:16: ERROR: Member selected must be a modifiable lefthand side: '[]' requires a variable.
+./Foo.ulam:11:25: ERROR: Unmodifiable lefthand side of assignment expression <.>, type: Bool(1).
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41251, except try to assign to constant array ref function parameter,
+##                     directly and by calling a function on it.
+##
+#>Foo.ulam
+  ulam 3;
+element Foo {
+  typedef Bar Pop[2];
+  System s;
+  Bool(3) b;
+  Int(4) m_i;
+  Pop m_bar2;
+  Bar sbar;
+  Bool checkAndChange(constant Pop& brefarg, Int x) {
+    brefarg[x].reset(false, (Unsigned(2)) x);
+    brefarg[x].val_b[x] = true;
+    return brefarg[x].val_b[x];
+  }
+  Int test() {
+    b = checkAndChange(m_bar2,1);
+    s.assert(b);
+    return 0;
+  }
+}
+
+#:Bar.ulam
+  ulam 1;
+quark Bar {
+  Bool val_b[3] = {false, true, false};
+  Void reset(Bool b, Unsigned(2) x) {
+    val_b[x] = b;
+  }
+  Atom& aref(Int index) native;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

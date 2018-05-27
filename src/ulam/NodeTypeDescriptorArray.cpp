@@ -88,12 +88,7 @@ namespace MFM {
 
   void NodeTypeDescriptorArray::setReferenceType(ALT refarg, UTI referencedUTI, UTI refUTI)
   {
-    NodeTypeDescriptor::setReferenceType(refarg, referencedUTI);
-    m_uti = refUTI; //new given as ref UTI
-
-    //reset scalar to non-reference, t3816
-    assert(m_nodeScalar);
-    m_nodeScalar->setReferenceType(ALT_NOT, Nouti, referencedUTI);
+    m_state.abortShouldntGetHere(); //arrays are linked after reftype is known.
   }
 
   UTI NodeTypeDescriptorArray::checkAndLabelType()
@@ -179,6 +174,8 @@ namespace MFM {
 	    rtnb = true;
 	    rtnuti = nuti;
 	  }
+	else if(m_state.okUTItoContinue(rtnuti) && !m_state.isComplete(rtnuti))
+	  rtnuti = Hzy; //t3890
 	else
 	  rtnuti = nuti; //could be Nav or Hzy
       } //else select not ready, so neither are we!!
@@ -200,6 +197,7 @@ namespace MFM {
 	rtnuti = Nav;
 	return false; //error, e.g. possible divide by zero
       }
+    //else as could still be UNKNOWNSIZE;
 
     // do it anyway, progress for the bitsize (t3773)
     // keep m_unknownArraysizeSubtree in case a template
@@ -285,8 +283,7 @@ namespace MFM {
       {
 	assert(scut->isScalar());
 	//create corresponding array type, keep givenUTI (=auti) just change the key
-	UlamKeyTypeSignature sckey = scut->getUlamKeyTypeSignature();
-	UlamKeyTypeSignature newkey(sckey.getUlamKeyTypeSignatureNameId(), aut->getBitSize(), aut->getArraySize(), scuti, aut->getReferenceType());
+	UlamKeyTypeSignature newkey(scut->getUlamTypeNameId(), aut->getBitSize(), aut->getArraySize(), scuti, aut->getReferenceType());
 	ULAMCLASSTYPE aclasstype = aut->getUlamClassType();
 	m_state.makeUlamTypeFromHolder(newkey, scut->getUlamTypeEnum(), auti, aclasstype);
 

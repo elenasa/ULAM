@@ -1,0 +1,61 @@
+## -*- mode:ulam -*-
+#=t41231_test_compiler_transientconstant_assignment
+##
+##  gen output: (+ 2 asserts)
+##   Int Arg: 99
+##
+## transients are unevaluable.
+#!
+Exit status: -11
+Un_T { Bool(1) m_sp(false);  Int(32) m_i(0);  Atom(96) m_a(Atom(96));  <NOMAIN> }
+Ue_R { Bool(1) m_rb(false);  Int(32) m_ri(0);  Int(32) test() {  System sys;  T est = ctt;  m_rb est m_sp . = sys ( m_rb )assert . m_ri est m_i . = sys ( m_ri )print . sys ( m_ri 99 cast == )assert . 129u cast return } }
+Uq_System { <NOMAIN> }
+##
+##    //informed by t41230 class assignment in R with constant transient
+##
+#>T.ulam
+ ulam 3;
+//local constant R cer = { .m_rb = true, .m_ri = 77 };
+transient T {
+  Bool m_sp;
+  Int m_i;
+  Atom m_a;
+  //R m_rele = cer;
+}
+
+
+#:R.ulam
+  ulam 3;
+local constant T ctt = { .m_sp = true, .m_i = 99 };
+
+element R{
+  Bool m_rb;
+  Int m_ri;
+
+  Int test(){
+    System sys;
+
+    T est = ctt;
+
+    m_rb = est.m_sp;
+    sys.assert(m_rb);
+    m_ri = est.m_i;
+    sys.print(m_ri);
+    sys.assert(m_ri == 99);
+
+    return est.sizeof;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

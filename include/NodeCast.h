@@ -72,7 +72,7 @@ namespace MFM{
 
     void setExplicitCast();
 
-    bool isExplicitCast();
+    virtual bool isExplicitCast();
 
     virtual bool isAConstant();
 

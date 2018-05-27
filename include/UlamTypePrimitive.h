@@ -57,7 +57,7 @@ namespace MFM{
 
     virtual bool cast(UlamValue& val, UTI typidx) = 0;
 
-    virtual FORECAST safeCast(UTI typidx) = 0;
+    virtual FORECAST safeCast(UTI typidx);
 
     virtual FORECAST explicitlyCastable(UTI typidx);
 
@@ -76,8 +76,6 @@ namespace MFM{
     virtual s32 bitsizeToConvertTypeTo(ULAMTYPE tobUT);
 
     virtual ULAMTYPE getUlamTypeEnum() = 0;
-
-    virtual const std::string getUlamTypeMangledType();
 
     virtual const std::string getUlamTypeMangledName();
 

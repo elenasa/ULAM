@@ -64,11 +64,15 @@ namespace MFM{
 
     virtual bool isPosOffsetReliable();
 
+    void setDivinedByConstantClass();
+
+    bool divinedByConstantClass();
+
   protected:
 
   private:
     u32 m_posOffsetCopy; //array item of data member
-
+    bool m_divinedByConstantClass;
   };
 
 }

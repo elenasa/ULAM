@@ -1,22 +1,19 @@
 ## -*- mode:ulam -*-
 #=t41203_test_compiler_elementandquarkswclassargs_secwdefaultparamvaluefromanotherclass_localdefconstantarrayitemvarnullinit_error
 #!
-./System.ulam:11:0: ERROR: Invalid size (0) to set for primitive type: Unsigned.
+./V.ulam:5:0: ERROR: Invalid size (0) to set for primitive type: Unsigned.
 Unrecoverable Program Type Label FAILURE.
 ##
 ## informed by t3892,  null constant array initialization (all zeros)
 ##
 #>P.ulam
   ulam 3;
+//use Q; //matches answer with use Q;
 local constant Int by[4] = { };
 element P {
   Bool b;
   Int test() {
-    System s;
-    Q(by[2]*3) w; //uses item variable
-    s.print(w.sizeof);
-    b = (w.sizeof == 3);
-    s.assert(b);
+    Q(by[2]*3) w; //uses item constant 0
     return (Int) w.sizeof;
   }
 }
@@ -34,19 +31,6 @@ local constant Int by[4] = { };
   ulam 1;
 quark V(Int a) {
   Unsigned(a) vfoo;
-}
-
-
-#:System.ulam
-  ulam 1;
-quark System {
-Void print(Unsigned arg) native;
-Void print(Int arg) native;
-Void print(Int(4) arg) native;
-Void print(Int(3) arg) native;
-Void print(Unary(3) arg) native;
-Void print(Bool(3) arg) native;
-Void assert(Bool b) native;
 }
 
 #.

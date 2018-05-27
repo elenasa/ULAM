@@ -2,8 +2,12 @@
 #=t41193_test_compiler_element_constantreffuncreturntype_error
 ##
 #!
-./Foo.ulam:6:12: ERROR: Invalid named constant Reference Type 'Bool'.
-./Foo.ulam:11:3: ERROR: Invalid Class Type <Int>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./Foo.ulam:6:22: ERROR: Variable symbol 'funcme' cannot be a reference.
+./Foo.ulam:6:12: ERROR: Invalid variable declaration of base type <Bool> and name <funcme> (missing symbol).
+./Foo.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'Foo'; Possible missing ending curly brace.
+./Foo.ulam:6:28: ERROR: Invalid Class Type <(>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./Foo.ulam:2:9: ERROR: Invalid Type: Foo.
+ ERROR: No parse tree for This Class: Foo.
 Unrecoverable Program Parse FAILURE: <Foo.ulam>
 ##
 ## informed by t41192, testing new feature, the constant function parameter

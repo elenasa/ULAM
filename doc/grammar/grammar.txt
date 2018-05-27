@@ -35,8 +35,10 @@
 <TYPE_EXPRESSION> := <TYPE_IDENT> | <TYPE_IDENT> + '[' + <CONSTANT_EXPRESSION> + ']'
 <PARAMETER_DEF> := 'parameter' + <TYPE> + <IDENT> + '=' + <CONSTANT_EXPRESSION>
 <CONST_DEF> := 'constant' + <TYPE> + ( <IDENT> | <IDENT> + '[' + ( 0 |
-	    <CONSTANT_EXPRESSION> ) + ']' ) + '=' + (
-	    <CONSTANT_EXPRESSION> | '{' ( 0 | <CONSTANT_EXPR_LIST> ) '}'
+	    <CONSTANT_EXPRESSION> ) + ']' ) + '=' + ( <CONSTANT_EXPRESSION>
+	    | '{' ( 0 | <CONSTANT_EXPR_LIST> ) '}'
+ 	    | <CLASS_INIT>
+ 	    | '{' + ( 0 | <CLASS_ARRAY_INIT_LIST> ) + '}' )
 
 <DATA_MEMBER_DEF> := <TYPE> + <DM_VAR_STATEMENT_DECLS>
 <DM_VAR_STATEMENT_DECLS> := <DM_VAR_STATEMENT_DECL> | <DM_VAR_STATEMENT_DECL> + ',' + <DM_VAR_STATEMENT_DECLS>
@@ -66,7 +68,7 @@
 <FUNC_IDENT> := <IDENT> | <IDENT_OPERATOR_OVERLOAD>
 <FUNC_PARAM_DECLS> := 0 | '...' | <FUNC_PARAMS> | <FUNC_PARAMS> + ',' + '...'
 <FUNC_PARAMS> := <FUNC_PARAM> | <FUNC_PARAM> + ',' + <FUNC_PARAMS>
-<FUNC_PARAM>  := <TYPE> + <VAR_DECL>
+<FUNC_PARAM>  := (0 | 'constant' ) + <TYPE> + <VAR_DECL>
 
 <BLOCK> := '{' + <STATEMENTS> + '}'
 <STATEMENTS> := 0 | <STATEMENT> + <STATEMENTS>

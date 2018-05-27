@@ -1,0 +1,36 @@
+## -*- mode:ulam -*-
+#=t41218_test_compiler_elementandquarkswclassargs_dependentprimitivebitsize_withinheritance_error
+#!
+./F1.ulam:2:17: ERROR: Constant value expression for 'width' is not representable as Int(1).
+./F1.ulam:2:17: ERROR: Problem in NodeConstantDef for type: Int(1), used with symbol name 'width', after folding attempt.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by Daves test and t41212;
+## //fails with:
+## //./F1.ulam:1:14: ERROR: Variable <bp> is not defined, or was used before declared in a function.
+## //./F1.ulam:1:10: ERROR: Type Bitsize specifier, within (), is not ready.
+##
+## see t41219 for F2:
+## //./F2.ulam:16:19: ERROR: Constant value expression for 'width' is not representable as Int(1).
+##
+#>P.ulam
+  ulam 3;
+element P {
+  Int test() {
+    F1 f1;
+    return 0;
+  }
+}
+
+#:F1.ulam
+  ulam 3;
+element F1 : Q1(7,1) { }
+
+#:Q1.ulam
+  ulam 3;
+quark Q1(Int(bp) width, Int bp) {
+  Int(bp) m_width = width;
+}
+
+
+#.

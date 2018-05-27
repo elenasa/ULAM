@@ -72,11 +72,7 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    NNO getBlockNo();
-
-    NodeBlock * getBlock();
-
-    virtual void packBitsInOrderOfDeclaration(u32& offset);
+    virtual TBOOL packBitsInOrderOfDeclaration(u32& offset);
 
     virtual void printUnresolvedVariableDataMembers();
 
@@ -86,9 +82,11 @@ namespace MFM{
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
-    virtual void genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos);
+    virtual bool buildDefaultValueForClassConstantDefs();
 
-    virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
+    virtual void genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr);
+
+    virtual void genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr);
 
     virtual EvalStatus eval();
 
@@ -96,7 +94,7 @@ namespace MFM{
 
     virtual void genCodeConstantArrayInitialization(File * fp);
 
-    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
+    virtual void generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly);
 
     virtual void cloneAndAppendNode(std::vector<Node *> & cloneVec);
 
@@ -113,7 +111,13 @@ namespace MFM{
     SymbolTypedef * m_typedefSymbol;
     u32 m_tdid; //to instantiate
     NNO m_currBlockNo;
+    NodeBlock * m_currBlockPtr;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
+
+    NNO getBlockNo();
+    void setBlock(NodeBlock * ptr);
+    NodeBlock * getBlock();
+
   };
 
 }

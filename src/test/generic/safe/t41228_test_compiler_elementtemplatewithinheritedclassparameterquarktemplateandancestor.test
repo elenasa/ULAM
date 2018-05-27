@@ -1,0 +1,79 @@
+## -*- mode:ulam -*-
+#=t41228_test_compiler_elementtemplatewithinheritedclassparameterquarktemplateandancestor
+##
+##  gen output: (+ interleaved asserts)
+##   Int(4) : 7
+##   Int(4) : 2
+##   true
+##   true
+##
+## FAILED: ILLEGAL_ARGUMENT
+#!
+Exit status: 7
+Ue_T { Int(4) cpi(7);  Int(4) dmi(2);  Int(32) test() {  System sys;  E(true) et;  cpi et 7 . = sys ( cpi )print . sys ( cpi 7 == )assert . dmi et i . = sys ( dmi )print . sys ( dmi 2 cast == )assert . sys ( et v . b . cast )print . sys ( et v . b . )assert . sys ( et b . )assert . et 7 . cast return } }
+Uq_System { <NOMAIN> }
+Ue_E(Bool(1) p) : S(v,bp) { /* empty class block */ }
+Uq_S(Q(flag) v, Bool(1) bp) : Q(flag) { :< Bool(1) b(notready);  Int(4) i( 2); > constant Int(UNKNOWN) csi = v i .;  <NOMAIN> }
+Uq_Q(Bool(1) flag) { Bool(1) b(notready);  Int(4) i( 2);  <NOMAIN> }
+##
+##    //informed by t41226, except S has two class params, AND inheritance!
+##
+#>T.ulam
+ ulam 3;
+//use S; //NOT RELEVENT
+element T{
+  Int(4) cpi, dmi;
+
+  Int test(){
+    System sys;
+
+    E(true) et;
+
+    cpi = et.csi; //class parameter constant csi
+    sys.print(cpi);
+    sys.assert(cpi == 7);
+
+    dmi = et.i; //data member i
+    sys.print(dmi);
+    sys.assert(dmi == 2); //default dm
+
+    sys.print(et.v.b);
+    sys.assert(et.v.b); //true
+    sys.assert(et.b); //also true dm
+
+    return et.csi; //7
+  }
+}
+
+#:S.ulam
+  ulam 3;
+quark S(Q(bp) v, Bool bp) : Q(bp) {
+  constant Int(4) csi = v.i;
+}
+
+#:Q.ulam
+  ulam 1;
+quark Q(Bool flag){
+  Bool b = flag;
+  Int(4) i = 2;
+}
+
+
+#:E.ulam
+  ulam 3;
+local constant Q(true) cqt = { .i = 7 };
+element E(Bool p) : S(cqt, true) { }
+
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

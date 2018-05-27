@@ -1,0 +1,43 @@
+## -*- mode:ulam -*-
+#=t41212_test_compiler_elementandquarkswclassargs_dependentprimitivebitsize_error
+#!
+./P.ulam:6:10: ERROR: Constant value expression for 's' is not representable as Unsigned(2).
+./P.ulam:6:10: ERROR: Problem in NodeConstantDef for type: Unsigned(2), used with symbol name 's', after folding attempt.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t41211;
+##
+#>P.ulam
+  ulam 1;
+element P {
+  Unsigned(8) m_bsz;
+  Int test() {
+    System s;
+    Q(2, 10) badq; //fails
+    m_bsz = badq.sizeof;
+    s.print(m_bsz);
+    s.assert(m_bsz == 10u);
+    return 0;
+  }
+}
+
+#:Q.ulam
+  ulam 1;
+quark Q(Int b, Unsigned(b) s) {
+  typedef Unsigned(s) Foo;
+  Foo f;
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

@@ -42,6 +42,11 @@ namespace MFM{
     return true;
   }
 
+  FORECAST NodeListEmpty::safeToCastTo(UTI newType)
+  {
+    return CAST_CLEAR;
+  }
+
   UTI NodeListEmpty::checkAndLabelType()
   {
     setNodeType(Void);
@@ -87,10 +92,7 @@ namespace MFM{
 
   void NodeListEmpty::genCode(File * fp, UVPass& uvpass)
   {
-    //save before wipe out with each init dm; for local vars (o.w. empty)
-    std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
-
-    m_state.indent(fp);
+    m_state.indentUlamCode(fp);
     fp->write("{ /* ");
     fp->write(getName());
     fp->write(" */}");
@@ -102,14 +104,80 @@ namespace MFM{
     m_state.abortShouldntGetHere();
   }
 
-  void NodeListEmpty::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  void NodeListEmpty::generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly)
   {
     m_state.abortShouldntGetHere();
   }
 
-  bool NodeListEmpty::initDataMembersConstantValue(BV8K& bvref)
+  bool NodeListEmpty::initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask)
   {
     return true;
   }
+
+  bool NodeListEmpty::buildArrayValueInitialization(BV8K& bvtmp)
+  {
+    UTI nuti = Node::getNodeType();
+    assert(m_state.okUTItoContinue(nuti));
+    if(nuti == Void)
+      {
+	setNodeType(Hzy);
+	m_state.setGoAgain();
+	return false;
+      }
+    if(m_state.isAClass(nuti))
+      {
+	return buildClassArrayValueInitialization(bvtmp); //t41262 (may be too soon)
+      }
+    return true; //all zeros for default primitives
+  } //buildArrayValueInitialization
+
+  bool NodeListEmpty::buildClassArrayValueInitialization(BV8K& bvtmp)
+  {
+    UTI nuti = Node::getNodeType();
+    assert(m_state.okUTItoContinue(nuti));
+    if(nuti == Void)
+      {
+	setNodeType(Hzy);
+	m_state.setGoAgain();
+	return false;
+      }
+
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    s32 arraysize = nut->getArraySize();
+    assert(arraysize >= 0);
+
+    u32 n = m_nodes.size();
+    assert(n==0);
+
+    bool rtnok = true;
+    //fill in default class if nothing provided for a non-empty array
+    if((arraysize > 0))
+      {
+	rtnok = m_state.getDefaultClassValue(nuti, bvtmp); //uses scalar uti
+	if(!rtnok)
+	  {
+	    if(m_state.tryToPackAClass(nuti) == TBOOL_TRUE) //uses scalar uti
+	      rtnok = m_state.getDefaultClassValue(nuti, bvtmp); //try again, uses scalar uti
+	  }
+	n = 1; //ready to fall thru and propagate as needed
+      }
+
+    if(rtnok)
+      {
+	//propagate last value for any remaining items not initialized
+	if((n > 0) && (n < (u32) arraysize))
+	  {
+	    u32 itemlen = nut->getBitSize();
+	    BV8K lastbv;
+	    bvtmp.CopyBV((n - 1) *  itemlen, 0, itemlen, lastbv); //frompos, topos, len, destBV
+	    for(s32 i = n; i < arraysize; i++)
+	      {
+		lastbv.CopyBV(0, i * itemlen, itemlen, bvtmp);
+	      }
+	  }
+      }
+    return rtnok;
+  } //buildClassArrayValueInitialization
+
 
 } //MFM

@@ -62,6 +62,7 @@ namespace MFM{
 
     u32 getId();
     Locator getLoc();
+    Locator getLoc() const;
     Token * getTokPtr(); //for err msgs
 
     void resetUlamType(UTI newuti); //e.g. mappedUTI

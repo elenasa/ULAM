@@ -83,6 +83,8 @@ namespace MFM{
 
     virtual bool getNodeTypeDescriptorPtr(NodeTypeDescriptor *& nodetypedescref);
 
+    bool setNodeTypeDescriptor(NodeTypeDescriptor * nodetypedesc);
+
     virtual bool hasDefaultSymbolValue();
 
     virtual UTI checkAndLabelType();
@@ -99,23 +101,29 @@ namespace MFM{
 
     virtual bool hasConstantExpr();
 
+    virtual bool isReadyConstant();
+
     virtual UTI foldConstantExpression();
 
     virtual bool foldArrayInitExpression();
 
     virtual bool buildDefaultValue(u32 wlen, BV8K& dvref);
 
-    virtual void genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos);
+    virtual bool buildDefaultValueForClassConstantDefs();
 
-    virtual void genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos);
+    virtual void genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr);
+
+    virtual void genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr);
 
     virtual void fixPendingArgumentNode();
 
     virtual bool assignClassArgValueInStubCopy();
 
+    bool cloneTypeDescriptorForPendingArgumentNode(NodeConstantDef * templateparamdef);
+
     virtual EvalStatus eval();
 
-    virtual void packBitsInOrderOfDeclaration(u32& offset);
+    virtual TBOOL packBitsInOrderOfDeclaration(u32& offset);
 
     virtual void printUnresolvedVariableDataMembers();
 
@@ -125,7 +133,7 @@ namespace MFM{
 
     virtual void genCodeConstantArrayInitialization(File * fp);
 
-    virtual void generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly);
+    virtual void generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly);
 
     virtual void cloneAndAppendNode(std::vector<Node *> & cloneVec);
 
@@ -147,8 +155,12 @@ namespace MFM{
 
   private:
     NNO m_currBlockNo;
+    NodeBlock * m_currBlockPtr;
+
+    void setBlock(NodeBlock * ptr);
 
     void setupStackWithPrimitiveForEval(u32 slots);
+    void setupStackWithConstantClassForEval(u32 slots);
     void assignConstantSlotIndex(u32& cslotidx);
 
   };

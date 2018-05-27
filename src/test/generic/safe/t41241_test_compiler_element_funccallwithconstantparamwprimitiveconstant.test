@@ -1,0 +1,59 @@
+## -*- mode:ulam -*-
+#=t41241_test_compiler_element_funccallwithconstantparamwprimitiveconstant
+##
+##  gen output: (+ interleaved asserts)
+##     Bool(3) Arg: 0x7 (true)
+##     Int(4) Arg: 0x3
+##
+#!
+Exit status: 3
+Ue_Foo { System s();  Int(4) m_i(3);  Bool(3) m_b(true);  Int(32) test() {  m_i 3 cast = ( 1u cast )check s ( m_b )print . s ( m_b cast )assert . s ( m_i )print . s ( m_i 3 cast == )assert . m_i cast return } }
+Uq_System { <NOMAIN> }
+##
+## informed by t41240, testing the constant (non-ref) function parameter;
+## passing a named constant primitive
+##
+#>Foo.ulam
+  ulam 3;
+local constant Bool cbool = true;
+
+element Foo {
+  System s;
+  Int(4) m_i;
+  Bool(3) m_b;
+  Void set(Bool(3) boo) {
+    m_b = boo;
+    boo = true;
+    return;
+  }
+  Void nocheck(Bool(3)& bok) {
+    m_b = bok;
+    return;
+  }
+  Void check(constant Bool(3) bok) {
+    set(bok); //ok since arg is a copy
+    return;
+  }
+  Int test() {
+    m_i = 3;
+    check(cbool);
+    s.print(m_b); //should not have changed
+    s.assert(m_b);
+    s.print(m_i);
+    s.assert(m_i == 3);
+    return m_i;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

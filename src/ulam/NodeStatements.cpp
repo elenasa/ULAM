@@ -195,21 +195,31 @@ namespace MFM {
     return aok;
   }
 
-  void NodeStatements::genCodeDefaultValueStringRegistrationNumber(File * fp, u32 startpos)
+  bool NodeStatements::buildDefaultValueForClassConstantDefs()
+  {
+    bool aok = true;
+    if(m_node)
+      aok &= m_node->buildDefaultValueForClassConstantDefs();
+    if(aok && m_nodeNext) //why go on
+      aok &= m_nodeNext->buildDefaultValueForClassConstantDefs();
+    return aok;
+  }
+
+  void NodeStatements::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
   {
     if(m_node)
-      m_node->genCodeDefaultValueStringRegistrationNumber(fp, startpos);
+      m_node->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, startpos, uvpassptr, bv8kptr);
     if(m_nodeNext)
-      m_nodeNext->genCodeDefaultValueStringRegistrationNumber(fp, startpos);
+      m_nodeNext->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, startpos, uvpassptr, bv8kptr);
     return;
   }
 
-  void NodeStatements::genCodeElementTypeIntoDataMemberDefaultValue(File * fp, u32 startpos)
+  void NodeStatements::genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr)
   {
     if(m_node)
-      m_node->genCodeElementTypeIntoDataMemberDefaultValue(fp, startpos);
+      m_node->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, startpos, uvpassptr);
     if(m_nodeNext)
-      m_nodeNext->genCodeElementTypeIntoDataMemberDefaultValue(fp, startpos);
+      m_nodeNext->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, startpos, uvpassptr);
   }
 
   EvalStatus NodeStatements::eval()
@@ -219,11 +229,7 @@ namespace MFM {
     evalNodeProlog(0);
     makeRoomForNodeType(m_node->getNodeType());
     EvalStatus evs = m_node->eval();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
+    if(evs != NORMAL) return evalStatusReturn(evs);
 
     //not the last one, so thrown out results and continue
     if(m_nodeNext)
@@ -245,11 +251,15 @@ namespace MFM {
     m_nodeNext = s;
   }
 
-  void NodeStatements::packBitsInOrderOfDeclaration(u32& offset)
+  TBOOL NodeStatements::packBitsInOrderOfDeclaration(u32& offset)
   {
-    m_node->packBitsInOrderOfDeclaration(offset); //updates offset
+    TBOOL rtntb = m_node->packBitsInOrderOfDeclaration(offset); //updates offset
     if(m_nodeNext)
-      m_nodeNext->packBitsInOrderOfDeclaration(offset);
+      {
+	TBOOL nodetb = m_nodeNext->packBitsInOrderOfDeclaration(offset);
+	rtntb = Node::minTBOOL(rtntb, nodetb);
+      }
+    return rtntb;
   }
 
   void NodeStatements::printUnresolvedVariableDataMembers()
@@ -313,12 +323,12 @@ namespace MFM {
       m_nodeNext->genCodeConstantArrayInitialization(fp);
   }
 
-  void NodeStatements::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  void NodeStatements::generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly)
   {
     if(m_node)
-      m_node->generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
+      m_node->generateBuiltinConstantClassOrArrayInitializationFunction(fp, declOnly);
     if(m_nodeNext)
-      m_nodeNext->generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
+      m_nodeNext->generateBuiltinConstantClassOrArrayInitializationFunction(fp, declOnly);
   }
 
   void NodeStatements::cloneAndAppendNode(std::vector<Node *> & cloneVec)

@@ -82,10 +82,10 @@ namespace MFM {
 	m_ready = true; //set here
 	m_uti = it; //given reset here
       }
-    else
-	m_state.setGoAgain();
 
     setNodeType(it);
+    if(it == Hzy)
+      m_state.setGoAgain();
     return getNodeType();
   } //checkAndLabelType
 
@@ -135,7 +135,7 @@ namespace MFM {
 			    msg << "Substituting Mapped UTI" << mappedUTI << ", ";
 			    msg << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
 			    msg << " for incomplete descriptor type: '";
-			    msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
+			    msg << m_state.getUlamTypeNameByIndex(auti).c_str();
 			    msg << "' UTI" << auti << " while labeling class: ";
 			    msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -203,7 +203,7 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Undefined Typedef <" << m_state.getTokenDataAsString(m_typeTok).c_str();
 		msg << "> in another class, " ;;
-		msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
+		msg << m_state.getUlamTypeNameByIndex(seluti).c_str();
 		msg <<" while compiling: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 		if(!hazyKin)

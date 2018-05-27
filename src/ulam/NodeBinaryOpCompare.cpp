@@ -69,6 +69,8 @@ namespace MFM {
 	  newType = Bool; //always Bool (default size) for node; after castings!
       }
     setNodeType(newType);
+    if(newType == Hzy)
+      m_state.setGoAgain(); //nolonger needed in calcnodetypes
     Node::setStoreIntoAble(TBOOL_FALSE);
 
     //still may need casting (e.g. unary compared to an int) before constantfolding

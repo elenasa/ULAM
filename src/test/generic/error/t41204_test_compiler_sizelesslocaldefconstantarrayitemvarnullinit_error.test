@@ -4,12 +4,13 @@
 ./Q.ulam:2:7: ERROR: Incomplete NodeConstantArray for type: Int(32)[UNKNOWN], used with constant symbol name 'by'.
 ./Q.ulam:2:7: ERROR: Constant value expression for: b, is not ready, still hazy while compiling class: P.
 ./Q.ulam:2:7: ERROR: Incomplete Terminal Proxy for type: V(a).
-./Q.ulam:2:37: ERROR: Incomplete descriptor for type: V(a).
+./Q.ulam:2:37: ERROR: Incomplete descriptor for type: V(a) (UTI 38).
 ./Q.ulam:2:7: ERROR: Proxy Type: V(a) is still incomplete and unknown for its 'sizeof' while compiling class: Q(b,s).
 ./Q.ulam:2:7: ERROR: Constant value expression for 's', is not yet ready while compiling class: Q(b,s).
 ./Q.ulam:2:7: ERROR: Incomplete NodeConstantDef for type: Unsigned(32), used with symbol name 's', after folding.
+./Q.ulam:2:39: ERROR: Not ready constant for type: Int(32), used with constant symbol name 'b'.
 ./Q.ulam:2:39: ERROR: Constant value expression for: a, is not ready, still hazy while compiling class: Q(b,s).
-./P.ulam:7:5: ERROR: Incomplete descriptor for type: Q(b,s).
+./P.ulam:7:5: ERROR: Incomplete descriptor for type: Q(b,s) (UTI 34).
 ./P.ulam:7:5: ERROR: Incomplete Variable Decl for type: Q(b,s), used with variable symbol name 'w'.
 ./P.ulam:8:13: ERROR: Incomplete identifier for type: Q(b,s), used with list symbol name 'w'.
 ./P.ulam:8:15: ERROR: Undetermined type for missing member 'w' Proxy.

@@ -62,9 +62,9 @@ namespace MFM {
   {
     bool brtn = true;
     assert(m_state.getUlamTypeByIndex(typidx) == this);
-    UTI valtypidx = val.getUlamValueTypeIdx();
+    UTI valtypidx = val.getUlamValueTypeIdx(); //from type
 
-    if(UlamType::safeCast(valtypidx) != CAST_CLEAR) //bad|hazy
+    if(UlamTypePrimitive::safeCast(valtypidx) != CAST_CLEAR) //bad|hazy
       return false;
 
     u32 wordsize = getTotalWordSize();
@@ -129,13 +129,13 @@ namespace MFM {
 
   FORECAST UlamTypePrimitiveString::safeCast(UTI typidx)
   {
-    FORECAST scr = UlamType::safeCast(typidx);
+    FORECAST scr = UlamTypePrimitive::safeCast(typidx);
     if(scr != CAST_CLEAR)
       return scr;
 
     bool brtn = true;
-    UlamType * vut = m_state.getUlamTypeByIndex(typidx);
-    ULAMTYPE valtypEnum = vut->getUlamTypeEnum();
+    UlamType * fmut = m_state.getUlamTypeByIndex(typidx);
+    ULAMTYPE valtypEnum = fmut->getUlamTypeEnum();
     switch(valtypEnum)
       {
       case String:
@@ -399,6 +399,19 @@ namespace MFM {
 	fp->write(" d[");
 	fp->write_decimal_unsigned(UlamType::getTotalNumberOfWords());
 	fp->write("]) : BVS(d) { }"); GCNL;
+
+	//array initialization constructor here from BV for constant array (t41277)
+	m_state.indent(fp);
+	fp->write(mangledName.c_str());
+	fp->write("(const BVS& bvsarg) : BVS(bvsarg) { }"); GCNL;
+
+	//array initialization constructor here from u64 for constant array[2] (t41277)
+	if((len > MAXBITSPERINT) && (len <= MAXBITSPERLONG))
+	  {
+	    m_state.indent(fp);
+	    fp->write(mangledName.c_str());
+	    fp->write("(const u64 dl) { u32 d0=(u32)(dl>>32u); BVS::Write(0,32,d0); u32 d1=(u32)dl; BVS::Write(32,32,d1);}"); GCNL;
+	  }
       }
 
     //copy constructor here (return by value)

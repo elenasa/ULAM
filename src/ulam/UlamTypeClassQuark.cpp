@@ -27,10 +27,10 @@ namespace MFM {
     bool brtn = true;
     assert(m_state.getUlamTypeByIndex(typidx) == this); //tobe
     UTI valtypidx = val.getUlamValueTypeIdx();
-    UlamType * vut = m_state.getUlamTypeByIndex(valtypidx);
-    assert(vut->isScalar() && isScalar());
-    ULAMTYPE vetyp = vut->getUlamTypeEnum();
-    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
+    UlamType * fmut = m_state.getUlamTypeByIndex(valtypidx);
+    assert(fmut->isScalar() && isScalar());
+    ULAMTYPE vetyp = fmut->getUlamTypeEnum();
+    ULAMCLASSTYPE vclasstype = fmut->getUlamClassType();
 
     //now allowing atoms to be cast as quarks, as well as elements;
     // also allowing subclasses to be cast as their superclass (u1.2.2)
@@ -86,7 +86,7 @@ namespace MFM {
 	  {
 	    // both left-justified immediate quarks
 	    // Coo c = (Coo) f.su; where su is a Soo : Coo
-	    s32 vlen = vut->getTotalBitSize();
+	    s32 vlen = fmut->getTotalBitSize();
 	    s32 len = getTotalBitSize();
 	    u32 vdata = val.getImmediateClassData(vlen); //not from element
 	    assert((vlen - len) >= 0); //sanity check
@@ -141,10 +141,10 @@ namespace MFM {
       return false;
 
     bool rtnb = false;
-    if(!isReference())
+    if(!isAltRefType())
       {
 	rtnb = true;
-	u32 id = m_key.getUlamKeyTypeSignatureNameId();
+	u32 id = getUlamTypeNameId();
 	u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
 	SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(id);
 	if(cnsym->isClassTemplate() && ((SymbolClassNameTemplate *) cnsym)->isClassTemplate(cuti))
@@ -344,7 +344,6 @@ namespace MFM {
       {
 	// ref param to avoid excessive copying
 	m_state.indent(fp);
-	fp->write("const ");
 	fp->write(getTmpStorageTypeAsString().c_str()); //u32, u64, or BV96
 	fp->write(" read() const { ");
 	fp->write("return ");
@@ -358,10 +357,9 @@ namespace MFM {
       {
 	//class instance idx is always the scalar uti
 	UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
-	//reads an item of array
+	//reads an item of array;
 	//2nd argument generated for compatibility with underlying method
 	m_state.indent(fp);
-	fp->write("const ");
 	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
 	fp->write(" readArrayItem(");
 	fp->write("const u32 index, const u32 itemlen) const { return "); //was const after )
@@ -556,6 +554,12 @@ namespace MFM {
     fp->write("write(arg.");
     fp->write("read()); }"); GCNL;
 
+    //constructor for constants
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("(const u32 * const ");
+    fp->write(" arg) : BVS(arg) { if(arg==NULL) FAIL(NULL_POINTER); }"); GCNL;
+
     //constructor from ref of same type
     m_state.indent(fp);
     fp->write(mangledName.c_str());
@@ -586,7 +590,7 @@ namespace MFM {
   void UlamTypeClassQuark::genUlamTypeReadDefinitionForC(File * fp)
   {
     u32 totbitsize = getTotalBitSize();
-    if(totbitsize <= BITSPERATOM) //Big 96bit array is unpacked, but.. (t3969)
+    if(totbitsize <= BITSPERATOM) //Big 96bit array is unpacked, but.. (t3776,t3969)
       {
 	m_state.indent(fp);
 	fp->write("const ");
@@ -641,7 +645,8 @@ namespace MFM {
   void UlamTypeClassQuark::genUlamTypeWriteDefinitionForC(File * fp)
   {
     u32 totbitsize = getTotalBitSize();
-    if(totbitsize <= BITSPERATOM) //Big 96bit array is unpacked, but.. (t3969)
+    //    if(totbitsize <= BITSPERATOM) //Big 96bit array is unpacked, but.. (t3969)
+    if(totbitsize <= MAXBITSPERLONG) //Big 96bit array is unpacked, but.. (t3969)
       {
 	m_state.indent(fp);
 	fp->write("void ");

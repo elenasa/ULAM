@@ -21,9 +21,9 @@ namespace MFM {
     bool brtn = true;
     assert(m_state.getUlamTypeByIndex(typidx) == this); //tobe
     UTI valtypidx = val.getUlamValueTypeIdx();
-    UlamType * vut = m_state.getUlamTypeByIndex(valtypidx);
-    assert(vut->isScalar() && isScalar());
-    ULAMTYPE vetype = vut->getUlamTypeEnum();
+    UlamType * fmut = m_state.getUlamTypeByIndex(valtypidx);
+    assert(fmut->isScalar() && isScalar());
+    ULAMTYPE vetype = fmut->getUlamTypeEnum();
     //now allowing atoms to be cast as quarks, as well as elements;
     // also allowing subclasses to be cast as their superclass (u1.2.2)
     if(!(vetype == UAtom || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME))
@@ -96,10 +96,10 @@ namespace MFM {
       return false;
 
     bool rtnb = false;
-    if(!isReference())
+    if(!isAltRefType())
       {
 	rtnb = true;
-	u32 id = m_key.getUlamKeyTypeSignatureNameId();
+	u32 id = getUlamTypeNameId();
 	u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
 	SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(id);
 	if(cnsym->isClassTemplate() && ((SymbolClassNameTemplate *) cnsym)->isClassTemplate(cuti))
@@ -306,11 +306,10 @@ namespace MFM {
 
   void UlamTypeClassElement::genUlamTypeAutoReadDefinitionForC(File * fp)
   {
-    //ref param to avoid excessive copying
+    //ref param to avoid excessive copying;
     m_state.indent(fp);
-    fp->write("const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //T or BV
-    fp->write(" read() { ");
+    fp->write(" read() const { ");
     fp->write("return ");
     fp->write("UlamRef<EC>::");
     fp->write(readMethodForCodeGen().c_str());
@@ -332,10 +331,9 @@ namespace MFM {
 	//reads an item of array
 	//2nd argument generated for compatibility with underlying method
 	m_state.indent(fp);
-	fp->write("const ");
 	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32 or BV96
 	fp->write(" readArrayItem(");
-	fp->write("const u32 index, const u32 itemlen) const { return "); //was const after )
+	fp->write("const u32 index, const u32 itemlen) const { return ");
 	fp->write("UlamRef<EC>(");
 	fp->write("*this, index * itemlen, "); //const ref, rel offset
 	fp->write("itemlen, &");  //itemlen,
@@ -498,6 +496,13 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write("<EC> & arg) { ");
     fp->write("this->m_stg = arg.m_stg; }"); GCNL;
+
+    //constructor for constants (t41230); MFM Element Type not in place yet
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("(const u32 * const ");
+    fp->write("arg) : AtomBitStorage<EC>() { if(arg==NULL) FAIL(NULL_POINTER); ");
+    fp->write("this->m_stg.GetBits().FromArray(arg); }"); GCNL;
 
     //assignment constructor, atom arg, for convenience
     m_state.indent(fp);
@@ -699,7 +704,7 @@ namespace MFM {
     //default constructor (used by local vars)
     m_state.indent(fp);
     fp->write(mangledName.c_str());
-    fp->write("() { ");
+    fp->write("() { const ");
     fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //T
     fp->write(" tmpt = Us::THE_INSTANCE.GetDefaultAtom(); ");
     fp->write("for(u32 j = 0; j < ");

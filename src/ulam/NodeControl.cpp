@@ -150,14 +150,14 @@ namespace MFM {
 	  }
       }
     else
-      {
-	newType = Hzy; //was = cuti;
-	m_state.setGoAgain();
-      }
+      newType = Hzy; //was = cuti;
 
     m_nodeBody->checkAndLabelType(); //side-effect
 
-    setNodeType(newType);  //stays the same
+    setNodeType(newType); //stays the same
+    if(newType == Hzy)
+	m_state.setGoAgain();
+
     Node::setStoreIntoAble(TBOOL_FALSE);
     return getNodeType();
   } //checkAndLabelType

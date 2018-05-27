@@ -340,8 +340,8 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Unresolved type <";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		msg << "> was never defined; Fails labeling";
+		msg << m_state.getUlamTypeNameByIndex(cuti).c_str();
+		msg << "> (UTI " << cuti << ") was never defined; Fails labeling";
 		//was ERR but typedef junk; was WARN, but too many msgs when ERR
 		//with variable name suffices (error/t3370, t3492)
 		MSG(cnsym->getTokPtr(), msg.str().c_str(), DEBUG);
@@ -453,8 +453,8 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Unresolved type <";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    msg << "> was never defined; Fails sizing";
+	    msg << m_state.getUlamTypeNameByIndex(cuti).c_str();
+	    msg << "> (UTI " << cuti << ") was never defined; Fails sizing";
 	    if(anonymousClass)
 	      MSG(sym->getTokPtr(), msg.str().c_str(), DEBUG);
 	    else

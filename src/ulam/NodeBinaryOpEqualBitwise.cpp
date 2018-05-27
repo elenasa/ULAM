@@ -101,6 +101,12 @@ namespace MFM {
 	    return Nav;
 	  }
       }
+    else
+      {
+	setNodeType(newType);
+	if(newType == Hzy)
+	  m_state.setGoAgain();
+      }
     return getNodeType();
   } //checkandlabeltype
 
@@ -151,7 +157,6 @@ namespace MFM {
 	    else //hazy
 	      {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
-		m_state.setGoAgain(); //for compiler counts
 		newType = Hzy;
 	      }
 	  }

@@ -1,0 +1,31 @@
+## -*- mode:ulam -*-
+#=t41236_test_compiler_elementconstant_funccall_error
+#!
+./R.ulam:5:17: ERROR: Member selected must be a modifiable lefthand side: 'cet' requires a variable.
+./R.ulam:6:16: ERROR: Member selected must be a modifiable lefthand side: 'cet' requires a variable.
+Unrecoverable Program Type Label FAILURE.
+##
+##    //informed by t41235, except func call on constant T
+##
+#>T.ulam
+ ulam 3;
+
+element T {
+  Bool m_sp;
+  Int m_i;
+
+  Int func() { return 4; }
+}
+
+
+#:R.ulam
+  ulam 3;
+local constant T cet = { .m_sp = true, .m_i = 99 };
+element R{
+  Int test(){
+    Int i = cet.func();
+    return cet.func();
+  }
+}
+
+#.

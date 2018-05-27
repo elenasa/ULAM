@@ -1,0 +1,102 @@
+## -*- mode:ulam -*-
+#=t41198_test_compiler_constantclasswish
+##
+##  gen output: (+ interleaved asserts)
+##   Unsigned Arg: 0
+##   Bool(3) Arg: 0x7 (true)
+##   Int(4) Arg: 0x7
+##   Unary(3) Arg: 0x2
+##   Unary(3) Arg: 0x0
+##
+#!
+Exit status: 0
+Ue_Foo { Bool(1) b(true);  Bool(1) b1(true);  Bool(1) b2(true);  Bool(1) b3(true);  Int(32) test() {  System s;  Unsigned(32) foosz = 0u;  s ( foosz )print . s ( foosz 0u cast == )assert . QFoo qfoo;  b qfoo c_qbar . sp . = s ( qfoo c_qbar . sp . cast )print . s ( qfoo c_qbar . sp . )assert . Int(4) fr1 = c_qbar iou .;  b1 c_qbar iou . 7 == = s ( fr1 )print . s ( b1 )assert . Unary(3) fr2 = qfoo c_qbar . r 1 [] .;  b2 qfoo c_qbar . r 1 [] . cast 2u == = s ( fr2 )print . s ( b2 )assert . Int(32) i = 4 cast;  Unary(3) fr3 = c_qbar r i [] .;  b3 c_qbar r i [] . cast 0u cast == = s ( fr3 )print . s ( b3 )assert . 0 cast return } }
+Uq_System { <NOMAIN> }
+Uq_QFoo { constant QBar c_qbar = { .r = { 3 cast, 2 cast, 0 cast }, .sp = true };  <NOMAIN> }
+Uq_QBar { Bool(1) sp(false);  Unary(3) r[5]( { 1u });  Int(4) iou( 7);  <NOMAIN> }
+##
+## a WISH for a constant class, takes no space; no func calls though.
+##
+#>Foo.ulam
+  ulam 3;
+element Foo {
+  Bool b, b1, b2, b3;
+
+  Int test() {
+    System s;
+
+    Unsigned foosz = QFoo.sizeof;
+    s.print(foosz);
+    s.assert(foosz==0u); //named constants take no space
+
+    QFoo qfoo; //not necessary!
+
+    //bool
+    b = qfoo.c_qbar.sp;
+    s.print(qfoo.c_qbar.sp);
+    s.assert(qfoo.c_qbar.sp);
+
+    //non-array works; type preceeding the named constant class
+    Int(4) fr1 = QFoo.c_qbar.iou;
+    b1 = QFoo.c_qbar.iou == 7;
+    s.print(fr1);
+    s.assert(b1);
+
+    //array item w constant index:
+    Unary(3) fr2 = qfoo.c_qbar.r[1];
+    b2 = qfoo.c_qbar.r[1] == 2u;
+    s.print(fr2);
+    s.assert(b2);
+
+    //array item w variable index:
+    Int i = 4;
+    Unary(3) fr3 = QFoo.c_qbar.r[i];
+    b3 = QFoo.c_qbar.r[i] == 0u;
+    s.print(fr3);
+    s.assert(b3);
+
+    return 0;
+  }
+}
+
+#:QBar.ulam
+  ulam 3;
+quark QBar {
+  Bool sp;
+  Unary(3) r[5] = {1};
+  Int(4) iou = 7;
+}
+
+#:QFoo.ulam
+  ulam 3;
+quark QFoo {
+  constant QBar c_qbar = { .r = {3, 2, 0}, .sp = true };
+}
+
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.
+
+
+/*
+./QFoo.ulam:3:17: ERROR: Named Constant 'c_qbar' cannot be based on a class type: QBar.
+./QFoo.ulam:3:17: ERROR: Invalid constant definition of type <QBar> and name <c_qbar>.
+./QFoo.ulam:2:1: ERROR: Empty/Incomplete Class Definition 'QFoo'; Possible missing ending curly brace.
+./QFoo.ulam:3:56: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+./QFoo.ulam:2:7: ERROR: Invalid Type: QFoo.
+ ERROR: No parse tree for This Class: QFoo.
+Unrecoverable Program Parse FAILURE: <QFoo.ulam>
+./QFoo.ulam:4:1: ERROR: Invalid Class Type <}>; KEYWORD should be 'element', 'quark', 'union', or 'transient', or 'local'.
+Unrecoverable Program Parse FAILURE: <System.ulam>
+
+*/

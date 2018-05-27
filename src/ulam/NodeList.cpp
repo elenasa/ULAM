@@ -151,6 +151,11 @@ namespace MFM{
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  FORECAST NodeList::safeToCastTo(UTI newType)
+  {
+    return CAST_BAD;
+  }
+
   UTI NodeList::checkAndLabelType()
   {
     UTI rtnuti = Void;
@@ -166,14 +171,18 @@ namespace MFM{
 	    rtnuti = Nav;
 	  }
 	else if((rtnuti != Nav) && !m_state.isComplete(puti))
-	  {
-	    rtnuti = Hzy; // all or none
-	    m_state.setGoAgain(); //since no error msg
-	  }
+	  rtnuti = Hzy; // all or none
       }
     setNodeType(rtnuti);
+    if(rtnuti == Hzy)
+      m_state.setGoAgain(); //since no error msg
     return rtnuti;
   } //checkAndLabelType
+
+  bool NodeList::foldArrayInitExpression()
+  {
+    return true;
+  }
 
   void NodeList::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
@@ -337,16 +346,29 @@ namespace MFM{
       }
   }
 
-  void NodeList::generateBuiltinConstantArrayInitializationFunction(File * fp, bool declOnly)
+  void NodeList::generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly)
   {
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
 	assert(m_nodes[i]);
-	m_nodes[i]->generateBuiltinConstantArrayInitializationFunction(fp, declOnly);
+	m_nodes[i]->generateBuiltinConstantClassOrArrayInitializationFunction(fp, declOnly);
       }
   }
 
-  bool NodeList::initDataMembersConstantValue(BV8K& bvref)
+  bool NodeList::initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask)
+  {
+    m_state.abortShouldntGetHere();
+    return false;
+  }
+
+
+  bool NodeList::buildArrayValueInitialization(BV8K& bvtmp)
+  {
+    m_state.abortShouldntGetHere();
+    return false;
+  }
+
+  bool NodeList::buildClassArrayValueInitialization(BV8K& bvtmp)
   {
     m_state.abortShouldntGetHere();
     return false;

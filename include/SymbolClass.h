@@ -104,11 +104,16 @@ namespace MFM{
     bool getPackedDefaultValue(u64& dpkref);
     bool getDefaultValue(BV8K& dvref); //return true if ready
 
+    bool buildClassConstantDefaultValues();
+
+    TBOOL packBitsForClassVariableDataMembers();
+
     void testThisClass(File * fp); //eval-land
 
     void addUnknownTypeTokenToClass(const Token& tok, UTI huti);
     Token removeKnownTypeTokenFromClass(UTI huti);
     bool hasUnknownTypeInClass(UTI huti);
+    bool getUnknownTypeTokenInClass(UTI huti, Token& tok);
     bool statusUnknownTypeInClass(UTI huti);
     bool statusUnknownTypeNamesInClass();
     u32 reportUnknownTypeNamesInClass();
@@ -120,12 +125,14 @@ namespace MFM{
 
     void linkConstantExpressionForPendingArg(NodeConstantDef * constNode);
     bool pendingClassArgumentsForClassInstance();
-    void cloneArgumentNodesForClassInstance(SymbolClass * fmcsym, UTI context, bool toStub);
+    void cloneArgumentNodesForClassInstance(SymbolClass * fmcsym, UTI argvaluecontext, UTI argtypecontext, bool toStub);
     void cloneResolverUTImap(SymbolClass * csym);
     void cloneUnknownTypesMapInClass(SymbolClass * to);
 
-    void setContextForPendingArgs(UTI context);
-    UTI getContextForPendingArgs();
+    void setContextForPendingArgValues(UTI context);
+    UTI getContextForPendingArgValues();
+    void setContextForPendingArgTypes(UTI context);
+    UTI getContextForPendingArgTypes();
 
     bool mapUTItoUTI(UTI auti, UTI mappedUTI);
     bool hasMappedUTI(UTI auti, UTI& mappedUTI);
@@ -171,6 +178,7 @@ namespace MFM{
     BV8K m_defaultValue; //BitVector
     bool m_isreadyDefaultValue;
     UTI m_superClass; //single inheritance
+    bool m_bitsPacked;
 
     void assignClassArgValuesInStubCopy();
 

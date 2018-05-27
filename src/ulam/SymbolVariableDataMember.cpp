@@ -123,7 +123,7 @@ namespace MFM {
     if(vclasstype == UC_NOTACLASS)
       fp->write(vkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str());
     else
-      fp->write(vut->getUlamTypeNameBrief().c_str());
+      fp->write(vut->getUlamTypeClassNameBrief(vuti).c_str());
 
     fp->write(" ");
     fp->write(m_state.m_pool.getDataAsString(getId()).c_str());
