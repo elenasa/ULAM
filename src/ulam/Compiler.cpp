@@ -113,13 +113,23 @@ namespace MFM {
 	perrs = checkAndTypeLabelProgram(errput);
 	if(perrs == 0)
 	  {
-	    m_state.generateCodeForUlamClasses(outfm);
+	    m_state.defineRegistrationNumberForUlamClasses(); //ulam-4
 	    perrs = m_state.m_err.getErrorCount();
-
 	    if(perrs > 0)
 	      {
 		std::ostringstream msg;
-		errput->write("Unrecoverable Program GenCode FAILURE.\n");
+		errput->write("Unrecoverable Registry Number Assignment FAILURE.\n");
+	      }
+	    else
+	      {
+		m_state.generateCodeForUlamClasses(outfm);
+		perrs = m_state.m_err.getErrorCount();
+
+		if(perrs > 0)
+		  {
+		    std::ostringstream msg;
+		    errput->write("Unrecoverable Program GenCode FAILURE.\n");
+		  }
 	      }
 	  }
 	else

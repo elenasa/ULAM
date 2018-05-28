@@ -357,6 +357,9 @@ namespace MFM{
     void updateLineageAndFirstCheckAndLabelPass();
     void updateLineageAndFirstCheckAndLabelPassForLocals();
     bool checkAndLabelPassForLocals();
+    void defineRegistrationNumberForUlamClasses(); //ulam-4
+    void defineRegistrationNumberForLocals(); //ulam-4
+
     void generateCodeForUlamClasses(FileManager * fm);
     void generateUlamClassForLocals(FileManager * fm);
     StringPoolUser & getUPoolRefForClass(UTI cuti);
@@ -396,6 +399,7 @@ namespace MFM{
     const char * getIsMangledFunctionName(UTI ltype);
     const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
     const char * getClassLengthFunctionName(UTI ltype);
+    const char * getClassRegistrationNumberFunctionName(UTI ltype);
     const char * getClassGetStringFunctionName(UTI ltype);
     const char * getBuildDefaultAtomFunctionName(UTI ltype);
     const char * getDefaultQuarkFunctionName();
@@ -518,6 +522,10 @@ namespace MFM{
     Node * findNodeNoInALocalsScope(Locator loc, NNO n);
     Node * findNodeNoInAncestorsLocalsScope(NNO n, UTI cuti);
 
+    u32 getRegistrationNumberForClassOrLocalsScope(UTI cuti); //ulam-4
+    u32 getAClassRegistrationNumber(UTI cuti); //ulam-4
+    u32 getALocalsScopeRegistrationNumber(UTI cuti); //ulam-4
+
     NodeBlockClass * getAClassBlock(UTI cuti);
     NNO getAClassBlockNo(UTI cuti);
 
@@ -597,7 +605,7 @@ namespace MFM{
 
   private:
     ClassContextStack m_classContextStack; // the current subject of this compilation
-
+    u32 m_registeredUlamClassCount; //borrowed from UlamClass in MFM
 
   };
 }

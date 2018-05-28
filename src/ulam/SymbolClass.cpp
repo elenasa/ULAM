@@ -8,9 +8,9 @@
 
 namespace MFM {
 
-  SymbolClass::SymbolClass(const Token& id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false) /* default */, m_superClass(Nouti), m_bitsPacked(false) {}
+  SymbolClass::SymbolClass(const Token& id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false) /* default */, m_superClass(Nouti), m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER) {}
 
-  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_superClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_superClass,sref.getLoc())), m_bitsPacked(false)
+  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_superClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_superClass,sref.getLoc())), m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER)
   {
     if(sref.m_classBlock)
       {
@@ -641,6 +641,34 @@ namespace MFM {
   /////////////////////////////////////////////////////////////////////////////////
   // from NodeProgram
   /////////////////////////////////////////////////////////////////////////////////
+  bool SymbolClass::assignRegistryNumber(u32 n)
+  {
+    if (n == UNINITTED_REGISTRY_NUMBER)
+      {
+	std::ostringstream msg;
+	msg << "Attempting to assign invalid Registry Number";
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
+	return false;
+      }
+
+    if (m_registryNumber != UNINITTED_REGISTRY_NUMBER)
+      {
+	std::ostringstream msg;
+	msg << "Attempting to assign duplicate Registry Number " << n;
+	msg << " to " << m_registryNumber;
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
+	return false;
+      }
+
+    m_registryNumber = n;
+    return true;
+  } //assignRegistryNumber
+
+  u32 SymbolClass::getRegistryNumber() const
+  {
+    assert(m_registryNumber != UNINITTED_REGISTRY_NUMBER);
+    return m_registryNumber;
+  }
 
   void SymbolClass::generateCode(FileManager * fm)
   {

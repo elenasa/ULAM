@@ -75,10 +75,15 @@ namespace MFM{
 
     virtual void generateTestInstance(File * fp, bool runtest);
 
+    bool assignRegistrationNumberToLocalsBlock(u32 n);
+    u32 getRegistrationNumberForLocalsBlock() const;
+
   protected:
 
 
   private:
+    // registration number saved here since no SymbolClass until made into temp class for code gen
+    u32 m_registryNumberLocalsSafe; //ulam-4
 
   };
 

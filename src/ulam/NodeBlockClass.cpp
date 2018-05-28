@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <iomanip>
 #include "NodeBlockClass.h"
 #include "NodeBlockFunctionDefinition.h"
 #include "CompilerState.h"
@@ -2014,6 +2015,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     genCodeBuiltInFunctionGetClassLength(fp, declOnly, classtype);
 
+    genCodeBuiltInFunctionGetClassRegistrationNumber(fp, declOnly, classtype); //ulam-4
+
     genCodeBuiltInFunctionGetString(fp, declOnly);
     genCodeBuiltInFunctionGetStringLength(fp, declOnly);
 
@@ -2031,7 +2034,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	generateInternalTypeAccessorsForElement(fp, declOnly);
       }
     else if(classtype == UC_QUARK)
-      generateGetPosForQuark(fp, declOnly);
+      {
+	generateGetPosForQuark(fp, declOnly);
+      }
     else if(classtype == UC_TRANSIENT)
       {
 	//nothing to do
@@ -2150,6 +2155,55 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("} //getClassLength\n\n");
   } //genCodeBuiltInFunctionGetClassLength
+
+  void NodeBlockClass::genCodeBuiltInFunctionGetClassRegistrationNumber(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    UTI cuti = m_state.getCompileThisIdx();
+    if(declOnly)
+      {
+	m_state.indent(fp);
+	fp->write("virtual u32 ");
+	fp->write(m_state.getClassRegistrationNumberFunctionName(cuti));
+	fp->write("() const;"); GCNL;
+	fp->write("\n");
+	return;
+      }
+
+    u32 regnum = m_state.getAClassRegistrationNumber(cuti);
+    std::ostringstream ostr;
+    ostr << "0x" << std::hex << std::setfill('0') << std::setw(4) << regnum;
+
+
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    fp->write("u32 "); //returns class registry number (replaces UlamClass.tcc in MFM virtually)
+
+    //include the mangled class::
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("<EC>");
+
+    fp->write("::");
+    fp->write(m_state.getClassRegistrationNumberFunctionName(cuti));
+    fp->write("( ) const\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("return ");
+
+    fp->write(ostr.str().c_str());
+    fp->write(";"); GCNL;
+
+    m_state.m_currentIndentLevel--;
+
+    m_state.indent(fp);
+    fp->write("} //getRegistrationNumber\n\n");
+  } //genCodeBuiltInFunctionGetClassRegistrationNumber
 
   void NodeBlockClass::genCodeBuiltInFunctionBuildDefaultAtom(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {

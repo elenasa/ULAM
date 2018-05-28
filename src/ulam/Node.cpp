@@ -859,10 +859,13 @@ namespace MFM {
 		fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNumForShortArray, TMPBITVAL).c_str());
 		fp->write(";\n");
 
+		m_state.indentUlamCode(fp);
 		fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNumForShortArray, TMPBITVAL).c_str());
 		fp->write(".Write(0, 32, (u32) (");
 		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 		fp->write(" >> 32));"); GCNL;
+
+		m_state.indentUlamCode(fp);
 		fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNumForShortArray, TMPBITVAL).c_str());
 		fp->write(".Write(32, 32, (u32) ");
 		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
@@ -1056,10 +1059,13 @@ namespace MFM {
 	      fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNumForQuark, TMPBITVAL).c_str());
 	      fp->write(";\n");
 
+	      m_state.indentUlamCode(fp);
 	      fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNumForQuark, TMPBITVAL).c_str());
 	      fp->write(".Write(0, 32, (u32) (");
 	      fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 	      fp->write(" >> 32));"); GCNL;
+
+	      m_state.indentUlamCode(fp);
 	      fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNumForQuark, TMPBITVAL).c_str());
 	      fp->write(".Write(32, 32, (u32) ");
 	      fp->write(uvpass.getTmpVarAsString(m_state).c_str());

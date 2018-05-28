@@ -1692,6 +1692,29 @@ namespace MFM {
       }
   } //testForClassInstances
 
+  void SymbolClassNameTemplate::assignRegistrationNumberForClassInstances(u32& count)
+  {
+    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
+    while(it != m_scalarClassArgStringsToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	assert(!csym->isStub());
+	UTI suti = csym->getUlamTypeIdx();
+	if(m_state.isComplete(suti))
+	  {
+	    csym->assignRegistryNumber(count++); //this instance
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Class Instance '" << m_state.getUlamTypeNameByIndex(suti).c_str();
+	    msg << "' is incomplete; Registry Number will not be assigned";
+	    MSG(Symbol::getTokPtr(), msg.str().c_str(), DEBUG);
+	  }
+	it++;
+      }
+  } //assignRegistrationNumberForClassInstances
+
   void SymbolClassNameTemplate::generateCodeForClassInstances(FileManager * fm)
   {
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();

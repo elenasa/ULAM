@@ -353,6 +353,11 @@ namespace MFM {
     SymbolClass::testThisClass(fp);
   } //testForClassInstances
 
+  void SymbolClassName::assignRegistrationNumberForClassInstances(u32& count)
+  {
+    SymbolClass::assignRegistryNumber(count++);
+  } //generateCodeForClassInstances
+
   void SymbolClassName::generateCodeForClassInstances(FileManager * fm)
   {
     NodeBlockClass * classNode = getClassBlockNode();

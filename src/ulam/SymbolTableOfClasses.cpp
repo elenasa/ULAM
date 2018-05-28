@@ -645,6 +645,26 @@ namespace MFM {
     fp->write("return 0;"); GCNL;
   } //generateTestInstancesForTableOfClasses
 
+  u32 SymbolTableOfClasses::defineRegistrationNumberForTableOfClasses()
+  {
+    u32 count = 0;
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym->isClass());
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti))
+	  {
+	    //assign registration number for this class next; count incremented
+	    ((SymbolClassName *) sym)->assignRegistrationNumberForClassInstances(count);
+	  }
+	it++;
+      } //while
+    return count;
+  } //defineRegistrationNumberForTableOfClasses
+
   void SymbolTableOfClasses::genCodeForTableOfClasses(FileManager * fm)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();

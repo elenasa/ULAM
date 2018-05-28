@@ -137,6 +137,9 @@ namespace MFM{
     bool mapUTItoUTI(UTI auti, UTI mappedUTI);
     bool hasMappedUTI(UTI auti, UTI& mappedUTI);
 
+    bool assignRegistryNumber(u32 n); //ulam-4
+    u32 getRegistryNumber() const;
+
     virtual void generateCode(FileManager * fm);
 
     void generateAsOtherInclude(File * fp);
@@ -179,6 +182,7 @@ namespace MFM{
     bool m_isreadyDefaultValue;
     UTI m_superClass; //single inheritance
     bool m_bitsPacked;
+    u32 m_registryNumber; //ulam-4
 
     void assignClassArgValuesInStubCopy();
 

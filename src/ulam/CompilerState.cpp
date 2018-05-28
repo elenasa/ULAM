@@ -78,6 +78,8 @@ namespace MFM {
   static const char * IS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamClass<EC>::IsMethod"; //Uf_2is
 
   static const char * GETCLASSLENGTH_FUNCNAME = "GetClassLength";
+  static const char * GETCLASSREGISTRATIONNUMBER_FUNCNAME = "GetRegistrationNumber";
+
   static const char * GETSTRING_FUNCNAME = "GetString";
   static const char * BUILD_DEFAULT_ATOM_FUNCNAME = "BuildDefaultAtom";
   static const char * BUILD_DEFAULT_QUARK_FUNCNAME = "getDefaultQuark";
@@ -113,7 +115,7 @@ namespace MFM {
     "*/\n\n";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_pendingArgTypeStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyUTI(Nouti)
+  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_pendingArgTypeStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyUTI(Nouti), m_registeredUlamClassCount(0)
   {
     m_err.init(this, debugOn, infoOn, noteOn, warnOn, waitOn, NULL);
     Token::initTokenMap(*this);
@@ -2618,6 +2620,23 @@ namespace MFM {
     return (!goAgain() && (m_err.getErrorCount() + m_err.getWarningCount() == 0));
   } //checkAndLabelPassForLocals
 
+  void CompilerState::defineRegistrationNumberForUlamClasses()
+  {
+    m_registeredUlamClassCount = m_programDefST.defineRegistrationNumberForTableOfClasses();
+    defineRegistrationNumberForLocals(); //updates m_registeredUlamClassCount
+  }
+
+  void CompilerState::defineRegistrationNumberForLocals()
+  {
+    std::map<u32, NodeBlockLocals *>::iterator it;
+    for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
+      {
+	NodeBlockLocals * localsblock = it->second;
+	assert(localsblock);
+	localsblock->assignRegistrationNumberToLocalsBlock(m_registeredUlamClassCount++);
+      }
+  }
+
   void CompilerState::generateCodeForUlamClasses(FileManager * fm)
   {
     m_programDefST.genCodeForTableOfClasses(fm);
@@ -2644,6 +2663,12 @@ namespace MFM {
 	UlamType * cut = getUlamTypeByIndex(cuti);
 	AssertBool isReplaced = replaceUlamTypeForUpdatedClassType(cut->getUlamKeyTypeSignature(), Class, UC_LOCALSFILESCOPE, false);
 	assert(isReplaced);
+
+	{
+	  //use pre-assigned registration number in tmp class (ulam-4)
+	  u32 tmpLocalsRegNum = localsblock->getRegistrationNumberForLocalsBlock(); //modified, so..
+	  cnsym->assignRegistrationNumberForClassInstances(tmpLocalsRegNum); //..minor scope
+	}
 
 	//populate with NodeConstantDefs clones (ptr to same symbol),
 	// and NodeTypedef clones for gencode purposes;
@@ -3365,6 +3390,12 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   {
     assert(okUTItoContinue(ltype));
     return GETCLASSLENGTH_FUNCNAME;
+  }
+
+  const char * CompilerState::getClassRegistrationNumberFunctionName(UTI ltype)
+  {
+    assert(okUTItoContinue(ltype));
+    return GETCLASSREGISTRATIONNUMBER_FUNCNAME;
   }
 
   const char * CompilerState::getClassGetStringFunctionName(UTI ltype)
@@ -4508,6 +4539,35 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       }
     return rtnNode;
   } //findNodeNoInAncestorsLocalsScope
+
+  u32 CompilerState::getRegistrationNumberForClassOrLocalsScope(UTI cuti)
+  {
+    if(isAClass(cuti))
+      return getAClassRegistrationNumber(cuti);
+    else if(isALocalsFileScope(cuti))
+      return getALocalsScopeRegistrationNumber(cuti);
+    else
+      abortShouldntGetHere();
+    return 0;
+  }
+
+  u32 CompilerState::getAClassRegistrationNumber(UTI cuti)
+  {
+    assert(isAClass(cuti));
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
+    return csym->getRegistryNumber();
+  }
+
+  u32 CompilerState::getALocalsScopeRegistrationNumber(UTI luti)
+  {
+    assert(isALocalsFileScope(luti));
+    NodeBlockLocals * rtnLocals = getLocalsScopeBlockByIndex(luti);
+    if(rtnLocals)
+      return rtnLocals->getRegistrationNumberForLocalsBlock();
+    return 0; //not found
+  }
 
   NodeBlockClass * CompilerState::getAClassBlock(UTI cuti)
   {
