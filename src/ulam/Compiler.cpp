@@ -129,19 +129,6 @@ namespace MFM {
 	  }
       }
 
-#if 0
-    if(!perrs)
-      {
-	m_state.fixStringsForUlamClasses(); //ulam-4
-	perrs = m_state.m_err.getErrorCount();
-	if(perrs > 0)
-	  {
-	    std::ostringstream msg;
-	    errput->write("Unrecoverable String Fix FAILURE.\n");
-	  }
-      }
-#endif
-
     if(!perrs)
       {
 	m_state.generateCodeForUlamClasses(outfm);

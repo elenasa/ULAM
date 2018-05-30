@@ -822,72 +822,6 @@ namespace MFM {
 
     ULAMTYPE etyp = nut->getUlamTypeEnum();
     u32 pos = m_varSymbol->getPosOffset();
-
-#if 0
-    u32 arraysize = nut->isScalar() ? 1 : nut->getArraySize();
-
-    if(etyp == String)
-      {
-	UTI regid = m_state.getCompileThisIdx();
-	BV8K tmpbv8k;
-
-	if(hasInitExpr())
-	  {
-	    AssertBool gotValue = ((SymbolWithValue *) m_varSymbol)->getInitValue(tmpbv8k);
-	    assert(gotValue);
-	  }
-
-	//generate code to replace uti in string index with runtime registration number
-	// remove myRegNum static variable for more general way (Sun Jan 21 10:11:24 2018)
-	for(u32 i = 0; i < arraysize; i++)
-	  {
-	    if(inDefault)
-	      {
-		if(hasInitExpr())
-		  regid = (UTI) tmpbv8k.Read(0 + i * (REGNUMBITS + STRINGIDXBITS), REGNUMBITS);
-		//else use class compiling, the default (t3958, t3984)
-	      }
-	    else
-	      {
-		assert(bv8kptr);
-		regid = (UTI) bv8kptr->Read(startpos + pos + i * (REGNUMBITS + STRINGIDXBITS), REGNUMBITS); //t41274
-	      }
-	    assert(regid > 0);
-
-	    if(inDefault)
-	      {
-		m_state.indent(fp);
-		fp->write("initBV");
-	      }
-	    else
-	      {
-		m_state.indentUlamCode(fp);
-		fp->write(uvpassptr->getTmpVarAsString(m_state).c_str());
-		UTI passuti = uvpassptr->getPassTargetType();
-		if(m_state.getUlamTypeByIndex(passuti)->getUlamClassType() == UC_ELEMENT)
-		  fp->write(".GetBits()");
-	      }
-	    fp->write(".Write(");
-	    fp->write_decimal_unsigned(pos + startpos);
-	    fp->write("u + ");
-	    fp->write_decimal_unsigned(i * (REGNUMBITS + STRINGIDXBITS));
-	    fp->write("u, ");
-	    fp->write_decimal_unsigned(REGNUMBITS);
-	    fp->write("u, ");
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(regid).c_str());
-	    fp->write(".GetRegistrationNumber()); //");
-	    fp->write(m_varSymbol->getMangledName().c_str()); //comment
-	    if(!nut->isScalar())
-	      {
-		fp->write("[");
-		fp->write_decimal_unsigned(i);
-		fp->write("]");
-	      }
-	    GCNL;
-	  } //for loop
-      } //else
-#endif
-
     if(etyp == Class)
       {
 	ULAMCLASSTYPE classtype = nut->getUlamClassType();
@@ -908,7 +842,6 @@ namespace MFM {
 	    fp->write(" ");
 	    fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, cstor).c_str());
 	    fp->write(";"); GCNL;
-
 
 	    if(hasInitExpr())
 	      {

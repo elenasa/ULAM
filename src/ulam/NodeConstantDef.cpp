@@ -839,29 +839,6 @@ namespace MFM {
     ULAMTYPE etyp = m_state.getUlamTypeByIndex(uti)->getUlamTypeEnum();
     if(etyp == Int)
       newnode = new NodeTerminal((s64) newconst, uti, m_state);
-#if 0
-    else if(etyp == String)
-      {
-	UTI reguti = newconst >> STRINGIDXBITS;
-	UTI cuti = m_state.getCompileThisIdx();
-	UTI stubuti = m_state.m_pendingArgStubContext;
-	UTI newreguti = reguti;
-	if(reguti != cuti)
-	  newreguti = cuti;
-	if((stubuti != Nouti) && (stubuti != reguti))
-	  newreguti = stubuti;
-	if(newreguti != reguti)
-	  {
-	    //copy the constant string into this class' user string pool (from its context)
-	    // (e.g. t3959, t3960,1,2,7, t3981, t3986, t41005, t41006))
-	    std::string formattedstring = m_state.getDataAsUnFormattedUserString(newconst);
-	    StringPoolUser& classupool = m_state.getUPoolRefForClass(newreguti);
-	    u32 classstringidx = classupool.getIndexForDataString(formattedstring);
-	    newconst = (newreguti << STRINGIDXBITS) | (classstringidx & STRINGIDXMASK); //combined index
-	  }
-	newnode = new NodeTerminal(newconst, uti, m_state);
-      }
-#endif
     else
       newnode = new NodeTerminal(newconst, uti, m_state);
     newnode->setNodeLocation(getNodeLocation());

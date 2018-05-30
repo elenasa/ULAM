@@ -358,18 +358,6 @@ namespace MFM {
     SymbolClass::assignRegistryNumber(count++);
   } //assignRegistrationNumberForClassInstances
 
-#if 0
-  void SymbolClassName::fixAllStringsForClassInstances()
-  {
-    NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
-
-    classNode->fixAllStringDataMembersAndConstants();
-    m_state.popClassContext(); //restore
-  } //fixAllStringsForClassInstances
-#endif
-
   void SymbolClassName::generateCodeForClassInstances(FileManager * fm)
   {
     NodeBlockClass * classNode = getClassBlockNode();

@@ -2640,25 +2640,6 @@ namespace MFM {
       }
   }
 
-#if 0
-  void CompilerState::fixStringsForUlamClasses()
-  {
-    m_programDefST.fixAllStringsForTableOfClasses();
-    fixStringsForLocals();
-  }
-
-  void CompilerState::fixStringsForLocals()
-  {
-    std::map<u32, NodeBlockLocals *>::iterator it;
-    for(it = m_localsPerFilePath.begin(); it != m_localsPerFilePath.end(); it++)
-      {
-	NodeBlockLocals * localsblock = it->second;
-	assert(localsblock);
-	localsblock->fixAllStringDataMembersAndConstants();
-      }
-  } //fixStringsForLocals
-#endif
-
   void CompilerState::generateCodeForUlamClasses(FileManager * fm)
   {
     m_programDefST.genCodeForTableOfClasses(fm);
@@ -3326,29 +3307,6 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     //return std::string(tok->getTokenString()); //VG: Invalid Read
     return tok.getTokenStringFromPool(this);
   }
-
-#if 0
-  StringPoolUser& CompilerState::getUPoolRefForClass(UTI cuti)
-  {
-    assert(isScalar(cuti));
-    if(isALocalsFileScope(cuti) && !isAClass(cuti))
-      return getUPoolRefForLocalsFilescope(cuti); //not the temporary class (t3883, t3858)
-
-    SymbolClass * csym = NULL;
-    AssertBool isDefClass = alreadyDefinedSymbolClass(cuti, csym);
-    assert(isDefClass);
-    return csym->getUserStringPoolRef();
-  }
-
-  StringPoolUser& CompilerState::getUPoolRefForLocalsFilescope(UTI luti)
-  {
-    assert(isScalar(luti));
-    assert(isALocalsFileScope(luti));
-    NodeBlockLocals * localsblock = getLocalsScopeBlockByIndex(luti);
-    assert(localsblock);
-    return localsblock->getUserStringPoolRef();
-  }
-#endif
 
   const std::string & CompilerState::getDataAsFormattedUserString(u32 combinedidx)
   {

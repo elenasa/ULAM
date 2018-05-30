@@ -123,7 +123,6 @@ namespace MFM {
   {
     //when minmaxsizeof a selected member; and for clones,
     //when m_uti is a String, we must c&l m_nodeOf to find its symbol (t3960)
-    //if(!m_state.okUTItoContinue(m_uti) && m_nodeOf)
     if((!m_state.okUTItoContinue(m_uti) || (UlamType::compareForString(m_uti, m_state) == UTIC_SAME)) && m_nodeOf)
       {
 	UTI ofuti = m_nodeOf->checkAndLabelType();
@@ -423,36 +422,6 @@ namespace MFM {
     fp->write(m_state.getUlamTypeByIndex(nuti)->getTmpStorageTypeAsString().c_str()); //u32
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(ASCII, tmpVarNum, TMPREGISTER).c_str());
-
-#if 0
-    if((ofstor == TMPBITVAL) || (ofstor == TMPAUTOREF))
-      {
-	fp->write(" = uc.GetUlamClassRegistry().GetUlamClassByIndex(");
-	fp->write(ofpass.getTmpVarAsString(m_state).c_str());
-	fp->write(".getRegistrationNumber())->");
-	fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
-	fp->write("Length(");
-	fp->write(ofpass.getTmpVarAsString(m_state).c_str());
-	fp->write(".getStringIndex());");
-	GCNL; //t3949
-      }
-    else
-      {
-	fp->write(" = uc.GetUlamClassRegistry().GetUlamClassByIndex(");
-	fp->write(m_state.getStringMangledName().c_str());
-	fp->write("::getRegNum(");
-	fp->write(ofpass.getTmpVarAsString(m_state).c_str());
-	fp->write("))->");
-	fp->write(m_state.getClassGetStringFunctionName(m_state.getCompileThisIdx()));
-	fp->write("Length(");
-	fp->write(m_state.getStringMangledName().c_str());
-	fp->write("::getStrIdx(");
-	fp->write(ofpass.getTmpVarAsString(m_state).c_str());
-	fp->write("));");
-	GCNL;
-      }
-#endif
-
     fp->write(" = ");
     fp->write(m_state.getGetStringLengthFunctionName());
     fp->write("(");

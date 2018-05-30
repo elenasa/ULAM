@@ -1230,21 +1230,4 @@ namespace MFM {
       }
     return false;
   }
-
-#if 0
-  StringPoolUser& SymbolClass::getUserStringPoolRef()
-  {
-    NodeBlockClass * classblock = getClassBlockNode();
-    assert(classblock);
-    return classblock->getUserStringPoolRef();
-  }
-
-  void SymbolClass::setUserStringPoolRef(const StringPoolUser& spref)
-  {
-    NodeBlockClass * classblock = getClassBlockNode();
-    assert(classblock);
-    return classblock->setUserStringPoolRef(spref);
-  }
-#endif
-
 } //end MFM

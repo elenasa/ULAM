@@ -196,9 +196,6 @@ namespace MFM{
 
     virtual void generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly);
 
-    //void genCodeBuiltInFunctionGetString(File * fp, bool declOnly);
-    //void genCodeBuiltInFunctionGetStringLength(File * fp, bool declOnly);
-
     void initElementDefaultsForEval(UlamValue& uv, UTI cuti);
 
     NodeBlockFunctionDefinition * findTestFunctionNode();

@@ -361,8 +361,6 @@ namespace MFM{
     bool checkAndLabelPassForLocals();
     void defineRegistrationNumberForUlamClasses(); //ulam-4
     void defineRegistrationNumberForLocals(); //ulam-4
-    void fixStringsForUlamClasses(); //ulam-4
-    void fixStringsForLocals(); //ulam-4
 
     void generateCodeForUlamClasses(FileManager * fm);
     void generateUlamClassForLocals(FileManager * fm);
@@ -371,8 +369,6 @@ namespace MFM{
     void genCodeBuiltInFunctionGetString(File * fp, bool declOnly);
     void genCodeBuiltInFunctionGetStringLength(File * fp, bool declOnly);
 
-    //StringPoolUser & getUPoolRefForClass(UTI cuti);
-    //StringPoolUser& getUPoolRefForLocalsFilescope(UTI luti);
     const std::string & getDataAsFormattedUserString(u32 combinedidx);
     const std::string & getDataAsUnFormattedUserString(u32 combinedidx);
     bool isValidUserStringIndex(u32 combinedidx);

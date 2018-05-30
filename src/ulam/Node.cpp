@@ -816,102 +816,6 @@ namespace MFM {
       {
 	SymbolWithValue * ncsym = (SymbolWithValue *) m_state.m_currentObjSymbolsForCodeGen[namedconstantidx];
 	assert(ncsym);
-
-	//fix element types and string reg nums; including an immediate funcvar constant class
-	//bool fixflag = ((cosut->getUlamTypeEnum() == String) && (ncsym->isLocalsFilescopeDef() ||  ncsym->isDataMember()));
-	//s32 tmpVarNumForShortArray = 0;
-	UVPass quvpass;
-
-#if 0
-	if(fixflag)
-	  {
-	    m_state.indentUlamCode(fp);
-	    fp->write("if(!");
-	    genConstantArrayMangledName(fp, "THE_INSTANCE._isFixedMethodFor");
-	    fp->write("())\n");
-	    m_state.indentUlamCode(fp);
-	    fp->write("{\n");
-
-	    m_state.m_currentIndentLevel++;
-	    //and continue to fix it..
-
-	    if(coslen <= MAXBITSPERINT)
-	      {
-		//if quark has a constant string/array dm (MAXBITSPERINT each), need bit vector to fix it (not u32/u64) t41278
-		tmpVarNumForShortArray = m_state.getNextTmpVarNumber();
-		m_state.indentUlamCode(fp);
-		fp->write("BitVector<");
-		fp->write_decimal_unsigned(coslen);
-		fp->write("> ");
-		fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNumForShortArray, TMPBITVAL).c_str());
-		fp->write("(");
-		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-		fp->write(");"); GCNL;
-		quvpass = UVPass::makePass(tmpVarNumForShortArray, TMPBITVAL, cosuti, m_state.determinePackable(cosuti), m_state, 0, 0);
-	      }
-	    else if(coslen <= MAXBITSPERLONG)
-	      {
-		//if quark has a constant string/array dm (MAXBITSPERINT each), need bit vector to fix it (not u32/u64) t41278
-		tmpVarNumForShortArray = m_state.getNextTmpVarNumber();
-		m_state.indentUlamCode(fp);
-		fp->write("BitVector<");
-		fp->write_decimal_unsigned(coslen);
-		fp->write("> ");
-		fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNumForShortArray, TMPBITVAL).c_str());
-		fp->write(";\n");
-
-		m_state.indentUlamCode(fp);
-		fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNumForShortArray, TMPBITVAL).c_str());
-		fp->write(".Write(0, 32, (u32) (");
-		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-		fp->write(" >> 32));"); GCNL;
-
-		m_state.indentUlamCode(fp);
-		fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNumForShortArray, TMPBITVAL).c_str());
-		fp->write(".Write(32, 32, (u32) ");
-		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-		fp->write(");"); GCNL;
-
-		quvpass = UVPass::makePass(tmpVarNumForShortArray, TMPBITVAL, cosuti, m_state.determinePackable(cosuti), m_state, 0, 0);
-	      }
-
-	    //can't be a constant class, already split off, but could be an array of Strings!!
-	    if(tmpVarNumForShortArray > 0)
-	      genFixForStringRegNumInTmpVarOfConstantClass(fp, quvpass);
-	    else
-	      genFixForStringRegNumInTmpVarOfConstantClass(fp, uvpass);
-
-	    if(tmpVarNumForShortArray > 0)
-	      {
-		m_state.indentUlamCode(fp);
-		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-		fp->write(" = ");
-		fp->write(quvpass.getTmpVarAsString(m_state).c_str());
-		fp->write(".");
-		fp->write(cosut->readMethodForCodeGen().c_str()); //Read, ReadLong
-		fp->write("(0, ");
-		fp->write_decimal_unsigned(coslen);
-		fp->write(");"); GCNL;
-	      }
-
-	    m_state.indentUlamCode(fp);
-	    genConstantArrayMangledName(fp);
-	    fp->write(".write(");
-	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	    fp->write("); //constant fixed"); GCNL;
-
-	    m_state.indentUlamCode(fp);
-	    genConstantArrayMangledName(fp, "THE_INSTANCE._isFixedSetMethodFor");
-	    fp->write("(); //set entire isFixed flag"); GCNL;
-
-	    m_state.m_currentIndentLevel--;
-	    m_state.indentUlamCode(fp);
-	    fp->write("} //"); //comment
-	    genConstantArrayMangledName(fp, "_isFixed"); GCNL;
-	    fp->write("\n");
-	  }
-#endif
-
       }
     // note: Ints not sign extended until used/cast
     m_state.clearCurrentObjSymbolsForCodeGen();
@@ -1027,61 +931,11 @@ namespace MFM {
       //and continue to fix it..
     }
 
-#if 0
-    if(cosetyp == String)
-      {
-	genFixForStringRegNumInTmpVarOfConstantClass(fp, uvpass);
-      }//    else
-#endif
-
     if(cosetyp == Class)
       {
 	UVPass * passptr = &uvpass;
 	if(cosclass == UC_ELEMENT)
 	  genFixForElementTypeFieldInTmpVarOfConstantClass(fp, uvpass);
-#if 0
-	else if((cosclass == UC_QUARK) && m_state.isAStringDataMemberInClass(cosuti))
-	  {
-	    if(coslen <= MAXBITSPERINT)
-	      {
-		//if quark has a string dm (MAXBITSPERINT), need bit vector to fix it (not u32)
-		tmpVarNumForQuark = m_state.getNextTmpVarNumber();
-		m_state.indentUlamCode(fp);
-		fp->write("BitVector<");
-		fp->write_decimal_unsigned(coslen);
-		fp->write("> ");
-		fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNumForQuark, TMPBITVAL).c_str());
-		fp->write("(");
-		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-		fp->write(");"); GCNL;
-	      }
-	    else if(coslen <= MAXBITSPERLONG)
-	      {
-	      //if quark has a constant string/array dm (MAXBITSPERINT each), need bit vector to fix it (not u32/u64) t41278
-	      tmpVarNumForQuark = m_state.getNextTmpVarNumber();
-	      m_state.indentUlamCode(fp);
-	      fp->write("BitVector<");
-	      fp->write_decimal_unsigned(coslen);
-	      fp->write("> ");
-	      fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNumForQuark, TMPBITVAL).c_str());
-	      fp->write(";\n");
-
-	      m_state.indentUlamCode(fp);
-	      fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNumForQuark, TMPBITVAL).c_str());
-	      fp->write(".Write(0, 32, (u32) (");
-	      fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	      fp->write(" >> 32));"); GCNL;
-
-	      m_state.indentUlamCode(fp);
-	      fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNumForQuark, TMPBITVAL).c_str());
-	      fp->write(".Write(32, 32, (u32) ");
-	      fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	      fp->write(");"); GCNL;
-	    }
-	  quvpass = UVPass::makePass(tmpVarNumForQuark, TMPBITVAL, cosuti, m_state.determinePackable(cosuti), m_state, 0, 0);
-	  passptr = &quvpass;
-	  } //quark
-#endif
 
 	BV8K bvclass;
 	AssertBool gotVal = ncsym->getValue(bvclass);
@@ -1110,20 +964,6 @@ namespace MFM {
 
   if(fixflag)
     {
-#if 0
-      if(tmpVarNumForQuark > 0)
-	{
-	  m_state.indentUlamCode(fp);
-	  fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	  fp->write(" = ");
-	  fp->write(quvpass.getTmpVarAsString(m_state).c_str());
-	  fp->write(".");
-	  fp->write(cosut->readMethodForCodeGen().c_str()); //Read, ReadLong
-	  fp->write("(0, ");
-	  fp->write_decimal_unsigned(coslen);
-	  fp->write(");"); GCNL;
-	}
-#endif
       m_state.indentUlamCode(fp);
       genConstantClassMangledName(fp);
       fp->write(".write(");
@@ -1143,139 +983,6 @@ namespace MFM {
     // note: Ints not sign extended until used/cast
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeReadFromAConstantClassIntoATmpVar
-
-#if 0
-  //NEEDS A NEW VERSION...WHO CALLS US? NodeSquareBracket (t41198).
-  void Node::genCodeReadArrayItemFromAConstantClassIntoATmpVarWithConstantIndex(File * fp, UVPass & luvpass, s32 rindex)
-  {
-    UTI luti = luvpass.getPassTargetType(); //replaces vuti w target type
-    assert(luti != Void);
-    assert(!m_state.isScalar(luti));
-    assert(rindex < m_state.getArraySize(luti)); //catchable during c&l
-
-    s32 namedconstantclassidx = isCurrentObjectsContainingAConstantClass();
-    assert(namedconstantclassidx >= 0); //right-most (last) named constant class
-
-    Symbol * ncsym = m_state.m_currentObjSymbolsForCodeGen[namedconstantclassidx];
-    assert(ncsym);
-    UTI ncuti = ncsym->getUlamTypeIdx();
-    assert(m_state.isAClass(ncuti)); //sanity
-    assert(ncsym->isConstant()); //sanity
-    assert(((SymbolWithValue *) ncsym)->isReady());
-    ULAMCLASSTYPE nclasstype = m_state.getUlamTypeByIndex(ncuti)->getUlamClassType();
-
-    BV8K bvclass;
-    AssertBool gotval = ((SymbolWithValue *) ncsym)->getValue(bvclass);
-    assert(gotval);
-
-    Symbol * cos = NULL;
-    Symbol * stgcos = NULL;
-    loadStorageAndCurrentObjectSymbols(stgcos, cos);
-    assert(cos && stgcos);
-    s32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-
-    UTI cosuti = cos->getUlamTypeIdx();
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    u32 cositemlen = cosut->getBitSize(); //what if len is zero?
-    u32 cospos = 0;
-    ULAMTYPE cosetyp = cosut->getUlamTypeEnum();
-
-    UTI scalarcosuti = m_state.getUlamTypeAsScalar(cosuti);
-    UlamType * scalarcosut = m_state.getUlamTypeByIndex(scalarcosuti);
-    TMPSTORAGE cstor = scalarcosut->getTmpStorageTypeForTmpVar();
-
-    std::string ccstr;
-    bool notZero = true; //bv contents
-
-    if(cos->isDataMember()) //namedconstantclassidx < (cosSize - 1))
-      {
-	//that is cos is a data member of our constant class,
-	assert(namedconstantclassidx < (cosSize - 1));
-	assert(((SymbolVariableDataMember *) cos)->isPosOffsetReliable());
-
-	cospos = ((SymbolVariableDataMember *) cos)->getPosOffset();
-	if(nclasstype == UC_ELEMENT)
-	  cospos += ATOMFIRSTSTATEBITPOS; //t41273
-      }
-    else //cos is the constant
-      {
-	assert(namedconstantclassidx == (cosSize - 1));
-      }
-
-    cospos += (rindex * cositemlen);
-
-    if(cosetyp == String)
-      {
-	//requires fixing RegID
-	m_state.abortNotImplementedYet(); //t41273
-      }
-    else if(cosetyp == Class)
-      {
-	//may require fixing Element Type
-	m_state.abortNotImplementedYet(); //t41273
-      }
-    else if(cositemlen <= MAXBITSPERINT)
-      {
-	u32 val = bvclass.Read(cospos,cositemlen);
-	SymbolWithValue::convertValueToANonPrettyString((u64) val, scalarcosuti, ccstr, m_state);
-      }
-    else if(cositemlen <= MAXBITSPERLONG)
-      {
-	u64 val = bvclass.ReadLong(cospos,cositemlen);
-	SymbolWithValue::convertValueToANonPrettyString(val, scalarcosuti, ccstr, m_state);
-      }
-    else
-      {
-	BV8K bvtmp;
-	bvclass.CopyBV(cospos, 0, cositemlen, bvtmp);
-	notZero = SymbolWithValue::getHexValueAsString(cositemlen, bvtmp, ccstr);
-      }
-
-
-    s32 tmpVarNum = m_state.getNextTmpVarNumber();
-    m_state.indentUlamCode(fp);
-    fp->write("const ");
-    fp->write(scalarcosut->getTmpStorageTypeAsString().c_str()); //u32, u64, T, BV<x>
-    fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(scalarcosuti, tmpVarNum, cstor).c_str());
-    if(cositemlen > MAXBITSPERLONG)
-      {
-	fp->write("[(");
-	fp->write_decimal_unsigned(cositemlen); //== [nwords]
-	fp->write(" + 31)/32] = { ");
-	if(notZero)
-	  fp->write(ccstr.c_str());
-	else
-	  fp->write_decimal_unsigned(0);
-	fp->write(" }");
-      }
-    else
-      {
-	fp->write(" = ");
-	fp->write(ccstr.c_str());
-      }
-
-    //gen comment:
-    fp->write("; // constant value of ");
-    fp->write(m_state.m_pool.getDataAsString(ncsym->getId()).c_str());
-    if(cos->isDataMember())
-      {
-	fp->write(".");
-	fp->write(m_state.m_pool.getDataAsString(cos->getId()).c_str());
-      }
-    else
-      fp->write(" item");
-    fp->write("[");
-    fp->write_decimal_unsigned(rindex);
-    fp->write("]");
-    GCNL;
-
-    luvpass = UVPass::makePass(tmpVarNum, cstor, scalarcosuti, m_state.determinePackable(scalarcosuti), m_state, 0, 0); //POS 0 justified (atom-based).
-
-   // note: Ints not sign extended until used/cast
-    m_state.clearCurrentObjSymbolsForCodeGen();
-  } //genCodeReadArrayItemFromAConstantClassIntoATmpVarWithConstantIndex
-#endif
 
   void Node::genCodeReadArrayItemFromAConstantClassIntoATmpVar(File * fp, UVPass & luvpass, UVPass & ruvpass)
   {
@@ -1401,37 +1108,11 @@ namespace MFM {
 	    //and continue to fix one array item..
 	  }
 
-#if 0
-	if(cosetyp == String)
-	  {
-	    genFixForStringRegNumInTmpVarOfConstantClass(fp, luvpass);
-	  }//	else
-#endif
-
 	if(cosetyp == Class)
 	  {
 	    UVPass * passptr = &luvpass;
 	    if((sclasstype == UC_ELEMENT))
 	      genFixForElementTypeFieldInTmpVarOfConstantClass(fp, luvpass);
-#if 0
-	    else if((sclasstype == UC_QUARK) && (itemlen <= MAXBITSPERINT) && m_state.isAStringDataMemberInClass(scalarluti))
-	      {
-		//when a quark has a string dm (MAXBITSPERINT),
-		// we need bit vector to fix it (not u32)
-		// t41261,2 (no string dm)
-		tmpVarNumForQuark = m_state.getNextTmpVarNumber();
-		m_state.indentUlamCode(fp);
-		fp->write("BitVector<");
-		fp->write_decimal_unsigned(itemlen);
-		fp->write("> ");
-		fp->write(m_state.getTmpVarAsString(scalarluti, tmpVarNumForQuark, TMPBITVAL).c_str());
-		fp->write("(");
-		fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-		fp->write(");"); GCNL;
-		quvpass = UVPass::makePass(tmpVarNumForQuark, TMPBITVAL, scalarluti, m_state.determinePackable(scalarluti), m_state, 0, 0);
-		passptr = &quvpass;
-	      }
-#endif
 
 	    BV8K bvclass;
 	    AssertBool gotVal = ncsym->getValue(bvclass);
@@ -1449,21 +1130,6 @@ namespace MFM {
 	      cblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, cospos, &luvpass); //t41263
 	    if(fixflag)
 	      {
-#if 0
-		if(tmpVarNumForQuark > 0)
-		  {
-		    m_state.indentUlamCode(fp);
-		    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-		    fp->write(" = ");
-		    fp->write(quvpass.getTmpVarAsString(m_state).c_str());
-		    fp->write(".");
-		    fp->write(scalarlut->readMethodForCodeGen().c_str()); //Read, ReadLong
-		    fp->write("(0, ");
-		    fp->write_decimal_unsigned(itemlen);
-		    fp->write(");"); GCNL;
-		  }
-#endif
-
 		m_state.indentUlamCode(fp);
 		genConstantClassMangledName(fp);
 		fp->write(".writeArrayItem(");
@@ -1921,79 +1587,6 @@ namespace MFM {
     fp->write("}\n");
   } //genFixForElementTypeFieldInTmpVarOfConstantClass
 
-#if 0
-  void Node::genFixForStringRegNumInTmpVarOfConstantClass(File * fp, const UVPass & uvpass)
-  {
-    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
-    UTI vuti = uvpass.getPassTargetType();
-    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    assert(vut->getUlamTypeEnum() == String);
-
-    u32 pos = uvpass.getPassPos(); //POS 0 justified (atom-based)
-
-    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
-    UTI cosuti = cos->getUlamTypeIdx();
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    assert(cosut->getUlamTypeEnum() == String);
-
-    //generate code to replace uti in string index with runtime registration number
-    //borrowed from NodeVarDeclDM::genCodeDefaultValue
-    if(vut->isScalar())
-      {
-	//like NodeSquareBracket specialized fixup (t3953);
-	// uvpass has a TMPAUTOREF (immediate ref string) into the constant array for item
-	BV8K tmpbv8k;
-	AssertBool gotValue = ((SymbolWithValue *) cos)->getValueReadyToPrint(tmpbv8k);
-	assert(gotValue);
-
-	UTI regid = (UTI) tmpbv8k.Read(0, REGNUMBITS);
-
-	m_state.indentUlamCode(fp);
-	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	fp->write(".setRegistrationNumber(");
-	fp->write(m_state.getTheInstanceMangledNameByIndex(regid).c_str());
-	fp->write(".GetRegistrationNumber());"); GCNL;
-      }
-    else
-      {
-	m_state.indentUlamCode(fp);
-	fp->write("{\n"); //limit scope of 'regnum'
-	m_state.m_currentIndentLevel++;
-
-	//e.g. t41277 (entire string array)
-	BV8K tmpbv8k;
-	AssertBool gotValue = ((SymbolWithValue *) cos)->getValueReadyToPrint(tmpbv8k);
-	assert(gotValue);
-
-	u32 arraysize = vut->getArraySize();
-	for(u32 i = 0; i < arraysize; i++)
-	  {
-	    UTI regid = (UTI) tmpbv8k.Read(0 + i * (REGNUMBITS + STRINGIDXBITS), REGNUMBITS);
-	    assert(regid > 0);
-
-	    m_state.indentUlamCode(fp);
-	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	    fp->write(".Write(");
-	    fp->write_decimal(pos);
-	    fp->write("u + ");
-	    fp->write_decimal_unsigned(i * (REGNUMBITS + STRINGIDXBITS));
-	    fp->write("u, ");
-	    fp->write_decimal_unsigned(REGNUMBITS);
-	    fp->write("u, ");
-	    fp->write(m_state.getTheInstanceMangledNameByIndex(regid).c_str());
-	    fp->write(".GetRegistrationNumber()); //");
-	    fp->write(cos->getMangledName().c_str()); //comment
-	    fp->write("[");
-	    fp->write_decimal_unsigned(i);
-	    fp->write("]"); GCNL;
-	  }
-	m_state.m_currentIndentLevel--;
-	m_state.indentUlamCode(fp);
-	fp->write("}\n");
-      }
-  } //genFixForStringRegNumInTmpVarOfConstantClass
-#endif
-
   // write out intermediate tmpVar as temp BitVector, e.g. func args, question-colon
   //for func args, the type of the funccall node isn't the type of the argument;
   //casts can mask whether the node is the same type as uvpass tmp var.
@@ -2034,35 +1627,18 @@ namespace MFM {
       }
     else
       {
-#if 0
-	if(vut->getUlamTypeEnum() == String)
-	  {
-	    //TMPSTORAGE vstor = uvpass.getPassStorage();
-	    //assert(!((vstor == TMPBITVAL) || (vstor == TMPAUTOREF))); tis true!
-	    fp->write(m_state.getStringMangledName().c_str());
-	    fp->write("::getRegNum(");
-	    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	    fp->write("), "); //e.g. t3961, t3973
-	    fp->write(m_state.getStringMangledName().c_str());
-	    fp->write("::getStrIdx(");
-	    fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //VALUE
-	    fp->write(")");
-	  }//	else
-#endif
-	  {
-	    fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //VALUE
+	fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //VALUE
 
-	    if(vut->getUlamClassType() == UC_NOTACLASS)
-	      {
-		//no longer atom-based primitives
-	      }
+	if(vut->getUlamClassType() == UC_NOTACLASS)
+	  {
+	    //no longer atom-based primitives
+	  }
 
-	    if(m_state.isReference(vuti)) //i'm back
-	      {
-		fp->write(", ");
-		fp->write_decimal_unsigned(pos); //position for constructor
-		fp->write("u");
-	      }
+	if(m_state.isReference(vuti)) //i'm back
+	  {
+	    fp->write(", ");
+	    fp->write_decimal_unsigned(pos); //position for constructor
+	    fp->write("u");
 	  }
       }
     fp->write(");"); GCNL; //func arg& ?
@@ -2288,56 +1864,6 @@ namespace MFM {
     fp->write("u, uc);"); GCNL;
 
     luvpass = UVPass::makePass(tmpVarNum2, TMPAUTOREF, scalarcosuti, m_state.determinePackable(scalarcosuti), m_state, pos, cos->getId()); //POS left-justified by default
-
-#if 0
-    if(cosetyp == String)
-      {
-	bool fixflag = cos->isLocalsFilescopeDef() || cos->isDataMember();
-
-	if(fixflag)
-	  {
-	    m_state.indentUlamCode(fp);
-	    fp->write("if(!");
-	    genConstantArrayMangledName(fp, "THE_INSTANCE._isFixedMethodFor");
-	    fp->write("(");
-	    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-	    fp->write(", 1u))\n");
-
-	    m_state.indentUlamCode(fp);
-	    fp->write("{\n");
-
-	    m_state.m_currentIndentLevel++;
-	    //and continue to fix it..
-	  }
-
-	genFixForStringRegNumInTmpVarOfConstantClass(fp, luvpass);
-
-	if(fixflag)
-	  {
-	    m_state.indentUlamCode(fp);
-	    genConstantArrayMangledName(fp);
-	    fp->write(".writeArrayItem(");
-	    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-	    fp->write(".read(), ");
-	    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-	    fp->write(", ");
-	    fp->write_decimal_unsigned(itemlen);
-	    fp->write("u); //constant array item fixed"); GCNL;
-
-	    m_state.indentUlamCode(fp);
-	    genConstantArrayMangledName(fp, "THE_INSTANCE._isFixedSetMethodFor");
-	    fp->write("(");
-	    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-	    fp->write(", 1u); //set isFixed flag for item"); GCNL;
-
-	    m_state.m_currentIndentLevel--;
-	    m_state.indentUlamCode(fp);
-	    fp->write("} //"); //comment
-	    genConstantArrayMangledName(fp, "_isFixed"); GCNL;
-	    fp->write("\n");
-	  }
-      }
-#endif
 
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeConvertATmpVarIntoConstantAutoRef
