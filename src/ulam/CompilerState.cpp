@@ -88,9 +88,9 @@ namespace MFM {
   static const char * BUILD_DEFAULT_QUARK_FUNCNAME = "getDefaultQuark";
   static const char * BUILD_DEFAULT_TRANSIENT_FUNCNAME = "getDefaultTransient";
 
-  static const char * USERSTRINGPOOL_MANGLEDNAME = "_GlobalStringPoolData";
+  static const char * USERSTRINGPOOL_MANGLEDNAME = "Ug_globalStringPoolData";
   static const char * USERSTRINGPOOL_FILENAME = "GlobalStringPool";
-  static const char * USERSTRINGPOOL_SIZEDEFINENAME = "_GLOBALSTRINGPOOLSIZE";
+  static const char * USERSTRINGPOOL_SIZEDEFINENAME = "Ug_globalStringPoolSize";
 
   static const char * CModeForHeaderFiles = "/**                                      -*- mode:C++ -*- */\n\n";
 
