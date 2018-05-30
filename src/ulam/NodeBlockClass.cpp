@@ -1026,7 +1026,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     return aok;
   } //buildDefaultValueForClassConstantDefs
 
-  void NodeBlockClass::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
+  void NodeBlockClass::genCodeDefaultValue(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
   {
     ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClassType();
     if(classtype == UC_ELEMENT)
@@ -1036,11 +1036,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       {
 	NodeBlockClass * superblock = getSuperBlockPointer();
 	assert(superblock);
-	superblock->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, startpos, uvpassptr, bv8kptr);
+	superblock->genCodeDefaultValue(fp, startpos, uvpassptr, bv8kptr);
       }
 
     if(m_nodeNext)
-      m_nodeNext->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, startpos, uvpassptr, bv8kptr); //side-effect for dm vardecls
+      m_nodeNext->genCodeDefaultValue(fp, startpos, uvpassptr, bv8kptr); //side-effect for dm vardecls
   }
 
   void NodeBlockClass::genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr)
@@ -2017,8 +2017,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     genCodeBuiltInFunctionGetClassRegistrationNumber(fp, declOnly, classtype); //ulam-4
 
-    genCodeBuiltInFunctionGetString(fp, declOnly);
-    genCodeBuiltInFunctionGetStringLength(fp, declOnly);
+    //genCodeBuiltInFunctionGetString(fp, declOnly);
+    //genCodeBuiltInFunctionGetStringLength(fp, declOnly);
 
     genCodeBuiltInFunctionBuildDefaultAtom(fp, declOnly, classtype);
 
@@ -2687,11 +2687,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       m_nodeNext->generateBuiltinConstantClassOrArrayInitializationFunction(fp, declOnly);
   }
 
+#if 0
   void NodeBlockClass::genCodeBuiltInFunctionGetString(File * fp, bool declOnly)
   {
     UTI cuti = m_state.getCompileThisIdx();
 
-    //class specific UserStringPool
+    //GLOBAL (ulam-4: no longer class specific) UserStringPool
     if(declOnly)
       {
 	m_state.indent(fp);
@@ -2757,7 +2758,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("} //GetString\n\n");
   } //genCodeBuiltInFunctionGetString
+#endif
 
+#if 0
   void NodeBlockClass::genCodeBuiltInFunctionGetStringLength(File * fp, bool declOnly)
   {
     UTI cuti = m_state.getCompileThisIdx();
@@ -2798,6 +2801,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("} //GetStringLength\n\n");
   } //genCodeBuiltInFunctionGetStringLength
+#endif
 
   void NodeBlockClass::generateUlamClassInfoFunction(File * fp, bool declOnly, u32& dmcount)
   {

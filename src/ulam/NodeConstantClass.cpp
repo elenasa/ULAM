@@ -25,6 +25,8 @@ namespace MFM {
 
     delete m_tmpvarSymbol;
     m_tmpvarSymbol = NULL;
+
+    //m_constSymbol is a pointer to a symbol that we do not own; hence, not deleted here.
   }
 
   Node * NodeConstantClass::instantiate()
@@ -354,7 +356,7 @@ namespace MFM {
 
   bool NodeConstantClass::getClassValue(BV8K& bvtmp)
   {
-    return m_constSymbol->getValue(bvtmp);
+    return m_constSymbol->getValue(bvtmp); //false, if not ready
   }
 
   bool NodeConstantClass::getConstantValue(BV8K& bval)

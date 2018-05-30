@@ -484,7 +484,6 @@ namespace MFM {
 		rtnok = ((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvclass, bvtmpmask); //at pos 0, adjusted for elements!
 	      }
 	  }
-
 	if(!rtnok)
 	  return false;
 
@@ -492,7 +491,6 @@ namespace MFM {
       } //class, fall thru..
 
     ULAMCLASSTYPE nclasstype = nut->getUlamClassType();
-
     if(len <= MAXBITSPERINT)
       {
 	u32 value = 0;
@@ -528,7 +526,7 @@ namespace MFM {
     return true; //pass on
   } //buildDataMemberConstantValue
 
-  void NodeInitDM::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
+  void NodeInitDM::genCodeDefaultValue(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
   {
     m_state.abortNotImplementedYet(); //???
     return; //pass on

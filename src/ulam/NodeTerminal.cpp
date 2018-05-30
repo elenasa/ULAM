@@ -35,6 +35,7 @@ namespace MFM {
 
   NodeTerminal::NodeTerminal(const NodeTerminal& ref) : Node(ref), m_etyp(ref.m_etyp), m_constant(ref.m_constant)
   {
+#if 0
     //clone of template if here (e.g. t3962, t3981, t3982)
     if(m_etyp == String)
       {
@@ -61,6 +62,7 @@ namespace MFM {
 	u32 newclassstringidx = classupool.getIndexForDataString(str);
 	m_constant.uval = (cuti << STRINGIDXBITS) | (newclassstringidx & STRINGIDXMASK); //combined index
       }
+#endif
   }
 
   NodeTerminal::~NodeTerminal(){}
@@ -674,19 +676,23 @@ namespace MFM {
 	  m_state.abortGreaterThanMaxBitsPerLong();
       }
 
+#if 1
     if(UlamType::compareForString(nuti, m_state) == UTIC_SAME)
       {
-	UTI cuti = (m_constant.uval >> STRINGIDXBITS);
+	//UTI cuti = (m_constant.uval >> STRINGIDXBITS);
 	u32 sidx = (m_constant.uval & STRINGIDXMASK);
-	assert((cuti > 0) && (sidx > 0));
+	//assert((cuti > 0) && (sidx > 0));
+	assert((sidx > 0));
 	//String, String array or array item (t3929, t3950)
-	fp->write(m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString().c_str());
-	fp->write("::makeCombinedIdx(");
-	fp->write(m_state.getTheInstanceMangledNameByIndex(cuti).c_str());
-	fp->write(".GetRegistrationNumber(), ");
+	//fp->write(m_state.getUlamTypeByIndex(String)->getLocalStorageTypeAsString().c_str());
+	//fp->write("::makeCombinedIdx(");
+	//fp->write(m_state.getTheInstanceMangledNameByIndex(cuti).c_str());
+	//fp->write(".GetRegistrationNumber(), ");
 	fp->write_decimal_unsigned(sidx);
-	fp->write("u); //user string pool index for ");
+	fp->write("u; //user string pool index for ");
       }
+#endif
+
     fp->write(getName());
     fp->write(";"); GCNL;
 
@@ -756,6 +762,7 @@ namespace MFM {
 	break;
       case TOK_DQUOTED_STRING:
 	{
+#if 0
 	  UTI cuti = m_state.getCompileThisIdx();
 	  if(m_state.isClassATemplate(cuti))
 	    {
@@ -768,6 +775,10 @@ namespace MFM {
 	      m_constant.uval = (cuti << STRINGIDXBITS) | (classstringidx & STRINGIDXMASK); //combined index
 	      rtnok = true;
 	    }
+#endif
+	  u32 stringidx = m_state.m_upool.getIndexForDataString(m_state.m_tokenupool.getDataAsString(tok.m_dataindex));
+	  m_constant.uval = stringidx; //global user string pool (ulam-4)
+	  rtnok = true;
 	}
 	break;
       default:

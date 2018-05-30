@@ -491,7 +491,7 @@ namespace MFM {
     return false; //only for NodeListClassInit, NodeListArrayIniti (t41185)
   }
 
-  void Node::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
+  void Node::genCodeDefaultValue(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
   {
     m_state.abortShouldntGetHere();
     return;
@@ -727,7 +727,7 @@ namespace MFM {
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     TMPSTORAGE cstor = cosut->getTmpStorageTypeForTmpVar();
-    u32 coslen = cosut->getSizeofUlamType();
+    //u32 coslen = cosut->getSizeofUlamType();
 
     // No split if custom array, that requires an 'aref' function call;
     // handled as genCodeConvertATmpVarIntoCustomArrayAutoRef
@@ -818,10 +818,11 @@ namespace MFM {
 	assert(ncsym);
 
 	//fix element types and string reg nums; including an immediate funcvar constant class
-	bool fixflag = ((cosut->getUlamTypeEnum() == String) && (ncsym->isLocalsFilescopeDef() ||  ncsym->isDataMember()));
-	s32 tmpVarNumForShortArray = 0;
+	//bool fixflag = ((cosut->getUlamTypeEnum() == String) && (ncsym->isLocalsFilescopeDef() ||  ncsym->isDataMember()));
+	//s32 tmpVarNumForShortArray = 0;
 	UVPass quvpass;
 
+#if 0
 	if(fixflag)
 	  {
 	    m_state.indentUlamCode(fp);
@@ -909,6 +910,8 @@ namespace MFM {
 	    genConstantArrayMangledName(fp, "_isFixed"); GCNL;
 	    fp->write("\n");
 	  }
+#endif
+
       }
     // note: Ints not sign extended until used/cast
     m_state.clearCurrentObjSymbolsForCodeGen();
@@ -1007,8 +1010,8 @@ namespace MFM {
     uvpass = UVPass::makePass(tmpVarNum, cstor, cosuti, m_state.determinePackable(cosuti), m_state, 0, 0); //POS 0 justified (atom-based).
 
     //fix element types and string reg nums; including an immediate funcvar constant class
-    bool fixflag = (((cosetyp == Class) || !cosut->isScalar()) && (ncsym->isLocalsFilescopeDef() ||  ncsym->isDataMember()));
-    s32 tmpVarNumForQuark = 0;
+    bool fixflag = (((cosetyp == Class) || !cosut->isScalar()) && (ncsym->isLocalsFilescopeDef() || ncsym->isDataMember()));
+    //s32 tmpVarNumForQuark = 0;
     UVPass quvpass;
 
   if(fixflag)
@@ -1024,15 +1027,19 @@ namespace MFM {
       //and continue to fix it..
     }
 
+#if 0
     if(cosetyp == String)
       {
 	genFixForStringRegNumInTmpVarOfConstantClass(fp, uvpass);
-      }
-    else if(cosetyp == Class)
+      }//    else
+#endif
+
+    if(cosetyp == Class)
       {
 	UVPass * passptr = &uvpass;
 	if(cosclass == UC_ELEMENT)
 	  genFixForElementTypeFieldInTmpVarOfConstantClass(fp, uvpass);
+#if 0
 	else if((cosclass == UC_QUARK) && m_state.isAStringDataMemberInClass(cosuti))
 	  {
 	    if(coslen <= MAXBITSPERINT)
@@ -1074,6 +1081,7 @@ namespace MFM {
 	  quvpass = UVPass::makePass(tmpVarNumForQuark, TMPBITVAL, cosuti, m_state.determinePackable(cosuti), m_state, 0, 0);
 	  passptr = &quvpass;
 	  } //quark
+#endif
 
 	BV8K bvclass;
 	AssertBool gotVal = ncsym->getValue(bvclass);
@@ -1095,13 +1103,14 @@ namespace MFM {
 	    //only transients can have elements as data members
 	    if(cosclass == UC_TRANSIENT)
 	      cblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, cospos + i * len, &uvpass);
-	    //All class/classarray can have String data member(s)
-	    cblock->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, cospos + i * len, passptr, &bvclass);
+	    //All class/classarray can have data member(s) with initial values
+	    cblock->genCodeDefaultValue(fp, cospos + i * len, passptr, &bvclass);
 	  }
       }
 
   if(fixflag)
     {
+#if 0
       if(tmpVarNumForQuark > 0)
 	{
 	  m_state.indentUlamCode(fp);
@@ -1114,6 +1123,7 @@ namespace MFM {
 	  fp->write_decimal_unsigned(coslen);
 	  fp->write(");"); GCNL;
 	}
+#endif
       m_state.indentUlamCode(fp);
       genConstantClassMangledName(fp);
       fp->write(".write(");
@@ -1373,34 +1383,37 @@ namespace MFM {
     if(ncsym->isDataMember() || ncsym->isLocalsFilescopeDef())
       {
 	bool fixflag = cosIsTheConstantClass;
-	s32 tmpVarNumForQuark = 0;
+	//s32 tmpVarNumForQuark = 0;
 	UVPass quvpass;
 
 	if(fixflag)
-	      {
-		m_state.indentUlamCode(fp);
-		fp->write("if(!");
-		genConstantClassMangledName(fp, "THE_INSTANCE._isFixedMethodFor");
-		fp->write("(");
-		fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-		fp->write(", 1u))\n");
-		m_state.indentUlamCode(fp);
-		fp->write("{\n");
+	  {
+	    m_state.indentUlamCode(fp);
+	    fp->write("if(!");
+	    genConstantClassMangledName(fp, "THE_INSTANCE._isFixedMethodFor");
+	    fp->write("(");
+	    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
+	    fp->write(", 1u))\n");
+	    m_state.indentUlamCode(fp);
+	    fp->write("{\n");
 
-		m_state.m_currentIndentLevel++;
-		//and continue to fix one array item..
-	      }
+	    m_state.m_currentIndentLevel++;
+	    //and continue to fix one array item..
+	  }
 
-
+#if 0
 	if(cosetyp == String)
 	  {
 	    genFixForStringRegNumInTmpVarOfConstantClass(fp, luvpass);
-	  }
-	else if(cosetyp == Class)
+	  }//	else
+#endif
+
+	if(cosetyp == Class)
 	  {
 	    UVPass * passptr = &luvpass;
 	    if((sclasstype == UC_ELEMENT))
 	      genFixForElementTypeFieldInTmpVarOfConstantClass(fp, luvpass);
+#if 0
 	    else if((sclasstype == UC_QUARK) && (itemlen <= MAXBITSPERINT) && m_state.isAStringDataMemberInClass(scalarluti))
 	      {
 		//when a quark has a string dm (MAXBITSPERINT),
@@ -1418,6 +1431,7 @@ namespace MFM {
 		quvpass = UVPass::makePass(tmpVarNumForQuark, TMPBITVAL, scalarluti, m_state.determinePackable(scalarluti), m_state, 0, 0);
 		passptr = &quvpass;
 	      }
+#endif
 
 	    BV8K bvclass;
 	    AssertBool gotVal = ncsym->getValue(bvclass);
@@ -1429,12 +1443,13 @@ namespace MFM {
 	    NodeBlockClass * cblock = csym->getClassBlockNode();
 	    assert(cblock);
 	    //scalar item, no loop (t41267,8,9, t41270,1,2)
-	    cblock->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, cospos, passptr, &bvclass); //t41267
+	    cblock->genCodeDefaultValue(fp, cospos, passptr, &bvclass); //t41267
 
 	    if(sclasstype == UC_TRANSIENT)
 	      cblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, cospos, &luvpass); //t41263
 	    if(fixflag)
 	      {
+#if 0
 		if(tmpVarNumForQuark > 0)
 		  {
 		    m_state.indentUlamCode(fp);
@@ -1447,6 +1462,7 @@ namespace MFM {
 		    fp->write_decimal_unsigned(itemlen);
 		    fp->write(");"); GCNL;
 		  }
+#endif
 
 		m_state.indentUlamCode(fp);
 		genConstantClassMangledName(fp);
@@ -1905,6 +1921,7 @@ namespace MFM {
     fp->write("}\n");
   } //genFixForElementTypeFieldInTmpVarOfConstantClass
 
+#if 0
   void Node::genFixForStringRegNumInTmpVarOfConstantClass(File * fp, const UVPass & uvpass)
   {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
@@ -1920,7 +1937,7 @@ namespace MFM {
     assert(cosut->getUlamTypeEnum() == String);
 
     //generate code to replace uti in string index with runtime registration number
-    //borrowed from NodeVarDeclDM::genCodeDefaultValueOrTmpVarStringRegistrationNumber
+    //borrowed from NodeVarDeclDM::genCodeDefaultValue
     if(vut->isScalar())
       {
 	//like NodeSquareBracket specialized fixup (t3953);
@@ -1975,6 +1992,7 @@ namespace MFM {
 	fp->write("}\n");
       }
   } //genFixForStringRegNumInTmpVarOfConstantClass
+#endif
 
   // write out intermediate tmpVar as temp BitVector, e.g. func args, question-colon
   //for func args, the type of the funccall node isn't the type of the argument;
@@ -2016,6 +2034,7 @@ namespace MFM {
       }
     else
       {
+#if 0
 	if(vut->getUlamTypeEnum() == String)
 	  {
 	    //TMPSTORAGE vstor = uvpass.getPassStorage();
@@ -2028,8 +2047,8 @@ namespace MFM {
 	    fp->write("::getStrIdx(");
 	    fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //VALUE
 	    fp->write(")");
-	  }
-	else
+	  }//	else
+#endif
 	  {
 	    fp->write(uvpass.getTmpVarAsString(m_state).c_str()); //VALUE
 
@@ -2241,7 +2260,7 @@ namespace MFM {
 
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    ULAMTYPE cosetyp = cosut->getUlamTypeEnum();
+    //ULAMTYPE cosetyp = cosut->getUlamTypeEnum();
 
     // write out auto ref constuctor
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
@@ -2270,6 +2289,7 @@ namespace MFM {
 
     luvpass = UVPass::makePass(tmpVarNum2, TMPAUTOREF, scalarcosuti, m_state.determinePackable(scalarcosuti), m_state, pos, cos->getId()); //POS left-justified by default
 
+#if 0
     if(cosetyp == String)
       {
 	bool fixflag = cos->isLocalsFilescopeDef() || cos->isDataMember();
@@ -2317,6 +2337,8 @@ namespace MFM {
 	    fp->write("\n");
 	  }
       }
+#endif
+
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeConvertATmpVarIntoConstantAutoRef
 

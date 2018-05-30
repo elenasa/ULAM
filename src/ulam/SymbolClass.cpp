@@ -325,7 +325,7 @@ namespace MFM {
     m_state.popClassContext();
 
     return true;
-  } //buildClassConstantDefaultValues
+  } //buildClassConstantDefaultValues (unused?)
 
   TBOOL SymbolClass::packBitsForClassVariableDataMembers()
   {
@@ -874,6 +874,7 @@ namespace MFM {
   void SymbolClass::genEndifForHeaderFile(File * fp)
   {
     UlamType * cut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
+    m_state.indent(fp);
     fp->write("#endif //");
     fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write("_H\n");
@@ -884,6 +885,12 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("#include \"UlamDefs.h\"");
     fp->write("\n");
+
+    //global user string pool (ulam-4)
+    m_state.indent(fp);
+    fp->write("#include \"");
+    fp->write(m_state.getFileNameForUserStringPoolHeader().c_str());
+    fp->write("\"\n");
 
     //using the _Types.h file
     m_state.indent(fp);
@@ -1224,6 +1231,7 @@ namespace MFM {
     return false;
   }
 
+#if 0
   StringPoolUser& SymbolClass::getUserStringPoolRef()
   {
     NodeBlockClass * classblock = getClassBlockNode();
@@ -1237,5 +1245,6 @@ namespace MFM {
     assert(classblock);
     return classblock->setUserStringPoolRef(spref);
   }
+#endif
 
 } //end MFM

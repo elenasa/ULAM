@@ -135,7 +135,7 @@ namespace MFM{
 
     virtual bool buildDefaultValueForClassConstantDefs();
 
-    virtual void genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr);
+    virtual void genCodeDefaultValue(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr);
 
     virtual void genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr);
 
@@ -196,9 +196,8 @@ namespace MFM{
 
     virtual void generateBuiltinConstantClassOrArrayInitializationFunction(File * fp, bool declOnly);
 
-    void genCodeBuiltInFunctionGetString(File * fp, bool declOnly);
-
-    void genCodeBuiltInFunctionGetStringLength(File * fp, bool declOnly);
+    //void genCodeBuiltInFunctionGetString(File * fp, bool declOnly);
+    //void genCodeBuiltInFunctionGetStringLength(File * fp, bool declOnly);
 
     void initElementDefaultsForEval(UlamValue& uv, UTI cuti);
 

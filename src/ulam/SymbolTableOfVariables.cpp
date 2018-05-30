@@ -65,6 +65,7 @@ namespace MFM {
     return rtnb;
   } //hasUlamTypeSymbolsInTable
 
+#if 0
   //called by NodeBlockContext (e.g. String (scalar or array))
   bool SymbolTableOfVariables::hasADataMemberStringInitValueInClass(UTI cuti)
   {
@@ -102,6 +103,47 @@ namespace MFM {
       } //while next data member symbol
     return rtnb;
   } //hasADataMemberStringInitValueInClass (unused)
+#endif
+
+#if 0
+  //called by NodeBlockContext (e.g. String (scalar or array))
+  u32 SymbolTableOfVariables::fixAllStringSymbolsInTable()
+  {
+    u32 rtncnt = 0;
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym);
+	if(!sym->isTypedef())
+	  {
+	    UTI suti = sym->getUlamTypeIdx();
+	    UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	    if(sut->getUlamTypeEnum() == String)
+	      {
+		u32 arraysize = sut->isScalar() ? 1 : sut->getArraySize();
+		BV8K tmpbv8k;
+		AssertBool gotValue = ((SymbolWithValue *) sym)->getInitValue(tmpbv8k);
+		assert(gotValue);
+
+		for(u32 i = 0; i < arraysize; i++)
+		  {
+		    UTI regid = (UTI) tmpbv8k.Read(0 + i * (REGNUMBITS + STRINGIDXBITS), REGNUMBITS);
+		    assert(regid > 0);
+
+		    u32 regnum = m_state.getRegistrationNumberForClassOrLocalsScope(regid);
+		    tmpbv8k.Write(0 + i * (REGNUMBITS + STRINGIDXBITS), REGNUMBITS, regnum);
+		    rtncnt++;
+		  }
+
+		((SymbolWithValue *) sym)->setInitValue(tmpbv8k); //overwrite with fixed string(s)
+	      } //string
+	  } //not typedef
+	it++;
+      } //while next data member symbol
+    return rtncnt;
+  } //
+#endif
 
   u32 SymbolTableOfVariables::findTypedefSymbolNameIdByTypeInTable(UTI type)
   {

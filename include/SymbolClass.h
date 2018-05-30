@@ -165,8 +165,8 @@ namespace MFM{
 
     bool isAbstract();
 
-    StringPoolUser& getUserStringPoolRef();
-    void setUserStringPoolRef(const StringPoolUser& spref);
+    //    StringPoolUser& getUserStringPoolRef();
+    //void setUserStringPoolRef(const StringPoolUser& spref);
 
   protected:
     Resolver * m_resolver;

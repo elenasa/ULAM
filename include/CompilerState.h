@@ -103,6 +103,8 @@ namespace MFM{
 
     StringPoolUser m_tokenupool; //for double quoted strings Tokens only
 
+    StringPoolUser m_upool; //for double quoted strings only (global ulam-4)
+
     // map key is the prefix id in the Locator; value is a vector of
     // stringpool id's indexed by line into the original ulam source
     // code; built by SourceStream during parsing; used for
@@ -359,11 +361,18 @@ namespace MFM{
     bool checkAndLabelPassForLocals();
     void defineRegistrationNumberForUlamClasses(); //ulam-4
     void defineRegistrationNumberForLocals(); //ulam-4
+    void fixStringsForUlamClasses(); //ulam-4
+    void fixStringsForLocals(); //ulam-4
 
     void generateCodeForUlamClasses(FileManager * fm);
     void generateUlamClassForLocals(FileManager * fm);
-    StringPoolUser & getUPoolRefForClass(UTI cuti);
-    StringPoolUser& getUPoolRefForLocalsFilescope(UTI luti);
+
+    void generateGlobalUserStringPool(FileManager * fm);
+    void genCodeBuiltInFunctionGetString(File * fp, bool declOnly);
+    void genCodeBuiltInFunctionGetStringLength(File * fp, bool declOnly);
+
+    //StringPoolUser & getUPoolRefForClass(UTI cuti);
+    //StringPoolUser& getUPoolRefForLocalsFilescope(UTI luti);
     const std::string & getDataAsFormattedUserString(u32 combinedidx);
     const std::string & getDataAsUnFormattedUserString(u32 combinedidx);
     bool isValidUserStringIndex(u32 combinedidx);
@@ -400,7 +409,8 @@ namespace MFM{
     const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
     const char * getClassLengthFunctionName(UTI ltype);
     const char * getClassRegistrationNumberFunctionName(UTI ltype);
-    const char * getClassGetStringFunctionName(UTI ltype);
+    const char * getGetStringFunctionName();
+    const char * getGetStringLengthFunctionName();
     const char * getBuildDefaultAtomFunctionName(UTI ltype);
     const char * getDefaultQuarkFunctionName();
 
@@ -419,6 +429,8 @@ namespace MFM{
     const std::string getStringMangledName();
     const char * getMangledNameForUserStringPool();
     const char * getDefineNameForUserStringPoolSize();
+    std::string getFileNameForUserStringPoolHeader(bool wSubDir = false);
+    std::string getFileNameForUserStringPoolCPP(bool wSubDir = false);
 
     ULAMCLASSTYPE getUlamClassForThisClass();
     UTI getUlamTypeForThisClass();

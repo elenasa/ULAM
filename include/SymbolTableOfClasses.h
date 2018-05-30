@@ -110,6 +110,8 @@ namespace MFM{
 
     u32 defineRegistrationNumberForTableOfClasses(); //ulam-4
 
+    //void fixAllStringsForTableOfClasses();
+
     void genCodeForTableOfClasses(FileManager * fm);
 
     UTI findClassNodeNoForTableOfClasses(NNO n);

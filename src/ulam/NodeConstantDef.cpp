@@ -839,6 +839,7 @@ namespace MFM {
     ULAMTYPE etyp = m_state.getUlamTypeByIndex(uti)->getUlamTypeEnum();
     if(etyp == Int)
       newnode = new NodeTerminal((s64) newconst, uti, m_state);
+#if 0
     else if(etyp == String)
       {
 	UTI reguti = newconst >> STRINGIDXBITS;
@@ -860,6 +861,7 @@ namespace MFM {
 	  }
 	newnode = new NodeTerminal(newconst, uti, m_state);
       }
+#endif
     else
       newnode = new NodeTerminal(newconst, uti, m_state);
     newnode->setNodeLocation(getNodeLocation());
@@ -985,7 +987,7 @@ namespace MFM {
     return rtnok;
   } //buildDefaultValueForClassConstantDefs
 
-  void NodeConstantDef::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
+  void NodeConstantDef::genCodeDefaultValue(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
   {
     return; //pass on
   }
@@ -1483,7 +1485,7 @@ namespace MFM {
 	    fp->write(");"); GCNL;
 	    m_state.clearCurrentObjSymbolsForCodeGen();
 	  }
-      }
+      } //end constant arrays
     else if(etyp == String)
       {
 	u32 sval;
@@ -1507,7 +1509,7 @@ namespace MFM {
 
 	if(m_constSymbol->isLocalsFilescopeDef() ||  m_constSymbol->isDataMember() || m_constSymbol->isClassArgument())
 	  {
-	    //defined in .tcc, only declared in .h as static
+	    //defined in .tcc, only declared in .h as static (a "classic" GOTCHA!!)
 	    m_state.indentUlamCode(fp);
 	    fp->write("static ");
 	    fp->write(nut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
@@ -1520,7 +1522,7 @@ namespace MFM {
 	    fp->write(estr.c_str());
 	    GCNL;
 
-	    //fix once, scalar constant class
+	    //fix once flag, scalar constant class
 	    if(!m_constSymbol->isClassArgument())
 	      {
 		m_state.indentUlamCode(fp);
@@ -1531,7 +1533,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    //immediate named constant in a function (t41232)
+	    //an immediate, named constant in a function (t41232)
 	    u32 len = nut->getSizeofUlamType();
 	    m_state.indentUlamCode(fp);
 	    fp->write("const u32 _init");
@@ -1552,15 +1554,20 @@ namespace MFM {
 	    fp->write(getName()); //comment
 	    GCNL;
 
-	    m_state.m_currentObjSymbolsForCodeGen.push_back(m_constSymbol);
-	    UVPass tmpuvpass;
-	    Node::genCodeReadFromAConstantClassIntoATmpVar(fp, tmpuvpass);
+	    // in case of element or transient with element dm to fix element type;
+	    // no longer needed for quarks (ulam-4) since strings don't need fixing (t41209);
+	    if(nut->getUlamClassType() != UC_QUARK)
+	      {
+		m_state.m_currentObjSymbolsForCodeGen.push_back(m_constSymbol);
+		UVPass tmpuvpass;
+		Node::genCodeReadFromAConstantClassIntoATmpVar(fp, tmpuvpass);
 
-	    m_state.indentUlamCode(fp);
-	    fp->write(m_constSymbol->getMangledName().c_str());
-	    fp->write(".write(");
-	    fp->write(tmpuvpass.getTmpVarAsString(m_state).c_str());
-	    fp->write(");"); GCNL;
+		m_state.indentUlamCode(fp);
+		fp->write(m_constSymbol->getMangledName().c_str());
+		fp->write(".write(");
+		fp->write(tmpuvpass.getTmpVarAsString(m_state).c_str());
+		fp->write(");"); GCNL;
+	      }
 	  }
       } //else do nothing
     return; //done
@@ -1703,6 +1710,7 @@ namespace MFM {
     fp->write(m_constSymbol->getMangledName().c_str()); GCNL;
     fp->write("\n");
 
+#if 1
     //As static constant, output initialization in .tcc, something like this:
     //template<class EC>
     //typename MFM::Ui_Uq_102204QBar10<EC> MFM::Uq_10104QFoo10<EC>::Uc_6c_qbar(MFM::Uq_10104QFoo10<EC>::InitUc_6c_qbar());
@@ -1722,6 +1730,7 @@ namespace MFM {
     fp->write("()); //Def constant ");
     fp->write(getName()); GCNL;
     fp->write("\n");
+#endif
 
     //fix once constant class or array
     if((m_constSymbol->isLocalsFilescopeDef() ||  m_constSymbol->isDataMember()))

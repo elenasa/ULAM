@@ -124,6 +124,8 @@ namespace MFM{
 
     virtual void assignRegistrationNumberForClassInstances(u32& count);
 
+    //virtual void fixAllStringsForClassInstances();
+
     virtual void generateCodeForClassInstances(FileManager * fm);
 
     virtual void generateIncludesForClassInstances(File * fp);

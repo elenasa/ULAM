@@ -56,6 +56,8 @@ namespace MFM{
 
     bool hasADataMemberStringInitValueInClass(UTI cuti);
 
+    u32 fixAllStringSymbolsInTable(); //returns number of strings fixed
+
     u32 findTypedefSymbolNameIdByTypeInTable(UTI type);
 
     //Table of Variable Data Members:

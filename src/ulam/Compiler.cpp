@@ -111,33 +111,48 @@ namespace MFM {
       {
 	//across ALL parsed files
 	perrs = checkAndTypeLabelProgram(errput);
-	if(perrs == 0)
-	  {
-	    m_state.defineRegistrationNumberForUlamClasses(); //ulam-4
-	    perrs = m_state.m_err.getErrorCount();
-	    if(perrs > 0)
-	      {
-		std::ostringstream msg;
-		errput->write("Unrecoverable Registry Number Assignment FAILURE.\n");
-	      }
-	    else
-	      {
-		m_state.generateCodeForUlamClasses(outfm);
-		perrs = m_state.m_err.getErrorCount();
-
-		if(perrs > 0)
-		  {
-		    std::ostringstream msg;
-		    errput->write("Unrecoverable Program GenCode FAILURE.\n");
-		  }
-	      }
-	  }
-	else
+	if(perrs > 0)
 	  {
 	    std::ostringstream msg;
 	    errput->write("Unrecoverable Program Type Label FAILURE.\n");
 	  }
       }
+
+    if(!perrs)
+      {
+	m_state.defineRegistrationNumberForUlamClasses(); //ulam-4
+	perrs = m_state.m_err.getErrorCount();
+	if(perrs > 0)
+	  {
+	    std::ostringstream msg;
+	    errput->write("Unrecoverable Registry Number Assignment FAILURE.\n");
+	  }
+      }
+
+#if 0
+    if(!perrs)
+      {
+	m_state.fixStringsForUlamClasses(); //ulam-4
+	perrs = m_state.m_err.getErrorCount();
+	if(perrs > 0)
+	  {
+	    std::ostringstream msg;
+	    errput->write("Unrecoverable String Fix FAILURE.\n");
+	  }
+      }
+#endif
+
+    if(!perrs)
+      {
+	m_state.generateCodeForUlamClasses(outfm);
+	perrs = m_state.m_err.getErrorCount();
+	if(perrs > 0)
+	  {
+	    std::ostringstream msg;
+	    errput->write("Unrecoverable Program GenCode FAILURE.\n");
+	  }
+      }
+
     delete P;
     delete PP;
     delete Lex;

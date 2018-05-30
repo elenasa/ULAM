@@ -26,6 +26,7 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+#if 0
   StringPoolUser& NodeBlockContext::getUserStringPoolRef()
   {
     return m_upool;
@@ -35,12 +36,20 @@ namespace MFM {
   {
     m_upool = spref;
   }
+#endif
 
   bool NodeBlockContext::hasStringDataMembers()
   {
     return m_ST.hasUlamTypeSymbolsInTable(String); //btw, does not check superclasses!!!
     //return m_ST.hasADataMemberStringInitValueInClass(getNodeType());
   }
+
+#if 0
+  void NodeBlockContext::fixAllStringDataMembersAndConstants()
+  {
+    m_ST.fixAllStringSymbolsInTable();
+  }
+#endif
 
   bool NodeBlockContext::classConstantsReady()
   {

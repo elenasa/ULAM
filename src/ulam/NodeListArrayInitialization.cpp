@@ -469,7 +469,7 @@ namespace MFM{
 	u32 uvals[ARRAY_LEN8K];
 	dval.ToArray(uvals); //the magic! (32-bit ints)
 
-	UTI cuti = m_state.getCompileThisIdx();
+	//UTI cuti = m_state.getCompileThisIdx();
 
 	m_state.indentUlamCode(fp); //non-const
 	fp->write("static bool ");
@@ -496,10 +496,12 @@ namespace MFM{
 	fp->write(m_state.getInitDoneVarAsString(tmpvarnum).c_str());
 	fp->write(" = true;\n");
 
+#if 0
 	m_state.indentUlamCode(fp);
 	fp->write("static const u32 Uh_6regnum = ");
 	fp->write(m_state.getTheInstanceMangledNameByIndex(cuti).c_str());
 	fp->write(".GetRegistrationNumber();"); GCNL;
+#endif
 
 	//exact size bitvector as 32-bit array, regardless of itemwordsize (e.g. String test t3973 )
 	for(u32 w = 0; w < nwords; w++)
@@ -510,10 +512,10 @@ namespace MFM{
 	    fp->write_decimal_unsigned(w); // proper length == [nwords]
 	    fp->write("] = ");
 
-	    fp->write(m_state.getStringMangledName().c_str());
-	    fp->write("::makeCombinedIdx(Uh_6regnum, ");
+	    //fp->write(m_state.getStringMangledName().c_str());
+	    //fp->write("::makeCombinedIdx(Uh_6regnum, ");
 	    fp->write_decimal_unsigned(uvals[w] & STRINGIDXMASK);
-	    fp->write("); //");
+	    fp->write("; //");
 	    fp->write(m_state.getDataAsFormattedUserString(uvals[w]).c_str()); //as comment
 	    fp->write("\n");
 	  }

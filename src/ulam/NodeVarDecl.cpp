@@ -1121,6 +1121,7 @@ namespace MFM {
 	    fp->write(m_varSymbol->getMangledName().c_str());
 	    fp->write("("); // use constructor (not equals)
 
+#if 0
 	    if(UlamType::compareForString(vuti, m_state) == UTIC_SAME)
 	      {
 		TMPSTORAGE vstor = uvpass.getPassStorage();
@@ -1142,8 +1143,8 @@ namespace MFM {
 		    fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 		    fp->write("));"); GCNL;
 		  }
-	      }
-	    else
+	      }//	    else
+#endif
 	      {
 		fp->write(uvpass.getTmpVarAsString(m_state).c_str());
 		if((uvpass.getPassStorage() == TMPBITVAL) && m_nodeInitExpr->isExplicitCast())

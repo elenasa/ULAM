@@ -76,7 +76,7 @@ namespace MFM {
     return true;
   }
 
-  void NodeModelParameterDef::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
+  void NodeModelParameterDef::genCodeDefaultValue(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
   {
     return;
   }

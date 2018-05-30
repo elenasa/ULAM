@@ -806,7 +806,7 @@ namespace MFM {
     return true;
   }
 
-  void NodeVarDeclDM::genCodeDefaultValueOrTmpVarStringRegistrationNumber(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
+  void NodeVarDeclDM::genCodeDefaultValue(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
   {
     assert(m_varSymbol);
     assert(m_varSymbol->isDataMember());
@@ -822,6 +822,8 @@ namespace MFM {
 
     ULAMTYPE etyp = nut->getUlamTypeEnum();
     u32 pos = m_varSymbol->getPosOffset();
+
+#if 0
     u32 arraysize = nut->isScalar() ? 1 : nut->getArraySize();
 
     if(etyp == String)
@@ -883,8 +885,10 @@ namespace MFM {
 	      }
 	    GCNL;
 	  } //for loop
-      }
-    else if(etyp == Class)
+      } //else
+#endif
+
+    if(etyp == Class)
       {
 	ULAMCLASSTYPE classtype = nut->getUlamClassType();
 	if(inDefault)
@@ -962,10 +966,10 @@ namespace MFM {
 	    assert(cblock);
 	    if(classtype == UC_TRANSIENT)
 	      cblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, pos + startpos, uvpassptr); //? test
-	    cblock->genCodeDefaultValueOrTmpVarStringRegistrationNumber(fp, pos + startpos, uvpassptr, bv8kptr); //t41268
+	    cblock->genCodeDefaultValue(fp, pos + startpos, uvpassptr, bv8kptr); //t41268
 	  }
       } //a class
-  } //genCodeDefaultValueOrTmpVarStringRegistrationNumber
+  } //genCodeDefaultValue
 
   void NodeVarDeclDM::genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr)
   {

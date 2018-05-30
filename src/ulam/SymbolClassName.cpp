@@ -346,7 +346,7 @@ namespace MFM {
   void SymbolClassName::buildClassConstantDefaultValuesForClassInstances()
   {
     SymbolClass::buildClassConstantDefaultValues(); //this instance
-  } //buildClassConstantDefaultValuesForClassInstances
+  } // (unused?)
 
   void SymbolClassName::testForClassInstances(File * fp)
   {
@@ -356,7 +356,19 @@ namespace MFM {
   void SymbolClassName::assignRegistrationNumberForClassInstances(u32& count)
   {
     SymbolClass::assignRegistryNumber(count++);
-  } //generateCodeForClassInstances
+  } //assignRegistrationNumberForClassInstances
+
+#if 0
+  void SymbolClassName::fixAllStringsForClassInstances()
+  {
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+
+    classNode->fixAllStringDataMembersAndConstants();
+    m_state.popClassContext(); //restore
+  } //fixAllStringsForClassInstances
+#endif
 
   void SymbolClassName::generateCodeForClassInstances(FileManager * fm)
   {

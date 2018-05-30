@@ -415,7 +415,7 @@ namespace MFM {
     UVPass ofpass;
     m_nodeOf->genCode(fp, ofpass);
 
-    TMPSTORAGE ofstor = ofpass.getPassStorage();
+    //TMPSTORAGE ofstor = ofpass.getPassStorage();
 
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
     m_state.indentUlamCode(fp);
@@ -424,6 +424,7 @@ namespace MFM {
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(ASCII, tmpVarNum, TMPREGISTER).c_str());
 
+#if 0
     if((ofstor == TMPBITVAL) || (ofstor == TMPAUTOREF))
       {
 	fp->write(" = uc.GetUlamClassRegistry().GetUlamClassByIndex(");
@@ -450,6 +451,15 @@ namespace MFM {
 	fp->write("));");
 	GCNL;
       }
+#endif
+
+    fp->write(" = ");
+    fp->write(m_state.getGetStringLengthFunctionName());
+    fp->write("(");
+    fp->write(ofpass.getTmpVarAsString(m_state).c_str());
+    fp->write(");");
+    GCNL; //t3949
+
     uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, 0); //POS 0 rightjustified (atom-based).
 
     m_state.clearCurrentObjSymbolsForCodeGen();

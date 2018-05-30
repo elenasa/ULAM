@@ -1010,6 +1010,7 @@ namespace MFM {
     UVPass luvpass = uvpass; //passes along if rhs of memberselect
     m_nodeLeft->genCode(fp, luvpass);
 
+#if 0
     TMPSTORAGE lstor = luvpass.getPassStorage();
 
     //runtime check to avoid accessing beyond array (t3932)
@@ -1066,6 +1067,17 @@ namespace MFM {
 	    fp->write("));"); GCNL;
 	  }
       }
+#endif
+    //runtime check to avoid accessing beyond array (t3932)
+    s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
+    m_state.indentUlamCode(fp);
+    fp->write("const u32 ");
+    fp->write(m_state.getTmpVarAsString(Unsigned, tmpVarNum2, TMPREGISTER).c_str());
+    fp->write(" = ");
+    fp->write(m_state.getGetStringLengthFunctionName());
+    fp->write("(");
+    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+    fp->write(");"); GCNL;
 
     m_state.indentUlamCode(fp);
     fp->write("if(");
@@ -1086,6 +1098,7 @@ namespace MFM {
     fp->write("const unsigned char ");
     fp->write(m_state.getTmpVarAsString(ASCII, tmpVarNum, TMPREGISTER).c_str());
 
+#if 0
     if((lstor == TMPBITVAL) || (lstor == TMPAUTOREF))
       {
 	fp->write(" = *(uc.GetUlamClassRegistry().GetUlamClassByIndex(");
@@ -1142,6 +1155,14 @@ namespace MFM {
 	    fp->write(");"); GCNL;
 	  }
       }
+#endif
+    fp->write(" = *(");
+    fp->write(m_state.getGetStringFunctionName());
+    fp->write("(");
+    fp->write(luvpass.getTmpVarAsString(m_state).c_str());
+    fp->write(") + ");
+    fp->write(offset.getTmpVarAsString(m_state).c_str()); //INDEX of byte
+    fp->write(");"); GCNL; //t3945
 
     uvpass = UVPass::makePass(tmpVarNum, TMPREGISTER, ASCII, m_state.determinePackable(ASCII), m_state, 0, 0); //POS 0 rightjustified (atom-based).
 

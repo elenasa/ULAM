@@ -981,7 +981,7 @@ namespace MFM {
 	classNode->setSuperBlockPointer(NULL); //clear in case of stubs
 
 	//copy any constant strings from the stub
-	clone->setUserStringPoolRef(csym->getUserStringPoolRef()); //t3962
+	//clone->setUserStringPoolRef(csym->getUserStringPoolRef()); //t3962
 
 	//copy any context, where stub used
 	if(csym->getContextForPendingArgValues() == csym->getUlamTypeIdx())
@@ -1678,7 +1678,7 @@ namespace MFM {
 	  }
 	it++;
       }
-  } //buildClassConstantDefaultValuesForClassInstances
+  } //buildClassConstantDefaultValuesForClassInstances (unused?)
 
   void SymbolClassNameTemplate::testForClassInstances(File * fp)
   {
@@ -1715,6 +1715,36 @@ namespace MFM {
       }
   } //assignRegistrationNumberForClassInstances
 
+#if 0
+  void SymbolClassNameTemplate::fixAllStringsForClassInstances()
+  {
+    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
+    while(it != m_scalarClassArgStringsToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	assert(!csym->isStub());
+	UTI suti = csym->getUlamTypeIdx();
+	if(m_state.isComplete(suti))
+	  {
+	    NodeBlockClass * classNode = csym->getClassBlockNode();
+	    assert(classNode);
+	    m_state.pushClassContext(suti, classNode, classNode, false, NULL);
+
+	    classNode->fixAllStringDataMembersAndConstants();
+
+	    m_state.popClassContext(); //restore
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Class Instance '" << m_state.getUlamTypeNameByIndex(suti).c_str();
+	    msg << "' is incomplete; Strings will not be fixed";
+	    MSG(Symbol::getTokPtr(), msg.str().c_str(), DEBUG);
+	  }
+	it++;
+      }
+  } //fixAllStringsForClassInstances
+#endif
   void SymbolClassNameTemplate::generateCodeForClassInstances(FileManager * fm)
   {
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
