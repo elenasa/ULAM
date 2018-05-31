@@ -660,6 +660,15 @@ namespace MFM {
 	return false;
       }
 
+    if(n >= MAX_REGISTRY_NUMBER)
+      {
+	std::ostringstream msg;
+	msg << "Attempting to assign TOO MANY Registry Numbers " << n;
+	msg << "; max table size is " << MAX_REGISTRY_NUMBER;
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
+	return false;
+      }
+
     m_registryNumber = n;
     return true;
   } //assignRegistryNumber
