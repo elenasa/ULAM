@@ -44,19 +44,36 @@ my $EXEC_TEST_VALGRIND = 0;  #=1 produces uncomparable log files (grep for "leak
 my $SRC_DIR = "safe";
 #my $SRC_DIR = "error"; # comment out Node::countNavNodes second line of message for comparison.
 #my $SRC_DIR = "fail"; # runtime failures w testgencode
-my $TESTGENCODE = 1; # 0 is faster; 1 is thorough
+my $TESTGENCODE = 0; # 0 is faster; 1 is thorough
 
 sub usage_abort
 {
     my $msg = shift;
     print STDERR "ERROR: $msg\n" if defined $msg;
-    die "Usage: $0 [-s] TESTFILE.., default is all *.test files.\n";
+    die "Usage: $0 [-s[S|E|F][G][V]] TESTFILE.., default is all safe *.test files, S safe test (default), E error test, F fail test, G with GenCode testing, V with Valgrind testing.\n";
 }
 
 my $needRebuild = 1;
-if (scalar(@ARGV) > 0 && $ARGV[0] eq "-s") {
-    $needRebuild = 0;
-    shift @ARGV;
+#if (scalar(@ARGV) > 0 && $ARGV[0] eq "-s") {
+if (scalar(@ARGV) > 0) {
+    if( $ARGV[0] =~ /([SEF])/ ){
+	$SRC_DIR = "safe" if ($1 eq 'S'); # default
+	$SRC_DIR = "error" if ($1 eq 'E');
+	$SRC_DIR = "fail" if ($1 eq 'F');
+    }
+
+    if( $ARGV[0] =~ /G/ ){
+	$TESTGENCODE = 1; #default faster mode
+    }
+
+    if( $ARGV[0] =~ /V/ ){
+	$EXEC_TEST_VALGRIND = 1; #default faster mode
+    }
+
+    if( $ARGV[0] =~ /^-s/ ) {
+	$needRebuild = 0;
+	shift @ARGV; # next arg specifies test file (or pattern)
+    }
 }
 
 &main(@ARGV);
