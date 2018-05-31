@@ -81,16 +81,17 @@ namespace MFM {
   static const char * GETCLASSLENGTH_FUNCNAME = "GetClassLength";
   static const char * GETCLASSREGISTRATIONNUMBER_FUNCNAME = "GetRegistrationNumber";
 
-  static const char * GETSTRING_FUNCNAME = "GetStringPointerFromGlobalStringPool"; //was GetString
-  static const char * GETSTRINGLENGTH_FUNCNAME = "GetStringLengthFromGlobalStringPool"; //was GetString
+  static const char * GETSTRING_FUNCNAME = "GetStringPointerFromGlobalStringPool";
+  static const char * GETSTRINGLENGTH_FUNCNAME = "GetStringLengthFromGlobalStringPool";
 
   static const char * BUILD_DEFAULT_ATOM_FUNCNAME = "BuildDefaultAtom";
   static const char * BUILD_DEFAULT_QUARK_FUNCNAME = "getDefaultQuark";
   static const char * BUILD_DEFAULT_TRANSIENT_FUNCNAME = "getDefaultTransient";
 
   static const char * USERSTRINGPOOL_MANGLEDNAME = "Ug_globalStringPoolData";
-  static const char * USERSTRINGPOOL_FILENAME = "GlobalStringPool";
   static const char * USERSTRINGPOOL_SIZEDEFINENAME = "Ug_globalStringPoolSize";
+  static const char * USERSTRINGPOOL_FILENAME = "GlobalStringPool"; //also used by ulam.tmpl
+
 
   static const char * CModeForHeaderFiles = "/**                                      -*- mode:C++ -*- */\n\n";
 
