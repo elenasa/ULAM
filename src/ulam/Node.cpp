@@ -1394,53 +1394,6 @@ namespace MFM {
     fp->write("\n");
   } //restoreElementTypeForAncestorCasting
 
-#if 0
-  void Node::genFixForElementTypeFieldInTmpVarOfConstantClass(File * fp, const UVPass & uvpass)
-  {
-    UTI vuti = uvpass.getPassTargetType();
-    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    assert(vut->getUlamClassType() == UC_ELEMENT);
-
-    u32 pos = uvpass.getPassPos(); //POS 0 justified (atom-based)
-
-    m_state.indentUlamCode(fp);
-    fp->write("{\n"); //limit scope of 'gda' and 'typefield'
-    m_state.m_currentIndentLevel++;
-
-    m_state.indentUlamCode(fp);
-    fp->write("const AtomBitStorage<EC> gda(");
-    fp->write(m_state.getTheInstanceMangledNameByIndex(vuti).c_str());
-    fp->write(".GetDefaultAtom());"); GCNL;
-
-    m_state.indentUlamCode(fp);
-    fp->write("const u32 typefield = gda.Read(0u, T::ATOM_FIRST_STATE_BIT);"); GCNL; //can't use GetType");
-
-    if(vut->isScalar())
-      {
-	m_state.indentUlamCode(fp);
-	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	fp->write(".GetBits().Write(");
-	fp->write_decimal_unsigned(pos);
-	fp->write("u, T::ATOM_FIRST_STATE_BIT, typefield);"); GCNL;
-      }
-    else
-      {
-	u32 arraysize = vut->getArraySize();
-	m_state.indentUlamCode(fp);
-	fp->write("for(u32 i = 0; i < ");
-	fp->write_decimal_unsigned(arraysize);
-	fp->write("; i++) ");
-	fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-	fp->write(".Write(");
-	fp->write_decimal(pos);
-	fp->write("u + i * T::BPA, T::ATOM_FIRST_STATE_BIT, typefield);"); GCNL;
-      }
-    m_state.m_currentIndentLevel--;
-    m_state.indentUlamCode(fp);
-    fp->write("}\n");
-  } //genFixForElementTypeFieldInTmpVarOfConstantClass
-#endif
-
   // write out intermediate tmpVar as temp BitVector, e.g. func args, question-colon
   //for func args, the type of the funccall node isn't the type of the argument;
   //casts can mask whether the node is the same type as uvpass tmp var.

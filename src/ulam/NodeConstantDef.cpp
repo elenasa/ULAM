@@ -1321,16 +1321,6 @@ namespace MFM {
 	    fp->write(" ");
 	    fp->write(m_constSymbol->getMangledName().c_str());
 	    fp->write(";"); GCNL;
-
-#if 0
-	    //fix once
-	    m_state.indentUlamCode(fp);
-	    fp->write("BitVector<");
-	    fp->write_decimal_unsigned(arraysize);
-	    fp->write("> _isFixed");
-	    fp->write(m_constSymbol->getMangledName().c_str());
-	    fp->write(";"); GCNL;
-#endif
 	  }
 	else if(m_constSymbol->isClassArgument())
 	  {
@@ -1401,17 +1391,6 @@ namespace MFM {
 	    fp->write("//");
 	    fp->write(estr.c_str());
 	    GCNL;
-
-#if 0
-	    //fix once flag, scalar constant class
-	    if(!m_constSymbol->isClassArgument())
-	      {
-		m_state.indentUlamCode(fp);
-		fp->write("BitVector<1> _isFixed");
-		fp->write(m_constSymbol->getMangledName().c_str());
-		fp->write(";"); GCNL;
-	      }
-#endif
 	  }
 	else
 	  {
@@ -1435,23 +1414,6 @@ namespace MFM {
 	    fp->write("); // tmp for constant ");
 	    fp->write(getName()); //comment
 	    GCNL;
-
-#if 0
-	    // in case of element or transient with element dm to fix element type;
-	    // no longer needed for quarks (ulam-4) since strings don't need fixing (t41209);
-	    if(nut->getUlamClassType() != UC_QUARK)
-	      {
-		m_state.m_currentObjSymbolsForCodeGen.push_back(m_constSymbol);
-		UVPass tmpuvpass;
-		Node::genCodeReadFromAConstantClassIntoATmpVar(fp, tmpuvpass);
-
-		m_state.indentUlamCode(fp);
-		fp->write(m_constSymbol->getMangledName().c_str());
-		fp->write(".write(");
-		fp->write(tmpuvpass.getTmpVarAsString(m_state).c_str());
-		fp->write(");"); GCNL;
-	      }
-#endif
 	  }
       } //else do nothing
     return; //done
@@ -1511,27 +1473,6 @@ namespace MFM {
 	fp->write(m_constSymbol->getMangledName().c_str());
 	fp->write("();"); GCNL;
 	fp->write("\n");
-
-#if 0
-	//declare methods to check/set fix once for arrays and/or class constants
-	if((m_constSymbol->isLocalsFilescopeDef() ||  m_constSymbol->isDataMember()))
-	  {
-	    m_state.indent(fp);
-	    fp->write("bool _isFixedMethodFor");
-	    fp->write(m_constSymbol->getMangledName().c_str());
-	    fp->write("(const u32 pos = 0, const u32 len = ");
-	    fp->write_decimal(arraysize);
-	    fp->write(");"); GCNL;
-
-	    m_state.indent(fp);
-	    fp->write("void _isFixedSetMethodFor");
-	    fp->write(m_constSymbol->getMangledName().c_str());
-	    fp->write("(const u32 pos = 0, const u32 len = ");
-	    fp->write_decimal(arraysize);
-	    fp->write(");"); GCNL;
-	    fp->write("\n");
-	  }
-#endif
 	return;
       }
 
@@ -1615,90 +1556,6 @@ namespace MFM {
     fp->write("()); //Def constant ");
     fp->write(getName()); GCNL;
     fp->write("\n");
-
-#if 0
-    //fix once constant class or array
-    if((m_constSymbol->isLocalsFilescopeDef() ||  m_constSymbol->isDataMember()))
-      {
-	m_state.indent(fp);
-	fp->write("template<class EC>\n");
-	m_state.indent(fp);
-	fp->write("bool MFM::");
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>::");
-	fp->write("_isFixedMethodFor");
-	fp->write(m_constSymbol->getMangledName().c_str());
-	fp->write("(const u32 pos, const u32 len)\n");
-	m_state.indent(fp);
-	fp->write("{\n");
-
-	m_state.m_currentIndentLevel++;
-
-	m_state.indent(fp);
-	fp->write("for(u32 i = pos; i < pos + len; i++)\n");
-	m_state.indent(fp);
-	fp->write("{\n");
-
-	m_state.m_currentIndentLevel++;
-
-	m_state.indent(fp);
-	fp->write("if(");
-	fp->write(m_state.getTheInstanceMangledNameByIndex(cuti).c_str());
-	fp->write("._isFixed");
-	fp->write(m_constSymbol->getMangledName().c_str());
-	fp->write(".Read(i, 1) == 0)\n");
-
-	m_state.m_currentIndentLevel++;
-	m_state.indent(fp);
-	fp->write("return false; //done\n");
-	m_state.m_currentIndentLevel--;
-
-	m_state.m_currentIndentLevel--;
-
-	m_state.indent(fp);
-	fp->write("} //loop\n");
-
-	m_state.indent(fp);
-	fp->write("return true;\n");
-
-	m_state.m_currentIndentLevel--;
-
-	m_state.indent(fp);
-	fp->write("} // _isFixedMethodFor");
-	fp->write(m_constSymbol->getMangledName().c_str()); GCNL;
-	fp->write("\n");
-
-	//set method
-	m_state.indent(fp);
-	fp->write("template<class EC>\n");
-	m_state.indent(fp);
-	fp->write("void MFM::");
-	fp->write(cut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>::");
-	fp->write("_isFixedSetMethodFor");
-	fp->write(m_constSymbol->getMangledName().c_str());
-	fp->write("(const u32 pos, const u32 len)\n");
-	m_state.indent(fp);
-	fp->write("{\n");
-
-	m_state.m_currentIndentLevel++;
-
-	m_state.indent(fp);
-	fp->write("for(u32 i = pos; i < pos + len; i++) ");
-
-	fp->write(m_state.getTheInstanceMangledNameByIndex(cuti).c_str());
-	fp->write("._isFixed");
-	fp->write(m_constSymbol->getMangledName().c_str());
-	fp->write(".Write(i, 1, 1);\n");
-
-	m_state.m_currentIndentLevel--;
-
-	m_state.indent(fp);
-	fp->write("} // _isFixedSetMethodFor");
-	fp->write(m_constSymbol->getMangledName().c_str()); GCNL;
-	fp->write("\n");
-      }
-#endif
   } //generateBuiltinConstantClassOrArrayInitializationFunction
 
   void NodeConstantDef::cloneAndAppendNode(std::vector<Node *> & cloneVec)
