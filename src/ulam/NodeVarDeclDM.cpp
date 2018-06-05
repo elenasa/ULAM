@@ -695,103 +695,125 @@ namespace MFM {
   {
     assert(m_varSymbol);
     assert(m_varSymbol->isDataMember());
+    UTI vuti = m_varSymbol->getUlamTypeIdx();
+    UTI cuti = m_state.getCompileThisIdx();
 
     if(!m_varSymbol->isPosOffsetReliable())
       {
-	UTI vuti = m_varSymbol->getUlamTypeIdx();
 	if(m_state.isAClass(vuti))
-	  {
-	    m_state.tryToPackAClass(vuti);
-	    if(!m_varSymbol->isPosOffsetReliable())
-	      return false;
-	    //else continue
-	  }
-	else
-	  return false; //not a class
+	  m_state.tryToPackAClass(vuti);
+
+	if(!m_varSymbol->isPosOffsetReliable())
+	  m_state.tryToPackAClass(cuti); //t41262
+
+	if(!m_varSymbol->isPosOffsetReliable())
+	  return false;
+	//else continue
       }
 
     bool aok = false; //init as not ready
     UTI nuti = getNodeType(); //same as symbol uti, unless prior error
-    assert(nuti == m_varSymbol->getUlamTypeIdx());
+    assert(nuti == vuti);
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-
-    UTI cuti = m_state.getCompileThisIdx();
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
     u32 pos = m_varSymbol->getPosOffset();
-    s32 bitsize = nut->getBitSize();
+    //s32 bitsize = nut->getBitSize();
+    u32 len = nut->getSizeofUlamType();
 
-    if(bitsize == 0)
+    if(len == 0)
       return true; //no size to initialize (e.g. System)
 
     if(cut->getUlamClassType() == UC_ELEMENT)
-      pos += ATOMFIRSTSTATEBITPOS; //atom-based (TypeField determined at runtime)
+      pos += ATOMFIRSTSTATEBITPOS; //atom-based (ulam-4 TypeField known at compile-time)
 
-    if(nut->getUlamClassType() == UC_ELEMENT)
-      bitsize = BITSPERATOM; //atom-based data member
+    //if(nut->getUlamClassType() == UC_ELEMENT)
+    //  bitsize = BITSPERATOM; //atom-based data member
 
     ULAMTYPE etyp = nut->getUlamTypeEnum();
     if(etyp == Class) //thisClass contains a different class
       {
-	u32 dmwlen = nut->getTotalWordSize();
-	if(dmwlen > 0)
+	assert(len <= wlen);
+	BV8K dmdv; //copies default BV
+
+	if(m_state.getDefaultClassValue(nuti, dmdv)) //uses scalar uti
 	  {
-	    assert(dmwlen <= wlen);
-	    BV8K dmdv; //copies default BV
-
-	    s32 arraysize = nut->getArraySize();
-	    arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //could be 0
-
-	    if(m_state.getDefaultClassValue(nuti, dmdv)) //uses scalar uti
+	    if(hasInitExpr())
 	      {
-		if(hasInitExpr())
+		BV8K bvmask;
+		if((aok = m_nodeInitExpr->initDataMembersConstantValue(dmdv, bvmask)))
 		  {
-		    BV8K bvmask;
-		    if((aok = m_nodeInitExpr->initDataMembersConstantValue(dmdv, bvmask)))
-		      m_varSymbol->setInitValue(dmdv); //t41167,8  t41185
+		    m_varSymbol->setInitValue(dmdv); //t41167,8  t41185 (handles arrays too)
+		    //		    dmdv.CopyBV(0, pos, nut->getSizeofUlamType(), dvref); //both scalar and arrays (t41185)
+		    //return aok; //t41185?
 		  }
-		else
-		  aok = true;
-
-		//updates dvref in place at position 'pos'
-		if(aok)
-		  dmdv.CopyBV(0, pos, nut->getSizeofUlamType(), dvref); //both scalar and arrays (t41185, t41267)
 	      }
-	    //else not ok
+	    else
+	      aok = true;
+
+	    //updates dvref in place at position 'pos'
+	    //if(aok)
+	    //  dmdv.CopyBV(0, pos, nut->getSizeofUlamType(), dvref); //both scalar and arrays (t41185, t41267)
 	  }
-	else
-	  aok = true; //zero len
+	//else not ok
 
 	if(aok)
-	  foldDefaultClass(); //init value for m_varSymbol t3512
+	  {
+	    foldDefaultClass(); //init value for m_varSymbol (if not already done), handles arrays t3512
+	    BV8K bvarr;
+	    m_varSymbol->getInitValue(bvarr);
+	    bvarr.CopyBV(0, pos, len, dvref); //both scalar and arrays (t41185, t41267, t3818)
+	  }
+      }
+    else if(etyp == UAtom) //this Transient contains an empty atom (t3802)
+      {
+	BV8K bvatom; //copies default EMPTY Element with Type (ulam-4)
+	UTI emptyuti = m_state.getEmptyElementUTI();
+	AssertBool gotDefault = m_state.getDefaultClassValue(emptyuti, bvatom);
+	assert(gotDefault);
+
+	s32 arraysize = nut->getArraySize();
+	arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //could be 0
+
+	BV8K darrval;
+	m_state.getDefaultAsArray(BITSPERATOM, arraysize, 0, bvatom, darrval);
+
+	//m_varSymbol->setHasInitValue();
+	m_varSymbol->setInitValue(darrval); //t3818
+
+	//updates dvref in place at position 'pos'
+	darrval.CopyBV(0, pos, len, dvref); //both scalar and arrays
+	aok = true;
       }
     else if(hasInitExpr())
       {
-	//primitive (not a class!)
+	//primitive (neither a class, nor an atom!)
 	//arrays may be initialized now
+#if 0
 	//isn't this redundant??? Mon Dec 19 11:33:26 2016
 	if(m_state.isScalar(nuti))
 	  {
 	    u64 val = 0;
 	    if(m_varSymbol->getInitValue(val))
 	      {
-		s32 classsize = m_state.getBitSize(m_state.getCompileThisIdx());
+		u32 classsize = cut->getSizeofUlamType(); //was BitSize
 		u64 packedval = 0;
-		m_state.getDefaultAsPackedArray(classsize, bitsize, 1, pos, (u64) val, packedval);
-		dvref.WriteLong(pos, bitsize, packedval);
-		aok = true;
+		m_state.getDefaultAsPackedArray(classsize, len, 1, pos, (u64) val, packedval);
+		dvref.WriteLong(pos, len, packedval);
+		aok = true; //t3512, t3543..
 	      }
 	  }
 	else
+#endif
 	  {
 	    assert(m_varSymbol->hasInitValue());
 	    BV8K dval; //copies default BV
 	    if(m_varSymbol->getInitValue(dval))
 	      {
-		u32 len = nut->getTotalBitSize();
+		//u32 len = nut->getTotalBitSize();
 		dval.CopyBV(0u, pos, len, dvref); //frompos, topos, len, destBV
-		aok = true;
+		aok = true; //e.g. t3512
 	      }
 	  }
       }
@@ -816,8 +838,10 @@ namespace MFM {
     UTI nuti = getNodeType(); //same as symbol uti, unless prior error
     assert(nuti == m_varSymbol->getUlamTypeIdx());
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    u32 bits = nut->getBitSize();
-    if(bits == 0)
+    u32 totbitsize = nut->getSizeofUlamType();
+    //u32 bits = nut->getBitSize();
+    //if(bits == 0)
+    if(totbitsize == 0)
       return;
 
     ULAMTYPE etyp = nut->getUlamTypeEnum();
@@ -829,8 +853,6 @@ namespace MFM {
 	  {
 	    //initializes a data member;
 	    //for constant classes in tmp var, this has been done already (t41232)
-	    u32 totbitsize = nut->getSizeofUlamType();
-
 	    s32 tmpVarNum = m_state.getNextTmpVarNumber();
 	    TMPSTORAGE cstor = nut->getTmpStorageTypeForTmpVar();
 	    s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
@@ -897,13 +919,14 @@ namespace MFM {
 	    assert(isDef);
 	    NodeBlockClass * cblock = csym->getClassBlockNode();
 	    assert(cblock);
-	    if(classtype == UC_TRANSIENT)
-	      cblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, pos + startpos, uvpassptr); //? test
+	    //if(classtype == UC_TRANSIENT)
+	    //  cblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, pos + startpos, uvpassptr); //? test (ulam-4 et ok)
 	    cblock->genCodeDefaultValue(fp, pos + startpos, uvpassptr, bv8kptr); //t41268
 	  }
       } //a class
   } //genCodeDefaultValue
 
+#if 0
   void NodeVarDeclDM::genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr)
   {
     assert(m_varSymbol);
@@ -1009,6 +1032,7 @@ namespace MFM {
 	fp->write("}\n");
       }
   } //genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar
+#endif
 
   void NodeVarDeclDM::foldDefaultClass()
   {
@@ -1020,11 +1044,13 @@ namespace MFM {
     assert(m_state.okUTItoContinue(nuti));
     assert(m_state.isComplete(nuti));
 
-    u32 bitsize = nut->getBitSize();
+    UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
+    UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
+    u32 bitsize = scalarut->getSizeofUlamType(); //was BitSize (t41185)
     s32 arraysize = nut->getArraySize();
 
     BV8K bvtmp;
-    AssertBool gotDefault = m_state.getDefaultClassValue(nuti, bvtmp);
+    AssertBool gotDefault = m_state.getDefaultClassValue(nuti, bvtmp); //uses scalar
     assert(gotDefault); //maybe zeros
 
     BV8K bvarr;
@@ -1032,7 +1058,7 @@ namespace MFM {
     m_state.getDefaultAsArray(bitsize, arraysize, 0u, bvtmp, bvarr);
 
     //(in this order) i thought this was for primitives only?
-    m_varSymbol->setHasInitValue();
+    //m_varSymbol->setHasInitValue();
     m_varSymbol->setInitValue(bvarr); //t3512
   } //foldDefaultClass
 
@@ -1186,6 +1212,7 @@ namespace MFM {
 	fp->write("typedef UlamRefFixed");
 	fp->write("<EC, "); //BITSPERATOM
 
+	u32 len = nut->getSizeofUlamType();
 	if(nut->getUlamClassType() == UC_ELEMENT) //t3714, t3779 Mob.h Up_Um_2sp
 	  {
 	    //elements only data members in transients
@@ -1193,10 +1220,10 @@ namespace MFM {
 	    s32 arraysize = nut->getArraySize();
 	    arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //Mon Jul  4 14:11:41 2016
 	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
-	    if(nut->getBitSize() > 0)
-	      fp->write("u, BPA * "); //atom-based
-	    else
-	      fp->write("u, 0u * "); //empty atom //t3400
+	    //if(nut->getBitSize() > 0)
+	    fp->write("u, BPA * "); //atom-based
+	    //else
+	    //  fp->write("u, 0u * "); //empty atom //t3400 (ulam-4 has type!!)
 	    fp->write_decimal(arraysize); //include arraysize
 	    fp->write("u> ");
 	  }
@@ -1204,7 +1231,7 @@ namespace MFM {
 	  {
 	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
 	    fp->write("u, ");
-	    fp->write_decimal(nut->getTotalBitSize()); //include arraysize
+	    fp->write_decimal(len); //include arraysize
 	    fp->write("u> ");
 	  }
 	fp->write(m_varSymbol->getMangledName().c_str());

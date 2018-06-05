@@ -5,12 +5,13 @@
 #include "SymbolClass.h"
 #include "SymbolClassName.h"
 #include "Resolver.h"
+#include "Parity2D_4x4.h"
 
 namespace MFM {
 
-  SymbolClass::SymbolClass(const Token& id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false) /* default */, m_superClass(Nouti), m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER) {}
+  SymbolClass::SymbolClass(const Token& id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false) /* default */, m_superClass(Nouti), m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE) {}
 
-  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_superClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_superClass,sref.getLoc())), m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER)
+  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), /*m_defaultValue(NULL),*/ m_isreadyDefaultValue(false), m_superClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_superClass,sref.getLoc())), m_bitsPacked(false), m_registryNumber(UNINITTED_REGISTRY_NUMBER), m_elementType(UNDEFINED_ELEMENT_TYPE)
   {
     if(sref.m_classBlock)
       {
@@ -291,19 +292,25 @@ namespace MFM {
 	return false; //t3875
       }
 
-    u32 wordlen = sut->getTotalWordSize();
-    if(wordlen == 0)
+    u32 usizeof = sut->getSizeofUlamType(); //t3802
+    if(usizeof == 0)
       {
  	m_isreadyDefaultValue = true;
 	dvref = m_defaultValue;
-	return true; //short-circuit, no data members
+	return true; //short-circuit, no data members, nor an element
+      }
+
+    if(sut->getUlamClassType() == UC_ELEMENT)
+      {
+	ELE_TYPE type = getElementType();
+	m_defaultValue.Write(0,ATOMFIRSTSTATEBITPOS, Parity2D_4x4::Add2DParity(type)); //t3173, t3206
       }
 
     NodeBlockClass * classblock = getClassBlockNode();
     assert(classblock);
     m_state.pushClassContext(suti, classblock, classblock, false, NULL); //missing?
 
-    m_isreadyDefaultValue = classblock->buildDefaultValue(wordlen, m_defaultValue);
+    m_isreadyDefaultValue = classblock->buildDefaultValue(usizeof, m_defaultValue);
 
     m_state.popClassContext();
 
@@ -672,6 +679,66 @@ namespace MFM {
     m_registryNumber = n;
     return true;
   } //assignRegistryNumber
+
+  bool SymbolClass::assignElementType(ELE_TYPE n)
+  {
+    if (n == UNDEFINED_ELEMENT_TYPE)
+      {
+	std::ostringstream msg;
+	msg << "Attempting to assign undefined Element Type";
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
+	return false;
+      }
+
+    if (m_elementType != UNDEFINED_ELEMENT_TYPE)
+      {
+	std::ostringstream msg;
+	msg << "Attempting to assign duplicate Element Type " << n;
+	msg << " to " << m_elementType;
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
+	return false;
+      }
+
+    if(n >= MAX_ELEMENT_TYPE)
+      {
+	std::ostringstream msg;
+	msg << "Attempting to assign TOO MANY Element Types " << n;
+	msg << "; max table size is " << MAX_ELEMENT_TYPE + 1;
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
+	return false;
+      }
+
+    m_elementType = n;
+    return true;
+  } //assignElementType
+
+  bool SymbolClass::assignEmptyElementType()
+  {
+    if (m_elementType != UNDEFINED_ELEMENT_TYPE)
+      {
+	std::ostringstream msg;
+	msg << "Attempting to assign duplicate Empty Element Types";
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
+	return false;
+      }
+    m_elementType = EMPTY_ELEMENT_TYPE;
+    return true;
+  } //assignEmptyElementType
+
+  ELE_TYPE SymbolClass::getElementType()
+  {
+    if(m_elementType == UNDEFINED_ELEMENT_TYPE)
+      {
+	if(m_state.isEmptyElement(getUlamTypeIdx()))
+	  assignEmptyElementType(); //t3802
+	else
+	  {
+	    ELE_TYPE type = m_state.getNextElementType();
+	    assignElementType(type);
+	  }
+      }
+    return m_elementType;
+  }
 
   u32 SymbolClass::getRegistryNumber() const
   {

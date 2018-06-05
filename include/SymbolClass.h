@@ -138,7 +138,10 @@ namespace MFM{
     bool hasMappedUTI(UTI auti, UTI& mappedUTI);
 
     bool assignRegistryNumber(u32 n); //ulam-4
-    u32 getRegistryNumber() const;
+    u32 getRegistryNumber() const; //ulam-4
+    bool assignElementType(ELE_TYPE n); //ulam-4
+    bool assignEmptyElementType(); //ulam-4
+    ELE_TYPE getElementType(); //ulam-4
 
     virtual void generateCode(FileManager * fm);
 
@@ -165,9 +168,6 @@ namespace MFM{
 
     bool isAbstract();
 
-    //    StringPoolUser& getUserStringPoolRef();
-    //void setUserStringPoolRef(const StringPoolUser& spref);
-
   protected:
     Resolver * m_resolver;
 
@@ -183,6 +183,8 @@ namespace MFM{
     UTI m_superClass; //single inheritance
     bool m_bitsPacked;
     u32 m_registryNumber; //ulam-4
+
+    ELE_TYPE m_elementType; //ulam-4
 
     void assignClassArgValuesInStubCopy();
 

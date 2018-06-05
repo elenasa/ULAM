@@ -463,6 +463,8 @@ namespace MFM {
     if(m_state.isAClass(nuti) && !m_constSymbol->isInitValueReady())
       {
 	BV8K bvclass;
+	bvref.CopyBV(pos, 0, len, bvclass); //uses any pre-initialized value
+
 	//like NodeVarDeclDM buildDefaultValue for a class
 	if(!m_nodeExpr)
 	  {
@@ -470,7 +472,7 @@ namespace MFM {
 	  }
 	else if(!m_state.isScalar(nuti))
 	  {
-	    rtnok = (((NodeListArrayInitialization *) m_nodeExpr)->buildClassArrayValueInitialization(bvclass)); //at pos 0 (t41170), BUT adjusted for elements (t41263)!!!
+	    rtnok = (((NodeListArrayInitialization *) m_nodeExpr)->buildClassArrayValueInitialization(bvclass)); //at pos 0 (t41170), BUT adjusted for elements (t41263), uses and pre-init(t41179)
 	  }
 	else if(m_nodeExpr->isAConstantClass())
 	  {
@@ -478,11 +480,9 @@ namespace MFM {
 	  }
 	else
 	  {
-	    if(m_state.getDefaultClassValue(nuti, bvclass)) //uses scalar uti
-	      {
-		BV8K bvtmpmask;
-		rtnok = ((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvclass, bvtmpmask); //at pos 0, adjusted for elements!
-	      }
+	    //if(m_state.getDefaultClassValue(nuti, bvclass)) //uses scalar uti
+	    BV8K bvtmpmask;
+	    rtnok = ((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvclass, bvtmpmask); //at pos 0, adjusted for elements! uses any pre-initialization (t41176,7,8)
 	  }
 	if(!rtnok)
 	  return false;
@@ -532,11 +532,13 @@ namespace MFM {
     return; //pass on
   }
 
+#if 0
   void NodeInitDM::genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr)
   {
     m_state.abortNotImplementedYet(); //???
     return;
   }
+#endif
 
   void NodeInitDM::fixPendingArgumentNode()
   {

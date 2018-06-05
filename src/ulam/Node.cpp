@@ -497,10 +497,12 @@ namespace MFM {
     return;
   }
 
+#if 0
   void Node::genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr)
   {
     m_state.abortShouldntGetHere();
   }
+#endif
 
   bool Node::installSymbolTypedef(TypeArgs& args, Symbol *& asymptr)
   {
@@ -934,8 +936,11 @@ namespace MFM {
     if(cosetyp == Class)
       {
 	UVPass * passptr = &uvpass;
+#if 0
+	//ulam-4 got it already
 	if(cosclass == UC_ELEMENT)
 	  genFixForElementTypeFieldInTmpVarOfConstantClass(fp, uvpass);
+#endif
 
 	BV8K bvclass;
 	AssertBool gotVal = ncsym->getValue(bvclass);
@@ -954,9 +959,9 @@ namespace MFM {
 	u32 arraysize = cosut->isScalar() ? 1 : cosut->getArraySize();
 	for(u32 i = 0; i < arraysize; i++)
 	  {
-	    //only transients can have elements as data members
-	    if(cosclass == UC_TRANSIENT)
-	      cblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, cospos + i * len, &uvpass);
+	    //only transients can have elements as data members (et ok, ulam-4)
+	    //if(cosclass == UC_TRANSIENT)
+	    //  cblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, cospos + i * len, &uvpass);
 	    //All class/classarray can have data member(s) with initial values
 	    cblock->genCodeDefaultValue(fp, cospos + i * len, passptr, &bvclass);
 	  }
@@ -1010,7 +1015,7 @@ namespace MFM {
     UlamType * scalarlut = m_state.getUlamTypeByIndex(scalarluti);
     u32 itemlen = scalarlut->getSizeofUlamType(); //atom-based for elements
     TMPSTORAGE slstor = scalarlut->getTmpStorageTypeForTmpVar();
-    ULAMCLASSTYPE sclasstype = scalarlut->getUlamClassType();
+    //ULAMCLASSTYPE sclasstype = scalarlut->getUlamClassType();
     s32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
 
     UTI cosuti = cos->getUlamTypeIdx();
@@ -1111,8 +1116,11 @@ namespace MFM {
 	if(cosetyp == Class)
 	  {
 	    UVPass * passptr = &luvpass;
+#if 0
+	    //ulam-4 got it already
 	    if((sclasstype == UC_ELEMENT))
 	      genFixForElementTypeFieldInTmpVarOfConstantClass(fp, luvpass);
+#endif
 
 	    BV8K bvclass;
 	    AssertBool gotVal = ncsym->getValue(bvclass);
@@ -1126,8 +1134,8 @@ namespace MFM {
 	    //scalar item, no loop (t41267,8,9, t41270,1,2)
 	    cblock->genCodeDefaultValue(fp, cospos, passptr, &bvclass); //t41267
 
-	    if(sclasstype == UC_TRANSIENT)
-	      cblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, cospos, &luvpass); //t41263
+	    //if(sclasstype == UC_TRANSIENT)
+	    //  cblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, cospos, &luvpass); //t41263
 	    if(fixflag)
 	      {
 		m_state.indentUlamCode(fp);

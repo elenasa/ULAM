@@ -88,6 +88,11 @@ namespace MFM
     s32 write_decimal_unsigned(const u32 data);
     s32 write_decimal_unsignedlong(const u64 data);
 
+    /** Convenience write for hexadecimal numbers, calls subclass write;
+	returns 0 if successful, o.w. the return from write(int)
+    */
+    s32 write_hexadecimal(const u32 data);
+
     /** Convenience write for newlines to document source of generated code */
     s32 write_tagged_end(const char * filename, s32 lineno);
 

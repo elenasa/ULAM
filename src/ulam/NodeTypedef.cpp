@@ -302,10 +302,12 @@ namespace MFM {
     return; //pass on
   }
 
+#if 0
   void NodeTypedef::genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr)
   {
     return;
   }
+#endif
 
   EvalStatus NodeTypedef::eval()
   {

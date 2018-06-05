@@ -364,6 +364,8 @@ namespace MFM{
     //fill in default class if nothing provided for a non-empty array
     if((n == 0) && (arraysize > 0))
       {
+#if 0
+	//ulam-4 element type ok
 	if(nut->getUlamClassType() == UC_ELEMENT)
 	  {
 	    BV8K bvd;
@@ -371,6 +373,7 @@ namespace MFM{
 	    bvd.CopyBV(0, ATOMFIRSTSTATEBITPOS, MAXSTATEBITS, bvtmp);
 	  }
 	else
+#endif
 	  rtnok = m_state.getDefaultClassValue(nuti, bvtmp); //uses scalar uti
 	n = 1; //ready to fall thru and propagate as needed
       }
@@ -405,6 +408,7 @@ namespace MFM{
     u32 adjust = 0; //(classtype == UC_ELEMENT ? ATOMFIRSTSTATEBITPOS : 0);
 
     BV8K bvclass;
+    bvtmp.CopyBV(pos * itemlen + adjust, 0, itemlen - adjust, bvclass); //zero-based item
     if(m_nodes[n]->isAConstantClass())
       {
 	BV8K bvmask;
@@ -417,7 +421,7 @@ namespace MFM{
     else if(m_nodes[n]->isClassInit())
       {
 	//note: starts with default in case of String data members; (pos arg unused)
-	if(m_state.getDefaultClassValue(nuti, bvclass)) //uses scalar uti
+	//if(m_state.getDefaultClassValue(nuti, bvclass)) //uses scalar uti
 	  {
 	    BV8K bvmask;
 	    if(((NodeListClassInit *) m_nodes[n])->initDataMembersConstantValue(bvclass, bvmask)) //at pos 0
@@ -484,13 +488,14 @@ namespace MFM{
 
 	for(u32 w = 0; w < nwords; w++)
 	  {
-	    std::ostringstream dhex;
-	      dhex << "0x" << std::hex << uvals[w];
+	    //std::ostringstream dhex;
+	    //dhex << "0x" << std::hex << uvals[w];
 
 	    if(w > 0)
 	      fp->write(", ");
 
-	    fp->write(dhex.str().c_str());
+	    //fp->write(dhex.str().c_str());
+	    fp->write_hexadecimal(uvals[w]);
 	  }
 	fp->write(" };"); GCNL;
       }
@@ -508,8 +513,9 @@ namespace MFM{
 	if(nwords <= 1) //32
 	  {
 	    //right justify single u32 (t3974)
-	    dhex << "0x" << std::hex << dval.Read(0u, len); //uvals[0]
-	    fp->write(dhex.str().c_str());
+	    //dhex << "0x" << std::hex << dval.Read(0u, len); //uvals[0]
+	    //fp->write(dhex.str().c_str());
+	    fp->write_hexadecimal(dval.Read(0u, len));
 	    fp->write(";"); GCNL;
 
 	  }

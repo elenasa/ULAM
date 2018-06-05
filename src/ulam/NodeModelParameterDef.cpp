@@ -81,10 +81,12 @@ namespace MFM {
     return;
   }
 
+#if 0
   void NodeModelParameterDef::genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr)
   {
     return;
   }
+#endif
 
   void NodeModelParameterDef::checkForSymbol()
   {

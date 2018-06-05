@@ -5,6 +5,7 @@
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
 #include "UlamTypeClass.h"
+#include "ElementTypeGenerator.h"
 
 namespace MFM {
 
@@ -114,7 +115,7 @@ namespace MFM {
 	UTI cuti = sym->getUlamTypeIdx();
 	//skip anonymous classes; skip UrSelf to avoid extensive changes all test answers.
 	//skip Empty to avoid extensive changes all test answers.
-	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti) && !m_state.isUrSelf(cuti) && !m_state.isEmpty(cuti))
+	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenClass(cuti) && !m_state.isUrSelf(cuti) && !m_state.isEmptyElement(cuti))
 	  {
 	    NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
 	    assert(classNode);
@@ -664,6 +665,54 @@ namespace MFM {
       } //while
     return count;
   } //defineRegistrationNumberForTableOfClasses
+
+#if 0
+  u32 SymbolTableOfClasses::defineElementTypeForTableOfClasses()
+  {
+    //first step, count number of total elements
+    u32 count = 0;
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym->isClass());
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes, and Empty
+	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenElement(cuti) && !m_state.isEmptyElement(cuti))
+	  {
+	    count += ((SymbolClassName *) sym)->countCompleteUniqueClassInstances();
+	  }
+	it++;
+      } //while
+
+    //second, generate count Element Types
+    ElementTypeGenerator etg(count);
+    etg.beginIteration();
+
+    //third, assign Element Types to classes (getNextElementType())
+    std::map<u32, Symbol *>::iterator it3 = m_idToSymbolPtr.begin();
+    while(it3 != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it3->second;
+	assert(sym->isClass());
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(!m_state.isAnonymousClass(cuti) && m_state.isASeenElement(cuti) && !m_state.isEmptyElement(cuti))
+	  {
+	    ((SymbolClassName *) sym)->assignElementTypeForClassInstances(etg);
+	  }
+	it3++;
+      } //while
+
+    //fourth, assign Empty its Element Type (special case)
+    UTI emptyuti = m_state.getEmptyElementUTI();
+    SymbolClass * emptycsym = NULL;
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(emptyuti, emptycsym);
+    assert(isDefined);
+    emptycsym->assignEmptyElementType();
+    return count + 1;
+  } //defineElementTypeForTableOfClasses
+#endif
 
   void SymbolTableOfClasses::genCodeForTableOfClasses(FileManager * fm)
   {

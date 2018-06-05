@@ -303,6 +303,7 @@ namespace MFM {
 	{
 	  AssertBool isReplaced = m_state.replaceUlamTypeForUpdatedClassType(cut->getUlamKeyTypeSignature(), Class, UC_ELEMENT, cut->isCustomArray());
 	  assert(isReplaced);
+	  m_state.isEmptyElement(cuti); //t3802
 	  break;
 	}
       case TOK_KW_QUARK:

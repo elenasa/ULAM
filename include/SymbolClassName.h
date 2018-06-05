@@ -38,6 +38,7 @@
 
 #include "SymbolClass.h"
 #include "SymbolConstantValue.h"
+#include "ElementTypeGenerator.h"
 
 namespace MFM{
 
@@ -97,7 +98,10 @@ namespace MFM{
 
     virtual void testForClassInstances(File * fp);
 
-    virtual void assignRegistrationNumberForClassInstances(u32& count);
+    virtual void assignRegistrationNumberForClassInstances(u32& count); //ulam-4
+
+//virtual u32 countCompleteUniqueClassInstances();
+//   virtual void assignElementTypeForClassInstances(ElementTypeGenerator& etgref);
 
     virtual void generateCodeForClassInstances(FileManager * fm);
 

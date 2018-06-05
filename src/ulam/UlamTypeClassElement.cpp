@@ -353,7 +353,7 @@ namespace MFM {
     fp->write(getTmpStorageTypeAsString().c_str()); //T or BV
     fp->write("& targ) { ");
     if(isScalar())
-      fp->write("if(targ.GetType() != Us::THE_INSTANCE.GetType()) FAIL(ILLEGAL_ARGUMENT); ");
+      fp->write("if(targ.GetType() != Us::THE_INSTANCE.ELEMENT_TYPE) FAIL(ILLEGAL_ARGUMENT); ");
     fp->write("UlamRef<EC>::");
     fp->write(writeMethodForCodeGen().c_str());
     if(isScalar())
@@ -371,7 +371,7 @@ namespace MFM {
 	fp->write("void write(const ");
 	fp->write("AtomRefBitStorage<EC>");
 	fp->write("& v) { ");
-	fp->write("if(v.GetType() != Us::THE_INSTANCE.GetType()) FAIL(ILLEGAL_ARGUMENT); ");
+	fp->write("if(v.GetType() != Us::THE_INSTANCE.ELEMENT_TYPE) FAIL(ILLEGAL_ARGUMENT); ");
 	fp->write("UlamRef<EC>::");
 	fp->write(writeMethodForCodeGen().c_str());
 	fp->write("(v.ReadAtom()); /* write entire atom */ }"); GCNL; //done
@@ -486,7 +486,7 @@ namespace MFM {
     fp->write("& d) : ");
     fp->write("AtomBitStorage<EC>");
     fp->write("(d) { ");
-    fp->write("if(d.GetType() != Us::THE_INSTANCE.GetType()) FAIL(ILLEGAL_ARGUMENT);");
+    fp->write("if(d.GetType() != Us::THE_INSTANCE.ELEMENT_TYPE) FAIL(ILLEGAL_ARGUMENT);");
     fp->write(" }"); GCNL;
 
     // assignment copy constructor
@@ -510,7 +510,7 @@ namespace MFM {
     fp->write("(const AtomRefBitStorage<EC> & arg) : ");
     fp->write("AtomBitStorage<EC>");
     fp->write("(arg.ReadAtom()) { ");
-    fp->write("if(arg.GetType() != Us::THE_INSTANCE.GetType()) FAIL(ILLEGAL_ARGUMENT);");
+    fp->write("if(arg.GetType() != Us::THE_INSTANCE.ELEMENT_TYPE) FAIL(ILLEGAL_ARGUMENT);");
     fp->write(" }"); GCNL;
 
     //constructor from ref of same type

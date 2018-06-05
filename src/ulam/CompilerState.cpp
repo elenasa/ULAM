@@ -120,7 +120,7 @@ namespace MFM {
     "*/\n\n";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_pendingArgTypeStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyUTI(Nouti), m_registeredUlamClassCount(0)
+  CompilerState::CompilerState(): m_linesForDebug(false), m_programDefST(*this), m_parsingLocalDef(false), m_parsingVariableSymbolTypeFlag(STF_NEEDSATYPE), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_pendingArgStubContext(0), m_pendingArgTypeStubContext(0), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0), m_urSelfUTI(Nouti), m_emptyElementUTI(Nouti), m_registeredUlamClassCount(0)
   {
     m_err.init(this, debugOn, infoOn, noteOn, warnOn, waitOn, NULL);
     Token::initTokenMap(*this);
@@ -561,7 +561,7 @@ namespace MFM {
 	NodeBlockContext * contextblock = getContextBlock();
 	if(contextblock->hasUlamType(suti))
 	  rtnb = true;
-	else if(isEmpty(suti))
+	else if(isEmptyElement(suti))
 	  rtnb = true;
 	else
 	  {
@@ -1423,7 +1423,8 @@ namespace MFM {
     if(!isComplete(cuti)) return TBOOL_HAZY;
 
     TBOOL rtntb = TBOOL_TRUE;
-    if(cut->getBitSize() > 0)
+    //if(cut->getBitSize() > 0)
+    if(cut->getSizeofUlamType() > 0)
       {
 	UTI scalarcuti = getUlamTypeAsScalar(cuti);
 	SymbolClass * csym = NULL;
@@ -1442,7 +1443,8 @@ namespace MFM {
     assert(cut->getUlamTypeEnum() == Class);
 
     bool rtnb = true;
-    if(cut->getBitSize() > 0)
+    //zero-size elements have their Element Types (ulam-4) e.g. Empty (t3802)
+    if(cut->getSizeofUlamType() > 0)
       {
 	UTI scalarcuti = getUlamTypeAsScalar(cuti);
 	SymbolClass * csym = NULL;
@@ -1505,7 +1507,10 @@ namespace MFM {
 	//static variable 'myRegNum' efficiency not worth it. Tue Jan 16 17:47:22 2018
 	indent(fp);
 	fp->write("//correct data member inits\n");
+#if 0
+	//ulam-4
 	getCurrentBlock()->genCodeDefaultValue(fp, 0, NULL, NULL);
+#endif
       }
 
     m_currentIndentLevel--;
@@ -2641,6 +2646,13 @@ namespace MFM {
       }
   }
 
+#if 0
+  void CompilerState::defineElementTypesForUlamClasses()
+  {
+    m_programDefST.defineElementTypeForTableOfClasses();
+  }
+#endif
+
   void CompilerState::generateCodeForUlamClasses(FileManager * fm)
   {
     m_programDefST.genCodeForTableOfClasses(fm);
@@ -3245,7 +3257,6 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
   bool CompilerState::findSymbolInAClass(u32 id, UTI inClassUTI, Symbol *& rtnsymptr, bool& isHazy)
   {
-    //    assert(!isAnonymousClass(inClassUTI) && isASeenClass(inClassUTI));
     assert(isASeenClass(inClassUTI));
     bool rtnOK = false;
     SymbolClass * csym = NULL;
@@ -4778,6 +4789,20 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return 0; //not found
   }
 
+  ELE_TYPE CompilerState::getAClassElementType(UTI cuti)
+  {
+    assert(isASeenElement(cuti));
+    SymbolClass * csym = NULL;
+    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
+    return csym->getElementType();
+  }
+
+  ELE_TYPE CompilerState::getNextElementType()
+  {
+    return m_elementTypeGenerator.makeNextType();
+  }
+
   NodeBlockClass * CompilerState::getAClassBlock(UTI cuti)
   {
     assert(!isALocalsFileScope(cuti));
@@ -5042,6 +5067,13 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return ((classtype == UC_ELEMENT) || (classtype == UC_QUARK) || (classtype == UC_TRANSIENT));
   }
 
+  bool CompilerState::isASeenElement(UTI cuti)
+  {
+    //includes refs, and arrays!!! NOT UNSEEN!
+    ULAMCLASSTYPE classtype = getUlamTypeByIndex(cuti)->getUlamClassType();
+    return (classtype == UC_ELEMENT);
+  }
+
   bool CompilerState::isAnonymousClass(UTI cuti)
   {
     assert(okUTItoContinue(cuti));
@@ -5078,22 +5110,28 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return (cuti == m_urSelfUTI); //no compare
   } //isUrSelf
 
-  void CompilerState::saveEmptyUTI(UTI uti)
+  void CompilerState::saveEmptyElementUTI(UTI uti)
   {
-    m_emptyUTI = uti;
+    m_emptyElementUTI = uti;
   }
 
-  bool CompilerState::isEmpty(UTI cuti)
+  bool CompilerState::isEmptyElement(UTI cuti)
   {
-    if(m_emptyUTI == Nouti)
+    if(m_emptyElementUTI == Nouti)
       {
 	if(getUlamTypeNameIdByIndex(cuti) == m_pool.getIndexForDataString("Empty"))
-	  saveEmptyUTI(cuti);
+	  saveEmptyElementUTI(cuti);
 	else
 	  return false;
       }
-    return (cuti == m_emptyUTI); //no compare
-  } //isEmpty
+    return (cuti == m_emptyElementUTI); //no compare
+  } //isEmptyElement
+
+  UTI CompilerState::getEmptyElementUTI()
+  {
+    assert(m_emptyElementUTI != Nouti);
+    return m_emptyElementUTI;
+  }
 
   bool CompilerState::okUTItoContinue(UTI uti)
   {

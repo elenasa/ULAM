@@ -168,7 +168,7 @@ namespace MFM{
     NNO m_nextNodeNumber; //used to identify blocks in clone classes with unknown subtrees
 
     UTI m_urSelfUTI; //original ancestor of all classes
-    UTI m_emptyUTI; //the Empty class
+    UTI m_emptyElementUTI; //the Empty element class
 
     CompilerState();
     ~CompilerState();
@@ -361,6 +361,7 @@ namespace MFM{
     bool checkAndLabelPassForLocals();
     void defineRegistrationNumberForUlamClasses(); //ulam-4
     void defineRegistrationNumberForLocals(); //ulam-4
+    //void defineElementTypesForUlamClasses();
 
     void generateCodeForUlamClasses(FileManager * fm);
     void generateUlamClassForLocals(FileManager * fm);
@@ -533,6 +534,8 @@ namespace MFM{
     u32 getRegistrationNumberForClassOrLocalsScope(UTI cuti); //ulam-4
     u32 getAClassRegistrationNumber(UTI cuti); //ulam-4
     u32 getALocalsScopeRegistrationNumber(UTI cuti); //ulam-4
+    ELE_TYPE getAClassElementType(UTI cuti); //ulam-4
+    ELE_TYPE getNextElementType(); //ulam-4 incrementally
 
     NodeBlockClass * getAClassBlock(UTI cuti);
     NNO getAClassBlockNo(UTI cuti);
@@ -592,11 +595,13 @@ namespace MFM{
     bool isALocalsFileScope(UTI uti);
     bool isAClass(UTI uti);
     bool isASeenClass(UTI cuti);
+    bool isASeenElement(UTI cuti);
     bool isAnonymousClass(UTI cuti);
     void saveUrSelf(UTI uti);
     bool isUrSelf(UTI cuti);
-    void saveEmptyUTI(UTI uti);
-    bool isEmpty(UTI cuti);
+    void saveEmptyElementUTI(UTI uti);
+    bool isEmptyElement(UTI cuti);
+    UTI getEmptyElementUTI();
     bool okUTItoContinue(UTI uti);
     bool neitherNAVokUTItoContinue(UTI uti1, UTI uti2); //false if either is Nav
     bool checkHasHazyKin(NodeBlock * block);
@@ -614,6 +619,7 @@ namespace MFM{
   private:
     ClassContextStack m_classContextStack; // the current subject of this compilation
     u32 m_registeredUlamClassCount; //borrowed from UlamClass in MFM
+    ElementTypeGenerator m_elementTypeGenerator; //ulam-4 increment version
 
   };
 }

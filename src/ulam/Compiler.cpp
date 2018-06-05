@@ -129,6 +129,30 @@ namespace MFM {
 	  }
       }
 
+#if 0
+    if(!perrs)
+      {
+	m_state.defineElementTypesForUlamClasses(); //ulam-4
+	perrs = m_state.m_err.getErrorCount();
+	if(perrs > 0)
+	  {
+	    std::ostringstream msg;
+	    errput->write("Unrecoverable Element Type Assignment FAILURE.\n");
+	  }
+      }
+
+    if(!perrs)
+      {
+	m_state.m_programDefST.buildDefaultValuesFromTableOfClasses();
+	perrs = m_state.m_err.getErrorCount(); //latest count
+	if(perrs > 0)
+	  {
+	    std::ostringstream msg;
+	    errput->write("Unrecoverable FAILURE Building Default Values.\n");
+	  }
+      }
+#endif
+
     if(!perrs)
       {
 	m_state.generateCodeForUlamClasses(outfm);

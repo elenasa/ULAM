@@ -728,6 +728,7 @@ namespace MFM {
 	    else
 	      rtnuti = uti;  //t41216
 
+	    //ulam-4 we can't wait for batch-style Element-Type assignment (e.g. t41230)
 	    //tries to pack bits if complete
 	    if(buildDefaultValueForClassConstantDefs())
 	      {
@@ -881,8 +882,23 @@ namespace MFM {
     else if(m_nodeExpr->isAList())
       {
 	if(((NodeList *) m_nodeExpr)->foldArrayInitExpression())
-	  if(((NodeList *) m_nodeExpr)->buildArrayValueInitialization(bvtmp))
-	    brtn = true;
+	  {
+	    if(m_state.isAClass(nuti))
+	      {
+		BV8K bvclass;
+		if(!m_state.getDefaultClassValue(nuti, bvclass))
+		  return false; //possibly not ready (t41271,2,3)
+
+		UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
+		UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
+		UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+		m_state.getDefaultAsArray(scalarut->getSizeofUlamType(), nut->getArraySize(), 0, bvclass, bvtmp); //t41179
+	      }
+
+	    if(((NodeList *) m_nodeExpr)->buildArrayValueInitialization(bvtmp))
+	      brtn = true;
+	  }
 	//else no good (error/t41181)
       }
     else
@@ -897,7 +913,6 @@ namespace MFM {
 	else
 	  m_constSymbol->setValue(bvtmp); //isReady now! (e.g. ClassArgument, ModelParameter)
       }
-
     return brtn;
   } //foldArrayInitExpression
 
@@ -969,6 +984,7 @@ namespace MFM {
     return; //pass on
   }
 
+#if 0
   void NodeConstantDef::genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr)
   {
     assert(m_constSymbol);
@@ -1075,6 +1091,7 @@ namespace MFM {
       }
     return;
   } //genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar
+#endif
 
   void NodeConstantDef::fixPendingArgumentNode()
   {
@@ -1471,9 +1488,10 @@ namespace MFM {
 	//output comment for scalar constant value
 	m_state.indentUlamCode(fp);
 	fp->write("//");
-	std::ostringstream ostream;
-	ostream << " 0x" << std::hex << sval;
-	fp->write(ostream.str().c_str());
+	//std::ostringstream ostream;
+	//ostream << " 0x" << std::hex << sval;
+	//fp->write(ostream.str().c_str());
+	fp->write_hexadecimal(sval);
 	fp->write(" -> ");
 	m_constSymbol->printPostfixValue(fp);
 	GCNL;

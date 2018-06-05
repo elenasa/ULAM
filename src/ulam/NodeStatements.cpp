@@ -214,6 +214,7 @@ namespace MFM {
     return;
   }
 
+#if 0
   void NodeStatements::genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr)
   {
     if(m_node)
@@ -221,6 +222,7 @@ namespace MFM {
     if(m_nodeNext)
       m_nodeNext->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, startpos, uvpassptr);
   }
+#endif
 
   EvalStatus NodeStatements::eval()
   {
