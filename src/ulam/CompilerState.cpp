@@ -2646,13 +2646,6 @@ namespace MFM {
       }
   }
 
-#if 0
-  void CompilerState::defineElementTypesForUlamClasses()
-  {
-    m_programDefST.defineElementTypeForTableOfClasses();
-  }
-#endif
-
   void CompilerState::generateCodeForUlamClasses(FileManager * fm)
   {
     m_programDefST.genCodeForTableOfClasses(fm);

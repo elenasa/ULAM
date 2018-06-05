@@ -1715,44 +1715,6 @@ namespace MFM {
       }
   } //assignRegistrationNumberForClassInstances
 
-#if 0
-  u32 SymbolClassNameTemplate::countCompleteUniqueClassInstances()
-  {
-    u32 count = 0;
-    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
-    while(it != m_scalarClassArgStringsToSymbolPtr.end())
-      {
-	SymbolClass * csym = it->second;
-	assert(!csym->isStub());
-	UTI suti = csym->getUlamTypeIdx();
-	if(m_state.isComplete(suti))
-	  {
-	    count++; //this instance
-	  }
-	it++;
-      }
-    return count;
-  } //countCompleteUniqueClassInstances
-#endif
-
-#if 0
-  void SymbolClassNameTemplate::assignElementTypeForClassInstances(ElementTypeGenerator& etgref)
-  {
-    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
-    while(it != m_scalarClassArgStringsToSymbolPtr.end())
-      {
-	SymbolClass * csym = it->second;
-	assert(!csym->isStub());
-	UTI suti = csym->getUlamTypeIdx();
-	if(m_state.isComplete(suti))
-	  {
-	    csym->assignElementType(etgref.getNextType()); //this instance
-	  }
-	it++;
-      }
-  } //assignElementTypeForClassInstances
-#endif
-
   void SymbolClassNameTemplate::generateCodeForClassInstances(FileManager * fm)
   {
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();

@@ -886,30 +886,8 @@ namespace MFM {
       }
     else if(Node::isCurrentObjectsContainingAConstantClass() >= 0)
       {
-#if 0
-	//efficiency, for constant indexes of arrays in constant classes
-	// doesn't help much with fixing Element Types or Strings!!
-	if(m_nodeRight->isAConstant())
-	  {
-	    s32 rindex;
-	    UTI rt;
-	    if(getArraysizeInBracket(rindex,rt)) //t41198
-	      {
-		assert((rindex >= 0) && (rindex < m_state.getArraySize(leftType))); //catchable during c&l
-		UVPass luvpass = uvpass; //t3615 passes along if rhs of memberselect
-		m_nodeLeft->genCodeToStoreInto(fp, luvpass);
-		Node::genCodeReadArrayItemFromAConstantClassIntoATmpVarWithConstantIndex(fp, luvpass, rindex);
-		uvpass = luvpass;
-	      }
-	    else
-	      m_state.abortShouldntGetHere(); //error, msg? UNKNOWN?
-	  }
-	else
-#endif
-	  {
-	    genCodeToStoreInto(fp, uvpass); //t41198
-	    m_state.clearCurrentObjSymbolsForCodeGen();
-	  }
+	genCodeToStoreInto(fp, uvpass); //t41198
+	m_state.clearCurrentObjSymbolsForCodeGen();
 	return;
       }
     //else continue..

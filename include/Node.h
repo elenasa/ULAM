@@ -193,9 +193,7 @@ namespace MFM{
 
     virtual bool initDataMembersConstantValue(BV8K& bvref, BV8K& bvmask);
 
-    virtual void genCodeDefaultValue(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr);
-
-    //virtual void genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr);
+    //    virtual void genCodeDefaultValue(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr);
 
     virtual bool installSymbolTypedef(TypeArgs& args, Symbol *& asymptr);
 

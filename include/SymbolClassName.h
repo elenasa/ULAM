@@ -100,9 +100,6 @@ namespace MFM{
 
     virtual void assignRegistrationNumberForClassInstances(u32& count); //ulam-4
 
-//virtual u32 countCompleteUniqueClassInstances();
-//   virtual void assignElementTypeForClassInstances(ElementTypeGenerator& etgref);
-
     virtual void generateCodeForClassInstances(FileManager * fm);
 
     virtual void generateIncludesForClassInstances(File * fp);

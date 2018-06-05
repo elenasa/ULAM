@@ -7,10 +7,6 @@
 #include "SymbolVariableDataMember.h"
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
-//#include "MapDataMemberDesc.h"
-//#include "MapParameterDesc.h"
-//#include "MapConstantDesc.h"
-//#include "MapTypedefDesc.h"
 
 namespace MFM {
 

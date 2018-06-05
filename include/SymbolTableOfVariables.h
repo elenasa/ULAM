@@ -32,8 +32,6 @@
   \date (C) 2014-2018 All rights reserved.
   \gpl
 */
-
-
 #ifndef SYMBOLTABLEOFVARIABLES_H
 #define SYMBOLTABLEOFVARIABLES_H
 

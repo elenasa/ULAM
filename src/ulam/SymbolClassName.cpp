@@ -358,29 +358,6 @@ namespace MFM {
     SymbolClass::assignRegistryNumber(count++);
   } //assignRegistrationNumberForClassInstances
 
-#if 0
-  u32 SymbolClassName::countCompleteUniqueClassInstances()
-  {
-    UTI suti = SymbolClass::getUlamTypeIdx();
-    if(m_state.isComplete(suti))
-      {
-	return 1;
-      }
-    return 0;
-  } //countCompleteUniqueClassInstances
-#endif
-
-#if 0
-  void SymbolClassName::assignElementTypeForClassInstances(ElementTypeGenerator& etgref)
-  {
-    UTI suti = SymbolClass::getUlamTypeIdx();
-    if(m_state.isComplete(suti))
-      {
-	SymbolClass::assignElementType(etgref.getNextType()); //this instance
-      }
-  } //assignElementTypeForClassInstances
-#endif
-
   void SymbolClassName::generateCodeForClassInstances(FileManager * fm)
   {
     NodeBlockClass * classNode = getClassBlockNode();

@@ -979,118 +979,11 @@ namespace MFM {
     return rtnok;
   } //buildDefaultValueForClassConstantDefs
 
+#if 0
   void NodeConstantDef::genCodeDefaultValue(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
   {
     return; //pass on
   }
-
-#if 0
-  void NodeConstantDef::genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr)
-  {
-    assert(m_constSymbol);
-    bool inDefault = (uvpassptr == NULL);
-
-    UTI nuti = getNodeType();
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMCLASSTYPE nclasstype = nut->getUlamClassType();
-    if(nclasstype == UC_ELEMENT)
-      {
-	s32 arraysize = nut->getArraySize();
-	arraysize = ((arraysize == NONARRAYSIZE) ? 1 : arraysize); //allow zero
-
-	m_state.indent(fp);
-	fp->write("{\n"); //limit scope of 'dam'
-	m_state.m_currentIndentLevel++;
-
-	m_state.indent(fp);
-	fp->write("AtomBitStorage<EC> gda(");
-	fp->write(m_state.getTheInstanceMangledNameByIndex(nuti).c_str());
-	fp->write(".GetDefaultAtom());"); GCNL;
-
-	m_state.indent(fp);
-	fp->write("u32 typefield = gda.Read(0u, T::ATOM_FIRST_STATE_BIT);"); GCNL; //can't use GetType");
-
-	for(s32 i = 0; i < arraysize; i++) //e.g. t3714 (array of element dm); t3735
-	  {
-	    if(inDefault)
-	      {
-		m_state.indent(fp);
-		fp->write("initBV");
-	      }
-	    else
-	      {
-		m_state.indentUlamCode(fp);
-		fp->write(uvpassptr->getTmpVarAsString(m_state).c_str());
-	      }
-	    fp->write(".Write(");
-	    fp->write_decimal_unsigned(m_constSymbol->getPosOffset() + startpos);
-	    fp->write("u + ");
-	    fp->write_decimal_unsigned(i * BITSPERATOM);
-	    fp->write("u, T::ATOM_FIRST_STATE_BIT, typefield);"); GCNL;
-	  }
-
-	m_state.m_currentIndentLevel--;
-	m_state.indent(fp);
-	fp->write("}\n");
-      }
-    else if(nclasstype == UC_TRANSIENT)
-      {
-	s32 arraysize = nut->getArraySize();
-	arraysize = (arraysize <= 0 ? 1 : arraysize);
-
-	u32 len = nut->getBitSize(); //item
-	//any transient data members that may have element data members
-	SymbolClass * csym = NULL;
-	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
-	assert(isDefined);
-
-	NodeBlockClass * cblock = csym->getClassBlockNode();
-	assert(cblock);
-
-	for(s32 i = 0; i < arraysize; i++)
-	  cblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, m_constSymbol->getPosOffset() + startpos + i * len, uvpassptr);
-      }
-    else if(m_state.isAtom(nuti))
-      {
-	s32 arraysize = nut->getArraySize();
-	arraysize = (arraysize <= 0 ? 1 : arraysize);
-
-	m_state.indent(fp);
-	fp->write("{\n"); //limit scope of 'dam'
-	m_state.m_currentIndentLevel++;
-
-	m_state.indent(fp);
-	fp->write("AtomBitStorage<EC> gda(");
-	fp->write("Element_Empty<EC>::THE_INSTANCE.GetDefaultAtom());"); GCNL;
-
-	m_state.indent(fp);
-	fp->write("u32 typefield = gda.Read(0u, T::ATOM_FIRST_STATE_BIT);"); GCNL; //can't use GetType");
-
-	for(s32 i = 0; i < arraysize; i++)
-	  {
-	    if(inDefault)
-	      {
-		m_state.indent(fp);
-		fp->write("initBV");
-	      }
-	    else
-	      {
-		m_state.indentUlamCode(fp);
-		fp->write(uvpassptr->getTmpVarAsString(m_state).c_str());
-	      }
-	    fp->write(".Write(");
-	    fp->write_decimal_unsigned(m_constSymbol->getPosOffset() + startpos);
-	    fp->write("u + ");
-	    fp->write_decimal_unsigned(i * BITSPERATOM);
-	    fp->write("u, T::ATOM_FIRST_STATE_BIT, typefield);"); GCNL;
-	  }
-
-	m_state.m_currentIndentLevel--;
-	m_state.indent(fp);
-	fp->write("}\n");
-      }
-    return;
-  } //genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar
 #endif
 
   void NodeConstantDef::fixPendingArgumentNode()
@@ -1488,9 +1381,6 @@ namespace MFM {
 	//output comment for scalar constant value
 	m_state.indentUlamCode(fp);
 	fp->write("//");
-	//std::ostringstream ostream;
-	//ostream << " 0x" << std::hex << sval;
-	//fp->write(ostream.str().c_str());
 	fp->write_hexadecimal(sval);
 	fp->write(" -> ");
 	m_constSymbol->printPostfixValue(fp);
@@ -1705,7 +1595,6 @@ namespace MFM {
     fp->write(m_constSymbol->getMangledName().c_str()); GCNL;
     fp->write("\n");
 
-#if 1
     //As static constant, output initialization in .tcc, something like this:
     //template<class EC>
     //typename MFM::Ui_Uq_102204QBar10<EC> MFM::Uq_10104QFoo10<EC>::Uc_6c_qbar(MFM::Uq_10104QFoo10<EC>::InitUc_6c_qbar());
@@ -1725,7 +1614,6 @@ namespace MFM {
     fp->write("()); //Def constant ");
     fp->write(getName()); GCNL;
     fp->write("\n");
-#endif
 
     //fix once constant class or array
     if((m_constSymbol->isLocalsFilescopeDef() ||  m_constSymbol->isDataMember()))

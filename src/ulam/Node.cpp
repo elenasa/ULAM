@@ -491,16 +491,11 @@ namespace MFM {
     return false; //only for NodeListClassInit, NodeListArrayIniti (t41185)
   }
 
+#if 0
   void Node::genCodeDefaultValue(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
   {
     m_state.abortShouldntGetHere();
     return;
-  }
-
-#if 0
-  void Node::genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr)
-  {
-    m_state.abortShouldntGetHere();
   }
 #endif
 
@@ -851,7 +846,7 @@ namespace MFM {
     //what if coslen is zero?
     u32 cospos = 0;
     ULAMCLASSTYPE cosclass = cosut->getUlamClassType();
-    ULAMTYPE cosetyp = cosut->getUlamTypeEnum();
+    //ULAMTYPE cosetyp = cosut->getUlamTypeEnum();
     bool cosIsTheConstantClass = (cos == ncsym);
 
     if(cosIsTheConstantClass) //cos is the constant class
@@ -915,6 +910,7 @@ namespace MFM {
 
     uvpass = UVPass::makePass(tmpVarNum, cstor, cosuti, m_state.determinePackable(cosuti), m_state, 0, 0); //POS 0 justified (atom-based).
 
+#if 0
     //fix element types and string reg nums; including an immediate funcvar constant class
     bool fixflag = (((cosetyp == Class) || !cosut->isScalar()) && (ncsym->isLocalsFilescopeDef() || ncsym->isDataMember()));
     //s32 tmpVarNumForQuark = 0;
@@ -936,12 +932,6 @@ namespace MFM {
     if(cosetyp == Class)
       {
 	UVPass * passptr = &uvpass;
-#if 0
-	//ulam-4 got it already
-	if(cosclass == UC_ELEMENT)
-	  genFixForElementTypeFieldInTmpVarOfConstantClass(fp, uvpass);
-#endif
-
 	BV8K bvclass;
 	AssertBool gotVal = ncsym->getValue(bvclass);
 	assert(gotVal);
@@ -959,9 +949,6 @@ namespace MFM {
 	u32 arraysize = cosut->isScalar() ? 1 : cosut->getArraySize();
 	for(u32 i = 0; i < arraysize; i++)
 	  {
-	    //only transients can have elements as data members (et ok, ulam-4)
-	    //if(cosclass == UC_TRANSIENT)
-	    //  cblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, cospos + i * len, &uvpass);
 	    //All class/classarray can have data member(s) with initial values
 	    cblock->genCodeDefaultValue(fp, cospos + i * len, passptr, &bvclass);
 	  }
@@ -985,6 +972,7 @@ namespace MFM {
       genConstantClassMangledName(fp, "_isFixed"); GCNL;
       fp->write("\n");
     }
+#endif
     // note: Ints not sign extended until used/cast
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeReadFromAConstantClassIntoATmpVar
@@ -1019,8 +1007,8 @@ namespace MFM {
     s32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
 
     UTI cosuti = cos->getUlamTypeIdx();
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    ULAMTYPE cosetyp = cosut->getUlamTypeEnum();
+    //UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+    //ULAMTYPE cosetyp = cosut->getUlamTypeEnum();
     u32 cospos = 0;
     bool cosIsTheConstantClass = (cos == ncsym);
 
@@ -1091,6 +1079,7 @@ namespace MFM {
 
     luvpass = UVPass::makePass(tmpVarNum, slstor, scalarluti, m_state.determinePackable(scalarluti), m_state, 0, 0); //POS 0 justified (atom-based).
 
+#if 0
     // fixes data member elements (e.g. in a transient, t41267)
     if(ncsym->isDataMember() || ncsym->isLocalsFilescopeDef())
       {
@@ -1116,12 +1105,6 @@ namespace MFM {
 	if(cosetyp == Class)
 	  {
 	    UVPass * passptr = &luvpass;
-#if 0
-	    //ulam-4 got it already
-	    if((sclasstype == UC_ELEMENT))
-	      genFixForElementTypeFieldInTmpVarOfConstantClass(fp, luvpass);
-#endif
-
 	    BV8K bvclass;
 	    AssertBool gotVal = ncsym->getValue(bvclass);
 	    assert(gotVal);
@@ -1134,8 +1117,6 @@ namespace MFM {
 	    //scalar item, no loop (t41267,8,9, t41270,1,2)
 	    cblock->genCodeDefaultValue(fp, cospos, passptr, &bvclass); //t41267
 
-	    //if(sclasstype == UC_TRANSIENT)
-	    //  cblock->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, cospos, &luvpass); //t41263
 	    if(fixflag)
 	      {
 		m_state.indentUlamCode(fp);
@@ -1163,6 +1144,7 @@ namespace MFM {
 	  }
       }
     // else not necessary for local func constant (already done)
+#endif
 
    // note: Ints not sign extended until used/cast
     m_state.clearCurrentObjSymbolsForCodeGen();

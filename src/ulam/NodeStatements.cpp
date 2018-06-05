@@ -205,6 +205,7 @@ namespace MFM {
     return aok;
   }
 
+#if 0
   void NodeStatements::genCodeDefaultValue(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
   {
     if(m_node)
@@ -212,15 +213,6 @@ namespace MFM {
     if(m_nodeNext)
       m_nodeNext->genCodeDefaultValue(fp, startpos, uvpassptr, bv8kptr);
     return;
-  }
-
-#if 0
-  void NodeStatements::genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr)
-  {
-    if(m_node)
-      m_node->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, startpos, uvpassptr);
-    if(m_nodeNext)
-      m_nodeNext->genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(fp, startpos, uvpassptr);
   }
 #endif
 

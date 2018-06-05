@@ -526,17 +526,11 @@ namespace MFM {
     return true; //pass on
   } //buildDataMemberConstantValue
 
+#if 0
   void NodeInitDM::genCodeDefaultValue(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
   {
     m_state.abortNotImplementedYet(); //???
     return; //pass on
-  }
-
-#if 0
-  void NodeInitDM::genCodeElementTypeIntoDataMemberDefaultValueOrTmpVar(File * fp, u32 startpos, const UVPass * const uvpassptr)
-  {
-    m_state.abortNotImplementedYet(); //???
-    return;
   }
 #endif
 
