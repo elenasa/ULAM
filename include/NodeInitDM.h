@@ -74,8 +74,6 @@ namespace MFM{
 
     bool initDataMemberConstantValue(BV8K& dvref, BV8K& bvmask);
 
-    //    virtual void genCodeDefaultValue(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr);
-
     virtual void fixPendingArgumentNode();
 
     virtual bool assignClassArgValueInStubCopy();

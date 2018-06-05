@@ -81,8 +81,6 @@ namespace MFM{
 
     virtual bool buildDefaultValueForClassConstantDefs();
 
-    //    virtual void genCodeDefaultValue(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr);
-
     virtual void setInitExpr(Node * node); //was setConstantExpr
 
     virtual bool foldArrayInitExpression(); //was foldConstantExpression

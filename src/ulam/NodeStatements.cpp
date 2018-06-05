@@ -205,17 +205,6 @@ namespace MFM {
     return aok;
   }
 
-#if 0
-  void NodeStatements::genCodeDefaultValue(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
-  {
-    if(m_node)
-      m_node->genCodeDefaultValue(fp, startpos, uvpassptr, bv8kptr);
-    if(m_nodeNext)
-      m_nodeNext->genCodeDefaultValue(fp, startpos, uvpassptr, bv8kptr);
-    return;
-  }
-#endif
-
   EvalStatus NodeStatements::eval()
   {
     assert(m_node);

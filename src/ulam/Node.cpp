@@ -491,14 +491,6 @@ namespace MFM {
     return false; //only for NodeListClassInit, NodeListArrayIniti (t41185)
   }
 
-#if 0
-  void Node::genCodeDefaultValue(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
-  {
-    m_state.abortShouldntGetHere();
-    return;
-  }
-#endif
-
   bool Node::installSymbolTypedef(TypeArgs& args, Symbol *& asymptr)
   {
     return false;
@@ -910,69 +902,6 @@ namespace MFM {
 
     uvpass = UVPass::makePass(tmpVarNum, cstor, cosuti, m_state.determinePackable(cosuti), m_state, 0, 0); //POS 0 justified (atom-based).
 
-#if 0
-    //fix element types and string reg nums; including an immediate funcvar constant class
-    bool fixflag = (((cosetyp == Class) || !cosut->isScalar()) && (ncsym->isLocalsFilescopeDef() || ncsym->isDataMember()));
-    //s32 tmpVarNumForQuark = 0;
-    UVPass quvpass;
-
-  if(fixflag)
-    {
-      m_state.indentUlamCode(fp);
-      fp->write("if(!");
-      genConstantClassMangledName(fp, "THE_INSTANCE._isFixedMethodFor");
-      fp->write("())\n");
-      m_state.indentUlamCode(fp);
-      fp->write("{\n");
-
-      m_state.m_currentIndentLevel++;
-      //and continue to fix it..
-    }
-
-    if(cosetyp == Class)
-      {
-	UVPass * passptr = &uvpass;
-	BV8K bvclass;
-	AssertBool gotVal = ncsym->getValue(bvclass);
-	assert(gotVal);
-
-	SymbolClass * csym = NULL;
-	AssertBool isDef = m_state.alreadyDefinedSymbolClass(cosuti, csym);
-	assert(isDef);
-	NodeBlockClass * cblock = csym->getClassBlockNode();
-	assert(cblock);
-
-	//cosclass element: t41230, t41232, t41267, t41273, t41274
-	//cosclass transient: t41263, t41267, t41271
-	//cosclass quark: (could have a String)
-	u32 len = cosut->isScalar() ? coslen : m_state.getUlamTypeByIndex(m_state.getUlamTypeAsScalar(cosuti))->getSizeofUlamType();
-	u32 arraysize = cosut->isScalar() ? 1 : cosut->getArraySize();
-	for(u32 i = 0; i < arraysize; i++)
-	  {
-	    //All class/classarray can have data member(s) with initial values
-	    cblock->genCodeDefaultValue(fp, cospos + i * len, passptr, &bvclass);
-	  }
-      }
-
-  if(fixflag)
-    {
-      m_state.indentUlamCode(fp);
-      genConstantClassMangledName(fp);
-      fp->write(".write(");
-      fp->write(uvpass.getTmpVarAsString(m_state).c_str());
-      fp->write("); //constant fixed"); GCNL;
-
-      m_state.indentUlamCode(fp);
-      genConstantClassMangledName(fp, "THE_INSTANCE._isFixedSetMethodFor");
-      fp->write("(); //set entire isFixed flag"); GCNL;
-
-      m_state.m_currentIndentLevel--;
-      m_state.indentUlamCode(fp);
-      fp->write("} //"); //comment
-      genConstantClassMangledName(fp, "_isFixed"); GCNL;
-      fp->write("\n");
-    }
-#endif
     // note: Ints not sign extended until used/cast
     m_state.clearCurrentObjSymbolsForCodeGen();
   } //genCodeReadFromAConstantClassIntoATmpVar
@@ -1078,73 +1007,6 @@ namespace MFM {
     GCNL;
 
     luvpass = UVPass::makePass(tmpVarNum, slstor, scalarluti, m_state.determinePackable(scalarluti), m_state, 0, 0); //POS 0 justified (atom-based).
-
-#if 0
-    // fixes data member elements (e.g. in a transient, t41267)
-    if(ncsym->isDataMember() || ncsym->isLocalsFilescopeDef())
-      {
-	bool fixflag = cosIsTheConstantClass;
-	//s32 tmpVarNumForQuark = 0;
-	UVPass quvpass;
-
-	if(fixflag)
-	  {
-	    m_state.indentUlamCode(fp);
-	    fp->write("if(!");
-	    genConstantClassMangledName(fp, "THE_INSTANCE._isFixedMethodFor");
-	    fp->write("(");
-	    fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-	    fp->write(", 1u))\n");
-	    m_state.indentUlamCode(fp);
-	    fp->write("{\n");
-
-	    m_state.m_currentIndentLevel++;
-	    //and continue to fix one array item..
-	  }
-
-	if(cosetyp == Class)
-	  {
-	    UVPass * passptr = &luvpass;
-	    BV8K bvclass;
-	    AssertBool gotVal = ncsym->getValue(bvclass);
-	    assert(gotVal);
-
-	    SymbolClass * csym = NULL;
-	    AssertBool isDef = m_state.alreadyDefinedSymbolClass(cosuti, csym);
-	    assert(isDef);
-	    NodeBlockClass * cblock = csym->getClassBlockNode();
-	    assert(cblock);
-	    //scalar item, no loop (t41267,8,9, t41270,1,2)
-	    cblock->genCodeDefaultValue(fp, cospos, passptr, &bvclass); //t41267
-
-	    if(fixflag)
-	      {
-		m_state.indentUlamCode(fp);
-		genConstantClassMangledName(fp);
-		fp->write(".writeArrayItem(");
-		fp->write(luvpass.getTmpVarAsString(m_state).c_str());
-		fp->write(", ");
-		fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-		fp->write(", ");
-		fp->write_decimal_unsigned(itemlen);
-		fp->write("u); //constant array item fixed"); GCNL;
-
-		m_state.indentUlamCode(fp);
-		genConstantClassMangledName(fp, "THE_INSTANCE._isFixedSetMethodFor");
-		fp->write("(");
-		fp->write(ruvpass.getTmpVarAsString(m_state).c_str());
-		fp->write(", 1u); ////set isFixed flag for item"); GCNL;
-
-		m_state.m_currentIndentLevel--;
-		m_state.indentUlamCode(fp);
-		fp->write("} //"); //comment
-		genConstantClassMangledName(fp, "_isFixed"); GCNL;
-		fp->write("\n");
-	      }
-	  }
-      }
-    // else not necessary for local func constant (already done)
-#endif
 
    // note: Ints not sign extended until used/cast
     m_state.clearCurrentObjSymbolsForCodeGen();
@@ -1532,6 +1394,7 @@ namespace MFM {
     fp->write("\n");
   } //restoreElementTypeForAncestorCasting
 
+#if 0
   void Node::genFixForElementTypeFieldInTmpVarOfConstantClass(File * fp, const UVPass & uvpass)
   {
     UTI vuti = uvpass.getPassTargetType();
@@ -1576,6 +1439,7 @@ namespace MFM {
     m_state.indentUlamCode(fp);
     fp->write("}\n");
   } //genFixForElementTypeFieldInTmpVarOfConstantClass
+#endif
 
   // write out intermediate tmpVar as temp BitVector, e.g. func args, question-colon
   //for func args, the type of the funccall node isn't the type of the argument;

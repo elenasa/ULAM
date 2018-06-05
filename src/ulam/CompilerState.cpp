@@ -1502,17 +1502,6 @@ namespace MFM {
     indent(fp);
     fp->write("initBV.FromArray(vales);"); GCNL; //t3776
 
-    if(!isThisLocalsFileScope()) //t3972,73
-      {
-	//static variable 'myRegNum' efficiency not worth it. Tue Jan 16 17:47:22 2018
-	indent(fp);
-	fp->write("//correct data member inits\n");
-#if 0
-	//ulam-4
-	getCurrentBlock()->genCodeDefaultValue(fp, 0, NULL, NULL);
-#endif
-      }
-
     m_currentIndentLevel--;
 
     indent(fp);

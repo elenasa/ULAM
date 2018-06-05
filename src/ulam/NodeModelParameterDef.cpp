@@ -76,13 +76,6 @@ namespace MFM {
     return true;
   }
 
-#if 0
-  void NodeModelParameterDef::genCodeDefaultValue(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
-  {
-    return;
-  }
-#endif
-
   void NodeModelParameterDef::checkForSymbol()
   {
     assert(!m_constSymbol);

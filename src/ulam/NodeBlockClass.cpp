@@ -1026,25 +1026,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     return aok;
   } //buildDefaultValueForClassConstantDefs
 
-#if 0
-  void NodeBlockClass::genCodeDefaultValue(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
-  {
-    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClassType();
-    if(classtype == UC_ELEMENT)
-      startpos += ATOMFIRSTSTATEBITPOS; //t3972
-
-    if((m_state.isClassASubclass(getNodeType()) != Nouti))
-      {
-	NodeBlockClass * superblock = getSuperBlockPointer();
-	assert(superblock);
-	superblock->genCodeDefaultValue(fp, startpos, uvpassptr, bv8kptr);
-      }
-
-    if(m_nodeNext)
-      m_nodeNext->genCodeDefaultValue(fp, startpos, uvpassptr, bv8kptr); //side-effect for dm vardecls
-  }
-#endif
-
   EvalStatus NodeBlockClass::eval()
   {
     //#define _DEBUG_SKIP_EVAL

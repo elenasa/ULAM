@@ -66,8 +66,6 @@ namespace MFM{
 
     virtual bool buildDefaultValueForClassConstantDefs();
 
-    //    virtual void genCodeDefaultValue(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr);
-
     virtual void genCode(File * fp, UVPass& uvpass);
 
     virtual void addMemberDescriptionToInfoMap(UTI classType, ClassMemberMap& classmembers);

@@ -979,13 +979,6 @@ namespace MFM {
     return rtnok;
   } //buildDefaultValueForClassConstantDefs
 
-#if 0
-  void NodeConstantDef::genCodeDefaultValue(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
-  {
-    return; //pass on
-  }
-#endif
-
   void NodeConstantDef::fixPendingArgumentNode()
   {
     assert(m_constSymbol);
@@ -1318,7 +1311,7 @@ namespace MFM {
       {
 	if(m_constSymbol->isLocalsFilescopeDef() ||  m_constSymbol->isDataMember())
 	  {
-	    u32 arraysize = nut->getArraySize();
+	    //u32 arraysize = nut->getArraySize();
 
 	    //as a "data member", locals filescope, or class arguement:
 	    // initialized in no-arg constructor (non-const)
@@ -1329,6 +1322,7 @@ namespace MFM {
 	    fp->write(m_constSymbol->getMangledName().c_str());
 	    fp->write(";"); GCNL;
 
+#if 0
 	    //fix once
 	    m_state.indentUlamCode(fp);
 	    fp->write("BitVector<");
@@ -1336,6 +1330,7 @@ namespace MFM {
 	    fp->write("> _isFixed");
 	    fp->write(m_constSymbol->getMangledName().c_str());
 	    fp->write(";"); GCNL;
+#endif
 	  }
 	else if(m_constSymbol->isClassArgument())
 	  {
@@ -1407,6 +1402,7 @@ namespace MFM {
 	    fp->write(estr.c_str());
 	    GCNL;
 
+#if 0
 	    //fix once flag, scalar constant class
 	    if(!m_constSymbol->isClassArgument())
 	      {
@@ -1415,6 +1411,7 @@ namespace MFM {
 		fp->write(m_constSymbol->getMangledName().c_str());
 		fp->write(";"); GCNL;
 	      }
+#endif
 	  }
 	else
 	  {
@@ -1439,6 +1436,7 @@ namespace MFM {
 	    fp->write(getName()); //comment
 	    GCNL;
 
+#if 0
 	    // in case of element or transient with element dm to fix element type;
 	    // no longer needed for quarks (ulam-4) since strings don't need fixing (t41209);
 	    if(nut->getUlamClassType() != UC_QUARK)
@@ -1453,6 +1451,7 @@ namespace MFM {
 		fp->write(tmpuvpass.getTmpVarAsString(m_state).c_str());
 		fp->write(");"); GCNL;
 	      }
+#endif
 	  }
       } //else do nothing
     return; //done
@@ -1513,6 +1512,7 @@ namespace MFM {
 	fp->write("();"); GCNL;
 	fp->write("\n");
 
+#if 0
 	//declare methods to check/set fix once for arrays and/or class constants
 	if((m_constSymbol->isLocalsFilescopeDef() ||  m_constSymbol->isDataMember()))
 	  {
@@ -1531,6 +1531,7 @@ namespace MFM {
 	    fp->write(");"); GCNL;
 	    fp->write("\n");
 	  }
+#endif
 	return;
       }
 
@@ -1615,6 +1616,7 @@ namespace MFM {
     fp->write(getName()); GCNL;
     fp->write("\n");
 
+#if 0
     //fix once constant class or array
     if((m_constSymbol->isLocalsFilescopeDef() ||  m_constSymbol->isDataMember()))
       {
@@ -1696,6 +1698,7 @@ namespace MFM {
 	fp->write(m_constSymbol->getMangledName().c_str()); GCNL;
 	fp->write("\n");
       }
+#endif
   } //generateBuiltinConstantClassOrArrayInitializationFunction
 
   void NodeConstantDef::cloneAndAppendNode(std::vector<Node *> & cloneVec)

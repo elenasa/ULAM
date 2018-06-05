@@ -526,14 +526,6 @@ namespace MFM {
     return true; //pass on
   } //buildDataMemberConstantValue
 
-#if 0
-  void NodeInitDM::genCodeDefaultValue(File * fp, u32 startpos, const UVPass * const uvpassptr, const BV8K * const bv8kptr)
-  {
-    m_state.abortNotImplementedYet(); //???
-    return; //pass on
-  }
-#endif
-
   void NodeInitDM::fixPendingArgumentNode()
   {
     m_state.abortShouldntGetHere();
