@@ -988,11 +988,19 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_buildingDefaultValueInProgress = true; //set
 
     bool aok = true;
-    if((m_state.isClassASubclass(getNodeType()) != Nouti))
+    UTI nuti = getNodeType();
+    UTI superuti = m_state.isClassASubclass(nuti);
+    if(( superuti != Nouti))
       {
-	NodeBlockClass * superblock = getSuperBlockPointer();
-	assert(superblock);
-	aok = superblock->buildDefaultValue(wlen, dvref);
+	//cleaner not circumventing SymbolClass (e.g. t41182,3, t3532)
+	BV8K bvsuper;
+	if((aok = m_state.getDefaultClassValue(superuti, bvsuper)))
+	{
+	  u32 pos = 0;
+	  if(m_state.getUlamTypeByIndex(nuti)->getUlamClassType() == UC_ELEMENT)
+	    pos += ATOMFIRSTSTATEBITPOS;
+	  bvsuper.CopyBV(0, pos, m_state.getUlamTypeByIndex(superuti)->getSizeofUlamType(), dvref);
+	}
       }
 
     if(aok)

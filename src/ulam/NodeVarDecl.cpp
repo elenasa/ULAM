@@ -5,11 +5,7 @@
 #include "SymbolVariableDataMember.h"
 #include "SymbolVariableStack.h"
 #include "NodeIdent.h"
-//#include "NodeConstantArray.h"
-//#include "NodeConstantClassArray.h"
-//#include "NodeListArrayInitialization.h"
-//#include "NodeMemberSelect.h"
-//#include "NodeSquareBracket.h"
+#include "NodeListClassInit.h"
 #include "NodeVarRef.h"
 
 namespace MFM {
@@ -209,8 +205,27 @@ namespace MFM {
       }
     else if(m_nodeInitExpr->isAList())
       {
-	if(((NodeList *) m_nodeInitExpr)->foldArrayInitExpression())
-	  brtn = ((NodeList *) m_nodeInitExpr)->buildArrayValueInitialization(bvtmp);
+	if(((NodeList *) m_nodeInitExpr)->isEmptyList())
+	  {
+	    brtn = true; //41205
+	  }
+	else if(((NodeList *) m_nodeInitExpr)->foldArrayInitExpression())
+	  {
+	    if(m_state.isAClass(nuti))
+	      {
+		BV8K bvclass;
+		if(!m_state.getDefaultClassValue(nuti, bvclass))
+		  return false; //possibly not ready
+
+		UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
+		UlamType * scalarut = m_state.getUlamTypeByIndex(scalaruti);
+		UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+		m_state.getDefaultAsArray(scalarut->getSizeofUlamType(), nut->getArraySize(), 0, bvclass, bvtmp);
+	      }
+
+	    brtn = ((NodeList *) m_nodeInitExpr)->buildArrayValueInitialization(bvtmp);
+	  }
 	//else no good
       }
     else if(m_nodeInitExpr->isAConstant())
@@ -225,6 +240,40 @@ namespace MFM {
 
     return brtn;
   } //foldArrayInitExpression
+
+  bool NodeVarDecl::buildDefaultValueForClassConstantInitialization()
+  {
+    // ulam-4 since Strings and Element Types are now known at compile-time,
+    // c-99 constant class initialization can be done in one fell swoop!
+    // (instead of per DM at genCode/runtime);
+    bool rtnok = true;
+    UTI nuti = getNodeType();
+    assert(m_state.okUTItoContinue(nuti) && m_state.isComplete(nuti));
+    assert(m_nodeInitExpr);
+
+    if(m_state.tryToPackAClass(nuti) == TBOOL_TRUE) //uses scalar uti
+      {
+	BV8K bvclass;
+	if(m_state.getDefaultClassValue(nuti, bvclass)) //uses scalar uti
+	  {
+	    if(!((NodeList *) m_nodeInitExpr)->isEmptyList())
+	      {
+		BV8K bvmask;
+		if(((NodeListClassInit *) m_nodeInitExpr)->initDataMembersConstantValue(bvclass,bvmask))
+		  m_varSymbol->setInitValue(bvclass);
+		else
+		  rtnok = false;
+	      }
+	    else
+	      m_varSymbol->setInitValue(bvclass); //empty list uses default
+	  }
+	else
+	  rtnok = false; //default value not ready (t41182)
+      }
+    else
+      rtnok = false; //not packed yet
+    return rtnok;
+  } //buildDefaultValueForClassConstantInitialization
 
   FORECAST NodeVarDecl::safeToCastTo(UTI newType)
   {
@@ -532,7 +581,7 @@ namespace MFM {
 		  {
 		    if(m_state.okUTItoContinue(vit) && m_state.isScalar(vit) && !m_state.isAClass(vit))
 		      {
-			//error scalar class var with {} error/t41208, t41201
+			//error scalar non-class var with {} error/t41208, t41201
 			std::ostringstream msg;
 			msg << "Scalar primitive variable '";
 			msg << getName() << "' has improper {} initialization";
@@ -540,9 +589,7 @@ namespace MFM {
 			setNodeType(Nav);
 			return Nav;
 		      }
-		    //unlike NodeConstantDef we don't keep an empty list.
-		    delete m_nodeInitExpr;
-		    m_nodeInitExpr = NULL; //poof! gone hence forth.
+
 		  }
 		else
 		  {
@@ -569,38 +616,58 @@ namespace MFM {
 	  {
 	    if(!m_state.isScalar(vit) && m_nodeInitExpr->isAConstant())
 	      m_varSymbol->setHasInitValue(); //t3896
+
+	    if(m_state.isAClass(eit) && m_nodeInitExpr->isAList())
+	      m_varSymbol->setHasInitValue(); //t41185
+
 	  }
 
 	setNodeType(vit); //needed before safeToCast, and folding
 
-	if(!m_state.isScalar(eit))
-	//if(!m_state.isScalar(eit) && !m_state.isAClass(eit)) //t41185 can't fold classes wo reliable pos
+	if(m_state.okUTItoContinue(eit) && m_state.isComplete(eit))
 	  {
-	    if(m_state.okUTItoContinue(eit) && m_state.isComplete(eit))
+	    assert(m_varSymbol);
+	    //constant fold if possible, set symbol value
+	    if(m_nodeInitExpr && m_varSymbol->hasInitValue() && !m_varSymbol->isInitValueReady())
 	      {
-		assert(m_varSymbol);
-		//constant fold if possible, set symbol value
-		if(m_varSymbol->hasInitValue())
+		bool foldok = true;
+		if(!m_state.isScalar(eit))
 		  {
+		    foldok = foldArrayInitExpression(); //sets init constant value
+		  }
+		else if(m_state.isAClass(eit) && m_nodeInitExpr->isAList())
+		  {
+		    // (possibly init is not a list, but a class constant t41271)
+		    foldok = buildDefaultValueForClassConstantInitialization();
+		  }
+		//else scalar primitive w initial value
+
+		if(!foldok)
+		  {
+		    if((getNodeType() == Nav) || (m_nodeInitExpr->getNodeType() == Nav))
+		      {
+			std::ostringstream msg;
+			msg << "Initial value expression for: '";
+			msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+			msg << "', is invalid";
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			return Nav;
+		      }
+
 		    if(!(m_varSymbol->isInitValueReady()))
 		      {
-			if(!foldArrayInitExpression()) //sets init constant value
-			  {
-			    assert(m_nodeInitExpr);
-			    if((getNodeType() == Nav) || (m_nodeInitExpr->getNodeType() == Nav))
-			      return Nav;
-
-			    if(!(m_varSymbol->isInitValueReady()))
-			      {
-				setNodeType(Hzy);
-				m_state.setGoAgain(); //since not error
-				return Hzy;
-			      }
-			  }
+			std::ostringstream msg;
+			msg << "Initial value expression for: '";
+			msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+			msg << "', is not ready";
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WAIT);
+			setNodeType(Hzy);
+			m_state.setGoAgain(); //not error, msg needed (t41182)
+			return Hzy;
 		      }
-		  } //has init val
-	      }
-	  } //array initialization
+		  }
+	      } //has init val
+	  }
 
 	if(m_state.okUTItoContinue(eit) && m_state.okUTItoContinue(vit))
 	  checkSafeToCastTo(eit, vit); //may side-effect 'vit'
@@ -969,6 +1036,9 @@ namespace MFM {
     if(m_nodeInitExpr->isClassInit())
       return NORMAL; //t41171, t3706
 
+    if(m_nodeInitExpr->isAList() && ((NodeList *) m_nodeInitExpr)->isEmptyList())
+      return NORMAL; //t41206
+
     //note: continue with classes for their default values, varSymbol may not have an init value!
 
     EvalStatus evs = NORMAL; //init
@@ -1089,8 +1159,38 @@ namespace MFM {
 
     if(hasInitExpr())
       {
+	if(m_nodeInitExpr->isClassInit()) //t41171-4
+	  {
+	    //an immediate, with c-99 initialization (like NodeConstantDef)
+	    std::string estr;
+	    AssertBool gotVal = m_varSymbol->getClassValueAsHexString(estr);
+	    assert(gotVal);
+
+	    u32 len = vut->getSizeofUlamType();
+	    m_state.indentUlamCode(fp);
+	    fp->write("const u32 _init");
+	    fp->write(m_varSymbol->getMangledName().c_str());
+	    fp->write("[(");
+	    fp->write_decimal_unsigned(len); //== [nwords]
+	    fp->write(" + 31)/32] = { ");
+	    fp->write(estr.c_str());
+	    fp->write(" };\n");
+
+	    m_state.indentUlamCode(fp); //non const
+	    fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
+	    fp->write(" ");
+	    fp->write(m_varSymbol->getMangledName().c_str());
+	    fp->write("(_init");
+	    fp->write(m_varSymbol->getMangledName().c_str());
+	    fp->write("); //initialized ");
+	    fp->write(getName()); //comment
+	    GCNL;
+	    return;
+	  }
+
+	bool isemptylist = m_nodeInitExpr->isAList() && ((NodeList *) m_nodeInitExpr)->isEmptyList();
 	//distinction between variable and instanceof
-	bool varcomesfirst = (m_nodeInitExpr->isAConstructorFunctionCall() && (m_nodeInitExpr->getReferenceAble() == TBOOL_TRUE)) || m_nodeInitExpr->isClassInit(); //t41077, t41085, t41171
+	bool varcomesfirst = (m_nodeInitExpr->isAConstructorFunctionCall() && (m_nodeInitExpr->getReferenceAble() == TBOOL_TRUE)) || isemptylist; //t41077, t41085, t41171
 
 	if(varcomesfirst)
 	  {
@@ -1103,8 +1203,7 @@ namespace MFM {
 	    fp->write(";"); GCNL; //func call args aren't NodeVarDecl's
 	  }
 
-	if(m_nodeInitExpr->isClassInit()) //t41171-4
-	  m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol); //*********UPDATED GLOBAL;
+	if(isemptylist) return; //t41201, t41206
 
 	UVPass uvpass2clear;
 	uvpass = uvpass2clear; //refresh

@@ -82,6 +82,8 @@ namespace MFM{
 
     virtual bool foldArrayInitExpression();
 
+    bool buildDefaultValueForClassConstantInitialization();
+
     virtual FORECAST safeToCastTo(UTI newType);
 
     virtual bool checkReferenceCompatibility(UTI uti);

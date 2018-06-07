@@ -940,8 +940,8 @@ namespace MFM {
 		  {
 		    if(m_nodeExpr->isAConstantClass())
 		      {
-			rtnok = m_nodeExpr->getConstantValue(bvtmp);
-			m_constSymbol->setValue(bvtmp);
+			if((rtnok = m_nodeExpr->getConstantValue(bvtmp)))
+			  m_constSymbol->setValue(bvtmp);
 		      }
 		    else if(m_nodeExpr->isAList())
 		      {

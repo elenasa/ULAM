@@ -302,20 +302,19 @@ namespace MFM {
 
     if(sut->getUlamClassType() == UC_ELEMENT)
       {
-	ELE_TYPE type = getElementType();
-	m_defaultValue.Write(0,ATOMFIRSTSTATEBITPOS, Parity2D_4x4::Add2DParity(type)); //t3173, t3206
+	//prepended before going to class block tp build the rest..
+	ELE_TYPE type = getElementType();  //t3173, t3206
+	dvref.Write(0,ATOMFIRSTSTATEBITPOS, Parity2D_4x4::Add2DParity(type));
       }
 
     NodeBlockClass * classblock = getClassBlockNode();
     assert(classblock);
     m_state.pushClassContext(suti, classblock, classblock, false, NULL); //missing?
 
-    m_isreadyDefaultValue = classblock->buildDefaultValue(usizeof, m_defaultValue);
+    if((m_isreadyDefaultValue = classblock->buildDefaultValue(usizeof, dvref)))
+      m_defaultValue = dvref;
 
     m_state.popClassContext();
-
-    dvref = m_defaultValue;
-
     return m_isreadyDefaultValue;
   } //getDefaultValue
 

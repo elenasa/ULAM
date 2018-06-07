@@ -480,7 +480,6 @@ namespace MFM {
 	  }
 	else
 	  {
-	    //if(m_state.getDefaultClassValue(nuti, bvclass)) //uses scalar uti
 	    BV8K bvtmpmask;
 	    rtnok = ((NodeListClassInit *) m_nodeExpr)->initDataMembersConstantValue(bvclass, bvtmpmask); //at pos 0, adjusted for elements! uses any pre-initialization (t41176,7,8)
 	  }
@@ -490,7 +489,13 @@ namespace MFM {
 	m_constSymbol->setInitValue(bvclass); //for consistency
       } //class, fall thru..
 
-    ULAMCLASSTYPE nclasstype = nut->getUlamClassType();
+    if(!m_constSymbol->isInitValueReady())
+      {
+	BV8K bvtmp;
+	bvref.CopyBV(pos, 0, len, bvtmp); //uses any pre-initialized value
+	m_constSymbol->setInitValue(bvtmp); //for consistency (t41206)
+      }
+
     if(len <= MAXBITSPERINT)
       {
 	u32 value = 0;
@@ -505,14 +510,6 @@ namespace MFM {
 	assert(gotVal);
 	bvref.WriteLong(pos, len, value);
       }
-    else if((nclasstype == UC_ELEMENT) && m_state.isScalar(nuti))
-      {
-	//copy state bits in position for atom-based element (t41232)
-	BV8K bvel;
-	AssertBool gotVal = m_constSymbol->getInitValue(bvel);
-	assert(gotVal);
-	bvel.CopyBV(0, pos, MAXSTATEBITS, bvref); //srcpos, dstpos, len, dest
-      }
     else
       {
 	BV8K val8k;
@@ -522,7 +519,6 @@ namespace MFM {
       }
 
     bvmask.SetBits(pos, len); //t3451, t41232
-
     return true; //pass on
   } //buildDataMemberConstantValue
 

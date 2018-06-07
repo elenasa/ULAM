@@ -730,21 +730,45 @@ namespace MFM {
     ULAMTYPE etyp = nut->getUlamTypeEnum();
     if(etyp == Class) //thisClass contains a different class
       {
-	assert(len <= wlen);
-	BV8K dmdv; //copies default BV
-
-	if(m_state.getDefaultClassValue(nuti, dmdv)) //uses scalar uti
+	if(hasInitExpr())
 	  {
-	    if(hasInitExpr())
+	    BV8K dmdv; //copies default BV
+	    if(m_varSymbol->isInitValueReady())
 	      {
-		BV8K bvmask;
-		if((aok = m_nodeInitExpr->initDataMembersConstantValue(dmdv, bvmask)))
-		  m_varSymbol->setInitValue(dmdv); //t41167,8  t41185 (handles arrays too)
+		aok = true; //NodeVarDecl tries to build initialized constant during c&l (ulam-4)
+	      }
+	    else if(m_nodeInitExpr->isAConstantClass())
+	      {
+		if((aok = m_nodeInitExpr->getConstantValue(dmdv)))
+		  m_varSymbol->setInitValue(dmdv); //t41229
+	      }
+	    else if(m_nodeInitExpr->isAList())
+	      {
+		if(m_state.getDefaultClassValue(nuti, dmdv)) //uses scalar uti
+		  {
+		    if(!((NodeList *) m_nodeInitExpr)->isEmptyList())
+		      {
+			BV8K bvmask;
+			if((aok = m_nodeInitExpr->initDataMembersConstantValue(dmdv, bvmask)))
+			  m_varSymbol->setInitValue(dmdv); //t41167,8 t41185(handles arrays)
+		      }
+		    else
+		      {
+			m_varSymbol->setInitValue(dmdv); //t41167,8 t41185(handles arrays)
+			aok = true; //no init expression, just the default (t3143)
+		      }
+		  }
+		//else not ok
 	      }
 	    else
-	      aok = true;
+	      m_state.abortShouldntGetHere();
 	  }
-	//else not ok
+	else //no node expression -- use default class value (t41232)
+	  {
+	    //	    if((aok = m_state.getDefaultClassValue(nuti, dmdv))) //uses scalar uti
+	    //  m_varSymbol->setInitValue(dmdv);
+	    aok = true;
+	  }
 
 	if(aok)
 	  {
